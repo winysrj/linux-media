@@ -1,1224 +1,360 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ed1-f67.google.com ([209.85.208.67]:34808 "EHLO
-        mail-ed1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727631AbeJTDum (ORCPT
+Received: from mail-pf1-f193.google.com ([209.85.210.193]:34776 "EHLO
+        mail-pf1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726027AbeJTENk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 Oct 2018 23:50:42 -0400
+        Sat, 20 Oct 2018 00:13:40 -0400
+Received: by mail-pf1-f193.google.com with SMTP id f78-v6so11180345pfe.1
+        for <linux-media@vger.kernel.org>; Fri, 19 Oct 2018 13:06:06 -0700 (PDT)
+Subject: Re: i.MX6 IPU CSI analog video input on Ventana
+To: Tim Harvey <tharvey@gateworks.com>,
+        =?UTF-8?Q?Krzysztof_Ha=c5=82asa?= <khalasa@piap.pl>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+        linux-media <linux-media@vger.kernel.org>
+References: <m37eobudmo.fsf@t19.piap.pl> <m3h8mxqc7t.fsf@t19.piap.pl>
+ <e7485d6e-d8e7-8111-c318-083228bf2a5c@gmail.com>
+ <1527229949.4938.1.camel@pengutronix.de> <m3y3g8p5j3.fsf@t19.piap.pl>
+ <1e11fa9a-8fa6-c746-7ee1-a64666bfc44e@gmail.com> <m3lgc2q5vl.fsf@t19.piap.pl>
+ <06b9dd3d-3b7d-d34d-5263-411c99ab1a8b@gmail.com> <m38t81plry.fsf@t19.piap.pl>
+ <4f49cf44-431d-1971-e5c5-d66381a6970e@gmail.com> <m336y9ouc4.fsf@t19.piap.pl>
+ <6923fcd4-317e-d6a6-7975-47a8c712f8f9@gmail.com> <m3sh66omdk.fsf@t19.piap.pl>
+ <1527858788.5913.2.camel@pengutronix.de>
+ <05703b20-3280-3bdd-c438-dfce8e475aaa@gmail.com>
+ <1528102047.5808.11.camel@pengutronix.de> <m3zi0blyhh.fsf@t19.piap.pl>
+ <CAJ+vNU06QEOEBMfz3+CRG=J=C-wpFxwWCarRLs-c2gdspsfLpQ@mail.gmail.com>
+ <57dfdc0b-5f04-e10a-2ffd-c7ba561fe7ce@gmail.com>
+ <CAJ+vNU0Wh6bXHAJG1yRT_5ta4Tb9AAdfuOo_rekTcyVTjqx+bQ@mail.gmail.com>
+ <59a97e01-93b4-292b-419d-f353b5fbc951@gmail.com>
+ <CAJ+vNU1h+3ZXq_-urdhxt3UHSZhskHUSVNrrwRiBvfzu5o7H5A@mail.gmail.com>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <5f7f7790-9976-ebbe-10c0-77899cbbc4a0@gmail.com>
+Date: Fri, 19 Oct 2018 13:06:01 -0700
 MIME-Version: 1.0
-References: <CAMty3ZAMjCKv1BtLnobRZUzp=9Xu1gY5+R3Zi-JuobAJZQrXxg@mail.gmail.com>
- <20180920145658.GE16851@w540> <CAHCN7x+U=Y=-v1UP5UYvY8WtUFRJGjmx=nawTuE=YcHdm_DYvA@mail.gmail.com>
- <c1cb34b0-b715-cf08-6f75-2842f1090c5d@mentor.com> <20181017080103.GD11703@w540>
- <CAHCN7xLx6uAmYiGh3p=piZFwE0VkfixTLqdjETibKwk2+DhMzA@mail.gmail.com>
-In-Reply-To: <CAHCN7xLx6uAmYiGh3p=piZFwE0VkfixTLqdjETibKwk2+DhMzA@mail.gmail.com>
-From: Adam Ford <aford173@gmail.com>
-Date: Fri, 19 Oct 2018 14:42:56 -0500
-Message-ID: <CAHCN7xJKuPYg04WfRzbYWO4bGoHHnD16LBPRsK1QsiYY1bL7nA@mail.gmail.com>
-Subject: Re: i.MX6 MIPI-CSI2 OV5640 Camera testing on Mainline Linux
-To: jacopo@jmondi.org
-Cc: steve_longerbeam@mentor.com,
-        Jagan Teki <jagan@amarulasolutions.com>,
-        p.zabel@pengutronix.de, Fabio Estevam <fabio.estevam@nxp.com>,
-        gstreamer-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <CAJ+vNU1h+3ZXq_-urdhxt3UHSZhskHUSVNrrwRiBvfzu5o7H5A@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Oct 19, 2018 at 8:45 AM Adam Ford <aford173@gmail.com> wrote:
->
-> On Wed, Oct 17, 2018 at 3:01 AM jacopo mondi <jacopo@jmondi.org> wrote:
-> >
-> > Hi Adam, Seve,
-> >
-> > On Tue, Oct 16, 2018 at 05:13:24PM -0700, Steve Longerbeam wrote:
-> > > Hi Adam,
-> > >
-> > >
-> > > On 10/16/18 12:46 PM, Adam Ford wrote:
-> > > >On Thu, Sep 20, 2018 at 9:58 AM jacopo mondi <jacopo@jmondi.org> wrote:
-> > > >>Hi imx6 people,
-> > > >>
-> > > >>On Thu, May 31, 2018 at 08:39:20PM +0530, Jagan Teki wrote:
-> > > >>>Hi All,
-> > > >>>
-> > > >>>I'm trying to verify MIPI-CSI2 OV5640 camera on i.MX6 platform with
-> > > >>>Mainline Linux.
-> > > >>Sorry to resurect this, but before diving deep into details, do anyone
-> > > >>of you verified JPEG capture with ov5640 and i.MX6 platforms, and has
-> > > >>maybe a pipeline configuration to share :) ?
-> > > >
-> > > >I have a 4.14 kernel for my i.MX6D/Q using an ov5640 connected in a
-> > > >similar way as the sabresd and I'm getting similar timeouts.
-> > > >when executing
-> > > >
-> > > >media-ctl -l "'ov5640 2-0010':0 -> 'imx6-mipi-csi2':0[1]"
-> > > >media-ctl -l "'imx6-mipi-csi2':2 -> 'ipu1_csi1':0[1]"
-> > >
-> > >
-> > > You're routing through imx6-mipi-csi2 pad 2, which is CSI-2 virtual
-> > > channel 1, so make sure the ov5640 is transmitting on that channel,
-> > > see virtual_channel module parameter.
->
-> First, I want to apologize for the spam.  I don't normally want to ask
-> for hand-holding, but after spending 4 solid days on this, I'm getting
-> frustrated, and I've tried to read the instructions, and the technical
-> reference manual is huge and somewhat overwhelming.
->
-> Once I get my hardware working and I develop a better understanding of
-> how this system works, I'll be more than happy to volunteer to help
-> test patches on my hardware.
->
-> I am not sure I fully understand how the media-ctl handles the
-> routing.  I just basically copied what I could find from some
-> documentation.  I looked for some documentation but I wasn't able to
-> find much.  Maybe you can point me to some.
->
-> I can share with you some of my device tree, and I'll try to explain
-> my connections.   Firstly, I have an i.MX6Q and i.MX6Q which share the
-> same device tree.
->
-> The CSI pins on the OV5640 camera go to i.MX6 pins:
-> CSI_CLK0M / CSI_CLK0P,
-> CSI_D0M / CSI_D0P,
-> CSI_D1M / CSI_D1P,
->
-> CSI_D2 and D3 pins on the processor are all floating, and CSI_REXT is
-> grounded through a 6.04k pull-down resistor.
->
-> I am not sure if these technically translate to CSI0, CSI1, or CSI2,
-> but I assumed the CSI2 since that's how the SabreSD board appears to
-> work.
->
-> The ov5640 is connected to i2c3 with the following tree entry:
->
-> ov5640: camera@10 {
->     compatible = "ovti,ov5640";
->     pinctrl-names = "default";
->     pinctrl-0 = <&pinctrl_ov5640>;
->     reg = <0x10>;
->     clocks = <&clks IMX6QDL_CLK_CKO>;
->     clock-names = "xclk";
->     DOVDD-supply = <&mipi_pwr>;
->     AVDD-supply = <&mipi_pwr>;
->     DVDD-supply = <&mipi_pwr>;
->     reset-gpios = <&gpio3 26 GPIO_ACTIVE_LOW>;
->     powerdown-gpios = <&gpio3 27 GPIO_ACTIVE_HIGH>;
->
->     port {
->         ov5640_to_mipi_csi2: endpoint {
->         remote-endpoint = <&mipi_csi2_in>;
->         clock-lanes = <0>;
->         data-lanes = <1 2>;
->     };
-> };
->
-> I will be the first person to admit, I don't understand how the
-> clock-lands and data-lanes interact with the mipi_csis and the camera,
-> but I tried to match the sabresd board device tree.
->
-> For the MIPI_CSI interface, I wasn't sure which ports are the proper
-> reference.  Looking at the sabresd board,  I used it as an example.  I
-> wasn't sure if port0 and reg 0 were the right options.
-> &mipi_csi {
->     status = "okay";
->
->     port@0 {
->         reg = <0>;
->         mipi_csi2_in: endpoint {
->             remote-endpoint = <&ov5640_to_mipi_csi2>;
->             clock-lanes = <0>;
->             data-lanes = <1 2>;
->         };
->     };
-> };
->
-> There was one section of the sabresd board that I wasn't sure I
-> needed, because I am new to this camera stuff.  I wasn't thinking I
-> needed it, but I copied it  because the sabresd board had it.  I know
-> it has two cameras, but the interaction between the csi interface and
-> the ipu isn't clear to me.
->
-> &ipu1_csi1_from_mipi_vc1 {
->         clock-lanes = <0>;
->         data-lanes = <1 2>;
-> };
->
->
-> I am not 100% certain the following is correct, but I tried to disable
-> unwanted features to help save power, but it's quite possible it's
-> interfering with the settings i have above.
->
-> &ipu1_csi0 {
->     status = "disabled";
-> };
->
-> &ipu2_csi0 {
->     status = "disabled";
-> };
->
-> &mipi_dsi {
->     status = "disabled";
-> };
->
->
-> > >
-> > >
-> > > >media-ctl -l "'ipu1_csi1':1 -> 'ipu1_ic_prp':0[1]"
-> > > >media-ctl -l "'ipu1_ic_prp':1 -> 'ipu1_ic_prpenc':0[1]"
-> > > >media-ctl -l "'ipu1_ic_prpenc':1 -> 'ipu1_ic_prpenc capture':0[1]"
-> > > >
-> > > >
-> > > >media-ctl -V "'ov5640 2-0010':0 [fmt:UYVY2X8/640x480 field:none]"
-> > > >media-ctl -V "'imx6-mipi-csi2':2 [fmt:UYVY2X8/640x480 field:none]"
-> > > >media-ctl -V "'ipu1_csi1':1 [fmt:AYUV32/640x480 field:none]"
-> > > >media-ctl -V "'ipu1_ic_prp':1 [fmt:AYUV32/640x480 field:none]"
-> > > >media-ctl -V "'ipu1_ic_prpenc':1 [fmt:AYUV32/640x480 field:none]"
-> > > >
-> > > >
-> > > >   gst-launch-1.0 -v v4l2src num-buffers=1 device=/dev/video0 ! jpegenc
-> > > >! filesink location=test.jpg
-> >
-> > Thanks, am I wrong or jpegenc is a software JPEG encoder?
-> >
-> > I was interested in options for capturing the JPEG frames as produced
-> > by the sensor. I'm not even sure it is possible at all.
->
-> I am ok with simple streaming to the screen.  I'm ok with converting
-> to video.  At this point, I'm trying to just simply see the camera
-> work.  :-)
->
-> >
-> > > >
-> > > >[   72.799015] ipu1_ic_prpenc: EOF timeout
-> > > >[   73.838985] ipu1_ic_prpenc: wait last EOF timeout
-> > > >
-> > > >When I try to jump directly to 4.19-RC8, I get errors regarding memory
-> > > >allocation, so I think there might be something else there I am
-> > > >missing.
-> > > >
-> >
 
-On startup the system shows the following linking the ov5640 to the imx6.
-
-[    7.301223] ov5640 2-0010: Linked as a consumer to regulator.17
-[    7.316817] coda 2040000.vpu: codec registered as /dev/video[8-9]
-[    7.365485] imx-media: subdev ov5640 2-0010 bound
-[    7.371381] imx-media: ov5640 2-0010:0 -> imx6-mipi-csi2:0
-[    7.383666] imx-media: imx6-mipi-csi2:4 -> ipu2_csi1_mux:0
-[    7.398218] imx-media: imx6-mipi-csi2:1 -> ipu1_csi0_mux:0
-[    7.404929] imx-media: ipu2_csi1:1 -> ipu2_ic_prp:0
-[    7.411899] imx-media: ipu2_csi1:1 -> ipu2_vdic:0
-[    7.418117] imx-media: ipu2_csi1_mux:2 -> ipu2_csi1:0
-[    7.424567] imx-media: ipu2_csi0:1 -> ipu2_ic_prp:0
-[    7.430350] imx-media: ipu2_csi0:1 -> ipu2_vdic:0
-[    7.437033] imx-media: imx6-mipi-csi2:3 -> ipu2_csi0:0
-[    7.442679] imx-media: ipu1_csi1:1 -> ipu1_ic_prp:0
-[    7.447742] imx-media: ipu1_csi1:1 -> ipu1_vdic:0
-[    7.452532] imx-media: imx6-mipi-csi2:2 -> ipu1_csi1:0
-[    7.457892] imx-media: ipu1_csi0:1 -> ipu1_ic_prp:0
-[    7.462815] imx-media: ipu1_csi0:1 -> ipu1_vdic:0
-[    7.467693] imx-media: ipu1_csi0_mux:2 -> ipu1_csi0:0
-[    7.472799] imx-media: ipu2_ic_prp:1 -> ipu2_ic_prpenc:0
-[    7.478304] imx-media: ipu2_ic_prp:2 -> ipu2_ic_prpvf:0
-[    7.483679] imx-media: ipu1_ic_prp:1 -> ipu1_ic_prpenc:0
-[    7.489043] imx-media: ipu1_ic_prp:2 -> ipu1_ic_prpvf:0
-[    7.494479] imx-media: ipu2_vdic:2 -> ipu2_ic_prp:0
-[    7.499468] imx-media: ipu1_vdic:2 -> ipu1_ic_prp:0
+On 10/18/18 10:56 AM, Tim Harvey wrote:
+> On Wed, Oct 17, 2018 at 4:37 PM Steve Longerbeam <slongerbeam@gmail.com> wrote:
+>>
+>> On 10/17/18 4:05 PM, Tim Harvey wrote:
+>>> On Wed, Oct 17, 2018 at 2:33 PM Steve Longerbeam <slongerbeam@gmail.com> wrote:
+>>>> Hi Tim,
+>>>>
+>>>> On 10/17/18 1:38 PM, Tim Harvey wrote:
+>>>>
+>>>> On Mon, Jun 4, 2018 at 1:58 AM Krzysztof Hałasa <khalasa@piap.pl> wrote:
+>>>>
+>>>> I've just tested the PAL setup: in currect situation (v4.17 + Steve's
+>>>> fix-csi-interlaced.2 + "media: adv7180: fix field type" + a small cheap
+>>>> PAL camera) the following produces bottom-first interlaced frames:
+>>>>
+>>>> media-ctl -r -l '"adv7180 2-0020":0->"ipu2_csi1_mux":1[1],
+>>>>                    "ipu2_csi1_mux":2->"ipu2_csi1":0[1],
+>>>>                    "ipu2_csi1":2->"ipu2_csi1 capture":0[1]'
+>>>>
+>>>> media-ctl -V "'adv7180 2-0020':0 [fmt:UYVY2X8/720x576 field:alternate]"
+>>>> media-ctl -V "'ipu2_csi1_mux':2 [fmt:UYVY2X8/720x576]"
+>>>> media-ctl -V "'ipu2_csi1':2 [fmt:AYUV32/720x576 field:interlaced]"
+>>>>
+>>>> "adv7180 2-0020":0 [fmt:UYVY2X8/720x576 field:alternate]
+>>>> "ipu2_csi1_mux":1  [fmt:UYVY2X8/720x576 field:alternate]
+>>>> "ipu2_csi1_mux":2  [fmt:UYVY2X8/720x576 field:alternate]
+>>>> "ipu2_csi1":0      [fmt:UYVY2X8/720x576 field:alternate]
+>>>> "ipu2_csi1":2      [fmt:AYUV32/720x576 field:interlaced]
+>>>>
+>>>> I think it would be great if these changes make their way upstream.
+>>>> The details could be refined then.
+>>>>
+>>>> Krzysztof / Steve / Philipp,
+>>>>
+>>>> I jumped back onto IMX6 video capture from the adv7180 the other day
+>>>> trying to help out a customer that's using mainline and found things
+>>>> are still not working right. Where is all of this at these days?
+>>>>
+>>>> If I use v4.19 with Steves 'imx-media: Fixes for interlaced capture'
+>>>> v3 series (https://patchwork.kernel.org/cover/10626499/) I
+>>>> rolling/split (un-synchronized) video using:
+>>>>
+>>>> # Setup links
+>>>> media-ctl -r
+>>>> media-ctl -l '"adv7180 2-0020":0 -> "ipu2_csi1_mux":1[1]'
+>>>> media-ctl -l '"ipu2_csi1_mux":2 -> "ipu2_csi1":0[1]'
+>>>> media-ctl -l '"ipu2_csi1":1 -> "ipu2_ic_prp":0[1]'
+>>>> media-ctl -l '"ipu2_ic_prp":2 -> "ipu2_ic_prpvf":0[1]'
+>>>> media-ctl -l '"ipu2_ic_prpvf":1 -> "ipu2_ic_prpvf capture":0[1]'
+>>>> # Configure pads
+>>>> media-ctl -V "'adv7180 2-0020':0 [fmt:UYVY2X8/720x480]"
+>>>> media-ctl -V "'ipu2_csi1_mux':2 [fmt:UYVY2X8/720x480 field:interlaced]"
+>>>> media-ctl -V "'ipu2_csi1':1 [fmt:UYVY2X8/720x480 field:interlaced]"
+>>>> media-ctl -V "'ipu2_ic_prp':2 [fmt:UYVY2X8/720x480 field:interlaced]"
+>>>> media-ctl -V "'ipu2_ic_prpvf':1 [fmt:UYVY2X8/720x480 field:none]"
+>>>> # stream JPEG/RTP/UDP
+>>>> gst-launch-1.0 v4l2src device=/dev/video3 ! video/x-raw,format=UYVY !
+>>>> jpegenc ! rtpjpegpay ! udpsink host=$SERVER port=$PORT
+>>>> ERROR: from element /GstPipeline:pipeline0/GstV4l2Src:v4l2src0: Device
+>>>> '/dev/video3' does not support progressive interlacing
+>>>>
+>>>> I'm doing the above on a Gateworks GW5404 IMXQ which has a tda1997x
+>>>> HDMI receiver sensor and an adv7180 Analog CVBS sensor - media graph
+>>>> is here: http://dev.gateworks.com/docs/linux/media/imx6q-gw54xx-media.png
+>>>>
+>>>> Are there other patches I need or different field formats above with
+>>>> 4.19? Do any of the other kernels work without patchsets that you know
+>>>> of between 4.16 and 4.19?
+>>>>
+>>>>
+>>>> First, the v3 series is out of date. Please apply the latest v5 posting
+>>>> of that series. See the imx.rst doc regarding field type negotiation,
+>>>> all pads starting at ipu2_csi1:1 should be 'seq-bt' or 'seq-tb' until the
+>>>> capture device, which should be set to 'interlaced' to enable IDMAC
+>>>> interweave. The ADV7180 now correctly sets its field type to alternate,
+>>>> which imx-media-csi.c translates to seq-tb or seq-bt at its output pad.
+>>>>
+>>>> See the SabreAuto examples in the doc.
+>>>>
+>>>> For the rolling/split image problem, try the attached somewhat hackish patch.
+>>>> There used to be code in imx-media-csi.c that searched for the backend sensor
+>>>> and queries via .g_skip_frames whether the sensor produces bad frames at first
+>>>> stream-on. But there was push-back on that, so the attached is another
+>>>> approach that doesn't require searching for a backend sensor.
+>>> Steve,
+>>>
+>>> Thanks - I hadn't noticed the updated series. I've built it on top of
+>>> linux-media/master and tested with:
+>>>
+>>> - Testing linux-media/master + your v5 now:
+>>>
+>>> # Use simple interweaving
+>>> media-ctl -r
+>>> # Setup links
+>>> media-ctl -l '"adv7180 2-0020":0 -> "ipu2_csi1_mux":1[1]'
+>>> media-ctl -l '"ipu2_csi1_mux":2 -> "ipu2_csi1":0[1]'
+>>> media-ctl -l '"ipu2_csi1":2 -> "ipu2_csi1 capture":0[1]'
+>>> # Configure pads
+>>> media-ctl -V "'adv7180 2-0020':0 [fmt:UYVY2X8/720x480 field:seq-bt]"
+>>> media-ctl -V "'ipu2_csi1_mux':2 [fmt:UYVY2X8/720x480]"
+>>> media-ctl -V "'ipu2_csi1':1 [fmt:AYUV32/720x480]"
+>>> # Configure ipu_csi capture interface (/dev/video7)
+>>> v4l2-ctl -d7 --set-fmt-video=field=interlaced_bt
+>>> # Stream JPEG/RTP/UDP
+>>> gst-launch-1.0 v4l2src device=/dev/video7 ! video/x-raw,format=UYVY !
+>>> jpegenc ! rtpjpegpay ! udpsink host=$SERVER port=5000
+>>> ^^^^^^ gives me ERROR: from element
+>>> /GstPipeline:pipeline0/GstV4l2Src:v4l2src0: Device '/dev/video7' does
+>>> not support progressive interlacing
+>>>
+>>> I'm assuming this is because the format is still 'interlaced' - not
+>>> sure how to stream this from GStreamer?
+>>
+>> I don't know what v4l2src plugin is trying to say by "progressive
+>> interlacing" -
+>> that's meaningless, the video is either progressive or interlaced, not both.
+>>
+>> But what is probably meant is v4l2src is trying to set field type at
+>> /dev/video7
+>> to 'none', and complains that it can't. That's a bug in v4l2src, it
+>> should accept
+>> 'interlaced'.
+>>
+>>
+>> I'm not getting this error in the version of v42lsrc I have been testing
+>> with, it
+>> must be something added recently. Haven't looked at the v4l2src git log
+>> yet.
+>>
+> Steve,
+>
+> Your right the above was not working using GStreamer 1.14.1 from an
+> Ubuntu Bionic rootfs but works fine Using GStreamer 1.8.3 on an Ubuntu
+> Xenial rootfs. I'll ask about this with the GStreamer folk.
+>
+>>> # Use VDIC motion compensated de-interlace
+>>> # Setup links
+>>> media-ctl -r
+>>> media-ctl -l "'adv7180 2-0020':0 -> 'ipu2_csi1_mux':1[1]"
+>>> media-ctl -l "'ipu2_csi1_mux':2 -> 'ipu2_csi1':0[1]"
+>>> media-ctl -l "'ipu2_csi1':1 -> 'ipu2_vdic':0[1]"
+>>> media-ctl -l "'ipu2_vdic':2 -> 'ipu2_ic_prp':0[1]"
+>>> media-ctl -l "'ipu2_ic_prp':2 -> 'ipu2_ic_prpvf':0[1]"
+>>> media-ctl -l "'ipu2_ic_prpvf':1 -> 'ipu2_ic_prpvf capture':0[1]"
+>>> # Configure pads
+>>> media-ctl -V "'adv7180 2-0020':0 [fmt:UYVY2X8/720x480 field:seq-tb]"
+>>> media-ctl -V "'ipu2_csi1_mux':2 [fmt:UYVY2X8/720x480]"
+>>> media-ctl -V "'ipu2_csi1':1 [fmt:AYUV32/720x480]"
+>>> media-ctl -V "'ipu2_vdic':2 [fmt:AYUV32/720x480 field:none]"
+>>> media-ctl -V "'ipu2_ic_prp':2 [fmt:AYUV32/720x480 field:none]"
+>>> media-ctl -V "'ipu2_ic_prpvf':1 [fmt:AYUV32/720x480 field:none]"
+>>> # Stream JPEG/RTP/UDP
+>>> gst-launch-1.0 v4l2src device=/dev/video3 ! video/x-raw,format=UYVY !
+>>> jpegenc ! rtpjpegpay ! udpsink host=$SERVER port=5000
+>>> ^^^^^ streams but still shows sync issues
+>>>
+>>> But once I add your patch it does resolve this (with the 10 frame
+>>> skip). Strangely I don't recall having to do this way back when your
+>>> imx-media driver was still going through revisions?
+>>
+>> That's because the bad frame skipping existed in prior versions,
+>> I removed it due to negative feedback at
+>>
+>> bf3cfaa712 ("media: staging/imx: get CSI bus type from nearest upstream
+>> entity")
+>>
+> Thanks for that explanation.
+>
+> I tested v4.15 (before the use of g_skip_frames was removed) and it
+> still shows the same invalid sync with adv7180 issue because adv7180
+> doesn't implement g_skip_frames. Adding it with a quick patch to skip
+> just 2 frames works fine:
 
 
-> > Please share the errors. I am using v4.19-rc7 without issues.
-
-For the folllwing example, I am just trying to stream to a fakesink,
-toward the bottom, there are a couple errors ''Failed to allocate
-required memory' and 'Buffer pool activation failed'.
+Sorry right, forgot to mention adv7180.c needs to implement
+.g_skip_frames. The below patch is the right idea.
 
 
-# gst-launch-1.0 --gst-debug=v4l2src:5 v4l2src device=/dev/video0 ! fakesink
-Setting pipeline to PAUSED ...
-Pipeline is live and does not need PREROLL ...
-0:00:03.541852667   264   0xd5b600 DEBUG                v4l2src
-gstv4l2src.c:512:gst_v4l2src_negotiate:<v4l2src0> caps of src:
-video/x-raw, format=(string)YUY2, framerate=(fraction)25/1,
-width=(int)640, h
-eight=(int)480; video/x-raw, format=(string)UYVY,
-framerate=(fraction)25/1, width=(int)640, height=(int)480;
-video/x-raw, format=(stri[  218.912460] ipu1_ic_prpenc: pipeline start
-failed with -32
-ng)Y42B, framerate=(fraction)25/1, width=(int)640, height=(int)480;
-video/x-raw, format=(string)I420, framerate=(fraction)25/1,
-width=(int)640, height=(int)480; video/x-raw, format=(string)YV12,
-framerate
-=(fraction)25/1, width=(int)640, height=(int)480; video/x-raw,
-format=(string)NV16, framerate=(fraction)25/1, width=(int)640,
-height=(int)480; video/x-raw, format=(string)NV12,
-framerate=(fraction)25/1, w
-idth=(int)640, height=(int)480
-0:00:03.542103334   264   0xd5b600 DEBUG                v4l2src
-gstv4l2src.c:520:gst_v4l2src_negotiate:<v4l2src0> caps of peer: ANY
-0:00:03.542328667   264   0xd5b600 DEBUG                v4l2src
-gstv4l2src.c:403:gst_v4l2src_fixate:<v4l2src0> fixating caps
-video/x-raw, format=(string)YUY2, framerate=(fraction)25/1,
-width=(int)640, hei
-ght=(int)480; video/x-raw, format=(string)UYVY,
-framerate=(fraction)25/1, width=(int)640, height=(int)480;
-video/x-raw, format=(string)Y42B, framerate=(fraction)25/1,
-width=(int)640, height=(int)480; vide
-o/x-raw, format=(string)I420, framerate=(fraction)25/1,
-width=(int)640, height=(int)480; video/x-raw, format=(string)YV12,
-framerate=(fraction)25/1, width=(int)640, height=(int)480;
-video/x-raw, format=(s
-tring)NV16, framerate=(fraction)25/1, width=(int)640, height=(int)480;
-video/x-raw, format=(string)NV12, framerate=(fraction)25/1,
-width=(int)640, height=(int)480
-0:00:03.542499667   264   0xd5b600 DEBUG                v4l2src
-gstv4l2src.c:418:gst_v4l2src_fixate:<v4l2src0> Prefered size 3840x2160
-Setting pipeline to PLAYING ...
-0:00:03.543068334   264   0xd5b600 DEBUG                v4l2src
-gstv4l2src.c:435:gst_v4l2src_fixate:<v4l2src0> sorted and normalized
-caps video/x-raw, format=(string)YUY2, framerate=(fraction)25/1,
-width=
-(int)640, height=(int)480; video/x-raw, format=(string)UYVY,
-framerate=(fraction)25/1, width=(int)640, height=(int)480;
-video/x-raw, format=(string)Y42B, framerate=(fraction)25/1,
-width=(int)640, height=(
-int)480; video/x-raw, format=(string)I420, framerate=(fraction)25/1,
-width=(int)640, height=(int)480; video/x-raw, format=(string)YV12,
-framerate=(fraction)25/1, width=(int)640, height=(int)480; video/x-r
-aw, format=(string)NV16, framerate=(fraction)25/1, width=(int)640,
-height=(int)480; video/x-raw, format=(string)NV12,
-framerate=(fraction)25/1, width=(int)640, height=(int)480
-New clock: GstSystemClock
-0:00:03.544924000   264   0xd5b600 DEBUG                v4l2src
-gstv4l2src.c:497:gst_v4l2src_fixate:<v4l2src0> fixated caps
-video/x-raw, format=(string)YUY2, framerate=(fraction)25/1,
-width=(int)640, heig
-ht=(int)480, colorimetry=(string)bt601, interlace-mode=(string)progressive
-0:00:03.545072334   264   0xd5b600 DEBUG                v4l2src
-gstv4l2src.c:550:gst_v4l2src_negotiate:<v4l2src0> fixated to:
-video/x-raw, format=(string)YUY2, framerate=(fraction)25/1,
-width=(int)640, he
-ight=(int)480, colorimetry=(string)bt601, interlace-mode=(string)progressive
-0:00:03.582344000   264   0xd5b600 WARN                 v4l2src
-gstv4l2src.c:658:gst_v4l2src_decide_allocation:<v4l2src0> error:
-Failed to allocate required memory.
-0:00:03.582701667   264   0xd5b600 WARN                 v4l2src
-gstv4l2src.c:658:gst_v4l2src_decide_allocation:<v4l2src0> error:
-Buffer pool activation failed
-ERROR: from element /GstPipeline:pipeline0/GstV4l2Src:v4l2src0: Failed
-to allocate required memory.
-Additional debug info:
-gstv4l2src.c(658): gst_v4l2src_decide_allocation ():
-/GstPipeline:pipeline0/GstV4l2Src:v4l2src0:
-Buffer pool activation failed
-Execution ended after 0:00:00.039860000
-Setting pipeline to PAUSED ...
-Setting pipeline to READY ...
-Setting pipeline to NULL ...
-Freeing pipeline ...
-#
-
-
-
-
-I configured the pipeline as follows:
-media-ctl -l "'ov5640 2-0010':0 -> 'imx6-mipi-csi2':0[1]"
-media-ctl -l "'imx6-mipi-csi2':2 -> 'ipu1_csi1':0[1]"
-media-ctl -l "'ipu1_csi1':1 -> 'ipu1_ic_prp':0[1]"
-media-ctl -l "'ipu1_ic_prp':1 -> 'ipu1_ic_prpenc':0[1]"
-media-ctl -l "'ipu1_ic_prpenc':1 -> 'ipu1_ic_prpenc capture':0[1]"
-
-I am hoping I am doing this correctly.
-
-adam
-
-> >
-> > > >Has anyone tried this camera module on a 4.14 kernel?  I noticed there
-> > > >are a bunch of driver updates, and I was hoping there might be some
-> > > >patches that could be be backported to the 4.14.y stable branch.
-> > >
-> > > I would suggest backporting all the ov5640 commits. You can also
-> > > backport the imx-media commits, but that shouldn't be the cause
-> > > of the timeouts you are seeing.
-> > >
-> >
-> > Yes, try to backport the recent ov5640 developments on your kernel
-> > version. There are a lot of fixes there, and I don't think there is
-> > any dependency on new developments on the v4l2 framework you don't
-> > have in v4.14 (I might be wrong though).
+> diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+> index 6fb818a..0285627 100644
+> --- a/drivers/media/i2c/adv7180.c
+> +++ b/drivers/media/i2c/adv7180.c
+> @@ -187,6 +187,9 @@
+>   #define ADV7180_DEFAULT_CSI_I2C_ADDR 0x44
+>   #define ADV7180_DEFAULT_VPP_I2C_ADDR 0x42
 >
-> I ported the entire ov5640 driver, but there appear to be some v4l
-> changes which preclude me from copying the whole driver.  I was hoping
-> to use as close to stock 4.14 LTS kernel since 4.19 isn't quite done
-> yet.  (I 'think' 4.19 will be an LTS kernel if I'm not mistaken, so
-> this kernel is open for discussion if we must transition to it)
+> +/* Initial number of frames to skip to avoid possible garbage */
+> +#define ADV7180_NUM_OF_SKIP_FRAMES       2
+> +
+>   #define V4L2_CID_ADV_FAST_SWITCH       (V4L2_CID_USER_ADV7180_BASE + 0x00)
 >
-> My i.MX6 board is running some tests now, but I'll try to build
-> 4.19-rc8 and share some logs.
-> >
-> > In case something breaks when cherry-picking patches or when building,
-> > please share and someone might help (I have recently backported those
-> > changes to a v3.14 kernel, so I might help too).
+>   struct adv7180_state;
+> @@ -759,6 +762,13 @@ static int adv7180_g_mbus_config(struct v4l2_subdev *sd,
+>          return 0;
+>   }
 >
-> I first went through the git commit logs for the ov5640 and tried to
-> grab anything with the word 'fix' in the headlines.  I'll try this
-> afternoon, to get a better feeling for which fixes were ported.  In
-> theory, I can go and request certain fixes to be backported too, but I
-> want to make sure they actually work before I waste people's time.
+> +static int adv7180_get_skip_frames(struct v4l2_subdev *sd, u32 *frames)
+> +{
+> +        *frames = ADV7180_NUM_OF_SKIP_FRAMES;
+> +
+> +        return 0;
+> +}
+> +
+>   static int adv7180_g_pixelaspect(struct v4l2_subdev *sd, struct
+> v4l2_fract *aspect)
+>   {
+>          struct adv7180_state *state = to_state(sd);
+> @@ -838,10 +848,15 @@ static const struct v4l2_subdev_pad_ops
+> adv7180_pad_ops = {
+>          .get_fmt = adv7180_get_pad_format,
+>   };
 >
-> adam
+> +static const struct v4l2_subdev_sensor_ops adv7180_sensor_ops = {
+> +        .g_skip_frames = adv7180_get_skip_frames,
+> +};
+> +
+>   static const struct v4l2_subdev_ops adv7180_ops = {
+>          .core = &adv7180_core_ops,
+>          .video = &adv7180_video_ops,
+>          .pad = &adv7180_pad_ops,
+> +       .sensor = &adv7180_sensor_ops,
+>   };
 >
-> >
-> > Thanks
-> >    j
-> >
-> > >
-> > > Steve
-> > >
-> > >
-> > >
-> > > >
-> > > >thanks for any suggestions to try.
-> > > >
-> > > >adam
-> > > >
-> > > >>Thanks
-> > > >>    j
-> > > >>
-> > > >>>I've followed these[1] instructions to configure MC links and pads
-> > > >>>based on the probing details from dmesg and trying to capture
-> > > >>>ipu1_ic_prpenc capture (/dev/video1) but it's not working.
-> > > >>>
-> > > >>>Can anyone help me to verify whether I configured all the details
-> > > >>>properly if not please suggest.
-> > > >>>
-> > > >>>I'm pasting full log here, so-that anyone can comment in line and dt
-> > > >>>changes are at [2]
-> > > >>>
-> > > >>>Log:
-> > > >>>-----
-> > > >>>
-> > > >>>[    1.211866] etnaviv-gpu 2204000.gpu: Ignoring GPU with VG and FE2.0
-> > > >>>[    1.220211] [drm] Initialized etnaviv 1.2.0 20151214 for etnaviv on minor 0
-> > > >>>[    1.230344] imx-ipuv3 2400000.ipu: IPUv3H probed
-> > > >>>[    1.237170] [drm] Supports vblank timestamp caching Rev 2 (21.10.2013).
-> > > >>>[    1.243920] [drm] No driver support for vblank timestamp query.
-> > > >>>[    1.250831] imx-drm display-subsystem: bound imx-ipuv3-crtc.2 (ops
-> > > >>>ipu_crtc_ops)
-> > > >>>[    1.258503] imx-drm display-subsystem: bound imx-ipuv3-crtc.3 (ops
-> > > >>>ipu_crtc_ops)
-> > > >>>[    1.266293] imx-drm display-subsystem: bound imx-ipuv3-crtc.6 (ops
-> > > >>>ipu_crtc_ops)
-> > > >>>[    1.274027] imx-drm display-subsystem: bound imx-ipuv3-crtc.7 (ops
-> > > >>>ipu_crtc_ops)
-> > > >>>[    1.282304] dwhdmi-imx 120000.hdmi: Detected HDMI TX controller
-> > > >>>v1.30a with HDCP (DWC HDMI 3D TX PHY)
-> > > >>>[    1.295722] imx-drm display-subsystem: bound 120000.hdmi (ops
-> > > >>>dw_hdmi_imx_ops)
-> > > >>>[    1.373615] Console: switching to colour frame buffer device 128x48
-> > > >>>[    1.396495] imx-drm display-subsystem: fb0:  frame buffer device
-> > > >>>[    1.404620] [drm] Initialized imx-drm 1.0.0 20120507 for
-> > > >>>display-subsystem on minor 1
-> > > >>>[    1.412763] imx-ipuv3 2800000.ipu: IPUv3H probed
-> > > >>>[    1.439673] brd: module loaded
-> > > >>>[    1.469099] loop: module loaded
-> > > >>>[    1.480324] nand: No NAND device found
-> > > >>>[    1.487768] libphy: Fixed MDIO Bus: probed
-> > > >>>[    1.493034] CAN device driver interface
-> > > >>>[    1.499057] fec 2188000.ethernet: 2188000.ethernet supply phy not
-> > > >>>found, using dummy regulator
-> > > >>>[    1.511633] pps pps0: new PPS source ptp0
-> > > >>>[    1.516928] fec 2188000.ethernet (unnamed net_device)
-> > > >>>(uninitialized): Invalid MAC address: 00:00:00:00:00:00
-> > > >>>[    1.527177] fec 2188000.ethernet (unnamed net_device)
-> > > >>>(uninitialized): Using random MAC address: f2:5a:6d:a6:90:74
-> > > >>>[    1.543567] libphy: fec_enet_mii_bus: probed
-> > > >>>[    1.549138] fec 2188000.ethernet eth0: registered PHC device 0
-> > > >>>[    1.556499] usbcore: registered new interface driver asix
-> > > >>>[    1.562066] usbcore: registered new interface driver ax88179_178a
-> > > >>>[    1.568259] usbcore: registered new interface driver cdc_ether
-> > > >>>[    1.574276] usbcore: registered new interface driver net1080
-> > > >>>[    1.580097] usbcore: registered new interface driver cdc_subset
-> > > >>>[    1.586144] usbcore: registered new interface driver zaurus
-> > > >>>[    1.591910] usbcore: registered new interface driver cdc_ncm
-> > > >>>[    1.597589] ehci_hcd: USB 2.0 'Enhanced' Host Controller (EHCI) Driver
-> > > >>>[    1.604209] ehci-pci: EHCI PCI platform driver
-> > > >>>[    1.608760] ehci-mxc: Freescale On-Chip EHCI Host driver
-> > > >>>[    1.614851] usbcore: registered new interface driver usb-storage
-> > > >>>[    1.629947] ci_hdrc ci_hdrc.0: EHCI Host Controller
-> > > >>>[    1.635066] ci_hdrc ci_hdrc.0: new USB bus registered, assigned bus number 1
-> > > >>>[    1.669473] ci_hdrc ci_hdrc.0: USB 2.0 started, EHCI 1.00
-> > > >>>[    1.677809] hub 1-0:1.0: USB hub found
-> > > >>>[    1.681902] hub 1-0:1.0: 1 port detected
-> > > >>>[    1.692839] ci_hdrc ci_hdrc.1: EHCI Host Controller
-> > > >>>[    1.697791] ci_hdrc ci_hdrc.1: new USB bus registered, assigned bus number 2
-> > > >>>[    1.729537] ci_hdrc ci_hdrc.1: USB 2.0 started, EHCI 1.00
-> > > >>>[    1.736740] hub 2-0:1.0: USB hub found
-> > > >>>[    1.740655] hub 2-0:1.0: 1 port detected
-> > > >>>[    1.753468] snvs_rtc 20cc000.snvs:snvs-rtc-lp: rtc core: registered
-> > > >>>20cc000.snvs:snvs-rtc-lp as rtc0
-> > > >>>[    1.762976] i2c /dev entries driver
-> > > >>>[    1.811339] imx2-wdt 20bc000.wdog: timeout 60 sec (nowayout=0)
-> > > >>>[    1.817865] Bluetooth: HCI UART driver ver 2.3
-> > > >>>[    1.822460] Bluetooth: HCI UART protocol H4 registered
-> > > >>>[    1.828297] Bluetooth: HCI UART protocol LL registered
-> > > >>>[    1.834774] sdhci: Secure Digital Host Controller Interface driver
-> > > >>>[    1.841059] sdhci: Copyright(c) Pierre Ossman
-> > > >>>[    1.845437] sdhci-pltfm: SDHCI platform and OF driver helper
-> > > >>>[    1.852834] sdhci-esdhc-imx 2190000.usdhc: Got CD GPIO
-> > > >>>[    1.893497] mmc0: SDHCI controller on 2190000.usdhc [2190000.usdhc]
-> > > >>>using ADMA
-> > > >>>[    1.937500] mmc1: SDHCI controller on 2198000.usdhc [2198000.usdhc]
-> > > >>>using ADMA
-> > > >>>[    1.945049] mmc0: host does not support reading read-only switch,
-> > > >>>assuming write-enable
-> > > >>>[    1.959799] mmc0: new high speed SDHC card at address 1234
-> > > >>>[    1.968363] mmcblk0: mmc0:1234 SA04G 3.71 GiB
-> > > >>>[    1.977984] caam 2100000.caam: Entropy delay = 3200
-> > > >>>[    2.043796] caam 2100000.caam: Instantiated RNG4 SH0
-> > > >>>[    2.104558] caam 2100000.caam: Instantiated RNG4 SH1
-> > > >>>[    2.109596] caam 2100000.caam: device ID = 0x0a16010000000000 (Era 4)
-> > > >>>[    2.116060] caam 2100000.caam: job rings = 2, qi = 0, dpaa2 = no
-> > > >>>[    2.139266] caam algorithms registered in /proc/crypto
-> > > >>>[    2.139341]  mmcblk0: p1 p2
-> > > >>>[    2.150910] caam_jr 2101000.jr0: registering rng-caam
-> > > >>>[    2.157327] usbcore: registered new interface driver usbhid
-> > > >>>[    2.163103] usbhid: USB HID core driver
-> > > >>>[    2.171149] imx-media: subdev ov5640 2-003c bound
-> > > >>>[    2.176631] imx-media: subdev ipu1_vdic bound
-> > > >>>[    2.181640] imx-media: subdev ipu2_vdic bound
-> > > >>>[    2.183831] mmc1: new high speed MMC card at address 0001
-> > > >>>[    2.186357] imx-media: subdev ipu1_ic_prp bound
-> > > >>>[    2.193649] mmcblk1: mmc1:0001 M62704 3.53 GiB
-> > > >>>[    2.197342] ipu1_ic_prpenc: Registered ipu1_ic_prpenc capture as /dev/video0
-> > > >>>[    2.202620] mmcblk1boot0: mmc1:0001 M62704 partition 1 2.00 MiB
-> > > >>>[    2.208083] imx-media: subdev ipu1_ic_prpenc bound
-> > > >>>[    2.215764] mmcblk1boot1: mmc1:0001 M62704 partition 2 2.00 MiB
-> > > >>>[    2.219512] ipu1_ic_prpvf: Registered ipu1_ic_prpvf capture as /dev/video1
-> > > >>>[    2.231868] imx-media: subdev ipu1_ic_prpvf bound
-> > > >>>[    2.232186] mmcblk1rpmb: mmc1:0001 M62704 partition 3 512 KiB,
-> > > >>>chardev (244:0)
-> > > >>>[    2.236748] imx-media: subdev ipu2_ic_prp bound
-> > > >>>[    2.245958]  mmcblk1: p1 p2
-> > > >>>[    2.251569] ipu2_ic_prpenc: Registered ipu2_ic_prpenc capture as /dev/video2
-> > > >>>[    2.258696] imx-media: subdev ipu2_ic_prpenc bound
-> > > >>>[    2.264108] ipu2_ic_prpvf: Registered ipu2_ic_prpvf capture as /dev/video3
-> > > >>>[    2.271119] imx-media: subdev ipu2_ic_prpvf bound
-> > > >>>[    2.277042] ipu1_csi0: Registered ipu1_csi0 capture as /dev/video4
-> > > >>>[    2.283312] imx-media: subdev ipu1_csi0 bound
-> > > >>>[    2.288312] ipu1_csi1: Registered ipu1_csi1 capture as /dev/video5
-> > > >>>[    2.294583] imx-media: subdev ipu1_csi1 bound
-> > > >>>[    2.299694] ipu2_csi0: Registered ipu2_csi0 capture as /dev/video6
-> > > >>>[    2.305902] imx-media: subdev ipu2_csi0 bound
-> > > >>>[    2.310953] ipu2_csi1: Registered ipu2_csi1 capture as /dev/video7
-> > > >>>[    2.317162] imx-media: subdev ipu2_csi1 bound
-> > > >>>[    2.322293] imx-media: subdev imx6-mipi-csi2 bound
-> > > >>>[    2.336025] sgtl5000 2-000a: Error reading chip id -6
-> > > >>>[    2.346932] fsl-ssi-dai 2028000.ssi: No cache defaults, reading back from HW
-> > > >>>[    2.360345] NET: Registered protocol family 10
-> > > >>>[    2.367761] Segment Routing with IPv6
-> > > >>>[    2.371704] sit: IPv6, IPv4 and MPLS over IPv4 tunneling driver
-> > > >>>[    2.379180] NET: Registered protocol family 17
-> > > >>>[    2.383872] can: controller area network core (rev 20170425 abi 9)
-> > > >>>[    2.390281] NET: Registered protocol family 29
-> > > >>>[    2.394756] can: raw protocol (rev 20170425)
-> > > >>>[    2.399126] can: broadcast manager protocol (rev 20170425 t)
-> > > >>>[    2.404869] can: netlink gateway (rev 20170425) max_hops=1
-> > > >>>[    2.410989] Key type dns_resolver registered
-> > > >>>[    2.420041] Registering SWP/SWPB emulation handler
-> > > >>>[    2.426337] Loading compiled-in X.509 certificates
-> > > >>>[    2.505422] imx-media: subdev ipu1_csi0_mux bound
-> > > >>>[    2.511142] imx-media: subdev ipu2_csi1_mux bound
-> > > >>>[    2.515930] imx-media: imx6-mipi-csi2:4 -> ipu2_csi1_mux:0
-> > > >>>[    2.518384] random: fast init done
-> > > >>>[    2.521600] imx-media: imx6-mipi-csi2:1 -> ipu1_csi0_mux:0
-> > > >>>[    2.530561] imx-media: ov5640 2-003c:0 -> imx6-mipi-csi2:0
-> > > >>>[    2.536094] imx-media: ipu2_csi1:1 -> ipu2_ic_prp:0
-> > > >>>[    2.541052] imx-media: ipu2_csi1:1 -> ipu2_vdic:0
-> > > >>>[    2.545801] imx-media: ipu2_csi1_mux:2 -> ipu2_csi1:0
-> > > >>>[    2.550932] imx-media: ipu2_csi0:1 -> ipu2_ic_prp:0
-> > > >>>[    2.555837] imx-media: ipu2_csi0:1 -> ipu2_vdic:0
-> > > >>>[    2.560629] imx-media: imx6-mipi-csi2:3 -> ipu2_csi0:0
-> > > >>>[    2.565800] imx-media: ipu1_csi1:1 -> ipu1_ic_prp:0
-> > > >>>[    2.570750] imx-media: ipu1_csi1:1 -> ipu1_vdic:0
-> > > >>>[    2.575497] imx-media: imx6-mipi-csi2:2 -> ipu1_csi1:0
-> > > >>>[    2.580716] imx-media: ipu1_csi0:1 -> ipu1_ic_prp:0
-> > > >>>[    2.585623] imx-media: ipu1_csi0:1 -> ipu1_vdic:0
-> > > >>>[    2.590411] imx-media: ipu1_csi0_mux:2 -> ipu1_csi0:0
-> > > >>>[    2.595499] imx-media: ipu2_ic_prp:1 -> ipu2_ic_prpenc:0
-> > > >>>[    2.600901] imx-media: ipu2_ic_prp:2 -> ipu2_ic_prpvf:0
-> > > >>>[    2.606159] imx-media: ipu1_ic_prp:1 -> ipu1_ic_prpenc:0
-> > > >>>[    2.611548] imx-media: ipu1_ic_prp:2 -> ipu1_ic_prpvf:0
-> > > >>>[    2.616803] imx-media: ipu2_vdic:2 -> ipu2_ic_prp:0
-> > > >>>[    2.621754] imx-media: ipu1_vdic:2 -> ipu1_ic_prp:0
-> > > >>>[    2.637015] imx_thermal tempmon: Industrial CPU temperature grade -
-> > > >>>max:105C critical:100C passive:95C
-> > > >>>[    2.650475] snvs_rtc 20cc000.snvs:snvs-rtc-lp: setting system clock
-> > > >>>to 1970-01-01 00:00:00 UTC (0)
-> > > >>>[    2.659880] cfg80211: Loading compiled-in X.509 certificates for
-> > > >>>regulatory database
-> > > >>>[    2.674031] cfg80211: Loaded X.509 cert 'sforshee: 00b28ddf47aef9cea7'
-> > > >>>[    2.682013] platform regulatory.0: Direct firmware load for
-> > > >>>regulatory.db failed with error -2
-> > > >>>[    2.690851] cfg80211: failed to load regulatory.db
-> > > >>>[    2.695737] ALSA device list:
-> > > >>>[    2.698762]   No soundcards found.
-> > > >>>[    3.592224] EXT4-fs (mmcblk0p2): recovery complete
-> > > >>>[    3.602020] EXT4-fs (mmcblk0p2): mounted filesystem with ordered
-> > > >>>data mode. Opts: (null)
-> > > >>>[    3.610371] VFS: Mounted root (ext4 filesystem) on device 179:2.
-> > > >>>[    3.618708] devtmpfs: mounted
-> > > >>>[    3.624665] Freeing unused kernel memory: 1024K
-> > > >>>[    3.743951] EXT4-fs (mmcblk0p2): re-mounted. Opts: (null)
-> > > >>>Starting logging: OK
-> > > >>>Initializing random number generator... [    3.897748] random: dd:
-> > > >>>uninitialized urandom read (512 bytes read)
-> > > >>>done.
-> > > >>>Starting network: OK
-> > > >>>
-> > > >>>Welcome to Engicam i.CoreM6 Quad/Dual/DualLite/Solo
-> > > >>>buildroot login: root
-> > > >>># media-ctl -l "'ov5640 2-003c':0 -> 'imx6-mipi-csi2':0[1]"
-> > > >>># media-ctl -l "'imx6-mipi-csi2':2 -> 'ipu1_csi1':0[1]"
-> > > >>># media-ctl -l "'ipu1_csi1':1 -> 'ipu1_ic_prp':0[1]"
-> > > >>># media-ctl -l "'ipu1_ic_prp':1 -> 'ipu1_ic_prpenc':0[1]"
-> > > >>># media-ctl -l "'ipu1_ic_prpenc':1 -> 'ipu1_ic_prpenc capture':0[1]"
-> > > >>># media-ctl -V "'ov5640 2-003c':0 [fmt:UYVY2X8/640x480 field:none]"
-> > > >>># media-ctl -V "'imx6-mipi-csi2':2 [fmt:UYVY2X8/640x480 field:none]"
-> > > >>># media-ctl -V "'ipu1_csi1':1 [fmt:AYUV32/640x480 field:none]"
-> > > >>># media-ctl -V "'ipu1_ic_prp':1 [fmt:AYUV32/640x480 field:none]"
-> > > >>># media-ctl -V "'ipu1_ic_prpenc':1 [fmt:AYUV32/640x480 field:none]"
-> > > >>># med# media-ctl -p
-> > > >>>Media controller API version 4.17.0
-> > > >>>
-> > > >>>Media device information
-> > > >>>------------------------
-> > > >>>driver          imx-media
-> > > >>>model           imx-media
-> > > >>>serial
-> > > >>>bus info
-> > > >>>hw revision     0x0
-> > > >>>driver version  4.17.0
-> > > >>>
-> > > >>>Device topology
-> > > >>>- entity 1: ov5640 2-003c (1 pad, 1 link)
-> > > >>>             type V4L2 subdev subtype Sensor flags 0
-> > > >>>             device node name /dev/v4l-subdev0
-> > > >>>pad0: Source
-> > > >>>[fmt:UYVY8_2X8/640x480 field:none]
-> > > >>>-> "imx6-mipi-csi2":0 [ENABLED]
-> > > >>>
-> > > >>>- entity 3: ipu1_vdic (3 pads, 3 links)
-> > > >>>             type V4L2 subdev subtype Unknown flags 0
-> > > >>>             device node name /dev/v4l-subdev1
-> > > >>>pad0: Sink
-> > > >>>[fmt:AYUV8_1X32/640x480 field:none]
-> > > >>><- "ipu1_csi0":1 []
-> > > >>><- "ipu1_csi1":1 []
-> > > >>>pad1: Sink
-> > > >>>[fmt:UYVY8_2X8/640x480 field:none]
-> > > >>>pad2: Source
-> > > >>>[fmt:AYUV8_1X32/640x480 field:none]
-> > > >>>-> "ipu1_ic_prp":0 []
-> > > >>>
-> > > >>>- entity 7: ipu2_vdic (3 pads, 3 links)
-> > > >>>             type V4L2 subdev subtype Unknown flags 0
-> > > >>>             device node name /dev/v4l-subdev2
-> > > >>>pad0: Sink
-> > > >>>[fmt:AYUV8_1X32/640x480 field:none]
-> > > >>><- "ipu2_csi0":1 []
-> > > >>><- "ipu2_csi1":1 []
-> > > >>>pad1: Sink
-> > > >>>[fmt:UYVY8_2X8/640x480 field:none]
-> > > >>>pad2: Source
-> > > >>>[fmt:AYUV8_1X32/640x480 field:none]
-> > > >>>-> "ipu2_ic_prp":0 []
-> > > >>>
-> > > >>>- entity 11: ipu1_ic_prp (3 pads, 5 links)
-> > > >>>              type V4L2 subdev subtype Unknown flags 0
-> > > >>>              device node name /dev/v4l-subdev3
-> > > >>>pad0: Sink
-> > > >>>[fmt:AYUV8_1X32/640x480 field:none]
-> > > >>><- "ipu1_vdic":2 []
-> > > >>><- "ipu1_csi0":1 []
-> > > >>><- "ipu1_csi1":1 [ENABLED]
-> > > >>>pad1: Source
-> > > >>>[fmt:AYUV8_1X32/640x480 field:none]
-> > > >>>-> "ipu1_ic_prpenc":0 [ENABLED]
-> > > >>>pad2: Source
-> > > >>>[fmt:AYUV8_1X32/640x480 field:none]
-> > > >>>-> "ipu1_ic_prpvf":0 []
-> > > >>>
-> > > >>>- entity 15: ipu1_ic_prpenc (2 pads, 2 links)
-> > > >>>              type V4L2 subdev subtype Unknown flags 0
-> > > >>>              device node name /dev/v4l-subdev4
-> > > >>>pad0: Sink
-> > > >>>[fmt:AYUV8_1X32/640x480 field:none]
-> > > >>><- "ipu1_ic_prp":1 [ENABLED]
-> > > >>>pad1: Source
-> > > >>>[fmt:AYUV8_1X32/640x480 field:none]
-> > > >>>-> "ipu1_ic_prpenc capture":0 [ENABLED]
-> > > >>>
-> > > >>>- entity 18: ipu1_ic_prpenc capture (1 pad, 1 link)
-> > > >>>              type Node subtype V4L flags 0
-> > > >>>              device node name /dev/video0
-> > > >>>pad0: Sink
-> > > >>><- "ipu1_ic_prpenc":1 [ENABLED]
-> > > >>>
-> > > >>>- entity 24: ipu1_ic_prpvf (2 pads, 2 links)
-> > > >>>              type V4L2 subdev subtype Unknown flags 0
-> > > >>>              device node name /dev/v4l-subdev5
-> > > >>>pad0: Sink
-> > > >>>[fmt:AYUV8_1X32/640x480 field:none]
-> > > >>><- "ipu1_ic_prp":2 []
-> > > >>>pad1: Source
-> > > >>>[fmt:AYUV8_1X32/640x480 field:none]
-> > > >>>-> "ipu1_ic_prpvf capture":0 []
-> > > >>>
-> > > >>>- entity 27: ipu1_ic_prpvf capture (1 pad, 1 link)
-> > > >>>              type Node subtype V4L flags 0
-> > > >>>              device node name /dev/video1
-> > > >>>pad0: Sink
-> > > >>><- "ipu1_ic_prpvf":1 []
-> > > >>>
-> > > >>>- entity 33: ipu2_ic_prp (3 pads, 5 links)
-> > > >>>              type V4L2 subdev subtype Unknown flags 0
-> > > >>>              device node name /dev/v4l-subdev6
-> > > >>>pad0: Sink
-> > > >>>[fmt:AYUV8_1X32/640x480 field:none]
-> > > >>><- "ipu2_vdic":2 []
-> > > >>><- "ipu2_csi0":1 []
-> > > >>><- "ipu2_csi1":1 []
-> > > >>>pad1: Source
-> > > >>>[fmt:AYUV8_1X32/640x480 field:none]
-> > > >>>-> "ipu2_ic_prpenc":0 []
-> > > >>>pad2: Source
-> > > >>>[fmt:AYUV8_1X32/640x480 field:none]
-> > > >>>-> "ipu2_ic_prpvf":0 []
-> > > >>>
-> > > >>>- entity 37: ipu2_ic_prpenc (2 pads, 2 links)
-> > > >>>              type V4L2 subdev subtype Unknown flags 0
-> > > >>>              device node name /dev/v4l-subdev7
-> > > >>>pad0: Sink
-> > > >>>[fmt:AYUV8_1X32/640x480 field:none]
-> > > >>><- "ipu2_ic_prp":1 []
-> > > >>>pad1: Source
-> > > >>>[fmt:AYUV8_1X32/640x480 field:none]
-> > > >>>-> "ipu2_ic_prpenc capture":0 []
-> > > >>>
-> > > >>>- entity 40: ipu2_ic_prpenc capture (1 pad, 1 link)
-> > > >>>              type Node subtype V4L flags 0
-> > > >>>              device node name /dev/video2
-> > > >>>pad0: Sink
-> > > >>><- "ipu2_ic_prpenc":1 []
-> > > >>>
-> > > >>>- entity 46: ipu2_ic_prpvf (2 pads, 2 links)
-> > > >>>              type V4L2 subdev subtype Unknown flags 0
-> > > >>>              device node name /dev/v4l-subdev8
-> > > >>>pad0: Sink
-> > > >>>[fmt:AYUV8_1X32/640x480 field:none]
-> > > >>><- "ipu2_ic_prp":2 []
-> > > >>>pad1: Source
-> > > >>>[fmt:AYUV8_1X32/640x480 field:none]
-> > > >>>-> "ipu2_ic_prpvf capture":0 []
-> > > >>>
-> > > >>>- entity 49: ipu2_ic_prpvf capture (1 pad, 1 link)
-> > > >>>              type Node subtype V4L flags 0
-> > > >>>              device node name /dev/video3
-> > > >>>pad0: Sink
-> > > >>><- "ipu2_ic_prpvf":1 []
-> > > >>>
-> > > >>>- entity 55: ipu1_csi0 (3 pads, 4 links)
-> > > >>>              type V4L2 subdev subtype Unknown flags 0
-> > > >>>              device node name /dev/v4l-subdev9
-> > > >>>pad0: Sink
-> > > >>>[fmt:UYVY8_2X8/640x480 field:none
-> > > >>>crop.bounds:(0,0)/640x480
-> > > >>>crop:(0,0)/640x480
-> > > >>>compose.bounds:(0,0)/640x480
-> > > >>>compose:(0,0)/640x480]
-> > > >>><- "ipu1_csi0_mux":2 []
-> > > >>>pad1: Source
-> > > >>>[fmt:AYUV8_1X32/640x480 field:none]
-> > > >>>-> "ipu1_ic_prp":0 []
-> > > >>>-> "ipu1_vdic":0 []
-> > > >>>pad2: Source
-> > > >>>[fmt:AYUV8_1X32/640x480 field:none]
-> > > >>>-> "ipu1_csi0 capture":0 []
-> > > >>>
-> > > >>>- entity 59: ipu1_csi0 capture (1 pad, 1 link)
-> > > >>>              type Node subtype V4L flags 0
-> > > >>>              device node name /dev/video4
-> > > >>>pad0: Sink
-> > > >>><- "ipu1_csi0":2 []
-> > > >>>
-> > > >>>- entity 65: ipu1_csi1 (3 pads, 4 links)
-> > > >>>              type V4L2 subdev subtype Unknown flags 0
-> > > >>>              device node name /dev/v4l-subdev10
-> > > >>>pad0: Sink
-> > > >>>[fmt:UYVY8_2X8/640x480 field:none
-> > > >>>crop.bounds:(0,0)/640x480
-> > > >>>crop:(0,0)/640x480
-> > > >>>compose.bounds:(0,0)/640x480
-> > > >>>compose:(0,0)/640x480]
-> > > >>><- "imx6-mipi-csi2":2 [ENABLED]
-> > > >>>pad1: Source
-> > > >>>[fmt:AYUV8_1X32/640x480 field:none]
-> > > >>>-> "ipu1_ic_prp":0 [ENABLED]
-> > > >>>-> "ipu1_vdic":0 []
-> > > >>>pad2: Source
-> > > >>>[fmt:AYUV8_1X32/640x480 field:none]
-> > > >>>-> "ipu1_csi1 capture":0 []
-> > > >>>
-> > > >>>- entity 69: ipu1_csi1 capture (1 pad, 1 link)
-> > > >>>              type Node subtype V4L flags 0
-> > > >>>              device node name /dev/video5
-> > > >>>pad0: Sink
-> > > >>><- "ipu1_csi1":2 []
-> > > >>>
-> > > >>>- entity 75: ipu2_csi0 (3 pads, 4 links)
-> > > >>>              type V4L2 subdev subtype Unknown flags 0
-> > > >>>              device node name /dev/v4l-subdev11
-> > > >>>pad0: Sink
-> > > >>>[fmt:UYVY8_2X8/640x480 field:none
-> > > >>>crop.bounds:(0,0)/640x480
-> > > >>>crop:(0,0)/640x480
-> > > >>>compose.bounds:(0,0)/640x480
-> > > >>>compose:(0,0)/640x480]
-> > > >>><- "imx6-mipi-csi2":3 []
-> > > >>>pad1: Source
-> > > >>>[fmt:AYUV8_1X32/640x480 field:none]
-> > > >>>-> "ipu2_ic_prp":0 []
-> > > >>>-> "ipu2_vdic":0 []
-> > > >>>pad2: Source
-> > > >>>[fmt:AYUV8_1X32/640x480 field:none]
-> > > >>>-> "ipu2_csi0 capture":0 []
-> > > >>>
-> > > >>>- entity 79: ipu2_csi0 capture (1 pad, 1 link)
-> > > >>>              type Node subtype V4L flags 0
-> > > >>>              device node name /dev/video6
-> > > >>>pad0: Sink
-> > > >>><- "ipu2_csi0":2 []
-> > > >>>
-> > > >>>- entity 85: ipu2_csi1 (3 pads, 4 links)
-> > > >>>              type V4L2 subdev subtype Unknown flags 0
-> > > >>>              device node name /dev/v4l-subdev12
-> > > >>>pad0: Sink
-> > > >>>[fmt:UYVY8_2X8/640x480 field:none
-> > > >>>crop.bounds:(0,0)/640x480
-> > > >>>crop:(0,0)/640x480
-> > > >>>compose.bounds:(0,0)/640x480
-> > > >>>compose:(0,0)/640x480]
-> > > >>><- "ipu2_csi1_mux":2 []
-> > > >>>pad1: Source
-> > > >>>[fmt:AYUV8_1X32/640x480 field:none]
-> > > >>>-> "ipu2_ic_prp":0 []
-> > > >>>-> "ipu2_vdic":0 []
-> > > >>>pad2: Source
-> > > >>>[fmt:AYUV8_1X32/640x480 field:none]
-> > > >>>-> "ipu2_csi1 capture":0 []
-> > > >>>
-> > > >>>- entity 89: ipu2_csi1 capture (1 pad, 1 link)
-> > > >>>              type Node subtype V4L flags 0
-> > > >>>              device node name /dev/video7
-> > > >>>pad0: Sink
-> > > >>><- "ipu2_csi1":2 []
-> > > >>>
-> > > >>>- entity 95: imx6-mipi-csi2 (5 pads, 5 links)
-> > > >>>              type V4L2 subdev subtype Unknown flags 0
-> > > >>>              device node name /dev/v4l-subdev13
-> > > >>>pad0: Sink
-> > > >>>[fmt:UYVY8_2X8/640x480 field:none]
-> > > >>><- "ov5640 2-003c":0 [ENABLED]
-> > > >>>pad1: Source
-> > > >>>[fmt:UYVY8_2X8/640x480 field:none]
-> > > >>>-> "ipu1_csi0_mux":0 []
-> > > >>>pad2: Source
-> > > >>>[fmt:UYVY8_2X8/640x480 field:none]
-> > > >>>-> "ipu1_csi1":0 [ENABLED]
-> > > >>>pad3: Source
-> > > >>>[fmt:UYVY8_2X8/640x480 field:none]
-> > > >>>-> "ipu2_csi0":0 []
-> > > >>>pad4: Source
-> > > >>>[fmt:UYVY8_2X8/640x480 field:none]
-> > > >>>-> "ipu2_csi1_mux":0 []
-> > > >>>
-> > > >>>- entity 101: ipu1_csi0_mux (3 pads, 2 links)
-> > > >>>               type V4L2 subdev subtype Unknown flags 0
-> > > >>>               device node name /dev/v4l-subdev14
-> > > >>>pad0: Sink
-> > > >>>[fmt:unknown/0x0]
-> > > >>><- "imx6-mipi-csi2":1 []
-> > > >>>pad1: Sink
-> > > >>>[fmt:unknown/0x0]
-> > > >>>pad2: Source
-> > > >>>[fmt:unknown/0x0]
-> > > >>>-> "ipu1_csi0":0 []
-> > > >>>
-> > > >>>- entity 105: ipu2_csi1_mux (3 pads, 2 links)
-> > > >>>               type V4L2 subdev subtype Unknown flags 0
-> > > >>>               device node name /dev/v4l-subdev15
-> > > >>>pad0: Sink
-> > > >>>[fmt:unknown/0x0]
-> > > >>><- "imx6-mipi-csi2":4 []
-> > > >>>pad1: Sink
-> > > >>>[fmt:unknown/0x0]
-> > > >>>pad2: Source
-> > > >>>[fmt:unknown/0x0]
-> > > >>>-> "ipu2_csi1":0 []
-> > > >>>
-> > > >>># GST_DEBUG="v4l2*:5" gst-launch-1.0 -v v4l2src device=/dev/video1 ! \
-> > > >>>>autovideosink
-> > > >>>0:00:01.086281666   185  0x1dce880 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4l1
-> > > >>>0:00:01.087369666   185  0x1dce880 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4l5
-> > > >>>0:00:01.088496000   185  0x1dce880 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4l.
-> > > >>>0:00:01.089540333   185  0x1dce880 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4lR
-> > > >>>0:00:01.090494666   185  0x1dce880 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4lH
-> > > >>>0:00:01.091657666   185  0x1dce880 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4l4
-> > > >>>0:00:01.092745000   185  0x1dce880 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4l
-> > > >>>0:00:01.093703333   185  0x1dce880 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4l
-> > > >>>0:00:01.094854000   185  0x1dce880 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4l
-> > > >>>0:00:01.095815000   185  0x1dce880 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4l
-> > > >>>0:00:01.096818666   185  0x1dce880 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4lB
-> > > >>>0:00:01.097819000   185  0x1dce880 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4l8
-> > > >>>0:00:01.098771000   185  0x1dce880 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4l
-> > > >>>0:00:01.099798666   185  0x1dce880 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4l1
-> > > >>>0:00:01.100776666   185  0x1dce880 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4lV
-> > > >>>0:00:01.101755333   185  0x1dce880 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4lY
-> > > >>>0:00:01.102771666   185  0x1dce880 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4lP
-> > > >>>0:00:01.103712000   185  0x1dce880 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4l4
-> > > >>>0:00:01.104720000   185  0x1dce880 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4lO
-> > > >>>0:00:01.105697000   185  0x1dce880 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4lP
-> > > >>>0:00:01.106629666   185  0x1dce880 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4l4
-> > > >>>0:00:01.107681666   185  0x1dce880 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4l4
-> > > >>>0:00:01.108660666   185  0x1dce880 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4l2
-> > > >>>0:00:01.442437333   185  0x1dce880 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4l0
-> > > >>>0:00:01.444673333   185  0x1dce880 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4l2
-> > > >>>0:00:01.446842000   185  0x1dce880 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4l2
-> > > >>>0:00:01.449084000   185  0x1dce880 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4l4
-> > > >>>Setting pipeline to PAUSED ...
-> > > >>>0:00:01.680823000   185  0x1dce880 DEBUG                   v4l2
-> > > >>>v4l2_calls.c:524:gst_v4l2_open:<v4l2src01
-> > > >>>0:00:01.681953333   185  0x1dce880 DEBUG                   v4l2
-> > > >>>v4l2_calls.c:69:gst_v4l2_get_capabilities
-> > > >>>0:00:01.683098666   185  0x1dce880 DEBUG                   v4l2
-> > > >>>v4l2_calls.c:140:gst_v4l2_fill_lists:<v4s
-> > > >>>0:00:01.684056666   185  0x1dce880 DEBUG                   v4l2
-> > > >>>v4l2_calls.c:143:gst_v4l2_fill_lists:<v4s
-> > > >>>0:00:01.685201000   185  0x1dce880 DEBUG                   v4l2
-> > > >>>v4l2_calls.c:215:gst_v4l2_fill_lists:<v4s
-> > > >>>0:00:01.686159333   185  0x1dce880 DEBUG                   v4l2
-> > > >>>v4l2_calls.c:247:gst_v4l2_fill_lists:<v41
-> > > >>>0:00:01.687207666   185  0x1dce880 DEBUG                   v4l2
-> > > >>>v4l2_calls.c:257:gst_v4l2_fill_lists:<v4C
-> > > >>>0:00:01.688183666   185  0x1dce880 DEBUG                   v4l2
-> > > >>>v4l2_calls.c:247:gst_v4l2_fill_lists:<v41
-> > > >>>0:00:01.689155333   185  0x1dce880 DEBUG                   v4l2
-> > > >>>v4l2_calls.c:257:gst_v4l2_fill_lists:<v4M
-> > > >>>0:00:01.690142000   185  0x1dce880 DEBUG                   v4l2
-> > > >>>v4l2_calls.c:247:gst_v4l2_fill_lists:<v41
-> > > >>>0:00:01.691114000   185  0x1dce880 DEBUG                   v4l2
-> > > >>>v4l2_calls.c:257:gst_v4l2_fill_lists:<v4P
-> > > >>>0:00:01.692080000   185  0x1dce880 DEBUG                   v4l2
-> > > >>>v4l2_calls.c:247:gst_v4l2_fill_lists:<v41
-> > > >>>0:00:01.693073000   185  0x1dce880 DEBUG                   v4l2
-> > > >>>v4l2_calls.c:257:gst_v4l2_fill_lists:<v4R
-> > > >>>0:00:01.694043000   185  0x1dce880 DEBUG                   v4l2
-> > > >>>v4l2_calls.c:247:gst_v4l2_fill_lists:<v41
-> > > >>>0:00:01.695760000   185  0x1dce880 DEBUG                   v4l2
-> > > >>>v4l2_calls.c:257:gst_v4l2_fill_lists:<v4L
-> > > >>>0:00:01.696736333   185  0x1dce880 DEBUG                   v4l2
-> > > >>>v4l2_calls.c:247:gst_v4l2_fill_lists:<v41
-> > > >>>0:00:01.697708000   185  0x1dce880 DEBUG                   v4l2
-> > > >>>v4l2_calls.c:257:gst_v4l2_fill_lists:<v4G
-> > > >>>0:00:01.698699000   185  0x1dce880 DEBUG                   v4l2
-> > > >>>v4l2_calls.c:247:gst_v4l2_fill_lists:<v41
-> > > >>>0:00:01.699667000   185  0x1dce880 DEBUG                   v4l2
-> > > >>>v4l2_calls.c:257:gst_v4l2_fill_lists:<v4H
-> > > >>>0:00:01.700633000   185  0x1dce880 DEBUG                   v4l2
-> > > >>>v4l2_calls.c:247:gst_v4l2_fill_lists:<v41
-> > > >>>0:00:01.701623666   185  0x1dce880 DEBUG                   v4l2
-> > > >>>v4l2_calls.c:257:gst_v4l2_fill_lists:<v4I
-> > > >>>0:00:01.702591000   185  0x1dce880 DEBUG                   v4l2
-> > > >>>v4l2_calls.c:247:gst_v4l2_fill_lists:<v41
-> > > >>>0:00:01.703554333   185  0x1dce880 DEBUG                   v4l2
-> > > >>>v4l2_calls.c:257:gst_v4l2_fill_lists:<v4K
-> > > >>>0:00:01.704604000   185  0x1dce880 DEBUG                   v4l2
-> > > >>>v4l2_calls.c:247:gst_v4l2_fill_lists:<v41
-> > > >>>0:00:01.705576666   185  0x1dce880 DEBUG                   v4l2
-> > > >>>v4l2_calls.c:257:gst_v4l2_fill_lists:<v4M
-> > > >>>0:00:01.706567000   185  0x1dce880 DEBUG                   v4l2
-> > > >>>v4l2_calls.c:247:gst_v4l2_fill_lists:<v41
-> > > >>>0:00:02.040204667   185  0x1dce880 DEBUG                   v4l2
-> > > >>>v4l2_calls.c:257:gst_v4l2_fill_lists:<v4B
-> > > >>>0:00:02.042194667   185  0x1dce880 DEBUG                   v4l2
-> > > >>>v4l2_calls.c:247:gst_v4l2_fill_lists:<v41
-> > > >>>0:00:02.044190000   185  0x1dce880 DEBUG                   v4l2
-> > > >>>v4l2_calls.c:257:gst_v4l2_fill_lists:<v4G
-> > > >>>0:00:02.046338333   185  0x1dce880 DEBUG                   v4l2
-> > > >>>v4l2_calls.c:247:gst_v4l2_fill_lists:<v41
-> > > >>>0:00:02.048327667   185  0x1dce880 DEBUG                   v4l2
-> > > >>>v4l2_calls.c:257:gst_v4l2_fill_lists:<v4H
-> > > >>>0:00:02.050296000   185  0x1dce880 DEBUG                   v4l2
-> > > >>>v4l2_calls.c:247:gst_v4l2_fill_lists:<v41
-> > > >>>0:00:02.052385000   185  0x1dce880 DEBUG                   v4l2
-> > > >>>v4l2_calls.c:257:gst_v4l2_fill_lists:<v4K
-> > > >>>0:00:02.054376000   185  0x1dce880 DEBUG                   v4l2
-> > > >>>v4l2_calls.c:247:gst_v4l2_fill_lists:<v41
-> > > >>>0:00:02.056461333   185  0x1dce880 DEBUG                   v4l2
-> > > >>>v4l2_calls.c:257:gst_v4l2_fill_lists:<v4L
-> > > >>>0:00:02.058434000   185  0x1dce880 DEBUG                   v4l2
-> > > >>>v4l2_calls.c:247:gst_v4l2_fill_lists:<v41
-> > > >>>0:00:02.060423667   185  0x1dce880 DEBUG                   v4l2
-> > > >>>v4l2_calls.c:257:gst_v4l2_fill_lists:<v4c
-> > > >>>0:00:02.062382667   185  0x1dce880 DEBUG                   v4l2
-> > > >>>v4l2_calls.c:263:gst_v4l2_fill_lists:<v4s
-> > > >>>0:00:02.064291333   185  0x1dce880 DEBUG                   v4l2
-> > > >>>v4l2_calls.c:283:gst_v4l2_fill_lists:<v40
-> > > >>>0:00:02.066224667   185  0x1dce880 DEBUG                   v4l2
-> > > >>>v4l2_calls.c:292:gst_v4l2_fill_lists:<v4.
-> > > >>>0:00:02.067190333   185  0x1dce880 DEBUG                   v4l2
-> > > >>>v4l2_calls.c:283:gst_v4l2_fill_lists:<v40
-> > > >>>0:00:02.068174333   185  0x1dce880 DEBUG                   v4l2
-> > > >>>v4l2_calls.c:300:gst_v4l2_fill_lists:<v40
-> > > >>>0:00:02.069141000   185  0x1dce880 DEBUG                   v4l2
-> > > >>>v4l2_calls.c:283:gst_v4l2_fill_lists:<v40
-> > > >>>0:00:02.070113000   185  0x1dce880 DEBUG                   v4l2
-> > > >>>v4l2_calls.c:305:gst_v4l2_fill_lists:<v4d
-> > > >>>0:00:02.071088333   185  0x1dce880 DEBUG                   v4l2
-> > > >>>v4l2_calls.c:456:gst_v4l2_fill_lists:<v4e
-> > > >>>0:00:02.072040000   185  0x1dce880 INFO                    v4l2
-> > > >>>v4l2_calls.c:592:gst_v4l2_open:<v4l2src0y
-> > > >>>0:00:02.073017333   185  0x1dce880 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:804:gst_v4l2_set_default)
-> > > >>>0:00:02.074010667   185  0x1dce880 DEBUG                   v4l2
-> > > >>>v4l2_calls.c:740:gst_v4l2_get_norm:<v4l2m
-> > > >>>0:00:02.075021000   185  0x1dce880 DEBUG                   v4l2
-> > > >>>v4l2_calls.c:754:gst_v4l2_get_norm: Fail1
-> > > >>>0:00:02.076012000   185  0x1dce880 DEBUG                   v4l2
-> > > >>>v4l2_calls.c:1027:gst_v4l2_get_input:<v4t
-> > > >>>Pipeline is live and does not need PREROLL ...
-> > > >>>0:00:02.080105333   185  0x1ec39b0 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:1109:gst_v4l2_object_fil.
-> > > >>><v4l2src0> getting src format enumerations
-> > > >>>0:00:02.412981333   185  0x1ec39b0 INFO              New clock: GstSystemClock
-> > > >>>       v4l2 gstv4l2object.c:1146:gst_v4l2_object_fill_format_list:<v4l2src0>
-> > > >>>got 7 format(s):
-> > > >>>0:00:02.415407667   185  0x1ec39b0 INFO                    v4l2
-> > > >>>gstv4l2object.c:1152:gst_v4l2_object_filV
-> > > >>>0:00:02.417531667   185  0x1ec39b0 INFO                    v4l2
-> > > >>>gstv4l2object.c:1152:gst_v4l2_object_filY
-> > > >>>0:00:02.419703667   185  0x1ec39b0 INFO                    v4l2
-> > > >>>gstv4l2object.c:1152:gst_v4l2_object_filP
-> > > >>>0:00:02.421860000   185  0x1ec39b0 INFO                    v4l2
-> > > >>>gstv4l2object.c:1152:gst_v4l2_object_fil2
-> > > >>>0:00:02.424022667   185  0x1ec39b0 INFO                    v4l2
-> > > >>>gstv4l2object.c:1152:gst_v4l2_object_fil2
-> > > >>>0:00:02.426295000   185  0x1ec39b0 INFO                    v4l2
-> > > >>>gstv4l2object.c:1152:gst_v4l2_object_fil6
-> > > >>>0:00:02.428481333   185  0x1ec39b0 INFO                    v4l2
-> > > >>>gstv4l2object.c:1152:gst_v4l2_object_fil2
-> > > >>>0:00:02.430728333   185  0x1ec39b0 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:2564:gst_v4l2_object_proV
-> > > >>>0:00:02.432985333   185  0x1ec39b0 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:2691:gst_v4l2_object_pro)
-> > > >>>0:00:02.436117000   185  0x1ec39b0 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:2564:gst_v4l2_object_proY
-> > > >>>0:00:02.437252333   185  0x1ec39b0 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:2691:gst_v4l2_object_pro)
-> > > >>>0:00:02.438579000   185  0x1ec39b0 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:2564:gst_v4l2_object_proP
-> > > >>>0:00:02.439656000   185  0x1ec39b0 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:2691:gst_v4l2_object_pro)
-> > > >>>0:00:02.441016667   185  0x1ec39b0 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:2564:gst_v4l2_object_pro2
-> > > >>>0:00:02.442092333   185  0x1ec39b0 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:2691:gst_v4l2_object_pro)
-> > > >>>0:00:02.443443333   185  0x1ec39b0 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:2564:gst_v4l2_object_pro2
-> > > >>>0:00:02.444626667   185  0x1ec39b0 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:2691:gst_v4l2_object_pro)
-> > > >>>0:00:02.445990667   185  0x1ec39b0 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:2564:gst_v4l2_object_pro6
-> > > >>>0:00:02.447063667   185  0x1ec39b0 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:2691:gst_v4l2_object_pro)
-> > > >>>0:00:02.448410333   185  0x1ec39b0 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:2564:gst_v4l2_object_pro2
-> > > >>>0:00:02.782148333   185  0x1ec39b0 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:2691:gst_v4l2_object_pro)
-> > > >>>0:00:02.785264333   185  0x1ec39b0 INFO                    v4l2
-> > > >>>gstv4l2object.c:3967:gst_v4l2_object_get}
-> > > >>>0:00:02.788800000   185  0x1ec39b0 DEBUG                v4l2src
-> > > >>>gstv4l2src.c:300:gst_v4l2src_negotiate:<}
-> > > >>>0:00:02.792207000   185  0x1ec39b0 DEBUG                v4l2src
-> > > >>>gstv4l2src.c:308:gst_v4l2src_negotiate:<]
-> > > >>>0:00:02.795419000   185  0x1ec39b0 DEBUG                v4l2src
-> > > >>>gstv4l2src.c:316:gst_v4l2src_negotiate:<}
-> > > >>>0:00:03.132052667   185  0x1ec39b0 DEBUG                v4l2src
-> > > >>>gstv4l2src.c:256:gst_v4l2src_fixate:<v4l}
-> > > >>>0:00:03.134399667   185  0x1ec39b0 DEBUG                v4l2src
-> > > >>>gstv4l2src.c:282:gst_v4l2src_fixate:<v4l}
-> > > >>>0:00:03.136800667   185  0x1ec39b0 DEBUG                v4l2src
-> > > >>>gstv4l2src.c:367:gst_v4l2src_negotiate:<1
-> > > >>>0:00:03.139067333   185  0x1ec39b0 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:3887:gst_v4l2_object_stog
-> > > >>>0:00:03.141452000   185  0x1ec39b0 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:3176:gst_v4l2_object_seto
-> > > >>>0:00:03.143608667   185  0x1ec39b0 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:3310:gst_v4l2_object_set0
-> > > >>>0:00:03.146025333   185  0x1ec39b0 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:3361:gst_v4l2_object_set1
-> > > >>>0:00:03.148229000   185  0x1ec39b0 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:3370:gst_v4l2_object_set0
-> > > >>>0:00:03.150373667   185  0x1ec39b0 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:3404:gst_v4l2_object_set1
-> > > >>>0:00:03.152589667   185  0x1ec39b0 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:3414:gst_v4l2_object_set0
-> > > >>>0:00:03.155250667   185  0x1ec39b0 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:3455:gst_v4l2_object_set1
-> > > >>>0:00:03.156584667   185  0x1ec39b0 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:3472:gst_v4l2_object_set1
-> > > >>>0:00:03.157659333   185  0x1ec39b0 INFO                    v4l2
-> > > >>>gstv4l2object.c:3504:gst_v4l2_object_set1
-> > > >>>0:00:03.491432000   185  0x1ec39b0 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:2960:gst_v4l2_object_ext0
-> > > >>>0:00:03.493645333   185  0x1ec39b0 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:3071:gst_v4l2_object_sav0
-> > > >>>0:00:03.496027333   185  0x1ec39b0 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:2843:gst_v4l2_object_setm
-> > > >>>0:00:03.498180000   185  0x1ec39b0 INFO                    v4l2
-> > > >>>gstv4l2object.c:2867:gst_v4l2_object_set2
-> > > >>>0:00:03.502772000   185  0x1ec39b0 DEBUG         v4l2bufferpool
-> > > >>>gstv4l2bufferpool.c:509:gst_v4l2_buffer_;
-> > > >>>0:00:03.505283333   185  0x1ec39b0 INFO          v4l2bufferpool
-> > > >>>gstv4l2bufferpool.c:557:gst_v4l2_buffer_2
-> > > >>>0:00:03.507120000   185  0x1ec39b0 INFO          v4l2bufferpool
-> > > >>>gstv4l2bufferpool.c:570:gst_v4l2_buffer_2
-> > > >>>/GstPipeline:pipeline0/GstV4l2Src:v4l2src0.GstPad:src: caps =
-> > > >>>video/x-raw, format=(string)YUY2, width=(i1
-> > > >>>/GstPipeline:pipeline0/GstAutoVideoSink:autovideosink0.GstGhostPad:sink.GstProxyPad:proxypad0:
-> > > >>>caps = vi1
-> > > >>>/GstPipeline:pipeline0/GstAutoVideoSink:autovideosink0/GstKMSSink:autovideosink0-actual-sink-kms.GstPad:1
-> > > >>>0:00:03/GstPipeline:pipeline0/GstAutoVideoSink:autovideosink0.GstGhostPad:sink:
-> > > >>>caps = video/x-raw, form1
-> > > >>>.512440000   185  0x1ec39b0 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:3985:gst_v4l2_object_decide_alln
-> > > >>>0:00:03.513556667   185  0x1ec39b0 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:4011:gst_v4l2_object_dec>
-> > > >>>0:00:03.514745667   185  0x1ec39b0 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:4069:gst_v4l2_object_dec>
-> > > >>>0:00:03.515889000   185  0x1ec39b0 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:4134:gst_v4l2_object_deca
-> > > >>>0:00:03.516969667   185  0x1ec39b0 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:4143:gst_v4l2_object_dec;
-> > > >>>0:00:03.851350333   185  0x1ec39b0 DEBUG         v4l2bufferpool
-> > > >>>gstv4l2bufferpool.c:509:gst_v4l2_buffer_2
-> > > >>>ams)NULL, options=(string)< GstBufferPoolOptionVideoMeta >;
-> > > >>>0:00:03.853620333   185  0x1ec39b0 INFO          v4l2bufferpool
-> > > >>>gstv4l2bufferpool.c:570:gst_v4l2_buffer_2
-> > > >>>0:00:03.855780667   185  0x1ec39b0 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:4150:gst_v4l2_object_dec;
-> > > >>>0:00:03.858430000   185  0x1ec39b0 DEBUG         v4l2bufferpool
-> > > >>>gstv4l2bufferpool.c:509:gst_v4l2_buffer_;
-> > > >>>0:00:03.861572333   185  0x1ec39b0 DEBUG         v4l2bufferpool
-> > > >>>gstv4l2bufferpool.c:707:gst_v4l2_buffer_l
-> > > >>>0:00:03.863468333   185  0x1ec39b0 DEBUG         v4l2bufferpool
-> > > >>>gstv4l2bufferpool.c:737:gst_v4l2_buffer_s
-> > > >>>0:00:03.918861000   185  0x1ec39b0 DEBUG          v4l2allocator
-> > > >>>gstv4l2allocator.c:706:gst_v4l2_allocatod
-> > > >>>0:00:03.943783333   185  0x1ec39b0 DEBUG         v4l2bufferpool
-> > > >>>gstv4l2bufferpool.c:1389:gst_v4l2_buffer8
-> > > >>>0:00:03.946129333   185  0x1ec39b0 DEBUG         v4l2bufferpool
-> > > >>>gstv4l2bufferpool.c:1389:gst_v4l2_buffer8
-> > > >>>0:00:03.948065000   185  0x1ec39b0 DEBUG         v4l2bufferpool
-> > > >>>gstv4l2bufferpool.c:1389:gst_v4l2_buffer8
-> > > >>>0:00:03.950006000   185  0x1ec39b0 DEBUG         v4l2bufferpool
-> > > >>>gstv4l2bufferpool.c:952:gst_v4l2_buffer_g
-> > > >>>0:00:03.996241333   185  0x1ec39b0 ERROR         v4l2bufferpool
-> > > >>>gstv4l2bufferpool.c:641:gst_v4l2_buffer_)
-> > > >>>0:00:03.998199667   185  0x1ec39b0 DEBUG         v4l2bufferpool
-> > > >>>gstv4l2bufferpool.c:1311:gst_v4l2_buffere
-> > > >>>0:00:04.000463000   185  0x1ec39b0 WARN          v4l2bufferpool
-> > > >>>gstv4l2bufferpool.c:1064:gst_v4l2_buffer)
-> > > >>>0:00:04.004649333   185  0x1ec39b0 DEBUG         v4l2bufferpool
-> > > >>>gstv4l2bufferpool.c:1283:gst_v4l2_bufferr
-> > > >>>0:00:04.005853333   185  0x1ec39b0 WARN                 v4l2src
-> > > >>>gstv4l2src.c:866:gst_v4l2src_create:<v4lr
-> > > >>>ERROR: from element /GstPipeline:pipeline0/GstV4l2Src:v4l2src0: Could
-> > > >>>not read from resource.
-> > > >>>Additional debug info:
-> > > >>>gstv4l2bufferpool.c(1064): gst_v4l2_buffer_pool_poll ():
-> > > >>>/GstPipeline:pipeline0/GstV4l2Src:v4l2src0:
-> > > >>>poll error 1: Resource temporarily unavailable (11)
-> > > >>>Execution ended after 0:00:01.606871334
-> > > >>>Setting pipeline to PAUSED ...
-> > > >>>0:00:04.022385000   185  0x1dce880 DEBUG         v4l2bufferpool
-> > > >>>gstv4l2bufferpool.c:931:gst_v4l2_buffer_g
-> > > >>>Setting pipeline to READY ...
-> > > >>>0:00:04.024850667   185  0x1dce880 DEBUG         v4l2bufferpool
-> > > >>>gstv4l2bufferpool.c:879:gst_v4l2_buffer_l
-> > > >>>0:00:04.026764000   185  0x1dce880 DEBUG          v4l2allocator
-> > > >>>gstv4l2allocator.c:757:gst_v4l2_allocator
-> > > >>>0:00:04.028598333   185  0x1dce880 DEBUG          v4l2allocator
-> > > >>>gstv4l2allocator.c:765:gst_v4l2_allocatoe
-> > > >>>0:00:04.362785667   185  0x1dce880 WARN          v4l2bufferpool
-> > > >>>gstv4l2bufferpool.c:918:gst_v4l2_buffer_g
-> > > >>>0:00:04.364712333   185  0x1dce880 DEBUG         v4l2bufferpool
-> > > >>>gstv4l2bufferpool.c:952:gst_v4l2_buffer_g
-> > > >>>0:00:04.366504333   185  0x1dce880 DEBUG         v4l2bufferpool
-> > > >>>gstv4l2bufferpool.c:629:gst_v4l2_buffer_g
-> > > >>>0:00:04.368607000   185  0x1dce880 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:3887:gst_v4l2_object_stog
-> > > >>>0:00:04.370713333   185  0x1dce880 DEBUG                   v4l2
-> > > >>>gstv4l2object.c:3895:gst_v4l2_object_stol
-> > > >>>0:00:04.372809333   185  0x1dce880 DEBUG         v4l2bufferpool
-> > > >>>gstv4l2bufferpool.c:931:gst_v4l2_buffer_g
-> > > >>>0:00:04.374732000   185  0x1dce880 DEBUG         v4l2bufferpool
-> > > >>>gstv4l2bufferpool.c:879:gst_v4l2_buffer_l
-> > > >>>0:00:04.376541000   185  0x1dce880 DEBUG         v4l2bufferpool
-> > > >>>gstv4l2bufferpool.c:663:gst_v4l2_buffer_g
-> > > >>>0:00:04.378334000   185  0x1dce880 DEBUG          v4l2allocator
-> > > >>>gstv4l2allocator.c:757:gst_v4l2_allocator
-> > > >>>Setting pipeline to NULL ...
-> > > >>>0:00:04.394764333   185  0x1dce880 DEBUG                   v4l2
-> > > >>>v4l2_calls.c:716:gst_v4l2_close:<v4l2src1
-> > > >>>0:00:04.395897667   185  0x1dce880 DEBUG                   v4l2
-> > > >>>v4l2_calls.c:464:gst_v4l2_empty_lists:<vs
-> > > >>>Freeing pipeline ...
-> > > >>>
-> > > >>>[1] https://linuxtv.org/downloads/v4l-dvb-apis/v4l-drivers/imx.html#sabresd-with-mipi-csi-2-ov5640
-> > > >>>[2] https://paste.ubuntu.com/p/CTvFqdbyMW/
-> > > >>>
-> > > >>>Jagan.
-> > > >>>
-> > > >>>--
-> > > >>>Jagan Teki
-> > > >>>Senior Linux Kernel Engineer | Amarula Solutions
-> > > >>>U-Boot, Linux | Upstream Maintainer
-> > > >>>Hyderabad, India.
+>   static irqreturn_t adv7180_irq(int irq, void *devid)
+>
+> So I still don't quite know what I was testing in the past that didn't
+> show this adv7180 sync issue. I'm curious how Krzysztof dealt with it
+> in his recent testing with v4.19. Its very likely that I was getting
+> around the issue by using your FIM solution which perhaps is the right
+> solution here as well. FIM also has the added benefit of resolving the
+> issue (on the capture side not the sensor side) of sync breaking
+> during loss of signal during streaming which I have had to resolve for
+> people switching inputs during streaming.
+
+
+Yes, FIM is another solution for dealing with the unstable initial
+bt.656 sync codes. But with the current drawback that the EOF
+method is subject to irq latency error, so it's possible to trigger
+false FIM events by, say attaching a USB device creating a flurry
+of IO. Also FIM requires participation from userland (send a stream
+restart in response to the FIM event), and a gstreamer pipeline,
+e.g. v4l2src won't do this.
+
+
+>
+> Where was the negative feedback with the use of g_skip_frames? It
+> looks to me like v4l2-subdev.h describes g_skip_frames specifically
+> for this purpose as its described in the header as "number of frames
+> to skip at stream start. This is needed for buggy sensors that
+> generate faulty frames when they are turned on.".
+
+
+The push-back was not about using g_skip_frames. It was in
+reaching through the media graph to search for the backend
+sensor.
+
+
+>
+> Perhaps use of g_skip_frames should be added back to
+> media/imx/imx-media-csi.c as well as an implementation of it added to
+> adv7180?
+
+
+Sure, I will look into trying again. It would have to be a chained
+approach, similar to how .s_steam is chained.
+
+
+>
+> Or perhaps FIM resolves both of these issue?
+
+
+It does but with the above drawbacks mentioned.
+
+
+>
+>>> I haven't enabled FIM  yet and don't recall how to do so from
+>>> userspace now that its using V4L2 CID's.
+>>
+>> It's easy! From ipu2_csi1_capture device /dev/video7 from above pipeline:
+>>
+>> v4l2-ctl -d7 --set-ctrl=fim_enable=1
+>>
+>>
+>>>    Is there a way to set
+>>> V4L2_CID_IMX_FIM_NUM_SKIP, V4L2_CID_IMX_FIM_ICAP_CHANNEL and
+>>> V4L2_CID_IMX_FIM_ICAP_EDGE from userspace to test?
+>> v4l2-ctl -d7 --set-ctrl=fim_num_skip=N
+>>
+> that doesn't work (using v4l2-ctl from git master on Oct 4) - you must
+> be using a patched version of v4l2-ctl perhaps?
+>
+> I wasn't sure if there was a v4l2-ctl usage that let you define CID's
+> by number instead of by name?
+
+
+I'm not using a patched version, referencing controls by
+name has been part of v4l2-ctl for a long time AFAIK.
+But remember FIM controls are only available from the
+ipu_csi capture device nodes ATM, not the scaling/CSC/rotation
+ipu_ic_prp pipelines.
+
+
+Steve
+
+>
+>> etc.
+>>
+>> But input capture is not operational yet. I posted the patch to imx6
+>> clocksource driver a while ago, no replies. I can forward that patch to
+>> you, it will require some machinations elsewhere in imx-media driver to
+>> enable icap support though IIRC. Note also that input capture also requires
+>> hardware support: the ADV7180 FIELD output pin must be routed to one of
+>> the imx6
+>> input capture pads.
+> Right, you explain clock capture pretty well in
+> Documentation/media/v4l-drivers/imx.rst. I don't have VSYNC going to
+> an input capture channel so I have to rely on FIM working via EOF
+> interrupt.
+>
+> Tim
