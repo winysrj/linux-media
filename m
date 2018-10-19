@@ -1,89 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:41858 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726816AbeJSQtM (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:59804 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727017AbeJSVUs (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 Oct 2018 12:49:12 -0400
-Subject: Re: [RFC PATCH v3] media: docs-rst: Document m2m stateless video
- decoder interface
-To: Alexandre Courbot <acourbot@chromium.org>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Pawel Osciak <posciak@chromium.org>,
-        linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-References: <20181019080928.208446-1-acourbot@chromium.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <9375d854-2be5-4f69-2516-a3349fa5b50d@xs4all.nl>
-Date: Fri, 19 Oct 2018 10:43:58 +0200
-MIME-Version: 1.0
-In-Reply-To: <20181019080928.208446-1-acourbot@chromium.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Fri, 19 Oct 2018 17:20:48 -0400
+Message-ID: <5b3353eda91dcf2e4a11030913f2726ca4bf0357.camel@collabora.com>
+Subject: Re: [PATCH 2/2] vicodec: Implement spec-compliant stop command
+From: Ezequiel Garcia <ezequiel@collabora.com>
+To: Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>, kernel@collabora.com
+Date: Fri, 19 Oct 2018 10:14:35 -0300
+In-Reply-To: <6c07bc835803dd052ed5d6571fd6d4c56bb84512.camel@collabora.com>
+References: <20181018160841.17674-1-ezequiel@collabora.com>
+         <20181018160841.17674-3-ezequiel@collabora.com>
+         <b75076e1-075b-50eb-96ff-f7115168d2bd@xs4all.nl>
+         <16ce7d348d553a91d8e52976c434952b4db0192c.camel@collabora.com>
+         <6c07bc835803dd052ed5d6571fd6d4c56bb84512.camel@collabora.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/19/18 10:09, Alexandre Courbot wrote:
-> Thanks everyone for the feedback on v2! I have not replied to all the
-> individual emails but hope this v3 will address some of the problems
-> raised and become a continuation point for the topics still in
-> discussion (probably during the ELCE Media Summit).
-> 
-> This patch documents the protocol that user-space should follow when
-> communicating with stateless video decoders. It is based on the
-> following references:
-> 
-> * The current protocol used by Chromium (converted from config store to
->   request API)
-> 
-> * The submitted Cedrus VPU driver
-> 
-> As such, some things may not be entirely consistent with the current
-> state of drivers, so it would be great if all stakeholders could point
-> out these inconsistencies. :)
-> 
-> This patch is supposed to be applied on top of the Request API V18 as
-> well as the memory-to-memory video decoder interface series by Tomasz
-> Figa.
-> 
-> Changes since v2:
-> 
-> * Specify that the frame header controls should be set prior to
->   enumerating the CAPTURE queue, instead of the profile which as Paul
->   and Tomasz pointed out is not enough to know which raw formats will be
->   usable.
-> * Change V4L2_CID_MPEG_VIDEO_H264_SLICE_PARAM to
->   V4L2_CID_MPEG_VIDEO_H264_SLICE_PARAMS.
-> * Various rewording and rephrasing
-> 
-> Two points being currently discussed have not been changed in this
-> revision due to lack of better idea. Of course this is open to change:
-> 
-> * The restriction of having to send full frames for each input buffer is
->   kept as-is. As Hans pointed, we currently have a hard limit of 32
->   buffers per queue, and it may be non-trivial to lift. Also some codecs
->   (at least Venus AFAIK) do have this restriction in hardware, so unless
->   we want to do some buffer-rearranging in-kernel, it is probably better
->   to keep the default behavior as-is. Finally, relaxing the rule should
->   be easy enough if we add one extra control to query whether the
->   hardware can work with slice units, as opposed to frame units.
+Hi Nicolas,
 
-Makes sense, as long as the restriction can be lifted in the future.
+On Fri, 2018-10-19 at 07:41 -0400, Nicolas Dufresne wrote:
+> Le vendredi 19 octobre 2018 à 07:35 -0400, Nicolas Dufresne a écrit :
+> > Le vendredi 19 octobre 2018 à 09:28 +0200, Hans Verkuil a écrit :
+> > > On 10/18/2018 06:08 PM, Ezequiel Garcia wrote:
+> > > > Set up a statically-allocated, dummy buffer to
+> > > > be used as flush buffer, which signals
+> > > > a encoding (or decoding) stop.
+> > > > 
+> > > > When the flush buffer is queued to the OUTPUT queue,
+> > > > the driver will send an V4L2_EVENT_EOS event, and
+> > > > mark the CAPTURE buffer with V4L2_BUF_FLAG_LAST.
+> > > 
+> > > I'm confused. What is the current driver doing wrong? It is already
+> > > setting the LAST flag AFAIK. I don't see why a dummy buffer is
+> > > needed.
+> > 
+> > I'm not sure of this patch either. It seems to trigger the legacy
+> > "empty payload" buffer case. Driver should mark the last buffer, and
+> > then following poll should return EPIPE. Maybe it's the later that
+> > isn't respected ?
+> 
+> Sorry, I've send this too fast. The following poll should not block,
+> and DQBUF should retunr EPIPE.
+> 
+> In GStreamer we currently ignore the LAST flag and wait for EPIPE. The
+> reason is that not all driver can set the LAST flag. Exynos firmware
+> tells you it's done later and we don't want to introduce any latency in
+> the driver. The last flag isn't that useful in fact, but it can be use
+> with RTP to set the marker bit.
+> 
 
-> * The other hot topic is the use of capture buffer indexes in order to
->   reference frames. I understand the concerns, but I doesn't seem like
->   we have come with a better proposal so far - and since capture buffers
->   are essentially well, frames, using their buffer index to directly
->   reference them doesn't sound too inappropriate to me. There is also
->   the restriction that drivers must return capture buffers in queue
->   order. Do we have any concrete example where this scenario would not
->   work?
+Yeah, I know that gstreamer ignores the LAST flag.
 
-I'll start a separate discussion thread for this to avoid polluting the
-review of this documentation.
+> In previous discussion, using a buffer with payload 0 was not liked.
+> There might be codec where an empty buffer is valid, who knows ?
+> 
 
-Regards,
+The goal of this patch is for the driver to mark the dst buf
+as V4L2_BUF_FLAG_DONE and V4L2_BUF_FLAG_LAST, so videobuf2
+core returns EPIPE on a DQBUF.
 
-	Hans
+Sorry for not being clear in the commit log.
+
+Thanks,
+Ezequiel
