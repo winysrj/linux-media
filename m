@@ -1,133 +1,178 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:56269 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727498AbeJSUVe (ORCPT
+Received: from aer-iport-1.cisco.com ([173.38.203.51]:49144 "EHLO
+        aer-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727199AbeJSUp0 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 Oct 2018 16:21:34 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org,
-        Steve Longerbeam <slongerbeam@gmail.com>
-Cc: Nicolas Dufresne <nicolas@ndufresne.ca>,
-        Tim Harvey <tharvey@gateworks.com>, kernel@pengutronix.de
-Subject: [PATCH v4 04/22] gpu: ipu-v3: ipu-ic: allow to manually set resize coefficients
-Date: Fri, 19 Oct 2018 14:15:21 +0200
-Message-Id: <20181019121539.12778-5-p.zabel@pengutronix.de>
-In-Reply-To: <20181019121539.12778-1-p.zabel@pengutronix.de>
-References: <20181019121539.12778-1-p.zabel@pengutronix.de>
+        Fri, 19 Oct 2018 16:45:26 -0400
+Subject: Re: [PATCH] media: rename soc_camera I2C drivers
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Kate Stewart <kstewart@linuxfoundation.org>,
+        Philippe Ombredanne <pombredanne@nexb.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Akinobu Mita <akinobu.mita@gmail.com>
+References: <3e42194ffb936ec9d0a4d361f06c6a4b0e88173f.1539949382.git.mchehab+samsung@kernel.org>
+ <fa7f6ef2-af25-a554-2ecc-e99c9fb1e68d@cisco.com>
+ <20181019093146.195d0be5@coco.lan>
+From: Hans Verkuil <hansverk@cisco.com>
+Message-ID: <7bd0c2fd-f852-e880-f1ae-85f27b44fc9b@cisco.com>
+Date: Fri, 19 Oct 2018 14:39:27 +0200
+MIME-Version: 1.0
+In-Reply-To: <20181019093146.195d0be5@coco.lan>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-For tiled scaling, we want to compute the scaling coefficients
-externally in such a way that the interpolation overshoots tile
-boundaries and samples up to the first pixel of the next tile.
-Prepare to override the resizing coefficients from the image
-conversion code.
+On 10/19/18 14:31, Mauro Carvalho Chehab wrote:
+> Em Fri, 19 Oct 2018 13:45:32 +0200
+> Hans Verkuil <hansverk@cisco.com> escreveu:
+> 
+>> On 10/19/18 13:43, Mauro Carvalho Chehab wrote:
+>>> Those drivers are part of the legacy SoC camera framework.
+>>> They're being converted to not use it, but sometimes we're
+>>> keeping both legacy any new driver.
+>>>
+>>> This time, for example, we have two drivers on media with
+>>> the same name: ov772x. That's bad.
+>>>
+>>> So, in order to prevent that to happen, let's prepend the SoC
+>>> legacy drivers with soc_.
+>>>
+>>> No functional changes.
+>>>
+>>> Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>  
+>>
+>> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> For now, let's just avoid the conflict if one builds both modules and
+> do a modprobe ov772x.
+> 
+>> Let's kill all of these in the next kernel. I see no reason for keeping
+>> them around.
+> 
+> While people are doing those SoC conversions, I would keep it. We
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
-No changes since v3.
----
- drivers/gpu/ipu-v3/ipu-ic.c | 52 +++++++++++++++++++++++--------------
- include/video/imx-ipu-v3.h  |  6 +++++
- 2 files changed, 39 insertions(+), 19 deletions(-)
+Which people are doing SoC conversions? Nobody is using soc-camera anymore.
+It is a dead driver. The only reason it hasn't been removed yet is lack of
+time since it is not just removing the driver, but also patching old board
+files that use soc_camera headers. Really left-overs since the corresponding
+soc-camera drivers have long since been removed.
 
-diff --git a/drivers/gpu/ipu-v3/ipu-ic.c b/drivers/gpu/ipu-v3/ipu-ic.c
-index 67cc820253a9..594c3cbc8291 100644
---- a/drivers/gpu/ipu-v3/ipu-ic.c
-+++ b/drivers/gpu/ipu-v3/ipu-ic.c
-@@ -442,36 +442,40 @@ int ipu_ic_task_graphics_init(struct ipu_ic *ic,
- }
- EXPORT_SYMBOL_GPL(ipu_ic_task_graphics_init);
- 
--int ipu_ic_task_init(struct ipu_ic *ic,
--		     int in_width, int in_height,
--		     int out_width, int out_height,
--		     enum ipu_color_space in_cs,
--		     enum ipu_color_space out_cs)
-+int ipu_ic_task_init_rsc(struct ipu_ic *ic,
-+			 int in_width, int in_height,
-+			 int out_width, int out_height,
-+			 enum ipu_color_space in_cs,
-+			 enum ipu_color_space out_cs,
-+			 u32 rsc)
- {
- 	struct ipu_ic_priv *priv = ic->priv;
--	u32 reg, downsize_coeff, resize_coeff;
-+	u32 downsize_coeff, resize_coeff;
- 	unsigned long flags;
- 	int ret = 0;
- 
--	/* Setup vertical resizing */
--	ret = calc_resize_coeffs(ic, in_height, out_height,
--				 &resize_coeff, &downsize_coeff);
--	if (ret)
--		return ret;
-+	if (!rsc) {
-+		/* Setup vertical resizing */
- 
--	reg = (downsize_coeff << 30) | (resize_coeff << 16);
-+		ret = calc_resize_coeffs(ic, in_height, out_height,
-+					 &resize_coeff, &downsize_coeff);
-+		if (ret)
-+			return ret;
-+
-+		rsc = (downsize_coeff << 30) | (resize_coeff << 16);
- 
--	/* Setup horizontal resizing */
--	ret = calc_resize_coeffs(ic, in_width, out_width,
--				 &resize_coeff, &downsize_coeff);
--	if (ret)
--		return ret;
-+		/* Setup horizontal resizing */
-+		ret = calc_resize_coeffs(ic, in_width, out_width,
-+					 &resize_coeff, &downsize_coeff);
-+		if (ret)
-+			return ret;
- 
--	reg |= (downsize_coeff << 14) | resize_coeff;
-+		rsc |= (downsize_coeff << 14) | resize_coeff;
-+	}
- 
- 	spin_lock_irqsave(&priv->lock, flags);
- 
--	ipu_ic_write(ic, reg, ic->reg->rsc);
-+	ipu_ic_write(ic, rsc, ic->reg->rsc);
- 
- 	/* Setup color space conversion */
- 	ic->in_cs = in_cs;
-@@ -487,6 +491,16 @@ int ipu_ic_task_init(struct ipu_ic *ic,
- 	spin_unlock_irqrestore(&priv->lock, flags);
- 	return ret;
- }
-+
-+int ipu_ic_task_init(struct ipu_ic *ic,
-+		     int in_width, int in_height,
-+		     int out_width, int out_height,
-+		     enum ipu_color_space in_cs,
-+		     enum ipu_color_space out_cs)
-+{
-+	return ipu_ic_task_init_rsc(ic, in_width, in_height, out_width,
-+				    out_height, in_cs, out_cs, 0);
-+}
- EXPORT_SYMBOL_GPL(ipu_ic_task_init);
- 
- int ipu_ic_task_idma_init(struct ipu_ic *ic, struct ipuv3_channel *channel,
-diff --git a/include/video/imx-ipu-v3.h b/include/video/imx-ipu-v3.h
-index 8bb163cd9314..e582e8e7527a 100644
---- a/include/video/imx-ipu-v3.h
-+++ b/include/video/imx-ipu-v3.h
-@@ -390,6 +390,12 @@ int ipu_ic_task_init(struct ipu_ic *ic,
- 		     int out_width, int out_height,
- 		     enum ipu_color_space in_cs,
- 		     enum ipu_color_space out_cs);
-+int ipu_ic_task_init_rsc(struct ipu_ic *ic,
-+			 int in_width, int in_height,
-+			 int out_width, int out_height,
-+			 enum ipu_color_space in_cs,
-+			 enum ipu_color_space out_cs,
-+			 u32 rsc);
- int ipu_ic_task_graphics_init(struct ipu_ic *ic,
- 			      enum ipu_color_space in_g_cs,
- 			      bool galpha_en, u32 galpha,
--- 
-2.19.0
+> could move it to staging, to let it clear that those drivers require
+> conversion, and give people some time to work on it.
+
+There is nobody working on it. These are old sensors, and few will have
+the hardware to test it. If someone needs such a sensor driver, then they
+can always look at an older kernel version. It's still in git after all.
+
+Just kill it rather then polluting the media tree.
+
+Regards,
+
+	Hans
+
+> 
+> In the specific case of ov772x, as we have already a driver that doesn't
+> require soc_camera, we can strip it for -next.
+> 
+>>
+>> Regards,
+>>
+>> 	Hans
+>>
+>>> ---
+>>>  drivers/media/i2c/soc_camera/Makefile          | 18 +++++++++---------
+>>>  .../soc_camera/{mt9m001.c => soc_mt9m001.c}    |  0
+>>>  .../soc_camera/{mt9t112.c => soc_mt9t112.c}    |  0
+>>>  .../soc_camera/{mt9v022.c => soc_mt9v022.c}    |  0
+>>>  .../i2c/soc_camera/{ov5642.c => soc_ov5642.c}  |  0
+>>>  .../i2c/soc_camera/{ov772x.c => soc_ov772x.c}  |  0
+>>>  .../i2c/soc_camera/{ov9640.c => soc_ov9640.c}  |  0
+>>>  .../i2c/soc_camera/{ov9740.c => soc_ov9740.c}  |  0
+>>>  .../{rj54n1cb0c.c => soc_rj54n1cb0c.c}         |  0
+>>>  .../i2c/soc_camera/{tw9910.c => soc_tw9910.c}  |  0
+>>>  10 files changed, 9 insertions(+), 9 deletions(-)
+>>>  rename drivers/media/i2c/soc_camera/{mt9m001.c => soc_mt9m001.c} (100%)
+>>>  rename drivers/media/i2c/soc_camera/{mt9t112.c => soc_mt9t112.c} (100%)
+>>>  rename drivers/media/i2c/soc_camera/{mt9v022.c => soc_mt9v022.c} (100%)
+>>>  rename drivers/media/i2c/soc_camera/{ov5642.c => soc_ov5642.c} (100%)
+>>>  rename drivers/media/i2c/soc_camera/{ov772x.c => soc_ov772x.c} (100%)
+>>>  rename drivers/media/i2c/soc_camera/{ov9640.c => soc_ov9640.c} (100%)
+>>>  rename drivers/media/i2c/soc_camera/{ov9740.c => soc_ov9740.c} (100%)
+>>>  rename drivers/media/i2c/soc_camera/{rj54n1cb0c.c => soc_rj54n1cb0c.c} (100%)
+>>>  rename drivers/media/i2c/soc_camera/{tw9910.c => soc_tw9910.c} (100%)
+>>>
+>>> diff --git a/drivers/media/i2c/soc_camera/Makefile b/drivers/media/i2c/soc_camera/Makefile
+>>> index 8c7770f62997..09ae483b96ef 100644
+>>> --- a/drivers/media/i2c/soc_camera/Makefile
+>>> +++ b/drivers/media/i2c/soc_camera/Makefile
+>>> @@ -1,10 +1,10 @@
+>>>  # SPDX-License-Identifier: GPL-2.0
+>>> -obj-$(CONFIG_SOC_CAMERA_MT9M001)	+= mt9m001.o
+>>> -obj-$(CONFIG_SOC_CAMERA_MT9T112)	+= mt9t112.o
+>>> -obj-$(CONFIG_SOC_CAMERA_MT9V022)	+= mt9v022.o
+>>> -obj-$(CONFIG_SOC_CAMERA_OV5642)		+= ov5642.o
+>>> -obj-$(CONFIG_SOC_CAMERA_OV772X)		+= ov772x.o
+>>> -obj-$(CONFIG_SOC_CAMERA_OV9640)		+= ov9640.o
+>>> -obj-$(CONFIG_SOC_CAMERA_OV9740)		+= ov9740.o
+>>> -obj-$(CONFIG_SOC_CAMERA_RJ54N1)		+= rj54n1cb0c.o
+>>> -obj-$(CONFIG_SOC_CAMERA_TW9910)		+= tw9910.o
+>>> +obj-$(CONFIG_SOC_CAMERA_MT9M001)	+= soc_mt9m001.o
+>>> +obj-$(CONFIG_SOC_CAMERA_MT9T112)	+= soc_mt9t112.o
+>>> +obj-$(CONFIG_SOC_CAMERA_MT9V022)	+= soc_mt9v022.o
+>>> +obj-$(CONFIG_SOC_CAMERA_OV5642)		+= soc_ov5642.o
+>>> +obj-$(CONFIG_SOC_CAMERA_OV772X)		+= soc_ov772x.o
+>>> +obj-$(CONFIG_SOC_CAMERA_OV9640)		+= soc_ov9640.o
+>>> +obj-$(CONFIG_SOC_CAMERA_OV9740)		+= soc_ov9740.o
+>>> +obj-$(CONFIG_SOC_CAMERA_RJ54N1)		+= soc_rj54n1cb0c.o
+>>> +obj-$(CONFIG_SOC_CAMERA_TW9910)		+= soc_tw9910.o
+>>> diff --git a/drivers/media/i2c/soc_camera/mt9m001.c b/drivers/media/i2c/soc_camera/soc_mt9m001.c
+>>> similarity index 100%
+>>> rename from drivers/media/i2c/soc_camera/mt9m001.c
+>>> rename to drivers/media/i2c/soc_camera/soc_mt9m001.c
+>>> diff --git a/drivers/media/i2c/soc_camera/mt9t112.c b/drivers/media/i2c/soc_camera/soc_mt9t112.c
+>>> similarity index 100%
+>>> rename from drivers/media/i2c/soc_camera/mt9t112.c
+>>> rename to drivers/media/i2c/soc_camera/soc_mt9t112.c
+>>> diff --git a/drivers/media/i2c/soc_camera/mt9v022.c b/drivers/media/i2c/soc_camera/soc_mt9v022.c
+>>> similarity index 100%
+>>> rename from drivers/media/i2c/soc_camera/mt9v022.c
+>>> rename to drivers/media/i2c/soc_camera/soc_mt9v022.c
+>>> diff --git a/drivers/media/i2c/soc_camera/ov5642.c b/drivers/media/i2c/soc_camera/soc_ov5642.c
+>>> similarity index 100%
+>>> rename from drivers/media/i2c/soc_camera/ov5642.c
+>>> rename to drivers/media/i2c/soc_camera/soc_ov5642.c
+>>> diff --git a/drivers/media/i2c/soc_camera/ov772x.c b/drivers/media/i2c/soc_camera/soc_ov772x.c
+>>> similarity index 100%
+>>> rename from drivers/media/i2c/soc_camera/ov772x.c
+>>> rename to drivers/media/i2c/soc_camera/soc_ov772x.c
+>>> diff --git a/drivers/media/i2c/soc_camera/ov9640.c b/drivers/media/i2c/soc_camera/soc_ov9640.c
+>>> similarity index 100%
+>>> rename from drivers/media/i2c/soc_camera/ov9640.c
+>>> rename to drivers/media/i2c/soc_camera/soc_ov9640.c
+>>> diff --git a/drivers/media/i2c/soc_camera/ov9740.c b/drivers/media/i2c/soc_camera/soc_ov9740.c
+>>> similarity index 100%
+>>> rename from drivers/media/i2c/soc_camera/ov9740.c
+>>> rename to drivers/media/i2c/soc_camera/soc_ov9740.c
+>>> diff --git a/drivers/media/i2c/soc_camera/rj54n1cb0c.c b/drivers/media/i2c/soc_camera/soc_rj54n1cb0c.c
+>>> similarity index 100%
+>>> rename from drivers/media/i2c/soc_camera/rj54n1cb0c.c
+>>> rename to drivers/media/i2c/soc_camera/soc_rj54n1cb0c.c
+>>> diff --git a/drivers/media/i2c/soc_camera/tw9910.c b/drivers/media/i2c/soc_camera/soc_tw9910.c
+>>> similarity index 100%
+>>> rename from drivers/media/i2c/soc_camera/tw9910.c
+>>> rename to drivers/media/i2c/soc_camera/soc_tw9910.c
+>>>   
+>>
+> 
+> 
+> 
+> Thanks,
+> Mauro
+> 
