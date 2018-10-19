@@ -1,117 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:48377 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726634AbeJSLf2 (ORCPT
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:41290 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726340AbeJSPFz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 Oct 2018 07:35:28 -0400
-Message-ID: <e24553da0cb21b6cfa3dafe73ea52970@smtp-cloud9.xs4all.net>
-Date: Fri, 19 Oct 2018 05:31:16 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Fri, 19 Oct 2018 11:05:55 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.20] request_api: Rename vb2_m2m_request_queue
+Message-ID: <f1b281ca-e69d-af63-9478-f5be6f2c6fd6@xs4all.nl>
+Date: Fri, 19 Oct 2018 09:01:06 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Just one patch that renames vb2_m2m_request_queue to v4l2_m2m_request_queue.
 
-Results of the daily build of media_tree:
+Regards,
 
-date:			Fri Oct 19 05:00:11 CEST 2018
-media-tree git hash:	490d84f6d73c12f4204241cff8651eed60aae914
-media_build git hash:	9f419c414672676f63e85a61ea99df0ddcd6e9a7
-v4l-utils git hash:	8d2093a8a4bc43622cd68aeb85fb2b817de55993
-edid-decode git hash:	5eeb151a748788666534d6ea3da07f90400d24c2
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.18.11-marune
+	Hans
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.123-i686: OK
-linux-3.18.123-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.159-i686: OK
-linux-4.4.159-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.131-i686: OK
-linux-4.9.131-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.74-i686: OK
-linux-4.14.74-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: OK
-linux-4.19-rc6-i686: OK
-linux-4.19-rc6-x86_64: OK
-apps: ERRORS
-spec-git: OK
-sparse: WARNINGS
+The following changes since commit e4183d3256e3cd668e899d06af66da5aac3a51af:
 
-Detailed results are available here:
+  media: dt-bindings: Document the Rockchip VPU bindings (2018-10-05 07:00:43 -0400)
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+are available in the Git repository at:
 
-Full logs are available here:
+  git://linuxtv.org/hverkuil/media_tree.git tags/br-v4.20j
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+for you to fetch changes up to f25cd39d7b98d953e6868ce969f3862f7c2e8425:
 
-The Media Infrastructure API from this daily build is here:
+  media: Rename vb2_m2m_request_queue -> v4l2_m2m_request_queue (2018-10-19 08:55:20 +0200)
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+----------------------------------------------------------------
+Tag branch
+
+----------------------------------------------------------------
+Ezequiel Garcia (1):
+      media: Rename vb2_m2m_request_queue -> v4l2_m2m_request_queue
+
+ drivers/media/platform/vim2m.c              | 2 +-
+ drivers/media/v4l2-core/v4l2-mem2mem.c      | 4 ++--
+ drivers/staging/media/sunxi/cedrus/cedrus.c | 2 +-
+ include/media/v4l2-mem2mem.h                | 2 +-
+ 4 files changed, 5 insertions(+), 5 deletions(-)
