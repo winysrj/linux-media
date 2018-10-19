@@ -1,586 +1,1224 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga18.intel.com ([134.134.136.126]:16090 "EHLO mga18.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727526AbeJTDN4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 Oct 2018 23:13:56 -0400
-Date: Sat, 20 Oct 2018 03:05:34 +0800
-From: kbuild test robot <lkp@intel.com>
-To: Marco Felsch <m.felsch@pengutronix.de>
-Cc: kbuild-all@01.org, mchehab@kernel.org,
-        sakari.ailus@linux.intel.com, akinobu.mita@gmail.com,
-        enrico.scholz@sigma-chemnitz.de, linux-media@vger.kernel.org,
-        kernel@pengutronix.de,
-        Michael Grzeschik <m.grzeschik@pengutronix.de>
-Subject: Re: [PATCH 4/4] media: mt9m111: allow to setup pixclk polarity
-Message-ID: <201810200311.lafwqAF1%fengguang.wu@intel.com>
-References: <20181019155027.28682-5-m.felsch@pengutronix.de>
+Received: from mail-ed1-f67.google.com ([209.85.208.67]:34808 "EHLO
+        mail-ed1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727631AbeJTDum (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 19 Oct 2018 23:50:42 -0400
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="BXVAT5kNtrzKuDFl"
-Content-Disposition: inline
-In-Reply-To: <20181019155027.28682-5-m.felsch@pengutronix.de>
+References: <CAMty3ZAMjCKv1BtLnobRZUzp=9Xu1gY5+R3Zi-JuobAJZQrXxg@mail.gmail.com>
+ <20180920145658.GE16851@w540> <CAHCN7x+U=Y=-v1UP5UYvY8WtUFRJGjmx=nawTuE=YcHdm_DYvA@mail.gmail.com>
+ <c1cb34b0-b715-cf08-6f75-2842f1090c5d@mentor.com> <20181017080103.GD11703@w540>
+ <CAHCN7xLx6uAmYiGh3p=piZFwE0VkfixTLqdjETibKwk2+DhMzA@mail.gmail.com>
+In-Reply-To: <CAHCN7xLx6uAmYiGh3p=piZFwE0VkfixTLqdjETibKwk2+DhMzA@mail.gmail.com>
+From: Adam Ford <aford173@gmail.com>
+Date: Fri, 19 Oct 2018 14:42:56 -0500
+Message-ID: <CAHCN7xJKuPYg04WfRzbYWO4bGoHHnD16LBPRsK1QsiYY1bL7nA@mail.gmail.com>
+Subject: Re: i.MX6 MIPI-CSI2 OV5640 Camera testing on Mainline Linux
+To: jacopo@jmondi.org
+Cc: steve_longerbeam@mentor.com,
+        Jagan Teki <jagan@amarulasolutions.com>,
+        p.zabel@pengutronix.de, Fabio Estevam <fabio.estevam@nxp.com>,
+        gstreamer-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Fri, Oct 19, 2018 at 8:45 AM Adam Ford <aford173@gmail.com> wrote:
+>
+> On Wed, Oct 17, 2018 at 3:01 AM jacopo mondi <jacopo@jmondi.org> wrote:
+> >
+> > Hi Adam, Seve,
+> >
+> > On Tue, Oct 16, 2018 at 05:13:24PM -0700, Steve Longerbeam wrote:
+> > > Hi Adam,
+> > >
+> > >
+> > > On 10/16/18 12:46 PM, Adam Ford wrote:
+> > > >On Thu, Sep 20, 2018 at 9:58 AM jacopo mondi <jacopo@jmondi.org> wrote:
+> > > >>Hi imx6 people,
+> > > >>
+> > > >>On Thu, May 31, 2018 at 08:39:20PM +0530, Jagan Teki wrote:
+> > > >>>Hi All,
+> > > >>>
+> > > >>>I'm trying to verify MIPI-CSI2 OV5640 camera on i.MX6 platform with
+> > > >>>Mainline Linux.
+> > > >>Sorry to resurect this, but before diving deep into details, do anyone
+> > > >>of you verified JPEG capture with ov5640 and i.MX6 platforms, and has
+> > > >>maybe a pipeline configuration to share :) ?
+> > > >
+> > > >I have a 4.14 kernel for my i.MX6D/Q using an ov5640 connected in a
+> > > >similar way as the sabresd and I'm getting similar timeouts.
+> > > >when executing
+> > > >
+> > > >media-ctl -l "'ov5640 2-0010':0 -> 'imx6-mipi-csi2':0[1]"
+> > > >media-ctl -l "'imx6-mipi-csi2':2 -> 'ipu1_csi1':0[1]"
+> > >
+> > >
+> > > You're routing through imx6-mipi-csi2 pad 2, which is CSI-2 virtual
+> > > channel 1, so make sure the ov5640 is transmitting on that channel,
+> > > see virtual_channel module parameter.
+>
+> First, I want to apologize for the spam.  I don't normally want to ask
+> for hand-holding, but after spending 4 solid days on this, I'm getting
+> frustrated, and I've tried to read the instructions, and the technical
+> reference manual is huge and somewhat overwhelming.
+>
+> Once I get my hardware working and I develop a better understanding of
+> how this system works, I'll be more than happy to volunteer to help
+> test patches on my hardware.
+>
+> I am not sure I fully understand how the media-ctl handles the
+> routing.  I just basically copied what I could find from some
+> documentation.  I looked for some documentation but I wasn't able to
+> find much.  Maybe you can point me to some.
+>
+> I can share with you some of my device tree, and I'll try to explain
+> my connections.   Firstly, I have an i.MX6Q and i.MX6Q which share the
+> same device tree.
+>
+> The CSI pins on the OV5640 camera go to i.MX6 pins:
+> CSI_CLK0M / CSI_CLK0P,
+> CSI_D0M / CSI_D0P,
+> CSI_D1M / CSI_D1P,
+>
+> CSI_D2 and D3 pins on the processor are all floating, and CSI_REXT is
+> grounded through a 6.04k pull-down resistor.
+>
+> I am not sure if these technically translate to CSI0, CSI1, or CSI2,
+> but I assumed the CSI2 since that's how the SabreSD board appears to
+> work.
+>
+> The ov5640 is connected to i2c3 with the following tree entry:
+>
+> ov5640: camera@10 {
+>     compatible = "ovti,ov5640";
+>     pinctrl-names = "default";
+>     pinctrl-0 = <&pinctrl_ov5640>;
+>     reg = <0x10>;
+>     clocks = <&clks IMX6QDL_CLK_CKO>;
+>     clock-names = "xclk";
+>     DOVDD-supply = <&mipi_pwr>;
+>     AVDD-supply = <&mipi_pwr>;
+>     DVDD-supply = <&mipi_pwr>;
+>     reset-gpios = <&gpio3 26 GPIO_ACTIVE_LOW>;
+>     powerdown-gpios = <&gpio3 27 GPIO_ACTIVE_HIGH>;
+>
+>     port {
+>         ov5640_to_mipi_csi2: endpoint {
+>         remote-endpoint = <&mipi_csi2_in>;
+>         clock-lanes = <0>;
+>         data-lanes = <1 2>;
+>     };
+> };
+>
+> I will be the first person to admit, I don't understand how the
+> clock-lands and data-lanes interact with the mipi_csis and the camera,
+> but I tried to match the sabresd board device tree.
+>
+> For the MIPI_CSI interface, I wasn't sure which ports are the proper
+> reference.  Looking at the sabresd board,  I used it as an example.  I
+> wasn't sure if port0 and reg 0 were the right options.
+> &mipi_csi {
+>     status = "okay";
+>
+>     port@0 {
+>         reg = <0>;
+>         mipi_csi2_in: endpoint {
+>             remote-endpoint = <&ov5640_to_mipi_csi2>;
+>             clock-lanes = <0>;
+>             data-lanes = <1 2>;
+>         };
+>     };
+> };
+>
+> There was one section of the sabresd board that I wasn't sure I
+> needed, because I am new to this camera stuff.  I wasn't thinking I
+> needed it, but I copied it  because the sabresd board had it.  I know
+> it has two cameras, but the interaction between the csi interface and
+> the ipu isn't clear to me.
+>
+> &ipu1_csi1_from_mipi_vc1 {
+>         clock-lanes = <0>;
+>         data-lanes = <1 2>;
+> };
+>
+>
+> I am not 100% certain the following is correct, but I tried to disable
+> unwanted features to help save power, but it's quite possible it's
+> interfering with the settings i have above.
+>
+> &ipu1_csi0 {
+>     status = "disabled";
+> };
+>
+> &ipu2_csi0 {
+>     status = "disabled";
+> };
+>
+> &mipi_dsi {
+>     status = "disabled";
+> };
+>
+>
+> > >
+> > >
+> > > >media-ctl -l "'ipu1_csi1':1 -> 'ipu1_ic_prp':0[1]"
+> > > >media-ctl -l "'ipu1_ic_prp':1 -> 'ipu1_ic_prpenc':0[1]"
+> > > >media-ctl -l "'ipu1_ic_prpenc':1 -> 'ipu1_ic_prpenc capture':0[1]"
+> > > >
+> > > >
+> > > >media-ctl -V "'ov5640 2-0010':0 [fmt:UYVY2X8/640x480 field:none]"
+> > > >media-ctl -V "'imx6-mipi-csi2':2 [fmt:UYVY2X8/640x480 field:none]"
+> > > >media-ctl -V "'ipu1_csi1':1 [fmt:AYUV32/640x480 field:none]"
+> > > >media-ctl -V "'ipu1_ic_prp':1 [fmt:AYUV32/640x480 field:none]"
+> > > >media-ctl -V "'ipu1_ic_prpenc':1 [fmt:AYUV32/640x480 field:none]"
+> > > >
+> > > >
+> > > >   gst-launch-1.0 -v v4l2src num-buffers=1 device=/dev/video0 ! jpegenc
+> > > >! filesink location=test.jpg
+> >
+> > Thanks, am I wrong or jpegenc is a software JPEG encoder?
+> >
+> > I was interested in options for capturing the JPEG frames as produced
+> > by the sensor. I'm not even sure it is possible at all.
+>
+> I am ok with simple streaming to the screen.  I'm ok with converting
+> to video.  At this point, I'm trying to just simply see the camera
+> work.  :-)
+>
+> >
+> > > >
+> > > >[   72.799015] ipu1_ic_prpenc: EOF timeout
+> > > >[   73.838985] ipu1_ic_prpenc: wait last EOF timeout
+> > > >
+> > > >When I try to jump directly to 4.19-RC8, I get errors regarding memory
+> > > >allocation, so I think there might be something else there I am
+> > > >missing.
+> > > >
+> >
 
---BXVAT5kNtrzKuDFl
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On startup the system shows the following linking the ov5640 to the imx6.
 
-Hi Enrico,
+[    7.301223] ov5640 2-0010: Linked as a consumer to regulator.17
+[    7.316817] coda 2040000.vpu: codec registered as /dev/video[8-9]
+[    7.365485] imx-media: subdev ov5640 2-0010 bound
+[    7.371381] imx-media: ov5640 2-0010:0 -> imx6-mipi-csi2:0
+[    7.383666] imx-media: imx6-mipi-csi2:4 -> ipu2_csi1_mux:0
+[    7.398218] imx-media: imx6-mipi-csi2:1 -> ipu1_csi0_mux:0
+[    7.404929] imx-media: ipu2_csi1:1 -> ipu2_ic_prp:0
+[    7.411899] imx-media: ipu2_csi1:1 -> ipu2_vdic:0
+[    7.418117] imx-media: ipu2_csi1_mux:2 -> ipu2_csi1:0
+[    7.424567] imx-media: ipu2_csi0:1 -> ipu2_ic_prp:0
+[    7.430350] imx-media: ipu2_csi0:1 -> ipu2_vdic:0
+[    7.437033] imx-media: imx6-mipi-csi2:3 -> ipu2_csi0:0
+[    7.442679] imx-media: ipu1_csi1:1 -> ipu1_ic_prp:0
+[    7.447742] imx-media: ipu1_csi1:1 -> ipu1_vdic:0
+[    7.452532] imx-media: imx6-mipi-csi2:2 -> ipu1_csi1:0
+[    7.457892] imx-media: ipu1_csi0:1 -> ipu1_ic_prp:0
+[    7.462815] imx-media: ipu1_csi0:1 -> ipu1_vdic:0
+[    7.467693] imx-media: ipu1_csi0_mux:2 -> ipu1_csi0:0
+[    7.472799] imx-media: ipu2_ic_prp:1 -> ipu2_ic_prpenc:0
+[    7.478304] imx-media: ipu2_ic_prp:2 -> ipu2_ic_prpvf:0
+[    7.483679] imx-media: ipu1_ic_prp:1 -> ipu1_ic_prpenc:0
+[    7.489043] imx-media: ipu1_ic_prp:2 -> ipu1_ic_prpvf:0
+[    7.494479] imx-media: ipu2_vdic:2 -> ipu2_ic_prp:0
+[    7.499468] imx-media: ipu1_vdic:2 -> ipu1_ic_prp:0
 
-Thank you for the patch! Yet something to improve:
 
-[auto build test ERROR on linuxtv-media/master]
-[also build test ERROR on v4.19-rc8 next-20181019]
-[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+> > Please share the errors. I am using v4.19-rc7 without issues.
 
-url:    https://github.com/0day-ci/linux/commits/Marco-Felsch/media-mt9m111-features/20181020-022716
-base:   git://linuxtv.org/media_tree.git master
-config: x86_64-randconfig-x000-201841 (attached as .config)
-compiler: gcc-7 (Debian 7.3.0-1) 7.3.0
-reproduce:
-        # save the attached .config to linux build tree
-        make ARCH=x86_64 
+For the folllwing example, I am just trying to stream to a fakesink,
+toward the bottom, there are a couple errors ''Failed to allocate
+required memory' and 'Buffer pool activation failed'.
 
-All errors (new ones prefixed by >>):
 
-   drivers/media//i2c/mt9m111.c: In function 'mt9m111_probe':
->> drivers/media//i2c/mt9m111.c:1185:9: error: implicit declaration of function 'mt9m111_probe_of'; did you mean 'mt9m111_probe'? [-Werror=implicit-function-declaration]
-      ret = mt9m111_probe_of(client, mt9m111);
-            ^~~~~~~~~~~~~~~~
-            mt9m111_probe
-   cc1: some warnings being treated as errors
+# gst-launch-1.0 --gst-debug=v4l2src:5 v4l2src device=/dev/video0 ! fakesink
+Setting pipeline to PAUSED ...
+Pipeline is live and does not need PREROLL ...
+0:00:03.541852667   264   0xd5b600 DEBUG                v4l2src
+gstv4l2src.c:512:gst_v4l2src_negotiate:<v4l2src0> caps of src:
+video/x-raw, format=(string)YUY2, framerate=(fraction)25/1,
+width=(int)640, h
+eight=(int)480; video/x-raw, format=(string)UYVY,
+framerate=(fraction)25/1, width=(int)640, height=(int)480;
+video/x-raw, format=(stri[  218.912460] ipu1_ic_prpenc: pipeline start
+failed with -32
+ng)Y42B, framerate=(fraction)25/1, width=(int)640, height=(int)480;
+video/x-raw, format=(string)I420, framerate=(fraction)25/1,
+width=(int)640, height=(int)480; video/x-raw, format=(string)YV12,
+framerate
+=(fraction)25/1, width=(int)640, height=(int)480; video/x-raw,
+format=(string)NV16, framerate=(fraction)25/1, width=(int)640,
+height=(int)480; video/x-raw, format=(string)NV12,
+framerate=(fraction)25/1, w
+idth=(int)640, height=(int)480
+0:00:03.542103334   264   0xd5b600 DEBUG                v4l2src
+gstv4l2src.c:520:gst_v4l2src_negotiate:<v4l2src0> caps of peer: ANY
+0:00:03.542328667   264   0xd5b600 DEBUG                v4l2src
+gstv4l2src.c:403:gst_v4l2src_fixate:<v4l2src0> fixating caps
+video/x-raw, format=(string)YUY2, framerate=(fraction)25/1,
+width=(int)640, hei
+ght=(int)480; video/x-raw, format=(string)UYVY,
+framerate=(fraction)25/1, width=(int)640, height=(int)480;
+video/x-raw, format=(string)Y42B, framerate=(fraction)25/1,
+width=(int)640, height=(int)480; vide
+o/x-raw, format=(string)I420, framerate=(fraction)25/1,
+width=(int)640, height=(int)480; video/x-raw, format=(string)YV12,
+framerate=(fraction)25/1, width=(int)640, height=(int)480;
+video/x-raw, format=(s
+tring)NV16, framerate=(fraction)25/1, width=(int)640, height=(int)480;
+video/x-raw, format=(string)NV12, framerate=(fraction)25/1,
+width=(int)640, height=(int)480
+0:00:03.542499667   264   0xd5b600 DEBUG                v4l2src
+gstv4l2src.c:418:gst_v4l2src_fixate:<v4l2src0> Prefered size 3840x2160
+Setting pipeline to PLAYING ...
+0:00:03.543068334   264   0xd5b600 DEBUG                v4l2src
+gstv4l2src.c:435:gst_v4l2src_fixate:<v4l2src0> sorted and normalized
+caps video/x-raw, format=(string)YUY2, framerate=(fraction)25/1,
+width=
+(int)640, height=(int)480; video/x-raw, format=(string)UYVY,
+framerate=(fraction)25/1, width=(int)640, height=(int)480;
+video/x-raw, format=(string)Y42B, framerate=(fraction)25/1,
+width=(int)640, height=(
+int)480; video/x-raw, format=(string)I420, framerate=(fraction)25/1,
+width=(int)640, height=(int)480; video/x-raw, format=(string)YV12,
+framerate=(fraction)25/1, width=(int)640, height=(int)480; video/x-r
+aw, format=(string)NV16, framerate=(fraction)25/1, width=(int)640,
+height=(int)480; video/x-raw, format=(string)NV12,
+framerate=(fraction)25/1, width=(int)640, height=(int)480
+New clock: GstSystemClock
+0:00:03.544924000   264   0xd5b600 DEBUG                v4l2src
+gstv4l2src.c:497:gst_v4l2src_fixate:<v4l2src0> fixated caps
+video/x-raw, format=(string)YUY2, framerate=(fraction)25/1,
+width=(int)640, heig
+ht=(int)480, colorimetry=(string)bt601, interlace-mode=(string)progressive
+0:00:03.545072334   264   0xd5b600 DEBUG                v4l2src
+gstv4l2src.c:550:gst_v4l2src_negotiate:<v4l2src0> fixated to:
+video/x-raw, format=(string)YUY2, framerate=(fraction)25/1,
+width=(int)640, he
+ight=(int)480, colorimetry=(string)bt601, interlace-mode=(string)progressive
+0:00:03.582344000   264   0xd5b600 WARN                 v4l2src
+gstv4l2src.c:658:gst_v4l2src_decide_allocation:<v4l2src0> error:
+Failed to allocate required memory.
+0:00:03.582701667   264   0xd5b600 WARN                 v4l2src
+gstv4l2src.c:658:gst_v4l2src_decide_allocation:<v4l2src0> error:
+Buffer pool activation failed
+ERROR: from element /GstPipeline:pipeline0/GstV4l2Src:v4l2src0: Failed
+to allocate required memory.
+Additional debug info:
+gstv4l2src.c(658): gst_v4l2src_decide_allocation ():
+/GstPipeline:pipeline0/GstV4l2Src:v4l2src0:
+Buffer pool activation failed
+Execution ended after 0:00:00.039860000
+Setting pipeline to PAUSED ...
+Setting pipeline to READY ...
+Setting pipeline to NULL ...
+Freeing pipeline ...
+#
 
-vim +1185 drivers/media//i2c/mt9m111.c
 
-  1159	
-  1160	static int mt9m111_probe(struct i2c_client *client,
-  1161				 const struct i2c_device_id *did)
-  1162	{
-  1163		struct mt9m111 *mt9m111;
-  1164		struct i2c_adapter *adapter = to_i2c_adapter(client->dev.parent);
-  1165		int ret;
-  1166	
-  1167		if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_WORD_DATA)) {
-  1168			dev_warn(&adapter->dev,
-  1169				 "I2C-Adapter doesn't support I2C_FUNC_SMBUS_WORD\n");
-  1170			return -EIO;
-  1171		}
-  1172	
-  1173		mt9m111 = devm_kzalloc(&client->dev, sizeof(struct mt9m111), GFP_KERNEL);
-  1174		if (!mt9m111)
-  1175			return -ENOMEM;
-  1176	
-  1177		mt9m111->clk = v4l2_clk_get(&client->dev, "mclk");
-  1178		if (IS_ERR(mt9m111->clk))
-  1179			return PTR_ERR(mt9m111->clk);
-  1180	
-  1181		/* Default HIGHPOWER context */
-  1182		mt9m111->ctx = &context_b;
-  1183	
-  1184		if (IS_ENABLED(CONFIG_OF)) {
-> 1185			ret = mt9m111_probe_of(client, mt9m111);
-  1186			if (ret)
-  1187				return ret;
-  1188		} else {
-  1189			/* use default chip hardware values */
-  1190			mt9m111->pclk_sample = 1;
-  1191		}
-  1192	
-  1193		v4l2_i2c_subdev_init(&mt9m111->subdev, client, &mt9m111_subdev_ops);
-  1194		mt9m111->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-  1195	
-  1196		v4l2_ctrl_handler_init(&mt9m111->hdl, 5);
-  1197		v4l2_ctrl_new_std(&mt9m111->hdl, &mt9m111_ctrl_ops,
-  1198				V4L2_CID_VFLIP, 0, 1, 1, 0);
-  1199		v4l2_ctrl_new_std(&mt9m111->hdl, &mt9m111_ctrl_ops,
-  1200				V4L2_CID_HFLIP, 0, 1, 1, 0);
-  1201		v4l2_ctrl_new_std(&mt9m111->hdl, &mt9m111_ctrl_ops,
-  1202				V4L2_CID_AUTO_WHITE_BALANCE, 0, 1, 1, 1);
-  1203		mt9m111->gain = v4l2_ctrl_new_std(&mt9m111->hdl, &mt9m111_ctrl_ops,
-  1204				V4L2_CID_GAIN, 0, 63 * 2 * 2, 1, 32);
-  1205		v4l2_ctrl_new_std_menu(&mt9m111->hdl,
-  1206				&mt9m111_ctrl_ops, V4L2_CID_EXPOSURE_AUTO, 1, 0,
-  1207				V4L2_EXPOSURE_AUTO);
-  1208		v4l2_ctrl_new_std_menu_items(&mt9m111->hdl,
-  1209				&mt9m111_ctrl_ops, V4L2_CID_TEST_PATTERN,
-  1210				ARRAY_SIZE(mt9m111_test_pattern_menu) - 1, 0, 0,
-  1211				mt9m111_test_pattern_menu);
-  1212		mt9m111->subdev.ctrl_handler = &mt9m111->hdl;
-  1213		if (mt9m111->hdl.error) {
-  1214			ret = mt9m111->hdl.error;
-  1215			goto out_clkput;
-  1216		}
-  1217	
 
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 
---BXVAT5kNtrzKuDFl
-Content-Type: application/gzip
-Content-Disposition: attachment; filename=".config.gz"
-Content-Transfer-Encoding: base64
+I configured the pipeline as follows:
+media-ctl -l "'ov5640 2-0010':0 -> 'imx6-mipi-csi2':0[1]"
+media-ctl -l "'imx6-mipi-csi2':2 -> 'ipu1_csi1':0[1]"
+media-ctl -l "'ipu1_csi1':1 -> 'ipu1_ic_prp':0[1]"
+media-ctl -l "'ipu1_ic_prp':1 -> 'ipu1_ic_prpenc':0[1]"
+media-ctl -l "'ipu1_ic_prpenc':1 -> 'ipu1_ic_prpenc capture':0[1]"
 
-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
-tHs8KN4/CKWqhYtDxvPA5SHqQBsAnw2xdtt7AQA=
+I am hoping I am doing this correctly.
 
---BXVAT5kNtrzKuDFl--
+adam
+
+> >
+> > > >Has anyone tried this camera module on a 4.14 kernel?  I noticed there
+> > > >are a bunch of driver updates, and I was hoping there might be some
+> > > >patches that could be be backported to the 4.14.y stable branch.
+> > >
+> > > I would suggest backporting all the ov5640 commits. You can also
+> > > backport the imx-media commits, but that shouldn't be the cause
+> > > of the timeouts you are seeing.
+> > >
+> >
+> > Yes, try to backport the recent ov5640 developments on your kernel
+> > version. There are a lot of fixes there, and I don't think there is
+> > any dependency on new developments on the v4l2 framework you don't
+> > have in v4.14 (I might be wrong though).
+>
+> I ported the entire ov5640 driver, but there appear to be some v4l
+> changes which preclude me from copying the whole driver.  I was hoping
+> to use as close to stock 4.14 LTS kernel since 4.19 isn't quite done
+> yet.  (I 'think' 4.19 will be an LTS kernel if I'm not mistaken, so
+> this kernel is open for discussion if we must transition to it)
+>
+> My i.MX6 board is running some tests now, but I'll try to build
+> 4.19-rc8 and share some logs.
+> >
+> > In case something breaks when cherry-picking patches or when building,
+> > please share and someone might help (I have recently backported those
+> > changes to a v3.14 kernel, so I might help too).
+>
+> I first went through the git commit logs for the ov5640 and tried to
+> grab anything with the word 'fix' in the headlines.  I'll try this
+> afternoon, to get a better feeling for which fixes were ported.  In
+> theory, I can go and request certain fixes to be backported too, but I
+> want to make sure they actually work before I waste people's time.
+>
+> adam
+>
+> >
+> > Thanks
+> >    j
+> >
+> > >
+> > > Steve
+> > >
+> > >
+> > >
+> > > >
+> > > >thanks for any suggestions to try.
+> > > >
+> > > >adam
+> > > >
+> > > >>Thanks
+> > > >>    j
+> > > >>
+> > > >>>I've followed these[1] instructions to configure MC links and pads
+> > > >>>based on the probing details from dmesg and trying to capture
+> > > >>>ipu1_ic_prpenc capture (/dev/video1) but it's not working.
+> > > >>>
+> > > >>>Can anyone help me to verify whether I configured all the details
+> > > >>>properly if not please suggest.
+> > > >>>
+> > > >>>I'm pasting full log here, so-that anyone can comment in line and dt
+> > > >>>changes are at [2]
+> > > >>>
+> > > >>>Log:
+> > > >>>-----
+> > > >>>
+> > > >>>[    1.211866] etnaviv-gpu 2204000.gpu: Ignoring GPU with VG and FE2.0
+> > > >>>[    1.220211] [drm] Initialized etnaviv 1.2.0 20151214 for etnaviv on minor 0
+> > > >>>[    1.230344] imx-ipuv3 2400000.ipu: IPUv3H probed
+> > > >>>[    1.237170] [drm] Supports vblank timestamp caching Rev 2 (21.10.2013).
+> > > >>>[    1.243920] [drm] No driver support for vblank timestamp query.
+> > > >>>[    1.250831] imx-drm display-subsystem: bound imx-ipuv3-crtc.2 (ops
+> > > >>>ipu_crtc_ops)
+> > > >>>[    1.258503] imx-drm display-subsystem: bound imx-ipuv3-crtc.3 (ops
+> > > >>>ipu_crtc_ops)
+> > > >>>[    1.266293] imx-drm display-subsystem: bound imx-ipuv3-crtc.6 (ops
+> > > >>>ipu_crtc_ops)
+> > > >>>[    1.274027] imx-drm display-subsystem: bound imx-ipuv3-crtc.7 (ops
+> > > >>>ipu_crtc_ops)
+> > > >>>[    1.282304] dwhdmi-imx 120000.hdmi: Detected HDMI TX controller
+> > > >>>v1.30a with HDCP (DWC HDMI 3D TX PHY)
+> > > >>>[    1.295722] imx-drm display-subsystem: bound 120000.hdmi (ops
+> > > >>>dw_hdmi_imx_ops)
+> > > >>>[    1.373615] Console: switching to colour frame buffer device 128x48
+> > > >>>[    1.396495] imx-drm display-subsystem: fb0:  frame buffer device
+> > > >>>[    1.404620] [drm] Initialized imx-drm 1.0.0 20120507 for
+> > > >>>display-subsystem on minor 1
+> > > >>>[    1.412763] imx-ipuv3 2800000.ipu: IPUv3H probed
+> > > >>>[    1.439673] brd: module loaded
+> > > >>>[    1.469099] loop: module loaded
+> > > >>>[    1.480324] nand: No NAND device found
+> > > >>>[    1.487768] libphy: Fixed MDIO Bus: probed
+> > > >>>[    1.493034] CAN device driver interface
+> > > >>>[    1.499057] fec 2188000.ethernet: 2188000.ethernet supply phy not
+> > > >>>found, using dummy regulator
+> > > >>>[    1.511633] pps pps0: new PPS source ptp0
+> > > >>>[    1.516928] fec 2188000.ethernet (unnamed net_device)
+> > > >>>(uninitialized): Invalid MAC address: 00:00:00:00:00:00
+> > > >>>[    1.527177] fec 2188000.ethernet (unnamed net_device)
+> > > >>>(uninitialized): Using random MAC address: f2:5a:6d:a6:90:74
+> > > >>>[    1.543567] libphy: fec_enet_mii_bus: probed
+> > > >>>[    1.549138] fec 2188000.ethernet eth0: registered PHC device 0
+> > > >>>[    1.556499] usbcore: registered new interface driver asix
+> > > >>>[    1.562066] usbcore: registered new interface driver ax88179_178a
+> > > >>>[    1.568259] usbcore: registered new interface driver cdc_ether
+> > > >>>[    1.574276] usbcore: registered new interface driver net1080
+> > > >>>[    1.580097] usbcore: registered new interface driver cdc_subset
+> > > >>>[    1.586144] usbcore: registered new interface driver zaurus
+> > > >>>[    1.591910] usbcore: registered new interface driver cdc_ncm
+> > > >>>[    1.597589] ehci_hcd: USB 2.0 'Enhanced' Host Controller (EHCI) Driver
+> > > >>>[    1.604209] ehci-pci: EHCI PCI platform driver
+> > > >>>[    1.608760] ehci-mxc: Freescale On-Chip EHCI Host driver
+> > > >>>[    1.614851] usbcore: registered new interface driver usb-storage
+> > > >>>[    1.629947] ci_hdrc ci_hdrc.0: EHCI Host Controller
+> > > >>>[    1.635066] ci_hdrc ci_hdrc.0: new USB bus registered, assigned bus number 1
+> > > >>>[    1.669473] ci_hdrc ci_hdrc.0: USB 2.0 started, EHCI 1.00
+> > > >>>[    1.677809] hub 1-0:1.0: USB hub found
+> > > >>>[    1.681902] hub 1-0:1.0: 1 port detected
+> > > >>>[    1.692839] ci_hdrc ci_hdrc.1: EHCI Host Controller
+> > > >>>[    1.697791] ci_hdrc ci_hdrc.1: new USB bus registered, assigned bus number 2
+> > > >>>[    1.729537] ci_hdrc ci_hdrc.1: USB 2.0 started, EHCI 1.00
+> > > >>>[    1.736740] hub 2-0:1.0: USB hub found
+> > > >>>[    1.740655] hub 2-0:1.0: 1 port detected
+> > > >>>[    1.753468] snvs_rtc 20cc000.snvs:snvs-rtc-lp: rtc core: registered
+> > > >>>20cc000.snvs:snvs-rtc-lp as rtc0
+> > > >>>[    1.762976] i2c /dev entries driver
+> > > >>>[    1.811339] imx2-wdt 20bc000.wdog: timeout 60 sec (nowayout=0)
+> > > >>>[    1.817865] Bluetooth: HCI UART driver ver 2.3
+> > > >>>[    1.822460] Bluetooth: HCI UART protocol H4 registered
+> > > >>>[    1.828297] Bluetooth: HCI UART protocol LL registered
+> > > >>>[    1.834774] sdhci: Secure Digital Host Controller Interface driver
+> > > >>>[    1.841059] sdhci: Copyright(c) Pierre Ossman
+> > > >>>[    1.845437] sdhci-pltfm: SDHCI platform and OF driver helper
+> > > >>>[    1.852834] sdhci-esdhc-imx 2190000.usdhc: Got CD GPIO
+> > > >>>[    1.893497] mmc0: SDHCI controller on 2190000.usdhc [2190000.usdhc]
+> > > >>>using ADMA
+> > > >>>[    1.937500] mmc1: SDHCI controller on 2198000.usdhc [2198000.usdhc]
+> > > >>>using ADMA
+> > > >>>[    1.945049] mmc0: host does not support reading read-only switch,
+> > > >>>assuming write-enable
+> > > >>>[    1.959799] mmc0: new high speed SDHC card at address 1234
+> > > >>>[    1.968363] mmcblk0: mmc0:1234 SA04G 3.71 GiB
+> > > >>>[    1.977984] caam 2100000.caam: Entropy delay = 3200
+> > > >>>[    2.043796] caam 2100000.caam: Instantiated RNG4 SH0
+> > > >>>[    2.104558] caam 2100000.caam: Instantiated RNG4 SH1
+> > > >>>[    2.109596] caam 2100000.caam: device ID = 0x0a16010000000000 (Era 4)
+> > > >>>[    2.116060] caam 2100000.caam: job rings = 2, qi = 0, dpaa2 = no
+> > > >>>[    2.139266] caam algorithms registered in /proc/crypto
+> > > >>>[    2.139341]  mmcblk0: p1 p2
+> > > >>>[    2.150910] caam_jr 2101000.jr0: registering rng-caam
+> > > >>>[    2.157327] usbcore: registered new interface driver usbhid
+> > > >>>[    2.163103] usbhid: USB HID core driver
+> > > >>>[    2.171149] imx-media: subdev ov5640 2-003c bound
+> > > >>>[    2.176631] imx-media: subdev ipu1_vdic bound
+> > > >>>[    2.181640] imx-media: subdev ipu2_vdic bound
+> > > >>>[    2.183831] mmc1: new high speed MMC card at address 0001
+> > > >>>[    2.186357] imx-media: subdev ipu1_ic_prp bound
+> > > >>>[    2.193649] mmcblk1: mmc1:0001 M62704 3.53 GiB
+> > > >>>[    2.197342] ipu1_ic_prpenc: Registered ipu1_ic_prpenc capture as /dev/video0
+> > > >>>[    2.202620] mmcblk1boot0: mmc1:0001 M62704 partition 1 2.00 MiB
+> > > >>>[    2.208083] imx-media: subdev ipu1_ic_prpenc bound
+> > > >>>[    2.215764] mmcblk1boot1: mmc1:0001 M62704 partition 2 2.00 MiB
+> > > >>>[    2.219512] ipu1_ic_prpvf: Registered ipu1_ic_prpvf capture as /dev/video1
+> > > >>>[    2.231868] imx-media: subdev ipu1_ic_prpvf bound
+> > > >>>[    2.232186] mmcblk1rpmb: mmc1:0001 M62704 partition 3 512 KiB,
+> > > >>>chardev (244:0)
+> > > >>>[    2.236748] imx-media: subdev ipu2_ic_prp bound
+> > > >>>[    2.245958]  mmcblk1: p1 p2
+> > > >>>[    2.251569] ipu2_ic_prpenc: Registered ipu2_ic_prpenc capture as /dev/video2
+> > > >>>[    2.258696] imx-media: subdev ipu2_ic_prpenc bound
+> > > >>>[    2.264108] ipu2_ic_prpvf: Registered ipu2_ic_prpvf capture as /dev/video3
+> > > >>>[    2.271119] imx-media: subdev ipu2_ic_prpvf bound
+> > > >>>[    2.277042] ipu1_csi0: Registered ipu1_csi0 capture as /dev/video4
+> > > >>>[    2.283312] imx-media: subdev ipu1_csi0 bound
+> > > >>>[    2.288312] ipu1_csi1: Registered ipu1_csi1 capture as /dev/video5
+> > > >>>[    2.294583] imx-media: subdev ipu1_csi1 bound
+> > > >>>[    2.299694] ipu2_csi0: Registered ipu2_csi0 capture as /dev/video6
+> > > >>>[    2.305902] imx-media: subdev ipu2_csi0 bound
+> > > >>>[    2.310953] ipu2_csi1: Registered ipu2_csi1 capture as /dev/video7
+> > > >>>[    2.317162] imx-media: subdev ipu2_csi1 bound
+> > > >>>[    2.322293] imx-media: subdev imx6-mipi-csi2 bound
+> > > >>>[    2.336025] sgtl5000 2-000a: Error reading chip id -6
+> > > >>>[    2.346932] fsl-ssi-dai 2028000.ssi: No cache defaults, reading back from HW
+> > > >>>[    2.360345] NET: Registered protocol family 10
+> > > >>>[    2.367761] Segment Routing with IPv6
+> > > >>>[    2.371704] sit: IPv6, IPv4 and MPLS over IPv4 tunneling driver
+> > > >>>[    2.379180] NET: Registered protocol family 17
+> > > >>>[    2.383872] can: controller area network core (rev 20170425 abi 9)
+> > > >>>[    2.390281] NET: Registered protocol family 29
+> > > >>>[    2.394756] can: raw protocol (rev 20170425)
+> > > >>>[    2.399126] can: broadcast manager protocol (rev 20170425 t)
+> > > >>>[    2.404869] can: netlink gateway (rev 20170425) max_hops=1
+> > > >>>[    2.410989] Key type dns_resolver registered
+> > > >>>[    2.420041] Registering SWP/SWPB emulation handler
+> > > >>>[    2.426337] Loading compiled-in X.509 certificates
+> > > >>>[    2.505422] imx-media: subdev ipu1_csi0_mux bound
+> > > >>>[    2.511142] imx-media: subdev ipu2_csi1_mux bound
+> > > >>>[    2.515930] imx-media: imx6-mipi-csi2:4 -> ipu2_csi1_mux:0
+> > > >>>[    2.518384] random: fast init done
+> > > >>>[    2.521600] imx-media: imx6-mipi-csi2:1 -> ipu1_csi0_mux:0
+> > > >>>[    2.530561] imx-media: ov5640 2-003c:0 -> imx6-mipi-csi2:0
+> > > >>>[    2.536094] imx-media: ipu2_csi1:1 -> ipu2_ic_prp:0
+> > > >>>[    2.541052] imx-media: ipu2_csi1:1 -> ipu2_vdic:0
+> > > >>>[    2.545801] imx-media: ipu2_csi1_mux:2 -> ipu2_csi1:0
+> > > >>>[    2.550932] imx-media: ipu2_csi0:1 -> ipu2_ic_prp:0
+> > > >>>[    2.555837] imx-media: ipu2_csi0:1 -> ipu2_vdic:0
+> > > >>>[    2.560629] imx-media: imx6-mipi-csi2:3 -> ipu2_csi0:0
+> > > >>>[    2.565800] imx-media: ipu1_csi1:1 -> ipu1_ic_prp:0
+> > > >>>[    2.570750] imx-media: ipu1_csi1:1 -> ipu1_vdic:0
+> > > >>>[    2.575497] imx-media: imx6-mipi-csi2:2 -> ipu1_csi1:0
+> > > >>>[    2.580716] imx-media: ipu1_csi0:1 -> ipu1_ic_prp:0
+> > > >>>[    2.585623] imx-media: ipu1_csi0:1 -> ipu1_vdic:0
+> > > >>>[    2.590411] imx-media: ipu1_csi0_mux:2 -> ipu1_csi0:0
+> > > >>>[    2.595499] imx-media: ipu2_ic_prp:1 -> ipu2_ic_prpenc:0
+> > > >>>[    2.600901] imx-media: ipu2_ic_prp:2 -> ipu2_ic_prpvf:0
+> > > >>>[    2.606159] imx-media: ipu1_ic_prp:1 -> ipu1_ic_prpenc:0
+> > > >>>[    2.611548] imx-media: ipu1_ic_prp:2 -> ipu1_ic_prpvf:0
+> > > >>>[    2.616803] imx-media: ipu2_vdic:2 -> ipu2_ic_prp:0
+> > > >>>[    2.621754] imx-media: ipu1_vdic:2 -> ipu1_ic_prp:0
+> > > >>>[    2.637015] imx_thermal tempmon: Industrial CPU temperature grade -
+> > > >>>max:105C critical:100C passive:95C
+> > > >>>[    2.650475] snvs_rtc 20cc000.snvs:snvs-rtc-lp: setting system clock
+> > > >>>to 1970-01-01 00:00:00 UTC (0)
+> > > >>>[    2.659880] cfg80211: Loading compiled-in X.509 certificates for
+> > > >>>regulatory database
+> > > >>>[    2.674031] cfg80211: Loaded X.509 cert 'sforshee: 00b28ddf47aef9cea7'
+> > > >>>[    2.682013] platform regulatory.0: Direct firmware load for
+> > > >>>regulatory.db failed with error -2
+> > > >>>[    2.690851] cfg80211: failed to load regulatory.db
+> > > >>>[    2.695737] ALSA device list:
+> > > >>>[    2.698762]   No soundcards found.
+> > > >>>[    3.592224] EXT4-fs (mmcblk0p2): recovery complete
+> > > >>>[    3.602020] EXT4-fs (mmcblk0p2): mounted filesystem with ordered
+> > > >>>data mode. Opts: (null)
+> > > >>>[    3.610371] VFS: Mounted root (ext4 filesystem) on device 179:2.
+> > > >>>[    3.618708] devtmpfs: mounted
+> > > >>>[    3.624665] Freeing unused kernel memory: 1024K
+> > > >>>[    3.743951] EXT4-fs (mmcblk0p2): re-mounted. Opts: (null)
+> > > >>>Starting logging: OK
+> > > >>>Initializing random number generator... [    3.897748] random: dd:
+> > > >>>uninitialized urandom read (512 bytes read)
+> > > >>>done.
+> > > >>>Starting network: OK
+> > > >>>
+> > > >>>Welcome to Engicam i.CoreM6 Quad/Dual/DualLite/Solo
+> > > >>>buildroot login: root
+> > > >>># media-ctl -l "'ov5640 2-003c':0 -> 'imx6-mipi-csi2':0[1]"
+> > > >>># media-ctl -l "'imx6-mipi-csi2':2 -> 'ipu1_csi1':0[1]"
+> > > >>># media-ctl -l "'ipu1_csi1':1 -> 'ipu1_ic_prp':0[1]"
+> > > >>># media-ctl -l "'ipu1_ic_prp':1 -> 'ipu1_ic_prpenc':0[1]"
+> > > >>># media-ctl -l "'ipu1_ic_prpenc':1 -> 'ipu1_ic_prpenc capture':0[1]"
+> > > >>># media-ctl -V "'ov5640 2-003c':0 [fmt:UYVY2X8/640x480 field:none]"
+> > > >>># media-ctl -V "'imx6-mipi-csi2':2 [fmt:UYVY2X8/640x480 field:none]"
+> > > >>># media-ctl -V "'ipu1_csi1':1 [fmt:AYUV32/640x480 field:none]"
+> > > >>># media-ctl -V "'ipu1_ic_prp':1 [fmt:AYUV32/640x480 field:none]"
+> > > >>># media-ctl -V "'ipu1_ic_prpenc':1 [fmt:AYUV32/640x480 field:none]"
+> > > >>># med# media-ctl -p
+> > > >>>Media controller API version 4.17.0
+> > > >>>
+> > > >>>Media device information
+> > > >>>------------------------
+> > > >>>driver          imx-media
+> > > >>>model           imx-media
+> > > >>>serial
+> > > >>>bus info
+> > > >>>hw revision     0x0
+> > > >>>driver version  4.17.0
+> > > >>>
+> > > >>>Device topology
+> > > >>>- entity 1: ov5640 2-003c (1 pad, 1 link)
+> > > >>>             type V4L2 subdev subtype Sensor flags 0
+> > > >>>             device node name /dev/v4l-subdev0
+> > > >>>pad0: Source
+> > > >>>[fmt:UYVY8_2X8/640x480 field:none]
+> > > >>>-> "imx6-mipi-csi2":0 [ENABLED]
+> > > >>>
+> > > >>>- entity 3: ipu1_vdic (3 pads, 3 links)
+> > > >>>             type V4L2 subdev subtype Unknown flags 0
+> > > >>>             device node name /dev/v4l-subdev1
+> > > >>>pad0: Sink
+> > > >>>[fmt:AYUV8_1X32/640x480 field:none]
+> > > >>><- "ipu1_csi0":1 []
+> > > >>><- "ipu1_csi1":1 []
+> > > >>>pad1: Sink
+> > > >>>[fmt:UYVY8_2X8/640x480 field:none]
+> > > >>>pad2: Source
+> > > >>>[fmt:AYUV8_1X32/640x480 field:none]
+> > > >>>-> "ipu1_ic_prp":0 []
+> > > >>>
+> > > >>>- entity 7: ipu2_vdic (3 pads, 3 links)
+> > > >>>             type V4L2 subdev subtype Unknown flags 0
+> > > >>>             device node name /dev/v4l-subdev2
+> > > >>>pad0: Sink
+> > > >>>[fmt:AYUV8_1X32/640x480 field:none]
+> > > >>><- "ipu2_csi0":1 []
+> > > >>><- "ipu2_csi1":1 []
+> > > >>>pad1: Sink
+> > > >>>[fmt:UYVY8_2X8/640x480 field:none]
+> > > >>>pad2: Source
+> > > >>>[fmt:AYUV8_1X32/640x480 field:none]
+> > > >>>-> "ipu2_ic_prp":0 []
+> > > >>>
+> > > >>>- entity 11: ipu1_ic_prp (3 pads, 5 links)
+> > > >>>              type V4L2 subdev subtype Unknown flags 0
+> > > >>>              device node name /dev/v4l-subdev3
+> > > >>>pad0: Sink
+> > > >>>[fmt:AYUV8_1X32/640x480 field:none]
+> > > >>><- "ipu1_vdic":2 []
+> > > >>><- "ipu1_csi0":1 []
+> > > >>><- "ipu1_csi1":1 [ENABLED]
+> > > >>>pad1: Source
+> > > >>>[fmt:AYUV8_1X32/640x480 field:none]
+> > > >>>-> "ipu1_ic_prpenc":0 [ENABLED]
+> > > >>>pad2: Source
+> > > >>>[fmt:AYUV8_1X32/640x480 field:none]
+> > > >>>-> "ipu1_ic_prpvf":0 []
+> > > >>>
+> > > >>>- entity 15: ipu1_ic_prpenc (2 pads, 2 links)
+> > > >>>              type V4L2 subdev subtype Unknown flags 0
+> > > >>>              device node name /dev/v4l-subdev4
+> > > >>>pad0: Sink
+> > > >>>[fmt:AYUV8_1X32/640x480 field:none]
+> > > >>><- "ipu1_ic_prp":1 [ENABLED]
+> > > >>>pad1: Source
+> > > >>>[fmt:AYUV8_1X32/640x480 field:none]
+> > > >>>-> "ipu1_ic_prpenc capture":0 [ENABLED]
+> > > >>>
+> > > >>>- entity 18: ipu1_ic_prpenc capture (1 pad, 1 link)
+> > > >>>              type Node subtype V4L flags 0
+> > > >>>              device node name /dev/video0
+> > > >>>pad0: Sink
+> > > >>><- "ipu1_ic_prpenc":1 [ENABLED]
+> > > >>>
+> > > >>>- entity 24: ipu1_ic_prpvf (2 pads, 2 links)
+> > > >>>              type V4L2 subdev subtype Unknown flags 0
+> > > >>>              device node name /dev/v4l-subdev5
+> > > >>>pad0: Sink
+> > > >>>[fmt:AYUV8_1X32/640x480 field:none]
+> > > >>><- "ipu1_ic_prp":2 []
+> > > >>>pad1: Source
+> > > >>>[fmt:AYUV8_1X32/640x480 field:none]
+> > > >>>-> "ipu1_ic_prpvf capture":0 []
+> > > >>>
+> > > >>>- entity 27: ipu1_ic_prpvf capture (1 pad, 1 link)
+> > > >>>              type Node subtype V4L flags 0
+> > > >>>              device node name /dev/video1
+> > > >>>pad0: Sink
+> > > >>><- "ipu1_ic_prpvf":1 []
+> > > >>>
+> > > >>>- entity 33: ipu2_ic_prp (3 pads, 5 links)
+> > > >>>              type V4L2 subdev subtype Unknown flags 0
+> > > >>>              device node name /dev/v4l-subdev6
+> > > >>>pad0: Sink
+> > > >>>[fmt:AYUV8_1X32/640x480 field:none]
+> > > >>><- "ipu2_vdic":2 []
+> > > >>><- "ipu2_csi0":1 []
+> > > >>><- "ipu2_csi1":1 []
+> > > >>>pad1: Source
+> > > >>>[fmt:AYUV8_1X32/640x480 field:none]
+> > > >>>-> "ipu2_ic_prpenc":0 []
+> > > >>>pad2: Source
+> > > >>>[fmt:AYUV8_1X32/640x480 field:none]
+> > > >>>-> "ipu2_ic_prpvf":0 []
+> > > >>>
+> > > >>>- entity 37: ipu2_ic_prpenc (2 pads, 2 links)
+> > > >>>              type V4L2 subdev subtype Unknown flags 0
+> > > >>>              device node name /dev/v4l-subdev7
+> > > >>>pad0: Sink
+> > > >>>[fmt:AYUV8_1X32/640x480 field:none]
+> > > >>><- "ipu2_ic_prp":1 []
+> > > >>>pad1: Source
+> > > >>>[fmt:AYUV8_1X32/640x480 field:none]
+> > > >>>-> "ipu2_ic_prpenc capture":0 []
+> > > >>>
+> > > >>>- entity 40: ipu2_ic_prpenc capture (1 pad, 1 link)
+> > > >>>              type Node subtype V4L flags 0
+> > > >>>              device node name /dev/video2
+> > > >>>pad0: Sink
+> > > >>><- "ipu2_ic_prpenc":1 []
+> > > >>>
+> > > >>>- entity 46: ipu2_ic_prpvf (2 pads, 2 links)
+> > > >>>              type V4L2 subdev subtype Unknown flags 0
+> > > >>>              device node name /dev/v4l-subdev8
+> > > >>>pad0: Sink
+> > > >>>[fmt:AYUV8_1X32/640x480 field:none]
+> > > >>><- "ipu2_ic_prp":2 []
+> > > >>>pad1: Source
+> > > >>>[fmt:AYUV8_1X32/640x480 field:none]
+> > > >>>-> "ipu2_ic_prpvf capture":0 []
+> > > >>>
+> > > >>>- entity 49: ipu2_ic_prpvf capture (1 pad, 1 link)
+> > > >>>              type Node subtype V4L flags 0
+> > > >>>              device node name /dev/video3
+> > > >>>pad0: Sink
+> > > >>><- "ipu2_ic_prpvf":1 []
+> > > >>>
+> > > >>>- entity 55: ipu1_csi0 (3 pads, 4 links)
+> > > >>>              type V4L2 subdev subtype Unknown flags 0
+> > > >>>              device node name /dev/v4l-subdev9
+> > > >>>pad0: Sink
+> > > >>>[fmt:UYVY8_2X8/640x480 field:none
+> > > >>>crop.bounds:(0,0)/640x480
+> > > >>>crop:(0,0)/640x480
+> > > >>>compose.bounds:(0,0)/640x480
+> > > >>>compose:(0,0)/640x480]
+> > > >>><- "ipu1_csi0_mux":2 []
+> > > >>>pad1: Source
+> > > >>>[fmt:AYUV8_1X32/640x480 field:none]
+> > > >>>-> "ipu1_ic_prp":0 []
+> > > >>>-> "ipu1_vdic":0 []
+> > > >>>pad2: Source
+> > > >>>[fmt:AYUV8_1X32/640x480 field:none]
+> > > >>>-> "ipu1_csi0 capture":0 []
+> > > >>>
+> > > >>>- entity 59: ipu1_csi0 capture (1 pad, 1 link)
+> > > >>>              type Node subtype V4L flags 0
+> > > >>>              device node name /dev/video4
+> > > >>>pad0: Sink
+> > > >>><- "ipu1_csi0":2 []
+> > > >>>
+> > > >>>- entity 65: ipu1_csi1 (3 pads, 4 links)
+> > > >>>              type V4L2 subdev subtype Unknown flags 0
+> > > >>>              device node name /dev/v4l-subdev10
+> > > >>>pad0: Sink
+> > > >>>[fmt:UYVY8_2X8/640x480 field:none
+> > > >>>crop.bounds:(0,0)/640x480
+> > > >>>crop:(0,0)/640x480
+> > > >>>compose.bounds:(0,0)/640x480
+> > > >>>compose:(0,0)/640x480]
+> > > >>><- "imx6-mipi-csi2":2 [ENABLED]
+> > > >>>pad1: Source
+> > > >>>[fmt:AYUV8_1X32/640x480 field:none]
+> > > >>>-> "ipu1_ic_prp":0 [ENABLED]
+> > > >>>-> "ipu1_vdic":0 []
+> > > >>>pad2: Source
+> > > >>>[fmt:AYUV8_1X32/640x480 field:none]
+> > > >>>-> "ipu1_csi1 capture":0 []
+> > > >>>
+> > > >>>- entity 69: ipu1_csi1 capture (1 pad, 1 link)
+> > > >>>              type Node subtype V4L flags 0
+> > > >>>              device node name /dev/video5
+> > > >>>pad0: Sink
+> > > >>><- "ipu1_csi1":2 []
+> > > >>>
+> > > >>>- entity 75: ipu2_csi0 (3 pads, 4 links)
+> > > >>>              type V4L2 subdev subtype Unknown flags 0
+> > > >>>              device node name /dev/v4l-subdev11
+> > > >>>pad0: Sink
+> > > >>>[fmt:UYVY8_2X8/640x480 field:none
+> > > >>>crop.bounds:(0,0)/640x480
+> > > >>>crop:(0,0)/640x480
+> > > >>>compose.bounds:(0,0)/640x480
+> > > >>>compose:(0,0)/640x480]
+> > > >>><- "imx6-mipi-csi2":3 []
+> > > >>>pad1: Source
+> > > >>>[fmt:AYUV8_1X32/640x480 field:none]
+> > > >>>-> "ipu2_ic_prp":0 []
+> > > >>>-> "ipu2_vdic":0 []
+> > > >>>pad2: Source
+> > > >>>[fmt:AYUV8_1X32/640x480 field:none]
+> > > >>>-> "ipu2_csi0 capture":0 []
+> > > >>>
+> > > >>>- entity 79: ipu2_csi0 capture (1 pad, 1 link)
+> > > >>>              type Node subtype V4L flags 0
+> > > >>>              device node name /dev/video6
+> > > >>>pad0: Sink
+> > > >>><- "ipu2_csi0":2 []
+> > > >>>
+> > > >>>- entity 85: ipu2_csi1 (3 pads, 4 links)
+> > > >>>              type V4L2 subdev subtype Unknown flags 0
+> > > >>>              device node name /dev/v4l-subdev12
+> > > >>>pad0: Sink
+> > > >>>[fmt:UYVY8_2X8/640x480 field:none
+> > > >>>crop.bounds:(0,0)/640x480
+> > > >>>crop:(0,0)/640x480
+> > > >>>compose.bounds:(0,0)/640x480
+> > > >>>compose:(0,0)/640x480]
+> > > >>><- "ipu2_csi1_mux":2 []
+> > > >>>pad1: Source
+> > > >>>[fmt:AYUV8_1X32/640x480 field:none]
+> > > >>>-> "ipu2_ic_prp":0 []
+> > > >>>-> "ipu2_vdic":0 []
+> > > >>>pad2: Source
+> > > >>>[fmt:AYUV8_1X32/640x480 field:none]
+> > > >>>-> "ipu2_csi1 capture":0 []
+> > > >>>
+> > > >>>- entity 89: ipu2_csi1 capture (1 pad, 1 link)
+> > > >>>              type Node subtype V4L flags 0
+> > > >>>              device node name /dev/video7
+> > > >>>pad0: Sink
+> > > >>><- "ipu2_csi1":2 []
+> > > >>>
+> > > >>>- entity 95: imx6-mipi-csi2 (5 pads, 5 links)
+> > > >>>              type V4L2 subdev subtype Unknown flags 0
+> > > >>>              device node name /dev/v4l-subdev13
+> > > >>>pad0: Sink
+> > > >>>[fmt:UYVY8_2X8/640x480 field:none]
+> > > >>><- "ov5640 2-003c":0 [ENABLED]
+> > > >>>pad1: Source
+> > > >>>[fmt:UYVY8_2X8/640x480 field:none]
+> > > >>>-> "ipu1_csi0_mux":0 []
+> > > >>>pad2: Source
+> > > >>>[fmt:UYVY8_2X8/640x480 field:none]
+> > > >>>-> "ipu1_csi1":0 [ENABLED]
+> > > >>>pad3: Source
+> > > >>>[fmt:UYVY8_2X8/640x480 field:none]
+> > > >>>-> "ipu2_csi0":0 []
+> > > >>>pad4: Source
+> > > >>>[fmt:UYVY8_2X8/640x480 field:none]
+> > > >>>-> "ipu2_csi1_mux":0 []
+> > > >>>
+> > > >>>- entity 101: ipu1_csi0_mux (3 pads, 2 links)
+> > > >>>               type V4L2 subdev subtype Unknown flags 0
+> > > >>>               device node name /dev/v4l-subdev14
+> > > >>>pad0: Sink
+> > > >>>[fmt:unknown/0x0]
+> > > >>><- "imx6-mipi-csi2":1 []
+> > > >>>pad1: Sink
+> > > >>>[fmt:unknown/0x0]
+> > > >>>pad2: Source
+> > > >>>[fmt:unknown/0x0]
+> > > >>>-> "ipu1_csi0":0 []
+> > > >>>
+> > > >>>- entity 105: ipu2_csi1_mux (3 pads, 2 links)
+> > > >>>               type V4L2 subdev subtype Unknown flags 0
+> > > >>>               device node name /dev/v4l-subdev15
+> > > >>>pad0: Sink
+> > > >>>[fmt:unknown/0x0]
+> > > >>><- "imx6-mipi-csi2":4 []
+> > > >>>pad1: Sink
+> > > >>>[fmt:unknown/0x0]
+> > > >>>pad2: Source
+> > > >>>[fmt:unknown/0x0]
+> > > >>>-> "ipu2_csi1":0 []
+> > > >>>
+> > > >>># GST_DEBUG="v4l2*:5" gst-launch-1.0 -v v4l2src device=/dev/video1 ! \
+> > > >>>>autovideosink
+> > > >>>0:00:01.086281666   185  0x1dce880 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4l1
+> > > >>>0:00:01.087369666   185  0x1dce880 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4l5
+> > > >>>0:00:01.088496000   185  0x1dce880 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4l.
+> > > >>>0:00:01.089540333   185  0x1dce880 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4lR
+> > > >>>0:00:01.090494666   185  0x1dce880 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4lH
+> > > >>>0:00:01.091657666   185  0x1dce880 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4l4
+> > > >>>0:00:01.092745000   185  0x1dce880 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4l
+> > > >>>0:00:01.093703333   185  0x1dce880 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4l
+> > > >>>0:00:01.094854000   185  0x1dce880 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4l
+> > > >>>0:00:01.095815000   185  0x1dce880 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4l
+> > > >>>0:00:01.096818666   185  0x1dce880 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4lB
+> > > >>>0:00:01.097819000   185  0x1dce880 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4l8
+> > > >>>0:00:01.098771000   185  0x1dce880 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4l
+> > > >>>0:00:01.099798666   185  0x1dce880 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4l1
+> > > >>>0:00:01.100776666   185  0x1dce880 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4lV
+> > > >>>0:00:01.101755333   185  0x1dce880 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4lY
+> > > >>>0:00:01.102771666   185  0x1dce880 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4lP
+> > > >>>0:00:01.103712000   185  0x1dce880 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4l4
+> > > >>>0:00:01.104720000   185  0x1dce880 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4lO
+> > > >>>0:00:01.105697000   185  0x1dce880 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4lP
+> > > >>>0:00:01.106629666   185  0x1dce880 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4l4
+> > > >>>0:00:01.107681666   185  0x1dce880 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4l4
+> > > >>>0:00:01.108660666   185  0x1dce880 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4l2
+> > > >>>0:00:01.442437333   185  0x1dce880 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4l0
+> > > >>>0:00:01.444673333   185  0x1dce880 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4l2
+> > > >>>0:00:01.446842000   185  0x1dce880 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4l2
+> > > >>>0:00:01.449084000   185  0x1dce880 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:1487:gst_v4l2_object_v4l4
+> > > >>>Setting pipeline to PAUSED ...
+> > > >>>0:00:01.680823000   185  0x1dce880 DEBUG                   v4l2
+> > > >>>v4l2_calls.c:524:gst_v4l2_open:<v4l2src01
+> > > >>>0:00:01.681953333   185  0x1dce880 DEBUG                   v4l2
+> > > >>>v4l2_calls.c:69:gst_v4l2_get_capabilities
+> > > >>>0:00:01.683098666   185  0x1dce880 DEBUG                   v4l2
+> > > >>>v4l2_calls.c:140:gst_v4l2_fill_lists:<v4s
+> > > >>>0:00:01.684056666   185  0x1dce880 DEBUG                   v4l2
+> > > >>>v4l2_calls.c:143:gst_v4l2_fill_lists:<v4s
+> > > >>>0:00:01.685201000   185  0x1dce880 DEBUG                   v4l2
+> > > >>>v4l2_calls.c:215:gst_v4l2_fill_lists:<v4s
+> > > >>>0:00:01.686159333   185  0x1dce880 DEBUG                   v4l2
+> > > >>>v4l2_calls.c:247:gst_v4l2_fill_lists:<v41
+> > > >>>0:00:01.687207666   185  0x1dce880 DEBUG                   v4l2
+> > > >>>v4l2_calls.c:257:gst_v4l2_fill_lists:<v4C
+> > > >>>0:00:01.688183666   185  0x1dce880 DEBUG                   v4l2
+> > > >>>v4l2_calls.c:247:gst_v4l2_fill_lists:<v41
+> > > >>>0:00:01.689155333   185  0x1dce880 DEBUG                   v4l2
+> > > >>>v4l2_calls.c:257:gst_v4l2_fill_lists:<v4M
+> > > >>>0:00:01.690142000   185  0x1dce880 DEBUG                   v4l2
+> > > >>>v4l2_calls.c:247:gst_v4l2_fill_lists:<v41
+> > > >>>0:00:01.691114000   185  0x1dce880 DEBUG                   v4l2
+> > > >>>v4l2_calls.c:257:gst_v4l2_fill_lists:<v4P
+> > > >>>0:00:01.692080000   185  0x1dce880 DEBUG                   v4l2
+> > > >>>v4l2_calls.c:247:gst_v4l2_fill_lists:<v41
+> > > >>>0:00:01.693073000   185  0x1dce880 DEBUG                   v4l2
+> > > >>>v4l2_calls.c:257:gst_v4l2_fill_lists:<v4R
+> > > >>>0:00:01.694043000   185  0x1dce880 DEBUG                   v4l2
+> > > >>>v4l2_calls.c:247:gst_v4l2_fill_lists:<v41
+> > > >>>0:00:01.695760000   185  0x1dce880 DEBUG                   v4l2
+> > > >>>v4l2_calls.c:257:gst_v4l2_fill_lists:<v4L
+> > > >>>0:00:01.696736333   185  0x1dce880 DEBUG                   v4l2
+> > > >>>v4l2_calls.c:247:gst_v4l2_fill_lists:<v41
+> > > >>>0:00:01.697708000   185  0x1dce880 DEBUG                   v4l2
+> > > >>>v4l2_calls.c:257:gst_v4l2_fill_lists:<v4G
+> > > >>>0:00:01.698699000   185  0x1dce880 DEBUG                   v4l2
+> > > >>>v4l2_calls.c:247:gst_v4l2_fill_lists:<v41
+> > > >>>0:00:01.699667000   185  0x1dce880 DEBUG                   v4l2
+> > > >>>v4l2_calls.c:257:gst_v4l2_fill_lists:<v4H
+> > > >>>0:00:01.700633000   185  0x1dce880 DEBUG                   v4l2
+> > > >>>v4l2_calls.c:247:gst_v4l2_fill_lists:<v41
+> > > >>>0:00:01.701623666   185  0x1dce880 DEBUG                   v4l2
+> > > >>>v4l2_calls.c:257:gst_v4l2_fill_lists:<v4I
+> > > >>>0:00:01.702591000   185  0x1dce880 DEBUG                   v4l2
+> > > >>>v4l2_calls.c:247:gst_v4l2_fill_lists:<v41
+> > > >>>0:00:01.703554333   185  0x1dce880 DEBUG                   v4l2
+> > > >>>v4l2_calls.c:257:gst_v4l2_fill_lists:<v4K
+> > > >>>0:00:01.704604000   185  0x1dce880 DEBUG                   v4l2
+> > > >>>v4l2_calls.c:247:gst_v4l2_fill_lists:<v41
+> > > >>>0:00:01.705576666   185  0x1dce880 DEBUG                   v4l2
+> > > >>>v4l2_calls.c:257:gst_v4l2_fill_lists:<v4M
+> > > >>>0:00:01.706567000   185  0x1dce880 DEBUG                   v4l2
+> > > >>>v4l2_calls.c:247:gst_v4l2_fill_lists:<v41
+> > > >>>0:00:02.040204667   185  0x1dce880 DEBUG                   v4l2
+> > > >>>v4l2_calls.c:257:gst_v4l2_fill_lists:<v4B
+> > > >>>0:00:02.042194667   185  0x1dce880 DEBUG                   v4l2
+> > > >>>v4l2_calls.c:247:gst_v4l2_fill_lists:<v41
+> > > >>>0:00:02.044190000   185  0x1dce880 DEBUG                   v4l2
+> > > >>>v4l2_calls.c:257:gst_v4l2_fill_lists:<v4G
+> > > >>>0:00:02.046338333   185  0x1dce880 DEBUG                   v4l2
+> > > >>>v4l2_calls.c:247:gst_v4l2_fill_lists:<v41
+> > > >>>0:00:02.048327667   185  0x1dce880 DEBUG                   v4l2
+> > > >>>v4l2_calls.c:257:gst_v4l2_fill_lists:<v4H
+> > > >>>0:00:02.050296000   185  0x1dce880 DEBUG                   v4l2
+> > > >>>v4l2_calls.c:247:gst_v4l2_fill_lists:<v41
+> > > >>>0:00:02.052385000   185  0x1dce880 DEBUG                   v4l2
+> > > >>>v4l2_calls.c:257:gst_v4l2_fill_lists:<v4K
+> > > >>>0:00:02.054376000   185  0x1dce880 DEBUG                   v4l2
+> > > >>>v4l2_calls.c:247:gst_v4l2_fill_lists:<v41
+> > > >>>0:00:02.056461333   185  0x1dce880 DEBUG                   v4l2
+> > > >>>v4l2_calls.c:257:gst_v4l2_fill_lists:<v4L
+> > > >>>0:00:02.058434000   185  0x1dce880 DEBUG                   v4l2
+> > > >>>v4l2_calls.c:247:gst_v4l2_fill_lists:<v41
+> > > >>>0:00:02.060423667   185  0x1dce880 DEBUG                   v4l2
+> > > >>>v4l2_calls.c:257:gst_v4l2_fill_lists:<v4c
+> > > >>>0:00:02.062382667   185  0x1dce880 DEBUG                   v4l2
+> > > >>>v4l2_calls.c:263:gst_v4l2_fill_lists:<v4s
+> > > >>>0:00:02.064291333   185  0x1dce880 DEBUG                   v4l2
+> > > >>>v4l2_calls.c:283:gst_v4l2_fill_lists:<v40
+> > > >>>0:00:02.066224667   185  0x1dce880 DEBUG                   v4l2
+> > > >>>v4l2_calls.c:292:gst_v4l2_fill_lists:<v4.
+> > > >>>0:00:02.067190333   185  0x1dce880 DEBUG                   v4l2
+> > > >>>v4l2_calls.c:283:gst_v4l2_fill_lists:<v40
+> > > >>>0:00:02.068174333   185  0x1dce880 DEBUG                   v4l2
+> > > >>>v4l2_calls.c:300:gst_v4l2_fill_lists:<v40
+> > > >>>0:00:02.069141000   185  0x1dce880 DEBUG                   v4l2
+> > > >>>v4l2_calls.c:283:gst_v4l2_fill_lists:<v40
+> > > >>>0:00:02.070113000   185  0x1dce880 DEBUG                   v4l2
+> > > >>>v4l2_calls.c:305:gst_v4l2_fill_lists:<v4d
+> > > >>>0:00:02.071088333   185  0x1dce880 DEBUG                   v4l2
+> > > >>>v4l2_calls.c:456:gst_v4l2_fill_lists:<v4e
+> > > >>>0:00:02.072040000   185  0x1dce880 INFO                    v4l2
+> > > >>>v4l2_calls.c:592:gst_v4l2_open:<v4l2src0y
+> > > >>>0:00:02.073017333   185  0x1dce880 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:804:gst_v4l2_set_default)
+> > > >>>0:00:02.074010667   185  0x1dce880 DEBUG                   v4l2
+> > > >>>v4l2_calls.c:740:gst_v4l2_get_norm:<v4l2m
+> > > >>>0:00:02.075021000   185  0x1dce880 DEBUG                   v4l2
+> > > >>>v4l2_calls.c:754:gst_v4l2_get_norm: Fail1
+> > > >>>0:00:02.076012000   185  0x1dce880 DEBUG                   v4l2
+> > > >>>v4l2_calls.c:1027:gst_v4l2_get_input:<v4t
+> > > >>>Pipeline is live and does not need PREROLL ...
+> > > >>>0:00:02.080105333   185  0x1ec39b0 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:1109:gst_v4l2_object_fil.
+> > > >>><v4l2src0> getting src format enumerations
+> > > >>>0:00:02.412981333   185  0x1ec39b0 INFO              New clock: GstSystemClock
+> > > >>>       v4l2 gstv4l2object.c:1146:gst_v4l2_object_fill_format_list:<v4l2src0>
+> > > >>>got 7 format(s):
+> > > >>>0:00:02.415407667   185  0x1ec39b0 INFO                    v4l2
+> > > >>>gstv4l2object.c:1152:gst_v4l2_object_filV
+> > > >>>0:00:02.417531667   185  0x1ec39b0 INFO                    v4l2
+> > > >>>gstv4l2object.c:1152:gst_v4l2_object_filY
+> > > >>>0:00:02.419703667   185  0x1ec39b0 INFO                    v4l2
+> > > >>>gstv4l2object.c:1152:gst_v4l2_object_filP
+> > > >>>0:00:02.421860000   185  0x1ec39b0 INFO                    v4l2
+> > > >>>gstv4l2object.c:1152:gst_v4l2_object_fil2
+> > > >>>0:00:02.424022667   185  0x1ec39b0 INFO                    v4l2
+> > > >>>gstv4l2object.c:1152:gst_v4l2_object_fil2
+> > > >>>0:00:02.426295000   185  0x1ec39b0 INFO                    v4l2
+> > > >>>gstv4l2object.c:1152:gst_v4l2_object_fil6
+> > > >>>0:00:02.428481333   185  0x1ec39b0 INFO                    v4l2
+> > > >>>gstv4l2object.c:1152:gst_v4l2_object_fil2
+> > > >>>0:00:02.430728333   185  0x1ec39b0 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:2564:gst_v4l2_object_proV
+> > > >>>0:00:02.432985333   185  0x1ec39b0 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:2691:gst_v4l2_object_pro)
+> > > >>>0:00:02.436117000   185  0x1ec39b0 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:2564:gst_v4l2_object_proY
+> > > >>>0:00:02.437252333   185  0x1ec39b0 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:2691:gst_v4l2_object_pro)
+> > > >>>0:00:02.438579000   185  0x1ec39b0 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:2564:gst_v4l2_object_proP
+> > > >>>0:00:02.439656000   185  0x1ec39b0 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:2691:gst_v4l2_object_pro)
+> > > >>>0:00:02.441016667   185  0x1ec39b0 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:2564:gst_v4l2_object_pro2
+> > > >>>0:00:02.442092333   185  0x1ec39b0 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:2691:gst_v4l2_object_pro)
+> > > >>>0:00:02.443443333   185  0x1ec39b0 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:2564:gst_v4l2_object_pro2
+> > > >>>0:00:02.444626667   185  0x1ec39b0 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:2691:gst_v4l2_object_pro)
+> > > >>>0:00:02.445990667   185  0x1ec39b0 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:2564:gst_v4l2_object_pro6
+> > > >>>0:00:02.447063667   185  0x1ec39b0 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:2691:gst_v4l2_object_pro)
+> > > >>>0:00:02.448410333   185  0x1ec39b0 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:2564:gst_v4l2_object_pro2
+> > > >>>0:00:02.782148333   185  0x1ec39b0 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:2691:gst_v4l2_object_pro)
+> > > >>>0:00:02.785264333   185  0x1ec39b0 INFO                    v4l2
+> > > >>>gstv4l2object.c:3967:gst_v4l2_object_get}
+> > > >>>0:00:02.788800000   185  0x1ec39b0 DEBUG                v4l2src
+> > > >>>gstv4l2src.c:300:gst_v4l2src_negotiate:<}
+> > > >>>0:00:02.792207000   185  0x1ec39b0 DEBUG                v4l2src
+> > > >>>gstv4l2src.c:308:gst_v4l2src_negotiate:<]
+> > > >>>0:00:02.795419000   185  0x1ec39b0 DEBUG                v4l2src
+> > > >>>gstv4l2src.c:316:gst_v4l2src_negotiate:<}
+> > > >>>0:00:03.132052667   185  0x1ec39b0 DEBUG                v4l2src
+> > > >>>gstv4l2src.c:256:gst_v4l2src_fixate:<v4l}
+> > > >>>0:00:03.134399667   185  0x1ec39b0 DEBUG                v4l2src
+> > > >>>gstv4l2src.c:282:gst_v4l2src_fixate:<v4l}
+> > > >>>0:00:03.136800667   185  0x1ec39b0 DEBUG                v4l2src
+> > > >>>gstv4l2src.c:367:gst_v4l2src_negotiate:<1
+> > > >>>0:00:03.139067333   185  0x1ec39b0 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:3887:gst_v4l2_object_stog
+> > > >>>0:00:03.141452000   185  0x1ec39b0 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:3176:gst_v4l2_object_seto
+> > > >>>0:00:03.143608667   185  0x1ec39b0 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:3310:gst_v4l2_object_set0
+> > > >>>0:00:03.146025333   185  0x1ec39b0 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:3361:gst_v4l2_object_set1
+> > > >>>0:00:03.148229000   185  0x1ec39b0 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:3370:gst_v4l2_object_set0
+> > > >>>0:00:03.150373667   185  0x1ec39b0 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:3404:gst_v4l2_object_set1
+> > > >>>0:00:03.152589667   185  0x1ec39b0 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:3414:gst_v4l2_object_set0
+> > > >>>0:00:03.155250667   185  0x1ec39b0 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:3455:gst_v4l2_object_set1
+> > > >>>0:00:03.156584667   185  0x1ec39b0 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:3472:gst_v4l2_object_set1
+> > > >>>0:00:03.157659333   185  0x1ec39b0 INFO                    v4l2
+> > > >>>gstv4l2object.c:3504:gst_v4l2_object_set1
+> > > >>>0:00:03.491432000   185  0x1ec39b0 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:2960:gst_v4l2_object_ext0
+> > > >>>0:00:03.493645333   185  0x1ec39b0 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:3071:gst_v4l2_object_sav0
+> > > >>>0:00:03.496027333   185  0x1ec39b0 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:2843:gst_v4l2_object_setm
+> > > >>>0:00:03.498180000   185  0x1ec39b0 INFO                    v4l2
+> > > >>>gstv4l2object.c:2867:gst_v4l2_object_set2
+> > > >>>0:00:03.502772000   185  0x1ec39b0 DEBUG         v4l2bufferpool
+> > > >>>gstv4l2bufferpool.c:509:gst_v4l2_buffer_;
+> > > >>>0:00:03.505283333   185  0x1ec39b0 INFO          v4l2bufferpool
+> > > >>>gstv4l2bufferpool.c:557:gst_v4l2_buffer_2
+> > > >>>0:00:03.507120000   185  0x1ec39b0 INFO          v4l2bufferpool
+> > > >>>gstv4l2bufferpool.c:570:gst_v4l2_buffer_2
+> > > >>>/GstPipeline:pipeline0/GstV4l2Src:v4l2src0.GstPad:src: caps =
+> > > >>>video/x-raw, format=(string)YUY2, width=(i1
+> > > >>>/GstPipeline:pipeline0/GstAutoVideoSink:autovideosink0.GstGhostPad:sink.GstProxyPad:proxypad0:
+> > > >>>caps = vi1
+> > > >>>/GstPipeline:pipeline0/GstAutoVideoSink:autovideosink0/GstKMSSink:autovideosink0-actual-sink-kms.GstPad:1
+> > > >>>0:00:03/GstPipeline:pipeline0/GstAutoVideoSink:autovideosink0.GstGhostPad:sink:
+> > > >>>caps = video/x-raw, form1
+> > > >>>.512440000   185  0x1ec39b0 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:3985:gst_v4l2_object_decide_alln
+> > > >>>0:00:03.513556667   185  0x1ec39b0 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:4011:gst_v4l2_object_dec>
+> > > >>>0:00:03.514745667   185  0x1ec39b0 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:4069:gst_v4l2_object_dec>
+> > > >>>0:00:03.515889000   185  0x1ec39b0 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:4134:gst_v4l2_object_deca
+> > > >>>0:00:03.516969667   185  0x1ec39b0 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:4143:gst_v4l2_object_dec;
+> > > >>>0:00:03.851350333   185  0x1ec39b0 DEBUG         v4l2bufferpool
+> > > >>>gstv4l2bufferpool.c:509:gst_v4l2_buffer_2
+> > > >>>ams)NULL, options=(string)< GstBufferPoolOptionVideoMeta >;
+> > > >>>0:00:03.853620333   185  0x1ec39b0 INFO          v4l2bufferpool
+> > > >>>gstv4l2bufferpool.c:570:gst_v4l2_buffer_2
+> > > >>>0:00:03.855780667   185  0x1ec39b0 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:4150:gst_v4l2_object_dec;
+> > > >>>0:00:03.858430000   185  0x1ec39b0 DEBUG         v4l2bufferpool
+> > > >>>gstv4l2bufferpool.c:509:gst_v4l2_buffer_;
+> > > >>>0:00:03.861572333   185  0x1ec39b0 DEBUG         v4l2bufferpool
+> > > >>>gstv4l2bufferpool.c:707:gst_v4l2_buffer_l
+> > > >>>0:00:03.863468333   185  0x1ec39b0 DEBUG         v4l2bufferpool
+> > > >>>gstv4l2bufferpool.c:737:gst_v4l2_buffer_s
+> > > >>>0:00:03.918861000   185  0x1ec39b0 DEBUG          v4l2allocator
+> > > >>>gstv4l2allocator.c:706:gst_v4l2_allocatod
+> > > >>>0:00:03.943783333   185  0x1ec39b0 DEBUG         v4l2bufferpool
+> > > >>>gstv4l2bufferpool.c:1389:gst_v4l2_buffer8
+> > > >>>0:00:03.946129333   185  0x1ec39b0 DEBUG         v4l2bufferpool
+> > > >>>gstv4l2bufferpool.c:1389:gst_v4l2_buffer8
+> > > >>>0:00:03.948065000   185  0x1ec39b0 DEBUG         v4l2bufferpool
+> > > >>>gstv4l2bufferpool.c:1389:gst_v4l2_buffer8
+> > > >>>0:00:03.950006000   185  0x1ec39b0 DEBUG         v4l2bufferpool
+> > > >>>gstv4l2bufferpool.c:952:gst_v4l2_buffer_g
+> > > >>>0:00:03.996241333   185  0x1ec39b0 ERROR         v4l2bufferpool
+> > > >>>gstv4l2bufferpool.c:641:gst_v4l2_buffer_)
+> > > >>>0:00:03.998199667   185  0x1ec39b0 DEBUG         v4l2bufferpool
+> > > >>>gstv4l2bufferpool.c:1311:gst_v4l2_buffere
+> > > >>>0:00:04.000463000   185  0x1ec39b0 WARN          v4l2bufferpool
+> > > >>>gstv4l2bufferpool.c:1064:gst_v4l2_buffer)
+> > > >>>0:00:04.004649333   185  0x1ec39b0 DEBUG         v4l2bufferpool
+> > > >>>gstv4l2bufferpool.c:1283:gst_v4l2_bufferr
+> > > >>>0:00:04.005853333   185  0x1ec39b0 WARN                 v4l2src
+> > > >>>gstv4l2src.c:866:gst_v4l2src_create:<v4lr
+> > > >>>ERROR: from element /GstPipeline:pipeline0/GstV4l2Src:v4l2src0: Could
+> > > >>>not read from resource.
+> > > >>>Additional debug info:
+> > > >>>gstv4l2bufferpool.c(1064): gst_v4l2_buffer_pool_poll ():
+> > > >>>/GstPipeline:pipeline0/GstV4l2Src:v4l2src0:
+> > > >>>poll error 1: Resource temporarily unavailable (11)
+> > > >>>Execution ended after 0:00:01.606871334
+> > > >>>Setting pipeline to PAUSED ...
+> > > >>>0:00:04.022385000   185  0x1dce880 DEBUG         v4l2bufferpool
+> > > >>>gstv4l2bufferpool.c:931:gst_v4l2_buffer_g
+> > > >>>Setting pipeline to READY ...
+> > > >>>0:00:04.024850667   185  0x1dce880 DEBUG         v4l2bufferpool
+> > > >>>gstv4l2bufferpool.c:879:gst_v4l2_buffer_l
+> > > >>>0:00:04.026764000   185  0x1dce880 DEBUG          v4l2allocator
+> > > >>>gstv4l2allocator.c:757:gst_v4l2_allocator
+> > > >>>0:00:04.028598333   185  0x1dce880 DEBUG          v4l2allocator
+> > > >>>gstv4l2allocator.c:765:gst_v4l2_allocatoe
+> > > >>>0:00:04.362785667   185  0x1dce880 WARN          v4l2bufferpool
+> > > >>>gstv4l2bufferpool.c:918:gst_v4l2_buffer_g
+> > > >>>0:00:04.364712333   185  0x1dce880 DEBUG         v4l2bufferpool
+> > > >>>gstv4l2bufferpool.c:952:gst_v4l2_buffer_g
+> > > >>>0:00:04.366504333   185  0x1dce880 DEBUG         v4l2bufferpool
+> > > >>>gstv4l2bufferpool.c:629:gst_v4l2_buffer_g
+> > > >>>0:00:04.368607000   185  0x1dce880 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:3887:gst_v4l2_object_stog
+> > > >>>0:00:04.370713333   185  0x1dce880 DEBUG                   v4l2
+> > > >>>gstv4l2object.c:3895:gst_v4l2_object_stol
+> > > >>>0:00:04.372809333   185  0x1dce880 DEBUG         v4l2bufferpool
+> > > >>>gstv4l2bufferpool.c:931:gst_v4l2_buffer_g
+> > > >>>0:00:04.374732000   185  0x1dce880 DEBUG         v4l2bufferpool
+> > > >>>gstv4l2bufferpool.c:879:gst_v4l2_buffer_l
+> > > >>>0:00:04.376541000   185  0x1dce880 DEBUG         v4l2bufferpool
+> > > >>>gstv4l2bufferpool.c:663:gst_v4l2_buffer_g
+> > > >>>0:00:04.378334000   185  0x1dce880 DEBUG          v4l2allocator
+> > > >>>gstv4l2allocator.c:757:gst_v4l2_allocator
+> > > >>>Setting pipeline to NULL ...
+> > > >>>0:00:04.394764333   185  0x1dce880 DEBUG                   v4l2
+> > > >>>v4l2_calls.c:716:gst_v4l2_close:<v4l2src1
+> > > >>>0:00:04.395897667   185  0x1dce880 DEBUG                   v4l2
+> > > >>>v4l2_calls.c:464:gst_v4l2_empty_lists:<vs
+> > > >>>Freeing pipeline ...
+> > > >>>
+> > > >>>[1] https://linuxtv.org/downloads/v4l-dvb-apis/v4l-drivers/imx.html#sabresd-with-mipi-csi-2-ov5640
+> > > >>>[2] https://paste.ubuntu.com/p/CTvFqdbyMW/
+> > > >>>
+> > > >>>Jagan.
+> > > >>>
+> > > >>>--
+> > > >>>Jagan Teki
+> > > >>>Senior Linux Kernel Engineer | Amarula Solutions
+> > > >>>U-Boot, Linux | Upstream Maintainer
+> > > >>>Hyderabad, India.
