@@ -1,172 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:3001 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726609AbeJTFcX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 20 Oct 2018 01:32:23 -0400
-Date: Sat, 20 Oct 2018 00:24:28 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Marco Felsch <m.felsch@pengutronix.de>
-Cc: mchehab@kernel.org, akinobu.mita@gmail.com,
-        enrico.scholz@sigma-chemnitz.de, linux-media@vger.kernel.org,
-        kernel@pengutronix.de,
-        Michael Grzeschik <m.grzeschik@pengutronix.de>
-Subject: Re: [PATCH 4/4] media: mt9m111: allow to setup pixclk polarity
-Message-ID: <20181019212427.ignw3tmi675jspoj@kekkonen.localdomain>
-References: <20181019155027.28682-1-m.felsch@pengutronix.de>
- <20181019155027.28682-5-m.felsch@pengutronix.de>
+Received: from mail-wm1-f65.google.com ([209.85.128.65]:39440 "EHLO
+        mail-wm1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726471AbeJTIDZ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 20 Oct 2018 04:03:25 -0400
+Received: by mail-wm1-f65.google.com with SMTP id y144-v6so5103473wmd.4
+        for <linux-media@vger.kernel.org>; Fri, 19 Oct 2018 16:55:09 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20181019155027.28682-5-m.felsch@pengutronix.de>
+References: <20180918093421.12930-1-p.zabel@pengutronix.de>
+ <20180918093421.12930-2-p.zabel@pengutronix.de> <CAJ+vNU2vraT=vUwS+1TYKuX50OsjZsNaN220y1kz8XgHvC48Sg@mail.gmail.com>
+ <1539942796.3395.8.camel@pengutronix.de> <1f090c65-342a-fb43-c274-935cbf78fdd4@gmail.com>
+In-Reply-To: <1f090c65-342a-fb43-c274-935cbf78fdd4@gmail.com>
+From: Tim Harvey <tharvey@gateworks.com>
+Date: Fri, 19 Oct 2018 16:54:16 -0700
+Message-ID: <CAJ+vNU1f2HF9+bQp6cKWMXNYyNMfSGE1-pW_b-oYdWJAgi8EAw@mail.gmail.com>
+Subject: Re: [PATCH v3 01/16] media: imx: add mem2mem device
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+        linux-media <linux-media@vger.kernel.org>, nicolas@ndufresne.ca,
+        Sascha Hauer <kernel@pengutronix.de>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Marco,
+On Fri, Oct 19, 2018 at 1:19 PM Steve Longerbeam <slongerbeam@gmail.com> wrote:
+>
+>
+> On 10/19/18 2:53 AM, Philipp Zabel wrote:
+> > Hi Tim,
+> >
+> > On Thu, 2018-10-18 at 15:53 -0700, Tim Harvey wrote:
+> > [...]
+> >> Philipp,
+> >>
+> >> Thanks for submitting this!
+> >>
+> >> I'm hoping this lets us use non-IMX capture devices along with the IMX
+> >> media controller entities to so we can use hardware
+> >> CSC,scaling,pixel-format-conversions and ultimately coda based encode.
+> >>
+> >> I've built this on top of linux-media and see that it registers as
+> >> /dev/video8 but I'm not clear how to use it? I don't see it within the
+> >> media controller graph.
+> > It's a V4L2 mem2mem device that can be handled by the GstV4l2Transform
+> > element, for example. GStreamer should create a v4l2video8convert
+> > element of that type.
+> >
+> > The mem2mem device is not part of the media controller graph on purpose.
+> > There is no interaction with any of the entities in the media controller
+> > graph apart from the fact that the IC PP task we are using for mem2mem
+> > scaling is sharing hardware resources with the IC PRP tasks used for the
+> > media controller scaler entitites.
+>
+>
+> It would be nice in the future to link mem2mem output-side to the ipu_vdic:1
+> pad, to make use of h/w VDIC de-interlace as part of mem2mem operations.
+> The progressive output from a new ipu_vdic:3 pad can then be sent to the
+> image_convert APIs by the mem2mem driver for further tiled scaling, CSC,
+> and rotation by the IC PP task. The ipu_vdic:1 pad makes use of pure
+> DMA-based
+> de-interlace, that is, all input frames (N-1, N, N+1) to the VDIC are sent
+> from DMA buffers, and this VDIC mode of operation is well understood
+> and produces clean de-interlace output. The risk is that this would require
+> iDMAC channel 5 for ipu_vdic:3, which IFAIK is not verified to work yet.
+>
+>
+> The other problem with that currently is that mem2mem would have to be
+> split into
+> separate device nodes: a /dev/videoN for output-side (linked to
+> ipu_vdic:1), and
+> a /dev/videoM for capture-side (linked from ipu_vdic:3). And then it no
+> longer
+> presents to userspace as a mem2mem device with a single device node for both
+> output and capture sides.
+>
+>
+> Or is there another way? I recall work to integrate mem2mem with media
+> control.
+> There is v4l2_m2m_register_media_controller(), but that create three
+> entities:
+> source, processing, and sink. The VDIC entity would be part of mem2mem
+> processing but this entity already exists for the current graph. This
+> function
+> could however be used as a guide to incorporate the VDIC entity into m2m
+> device.
+>
 
-Thanks for the patchset.
+I agree - without being able to utilize de-interlace,csc,scaling and
+rotation it seems fairly limited today (but a great start!).
 
-On Fri, Oct 19, 2018 at 05:50:27PM +0200, Marco Felsch wrote:
-> From: Enrico Scholz <enrico.scholz@sigma-chemnitz.de>
-> 
-> The chip can be configured to output data transitions on the
-> rising or falling edge of PIXCLK (Datasheet R58:1[9]), default is on the
-> falling edge.
-> 
-> Parsing the fw-node is made in a subfunction to bundle all (future)
-> dt-parsing / fw-parsing stuff.
+Also, if it were in the media graph wouldn't we be able to use the
+compose selection subdev API?
 
-Could you rebase this on current mediatree master, please?
+I've got an AVC8000 minPCIe card here with a TW6869 with 8x analog
+capture inputs that I'm hoping to someday soon be able to capture,
+compose into a single frame, and encode.
 
-> 
-> Signed-off-by: Enrico Scholz <enrico.scholz@sigma-chemnitz.de>
-> (m.grzeschik@pengutronix.de: Fix inverting clock. INV_PIX_CLOCK bit is set
-> per default. Set bit to 0 (enable mask bit without value) to enable
-> falling edge sampling.)
-> Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
-> (m.felsch@pengutronix.de: use fwnode helpers)
-> (m.felsch@pengutronix.de: mv of parsing into own function)
-> (m.felsch@pengutronix.de: adapt commit msg)
-> Signed-off-by: Marco Felsch <m.felsch@pengutronix.de>
-> Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
-> ---
->  drivers/media/i2c/mt9m111.c | 52 ++++++++++++++++++++++++++++++++++++-
->  1 file changed, 51 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/i2c/mt9m111.c b/drivers/media/i2c/mt9m111.c
-> index 13080c6c1ba3..5d45bc9ea0cb 100644
-> --- a/drivers/media/i2c/mt9m111.c
-> +++ b/drivers/media/i2c/mt9m111.c
-> @@ -15,12 +15,14 @@
->  #include <linux/delay.h>
->  #include <linux/v4l2-mediabus.h>
->  #include <linux/module.h>
-> +#include <linux/of_graph.h>
->  
->  #include <media/v4l2-async.h>
->  #include <media/v4l2-clk.h>
->  #include <media/v4l2-common.h>
->  #include <media/v4l2-ctrls.h>
->  #include <media/v4l2-device.h>
-> +#include <media/v4l2-fwnode.h>
->  
->  /*
->   * MT9M111, MT9M112 and MT9M131:
-> @@ -236,6 +238,8 @@ struct mt9m111 {
->  	const struct mt9m111_datafmt *fmt;
->  	int lastpage;	/* PageMap cache value */
->  	bool is_streaming;
-> +	/* user point of view - 0: falling 1: rising edge */
-> +	unsigned int pclk_sample:1;
->  #ifdef CONFIG_MEDIA_CONTROLLER
->  	struct media_pad pad;
->  #endif
-> @@ -586,6 +590,10 @@ static int mt9m111_set_pixfmt(struct mt9m111 *mt9m111,
->  		return -EINVAL;
->  	}
->  
-> +	/* receiver samples on falling edge, chip-hw default is rising */
-
-Could you add DT binding documentation that would cover this? The existing
-documentation is, well, rather vague. Which properties are relevant for the
-hardware, are they mandatory or optional and if they're optional, then are
-there relevant default values?
-
-> +	if (mt9m111->pclk_sample == 0)
-> +		mask_outfmt2 |= MT9M111_OUTFMT_INV_PIX_CLOCK;
-> +
->  	ret = mt9m111_reg_mask(client, context_a.output_fmt_ctrl2,
->  			       data_outfmt2, mask_outfmt2);
->  	if (!ret)
-> @@ -1045,9 +1053,15 @@ static int mt9m111_s_stream(struct v4l2_subdev *sd, int enable)
->  static int mt9m111_g_mbus_config(struct v4l2_subdev *sd,
->  				struct v4l2_mbus_config *cfg)
->  {
-> -	cfg->flags = V4L2_MBUS_MASTER | V4L2_MBUS_PCLK_SAMPLE_RISING |
-> +	struct mt9m111 *mt9m111 = container_of(sd, struct mt9m111, subdev);
-> +
-> +	cfg->flags = V4L2_MBUS_MASTER |
->  		V4L2_MBUS_HSYNC_ACTIVE_HIGH | V4L2_MBUS_VSYNC_ACTIVE_HIGH |
->  		V4L2_MBUS_DATA_ACTIVE_HIGH;
-> +
-> +	cfg->flags |= mt9m111->pclk_sample ? V4L2_MBUS_PCLK_SAMPLE_FALLING :
-> +		V4L2_MBUS_PCLK_SAMPLE_RISING;
-> +
->  	cfg->type = V4L2_MBUS_PARALLEL;
->  
->  	return 0;
-> @@ -1117,6 +1131,33 @@ static int mt9m111_video_probe(struct i2c_client *client)
->  	return ret;
->  }
->  
-> +#ifdef CONFIG_OF
-> +static int mt9m111_probe_of(struct i2c_client *client, struct mt9m111 *mt9m111)
-> +{
-> +	struct v4l2_fwnode_endpoint *bus_cfg;
-> +	struct device_node *np;
-> +	int ret = 0;
-> +
-> +	np = of_graph_get_next_endpoint(client->dev.of_node, NULL);
-> +	if (!np)
-> +		return -EINVAL;
-> +
-> +	bus_cfg = v4l2_fwnode_endpoint_alloc_parse(of_fwnode_handle(np));
-> +	if (IS_ERR(bus_cfg)) {
-> +		ret = PTR_ERR(bus_cfg);
-> +		goto out_of_put;
-> +	}
-> +
-> +	mt9m111->pclk_sample = !!(bus_cfg->bus.parallel.flags &
-> +				  V4L2_MBUS_PCLK_SAMPLE_RISING);
-> +
-> +	v4l2_fwnode_endpoint_free(bus_cfg);
-> +out_of_put:
-> +	of_node_put(np);
-> +	return ret;
-> +}
-> +#endif
-> +
->  static int mt9m111_probe(struct i2c_client *client,
->  			 const struct i2c_device_id *did)
->  {
-> @@ -1141,6 +1182,15 @@ static int mt9m111_probe(struct i2c_client *client,
->  	/* Default HIGHPOWER context */
->  	mt9m111->ctx = &context_b;
->  
-> +	if (IS_ENABLED(CONFIG_OF)) {
-> +		ret = mt9m111_probe_of(client, mt9m111);
-> +		if (ret)
-> +			return ret;
-> +	} else {
-> +		/* use default chip hardware values */
-> +		mt9m111->pclk_sample = 1;
-> +	}
-> +
->  	v4l2_i2c_subdev_init(&mt9m111->subdev, client, &mt9m111_subdev_ops);
->  	mt9m111->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
->  
-
--- 
 Regards,
 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+Tim
