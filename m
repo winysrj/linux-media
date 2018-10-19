@@ -1,7 +1,7 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:55209 "EHLO
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:56269 "EHLO
         metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727531AbeJSUVe (ORCPT
+        with ESMTP id S1727498AbeJSUVe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Fri, 19 Oct 2018 16:21:34 -0400
 From: Philipp Zabel <p.zabel@pengutronix.de>
@@ -9,138 +9,125 @@ To: linux-media@vger.kernel.org,
         Steve Longerbeam <slongerbeam@gmail.com>
 Cc: Nicolas Dufresne <nicolas@ndufresne.ca>,
         Tim Harvey <tharvey@gateworks.com>, kernel@pengutronix.de
-Subject: [PATCH v4 09/22] gpu: ipu-v3: image-convert: Catch unaligned tile offsets
-Date: Fri, 19 Oct 2018 14:15:26 +0200
-Message-Id: <20181019121539.12778-10-p.zabel@pengutronix.de>
+Subject: [PATCH v4 04/22] gpu: ipu-v3: ipu-ic: allow to manually set resize coefficients
+Date: Fri, 19 Oct 2018 14:15:21 +0200
+Message-Id: <20181019121539.12778-5-p.zabel@pengutronix.de>
 In-Reply-To: <20181019121539.12778-1-p.zabel@pengutronix.de>
 References: <20181019121539.12778-1-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Steve Longerbeam <slongerbeam@gmail.com>
+For tiled scaling, we want to compute the scaling coefficients
+externally in such a way that the interpolation overshoots tile
+boundaries and samples up to the first pixel of the next tile.
+Prepare to override the resizing coefficients from the image
+conversion code.
 
-Catch calculated tile offsets that are not 8-byte aligned as required by the
-IDMAC engine and return error in calc_tile_offsets().
-
-Signed-off-by: Steve Longerbeam <slongerbeam@gmail.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
-New since v3.
+No changes since v3.
 ---
- drivers/gpu/ipu-v3/ipu-image-convert.c | 61 ++++++++++++++++----------
- 1 file changed, 37 insertions(+), 24 deletions(-)
+ drivers/gpu/ipu-v3/ipu-ic.c | 52 +++++++++++++++++++++++--------------
+ include/video/imx-ipu-v3.h  |  6 +++++
+ 2 files changed, 39 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/gpu/ipu-v3/ipu-image-convert.c b/drivers/gpu/ipu-v3/ipu-image-convert.c
-index b8a400182a00..5fccba176e39 100644
---- a/drivers/gpu/ipu-v3/ipu-image-convert.c
-+++ b/drivers/gpu/ipu-v3/ipu-image-convert.c
-@@ -459,8 +459,8 @@ static void calc_out_tile_map(struct ipu_image_convert_ctx *ctx)
- 	}
+diff --git a/drivers/gpu/ipu-v3/ipu-ic.c b/drivers/gpu/ipu-v3/ipu-ic.c
+index 67cc820253a9..594c3cbc8291 100644
+--- a/drivers/gpu/ipu-v3/ipu-ic.c
++++ b/drivers/gpu/ipu-v3/ipu-ic.c
+@@ -442,36 +442,40 @@ int ipu_ic_task_graphics_init(struct ipu_ic *ic,
  }
+ EXPORT_SYMBOL_GPL(ipu_ic_task_graphics_init);
  
--static void calc_tile_offsets_planar(struct ipu_image_convert_ctx *ctx,
--				     struct ipu_image_convert_image *image)
-+static int calc_tile_offsets_planar(struct ipu_image_convert_ctx *ctx,
-+				    struct ipu_image_convert_image *image)
+-int ipu_ic_task_init(struct ipu_ic *ic,
+-		     int in_width, int in_height,
+-		     int out_width, int out_height,
+-		     enum ipu_color_space in_cs,
+-		     enum ipu_color_space out_cs)
++int ipu_ic_task_init_rsc(struct ipu_ic *ic,
++			 int in_width, int in_height,
++			 int out_width, int out_height,
++			 enum ipu_color_space in_cs,
++			 enum ipu_color_space out_cs,
++			 u32 rsc)
  {
- 	struct ipu_image_convert_chan *chan = ctx->chan;
- 	struct ipu_image_convert_priv *priv = chan->priv;
-@@ -509,24 +509,30 @@ static void calc_tile_offsets_planar(struct ipu_image_convert_ctx *ctx,
- 			image->tile[tile].u_off = u_off;
- 			image->tile[tile++].v_off = v_off;
+ 	struct ipu_ic_priv *priv = ic->priv;
+-	u32 reg, downsize_coeff, resize_coeff;
++	u32 downsize_coeff, resize_coeff;
+ 	unsigned long flags;
+ 	int ret = 0;
  
--			dev_dbg(priv->ipu->dev,
--				"task %u: ctx %p: %s@[%d,%d]: y_off %08x, u_off %08x, v_off %08x\n",
--				chan->ic_task, ctx,
--				image->type == IMAGE_CONVERT_IN ?
--				"Input" : "Output", row, col,
--				y_off, u_off, v_off);
-+			if ((y_off & 0x7) || (u_off & 0x7) || (v_off & 0x7)) {
-+				dev_err(priv->ipu->dev,
-+					"task %u: ctx %p: %s@[%d,%d]: "
-+					"y_off %08x, u_off %08x, v_off %08x\n",
-+					chan->ic_task, ctx,
-+					image->type == IMAGE_CONVERT_IN ?
-+					"Input" : "Output", row, col,
-+					y_off, u_off, v_off);
-+				return -EINVAL;
-+			}
- 		}
- 	}
+-	/* Setup vertical resizing */
+-	ret = calc_resize_coeffs(ic, in_height, out_height,
+-				 &resize_coeff, &downsize_coeff);
+-	if (ret)
+-		return ret;
++	if (!rsc) {
++		/* Setup vertical resizing */
+ 
+-	reg = (downsize_coeff << 30) | (resize_coeff << 16);
++		ret = calc_resize_coeffs(ic, in_height, out_height,
++					 &resize_coeff, &downsize_coeff);
++		if (ret)
++			return ret;
 +
-+	return 0;
++		rsc = (downsize_coeff << 30) | (resize_coeff << 16);
+ 
+-	/* Setup horizontal resizing */
+-	ret = calc_resize_coeffs(ic, in_width, out_width,
+-				 &resize_coeff, &downsize_coeff);
+-	if (ret)
+-		return ret;
++		/* Setup horizontal resizing */
++		ret = calc_resize_coeffs(ic, in_width, out_width,
++					 &resize_coeff, &downsize_coeff);
++		if (ret)
++			return ret;
+ 
+-	reg |= (downsize_coeff << 14) | resize_coeff;
++		rsc |= (downsize_coeff << 14) | resize_coeff;
++	}
+ 
+ 	spin_lock_irqsave(&priv->lock, flags);
+ 
+-	ipu_ic_write(ic, reg, ic->reg->rsc);
++	ipu_ic_write(ic, rsc, ic->reg->rsc);
+ 
+ 	/* Setup color space conversion */
+ 	ic->in_cs = in_cs;
+@@ -487,6 +491,16 @@ int ipu_ic_task_init(struct ipu_ic *ic,
+ 	spin_unlock_irqrestore(&priv->lock, flags);
+ 	return ret;
  }
- 
--static void calc_tile_offsets_packed(struct ipu_image_convert_ctx *ctx,
--				     struct ipu_image_convert_image *image)
-+static int calc_tile_offsets_packed(struct ipu_image_convert_ctx *ctx,
-+				    struct ipu_image_convert_image *image)
- {
- 	struct ipu_image_convert_chan *chan = ctx->chan;
- 	struct ipu_image_convert_priv *priv = chan->priv;
- 	const struct ipu_image_pixfmt *fmt = image->fmt;
- 	unsigned int row, col, tile = 0;
--	u32 w, h, bpp, stride;
-+	u32 w, h, bpp, stride, offset;
- 	u32 row_off, col_off;
- 
- 	/* setup some convenience vars */
-@@ -541,27 +547,35 @@ static void calc_tile_offsets_packed(struct ipu_image_convert_ctx *ctx,
- 		for (col = 0; col < image->num_cols; col++) {
- 			col_off = (col * w * bpp) >> 3;
- 
--			image->tile[tile].offset = row_off + col_off;
-+			offset = row_off + col_off;
 +
-+			image->tile[tile].offset = offset;
- 			image->tile[tile].u_off = 0;
- 			image->tile[tile++].v_off = 0;
++int ipu_ic_task_init(struct ipu_ic *ic,
++		     int in_width, int in_height,
++		     int out_width, int out_height,
++		     enum ipu_color_space in_cs,
++		     enum ipu_color_space out_cs)
++{
++	return ipu_ic_task_init_rsc(ic, in_width, in_height, out_width,
++				    out_height, in_cs, out_cs, 0);
++}
+ EXPORT_SYMBOL_GPL(ipu_ic_task_init);
  
--			dev_dbg(priv->ipu->dev,
--				"task %u: ctx %p: %s@[%d,%d]: phys %08x\n",
--				chan->ic_task, ctx,
--				image->type == IMAGE_CONVERT_IN ?
--				"Input" : "Output", row, col,
--				row_off + col_off);
-+			if (offset & 0x7) {
-+				dev_err(priv->ipu->dev,
-+					"task %u: ctx %p: %s@[%d,%d]: "
-+					"phys %08x\n",
-+					chan->ic_task, ctx,
-+					image->type == IMAGE_CONVERT_IN ?
-+					"Input" : "Output", row, col,
-+					row_off + col_off);
-+				return -EINVAL;
-+			}
- 		}
- 	}
-+
-+	return 0;
- }
- 
--static void calc_tile_offsets(struct ipu_image_convert_ctx *ctx,
-+static int calc_tile_offsets(struct ipu_image_convert_ctx *ctx,
- 			      struct ipu_image_convert_image *image)
- {
- 	if (image->fmt->planar)
--		calc_tile_offsets_planar(ctx, image);
--	else
--		calc_tile_offsets_packed(ctx, image);
-+		return calc_tile_offsets_planar(ctx, image);
-+
-+	return calc_tile_offsets_packed(ctx, image);
- }
- 
- /*
-@@ -1199,9 +1213,8 @@ static int fill_image(struct ipu_image_convert_ctx *ctx,
- 		ic_image->stride  = ic_image->base.pix.bytesperline;
- 
- 	calc_tile_dimensions(ctx, ic_image);
--	calc_tile_offsets(ctx, ic_image);
- 
--	return 0;
-+	return calc_tile_offsets(ctx, ic_image);
- }
- 
- /* borrowed from drivers/media/v4l2-core/v4l2-common.c */
+ int ipu_ic_task_idma_init(struct ipu_ic *ic, struct ipuv3_channel *channel,
+diff --git a/include/video/imx-ipu-v3.h b/include/video/imx-ipu-v3.h
+index 8bb163cd9314..e582e8e7527a 100644
+--- a/include/video/imx-ipu-v3.h
++++ b/include/video/imx-ipu-v3.h
+@@ -390,6 +390,12 @@ int ipu_ic_task_init(struct ipu_ic *ic,
+ 		     int out_width, int out_height,
+ 		     enum ipu_color_space in_cs,
+ 		     enum ipu_color_space out_cs);
++int ipu_ic_task_init_rsc(struct ipu_ic *ic,
++			 int in_width, int in_height,
++			 int out_width, int out_height,
++			 enum ipu_color_space in_cs,
++			 enum ipu_color_space out_cs,
++			 u32 rsc);
+ int ipu_ic_task_graphics_init(struct ipu_ic *ic,
+ 			      enum ipu_color_space in_g_cs,
+ 			      bool galpha_en, u32 galpha,
 -- 
 2.19.0
