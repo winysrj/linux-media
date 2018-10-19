@@ -1,7 +1,7 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:47999 "EHLO
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:41109 "EHLO
         metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727591AbeJSUVf (ORCPT
+        with ESMTP id S1727492AbeJSUVf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Fri, 19 Oct 2018 16:21:35 -0400
 From: Philipp Zabel <p.zabel@pengutronix.de>
@@ -9,65 +9,106 @@ To: linux-media@vger.kernel.org,
         Steve Longerbeam <slongerbeam@gmail.com>
 Cc: Nicolas Dufresne <nicolas@ndufresne.ca>,
         Tim Harvey <tharvey@gateworks.com>, kernel@pengutronix.de
-Subject: [PATCH v4 14/22] gpu: ipu-v3: image-convert: calculate tile dimensions and offsets outside fill_image
-Date: Fri, 19 Oct 2018 14:15:31 +0200
-Message-Id: <20181019121539.12778-15-p.zabel@pengutronix.de>
+Subject: [PATCH v4 13/22] gpu: ipu-v3: image-convert: store tile top/left position
+Date: Fri, 19 Oct 2018 14:15:30 +0200
+Message-Id: <20181019121539.12778-14-p.zabel@pengutronix.de>
 In-Reply-To: <20181019121539.12778-1-p.zabel@pengutronix.de>
 References: <20181019121539.12778-1-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This will allow to calculate seam positions after initializing the
-ipu_image base structure but before calculating tile dimensions.
+Store tile top/left position in pixels in the tile structure.
+This will allow overlapping tiles with different sizes later.
 
 Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
-No changes since v3.
+No functional changes since v3.
 ---
- drivers/gpu/ipu-v3/ipu-image-convert.c | 18 +++++++++++++-----
- 1 file changed, 13 insertions(+), 5 deletions(-)
+ drivers/gpu/ipu-v3/ipu-image-convert.c | 27 ++++++++++++++------------
+ 1 file changed, 15 insertions(+), 12 deletions(-)
 
 diff --git a/drivers/gpu/ipu-v3/ipu-image-convert.c b/drivers/gpu/ipu-v3/ipu-image-convert.c
-index d14ee7b303a1..542c091cfef1 100644
+index cb47981741b4..d14ee7b303a1 100644
 --- a/drivers/gpu/ipu-v3/ipu-image-convert.c
 +++ b/drivers/gpu/ipu-v3/ipu-image-convert.c
-@@ -1467,9 +1467,7 @@ static int fill_image(struct ipu_image_convert_ctx *ctx,
- 	else
- 		ic_image->stride  = ic_image->base.pix.bytesperline;
+@@ -84,6 +84,8 @@ struct ipu_image_convert_dma_chan {
+ struct ipu_image_tile {
+ 	u32 width;
+ 	u32 height;
++	u32 left;
++	u32 top;
+ 	/* size and strides are in bytes */
+ 	u32 size;
+ 	u32 stride;
+@@ -433,13 +435,17 @@ static int calc_image_resize_coefficients(struct ipu_image_convert_ctx *ctx,
+ static void calc_tile_dimensions(struct ipu_image_convert_ctx *ctx,
+ 				 struct ipu_image_convert_image *image)
+ {
+-	int i;
++	unsigned int i;
  
--	calc_tile_dimensions(ctx, ic_image);
--
--	return calc_tile_offsets(ctx, ic_image);
-+	return 0;
- }
+ 	for (i = 0; i < ctx->num_tiles; i++) {
+ 		struct ipu_image_tile *tile = &image->tile[i];
++		const unsigned int row = i / image->num_cols;
++		const unsigned int col = i % image->num_cols;
  
- /* borrowed from drivers/media/v4l2-core/v4l2-common.c */
-@@ -1673,14 +1671,24 @@ ipu_image_convert_prepare(struct ipu_soc *ipu, enum ipu_ic_task ic_task,
- 	ctx->num_tiles = d_image->num_cols * d_image->num_rows;
- 	ctx->rot_mode = rot_mode;
+ 		tile->height = image->base.pix.height / image->num_rows;
+ 		tile->width = image->base.pix.width / image->num_cols;
++		tile->left = col * tile->width;
++		tile->top = row * tile->height;
+ 		tile->size = ((tile->height * image->fmt->bpp) >> 3) *
+ 			tile->width;
  
-+	ret = fill_image(ctx, s_image, in, IMAGE_CONVERT_IN);
-+	if (ret)
-+		goto out_free;
-+	ret = fill_image(ctx, d_image, out, IMAGE_CONVERT_OUT);
-+	if (ret)
-+		goto out_free;
-+
- 	ret = calc_image_resize_coefficients(ctx, in, out);
- 	if (ret)
- 		goto out_free;
+@@ -535,7 +541,7 @@ static int calc_tile_offsets_planar(struct ipu_image_convert_ctx *ctx,
+ 	struct ipu_image_convert_priv *priv = chan->priv;
+ 	const struct ipu_image_pixfmt *fmt = image->fmt;
+ 	unsigned int row, col, tile = 0;
+-	u32 H, w, h, y_stride, uv_stride;
++	u32 H, top, y_stride, uv_stride;
+ 	u32 uv_row_off, uv_col_off, uv_off, u_off, v_off, tmp;
+ 	u32 y_row_off, y_col_off, y_off;
+ 	u32 y_size, uv_size;
+@@ -552,13 +558,12 @@ static int calc_tile_offsets_planar(struct ipu_image_convert_ctx *ctx,
+ 	uv_size = y_size / (fmt->uv_width_dec * fmt->uv_height_dec);
  
--	ret = fill_image(ctx, s_image, in, IMAGE_CONVERT_IN);
-+	calc_tile_dimensions(ctx, s_image);
-+	ret = calc_tile_offsets(ctx, s_image);
- 	if (ret)
- 		goto out_free;
--	ret = fill_image(ctx, d_image, out, IMAGE_CONVERT_OUT);
-+
-+	calc_tile_dimensions(ctx, d_image);
-+	ret = calc_tile_offsets(ctx, d_image);
- 	if (ret)
- 		goto out_free;
+ 	for (row = 0; row < image->num_rows; row++) {
+-		w = image->tile[tile].width;
+-		h = image->tile[tile].height;
+-		y_row_off = row * h * y_stride;
+-		uv_row_off = (row * h * uv_stride) / fmt->uv_height_dec;
++		top = image->tile[tile].top;
++		y_row_off = top * y_stride;
++		uv_row_off = (top * uv_stride) / fmt->uv_height_dec;
+ 
+ 		for (col = 0; col < image->num_cols; col++) {
+-			y_col_off = col * w;
++			y_col_off = image->tile[tile].left;
+ 			uv_col_off = y_col_off / fmt->uv_width_dec;
+ 			if (fmt->uv_packed)
+ 				uv_col_off *= 2;
+@@ -601,7 +606,7 @@ static int calc_tile_offsets_packed(struct ipu_image_convert_ctx *ctx,
+ 	struct ipu_image_convert_priv *priv = chan->priv;
+ 	const struct ipu_image_pixfmt *fmt = image->fmt;
+ 	unsigned int row, col, tile = 0;
+-	u32 w, h, bpp, stride, offset;
++	u32 bpp, stride, offset;
+ 	u32 row_off, col_off;
+ 
+ 	/* setup some convenience vars */
+@@ -609,12 +614,10 @@ static int calc_tile_offsets_packed(struct ipu_image_convert_ctx *ctx,
+ 	bpp = fmt->bpp;
+ 
+ 	for (row = 0; row < image->num_rows; row++) {
+-		w = image->tile[tile].width;
+-		h = image->tile[tile].height;
+-		row_off = row * h * stride;
++		row_off = image->tile[tile].top * stride;
+ 
+ 		for (col = 0; col < image->num_cols; col++) {
+-			col_off = (col * w * bpp) >> 3;
++			col_off = (image->tile[tile].left * bpp) >> 3;
+ 
+ 			offset = row_off + col_off;
  
 -- 
 2.19.0
