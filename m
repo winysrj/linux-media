@@ -1,93 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ot1-f68.google.com ([209.85.210.68]:40626 "EHLO
-        mail-ot1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726269AbeJSBa2 (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:59736 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727672AbeJSVG3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 18 Oct 2018 21:30:28 -0400
-Received: by mail-ot1-f68.google.com with SMTP id w67so30538911ota.7
-        for <linux-media@vger.kernel.org>; Thu, 18 Oct 2018 10:28:30 -0700 (PDT)
-Received: from mail-oi1-f171.google.com (mail-oi1-f171.google.com. [209.85.167.171])
-        by smtp.gmail.com with ESMTPSA id 111sm7333797otf.51.2018.10.18.10.28.27
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 18 Oct 2018 10:28:27 -0700 (PDT)
-Received: by mail-oi1-f171.google.com with SMTP id u197-v6so24650761oif.5
-        for <linux-media@vger.kernel.org>; Thu, 18 Oct 2018 10:28:27 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAAFQd5AL2CnnWLk+i133RRa36HTa0baFkezRhpTXf9YP0DSF1Q@mail.gmail.com>
-References: <20181017075242.21790-1-henryhsu@chromium.org> <13883852.6N9L7C0n48@avalon>
- <CAAFQd5B+4x4aSUywtdukwgUmQNQsQsbK4sjedNphwNFteaTscg@mail.gmail.com>
- <2355808.GKno8i6Ks9@avalon> <CAAFQd5AL2CnnWLk+i133RRa36HTa0baFkezRhpTXf9YP0DSF1Q@mail.gmail.com>
-From: Alexandru M Stan <amstan@chromium.org>
-Date: Thu, 18 Oct 2018 10:28:06 -0700
-Message-ID: <CAHNYxRwbSSp02Zr4a1z5gh0q6cHUUDnZCqRQU7QtP8LMe3Jp2A@mail.gmail.com>
-Subject: Re: [PATCH] media: uvcvideo: Add boottime clock support
-To: Tomasz Figa <tfiga@chromium.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Gwendal Grignou <gwendal@chromium.org>,
-        Heng-Ruey Hsu <henryhsu@chromium.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Ricky Liang <jcliang@chromium.org>, linux-iio@vger.kernel.org,
-        Jonathan Cameron <jic23@kernel.org>,
-        Hartmut Knaack <knaack.h@gmx.de>,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Peter Meerwald-Stadler <pmeerw@pmeerw.net>
+        Fri, 19 Oct 2018 17:06:29 -0400
+Message-ID: <457d3a25453d27135270ee4318a3afc1c5da51fb.camel@collabora.com>
+Subject: Re: [PATCH 1/2] vicodec: Have decoder propagate changes to the
+ CAPTURE queue
+From: Ezequiel Garcia <ezequiel@collabora.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>, kernel@collabora.com,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Date: Fri, 19 Oct 2018 10:00:17 -0300
+In-Reply-To: <a81e37eb-9d85-7a52-1098-d067c719f1e1@xs4all.nl>
+References: <20181018160841.17674-1-ezequiel@collabora.com>
+         <20181018160841.17674-2-ezequiel@collabora.com>
+         <a81e37eb-9d85-7a52-1098-d067c719f1e1@xs4all.nl>
 Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 17, 2018 at 9:31 PM, Tomasz Figa <tfiga@chromium.org> wrote:
-> On Thu, Oct 18, 2018 at 5:50 AM Laurent Pinchart
-> <laurent.pinchart@ideasonboard.com> wrote:
->>
->> Hi Tomasz,
->>
->> On Wednesday, 17 October 2018 11:28:52 EEST Tomasz Figa wrote:
->> > On Wed, Oct 17, 2018 at 5:02 PM Laurent Pinchart wrote:
->> > > On Wednesday, 17 October 2018 10:52:42 EEST Heng-Ruey Hsu wrote:
->> > >> Android requires camera timestamps to be reported with
->> > >> CLOCK_BOOTTIME to sync timestamp with other sensor sources.
->> > >
->> > > What's the rationale behind this, why can't CLOCK_MONOTONIC work ? If the
->> > > monotonic clock has shortcomings that make its use impossible for proper
->> > > synchronization, then we should consider switching to CLOCK_BOOTTIME
->> > > globally in V4L2, not in selected drivers only.
->> >
->> > CLOCK_BOOTTIME includes the time spent in suspend, while
->> > CLOCK_MONOTONIC doesn't. I can imagine the former being much more
->> > useful for anything that cares about the actual, long term, time
->> > tracking. Especially important since suspend is a very common event on
->> > Android and doesn't stop the time flow there, i.e. applications might
->> > wake up the device to perform various tasks at necessary times.
->>
->> Sure, but this patch mentions timestamp synchronization with other sensors,
->> and from that point of view, I'd like to know what is wrong with the monotonic
->> clock if all devices use it.
->
-> AFAIK the sensors mentioned there are not camera sensors, but rather
-> things we normally put under IIO, e.g. accelerometers, gyroscopes and
-> so on. I'm not sure how IIO deals with timestamps, but Android seems
-> to operate in the CLOCK_BOTTIME domain. Let me add some IIO folks.
->
-> Gwendal, Alexandru, do you think you could shed some light on how we
-> handle IIO sensors timestamps across the kernel, Chrome OS and
-> Android?
+On Fri, 2018-10-19 at 09:14 +0200, Hans Verkuil wrote:
+> On 10/18/2018 06:08 PM, Ezequiel Garcia wrote:
+> > The decoder interface (not yet merged) specifies that
+> > width and height values set on the OUTPUT queue, must
+> > be propagated to the CAPTURE queue.
+> > 
+> > This is not enough to comply with the specification,
+> > which would require to properly support stream resolution
+> > changes detection and notification.
+> > 
+> > However, it's a relatively small change, which fixes behavior
+> > required by some applications such as gstreamer.
+> > 
+> > With this change, it's possible to run a simple T(T⁻¹) pipeline:
+> > 
+> > gst-launch-1.0 videotestsrc ! v4l2fwhtenc ! v4l2fwhtdec ! fakevideosink
+> > 
+> > Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+> > ---
+> >  drivers/media/platform/vicodec/vicodec-core.c | 15 +++++++++++++++
+> >  1 file changed, 15 insertions(+)
+> > 
+> > diff --git a/drivers/media/platform/vicodec/vicodec-core.c b/drivers/media/platform/vicodec/vicodec-core.c
+> > index 1eb9132bfc85..a2c487b4b80d 100644
+> > --- a/drivers/media/platform/vicodec/vicodec-core.c
+> > +++ b/drivers/media/platform/vicodec/vicodec-core.c
+> > @@ -673,6 +673,13 @@ static int vidioc_s_fmt(struct vicodec_ctx *ctx, struct v4l2_format *f)
+> >  		q_data->width = pix->width;
+> >  		q_data->height = pix->height;
+> >  		q_data->sizeimage = pix->sizeimage;
+> > +
+> > +		/* Propagate changes to CAPTURE queue */
+> > +		if (!ctx->is_enc && V4L2_TYPE_IS_OUTPUT(f->type)) {
+> 
+> Do we need !ctx->is_enc? Isn't this the same for both decoder and encoder?
+> 
 
-On our devices of interest have a specialized "sensor" that comes via
-IIO (from the EC, cros-ec-ring driver) that can be used to more
-accurately timestamp each frame (since it's recorded with very low
-jitter by a realtime-ish OS). In some high level userspace thing
-(specifically the Android Camera HAL) we try to pick the best
-timestamp from the IIO, whatever's closest to what the V4L stuff gives
-us.
+Well, I wasn't really sure about this. The decoder document clearly
+says that changes has to be propagated to the capture queue, but that statement
+is not in the encoder spec.
 
-I guess the Android convention is for sensor timestamps to be in
-CLOCK_BOOTTIME (maybe because it likes sleeping so much). There's
-probably no advantage to using one over the other, but the important
-thing is that they have to be the same, otherwise the closest match
-logic would fail.
+Since gstreamer didn't needs this, I decided not to add it.
 
-Regards,
-Alexandru Stan
+Perhaps it's something to correct in the encoder spec?
+
+> > +			ctx->q_data[V4L2_M2M_DST].width = pix->width;
+> > +			ctx->q_data[V4L2_M2M_DST].height = pix->height;
+> > +			ctx->q_data[V4L2_M2M_DST].sizeimage = pix->sizeimage;
+> 
+> This is wrong: you are copying the sizeimage for the compressed format as the
+> sizeimage for the raw format, which is quite different.
+> 
+
+Doh, you are right.
+
+> I think you need to make a little helper function that can update the width/height
+> of a particular queue and that can calculate the sizeimage correctly.
+> 
+
+Sounds good.
+
+Thanks for the review,
+Ezequiel
