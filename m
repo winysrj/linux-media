@@ -1,7 +1,7 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:36717 "EHLO
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:60625 "EHLO
         metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727583AbeJSUVf (ORCPT
+        with ESMTP id S1727608AbeJSUVf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Fri, 19 Oct 2018 16:21:35 -0400
 From: Philipp Zabel <p.zabel@pengutronix.de>
@@ -9,106 +9,419 @@ To: linux-media@vger.kernel.org,
         Steve Longerbeam <slongerbeam@gmail.com>
 Cc: Nicolas Dufresne <nicolas@ndufresne.ca>,
         Tim Harvey <tharvey@gateworks.com>, kernel@pengutronix.de
-Subject: [PATCH v4 12/22] gpu: ipu-v3: image-convert: reconfigure IC per tile
-Date: Fri, 19 Oct 2018 14:15:29 +0200
-Message-Id: <20181019121539.12778-13-p.zabel@pengutronix.de>
+Subject: [PATCH v4 16/22] gpu: ipu-v3: image-convert: select optimal seam positions
+Date: Fri, 19 Oct 2018 14:15:33 +0200
+Message-Id: <20181019121539.12778-17-p.zabel@pengutronix.de>
 In-Reply-To: <20181019121539.12778-1-p.zabel@pengutronix.de>
 References: <20181019121539.12778-1-p.zabel@pengutronix.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-For differently sized tiles or if the resizing coefficients change,
-we have to stop, reconfigure, and restart the IC between tiles.
+Select seam positions that minimize distortions during seam hiding while
+satifying input and output IDMAC, rotator, and image format constraints.
+
+This code looks for aligned output seam positions that minimize the
+difference between the fractional corresponding ideal input positions
+and the input positions rounded to alignment requirements.
+
+Since now tiles can be sized differently, alignment restrictions of the
+complete image can be relaxed in the next step.
 
 Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
-No changes since v3.
+Changes since v3:
+ - Fix tile_left_align for 24-bit RGB formats and reduce alignment
+   restrictions for U/V packed planar YUV formats.
 ---
- drivers/gpu/ipu-v3/ipu-image-convert.c | 65 +++++++++++++++++---------
- 1 file changed, 44 insertions(+), 21 deletions(-)
+ drivers/gpu/ipu-v3/ipu-image-convert.c | 343 ++++++++++++++++++++++++-
+ 1 file changed, 337 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/gpu/ipu-v3/ipu-image-convert.c b/drivers/gpu/ipu-v3/ipu-image-convert.c
-index 31e7186bcc00..cb47981741b4 100644
+index a407ca3b367b..a674241dd0b8 100644
 --- a/drivers/gpu/ipu-v3/ipu-image-convert.c
 +++ b/drivers/gpu/ipu-v3/ipu-image-convert.c
-@@ -1151,6 +1151,24 @@ static irqreturn_t do_bh(int irq, void *dev_id)
- 	return IRQ_HANDLED;
+@@ -432,6 +432,126 @@ static int calc_image_resize_coefficients(struct ipu_image_convert_ctx *ctx,
+ 	return 0;
  }
  
-+static bool ic_settings_changed(struct ipu_image_convert_ctx *ctx)
++#define round_closest(x, y) round_down((x) + (y)/2, (y))
++
++/*
++ * Find the best aligned seam position in the inverval [out_start, out_end].
++ * Rotation and image offsets are out of scope.
++ *
++ * @out_start: start of inverval, must be within 1024 pixels / lines
++ *             of out_end
++ * @out_end: end of interval, smaller than or equal to out_edge
++ * @in_edge: input right / bottom edge
++ * @out_edge: output right / bottom edge
++ * @in_align: input alignment, either horizontal 8-byte line start address
++ *            alignment, or pixel alignment due to image format
++ * @out_align: output alignment, either horizontal 8-byte line start address
++ *             alignment, or pixel alignment due to image format or rotator
++ *             block size
++ * @in_burst: horizontal input burst size in case of horizontal flip
++ * @out_burst: horizontal output burst size or rotator block size
++ * @downsize_coeff: downsizing section coefficient
++ * @resize_coeff: main processing section resizing coefficient
++ * @_in_seam: aligned input seam position return value
++ * @_out_seam: aligned output seam position return value
++ */
++static void find_best_seam(struct ipu_image_convert_ctx *ctx,
++			   unsigned int out_start,
++			   unsigned int out_end,
++			   unsigned int in_edge,
++			   unsigned int out_edge,
++			   unsigned int in_align,
++			   unsigned int out_align,
++			   unsigned int in_burst,
++			   unsigned int out_burst,
++			   unsigned int downsize_coeff,
++			   unsigned int resize_coeff,
++			   u32 *_in_seam,
++			   u32 *_out_seam)
 +{
-+	unsigned int cur_tile = ctx->next_tile - 1;
-+	unsigned int next_tile = ctx->next_tile;
++	struct device *dev = ctx->chan->priv->ipu->dev;
++	unsigned int out_pos;
++	/* Input / output seam position candidates */
++	unsigned int out_seam = 0;
++	unsigned int in_seam = 0;
++	unsigned int min_diff = UINT_MAX;
 +
-+	if (ctx->resize_coeffs_h[cur_tile % ctx->in.num_cols] !=
-+	    ctx->resize_coeffs_h[next_tile % ctx->in.num_cols] ||
-+	    ctx->resize_coeffs_v[cur_tile / ctx->in.num_cols] !=
-+	    ctx->resize_coeffs_v[next_tile / ctx->in.num_cols] ||
-+	    ctx->in.tile[cur_tile].width != ctx->in.tile[next_tile].width ||
-+	    ctx->in.tile[cur_tile].height != ctx->in.tile[next_tile].height ||
-+	    ctx->out.tile[cur_tile].width != ctx->out.tile[next_tile].width ||
-+	    ctx->out.tile[cur_tile].height != ctx->out.tile[next_tile].height)
-+		return true;
++	/*
++	 * Output tiles must start at a multiple of 8 bytes horizontally and
++	 * possibly at an even line horizontally depending on the pixel format.
++	 * Only consider output aligned positions for the seam.
++	 */
++	out_start = round_up(out_start, out_align);
++	for (out_pos = out_start; out_pos < out_end; out_pos += out_align) {
++		unsigned int in_pos;
++		unsigned int in_pos_aligned;
++		unsigned int abs_diff;
 +
-+	return false;
++		/*
++		 * Tiles in the right row / bottom column may not be allowed to
++		 * overshoot horizontally / vertically. out_burst may be the
++		 * actual DMA burst size, or the rotator block size.
++		 */
++		if ((out_burst > 1) && (out_edge - out_pos) % out_burst)
++			continue;
++
++		/*
++		 * Input sample position, corresponding to out_pos, 19.13 fixed
++		 * point.
++		 */
++		in_pos = (out_pos * resize_coeff) << downsize_coeff;
++		/*
++		 * The closest input sample position that we could actually
++		 * start the input tile at, 19.13 fixed point.
++		 */
++		in_pos_aligned = round_closest(in_pos, 8192U * in_align);
++
++		if ((in_burst > 1) &&
++		    (in_edge - in_pos_aligned / 8192U) % in_burst)
++			continue;
++
++		if (in_pos < in_pos_aligned)
++			abs_diff = in_pos_aligned - in_pos;
++		else
++			abs_diff = in_pos - in_pos_aligned;
++
++		if (abs_diff < min_diff) {
++			in_seam = in_pos_aligned;
++			out_seam = out_pos;
++			min_diff = abs_diff;
++		}
++	}
++
++	*_out_seam = out_seam;
++	/* Convert 19.13 fixed point to integer seam position */
++	*_in_seam = DIV_ROUND_CLOSEST(in_seam, 8192U);
++
++	dev_dbg(dev, "%s: out_seam %u(%u) in [%u, %u], in_seam %u(%u) diff %u.%03u\n",
++		__func__, out_seam, out_align, out_start, out_end,
++		*_in_seam, in_align, min_diff / 8192,
++		DIV_ROUND_CLOSEST(min_diff % 8192 * 1000, 8192));
 +}
 +
- /* hold irqlock when calling */
- static irqreturn_t do_irq(struct ipu_image_convert_run *run)
- {
-@@ -1194,27 +1212,32 @@ static irqreturn_t do_irq(struct ipu_image_convert_run *run)
- 	 * not done, place the next tile buffers.
- 	 */
- 	if (!ctx->double_buffering) {
--
--		src_tile = &s_image->tile[ctx->next_tile];
--		dst_idx = ctx->out_tile_map[ctx->next_tile];
--		dst_tile = &d_image->tile[dst_idx];
--
--		ipu_cpmem_set_buffer(chan->in_chan, 0,
--				     s_image->base.phys0 + src_tile->offset);
--		ipu_cpmem_set_buffer(outch, 0,
--				     d_image->base.phys0 + dst_tile->offset);
--		if (s_image->fmt->planar)
--			ipu_cpmem_set_uv_offset(chan->in_chan,
--						src_tile->u_off,
--						src_tile->v_off);
--		if (d_image->fmt->planar)
--			ipu_cpmem_set_uv_offset(outch,
--						dst_tile->u_off,
--						dst_tile->v_off);
--
--		ipu_idmac_select_buffer(chan->in_chan, 0);
--		ipu_idmac_select_buffer(outch, 0);
--
-+		if (ic_settings_changed(ctx)) {
-+			convert_stop(run);
-+			convert_start(run, ctx->next_tile);
-+		} else {
-+			src_tile = &s_image->tile[ctx->next_tile];
-+			dst_idx = ctx->out_tile_map[ctx->next_tile];
-+			dst_tile = &d_image->tile[dst_idx];
++/*
++ * Tile left edges are required to be aligned to multiples of 8 bytes
++ * by the IDMAC.
++ */
++static inline u32 tile_left_align(const struct ipu_image_pixfmt *fmt)
++{
++	if (fmt->planar)
++		return fmt->uv_packed ? 8 : 8 * fmt->uv_width_dec;
++	else
++		return fmt->bpp == 32 ? 2 : fmt->bpp == 16 ? 4 : 8;
++}
 +
-+			ipu_cpmem_set_buffer(chan->in_chan, 0,
-+					     s_image->base.phys0 +
-+					     src_tile->offset);
-+			ipu_cpmem_set_buffer(outch, 0,
-+					     d_image->base.phys0 +
-+					     dst_tile->offset);
-+			if (s_image->fmt->planar)
-+				ipu_cpmem_set_uv_offset(chan->in_chan,
-+							src_tile->u_off,
-+							src_tile->v_off);
-+			if (d_image->fmt->planar)
-+				ipu_cpmem_set_uv_offset(outch,
-+							dst_tile->u_off,
-+							dst_tile->v_off);
++/*
++ * Tile top edge alignment is only limited by chroma subsampling.
++ */
++static inline u32 tile_top_align(const struct ipu_image_pixfmt *fmt)
++{
++	return fmt->uv_height_dec > 1 ? 2 : 1;
++}
 +
-+			ipu_idmac_select_buffer(chan->in_chan, 0);
-+			ipu_idmac_select_buffer(outch, 0);
-+		}
- 	} else if (ctx->next_tile < ctx->num_tiles - 1) {
+ /*
+  * We have to adjust the tile width such that the tile physaddrs and
+  * U and V plane offsets are multiples of 8 bytes as required by
+@@ -459,20 +579,228 @@ static inline u32 tile_height_align(enum ipu_image_convert_type type,
+ 		ipu_rot_mode_is_irt(rot_mode)) ? 8 : 2;
+ }
  
- 		src_tile = &s_image->tile[ctx->next_tile + 1];
++/*
++ * Fill in left position and width and for all tiles in an input column, and
++ * for all corresponding output tiles. If the 90° rotator is used, the output
++ * tiles are in a row, and output tile top position and height are set.
++ */
++static void fill_tile_column(struct ipu_image_convert_ctx *ctx,
++			     unsigned int col,
++			     struct ipu_image_convert_image *in,
++			     unsigned int in_left, unsigned int in_width,
++			     struct ipu_image_convert_image *out,
++			     unsigned int out_left, unsigned int out_width)
++{
++	unsigned int row, tile_idx;
++	struct ipu_image_tile *in_tile, *out_tile;
++
++	for (row = 0; row < in->num_rows; row++) {
++		tile_idx = in->num_cols * row + col;
++		in_tile = &in->tile[tile_idx];
++		out_tile = &out->tile[ctx->out_tile_map[tile_idx]];
++
++		in_tile->left = in_left;
++		in_tile->width = in_width;
++
++		if (ipu_rot_mode_is_irt(ctx->rot_mode)) {
++			out_tile->top = out_left;
++			out_tile->height = out_width;
++		} else {
++			out_tile->left = out_left;
++			out_tile->width = out_width;
++		}
++	}
++}
++
++/*
++ * Fill in top position and height and for all tiles in an input row, and
++ * for all corresponding output tiles. If the 90° rotator is used, the output
++ * tiles are in a column, and output tile left position and width are set.
++ */
++static void fill_tile_row(struct ipu_image_convert_ctx *ctx, unsigned int row,
++			  struct ipu_image_convert_image *in,
++			  unsigned int in_top, unsigned int in_height,
++			  struct ipu_image_convert_image *out,
++			  unsigned int out_top, unsigned int out_height)
++{
++	unsigned int col, tile_idx;
++	struct ipu_image_tile *in_tile, *out_tile;
++
++	for (col = 0; col < in->num_cols; col++) {
++		tile_idx = in->num_cols * row + col;
++		in_tile = &in->tile[tile_idx];
++		out_tile = &out->tile[ctx->out_tile_map[tile_idx]];
++
++		in_tile->top = in_top;
++		in_tile->height = in_height;
++
++		if (ipu_rot_mode_is_irt(ctx->rot_mode)) {
++			out_tile->left = out_top;
++			out_tile->width = out_height;
++		} else {
++			out_tile->top = out_top;
++			out_tile->height = out_height;
++		}
++	}
++}
++
++/*
++ * Find the best horizontal and vertical seam positions to split into tiles.
++ * Minimize the fractional part of the input sampling position for the
++ * top / left pixels of each tile.
++ */
++static void find_seams(struct ipu_image_convert_ctx *ctx,
++		       struct ipu_image_convert_image *in,
++		       struct ipu_image_convert_image *out)
++{
++	struct device *dev = ctx->chan->priv->ipu->dev;
++	unsigned int resized_width = out->base.rect.width;
++	unsigned int resized_height = out->base.rect.height;
++	unsigned int col;
++	unsigned int row;
++	unsigned int in_left_align = tile_left_align(in->fmt);
++	unsigned int in_top_align = tile_top_align(in->fmt);
++	unsigned int out_left_align = tile_left_align(out->fmt);
++	unsigned int out_top_align = tile_top_align(out->fmt);
++	unsigned int out_width_align = tile_width_align(out->fmt);
++	unsigned int out_height_align = tile_height_align(out->type,
++							  ctx->rot_mode);
++	unsigned int in_right = in->base.rect.width;
++	unsigned int in_bottom = in->base.rect.height;
++	unsigned int out_right = out->base.rect.width;
++	unsigned int out_bottom = out->base.rect.height;
++	unsigned int flipped_out_left;
++	unsigned int flipped_out_top;
++
++	if (ipu_rot_mode_is_irt(ctx->rot_mode)) {
++		/* Switch width/height and align top left to IRT block size */
++		resized_width = out->base.rect.height;
++		resized_height = out->base.rect.width;
++		out_left_align = out_height_align;
++		out_top_align = out_width_align;
++		out_width_align = out_left_align;
++		out_height_align = out_top_align;
++		out_right = out->base.rect.height;
++		out_bottom = out->base.rect.width;
++	}
++
++	for (col = in->num_cols - 1; col > 0; col--) {
++		bool allow_in_overshoot = ipu_rot_mode_is_irt(ctx->rot_mode) ||
++					  !(ctx->rot_mode & IPU_ROT_BIT_HFLIP);
++		bool allow_out_overshoot = (col < in->num_cols - 1) &&
++					   !(ctx->rot_mode & IPU_ROT_BIT_HFLIP);
++		unsigned int out_start;
++		unsigned int out_end;
++		unsigned int in_left;
++		unsigned int out_left;
++
++		/*
++		 * Align input width to burst length if the scaling step flips
++		 * horizontally.
++		 */
++
++		/* Start within 1024 pixels of the right edge */
++		out_start = max_t(int, 0, out_right - 1024);
++		/* End before having to add more columns to the left */
++		out_end = min_t(unsigned int, out_right, col * 1024);
++
++		find_best_seam(ctx, out_start, out_end,
++			       in_right, out_right,
++			       in_left_align, out_left_align,
++			       allow_in_overshoot ? 1 : 8 /* burst length */,
++			       allow_out_overshoot ? 1 : out_width_align,
++			       ctx->downsize_coeff_h, ctx->image_resize_coeff_h,
++			       &in_left, &out_left);
++
++		if (ctx->rot_mode & IPU_ROT_BIT_HFLIP)
++			flipped_out_left = resized_width - out_right;
++		else
++			flipped_out_left = out_left;
++
++		fill_tile_column(ctx, col, in, in_left, in_right - in_left,
++				 out, flipped_out_left, out_right - out_left);
++
++		dev_dbg(dev, "%s: col %u: %u, %u -> %u, %u\n", __func__, col,
++			in_left, in_right - in_left,
++			flipped_out_left, out_right - out_left);
++
++		in_right = in_left;
++		out_right = out_left;
++	}
++
++	flipped_out_left = (ctx->rot_mode & IPU_ROT_BIT_HFLIP) ?
++			   resized_width - out_right : 0;
++
++	fill_tile_column(ctx, 0, in, 0, in_right,
++			 out, flipped_out_left, out_right);
++
++	dev_dbg(dev, "%s: col 0: 0, %u -> %u, %u\n", __func__,
++		in_right, flipped_out_left, out_right);
++
++	for (row = in->num_rows - 1; row > 0; row--) {
++		bool allow_overshoot = row < in->num_rows - 1;
++		unsigned int out_start;
++		unsigned int out_end;
++		unsigned int in_top;
++		unsigned int out_top;
++
++		/* Start within 1024 lines of the bottom edge */
++		out_start = max_t(int, 0, out_bottom - 1024);
++		/* End before having to add more rows above */
++		out_end = min_t(unsigned int, out_bottom, row * 1024);
++
++		find_best_seam(ctx, out_start, out_end,
++			       in_bottom, out_bottom,
++			       in_top_align, out_top_align,
++			       1, allow_overshoot ? 1 : out_height_align,
++			       ctx->downsize_coeff_v, ctx->image_resize_coeff_v,
++			       &in_top, &out_top);
++
++		if ((ctx->rot_mode & IPU_ROT_BIT_VFLIP) ^
++		    ipu_rot_mode_is_irt(ctx->rot_mode))
++			flipped_out_top = resized_height - out_bottom;
++		else
++			flipped_out_top = out_top;
++
++		fill_tile_row(ctx, row, in, in_top, in_bottom - in_top,
++			      out, flipped_out_top, out_bottom - out_top);
++
++		dev_dbg(dev, "%s: row %u: %u, %u -> %u, %u\n", __func__, row,
++			in_top, in_bottom - in_top,
++			flipped_out_top, out_bottom - out_top);
++
++		in_bottom = in_top;
++		out_bottom = out_top;
++	}
++
++	if ((ctx->rot_mode & IPU_ROT_BIT_VFLIP) ^
++	    ipu_rot_mode_is_irt(ctx->rot_mode))
++		flipped_out_top = resized_height - out_bottom;
++	else
++		flipped_out_top = 0;
++
++	fill_tile_row(ctx, 0, in, 0, in_bottom,
++		      out, flipped_out_top, out_bottom);
++
++	dev_dbg(dev, "%s: row 0: 0, %u -> %u, %u\n", __func__,
++		in_bottom, flipped_out_top, out_bottom);
++}
++
+ static void calc_tile_dimensions(struct ipu_image_convert_ctx *ctx,
+ 				 struct ipu_image_convert_image *image)
+ {
+ 	unsigned int i;
+ 
+ 	for (i = 0; i < ctx->num_tiles; i++) {
+-		struct ipu_image_tile *tile = &image->tile[i];
++		struct ipu_image_tile *tile;
+ 		const unsigned int row = i / image->num_cols;
+ 		const unsigned int col = i % image->num_cols;
+ 
+-		tile->height = image->base.pix.height / image->num_rows;
+-		tile->width = image->base.pix.width / image->num_cols;
+-		tile->left = col * tile->width;
+-		tile->top = row * tile->height;
++		if (image->type == IMAGE_CONVERT_OUT)
++			tile = &image->tile[ctx->out_tile_map[i]];
++		else
++			tile = &image->tile[i];
++
+ 		tile->size = ((tile->height * image->fmt->bpp) >> 3) *
+ 			tile->width;
+ 
+@@ -1682,6 +2010,10 @@ ipu_image_convert_prepare(struct ipu_soc *ipu, enum ipu_ic_task ic_task,
+ 	if (ret)
+ 		goto out_free;
+ 
++	calc_out_tile_map(ctx);
++
++	find_seams(ctx, s_image, d_image);
++
+ 	calc_tile_dimensions(ctx, s_image);
+ 	ret = calc_tile_offsets(ctx, s_image);
+ 	if (ret)
+@@ -1692,7 +2024,6 @@ ipu_image_convert_prepare(struct ipu_soc *ipu, enum ipu_ic_task ic_task,
+ 	if (ret)
+ 		goto out_free;
+ 
+-	calc_out_tile_map(ctx);
+ 	calc_tile_resize_coefficients(ctx);
+ 
+ 	dump_format(ctx, s_image);
 -- 
 2.19.0
