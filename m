@@ -1,11 +1,12 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-1.cisco.com ([173.38.203.51]:49144 "EHLO
-        aer-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727199AbeJSUp0 (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.133]:49008 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726609AbeJSUhv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 Oct 2018 16:45:26 -0400
-Subject: Re: [PATCH] media: rename soc_camera I2C drivers
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+        Fri, 19 Oct 2018 16:37:51 -0400
+Date: Fri, 19 Oct 2018 09:31:46 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Hans Verkuil <hansverk@cisco.com>
 Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
         Hans Verkuil <hans.verkuil@cisco.com>,
@@ -15,164 +16,141 @@ Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Jacopo Mondi <jacopo+renesas@jmondi.org>,
         Akinobu Mita <akinobu.mita@gmail.com>
+Subject: Re: [PATCH] media: rename soc_camera I2C drivers
+Message-ID: <20181019093146.195d0be5@coco.lan>
+In-Reply-To: <fa7f6ef2-af25-a554-2ecc-e99c9fb1e68d@cisco.com>
 References: <3e42194ffb936ec9d0a4d361f06c6a4b0e88173f.1539949382.git.mchehab+samsung@kernel.org>
- <fa7f6ef2-af25-a554-2ecc-e99c9fb1e68d@cisco.com>
- <20181019093146.195d0be5@coco.lan>
-From: Hans Verkuil <hansverk@cisco.com>
-Message-ID: <7bd0c2fd-f852-e880-f1ae-85f27b44fc9b@cisco.com>
-Date: Fri, 19 Oct 2018 14:39:27 +0200
+        <fa7f6ef2-af25-a554-2ecc-e99c9fb1e68d@cisco.com>
 MIME-Version: 1.0
-In-Reply-To: <20181019093146.195d0be5@coco.lan>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/19/18 14:31, Mauro Carvalho Chehab wrote:
-> Em Fri, 19 Oct 2018 13:45:32 +0200
-> Hans Verkuil <hansverk@cisco.com> escreveu:
+Em Fri, 19 Oct 2018 13:45:32 +0200
+Hans Verkuil <hansverk@cisco.com> escreveu:
+
+> On 10/19/18 13:43, Mauro Carvalho Chehab wrote:
+> > Those drivers are part of the legacy SoC camera framework.
+> > They're being converted to not use it, but sometimes we're
+> > keeping both legacy any new driver.
+> > 
+> > This time, for example, we have two drivers on media with
+> > the same name: ov772x. That's bad.
+> > 
+> > So, in order to prevent that to happen, let's prepend the SoC
+> > legacy drivers with soc_.
+> > 
+> > No functional changes.
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>  
 > 
->> On 10/19/18 13:43, Mauro Carvalho Chehab wrote:
->>> Those drivers are part of the legacy SoC camera framework.
->>> They're being converted to not use it, but sometimes we're
->>> keeping both legacy any new driver.
->>>
->>> This time, for example, we have two drivers on media with
->>> the same name: ov772x. That's bad.
->>>
->>> So, in order to prevent that to happen, let's prepend the SoC
->>> legacy drivers with soc_.
->>>
->>> No functional changes.
->>>
->>> Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>  
->>
->> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> For now, let's just avoid the conflict if one builds both modules and
-> do a modprobe ov772x.
-> 
->> Let's kill all of these in the next kernel. I see no reason for keeping
->> them around.
-> 
-> While people are doing those SoC conversions, I would keep it. We
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Which people are doing SoC conversions? Nobody is using soc-camera anymore.
-It is a dead driver. The only reason it hasn't been removed yet is lack of
-time since it is not just removing the driver, but also patching old board
-files that use soc_camera headers. Really left-overs since the corresponding
-soc-camera drivers have long since been removed.
+For now, let's just avoid the conflict if one builds both modules and
+do a modprobe ov772x.
 
-> could move it to staging, to let it clear that those drivers require
-> conversion, and give people some time to work on it.
+> Let's kill all of these in the next kernel. I see no reason for keeping
+> them around.
 
-There is nobody working on it. These are old sensors, and few will have
-the hardware to test it. If someone needs such a sensor driver, then they
-can always look at an older kernel version. It's still in git after all.
+While people are doing those SoC conversions, I would keep it. We
+could move it to staging, to let it clear that those drivers require
+conversion, and give people some time to work on it.
 
-Just kill it rather then polluting the media tree.
-
-Regards,
-
-	Hans
+In the specific case of ov772x, as we have already a driver that doesn't
+require soc_camera, we can strip it for -next.
 
 > 
-> In the specific case of ov772x, as we have already a driver that doesn't
-> require soc_camera, we can strip it for -next.
+> Regards,
 > 
->>
->> Regards,
->>
->> 	Hans
->>
->>> ---
->>>  drivers/media/i2c/soc_camera/Makefile          | 18 +++++++++---------
->>>  .../soc_camera/{mt9m001.c => soc_mt9m001.c}    |  0
->>>  .../soc_camera/{mt9t112.c => soc_mt9t112.c}    |  0
->>>  .../soc_camera/{mt9v022.c => soc_mt9v022.c}    |  0
->>>  .../i2c/soc_camera/{ov5642.c => soc_ov5642.c}  |  0
->>>  .../i2c/soc_camera/{ov772x.c => soc_ov772x.c}  |  0
->>>  .../i2c/soc_camera/{ov9640.c => soc_ov9640.c}  |  0
->>>  .../i2c/soc_camera/{ov9740.c => soc_ov9740.c}  |  0
->>>  .../{rj54n1cb0c.c => soc_rj54n1cb0c.c}         |  0
->>>  .../i2c/soc_camera/{tw9910.c => soc_tw9910.c}  |  0
->>>  10 files changed, 9 insertions(+), 9 deletions(-)
->>>  rename drivers/media/i2c/soc_camera/{mt9m001.c => soc_mt9m001.c} (100%)
->>>  rename drivers/media/i2c/soc_camera/{mt9t112.c => soc_mt9t112.c} (100%)
->>>  rename drivers/media/i2c/soc_camera/{mt9v022.c => soc_mt9v022.c} (100%)
->>>  rename drivers/media/i2c/soc_camera/{ov5642.c => soc_ov5642.c} (100%)
->>>  rename drivers/media/i2c/soc_camera/{ov772x.c => soc_ov772x.c} (100%)
->>>  rename drivers/media/i2c/soc_camera/{ov9640.c => soc_ov9640.c} (100%)
->>>  rename drivers/media/i2c/soc_camera/{ov9740.c => soc_ov9740.c} (100%)
->>>  rename drivers/media/i2c/soc_camera/{rj54n1cb0c.c => soc_rj54n1cb0c.c} (100%)
->>>  rename drivers/media/i2c/soc_camera/{tw9910.c => soc_tw9910.c} (100%)
->>>
->>> diff --git a/drivers/media/i2c/soc_camera/Makefile b/drivers/media/i2c/soc_camera/Makefile
->>> index 8c7770f62997..09ae483b96ef 100644
->>> --- a/drivers/media/i2c/soc_camera/Makefile
->>> +++ b/drivers/media/i2c/soc_camera/Makefile
->>> @@ -1,10 +1,10 @@
->>>  # SPDX-License-Identifier: GPL-2.0
->>> -obj-$(CONFIG_SOC_CAMERA_MT9M001)	+= mt9m001.o
->>> -obj-$(CONFIG_SOC_CAMERA_MT9T112)	+= mt9t112.o
->>> -obj-$(CONFIG_SOC_CAMERA_MT9V022)	+= mt9v022.o
->>> -obj-$(CONFIG_SOC_CAMERA_OV5642)		+= ov5642.o
->>> -obj-$(CONFIG_SOC_CAMERA_OV772X)		+= ov772x.o
->>> -obj-$(CONFIG_SOC_CAMERA_OV9640)		+= ov9640.o
->>> -obj-$(CONFIG_SOC_CAMERA_OV9740)		+= ov9740.o
->>> -obj-$(CONFIG_SOC_CAMERA_RJ54N1)		+= rj54n1cb0c.o
->>> -obj-$(CONFIG_SOC_CAMERA_TW9910)		+= tw9910.o
->>> +obj-$(CONFIG_SOC_CAMERA_MT9M001)	+= soc_mt9m001.o
->>> +obj-$(CONFIG_SOC_CAMERA_MT9T112)	+= soc_mt9t112.o
->>> +obj-$(CONFIG_SOC_CAMERA_MT9V022)	+= soc_mt9v022.o
->>> +obj-$(CONFIG_SOC_CAMERA_OV5642)		+= soc_ov5642.o
->>> +obj-$(CONFIG_SOC_CAMERA_OV772X)		+= soc_ov772x.o
->>> +obj-$(CONFIG_SOC_CAMERA_OV9640)		+= soc_ov9640.o
->>> +obj-$(CONFIG_SOC_CAMERA_OV9740)		+= soc_ov9740.o
->>> +obj-$(CONFIG_SOC_CAMERA_RJ54N1)		+= soc_rj54n1cb0c.o
->>> +obj-$(CONFIG_SOC_CAMERA_TW9910)		+= soc_tw9910.o
->>> diff --git a/drivers/media/i2c/soc_camera/mt9m001.c b/drivers/media/i2c/soc_camera/soc_mt9m001.c
->>> similarity index 100%
->>> rename from drivers/media/i2c/soc_camera/mt9m001.c
->>> rename to drivers/media/i2c/soc_camera/soc_mt9m001.c
->>> diff --git a/drivers/media/i2c/soc_camera/mt9t112.c b/drivers/media/i2c/soc_camera/soc_mt9t112.c
->>> similarity index 100%
->>> rename from drivers/media/i2c/soc_camera/mt9t112.c
->>> rename to drivers/media/i2c/soc_camera/soc_mt9t112.c
->>> diff --git a/drivers/media/i2c/soc_camera/mt9v022.c b/drivers/media/i2c/soc_camera/soc_mt9v022.c
->>> similarity index 100%
->>> rename from drivers/media/i2c/soc_camera/mt9v022.c
->>> rename to drivers/media/i2c/soc_camera/soc_mt9v022.c
->>> diff --git a/drivers/media/i2c/soc_camera/ov5642.c b/drivers/media/i2c/soc_camera/soc_ov5642.c
->>> similarity index 100%
->>> rename from drivers/media/i2c/soc_camera/ov5642.c
->>> rename to drivers/media/i2c/soc_camera/soc_ov5642.c
->>> diff --git a/drivers/media/i2c/soc_camera/ov772x.c b/drivers/media/i2c/soc_camera/soc_ov772x.c
->>> similarity index 100%
->>> rename from drivers/media/i2c/soc_camera/ov772x.c
->>> rename to drivers/media/i2c/soc_camera/soc_ov772x.c
->>> diff --git a/drivers/media/i2c/soc_camera/ov9640.c b/drivers/media/i2c/soc_camera/soc_ov9640.c
->>> similarity index 100%
->>> rename from drivers/media/i2c/soc_camera/ov9640.c
->>> rename to drivers/media/i2c/soc_camera/soc_ov9640.c
->>> diff --git a/drivers/media/i2c/soc_camera/ov9740.c b/drivers/media/i2c/soc_camera/soc_ov9740.c
->>> similarity index 100%
->>> rename from drivers/media/i2c/soc_camera/ov9740.c
->>> rename to drivers/media/i2c/soc_camera/soc_ov9740.c
->>> diff --git a/drivers/media/i2c/soc_camera/rj54n1cb0c.c b/drivers/media/i2c/soc_camera/soc_rj54n1cb0c.c
->>> similarity index 100%
->>> rename from drivers/media/i2c/soc_camera/rj54n1cb0c.c
->>> rename to drivers/media/i2c/soc_camera/soc_rj54n1cb0c.c
->>> diff --git a/drivers/media/i2c/soc_camera/tw9910.c b/drivers/media/i2c/soc_camera/soc_tw9910.c
->>> similarity index 100%
->>> rename from drivers/media/i2c/soc_camera/tw9910.c
->>> rename to drivers/media/i2c/soc_camera/soc_tw9910.c
->>>   
->>
+> 	Hans
 > 
+> > ---
+> >  drivers/media/i2c/soc_camera/Makefile          | 18 +++++++++---------
+> >  .../soc_camera/{mt9m001.c => soc_mt9m001.c}    |  0
+> >  .../soc_camera/{mt9t112.c => soc_mt9t112.c}    |  0
+> >  .../soc_camera/{mt9v022.c => soc_mt9v022.c}    |  0
+> >  .../i2c/soc_camera/{ov5642.c => soc_ov5642.c}  |  0
+> >  .../i2c/soc_camera/{ov772x.c => soc_ov772x.c}  |  0
+> >  .../i2c/soc_camera/{ov9640.c => soc_ov9640.c}  |  0
+> >  .../i2c/soc_camera/{ov9740.c => soc_ov9740.c}  |  0
+> >  .../{rj54n1cb0c.c => soc_rj54n1cb0c.c}         |  0
+> >  .../i2c/soc_camera/{tw9910.c => soc_tw9910.c}  |  0
+> >  10 files changed, 9 insertions(+), 9 deletions(-)
+> >  rename drivers/media/i2c/soc_camera/{mt9m001.c => soc_mt9m001.c} (100%)
+> >  rename drivers/media/i2c/soc_camera/{mt9t112.c => soc_mt9t112.c} (100%)
+> >  rename drivers/media/i2c/soc_camera/{mt9v022.c => soc_mt9v022.c} (100%)
+> >  rename drivers/media/i2c/soc_camera/{ov5642.c => soc_ov5642.c} (100%)
+> >  rename drivers/media/i2c/soc_camera/{ov772x.c => soc_ov772x.c} (100%)
+> >  rename drivers/media/i2c/soc_camera/{ov9640.c => soc_ov9640.c} (100%)
+> >  rename drivers/media/i2c/soc_camera/{ov9740.c => soc_ov9740.c} (100%)
+> >  rename drivers/media/i2c/soc_camera/{rj54n1cb0c.c => soc_rj54n1cb0c.c} (100%)
+> >  rename drivers/media/i2c/soc_camera/{tw9910.c => soc_tw9910.c} (100%)
+> > 
+> > diff --git a/drivers/media/i2c/soc_camera/Makefile b/drivers/media/i2c/soc_camera/Makefile
+> > index 8c7770f62997..09ae483b96ef 100644
+> > --- a/drivers/media/i2c/soc_camera/Makefile
+> > +++ b/drivers/media/i2c/soc_camera/Makefile
+> > @@ -1,10 +1,10 @@
+> >  # SPDX-License-Identifier: GPL-2.0
+> > -obj-$(CONFIG_SOC_CAMERA_MT9M001)	+= mt9m001.o
+> > -obj-$(CONFIG_SOC_CAMERA_MT9T112)	+= mt9t112.o
+> > -obj-$(CONFIG_SOC_CAMERA_MT9V022)	+= mt9v022.o
+> > -obj-$(CONFIG_SOC_CAMERA_OV5642)		+= ov5642.o
+> > -obj-$(CONFIG_SOC_CAMERA_OV772X)		+= ov772x.o
+> > -obj-$(CONFIG_SOC_CAMERA_OV9640)		+= ov9640.o
+> > -obj-$(CONFIG_SOC_CAMERA_OV9740)		+= ov9740.o
+> > -obj-$(CONFIG_SOC_CAMERA_RJ54N1)		+= rj54n1cb0c.o
+> > -obj-$(CONFIG_SOC_CAMERA_TW9910)		+= tw9910.o
+> > +obj-$(CONFIG_SOC_CAMERA_MT9M001)	+= soc_mt9m001.o
+> > +obj-$(CONFIG_SOC_CAMERA_MT9T112)	+= soc_mt9t112.o
+> > +obj-$(CONFIG_SOC_CAMERA_MT9V022)	+= soc_mt9v022.o
+> > +obj-$(CONFIG_SOC_CAMERA_OV5642)		+= soc_ov5642.o
+> > +obj-$(CONFIG_SOC_CAMERA_OV772X)		+= soc_ov772x.o
+> > +obj-$(CONFIG_SOC_CAMERA_OV9640)		+= soc_ov9640.o
+> > +obj-$(CONFIG_SOC_CAMERA_OV9740)		+= soc_ov9740.o
+> > +obj-$(CONFIG_SOC_CAMERA_RJ54N1)		+= soc_rj54n1cb0c.o
+> > +obj-$(CONFIG_SOC_CAMERA_TW9910)		+= soc_tw9910.o
+> > diff --git a/drivers/media/i2c/soc_camera/mt9m001.c b/drivers/media/i2c/soc_camera/soc_mt9m001.c
+> > similarity index 100%
+> > rename from drivers/media/i2c/soc_camera/mt9m001.c
+> > rename to drivers/media/i2c/soc_camera/soc_mt9m001.c
+> > diff --git a/drivers/media/i2c/soc_camera/mt9t112.c b/drivers/media/i2c/soc_camera/soc_mt9t112.c
+> > similarity index 100%
+> > rename from drivers/media/i2c/soc_camera/mt9t112.c
+> > rename to drivers/media/i2c/soc_camera/soc_mt9t112.c
+> > diff --git a/drivers/media/i2c/soc_camera/mt9v022.c b/drivers/media/i2c/soc_camera/soc_mt9v022.c
+> > similarity index 100%
+> > rename from drivers/media/i2c/soc_camera/mt9v022.c
+> > rename to drivers/media/i2c/soc_camera/soc_mt9v022.c
+> > diff --git a/drivers/media/i2c/soc_camera/ov5642.c b/drivers/media/i2c/soc_camera/soc_ov5642.c
+> > similarity index 100%
+> > rename from drivers/media/i2c/soc_camera/ov5642.c
+> > rename to drivers/media/i2c/soc_camera/soc_ov5642.c
+> > diff --git a/drivers/media/i2c/soc_camera/ov772x.c b/drivers/media/i2c/soc_camera/soc_ov772x.c
+> > similarity index 100%
+> > rename from drivers/media/i2c/soc_camera/ov772x.c
+> > rename to drivers/media/i2c/soc_camera/soc_ov772x.c
+> > diff --git a/drivers/media/i2c/soc_camera/ov9640.c b/drivers/media/i2c/soc_camera/soc_ov9640.c
+> > similarity index 100%
+> > rename from drivers/media/i2c/soc_camera/ov9640.c
+> > rename to drivers/media/i2c/soc_camera/soc_ov9640.c
+> > diff --git a/drivers/media/i2c/soc_camera/ov9740.c b/drivers/media/i2c/soc_camera/soc_ov9740.c
+> > similarity index 100%
+> > rename from drivers/media/i2c/soc_camera/ov9740.c
+> > rename to drivers/media/i2c/soc_camera/soc_ov9740.c
+> > diff --git a/drivers/media/i2c/soc_camera/rj54n1cb0c.c b/drivers/media/i2c/soc_camera/soc_rj54n1cb0c.c
+> > similarity index 100%
+> > rename from drivers/media/i2c/soc_camera/rj54n1cb0c.c
+> > rename to drivers/media/i2c/soc_camera/soc_rj54n1cb0c.c
+> > diff --git a/drivers/media/i2c/soc_camera/tw9910.c b/drivers/media/i2c/soc_camera/soc_tw9910.c
+> > similarity index 100%
+> > rename from drivers/media/i2c/soc_camera/tw9910.c
+> > rename to drivers/media/i2c/soc_camera/soc_tw9910.c
+> >   
 > 
-> 
-> Thanks,
-> Mauro
-> 
+
+
+
+Thanks,
+Mauro
