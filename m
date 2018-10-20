@@ -1,296 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl1-f195.google.com ([209.85.214.195]:44417 "EHLO
-        mail-pl1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727373AbeJTWhg (ORCPT
+Received: from mail-yb1-f194.google.com ([209.85.219.194]:44855 "EHLO
+        mail-yb1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727574AbeJTXuu (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 20 Oct 2018 18:37:36 -0400
-Received: by mail-pl1-f195.google.com with SMTP id d23-v6so3673835pls.11
-        for <linux-media@vger.kernel.org>; Sat, 20 Oct 2018 07:26:57 -0700 (PDT)
-From: Akinobu Mita <akinobu.mita@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Akinobu Mita <akinobu.mita@gmail.com>,
-        Matt Ranostay <matt.ranostay@konsulko.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: [PATCH v4 6/6] media: video-i2c: support runtime PM
-Date: Sat, 20 Oct 2018 23:26:28 +0900
-Message-Id: <1540045588-9091-7-git-send-email-akinobu.mita@gmail.com>
-In-Reply-To: <1540045588-9091-1-git-send-email-akinobu.mita@gmail.com>
-References: <1540045588-9091-1-git-send-email-akinobu.mita@gmail.com>
+        Sat, 20 Oct 2018 19:50:50 -0400
+Received: by mail-yb1-f194.google.com with SMTP id x5-v6so14453252ybl.11
+        for <linux-media@vger.kernel.org>; Sat, 20 Oct 2018 08:39:58 -0700 (PDT)
+Received: from mail-yb1-f175.google.com (mail-yb1-f175.google.com. [209.85.219.175])
+        by smtp.gmail.com with ESMTPSA id x130-v6sm6755804ywb.27.2018.10.20.08.39.54
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Sat, 20 Oct 2018 08:39:55 -0700 (PDT)
+Received: by mail-yb1-f175.google.com with SMTP id v92-v6so1710975ybi.5
+        for <linux-media@vger.kernel.org>; Sat, 20 Oct 2018 08:39:54 -0700 (PDT)
+MIME-Version: 1.0
+References: <20180724140621.59624-1-tfiga@chromium.org> <20180724140621.59624-2-tfiga@chromium.org>
+ <9696282.0ldyWdpzWo@avalon> <CAAFQd5Bb2v0iU6GAwOKtc-4kv1V+P_4Co7=OUYg77wfmKQQ=kA@mail.gmail.com>
+In-Reply-To: <CAAFQd5Bb2v0iU6GAwOKtc-4kv1V+P_4Co7=OUYg77wfmKQQ=kA@mail.gmail.com>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Sun, 21 Oct 2018 00:39:42 +0900
+Message-ID: <CAAFQd5CdjZKEeZmowMKVLVKhiWPxEK2f7H+xNhhXAPn7O-S33g@mail.gmail.com>
+Subject: Re: [PATCH 1/2] media: docs-rst: Document memory-to-memory video
+ decoder interface
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Pawel Osciak <posciak@chromium.org>,
+        Alexandre Courbot <acourbot@chromium.org>, kamil@wypas.org,
+        a.hajda@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>,
+        jtp.park@samsung.com, Philipp Zabel <p.zabel@pengutronix.de>,
+        =?UTF-8?B?VGlmZmFueSBMaW4gKOael+aFp+ePiik=?=
+        <tiffany.lin@mediatek.com>,
+        =?UTF-8?B?QW5kcmV3LUNUIENoZW4gKOmZs+aZuui/qik=?=
+        <andrew-ct.chen@mediatek.com>, todor.tomov@linaro.org,
+        nicolas@ndufresne.ca,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        dave.stevenson@raspberrypi.org,
+        Ezequiel Garcia <ezequiel@collabora.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-AMG88xx has a register for setting operating mode.  This adds support
-runtime PM by changing the operating mode.
+On Thu, Oct 18, 2018 at 7:03 PM Tomasz Figa <tfiga@chromium.org> wrote:
+>
+> Hi Laurent,
+>
+> On Wed, Oct 17, 2018 at 10:34 PM Laurent Pinchart
+> <laurent.pinchart@ideasonboard.com> wrote:
+> >
+> > Hi Tomasz,
+> >
+> > Thank you for the patch.
+>
+> Thanks for your comments! Please see my replies inline.
+>
+> >
+> > On Tuesday, 24 July 2018 17:06:20 EEST Tomasz Figa wrote:
+[snip]
+> > > The driver must also set
+> > > +     ``V4L2_BUF_FLAG_LAST`` in :c:type:`v4l2_buffer` ``flags`` field on the
+> > > +     buffer on the ``CAPTURE`` queue containing the last frame (if any)
+> > > +     produced as a result of processing the ``OUTPUT`` buffers queued
+> > > +     before ``V4L2_DEC_CMD_STOP``. If no more frames are left to be
+> > > +     returned at the point of handling ``V4L2_DEC_CMD_STOP``, the driver
+> > > +     must return an empty buffer (with :c:type:`v4l2_buffer`
+> > > +     ``bytesused`` = 0) as the last buffer with ``V4L2_BUF_FLAG_LAST`` set
+> > > +     instead. Any attempts to dequeue more buffers beyond the buffer marked
+> > > +     with ``V4L2_BUF_FLAG_LAST`` will result in a -EPIPE error from
+> > > +     :c:func:`VIDIOC_DQBUF`.
+> > > +
+> > > +   * If the ``CAPTURE`` queue is NOT streaming, no action is necessary for
+> > > +     ``CAPTURE`` queue and the driver must send a ``V4L2_EVENT_EOS``
+> > > +     immediately after all ``OUTPUT`` buffers in question have been
+> > > +     processed.
+> >
+> > What is the use case for this ? Can't we just return an error if decoder isn't
+> > streaming ?
+> >
+>
+> Actually this is wrong. We want the queued OUTPUT buffers to be
+> processed and decoded, so if the CAPTURE queue is not yet set up
+> (initialization sequence not completed yet), handling the
+> initialization sequence first will be needed as a part of the drain
+> sequence. I've updated the document with that.
 
-The instruction for changing sleep mode to normal mode is from the
-reference specifications.
+I might want to take this back. The client could just drive the
+initialization to completion on its own and start the drain sequence
+after that. Let me think if it makes anything easier. For reference, I
+don't see any compatibility constraint here, since the existing user
+space already works like that.
 
-https://docid81hrs3j1.cloudfront.net/medialibrary/2017/11/PANA-S-A0002141979-1.pdf
-
-Cc: Matt Ranostay <matt.ranostay@konsulko.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Hans Verkuil <hansverk@cisco.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Reviewed-by: Matt Ranostay <matt.ranostay@konsulko.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
----
-* v4
-- Move set_power() call into release() callback
-
- drivers/media/i2c/video-i2c.c | 141 +++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 139 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/i2c/video-i2c.c b/drivers/media/i2c/video-i2c.c
-index 3334fc2..384a046 100644
---- a/drivers/media/i2c/video-i2c.c
-+++ b/drivers/media/i2c/video-i2c.c
-@@ -17,6 +17,7 @@
- #include <linux/module.h>
- #include <linux/mutex.h>
- #include <linux/of_device.h>
-+#include <linux/pm_runtime.h>
- #include <linux/regmap.h>
- #include <linux/sched.h>
- #include <linux/slab.h>
-@@ -94,10 +95,23 @@ struct video_i2c_chip {
- 	/* xfer function */
- 	int (*xfer)(struct video_i2c_data *data, char *buf);
- 
-+	/* power control function */
-+	int (*set_power)(struct video_i2c_data *data, bool on);
-+
- 	/* hwmon init function */
- 	int (*hwmon_init)(struct video_i2c_data *data);
- };
- 
-+/* Power control register */
-+#define AMG88XX_REG_PCTL	0x00
-+#define AMG88XX_PCTL_NORMAL		0x00
-+#define AMG88XX_PCTL_SLEEP		0x10
-+
-+/* Reset register */
-+#define AMG88XX_REG_RST		0x01
-+#define AMG88XX_RST_FLAG		0x30
-+#define AMG88XX_RST_INIT		0x3f
-+
- /* Frame rate register */
- #define AMG88XX_REG_FPSC	0x02
- #define AMG88XX_FPSC_1FPS		BIT(0)
-@@ -127,6 +141,59 @@ static int amg88xx_setup(struct video_i2c_data *data)
- 	return regmap_update_bits(data->regmap, AMG88XX_REG_FPSC, mask, val);
- }
- 
-+static int amg88xx_set_power_on(struct video_i2c_data *data)
-+{
-+	int ret;
-+
-+	ret = regmap_write(data->regmap, AMG88XX_REG_PCTL, AMG88XX_PCTL_NORMAL);
-+	if (ret)
-+		return ret;
-+
-+	msleep(50);
-+
-+	ret = regmap_write(data->regmap, AMG88XX_REG_RST, AMG88XX_RST_INIT);
-+	if (ret)
-+		return ret;
-+
-+	msleep(2);
-+
-+	ret = regmap_write(data->regmap, AMG88XX_REG_RST, AMG88XX_RST_FLAG);
-+	if (ret)
-+		return ret;
-+
-+	/*
-+	 * Wait two frames before reading thermistor and temperature registers
-+	 */
-+	msleep(200);
-+
-+	return 0;
-+}
-+
-+static int amg88xx_set_power_off(struct video_i2c_data *data)
-+{
-+	int ret;
-+
-+	ret = regmap_write(data->regmap, AMG88XX_REG_PCTL, AMG88XX_PCTL_SLEEP);
-+	if (ret)
-+		return ret;
-+	/*
-+	 * Wait for a while to avoid resuming normal mode immediately after
-+	 * entering sleep mode, otherwise the device occasionally goes wrong
-+	 * (thermistor and temperature registers are not updated at all)
-+	 */
-+	msleep(100);
-+
-+	return 0;
-+}
-+
-+static int amg88xx_set_power(struct video_i2c_data *data, bool on)
-+{
-+	if (on)
-+		return amg88xx_set_power_on(data);
-+
-+	return amg88xx_set_power_off(data);
-+}
-+
- #if IS_ENABLED(CONFIG_HWMON)
- 
- static const u32 amg88xx_temp_config[] = {
-@@ -158,7 +225,15 @@ static int amg88xx_read(struct device *dev, enum hwmon_sensor_types type,
- 	__le16 buf;
- 	int tmp;
- 
-+	tmp = pm_runtime_get_sync(regmap_get_device(data->regmap));
-+	if (tmp < 0) {
-+		pm_runtime_put_noidle(regmap_get_device(data->regmap));
-+		return tmp;
-+	}
-+
- 	tmp = regmap_bulk_read(data->regmap, AMG88XX_REG_TTHL, &buf, 2);
-+	pm_runtime_mark_last_busy(regmap_get_device(data->regmap));
-+	pm_runtime_put_autosuspend(regmap_get_device(data->regmap));
- 	if (tmp)
- 		return tmp;
- 
-@@ -217,6 +292,7 @@ static const struct video_i2c_chip video_i2c_chip[] = {
- 		.regmap_config	= &amg88xx_regmap_config,
- 		.setup		= &amg88xx_setup,
- 		.xfer		= &amg88xx_xfer,
-+		.set_power	= amg88xx_set_power,
- 		.hwmon_init	= amg88xx_hwmon_init,
- 	},
- };
-@@ -343,14 +419,21 @@ static void video_i2c_del_list(struct vb2_queue *vq, enum vb2_buffer_state state
- static int start_streaming(struct vb2_queue *vq, unsigned int count)
- {
- 	struct video_i2c_data *data = vb2_get_drv_priv(vq);
-+	struct device *dev = regmap_get_device(data->regmap);
- 	int ret;
- 
- 	if (data->kthread_vid_cap)
- 		return 0;
- 
-+	ret = pm_runtime_get_sync(dev);
-+	if (ret < 0) {
-+		pm_runtime_put_noidle(dev);
-+		goto error_del_list;
-+	}
-+
- 	ret = data->chip->setup(data);
- 	if (ret)
--		goto error_del_list;
-+		goto error_rpm_put;
- 
- 	data->sequence = 0;
- 	data->kthread_vid_cap = kthread_run(video_i2c_thread_vid_cap, data,
-@@ -359,6 +442,9 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
- 	if (!ret)
- 		return 0;
- 
-+error_rpm_put:
-+	pm_runtime_mark_last_busy(dev);
-+	pm_runtime_put_autosuspend(dev);
- error_del_list:
- 	video_i2c_del_list(vq, VB2_BUF_STATE_QUEUED);
- 
-@@ -374,6 +460,8 @@ static void stop_streaming(struct vb2_queue *vq)
- 
- 	kthread_stop(data->kthread_vid_cap);
- 	data->kthread_vid_cap = NULL;
-+	pm_runtime_mark_last_busy(regmap_get_device(data->regmap));
-+	pm_runtime_put_autosuspend(regmap_get_device(data->regmap));
- 
- 	video_i2c_del_list(vq, VB2_BUF_STATE_ERROR);
- }
-@@ -648,6 +736,16 @@ static int video_i2c_probe(struct i2c_client *client,
- 	video_set_drvdata(&data->vdev, data);
- 	i2c_set_clientdata(client, data);
- 
-+	ret = data->chip->set_power(data, true);
-+	if (ret)
-+		goto error_unregister_device;
-+
-+	pm_runtime_get_noresume(&client->dev);
-+	pm_runtime_set_active(&client->dev);
-+	pm_runtime_enable(&client->dev);
-+	pm_runtime_set_autosuspend_delay(&client->dev, 2000);
-+	pm_runtime_use_autosuspend(&client->dev);
-+
- 	if (data->chip->hwmon_init) {
- 		ret = data->chip->hwmon_init(data);
- 		if (ret < 0) {
-@@ -658,10 +756,19 @@ static int video_i2c_probe(struct i2c_client *client,
- 
- 	ret = video_register_device(&data->vdev, VFL_TYPE_GRABBER, -1);
- 	if (ret < 0)
--		goto error_unregister_device;
-+		goto error_pm_disable;
-+
-+	pm_runtime_mark_last_busy(&client->dev);
-+	pm_runtime_put_autosuspend(&client->dev);
- 
- 	return 0;
- 
-+error_pm_disable:
-+	pm_runtime_disable(&client->dev);
-+	pm_runtime_set_suspended(&client->dev);
-+	pm_runtime_put_noidle(&client->dev);
-+	data->chip->set_power(data, false);
-+
- error_unregister_device:
- 	v4l2_device_unregister(v4l2_dev);
- 	mutex_destroy(&data->lock);
-@@ -680,11 +787,40 @@ static int video_i2c_remove(struct i2c_client *client)
- {
- 	struct video_i2c_data *data = i2c_get_clientdata(client);
- 
-+	pm_runtime_get_sync(&client->dev);
-+	pm_runtime_disable(&client->dev);
-+	pm_runtime_set_suspended(&client->dev);
-+	pm_runtime_put_noidle(&client->dev);
-+	data->chip->set_power(data, false);
-+
- 	video_unregister_device(&data->vdev);
- 
- 	return 0;
- }
- 
-+#ifdef CONFIG_PM
-+
-+static int video_i2c_pm_runtime_suspend(struct device *dev)
-+{
-+	struct video_i2c_data *data = i2c_get_clientdata(to_i2c_client(dev));
-+
-+	return data->chip->set_power(data, false);
-+}
-+
-+static int video_i2c_pm_runtime_resume(struct device *dev)
-+{
-+	struct video_i2c_data *data = i2c_get_clientdata(to_i2c_client(dev));
-+
-+	return data->chip->set_power(data, true);
-+}
-+
-+#endif
-+
-+static const struct dev_pm_ops video_i2c_pm_ops = {
-+	SET_RUNTIME_PM_OPS(video_i2c_pm_runtime_suspend,
-+			   video_i2c_pm_runtime_resume, NULL)
-+};
-+
- static const struct i2c_device_id video_i2c_id_table[] = {
- 	{ "amg88xx", AMG88XX },
- 	{}
-@@ -701,6 +837,7 @@ static struct i2c_driver video_i2c_driver = {
- 	.driver = {
- 		.name	= VIDEO_I2C_DRIVER,
- 		.of_match_table = video_i2c_of_match,
-+		.pm	= &video_i2c_pm_ops,
- 	},
- 	.probe		= video_i2c_probe,
- 	.remove		= video_i2c_remove,
--- 
-2.7.4
+Best regards,
+Tomasz
