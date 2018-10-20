@@ -1,71 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.ispras.ru ([83.149.199.45]:37722 "EHLO mail.ispras.ru"
+Received: from putidi.com ([193.124.204.124]:48159 "EHLO putidi.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727447AbeJUCBm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 20 Oct 2018 22:01:42 -0400
-From: Alexey Khoroshilov <khoroshilov@ispras.ru>
-To: Tiffany Lin <tiffany.lin@mediatek.com>,
-        Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Matthias Brugger <matthias.bgg@gmail.com>
-Cc: Alexey Khoroshilov <khoroshilov@ispras.ru>,
-        linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-mediatek@lists.infradead.org, linux-kernel@vger.kernel.org,
-        ldv-project@linuxtesting.org
-Subject: [PATCH] media: mtk-vcodec: Release device nodes in mtk_vcodec_init_enc_pm()
-Date: Sat, 20 Oct 2018 20:50:19 +0300
-Message-Id: <1540057819-5075-1-git-send-email-khoroshilov@ispras.ru>
+        id S1727350AbeJUChk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 20 Oct 2018 22:37:40 -0400
+Date: Sat, 20 Oct 2018 21:17:35 +0300
+Subject: linux-media - 123456
+From: help@putidi.com
+To: linux-media@vger.kernel.org
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=UTF-8
+Message-ID: <v4pv7u1-6zv8k1-E7@putidi.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-of_parse_phandle() returns the device node with refcount incremented.
-There are two nodes that are used temporary in mtk_vcodec_init_enc_pm(),
-but their refcounts are not decremented.
+Greetings, my victim.
+I know your password - 123456
 
-The patch adds one of_node_put() and fixes returning error codes.
+This is my last warning.
 
-Found by Linux Driver Verification project (linuxtesting.org).
+I write you inasmuch as I set a trojan on the internet page with porno=
+graphy which you have visited.
+My spyware grabbed all your personal information and switched on your =
+webcam which caught the process of one's masturbation.=20
+Right after that trojan stored your contact list.
+I will remove the compromising video and data if you pay me 500 USD in=
+ bitcoin.=20
+This is wallet address for payment : 1NvY4BenHfDvLjHuxiADMfzwcX7tfXg9t=
+2
+(you can google on "how to buy bitcoin")
 
-Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
----
- drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_pm.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_pm.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_pm.c
-index 3e73e9db781f..7c025045ea90 100644
---- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_pm.c
-+++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_pm.c
-@@ -41,25 +41,27 @@ int mtk_vcodec_init_enc_pm(struct mtk_vcodec_dev *mtkdev)
- 	node = of_parse_phandle(dev->of_node, "mediatek,larb", 0);
- 	if (!node) {
- 		mtk_v4l2_err("no mediatek,larb found");
--		return -1;
-+		return -ENODEV;
- 	}
- 	pdev = of_find_device_by_node(node);
-+	of_node_put(node);
- 	if (!pdev) {
- 		mtk_v4l2_err("no mediatek,larb device found");
--		return -1;
-+		return -ENODEV;
- 	}
- 	pm->larbvenc = &pdev->dev;
- 
- 	node = of_parse_phandle(dev->of_node, "mediatek,larb", 1);
- 	if (!node) {
- 		mtk_v4l2_err("no mediatek,larb found");
--		return -1;
-+		return -ENODEV;
- 	}
- 
- 	pdev = of_find_device_by_node(node);
-+	of_node_put(node);
- 	if (!pdev) {
- 		mtk_v4l2_err("no mediatek,larb device found");
--		return -1;
-+		return -ENODEV;
- 	}
- 
- 	pm->larbvenclt = &pdev->dev;
--- 
-2.7.4
+I give you 24 hours when you see my email to make the payment.
+The moment you see the message I'll know it right away.
+It is not necessary to tell me that you've sent money to me. This addr=
+ess is attached to you, my system will delete everything immediately a=
+fter transfer confirmation.
+You can go to the police but no-one can not help you.
+In the event that you attempt to cheat me, I'll notice it straight awa=
+y!
+I do not live in your country. So no body can not track my place even =
+for 9 months.
+Don't neglect the disgrace. Your life may be ruined.
