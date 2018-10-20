@@ -1,13 +1,13 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from morilee.com ([185.53.170.144]:40224 "EHLO tablebases.com"
+Received: from morilee.com ([185.53.170.144]:36125 "EHLO tablebases.com"
         rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1725746AbeJUFiP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 21 Oct 2018 01:38:15 -0400
+        id S1725863AbeJUFnA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 21 Oct 2018 01:43:00 -0400
 To: linux-media@vger.kernel.org
 Subject: Photo studio 33
-Message-ID: <9607e53ee4c62f42feeaccee3f108cd2@woodgenius.com>
-Date: Sat, 20 Oct 2018 15:14:57 +0200
-From: "Linda" <paninteeerpanlroz@verizon.net>
+Message-ID: <9e67dee88c5206dcf1a341b590af3ef3@woodgenius.com>
+Date: Sat, 20 Oct 2018 14:51:53 +0200
+From: "Linda" <paninfxteerpanloz@verizon.net>
 Reply-To: dotrenai@sina.com
 MIME-Version: 1.0
 Content-Type: text/plain; format=flowed; charset="UTF-8"
