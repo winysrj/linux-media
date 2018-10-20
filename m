@@ -1,13 +1,13 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from morilee.com ([185.53.170.144]:46047 "EHLO tablebases.com"
+Received: from morilee.com ([185.53.170.144]:50653 "EHLO tablebases.com"
         rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726710AbeJUHrf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 21 Oct 2018 03:47:35 -0400
+        id S1726710AbeJUHsI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 21 Oct 2018 03:48:08 -0400
 To: linux-media@vger.kernel.org
 Subject: Editors 4
-Message-ID: <f7c6b96d093a803238bfa836091a6eae@hairpinlegs.com>
-Date: Sat, 20 Oct 2018 14:43:02 +0200
-From: "Linda" <paninteerpranloez@verizon.net>
+Message-ID: <acf5c47ccccd7a149d95aefbdbb9aff1@hairpinlegs.com>
+Date: Sat, 20 Oct 2018 18:16:23 +0200
+From: "Linda" <paninteearpafnloz@verizon.net>
 Reply-To: dotrenai@sina.com
 MIME-Version: 1.0
 Content-Type: text/plain; format=flowed; charset="UTF-8"
