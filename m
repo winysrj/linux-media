@@ -1,117 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:47390 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726261AbeJTLlJ (ORCPT
+Received: from smtp.codeaurora.org ([198.145.29.96]:59074 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726642AbeJTQAM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 20 Oct 2018 07:41:09 -0400
-Message-ID: <5e1441b9e8ea8b494b38195d848bf040@smtp-cloud8.xs4all.net>
-Date: Sat, 20 Oct 2018 05:32:12 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
+        Sat, 20 Oct 2018 12:00:12 -0400
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+Date: Sat, 20 Oct 2018 13:20:40 +0530
+From: mgottam@codeaurora.org
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Cc: hverkuil@xs4all.nl, mchehab@kernel.org,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org, acourbot@chromium.org,
+        vgarodia@codeaurora.org
+Subject: Re: [PATCH] media: venus: queue initial buffers
+In-Reply-To: <7960b369-3bb3-529b-c06c-26ea4de821c8@linaro.org>
+References: <1539071426-1282-1-git-send-email-mgottam@codeaurora.org>
+ <7960b369-3bb3-529b-c06c-26ea4de821c8@linaro.org>
+Message-ID: <7ab8c5ef795b774ad684e5b941e0d346@codeaurora.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 2018-10-09 20:47, Stanimir Varbanov wrote:
+> Hi Malathi,
+> 
+> On 10/09/2018 10:50 AM, Malathi Gottam wrote:
+>> Buffers can be queued to driver before the planes are
+>> set to start streaming. Queue those buffers to firmware
+>> once start streaming is called on both the planes.
+> 
+> yes and this is done in venus_helper_m2m_device_run mem2mem operation
+> when streamon on both queues is called, thus below function just
+> duplicates .device_run.
+> 
+> Do you fix an issue with that patch?
+> 
+>> 
+>> Signed-off-by: Malathi Gottam <mgottam@codeaurora.org>
+>> ---
+>>  drivers/media/platform/qcom/venus/helpers.c | 22 
+>> ++++++++++++++++++++++
+>>  drivers/media/platform/qcom/venus/helpers.h |  1 +
+>>  drivers/media/platform/qcom/venus/venc.c    |  5 +++++
+>>  3 files changed, 28 insertions(+)
+>> 
+>> diff --git a/drivers/media/platform/qcom/venus/helpers.c 
+>> b/drivers/media/platform/qcom/venus/helpers.c
+>> index e436385..2679adb 100644
+>> --- a/drivers/media/platform/qcom/venus/helpers.c
+>> +++ b/drivers/media/platform/qcom/venus/helpers.c
+>> @@ -1041,6 +1041,28 @@ void venus_helper_vb2_stop_streaming(struct 
+>> vb2_queue *q)
+>>  }
+>>  EXPORT_SYMBOL_GPL(venus_helper_vb2_stop_streaming);
+>> 
+>> +int venus_helper_queue_initial_bufs(struct venus_inst *inst)
+>> +{
+>> +	struct v4l2_m2m_ctx *m2m_ctx = inst->m2m_ctx;
+>> +	struct v4l2_m2m_buffer *buf, *n;
+>> +	int ret;
+>> +
+>> +	v4l2_m2m_for_each_dst_buf_safe(m2m_ctx, buf, n)	{
+>> +		ret = session_process_buf(inst, &buf->vb);
+>> +		if (ret)
+>> +			return_buf_error(inst, &buf->vb);
+>> +	}
+>> +
+>> +	v4l2_m2m_for_each_src_buf_safe(m2m_ctx, buf, n) {
+>> +		ret = session_process_buf(inst, &buf->vb);
+>> +		if (ret)
+>> +			return_buf_error(inst, &buf->vb);
+>> +	}
+>> +
+>> +	return 0;
+>> +}
+>> +EXPORT_SYMBOL(venus_helper_queue_initial_bufs);
+>> +
+>>  int venus_helper_vb2_start_streaming(struct venus_inst *inst)
+>>  {
+>>  	struct venus_core *core = inst->core;
+>> diff --git a/drivers/media/platform/qcom/venus/helpers.h 
+>> b/drivers/media/platform/qcom/venus/helpers.h
+>> index 2475f284..f4d76ab 100644
+>> --- a/drivers/media/platform/qcom/venus/helpers.h
+>> +++ b/drivers/media/platform/qcom/venus/helpers.h
+>> @@ -31,6 +31,7 @@ void venus_helper_buffers_done(struct venus_inst 
+>> *inst,
+>>  int venus_helper_vb2_start_streaming(struct venus_inst *inst);
+>>  void venus_helper_m2m_device_run(void *priv);
+>>  void venus_helper_m2m_job_abort(void *priv);
+>> +int venus_helper_queue_initial_bufs(struct venus_inst *inst);
+>>  int venus_helper_get_bufreq(struct venus_inst *inst, u32 type,
+>>  			    struct hfi_buffer_requirements *req);
+>>  u32 venus_helper_get_framesz_raw(u32 hfi_fmt, u32 width, u32 height);
+>> diff --git a/drivers/media/platform/qcom/venus/venc.c 
+>> b/drivers/media/platform/qcom/venus/venc.c
+>> index ce85962..ef11495 100644
+>> --- a/drivers/media/platform/qcom/venus/venc.c
+>> +++ b/drivers/media/platform/qcom/venus/venc.c
+>> @@ -989,6 +989,11 @@ static int venc_start_streaming(struct vb2_queue 
+>> *q, unsigned int count)
+>>  	if (ret)
+>>  		goto deinit_sess;
+>> 
+>> +	ret = venus_helper_queue_initial_bufs(inst);
+>> +	if (ret)
+>> +		goto deinit_sess;
+>> +	}
+>> +
+>>  	mutex_unlock(&inst->lock);
+>> 
+>>  	return 0;
+>> 
+Hi Stan,
 
-Results of the daily build of media_tree:
+As I considered playback sequence as well, this function 
+"venus_helper_m2m_device_run" was muted as a part of it. So I had to 
+explicitly implement this function for encoder.
 
-date:			Sat Oct 20 05:00:11 CEST 2018
-media-tree git hash:	3b796aa60af087f5fec75aee9b17f2130f2b9adc
-media_build git hash:	0c8bb27f3aaa682b9548b656f77505c3d1f11e71
-v4l-utils git hash:	c36dbbdfa8b30b2badd4f893b59d0bd4f0bd12aa
-edid-decode git hash:	5eeb151a748788666534d6ea3da07f90400d24c2
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.18.11-marune
-
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.123-i686: OK
-linux-3.18.123-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.159-i686: OK
-linux-4.4.159-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.131-i686: OK
-linux-4.9.131-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.74-i686: OK
-linux-4.14.74-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: OK
-linux-4.19-rc6-i686: OK
-linux-4.19-rc6-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+For now, we can omit this patch. Once the playback sequence gets merged 
+into upstream, we can re-look into this.
