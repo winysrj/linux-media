@@ -1,42 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from putidi.com ([193.124.204.124]:48159 "EHLO putidi.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727350AbeJUChk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 20 Oct 2018 22:37:40 -0400
-Date: Sat, 20 Oct 2018 21:17:35 +0300
-Subject: linux-media - 123456
-From: help@putidi.com
-To: linux-media@vger.kernel.org
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset=UTF-8
-Message-ID: <v4pv7u1-6zv8k1-E7@putidi.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58778 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1725198AbeJUEfh (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 21 Oct 2018 00:35:37 -0400
+Date: Sat, 20 Oct 2018 23:23:57 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: linux-media@vger.kernel.org,
+        Matt Ranostay <matt.ranostay@konsulko.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: Re: [PATCH v4 1/6] media: video-i2c: avoid accessing released memory
+ area when removing driver
+Message-ID: <20181020202357.awictxh334v5zhgh@valkosipuli.retiisi.org.uk>
+References: <1540045588-9091-1-git-send-email-akinobu.mita@gmail.com>
+ <1540045588-9091-2-git-send-email-akinobu.mita@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1540045588-9091-2-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Greetings, my victim.
-I know your password - 123456
+On Sat, Oct 20, 2018 at 11:26:23PM +0900, Akinobu Mita wrote:
+> The video device release() callback for video-i2c driver frees the whole
+> struct video_i2c_data.  If there is no user left for the video device
+> when video_unregister_device() is called, the release callback is executed.
+> 
+> However, in video_i2c_remove() some fields (v4l2_dev, lock, and queue_lock)
+> in struct video_i2c_data are still accessed after video_unregister_device()
+> is called.
+> 
+> This fixes the use after free by moving the code from video_i2c_remove()
+> to the release() callback.
+> 
+> Fixes: 5cebaac60974 ("media: video-i2c: add video-i2c driver")
+> Cc: Matt Ranostay <matt.ranostay@konsulko.com>
+> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Cc: Hans Verkuil <hansverk@cisco.com>
+> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+> Reviewed-by: Matt Ranostay <matt.ranostay@konsulko.com>
+> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 
-This is my last warning.
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-I write you inasmuch as I set a trojan on the internet page with porno=
-graphy which you have visited.
-My spyware grabbed all your personal information and switched on your =
-webcam which caught the process of one's masturbation.=20
-Right after that trojan stored your contact list.
-I will remove the compromising video and data if you pay me 500 USD in=
- bitcoin.=20
-This is wallet address for payment : 1NvY4BenHfDvLjHuxiADMfzwcX7tfXg9t=
-2
-(you can google on "how to buy bitcoin")
-
-I give you 24 hours when you see my email to make the payment.
-The moment you see the message I'll know it right away.
-It is not necessary to tell me that you've sent money to me. This addr=
-ess is attached to you, my system will delete everything immediately a=
-fter transfer confirmation.
-You can go to the police but no-one can not help you.
-In the event that you attempt to cheat me, I'll notice it straight awa=
-y!
-I do not live in your country. So no body can not track my place even =
-for 9 months.
-Don't neglect the disgrace. Your life may be ruined.
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
