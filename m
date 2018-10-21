@@ -1,258 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr1-f65.google.com ([209.85.221.65]:40188 "EHLO
-        mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727688AbeJVBPJ (ORCPT
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:46169 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727825AbeJVB6z (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 21 Oct 2018 21:15:09 -0400
-From: ektor5 <ek5.chimenti@gmail.com>
-Cc: hverkuil@xs4all.nl, luca.pisani@udoo.org, jose.abreu@synopsys.com,
-        sean@mess.org, sakari.ailus@linux.intel.com,
-        Ettore Chimenti <ek5.chimenti@gmail.com>, jacopo@jmondi.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Neil Armstrong <narmstrong@baylibre.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Todor Tomov <todor.tomov@linaro.org>,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: [PATCH v4 2/2] seco-cec: add Consumer-IR support
-Date: Sun, 21 Oct 2018 18:58:20 +0200
-Message-Id: <eb5cd743b2d8ed2f0b8bdb50154f1fdbc85103af.1539963738.git.ek5.chimenti@gmail.com>
-In-Reply-To: <cover.1539963738.git.ek5.chimenti@gmail.com>
-References: <cover.1539963738.git.ek5.chimenti@gmail.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+        Sun, 21 Oct 2018 21:58:55 -0400
+Date: Sun, 21 Oct 2018 19:43:48 +0200
+From: Philipp Zabel <pza@pengutronix.de>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: Tim Harvey <tharvey@gateworks.com>, nicolas@ndufresne.ca,
+        Sascha Hauer <kernel@pengutronix.de>,
+        linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v3 01/16] media: imx: add mem2mem device
+Message-ID: <20181021174348.3gmiqtrboraknktn@pengutronix.de>
+References: <20180918093421.12930-1-p.zabel@pengutronix.de>
+ <20180918093421.12930-2-p.zabel@pengutronix.de>
+ <CAJ+vNU2vraT=vUwS+1TYKuX50OsjZsNaN220y1kz8XgHvC48Sg@mail.gmail.com>
+ <1539942796.3395.8.camel@pengutronix.de>
+ <1f090c65-342a-fb43-c274-935cbf78fdd4@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1f090c65-342a-fb43-c274-935cbf78fdd4@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Ettore Chimenti <ek5.chimenti@gmail.com>
+On Fri, Oct 19, 2018 at 01:19:10PM -0700, Steve Longerbeam wrote:
+> 
+> On 10/19/18 2:53 AM, Philipp Zabel wrote:
+> > Hi Tim,
+> > 
+> > On Thu, 2018-10-18 at 15:53 -0700, Tim Harvey wrote:
+> > [...]
+> > > Philipp,
+> > > 
+> > > Thanks for submitting this!
+> > > 
+> > > I'm hoping this lets us use non-IMX capture devices along with the IMX
+> > > media controller entities to so we can use hardware
+> > > CSC,scaling,pixel-format-conversions and ultimately coda based encode.
+> > > 
+> > > I've built this on top of linux-media and see that it registers as
+> > > /dev/video8 but I'm not clear how to use it? I don't see it within the
+> > > media controller graph.
+> > It's a V4L2 mem2mem device that can be handled by the GstV4l2Transform
+> > element, for example. GStreamer should create a v4l2video8convert
+> > element of that type.
+> > 
+> > The mem2mem device is not part of the media controller graph on purpose.
+> > There is no interaction with any of the entities in the media controller
+> > graph apart from the fact that the IC PP task we are using for mem2mem
+> > scaling is sharing hardware resources with the IC PRP tasks used for the
+> > media controller scaler entitites.
+> 
+> It would be nice in the future to link mem2mem output-side to the ipu_vdic:1
+> pad, to make use of h/w VDIC de-interlace as part of mem2mem operations.
+> The progressive output from a new ipu_vdic:3 pad can then be sent to the
+> image_convert APIs by the mem2mem driver for further tiled scaling, CSC,
+> and rotation by the IC PP task. The ipu_vdic:1 pad makes use of pure
+> DMA-based de-interlace, that is, all input frames (N-1, N, N+1) to the
+> VDIC are sent from DMA buffers, and this VDIC mode of operation is
+> well understood and produces clean de-interlace output. The risk is
+> that this would require iDMAC channel 5 for ipu_vdic:3, which IFAIK is
+> not verified to work yet.
 
-Introduce support for Consumer-IR into seco-cec driver, as it shares the
-same interrupt for receiving messages.
-The device decodes RC5 signals only, defaults to hauppauge mapping.
-It will spawn an input interface using the RC framework (like CEC
-device).
+Tiled mem2mem deinterlacing support would be nice, I'm not sure yet how
+though. I'd limit media controller links to marking VDIC as unavailable
+for the capture pipeline. The V4L2 subdev API is too lowlevel for tiling
+mem2mem purposes, as we'd need to change the subdev format multiple
+times per frame.
+Also I'd like to keep the option of scheduling tile jobs to both IPUs on
+i.MX6Q, which will become difficult to describe via MC, as both IPUs'
+ipu_vdics would have to be involved.
 
-Signed-off-by: Ettore Chimenti <ek5.chimenti@gmail.com>
-Reviewed-by: Sean Young <sean@mess.org>
----
- drivers/media/platform/Kconfig             |  10 ++
- drivers/media/platform/seco-cec/seco-cec.c | 125 ++++++++++++++++++++-
- drivers/media/platform/seco-cec/seco-cec.h |  11 ++
- 3 files changed, 145 insertions(+), 1 deletion(-)
+> The other problem with that currently is that mem2mem would have to be split
+> into separate device nodes: a /dev/videoN for output-side (linked to
+> ipu_vdic:1), and a /dev/videoM for capture-side (linked from
+> ipu_vdic:3). And then it no longer presents to userspace as a mem2mem
+> device with a single device node for both output and capture sides.
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index 51cd1fd005e3..e6b45da2af6d 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -625,6 +625,16 @@ config VIDEO_SECO_CEC
- 	  CEC bus is present in the HDMI connector and enables communication
- 	  between compatible devices.
- 
-+config VIDEO_SECO_RC
-+	bool "SECO Boards IR RC5 support"
-+	depends on VIDEO_SECO_CEC
-+	select RC_CORE
-+	help
-+	  If you say yes here you will get support for the
-+	  SECO Boards Consumer-IR in seco-cec driver.
-+	  The embedded controller supports RC5 protocol only, default mapping
-+	  is set to rc-hauppauge.
-+
- endif #CEC_PLATFORM_DRIVERS
- 
- menuconfig SDR_PLATFORM_DRIVERS
-diff --git a/drivers/media/platform/seco-cec/seco-cec.c b/drivers/media/platform/seco-cec/seco-cec.c
-index 85ef161742d8..8308873c53ab 100644
---- a/drivers/media/platform/seco-cec/seco-cec.c
-+++ b/drivers/media/platform/seco-cec/seco-cec.c
-@@ -26,6 +26,8 @@ struct secocec_data {
- 	struct platform_device *pdev;
- 	struct cec_adapter *cec_adap;
- 	struct cec_notifier *notifier;
-+	struct rc_dev *ir;
-+	char ir_input_phys[32];
- 	int irq;
- };
- 
-@@ -340,6 +342,114 @@ struct cec_adap_ops secocec_cec_adap_ops = {
- 	.adap_transmit = secocec_adap_transmit,
- };
- 
-+#ifdef CONFIG_VIDEO_SECO_RC
-+static int secocec_ir_probe(void *priv)
-+{
-+	struct secocec_data *cec = priv;
-+	struct device *dev = cec->dev;
-+	int status;
-+	u16 val;
-+
-+	/* Prepare the RC input device */
-+	cec->ir = devm_rc_allocate_device(dev, RC_DRIVER_SCANCODE);
-+	if (!cec->ir)
-+		return -ENOMEM;
-+
-+	snprintf(cec->ir_input_phys, sizeof(cec->ir_input_phys),
-+		 "%s/input0", dev_name(dev));
-+
-+	cec->ir->device_name = dev_name(dev);
-+	cec->ir->input_phys = cec->ir_input_phys;
-+	cec->ir->input_id.bustype = BUS_HOST;
-+	cec->ir->input_id.vendor = 0;
-+	cec->ir->input_id.product = 0;
-+	cec->ir->input_id.version = 1;
-+	cec->ir->driver_name = SECOCEC_DEV_NAME;
-+	cec->ir->allowed_protocols = RC_PROTO_BIT_RC5;
-+	cec->ir->priv = cec;
-+	cec->ir->map_name = RC_MAP_HAUPPAUGE;
-+	cec->ir->timeout = MS_TO_NS(100);
-+
-+	/* Clear the status register */
-+	status = smb_rd16(SECOCEC_STATUS_REG_1, &val);
-+	if (status != 0)
-+		goto err;
-+
-+	status = smb_wr16(SECOCEC_STATUS_REG_1, val);
-+	if (status != 0)
-+		goto err;
-+
-+	/* Enable the interrupts */
-+	status = smb_rd16(SECOCEC_ENABLE_REG_1, &val);
-+	if (status != 0)
-+		goto err;
-+
-+	status = smb_wr16(SECOCEC_ENABLE_REG_1,
-+			  val | SECOCEC_ENABLE_REG_1_IR);
-+	if (status != 0)
-+		goto err;
-+
-+	dev_dbg(dev, "IR enabled");
-+
-+	status = devm_rc_register_device(dev, cec->ir);
-+
-+	if (status) {
-+		dev_err(dev, "Failed to prepare input device");
-+		cec->ir = NULL;
-+		goto err;
-+	}
-+
-+	return 0;
-+
-+err:
-+	smb_rd16(SECOCEC_ENABLE_REG_1, &val);
-+
-+	smb_wr16(SECOCEC_ENABLE_REG_1,
-+		 val & ~SECOCEC_ENABLE_REG_1_IR);
-+
-+	dev_dbg(dev, "IR disabled");
-+	return status;
-+}
-+
-+static int secocec_ir_rx(struct secocec_data *priv)
-+{
-+	struct secocec_data *cec = priv;
-+	struct device *dev = cec->dev;
-+	u16 val, status, key, addr, toggle;
-+
-+	if (!cec->ir)
-+		return -ENODEV;
-+
-+	status = smb_rd16(SECOCEC_IR_READ_DATA, &val);
-+	if (status != 0)
-+		goto err;
-+
-+	key = val & SECOCEC_IR_COMMAND_MASK;
-+	addr = (val & SECOCEC_IR_ADDRESS_MASK) >> SECOCEC_IR_ADDRESS_SHL;
-+	toggle = (val & SECOCEC_IR_TOGGLE_MASK) >> SECOCEC_IR_TOGGLE_SHL;
-+
-+	rc_keydown(cec->ir, RC_PROTO_RC5, RC_SCANCODE_RC5(addr, key), toggle);
-+
-+	dev_dbg(dev, "IR key pressed: 0x%02x addr 0x%02x toggle 0x%02x", key,
-+		addr, toggle);
-+
-+	return 0;
-+
-+err:
-+	dev_err(dev, "IR Receive message failed (%d)", status);
-+	return -EIO;
-+}
-+#else
-+static void secocec_ir_rx(struct secocec_data *priv)
-+{
-+}
-+
-+static int secocec_ir_probe(void *priv)
-+{
-+	return 0;
-+}
-+#endif
-+
- static irqreturn_t secocec_irq_handler(int irq, void *priv)
- {
- 	struct secocec_data *cec = priv;
-@@ -374,7 +484,8 @@ static irqreturn_t secocec_irq_handler(int irq, void *priv)
- 
- 	if (status_val & SECOCEC_STATUS_REG_1_IR) {
- 		val |= SECOCEC_STATUS_REG_1_IR;
--		/* TODO IRDA RX */
-+
-+		secocec_ir_rx(cec);
- 	}
- 
- 	/*  Reset status register */
-@@ -542,6 +653,10 @@ static int secocec_probe(struct platform_device *pdev)
- 	if (secocec->notifier)
- 		cec_register_cec_notifier(secocec->cec_adap, secocec->notifier);
- 
-+	ret = secocec_ir_probe(secocec);
-+	if (ret)
-+		goto err_delete_adapter;
-+
- 	platform_set_drvdata(pdev, secocec);
- 
- 	dev_dbg(dev, "Device registered");
-@@ -559,7 +674,15 @@ static int secocec_probe(struct platform_device *pdev)
- static int secocec_remove(struct platform_device *pdev)
- {
- 	struct secocec_data *secocec = platform_get_drvdata(pdev);
-+	u16 val;
-+
-+	if (secocec->ir) {
-+		smb_rd16(SECOCEC_ENABLE_REG_1, &val);
- 
-+		smb_wr16(SECOCEC_ENABLE_REG_1, val & ~SECOCEC_ENABLE_REG_1_IR);
-+
-+		dev_dbg(&pdev->dev, "IR disabled");
-+	}
- 	cec_unregister_adapter(secocec->cec_adap);
- 
- 	if (secocec->notifier)
-diff --git a/drivers/media/platform/seco-cec/seco-cec.h b/drivers/media/platform/seco-cec/seco-cec.h
-index be5a657ae462..e632c4a2a044 100644
---- a/drivers/media/platform/seco-cec/seco-cec.h
-+++ b/drivers/media/platform/seco-cec/seco-cec.h
-@@ -99,6 +99,17 @@
- 
- #define SECOCEC_IR_READ_DATA		0x3e
- 
-+/*
-+ * IR
-+ */
-+
-+#define SECOCEC_IR_COMMAND_MASK		0x007F
-+#define SECOCEC_IR_COMMAND_SHL		0
-+#define SECOCEC_IR_ADDRESS_MASK		0x1F00
-+#define SECOCEC_IR_ADDRESS_SHL		7
-+#define SECOCEC_IR_TOGGLE_MASK		0x8000
-+#define SECOCEC_IR_TOGGLE_SHL		15
-+
- /*
-  * Enabling register
-  */
--- 
-2.18.0
+I don't understand why we'd need separate video devices for output and
+capture, deinterlacing is still single input single (double rate)
+output. As soon as we begin tiling, we are one layer of abstraction
+away from the hardware pads anyway. Now if we want to support combining
+on the other hand...
+
+> Or is there another way? I recall work to integrate mem2mem with media
+> control. There is v4l2_m2m_register_media_controller(), but that
+> create three
+> entities:
+> source, processing, and sink. The VDIC entity would be part of mem2mem
+> processing but this entity already exists for the current graph. This
+> function could however be used as a guide to incorporate the VDIC
+> entity into m2m device.
+
+I'm not sure if this is the right abstraction. Without tiling or
+multi-IPU scheduling, sure. But the mem2mem driver does not directly
+describe hardware operation anyway.
+
+regards
+Philipp
