@@ -1,47 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:51073 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727763AbeJVAng (ORCPT
+Received: from mail-wr1-f68.google.com ([209.85.221.68]:40118 "EHLO
+        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727688AbeJVBOK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 21 Oct 2018 20:43:36 -0400
-Date: Sun, 21 Oct 2018 18:28:43 +0200
-From: Philipp Zabel <pza@pengutronix.de>
-To: Tomasz Figa <tfiga@chromium.org>
-Cc: nicolas@ndufresne.ca, Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFP] Which V4L2 ioctls could be replaced by better versions?
-Message-ID: <20181021162843.ys6eqbbyg5w5ufrv@pengutronix.de>
-References: <d49940b7-af62-594e-06ad-8ec113589340@xs4all.nl>
- <6efdab2da3e4263a49a6a2630df7f79511302088.camel@ndufresne.ca>
- <CAAFQd5BsvtqM3QriFd5vo55ZDKxFcnGAR21Y7ch247jXX6-iQg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAAFQd5BsvtqM3QriFd5vo55ZDKxFcnGAR21Y7ch247jXX6-iQg@mail.gmail.com>
+        Sun, 21 Oct 2018 21:14:10 -0400
+From: ektor5 <ek5.chimenti@gmail.com>
+Cc: hverkuil@xs4all.nl, luca.pisani@udoo.org, jose.abreu@synopsys.com,
+        sean@mess.org, sakari.ailus@linux.intel.com,
+        ektor5 <ek5.chimenti@gmail.com>, jacopo@jmondi.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Neil Armstrong <narmstrong@baylibre.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Lee Jones <lee.jones@linaro.org>,
+        Todor Tomov <todor.tomov@linaro.org>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: [PATCH v4 0/2] Add SECO Boards CEC device driver
+Date: Sun, 21 Oct 2018 18:58:18 +0200
+Message-Id: <cover.1539963738.git.ek5.chimenti@gmail.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 03, 2018 at 05:24:39PM +0900, Tomasz Figa wrote:
-[...]
-> > Yes, but that would fall in a complete redesign I guess. The buffer
-> > allocation scheme is very inflexible. You can't have buffers of two
-> > dimensions allocated at the same time for the same queue. Worst, you
-> > cannot leave even 1 buffer as your scannout buffer while reallocating
-> > new buffers, this is not permitted by the framework (in software). As a
-> > side effect, there is no way to optimize the resolution changes, you
-> > even have to copy your scannout buffer on the CPU, to free it in order
-> > to proceed. Resolution changes are thus painfully slow, by design.
-[...]
-> Also, I fail to understand the scanout issue. If one exports a vb2
-> buffer to a DMA-buf and import it to the scanout engine, it can keep
-> scanning out from it as long as it want, because the DMA-buf will hold
-> a reference on the buffer, even if it's removed from the vb2 queue.
+This series of patches aims to add CEC functionalities to SECO
+devices, in particular UDOO X86.
 
-REQBUFS 0 fails if the vb2 buffer is still in use, including from dmabuf
-attachments: vb2_buffer_in_use checks the num_users memop. The refcount
-returned by num_users shared between the vmarea handler and dmabuf ops,
-so any dmabuf attachment counts towards in_use.
+The communication is achieved via Braswell SMBus (i2c-i801) to the
+onboard STM32 microcontroller that handles the CEC signals. The driver
+use direct access to the PCI addresses, due to the limitations of the
+specific driver in presence of ACPI calls.
 
-regards
-Philipp
+The basic functionalities are tested with success with cec-ctl and
+cec-compliance.
+
+v4:
+ - Reduced SMBus timeout
+ - Removed/updated debug printouts
+ - Removed useless return values
+ - Update SECO denomination
+
+v3:
+ - Refactored rx/tx for loops
+ - Removed more debug prints
+ - Sorted headers 
+
+v2:
+ - Removed useless debug prints
+ - Added DMI && PCI to dependences
+ - Removed useless ifdefs
+ - Renamed all irda references to ir
+ - Fixed SPDX clause
+ - Several style fixes
+
+Ettore Chimenti (2):
+  media: add SECO cec driver
+  seco-cec: add Consumer-IR support
+
+ MAINTAINERS                                |   6 +
+ drivers/media/platform/Kconfig             |  22 +
+ drivers/media/platform/Makefile            |   2 +
+ drivers/media/platform/seco-cec/Makefile   |   1 +
+ drivers/media/platform/seco-cec/seco-cec.c | 795 +++++++++++++++++++++
+ drivers/media/platform/seco-cec/seco-cec.h | 141 ++++
+ 6 files changed, 967 insertions(+)
+ create mode 100644 drivers/media/platform/seco-cec/Makefile
+ create mode 100644 drivers/media/platform/seco-cec/seco-cec.c
+ create mode 100644 drivers/media/platform/seco-cec/seco-cec.h
+
+-- 
+2.18.0
