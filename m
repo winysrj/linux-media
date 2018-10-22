@@ -1,197 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk1-f196.google.com ([209.85.222.196]:32994 "EHLO
-        mail-qk1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726813AbeJVHQ3 (ORCPT
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:49454 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726949AbeJVLtU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 Oct 2018 03:16:29 -0400
-Date: Sun, 21 Oct 2018 21:00:26 -0200
-From: Gabriel Francisco Mandaji <gfmandaji@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: lkcamp@lists.libreplanetbr.org
-Subject: [PATCH v2] media: vivid: Improve timestamping
-Message-ID: <20181021230026.GA19458@gfm-note>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+        Mon, 22 Oct 2018 07:49:20 -0400
+Message-ID: <564d543c09ca326043ddcc35e7308bb0@smtp-cloud8.xs4all.net>
+Date: Mon, 22 Oct 2018 05:32:36 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Simulate a more precise timestamp by calculating it based on the
-current framerate.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Gabriel Francisco Mandaji <gfmandaji@gmail.com>
----
-Changes in v2:
-    - fix spelling
-    - end of exposure is offset by 90% of the frame period
-    - fix timestamp calculation for FIELD_ALTERNATE (untested)
-    - timestamp is now calculated and set from vivid_thread_cap_tick()
-    - capture vbi uses the same timestamp as non-vbi, but offset by 5%
-    - timestamp stays consistent even if the FPS changes
-    - tested with dropped frames
+Results of the daily build of media_tree:
 
-If 'Start of Exposure'/'End of Frame' changes mid-capture, it will be
-completely ignored. If that's an issue, I'll change how the frame
-period and cap_stream_start are calculated.
+date:			Mon Oct 22 05:00:10 CEST 2018
+media-tree git hash:	3b796aa60af087f5fec75aee9b17f2130f2b9adc
+media_build git hash:	0c8bb27f3aaa682b9548b656f77505c3d1f11e71
+v4l-utils git hash:	c36dbbdfa8b30b2badd4f893b59d0bd4f0bd12aa
+edid-decode git hash:	5eeb151a748788666534d6ea3da07f90400d24c2
+gcc version:		i686-linux-gcc (GCC) 8.2.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.18.0-2-amd64
 
-Also, should I modify the output's timestamp on this patch or on a
-separated one?
----
- drivers/media/platform/vivid/vivid-core.h        |  2 +
- drivers/media/platform/vivid/vivid-kthread-cap.c | 47 +++++++++++++++++-------
- drivers/media/platform/vivid/vivid-vbi-cap.c     |  4 --
- 3 files changed, 35 insertions(+), 18 deletions(-)
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.57-i686: OK
+linux-3.16.57-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.123-i686: OK
+linux-3.18.123-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.52-i686: OK
+linux-4.1.52-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.159-i686: OK
+linux-4.4.159-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.131-i686: OK
+linux-4.9.131-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.74-i686: OK
+linux-4.14.74-x86_64: OK
+linux-4.15.18-i686: OK
+linux-4.15.18-x86_64: OK
+linux-4.16.18-i686: OK
+linux-4.16.18-x86_64: OK
+linux-4.17.19-i686: OK
+linux-4.17.19-x86_64: OK
+linux-4.18.12-i686: OK
+linux-4.18.12-x86_64: OK
+linux-4.19-rc6-i686: OK
+linux-4.19-rc6-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
-diff --git a/drivers/media/platform/vivid/vivid-core.h b/drivers/media/platform/vivid/vivid-core.h
-index cd4c823..ba6fb3a 100644
---- a/drivers/media/platform/vivid/vivid-core.h
-+++ b/drivers/media/platform/vivid/vivid-core.h
-@@ -384,6 +384,8 @@ struct vivid_dev {
- 	/* thread for generating video capture stream */
- 	struct task_struct		*kthread_vid_cap;
- 	unsigned long			jiffies_vid_cap;
-+	u64				cap_stream_start;
-+	u64				cap_frame_period;
- 	u32				cap_seq_offset;
- 	u32				cap_seq_count;
- 	bool				cap_seq_resync;
-diff --git a/drivers/media/platform/vivid/vivid-kthread-cap.c b/drivers/media/platform/vivid/vivid-kthread-cap.c
-index f06003b..828a58c 100644
---- a/drivers/media/platform/vivid/vivid-kthread-cap.c
-+++ b/drivers/media/platform/vivid/vivid-kthread-cap.c
-@@ -425,12 +425,6 @@ static void vivid_fillbuff(struct vivid_dev *dev, struct vivid_buffer *buf)
- 		is_loop = true;
- 
- 	buf->vb.sequence = dev->vid_cap_seq_count;
--	/*
--	 * Take the timestamp now if the timestamp source is set to
--	 * "Start of Exposure".
--	 */
--	if (dev->tstamp_src_is_soe)
--		buf->vb.vb2_buf.timestamp = ktime_get_ns();
- 	if (dev->field_cap == V4L2_FIELD_ALTERNATE) {
- 		/*
- 		 * 60 Hz standards start with the bottom field, 50 Hz standards
-@@ -554,14 +548,6 @@ static void vivid_fillbuff(struct vivid_dev *dev, struct vivid_buffer *buf)
- 			}
- 		}
- 	}
--
--	/*
--	 * If "End of Frame" is specified at the timestamp source, then take
--	 * the timestamp now.
--	 */
--	if (!dev->tstamp_src_is_soe)
--		buf->vb.vb2_buf.timestamp = ktime_get_ns();
--	buf->vb.vb2_buf.timestamp += dev->time_wrap_offset;
- }
- 
- /*
-@@ -667,10 +653,27 @@ static void vivid_overlay(struct vivid_dev *dev, struct vivid_buffer *buf)
- 	}
- }
- 
-+static void vivid_cap_update_frame_period(struct vivid_dev *dev)
-+{
-+	u64 f_period = dev->timeperframe_vid_cap.numerator * 1000000000 /
-+		       dev->timeperframe_vid_cap.denominator;
-+	if (dev->field_cap == V4L2_FIELD_ALTERNATE)
-+		f_period /= 2;
-+	/*
-+	 * If "End of Frame", then calculate the exposure time as 0.9
-+	 * of the frame period.
-+	 */
-+	if (!dev->tstamp_src_is_soe)
-+		f_period += f_period / 10 * 9;
-+
-+	dev->cap_frame_period = f_period;
-+}
-+
- static void vivid_thread_vid_cap_tick(struct vivid_dev *dev, int dropped_bufs)
- {
- 	struct vivid_buffer *vid_cap_buf = NULL;
- 	struct vivid_buffer *vbi_cap_buf = NULL;
-+	u64 f_time = 0;
- 
- 	dprintk(dev, 1, "Video Capture Thread Tick\n");
- 
-@@ -702,6 +705,9 @@ static void vivid_thread_vid_cap_tick(struct vivid_dev *dev, int dropped_bufs)
- 	if (!vid_cap_buf && !vbi_cap_buf)
- 		goto update_mv;
- 
-+	f_time = dev->cap_frame_period * dev->vid_cap_seq_count +
-+		 dev->cap_stream_start + dev->time_wrap_offset;
-+
- 	if (vid_cap_buf) {
- 		/* Fill buffer */
- 		vivid_fillbuff(dev, vid_cap_buf);
-@@ -717,9 +723,13 @@ static void vivid_thread_vid_cap_tick(struct vivid_dev *dev, int dropped_bufs)
- 				VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
- 		dprintk(dev, 2, "vid_cap buffer %d done\n",
- 				vid_cap_buf->vb.vb2_buf.index);
-+
-+		vid_cap_buf->vb.vb2_buf.timestamp = f_time;
- 	}
- 
- 	if (vbi_cap_buf) {
-+		u64 vbi_period;
-+
- 		if (dev->stream_sliced_vbi_cap)
- 			vivid_sliced_vbi_cap_process(dev, vbi_cap_buf);
- 		else
-@@ -728,6 +738,10 @@ static void vivid_thread_vid_cap_tick(struct vivid_dev *dev, int dropped_bufs)
- 				VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
- 		dprintk(dev, 2, "vbi_cap %d done\n",
- 				vbi_cap_buf->vb.vb2_buf.index);
-+
-+		/* If capturing a VBI, offset by 0.05 */
-+		vbi_period = dev->cap_frame_period / 100 * 5;
-+		vbi_cap_buf->vb.vb2_buf.timestamp = f_time + vbi_period;
- 	}
- 	dev->dqbuf_error = false;
- 
-@@ -759,6 +773,8 @@ static int vivid_thread_vid_cap(void *data)
- 	dev->cap_seq_count = 0;
- 	dev->cap_seq_resync = false;
- 	dev->jiffies_vid_cap = jiffies;
-+	dev->cap_stream_start = ktime_get_ns();
-+	vivid_cap_update_frame_period(dev);
- 
- 	for (;;) {
- 		try_to_freeze();
-@@ -771,6 +787,9 @@ static int vivid_thread_vid_cap(void *data)
- 			dev->jiffies_vid_cap = cur_jiffies;
- 			dev->cap_seq_offset = dev->cap_seq_count + 1;
- 			dev->cap_seq_count = 0;
-+			dev->cap_stream_start += dev->cap_frame_period *
-+						 dev->cap_seq_offset;
-+			vivid_cap_update_frame_period(dev);
- 			dev->cap_seq_resync = false;
- 		}
- 		numerator = dev->timeperframe_vid_cap.numerator;
-diff --git a/drivers/media/platform/vivid/vivid-vbi-cap.c b/drivers/media/platform/vivid/vivid-vbi-cap.c
-index 92a8529..c7cacc6 100644
---- a/drivers/media/platform/vivid/vivid-vbi-cap.c
-+++ b/drivers/media/platform/vivid/vivid-vbi-cap.c
-@@ -95,8 +95,6 @@ void vivid_raw_vbi_cap_process(struct vivid_dev *dev, struct vivid_buffer *buf)
- 
- 	if (!VIVID_INVALID_SIGNAL(dev->std_signal_mode))
- 		vivid_vbi_gen_raw(&dev->vbi_gen, &vbi, vbuf);
--
--	buf->vb.vb2_buf.timestamp = ktime_get_ns() + dev->time_wrap_offset;
- }
- 
- 
-@@ -119,8 +117,6 @@ void vivid_sliced_vbi_cap_process(struct vivid_dev *dev,
- 		for (i = 0; i < 25; i++)
- 			vbuf[i] = dev->vbi_gen.data[i];
- 	}
--
--	buf->vb.vb2_buf.timestamp = ktime_get_ns() + dev->time_wrap_offset;
- }
- 
- static int vbi_cap_queue_setup(struct vb2_queue *vq,
--- 
-1.9.1
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
