@@ -1,62 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi1-f194.google.com ([209.85.167.194]:43767 "EHLO
+Received: from mail-oi1-f194.google.com ([209.85.167.194]:39074 "EHLO
         mail-oi1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726784AbeJVOI6 (ORCPT
+        with ESMTP id S1727256AbeJVOWO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 Oct 2018 10:08:58 -0400
-Received: by mail-oi1-f194.google.com with SMTP id s69-v6so31192558oie.10
-        for <linux-media@vger.kernel.org>; Sun, 21 Oct 2018 22:51:56 -0700 (PDT)
-Received: from mail-oi1-f176.google.com (mail-oi1-f176.google.com. [209.85.167.176])
-        by smtp.gmail.com with ESMTPSA id v124-v6sm10512090oie.48.2018.10.21.22.51.54
+        Mon, 22 Oct 2018 10:22:14 -0400
+Received: by mail-oi1-f194.google.com with SMTP id y81-v6so31246493oia.6
+        for <linux-media@vger.kernel.org>; Sun, 21 Oct 2018 23:05:10 -0700 (PDT)
+Received: from mail-ot1-f42.google.com (mail-ot1-f42.google.com. [209.85.210.42])
+        by smtp.gmail.com with ESMTPSA id t69sm11010185ota.10.2018.10.21.23.05.09
         for <linux-media@vger.kernel.org>
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Sun, 21 Oct 2018 22:51:55 -0700 (PDT)
-Received: by mail-oi1-f176.google.com with SMTP id 22-v6so31249486oiz.2
-        for <linux-media@vger.kernel.org>; Sun, 21 Oct 2018 22:51:54 -0700 (PDT)
+        Sun, 21 Oct 2018 23:05:09 -0700 (PDT)
+Received: by mail-ot1-f42.google.com with SMTP id c32so38836924otb.8
+        for <linux-media@vger.kernel.org>; Sun, 21 Oct 2018 23:05:09 -0700 (PDT)
 MIME-Version: 1.0
-References: <1539782303-4091-1-git-send-email-vgarodia@codeaurora.org>
-In-Reply-To: <1539782303-4091-1-git-send-email-vgarodia@codeaurora.org>
+References: <20181019080928.208446-1-acourbot@chromium.org> <9375d854-2be5-4f69-2516-a3349fa5b50d@xs4all.nl>
+In-Reply-To: <9375d854-2be5-4f69-2516-a3349fa5b50d@xs4all.nl>
 From: Alexandre Courbot <acourbot@chromium.org>
-Date: Mon, 22 Oct 2018 14:51:43 +0900
-Message-ID: <CAPBb6MWxUNyJEkAUATa7BiXgU1JefoxFseXuaLb+_XsLish8Pw@mail.gmail.com>
-Subject: Re: [PATCH v12 0/5] Venus updates - PIL
-To: vgarodia@codeaurora.org
-Cc: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
+Date: Mon, 22 Oct 2018 15:04:57 +0900
+Message-ID: <CAPBb6MVt4WEEd+83UTPJcqUHZ6ss=TDU5C_kbTQhGqT0fWcYPQ@mail.gmail.com>
+Subject: Re: [RFC PATCH v3] media: docs-rst: Document m2m stateless video
+ decoder interface
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Tomasz Figa <tfiga@chromium.org>,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Pawel Osciak <posciak@chromium.org>,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        linux-arm-msm@vger.kernel.org
+        LKML <linux-kernel@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Vikash,
+On Fri, Oct 19, 2018 at 5:44 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>
+> On 10/19/18 10:09, Alexandre Courbot wrote:
+> > Thanks everyone for the feedback on v2! I have not replied to all the
+> > individual emails but hope this v3 will address some of the problems
+> > raised and become a continuation point for the topics still in
+> > discussion (probably during the ELCE Media Summit).
+> >
+> > This patch documents the protocol that user-space should follow when
+> > communicating with stateless video decoders. It is based on the
+> > following references:
+> >
+> > * The current protocol used by Chromium (converted from config store to
+> >   request API)
+> >
+> > * The submitted Cedrus VPU driver
+> >
+> > As such, some things may not be entirely consistent with the current
+> > state of drivers, so it would be great if all stakeholders could point
+> > out these inconsistencies. :)
+> >
+> > This patch is supposed to be applied on top of the Request API V18 as
+> > well as the memory-to-memory video decoder interface series by Tomasz
+> > Figa.
+> >
+> > Changes since v2:
+> >
+> > * Specify that the frame header controls should be set prior to
+> >   enumerating the CAPTURE queue, instead of the profile which as Paul
+> >   and Tomasz pointed out is not enough to know which raw formats will be
+> >   usable.
+> > * Change V4L2_CID_MPEG_VIDEO_H264_SLICE_PARAM to
+> >   V4L2_CID_MPEG_VIDEO_H264_SLICE_PARAMS.
+> > * Various rewording and rephrasing
+> >
+> > Two points being currently discussed have not been changed in this
+> > revision due to lack of better idea. Of course this is open to change:
+> >
+> > * The restriction of having to send full frames for each input buffer is
+> >   kept as-is. As Hans pointed, we currently have a hard limit of 32
+> >   buffers per queue, and it may be non-trivial to lift. Also some codecs
+> >   (at least Venus AFAIK) do have this restriction in hardware, so unless
+> >   we want to do some buffer-rearranging in-kernel, it is probably better
+> >   to keep the default behavior as-is. Finally, relaxing the rule should
+> >   be easy enough if we add one extra control to query whether the
+> >   hardware can work with slice units, as opposed to frame units.
+>
+> Makes sense, as long as the restriction can be lifted in the future.
 
-On Wed, Oct 17, 2018 at 10:18 PM Vikash Garodia <vgarodia@codeaurora.org> wrote:
->
-> This version of the series
-> * updates the tz flag to unsigned
->
-> Stanimir Varbanov (1):
->   venus: firmware: register separate platform_device for firmware loader
->
-> Vikash Garodia (4):
->   venus: firmware: add routine to reset ARM9
->   venus: firmware: move load firmware in a separate function
->   venus: firmware: add no TZ boot and shutdown routine
->   dt-bindings: media: Document bindings for venus firmware device
->
->  .../devicetree/bindings/media/qcom,venus.txt       |  14 +-
->  drivers/media/platform/qcom/venus/core.c           |  24 ++-
->  drivers/media/platform/qcom/venus/core.h           |   6 +
->  drivers/media/platform/qcom/venus/firmware.c       | 235 +++++++++++++++++++--
->  drivers/media/platform/qcom/venus/firmware.h       |  17 +-
->  drivers/media/platform/qcom/venus/hfi_venus.c      |  13 +-
->  drivers/media/platform/qcom/venus/hfi_venus_io.h   |   8 +
->  7 files changed, 274 insertions(+), 43 deletions(-)
+Lifting this limitation once we support more than 32 buffers should
+not be an issue. Just add a new capability control and process things
+in slice units. Right now we have hardware that can only work with
+whole frames (venus) but I suspect that some slice-only hardware must
+exist, so it may actually become a necessity at some point (lest
+drivers do some splitting themselves).
 
-The series:
+>
+> > * The other hot topic is the use of capture buffer indexes in order to
+> >   reference frames. I understand the concerns, but I doesn't seem like
+> >   we have come with a better proposal so far - and since capture buffers
+> >   are essentially well, frames, using their buffer index to directly
+> >   reference them doesn't sound too inappropriate to me. There is also
+> >   the restriction that drivers must return capture buffers in queue
+> >   order. Do we have any concrete example where this scenario would not
+> >   work?
+>
+> I'll start a separate discussion thread for this to avoid polluting the
+> review of this documentation.
 
-Reviewed-by: Alexandre Courbot <acourbot@chromium.org>
-Tested-by: Alexandre Courbot <acourbot@chromium.org>
+Thanks! Following up there.
