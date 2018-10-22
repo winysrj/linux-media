@@ -1,17 +1,14 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl1-f195.google.com ([209.85.214.195]:36862 "EHLO
-        mail-pl1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728271AbeJVXIE (ORCPT
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:34211 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1728172AbeJWAAs (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 Oct 2018 19:08:04 -0400
-Received: by mail-pl1-f195.google.com with SMTP id y11-v6so19185703plt.3
-        for <linux-media@vger.kernel.org>; Mon, 22 Oct 2018 07:49:13 -0700 (PDT)
-From: Tomasz Figa <tfiga@chromium.org>
-To: linux-media@vger.kernel.org
+        Mon, 22 Oct 2018 20:00:48 -0400
+Subject: Re: [PATCH v2 0/2] Document memory-to-memory video codec interfaces
+To: Tomasz Figa <tfiga@chromium.org>, linux-media@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        =?UTF-8?q?Pawe=C5=82=20O=C5=9Bciak?= <posciak@chromium.org>,
+        =?UTF-8?B?UGF3ZcWCIE/Fm2NpYWs=?= <posciak@chromium.org>,
         Alexandre Courbot <acourbot@chromium.org>,
         Kamil Debski <kamil@wypas.org>,
         Andrzej Hajda <a.hajda@samsung.com>,
@@ -27,124 +24,75 @@ Cc: linux-kernel@vger.kernel.org,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         dave.stevenson@raspberrypi.org,
         Ezequiel Garcia <ezequiel@collabora.com>,
-        Maxime Jourdan <maxi.jourdan@wanadoo.fr>,
-        Tomasz Figa <tfiga@chromium.org>
-Subject: [PATCH v2 0/2] Document memory-to-memory video codec interfaces
-Date: Mon, 22 Oct 2018 23:48:58 +0900
-Message-Id: <20181022144901.113852-1-tfiga@chromium.org>
+        Maxime Jourdan <maxi.jourdan@wanadoo.fr>
+References: <20181022144901.113852-1-tfiga@chromium.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <6621f3b9-a5a0-d33f-306f-d405db34da2c@xs4all.nl>
+Date: Mon, 22 Oct 2018 16:41:33 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20181022144901.113852-1-tfiga@chromium.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It's been a while, but here is the v2 of the stateful mem2mem codec
-interfaces documentation. Sorry for taking so long time to respin.
+Hi Tomasz, Alexandre,
 
-This series attempts to add the documentation of what was discussed
-during Media Workshops at LinuxCon Europe 2012 in Barcelona and then
-later Embedded Linux Conference Europe 2014 in Düsseldorf and then
-eventually written down by Pawel Osciak and tweaked a bit by Chrome OS
-video team (but mostly in a cosmetic way or making the document more
-precise), during the several years of Chrome OS using the APIs in
-production.
+Thank you for all your work! Much appreciated.
 
-Note that most, if not all, of the API is already implemented in
-existing mainline drivers, such as s5p-mfc or mtk-vcodec. Intention of
-this series is just to formalize what we already have.
+I've applied both the stateful and stateless patches on top of the request_api branch
+and made the final result available here:
 
-Thanks everyone for the huge amount of useful comments for the RFC and
-v1. Much of the credits should go to Pawel Osciak too, for writing most
-of the original text of the initial RFC.
+https://hverkuil.home.xs4all.nl/request-api/
 
-Changes since v1:
-(https://lore.kernel.org/patchwork/project/lkml/list/?series=360520)
-Decoder:
- - Removed a note about querying all combinations of OUTPUT and CAPTURE
-   frame sizes, since it would conflict with scaling/composiion support
-   to be added later.
- - Removed the source change event after setting non-zero width and
-   height on OUTPUT queue, since the change happens as a direct result
-   of a client action.
- - Moved all the setup steps for CAPTURE queue out of Initialization
-   and Dynamic resolution change into a common sequence called Capture
-   setup, since they were mostly duplicate of each other.
- - Described steps to allocate buffers for higher resolution than the
-   stream to prepare for future resolution changes.
- - Described a way to skip the initial header parsing and speculatively
-   configure the CAPTURE queue (for gstreamer/ffmpeg compatibility).
- - Reordered CAPTURE setup steps so that all the driver queries are done
-   first and only then a reconfiguration may be attempted or skipped.
- - Described VIDIOC_CREATE_BUFS as another way of allocating buffers.
- - Made the decoder signal the source change event as soon as the change
-   is detected, to reduce pipeline stalls in case of buffers already
-   good to continue decoding.
- - Stressed out the fact that a source change may happen even without a
-   change in the coded resolution.
- - Described querying pixel aspect ratio using VIDIOC_CROPCAP.
- - Extended documentation of VIDIOC_DECODER_CMD and VIDIOC_G/S/TRY_FMT
-   to more precisely describe the behavior of mem2mem decoders.
- - Clarified that 0 width and height are allowed for OUTPUT side of
-   mem2mem decoders in the documentation of the v4l2_pix_fmt struct.
+Tomasz, I got two warnings when building the doc tree, the patch below fixes it.
 
-Encoder:
- - Removed width and height from CAPTURE (coded) format, since the coded
-   resolution of the stream is an internal detail of the encoded stream.
- - Made the VIDIOC_S_FMT on OUTPUT mandatory, since the default format
-   normally does not make sense (even if technically valid).
- - Changed the V4L2_SEL_TGT_CROP_BOUNDS and V4L2_SEL_TGT_CROP_DEFAULT
-   selection targets to be equal to the full source frame to simplify
-   internal handling in drivers for simple hardware.
- - Changed the V4L2_SEL_TGT_COMPOSE_DEFAULT selection target to be equal
-   to |crop width|x|crop height|@(0,0) to simplify internal handling in
-   drivers for simple hardware.
- - Removed V4L2_SEL_TGT_COMPOSE_PADDED, since the encoder does not write
-   to the raw buffers.
- - Extended documentation of VIDIOC_ENCODER_CMD to more precisely
-   describe the behavior of mem2mem encoders.
- - Clarified that 0 width and height are allowed for CAPTURE side of
-   mem2mem encoders in the documentation of the v4l2_pix_fmt struct.
+Regards,
 
-General:
- - Clarified that the Drain sequence valid only if both queues are
-   streaming and stopping any of the queues would abort it, since there
-   is nothing to drain, if OUTPUT is stopped and there is no way to
-   signal the completion if CAPTURE is stopped.
- - Clarified that VIDIOC_STREAMON on any of the queues would resume the
-   codec from stopped state, to be consistent with the documentation of
-   VIDIOC_ENCODER/DECODER_CMD.
- - Documented the relation between timestamps of OUTPUT and CAPTURE
-   buffers and how special cases of non-1:1 relation are handled.
- - Added missing sizeimage to bitstream format operations and removed
-   the mistaken mentions from descriptions of respective REQBUFS calls.
- - Removed the Pause sections, since there is no notion of pause for
-   mem2mem devices.
- - Added state machine diagrams.
- - Merged both glossaries into one in the decoder document and a
-   reference to it in the encoder document.
- - Added missing terms to the glossary.
- - Added "Stateful" to the interface names.
- - Reworded the text to be more userspace-centric.
- - A number of other readability improvements suggested in review comments.
+	Hans
 
-For changes since RFC see the v1:
-https://lore.kernel.org/patchwork/project/lkml/list/?series=360520
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Tomasz Figa (2):
-  media: docs-rst: Document memory-to-memory video decoder interface
-  media: docs-rst: Document memory-to-memory video encoder interface
+diff --git a/Documentation/media/uapi/v4l/dev-decoder.rst b/Documentation/media/uapi/v4l/dev-decoder.rst
+index 09c7a6621b8e..5522453ac39f 100644
+--- a/Documentation/media/uapi/v4l/dev-decoder.rst
++++ b/Documentation/media/uapi/v4l/dev-decoder.rst
+@@ -972,11 +972,11 @@ sequence was started.
 
- Documentation/media/uapi/v4l/dev-decoder.rst  | 1082 +++++++++++++++++
- Documentation/media/uapi/v4l/dev-encoder.rst  |  579 +++++++++
- Documentation/media/uapi/v4l/devices.rst      |    2 +
- Documentation/media/uapi/v4l/pixfmt-v4l2.rst  |   10 +
- Documentation/media/uapi/v4l/v4l2.rst         |   12 +-
- .../media/uapi/v4l/vidioc-decoder-cmd.rst     |   40 +-
- .../media/uapi/v4l/vidioc-encoder-cmd.rst     |   38 +-
- Documentation/media/uapi/v4l/vidioc-g-fmt.rst |   14 +
- 8 files changed, 1747 insertions(+), 30 deletions(-)
- create mode 100644 Documentation/media/uapi/v4l/dev-decoder.rst
- create mode 100644 Documentation/media/uapi/v4l/dev-encoder.rst
+    .. warning::
 
--- 
-2.19.1.568.g152ad8e336-goog
+-   The sentence can be only initiated if both ``OUTPUT`` and ``CAPTURE`` queues
+-   are streaming. For compatibility reasons, the call to
+-   :c:func:`VIDIOC_DECODER_CMD` will not fail even if any of the queues is not
+-   streaming, but at the same time it will not initiate the `Drain` sequence
+-   and so the steps described below would not be applicable.
++      The sentence can be only initiated if both ``OUTPUT`` and ``CAPTURE`` queues
++      are streaming. For compatibility reasons, the call to
++      :c:func:`VIDIOC_DECODER_CMD` will not fail even if any of the queues is not
++      streaming, but at the same time it will not initiate the `Drain` sequence
++      and so the steps described below would not be applicable.
+
+ 2. Any ``OUTPUT`` buffers queued by the client before the
+    :c:func:`VIDIOC_DECODER_CMD` was issued will be processed and decoded as
+diff --git a/Documentation/media/uapi/v4l/dev-encoder.rst b/Documentation/media/uapi/v4l/dev-encoder.rst
+index 41139e5e48eb..7f49a7149067 100644
+--- a/Documentation/media/uapi/v4l/dev-encoder.rst
++++ b/Documentation/media/uapi/v4l/dev-encoder.rst
+@@ -448,11 +448,11 @@ sequence was started.
+
+    .. warning::
+
+-   The sentence can be only initiated if both ``OUTPUT`` and ``CAPTURE`` queues
+-   are streaming. For compatibility reasons, the call to
+-   :c:func:`VIDIOC_ENCODER_CMD` will not fail even if any of the queues is not
+-   streaming, but at the same time it will not initiate the `Drain` sequence
+-   and so the steps described below would not be applicable.
++      The sentence can be only initiated if both ``OUTPUT`` and ``CAPTURE`` queues
++      are streaming. For compatibility reasons, the call to
++      :c:func:`VIDIOC_ENCODER_CMD` will not fail even if any of the queues is not
++      streaming, but at the same time it will not initiate the `Drain` sequence
++      and so the steps described below would not be applicable.
+
+ 2. Any ``OUTPUT`` buffers queued by the client before the
+    :c:func:`VIDIOC_ENCODER_CMD` was issued will be processed and encoded as
