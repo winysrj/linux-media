@@ -1,42 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ot1-f65.google.com ([209.85.210.65]:45993 "EHLO
-        mail-ot1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727590AbeJVU6z (ORCPT
+Received: from v-smtpgw1.han.skanova.net ([81.236.60.204]:42534 "EHLO
+        v-smtpgw1.han.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727218AbeJVVCc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 Oct 2018 16:58:55 -0400
+        Mon, 22 Oct 2018 17:02:32 -0400
+Subject: Re: [PATCH] media: rc: cec devices do not have a lirc chardev
+To: Sean Young <sean@mess.org>, Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        stable@vger.kernel.org
+References: <b067e063-641c-0498-4989-3edda5296f9a@mbox200.swipnet.se>
+ <e2bb2b91-861b-8cdc-4ad4-939e50019214@xs4all.nl>
+ <20181022085910.2gndxc75zcqkto5z@gofer.mess.org>
+ <1a63a5b5-644f-cef4-d0ad-9ae3bf491f9a@mbox200.swipnet.se>
+ <20181022101405.v7setqacuftrafrb@gofer.mess.org>
+ <45261f15-b022-8871-b087-937988b3bf1f@xs4all.nl>
+ <20181022122842.mvrvpfyaflvmtbf6@gofer.mess.org>
+From: Torbjorn Jansson <torbjorn.jansson@mbox200.swipnet.se>
+Message-ID: <723e2fd6-47fa-0b0b-b783-42353b52ed66@mbox200.swipnet.se>
+Date: Mon, 22 Oct 2018 14:44:04 +0200
 MIME-Version: 1.0
-References: <CAMty3ZAMjCKv1BtLnobRZUzp=9Xu1gY5+R3Zi-JuobAJZQrXxg@mail.gmail.com>
- <20180920145658.GE16851@w540> <CAHCN7x+U=Y=-v1UP5UYvY8WtUFRJGjmx=nawTuE=YcHdm_DYvA@mail.gmail.com>
- <c1cb34b0-b715-cf08-6f75-2842f1090c5d@mentor.com> <20181017080103.GD11703@w540>
- <CAHCN7xLx6uAmYiGh3p=piZFwE0VkfixTLqdjETibKwk2+DhMzA@mail.gmail.com>
- <CAHCN7xJKuPYg04WfRzbYWO4bGoHHnD16LBPRsK1QsiYY1bL7nA@mail.gmail.com>
- <20181022113306.GB2867@w540> <CAHCN7xJkc5RW73C0zruWBgyF7G0J3C5tLE=ZdfxTKbrUqs=-PQ@mail.gmail.com>
-In-Reply-To: <CAHCN7xJkc5RW73C0zruWBgyF7G0J3C5tLE=ZdfxTKbrUqs=-PQ@mail.gmail.com>
-From: Fabio Estevam <festevam@gmail.com>
-Date: Mon, 22 Oct 2018 09:40:26 -0300
-Message-ID: <CAOMZO5ATm4BRzPEQOU+ZD6bHCP2Aqjp4raRYhuc+wNe0t4+C=w@mail.gmail.com>
-Subject: Re: i.MX6 MIPI-CSI2 OV5640 Camera testing on Mainline Linux
-To: Adam Ford <aford173@gmail.com>
-Cc: jacopo mondi <jacopo@jmondi.org>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>,
-        Jagan Teki <jagan@amarulasolutions.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        Discussion of the development of and with GStreamer
-        <gstreamer-devel@lists.freedesktop.org>,
-        linux-media <linux-media@vger.kernel.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <20181022122842.mvrvpfyaflvmtbf6@gofer.mess.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Adam,
+On 2018-10-22 14:28, Sean Young wrote:
+> On Mon, Oct 22, 2018 at 12:30:29PM +0100, Hans Verkuil wrote:
+>> On 10/22/2018 11:14 AM, Sean Young wrote:
+>>> On Mon, Oct 22, 2018 at 11:44:22AM +0200, Torbjorn Jansson wrote:
+>>>> On 2018-10-22 10:59, Sean Young wrote:
+>>>>> On Sat, Oct 20, 2018 at 11:12:16PM +0200, Hans Verkuil wrote:
+>>>>>> Hi Sean,
+>>>>>>
+>>>>>> Can you take a look at this, it appears to be an RC issue, see my analysis below.
+>>>>>>
+>>>>>> On 10/20/2018 03:26 PM, Torbjorn Jansson wrote:
+>>>>>>> Hello
+>>>>>>>
+>>>>>>> i'm using the pulse8 usb cec adapter to control my tv.
+>>>>>>> i have a few scripts that poll the power status of my tv and after a while it stops working returning errors when trying to check if tv is on or off.
+>>>>>>> this i think matches a kernel oops i'm seeing that i suspect is related to this.
+>>>>>>>
+>>>>>>> i have sometimes been able to recover from this problem by completely cutting power to my tv and also unplugging the usb cec adapter.
+>>>>>>> i have a feeling that the tv is at least partly to blame for cec-ctl not working but in any case there shouldn't be a kernel oops.
+>>>>>>>
+>>>>>>>
+>>>>>>> also every now and then i see this in dmesg:
+>>>>>>> cec cec0: transmit: failed 05
+>>>>>>> cec cec0: transmit: failed 06
+>>>>>>> but that doesn't appear to do any harm as far as i can tell.
+>>>>>>>
+>>>>>>> any idea whats causing the oops?
+>>>>>>>
+>>>>>>> the ops:
+>>>>>>>
+>>>>>>> BUG: unable to handle kernel NULL pointer dereference at 0000000000000038
+>>>>>>> PGD 0 P4D 0
+>>>>>>> Oops: 0000 [#1] SMP PTI
+>>>>>>> CPU: 9 PID: 27687 Comm: kworker/9:2 Tainted: P           OE 4.18.12-200.fc28.x86_64 #1
+>>>>>>> Hardware name: Supermicro C7X99-OCE-F/C7X99-OCE-F, BIOS 2.1a 06/15/2018
+>>>>>>> Workqueue: events pulse8_irq_work_handler [pulse8_cec]
+>>>>>>> RIP: 0010:ir_lirc_scancode_event+0x3d/0xb0 [rc_core]
+>>>>>>
+>>>>>> Huh. ir_lirc_scancode_event() calls spin_lock_irqsave(&dev->lirc_fh_lock, flags);
+>>>>>>
+>>>>>> The spinlock dev->lirc_fh_lock is initialized in ir_lirc_register(), which is called
+>>>>>> from rc_register_device(), except when the protocol is CEC:
+>>>>>>
+>>>>>>           /* Ensure that the lirc kfifo is setup before we start the thread */
+>>>>>>           if (dev->allowed_protocols != RC_PROTO_BIT_CEC) {
+>>>>>>                   rc = ir_lirc_register(dev);
+>>>>>>                   if (rc < 0)
+>>>>>>                           goto out_rx;
+>>>>>>           }
+>>>>>>
+>>>>>> So it looks like ir_lirc_scancode_event() fails because dev->lirc_fh_lock was never
+>>>>>> initialized.
+>>>>>>
+>>>>>> Could this be fall-out from the lirc changes you did not too long ago?
+>>>>>
+>>>>> Yes, this is broken. My bad, sorry. I think this must have been broken since
+>>>>> v4.16. I can write a patch but I don't have a patch but I'm on the train
+>>>>> to ELCE in Edinburgh now, with no hardware to test on.
+>>>>>
+>>>>>
+>>>>> Sean
+>>>>>
+>>>>
+>>>> the kernel oops have been happening for a while now.
+>>>> yesterday when i checked my logs i can see them at least back a couple of
+>>>> months when i was running 4.17
+>>>>
+>>>> also my scripts to poll status of my tv and turn it on/off works for a while
+>>>> so it doesn't crash right away.
+>>>> maybe it only crashes when i send cec command to turn on/off tv and only
+>>>> polling for status is no problem.
+>>>>
+>>>>
+>>>> i think i have a separate issue too because i had problems even before the
+>>>> kernel oopses started.
+>>>> but i suspect this is caused by my tv locking up the cec bus because
+>>>> unplugging power to tv for a few minutes (i must wait or it will still be
+>>>> just as broken) and then back used to resolve the cec errors from my
+>>>> scripts.
+>>>
+>>>
+>>> Would you be able to test the following patch please?
+>>
+>> Sean,
+>>
+>> I think you should be able to test this with the vivid driver. Load the vivid driver,
+>> run:
+>>
+>> cec-ctl --tv; cec-ctl -d1 --playback
+>>
+>> Then:
+>>
+>> cec-ctl -d1 -t0 --user-control-pressed ui-cmd=F5
+> 
+> Ah, thanks. That will help with testing/reproducing.
+>   
+>> That said, I tried this, but it doesn't crash for me, but perhaps I need to run
+>> some RC command first...
+> 
+> Hmm I think those commands should be enough. It probably needs
+> CONFIG_DEBUG_SPINLOCK to detect the uninitialized spinlock. I'm trying it now.
+> 
+> Thanks,
+> 
+> Sean
+> 
 
-On Mon, Oct 22, 2018 at 9:37 AM Adam Ford <aford173@gmail.com> wrote:
+FYI the commands i run is as follows.
 
-> Thank you!  This tutorial web site is exactly what I need.  The
-> documentation page in Linux touched on the media-ctl links, but it
-> didn't explain the syntax or the mapping.  This graphical
-> interpretation really helps it make more sense.
+getting status, this is run frequently several times per minute (once every 10 
+or 15 seconds):
+cec-ctl --to=0 --give-device-power-status
 
-Is capturing working well on your i.MX6 board now?
+then when i want to power on or off this is run:
+cec-ctl --to=0 --image-view-on
+or
+cec-ctl --to=0 --standby
+
+
+it usually takes day or two before i get a kernel oops.
+but i haven't studied super closely when exactly the oops happens in relation 
+to what commands i sent since by now I'm used to it not working most of the time.
