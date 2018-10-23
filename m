@@ -1,54 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:50417 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726277AbeJWV0U (ORCPT
+Received: from mail.netline.ch ([148.251.143.178]:46478 "EHLO
+        netline-mail3.netline.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726970AbeJWWJf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 23 Oct 2018 17:26:20 -0400
-Date: Tue, 23 Oct 2018 15:02:54 +0200
-From: Philipp Zabel <pza@pengutronix.de>
-To: Tomasz Figa <tfiga@chromium.org>
-Cc: nicolas@ndufresne.ca, Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFP] Which V4L2 ioctls could be replaced by better versions?
-Message-ID: <20181023130254.t27fp7gh6gp5uqk4@pengutronix.de>
-References: <d49940b7-af62-594e-06ad-8ec113589340@xs4all.nl>
- <6efdab2da3e4263a49a6a2630df7f79511302088.camel@ndufresne.ca>
- <CAAFQd5BsvtqM3QriFd5vo55ZDKxFcnGAR21Y7ch247jXX6-iQg@mail.gmail.com>
- <20181021162843.ys6eqbbyg5w5ufrv@pengutronix.de>
- <CAAFQd5A3a1o55pcV6Kn5ZWXQFYJvuv4y1+oD4=PEZXoYMhrX0Q@mail.gmail.com>
+        Tue, 23 Oct 2018 18:09:35 -0400
+Subject: Re: [PATCH 1/8] dma-buf: remove shared fence staging in reservation
+ object
+To: =?UTF-8?Q?Christian_K=c3=b6nig?= <ckoenig.leichtzumerken@gmail.com>
+Cc: amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>
+References: <20181004131250.2373-1-christian.koenig@amd.com>
+ <30ba1fc8-58d5-1c75-406e-d10e68ec4b18@gmail.com>
+ <42ee3d74-9dac-6573-448c-c70ea28cb9ff@gmail.com>
+From: =?UTF-8?Q?Michel_D=c3=a4nzer?= <michel@daenzer.net>
+Message-ID: <d6cb3f2b-4b6b-933a-d0e5-2a6099659cce@daenzer.net>
+Date: Tue, 23 Oct 2018 15:40:48 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAAFQd5A3a1o55pcV6Kn5ZWXQFYJvuv4y1+oD4=PEZXoYMhrX0Q@mail.gmail.com>
+In-Reply-To: <42ee3d74-9dac-6573-448c-c70ea28cb9ff@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-CA
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz,
-
-On Mon, Oct 22, 2018 at 12:37:57PM +0900, Tomasz Figa wrote:
-[...]
-> On Mon, Oct 22, 2018 at 1:28 AM Philipp Zabel <pza@pengutronix.de> wrote:
-[...]
-> > REQBUFS 0 fails if the vb2 buffer is still in use, including from dmabuf
-> > attachments: vb2_buffer_in_use checks the num_users memop. The refcount
-> > returned by num_users shared between the vmarea handler and dmabuf ops,
-> > so any dmabuf attachment counts towards in_use.
+On 2018-10-23 2:20 p.m., Christian König wrote:
+> Ping once more! Adding a few more AMD people.
 > 
-> Ah, right. I've managed to completely forget about it, since we have a
-> downstream patch that we attempted to upstream earlier [1], but didn't
-> have a chance to follow up on the comments and there wasn't much
-> interest in it in general.
-> 
-> [1] https://lore.kernel.org/patchwork/patch/607853/
-> 
-> Perhaps it would be worth reviving?
+> Any comments on this?
 
-Yes, thanks for the pointer. I've completely missed that patch.
+Patches 1 & 3 are a bit over my head I'm afraid.
 
-I was under the mistaken impression that there was some technical reason
-to keep the queue around until after the last dmabuf attachment is gone,
-but everything is properly refcounted.
 
-regards
-Philipp
+Patches 2, 4, 6-8 are
+
+Reviewed-by: Michel Dänzer <michel.daenzer@amd.com>
+
+
+-- 
+Earthling Michel Dänzer               |               http://www.amd.com
+Libre software enthusiast             |             Mesa and X developer
