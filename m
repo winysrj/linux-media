@@ -1,42 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.netline.ch ([148.251.143.178]:46478 "EHLO
-        netline-mail3.netline.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726970AbeJWWJf (ORCPT
+Received: from mail-ed1-f65.google.com ([209.85.208.65]:33661 "EHLO
+        mail-ed1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726970AbeJWXnd (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 23 Oct 2018 18:09:35 -0400
-Subject: Re: [PATCH 1/8] dma-buf: remove shared fence staging in reservation
- object
-To: =?UTF-8?Q?Christian_K=c3=b6nig?= <ckoenig.leichtzumerken@gmail.com>
-Cc: amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>
-References: <20181004131250.2373-1-christian.koenig@amd.com>
- <30ba1fc8-58d5-1c75-406e-d10e68ec4b18@gmail.com>
- <42ee3d74-9dac-6573-448c-c70ea28cb9ff@gmail.com>
-From: =?UTF-8?Q?Michel_D=c3=a4nzer?= <michel@daenzer.net>
-Message-ID: <d6cb3f2b-4b6b-933a-d0e5-2a6099659cce@daenzer.net>
-Date: Tue, 23 Oct 2018 15:40:48 +0200
+        Tue, 23 Oct 2018 19:43:33 -0400
 MIME-Version: 1.0
-In-Reply-To: <42ee3d74-9dac-6573-448c-c70ea28cb9ff@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-CA
-Content-Transfer-Encoding: 8bit
+References: <CAMty3ZAMjCKv1BtLnobRZUzp=9Xu1gY5+R3Zi-JuobAJZQrXxg@mail.gmail.com>
+ <20180920145658.GE16851@w540> <CAHCN7x+U=Y=-v1UP5UYvY8WtUFRJGjmx=nawTuE=YcHdm_DYvA@mail.gmail.com>
+ <c1cb34b0-b715-cf08-6f75-2842f1090c5d@mentor.com> <20181017080103.GD11703@w540>
+ <CAHCN7xLx6uAmYiGh3p=piZFwE0VkfixTLqdjETibKwk2+DhMzA@mail.gmail.com>
+ <CAHCN7xJKuPYg04WfRzbYWO4bGoHHnD16LBPRsK1QsiYY1bL7nA@mail.gmail.com>
+ <20181022113306.GB2867@w540> <CAHCN7xJkc5RW73C0zruWBgyF7G0J3C5tLE=ZdfxTKbrUqs=-PQ@mail.gmail.com>
+ <CAOMZO5ATm4BRzPEQOU+ZD6bHCP2Aqjp4raRYhuc+wNe0t4+C=w@mail.gmail.com>
+In-Reply-To: <CAOMZO5ATm4BRzPEQOU+ZD6bHCP2Aqjp4raRYhuc+wNe0t4+C=w@mail.gmail.com>
+From: Adam Ford <aford173@gmail.com>
+Date: Tue, 23 Oct 2018 10:19:28 -0500
+Message-ID: <CAHCN7x+csKEk25CF=teUv+F5_GoTe6_3Yqb5PODLn+AmCCm88w@mail.gmail.com>
+Subject: Re: i.MX6 MIPI-CSI2 OV5640 Camera testing on Mainline Linux
+To: Fabio Estevam <festevam@gmail.com>
+Cc: jacopo@jmondi.org, steve_longerbeam@mentor.com,
+        Jagan Teki <jagan@amarulasolutions.com>,
+        p.zabel@pengutronix.de, Fabio Estevam <fabio.estevam@nxp.com>,
+        gstreamer-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2018-10-23 2:20 p.m., Christian König wrote:
-> Ping once more! Adding a few more AMD people.
-> 
-> Any comments on this?
+On Mon, Oct 22, 2018 at 7:40 AM Fabio Estevam <festevam@gmail.com> wrote:
+>
+> Hi Adam,
+>
+> On Mon, Oct 22, 2018 at 9:37 AM Adam Ford <aford173@gmail.com> wrote:
+>
+> > Thank you!  This tutorial web site is exactly what I need.  The
+> > documentation page in Linux touched on the media-ctl links, but it
+> > didn't explain the syntax or the mapping.  This graphical
+> > interpretation really helps it make more sense.
+>
+> Is capturing working well on your i.MX6 board now?
 
-Patches 1 & 3 are a bit over my head I'm afraid.
+Fabio,
 
+Unfortunately, no.  I built the rootfs based on Jagan's instructions
+at https://openedev.amarulasolutions.com/display/ODWIKI/i.CoreM6+1.5
 
-Patches 2, 4, 6-8 are
+I tried building both the 4.15-RC6 kernel, a 4.19 kernel and a 4.14 LTS kernel.
 
-Reviewed-by: Michel Dänzer <michel.daenzer@amd.com>
+Using the suggested method of generating the graphical display of the
+pipeline options, I am able to enable various pipeline options
+connecting different /dev/videoX options tot he camera.  I have tried
+both the  suggested method above as well as the instructions found in
+Documentation/media/v4l-drivers/imx.rst for their respective kernels,
+and I have tried multiple options to capture through
+ipu1_csi1_capture, ipu2_csi1_capture, and ip1_ic_prepenc capture, and
+all yield a broken pipe.
 
+libv4l2: error turning on stream: Broken pipe
+ERROR: from element /GstPipeline:pipeline0/GstV4l2Src:v4l2src0: Could
+not read from resource.
+Additional debug info:
+gstv4l2bufferpool.c(1064): gst_v4l2_buffer_pool_poll ():
+/GstPipeline:pipeline0/GstV4l2Src:v4l2src0:
+poll error 1: Broken pipe (32)
 
--- 
-Earthling Michel Dänzer               |               http://www.amd.com
-Libre software enthusiast             |             Mesa and X developer
+I can hear the camera click when I start gstreamer and click again
+when it stops trying to stream.
+
+dmesg indicates a broken pipe as well..
+
+[ 2419.851502] ipu2_csi1: pipeline start failed with -32
+
+might you have any suggestions?
+
+thanks,
+
+adam
