@@ -1,115 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yb1-f196.google.com ([209.85.219.196]:33912 "EHLO
-        mail-yb1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726764AbeJWL2k (ORCPT
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:36786 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726438AbeJWLym (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 23 Oct 2018 07:28:40 -0400
-Received: by mail-yb1-f196.google.com with SMTP id n140-v6so2217820yba.1
-        for <linux-media@vger.kernel.org>; Mon, 22 Oct 2018 20:07:19 -0700 (PDT)
-Received: from mail-yw1-f46.google.com (mail-yw1-f46.google.com. [209.85.161.46])
-        by smtp.gmail.com with ESMTPSA id z11-v6sm9395111ywl.36.2018.10.22.20.07.17
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 22 Oct 2018 20:07:17 -0700 (PDT)
-Received: by mail-yw1-f46.google.com with SMTP id v1-v6so16865766ywv.6
-        for <linux-media@vger.kernel.org>; Mon, 22 Oct 2018 20:07:17 -0700 (PDT)
-MIME-Version: 1.0
-References: <1539071634-1644-1-git-send-email-mgottam@codeaurora.org>
- <CAPBb6MUt_V4zEKGcRYXRXNRVdjF2uspOvEj0T-dH6dBZ9ya9CA@mail.gmail.com>
- <f1bb2ead-fe8e-af6a-1b96-9460a7b01f29@linaro.org> <CAPBb6MXxaGMCY43fXwWYZmYmiVwDA6kdJRwWZGqUHhWOGXSz7Q@mail.gmail.com>
- <40d15ea4-48e2-b2c7-1d70-68dcc1b08990@linaro.org> <CAPBb6MU9mV9_iq6cf-BzzhTFsed5vtjTui669jxq2uF8KenhQQ@mail.gmail.com>
-In-Reply-To: <CAPBb6MU9mV9_iq6cf-BzzhTFsed5vtjTui669jxq2uF8KenhQQ@mail.gmail.com>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Tue, 23 Oct 2018 12:07:05 +0900
-Message-ID: <CAAFQd5BfNxBwEPaZvxbYpmvZw1WvynWV6NrUocm5vmXQNQf8uQ@mail.gmail.com>
-Subject: Re: [PATCH] media: venus: add support for key frame
-To: Alexandre Courbot <acourbot@chromium.org>
-Cc: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        mgottam@codeaurora.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
-        vgarodia@codeaurora.org
-Content-Type: text/plain; charset="UTF-8"
+        Tue, 23 Oct 2018 07:54:42 -0400
+Message-ID: <689c2e7da62fb029d9e95489fb8bb672@smtp-cloud9.xs4all.net>
+Date: Tue, 23 Oct 2018 05:33:15 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Oct 22, 2018 at 3:15 PM Alexandre Courbot <acourbot@chromium.org> wrote:
->
-> On Fri, Oct 12, 2018 at 5:10 PM Stanimir Varbanov
-> <stanimir.varbanov@linaro.org> wrote:
-> >
-> >
-> >
-> > On 10/12/2018 11:06 AM, Alexandre Courbot wrote:
-> > > On Fri, Oct 12, 2018 at 4:37 PM Stanimir Varbanov
-> > > <stanimir.varbanov@linaro.org> wrote:
-> > >>
-> > >> Hi Alex,
-> > >>
-> > >> On 10/12/2018 08:26 AM, Alexandre Courbot wrote:
-> > >>> On Tue, Oct 9, 2018 at 4:54 PM Malathi Gottam <mgottam@codeaurora.org> wrote:
-> > >>>>
-> > >>>> When client requests for a keyframe, set the property
-> > >>>> to hardware to generate the sync frame.
-> > >>>>
-> > >>>> Signed-off-by: Malathi Gottam <mgottam@codeaurora.org>
-> > >>>> ---
-> > >>>>  drivers/media/platform/qcom/venus/venc_ctrls.c | 13 +++++++++++++
-> > >>>>  1 file changed, 13 insertions(+)
-> > >>>>
-> > >>>> diff --git a/drivers/media/platform/qcom/venus/venc_ctrls.c b/drivers/media/platform/qcom/venus/venc_ctrls.c
-> > >>>> index 45910172..f332c8e 100644
-> > >>>> --- a/drivers/media/platform/qcom/venus/venc_ctrls.c
-> > >>>> +++ b/drivers/media/platform/qcom/venus/venc_ctrls.c
-> > >>>> @@ -81,6 +81,8 @@ static int venc_op_s_ctrl(struct v4l2_ctrl *ctrl)
-> > >>>>         struct venc_controls *ctr = &inst->controls.enc;
-> > >>>>         u32 bframes;
-> > >>>>         int ret;
-> > >>>> +       void *ptr;
-> > >>>> +       u32 ptype;
-> > >>>>
-> > >>>>         switch (ctrl->id) {
-> > >>>>         case V4L2_CID_MPEG_VIDEO_BITRATE_MODE:
-> > >>>> @@ -173,6 +175,14 @@ static int venc_op_s_ctrl(struct v4l2_ctrl *ctrl)
-> > >>>>
-> > >>>>                 ctr->num_b_frames = bframes;
-> > >>>>                 break;
-> > >>>> +       case V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME:
-> > >>>> +               ptype = HFI_PROPERTY_CONFIG_VENC_REQUEST_SYNC_FRAME;
-> > >>>> +               ret = hfi_session_set_property(inst, ptype, ptr);
-> > >>>
-> > >>> The test bot already said it, but ptr is passed to
-> > >>> hfi_session_set_property() uninitialized. And as can be expected the
-> > >>> call returns -EINVAL on my board.
-> > >>>
-> > >>> Looking at other uses of HFI_PROPERTY_CONFIG_VENC_REQUEST_SYNC_FRAME I
-> > >>> see that the packet sent to the firmware does not have room for an
-> > >>> argument, so I tried to pass NULL but got the same result.
-> > >>
-> > >> yes, because pdata cannot be NULL. I'd suggest to make a pointer to
-> > >> struct hfi_enable and pass it to the set_property function.
-> > >
-> > > FWIW I also tried doing this and got the same error, strange...
-> > >
-> >
-> > OK, when you calling the v4l control? It makes sense when you calling
-> > it, because set_property checks does the session is on START state (i.e.
-> > streamon on both queues).
->
-> Do you mean that the property won't be actually applied unless both
-> queues are streaming? In that case maybe it would make sense for the
-> driver to save controls set before that and apply them when the
-> conditions allow them to be effective?
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Right. The driver cannot just drop a control setting on the floor if
-it's not ready to apply it.
+Results of the daily build of media_tree:
 
-However, the V4L2 control framework already provides a tool to handle this:
- - the driver can ignore any .s_ctrl() calls when it can't apply the controls,
- - the driver must call v4l2_ctrl_handler_setup() when it initialized
-the hardware, so that all the control values are applied in one go.
+date:			Tue Oct 23 05:00:11 CEST 2018
+media-tree git hash:	3b796aa60af087f5fec75aee9b17f2130f2b9adc
+media_build git hash:	0c8bb27f3aaa682b9548b656f77505c3d1f11e71
+v4l-utils git hash:	c36dbbdfa8b30b2badd4f893b59d0bd4f0bd12aa
+edid-decode git hash:	5eeb151a748788666534d6ea3da07f90400d24c2
+gcc version:		i686-linux-gcc (GCC) 8.2.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.18.0-2-amd64
 
-Best regards,
-Tomasz
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.57-i686: OK
+linux-3.16.57-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.123-i686: OK
+linux-3.18.123-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.52-i686: OK
+linux-4.1.52-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.159-i686: OK
+linux-4.4.159-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.131-i686: OK
+linux-4.9.131-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.74-i686: OK
+linux-4.14.74-x86_64: OK
+linux-4.15.18-i686: OK
+linux-4.15.18-x86_64: OK
+linux-4.16.18-i686: OK
+linux-4.16.18-x86_64: OK
+linux-4.17.19-i686: OK
+linux-4.17.19-x86_64: OK
+linux-4.18.12-i686: OK
+linux-4.18.12-x86_64: OK
+linux-4.19-rc6-i686: OK
+linux-4.19-rc6-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
