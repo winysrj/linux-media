@@ -1,184 +1,255 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1-d.mail.gandi.net ([217.70.183.193]:38757 "EHLO
-        relay1-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725787AbeJXH2z (ORCPT
+Received: from relay1.mentorg.com ([192.94.38.131]:50089 "EHLO
+        relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726382AbeJXHwM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 24 Oct 2018 03:28:55 -0400
-Date: Wed, 24 Oct 2018 01:03:09 +0200
-From: jacopo mondi <jacopo@jmondi.org>
-To: Adam Ford <aford173@gmail.com>
-Cc: steve_longerbeam@mentor.com, Fabio Estevam <festevam@gmail.com>,
-        Jagan Teki <jagan@amarulasolutions.com>,
-        p.zabel@pengutronix.de, Fabio Estevam <fabio.estevam@nxp.com>,
-        gstreamer-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: Re: i.MX6 MIPI-CSI2 OV5640 Camera testing on Mainline Linux
-Message-ID: <20181023230259.GA3766@w540>
-References: <CAHCN7xLx6uAmYiGh3p=piZFwE0VkfixTLqdjETibKwk2+DhMzA@mail.gmail.com>
- <CAHCN7xJKuPYg04WfRzbYWO4bGoHHnD16LBPRsK1QsiYY1bL7nA@mail.gmail.com>
- <20181022113306.GB2867@w540>
- <CAHCN7xJkc5RW73C0zruWBgyF7G0J3C5tLE=ZdfxTKbrUqs=-PQ@mail.gmail.com>
- <CAOMZO5ATm4BRzPEQOU+ZD6bHCP2Aqjp4raRYhuc+wNe0t4+C=w@mail.gmail.com>
- <CAHCN7x+csKEk25CF=teUv+F5_GoTe6_3Yqb5PODLn+AmCCm88w@mail.gmail.com>
- <d78877f8-2c23-2bf0-0a9c-cd98b855e95e@mentor.com>
- <CAHCN7xKhGAXs0jGv96CfOfLQfVubxzsdE9UjpDu+4NM6oLDGWw@mail.gmail.com>
- <bc034299-4a32-f248-d09a-0d1b5872a506@mentor.com>
- <CAHCN7xKVUgpyCb5k7s0PNXW-efySSwP25ZGMLdbFnohATPwKhg@mail.gmail.com>
+        Wed, 24 Oct 2018 03:52:12 -0400
+From: Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: Re: [PATCH v3 01/16] media: imx: add mem2mem device
+To: Philipp Zabel <pza@pengutronix.de>,
+        Steve Longerbeam <slongerbeam@gmail.com>
+CC: Tim Harvey <tharvey@gateworks.com>, <nicolas@ndufresne.ca>,
+        Sascha Hauer <kernel@pengutronix.de>,
+        linux-media <linux-media@vger.kernel.org>
+References: <20180918093421.12930-1-p.zabel@pengutronix.de>
+ <20180918093421.12930-2-p.zabel@pengutronix.de>
+ <CAJ+vNU2vraT=vUwS+1TYKuX50OsjZsNaN220y1kz8XgHvC48Sg@mail.gmail.com>
+ <1539942796.3395.8.camel@pengutronix.de>
+ <1f090c65-342a-fb43-c274-935cbf78fdd4@gmail.com>
+ <20181021174348.3gmiqtrboraknktn@pengutronix.de>
+Message-ID: <e967a28c-320c-8f62-6b65-4a2804863a3b@mentor.com>
+Date: Tue, 23 Oct 2018 16:23:56 -0700
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="f2QGlHpHGjS2mn6Y"
-Content-Disposition: inline
-In-Reply-To: <CAHCN7xKVUgpyCb5k7s0PNXW-efySSwP25ZGMLdbFnohATPwKhg@mail.gmail.com>
+In-Reply-To: <20181021174348.3gmiqtrboraknktn@pengutronix.de>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+(resending as plain text)
 
---f2QGlHpHGjS2mn6Y
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 
-Hi Adam,
+On 10/21/18 10:43 AM, Philipp Zabel wrote:
+> On Fri, Oct 19, 2018 at 01:19:10PM -0700, Steve Longerbeam wrote:
+>> On 10/19/18 2:53 AM, Philipp Zabel wrote:
+>>> Hi Tim,
+>>>
+>>> On Thu, 2018-10-18 at 15:53 -0700, Tim Harvey wrote:
+>>> [...]
+>>>> Philipp,
+>>>>
+>>>> Thanks for submitting this!
+>>>>
+>>>> I'm hoping this lets us use non-IMX capture devices along with the IMX
+>>>> media controller entities to so we can use hardware
+>>>> CSC,scaling,pixel-format-conversions and ultimately coda based encode.
+>>>>
+>>>> I've built this on top of linux-media and see that it registers as
+>>>> /dev/video8 but I'm not clear how to use it? I don't see it within the
+>>>> media controller graph.
+>>> It's a V4L2 mem2mem device that can be handled by the GstV4l2Transform
+>>> element, for example. GStreamer should create a v4l2video8convert
+>>> element of that type.
+>>>
+>>> The mem2mem device is not part of the media controller graph on purpose.
+>>> There is no interaction with any of the entities in the media controller
+>>> graph apart from the fact that the IC PP task we are using for mem2mem
+>>> scaling is sharing hardware resources with the IC PRP tasks used for the
+>>> media controller scaler entitites.
+>> It would be nice in the future to link mem2mem output-side to the ipu_vdic:1
+>> pad, to make use of h/w VDIC de-interlace as part of mem2mem operations.
+>> The progressive output from a new ipu_vdic:3 pad can then be sent to the
+>> image_convert APIs by the mem2mem driver for further tiled scaling, CSC,
+>> and rotation by the IC PP task. The ipu_vdic:1 pad makes use of pure
+>> DMA-based de-interlace, that is, all input frames (N-1, N, N+1) to the
+>> VDIC are sent from DMA buffers, and this VDIC mode of operation is
+>> well understood and produces clean de-interlace output. The risk is
+>> that this would require iDMAC channel 5 for ipu_vdic:3, which IFAIK is
+>> not verified to work yet.
+> Tiled mem2mem deinterlacing support would be nice, I'm not sure yet how
+> though. I'd limit media controller links to marking VDIC as unavailable
+> for the capture pipeline. The V4L2 subdev API is too lowlevel for tiling
+> mem2mem purposes, as we'd need to change the subdev format multiple
+> times per frame.
 
-On Tue, Oct 23, 2018 at 12:54:12PM -0500, Adam Ford wrote:
-> On Tue, Oct 23, 2018 at 12:39 PM Steve Longerbeam
-> <steve_longerbeam@mentor.com> wrote:
-> >
-> >
-> > On 10/23/18 10:34 AM, Adam Ford wrote:
-> > > On Tue, Oct 23, 2018 at 11:36 AM Steve Longerbeam
-> > > <steve_longerbeam@mentor.com> wrote:
-> > >> Hi Adam,
-> > >>
-> > >> On 10/23/18 8:19 AM, Adam Ford wrote:
-> > >>> On Mon, Oct 22, 2018 at 7:40 AM Fabio Estevam <festevam@gmail.com> wrote:
-> > >>>> Hi Adam,
-> > >>>>
-> > >>>> On Mon, Oct 22, 2018 at 9:37 AM Adam Ford <aford173@gmail.com> wrote:
-> > >>>>
-> > >>>>> Thank you!  This tutorial web site is exactly what I need.  The
-> > >>>>> documentation page in Linux touched on the media-ctl links, but it
-> > >>>>> didn't explain the syntax or the mapping.  This graphical
-> > >>>>> interpretation really helps it make more sense.
-> > >>>> Is capturing working well on your i.MX6 board now?
-> > >>> Fabio,
-> > >>>
-> > >>> Unfortunately, no.  I built the rootfs based on Jagan's instructions
-> > >>> at https://openedev.amarulasolutions.com/display/ODWIKI/i.CoreM6+1.5
-> > >>>
-> > >>> I tried building both the 4.15-RC6 kernel, a 4.19 kernel and a 4.14 LTS kernel.
-> > >>>
-> > >>> Using the suggested method of generating the graphical display of the
-> > >>> pipeline options, I am able to enable various pipeline options
-> > >>> connecting different /dev/videoX options tot he camera.  I have tried
-> > >>> both the  suggested method above as well as the instructions found in
-> > >>> Documentation/media/v4l-drivers/imx.rst for their respective kernels,
-> > >>> and I have tried multiple options to capture through
-> > >>> ipu1_csi1_capture, ipu2_csi1_capture, and ip1_ic_prepenc capture, and
-> > >>> all yield a broken pipe.
-> > >>>
-> > >>> libv4l2: error turning on stream: Broken pipe
-> > >>> ERROR: from element /GstPipeline:pipeline0/GstV4l2Src:v4l2src0: Could
-> > >>> not read from resource.
-> > >>> Additional debug info:
-> > >>> gstv4l2bufferpool.c(1064): gst_v4l2_buffer_pool_poll ():
-> > >>> /GstPipeline:pipeline0/GstV4l2Src:v4l2src0:
-> > >>> poll error 1: Broken pipe (32)
-> > >>>
-> > >>> I can hear the camera click when I start gstreamer and click again
-> > >>> when it stops trying to stream.
-> > >>>
-> > >>> dmesg indicates a broken pipe as well..
-> > >>>
-> > >>> [ 2419.851502] ipu2_csi1: pipeline start failed with -32
-> > >>>
-> > >>> might you have any suggestions?
-> > >>
-> > >> This -EPIPE error might mean you have a mis-match of resolution, pixel
-> > >> format, or field type between one of the source->sink pad links. You can
-> > >> find out which pads have a mis-match by enabling dynamic debug in the
-> > >> kernel function __media_pipeline_start.
-> > > Following Jagan's suggestion, I tried to make sure all the resolution
-> > > and pixel formats were set the same between each source and sink.
-> > >
-> > > media-ctl --set-v4l2 "'ov5640 2-0010':0[fmt:UYVY2X8/640x480
-> > > field:none]"
-> > > media-ctl --set-v4l2 "'imx6-mipi-csi2':1[fmt:UYVY2X8/640x480
-> > > field:none]"
-> > > media-ctl --set-v4l2 "'ipu1_csi0_mux':2[fmt:UYVY2X8/640x480
-> > > field:none]"
-> > > media-ctl --set-v4l2 "'ipu1_csi0':2[fmt:AYUV32/640x480 field:none]"
-> > >
-> > >> Also make sure you are attempting to stream from the correct /dev/videoN.
-> > > I have graphically plotted the pipeline using media-ctl --print-dot
-> > > and I can see the proper video is routed, but your dynamic debug
-> > > suggestion yielded something:
-> > >
-> > >     imx-media capture-subsystem: link validation failed for 'ov5640
-> > > 2-0010':0 -> 'imx6-mipi-csi2':0, error -32
-> >
-> >
-> > It's what I expected, you have a format mismatch between those pads.
->
-> Is the mismatch something I am doing wrong with:
->
-> media-ctl --set-v4l2 "'ov5640 2-0010':0[fmt:UYVY2X8/640x480 field:none]"
-> media-ctl --set-v4l2 "'imx6-mipi-csi2':2[fmt:UYVY2X8/640x480 field:none]"
->
 
-Could you try to verify the actual format configured on the sensor?
-(media-ctl --get-v4l2 "'ov5640 2-0010':0").
+I wasn't considering tiled deinterlacing, only deinterlacing at the 
+hardware limited input frame size to the VDIC.
 
-Depending on the driver version you are running, you might be affected
-by different regressions.
 
-> or is there something else I need to do?  I just used Jagan's suggestion.
+> Also I'd like to keep the option of scheduling tile jobs to both IPUs on
+> i.MX6Q, which will become difficult to describe via MC, as both IPUs'
+> ipu_vdics would have to be involved.
 
-I suggest you to update the driver version to the last one available
-in the media-tree master, or at least try to backport the following
-commit:
-fb98e29 media: ov5640: fix mode change regression
+Agreed, it would be good to add to the mem2mem driver the ability to 
+schedule jobs to whichever IPU is least busy.
 
-If it turns out the format and mode configured on the sensor do not
-match the one you want.
 
-Thanks
-   j
+>> The other problem with that currently is that mem2mem would have to be split
+>> into separate device nodes: a /dev/videoN for output-side (linked to
+>> ipu_vdic:1), and a /dev/videoM for capture-side (linked from
+>> ipu_vdic:3). And then it no longer presents to userspace as a mem2mem
+>> device with a single device node for both output and capture sides.
+> I don't understand why we'd need separate video devices for output and
+> capture, deinterlacing is still single input single (double rate)
+> output. As soon as we begin tiling, we are one layer of abstraction
+> away from the hardware pads anyway. Now if we want to support combining
+> on the other hand...
 
-> adam
-> >
-> > Steve
-> >
-> >
-> > >
-> > > I am assume this means the interface between the camera and the csi2
-> > > isn't working.  I am going to double check the power rails and the
-> > > clocks.  i can hear it click when activated and deactivated, so
-> > > something is happening.
-> > >
-> > > adam
-> > >
-> > >> Steve
-> > >>
 
---f2QGlHpHGjS2mn6Y
-Content-Type: application/pgp-signature; name="signature.asc"
+Again I wasn't thinking of doing tiled deinterlace.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
 
-iQIcBAEBAgAGBQJbz6itAAoJEHI0Bo8WoVY87U4P/34uE8uXTUoSd9lXwWwTKoAC
-K6f/oRcuc8l9S5VyWUCVUikOzQMqcfixcfk/CnFp14fMJ9oznRv1+y3Q3aLlgBsM
-3QkqxOxZ87Oy7EtcPk60OZlJ1QeJI/oXGpLgcYrQf79UdGRUwhpkOr8sU7TrLs6g
-j7vNlPDbkF5riiOFUunifJNF6C43he2iUWDc+DDzv24+3PdezN3lxrRydrA+j1nm
-jO6QUmCicJXO6Z4ezmmGuma0hiGoWMXTqolZT7vBWOBVAexWmSRNkhXmotOs3e45
-jnwK2X3Nakga8z8nCWOnpQfUgbgHESNSalPUy6FuyqYnLNMIREH9kuwq+B4d2Phb
-3+mAlBdPsHZp/Dm5vBum9+eHwykFF3YfbSYbi5hd7ji0+99w6XGFgjd7rzibmRJr
-uhC8jK9Iqlj99BnOPolcsIDuJ38AZUUlsu+po8YxgHXBafA3yVyjUNBbfFbHnS9r
-DN5X3MlVoXDMKoTinVkUgfWuqlqKFm0TsSpOl6hhyssommJsHwa/9B+spGyKgEiY
-oyulewcX+faQAcYRoZ2rPXgzk5MzouxWIWxBAPH/daTZnxCL18ADCz7QK5YEYDHb
-LRX1aA91CtMfgEaRY/lQhwsJtnqqCqRZ/pTPu37jTX2MWoJyWEllykbubta3Am1+
-gt8bWtub7PdCRbhTZxVb
-=ECHR
------END PGP SIGNATURE-----
+>> Or is there another way? I recall work to integrate mem2mem with media
+>> control. There is v4l2_m2m_register_media_controller(), but that
+>> create three
+>> entities:
+>> source, processing, and sink. The VDIC entity would be part of mem2mem
+>> processing but this entity already exists for the current graph. This
+>> function could however be used as a guide to incorporate the VDIC
+>> entity into m2m device.
+> I'm not sure if this is the right abstraction. Without tiling or
+> multi-IPU scheduling, sure. But the mem2mem driver does not directly
+> describe hardware operation anyway.
 
---f2QGlHpHGjS2mn6Y--
+
+What I'm thinking is separate mem2mem devices from this proposed 
+tiled-scaling post-processing mem2mem, that solely do motion compensated 
+deinterlace using the VDIC as the processing entity.
+
+[1] is the dot graph that demonstrates the idea, on imx6q SabreSD. Two 
+new mem2mem devices are attached to VDIC sink and source IDMAC pads. 
+Also the PP tiled scaling mem2mem is shown in the graph.
+
+As of now, the VDIC is only available for video capture pipelines, so 
+the advantage would be to allow the use of hardware deinterlace 
+gstreamer pipelines from other types of interlaced sources like file or 
+network streams.
+
+So something like the following example which would do hardware 
+deinterlace, followed by tiled scaling/CSC/rotation, then h.264 encode, 
+the VDIC mem2mem device is at /dev/video0, and the PP mem2mem device is 
+at /dev/video12 in this example:
+
+gst-launch-1.0 \
+v4l2src ! \
+v4l2video0convert output-io-mode=dmabuf-import ! \
+v4l2video12convert output-io-mode=dmabuf-import ! \
+v4l2h264enc output-io-mode=dmabuf-import ! \
+h264parse ! \
+matroskamux ! \
+filesink
+
+I'm probably missing some stream properties in that example, but you get 
+the idea.
+
+Steve
+
+[1]
+
+digraph board {
+     rankdir=TB
+     n00000001 [label="{{<port0> 0 | <port1> 1} | 
+ipu1_vdic\n/dev/v4l-subdev0 | {<port2> 2 | <port3> 3}}", shape=Mrecord, 
+style=filled, fillcolor=green]
+     n00000001:port3 -> n00000008 [style=dashed]
+     n00000001:port2 -> n00000021:port0 [style=dashed]
+     n00000006 [label="ipu_vdic mem2mem-source\n/dev/video0", shape=box, 
+style=filled, fillcolor=yellow]
+     n00000006 -> n00000001:port1 [style=dashed]
+     n00000008 [label="ipu_vdic mem2mem-sink\n/dev/video0", shape=box, 
+style=filled, fillcolor=yellow]
+     n00000011 [label="{{<port0> 0 | <port1> 1} | 
+ipu2_vdic\n/dev/v4l-subdev1 | {<port2> 2 | <port3> 3}}", shape=Mrecord, 
+style=filled, fillcolor=green]
+     n00000011:port3 -> n00000018 [style=dashed]
+     n00000011:port2 -> n00000037:port0 [style=dashed]
+     n00000016 [label="ipu_vdic mem2mem-source\n/dev/video1", shape=box, 
+style=filled, fillcolor=yellow]
+     n00000016 -> n00000011:port1 [style=dashed]
+     n00000018 [label="ipu_vdic mem2mem-sink\n/dev/video1", shape=box, 
+style=filled, fillcolor=yellow]
+     n00000021 [label="{{<port0> 0} | ipu1_ic_prp\n/dev/v4l-subdev2 | 
+{<port1> 1 | <port2> 2}}", shape=Mrecord, style=filled, fillcolor=green]
+     n00000021:port1 -> n00000025:port0 [style=dashed]
+     n00000021:port2 -> n0000002e:port0 [style=dashed]
+     n00000025 [label="{{<port0> 0} | ipu1_ic_prpenc\n/dev/v4l-subdev3 | 
+{<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
+     n00000025:port1 -> n00000028 [style=dashed]
+     n00000028 [label="ipu1_ic_prpenc capture\n/dev/video2", shape=box, 
+style=filled, fillcolor=yellow]
+     n0000002e [label="{{<port0> 0} | ipu1_ic_prpvf\n/dev/v4l-subdev4 | 
+{<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
+     n0000002e:port1 -> n00000031 [style=dashed]
+     n00000031 [label="ipu1_ic_prpvf capture\n/dev/video3", shape=box, 
+style=filled, fillcolor=yellow]
+     n00000037 [label="{{<port0> 0} | ipu2_ic_prp\n/dev/v4l-subdev5 | 
+{<port1> 1 | <port2> 2}}", shape=Mrecord, style=filled, fillcolor=green]
+     n00000037:port1 -> n0000003b:port0 [style=dashed]
+     n00000037:port2 -> n00000044:port0 [style=dashed]
+     n0000003b [label="{{<port0> 0} | ipu2_ic_prpenc\n/dev/v4l-subdev6 | 
+{<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
+     n0000003b:port1 -> n0000003e [style=dashed]
+     n0000003e [label="ipu2_ic_prpenc capture\n/dev/video4", shape=box, 
+style=filled, fillcolor=yellow]
+     n00000044 [label="{{<port0> 0} | ipu2_ic_prpvf\n/dev/v4l-subdev7 | 
+{<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
+     n00000044:port1 -> n00000047 [style=dashed]
+     n00000047 [label="ipu2_ic_prpvf capture\n/dev/video5", shape=box, 
+style=filled, fillcolor=yellow]
+     n0000004d [label="{{<port0> 0} | ipu1_csi0\n/dev/v4l-subdev8 | 
+{<port1> 1 | <port2> 2}}", shape=Mrecord, style=filled, fillcolor=green]
+     n0000004d:port2 -> n00000051 [style=dashed]
+     n0000004d:port1 -> n00000021:port0 [style=dashed]
+     n0000004d:port1 -> n00000001:port0 [style=dashed]
+     n00000051 [label="ipu1_csi0 capture\n/dev/video6", shape=box, 
+style=filled, fillcolor=yellow]
+     n00000057 [label="{{<port0> 0} | ipu1_csi1\n/dev/v4l-subdev9 | 
+{<port1> 1 | <port2> 2}}", shape=Mrecord, style=filled, fillcolor=green]
+     n00000057:port2 -> n0000005b [style=dashed]
+     n00000057:port1 -> n00000021:port0 [style=dashed]
+     n00000057:port1 -> n00000001:port0 [style=dashed]
+     n0000005b [label="ipu1_csi1 capture\n/dev/video7", shape=box, 
+style=filled, fillcolor=yellow]
+     n00000061 [label="{{<port0> 0} | ipu2_csi0\n/dev/v4l-subdev10 | 
+{<port1> 1 | <port2> 2}}", shape=Mrecord, style=filled, fillcolor=green]
+     n00000061:port2 -> n00000065 [style=dashed]
+     n00000061:port1 -> n00000037:port0 [style=dashed]
+     n00000061:port1 -> n00000011:port0 [style=dashed]
+     n00000065 [label="ipu2_csi0 capture\n/dev/video8", shape=box, 
+style=filled, fillcolor=yellow]
+     n0000006b [label="{{<port0> 0} | ipu2_csi1\n/dev/v4l-subdev11 | 
+{<port1> 1 | <port2> 2}}", shape=Mrecord, style=filled, fillcolor=green]
+     n0000006b:port2 -> n0000006f [style=dashed]
+     n0000006b:port1 -> n00000037:port0 [style=dashed]
+     n0000006b:port1 -> n00000011:port0 [style=dashed]
+     n0000006f [label="ipu2_csi1 capture\n/dev/video9", shape=box, 
+style=filled, fillcolor=yellow]
+     n00000075 [label="{{<port0> 0} | imx6-mipi-csi2\n/dev/v4l-subdev12 
+| {<port1> 1 | <port2> 2 | <port3> 3 | <port4> 4}}", shape=Mrecord, 
+style=filled, fillcolor=green]
+     n00000075:port2 -> n00000057:port0 [style=dashed]
+     n00000075:port3 -> n00000061:port0 [style=dashed]
+     n00000075:port1 -> n0000007b:port0 [style=dashed]
+     n00000075:port4 -> n0000007f:port0 [style=dashed]
+     n0000007b [label="{{<port0> 0 | <port1> 1} | 
+ipu1_csi0_mux\n/dev/v4l-subdev13 | {<port2> 2}}", shape=Mrecord, 
+style=filled, fillcolor=green]
+     n0000007b:port2 -> n0000004d:port0 [style=dashed]
+     n0000007f [label="{{<port0> 0 | <port1> 1} | 
+ipu2_csi1_mux\n/dev/v4l-subdev14 | {<port2> 2}}", shape=Mrecord, 
+style=filled, fillcolor=green]
+     n0000007f:port2 -> n0000006b:port0 [style=dashed]
+     n00000083 [label="{{} | ov5640 1-003c\n/dev/v4l-subdev15 | {<port0> 
+0}}", shape=Mrecord, style=filled, fillcolor=green]
+     n00000083:port0 -> n00000075:port0 [style=dashed]
+     n000000cf [label="ipu_ic_pp mem2mem-proc\n", shape=box, 
+style=filled, fillcolor=yellow]
+     n000000cf -> n000000d4 [style=bold]
+     n000000d2 [label="ipu_ic_pp mem2mem-source\n/dev/video12", 
+shape=box, style=filled, fillcolor=yellow]
+     n000000d2 -> n000000cf [style=bold]
+     n000000d4 [label="ipu_ic_pp mem2mem-sink\n/dev/video12", shape=box, 
+style=filled, fillcolor=yellow]
+}
