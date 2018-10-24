@@ -1,264 +1,202 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-eopbgr700062.outbound.protection.outlook.com ([40.107.70.62]:30798
-        "EHLO NAM04-SN1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726426AbeJXTi0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 24 Oct 2018 15:38:26 -0400
-From: "Huang, Ray" <Ray.Huang@amd.com>
-To: =?utf-8?B?Q2hyaXN0aWFuIEvDtm5pZw==?=
-        <ckoenig.leichtzumerken@gmail.com>,
-        "amd-gfx@lists.freedesktop.org" <amd-gfx@lists.freedesktop.org>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-        "Daenzer, Michel" <Michel.Daenzer@amd.com>
-CC: Daniel Vetter <daniel@ffwll.ch>,
-        Chris Wilson <chris@chris-wilson.co.uk>,
-        "Zhang, Jerry" <Jerry.Zhang@amd.com>
-Subject: RE: [PATCH 1/8] dma-buf: remove shared fence staging in reservation
- object
-Date: Wed, 24 Oct 2018 11:10:34 +0000
-Message-ID: <BY2PR12MB004082845579351604804478ECF60@BY2PR12MB0040.namprd12.prod.outlook.com>
-References: <20181004131250.2373-1-christian.koenig@amd.com>
- <30ba1fc8-58d5-1c75-406e-d10e68ec4b18@gmail.com>
- <42ee3d74-9dac-6573-448c-c70ea28cb9ff@gmail.com>
-In-Reply-To: <42ee3d74-9dac-6573-448c-c70ea28cb9ff@gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:43777 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727141AbeJXTau (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 24 Oct 2018 15:30:50 -0400
+Subject: Re: [RFC] Stateless codecs: how to refer to reference frames
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Alexandre Courbot <acourbot@chromium.org>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Pawel Osciak <posciak@chromium.org>,
+        linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org,
+        Maxime Ripard <maxime.ripard@free-electrons.com>,
+        Ezequiel Garcia <ezequiel@collabora.com>
+References: <20181019080928.208446-1-acourbot@chromium.org>
+ <a02b50ee-37e1-0202-b999-8e32b7bd1a96@xs4all.nl>
+Message-ID: <bb08f06c-e97a-7bde-bf44-0675c4e626b9@xs4all.nl>
+Date: Wed, 24 Oct 2018 12:03:01 +0100
 MIME-Version: 1.0
+In-Reply-To: <a02b50ee-37e1-0202-b999-8e32b7bd1a96@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-U2VyaWVzIGFyZSBSZXZpZXdlZC1ieTogSHVhbmcgUnVpIDxyYXkuaHVhbmdAYW1kLmNvbT4NCg0K
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBDaHJpc3RpYW4gS8O2bmlnIFtt
-YWlsdG86Y2tvZW5pZy5sZWljaHR6dW1lcmtlbkBnbWFpbC5jb21dDQo+IFNlbnQ6IFR1ZXNkYXks
-IE9jdG9iZXIgMjMsIDIwMTggODoyMCBQTQ0KPiBUbzogYW1kLWdmeEBsaXN0cy5mcmVlZGVza3Rv
-cC5vcmc7IGRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmc7IGxpbnV4LQ0KPiBtZWRpYUB2
-Z2VyLmtlcm5lbC5vcmc7IGxpbmFyby1tbS1zaWdAbGlzdHMubGluYXJvLm9yZzsgSHVhbmcsIFJh
-eQ0KPiA8UmF5Lkh1YW5nQGFtZC5jb20+OyBEYWVuemVyLCBNaWNoZWwgPE1pY2hlbC5EYWVuemVy
-QGFtZC5jb20+DQo+IENjOiBEYW5pZWwgVmV0dGVyIDxkYW5pZWxAZmZ3bGwuY2g+OyBDaHJpcyBX
-aWxzb24gPGNocmlzQGNocmlzLXdpbHNvbi5jby51az47DQo+IFpoYW5nLCBKZXJyeSA8SmVycnku
-WmhhbmdAYW1kLmNvbT4NCj4gU3ViamVjdDogUmU6IFtQQVRDSCAxLzhdIGRtYS1idWY6IHJlbW92
-ZSBzaGFyZWQgZmVuY2Ugc3RhZ2luZyBpbg0KPiByZXNlcnZhdGlvbiBvYmplY3QNCj4gDQo+IFBp
-bmcgb25jZSBtb3JlISBBZGRpbmcgYSBmZXcgbW9yZSBBTUQgcGVvcGxlLg0KPiANCj4gQW55IGNv
-bW1lbnRzIG9uIHRoaXM/DQo+IA0KPiBUaGFua3MsDQo+IENocmlzdGlhbi4NCj4gDQo+IEFtIDEy
-LjEwLjE4IHVtIDEwOjIyIHNjaHJpZWIgQ2hyaXN0aWFuIEvDtm5pZzoNCj4gPiBQaW5nISBBZGRp
-bmcgYSBmZXcgcGVvcGxlIGRpcmVjdGx5IGFuZCBtb3JlIG1haWxpbmcgbGlzdHMuDQo+ID4NCj4g
-PiBDYW4gSSBnZXQgYW4gYWNrZWQtYnkvcmIgZm9yIHRoaXM/IEl0J3Mgb25seSBhIGNsZWFudXAg
-YW5kIG5vdCBtdWNoDQo+ID4gZnVuY3Rpb25hbCBjaGFuZ2UuDQo+ID4NCj4gPiBSZWdhcmRzLA0K
-PiA+IENocmlzdGlhbi4NCj4gPg0KPiA+IEFtIDA0LjEwLjIwMTggdW0gMTU6MTIgc2NocmllYiBD
-aHJpc3RpYW4gS8O2bmlnOg0KPiA+PiBObyBuZWVkIGZvciB0aGF0IGFueSBtb3JlLiBKdXN0IHJl
-cGxhY2UgdGhlIGxpc3Qgd2hlbiB0aGVyZSBpc24ndA0KPiA+PiBlbm91Z2ggcm9vbSBhbnkgbW9y
-ZSBmb3IgdGhlIGFkZGl0aW9uYWwgZmVuY2UuDQo+ID4+DQo+ID4+IFNpZ25lZC1vZmYtYnk6IENo
-cmlzdGlhbiBLw7ZuaWcgPGNocmlzdGlhbi5rb2VuaWdAYW1kLmNvbT4NCj4gPj4gLS0tDQo+ID4+
-IMKgIGRyaXZlcnMvZG1hLWJ1Zi9yZXNlcnZhdGlvbi5jIHwgMTc4DQo+ID4+ICsrKysrKysrKysr
-KysrLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KPiA+PiDCoCBpbmNsdWRlL2xpbnV4L3Jl
-c2VydmF0aW9uLmjCoMKgIHzCoMKgIDQgLQ0KPiA+PiDCoCAyIGZpbGVzIGNoYW5nZWQsIDU4IGlu
-c2VydGlvbnMoKyksIDEyNCBkZWxldGlvbnMoLSkNCj4gPj4NCj4gPj4gZGlmZiAtLWdpdCBhL2Ry
-aXZlcnMvZG1hLWJ1Zi9yZXNlcnZhdGlvbi5jDQo+ID4+IGIvZHJpdmVycy9kbWEtYnVmL3Jlc2Vy
-dmF0aW9uLmMgaW5kZXggNmM5NWY2MWEzMmU3Li41ODI1ZmMzMzZhMTMNCj4gPj4gMTAwNjQ0DQo+
-ID4+IC0tLSBhL2RyaXZlcnMvZG1hLWJ1Zi9yZXNlcnZhdGlvbi5jDQo+ID4+ICsrKyBiL2RyaXZl
-cnMvZG1hLWJ1Zi9yZXNlcnZhdGlvbi5jDQo+ID4+IEBAIC02OCwxMDUgKzY4LDIzIEBAIEVYUE9S
-VF9TWU1CT0wocmVzZXJ2YXRpb25fc2VxY291bnRfc3RyaW5nKTsNCj4gPj4gwqDCoCAqLw0KPiA+
-PiDCoCBpbnQgcmVzZXJ2YXRpb25fb2JqZWN0X3Jlc2VydmVfc2hhcmVkKHN0cnVjdCByZXNlcnZh
-dGlvbl9vYmplY3QNCj4gPj4gKm9iaikNCj4gPj4gwqAgew0KPiA+PiAtwqDCoMKgIHN0cnVjdCBy
-ZXNlcnZhdGlvbl9vYmplY3RfbGlzdCAqZm9iaiwgKm9sZDsNCj4gPj4gLcKgwqDCoCB1MzIgbWF4
-Ow0KPiA+PiArwqDCoMKgIHN0cnVjdCByZXNlcnZhdGlvbl9vYmplY3RfbGlzdCAqb2xkLCAqbmV3
-Ow0KPiA+PiArwqDCoMKgIHVuc2lnbmVkIGludCBpLCBqLCBrLCBtYXg7DQo+ID4+IMKgIMKgwqDC
-oMKgwqAgb2xkID0gcmVzZXJ2YXRpb25fb2JqZWN0X2dldF9saXN0KG9iaik7DQo+ID4+IMKgIMKg
-wqDCoMKgwqAgaWYgKG9sZCAmJiBvbGQtPnNoYXJlZF9tYXgpIHsNCj4gPj4gLcKgwqDCoMKgwqDC
-oMKgIGlmIChvbGQtPnNoYXJlZF9jb3VudCA8IG9sZC0+c2hhcmVkX21heCkgew0KPiA+PiAtwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoCAvKiBwZXJmb3JtIGFuIGluLXBsYWNlIHVwZGF0ZSAqLw0KPiA+
-PiAtwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBrZnJlZShvYmotPnN0YWdlZCk7DQo+ID4+IC3CoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgIG9iai0+c3RhZ2VkID0gTlVMTDsNCj4gPj4gK8KgwqDCoMKgwqDC
-oMKgIGlmIChvbGQtPnNoYXJlZF9jb3VudCA8IG9sZC0+c2hhcmVkX21heCkNCj4gPj4gwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqAgcmV0dXJuIDA7DQo+ID4+IC3CoMKgwqDCoMKgwqDCoCB9IGVs
-c2UNCj4gPj4gK8KgwqDCoMKgwqDCoMKgIGVsc2UNCj4gPj4gwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqAgbWF4ID0gb2xkLT5zaGFyZWRfbWF4ICogMjsNCj4gPj4gLcKgwqDCoCB9IGVsc2UNCj4g
-Pj4gLcKgwqDCoMKgwqDCoMKgIG1heCA9IDQ7DQo+ID4+IC0NCj4gPj4gLcKgwqDCoCAvKg0KPiA+
-PiAtwqDCoMKgwqAgKiByZXNpemUgb2JqLT5zdGFnZWQgb3IgYWxsb2NhdGUgaWYgaXQgZG9lc24n
-dCBleGlzdCwNCj4gPj4gLcKgwqDCoMKgICogbm9vcCBpZiBhbHJlYWR5IGNvcnJlY3Qgc2l6ZQ0K
-PiA+PiAtwqDCoMKgwqAgKi8NCj4gPj4gLcKgwqDCoCBmb2JqID0ga3JlYWxsb2Mob2JqLT5zdGFn
-ZWQsIG9mZnNldG9mKHR5cGVvZigqZm9iaiksDQo+ID4+IHNoYXJlZFttYXhdKSwNCj4gPj4gLcKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqAgR0ZQX0tFUk5FTCk7DQo+ID4+IC3CoMKgwqAgaWYgKCFmb2Jq
-KQ0KPiA+PiAtwqDCoMKgwqDCoMKgwqAgcmV0dXJuIC1FTk9NRU07DQo+ID4+IC0NCj4gPj4gLcKg
-wqDCoCBvYmotPnN0YWdlZCA9IGZvYmo7DQo+ID4+IC3CoMKgwqAgZm9iai0+c2hhcmVkX21heCA9
-IG1heDsNCj4gPj4gLcKgwqDCoCByZXR1cm4gMDsNCj4gPj4gLX0NCj4gPj4gLUVYUE9SVF9TWU1C
-T0wocmVzZXJ2YXRpb25fb2JqZWN0X3Jlc2VydmVfc2hhcmVkKTsNCj4gPj4gLQ0KPiA+PiAtc3Rh
-dGljIHZvaWQNCj4gPj4gLXJlc2VydmF0aW9uX29iamVjdF9hZGRfc2hhcmVkX2lucGxhY2Uoc3Ry
-dWN0IHJlc2VydmF0aW9uX29iamVjdA0KPiA+PiAqb2JqLA0KPiA+PiAtwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIHN0cnVjdCByZXNlcnZhdGlvbl9vYmplY3RfbGlz
-dCAqZm9iaiwNCj4gPj4gLcKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oCBzdHJ1Y3QgZG1hX2ZlbmNlICpmZW5jZSkgLXsNCj4gPj4gLcKgwqDCoCBzdHJ1Y3QgZG1hX2Zl
-bmNlICpzaWduYWxlZCA9IE5VTEw7DQo+ID4+IC3CoMKgwqAgdTMyIGksIHNpZ25hbGVkX2lkeDsN
-Cj4gPj4gLQ0KPiA+PiAtwqDCoMKgIGRtYV9mZW5jZV9nZXQoZmVuY2UpOw0KPiA+PiAtDQo+ID4+
-IC3CoMKgwqAgcHJlZW1wdF9kaXNhYmxlKCk7DQo+ID4+IC3CoMKgwqAgd3JpdGVfc2VxY291bnRf
-YmVnaW4oJm9iai0+c2VxKTsNCj4gPj4gLQ0KPiA+PiAtwqDCoMKgIGZvciAoaSA9IDA7IGkgPCBm
-b2JqLT5zaGFyZWRfY291bnQ7ICsraSkgew0KPiA+PiAtwqDCoMKgwqDCoMKgwqAgc3RydWN0IGRt
-YV9mZW5jZSAqb2xkX2ZlbmNlOw0KPiA+PiAtDQo+ID4+IC3CoMKgwqDCoMKgwqDCoCBvbGRfZmVu
-Y2UgPSByY3VfZGVyZWZlcmVuY2VfcHJvdGVjdGVkKGZvYmotPnNoYXJlZFtpXSwNCj4gPj4gLcKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgcmVzZXJ2YXRpb25f
-b2JqZWN0X2hlbGQob2JqKSk7DQo+ID4+IC0NCj4gPj4gLcKgwqDCoMKgwqDCoMKgIGlmIChvbGRf
-ZmVuY2UtPmNvbnRleHQgPT0gZmVuY2UtPmNvbnRleHQpIHsNCj4gPj4gLcKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqAgLyogbWVtb3J5IGJhcnJpZXIgaXMgYWRkZWQgYnkgd3JpdGVfc2VxY291bnRfYmVn
-aW4gKi8NCj4gPj4gLcKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgUkNVX0lOSVRfUE9JTlRFUihmb2Jq
-LT5zaGFyZWRbaV0sIGZlbmNlKTsNCj4gPj4gLcKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgd3JpdGVf
-c2VxY291bnRfZW5kKCZvYmotPnNlcSk7DQo+ID4+IC3CoMKgwqDCoMKgwqDCoMKgwqDCoMKgIHBy
-ZWVtcHRfZW5hYmxlKCk7DQo+ID4+IC0NCj4gPj4gLcKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgZG1h
-X2ZlbmNlX3B1dChvbGRfZmVuY2UpOw0KPiA+PiAtwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCByZXR1
-cm47DQo+ID4+IC3CoMKgwqDCoMKgwqDCoCB9DQo+ID4+IC0NCj4gPj4gLcKgwqDCoMKgwqDCoMKg
-IGlmICghc2lnbmFsZWQgJiYgZG1hX2ZlbmNlX2lzX3NpZ25hbGVkKG9sZF9mZW5jZSkpIHsNCj4g
-Pj4gLcKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgc2lnbmFsZWQgPSBvbGRfZmVuY2U7DQo+ID4+IC3C
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgIHNpZ25hbGVkX2lkeCA9IGk7DQo+ID4+IC3CoMKgwqDCoMKg
-wqDCoCB9DQo+ID4+IC3CoMKgwqAgfQ0KPiA+PiAtDQo+ID4+IC3CoMKgwqAgLyoNCj4gPj4gLcKg
-wqDCoMKgICogbWVtb3J5IGJhcnJpZXIgaXMgYWRkZWQgYnkgd3JpdGVfc2VxY291bnRfYmVnaW4s
-DQo+ID4+IC3CoMKgwqDCoCAqIGZvYmotPnNoYXJlZF9jb3VudCBpcyBwcm90ZWN0ZWQgYnkgdGhp
-cyBsb2NrIHRvbw0KPiA+PiAtwqDCoMKgwqAgKi8NCj4gPj4gLcKgwqDCoCBpZiAoc2lnbmFsZWQp
-IHsNCj4gPj4gLcKgwqDCoMKgwqDCoMKgIFJDVV9JTklUX1BPSU5URVIoZm9iai0+c2hhcmVkW3Np
-Z25hbGVkX2lkeF0sIGZlbmNlKTsNCj4gPj4gwqDCoMKgwqDCoCB9IGVsc2Ugew0KPiA+PiAtwqDC
-oMKgwqDCoMKgwqAgQlVHX09OKGZvYmotPnNoYXJlZF9jb3VudCA+PSBmb2JqLT5zaGFyZWRfbWF4
-KTsNCj4gPj4gLSBSQ1VfSU5JVF9QT0lOVEVSKGZvYmotPnNoYXJlZFtmb2JqLT5zaGFyZWRfY291
-bnRdLCBmZW5jZSk7DQo+ID4+IC3CoMKgwqDCoMKgwqDCoCBmb2JqLT5zaGFyZWRfY291bnQrKzsN
-Cj4gPj4gK8KgwqDCoMKgwqDCoMKgIG1heCA9IDQ7DQo+ID4+IMKgwqDCoMKgwqAgfQ0KPiA+PiDC
-oCAtwqDCoMKgIHdyaXRlX3NlcWNvdW50X2VuZCgmb2JqLT5zZXEpOw0KPiA+PiAtwqDCoMKgIHBy
-ZWVtcHRfZW5hYmxlKCk7DQo+ID4+IC0NCj4gPj4gLcKgwqDCoCBkbWFfZmVuY2VfcHV0KHNpZ25h
-bGVkKTsNCj4gPj4gLX0NCj4gPj4gLQ0KPiA+PiAtc3RhdGljIHZvaWQNCj4gPj4gLXJlc2VydmF0
-aW9uX29iamVjdF9hZGRfc2hhcmVkX3JlcGxhY2Uoc3RydWN0IHJlc2VydmF0aW9uX29iamVjdA0K
-PiA+PiAqb2JqLA0KPiA+PiAtwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgIHN0cnVjdCByZXNlcnZhdGlvbl9vYmplY3RfbGlzdCAqb2xkLA0KPiA+PiAtwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIHN0cnVjdCByZXNlcnZhdGlvbl9vYmpl
-Y3RfbGlzdCAqZm9iaiwNCj4gPj4gLcKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoCBzdHJ1Y3QgZG1hX2ZlbmNlICpmZW5jZSkgLXsNCj4gPj4gLcKgwqDCoCB1bnNpZ25l
-ZCBpLCBqLCBrOw0KPiA+PiAtDQo+ID4+IC3CoMKgwqAgZG1hX2ZlbmNlX2dldChmZW5jZSk7DQo+
-ID4+IC0NCj4gPj4gLcKgwqDCoCBpZiAoIW9sZCkgew0KPiA+PiAtwqDCoMKgwqDCoMKgwqAgUkNV
-X0lOSVRfUE9JTlRFUihmb2JqLT5zaGFyZWRbMF0sIGZlbmNlKTsNCj4gPj4gLcKgwqDCoMKgwqDC
-oMKgIGZvYmotPnNoYXJlZF9jb3VudCA9IDE7DQo+ID4+IC3CoMKgwqDCoMKgwqDCoCBnb3RvIGRv
-bmU7DQo+ID4+IC3CoMKgwqAgfQ0KPiA+PiArwqDCoMKgIG5ldyA9IGttYWxsb2Mob2Zmc2V0b2Yo
-dHlwZW9mKCpuZXcpLCBzaGFyZWRbbWF4XSksIEdGUF9LRVJORUwpOw0KPiA+PiArwqDCoMKgIGlm
-ICghbmV3KQ0KPiA+PiArwqDCoMKgwqDCoMKgwqAgcmV0dXJuIC1FTk9NRU07DQo+ID4+IMKgIMKg
-wqDCoMKgwqAgLyoNCj4gPj4gwqDCoMKgwqDCoMKgICogbm8gbmVlZCB0byBidW1wIGZlbmNlIHJl
-ZmNvdW50cywgcmN1X3JlYWQgYWNjZXNzIEBAIC0xNzQsNDYNCj4gPj4gKzkyLDQ1IEBAIHJlc2Vy
-dmF0aW9uX29iamVjdF9hZGRfc2hhcmVkX3JlcGxhY2Uoc3RydWN0DQo+ID4+IHJlc2VydmF0aW9u
-X29iamVjdCAqb2JqLA0KPiA+PiDCoMKgwqDCoMKgwqAgKiByZWZlcmVuY2VzIGZyb20gdGhlIG9s
-ZCBzdHJ1Y3QgYXJlIGNhcnJpZWQgb3ZlciB0bw0KPiA+PiDCoMKgwqDCoMKgwqAgKiB0aGUgbmV3
-Lg0KPiA+PiDCoMKgwqDCoMKgwqAgKi8NCj4gPj4gLcKgwqDCoCBmb3IgKGkgPSAwLCBqID0gMCwg
-ayA9IGZvYmotPnNoYXJlZF9tYXg7IGkgPCBvbGQtPnNoYXJlZF9jb3VudDsNCj4gPj4gKytpKSB7
-DQo+ID4+IC3CoMKgwqDCoMKgwqDCoCBzdHJ1Y3QgZG1hX2ZlbmNlICpjaGVjazsNCj4gPj4gK8Kg
-wqDCoCBmb3IgKGkgPSAwLCBqID0gMCwgayA9IG1heDsgaSA8IChvbGQgPyBvbGQtPnNoYXJlZF9j
-b3VudCA6IDApOw0KPiA+PiArK2kpIHsNCj4gPj4gK8KgwqDCoMKgwqDCoMKgIHN0cnVjdCBkbWFf
-ZmVuY2UgKmZlbmNlOw0KPiA+PiDCoCAtwqDCoMKgwqDCoMKgwqAgY2hlY2sgPSByY3VfZGVyZWZl
-cmVuY2VfcHJvdGVjdGVkKG9sZC0+c2hhcmVkW2ldLA0KPiA+PiAtwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCByZXNlcnZhdGlvbl9vYmplY3RfaGVsZChvYmop
-KTsNCj4gPj4gLQ0KPiA+PiAtwqDCoMKgwqDCoMKgwqAgaWYgKGNoZWNrLT5jb250ZXh0ID09IGZl
-bmNlLT5jb250ZXh0IHx8DQo+ID4+IC3CoMKgwqDCoMKgwqDCoMKgwqDCoMKgIGRtYV9mZW5jZV9p
-c19zaWduYWxlZChjaGVjaykpDQo+ID4+IC3CoMKgwqDCoMKgwqDCoMKgwqDCoMKgIFJDVV9JTklU
-X1BPSU5URVIoZm9iai0+c2hhcmVkWy0ta10sIGNoZWNrKTsNCj4gPj4gK8KgwqDCoMKgwqDCoMKg
-IGZlbmNlID0gcmN1X2RlcmVmZXJlbmNlX3Byb3RlY3RlZChvbGQtPnNoYXJlZFtpXSwNCj4gPj4g
-K8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIHJlc2Vy
-dmF0aW9uX29iamVjdF9oZWxkKG9iaikpOw0KPiA+PiArwqDCoMKgwqDCoMKgwqAgaWYgKGRtYV9m
-ZW5jZV9pc19zaWduYWxlZChmZW5jZSkpDQo+ID4+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIFJD
-VV9JTklUX1BPSU5URVIobmV3LT5zaGFyZWRbLS1rXSwgZmVuY2UpOw0KPiA+PiDCoMKgwqDCoMKg
-wqDCoMKgwqAgZWxzZQ0KPiA+PiAtwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBSQ1VfSU5JVF9QT0lO
-VEVSKGZvYmotPnNoYXJlZFtqKytdLCBjaGVjayk7DQo+ID4+ICvCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgIFJDVV9JTklUX1BPSU5URVIobmV3LT5zaGFyZWRbaisrXSwgZmVuY2UpOw0KPiA+PiDCoMKg
-wqDCoMKgIH0NCj4gPj4gLcKgwqDCoCBmb2JqLT5zaGFyZWRfY291bnQgPSBqOw0KPiA+PiAtwqDC
-oMKgIFJDVV9JTklUX1BPSU5URVIoZm9iai0+c2hhcmVkW2ZvYmotPnNoYXJlZF9jb3VudF0sIGZl
-bmNlKTsNCj4gPj4gLcKgwqDCoCBmb2JqLT5zaGFyZWRfY291bnQrKzsNCj4gPj4gK8KgwqDCoCBu
-ZXctPnNoYXJlZF9jb3VudCA9IGo7DQo+ID4+ICvCoMKgwqAgbmV3LT5zaGFyZWRfbWF4ID0gbWF4
-Ow0KPiA+PiDCoCAtZG9uZToNCj4gPj4gwqDCoMKgwqDCoCBwcmVlbXB0X2Rpc2FibGUoKTsNCj4g
-Pj4gwqDCoMKgwqDCoCB3cml0ZV9zZXFjb3VudF9iZWdpbigmb2JqLT5zZXEpOw0KPiA+PiDCoMKg
-wqDCoMKgIC8qDQo+ID4+IMKgwqDCoMKgwqDCoCAqIFJDVV9JTklUX1BPSU5URVIgY2FuIGJlIHVz
-ZWQgaGVyZSwNCj4gPj4gwqDCoMKgwqDCoMKgICogc2VxY291bnQgcHJvdmlkZXMgdGhlIG5lY2Vz
-c2FyeSBiYXJyaWVycw0KPiA+PiDCoMKgwqDCoMKgwqAgKi8NCj4gPj4gLcKgwqDCoCBSQ1VfSU5J
-VF9QT0lOVEVSKG9iai0+ZmVuY2UsIGZvYmopOw0KPiA+PiArwqDCoMKgIFJDVV9JTklUX1BPSU5U
-RVIob2JqLT5mZW5jZSwgbmV3KTsNCj4gPj4gwqDCoMKgwqDCoCB3cml0ZV9zZXFjb3VudF9lbmQo
-Jm9iai0+c2VxKTsNCj4gPj4gwqDCoMKgwqDCoCBwcmVlbXB0X2VuYWJsZSgpOw0KPiA+PiDCoCDC
-oMKgwqDCoMKgIGlmICghb2xkKQ0KPiA+PiAtwqDCoMKgwqDCoMKgwqAgcmV0dXJuOw0KPiA+PiAr
-wqDCoMKgwqDCoMKgwqAgcmV0dXJuIDA7DQo+ID4+IMKgIMKgwqDCoMKgwqAgLyogRHJvcCB0aGUg
-cmVmZXJlbmNlcyB0byB0aGUgc2lnbmFsZWQgZmVuY2VzICovDQo+ID4+IC3CoMKgwqAgZm9yIChp
-ID0gazsgaSA8IGZvYmotPnNoYXJlZF9tYXg7ICsraSkgew0KPiA+PiAtwqDCoMKgwqDCoMKgwqAg
-c3RydWN0IGRtYV9mZW5jZSAqZjsNCj4gPj4gK8KgwqDCoCBmb3IgKGkgPSBrOyBpIDwgbmV3LT5z
-aGFyZWRfbWF4OyArK2kpIHsNCj4gPj4gK8KgwqDCoMKgwqDCoMKgIHN0cnVjdCBkbWFfZmVuY2Ug
-KmZlbmNlOw0KPiA+PiDCoCAtwqDCoMKgwqDCoMKgwqAgZiA9IHJjdV9kZXJlZmVyZW5jZV9wcm90
-ZWN0ZWQoZm9iai0+c2hhcmVkW2ldLA0KPiA+PiAtwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgcmVzZXJ2YXRpb25fb2JqZWN0X2hlbGQob2JqKSk7DQo+
-ID4+IC3CoMKgwqDCoMKgwqDCoCBkbWFfZmVuY2VfcHV0KGYpOw0KPiA+PiArwqDCoMKgwqDCoMKg
-wqAgZmVuY2UgPSByY3VfZGVyZWZlcmVuY2VfcHJvdGVjdGVkKG5ldy0+c2hhcmVkW2ldLA0KPiA+
-PiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgcmVz
-ZXJ2YXRpb25fb2JqZWN0X2hlbGQob2JqKSk7DQo+ID4+ICvCoMKgwqDCoMKgwqDCoCBkbWFfZmVu
-Y2VfcHV0KGZlbmNlKTsNCj4gPj4gwqDCoMKgwqDCoCB9DQo+ID4+IMKgwqDCoMKgwqAga2ZyZWVf
-cmN1KG9sZCwgcmN1KTsNCj4gPj4gKw0KPiA+PiArwqDCoMKgIHJldHVybiAwOw0KPiA+PiDCoCB9
-DQo+ID4+ICtFWFBPUlRfU1lNQk9MKHJlc2VydmF0aW9uX29iamVjdF9yZXNlcnZlX3NoYXJlZCk7
-DQo+ID4+IMKgIMKgIC8qKg0KPiA+PiDCoMKgICogcmVzZXJ2YXRpb25fb2JqZWN0X2FkZF9zaGFy
-ZWRfZmVuY2UgLSBBZGQgYSBmZW5jZSB0byBhIHNoYXJlZA0KPiA+PiBzbG90IEBAIC0yMjYsMTUg
-KzE0MywzOSBAQA0KPiA+PiByZXNlcnZhdGlvbl9vYmplY3RfYWRkX3NoYXJlZF9yZXBsYWNlKHN0
-cnVjdA0KPiA+PiByZXNlcnZhdGlvbl9vYmplY3QgKm9iaiwNCj4gPj4gwqAgdm9pZCByZXNlcnZh
-dGlvbl9vYmplY3RfYWRkX3NoYXJlZF9mZW5jZShzdHJ1Y3QgcmVzZXJ2YXRpb25fb2JqZWN0DQo+
-ID4+ICpvYmosDQo+ID4+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgIHN0cnVjdCBkbWFfZmVuY2UgKmZlbmNlKQ0KPiA+PiDCoCB7DQo+ID4+IC3CoMKgwqAgc3Ry
-dWN0IHJlc2VydmF0aW9uX29iamVjdF9saXN0ICpvbGQsICpmb2JqID0gb2JqLT5zdGFnZWQ7DQo+
-ID4+ICvCoMKgwqAgc3RydWN0IHJlc2VydmF0aW9uX29iamVjdF9saXN0ICpmb2JqOw0KPiA+PiAr
-wqDCoMKgIHVuc2lnbmVkIGludCBpOw0KPiA+PiDCoCAtwqDCoMKgIG9sZCA9IHJlc2VydmF0aW9u
-X29iamVjdF9nZXRfbGlzdChvYmopOw0KPiA+PiAtwqDCoMKgIG9iai0+c3RhZ2VkID0gTlVMTDsN
-Cj4gPj4gK8KgwqDCoCBkbWFfZmVuY2VfZ2V0KGZlbmNlKTsNCj4gPj4gKw0KPiA+PiArwqDCoMKg
-IGZvYmogPSByZXNlcnZhdGlvbl9vYmplY3RfZ2V0X2xpc3Qob2JqKTsNCj4gPj4gwqAgLcKgwqDC
-oCBpZiAoIWZvYmopDQo+ID4+IC3CoMKgwqDCoMKgwqDCoCByZXNlcnZhdGlvbl9vYmplY3RfYWRk
-X3NoYXJlZF9pbnBsYWNlKG9iaiwgb2xkLCBmZW5jZSk7DQo+ID4+IC3CoMKgwqAgZWxzZQ0KPiA+
-PiAtwqDCoMKgwqDCoMKgwqAgcmVzZXJ2YXRpb25fb2JqZWN0X2FkZF9zaGFyZWRfcmVwbGFjZShv
-YmosIG9sZCwgZm9iaiwNCj4gPj4gZmVuY2UpOw0KPiA+PiArwqDCoMKgIHByZWVtcHRfZGlzYWJs
-ZSgpOw0KPiA+PiArwqDCoMKgIHdyaXRlX3NlcWNvdW50X2JlZ2luKCZvYmotPnNlcSk7DQo+ID4+
-ICsNCj4gPj4gK8KgwqDCoCBmb3IgKGkgPSAwOyBpIDwgZm9iai0+c2hhcmVkX2NvdW50OyArK2kp
-IHsNCj4gPj4gK8KgwqDCoMKgwqDCoMKgIHN0cnVjdCBkbWFfZmVuY2UgKm9sZF9mZW5jZTsNCj4g
-Pj4gKw0KPiA+PiArwqDCoMKgwqDCoMKgwqAgb2xkX2ZlbmNlID0gcmN1X2RlcmVmZXJlbmNlX3By
-b3RlY3RlZChmb2JqLT5zaGFyZWRbaV0sDQo+ID4+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIHJlc2VydmF0aW9uX29iamVjdF9oZWxk
-KG9iaikpOw0KPiA+PiArwqDCoMKgwqDCoMKgwqAgaWYgKG9sZF9mZW5jZS0+Y29udGV4dCA9PSBm
-ZW5jZS0+Y29udGV4dCB8fA0KPiA+PiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBkbWFfZmVuY2Vf
-aXNfc2lnbmFsZWQob2xkX2ZlbmNlKSkgew0KPiA+PiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBk
-bWFfZmVuY2VfcHV0KG9sZF9mZW5jZSk7DQo+ID4+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIGdv
-dG8gcmVwbGFjZTsNCj4gPj4gK8KgwqDCoMKgwqDCoMKgIH0NCj4gPj4gK8KgwqDCoCB9DQo+ID4+
-ICsNCj4gPj4gK8KgwqDCoCBCVUdfT04oZm9iai0+c2hhcmVkX2NvdW50ID49IGZvYmotPnNoYXJl
-ZF9tYXgpOw0KPiA+PiArwqDCoMKgIGZvYmotPnNoYXJlZF9jb3VudCsrOw0KPiA+PiArDQo+ID4+
-ICtyZXBsYWNlOg0KPiA+PiArwqDCoMKgIC8qDQo+ID4+ICvCoMKgwqDCoCAqIG1lbW9yeSBiYXJy
-aWVyIGlzIGFkZGVkIGJ5IHdyaXRlX3NlcWNvdW50X2JlZ2luLA0KPiA+PiArwqDCoMKgwqAgKiBm
-b2JqLT5zaGFyZWRfY291bnQgaXMgcHJvdGVjdGVkIGJ5IHRoaXMgbG9jayB0b28NCj4gPj4gK8Kg
-wqDCoMKgICovDQo+ID4+ICvCoMKgwqAgUkNVX0lOSVRfUE9JTlRFUihmb2JqLT5zaGFyZWRbaV0s
-IGZlbmNlKTsNCj4gPj4gK8KgwqDCoCB3cml0ZV9zZXFjb3VudF9lbmQoJm9iai0+c2VxKTsNCj4g
-Pj4gK8KgwqDCoCBwcmVlbXB0X2VuYWJsZSgpOw0KPiA+PiDCoCB9DQo+ID4+IMKgIEVYUE9SVF9T
-WU1CT0wocmVzZXJ2YXRpb25fb2JqZWN0X2FkZF9zaGFyZWRfZmVuY2UpOw0KPiA+PiDCoCBAQCAt
-MzQzLDkgKzI4NCw2IEBAIGludCByZXNlcnZhdGlvbl9vYmplY3RfY29weV9mZW5jZXMoc3RydWN0
-DQo+ID4+IHJlc2VydmF0aW9uX29iamVjdCAqZHN0LA0KPiA+PiDCoMKgwqDCoMKgIG5ldyA9IGRt
-YV9mZW5jZV9nZXRfcmN1X3NhZmUoJnNyYy0+ZmVuY2VfZXhjbCk7DQo+ID4+IMKgwqDCoMKgwqAg
-cmN1X3JlYWRfdW5sb2NrKCk7DQo+ID4+IMKgIC3CoMKgwqAga2ZyZWUoZHN0LT5zdGFnZWQpOw0K
-PiA+PiAtwqDCoMKgIGRzdC0+c3RhZ2VkID0gTlVMTDsNCj4gPj4gLQ0KPiA+PiDCoMKgwqDCoMKg
-IHNyY19saXN0ID0gcmVzZXJ2YXRpb25fb2JqZWN0X2dldF9saXN0KGRzdCk7DQo+ID4+IMKgwqDC
-oMKgwqAgb2xkID0gcmVzZXJ2YXRpb25fb2JqZWN0X2dldF9leGNsKGRzdCk7DQo+ID4+IMKgIGRp
-ZmYgLS1naXQgYS9pbmNsdWRlL2xpbnV4L3Jlc2VydmF0aW9uLmgNCj4gPj4gYi9pbmNsdWRlL2xp
-bnV4L3Jlc2VydmF0aW9uLmggaW5kZXggMDIxNjZlODE1YWZiLi41NGNmNjc3M2ExNGMgMTAwNjQ0
-DQo+ID4+IC0tLSBhL2luY2x1ZGUvbGludXgvcmVzZXJ2YXRpb24uaA0KPiA+PiArKysgYi9pbmNs
-dWRlL2xpbnV4L3Jlc2VydmF0aW9uLmgNCj4gPj4gQEAgLTY4LDcgKzY4LDYgQEAgc3RydWN0IHJl
-c2VydmF0aW9uX29iamVjdF9saXN0IHsNCj4gPj4gwqDCoCAqIEBzZXE6IHNlcXVlbmNlIGNvdW50
-IGZvciBtYW5hZ2luZyBSQ1UgcmVhZC1zaWRlIHN5bmNocm9uaXphdGlvbg0KPiA+PiDCoMKgICog
-QGZlbmNlX2V4Y2w6IHRoZSBleGNsdXNpdmUgZmVuY2UsIGlmIHRoZXJlIGlzIG9uZSBjdXJyZW50
-bHkNCj4gPj4gwqDCoCAqIEBmZW5jZTogbGlzdCBvZiBjdXJyZW50IHNoYXJlZCBmZW5jZXMNCj4g
-Pj4gLSAqIEBzdGFnZWQ6IHN0YWdlZCBjb3B5IG9mIHNoYXJlZCBmZW5jZXMgZm9yIFJDVSB1cGRh
-dGVzDQo+ID4+IMKgwqAgKi8NCj4gPj4gwqAgc3RydWN0IHJlc2VydmF0aW9uX29iamVjdCB7DQo+
-ID4+IMKgwqDCoMKgwqAgc3RydWN0IHd3X211dGV4IGxvY2s7DQo+ID4+IEBAIC03Niw3ICs3NSw2
-IEBAIHN0cnVjdCByZXNlcnZhdGlvbl9vYmplY3Qgew0KPiA+PiDCoCDCoMKgwqDCoMKgIHN0cnVj
-dCBkbWFfZmVuY2UgX19yY3UgKmZlbmNlX2V4Y2w7DQo+ID4+IMKgwqDCoMKgwqAgc3RydWN0IHJl
-c2VydmF0aW9uX29iamVjdF9saXN0IF9fcmN1ICpmZW5jZTsNCj4gPj4gLcKgwqDCoCBzdHJ1Y3Qg
-cmVzZXJ2YXRpb25fb2JqZWN0X2xpc3QgKnN0YWdlZDsNCj4gPj4gwqAgfTsNCj4gPj4gwqAgwqAg
-I2RlZmluZSByZXNlcnZhdGlvbl9vYmplY3RfaGVsZChvYmopDQo+ID4+IGxvY2tkZXBfaXNfaGVs
-ZCgmKG9iaiktPmxvY2suYmFzZSkNCj4gPj4gQEAgLTk1LDcgKzkzLDYgQEAgcmVzZXJ2YXRpb25f
-b2JqZWN0X2luaXQoc3RydWN0IHJlc2VydmF0aW9uX29iamVjdA0KPiA+PiAqb2JqKQ0KPiA+PiDC
-oMKgwqDCoMKgIF9fc2VxY291bnRfaW5pdCgmb2JqLT5zZXEsIHJlc2VydmF0aW9uX3NlcWNvdW50
-X3N0cmluZywNCj4gPj4gJnJlc2VydmF0aW9uX3NlcWNvdW50X2NsYXNzKTsNCj4gPj4gwqDCoMKg
-wqDCoCBSQ1VfSU5JVF9QT0lOVEVSKG9iai0+ZmVuY2UsIE5VTEwpOw0KPiA+PiDCoMKgwqDCoMKg
-IFJDVV9JTklUX1BPSU5URVIob2JqLT5mZW5jZV9leGNsLCBOVUxMKTsNCj4gPj4gLcKgwqDCoCBv
-YmotPnN0YWdlZCA9IE5VTEw7DQo+ID4+IMKgIH0NCj4gPj4gwqAgwqAgLyoqDQo+ID4+IEBAIC0x
-MjQsNyArMTIxLDYgQEAgcmVzZXJ2YXRpb25fb2JqZWN0X2Zpbmkoc3RydWN0IHJlc2VydmF0aW9u
-X29iamVjdA0KPiA+PiAqb2JqKQ0KPiA+PiDCoCDCoMKgwqDCoMKgwqDCoMKgwqAga2ZyZWUoZm9i
-aik7DQo+ID4+IMKgwqDCoMKgwqAgfQ0KPiA+PiAtwqDCoMKgIGtmcmVlKG9iai0+c3RhZ2VkKTsN
-Cj4gPj4gwqAgwqDCoMKgwqDCoCB3d19tdXRleF9kZXN0cm95KCZvYmotPmxvY2spOw0KPiA+PiDC
-oCB9DQo+ID4NCg0K
+On 10/19/2018 10:40 AM, Hans Verkuil wrote:
+> From Alexandre's '[RFC PATCH v3] media: docs-rst: Document m2m stateless
+> video decoder interface':
+> 
+> On 10/19/18 10:09, Alexandre Courbot wrote:
+>> Two points being currently discussed have not been changed in this
+>> revision due to lack of better idea. Of course this is open to change:
+> 
+> <snip>
+> 
+>> * The other hot topic is the use of capture buffer indexes in order to
+>>   reference frames. I understand the concerns, but I doesn't seem like
+>>   we have come with a better proposal so far - and since capture buffers
+>>   are essentially well, frames, using their buffer index to directly
+>>   reference them doesn't sound too inappropriate to me. There is also
+>>   the restriction that drivers must return capture buffers in queue
+>>   order. Do we have any concrete example where this scenario would not
+>>   work?
+> 
+> I'll stick to decoders in describing the issue. Stateless encoders probably
+> do not have this issue.
+> 
+> To recap: the application provides a buffer with compressed data to the
+> decoder. After the request is finished the application can dequeue the
+> decompressed frame from the capture queue.
+> 
+> In order to decompress the decoder needs to access previously decoded
+> reference frames. The request passed to the decoder contained state
+> information containing the buffer index (or indices) of capture buffers
+> that contain the reference frame(s).
+> 
+> This approach puts restrictions on the framework and the application:
+> 
+> 1) It assumes that the application can predict the capture indices.
+> This works as long as there is a simple relationship between the
+> buffer passed to the decoder and the buffer you get back.
+> 
+> But that may not be true for future codecs. And what if one buffer
+> produces multiple capture buffers? (E.g. if you want to get back
+> decompressed slices instead of full frames to reduce output latency).
+> 
+> This API should be designed to be future-proof (within reason of course),
+> and I am not at all convinced that future codecs will be just as easy
+> to predict.
+> 
+> 2) It assumes that neither drivers nor applications mess with the buffers.
+> One case that might happen today is if the DMA fails and a buffer is
+> returned marked ERROR and the DMA is retried with the next buffer. There
+> is nothing in the spec that prevents you from doing that, but it will mess
+> up the capture index numbering. And does the application always know in
+> what order capture buffers are queued? Perhaps there are two threads: one
+> queueing buffers with compressed data, and the other dequeueing the
+> decompressed buffers, and they are running mostly independently.
+> 
+> 
+> I believe that assuming that you can always predict the indices of the
+> capture queue is dangerous and asking for problems in the future.
+> 
+> 
+> I am very much in favor of using a dedicated cookie. The application sets
+> it for the compressed buffer and the driver copies it to the uncompressed
+> capture buffer. It keeps track of the association between capture index
+> and cookie. If a compressed buffer decompresses into multiple capture
+> buffers, then they will all be associated with the same cookie, so
+> that simplifies how you refer to reference frames if they are split
+> over multiple buffers.
+> 
+> The codec controls refer to reference frames by cookie(s).
+> 
+> For existing applications that use the capture index all you need to do
+> is to set the capture index as the cookie value in the output buffer.
+> 
+> It is my understanding that ChromeOS was using the timestamp as the
+> cookie value.
+> 
+> I have thought about that, but I am not in favor of doing that. One
+> reason is that struct timeval comes in various flavors (32 bit, 64 bit,
+> and a y2038-compatible 32-bit type in the future).
+> 
+> The y2038 compat code that we will need concerns me in particular since
+> it will mean that the timeval is converted from 32 to 64 bit and back
+> again, and that might well mangle the data. I'm not so sure if you can
+> stick a 64-bit pointer in the timeval (e.g. the high 32 bits go to into
+> the tv_sec field, the low 32 bits go to the usecs). The y2038 conversion
+> might mangle the tv_usec field (e.g. divide by 1000000 and add the seconds
+> to the tv_sec field).
+> 
+> I would really prefer an independent 64-bit cookie value that the application
+> can set instead of abusing something else.
+> 
+> I propose to make a union with v4l2_timecode (which nobody uses) and a
+> new V4L2_BUF_FLAG_COOKIE flag.
+> 
+> struct v4l2_buffer_cookie {
+> 	__u32 high;
+> 	__u32 low;
+> };
+> 
+> And in v4l2_buffer:
+> 
+> 	union {
+> 		struct v4l2_timecode timecode;
+> 		struct v4l2_buffer_cookie cookie;
+> 	};
+> 
+> And static inlines:
+> 
+> void v4l2_buffer_set_cookie(struct v4l2_buffer *buf, __u64 cookie)
+> {
+> 	buf->cookie.high = cookie >> 32;
+> 	buf->cookie.low = cookie & 0xffffffffULL;
+> 	buf->flags |= V4L2_BUF_FLAG_COOKIE;
+> }
+> 
+> void v4l2_buffer_set_cookie_ptr(struct v4l2_buffer *buf, void *cookie)
+> {
+> 	v4l2_buffer_set_cookie(buf, (__u64)cookie);
+> }
+> 
+> __u64 v4l2_buffer_get_cookie(struct v4l2_buffer *buf)
+> {
+> 	if (!(buf->flags & V4L2_BUF_FLAG_COOKIE))
+> 		return 0;
+> 	return (((__u64)buf->cookie.high) << 32) | (__u64)buf->cookie.low;
+> }
+> 
+> void *v4l2_buffer_get_cookie_ptr(struct v4l2_buffer *buf)
+> {
+> 	return (void *)v4l2_buffer_get_cookie(buf);
+> }
+> 
+> Why not just use __u64? Because the alignment in v4l2_buffer is a nightmare.
+> Using __u64 would create holes, made even worse by different struct timeval
+> sizes depending on the architecture.
+> 
+> I'm proposing a struct v4l2_ext_buffer together with new streaming ioctls
+> during the media summit that has a clean layout and there this can be just
+> a __u64.
+> 
+> I'm calling it a 'cookie' here, but that's just a suggestion. Better
+> names are welcome.
+> 
+> Comments are welcome.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+
+I added cookie support to vb2 in this branch:
+
+https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=cookie
+
+It's compile tested only.
+
+The core is a new vb2_find_cookie() function that returns the index of the first buffer that matches
+the cookie, or -1 if nothing was found.
+
+It only checks buffers that have a cookie and that are in the DEQUEUED or DONE state.
+
+I'm not wedded to the 'int' return code, it could also return a vb2_buffer pointer.
+
+It also returns a single buffer at the moment, so it will have to be changed to support
+cases where there are multiple buffers that all belong to the same reference frame
+(i.e. slices). But we don't support that anyway at the moment. I'm considering adding
+a 'start' index argument so it can be called multiple times to find all buffers with
+the same cookie.
+
+No documentation yet, and as mentioned it is only compiled tested.
+
+Regards,
+
+	Hans
