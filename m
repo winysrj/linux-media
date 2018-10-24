@@ -1,375 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:44754 "EHLO
-        casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728059AbeJ3W5F (ORCPT
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:59080 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726301AbeJXSUE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 Oct 2018 18:57:05 -0400
-Date: Tue, 30 Oct 2018 11:03:19 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: David Howells <dhowells@redhat.com>,
-        Michael Krufky <mkrufky@linuxtv.org>,
-        Sean Young <sean@mess.org>, Brad Love <brad@nextdimension.cc>
-Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] dvb: Allow MAC addresses to be mapped to stable device
- names with udev
-Message-ID: <20181030110319.764f33f0@coco.lan>
-In-Reply-To: <153778383104.14867.1567557014782141706.stgit@warthog.procyon.org.uk>
-References: <153778383104.14867.1567557014782141706.stgit@warthog.procyon.org.uk>
+        Wed, 24 Oct 2018 14:20:04 -0400
+Subject: Re: [RFC] Stateless codecs: how to refer to reference frames
+To: Alexandre Courbot <acourbot@chromium.org>
+Cc: Tomasz Figa <tfiga@chromium.org>,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Pawel Osciak <posciak@chromium.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>
+References: <20181019080928.208446-1-acourbot@chromium.org>
+ <a02b50ee-37e1-0202-b999-8e32b7bd1a96@xs4all.nl>
+ <CAPBb6MUA5zNL9SsY2AEDNKgazyAqOMxGGSwidMV+RJnnrz7kTg@mail.gmail.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <515520e4-51d6-e4bb-138a-84453ea6e189@xs4all.nl>
+Date: Wed, 24 Oct 2018 10:52:30 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <CAPBb6MUA5zNL9SsY2AEDNKgazyAqOMxGGSwidMV+RJnnrz7kTg@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 24 Sep 2018 11:10:31 +0100
-David Howells <dhowells@redhat.com> escreveu:
+HI Alexandre,
 
-> Some devices, such as the DVBSky S952 and T982 cards, are dual port cards
-> that provide two cx23885 devices on the same PCI device, which means the
-> attributes available for writing udev rules are exactly the same, apart
-> from the adapter number.  Unfortunately, the adapter numbers are dependent
-> on the order in which things are initialised, so this can change over
-> different releases of the kernel.
->=20
-> Devices have a MAC address available, which is printed during boot:
->=20
-> 	[   10.951517] DVBSky T982 port 1 MAC address: 00:11:22:33:44:55
-> 	...
-> 	[   10.984875] DVBSky T982 port 2 MAC address: 00:11:22:33:44:56
->=20
-> To make it possible to distinguish these in udev, provide sysfs attributes
-> to make the MAC address, adapter number and type available.  There are
-> other fields that could perhaps be exported also.  In particular, it would
-> be nice to provide the port number, but somehow that doesn't manage to
-> propagate through the labyrinthine initialisation process.
->=20
-> The new sysfs attributes can be seen from userspace as:
->=20
-> 	[root@deneb ~]# ls /sys/class/dvb/dvb0.frontend0/
-> 	dev  device  dvb_adapter  dvb_mac  dvb_type
-> 	power  subsystem  uevent
-> 	[root@deneb ~]# cat /sys/class/dvb/dvb0.frontend0/dvb_*
-> 	0
-> 	00:11:22:33:44:55
-> 	frontend
->=20
-> They can be used in udev rules:
->=20
-> 	SUBSYSTEM=3D=3D"dvb", ATTRS{vendor}=3D=3D"0x14f1", ATTRS{device}=3D=3D"0=
-x8852", ATTRS{subsystem_device}=3D=3D"0x0982", ATTR{dvb_mac}=3D=3D"00:11:22=
-:33:44:55", PROGRAM=3D"/bin/sh -c 'K=3D%k; K=3D$${K#dvb}; printf dvb/adapte=
-r9820/%%s $${K#*.}'", SYMLINK+=3D"%c"
-> 	SUBSYSTEM=3D=3D"dvb", ATTRS{vendor}=3D=3D"0x14f1", ATTRS{device}=3D=3D"0=
-x8852", ATTRS{subsystem_device}=3D=3D"0x0982", ATTR{dvb_mac}=3D=3D"00:11.22=
-.33.44.56", PROGRAM=3D"/bin/sh -c 'K=3D%k; K=3D$${K#dvb}; printf dvb/adapte=
-r9821/%%s $${K#*.}'", SYMLINK+=3D"%c"
->=20
-> where the match is made with ATTR{dvb_mac} or similar.  The rules above
-> make symlinks from /dev/dvb/adapter982/* to /dev/dvb/adapterXX/*.
->=20
-> Note that binding the dvb-net device to a network interface and changing =
-it
-> there does not reflect back into the the dvb_adapter struct and doesn't
-> change the MAC address here.  This means that a system with two identical
-> cards in it may need to distinguish them by some other means than MAC
-> address.
->=20
-> Signed-off-by: David Howells <dhowells@redhat.com>
+On 10/24/2018 10:16 AM, Alexandre Courbot wrote:
+> Hi Hans,
+> 
+> On Fri, Oct 19, 2018 at 6:40 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>
+>> From Alexandre's '[RFC PATCH v3] media: docs-rst: Document m2m stateless
+>> video decoder interface':
+>>
+>> On 10/19/18 10:09, Alexandre Courbot wrote:
+>>> Two points being currently discussed have not been changed in this
+>>> revision due to lack of better idea. Of course this is open to change:
+>>
+>> <snip>
+>>
+>>> * The other hot topic is the use of capture buffer indexes in order to
+>>>   reference frames. I understand the concerns, but I doesn't seem like
+>>>   we have come with a better proposal so far - and since capture buffers
+>>>   are essentially well, frames, using their buffer index to directly
+>>>   reference them doesn't sound too inappropriate to me. There is also
+>>>   the restriction that drivers must return capture buffers in queue
+>>>   order. Do we have any concrete example where this scenario would not
+>>>   work?
+>>
+>> I'll stick to decoders in describing the issue. Stateless encoders probably
+>> do not have this issue.
+>>
+>> To recap: the application provides a buffer with compressed data to the
+>> decoder. After the request is finished the application can dequeue the
+>> decompressed frame from the capture queue.
+>>
+>> In order to decompress the decoder needs to access previously decoded
+>> reference frames. The request passed to the decoder contained state
+>> information containing the buffer index (or indices) of capture buffers
+>> that contain the reference frame(s).
+>>
+>> This approach puts restrictions on the framework and the application:
+>>
+>> 1) It assumes that the application can predict the capture indices.
+>> This works as long as there is a simple relationship between the
+>> buffer passed to the decoder and the buffer you get back.
+>>
+>> But that may not be true for future codecs. And what if one buffer
+>> produces multiple capture buffers? (E.g. if you want to get back
+>> decompressed slices instead of full frames to reduce output latency).
+>>
+>> This API should be designed to be future-proof (within reason of course),
+>> and I am not at all convinced that future codecs will be just as easy
+>> to predict.
+>>
+>> 2) It assumes that neither drivers nor applications mess with the buffers.
+>> One case that might happen today is if the DMA fails and a buffer is
+>> returned marked ERROR and the DMA is retried with the next buffer. There
+>> is nothing in the spec that prevents you from doing that, but it will mess
+>> up the capture index numbering. And does the application always know in
+>> what order capture buffers are queued? Perhaps there are two threads: one
+>> queueing buffers with compressed data, and the other dequeueing the
+>> decompressed buffers, and they are running mostly independently.
+>>
+>>
+>> I believe that assuming that you can always predict the indices of the
+>> capture queue is dangerous and asking for problems in the future.
+>>
+>>
+>> I am very much in favor of using a dedicated cookie. The application sets
+>> it for the compressed buffer and the driver copies it to the uncompressed
+>> capture buffer. It keeps track of the association between capture index
+>> and cookie. If a compressed buffer decompresses into multiple capture
+>> buffers, then they will all be associated with the same cookie, so
+>> that simplifies how you refer to reference frames if they are split
+>> over multiple buffers.
+>>
+>> The codec controls refer to reference frames by cookie(s).
+> 
+> So as discussed yesterday, I understand your issue with using buffer
+> indexes. The cookie idea sounds like it could work, but I'm afraid you
+> could still run into issues when you don't have buffer symmetry.
+> 
+> For instance, imagine that the compressed buffer contains 2 frames
+> worth of data. In this case, the 2 dequeued capture buffers would
+> carry the same cookie, making it impossible to reference either frame
+> unambiguously.
 
-Looks OK to me.
+But this is a stateless codec, so each compressed buffer contains only
+one frame. That's the responsibility of the bitstream parser to ensure
+that.
 
-Michael/Sean/Brad,
+The whole idea of the stateless codec is that you supply only one frame
+at a time to the codec.
 
-Any comments? If not, I'll probably submit it this week upstream.
+If someone indeed puts multiple frames into a single buffer, then
+the behavior is likely undefined. Does anyone have any idea what
+would happen with the cedrus driver in that case? This is actually
+a good test.
 
+Anyway, I would consider this an application bug. Garbage in, garbage out.
 
-> ---
->=20
->  Documentation/ABI/testing/sysfs-class-dvb     |   29 +++++++++++
->  Documentation/media/dvb-drivers/udev.rst      |   29 +++++++++++
->  Documentation/media/uapi/dvb/intro.rst        |    7 +++
->  Documentation/media/uapi/dvb/stable_names.rst |   66 +++++++++++++++++++=
-++++++
->  drivers/media/dvb-core/dvbdev.c               |   36 ++++++++++++++
->  5 files changed, 167 insertions(+)
->  create mode 100644 Documentation/ABI/testing/sysfs-class-dvb
->  create mode 100644 Documentation/media/uapi/dvb/stable_names.rst
->=20
-> diff --git a/Documentation/ABI/testing/sysfs-class-dvb b/Documentation/AB=
-I/testing/sysfs-class-dvb
-> new file mode 100644
-> index 000000000000..09e3be329c92
-> --- /dev/null
-> +++ b/Documentation/ABI/testing/sysfs-class-dvb
-> @@ -0,0 +1,29 @@
-> +What:		/sys/class/dvb/.../dvb_adapter
-> +Date:		September 2018
-> +KernelVersion:	4.20
-> +Contact:	David Howells <dhowells@redhat.com>
-> +Description:
-> +		This displays the assigned adapter number of a DVB device.
-> +
-> +What:		/sys/class/dvb/.../dvb_mac
-> +Date:		September 2018
-> +KernelVersion:	4.20
-> +Contact:	David Howells <dhowells@redhat.com>
-> +Description:
-> +		This displays the mac address of a DVB device.  This can be
-> +		used by udev to name stable device files for DVB devices and
-> +		avoid problems with changes in the order of device
-> +		initialisation changing the assigned device numbers.  See:
-> +
-> +			Documentation/media/dvb-drivers/udev.rst
-> +			Documentation/media/uapi/dvb/stable_names.rst
-> +
-> +		for information on how to actually do this.
-> +
-> +What:		/sys/class/dvb/.../dvb_type
-> +Date:		September 2018
-> +KernelVersion:	4.20
-> +Contact:	David Howells <dhowells@redhat.com>
-> +Description:
-> +		This displays the object type of a DVB device interface, such
-> +		as "frontend" or "demux".
-> diff --git a/Documentation/media/dvb-drivers/udev.rst b/Documentation/med=
-ia/dvb-drivers/udev.rst
-> index 7d7d5d82108a..df754312f1f4 100644
-> --- a/Documentation/media/dvb-drivers/udev.rst
-> +++ b/Documentation/media/dvb-drivers/udev.rst
-> @@ -59,3 +59,32 @@ have a look at "man udev".
->  For every device that registers to the sysfs subsystem with a "dvb" pref=
-ix,
->  the helper script /etc/udev/scripts/dvb.sh is invoked, which will then
->  create the proper device node in your /dev/ directory.
-> +
-> +2. A DVB device's adapter number, type and MAC addresses are exposed thr=
-ough
-> +the sysfs interface as files dvb_adapter, dvb_type and dvb_mac in the va=
-rious
-> +dvb object directories, e.g. /sys/class/dvb/dvb0.demux0/dvb_mac.
-> +
-> +These can be used to influence the binding of devices to names in /dev t=
-o avoid
-> +problems when the order in which names are assigned changes.  This is of
-> +particular interest when you have, say, a PCI card with multiple identic=
-al
-> +devices on board under the same PCI function slot.  The only way to dist=
-inguish
-> +them is either by the DVB port number or the DVB MAC address.
-> +
-> +To make use of this with udev, a rule needs to be emplaced in a file und=
-er
-> +/etc/udev/rules.d/ that has an appropriate ATTR{} clause in it.  Somethi=
-ng like
-> +the following, for example::
-> +
-> +	SUBSYSTEM=3D=3D"dvb", ATTRS{vendor}=3D=3D"0x14f1", ATTRS{device}=3D=3D"=
-0x8852", ATTRS{subsystem_device}=3D=3D"0x0982", ATTR{dvb_mac}=3D=3D"00:11:2=
-2:33:44:55", PROGRAM=3D"/bin/sh -c 'K=3D%k; K=3D$${K#dvb}; printf dvb/adapt=
-er9820/%%s $${K#*.}'", SYMLINK+=3D"%c"
-> +
-> +Note the 'ATTR{dvb_mac}' clause that indicates the MAC address to look f=
-or.
-> +This should be different for every device, even if the devices are other=
-wise
-> +identical.  The other ATTR{} clauses in this example refer to PCI parame=
-ters.
-> +
-> +This example generates a directory called /dev/dvb/adapter9820/ and plac=
-es
-> +symlinks in it to the device files under the appropriate /dev/dvb/adapte=
-rX/
-> +directory - whatever X happens to be today.
-> +
-> +The generated name is then stable and can be relied on by programs that =
-need to
-> +pick it up without user interaction.
-> +
-> +Note that this facility does not exist in v4.19 kernels and earlier.
-> diff --git a/Documentation/media/uapi/dvb/intro.rst b/Documentation/media=
-/uapi/dvb/intro.rst
-> index 79b4d0e4e920..074fb3b3ee21 100644
-> --- a/Documentation/media/uapi/dvb/intro.rst
-> +++ b/Documentation/media/uapi/dvb/intro.rst
-> @@ -153,6 +153,13 @@ where ``N`` enumerates the Digital TV cards in a sys=
-tem starting from=C2=A00, and
->  from=C2=A00, too. We will omit the =E2=80=9C``/dev/dvb/adapterN/``\ =E2=
-=80=9D in the further
->  discussion of these devices.
-> =20
-> +Note that the automatic numbering of adapters isn't stable and may vary
-> +depending on changes to the order in which devices are initialised, both=
- in
-> +the order in which individual devices get initialised and also the order=
- in
-> +which subdevices get initialised (e.g. a PCI card with multiple identica=
-l DVB
-> +devices attached to the same PCI function).  :ref:`stable_names` shows u=
-se
-> +udev rules to create stable names.
-> +
->  More details about the data structures and function calls of all the
->  devices are described in the following chapters.
-> =20
-> diff --git a/Documentation/media/uapi/dvb/stable_names.rst b/Documentatio=
-n/media/uapi/dvb/stable_names.rst
-> new file mode 100644
-> index 000000000000..1b5dc5171ee3
-> --- /dev/null
-> +++ b/Documentation/media/uapi/dvb/stable_names.rst
-> @@ -0,0 +1,66 @@
-> +.. -*- coding: utf-8; mode: rst -*-
-> +
-> +.. _stable_names:
-> +
-> +*********************************
-> +Creating stable device file names
-> +*********************************
-> +
-> +From time to time the order in which the Linux kernel initialises device=
-s and
-> +initialises subdevices within those devices has changed.  This can cause=
- the
-> +assignment of user-visible device numbers to devices to fluctuate - lead=
-ing to
-> +the failure of services to operate correctly in non-obvious ways when mu=
-ltiple,
-> +otherwise identical devices are available in a system.
-> +
-> +To counteract this, udev rules can be defined that map devices onto stab=
-le
-> +names.  This must, however, be done in relation to attributes of a devic=
-e that
-> +don't vary, such as the MAC address.
-> +
-> +Take, for example, a PCI DVB card that has two identical DVB devices att=
-ached
-> +to the same PCI function.  The devices cannot be distinguished on PCI
-> +parameters and the DVB port number - which could otherwise distinguish t=
-hese
-> +subdevices - is not easily accessible by userspace.
-> +
-> +The MAC address, however, *is* made available, and this is supposed to be
-> +unique to each individual DVB device, and won't vary even if the device =
-is
-> +moved to another slot.  This is exported to userspace through sysfs.  It=
- can
-> +be found by looking in the dvb_mac file that can be found in a device
-> +interface's directory, for example:
-> +
-> +	/sys/class/dvb/dvb0.demux0/dvb_mac
-> +
-> +Two other files can be found there that export the adapter number and the
-> +interface type:
-> +
-> +	/sys/class/dvb/dvb0.demux0/dvb_adapter
-> +	/sys/class/dvb/dvb0.demux0/dvb_type
-> +
-> +Note that the two numbers in the path are assigned based on the order in=
- which
-> +the devices are registered with the core code, and not necessarily on the
-> +physical arrangement of the device - and thus should not be considered s=
-table.
-> +
-> +
-> +The creation of stable names can be done by writing rules for udev to ma=
-tch on
-> +the MAC addresses of the devices.  Rules needs to be placed in a file in=
- the
-> +/etc/udev/rules.d/ directory for udev to pick up.  They need appropriate
-> +ATTR{} clauses to specify the attribute matches to make.  Any of the abo=
-ve
-> +mentioned files can be used.  For example::
-> +
-> +	SUBSYSTEM=3D=3D"dvb", ATTRS{vendor}=3D=3D"0x14f1", ATTRS{device}=3D=3D"=
-0x8852", ATTRS{subsystem_device}=3D=3D"0x0982", ATTR{dvb_mac}=3D=3D"00:11:2=
-2:33:44:55", PROGRAM=3D"/bin/sh -c 'K=3D%k; K=3D$${K#dvb}; printf dvb/adapt=
-er9820/%%s $${K#*.}'", SYMLINK+=3D"%c"
-> +	SUBSYSTEM=3D=3D"dvb", ATTRS{vendor}=3D=3D"0x14f1", ATTRS{device}=3D=3D"=
-0x8852", ATTRS{subsystem_device}=3D=3D"0x0982", ATTR{dvb_mac}=3D=3D"00:11.2=
-2.33.44.56", PROGRAM=3D"/bin/sh -c 'K=3D%k; K=3D$${K#dvb}; printf dvb/adapt=
-er9821/%%s $${K#*.}'", SYMLINK+=3D"%c"
-> +
-> +In each of these example rules, the first three ATTR{} clauses specify t=
-he PCI
-> +card to match - in this case the same DVBsky T982 dual T2 receiver card.=
-  The
-> +ATTR{dvb_mac} attribute in each specifies the card MAC address of that
-> +receiver unit (the name of the attribute refers to the name of sysfs fil=
-e to
-> +read).
-> +
-> +This example generates a pair of directories called /dev/dvb/adapter9820=
-/ and
-> +/dev/dvb/adapter9821/ and places in each symlinks to the device files un=
-der
-> +the appropriate /dev/dvb/adapterX/ and /dev/dvb/adapterY/ directories -
-> +whatever X and Y happens to be today.
-> +
-> +The generated names are then stable and can be relied on by programs tha=
-t need
-> +to pick it up without user interaction.
-> +
-> +Note that this facility does not exist in v4.19 kernels and earlier.
-> diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvb=
-dev.c
-> index 64d6793674b9..41be3ba66341 100644
-> --- a/drivers/media/dvb-core/dvbdev.c
-> +++ b/drivers/media/dvb-core/dvbdev.c
-> @@ -995,6 +995,41 @@ void dvb_module_release(struct i2c_client *client)
->  EXPORT_SYMBOL_GPL(dvb_module_release);
->  #endif
-> =20
-> +static ssize_t dvb_adapter_show(struct device *dev,
-> +				struct device_attribute *attr, char *buf)
-> +{
-> +	struct dvb_device *dvbdev =3D dev_get_drvdata(dev);
-> +
-> +	return sprintf(buf, "%d\n", dvbdev->adapter->num);
-> +}
-> +static DEVICE_ATTR_RO(dvb_adapter);
-> +
-> +static ssize_t dvb_mac_show(struct device *dev,
-> +			    struct device_attribute *attr, char *buf)
-> +{
-> +	struct dvb_device *dvbdev =3D dev_get_drvdata(dev);
-> +
-> +	return sprintf(buf, "%pM\n", dvbdev->adapter->proposed_mac);
-> +}
-> +static DEVICE_ATTR_RO(dvb_mac);
-> +
-> +static ssize_t dvb_type_show(struct device *dev,
-> +			     struct device_attribute *attr, char *buf)
-> +{
-> +	struct dvb_device *dvbdev =3D dev_get_drvdata(dev);
-> +
-> +	return sprintf(buf, "%s\n", dnames[dvbdev->type]);
-> +}
-> +static DEVICE_ATTR_RO(dvb_type);
-> +
-> +static struct attribute *dvb_class_attrs[] =3D {
-> +	&dev_attr_dvb_adapter.attr,
-> +	&dev_attr_dvb_mac.attr,
-> +	&dev_attr_dvb_type.attr,
-> +	NULL
-> +};
-> +ATTRIBUTE_GROUPS(dvb_class);
-> +
->  static int dvb_uevent(struct device *dev, struct kobj_uevent_env *env)
->  {
->  	struct dvb_device *dvbdev =3D dev_get_drvdata(dev);
-> @@ -1035,6 +1070,7 @@ static int __init init_dvbdev(void)
->  		retval =3D PTR_ERR(dvb_class);
->  		goto error;
->  	}
-> +	dvb_class->dev_groups =3D dvb_class_groups,
->  	dvb_class->dev_uevent =3D dvb_uevent;
->  	dvb_class->devnode =3D dvb_devnode;
->  	return 0;
->=20
+> 
+> There may also be a similar, yet simpler solution already in place
+> that we can use. The v4l2_buffer structure contains a "sequence"
+> member, that is supposed to sequentially count the delivered frames.
 
+The sequence field suffers from exactly the same problems as the
+buffer index: it doesn't work if one compressed frame results in
+multiple capture buffers (one for each slice), since the sequence
+number will be increased for each capture buffer. Also if capture
+buffers are marked as error for some reason, the sequence number is
+also incremented for that buffer, again making it impossible to
+predict in userspace what the sequence counter will be.
 
+> What if we used this field in the same spirit as your cookie?
+> Userspace would just need to keep count of the number of frames sent
+> to the driver in order to accurately predict which sequence number a
+> given frame is going to carry. Then the driver/framework just needs to
+> associate the last sequence number of each buffer so it can find the
+> reference frames, and we have an way to refer every frame. Would that
+> work? We would need to make sure that error buffers are returned for
+> every frame that fails (otherwise the counter could deviate between
+> kernel and user-space), but if we take care of that it seems to me
+> that this would stand, while being simpler and taking advantage of an
+> already existing field.
+> 
 
-Thanks,
-Mauro
+So no, this wouldn't work.
+
+I don't want this 'accurately predict' method: it is inherently fragile.
+
+Regards,
+
+	Hans
