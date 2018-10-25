@@ -1,117 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:35367 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726308AbeJYMEH (ORCPT
+Received: from mail-yb1-f195.google.com ([209.85.219.195]:38832 "EHLO
+        mail-yb1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726471AbeJYQCn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 25 Oct 2018 08:04:07 -0400
-Message-ID: <5d7f4d409cb1f19ee022fae069bf5499@smtp-cloud8.xs4all.net>
-Date: Thu, 25 Oct 2018 05:33:15 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
+        Thu, 25 Oct 2018 12:02:43 -0400
+Received: by mail-yb1-f195.google.com with SMTP id v92-v6so3271553ybi.5
+        for <linux-media@vger.kernel.org>; Thu, 25 Oct 2018 00:31:12 -0700 (PDT)
+Received: from mail-yb1-f176.google.com (mail-yb1-f176.google.com. [209.85.219.176])
+        by smtp.gmail.com with ESMTPSA id q11-v6sm1755836ywb.44.2018.10.25.00.31.10
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 25 Oct 2018 00:31:10 -0700 (PDT)
+Received: by mail-yb1-f176.google.com with SMTP id e16-v6so3262394ybk.8
+        for <linux-media@vger.kernel.org>; Thu, 25 Oct 2018 00:31:10 -0700 (PDT)
+MIME-Version: 1.0
+References: <1540389162-30358-1-git-send-email-mgottam@codeaurora.org>
+ <CAAFQd5CaYH-kxj+9cquObTHiRyA1VoEYHQmiQAGjdZm6J1ACfg@mail.gmail.com> <86344762e1eeab8fe8a940a1bfffa2c1@codeaurora.org>
+In-Reply-To: <86344762e1eeab8fe8a940a1bfffa2c1@codeaurora.org>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Thu, 25 Oct 2018 16:30:58 +0900
+Message-ID: <CAAFQd5BhVdnmaVriBHEEvqKqO1Aiky0RpTyKWuh4+r0tPovsCA@mail.gmail.com>
+Subject: Re: [PATCH v2] media: venus: add support for key frame
+To: vgarodia@codeaurora.org
+Cc: mgottam@codeaurora.org,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        linux-media-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Thu, Oct 25, 2018 at 4:23 PM Vikash Garodia <vgarodia@codeaurora.org> wrote:
+>
+> On 2018-10-24 20:02, Tomasz Figa wrote:
+> > On Wed, Oct 24, 2018 at 10:52 PM Malathi Gottam
+> > <mgottam@codeaurora.org> wrote:
+> >>
+> >> When client requests for a keyframe, set the property
+> >> to hardware to generate the sync frame.
+> >>
+> >> Signed-off-by: Malathi Gottam <mgottam@codeaurora.org>
+> >> ---
+> >>  drivers/media/platform/qcom/venus/venc_ctrls.c | 16 +++++++++++++++-
+> >>  1 file changed, 15 insertions(+), 1 deletion(-)
+> >>
+> >> diff --git a/drivers/media/platform/qcom/venus/venc_ctrls.c
+> >> b/drivers/media/platform/qcom/venus/venc_ctrls.c
+> >> index 45910172..6c2655d 100644
+> >> --- a/drivers/media/platform/qcom/venus/venc_ctrls.c
+> >> +++ b/drivers/media/platform/qcom/venus/venc_ctrls.c
+> >> @@ -79,8 +79,10 @@ static int venc_op_s_ctrl(struct v4l2_ctrl *ctrl)
+> >>  {
+> >>         struct venus_inst *inst = ctrl_to_inst(ctrl);
+> >>         struct venc_controls *ctr = &inst->controls.enc;
+> >> +       struct hfi_enable en = { .enable = 1 };
+> >>         u32 bframes;
+> >>         int ret;
+> >> +       u32 ptype;
+> >>
+> >>         switch (ctrl->id) {
+> >>         case V4L2_CID_MPEG_VIDEO_BITRATE_MODE:
+> >> @@ -173,6 +175,15 @@ static int venc_op_s_ctrl(struct v4l2_ctrl *ctrl)
+> >>
+> >>                 ctr->num_b_frames = bframes;
+> >>                 break;
+> >> +       case V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME:
+> >> +               if (inst->streamon_out && inst->streamon_cap) {
+> >> +                       ptype =
+> >> HFI_PROPERTY_CONFIG_VENC_REQUEST_SYNC_FRAME;
+> >> +                       ret = hfi_session_set_property(inst, ptype,
+> >> &en);
+> >> +
+> >> +                       if (ret)
+> >> +                               return ret;
+> >> +               }
+> >> +               break;
+> >
+> > This is still not the right way to handle this.
+> >
+> > Please see the documentation of this control [1]:
+> >
+> > "V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME (button)
+> > Force a key frame for the next queued buffer. Applicable to encoders.
+> > This is a general, codec-agnostic keyframe control."
+> >
+> > Even if the driver is not streaming, it must remember that the
+> > keyframe was requested for next buffer. The next time userspace QBUFs
+> > an OUTPUT buffer, it should ask the hardware to encode that OUTPUT
+> > buffer into a keyframe.
+>
+> That's correct. Driver can cache the client request and set it when the
+> hardware
+> is capable of accepting the property.
+> Still the issue having the requested OUTPUT buffer to be encoded as sync
+> frame will
+> be there. If there are few frames queued before streamon, driver will
+> only keep a
+> note that it has to set the request for keyframe, but not the exact one
+> which was
+> requested.
 
-Results of the daily build of media_tree:
+The description (quoted above) specifies exactly that the control
+applies only to the next queued buffer. It's a "button" control, so
+when the application sets it (to 1), it triggers a call to driver's
+s_ctrl callback and then resets to 0 automatically.
 
-date:			Thu Oct 25 05:00:14 CEST 2018
-media-tree git hash:	3b796aa60af087f5fec75aee9b17f2130f2b9adc
-media_build git hash:	0c8bb27f3aaa682b9548b656f77505c3d1f11e71
-v4l-utils git hash:	c36dbbdfa8b30b2badd4f893b59d0bd4f0bd12aa
-edid-decode git hash:	5eeb151a748788666534d6ea3da07f90400d24c2
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.18.0-2-amd64
+>
+> > [1]
+> > https://www.kernel.org/doc/html/latest/media/uapi/v4l/extended-controls.html?highlight=v4l2_cid_mpeg_video_force_key_frame
+> >
+> > But generally, the proper modern way for the userspace to request a
+> > keyframe is to set the V4L2_BUF_FLAG_KEYFRAME flag in the
+> > vb2_buffer_flag when queuing an OUTPUT buffer. It's the only
+> > guaranteed way to ensure that the keyframe will be encoded exactly for
+> > the selected frame. (The V4L2 control API doesn't guarantee any
+> > synchronization between controls and buffers itself.)
+>
+> This is a better way to handle it to ensure exact buffer gets encoded as
+> sync frame.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.123-i686: OK
-linux-3.18.123-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.159-i686: OK
-linux-4.4.159-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.131-i686: OK
-linux-4.9.131-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.74-i686: OK
-linux-4.14.74-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: OK
-linux-4.19-rc6-i686: OK
-linux-4.19-rc6-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+It was created later to solve this problem. For compatibility, we have
+to keep supporting the control too.
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Best regards,
+Tomasz
