@@ -1,75 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg1-f196.google.com ([209.85.215.196]:45297 "EHLO
-        mail-pg1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725821AbeJYE4V (ORCPT
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:35367 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726308AbeJYMEH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 25 Oct 2018 00:56:21 -0400
-Received: by mail-pg1-f196.google.com with SMTP id s3-v6so2852249pga.12
-        for <linux-media@vger.kernel.org>; Wed, 24 Oct 2018 13:26:49 -0700 (PDT)
-From: Tim Harvey <tharvey@gateworks.com>
-To: Lars-Peter Clausen <lars@metafoo.de>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH] media: adv7180: add g_skip_frames support
-Date: Wed, 24 Oct 2018 13:25:51 -0700
-Message-Id: <1540412751-19194-1-git-send-email-tharvey@gateworks.com>
+        Thu, 25 Oct 2018 08:04:07 -0400
+Message-ID: <5d7f4d409cb1f19ee022fae069bf5499@smtp-cloud8.xs4all.net>
+Date: Thu, 25 Oct 2018 05:33:15 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The adv7180 produces 1 to 2 frames of garbage before proper sync is
-established. This allows V4L2 drivers and apps to skip those.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Tim Harvey <tharvey@gateworks.com>
----
- drivers/media/i2c/adv7180.c | 15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
-index 99697ba..6f3dc88 100644
---- a/drivers/media/i2c/adv7180.c
-+++ b/drivers/media/i2c/adv7180.c
-@@ -180,6 +180,9 @@
- 
- #define V4L2_CID_ADV_FAST_SWITCH	(V4L2_CID_USER_ADV7180_BASE + 0x00)
- 
-+/* Initial number of frames to skip to avoid possible garbage */
-+#define ADV7180_NUM_OF_SKIP_FRAMES       2
-+
- struct adv7180_state;
- 
- #define ADV7180_FLAG_RESET_POWERED	BIT(0)
-@@ -769,6 +772,13 @@ static int adv7180_g_mbus_config(struct v4l2_subdev *sd,
- 	return 0;
- }
- 
-+static int adv7180_get_skip_frames(struct v4l2_subdev *sd, u32 *frames)
-+{
-+	*frames = ADV7180_NUM_OF_SKIP_FRAMES;
-+
-+	return 0;
-+}
-+
- static int adv7180_g_pixelaspect(struct v4l2_subdev *sd, struct v4l2_fract *aspect)
- {
- 	struct adv7180_state *state = to_state(sd);
-@@ -849,10 +859,15 @@ static const struct v4l2_subdev_pad_ops adv7180_pad_ops = {
- 	.get_fmt = adv7180_get_pad_format,
- };
- 
-+static const struct v4l2_subdev_sensor_ops adv7180_sensor_ops = {
-+	.g_skip_frames = adv7180_get_skip_frames,
-+};
-+
- static const struct v4l2_subdev_ops adv7180_ops = {
- 	.core = &adv7180_core_ops,
- 	.video = &adv7180_video_ops,
- 	.pad = &adv7180_pad_ops,
-+	.sensor = &adv7180_sensor_ops,
- };
- 
- static irqreturn_t adv7180_irq(int irq, void *devid)
--- 
-2.7.4
+date:			Thu Oct 25 05:00:14 CEST 2018
+media-tree git hash:	3b796aa60af087f5fec75aee9b17f2130f2b9adc
+media_build git hash:	0c8bb27f3aaa682b9548b656f77505c3d1f11e71
+v4l-utils git hash:	c36dbbdfa8b30b2badd4f893b59d0bd4f0bd12aa
+edid-decode git hash:	5eeb151a748788666534d6ea3da07f90400d24c2
+gcc version:		i686-linux-gcc (GCC) 8.2.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.18.0-2-amd64
+
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.57-i686: OK
+linux-3.16.57-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.123-i686: OK
+linux-3.18.123-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.52-i686: OK
+linux-4.1.52-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.159-i686: OK
+linux-4.4.159-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.131-i686: OK
+linux-4.9.131-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.74-i686: OK
+linux-4.14.74-x86_64: OK
+linux-4.15.18-i686: OK
+linux-4.15.18-x86_64: OK
+linux-4.16.18-i686: OK
+linux-4.16.18-x86_64: OK
+linux-4.17.19-i686: OK
+linux-4.17.19-x86_64: OK
+linux-4.18.12-i686: OK
+linux-4.18.12-x86_64: OK
+linux-4.19-rc6-i686: OK
+linux-4.19-rc6-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
