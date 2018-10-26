@@ -1,30 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 822397.com ([185.216.140.104]:51549 "EHLO jackstorms.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1727744AbeJZDwq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 25 Oct 2018 23:52:46 -0400
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:55541 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725807AbeJZMKC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 26 Oct 2018 08:10:02 -0400
+Message-ID: <91e0a3abff4fe1b2bb4dbc2a2becad95@smtp-cloud7.xs4all.net>
+Date: Fri, 26 Oct 2018 05:34:44 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: for your images 12
-Message-ID: <4a040e9ea51056f22e5f008a57131d56@brandeditems.com>
-Date: Wed, 24 Oct 2018 13:26:57 +0200
-From: "Kate" <yetdecisvnsuiteb@aol.jp>
-Reply-To: hamansi@sina.com
-MIME-Version: 1.0
-Content-Type: text/plain; format=flowed; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Subject: cron job: media_tree daily build: OK
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We are an imaging team who can process 300+ images daily.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-If you need any image editing service, please contact us today.
+Results of the daily build of media_tree:
 
-We do mainly images cut out and clipping path, masking.
-Such as for your ecommerce photos, jewelry photos retouching, also it is
-for beauty portraits and skin images
-and wedding photos.
+date:			Fri Oct 26 05:00:13 CEST 2018
+media-tree git hash:	3b796aa60af087f5fec75aee9b17f2130f2b9adc
+media_build git hash:	0c8bb27f3aaa682b9548b656f77505c3d1f11e71
+v4l-utils git hash:	c36dbbdfa8b30b2badd4f893b59d0bd4f0bd12aa
+edid-decode git hash:	5eeb151a748788666534d6ea3da07f90400d24c2
+gcc version:		i686-linux-gcc (GCC) 8.2.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.18.0-2-amd64
 
-We provide test editing if you send some photos.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.57-i686: OK
+linux-3.16.57-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.123-i686: OK
+linux-3.18.123-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.52-i686: OK
+linux-4.1.52-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.159-i686: OK
+linux-4.4.159-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.131-i686: OK
+linux-4.9.131-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.74-i686: OK
+linux-4.14.74-x86_64: OK
+linux-4.15.18-i686: OK
+linux-4.15.18-x86_64: OK
+linux-4.16.18-i686: OK
+linux-4.16.18-x86_64: OK
+linux-4.17.19-i686: OK
+linux-4.17.19-x86_64: OK
+linux-4.18.12-i686: OK
+linux-4.18.12-x86_64: OK
+linux-4.19-rc6-i686: OK
+linux-4.19-rc6-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
-Thanks,
-Kate
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
