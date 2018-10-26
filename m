@@ -1,131 +1,173 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw1-f66.google.com ([209.85.161.66]:38248 "EHLO
-        mail-yw1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725941AbeJZQAa (ORCPT
+Received: from mail-oi1-f180.google.com ([209.85.167.180]:38303 "EHLO
+        mail-oi1-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726078AbeJZQON (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 26 Oct 2018 12:00:30 -0400
-Received: by mail-yw1-f66.google.com with SMTP id d126-v6so74371ywa.5
-        for <linux-media@vger.kernel.org>; Fri, 26 Oct 2018 00:24:39 -0700 (PDT)
-Received: from mail-yw1-f52.google.com (mail-yw1-f52.google.com. [209.85.161.52])
-        by smtp.gmail.com with ESMTPSA id y126-v6sm2593950ywe.26.2018.10.26.00.24.36
+        Fri, 26 Oct 2018 12:14:13 -0400
+Received: by mail-oi1-f180.google.com with SMTP id k19-v6so189921oiw.5
+        for <linux-media@vger.kernel.org>; Fri, 26 Oct 2018 00:38:18 -0700 (PDT)
+Received: from mail-ot1-f42.google.com (mail-ot1-f42.google.com. [209.85.210.42])
+        by smtp.gmail.com with ESMTPSA id v9sm3671996ote.3.2018.10.26.00.38.16
         for <linux-media@vger.kernel.org>
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Fri, 26 Oct 2018 00:24:36 -0700 (PDT)
-Received: by mail-yw1-f52.google.com with SMTP id z206-v6so77027ywb.3
-        for <linux-media@vger.kernel.org>; Fri, 26 Oct 2018 00:24:36 -0700 (PDT)
+        Fri, 26 Oct 2018 00:38:16 -0700 (PDT)
+Received: by mail-ot1-f42.google.com with SMTP id x4so212319otg.3
+        for <linux-media@vger.kernel.org>; Fri, 26 Oct 2018 00:38:16 -0700 (PDT)
 MIME-Version: 1.0
-References: <20181018160841.17674-1-ezequiel@collabora.com>
- <20181018160841.17674-2-ezequiel@collabora.com> <a81e37eb-9d85-7a52-1098-d067c719f1e1@xs4all.nl>
- <457d3a25453d27135270ee4318a3afc1c5da51fb.camel@collabora.com>
-In-Reply-To: <457d3a25453d27135270ee4318a3afc1c5da51fb.camel@collabora.com>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Fri, 26 Oct 2018 16:24:24 +0900
-Message-ID: <CAAFQd5ATt3xDR7=vfp2CCp5FJDBwDZvv5pgFYE_76mCjgMvajw@mail.gmail.com>
-Subject: Re: [PATCH 1/2] vicodec: Have decoder propagate changes to the
- CAPTURE queue
-To: Ezequiel Garcia <ezequiel@collabora.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+References: <20181019080928.208446-1-acourbot@chromium.org>
+ <a02b50ee-37e1-0202-b999-8e32b7bd1a96@xs4all.nl> <CAPBb6MUA5zNL9SsY2AEDNKgazyAqOMxGGSwidMV+RJnnrz7kTg@mail.gmail.com>
+ <515520e4-51d6-e4bb-138a-84453ea6e189@xs4all.nl>
+In-Reply-To: <515520e4-51d6-e4bb-138a-84453ea6e189@xs4all.nl>
+From: Alexandre Courbot <acourbot@chromium.org>
+Date: Fri, 26 Oct 2018 16:38:04 +0900
+Message-ID: <CAPBb6MUou54=yhEv2g27an-ASefnaLZOyBbE-1E-CD+w0t_apg@mail.gmail.com>
+Subject: Re: [RFC] Stateless codecs: how to refer to reference frames
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Tomasz Figa <tfiga@chromium.org>,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Pawel Osciak <posciak@chromium.org>,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>, kernel@collabora.com,
-        Nicolas Dufresne <nicolas.dufresne@collabora.com>
+        LKML <linux-kernel@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Oct 19, 2018 at 10:00 PM Ezequiel Garcia <ezequiel@collabora.com> w=
-rote:
->
-> On Fri, 2018-10-19 at 09:14 +0200, Hans Verkuil wrote:
-> > On 10/18/2018 06:08 PM, Ezequiel Garcia wrote:
-> > > The decoder interface (not yet merged) specifies that
-> > > width and height values set on the OUTPUT queue, must
-> > > be propagated to the CAPTURE queue.
-> > >
-> > > This is not enough to comply with the specification,
-> > > which would require to properly support stream resolution
-> > > changes detection and notification.
-> > >
-> > > However, it's a relatively small change, which fixes behavior
-> > > required by some applications such as gstreamer.
-> > >
-> > > With this change, it's possible to run a simple T(T=E2=81=BB=C2=B9) p=
-ipeline:
-> > >
-> > > gst-launch-1.0 videotestsrc ! v4l2fwhtenc ! v4l2fwhtdec ! fakevideosi=
-nk
-> > >
-> > > Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
-> > > ---
-> > >  drivers/media/platform/vicodec/vicodec-core.c | 15 +++++++++++++++
-> > >  1 file changed, 15 insertions(+)
-> > >
-> > > diff --git a/drivers/media/platform/vicodec/vicodec-core.c b/drivers/=
-media/platform/vicodec/vicodec-core.c
-> > > index 1eb9132bfc85..a2c487b4b80d 100644
-> > > --- a/drivers/media/platform/vicodec/vicodec-core.c
-> > > +++ b/drivers/media/platform/vicodec/vicodec-core.c
-> > > @@ -673,6 +673,13 @@ static int vidioc_s_fmt(struct vicodec_ctx *ctx,=
- struct v4l2_format *f)
-> > >             q_data->width =3D pix->width;
-> > >             q_data->height =3D pix->height;
-> > >             q_data->sizeimage =3D pix->sizeimage;
-> > > +
-> > > +           /* Propagate changes to CAPTURE queue */
-> > > +           if (!ctx->is_enc && V4L2_TYPE_IS_OUTPUT(f->type)) {
-> >
-> > Do we need !ctx->is_enc? Isn't this the same for both decoder and encod=
-er?
-> >
->
-> Well, I wasn't really sure about this. The decoder document clearly
-> says that changes has to be propagated to the capture queue, but that sta=
-tement
-> is not in the encoder spec.
->
-> Since gstreamer didn't needs this, I decided not to add it.
->
-> Perhaps it's something to correct in the encoder spec?
+Hi Hans,
 
-Hmm, in the v2 of the documentation I sent recently, the CAPTURE queue
-of an encoder doesn't have width and height specified. For formats
-that have the resolution embedded in bitstream metadata, this isn't
-anything that the userspace should be concerned with. I forgot about
-the formats that don't have the resolution in the metadata, so we
-might need to bring them back. Then the propagation would have to be
-there indeed.
-
-> > > +                   ctx->q_data[V4L2_M2M_DST].width =3D pix->width;
-> > > +                   ctx->q_data[V4L2_M2M_DST].height =3D pix->height;
-> > > +                   ctx->q_data[V4L2_M2M_DST].sizeimage =3D pix->size=
-image;
-> >
-> > This is wrong: you are copying the sizeimage for the compressed format =
-as the
-> > sizeimage for the raw format, which is quite different.
-> >
+On Wed, Oct 24, 2018 at 6:52 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
 >
-> Doh, you are right.
+> HI Alexandre,
 >
-> > I think you need to make a little helper function that can update the w=
-idth/height
-> > of a particular queue and that can calculate the sizeimage correctly.
+> On 10/24/2018 10:16 AM, Alexandre Courbot wrote:
+> > Hi Hans,
 > >
+> > On Fri, Oct 19, 2018 at 6:40 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> >>
+> >> From Alexandre's '[RFC PATCH v3] media: docs-rst: Document m2m stateless
+> >> video decoder interface':
+> >>
+> >> On 10/19/18 10:09, Alexandre Courbot wrote:
+> >>> Two points being currently discussed have not been changed in this
+> >>> revision due to lack of better idea. Of course this is open to change:
+> >>
+> >> <snip>
+> >>
+> >>> * The other hot topic is the use of capture buffer indexes in order to
+> >>>   reference frames. I understand the concerns, but I doesn't seem like
+> >>>   we have come with a better proposal so far - and since capture buffers
+> >>>   are essentially well, frames, using their buffer index to directly
+> >>>   reference them doesn't sound too inappropriate to me. There is also
+> >>>   the restriction that drivers must return capture buffers in queue
+> >>>   order. Do we have any concrete example where this scenario would not
+> >>>   work?
+> >>
+> >> I'll stick to decoders in describing the issue. Stateless encoders probably
+> >> do not have this issue.
+> >>
+> >> To recap: the application provides a buffer with compressed data to the
+> >> decoder. After the request is finished the application can dequeue the
+> >> decompressed frame from the capture queue.
+> >>
+> >> In order to decompress the decoder needs to access previously decoded
+> >> reference frames. The request passed to the decoder contained state
+> >> information containing the buffer index (or indices) of capture buffers
+> >> that contain the reference frame(s).
+> >>
+> >> This approach puts restrictions on the framework and the application:
+> >>
+> >> 1) It assumes that the application can predict the capture indices.
+> >> This works as long as there is a simple relationship between the
+> >> buffer passed to the decoder and the buffer you get back.
+> >>
+> >> But that may not be true for future codecs. And what if one buffer
+> >> produces multiple capture buffers? (E.g. if you want to get back
+> >> decompressed slices instead of full frames to reduce output latency).
+> >>
+> >> This API should be designed to be future-proof (within reason of course),
+> >> and I am not at all convinced that future codecs will be just as easy
+> >> to predict.
+> >>
+> >> 2) It assumes that neither drivers nor applications mess with the buffers.
+> >> One case that might happen today is if the DMA fails and a buffer is
+> >> returned marked ERROR and the DMA is retried with the next buffer. There
+> >> is nothing in the spec that prevents you from doing that, but it will mess
+> >> up the capture index numbering. And does the application always know in
+> >> what order capture buffers are queued? Perhaps there are two threads: one
+> >> queueing buffers with compressed data, and the other dequeueing the
+> >> decompressed buffers, and they are running mostly independently.
+> >>
+> >>
+> >> I believe that assuming that you can always predict the indices of the
+> >> capture queue is dangerous and asking for problems in the future.
+> >>
+> >>
+> >> I am very much in favor of using a dedicated cookie. The application sets
+> >> it for the compressed buffer and the driver copies it to the uncompressed
+> >> capture buffer. It keeps track of the association between capture index
+> >> and cookie. If a compressed buffer decompresses into multiple capture
+> >> buffers, then they will all be associated with the same cookie, so
+> >> that simplifies how you refer to reference frames if they are split
+> >> over multiple buffers.
+> >>
+> >> The codec controls refer to reference frames by cookie(s).
+> >
+> > So as discussed yesterday, I understand your issue with using buffer
+> > indexes. The cookie idea sounds like it could work, but I'm afraid you
+> > could still run into issues when you don't have buffer symmetry.
+> >
+> > For instance, imagine that the compressed buffer contains 2 frames
+> > worth of data. In this case, the 2 dequeued capture buffers would
+> > carry the same cookie, making it impossible to reference either frame
+> > unambiguously.
+>
+> But this is a stateless codec, so each compressed buffer contains only
+> one frame. That's the responsibility of the bitstream parser to ensure
+> that.
 
-I wish we had generic helpers to manage all the formats in one place,
-rather than duplicating the handling in each driver. I found many
-cases of drivers not reporting bytesperline correctly or not handling
-some formats (other than default and so often not tested) correctly.
-If we could just have the driver call
-v4l2_fill_pixfmt_mp_for_format(&pixfmt_mp, pixelformat, width, height,
-...), a lot of boilerplate and potential source of errors could be
-removed. (Bonus points for helpers that can convert pixfmt_mp for a
-non-M format, e.g. NV12, into a pixfmt_mp for the corresponding M
-format, e.g. NV12M, so that all the drivers that can support M formats
-can also handle non-M formats automatically.)
+Just as we are making the design future-proof by considering the case
+where we get one buffer per slice, shouldn't we think about the
+(currently hypothetical) case of a future codec specification in which
+slices contain information that is relevant for several consecutive
+frames? It may be a worthless design as classic reference frames are
+probably enough to carry redundant information, but wanted to point
+the scenario just in case.
 
-One thing to note, though, is that there might be driver specific
-alignment constraints in the play, so care must be taken.
+>
+> The whole idea of the stateless codec is that you supply only one frame
+> at a time to the codec.
+>
+> If someone indeed puts multiple frames into a single buffer, then
+> the behavior is likely undefined. Does anyone have any idea what
+> would happen with the cedrus driver in that case? This is actually
+> a good test.
+>
+> Anyway, I would consider this an application bug. Garbage in, garbage out.
 
-Best regards,
-Tomasz
+Yeah, at least for the existing codecs this should be a bug.
+
+>
+> >
+> > There may also be a similar, yet simpler solution already in place
+> > that we can use. The v4l2_buffer structure contains a "sequence"
+> > member, that is supposed to sequentially count the delivered frames.
+>
+> The sequence field suffers from exactly the same problems as the
+> buffer index: it doesn't work if one compressed frame results in
+> multiple capture buffers (one for each slice), since the sequence
+> number will be increased for each capture buffer. Also if capture
+> buffers are marked as error for some reason, the sequence number is
+> also incremented for that buffer, again making it impossible to
+> predict in userspace what the sequence counter will be.
+
+Well if we get one capture buffer per slice, user-space can count them
+just as well as in the one buffer per frame scenario.
+
+That being said, I agree that requiring user-space to keep track of
+that could be tricky. Lose track once, and all your future reference
+frames will use an incorrect buffer.
+
+So cookies it is, I guess! I will include them in the next version of the RFC.
+
+Cheers,
+Alex.
