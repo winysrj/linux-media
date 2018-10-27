@@ -1,117 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:44453 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725965AbeJ0MMf (ORCPT
+Received: from mail-wm1-f67.google.com ([209.85.128.67]:34417 "EHLO
+        mail-wm1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726610AbeJ0SSf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 27 Oct 2018 08:12:35 -0400
-Message-ID: <05c3ea9f02496cba042f44f358bee96d@smtp-cloud9.xs4all.net>
-Date: Sat, 27 Oct 2018 05:33:00 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
+        Sat, 27 Oct 2018 14:18:35 -0400
+Received: by mail-wm1-f67.google.com with SMTP id f1-v6so5806987wmg.1
+        for <linux-media@vger.kernel.org>; Sat, 27 Oct 2018 02:38:14 -0700 (PDT)
+Message-ID: <9ac3abb4a8dee94bd2adca6c781bf8c58f68b945.camel@ndufresne.ca>
+Subject: Re: [RFP] Which V4L2 ioctls could be replaced by better versions?
+From: Nicolas Dufresne <nicolas@ndufresne.ca>
+To: Tomasz Figa <tfiga@chromium.org>, pza@pengutronix.de
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Date: Sat, 27 Oct 2018 10:38:05 +0100
+In-Reply-To: <CAAFQd5A3a1o55pcV6Kn5ZWXQFYJvuv4y1+oD4=PEZXoYMhrX0Q@mail.gmail.com>
+References: <d49940b7-af62-594e-06ad-8ec113589340@xs4all.nl>
+         <6efdab2da3e4263a49a6a2630df7f79511302088.camel@ndufresne.ca>
+         <CAAFQd5BsvtqM3QriFd5vo55ZDKxFcnGAR21Y7ch247jXX6-iQg@mail.gmail.com>
+         <20181021162843.ys6eqbbyg5w5ufrv@pengutronix.de>
+         <CAAFQd5A3a1o55pcV6Kn5ZWXQFYJvuv4y1+oD4=PEZXoYMhrX0Q@mail.gmail.com>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+        boundary="=-pLLpDdRIcgH3RDT5zn1B"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
 
-Results of the daily build of media_tree:
+--=-pLLpDdRIcgH3RDT5zn1B
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-date:			Sat Oct 27 05:00:13 CEST 2018
-media-tree git hash:	3b796aa60af087f5fec75aee9b17f2130f2b9adc
-media_build git hash:	0c8bb27f3aaa682b9548b656f77505c3d1f11e71
-v4l-utils git hash:	c36dbbdfa8b30b2badd4f893b59d0bd4f0bd12aa
-edid-decode git hash:	5eeb151a748788666534d6ea3da07f90400d24c2
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.18.0-2-amd64
+Le lundi 22 octobre 2018 =C3=A0 12:37 +0900, Tomasz Figa a =C3=A9crit :
+> Hi Philipp,
+>=20
+> On Mon, Oct 22, 2018 at 1:28 AM Philipp Zabel <pza@pengutronix.de> wrote:
+> >=20
+> > On Wed, Oct 03, 2018 at 05:24:39PM +0900, Tomasz Figa wrote:
+> > [...]
+> > > > Yes, but that would fall in a complete redesign I guess. The buffer
+> > > > allocation scheme is very inflexible. You can't have buffers of two
+> > > > dimensions allocated at the same time for the same queue. Worst, yo=
+u
+> > > > cannot leave even 1 buffer as your scannout buffer while reallocati=
+ng
+> > > > new buffers, this is not permitted by the framework (in software). =
+As a
+> > > > side effect, there is no way to optimize the resolution changes, yo=
+u
+> > > > even have to copy your scannout buffer on the CPU, to free it in or=
+der
+> > > > to proceed. Resolution changes are thus painfully slow, by design.
+> >=20
+> > [...]
+> > > Also, I fail to understand the scanout issue. If one exports a vb2
+> > > buffer to a DMA-buf and import it to the scanout engine, it can keep
+> > > scanning out from it as long as it want, because the DMA-buf will hol=
+d
+> > > a reference on the buffer, even if it's removed from the vb2 queue.
+> >=20
+> > REQBUFS 0 fails if the vb2 buffer is still in use, including from dmabu=
+f
+> > attachments: vb2_buffer_in_use checks the num_users memop. The refcount
+> > returned by num_users shared between the vmarea handler and dmabuf ops,
+> > so any dmabuf attachment counts towards in_use.
+>=20
+> Ah, right. I've managed to completely forget about it, since we have a
+> downstream patch that we attempted to upstream earlier [1], but didn't
+> have a chance to follow up on the comments and there wasn't much
+> interest in it in general.
+>=20
+> [1] https://lore.kernel.org/patchwork/patch/607853/
+>=20
+> Perhaps it would be worth reviving?
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.123-i686: OK
-linux-3.18.123-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.159-i686: OK
-linux-4.4.159-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.131-i686: OK
-linux-4.9.131-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.74-i686: OK
-linux-4.14.74-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: OK
-linux-4.19-i686: OK
-linux-4.19-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+In this patch we should consider a way to tell userspace that this has
+been opt in, otherwise existing userspace will have to remain using
+sub-optimal copy based reclaiming in order to ensure that renegotiation
+can work on older kernel tool. At worst someone could probably do trial
+and error (reqbufs(1)/mmap/reqbufs(0)) but on CMA with large buffers
+this introduces extra startup time.
 
-Detailed results are available here:
+>=20
+> Best regards,
+> Tomasz
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+--=-pLLpDdRIcgH3RDT5zn1B
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
-Full logs are available here:
+-----BEGIN PGP SIGNATURE-----
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+iF0EABECAB0WIQSScpfJiL+hb5vvd45xUwItrAaoHAUCW9Qx/QAKCRBxUwItrAao
+HFW6AJoDYIbC4a6FKuneqPaj51KBhM6iXQCePyb/Ld2ypILrhAbiB+peTXVg/TU=
+=bXi5
+-----END PGP SIGNATURE-----
 
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+--=-pLLpDdRIcgH3RDT5zn1B--
