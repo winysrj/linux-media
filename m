@@ -1,95 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg1-f195.google.com ([209.85.215.195]:44178 "EHLO
-        mail-pg1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726592AbeJ2BLB (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.133]:52890 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726692AbeJ2AGc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 28 Oct 2018 21:11:01 -0400
-Received: by mail-pg1-f195.google.com with SMTP id w3-v6so2693786pgs.11
-        for <linux-media@vger.kernel.org>; Sun, 28 Oct 2018 09:25:56 -0700 (PDT)
+        Sun, 28 Oct 2018 20:06:32 -0400
+Date: Sun, 28 Oct 2018 12:21:30 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Antoni Bella =?UTF-8?B?UMOpcmV6?= <antonibella5@yahoo.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: Kaffeine: cool pull request in GitHub
+Message-ID: <20181028122130.4ffd266f@coco.lan>
+In-Reply-To: <18566905.EYTn87RyQ2@alba>
+References: <18566905.EYTn87RyQ2@alba>
 MIME-Version: 1.0
-References: <1540045588-9091-1-git-send-email-akinobu.mita@gmail.com>
- <1540045588-9091-4-git-send-email-akinobu.mita@gmail.com> <CAJCx=gm0+ZdPKed_w4yZv8+ohgHWh3bi+=7nqxTjazHFtfFQsQ@mail.gmail.com>
-In-Reply-To: <CAJCx=gm0+ZdPKed_w4yZv8+ohgHWh3bi+=7nqxTjazHFtfFQsQ@mail.gmail.com>
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Date: Mon, 29 Oct 2018 01:25:45 +0900
-Message-ID: <CAC5umyg4VSFS2v28h590aCx3Zn-F0PxHHx21YaoLik7b9pMG4g@mail.gmail.com>
-Subject: Re: [PATCH v4 3/6] media: v4l2-common: add V4L2_FRACT_COMPARE
-To: Matt Ranostay <matt.ranostay@konsulko.com>
-Cc: linux-media@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2018=E5=B9=B410=E6=9C=8828=E6=97=A5(=E6=97=A5) 12:49 Matt Ranostay <matt.ra=
-nostay@konsulko.com>:
->
-> On Sat, Oct 20, 2018 at 7:26 AM Akinobu Mita <akinobu.mita@gmail.com> wro=
-te:
-> >
-> > Add macro to compare two v4l2_fract values in v4l2 common internal API.
-> > The same macro FRACT_CMP() is used by vivid and bcm2835-camera.  This j=
-ust
-> > renames it to V4L2_FRACT_COMPARE in order to avoid namespace collision.
-> >
-> > Cc: Matt Ranostay <matt.ranostay@konsulko.com>
-> > Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > Cc: Hans Verkuil <hansverk@cisco.com>
-> > Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-> > Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-> > ---
-> > * v4
-> > - No changes from v3
-> >
-> >  include/media/v4l2-common.h | 5 +++++
-> >  1 file changed, 5 insertions(+)
-> >
-> > diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
-> > index cdc87ec..eafb8a3 100644
-> > --- a/include/media/v4l2-common.h
-> > +++ b/include/media/v4l2-common.h
-> > @@ -384,4 +384,9 @@ int v4l2_g_parm_cap(struct video_device *vdev,
-> >  int v4l2_s_parm_cap(struct video_device *vdev,
-> >                     struct v4l2_subdev *sd, struct v4l2_streamparm *a);
-> >
-> > +/* Compare two v4l2_fract structs */
-> > +#define V4L2_FRACT_COMPARE(a, OP, b)                   \
-> > +       ((u64)(a).numerator * (b).denominator OP        \
-> > +       (u64)(b).numerator * (a).denominator)
-> > +
->
-> Noticed a few issues today when testing another thermal camera that
-> can do 0.5 fps to 64 fps with this macro..
+Hi Antoni,
 
-I expect your new thermal camera's frame_intervals will be something
-like below.
+Em Sun, 28 Oct 2018 01:02:39 +0200
+Antoni Bella P=C3=A9rez <antonibella5@yahoo.com> escreveu:
 
-static const struct v4l2_fract frame_intervals[] =3D {
-        { 1, 64 },      /* 64 fps */
-        { 1, 4 },       /* 4 fps */
-        { 1, 2 },       /* 2 fps */
-        { 2, 1 },       /* 0.5 fps */
-};
+>   Hi
+>=20
+>   I found three pull request in GitHub and this code has not been include=
+d in=20
+> the master branch.
+>=20
+> 	<https://github.com/KDE/kaffeine/pulls?q=3Dis%3Apr+is%3Aclosed>
+>=20
+> 	* Fix audio CD playing
+> 	  #3 by mrandybu was closed a day ago=20
+>=20
+> 	* Add support for parallel instant records
+> 	  #2 by kochstefan was closed on 17 Feb=20
+>=20
+> 	* Fix compile on FreeBSD
+> 	  uest in GitHu#1 by arvedarved was closed on 3 May 2016
+>=20
+>   I think that would be interesting include it to https://cgit.kde.org/
+> kaffeine.git for next release. After your review... ;-)
 
-> 1) This can have collision easily when numerator and denominators
-> multiplied have the same product, example is 0.5hz and 2hz have the
-> same output as 2
+Thank you for pointing it to me. That audio CD was broken for a long
+time. Good to have it fixed.
 
-I think V4L2_FRACT_COMPARE() can correctly compare with 0.5hz and 2hz.
+I applied all 3 series. Not sure if the FreeBSD is really useful, as
+AFAIKT the Linux DVB API is specific to Linux, but maybe someone=20
+backported it.
 
-V4L2_FRACT_COMPARE({ 1, 2 }, <=3D, { 2, 1 }); // -->  true
-V4L2_FRACT_COMPARE({ 2, 1 }, <=3D, { 1, 2 }); //-->  false
+Anyway, it doesn't hurt applying it.=20
 
-> 2) Also this doesn't reduce fractions so I am seeing 4000000 compared
-> with 4 for instance with a 4hz frame interval.
-
-I think this works fine, too.
-
-V4L2_FRACT_COMPARE({ 1, 4000000 }, <=3D, { 1, 4 }); //-->  true
-V4L2_FRACT_COMPARE({ 1, 4 }, <=3D, { 1, 4000000 }); //-->  false
-
-Or, do I misunderstand your problem?
+Thanks,
+Mauro
