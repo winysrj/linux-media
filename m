@@ -1,68 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta-p4.oit.umn.edu ([134.84.196.204]:57382 "EHLO
-        mta-p4.oit.umn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726036AbeJ3Dgi (ORCPT
+Received: from mail-lj1-f194.google.com ([209.85.208.194]:45400 "EHLO
+        mail-lj1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729412AbeJ3DhF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 Oct 2018 23:36:38 -0400
+        Mon, 29 Oct 2018 23:37:05 -0400
+Subject: Re: [PATCH] lirc.4: remove ioctls and feature bits which were never
+ implemented
+To: Sean Young <sean@mess.org>,
+        "Michael Kerrisk (man-opages)" <mtk.manpages@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        linux-man@vger.kernel.org, linux-media@vger.kernel.org
+References: <20180423102637.xtcjidetxo6iaslx@gofer.mess.org>
+ <6b531be3-56ea-b534-3493-d64c98b3f6c5@gmail.com>
+ <20180518152529.eunu6e6735z62bug@gofer.mess.org>
+ <20180712093332.682fa518@coco.lan>
+ <20180712132118.t5umg7z7qchpok7j@gofer.mess.org>
+ <20181029173002.inf73mb4po6g6itq@gofer.mess.org>
+From: Alec Leamas <leamas.alec@gmail.com>
+Message-ID: <18aad145-d7e3-fd94-820f-7f67ac2c1fb9@gmail.com>
+Date: Mon, 29 Oct 2018 19:47:05 +0100
 MIME-Version: 1.0
-References: <1539958334-11531-1-git-send-email-wang6495@umn.edu>
-In-Reply-To: <1539958334-11531-1-git-send-email-wang6495@umn.edu>
-From: Wenwen Wang <wang6495@umn.edu>
-Date: Mon, 29 Oct 2018 13:46:04 -0500
-Message-ID: <CAAa=b7ceXdaB9KcZy9ML5pcEwMjYF0ibaB_f6LuuHFe_jSuMYQ@mail.gmail.com>
-Subject: Re: [PATCH] media: dvb: fix a missing-check bug
-To: Wenwen Wang <wang6495@umn.edu>
-Cc: Kangjie Lu <kjlu@umn.edu>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        viro@zeniv.linux.org.uk,
-        "open list:STAGING - ATOMISP DRIVER" <linux-media@vger.kernel.org>,
-        open list <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <20181029173002.inf73mb4po6g6itq@gofer.mess.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi all,
 
-Can anyone confirm this bug? Thanks!
+On 29/10/18 18:30, Sean Young wrote:
+> Hi Michael,
+> 
+> On Thu, Jul 12, 2018 at 02:21:18PM +0100, Sean Young wrote:
+>> On Thu, Jul 12, 2018 at 09:33:32AM -0300, Mauro Carvalho Chehab wrote:
+>>> Hi Michael/Alec,
+>>>
+>>> Em Fri, 18 May 2018 16:25:29 +0100
+>>> Sean Young <sean@mess.org> escreveu:
+>>>
+>>>> On Sun, May 06, 2018 at 12:34:53PM +0200, Michael Kerrisk (man-opages) wrote:
+>>>>> [CCing original author of this page]
+>>>>>
+>>>>>
+>>>>> On 04/23/2018 12:26 PM, Sean Young wrote:  
+>>>>>> The lirc header file included ioctls and feature bits which were never
+>>>>>> implemented by any driver. They were removed in commit:
+>>>>>>
+>>>>>> https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=d55f09abe24b4dfadab246b6f217da547361cdb6  
+>>>>>
+>>>>> Alec, does this patch look okay to you? 
 
-Wenwen
+Yes.
 
-On Fri, Oct 19, 2018 at 9:12 AM Wenwen Wang <wang6495@umn.edu> wrote:
->
-> In dvb_audio_write(), the first byte of the user-space buffer 'buf' is
-> firstly copied and checked to see whether this is a TS packet, which always
-> starts with 0x47 for synchronization purposes. If yes, ts_play() will be
-> called. Otherwise, dvb_aplay() will be called. In ts_play(), the content of
-> 'buf', including the first byte, is copied again from the user space.
-> However, after the copy, no check is re-enforced on the first byte of the
-> copied data.  Given that 'buf' is in the user space, a malicious user can
-> race to change the first byte after the check in dvb_audio_write() but
-> before the copy in ts_play(). Through this way, the user can supply
-> inconsistent code, which can cause undefined behavior of the kernel and
-> introduce potential security risk.
->
-> This patch adds a necessary check in ts_play() to make sure the first byte
-> acquired in the second copy contains the expected value. Otherwise, an
-> error code EINVAL will be returned.
->
-> Signed-off-by: Wenwen Wang <wang6495@umn.edu>
-> ---
->  drivers/media/pci/ttpci/av7110_av.c | 2 ++
->  1 file changed, 2 insertions(+)
->
-> diff --git a/drivers/media/pci/ttpci/av7110_av.c b/drivers/media/pci/ttpci/av7110_av.c
-> index ef1bc17..1ff6062 100644
-> --- a/drivers/media/pci/ttpci/av7110_av.c
-> +++ b/drivers/media/pci/ttpci/av7110_av.c
-> @@ -468,6 +468,8 @@ static ssize_t ts_play(struct av7110 *av7110, const char __user *buf,
->                 }
->                 if (copy_from_user(kb, buf, TS_SIZE))
->                         return -EFAULT;
-> +               if (kb[0] != 0x47)
-> +                       return -EINVAL;
->                 write_ts_to_decoder(av7110, type, kb, TS_SIZE);
->                 todo -= TS_SIZE;
->                 buf += TS_SIZE;
-> --
-> 2.7.4
->
+I have sent a reply on this (in the same spirit) "long time ago"
+
+>>>
+>>> Sean is the sub-maintainer responsible for the LIRC code at the
+>>> media subsystem. He knows more about the current implementation
+>>> than anyone else, as he's working hard to improve it, and got
+>>> rid of all legacy LIRC drivers from staging (either fixing them
+>>> or removing the few ones nobody uses anymore).
+>>>
+>>> As part of his work, some ioctls got removed, in order to make
+>>> the LIRC interface to match the real implementation.
+>>>  
+>>>> Mauro, as Alec is not responding, would you be able to sign this off?
+>>>
+>>> Most of the patch looks ok on my eyes. I noticed that some flags
+>>> still exists at include/uapi/linux/lirc.h:
+>>>
+>>> 	LIRC_CAN_REC_RAW, LIRC_CAN_REC_PULSE, LIRC_CAN_SET_REC_FILTER
+>>> 	and LIRC_CAN_SEND_MODE2
+>>>
+>>> Maybe instead of just removing, you would need to add some
+>>> explanation about them (or at the patch itself, explaining
+>>> why you're removing the descriptions for them).
+>>
+>> Those flags do still exist in the header file, we decided to keep them
+>> so that code does not suddenly fail to build. These flags either never
+>> had implementations or only had out-of-tree implementations. So, I do
+>> not think they belong in the man page.
+>>
+>>>> Alternatively, what can be done to progress this?
+>>>>
+>>>> There is some new functionality in lirc which should be added to this man
+>>>> page too, so I have more to come (when I get round to writing it).
+>>>
+>>> Yeah, making it reflect upstream sounds the right thing to do.
+>>
+>> Absolutely, when kernel v4.18 is released there is more to add.
+> 
+> Ping, can this patch be merged please?
+> 
+> The lirc.4 man page is really out of date and misleading in parts. 
+
+
+Cheers!
+--a
