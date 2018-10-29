@@ -1,8 +1,8 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga18.intel.com ([134.134.136.126]:58249 "EHLO mga18.intel.com"
+Received: from mga18.intel.com ([134.134.136.126]:58258 "EHLO mga18.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728229AbeJ3HRv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 Oct 2018 03:17:51 -0400
+        id S1728156AbeJ3HRw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 30 Oct 2018 03:17:52 -0400
 From: Yong Zhi <yong.zhi@intel.com>
 To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
 Cc: tfiga@chromium.org, mchehab@kernel.org, hans.verkuil@cisco.com,
@@ -10,9 +10,9 @@ Cc: tfiga@chromium.org, mchehab@kernel.org, hans.verkuil@cisco.com,
         jian.xu.zheng@intel.com, jerry.w.hu@intel.com,
         tuukka.toivonen@intel.com, tian.shu.qiu@intel.com,
         bingbu.cao@intel.com, Yong Zhi <yong.zhi@intel.com>
-Subject: [PATCH v7 07/16] intel-ipu3: Implement DMA mapping functions
-Date: Mon, 29 Oct 2018 15:23:01 -0700
-Message-Id: <1540851790-1777-8-git-send-email-yong.zhi@intel.com>
+Subject: [PATCH v7 06/16] intel-ipu3: mmu: Implement driver
+Date: Mon, 29 Oct 2018 15:23:00 -0700
+Message-Id: <1540851790-1777-7-git-send-email-yong.zhi@intel.com>
 In-Reply-To: <1540851790-1777-1-git-send-email-yong.zhi@intel.com>
 References: <1540851790-1777-1-git-send-email-yong.zhi@intel.com>
 Sender: linux-media-owner@vger.kernel.org
@@ -20,321 +20,624 @@ List-ID: <linux-media.vger.kernel.org>
 
 From: Tomasz Figa <tfiga@chromium.org>
 
-This driver uses IOVA space for buffer mapping through IPU3 MMU
-to transfer data between imaging pipelines and system DDR.
+This driver translates IO virtual address to physical
+address based on two levels page tables.
 
 Signed-off-by: Tomasz Figa <tfiga@chromium.org>
 Signed-off-by: Yong Zhi <yong.zhi@intel.com>
 ---
- drivers/media/pci/intel/ipu3/ipu3-dmamap.c | 270 +++++++++++++++++++++++++++++
- drivers/media/pci/intel/ipu3/ipu3-dmamap.h |  22 +++
- 2 files changed, 292 insertions(+)
- create mode 100644 drivers/media/pci/intel/ipu3/ipu3-dmamap.c
- create mode 100644 drivers/media/pci/intel/ipu3/ipu3-dmamap.h
+ drivers/media/pci/intel/ipu3/ipu3-mmu.c | 560 ++++++++++++++++++++++++++++++++
+ drivers/media/pci/intel/ipu3/ipu3-mmu.h |  35 ++
+ 2 files changed, 595 insertions(+)
+ create mode 100644 drivers/media/pci/intel/ipu3/ipu3-mmu.c
+ create mode 100644 drivers/media/pci/intel/ipu3/ipu3-mmu.h
 
-diff --git a/drivers/media/pci/intel/ipu3/ipu3-dmamap.c b/drivers/media/pci/intel/ipu3/ipu3-dmamap.c
+diff --git a/drivers/media/pci/intel/ipu3/ipu3-mmu.c b/drivers/media/pci/intel/ipu3/ipu3-mmu.c
 new file mode 100644
-index 0000000..93a393d
+index 0000000..b66734a
 --- /dev/null
-+++ b/drivers/media/pci/intel/ipu3/ipu3-dmamap.c
-@@ -0,0 +1,270 @@
++++ b/drivers/media/pci/intel/ipu3/ipu3-mmu.c
+@@ -0,0 +1,560 @@
 +// SPDX-License-Identifier: GPL-2.0
 +/*
-+ * Copyright (C) 2018 Intel Corporation
++ * Copyright (C) 2018 Intel Corporation.
 + * Copyright 2018 Google LLC.
 + *
++ * Author: Tuukka Toivonen <tuukka.toivonen@intel.com>
++ * Author: Sakari Ailus <sakari.ailus@linux.intel.com>
++ * Author: Samu Onkalo <samu.onkalo@intel.com>
 + * Author: Tomasz Figa <tfiga@chromium.org>
-+ * Author: Yong Zhi <yong.zhi@intel.com>
++ *
 + */
 +
++#include <linux/dma-mapping.h>
++#include <linux/iopoll.h>
++#include <linux/pm_runtime.h>
++#include <linux/slab.h>
 +#include <linux/vmalloc.h>
 +
-+#include "ipu3.h"
-+#include "ipu3-css-pool.h"
++#include <asm/set_memory.h>
++
 +#include "ipu3-mmu.h"
 +
-+/*
-+ * Free a buffer allocated by ipu3_dmamap_alloc_buffer()
-+ */
-+static void ipu3_dmamap_free_buffer(struct page **pages,
-+				    size_t size)
++#define IPU3_PAGE_SHIFT		12
++#define IPU3_PAGE_SIZE		(1UL << IPU3_PAGE_SHIFT)
++
++#define IPU3_PT_BITS		10
++#define IPU3_PT_PTES		(1UL << IPU3_PT_BITS)
++#define IPU3_PT_SIZE		(IPU3_PT_PTES << 2)
++#define IPU3_PT_ORDER		(IPU3_PT_SIZE >> PAGE_SHIFT)
++
++#define IPU3_ADDR2PTE(addr)	((addr) >> IPU3_PAGE_SHIFT)
++#define IPU3_PTE2ADDR(pte)	((phys_addr_t)(pte) << IPU3_PAGE_SHIFT)
++
++#define IPU3_L2PT_SHIFT		IPU3_PT_BITS
++#define IPU3_L2PT_MASK		((1UL << IPU3_L2PT_SHIFT) - 1)
++
++#define IPU3_L1PT_SHIFT		IPU3_PT_BITS
++#define IPU3_L1PT_MASK		((1UL << IPU3_L1PT_SHIFT) - 1)
++
++#define IPU3_MMU_ADDRESS_BITS	(IPU3_PAGE_SHIFT + \
++				 IPU3_L2PT_SHIFT + \
++				 IPU3_L1PT_SHIFT)
++
++#define IMGU_REG_BASE		0x4000
++#define REG_TLB_INVALIDATE	(IMGU_REG_BASE + 0x300)
++#define TLB_INVALIDATE		1
++#define REG_L1_PHYS		(IMGU_REG_BASE + 0x304) /* 27-bit pfn */
++#define REG_GP_HALT		(IMGU_REG_BASE + 0x5dc)
++#define REG_GP_HALTED		(IMGU_REG_BASE + 0x5e0)
++
++struct ipu3_mmu {
++	struct device *dev;
++	void __iomem *base;
++	/* protect access to l2pts, l1pt */
++	spinlock_t lock;
++
++	void *dummy_page;
++	u32 dummy_page_pteval;
++
++	u32 *dummy_l2pt;
++	u32 dummy_l2pt_pteval;
++
++	u32 **l2pts;
++	u32 *l1pt;
++
++	struct ipu3_mmu_info geometry;
++};
++
++static inline struct ipu3_mmu *to_ipu3_mmu(struct ipu3_mmu_info *info)
 +{
-+	int count = size >> PAGE_SHIFT;
-+
-+	while (count--)
-+		__free_page(pages[count]);
-+	kvfree(pages);
-+}
-+
-+/*
-+ * Based on the implementation of __iommu_dma_alloc_pages()
-+ * defined in drivers/iommu/dma-iommu.c
-+ */
-+static struct page **ipu3_dmamap_alloc_buffer(size_t size,
-+					      unsigned long order_mask,
-+					      gfp_t gfp)
-+{
-+	struct page **pages;
-+	unsigned int i = 0, count = size >> PAGE_SHIFT;
-+	const gfp_t high_order_gfp = __GFP_NOWARN | __GFP_NORETRY;
-+
-+	/* Allocate mem for array of page ptrs */
-+	pages = kvmalloc_array(count, sizeof(*pages), GFP_KERNEL);
-+
-+	if (!pages)
-+		return NULL;
-+
-+	order_mask &= (2U << MAX_ORDER) - 1;
-+	if (!order_mask)
-+		return NULL;
-+
-+	gfp |= __GFP_HIGHMEM | __GFP_ZERO;
-+
-+	while (count) {
-+		struct page *page = NULL;
-+		unsigned int order_size;
-+
-+		for (order_mask &= (2U << __fls(count)) - 1;
-+		     order_mask; order_mask &= ~order_size) {
-+			unsigned int order = __fls(order_mask);
-+
-+			order_size = 1U << order;
-+			page = alloc_pages((order_mask - order_size) ?
-+					   gfp | high_order_gfp : gfp, order);
-+			if (!page)
-+				continue;
-+			if (!order)
-+				break;
-+			if (!PageCompound(page)) {
-+				split_page(page, order);
-+				break;
-+			}
-+
-+			__free_pages(page, order);
-+		}
-+		if (!page) {
-+			ipu3_dmamap_free_buffer(pages, i << PAGE_SHIFT);
-+			return NULL;
-+		}
-+		count -= order_size;
-+		while (order_size--)
-+			pages[i++] = page++;
-+	}
-+
-+	return pages;
++	return container_of(info, struct ipu3_mmu, geometry);
 +}
 +
 +/**
-+ * ipu3_dmamap_alloc - allocate and map a buffer into KVA
-+ * @imgu: struct device pointer
-+ * @map: struct to store mapping variables
-+ * @len: size required
++ * ipu3_mmu_tlb_invalidate - invalidate translation look-aside buffer
++ * @mmu: MMU to perform the invalidate operation on
 + *
-+ * Returns:
-+ *  KVA on success
-+ *  %NULL on failure
++ * This function invalidates the whole TLB. Must be called when the hardware
++ * is powered on.
 + */
-+void *ipu3_dmamap_alloc(struct imgu_device *imgu, struct ipu3_css_map *map,
-+			size_t len)
++static void ipu3_mmu_tlb_invalidate(struct ipu3_mmu *mmu)
 +{
-+	unsigned long shift = iova_shift(&imgu->iova_domain);
-+	unsigned int alloc_sizes = imgu->mmu->pgsize_bitmap;
-+	struct device *dev = &imgu->pci_dev->dev;
-+	size_t size = PAGE_ALIGN(len);
-+	struct page **pages;
-+	dma_addr_t iovaddr;
-+	struct iova *iova;
-+	int i, rval;
-+
-+	dev_dbg(dev, "%s: allocating %zu\n", __func__, size);
-+
-+	iova = alloc_iova(&imgu->iova_domain, size >> shift,
-+			  imgu->mmu->aperture_end >> shift, 0);
-+	if (!iova)
-+		return NULL;
-+
-+	pages = ipu3_dmamap_alloc_buffer(size, alloc_sizes >> PAGE_SHIFT,
-+					 GFP_KERNEL);
-+	if (!pages)
-+		goto out_free_iova;
-+
-+	/* Call IOMMU driver to setup pgt */
-+	iovaddr = iova_dma_addr(&imgu->iova_domain, iova);
-+	for (i = 0; i < size / PAGE_SIZE; ++i) {
-+		rval = ipu3_mmu_map(imgu->mmu, iovaddr,
-+				    page_to_phys(pages[i]), PAGE_SIZE);
-+		if (rval)
-+			goto out_unmap;
-+
-+		iovaddr += PAGE_SIZE;
-+	}
-+
-+	/* Now grab a virtual region */
-+	map->vma = __get_vm_area(size, VM_USERMAP, VMALLOC_START, VMALLOC_END);
-+	if (!map->vma)
-+		goto out_unmap;
-+
-+	map->vma->pages = pages;
-+	/* And map it in KVA */
-+	if (map_vm_area(map->vma, PAGE_KERNEL, pages))
-+		goto out_vunmap;
-+
-+	map->size = size;
-+	map->daddr = iova_dma_addr(&imgu->iova_domain, iova);
-+	map->vaddr = map->vma->addr;
-+
-+	dev_dbg(dev, "%s: allocated %zu @ IOVA %pad @ VA %p\n", __func__,
-+		size, &map->daddr, map->vma->addr);
-+
-+	return map->vma->addr;
-+
-+out_vunmap:
-+	vunmap(map->vma->addr);
-+
-+out_unmap:
-+	ipu3_dmamap_free_buffer(pages, size);
-+	ipu3_mmu_unmap(imgu->mmu, iova_dma_addr(&imgu->iova_domain, iova),
-+		       i * PAGE_SIZE);
-+	map->vma = NULL;
-+
-+out_free_iova:
-+	__free_iova(&imgu->iova_domain, iova);
-+
-+	return NULL;
++	writel(TLB_INVALIDATE, mmu->base + REG_TLB_INVALIDATE);
 +}
 +
-+void ipu3_dmamap_unmap(struct imgu_device *imgu, struct ipu3_css_map *map)
++static void call_if_ipu3_is_powered(struct ipu3_mmu *mmu,
++				    void (*func)(struct ipu3_mmu *mmu))
 +{
-+	struct iova *iova;
-+
-+	iova = find_iova(&imgu->iova_domain,
-+			 iova_pfn(&imgu->iova_domain, map->daddr));
-+	if (WARN_ON(!iova))
-+		return;
-+
-+	ipu3_mmu_unmap(imgu->mmu, iova_dma_addr(&imgu->iova_domain, iova),
-+		       iova_size(iova) << iova_shift(&imgu->iova_domain));
-+
-+	__free_iova(&imgu->iova_domain, iova);
++	pm_runtime_get_noresume(mmu->dev);
++	if (pm_runtime_active(mmu->dev))
++		func(mmu);
++	pm_runtime_put(mmu->dev);
 +}
 +
-+/*
-+ * Counterpart of ipu3_dmamap_alloc
++/**
++ * ipu3_mmu_set_halt - set CIO gate halt bit
++ * @mmu: MMU to set the CIO gate bit in.
++ * @halt: Desired state of the gate bit.
++ *
++ * This function sets the CIO gate bit that controls whether external memory
++ * accesses are allowed. Must be called when the hardware is powered on.
 + */
-+void ipu3_dmamap_free(struct imgu_device *imgu, struct ipu3_css_map *map)
++static void ipu3_mmu_set_halt(struct ipu3_mmu *mmu, bool halt)
 +{
-+	struct vm_struct *area = map->vma;
++	int ret;
++	u32 val;
 +
-+	dev_dbg(&imgu->pci_dev->dev, "%s: freeing %zu @ IOVA %pad @ VA %p\n",
-+		__func__, map->size, &map->daddr, map->vaddr);
-+
-+	if (!map->vaddr)
-+		return;
-+
-+	ipu3_dmamap_unmap(imgu, map);
-+
-+	if (WARN_ON(!area) || WARN_ON(!area->pages))
-+		return;
-+
-+	ipu3_dmamap_free_buffer(area->pages, map->size);
-+	vunmap(map->vaddr);
-+	map->vaddr = NULL;
-+}
-+
-+int ipu3_dmamap_map_sg(struct imgu_device *imgu, struct scatterlist *sglist,
-+		       int nents, struct ipu3_css_map *map)
-+{
-+	unsigned long shift = iova_shift(&imgu->iova_domain);
-+	struct scatterlist *sg;
-+	struct iova *iova;
-+	size_t size = 0;
-+	int i;
-+
-+	for_each_sg(sglist, sg, nents, i) {
-+		if (sg->offset)
-+			return -EINVAL;
-+
-+		if (i != nents - 1 && !PAGE_ALIGNED(sg->length))
-+			return -EINVAL;
-+
-+		size += sg->length;
-+	}
-+
-+	size = iova_align(&imgu->iova_domain, size);
-+	dev_dbg(&imgu->pci_dev->dev, "dmamap: mapping sg %d entries, %zu pages\n",
-+		nents, size >> shift);
-+
-+	iova = alloc_iova(&imgu->iova_domain, size >> shift,
-+			  imgu->mmu->aperture_end >> shift, 0);
-+	if (!iova)
-+		return -ENOMEM;
-+
-+	dev_dbg(&imgu->pci_dev->dev, "dmamap: iova low pfn %lu, high pfn %lu\n",
-+		iova->pfn_lo, iova->pfn_hi);
-+
-+	if (ipu3_mmu_map_sg(imgu->mmu, iova_dma_addr(&imgu->iova_domain, iova),
-+			    sglist, nents) < size)
-+		goto out_fail;
-+
-+	memset(map, 0, sizeof(*map));
-+	map->daddr = iova_dma_addr(&imgu->iova_domain, iova);
-+	map->size = size;
-+
-+	return 0;
-+
-+out_fail:
-+	__free_iova(&imgu->iova_domain, iova);
-+
-+	return -EFAULT;
-+}
-+
-+int ipu3_dmamap_init(struct imgu_device *imgu)
-+{
-+	unsigned long order, base_pfn;
-+	int ret = iova_cache_get();
++	writel(halt, mmu->base + REG_GP_HALT);
++	ret = readl_poll_timeout(mmu->base + REG_GP_HALTED,
++				 val, (val & 1) == halt, 1000, 100000);
 +
 +	if (ret)
-+		return ret;
++		dev_err(mmu->dev, "failed to %s CIO gate halt\n",
++			halt ? "set" : "clear");
++}
 +
-+	order = __ffs(imgu->mmu->pgsize_bitmap);
-+	base_pfn = max_t(unsigned long, 1, imgu->mmu->aperture_start >> order);
-+	init_iova_domain(&imgu->iova_domain, 1UL << order, base_pfn);
++/**
++ * ipu3_mmu_alloc_page_table - allocate a pre-filled page table
++ * @pteval: Value to initialize for page table entries with.
++ *
++ * Return: Pointer to allocated page table or NULL on failure.
++ */
++static u32 *ipu3_mmu_alloc_page_table(u32 pteval)
++{
++	u32 *pt;
++	int pte;
++
++	pt = (u32 *)__get_free_page(GFP_KERNEL);
++	if (!pt)
++		return NULL;
++
++	for (pte = 0; pte < IPU3_PT_PTES; pte++)
++		pt[pte] = pteval;
++
++	set_memory_uc((unsigned long int)pt, IPU3_PT_ORDER);
++
++	return pt;
++}
++
++/**
++ * ipu3_mmu_free_page_table - free page table
++ * @pt: Page table to free.
++ */
++static void ipu3_mmu_free_page_table(u32 *pt)
++{
++	set_memory_wb((unsigned long int)pt, IPU3_PT_ORDER);
++	free_page((unsigned long)pt);
++}
++
++/**
++ * address_to_pte_idx - split IOVA into L1 and L2 page table indices
++ * @iova: IOVA to split.
++ * @l1pt_idx: Output for the L1 page table index.
++ * @l2pt_idx: Output for the L2 page index.
++ */
++static inline void address_to_pte_idx(unsigned long iova, u32 *l1pt_idx,
++				      u32 *l2pt_idx)
++{
++	iova >>= IPU3_PAGE_SHIFT;
++
++	if (l2pt_idx)
++		*l2pt_idx = iova & IPU3_L2PT_MASK;
++
++	iova >>= IPU3_L2PT_SHIFT;
++
++	if (l1pt_idx)
++		*l1pt_idx = iova & IPU3_L1PT_MASK;
++}
++
++static u32 *ipu3_mmu_get_l2pt(struct ipu3_mmu *mmu, u32 l1pt_idx)
++{
++	unsigned long flags;
++	u32 *l2pt, *new_l2pt;
++	u32 pteval;
++
++	spin_lock_irqsave(&mmu->lock, flags);
++
++	l2pt = mmu->l2pts[l1pt_idx];
++	if (l2pt)
++		goto done;
++
++	spin_unlock_irqrestore(&mmu->lock, flags);
++
++	new_l2pt = ipu3_mmu_alloc_page_table(mmu->dummy_page_pteval);
++	if (!new_l2pt)
++		return NULL;
++
++	spin_lock_irqsave(&mmu->lock, flags);
++
++	dev_dbg(mmu->dev, "allocated page table %p for l1pt_idx %u\n",
++		new_l2pt, l1pt_idx);
++
++	l2pt = mmu->l2pts[l1pt_idx];
++	if (l2pt) {
++		ipu3_mmu_free_page_table(new_l2pt);
++		goto done;
++	}
++
++	l2pt = new_l2pt;
++	mmu->l2pts[l1pt_idx] = new_l2pt;
++
++	pteval = IPU3_ADDR2PTE(virt_to_phys(new_l2pt));
++	mmu->l1pt[l1pt_idx] = pteval;
++
++done:
++	spin_unlock_irqrestore(&mmu->lock, flags);
++	return l2pt;
++}
++
++static int __ipu3_mmu_map(struct ipu3_mmu *mmu, unsigned long iova,
++			  phys_addr_t paddr)
++{
++	u32 l1pt_idx, l2pt_idx;
++	unsigned long flags;
++	u32 *l2pt;
++
++	if (!mmu)
++		return -ENODEV;
++
++	address_to_pte_idx(iova, &l1pt_idx, &l2pt_idx);
++
++	l2pt = ipu3_mmu_get_l2pt(mmu, l1pt_idx);
++	if (!l2pt)
++		return -ENOMEM;
++
++	spin_lock_irqsave(&mmu->lock, flags);
++
++	if (l2pt[l2pt_idx] != mmu->dummy_page_pteval) {
++		spin_unlock_irqrestore(&mmu->lock, flags);
++		return -EBUSY;
++	}
++
++	l2pt[l2pt_idx] = IPU3_ADDR2PTE(paddr);
++
++	spin_unlock_irqrestore(&mmu->lock, flags);
 +
 +	return 0;
 +}
 +
-+void ipu3_dmamap_exit(struct imgu_device *imgu)
++/**
++ * The following four functions are implemented based on iommu.c
++ * drivers/iommu/iommu.c/iommu_pgsize().
++ */
++static size_t ipu3_mmu_pgsize(unsigned long pgsize_bitmap,
++			      unsigned long addr_merge, size_t size)
 +{
-+	put_iova_domain(&imgu->iova_domain);
-+	iova_cache_put();
++	unsigned int pgsize_idx;
++	size_t pgsize;
++
++	/* Max page size that still fits into 'size' */
++	pgsize_idx = __fls(size);
++
++	/* need to consider alignment requirements ? */
++	if (likely(addr_merge)) {
++		/* Max page size allowed by address */
++		unsigned int align_pgsize_idx = __ffs(addr_merge);
++
++		pgsize_idx = min(pgsize_idx, align_pgsize_idx);
++	}
++
++	/* build a mask of acceptable page sizes */
++	pgsize = (1UL << (pgsize_idx + 1)) - 1;
++
++	/* throw away page sizes not supported by the hardware */
++	pgsize &= pgsize_bitmap;
++
++	/* make sure we're still sane */
++	WARN_ON(!pgsize);
++
++	/* pick the biggest page */
++	pgsize_idx = __fls(pgsize);
++	pgsize = 1UL << pgsize_idx;
++
++	return pgsize;
 +}
-diff --git a/drivers/media/pci/intel/ipu3/ipu3-dmamap.h b/drivers/media/pci/intel/ipu3/ipu3-dmamap.h
++
++/* drivers/iommu/iommu.c/iommu_map() */
++int ipu3_mmu_map(struct ipu3_mmu_info *info, unsigned long iova,
++		 phys_addr_t paddr, size_t size)
++{
++	struct ipu3_mmu *mmu = to_ipu3_mmu(info);
++	unsigned int min_pagesz;
++	int ret = 0;
++
++	/* find out the minimum page size supported */
++	min_pagesz = 1 << __ffs(mmu->geometry.pgsize_bitmap);
++
++	/*
++	 * both the virtual address and the physical one, as well as
++	 * the size of the mapping, must be aligned (at least) to the
++	 * size of the smallest page supported by the hardware
++	 */
++	if (!IS_ALIGNED(iova | paddr | size, min_pagesz)) {
++		dev_err(mmu->dev, "unaligned: iova 0x%lx pa %pa size 0x%zx min_pagesz 0x%x\n",
++			iova, &paddr, size, min_pagesz);
++		return -EINVAL;
++	}
++
++	dev_dbg(mmu->dev, "map: iova 0x%lx pa %pa size 0x%zx\n",
++		iova, &paddr, size);
++
++	while (size) {
++		size_t pgsize = ipu3_mmu_pgsize(mmu->geometry.pgsize_bitmap,
++						iova | paddr, size);
++
++		dev_dbg(mmu->dev, "mapping: iova 0x%lx pa %pa pgsize 0x%zx\n",
++			iova, &paddr, pgsize);
++
++		ret = __ipu3_mmu_map(mmu, iova, paddr);
++		if (ret)
++			break;
++
++		iova += pgsize;
++		paddr += pgsize;
++		size -= pgsize;
++	}
++
++	call_if_ipu3_is_powered(mmu, ipu3_mmu_tlb_invalidate);
++
++	return ret;
++}
++
++/* drivers/iommu/iommu.c/default_iommu_map_sg() */
++size_t ipu3_mmu_map_sg(struct ipu3_mmu_info *info, unsigned long iova,
++		       struct scatterlist *sg, unsigned int nents)
++{
++	struct ipu3_mmu *mmu = to_ipu3_mmu(info);
++	struct scatterlist *s;
++	size_t s_length, mapped = 0;
++	unsigned int i, min_pagesz;
++	int ret;
++
++	min_pagesz = 1 << __ffs(mmu->geometry.pgsize_bitmap);
++
++	for_each_sg(sg, s, nents, i) {
++		phys_addr_t phys = page_to_phys(sg_page(s)) + s->offset;
++
++		s_length = s->length;
++
++		if (!IS_ALIGNED(s->offset, min_pagesz))
++			goto out_err;
++
++		/* must be min_pagesz aligned to be mapped singlely */
++		if (i == nents - 1 && !IS_ALIGNED(s->length, min_pagesz))
++			s_length = PAGE_ALIGN(s->length);
++
++		ret = ipu3_mmu_map(info, iova + mapped, phys, s_length);
++		if (ret)
++			goto out_err;
++
++		mapped += s_length;
++	}
++
++	call_if_ipu3_is_powered(mmu, ipu3_mmu_tlb_invalidate);
++
++	return mapped;
++
++out_err:
++	/* undo mappings already done */
++	ipu3_mmu_unmap(info, iova, mapped);
++
++	return 0;
++}
++
++static size_t __ipu3_mmu_unmap(struct ipu3_mmu *mmu,
++			       unsigned long iova, size_t size)
++{
++	u32 l1pt_idx, l2pt_idx;
++	unsigned long flags;
++	size_t unmap = size;
++	u32 *l2pt;
++
++	if (!mmu)
++		return 0;
++
++	address_to_pte_idx(iova, &l1pt_idx, &l2pt_idx);
++
++	spin_lock_irqsave(&mmu->lock, flags);
++
++	l2pt = mmu->l2pts[l1pt_idx];
++	if (!l2pt) {
++		spin_unlock_irqrestore(&mmu->lock, flags);
++		return 0;
++	}
++
++	if (l2pt[l2pt_idx] == mmu->dummy_page_pteval)
++		unmap = 0;
++
++	l2pt[l2pt_idx] = mmu->dummy_page_pteval;
++
++	spin_unlock_irqrestore(&mmu->lock, flags);
++
++	return unmap;
++}
++
++/* drivers/iommu/iommu.c/iommu_unmap() */
++size_t ipu3_mmu_unmap(struct ipu3_mmu_info *info, unsigned long iova,
++		      size_t size)
++{
++	struct ipu3_mmu *mmu = to_ipu3_mmu(info);
++	size_t unmapped_page, unmapped = 0;
++	unsigned int min_pagesz;
++
++	/* find out the minimum page size supported */
++	min_pagesz = 1 << __ffs(mmu->geometry.pgsize_bitmap);
++
++	/*
++	 * The virtual address, as well as the size of the mapping, must be
++	 * aligned (at least) to the size of the smallest page supported
++	 * by the hardware
++	 */
++	if (!IS_ALIGNED(iova | size, min_pagesz)) {
++		dev_err(mmu->dev, "unaligned: iova 0x%lx size 0x%zx min_pagesz 0x%x\n",
++			iova, size, min_pagesz);
++		return -EINVAL;
++	}
++
++	dev_dbg(mmu->dev, "unmap this: iova 0x%lx size 0x%zx\n", iova, size);
++
++	/*
++	 * Keep iterating until we either unmap 'size' bytes (or more)
++	 * or we hit an area that isn't mapped.
++	 */
++	while (unmapped < size) {
++		size_t pgsize = ipu3_mmu_pgsize(mmu->geometry.pgsize_bitmap,
++						iova, size - unmapped);
++
++		unmapped_page = __ipu3_mmu_unmap(mmu, iova, pgsize);
++		if (!unmapped_page)
++			break;
++
++		dev_dbg(mmu->dev, "unmapped: iova 0x%lx size 0x%zx\n",
++			iova, unmapped_page);
++
++		iova += unmapped_page;
++		unmapped += unmapped_page;
++	}
++
++	call_if_ipu3_is_powered(mmu, ipu3_mmu_tlb_invalidate);
++
++	return unmapped;
++}
++
++/**
++ * ipu3_mmu_init() - initialize IPU3 MMU block
++ * @base:	IOMEM base of hardware registers.
++ *
++ * Return: Pointer to IPU3 MMU private data pointer or ERR_PTR() on error.
++ */
++struct ipu3_mmu_info *ipu3_mmu_init(struct device *parent, void __iomem *base)
++{
++	struct ipu3_mmu *mmu;
++	u32 pteval;
++
++	mmu = kzalloc(sizeof(*mmu), GFP_KERNEL);
++	if (!mmu)
++		return ERR_PTR(-ENOMEM);
++
++	mmu->dev = parent;
++	mmu->base = base;
++	spin_lock_init(&mmu->lock);
++
++	/* Disallow external memory access when having no valid page tables. */
++	ipu3_mmu_set_halt(mmu, true);
++
++	/*
++	 * The MMU does not have a "valid" bit, so we have to use a dummy
++	 * page for invalid entries.
++	 */
++	mmu->dummy_page = (void *)__get_free_page(GFP_KERNEL);
++	if (!mmu->dummy_page)
++		goto fail_group;
++	pteval = IPU3_ADDR2PTE(virt_to_phys(mmu->dummy_page));
++	mmu->dummy_page_pteval = pteval;
++
++	/*
++	 * Allocate a dummy L2 page table with all entries pointing to
++	 * the dummy page.
++	 */
++	mmu->dummy_l2pt = ipu3_mmu_alloc_page_table(pteval);
++	if (!mmu->dummy_l2pt)
++		goto fail_dummy_page;
++	pteval = IPU3_ADDR2PTE(virt_to_phys(mmu->dummy_l2pt));
++	mmu->dummy_l2pt_pteval = pteval;
++
++	/*
++	 * Allocate the array of L2PT CPU pointers, initialized to zero,
++	 * which means the dummy L2PT allocated above.
++	 */
++	mmu->l2pts = vzalloc(IPU3_PT_PTES * sizeof(*mmu->l2pts));
++	if (!mmu->l2pts)
++		goto fail_l2pt;
++
++	/* Allocate the L1 page table. */
++	mmu->l1pt = ipu3_mmu_alloc_page_table(mmu->dummy_l2pt_pteval);
++	if (!mmu->l1pt)
++		goto fail_l2pts;
++
++	pteval = IPU3_ADDR2PTE(virt_to_phys(mmu->l1pt));
++	writel(pteval, mmu->base + REG_L1_PHYS);
++	ipu3_mmu_tlb_invalidate(mmu);
++	ipu3_mmu_set_halt(mmu, false);
++
++	mmu->geometry.aperture_start = 0;
++	mmu->geometry.aperture_end = DMA_BIT_MASK(IPU3_MMU_ADDRESS_BITS);
++	mmu->geometry.pgsize_bitmap = IPU3_PAGE_SIZE;
++
++	return &mmu->geometry;
++
++fail_l2pts:
++	vfree(mmu->l2pts);
++fail_l2pt:
++	ipu3_mmu_free_page_table(mmu->dummy_l2pt);
++fail_dummy_page:
++	free_page((unsigned long)mmu->dummy_page);
++fail_group:
++	kfree(mmu);
++
++	return ERR_PTR(-ENOMEM);
++}
++
++/**
++ * ipu3_mmu_exit() - clean up IPU3 MMU block
++ * @mmu: IPU3 MMU private data
++ */
++void ipu3_mmu_exit(struct ipu3_mmu_info *info)
++{
++	struct ipu3_mmu *mmu = to_ipu3_mmu(info);
++
++	/* We are going to free our page tables, no more memory access. */
++	ipu3_mmu_set_halt(mmu, true);
++	ipu3_mmu_tlb_invalidate(mmu);
++
++	ipu3_mmu_free_page_table(mmu->l1pt);
++	vfree(mmu->l2pts);
++	ipu3_mmu_free_page_table(mmu->dummy_l2pt);
++	free_page((unsigned long)mmu->dummy_page);
++	kfree(mmu);
++}
++
++void ipu3_mmu_suspend(struct ipu3_mmu_info *info)
++{
++	struct ipu3_mmu *mmu = to_ipu3_mmu(info);
++
++	ipu3_mmu_set_halt(mmu, true);
++}
++
++void ipu3_mmu_resume(struct ipu3_mmu_info *info)
++{
++	struct ipu3_mmu *mmu = to_ipu3_mmu(info);
++	u32 pteval;
++
++	ipu3_mmu_set_halt(mmu, true);
++
++	pteval = IPU3_ADDR2PTE(virt_to_phys(mmu->l1pt));
++	writel(pteval, mmu->base + REG_L1_PHYS);
++
++	ipu3_mmu_tlb_invalidate(mmu);
++	ipu3_mmu_set_halt(mmu, false);
++}
+diff --git a/drivers/media/pci/intel/ipu3/ipu3-mmu.h b/drivers/media/pci/intel/ipu3/ipu3-mmu.h
 new file mode 100644
-index 0000000..b9d224a
+index 0000000..8fe63b4
 --- /dev/null
-+++ b/drivers/media/pci/intel/ipu3/ipu3-dmamap.h
-@@ -0,0 +1,22 @@
++++ b/drivers/media/pci/intel/ipu3/ipu3-mmu.h
+@@ -0,0 +1,35 @@
 +/* SPDX-License-Identifier: GPL-2.0 */
 +/* Copyright (C) 2018 Intel Corporation */
 +/* Copyright 2018 Google LLC. */
 +
-+#ifndef __IPU3_DMAMAP_H
-+#define __IPU3_DMAMAP_H
++#ifndef __IPU3_MMU_H
++#define __IPU3_MMU_H
 +
-+struct imgu_device;
++/**
++ * struct ipu3_mmu_info - Describes mmu geometry
++ *
++ * @aperture_start:	First address that can be mapped
++ * @aperture_end:	Last address that can be mapped
++ * @pgsize_bitmap:	Bitmap of page sizes in use
++ */
++struct ipu3_mmu_info {
++	dma_addr_t aperture_start;
++	dma_addr_t aperture_end;
++	unsigned long pgsize_bitmap;
++};
++
++struct device;
 +struct scatterlist;
 +
-+void *ipu3_dmamap_alloc(struct imgu_device *imgu, struct ipu3_css_map *map,
-+			size_t len);
-+void ipu3_dmamap_free(struct imgu_device *imgu, struct ipu3_css_map *map);
++struct ipu3_mmu_info *ipu3_mmu_init(struct device *parent, void __iomem *base);
++void ipu3_mmu_exit(struct ipu3_mmu_info *info);
++void ipu3_mmu_suspend(struct ipu3_mmu_info *info);
++void ipu3_mmu_resume(struct ipu3_mmu_info *info);
 +
-+int ipu3_dmamap_map_sg(struct imgu_device *imgu, struct scatterlist *sglist,
-+		       int nents, struct ipu3_css_map *map);
-+void ipu3_dmamap_unmap(struct imgu_device *imgu, struct ipu3_css_map *map);
-+
-+int ipu3_dmamap_init(struct imgu_device *imgu);
-+void ipu3_dmamap_exit(struct imgu_device *imgu);
-+
++int ipu3_mmu_map(struct ipu3_mmu_info *info, unsigned long iova,
++		 phys_addr_t paddr, size_t size);
++size_t ipu3_mmu_unmap(struct ipu3_mmu_info *info, unsigned long iova,
++		      size_t size);
++size_t ipu3_mmu_map_sg(struct ipu3_mmu_info *info, unsigned long iova,
++		       struct scatterlist *sg, unsigned int nents);
 +#endif
 -- 
 2.7.4
