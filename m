@@ -1,8 +1,8 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga18.intel.com ([134.134.136.126]:58258 "EHLO mga18.intel.com"
+Received: from mga18.intel.com ([134.134.136.126]:58259 "EHLO mga18.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728156AbeJ3HRw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 Oct 2018 03:17:52 -0400
+        id S1729549AbeJ3HRx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 30 Oct 2018 03:17:53 -0400
 From: Yong Zhi <yong.zhi@intel.com>
 To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
 Cc: tfiga@chromium.org, mchehab@kernel.org, hans.verkuil@cisco.com,
@@ -10,634 +10,487 @@ Cc: tfiga@chromium.org, mchehab@kernel.org, hans.verkuil@cisco.com,
         jian.xu.zheng@intel.com, jerry.w.hu@intel.com,
         tuukka.toivonen@intel.com, tian.shu.qiu@intel.com,
         bingbu.cao@intel.com, Yong Zhi <yong.zhi@intel.com>
-Subject: [PATCH v7 06/16] intel-ipu3: mmu: Implement driver
-Date: Mon, 29 Oct 2018 15:23:00 -0700
-Message-Id: <1540851790-1777-7-git-send-email-yong.zhi@intel.com>
+Subject: [PATCH v7 09/16] intel-ipu3: css: Add support for firmware management
+Date: Mon, 29 Oct 2018 15:23:03 -0700
+Message-Id: <1540851790-1777-10-git-send-email-yong.zhi@intel.com>
 In-Reply-To: <1540851790-1777-1-git-send-email-yong.zhi@intel.com>
 References: <1540851790-1777-1-git-send-email-yong.zhi@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Tomasz Figa <tfiga@chromium.org>
+Introduce functions to load and install ImgU FW blobs.
 
-This driver translates IO virtual address to physical
-address based on two levels page tables.
-
-Signed-off-by: Tomasz Figa <tfiga@chromium.org>
 Signed-off-by: Yong Zhi <yong.zhi@intel.com>
 ---
- drivers/media/pci/intel/ipu3/ipu3-mmu.c | 560 ++++++++++++++++++++++++++++++++
- drivers/media/pci/intel/ipu3/ipu3-mmu.h |  35 ++
- 2 files changed, 595 insertions(+)
- create mode 100644 drivers/media/pci/intel/ipu3/ipu3-mmu.c
- create mode 100644 drivers/media/pci/intel/ipu3/ipu3-mmu.h
+ drivers/media/pci/intel/ipu3/ipu3-css-fw.c | 264 +++++++++++++++++++++++++++++
+ drivers/media/pci/intel/ipu3/ipu3-css-fw.h | 188 ++++++++++++++++++++
+ 2 files changed, 452 insertions(+)
+ create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css-fw.c
+ create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css-fw.h
 
-diff --git a/drivers/media/pci/intel/ipu3/ipu3-mmu.c b/drivers/media/pci/intel/ipu3/ipu3-mmu.c
+diff --git a/drivers/media/pci/intel/ipu3/ipu3-css-fw.c b/drivers/media/pci/intel/ipu3/ipu3-css-fw.c
 new file mode 100644
-index 0000000..b66734a
+index 0000000..ba459e9
 --- /dev/null
-+++ b/drivers/media/pci/intel/ipu3/ipu3-mmu.c
-@@ -0,0 +1,560 @@
++++ b/drivers/media/pci/intel/ipu3/ipu3-css-fw.c
+@@ -0,0 +1,264 @@
 +// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * Copyright (C) 2018 Intel Corporation.
-+ * Copyright 2018 Google LLC.
-+ *
-+ * Author: Tuukka Toivonen <tuukka.toivonen@intel.com>
-+ * Author: Sakari Ailus <sakari.ailus@linux.intel.com>
-+ * Author: Samu Onkalo <samu.onkalo@intel.com>
-+ * Author: Tomasz Figa <tfiga@chromium.org>
-+ *
-+ */
++// Copyright (C) 2018 Intel Corporation
 +
-+#include <linux/dma-mapping.h>
-+#include <linux/iopoll.h>
-+#include <linux/pm_runtime.h>
++#include <linux/device.h>
++#include <linux/firmware.h>
++#include <linux/mm.h>
 +#include <linux/slab.h>
-+#include <linux/vmalloc.h>
 +
-+#include <asm/set_memory.h>
++#include "ipu3-css.h"
++#include "ipu3-css-fw.h"
++#include "ipu3-dmamap.h"
 +
-+#include "ipu3-mmu.h"
-+
-+#define IPU3_PAGE_SHIFT		12
-+#define IPU3_PAGE_SIZE		(1UL << IPU3_PAGE_SHIFT)
-+
-+#define IPU3_PT_BITS		10
-+#define IPU3_PT_PTES		(1UL << IPU3_PT_BITS)
-+#define IPU3_PT_SIZE		(IPU3_PT_PTES << 2)
-+#define IPU3_PT_ORDER		(IPU3_PT_SIZE >> PAGE_SHIFT)
-+
-+#define IPU3_ADDR2PTE(addr)	((addr) >> IPU3_PAGE_SHIFT)
-+#define IPU3_PTE2ADDR(pte)	((phys_addr_t)(pte) << IPU3_PAGE_SHIFT)
-+
-+#define IPU3_L2PT_SHIFT		IPU3_PT_BITS
-+#define IPU3_L2PT_MASK		((1UL << IPU3_L2PT_SHIFT) - 1)
-+
-+#define IPU3_L1PT_SHIFT		IPU3_PT_BITS
-+#define IPU3_L1PT_MASK		((1UL << IPU3_L1PT_SHIFT) - 1)
-+
-+#define IPU3_MMU_ADDRESS_BITS	(IPU3_PAGE_SHIFT + \
-+				 IPU3_L2PT_SHIFT + \
-+				 IPU3_L1PT_SHIFT)
-+
-+#define IMGU_REG_BASE		0x4000
-+#define REG_TLB_INVALIDATE	(IMGU_REG_BASE + 0x300)
-+#define TLB_INVALIDATE		1
-+#define REG_L1_PHYS		(IMGU_REG_BASE + 0x304) /* 27-bit pfn */
-+#define REG_GP_HALT		(IMGU_REG_BASE + 0x5dc)
-+#define REG_GP_HALTED		(IMGU_REG_BASE + 0x5e0)
-+
-+struct ipu3_mmu {
-+	struct device *dev;
-+	void __iomem *base;
-+	/* protect access to l2pts, l1pt */
-+	spinlock_t lock;
-+
-+	void *dummy_page;
-+	u32 dummy_page_pteval;
-+
-+	u32 *dummy_l2pt;
-+	u32 dummy_l2pt_pteval;
-+
-+	u32 **l2pts;
-+	u32 *l1pt;
-+
-+	struct ipu3_mmu_info geometry;
-+};
-+
-+static inline struct ipu3_mmu *to_ipu3_mmu(struct ipu3_mmu_info *info)
++static void ipu3_css_fw_show_binary(struct device *dev, struct imgu_fw_info *bi,
++				    const char *name)
 +{
-+	return container_of(info, struct ipu3_mmu, geometry);
++	unsigned int i;
++
++	dev_dbg(dev, "found firmware binary type %i size %i name %s\n",
++		bi->type, bi->blob.size, name);
++	if (bi->type != IMGU_FW_ISP_FIRMWARE)
++		return;
++
++	dev_dbg(dev, "    id %i mode %i bds 0x%x veceven %i/%i out_pins %i\n",
++		bi->info.isp.sp.id, bi->info.isp.sp.pipeline.mode,
++		bi->info.isp.sp.bds.supported_bds_factors,
++		bi->info.isp.sp.enable.vf_veceven,
++		bi->info.isp.sp.vf_dec.is_variable,
++		bi->info.isp.num_output_pins);
++
++	dev_dbg(dev, "    input (%i,%i)-(%i,%i) formats %s%s%s\n",
++		bi->info.isp.sp.input.min_width,
++		bi->info.isp.sp.input.min_height,
++		bi->info.isp.sp.input.max_width,
++		bi->info.isp.sp.input.max_height,
++		bi->info.isp.sp.enable.input_yuv ? "yuv420 " : "",
++		bi->info.isp.sp.enable.input_feeder ||
++		bi->info.isp.sp.enable.input_raw ? "raw8 raw10 " : "",
++		bi->info.isp.sp.enable.input_raw ? "raw12" : "");
++
++	dev_dbg(dev, "    internal (%i,%i)\n",
++		bi->info.isp.sp.internal.max_width,
++		bi->info.isp.sp.internal.max_height);
++
++	dev_dbg(dev, "    output (%i,%i)-(%i,%i) formats",
++		bi->info.isp.sp.output.min_width,
++		bi->info.isp.sp.output.min_height,
++		bi->info.isp.sp.output.max_width,
++		bi->info.isp.sp.output.max_height);
++	for (i = 0; i < bi->info.isp.num_output_formats; i++)
++		dev_dbg(dev, " %i", bi->info.isp.output_formats[i]);
++	dev_dbg(dev, " vf");
++	for (i = 0; i < bi->info.isp.num_vf_formats; i++)
++		dev_dbg(dev, " %i", bi->info.isp.vf_formats[i]);
++	dev_dbg(dev, "\n");
 +}
 +
-+/**
-+ * ipu3_mmu_tlb_invalidate - invalidate translation look-aside buffer
-+ * @mmu: MMU to perform the invalidate operation on
-+ *
-+ * This function invalidates the whole TLB. Must be called when the hardware
-+ * is powered on.
-+ */
-+static void ipu3_mmu_tlb_invalidate(struct ipu3_mmu *mmu)
++unsigned int ipu3_css_fw_obgrid_size(const struct imgu_fw_info *bi)
 +{
-+	writel(TLB_INVALIDATE, mmu->base + REG_TLB_INVALIDATE);
++	unsigned int width = DIV_ROUND_UP(bi->info.isp.sp.internal.max_width,
++					  IMGU_OBGRID_TILE_SIZE * 2) + 1;
++	unsigned int height = DIV_ROUND_UP(bi->info.isp.sp.internal.max_height,
++					   IMGU_OBGRID_TILE_SIZE * 2) + 1;
++	unsigned int obgrid_size;
++
++	width = ALIGN(width, IPU3_UAPI_ISP_VEC_ELEMS / 4);
++	obgrid_size = PAGE_ALIGN(width * height *
++				 sizeof(struct ipu3_uapi_obgrid_param)) *
++				 bi->info.isp.sp.iterator.num_stripes;
++	return obgrid_size;
 +}
 +
-+static void call_if_ipu3_is_powered(struct ipu3_mmu *mmu,
-+				    void (*func)(struct ipu3_mmu *mmu))
++void *ipu3_css_fw_pipeline_params(struct ipu3_css *css,
++				  enum imgu_abi_param_class c,
++				  enum imgu_abi_memories m,
++				  struct imgu_fw_isp_parameter *par,
++				  size_t par_size, void *binary_params)
 +{
-+	pm_runtime_get_noresume(mmu->dev);
-+	if (pm_runtime_active(mmu->dev))
-+		func(mmu);
-+	pm_runtime_put(mmu->dev);
-+}
++	struct imgu_fw_info *bi = &css->fwp->binary_header[css->current_binary];
 +
-+/**
-+ * ipu3_mmu_set_halt - set CIO gate halt bit
-+ * @mmu: MMU to set the CIO gate bit in.
-+ * @halt: Desired state of the gate bit.
-+ *
-+ * This function sets the CIO gate bit that controls whether external memory
-+ * accesses are allowed. Must be called when the hardware is powered on.
-+ */
-+static void ipu3_mmu_set_halt(struct ipu3_mmu *mmu, bool halt)
-+{
-+	int ret;
-+	u32 val;
-+
-+	writel(halt, mmu->base + REG_GP_HALT);
-+	ret = readl_poll_timeout(mmu->base + REG_GP_HALTED,
-+				 val, (val & 1) == halt, 1000, 100000);
-+
-+	if (ret)
-+		dev_err(mmu->dev, "failed to %s CIO gate halt\n",
-+			halt ? "set" : "clear");
-+}
-+
-+/**
-+ * ipu3_mmu_alloc_page_table - allocate a pre-filled page table
-+ * @pteval: Value to initialize for page table entries with.
-+ *
-+ * Return: Pointer to allocated page table or NULL on failure.
-+ */
-+static u32 *ipu3_mmu_alloc_page_table(u32 pteval)
-+{
-+	u32 *pt;
-+	int pte;
-+
-+	pt = (u32 *)__get_free_page(GFP_KERNEL);
-+	if (!pt)
++	if (par->offset + par->size >
++	    bi->info.isp.sp.mem_initializers.params[c][m].size)
 +		return NULL;
 +
-+	for (pte = 0; pte < IPU3_PT_PTES; pte++)
-+		pt[pte] = pteval;
++	if (par->size != par_size)
++		pr_warn("parameter size doesn't match defined size\n");
 +
-+	set_memory_uc((unsigned long int)pt, IPU3_PT_ORDER);
-+
-+	return pt;
-+}
-+
-+/**
-+ * ipu3_mmu_free_page_table - free page table
-+ * @pt: Page table to free.
-+ */
-+static void ipu3_mmu_free_page_table(u32 *pt)
-+{
-+	set_memory_wb((unsigned long int)pt, IPU3_PT_ORDER);
-+	free_page((unsigned long)pt);
-+}
-+
-+/**
-+ * address_to_pte_idx - split IOVA into L1 and L2 page table indices
-+ * @iova: IOVA to split.
-+ * @l1pt_idx: Output for the L1 page table index.
-+ * @l2pt_idx: Output for the L2 page index.
-+ */
-+static inline void address_to_pte_idx(unsigned long iova, u32 *l1pt_idx,
-+				      u32 *l2pt_idx)
-+{
-+	iova >>= IPU3_PAGE_SHIFT;
-+
-+	if (l2pt_idx)
-+		*l2pt_idx = iova & IPU3_L2PT_MASK;
-+
-+	iova >>= IPU3_L2PT_SHIFT;
-+
-+	if (l1pt_idx)
-+		*l1pt_idx = iova & IPU3_L1PT_MASK;
-+}
-+
-+static u32 *ipu3_mmu_get_l2pt(struct ipu3_mmu *mmu, u32 l1pt_idx)
-+{
-+	unsigned long flags;
-+	u32 *l2pt, *new_l2pt;
-+	u32 pteval;
-+
-+	spin_lock_irqsave(&mmu->lock, flags);
-+
-+	l2pt = mmu->l2pts[l1pt_idx];
-+	if (l2pt)
-+		goto done;
-+
-+	spin_unlock_irqrestore(&mmu->lock, flags);
-+
-+	new_l2pt = ipu3_mmu_alloc_page_table(mmu->dummy_page_pteval);
-+	if (!new_l2pt)
++	if (par->size < par_size)
 +		return NULL;
 +
-+	spin_lock_irqsave(&mmu->lock, flags);
-+
-+	dev_dbg(mmu->dev, "allocated page table %p for l1pt_idx %u\n",
-+		new_l2pt, l1pt_idx);
-+
-+	l2pt = mmu->l2pts[l1pt_idx];
-+	if (l2pt) {
-+		ipu3_mmu_free_page_table(new_l2pt);
-+		goto done;
-+	}
-+
-+	l2pt = new_l2pt;
-+	mmu->l2pts[l1pt_idx] = new_l2pt;
-+
-+	pteval = IPU3_ADDR2PTE(virt_to_phys(new_l2pt));
-+	mmu->l1pt[l1pt_idx] = pteval;
-+
-+done:
-+	spin_unlock_irqrestore(&mmu->lock, flags);
-+	return l2pt;
++	return binary_params + par->offset;
 +}
 +
-+static int __ipu3_mmu_map(struct ipu3_mmu *mmu, unsigned long iova,
-+			  phys_addr_t paddr)
++void ipu3_css_fw_cleanup(struct ipu3_css *css)
 +{
-+	u32 l1pt_idx, l2pt_idx;
-+	unsigned long flags;
-+	u32 *l2pt;
++	struct imgu_device *imgu = dev_get_drvdata(css->dev);
 +
-+	if (!mmu)
-+		return -ENODEV;
++	if (css->binary) {
++		unsigned int i;
 +
-+	address_to_pte_idx(iova, &l1pt_idx, &l2pt_idx);
++		for (i = 0; i < css->fwp->file_header.binary_nr; i++)
++			ipu3_dmamap_free(imgu, &css->binary[i]);
++		kfree(css->binary);
++	}
++	if (css->fw)
++		release_firmware(css->fw);
 +
-+	l2pt = ipu3_mmu_get_l2pt(mmu, l1pt_idx);
-+	if (!l2pt)
-+		return -ENOMEM;
++	css->binary = NULL;
++	css->fw = NULL;
++}
 +
-+	spin_lock_irqsave(&mmu->lock, flags);
++int ipu3_css_fw_init(struct ipu3_css *css)
++{
++	static const u32 BLOCK_MAX = 65536;
++	struct imgu_device *imgu = dev_get_drvdata(css->dev);
++	struct device *dev = css->dev;
++	unsigned int i, j, binary_nr;
++	int r;
 +
-+	if (l2pt[l2pt_idx] != mmu->dummy_page_pteval) {
-+		spin_unlock_irqrestore(&mmu->lock, flags);
-+		return -EBUSY;
++	r = request_firmware(&css->fw, IMGU_FW_NAME, css->dev);
++	if (r)
++		return r;
++
++	/* Check and display fw header info */
++
++	css->fwp = (struct imgu_fw_header *)css->fw->data;
++	if (css->fw->size < sizeof(struct imgu_fw_header *) ||
++	    css->fwp->file_header.h_size != sizeof(struct imgu_fw_bi_file_h))
++		goto bad_fw;
++	if (sizeof(struct imgu_fw_bi_file_h) +
++	    css->fwp->file_header.binary_nr * sizeof(struct imgu_fw_info) >
++	    css->fw->size)
++		goto bad_fw;
++
++	dev_info(dev, "loaded firmware version %.64s, %u binaries, %zu bytes\n",
++		 css->fwp->file_header.version, css->fwp->file_header.binary_nr,
++		 css->fw->size);
++
++	/* Validate and display info on fw binaries */
++
++	binary_nr = css->fwp->file_header.binary_nr;
++
++	css->fw_bl = -1;
++	css->fw_sp[0] = -1;
++	css->fw_sp[1] = -1;
++
++	for (i = 0; i < binary_nr; i++) {
++		struct imgu_fw_info *bi = &css->fwp->binary_header[i];
++		const char *name = (void *)css->fwp + bi->blob.prog_name_offset;
++		size_t len;
++
++		if (bi->blob.prog_name_offset >= css->fw->size)
++			goto bad_fw;
++		len = strnlen(name, css->fw->size - bi->blob.prog_name_offset);
++		if (len + 1 > css->fw->size - bi->blob.prog_name_offset ||
++		    len + 1 >= IMGU_ABI_MAX_BINARY_NAME)
++			goto bad_fw;
++
++		if (bi->blob.size != bi->blob.text_size + bi->blob.icache_size
++		    + bi->blob.data_size + bi->blob.padding_size)
++			goto bad_fw;
++		if (bi->blob.offset + bi->blob.size > css->fw->size)
++			goto bad_fw;
++
++		if (bi->type == IMGU_FW_BOOTLOADER_FIRMWARE) {
++			css->fw_bl = i;
++			if (bi->info.bl.sw_state >= css->iomem_length ||
++			    bi->info.bl.num_dma_cmds >= css->iomem_length ||
++			    bi->info.bl.dma_cmd_list >= css->iomem_length)
++				goto bad_fw;
++		}
++		if (bi->type == IMGU_FW_SP_FIRMWARE ||
++		    bi->type == IMGU_FW_SP1_FIRMWARE) {
++			css->fw_sp[bi->type == IMGU_FW_SP_FIRMWARE ? 0 : 1] = i;
++			if (bi->info.sp.per_frame_data >= css->iomem_length ||
++			    bi->info.sp.init_dmem_data >= css->iomem_length ||
++			    bi->info.sp.host_sp_queue >= css->iomem_length ||
++			    bi->info.sp.isp_started >= css->iomem_length ||
++			    bi->info.sp.sw_state >= css->iomem_length ||
++			    bi->info.sp.sleep_mode >= css->iomem_length ||
++			    bi->info.sp.invalidate_tlb >= css->iomem_length ||
++			    bi->info.sp.host_sp_com >= css->iomem_length ||
++			    bi->info.sp.output + 12 >= css->iomem_length ||
++			    bi->info.sp.host_sp_queues_initialized >=
++			    css->iomem_length)
++				goto bad_fw;
++		}
++		if (bi->type != IMGU_FW_ISP_FIRMWARE)
++			continue;
++
++		if (bi->info.isp.sp.pipeline.mode >= IPU3_CSS_PIPE_ID_NUM)
++			goto bad_fw;
++
++		if (bi->info.isp.sp.iterator.num_stripes >
++		    IPU3_UAPI_MAX_STRIPES)
++			goto bad_fw;
++
++		if (bi->info.isp.num_vf_formats > IMGU_ABI_FRAME_FORMAT_NUM ||
++		    bi->info.isp.num_output_formats > IMGU_ABI_FRAME_FORMAT_NUM)
++			goto bad_fw;
++
++		for (j = 0; j < bi->info.isp.num_output_formats; j++)
++			if (bi->info.isp.output_formats[j] < 0 ||
++			    bi->info.isp.output_formats[j] >=
++			    IMGU_ABI_FRAME_FORMAT_NUM)
++				goto bad_fw;
++		for (j = 0; j < bi->info.isp.num_vf_formats; j++)
++			if (bi->info.isp.vf_formats[j] < 0 ||
++			    bi->info.isp.vf_formats[j] >=
++			    IMGU_ABI_FRAME_FORMAT_NUM)
++				goto bad_fw;
++
++		if (bi->info.isp.sp.block.block_width <= 0 ||
++		    bi->info.isp.sp.block.block_width > BLOCK_MAX ||
++		    bi->info.isp.sp.block.output_block_height <= 0 ||
++		    bi->info.isp.sp.block.output_block_height > BLOCK_MAX)
++			goto bad_fw;
++
++		if (bi->blob.memory_offsets.offsets[IMGU_ABI_PARAM_CLASS_PARAM]
++		    + sizeof(struct imgu_fw_param_memory_offsets) >
++		    css->fw->size ||
++		    bi->blob.memory_offsets.offsets[IMGU_ABI_PARAM_CLASS_CONFIG]
++		    + sizeof(struct imgu_fw_config_memory_offsets) >
++		    css->fw->size ||
++		    bi->blob.memory_offsets.offsets[IMGU_ABI_PARAM_CLASS_STATE]
++		    + sizeof(struct imgu_fw_state_memory_offsets) >
++		    css->fw->size)
++			goto bad_fw;
++
++		ipu3_css_fw_show_binary(dev, bi, name);
 +	}
 +
-+	l2pt[l2pt_idx] = IPU3_ADDR2PTE(paddr);
++	if (css->fw_bl == -1 || css->fw_sp[0] == -1 || css->fw_sp[1] == -1)
++		goto bad_fw;
 +
-+	spin_unlock_irqrestore(&mmu->lock, flags);
++	/* Allocate and map fw binaries into IMGU */
++
++	css->binary = kcalloc(binary_nr, sizeof(*css->binary), GFP_KERNEL);
++	if (!css->binary) {
++		r = -ENOMEM;
++		goto error_out;
++	}
++
++	for (i = 0; i < css->fwp->file_header.binary_nr; i++) {
++		struct imgu_fw_info *bi = &css->fwp->binary_header[i];
++		void *blob = (void *)css->fwp + bi->blob.offset;
++		size_t size = bi->blob.size;
++
++		if (!ipu3_dmamap_alloc(imgu, &css->binary[i], size)) {
++			r = -ENOMEM;
++			goto error_out;
++		}
++		memcpy(css->binary[i].vaddr, blob, size);
++	}
 +
 +	return 0;
++
++bad_fw:
++	dev_err(dev, "invalid firmware binary, size %u\n", (int)css->fw->size);
++	r = -ENODEV;
++
++error_out:
++	ipu3_css_fw_cleanup(css);
++	return r;
 +}
-+
-+/**
-+ * The following four functions are implemented based on iommu.c
-+ * drivers/iommu/iommu.c/iommu_pgsize().
-+ */
-+static size_t ipu3_mmu_pgsize(unsigned long pgsize_bitmap,
-+			      unsigned long addr_merge, size_t size)
-+{
-+	unsigned int pgsize_idx;
-+	size_t pgsize;
-+
-+	/* Max page size that still fits into 'size' */
-+	pgsize_idx = __fls(size);
-+
-+	/* need to consider alignment requirements ? */
-+	if (likely(addr_merge)) {
-+		/* Max page size allowed by address */
-+		unsigned int align_pgsize_idx = __ffs(addr_merge);
-+
-+		pgsize_idx = min(pgsize_idx, align_pgsize_idx);
-+	}
-+
-+	/* build a mask of acceptable page sizes */
-+	pgsize = (1UL << (pgsize_idx + 1)) - 1;
-+
-+	/* throw away page sizes not supported by the hardware */
-+	pgsize &= pgsize_bitmap;
-+
-+	/* make sure we're still sane */
-+	WARN_ON(!pgsize);
-+
-+	/* pick the biggest page */
-+	pgsize_idx = __fls(pgsize);
-+	pgsize = 1UL << pgsize_idx;
-+
-+	return pgsize;
-+}
-+
-+/* drivers/iommu/iommu.c/iommu_map() */
-+int ipu3_mmu_map(struct ipu3_mmu_info *info, unsigned long iova,
-+		 phys_addr_t paddr, size_t size)
-+{
-+	struct ipu3_mmu *mmu = to_ipu3_mmu(info);
-+	unsigned int min_pagesz;
-+	int ret = 0;
-+
-+	/* find out the minimum page size supported */
-+	min_pagesz = 1 << __ffs(mmu->geometry.pgsize_bitmap);
-+
-+	/*
-+	 * both the virtual address and the physical one, as well as
-+	 * the size of the mapping, must be aligned (at least) to the
-+	 * size of the smallest page supported by the hardware
-+	 */
-+	if (!IS_ALIGNED(iova | paddr | size, min_pagesz)) {
-+		dev_err(mmu->dev, "unaligned: iova 0x%lx pa %pa size 0x%zx min_pagesz 0x%x\n",
-+			iova, &paddr, size, min_pagesz);
-+		return -EINVAL;
-+	}
-+
-+	dev_dbg(mmu->dev, "map: iova 0x%lx pa %pa size 0x%zx\n",
-+		iova, &paddr, size);
-+
-+	while (size) {
-+		size_t pgsize = ipu3_mmu_pgsize(mmu->geometry.pgsize_bitmap,
-+						iova | paddr, size);
-+
-+		dev_dbg(mmu->dev, "mapping: iova 0x%lx pa %pa pgsize 0x%zx\n",
-+			iova, &paddr, pgsize);
-+
-+		ret = __ipu3_mmu_map(mmu, iova, paddr);
-+		if (ret)
-+			break;
-+
-+		iova += pgsize;
-+		paddr += pgsize;
-+		size -= pgsize;
-+	}
-+
-+	call_if_ipu3_is_powered(mmu, ipu3_mmu_tlb_invalidate);
-+
-+	return ret;
-+}
-+
-+/* drivers/iommu/iommu.c/default_iommu_map_sg() */
-+size_t ipu3_mmu_map_sg(struct ipu3_mmu_info *info, unsigned long iova,
-+		       struct scatterlist *sg, unsigned int nents)
-+{
-+	struct ipu3_mmu *mmu = to_ipu3_mmu(info);
-+	struct scatterlist *s;
-+	size_t s_length, mapped = 0;
-+	unsigned int i, min_pagesz;
-+	int ret;
-+
-+	min_pagesz = 1 << __ffs(mmu->geometry.pgsize_bitmap);
-+
-+	for_each_sg(sg, s, nents, i) {
-+		phys_addr_t phys = page_to_phys(sg_page(s)) + s->offset;
-+
-+		s_length = s->length;
-+
-+		if (!IS_ALIGNED(s->offset, min_pagesz))
-+			goto out_err;
-+
-+		/* must be min_pagesz aligned to be mapped singlely */
-+		if (i == nents - 1 && !IS_ALIGNED(s->length, min_pagesz))
-+			s_length = PAGE_ALIGN(s->length);
-+
-+		ret = ipu3_mmu_map(info, iova + mapped, phys, s_length);
-+		if (ret)
-+			goto out_err;
-+
-+		mapped += s_length;
-+	}
-+
-+	call_if_ipu3_is_powered(mmu, ipu3_mmu_tlb_invalidate);
-+
-+	return mapped;
-+
-+out_err:
-+	/* undo mappings already done */
-+	ipu3_mmu_unmap(info, iova, mapped);
-+
-+	return 0;
-+}
-+
-+static size_t __ipu3_mmu_unmap(struct ipu3_mmu *mmu,
-+			       unsigned long iova, size_t size)
-+{
-+	u32 l1pt_idx, l2pt_idx;
-+	unsigned long flags;
-+	size_t unmap = size;
-+	u32 *l2pt;
-+
-+	if (!mmu)
-+		return 0;
-+
-+	address_to_pte_idx(iova, &l1pt_idx, &l2pt_idx);
-+
-+	spin_lock_irqsave(&mmu->lock, flags);
-+
-+	l2pt = mmu->l2pts[l1pt_idx];
-+	if (!l2pt) {
-+		spin_unlock_irqrestore(&mmu->lock, flags);
-+		return 0;
-+	}
-+
-+	if (l2pt[l2pt_idx] == mmu->dummy_page_pteval)
-+		unmap = 0;
-+
-+	l2pt[l2pt_idx] = mmu->dummy_page_pteval;
-+
-+	spin_unlock_irqrestore(&mmu->lock, flags);
-+
-+	return unmap;
-+}
-+
-+/* drivers/iommu/iommu.c/iommu_unmap() */
-+size_t ipu3_mmu_unmap(struct ipu3_mmu_info *info, unsigned long iova,
-+		      size_t size)
-+{
-+	struct ipu3_mmu *mmu = to_ipu3_mmu(info);
-+	size_t unmapped_page, unmapped = 0;
-+	unsigned int min_pagesz;
-+
-+	/* find out the minimum page size supported */
-+	min_pagesz = 1 << __ffs(mmu->geometry.pgsize_bitmap);
-+
-+	/*
-+	 * The virtual address, as well as the size of the mapping, must be
-+	 * aligned (at least) to the size of the smallest page supported
-+	 * by the hardware
-+	 */
-+	if (!IS_ALIGNED(iova | size, min_pagesz)) {
-+		dev_err(mmu->dev, "unaligned: iova 0x%lx size 0x%zx min_pagesz 0x%x\n",
-+			iova, size, min_pagesz);
-+		return -EINVAL;
-+	}
-+
-+	dev_dbg(mmu->dev, "unmap this: iova 0x%lx size 0x%zx\n", iova, size);
-+
-+	/*
-+	 * Keep iterating until we either unmap 'size' bytes (or more)
-+	 * or we hit an area that isn't mapped.
-+	 */
-+	while (unmapped < size) {
-+		size_t pgsize = ipu3_mmu_pgsize(mmu->geometry.pgsize_bitmap,
-+						iova, size - unmapped);
-+
-+		unmapped_page = __ipu3_mmu_unmap(mmu, iova, pgsize);
-+		if (!unmapped_page)
-+			break;
-+
-+		dev_dbg(mmu->dev, "unmapped: iova 0x%lx size 0x%zx\n",
-+			iova, unmapped_page);
-+
-+		iova += unmapped_page;
-+		unmapped += unmapped_page;
-+	}
-+
-+	call_if_ipu3_is_powered(mmu, ipu3_mmu_tlb_invalidate);
-+
-+	return unmapped;
-+}
-+
-+/**
-+ * ipu3_mmu_init() - initialize IPU3 MMU block
-+ * @base:	IOMEM base of hardware registers.
-+ *
-+ * Return: Pointer to IPU3 MMU private data pointer or ERR_PTR() on error.
-+ */
-+struct ipu3_mmu_info *ipu3_mmu_init(struct device *parent, void __iomem *base)
-+{
-+	struct ipu3_mmu *mmu;
-+	u32 pteval;
-+
-+	mmu = kzalloc(sizeof(*mmu), GFP_KERNEL);
-+	if (!mmu)
-+		return ERR_PTR(-ENOMEM);
-+
-+	mmu->dev = parent;
-+	mmu->base = base;
-+	spin_lock_init(&mmu->lock);
-+
-+	/* Disallow external memory access when having no valid page tables. */
-+	ipu3_mmu_set_halt(mmu, true);
-+
-+	/*
-+	 * The MMU does not have a "valid" bit, so we have to use a dummy
-+	 * page for invalid entries.
-+	 */
-+	mmu->dummy_page = (void *)__get_free_page(GFP_KERNEL);
-+	if (!mmu->dummy_page)
-+		goto fail_group;
-+	pteval = IPU3_ADDR2PTE(virt_to_phys(mmu->dummy_page));
-+	mmu->dummy_page_pteval = pteval;
-+
-+	/*
-+	 * Allocate a dummy L2 page table with all entries pointing to
-+	 * the dummy page.
-+	 */
-+	mmu->dummy_l2pt = ipu3_mmu_alloc_page_table(pteval);
-+	if (!mmu->dummy_l2pt)
-+		goto fail_dummy_page;
-+	pteval = IPU3_ADDR2PTE(virt_to_phys(mmu->dummy_l2pt));
-+	mmu->dummy_l2pt_pteval = pteval;
-+
-+	/*
-+	 * Allocate the array of L2PT CPU pointers, initialized to zero,
-+	 * which means the dummy L2PT allocated above.
-+	 */
-+	mmu->l2pts = vzalloc(IPU3_PT_PTES * sizeof(*mmu->l2pts));
-+	if (!mmu->l2pts)
-+		goto fail_l2pt;
-+
-+	/* Allocate the L1 page table. */
-+	mmu->l1pt = ipu3_mmu_alloc_page_table(mmu->dummy_l2pt_pteval);
-+	if (!mmu->l1pt)
-+		goto fail_l2pts;
-+
-+	pteval = IPU3_ADDR2PTE(virt_to_phys(mmu->l1pt));
-+	writel(pteval, mmu->base + REG_L1_PHYS);
-+	ipu3_mmu_tlb_invalidate(mmu);
-+	ipu3_mmu_set_halt(mmu, false);
-+
-+	mmu->geometry.aperture_start = 0;
-+	mmu->geometry.aperture_end = DMA_BIT_MASK(IPU3_MMU_ADDRESS_BITS);
-+	mmu->geometry.pgsize_bitmap = IPU3_PAGE_SIZE;
-+
-+	return &mmu->geometry;
-+
-+fail_l2pts:
-+	vfree(mmu->l2pts);
-+fail_l2pt:
-+	ipu3_mmu_free_page_table(mmu->dummy_l2pt);
-+fail_dummy_page:
-+	free_page((unsigned long)mmu->dummy_page);
-+fail_group:
-+	kfree(mmu);
-+
-+	return ERR_PTR(-ENOMEM);
-+}
-+
-+/**
-+ * ipu3_mmu_exit() - clean up IPU3 MMU block
-+ * @mmu: IPU3 MMU private data
-+ */
-+void ipu3_mmu_exit(struct ipu3_mmu_info *info)
-+{
-+	struct ipu3_mmu *mmu = to_ipu3_mmu(info);
-+
-+	/* We are going to free our page tables, no more memory access. */
-+	ipu3_mmu_set_halt(mmu, true);
-+	ipu3_mmu_tlb_invalidate(mmu);
-+
-+	ipu3_mmu_free_page_table(mmu->l1pt);
-+	vfree(mmu->l2pts);
-+	ipu3_mmu_free_page_table(mmu->dummy_l2pt);
-+	free_page((unsigned long)mmu->dummy_page);
-+	kfree(mmu);
-+}
-+
-+void ipu3_mmu_suspend(struct ipu3_mmu_info *info)
-+{
-+	struct ipu3_mmu *mmu = to_ipu3_mmu(info);
-+
-+	ipu3_mmu_set_halt(mmu, true);
-+}
-+
-+void ipu3_mmu_resume(struct ipu3_mmu_info *info)
-+{
-+	struct ipu3_mmu *mmu = to_ipu3_mmu(info);
-+	u32 pteval;
-+
-+	ipu3_mmu_set_halt(mmu, true);
-+
-+	pteval = IPU3_ADDR2PTE(virt_to_phys(mmu->l1pt));
-+	writel(pteval, mmu->base + REG_L1_PHYS);
-+
-+	ipu3_mmu_tlb_invalidate(mmu);
-+	ipu3_mmu_set_halt(mmu, false);
-+}
-diff --git a/drivers/media/pci/intel/ipu3/ipu3-mmu.h b/drivers/media/pci/intel/ipu3/ipu3-mmu.h
+diff --git a/drivers/media/pci/intel/ipu3/ipu3-css-fw.h b/drivers/media/pci/intel/ipu3/ipu3-css-fw.h
 new file mode 100644
-index 0000000..8fe63b4
+index 0000000..954bb31
 --- /dev/null
-+++ b/drivers/media/pci/intel/ipu3/ipu3-mmu.h
-@@ -0,0 +1,35 @@
++++ b/drivers/media/pci/intel/ipu3/ipu3-css-fw.h
+@@ -0,0 +1,188 @@
 +/* SPDX-License-Identifier: GPL-2.0 */
 +/* Copyright (C) 2018 Intel Corporation */
-+/* Copyright 2018 Google LLC. */
 +
-+#ifndef __IPU3_MMU_H
-+#define __IPU3_MMU_H
++#ifndef __IPU3_CSS_FW_H
++#define __IPU3_CSS_FW_H
 +
-+/**
-+ * struct ipu3_mmu_info - Describes mmu geometry
-+ *
-+ * @aperture_start:	First address that can be mapped
-+ * @aperture_end:	Last address that can be mapped
-+ * @pgsize_bitmap:	Bitmap of page sizes in use
-+ */
-+struct ipu3_mmu_info {
-+	dma_addr_t aperture_start;
-+	dma_addr_t aperture_end;
-+	unsigned long pgsize_bitmap;
++/******************* Firmware file definitions *******************/
++
++#define IMGU_FW_NAME			"ipu3-fw.bin"
++
++typedef u32 imgu_fw_ptr;
++
++enum imgu_fw_type {
++	IMGU_FW_SP_FIRMWARE,	/* Firmware for the SP */
++	IMGU_FW_SP1_FIRMWARE,	/* Firmware for the SP1 */
++	IMGU_FW_ISP_FIRMWARE,	/* Firmware for the ISP */
++	IMGU_FW_BOOTLOADER_FIRMWARE,	/* Firmware for the BootLoader */
++	IMGU_FW_ACC_FIRMWARE	/* Firmware for accelerations */
 +};
 +
-+struct device;
-+struct scatterlist;
++enum imgu_fw_acc_type {
++	IMGU_FW_ACC_NONE,	/* Normal binary */
++	IMGU_FW_ACC_OUTPUT,	/* Accelerator stage on output frame */
++	IMGU_FW_ACC_VIEWFINDER,	/* Accelerator stage on viewfinder frame */
++	IMGU_FW_ACC_STANDALONE,	/* Stand-alone acceleration */
++};
 +
-+struct ipu3_mmu_info *ipu3_mmu_init(struct device *parent, void __iomem *base);
-+void ipu3_mmu_exit(struct ipu3_mmu_info *info);
-+void ipu3_mmu_suspend(struct ipu3_mmu_info *info);
-+void ipu3_mmu_resume(struct ipu3_mmu_info *info);
++struct imgu_fw_isp_parameter {
++	u32 offset;		/* Offset in isp_<mem> config, params, etc. */
++	u32 size;		/* Disabled if 0 */
++};
 +
-+int ipu3_mmu_map(struct ipu3_mmu_info *info, unsigned long iova,
-+		 phys_addr_t paddr, size_t size);
-+size_t ipu3_mmu_unmap(struct ipu3_mmu_info *info, unsigned long iova,
-+		      size_t size);
-+size_t ipu3_mmu_map_sg(struct ipu3_mmu_info *info, unsigned long iova,
-+		       struct scatterlist *sg, unsigned int nents);
++struct imgu_fw_param_memory_offsets {
++	struct {
++		struct imgu_fw_isp_parameter lin;	/* lin_vmem_params */
++		struct imgu_fw_isp_parameter tnr3;	/* tnr3_vmem_params */
++		struct imgu_fw_isp_parameter xnr3;	/* xnr3_vmem_params */
++	} vmem;
++	struct {
++		struct imgu_fw_isp_parameter tnr;
++		struct imgu_fw_isp_parameter tnr3;	/* tnr3_params */
++		struct imgu_fw_isp_parameter xnr3;	/* xnr3_params */
++		struct imgu_fw_isp_parameter plane_io_config;	/* 192 bytes */
++		struct imgu_fw_isp_parameter rgbir;	/* rgbir_params */
++	} dmem;
++};
++
++struct imgu_fw_config_memory_offsets {
++	struct {
++		struct imgu_fw_isp_parameter iterator;
++		struct imgu_fw_isp_parameter dvs;
++		struct imgu_fw_isp_parameter output;
++		struct imgu_fw_isp_parameter raw;
++		struct imgu_fw_isp_parameter input_yuv;
++		struct imgu_fw_isp_parameter tnr;
++		struct imgu_fw_isp_parameter tnr3;
++		struct imgu_fw_isp_parameter ref;
++	} dmem;
++};
++
++struct imgu_fw_state_memory_offsets {
++	struct {
++		struct imgu_fw_isp_parameter tnr;
++		struct imgu_fw_isp_parameter tnr3;
++		struct imgu_fw_isp_parameter ref;
++	} dmem;
++};
++
++union imgu_fw_all_memory_offsets {
++	struct {
++		u64 imgu_fw_mem_offsets[3]; /* params, config, state */
++	} offsets;
++	struct {
++		u64 ptr;
++	} array[IMGU_ABI_PARAM_CLASS_NUM];
++};
++
++struct imgu_fw_binary_xinfo {
++	/* Part that is of interest to the SP. */
++	struct imgu_abi_binary_info sp;
++
++	/* Rest of the binary info, only interesting to the host. */
++	u32 type;	/* enum imgu_fw_acc_type */
++
++	u32 num_output_formats __aligned(8);
++	u32 output_formats[IMGU_ABI_FRAME_FORMAT_NUM];	/* enum frame_format */
++
++	/* number of supported vf formats */
++	u32 num_vf_formats __aligned(8);
++	/* types of supported vf formats */
++	u32 vf_formats[IMGU_ABI_FRAME_FORMAT_NUM];	/* enum frame_format */
++	u8 num_output_pins;
++	imgu_fw_ptr xmem_addr;
++
++	u64 imgu_fw_blob_descr_ptr __aligned(8);
++	u32 blob_index __aligned(8);
++	union imgu_fw_all_memory_offsets mem_offsets __aligned(8);
++	struct imgu_fw_binary_xinfo *next __aligned(8);
++};
++
++struct imgu_fw_sp_info {
++	u32 init_dmem_data;	/* data sect config, stored to dmem */
++	u32 per_frame_data;	/* Per frame data, stored to dmem */
++	u32 group;		/* Per pipeline data, loaded by dma */
++	u32 output;		/* SP output data, loaded by dmem */
++	u32 host_sp_queue;	/* Host <-> SP queues */
++	u32 host_sp_com;	/* Host <-> SP commands */
++	u32 isp_started;	/* P'ed from sensor thread, csim only */
++	u32 sw_state;		/* Polled from css, enum imgu_abi_sp_swstate */
++	u32 host_sp_queues_initialized;	/* Polled from the SP */
++	u32 sleep_mode;		/* different mode to halt SP */
++	u32 invalidate_tlb;	/* inform SP to invalidate mmu TLB */
++	u32 debug_buffer_ddr_address;	/* the addr of DDR debug queue */
++
++	/* input system perf count array */
++	u32 perf_counter_input_system_error;
++	u32 threads_stack;	/* sp thread's stack pointers */
++	u32 threads_stack_size;	/* sp thread's stack sizes */
++	u32 curr_binary_id;	/* current binary id */
++	u32 raw_copy_line_count;	/* raw copy line counter */
++	u32 ddr_parameter_address;	/* acc param ddrptr, sp dmem */
++	u32 ddr_parameter_size;	/* acc param size, sp dmem */
++	/* Entry functions */
++	u32 sp_entry;		/* The SP entry function */
++	u32 tagger_frames_addr;	/* Base address of tagger state */
++};
++
++struct imgu_fw_bl_info {
++	u32 num_dma_cmds;	/* Number of cmds sent by CSS */
++	u32 dma_cmd_list;	/* Dma command list sent by CSS */
++	u32 sw_state;		/* Polled from css, enum imgu_abi_bl_swstate */
++	/* Entry functions */
++	u32 bl_entry;		/* The SP entry function */
++};
++
++struct imgu_fw_acc_info {
++	u32 per_frame_data;	/* Dummy for now */
++};
++
++union imgu_fw_union {
++	struct imgu_fw_binary_xinfo isp;	/* ISP info */
++	struct imgu_fw_sp_info sp;	/* SP info */
++	struct imgu_fw_sp_info sp1;	/* SP1 info */
++	struct imgu_fw_bl_info bl;	/* Bootloader info */
++	struct imgu_fw_acc_info acc;	/* Accelerator info */
++};
++
++struct imgu_fw_info {
++	size_t header_size;	/* size of fw header */
++	u32 type __aligned(8);	/* enum imgu_fw_type */
++	union imgu_fw_union info;	/* Binary info */
++	struct imgu_abi_blob_info blob;	/* Blob info */
++	/* Dynamic part */
++	u64 next;
++
++	u32 loaded __aligned(8);	/* Firmware has been loaded */
++	const u64 isp_code __aligned(8);	/* ISP pointer to code */
++	/* Firmware handle between user space and kernel */
++	u32 handle __aligned(8);
++	/* Sections to copy from/to ISP */
++	struct imgu_abi_isp_param_segments mem_initializers;
++	/* Initializer for local ISP memories */
++};
++
++struct imgu_fw_bi_file_h {
++	char version[64];	/* branch tag + week day + time */
++	int binary_nr;		/* Number of binaries */
++	unsigned int h_size;	/* sizeof(struct imgu_fw_bi_file_h) */
++};
++
++struct imgu_fw_header {
++	struct imgu_fw_bi_file_h file_header;
++	struct imgu_fw_info binary_header[1];	/* binary_nr items */
++};
++
++/******************* Firmware functions *******************/
++
++int ipu3_css_fw_init(struct ipu3_css *css);
++void ipu3_css_fw_cleanup(struct ipu3_css *css);
++
++unsigned int ipu3_css_fw_obgrid_size(const struct imgu_fw_info *bi);
++void *ipu3_css_fw_pipeline_params(struct ipu3_css *css,
++				  enum imgu_abi_param_class c,
++				  enum imgu_abi_memories m,
++				  struct imgu_fw_isp_parameter *par,
++				  size_t par_size, void *binary_params);
++
 +#endif
 -- 
 2.7.4
