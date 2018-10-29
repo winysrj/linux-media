@@ -1,55 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:44659 "EHLO
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:39713 "EHLO
         metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728286AbeJ3DOR (ORCPT
+        with ESMTP id S1726036AbeJ3DbR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 Oct 2018 23:14:17 -0400
+        Mon, 29 Oct 2018 23:31:17 -0400
+Date: Mon, 29 Oct 2018 19:41:13 +0100
 From: Marco Felsch <m.felsch@pengutronix.de>
-To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        robh+dt@kernel.org, mark.rutland@arm.com
-Cc: enrico.scholz@sigma-chemnitz.de, akinobu.mita@gmail.com,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        graphics@pengutronix.de
-Subject: [PATCH v2 6/6] dt-bindings: media: mt9m111: add pclk-sample property
-Date: Mon, 29 Oct 2018 19:24:10 +0100
-Message-Id: <20181029182410.18783-7-m.felsch@pengutronix.de>
-In-Reply-To: <20181029182410.18783-1-m.felsch@pengutronix.de>
-References: <20181029182410.18783-1-m.felsch@pengutronix.de>
+To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com
+Cc: devicetree@vger.kernel.org, p.zabel@pengutronix.de,
+        javierm@redhat.com, afshin.nasser@gmail.com,
+        laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
+        kernel@pengutronix.de, linux-media@vger.kernel.org
+Subject: Re: [PATCH v3 0/9] TVP5150 fixes and new features
+Message-ID: <20181029184113.5tfdjdlj75m2wd6m@pengutronix.de>
+References: <20180918131453.21031-1-m.felsch@pengutronix.de>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180918131453.21031-1-m.felsch@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the pclk-sample property to the list of optional properties
-for the mt9m111 camera sensor.
+Hi Mauro,
 
-Signed-off-by: Marco Felsch <m.felsch@pengutronix.de>
----
- Documentation/devicetree/bindings/media/i2c/mt9m111.txt | 5 +++++
- 1 file changed, 5 insertions(+)
+just a reminder, Rob already added his ack/rev-by tags.
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/mt9m111.txt b/Documentation/devicetree/bindings/media/i2c/mt9m111.txt
-index 921cc48c488b..6dfd0f0f6245 100644
---- a/Documentation/devicetree/bindings/media/i2c/mt9m111.txt
-+++ b/Documentation/devicetree/bindings/media/i2c/mt9m111.txt
-@@ -17,6 +17,10 @@ Documentation/devicetree/bindings/media/video-interfaces.txt
- Required endpoint properties:
- - remote-endpoint: For information see ../video-interfaces.txt.
- 
-+Optional endpoint properties:
-+- pclk-sample: For information see ../video-interfaces.txt. The value is set to
-+  0 if it isn't specified.
-+
- Example:
- 
- 	i2c_master {
-@@ -29,6 +33,7 @@ Example:
- 			port {
- 				mt9m111_1: endpoint {
- 					remote-endpoint = <&pxa_camera>;
-+					pclk-sample = <1>;
- 				};
- 			};
- 		};
+Thanks,
+Marco
+
+On 18-09-18 15:14, Marco Felsch wrote:
+> Hi,
+> 
+> this is my v3 with the integrated reviews from my v2 [1]. This serie
+> applies to Mauro's experimental.git [2].
+> 
+> @Mauro:
+> Patch ("media: tvp5150: fix irq_request error path during probe") is new
+> in this series. Maybe you can squash them with ("media: tvp5150: Add sync lock
+> interrupt handling"), thanks.
+> 
+> I've tested this series on a customer dt-based board. Unfortunately I
+> haven't a device which use the em28xx driver. So other tester a welcome :)
+> 
+> [1] https://www.spinics.net/lists/devicetree/msg244129.html
+> [2] https://git.linuxtv.org/mchehab/experimental.git/log/?h=tvp5150-4
+> 
+> Javier Martinez Canillas (1):
+>   partial revert of "[media] tvp5150: add HW input connectors support"
+> 
+> Marco Felsch (7):
+>   media: tvp5150: fix irq_request error path during probe
+>   media: tvp5150: add input source selection of_graph support
+>   media: dt-bindings: tvp5150: Add input port connectors DT bindings
+>   media: v4l2-subdev: add stubs for v4l2_subdev_get_try_*
+>   media: v4l2-subdev: fix v4l2_subdev_get_try_* dependency
+>   media: tvp5150: add FORMAT_TRY support for get/set selection handlers
+>   media: tvp5150: add s_power callback
+> 
+> Michael Tretter (1):
+>   media: tvp5150: initialize subdev before parsing device tree
+> 
+>  .../devicetree/bindings/media/i2c/tvp5150.txt |  92 ++-
+>  drivers/media/i2c/tvp5150.c                   | 657 +++++++++++++-----
+>  include/dt-bindings/media/tvp5150.h           |   2 -
+>  include/media/v4l2-subdev.h                   |  15 +-
+>  4 files changed, 584 insertions(+), 182 deletions(-)
+> 
+> -- 
+> 2.19.0
+> 
+> 
+> 
+
 -- 
-2.19.1
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
