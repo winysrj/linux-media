@@ -1,88 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:52235 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727078AbeJ2GHe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 Oct 2018 02:07:34 -0400
-From: Sean Young <sean@mess.org>
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:37566 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1729350AbeJ2NTP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 29 Oct 2018 09:19:15 -0400
+Message-ID: <6aae07b0ae360d51f25bad8976270804@smtp-cloud9.xs4all.net>
+Date: Mon, 29 Oct 2018 05:32:14 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: [PATCH] media: saa7134: hvr1110 can decode rc6
-Date: Sun, 28 Oct 2018 21:21:42 +0000
-Message-Id: <20181028212142.26572-1-sean@mess.org>
+Subject: cron job: media_tree daily build: OK
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The function get_key_hvr1110 can only decode rc5, however this is a
-standard hauppauge z8f0811 which can decode rc6 as well. Use
-get_key_haup_xvr() instead.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Test on a HVR 1110.
+Results of the daily build of media_tree:
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/media/pci/saa7134/saa7134-input.c | 43 +++--------------------
- 1 file changed, 4 insertions(+), 39 deletions(-)
+date:			Mon Oct 29 05:00:09 CET 2018
+media-tree git hash:	3b796aa60af087f5fec75aee9b17f2130f2b9adc
+media_build git hash:	0c8bb27f3aaa682b9548b656f77505c3d1f11e71
+v4l-utils git hash:	c36dbbdfa8b30b2badd4f893b59d0bd4f0bd12aa
+edid-decode git hash:	5eeb151a748788666534d6ea3da07f90400d24c2
+gcc version:		i686-linux-gcc (GCC) 8.2.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.18.0-2-amd64
 
-diff --git a/drivers/media/pci/saa7134/saa7134-input.c b/drivers/media/pci/saa7134/saa7134-input.c
-index 6e6d68964017..bc1ed7798d21 100644
---- a/drivers/media/pci/saa7134/saa7134-input.c
-+++ b/drivers/media/pci/saa7134/saa7134-input.c
-@@ -299,43 +299,6 @@ static int get_key_purpletv(struct IR_i2c *ir, enum rc_proto *protocol,
- 	return 1;
- }
- 
--static int get_key_hvr1110(struct IR_i2c *ir, enum rc_proto *protocol,
--			   u32 *scancode, u8 *toggle)
--{
--	int rc;
--	unsigned char buf[5];
--
--	/* poll IR chip */
--	rc = i2c_master_recv(ir->c, buf, 5);
--	if (rc != 5) {
--		ir_dbg(ir, "read error\n");
--		if (rc < 0)
--			return rc;
--		return -EIO;
--	}
--
--	/* Check if some key were pressed */
--	if (!(buf[0] & 0x80))
--		return 0;
--
--	/*
--	 * buf[3] & 0x80 is always high.
--	 * buf[3] & 0x40 is a parity bit. A repeat event is marked
--	 * by preserving it into two separate readings
--	 * buf[4] bits 0 and 1, and buf[1] and buf[2] are always
--	 * zero.
--	 *
--	 * Note that the keymap which the hvr1110 uses is RC5.
--	 *
--	 * FIXME: start bits could maybe be used...?
--	 */
--	*protocol = RC_PROTO_RC5;
--	*scancode = RC_SCANCODE_RC5(buf[3] & 0x1f, buf[4] >> 2);
--	*toggle = !!(buf[3] & 0x40);
--	return 1;
--}
--
--
- static int get_key_beholdm6xx(struct IR_i2c *ir, enum rc_proto *protocol,
- 			      u32 *scancode, u8 *toggle)
- {
-@@ -1029,9 +992,11 @@ void saa7134_probe_i2c_ir(struct saa7134_dev *dev)
- 			(1 == rc) ? "yes" : "no");
- 		break;
- 	case SAA7134_BOARD_HAUPPAUGE_HVR1110:
--		dev->init_data.name = "HVR 1110";
--		dev->init_data.get_key = get_key_hvr1110;
-+		dev->init_data.name = saa7134_boards[dev->board].name;
- 		dev->init_data.ir_codes = RC_MAP_HAUPPAUGE;
-+		dev->init_data.type = RC_PROTO_BIT_RC5 |
-+				RC_PROTO_BIT_RC6_MCE | RC_PROTO_BIT_RC6_6A_32;
-+		dev->init_data.internal_get_key_func = IR_KBD_GET_KEY_HAUP_XVR;
- 		info.addr = 0x71;
- 		break;
- 	case SAA7134_BOARD_BEHOLD_607FM_MK3:
--- 
-2.17.2
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.57-i686: OK
+linux-3.16.57-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.123-i686: OK
+linux-3.18.123-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.52-i686: OK
+linux-4.1.52-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.159-i686: OK
+linux-4.4.159-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.131-i686: OK
+linux-4.9.131-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.74-i686: OK
+linux-4.14.74-x86_64: OK
+linux-4.15.18-i686: OK
+linux-4.15.18-x86_64: OK
+linux-4.16.18-i686: OK
+linux-4.16.18-x86_64: OK
+linux-4.17.19-i686: OK
+linux-4.17.19-x86_64: OK
+linux-4.18.12-i686: OK
+linux-4.18.12-x86_64: OK
+linux-4.19-i686: OK
+linux-4.19-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
