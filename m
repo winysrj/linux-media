@@ -1,88 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:33861 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726066AbeJ3CTh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 Oct 2018 22:19:37 -0400
-Date: Mon, 29 Oct 2018 17:30:02 +0000
-From: Sean Young <sean@mess.org>
-To: "Michael Kerrisk (man-opages)" <mtk.manpages@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        linux-man@vger.kernel.org, linux-media@vger.kernel.org,
-        Alec Leamas <leamas.alec@gmail.com>
-Subject: Re: [PATCH] lirc.4: remove ioctls and feature bits which were never
- implemented
-Message-ID: <20181029173002.inf73mb4po6g6itq@gofer.mess.org>
-References: <20180423102637.xtcjidetxo6iaslx@gofer.mess.org>
- <6b531be3-56ea-b534-3493-d64c98b3f6c5@gmail.com>
- <20180518152529.eunu6e6735z62bug@gofer.mess.org>
- <20180712093332.682fa518@coco.lan>
- <20180712132118.t5umg7z7qchpok7j@gofer.mess.org>
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:54783 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726205AbeJ3CWP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 29 Oct 2018 22:22:15 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] vivid: set min width/height to a value > 0
+Message-ID: <cfff85eb-ac5b-df3f-61e6-ddb79b88bd67@xs4all.nl>
+Date: Mon, 29 Oct 2018 18:32:38 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180712132118.t5umg7z7qchpok7j@gofer.mess.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Michael,
+The capture DV timings capabilities allowed for a minimum width and height of 0.
+So passing a timings struct with 0 values is allowed and will later cause a division
+by zero.
 
-On Thu, Jul 12, 2018 at 02:21:18PM +0100, Sean Young wrote:
-> On Thu, Jul 12, 2018 at 09:33:32AM -0300, Mauro Carvalho Chehab wrote:
-> > Hi Michael/Alec,
-> > 
-> > Em Fri, 18 May 2018 16:25:29 +0100
-> > Sean Young <sean@mess.org> escreveu:
-> > 
-> > > On Sun, May 06, 2018 at 12:34:53PM +0200, Michael Kerrisk (man-opages) wrote:
-> > > > [CCing original author of this page]
-> > > > 
-> > > > 
-> > > > On 04/23/2018 12:26 PM, Sean Young wrote:  
-> > > > > The lirc header file included ioctls and feature bits which were never
-> > > > > implemented by any driver. They were removed in commit:
-> > > > > 
-> > > > > https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=d55f09abe24b4dfadab246b6f217da547361cdb6  
-> > > > 
-> > > > Alec, does this patch look okay to you? 
-> > 
-> > Sean is the sub-maintainer responsible for the LIRC code at the
-> > media subsystem. He knows more about the current implementation
-> > than anyone else, as he's working hard to improve it, and got
-> > rid of all legacy LIRC drivers from staging (either fixing them
-> > or removing the few ones nobody uses anymore).
-> > 
-> > As part of his work, some ioctls got removed, in order to make
-> > the LIRC interface to match the real implementation.
-> >  
-> > > Mauro, as Alec is not responding, would you be able to sign this off?
-> > 
-> > Most of the patch looks ok on my eyes. I noticed that some flags
-> > still exists at include/uapi/linux/lirc.h:
-> > 
-> > 	LIRC_CAN_REC_RAW, LIRC_CAN_REC_PULSE, LIRC_CAN_SET_REC_FILTER
-> > 	and LIRC_CAN_SEND_MODE2
-> > 
-> > Maybe instead of just removing, you would need to add some
-> > explanation about them (or at the patch itself, explaining
-> > why you're removing the descriptions for them).
-> 
-> Those flags do still exist in the header file, we decided to keep them
-> so that code does not suddenly fail to build. These flags either never
-> had implementations or only had out-of-tree implementations. So, I do
-> not think they belong in the man page.
-> 
-> > > Alternatively, what can be done to progress this?
-> > > 
-> > > There is some new functionality in lirc which should be added to this man
-> > > page too, so I have more to come (when I get round to writing it).
-> > 
-> > Yeah, making it reflect upstream sounds the right thing to do.
-> 
-> Absolutely, when kernel v4.18 is released there is more to add.
+Ensure that the width and height must be >= 16 to avoid this.
 
-Ping, can this patch be merged please?
-
-The lirc.4 man page is really out of date and misleading in parts. 
-
-
-Sean
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reported-by: syzbot+57c3d83d71187054d56f@syzkaller.appspotmail.com
+---
+diff --git a/drivers/media/platform/vivid/vivid-vid-common.c b/drivers/media/platform/vivid/vivid-vid-common.c
+index 27a0000a5973..e108e9befb77 100644
+--- a/drivers/media/platform/vivid/vivid-vid-common.c
++++ b/drivers/media/platform/vivid/vivid-vid-common.c
+@@ -21,7 +21,7 @@ const struct v4l2_dv_timings_cap vivid_dv_timings_cap = {
+ 	.type = V4L2_DV_BT_656_1120,
+ 	/* keep this initialization for compatibility with GCC < 4.4.6 */
+ 	.reserved = { 0 },
+-	V4L2_INIT_BT_TIMINGS(0, MAX_WIDTH, 0, MAX_HEIGHT, 14000000, 775000000,
++	V4L2_INIT_BT_TIMINGS(16, MAX_WIDTH, 16, MAX_HEIGHT, 14000000, 775000000,
+ 		V4L2_DV_BT_STD_CEA861 | V4L2_DV_BT_STD_DMT |
+ 		V4L2_DV_BT_STD_CVT | V4L2_DV_BT_STD_GTF,
+ 		V4L2_DV_BT_CAP_PROGRESSIVE | V4L2_DV_BT_CAP_INTERLACED)
