@@ -1,79 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:39713 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726036AbeJ3DbR (ORCPT
+Received: from mta-p4.oit.umn.edu ([134.84.196.204]:57382 "EHLO
+        mta-p4.oit.umn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726036AbeJ3Dgi (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 Oct 2018 23:31:17 -0400
-Date: Mon, 29 Oct 2018 19:41:13 +0100
-From: Marco Felsch <m.felsch@pengutronix.de>
-To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com
-Cc: devicetree@vger.kernel.org, p.zabel@pengutronix.de,
-        javierm@redhat.com, afshin.nasser@gmail.com,
-        laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
-        kernel@pengutronix.de, linux-media@vger.kernel.org
-Subject: Re: [PATCH v3 0/9] TVP5150 fixes and new features
-Message-ID: <20181029184113.5tfdjdlj75m2wd6m@pengutronix.de>
-References: <20180918131453.21031-1-m.felsch@pengutronix.de>
+        Mon, 29 Oct 2018 23:36:38 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180918131453.21031-1-m.felsch@pengutronix.de>
+References: <1539958334-11531-1-git-send-email-wang6495@umn.edu>
+In-Reply-To: <1539958334-11531-1-git-send-email-wang6495@umn.edu>
+From: Wenwen Wang <wang6495@umn.edu>
+Date: Mon, 29 Oct 2018 13:46:04 -0500
+Message-ID: <CAAa=b7ceXdaB9KcZy9ML5pcEwMjYF0ibaB_f6LuuHFe_jSuMYQ@mail.gmail.com>
+Subject: Re: [PATCH] media: dvb: fix a missing-check bug
+To: Wenwen Wang <wang6495@umn.edu>
+Cc: Kangjie Lu <kjlu@umn.edu>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        viro@zeniv.linux.org.uk,
+        "open list:STAGING - ATOMISP DRIVER" <linux-media@vger.kernel.org>,
+        open list <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hello,
 
-just a reminder, Rob already added his ack/rev-by tags.
+Can anyone confirm this bug? Thanks!
 
-Thanks,
-Marco
+Wenwen
 
-On 18-09-18 15:14, Marco Felsch wrote:
-> Hi,
-> 
-> this is my v3 with the integrated reviews from my v2 [1]. This serie
-> applies to Mauro's experimental.git [2].
-> 
-> @Mauro:
-> Patch ("media: tvp5150: fix irq_request error path during probe") is new
-> in this series. Maybe you can squash them with ("media: tvp5150: Add sync lock
-> interrupt handling"), thanks.
-> 
-> I've tested this series on a customer dt-based board. Unfortunately I
-> haven't a device which use the em28xx driver. So other tester a welcome :)
-> 
-> [1] https://www.spinics.net/lists/devicetree/msg244129.html
-> [2] https://git.linuxtv.org/mchehab/experimental.git/log/?h=tvp5150-4
-> 
-> Javier Martinez Canillas (1):
->   partial revert of "[media] tvp5150: add HW input connectors support"
-> 
-> Marco Felsch (7):
->   media: tvp5150: fix irq_request error path during probe
->   media: tvp5150: add input source selection of_graph support
->   media: dt-bindings: tvp5150: Add input port connectors DT bindings
->   media: v4l2-subdev: add stubs for v4l2_subdev_get_try_*
->   media: v4l2-subdev: fix v4l2_subdev_get_try_* dependency
->   media: tvp5150: add FORMAT_TRY support for get/set selection handlers
->   media: tvp5150: add s_power callback
-> 
-> Michael Tretter (1):
->   media: tvp5150: initialize subdev before parsing device tree
-> 
->  .../devicetree/bindings/media/i2c/tvp5150.txt |  92 ++-
->  drivers/media/i2c/tvp5150.c                   | 657 +++++++++++++-----
->  include/dt-bindings/media/tvp5150.h           |   2 -
->  include/media/v4l2-subdev.h                   |  15 +-
->  4 files changed, 584 insertions(+), 182 deletions(-)
-> 
-> -- 
-> 2.19.0
-> 
-> 
-> 
-
--- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+On Fri, Oct 19, 2018 at 9:12 AM Wenwen Wang <wang6495@umn.edu> wrote:
+>
+> In dvb_audio_write(), the first byte of the user-space buffer 'buf' is
+> firstly copied and checked to see whether this is a TS packet, which always
+> starts with 0x47 for synchronization purposes. If yes, ts_play() will be
+> called. Otherwise, dvb_aplay() will be called. In ts_play(), the content of
+> 'buf', including the first byte, is copied again from the user space.
+> However, after the copy, no check is re-enforced on the first byte of the
+> copied data.  Given that 'buf' is in the user space, a malicious user can
+> race to change the first byte after the check in dvb_audio_write() but
+> before the copy in ts_play(). Through this way, the user can supply
+> inconsistent code, which can cause undefined behavior of the kernel and
+> introduce potential security risk.
+>
+> This patch adds a necessary check in ts_play() to make sure the first byte
+> acquired in the second copy contains the expected value. Otherwise, an
+> error code EINVAL will be returned.
+>
+> Signed-off-by: Wenwen Wang <wang6495@umn.edu>
+> ---
+>  drivers/media/pci/ttpci/av7110_av.c | 2 ++
+>  1 file changed, 2 insertions(+)
+>
+> diff --git a/drivers/media/pci/ttpci/av7110_av.c b/drivers/media/pci/ttpci/av7110_av.c
+> index ef1bc17..1ff6062 100644
+> --- a/drivers/media/pci/ttpci/av7110_av.c
+> +++ b/drivers/media/pci/ttpci/av7110_av.c
+> @@ -468,6 +468,8 @@ static ssize_t ts_play(struct av7110 *av7110, const char __user *buf,
+>                 }
+>                 if (copy_from_user(kb, buf, TS_SIZE))
+>                         return -EFAULT;
+> +               if (kb[0] != 0x47)
+> +                       return -EINVAL;
+>                 write_ts_to_decoder(av7110, type, kb, TS_SIZE);
+>                 todo -= TS_SIZE;
+>                 buf += TS_SIZE;
+> --
+> 2.7.4
+>
