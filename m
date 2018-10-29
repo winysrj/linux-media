@@ -1,69 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta-p2.oit.umn.edu ([134.84.196.202]:59368 "EHLO
-        mta-p2.oit.umn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729535AbeJ3F0w (ORCPT
+Received: from mail-lf1-f65.google.com ([209.85.167.65]:44232 "EHLO
+        mail-lf1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726656AbeJ3Gd4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 Oct 2018 01:26:52 -0400
+        Tue, 30 Oct 2018 02:33:56 -0400
+Received: by mail-lf1-f65.google.com with SMTP id m18-v6so7260645lfl.11
+        for <linux-media@vger.kernel.org>; Mon, 29 Oct 2018 14:43:23 -0700 (PDT)
+Received: from mail-lf1-f46.google.com (mail-lf1-f46.google.com. [209.85.167.46])
+        by smtp.gmail.com with ESMTPSA id h2-v6sm3512546lfb.27.2018.10.29.14.43.20
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 29 Oct 2018 14:43:21 -0700 (PDT)
+Received: by mail-lf1-f46.google.com with SMTP id m18-v6so7260581lfl.11
+        for <linux-media@vger.kernel.org>; Mon, 29 Oct 2018 14:43:20 -0700 (PDT)
 MIME-Version: 1.0
-References: <1538668833-18372-1-git-send-email-wang6495@umn.edu>
-In-Reply-To: <1538668833-18372-1-git-send-email-wang6495@umn.edu>
-From: Wenwen Wang <wang6495@umn.edu>
-Date: Mon, 29 Oct 2018 15:35:54 -0500
-Message-ID: <CAAa=b7c6uYQARV80wxWHysHG0otD+8ZQfmq0Q2FMumUKi7BuRg@mail.gmail.com>
-Subject: Re: [PATCH] media: davinci_vpfe: fix a NULL pointer dereference bug
-To: Wenwen Wang <wang6495@umn.edu>
-Cc: Kangjie Lu <kjlu@umn.edu>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "open list:STAGING - ATOMISP DRIVER" <linux-media@vger.kernel.org>,
-        "open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>,
-        open list <linux-kernel@vger.kernel.org>
+References: <20181029173424.35da7deb@coco.lan>
+In-Reply-To: <20181029173424.35da7deb@coco.lan>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Mon, 29 Oct 2018 14:43:04 -0700
+Message-ID: <CAHk-=wh_rPB=Z1=JzH6zetq5GCs_vqTCYqi_hshhhBdjmvK4ZA@mail.gmail.com>
+Subject: Re: [GIT PULL for v4.20-rc1] media updates
+To: mchehab+samsung@kernel.org
+Cc: Greg KH <gregkh@linuxfoundation.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        linux-media@vger.kernel.org,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On Mon, Oct 29, 2018 at 1:34 PM Mauro Carvalho Chehab
+<mchehab+samsung@kernel.org> wrote:
+>
+> media updates for v4.20-rc1
 
-Can anyone please confirm this bug and apply the patch? Thanks!
+Pulled,
 
-Wenwen
-
-On Thu, Oct 4, 2018 at 11:00 AM Wenwen Wang <wang6495@umn.edu> wrote:
->
-> In vpfe_isif_init(), there is a while loop to get the ISIF base address and
-> linearization table0 and table1 address. In the loop body, the function
-> platform_get_resource() is called to get the resource. If
-> platform_get_resource() returns NULL, the loop is terminated and the
-> execution goes to 'fail_nobase_res'. Suppose the loop is terminated at the
-> first iteration because platform_get_resource() returns NULL and the
-> execution goes to 'fail_nobase_res'. Given that there is another while loop
-> at 'fail_nobase_res' and i equals to 0, one iteration of the second while
-> loop will be executed. However, the second while loop does not check the
-> return value of platform_get_resource(). This can cause a NULL pointer
-> dereference bug if the return value is a NULL pointer.
->
-> This patch avoids the above issue by adding a check in the second while
-> loop after the call to platform_get_resource().
->
-> Signed-off-by: Wenwen Wang <wang6495@umn.edu>
-> ---
->  drivers/staging/media/davinci_vpfe/dm365_isif.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/staging/media/davinci_vpfe/dm365_isif.c b/drivers/staging/media/davinci_vpfe/dm365_isif.c
-> index 745e33f..b0425a6 100644
-> --- a/drivers/staging/media/davinci_vpfe/dm365_isif.c
-> +++ b/drivers/staging/media/davinci_vpfe/dm365_isif.c
-> @@ -2080,7 +2080,8 @@ int vpfe_isif_init(struct vpfe_isif_device *isif, struct platform_device *pdev)
->
->         while (i >= 0) {
->                 res = platform_get_resource(pdev, IORESOURCE_MEM, i);
-> -               release_mem_region(res->start, res_len);
-> +               if (res)
-> +                       release_mem_region(res->start, res_len);
->                 i--;
->         }
->         return status;
-> --
-> 2.7.4
->
+                             Linus
