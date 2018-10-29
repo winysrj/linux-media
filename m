@@ -1,8 +1,8 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga18.intel.com ([134.134.136.126]:58249 "EHLO mga18.intel.com"
+Received: from mga18.intel.com ([134.134.136.126]:58259 "EHLO mga18.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729276AbeJ3HRw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 Oct 2018 03:17:52 -0400
+        id S1729453AbeJ3HRy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 30 Oct 2018 03:17:54 -0400
 From: Yong Zhi <yong.zhi@intel.com>
 To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
 Cc: tfiga@chromium.org, mchehab@kernel.org, hans.verkuil@cisco.com,
@@ -10,1380 +10,1082 @@ Cc: tfiga@chromium.org, mchehab@kernel.org, hans.verkuil@cisco.com,
         jian.xu.zheng@intel.com, jerry.w.hu@intel.com,
         tuukka.toivonen@intel.com, tian.shu.qiu@intel.com,
         bingbu.cao@intel.com, Yong Zhi <yong.zhi@intel.com>
-Subject: [PATCH v7 05/16] intel-ipu3: abi: Add structs
-Date: Mon, 29 Oct 2018 15:22:59 -0700
-Message-Id: <1540851790-1777-6-git-send-email-yong.zhi@intel.com>
+Subject: [PATCH v7 15/16] intel-ipu3: Add imgu top level pci device driver
+Date: Mon, 29 Oct 2018 15:23:09 -0700
+Message-Id: <1540851790-1777-16-git-send-email-yong.zhi@intel.com>
 In-Reply-To: <1540851790-1777-1-git-send-email-yong.zhi@intel.com>
 References: <1540851790-1777-1-git-send-email-yong.zhi@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This add all the structs of IPU3 firmware ABI.
+This patch adds support for the Intel IPU v3 as found
+on Skylake and Kaby Lake SoCs.
+
+The driver glues v4l2, css(camera sub system) and other
+pieces together to perform its functions, it also loads
+the IPU3 firmware binary as part of its initialization.
 
 Signed-off-by: Yong Zhi <yong.zhi@intel.com>
-Signed-off-by: Rajmohan Mani <rajmohan.mani@intel.com>
+Signed-off-by: Tomasz Figa <tfiga@chromium.org>
 ---
- drivers/media/pci/intel/ipu3/ipu3-abi.h | 1350 +++++++++++++++++++++++++++++++
- 1 file changed, 1350 insertions(+)
+ drivers/media/pci/intel/ipu3/Kconfig  |  16 +
+ drivers/media/pci/intel/ipu3/Makefile |  12 +
+ drivers/media/pci/intel/ipu3/ipu3.c   | 844 ++++++++++++++++++++++++++++++++++
+ drivers/media/pci/intel/ipu3/ipu3.h   | 153 ++++++
+ 4 files changed, 1025 insertions(+)
+ create mode 100644 drivers/media/pci/intel/ipu3/ipu3.c
+ create mode 100644 drivers/media/pci/intel/ipu3/ipu3.h
 
-diff --git a/drivers/media/pci/intel/ipu3/ipu3-abi.h b/drivers/media/pci/intel/ipu3/ipu3-abi.h
-index ac08ad3..21703da 100644
---- a/drivers/media/pci/intel/ipu3/ipu3-abi.h
-+++ b/drivers/media/pci/intel/ipu3/ipu3-abi.h
-@@ -658,4 +658,1354 @@ enum imgu_abi_stage_type {
- 	IMGU_ABI_STAGE_TYPE_ISP,
- };
- 
-+struct imgu_abi_acc_operation {
-+	/*
-+	 * zero means on init,
-+	 * others mean upon receiving an ack signal from the BC acc.
-+	 */
-+	u8 op_indicator;
-+	u8 op_type;
-+} __packed;
-+
-+struct imgu_abi_acc_process_lines_cmd_data {
-+	u16 lines;
-+	u8 cfg_set;
-+	u8 __reserved;		/* Align to 4 bytes */
-+} __packed;
-+
-+/* Bayer shading definitions */
-+
-+struct imgu_abi_shd_transfer_luts_set_data {
-+	u8 set_number;
-+	u8 padding[3];
-+	imgu_addr_t rg_lut_ddr_addr;
-+	imgu_addr_t bg_lut_ddr_addr;
-+	u32 align_dummy;
-+} __packed;
-+
-+struct imgu_abi_shd_grid_config {
-+	/* reg 0 */
-+	u32 grid_width:8;
-+	u32 grid_height:8;
-+	u32 block_width:3;
-+	u32 __reserved0:1;
-+	u32 block_height:3;
-+	u32 __reserved1:1;
-+	u32 grid_height_per_slice:8;
-+	/* reg 1 */
-+	s32 x_start:13;
-+	s32 __reserved2:3;
-+	s32 y_start:13;
-+	s32 __reserved3:3;
-+} __packed;
-+
-+struct imgu_abi_shd_general_config {
-+	u32 init_set_vrt_offst_ul:8;
-+	u32 shd_enable:1;
-+	/* aka 'gf' */
-+	u32 gain_factor:2;
-+	u32 __reserved:21;
-+} __packed;
-+
-+struct imgu_abi_shd_black_level_config {
-+	/* reg 0 */
-+	s32 bl_r:12;
-+	s32 __reserved0:4;
-+	s32 bl_gr:12;
-+	u32 __reserved1:1;
-+	/* aka 'nf' */
-+	u32 normalization_shift:3;
-+	/* reg 1 */
-+	s32 bl_gb:12;
-+	s32 __reserved2:4;
-+	s32 bl_b:12;
-+	s32 __reserved3:4;
-+} __packed;
-+
-+struct imgu_abi_shd_intra_frame_operations_data {
-+	struct imgu_abi_acc_operation
-+		operation_list[IMGU_ABI_SHD_MAX_OPERATIONS] __attribute__((aligned(32)));
-+	struct imgu_abi_acc_process_lines_cmd_data
-+		process_lines_data[IMGU_ABI_SHD_MAX_PROCESS_LINES] __attribute__((aligned(32)));
-+	struct imgu_abi_shd_transfer_luts_set_data
-+		transfer_data[IMGU_ABI_SHD_MAX_TRANSFERS] __attribute__((aligned(32)));
-+} __packed;
-+
-+struct imgu_abi_shd_config {
-+	struct ipu3_uapi_shd_config_static shd __attribute__((aligned(32)));
-+	struct imgu_abi_shd_intra_frame_operations_data shd_ops __attribute__((aligned(32)));
-+	struct ipu3_uapi_shd_lut shd_lut __attribute__((aligned(32)));
-+} __packed;
-+
-+struct imgu_abi_stripe_input_frame_resolution {
-+	u16 width;
-+	u16 height;
-+	u32 bayer_order;		/* enum ipu3_uapi_bayer_order */
-+	u32 raw_bit_depth;
-+} __packed;
-+
-+/* Stripe-based processing */
-+
-+struct imgu_abi_stripes {
-+	/* offset from start of frame - measured in pixels */
-+	u16 offset;
-+	/* stripe width - measured in pixels */
-+	u16 width;
-+	/* stripe width - measured in pixels */
-+	u16 height;
-+} __packed;
-+
-+struct imgu_abi_stripe_data {
-+	/*
-+	 * number of stripes for current processing source
-+	 * - VLIW binary parameter we currently support 1 or 2 stripes
-+	 */
-+	u16 num_of_stripes;
-+
-+	u8 padding[2];
-+
-+	/*
-+	 * the following data is derived from resolution-related
-+	 * pipe config and from num_of_stripes
-+	 */
-+
-+	/*
-+	 *'input-stripes' - before input cropping
-+	 * used by input feeder
-+	 */
-+	struct imgu_abi_stripe_input_frame_resolution input_frame;
-+
-+	/*'effective-stripes' - after input cropping used dpc, bds */
-+	struct imgu_abi_stripes effective_stripes[IPU3_UAPI_MAX_STRIPES];
-+
-+	/* 'down-scaled-stripes' - after down-scaling ONLY. used by BDS */
-+	struct imgu_abi_stripes down_scaled_stripes[IPU3_UAPI_MAX_STRIPES];
-+
-+	/*
-+	 *'bds-out-stripes' - after bayer down-scaling and padding.
-+	 * used by all algos starting with norm up to the ref-frame for GDC
-+	 * (currently up to the output kernel)
-+	 */
-+	struct imgu_abi_stripes bds_out_stripes[IPU3_UAPI_MAX_STRIPES];
-+
-+	/* 'bds-out-stripes (no overlap)' - used for ref kernel */
-+	struct imgu_abi_stripes
-+			bds_out_stripes_no_overlap[IPU3_UAPI_MAX_STRIPES];
-+
-+	/*
-+	 * input resolution for output system (equal to bds_out - envelope)
-+	 * output-system input frame width as configured by user
-+	 */
-+	u16 output_system_in_frame_width;
-+	/* output-system input frame height as configured by user */
-+	u16 output_system_in_frame_height;
-+
-+	/*
-+	 * 'output-stripes' - accounts for stiching on the output (no overlap)
-+	 * used by the output kernel
-+	 */
-+	struct imgu_abi_stripes output_stripes[IPU3_UAPI_MAX_STRIPES];
-+
-+	/*
-+	 * 'block-stripes' - accounts for stiching by the output system
-+	 * (1 or more blocks overlap)
-+	 * used by DVS, TNR and the output system kernel
-+	 */
-+	struct imgu_abi_stripes block_stripes[IPU3_UAPI_MAX_STRIPES];
-+
-+	u16 effective_frame_width;	/* Needed for vertical cropping */
-+	u16 bds_frame_width;
-+	u16 out_frame_width;	/* Output frame width as configured by user */
-+	u16 out_frame_height;	/* Output frame height as configured by user */
-+
-+	/* GDC in buffer (A.K.A delay frame,ref buffer) info */
-+	u16 gdc_in_buffer_width;	/* GDC in buffer width  */
-+	u16 gdc_in_buffer_height;	/* GDC in buffer height */
-+	/* GDC in buffer first valid pixel x offset */
-+	u16 gdc_in_buffer_offset_x;
-+	/* GDC in buffer first valid pixel y offset */
-+	u16 gdc_in_buffer_offset_y;
-+
-+	/* Display frame width as configured by user */
-+	u16 display_frame_width;
-+	/* Display frame height as configured by user */
-+	u16 display_frame_height;
-+	u16 bds_aligned_frame_width;
-+	/* Number of vectors to left-crop when writing stripes (not stripe 0) */
-+	u16 half_overlap_vectors;
-+	/* Decimate ISP and fixed func resolutions after BDS (ir_extraction) */
-+	u16 ir_ext_decimation;
-+	u8 padding1[2];
-+} __packed;
-+
-+/* Input feeder related structs */
-+
-+struct imgu_abi_input_feeder_data {
-+	u32 row_stride;			/* row stride */
-+	u32 start_row_address;		/* start row address */
-+	u32 start_pixel;		/* start pixel */
-+} __packed;
-+
-+struct imgu_abi_input_feeder_data_aligned {
-+	struct imgu_abi_input_feeder_data data __attribute__((aligned(32)));
-+} __packed;
-+
-+struct imgu_abi_input_feeder_data_per_stripe {
-+	struct imgu_abi_input_feeder_data_aligned
-+		input_feeder_data[IPU3_UAPI_MAX_STRIPES];
-+} __packed;
-+
-+struct imgu_abi_input_feeder_config {
-+	struct imgu_abi_input_feeder_data data;
-+	struct imgu_abi_input_feeder_data_per_stripe data_per_stripe
-+		__attribute__((aligned(32)));
-+} __packed;
-+
-+/* DVS related definitions */
-+
-+struct imgu_abi_dvs_stat_grd_config {
-+	u8 grid_width;
-+	u8 grid_height;
-+	u8 block_width;
-+	u8 block_height;
-+	u16 x_start;
-+	u16 y_start;
-+	u16 enable;
-+	u16 x_end;
-+	u16 y_end;
-+} __packed;
-+
-+struct imgu_abi_dvs_stat_cfg {
-+	u8 __reserved0[4];
-+	struct imgu_abi_dvs_stat_grd_config
-+					grd_config[IMGU_ABI_DVS_STAT_LEVELS];
-+	u8 __reserved1[18];
-+} __packed;
-+
-+struct imgu_abi_dvs_stat_transfer_op_data {
-+	u8 set_number;
-+} __packed;
-+
-+struct imgu_abi_dvs_stat_intra_frame_operations_data {
-+	struct imgu_abi_acc_operation
-+		ops[IMGU_ABI_DVS_STAT_MAX_OPERATIONS] __attribute__((aligned(32)));
-+	struct imgu_abi_acc_process_lines_cmd_data
-+		process_lines_data[IMGU_ABI_DVS_STAT_MAX_PROCESS_LINES]
-+		__attribute__((aligned(32)));
-+	struct imgu_abi_dvs_stat_transfer_op_data
-+		transfer_data[IMGU_ABI_DVS_STAT_MAX_TRANSFERS] __attribute__((aligned(32)));
-+} __packed;
-+
-+struct imgu_abi_dvs_stat_config {
-+	struct imgu_abi_dvs_stat_cfg cfg __attribute__((aligned(32)));
-+	u8 __reserved0[128];
-+	struct imgu_abi_dvs_stat_intra_frame_operations_data operations_data;
-+	u8 __reserved1[64];
-+} __packed;
-+
-+/* Y-tone Mapping */
-+
-+struct imgu_abi_yuvp2_y_tm_lut_static_config {
-+	u16 entries[IMGU_ABI_YUVP2_YTM_LUT_ENTRIES];
-+	u32 enable;
-+} __packed;
-+
-+/* Output formatter related structs */
-+
-+struct imgu_abi_osys_formatter_params {
-+	u32 format;
-+	u32 flip;
-+	u32 mirror;
-+	u32 tiling;
-+	u32 reduce_range;
-+	u32 alpha_blending;
-+	u32 release_inp_addr;
-+	u32 release_inp_en;
-+	u32 process_out_buf_addr;
-+	u32 image_width_vecs;
-+	u32 image_height_lines;
-+	u32 inp_buff_y_st_addr;
-+	u32 inp_buff_y_line_stride;
-+	u32 inp_buff_y_buffer_stride;
-+	u32 int_buff_u_st_addr;
-+	u32 int_buff_v_st_addr;
-+	u32 inp_buff_uv_line_stride;
-+	u32 inp_buff_uv_buffer_stride;
-+	u32 out_buff_level;
-+	u32 out_buff_nr_y_lines;
-+	u32 out_buff_u_st_offset;
-+	u32 out_buff_v_st_offset;
-+	u32 out_buff_y_line_stride;
-+	u32 out_buff_uv_line_stride;
-+	u32 hist_buff_st_addr;
-+	u32 hist_buff_line_stride;
-+	u32 hist_buff_nr_lines;
-+} __packed;
-+
-+struct imgu_abi_osys_formatter {
-+	struct imgu_abi_osys_formatter_params param __attribute__((aligned(32)));
-+} __packed;
-+
-+struct imgu_abi_osys_scaler_params {
-+	u32 inp_buf_y_st_addr;
-+	u32 inp_buf_y_line_stride;
-+	u32 inp_buf_y_buffer_stride;
-+	u32 inp_buf_u_st_addr;
-+	u32 inp_buf_v_st_addr;
-+	u32 inp_buf_uv_line_stride;
-+	u32 inp_buf_uv_buffer_stride;
-+	u32 inp_buf_chunk_width;
-+	u32 inp_buf_nr_buffers;
-+	/* Output buffers */
-+	u32 out_buf_y_st_addr;
-+	u32 out_buf_y_line_stride;
-+	u32 out_buf_y_buffer_stride;
-+	u32 out_buf_u_st_addr;
-+	u32 out_buf_v_st_addr;
-+	u32 out_buf_uv_line_stride;
-+	u32 out_buf_uv_buffer_stride;
-+	u32 out_buf_nr_buffers;
-+	/* Intermediate buffers */
-+	u32 int_buf_y_st_addr;
-+	u32 int_buf_y_line_stride;
-+	u32 int_buf_u_st_addr;
-+	u32 int_buf_v_st_addr;
-+	u32 int_buf_uv_line_stride;
-+	u32 int_buf_height;
-+	u32 int_buf_chunk_width;
-+	u32 int_buf_chunk_height;
-+	/* Context buffers */
-+	u32 ctx_buf_hor_y_st_addr;
-+	u32 ctx_buf_hor_u_st_addr;
-+	u32 ctx_buf_hor_v_st_addr;
-+	u32 ctx_buf_ver_y_st_addr;
-+	u32 ctx_buf_ver_u_st_addr;
-+	u32 ctx_buf_ver_v_st_addr;
-+	/* Addresses for release-input and process-output tokens */
-+	u32 release_inp_buf_addr;
-+	u32 release_inp_buf_en;
-+	u32 release_out_buf_en;
-+	u32 process_out_buf_addr;
-+	/* Settings dimensions, padding, cropping */
-+	u32 input_image_y_width;
-+	u32 input_image_y_height;
-+	u32 input_image_y_start_column;
-+	u32 input_image_uv_start_column;
-+	u32 input_image_y_left_pad;
-+	u32 input_image_uv_left_pad;
-+	u32 input_image_y_right_pad;
-+	u32 input_image_uv_right_pad;
-+	u32 input_image_y_top_pad;
-+	u32 input_image_uv_top_pad;
-+	u32 input_image_y_bottom_pad;
-+	u32 input_image_uv_bottom_pad;
-+	u32 processing_mode;	/* enum imgu_abi_osys_procmode */
-+	u32 scaling_ratio;
-+	u32 y_left_phase_init;
-+	u32 uv_left_phase_init;
-+	u32 y_top_phase_init;
-+	u32 uv_top_phase_init;
-+	u32 coeffs_exp_shift;
-+	u32 out_y_left_crop;
-+	u32 out_uv_left_crop;
-+	u32 out_y_top_crop;
-+	u32 out_uv_top_crop;
-+} __packed;
-+
-+struct imgu_abi_osys_scaler {
-+	struct imgu_abi_osys_scaler_params param __attribute__((aligned(32)));
-+} __packed;
-+
-+struct imgu_abi_osys_frame_params {
-+	/* Output pins */
-+	u32 enable;
-+	u32 format;		/* enum imgu_abi_osys_format */
-+	u32 flip;
-+	u32 mirror;
-+	u32 tiling;		/* enum imgu_abi_osys_tiling */
-+	u32 width;
-+	u32 height;
-+	u32 stride;
-+	u32 scaled;
-+} __packed;
-+
-+struct imgu_abi_osys_frame {
-+	struct imgu_abi_osys_frame_params param __attribute__((aligned(32)));
-+} __packed;
-+
-+struct imgu_abi_osys_stripe {
-+	/* Input resolution */
-+	u32 input_width;
-+	u32 input_height;
-+	/* Output Stripe */
-+	u32 output_width[IMGU_ABI_OSYS_PINS];
-+	u32 output_height[IMGU_ABI_OSYS_PINS];
-+	u32 output_offset[IMGU_ABI_OSYS_PINS];
-+	u32 buf_stride[IMGU_ABI_OSYS_PINS];
-+	/* Scaler params */
-+	u32 block_width;
-+	u32 block_height;
-+	/* Output Crop factor */
-+	u32 crop_top[IMGU_ABI_OSYS_PINS];
-+	u32 crop_left[IMGU_ABI_OSYS_PINS];
-+} __packed;
-+
-+struct imgu_abi_osys_config {
-+	struct imgu_abi_osys_formatter
-+		formatter[IPU3_UAPI_MAX_STRIPES][IMGU_ABI_OSYS_PINS];
-+	struct imgu_abi_osys_scaler scaler[IPU3_UAPI_MAX_STRIPES];
-+	struct imgu_abi_osys_frame frame[IMGU_ABI_OSYS_PINS];
-+	struct imgu_abi_osys_stripe stripe[IPU3_UAPI_MAX_STRIPES];
-+	/* 32 packed coefficients for luma and chroma */
-+	s8 scaler_coeffs_chroma[128];
-+	s8 scaler_coeffs_luma[128];
-+} __packed;
-+
-+/* BDS */
-+
-+struct imgu_abi_bds_hor_ctrl0 {
-+	u32 sample_patrn_length:9;
-+	u32 __reserved0:3;
-+	u32 hor_ds_en:1;
-+	u32 min_clip_val:1;
-+	u32 max_clip_val:2;
-+	u32 out_frame_width:13;
-+	u32 __reserved1:3;
-+} __packed;
-+
-+struct imgu_abi_bds_ptrn_arr {
-+	u32 elems[IMGU_ABI_BDS_SAMPLE_PATTERN_ARRAY_SIZE];
-+} __packed;
-+
-+struct imgu_abi_bds_phase_entry {
-+	s8 coeff_min2;
-+	s8 coeff_min1;
-+	s8 coeff_0;
-+	s8 nf;
-+	s8 coeff_pls1;
-+	s8 coeff_pls2;
-+	s8 coeff_pls3;
-+	u8 __reserved;
-+} __packed;
-+
-+struct imgu_abi_bds_phase_arr {
-+	struct imgu_abi_bds_phase_entry
-+		even[IMGU_ABI_BDS_PHASE_COEFFS_ARRAY_SIZE];
-+	struct imgu_abi_bds_phase_entry
-+		odd[IMGU_ABI_BDS_PHASE_COEFFS_ARRAY_SIZE];
-+} __packed;
-+
-+struct imgu_abi_bds_hor_ctrl1 {
-+	u32 hor_crop_start:13;
-+	u32 __reserved0:3;
-+	u32 hor_crop_end:13;
-+	u32 __reserved1:1;
-+	u32 hor_crop_en:1;
-+	u32 __reserved2:1;
-+} __packed;
-+
-+struct imgu_abi_bds_hor_ctrl2 {
-+	u32 input_frame_height:13;
-+	u32 __reserved0:19;
-+} __packed;
-+
-+struct imgu_abi_bds_hor {
-+	struct imgu_abi_bds_hor_ctrl0 hor_ctrl0;
-+	struct imgu_abi_bds_ptrn_arr hor_ptrn_arr;
-+	struct imgu_abi_bds_phase_arr hor_phase_arr;
-+	struct imgu_abi_bds_hor_ctrl1 hor_ctrl1;
-+	struct imgu_abi_bds_hor_ctrl2 hor_ctrl2;
-+} __packed;
-+
-+struct imgu_abi_bds_ver_ctrl0 {
-+	u32 sample_patrn_length:9;
-+	u32 __reserved0:3;
-+	u32 ver_ds_en:1;
-+	u32 min_clip_val:1;
-+	u32 max_clip_val:2;
-+	u32 __reserved1:16;
-+} __packed;
-+
-+struct imgu_abi_bds_ver_ctrl1 {
-+	u32 out_frame_width:13;
-+	u32 __reserved0:3;
-+	u32 out_frame_height:13;
-+	u32 __reserved1:3;
-+} __packed;
-+
-+struct imgu_abi_bds_ver {
-+	struct imgu_abi_bds_ver_ctrl0 ver_ctrl0;
-+	struct imgu_abi_bds_ptrn_arr ver_ptrn_arr;
-+	struct imgu_abi_bds_phase_arr ver_phase_arr;
-+	struct imgu_abi_bds_ver_ctrl1 ver_ctrl1;
-+} __packed;
-+
-+struct imgu_abi_bds_per_stripe_data {
-+	struct imgu_abi_bds_hor_ctrl0 hor_ctrl0;
-+	struct imgu_abi_bds_ver_ctrl1 ver_ctrl1;
-+	struct imgu_abi_bds_hor_ctrl1 crop;
-+} __packed;
-+
-+struct imgu_abi_bds_per_stripe_data_aligned {
-+	struct imgu_abi_bds_per_stripe_data data __attribute__((aligned(32)));
-+} __packed;
-+
-+struct imgu_abi_bds_per_stripe {
-+	struct imgu_abi_bds_per_stripe_data_aligned
-+		aligned_data[IPU3_UAPI_MAX_STRIPES];
-+} __packed;
-+
-+struct imgu_abi_bds_config {
-+	struct imgu_abi_bds_hor hor __attribute__((aligned(32)));
-+	struct imgu_abi_bds_ver ver __attribute__((aligned(32)));
-+	struct imgu_abi_bds_per_stripe per_stripe __attribute__((aligned(32)));
-+	u32 enabled;
-+} __packed;
-+
-+/* ANR */
-+
-+struct imgu_abi_anr_search_config {
-+	u32 enable;
-+	u16 frame_width;
-+	u16 frame_height;
-+} __packed;
-+
-+struct imgu_abi_anr_stitch_config {
-+	u32 anr_stitch_en;
-+	u16 frame_width;
-+	u16 frame_height;
-+	u8 __reserved[40];
-+	struct ipu3_uapi_anr_stitch_pyramid pyramid[IPU3_UAPI_ANR_PYRAMID_SIZE];
-+} __packed;
-+
-+struct imgu_abi_anr_tile2strm_config {
-+	u32 enable;
-+	u16 frame_width;
-+	u16 frame_height;
-+} __packed;
-+
-+struct imgu_abi_anr_config {
-+	struct imgu_abi_anr_search_config search __attribute__((aligned(32)));
-+	struct ipu3_uapi_anr_transform_config transform __attribute__((aligned(32)));
-+	struct imgu_abi_anr_stitch_config stitch __attribute__((aligned(32)));
-+	struct imgu_abi_anr_tile2strm_config tile2strm __attribute__((aligned(32)));
-+} __packed;
-+
-+/* AF */
-+
-+struct imgu_abi_af_frame_size {
-+	u16 width;
-+	u16 height;
-+} __packed;
-+
-+struct imgu_abi_af_config_s {
-+	struct ipu3_uapi_af_filter_config filter_config __attribute__((aligned(32)));
-+	struct imgu_abi_af_frame_size frame_size;
-+	struct ipu3_uapi_grid_config grid_cfg __attribute__((aligned(32)));
-+} __packed;
-+
-+struct imgu_abi_af_intra_frame_operations_data {
-+	struct imgu_abi_acc_operation ops[IMGU_ABI_AF_MAX_OPERATIONS]
-+		__attribute__((aligned(32)));
-+	struct imgu_abi_acc_process_lines_cmd_data
-+		process_lines_data[IMGU_ABI_AF_MAX_PROCESS_LINES] __attribute__((aligned(32)));
-+} __packed;
-+
-+struct imgu_abi_af_stripe_config {
-+	struct imgu_abi_af_frame_size frame_size __attribute__((aligned(32)));
-+	struct ipu3_uapi_grid_config grid_cfg __attribute__((aligned(32)));
-+} __packed;
-+
-+struct imgu_abi_af_config {
-+	struct imgu_abi_af_config_s config;
-+	struct imgu_abi_af_intra_frame_operations_data operations_data;
-+	struct imgu_abi_af_stripe_config stripes[IPU3_UAPI_MAX_STRIPES];
-+} __packed;
-+
-+/* AE */
-+
-+struct imgu_abi_ae_config {
-+	struct ipu3_uapi_ae_grid_config grid_cfg __attribute__((aligned(32)));
-+	struct ipu3_uapi_ae_weight_elem weights[IPU3_UAPI_AE_WEIGHTS]
-+								__attribute__((aligned(32)));
-+	struct ipu3_uapi_ae_ccm ae_ccm __attribute__((aligned(32)));
-+	struct {
-+		struct ipu3_uapi_ae_grid_config grid __attribute__((aligned(32)));
-+	} stripes[IPU3_UAPI_MAX_STRIPES];
-+} __packed;
-+
-+/* AWB_FR */
-+
-+struct imgu_abi_awb_fr_intra_frame_operations_data {
-+	struct imgu_abi_acc_operation ops[IMGU_ABI_AWB_FR_MAX_OPERATIONS]
-+								__attribute__((aligned(32)));
-+	struct imgu_abi_acc_process_lines_cmd_data
-+	      process_lines_data[IMGU_ABI_AWB_FR_MAX_PROCESS_LINES] __attribute__((aligned(32)));
-+} __packed;
-+
-+struct imgu_abi_awb_fr_config {
-+	struct ipu3_uapi_awb_fr_config_s config;
-+	struct imgu_abi_awb_fr_intra_frame_operations_data operations_data;
-+	struct ipu3_uapi_awb_fr_config_s stripes[IPU3_UAPI_MAX_STRIPES];
-+} __packed;
-+
-+struct imgu_abi_acc_transfer_op_data {
-+	u8 set_number;
-+} __packed;
-+
-+struct imgu_abi_awb_intra_frame_operations_data {
-+	struct imgu_abi_acc_operation ops[IMGU_ABI_AWB_MAX_OPERATIONS]
-+		__attribute__((aligned(32)));
-+	struct imgu_abi_acc_process_lines_cmd_data
-+		process_lines_data[IMGU_ABI_AWB_MAX_PROCESS_LINES] __attribute__((aligned(32)));
-+	struct imgu_abi_acc_transfer_op_data
-+		transfer_data[IMGU_ABI_AWB_MAX_TRANSFERS] __attribute__((aligned(32)));
-+} __attribute__((aligned(32))) __packed;
-+
-+struct imgu_abi_awb_config {
-+	struct ipu3_uapi_awb_config_s config __attribute__((aligned(32)));
-+	struct imgu_abi_awb_intra_frame_operations_data operations_data;
-+	struct ipu3_uapi_awb_config_s stripes[IPU3_UAPI_MAX_STRIPES];
-+} __packed;
-+
-+struct imgu_abi_acc_param {
-+	struct imgu_abi_stripe_data stripe;
-+	u8 padding[8];
-+	struct imgu_abi_input_feeder_config input_feeder;
-+	struct ipu3_uapi_bnr_static_config bnr;
-+	struct ipu3_uapi_bnr_static_config_green_disparity green_disparity
-+		__attribute__((aligned(32)));
-+	struct ipu3_uapi_dm_config dm __attribute__((aligned(32)));
-+	struct ipu3_uapi_ccm_mat_config ccm __attribute__((aligned(32)));
-+	struct ipu3_uapi_gamma_config gamma __attribute__((aligned(32)));
-+	struct ipu3_uapi_csc_mat_config csc __attribute__((aligned(32)));
-+	struct ipu3_uapi_cds_params cds __attribute__((aligned(32)));
-+	struct imgu_abi_shd_config shd __attribute__((aligned(32)));
-+	struct imgu_abi_dvs_stat_config dvs_stat;
-+	u8 padding1[224];	/* reserved for lace_stat */
-+	struct ipu3_uapi_yuvp1_iefd_config iefd __attribute__((aligned(32)));
-+	struct ipu3_uapi_yuvp1_yds_config yds_c0 __attribute__((aligned(32)));
-+	struct ipu3_uapi_yuvp1_chnr_config chnr_c0 __attribute__((aligned(32)));
-+	struct ipu3_uapi_yuvp1_y_ee_nr_config y_ee_nr __attribute__((aligned(32)));
-+	struct ipu3_uapi_yuvp1_yds_config yds __attribute__((aligned(32)));
-+	struct ipu3_uapi_yuvp1_chnr_config chnr __attribute__((aligned(32)));
-+	struct imgu_abi_yuvp2_y_tm_lut_static_config ytm __attribute__((aligned(32)));
-+	struct ipu3_uapi_yuvp1_yds_config yds2 __attribute__((aligned(32)));
-+	struct ipu3_uapi_yuvp2_tcc_static_config tcc __attribute__((aligned(32)));
-+	/* reserved for defect pixel correction */
-+	u8 dpc[240832] __attribute__((aligned(32)));
-+	struct imgu_abi_bds_config bds;
-+	struct imgu_abi_anr_config anr;
-+	struct imgu_abi_awb_fr_config awb_fr;
-+	struct imgu_abi_ae_config ae;
-+	struct imgu_abi_af_config af;
-+	struct imgu_abi_awb_config awb;
-+	struct imgu_abi_osys_config osys;
-+} __packed;
-+
-+/***** Morphing table entry *****/
-+
-+struct imgu_abi_gdc_warp_param {
-+	u32 origin_x;
-+	u32 origin_y;
-+	u32 in_addr_offset;
-+	u32 in_block_width;
-+	u32 in_block_height;
-+	u32 p0_x;
-+	u32 p0_y;
-+	u32 p1_x;
-+	u32 p1_y;
-+	u32 p2_x;
-+	u32 p2_y;
-+	u32 p3_x;
-+	u32 p3_y;
-+	u32 in_block_width_a;
-+	u32 in_block_width_b;
-+	u32 padding;		/* struct size multiple of DDR word */
-+} __packed;
-+
-+/******************* Firmware ABI definitions *******************/
-+
-+/***** struct imgu_abi_sp_stage *****/
-+
-+struct imgu_abi_crop_pos {
-+	u16 x;
-+	u16 y;
-+} __packed;
-+
-+struct imgu_abi_sp_resolution {
-+	u16 width;			/* Width of valid data in pixels */
-+	u16 height;			/* Height of valid data in lines */
-+} __packed;
+diff --git a/drivers/media/pci/intel/ipu3/Kconfig b/drivers/media/pci/intel/ipu3/Kconfig
+index 715f776..44ebcbb 100644
+--- a/drivers/media/pci/intel/ipu3/Kconfig
++++ b/drivers/media/pci/intel/ipu3/Kconfig
+@@ -15,3 +15,19 @@ config VIDEO_IPU3_CIO2
+ 	  Say Y or M here if you have a Skylake/Kaby Lake SoC with MIPI CSI-2
+ 	  connected camera.
+ 	  The module will be called ipu3-cio2.
++
++config VIDEO_IPU3_IMGU
++	tristate "Intel ipu3-imgu driver"
++	depends on PCI && VIDEO_V4L2
++	depends on MEDIA_CONTROLLER && VIDEO_V4L2_SUBDEV_API
++	depends on X86
++	select IOMMU_IOVA
++	select VIDEOBUF2_DMA_SG
++
++	---help---
++	  This is the video4linux2 driver for Intel IPU3 image processing unit,
++	  found in Intel Skylake and Kaby Lake SoCs and used for processing
++	  images and video.
++
++	  Say Y or M here if you have a Skylake/Kaby Lake SoC with a MIPI
++	  camera.	The module will be called ipu3-imgu.
+diff --git a/drivers/media/pci/intel/ipu3/Makefile b/drivers/media/pci/intel/ipu3/Makefile
+index 20186e3..60bd5db 100644
+--- a/drivers/media/pci/intel/ipu3/Makefile
++++ b/drivers/media/pci/intel/ipu3/Makefile
+@@ -1 +1,13 @@
++#
++# Makefile for the IPU3 cio2 and ImgU drivers
++#
++
+ obj-$(CONFIG_VIDEO_IPU3_CIO2) += ipu3-cio2.o
++
++ipu3-imgu-objs += \
++		ipu3-mmu.o ipu3-dmamap.o \
++		ipu3-tables.o ipu3-css-pool.o \
++		ipu3-css-fw.o ipu3-css-params.o \
++		ipu3-css.o ipu3-v4l2.o ipu3.o
++
++obj-$(CONFIG_VIDEO_IPU3_IMGU) += ipu3-imgu.o
+diff --git a/drivers/media/pci/intel/ipu3/ipu3.c b/drivers/media/pci/intel/ipu3/ipu3.c
+new file mode 100644
+index 0000000..eda7299
+--- /dev/null
++++ b/drivers/media/pci/intel/ipu3/ipu3.c
+@@ -0,0 +1,844 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Copyright (C) 2017 Intel Corporation
++ * Copyright 2017 Google LLC
++ *
++ * Based on Intel IPU4 driver.
++ *
++ */
++
++#include <linux/delay.h>
++#include <linux/interrupt.h>
++#include <linux/module.h>
++#include <linux/pm_runtime.h>
++
++#include "ipu3.h"
++#include "ipu3-dmamap.h"
++#include "ipu3-mmu.h"
++
++#define IMGU_PCI_ID			0x1919
++#define IMGU_PCI_BAR			0
++#define IMGU_DMA_MASK			DMA_BIT_MASK(39)
++#define IMGU_MAX_QUEUE_DEPTH		(2 + 2)
 +
 +/*
-+ * Frame info struct. This describes the contents of an image frame buffer.
++ * pre-allocated buffer size for IMGU dummy buffers. Those
++ * values should be tuned to big enough to avoid buffer
++ * re-allocation when streaming to lower streaming latency.
 + */
-+struct imgu_abi_frame_sp_info {
-+	struct imgu_abi_sp_resolution res;
-+	u16 padded_width;		/* stride of line in memory
-+					 * (in pixels)
-+					 */
-+	u8 format;			/* format of the frame data */
-+	u8 raw_bit_depth;		/* number of valid bits per pixel,
-+					 * only valid for RAW bayer frames
-+					 */
-+	u8 raw_bayer_order;		/* bayer order, only valid
-+					 * for RAW bayer frames
-+					 */
-+	u8 raw_type;		/* To choose the proper raw frame type. for
-+				 * Legacy SKC pipes/Default is set to
-+				 * IMGU_ABI_RAW_TYPE_BAYER. For RGB IR sensor -
-+				 * driver should set it to:
-+				 * IronGr case - IMGU_ABI_RAW_TYPE_IR_ON_GR
-+				 * IronGb case - IMGU_ABI_RAW_TYPE_IR_ON_GB
-+				 */
-+	u8 padding[2];			/* Extend to 32 bit multiple */
-+} __packed;
++#define CSS_QUEUE_IN_BUF_SIZE		0
++#define CSS_QUEUE_PARAMS_BUF_SIZE	0
++#define CSS_QUEUE_OUT_BUF_SIZE		(4160 * 3120 * 12 / 8)
++#define CSS_QUEUE_VF_BUF_SIZE		(1920 * 1080 * 12 / 8)
++#define CSS_QUEUE_STAT_3A_BUF_SIZE	125664
 +
-+struct imgu_abi_buffer_sp {
-+	union {
-+		imgu_addr_t xmem_addr;
-+		s32 queue_id;	/* enum imgu_abi_queue_id */
-+	} buf_src;
-+	s32 buf_type;	/* enum imgu_abi_buffer_type */
-+} __packed;
++static const size_t css_queue_buf_size_map[IPU3_CSS_QUEUES] = {
++	[IPU3_CSS_QUEUE_IN] = CSS_QUEUE_IN_BUF_SIZE,
++	[IPU3_CSS_QUEUE_PARAMS] = CSS_QUEUE_PARAMS_BUF_SIZE,
++	[IPU3_CSS_QUEUE_OUT] = CSS_QUEUE_OUT_BUF_SIZE,
++	[IPU3_CSS_QUEUE_VF] = CSS_QUEUE_VF_BUF_SIZE,
++	[IPU3_CSS_QUEUE_STAT_3A] = CSS_QUEUE_STAT_3A_BUF_SIZE,
++};
 +
-+struct imgu_abi_frame_sp_plane {
-+	u32 offset;		/* offset in bytes to start of frame data */
-+				/* offset is wrt data in imgu_abi_sp_sp_frame */
-+} __packed;
++static const struct imgu_node_mapping imgu_node_map[IMGU_NODE_NUM] = {
++	[IMGU_NODE_IN] = {IPU3_CSS_QUEUE_IN, "input"},
++	[IMGU_NODE_PARAMS] = {IPU3_CSS_QUEUE_PARAMS, "parameters"},
++	[IMGU_NODE_OUT] = {IPU3_CSS_QUEUE_OUT, "output"},
++	[IMGU_NODE_VF] = {IPU3_CSS_QUEUE_VF, "viewfinder"},
++	[IMGU_NODE_PV] = {IPU3_CSS_QUEUE_VF, "postview"},
++	[IMGU_NODE_STAT_3A] = {IPU3_CSS_QUEUE_STAT_3A, "3a stat"},
++};
 +
-+struct imgu_abi_frame_sp_rgb_planes {
-+	struct imgu_abi_frame_sp_plane r;
-+	struct imgu_abi_frame_sp_plane g;
-+	struct imgu_abi_frame_sp_plane b;
-+} __packed;
++unsigned int imgu_node_to_queue(unsigned int node)
++{
++	return imgu_node_map[node].css_queue;
++}
 +
-+struct imgu_abi_frame_sp_yuv_planes {
-+	struct imgu_abi_frame_sp_plane y;
-+	struct imgu_abi_frame_sp_plane u;
-+	struct imgu_abi_frame_sp_plane v;
-+} __packed;
++unsigned int imgu_map_node(struct imgu_device *imgu, unsigned int css_queue)
++{
++	unsigned int i;
 +
-+struct imgu_abi_frame_sp_nv_planes {
-+	struct imgu_abi_frame_sp_plane y;
-+	struct imgu_abi_frame_sp_plane uv;
-+} __packed;
++	if (css_queue == IPU3_CSS_QUEUE_VF)
++		return imgu->nodes[IMGU_NODE_VF].enabled ?
++			IMGU_NODE_VF : IMGU_NODE_PV;
 +
-+struct imgu_abi_frame_sp_plane6 {
-+	struct imgu_abi_frame_sp_plane r;
-+	struct imgu_abi_frame_sp_plane r_at_b;
-+	struct imgu_abi_frame_sp_plane gr;
-+	struct imgu_abi_frame_sp_plane gb;
-+	struct imgu_abi_frame_sp_plane b;
-+	struct imgu_abi_frame_sp_plane b_at_r;
-+} __packed;
++	for (i = 0; i < IMGU_NODE_NUM; i++)
++		if (imgu_node_map[i].css_queue == css_queue)
++			break;
 +
-+struct imgu_abi_frame_sp_binary_plane {
-+	u32 size;
-+	struct imgu_abi_frame_sp_plane data;
-+} __packed;
++	return i;
++}
 +
-+struct imgu_abi_frame_sp {
-+	struct imgu_abi_frame_sp_info info;
-+	struct imgu_abi_buffer_sp buf_attr;
-+	union {
-+		struct imgu_abi_frame_sp_plane raw;
-+		struct imgu_abi_frame_sp_plane rgb;
-+		struct imgu_abi_frame_sp_rgb_planes planar_rgb;
-+		struct imgu_abi_frame_sp_plane yuyv;
-+		struct imgu_abi_frame_sp_yuv_planes yuv;
-+		struct imgu_abi_frame_sp_nv_planes nv;
-+		struct imgu_abi_frame_sp_plane6 plane6;
-+		struct imgu_abi_frame_sp_binary_plane binary;
-+	} planes;
-+} __packed;
++/**************** Dummy buffers ****************/
 +
-+struct imgu_abi_resolution {
-+	u32 width;
-+	u32 height;
-+} __packed;
++static void imgu_dummybufs_cleanup(struct imgu_device *imgu)
++{
++	unsigned int i;
 +
-+struct imgu_abi_frames_sp {
-+	struct imgu_abi_frame_sp in;
-+	struct imgu_abi_frame_sp out[IMGU_ABI_BINARY_MAX_OUTPUT_PORTS];
-+	struct imgu_abi_resolution effective_in_res;
-+	struct imgu_abi_frame_sp out_vf;
-+	struct imgu_abi_frame_sp_info internal_frame_info;
-+	struct imgu_abi_buffer_sp s3a_buf;
-+	struct imgu_abi_buffer_sp dvs_buf;
-+	struct imgu_abi_buffer_sp lace_buf;
-+} __packed;
++	for (i = 0; i < IPU3_CSS_QUEUES; i++)
++		ipu3_dmamap_free(imgu, &imgu->queues[i].dmap);
++}
 +
-+struct imgu_abi_uds_info {
-+	u16 curr_dx;
-+	u16 curr_dy;
-+	u16 xc;
-+	u16 yc;
-+} __packed;
++static int imgu_dummybufs_preallocate(struct imgu_device *imgu)
++{
++	unsigned int i;
++	size_t size;
 +
-+/* Information for a single pipeline stage */
-+struct imgu_abi_sp_stage {
-+	/* Multiple boolean flags can be stored in an integer */
-+	u8 num;			/* Stage number */
-+	u8 isp_online;
-+	u8 isp_copy_vf;
-+	u8 isp_copy_output;
-+	u8 sp_enable_xnr;
-+	u8 isp_deci_log_factor;
-+	u8 isp_vf_downscale_bits;
-+	u8 deinterleaved;
-+	/*
-+	 * NOTE: Programming the input circuit can only be done at the
-+	 * start of a session. It is illegal to program it during execution
-+	 * The input circuit defines the connectivity
-+	 */
-+	u8 program_input_circuit;
-+	u8 func;
-+	u8 stage_type;		/* enum imgu_abi_stage_type */
-+	u8 num_stripes;
-+	u8 isp_pipe_version;
-+	struct {
-+		u8 vf_output;
-+		u8 s3a;
-+		u8 sdis;
-+		u8 dvs_stats;
-+		u8 lace_stats;
-+	} enable;
++	for (i = 0; i < IPU3_CSS_QUEUES; i++) {
++		size = css_queue_buf_size_map[i];
++		/*
++		 * Do not enable dummy buffers for master queue,
++		 * always require that real buffers from user are
++		 * available.
++		 */
++		if (i == IMGU_QUEUE_MASTER || size == 0)
++			continue;
 +
-+	struct imgu_abi_crop_pos sp_out_crop_pos;
-+	u8 padding[2];
-+	struct imgu_abi_frames_sp frames;
-+	struct imgu_abi_resolution dvs_envelope;
-+	struct imgu_abi_uds_info uds;
-+	imgu_addr_t isp_stage_addr;
-+	imgu_addr_t xmem_bin_addr;
-+	imgu_addr_t xmem_map_addr;
++		if (!ipu3_dmamap_alloc(imgu, &imgu->queues[i].dmap, size)) {
++			imgu_dummybufs_cleanup(imgu);
++			return -ENOMEM;
++		}
++	}
 +
-+	u16 top_cropping;
-+	u16 row_stripes_height;
-+	u16 row_stripes_overlap_lines;
-+	u8 if_config_index;	/* Which should be applied by this stage. */
-+	u8 padding2;
-+} __packed;
++	return 0;
++}
 +
-+/***** struct imgu_abi_isp_stage *****/
++static int imgu_dummybufs_init(struct imgu_device *imgu)
++{
++	const struct v4l2_pix_format_mplane *mpix;
++	const struct v4l2_meta_format	*meta;
++	unsigned int i, j, node;
++	size_t size;
 +
-+struct imgu_abi_isp_param_memory_offsets {
-+	u32 offsets[IMGU_ABI_PARAM_CLASS_NUM];	/* offset wrt hdr in bytes */
-+} __packed;
++	/* Allocate a dummy buffer for each queue where buffer is optional */
++	for (i = 0; i < IPU3_CSS_QUEUES; i++) {
++		node = imgu_map_node(imgu, i);
++		if (!imgu->queue_enabled[node] || i == IMGU_QUEUE_MASTER)
++			continue;
++
++		if (!imgu->nodes[IMGU_NODE_VF].enabled &&
++		    !imgu->nodes[IMGU_NODE_PV].enabled &&
++		    i == IPU3_CSS_QUEUE_VF)
++			/*
++			 * Do not enable dummy buffers for VF/PV if it is not
++			 * requested by the user.
++			 */
++			continue;
++
++		meta = &imgu->nodes[node].vdev_fmt.fmt.meta;
++		mpix = &imgu->nodes[node].vdev_fmt.fmt.pix_mp;
++
++		if (node == IMGU_NODE_STAT_3A || node == IMGU_NODE_PARAMS)
++			size = meta->buffersize;
++		else
++			size = mpix->plane_fmt[0].sizeimage;
++
++		if (ipu3_css_dma_buffer_resize(imgu, &imgu->queues[i].dmap,
++					       size)) {
++			imgu_dummybufs_cleanup(imgu);
++			return -ENOMEM;
++		}
++
++		for (j = 0; j < IMGU_MAX_QUEUE_DEPTH; j++)
++			ipu3_css_buf_init(&imgu->queues[i].dummybufs[j], i,
++					  imgu->queues[i].dmap.daddr);
++	}
++
++	return 0;
++}
++
++/* May be called from atomic context */
++static struct ipu3_css_buffer *imgu_dummybufs_get(struct imgu_device *imgu,
++						  int queue)
++{
++	unsigned int i;
++
++	/* dummybufs are not allocated for master q */
++	if (queue == IPU3_CSS_QUEUE_IN)
++		return NULL;
++
++	if (WARN_ON(!imgu->queues[queue].dmap.vaddr))
++		/* Buffer should not be allocated here */
++		return NULL;
++
++	for (i = 0; i < IMGU_MAX_QUEUE_DEPTH; i++)
++		if (ipu3_css_buf_state(&imgu->queues[queue].dummybufs[i]) !=
++			IPU3_CSS_BUFFER_QUEUED)
++			break;
++
++	if (i == IMGU_MAX_QUEUE_DEPTH)
++		return NULL;
++
++	ipu3_css_buf_init(&imgu->queues[queue].dummybufs[i], queue,
++			  imgu->queues[queue].dmap.daddr);
++
++	return &imgu->queues[queue].dummybufs[i];
++}
++
++/* Check if given buffer is a dummy buffer */
++static bool imgu_dummybufs_check(struct imgu_device *imgu,
++				 struct ipu3_css_buffer *buf)
++{
++	unsigned int i;
++
++	for (i = 0; i < IMGU_MAX_QUEUE_DEPTH; i++)
++		if (buf == &imgu->queues[buf->queue].dummybufs[i])
++			break;
++
++	return i < IMGU_MAX_QUEUE_DEPTH;
++}
++
++static void imgu_buffer_done(struct imgu_device *imgu, struct vb2_buffer *vb,
++			     enum vb2_buffer_state state)
++{
++	mutex_lock(&imgu->lock);
++	ipu3_v4l2_buffer_done(vb, state);
++	mutex_unlock(&imgu->lock);
++}
++
++static struct ipu3_css_buffer *imgu_queue_getbuf(struct imgu_device *imgu,
++						 unsigned int node)
++{
++	struct imgu_buffer *buf;
++
++	if (WARN_ON(node >= IMGU_NODE_NUM))
++		return NULL;
++
++	/* Find first free buffer from the node */
++	list_for_each_entry(buf, &imgu->nodes[node].buffers, vid_buf.list) {
++		if (ipu3_css_buf_state(&buf->css_buf) == IPU3_CSS_BUFFER_NEW)
++			return &buf->css_buf;
++	}
++
++	/* There were no free buffers, try to return a dummy buffer */
++	return imgu_dummybufs_get(imgu, imgu_node_map[node].css_queue);
++}
 +
 +/*
-+ * Blob descriptor.
-+ * This structure describes an SP or ISP blob.
-+ * It describes the test, data and bss sections as well as position in a
-+ * firmware file.
-+ * For convenience, it contains dynamic data after loading.
++ * Queue as many buffers to CSS as possible. If all buffers don't fit into
++ * CSS buffer queues, they remain unqueued and will be queued later.
 + */
-+struct imgu_abi_blob_info {
-+	/* Static blob data */
-+	u32 offset;			/* Blob offset in fw file */
-+	struct imgu_abi_isp_param_memory_offsets memory_offsets;
-+					/* offset wrt hdr in bytes */
-+	u32 prog_name_offset;		/* offset wrt hdr in bytes */
-+	u32 size;			/* Size of blob */
-+	u32 padding_size;		/* total cummulative of bytes added
-+					 * due to section alignment
-+					 */
-+	u32 icache_source;		/* Position of icache in blob */
-+	u32 icache_size;		/* Size of icache section */
-+	u32 icache_padding;	/* added due to icache section alignment */
-+	u32 text_source;		/* Position of text in blob */
-+	u32 text_size;			/* Size of text section */
-+	u32 text_padding;	/* bytes added due to text section alignment */
-+	u32 data_source;		/* Position of data in blob */
-+	u32 data_target;		/* Start of data in SP dmem */
-+	u32 data_size;			/* Size of text section */
-+	u32 data_padding;	/* bytes added due to data section alignment */
-+	u32 bss_target;		/* Start position of bss in SP dmem */
-+	u32 bss_size;			/* Size of bss section
-+					 * Dynamic data filled by loader
-+					 */
-+	u64 code __attribute__((aligned(8)));	/* Code section absolute pointer */
-+					/* within fw, code = icache + text */
-+	u64 data __attribute__((aligned(8)));	/* Data section absolute pointer */
-+					/* within fw, data = data + bss */
-+} __packed;
++int imgu_queue_buffers(struct imgu_device *imgu, bool initial)
++{
++	unsigned int node;
++	int r = 0;
++	struct imgu_buffer *ibuf;
 +
-+struct imgu_abi_binary_pipeline_info {
-+	u32 mode;
-+	u32 isp_pipe_version;
-+	u32 pipelining;
-+	u32 c_subsampling;
-+	u32 top_cropping;
-+	u32 left_cropping;
-+	u32 variable_resolution;
-+} __packed;
++	if (!ipu3_css_is_streaming(&imgu->css))
++		return 0;
 +
-+struct imgu_abi_binary_input_info {
-+	u32 min_width;
-+	u32 min_height;
-+	u32 max_width;
-+	u32 max_height;
-+	u32 source;	/* enum imgu_abi_bin_input_src */
-+} __packed;
++	mutex_lock(&imgu->lock);
 +
-+struct imgu_abi_binary_output_info {
-+	u32 min_width;
-+	u32 min_height;
-+	u32 max_width;
-+	u32 max_height;
-+	u32 num_chunks;
-+	u32 variable_format;
-+} __packed;
++	/* Buffer set is queued to FW only when input buffer is ready */
++	for (node = IMGU_NODE_NUM - 1;
++	     imgu_queue_getbuf(imgu, IMGU_NODE_IN);
++	     node = node ? node - 1 : IMGU_NODE_NUM - 1) {
 +
-+struct imgu_abi_binary_internal_info {
-+	u32 max_width;
-+	u32 max_height;
-+} __packed;
++		if (node == IMGU_NODE_VF &&
++		    (imgu->css.pipe_id == IPU3_CSS_PIPE_ID_CAPTURE ||
++		     !imgu->nodes[IMGU_NODE_VF].enabled)) {
++			continue;
++		} else if (node == IMGU_NODE_PV &&
++			   (imgu->css.pipe_id == IPU3_CSS_PIPE_ID_VIDEO ||
++			    !imgu->nodes[IMGU_NODE_PV].enabled)) {
++			continue;
++		} else if (imgu->queue_enabled[node]) {
++			struct ipu3_css_buffer *buf =
++					imgu_queue_getbuf(imgu, node);
++			int dummy;
 +
-+struct imgu_abi_binary_bds_info {
-+	u32 supported_bds_factors;
-+} __packed;
++			if (!buf)
++				break;
 +
-+struct imgu_abi_binary_dvs_info {
-+	u32 max_envelope_width;
-+	u32 max_envelope_height;
-+} __packed;
++			r = ipu3_css_buf_queue(&imgu->css, buf);
++			if (r)
++				break;
++			dummy = imgu_dummybufs_check(imgu, buf);
++			if (!dummy)
++				ibuf = container_of(buf, struct imgu_buffer,
++						    css_buf);
++			dev_dbg(&imgu->pci_dev->dev,
++				"queue %s %s buffer %d to css da: 0x%08x\n",
++				dummy ? "dummy" : "user",
++				imgu_node_map[node].name,
++				dummy ? 0 : ibuf->vid_buf.vbb.vb2_buf.index,
++				(u32)buf->daddr);
++		}
++	}
++	mutex_unlock(&imgu->lock);
 +
-+struct imgu_abi_binary_vf_dec_info {
-+	u32 is_variable;
-+	u32 max_log_downscale;
-+} __packed;
++	if (r && r != -EBUSY)
++		goto failed;
 +
-+struct imgu_abi_binary_s3a_info {
-+	u32 s3atbl_use_dmem;
-+	u32 fixed_s3a_deci_log;
-+} __packed;
++	return 0;
 +
-+struct imgu_abi_binary_dpc_info {
-+	u32 bnr_lite;			/* bnr lite enable flag */
-+} __packed;
-+
-+struct imgu_abi_binary_iterator_info {
-+	u32 num_stripes;
-+	u32 row_stripes_height;
-+	u32 row_stripes_overlap_lines;
-+} __packed;
-+
-+struct imgu_abi_binary_address_info {
-+	u32 isp_addresses;		/* Address in ISP dmem */
-+	u32 main_entry;			/* Address of entry fct */
-+	u32 in_frame;			/* Address in ISP dmem */
-+	u32 out_frame;			/* Address in ISP dmem */
-+	u32 in_data;			/* Address in ISP dmem */
-+	u32 out_data;			/* Address in ISP dmem */
-+	u32 sh_dma_cmd_ptr;		/* In ISP dmem */
-+} __packed;
-+
-+struct imgu_abi_binary_uds_info {
-+	u16 bpp;
-+	u16 use_bci;
-+	u16 use_str;
-+	u16 woix;
-+	u16 woiy;
-+	u16 extra_out_vecs;
-+	u16 vectors_per_line_in;
-+	u16 vectors_per_line_out;
-+	u16 vectors_c_per_line_in;
-+	u16 vectors_c_per_line_out;
-+	u16 vmem_gdc_in_block_height_y;
-+	u16 vmem_gdc_in_block_height_c;
-+} __packed;
-+
-+struct imgu_abi_binary_block_info {
-+	u32 block_width;
-+	u32 block_height;
-+	u32 output_block_height;
-+} __packed;
-+
-+struct imgu_abi_isp_data {
-+	imgu_addr_t address;		/* ISP address */
-+	u32 size;			/* Disabled if 0 */
-+} __packed;
-+
-+struct imgu_abi_isp_param_segments {
-+	struct imgu_abi_isp_data
-+			params[IMGU_ABI_PARAM_CLASS_NUM][IMGU_ABI_NUM_MEMORIES];
-+} __packed;
-+
-+struct imgu_abi_binary_info {
-+	u32 id __attribute__((aligned(8)));		/* IMGU_ABI_BINARY_ID_* */
-+	struct imgu_abi_binary_pipeline_info pipeline;
-+	struct imgu_abi_binary_input_info input;
-+	struct imgu_abi_binary_output_info output;
-+	struct imgu_abi_binary_internal_info internal;
-+	struct imgu_abi_binary_bds_info bds;
-+	struct imgu_abi_binary_dvs_info dvs;
-+	struct imgu_abi_binary_vf_dec_info vf_dec;
-+	struct imgu_abi_binary_s3a_info s3a;
-+	struct imgu_abi_binary_dpc_info dpc_bnr; /* DPC related binary info */
-+	struct imgu_abi_binary_iterator_info iterator;
-+	struct imgu_abi_binary_address_info addresses;
-+	struct imgu_abi_binary_uds_info uds;
-+	struct imgu_abi_binary_block_info block;
-+	struct imgu_abi_isp_param_segments mem_initializers;
-+	struct {
-+		u8 input_feeder;
-+		u8 output_system;
-+		u8 obgrid;
-+		u8 lin;
-+		u8 dpc_acc;
-+		u8 bds_acc;
-+		u8 shd_acc;
-+		u8 shd_ff;
-+		u8 stats_3a_raw_buffer;
-+		u8 acc_bayer_denoise;
-+		u8 bnr_ff;
-+		u8 awb_acc;
-+		u8 awb_fr_acc;
-+		u8 anr_acc;
-+		u8 rgbpp_acc;
-+		u8 rgbpp_ff;
-+		u8 demosaic_acc;
-+		u8 demosaic_ff;
-+		u8 dvs_stats;
-+		u8 lace_stats;
-+		u8 yuvp1_b0_acc;
-+		u8 yuvp1_c0_acc;
-+		u8 yuvp2_acc;
-+		u8 ae;
-+		u8 af;
-+		u8 dergb;
-+		u8 rgb2yuv;
-+		u8 high_quality;
-+		u8 kerneltest;
-+		u8 routing_shd_to_bnr;		/* connect SHD with BNR ACCs */
-+		u8 routing_bnr_to_anr;		/* connect BNR with ANR ACCs */
-+		u8 routing_anr_to_de;		/* connect ANR with DE ACCs */
-+		u8 routing_rgb_to_yuvp1;	/* connect RGB with YUVP1 */
-+		u8 routing_yuvp1_to_yuvp2;	/* connect YUVP1 with YUVP2 */
-+		u8 luma_only;
-+		u8 input_yuv;
-+		u8 input_raw;
-+		u8 reduced_pipe;
-+		u8 vf_veceven;
-+		u8 dis;
-+		u8 dvs_envelope;
-+		u8 uds;
-+		u8 dvs_6axis;
-+		u8 block_output;
-+		u8 streaming_dma;
-+		u8 ds;
-+		u8 bayer_fir_6db;
-+		u8 raw_binning;
-+		u8 continuous;
-+		u8 s3a;
-+		u8 fpnr;
-+		u8 sc;
-+		u8 macc;
-+		u8 output;
-+		u8 ref_frame;
-+		u8 tnr;
-+		u8 xnr;
-+		u8 params;
-+		u8 ca_gdc;
-+		u8 isp_addresses;
-+		u8 in_frame;
-+		u8 out_frame;
-+		u8 high_speed;
-+		u8 dpc;
-+		u8 padding[2];
-+		u8 rgbir;
-+	} enable;
-+	struct {
-+		u8 ref_y_channel;
-+		u8 ref_c_channel;
-+		u8 tnr_channel;
-+		u8 tnr_out_channel;
-+		u8 dvs_coords_channel;
-+		u8 output_channel;
-+		u8 c_channel;
-+		u8 vfout_channel;
-+		u8 vfout_c_channel;
-+		u8 vfdec_bits_per_pixel;
-+		u8 claimed_by_isp;
-+		u8 padding[2];
-+	} dma;
-+} __packed;
-+
-+struct imgu_abi_isp_stage {
-+	struct imgu_abi_blob_info blob_info;
-+	struct imgu_abi_binary_info binary_info;
-+	char binary_name[IMGU_ABI_MAX_BINARY_NAME];
-+	struct imgu_abi_isp_param_segments mem_initializers;
-+} __packed;
-+
-+/***** struct imgu_abi_ddr_address_map and parameter set *****/
-+
-+/* xmem address map allocation */
-+struct imgu_abi_ddr_address_map {
-+	imgu_addr_t isp_mem_param[IMGU_ABI_MAX_STAGES][IMGU_ABI_NUM_MEMORIES];
-+	imgu_addr_t obgrid_tbl[IPU3_UAPI_MAX_STRIPES];
-+	imgu_addr_t acc_cluster_params_for_sp;
-+	imgu_addr_t dvs_6axis_params_y;
-+} __packed;
-+
-+struct imgu_abi_parameter_set_info {
-+	/* Pointers to Parameters in ISP format IMPT */
-+	struct imgu_abi_ddr_address_map mem_map;
-+	/* Unique ID to track per-frame configurations */
-+	u32 isp_parameters_id;
-+	/* Output frame to which this config has to be applied (optional) */
-+	imgu_addr_t output_frame_ptr;
-+} __packed;
-+
-+/***** struct imgu_abi_sp_group *****/
-+
-+/* SP configuration information */
-+struct imgu_abi_sp_config {
-+	u8 no_isp_sync;		/* Signal host immediately after start */
-+	u8 enable_raw_pool_locking;    /* Enable Raw Buffer Locking for HALv3 */
-+	u8 lock_all;
-+	u8 disable_cont_vf;
-+	u8 disable_preview_on_capture;
-+	u8 padding[3];
-+} __packed;
-+
-+/* Information for a pipeline */
-+struct imgu_abi_sp_pipeline {
-+	u32 pipe_id;			/* the pipe ID */
-+	u32 pipe_num;			/* the dynamic pipe number */
-+	u32 thread_id;			/* the sp thread ID */
-+	u32 pipe_config;		/* the pipe config */
-+	u32 pipe_qos_config;		/* Bitmap of multiple QOS extension fw
-+					 * state, 0xffffffff indicates non
-+					 * QOS pipe.
-+					 */
-+	u32 inout_port_config;
-+	u32 required_bds_factor;
-+	u32 dvs_frame_delay;
-+	u32 num_stages;		/* the pipe config */
-+	u32 running;			/* needed for pipe termination */
-+	imgu_addr_t sp_stage_addr[IMGU_ABI_MAX_STAGES];
-+	imgu_addr_t scaler_pp_lut;	/* Early bound LUT */
-+	u32 stage;			/* stage ptr is only used on sp */
-+	s32 num_execs;			/* number of times to run if this is
-+					 * an acceleration pipe.
-+					 */
-+	union {
-+		struct {
-+			u32 bytes_available;
-+		} bin;
-+		struct {
-+			u32 height;
-+			u32 width;
-+			u32 padded_width;
-+			u32 max_input_width;
-+			u32 raw_bit_depth;
-+		} raw;
-+	} copy;
-+
-+	/* Parameters passed to Shading Correction kernel. */
-+	struct {
-+		/* Origin X (bqs) of internal frame on shading table */
-+		u32 internal_frame_origin_x_bqs_on_sctbl;
-+		/* Origin Y (bqs) of internal frame on shading table */
-+		u32 internal_frame_origin_y_bqs_on_sctbl;
-+	} shading;
-+} __packed;
-+
-+struct imgu_abi_sp_debug_command {
++failed:
 +	/*
-+	 * The DMA software-mask,
-+	 *      Bit 31...24: unused.
-+	 *      Bit 23...16: unused.
-+	 *      Bit 15...08: reading-request enabling bits for DMA channel 7..0
-+	 *      Bit 07...00: writing-request enabling bits for DMA channel 7..0
-+	 *
-+	 * For example, "0...0 0...0 11111011 11111101" indicates that the
-+	 * writing request through DMA Channel 1 and the reading request
-+	 * through DMA channel 2 are both disabled. The others are enabled.
++	 * On error, mark all buffers as failed which are not
++	 * yet queued to CSS
 +	 */
-+	u32 dma_sw_reg;
-+} __packed;
++	dev_err(&imgu->pci_dev->dev,
++		"failed to queue buffer to CSS on queue %i (%d)\n",
++		node, r);
++
++	if (initial)
++		/* If we were called from streamon(), no need to finish bufs */
++		return r;
++
++	for (node = 0; node < IMGU_NODE_NUM; node++) {
++		struct imgu_buffer *buf, *buf0;
++
++		if (!imgu->queue_enabled[node])
++			continue;	/* Skip disabled queues */
++
++		mutex_lock(&imgu->lock);
++		list_for_each_entry_safe(buf, buf0, &imgu->nodes[node].buffers,
++					 vid_buf.list) {
++			if (ipu3_css_buf_state(&buf->css_buf) ==
++					IPU3_CSS_BUFFER_QUEUED)
++				continue;	/* Was already queued, skip */
++
++			ipu3_v4l2_buffer_done(&buf->vid_buf.vbb.vb2_buf,
++					      VB2_BUF_STATE_ERROR);
++		}
++		mutex_unlock(&imgu->lock);
++	}
++
++	return r;
++}
++
++static int imgu_powerup(struct imgu_device *imgu)
++{
++	int r;
++
++	r = ipu3_css_set_powerup(&imgu->pci_dev->dev, imgu->base);
++	if (r)
++		return r;
++
++	ipu3_mmu_resume(imgu->mmu);
++	return 0;
++}
++
++static void imgu_powerdown(struct imgu_device *imgu)
++{
++	ipu3_mmu_suspend(imgu->mmu);
++	ipu3_css_set_powerdown(&imgu->pci_dev->dev, imgu->base);
++}
++
++int imgu_s_stream(struct imgu_device *imgu, int enable)
++{
++	struct device *dev = &imgu->pci_dev->dev;
++	struct v4l2_pix_format_mplane *fmts[IPU3_CSS_QUEUES] = { NULL };
++	struct v4l2_rect *rects[IPU3_CSS_RECTS] = { NULL };
++	unsigned int i, node;
++	int r;
++
++	if (!enable) {
++		/* Stop streaming */
++		dev_dbg(dev, "stream off\n");
++		/* Block new buffers to be queued to CSS. */
++		atomic_set(&imgu->qbuf_barrier, 1);
++		ipu3_css_stop_streaming(&imgu->css);
++		synchronize_irq(imgu->pci_dev->irq);
++		atomic_set(&imgu->qbuf_barrier, 0);
++		imgu_powerdown(imgu);
++		pm_runtime_put(&imgu->pci_dev->dev);
++
++		return 0;
++	}
++
++	/* Start streaming */
++
++	dev_dbg(dev, "stream on\n");
++	for (i = 0; i < IMGU_NODE_NUM; i++)
++		imgu->queue_enabled[i] = imgu->nodes[i].enabled;
++
++	/*
++	 * CSS library expects that the following queues are
++	 * always enabled; if buffers are not provided to some of the
++	 * queues, it stalls due to lack of buffers.
++	 * Force the queues to be enabled and if the user really hasn't
++	 * enabled them, use dummy buffers.
++	 */
++	imgu->queue_enabled[IMGU_NODE_OUT] = true;
++	imgu->queue_enabled[IMGU_NODE_VF] = true;
++	imgu->queue_enabled[IMGU_NODE_PV] = true;
++	imgu->queue_enabled[IMGU_NODE_STAT_3A] = true;
++
++	/* This is handled specially */
++	imgu->queue_enabled[IPU3_CSS_QUEUE_PARAMS] = false;
++
++	/* Initialize CSS formats */
++	for (i = 0; i < IPU3_CSS_QUEUES; i++) {
++		node = imgu_map_node(imgu, i);
++		/* No need to reconfig meta nodes */
++		if (node == IMGU_NODE_STAT_3A || node == IMGU_NODE_PARAMS)
++			continue;
++		fmts[i] = imgu->queue_enabled[node] ?
++			&imgu->nodes[node].vdev_fmt.fmt.pix_mp : NULL;
++	}
++
++	/* Enable VF output only when VF or PV queue requested by user */
++	imgu->css.vf_output_en = IPU3_NODE_VF_DISABLED;
++	if (imgu->nodes[IMGU_NODE_VF].enabled)
++		imgu->css.vf_output_en = IPU3_NODE_VF_ENABLED;
++	else if (imgu->nodes[IMGU_NODE_PV].enabled)
++		imgu->css.vf_output_en = IPU3_NODE_PV_ENABLED;
++
++	rects[IPU3_CSS_RECT_EFFECTIVE] = &imgu->rect.eff;
++	rects[IPU3_CSS_RECT_BDS] = &imgu->rect.bds;
++	rects[IPU3_CSS_RECT_GDC] = &imgu->rect.gdc;
++
++	r = ipu3_css_fmt_set(&imgu->css, fmts, rects);
++	if (r) {
++		dev_err(dev, "failed to set initial formats (%d)", r);
++		return r;
++	}
++
++	/* Set Power */
++	r = pm_runtime_get_sync(dev);
++	if (r < 0) {
++		dev_err(dev, "failed to set imgu power\n");
++		pm_runtime_put(dev);
++		return r;
++	}
++
++	r = imgu_powerup(imgu);
++	if (r) {
++		dev_err(dev, "failed to power up imgu\n");
++		pm_runtime_put(dev);
++		return r;
++	}
++
++	/* Start CSS streaming */
++	r = ipu3_css_start_streaming(&imgu->css);
++	if (r) {
++		dev_err(dev, "failed to start css streaming (%d)", r);
++		goto fail_start_streaming;
++	}
++
++	/* Initialize dummy buffers */
++	r = imgu_dummybufs_init(imgu);
++	if (r) {
++		dev_err(dev, "failed to initialize dummy buffers (%d)", r);
++		goto fail_dummybufs;
++	}
++
++	/* Queue as many buffers from queue as possible */
++	r = imgu_queue_buffers(imgu, true);
++	if (r) {
++		dev_err(dev, "failed to queue initial buffers (%d)", r);
++		goto fail_queueing;
++	}
++
++	return 0;
++
++fail_queueing:
++	imgu_dummybufs_cleanup(imgu);
++fail_dummybufs:
++	ipu3_css_stop_streaming(&imgu->css);
++fail_start_streaming:
++	pm_runtime_put(dev);
++
++	return r;
++}
++
++static int imgu_video_nodes_init(struct imgu_device *imgu)
++{
++	struct v4l2_pix_format_mplane *fmts[IPU3_CSS_QUEUES] = { NULL };
++	struct v4l2_rect *rects[IPU3_CSS_RECTS] = { NULL };
++	unsigned int i;
++	int r;
++
++	imgu->buf_struct_size = sizeof(struct imgu_buffer);
++
++	for (i = 0; i < IMGU_NODE_NUM; i++) {
++		imgu->nodes[i].name = imgu_node_map[i].name;
++		imgu->nodes[i].output = i < IMGU_QUEUE_FIRST_INPUT;
++		imgu->nodes[i].immutable = false;
++		imgu->nodes[i].enabled = false;
++
++		if (i != IMGU_NODE_PARAMS && i != IMGU_NODE_STAT_3A)
++			fmts[imgu_node_map[i].css_queue] =
++				&imgu->nodes[i].vdev_fmt.fmt.pix_mp;
++		atomic_set(&imgu->nodes[i].sequence, 0);
++	}
++
++	/* Master queue is always enabled */
++	imgu->nodes[IMGU_QUEUE_MASTER].immutable = true;
++	imgu->nodes[IMGU_QUEUE_MASTER].enabled = true;
++
++	r = ipu3_v4l2_register(imgu);
++	if (r)
++		return r;
++
++	/* Set initial formats and initialize formats of video nodes */
++	rects[IPU3_CSS_RECT_EFFECTIVE] = &imgu->rect.eff;
++	rects[IPU3_CSS_RECT_BDS] = &imgu->rect.bds;
++	ipu3_css_fmt_set(&imgu->css, fmts, rects);
++
++	/* Pre-allocate dummy buffers */
++	r = imgu_dummybufs_preallocate(imgu);
++	if (r) {
++		dev_err(&imgu->pci_dev->dev,
++			"failed to pre-allocate dummy buffers (%d)", r);
++		imgu_dummybufs_cleanup(imgu);
++		ipu3_v4l2_unregister(imgu);
++	}
++
++	return 0;
++}
++
++static void imgu_video_nodes_exit(struct imgu_device *imgu)
++{
++	imgu_dummybufs_cleanup(imgu);
++	ipu3_v4l2_unregister(imgu);
++}
++
++/**************** PCI interface ****************/
++
++static irqreturn_t imgu_isr_threaded(int irq, void *imgu_ptr)
++{
++	struct imgu_device *imgu = imgu_ptr;
++
++	/* Dequeue / queue buffers */
++	do {
++		u64 ns = ktime_get_ns();
++		struct ipu3_css_buffer *b;
++		struct imgu_buffer *buf;
++		unsigned int node;
++		bool dummy;
++
++		do {
++			mutex_lock(&imgu->lock);
++			b = ipu3_css_buf_dequeue(&imgu->css);
++			mutex_unlock(&imgu->lock);
++		} while (PTR_ERR(b) == -EAGAIN);
++
++		if (IS_ERR_OR_NULL(b)) {
++			if (!b || PTR_ERR(b) == -EBUSY)	/* All done */
++				break;
++			dev_err(&imgu->pci_dev->dev,
++				"failed to dequeue buffers (%ld)\n",
++				PTR_ERR(b));
++			break;
++		}
++
++		node = imgu_map_node(imgu, b->queue);
++		dummy = imgu_dummybufs_check(imgu, b);
++		if (!dummy)
++			buf = container_of(b, struct imgu_buffer, css_buf);
++		dev_dbg(&imgu->pci_dev->dev,
++			"dequeue %s %s buffer %d from css\n",
++			dummy ? "dummy" : "user",
++			imgu_node_map[node].name,
++			dummy ? 0 : buf->vid_buf.vbb.vb2_buf.index);
++
++		if (dummy)
++			/* It was a dummy buffer, skip it */
++			continue;
++
++		/* Fill vb2 buffer entries and tell it's ready */
++		if (!imgu->nodes[node].output) {
++			buf->vid_buf.vbb.vb2_buf.timestamp = ns;
++			buf->vid_buf.vbb.field = V4L2_FIELD_NONE;
++			buf->vid_buf.vbb.sequence =
++				atomic_inc_return(&imgu->nodes[node].sequence);
++		}
++		imgu_buffer_done(imgu, &buf->vid_buf.vbb.vb2_buf,
++				 ipu3_css_buf_state(&buf->css_buf) ==
++						    IPU3_CSS_BUFFER_DONE ?
++						    VB2_BUF_STATE_DONE :
++						    VB2_BUF_STATE_ERROR);
++		mutex_lock(&imgu->lock);
++		if (ipu3_css_queue_empty(&imgu->css))
++			wake_up_all(&imgu->buf_drain_wq);
++		mutex_unlock(&imgu->lock);
++	} while (1);
++
++	/*
++	 * Try to queue more buffers for CSS.
++	 * qbuf_barrier is used to disable new buffers
++	 * to be queued to CSS.
++	 */
++	if (!atomic_read(&imgu->qbuf_barrier))
++		imgu_queue_buffers(imgu, false);
++
++	return IRQ_HANDLED;
++}
++
++static irqreturn_t imgu_isr(int irq, void *imgu_ptr)
++{
++	struct imgu_device *imgu = imgu_ptr;
++
++	/* acknowledge interruption */
++	if (ipu3_css_irq_ack(&imgu->css) < 0)
++		return IRQ_NONE;
++
++	return IRQ_WAKE_THREAD;
++}
++
++static int imgu_pci_config_setup(struct pci_dev *dev)
++{
++	u16 pci_command;
++	int r = pci_enable_msi(dev);
++
++	if (r) {
++		dev_err(&dev->dev, "failed to enable MSI (%d)\n", r);
++		return r;
++	}
++
++	pci_read_config_word(dev, PCI_COMMAND, &pci_command);
++	pci_command |= PCI_COMMAND_MEMORY | PCI_COMMAND_MASTER |
++			PCI_COMMAND_INTX_DISABLE;
++	pci_write_config_word(dev, PCI_COMMAND, pci_command);
++
++	return 0;
++}
++
++static int imgu_pci_probe(struct pci_dev *pci_dev,
++			  const struct pci_device_id *id)
++{
++	struct imgu_device *imgu;
++	phys_addr_t phys;
++	unsigned long phys_len;
++	void __iomem *const *iomap;
++	int r;
++
++	imgu = devm_kzalloc(&pci_dev->dev, sizeof(*imgu), GFP_KERNEL);
++	if (!imgu)
++		return -ENOMEM;
++
++	imgu->pci_dev = pci_dev;
++
++	r = pcim_enable_device(pci_dev);
++	if (r) {
++		dev_err(&pci_dev->dev, "failed to enable device (%d)\n", r);
++		return r;
++	}
++
++	dev_info(&pci_dev->dev, "device 0x%x (rev: 0x%x)\n",
++		 pci_dev->device, pci_dev->revision);
++
++	phys = pci_resource_start(pci_dev, IMGU_PCI_BAR);
++	phys_len = pci_resource_len(pci_dev, IMGU_PCI_BAR);
++
++	r = pcim_iomap_regions(pci_dev, 1 << IMGU_PCI_BAR, pci_name(pci_dev));
++	if (r) {
++		dev_err(&pci_dev->dev, "failed to remap I/O memory (%d)\n", r);
++		return r;
++	}
++	dev_info(&pci_dev->dev, "physical base address %pap, %lu bytes\n",
++		 &phys, phys_len);
++
++	iomap = pcim_iomap_table(pci_dev);
++	if (!iomap) {
++		dev_err(&pci_dev->dev, "failed to iomap table\n");
++		return -ENODEV;
++	}
++
++	imgu->base = iomap[IMGU_PCI_BAR];
++
++	pci_set_drvdata(pci_dev, imgu);
++
++	pci_set_master(pci_dev);
++
++	r = dma_coerce_mask_and_coherent(&pci_dev->dev, IMGU_DMA_MASK);
++	if (r) {
++		dev_err(&pci_dev->dev, "failed to set DMA mask (%d)\n", r);
++		return -ENODEV;
++	}
++
++	r = imgu_pci_config_setup(pci_dev);
++	if (r)
++		return r;
++
++	mutex_init(&imgu->lock);
++	atomic_set(&imgu->qbuf_barrier, 0);
++	init_waitqueue_head(&imgu->buf_drain_wq);
++
++	r = ipu3_css_set_powerup(&pci_dev->dev, imgu->base);
++	if (r) {
++		dev_err(&pci_dev->dev,
++			"failed to power up CSS (%d)\n", r);
++		goto out_mutex_destroy;
++	}
++
++	imgu->mmu = ipu3_mmu_init(&pci_dev->dev, imgu->base);
++	if (IS_ERR(imgu->mmu)) {
++		r = PTR_ERR(imgu->mmu);
++		dev_err(&pci_dev->dev, "failed to initialize MMU (%d)\n", r);
++		goto out_css_powerdown;
++	}
++
++	r = ipu3_dmamap_init(imgu);
++	if (r) {
++		dev_err(&pci_dev->dev,
++			"failed to initialize DMA mapping (%d)\n", r);
++		goto out_mmu_exit;
++	}
++
++	/* ISP programming */
++	r = ipu3_css_init(&pci_dev->dev, &imgu->css, imgu->base, phys_len);
++	if (r) {
++		dev_err(&pci_dev->dev, "failed to initialize CSS (%d)\n", r);
++		goto out_dmamap_exit;
++	}
++
++	/* v4l2 sub-device registration */
++	r = imgu_video_nodes_init(imgu);
++	if (r) {
++		dev_err(&pci_dev->dev, "failed to create V4L2 devices (%d)\n",
++			r);
++		goto out_css_cleanup;
++	}
++
++	r = devm_request_threaded_irq(&pci_dev->dev, pci_dev->irq,
++				      imgu_isr, imgu_isr_threaded,
++				      IRQF_SHARED, IMGU_NAME, imgu);
++	if (r) {
++		dev_err(&pci_dev->dev, "failed to request IRQ (%d)\n", r);
++		goto out_video_exit;
++	}
++
++	pm_runtime_put_noidle(&pci_dev->dev);
++	pm_runtime_allow(&pci_dev->dev);
++
++	return 0;
++
++out_video_exit:
++	imgu_video_nodes_exit(imgu);
++out_css_cleanup:
++	ipu3_css_cleanup(&imgu->css);
++out_dmamap_exit:
++	ipu3_dmamap_exit(imgu);
++out_mmu_exit:
++	ipu3_mmu_exit(imgu->mmu);
++out_css_powerdown:
++	ipu3_css_set_powerdown(&pci_dev->dev, imgu->base);
++out_mutex_destroy:
++	mutex_destroy(&imgu->lock);
++
++	return r;
++}
++
++static void imgu_pci_remove(struct pci_dev *pci_dev)
++{
++	struct imgu_device *imgu = pci_get_drvdata(pci_dev);
++
++	pm_runtime_forbid(&pci_dev->dev);
++	pm_runtime_get_noresume(&pci_dev->dev);
++
++	imgu_video_nodes_exit(imgu);
++	ipu3_css_cleanup(&imgu->css);
++	ipu3_css_set_powerdown(&pci_dev->dev, imgu->base);
++	ipu3_dmamap_exit(imgu);
++	ipu3_mmu_exit(imgu->mmu);
++	mutex_destroy(&imgu->lock);
++}
++
++static int __maybe_unused imgu_suspend(struct device *dev)
++{
++	struct pci_dev *pci_dev = to_pci_dev(dev);
++	struct imgu_device *imgu = pci_get_drvdata(pci_dev);
++
++	dev_dbg(dev, "enter %s\n", __func__);
++	imgu->suspend_in_stream = ipu3_css_is_streaming(&imgu->css);
++	if (!imgu->suspend_in_stream)
++		goto out;
++	/* Block new buffers to be queued to CSS. */
++	atomic_set(&imgu->qbuf_barrier, 1);
++	/*
++	 * Wait for currently running irq handler to be done so that
++	 * no new buffers will be queued to fw later.
++	 */
++	synchronize_irq(pci_dev->irq);
++	/* Wait until all buffers in CSS are done. */
++	if (!wait_event_timeout(imgu->buf_drain_wq,
++	    ipu3_css_queue_empty(&imgu->css), msecs_to_jiffies(1000)))
++		dev_err(dev, "wait buffer drain timeout.\n");
++
++	ipu3_css_stop_streaming(&imgu->css);
++	atomic_set(&imgu->qbuf_barrier, 0);
++	imgu_powerdown(imgu);
++	pm_runtime_force_suspend(dev);
++out:
++	dev_dbg(dev, "leave %s\n", __func__);
++	return 0;
++}
++
++static int __maybe_unused imgu_resume(struct device *dev)
++{
++	struct pci_dev *pci_dev = to_pci_dev(dev);
++	struct imgu_device *imgu = pci_get_drvdata(pci_dev);
++	int r = 0;
++
++	dev_dbg(dev, "enter %s\n", __func__);
++
++	if (!imgu->suspend_in_stream)
++		goto out;
++
++	pm_runtime_force_resume(dev);
++
++	r = imgu_powerup(imgu);
++	if (r) {
++		dev_err(dev, "failed to power up imgu\n");
++		goto out;
++	}
++
++	/* Start CSS streaming */
++	r = ipu3_css_start_streaming(&imgu->css);
++	if (r) {
++		dev_err(dev, "failed to resume css streaming (%d)", r);
++		goto out;
++	}
++
++	r = imgu_queue_buffers(imgu, true);
++	if (r)
++		dev_err(dev, "failed to queue buffers (%d)", r);
++out:
++	dev_dbg(dev, "leave %s\n", __func__);
++
++	return r;
++}
 +
 +/*
-+ * Group all host initialized SP variables into this struct.
-+ * This is initialized every stage through dma.
-+ * The stage part itself is transferred through imgu_abi_sp_stage.
++ * PCI rpm framework checks the existence of driver rpm callbacks.
++ * Place a dummy callback here to avoid rpm going into error state.
 + */
-+struct imgu_abi_sp_group {
-+	struct imgu_abi_sp_config config;
-+	struct imgu_abi_sp_pipeline pipe[IMGU_ABI_MAX_SP_THREADS];
-+	struct imgu_abi_sp_debug_command debug;
-+} __packed;
++static int imgu_rpm_dummy_cb(struct device *dev)
++{
++	return 0;
++}
 +
-+/***** parameter and state class binary configurations *****/
++static const struct dev_pm_ops imgu_pm_ops = {
++	SET_RUNTIME_PM_OPS(&imgu_rpm_dummy_cb, &imgu_rpm_dummy_cb, NULL)
++	SET_SYSTEM_SLEEP_PM_OPS(&imgu_suspend, &imgu_resume)
++};
 +
-+struct imgu_abi_isp_iterator_config {
-+	struct imgu_abi_frame_sp_info input_info;
-+	struct imgu_abi_frame_sp_info internal_info;
-+	struct imgu_abi_frame_sp_info output_info;
-+	struct imgu_abi_frame_sp_info vf_info;
-+	struct imgu_abi_sp_resolution dvs_envelope;
-+} __packed;
++static const struct pci_device_id imgu_pci_tbl[] = {
++	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, IMGU_PCI_ID) },
++	{ 0, }
++};
 +
-+struct imgu_abi_dma_port_config {
-+	u8 crop, elems;
-+	u16 width;
-+	u32 stride;
-+} __packed;
++MODULE_DEVICE_TABLE(pci, imgu_pci_tbl);
 +
-+struct imgu_abi_isp_ref_config {
-+	u32 width_a_over_b;
-+	struct imgu_abi_dma_port_config port_b;
-+	u32 ref_frame_addr_y[IMGU_ABI_FRAMES_REF];
-+	u32 ref_frame_addr_c[IMGU_ABI_FRAMES_REF];
-+	u32 dvs_frame_delay;
-+} __packed;
++static struct pci_driver imgu_pci_driver = {
++	.name = IMGU_NAME,
++	.id_table = imgu_pci_tbl,
++	.probe = imgu_pci_probe,
++	.remove = imgu_pci_remove,
++	.driver = {
++		.pm = &imgu_pm_ops,
++	},
++};
 +
-+struct imgu_abi_isp_ref_dmem_state {
-+	u32 ref_in_buf_idx;
-+	u32 ref_out_buf_idx;
-+} __packed;
++module_pci_driver(imgu_pci_driver);
 +
-+struct imgu_abi_isp_dvs_config {
-+	u32 num_horizontal_blocks;
-+	u32 num_vertical_blocks;
-+} __packed;
++MODULE_AUTHOR("Tuukka Toivonen <tuukka.toivonen@intel.com>");
++MODULE_AUTHOR("Tianshu Qiu <tian.shu.qiu@intel.com>");
++MODULE_AUTHOR("Jian Xu Zheng <jian.xu.zheng@intel.com>");
++MODULE_AUTHOR("Yuning Pu <yuning.pu@intel.com>");
++MODULE_AUTHOR("Yong Zhi <yong.zhi@intel.com>");
++MODULE_LICENSE("GPL v2");
++MODULE_DESCRIPTION("Intel ipu3_imgu PCI driver");
+diff --git a/drivers/media/pci/intel/ipu3/ipu3.h b/drivers/media/pci/intel/ipu3/ipu3.h
+new file mode 100644
+index 0000000..5c2b420
+--- /dev/null
++++ b/drivers/media/pci/intel/ipu3/ipu3.h
+@@ -0,0 +1,153 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/* Copyright (C) 2018 Intel Corporation */
 +
-+struct imgu_abi_isp_tnr3_config {
-+	u32 width_a_over_b;
-+	u32 frame_height;
-+	struct imgu_abi_dma_port_config port_b;
-+	u32 delay_frame;
-+	u32 frame_addr[IMGU_ABI_FRAMES_TNR];
-+} __packed;
++#ifndef __IPU3_H
++#define __IPU3_H
 +
-+struct imgu_abi_isp_tnr3_dmem_state {
-+	u32 in_bufidx;
-+	u32 out_bufidx;
-+	u32 total_frame_counter;
-+	u32 buffer_frame_counter[IMGU_ABI_BUF_SETS_TNR];
-+	u32 bypass_filter;
-+} __packed;
++#include <linux/iova.h>
++#include <linux/pci.h>
 +
-+/***** Queues *****/
++#include <media/v4l2-device.h>
++#include <media/videobuf2-dma-sg.h>
 +
-+struct imgu_abi_queue_info {
-+	u8 size;		/* the maximum number of elements*/
-+	u8 step;		/* number of bytes per element */
-+	u8 start;		/* index of the oldest element */
-+	u8 end;			/* index at which to write the new element */
-+} __packed;
++#include "ipu3-css.h"
 +
-+struct imgu_abi_queues {
-+	/*
-+	 * Queues for the dynamic frame information,
-+	 * i.e. the "in_frame" buffer, the "out_frame"
-+	 * buffer and the "vf_out_frame" buffer.
-+	 */
-+	struct imgu_abi_queue_info host2sp_bufq_info
-+			[IMGU_ABI_MAX_SP_THREADS][IMGU_ABI_QUEUE_NUM];
-+	u32 host2sp_bufq[IMGU_ABI_MAX_SP_THREADS][IMGU_ABI_QUEUE_NUM]
-+			[IMGU_ABI_HOST2SP_BUFQ_SIZE];
-+	struct imgu_abi_queue_info sp2host_bufq_info[IMGU_ABI_QUEUE_NUM];
-+	u32 sp2host_bufq[IMGU_ABI_QUEUE_NUM][IMGU_ABI_SP2HOST_BUFQ_SIZE];
++#define IMGU_NAME			"ipu3-imgu"
 +
-+	/*
-+	 * The queues for the events.
-+	 */
-+	struct imgu_abi_queue_info host2sp_evtq_info;
-+	u32 host2sp_evtq[IMGU_ABI_HOST2SP_EVTQ_SIZE];
-+	struct imgu_abi_queue_info sp2host_evtq_info;
-+	u32 sp2host_evtq[IMGU_ABI_SP2HOST_EVTQ_SIZE];
-+} __packed;
++/*
++ * The semantics of the driver is that whenever there is a buffer available in
++ * master queue, the driver queues a buffer also to all other active nodes.
++ * If user space hasn't provided a buffer to all other video nodes first,
++ * the driver gets an internal dummy buffer and queues it.
++ */
++#define IMGU_QUEUE_MASTER		IPU3_CSS_QUEUE_IN
++#define IMGU_QUEUE_FIRST_INPUT		IPU3_CSS_QUEUE_OUT
++#define IMGU_MAX_QUEUE_DEPTH		(2 + 2)
 +
-+/***** Buffer descriptor *****/
++#define IMGU_NODE_IN			0 /* Input RAW image */
++#define IMGU_NODE_PARAMS		1 /* Input parameters */
++#define IMGU_NODE_OUT			2 /* Main output for still or video */
++#define IMGU_NODE_VF			3 /* Preview */
++#define IMGU_NODE_PV			4 /* Postview for still capture */
++#define IMGU_NODE_STAT_3A		5 /* 3A statistics */
++#define IMGU_NODE_NUM			6
 +
-+struct imgu_abi_metadata_info {
-+	struct imgu_abi_resolution resolution;	/* Resolution */
-+	u32 stride;				/* Stride in bytes */
-+	u32 size;				/* Total size in bytes */
-+} __packed;
++#define file_to_intel_ipu3_node(__file) \
++	container_of(video_devdata(__file), struct imgu_video_device, vdev)
 +
-+struct imgu_abi_isp_3a_statistics {
-+	union {
-+		struct {
-+			imgu_addr_t s3a_tbl;
-+		} dmem;
-+		struct {
-+			imgu_addr_t s3a_tbl_hi;
-+			imgu_addr_t s3a_tbl_lo;
-+		} vmem;
-+	} data;
++#define IPU3_INPUT_MIN_WIDTH		0U
++#define IPU3_INPUT_MIN_HEIGHT		0U
++#define IPU3_INPUT_MAX_WIDTH		5120U
++#define IPU3_INPUT_MAX_HEIGHT		38404U
++#define IPU3_OUTPUT_MIN_WIDTH		2U
++#define IPU3_OUTPUT_MIN_HEIGHT		2U
++#define IPU3_OUTPUT_MAX_WIDTH		4480U
++#define IPU3_OUTPUT_MAX_HEIGHT		34004U
++
++struct ipu3_vb2_buffer {
++	/* Public fields */
++	struct vb2_v4l2_buffer vbb;	/* Must be the first field */
++
++	/* Private fields */
++	struct list_head list;
++};
++
++struct imgu_buffer {
++	struct ipu3_vb2_buffer vid_buf;	/* Must be the first field */
++	struct ipu3_css_buffer css_buf;
++	struct ipu3_css_map map;
++};
++
++struct imgu_node_mapping {
++	unsigned int css_queue;
++	const char *name;
++};
++
++/**
++ * struct imgu_video_device
++ * each node registers as video device and maintains its
++ * own vb2_queue.
++ */
++struct imgu_video_device {
++	const char *name;
++	bool output;		/* Frames to the driver? */
++	bool immutable;		/* Can not be enabled/disabled */
++	bool enabled;
++	int queued;		/* Buffers already queued */
++	struct v4l2_format vdev_fmt;	/* Currently set format */
++
++	/* Private fields */
++	struct video_device vdev;
++	struct media_pad vdev_pad;
++	struct v4l2_mbus_framefmt pad_fmt;
++	struct vb2_queue vbq;
++	struct list_head buffers;
++	/* Protect vb2_queue and vdev structs*/
++	struct mutex lock;
++	atomic_t sequence;
++};
++
++/*
++ * imgu_device -- ImgU (Imaging Unit) driver
++ */
++struct imgu_device {
++	struct pci_dev *pci_dev;
++	void __iomem *base;
++
++	/* Internally enabled queues */
 +	struct {
-+		imgu_addr_t rgby_tbl;
-+	} data_hmem;
-+	u32 exp_id;	/* exposure id, to match statistics to a frame, */
-+	u32 isp_config_id;		/* Tracks per-frame configs */
-+	imgu_addr_t data_ptr;		/* pointer to base of all data */
-+	u32 size;			/* total size of all data */
-+	u32 dmem_size;
-+	u32 vmem_size;			/* both lo and hi have this size */
-+	u32 hmem_size;
-+} __packed;
++		struct ipu3_css_map dmap;
++		struct ipu3_css_buffer dummybufs[IMGU_MAX_QUEUE_DEPTH];
++	} queues[IPU3_CSS_QUEUES];
++	struct imgu_video_device nodes[IMGU_NODE_NUM];
++	bool queue_enabled[IMGU_NODE_NUM];
 +
-+struct imgu_abi_metadata {
-+	struct imgu_abi_metadata_info info;	/* Layout info */
-+	imgu_addr_t address;		/* CSS virtual address */
-+	u32 exp_id;			/* Exposure ID */
-+} __packed;
++	/* Public fields, fill before registering */
++	unsigned int buf_struct_size;
++	bool streaming;		/* Public read only */
++	struct v4l2_ctrl_handler *ctrl_handler;
 +
-+struct imgu_abi_time_meas {
-+	u32 start_timer_value;		/* measured time in ticks */
-+	u32 end_timer_value;		/* measured time in ticks */
-+} __packed;
++	/* Private fields */
++	struct v4l2_device v4l2_dev;
++	struct media_device media_dev;
++	struct media_pipeline pipeline;
++	struct v4l2_subdev subdev;
++	struct media_pad *subdev_pads;
++	struct v4l2_file_operations v4l2_file_ops;
 +
-+struct imgu_abi_buffer {
-+	union {
-+		struct imgu_abi_isp_3a_statistics s3a;
-+		u8 __reserved[28];
-+		imgu_addr_t skc_dvs_statistics;
-+		imgu_addr_t lace_stat;
-+		struct imgu_abi_metadata metadata;
-+		struct {
-+			imgu_addr_t frame_data;
-+			u32 flashed;
-+			u32 exp_id;
-+			u32 isp_parameters_id;   /* Tracks per-frame configs */
-+			u32 padded_width;
-+		} frame;
-+		imgu_addr_t ddr_ptrs;
-+	} payload;
++	/* MMU driver for css */
++	struct ipu3_mmu_info *mmu;
++	struct iova_domain iova_domain;
++
++	/* css - Camera Sub-System */
++	struct ipu3_css css;
++
 +	/*
-+	 * kernel_ptr is present for host administration purposes only.
-+	 * type is uint64_t in order to be 64-bit host compatible.
-+	 * uint64_t does not exist on SP/ISP.
-+	 * Size of the struct is checked by sp.hive.c.
++	 * Coarse-grained lock to protect
++	 * vid_buf.list and css->queue
 +	 */
-+	u64 cookie_ptr __attribute__((aligned(8)));
-+	u64 kernel_ptr;
-+	struct imgu_abi_time_meas timing_data;
-+	u32 isys_eof_clock_tick;
-+} __packed;
++	struct mutex lock;
++	/* Forbit streaming and buffer queuing during system suspend. */
++	atomic_t qbuf_barrier;
++	struct {
++		struct v4l2_rect eff; /* effective resolution */
++		struct v4l2_rect bds; /* bayer-domain scaled resolution*/
++		struct v4l2_rect gdc; /* gdc output resolution */
++	} rect;
++	/* Indicate if system suspend take place while imgu is streaming. */
++	bool suspend_in_stream;
++	/* Used to wait for FW buffer queue drain. */
++	wait_queue_head_t buf_drain_wq;
++};
 +
-+struct imgu_abi_bl_dma_cmd_entry {
-+	u32 src_addr;			/* virtual DDR address */
-+	u32 size;			/* number of bytes to transferred */
-+	u32 dst_type;
-+	u32 dst_addr;			/* hmm address of xMEM or MMIO */
-+} __packed;
++unsigned int imgu_node_to_queue(unsigned int node);
++unsigned int imgu_map_node(struct imgu_device *imgu, unsigned int css_queue);
++int imgu_queue_buffers(struct imgu_device *imgu, bool initial);
 +
-+struct imgu_abi_sp_init_dmem_cfg {
-+	u32 ddr_data_addr;		/* data segment address in ddr  */
-+	u32 dmem_data_addr;		/* data segment address in dmem */
-+	u32 dmem_bss_addr;		/* bss segment address in dmem  */
-+	u32 data_size;			/* data segment size            */
-+	u32 bss_size;			/* bss segment size             */
-+	u32 sp_id;			/* sp id */
-+} __packed;
++int ipu3_v4l2_register(struct imgu_device *dev);
++int ipu3_v4l2_unregister(struct imgu_device *dev);
++void ipu3_v4l2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state);
 +
- #endif
++int imgu_s_stream(struct imgu_device *imgu, int enable);
++
++#endif
 -- 
 2.7.4
