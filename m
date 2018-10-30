@@ -1,125 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr1-f51.google.com ([209.85.221.51]:35908 "EHLO
-        mail-wr1-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726501AbeJaBeR (ORCPT
+Received: from mail-pf1-f193.google.com ([209.85.210.193]:35312 "EHLO
+        mail-pf1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727716AbeJaBiK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 Oct 2018 21:34:17 -0400
-Received: by mail-wr1-f51.google.com with SMTP id y16so13352082wrw.3
-        for <linux-media@vger.kernel.org>; Tue, 30 Oct 2018 09:40:04 -0700 (PDT)
+        Tue, 30 Oct 2018 21:38:10 -0400
+Received: by mail-pf1-f193.google.com with SMTP id z2-v6so3544977pfe.2
+        for <linux-media@vger.kernel.org>; Tue, 30 Oct 2018 09:43:57 -0700 (PDT)
 MIME-Version: 1.0
-From: Jean-Michel Hautbois <jhautbois@gmail.com>
-Date: Tue, 30 Oct 2018 17:41:06 +0100
-Message-ID: <CAL8zT=g1dquRZC=ZNO97nYjoX47JrZAUVrwJ+xVcR6LcmwY22g@mail.gmail.com>
-Subject: i.MX6: can't capture on MIPI-CSI2 with DS90UB954
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Philipp Zabel <p.zabel@pengutronix.de>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        kieran.bingham@ideasonboard.com
+References: <1540913482-22130-1-git-send-email-Julia.Lawall@lip6.fr> <1540913482-22130-3-git-send-email-Julia.Lawall@lip6.fr>
+In-Reply-To: <1540913482-22130-3-git-send-email-Julia.Lawall@lip6.fr>
+From: Matt Ranostay <matt.ranostay@konsulko.com>
+Date: Tue, 30 Oct 2018 09:43:10 -0700
+Message-ID: <CAJCx=gmixee=j_y9v__40x1StZXrtaK0wWrWDibMbYb3HAfnbA@mail.gmail.com>
+Subject: Re: [PATCH 2/2] media: video-i2c: hwmon: constify vb2_ops structure
+To: Julia.Lawall@lip6.fr
+Cc: kernel-janitors@vger.kernel.org, mchehab@kernel.org,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi there,
+On Tue, Oct 30, 2018 at 9:06 AM Julia Lawall <Julia.Lawall@lip6.fr> wrote:
+>
+> The vb2_ops structure can be const as it is only stored in the ops
+> field of a vb2_queue structure and this field is const.
+>
+> Done with the help of Coccinelle.
+>
+> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
 
-I am using the i.MX6D from Digi (connect core 6 sbc) with a mailine
-kernel (well, 4.14 right now) and have an issue with mipi-csi2
-capture.
-First I will give brief explanation of my setup, and then I will
-detail the issue.
-I have a camera sensor (OV2732, but could be any other sensor)
-connected on a DS90UB953 FPD-Link III serializer.
-Then a coax cable propagates the signal to a DS90UB954 FPD-Link III
-deserializer.
+Acked-by: Matt Ranostay <matt.ranostay@konsulko.com>
 
-The DS90UB954 has the ability to work in a pattern generation mode,
-and I will use it for the rest of the discussion.
-It is an I=C2=B2C device, and I have written a basic driver (for the moment
-;)) in order to make it visible on the imx6-mipi-csi2 bus as a camera
-sensor.
-I can give an access to the driver if necessary.
-
-I then program the MC pipeline :
-media-ctl -l "'ds90ub954 2-0034':0 -> 'imx6-mipi-csi2':0[1]" -v
-media-ctl -l "'imx6-mipi-csi2':1 -> 'ipu1_csi0_mux':0[1]" -v
-media-ctl -l "'ipu1_csi0_mux':2 -> 'ipu1_csi0':0[1]" -v
-media-ctl -l "'ipu1_csi0':2 -> 'ipu1_csi0 capture':0[1]"
-media-ctl -V "'ds90ub954 2-0034':0 [fmt:RGB888_1X24/1280x720 field:none]"
-media-ctl -V "'imx6-mipi-csi2':1 [fmt:RGB888_1X24/1280x720 field:none]"
-media-ctl -V "'ipu1_csi0_mux':2 [fmt:RGB888_1X24/1280x720 field:none]"
-media-ctl -V "'ipu1_csi0':2 [fmt:RGB888_1X24/1280x720 field:none]"
-
-Everything works fine, all nodes are correctly configured, and the
-DS90UB954 is normaly sending data on 2 lanes, with VC-ID=3D0.
-The pattern is 1280x720@30 RGB888.
-
-Then, I start a Gstreamer pipeline (I tried with v4l2-ctl and have the
-same issue though) :
-GST_DEBUG=3D"v4l2:5" gst-launch-1.0 v4l2src device=3D/dev/video4 !
-video/x-raw, width=3D1280, height=3D720, format=3DRGB ! fakesink
-
-And... well, I had to use this patch
-https://lkml.org/lkml/2017/3/11/270 in order to go further, but I am
-finishing into :
-[  164.077302] imx-ipuv3-csi imx-ipuv3-csi.0: stream ON
-[  164.097955] imx-ipuv3-csi imx-ipuv3-csi.0: FI=3D33333 usec
-[  165.129424] ipu1_csi0: EOF timeout
-[  165.142395] imx-ipuv3-csi imx-ipuv3-csi.0: stream OFF
-[  166.169299] ipu1_csi0: wait last EOF timeout
-
-Sounds like a recurrent issue on this ML :).
-I can think of several things which could explain this, but I tried a
-lot and am a bit stuck.
-The clock is set to 800MHz on DS90UB954 side.
-=3D> Should CSI2_PHY_TST_CTRL1 be 0x32 ? 0x12 ? or 0x4a (ie 400MHz) ?
-I think I have tried all but still the same issue.
-
-Maybe this could be a hint, when booting, the first stream-on leads to:
- imx6-mipi-csi2: LP-11 timeout, phy_state =3D 0x00000200 =3D> just a warnin=
-g now
- imx6-mipi-csi2: clock lane timeout, phy_state =3D 0x00000230
-The next one leads to the EOF timeout.
-
-Here is the dts part BTW :
-&i2c3 {
-    status =3D "okay";
-
-    ds90ub954: camera@34 {
-        compatible =3D "ti,ds90ub954";
-        status =3D "okay";
-        reg =3D <0x34>;
-        clocks =3D <&clks IMX6QDL_CLK_CKO>;
-        clock-names =3D "xclk";
-        port {
-            #address-cells =3D <1>;
-            #size-cells =3D <0>;
-
-            ds90ub954_out0: endpoint {
-                remote-endpoint =3D <&mipi_csi2_in>;
-                clock-lanes =3D <0>;
-                data-lanes =3D <1 2>;
-            };
-        };
-    };
-};
-
-&mipi_csi {
-    status =3D "okay";
-
-    port@0 {
-        reg =3D <0>;
-
-        mipi_csi2_in: endpoint {
-            remote-endpoint =3D <&ds90ub954_out0>;
-            clock-lanes =3D <0>;
-            data-lanes =3D <1 2>;
-        };
-    };
-};
-
-
-If ayone has a suggestion...
-Thanks a lot !
-
-Regards,
-JM
+>
+> ---
+>  drivers/media/i2c/video-i2c.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/i2c/video-i2c.c b/drivers/media/i2c/video-i2c.c
+> index 4d49af86c15e..cb89cda6553d 100644
+> --- a/drivers/media/i2c/video-i2c.c
+> +++ b/drivers/media/i2c/video-i2c.c
+> @@ -336,7 +336,7 @@ static void stop_streaming(struct vb2_queue *vq)
+>         video_i2c_del_list(vq, VB2_BUF_STATE_ERROR);
+>  }
+>
+> -static struct vb2_ops video_i2c_video_qops = {
+> +static const struct vb2_ops video_i2c_video_qops = {
+>         .queue_setup            = queue_setup,
+>         .buf_prepare            = buffer_prepare,
+>         .buf_queue              = buffer_queue,
+>
