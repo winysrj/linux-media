@@ -1,110 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out20-73.mail.aliyun.com ([115.124.20.73]:50790 "EHLO
-        out20-73.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726203AbeJ3RGP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 Oct 2018 13:06:15 -0400
-From: Yong Deng <yong.deng@magewell.com>
-To: Maxime Ripard <maxime.ripard@bootlin.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Neil Armstrong <narmstrong@baylibre.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Todor Tomov <todor.tomov@linaro.org>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Yong Deng <yong.deng@magewell.com>
-Subject: [PATCH v12 1/2] dt-bindings: media: Add Allwinner V3s Camera Sensor Interface (CSI)
-Date: Tue, 30 Oct 2018 16:12:23 +0800
-Message-Id: <1540887143-27904-1-git-send-email-yong.deng@magewell.com>
+Received: from mga05.intel.com ([192.55.52.43]:6246 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725935AbeJ3Mya (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 30 Oct 2018 08:54:30 -0400
+Subject: Re: [PATCH] media: dvb: fix a missing-check bug
+To: Wenwen Wang <wang6495@umn.edu>
+Cc: Kangjie Lu <kjlu@umn.edu>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, prabhakar.csengg@gmail.com
+References: <1539958334-11531-1-git-send-email-wang6495@umn.edu>
+ <CAAa=b7ceXdaB9KcZy9ML5pcEwMjYF0ibaB_f6LuuHFe_jSuMYQ@mail.gmail.com>
+From: Bing Bu Cao <bingbu.cao@linux.intel.com>
+Message-ID: <4cb84899-8856-654b-e38a-a800b56cf76c@linux.intel.com>
+Date: Tue, 30 Oct 2018 12:07:12 +0800
+MIME-Version: 1.0
+In-Reply-To: <CAAa=b7ceXdaB9KcZy9ML5pcEwMjYF0ibaB_f6LuuHFe_jSuMYQ@mail.gmail.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add binding documentation for Allwinner V3s CSI.
+I think need Cc to Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-Acked-by: Maxime Ripard <maxime.ripard@bootlin.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Reviewed-by: Rob Herring <robh@kernel.org>
-Signed-off-by: Yong Deng <yong.deng@magewell.com>
----
- .../devicetree/bindings/media/sun6i-csi.txt        | 56 ++++++++++++++++++++++
- 1 file changed, 56 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/sun6i-csi.txt
-
-diff --git a/Documentation/devicetree/bindings/media/sun6i-csi.txt b/Documentation/devicetree/bindings/media/sun6i-csi.txt
-new file mode 100644
-index 000000000000..443e18c181b3
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/sun6i-csi.txt
-@@ -0,0 +1,56 @@
-+Allwinner V3s Camera Sensor Interface
-+-------------------------------------
-+
-+Allwinner V3s SoC features a CSI module(CSI1) with parallel interface.
-+
-+Required properties:
-+  - compatible: value must be "allwinner,sun8i-v3s-csi"
-+  - reg: base address and size of the memory-mapped region.
-+  - interrupts: interrupt associated to this IP
-+  - clocks: phandles to the clocks feeding the CSI
-+    * bus: the CSI interface clock
-+    * mod: the CSI module clock
-+    * ram: the CSI DRAM clock
-+  - clock-names: the clock names mentioned above
-+  - resets: phandles to the reset line driving the CSI
-+
-+The CSI node should contain one 'port' child node with one child 'endpoint'
-+node, according to the bindings defined in
-+Documentation/devicetree/bindings/media/video-interfaces.txt.
-+
-+Endpoint node properties for CSI
-+---------------------------------
-+See the video-interfaces.txt for a detailed description of these properties.
-+- remote-endpoint	: (required) a phandle to the bus receiver's endpoint
-+			   node
-+- bus-width:		: (required) must be 8, 10, 12 or 16
-+- pclk-sample		: (optional) (default: sample on falling edge)
-+- hsync-active		: (required; parallel-only)
-+- vsync-active		: (required; parallel-only)
-+
-+Example:
-+
-+csi1: csi@1cb4000 {
-+	compatible = "allwinner,sun8i-v3s-csi";
-+	reg = <0x01cb4000 0x1000>;
-+	interrupts = <GIC_SPI 84 IRQ_TYPE_LEVEL_HIGH>;
-+	clocks = <&ccu CLK_BUS_CSI>,
-+		 <&ccu CLK_CSI1_SCLK>,
-+		 <&ccu CLK_DRAM_CSI>;
-+	clock-names = "bus", "mod", "ram";
-+	resets = <&ccu RST_BUS_CSI>;
-+
-+	port {
-+		/* Parallel bus endpoint */
-+		csi1_ep: endpoint {
-+			remote-endpoint = <&adv7611_ep>;
-+			bus-width = <16>;
-+
-+			/* If hsync-active/vsync-active are missing,
-+			   embedded BT.656 sync is used */
-+			hsync-active = <0>; /* Active low */
-+			vsync-active = <0>; /* Active low */
-+			pclk-sample = <1>;  /* Rising */
-+		};
-+	};
-+};
--- 
-1.8.3.1
+On 10/30/2018 02:46 AM, Wenwen Wang wrote:
+> Hello,
+>
+> Can anyone confirm this bug? Thanks!
+>
+> Wenwen
+>
+> On Fri, Oct 19, 2018 at 9:12 AM Wenwen Wang <wang6495@umn.edu> wrote:
+>> In dvb_audio_write(), the first byte of the user-space buffer 'buf' is
+>> firstly copied and checked to see whether this is a TS packet, which always
+>> starts with 0x47 for synchronization purposes. If yes, ts_play() will be
+>> called. Otherwise, dvb_aplay() will be called. In ts_play(), the content of
+>> 'buf', including the first byte, is copied again from the user space.
+>> However, after the copy, no check is re-enforced on the first byte of the
+>> copied data.  Given that 'buf' is in the user space, a malicious user can
+>> race to change the first byte after the check in dvb_audio_write() but
+>> before the copy in ts_play(). Through this way, the user can supply
+>> inconsistent code, which can cause undefined behavior of the kernel and
+>> introduce potential security risk.
+>>
+>> This patch adds a necessary check in ts_play() to make sure the first byte
+>> acquired in the second copy contains the expected value. Otherwise, an
+>> error code EINVAL will be returned.
+>>
+>> Signed-off-by: Wenwen Wang <wang6495@umn.edu>
+>> ---
+>>  drivers/media/pci/ttpci/av7110_av.c | 2 ++
+>>  1 file changed, 2 insertions(+)
+>>
+>> diff --git a/drivers/media/pci/ttpci/av7110_av.c b/drivers/media/pci/ttpci/av7110_av.c
+>> index ef1bc17..1ff6062 100644
+>> --- a/drivers/media/pci/ttpci/av7110_av.c
+>> +++ b/drivers/media/pci/ttpci/av7110_av.c
+>> @@ -468,6 +468,8 @@ static ssize_t ts_play(struct av7110 *av7110, const char __user *buf,
+>>                 }
+>>                 if (copy_from_user(kb, buf, TS_SIZE))
+>>                         return -EFAULT;
+>> +               if (kb[0] != 0x47)
+>> +                       return -EINVAL;
+>>                 write_ts_to_decoder(av7110, type, kb, TS_SIZE);
+>>                 todo -= TS_SIZE;
+>>                 buf += TS_SIZE;
+>> --
+>> 2.7.4
+>>
