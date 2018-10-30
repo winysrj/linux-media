@@ -1,178 +1,217 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay4-d.mail.gandi.net ([217.70.183.196]:40585 "EHLO
-        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725986AbeJaGMa (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:34294 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727838AbeJaGzY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 Oct 2018 02:12:30 -0400
-Date: Tue, 30 Oct 2018 22:17:19 +0100
-From: jacopo mondi <jacopo@jmondi.org>
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, hverkuil@xs4all.nl, mchehab@kernel.org
-Subject: Re: [PATCH 3/4] SoC camera: Remove the framework and the drivers
-Message-ID: <20181030211719.GJ15991@w540>
-References: <20181029230029.14630-1-sakari.ailus@linux.intel.com>
- <20181029232134.25831-1-sakari.ailus@linux.intel.com>
- <20181030064311.030b6a81@coco.lan>
- <20181030091409.76b07620@coco.lan>
- <20181030202857.GH15991@w540>
- <20181030173513.64f8ebe1@coco.lan>
+        Wed, 31 Oct 2018 02:55:24 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Matwey V. Kornilov" <matwey@sai.msu.ru>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        matwey.kornilov@gmail.com, tfiga@chromium.org,
+        stern@rowland.harvard.edu, ezequiel@collabora.com,
+        hdegoede@redhat.com, hverkuil@xs4all.nl, mchehab@kernel.org,
+        rostedt@goodmis.org, mingo@redhat.com, isely@pobox.com,
+        bhumirks@gmail.com, colin.king@canonical.com,
+        kieran.bingham@ideasonboard.com, keiichiw@chromium.org,
+        Christoph Hellwig <hch@infradead.org>
+Subject: Re: [PATCH v5 2/2] media: usb: pwc: Don't use coherent DMA buffers for ISO transfer
+Date: Wed, 31 Oct 2018 00:00:12 +0200
+Message-ID: <2213616.rQm4DhIJ7U@avalon>
+In-Reply-To: <20180821170629.18408-3-matwey@sai.msu.ru>
+References: <20180821170629.18408-1-matwey@sai.msu.ru> <20180821170629.18408-3-matwey@sai.msu.ru>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="XMHqbYJb993HXwLR"
-Content-Disposition: inline
-In-Reply-To: <20181030173513.64f8ebe1@coco.lan>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Matwey,
 
---XMHqbYJb993HXwLR
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+(CC'ing Christoph)
 
-On Tue, Oct 30, 2018 at 05:35:23PM -0300, Mauro Carvalho Chehab wrote:
-> Em Tue, 30 Oct 2018 21:28:57 +0100
-> jacopo mondi <jacopo@jmondi.org> escreveu:
->
-> > Hi Mauro,
-> >
-> > On Tue, Oct 30, 2018 at 09:14:09AM -0300, Mauro Carvalho Chehab wrote:
-> > > Em Tue, 30 Oct 2018 01:21:34 +0200
-> > > Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
-> > >
-> > > > The SoC camera framework has been obsolete for some time and it is no
-> > > > longer functional. A few drivers have been converted to the V4L2
-> > > > sub-device API but for the rest the conversion has not taken place yet.
-> > > >
-> > > > In order to keep the tree clean and to avoid keep maintaining
-> > > > non-functional and obsolete code, remove the SoC camera framework as well
-> > > > as the drivers that depend on it.
-> > > >
-> > > > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > > > ---
-> > > > Resending, this time with git format-patch -D .
-> > > >
-> > > >  MAINTAINERS                                        |    8 -
-> > > >  drivers/media/i2c/Kconfig                          |    8 -
-> > > >  drivers/media/i2c/Makefile                         |    1 -
-> > > >  drivers/media/i2c/soc_camera/Kconfig               |   66 -
-> > > >  drivers/media/i2c/soc_camera/Makefile              |   10 -
-> > > >  drivers/media/i2c/soc_camera/ov9640.h              |  208 --
-> > > >  drivers/media/i2c/soc_camera/soc_mt9m001.c         |  757 -------
-> > > >  drivers/media/i2c/soc_camera/soc_mt9t112.c         | 1157 -----------
-> > > >  drivers/media/i2c/soc_camera/soc_mt9v022.c         | 1012 ---------
-> > > >  drivers/media/i2c/soc_camera/soc_ov5642.c          | 1087 ----------
-> > > >  drivers/media/i2c/soc_camera/soc_ov772x.c          | 1123 ----------
-> > > >  drivers/media/i2c/soc_camera/soc_ov9640.c          |  738 -------
-> > > >  drivers/media/i2c/soc_camera/soc_ov9740.c          |  996 ---------
-> > > >  drivers/media/i2c/soc_camera/soc_rj54n1cb0c.c      | 1415 -------------
-> > > >  drivers/media/i2c/soc_camera/soc_tw9910.c          |  999 ---------
-> > >
-> > > I don't see why we should remove those. I mean, Jacopo is
-> > > actually converting those drivers to not depend on soc_camera,
-> > > and it is a way better to review those patches with the old
-> > > code in place.
-> >
-> > I have converted a few drivers used by some SH boards where I dropped
-> > dependencies on soc_camera, not to remove camera support from those. For
-> > others I don't have cameras to test with, nor I know about boards in
-> > mainline using them.
-> >
-> > From my side, driver conversion is done.
-> >
-> > >
-> > > So, at least while Jacopo is keep doing this work, I would keep
-> > > at Kernel tree, as it helps to see a diff when the driver changes
-> > > when getting rid of soc_camera dependencies.
-> > >
-> > > So, IMO, the best would be to move those to /staging, eventually
-> > > depending on BROKEN.
-> >
-> > However, somebody with a (rather old) development setup using those camera
-> > sensor may wants to see if mainline supports them. We actually had a
-> > few patches coming lately (for ov. I understand Sakari's argument that those
-> > could be retrieved from git history, but a few people will notice imo.
-> > I also understand the additional maintainership burden of keeping them
-> > around, so I'm fine with either ways ;)
-> >
-> > This is a list of the current situation in mainline, to have a better
-> > idea:
-> >
-> > $for i in `seq 1 9`; do CAM=$(head -n $i /tmp/soc_cams | tail -n 1); echo  $CAM; find drivers/media/ -name  $CAM; done
-> > t9m001.c
-> > drivers/media/i2c/soc_camera/mt9m001.c
-> > mt9t112.c
-> > drivers/media/i2c/mt9t112.c
-> > drivers/media/i2c/soc_camera/mt9t112.c
-> > mt9v022.c
-> > drivers/media/i2c/soc_camera/mt9v022.c
-> > ov5642.c
-> > drivers/media/i2c/soc_camera/ov5642.c
-> > ov772x.c
-> > drivers/media/i2c/ov772x.c
-> > drivers/media/i2c/soc_camera/ov772x.c
-> > ov9640.c
-> > drivers/media/i2c/soc_camera/ov9640.c
-> > ov9740.c
-> > drivers/media/i2c/soc_camera/ov9740.c
-> > rj54n1cb0c.c
-> > drivers/media/i2c/rj54n1cb0c.c
-> > drivers/media/i2c/soc_camera/rj54n1cb0c.c
-> > tw9910.c
-> > drivers/media/i2c/tw9910.c
-> > drivers/media/i2c/soc_camera/tw9910.c
-> >
-> > So it seems to me only the following sensor do not have a
-> > non-soc_camera driver at the moment:
-> >
-> > mt9m001.c
-> > mt9v022.c
-> > ov5642.c
-> > ov9640.c
-> > ov9740.c
+Thank you for the patch, and my apologies for the late answer. For the record, 
+I don't think this should have been blocked by lack of time on my side: even 
+if I'm one of the core developers in the subsystem, and possibly have the most 
+experience with USB webcams recently due to uvcvideo, patches shouldn't be 
+blocked indefinitely by the absence of reply from anyone, me included.
 
-For a few of them (mt9m001, ov5642) there are cheap modules available
-online. The others ones have public documentation. I know they are old
-and dusty, supporting only parallel video interface.
+(On a side note, thanks to Ezequiel for pointing my attention to this patch in 
+our face to face meeting during ELCE, side channels are very useful in this 
+kind of situation, including IRC.)
 
->
-> Ok. So, what about keeping just those 5 drivers at staging? If, after an
-> year, people won't do conversions, we can just drop them.
->
+On Tuesday, 21 August 2018 20:06:29 EET Matwey V. Kornilov wrote:
+> DMA cocherency slows the transfer down on systems without hardware
+> coherent DMA.
+> Instead we use noncocherent DMA memory and explicit sync at data receive
+> handler.
+> 
+> Based on previous commit the following performance benchmarks have been
+> carried out. Average memcpy() data transfer rate (rate) and handler
+> completion time (time) have been measured when running video stream at
+> 640x480 resolution at 10fps.
+> 
+> x86_64 based system (Intel Core i5-3470). This platform has hardware
+> coherent DMA support and proposed change doesn't make big difference here.
+> 
+>  * kmalloc:            rate = (2.0 +- 0.4) GBps
+>                        time = (5.0 +- 3.0) usec
+>  * usb_alloc_coherent: rate = (3.4 +- 1.2) GBps
+>                        time = (3.5 +- 3.0) usec
+> 
+> We see that the measurements agree within error ranges in this case.
+> So theoretically predicted performance downgrade cannot be reliably
+> measured here.
+> 
+> armv7l based system (TI AM335x BeagleBone Black @ 300MHz). This platform
+> has no hardware coherent DMA support. DMA coherence is implemented via
+> disabled page caching that slows down memcpy() due to memory controller
+> behaviour.
+> 
+>  * kmalloc:            rate =  (114 +- 5) MBps
+>                        time =   (84 +- 4) usec
+>  * usb_alloc_coherent: rate = (28.1 +- 0.1) MBps
+>                        time =  (341 +- 2) usec
+> 
+> Note, that quantative difference leads (this commit leads to 4 times
+> acceleration) to qualitative behavior change in this case. As it was
+> stated before, the video stream cannot be successfully received at AM335x
+> platforms with MUSB based USB host controller due to performance issues
+> [1].
+> 
+> [1] https://www.spinics.net/lists/linux-usb/msg165735.html
+> 
+> Signed-off-by: Matwey V. Kornilov <matwey@sai.msu.ru>
+> ---
+>  drivers/media/usb/pwc/pwc-if.c | 57 ++++++++++++++++++++++++++++++--------
+>  1 file changed, 44 insertions(+), 13 deletions(-)
+> 
+> diff --git a/drivers/media/usb/pwc/pwc-if.c b/drivers/media/usb/pwc/pwc-if.c
+> index 72d2897a4b9f..1360722ab423 100644
+> --- a/drivers/media/usb/pwc/pwc-if.c
+> +++ b/drivers/media/usb/pwc/pwc-if.c
+> @@ -159,6 +159,32 @@ static const struct video_device pwc_template = {
+>  /**************************************************************************
+> */ /* Private functions */
+> 
+> +static void *pwc_alloc_urb_buffer(struct device *dev,
+> +				  size_t size, dma_addr_t *dma_handle)
+> +{
+> +	void *buffer = kmalloc(size, GFP_KERNEL);
+> +
+> +	if (!buffer)
+> +		return NULL;
+> +
+> +	*dma_handle = dma_map_single(dev, buffer, size, DMA_FROM_DEVICE);
+> +	if (dma_mapping_error(dev, *dma_handle)) {
+> +		kfree(buffer);
+> +		return NULL;
+> +	}
+> +
+> +	return buffer;
 
-Let's see what Sakari and Hans think. Again, I'm fine with both ways
-;)
+As discussed before, we're clearly missing a proper non-coherent memory 
+allocation API. As much as I would like to see a volunteer for this, I don't 
+think it's a reason to block the performance improvement we get from this 
+patch.
 
-Thanks
-   j
+This being said, I'm a bit concerned about the allocation of 16kB blocks from 
+kmalloc(), and believe that the priority of the non-coherent memory allocation 
+API implementation should be increased. Christoph, you mentioned in a recent 
+discussion on this topic that you are working on removing the existing non-
+coherent DMA allocation API, what is your opinion on how we should gllobally 
+solve the problem that this patch addresses ?
 
-> In any case, if we're ripping off soc_camera from the main tree,
-> moving to staging, no dependencies for soc_camera.h should be
-> kept at main tree. If any driver requires it, it should also be
-> moved to staging.
->
-> Thanks,
-> Mauro
+> +}
+> +
+> +static void pwc_free_urb_buffer(struct device *dev,
+> +				size_t size,
+> +				void *buffer,
+> +				dma_addr_t dma_handle)
+> +{
+> +	dma_unmap_single(dev, dma_handle, size, DMA_FROM_DEVICE);
+> +	kfree(buffer);
+> +}
+> +
+>  static struct pwc_frame_buf *pwc_get_next_fill_buf(struct pwc_device *pdev)
+> {
+>  	unsigned long flags = 0;
+> @@ -306,6 +332,11 @@ static void pwc_isoc_handler(struct urb *urb)
+>  	/* Reset ISOC error counter. We did get here, after all. */
+>  	pdev->visoc_errors = 0;
+> 
+> +	dma_sync_single_for_cpu(&urb->dev->dev,
+> +				urb->transfer_dma,
+> +				urb->transfer_buffer_length,
+> +				DMA_FROM_DEVICE);
+> +
 
---XMHqbYJb993HXwLR
-Content-Type: application/pgp-signature; name="signature.asc"
+As explained before as well, I think we need dma_sync_single_for_device() 
+calls, and I know they would degrade performances until we fix the problem on 
+the DMA mapping API side. This is not a reason to block the patch either. I 
+would appreciate, however, if a comment could be added to the place where 
+dma_sync_single_for_device() should be called, to explain the problem.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+Is there anyone who would like to volunteer to drive the effort on the DMA 
+mapping API side ? I'm unfortunately too short on time to address this myself 
+:-(
 
-iQIcBAABCAAGBQJb2MpfAAoJEHI0Bo8WoVY8OVMP/jLbxz/vRU2HvF5bEsjjGVs+
-vyznffIwYJKwa4BAW746sLlEfNzynmes/mr5Z1cWs3KIbjITcg8/wuejcoDc2aIK
-2I0aJ6oqZE/Vc2E/HOUKpD3tcwEraoaL8uQCdPKFQDMnnVIutF0f85ogAJVYRHhG
-93t3ya9Q4MvhBe0czXpGiT51xm+hmn9ICQzFlBKedUf7A9euuCXnhcraOfK5gXRF
-hZ4PBpEHsndv8yh42I1kjioe4COf4zWo7WhFZLHldYcFzvkirPRj+br2C8so+x6N
-P4RsfUsQjaxJQc6GhJ29Po+HdiXLyrcIMzgMIJp4lixkf4FoAkB154STUX4JNcOn
-n8TPjugtVWKviH6XsuQanfxaxj3E6zBSDHdTLGwFbQCjNRNOcuXGEnMrmv/oB0bI
-hw07acDl7IkbwlaVqCTdcOGzbRd2+WVmxJGpSmLWlccFNQ+CXBP0cc/4lrw8Lwuf
-9SOzB9i5PSoRyNeDNPHdJvAPmuDeoHrlbBrnXdQRlh8Nh/UHr/kLufpsorhnVSEL
-34Srg4xEJ1H5Za4ExDTbZsXAt8EQB9zMkIMk5n/8I147LZW2s8qDMd0jaKR4400F
-OeMrbcb8YcJUL7A5mtEyXrIgRDAXRxnotZ0ItagiwG7ccqLCDQuAysYajW9mwpAr
-bfrBi1pKYbw8DtPWpHCu
-=6IfE
------END PGP SIGNATURE-----
+>  	/* vsync: 0 = don't copy data
+>  		  1 = sync-hunt
+>  		  2 = synched
+> @@ -428,16 +459,15 @@ static int pwc_isoc_init(struct pwc_device *pdev)
+>  		urb->dev = udev;
+>  		urb->pipe = usb_rcvisocpipe(udev, pdev->vendpoint);
+>  		urb->transfer_flags = URB_ISO_ASAP | URB_NO_TRANSFER_DMA_MAP;
+> -		urb->transfer_buffer = usb_alloc_coherent(udev,
+> -							  ISO_BUFFER_SIZE,
+> -							  GFP_KERNEL,
+> -							  &urb->transfer_dma);
+> +		urb->transfer_buffer_length = ISO_BUFFER_SIZE;
+> +		urb->transfer_buffer = pwc_alloc_urb_buffer(&udev->dev,
+> +							    urb->transfer_buffer_length,
+> +							    &urb->transfer_dma);
+>  		if (urb->transfer_buffer == NULL) {
+>  			PWC_ERROR("Failed to allocate urb buffer %d\n", i);
+>  			pwc_isoc_cleanup(pdev);
+>  			return -ENOMEM;
+>  		}
+> -		urb->transfer_buffer_length = ISO_BUFFER_SIZE;
+>  		urb->complete = pwc_isoc_handler;
+>  		urb->context = pdev;
+>  		urb->start_frame = 0;
+> @@ -488,15 +518,16 @@ static void pwc_iso_free(struct pwc_device *pdev)
+> 
+>  	/* Freeing ISOC buffers one by one */
+>  	for (i = 0; i < MAX_ISO_BUFS; i++) {
+> -		if (pdev->urbs[i]) {
+> +		struct urb *urb = pdev->urbs[i];
+> +
+> +		if (urb) {
+>  			PWC_DEBUG_MEMORY("Freeing URB\n");
+> -			if (pdev->urbs[i]->transfer_buffer) {
+> -				usb_free_coherent(pdev->udev,
+> -					pdev->urbs[i]->transfer_buffer_length,
+> -					pdev->urbs[i]->transfer_buffer,
+> -					pdev->urbs[i]->transfer_dma);
+> -			}
+> -			usb_free_urb(pdev->urbs[i]);
+> +			if (urb->transfer_buffer)
+> +				pwc_free_urb_buffer(&urb->dev->dev,
+> +						    urb->transfer_buffer_length,
+> +						    urb->transfer_buffer,
+> +						    urb->transfer_dma);
+> +			usb_free_urb(urb);
+>  			pdev->urbs[i] = NULL;
+>  		}
+>  	}
 
---XMHqbYJb993HXwLR--
+The rest of the patch looks fine, so
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+(if possible with a comment about dma_sync_single_for_device() added)
+
+-- 
+Regards,
+
+Laurent Pinchart
