@@ -1,61 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:47179 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727210AbeJVVgC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 Oct 2018 17:36:02 -0400
-Date: Mon, 22 Oct 2018 14:17:27 +0100
-From: Sean Young <sean@mess.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Torbjorn Jansson <torbjorn.jansson@mbox200.swipnet.se>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        stable@vger.kernel.org
-Subject: Re: [PATCH] media: rc: cec devices do not have a lirc chardev
-Message-ID: <20181022131727.yf5e6gorccs3m6w7@gofer.mess.org>
-References: <b067e063-641c-0498-4989-3edda5296f9a@mbox200.swipnet.se>
- <e2bb2b91-861b-8cdc-4ad4-939e50019214@xs4all.nl>
- <20181022085910.2gndxc75zcqkto5z@gofer.mess.org>
- <1a63a5b5-644f-cef4-d0ad-9ae3bf491f9a@mbox200.swipnet.se>
- <20181022101405.v7setqacuftrafrb@gofer.mess.org>
- <45261f15-b022-8871-b087-937988b3bf1f@xs4all.nl>
- <20181022122842.mvrvpfyaflvmtbf6@gofer.mess.org>
+Received: from casper.infradead.org ([85.118.1.10]:35224 "EHLO
+        casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727339AbeJ3VH2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 30 Oct 2018 17:07:28 -0400
+Date: Tue, 30 Oct 2018 09:14:09 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+        mchehab@kernel.org, jacopo mondi <jacopo@jmondi.org>
+Subject: Re: [PATCH 3/4] SoC camera: Remove the framework and the drivers
+Message-ID: <20181030091409.76b07620@coco.lan>
+In-Reply-To: <20181030064311.030b6a81@coco.lan>
+References: <20181029230029.14630-1-sakari.ailus@linux.intel.com>
+ <20181029232134.25831-1-sakari.ailus@linux.intel.com>
+ <20181030064311.030b6a81@coco.lan>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20181022122842.mvrvpfyaflvmtbf6@gofer.mess.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Oct 22, 2018 at 01:28:42PM +0100, Sean Young wrote:
-> On Mon, Oct 22, 2018 at 12:30:29PM +0100, Hans Verkuil wrote:
-> > On 10/22/2018 11:14 AM, Sean Young wrote:
-> > > Would you be able to test the following patch please?
-> > 
-> > Sean,
-> > 
-> > I think you should be able to test this with the vivid driver. Load the vivid driver,
-> > run:
-> > 
-> > cec-ctl --tv; cec-ctl -d1 --playback
-> > 
-> > Then:
-> > 
-> > cec-ctl -d1 -t0 --user-control-pressed ui-cmd=F5
-> 
-> Ah, thanks. That will help with testing/reproducing.
->  
-> > That said, I tried this, but it doesn't crash for me, but perhaps I need to run
-> > some RC command first...
-> 
-> Hmm I think those commands should be enough. It probably needs
-> CONFIG_DEBUG_SPINLOCK to detect the uninitialized spinlock. I'm trying it now.
+Em Tue, 30 Oct 2018 01:21:34 +0200
+Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
 
-Yes, that turned out to work. With CONFIG_DEBUG_SPINLOCK on, it goes bang
-every time. With the patch, the problem goes away.
+> The SoC camera framework has been obsolete for some time and it is no
+> longer functional. A few drivers have been converted to the V4L2
+> sub-device API but for the rest the conversion has not taken place yet.
+> 
+> In order to keep the tree clean and to avoid keep maintaining
+> non-functional and obsolete code, remove the SoC camera framework as well
+> as the drivers that depend on it.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+> Resending, this time with git format-patch -D .
+> 
+>  MAINTAINERS                                        |    8 -
+>  drivers/media/i2c/Kconfig                          |    8 -
+>  drivers/media/i2c/Makefile                         |    1 -
+>  drivers/media/i2c/soc_camera/Kconfig               |   66 -
+>  drivers/media/i2c/soc_camera/Makefile              |   10 -
+>  drivers/media/i2c/soc_camera/ov9640.h              |  208 --
+>  drivers/media/i2c/soc_camera/soc_mt9m001.c         |  757 -------
+>  drivers/media/i2c/soc_camera/soc_mt9t112.c         | 1157 -----------
+>  drivers/media/i2c/soc_camera/soc_mt9v022.c         | 1012 ---------
+>  drivers/media/i2c/soc_camera/soc_ov5642.c          | 1087 ----------
+>  drivers/media/i2c/soc_camera/soc_ov772x.c          | 1123 ----------
+>  drivers/media/i2c/soc_camera/soc_ov9640.c          |  738 -------
+>  drivers/media/i2c/soc_camera/soc_ov9740.c          |  996 ---------
+>  drivers/media/i2c/soc_camera/soc_rj54n1cb0c.c      | 1415 -------------
+>  drivers/media/i2c/soc_camera/soc_tw9910.c          |  999 ---------  
 
-Without CONFIG_DEBUG_SPINLOCK we're going into undefined behaviour, so 
-Torbjorn you're only seeing the oops occassionally (and which is why it has
-not been observed or reported before).
+I don't see why we should remove those. I mean, Jacopo is
+actually converting those drivers to not depend on soc_camera,
+and it is a way better to review those patches with the old
+code in place.
+
+So, at least while Jacopo is keep doing this work, I would keep
+at Kernel tree, as it helps to see a diff when the driver changes
+when getting rid of soc_camera dependencies.
+
+So, IMO, the best would be to move those to /staging, eventually
+depending on BROKEN.
 
 Thanks,
-
-Sean
+Mauro
