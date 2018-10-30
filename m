@@ -1,141 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io1-f71.google.com ([209.85.166.71]:55065 "EHLO
-        mail-io1-f71.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727231AbeJaEqz (ORCPT
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:52409 "EHLO
+        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725743AbeJaFYA (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 Oct 2018 00:46:55 -0400
-Received: by mail-io1-f71.google.com with SMTP id q26-v6so11893804ioi.21
-        for <linux-media@vger.kernel.org>; Tue, 30 Oct 2018 12:52:03 -0700 (PDT)
+        Wed, 31 Oct 2018 01:24:00 -0400
+Date: Tue, 30 Oct 2018 21:28:57 +0100
+From: jacopo mondi <jacopo@jmondi.org>
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, hverkuil@xs4all.nl, mchehab@kernel.org
+Subject: Re: [PATCH 3/4] SoC camera: Remove the framework and the drivers
+Message-ID: <20181030202857.GH15991@w540>
+References: <20181029230029.14630-1-sakari.ailus@linux.intel.com>
+ <20181029232134.25831-1-sakari.ailus@linux.intel.com>
+ <20181030064311.030b6a81@coco.lan>
+ <20181030091409.76b07620@coco.lan>
 MIME-Version: 1.0
-Date: Tue, 30 Oct 2018 12:52:03 -0700
-Message-ID: <00000000000003920305797785a0@google.com>
-Subject: general protection fault in __vb2_queue_free
-From: syzbot <syzbot+e1fb118a2ebb88031d21@syzkaller.appspotmail.com>
-To: kyungmin.park@samsung.com, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-        mchehab@kernel.org, pawel@osciak.com,
-        syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="37nyS7qXrnu4wN2o"
+Content-Disposition: inline
+In-Reply-To: <20181030091409.76b07620@coco.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
 
-syzbot found the following crash on:
+--37nyS7qXrnu4wN2o
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-HEAD commit:    11743c56785c Merge tag 'rpmsg-v4.20' of git://github.com/a..
-git tree:       upstream
-console output: https://syzkaller.appspot.com/x/log.txt?x=14bf1713400000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=93932074d01b4a5
-dashboard link: https://syzkaller.appspot.com/bug?extid=e1fb118a2ebb88031d21
-compiler:       gcc (GCC) 8.0.1 20180413 (experimental)
+Hi Mauro,
 
-Unfortunately, I don't have any reproducer for this crash yet.
+On Tue, Oct 30, 2018 at 09:14:09AM -0300, Mauro Carvalho Chehab wrote:
+> Em Tue, 30 Oct 2018 01:21:34 +0200
+> Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+>
+> > The SoC camera framework has been obsolete for some time and it is no
+> > longer functional. A few drivers have been converted to the V4L2
+> > sub-device API but for the rest the conversion has not taken place yet.
+> >
+> > In order to keep the tree clean and to avoid keep maintaining
+> > non-functional and obsolete code, remove the SoC camera framework as we=
+ll
+> > as the drivers that depend on it.
+> >
+> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > ---
+> > Resending, this time with git format-patch -D .
+> >
+> >  MAINTAINERS                                        |    8 -
+> >  drivers/media/i2c/Kconfig                          |    8 -
+> >  drivers/media/i2c/Makefile                         |    1 -
+> >  drivers/media/i2c/soc_camera/Kconfig               |   66 -
+> >  drivers/media/i2c/soc_camera/Makefile              |   10 -
+> >  drivers/media/i2c/soc_camera/ov9640.h              |  208 --
+> >  drivers/media/i2c/soc_camera/soc_mt9m001.c         |  757 -------
+> >  drivers/media/i2c/soc_camera/soc_mt9t112.c         | 1157 -----------
+> >  drivers/media/i2c/soc_camera/soc_mt9v022.c         | 1012 ---------
+> >  drivers/media/i2c/soc_camera/soc_ov5642.c          | 1087 ----------
+> >  drivers/media/i2c/soc_camera/soc_ov772x.c          | 1123 ----------
+> >  drivers/media/i2c/soc_camera/soc_ov9640.c          |  738 -------
+> >  drivers/media/i2c/soc_camera/soc_ov9740.c          |  996 ---------
+> >  drivers/media/i2c/soc_camera/soc_rj54n1cb0c.c      | 1415 -------------
+> >  drivers/media/i2c/soc_camera/soc_tw9910.c          |  999 ---------
+>
+> I don't see why we should remove those. I mean, Jacopo is
+> actually converting those drivers to not depend on soc_camera,
+> and it is a way better to review those patches with the old
+> code in place.
 
-IMPORTANT: if you fix the bug, please add the following tag to the commit:
-Reported-by: syzbot+e1fb118a2ebb88031d21@syzkaller.appspotmail.com
+I have converted a few drivers used by some SH boards where I dropped
+dependencies on soc_camera, not to remove camera support from those. For
+others I don't have cameras to test with, nor I know about boards in
+mainline using them.
 
-kasan: CONFIG_KASAN_INLINE enabled
-kasan: GPF could be caused by NULL-ptr deref or user memory access
-general protection fault: 0000 [#1] PREEMPT SMP KASAN
-CPU: 1 PID: 21444 Comm: syz-executor2 Not tainted 4.19.0+ #88
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
-Google 01/01/2011
-RIP: 0010:vb2_vmalloc_put_userptr+0x73/0x250  
-drivers/media/common/videobuf2/videobuf2-vmalloc.c:136
-Code: fc ff df 48 c1 ea 03 80 3c 02 00 0f 85 c2 01 00 00 48 b8 00 00 00 00  
-00 fc ff df 49 8b 5e 08 48 8d 7b 09 48 89 fa 48 c1 ea 03 <0f> b6 04 02 48  
-89 fa 83 e2 07 38 d0 7f 08 84 c0 0f 85 72 01 00 00
-kobject: 'loop5' (000000004024c834): kobject_uevent_env
-RSP: 0018:ffff8801bef179c8 EFLAGS: 00010202
-RAX: dffffc0000000000 RBX: 0000000000000000 RCX: 1ffffffff113e0ac
-RDX: 0000000000000001 RSI: ffffffff854c11d9 RDI: 0000000000000009
-RBP: ffff8801bef179f8 R08: ffff880185bd6080 R09: ffffed0037896c66
-R10: ffff8801bef17af0 R11: ffff8801bc4b6337 R12: ffffc900021cb000
-kobject: 'loop5' (000000004024c834): fill_kobj_path: path  
-= '/devices/virtual/block/loop5'
-R13: 0000000000000000 R14: ffff8801c02be500 R15: ffff8801c02be500
-FS:  0000000002556940(0000) GS:ffff8801daf00000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 0000000000625208 CR3: 00000001cc0f1000 CR4: 00000000001406e0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-Call Trace:
-  __vb2_buf_userptr_put drivers/media/common/videobuf2/videobuf2-core.c:258  
-[inline]
-  __vb2_free_mem drivers/media/common/videobuf2/videobuf2-core.c:415 [inline]
-  __vb2_queue_free+0x4b1/0xa30  
-drivers/media/common/videobuf2/videobuf2-core.c:456
-  vb2_core_queue_release+0x62/0x80  
-drivers/media/common/videobuf2/videobuf2-core.c:2055
-  vb2_queue_release+0x15/0x20  
-drivers/media/common/videobuf2/videobuf2-v4l2.c:672
-  v4l2_m2m_ctx_release+0x1e/0x35 drivers/media/v4l2-core/v4l2-mem2mem.c:927
-  vicodec_release+0xbd/0x120  
-drivers/media/platform/vicodec/vicodec-core.c:1236
-  v4l2_release+0xfb/0x1a0 drivers/media/v4l2-core/v4l2-dev.c:448
-  __fput+0x385/0xa30 fs/file_table.c:278
-  ____fput+0x15/0x20 fs/file_table.c:309
-  task_work_run+0x1e8/0x2a0 kernel/task_work.c:113
-  tracehook_notify_resume include/linux/tracehook.h:188 [inline]
-  exit_to_usermode_loop+0x318/0x380 arch/x86/entry/common.c:166
-  prepare_exit_to_usermode arch/x86/entry/common.c:197 [inline]
-  syscall_return_slowpath arch/x86/entry/common.c:268 [inline]
-  do_syscall_64+0x6be/0x820 arch/x86/entry/common.c:293
-  entry_SYSCALL_64_after_hwframe+0x49/0xbe
-RIP: 0033:0x411021
-Code: 75 14 b8 03 00 00 00 0f 05 48 3d 01 f0 ff ff 0f 83 34 19 00 00 c3 48  
-83 ec 08 e8 0a fc ff ff 48 89 04 24 b8 03 00 00 00 0f 05 <48> 8b 3c 24 48  
-89 c2 e8 53 fc ff ff 48 89 d0 48 83 c4 08 48 3d 01
-RSP: 002b:00007ffdeb7c5970 EFLAGS: 00000293 ORIG_RAX: 0000000000000003
-RAX: 0000000000000000 RBX: 0000000000000004 RCX: 0000000000411021
-RDX: 0000000000000000 RSI: 0000000000730ff0 RDI: 0000000000000003
-RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
-R10: 00007ffdeb7c5890 R11: 0000000000000293 R12: 0000000000000000
-R13: 0000000000000001 R14: 00000000000002f3 R15: 0000000000000002
-Modules linked in:
-kobject: 'loop4' (00000000ce261bad): kobject_uevent_env
-kobject: 'loop4' (00000000ce261bad): fill_kobj_path: path  
-= '/devices/virtual/block/loop4'
----[ end trace 7be6f1c122f23a75 ]---
-RIP: 0010:vb2_vmalloc_put_userptr+0x73/0x250  
-drivers/media/common/videobuf2/videobuf2-vmalloc.c:136
-Code: fc ff df 48 c1 ea 03 80 3c 02 00 0f 85 c2 01 00 00 48 b8 00 00 00 00  
-00 fc ff df 49 8b 5e 08 48 8d 7b 09 48 89 fa 48 c1 ea 03 <0f> b6 04 02 48  
-89 fa 83 e2 07 38 d0 7f 08 84 c0 0f 85 72 01 00 00
-kobject: 'loop1' (00000000b4e7381a): kobject_uevent_env
-RSP: 0018:ffff8801bef179c8 EFLAGS: 00010202
-kobject: 'loop1' (00000000b4e7381a): fill_kobj_path: path  
-= '/devices/virtual/block/loop1'
-RAX: dffffc0000000000 RBX: 0000000000000000 RCX: 1ffffffff113e0ac
-RDX: 0000000000000001 RSI: ffffffff854c11d9 RDI: 0000000000000009
-kobject: 'loop5' (000000004024c834): kobject_uevent_env
-RBP: ffff8801bef179f8 R08: ffff880185bd6080 R09: ffffed0037896c66
-kobject: 'loop5' (000000004024c834): fill_kobj_path: path  
-= '/devices/virtual/block/loop5'
-R10: ffff8801bef17af0 R11: ffff8801bc4b6337 R12: ffffc900021cb000
-R13: 0000000000000000 R14: ffff8801c02be500 R15: ffff8801c02be500
-kobject: 'loop4' (00000000ce261bad): kobject_uevent_env
-FS:  0000000002556940(0000) GS:ffff8801dae00000(0000) knlGS:0000000000000000
-kobject: 'loop4' (00000000ce261bad): fill_kobj_path: path  
-= '/devices/virtual/block/loop4'
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 0000001b2e622000 CR3: 00000001cc0f1000 CR4: 00000000001406f0
-kobject: 'loop0' (00000000b291ab68): kobject_uevent_env
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-kobject: 'loop0' (00000000b291ab68): fill_kobj_path: path  
-= '/devices/virtual/block/loop0'
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-kobject: 'loop3' (00000000e559060a): kobject_uevent_env
-kobject: 'loop3' (00000000e559060a): fill_kobj_path: path  
-= '/devices/virtual/block/loop3'
+=46rom my side, driver conversion is done.
 
+>
+> So, at least while Jacopo is keep doing this work, I would keep
+> at Kernel tree, as it helps to see a diff when the driver changes
+> when getting rid of soc_camera dependencies.
+>
+> So, IMO, the best would be to move those to /staging, eventually
+> depending on BROKEN.
 
----
-This bug is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
+However, somebody with a (rather old) development setup using those camera
+sensor may wants to see if mainline supports them. We actually had a
+few patches coming lately (for ov. I understand Sakari's argument that those
+could be retrieved from git history, but a few people will notice imo.
+I also understand the additional maintainership burden of keeping them
+around, so I'm fine with either ways ;)
 
-syzbot will keep track of this bug report. See:
-https://goo.gl/tpsmEJ#bug-status-tracking for how to communicate with  
-syzbot.
+This is a list of the current situation in mainline, to have a better
+idea:
+
+$for i in `seq 1 9`; do CAM=3D$(head -n $i /tmp/soc_cams | tail -n 1); echo=
+  $CAM; find drivers/media/ -name  $CAM; done
+t9m001.c
+drivers/media/i2c/soc_camera/mt9m001.c
+mt9t112.c
+drivers/media/i2c/mt9t112.c
+drivers/media/i2c/soc_camera/mt9t112.c
+mt9v022.c
+drivers/media/i2c/soc_camera/mt9v022.c
+ov5642.c
+drivers/media/i2c/soc_camera/ov5642.c
+ov772x.c
+drivers/media/i2c/ov772x.c
+drivers/media/i2c/soc_camera/ov772x.c
+ov9640.c
+drivers/media/i2c/soc_camera/ov9640.c
+ov9740.c
+drivers/media/i2c/soc_camera/ov9740.c
+rj54n1cb0c.c
+drivers/media/i2c/rj54n1cb0c.c
+drivers/media/i2c/soc_camera/rj54n1cb0c.c
+tw9910.c
+drivers/media/i2c/tw9910.c
+drivers/media/i2c/soc_camera/tw9910.c
+
+So it seems to me only the following sensor do not have a
+non-soc_camera driver at the moment:
+
+mt9m001.c
+mt9v022.c
+ov5642.c
+ov9640.c
+ov9740.c
+
+Thanks
+   j
+
+>
+> Thanks,
+> Mauro
+
+--37nyS7qXrnu4wN2o
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABCAAGBQJb2L8JAAoJEHI0Bo8WoVY8lfAQAKWT2vuZ+w/txYZrDeUqbhRf
+f3dCCklpR88dHv65kxgC2gkW1aZLeUxzDW34zTf0hwXyFQ+t1S5Gx8z9aXMT8MHq
+Nx+LE7mfl0ZY7pwVtLnqoTHAciofO/FcEd9mfCFutGb7iTeoI4NHH6GV9lq6ql8O
+6JjXlIfKvalNYDVZTi0j3cdpdm9Z6LurPIbO+/qh0Rj4X5M9Ac5mgLSazwwClCHD
+iACeqXVPZuYA4bHWbr+Tmti2pB8KzI5QRzfErnwdAJVzocDnS+ilqNJeZwDOvnYJ
+Ss6bCKdmxob79mW11YmZ5mUCr/KuFMEJevKpzL81qF14KdZYgyKHp8O6jWv83TyV
+grL1Pl5T/16Nwq7cK5VDHwW6/gCWS+/h7AEOzvASdZHoM4RJQbzCahVxzzS1WbeP
+Fka9TFf78gJT94eo0vCn+NLjZ7s40THjAs9L+WM2H/Af+844E2ZFFCiYUKePbHXT
+Y15Uub2BBczvPwKgKRulht061f7LPIYkdcd6DBuDK6M+DgBmvTPfF3i/gOddVOiM
+xWOYem9uTZ7uoGFsNasLDrUPc6ZLR4m+ISTTw/pFQDVioGSUZlQBiZYCGLu3wtQS
+/hDTH5f5xiuuUCEIaEiLhOIFDM40cInYEgaM2lnCo2LlxTFiysJ6Q9aBYMJIT+hj
+eaxRq353dD0e11s1mkue
+=mT5E
+-----END PGP SIGNATURE-----
+
+--37nyS7qXrnu4wN2o--
