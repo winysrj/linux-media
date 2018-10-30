@@ -1,36 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:36942 "EHLO
-        casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726683AbeJ3Vab (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:56352 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725853AbeJ3V7r (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 Oct 2018 17:30:31 -0400
-Date: Tue, 30 Oct 2018 09:09:12 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-        mchehab@kernel.org, jacopo mondi <jacopo@jmondi.org>
-Subject: Re: [PATCH 3/4] SoC camera: Remove the framework and the drivers
-Message-ID: <20181030090912.637fdb8e@coco.lan>
-In-Reply-To: <20181030090608.3d08220b@coco.lan>
-References: <20181029230029.14630-1-sakari.ailus@linux.intel.com>
-        <20181029232134.25831-1-sakari.ailus@linux.intel.com>
-        <20181030064311.030b6a81@coco.lan>
-        <20181030090608.3d08220b@coco.lan>
+        Tue, 30 Oct 2018 17:59:47 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Yong Deng <yong.deng@magewell.com>
+Cc: Maxime Ripard <maxime.ripard@bootlin.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Neil Armstrong <narmstrong@baylibre.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Todor Tomov <todor.tomov@linaro.org>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH v12 1/2] dt-bindings: media: Add Allwinner V3s Camera Sensor Interface (CSI)
+Date: Tue, 30 Oct 2018 15:06:24 +0200
+Message-ID: <308184907.pMD7ZDI2dr@avalon>
+In-Reply-To: <1540887143-27904-1-git-send-email-yong.deng@magewell.com>
+References: <1540887143-27904-1-git-send-email-yong.deng@magewell.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 30 Oct 2018 09:06:08 -0300
-Mauro Carvalho Chehab <mchehab+samsung@kernel.org> escreveu:
+Hi Yong,
 
-> Em Tue, 30 Oct 2018 06:43:41 -0300
-> Mauro Carvalho Chehab <mchehab+samsung@kernel.org> escreveu:
+Thank you for the patch.
 
-Please ignore this e-mail. I'm experiencing some e-mail troubles today.
+On Tuesday, 30 October 2018 10:12:23 EET Yong Deng wrote:
+> Add binding documentation for Allwinner V3s CSI.
+> 
+> Acked-by: Maxime Ripard <maxime.ripard@bootlin.com>
+> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Reviewed-by: Rob Herring <robh@kernel.org>
+> Signed-off-by: Yong Deng <yong.deng@magewell.com>
 
-Will resend it properly.
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
+> ---
+>  .../devicetree/bindings/media/sun6i-csi.txt        | 56 +++++++++++++++++++
+>  1 file changed, 56 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/sun6i-csi.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/sun6i-csi.txt
+> b/Documentation/devicetree/bindings/media/sun6i-csi.txt new file mode
+> 100644
+> index 000000000000..443e18c181b3
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/sun6i-csi.txt
+> @@ -0,0 +1,56 @@
+> +Allwinner V3s Camera Sensor Interface
+> +-------------------------------------
+> +
+> +Allwinner V3s SoC features a CSI module(CSI1) with parallel interface.
+> +
+> +Required properties:
+> +  - compatible: value must be "allwinner,sun8i-v3s-csi"
+> +  - reg: base address and size of the memory-mapped region.
+> +  - interrupts: interrupt associated to this IP
+> +  - clocks: phandles to the clocks feeding the CSI
+> +    * bus: the CSI interface clock
+> +    * mod: the CSI module clock
+> +    * ram: the CSI DRAM clock
+> +  - clock-names: the clock names mentioned above
+> +  - resets: phandles to the reset line driving the CSI
+> +
+> +The CSI node should contain one 'port' child node with one child 'endpoint'
+> +node, according to the bindings defined in
+> +Documentation/devicetree/bindings/media/video-interfaces.txt.
+> +
+> +Endpoint node properties for CSI
+> +---------------------------------
+> +See the video-interfaces.txt for a detailed description of these
+> properties. +- remote-endpoint	: (required) a phandle to the bus receiver's
+> endpoint +			   node
+> +- bus-width:		: (required) must be 8, 10, 12 or 16
+> +- pclk-sample		: (optional) (default: sample on falling edge)
+> +- hsync-active		: (required; parallel-only)
+> +- vsync-active		: (required; parallel-only)
+> +
+> +Example:
+> +
+> +csi1: csi@1cb4000 {
+> +	compatible = "allwinner,sun8i-v3s-csi";
+> +	reg = <0x01cb4000 0x1000>;
+> +	interrupts = <GIC_SPI 84 IRQ_TYPE_LEVEL_HIGH>;
+> +	clocks = <&ccu CLK_BUS_CSI>,
+> +		 <&ccu CLK_CSI1_SCLK>,
+> +		 <&ccu CLK_DRAM_CSI>;
+> +	clock-names = "bus", "mod", "ram";
+> +	resets = <&ccu RST_BUS_CSI>;
+> +
+> +	port {
+> +		/* Parallel bus endpoint */
+> +		csi1_ep: endpoint {
+> +			remote-endpoint = <&adv7611_ep>;
+> +			bus-width = <16>;
+> +
+> +			/* If hsync-active/vsync-active are missing,
+> +			   embedded BT.656 sync is used */
+> +			hsync-active = <0>; /* Active low */
+> +			vsync-active = <0>; /* Active low */
+> +			pclk-sample = <1>;  /* Rising */
+> +		};
+> +	};
+> +};
+
+
+-- 
 Regards,
-Mauro
+
+Laurent Pinchart
