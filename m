@@ -1,300 +1,416 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:57210 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.133]:45238 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725988AbeJaA0E (ORCPT
+        with ESMTP id S1726503AbeJaAbF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 Oct 2018 20:26:04 -0400
-Date: Tue, 30 Oct 2018 06:43:41 -0300
+        Tue, 30 Oct 2018 20:31:05 -0400
+Date: Tue, 30 Oct 2018 06:50:37 -0300
 From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-        mchehab@kernel.org, jacopo mondi <jacopo@jmondi.org>
-Subject: Re: [PATCH 3/4] SoC camera: Remove the framework and the drivers
-Message-ID: <20181030064311.030b6a81@coco.lan>
-In-Reply-To: <20181029232134.25831-1-sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl, mchehab@kernel.org
+Subject: Re: [PATCH 4/4] SoC camera: Tidy the header
+Message-ID: <20181030065037.17f5ef62@coco.lan>
+In-Reply-To: <20181029230029.14630-5-sakari.ailus@linux.intel.com>
 References: <20181029230029.14630-1-sakari.ailus@linux.intel.com>
-        <20181029232134.25831-1-sakari.ailus@linux.intel.com>
+        <20181029230029.14630-5-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 30 Oct 2018 01:21:34 +0200
+Em Tue, 30 Oct 2018 01:00:29 +0200
 Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
 
-> The SoC camera framework has been obsolete for some time and it is no
-> longer functional. A few drivers have been converted to the V4L2
-> sub-device API but for the rest the conversion has not taken place yet.
-> 
-> In order to keep the tree clean and to avoid keep maintaining
-> non-functional and obsolete code, remove the SoC camera framework as well
-> as the drivers that depend on it.
+> Clean up the SoC camera framework header. It only exists now to keep board
+> code compiling. The header can be removed once the board code dependencies
+> to it has been removed.
 > 
 > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 > ---
-> Resending, this time with git format-patch -D .
+>  include/media/soc_camera.h | 335 ---------------------------------------------
+>  1 file changed, 335 deletions(-)
 > 
->  MAINTAINERS                                        |    8 -
->  drivers/media/i2c/Kconfig                          |    8 -
->  drivers/media/i2c/Makefile                         |    1 -
->  drivers/media/i2c/soc_camera/Kconfig               |   66 -
->  drivers/media/i2c/soc_camera/Makefile              |   10 -
->  drivers/media/i2c/soc_camera/ov9640.h              |  208 --
->  drivers/media/i2c/soc_camera/soc_mt9m001.c         |  757 -------
->  drivers/media/i2c/soc_camera/soc_mt9t112.c         | 1157 -----------
->  drivers/media/i2c/soc_camera/soc_mt9v022.c         | 1012 ---------
->  drivers/media/i2c/soc_camera/soc_ov5642.c          | 1087 ----------
->  drivers/media/i2c/soc_camera/soc_ov772x.c          | 1123 ----------
->  drivers/media/i2c/soc_camera/soc_ov9640.c          |  738 -------
->  drivers/media/i2c/soc_camera/soc_ov9740.c          |  996 ---------
->  drivers/media/i2c/soc_camera/soc_rj54n1cb0c.c      | 1415 -------------
->  drivers/media/i2c/soc_camera/soc_tw9910.c          |  999 ---------
+> diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
+> index b7e42a1b0910..14d19da6052a 100644
+> --- a/include/media/soc_camera.h
+> +++ b/include/media/soc_camera.h
+> @@ -22,172 +22,6 @@
+>  #include <media/v4l2-ctrls.h>
+>  #include <media/v4l2-device.h>
 
-I don't see why we should remove those. I mean, Jacopo is
-actually converting those drivers to not depend on soc_camera,
-and it is a way better to review those patches with the old
-code in place.
+That doesn't make any sense. soc_camera.h should have the same fate
+as the entire soc_camera infrastructure: either be removed or moved
+to staging, and everything else that doesn't have the same fate
+should get rid of this header.
 
-IMHO, the best would be to move those to /staging, eventually
-depending on BROKEN.
+Regards,
+Mauro
 
->  drivers/media/platform/Kconfig                     |    1 -
->  drivers/media/platform/Makefile                    |    2 -
->  drivers/media/platform/soc_camera/Kconfig          |   26 -
->  drivers/media/platform/soc_camera/Makefile         |    9 -
->  .../platform/soc_camera/sh_mobile_ceu_camera.c     | 1810 ----------------
->  drivers/media/platform/soc_camera/soc_camera.c     | 2169 --------------------
->  .../platform/soc_camera/soc_camera_platform.c      |  188 --
->  drivers/media/platform/soc_camera/soc_mediabus.c   |  533 -----
->  drivers/media/platform/soc_camera/soc_scale_crop.c |  426 ----
->  drivers/media/platform/soc_camera/soc_scale_crop.h |   47 -
->  drivers/staging/media/Kconfig                      |    4 -
->  drivers/staging/media/Makefile                     |    2 -
->  drivers/staging/media/imx074/Kconfig               |    5 -
->  drivers/staging/media/imx074/Makefile              |    1 -
->  drivers/staging/media/imx074/TODO                  |    5 -
->  drivers/staging/media/imx074/imx074.c              |  496 -----
->  drivers/staging/media/mt9t031/Kconfig              |    5 -
->  drivers/staging/media/mt9t031/Makefile             |    1 -
->  drivers/staging/media/mt9t031/TODO                 |    5 -
->  drivers/staging/media/mt9t031/mt9t031.c            |  857 --------
->  35 files changed, 16177 deletions(-)
->  delete mode 100644 drivers/media/i2c/soc_camera/Kconfig
->  delete mode 100644 drivers/media/i2c/soc_camera/Makefile
->  delete mode 100644 drivers/media/i2c/soc_camera/ov9640.h
->  delete mode 100644 drivers/media/i2c/soc_camera/soc_mt9m001.c
->  delete mode 100644 drivers/media/i2c/soc_camera/soc_mt9t112.c
->  delete mode 100644 drivers/media/i2c/soc_camera/soc_mt9v022.c
->  delete mode 100644 drivers/media/i2c/soc_camera/soc_ov5642.c
->  delete mode 100644 drivers/media/i2c/soc_camera/soc_ov772x.c
->  delete mode 100644 drivers/media/i2c/soc_camera/soc_ov9640.c
->  delete mode 100644 drivers/media/i2c/soc_camera/soc_ov9740.c
->  delete mode 100644 drivers/media/i2c/soc_camera/soc_rj54n1cb0c.c
->  delete mode 100644 drivers/media/i2c/soc_camera/soc_tw9910.c
->  delete mode 100644 drivers/media/platform/soc_camera/Kconfig
->  delete mode 100644 drivers/media/platform/soc_camera/Makefile
->  delete mode 100644 drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
->  delete mode 100644 drivers/media/platform/soc_camera/soc_camera.c
->  delete mode 100644 drivers/media/platform/soc_camera/soc_camera_platform.c
->  delete mode 100644 drivers/media/platform/soc_camera/soc_mediabus.c
->  delete mode 100644 drivers/media/platform/soc_camera/soc_scale_crop.c
->  delete mode 100644 drivers/media/platform/soc_camera/soc_scale_crop.h
->  delete mode 100644 drivers/staging/media/imx074/Kconfig
->  delete mode 100644 drivers/staging/media/imx074/Makefile
->  delete mode 100644 drivers/staging/media/imx074/TODO
->  delete mode 100644 drivers/staging/media/imx074/imx074.c
->  delete mode 100644 drivers/staging/media/mt9t031/Kconfig
->  delete mode 100644 drivers/staging/media/mt9t031/Makefile
->  delete mode 100644 drivers/staging/media/mt9t031/TODO
->  delete mode 100644 drivers/staging/media/mt9t031/mt9t031.c
-> 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 23021e0df5d7..788de30125c1 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -13422,14 +13422,6 @@ L:	netdev@vger.kernel.org
->  S:	Maintained
->  F:	drivers/net/ethernet/smsc/smsc9420.*
 >  
-> -SOC-CAMERA V4L2 SUBSYSTEM
-> -L:	linux-media@vger.kernel.org
-> -T:	git git://linuxtv.org/media_tree.git
-> -S:	Orphan
-> -F:	include/media/soc*
-> -F:	drivers/media/i2c/soc_camera/
-> -F:	drivers/media/platform/soc_camera/
+> -struct file;
+> -struct soc_camera_desc;
+> -struct soc_camera_async_client;
 > -
->  SOCIONEXT SYNQUACER I2C DRIVER
->  M:	Ard Biesheuvel <ard.biesheuvel@linaro.org>
->  L:	linux-i2c@vger.kernel.org
-> diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-> index 704af210e270..c7683ac5a3d8 100644
-> --- a/drivers/media/i2c/Kconfig
-> +++ b/drivers/media/i2c/Kconfig
-> @@ -1091,12 +1091,4 @@ config VIDEO_I2C
->  
->  endmenu
->  
-> -menu "Sensors used on soc_camera driver"
+> -struct soc_camera_device {
+> -	struct list_head list;		/* list of all registered devices */
+> -	struct soc_camera_desc *sdesc;
+> -	struct device *pdev;		/* Platform device */
+> -	struct device *parent;		/* Camera host device */
+> -	struct device *control;		/* E.g., the i2c client */
+> -	s32 user_width;
+> -	s32 user_height;
+> -	u32 bytesperline;		/* for padding, zero if unused */
+> -	u32 sizeimage;
+> -	enum v4l2_colorspace colorspace;
+> -	unsigned char iface;		/* Host number */
+> -	unsigned char devnum;		/* Device number per host */
+> -	struct soc_camera_sense *sense;	/* See comment in struct definition */
+> -	struct video_device *vdev;
+> -	struct v4l2_ctrl_handler ctrl_handler;
+> -	const struct soc_camera_format_xlate *current_fmt;
+> -	struct soc_camera_format_xlate *user_formats;
+> -	int num_user_formats;
+> -	enum v4l2_field field;		/* Preserve field over close() */
+> -	void *host_priv;		/* Per-device host private data */
+> -	/* soc_camera.c private count. Only accessed with .host_lock held */
+> -	int use_count;
+> -	struct file *streamer;		/* stream owner */
+> -	struct v4l2_clk *clk;
+> -	/* Asynchronous subdevice management */
+> -	struct soc_camera_async_client *sasc;
+> -	/* video buffer queue */
+> -	struct vb2_queue vb2_vidq;
+> -};
 > -
-> -if SOC_CAMERA
-> -	source "drivers/media/i2c/soc_camera/Kconfig"
-> -endif
+> -/* Host supports programmable stride */
+> -#define SOCAM_HOST_CAP_STRIDE		(1 << 0)
 > -
-> -endmenu
+> -enum soc_camera_subdev_role {
+> -	SOCAM_SUBDEV_DATA_SOURCE = 1,
+> -	SOCAM_SUBDEV_DATA_SINK,
+> -	SOCAM_SUBDEV_DATA_PROCESSOR,
+> -};
 > -
->  endif
-> diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
-> index 260d4d9ec2a1..d83d1f2a08ee 100644
-> --- a/drivers/media/i2c/Makefile
-> +++ b/drivers/media/i2c/Makefile
-> @@ -6,7 +6,6 @@ obj-$(CONFIG_VIDEO_SMIAPP)	+= smiapp/
->  obj-$(CONFIG_VIDEO_ET8EK8)	+= et8ek8/
->  obj-$(CONFIG_VIDEO_CX25840) += cx25840/
->  obj-$(CONFIG_VIDEO_M5MOLS)	+= m5mols/
-> -obj-y				+= soc_camera/
->  
->  obj-$(CONFIG_VIDEO_APTINA_PLL) += aptina-pll.o
->  obj-$(CONFIG_VIDEO_TVAUDIO) += tvaudio.o
-> diff --git a/drivers/media/i2c/soc_camera/Kconfig b/drivers/media/i2c/soc_camera/Kconfig
-> deleted file mode 100644
-> index 7c2aabc8a3f6..000000000000
-> diff --git a/drivers/media/i2c/soc_camera/Makefile b/drivers/media/i2c/soc_camera/Makefile
-> deleted file mode 100644
-> index 09ae483b96ef..000000000000
-> diff --git a/drivers/media/i2c/soc_camera/ov9640.h b/drivers/media/i2c/soc_camera/ov9640.h
-> deleted file mode 100644
-> index 65d13ff17536..000000000000
-> diff --git a/drivers/media/i2c/soc_camera/soc_mt9m001.c b/drivers/media/i2c/soc_camera/soc_mt9m001.c
-> deleted file mode 100644
-> index a1a85ff838c5..000000000000
-> diff --git a/drivers/media/i2c/soc_camera/soc_mt9t112.c b/drivers/media/i2c/soc_camera/soc_mt9t112.c
-> deleted file mode 100644
-> index ea1ff270bc2d..000000000000
-> diff --git a/drivers/media/i2c/soc_camera/soc_mt9v022.c b/drivers/media/i2c/soc_camera/soc_mt9v022.c
-> deleted file mode 100644
-> index 6d922b17ea94..000000000000
-> diff --git a/drivers/media/i2c/soc_camera/soc_ov5642.c b/drivers/media/i2c/soc_camera/soc_ov5642.c
-> deleted file mode 100644
-> index 0931898c79dd..000000000000
-> diff --git a/drivers/media/i2c/soc_camera/soc_ov772x.c b/drivers/media/i2c/soc_camera/soc_ov772x.c
-> deleted file mode 100644
-> index fafd372527b2..000000000000
-> diff --git a/drivers/media/i2c/soc_camera/soc_ov9640.c b/drivers/media/i2c/soc_camera/soc_ov9640.c
-> deleted file mode 100644
-> index eb91b8240083..000000000000
-> diff --git a/drivers/media/i2c/soc_camera/soc_ov9740.c b/drivers/media/i2c/soc_camera/soc_ov9740.c
-> deleted file mode 100644
-> index a07d3145d1b4..000000000000
-> diff --git a/drivers/media/i2c/soc_camera/soc_rj54n1cb0c.c b/drivers/media/i2c/soc_camera/soc_rj54n1cb0c.c
-> deleted file mode 100644
-> index f0cb49a6167b..000000000000
-> diff --git a/drivers/media/i2c/soc_camera/soc_tw9910.c b/drivers/media/i2c/soc_camera/soc_tw9910.c
-> deleted file mode 100644
-> index bdb5e0a431e9..000000000000
-> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-> index 0edacfb01f3a..87bca0fe37a4 100644
-> --- a/drivers/media/platform/Kconfig
-> +++ b/drivers/media/platform/Kconfig
-> @@ -132,7 +132,6 @@ config VIDEO_RENESAS_CEU
->  	---help---
->  	  This is a v4l2 driver for the Renesas CEU Interface
->  
-> -source "drivers/media/platform/soc_camera/Kconfig"
->  source "drivers/media/platform/exynos4-is/Kconfig"
->  source "drivers/media/platform/am437x/Kconfig"
->  source "drivers/media/platform/xilinx/Kconfig"
-> diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
-> index 6ab6200dd9c9..ad1d47c1a3b1 100644
-> --- a/drivers/media/platform/Makefile
-> +++ b/drivers/media/platform/Makefile
-> @@ -59,8 +59,6 @@ obj-y					+= davinci/
->  
->  obj-$(CONFIG_VIDEO_SH_VOU)		+= sh_vou.o
->  
-> -obj-$(CONFIG_SOC_CAMERA)		+= soc_camera/
+> -struct soc_camera_async_subdev {
+> -	struct v4l2_async_subdev asd;
+> -	enum soc_camera_subdev_role role;
+> -};
 > -
->  obj-$(CONFIG_VIDEO_RCAR_DRIF)		+= rcar_drif.o
->  obj-$(CONFIG_VIDEO_RENESAS_CEU)		+= renesas-ceu.o
->  obj-$(CONFIG_VIDEO_RENESAS_FCP)		+= rcar-fcp.o
-> diff --git a/drivers/media/platform/soc_camera/Kconfig b/drivers/media/platform/soc_camera/Kconfig
-> deleted file mode 100644
-> index 669d116b8f09..000000000000
-> diff --git a/drivers/media/platform/soc_camera/Makefile b/drivers/media/platform/soc_camera/Makefile
-> deleted file mode 100644
-> index 07a451e8b228..000000000000
-> diff --git a/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c b/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
-> deleted file mode 100644
-> index 6803f744e307..000000000000
-> diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
-> deleted file mode 100644
-> index 0a70fb67c401..000000000000
-> diff --git a/drivers/media/platform/soc_camera/soc_camera_platform.c b/drivers/media/platform/soc_camera/soc_camera_platform.c
-> deleted file mode 100644
-> index 79fbe1fea95f..000000000000
-> diff --git a/drivers/media/platform/soc_camera/soc_mediabus.c b/drivers/media/platform/soc_camera/soc_mediabus.c
-> deleted file mode 100644
-> index be74008ec0ca..000000000000
-> diff --git a/drivers/media/platform/soc_camera/soc_scale_crop.c b/drivers/media/platform/soc_camera/soc_scale_crop.c
-> deleted file mode 100644
-> index 8d25ca0490f7..000000000000
-> diff --git a/drivers/media/platform/soc_camera/soc_scale_crop.h b/drivers/media/platform/soc_camera/soc_scale_crop.h
-> deleted file mode 100644
-> index 9ca469312a1f..000000000000
-> diff --git a/drivers/staging/media/Kconfig b/drivers/staging/media/Kconfig
-> index db5cf67047ad..ad0de8a22313 100644
-> --- a/drivers/staging/media/Kconfig
-> +++ b/drivers/staging/media/Kconfig
-> @@ -25,10 +25,6 @@ source "drivers/staging/media/davinci_vpfe/Kconfig"
->  
->  source "drivers/staging/media/imx/Kconfig"
->  
-> -source "drivers/staging/media/imx074/Kconfig"
+> -struct soc_camera_host {
+> -	struct v4l2_device v4l2_dev;
+> -	struct list_head list;
+> -	struct mutex host_lock;		/* Main synchronisation lock */
+> -	struct mutex clk_lock;		/* Protect pipeline modifications */
+> -	unsigned char nr;		/* Host number */
+> -	u32 capabilities;
+> -	struct soc_camera_device *icd;	/* Currently attached client */
+> -	void *priv;
+> -	const char *drv_name;
+> -	struct soc_camera_host_ops *ops;
+> -	struct v4l2_async_subdev **asd;	/* Flat array, arranged in groups */
+> -	unsigned int *asd_sizes;	/* 0-terminated array of asd group sizes */
+> -};
 > -
-> -source "drivers/staging/media/mt9t031/Kconfig"
+> -struct soc_camera_host_ops {
+> -	struct module *owner;
+> -	int (*add)(struct soc_camera_device *);
+> -	void (*remove)(struct soc_camera_device *);
+> -	int (*clock_start)(struct soc_camera_host *);
+> -	void (*clock_stop)(struct soc_camera_host *);
+> -	/*
+> -	 * .get_formats() is called for each client device format, but
+> -	 * .put_formats() is only called once. Further, if any of the calls to
+> -	 * .get_formats() fail, .put_formats() will not be called at all, the
+> -	 * failing .get_formats() must then clean up internally.
+> -	 */
+> -	int (*get_formats)(struct soc_camera_device *, unsigned int,
+> -			   struct soc_camera_format_xlate *);
+> -	void (*put_formats)(struct soc_camera_device *);
+> -	int (*get_selection)(struct soc_camera_device *, struct v4l2_selection *);
+> -	int (*set_selection)(struct soc_camera_device *, struct v4l2_selection *);
+> -	/*
+> -	 * The difference to .set_selection() is, that .set_liveselection is not allowed
+> -	 * to change the output sizes
+> -	 */
+> -	int (*set_liveselection)(struct soc_camera_device *, struct v4l2_selection *);
+> -	int (*set_fmt)(struct soc_camera_device *, struct v4l2_format *);
+> -	int (*try_fmt)(struct soc_camera_device *, struct v4l2_format *);
+> -	int (*init_videobuf2)(struct vb2_queue *,
+> -			      struct soc_camera_device *);
+> -	int (*querycap)(struct soc_camera_host *, struct v4l2_capability *);
+> -	int (*set_bus_param)(struct soc_camera_device *);
+> -	int (*get_parm)(struct soc_camera_device *, struct v4l2_streamparm *);
+> -	int (*set_parm)(struct soc_camera_device *, struct v4l2_streamparm *);
+> -	int (*enum_framesizes)(struct soc_camera_device *, struct v4l2_frmsizeenum *);
+> -	__poll_t (*poll)(struct file *, poll_table *);
+> -};
 > -
->  source "drivers/staging/media/omap4iss/Kconfig"
+> -#define SOCAM_SENSOR_INVERT_PCLK	(1 << 0)
+> -#define SOCAM_SENSOR_INVERT_MCLK	(1 << 1)
+> -#define SOCAM_SENSOR_INVERT_HSYNC	(1 << 2)
+> -#define SOCAM_SENSOR_INVERT_VSYNC	(1 << 3)
+> -#define SOCAM_SENSOR_INVERT_DATA	(1 << 4)
+> -
+> -struct i2c_board_info;
+> -struct regulator_bulk_data;
+> -
+> -struct soc_camera_subdev_desc {
+> -	/* Per camera SOCAM_SENSOR_* bus flags */
+> -	unsigned long flags;
+> -
+> -	/* sensor driver private platform data */
+> -	void *drv_priv;
+> -
+> -	/*
+> -	 * Set unbalanced_power to true to deal with legacy drivers, failing to
+> -	 * balance their calls to subdevice's .s_power() method. clock_state is
+> -	 * then used internally by helper functions, it shouldn't be touched by
+> -	 * drivers or the platform code.
+> -	 */
+> -	bool unbalanced_power;
+> -	unsigned long clock_state;
+> -
+> -	/* Optional callbacks to power on or off and reset the sensor */
+> -	int (*power)(struct device *, int);
+> -	int (*reset)(struct device *);
+> -
+> -	/*
+> -	 * some platforms may support different data widths than the sensors
+> -	 * native ones due to different data line routing. Let the board code
+> -	 * overwrite the width flags.
+> -	 */
+> -	int (*set_bus_param)(struct soc_camera_subdev_desc *, unsigned long flags);
+> -	unsigned long (*query_bus_param)(struct soc_camera_subdev_desc *);
+> -	void (*free_bus)(struct soc_camera_subdev_desc *);
+> -
+> -	/* Optional regulators that have to be managed on power on/off events */
+> -	struct v4l2_subdev_platform_data sd_pdata;
+> -};
+> -
+> -struct soc_camera_host_desc {
+> -	/* Camera bus id, used to match a camera and a bus */
+> -	int bus_id;
+> -	int i2c_adapter_id;
+> -	struct i2c_board_info *board_info;
+> -	const char *module_name;
+> -
+> -	/*
+> -	 * For non-I2C devices platform has to provide methods to add a device
+> -	 * to the system and to remove it
+> -	 */
+> -	int (*add_device)(struct soc_camera_device *);
+> -	void (*del_device)(struct soc_camera_device *);
+> -};
+> -
+> -/*
+> - * Platform data for "soc-camera-pdrv"
+> - * This MUST be kept binary-identical to struct soc_camera_link below, until
+> - * it is completely replaced by this one, after which we can split it into its
+> - * two components.
+> - */
+> -struct soc_camera_desc {
+> -	struct soc_camera_subdev_desc subdev_desc;
+> -	struct soc_camera_host_desc host_desc;
+> -};
+> -
+>  /* Prepare to replace this struct: don't change its layout any more! */
+>  struct soc_camera_link {
+>  	/*
+> @@ -200,11 +34,6 @@ struct soc_camera_link {
 >  
->  source "drivers/staging/media/tegra-vde/Kconfig"
-> diff --git a/drivers/staging/media/Makefile b/drivers/staging/media/Makefile
-> index 503fbe47fa58..2d268d3905e5 100644
-> --- a/drivers/staging/media/Makefile
-> +++ b/drivers/staging/media/Makefile
-> @@ -1,8 +1,6 @@
->  # SPDX-License-Identifier: GPL-2.0
->  obj-$(CONFIG_I2C_BCM2048)	+= bcm2048/
->  obj-$(CONFIG_VIDEO_IMX_MEDIA)	+= imx/
-> -obj-$(CONFIG_SOC_CAMERA_IMX074)	+= imx074/
-> -obj-$(CONFIG_SOC_CAMERA_MT9T031)	+= mt9t031/
->  obj-$(CONFIG_VIDEO_DM365_VPFE)	+= davinci_vpfe/
->  obj-$(CONFIG_VIDEO_OMAP4)	+= omap4iss/
->  obj-$(CONFIG_TEGRA_VDE)		+= tegra-vde/
-> diff --git a/drivers/staging/media/imx074/Kconfig b/drivers/staging/media/imx074/Kconfig
-> deleted file mode 100644
-> index 229cbeea580b..000000000000
-> diff --git a/drivers/staging/media/imx074/Makefile b/drivers/staging/media/imx074/Makefile
-> deleted file mode 100644
-> index 7d183574aa84..000000000000
-> diff --git a/drivers/staging/media/imx074/TODO b/drivers/staging/media/imx074/TODO
-> deleted file mode 100644
-> index 15580a4f950c..000000000000
-> diff --git a/drivers/staging/media/imx074/imx074.c b/drivers/staging/media/imx074/imx074.c
-> deleted file mode 100644
-> index 1676c166dc83..000000000000
-> diff --git a/drivers/staging/media/mt9t031/Kconfig b/drivers/staging/media/mt9t031/Kconfig
-> deleted file mode 100644
-> index 9a58aaf72edd..000000000000
-> diff --git a/drivers/staging/media/mt9t031/Makefile b/drivers/staging/media/mt9t031/Makefile
-> deleted file mode 100644
-> index bfd24c442b33..000000000000
-> diff --git a/drivers/staging/media/mt9t031/TODO b/drivers/staging/media/mt9t031/TODO
-> deleted file mode 100644
-> index 15580a4f950c..000000000000
-> diff --git a/drivers/staging/media/mt9t031/mt9t031.c b/drivers/staging/media/mt9t031/mt9t031.c
-> deleted file mode 100644
-> index 4ff179302b4f..000000000000
-
+>  	void *priv;
+>  
+> -	/* Set by platforms to handle misbehaving drivers */
+> -	bool unbalanced_power;
+> -	/* Used by soc-camera helper functions */
+> -	unsigned long clock_state;
+> -
+>  	/* Optional callbacks to power on or off and reset the sensor */
+>  	int (*power)(struct device *, int);
+>  	int (*reset)(struct device *);
+> @@ -217,12 +46,6 @@ struct soc_camera_link {
+>  	unsigned long (*query_bus_param)(struct soc_camera_link *);
+>  	void (*free_bus)(struct soc_camera_link *);
+>  
+> -	/* Optional regulators that have to be managed on power on/off events */
+> -	struct regulator_bulk_data *regulators;
+> -	int num_regulators;
+> -
+> -	void *host_priv;
+> -
+>  	/*
+>  	 * Host part - keep at bottom and compatible to
+>  	 * struct soc_camera_host_desc
+> @@ -233,168 +56,10 @@ struct soc_camera_link {
+>  	int i2c_adapter_id;
+>  	struct i2c_board_info *board_info;
+>  	const char *module_name;
+> -
+> -	/*
+> -	 * For non-I2C devices platform has to provide methods to add a device
+> -	 * to the system and to remove it
+> -	 */
+> -	int (*add_device)(struct soc_camera_device *);
+> -	void (*del_device)(struct soc_camera_device *);
+> -};
+> -
+> -static inline struct soc_camera_host *to_soc_camera_host(
+> -	const struct device *dev)
+> -{
+> -	struct v4l2_device *v4l2_dev = dev_get_drvdata(dev);
+> -
+> -	return container_of(v4l2_dev, struct soc_camera_host, v4l2_dev);
+> -}
+> -
+> -static inline struct soc_camera_desc *to_soc_camera_desc(
+> -	const struct soc_camera_device *icd)
+> -{
+> -	return icd->sdesc;
+> -}
+> -
+> -static inline struct device *to_soc_camera_control(
+> -	const struct soc_camera_device *icd)
+> -{
+> -	return icd->control;
+> -}
+> -
+> -static inline struct v4l2_subdev *soc_camera_to_subdev(
+> -	const struct soc_camera_device *icd)
+> -{
+> -	struct device *control = to_soc_camera_control(icd);
+> -	return dev_get_drvdata(control);
+> -}
+> -
+> -int soc_camera_host_register(struct soc_camera_host *ici);
+> -void soc_camera_host_unregister(struct soc_camera_host *ici);
+> -
+> -const struct soc_camera_format_xlate *soc_camera_xlate_by_fourcc(
+> -	struct soc_camera_device *icd, unsigned int fourcc);
+> -
+> -/**
+> - * struct soc_camera_format_xlate - match between host and sensor formats
+> - * @code: code of a sensor provided format
+> - * @host_fmt: host format after host translation from code
+> - *
+> - * Host and sensor translation structure. Used in table of host and sensor
+> - * formats matchings in soc_camera_device. A host can override the generic list
+> - * generation by implementing get_formats(), and use it for format checks and
+> - * format setup.
+> - */
+> -struct soc_camera_format_xlate {
+> -	u32 code;
+> -	const struct soc_mbus_pixelfmt *host_fmt;
+> -};
+> -
+> -#define SOCAM_SENSE_PCLK_CHANGED	(1 << 0)
+> -
+> -/**
+> - * This struct can be attached to struct soc_camera_device by the host driver
+> - * to request sense from the camera, for example, when calling .set_fmt(). The
+> - * host then can check which flags are set and verify respective values if any.
+> - * For example, if SOCAM_SENSE_PCLK_CHANGED is set, it means, pixclock has
+> - * changed during this operation. After completion the host should detach sense.
+> - *
+> - * @flags		ored SOCAM_SENSE_* flags
+> - * @master_clock	if the host wants to be informed about pixel-clock
+> - *			change, it better set master_clock.
+> - * @pixel_clock_max	maximum pixel clock frequency supported by the host,
+> - *			camera is not allowed to exceed this.
+> - * @pixel_clock		if the camera driver changed pixel clock during this
+> - *			operation, it sets SOCAM_SENSE_PCLK_CHANGED, uses
+> - *			master_clock to calculate the new pixel-clock and
+> - *			sets this field.
+> - */
+> -struct soc_camera_sense {
+> -	unsigned long flags;
+> -	unsigned long master_clock;
+> -	unsigned long pixel_clock_max;
+> -	unsigned long pixel_clock;
+>  };
+>  
+>  #define SOCAM_DATAWIDTH(x)	BIT((x) - 1)
+> -#define SOCAM_DATAWIDTH_4	SOCAM_DATAWIDTH(4)
+>  #define SOCAM_DATAWIDTH_8	SOCAM_DATAWIDTH(8)
+> -#define SOCAM_DATAWIDTH_9	SOCAM_DATAWIDTH(9)
+>  #define SOCAM_DATAWIDTH_10	SOCAM_DATAWIDTH(10)
+> -#define SOCAM_DATAWIDTH_12	SOCAM_DATAWIDTH(12)
+> -#define SOCAM_DATAWIDTH_15	SOCAM_DATAWIDTH(15)
+> -#define SOCAM_DATAWIDTH_16	SOCAM_DATAWIDTH(16)
+> -#define SOCAM_DATAWIDTH_18	SOCAM_DATAWIDTH(18)
+> -#define SOCAM_DATAWIDTH_24	SOCAM_DATAWIDTH(24)
+> -
+> -#define SOCAM_DATAWIDTH_MASK (SOCAM_DATAWIDTH_4 | SOCAM_DATAWIDTH_8 | \
+> -			      SOCAM_DATAWIDTH_9 | SOCAM_DATAWIDTH_10 | \
+> -			      SOCAM_DATAWIDTH_12 | SOCAM_DATAWIDTH_15 | \
+> -			      SOCAM_DATAWIDTH_16 | SOCAM_DATAWIDTH_18 | \
+> -			      SOCAM_DATAWIDTH_24)
+> -
+> -static inline void soc_camera_limit_side(int *start, int *length,
+> -		unsigned int start_min,
+> -		unsigned int length_min, unsigned int length_max)
+> -{
+> -	if (*length < length_min)
+> -		*length = length_min;
+> -	else if (*length > length_max)
+> -		*length = length_max;
+> -
+> -	if (*start < start_min)
+> -		*start = start_min;
+> -	else if (*start > start_min + length_max - *length)
+> -		*start = start_min + length_max - *length;
+> -}
+> -
+> -unsigned long soc_camera_apply_board_flags(struct soc_camera_subdev_desc *ssdd,
+> -					   const struct v4l2_mbus_config *cfg);
+> -
+> -int soc_camera_power_init(struct device *dev, struct soc_camera_subdev_desc *ssdd);
+> -int soc_camera_power_on(struct device *dev, struct soc_camera_subdev_desc *ssdd,
+> -			struct v4l2_clk *clk);
+> -int soc_camera_power_off(struct device *dev, struct soc_camera_subdev_desc *ssdd,
+> -			 struct v4l2_clk *clk);
+> -
+> -static inline int soc_camera_set_power(struct device *dev,
+> -		struct soc_camera_subdev_desc *ssdd, struct v4l2_clk *clk, bool on)
+> -{
+> -	return on ? soc_camera_power_on(dev, ssdd, clk)
+> -		  : soc_camera_power_off(dev, ssdd, clk);
+> -}
+> -
+> -/* This is only temporary here - until v4l2-subdev begins to link to video_device */
+> -#include <linux/i2c.h>
+> -static inline struct video_device *soc_camera_i2c_to_vdev(const struct i2c_client *client)
+> -{
+> -	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+> -	struct soc_camera_device *icd = v4l2_get_subdev_hostdata(sd);
+> -	return icd ? icd->vdev : NULL;
+> -}
+> -
+> -static inline struct soc_camera_subdev_desc *soc_camera_i2c_to_desc(const struct i2c_client *client)
+> -{
+> -	return client->dev.platform_data;
+> -}
+> -
+> -static inline struct v4l2_subdev *soc_camera_vdev_to_subdev(struct video_device *vdev)
+> -{
+> -	struct soc_camera_device *icd = video_get_drvdata(vdev);
+> -	return soc_camera_to_subdev(icd);
+> -}
+> -
+> -static inline struct soc_camera_device *soc_camera_from_vb2q(const struct vb2_queue *vq)
+> -{
+> -	return container_of(vq, struct soc_camera_device, vb2_vidq);
+> -}
+> -
+> -static inline u32 soc_camera_grp_id(const struct soc_camera_device *icd)
+> -{
+> -	return (icd->iface << 8) | (icd->devnum + 1);
+> -}
+> -
+> -void soc_camera_lock(struct vb2_queue *vq);
+> -void soc_camera_unlock(struct vb2_queue *vq);
+>  
+>  #endif
 
 
 Thanks,
