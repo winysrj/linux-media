@@ -1,127 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:56352 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725853AbeJ3V7r (ORCPT
+Received: from mail-it1-f193.google.com ([209.85.166.193]:53063 "EHLO
+        mail-it1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727705AbeJ3W4x (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 Oct 2018 17:59:47 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Yong Deng <yong.deng@magewell.com>
-Cc: Maxime Ripard <maxime.ripard@bootlin.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Neil Armstrong <narmstrong@baylibre.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Todor Tomov <todor.tomov@linaro.org>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH v12 1/2] dt-bindings: media: Add Allwinner V3s Camera Sensor Interface (CSI)
-Date: Tue, 30 Oct 2018 15:06:24 +0200
-Message-ID: <308184907.pMD7ZDI2dr@avalon>
-In-Reply-To: <1540887143-27904-1-git-send-email-yong.deng@magewell.com>
-References: <1540887143-27904-1-git-send-email-yong.deng@magewell.com>
+        Tue, 30 Oct 2018 18:56:53 -0400
+Received: by mail-it1-f193.google.com with SMTP id r5-v6so11819364ith.2
+        for <linux-media@vger.kernel.org>; Tue, 30 Oct 2018 07:03:16 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+From: Dmitry Vyukov <dvyukov@google.com>
+Date: Tue, 30 Oct 2018 15:02:55 +0100
+Message-ID: <CACT4Y+YHx3RUMGLv5T=-FJDZKEavK+sWBbAbenfm8mTQry8F+w@mail.gmail.com>
+Subject: VIVID/VIMC and media fuzzing
+To: helen.koike@collabora.com
+Cc: syzkaller <syzkaller@googlegroups.com>,
+        linux-media@vger.kernel.org, mchehab@kernel.org,
+        Sami Tolvanen <samitolvanen@google.com>, hans.verkuil@cisco.com
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Yong,
+Hello Helen and linux-media,
 
-Thank you for the patch.
+I've attended your talk "Shifting Media App Development into High
+Gear" on OSS Summit last week and approached you with some questions
+if/how this can be used for kernel testing. Thanks, turn out to be a
+very useful talk!
 
-On Tuesday, 30 October 2018 10:12:23 EET Yong Deng wrote:
-> Add binding documentation for Allwinner V3s CSI.
-> 
-> Acked-by: Maxime Ripard <maxime.ripard@bootlin.com>
-> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Reviewed-by: Rob Herring <robh@kernel.org>
-> Signed-off-by: Yong Deng <yong.deng@magewell.com>
+I am working on syzkaller/syzbot, continuous kernel fuzzing system:
+https://github.com/google/syzkaller
+https://github.com/google/syzkaller/blob/master/docs/syzbot.md
+https://syzkaller.appspot.com
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+After simply enabling CONFIG_VIDEO_VIMC, CONFIG_VIDEO_VIM2M,
+CONFIG_VIDEO_VIVID, CONFIG_VIDEO_VICODEC syzbot has found 8 bugs in
+media subsystem in just 24 hours:
 
-> ---
->  .../devicetree/bindings/media/sun6i-csi.txt        | 56 +++++++++++++++++++
->  1 file changed, 56 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/sun6i-csi.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/sun6i-csi.txt
-> b/Documentation/devicetree/bindings/media/sun6i-csi.txt new file mode
-> 100644
-> index 000000000000..443e18c181b3
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/sun6i-csi.txt
-> @@ -0,0 +1,56 @@
-> +Allwinner V3s Camera Sensor Interface
-> +-------------------------------------
-> +
-> +Allwinner V3s SoC features a CSI module(CSI1) with parallel interface.
-> +
-> +Required properties:
-> +  - compatible: value must be "allwinner,sun8i-v3s-csi"
-> +  - reg: base address and size of the memory-mapped region.
-> +  - interrupts: interrupt associated to this IP
-> +  - clocks: phandles to the clocks feeding the CSI
-> +    * bus: the CSI interface clock
-> +    * mod: the CSI module clock
-> +    * ram: the CSI DRAM clock
-> +  - clock-names: the clock names mentioned above
-> +  - resets: phandles to the reset line driving the CSI
-> +
-> +The CSI node should contain one 'port' child node with one child 'endpoint'
-> +node, according to the bindings defined in
-> +Documentation/devicetree/bindings/media/video-interfaces.txt.
-> +
-> +Endpoint node properties for CSI
-> +---------------------------------
-> +See the video-interfaces.txt for a detailed description of these
-> properties. +- remote-endpoint	: (required) a phandle to the bus receiver's
-> endpoint +			   node
-> +- bus-width:		: (required) must be 8, 10, 12 or 16
-> +- pclk-sample		: (optional) (default: sample on falling edge)
-> +- hsync-active		: (required; parallel-only)
-> +- vsync-active		: (required; parallel-only)
-> +
-> +Example:
-> +
-> +csi1: csi@1cb4000 {
-> +	compatible = "allwinner,sun8i-v3s-csi";
-> +	reg = <0x01cb4000 0x1000>;
-> +	interrupts = <GIC_SPI 84 IRQ_TYPE_LEVEL_HIGH>;
-> +	clocks = <&ccu CLK_BUS_CSI>,
-> +		 <&ccu CLK_CSI1_SCLK>,
-> +		 <&ccu CLK_DRAM_CSI>;
-> +	clock-names = "bus", "mod", "ram";
-> +	resets = <&ccu RST_BUS_CSI>;
-> +
-> +	port {
-> +		/* Parallel bus endpoint */
-> +		csi1_ep: endpoint {
-> +			remote-endpoint = <&adv7611_ep>;
-> +			bus-width = <16>;
-> +
-> +			/* If hsync-active/vsync-active are missing,
-> +			   embedded BT.656 sync is used */
-> +			hsync-active = <0>; /* Active low */
-> +			vsync-active = <0>; /* Active low */
-> +			pclk-sample = <1>;  /* Rising */
-> +		};
-> +	};
-> +};
+KASAN: use-after-free Read in vb2_mmap
+https://groups.google.com/forum/#!msg/syzkaller-bugs/XGGH69jMWQ0/S8vfxgEmCgAJ
 
+KASAN: use-after-free Write in __vb2_cleanup_fileio
+https://groups.google.com/forum/#!msg/syzkaller-bugs/qKKhsZVPo3o/P6AB2of2CQAJ
 
--- 
-Regards,
+WARNING in __vb2_queue_cancel
+https://groups.google.com/forum/#!msg/syzkaller-bugs/S29GU_NtfPY/ZvAz8UDtCQAJ
 
-Laurent Pinchart
+divide error in vivid_vid_cap_s_dv_timings
+https://groups.google.com/forum/#!msg/syzkaller-bugs/GwF5zGBCfyg/wnuWmW_sCQAJ
+
+KASAN: use-after-free Read in wake_up_if_idle
+https://groups.google.com/forum/#!msg/syzkaller-bugs/aBWb_yV1kiI/sWQO63fkCQAJ
+
+KASAN: use-after-free Read in __vb2_perform_fileio
+https://groups.google.com/forum/#!msg/syzkaller-bugs/MdFCZHz0LUQ/qSK_bFbcCQAJ
+
+INFO: task hung in vivid_stop_generating_vid_cap
+https://groups.google.com/forum/#!msg/syzkaller-bugs/F_KFW6PVyTA/wTBeHLfTCQAJ
+
+KASAN: null-ptr-deref Write in kthread_stop
+https://groups.google.com/forum/#!msg/syzkaller-bugs/u0AGnYvSlf4/fUiyfA_TCQAJ
+
+Based on this I think if we put more effort into media fuzzing, it
+will be able to find dozens more.
+
+syzkaller needs descriptions of kernel interfaces to efficiently cover
+a subsystem. For example, see:
+https://github.com/google/syzkaller/blob/master/sys/linux/uinput.txt
+Hopefully you can read it without much explanation, it basically
+states that there is that node in /dev and here are ioctls and other
+syscalls that are relevant for this device and here are types of
+arguments and layout of involved data structures.
+
+Turned we actually have such descriptions for /dev/video* and /dev/v4l-subdev*:
+https://github.com/google/syzkaller/blob/master/sys/linux/video4linux.txt
+But we don't have anything for /dev/media*, fuzzer merely knows that
+it can open the device:
+https://github.com/google/syzkaller/blob/12b38f22c18c6109a5cc1c0238d015eef121b9b7/sys/linux/sys.txt#L479
+and then it will just blindly execute completely random workload on
+it, e.g. most likely it won't be able to come up with a proper complex
+structure layout for some ioctls. And I am actually not completely
+sure about completeness and coverage of video4linux.txt descriptions
+too as they were contributed by somebody interested in android
+testing.
+
+I wonder if somebody knowledgeable in /dev/media interface be willing
+to contribute additional descriptions?
+
+We also have code coverage reports with the coverage fuzzer achieved
+so far. Here in the Cover column:
+https://syzkaller.appspot.com/#managers
+e.g. this one (but note this is a ~80MB html file):
+https://storage.googleapis.com/syzkaller/cover/ci-upstream-kasan-gce-root.html
+This can be used to assess e.g. v4l coverage. But I don't know what's
+coverable in general from syscalls and what's coverable via the stub
+drivers in particular. So some expertise from media developers would
+be helpful too.
+
+Do I understand it correctly that when a process opens /dev/video* or
+/dev/media* it gets a private instance of the device? In particular,
+if several processes test this in parallel, will they collide? Or they
+will stress separate objects?
+
+You also mentioned that one of the devices requires some complex setup
+via configfs. Is this interface described somewhere? Do you think it's
+more profitable to pre-setup some fixed configuration for each test
+process? Or just give the setup interface to fuzzer and let it do
+random setup? Or both?
+
+Thanks in advance
