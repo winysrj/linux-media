@@ -1,80 +1,207 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:46942 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725955AbeJaOey (ORCPT
+Received: from mail-ed1-f65.google.com ([209.85.208.65]:33656 "EHLO
+        mail-ed1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725989AbeJaO4K (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 Oct 2018 10:34:54 -0400
-Date: Tue, 30 Oct 2018 22:38:08 -0700
-From: Christoph Hellwig <hch@infradead.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: "Matwey V. Kornilov" <matwey@sai.msu.ru>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        matwey.kornilov@gmail.com, tfiga@chromium.org,
-        stern@rowland.harvard.edu, ezequiel@collabora.com,
-        hdegoede@redhat.com, hverkuil@xs4all.nl, mchehab@kernel.org,
-        rostedt@goodmis.org, mingo@redhat.com, isely@pobox.com,
-        bhumirks@gmail.com, colin.king@canonical.com,
-        kieran.bingham@ideasonboard.com, keiichiw@chromium.org,
-        Christoph Hellwig <hch@infradead.org>
-Subject: Re: [PATCH v5 2/2] media: usb: pwc: Don't use coherent DMA buffers
- for ISO transfer
-Message-ID: <20181031053808.GB22504@infradead.org>
-References: <20180821170629.18408-1-matwey@sai.msu.ru>
- <20180821170629.18408-3-matwey@sai.msu.ru>
- <2213616.rQm4DhIJ7U@avalon>
+        Wed, 31 Oct 2018 10:56:10 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2213616.rQm4DhIJ7U@avalon>
+References: <20180423102637.xtcjidetxo6iaslx@gofer.mess.org>
+In-Reply-To: <20180423102637.xtcjidetxo6iaslx@gofer.mess.org>
+Reply-To: mtk.manpages@gmail.com
+From: "Michael Kerrisk (man-pages)" <mtk.manpages@gmail.com>
+Date: Wed, 31 Oct 2018 07:59:18 +0100
+Message-ID: <CAKgNAkhvAsFY5haZnt5q0Ri-dB-wyNE5AKXq+S_na9JFV1+75Q@mail.gmail.com>
+Subject: Re: [PATCH] lirc.4: remove ioctls and feature bits which were never implemented
+To: Sean Young <sean@mess.org>
+Cc: linux-man <linux-man@vger.kernel.org>, linux-media@vger.kernel.org,
+        Alec Leamas <leamas.alec@gmail.com>,
+        Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 31, 2018 at 12:00:12AM +0200, Laurent Pinchart wrote:
-> As discussed before, we're clearly missing a proper non-coherent memory 
-> allocation API. As much as I would like to see a volunteer for this, I don't 
-> think it's a reason to block the performance improvement we get from this 
-> patch.
-> 
-> This being said, I'm a bit concerned about the allocation of 16kB blocks from 
-> kmalloc(), and believe that the priority of the non-coherent memory allocation 
-> API implementation should be increased. Christoph, you mentioned in a recent 
-> discussion on this topic that you are working on removing the existing non-
-> coherent DMA allocation API, what is your opinion on how we should gllobally 
-> solve the problem that this patch addresses ?
+Hello Sean,
 
-I hope to address this on the dma-mapping side for this merge window.
-My current idea is to add (back) add dma_alloc_noncoherent-like API
-(name to be determindes).  This would be very similar to to the
-DMA_ATTR_NON_CONSISTENT to dma_alloc_attrs with the following
-differences:
+On 4/23/18 12:26 PM, Sean Young wrote:> The lirc header file included
+ioctls and feature bits which were never
+> implemented by any driver. They were removed in commit:
+>
+> https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=d55f09abe24b4dfadab246b6f217da547361cdb6
+>
+> Signed-off-by: Sean Young <sean@mess.org>
 
- - it must actually be implemented by every dma_map_ops instance, no
-   falling back to dma_alloc_coherent like semantics.  For all actually
-   coherent ops this is trivial as there is no difference in semantics
-   and we can fall back to the 'coherent' semantics, for non-coherent
-   direct mappings it also is mostly trivial as we generally can use
-   dma_direct_alloc.  The only instances that will need real work are
-   IOMMUs that support non-coherent access, but there is only about
-   a handfull of those.
- - instead of using the only vaguely defined dma_cache_sync for
-   ownership transfers we'll use dma_sync_single_* which are well
-   defined and available everywhere
+Thanks for your persistence.
 
-I'll try to prioritise this to get done early in the merge window,
-but I'll need someone else do the USB side.
+Mauro, Alec, thanks for your input.
 
-> > +	dma_sync_single_for_cpu(&urb->dev->dev,
-> > +				urb->transfer_dma,
-> > +				urb->transfer_buffer_length,
-> > +				DMA_FROM_DEVICE);
-> > +
-> 
-> As explained before as well, I think we need dma_sync_single_for_device() 
-> calls, and I know they would degrade performances until we fix the problem on 
-> the DMA mapping API side. This is not a reason to block the patch either. I 
-> would appreciate, however, if a comment could be added to the place where 
-> dma_sync_single_for_device() should be called, to explain the problem.
+Patch Applied.
 
-Yes, as a rule of thumb every dma_sync_single_for_cpu call needs to pair
-with a previous dma_sync_single_for_device call.  (Exceptions like
-selective use of DMA_ATTR_SKIP_CPU_SYNC proove the rule)
+Thanks!
+
+Michael
+> ---
+>  man4/lirc.4 | 92 ++-----------------------------------------------------------
+>  1 file changed, 2 insertions(+), 90 deletions(-)
+>
+> diff --git a/man4/lirc.4 b/man4/lirc.4
+> index 1e94a7163..3adff55f1 100644
+> --- a/man4/lirc.4
+> +++ b/man4/lirc.4
+> @@ -78,9 +78,7 @@ The package reflects a timeout; see the
+>  .B LIRC_SET_REC_TIMEOUT_REPORTS
+>  ioctl.
+>  .\"
+> -.SS Reading input with the
+> -.B LIRC_MODE_LIRCCODE
+> -drivers
+> +.SS Reading input with the LIRC_MODE_LIRCCODE drivers
+>  .PP
+>  In the \fBLIRC_MODE_LIRCCODE\fR
+>  mode, the data returned by
+> @@ -204,17 +202,11 @@ Currently serves no purpose since only
+>  .BR LIRC_MODE_PULSE
+>  is supported.
+>  .TP
+> -.BR LIRC_GET_SEND_CARRIER " (\fIvoid\fP)"
+> -Get the modulation frequency (Hz).
+> -.TP
+>  .BR LIRC_SET_SEND_CARRIER " (\fIint\fP)"
+>  Set the modulation frequency.
+>  The argument is the frequency (Hz).
+>  .TP
+> -.BR LIRC_GET_SEND_CARRIER " (\fIvoid\fP)"
+> -Get the modulation frequency used when decoding (Hz).
+> -.TP
+> -.BR SET_SEND_DUTY_CYCLE " (\fIint\fP)"
+> +.BR LIRC_SET_SEND_DUTY_CYCLE " (\fIint\fP)"
+>  Set the carrier duty cycle.
+>  .I val
+>  is a number in the range [0,100] which
+> @@ -284,36 +276,6 @@ By default this should be turned off.
+>  .BR LIRC_GET_REC_RESOLUTION " (\fIvoid\fP)"
+>  Return the driver resolution (microseconds).
+>  .TP
+> -.BR LIRC_GET_MIN_FILTER_PULSE " (\fIvoid\fP)", " " \
+> -LIRC_GET_MAX_FILTER_PULSE " (\fIvoid\fP)"
+> -Some devices are able to filter out spikes in the incoming signal
+> -using given filter rules.
+> -These ioctls return the hardware capabilities that describe the bounds
+> -of the possible filters.
+> -Filter settings depend on the IR protocols that are expected.
+> -.BR lircd (8)
+> -derives the settings from all protocols definitions found in its
+> -.BR lircd.conf (5)
+> -config file.
+> -.TP
+> -.BR LIRC_GET_MIN_FILTER_SPACE " (\fIvoid\fP)", " " \
+> -LIRC_GET_MAX_FILTER_SPACE " (\fIvoid\fP)"
+> -See
+> -.BR LIRC_GET_MIN_FILTER_PULSE .
+> -.TP
+> -.BR LIRC_SET_REC_FILTER " (\fIint\fP)"
+> -Pulses/spaces shorter than this (microseconds) are filtered out by
+> -hardware.
+> -.TP
+> -.BR LIRC_SET_REC_FILTER_PULSE " (\fIint\fP)", " " \
+> -LIRC_SET_REC_FILTER_SPACE " (\fIint\fP)"
+> -Pulses/spaces shorter than this (microseconds) are filtered out by
+> -hardware.
+> -If filters cannot be set independently for pulse/space, the
+> -corresponding ioctls must return an error and
+> -.BR LIRC_SET_REC_FILTER
+> -should be used instead.
+> -.TP
+>  .BR LIRC_SET_TRANSMITTER_MASK
+>  Enable the set of transmitters specified in
+>  .IR val ,
+> @@ -343,32 +305,6 @@ carrier reports.
+>  In that case, it will be disabled as soon as you disable carrier reports.
+>  Trying to disable a wide band receiver while carrier reports are active
+>  will do nothing.
+> -.TP
+> -.BR LIRC_SETUP_START " (\fIvoid\fP), " LIRC_SETUP_END " (\fIvoid\fP)"
+> -Setting of several driver parameters can be optimized by bracketing
+> -the actual ioctl calls
+> -.BR LIRC_SETUP_START
+> -and
+> -.BR LIRC_SETUP_END .
+> -When a driver receives a
+> -.BR LIRC_SETUP_START
+> -ioctl, it can choose to not commit further setting changes to the
+> -hardware until a
+> -.BR LIRC_SETUP_END
+> -is received.
+> -But this is open to the driver implementation and every driver
+> -must also handle parameter changes which are not encapsulated by
+> -.BR LIRC_SETUP_START
+> -and
+> -.BR LIRC_SETUP_END .
+> -Drivers can also choose to ignore these ioctls.
+> -.TP
+> -.BR LIRC_NOTIFY_DECODE " (\fIvoid\fP)"
+> -This ioctl is called by
+> -.BR lircd (8)
+> -whenever a successful decoding of an incoming IR signal is possible.
+> -This can be used by supporting hardware to give visual user
+> -feedback, for example by flashing an LED.
+>  .\"
+>  .SH FEATURES
+>  .PP
+> @@ -378,14 +314,6 @@ The
+>  ioctl returns a bit mask describing features of the driver.
+>  The following bits may be returned in the mask:
+>  .TP
+> -.BR LIRC_CAN_REC_RAW
+> -The driver is capable of receiving using
+> -.BR LIRC_MODE_RAW .
+> -.TP
+> -.BR LIRC_CAN_REC_PULSE
+> -The driver is capable of receiving using
+> -.BR LIRC_MODE_PULSE .
+> -.TP
+>  .BR LIRC_CAN_REC_MODE2
+>  The driver is capable of receiving using
+>  .BR LIRC_MODE_MODE2 .
+> @@ -426,10 +354,6 @@ The driver supports
+>  The driver supports
+>  .BR LIRC_SET_REC_TIMEOUT .
+>  .TP
+> -.BR LIRC_CAN_SET_REC_FILTER
+> -The driver supports
+> -.BR LIRC_SET_REC_FILTER .
+> -.TP
+>  .BR LIRC_CAN_MEASURE_CARRIER
+>  The driver supports measuring of the modulation frequency using
+>  .BR LIRC_SET_MEASURE_CARRIER_MODE .
+> @@ -438,22 +362,10 @@ The driver supports measuring of the modulation frequency using
+>  The driver supports learning mode using
+>  .BR LIRC_SET_WIDEBAND_RECEIVER .
+>  .TP
+> -.BR LIRC_CAN_NOTIFY_DECODE
+> -The driver supports
+> -.BR LIRC_NOTIFY_DECODE .
+> -.TP
+> -.BR LIRC_CAN_SEND_RAW
+> -The driver supports sending using
+> -.BR LIRC_MODE_RAW .
+> -.TP
+>  .BR LIRC_CAN_SEND_PULSE
+>  The driver supports sending using
+>  .BR LIRC_MODE_PULSE .
+>  .TP
+> -.BR LIRC_CAN_SEND_MODE2
+> -The driver supports sending using
+> -.BR LIRC_MODE_MODE2 .
+> -.TP
+>  .BR LIRC_CAN_SEND_LIRCCODE
+>  The driver supports sending.
+>  (This is uncommon, since
+> --
+> 2.14.3
+>
+
+
+-- 
+Michael Kerrisk
+Linux man-pages maintainer; http://www.kernel.org/doc/man-pages/
+Linux/UNIX System Programming Training: http://man7.org/training/
