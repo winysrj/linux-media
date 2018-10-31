@@ -1,220 +1,216 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:33568 "EHLO
-        casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728128AbeKAB1r (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 Oct 2018 21:27:47 -0400
-Date: Wed, 31 Oct 2018 13:28:53 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Sean Young <sean@mess.org>
-Cc: David Howells <dhowells@redhat.com>,
-        Michael Krufky <mkrufky@linuxtv.org>,
-        Brad Love <brad@nextdimension.cc>, mchehab@kernel.org,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] dvb: Allow MAC addresses to be mapped to stable device
- names with udev
-Message-ID: <20181031132853.1fff7e27@coco.lan>
-In-Reply-To: <20181031161300.vzk6nsyyyvjukqxz@gofer.mess.org>
-References: <12108.1540984768@warthog.procyon.org.uk>
-        <20181031104912.s3tqjl3u43ou3kwo@gofer.mess.org>
-        <20181030223249.dhwhxdjipzmjxzsy@gofer.mess.org>
-        <153778383104.14867.1567557014782141706.stgit@warthog.procyon.org.uk>
-        <20181030110319.764f33f0@coco.lan>
-        <8474.1540982182@warthog.procyon.org.uk>
-        <13768.1541001100@warthog.procyon.org.uk>
-        <20181031161300.vzk6nsyyyvjukqxz@gofer.mess.org>
+Received: from mleia.com ([178.79.152.223]:48272 "EHLO mail.mleia.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726294AbeKAFMa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 1 Nov 2018 01:12:30 -0400
+Subject: Re: [PATCH 2/7] dt-bindings: mfd: ds90ux9xx: add description of TI
+ DS90Ux9xx I2C bridge
+To: Luca Ceresoli <luca@lucaceresoli.net>,
+        Lee Jones <lee.jones@linaro.org>,
+        Rob Herring <robh+dt@kernel.org>
+Cc: Linus Walleij <linus.walleij@linaro.org>,
+        Marek Vasut <marek.vasut@gmail.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Wolfram Sang <wsa@the-dreams.de>, devicetree@vger.kernel.org,
+        linux-gpio@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+References: <20181008211205.2900-1-vz@mleia.com>
+ <20181008211205.2900-3-vz@mleia.com>
+ <b9a617da-1712-2d28-d25c-e3c413a4e9f0@lucaceresoli.net>
+From: Vladimir Zapolskiy <vz@mleia.com>
+Message-ID: <2c90affe-0972-751d-8312-3d15d130c3fb@mleia.com>
+Date: Wed, 31 Oct 2018 22:12:37 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <b9a617da-1712-2d28-d25c-e3c413a4e9f0@lucaceresoli.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 31 Oct 2018 16:13:00 +0000
-Sean Young <sean@mess.org> escreveu:
+Hi Luca,
 
-> On Wed, Oct 31, 2018 at 03:51:40PM +0000, David Howells wrote:
-> > David Howells <dhowells@redhat.com> wrote:
-> >   
-> > > > > > Devices without a mac address shouldn't have a mac_dvb sysfs attribute,
-> > > > > > I think.  
-> > > > > 
-> > > > > I'm not sure that's possible within the core infrastructure.  It's a
-> > > > > class attribute set when the class is created; I'm not sure it can be
-> > > > > overridden on a per-device basis.
-> > > > > 
-> > > > > Possibly the file could return "" or "none" in this case?  
-> > > > 
-> > > > That's very ugly. Have a look at, for example, rc-core wakeup filters:
-> > > > 
-> > > > https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/drivers/media/rc/rc-main.c#n1844  
-> > > 
-> > > By analogy, then, I think the thing to do is to put something like struct
-> > > rc_dev::sysfs_groups[] into struct dvb_device (or maybe struct dvb_adapter)
-> > > and then the dvb_mac attribute in there during dvb_register_device() based on
-> > > whether or not the MAC address is not all zeros at that point.  
-> > 
-> > Hmmm...  This is trickier than it seems.  At the point the device struct is
-> > registered, the MAC address hasn't yet been read:
-> > 
-> > [   13.865905] cx23885: CORE cx23885[1]: subsystem: 4254:0952, board: DVBSky S952 [card=50,autodetected]
-> > [   14.095559] cx25840 8-0044: cx23885 A/V decoder found @ 0x88 (cx23885[1])
-> > [   14.723127] cx25840 8-0044: loaded v4l-cx23885-avcore-01.fw firmware (16382 bytes)
-> > [   14.738377] cx23885: cx23885_dvb_register() allocating 1 frontend(s)
-> > [   14.738378] cx23885: cx23885[1]: cx23885 based dvb card
-> > [   14.742536] i2c i2c-7: Added multiplexed i2c bus 9
-> > [   15.096912] ts2020 9-0060: Montage Technology TS2022 successfully identified
-> > [   15.096933] dvbdev: DVB: registering new adapter (cx23885[1])
-> > [   15.096936] cx23885 0000:06:00.0: DVB: registering adapter 2 frontend 0 (Montage Technology M88DS3103)...
-> > [   15.124665] cx23885: DVBSky S952 port 1 MAC address: 00:17:42:54:09:52
-> > [   15.124666] cx23885: cx23885_dvb_register() allocating 1 frontend(s)
-> > [   15.124674] cx23885: cx23885[1]: cx23885 based dvb card
-> > [   15.128860] i2c i2c-6: Added multiplexed i2c bus 10
-> > [   15.228172] ts2020 10-0060: Montage Technology TS2022 successfully identified
-> > [   15.228188] dvbdev: DVB: registering new adapter (cx23885[1])
-> > [   15.228190] cx23885 0000:06:00.0: DVB: registering adapter 3 frontend 0 (Montage Technology M88DS3103)...
-> > [   15.255996] cx23885: DVBSky S952 port 2 MAC address: 00:17:42:54:09:53
-> > [   15.255999] cx23885: cx23885_dev_checkrevision() Hardware revision = 0xa5
-> > [   15.256004] cx23885: cx23885[1]/0: found at 0000:06:00.0, rev: 4, irq: 19, latency: 0, mmio: 0xf7a00000
-> > 
-> > The device structs are registered at 15.096936 and 15.228190 and this is the
-> > point by which I think I have to set the device::groups pointer.
-> > 
-> > However, the device isn't fully initialised at this point and the MAC address
-> > hasn't yet been read - and so the attribute doesn't appear.  proposed_mac is
-> > set right after lines 15.124665 and 15.255996.  Interestingly, a third of a
-> > second elapses between the device registration and the MAC being printed for
-> > each adapter.  
+thank you for review.
+
+On 10/30/2018 06:43 PM, Luca Ceresoli wrote:
+> Hi Vladimir,
 > 
-> device_create() will register the device in sysfs and send uevent. So, your
-> original udev rule/code will not work, since it always would read
-> a mac address of 0, as proposed_mac is not populated when the device is
-> announced. That is, unless udev is scheduled after the mac is read.
+> On 08/10/18 23:12, Vladimir Zapolskiy wrote:
+>> From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+>>
+>> TI DS90Ux9xx de-/serializers are capable to route I2C messages to
+>> I2C slave devices connected to a remote de-/serializer in a pair,
+>> the change adds description of device tree bindings of the subcontroller
+>> to configure and enable this functionality.
+>>
+>> Signed-off-by: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+>> ---
+>>  .../bindings/mfd/ti,ds90ux9xx-i2c-bridge.txt  | 61 +++++++++++++++++++
+>>  1 file changed, 61 insertions(+)
+>>  create mode 100644 Documentation/devicetree/bindings/mfd/ti,ds90ux9xx-i2c-bridge.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/mfd/ti,ds90ux9xx-i2c-bridge.txt b/Documentation/devicetree/bindings/mfd/ti,ds90ux9xx-i2c-bridge.txt
+>> new file mode 100644
+>> index 000000000000..4169e382073a
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/mfd/ti,ds90ux9xx-i2c-bridge.txt
+>> @@ -0,0 +1,61 @@
+>> +TI DS90Ux9xx de-/serializer I2C bridge subcontroller
+>> +
+>> +Required properties:
+>> +- compatible: Must contain a generic "ti,ds90ux9xx-i2c-bridge" value and
+>> +	may contain one more specific value from the list:
+>> +	"ti,ds90ux925-i2c-bridge",
+>> +	"ti,ds90ux926-i2c-bridge",
+>> +	"ti,ds90ux927-i2c-bridge",
+>> +	"ti,ds90ux928-i2c-bridge",
+>> +	"ti,ds90ux940-i2c-bridge".
+>> +
+>> +Required properties of a de-/serializer device connected to a local I2C bus:
+>> +- ti,i2c-bridges: List of phandles to remote de-/serializer devices with
+>> +	two arguments: id of a local de-/serializer FPD link and an assigned
+>> +	I2C address of a remote de-/serializer to be accessed on a local
+>> +	I2C bus.
+>> +
+>> +Optional properties of a de-/serializer device connected to a local I2C bus:
+>> +- ti,i2c-bridge-maps: List of 3-cell values:
+>> +	- the first argument is id of a local de-/serializer FPD link,
+>> +	- the second argument is an I2C address of a device connected to
+>> +	  a remote de-/serializer IC,
+>> +	- the third argument is an I2C address of the remote I2C device
+>> +	  for access on a local I2C bus.
 > 
-> I think the device_add/device_create() which triggers the uevent should be
-> delayed until everything is available.
-
-Yes. For udev rules to work, the very last thing to do is to create
-devices.
-
-In practice, dvb-usb/dvb-usb-v2 should delay calling 
-dvb_register_device() until firmware is in warm state.
-
+> BTW I usually use names "remove slave" address and "alias" for bullets 2
+> and 3. These are the names from the datasheets, and are clearer IMO.
 > 
-> Sean
-> 
-> > 
-> > Any suggestions?
-> > 
-> > David
-> > ---
-> > diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
-> > index b7171bf094fb..edbfa5549994 100644
-> > --- a/drivers/media/dvb-core/dvbdev.c
-> > +++ b/drivers/media/dvb-core/dvbdev.c
-> > @@ -450,6 +450,23 @@ static int dvb_register_media_device(struct dvb_device *dvbdev,
-> >  	return 0;
-> >  }
-> >  
-> > +static ssize_t dvb_mac_show(struct device *dev,
-> > +			    struct device_attribute *attr, char *buf)
-> > +{
-> > +	struct dvb_device *dvbdev = dev_get_drvdata(dev);
-> > +
-> > +	return sprintf(buf, "%pM\n", dvbdev->adapter->proposed_mac);
-> > +}
-> > +static DEVICE_ATTR_RO(dvb_mac);
-> > +
-> > +static struct attribute *dvb_device_attrs[] = {
-> > +	&dev_attr_dvb_mac.attr,
-> > +	NULL
-> > +};
-> > +static const struct attribute_group dvb_device_attr_grp = {
-> > +	.attrs	= dvb_device_attrs,
-> > +};
-> > +
-> >  int dvb_register_device(struct dvb_adapter *adap, struct dvb_device **pdvbdev,
-> >  			const struct dvb_device *template, void *priv,
-> >  			enum dvb_device_type type, int demux_sink_pads)
-> > @@ -533,6 +550,14 @@ int dvb_register_device(struct dvb_adapter *adap, struct dvb_device **pdvbdev,
-> >  
-> >  	mutex_unlock(&dvbdev_register_lock);
-> >  
-> > +	if (adap->proposed_mac[0] || adap->proposed_mac[1] ||
-> > +	    adap->proposed_mac[2] || adap->proposed_mac[3] ||
-> > +	    adap->proposed_mac[4] || adap->proposed_mac[5]) {  
-> 
-> is_zero_ether_addr()
-> 
-> > +		dvbdev->sysfs_groups[0] = &dvb_device_attr_grp;
-> > +		dvbdev->sysfs_groups[1] = NULL;
-> > +		adap->device->groups = dvbdev->sysfs_groups;
-> > +	}
-> > +
-> >  	clsdev = device_create(dvb_class, adap->device,
-> >  			       MKDEV(DVB_MAJOR, minor),
-> >  			       dvbdev, "dvb%d.%s%d", adap->num, dnames[type], id);
-> > @@ -1010,6 +1035,31 @@ void dvb_module_release(struct i2c_client *client)
-> >  EXPORT_SYMBOL_GPL(dvb_module_release);
-> >  #endif
-> >  
-> > +static ssize_t dvb_adapter_show(struct device *dev,
-> > +				struct device_attribute *attr, char *buf)
-> > +{
-> > +	struct dvb_device *dvbdev = dev_get_drvdata(dev);
-> > +
-> > +	return sprintf(buf, "%d\n", dvbdev->adapter->num);
-> > +}
-> > +static DEVICE_ATTR_RO(dvb_adapter);
-> > +
-> > +static ssize_t dvb_type_show(struct device *dev,
-> > +			     struct device_attribute *attr, char *buf)
-> > +{
-> > +	struct dvb_device *dvbdev = dev_get_drvdata(dev);
-> > +
-> > +	return sprintf(buf, "%s\n", dnames[dvbdev->type]);
-> > +}
-> > +static DEVICE_ATTR_RO(dvb_type);
-> > +
-> > +static struct attribute *dvb_class_attrs[] = {
-> > +	&dev_attr_dvb_adapter.attr,
-> > +	&dev_attr_dvb_type.attr,
-> > +	NULL
-> > +};
-> > +ATTRIBUTE_GROUPS(dvb_class);
-> > +
-> >  static int dvb_uevent(struct device *dev, struct kobj_uevent_env *env)
-> >  {
-> >  	struct dvb_device *dvbdev = dev_get_drvdata(dev);
-> > @@ -1050,6 +1100,7 @@ static int __init init_dvbdev(void)
-> >  		retval = PTR_ERR(dvb_class);
-> >  		goto error;
-> >  	}
-> > +	dvb_class->dev_groups = dvb_class_groups,
-> >  	dvb_class->dev_uevent = dvb_uevent;
-> >  	dvb_class->devnode = dvb_devnode;
-> >  	return 0;
-> > diff --git a/include/media/dvbdev.h b/include/media/dvbdev.h
-> > index 881ca461b7bb..d6becdd2d56e 100644
-> > --- a/include/media/dvbdev.h
-> > +++ b/include/media/dvbdev.h
-> > @@ -127,6 +127,7 @@ struct dvb_adapter {
-> >   *
-> >   * @list_head:	List head with all DVB devices
-> >   * @fops:	pointer to struct file_operations
-> > + * @sysfs_groups: Additional sysfs attributes
-> >   * @adapter:	pointer to the adapter that holds this device node
-> >   * @type:	type of the device, as defined by &enum dvb_device_type.
-> >   * @minor:	devnode minor number. Major number is always DVB_MAJOR.
-> > @@ -157,6 +158,7 @@ struct dvb_adapter {
-> >  struct dvb_device {
-> >  	struct list_head list_head;
-> >  	const struct file_operations *fops;
-> > +	const struct attribute_group *sysfs_groups[2];
-> >  	struct dvb_adapter *adapter;
-> >  	enum dvb_device_type type;
-> >  	int minor;  
 
+Definitely you are correct, I find that verbose descriptions might be
+more appropriate and self-explanatory for anyone, who is not closely familiar
+with the IC series. I'll consider to add the names from the datasheets
+as well.
 
+> Now to the big stuff.
+> 
+> I find a static map in the "local" chip DT node is a limit. You might
+> have to support multiple models of remote device, where you'll know the
+> model only when after it gets connected. Think Beaglebone capes, but
+> over FPD-Link 3. This scenario opens several issues, but specifically
+> for I2C address mapping I addressed it by adding in the "local" chip's
+> DT node a pool of I2C aliases it can use. The DT author is responsible
+> to pick addresses that are not used on the same I2C bus, which cannot be
+> done at runtime reliably.
 
-Thanks,
-Mauro
+Here I see several important topics raised.
+
+1) A static map in the "local" chip DT node is not a limit in sense that
+   it is optional, so it would be a working model just to omit the property,
+   however it may (or may not) require another handlers to bridge remote
+   I2C devices, for instance 'ti,i2c-bridge-pass-all' property, or new
+   UAPI.
+
+2) About supporting multiple models of remote PCBs in the same dts file,
+   it might be an excessive complication to predict a proper description
+   of an unknown in advance complex device, so, a better solution should
+   be to apply DT overlays in runtime, but at any time the hardware
+   description and the mapping shall be precisely defined.
+
+3) About a pool of vacant I2C addresses, I dislike the idea that there
+   will be no definite or constant I2C address in runtime for a particular
+   remote slave device. As I've mentioned above, it would be better to
+   utilize DT overlays to handle "multiple models of remote device"
+   dynamically in runtime, adding this feature could be done on top of
+   the shown code.
+
+> Here's my current draft on a dual/quad port deserializer:
+> 
+> &i2c0 {
+>     serializer@3d {
+>         reg = <0x3d>;
+>         ...
+> 
+>         /* Guaranteed not physically present on i2c0 */
+>         i2c-alias-pool = /bits/ 8 <0x20 0x21 0x22 0x23 0x24 0x25>;
+> 
+>         rxports {
+>             #address-cells = <1>;
+>             #size-cells = <0>;
+> 
+>             rxport@0 {
+>                 reg = <0>;
+>                 remote-i2c-bus { /* The proxied I2C bus on rxport 0 */
+>                     #address-cells = <1>;
+>                     #size-cells = <0>;
+> 
+>                     eeprom@51 {
+>                         reg = <0x51>;
+>                         compatible = "at,24c02";
+>                     };
+>                 };
+> 
+>             rxport@1 {
+>                 reg = <1>;
+>                 remote-i2c-bus { /* The proxied I2C bus on rxport 1 */
+>                     #address-cells = <1>;
+>                     #size-cells = <0>;
+> 
+>                     eeprom@51 {
+>                         reg = <0x51>;
+>                         compatible = "at,24c02";
+>                     };
+>                 };
+>             };
+>         };
+>     };
+> };
+> 
+> At probe time the serializer driver instantiates one new i2c_adapter for
+> each rxport. Any remote device is added (removed) to that adapter, then
+> the driver finds an available alias and maps (unmaps) it. The
+
+I avoid using i2c_adapter object, because then you get a confusing access
+to right the same device on two logical I2C buses. This is not the way
+how I2C muxes operate or are expected to operate, commonly I2C muxes contain
+a protocol to access muxed devices, which are "invisible" on a host bus,
+and here a local IC behaves like an I2C device with multiple addresses.
+
+Note, that following an advice from Wolfram I'm going to send the i2c-bridge
+cell driver into inclusion under drivers/i2c/muxes/ , even if the device
+driver does not register a mux.
+
+> transactions are handled in a way similar to i2c-mux, i.e. the ds90*
+> i2c_adapter has a master_xfer callback that changes the remote slave
+> address to the corresponding alias, then calls parent->algo->master_xfer().
+> 
+> Note how both eeproms in the example have the same physical address.
+> They will be given two different aliases.
+
+The question is how to determine which runtime assigned address represents
+which eeprom of two. The remote/alias scheme I propose makes it transparent.
+
+>> +- ti,i2c-bridge-auto-ack: Enables AUTO ACK mode.
+> 
+> It this useful other than for debugging? And, as Laurent noted, this
+> should not be in DT: it doesn't describe the hardware.
+> 
+
+I'll drop it, I've just checked that it is unused in any of production dts
+files, which are accessible to me.
+
+By "hardware description" I generally mean a hardware specific handle.
+If IC supports a meaningful, one time programmable non-standard 1-bit field
+configuration, then using a bool property in DT sounds reasonable to me.
+
+>> +- ti,i2c-bridge-pass-all: Enables PASS ALL mode, remote I2C slave devices
+>> +	are accessible on a local (host) I2C bus without I2C address
+>> +	remappings.
+> 
+> It should be clear from the DT docs that either ti,i2c-bridge-pass-all
+> is enabled or the alias map/pool is used, but not both.
+> 
+
+Sure, I'll add this information, thank you for pointing it out.
+
+--
+Best wishes,
+Vladimir
