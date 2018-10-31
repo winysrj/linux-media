@@ -1,42 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:52292 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726124AbeKAEJY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 1 Nov 2018 00:09:24 -0400
-From: David Howells <dhowells@redhat.com>
-In-Reply-To: <20181031161300.vzk6nsyyyvjukqxz@gofer.mess.org>
-References: <20181031161300.vzk6nsyyyvjukqxz@gofer.mess.org> <12108.1540984768@warthog.procyon.org.uk> <20181031104912.s3tqjl3u43ou3kwo@gofer.mess.org> <20181030223249.dhwhxdjipzmjxzsy@gofer.mess.org> <153778383104.14867.1567557014782141706.stgit@warthog.procyon.org.uk> <20181030110319.764f33f0@coco.lan> <8474.1540982182@warthog.procyon.org.uk> <13768.1541001100@warthog.procyon.org.uk>
-To: Sean Young <sean@mess.org>
-Cc: dhowells@redhat.com,
-        Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Michael Krufky <mkrufky@linuxtv.org>,
-        Brad Love <brad@nextdimension.cc>, mchehab@kernel.org,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] dvb: Allow MAC addresses to be mapped to stable device names with udev
+Received: from mail-lj1-f195.google.com ([209.85.208.195]:43754 "EHLO
+        mail-lj1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729341AbeKADEg (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 31 Oct 2018 23:04:36 -0400
+Received: by mail-lj1-f195.google.com with SMTP id g26-v6so14423180lja.10
+        for <linux-media@vger.kernel.org>; Wed, 31 Oct 2018 11:05:29 -0700 (PDT)
+Received: from mail-lj1-f182.google.com (mail-lj1-f182.google.com. [209.85.208.182])
+        by smtp.gmail.com with ESMTPSA id l13-v6sm3389103lji.7.2018.10.31.11.05.27
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 31 Oct 2018 11:05:27 -0700 (PDT)
+Received: by mail-lj1-f182.google.com with SMTP id g26-v6so14423080lja.10
+        for <linux-media@vger.kernel.org>; Wed, 31 Oct 2018 11:05:27 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-ID: <9073.1541013000.1@warthog.procyon.org.uk>
-Date: Wed, 31 Oct 2018 19:10:00 +0000
-Message-ID: <9074.1541013000@warthog.procyon.org.uk>
+References: <20181030105328.0667ec68@coco.lan>
+In-Reply-To: <20181030105328.0667ec68@coco.lan>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Wed, 31 Oct 2018 11:05:09 -0700
+Message-ID: <CAHk-=whQKCA18MEi7FT=10c0HVa=kxSyYBJeAQH-C2mA5gBhbg@mail.gmail.com>
+Subject: Re: [GIT PULL for v4.20-rc1] new experimental media request API
+To: mchehab+samsung@kernel.org
+Cc: Greg KH <gregkh@linuxfoundation.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        linux-media@vger.kernel.org,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sean Young <sean@mess.org> wrote:
+On Tue, Oct 30, 2018 at 6:53 AM Mauro Carvalho Chehab
+<mchehab+samsung@kernel.org> wrote:
+>
+> For a new media API: the request API
 
-> device_create() will register the device in sysfs and send uevent. So, your
-> original udev rule/code will not work, since it always would read
-> a mac address of 0, as proposed_mac is not populated when the device is
-> announced. That is, unless udev is scheduled after the mac is read.
+Ugh. I don't know how much being in staging matters - if people start
+using it, they start using it.
 
-I guess that must be what is happening as it does seem to work for me.
+"Staging" does not mean "regressions don't matter".
 
-> I think the device_add/device_create() which triggers the uevent should be
-> delayed until everything is available.
+But pulled,
 
-Is it possible to switch vb2_dvb_register_bus() and dvb_register_ci_mac() in
-dvb_register() in cx23885-dvb.c - or does that prevent the firmware from
-loading?
-
-And I'm guessing this change would have to be applied to all drivers?
-
-David
+                Linus
