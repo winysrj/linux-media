@@ -1,216 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mleia.com ([178.79.152.223]:48272 "EHLO mail.mleia.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726294AbeKAFMa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 1 Nov 2018 01:12:30 -0400
-Subject: Re: [PATCH 2/7] dt-bindings: mfd: ds90ux9xx: add description of TI
- DS90Ux9xx I2C bridge
-To: Luca Ceresoli <luca@lucaceresoli.net>,
-        Lee Jones <lee.jones@linaro.org>,
-        Rob Herring <robh+dt@kernel.org>
-Cc: Linus Walleij <linus.walleij@linaro.org>,
-        Marek Vasut <marek.vasut@gmail.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Wolfram Sang <wsa@the-dreams.de>, devicetree@vger.kernel.org,
-        linux-gpio@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
-References: <20181008211205.2900-1-vz@mleia.com>
- <20181008211205.2900-3-vz@mleia.com>
- <b9a617da-1712-2d28-d25c-e3c413a4e9f0@lucaceresoli.net>
-From: Vladimir Zapolskiy <vz@mleia.com>
-Message-ID: <2c90affe-0972-751d-8312-3d15d130c3fb@mleia.com>
-Date: Wed, 31 Oct 2018 22:12:37 +0200
+Received: from casper.infradead.org ([85.118.1.10]:46454 "EHLO
+        casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730360AbeKADju (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 31 Oct 2018 23:39:50 -0400
+Date: Wed, 31 Oct 2018 15:40:30 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Greg KH <gregkh@linuxfoundation.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        linux-media@vger.kernel.org,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: Re: [GIT PULL for v4.20-rc1] new experimental media request API
+Message-ID: <20181031154030.3fab5a00@coco.lan>
+In-Reply-To: <CAHk-=whQKCA18MEi7FT=10c0HVa=kxSyYBJeAQH-C2mA5gBhbg@mail.gmail.com>
+References: <20181030105328.0667ec68@coco.lan>
+        <CAHk-=whQKCA18MEi7FT=10c0HVa=kxSyYBJeAQH-C2mA5gBhbg@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <b9a617da-1712-2d28-d25c-e3c413a4e9f0@lucaceresoli.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Luca,
+Hi Linus,
 
-thank you for review.
+Em Wed, 31 Oct 2018 11:05:09 -0700
+Linus Torvalds <torvalds@linux-foundation.org> escreveu:
 
-On 10/30/2018 06:43 PM, Luca Ceresoli wrote:
-> Hi Vladimir,
+> On Tue, Oct 30, 2018 at 6:53 AM Mauro Carvalho Chehab
+> <mchehab+samsung@kernel.org> wrote:
+> >
+> > For a new media API: the request API  
 > 
-> On 08/10/18 23:12, Vladimir Zapolskiy wrote:
->> From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
->>
->> TI DS90Ux9xx de-/serializers are capable to route I2C messages to
->> I2C slave devices connected to a remote de-/serializer in a pair,
->> the change adds description of device tree bindings of the subcontroller
->> to configure and enable this functionality.
->>
->> Signed-off-by: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
->> ---
->>  .../bindings/mfd/ti,ds90ux9xx-i2c-bridge.txt  | 61 +++++++++++++++++++
->>  1 file changed, 61 insertions(+)
->>  create mode 100644 Documentation/devicetree/bindings/mfd/ti,ds90ux9xx-i2c-bridge.txt
->>
->> diff --git a/Documentation/devicetree/bindings/mfd/ti,ds90ux9xx-i2c-bridge.txt b/Documentation/devicetree/bindings/mfd/ti,ds90ux9xx-i2c-bridge.txt
->> new file mode 100644
->> index 000000000000..4169e382073a
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/mfd/ti,ds90ux9xx-i2c-bridge.txt
->> @@ -0,0 +1,61 @@
->> +TI DS90Ux9xx de-/serializer I2C bridge subcontroller
->> +
->> +Required properties:
->> +- compatible: Must contain a generic "ti,ds90ux9xx-i2c-bridge" value and
->> +	may contain one more specific value from the list:
->> +	"ti,ds90ux925-i2c-bridge",
->> +	"ti,ds90ux926-i2c-bridge",
->> +	"ti,ds90ux927-i2c-bridge",
->> +	"ti,ds90ux928-i2c-bridge",
->> +	"ti,ds90ux940-i2c-bridge".
->> +
->> +Required properties of a de-/serializer device connected to a local I2C bus:
->> +- ti,i2c-bridges: List of phandles to remote de-/serializer devices with
->> +	two arguments: id of a local de-/serializer FPD link and an assigned
->> +	I2C address of a remote de-/serializer to be accessed on a local
->> +	I2C bus.
->> +
->> +Optional properties of a de-/serializer device connected to a local I2C bus:
->> +- ti,i2c-bridge-maps: List of 3-cell values:
->> +	- the first argument is id of a local de-/serializer FPD link,
->> +	- the second argument is an I2C address of a device connected to
->> +	  a remote de-/serializer IC,
->> +	- the third argument is an I2C address of the remote I2C device
->> +	  for access on a local I2C bus.
+> Ugh. I don't know how much being in staging matters - if people start
+> using it, they start using it.
 > 
-> BTW I usually use names "remove slave" address and "alias" for bullets 2
-> and 3. These are the names from the datasheets, and are clearer IMO.
-> 
+> "Staging" does not mean "regressions don't matter".
 
-Definitely you are correct, I find that verbose descriptions might be
-more appropriate and self-explanatory for anyone, who is not closely familiar
-with the IC series. I'll consider to add the names from the datasheets
-as well.
+Yes, I know.
 
-> Now to the big stuff.
-> 
-> I find a static map in the "local" chip DT node is a limit. You might
-> have to support multiple models of remote device, where you'll know the
-> model only when after it gets connected. Think Beaglebone capes, but
-> over FPD-Link 3. This scenario opens several issues, but specifically
-> for I2C address mapping I addressed it by adding in the "local" chip's
-> DT node a pool of I2C aliases it can use. The DT author is responsible
-> to pick addresses that are not used on the same I2C bus, which cannot be
-> done at runtime reliably.
+This shouldn't affect normal cameras and generic V4L2 apps, as this
+is for very advanced use cases. So, we hope that people won't start
+using it for a while. 
 
-Here I see several important topics raised.
+The main interested party on this is Google CromeOS. We're working 
+together with them in order to do upstream first. They are well aware
+that the API may change. So, I don't expect any complaints from their
+side if the API would require further changes.
 
-1) A static map in the "local" chip DT node is not a limit in sense that
-   it is optional, so it would be a working model just to omit the property,
-   however it may (or may not) require another handlers to bridge remote
-   I2C devices, for instance 'ti,i2c-bridge-pass-all' property, or new
-   UAPI.
+The point is that this API is complex and ensuring that it will
+work properly is not easy. We've been thinking about a solution for
+the Camera HAL 2 for a long time (I guess the first discussions were
+done back in 2008).
 
-2) About supporting multiple models of remote PCBs in the same dts file,
-   it might be an excessive complication to predict a proper description
-   of an unknown in advance complex device, so, a better solution should
-   be to apply DT overlays in runtime, but at any time the hardware
-   description and the mapping shall be precisely defined.
+The big problem is that V4L2 API was designed to work with a stream,
+while Google HAL API expects to have control for each individual
+frame.
 
-3) About a pool of vacant I2C addresses, I dislike the idea that there
-   will be no definite or constant I2C address in runtime for a particular
-   remote slave device. As I've mentioned above, it would be better to
-   utilize DT overlays to handle "multiple models of remote device"
-   dynamically in runtime, adding this feature could be done on top of
-   the shown code.
+The Google API allows, for example that, inside a stream, the
+first frame would have a VGA resolution, the next one a 4K resolution
+(for example, when the user clicks on a camera button) and then returning
+back to VGA (it actually allows full control for every single frame). 
 
-> Here's my current draft on a dual/quad port deserializer:
-> 
-> &i2c0 {
->     serializer@3d {
->         reg = <0x3d>;
->         ...
-> 
->         /* Guaranteed not physically present on i2c0 */
->         i2c-alias-pool = /bits/ 8 <0x20 0x21 0x22 0x23 0x24 0x25>;
-> 
->         rxports {
->             #address-cells = <1>;
->             #size-cells = <0>;
-> 
->             rxport@0 {
->                 reg = <0>;
->                 remote-i2c-bus { /* The proxied I2C bus on rxport 0 */
->                     #address-cells = <1>;
->                     #size-cells = <0>;
-> 
->                     eeprom@51 {
->                         reg = <0x51>;
->                         compatible = "at,24c02";
->                     };
->                 };
-> 
->             rxport@1 {
->                 reg = <1>;
->                 remote-i2c-bus { /* The proxied I2C bus on rxport 1 */
->                     #address-cells = <1>;
->                     #size-cells = <0>;
-> 
->                     eeprom@51 {
->                         reg = <0x51>;
->                         compatible = "at,24c02";
->                     };
->                 };
->             };
->         };
->     };
-> };
-> 
-> At probe time the serializer driver instantiates one new i2c_adapter for
-> each rxport. Any remote device is added (removed) to that adapter, then
-> the driver finds an available alias and maps (unmaps) it. The
+This is something that it is not possible to do with the "standard" 
+V4L2 API without stopping and restarting a stream (with increases
+a lot the latency).
 
-I avoid using i2c_adapter object, because then you get a confusing access
-to right the same device on two logical I2C buses. This is not the way
-how I2C muxes operate or are expected to operate, commonly I2C muxes contain
-a protocol to access muxed devices, which are "invisible" on a host bus,
-and here a local IC behaves like an I2C device with multiple addresses.
+Solving it is so complex that we decided to start with a completely
+new type of Linux media drivers (stateless decoders). In long term, 
+the same API should be used by not only by decoders, but also for 
+encoders and complex cameras (those with an image signal processor 
+inside a SoC chipset).
 
-Note, that following an advice from Wolfram I'm going to send the i2c-bridge
-cell driver into inclusion under drivers/i2c/muxes/ , even if the device
-driver does not register a mux.
+In order to be sure that it is possible to implement the way we did,
+We need to be able to add it to the Kernel somehow and to have
+enough drivers that will let us test all possible scenarios.
 
-> transactions are handled in a way similar to i2c-mux, i.e. the ds90*
-> i2c_adapter has a master_xfer callback that changes the remote slave
-> address to the corresponding alias, then calls parent->algo->master_xfer().
-> 
-> Note how both eeproms in the example have the same physical address.
-> They will be given two different aliases.
+That will allow to adapt a version of the camera HAL for testing
+and see if it behaves as expected.
 
-The question is how to determine which runtime assigned address represents
-which eeprom of two. The remote/alias scheme I propose makes it transparent.
+> But pulled,
 
->> +- ti,i2c-bridge-auto-ack: Enables AUTO ACK mode.
-> 
-> It this useful other than for debugging? And, as Laurent noted, this
-> should not be in DT: it doesn't describe the hardware.
-> 
+Thanks! Anyway, we'll try to rush the tests for this API in order to
+try sending any fixes that might be disruptive before the final
+release.
 
-I'll drop it, I've just checked that it is unused in any of production dts
-files, which are accessible to me.
-
-By "hardware description" I generally mean a hardware specific handle.
-If IC supports a meaningful, one time programmable non-standard 1-bit field
-configuration, then using a bool property in DT sounds reasonable to me.
-
->> +- ti,i2c-bridge-pass-all: Enables PASS ALL mode, remote I2C slave devices
->> +	are accessible on a local (host) I2C bus without I2C address
->> +	remappings.
-> 
-> It should be clear from the DT docs that either ti,i2c-bridge-pass-all
-> is enabled or the alias map/pool is used, but not both.
-> 
-
-Sure, I'll add this information, thank you for pointing it out.
-
---
-Best wishes,
-Vladimir
+Regards,
+Mauro
