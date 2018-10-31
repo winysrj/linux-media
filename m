@@ -1,207 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ed1-f65.google.com ([209.85.208.65]:33656 "EHLO
-        mail-ed1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725989AbeJaO4K (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:45423 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727436AbeJaSJr (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 Oct 2018 10:56:10 -0400
-MIME-Version: 1.0
-References: <20180423102637.xtcjidetxo6iaslx@gofer.mess.org>
-In-Reply-To: <20180423102637.xtcjidetxo6iaslx@gofer.mess.org>
-Reply-To: mtk.manpages@gmail.com
-From: "Michael Kerrisk (man-pages)" <mtk.manpages@gmail.com>
-Date: Wed, 31 Oct 2018 07:59:18 +0100
-Message-ID: <CAKgNAkhvAsFY5haZnt5q0Ri-dB-wyNE5AKXq+S_na9JFV1+75Q@mail.gmail.com>
-Subject: Re: [PATCH] lirc.4: remove ioctls and feature bits which were never implemented
-To: Sean Young <sean@mess.org>
-Cc: linux-man <linux-man@vger.kernel.org>, linux-media@vger.kernel.org,
-        Alec Leamas <leamas.alec@gmail.com>,
+        Wed, 31 Oct 2018 14:09:47 -0400
+Subject: Re: [PATCH 3/4] SoC camera: Remove the framework and the drivers
+To: jacopo mondi <jacopo@jmondi.org>,
         Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, mchehab@kernel.org
+References: <20181029230029.14630-1-sakari.ailus@linux.intel.com>
+ <20181029232134.25831-1-sakari.ailus@linux.intel.com>
+ <20181030064311.030b6a81@coco.lan> <20181030091409.76b07620@coco.lan>
+ <20181030202857.GH15991@w540> <20181030173513.64f8ebe1@coco.lan>
+ <20181030211719.GJ15991@w540>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <30f5c3de-736b-ee3a-4a11-b6fa88411e30@xs4all.nl>
+Date: Wed, 31 Oct 2018 10:12:28 +0100
+MIME-Version: 1.0
+In-Reply-To: <20181030211719.GJ15991@w540>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Sean,
+On 10/30/2018 10:17 PM, jacopo mondi wrote:
+> On Tue, Oct 30, 2018 at 05:35:23PM -0300, Mauro Carvalho Chehab wrote:
+>> Em Tue, 30 Oct 2018 21:28:57 +0100
+>> jacopo mondi <jacopo@jmondi.org> escreveu:
+>>
+>>> Hi Mauro,
+>>>
+>>> On Tue, Oct 30, 2018 at 09:14:09AM -0300, Mauro Carvalho Chehab wrote:
+>>>> Em Tue, 30 Oct 2018 01:21:34 +0200
+>>>> Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+>>>>
+>>>>> The SoC camera framework has been obsolete for some time and it is no
+>>>>> longer functional. A few drivers have been converted to the V4L2
+>>>>> sub-device API but for the rest the conversion has not taken place yet.
+>>>>>
+>>>>> In order to keep the tree clean and to avoid keep maintaining
+>>>>> non-functional and obsolete code, remove the SoC camera framework as well
+>>>>> as the drivers that depend on it.
+>>>>>
+>>>>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+>>>>> ---
+>>>>> Resending, this time with git format-patch -D .
+>>>>>
+>>>>>  MAINTAINERS                                        |    8 -
+>>>>>  drivers/media/i2c/Kconfig                          |    8 -
+>>>>>  drivers/media/i2c/Makefile                         |    1 -
+>>>>>  drivers/media/i2c/soc_camera/Kconfig               |   66 -
+>>>>>  drivers/media/i2c/soc_camera/Makefile              |   10 -
+>>>>>  drivers/media/i2c/soc_camera/ov9640.h              |  208 --
+>>>>>  drivers/media/i2c/soc_camera/soc_mt9m001.c         |  757 -------
+>>>>>  drivers/media/i2c/soc_camera/soc_mt9t112.c         | 1157 -----------
+>>>>>  drivers/media/i2c/soc_camera/soc_mt9v022.c         | 1012 ---------
+>>>>>  drivers/media/i2c/soc_camera/soc_ov5642.c          | 1087 ----------
+>>>>>  drivers/media/i2c/soc_camera/soc_ov772x.c          | 1123 ----------
+>>>>>  drivers/media/i2c/soc_camera/soc_ov9640.c          |  738 -------
+>>>>>  drivers/media/i2c/soc_camera/soc_ov9740.c          |  996 ---------
+>>>>>  drivers/media/i2c/soc_camera/soc_rj54n1cb0c.c      | 1415 -------------
+>>>>>  drivers/media/i2c/soc_camera/soc_tw9910.c          |  999 ---------
+>>>>
+>>>> I don't see why we should remove those. I mean, Jacopo is
+>>>> actually converting those drivers to not depend on soc_camera,
+>>>> and it is a way better to review those patches with the old
+>>>> code in place.
+>>>
+>>> I have converted a few drivers used by some SH boards where I dropped
+>>> dependencies on soc_camera, not to remove camera support from those. For
+>>> others I don't have cameras to test with, nor I know about boards in
+>>> mainline using them.
+>>>
+>>> From my side, driver conversion is done.
+>>>
+>>>>
+>>>> So, at least while Jacopo is keep doing this work, I would keep
+>>>> at Kernel tree, as it helps to see a diff when the driver changes
+>>>> when getting rid of soc_camera dependencies.
+>>>>
+>>>> So, IMO, the best would be to move those to /staging, eventually
+>>>> depending on BROKEN.
+>>>
+>>> However, somebody with a (rather old) development setup using those camera
+>>> sensor may wants to see if mainline supports them. We actually had a
+>>> few patches coming lately (for ov. I understand Sakari's argument that those
+>>> could be retrieved from git history, but a few people will notice imo.
+>>> I also understand the additional maintainership burden of keeping them
+>>> around, so I'm fine with either ways ;)
+>>>
+>>> This is a list of the current situation in mainline, to have a better
+>>> idea:
+>>>
+>>> $for i in `seq 1 9`; do CAM=$(head -n $i /tmp/soc_cams | tail -n 1); echo  $CAM; find drivers/media/ -name  $CAM; done
+>>> t9m001.c
+>>> drivers/media/i2c/soc_camera/mt9m001.c
+>>> mt9t112.c
+>>> drivers/media/i2c/mt9t112.c
+>>> drivers/media/i2c/soc_camera/mt9t112.c
+>>> mt9v022.c
+>>> drivers/media/i2c/soc_camera/mt9v022.c
+>>> ov5642.c
+>>> drivers/media/i2c/soc_camera/ov5642.c
+>>> ov772x.c
+>>> drivers/media/i2c/ov772x.c
+>>> drivers/media/i2c/soc_camera/ov772x.c
+>>> ov9640.c
+>>> drivers/media/i2c/soc_camera/ov9640.c
+>>> ov9740.c
+>>> drivers/media/i2c/soc_camera/ov9740.c
+>>> rj54n1cb0c.c
+>>> drivers/media/i2c/rj54n1cb0c.c
+>>> drivers/media/i2c/soc_camera/rj54n1cb0c.c
+>>> tw9910.c
+>>> drivers/media/i2c/tw9910.c
+>>> drivers/media/i2c/soc_camera/tw9910.c
+>>>
+>>> So it seems to me only the following sensor do not have a
+>>> non-soc_camera driver at the moment:
+>>>
+>>> mt9m001.c
+>>> mt9v022.c
+>>> ov5642.c
+>>> ov9640.c
+>>> ov9740.c
+> 
+> For a few of them (mt9m001, ov5642) there are cheap modules available
+> online. The others ones have public documentation. I know they are old
+> and dusty, supporting only parallel video interface.
+> 
+>>
+>> Ok. So, what about keeping just those 5 drivers at staging? If, after an
+>> year, people won't do conversions, we can just drop them.
+>>
+> 
+> Let's see what Sakari and Hans think. Again, I'm fine with both ways
+> ;)
 
-On 4/23/18 12:26 PM, Sean Young wrote:> The lirc header file included
-ioctls and feature bits which were never
-> implemented by any driver. They were removed in commit:
->
-> https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=d55f09abe24b4dfadab246b6f217da547361cdb6
->
-> Signed-off-by: Sean Young <sean@mess.org>
+My preference is to just remove them. But moving them to staging under
+CONFIG_BROKEN for a year is OK with me, but frankly I don't see the point.
 
-Thanks for your persistence.
+Regards,
 
-Mauro, Alec, thanks for your input.
-
-Patch Applied.
-
-Thanks!
-
-Michael
-> ---
->  man4/lirc.4 | 92 ++-----------------------------------------------------------
->  1 file changed, 2 insertions(+), 90 deletions(-)
->
-> diff --git a/man4/lirc.4 b/man4/lirc.4
-> index 1e94a7163..3adff55f1 100644
-> --- a/man4/lirc.4
-> +++ b/man4/lirc.4
-> @@ -78,9 +78,7 @@ The package reflects a timeout; see the
->  .B LIRC_SET_REC_TIMEOUT_REPORTS
->  ioctl.
->  .\"
-> -.SS Reading input with the
-> -.B LIRC_MODE_LIRCCODE
-> -drivers
-> +.SS Reading input with the LIRC_MODE_LIRCCODE drivers
->  .PP
->  In the \fBLIRC_MODE_LIRCCODE\fR
->  mode, the data returned by
-> @@ -204,17 +202,11 @@ Currently serves no purpose since only
->  .BR LIRC_MODE_PULSE
->  is supported.
->  .TP
-> -.BR LIRC_GET_SEND_CARRIER " (\fIvoid\fP)"
-> -Get the modulation frequency (Hz).
-> -.TP
->  .BR LIRC_SET_SEND_CARRIER " (\fIint\fP)"
->  Set the modulation frequency.
->  The argument is the frequency (Hz).
->  .TP
-> -.BR LIRC_GET_SEND_CARRIER " (\fIvoid\fP)"
-> -Get the modulation frequency used when decoding (Hz).
-> -.TP
-> -.BR SET_SEND_DUTY_CYCLE " (\fIint\fP)"
-> +.BR LIRC_SET_SEND_DUTY_CYCLE " (\fIint\fP)"
->  Set the carrier duty cycle.
->  .I val
->  is a number in the range [0,100] which
-> @@ -284,36 +276,6 @@ By default this should be turned off.
->  .BR LIRC_GET_REC_RESOLUTION " (\fIvoid\fP)"
->  Return the driver resolution (microseconds).
->  .TP
-> -.BR LIRC_GET_MIN_FILTER_PULSE " (\fIvoid\fP)", " " \
-> -LIRC_GET_MAX_FILTER_PULSE " (\fIvoid\fP)"
-> -Some devices are able to filter out spikes in the incoming signal
-> -using given filter rules.
-> -These ioctls return the hardware capabilities that describe the bounds
-> -of the possible filters.
-> -Filter settings depend on the IR protocols that are expected.
-> -.BR lircd (8)
-> -derives the settings from all protocols definitions found in its
-> -.BR lircd.conf (5)
-> -config file.
-> -.TP
-> -.BR LIRC_GET_MIN_FILTER_SPACE " (\fIvoid\fP)", " " \
-> -LIRC_GET_MAX_FILTER_SPACE " (\fIvoid\fP)"
-> -See
-> -.BR LIRC_GET_MIN_FILTER_PULSE .
-> -.TP
-> -.BR LIRC_SET_REC_FILTER " (\fIint\fP)"
-> -Pulses/spaces shorter than this (microseconds) are filtered out by
-> -hardware.
-> -.TP
-> -.BR LIRC_SET_REC_FILTER_PULSE " (\fIint\fP)", " " \
-> -LIRC_SET_REC_FILTER_SPACE " (\fIint\fP)"
-> -Pulses/spaces shorter than this (microseconds) are filtered out by
-> -hardware.
-> -If filters cannot be set independently for pulse/space, the
-> -corresponding ioctls must return an error and
-> -.BR LIRC_SET_REC_FILTER
-> -should be used instead.
-> -.TP
->  .BR LIRC_SET_TRANSMITTER_MASK
->  Enable the set of transmitters specified in
->  .IR val ,
-> @@ -343,32 +305,6 @@ carrier reports.
->  In that case, it will be disabled as soon as you disable carrier reports.
->  Trying to disable a wide band receiver while carrier reports are active
->  will do nothing.
-> -.TP
-> -.BR LIRC_SETUP_START " (\fIvoid\fP), " LIRC_SETUP_END " (\fIvoid\fP)"
-> -Setting of several driver parameters can be optimized by bracketing
-> -the actual ioctl calls
-> -.BR LIRC_SETUP_START
-> -and
-> -.BR LIRC_SETUP_END .
-> -When a driver receives a
-> -.BR LIRC_SETUP_START
-> -ioctl, it can choose to not commit further setting changes to the
-> -hardware until a
-> -.BR LIRC_SETUP_END
-> -is received.
-> -But this is open to the driver implementation and every driver
-> -must also handle parameter changes which are not encapsulated by
-> -.BR LIRC_SETUP_START
-> -and
-> -.BR LIRC_SETUP_END .
-> -Drivers can also choose to ignore these ioctls.
-> -.TP
-> -.BR LIRC_NOTIFY_DECODE " (\fIvoid\fP)"
-> -This ioctl is called by
-> -.BR lircd (8)
-> -whenever a successful decoding of an incoming IR signal is possible.
-> -This can be used by supporting hardware to give visual user
-> -feedback, for example by flashing an LED.
->  .\"
->  .SH FEATURES
->  .PP
-> @@ -378,14 +314,6 @@ The
->  ioctl returns a bit mask describing features of the driver.
->  The following bits may be returned in the mask:
->  .TP
-> -.BR LIRC_CAN_REC_RAW
-> -The driver is capable of receiving using
-> -.BR LIRC_MODE_RAW .
-> -.TP
-> -.BR LIRC_CAN_REC_PULSE
-> -The driver is capable of receiving using
-> -.BR LIRC_MODE_PULSE .
-> -.TP
->  .BR LIRC_CAN_REC_MODE2
->  The driver is capable of receiving using
->  .BR LIRC_MODE_MODE2 .
-> @@ -426,10 +354,6 @@ The driver supports
->  The driver supports
->  .BR LIRC_SET_REC_TIMEOUT .
->  .TP
-> -.BR LIRC_CAN_SET_REC_FILTER
-> -The driver supports
-> -.BR LIRC_SET_REC_FILTER .
-> -.TP
->  .BR LIRC_CAN_MEASURE_CARRIER
->  The driver supports measuring of the modulation frequency using
->  .BR LIRC_SET_MEASURE_CARRIER_MODE .
-> @@ -438,22 +362,10 @@ The driver supports measuring of the modulation frequency using
->  The driver supports learning mode using
->  .BR LIRC_SET_WIDEBAND_RECEIVER .
->  .TP
-> -.BR LIRC_CAN_NOTIFY_DECODE
-> -The driver supports
-> -.BR LIRC_NOTIFY_DECODE .
-> -.TP
-> -.BR LIRC_CAN_SEND_RAW
-> -The driver supports sending using
-> -.BR LIRC_MODE_RAW .
-> -.TP
->  .BR LIRC_CAN_SEND_PULSE
->  The driver supports sending using
->  .BR LIRC_MODE_PULSE .
->  .TP
-> -.BR LIRC_CAN_SEND_MODE2
-> -The driver supports sending using
-> -.BR LIRC_MODE_MODE2 .
-> -.TP
->  .BR LIRC_CAN_SEND_LIRCCODE
->  The driver supports sending.
->  (This is uncommon, since
-> --
-> 2.14.3
->
-
-
--- 
-Michael Kerrisk
-Linux man-pages maintainer; http://www.kernel.org/doc/man-pages/
-Linux/UNIX System Programming Training: http://man7.org/training/
+	Hans
