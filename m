@@ -1,173 +1,171 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi1-f180.google.com ([209.85.167.180]:38303 "EHLO
-        mail-oi1-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726078AbeJZQON (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 26 Oct 2018 12:14:13 -0400
-Received: by mail-oi1-f180.google.com with SMTP id k19-v6so189921oiw.5
-        for <linux-media@vger.kernel.org>; Fri, 26 Oct 2018 00:38:18 -0700 (PDT)
-Received: from mail-ot1-f42.google.com (mail-ot1-f42.google.com. [209.85.210.42])
-        by smtp.gmail.com with ESMTPSA id v9sm3671996ote.3.2018.10.26.00.38.16
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Fri, 26 Oct 2018 00:38:16 -0700 (PDT)
-Received: by mail-ot1-f42.google.com with SMTP id x4so212319otg.3
-        for <linux-media@vger.kernel.org>; Fri, 26 Oct 2018 00:38:16 -0700 (PDT)
+Received: from gofer.mess.org ([88.97.38.141]:46395 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726054AbeJaRkj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 31 Oct 2018 13:40:39 -0400
+Date: Wed, 31 Oct 2018 08:43:27 +0000
+From: Sean Young <sean@mess.org>
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: David Howells <dhowells@redhat.com>,
+        Michael Krufky <mkrufky@linuxtv.org>,
+        Brad Love <brad@nextdimension.cc>, mchehab@kernel.org,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] dvb: Allow MAC addresses to be mapped to stable device
+ names with udev
+Message-ID: <20181031084327.25bd5654ij37o3b5@gofer.mess.org>
+References: <153778383104.14867.1567557014782141706.stgit@warthog.procyon.org.uk>
+ <20181030110319.764f33f0@coco.lan>
+ <20181030223249.dhwhxdjipzmjxzsy@gofer.mess.org>
+ <20181030213513.51922545@coco.lan>
 MIME-Version: 1.0
-References: <20181019080928.208446-1-acourbot@chromium.org>
- <a02b50ee-37e1-0202-b999-8e32b7bd1a96@xs4all.nl> <CAPBb6MUA5zNL9SsY2AEDNKgazyAqOMxGGSwidMV+RJnnrz7kTg@mail.gmail.com>
- <515520e4-51d6-e4bb-138a-84453ea6e189@xs4all.nl>
-In-Reply-To: <515520e4-51d6-e4bb-138a-84453ea6e189@xs4all.nl>
-From: Alexandre Courbot <acourbot@chromium.org>
-Date: Fri, 26 Oct 2018 16:38:04 +0900
-Message-ID: <CAPBb6MUou54=yhEv2g27an-ASefnaLZOyBbE-1E-CD+w0t_apg@mail.gmail.com>
-Subject: Re: [RFC] Stateless codecs: how to refer to reference frames
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Tomasz Figa <tfiga@chromium.org>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Pawel Osciak <posciak@chromium.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20181030213513.51922545@coco.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+On Tue, Oct 30, 2018 at 09:35:31PM -0300, Mauro Carvalho Chehab wrote:
+> Em Tue, 30 Oct 2018 22:32:50 +0000
+> Sean Young <sean@mess.org> escreveu:
+> 
+> Thanks for reviewing it!
+> 
+> > On Tue, Oct 30, 2018 at 11:03:19AM -0300, Mauro Carvalho Chehab wrote:
+> > > Em Mon, 24 Sep 2018 11:10:31 +0100
+> > > David Howells <dhowells@redhat.com> escreveu:
+> > >   
+> > > > Some devices, such as the DVBSky S952 and T982 cards, are dual port cards
+> > > > that provide two cx23885 devices on the same PCI device, which means the
+> > > > attributes available for writing udev rules are exactly the same, apart
+> > > > from the adapter number.  Unfortunately, the adapter numbers are dependent
+> > > > on the order in which things are initialised, so this can change over
+> > > > different releases of the kernel.
+> > > > 
+> > > > Devices have a MAC address available, which is printed during boot:  
+> > 
+> > Not all dvb devices have a mac address.
+> 
+> True. Usually, devices without eeprom don't have, specially the too old ones.
+> 
+> On others, the MAC address only appear after the firmware is loaded.
+> 
+> > > > 
+> > > > 	[   10.951517] DVBSky T982 port 1 MAC address: 00:11:22:33:44:55
+> > > > 	...
+> > > > 	[   10.984875] DVBSky T982 port 2 MAC address: 00:11:22:33:44:56
+> > > > 
+> > > > To make it possible to distinguish these in udev, provide sysfs attributes
+> > > > to make the MAC address, adapter number and type available.  There are
+> > > > other fields that could perhaps be exported also.  In particular, it would
+> > > > be nice to provide the port number, but somehow that doesn't manage to
+> > > > propagate through the labyrinthine initialisation process.
+> > > > 
+> > > > The new sysfs attributes can be seen from userspace as:
+> > > > 
+> > > > 	[root@deneb ~]# ls /sys/class/dvb/dvb0.frontend0/
+> > > > 	dev  device  dvb_adapter  dvb_mac  dvb_type
+> > > > 	power  subsystem  uevent
+> > > > 	[root@deneb ~]# cat /sys/class/dvb/dvb0.frontend0/dvb_*
+> > > > 	0
+> > > > 	00:11:22:33:44:55
+> > > > 	frontend
+> > > > 
+> > > > They can be used in udev rules:
+> > > > 
+> > > > 	SUBSYSTEM=="dvb", ATTRS{vendor}=="0x14f1", ATTRS{device}=="0x8852", ATTRS{subsystem_device}=="0x0982", ATTR{dvb_mac}=="00:11:22:33:44:55", PROGRAM="/bin/sh -c 'K=%k; K=$${K#dvb}; printf dvb/adapter9820/%%s $${K#*.}'", SYMLINK+="%c"
+> > > > 	SUBSYSTEM=="dvb", ATTRS{vendor}=="0x14f1", ATTRS{device}=="0x8852", ATTRS{subsystem_device}=="0x0982", ATTR{dvb_mac}=="00:11.22.33.44.56", PROGRAM="/bin/sh -c 'K=%k; K=$${K#dvb}; printf dvb/adapter9821/%%s $${K#*.}'", SYMLINK+="%c"
+> > > > 
+> > > > where the match is made with ATTR{dvb_mac} or similar.  The rules above
+> > > > make symlinks from /dev/dvb/adapter982/* to /dev/dvb/adapterXX/*.
+> > > > 
+> > > > Note that binding the dvb-net device to a network interface and changing it
+> > > > there does not reflect back into the the dvb_adapter struct and doesn't
+> > > > change the MAC address here.  This means that a system with two identical
+> > > > cards in it may need to distinguish them by some other means than MAC
+> > > > address.
+> > > > 
+> > > > Signed-off-by: David Howells <dhowells@redhat.com>  
+> > > 
+> > > Looks OK to me.
+> > > 
+> > > Michael/Sean/Brad,
+> > > 
+> > > Any comments? If not, I'll probably submit it this week upstream.  
+> > 
+> > With this patch, with a usb Hauppauge Nova-T Stick I get:
+> 
+> Weird. Normally, Hauppauge devices have MAC address, as they all have
+> eeproms. On several models, the MAC is even printed at the label on
+> its back.
+> 
+> Perhaps the logic didn't wait for the firmware to load?
 
-On Wed, Oct 24, 2018 at 6:52 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
->
-> HI Alexandre,
->
-> On 10/24/2018 10:16 AM, Alexandre Courbot wrote:
-> > Hi Hans,
-> >
-> > On Fri, Oct 19, 2018 at 6:40 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> >>
-> >> From Alexandre's '[RFC PATCH v3] media: docs-rst: Document m2m stateless
-> >> video decoder interface':
-> >>
-> >> On 10/19/18 10:09, Alexandre Courbot wrote:
-> >>> Two points being currently discussed have not been changed in this
-> >>> revision due to lack of better idea. Of course this is open to change:
-> >>
-> >> <snip>
-> >>
-> >>> * The other hot topic is the use of capture buffer indexes in order to
-> >>>   reference frames. I understand the concerns, but I doesn't seem like
-> >>>   we have come with a better proposal so far - and since capture buffers
-> >>>   are essentially well, frames, using their buffer index to directly
-> >>>   reference them doesn't sound too inappropriate to me. There is also
-> >>>   the restriction that drivers must return capture buffers in queue
-> >>>   order. Do we have any concrete example where this scenario would not
-> >>>   work?
-> >>
-> >> I'll stick to decoders in describing the issue. Stateless encoders probably
-> >> do not have this issue.
-> >>
-> >> To recap: the application provides a buffer with compressed data to the
-> >> decoder. After the request is finished the application can dequeue the
-> >> decompressed frame from the capture queue.
-> >>
-> >> In order to decompress the decoder needs to access previously decoded
-> >> reference frames. The request passed to the decoder contained state
-> >> information containing the buffer index (or indices) of capture buffers
-> >> that contain the reference frame(s).
-> >>
-> >> This approach puts restrictions on the framework and the application:
-> >>
-> >> 1) It assumes that the application can predict the capture indices.
-> >> This works as long as there is a simple relationship between the
-> >> buffer passed to the decoder and the buffer you get back.
-> >>
-> >> But that may not be true for future codecs. And what if one buffer
-> >> produces multiple capture buffers? (E.g. if you want to get back
-> >> decompressed slices instead of full frames to reduce output latency).
-> >>
-> >> This API should be designed to be future-proof (within reason of course),
-> >> and I am not at all convinced that future codecs will be just as easy
-> >> to predict.
-> >>
-> >> 2) It assumes that neither drivers nor applications mess with the buffers.
-> >> One case that might happen today is if the DMA fails and a buffer is
-> >> returned marked ERROR and the DMA is retried with the next buffer. There
-> >> is nothing in the spec that prevents you from doing that, but it will mess
-> >> up the capture index numbering. And does the application always know in
-> >> what order capture buffers are queued? Perhaps there are two threads: one
-> >> queueing buffers with compressed data, and the other dequeueing the
-> >> decompressed buffers, and they are running mostly independently.
-> >>
-> >>
-> >> I believe that assuming that you can always predict the indices of the
-> >> capture queue is dangerous and asking for problems in the future.
-> >>
-> >>
-> >> I am very much in favor of using a dedicated cookie. The application sets
-> >> it for the compressed buffer and the driver copies it to the uncompressed
-> >> capture buffer. It keeps track of the association between capture index
-> >> and cookie. If a compressed buffer decompresses into multiple capture
-> >> buffers, then they will all be associated with the same cookie, so
-> >> that simplifies how you refer to reference frames if they are split
-> >> over multiple buffers.
-> >>
-> >> The codec controls refer to reference frames by cookie(s).
-> >
-> > So as discussed yesterday, I understand your issue with using buffer
-> > indexes. The cookie idea sounds like it could work, but I'm afraid you
-> > could still run into issues when you don't have buffer symmetry.
-> >
-> > For instance, imagine that the compressed buffer contains 2 frames
-> > worth of data. In this case, the 2 dequeued capture buffers would
-> > carry the same cookie, making it impossible to reference either frame
-> > unambiguously.
->
-> But this is a stateless codec, so each compressed buffer contains only
-> one frame. That's the responsibility of the bitstream parser to ensure
-> that.
+This is an ancient dib0700 device; the firmware did load but there is no
+mac.
 
-Just as we are making the design future-proof by considering the case
-where we get one buffer per slice, shouldn't we think about the
-(currently hypothetical) case of a future codec specification in which
-slices contain information that is relevant for several consecutive
-frames? It may be a worthless design as classic reference frames are
-probably enough to carry redundant information, but wanted to point
-the scenario just in case.
+> > $ tail /sys/class/dvb/*/dvb_*
+> > ==> /sys/class/dvb/dvb0.demux0/dvb_adapter <==  
+> > 0
+> > 
+> > ==> /sys/class/dvb/dvb0.demux0/dvb_mac <==  
+> > 00:00:00:00:00:00
+> > 
+> > ==> /sys/class/dvb/dvb0.demux0/dvb_type <==  
+> > demux
+> > 
+> > ==> /sys/class/dvb/dvb0.dvr0/dvb_adapter <==  
+> > 0
+> > 
+> > ==> /sys/class/dvb/dvb0.dvr0/dvb_mac <==  
+> > 00:00:00:00:00:00
+> > 
+> > ==> /sys/class/dvb/dvb0.dvr0/dvb_type <==  
+> > dvr
+> > 
+> > ==> /sys/class/dvb/dvb0.frontend0/dvb_adapter <==  
+> > 0
+> > 
+> > ==> /sys/class/dvb/dvb0.frontend0/dvb_mac <==  
+> > 00:00:00:00:00:00
+> > 
+> > ==> /sys/class/dvb/dvb0.frontend0/dvb_type <==  
+> > frontend
+> > 
+> > ==> /sys/class/dvb/dvb0.net0/dvb_adapter <==  
+> > 0
+> > 
+> > ==> /sys/class/dvb/dvb0.net0/dvb_mac <==  
+> > 00:00:00:00:00:00
+> > 
+> > ==> /sys/class/dvb/dvb0.net0/dvb_type <==  
+> > net
+> > 
+> > 
+> > This would mean a stable name is based on a mac of 0, and there are many
+> > more devices don't have a mac so they would all match this stable name.
+> 
+> It can only provide information when the device has it. 
+> 
+> > Devices without a mac address shouldn't have a mac_dvb sysfs attribute,
+> > I think.
+> 
+> Hmm... do you mean that, if the mac is reported as 00:00:00:00:00,
+> then the sysfs node should not be exposed? Makes sense.
 
->
-> The whole idea of the stateless codec is that you supply only one frame
-> at a time to the codec.
->
-> If someone indeed puts multiple frames into a single buffer, then
-> the behavior is likely undefined. Does anyone have any idea what
-> would happen with the cedrus driver in that case? This is actually
-> a good test.
->
-> Anyway, I would consider this an application bug. Garbage in, garbage out.
+Yes, I do.
 
-Yeah, at least for the existing codecs this should be a bug.
+> > The dvb type and dvb adapter no is already present in the device name,
+> > I'm not sure why this needs duplicating.
+> 
+> IMO, it helps to write udev rules if those information are exposed.
 
->
-> >
-> > There may also be a similar, yet simpler solution already in place
-> > that we can use. The v4l2_buffer structure contains a "sequence"
-> > member, that is supposed to sequentially count the delivered frames.
->
-> The sequence field suffers from exactly the same problems as the
-> buffer index: it doesn't work if one compressed frame results in
-> multiple capture buffers (one for each slice), since the sequence
-> number will be increased for each capture buffer. Also if capture
-> buffers are marked as error for some reason, the sequence number is
-> also incremented for that buffer, again making it impossible to
-> predict in userspace what the sequence counter will be.
+That is true. There is support for regexs in udev, e.g.:
 
-Well if we get one capture buffer per slice, user-space can count them
-just as well as in the one buffer per frame scenario.
+	KERNEL=="dvd[0-9]*.demux.[0-9]*"
 
-That being said, I agree that requiring user-space to keep track of
-that could be tricky. Lose track once, and all your future reference
-frames will use an incorrect buffer.
+Having said that dvb_type does look a little nicer:
 
-So cookies it is, I guess! I will include them in the next version of the RFC.
+	ATTR{dvb_type}=="demux"
 
-Cheers,
-Alex.
+
+Sean
