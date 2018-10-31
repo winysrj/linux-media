@@ -1,117 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:40385 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728954AbeJaNbv (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.133]:46942 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725955AbeJaOey (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 Oct 2018 09:31:51 -0400
-Message-ID: <72f4558d780d1a539da9f6399011ee78@smtp-cloud8.xs4all.net>
-Date: Wed, 31 Oct 2018 05:35:25 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
+        Wed, 31 Oct 2018 10:34:54 -0400
+Date: Tue, 30 Oct 2018 22:38:08 -0700
+From: Christoph Hellwig <hch@infradead.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: "Matwey V. Kornilov" <matwey@sai.msu.ru>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        matwey.kornilov@gmail.com, tfiga@chromium.org,
+        stern@rowland.harvard.edu, ezequiel@collabora.com,
+        hdegoede@redhat.com, hverkuil@xs4all.nl, mchehab@kernel.org,
+        rostedt@goodmis.org, mingo@redhat.com, isely@pobox.com,
+        bhumirks@gmail.com, colin.king@canonical.com,
+        kieran.bingham@ideasonboard.com, keiichiw@chromium.org,
+        Christoph Hellwig <hch@infradead.org>
+Subject: Re: [PATCH v5 2/2] media: usb: pwc: Don't use coherent DMA buffers
+ for ISO transfer
+Message-ID: <20181031053808.GB22504@infradead.org>
+References: <20180821170629.18408-1-matwey@sai.msu.ru>
+ <20180821170629.18408-3-matwey@sai.msu.ru>
+ <2213616.rQm4DhIJ7U@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <2213616.rQm4DhIJ7U@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Wed, Oct 31, 2018 at 12:00:12AM +0200, Laurent Pinchart wrote:
+> As discussed before, we're clearly missing a proper non-coherent memory 
+> allocation API. As much as I would like to see a volunteer for this, I don't 
+> think it's a reason to block the performance improvement we get from this 
+> patch.
+> 
+> This being said, I'm a bit concerned about the allocation of 16kB blocks from 
+> kmalloc(), and believe that the priority of the non-coherent memory allocation 
+> API implementation should be increased. Christoph, you mentioned in a recent 
+> discussion on this topic that you are working on removing the existing non-
+> coherent DMA allocation API, what is your opinion on how we should gllobally 
+> solve the problem that this patch addresses ?
 
-Results of the daily build of media_tree:
+I hope to address this on the dma-mapping side for this merge window.
+My current idea is to add (back) add dma_alloc_noncoherent-like API
+(name to be determindes).  This would be very similar to to the
+DMA_ATTR_NON_CONSISTENT to dma_alloc_attrs with the following
+differences:
 
-date:			Wed Oct 31 05:00:10 CET 2018
-media-tree git hash:	3b796aa60af087f5fec75aee9b17f2130f2b9adc
-media_build git hash:	0c8bb27f3aaa682b9548b656f77505c3d1f11e71
-v4l-utils git hash:	c36dbbdfa8b30b2badd4f893b59d0bd4f0bd12aa
-edid-decode git hash:	5eeb151a748788666534d6ea3da07f90400d24c2
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.18.0-2-amd64
+ - it must actually be implemented by every dma_map_ops instance, no
+   falling back to dma_alloc_coherent like semantics.  For all actually
+   coherent ops this is trivial as there is no difference in semantics
+   and we can fall back to the 'coherent' semantics, for non-coherent
+   direct mappings it also is mostly trivial as we generally can use
+   dma_direct_alloc.  The only instances that will need real work are
+   IOMMUs that support non-coherent access, but there is only about
+   a handfull of those.
+ - instead of using the only vaguely defined dma_cache_sync for
+   ownership transfers we'll use dma_sync_single_* which are well
+   defined and available everywhere
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.123-i686: OK
-linux-3.18.123-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.159-i686: OK
-linux-4.4.159-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.131-i686: OK
-linux-4.9.131-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.74-i686: OK
-linux-4.14.74-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: OK
-linux-4.19-i686: OK
-linux-4.19-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+I'll try to prioritise this to get done early in the merge window,
+but I'll need someone else do the USB side.
 
-Detailed results are available here:
+> > +	dma_sync_single_for_cpu(&urb->dev->dev,
+> > +				urb->transfer_dma,
+> > +				urb->transfer_buffer_length,
+> > +				DMA_FROM_DEVICE);
+> > +
+> 
+> As explained before as well, I think we need dma_sync_single_for_device() 
+> calls, and I know they would degrade performances until we fix the problem on 
+> the DMA mapping API side. This is not a reason to block the patch either. I 
+> would appreciate, however, if a comment could be added to the place where 
+> dma_sync_single_for_device() should be called, to explain the problem.
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Yes, as a rule of thumb every dma_sync_single_for_cpu call needs to pair
+with a previous dma_sync_single_for_device call.  (Exceptions like
+selective use of DMA_ATTR_SKIP_CPU_SYNC proove the rule)
