@@ -1,95 +1,205 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:38416 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727436AbeJaS5v (ORCPT
+Received: from casper.infradead.org ([85.118.1.10]:59326 "EHLO
+        casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727436AbeJaTCD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 Oct 2018 14:57:51 -0400
-Subject: Re: [PATCH 4/4] SoC camera: Tidy the header
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, mchehab@kernel.org
+        Wed, 31 Oct 2018 15:02:03 -0400
+Date: Wed, 31 Oct 2018 07:04:28 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: jacopo mondi <jacopo@jmondi.org>, linux-media@vger.kernel.org,
+        hverkuil@xs4all.nl
+Subject: Re: [PATCH 3/4] SoC camera: Remove the framework and the drivers
+Message-ID: <20181031070428.4f9bb283@coco.lan>
+In-Reply-To: <20181031093202.skhoqwnisqmhan4p@paasikivi.fi.intel.com>
 References: <20181029230029.14630-1-sakari.ailus@linux.intel.com>
- <20181029230029.14630-5-sakari.ailus@linux.intel.com>
- <20181030090618.2a62d2d4@coco.lan>
- <20181031092945.csl5vifvstd5ds5g@paasikivi.fi.intel.com>
- <20181031064030.35cd5f8d@coco.lan>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <b0ca8b6c-ca15-dc42-2425-fef60249c280@xs4all.nl>
-Date: Wed, 31 Oct 2018 11:00:22 +0100
+        <20181029232134.25831-1-sakari.ailus@linux.intel.com>
+        <20181030064311.030b6a81@coco.lan>
+        <20181030091409.76b07620@coco.lan>
+        <20181030202857.GH15991@w540>
+        <20181030173513.64f8ebe1@coco.lan>
+        <20181031093202.skhoqwnisqmhan4p@paasikivi.fi.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <20181031064030.35cd5f8d@coco.lan>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/31/2018 10:40 AM, Mauro Carvalho Chehab wrote:
-> Em Wed, 31 Oct 2018 11:29:45 +0200
-> Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
-> 
->> Hi Mauro,
->>
->> On Tue, Oct 30, 2018 at 09:06:18AM -0300, Mauro Carvalho Chehab wrote:
->>> Em Tue, 30 Oct 2018 01:00:29 +0200
->>> Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
->>>   
->>>> Clean up the SoC camera framework header. It only exists now to keep board
->>>> code compiling. The header can be removed once the board code dependencies
->>>> to it has been removed.
->>>>
->>>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
->>>> ---
->>>>  include/media/soc_camera.h | 335 ---------------------------------------------
->>>>  1 file changed, 335 deletions(-)
->>>>
->>>> diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
->>>> index b7e42a1b0910..14d19da6052a 100644
->>>> --- a/include/media/soc_camera.h
->>>> +++ b/include/media/soc_camera.h
->>>> @@ -22,172 +22,6 @@
->>>>  #include <media/v4l2-ctrls.h>
->>>>  #include <media/v4l2-device.h>  
->>>
->>> That doesn't make any sense. soc_camera.h should have the same fate
->>> as the entire soc_camera infrastructure: either be removed or moved
->>> to staging, and everything else that doesn't have the same fate
->>> should get rid of this header.  
->>
->> We can't just remove this; there is board code that depends on it.
->>
->> The intent is to remove the board code as well but presuming that the board
->> code would be merged through a different tree, it'd be less hassle to wait
->> a bit; hence the patch removing any unnecessary stuff here.
-> 
-> Then we need *first* to remove board code, wait for those changes to be
-> applied and *then* remove soc_camera (and not the opposite).
+Em Wed, 31 Oct 2018 11:32:02 +0200
+Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
 
-Please note that the camera support for all the remaining boards using
-soc_camera has been dead for years. The soc_camera drivers that they depended
-on have been removed a long time ago.
+> Hi Mauro,
+>=20
+> On Tue, Oct 30, 2018 at 05:35:23PM -0300, Mauro Carvalho Chehab wrote:
+> > Em Tue, 30 Oct 2018 21:28:57 +0100
+> > jacopo mondi <jacopo@jmondi.org> escreveu:
+> >  =20
+> > > Hi Mauro,
+> > >=20
+> > > On Tue, Oct 30, 2018 at 09:14:09AM -0300, Mauro Carvalho Chehab wrote=
+: =20
+> > > > Em Tue, 30 Oct 2018 01:21:34 +0200
+> > > > Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+> > > >   =20
+> > > > > The SoC camera framework has been obsolete for some time and it i=
+s no
+> > > > > longer functional. A few drivers have been converted to the V4L2
+> > > > > sub-device API but for the rest the conversion has not taken plac=
+e yet.
+> > > > >
+> > > > > In order to keep the tree clean and to avoid keep maintaining
+> > > > > non-functional and obsolete code, remove the SoC camera framework=
+ as well
+> > > > > as the drivers that depend on it.
+> > > > >
+> > > > > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > > > > ---
+> > > > > Resending, this time with git format-patch -D .
+> > > > >
+> > > > >  MAINTAINERS                                        |    8 -
+> > > > >  drivers/media/i2c/Kconfig                          |    8 -
+> > > > >  drivers/media/i2c/Makefile                         |    1 -
+> > > > >  drivers/media/i2c/soc_camera/Kconfig               |   66 -
+> > > > >  drivers/media/i2c/soc_camera/Makefile              |   10 -
+> > > > >  drivers/media/i2c/soc_camera/ov9640.h              |  208 --
+> > > > >  drivers/media/i2c/soc_camera/soc_mt9m001.c         |  757 -------
+> > > > >  drivers/media/i2c/soc_camera/soc_mt9t112.c         | 1157 ------=
+-----
+> > > > >  drivers/media/i2c/soc_camera/soc_mt9v022.c         | 1012 ------=
+---
+> > > > >  drivers/media/i2c/soc_camera/soc_ov5642.c          | 1087 ------=
+----
+> > > > >  drivers/media/i2c/soc_camera/soc_ov772x.c          | 1123 ------=
+----
+> > > > >  drivers/media/i2c/soc_camera/soc_ov9640.c          |  738 -------
+> > > > >  drivers/media/i2c/soc_camera/soc_ov9740.c          |  996 ------=
+---
+> > > > >  drivers/media/i2c/soc_camera/soc_rj54n1cb0c.c      | 1415 ------=
+-------
+> > > > >  drivers/media/i2c/soc_camera/soc_tw9910.c          |  999 ------=
+---   =20
+> > > >
+> > > > I don't see why we should remove those. I mean, Jacopo is
+> > > > actually converting those drivers to not depend on soc_camera,
+> > > > and it is a way better to review those patches with the old
+> > > > code in place.   =20
+> > >=20
+> > > I have converted a few drivers used by some SH boards where I dropped
+> > > dependencies on soc_camera, not to remove camera support from those. =
+For
+> > > others I don't have cameras to test with, nor I know about boards in
+> > > mainline using them.
+> > >=20
+> > > From my side, driver conversion is done.
+> > >  =20
+> > > >
+> > > > So, at least while Jacopo is keep doing this work, I would keep
+> > > > at Kernel tree, as it helps to see a diff when the driver changes
+> > > > when getting rid of soc_camera dependencies.
+> > > >
+> > > > So, IMO, the best would be to move those to /staging, eventually
+> > > > depending on BROKEN.   =20
+> > >=20
+> > > However, somebody with a (rather old) development setup using those c=
+amera
+> > > sensor may wants to see if mainline supports them. We actually had a
+> > > few patches coming lately (for ov. I understand Sakari's argument tha=
+t those
+> > > could be retrieved from git history, but a few people will notice imo.
+> > > I also understand the additional maintainership burden of keeping them
+> > > around, so I'm fine with either ways ;)
+> > >=20
+> > > This is a list of the current situation in mainline, to have a better
+> > > idea:
+> > >=20
+> > > $for i in `seq 1 9`; do CAM=3D$(head -n $i /tmp/soc_cams | tail -n 1)=
+; echo  $CAM; find drivers/media/ -name  $CAM; done
+> > > t9m001.c
+> > > drivers/media/i2c/soc_camera/mt9m001.c
+> > > mt9t112.c
+> > > drivers/media/i2c/mt9t112.c
+> > > drivers/media/i2c/soc_camera/mt9t112.c
+> > > mt9v022.c
+> > > drivers/media/i2c/soc_camera/mt9v022.c
+> > > ov5642.c
+> > > drivers/media/i2c/soc_camera/ov5642.c
+> > > ov772x.c
+> > > drivers/media/i2c/ov772x.c
+> > > drivers/media/i2c/soc_camera/ov772x.c
+> > > ov9640.c
+> > > drivers/media/i2c/soc_camera/ov9640.c
+> > > ov9740.c
+> > > drivers/media/i2c/soc_camera/ov9740.c
+> > > rj54n1cb0c.c
+> > > drivers/media/i2c/rj54n1cb0c.c
+> > > drivers/media/i2c/soc_camera/rj54n1cb0c.c
+> > > tw9910.c
+> > > drivers/media/i2c/tw9910.c
+> > > drivers/media/i2c/soc_camera/tw9910.c
+> > >=20
+> > > So it seems to me only the following sensor do not have a
+> > > non-soc_camera driver at the moment:
+> > >=20
+> > > mt9m001.c
+> > > mt9v022.c
+> > > ov5642.c
+> > > ov9640.c
+> > > ov9740.c =20
+> >=20
+> > Ok. So, what about keeping just those 5 drivers at staging? If, after an
+> > year, people won't do conversions, we can just drop them. =20
+>=20
+> They've been there for years without anyone converting them. Do note that
+> the conversion can be still done once the code is removed.
 
-So all they depend on are the header. We can safely remove soc_camera without
-loss of functionality (and thus prevent others from basing new drivers on
-soc_camera), while we work to update the board files so we can remove this last
-header.
+Well, people converted a lot of drivers already. See above. It is
+just that it takes time. The same applied to lirc: it stayed at
+staging for years. People gradually converted the drivers until
+we finally got rid of them.
 
-I have modified some board files here:
+That is the goal of staging: to give people some time to fix
+issues on broken drivers.
 
-https://git.linuxtv.org/hverkuil/media_tree.git/commit/?h=rm-soc-camera&id=d7ae2fcf6e447022f0780bb86a2b63d5c7cf4d35
+> We did the same for a big bunch of sensor drivers that came with the
+> atomisp2 driver. I don't see a difference here.
 
-Only arch/arm/mach-imx/mach-imx27_visstrim_m10.c hasn't been fixed yet in that
-patch (ENOTIME).
+No, we only removed the atomisp driver after being sure that
+the only party that was pushing it lost its interest on fixing
+the issues. Even so, we waited for a while, as other parties
+might manifest their interests on doing that.
 
-The problem is just lack of time to clean this up and figure out who should
-take these board patches.
+Also, in the case of atomisp, there were no other drivers
+depending on it, so removing it was a way easier and straight
+forward.
 
-So I think it is a nice solution to just replace the header with a dummy version
-so the board files still compile, and then we can delete the dead soc_camera
-driver. It's probably easier as well to push through the board file changes once
-soc_camera is removed since you can just point out that the framework it depended
-on is gone.
+The point is: there's absolutely no reason why we should rush
+it, doing a half-baked removal, where several parts of the non
+working code would be left on drivers and even the header file
+for soc_camera.h would be kept.
 
-Regards,
+The right way to do it is:
 
-	Hans
+1) remove include soc_camera.h on drivers that don't need it anymore;
+2) Move things to staging. There are actually two tasks here:
+  2a) get rid of useless soc-camera depend code on drivers/board code,
+      removing their dependencies of soc_camera.h;
+  2b) move the soc-camera dependent code that makes sense to
+      staging (sensors - and maybe driver/board code for platforms
+      that are still be actively maintained);
+3) wait for a couple of Kernel releases;
+4) drop everything related to soc_camera from staging.
+
+=46rom the e-mail from Jacopo, from sensors PoV, only those sensor
+drivers may make sense to keep for a while:
+
+	soc_mt9m001.c
+	soc_mt9v022.c
+	soc_ov5642.c
+	soc_ov9640.c
+	soc_ov9740.c =20
+
+So, on step 2, we can very likely get rid of the other sensor drivers
+that already exists and don't depend on soc_camera.
+
+Thanks,
+Mauro
