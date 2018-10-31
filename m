@@ -1,147 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:45423 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727436AbeJaSJr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 Oct 2018 14:09:47 -0400
-Subject: Re: [PATCH 3/4] SoC camera: Remove the framework and the drivers
-To: jacopo mondi <jacopo@jmondi.org>,
-        Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, mchehab@kernel.org
+Received: from mga07.intel.com ([134.134.136.100]:3624 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727597AbeJaS1I (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 31 Oct 2018 14:27:08 -0400
+Date: Wed, 31 Oct 2018 11:29:45 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl, mchehab@kernel.org
+Subject: Re: [PATCH 4/4] SoC camera: Tidy the header
+Message-ID: <20181031092945.csl5vifvstd5ds5g@paasikivi.fi.intel.com>
 References: <20181029230029.14630-1-sakari.ailus@linux.intel.com>
- <20181029232134.25831-1-sakari.ailus@linux.intel.com>
- <20181030064311.030b6a81@coco.lan> <20181030091409.76b07620@coco.lan>
- <20181030202857.GH15991@w540> <20181030173513.64f8ebe1@coco.lan>
- <20181030211719.GJ15991@w540>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <30f5c3de-736b-ee3a-4a11-b6fa88411e30@xs4all.nl>
-Date: Wed, 31 Oct 2018 10:12:28 +0100
+ <20181029230029.14630-5-sakari.ailus@linux.intel.com>
+ <20181030090618.2a62d2d4@coco.lan>
 MIME-Version: 1.0
-In-Reply-To: <20181030211719.GJ15991@w540>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20181030090618.2a62d2d4@coco.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/30/2018 10:17 PM, jacopo mondi wrote:
-> On Tue, Oct 30, 2018 at 05:35:23PM -0300, Mauro Carvalho Chehab wrote:
->> Em Tue, 30 Oct 2018 21:28:57 +0100
->> jacopo mondi <jacopo@jmondi.org> escreveu:
->>
->>> Hi Mauro,
->>>
->>> On Tue, Oct 30, 2018 at 09:14:09AM -0300, Mauro Carvalho Chehab wrote:
->>>> Em Tue, 30 Oct 2018 01:21:34 +0200
->>>> Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
->>>>
->>>>> The SoC camera framework has been obsolete for some time and it is no
->>>>> longer functional. A few drivers have been converted to the V4L2
->>>>> sub-device API but for the rest the conversion has not taken place yet.
->>>>>
->>>>> In order to keep the tree clean and to avoid keep maintaining
->>>>> non-functional and obsolete code, remove the SoC camera framework as well
->>>>> as the drivers that depend on it.
->>>>>
->>>>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
->>>>> ---
->>>>> Resending, this time with git format-patch -D .
->>>>>
->>>>>  MAINTAINERS                                        |    8 -
->>>>>  drivers/media/i2c/Kconfig                          |    8 -
->>>>>  drivers/media/i2c/Makefile                         |    1 -
->>>>>  drivers/media/i2c/soc_camera/Kconfig               |   66 -
->>>>>  drivers/media/i2c/soc_camera/Makefile              |   10 -
->>>>>  drivers/media/i2c/soc_camera/ov9640.h              |  208 --
->>>>>  drivers/media/i2c/soc_camera/soc_mt9m001.c         |  757 -------
->>>>>  drivers/media/i2c/soc_camera/soc_mt9t112.c         | 1157 -----------
->>>>>  drivers/media/i2c/soc_camera/soc_mt9v022.c         | 1012 ---------
->>>>>  drivers/media/i2c/soc_camera/soc_ov5642.c          | 1087 ----------
->>>>>  drivers/media/i2c/soc_camera/soc_ov772x.c          | 1123 ----------
->>>>>  drivers/media/i2c/soc_camera/soc_ov9640.c          |  738 -------
->>>>>  drivers/media/i2c/soc_camera/soc_ov9740.c          |  996 ---------
->>>>>  drivers/media/i2c/soc_camera/soc_rj54n1cb0c.c      | 1415 -------------
->>>>>  drivers/media/i2c/soc_camera/soc_tw9910.c          |  999 ---------
->>>>
->>>> I don't see why we should remove those. I mean, Jacopo is
->>>> actually converting those drivers to not depend on soc_camera,
->>>> and it is a way better to review those patches with the old
->>>> code in place.
->>>
->>> I have converted a few drivers used by some SH boards where I dropped
->>> dependencies on soc_camera, not to remove camera support from those. For
->>> others I don't have cameras to test with, nor I know about boards in
->>> mainline using them.
->>>
->>> From my side, driver conversion is done.
->>>
->>>>
->>>> So, at least while Jacopo is keep doing this work, I would keep
->>>> at Kernel tree, as it helps to see a diff when the driver changes
->>>> when getting rid of soc_camera dependencies.
->>>>
->>>> So, IMO, the best would be to move those to /staging, eventually
->>>> depending on BROKEN.
->>>
->>> However, somebody with a (rather old) development setup using those camera
->>> sensor may wants to see if mainline supports them. We actually had a
->>> few patches coming lately (for ov. I understand Sakari's argument that those
->>> could be retrieved from git history, but a few people will notice imo.
->>> I also understand the additional maintainership burden of keeping them
->>> around, so I'm fine with either ways ;)
->>>
->>> This is a list of the current situation in mainline, to have a better
->>> idea:
->>>
->>> $for i in `seq 1 9`; do CAM=$(head -n $i /tmp/soc_cams | tail -n 1); echo  $CAM; find drivers/media/ -name  $CAM; done
->>> t9m001.c
->>> drivers/media/i2c/soc_camera/mt9m001.c
->>> mt9t112.c
->>> drivers/media/i2c/mt9t112.c
->>> drivers/media/i2c/soc_camera/mt9t112.c
->>> mt9v022.c
->>> drivers/media/i2c/soc_camera/mt9v022.c
->>> ov5642.c
->>> drivers/media/i2c/soc_camera/ov5642.c
->>> ov772x.c
->>> drivers/media/i2c/ov772x.c
->>> drivers/media/i2c/soc_camera/ov772x.c
->>> ov9640.c
->>> drivers/media/i2c/soc_camera/ov9640.c
->>> ov9740.c
->>> drivers/media/i2c/soc_camera/ov9740.c
->>> rj54n1cb0c.c
->>> drivers/media/i2c/rj54n1cb0c.c
->>> drivers/media/i2c/soc_camera/rj54n1cb0c.c
->>> tw9910.c
->>> drivers/media/i2c/tw9910.c
->>> drivers/media/i2c/soc_camera/tw9910.c
->>>
->>> So it seems to me only the following sensor do not have a
->>> non-soc_camera driver at the moment:
->>>
->>> mt9m001.c
->>> mt9v022.c
->>> ov5642.c
->>> ov9640.c
->>> ov9740.c
-> 
-> For a few of them (mt9m001, ov5642) there are cheap modules available
-> online. The others ones have public documentation. I know they are old
-> and dusty, supporting only parallel video interface.
-> 
->>
->> Ok. So, what about keeping just those 5 drivers at staging? If, after an
->> year, people won't do conversions, we can just drop them.
->>
-> 
-> Let's see what Sakari and Hans think. Again, I'm fine with both ways
-> ;)
+Hi Mauro,
 
-My preference is to just remove them. But moving them to staging under
-CONFIG_BROKEN for a year is OK with me, but frankly I don't see the point.
+On Tue, Oct 30, 2018 at 09:06:18AM -0300, Mauro Carvalho Chehab wrote:
+> Em Tue, 30 Oct 2018 01:00:29 +0200
+> Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+> 
+> > Clean up the SoC camera framework header. It only exists now to keep board
+> > code compiling. The header can be removed once the board code dependencies
+> > to it has been removed.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > ---
+> >  include/media/soc_camera.h | 335 ---------------------------------------------
+> >  1 file changed, 335 deletions(-)
+> > 
+> > diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
+> > index b7e42a1b0910..14d19da6052a 100644
+> > --- a/include/media/soc_camera.h
+> > +++ b/include/media/soc_camera.h
+> > @@ -22,172 +22,6 @@
+> >  #include <media/v4l2-ctrls.h>
+> >  #include <media/v4l2-device.h>
+> 
+> That doesn't make any sense. soc_camera.h should have the same fate
+> as the entire soc_camera infrastructure: either be removed or moved
+> to staging, and everything else that doesn't have the same fate
+> should get rid of this header.
 
+We can't just remove this; there is board code that depends on it.
+
+The intent is to remove the board code as well but presuming that the board
+code would be merged through a different tree, it'd be less hassle to wait
+a bit; hence the patch removing any unnecessary stuff here.
+
+-- 
 Regards,
 
-	Hans
+Sakari Ailus
+sakari.ailus@linux.intel.com
