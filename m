@@ -1,89 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:46454 "EHLO
-        casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730360AbeKADju (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 Oct 2018 23:39:50 -0400
-Date: Wed, 31 Oct 2018 15:40:30 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Greg KH <gregkh@linuxfoundation.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        linux-media@vger.kernel.org,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: Re: [GIT PULL for v4.20-rc1] new experimental media request API
-Message-ID: <20181031154030.3fab5a00@coco.lan>
-In-Reply-To: <CAHk-=whQKCA18MEi7FT=10c0HVa=kxSyYBJeAQH-C2mA5gBhbg@mail.gmail.com>
-References: <20181030105328.0667ec68@coco.lan>
-        <CAHk-=whQKCA18MEi7FT=10c0HVa=kxSyYBJeAQH-C2mA5gBhbg@mail.gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:52292 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726124AbeKAEJY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 1 Nov 2018 00:09:24 -0400
+From: David Howells <dhowells@redhat.com>
+In-Reply-To: <20181031161300.vzk6nsyyyvjukqxz@gofer.mess.org>
+References: <20181031161300.vzk6nsyyyvjukqxz@gofer.mess.org> <12108.1540984768@warthog.procyon.org.uk> <20181031104912.s3tqjl3u43ou3kwo@gofer.mess.org> <20181030223249.dhwhxdjipzmjxzsy@gofer.mess.org> <153778383104.14867.1567557014782141706.stgit@warthog.procyon.org.uk> <20181030110319.764f33f0@coco.lan> <8474.1540982182@warthog.procyon.org.uk> <13768.1541001100@warthog.procyon.org.uk>
+To: Sean Young <sean@mess.org>
+Cc: dhowells@redhat.com,
+        Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        Michael Krufky <mkrufky@linuxtv.org>,
+        Brad Love <brad@nextdimension.cc>, mchehab@kernel.org,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] dvb: Allow MAC addresses to be mapped to stable device names with udev
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-ID: <9073.1541013000.1@warthog.procyon.org.uk>
+Date: Wed, 31 Oct 2018 19:10:00 +0000
+Message-ID: <9074.1541013000@warthog.procyon.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Linus,
+Sean Young <sean@mess.org> wrote:
 
-Em Wed, 31 Oct 2018 11:05:09 -0700
-Linus Torvalds <torvalds@linux-foundation.org> escreveu:
+> device_create() will register the device in sysfs and send uevent. So, your
+> original udev rule/code will not work, since it always would read
+> a mac address of 0, as proposed_mac is not populated when the device is
+> announced. That is, unless udev is scheduled after the mac is read.
 
-> On Tue, Oct 30, 2018 at 6:53 AM Mauro Carvalho Chehab
-> <mchehab+samsung@kernel.org> wrote:
-> >
-> > For a new media API: the request API  
-> 
-> Ugh. I don't know how much being in staging matters - if people start
-> using it, they start using it.
-> 
-> "Staging" does not mean "regressions don't matter".
+I guess that must be what is happening as it does seem to work for me.
 
-Yes, I know.
+> I think the device_add/device_create() which triggers the uevent should be
+> delayed until everything is available.
 
-This shouldn't affect normal cameras and generic V4L2 apps, as this
-is for very advanced use cases. So, we hope that people won't start
-using it for a while. 
+Is it possible to switch vb2_dvb_register_bus() and dvb_register_ci_mac() in
+dvb_register() in cx23885-dvb.c - or does that prevent the firmware from
+loading?
 
-The main interested party on this is Google CromeOS. We're working 
-together with them in order to do upstream first. They are well aware
-that the API may change. So, I don't expect any complaints from their
-side if the API would require further changes.
+And I'm guessing this change would have to be applied to all drivers?
 
-The point is that this API is complex and ensuring that it will
-work properly is not easy. We've been thinking about a solution for
-the Camera HAL 2 for a long time (I guess the first discussions were
-done back in 2008).
-
-The big problem is that V4L2 API was designed to work with a stream,
-while Google HAL API expects to have control for each individual
-frame.
-
-The Google API allows, for example that, inside a stream, the
-first frame would have a VGA resolution, the next one a 4K resolution
-(for example, when the user clicks on a camera button) and then returning
-back to VGA (it actually allows full control for every single frame). 
-
-This is something that it is not possible to do with the "standard" 
-V4L2 API without stopping and restarting a stream (with increases
-a lot the latency).
-
-Solving it is so complex that we decided to start with a completely
-new type of Linux media drivers (stateless decoders). In long term, 
-the same API should be used by not only by decoders, but also for 
-encoders and complex cameras (those with an image signal processor 
-inside a SoC chipset).
-
-In order to be sure that it is possible to implement the way we did,
-We need to be able to add it to the Kernel somehow and to have
-enough drivers that will let us test all possible scenarios.
-
-That will allow to adapt a version of the camera HAL for testing
-and see if it behaves as expected.
-
-> But pulled,
-
-Thanks! Anyway, we'll try to rush the tests for this API in order to
-try sending any fixes that might be disruptive before the final
-release.
-
-Regards,
-Mauro
+David
