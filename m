@@ -1,136 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:49336 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728078AbeKBBNj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Nov 2018 21:13:39 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: dorodnic@gmail.com
-Cc: linux-media@vger.kernel.org, evgeni.raikhel@intel.com,
-        Sergey Dorodnicov <sergey.dorodnicov@intel.com>
-Subject: Re: [PATCH v2 1/2] [media] CNF4 fourcc for 4 bit-per-pixel packed depth confidence information
-Date: Thu, 01 Nov 2018 18:10:07 +0200
-Message-ID: <64215243.MOb6WqGaDh@avalon>
-In-Reply-To: <1536734527-3770-2-git-send-email-sergey.dorodnicov@intel.com>
-References: <1536734527-3770-1-git-send-email-sergey.dorodnicov@intel.com> <1536734527-3770-2-git-send-email-sergey.dorodnicov@intel.com>
+Received: from mail-io1-f70.google.com ([209.85.166.70]:35984 "EHLO
+        mail-io1-f70.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725987AbeKBBzu (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Nov 2018 21:55:50 -0400
+Received: by mail-io1-f70.google.com with SMTP id w5-v6so8472101ioj.3
+        for <linux-media@vger.kernel.org>; Thu, 01 Nov 2018 09:52:04 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Date: Thu, 01 Nov 2018 09:52:03 -0700
+Message-ID: <000000000000fd734c05799d3c90@google.com>
+Subject: BUG: pagefault on kernel address ADDR in non-whitelisted uaccess
+From: syzbot <syzbot+0cc8e3cc63ca373722c6@syzkaller.appspotmail.com>
+To: hverkuil@xs4all.nl, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org, mchehab@kernel.org,
+        syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
+Content-Transfer-Encoding: base64
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sergey,
-
-Thank you for the patch.
-
-The subject line should start with an appropriate prefix. I propose rewriting 
-it as
-
-media: v4l: Add 4bpp packed depth confidence format CNF4
-
-Apart from that the patch looks good to me,
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-If you're fine with the subject line change there's no need to resubmit, I'll 
-fix it when applying the patch to my tree.
-
-On Wednesday, 12 September 2018 09:42:06 EET dorodnic@gmail.com wrote:
-> From: Sergey Dorodnicov <sergey.dorodnicov@intel.com>
-> 
-> Adding new fourcc CNF4 for 4 bit-per-pixel packed depth confidence
-> information provided by Intel RealSense cameras. Every two consecutive
-> pixels are packed into a single byte.
-> 
-> Signed-off-by: Sergey Dorodnicov <sergey.dorodnicov@intel.com>
-> Signed-off-by: Evgeni Raikhel <evgeni.raikhel@intel.com>
-> ---
->  Documentation/media/uapi/v4l/depth-formats.rst |  1 +
->  Documentation/media/uapi/v4l/pixfmt-cnf4.rst   | 31 +++++++++++++++++++++++
->  drivers/media/v4l2-core/v4l2-ioctl.c           |  1 +
->  include/uapi/linux/videodev2.h                 |  1 +
->  4 files changed, 34 insertions(+)
->  create mode 100644 Documentation/media/uapi/v4l/pixfmt-cnf4.rst
-> 
-> diff --git a/Documentation/media/uapi/v4l/depth-formats.rst
-> b/Documentation/media/uapi/v4l/depth-formats.rst index d1641e9..9533348
-> 100644
-> --- a/Documentation/media/uapi/v4l/depth-formats.rst
-> +++ b/Documentation/media/uapi/v4l/depth-formats.rst
-> @@ -14,3 +14,4 @@ Depth data provides distance to points, mapped onto the
-> image plane
-> 
->      pixfmt-inzi
->      pixfmt-z16
-> +    pixfmt-cnf4
-> diff --git a/Documentation/media/uapi/v4l/pixfmt-cnf4.rst
-> b/Documentation/media/uapi/v4l/pixfmt-cnf4.rst new file mode 100644
-> index 0000000..8f46929
-> --- /dev/null
-> +++ b/Documentation/media/uapi/v4l/pixfmt-cnf4.rst
-> @@ -0,0 +1,31 @@
-> +.. -*- coding: utf-8; mode: rst -*-
-> +
-> +.. _V4L2-PIX-FMT-CNF4:
-> +
-> +******************************
-> +V4L2_PIX_FMT_CNF4 ('CNF4')
-> +******************************
-> +
-> +Depth sensor confidence information as a 4 bits per pixel packed array
-> +
-> +Description
-> +===========
-> +
-> +Proprietary format used by Intel RealSense Depth cameras containing depth
-> +confidence information in range 0-15 with 0 indicating that the sensor was
-> +unable to resolve any signal and 15 indicating maximum level of confidence
-> for +the specific sensor (actual error margins might change from sensor to
-> sensor). +
-> +Every two consecutive pixels are packed into a single byte.
-> +Bits 0-3 of byte n refer to confidence value of depth pixel 2*n,
-> +bits 4-7 to confidence value of depth pixel 2*n+1.
-> +
-> +**Bit-packed representation.**
-> +
-> +.. flat-table::
-> +    :header-rows:  0
-> +    :stub-columns: 0
-> +    :widths: 64 64
-> +
-> +    * - Y'\ :sub:`01[3:0]`\ (bits 7--4) Y'\ :sub:`00[3:0]`\ (bits 3--0)
-> +      - Y'\ :sub:`03[3:0]`\ (bits 7--4) Y'\ :sub:`02[3:0]`\ (bits 3--0)
-> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c
-> b/drivers/media/v4l2-core/v4l2-ioctl.c index 54afc9c..f9aa8bd 100644
-> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> @@ -1189,6 +1189,7 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
-> case V4L2_PIX_FMT_Y12I:		descr = "Interleaved 12-bit Greyscale"; break;
-> case V4L2_PIX_FMT_Z16:		descr = "16-bit Depth"; break;
->  	case V4L2_PIX_FMT_INZI:		descr = "Planar 10:16 Greyscale Depth"; break;
-> +	case V4L2_PIX_FMT_CNF4:		descr = "4-bit Depth Confidence (Packed)"; 
-break;
-> case V4L2_PIX_FMT_PAL8:		descr = "8-bit Palette"; break;
->  	case V4L2_PIX_FMT_UV8:		descr = "8-bit Chrominance UV 4-4"; break;
->  	case V4L2_PIX_FMT_YVU410:	descr = "Planar YVU 4:1:0"; break;
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index 622f047..2837c93 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -676,6 +676,7 @@ struct v4l2_pix_format {
->  #define V4L2_PIX_FMT_Z16      v4l2_fourcc('Z', '1', '6', ' ') /* Depth data
-> 16-bit */ #define V4L2_PIX_FMT_MT21C    v4l2_fourcc('M', 'T', '2', '1') /*
-> Mediatek compressed block mode  */ #define V4L2_PIX_FMT_INZI    
-> v4l2_fourcc('I', 'N', 'Z', 'I') /* Intel Planar Greyscale 10-bit and Depth
-> 16-bit */ +#define V4L2_PIX_FMT_CNF4     v4l2_fourcc('C', 'N', 'F', '4') /*
-> Intel 4-bit packed depth confidence information */
-> 
->  /* 10bit raw bayer packed, 32 bytes for every 25 pixels, last LSB 6 bits
-> unused */ #define V4L2_PIX_FMT_IPU3_SBGGR10	v4l2_fourcc('i', 'p', '3', 
-'b')
-> /* IPU3 packed 10-bit BGGR bayer */
-
-
--- 
-Regards,
-
-Laurent Pinchart
+SGVsbG8sDQoNCnN5emJvdCBmb3VuZCB0aGUgZm9sbG93aW5nIGNyYXNoIG9uOg0KDQpIRUFEIGNv
+bW1pdDogICAgNTlmYzQ1M2IyMWY3IE1lcmdlIGJyYW5jaCAnYWtwbScgKHBhdGNoZXMgZnJvbSBB
+bmRyZXcpDQpnaXQgdHJlZTogICAgICAgdXBzdHJlYW0NCmNvbnNvbGUgb3V0cHV0OiBodHRwczov
+L3N5emthbGxlci5hcHBzcG90LmNvbS94L2xvZy50eHQ/eD0xMTBlNjYzMzQwMDAwMA0Ka2VybmVs
+IGNvbmZpZzogIGh0dHBzOi8vc3l6a2FsbGVyLmFwcHNwb3QuY29tL3gvLmNvbmZpZz94PWVhMDQ1
+NDcxZTRjNzU2ZTgNCmRhc2hib2FyZCBsaW5rOiBodHRwczovL3N5emthbGxlci5hcHBzcG90LmNv
+bS9idWc/ZXh0aWQ9MGNjOGUzY2M2M2NhMzczNzIyYzYNCmNvbXBpbGVyOiAgICAgICBnY2MgKEdD
+QykgOC4wLjEgMjAxODA0MTMgKGV4cGVyaW1lbnRhbCkNCg0KVW5mb3J0dW5hdGVseSwgSSBkb24n
+dCBoYXZlIGFueSByZXByb2R1Y2VyIGZvciB0aGlzIGNyYXNoIHlldC4NCg0KSU1QT1JUQU5UOiBp
+ZiB5b3UgZml4IHRoZSBidWcsIHBsZWFzZSBhZGQgdGhlIGZvbGxvd2luZyB0YWcgdG8gdGhlIGNv
+bW1pdDoNClJlcG9ydGVkLWJ5OiBzeXpib3QrMGNjOGUzY2M2M2NhMzczNzIyYzZAc3l6a2FsbGVy
+LmFwcHNwb3RtYWlsLmNvbQ0KDQpCVUc6IHBhZ2VmYXVsdCBvbiBrZXJuZWwgYWRkcmVzcyAweGZm
+ZmZjOTAwMGVmZTUwMDAgaW4gbm9uLXdoaXRlbGlzdGVkICANCnVhY2Nlc3MNCmtvYmplY3Q6ICdp
+cDZfdnRpMCcgKDAwMDAwMDAwM2NlMGQ0YWEpOiBjYWxsaW5nIGt0eXBlIHJlbGVhc2UNCkJVRzog
+dW5hYmxlIHRvIGhhbmRsZSBrZXJuZWwgcGFnaW5nIHJlcXVlc3QgYXQgZmZmZmM5MDAwZWZlNTAw
+MA0KZGV2aWNlIG5yMAEgZW50ZXJlZCBwcm9taXNjdW91cyBtb2RlDQpQR0QgMWRhOTQ4MDY3IFA0
+RCAxZGE5NDgwNjcgUFVEIDFkYTk0OTA2NyBQTUQgMWQyMTRlMDY3IFBURSAwDQprb2JqZWN0OiAn
+aXA2X3Z0aTAnOiBmcmVlIG5hbWUNCk9vcHM6IDAwMDAgWyMxXSBQUkVFTVBUIFNNUCBLQVNBTg0K
+Q1BVOiAwIFBJRDogMjMyMDUgQ29tbTogc3l6LWV4ZWN1dG9yMyBOb3QgdGFpbnRlZCA0LjE5LjAr
+ICMzMTMNCkhhcmR3YXJlIG5hbWU6IEdvb2dsZSBHb29nbGUgQ29tcHV0ZSBFbmdpbmUvR29vZ2xl
+IENvbXB1dGUgRW5naW5lLCBCSU9TICANCkdvb2dsZSAwMS8wMS8yMDExDQpSSVA6IDAwMTA6Y29w
+eV91c2VyX2VuaGFuY2VkX2Zhc3Rfc3RyaW5nKzB4ZS8weDIwICANCmFyY2gveDg2L2xpYi9jb3B5
+X3VzZXJfNjQuUzoxODANCmtvYmplY3Q6ICdsb29wNCcgKDAwMDAwMDAwMzNjNjFjYjkpOiBrb2Jq
+ZWN0X3VldmVudF9lbnYNCkNvZGU6IDg5IGQxIGMxIGU5IDAzIDgzIGUyIDA3IGYzIDQ4IGE1IDg5
+IGQxIGYzIGE0IDMxIGMwIDBmIDFmIDAwIGMzIDBmIDFmICANCjgwIDAwIDAwIDAwIDAwIDBmIDFm
+IDAwIDgzIGZhIDQwIDBmIDgyIDcwIGZmIGZmIGZmIDg5IGQxIDxmMz4gYTQgMzEgYzAgMGYgIA0K
+MWYgMDAgYzMgNjYgMmUgMGYgMWYgODQgMDAgMDAgMDAgMDAgMDAgMGYgMWYgMDAgODMNClJTUDog
+MDAxODpmZmZmODgwMTk0YmM3Njg4IEVGTEFHUzogMDAwMTAyMDYNClJBWDogMDAwMDAwMDAwMDAw
+MDAwMCBSQlg6IDAwMDAwMDAwMDAwZmQyMDAgUkNYOiAwMDAwMDAwMDAwMGY1MjAwDQpSRFg6IDAw
+MDAwMDAwMDAwZmQyMDAgUlNJOiBmZmZmYzkwMDBlZmU1MDAwIFJESTogMDAwMDAwMDAyMDAwODBj
+MA0KUkJQOiBmZmZmODgwMTk0YmM3NmMwIFIwODogMDAwMDAwMDAwMDAwMDAwMCBSMDk6IDAwMDAw
+MDAwMDAwMDNmNDgNCmtvYmplY3Q6ICdsb29wNCcgKDAwMDAwMDAwMzNjNjFjYjkpOiBmaWxsX2tv
+YmpfcGF0aDogcGF0aCAgDQo9ICcvZGV2aWNlcy92aXJ0dWFsL2Jsb2NrL2xvb3A0Jw0KUjEwOiBm
+ZmZmZjUyMDAxZTFiNDNmIFIxMTogZmZmZmM5MDAwZjBkYTFmZiBSMTI6IDAwMDAwMDAwMjAwZmQy
+YzANClIxMzogMDAwMDAwMDAyMDAwMDBjMCBSMTQ6IGZmZmZjOTAwMGVmZGQwMDAgUjE1OiAwMDAw
+N2ZmZmZmZmZmMDAwDQpGUzogIDAwMDA3ZmI5NTQ1YzA3MDAoMDAwMCkgR1M6ZmZmZjg4MDFkYWUw
+MDAwMCgwMDAwKSBrbmxHUzowMDAwMDAwMDAwMDAwMDAwDQpDUzogIDAwMTAgRFM6IDAwMDAgRVM6
+IDAwMDAgQ1IwOiAwMDAwMDAwMDgwMDUwMDMzDQpDUjI6IGZmZmZjOTAwMGVmZTUwMDAgQ1IzOiAw
+MDAwMDAwMWI3YWU3MDAwIENSNDogMDAwMDAwMDAwMDE0MDZmMA0KRFIwOiAwMDAwMDAwMDAwMDAw
+MDAwIERSMTogMDAwMDAwMDAwMDAwMDAwMCBEUjI6IDAwMDAwMDAwMDAwMDAwMDANCkRSMzogMDAw
+MDAwMDAwMDAwMDAwMCBEUjY6IDAwMDAwMDAwZmZmZTBmZjAgRFI3OiAwMDAwMDAwMDAwMDAwNDAw
+DQpDYWxsIFRyYWNlOg0KICBjb3B5X3RvX3VzZXIgaW5jbHVkZS9saW51eC91YWNjZXNzLmg6MTU1
+IFtpbmxpbmVdDQogIHZpZGlvY19nX2ZtdF92aWRfb3ZlcmxheSsweDM5Mi8weDU1MCAgDQpkcml2
+ZXJzL21lZGlhL3BsYXRmb3JtL3ZpdmlkL3ZpdmlkLXZpZC1jYXAuYzoxMDc0DQogIHY0bF9nX2Zt
+dCsweDJhZC8weDY0MCBkcml2ZXJzL21lZGlhL3Y0bDItY29yZS92NGwyLWlvY3RsLmM6MTQ4Nw0K
+ICBfX3ZpZGVvX2RvX2lvY3RsKzB4NTE5LzB4ZjAwIGRyaXZlcnMvbWVkaWEvdjRsMi1jb3JlL3Y0
+bDItaW9jdGwuYzoyODMzDQogIHZpZGVvX3VzZXJjb3B5KzB4NWMxLzB4MTc2MCBkcml2ZXJzL21l
+ZGlhL3Y0bDItY29yZS92NGwyLWlvY3RsLmM6MzAxMw0KICB2aWRlb19pb2N0bDIrMHgyYy8weDMz
+IGRyaXZlcnMvbWVkaWEvdjRsMi1jb3JlL3Y0bDItaW9jdGwuYzozMDU3DQogIHY0bDJfaW9jdGwr
+MHgxNTQvMHgxYjAgZHJpdmVycy9tZWRpYS92NGwyLWNvcmUvdjRsMi1kZXYuYzozNjQNCiAgdmZz
+X2lvY3RsIGZzL2lvY3RsLmM6NDYgW2lubGluZV0NCiAgZmlsZV9pb2N0bCBmcy9pb2N0bC5jOjUw
+MSBbaW5saW5lXQ0KICBkb192ZnNfaW9jdGwrMHgxZGUvMHgxNzIwIGZzL2lvY3RsLmM6Njg1DQog
+IGtzeXNfaW9jdGwrMHhhOS8weGQwIGZzL2lvY3RsLmM6NzAyDQogIF9fZG9fc3lzX2lvY3RsIGZz
+L2lvY3RsLmM6NzA5IFtpbmxpbmVdDQogIF9fc2Vfc3lzX2lvY3RsIGZzL2lvY3RsLmM6NzA3IFtp
+bmxpbmVdDQogIF9feDY0X3N5c19pb2N0bCsweDczLzB4YjAgZnMvaW9jdGwuYzo3MDcNCiAgZG9f
+c3lzY2FsbF82NCsweDFiOS8weDgyMCBhcmNoL3g4Ni9lbnRyeS9jb21tb24uYzoyOTANCiAgZW50
+cnlfU1lTQ0FMTF82NF9hZnRlcl9od2ZyYW1lKzB4NDkvMHhiZQ0KUklQOiAwMDMzOjB4NDU3NTY5
+DQpDb2RlOiBmZCBiMyBmYiBmZiBjMyA2NiAyZSAwZiAxZiA4NCAwMCAwMCAwMCAwMCAwMCA2NiA5
+MCA0OCA4OSBmOCA0OCA4OSBmNyAgDQo0OCA4OSBkNiA0OCA4OSBjYSA0ZCA4OSBjMiA0ZCA4OSBj
+OCA0YyA4YiA0YyAyNCAwOCAwZiAwNSA8NDg+IDNkIDAxIGYwIGZmICANCmZmIDBmIDgzIGNiIGIz
+IGZiIGZmIGMzIDY2IDJlIDBmIDFmIDg0IDAwIDAwIDAwIDAwDQpSU1A6IDAwMmI6MDAwMDdmYjk1
+NDViZmM3OCBFRkxBR1M6IDAwMDAwMjQ2IE9SSUdfUkFYOiAwMDAwMDAwMDAwMDAwMDEwDQpSQVg6
+IGZmZmZmZmZmZmZmZmZmZGEgUkJYOiAwMDAwMDAwMDAwMDAwMDAzIFJDWDogMDAwMDAwMDAwMDQ1
+NzU2OQ0KUkRYOiAwMDAwMDAwMDIwMDAwMGMwIFJTSTogMDAwMDAwMDBjMGQwNTYwNCBSREk6IDAw
+MDAwMDAwMDAwMDAwMDMNClJCUDogMDAwMDAwMDAwMDcyYmYwMCBSMDg6IDAwMDAwMDAwMDAwMDAw
+MDAgUjA5OiAwMDAwMDAwMDAwMDAwMDAwDQpSMTA6IDAwMDAwMDAwMDAwMDAwMDAgUjExOiAwMDAw
+MDAwMDAwMDAwMjQ2IFIxMjogMDAwMDdmYjk1NDVjMDZkNA0KUjEzOiAwMDAwMDAwMDAwNGMxYWNm
+IFIxNDogMDAwMDAwMDAwMDRkMjljOCBSMTU6IDAwMDAwMDAwZmZmZmZmZmYNCk1vZHVsZXMgbGlu
+a2VkIGluOg0KQ1IyOiBmZmZmYzkwMDBlZmU1MDAwDQotLS1bIGVuZCB0cmFjZSBhMDIyMzFlMGZh
+Y2VmNGM0IF0tLS0NClJJUDogMDAxMDpjb3B5X3VzZXJfZW5oYW5jZWRfZmFzdF9zdHJpbmcrMHhl
+LzB4MjAgIA0KYXJjaC94ODYvbGliL2NvcHlfdXNlcl82NC5TOjE4MA0KQ29kZTogODkgZDEgYzEg
+ZTkgMDMgODMgZTIgMDcgZjMgNDggYTUgODkgZDEgZjMgYTQgMzEgYzAgMGYgMWYgMDAgYzMgMGYg
+MWYgIA0KODAgMDAgMDAgMDAgMDAgMGYgMWYgMDAgODMgZmEgNDAgMGYgODIgNzAgZmYgZmYgZmYg
+ODkgZDEgPGYzPiBhNCAzMSBjMCAwZiAgDQoxZiAwMCBjMyA2NiAyZSAwZiAxZiA4NCAwMCAwMCAw
+MCAwMCAwMCAwZiAxZiAwMCA4Mw0KUlNQOiAwMDE4OmZmZmY4ODAxOTRiYzc2ODggRUZMQUdTOiAw
+MDAxMDIwNg0KUkFYOiAwMDAwMDAwMDAwMDAwMDAwIFJCWDogMDAwMDAwMDAwMDBmZDIwMCBSQ1g6
+IDAwMDAwMDAwMDAwZjUyMDANClJEWDogMDAwMDAwMDAwMDBmZDIwMCBSU0k6IGZmZmZjOTAwMGVm
+ZTUwMDAgUkRJOiAwMDAwMDAwMDIwMDA4MGMwDQpSQlA6IGZmZmY4ODAxOTRiYzc2YzAgUjA4OiAw
+MDAwMDAwMDAwMDAwMDAwIFIwOTogMDAwMDAwMDAwMDAwM2Y0OA0KUjEwOiBmZmZmZjUyMDAxZTFi
+NDNmIFIxMTogZmZmZmM5MDAwZjBkYTFmZiBSMTI6IDAwMDAwMDAwMjAwZmQyYzANClIxMzogMDAw
+MDAwMDAyMDAwMDBjMCBSMTQ6IGZmZmZjOTAwMGVmZGQwMDAgUjE1OiAwMDAwN2ZmZmZmZmZmMDAw
+DQpGUzogIDAwMDA3ZmI5NTQ1YzA3MDAoMDAwMCkgR1M6ZmZmZjg4MDFkYWUwMDAwMCgwMDAwKSBr
+bmxHUzowMDAwMDAwMDAwMDAwMDAwDQpDUzogIDAwMTAgRFM6IDAwMDAgRVM6IDAwMDAgQ1IwOiAw
+MDAwMDAwMDgwMDUwMDMzDQpDUjI6IGZmZmZjOTAwMGVmZTUwMDAgQ1IzOiAwMDAwMDAwMWI3YWU3
+MDAwIENSNDogMDAwMDAwMDAwMDE0MDZmMA0KRFIwOiAwMDAwMDAwMDAwMDAwMDAwIERSMTogMDAw
+MDAwMDAwMDAwMDAwMCBEUjI6IDAwMDAwMDAwMDAwMDAwMDANCkRSMzogMDAwMDAwMDAwMDAwMDAw
+MCBEUjY6IDAwMDAwMDAwZmZmZTBmZjAgRFI3OiAwMDAwMDAwMDAwMDAwNDAwDQoNCg0KLS0tDQpU
+aGlzIGJ1ZyBpcyBnZW5lcmF0ZWQgYnkgYSBib3QuIEl0IG1heSBjb250YWluIGVycm9ycy4NClNl
+ZSBodHRwczovL2dvby5nbC90cHNtRUogZm9yIG1vcmUgaW5mb3JtYXRpb24gYWJvdXQgc3l6Ym90
+Lg0Kc3l6Ym90IGVuZ2luZWVycyBjYW4gYmUgcmVhY2hlZCBhdCBzeXprYWxsZXJAZ29vZ2xlZ3Jv
+dXBzLmNvbS4NCg0Kc3l6Ym90IHdpbGwga2VlcCB0cmFjayBvZiB0aGlzIGJ1ZyByZXBvcnQuIFNl
+ZToNCmh0dHBzOi8vZ29vLmdsL3Rwc21FSiNidWctc3RhdHVzLXRyYWNraW5nIGZvciBob3cgdG8g
+Y29tbXVuaWNhdGUgd2l0aCAgDQpzeXpib3QuDQo=
