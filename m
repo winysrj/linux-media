@@ -1,44 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-as-02-09.vtxnet.net ([194.38.175.148]:35648 "EHLO
-        smtp-as-02.vtxnet.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1725823AbeKAKjS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Nov 2018 06:39:18 -0400
+Received: from casper.infradead.org ([85.118.1.10]:48134 "EHLO
+        casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726012AbeKALiG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Nov 2018 07:38:06 -0400
+Date: Wed, 31 Oct 2018 23:37:02 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Greg KH <gregkh@linuxfoundation.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        linux-media@vger.kernel.org,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: Re: [GIT PULL for v4.20-rc1] new experimental media request API
+Message-ID: <20181031233702.13a501ea@coco.lan>
+In-Reply-To: <CAHk-=wi5wkZtwZQfjVudLtS-Ej9pvaqu6=xM1msoBF8sMuTc_A@mail.gmail.com>
+References: <20181030105328.0667ec68@coco.lan>
+        <CAHk-=whQKCA18MEi7FT=10c0HVa=kxSyYBJeAQH-C2mA5gBhbg@mail.gmail.com>
+        <CAHk-=wi5wkZtwZQfjVudLtS-Ej9pvaqu6=xM1msoBF8sMuTc_A@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
- format=flowed
-Content-Transfer-Encoding: 8bit
-Date: Thu, 01 Nov 2018 02:29:32 +0100
-From: SafetyNet Credit <mathys.brigitte@vtxmail.ch>
-To: undisclosed-recipients:;
-Subject: =?UTF-8?Q?Gesch=C3=A4fts-_/_Projektkredit_1=2C5=25?=
-Reply-To: safteycredit@hotmail.com
-Message-ID: <720bf98b45140e337ca88622738f4731@vtxmail.ch>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Em Wed, 31 Oct 2018 15:32:03 -0700
+Linus Torvalds <torvalds@linux-foundation.org> escreveu:
 
+> On Wed, Oct 31, 2018 at 11:05 AM Linus Torvalds
+> <torvalds@linux-foundation.org> wrote:
+> >
+> > But pulled,  
+> 
+> I have no idea how I missed this during the actual test compile after
+> the pull (and yes, I'm sure I did one), but after doing a couple of
+> more pulls I finally did notice.
+> 
+> After the media pull I get this warning:
+> 
+>   ./usr/include/linux/v4l2-controls.h:1105: found __[us]{8,16,32,64}
+> type without #include <linux/types.h>
+> 
+> and sure enough, the recent changes to
+> 
+>   include/uapi/linux/v4l2-controls.h
+> 
+> add those new structures use the "__uXY" types without including the
+> header to define them.
+> 
+> It's harmless in the short term and the kernel build itself obviously
+> doesn't care apart from the warning, but please fix it.
 
--- 
-Schönen Tag.
-Wir hoffen, Sie gut zu treffen.
-Benötigen Sie einen dringenden Kredit für ein Geschäft oder ein Projekt?
-Wir bieten Kredite zu 1,5% und wir können Ihre Transaktion innerhalb von 
-3 bis 5 Arbeitstagen abschließen.
+I also missed this one. Perhaps it depends on gcc version, or is it
+a new warning after some changes? I remember there was some patchsets
+floating around related to change some warnings.
 
-Wenn Sie ernsthaft an einem Kredit interessiert sind, empfehlen wir 
-Ihnen, unten die Einzelheiten zur Bearbeitung Ihrer Transaktion 
-anzugeben.
+Anyway, I'll send you a fix for it soon.
 
-Vollständiger Name:..............
-Darlehensbetrag: ..............
-Darlehensdauer: ..............
-Darlehen Zweck:..............
-Telefon:..............
-
-Wir erwarten Ihre Darlehensdaten wie oben beschrieben für die Abwicklung
-Ihrer Transaktion.
-
-Freundliche Grüße.
-
-Wilson Rog.
-Buchhalter / Berater
+Thanks,
+Mauro
