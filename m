@@ -1,8 +1,8 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vsp-unauthed02.binero.net ([195.74.38.227]:18095 "EHLO
+Received: from vsp-unauthed02.binero.net ([195.74.38.227]:24854 "EHLO
         vsp-unauthed02.binero.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728283AbeKBIiE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Nov 2018 04:38:04 -0400
+        with ESMTP id S1728296AbeKBIiF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Nov 2018 04:38:05 -0400
 From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
         <niklas.soderlund+renesas@ragnatech.se>
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
@@ -10,9 +10,9 @@ To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Benoit Parrot <bparrot@ti.com>, linux-media@vger.kernel.org
 Cc: linux-renesas-soc@vger.kernel.org,
         Michal Simek <michal.simek@xilinx.com>
-Subject: [PATCH v2 08/30] media: entity: Add media_has_route() function
-Date: Fri,  2 Nov 2018 00:31:22 +0100
-Message-Id: <20181101233144.31507-9-niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v2 10/30] media: entity: Use routing information during graph traversal
+Date: Fri,  2 Nov 2018 00:31:24 +0100
+Message-Id: <20181101233144.31507-11-niklas.soderlund+renesas@ragnatech.se>
 In-Reply-To: <20181101233144.31507-1-niklas.soderlund+renesas@ragnatech.se>
 References: <20181101233144.31507-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
@@ -23,71 +23,96 @@ List-ID: <linux-media.vger.kernel.org>
 
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-This is a wrapper around the media entity has_route operation.
+Take internal routing information as reported by the entity has_route
+operation into account during graph traversal to avoid following
+unrelated links.
 
 Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Signed-off-by: Michal Simek <michal.simek@xilinx.com>
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
- drivers/media/media-entity.c | 16 ++++++++++++++++
- include/media/media-entity.h | 17 +++++++++++++++++
- 2 files changed, 33 insertions(+)
+ drivers/media/media-entity.c | 44 ++++++++++++++++++++++--------------
+ 1 file changed, 27 insertions(+), 17 deletions(-)
 
 diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index f2fa0b7826dbc2f3..3c0e7425c8983b45 100644
+index 33f00e35ccd92c6f..4d10bc186e1e7a10 100644
 --- a/drivers/media/media-entity.c
 +++ b/drivers/media/media-entity.c
-@@ -237,6 +237,22 @@ EXPORT_SYMBOL_GPL(media_entity_pads_init);
-  * Graph traversal
-  */
+@@ -257,15 +257,6 @@ bool media_entity_has_route(struct media_entity *entity, unsigned int pad0,
+ }
+ EXPORT_SYMBOL_GPL(media_entity_has_route);
  
-+bool media_entity_has_route(struct media_entity *entity, unsigned int pad0,
-+			    unsigned int pad1)
-+{
-+	if (pad0 >= entity->num_pads || pad1 >= entity->num_pads)
-+		return false;
-+
-+	if (pad0 == pad1)
-+		return true;
-+
-+	if (!entity->ops || !entity->ops->has_route)
-+		return true;
-+
-+	return entity->ops->has_route(entity, pad0, pad1);
-+}
-+EXPORT_SYMBOL_GPL(media_entity_has_route);
-+
- static struct media_pad *
- media_entity_other(struct media_pad *pad, struct media_link *link)
+-static struct media_pad *
+-media_entity_other(struct media_pad *pad, struct media_link *link)
+-{
+-	if (link->source == pad)
+-		return link->sink;
+-	else
+-		return link->source;
+-}
+-
+ /* push an entity to traversal stack */
+ static void stack_push(struct media_graph *graph, struct media_pad *pad)
  {
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index cd482814654616b5..9540d2af80f19805 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -919,6 +919,23 @@ int media_entity_get_fwnode_pad(struct media_entity *entity,
- __must_check int media_graph_walk_init(
- 	struct media_graph *graph, struct media_device *mdev);
+@@ -336,7 +327,8 @@ static void media_graph_walk_iter(struct media_graph *graph)
+ {
+ 	struct media_pad *pad = stack_top(graph);
+ 	struct media_link *link;
+-	struct media_pad *next;
++	struct media_pad *remote;
++	struct media_pad *local;
  
-+/**
-+ * media_entity_has_route - Check if two entity pads are connected internally
-+ *
-+ * @entity: The entity
-+ * @pad0: The first pad index
-+ * @pad1: The second pad index
-+ *
-+ * This function can be used to check whether two pads of an entity are
-+ * connected internally in the entity.
-+ *
-+ * The caller must hold entity->graph_obj.mdev->mutex.
-+ *
-+ * Return: true if the pads are connected internally and false otherwise.
-+ */
-+bool media_entity_has_route(struct media_entity *entity, unsigned int pad0,
-+			    unsigned int pad1);
+ 	link = list_entry(link_top(graph), typeof(*link), list);
+ 
+@@ -350,23 +342,41 @@ static void media_graph_walk_iter(struct media_graph *graph)
+ 		return;
+ 	}
+ 
+-	/* Get the entity in the other end of the link . */
+-	next = media_entity_other(pad, link);
++	/*
++	 * Get the local pad, the remote pad and the entity at the other
++	 * end of the link.
++	 */
++	if (link->source->entity == pad->entity) {
++		remote = link->sink;
++		local = link->source;
++	} else {
++		remote = link->source;
++		local = link->sink;
++	}
 +
- /**
-  * media_graph_walk_cleanup - Release resources used by graph walk.
-  *
++	/*
++	 * Are the local pad and the pad we came from connected
++	 * internally in the entity ?
++	 */
++	if (!media_entity_has_route(pad->entity, pad->index, local->index)) {
++		link_top(graph) = link_top(graph)->next;
++		return;
++	}
+ 
+ 	/* Has the entity already been visited? */
+-	if (media_entity_enum_test_and_set(&graph->ent_enum, next->entity)) {
++	if (media_entity_enum_test_and_set(&graph->ent_enum, remote->entity)) {
+ 		link_top(graph) = link_top(graph)->next;
+ 		dev_dbg(pad->graph_obj.mdev->dev,
+ 			"walk: skipping entity '%s' (already seen)\n",
+-			next->entity->name);
++			remote->entity->name);
+ 		return;
+ 	}
+ 
+ 	/* Push the new entity to stack and start over. */
+ 	link_top(graph) = link_top(graph)->next;
+-	stack_push(graph, next);
+-	dev_dbg(next->graph_obj.mdev->dev, "walk: pushing '%s':%u on stack\n",
+-		next->entity->name, next->index);
++	stack_push(graph, remote);
++	dev_dbg(remote->graph_obj.mdev->dev, "walk: pushing '%s':%u on stack\n",
++		remote->entity->name, remote->index);
+ }
+ 
+ struct media_pad *media_graph_walk_next(struct media_graph *graph)
 -- 
 2.19.1
