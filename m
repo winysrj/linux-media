@@ -1,59 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:48134 "EHLO
-        casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726012AbeKALiG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Nov 2018 07:38:06 -0400
-Date: Wed, 31 Oct 2018 23:37:02 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Greg KH <gregkh@linuxfoundation.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        linux-media@vger.kernel.org,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: Re: [GIT PULL for v4.20-rc1] new experimental media request API
-Message-ID: <20181031233702.13a501ea@coco.lan>
-In-Reply-To: <CAHk-=wi5wkZtwZQfjVudLtS-Ej9pvaqu6=xM1msoBF8sMuTc_A@mail.gmail.com>
-References: <20181030105328.0667ec68@coco.lan>
-        <CAHk-=whQKCA18MEi7FT=10c0HVa=kxSyYBJeAQH-C2mA5gBhbg@mail.gmail.com>
-        <CAHk-=wi5wkZtwZQfjVudLtS-Ej9pvaqu6=xM1msoBF8sMuTc_A@mail.gmail.com>
+Received: from mail-yb1-f193.google.com ([209.85.219.193]:45354 "EHLO
+        mail-yb1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727453AbeKANF3 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Nov 2018 09:05:29 -0400
+Received: by mail-yb1-f193.google.com with SMTP id 131-v6so7582262ybe.12
+        for <linux-media@vger.kernel.org>; Wed, 31 Oct 2018 21:04:18 -0700 (PDT)
+Received: from mail-yb1-f178.google.com (mail-yb1-f178.google.com. [209.85.219.178])
+        by smtp.gmail.com with ESMTPSA id x129-v6sm2506059ywb.74.2018.10.31.21.04.16
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 31 Oct 2018 21:04:16 -0700 (PDT)
+Received: by mail-yb1-f178.google.com with SMTP id t13-v6so1459228ybb.8
+        for <linux-media@vger.kernel.org>; Wed, 31 Oct 2018 21:04:16 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+References: <CACT4Y+YHx3RUMGLv5T=-FJDZKEavK+sWBbAbenfm8mTQry8F+w@mail.gmail.com>
+ <ea1f7e70-6e8c-76a2-291d-228f99ca0cd4@xs4all.nl>
+In-Reply-To: <ea1f7e70-6e8c-76a2-291d-228f99ca0cd4@xs4all.nl>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Thu, 1 Nov 2018 13:04:04 +0900
+Message-ID: <CAAFQd5DDDvJTB09HnuKTVVTFdStkmeMErcA1Cjavnti_RJG9Zg@mail.gmail.com>
+Subject: Re: VIVID/VIMC and media fuzzing
+To: dvyukov@google.com
+Cc: helen.koike@collabora.com, Hans Verkuil <hverkuil@xs4all.nl>,
+        syzkaller@googlegroups.com,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        samitolvanen@google.com
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 31 Oct 2018 15:32:03 -0700
-Linus Torvalds <torvalds@linux-foundation.org> escreveu:
+Hi Dmitry,
 
-> On Wed, Oct 31, 2018 at 11:05 AM Linus Torvalds
-> <torvalds@linux-foundation.org> wrote:
+On Wed, Oct 31, 2018 at 6:46 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>
+> On 10/30/2018 03:02 PM, Dmitry Vyukov wrote:
+[snip]
 > >
-> > But pulled,  
-> 
-> I have no idea how I missed this during the actual test compile after
-> the pull (and yes, I'm sure I did one), but after doing a couple of
-> more pulls I finally did notice.
-> 
-> After the media pull I get this warning:
-> 
->   ./usr/include/linux/v4l2-controls.h:1105: found __[us]{8,16,32,64}
-> type without #include <linux/types.h>
-> 
-> and sure enough, the recent changes to
-> 
->   include/uapi/linux/v4l2-controls.h
-> 
-> add those new structures use the "__uXY" types without including the
-> header to define them.
-> 
-> It's harmless in the short term and the kernel build itself obviously
-> doesn't care apart from the warning, but please fix it.
+> > Do I understand it correctly that when a process opens /dev/video* or
+> > /dev/media* it gets a private instance of the device? In particular,
+> > if several processes test this in parallel, will they collide? Or they
+> > will stress separate objects?
+>
+> It actually depends on the driver. M2M devices will give you a private
+> instance whenever you open it. Others do not, but you can call most ioctls
+> in parallel. But after calling REQBUFS or CREATE_BUFS the filehandle that
+> called those ioctls becomes owner of the device until the buffers are
+> released. So other filehandles cannot do any streaming operations (EBUSY
+> will be returned).
 
-I also missed this one. Perhaps it depends on gcc version, or is it
-a new warning after some changes? I remember there was some patchsets
-floating around related to change some warnings.
+FWIW, you can query whether the device is M2M or not by
+VIDIOC_QUERYCAP [1]. The capabilities field would have
+V4L2_CAP_VIDEO_M2M or V4L2_CAP_VIDEO_M2M_MPLANE set for M2M devices.
 
-Anyway, I'll send you a fix for it soon.
+[1] https://www.kernel.org/doc/html/latest/media/uapi/v4l/vidioc-querycap.html
 
-Thanks,
-Mauro
+Best regards,
+Tomasz
