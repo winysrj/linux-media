@@ -1,7 +1,7 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-05.binero.net ([195.74.38.228]:40163 "EHLO
-        bin-mail-out-05.binero.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728326AbeKBIiM (ORCPT
+Received: from bin-mail-out-06.binero.net ([195.74.38.229]:41861 "EHLO
+        bin-mail-out-06.binero.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1728333AbeKBIiM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Fri, 2 Nov 2018 04:38:12 -0400
 From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
@@ -9,12 +9,10 @@ From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
         Benoit Parrot <bparrot@ti.com>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v2 17/30] v4l: subdev: compat: Implement handling for VIDIOC_SUBDEV_[GS]_ROUTING
-Date: Fri,  2 Nov 2018 00:31:31 +0100
-Message-Id: <20181101233144.31507-18-niklas.soderlund+renesas@ragnatech.se>
+Cc: linux-renesas-soc@vger.kernel.org
+Subject: [PATCH v2 18/30] v4l: subdev: Take routing information into account in link validation
+Date: Fri,  2 Nov 2018 00:31:32 +0100
+Message-Id: <20181101233144.31507-19-niklas.soderlund+renesas@ragnatech.se>
 In-Reply-To: <20181101233144.31507-1-niklas.soderlund+renesas@ragnatech.se>
 References: <20181101233144.31507-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
@@ -25,130 +23,268 @@ List-ID: <linux-media.vger.kernel.org>
 
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Implement compat IOCTL handling for VIDIOC_SUBDEV_G_ROUTING and
-VIDIOC_SUBDEV_S_ROUTING IOCTLs.
+The routing information is essential in link validation for multiplexed
+links: the pads at the ends of a multiplexed link have no single format
+defined for them. Instead, the format is accessible in the sink (or
+source) pads of the sub-devices at both ends of that link.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 77 +++++++++++++++++++
- 1 file changed, 77 insertions(+)
+ drivers/media/v4l2-core/v4l2-subdev.c | 217 ++++++++++++++++++++++++--
+ 1 file changed, 203 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index 6481212fda772c73..83af332763f41a6b 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -1045,6 +1045,66 @@ static int put_v4l2_event32(struct v4l2_event __user *p64,
- 	return 0;
+diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+index 1d3b37cf548fa533..05684c796b184272 100644
+--- a/drivers/media/v4l2-core/v4l2-subdev.c
++++ b/drivers/media/v4l2-core/v4l2-subdev.c
+@@ -640,12 +640,17 @@ static int
+ v4l2_subdev_link_validate_get_format(struct media_pad *pad,
+ 				     struct v4l2_subdev_format *fmt)
+ {
++	dev_dbg(pad->entity->graph_obj.mdev->dev,
++		"obtaining format on \"%s\":%u\n", pad->entity->name,
++		pad->index);
++
+ 	if (is_media_entity_v4l2_subdev(pad->entity)) {
+ 		struct v4l2_subdev *sd =
+ 			media_entity_to_v4l2_subdev(pad->entity);
+ 
+ 		fmt->which = V4L2_SUBDEV_FORMAT_ACTIVE;
+ 		fmt->pad = pad->index;
++
+ 		return v4l2_subdev_call(sd, pad, get_fmt, NULL, fmt);
+ 	}
+ 
+@@ -656,31 +661,215 @@ v4l2_subdev_link_validate_get_format(struct media_pad *pad,
+ 	return -EINVAL;
  }
  
-+struct v4l2_subdev_routing32 {
-+	compat_caddr_t routes;
-+	__u32 num_routes;
-+	__u32 reserved[5];
-+};
-+
-+static int get_v4l2_subdev_routing(struct v4l2_subdev_routing __user *p64,
-+				   struct v4l2_subdev_routing32 __user *p32)
-+{
-+	struct v4l2_subdev_route __user *routes;
-+	compat_caddr_t p;
-+	u32 num_routes;
-+
-+	if (!access_ok(VERIFY_READ, p32, sizeof(*p32)) ||
-+	    get_user(p, &p32->routes) ||
-+	    get_user(num_routes, &p32->num_routes) ||
-+	    put_user(num_routes, &p64->num_routes) ||
-+	    copy_in_user(&p64->reserved, &p32->reserved,
-+			 sizeof(p64->reserved)) ||
-+	    num_routes > U32_MAX / sizeof(*p64->routes))
-+		return -EFAULT;
-+
-+	routes = compat_ptr(p);
-+
-+	if (!access_ok(VERIFY_READ, routes,
-+		       num_routes * sizeof(*p64->routes)))
-+		return -EFAULT;
-+
-+	if (put_user((__force struct v4l2_subdev_route *)routes,
-+		     &p64->routes))
-+		return -EFAULT;
-+
-+	return 0;
+-int v4l2_subdev_link_validate(struct media_link *link)
++static int v4l2_subdev_link_validate_one(struct media_link *link,
++					 struct v4l2_subdev_format *source_fmt,
++					 struct v4l2_subdev_format *sink_fmt)
+ {
+ 	struct v4l2_subdev *sink;
+-	struct v4l2_subdev_format sink_fmt, source_fmt;
+ 	int rval;
+ 
+-	rval = v4l2_subdev_link_validate_get_format(
+-		link->source, &source_fmt);
+-	if (rval < 0)
+-		return 0;
+-
+-	rval = v4l2_subdev_link_validate_get_format(
+-		link->sink, &sink_fmt);
+-	if (rval < 0)
+-		return 0;
+-
+ 	sink = media_entity_to_v4l2_subdev(link->sink->entity);
+ 
+ 	rval = v4l2_subdev_call(sink, pad, link_validate, link,
+-				&source_fmt, &sink_fmt);
++				source_fmt, sink_fmt);
+ 	if (rval != -ENOIOCTLCMD)
+ 		return rval;
+ 
+ 	return v4l2_subdev_link_validate_default(
+-		sink, link, &source_fmt, &sink_fmt);
++		sink, link, source_fmt, sink_fmt);
 +}
 +
-+static int put_v4l2_subdev_routing(struct v4l2_subdev_routing __user *p64,
-+				   struct v4l2_subdev_routing32 __user *p32)
++/* How many routes to assume there can be per a sub-device? */
++#define LINK_VALIDATE_ROUTES	8
++
++#define R_SRC	0
++#define R_SINK	1
++#define NR_R	2
++
++int v4l2_subdev_link_validate(struct media_link *link)
 +{
-+	struct v4l2_subdev_route __user *routes;
-+	compat_caddr_t p;
-+	u32 num_routes;
++	struct v4l2_subdev *sink;
++	struct route_info {
++		struct v4l2_subdev_route routes[LINK_VALIDATE_ROUTES];
++		struct v4l2_subdev_routing routing;
++		bool has_route;
++		struct media_pad *pad;
++		/* Format for a non-multiplexed pad. */
++		struct v4l2_subdev_format fmt;
++	} r[NR_R] = {
++		{
++			/* Source end of the link */
++			.routing = {
++				.routes = r[R_SRC].routes,
++				.num_routes = ARRAY_SIZE(r[R_SRC].routes),
++			},
++			.pad = link->source,
++		},
++		{
++			/* Sink end of the link */
++			.routing = {
++				.routes = r[R_SINK].routes,
++				.num_routes = ARRAY_SIZE(r[R_SINK].routes),
++			},
++			.pad = link->sink,
++		},
++	};
++	unsigned int i, j;
++	int rval;
 +
-+	if (!access_ok(VERIFY_WRITE, p32, sizeof(*p32)) ||
-+	    get_user(p, &p32->routes) ||
-+	    get_user(num_routes, &p64->num_routes) ||
-+	    put_user(num_routes, &p32->num_routes) ||
-+	    copy_in_user(&p32->reserved, &p64->reserved,
-+			 sizeof(p64->reserved)) ||
-+	    num_routes > U32_MAX / sizeof(*p64->routes))
-+		return -EFAULT;
++	sink = media_entity_to_v4l2_subdev(link->sink->entity);
 +
-+	routes = compat_ptr(p);
++	dev_dbg(sink->entity.graph_obj.mdev->dev,
++		"validating link \"%s\":%u -> \"%s\":%u\n",
++		link->source->entity->name, link->source->index,
++		sink->entity.name, link->sink->index);
 +
-+	if (!access_ok(VERIFY_WRITE, routes,
-+		       num_routes * sizeof(*p64->routes)))
-+		return -EFAULT;
++	for (i = 0; i < NR_R; i++) {
++		struct route_info *ri = &r[i];
++
++		ri->has_route = true;
++
++		rval = v4l2_subdev_call(
++			media_entity_to_v4l2_subdev(ri->pad->entity),
++			pad, get_routing, &ri->routing);
++
++		switch (rval) {
++		case 0:
++			break;
++		case -ENOIOCTLCMD:
++			dev_dbg(sink->entity.graph_obj.mdev->dev,
++				"no routing information on \"%s\":%u\n",
++				ri->pad->entity->name, ri->pad->index);
++			ri->has_route = false;
++			break;
++		default:
++			dev_dbg(sink->entity.graph_obj.mdev->dev,
++				"error %d in get_routing() on \"%s\":%u\n",
++				rval, ri->pad->entity->name, ri->pad->index);
++			return rval;
++		}
++
++		rval = v4l2_subdev_link_validate_get_format(ri->pad,
++							    &ri->fmt);
++
++		if (!rval) {
++			dev_dbg(sink->entity.graph_obj.mdev->dev,
++				"format information available on \"%s\":%u\n",
++				ri->pad->entity->name, ri->pad->index);
++			ri->has_route = false;
++		}
++
++		if (!ri->has_route) {
++			ri->routing.num_routes = 1;
++		} else {
++			dev_dbg(sink->entity.graph_obj.mdev->dev,
++				"routes on \"%s\":%u:\n",
++				ri->pad->entity->name, ri->pad->index);
++			for (j = 0; j < ri->routing.num_routes; j++)
++				dev_dbg(sink->entity.graph_obj.mdev->dev,
++					"\t%u: %u/%u -> %u/%u\n", j,
++					ri->routing.routes[j].sink_pad,
++					ri->routing.routes[j].sink_stream,
++					ri->routing.routes[j].source_pad,
++					ri->routing.routes[j].source_stream);
++		}
++	}
++
++	for (i = 0, j = 0;
++	     i < r[R_SRC].routing.num_routes &&
++		     j < r[R_SINK].routing.num_routes; ) {
++		unsigned int *ro[] = { &i, &j };
++		unsigned int k;
++
++		/* Get the first active route for the sink pad. */
++		if (r[R_SINK].has_route &&
++		    (r[R_SINK].routes[j].sink_pad != link->sink->index ||
++		     !(r[R_SINK].routes[j].flags
++		       & V4L2_SUBDEV_ROUTE_FL_ACTIVE))) {
++			dev_dbg(sink->entity.graph_obj.mdev->dev,
++				"skipping route %u/%u -> %u/%u[%u]\n",
++				r[R_SINK].routes[j].sink_pad,
++				r[R_SINK].routes[j].sink_stream,
++				r[R_SINK].routes[j].source_pad,
++				r[R_SINK].routes[j].source_stream,
++				(bool)(r[R_SINK].routes[j].flags
++				       & V4L2_SUBDEV_ROUTE_FL_ACTIVE));
++			j++;
++			continue;
++		}
++
++		/*
++		 * Get the corresponding route for the source pad.
++		 * It's ok for the source pad to have routes active
++		 * where the sink pad does not, but the routes that
++		 * are active on the sink pad have to be active on
++		 * the source pad as well.
++		 */
++		if (r[R_SRC].has_route &&
++		    (r[R_SRC].routes[i].source_pad != link->source->index ||
++		     r[R_SRC].routes[i].source_stream
++		     != r[R_SINK].routes[j].sink_stream)) {
++			dev_dbg(sink->entity.graph_obj.mdev->dev,
++				"skipping source route %u/%u -> %u/%u\n",
++				r[R_SRC].routes[i].sink_pad,
++				r[R_SRC].routes[i].sink_stream,
++				r[R_SRC].routes[i].source_pad,
++				r[R_SRC].routes[i].source_stream);
++			i++;
++			continue;
++		}
++
++		/* The source route must be active. */
++		if (r[R_SRC].has_route &&
++		    !(r[R_SRC].routes[i].flags
++		      & V4L2_SUBDEV_ROUTE_FL_ACTIVE)) {
++			dev_dbg(sink->entity.graph_obj.mdev->dev,
++				"source route not active\n");
++			return -EINVAL;
++		}
++
++		for (k = 0; k < NR_R; k++) {
++			if (r[k].has_route) {
++				dev_dbg(sink->entity.graph_obj.mdev->dev,
++					"validating %s route \"%s\": %u/%u -> %u/%u\n",
++					k == R_SINK ? "sink" : "source",
++					r[k].pad->entity->name,
++					r[k].routes[*ro[k]].sink_pad,
++					r[k].routes[*ro[k]].sink_stream,
++					r[k].routes[*ro[k]].source_pad,
++					r[k].routes[*ro[k]].source_stream);
++				rval = v4l2_subdev_link_validate_get_format(
++					&r[k].pad->entity->pads[
++						k == R_SINK
++						? r[k].routes[*ro[k]].source_pad
++						: r[k].routes[*ro[k]].sink_pad],
++					&r[k].fmt);
++			} else {
++				dev_dbg(sink->entity.graph_obj.mdev->dev,
++					"routing not supported by \"%s\":%u",
++					r[k].pad->entity->name,
++					r[k].pad->index);
++			}
++		}
++
++		rval = v4l2_subdev_link_validate_one(
++			link, &r[R_SRC].fmt, &r[R_SINK].fmt);
++		if (rval) {
++			dev_dbg(sink->entity.graph_obj.mdev->dev,
++				"error %d in link validation\n", rval);
++			return rval;
++		}
++
++		i++, j++;
++	}
++
++	if (j < r[R_SINK].routing.num_routes) {
++		dev_dbg(sink->entity.graph_obj.mdev->dev,
++			"not all sink routes verified; out of source routes\n");
++		return -EINVAL;
++	}
 +
 +	return 0;
-+}
-+
- struct v4l2_edid32 {
- 	__u32 pad;
- 	__u32 start_block;
-@@ -1117,6 +1177,8 @@ static int put_v4l2_edid32(struct v4l2_edid __user *p64,
- #define VIDIOC_STREAMOFF32	_IOW ('V', 19, s32)
- #define VIDIOC_G_INPUT32	_IOR ('V', 38, s32)
- #define VIDIOC_S_INPUT32	_IOWR('V', 39, s32)
-+#define VIDIOC_SUBDEV_G_ROUTING32 _IOWR('V', 38, struct v4l2_subdev_routing32)
-+#define VIDIOC_SUBDEV_S_ROUTING32 _IOWR('V', 39, struct v4l2_subdev_routing32)
- #define VIDIOC_G_OUTPUT32	_IOR ('V', 46, s32)
- #define VIDIOC_S_OUTPUT32	_IOWR('V', 47, s32)
+ }
+ EXPORT_SYMBOL_GPL(v4l2_subdev_link_validate);
  
-@@ -1195,6 +1257,8 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
- 	case VIDIOC_STREAMOFF32: cmd = VIDIOC_STREAMOFF; break;
- 	case VIDIOC_G_INPUT32: cmd = VIDIOC_G_INPUT; break;
- 	case VIDIOC_S_INPUT32: cmd = VIDIOC_S_INPUT; break;
-+	case VIDIOC_SUBDEV_G_ROUTING32: cmd = VIDIOC_SUBDEV_G_ROUTING; break;
-+	case VIDIOC_SUBDEV_S_ROUTING32: cmd = VIDIOC_SUBDEV_S_ROUTING; break;
- 	case VIDIOC_G_OUTPUT32: cmd = VIDIOC_G_OUTPUT; break;
- 	case VIDIOC_S_OUTPUT32: cmd = VIDIOC_S_OUTPUT; break;
- 	case VIDIOC_CREATE_BUFS32: cmd = VIDIOC_CREATE_BUFS; break;
-@@ -1227,6 +1291,15 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
- 		compatible_arg = 0;
- 		break;
- 
-+	case VIDIOC_SUBDEV_G_ROUTING:
-+	case VIDIOC_SUBDEV_S_ROUTING:
-+		err = alloc_userspace(sizeof(struct v4l2_subdev_routing),
-+				      0, &new_p64);
-+		if (!err)
-+			err = get_v4l2_subdev_routing(new_p64, p32);
-+		compatible_arg = 0;
-+		break;
-+
- 	case VIDIOC_G_EDID:
- 	case VIDIOC_S_EDID:
- 		err = alloc_userspace(sizeof(struct v4l2_edid), 0, &new_p64);
-@@ -1368,6 +1441,10 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
- 		if (put_v4l2_edid32(new_p64, p32))
- 			err = -EFAULT;
- 		break;
-+	case VIDIOC_SUBDEV_G_ROUTING:
-+	case VIDIOC_SUBDEV_S_ROUTING:
-+		err = put_v4l2_subdev_routing(new_p64, p32);
-+		break;
- 	}
- 	if (err)
- 		return err;
 -- 
 2.19.1
