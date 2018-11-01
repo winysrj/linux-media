@@ -1,98 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:36078 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727644AbeKAWEm (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Nov 2018 18:04:42 -0400
+Received: from relay1.mentorg.com ([192.94.38.131]:36144 "EHLO
+        relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727644AbeKAWHP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Nov 2018 18:07:15 -0400
+Subject: Re: i.MX6: can't capture on MIPI-CSI2 with DS90UB954
+To: Jean-Michel Hautbois <jhautbois@gmail.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Steve Longerbeam <slongerbeam@gmail.com>
+References: <CAL8zT=g1dquRZC=ZNO97nYjoX47JrZAUVrwJ+xVcR6LcmwY22g@mail.gmail.com>
+CC: Philipp Zabel <p.zabel@pengutronix.de>,
+        <kieran.bingham@ideasonboard.com>
+From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+Message-ID: <9ec2a051-c1d4-ae82-d125-4e74437a2c97@mentor.com>
+Date: Thu, 1 Nov 2018 15:04:05 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
-Content-Transfer-Encoding: 7bit
-Date: Thu, 01 Nov 2018 18:31:48 +0530
-From: mgottam@codeaurora.org
-To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Cc: hverkuil@xs4all.nl, mchehab@kernel.org,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org, acourbot@chromium.org,
-        vgarodia@codeaurora.org
-Subject: Re: [PATCH] media: venus: dynamic handling of bitrate
-In-Reply-To: <3ff2c3dd-434d-960b-6806-f4bb8ec0d954@linaro.org>
-References: <1540971728-26789-1-git-send-email-mgottam@codeaurora.org>
- <3ff2c3dd-434d-960b-6806-f4bb8ec0d954@linaro.org>
-Message-ID: <3364115421e89c7710725c06b820f8c6@codeaurora.org>
+In-Reply-To: <CAL8zT=g1dquRZC=ZNO97nYjoX47JrZAUVrwJ+xVcR6LcmwY22g@mail.gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2018-11-01 17:48, Stanimir Varbanov wrote:
-> Hi Malathi,
+Hi Jean-Michel,
+
+On 10/30/2018 06:41 PM, Jean-Michel Hautbois wrote:
+> Hi there,
 > 
-> Thanks for the patch!
+> I am using the i.MX6D from Digi (connect core 6 sbc) with a mailine
+> kernel (well, 4.14 right now) and have an issue with mipi-csi2
+> capture.
+> First I will give brief explanation of my setup, and then I will
+> detail the issue.
+> I have a camera sensor (OV2732, but could be any other sensor)
+> connected on a DS90UB953 FPD-Link III serializer.
+> Then a coax cable propagates the signal to a DS90UB954 FPD-Link III
+> deserializer.
 > 
-> On 10/31/18 9:42 AM, Malathi Gottam wrote:
->> Any request for a change in bitrate after both planes
->> are streamed on is handled by setting the target bitrate
->> property to hardware.
->> 
->> Signed-off-by: Malathi Gottam <mgottam@codeaurora.org>
->> ---
->>  drivers/media/platform/qcom/venus/venc_ctrls.c | 11 +++++++++++
->>  1 file changed, 11 insertions(+)
->> 
->> diff --git a/drivers/media/platform/qcom/venus/venc_ctrls.c 
->> b/drivers/media/platform/qcom/venus/venc_ctrls.c
->> index 45910172..54f310c 100644
->> --- a/drivers/media/platform/qcom/venus/venc_ctrls.c
->> +++ b/drivers/media/platform/qcom/venus/venc_ctrls.c
->> @@ -79,7 +79,9 @@ static int venc_op_s_ctrl(struct v4l2_ctrl *ctrl)
->>  {
->>  	struct venus_inst *inst = ctrl_to_inst(ctrl);
->>  	struct venc_controls *ctr = &inst->controls.enc;
->> +	struct hfi_bitrate brate;
->>  	u32 bframes;
->> +	u32 ptype;
->>  	int ret;
->> 
->>  	switch (ctrl->id) {
->> @@ -88,6 +90,15 @@ static int venc_op_s_ctrl(struct v4l2_ctrl *ctrl)
->>  		break;
->>  	case V4L2_CID_MPEG_VIDEO_BITRATE:
->>  		ctr->bitrate = ctrl->val;
->> +		if (inst->streamon_out && inst->streamon_cap) {
-> 
-> Hmm, hfi_session_set_property already checks the instance state so I
-> don't think those checks are needed. Another thing is that we need to
-> take the instance mutex to check the instance state.
+> The DS90UB954 has the ability to work in a pattern generation mode,
+> and I will use it for the rest of the discussion.
+> It is an I²C device, and I have written a basic driver (for the moment
+> ;)) in order to make it visible on the imx6-mipi-csi2 bus as a camera
+> sensor.
+> I can give an access to the driver if necessary.
 
-Yes Stan, "hfi_session_set_property" this property check the instance 
-state,
-but returns EINVAL if this is set at UNINIT instance state.
+It's sort of indirectly related, anyway, I utterly hope that the
+generic IC drivers will be ready and accepted for v4.21, see 
+https://lwn.net/ml/devicetree/20181008211205.2900-1-vz@mleia.com/
 
-Controls initialization happens much earlier than session init and 
-instance init.
-So the instance is still in UNINIT state which causes failure while 
-setting.
+Adding more ICs and cell devices to the framework is appreciated, 
+in the queue there are DS90UB913, DS90Ux929, DS90Ux947, DS90UB964.
 
-Through this patch we try to meet the client request of changing bitrate 
-only
-when both planes are streamed on.
+Steve, in case if you're unaware, that's FYI also.
 
-We have two ways to handle it
-1. The way in this patch checks the planes state which will definitely 
-ensure
-    instance is in START state.
-2. Have a check to ensure that instance is atleast Initialized.
-
-I hope the first proposal is good enough for meeting requirement.
-
-> 
->> +			ptype = HFI_PROPERTY_CONFIG_VENC_TARGET_BITRATE;
->> +			brate.bitrate = ctr->bitrate;
->> +			brate.layer_id = 0;
->> +
->> +			ret = hfi_session_set_property(inst, ptype, &brate);
->> +			if (ret)
->> +				return ret;
->> +		}
->>  		break;
->>  	case V4L2_CID_MPEG_VIDEO_BITRATE_PEAK:
->>  		ctr->bitrate_peak = ctrl->val;
->> 
+--
+Best wishes,
+Vladimir
