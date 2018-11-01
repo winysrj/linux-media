@@ -1,56 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1.mentorg.com ([192.94.38.131]:36144 "EHLO
-        relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727644AbeKAWHP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Nov 2018 18:07:15 -0400
-Subject: Re: i.MX6: can't capture on MIPI-CSI2 with DS90UB954
-To: Jean-Michel Hautbois <jhautbois@gmail.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Steve Longerbeam <slongerbeam@gmail.com>
-References: <CAL8zT=g1dquRZC=ZNO97nYjoX47JrZAUVrwJ+xVcR6LcmwY22g@mail.gmail.com>
-CC: Philipp Zabel <p.zabel@pengutronix.de>,
-        <kieran.bingham@ideasonboard.com>
-From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
-Message-ID: <9ec2a051-c1d4-ae82-d125-4e74437a2c97@mentor.com>
-Date: Thu, 1 Nov 2018 15:04:05 +0200
+Received: from smtp.codeaurora.org ([198.145.29.96]:39716 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727644AbeKAWNb (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Nov 2018 18:13:31 -0400
 MIME-Version: 1.0
-In-Reply-To: <CAL8zT=g1dquRZC=ZNO97nYjoX47JrZAUVrwJ+xVcR6LcmwY22g@mail.gmail.com>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+Date: Thu, 01 Nov 2018 18:40:35 +0530
+From: mgottam@codeaurora.org
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Cc: hverkuil@xs4all.nl, mchehab@kernel.org,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org, acourbot@chromium.org,
+        vgarodia@codeaurora.org
+Subject: Re: [PATCH] media: venus: add support for selection rectangles
+In-Reply-To: <0e0f689e-f6e3-73a6-e145-deb2ef7cafc8@linaro.org>
+References: <1539071603-1588-1-git-send-email-mgottam@codeaurora.org>
+ <0e0f689e-f6e3-73a6-e145-deb2ef7cafc8@linaro.org>
+Message-ID: <5037ca4b0dd0de80750e35ca889d4225@codeaurora.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jean-Michel,
-
-On 10/30/2018 06:41 PM, Jean-Michel Hautbois wrote:
-> Hi there,
+On 2018-10-16 15:11, Stanimir Varbanov wrote:
+> Hi Malathi,
 > 
-> I am using the i.MX6D from Digi (connect core 6 sbc) with a mailine
-> kernel (well, 4.14 right now) and have an issue with mipi-csi2
-> capture.
-> First I will give brief explanation of my setup, and then I will
-> detail the issue.
-> I have a camera sensor (OV2732, but could be any other sensor)
-> connected on a DS90UB953 FPD-Link III serializer.
-> Then a coax cable propagates the signal to a DS90UB954 FPD-Link III
-> deserializer.
+> On 10/09/2018 10:53 AM, Malathi Gottam wrote:
+>> Handles target type crop by setting the new active rectangle
+>> to hardware. The new rectangle should be within YUV size.
+>> 
+>> Signed-off-by: Malathi Gottam <mgottam@codeaurora.org>
+>> ---
+>>  drivers/media/platform/qcom/venus/venc.c | 19 +++++++++++++++++--
+>>  1 file changed, 17 insertions(+), 2 deletions(-)
+>> 
+>> diff --git a/drivers/media/platform/qcom/venus/venc.c 
+>> b/drivers/media/platform/qcom/venus/venc.c
+>> index 3f50cd0..754c19a 100644
+>> --- a/drivers/media/platform/qcom/venus/venc.c
+>> +++ b/drivers/media/platform/qcom/venus/venc.c
+>> @@ -478,16 +478,31 @@ static int venc_g_fmt(struct file *file, void 
+>> *fh, struct v4l2_format *f)
+>>  venc_s_selection(struct file *file, void *fh, struct v4l2_selection 
+>> *s)
+>>  {
+>>  	struct venus_inst *inst = to_inst(file);
+>> +	int ret;
+>> +	u32 buftype;
+>> 
+>>  	if (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
+>>  		return -EINVAL;
+>> 
+>>  	switch (s->target) {
+>>  	case V4L2_SEL_TGT_CROP:
+>> -		if (s->r.width != inst->out_width ||
+>> -		    s->r.height != inst->out_height ||
+>> +		if (s->r.width > inst->out_width ||
+>> +		    s->r.height > inst->out_height ||
+>>  		    s->r.top != 0 || s->r.left != 0)
+>>  			return -EINVAL;
+>> +		if (s->r.width != inst->width ||
+>> +		    s->r.height != inst->height) {
+>> +			buftype = HFI_BUFFER_OUTPUT;
+>> +			ret = venus_helper_set_output_resolution(inst,
+>> +								 s->r.width,
+>> +								 s->r.height,
+>> +								 buftype);
 > 
-> The DS90UB954 has the ability to work in a pattern generation mode,
-> and I will use it for the rest of the discussion.
-> It is an I²C device, and I have written a basic driver (for the moment
-> ;)) in order to make it visible on the imx6-mipi-csi2 bus as a camera
-> sensor.
-> I can give an access to the driver if necessary.
+> I'm afraid that set_output_resolution cannot be called at any time. Do
+> you think we can set it after start_session?
 
-It's sort of indirectly related, anyway, I utterly hope that the
-generic IC drivers will be ready and accepted for v4.21, see 
-https://lwn.net/ml/devicetree/20181008211205.2900-1-vz@mleia.com/
+Yes Stan, we can set output_resolution after the session has been 
+initialization.
+As per the spec, this call s_selection is an optional step under 
+Initialization
+procedure of encoder even before we request buffers.
 
-Adding more ICs and cell devices to the framework is appreciated, 
-in the queue there are DS90UB913, DS90Ux929, DS90Ux947, DS90UB964.
-
-Steve, in case if you're unaware, that's FYI also.
-
---
-Best wishes,
-Vladimir
+So I think setting output resolution in this api shouldn't cause any 
+issue once
+we are confident on the instance state.
