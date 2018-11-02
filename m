@@ -1,117 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:60810 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726237AbeKBNlH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 2 Nov 2018 09:41:07 -0400
-Message-ID: <d4ab5e20f619e44bc6023b7bedaf95fd@smtp-cloud9.xs4all.net>
-Date: Fri, 02 Nov 2018 05:35:19 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
+Received: from mail-wr1-f41.google.com ([209.85.221.41]:40440 "EHLO
+        mail-wr1-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728352AbeKBROy (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Nov 2018 13:14:54 -0400
+Received: by mail-wr1-f41.google.com with SMTP id i17-v6so1021336wre.7
+        for <linux-media@vger.kernel.org>; Fri, 02 Nov 2018 01:08:35 -0700 (PDT)
+MIME-Version: 1.0
+References: <CAL8zT=g1dquRZC=ZNO97nYjoX47JrZAUVrwJ+xVcR6LcmwY22g@mail.gmail.com>
+ <b368e66b-eafa-1c3e-f75d-a57ccb6cc125@gmail.com>
+In-Reply-To: <b368e66b-eafa-1c3e-f75d-a57ccb6cc125@gmail.com>
+From: Jean-Michel Hautbois <jhautbois@gmail.com>
+Date: Fri, 2 Nov 2018 09:09:42 +0100
+Message-ID: <CAL8zT=iDHfDPNWruBaLWjrUSgq6dLG34YR3bi1ini=oX_KsnLw@mail.gmail.com>
+Subject: Re: i.MX6: can't capture on MIPI-CSI2 with DS90UB954
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        kieran.bingham@ideasonboard.com, jacopo mondi <jacopo@jmondi.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Steve,
 
-Results of the daily build of media_tree:
+Le mer. 31 oct. 2018 =C3=A0 22:52, Steve Longerbeam <slongerbeam@gmail.com>=
+ a =C3=A9crit :
+>
+> Hi Jean-Michel,
+>
+> We've done some work with another FPD-Link de-serializer (ds90ux940) and
+> IIRC we had some trouble figuring out how to coax the lanes into LP-11
+> state. But on the ds90ux940 it can be done by setting bit 7 in the CSI
+> Enable Port registers (offsets 0x13 and 0x14). But the "imx6-mipi-csi2:
+> clock lane timeout" message is something else and indicates the
+> de-serializer is not activating the clock lane during its s_stream(ON)
+> subdev call.
 
-date:			Fri Nov  2 05:00:11 CET 2018
-media-tree git hash:	3b796aa60af087f5fec75aee9b17f2130f2b9adc
-media_build git hash:	0c8bb27f3aaa682b9548b656f77505c3d1f11e71
-v4l-utils git hash:	c36dbbdfa8b30b2badd4f893b59d0bd4f0bd12aa
-edid-decode git hash:	5eeb151a748788666534d6ea3da07f90400d24c2
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.18.0-2-amd64
+I have been doing more work on the driver I have, and I had CSI
+enabled before the csi2_dphy_wait_stopstate() call for instance. Now,
+LP-11 state is ok.
+Then, in the s_stream subcall, I added a delay after enabling CSI (and
+the continuous clock) and it is better too, as the clock is seen
+correctly each time.
+But I still get into a EOF timeout, which sounds like another issue.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.123-i686: OK
-linux-3.18.123-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.159-i686: OK
-linux-4.4.159-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.131-i686: OK
-linux-4.9.131-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.74-i686: OK
-linux-4.14.74-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: OK
-linux-4.19-i686: OK
-linux-4.19-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+FYI, I added the NFACK interrupt support in my local kernel just to
+see if New Frames are detected, and it is not the case either.
+Any reason for not using this interrupt (maybe in "debug" mode) ?
 
-Detailed results are available here:
+Now, I used a scope (not very fast so I can't get into the very fast
+signals) and I can see some weird things.
+In a 1-lane configuration, and a 400MHz clock, I can get the following
+when looking at D0N and D0P (yellow and green, can't remember which
+color is which) :
+https://framapic.org/H65QXHvaWmao/qdyoARz12dNi.png
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+The purple is the diff result.
 
-Full logs are available here:
+First I thought it was a start sequence (but with very bizarre things
+at the very beginning of the sequence) like described here :
+https://cms.edn.com/ContentEETimes/Images/EDN/Design%20How-To/MIPI_Sync-Seq=
+uence-in-the-transmitted-pattern.jpg
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+But Jacopo remarked that the 'starting sequence' is actually sent in
+HS mode, so we should not be able to see it at all.
+He thinks that what we are looking at is actually a bad LP-11 -> LP01
+-> LP00 transition.
 
-The Media Infrastructure API from this daily build is here:
+And it could be the "HS ZERO" :
+https://cms.edn.com/ContentEETimes/Images/EDN/Design%20How-To/MIPI_HS-Burst=
+-on-Data-Lane.jpg
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+What do you think of this ?
+We will conduce more complex measurements, with high speed analyzers
+in order to check everything, and we are right now focusing on a
+possible hardware issue (coule be the custom PCB which embeds the
+DS90UB954).
+
+Thanks,
+JM
