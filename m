@@ -1,141 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay5-d.mail.gandi.net ([217.70.183.197]:56923 "EHLO
-        relay5-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726049AbeKBSR5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Nov 2018 14:17:57 -0400
-Date: Fri, 2 Nov 2018 10:11:23 +0100
-From: jacopo mondi <jacopo@jmondi.org>
-To: Jean-Michel Hautbois <jhautbois@gmail.com>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        kieran.bingham@ideasonboard.com
-Subject: Re: i.MX6: can't capture on MIPI-CSI2 with DS90UB954
-Message-ID: <20181102091123.GS15991@w540>
-References: <CAL8zT=g1dquRZC=ZNO97nYjoX47JrZAUVrwJ+xVcR6LcmwY22g@mail.gmail.com>
- <b368e66b-eafa-1c3e-f75d-a57ccb6cc125@gmail.com>
- <CAL8zT=iDHfDPNWruBaLWjrUSgq6dLG34YR3bi1ini=oX_KsnLw@mail.gmail.com>
+Received: from mail-lf1-f68.google.com ([209.85.167.68]:34949 "EHLO
+        mail-lf1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725935AbeKBTl2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Nov 2018 15:41:28 -0400
+Received: by mail-lf1-f68.google.com with SMTP id d7-v6so1008658lfi.2
+        for <linux-media@vger.kernel.org>; Fri, 02 Nov 2018 03:34:46 -0700 (PDT)
+Date: Fri, 2 Nov 2018 11:34:43 +0100
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: jacopo mondi <jacopo@jmondi.org>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
+Subject: Re: [PATCH v2 1/5] dt-bindings: adv748x: make data-lanes property
+ mandatory for CSI-2 endpoints
+Message-ID: <20181102103443.GG22306@bigcity.dyn.berto.se>
+References: <20181004204138.2784-1-niklas.soderlund@ragnatech.se>
+ <18767245.bJLhzbqhM5@avalon>
+ <20181005084945.GL31281@w540>
+ <4582789.bxBjXKKKhz@avalon>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="iIOavGAISvUeFFLW"
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <CAL8zT=iDHfDPNWruBaLWjrUSgq6dLG34YR3bi1ini=oX_KsnLw@mail.gmail.com>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <4582789.bxBjXKKKhz@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Laurent, Jacopo
 
---iIOavGAISvUeFFLW
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Thanks for your comments.
 
-Hi Jean-Michel,
+On 2018-10-05 13:02:53 +0300, Laurent Pinchart wrote:
+> Hi Jacopo,
+> 
+> On Friday, 5 October 2018 11:49:45 EEST jacopo mondi wrote:
+> > On Fri, Oct 05, 2018 at 01:00:47AM +0300, Laurent Pinchart wrote:
+> > > On Friday, 5 October 2018 00:42:17 EEST Laurent Pinchart wrote:
+> > >> On Thursday, 4 October 2018 23:41:34 EEST Niklas Söderlund wrote:
+> > >>> From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> > >>> 
+> > >>> The CSI-2 transmitters can use a different number of lanes to transmit
+> > >>> data. Make the data-lanes mandatory for the endpoints describe the
+> > >> 
+> > >> s/describe/that describe/ ?
+> > >> 
+> > >>> transmitters as no good default can be set to fallback on.
+> > >>> 
+> > >>> Signed-off-by: Niklas Söderlund
+> > >>> <niklas.soderlund+renesas@ragnatech.se>
+> > >>> ---
+> > >>> 
+> > >>>  Documentation/devicetree/bindings/media/i2c/adv748x.txt | 3 +++
+> > >>>  1 file changed, 3 insertions(+)
+> > >>> 
+> > >>> diff --git a/Documentation/devicetree/bindings/media/i2c/adv748x.txt
+> > >>> b/Documentation/devicetree/bindings/media/i2c/adv748x.txt index
+> > >>> 5dddc95f9cc46084..f9dac01ab795fc28 100644
+> > >>> --- a/Documentation/devicetree/bindings/media/i2c/adv748x.txt
+> > >>> +++ b/Documentation/devicetree/bindings/media/i2c/adv748x.txt
+> > >>> @@ -50,6 +50,9 @@ are numbered as follows.
+> > >>> 
+> > >>>  The digital output port nodes must contain at least one endpoint.
+> > >>> 
+> > >>> +The endpoints described in TXA and TXB ports must if present contain
+> > >>> +the data-lanes property as described in video-interfaces.txt.
+> > >>> +
+> > >> 
+> > >> Would it make sense to merge those two paragraphs, as they refer to the
+> > >> same endpoint ?
+> > >> 
+> > >> "The digital output port nodes, when present, shall contain at least one
+> > >> endpoint. Each of those endpoints shall contain the data-lanes property
+> > >> as described in video-interfaces.txt."
+> > >> 
+> > >> (DT bindings normally use "shall" instead of "must", but that hasn't
+> > >> really been enforced.)
+> > >> 
+> > >> If you want to keep the paragraphs separate, I would recommend using
+> > >> "digital output ports" instead of "TXA and TXB" in the second paragraph
+> > >> for consistency (or the other way around).
+> > >> 
+> > >> I'm fine with any of the above option, so please pick your favourite,
+> > >> and add
+> > >> 
+> > >> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > > 
+> > > I just realized that TXB only supports a single data lane, so we may want
+> > > not to have a data-lanes property for TXB.
+> > 
+> > Isn't it better to restrict its value to <1> but make it mandatory
+> > anyhow? I understand conceptually that property should not be there,
+> > as it has a single acceptable value, but otherwise we need to traeat
+> > differently the two output ports, in documentation and code.
+> 
+> The two ports are different, so I wouldn't be shocked if we handled them 
+> differently :-) I believe it would actually reduce the code size (and save CPU 
+> cycles at runtime).
 
-On Fri, Nov 02, 2018 at 09:09:42AM +0100, Jean-Michel Hautbois wrote:
-> Hi Steve,
->
-> Le mer. 31 oct. 2018 =C3=A0 22:52, Steve Longerbeam <slongerbeam@gmail.co=
-m> a =C3=A9crit :
-> >
-> > Hi Jean-Michel,
-> >
-> > We've done some work with another FPD-Link de-serializer (ds90ux940) and
-> > IIRC we had some trouble figuring out how to coax the lanes into LP-11
-> > state. But on the ds90ux940 it can be done by setting bit 7 in the CSI
-> > Enable Port registers (offsets 0x13 and 0x14). But the "imx6-mipi-csi2:
-> > clock lane timeout" message is something else and indicates the
-> > de-serializer is not activating the clock lane during its s_stream(ON)
-> > subdev call.
->
-> I have been doing more work on the driver I have, and I had CSI
-> enabled before the csi2_dphy_wait_stopstate() call for instance. Now,
-> LP-11 state is ok.
-> Then, in the s_stream subcall, I added a delay after enabling CSI (and
-> the continuous clock) and it is better too, as the clock is seen
-> correctly each time.
-> But I still get into a EOF timeout, which sounds like another issue.
->
-> FYI, I added the NFACK interrupt support in my local kernel just to
-> see if New Frames are detected, and it is not the case either.
-> Any reason for not using this interrupt (maybe in "debug" mode) ?
->
-> Now, I used a scope (not very fast so I can't get into the very fast
-> signals) and I can see some weird things.
-> In a 1-lane configuration, and a 400MHz clock, I can get the following
-> when looking at D0N and D0P (yellow and green, can't remember which
-> color is which) :
-> https://framapic.org/H65QXHvaWmao/qdyoARz12dNi.png
->
-> The purple is the diff result.
->
-> First I thought it was a start sequence (but with very bizarre things
-> at the very beginning of the sequence) like described here :
-> https://cms.edn.com/ContentEETimes/Images/EDN/Design%20How-To/MIPI_Sync-S=
-equence-in-the-transmitted-pattern.jpg
->
-> But Jacopo remarked that the 'starting sequence' is actually sent in
-> HS mode, so we should not be able to see it at all.
-> He thinks that what we are looking at is actually a bad LP-11 -> LP01
-> -> LP00 transition.
->
-> And it could be the "HS ZERO" :
-> https://cms.edn.com/ContentEETimes/Images/EDN/Design%20How-To/MIPI_HS-Bur=
-st-on-Data-Lane.jpg
+I'm leaning towards Jacopo on this that I think it's more clear to treat 
+the two the same. I also think it adheres to the notion that DT shall 
+describe hardware which I think this adds value. Also I only have 
+datasheets for adv7482 so I can't be sure other adv748x don't support 
+more then one lane on TXB.
 
-Sorry, my wording was confusing maybe. I think that what we see in
-your trace looks very similar to what the image above reports as "HS
-ZERO" followed by "HS DATA". This confused me intially as I thought I
-was looking at an "HS Sync Sequence" (as defined by D-PHY specs), while
-as you reported, my understanding is that your trace shows LP signals,
-before any HS data transmission happens (in the right
-side of your trace, if I got this rigth) and we should see a stable
-LP-11 state transitioning to LP01 and then LP00.
+I do not feel strongly about this so I'm open to treating them 
+differently. I might keep it as is for v3 if no one screams to loud :-)
 
-=46rom my experience with ov5640 the i.MX6 seems more picky than other
-devices on this. The ov5640 driver before commit:
-aa4bb8b ("media: ov5640: Re-work MIPI startup sequence")
-used to work fine on other platforms, while it failed on i.MX6 and
-thus that patch.
+> 
+> > Why not inserting a paragraph with the required endpoint properties
+> > description?
+> > 
+> > Eg:
+> > 
+> >  Required endpoint properties:
+> >  - data-lanes: See "video-interfaces.txt" for description. The property
+> >    is mandatory for CSI-2 output endpoints and the accepted values
+> >    depends on which endpoint the property is applied to:
+> >    - TXA: accepted values are <1>, <2>, <4>
+> >    - TXB: accepted value is <1>
+> > 
+> > >>>  Ports are optional if they are not connected to anything at the
+> > >>>  hardware level.
+> > >>> 
+> > >>>  Example:
+> 
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+> 
+> 
+> 
 
-This contrast with the fact that you now passes the:
-imx6-mipi-csi2: LP-11 timeout, phy_state =3D 0x00000200
-error you had reported in your initial email though :/
-
-So please take my interpreation of that traces with a grain of salt, I
-really don't want to mis-lead you to chase things that might actually
-be correct.
-
-Thanks
-   j
->
-> What do you think of this ?
-> We will conduce more complex measurements, with high speed analyzers
-> in order to check everything, and we are right now focusing on a
-> possible hardware issue (coule be the custom PCB which embeds the
-> DS90UB954).
->
-> Thanks,
-> JM
-
---iIOavGAISvUeFFLW
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABCAAGBQJb3BS7AAoJEHI0Bo8WoVY8SjAP/A2Zp+GmAaVyh3LHxm+3bdd9
-sFNSQ304urZiK95ThM7dxtiEfV09F5Qq0KneHhGhGzbS8gPD/YKCnI1U2LU931d1
-0ViuQ1FbW16TEaFx0goo48iP2nVA2upc65fxmDNPq5tXxTifT8XdQDigQmmrNnlG
-oJh3KCvBGLKXTsy+Ll2IlYpwFbZYypChXHyEQGDK9nzr/571+RVtBcXmUx1wwXrM
-26XOp1kaLKhTDhst+0hCNDEVjik1E853htKD13yrPatQK0D07Pt+QAag8wYerhrt
-KtPx6Ax7YcFYsw0qKDV2w52bJzE95EqMvsFCeDyuyvD9sQCvn913DbTrEM+mLgbA
-RsYprT4U/5qqsV0WnKnmgySLT1uSvh4CGPeEnzCWSsHTm+p4QuXWRObr0u+KlYGc
-/4G1GmvZBx84jiOrYYEYjwaMCEZklamiLOgkPtYS/q5u07Y3A6QbVkr9KxkjUnIs
-ZLEhMXPVfBHrKLmezPThdbXwN5NZxypleXXljdToTpjhBcz6ukT0uyzN6cL8ebdD
-CpwhxqCscrdBwru1jp2QK1RShjIxsLVH4tw+tvTcGYxV0DOoJVm32QNYSLcmwJBo
-0Z290HjLAu0jeUCYyzSvShn8/ltzQNdwswYLsCKuRUUQ3bwARVSmpdoy8y9n3igj
-kx7pX/lvjZ5DQUf8S/aJ
-=jo8h
------END PGP SIGNATURE-----
-
---iIOavGAISvUeFFLW--
+-- 
+Regards,
+Niklas Söderlund
