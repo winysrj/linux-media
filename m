@@ -1,85 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yb1-f193.google.com ([209.85.219.193]:35314 "EHLO
-        mail-yb1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726026AbeKBXME (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Nov 2018 19:12:04 -0400
-Received: by mail-yb1-f193.google.com with SMTP id z2-v6so839226ybj.2
-        for <linux-media@vger.kernel.org>; Fri, 02 Nov 2018 07:04:49 -0700 (PDT)
-Received: from mail-yb1-f178.google.com (mail-yb1-f178.google.com. [209.85.219.178])
-        by smtp.gmail.com with ESMTPSA id z11-v6sm11371623ywl.36.2018.11.02.07.04.46
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Fri, 02 Nov 2018 07:04:47 -0700 (PDT)
-Received: by mail-yb1-f178.google.com with SMTP id p144-v6so819950yba.11
-        for <linux-media@vger.kernel.org>; Fri, 02 Nov 2018 07:04:46 -0700 (PDT)
-MIME-Version: 1.0
-References: <1540851790-1777-1-git-send-email-yong.zhi@intel.com>
- <1540851790-1777-4-git-send-email-yong.zhi@intel.com> <20181102104908.609177e5@coco.lan>
-In-Reply-To: <20181102104908.609177e5@coco.lan>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Fri, 2 Nov 2018 23:04:33 +0900
-Message-ID: <CAAFQd5B_OVV-Nh0uOGHdQE4eSKcs5N8Nn1t-Zz-GbvgpB9P38A@mail.gmail.com>
-Subject: Re: [PATCH v7 03/16] v4l: Add Intel IPU3 meta data uAPI
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: Yong Zhi <yong.zhi@intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
+Received: from mga11.intel.com ([192.55.52.93]:13078 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726281AbeKBXZr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 2 Nov 2018 19:25:47 -0400
+Date: Fri, 2 Nov 2018 16:18:28 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Cc: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "Hu, Jerry W" <jerry.w.hu@intel.com>,
-        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
-        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
-        Cao Bing Bu <bingbu.cao@intel.com>, chao.c.li@intel.com
-Content-Type: text/plain; charset="UTF-8"
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH 21/30] v4l: Add bus type to frame descriptors
+Message-ID: <20181102141827.6t7rhvzqmdywtnmp@paasikivi.fi.intel.com>
+References: <20180823132544.521-1-niklas.soderlund+renesas@ragnatech.se>
+ <20180823132544.521-22-niklas.soderlund+renesas@ragnatech.se>
+ <3c1ee187-cb95-efed-7c7e-4efda28209c3@ideasonboard.com>
+ <20181102131522.y332vxbk5oc5zdxk@paasikivi.fi.intel.com>
+ <17d55006-8698-d2f3-3a4d-5fa1200dce86@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <17d55006-8698-d2f3-3a4d-5fa1200dce86@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Fri, Nov 02, 2018 at 01:35:02PM +0000, Kieran Bingham wrote:
+> Hi Sakari, Niklas,
+> 
+> On 02/11/2018 13:15, Sakari Ailus wrote:
+> > Hi Kieran,
+> > 
+> > On Fri, Nov 02, 2018 at 12:27:11PM +0000, Kieran Bingham wrote:
+> >> Hi Niklas, Sakari
+> >>
+> >> On 23/08/2018 14:25, Niklas Söderlund wrote:
+> >>> From: Sakari Ailus <sakari.ailus@linux.intel.com>
+> >>>
+> >>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> >>> ---
+> >>>  include/media/v4l2-subdev.h | 9 +++++++++
+> >>>  1 file changed, 9 insertions(+)
+> >>>
+> >>> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> >>> index 5acaeeb9b3cacefa..ac1f7ee4cdb978ad 100644
+> >>> --- a/include/media/v4l2-subdev.h
+> >>> +++ b/include/media/v4l2-subdev.h
+> >>> @@ -349,12 +349,21 @@ struct v4l2_mbus_frame_desc_entry {
+> >>>  
+> >>>  #define V4L2_FRAME_DESC_ENTRY_MAX	4
+> >>>  
+> >>> +enum {
+> >>> +	V4L2_MBUS_FRAME_DESC_TYPE_PLATFORM,
+> >>> +	V4L2_MBUS_FRAME_DESC_TYPE_PARALLEL,
+> >>> +	V4L2_MBUS_FRAME_DESC_TYPE_CCP2,
+> >>> +	V4L2_MBUS_FRAME_DESC_TYPE_CSI2,
+> >>
+> >> Does this need to be extended to differentiate CSI2 DPHY/CPHY as has
+> >> been done in the v4l2_mbus_config structures?
+> > 
+> > I'd say no; the PHY isn't really relevant at this level. The configuration
+> > from fwnode should suffice.
+> 
+> Great - Thanks for the feedback.
+> 
+> 
+> Well then - now that I've gone through the patch - and the PHY type
+> naming is cleared up, I can add:
+> 
+> Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> 
+> (I guess Niklas can pick up that tag currently)
+> 
+> Although - we're missing any commit message other than the commit title.
+> Should something be added?
+> 
+> There's not much to describe above the title really.
 
-On Fri, Nov 2, 2018 at 10:49 PM Mauro Carvalho Chehab
-<mchehab+samsung@kernel.org> wrote:
->
-> Em Mon, 29 Oct 2018 15:22:57 -0700
-> Yong Zhi <yong.zhi@intel.com> escreveu:
-[snip]
-> > +struct ipu3_uapi_awb_config_s {
-> > +     __u16 rgbs_thr_gr;
-> > +     __u16 rgbs_thr_r;
-> > +     __u16 rgbs_thr_gb;
-> > +     __u16 rgbs_thr_b;
-> > +     struct ipu3_uapi_grid_config grid;
-> > +} __attribute__((aligned(32))) __packed;
->
-> Hmm... Kernel defines a macro for aligned attribute:
->
->         include/linux/compiler_types.h:#define __aligned(x)             __attribute__((aligned(x)))
->
+Oh, indeed.
 
-First, thanks for review!
+How about this:
 
-Maybe I missed something, but last time I checked, it wasn't
-accessible from UAPI headers in userspace.
+The type will be used to determine which bus specific frame descriptor
+struct is applicable to a given frame descriptor.
 
-> I'm not a gcc expert, but it sounds weird to first ask it to align
-> with 32 bits and then have __packed (with means that pads should be
-> removed).
->
-> In other words, I *guess* is it should either be __packed
-> or __aligned(32).
->
-> Not that it would do any difference, in practice, as this
-> specific struct has a size with is multiple of 32 bits, but
-> let's do the right annotation here, not mixing two incompatible
-> alignment requirements.
->
+-- 
+Regards,
 
-My understanding was that __packed makes the compiler not insert any
-alignment between particular fields of the struct, while __aligned
-makes the whole struct be aligned at given boundary, if placed in
-another struct. If I didn't miss anything, having both should make
-perfect sense here.
-
-Best regards,
-Tomasz
+Sakari Ailus
+sakari.ailus@linux.intel.com
