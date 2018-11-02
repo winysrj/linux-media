@@ -1,73 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:41304 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726008AbeKBVeQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Nov 2018 17:34:16 -0400
-Reply-To: kieran.bingham@ideasonboard.com
-Subject: Re: [PATCH 21/30] v4l: Add bus type to frame descriptors
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-References: <20180823132544.521-1-niklas.soderlund+renesas@ragnatech.se>
- <20180823132544.521-22-niklas.soderlund+renesas@ragnatech.se>
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Message-ID: <3c1ee187-cb95-efed-7c7e-4efda28209c3@ideasonboard.com>
-Date: Fri, 2 Nov 2018 12:27:11 +0000
+Received: from smtp.codeaurora.org ([198.145.29.96]:46134 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726008AbeKBVko (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Nov 2018 17:40:44 -0400
 MIME-Version: 1.0
-In-Reply-To: <20180823132544.521-22-niklas.soderlund+renesas@ragnatech.se>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+Date: Fri, 02 Nov 2018 18:03:39 +0530
+From: mgottam@codeaurora.org
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Cc: Tomasz Figa <tfiga@chromium.org>, vgarodia@codeaurora.org,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        linux-media-owner@vger.kernel.org
+Subject: Re: [PATCH] media: venus: dynamic handling of bitrate
+In-Reply-To: <19a08bd3-4e4c-56d2-6df2-54c3d91af4f3@linaro.org>
+References: <1540971728-26789-1-git-send-email-mgottam@codeaurora.org>
+ <3ff2c3dd-434d-960b-6806-f4bb8ec0d954@linaro.org>
+ <3364115421e89c7710725c06b820f8c6@codeaurora.org>
+ <CAAFQd5A+9GWmn4aD4D2JMf1e1m-6Dtc3xUdMZsf8fPtgi34QVQ@mail.gmail.com>
+ <ba1453b6868e97b96e0345129153b819@codeaurora.org>
+ <CAAFQd5DuEqTiJbp5wR=_V0zVkVXTJPuMxDaJoTYFvVYfUA8U8g@mail.gmail.com>
+ <19a08bd3-4e4c-56d2-6df2-54c3d91af4f3@linaro.org>
+Message-ID: <40ae496b61880e747df9f19409ab26c0@codeaurora.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas, Sakari
-
-On 23/08/2018 14:25, Niklas Söderlund wrote:
-> From: Sakari Ailus <sakari.ailus@linux.intel.com>
+On 2018-11-01 20:33, Stanimir Varbanov wrote:
+> On 11/1/18 4:31 PM, Tomasz Figa wrote:
+>> On Thu, Nov 1, 2018 at 11:23 PM Vikash Garodia 
+>> <vgarodia@codeaurora.org> wrote:
+>>> 
+>>> On 2018-11-01 19:23, Tomasz Figa wrote:
+>>>> On Thu, Nov 1, 2018 at 10:01 PM <mgottam@codeaurora.org> wrote:
+>>>>> 
+>>>>> On 2018-11-01 17:48, Stanimir Varbanov wrote:
+>>>>>> Hi Malathi,
+>>>>>> 
+>>>>>> Thanks for the patch!
+>>>>>> 
+>>>>>> On 10/31/18 9:42 AM, Malathi Gottam wrote:
+>>>>>>> Any request for a change in bitrate after both planes
+>>>>>>> are streamed on is handled by setting the target bitrate
+>>>>>>> property to hardware.
+>>>>>>> 
+>>>>>>> Signed-off-by: Malathi Gottam <mgottam@codeaurora.org>
+>>>>>>> ---
+>>>>>>>  drivers/media/platform/qcom/venus/venc_ctrls.c | 11 +++++++++++
+>>>>>>>  1 file changed, 11 insertions(+)
+>>>>>>> 
+>>>>>>> diff --git a/drivers/media/platform/qcom/venus/venc_ctrls.c
+>>>>>>> b/drivers/media/platform/qcom/venus/venc_ctrls.c
+>>>>>>> index 45910172..54f310c 100644
+>>>>>>> --- a/drivers/media/platform/qcom/venus/venc_ctrls.c
+>>>>>>> +++ b/drivers/media/platform/qcom/venus/venc_ctrls.c
+>>>>>>> @@ -79,7 +79,9 @@ static int venc_op_s_ctrl(struct v4l2_ctrl 
+>>>>>>> *ctrl)
+>>>>>>>  {
+>>>>>>>      struct venus_inst *inst = ctrl_to_inst(ctrl);
+>>>>>>>      struct venc_controls *ctr = &inst->controls.enc;
+>>>>>>> +    struct hfi_bitrate brate;
+>>>>>>>      u32 bframes;
+>>>>>>> +    u32 ptype;
+>>>>>>>      int ret;
+>>>>>>> 
+>>>>>>>      switch (ctrl->id) {
+>>>>>>> @@ -88,6 +90,15 @@ static int venc_op_s_ctrl(struct v4l2_ctrl 
+>>>>>>> *ctrl)
+>>>>>>>              break;
+>>>>>>>      case V4L2_CID_MPEG_VIDEO_BITRATE:
+>>>>>>>              ctr->bitrate = ctrl->val;
+>>>>>>> +            if (inst->streamon_out && inst->streamon_cap) {
+>>>>>> 
+>>>>>> Hmm, hfi_session_set_property already checks the instance state so 
+>>>>>> I
+>>>>>> don't think those checks are needed. Another thing is that we need 
+>>>>>> to
+>>>>>> take the instance mutex to check the instance state.
+>>>>> 
+>>>>> Yes Stan, "hfi_session_set_property" this property check the 
+>>>>> instance
+>>>>> state,
+>>>>> but returns EINVAL if this is set at UNINIT instance state.
+>>>>> 
+>>>>> Controls initialization happens much earlier than session init and
+>>>>> instance init.
+>>>>> So the instance is still in UNINIT state which causes failure while
+>>>>> setting.
+>>>>> 
+>>>>> Through this patch we try to meet the client request of changing
+>>>>> bitrate
+>>>>> only
+>>>>> when both planes are streamed on.
+>>>> 
+>>>> Where does this requirement come from? It should be possible to set
+>>>> the control at any time and it should apply to any encoding 
+>>>> happening
+>>>> after the control is set.
+>>>> 
+>>> With the patch, now video driver will set the control whenever client
+>>> sets
+>>> and will apply to encoder.
+>> 
+>> That's good, thanks for clarifying. I guess I misunderstood Malathi's 
+>> comment.
 > 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  include/media/v4l2-subdev.h | 9 +++++++++
->  1 file changed, 9 insertions(+)
-> 
-> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> index 5acaeeb9b3cacefa..ac1f7ee4cdb978ad 100644
-> --- a/include/media/v4l2-subdev.h
-> +++ b/include/media/v4l2-subdev.h
-> @@ -349,12 +349,21 @@ struct v4l2_mbus_frame_desc_entry {
->  
->  #define V4L2_FRAME_DESC_ENTRY_MAX	4
->  
-> +enum {
-> +	V4L2_MBUS_FRAME_DESC_TYPE_PLATFORM,
-> +	V4L2_MBUS_FRAME_DESC_TYPE_PARALLEL,
-> +	V4L2_MBUS_FRAME_DESC_TYPE_CCP2,
-> +	V4L2_MBUS_FRAME_DESC_TYPE_CSI2,
+> OK, just wonder about locking when we check streamon_out/cap flags?
 
-Does this need to be extended to differentiate CSI2 DPHY/CPHY as has
-been done in the v4l2_mbus_config structures?
-
-
-> +};
-> +
->  /**
->   * struct v4l2_mbus_frame_desc - media bus data frame description
-> + * @type: type of the bus (V4L2_MBUS_FRAME_DESC_TYPE_*)
->   * @entry: frame descriptors array
->   * @num_entries: number of entries in @entry array
->   */
->  struct v4l2_mbus_frame_desc {
-> +	u32 type;
->  	struct v4l2_mbus_frame_desc_entry entry[V4L2_FRAME_DESC_ENTRY_MAX];
->  	unsigned short num_entries;
->  };
-> 
-
--- 
-Regards
---
-Kieran
+Yes Stan, I agree that we should add an instance lock for these flags 
+check.
+Posting the updated patch. Please review.
