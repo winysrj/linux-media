@@ -1,95 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([217.72.192.73]:58613 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726241AbeKBUQo (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Nov 2018 16:16:44 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Maxime Ripard <maxime.ripard@bootlin.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] media: v4l: fix uapi mpeg slice params definition
-Date: Fri,  2 Nov 2018 12:09:07 +0100
-Message-Id: <20181102110945.191868-1-arnd@arndb.de>
+Received: from perceval.ideasonboard.com ([213.167.242.64]:40034 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725935AbeKBUuK (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Nov 2018 16:50:10 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Jacopo Mondi <jacopo@jmondi.org>, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH v2 2/5] i2c: adv748x: reorder register writes for CSI-2 transmitters initialization
+Date: Fri, 02 Nov 2018 13:43:21 +0200
+Message-ID: <13521791.45T9WbT6im@avalon>
+In-Reply-To: <20181102103834.GH22306@bigcity.dyn.berto.se>
+References: <20181004204138.2784-1-niklas.soderlund@ragnatech.se> <4501829.jIgCaKJ1df@avalon> <20181102103834.GH22306@bigcity.dyn.berto.se>
+MIME-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We get a headers_check warning about the newly defined ioctl command
-structures:
+Hi Niklas,
 
-./usr/include/linux/v4l2-controls.h:1105: found __[us]{8,16,32,64} type without #include <linux/types.h>
+On Friday, 2 November 2018 12:38:34 EET Niklas S=F6derlund wrote:
+> On 2018-10-05 01:36:11 +0300, Laurent Pinchart wrote:
+> > On Thursday, 4 October 2018 23:41:35 EEST Niklas S=F6derlund wrote:
+> > > From: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
+> > >=20
+> > > Reorder the initialization order of registers to allow for refactorin=
+g.
+> > > The move could have been done at the same time as the refactoring but
+> > > since the documentation about some registers involved are missing do =
+it
+> > > separately.
+> > >=20
+> > > Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech=
+=2Ese>
+> > > ---
+> > >=20
+> > >  drivers/media/i2c/adv748x/adv748x-core.c | 12 +++++++-----
+> > >  1 file changed, 7 insertions(+), 5 deletions(-)
+> > >=20
+> > > diff --git a/drivers/media/i2c/adv748x/adv748x-core.c
+> > > b/drivers/media/i2c/adv748x/adv748x-core.c index
+> > > 6854d898fdd1f192..721ed6552bc1cde6 100644
+> > > --- a/drivers/media/i2c/adv748x/adv748x-core.c
+> > > +++ b/drivers/media/i2c/adv748x/adv748x-core.c
+> > > @@ -383,8 +383,6 @@ static const struct adv748x_reg_value
+> > > adv748x_init_txa_4lane[] =3D { {ADV748X_PAGE_IO, 0x0c, 0xe0},	/* Enab=
+le
+> > > LLC_DLL & Double LLC Timing */ {ADV748X_PAGE_IO, 0x0e, 0xdd},	/*
+> > > LLC/PIX/SPI PINS TRISTATED AUD */
+> > >=20
+> > > -	{ADV748X_PAGE_TXA, 0x00, 0x84},	/* Enable 4-lane MIPI */
+> > > -	{ADV748X_PAGE_TXA, 0x00, 0xa4},	/* Set Auto DPHY Timing */
+> > >=20
+> > >  	{ADV748X_PAGE_TXA, 0xdb, 0x10},	/* ADI Required Write */
+> > >  	{ADV748X_PAGE_TXA, 0xd6, 0x07},	/* ADI Required Write */
+> > >  	{ADV748X_PAGE_TXA, 0xc4, 0x0a},	/* ADI Required Write */
+> > >=20
+> > > @@ -392,6 +390,9 @@ static const struct adv748x_reg_value
+> > > adv748x_init_txa_4lane[] =3D { {ADV748X_PAGE_TXA, 0x72, 0x11},	/* ADI
+> > > Required Write */
+> > >=20
+> > >  	{ADV748X_PAGE_TXA, 0xf0, 0x00},	/* i2c_dphy_pwdn - 1'b0 */
+> > >=20
+> > > +	{ADV748X_PAGE_TXA, 0x00, 0x84},	/* Enable 4-lane MIPI */
+> > > +	{ADV748X_PAGE_TXA, 0x00, 0xa4},	/* Set Auto DPHY Timing */
+> > > +
+> > >=20
+> > >  	{ADV748X_PAGE_TXA, 0x31, 0x82},	/* ADI Required Write */
+> > >  	{ADV748X_PAGE_TXA, 0x1e, 0x40},	/* ADI Required Write */
+> > >  	{ADV748X_PAGE_TXA, 0xda, 0x01},	/* i2c_mipi_pll_en - 1'b1 */
+> > >=20
+> > > @@ -435,17 +436,18 @@ static const struct adv748x_reg_value
+> > > adv748x_init_txb_1lane[] =3D { {ADV748X_PAGE_SDP, 0x31, 0x12},	/* ADI
+> > > Required Write */
+> > >=20
+> > >  	{ADV748X_PAGE_SDP, 0xe6, 0x4f},  /* V bit end pos manually in NTSC=
+=20
+*/
+> > >=20
+> > > -	{ADV748X_PAGE_TXB, 0x00, 0x81},	/* Enable 1-lane MIPI */
+> > > -	{ADV748X_PAGE_TXB, 0x00, 0xa1},	/* Set Auto DPHY Timing */
+> > >=20
+> > >  	{ADV748X_PAGE_TXB, 0xd2, 0x40},	/* ADI Required Write */
+> > >  	{ADV748X_PAGE_TXB, 0xc4, 0x0a},	/* ADI Required Write */
+> > >  	{ADV748X_PAGE_TXB, 0x71, 0x33},	/* ADI Required Write */
+> > >  	{ADV748X_PAGE_TXB, 0x72, 0x11},	/* ADI Required Write */
+> > >  	{ADV748X_PAGE_TXB, 0xf0, 0x00},	/* i2c_dphy_pwdn - 1'b0 */
+> > >=20
+> > > +
+> > > +	{ADV748X_PAGE_TXB, 0x00, 0x81},	/* Enable 1-lane MIPI */
+> > > +	{ADV748X_PAGE_TXB, 0x00, 0xa1},	/* Set Auto DPHY Timing */
+> > > +
+> >=20
+> > This is pretty hard to review, as there's a bunch of undocumented regis=
+ter
+> > writes. I think the first write is safe, as the tables are written
+> > immediately following a software reset, and the default value of the
+> > register is 0x81 (CSI-TX disabled, 1 lane). The second write, however,
+> > enables usage of the computed DPHY parameters, and I don't know whether
+> > the undocumented register writes in-between may interact with that.
+>=20
+> I agree it's hard to grasp all implications with undocumented registers
+> involved. That is why I choose to do it in a separate commit so if
+> regressions are found it could be bisectable to this change.
+>=20
+> > That being said, this change enables further important refactoring, so =
+I'm
+> > tempted to accept it. I assume you've tested it and haven't noticed a
+> > regression. The part that still bothers me in particular is that the wr=
+ite
+> > to register 0xf0 just above this takes the DPHY out of power down
+> > according to the datasheet, and I wonder whether at that point the DPHY
+> > might not react to that information. Have you analyzed the power-up
+> > sequence in section 9.5.1 of the hardware manual ? I wonder whether the
+> > dphy_pwdn shouldn't be handled in the power up and power down sequences,
+> > which might involve also moving the above four (and five for TXA)
+> > undocumented writes to the power up sequence as well.
+>=20
+> I looked at the documentation and ran lots of tests based on this change
+> and noticed no change in behavior.
 
-This is resolved by including linux/types.h, as suggested by the
-warning, but there is another problem: Three of the four structures
-have an odd number of __u8 headers, but are aligned to 32 bit in the
-v4l2_ctrl_mpeg2_slice_params, so we get an implicit padding byte
-for each one. To solve that, let's add explicit padding that can
-be set to zero and verified in the kernel.
+As a last test, could you try programming completely invalid values to the=
+=20
+undocumented registers before taking the DPHY out of power down ? I'm worri=
+ed=20
+that things might work just because the registers happen to contain accepta=
+ble=20
+values when the DPHY is powered up, and that it might break later because t=
+he=20
+sequence of operations resulting from starting and stopping the video strea=
+ms=20
+in different configurations would end up taking the DPHY out of power down=
+=20
+with invalid values in those registers.
 
-Fixes: c27bb30e7b6d ("media: v4l: Add definitions for MPEG-2 slice format and metadata")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/media/v4l2-core/v4l2-ctrls.c | 5 +++++
- include/uapi/linux/v4l2-controls.h   | 5 +++++
- 2 files changed, 10 insertions(+)
+> >>  	{ADV748X_PAGE_TXB, 0x31, 0x82},	/* ADI Required Write */
+> >>  	{ADV748X_PAGE_TXB, 0x1e, 0x40},	/* ADI Required Write */
+> >>  	{ADV748X_PAGE_TXB, 0xda, 0x01},	/* i2c_mipi_pll_en - 1'b1 */
+> >> -
+> >>  	{ADV748X_PAGE_WAIT, 0x00, 0x02},/* delay 2 */
+> >>  	{ADV748X_PAGE_TXB, 0x00, 0x21 },/* Power-up CSI-TX */
+> >>  	{ADV748X_PAGE_WAIT, 0x00, 0x01},/* delay 1 */
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 6e37950292cd..5f2b033a7a42 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1664,6 +1664,11 @@ static int std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
- 		    p_mpeg2_slice_params->forward_ref_index >= VIDEO_MAX_FRAME)
- 			return -EINVAL;
- 
-+		if (p_mpeg2_slice_params->pad ||
-+		    p_mpeg2_slice_params->picture.pad ||
-+		    p_mpeg2_slice_params->sequence.pad)
-+			return -EINVAL;
-+
- 		return 0;
- 
- 	case V4L2_CTRL_TYPE_MPEG2_QUANTIZATION:
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index 51b095898f4b..998983a6e6b7 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -50,6 +50,8 @@
- #ifndef __LINUX_V4L2_CONTROLS_H
- #define __LINUX_V4L2_CONTROLS_H
- 
-+#include <linux/types.h>
-+
- /* Control classes */
- #define V4L2_CTRL_CLASS_USER		0x00980000	/* Old-style 'user' controls */
- #define V4L2_CTRL_CLASS_MPEG		0x00990000	/* MPEG-compression controls */
-@@ -1110,6 +1112,7 @@ struct v4l2_mpeg2_sequence {
- 	__u8	profile_and_level_indication;
- 	__u8	progressive_sequence;
- 	__u8	chroma_format;
-+	__u8	pad;
- };
- 
- struct v4l2_mpeg2_picture {
-@@ -1128,6 +1131,7 @@ struct v4l2_mpeg2_picture {
- 	__u8	alternate_scan;
- 	__u8	repeat_first_field;
- 	__u8	progressive_frame;
-+	__u8	pad;
- };
- 
- struct v4l2_ctrl_mpeg2_slice_params {
-@@ -1142,6 +1146,7 @@ struct v4l2_ctrl_mpeg2_slice_params {
- 
- 	__u8	backward_ref_index;
- 	__u8	forward_ref_index;
-+	__u8	pad;
- };
- 
- struct v4l2_ctrl_mpeg2_quantization {
--- 
-2.18.0
+=2D-=20
+Regards,
+
+Laurent Pinchart
