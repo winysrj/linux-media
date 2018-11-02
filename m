@@ -1,165 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lj1-f194.google.com ([209.85.208.194]:40428 "EHLO
-        mail-lj1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727277AbeKCAsH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Nov 2018 20:48:07 -0400
-Received: by mail-lj1-f194.google.com with SMTP id t22-v6so2129787lji.7
-        for <linux-media@vger.kernel.org>; Fri, 02 Nov 2018 08:40:35 -0700 (PDT)
-Date: Fri, 2 Nov 2018 16:40:32 +0100
-From: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Jacopo Mondi <jacopo@jmondi.org>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH v2 2/5] i2c: adv748x: reorder register writes for CSI-2
- transmitters initialization
-Message-ID: <20181102154032.GJ22306@bigcity.dyn.berto.se>
-References: <20181004204138.2784-1-niklas.soderlund@ragnatech.se>
- <4501829.jIgCaKJ1df@avalon>
- <20181102103834.GH22306@bigcity.dyn.berto.se>
- <13521791.45T9WbT6im@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <13521791.45T9WbT6im@avalon>
+Received: from perceval.ideasonboard.com ([213.167.242.64]:47888 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727277AbeKCAzE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Nov 2018 20:55:04 -0400
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+To: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, sakari.ailus@iki.fi
+Cc: =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+        Jacopo Mondi <jacopo@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        linux-kernel@vger.kernel.org,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>
+Subject: [PATCH v4 2/4] dt-bindings: media: i2c: Add bindings for IMI RDACM20
+Date: Fri,  2 Nov 2018 15:47:21 +0000
+Message-Id: <20181102154723.23662-3-kieran.bingham@ideasonboard.com>
+In-Reply-To: <20181102154723.23662-1-kieran.bingham@ideasonboard.com>
+References: <20181102154723.23662-1-kieran.bingham@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
 
-Thanks for your feedback.
+The IMI RDACM20 is a Gigabit Multimedia Serial Link (GMSL) camera
+capable of transmitting video and I2C control messages on a coax cable
+physical link for automotive applications.
 
-On 2018-11-02 13:43:21 +0200, Laurent Pinchart wrote:
-> Hi Niklas,
-> 
-> On Friday, 2 November 2018 12:38:34 EET Niklas Söderlund wrote:
-> > On 2018-10-05 01:36:11 +0300, Laurent Pinchart wrote:
-> > > On Thursday, 4 October 2018 23:41:35 EEST Niklas Söderlund wrote:
-> > > > From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> > > > 
-> > > > Reorder the initialization order of registers to allow for refactoring.
-> > > > The move could have been done at the same time as the refactoring but
-> > > > since the documentation about some registers involved are missing do it
-> > > > separately.
-> > > > 
-> > > > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> > > > ---
-> > > > 
-> > > >  drivers/media/i2c/adv748x/adv748x-core.c | 12 +++++++-----
-> > > >  1 file changed, 7 insertions(+), 5 deletions(-)
-> > > > 
-> > > > diff --git a/drivers/media/i2c/adv748x/adv748x-core.c
-> > > > b/drivers/media/i2c/adv748x/adv748x-core.c index
-> > > > 6854d898fdd1f192..721ed6552bc1cde6 100644
-> > > > --- a/drivers/media/i2c/adv748x/adv748x-core.c
-> > > > +++ b/drivers/media/i2c/adv748x/adv748x-core.c
-> > > > @@ -383,8 +383,6 @@ static const struct adv748x_reg_value
-> > > > adv748x_init_txa_4lane[] = { {ADV748X_PAGE_IO, 0x0c, 0xe0},	/* Enable
-> > > > LLC_DLL & Double LLC Timing */ {ADV748X_PAGE_IO, 0x0e, 0xdd},	/*
-> > > > LLC/PIX/SPI PINS TRISTATED AUD */
-> > > > 
-> > > > -	{ADV748X_PAGE_TXA, 0x00, 0x84},	/* Enable 4-lane MIPI */
-> > > > -	{ADV748X_PAGE_TXA, 0x00, 0xa4},	/* Set Auto DPHY Timing */
-> > > > 
-> > > >  	{ADV748X_PAGE_TXA, 0xdb, 0x10},	/* ADI Required Write */
-> > > >  	{ADV748X_PAGE_TXA, 0xd6, 0x07},	/* ADI Required Write */
-> > > >  	{ADV748X_PAGE_TXA, 0xc4, 0x0a},	/* ADI Required Write */
-> > > > 
-> > > > @@ -392,6 +390,9 @@ static const struct adv748x_reg_value
-> > > > adv748x_init_txa_4lane[] = { {ADV748X_PAGE_TXA, 0x72, 0x11},	/* ADI
-> > > > Required Write */
-> > > > 
-> > > >  	{ADV748X_PAGE_TXA, 0xf0, 0x00},	/* i2c_dphy_pwdn - 1'b0 */
-> > > > 
-> > > > +	{ADV748X_PAGE_TXA, 0x00, 0x84},	/* Enable 4-lane MIPI */
-> > > > +	{ADV748X_PAGE_TXA, 0x00, 0xa4},	/* Set Auto DPHY Timing */
-> > > > +
-> > > > 
-> > > >  	{ADV748X_PAGE_TXA, 0x31, 0x82},	/* ADI Required Write */
-> > > >  	{ADV748X_PAGE_TXA, 0x1e, 0x40},	/* ADI Required Write */
-> > > >  	{ADV748X_PAGE_TXA, 0xda, 0x01},	/* i2c_mipi_pll_en - 1'b1 */
-> > > > 
-> > > > @@ -435,17 +436,18 @@ static const struct adv748x_reg_value
-> > > > adv748x_init_txb_1lane[] = { {ADV748X_PAGE_SDP, 0x31, 0x12},	/* ADI
-> > > > Required Write */
-> > > > 
-> > > >  	{ADV748X_PAGE_SDP, 0xe6, 0x4f},  /* V bit end pos manually in NTSC 
-> */
-> > > > 
-> > > > -	{ADV748X_PAGE_TXB, 0x00, 0x81},	/* Enable 1-lane MIPI */
-> > > > -	{ADV748X_PAGE_TXB, 0x00, 0xa1},	/* Set Auto DPHY Timing */
-> > > > 
-> > > >  	{ADV748X_PAGE_TXB, 0xd2, 0x40},	/* ADI Required Write */
-> > > >  	{ADV748X_PAGE_TXB, 0xc4, 0x0a},	/* ADI Required Write */
-> > > >  	{ADV748X_PAGE_TXB, 0x71, 0x33},	/* ADI Required Write */
-> > > >  	{ADV748X_PAGE_TXB, 0x72, 0x11},	/* ADI Required Write */
-> > > >  	{ADV748X_PAGE_TXB, 0xf0, 0x00},	/* i2c_dphy_pwdn - 1'b0 */
-> > > > 
-> > > > +
-> > > > +	{ADV748X_PAGE_TXB, 0x00, 0x81},	/* Enable 1-lane MIPI */
-> > > > +	{ADV748X_PAGE_TXB, 0x00, 0xa1},	/* Set Auto DPHY Timing */
-> > > > +
-> > > 
-> > > This is pretty hard to review, as there's a bunch of undocumented register
-> > > writes. I think the first write is safe, as the tables are written
-> > > immediately following a software reset, and the default value of the
-> > > register is 0x81 (CSI-TX disabled, 1 lane). The second write, however,
-> > > enables usage of the computed DPHY parameters, and I don't know whether
-> > > the undocumented register writes in-between may interact with that.
-> > 
-> > I agree it's hard to grasp all implications with undocumented registers
-> > involved. That is why I choose to do it in a separate commit so if
-> > regressions are found it could be bisectable to this change.
-> > 
-> > > That being said, this change enables further important refactoring, so I'm
-> > > tempted to accept it. I assume you've tested it and haven't noticed a
-> > > regression. The part that still bothers me in particular is that the write
-> > > to register 0xf0 just above this takes the DPHY out of power down
-> > > according to the datasheet, and I wonder whether at that point the DPHY
-> > > might not react to that information. Have you analyzed the power-up
-> > > sequence in section 9.5.1 of the hardware manual ? I wonder whether the
-> > > dphy_pwdn shouldn't be handled in the power up and power down sequences,
-> > > which might involve also moving the above four (and five for TXA)
-> > > undocumented writes to the power up sequence as well.
-> > 
-> > I looked at the documentation and ran lots of tests based on this change
-> > and noticed no change in behavior.
-> 
-> As a last test, could you try programming completely invalid values to the 
-> undocumented registers before taking the DPHY out of power down ? I'm worried 
-> that things might work just because the registers happen to contain acceptable 
-> values when the DPHY is powered up, and that it might break later because the 
-> sequence of operations resulting from starting and stopping the video streams 
-> in different configurations would end up taking the DPHY out of power down 
-> with invalid values in those registers.
+Document its device tree binding interface.
 
-I did the test you describe above and the ordering have no effect on the 
-end result.
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-However looking at the problem with fresh eyes I realised that the more 
-correct option is to take your first suggestion and bring the 
-undocumented registers into the power up function and that is what I 
-will do in v3. Thanks for pointing this out!
+---
+v2:
+ - Provide imi vendor prefix
+ - Fix minor spelling
 
-> 
-> > >>  	{ADV748X_PAGE_TXB, 0x31, 0x82},	/* ADI Required Write */
-> > >>  	{ADV748X_PAGE_TXB, 0x1e, 0x40},	/* ADI Required Write */
-> > >>  	{ADV748X_PAGE_TXB, 0xda, 0x01},	/* i2c_mipi_pll_en - 1'b1 */
-> > >> -
-> > >>  	{ADV748X_PAGE_WAIT, 0x00, 0x02},/* delay 2 */
-> > >>  	{ADV748X_PAGE_TXB, 0x00, 0x21 },/* Power-up CSI-TX */
-> > >>  	{ADV748X_PAGE_WAIT, 0x00, 0x01},/* delay 1 */
-> 
-> -- 
-> Regards,
-> 
-> Laurent Pinchart
-> 
-> 
-> 
+v3:
+ - update binding descriptions
+---
+ .../bindings/media/i2c/imi,rdacm20.txt        | 65 +++++++++++++++++++
+ .../devicetree/bindings/vendor-prefixes.txt   |  1 +
+ 2 files changed, 66 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/imi,rdacm20.txt
 
+diff --git a/Documentation/devicetree/bindings/media/i2c/imi,rdacm20.txt b/Documentation/devicetree/bindings/media/i2c/imi,rdacm20.txt
+new file mode 100644
+index 000000000000..23915da4c3bf
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/imi,rdacm20.txt
+@@ -0,0 +1,65 @@
++IMI D&D RDACM20 Automotive Camera Platform
++------------------------------------------
++
++The IMI D&D RDACM20 is a GMSL-compatible camera designed for automotive
++applications. It encloses a Maxim Integrated MAX9271 GMSL serializer, an
++Omnivision OV10635 camera sensor and an embedded MCU, and connects to a remote
++GMSL endpoint through a coaxial cable.
++
++                                                     IMI RDACM20
++ ---------------                               --------------------------------
++|      GMSL     |   <---  Video Stream        |       <- Video--------\        |
++|               |< ====== GMSL Link ======== >|MAX9271<- I2C bus-> <-->OV10635 |
++| de-serializer |   <---  I2C messages --->   |                   \<-->MCU     |
++ ---------------                               --------------------------------
++
++The RDACM20 transmits video data generated by the embedded camera sensor on the
++GMSL serial channel to a remote GMSL de-serializer, as well as it receives and
++transmits I2C messages encapsulated in the GMSL bidirectional control channel.
++
++All I2C traffic received on the GMSL link not directed to the serializer is
++propagated on the local I2C bus to the embedded camera sensor and MCU. All
++I2C traffic generated on the local I2C bus not directed to the serializer is
++propagated to the remote de-serializer encapsulated in the GMSL control channel.
++
++The RDACM20 DT node should be a direct child of the GMSL Deserializer's I2C bus
++corresponding to the GMSL link that the camera is attached to.
++
++Required Properties:
++
++- compatible: Shall be "imi,rdacm20".
++- reg: Pair of I2C device addresses, the first to be assigned to the serializer
++  the second to be assigned to the camera sensor.
++
++Connection to the remote GMSL endpoint are modelled using the OF graph bindings
++in accordance with the video interface bindings defined in
++Documentation/devicetree/bindings/media/video-interfaces.txt.
++
++The device node contains a single "port" child node with a single "endpoint"
++sub-device.
++
++Required endpoint properties:
++
++- remote-endpoint: phandle to the remote GMSL endpoint sub-node in the remote
++  node port.
++
++Example:
++-------
++
++	i2c@0 {
++		#address-cells = <1>;
++		#size-cells = <0>;
++		reg = <0>;
++
++		camera@51 {
++			compatible = "imi,rdacm20";
++			reg = <0x51 0x61>;
++
++			port {
++				rdacm20_out0: endpoint {
++					remote-endpoint = <&max9286_in0>;
++				};
++			};
++
++		};
++	};
+diff --git a/Documentation/devicetree/bindings/vendor-prefixes.txt b/Documentation/devicetree/bindings/vendor-prefixes.txt
+index 2c3fc512e746..34b0ed876850 100644
+--- a/Documentation/devicetree/bindings/vendor-prefixes.txt
++++ b/Documentation/devicetree/bindings/vendor-prefixes.txt
+@@ -171,6 +171,7 @@ idt	Integrated Device Technologies, Inc.
+ ifi	Ingenieurburo Fur Ic-Technologie (I/F/I)
+ ilitek	ILI Technology Corporation (ILITEK)
+ img	Imagination Technologies Ltd.
++imi	Integrated Micro-Electronics Inc.
+ infineon Infineon Technologies
+ inforce	Inforce Computing
+ ingenic	Ingenic Semiconductor
 -- 
-Regards,
-Niklas Söderlund
+2.17.1
