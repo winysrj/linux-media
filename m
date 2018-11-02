@@ -1,79 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:47862 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726098AbeKCAzB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Nov 2018 20:55:01 -0400
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-To: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, sakari.ailus@iki.fi
-Cc: =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
-        Jacopo Mondi <jacopo@jmondi.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        linux-kernel@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: [PATCH v4 0/4] MAX9286 GMSL Support
-Date: Fri,  2 Nov 2018 15:47:19 +0000
-Message-Id: <20181102154723.23662-1-kieran.bingham@ideasonboard.com>
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:35036 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726265AbeKCBAJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Nov 2018 21:00:09 -0400
+From: Ezequiel Garcia <ezequiel@collabora.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>, kernel@collabora.com,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Ezequiel Garcia <ezequiel@collabora.com>
+Subject: [PATCH v2 0/4] vicodec: a couple fixes towards spec compliancy
+Date: Fri,  2 Nov 2018 12:52:02 -0300
+Message-Id: <20181102155206.13681-1-ezequiel@collabora.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This series provides a pair of drivers for GMSL cameras on the R-Car
-ADAS platforms.
+Given the stateful codec specification is still a moving target,
+it doesn't make any sense to try to comply fully with it.
 
-These drivers originate from Cogent Embedded, and have been refactored
-to split the MAX9286 away from the RDACM20 drivers which were once very
-tightly coupled.
+On the other side, we can still comply with some basic userspace
+expectations, with just a couple small changes.
 
-This posting is the culmination of ~100 changesets spread across Jacopo,
-Niklas, Laurent and myself - thus they contain all of our SoB tags.
+This series implements proper resolution changes propagation,
+and fixes the CMD_STOP so it actually works.
 
-This series makes use of Sakari's VC developments and is based upon the
-most recent rebase of this series by Niklas at:
-  git://git.ragnatech.se/linux/ v4l2/mux
+The intention of this series is to be able to test this driver
+using already existing userspace, gstreamer in particular.
+With this changes, it's possible to construct variations of
+this pipeline:
 
-Thanks to the VC developments, this driver is capable of streaming from
-all 4 input ports simultaneously through the RCar-VIN capture system.
+  gst-launch-1.0 videotestsrc ! v4l2fwhtenc ! v4l2fwhtdec ! fakevideosink
 
-This driver along with the associated platform support for the Renesas
-R-Car Salvator-X, and the Eagle-V3M can be found at:
+Also, as discussed in v1 feedback [1,2], I'm including pixel format
+helpers, as RFC for now. Hans, Tomasz: is this what you had in mind?
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/kbingham/rcar.git gmsl/v4
+[1] https://www.spinics.net/lists/linux-media/msg141912.html
+[2] https://www.spinics.net/lists/linux-media/msg142099.html
 
+v2:
+  * Add more info to commit logs
+  * Propagate changes on both encoders and decoders
+  * Add pixel format helpers
 
-Further anticipated work in this area includes supporting the RDACM21
-camera, at which point the RDACM20 will be adapted to separate out the
-MAX9271 and the OV10635 sensor components.
+Ezequiel Garcia (4):
+  media: Introduce helpers to fill pixel format structs
+  vicodec: Use pixel format helpers
+  vicodec: Propagate changes to the CAPTURE queue
+  vicodec: Implement spec-compliant stop command
 
-
-Jacopo Mondi (1):
-  dt-bindings: media: i2c: Add bindings for IMI RDACM20
-
-Kieran Bingham (2):
-  media: i2c: Add MAX9286 driver
-  media: i2c: Add RDACM20 driver
-
-Laurent Pinchart (1):
-  dt-bindings: media: i2c: Add bindings for Maxim Integrated MAX9286
-
- .../bindings/media/i2c/imi,rdacm20.txt        |   65 +
- .../bindings/media/i2c/maxim,max9286.txt      |  182 +++
- .../devicetree/bindings/vendor-prefixes.txt   |    1 +
- MAINTAINERS                                   |   20 +
- drivers/media/i2c/Kconfig                     |   22 +
- drivers/media/i2c/Makefile                    |    2 +
- drivers/media/i2c/max9286.c                   | 1189 +++++++++++++++++
- drivers/media/i2c/rdacm20-ov10635.h           |  953 +++++++++++++
- drivers/media/i2c/rdacm20.c                   |  635 +++++++++
- 9 files changed, 3069 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/imi,rdacm20.txt
- create mode 100644 Documentation/devicetree/bindings/media/i2c/maxim,max9286.txt
- create mode 100644 drivers/media/i2c/max9286.c
- create mode 100644 drivers/media/i2c/rdacm20-ov10635.h
- create mode 100644 drivers/media/i2c/rdacm20.c
+ .../media/platform/vicodec/codec-v4l2-fwht.c  |  42 ++--
+ .../media/platform/vicodec/codec-v4l2-fwht.h  |   3 -
+ drivers/media/platform/vicodec/vicodec-core.c | 197 +++++++++---------
+ drivers/media/v4l2-core/Makefile              |   2 +-
+ drivers/media/v4l2-core/v4l2-common.c         |  66 ++++++
+ drivers/media/v4l2-core/v4l2-fourcc.c         |  93 +++++++++
+ include/media/v4l2-common.h                   |   5 +
+ include/media/v4l2-fourcc.h                   |  53 +++++
+ 8 files changed, 332 insertions(+), 129 deletions(-)
+ create mode 100644 drivers/media/v4l2-core/v4l2-fourcc.c
+ create mode 100644 include/media/v4l2-fourcc.h
 
 -- 
-2.17.1
+2.19.1
