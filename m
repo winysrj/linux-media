@@ -1,85 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:41874 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728058AbeKBJg5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 2 Nov 2018 05:36:57 -0400
-From: shuah@kernel.org
-To: mchehab@kernel.org, perex@perex.cz, tiwai@suse.com
-Cc: Shuah Khan <shuah@kernel.org>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org
-Subject: [RFC PATCH v8 2/4] media: change au0828 to use Media Device Allocator API
-Date: Thu,  1 Nov 2018 18:31:31 -0600
-Message-Id: <0f9977e1d2ab39e8b8e5f0307ee89cfca012c9f3.1541109584.git.shuah@kernel.org>
-In-Reply-To: <cover.1541118238.git.shuah@kernel.org>
-References: <cover.1541118238.git.shuah@kernel.org>
-In-Reply-To: <cover.1541109584.git.shuah@kernel.org>
-References: <cover.1541109584.git.shuah@kernel.org>
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:60810 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726237AbeKBNlH (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 2 Nov 2018 09:41:07 -0400
+Message-ID: <d4ab5e20f619e44bc6023b7bedaf95fd@smtp-cloud9.xs4all.net>
+Date: Fri, 02 Nov 2018 05:35:19 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Shuah Khan <shuah@kernel.org>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Change au0828 to use Media Device Allocator API to allocate media device
-with the parent usb struct device as the key, so it can be shared with the
-snd_usb_audio driver.
+Results of the daily build of media_tree:
 
-Signed-off-by: Shuah Khan <shuah@kernel.org>
----
- drivers/media/usb/au0828/au0828-core.c | 12 ++++--------
- drivers/media/usb/au0828/au0828.h      |  1 +
- 2 files changed, 5 insertions(+), 8 deletions(-)
+date:			Fri Nov  2 05:00:11 CET 2018
+media-tree git hash:	3b796aa60af087f5fec75aee9b17f2130f2b9adc
+media_build git hash:	0c8bb27f3aaa682b9548b656f77505c3d1f11e71
+v4l-utils git hash:	c36dbbdfa8b30b2badd4f893b59d0bd4f0bd12aa
+edid-decode git hash:	5eeb151a748788666534d6ea3da07f90400d24c2
+gcc version:		i686-linux-gcc (GCC) 8.2.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.18.0-2-amd64
 
-diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
-index cd363a2100d4..837409d190a1 100644
---- a/drivers/media/usb/au0828/au0828-core.c
-+++ b/drivers/media/usb/au0828/au0828-core.c
-@@ -155,9 +155,7 @@ static void au0828_unregister_media_device(struct au0828_dev *dev)
- 	dev->media_dev->disable_source = NULL;
- 	mutex_unlock(&mdev->graph_mutex);
- 
--	media_device_unregister(dev->media_dev);
--	media_device_cleanup(dev->media_dev);
--	kfree(dev->media_dev);
-+	media_device_delete(dev->media_dev, KBUILD_MODNAME);
- 	dev->media_dev = NULL;
- #endif
- }
-@@ -210,14 +208,10 @@ static int au0828_media_device_init(struct au0828_dev *dev,
- #ifdef CONFIG_MEDIA_CONTROLLER
- 	struct media_device *mdev;
- 
--	mdev = kzalloc(sizeof(*mdev), GFP_KERNEL);
-+	mdev = media_device_usb_allocate(udev, KBUILD_MODNAME);
- 	if (!mdev)
- 		return -ENOMEM;
- 
--	/* check if media device is already initialized */
--	if (!mdev->dev)
--		media_device_usb_init(mdev, udev, udev->product);
--
- 	dev->media_dev = mdev;
- #endif
- 	return 0;
-@@ -478,6 +472,8 @@ static int au0828_media_device_register(struct au0828_dev *dev,
- 		/* register media device */
- 		ret = media_device_register(dev->media_dev);
- 		if (ret) {
-+			media_device_delete(dev->media_dev, KBUILD_MODNAME);
-+			dev->media_dev = NULL;
- 			dev_err(&udev->dev,
- 				"Media Device Register Error: %d\n", ret);
- 			return ret;
-diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
-index 004eadef55c7..7dbe3db15ebe 100644
---- a/drivers/media/usb/au0828/au0828.h
-+++ b/drivers/media/usb/au0828/au0828.h
-@@ -31,6 +31,7 @@
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-fh.h>
- #include <media/media-device.h>
-+#include <media/media-dev-allocator.h>
- 
- /* DVB */
- #include <media/demux.h>
--- 
-2.17.0
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.57-i686: OK
+linux-3.16.57-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.123-i686: OK
+linux-3.18.123-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.52-i686: OK
+linux-4.1.52-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.159-i686: OK
+linux-4.4.159-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.131-i686: OK
+linux-4.9.131-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.74-i686: OK
+linux-4.14.74-x86_64: OK
+linux-4.15.18-i686: OK
+linux-4.15.18-x86_64: OK
+linux-4.16.18-i686: OK
+linux-4.16.18-x86_64: OK
+linux-4.17.19-i686: OK
+linux-4.17.19-x86_64: OK
+linux-4.18.12-i686: OK
+linux-4.18.12-x86_64: OK
+linux-4.19-i686: OK
+linux-4.19-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
