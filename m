@@ -1,80 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:35688 "EHLO
-        casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726116AbeKBWGp (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Nov 2018 18:06:45 -0400
-Date: Fri, 2 Nov 2018 09:59:31 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Yong Zhi <yong.zhi@intel.com>
-Cc: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
-        tfiga@chromium.org, hans.verkuil@cisco.com,
-        laurent.pinchart@ideasonboard.com, rajmohan.mani@intel.com,
-        jian.xu.zheng@intel.com, jerry.w.hu@intel.com,
-        tuukka.toivonen@intel.com, tian.shu.qiu@intel.com,
-        bingbu.cao@intel.com
-Subject: Re: [PATCH v7 01/16] v4l: Add Intel IPU3 meta buffer formats
-Message-ID: <20181102095909.7676482b@coco.lan>
-In-Reply-To: <1540851790-1777-2-git-send-email-yong.zhi@intel.com>
-References: <1540851790-1777-1-git-send-email-yong.zhi@intel.com>
-        <1540851790-1777-2-git-send-email-yong.zhi@intel.com>
+Received: from perceval.ideasonboard.com ([213.167.242.64]:43402 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726116AbeKBWHk (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Nov 2018 18:07:40 -0400
+Reply-To: kieran.bingham+renesas@ideasonboard.com
+Subject: Re: [PATCH v3 1/4] dt-bindings: media: i2c: Add bindings for Maxim
+ Integrated MAX9286
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        Jacopo Mondi <jacopo@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>
+References: <20181009205726.7664-1-kieran.bingham@ideasonboard.com>
+ <71c30ead-66cd-2c84-3349-0dd393f66300@ideasonboard.com>
+ <20181015190121.GI24305@bigcity.dyn.berto.se> <2443594.YVDbUcPb3K@avalon>
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Message-ID: <c6a66cfa-b2f4-f50a-0fd7-ceb89839579b@ideasonboard.com>
+Date: Fri, 2 Nov 2018 13:00:30 +0000
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <2443594.YVDbUcPb3K@avalon>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Zhi-san,
-
-Em Mon, 29 Oct 2018 15:22:55 -0700
-Yong Zhi <yong.zhi@intel.com> escreveu:
-
-> Add IPU3-specific meta formats for parameter
-> processing and 3A, DVS statistics:
+On 16/10/2018 01:37, Laurent Pinchart wrote:
+> Hello,
 > 
->   V4L2_META_FMT_IPU3_PARAMS
->   V4L2_META_FMT_IPU3_STAT_3A
+> On Monday, 15 October 2018 22:01:21 EEST Niklas Söderlund wrote:
+>> On 2018-10-15 18:37:40 +0100, Kieran Bingham wrote:
+>>>>> diff --git
+>>>>> a/Documentation/devicetree/bindings/media/i2c/maxim,max9286.txt
+>>>>> b/Documentation/devicetree/bindings/media/i2c/maxim,max9286.txt
+>>>>> new file mode 100644
+>>>>> index 000000000000..a73e3c0dc31b
+>>>>> --- /dev/null
+>>>>> +++ b/Documentation/devicetree/bindings/media/i2c/maxim,max9286.txt
+>>>>> @@ -0,0 +1,182 @@
+>>>>> +Maxim Integrated Quad GMSL Deserializer
+>>>>> +---------------------------------------
+>>>>> +
+>>>>> +The MAX9286 deserializer receives video data on up to 4 Gigabit
+>>>>> Multimedia
+>>>>> +Serial Links (GMSL) and outputs them on a CSI-2 port using up to 4
+>>>>> data lanes.
+>>>>
+>>>> CSI-2 D-PHY I presume?
+
+Updated.
+
+>>>
+>>> Yes, that's how I've adapted the driver based on the latest bus changes.
+>>>
+>>> Niklas - Could you confirm that everything in VIN/CSI2 is configured to
+>>> use D-PHY and not C-PHY at all ?
+>>
+>> Yes it's only D-PHY.
+>>
+>>>>> +
+>>>>> +- remote-endpoint: phandle to the remote GMSL source endpoint subnode
+>>>>> in the
+>>>>> +  remote node port.
+>>>>> +
+>>>>> +Required Endpoint Properties for CSI-2 Output Port (Port 4):
+>>>>> +
+>>>>> +- data-lanes: array of physical CSI-2 data lane indexes.
+>>>>> +- clock-lanes: index of CSI-2 clock lane.
+>>>>
+>>>> Is any number of lanes supported? How about lane remapping? If you do
+>>>> not have lane remapping, the clock-lanes property is redundant.
+>>>
+>>> Uhm ... Niklas?
+>>
+>> The MAX9286 documentation contains information on lane remapping and
+>> support for any number (1-4) of enabled data-lanes. I have not tested if
+>> this works in practice but the registers are there and documented :-)
 > 
-> Signed-off-by: Yong Zhi <yong.zhi@intel.com>
-> ---
->  drivers/media/v4l2-core/v4l2-ioctl.c | 2 ++
->  include/uapi/linux/videodev2.h       | 4 ++++
->  2 files changed, 6 insertions(+)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-> index 6489f25..abff64b 100644
-> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> @@ -1299,6 +1299,8 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
->  	case V4L2_META_FMT_VSP1_HGO:	descr = "R-Car VSP1 1-D Histogram"; break;
->  	case V4L2_META_FMT_VSP1_HGT:	descr = "R-Car VSP1 2-D Histogram"; break;
->  	case V4L2_META_FMT_UVC:		descr = "UVC payload header metadata"; break;
-> +	case V4L2_META_FMT_IPU3_PARAMS:	descr = "IPU3 processing parameters"; break;
-> +	case V4L2_META_FMT_IPU3_STAT_3A:	descr = "IPU3 3A statistics"; break;
->  
->  	default:
->  		/* Compressed formats */
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index f0a968a..bdccd7a 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -718,6 +718,10 @@ struct v4l2_pix_format {
->  #define V4L2_META_FMT_UVC         v4l2_fourcc('U', 'V', 'C', 'H') /* UVC Payload Header metadata */
->  #define V4L2_META_FMT_D4XX        v4l2_fourcc('D', '4', 'X', 'X') /* D4XX Payload Header metadata */
->  
-> +/* Vendor specific - used for IPU3 camera sub-system */
-> +#define V4L2_META_FMT_IPU3_PARAMS	v4l2_fourcc('i', 'p', '3', 'p') /* IPU3 params */
-> +#define V4L2_META_FMT_IPU3_STAT_3A	v4l2_fourcc('i', 'p', '3', 's') /* IPU3 3A statistics */
+> That's my understanding too. Clock lane remapping doesn't seem to be supported 
+> though. We could thus omit the clock-lanes property.
 
-Where's the documentation for those two new formats? The best is to
-always add the documentation bits for V4L2 uAPI stuff at the same
-patch, as it makes easier for us to review.
+Ok - no point describing something that can't be changed.
 
-> +
->  /* priv field value to indicates that subsequent fields are valid. */
->  #define V4L2_PIX_FMT_PRIV_MAGIC		0xfeedcafe
->  
+Dropped.
 
+--
+Regards
 
-
-Thanks,
-Mauro
+Kieran
