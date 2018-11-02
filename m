@@ -1,80 +1,31 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:52061 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726030AbeKCEJt (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 3 Nov 2018 00:09:49 -0400
-From: Colin King <colin.king@canonical.com>
-To: Maxime Ripard <maxime.ripard@bootlin.com>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Chen-Yu Tsai <wens@csie.org>, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-arm-kernel@lists.infradead.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH][staging-next] drivers: staging: cedrus: find ctx before dereferencing it ctx
-Date: Fri,  2 Nov 2018 19:01:26 +0000
-Message-Id: <20181102190126.5628-1-colin.king@canonical.com>
+Received: from mailgate.bgcomp.co.uk ([81.187.35.205]:57691 "EHLO
+        mailgate.bgcomp.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726141AbeKCHGM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 3 Nov 2018 03:06:12 -0400
+Received: from eth7.localnet (www.bgcomp.co.uk [IPv6:2001:8b0:ca:2::fd])
+        by mailgate.bgcomp.co.uk (Postfix) with ESMTP id AD9D71BDF
+        for <linux-media@vger.kernel.org>; Fri,  2 Nov 2018 21:48:33 +0000 (GMT)
+From: Bob Goddard <kernel@1.kernel.bgcomp.co.uk>
+To: linux-media@vger.kernel.org
+Subject: diffs in mn88473 & cxd2841er config structures
+Date: Fri, 02 Nov 2018 21:48:33 +0000
+Message-ID: <17343705.H5kqrNrpiY@eth7>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Colin Ian King <colin.king@canonical.com>
+Hi all
 
-Currently if count is an invalid value the v4l2_info message will
-dereference a null ctx pointer to get the dev information. Fix
-this by finding ctx first and then checking for an invalid count,
-this way ctxt will be non-null hence avoiding the null pointer
-dereference.
+I am trying to add in support for the cxd2841er on the rtl28x usb devices.
 
-Detected by CoverityScan, CID#1475337 ("Explicit null dereferenced")
+With mn88473 and others, the config structure has 'struct dvb_frontend **fe', but it's not in the cxd2841er config.
 
-Fixes: 50e761516f2b ("media: platform: Add Cedrus VPU decoder driver")
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
----
- drivers/staging/media/sunxi/cedrus/cedrus.c | 22 ++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+Are there any plans to add it in? Should I change it and wherever else it is required, or should it be left in its current format?
 
-diff --git a/drivers/staging/media/sunxi/cedrus/cedrus.c b/drivers/staging/media/sunxi/cedrus/cedrus.c
-index 82558455384a..699d62dceb6c 100644
---- a/drivers/staging/media/sunxi/cedrus/cedrus.c
-+++ b/drivers/staging/media/sunxi/cedrus/cedrus.c
-@@ -108,17 +108,6 @@ static int cedrus_request_validate(struct media_request *req)
- 	unsigned int count;
- 	unsigned int i;
- 
--	count = vb2_request_buffer_cnt(req);
--	if (!count) {
--		v4l2_info(&ctx->dev->v4l2_dev,
--			  "No buffer was provided with the request\n");
--		return -ENOENT;
--	} else if (count > 1) {
--		v4l2_info(&ctx->dev->v4l2_dev,
--			  "More than one buffer was provided with the request\n");
--		return -EINVAL;
--	}
--
- 	list_for_each_entry(obj, &req->objects, list) {
- 		struct vb2_buffer *vb;
- 
-@@ -133,6 +122,17 @@ static int cedrus_request_validate(struct media_request *req)
- 	if (!ctx)
- 		return -ENOENT;
- 
-+	count = vb2_request_buffer_cnt(req);
-+	if (!count) {
-+		v4l2_info(&ctx->dev->v4l2_dev,
-+			  "No buffer was provided with the request\n");
-+		return -ENOENT;
-+	} else if (count > 1) {
-+		v4l2_info(&ctx->dev->v4l2_dev,
-+			  "More than one buffer was provided with the request\n");
-+		return -EINVAL;
-+	}
-+
- 	parent_hdl = &ctx->hdl;
- 
- 	hdl = v4l2_ctrl_request_hdl_find(req, parent_hdl);
--- 
-2.19.1
+
+
+
+B
