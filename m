@@ -1,97 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:46012 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727676AbeKBXrc (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Nov 2018 19:47:32 -0400
-Reply-To: kieran.bingham@ideasonboard.com
-Subject: Re: [PATCH 21/30] v4l: Add bus type to frame descriptors
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-References: <20180823132544.521-1-niklas.soderlund+renesas@ragnatech.se>
- <20180823132544.521-22-niklas.soderlund+renesas@ragnatech.se>
- <3c1ee187-cb95-efed-7c7e-4efda28209c3@ideasonboard.com>
- <20181102131522.y332vxbk5oc5zdxk@paasikivi.fi.intel.com>
- <17d55006-8698-d2f3-3a4d-5fa1200dce86@ideasonboard.com>
- <20181102141827.6t7rhvzqmdywtnmp@paasikivi.fi.intel.com>
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Message-ID: <fe498e6f-8531-e5d3-29c4-80df346adb9a@ideasonboard.com>
-Date: Fri, 2 Nov 2018 14:40:08 +0000
-MIME-Version: 1.0
-In-Reply-To: <20181102141827.6t7rhvzqmdywtnmp@paasikivi.fi.intel.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:9126 "EHLO
+        mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726422AbeKCAbF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 2 Nov 2018 20:31:05 -0400
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+To: Jacob chen <jacob2.chen@rock-chips.com>
+Cc: kernel-janitors@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Heiko Stuebner <heiko@sntech.de>, linux-media@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux-rockchip@lists.infradead.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] media: rockchip/rga: constify video_device structure
+Date: Fri,  2 Nov 2018 15:48:15 +0100
+Message-Id: <1541170095-24104-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+The video_device structure is only copied into another structure, so
+it can be const.
 
-On 02/11/2018 14:18, Sakari Ailus wrote:
-> On Fri, Nov 02, 2018 at 01:35:02PM +0000, Kieran Bingham wrote:
->> Hi Sakari, Niklas,
->>
->> On 02/11/2018 13:15, Sakari Ailus wrote:
->>> Hi Kieran,
->>>
->>> On Fri, Nov 02, 2018 at 12:27:11PM +0000, Kieran Bingham wrote:
->>>> Hi Niklas, Sakari
->>>>
->>>> On 23/08/2018 14:25, Niklas Söderlund wrote:
->>>>> From: Sakari Ailus <sakari.ailus@linux.intel.com>
->>>>>
->>>>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
->>>>> ---
->>>>>  include/media/v4l2-subdev.h | 9 +++++++++
->>>>>  1 file changed, 9 insertions(+)
->>>>>
->>>>> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
->>>>> index 5acaeeb9b3cacefa..ac1f7ee4cdb978ad 100644
->>>>> --- a/include/media/v4l2-subdev.h
->>>>> +++ b/include/media/v4l2-subdev.h
->>>>> @@ -349,12 +349,21 @@ struct v4l2_mbus_frame_desc_entry {
->>>>>  
->>>>>  #define V4L2_FRAME_DESC_ENTRY_MAX	4
->>>>>  
->>>>> +enum {
->>>>> +	V4L2_MBUS_FRAME_DESC_TYPE_PLATFORM,
->>>>> +	V4L2_MBUS_FRAME_DESC_TYPE_PARALLEL,
->>>>> +	V4L2_MBUS_FRAME_DESC_TYPE_CCP2,
->>>>> +	V4L2_MBUS_FRAME_DESC_TYPE_CSI2,
->>>>
->>>> Does this need to be extended to differentiate CSI2 DPHY/CPHY as has
->>>> been done in the v4l2_mbus_config structures?
->>>
->>> I'd say no; the PHY isn't really relevant at this level. The configuration
->>> from fwnode should suffice.
->>
->> Great - Thanks for the feedback.
->>
->>
->> Well then - now that I've gone through the patch - and the PHY type
->> naming is cleared up, I can add:
->>
->> Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
->>
->> (I guess Niklas can pick up that tag currently)
->>
->> Although - we're missing any commit message other than the commit title.
->> Should something be added?
->>
->> There's not much to describe above the title really.
-> 
-> Oh, indeed.
-> 
-> How about this:
-> 
-> The type will be used to determine which bus specific frame descriptor
-> struct is applicable to a given frame descriptor.
+Done with the help of Coccinelle.
 
-Looks good to me!
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
 
--- 
-Regards
---
-Kieran
+---
+ drivers/media/platform/rockchip/rga/rga.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/platform/rockchip/rga/rga.c b/drivers/media/platform/rockchip/rga/rga.c
+index 9cc9db083870..4d3e08584027 100644
+--- a/drivers/media/platform/rockchip/rga/rga.c
++++ b/drivers/media/platform/rockchip/rga/rga.c
+@@ -700,7 +700,7 @@ static const struct v4l2_ioctl_ops rga_ioctl_ops = {
+ 	.vidioc_s_selection = vidioc_s_selection,
+ };
+ 
+-static struct video_device rga_videodev = {
++static const struct video_device rga_videodev = {
+ 	.name = "rockchip-rga",
+ 	.fops = &rga_fops,
+ 	.ioctl_ops = &rga_ioctl_ops,
