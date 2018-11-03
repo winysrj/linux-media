@@ -1,45 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm1-f65.google.com ([209.85.128.65]:53763 "EHLO
-        mail-wm1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726795AbeKCU16 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 3 Nov 2018 16:27:58 -0400
-Received: by mail-wm1-f65.google.com with SMTP id v24-v6so4038435wmh.3
-        for <linux-media@vger.kernel.org>; Sat, 03 Nov 2018 04:16:59 -0700 (PDT)
-From: Irenge Jules Bashizi <jbi.octave@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: gregkh@linuxfoundation.org, julia.lawall@lip6.fr,
-        outreachy-kernel@googlegroups.com, jules.octave@outlook.com
-Subject: [PATCH] staging:media:Add SPDX-License-Identifier
-Date: Sat,  3 Nov 2018 11:16:48 +0000
-Message-Id: <20181103111648.30662-1-jbi.octave@gmail.com>
+Received: from mail-pl1-f193.google.com ([209.85.214.193]:45629 "EHLO
+        mail-pl1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725939AbeKDAIu (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 3 Nov 2018 20:08:50 -0400
+From: Derek Kelly <user.vdr@gmail.com>
+To: linux-input@vger.kernel.org
+Cc: sean@mess.org, mchehab+samsung@kernel.org,
+        linux-media@vger.kernel.org
+Subject: [PATCH v2] Input: Add missing event codes for common IR remote buttons
+Date: Sat,  3 Nov 2018 07:55:32 -0700
+Message-Id: <20181103145532.9323-1-user.vdr@gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add SPDX-License-Identifier to fix missing license tag checkpatch warning
+The following patch adds event codes for common buttons found on various
+provider and universal remote controls. They represent functions not
+covered by existing event codes. Once added, rc_keymaps can be updated
+accordingly where applicable.
 
-Signed-off-by: Irenge Jules Bashizi <jbi.octave@gmail.com>
+v2 changes:
+Renamed KEY_SYSTEM to KEY_SYSTEM_MENU to avoid conflict with powerpc
+KEY_SYSTEM define.
+
+Signed-off-by: Derek Kelly <user.vdr@gmail.com>
 ---
- drivers/staging/media/davinci_vpfe/davinci_vpfe_user.h | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ include/uapi/linux/input-event-codes.h | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff --git a/drivers/staging/media/davinci_vpfe/davinci_vpfe_user.h b/drivers/staging/media/davinci_vpfe/davinci_vpfe_user.h
-index 7cc115c9ebe6..6d2570a63529 100644
---- a/drivers/staging/media/davinci_vpfe/davinci_vpfe_user.h
-+++ b/drivers/staging/media/davinci_vpfe/davinci_vpfe_user.h
-@@ -1,3 +1,4 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
- /*
-  * Copyright (C) 2012 Texas Instruments Inc
-  *
-@@ -10,9 +11,6 @@
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  * GNU General Public License for more details.
-  *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
-  *
-  * Contributors:
-  *      Manjunath Hadli <manjunath.hadli@ti.com>
+diff --git a/include/uapi/linux/input-event-codes.h b/include/uapi/linux/input-event-codes.h
+index 53fbae27b280..a15fd3c944d2 100644
+--- a/include/uapi/linux/input-event-codes.h
++++ b/include/uapi/linux/input-event-codes.h
+@@ -689,6 +689,19 @@
+ #define BTN_TRIGGER_HAPPY39		0x2e6
+ #define BTN_TRIGGER_HAPPY40		0x2e7
+ 
++/* Remote control buttons found across provider & universal remotes */
++#define KEY_LIVE_TV			0x2e8	/* Jump to live tv viewing */
++#define KEY_OPTIONS			0x2e9	/* Jump to options */
++#define KEY_INTERACTIVE			0x2ea	/* Jump to interactive system/menu/item */
++#define KEY_MIC_INPUT			0x2eb	/* Trigger MIC input/listen mode */
++#define KEY_SCREEN_INPUT		0x2ec	/* Open on-screen input system */
++#define KEY_SYSTEM_MENU			0x2ed	/* Open systems menu/display */
++#define KEY_SERVICES			0x2ee	/* Access services */
++#define KEY_DISPLAY_FORMAT		0x2ef	/* Cycle display formats */
++#define KEY_PIP				0x2f0	/* Toggle Picture-in-Picture on/off */
++#define KEY_PIP_SWAP			0x2f1	/* Swap contents between main view and PIP window */
++#define KEY_PIP_POSITION		0x2f2	/* Cycle PIP window position */
++
+ /* We avoid low common keys in module aliases so they don't get huge. */
+ #define KEY_MIN_INTERESTING	KEY_MUTE
+ #define KEY_MAX			0x2ff
 -- 
-2.17.2
+2.19.1
