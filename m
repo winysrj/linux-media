@@ -1,57 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl1-f193.google.com ([209.85.214.193]:45629 "EHLO
-        mail-pl1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725939AbeKDAIu (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 3 Nov 2018 20:08:50 -0400
-From: Derek Kelly <user.vdr@gmail.com>
-To: linux-input@vger.kernel.org
-Cc: sean@mess.org, mchehab+samsung@kernel.org,
-        linux-media@vger.kernel.org
-Subject: [PATCH v2] Input: Add missing event codes for common IR remote buttons
-Date: Sat,  3 Nov 2018 07:55:32 -0700
-Message-Id: <20181103145532.9323-1-user.vdr@gmail.com>
+Received: from mail-pg1-f194.google.com ([209.85.215.194]:39216 "EHLO
+        mail-pg1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727339AbeKDBKD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 3 Nov 2018 21:10:03 -0400
+Received: by mail-pg1-f194.google.com with SMTP id r9-v6so2288021pgv.6
+        for <linux-media@vger.kernel.org>; Sat, 03 Nov 2018 08:58:22 -0700 (PDT)
+Date: Sat, 3 Nov 2018 21:28:14 +0530
+From: Himanshu Jha <himanshujha199640@gmail.com>
+To: Irenge Jules Bashizi <jbi.octave@gmail.com>
+Cc: linux-media@vger.kernel.org, gregkh@linuxfoundation.org,
+        julia.lawall@lip6.fr, outreachy-kernel@googlegroups.com,
+        jules.octave@outlook.com
+Subject: Re: [Outreachy kernel] [PATCH] staging:media:Add
+ SPDX-License-Identifier
+Message-ID: <20181103155814.GA9411@himanshu-Vostro-3559>
+References: <20181103111648.30662-1-jbi.octave@gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20181103111648.30662-1-jbi.octave@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following patch adds event codes for common buttons found on various
-provider and universal remote controls. They represent functions not
-covered by existing event codes. Once added, rc_keymaps can be updated
-accordingly where applicable.
+On Sat, Nov 03, 2018 at 11:16:48AM +0000, Irenge Jules Bashizi wrote:
+> Add SPDX-License-Identifier to fix missing license tag checkpatch warning
+> 
+> Signed-off-by: Irenge Jules Bashizi <jbi.octave@gmail.com>
+> ---
+>  drivers/staging/media/davinci_vpfe/davinci_vpfe_user.h | 4 +---
+>  1 file changed, 1 insertion(+), 3 deletions(-)
+> 
+> diff --git a/drivers/staging/media/davinci_vpfe/davinci_vpfe_user.h b/drivers/staging/media/davinci_vpfe/davinci_vpfe_user.h
+> index 7cc115c9ebe6..6d2570a63529 100644
+> --- a/drivers/staging/media/davinci_vpfe/davinci_vpfe_user.h
+> +++ b/drivers/staging/media/davinci_vpfe/davinci_vpfe_user.h
+> @@ -1,3 +1,4 @@
+> +/* SPDX-License-Identifier: GPL-2.0 */
+>  /*
+>   * Copyright (C) 2012 Texas Instruments Inc
+>   *
+> @@ -10,9 +11,6 @@
+>   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+>   * GNU General Public License for more details.
+>   *
+> - * You should have received a copy of the GNU General Public License
+> - * along with this program; if not, write to the Free Software
+> - * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 
-v2 changes:
-Renamed KEY_SYSTEM to KEY_SYSTEM_MENU to avoid conflict with powerpc
-KEY_SYSTEM define.
+Read Documentation/process/license-rules.rst and try to understand why
+SPDX was introduced ?
 
-Signed-off-by: Derek Kelly <user.vdr@gmail.com>
----
- include/uapi/linux/input-event-codes.h | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+Hint: search for "boilerplate" in license-rules.rst
 
-diff --git a/include/uapi/linux/input-event-codes.h b/include/uapi/linux/input-event-codes.h
-index 53fbae27b280..a15fd3c944d2 100644
---- a/include/uapi/linux/input-event-codes.h
-+++ b/include/uapi/linux/input-event-codes.h
-@@ -689,6 +689,19 @@
- #define BTN_TRIGGER_HAPPY39		0x2e6
- #define BTN_TRIGGER_HAPPY40		0x2e7
- 
-+/* Remote control buttons found across provider & universal remotes */
-+#define KEY_LIVE_TV			0x2e8	/* Jump to live tv viewing */
-+#define KEY_OPTIONS			0x2e9	/* Jump to options */
-+#define KEY_INTERACTIVE			0x2ea	/* Jump to interactive system/menu/item */
-+#define KEY_MIC_INPUT			0x2eb	/* Trigger MIC input/listen mode */
-+#define KEY_SCREEN_INPUT		0x2ec	/* Open on-screen input system */
-+#define KEY_SYSTEM_MENU			0x2ed	/* Open systems menu/display */
-+#define KEY_SERVICES			0x2ee	/* Access services */
-+#define KEY_DISPLAY_FORMAT		0x2ef	/* Cycle display formats */
-+#define KEY_PIP				0x2f0	/* Toggle Picture-in-Picture on/off */
-+#define KEY_PIP_SWAP			0x2f1	/* Swap contents between main view and PIP window */
-+#define KEY_PIP_POSITION		0x2f2	/* Cycle PIP window position */
-+
- /* We avoid low common keys in module aliases so they don't get huge. */
- #define KEY_MIN_INTERESTING	KEY_MUTE
- #define KEY_MAX			0x2ff
+Or search for previosuly accepted patches on SPDX ...
+
+
 -- 
-2.19.1
+Himanshu Jha
+Undergraduate Student
+Department of Electronics & Communication
+Guru Tegh Bahadur Institute of Technology
