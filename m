@@ -1,92 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw1-f65.google.com ([209.85.161.65]:40463 "EHLO
-        mail-yw1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726016AbeKCMLB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 3 Nov 2018 08:11:01 -0400
-Received: by mail-yw1-f65.google.com with SMTP id l66-v6so1150586ywl.7
-        for <linux-media@vger.kernel.org>; Fri, 02 Nov 2018 20:01:16 -0700 (PDT)
-Received: from mail-yb1-f178.google.com (mail-yb1-f178.google.com. [209.85.219.178])
-        by smtp.gmail.com with ESMTPSA id f203-v6sm4735127ywa.45.2018.11.02.20.01.13
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Fri, 02 Nov 2018 20:01:14 -0700 (PDT)
-Received: by mail-yb1-f178.google.com with SMTP id p144-v6so1588315yba.11
-        for <linux-media@vger.kernel.org>; Fri, 02 Nov 2018 20:01:13 -0700 (PDT)
-MIME-Version: 1.0
-References: <1541163476-23249-1-git-send-email-mgottam@codeaurora.org>
-In-Reply-To: <1541163476-23249-1-git-send-email-mgottam@codeaurora.org>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Sat, 3 Nov 2018 12:01:01 +0900
-Message-ID: <CAAFQd5D=hNdkEovonE6GOaYvq9dBbQwSZ=95V9a80e-sLp7cYg@mail.gmail.com>
-Subject: Re: [PATCH v3] media: venus: add support for key frame
-To: mgottam@codeaurora.org
-Cc: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        vgarodia@codeaurora.org
-Content-Type: text/plain; charset="UTF-8"
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:36829 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726016AbeKCNjZ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 3 Nov 2018 09:39:25 -0400
+Message-ID: <1e9829f04e215056749d720d9abced74@smtp-cloud7.xs4all.net>
+Date: Sat, 03 Nov 2018 05:29:25 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Malathi,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On Fri, Nov 2, 2018 at 9:58 PM Malathi Gottam <mgottam@codeaurora.org> wrote:
->
-> When client requests for a keyframe, set the property
-> to hardware to generate the sync frame.
->
-> Signed-off-by: Malathi Gottam <mgottam@codeaurora.org>
-> ---
->  drivers/media/platform/qcom/venus/venc_ctrls.c | 20 +++++++++++++++++++-
->  1 file changed, 19 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/media/platform/qcom/venus/venc_ctrls.c b/drivers/media/platform/qcom/venus/venc_ctrls.c
-> index 45910172..59fe7fc 100644
-> --- a/drivers/media/platform/qcom/venus/venc_ctrls.c
-> +++ b/drivers/media/platform/qcom/venus/venc_ctrls.c
-> @@ -79,8 +79,10 @@ static int venc_op_s_ctrl(struct v4l2_ctrl *ctrl)
->  {
->         struct venus_inst *inst = ctrl_to_inst(ctrl);
->         struct venc_controls *ctr = &inst->controls.enc;
-> +       struct hfi_enable en = { .enable = 1 };
->         u32 bframes;
->         int ret;
-> +       u32 ptype;
->
->         switch (ctrl->id) {
->         case V4L2_CID_MPEG_VIDEO_BITRATE_MODE:
-> @@ -173,6 +175,19 @@ static int venc_op_s_ctrl(struct v4l2_ctrl *ctrl)
->
->                 ctr->num_b_frames = bframes;
->                 break;
-> +       case V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME:
-> +               mutex_lock(&inst->lock);
-> +               if (inst->streamon_out && inst->streamon_cap) {
+Results of the daily build of media_tree:
 
-We had a discussion on this in v2. I don't remember seeing any conclusion.
+date:			Sat Nov  3 05:00:13 CET 2018
+media-tree git hash:	dafb7f9aef2fd44991ff1691721ff765a23be27b
+media_build git hash:	0c8bb27f3aaa682b9548b656f77505c3d1f11e71
+v4l-utils git hash:	c36dbbdfa8b30b2badd4f893b59d0bd4f0bd12aa
+edid-decode git hash:	5eeb151a748788666534d6ea3da07f90400d24c2
+gcc version:		i686-linux-gcc (GCC) 8.2.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.18.0-2-amd64
 
-Obviously the hardware should generate a keyframe naturally when the
-CAPTURE streaming starts, which is where the encoding starts, but the
-state of the OUTPUT queue should not affect this.
+linux-git-arm-at91: WARNINGS
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-multi: WARNINGS
+linux-git-arm-pxa: WARNINGS
+linux-git-arm-stm32: WARNINGS
+linux-git-arm64: OK
+linux-git-i686: WARNINGS
+linux-git-mips: OK
+linux-git-powerpc64: WARNINGS
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+Check COMPILE_TEST: OK
+linux-3.10.108-i686: ERRORS
+linux-3.10.108-x86_64: ERRORS
+linux-3.11.10-i686: ERRORS
+linux-3.11.10-x86_64: ERRORS
+linux-3.12.74-i686: ERRORS
+linux-3.12.74-x86_64: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.79-i686: ERRORS
+linux-3.14.79-x86_64: ERRORS
+linux-3.15.10-i686: ERRORS
+linux-3.15.10-x86_64: ERRORS
+linux-3.16.57-i686: ERRORS
+linux-3.16.57-x86_64: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.123-i686: ERRORS
+linux-3.18.123-x86_64: ERRORS
+linux-3.19.8-i686: ERRORS
+linux-3.19.8-x86_64: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.52-i686: ERRORS
+linux-4.1.52-x86_64: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.159-i686: ERRORS
+linux-4.4.159-x86_64: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.10-i686: ERRORS
+linux-4.7.10-x86_64: ERRORS
+linux-4.8.17-i686: ERRORS
+linux-4.8.17-x86_64: ERRORS
+linux-4.9.131-i686: ERRORS
+linux-4.9.131-x86_64: ERRORS
+linux-4.10.17-i686: ERRORS
+linux-4.10.17-x86_64: ERRORS
+linux-4.11.12-i686: ERRORS
+linux-4.11.12-x86_64: ERRORS
+linux-4.12.14-i686: ERRORS
+linux-4.12.14-x86_64: ERRORS
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.74-i686: OK
+linux-4.14.74-x86_64: OK
+linux-4.15.18-i686: OK
+linux-4.15.18-x86_64: OK
+linux-4.16.18-i686: OK
+linux-4.16.18-x86_64: OK
+linux-4.17.19-i686: OK
+linux-4.17.19-x86_64: OK
+linux-4.18.12-i686: OK
+linux-4.18.12-x86_64: OK
+linux-4.19-i686: OK
+linux-4.19-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
-The application is free to stop and start streaming on the OUTPUT
-queue as it goes and it shouldn't imply any side effects in the
-encoded bitstream (e.g. a keyframe inserted). So:
-- a sequence of STREAMOFF(OUTPUT),
-S_CTRL(V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME), STREAMON(OUTPUT) should
-explicitly generate a keyframe,
-- a sequence of STREAMOFF(OUTPUT), STREAMON(OUTPUT) should _not_
-explicitly generate a keyframe (the hardware may generate one, if the
-periodic keyframe counter is active or a scene detection algorithm
-decides so).
+Logs weren't copied as they are too large (1732 kB)
 
-Please refer to the specification (v2 is the latest for the time being
--> https://lore.kernel.org/patchwork/patch/1002476/) for further
-details and feel free to leave any comment for it.
+The Media Infrastructure API from this daily build is here:
 
-Best regards,
-Tomasz
+http://www.xs4all.nl/~hverkuil/spec/index.html
