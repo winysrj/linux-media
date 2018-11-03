@@ -1,53 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg1-f193.google.com ([209.85.215.193]:45882 "EHLO
-        mail-pg1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726778AbeKCIKc (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 3 Nov 2018 04:10:32 -0400
-From: Derek Kelly <user.vdr@gmail.com>
-To: linux-input@vger.kernel.org
-Cc: sean@mess.org, mchehab+samsung@kernel.org,
-        linux-media@vger.kernel.org
-Subject: [PATCH] Input: Add missing event codes for common IR remote buttons
-Date: Fri,  2 Nov 2018 16:00:04 -0700
-Message-Id: <20181102230004.29285-1-user.vdr@gmail.com>
+Received: from mail-yw1-f65.google.com ([209.85.161.65]:40463 "EHLO
+        mail-yw1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726016AbeKCMLB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 3 Nov 2018 08:11:01 -0400
+Received: by mail-yw1-f65.google.com with SMTP id l66-v6so1150586ywl.7
+        for <linux-media@vger.kernel.org>; Fri, 02 Nov 2018 20:01:16 -0700 (PDT)
+Received: from mail-yb1-f178.google.com (mail-yb1-f178.google.com. [209.85.219.178])
+        by smtp.gmail.com with ESMTPSA id f203-v6sm4735127ywa.45.2018.11.02.20.01.13
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 02 Nov 2018 20:01:14 -0700 (PDT)
+Received: by mail-yb1-f178.google.com with SMTP id p144-v6so1588315yba.11
+        for <linux-media@vger.kernel.org>; Fri, 02 Nov 2018 20:01:13 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <1541163476-23249-1-git-send-email-mgottam@codeaurora.org>
+In-Reply-To: <1541163476-23249-1-git-send-email-mgottam@codeaurora.org>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Sat, 3 Nov 2018 12:01:01 +0900
+Message-ID: <CAAFQd5D=hNdkEovonE6GOaYvq9dBbQwSZ=95V9a80e-sLp7cYg@mail.gmail.com>
+Subject: Re: [PATCH v3] media: venus: add support for key frame
+To: mgottam@codeaurora.org
+Cc: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        vgarodia@codeaurora.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following patch adds event codes for common buttons found on various
-provider and universal remote controls. They represent functions not
-covered by existing event codes. Once added, rc_keymaps can be updated
-accordingly where applicable.
+Hi Malathi,
 
-Signed-off-by: Derek Kelly <user.vdr@gmail.com>
----
- include/uapi/linux/input-event-codes.h | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+On Fri, Nov 2, 2018 at 9:58 PM Malathi Gottam <mgottam@codeaurora.org> wrote:
+>
+> When client requests for a keyframe, set the property
+> to hardware to generate the sync frame.
+>
+> Signed-off-by: Malathi Gottam <mgottam@codeaurora.org>
+> ---
+>  drivers/media/platform/qcom/venus/venc_ctrls.c | 20 +++++++++++++++++++-
+>  1 file changed, 19 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/platform/qcom/venus/venc_ctrls.c b/drivers/media/platform/qcom/venus/venc_ctrls.c
+> index 45910172..59fe7fc 100644
+> --- a/drivers/media/platform/qcom/venus/venc_ctrls.c
+> +++ b/drivers/media/platform/qcom/venus/venc_ctrls.c
+> @@ -79,8 +79,10 @@ static int venc_op_s_ctrl(struct v4l2_ctrl *ctrl)
+>  {
+>         struct venus_inst *inst = ctrl_to_inst(ctrl);
+>         struct venc_controls *ctr = &inst->controls.enc;
+> +       struct hfi_enable en = { .enable = 1 };
+>         u32 bframes;
+>         int ret;
+> +       u32 ptype;
+>
+>         switch (ctrl->id) {
+>         case V4L2_CID_MPEG_VIDEO_BITRATE_MODE:
+> @@ -173,6 +175,19 @@ static int venc_op_s_ctrl(struct v4l2_ctrl *ctrl)
+>
+>                 ctr->num_b_frames = bframes;
+>                 break;
+> +       case V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME:
+> +               mutex_lock(&inst->lock);
+> +               if (inst->streamon_out && inst->streamon_cap) {
 
-diff --git a/include/uapi/linux/input-event-codes.h b/include/uapi/linux/input-event-codes.h
-index 53fbae27b280..c68d022163e5 100644
---- a/include/uapi/linux/input-event-codes.h
-+++ b/include/uapi/linux/input-event-codes.h
-@@ -689,6 +689,19 @@
- #define BTN_TRIGGER_HAPPY39		0x2e6
- #define BTN_TRIGGER_HAPPY40		0x2e7
- 
-+/* Remote control buttons found across provider & universal remotes */
-+#define KEY_LIVE_TV			0x2e8	/* Jump to live tv viewing */
-+#define KEY_OPTIONS			0x2e9	/* Jump to options */
-+#define KEY_INTERACTIVE			0x2ea	/* Jump to interactive system/menu/item */
-+#define KEY_MIC_INPUT			0x2eb	/* Trigger MIC input/listen mode */
-+#define KEY_SCREEN_INPUT		0x2ec	/* Open on-screen input system */
-+#define KEY_SYSTEM			0x2ed	/* Open systems menu/display */
-+#define KEY_SERVICES			0x2ee	/* Open services menu/display */
-+#define KEY_DISPLAY_FORMAT		0x2ef	/* Cycle display formats */
-+#define KEY_PIP				0x2f0	/* Toggle Picture-in-Picture on/off */
-+#define KEY_PIP_SWAP			0x2f1	/* Swap contents between main view and PIP window */
-+#define KEY_PIP_POSITION		0x2f2	/* Cycle PIP window position */
-+
- /* We avoid low common keys in module aliases so they don't get huge. */
- #define KEY_MIN_INTERESTING	KEY_MUTE
- #define KEY_MAX			0x2ff
--- 
-2.19.1
+We had a discussion on this in v2. I don't remember seeing any conclusion.
+
+Obviously the hardware should generate a keyframe naturally when the
+CAPTURE streaming starts, which is where the encoding starts, but the
+state of the OUTPUT queue should not affect this.
+
+The application is free to stop and start streaming on the OUTPUT
+queue as it goes and it shouldn't imply any side effects in the
+encoded bitstream (e.g. a keyframe inserted). So:
+- a sequence of STREAMOFF(OUTPUT),
+S_CTRL(V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME), STREAMON(OUTPUT) should
+explicitly generate a keyframe,
+- a sequence of STREAMOFF(OUTPUT), STREAMON(OUTPUT) should _not_
+explicitly generate a keyframe (the hardware may generate one, if the
+periodic keyframe counter is active or a scene detection algorithm
+decides so).
+
+Please refer to the specification (v2 is the latest for the time being
+-> https://lore.kernel.org/patchwork/patch/1002476/) for further
+details and feel free to leave any comment for it.
+
+Best regards,
+Tomasz
