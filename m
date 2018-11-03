@@ -1,30 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.18]:52351 "EHLO mout.gmx.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726849AbeKCTX4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 3 Nov 2018 15:23:56 -0400
-MIME-Version: 1.0
-Message-ID: <trinity-ca86e9e5-75b4-4c41-8330-00a10bc93393-1541239986803@3c-app-mailcom-bs16>
-From: daggs <daggs@gmx.com>
+Received: from mail-wm1-f65.google.com ([209.85.128.65]:53763 "EHLO
+        mail-wm1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726795AbeKCU16 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 3 Nov 2018 16:27:58 -0400
+Received: by mail-wm1-f65.google.com with SMTP id v24-v6so4038435wmh.3
+        for <linux-media@vger.kernel.org>; Sat, 03 Nov 2018 04:16:59 -0700 (PDT)
+From: Irenge Jules Bashizi <jbi.octave@gmail.com>
 To: linux-media@vger.kernel.org
-Subject: Mygica T230 DVB-T/T2/C usb fails constantly with bulk errors
-Content-Type: text/plain; charset=UTF-8
-Date: Sat, 3 Nov 2018 11:13:06 +0100
+Cc: gregkh@linuxfoundation.org, julia.lawall@lip6.fr,
+        outreachy-kernel@googlegroups.com, jules.octave@outlook.com
+Subject: [PATCH] staging:media:Add SPDX-License-Identifier
+Date: Sat,  3 Nov 2018 11:16:48 +0000
+Message-Id: <20181103111648.30662-1-jbi.octave@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Greetings,
+Add SPDX-License-Identifier to fix missing license tag checkpatch warning
 
-I ave a Mygica T230 DVB-T/T2/C usb dongle which I use to view dvb broadcasting.
-it seems that after a sometime, the device stops working and fills dmesg with the following errors:
-bulk message failed: -110 (1/0)
+Signed-off-by: Irenge Jules Bashizi <jbi.octave@gmail.com>
+---
+ drivers/staging/media/davinci_vpfe/davinci_vpfe_user.h | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-only tvheadend stop + device removal resets the device but the issue resurfaces later on.
-I've tried the device on two different systems and three kernels, all shows the same issue.
-x64 debian with kernels 4.15 and 4.18 and rpi2 with 4.14.70-v7+
-
-is there any known solution for this issue?
-
-thanks,
-
-Dagg.
+diff --git a/drivers/staging/media/davinci_vpfe/davinci_vpfe_user.h b/drivers/staging/media/davinci_vpfe/davinci_vpfe_user.h
+index 7cc115c9ebe6..6d2570a63529 100644
+--- a/drivers/staging/media/davinci_vpfe/davinci_vpfe_user.h
++++ b/drivers/staging/media/davinci_vpfe/davinci_vpfe_user.h
+@@ -1,3 +1,4 @@
++/* SPDX-License-Identifier: GPL-2.0 */
+ /*
+  * Copyright (C) 2012 Texas Instruments Inc
+  *
+@@ -10,9 +11,6 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+  *
+  * Contributors:
+  *      Manjunath Hadli <manjunath.hadli@ti.com>
+-- 
+2.17.2
