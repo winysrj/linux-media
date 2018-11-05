@@ -1,49 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from shell.v3.sk ([90.176.6.54]:49512 "EHLO shell.v3.sk"
+Received: from mga04.intel.com ([192.55.52.120]:34247 "EHLO mga04.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727537AbeKEQti (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Nov 2018 11:49:38 -0500
-From: Lubomir Rintel <lkundrak@v3.sk>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>, linux-media@vger.kernel.org
-Cc: Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Lubomir Rintel <lkundrak@v3.sk>,
-        James Cameron <quozl@laptop.org>, Pavel Machek <pavel@ucw.cz>
-Subject: [PATCH 01/11] media: ov7670: hook s_power onto v4l2 core
-Date: Mon,  5 Nov 2018 08:30:44 +0100
-Message-Id: <20181105073054.24407-2-lkundrak@v3.sk>
-In-Reply-To: <20181105073054.24407-1-lkundrak@v3.sk>
-References: <20181105073054.24407-1-lkundrak@v3.sk>
+        id S1726086AbeKERqe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 5 Nov 2018 12:46:34 -0500
+Date: Mon, 5 Nov 2018 10:27:56 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Yong Zhi <yong.zhi@intel.com>
+Cc: linux-media@vger.kernel.org, tfiga@chromium.org,
+        mchehab@kernel.org, hans.verkuil@cisco.com,
+        laurent.pinchart@ideasonboard.com, rajmohan.mani@intel.com,
+        jian.xu.zheng@intel.com, jerry.w.hu@intel.com,
+        tuukka.toivonen@intel.com, tian.shu.qiu@intel.com,
+        bingbu.cao@intel.com
+Subject: Re: [PATCH v7 05/16] intel-ipu3: abi: Add structs
+Message-ID: <20181105082755.c65oh6c2ztk34kpb@kekkonen.localdomain>
+References: <1540851790-1777-1-git-send-email-yong.zhi@intel.com>
+ <1540851790-1777-6-git-send-email-yong.zhi@intel.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1540851790-1777-6-git-send-email-yong.zhi@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The commit 71862f63f351 ("media: ov7670: Add the ov7670_s_power function"=
-)
-added a s_power function. For some reason it didn't register it with v4l2=
-,
-only uses it internally. Fix this now.
+Hi Yong,
 
-Signed-off-by: Lubomir Rintel <lkundrak@v3.sk>
----
- drivers/media/i2c/ov7670.c | 1 +
- 1 file changed, 1 insertion(+)
+On Mon, Oct 29, 2018 at 03:22:59PM -0700, Yong Zhi wrote:
+> This add all the structs of IPU3 firmware ABI.
+> 
+> Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+> Signed-off-by: Rajmohan Mani <rajmohan.mani@intel.com>
 
-diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
-index bc68a3a5b4ec..d87f2362bf40 100644
---- a/drivers/media/i2c/ov7670.c
-+++ b/drivers/media/i2c/ov7670.c
-@@ -1651,6 +1651,7 @@ static int ov7670_open(struct v4l2_subdev *sd, stru=
-ct v4l2_subdev_fh *fh)
- static const struct v4l2_subdev_core_ops ov7670_core_ops =3D {
- 	.reset =3D ov7670_reset,
- 	.init =3D ov7670_init,
-+	.s_power =3D ov7670_s_power,
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- 	.g_register =3D ov7670_g_register,
- 	.s_register =3D ov7670_s_register,
---=20
-2.19.1
+...
+
+> +struct imgu_abi_shd_intra_frame_operations_data {
+> +	struct imgu_abi_acc_operation
+> +		operation_list[IMGU_ABI_SHD_MAX_OPERATIONS] __attribute__((aligned(32)));
+> +	struct imgu_abi_acc_process_lines_cmd_data
+> +		process_lines_data[IMGU_ABI_SHD_MAX_PROCESS_LINES] __attribute__((aligned(32)));
+> +	struct imgu_abi_shd_transfer_luts_set_data
+> +		transfer_data[IMGU_ABI_SHD_MAX_TRANSFERS] __attribute__((aligned(32)));
+
+Could you replace this wth __aligned(32), please? The same for the rest of
+the header.
+
+-- 
+Regards,
+
+Sakari Ailus
+sakari.ailus@linux.intel.com
