@@ -1,111 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:34651 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727108AbeKENmN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Nov 2018 08:42:13 -0500
-Message-ID: <92bc3c7f2944ac4d75f49c207f0d519d@smtp-cloud8.xs4all.net>
-Date: Mon, 05 Nov 2018 05:24:31 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from shell.v3.sk ([90.176.6.54]:49545 "EHLO shell.v3.sk"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1729375AbeKEQto (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 5 Nov 2018 11:49:44 -0500
+From: Lubomir Rintel <lkundrak@v3.sk>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>, linux-media@vger.kernel.org
+Cc: Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Lubomir Rintel <lkundrak@v3.sk>,
+        James Cameron <quozl@laptop.org>, Pavel Machek <pavel@ucw.cz>
+Subject: [PATCH 04/11] [media] marvell-ccic: fix DMA s/g desc number calculation
+Date: Mon,  5 Nov 2018 08:30:47 +0100
+Message-Id: <20181105073054.24407-5-lkundrak@v3.sk>
+In-Reply-To: <20181105073054.24407-1-lkundrak@v3.sk>
+References: <20181105073054.24407-1-lkundrak@v3.sk>
+MIME-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+The commit d790b7eda953 ("[media] vb2-dma-sg: move dma_(un)map_sg here")
+left dma_desc_nent unset. It previously contained the number of DMA
+descriptors as returned from dma_map_sg().
 
-Results of the daily build of media_tree:
+We can now (since the commit referred to above) obtain the same value fro=
+m
+the sg_table and drop dma_desc_nent altogether.
 
-date:			Mon Nov  5 05:00:09 CET 2018
-media-tree git hash:	dafb7f9aef2fd44991ff1691721ff765a23be27b
-media_build git hash:	0c8bb27f3aaa682b9548b656f77505c3d1f11e71
-v4l-utils git hash:	c36dbbdfa8b30b2badd4f893b59d0bd4f0bd12aa
-edid-decode git hash:	5eeb151a748788666534d6ea3da07f90400d24c2
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.18.0-2-amd64
+Tested on OLPC XO-1.75 machine. Doesn't affect the OLPC XO-1's Cafe
+driver, since that one doesn't do DMA.
 
-linux-git-arm-at91: WARNINGS
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-multi: WARNINGS
-linux-git-arm-pxa: WARNINGS
-linux-git-arm-stm32: WARNINGS
-linux-git-arm64: OK
-linux-git-i686: WARNINGS
-linux-git-mips: OK
-linux-git-powerpc64: WARNINGS
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: ERRORS
-linux-3.10.108-x86_64: ERRORS
-linux-3.11.10-i686: ERRORS
-linux-3.11.10-x86_64: ERRORS
-linux-3.12.74-i686: ERRORS
-linux-3.12.74-x86_64: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.79-i686: ERRORS
-linux-3.14.79-x86_64: ERRORS
-linux-3.15.10-i686: ERRORS
-linux-3.15.10-x86_64: ERRORS
-linux-3.16.57-i686: ERRORS
-linux-3.16.57-x86_64: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.123-i686: ERRORS
-linux-3.18.123-x86_64: ERRORS
-linux-3.19.8-i686: ERRORS
-linux-3.19.8-x86_64: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.52-i686: ERRORS
-linux-4.1.52-x86_64: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.159-i686: ERRORS
-linux-4.4.159-x86_64: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.10-i686: ERRORS
-linux-4.7.10-x86_64: ERRORS
-linux-4.8.17-i686: ERRORS
-linux-4.8.17-x86_64: ERRORS
-linux-4.9.131-i686: ERRORS
-linux-4.9.131-x86_64: ERRORS
-linux-4.10.17-i686: ERRORS
-linux-4.10.17-x86_64: ERRORS
-linux-4.11.12-i686: ERRORS
-linux-4.11.12-x86_64: ERRORS
-linux-4.12.14-i686: ERRORS
-linux-4.12.14-x86_64: ERRORS
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.74-i686: OK
-linux-4.14.74-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: OK
-linux-4.19-i686: OK
-linux-4.19-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+Fixes: d790b7eda953df474f470169ebdf111c02fa7a2d
+Signed-off-by: Lubomir Rintel <lkundrak@v3.sk>
+---
+ drivers/media/platform/marvell-ccic/mcam-core.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-Logs weren't copied as they are too large (1716 kB)
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/me=
+dia/platform/marvell-ccic/mcam-core.c
+index f1b301810260..d97f39bde9bd 100644
+--- a/drivers/media/platform/marvell-ccic/mcam-core.c
++++ b/drivers/media/platform/marvell-ccic/mcam-core.c
+@@ -200,7 +200,6 @@ struct mcam_vb_buffer {
+ 	struct list_head queue;
+ 	struct mcam_dma_desc *dma_desc;	/* Descriptor virtual address */
+ 	dma_addr_t dma_desc_pa;		/* Descriptor physical address */
+-	int dma_desc_nent;		/* Number of mapped descriptors */
+ };
+=20
+ static inline struct mcam_vb_buffer *vb_to_mvb(struct vb2_v4l2_buffer *v=
+b)
+@@ -608,9 +607,11 @@ static void mcam_dma_contig_done(struct mcam_camera =
+*cam, int frame)
+ static void mcam_sg_next_buffer(struct mcam_camera *cam)
+ {
+ 	struct mcam_vb_buffer *buf;
++	struct sg_table *sg_table;
+=20
+ 	buf =3D list_first_entry(&cam->buffers, struct mcam_vb_buffer, queue);
+ 	list_del_init(&buf->queue);
++	sg_table =3D vb2_dma_sg_plane_desc(&buf->vb_buf.vb2_buf, 0);
+ 	/*
+ 	 * Very Bad Not Good Things happen if you don't clear
+ 	 * C1_DESC_ENA before making any descriptor changes.
+@@ -618,7 +619,7 @@ static void mcam_sg_next_buffer(struct mcam_camera *c=
+am)
+ 	mcam_reg_clear_bit(cam, REG_CTRL1, C1_DESC_ENA);
+ 	mcam_reg_write(cam, REG_DMA_DESC_Y, buf->dma_desc_pa);
+ 	mcam_reg_write(cam, REG_DESC_LEN_Y,
+-			buf->dma_desc_nent*sizeof(struct mcam_dma_desc));
++			sg_table->nents*sizeof(struct mcam_dma_desc));
+ 	mcam_reg_write(cam, REG_DESC_LEN_U, 0);
+ 	mcam_reg_write(cam, REG_DESC_LEN_V, 0);
+ 	mcam_reg_set_bit(cam, REG_CTRL1, C1_DESC_ENA);
+--=20
+2.19.1
