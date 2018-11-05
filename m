@@ -1,129 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from shell.v3.sk ([90.176.6.54]:50896 "EHLO shell.v3.sk"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728973AbeKEWcJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Nov 2018 17:32:09 -0500
-Message-ID: <272b2d009e056f36bfb08206772eb40bcdff00b0.camel@v3.sk>
-Subject: Re: [PATCH] [media] ov7670: make "xclk" clock optional
-From: Lubomir Rintel <lkundrak@v3.sk>
-To: jacopo mondi <jacopo@jmondi.org>
-Cc: Jonathan Corbet <corbet@lwn.net>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        stable@vger.kernel.org
-Date: Mon, 05 Nov 2018 14:12:18 +0100
-In-Reply-To: <20181105105841.GJ20885@w540>
-References: <20181004212903.364064-1-lkundrak@v3.sk>
-         <20181105105841.GJ20885@w540>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:33662 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1728966AbeKEWiQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 5 Nov 2018 17:38:16 -0500
+Subject: Re: VIDIOC_SUBSCRIBE_EVENT for V4L2_EVENT_CTRL regression?
+To: Dave Stevenson <dave.stevenson@raspberrypi.org>,
+        LMML <linux-media@vger.kernel.org>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+References: <CAAoAYcOuXvryXaXTMETDwKeVTooc2f6aCFp3u0FLvB=ETrgXow@mail.gmail.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <085fa404-44ef-8391-3863-1fa90e48187c@xs4all.nl>
+Date: Mon, 5 Nov 2018 14:18:30 +0100
+MIME-Version: 1.0
+In-Reply-To: <CAAoAYcOuXvryXaXTMETDwKeVTooc2f6aCFp3u0FLvB=ETrgXow@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
-
-On Mon, 2018-11-05 at 11:58 +0100, jacopo mondi wrote:
-> Hi Lubomir,
->    +Sakari in Cc
+On 11/05/2018 01:21 PM, Dave Stevenson wrote:
+> Hi All
 > 
-> I just noticed this, and the patch is now in v4.20, but let me comment
-> anyway on this.
+> I'm testing with 4.19 and finding that testEvents in v4l2-compliance
+> is failing with ""failed to find event for control '%s' type %u", ie
+> it hasn't got the event for the inital values. This is with the
+> various BCM2835 drivers that I'm involved with.
 > 
-> On Thu, Oct 04, 2018 at 11:29:03PM +0200, Lubomir Rintel wrote:
-> > When the "xclk" clock was added, it was made mandatory. This broke the
-> > driver on an OLPC plaform which doesn't know such clock. Make it
-> > optional.
-> > 
+> Having looked at the v4l2-core history I tried reverting "ad608fb
+> media: v4l: event: Prevent freeing event subscriptions while
+> accessed". The test passes again.
 > 
-> I don't think this is correct. The sensor needs a clock to work.
->
-> With this patch clock_speed which is used to calculate
-> the framerate is defaulted to 30MHz, crippling all the calculations if
-> that default value doesn't match what is actually installed on the
-> board.
-
-How come? I kept this:
-
-+             info->clock_speed = clk_get_rate(info->clk) / 1000000;
-
+> Enabling all logging, and adding a couple of logging messages at the
+> beginning and end of v4l2_ctrl_add_event and __v4l2_event_queue_fh
+> error path, I get the following logs:
 > 
-> If this patch breaks the OLPC, then might it be the DTS for said
-> device needs to be fixed instead of working around the issue here?
-
-No. Device tree is an ABI, and you can't just add mandatory properties.
-
-There's no DTS for OLPC XO-1 either; it's an OpenFirmware machine.
-You'd need to update all machines in the wild which is not realistic.
-
-Alternatively, something else than DT could provide the clock. If this
-gets in, then the OLPC would work even without the xclk patch:
-https://lore.kernel.org/lkml/20181105073054.24407-12-lkundrak@v3.sk/
-
-(I just got a kbuild failure message, so I'll surely be following up
-with a v2.)
-
-> Also, the DT bindings should be updated too if we decide this property
-> can be omitted. At this point, with a follow-up patch.
-
-Yes.
-
+> [   90.629999] v4l2_ctrl_add_event: ctrl a2b86fa8 "User Controls" type
+> 6, flags 0001
+> [   90.630002] video0: VIDIOC_SUBSCRIBE_EVENT: type=0x3, id=0x980001, flags=0x1
+> [   91.630166] videodev: v4l2_poll: video0: poll: 00000000
+> [   91.630311] videodev: v4l2_poll: video0: poll: 00000000
+> [   91.630325] video0: VIDIOC_UNSUBSCRIBE_EVENT: type=0x3,
+> id=0x980001, flags=0x1
+> [   91.630396] v4l2_ctrl_add_event: ctrl 8f6fcc61 "Brightness" type 1,
+> flags 0001
+> [   91.630403] __v4l2_event_queue_fh: Not subscribed to event type 3 id 0x980001
+> [   91.630407] v4l2_ctrl_add_event: ctrl 8f6fcc61 "Brightness" type 1
+> - initial values queued
+> [   91.630409] video0: VIDIOC_SUBSCRIBE_EVENT: type=0x3, id=0x980900, flags=0x1
+> [   92.630513] videodev: v4l2_poll: video0: poll: 00000000
+> [   92.630660] videodev: v4l2_poll: video0: poll: 00000000
+> [   92.630729] videodev: v4l2_release: video0: release
 > 
-> Thanks
-
-Cheers
-Lubo
-
->    j
+> So __v4l2_event_queue_fh is dropping the event as we aren't subscribed
+> at the point that the initial values are queued.
 > 
-> > Tested on a OLPC XO-1 laptop.
-> > 
-> > Cc: stable@vger.kernel.org # 4.11+
-> > Fixes: 0a024d634cee ("[media] ov7670: get xclk")
-> > Signed-off-by: Lubomir Rintel <lkundrak@v3.sk>
-> > ---
-> >  drivers/media/i2c/ov7670.c | 27 +++++++++++++++++----------
-> >  1 file changed, 17 insertions(+), 10 deletions(-)
-> > 
-> > diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
-> > index 31bf577b0bd3..64d1402882c8 100644
-> > --- a/drivers/media/i2c/ov7670.c
-> > +++ b/drivers/media/i2c/ov7670.c
-> > @@ -1808,17 +1808,24 @@ static int ov7670_probe(struct i2c_client *client,
-> >  			info->pclk_hb_disable = true;
-> >  	}
-> > 
-> > -	info->clk = devm_clk_get(&client->dev, "xclk");
-> > -	if (IS_ERR(info->clk))
-> > -		return PTR_ERR(info->clk);
-> > -	ret = clk_prepare_enable(info->clk);
-> > -	if (ret)
-> > -		return ret;
-> > +	info->clk = devm_clk_get(&client->dev, "xclk"); /* optional */
-> > +	if (IS_ERR(info->clk)) {
-> > +		ret = PTR_ERR(info->clk);
-> > +		if (ret == -ENOENT)
-> > +			info->clk = NULL;
-> > +		else
-> > +			return ret;
-> > +	}
-> > +	if (info->clk) {
-> > +		ret = clk_prepare_enable(info->clk);
-> > +		if (ret)
-> > +			return ret;
-> > 
-> > -	info->clock_speed = clk_get_rate(info->clk) / 1000000;
-> > -	if (info->clock_speed < 10 || info->clock_speed > 48) {
-> > -		ret = -EINVAL;
-> > -		goto clk_disable;
-> > +		info->clock_speed = clk_get_rate(info->clk) / 1000000;
-> > +		if (info->clock_speed < 10 || info->clock_speed > 48) {
-> > +			ret = -EINVAL;
-> > +			goto clk_disable;
-> > +		}
-> >  	}
-> > 
-> >  	ret = ov7670_init_gpio(client, info);
-> > --
-> > 2.19.0
-> > 
+> Sorry, I don't have any other devices that support subscribing for
+> events to hand (uvcvideo passes the test as it reports unsupported). I
+> don't have a media tree build immediately available either, but I
+> can't see anything related to this in the recent history. I can go
+> down that route if needed.
+> v4l-utils repo was synced today - head at "f9881444e8 cec-compliance:
+> wake-up on Active Source is warn for <2.0"
+> 
+> Could someone test on other hardware to confirm that it's not the
+> drivers I'm using? I'm fairly certain it isn't as that patch does call
+> sev->ops->add(sev, elems); before list_add(&sev->list,
+> &fh->subscribed), and that is guaranteed to fail if sev->ops->add
+> immediately queues an event.
+
+Just to pitch in, I got similar issues when I tried to apply that commit
+to our Cisco code base. I've been away for a week and had no time to look
+into the cause, but it really appears that that commit was bad.
+
+Sakari, can you take a look at this?
+
+Regards,
+
+	Hans
