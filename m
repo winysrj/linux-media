@@ -1,77 +1,230 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00252a01.pphosted.com ([62.209.51.214]:6881 "EHLO
-        mx07-00252a01.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726358AbeKEVlT (ORCPT
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:45606 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1729100AbeKEWaL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Nov 2018 16:41:19 -0500
-Received: from pps.filterd (m0102628.ppops.net [127.0.0.1])
-        by mx07-00252a01.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id wA5CD8I4001882
-        for <linux-media@vger.kernel.org>; Mon, 5 Nov 2018 12:21:48 GMT
-Received: from mail-pg1-f198.google.com (mail-pg1-f198.google.com [209.85.215.198])
-        by mx07-00252a01.pphosted.com with ESMTP id 2nh1y5h059-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=OK)
-        for <linux-media@vger.kernel.org>; Mon, 05 Nov 2018 12:21:47 +0000
-Received: by mail-pg1-f198.google.com with SMTP id d8-v6so8325963pgq.3
-        for <linux-media@vger.kernel.org>; Mon, 05 Nov 2018 04:21:47 -0800 (PST)
+        Mon, 5 Nov 2018 17:30:11 -0500
+Subject: Re: [PATCH v2] media: vivid: Improve timestamping
+To: Gabriel Francisco Mandaji <gfmandaji@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: lkcamp@lists.libreplanetbr.org
+References: <20181021230026.GA19458@gfm-note>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <f95880e5-0127-e5bf-db44-a380c21283ce@xs4all.nl>
+Date: Mon, 5 Nov 2018 14:10:25 +0100
 MIME-Version: 1.0
-From: Dave Stevenson <dave.stevenson@raspberrypi.org>
-Date: Mon, 5 Nov 2018 12:21:35 +0000
-Message-ID: <CAAoAYcOuXvryXaXTMETDwKeVTooc2f6aCFp3u0FLvB=ETrgXow@mail.gmail.com>
-Subject: VIDIOC_SUBSCRIBE_EVENT for V4L2_EVENT_CTRL regression?
-To: LMML <linux-media@vger.kernel.org>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <20181021230026.GA19458@gfm-note>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi All
+Hi Gabriel,
 
-I'm testing with 4.19 and finding that testEvents in v4l2-compliance
-is failing with ""failed to find event for control '%s' type %u", ie
-it hasn't got the event for the inital values. This is with the
-various BCM2835 drivers that I'm involved with.
+This doesn't work. See my comment below.
 
-Having looked at the v4l2-core history I tried reverting "ad608fb
-media: v4l: event: Prevent freeing event subscriptions while
-accessed". The test passes again.
+I recommend testing with:
 
-Enabling all logging, and adding a couple of logging messages at the
-beginning and end of v4l2_ctrl_add_event and __v4l2_event_queue_fh
-error path, I get the following logs:
+v4l2-ctl -P --stream-mmap --verbose
 
-[   90.629999] v4l2_ctrl_add_event: ctrl a2b86fa8 "User Controls" type
-6, flags 0001
-[   90.630002] video0: VIDIOC_SUBSCRIBE_EVENT: type=0x3, id=0x980001, flags=0x1
-[   91.630166] videodev: v4l2_poll: video0: poll: 00000000
-[   91.630311] videodev: v4l2_poll: video0: poll: 00000000
-[   91.630325] video0: VIDIOC_UNSUBSCRIBE_EVENT: type=0x3,
-id=0x980001, flags=0x1
-[   91.630396] v4l2_ctrl_add_event: ctrl 8f6fcc61 "Brightness" type 1,
-flags 0001
-[   91.630403] __v4l2_event_queue_fh: Not subscribed to event type 3 id 0x980001
-[   91.630407] v4l2_ctrl_add_event: ctrl 8f6fcc61 "Brightness" type 1
-- initial values queued
-[   91.630409] video0: VIDIOC_SUBSCRIBE_EVENT: type=0x3, id=0x980900, flags=0x1
-[   92.630513] videodev: v4l2_poll: video0: poll: 00000000
-[   92.630660] videodev: v4l2_poll: video0: poll: 00000000
-[   92.630729] videodev: v4l2_release: video0: release
+This shows the expected frame rate and --verbose shows the reported frame periods.
 
-So __v4l2_event_queue_fh is dropping the event as we aren't subscribed
-at the point that the initial values are queued.
+On 10/22/2018 01:00 AM, Gabriel Francisco Mandaji wrote:
+> Simulate a more precise timestamp by calculating it based on the
+> current framerate.
+> 
+> Signed-off-by: Gabriel Francisco Mandaji <gfmandaji@gmail.com>
+> ---
+> Changes in v2:
+>     - fix spelling
+>     - end of exposure is offset by 90% of the frame period
+>     - fix timestamp calculation for FIELD_ALTERNATE (untested)
+>     - timestamp is now calculated and set from vivid_thread_cap_tick()
+>     - capture vbi uses the same timestamp as non-vbi, but offset by 5%
+>     - timestamp stays consistent even if the FPS changes
+>     - tested with dropped frames
+> 
+> If 'Start of Exposure'/'End of Frame' changes mid-capture, it will be
+> completely ignored. If that's an issue, I'll change how the frame
+> period and cap_stream_start are calculated.
+> 
+> Also, should I modify the output's timestamp on this patch or on adrivers/media/platform/vivid/vivid-kthread-cap.c
+> separated one?
 
-Sorry, I don't have any other devices that support subscribing for
-events to hand (uvcvideo passes the test as it reports unsupported). I
-don't have a media tree build immediately available either, but I
-can't see anything related to this in the recent history. I can go
-down that route if needed.
-v4l-utils repo was synced today - head at "f9881444e8 cec-compliance:
-wake-up on Active Source is warn for <2.0"
+Separate one.
 
-Could someone test on other hardware to confirm that it's not the
-drivers I'm using? I'm fairly certain it isn't as that patch does call
-sev->ops->add(sev, elems); before list_add(&sev->list,
-&fh->subscribed), and that is guaranteed to fail if sev->ops->add
-immediately queues an event.
+> ---
+>  drivers/media/platform/vivid/vivid-core.h        |  2 +
+>  drivers/media/platform/vivid/vivid-kthread-cap.c | 47 +++++++++++++++++-------
+>  drivers/media/platform/vivid/vivid-vbi-cap.c     |  4 --
+>  3 files changed, 35 insertions(+), 18 deletions(-)
+> 
+> diff --git a/drivers/media/platform/vivid/vivid-core.h b/drivers/media/platform/vivid/vivid-core.h
+> index cd4c823..ba6fb3a 100644
+> --- a/drivers/media/platform/vivid/vivid-core.h
+> +++ b/drivers/media/platform/vivid/vivid-core.h
+> @@ -384,6 +384,8 @@ struct vivid_dev {
+>  	/* thread for generating video capture stream */
+>  	struct task_struct		*kthread_vid_cap;
+>  	unsigned long			jiffies_vid_cap;
+> +	u64				cap_stream_start;
+> +	u64				cap_frame_period;
+>  	u32				cap_seq_offset;
+>  	u32				cap_seq_count;
+>  	bool				cap_seq_resync;
+> diff --git a/drivers/media/platform/vivid/vivid-kthread-cap.c b/drivers/media/platform/vivid/vivid-kthread-cap.c
+> index f06003b..828a58c 100644
+> --- a/drivers/media/platform/vivid/vivid-kthread-cap.c
+> +++ b/drivers/media/platform/vivid/vivid-kthread-cap.c
+> @@ -425,12 +425,6 @@ static void vivid_fillbuff(struct vivid_dev *dev, struct vivid_buffer *buf)
+>  		is_loop = true;
+>  
+>  	buf->vb.sequence = dev->vid_cap_seq_count;
+> -	/*
+> -	 * Take the timestamp now if the timestamp source is set to
+> -	 * "Start of Exposure".
+> -	 */
+> -	if (dev->tstamp_src_is_soe)
+> -		buf->vb.vb2_buf.timestamp = ktime_get_ns();
+>  	if (dev->field_cap == V4L2_FIELD_ALTERNATE) {
+>  		/*
+>  		 * 60 Hz standards start with the bottom field, 50 Hz standards
+> @@ -554,14 +548,6 @@ static void vivid_fillbuff(struct vivid_dev *dev, struct vivid_buffer *buf)
+>  			}
+>  		}
+>  	}
+> -
+> -	/*
+> -	 * If "End of Frame" is specified at the timestamp source, then take
+> -	 * the timestamp now.
+> -	 */
+> -	if (!dev->tstamp_src_is_soe)
+> -		buf->vb.vb2_buf.timestamp = ktime_get_ns();
+> -	buf->vb.vb2_buf.timestamp += dev->time_wrap_offset;
+>  }
+>  
+>  /*
+> @@ -667,10 +653,27 @@ static void vivid_overlay(struct vivid_dev *dev, struct vivid_buffer *buf)
+>  	}
+>  }
+>  
+> +static void vivid_cap_update_frame_period(struct vivid_dev *dev)
+> +{
+> +	u64 f_period = dev->timeperframe_vid_cap.numerator * 1000000000 /
+> +		       dev->timeperframe_vid_cap.denominator;
+> +	if (dev->field_cap == V4L2_FIELD_ALTERNATE)
+> +		f_period /= 2;
+> +	/*
+> +	 * If "End of Frame", then calculate the exposure time as 0.9
+> +	 * of the frame period.
+> +	 */
+> +	if (!dev->tstamp_src_is_soe)
+> +		f_period += f_period / 10 * 9;
 
-Thanks
-  Dave
+This is very wrong: if the timestamp is for the "End of Frame" (the default), then
+that does not change the frame period value, it just adds an offset.
+
+Easiest is probably to add a dev->cap_frame_offset field:
+
+	if (dev->tstamp_src_is_soe)
+		dev->cap_frame_offset = 0;
+	else
+		dev->cap_frame_offset = f_period * 9 / 10;
+
+This bug gave really weird frame periods.
+
+Regards,
+
+	Hans
+
+> +
+> +	dev->cap_frame_period = f_period;
+> +}
+> +
+>  static void vivid_thread_vid_cap_tick(struct vivid_dev *dev, int dropped_bufs)
+>  {
+>  	struct vivid_buffer *vid_cap_buf = NULL;
+>  	struct vivid_buffer *vbi_cap_buf = NULL;
+> +	u64 f_time = 0;
+>  
+>  	dprintk(dev, 1, "Video Capture Thread Tick\n");
+>  
+> @@ -702,6 +705,9 @@ static void vivid_thread_vid_cap_tick(struct vivid_dev *dev, int dropped_bufs)
+>  	if (!vid_cap_buf && !vbi_cap_buf)
+>  		goto update_mv;
+>  
+> +	f_time = dev->cap_frame_period * dev->vid_cap_seq_count +
+> +		 dev->cap_stream_start + dev->time_wrap_offset;
+> +
+>  	if (vid_cap_buf) {
+>  		/* Fill buffer */
+>  		vivid_fillbuff(dev, vid_cap_buf);
+> @@ -717,9 +723,13 @@ static void vivid_thread_vid_cap_tick(struct vivid_dev *dev, int dropped_bufs)
+>  				VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
+>  		dprintk(dev, 2, "vid_cap buffer %d done\n",
+>  				vid_cap_buf->vb.vb2_buf.index);
+> +
+> +		vid_cap_buf->vb.vb2_buf.timestamp = f_time;
+>  	}
+>  
+>  	if (vbi_cap_buf) {
+> +		u64 vbi_period;
+> +
+>  		if (dev->stream_sliced_vbi_cap)
+>  			vivid_sliced_vbi_cap_process(dev, vbi_cap_buf);
+>  		else
+> @@ -728,6 +738,10 @@ static void vivid_thread_vid_cap_tick(struct vivid_dev *dev, int dropped_bufs)
+>  				VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
+>  		dprintk(dev, 2, "vbi_cap %d done\n",
+>  				vbi_cap_buf->vb.vb2_buf.index);
+> +
+> +		/* If capturing a VBI, offset by 0.05 */
+> +		vbi_period = dev->cap_frame_period / 100 * 5;
+> +		vbi_cap_buf->vb.vb2_buf.timestamp = f_time + vbi_period;
+>  	}
+>  	dev->dqbuf_error = false;
+>  
+> @@ -759,6 +773,8 @@ static int vivid_thread_vid_cap(void *data)
+>  	dev->cap_seq_count = 0;
+>  	dev->cap_seq_resync = false;
+>  	dev->jiffies_vid_cap = jiffies;
+> +	dev->cap_stream_start = ktime_get_ns();
+> +	vivid_cap_update_frame_period(dev);
+>  
+>  	for (;;) {
+>  		try_to_freeze();
+> @@ -771,6 +787,9 @@ static int vivid_thread_vid_cap(void *data)
+>  			dev->jiffies_vid_cap = cur_jiffies;
+>  			dev->cap_seq_offset = dev->cap_seq_count + 1;
+>  			dev->cap_seq_count = 0;
+> +			dev->cap_stream_start += dev->cap_frame_period *
+> +						 dev->cap_seq_offset;
+> +			vivid_cap_update_frame_period(dev);
+>  			dev->cap_seq_resync = false;
+>  		}
+>  		numerator = dev->timeperframe_vid_cap.numerator;
+> diff --git a/drivers/media/platform/vivid/vivid-vbi-cap.c b/drivers/media/platform/vivid/vivid-vbi-cap.c
+> index 92a8529..c7cacc6 100644
+> --- a/drivers/media/platform/vivid/vivid-vbi-cap.c
+> +++ b/drivers/media/platform/vivid/vivid-vbi-cap.c
+> @@ -95,8 +95,6 @@ void vivid_raw_vbi_cap_process(struct vivid_dev *dev, struct vivid_buffer *buf)
+>  
+>  	if (!VIVID_INVALID_SIGNAL(dev->std_signal_mode))
+>  		vivid_vbi_gen_raw(&dev->vbi_gen, &vbi, vbuf);
+> -
+> -	buf->vb.vb2_buf.timestamp = ktime_get_ns() + dev->time_wrap_offset;
+>  }
+>  
+>  
+> @@ -119,8 +117,6 @@ void vivid_sliced_vbi_cap_process(struct vivid_dev *dev,
+>  		for (i = 0; i < 25; i++)
+>  			vbuf[i] = dev->vbi_gen.data[i];
+>  	}
+> -
+> -	buf->vb.vb2_buf.timestamp = ktime_get_ns() + dev->time_wrap_offset;
+>  }
+>  
+>  static int vbi_cap_queue_setup(struct vb2_queue *vq,
+> 
