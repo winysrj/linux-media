@@ -1,151 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00252a01.pphosted.com ([62.209.51.214]:30859 "EHLO
-        mx07-00252a01.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1729652AbeKFBt1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Nov 2018 20:49:27 -0500
-Received: from pps.filterd (m0102628.ppops.net [127.0.0.1])
-        by mx07-00252a01.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id wA5GSZdW015631
-        for <linux-media@vger.kernel.org>; Mon, 5 Nov 2018 16:28:57 GMT
-Received: from mail-pf1-f200.google.com (mail-pf1-f200.google.com [209.85.210.200])
-        by mx07-00252a01.pphosted.com with ESMTP id 2nh1y5h3mv-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=OK)
-        for <linux-media@vger.kernel.org>; Mon, 05 Nov 2018 16:28:57 +0000
-Received: by mail-pf1-f200.google.com with SMTP id x62-v6so5969497pfk.16
-        for <linux-media@vger.kernel.org>; Mon, 05 Nov 2018 08:28:56 -0800 (PST)
+Received: from mail-wr1-f65.google.com ([209.85.221.65]:40480 "EHLO
+        mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2387407AbeKFBxH (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Nov 2018 20:53:07 -0500
+Received: by mail-wr1-f65.google.com with SMTP id i17-v6so10227359wre.7
+        for <linux-media@vger.kernel.org>; Mon, 05 Nov 2018 08:32:37 -0800 (PST)
+Subject: Re: [PATCH 01/15] media: coda: fix memory corruption in case more
+ than 32 instances are opened
+To: Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de
+References: <20181105152513.26345-1-p.zabel@pengutronix.de>
+From: Ian Arkver <ian.arkver.dev@gmail.com>
+Message-ID: <08ac9e66-1bad-15a5-c30d-03c9c693dcbf@gmail.com>
+Date: Mon, 5 Nov 2018 16:32:35 +0000
 MIME-Version: 1.0
-References: <CAAoAYcOp+sxOkjDkXJDt8FCYXZqE2EgnDikF1M5PqvjnmQUq+Q@mail.gmail.com>
- <20181105154635.10157-1-sakari.ailus@linux.intel.com>
-In-Reply-To: <20181105154635.10157-1-sakari.ailus@linux.intel.com>
-From: Dave Stevenson <dave.stevenson@raspberrypi.org>
-Date: Mon, 5 Nov 2018 16:28:43 +0000
-Message-ID: <CAAoAYcNWSDm+Gw0apdeSDPe_PXxSQs1MeEV_E5+D4Bqn=ZFjpw@mail.gmail.com>
-Subject: Re: [PATCH 1/1] v4l: event: Add subscription to list before calling
- "add" operation
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <20181105152513.26345-1-p.zabel@pengutronix.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US-large
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari
+Hi Philipp,
 
-On Mon, 5 Nov 2018 at 15:46, Sakari Ailus <sakari.ailus@linux.intel.com> wrote:
->
-> Patch ad608fbcf166 changed how events were subscribed to address an issue
-> elsewhere. As a side effect of that change, the "add" callback was called
-> before the event subscription was added to the list of subscribed events,
-> causing the first event (and possibly other events arriving soon
-> afterwards) to be lost.
->
-> Fix this by adding the subscription to the list before calling the "add"
-> callback, and clean up afterwards if that fails.
->
-> Fixes: ad608fbcf166 ("media: v4l: event: Prevent freeing event subscriptions while accessed")
->
-> Reported-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+On 05/11/2018 15:24, Philipp Zabel wrote:
+> The ffz() return value is undefined if the instance mask does not
+> contain any zeros. If it returned 32, the following set_bit would
+> corrupt the debugfs_root pointer.
+> Switch to IDA for context index allocation. This also removes the
+> artificial 32 instance limit for all except CodaDx6.
+> 
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 > ---
-> Hi Dave, Hans,
->
-> This should address the issue.
->
-> The functions can (and probably should) be re-arranged later but let's get
-> the fix right first.
->
-> I haven't tested this using vivid yet as it crashes where I was testing
-> it. I'll see later if it works elsewhere but I'm sending the patch for
-> review in the meantime.
-
-Thanks. That seems to fix the failure for my 3 drivers.
-
-For what it's worth:
-Tested-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
-
-I haven't tested the failure path, but it looks sane.
-
->  drivers/media/v4l2-core/v4l2-event.c | 39 +++++++++++++++++++++++-------------
->  1 file changed, 25 insertions(+), 14 deletions(-)
->
-> diff --git a/drivers/media/v4l2-core/v4l2-event.c b/drivers/media/v4l2-core/v4l2-event.c
-> index a3ef1f50a4b3..2b6651aeb89b 100644
-> --- a/drivers/media/v4l2-core/v4l2-event.c
-> +++ b/drivers/media/v4l2-core/v4l2-event.c
-> @@ -193,6 +193,22 @@ int v4l2_event_pending(struct v4l2_fh *fh)
->  }
->  EXPORT_SYMBOL_GPL(v4l2_event_pending);
->
-> +static void __v4l2_event_unsubscribe(struct v4l2_subscribed_event *sev)
-> +{
-> +       struct v4l2_fh *fh = sev->fh;
-> +       unsigned int i;
-> +
-> +       lockdep_assert_held(&fh->subscribe_lock);
-> +       assert_spin_locked(&fh->vdev->fh_lock);
-> +
-> +       /* Remove any pending events for this subscription */
-> +       for (i = 0; i < sev->in_use; i++) {
-> +               list_del(&sev->events[sev_pos(sev, i)].list);
-> +               fh->navailable--;
-> +       }
-> +       list_del(&sev->list);
-> +}
-> +
->  int v4l2_event_subscribe(struct v4l2_fh *fh,
->                          const struct v4l2_event_subscription *sub, unsigned elems,
->                          const struct v4l2_subscribed_event_ops *ops)
-> @@ -232,18 +248,20 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
->                 goto out_unlock;
->         }
->
-> +       spin_lock_irqsave(&fh->vdev->fh_lock, flags);
-> +       list_add(&sev->list, &fh->subscribed);
-> +       spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
-> +
->         if (sev->ops && sev->ops->add) {
->                 ret = sev->ops->add(sev, elems);
->                 if (ret) {
-> +                       spin_lock_irqsave(&fh->vdev->fh_lock, flags);
-> +                       __v4l2_event_unsubscribe(sev);
-> +                       spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
->                         kvfree(sev);
-> -                       goto out_unlock;
->                 }
->         }
->
-> -       spin_lock_irqsave(&fh->vdev->fh_lock, flags);
-> -       list_add(&sev->list, &fh->subscribed);
-> -       spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+>   drivers/media/platform/coda/coda-common.c | 25 ++++++++---------------
+>   drivers/media/platform/coda/coda.h        |  2 +-
+>   2 files changed, 10 insertions(+), 17 deletions(-)
+> 
+> diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+> index 2848ea5f464d..cbb59c2f3a82 100644
+> --- a/drivers/media/platform/coda/coda-common.c
+> +++ b/drivers/media/platform/coda/coda-common.c
+> @@ -2099,17 +2099,6 @@ int coda_decoder_queue_init(void *priv, struct vb2_queue *src_vq,
+>   	return coda_queue_init(priv, dst_vq);
+>   }
+>   
+> -static int coda_next_free_instance(struct coda_dev *dev)
+> -{
+> -	int idx = ffz(dev->instance_mask);
 > -
->  out_unlock:
->         mutex_unlock(&fh->subscribe_lock);
->
-> @@ -279,7 +297,6 @@ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
->  {
->         struct v4l2_subscribed_event *sev;
->         unsigned long flags;
-> -       int i;
->
->         if (sub->type == V4L2_EVENT_ALL) {
->                 v4l2_event_unsubscribe_all(fh);
-> @@ -291,14 +308,8 @@ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
->         spin_lock_irqsave(&fh->vdev->fh_lock, flags);
->
->         sev = v4l2_event_subscribed(fh, sub->type, sub->id);
-> -       if (sev != NULL) {
-> -               /* Remove any pending events for this subscription */
-> -               for (i = 0; i < sev->in_use; i++) {
-> -                       list_del(&sev->events[sev_pos(sev, i)].list);
-> -                       fh->navailable--;
-> -               }
-> -               list_del(&sev->list);
-> -       }
-> +       if (sev != NULL)
-> +               __v4l2_event_unsubscribe(sev);
->
->         spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
->
-> --
-> 2.11.0
->
+> -	if ((idx < 0) ||
+> -	    (dev->devtype->product == CODA_DX6 && idx > CODADX6_MAX_INSTANCES))
+> -		return -EBUSY;
+> -
+> -	return idx;
+> -}
+> -
+>   /*
+>    * File operations
+>    */
+> @@ -2118,7 +2107,8 @@ static int coda_open(struct file *file)
+>   {
+>   	struct video_device *vdev = video_devdata(file);
+>   	struct coda_dev *dev = video_get_drvdata(vdev);
+> -	struct coda_ctx *ctx = NULL;
+> +	struct coda_ctx *ctx;
+> +	unsigned int max = ~0;
+>   	char *name;
+>   	int ret;
+>   	int idx;
+> @@ -2127,12 +2117,13 @@ static int coda_open(struct file *file)
+>   	if (!ctx)
+>   		return -ENOMEM;
+>   
+> -	idx = coda_next_free_instance(dev);
+> +	if (dev->devtype->product == CODA_DX6)
+> +		max = CODADX6_MAX_INSTANCES - 1;
+> +	idx = ida_alloc_max(&dev->ida, max, GFP_KERNEL);
+>   	if (idx < 0) {
+>   		ret = idx;
+>   		goto err_coda_max;
+>   	}
+> -	set_bit(idx, &dev->instance_mask);
+>   
+>   	name = kasprintf(GFP_KERNEL, "context%d", idx);
+>   	if (!name) {
+> @@ -2241,8 +2232,8 @@ static int coda_open(struct file *file)
+>   err_pm_get:
+>   	v4l2_fh_del(&ctx->fh);
+>   	v4l2_fh_exit(&ctx->fh);
+> -	clear_bit(ctx->idx, &dev->instance_mask);
+>   err_coda_name_init:
+> +	ida_free(&dev->ida, ctx->idx);
+>   err_coda_max:
+>   	kfree(ctx);
+>   	return ret;
+> @@ -2284,7 +2275,7 @@ static int coda_release(struct file *file)
+>   	pm_runtime_put_sync(&dev->plat_dev->dev);
+>   	v4l2_fh_del(&ctx->fh);
+>   	v4l2_fh_exit(&ctx->fh);
+> -	clear_bit(ctx->idx, &dev->instance_mask);
+> +	ida_free(&dev->ida, ctx->idx);
+>   	if (ctx->ops->release)
+>   		ctx->ops->release(ctx);
+>   	debugfs_remove_recursive(ctx->debugfs_entry);
+> @@ -2745,6 +2736,7 @@ static int coda_probe(struct platform_device *pdev)
+>   
+>   	mutex_init(&dev->dev_mutex);
+>   	mutex_init(&dev->coda_mutex);
+> +	ida_init(&dev->ida);
+>   
+>   	dev->debugfs_root = debugfs_create_dir("coda", NULL);
+>   	if (!dev->debugfs_root)
+> @@ -2832,6 +2824,7 @@ static int coda_remove(struct platform_device *pdev)
+>   	coda_free_aux_buf(dev, &dev->tempbuf);
+>   	coda_free_aux_buf(dev, &dev->workbuf);
+>   	debugfs_remove_recursive(dev->debugfs_root);
+> +	ida_destroy(&dev->ida);
+>   	return 0;
+>   }
+>   
+> diff --git a/drivers/media/platform/coda/coda.h b/drivers/media/platform/coda/coda.h
+> index 19ac0b9dc6eb..b6cd14ee91ea 100644
+> --- a/drivers/media/platform/coda/coda.h
+> +++ b/drivers/media/platform/coda/coda.h
+
+Should you add:
+#include <linux/idr.h>
+to this header?
+
+Regards,
+Ian
+
+> @@ -95,7 +95,7 @@ struct coda_dev {
+>   	struct workqueue_struct	*workqueue;
+>   	struct v4l2_m2m_dev	*m2m_dev;
+>   	struct list_head	instances;
+> -	unsigned long		instance_mask;
+> +	struct ida		ida;
+>   	struct dentry		*debugfs_root;
+>   };
+>   
+> 
