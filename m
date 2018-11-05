@@ -1,97 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1-d.mail.gandi.net ([217.70.183.193]:47131 "EHLO
-        relay1-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726086AbeKETiV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Nov 2018 14:38:21 -0500
-Date: Mon, 5 Nov 2018 11:19:18 +0100
-From: jacopo mondi <jacopo@jmondi.org>
-To: Niklas =?utf-8?Q?S=C3=B6derlund?=
+Received: from perceval.ideasonboard.com ([213.167.242.64]:57952 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727275AbeKEUCz (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Nov 2018 15:02:55 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
         <niklas.soderlund+renesas@ragnatech.se>
 Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH v3 0/4] i2c: adv748x: add support for CSI-2 TXA to work
-Message-ID: <20181105101918.GH20885@w540>
-References: <20181102160009.17267-1-niklas.soderlund+renesas@ragnatech.se>
+        Jacopo Mondi <jacopo@jmondi.org>, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org,
+        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
+Subject: Re: [PATCH v3 1/4] dt-bindings: adv748x: make data-lanes property mandatory for CSI-2 endpoints
+Date: Mon, 05 Nov 2018 12:43:59 +0200
+Message-ID: <1890868.PC2OSGIH6q@avalon>
+In-Reply-To: <20181102160009.17267-2-niklas.soderlund+renesas@ragnatech.se>
+References: <20181102160009.17267-1-niklas.soderlund+renesas@ragnatech.se> <20181102160009.17267-2-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="byLs0wutDcxFdwtm"
-Content-Disposition: inline
-In-Reply-To: <20181102160009.17267-1-niklas.soderlund+renesas@ragnatech.se>
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
---byLs0wutDcxFdwtm
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
 Hi Niklas,
 
-On Fri, Nov 02, 2018 at 05:00:05PM +0100, Niklas S=C3=B6derlund wrote:
-> Hi,
->
-> This series allows the TXA CSI-2 transmitter of the adv748x to function
-> in 1-, 2- and 4- lane mode. Currently the driver fixes the hardware in
-> 4-lane mode. The driver looks at the standard DT property 'data-lanes'
-> to determine which mode it should operate in.
->
-> Patch 1/4 lists the 'data-lanes' DT property as mandatory for endpoints
-> describing the CSI-2 transmitters. Patch 2/4 refactors the
-> initialization sequence of the adv748x to be able to reuse more code.
-> Patch 3/4 adds the DT parsing and storing of the number of lanes. Patch
-> 4/4 merges the TXA and TXB power up/down procedure while also taking the
-> configurable number of lanes into account.
->
-> The series is based on the latest media-tree master and is tested on
-> Renesas M3-N in 1-, 2- and 4- lane mode.
+Thank you for the patch.
 
-I have now tested v3 on Ebisu E3 which has only 2 data lanes
-connected.
+On Friday, 2 November 2018 18:00:06 EET Niklas S=F6derlund wrote:
+> The CSI-2 transmitters can use a different number of lanes to transmit
+> data. Make the data-lanes mandatory for the endpoints that describe the
+> transmitters as no good default can be set to fallback on.
+>=20
+> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
 
-Tested-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Thanks
-   j
+>=20
+> ---
+> * Changes since v2
+> - Update paragraph according to Laurents comments.
+> ---
+>  Documentation/devicetree/bindings/media/i2c/adv748x.txt | 4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
+>=20
+> diff --git a/Documentation/devicetree/bindings/media/i2c/adv748x.txt
+> b/Documentation/devicetree/bindings/media/i2c/adv748x.txt index
+> 5dddc95f9cc46084..bffbabc879efd86c 100644
+> --- a/Documentation/devicetree/bindings/media/i2c/adv748x.txt
+> +++ b/Documentation/devicetree/bindings/media/i2c/adv748x.txt
+> @@ -48,7 +48,9 @@ are numbered as follows.
+>  	  TXA		source		10
+>  	  TXB		source		11
+>=20
+> -The digital output port nodes must contain at least one endpoint.
+> +The digital output port nodes, when present, shall contain at least one
+> +endpoint. Each of those endpoints shall contain the data-lanes property =
+as
+> +described in video-interfaces.txt.
+>=20
+>  Ports are optional if they are not connected to anything at the hardware
+> level.
 
 
->
-> Niklas S=C3=B6derlund (4):
->   dt-bindings: adv748x: make data-lanes property mandatory for CSI-2
->     endpoints
->   i2c: adv748x: reuse power up sequence when initializing CSI-2
->   i2c: adv748x: store number of CSI-2 lanes described in device tree
->   i2c: adv748x: configure number of lanes used for TXA CSI-2 transmitter
->
->  .../devicetree/bindings/media/i2c/adv748x.txt |   4 +-
->  drivers/media/i2c/adv748x/adv748x-core.c      | 235 ++++++++++--------
->  drivers/media/i2c/adv748x/adv748x.h           |   1 +
->  3 files changed, 135 insertions(+), 105 deletions(-)
->
-> --
-> 2.19.1
->
+=2D-=20
+Regards,
 
---byLs0wutDcxFdwtm
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABCAAGBQJb4BkmAAoJEHI0Bo8WoVY87S8P/RhtRhWhJPi1xRt38vBsATsQ
-tFz2K7n+vBMZHzh/YHxXxbGQqd7V7ABKLjQ3ukNgLnKfD3f7DX4n2BeExefaOg9U
-wevLmd/pkpjbJ8tErmzPGaEdYSWzirqYquf+xR9TVNNiKXBM0IH6syDJfGI06v7f
-VjtL75YoF+wGc6o5SUl6P+dlR6wTZ5Uj8EhxEMaLbtkZ3o73+Qdp3+/2Ta8C5/pJ
-hsTURYy2yg750cVK9P8Q82mT+fX+9ZbR26stKu1z2gTJshWV4IDQE7gwRuJ3zFd8
-IqXTFjBT6bgi0OgVSYRKNssen2JHyGG0EH+hEco9R39+bEk6RyJlOfryKjA4c3VG
-67LpXmARLsEjONqry0bGeUwxkcm1LzVUQ609V2Epp0aFGf0eyR2q6zIONYyiMpHz
-Jvuj94mDtQtJXi70wbK4AawrpQdX6owSiWs7RlgLcSYrA1E3f+vkWEndR4c3C/H7
-9+aDDPS+i0c9Mfm2UTrcljIpHj9MKDoSJZfs+ZHZv5CudCvXPr2ZPRgOCL9dZhr7
-3XpzMK6E8OmE89hhWben2jKk3ljcbDEtauUqFBze7DKJje4Of73Aa7JQWJZqBGRs
-UL7HPQyCMxMfHhLbQsoA46zFWJHGI0yrhXn1Oo7UzU9H1D0nZ0zPKMIaObkEMlBS
-v0BGnBPT7tabmUTpu754
-=KcXG
------END PGP SIGNATURE-----
-
---byLs0wutDcxFdwtm--
+Laurent Pinchart
