@@ -1,15 +1,15 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:54257 "EHLO
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:34207 "EHLO
         metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729349AbeKFApj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Nov 2018 19:45:39 -0500
+        with ESMTP id S1729874AbeKFApi (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Nov 2018 19:45:38 -0500
 From: Philipp Zabel <p.zabel@pengutronix.de>
 To: linux-media@vger.kernel.org
 Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
         Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de
-Subject: [PATCH 09/15] media: coda: implement ENUM_FRAMEINTERVALS
-Date: Mon,  5 Nov 2018 16:25:07 +0100
-Message-Id: <20181105152513.26345-9-p.zabel@pengutronix.de>
+Subject: [PATCH 03/15] media: coda: always hold back decoder jobs until we have enough bitstream payload
+Date: Mon,  5 Nov 2018 16:25:01 +0100
+Message-Id: <20181105152513.26345-3-p.zabel@pengutronix.de>
 In-Reply-To: <20181105152513.26345-1-p.zabel@pengutronix.de>
 References: <20181105152513.26345-1-p.zabel@pengutronix.de>
 MIME-Version: 1.0
@@ -17,68 +17,77 @@ Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-v4l2-compliance complains about S_PARM being supported, but not
-ENUM_FRAMEINTERVALS.
-Report a continuous frame interval even though the hardware only
-supports 16-bit numerator and denominator, with min/max values
-that can be programmed into the mailbox registers.
+The bitstream prefetch unit reads data in 256 byte blocks with some kind
+of queueing. For the decoder to see data up to a desired position in the
+next run, the bitstream has to be filled for 2 256 byte blocks past that
+position aligned up to the next 256 byte boundary.
+This should make sure we never run into a buffer underrun condition if
+userspace does not supply new input buffers fast enough.
 
 Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/media/platform/coda/coda-common.c | 34 +++++++++++++++++++++++
- 1 file changed, 34 insertions(+)
+ drivers/media/platform/coda/coda-common.c | 13 ++++++++-----
+ drivers/media/platform/coda/coda.h        | 12 ++++++++++++
+ 2 files changed, 20 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index 1ba3301b35de..32998da39cac 100644
+index c53ecc884e15..c7a274c60ff9 100644
 --- a/drivers/media/platform/coda/coda-common.c
 +++ b/drivers/media/platform/coda/coda-common.c
-@@ -1044,6 +1044,38 @@ static int coda_decoder_cmd(struct file *file, void *fh,
- 	return 0;
+@@ -1272,6 +1272,7 @@ static int coda_job_ready(void *m2m_priv)
+ 		bool stream_end = ctx->bit_stream_param &
+ 				  CODA_BIT_STREAM_END_FLAG;
+ 		int num_metas = ctx->num_metas;
++		struct coda_buffer_meta *meta;
+ 		unsigned int count;
+ 
+ 		count = hweight32(ctx->frm_dis_flg);
+@@ -1292,16 +1293,18 @@ static int coda_job_ready(void *m2m_priv)
+ 
+ 		if (!stream_end && (num_metas + src_bufs) < 2) {
+ 			v4l2_dbg(1, coda_debug, &ctx->dev->v4l2_dev,
+-				 "%d: not ready: need 2 buffers available (%d, %d)\n",
++				 "%d: not ready: need 2 buffers available (queue:%d + bitstream:%d)\n",
+ 				 ctx->idx, num_metas, src_bufs);
+ 			return 0;
+ 		}
+ 
+-		if (!src_bufs && !stream_end &&
+-		    (coda_get_bitstream_payload(ctx) < 512)) {
++		meta = list_first_entry(&ctx->buffer_meta_list,
++					struct coda_buffer_meta, list);
++		if (!coda_bitstream_can_fetch_past(ctx, meta->end) &&
++		    !stream_end) {
+ 			v4l2_dbg(1, coda_debug, &ctx->dev->v4l2_dev,
+-				 "%d: not ready: not enough bitstream data (%d).\n",
+-				 ctx->idx, coda_get_bitstream_payload(ctx));
++				 "not ready: not enough bitstream data to read past %u (%u)\n",
++				 meta->end, ctx->bitstream_fifo.kfifo.in);
+ 			return 0;
+ 		}
+ 	}
+diff --git a/drivers/media/platform/coda/coda.h b/drivers/media/platform/coda/coda.h
+index 00d0fa50bcd1..6cb19f47cbed 100644
+--- a/drivers/media/platform/coda/coda.h
++++ b/drivers/media/platform/coda/coda.h
+@@ -295,6 +295,18 @@ static inline unsigned int coda_get_bitstream_payload(struct coda_ctx *ctx)
+ 	return kfifo_len(&ctx->bitstream_fifo);
  }
  
-+static int coda_enum_frameintervals(struct file *file, void *fh,
-+				    struct v4l2_frmivalenum *f)
++/*
++ * The bitstream prefetcher needs to read at least 2 256 byte periods past
++ * the desired bitstream position for all data to reach the decoder.
++ */
++static inline bool coda_bitstream_can_fetch_past(struct coda_ctx *ctx,
++						 unsigned int pos)
 +{
-+	struct coda_ctx *ctx = fh_to_ctx(fh);
-+	int i;
-+
-+	if (f->index)
-+		return -EINVAL;
-+
-+	/* Disallow YUYV if the vdoa is not available */
-+	if (!ctx->vdoa && f->pixel_format == V4L2_PIX_FMT_YUYV)
-+		return -EINVAL;
-+
-+	for (i = 0; i < CODA_MAX_FORMATS; i++) {
-+		if (f->pixel_format == ctx->cvd->src_formats[i] ||
-+		    f->pixel_format == ctx->cvd->dst_formats[i])
-+			break;
-+	}
-+	if (i == CODA_MAX_FORMATS)
-+		return -EINVAL;
-+
-+	f->type = V4L2_FRMIVAL_TYPE_CONTINUOUS;
-+	f->stepwise.min.numerator = 1;
-+	f->stepwise.min.denominator = 65535;
-+	f->stepwise.max.numerator = 65536;
-+	f->stepwise.max.denominator = 1;
-+	f->stepwise.step.numerator = 1;
-+	f->stepwise.step.denominator = 1;
-+
-+	return 0;
++	return (int)(ctx->bitstream_fifo.kfifo.in - ALIGN(pos, 256)) > 512;
 +}
 +
- static int coda_g_parm(struct file *file, void *fh, struct v4l2_streamparm *a)
- {
- 	struct coda_ctx *ctx = fh_to_ctx(fh);
-@@ -1190,6 +1222,8 @@ static const struct v4l2_ioctl_ops coda_ioctl_ops = {
- 	.vidioc_g_parm		= coda_g_parm,
- 	.vidioc_s_parm		= coda_s_parm,
- 
-+	.vidioc_enum_frameintervals = coda_enum_frameintervals,
++bool coda_bitstream_can_fetch_past(struct coda_ctx *ctx, unsigned int pos);
 +
- 	.vidioc_subscribe_event = coda_subscribe_event,
- 	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
- };
+ void coda_bit_stream_end_flag(struct coda_ctx *ctx);
+ 
+ void coda_m2m_buf_done(struct coda_ctx *ctx, struct vb2_v4l2_buffer *buf,
 -- 
 2.19.1
