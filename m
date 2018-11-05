@@ -1,16 +1,16 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns1.bgcomp.co.uk ([81.187.35.205]:44039 "EHLO
+Received: from ns1.bgcomp.co.uk ([81.187.35.205]:58371 "EHLO
         mailgate.bgcomp.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2387493AbeKFEd7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Nov 2018 23:33:59 -0500
-Received: from eth7.localnet (mailgate.bgcomp.co.uk [IPv6:2001:8b0:ca:2::fd])
-        by mailgate.bgcomp.co.uk (Postfix) with ESMTP id EB0522367C
-        for <linux-media@vger.kernel.org>; Mon,  5 Nov 2018 19:12:52 +0000 (GMT)
-From: Bob Goddard <kernel@1.kernel.bgcomp.co.uk>
+        with ESMTP id S2387409AbeKFEkn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Nov 2018 23:40:43 -0500
+Received: from eth7.localnet (ns1.bgcomp.co.uk [IPv6:2001:8b0:ca:2::fd])
+        by mailgate.bgcomp.co.uk (Postfix) with ESMTP id 395C7233A1
+        for <linux-media@vger.kernel.org>; Mon,  5 Nov 2018 19:12:32 +0000 (GMT)
+From: Abuse <abuse@2.abuse.bgcomp.co.uk>
 To: linux-media@vger.kernel.org
 Subject: Astrometa DVB-T2 2018 update
-Date: Mon, 05 Nov 2018 19:12:52 +0000
-Message-ID: <1753206.o5ack6045T@eth7>
+Date: Mon, 05 Nov 2018 19:12:32 +0000
+Message-ID: <1566884.Tliu45TtRX@eth7>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
