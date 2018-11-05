@@ -1,103 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:54947 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726560AbeKGWbW (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Nov 2018 17:31:22 -0500
-Date: Wed, 7 Nov 2018 14:01:01 +0100
-From: Michael Grzeschik <mgr@pengutronix.de>
-To: Lucas Stach <l.stach@pengutronix.de>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        stoth@kernellabs.com, laurent.pinchart@ideasonboard.com,
-        kernel@pengutronix.de, mchehab@kernel.org, davem@davemloft.net
-Subject: Re: [PATCH 1/2] media: mst3367: add support for mstar mst3367 HDMI RX
-Message-ID: <20181107130101.a2geyss47gpfd6nc@pengutronix.de>
-References: <20181019105439.27796-1-m.grzeschik@pengutronix.de>
- <20181019105439.27796-2-m.grzeschik@pengutronix.de>
- <1539946939.3688.58.camel@pengutronix.de>
+Received: from mga05.intel.com ([192.55.52.43]:32351 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2387462AbeKFE07 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 5 Nov 2018 23:26:59 -0500
+From: "Mani, Rajmohan" <rajmohan.mani@intel.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        "Zhi, Yong" <yong.zhi@intel.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "tfiga@chromium.org" <tfiga@chromium.org>,
+        "mchehab@kernel.org" <mchehab@kernel.org>,
+        "hans.verkuil@cisco.com" <hans.verkuil@cisco.com>,
+        "laurent.pinchart@ideasonboard.com"
+        <laurent.pinchart@ideasonboard.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "Hu, Jerry W" <jerry.w.hu@intel.com>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
+        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
+        "Cao, Bingbu" <bingbu.cao@intel.com>
+Subject: RE: [PATCH v7 05/16] intel-ipu3: abi: Add structs
+Date: Mon, 5 Nov 2018 19:05:53 +0000
+Message-ID: <6F87890CF0F5204F892DEA1EF0D77A5981523D7E@fmsmsx122.amr.corp.intel.com>
+References: <1540851790-1777-1-git-send-email-yong.zhi@intel.com>
+ <1540851790-1777-6-git-send-email-yong.zhi@intel.com>
+ <20181105082755.c65oh6c2ztk34kpb@kekkonen.localdomain>
+In-Reply-To: <20181105082755.c65oh6c2ztk34kpb@kekkonen.localdomain>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="52puqmqenwrgio5w"
-Content-Disposition: inline
-In-Reply-To: <1539946939.3688.58.camel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Sakari,
 
---52puqmqenwrgio5w
-Content-Type: text/plain; charset=iso-8859-15
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> -----Original Message-----
+> From: Sakari Ailus [mailto:sakari.ailus@linux.intel.com]
+> Sent: Monday, November 05, 2018 12:28 AM
+> To: Zhi, Yong <yong.zhi@intel.com>
+> Cc: linux-media@vger.kernel.org; tfiga@chromium.org; mchehab@kernel.org;
+> hans.verkuil@cisco.com; laurent.pinchart@ideasonboard.com; Mani,
+> Rajmohan <rajmohan.mani@intel.com>; Zheng, Jian Xu
+> <jian.xu.zheng@intel.com>; Hu, Jerry W <jerry.w.hu@intel.com>; Toivonen,
+> Tuukka <tuukka.toivonen@intel.com>; Qiu, Tian Shu
+> <tian.shu.qiu@intel.com>; Cao, Bingbu <bingbu.cao@intel.com>
+> Subject: Re: [PATCH v7 05/16] intel-ipu3: abi: Add structs
+> 
+> Hi Yong,
+> 
+> On Mon, Oct 29, 2018 at 03:22:59PM -0700, Yong Zhi wrote:
+> > This add all the structs of IPU3 firmware ABI.
+> >
+> > Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+> > Signed-off-by: Rajmohan Mani <rajmohan.mani@intel.com>
+> 
+> ...
+> 
+> > +struct imgu_abi_shd_intra_frame_operations_data {
+> > +	struct imgu_abi_acc_operation
+> > +		operation_list[IMGU_ABI_SHD_MAX_OPERATIONS]
+> __attribute__((aligned(32)));
+> > +	struct imgu_abi_acc_process_lines_cmd_data
+> > +		process_lines_data[IMGU_ABI_SHD_MAX_PROCESS_LINES]
+> __attribute__((aligned(32)));
+> > +	struct imgu_abi_shd_transfer_luts_set_data
+> > +		transfer_data[IMGU_ABI_SHD_MAX_TRANSFERS]
+> > +__attribute__((aligned(32)));
+> 
+> Could you replace this wth __aligned(32), please? The same for the rest of the
+> header.
+> 
 
-On Fri, Oct 19, 2018 at 01:02:19PM +0200, Lucas Stach wrote:
-> Am Freitag, den 19.10.2018, 12:54 +0200 schrieb Michael Grzeschik:
-> > > From: Steven Toth <stoth@kernellabs.com>
-> >=20
-> > This patch is based on the work of Steven Toth. He reverse engineered
-> > the driver by tracing the windows driver.
-> >=20
-> > https://github.com/stoth68000/hdcapm/
-> >=20
-> > > Signed-off-by: Steven Toth <stoth@kernellabs.com>
-> > > Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
-> > ---
-> > =A0MAINTAINERS=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0|=A0=
-=A0=A0=A06 +
-> > =A0drivers/media/i2c/Kconfig=A0=A0=A0|=A0=A0=A010 +
-> > =A0drivers/media/i2c/Makefile=A0=A0|=A0=A0=A0=A01 +
-> > =A0drivers/media/i2c/mst3367.c | 1104 +++++++++++++++++++++++++++++++++=
-++
-> > =A0include/media/i2c/mst3367.h |=A0=A0=A029 +
-> > =A05 files changed, 1150 insertions(+)
-> > =A0create mode 100644 drivers/media/i2c/mst3367.c
-> > =A0create mode 100644 include/media/i2c/mst3367.h
-> >=20
-> > diff --git a/MAINTAINERS b/MAINTAINERS
-> > index 556f902b3766..9c69b7f9b2f9 100644
-> > --- a/MAINTAINERS
-> > +++ b/MAINTAINERS
-> > @@ -9787,6 +9787,12 @@ L:	linux-mtd@lists.infradead.org
-> > > =A0S:	Maintained
-> > > =A0F:	drivers/mtd/devices/docg3*
-> > =A0
-> > +MT9M032 APTINA SENSOR DRIVER
-> > > > +M:	Michael Grzeschik <m.grzeschik@pengutronix.de>
-> > > +S:	Maintained
-> > > +F:	drivers/media/i2c/mst3367.c
-> > > +F:	include/media/i2c/mst3367.h
->=20
-> Das sollte nicht in diesem Patch landen, oder?
+Using __aligned(32) in the uAPI header resulted in compilation errors in
+user space / camera HAL code.
 
-Yes, I will remove it from the patch and put this into a separate one.
+e.g
+../../../../../../../../usr/include/linux/intel-ipu3.h:464:57: error: expected ';' 
+at end of declaration list
+ __u8 bayer_table[IPU3_UAPI_AWB_FR_BAYER_TABLE_MAX_SIZE] __aligned(32);
 
-Are there any more suggestions for this series?
+So we ended up using __attribute__((aligned(32))) format in uAPI header and
+to be consistent, we followed the same format in ABI header as well.
 
-Regards,
-Michael
+Let us know if it's okay to deviate between uAPI and ABI header for this
+alignment qualifier.
 
---=20
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
-
---52puqmqenwrgio5w
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEElXvEUs6VPX6mDPT8C+njFXoeLGQFAlvi4gUACgkQC+njFXoe
-LGQucBAAnq8+lGHBzZnkWjFR0QCeBd3mmFzpXmUAULkHQfss6vSBZ/wZmmUlVNNE
-zc/0hX1UPfL3BS7Qa9g4olSFdv0mjNqkKA/IAPZwdKhS1l5cVOaM9KBO7+BFlnDs
-0NSTvqzncWm7b1nlO64uLWnl40K5ZD+Bd8nF/UKUzIG2BDd5yGdxNAcE8WEkWlp4
-y0GnhmFp0B30eByAqraLK0xcXbKYpiObgM35vu91P0mzQuNfgqQ/BVjpC6QFOpwD
-jaD1xxm7WQVkhKx5/vvXk9ugrVj5P0zwO5pr75lnX/FgLurBSuQmVyJlaTjhUgwn
-0j+TJN9QAs3CEs5XqYo5USpfRZSVuA5yKQA/W9yY4VA04UG9/+qyp2iocSZe802+
-PWUZsu46ZFDOJyhgsN5iFwjC671CwJV/9NYdJ2is2PdZNWm+yePgaIVTxgakMawf
-bMYOgKM1HpTQBWa/Gtgdc/GJ7JBdoSpyN7i0EIZGBLva7dQHc8tMHOjv0SyN1yOE
-evvY7feWDVWtR6mHSscWV1it/0GAn+oPkKtQjCzO3onEd4e6Q1aGsPeVGxP3Tlkf
-C7skqS78WxtuGi7DajnBOoMfebLBRg6z2iwMfUGYJcqnvGGPVHJu+tt8XFwWJTQk
-SBzUeV5+dRXG4NH1H44c6uny5vzQ8FbgjtblO53Nq45xbjWjXgU=
-=uH3G
------END PGP SIGNATURE-----
-
---52puqmqenwrgio5w--
+> --
+> Regards,
+> 
+> Sakari Ailus
+> sakari.ailus@linux.intel.com
