@@ -1,91 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:32351 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387462AbeKFE07 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Nov 2018 23:26:59 -0500
-From: "Mani, Rajmohan" <rajmohan.mani@intel.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "Zhi, Yong" <yong.zhi@intel.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "tfiga@chromium.org" <tfiga@chromium.org>,
-        "mchehab@kernel.org" <mchehab@kernel.org>,
-        "hans.verkuil@cisco.com" <hans.verkuil@cisco.com>,
-        "laurent.pinchart@ideasonboard.com"
-        <laurent.pinchart@ideasonboard.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "Hu, Jerry W" <jerry.w.hu@intel.com>,
-        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
-        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
-        "Cao, Bingbu" <bingbu.cao@intel.com>
-Subject: RE: [PATCH v7 05/16] intel-ipu3: abi: Add structs
-Date: Mon, 5 Nov 2018 19:05:53 +0000
-Message-ID: <6F87890CF0F5204F892DEA1EF0D77A5981523D7E@fmsmsx122.amr.corp.intel.com>
-References: <1540851790-1777-1-git-send-email-yong.zhi@intel.com>
- <1540851790-1777-6-git-send-email-yong.zhi@intel.com>
- <20181105082755.c65oh6c2ztk34kpb@kekkonen.localdomain>
-In-Reply-To: <20181105082755.c65oh6c2ztk34kpb@kekkonen.localdomain>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from ns1.bgcomp.co.uk ([81.187.35.205]:44039 "EHLO
+        mailgate.bgcomp.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2387493AbeKFEd7 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Nov 2018 23:33:59 -0500
+Received: from eth7.localnet (mailgate.bgcomp.co.uk [IPv6:2001:8b0:ca:2::fd])
+        by mailgate.bgcomp.co.uk (Postfix) with ESMTP id EB0522367C
+        for <linux-media@vger.kernel.org>; Mon,  5 Nov 2018 19:12:52 +0000 (GMT)
+From: Bob Goddard <kernel@1.kernel.bgcomp.co.uk>
+To: linux-media@vger.kernel.org
+Subject: Astrometa DVB-T2 2018 update
+Date: Mon, 05 Nov 2018 19:12:52 +0000
+Message-ID: <1753206.o5ack6045T@eth7>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Enable Sony CXD2837ER slave demon on the Astrometa DVB-T2, known as the 2018 update.
 
-> -----Original Message-----
-> From: Sakari Ailus [mailto:sakari.ailus@linux.intel.com]
-> Sent: Monday, November 05, 2018 12:28 AM
-> To: Zhi, Yong <yong.zhi@intel.com>
-> Cc: linux-media@vger.kernel.org; tfiga@chromium.org; mchehab@kernel.org;
-> hans.verkuil@cisco.com; laurent.pinchart@ideasonboard.com; Mani,
-> Rajmohan <rajmohan.mani@intel.com>; Zheng, Jian Xu
-> <jian.xu.zheng@intel.com>; Hu, Jerry W <jerry.w.hu@intel.com>; Toivonen,
-> Tuukka <tuukka.toivonen@intel.com>; Qiu, Tian Shu
-> <tian.shu.qiu@intel.com>; Cao, Bingbu <bingbu.cao@intel.com>
-> Subject: Re: [PATCH v7 05/16] intel-ipu3: abi: Add structs
-> 
-> Hi Yong,
-> 
-> On Mon, Oct 29, 2018 at 03:22:59PM -0700, Yong Zhi wrote:
-> > This add all the structs of IPU3 firmware ABI.
-> >
-> > Signed-off-by: Yong Zhi <yong.zhi@intel.com>
-> > Signed-off-by: Rajmohan Mani <rajmohan.mani@intel.com>
-> 
-> ...
-> 
-> > +struct imgu_abi_shd_intra_frame_operations_data {
-> > +	struct imgu_abi_acc_operation
-> > +		operation_list[IMGU_ABI_SHD_MAX_OPERATIONS]
-> __attribute__((aligned(32)));
-> > +	struct imgu_abi_acc_process_lines_cmd_data
-> > +		process_lines_data[IMGU_ABI_SHD_MAX_PROCESS_LINES]
-> __attribute__((aligned(32)));
-> > +	struct imgu_abi_shd_transfer_luts_set_data
-> > +		transfer_data[IMGU_ABI_SHD_MAX_TRANSFERS]
-> > +__attribute__((aligned(32)));
-> 
-> Could you replace this wth __aligned(32), please? The same for the rest of the
-> header.
-> 
+Originally based on the patch by kapitanf at https://github.com/torvalds/linux/pull/567, it was not quite right. This is more correct, but probably still wrong. I'm not a kernel dev, but someone may be better positioned to handle the niceties.
 
-Using __aligned(32) in the uAPI header resulted in compilation errors in
-user space / camera HAL code.
 
-e.g
-../../../../../../../../usr/include/linux/intel-ipu3.h:464:57: error: expected ';' 
-at end of declaration list
- __u8 bayer_table[IPU3_UAPI_AWB_FR_BAYER_TABLE_MAX_SIZE] __aligned(32);
 
-So we ended up using __attribute__((aligned(32))) format in uAPI header and
-to be consistent, we followed the same format in ABI header as well.
-
-Let us know if it's okay to deviate between uAPI and ABI header for this
-alignment qualifier.
-
-> --
-> Regards,
-> 
-> Sakari Ailus
-> sakari.ailus@linux.intel.com
+diff --git a/drivers/media/usb/dvb-usb-v2/Kconfig b/drivers/media/usb/dvb-usb-v2/Kconfig
+index df4412245a8a..d44ddd5ee29e 100644
+--- a/drivers/media/usb/dvb-usb-v2/Kconfig
++++ b/drivers/media/usb/dvb-usb-v2/Kconfig
+@@ -137,6 +137,7 @@ config DVB_USB_RTL28XXU
+ 	select DVB_RTL2832
+ 	select DVB_RTL2832_SDR if (MEDIA_SUBDRV_AUTOSELECT && MEDIA_SDR_SUPPORT)
+ 	select DVB_SI2168 if MEDIA_SUBDRV_AUTOSELECT
++	select DVB_CXD2841ER if MEDIA_SUBDRV_AUTOSELECT
+ 	select MEDIA_TUNER_E4000 if MEDIA_SUBDRV_AUTOSELECT
+ 	select MEDIA_TUNER_FC0012 if MEDIA_SUBDRV_AUTOSELECT
+ 	select MEDIA_TUNER_FC0013 if MEDIA_SUBDRV_AUTOSELECT
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index a970224a94bd..db4f4da43781 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -386,6 +386,7 @@ static int rtl2832u_read_config(struct dvb_usb_device *d)
+ 	struct rtl28xxu_req req_mn88473 = {0xff38, CMD_I2C_RD, 1, buf};
+ 	struct rtl28xxu_req req_si2157 = {0x00c0, CMD_I2C_RD, 1, buf};
+ 	struct rtl28xxu_req req_si2168 = {0x00c8, CMD_I2C_RD, 1, buf};
++	struct rtl28xxu_req req_cxd2837er = {0x68d8, CMD_I2C_RD, 1, buf};
+ 
+ 	dev_dbg(&d->intf->dev, "\n");
+ 
+@@ -567,6 +568,13 @@ static int rtl2832u_read_config(struct dvb_usb_device *d)
+ 			dev->slave_demod = SLAVE_DEMOD_MN88473;
+ 			goto demod_found;
+ 		}
++
++		ret = rtl28xxu_ctrl_msg(d, &req_cxd2837er);
++		if (ret == 0 && buf[0] == 0x03) {
++			dev_dbg(&d->intf->dev, "CXD2837ER found");
++			dev->slave_demod = SLAVE_DEMOD_CXD2841ER;
++			goto demod_found;
++		}
+ 	}
+ 	if (dev->tuner == TUNER_RTL2832_SI2157) {
+ 		/* check Si2168 ID register; reg=c8 val=80 */
+@@ -988,6 +996,27 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
+ 				goto err_slave_demod_failed;
+ 			}
+ 
++			dev->i2c_client_slave_demod = client;
++		} else if (dev->slave_demod == SLAVE_DEMOD_CXD2841ER) {
++			struct cxd2841er_config cxd2837er_config = {};
++			cxd2837er_config.i2c_addr = 0xd8;
++			cxd2837er_config.xtal = SONY_XTAL_20500;
++			cxd2837er_config.flags = CXD2841ER_AUTO_IFHZ    | CXD2841ER_EARLY_TUNE |
++				    CXD2841ER_NO_WAIT_LOCK | CXD2841ER_NO_AGCNEG  |
++				    CXD2841ER_TSBITS       | CXD2841ER_TS_SERIAL;
++
++			adap->fe[1] = dvb_attach( cxd2841er_attach_t_c, &cxd2837er_config, &d->i2c_adap );
++			if (!adap->fe[1]) {
++				dev_err(&d->intf->dev, "CXD2837ER attach failed!\n");
++				return -ENODEV;
++			}
++
++			if (!try_module_get(client->dev.driver->owner)) {
++				i2c_unregister_device(client);
++				dev->slave_demod = SLAVE_DEMOD_NONE;
++				goto err_slave_demod_failed;
++			}
++
+ 			dev->i2c_client_slave_demod = client;
+ 		} else {
+ 			struct si2168_config si2168_config = {};
+@@ -1046,10 +1075,14 @@ static int rtl28xxu_frontend_detach(struct dvb_usb_adapter *adap)
+ 	dev_dbg(&d->intf->dev, "\n");
+ 
+ 	/* remove I2C slave demod */
+-	client = dev->i2c_client_slave_demod;
+-	if (client) {
+-		module_put(client->dev.driver->owner);
+-		i2c_unregister_device(client);
++	if (dev->slave_demod == SLAVE_DEMOD_CXD2841ER) {
++		dev_info(&d->intf->dev,"Sony CXD2837ER detached automatically.");
++	} else {
++		client = dev->i2c_client_slave_demod;
++		if (client) {
++			module_put(client->dev.driver->owner);
++			i2c_unregister_device(client);
++		}
+ 	}
+ 
+ 	/* remove I2C demod */
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.h b/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
+index 138062960a73..5a615d73fc34 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
+@@ -43,6 +43,7 @@
+ #include "r820t.h"
+ #include "si2168.h"
+ #include "si2157.h"
++#include "cxd2841er.h"
+ 
+ /*
+  * USB commands
+@@ -87,7 +88,8 @@ struct rtl28xxu_dev {
+ 	#define SLAVE_DEMOD_MN88472        1
+ 	#define SLAVE_DEMOD_MN88473        2
+ 	#define SLAVE_DEMOD_SI2168         3
+-	unsigned int slave_demod:2;
++	#define SLAVE_DEMOD_CXD2841ER      4
++	unsigned int slave_demod:3;
+ 	union {
+ 		struct rtl2830_platform_data rtl2830_platform_data;
+ 		struct rtl2832_platform_data rtl2832_platform_data;
