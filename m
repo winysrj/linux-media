@@ -1,154 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:58158 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726255AbeKEUPO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Nov 2018 15:15:14 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Jacopo Mondi <jacopo@jmondi.org>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH v3 3/4] i2c: adv748x: store number of CSI-2 lanes described in device tree
-Date: Mon, 05 Nov 2018 12:56:16 +0200
-Message-ID: <1837028.Pb4RQzlVtN@avalon>
-In-Reply-To: <20181102160009.17267-4-niklas.soderlund+renesas@ragnatech.se>
-References: <20181102160009.17267-1-niklas.soderlund+renesas@ragnatech.se> <20181102160009.17267-4-niklas.soderlund+renesas@ragnatech.se>
+Received: from relay2-d.mail.gandi.net ([217.70.183.194]:44311 "EHLO
+        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727440AbeKEURx (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Nov 2018 15:17:53 -0500
+Date: Mon, 5 Nov 2018 11:58:41 +0100
+From: jacopo mondi <jacopo@jmondi.org>
+To: Lubomir Rintel <lkundrak@v3.sk>
+Cc: Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        stable@vger.kernel.org
+Subject: Re: [PATCH] [media] ov7670: make "xclk" clock optional
+Message-ID: <20181105105841.GJ20885@w540>
+References: <20181004212903.364064-1-lkundrak@v3.sk>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="lildS9pRFgpM/xzO"
+Content-Disposition: inline
+In-Reply-To: <20181004212903.364064-1-lkundrak@v3.sk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
 
-Thank you for the patch.
+--lildS9pRFgpM/xzO
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-On Friday, 2 November 2018 18:00:08 EET Niklas S=F6derlund wrote:
-> The adv748x CSI-2 transmitters TXA and TXB can use different number of
-> lanes to transmit data. In order to be able to configure the device
-> correctly this information need to be parsed from device tree and stored
-> in each TX private data structure.
->=20
-> TXA supports 1, 2 and 4 lanes while TXB supports 1 lane.
->=20
-> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
->=20
+Hi Lubomir,
+   +Sakari in Cc
+
+I just noticed this, and the patch is now in v4.20, but let me comment
+anyway on this.
+
+On Thu, Oct 04, 2018 at 11:29:03PM +0200, Lubomir Rintel wrote:
+> When the "xclk" clock was added, it was made mandatory. This broke the
+> driver on an OLPC plaform which doesn't know such clock. Make it
+> optional.
+>
+
+I don't think this is correct. The sensor needs a clock to work.
+
+With this patch clock_speed which is used to calculate
+the framerate is defaulted to 30MHz, crippling all the calculations if
+that default value doesn't match what is actually installed on the
+board.
+
+If this patch breaks the OLPC, then might it be the DTS for said
+device needs to be fixed instead of working around the issue here?
+
+Also, the DT bindings should be updated too if we decide this property
+can be omitted. At this point, with a follow-up patch.
+
+Thanks
+   j
+
+> Tested on a OLPC XO-1 laptop.
+>
+> Cc: stable@vger.kernel.org # 4.11+
+> Fixes: 0a024d634cee ("[media] ov7670: get xclk")
+> Signed-off-by: Lubomir Rintel <lkundrak@v3.sk>
 > ---
-> * Changes since v2
-> - Rebase to latest media-tree requires the bus_type filed in struct
->   v4l2_fwnode_endpoint to be initialized, set it to V4L2_MBUS_CSI2_DPHY.
->=20
-> * Changes since v1
-> - Use %u instead of %d to print unsigned int.
-> - Fix spelling in commit message, thanks Laurent.
-> ---
->  drivers/media/i2c/adv748x/adv748x-core.c | 50 ++++++++++++++++++++++++
->  drivers/media/i2c/adv748x/adv748x.h      |  1 +
->  2 files changed, 51 insertions(+)
->=20
-> diff --git a/drivers/media/i2c/adv748x/adv748x-core.c
-> b/drivers/media/i2c/adv748x/adv748x-core.c index
-> 2384f50dacb0ccff..9d80d7f3062b16bc 100644
-> --- a/drivers/media/i2c/adv748x/adv748x-core.c
-> +++ b/drivers/media/i2c/adv748x/adv748x-core.c
-> @@ -23,6 +23,7 @@
->  #include <media/v4l2-ctrls.h>
->  #include <media/v4l2-device.h>
->  #include <media/v4l2-dv-timings.h>
-> +#include <media/v4l2-fwnode.h>
->  #include <media/v4l2-ioctl.h>
->=20
->  #include "adv748x.h"
-> @@ -521,12 +522,56 @@ void adv748x_subdev_init(struct v4l2_subdev *sd,
-> struct adv748x_state *state, sd->entity.ops =3D &adv748x_media_ops;
->  }
->=20
-> +static int adv748x_parse_csi2_lanes(struct adv748x_state *state,
-> +				    unsigned int port,
-> +				    struct device_node *ep)
-> +{
-> +	struct v4l2_fwnode_endpoint vep;
-> +	unsigned int num_lanes;
-> +	int ret;
-> +
-> +	if (port !=3D ADV748X_PORT_TXA && port !=3D ADV748X_PORT_TXB)
-> +		return 0;
-> +
-> +	vep.bus_type =3D V4L2_MBUS_CSI2_DPHY;
-> +	ret =3D v4l2_fwnode_endpoint_parse(of_fwnode_handle(ep), &vep);
-> +	if (ret)
-> +		return ret;
-> +
-> +	num_lanes =3D vep.bus.mipi_csi2.num_data_lanes;
-> +
-> +	if (vep.base.port =3D=3D ADV748X_PORT_TXA) {
-> +		if (num_lanes !=3D 1 && num_lanes !=3D 2 && num_lanes !=3D 4) {
-> +			adv_err(state, "TXA: Invalid number (%u) of lanes\n",
-> +				num_lanes);
-> +			return -EINVAL;
-> +		}
-> +
-> +		state->txa.num_lanes =3D num_lanes;
-> +		adv_dbg(state, "TXA: using %u lanes\n", state->txa.num_lanes);
+>  drivers/media/i2c/ov7670.c | 27 +++++++++++++++++----------
+>  1 file changed, 17 insertions(+), 10 deletions(-)
+>
+> diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
+> index 31bf577b0bd3..64d1402882c8 100644
+> --- a/drivers/media/i2c/ov7670.c
+> +++ b/drivers/media/i2c/ov7670.c
+> @@ -1808,17 +1808,24 @@ static int ov7670_probe(struct i2c_client *client,
+>  			info->pclk_hb_disable = true;
+>  	}
+>
+> -	info->clk = devm_clk_get(&client->dev, "xclk");
+> -	if (IS_ERR(info->clk))
+> -		return PTR_ERR(info->clk);
+> -	ret = clk_prepare_enable(info->clk);
+> -	if (ret)
+> -		return ret;
+> +	info->clk = devm_clk_get(&client->dev, "xclk"); /* optional */
+> +	if (IS_ERR(info->clk)) {
+> +		ret = PTR_ERR(info->clk);
+> +		if (ret == -ENOENT)
+> +			info->clk = NULL;
+> +		else
+> +			return ret;
 > +	}
-> +
-> +	if (vep.base.port =3D=3D ADV748X_PORT_TXB) {
-> +		if (num_lanes !=3D 1) {
-> +			adv_err(state, "TXB: Invalid number (%u) of lanes\n",
-> +				num_lanes);
-> +			return -EINVAL;
-> +		}
-> +
-> +		state->txb.num_lanes =3D num_lanes;
-> +		adv_dbg(state, "TXB: using %u lanes\n", state->txb.num_lanes);
-> +	}
-
-Should we set the number of lanes to 4 and 1 respectively by default to=20
-support old DTs ? Apart from that,
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> +	return 0;
-> +}
-> +
->  static int adv748x_parse_dt(struct adv748x_state *state)
->  {
->  	struct device_node *ep_np =3D NULL;
->  	struct of_endpoint ep;
->  	bool out_found =3D false;
->  	bool in_found =3D false;
-> +	int ret;
->=20
->  	for_each_endpoint_of_node(state->dev->of_node, ep_np) {
->  		of_graph_parse_endpoint(ep_np, &ep);
-> @@ -557,6 +602,11 @@ static int adv748x_parse_dt(struct adv748x_state
-> *state) in_found =3D true;
->  		else
->  			out_found =3D true;
-> +
-> +		/* Store number of CSI-2 lanes used for TXA and TXB. */
-> +		ret =3D adv748x_parse_csi2_lanes(state, ep.port, ep_np);
+> +	if (info->clk) {
+> +		ret = clk_prepare_enable(info->clk);
 > +		if (ret)
 > +			return ret;
+>
+> -	info->clock_speed = clk_get_rate(info->clk) / 1000000;
+> -	if (info->clock_speed < 10 || info->clock_speed > 48) {
+> -		ret = -EINVAL;
+> -		goto clk_disable;
+> +		info->clock_speed = clk_get_rate(info->clk) / 1000000;
+> +		if (info->clock_speed < 10 || info->clock_speed > 48) {
+> +			ret = -EINVAL;
+> +			goto clk_disable;
+> +		}
 >  	}
->=20
->  	return in_found && out_found ? 0 : -ENODEV;
-> diff --git a/drivers/media/i2c/adv748x/adv748x.h
-> b/drivers/media/i2c/adv748x/adv748x.h index
-> 39c2fdc3b41667d8..b482c7fe6957eb85 100644
-> --- a/drivers/media/i2c/adv748x/adv748x.h
-> +++ b/drivers/media/i2c/adv748x/adv748x.h
-> @@ -79,6 +79,7 @@ struct adv748x_csi2 {
->  	struct v4l2_mbus_framefmt format;
->  	unsigned int page;
->  	unsigned int port;
-> +	unsigned int num_lanes;
->=20
->  	struct media_pad pads[ADV748X_CSI2_NR_PADS];
->  	struct v4l2_ctrl_handler ctrl_hdl;
+>
+>  	ret = ov7670_init_gpio(client, info);
+> --
+> 2.19.0
+>
 
-=2D-=20
-Regards,
+--lildS9pRFgpM/xzO
+Content-Type: application/pgp-signature; name="signature.asc"
 
-Laurent Pinchart
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABCAAGBQJb4CJhAAoJEHI0Bo8WoVY8T4EP/20jk08NU+3uAbP5KtpmbirC
+bfLr1t5zfjIaq6okDqw1aslMbPzlOtb0BpcJX3adttCtUUWQT7bkWfiPUZLfkLAz
+zSBvPHZarIqhTtnc3wIA+2H4d1XB63j/+a8hAmqIK3CqLhUJOC3SxA7dxxive+hW
+HMfY3g4g33OtehF4OzVlFlrKUHBkFFuzUjy27MAZ3si7D8nHCzKONxIXuWbTkPj6
+Swsrg4Hl198IuMGdqWW9/rM84/Foa6osGZmr5DGlnw3slmbcCgiSWPQ4/+gkojNl
+4AtjRtwVAVHxUyE0EvK1T8TMnLD3vRWUu6m3Xmwqs+B7T2k5Ww8FiT3uHTVfsX0c
+SoOCuDfslzcK70xLeH+I/uK1PJCIVkhpNkmZnNJf0oG5C0oODg7gopYmbOQEFAF9
+IQdPwxdg4Z1YuA68SdE6vwNiBfuqWq9DQ3FqRHcQqOQDe0X2YcuMLK/sMa1XYkYn
+waduL0DD4LwhcnB39p1XNRRZ6UQ+rU8oWt8c/9HMq/ldVilVGkNhNE+fUmEZGtLk
+V0YPVw5pQKKjye6WPmQm66VxhFUD5w9A6wpcLUhrZI4OXxuMkkrtVBSHYHpGofIi
+zKAR5Fa9I5gNmXjmwvccJEi6Wir1mEDUIlAs4DR+b7EEMKyrXsRH/audZpnVEVY0
+Noq3MtAR6KxAtfNpppkA
+=WJ6g
+-----END PGP SIGNATURE-----
+
+--lildS9pRFgpM/xzO--
