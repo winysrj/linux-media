@@ -1,17 +1,17 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:58662 "EHLO
+Received: from perceval.ideasonboard.com ([213.167.242.64]:58832 "EHLO
         perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726358AbeKEVA1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Nov 2018 16:00:27 -0500
+        with ESMTP id S1726358AbeKEVNc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Nov 2018 16:13:32 -0500
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: Jacopo Mondi <jacopo+renesas@jmondi.org>
 Cc: niklas.soderlund@ragnatech.se, kieran.bingham@ideasonboard.com,
         linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH 6/6] media: rcar-csi2: Handle per-SoC number of channels
-Date: Mon, 05 Nov 2018 13:41:18 +0200
-Message-ID: <2612344.Jqoss2MpkB@avalon>
-In-Reply-To: <1541416751-19810-7-git-send-email-jacopo+renesas@jmondi.org>
-References: <1541416751-19810-1-git-send-email-jacopo+renesas@jmondi.org> <1541416751-19810-7-git-send-email-jacopo+renesas@jmondi.org>
+Subject: Re: [PATCH 5/6] media: rcar: rcar-csi2: Update V3M/E3 PHTW tables
+Date: Mon, 05 Nov 2018 13:54:20 +0200
+Message-ID: <3468054.M8sVNk3f1N@avalon>
+In-Reply-To: <1541416751-19810-6-git-send-email-jacopo+renesas@jmondi.org>
+References: <1541416751-19810-1-git-send-email-jacopo+renesas@jmondi.org> <1541416751-19810-6-git-send-email-jacopo+renesas@jmondi.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
@@ -22,111 +22,98 @@ Hi Jacopo,
 
 Thank you for the patch.
 
-On Monday, 5 November 2018 13:19:11 EET Jacopo Mondi wrote:
-> The R-Car CSI-2 interface has a number of selectable 'channels' that
-> provides pixel data to the VINs during image acquisition.
-> 
-> Each channel can be used to match a CSI-2 data type and a CSI-2 virtual
-> channel to be routed to output path.
-> 
-> Different SoCs have different number of channels, with R-Car E3 being the
-> notable exception supporting only 2 of them.
+On Monday, 5 November 2018 13:19:10 EET Jacopo Mondi wrote:
+> Update PHTW tables for V3M and E3 SoCs to the latest datasheet release.
 > 
 > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
 > ---
->  drivers/media/platform/rcar-vin/rcar-csi2.c | 15 ++++++++++++---
->  1 file changed, 12 insertions(+), 3 deletions(-)
+>  drivers/media/platform/rcar-vin/rcar-csi2.c | 71 +++++++++++++++-----------
+>  1 file changed, 39 insertions(+), 32 deletions(-)
 > 
 > diff --git a/drivers/media/platform/rcar-vin/rcar-csi2.c
-> b/drivers/media/platform/rcar-vin/rcar-csi2.c index 5689a60..95a3dd4 100644
+> b/drivers/media/platform/rcar-vin/rcar-csi2.c index 695686b..5689a60 100644
 > --- a/drivers/media/platform/rcar-vin/rcar-csi2.c
 > +++ b/drivers/media/platform/rcar-vin/rcar-csi2.c
-> @@ -349,6 +349,7 @@ struct rcar_csi2_info {
->  	int (*confirm_start)(struct rcar_csi2 *priv);
->  	const struct rcsi2_mbps_reg *hsfreqrange;
->  	unsigned int csi0clkfreqrange;
-> +	unsigned int num_channels;
->  	bool clear_ulps;
+> @@ -152,38 +152,45 @@ static const struct rcsi2_mbps_reg
+> phtw_mbps_h3_v3h_m3n[] = { };
+> 
+>  static const struct rcsi2_mbps_reg phtw_mbps_v3m_e3[] = {
+> -	{ .mbps =   80, .reg = 0x00 },
+> -	{ .mbps =   90, .reg = 0x20 },
+> -	{ .mbps =  100, .reg = 0x40 },
+> -	{ .mbps =  110, .reg = 0x02 },
+> -	{ .mbps =  130, .reg = 0x22 },
+> -	{ .mbps =  140, .reg = 0x42 },
+> -	{ .mbps =  150, .reg = 0x04 },
+> -	{ .mbps =  170, .reg = 0x24 },
+> -	{ .mbps =  180, .reg = 0x44 },
+> -	{ .mbps =  200, .reg = 0x06 },
+> -	{ .mbps =  220, .reg = 0x26 },
+> -	{ .mbps =  240, .reg = 0x46 },
+> -	{ .mbps =  250, .reg = 0x08 },
+> -	{ .mbps =  270, .reg = 0x28 },
+> -	{ .mbps =  300, .reg = 0x0a },
+> -	{ .mbps =  330, .reg = 0x2a },
+> -	{ .mbps =  360, .reg = 0x4a },
+> -	{ .mbps =  400, .reg = 0x0c },
+> -	{ .mbps =  450, .reg = 0x2c },
+> -	{ .mbps =  500, .reg = 0x0e },
+> -	{ .mbps =  550, .reg = 0x2e },
+> -	{ .mbps =  600, .reg = 0x10 },
+> -	{ .mbps =  650, .reg = 0x30 },
+> -	{ .mbps =  700, .reg = 0x12 },
+> -	{ .mbps =  750, .reg = 0x32 },
+> -	{ .mbps =  800, .reg = 0x52 },
+> -	{ .mbps =  850, .reg = 0x72 },
+> -	{ .mbps =  900, .reg = 0x14 },
+> -	{ .mbps =  950, .reg = 0x34 },
+> -	{ .mbps = 1000, .reg = 0x54 },
+> -	{ .mbps = 1050, .reg = 0x74 },
+> -	{ .mbps = 1125, .reg = 0x16 },
+> +	{ .mbps =   89, .reg = 0x00 },
+> +	{ .mbps =   99, .reg = 0x20 },
+> +	{ .mbps =  109, .reg = 0x40 },
+> +	{ .mbps =  129, .reg = 0x02 },
+> +	{ .mbps =  139, .reg = 0x22 },
+> +	{ .mbps =  149, .reg = 0x42 },
+> +	{ .mbps =  169, .reg = 0x04 },
+> +	{ .mbps =  179, .reg = 0x24 },
+> +	{ .mbps =  199, .reg = 0x44 },
+> +	{ .mbps =  219, .reg = 0x06 },
+> +	{ .mbps =  239, .reg = 0x26 },
+> +	{ .mbps =  249, .reg = 0x46 },
+> +	{ .mbps =  269, .reg = 0x08 },
+> +	{ .mbps =  299, .reg = 0x28 },
+> +	{ .mbps =  329, .reg = 0x0a },
+> +	{ .mbps =  359, .reg = 0x2a },
+> +	{ .mbps =  399, .reg = 0x4a },
+> +	{ .mbps =  449, .reg = 0x0c },
+> +	{ .mbps =  499, .reg = 0x2c },
+> +	{ .mbps =  549, .reg = 0x0e },
+> +	{ .mbps =  599, .reg = 0x2e },
+> +	{ .mbps =  649, .reg = 0x10 },
+> +	{ .mbps =  699, .reg = 0x30 },
+> +	{ .mbps =  749, .reg = 0x12 },
+> +	{ .mbps =  799, .reg = 0x32 },
+> +	{ .mbps =  849, .reg = 0x52 },
+> +	{ .mbps =  899, .reg = 0x72 },
+> +	{ .mbps =  949, .reg = 0x14 },
+> +	{ .mbps =  999, .reg = 0x34 },
+> +	{ .mbps = 1049, .reg = 0x54 },
+> +	{ .mbps = 1099, .reg = 0x74 },
+> +	{ .mbps = 1149, .reg = 0x16 },
+> +	{ .mbps = 1199, .reg = 0x36 },
+> +	{ .mbps = 1249, .reg = 0x56 },
+> +	{ .mbps = 1299, .reg = 0x76 },
+> +	{ .mbps = 1349, .reg = 0x18 },
+> +	{ .mbps = 1399, .reg = 0x38 },
+> +	{ .mbps = 1449, .reg = 0x58 },
+> +	{ .mbps = 1500, .reg = 0x78 },
+>  	{ /* sentinel */ },
 >  };
-> 
-> @@ -483,13 +484,14 @@ static int rcsi2_start(struct rcar_csi2 *priv)
->  	format = rcsi2_code_to_fmt(priv->mf.code);
-> 
->  	/*
-> -	 * Enable all Virtual Channels.
-> +	 * Enable all supported CSI-2 channels with virtual channel and
-> +	 * data type matching.
->  	 *
->  	 * NOTE: It's not possible to get individual datatype for each
->  	 *       source virtual channel. Once this is possible in V4L2
->  	 *       it should be used here.
->  	 */
-> -	for (i = 0; i < 4; i++) {
-> +	for (i = 0; i < priv->info->num_channels; i++) {
->  		u32 vcdt_part;
-> 
->  		vcdt_part = VCDT_SEL_VC(i) | VCDT_VCDTN_EN | VCDT_SEL_DTN_ON |
-> @@ -518,7 +520,8 @@ static int rcsi2_start(struct rcar_csi2 *priv)
->  	rcsi2_write(priv, FLD_REG, FLD_FLD_NUM(2) | FLD_FLD_EN4 |
->  		    FLD_FLD_EN3 | FLD_FLD_EN2 | FLD_FLD_EN);
->  	rcsi2_write(priv, VCDT_REG, vcdt);
-> -	rcsi2_write(priv, VCDT2_REG, vcdt2);
-> +	if (vcdt2)
 
-I would write this as
-
-	if (priv->info->num_channels > 2)
-
-in order to later support configuration of virtual channels and data types 
-that could result in the output channels 2 and 3 being disabled.
-
-Apart from this,
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> +		rcsi2_write(priv, VCDT2_REG, vcdt2);
->  	/* Lanes are zero indexed. */
->  	rcsi2_write(priv, LSWAP_REG,
->  		    LSWAP_L0SEL(priv->lane_swap[0] - 1) |
-> @@ -947,32 +950,38 @@ static const struct rcar_csi2_info
-> rcar_csi2_info_r8a7795 = { .init_phtw = rcsi2_init_phtw_h3_v3h_m3n,
->  	.hsfreqrange = hsfreqrange_h3_v3h_m3n,
->  	.csi0clkfreqrange = 0x20,
-> +	.num_channels = 4,
->  	.clear_ulps = true,
->  };
-> 
->  static const struct rcar_csi2_info rcar_csi2_info_r8a7795es1 = {
->  	.hsfreqrange = hsfreqrange_m3w_h3es1,
-> +	.num_channels = 4,
->  };
-> 
->  static const struct rcar_csi2_info rcar_csi2_info_r8a7796 = {
->  	.hsfreqrange = hsfreqrange_m3w_h3es1,
-> +	.num_channels = 4,
->  };
-> 
->  static const struct rcar_csi2_info rcar_csi2_info_r8a77965 = {
->  	.init_phtw = rcsi2_init_phtw_h3_v3h_m3n,
->  	.hsfreqrange = hsfreqrange_h3_v3h_m3n,
->  	.csi0clkfreqrange = 0x20,
-> +	.num_channels = 4,
->  	.clear_ulps = true,
->  };
-> 
->  static const struct rcar_csi2_info rcar_csi2_info_r8a77970 = {
->  	.init_phtw = rcsi2_init_phtw_v3m_e3,
->  	.confirm_start = rcsi2_confirm_start_v3m_e3,
-> +	.num_channels = 4,
->  };
-> 
->  static const struct rcar_csi2_info rcar_csi2_info_r8a77990 = {
->  	.init_phtw = rcsi2_init_phtw_v3m_e3,
->  	.confirm_start = rcsi2_confirm_start_v3m_e3,
-> +	.num_channels = 2,
->  };
-> 
->  static const struct of_device_id rcar_csi2_of_table[] = {
+In the latest datasheet version I can find, the frequencies go up to 1125 MHz 
+only. I've verified values up to that point, but not beyond it.
 
 -- 
 Regards,
