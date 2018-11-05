@@ -1,55 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from shell.v3.sk ([90.176.6.54]:49564 "EHLO shell.v3.sk"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728817AbeKEQtv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Nov 2018 11:49:51 -0500
-From: Lubomir Rintel <lkundrak@v3.sk>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>, linux-media@vger.kernel.org
-Cc: Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Lubomir Rintel <lkundrak@v3.sk>,
-        James Cameron <quozl@laptop.org>, Pavel Machek <pavel@ucw.cz>
-Subject: [PATCH 08/11] [media] marvell-ccic/mmp: enable clock before accessing registers
-Date: Mon,  5 Nov 2018 08:30:51 +0100
-Message-Id: <20181105073054.24407-9-lkundrak@v3.sk>
-In-Reply-To: <20181105073054.24407-1-lkundrak@v3.sk>
-References: <20181105073054.24407-1-lkundrak@v3.sk>
-MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
+Received: from mail-qt1-f193.google.com ([209.85.160.193]:44724 "EHLO
+        mail-qt1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725910AbeKFFyV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Nov 2018 00:54:21 -0500
+Received: by mail-qt1-f193.google.com with SMTP id b22-v6so151215qtr.11
+        for <linux-media@vger.kernel.org>; Mon, 05 Nov 2018 12:32:54 -0800 (PST)
+From: Fabio Estevam <festevam@gmail.com>
+To: p.zabel@pengutronix.de
+Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
+        Fabio Estevam <festevam@gmail.com>
+Subject: [PATCH 2/2] media: imx-pxp: Check for pxp_soft_reset() error
+Date: Mon,  5 Nov 2018 18:33:11 -0200
+Message-Id: <1541449991-24768-2-git-send-email-festevam@gmail.com>
+In-Reply-To: <1541449991-24768-1-git-send-email-festevam@gmail.com>
+References: <1541449991-24768-1-git-send-email-festevam@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The access to REG_CLKCTRL or REG_CTRL1 without the clock enabled hangs
-the machine. Enable the clock first.
+pxp_soft_reset() may fail with a timeout, so it is better to propagate
+the error in this case.
 
-Signed-off-by: Lubomir Rintel <lkundrak@v3.sk>
+Signed-off-by: Fabio Estevam <festevam@gmail.com>
 ---
- drivers/media/platform/marvell-ccic/mmp-driver.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/media/platform/imx-pxp.c | 12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/platform/marvell-ccic/mmp-driver.c b/drivers/m=
-edia/platform/marvell-ccic/mmp-driver.c
-index 9e988e527b0d..9c0238f72c40 100644
---- a/drivers/media/platform/marvell-ccic/mmp-driver.c
-+++ b/drivers/media/platform/marvell-ccic/mmp-driver.c
-@@ -145,6 +145,7 @@ static int mmpcam_power_up(struct mcam_camera *mcam)
-  * Turn on power and clocks to the controller.
-  */
- 	mmpcam_power_up_ctlr(cam);
-+	mcam_clk_enable(mcam);
- /*
-  * Provide power to the sensor.
-  */
-@@ -158,8 +159,6 @@ static int mmpcam_power_up(struct mcam_camera *mcam)
- 	gpio_set_value(pdata->sensor_reset_gpio, 1); /* reset is active low */
- 	mdelay(5);
-=20
--	mcam_clk_enable(mcam);
--
- 	return 0;
+diff --git a/drivers/media/platform/imx-pxp.c b/drivers/media/platform/imx-pxp.c
+index 27780f1..b3700b8 100644
+--- a/drivers/media/platform/imx-pxp.c
++++ b/drivers/media/platform/imx-pxp.c
+@@ -1607,7 +1607,7 @@ static const struct v4l2_m2m_ops m2m_ops = {
+ 	.job_abort	= pxp_job_abort,
+ };
+ 
+-static void pxp_soft_reset(struct pxp_dev *dev)
++static int pxp_soft_reset(struct pxp_dev *dev)
+ {
+ 	int ret;
+ 	u32 val;
+@@ -1619,11 +1619,15 @@ static void pxp_soft_reset(struct pxp_dev *dev)
+ 
+ 	ret = readl_poll_timeout(dev->mmio + HW_PXP_CTRL, val,
+ 				 val & BM_PXP_CTRL_CLKGATE, 0, 100);
+-	if (ret < 0)
++	if (ret < 0) {
+ 		pr_err("PXP reset timeout\n");
++		return ret;
++	}
+ 
+ 	writel(BM_PXP_CTRL_SFTRST, dev->mmio + HW_PXP_CTRL_CLR);
+ 	writel(BM_PXP_CTRL_CLKGATE, dev->mmio + HW_PXP_CTRL_CLR);
++
++	return 0;
  }
-=20
---=20
-2.19.1
+ 
+ static int pxp_probe(struct platform_device *pdev)
+@@ -1670,7 +1674,9 @@ static int pxp_probe(struct platform_device *pdev)
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	pxp_soft_reset(dev);
++	ret = pxp_soft_reset(dev);
++	if (ret < 0)
++		return ret;
+ 
+ 	spin_lock_init(&dev->irqlock);
+ 
+-- 
+2.7.4
