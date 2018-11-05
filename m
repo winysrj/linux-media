@@ -1,68 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:45908 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729670AbeKFAqs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Nov 2018 19:46:48 -0500
-Date: Mon, 5 Nov 2018 16:25:40 +0100
-From: Maxime Ripard <maxime.ripard@bootlin.com>
-To: Colin King <colin.king@canonical.com>
-Cc: Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Chen-Yu Tsai <wens@csie.org>, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-arm-kernel@lists.infradead.org,
-        kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH][staging-next] drivers: staging: cedrus: find ctx before
- dereferencing it ctx
-Message-ID: <20181105152540.htkdtrcdsnngu7pk@flea>
-References: <20181102190126.5628-1-colin.king@canonical.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="qrokgdyikkbb3l7i"
-Content-Disposition: inline
-In-Reply-To: <20181102190126.5628-1-colin.king@canonical.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44860 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S2387572AbeKFBG4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 5 Nov 2018 20:06:56 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: dave.stevenson@raspberrypi.org
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Subject: [PATCH 1/1] v4l: event: Add subscription to list before calling "add" operation
+Date: Mon,  5 Nov 2018 17:46:35 +0200
+Message-Id: <20181105154635.10157-1-sakari.ailus@linux.intel.com>
+In-Reply-To: <CAAoAYcOp+sxOkjDkXJDt8FCYXZqE2EgnDikF1M5PqvjnmQUq+Q@mail.gmail.com>
+References: <CAAoAYcOp+sxOkjDkXJDt8FCYXZqE2EgnDikF1M5PqvjnmQUq+Q@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Patch ad608fbcf166 changed how events were subscribed to address an issue
+elsewhere. As a side effect of that change, the "add" callback was called
+before the event subscription was added to the list of subscribed events,
+causing the first event (and possibly other events arriving soon
+afterwards) to be lost.
 
---qrokgdyikkbb3l7i
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Fix this by adding the subscription to the list before calling the "add"
+callback, and clean up afterwards if that fails.
 
-On Fri, Nov 02, 2018 at 07:01:26PM +0000, Colin King wrote:
-> From: Colin Ian King <colin.king@canonical.com>
->=20
-> Currently if count is an invalid value the v4l2_info message will
-> dereference a null ctx pointer to get the dev information. Fix
-> this by finding ctx first and then checking for an invalid count,
-> this way ctxt will be non-null hence avoiding the null pointer
-> dereference.
->=20
-> Detected by CoverityScan, CID#1475337 ("Explicit null dereferenced")
->=20
-> Fixes: 50e761516f2b ("media: platform: Add Cedrus VPU decoder driver")
-> Signed-off-by: Colin Ian King <colin.king@canonical.com>
+Fixes: ad608fbcf166 ("media: v4l: event: Prevent freeing event subscriptions while accessed")
 
-Acked-by: Maxime Ripard <maxime.ripard@bootlin.com>
+Reported-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+Hi Dave, Hans,
 
-Thanks!
-Maxime
+This should address the issue.
 
---=20
-Maxime Ripard, Bootlin
-Embedded Linux and Kernel engineering
-https://bootlin.com
+The functions can (and probably should) be re-arranged later but let's get
+the fix right first.
 
---qrokgdyikkbb3l7i
-Content-Type: application/pgp-signature; name="signature.asc"
+I haven't tested this using vivid yet as it crashes where I was testing
+it. I'll see later if it works elsewhere but I'm sending the patch for
+review in the meantime.
 
------BEGIN PGP SIGNATURE-----
+ drivers/media/v4l2-core/v4l2-event.c | 39 +++++++++++++++++++++++-------------
+ 1 file changed, 25 insertions(+), 14 deletions(-)
 
-iHUEABYIAB0WIQRcEzekXsqa64kGDp7j7w1vZxhRxQUCW+Bg9AAKCRDj7w1vZxhR
-xZUqAQDGGL3Cal9ZlDCJ14U0DlM9zhHuK4KtiYu61PvfaYkZBwEAlg4GtFWZ8CNj
-Eqj7X17qQd5grDaN0mMyJYUuh0wfSwI=
-=bM2L
------END PGP SIGNATURE-----
-
---qrokgdyikkbb3l7i--
+diff --git a/drivers/media/v4l2-core/v4l2-event.c b/drivers/media/v4l2-core/v4l2-event.c
+index a3ef1f50a4b3..2b6651aeb89b 100644
+--- a/drivers/media/v4l2-core/v4l2-event.c
++++ b/drivers/media/v4l2-core/v4l2-event.c
+@@ -193,6 +193,22 @@ int v4l2_event_pending(struct v4l2_fh *fh)
+ }
+ EXPORT_SYMBOL_GPL(v4l2_event_pending);
+ 
++static void __v4l2_event_unsubscribe(struct v4l2_subscribed_event *sev)
++{
++	struct v4l2_fh *fh = sev->fh;
++	unsigned int i;
++
++	lockdep_assert_held(&fh->subscribe_lock);
++	assert_spin_locked(&fh->vdev->fh_lock);
++
++	/* Remove any pending events for this subscription */
++	for (i = 0; i < sev->in_use; i++) {
++		list_del(&sev->events[sev_pos(sev, i)].list);
++		fh->navailable--;
++	}
++	list_del(&sev->list);
++}
++
+ int v4l2_event_subscribe(struct v4l2_fh *fh,
+ 			 const struct v4l2_event_subscription *sub, unsigned elems,
+ 			 const struct v4l2_subscribed_event_ops *ops)
+@@ -232,18 +248,20 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
+ 		goto out_unlock;
+ 	}
+ 
++	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
++	list_add(&sev->list, &fh->subscribed);
++	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
++
+ 	if (sev->ops && sev->ops->add) {
+ 		ret = sev->ops->add(sev, elems);
+ 		if (ret) {
++			spin_lock_irqsave(&fh->vdev->fh_lock, flags);
++			__v4l2_event_unsubscribe(sev);
++			spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+ 			kvfree(sev);
+-			goto out_unlock;
+ 		}
+ 	}
+ 
+-	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
+-	list_add(&sev->list, &fh->subscribed);
+-	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+-
+ out_unlock:
+ 	mutex_unlock(&fh->subscribe_lock);
+ 
+@@ -279,7 +297,6 @@ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
+ {
+ 	struct v4l2_subscribed_event *sev;
+ 	unsigned long flags;
+-	int i;
+ 
+ 	if (sub->type == V4L2_EVENT_ALL) {
+ 		v4l2_event_unsubscribe_all(fh);
+@@ -291,14 +308,8 @@ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
+ 	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
+ 
+ 	sev = v4l2_event_subscribed(fh, sub->type, sub->id);
+-	if (sev != NULL) {
+-		/* Remove any pending events for this subscription */
+-		for (i = 0; i < sev->in_use; i++) {
+-			list_del(&sev->events[sev_pos(sev, i)].list);
+-			fh->navailable--;
+-		}
+-		list_del(&sev->list);
+-	}
++	if (sev != NULL)
++		__v4l2_event_unsubscribe(sev);
+ 
+ 	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+ 
+-- 
+2.11.0
