@@ -1,157 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:55076 "EHLO
+Received: from perceval.ideasonboard.com ([213.167.242.64]:55622 "EHLO
         perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726120AbeKGFZF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Nov 2018 00:25:05 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Ezequiel Garcia <ezequiel@collabora.com>
-Subject: Re: [RFC] Create test script(s?) for regression testing
-Date: Tue, 06 Nov 2018 21:58:22 +0200
-Message-ID: <2115308.QQYpHGbrpd@avalon>
-In-Reply-To: <f63638d4-5901-9c7a-727b-aa781d1a8684@xs4all.nl>
-References: <d0b6420c-e6b9-64c3-3577-fd0546790af3@xs4all.nl> <1795902.nUhofaO05U@avalon> <f63638d4-5901-9c7a-727b-aa781d1a8684@xs4all.nl>
+        with ESMTP id S1725951AbeKGGyk (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Nov 2018 01:54:40 -0500
+From: Kieran Bingham <kieran@ksquared.org.uk>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Olivier BRAUN <olivier.braun@stereolabs.com>,
+        Troy Kisky <troy.kisky@boundarydevices.com>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Philipp Zabel <philipp.zabel@gmail.com>,
+        Ezequiel Garcia <ezequiel@collabora.com>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: [PATCH v5 0/9] Asynchronous UVC
+Date: Tue,  6 Nov 2018 21:27:11 +0000
+Message-Id: <cover.dd42d667a7f7505b3639149635ef3a0b1431f280.1541534872.git-series.kieran.bingham@ideasonboard.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
 
-On Tuesday, 6 November 2018 15:56:34 EET Hans Verkuil wrote:
-> On 11/06/18 14:12, Laurent Pinchart wrote:
-> > On Tuesday, 6 November 2018 13:36:55 EET Sakari Ailus wrote:
-> >> On Tue, Nov 06, 2018 at 09:37:07AM +0100, Hans Verkuil wrote:
-> >>> Hi all,
-> >>> 
-> >>> After the media summit (heavy on test discussions) and the V4L2 event
-> >>> regression we just found it is clear we need to do a better job with
-> >>> testing.
-> >>> 
-> >>> All the pieces are in place, so what is needed is to combine it and
-> >>> create a script that anyone of us as core developers can run to check
-> >>> for regressions. The same script can be run as part of the kernelci
-> >>> regression testing.
-> >> 
-> >> I'd say that *some* pieces are in place. Of course, the more there is,
-> >> the better.
-> >> 
-> >> The more there are tests, the more important it would be they're
-> >> automated, preferrably without the developer having to run them on his/
-> >> her own machine.
-> > 
-> > From my experience with testing, it's important to have both a core set of
-> > tests (a.k.a. smoke tests) that can easily be run on developers' machines,
-> > and extended tests that can be offloaded to a shared testing
-> > infrastructure (but possibly also run locally if desired).
-> 
-> That was my idea as well for the longer term. First step is to do the basic
-> smoke tests (i.e. run compliance tests, do some (limited) streaming test).
-> 
-> There are more extensive (and longer running) tests that can be done, but
-> that's something to look at later.
-> 
-> >>> We have four virtual drivers: vivid, vim2m, vimc and vicodec. The last
-> >>> one is IMHO not quite good enough yet for testing: it is not fully
-> >>> compliant to the upcoming stateful codec spec. Work for that is planned
-> >>> as part of an Outreachy project.
-> >>> 
-> >>> My idea is to create a script that is maintained as part of v4l-utils
-> >>> that loads the drivers and runs v4l2-compliance and possibly other tests
-> >>> against the virtual drivers.
-> >> 
-> >> How about spending a little time to pick a suitable framework for running
-> >> the tests? It could be useful to get more informative reports than just
-> >> pass / fail.
-> > 
-> > We should keep in mind that other tests will be added later, and the test
-> > framework should make that easy.
-> 
-> Since we want to be able to run this on kernelci.org, I think it makes sense
-> to let the kernelci folks (Hi Ezequiel!) decide this.
+The Linux UVC driver has long provided adequate performance capabilities for
+web-cams and low data rate video devices in Linux while resolutions were low.
 
-KernelCI isn't the only test infrastructure out there, so let's not forget 
-about the other ones.
+Modern USB cameras are now capable of high data rates thanks to USB3 with
+1080p, and even 4k capture resolutions supported.
 
-> As a developer all I need is a script to run smoke tests so I can catch most
-> regressions (you never catch all).
-> 
-> I'm happy to work with them to make any changes to compliance tools and
-> scripts so they fit better into their test framework.
-> 
-> The one key requirement to all this is that you should be able to run these
-> tests without dependencies to all sorts of external packages/libraries.
+Cameras such as the Stereolabs ZED (bulk transfers) or the Logitech BRIO
+(isochronous transfers) can generate more data than an embedded ARM core is
+able to process on a single core, resulting in frame loss.
 
-v4l-utils already has a set of dependencies, but those are largely manageable. 
-For v4l2-compliance we'll install libv4l, which depends on libjpeg.
+A large part of this performance impact is from the requirement to
+‘memcpy’ frames out from URB packets to destination frames. This unfortunate
+requirement is due to the UVC protocol allowing a variable length header, and
+thus it is not possible to provide the target frame buffers directly.
 
-> > Regarding the test output, many formats exist (see
-> > https://testanything.org/ and
-> > https://chromium.googlesource.com/chromium/src/+/master/docs/testing/
-> > json_test_results_format.md for instance), we should pick one of the
-> > leading industry standards (what those standards are still needs to be
-> > researched  :-)).
-> > 
-> >> Do note that for different hardware the tests would be likely different
-> >> as well although there are classes of devices for which the exact same
-> >> tests would be applicable.
-> > 
-> > See http://git.ideasonboard.com/renesas/vsp-tests.git for an example of
-> > device-specific tests. I think some of that could be generalized.
-> > 
-> >>> It should be simple to use and require very little in the way of
-> >>> dependencies. Ideally no dependencies other than what is in v4l-utils so
-> >>> it can easily be run on an embedded system as well.
-> >>> 
-> >>> For a 64-bit kernel it should run the tests both with 32-bit and 64-bit
-> >>> applications.
-> >>> 
-> >>> It should also test with both single and multiplanar modes where
-> >>> available.
-> >>> 
-> >>> Since vivid emulates CEC as well, it should run CEC tests too.
-> >>> 
-> >>> As core developers we should have an environment where we can easily
-> >>> test our patches with this script (I use a VM for that).
-> >>> 
-> >>> I think maintaining the script (or perhaps scripts) in v4l-utils is best
-> >>> since that keeps it in sync with the latest kernel and v4l-utils
-> >>> developments.
-> >> 
-> >> Makes sense --- and that can be always changed later on if there's a need
-> >> to.
-> > 
-> > I wonder whether that would be best going forward, especially if we want
-> > to add more tests. Wouldn't a v4l-tests project make sense ?
-> 
-> Let's see what happens. The more repos you have, the harder it becomes to
-> keep everything in sync with the latest kernel code.
+Extra throughput is possible by moving the actual memcpy actions to a work
+queue, and moving the memcpy out of interrupt context thus allowing work tasks
+to be scheduled across multiple cores.
 
-Why is that ? How would a v4l-tests repository make it more difficult ?
+This series has been tested on both the ZED and BRIO cameras on arm64
+platforms, and with thanks to Randy Dunlap, a Dynex 1.3MP Webcam, a Sonix USB2
+Camera, and a built in Toshiba Laptop camera, and with thanks to Philipp Zabel
+for testing on a Lite-On internal Laptop Webcam, Logitech C910 (USB2 isoc),
+Oculus Sensor (USB3 isoc), and Microsoft HoloLens Sensors (USB3 bulk).
 
-> My experience is that if you want to have good tests, then writing tests
-> should be as easy as possible. Keep dependencies at an absolute minimum.
+As far as I am aware iSight devices, and devices which use UVC to encode data
+(output device) have not yet been tested - but should find no ill effect (at
+least not until they are tested of course :D )
 
-To make it as easy as possible we need to provide high-level APIs, so 
-dependencies will be unavoidable. I found for instance that Python bindings 
-were very useful to write tests for DRM/KMS (using libkmsxx), and I plan to 
-have a look at Python bindings for V4L2.
+Tested-by: Randy Dunlap <rdunlap@infradead.org>
+Tested-by: Philipp Zabel <philipp.zabel@gmail.com>
 
-> Let's be honest, we (well, mainly me) are doing these tests as a side job,
-> it's not our main focus.
+v2:
+ - Fix race reported by Guennadi
 
-That's a mindset that needs to evolve :-)
+v3:
+ - Fix similar race reported by Laurent
+ - Only queue work if required (encode/isight do not queue work)
+ - Refactor/Rename variables for clarity
 
-> Anything that makes writing tests more painful is bad and just gets in the
-> way.
+v4:
+ - (Yet another) Rework of the uninitialise path.
+   This time to hopefully clean up the shutdown races for good.
+   use usb_poison_urb() to halt all URBs, then flush the work queue
+   before freeing.
+ - Rebase to latest linux-media/master
 
-I don't see any disagreement on this. What makes it easy to write tests will 
-however be much more prone to arguments.
+v5:
+ - Provide lockdep validation
+ - rename uvc_queue_requeue -> uvc_queue_buffer_requeue()
+ - Fix comments and periods throughout
+ - Rebase to media/v4.20-2
+ - Use GFP_KERNEL allocation in uvc_video_copy_data_work()
+ - Fix function documentation for uvc_video_copy_data_work()
+ - Add periods to the end of sentences
+ - Rename 'decode' variable to 'op' in uvc_video_decode_data()
+ - Move uvc_urb->async_operations initialisation to before use
+ - Move async workqueue to match uvc_streaming lifetime instead of
+   streamon/streamoff
+ - bracket the for_each_uvc_urb() macro
 
+ - New patches added to series:
+    media: uvcvideo: Split uvc_video_enable into two
+    media: uvcvideo: Rename uvc_{un,}init_video()
+    media: uvcvideo: Utilise for_each_uvc_urb iterator
+
+Kieran Bingham (9):
+  media: uvcvideo: Refactor URB descriptors
+  media: uvcvideo: Convert decode functions to use new context structure
+  media: uvcvideo: Protect queue internals with helper
+  media: uvcvideo: queue: Simplify spin-lock usage
+  media: uvcvideo: queue: Support asynchronous buffer handling
+  media: uvcvideo: Move decode processing to process context
+  media: uvcvideo: Split uvc_video_enable into two
+  media: uvcvideo: Rename uvc_{un,}init_video()
+  media: uvcvideo: Utilise for_each_uvc_urb iterator
+
+ drivers/media/usb/uvc/uvc_driver.c |   2 +-
+ drivers/media/usb/uvc/uvc_isight.c |   6 +-
+ drivers/media/usb/uvc/uvc_queue.c  | 110 +++++++++---
+ drivers/media/usb/uvc/uvc_video.c  | 282 +++++++++++++++++++-----------
+ drivers/media/usb/uvc/uvcvideo.h   |  65 ++++++-
+ 5 files changed, 331 insertions(+), 134 deletions(-)
+
+base-commit: dafb7f9aef2fd44991ff1691721ff765a23be27b
 -- 
-Regards,
-
-Laurent Pinchart
+git-series 0.9.1
