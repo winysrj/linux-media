@@ -1,65 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52612 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1729272AbeKFUOr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Nov 2018 15:14:47 -0500
-Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id C46A6634C83
-        for <linux-media@vger.kernel.org>; Tue,  6 Nov 2018 12:50:09 +0200 (EET)
-Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
-        (envelope-from <sakari.ailus@retiisi.org.uk>)
-        id 1gJyvx-0002Jc-J3
-        for linux-media@vger.kernel.org; Tue, 06 Nov 2018 12:50:09 +0200
-Date: Tue, 6 Nov 2018 12:50:09 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR 4.20] Fix first event delivery
-Message-ID: <20181106105009.iq3r3cv7fraks75t@valkosipuli.retiisi.org.uk>
+Received: from relay7-d.mail.gandi.net ([217.70.183.200]:45383 "EHLO
+        relay7-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729272AbeKFUTP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Nov 2018 15:19:15 -0500
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: niklas.soderlund@ragnatech.se, laurent.pinchart@ideasonboard.com,
+        kieran.bingham@ideasonboard.com
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: [PATCH v4 0/6] media: rcar-vin: Add support for R-Car E3
+Date: Tue,  6 Nov 2018 11:54:21 +0100
+Message-Id: <1541501667-28817-1-git-send-email-jacopo+renesas@jmondi.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hello,
+    this series add support for the R-Car E3 R8A77990 SoC to the rcar-vin
+and rcar-csi2 driver.
 
-There turns out to have been an issue in the event subscription fix; in
-particular the first control event is missed due to a subtle bug in the
-patch.
+Compared to v3 (which has been sent out without the 'PATCH v3' subject, sorry
+about this) I have updated the PHTW tables to match what the datasheet reports
+and I have included a comment from Laurent in patch [6/6].
 
-This patch fixes it. Once it's in, I'll submit the corresponding patches to
-the stable kernels.
+Single patches changelog in commit messages.
 
-Please pull.
+Thanks
+   j
 
+Jacopo Mondi (6):
+  media: dt-bindings: rcar-vin: Add R8A77990 support
+  media: rcar-vin: Add support for R-Car R8A77990
+  media: dt-bindings: rcar-csi2: Add R8A77990
+  media: rcar-csi2: Add R8A77990 support
+  media: rcar: rcar-csi2: Update V3M/E3 PHTW tables
+  media: rcar-csi2: Handle per-SoC number of channels
 
-The following changes since commit dafb7f9aef2fd44991ff1691721ff765a23be27b:
+ .../devicetree/bindings/media/rcar_vin.txt         |  1 +
+ .../bindings/media/renesas,rcar-csi2.txt           |  1 +
+ drivers/media/platform/rcar-vin/rcar-core.c        | 20 +++++
+ drivers/media/platform/rcar-vin/rcar-csi2.c        | 86 +++++++++++++---------
+ 4 files changed, 74 insertions(+), 34 deletions(-)
 
-  v4l2-controls: add a missing include (2018-11-02 06:36:32 -0400)
-
-are available in the git repository at:
-
-  ssh://linuxtv.org/git/sailus/media_tree.git tags/event-sub-fix-sign
-
-for you to fetch changes up to cbafeff167c91243f336e1703d7f86aa019b973e:
-
-  v4l: event: Add subscription to list before calling "add" operation (2018-11-06 10:57:34 +0200)
-
-----------------------------------------------------------------
-fix event subscription
-
-----------------------------------------------------------------
-Sakari Ailus (1):
-      v4l: event: Add subscription to list before calling "add" operation
-
- drivers/media/v4l2-core/v4l2-event.c | 43 ++++++++++++++++++++----------------
- 1 file changed, 24 insertions(+), 19 deletions(-)
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+--
+2.7.4
