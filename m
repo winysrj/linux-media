@@ -1,46 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga12.intel.com ([192.55.52.136]:53657 "EHLO mga12.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2389422AbeKGCm6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Nov 2018 21:42:58 -0500
-From: Yong Zhi <yong.zhi@intel.com>
-To: linux-media@vger.kernel.org, hans.verkuil@cisco.com
-Cc: sakari.ailus@linux.intel.com, rajmohan.mani@intel.com,
-        Yong Zhi <yong.zhi@intel.com>
-Subject: [PATCH] [v4l-utils] libv4l2subdev: Add MEDIA_BUS_FMT_FIXED to mbus_formats[]
-Date: Tue,  6 Nov 2018 09:12:56 -0800
-Message-Id: <1541524376-27795-1-git-send-email-yong.zhi@intel.com>
+Received: from mail-pf1-f193.google.com ([209.85.210.193]:36784 "EHLO
+        mail-pf1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2389511AbeKGC7Q (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Nov 2018 21:59:16 -0500
+Date: Tue, 6 Nov 2018 23:06:29 +0530
+From: Souptick Joarder <jrdr.linux@gmail.com>
+To: akpm@linux-foundation.org
+Cc: kraxel@redhat.com, sumit.semwal@linaro.org,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        linaro-mm-sig@lists.linaro.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] udmabuf: Convert to use vm_fault_t
+Message-ID: <20181106173628.GA12989@jordon-HP-15-Notebook-PC>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Also add V4L2_COLORSPACE_RAW to the colorspaces[].
+Use new return type vm_fault_t for fault handler.
 
-Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+Signed-off-by: Souptick Joarder <jrdr.linux@gmail.com>
 ---
- utils/media-ctl/libv4l2subdev.c | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/dma-buf/udmabuf.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
-index a989efb..46668eb 100644
---- a/utils/media-ctl/libv4l2subdev.c
-+++ b/utils/media-ctl/libv4l2subdev.c
-@@ -855,6 +855,7 @@ static const struct {
- 	enum v4l2_mbus_pixelcode code;
- } mbus_formats[] = {
- #include "media-bus-format-names.h"
-+	{ "FIXED", MEDIA_BUS_FMT_FIXED},
- 	{ "Y8", MEDIA_BUS_FMT_Y8_1X8},
- 	{ "Y10", MEDIA_BUS_FMT_Y10_1X10 },
- 	{ "Y12", MEDIA_BUS_FMT_Y12_1X12 },
-@@ -965,7 +966,9 @@ static struct {
- 	{ "srgb", V4L2_COLORSPACE_SRGB },
- 	{ "oprgb", V4L2_COLORSPACE_OPRGB },
- 	{ "bt2020", V4L2_COLORSPACE_BT2020 },
-+	{ "raw", V4L2_COLORSPACE_RAW },
- 	{ "dcip3", V4L2_COLORSPACE_DCI_P3 },
-+
+diff --git a/drivers/dma-buf/udmabuf.c b/drivers/dma-buf/udmabuf.c
+index 5b44ef2..699b6b7 100644
+--- a/drivers/dma-buf/udmabuf.c
++++ b/drivers/dma-buf/udmabuf.c
+@@ -20,7 +20,7 @@ struct udmabuf {
+ 	struct page **pages;
  };
  
- const char *v4l2_subdev_colorspace_to_string(enum v4l2_colorspace colorspace)
+-static int udmabuf_vm_fault(struct vm_fault *vmf)
++static vm_fault_t udmabuf_vm_fault(struct vm_fault *vmf)
+ {
+ 	struct vm_area_struct *vma = vmf->vma;
+ 	struct udmabuf *ubuf = vma->vm_private_data;
 -- 
-2.7.4
+1.9.1
