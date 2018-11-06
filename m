@@ -1,116 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:53935 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S2387913AbeKFWra (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Nov 2018 17:47:30 -0500
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Sylwester Nawrocki <snawrocki@kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.21] Convert last remaining g/s_crop/cropcap drivers
-Message-ID: <abf9e001-7fa9-e30c-b4f4-746485cad5b8@xs4all.nl>
-Date: Tue, 6 Nov 2018 14:22:13 +0100
+Received: from perceval.ideasonboard.com ([213.167.242.64]:50118 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2387913AbeKFWrc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Nov 2018 17:47:32 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: niklas.soderlund@ragnatech.se, kieran.bingham@ideasonboard.com,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH v4 5/6] media: rcar: rcar-csi2: Update V3M/E3 PHTW tables
+Date: Tue, 06 Nov 2018 15:22:29 +0200
+Message-ID: <5650007.KMox73GGi6@avalon>
+In-Reply-To: <1541501667-28817-6-git-send-email-jacopo+renesas@jmondi.org>
+References: <1541501667-28817-1-git-send-email-jacopo+renesas@jmondi.org> <1541501667-28817-6-git-send-email-jacopo+renesas@jmondi.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This pull request converts the last remaining drivers that use g/s_crop and
-cropcap to g/s_selection.
+Hi Jacopo,
 
-The first two patches do some minor code cleanup.
+Thank you for the patch.
 
-The third patch adds a new video_device flag to indicate that the driver
-inverts the normal usage of g/s_crop/cropcap. This applies to the old
-Samsung drivers that predate the Selection API and that abused the existing
-crop API.
+On Tuesday, 6 November 2018 12:54:26 EET Jacopo Mondi wrote:
+> Update PHTW tables for V3M and E3 SoCs to the latest datasheet release
+> (R-Car Series, 3rd Generation manual rev1.00 20181017).
+> 
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> 
+> ---
+> v1 -> v2:
+> - Limit the PHTW table to 1125 MBps, according to Laurent's comment
 
-The next three patches do some code cleanup and prepare drivers for the
-removal of g/s_crop and ensure that cropcap only returns the pixelaspect.
+Based on the assumption that the values haven't changed between v1 and v2,
 
-The next three patches convert the remaining Samsung drivers and set the
-QUIRK flag for all three.
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-The final two patches remove vidioc_g/s_crop and rename vidioc_cropcap
-to vidioc_g_pixelaspect.
+> ---
+>  drivers/media/platform/rcar-vin/rcar-csi2.c | 62 ++++++++++++--------------
+>  1 file changed, 31 insertions(+), 31 deletions(-)
+> 
+> diff --git a/drivers/media/platform/rcar-vin/rcar-csi2.c
+> b/drivers/media/platform/rcar-vin/rcar-csi2.c index 695686b..99f5b76 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-csi2.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-csi2.c
+> @@ -152,37 +152,37 @@ static const struct rcsi2_mbps_reg
+> phtw_mbps_h3_v3h_m3n[] = { };
+> 
+>  static const struct rcsi2_mbps_reg phtw_mbps_v3m_e3[] = {
+> -	{ .mbps =   80, .reg = 0x00 },
+> -	{ .mbps =   90, .reg = 0x20 },
+> -	{ .mbps =  100, .reg = 0x40 },
+> -	{ .mbps =  110, .reg = 0x02 },
+> -	{ .mbps =  130, .reg = 0x22 },
+> -	{ .mbps =  140, .reg = 0x42 },
+> -	{ .mbps =  150, .reg = 0x04 },
+> -	{ .mbps =  170, .reg = 0x24 },
+> -	{ .mbps =  180, .reg = 0x44 },
+> -	{ .mbps =  200, .reg = 0x06 },
+> -	{ .mbps =  220, .reg = 0x26 },
+> -	{ .mbps =  240, .reg = 0x46 },
+> -	{ .mbps =  250, .reg = 0x08 },
+> -	{ .mbps =  270, .reg = 0x28 },
+> -	{ .mbps =  300, .reg = 0x0a },
+> -	{ .mbps =  330, .reg = 0x2a },
+> -	{ .mbps =  360, .reg = 0x4a },
+> -	{ .mbps =  400, .reg = 0x0c },
+> -	{ .mbps =  450, .reg = 0x2c },
+> -	{ .mbps =  500, .reg = 0x0e },
+> -	{ .mbps =  550, .reg = 0x2e },
+> -	{ .mbps =  600, .reg = 0x10 },
+> -	{ .mbps =  650, .reg = 0x30 },
+> -	{ .mbps =  700, .reg = 0x12 },
+> -	{ .mbps =  750, .reg = 0x32 },
+> -	{ .mbps =  800, .reg = 0x52 },
+> -	{ .mbps =  850, .reg = 0x72 },
+> -	{ .mbps =  900, .reg = 0x14 },
+> -	{ .mbps =  950, .reg = 0x34 },
+> -	{ .mbps = 1000, .reg = 0x54 },
+> -	{ .mbps = 1050, .reg = 0x74 },
+> +	{ .mbps =   89, .reg = 0x00 },
+> +	{ .mbps =   99, .reg = 0x20 },
+> +	{ .mbps =  109, .reg = 0x40 },
+> +	{ .mbps =  129, .reg = 0x02 },
+> +	{ .mbps =  139, .reg = 0x22 },
+> +	{ .mbps =  149, .reg = 0x42 },
+> +	{ .mbps =  169, .reg = 0x04 },
+> +	{ .mbps =  179, .reg = 0x24 },
+> +	{ .mbps =  199, .reg = 0x44 },
+> +	{ .mbps =  219, .reg = 0x06 },
+> +	{ .mbps =  239, .reg = 0x26 },
+> +	{ .mbps =  249, .reg = 0x46 },
+> +	{ .mbps =  269, .reg = 0x08 },
+> +	{ .mbps =  299, .reg = 0x28 },
+> +	{ .mbps =  329, .reg = 0x0a },
+> +	{ .mbps =  359, .reg = 0x2a },
+> +	{ .mbps =  399, .reg = 0x4a },
+> +	{ .mbps =  449, .reg = 0x0c },
+> +	{ .mbps =  499, .reg = 0x2c },
+> +	{ .mbps =  549, .reg = 0x0e },
+> +	{ .mbps =  599, .reg = 0x2e },
+> +	{ .mbps =  649, .reg = 0x10 },
+> +	{ .mbps =  699, .reg = 0x30 },
+> +	{ .mbps =  749, .reg = 0x12 },
+> +	{ .mbps =  799, .reg = 0x32 },
+> +	{ .mbps =  849, .reg = 0x52 },
+> +	{ .mbps =  899, .reg = 0x72 },
+> +	{ .mbps =  949, .reg = 0x14 },
+> +	{ .mbps =  999, .reg = 0x34 },
+> +	{ .mbps = 1049, .reg = 0x54 },
+> +	{ .mbps = 1099, .reg = 0x74 },
+>  	{ .mbps = 1125, .reg = 0x16 },
+>  	{ /* sentinel */ },
+>  };
 
-This pull request is identical to the original RFC patch series:
 
-https://www.mail-archive.com/linux-media@vger.kernel.org/msg135494.html
-
-I was waiting for Samsung to test these changes, and Sylwester just did that.
-Thank you very much, Sylwester! It's really nice to have a single driver
-API for cropping and composing instead of having to deal with two.
-
+-- 
 Regards,
 
-	Hans
-
-
-The following changes since commit ef86eaf97acd6d82cd3fd40f997b1c8c4895a443:
-
-  media: Rename vb2_m2m_request_queue -> v4l2_m2m_request_queue (2018-11-06 05:24:22 -0500)
-
-are available in the Git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git tags/br-crop2sel-v2
-
-for you to fetch changes up to 588488146f93467815fd2ffdbabe7bb37d10e54c:
-
-  vidioc_cropcap -> vidioc_g_pixelaspect (2018-11-06 13:05:45 +0100)
-
-----------------------------------------------------------------
-Tag branch
-
-----------------------------------------------------------------
-Hans Verkuil (11):
-      v4l2-ioctl: don't use CROP/COMPOSE_ACTIVE
-      v4l2-common.h: put backwards compat defines under #ifndef __KERNEL__
-      v4l2-ioctl: add QUIRK_INVERTED_CROP
-      davinci/vpbe: drop unused g_cropcap
-      cropcap/g_selection split
-      exynos-gsc: replace v4l2_crop by v4l2_selection
-      s5p_mfc_dec.c: convert g_crop to g_selection
-      exynos4-is: convert g/s_crop to g/s_selection
-      s5p-g2d: convert g/s_crop to g/s_selection
-      v4l2-ioctl: remove unused vidioc_g/s_crop
-      vidioc_cropcap -> vidioc_g_pixelaspect
-
- drivers/media/pci/bt8xx/bttv-driver.c         |  12 +++---
- drivers/media/pci/cobalt/cobalt-v4l2.c        |  48 +++++++++++++++++++----
- drivers/media/pci/cx18/cx18-ioctl.c           |  13 ++++---
- drivers/media/pci/cx23885/cx23885-video.c     |  40 +++++++++++++------
- drivers/media/pci/ivtv/ivtv-ioctl.c           |  17 ++++----
- drivers/media/pci/saa7134/saa7134-video.c     |  21 +++++-----
- drivers/media/platform/am437x/am437x-vpfe.c   |  31 ++++++++-------
- drivers/media/platform/davinci/vpbe.c         |  23 -----------
- drivers/media/platform/davinci/vpbe_display.c |  10 ++---
- drivers/media/platform/davinci/vpfe_capture.c |  12 +++---
- drivers/media/platform/exynos-gsc/gsc-core.c  |  57 +++++++++++----------------
- drivers/media/platform/exynos-gsc/gsc-core.h  |   3 +-
- drivers/media/platform/exynos-gsc/gsc-m2m.c   |  23 +++++------
- drivers/media/platform/exynos4-is/fimc-core.h |   6 ++-
- drivers/media/platform/exynos4-is/fimc-m2m.c  | 130 ++++++++++++++++++++++++++++++++++++--------------------------
- drivers/media/platform/rcar-vin/rcar-v4l2.c   |  10 ++---
- drivers/media/platform/s5p-g2d/g2d.c          | 102 ++++++++++++++++++++++++++++++------------------
- drivers/media/platform/s5p-mfc/s5p_mfc.c      |   1 +
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c  |  49 +++++++++++++++--------
- drivers/media/platform/vivid/vivid-core.c     |   9 +++--
- drivers/media/platform/vivid/vivid-vid-cap.c  |  18 ++++-----
- drivers/media/platform/vivid/vivid-vid-cap.h  |   2 +-
- drivers/media/platform/vivid/vivid-vid-out.c  |  18 ++++-----
- drivers/media/platform/vivid/vivid-vid-out.h  |   2 +-
- drivers/media/usb/au0828/au0828-video.c       |  38 ++++++++++++------
- drivers/media/usb/cpia2/cpia2_v4l.c           |  31 +++++++--------
- drivers/media/usb/cx231xx/cx231xx-417.c       |  41 ++++++++++++++------
- drivers/media/usb/cx231xx/cx231xx-video.c     |  41 ++++++++++++++------
- drivers/media/usb/pvrusb2/pvrusb2-v4l2.c      |  13 ++++---
- drivers/media/v4l2-core/v4l2-dev.c            |   8 ++--
- drivers/media/v4l2-core/v4l2-ioctl.c          |  44 +++++++++++++--------
- include/media/davinci/vpbe.h                  |   4 --
- include/media/v4l2-dev.h                      |  13 ++++++-
- include/media/v4l2-ioctl.h                    |  16 ++------
- include/uapi/linux/v4l2-common.h              |  28 +++++++-------
- 35 files changed, 537 insertions(+), 397 deletions(-)
+Laurent Pinchart
