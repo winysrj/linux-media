@@ -1,71 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:54193 "EHLO gofer.mess.org"
+Received: from mout.gmx.net ([212.227.17.20]:33749 "EHLO mout.gmx.net"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727483AbeKGHGs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Nov 2018 02:06:48 -0500
-Date: Tue, 6 Nov 2018 21:39:32 +0000
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v4.21] rc changes
-Message-ID: <20181106213932.boecsqxcv4wurz3c@gofer.mess.org>
+        id S1726069AbeKGHLQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 7 Nov 2018 02:11:16 -0500
+Date: Tue, 6 Nov 2018 22:43:58 +0100
+From: Peter Seiderer <ps.report@gmx.net>
+To: Sean Young <sean@mess.org>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH v4l-utils] Add missing linux/bpf_common.h
+Message-ID: <20181106224358.2a1ea449@gmx.net>
+In-Reply-To: <20181106103856.66uhadykgsw2dqs3@gofer.mess.org>
+References: <20181105203047.15258-1-ps.report@gmx.net>
+        <20181106103856.66uhadykgsw2dqs3@gofer.mess.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hello Sean,
 
-A new driver for the usb IR receiver for the original XBox, and a few
-minor fixes.
+On Tue, 6 Nov 2018 10:38:56 +0000, Sean Young <sean@mess.org> wrote:
 
-Thanks,
+> On Mon, Nov 05, 2018 at 09:30:47PM +0100, Peter Seiderer wrote:
+> > Copy from [1], needed by bpf.h.
+> >
+> > [1] https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/plain/include/uapi/linux/bpf_common.h?h=v4.19
+>
+> So bpf.h does include this file, but we don't use anything from it in
+> v4l-utils.
+>
 
-Sean
+Maybe alternative fix is to remove the include (or not if your want
+the headers to be in sync with the kernel ones, but then they should
+be complete enough to be used for compile)?
 
-The following changes since commit ef86eaf97acd6d82cd3fd40f997b1c8c4895a443:
+> This include file is for the original BPF, which has been around for a
+> long time. So why is this include file missing, i.e. what problem are you
+> trying to solve?
 
-  media: Rename vb2_m2m_request_queue -> v4l2_m2m_request_queue (2018-11-06 05:24:22 -0500)
+A buildroot autobuild failure (see [1] for details) with older toolchains
+not providing this header...
 
-are available in the Git repository at:
+>
+> Lastely, the file should be included in the sync-with-kernel target so
+> it does not get out of sync -- should it really be necessary to add the
+> file.
 
-  git://linuxtv.org/syoung/media_tree.git for-v4.21a
+O.k, can do it on next patch iteration...
 
-for you to fetch changes up to ca8dc4056dcff7c0cfcb0daaf0b630bcfa34c932:
+Regards,
+Peter
 
-  media: rc: ensure close() is called on rc_unregister_device (2018-11-06 10:55:53 +0000)
+[1] http://lists.busybox.net/pipermail/buildroot/2018-November/234840.html
 
-----------------------------------------------------------------
-Benjamin Valentin (1):
-      media: rc: add driver for Xbox DVD Movie Playback Kit
-
-Brad Love (1):
-      mceusb: Include three Hauppauge USB dvb device with IR rx
-
-Mauro Carvalho Chehab (1):
-      media: rc: imon: replace strcpy() by strscpy()
-
-Sean Young (6):
-      media: rc: XBox DVD Remote uses 12 bits scancodes
-      media: rc: imon_raw: use fls rather than loop per bit
-      media: saa7134: rc device does not need 'saa7134 IR (' prefix
-      media: saa7134: hvr1110 can decode rc6
-      media: rc: cec devices do not have a lirc chardev
-      media: rc: ensure close() is called on rc_unregister_device
-
- MAINTAINERS                               |   6 +
- drivers/media/pci/saa7134/saa7134-input.c |  47 +----
- drivers/media/pci/saa7134/saa7134.h       |   1 -
- drivers/media/rc/Kconfig                  |  12 ++
- drivers/media/rc/Makefile                 |   1 +
- drivers/media/rc/imon.c                   |   4 +-
- drivers/media/rc/imon_raw.c               |  47 +++--
- drivers/media/rc/keymaps/Makefile         |   1 +
- drivers/media/rc/keymaps/rc-xbox-dvd.c    |  63 ++++++
- drivers/media/rc/mceusb.c                 |   9 +
- drivers/media/rc/rc-main.c                |   8 +-
- drivers/media/rc/xbox_remote.c            | 306 ++++++++++++++++++++++++++++++
- include/media/rc-map.h                    |   1 +
- 13 files changed, 435 insertions(+), 71 deletions(-)
- create mode 100644 drivers/media/rc/keymaps/rc-xbox-dvd.c
- create mode 100644 drivers/media/rc/xbox_remote.c
+>
+>
+> Sean
+>
+> >
+> > Signed-off-by: Peter Seiderer <ps.report@gmx.net>
+> > ---
+> >  include/linux/bpf_common.h | 57 ++++++++++++++++++++++++++++++++++++++
+> >  1 file changed, 57 insertions(+)
+> >  create mode 100644 include/linux/bpf_common.h
+> >
+> > diff --git a/include/linux/bpf_common.h b/include/linux/bpf_common.h
+> > new file mode 100644
+> > index 00000000..ee97668b
+> > --- /dev/null
+> > +++ b/include/linux/bpf_common.h
+> > @@ -0,0 +1,57 @@
+> > +/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
+> > +#ifndef _UAPI__LINUX_BPF_COMMON_H__
+> > +#define _UAPI__LINUX_BPF_COMMON_H__
+> > +
+> > +/* Instruction classes */
+> > +#define BPF_CLASS(code) ((code) & 0x07)
+> > +#define		BPF_LD		0x00
+> > +#define		BPF_LDX		0x01
+> > +#define		BPF_ST		0x02
+> > +#define		BPF_STX		0x03
+> > +#define		BPF_ALU		0x04
+> > +#define		BPF_JMP		0x05
+> > +#define		BPF_RET		0x06
+> > +#define		BPF_MISC        0x07
+> > +
+> > +/* ld/ldx fields */
+> > +#define BPF_SIZE(code)  ((code) & 0x18)
+> > +#define		BPF_W		0x00 /* 32-bit */
+> > +#define		BPF_H		0x08 /* 16-bit */
+> > +#define		BPF_B		0x10 /*  8-bit */
+> > +/* eBPF		BPF_DW		0x18    64-bit */
+> > +#define BPF_MODE(code)  ((code) & 0xe0)
+> > +#define		BPF_IMM		0x00
+> > +#define		BPF_ABS		0x20
+> > +#define		BPF_IND		0x40
+> > +#define		BPF_MEM		0x60
+> > +#define		BPF_LEN		0x80
+> > +#define		BPF_MSH		0xa0
+> > +
+> > +/* alu/jmp fields */
+> > +#define BPF_OP(code)    ((code) & 0xf0)
+> > +#define		BPF_ADD		0x00
+> > +#define		BPF_SUB		0x10
+> > +#define		BPF_MUL		0x20
+> > +#define		BPF_DIV		0x30
+> > +#define		BPF_OR		0x40
+> > +#define		BPF_AND		0x50
+> > +#define		BPF_LSH		0x60
+> > +#define		BPF_RSH		0x70
+> > +#define		BPF_NEG		0x80
+> > +#define		BPF_MOD		0x90
+> > +#define		BPF_XOR		0xa0
+> > +
+> > +#define		BPF_JA		0x00
+> > +#define		BPF_JEQ		0x10
+> > +#define		BPF_JGT		0x20
+> > +#define		BPF_JGE		0x30
+> > +#define		BPF_JSET        0x40
+> > +#define BPF_SRC(code)   ((code) & 0x08)
+> > +#define		BPF_K		0x00
+> > +#define		BPF_X		0x08
+> > +
+> > +#ifndef BPF_MAXINSNS
+> > +#define BPF_MAXINSNS 4096
+> > +#endif
+> > +
+> > +#endif /* _UAPI__LINUX_BPF_COMMON_H__ */
+> > --
+> > 2.19.1
