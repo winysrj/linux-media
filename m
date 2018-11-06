@@ -1,94 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw1-f65.google.com ([209.85.161.65]:34308 "EHLO
-        mail-yw1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729326AbeKFPUl (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Nov 2018 10:20:41 -0500
-Received: by mail-yw1-f65.google.com with SMTP id v199-v6so4717138ywg.1
-        for <linux-media@vger.kernel.org>; Mon, 05 Nov 2018 21:57:08 -0800 (PST)
-Received: from mail-yb1-f173.google.com (mail-yb1-f173.google.com. [209.85.219.173])
-        by smtp.gmail.com with ESMTPSA id r5-v6sm18398533ywr.80.2018.11.05.21.57.06
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 05 Nov 2018 21:57:06 -0800 (PST)
-Received: by mail-yb1-f173.google.com with SMTP id i78-v6so4863838ybg.0
-        for <linux-media@vger.kernel.org>; Mon, 05 Nov 2018 21:57:06 -0800 (PST)
-MIME-Version: 1.0
-References: <1540851790-1777-1-git-send-email-yong.zhi@intel.com>
- <1540851790-1777-7-git-send-email-yong.zhi@intel.com> <20181105115525.fuwuxnsyzsvl5oj7@kekkonen.localdomain>
- <C193D76D23A22742993887E6D207B54D3DB2F0EB@ORSMSX106.amr.corp.intel.com>
-In-Reply-To: <C193D76D23A22742993887E6D207B54D3DB2F0EB@ORSMSX106.amr.corp.intel.com>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Tue, 6 Nov 2018 14:56:54 +0900
-Message-ID: <CAAFQd5ARewBpE4GE96S+0CThtT7gCvYrD5qt8spchQimvLZg0A@mail.gmail.com>
-Subject: Re: [PATCH v7 06/16] intel-ipu3: mmu: Implement driver
-To: Yong Zhi <yong.zhi@intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "Hu, Jerry W" <jerry.w.hu@intel.com>,
-        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
-        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
-        Cao Bing Bu <bingbu.cao@intel.com>
-Content-Type: text/plain; charset="UTF-8"
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51006 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1726863AbeKFRB7 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 6 Nov 2018 12:01:59 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org, dave.stevenson@raspberrypi.org,
+        hverkuil@xs4all.nl
+Subject: [PATCH v2 1/1] v4l: event: Add subscription to list before calling "add" operation
+Date: Tue,  6 Nov 2018 09:38:02 +0200
+Message-Id: <20181106073802.28986-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Nov 6, 2018 at 2:50 PM Zhi, Yong <yong.zhi@intel.com> wrote:
->
-> Hi, Sakari,
->
-> Thanks for the feedback.
->
-> > -----Original Message-----
-> > From: Sakari Ailus [mailto:sakari.ailus@linux.intel.com]
-> > Sent: Monday, November 5, 2018 3:55 AM
-> > To: Zhi, Yong <yong.zhi@intel.com>
-> > Cc: linux-media@vger.kernel.org; tfiga@chromium.org;
-> > mchehab@kernel.org; hans.verkuil@cisco.com;
-> > laurent.pinchart@ideasonboard.com; Mani, Rajmohan
-> > <rajmohan.mani@intel.com>; Zheng, Jian Xu <jian.xu.zheng@intel.com>; Hu,
-> > Jerry W <jerry.w.hu@intel.com>; Toivonen, Tuukka
-> > <tuukka.toivonen@intel.com>; Qiu, Tian Shu <tian.shu.qiu@intel.com>; Cao,
-> > Bingbu <bingbu.cao@intel.com>
-> > Subject: Re: [PATCH v7 06/16] intel-ipu3: mmu: Implement driver
-> >
-> > Hi Yong,
-> >
-> > On Mon, Oct 29, 2018 at 03:23:00PM -0700, Yong Zhi wrote:
-> > > From: Tomasz Figa <tfiga@chromium.org>
-> > >
-> > > This driver translates IO virtual address to physical address based on
-> > > two levels page tables.
-> > >
-> > > Signed-off-by: Tomasz Figa <tfiga@chromium.org>
-> > > Signed-off-by: Yong Zhi <yong.zhi@intel.com>
-> > > ---
-> >
-> > ...
-> >
-> > > +static void call_if_ipu3_is_powered(struct ipu3_mmu *mmu,
-> > > +                               void (*func)(struct ipu3_mmu *mmu)) {
-> > > +   pm_runtime_get_noresume(mmu->dev);
-> > > +   if (pm_runtime_active(mmu->dev))
-> > > +           func(mmu);
-> > > +   pm_runtime_put(mmu->dev);
-> >
-> > How about:
-> >
-> >       if (!pm_runtime_get_if_in_use(mmu->dev))
-> >               return;
-> >
-> >       func(mmu);
-> >       pm_runtime_put(mmu->dev);
-> >
->
-> Ack, unless Tomasz has different opinion.
+Patch ad608fbcf166 changed how events were subscribed to address an issue
+elsewhere. As a side effect of that change, the "add" callback was called
+before the event subscription was added to the list of subscribed events,
+causing the first event (and possibly other events arriving soon
+afterwards) to be lost.
 
-It's actually the proper way of doing it. Thanks for the suggestion.
+Fix this by adding the subscription to the list before calling the "add"
+callback, and clean up afterwards if that fails.
 
-Best regards,
-Tomasz
+Fixes: ad608fbcf166 ("media: v4l: event: Prevent freeing event subscriptions while accessed")
+
+Reported-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+
+Hi Dave, Hans,
+
+I figured there was room for some refactoring... so I did that.
+Functionality-wise it should be equivalent.
+
+ drivers/media/v4l2-core/v4l2-event.c | 43 ++++++++++++++++++++----------------
+ 1 file changed, 24 insertions(+), 19 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/v4l2-event.c b/drivers/media/v4l2-core/v4l2-event.c
+index a3ef1f50a4b3..481e3c65cf97 100644
+--- a/drivers/media/v4l2-core/v4l2-event.c
++++ b/drivers/media/v4l2-core/v4l2-event.c
+@@ -193,6 +193,22 @@ int v4l2_event_pending(struct v4l2_fh *fh)
+ }
+ EXPORT_SYMBOL_GPL(v4l2_event_pending);
+ 
++static void __v4l2_event_unsubscribe(struct v4l2_subscribed_event *sev)
++{
++	struct v4l2_fh *fh = sev->fh;
++	unsigned int i;
++
++	lockdep_assert_held(&fh->subscribe_lock);
++	assert_spin_locked(&fh->vdev->fh_lock);
++
++	/* Remove any pending events for this subscription */
++	for (i = 0; i < sev->in_use; i++) {
++		list_del(&sev->events[sev_pos(sev, i)].list);
++		fh->navailable--;
++	}
++	list_del(&sev->list);
++}
++
+ int v4l2_event_subscribe(struct v4l2_fh *fh,
+ 			 const struct v4l2_event_subscription *sub, unsigned elems,
+ 			 const struct v4l2_subscribed_event_ops *ops)
+@@ -224,27 +240,23 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
+ 
+ 	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
+ 	found_ev = v4l2_event_subscribed(fh, sub->type, sub->id);
++	if (!found_ev)
++		list_add(&sev->list, &fh->subscribed);
+ 	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+ 
+ 	if (found_ev) {
+ 		/* Already listening */
+ 		kvfree(sev);
+-		goto out_unlock;
+-	}
+-
+-	if (sev->ops && sev->ops->add) {
++	} else if (sev->ops && sev->ops->add) {
+ 		ret = sev->ops->add(sev, elems);
+ 		if (ret) {
++			spin_lock_irqsave(&fh->vdev->fh_lock, flags);
++			__v4l2_event_unsubscribe(sev);
++			spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+ 			kvfree(sev);
+-			goto out_unlock;
+ 		}
+ 	}
+ 
+-	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
+-	list_add(&sev->list, &fh->subscribed);
+-	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+-
+-out_unlock:
+ 	mutex_unlock(&fh->subscribe_lock);
+ 
+ 	return ret;
+@@ -279,7 +291,6 @@ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
+ {
+ 	struct v4l2_subscribed_event *sev;
+ 	unsigned long flags;
+-	int i;
+ 
+ 	if (sub->type == V4L2_EVENT_ALL) {
+ 		v4l2_event_unsubscribe_all(fh);
+@@ -291,14 +302,8 @@ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
+ 	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
+ 
+ 	sev = v4l2_event_subscribed(fh, sub->type, sub->id);
+-	if (sev != NULL) {
+-		/* Remove any pending events for this subscription */
+-		for (i = 0; i < sev->in_use; i++) {
+-			list_del(&sev->events[sev_pos(sev, i)].list);
+-			fh->navailable--;
+-		}
+-		list_del(&sev->list);
+-	}
++	if (sev != NULL)
++		__v4l2_event_unsubscribe(sev);
+ 
+ 	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+ 
+-- 
+2.11.0
