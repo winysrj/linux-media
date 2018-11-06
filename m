@@ -1,137 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:37892 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726252AbeKHVVx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 8 Nov 2018 16:21:53 -0500
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Dave Stevenson <dave.stevenson@raspberrypi.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>, mchehab@kernel.org,
-        linux-media@vger.kernel.org,
-        stable@vger.kernel.org (for 4.14 and up)
-Subject: [PATCH v4.9 1/1] v4l: event: Add subscription to list before calling "add" operation
-Date: Thu,  8 Nov 2018 13:46:06 +0200
-Message-Id: <20181108114606.17148-1-sakari.ailus@linux.intel.com>
+Received: from relay7-d.mail.gandi.net ([217.70.183.200]:40987 "EHLO
+        relay7-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730304AbeKFUTy (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Nov 2018 15:19:54 -0500
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: niklas.soderlund@ragnatech.se, laurent.pinchart@ideasonboard.com,
+        kieran.bingham@ideasonboard.com
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: [PATCH v4 3/6] media: dt-bindings: rcar-csi2: Add R8A77990
+Date: Tue,  6 Nov 2018 11:54:24 +0100
+Message-Id: <1541501667-28817-4-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1541501667-28817-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1541501667-28817-1-git-send-email-jacopo+renesas@jmondi.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-[ upstream commit 92539d3eda2c090b382699bbb896d4b54e9bdece ]
+Add compatible string for R-Car E3 R8A77990 to the list of supported SoCs.
 
-Patch ad608fbcf166 changed how events were subscribed to address an issue
-elsewhere. As a side effect of that change, the "add" callback was called
-before the event subscription was added to the list of subscribed events,
-causing the first event queued by the add callback (and possibly other
-events arriving soon afterwards) to be lost.
-
-Fix this by adding the subscription to the list before calling the "add"
-callback, and clean up afterwards if that fails.
-
-Fixes: ad608fbcf166 ("media: v4l: event: Prevent freeing event subscriptions while accessed")
-
-Reported-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Tested-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-Tested-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: stable@vger.kernel.org (for 4.14 and up)
-Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Reviewed-by: Rob Herring <robh@kernel.org>
+Reviewed-by: Simon Horman <horms+renesas@verge.net.au>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
-Hi Greg,
+ Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt | 1 +
+ 1 file changed, 1 insertion(+)
 
-This is a backport of a fix in the media tree for the 4.9 stable series.
-
-<URL:https://git.linuxtv.org/media_tree.git/commit/?id=92539d3eda2c090b382699bbb896d4b54e9bdece>
-
-I'll send patches for 4.4 and 3.16 (to Ben H.) kernels shortly.
-
- drivers/media/v4l2-core/v4l2-event.c | 43 ++++++++++++++++++++----------------
- 1 file changed, 24 insertions(+), 19 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/v4l2-event.c b/drivers/media/v4l2-core/v4l2-event.c
-index 567d86835f001..1fda2873375f6 100644
---- a/drivers/media/v4l2-core/v4l2-event.c
-+++ b/drivers/media/v4l2-core/v4l2-event.c
-@@ -197,6 +197,22 @@ int v4l2_event_pending(struct v4l2_fh *fh)
- }
- EXPORT_SYMBOL_GPL(v4l2_event_pending);
+diff --git a/Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt b/Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt
+index 2d385b6..2824489 100644
+--- a/Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt
++++ b/Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt
+@@ -12,6 +12,7 @@ Mandatory properties
+    - "renesas,r8a7796-csi2" for the R8A7796 device.
+    - "renesas,r8a77965-csi2" for the R8A77965 device.
+    - "renesas,r8a77970-csi2" for the R8A77970 device.
++   - "renesas,r8a77990-csi2" for the R8A77990 device.
  
-+static void __v4l2_event_unsubscribe(struct v4l2_subscribed_event *sev)
-+{
-+	struct v4l2_fh *fh = sev->fh;
-+	unsigned int i;
-+
-+	lockdep_assert_held(&fh->subscribe_lock);
-+	assert_spin_locked(&fh->vdev->fh_lock);
-+
-+	/* Remove any pending events for this subscription */
-+	for (i = 0; i < sev->in_use; i++) {
-+		list_del(&sev->events[sev_pos(sev, i)].list);
-+		fh->navailable--;
-+	}
-+	list_del(&sev->list);
-+}
-+
- int v4l2_event_subscribe(struct v4l2_fh *fh,
- 			 const struct v4l2_event_subscription *sub, unsigned elems,
- 			 const struct v4l2_subscribed_event_ops *ops)
-@@ -228,27 +244,23 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
- 
- 	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
- 	found_ev = v4l2_event_subscribed(fh, sub->type, sub->id);
-+	if (!found_ev)
-+		list_add(&sev->list, &fh->subscribed);
- 	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
- 
- 	if (found_ev) {
- 		/* Already listening */
- 		kfree(sev);
--		goto out_unlock;
--	}
--
--	if (sev->ops && sev->ops->add) {
-+	} else if (sev->ops && sev->ops->add) {
- 		ret = sev->ops->add(sev, elems);
- 		if (ret) {
-+			spin_lock_irqsave(&fh->vdev->fh_lock, flags);
-+			__v4l2_event_unsubscribe(sev);
-+			spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
- 			kfree(sev);
--			goto out_unlock;
- 		}
- 	}
- 
--	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
--	list_add(&sev->list, &fh->subscribed);
--	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
--
--out_unlock:
- 	mutex_unlock(&fh->subscribe_lock);
- 
- 	return ret;
-@@ -283,7 +295,6 @@ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
- {
- 	struct v4l2_subscribed_event *sev;
- 	unsigned long flags;
--	int i;
- 
- 	if (sub->type == V4L2_EVENT_ALL) {
- 		v4l2_event_unsubscribe_all(fh);
-@@ -295,14 +306,8 @@ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
- 	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
- 
- 	sev = v4l2_event_subscribed(fh, sub->type, sub->id);
--	if (sev != NULL) {
--		/* Remove any pending events for this subscription */
--		for (i = 0; i < sev->in_use; i++) {
--			list_del(&sev->events[sev_pos(sev, i)].list);
--			fh->navailable--;
--		}
--		list_del(&sev->list);
--	}
-+	if (sev != NULL)
-+		__v4l2_event_unsubscribe(sev);
- 
- 	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
- 
+  - reg: the register base and size for the device registers
+  - interrupts: the interrupt for the device
 -- 
-2.11.0
+2.7.4
