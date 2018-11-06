@@ -1,8 +1,8 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:51820 "EHLO mail.bootlin.com"
+Received: from mail.bootlin.com ([62.4.15.54]:51804 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2389010AbeKGAUQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Nov 2018 19:20:16 -0500
+        id S2388980AbeKGAUP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 6 Nov 2018 19:20:15 -0500
 From: Maxime Ripard <maxime.ripard@bootlin.com>
 To: Kishon Vijay Abraham I <kishon@ti.com>,
         Boris Brezillon <boris.brezillon@bootlin.com>
@@ -17,9 +17,9 @@ Cc: Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
         Krzysztof Witos <kwitos@cadence.com>,
         Rafal Ciepiela <rafalc@cadence.com>,
         Maxime Ripard <maxime.ripard@bootlin.com>
-Subject: [PATCH v2 7/9] drm/bridge: cdns: Separate DSI and D-PHY configuration
-Date: Tue,  6 Nov 2018 15:54:19 +0100
-Message-Id: <8214d82bb1cfd2160f900deef8a9934b4efb0685.1541516029.git-series.maxime.ripard@bootlin.com>
+Subject: [PATCH v2 5/9] sun6i: dsi: Convert to generic phy handling
+Date: Tue,  6 Nov 2018 15:54:17 +0100
+Message-Id: <6745751144f35799ad56b3f20f152e997bec706b.1541516029.git-series.maxime.ripard@bootlin.com>
 In-Reply-To: <cover.c2c2ae47383b9dbbdee6b69cafdd7391c06dde4f.1541516029.git-series.maxime.ripard@bootlin.com>
 References: <cover.c2c2ae47383b9dbbdee6b69cafdd7391c06dde4f.1541516029.git-series.maxime.ripard@bootlin.com>
 MIME-Version: 1.0
@@ -27,195 +27,459 @@ Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The current configuration of the DSI bridge and its associated D-PHY is
-intertwined. In order to ease the future conversion to the phy framework
-for the D-PHY part, let's split the configuration in two.
+Now that we have everything in place in the PHY framework to deal in a
+generic way with MIPI D-PHY phys, let's convert our PHY driver and its
+associated DSI driver to that new API.
 
 Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
 ---
- drivers/gpu/drm/bridge/cdns-dsi.c | 96 ++++++++++++++++++++++----------
- 1 file changed, 68 insertions(+), 28 deletions(-)
+ drivers/gpu/drm/sun4i/Kconfig           |  11 +-
+ drivers/gpu/drm/sun4i/Makefile          |   6 +-
+ drivers/gpu/drm/sun4i/sun6i_mipi_dphy.c | 164 ++++++++++++++-----------
+ drivers/gpu/drm/sun4i/sun6i_mipi_dsi.c  |  31 ++---
+ drivers/gpu/drm/sun4i/sun6i_mipi_dsi.h  |  17 +---
+ 5 files changed, 126 insertions(+), 103 deletions(-)
 
-diff --git a/drivers/gpu/drm/bridge/cdns-dsi.c b/drivers/gpu/drm/bridge/cdns-dsi.c
-index ce9496d13986..3ac6dd524b6d 100644
---- a/drivers/gpu/drm/bridge/cdns-dsi.c
-+++ b/drivers/gpu/drm/bridge/cdns-dsi.c
-@@ -545,6 +545,11 @@ bridge_to_cdns_dsi_input(struct drm_bridge *bridge)
- 	return container_of(bridge, struct cdns_dsi_input, bridge);
- }
+diff --git a/drivers/gpu/drm/sun4i/Kconfig b/drivers/gpu/drm/sun4i/Kconfig
+index c2c042287c19..2b8db82c4bab 100644
+--- a/drivers/gpu/drm/sun4i/Kconfig
++++ b/drivers/gpu/drm/sun4i/Kconfig
+@@ -45,10 +45,19 @@ config DRM_SUN6I_DSI
+ 	default MACH_SUN8I
+ 	select CRC_CCITT
+ 	select DRM_MIPI_DSI
++	select DRM_SUN6I_DPHY
+ 	help
+ 	  Choose this option if you want have an Allwinner SoC with
+ 	  MIPI-DSI support. If M is selected the module will be called
+-	  sun6i-dsi
++	  sun6i_mipi_dsi.
++
++config DRM_SUN6I_DPHY
++	tristate "Allwinner A31 MIPI D-PHY Support"
++	select GENERIC_PHY_MIPI_DPHY
++	help
++	  Choose this option if you have an Allwinner SoC with
++	  MIPI-DSI support. If M is selected, the module will be
++	  called sun6i_mipi_dphy.
  
-+static unsigned int mode_to_dpi_hfp(const struct drm_display_mode *mode)
-+{
-+	return mode->crtc_hsync_start - mode->crtc_hdisplay;
+ config DRM_SUN8I_DW_HDMI
+ 	tristate "Support for Allwinner version of DesignWare HDMI"
+diff --git a/drivers/gpu/drm/sun4i/Makefile b/drivers/gpu/drm/sun4i/Makefile
+index 0eb38ac8e86e..1e2320d824b5 100644
+--- a/drivers/gpu/drm/sun4i/Makefile
++++ b/drivers/gpu/drm/sun4i/Makefile
+@@ -24,9 +24,6 @@ sun4i-tcon-y			+= sun4i_lvds.o
+ sun4i-tcon-y			+= sun4i_tcon.o
+ sun4i-tcon-y			+= sun4i_rgb.o
+ 
+-sun6i-dsi-y			+= sun6i_mipi_dphy.o
+-sun6i-dsi-y			+= sun6i_mipi_dsi.o
+-
+ obj-$(CONFIG_DRM_SUN4I)		+= sun4i-drm.o
+ obj-$(CONFIG_DRM_SUN4I)		+= sun4i-tcon.o
+ obj-$(CONFIG_DRM_SUN4I)		+= sun4i_tv.o
+@@ -37,7 +34,8 @@ ifdef CONFIG_DRM_SUN4I_BACKEND
+ obj-$(CONFIG_DRM_SUN4I)		+= sun4i-frontend.o
+ endif
+ obj-$(CONFIG_DRM_SUN4I_HDMI)	+= sun4i-drm-hdmi.o
+-obj-$(CONFIG_DRM_SUN6I_DSI)	+= sun6i-dsi.o
++obj-$(CONFIG_DRM_SUN6I_DPHY)	+= sun6i_mipi_dphy.o
++obj-$(CONFIG_DRM_SUN6I_DSI)	+= sun6i_mipi_dsi.o
+ obj-$(CONFIG_DRM_SUN8I_DW_HDMI)	+= sun8i-drm-hdmi.o
+ obj-$(CONFIG_DRM_SUN8I_MIXER)	+= sun8i-mixer.o
+ obj-$(CONFIG_DRM_SUN8I_TCON_TOP) += sun8i_tcon_top.o
+diff --git a/drivers/gpu/drm/sun4i/sun6i_mipi_dphy.c b/drivers/gpu/drm/sun4i/sun6i_mipi_dphy.c
+index e4d19431fa0e..79c8af5c7c1d 100644
+--- a/drivers/gpu/drm/sun4i/sun6i_mipi_dphy.c
++++ b/drivers/gpu/drm/sun4i/sun6i_mipi_dphy.c
+@@ -8,11 +8,14 @@
+ 
+ #include <linux/bitops.h>
+ #include <linux/clk.h>
++#include <linux/module.h>
+ #include <linux/of_address.h>
++#include <linux/platform_device.h>
+ #include <linux/regmap.h>
+ #include <linux/reset.h>
+ 
+-#include "sun6i_mipi_dsi.h"
++#include <linux/phy/phy.h>
++#include <linux/phy/phy-mipi-dphy.h>
+ 
+ #define SUN6I_DPHY_GCTL_REG		0x00
+ #define SUN6I_DPHY_GCTL_LANE_NUM(n)		((((n) - 1) & 3) << 4)
+@@ -81,12 +84,46 @@
+ 
+ #define SUN6I_DPHY_DBG5_REG		0xf4
+ 
+-int sun6i_dphy_init(struct sun6i_dphy *dphy, unsigned int lanes)
++struct sun6i_dphy {
++	struct clk				*bus_clk;
++	struct clk				*mod_clk;
++	struct regmap				*regs;
++	struct reset_control			*reset;
++
++	struct phy				*phy;
++	struct phy_configure_opts_mipi_dphy	config;
++};
++
++static int sun6i_dphy_init(struct phy *phy)
+ {
++	struct sun6i_dphy *dphy = phy_get_drvdata(phy);
++
+ 	reset_control_deassert(dphy->reset);
+ 	clk_prepare_enable(dphy->mod_clk);
+ 	clk_set_rate_exclusive(dphy->mod_clk, 150000000);
+ 
++	return 0;
 +}
 +
- static int cdns_dsi_get_dphy_pll_cfg(struct cdns_dphy *dphy,
- 				     struct cdns_dphy_cfg *cfg,
- 				     unsigned int dpi_htotal,
-@@ -731,14 +736,12 @@ static unsigned int dpi_to_dsi_timing(unsigned int dpi_timing,
- static int cdns_dsi_mode2cfg(struct cdns_dsi *dsi,
- 			     const struct drm_display_mode *mode,
- 			     struct cdns_dsi_cfg *dsi_cfg,
--			     struct cdns_dphy_cfg *dphy_cfg,
- 			     bool mode_valid_check)
++static int sun6i_dphy_configure(struct phy *phy, union phy_configure_opts *opts)
++{
++	struct sun6i_dphy *dphy = phy_get_drvdata(phy);
++	int ret;
++
++	ret = phy_mipi_dphy_config_validate(&opts->mipi_dphy);
++	if (ret)
++		return ret;
++
++	memcpy(&dphy->config, opts, sizeof(dphy->config));
++
++	return 0;
++}
++
++static int sun6i_dphy_power_on(struct phy *phy)
++{
++	struct sun6i_dphy *dphy = phy_get_drvdata(phy);
++	u8 lanes_mask = GENMASK(dphy->config.lanes - 1, 0);
++
+ 	regmap_write(dphy->regs, SUN6I_DPHY_TX_CTL_REG,
+ 		     SUN6I_DPHY_TX_CTL_HS_TX_CLK_CONT);
+ 
+@@ -111,16 +148,9 @@ int sun6i_dphy_init(struct sun6i_dphy *dphy, unsigned int lanes)
+ 		     SUN6I_DPHY_TX_TIME4_HS_TX_ANA1(3));
+ 
+ 	regmap_write(dphy->regs, SUN6I_DPHY_GCTL_REG,
+-		     SUN6I_DPHY_GCTL_LANE_NUM(lanes) |
++		     SUN6I_DPHY_GCTL_LANE_NUM(dphy->config.lanes) |
+ 		     SUN6I_DPHY_GCTL_EN);
+ 
+-	return 0;
+-}
+-
+-int sun6i_dphy_power_on(struct sun6i_dphy *dphy, unsigned int lanes)
+-{
+-	u8 lanes_mask = GENMASK(lanes - 1, 0);
+-
+ 	regmap_write(dphy->regs, SUN6I_DPHY_ANA0_REG,
+ 		     SUN6I_DPHY_ANA0_REG_PWS |
+ 		     SUN6I_DPHY_ANA0_REG_DMPC |
+@@ -181,16 +211,20 @@ int sun6i_dphy_power_on(struct sun6i_dphy *dphy, unsigned int lanes)
+ 	return 0;
+ }
+ 
+-int sun6i_dphy_power_off(struct sun6i_dphy *dphy)
++static int sun6i_dphy_power_off(struct phy *phy)
  {
--	unsigned long dsi_htotal = 0, dsi_hss_hsa_hse_hbp = 0;
- 	struct cdns_dsi_output *output = &dsi->output;
--	unsigned int dsi_hfp_ext = 0, dpi_hfp, tmp;
-+	unsigned int tmp;
- 	bool sync_pulse = false;
--	int bpp, nlanes, ret;
-+	int bpp, nlanes;
++	struct sun6i_dphy *dphy = phy_get_drvdata(phy);
++
+ 	regmap_update_bits(dphy->regs, SUN6I_DPHY_ANA1_REG,
+ 			   SUN6I_DPHY_ANA1_REG_VTTMODE, 0);
  
- 	memset(dsi_cfg, 0, sizeof(*dsi_cfg));
+ 	return 0;
+ }
  
-@@ -757,8 +760,6 @@ static int cdns_dsi_mode2cfg(struct cdns_dsi *dsi,
- 		       mode->crtc_hsync_end : mode->crtc_hsync_start);
+-int sun6i_dphy_exit(struct sun6i_dphy *dphy)
++static int sun6i_dphy_exit(struct phy *phy)
+ {
++	struct sun6i_dphy *dphy = phy_get_drvdata(phy);
++
+ 	clk_rate_exclusive_put(dphy->mod_clk);
+ 	clk_disable_unprepare(dphy->mod_clk);
+ 	reset_control_assert(dphy->reset);
+@@ -198,6 +232,15 @@ int sun6i_dphy_exit(struct sun6i_dphy *dphy)
+ 	return 0;
+ }
  
- 	dsi_cfg->hbp = dpi_to_dsi_timing(tmp, bpp, DSI_HBP_FRAME_OVERHEAD);
--	dsi_htotal += dsi_cfg->hbp + DSI_HBP_FRAME_OVERHEAD;
--	dsi_hss_hsa_hse_hbp += dsi_cfg->hbp + DSI_HBP_FRAME_OVERHEAD;
++
++static struct phy_ops sun6i_dphy_ops = {
++	.configure	= sun6i_dphy_configure,
++	.power_on	= sun6i_dphy_power_on,
++	.power_off	= sun6i_dphy_power_off,
++	.init		= sun6i_dphy_init,
++	.exit		= sun6i_dphy_exit,
++};
++
+ static struct regmap_config sun6i_dphy_regmap_config = {
+ 	.reg_bits	= 32,
+ 	.val_bits	= 32,
+@@ -206,87 +249,70 @@ static struct regmap_config sun6i_dphy_regmap_config = {
+ 	.name		= "mipi-dphy",
+ };
  
- 	if (sync_pulse) {
- 		if (mode_valid_check)
-@@ -768,49 +769,90 @@ static int cdns_dsi_mode2cfg(struct cdns_dsi *dsi,
+-static const struct of_device_id sun6i_dphy_of_table[] = {
+-	{ .compatible = "allwinner,sun6i-a31-mipi-dphy" },
+-	{ }
+-};
+-
+-int sun6i_dphy_probe(struct sun6i_dsi *dsi, struct device_node *node)
++static int sun6i_dphy_probe(struct platform_device *pdev)
+ {
++	struct phy_provider *phy_provider;
+ 	struct sun6i_dphy *dphy;
+-	struct resource res;
++	struct resource *res;
+ 	void __iomem *regs;
+-	int ret;
+-
+-	if (!of_match_node(sun6i_dphy_of_table, node)) {
+-		dev_err(dsi->dev, "Incompatible D-PHY\n");
+-		return -EINVAL;
+-	}
  
- 		dsi_cfg->hsa = dpi_to_dsi_timing(tmp, bpp,
- 						 DSI_HSA_FRAME_OVERHEAD);
--		dsi_htotal += dsi_cfg->hsa + DSI_HSA_FRAME_OVERHEAD;
--		dsi_hss_hsa_hse_hbp += dsi_cfg->hsa + DSI_HSA_FRAME_OVERHEAD;
+-	dphy = devm_kzalloc(dsi->dev, sizeof(*dphy), GFP_KERNEL);
++	dphy = devm_kzalloc(&pdev->dev, sizeof(*dphy), GFP_KERNEL);
+ 	if (!dphy)
+ 		return -ENOMEM;
+ 
+-	ret = of_address_to_resource(node, 0, &res);
+-	if (ret) {
+-		dev_err(dsi->dev, "phy: Couldn't get our resources\n");
+-		return ret;
+-	}
+-
+-	regs = devm_ioremap_resource(dsi->dev, &res);
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	regs = devm_ioremap_resource(&pdev->dev, res);
+ 	if (IS_ERR(regs)) {
+-		dev_err(dsi->dev, "Couldn't map the DPHY encoder registers\n");
++		dev_err(&pdev->dev, "Couldn't map the DPHY encoder registers\n");
+ 		return PTR_ERR(regs);
  	}
  
- 	dsi_cfg->hact = dpi_to_dsi_timing(mode_valid_check ?
- 					  mode->hdisplay : mode->crtc_hdisplay,
- 					  bpp, 0);
--	dsi_htotal += dsi_cfg->hact;
-+	dsi_cfg->hfp = dpi_to_dsi_timing(mode_to_dpi_hfp(mode), bpp,
-+					 DSI_HFP_FRAME_OVERHEAD);
+-	dphy->regs = devm_regmap_init_mmio(dsi->dev, regs,
+-					   &sun6i_dphy_regmap_config);
++	dphy->regs = devm_regmap_init_mmio_clk(&pdev->dev, "bus",
++					       regs, &sun6i_dphy_regmap_config);
+ 	if (IS_ERR(dphy->regs)) {
+-		dev_err(dsi->dev, "Couldn't create the DPHY encoder regmap\n");
++		dev_err(&pdev->dev, "Couldn't create the DPHY encoder regmap\n");
+ 		return PTR_ERR(dphy->regs);
+ 	}
  
--	if (mode_valid_check)
--		dpi_hfp = mode->hsync_start - mode->hdisplay;
--	else
--		dpi_hfp = mode->crtc_hsync_start - mode->crtc_hdisplay;
-+	return 0;
-+}
-+
-+static int cdns_dphy_validate(struct cdns_dsi *dsi,
-+			      struct cdns_dsi_cfg *dsi_cfg,
-+			      struct cdns_dphy_cfg *dphy_cfg,
-+			      const struct drm_display_mode *mode,
-+			      bool mode_valid_check)
-+{
-+	struct cdns_dsi_output *output = &dsi->output;
-+	unsigned long dsi_htotal;
-+	unsigned int dsi_hfp_ext = 0;
-+
-+	int ret;
+-	dphy->reset = of_reset_control_get_shared(node, NULL);
++	dphy->reset = devm_reset_control_get_shared(&pdev->dev, NULL);
+ 	if (IS_ERR(dphy->reset)) {
+-		dev_err(dsi->dev, "Couldn't get our reset line\n");
++		dev_err(&pdev->dev, "Couldn't get our reset line\n");
+ 		return PTR_ERR(dphy->reset);
+ 	}
  
--	dsi_cfg->hfp = dpi_to_dsi_timing(dpi_hfp, bpp, DSI_HFP_FRAME_OVERHEAD);
-+	dsi_htotal = dsi_cfg->hbp + DSI_HBP_FRAME_OVERHEAD;
-+	if (output->dev->mode_flags & MIPI_DSI_MODE_VIDEO_SYNC_PULSE)
-+		dsi_htotal += dsi_cfg->hsa + DSI_HSA_FRAME_OVERHEAD;
-+
-+	dsi_htotal += dsi_cfg->hact;
- 	dsi_htotal += dsi_cfg->hfp + DSI_HFP_FRAME_OVERHEAD;
- 
- 	if (mode_valid_check)
- 		ret = cdns_dsi_get_dphy_pll_cfg(dsi->dphy, dphy_cfg,
--						mode->htotal, bpp,
-+						mode->htotal,
- 						mode->clock * 1000,
--						dsi_htotal, nlanes,
-+						mipi_dsi_pixel_format_to_bpp(output->dev->format),
-+						dsi_htotal,
-+						output->dev->lanes,
- 						&dsi_hfp_ext);
- 	else
- 		ret = cdns_dsi_get_dphy_pll_cfg(dsi->dphy, dphy_cfg,
--						mode->crtc_htotal, bpp,
-+						mode->crtc_htotal,
-+						mipi_dsi_pixel_format_to_bpp(output->dev->format),
- 						mode->crtc_clock * 1000,
--						dsi_htotal, nlanes,
-+						dsi_htotal,
-+						output->dev->lanes,
- 						&dsi_hfp_ext);
+-	dphy->bus_clk = of_clk_get_by_name(node, "bus");
+-	if (IS_ERR(dphy->bus_clk)) {
+-		dev_err(dsi->dev, "Couldn't get the DPHY bus clock\n");
+-		ret = PTR_ERR(dphy->bus_clk);
+-		goto err_free_reset;
+-	}
+-	regmap_mmio_attach_clk(dphy->regs, dphy->bus_clk);
 -
- 	if (ret)
- 		return ret;
+-	dphy->mod_clk = of_clk_get_by_name(node, "mod");
++	dphy->mod_clk = devm_clk_get(&pdev->dev, "mod");
+ 	if (IS_ERR(dphy->mod_clk)) {
+-		dev_err(dsi->dev, "Couldn't get the DPHY mod clock\n");
+-		ret = PTR_ERR(dphy->mod_clk);
+-		goto err_free_bus;
++		dev_err(&pdev->dev, "Couldn't get the DPHY mod clock\n");
++		return PTR_ERR(dphy->mod_clk);
+ 	}
  
- 	dsi_cfg->hfp += dsi_hfp_ext;
--	dsi_htotal += dsi_hfp_ext;
--	dsi_cfg->htotal = dsi_htotal;
-+	dsi_cfg->htotal = dsi_htotal + dsi_hfp_ext;
-+
-+	return 0;
-+}
-+
-+static int cdns_dsi_check_conf(struct cdns_dsi *dsi,
-+			       const struct drm_display_mode *mode,
-+			       struct cdns_dsi_cfg *dsi_cfg,
-+			       struct cdns_dphy_cfg *dphy_cfg,
-+			       bool mode_valid_check)
-+{
-+	struct cdns_dsi_output *output = &dsi->output;
-+	unsigned long dsi_hss_hsa_hse_hbp;
-+	unsigned int nlanes = output->dev->lanes;
-+	int ret;
-+
-+	ret = cdns_dsi_mode2cfg(dsi, mode, dsi_cfg, mode_valid_check);
-+	if (ret)
-+		return ret;
-+
-+	ret = cdns_dphy_validate(dsi, dsi_cfg, dphy_cfg, mode, mode_valid_check);
-+	if (ret)
-+		return ret;
-+
-+	dsi_hss_hsa_hse_hbp = dsi_cfg->hbp + DSI_HBP_FRAME_OVERHEAD;
-+	if (output->dev->mode_flags & MIPI_DSI_MODE_VIDEO_SYNC_PULSE)
-+		dsi_hss_hsa_hse_hbp += dsi_cfg->hsa + DSI_HSA_FRAME_OVERHEAD;
+-	dsi->dphy = dphy;
++	dphy->phy = devm_phy_create(&pdev->dev, NULL, &sun6i_dphy_ops);
++	if (IS_ERR(dphy->phy)) {
++		dev_err(&pdev->dev, "failed to create PHY\n");
++		return PTR_ERR(dphy->phy);
++	}
  
- 	/*
- 	 * Make sure DPI(HFP) > DSI(HSS+HSA+HSE+HBP) to guarantee that the FIFO
- 	 * is empty before we start a receiving a new line on the DPI
- 	 * interface.
- 	 */
--	if ((u64)dphy_cfg->lane_bps * dpi_hfp * nlanes <
-+	if ((u64)dphy_cfg->lane_bps * mode_to_dpi_hfp(mode) * nlanes <
- 	    (u64)dsi_hss_hsa_hse_hbp *
- 	    (mode_valid_check ? mode->clock : mode->crtc_clock) * 1000)
- 		return -EINVAL;
-@@ -842,7 +884,7 @@ cdns_dsi_bridge_mode_valid(struct drm_bridge *bridge,
- 	struct cdns_dsi_output *output = &dsi->output;
- 	struct cdns_dphy_cfg dphy_cfg;
- 	struct cdns_dsi_cfg dsi_cfg;
--	int bpp, nlanes, ret;
-+	int bpp, ret;
+-	return 0;
++	phy_set_drvdata(dphy->phy, dphy);
++	phy_provider = devm_of_phy_provider_register(&pdev->dev, of_phy_simple_xlate);
  
- 	/*
- 	 * VFP_DSI should be less than VFP_DPI and VFP_DSI should be at
-@@ -860,11 +902,9 @@ cdns_dsi_bridge_mode_valid(struct drm_bridge *bridge,
- 	if ((mode->hdisplay * bpp) % 32)
- 		return MODE_H_ILLEGAL;
- 
--	nlanes = output->dev->lanes;
--
--	ret = cdns_dsi_mode2cfg(dsi, mode, &dsi_cfg, &dphy_cfg, true);
-+	ret = cdns_dsi_check_conf(dsi, mode, &dsi_cfg, &dphy_cfg, true);
- 	if (ret)
--		return MODE_CLOCK_RANGE;
-+		return MODE_BAD;
- 
- 	return MODE_OK;
+-err_free_bus:
+-	regmap_mmio_detach_clk(dphy->regs);
+-	clk_put(dphy->bus_clk);
+-err_free_reset:
+-	reset_control_put(dphy->reset);
+-	return ret;
++	return PTR_ERR_OR_ZERO(phy_provider);
  }
-@@ -990,7 +1030,7 @@ static void cdns_dsi_bridge_enable(struct drm_bridge *bridge)
- 	bpp = mipi_dsi_pixel_format_to_bpp(output->dev->format);
- 	nlanes = output->dev->lanes;
  
--	WARN_ON_ONCE(cdns_dsi_mode2cfg(dsi, mode, &dsi_cfg, &dphy_cfg, false));
-+	WARN_ON_ONCE(cdns_dsi_check_conf(dsi, mode, &dsi_cfg, &dphy_cfg, false));
+-int sun6i_dphy_remove(struct sun6i_dsi *dsi)
+-{
+-	struct sun6i_dphy *dphy = dsi->dphy;
+-
+-	regmap_mmio_detach_clk(dphy->regs);
+-	clk_put(dphy->mod_clk);
+-	clk_put(dphy->bus_clk);
+-	reset_control_put(dphy->reset);
++static const struct of_device_id sun6i_dphy_of_table[] = {
++	{ .compatible = "allwinner,sun6i-a31-mipi-dphy" },
++	{ }
++};
++MODULE_DEVICE_TABLE(of, sun6i_dphy_of_table);
++
++static struct platform_driver sun6i_dphy_platform_driver = {
++	.probe		= sun6i_dphy_probe,
++	.driver		= {
++		.name		= "sun6i-mipi-dphy",
++		.of_match_table	= sun6i_dphy_of_table,
++	},
++};
++module_platform_driver(sun6i_dphy_platform_driver);
  
- 	cdns_dsi_hs_init(dsi, &dphy_cfg);
- 	cdns_dsi_init_link(dsi);
+-	return 0;
+-}
++MODULE_AUTHOR("Maxime Ripard <maxime.ripard@bootlin>");
++MODULE_DESCRIPTION("Allwinner A31 MIPI D-PHY Driver");
++MODULE_LICENSE("GPL");
+diff --git a/drivers/gpu/drm/sun4i/sun6i_mipi_dsi.c b/drivers/gpu/drm/sun4i/sun6i_mipi_dsi.c
+index e3b34a345546..7bbce7708265 100644
+--- a/drivers/gpu/drm/sun4i/sun6i_mipi_dsi.c
++++ b/drivers/gpu/drm/sun4i/sun6i_mipi_dsi.c
+@@ -16,6 +16,7 @@
+ #include <linux/slab.h>
+ 
+ #include <linux/phy/phy.h>
++#include <linux/phy/phy-mipi-dphy.h>
+ 
+ #include <drm/drmP.h>
+ #include <drm/drm_atomic_helper.h>
+@@ -616,6 +617,8 @@ static void sun6i_dsi_encoder_enable(struct drm_encoder *encoder)
+ 	struct drm_display_mode *mode = &encoder->crtc->state->adjusted_mode;
+ 	struct sun6i_dsi *dsi = encoder_to_sun6i_dsi(encoder);
+ 	struct mipi_dsi_device *device = dsi->device;
++	union phy_configure_opts opts = { 0 };
++	struct phy_configure_opts_mipi_dphy *cfg = &opts.mipi_dphy;
+ 	u16 delay;
+ 
+ 	DRM_DEBUG_DRIVER("Enabling DSI output\n");
+@@ -634,8 +637,15 @@ static void sun6i_dsi_encoder_enable(struct drm_encoder *encoder)
+ 	sun6i_dsi_setup_format(dsi, mode);
+ 	sun6i_dsi_setup_timings(dsi, mode);
+ 
+-	sun6i_dphy_init(dsi->dphy, device->lanes);
+-	sun6i_dphy_power_on(dsi->dphy, device->lanes);
++	phy_init(dsi->dphy);
++
++	phy_mipi_dphy_get_default_config(mode->clock * 1000,
++					 mipi_dsi_pixel_format_to_bpp(device->format),
++					 device->lanes, cfg);
++
++	phy_set_mode(dsi->dphy, PHY_MODE_MIPI_DPHY);
++	phy_configure(dsi->dphy, &opts);
++	phy_power_on(dsi->dphy);
+ 
+ 	if (!IS_ERR(dsi->panel))
+ 		drm_panel_prepare(dsi->panel);
+@@ -673,8 +683,8 @@ static void sun6i_dsi_encoder_disable(struct drm_encoder *encoder)
+ 		drm_panel_unprepare(dsi->panel);
+ 	}
+ 
+-	sun6i_dphy_power_off(dsi->dphy);
+-	sun6i_dphy_exit(dsi->dphy);
++	phy_power_off(dsi->dphy);
++	phy_exit(dsi->dphy);
+ 
+ 	pm_runtime_put(dsi->dev);
+ }
+@@ -967,7 +977,6 @@ static const struct component_ops sun6i_dsi_ops = {
+ static int sun6i_dsi_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+-	struct device_node *dphy_node;
+ 	struct sun6i_dsi *dsi;
+ 	struct resource *res;
+ 	void __iomem *base;
+@@ -1013,10 +1022,8 @@ static int sun6i_dsi_probe(struct platform_device *pdev)
+ 	 */
+ 	clk_set_rate_exclusive(dsi->mod_clk, 297000000);
+ 
+-	dphy_node = of_parse_phandle(dev->of_node, "phys", 0);
+-	ret = sun6i_dphy_probe(dsi, dphy_node);
+-	of_node_put(dphy_node);
+-	if (ret) {
++	dsi->dphy = devm_phy_get(dev, "dphy");
++	if (IS_ERR(dsi->dphy)) {
+ 		dev_err(dev, "Couldn't get the MIPI D-PHY\n");
+ 		goto err_unprotect_clk;
+ 	}
+@@ -1026,7 +1033,7 @@ static int sun6i_dsi_probe(struct platform_device *pdev)
+ 	ret = mipi_dsi_host_register(&dsi->host);
+ 	if (ret) {
+ 		dev_err(dev, "Couldn't register MIPI-DSI host\n");
+-		goto err_remove_phy;
++		goto err_pm_disable;
+ 	}
+ 
+ 	ret = component_add(&pdev->dev, &sun6i_dsi_ops);
+@@ -1039,9 +1046,8 @@ static int sun6i_dsi_probe(struct platform_device *pdev)
+ 
+ err_remove_dsi_host:
+ 	mipi_dsi_host_unregister(&dsi->host);
+-err_remove_phy:
++err_pm_disable:
+ 	pm_runtime_disable(dev);
+-	sun6i_dphy_remove(dsi);
+ err_unprotect_clk:
+ 	clk_rate_exclusive_put(dsi->mod_clk);
+ 	return ret;
+@@ -1055,7 +1061,6 @@ static int sun6i_dsi_remove(struct platform_device *pdev)
+ 	component_del(&pdev->dev, &sun6i_dsi_ops);
+ 	mipi_dsi_host_unregister(&dsi->host);
+ 	pm_runtime_disable(dev);
+-	sun6i_dphy_remove(dsi);
+ 	clk_rate_exclusive_put(dsi->mod_clk);
+ 
+ 	return 0;
+diff --git a/drivers/gpu/drm/sun4i/sun6i_mipi_dsi.h b/drivers/gpu/drm/sun4i/sun6i_mipi_dsi.h
+index dbbc5b3ecbda..a07090579f84 100644
+--- a/drivers/gpu/drm/sun4i/sun6i_mipi_dsi.h
++++ b/drivers/gpu/drm/sun4i/sun6i_mipi_dsi.h
+@@ -13,13 +13,6 @@
+ #include <drm/drm_encoder.h>
+ #include <drm/drm_mipi_dsi.h>
+ 
+-struct sun6i_dphy {
+-	struct clk		*bus_clk;
+-	struct clk		*mod_clk;
+-	struct regmap		*regs;
+-	struct reset_control	*reset;
+-};
+-
+ struct sun6i_dsi {
+ 	struct drm_connector	connector;
+ 	struct drm_encoder	encoder;
+@@ -29,7 +22,7 @@ struct sun6i_dsi {
+ 	struct clk		*mod_clk;
+ 	struct regmap		*regs;
+ 	struct reset_control	*reset;
+-	struct sun6i_dphy	*dphy;
++	struct phy		*dphy;
+ 
+ 	struct device		*dev;
+ 	struct sun4i_drv	*drv;
+@@ -52,12 +45,4 @@ static inline struct sun6i_dsi *encoder_to_sun6i_dsi(const struct drm_encoder *e
+ 	return container_of(encoder, struct sun6i_dsi, encoder);
+ };
+ 
+-int sun6i_dphy_probe(struct sun6i_dsi *dsi, struct device_node *node);
+-int sun6i_dphy_remove(struct sun6i_dsi *dsi);
+-
+-int sun6i_dphy_init(struct sun6i_dphy *dphy, unsigned int lanes);
+-int sun6i_dphy_power_on(struct sun6i_dphy *dphy, unsigned int lanes);
+-int sun6i_dphy_power_off(struct sun6i_dphy *dphy);
+-int sun6i_dphy_exit(struct sun6i_dphy *dphy);
+-
+ #endif /* _SUN6I_MIPI_DSI_H_ */
 -- 
 git-series 0.9.1
