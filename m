@@ -1,74 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:47977 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730164AbeKGIzd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Nov 2018 03:55:33 -0500
-From: "Mani, Rajmohan" <rajmohan.mani@intel.com>
-To: Tomasz Figa <tfiga@chromium.org>,
-        Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-CC: "Zhi, Yong" <yong.zhi@intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "Hu, Jerry W" <jerry.w.hu@intel.com>,
-        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
-        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
-        "Cao, Bingbu" <bingbu.cao@intel.com>,
-        "Li, Chao C" <chao.c.li@intel.com>
-Subject: RE: [PATCH v7 03/16] v4l: Add Intel IPU3 meta data uAPI
-Date: Tue, 6 Nov 2018 23:27:53 +0000
-Message-ID: <6F87890CF0F5204F892DEA1EF0D77A5981524580@fmsmsx122.amr.corp.intel.com>
-References: <1540851790-1777-1-git-send-email-yong.zhi@intel.com>
- <1540851790-1777-4-git-send-email-yong.zhi@intel.com>
- <20181102104908.609177e5@coco.lan>
- <CAAFQd5B_OVV-Nh0uOGHdQE4eSKcs5N8Nn1t-Zz-GbvgpB9P38A@mail.gmail.com>
-In-Reply-To: <CAAFQd5B_OVV-Nh0uOGHdQE4eSKcs5N8Nn1t-Zz-GbvgpB9P38A@mail.gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Received: from perceval.ideasonboard.com ([213.167.242.64]:59960 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730409AbeKGI7A (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Nov 2018 03:59:00 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kieran Bingham <kieran@ksquared.org.uk>
+Cc: linux-media@vger.kernel.org,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Olivier BRAUN <olivier.braun@stereolabs.com>,
+        Troy Kisky <troy.kisky@boundarydevices.com>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Philipp Zabel <philipp.zabel@gmail.com>,
+        Ezequiel Garcia <ezequiel@collabora.com>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: Re: [PATCH v5 0/9] Asynchronous UVC
+Date: Wed, 07 Nov 2018 01:31:29 +0200
+Message-ID: <2885485.8lvEIT6Ze7@avalon>
+In-Reply-To: <cover.dd42d667a7f7505b3639149635ef3a0b1431f280.1541534872.git-series.kieran.bingham@ideasonboard.com>
+References: <cover.dd42d667a7f7505b3639149635ef3a0b1431f280.1541534872.git-series.kieran.bingham@ideasonboard.com>
 MIME-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgTWF1cm8sDQoNClRoYW5rcyBmb3IgdGhlIHJldmlld3MuDQoNCj4gU3ViamVjdDogUmU6IFtQ
-QVRDSCB2NyAwMy8xNl0gdjRsOiBBZGQgSW50ZWwgSVBVMyBtZXRhIGRhdGEgdUFQSQ0KPiANCj4g
-SGkgTWF1cm8sDQo+IA0KPiBPbiBGcmksIE5vdiAyLCAyMDE4IGF0IDEwOjQ5IFBNIE1hdXJvIENh
-cnZhbGhvIENoZWhhYg0KPiA8bWNoZWhhYitzYW1zdW5nQGtlcm5lbC5vcmc+IHdyb3RlOg0KPiA+
-DQo+ID4gRW0gTW9uLCAyOSBPY3QgMjAxOCAxNToyMjo1NyAtMDcwMA0KPiA+IFlvbmcgWmhpIDx5
-b25nLnpoaUBpbnRlbC5jb20+IGVzY3JldmV1Og0KPiBbc25pcF0NCj4gPiA+ICtzdHJ1Y3QgaXB1
-M191YXBpX2F3Yl9jb25maWdfcyB7DQo+ID4gPiArICAgICBfX3UxNiByZ2JzX3Rocl9ncjsNCj4g
-PiA+ICsgICAgIF9fdTE2IHJnYnNfdGhyX3I7DQo+ID4gPiArICAgICBfX3UxNiByZ2JzX3Rocl9n
-YjsNCj4gPiA+ICsgICAgIF9fdTE2IHJnYnNfdGhyX2I7DQo+ID4gPiArICAgICBzdHJ1Y3QgaXB1
-M191YXBpX2dyaWRfY29uZmlnIGdyaWQ7IH0NCj4gPiA+ICtfX2F0dHJpYnV0ZV9fKChhbGlnbmVk
-KDMyKSkpIF9fcGFja2VkOw0KPiA+DQo+ID4gSG1tLi4uIEtlcm5lbCBkZWZpbmVzIGEgbWFjcm8g
-Zm9yIGFsaWduZWQgYXR0cmlidXRlOg0KPiA+DQo+ID4gICAgICAgICBpbmNsdWRlL2xpbnV4L2Nv
-bXBpbGVyX3R5cGVzLmg6I2RlZmluZSBfX2FsaWduZWQoeCkNCj4gX19hdHRyaWJ1dGVfXygoYWxp
-Z25lZCh4KSkpDQo+ID4NCj4gDQo+IEZpcnN0LCB0aGFua3MgZm9yIHJldmlldyENCj4gDQo+IE1h
-eWJlIEkgbWlzc2VkIHNvbWV0aGluZywgYnV0IGxhc3QgdGltZSBJIGNoZWNrZWQsIGl0IHdhc24n
-dCBhY2Nlc3NpYmxlIGZyb20NCj4gVUFQSSBoZWFkZXJzIGluIHVzZXJzcGFjZS4NCg0KQWNrLiBX
-ZSBzZWUgdGhhdCdzIHN0aWxsIHRoZSBjYXNlLg0KDQo+IA0KPiA+IEknbSBub3QgYSBnY2MgZXhw
-ZXJ0LCBidXQgaXQgc291bmRzIHdlaXJkIHRvIGZpcnN0IGFzayBpdCB0byBhbGlnbg0KPiA+IHdp
-dGggMzIgYml0cyBhbmQgdGhlbiBoYXZlIF9fcGFja2VkICh3aXRoIG1lYW5zIHRoYXQgcGFkcyBz
-aG91bGQgYmUNCj4gPiByZW1vdmVkKS4NCj4gPg0KPiA+IEluIG90aGVyIHdvcmRzLCBJICpndWVz
-cyogaXMgaXQgc2hvdWxkIGVpdGhlciBiZSBfX3BhY2tlZCBvcg0KPiA+IF9fYWxpZ25lZCgzMiku
-DQo+ID4NCj4gPiBOb3QgdGhhdCBpdCB3b3VsZCBkbyBhbnkgZGlmZmVyZW5jZSwgaW4gcHJhY3Rp
-Y2UsIGFzIHRoaXMgc3BlY2lmaWMNCj4gPiBzdHJ1Y3QgaGFzIGEgc2l6ZSB3aXRoIGlzIG11bHRp
-cGxlIG9mIDMyIGJpdHMsIGJ1dCBsZXQncyBkbyB0aGUgcmlnaHQNCj4gPiBhbm5vdGF0aW9uIGhl
-cmUsIG5vdCBtaXhpbmcgdHdvIGluY29tcGF0aWJsZSBhbGlnbm1lbnQgcmVxdWlyZW1lbnRzLg0K
-PiA+DQo+IA0KPiBNeSB1bmRlcnN0YW5kaW5nIHdhcyB0aGF0IF9fcGFja2VkIG1ha2VzIHRoZSBj
-b21waWxlciBub3QgaW5zZXJ0IGFueQ0KPiBhbGlnbm1lbnQgYmV0d2VlbiBwYXJ0aWN1bGFyIGZp
-ZWxkcyBvZiB0aGUgc3RydWN0LCB3aGlsZSBfX2FsaWduZWQgbWFrZXMgdGhlDQo+IHdob2xlIHN0
-cnVjdCBiZSBhbGlnbmVkIGF0IGdpdmVuIGJvdW5kYXJ5LCBpZiBwbGFjZWQgaW4gYW5vdGhlciBz
-dHJ1Y3QuIElmIEkNCj4gZGlkbid0IG1pc3MgYW55dGhpbmcsIGhhdmluZyBib3RoIHNob3VsZCBt
-YWtlIHBlcmZlY3Qgc2Vuc2UgaGVyZS4NCg0KQWNrDQoNCkkgYWxzbyByZWNhbGwgdGhhdCBhcyBw
-YXJ0IG9mIGFkZHJlc3NpbmcgcmV2aWV3IGNvbW1lbnRzICAoZnJvbSBIYW5zIGFuZCBTYWthcmkp
-LA0Kb24gZWFybGllciB2ZXJzaW9ucyBvZiB0aGlzIHBhdGNoIHNlcmllcywgd2UgYWRkZWQgX19w
-YWNrZWQgYXR0cmlidXRlIHRvIGFsbCBzdHJ1Y3RzDQp0byBlbnN1cmUgdGhlIHNpemUgb2YgdGhl
-IHN0cnVjdHMgcmVtYWlucyB0aGUgc2FtZSBiZXR3ZWVuIDMyIGFuZCA2NCBiaXQgYnVpbGRzLg0K
-DQpUaGUgYWRkaXRpb24gb2Ygc3RydWN0dXJlIG1lbWJlcnMgb2YgdGhlIG5hbWUgcGFkZGluZ1t4
-XSBpbiBzb21lIG9mIHRoZSBzdHJ1Y3RzDQplbnN1cmVzIHRoYXQgcmVzcGVjdGl2ZSBtZW1iZXJz
-IGFyZSBhbGlnbmVkIGF0IDMyIGJ5dGUgYm91bmRhcmllcywgd2hpbGUgdGhlDQpvdmVyYWxsIHNp
-emUgb2YgdGhlIHN0cnVjdHMgcmVtYWluIHRoZSBzYW1lIGJldHdlZW4gMzIgYW5kIDY0IGJpdCBi
-dWlsZHMuDQoNClRoYW5rcw0KUmFqDQoNCj4gDQo+IEJlc3QgcmVnYXJkcywNCj4gVG9tYXN6DQo=
+Hi Kieran,
+
+Thank you for the patches.
+
+On Tuesday, 6 November 2018 23:27:11 EET Kieran Bingham wrote:
+> From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+>=20
+> The Linux UVC driver has long provided adequate performance capabilities =
+for
+> web-cams and low data rate video devices in Linux while resolutions were
+> low.
+>=20
+> Modern USB cameras are now capable of high data rates thanks to USB3 with
+> 1080p, and even 4k capture resolutions supported.
+>=20
+> Cameras such as the Stereolabs ZED (bulk transfers) or the Logitech BRIO
+> (isochronous transfers) can generate more data than an embedded ARM core =
+is
+> able to process on a single core, resulting in frame loss.
+>=20
+> A large part of this performance impact is from the requirement to
+> =E2=80=98memcpy=E2=80=99 frames out from URB packets to destination frame=
+s. This unfortunate
+> requirement is due to the UVC protocol allowing a variable length header,
+> and thus it is not possible to provide the target frame buffers directly.
+>=20
+> Extra throughput is possible by moving the actual memcpy actions to a work
+> queue, and moving the memcpy out of interrupt context thus allowing work
+> tasks to be scheduled across multiple cores.
+>=20
+> This series has been tested on both the ZED and BRIO cameras on arm64
+> platforms, and with thanks to Randy Dunlap, a Dynex 1.3MP Webcam, a Sonix
+> USB2 Camera, and a built in Toshiba Laptop camera, and with thanks to
+> Philipp Zabel for testing on a Lite-On internal Laptop Webcam, Logitech
+> C910 (USB2 isoc), Oculus Sensor (USB3 isoc), and Microsoft HoloLens Senso=
+rs
+> (USB3 bulk).
+>=20
+> As far as I am aware iSight devices, and devices which use UVC to encode
+> data (output device) have not yet been tested - but should find no ill
+> effect (at least not until they are tested of course :D )
+
+:-D
+
+I'm not sure whether anyone is still using those devices with Linux. I=20
+wouldn't be surprised if we realized down the road that they already don't=
+=20
+work.
+
+> Tested-by: Randy Dunlap <rdunlap@infradead.org>
+> Tested-by: Philipp Zabel <philipp.zabel@gmail.com>
+>=20
+> v2:
+>  - Fix race reported by Guennadi
+>=20
+> v3:
+>  - Fix similar race reported by Laurent
+>  - Only queue work if required (encode/isight do not queue work)
+>  - Refactor/Rename variables for clarity
+>=20
+> v4:
+>  - (Yet another) Rework of the uninitialise path.
+>    This time to hopefully clean up the shutdown races for good.
+>    use usb_poison_urb() to halt all URBs, then flush the work queue
+>    before freeing.
+>  - Rebase to latest linux-media/master
+>=20
+> v5:
+>  - Provide lockdep validation
+>  - rename uvc_queue_requeue -> uvc_queue_buffer_requeue()
+>  - Fix comments and periods throughout
+>  - Rebase to media/v4.20-2
+>  - Use GFP_KERNEL allocation in uvc_video_copy_data_work()
+>  - Fix function documentation for uvc_video_copy_data_work()
+>  - Add periods to the end of sentences
+>  - Rename 'decode' variable to 'op' in uvc_video_decode_data()
+>  - Move uvc_urb->async_operations initialisation to before use
+>  - Move async workqueue to match uvc_streaming lifetime instead of
+>    streamon/streamoff
+>  - bracket the for_each_uvc_urb() macro
+>=20
+>  - New patches added to series:
+>     media: uvcvideo: Split uvc_video_enable into two
+>     media: uvcvideo: Rename uvc_{un,}init_video()
+>     media: uvcvideo: Utilise for_each_uvc_urb iterator
+>=20
+> Kieran Bingham (9):
+>   media: uvcvideo: Refactor URB descriptors
+>   media: uvcvideo: Convert decode functions to use new context structure
+>   media: uvcvideo: Protect queue internals with helper
+>   media: uvcvideo: queue: Simplify spin-lock usage
+>   media: uvcvideo: queue: Support asynchronous buffer handling
+>   media: uvcvideo: Move decode processing to process context
+>   media: uvcvideo: Split uvc_video_enable into two
+
+I've taken the above patches in my tree.
+
+>   media: uvcvideo: Rename uvc_{un,}init_video()
+>   media: uvcvideo: Utilise for_each_uvc_urb iterator
+
+And I've sent review comments for these two.
+
+>  drivers/media/usb/uvc/uvc_driver.c |   2 +-
+>  drivers/media/usb/uvc/uvc_isight.c |   6 +-
+>  drivers/media/usb/uvc/uvc_queue.c  | 110 +++++++++---
+>  drivers/media/usb/uvc/uvc_video.c  | 282 +++++++++++++++++++-----------
+>  drivers/media/usb/uvc/uvcvideo.h   |  65 ++++++-
+>  5 files changed, 331 insertions(+), 134 deletions(-)
+>=20
+> base-commit: dafb7f9aef2fd44991ff1691721ff765a23be27b
+
+=2D-=20
+Regards,
+
+Laurent Pinchart
