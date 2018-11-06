@@ -1,141 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:59960 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730409AbeKGI7A (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Nov 2018 03:59:00 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kieran Bingham <kieran@ksquared.org.uk>
-Cc: linux-media@vger.kernel.org,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Olivier BRAUN <olivier.braun@stereolabs.com>,
-        Troy Kisky <troy.kisky@boundarydevices.com>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Philipp Zabel <philipp.zabel@gmail.com>,
-        Ezequiel Garcia <ezequiel@collabora.com>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [PATCH v5 0/9] Asynchronous UVC
-Date: Wed, 07 Nov 2018 01:31:29 +0200
-Message-ID: <2885485.8lvEIT6Ze7@avalon>
-In-Reply-To: <cover.dd42d667a7f7505b3639149635ef3a0b1431f280.1541534872.git-series.kieran.bingham@ideasonboard.com>
-References: <cover.dd42d667a7f7505b3639149635ef3a0b1431f280.1541534872.git-series.kieran.bingham@ideasonboard.com>
+Received: from mga07.intel.com ([134.134.136.100]:12592 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1730409AbeKGI7D (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 7 Nov 2018 03:59:03 -0500
+From: "Mani, Rajmohan" <rajmohan.mani@intel.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+CC: "Zhi, Yong" <yong.zhi@intel.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "tfiga@chromium.org" <tfiga@chromium.org>,
+        "mchehab@kernel.org" <mchehab@kernel.org>,
+        "hans.verkuil@cisco.com" <hans.verkuil@cisco.com>,
+        "laurent.pinchart@ideasonboard.com"
+        <laurent.pinchart@ideasonboard.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "Hu, Jerry W" <jerry.w.hu@intel.com>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
+        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
+        "Cao, Bingbu" <bingbu.cao@intel.com>
+Subject: RE: [PATCH v7 05/16] intel-ipu3: abi: Add structs
+Date: Tue, 6 Nov 2018 23:31:21 +0000
+Message-ID: <6F87890CF0F5204F892DEA1EF0D77A5981524597@fmsmsx122.amr.corp.intel.com>
+References: <1540851790-1777-1-git-send-email-yong.zhi@intel.com>
+ <1540851790-1777-6-git-send-email-yong.zhi@intel.com>
+ <20181105082755.c65oh6c2ztk34kpb@kekkonen.localdomain>
+ <6F87890CF0F5204F892DEA1EF0D77A5981523D7E@fmsmsx122.amr.corp.intel.com>
+ <20181106080444.amyq3erw3ahz7wuc@paasikivi.fi.intel.com>
+In-Reply-To: <20181106080444.amyq3erw3ahz7wuc@paasikivi.fi.intel.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+Hi Sakari,
 
-Thank you for the patches.
+> Subject: Re: [PATCH v7 05/16] intel-ipu3: abi: Add structs
+> 
+> Hi Raj,
+> 
+> On Mon, Nov 05, 2018 at 07:05:53PM +0000, Mani, Rajmohan wrote:
+> > Hi Sakari,
+> >
+> > > Subject: Re: [PATCH v7 05/16] intel-ipu3: abi: Add structs
+> > >
+> > > Hi Yong,
+> > >
+> > > On Mon, Oct 29, 2018 at 03:22:59PM -0700, Yong Zhi wrote:
+> > > > This add all the structs of IPU3 firmware ABI.
+> > > >
+> > > > Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+> > > > Signed-off-by: Rajmohan Mani <rajmohan.mani@intel.com>
+> > >
+> > > ...
+> > >
+> > > > +struct imgu_abi_shd_intra_frame_operations_data {
+> > > > +	struct imgu_abi_acc_operation
+> > > > +		operation_list[IMGU_ABI_SHD_MAX_OPERATIONS]
+> > > __attribute__((aligned(32)));
+> > > > +	struct imgu_abi_acc_process_lines_cmd_data
+> > > > +		process_lines_data[IMGU_ABI_SHD_MAX_PROCESS_LINES]
+> > > __attribute__((aligned(32)));
+> > > > +	struct imgu_abi_shd_transfer_luts_set_data
+> > > > +		transfer_data[IMGU_ABI_SHD_MAX_TRANSFERS]
+> > > > +__attribute__((aligned(32)));
+> > >
+> > > Could you replace this wth __aligned(32), please? The same for the
+> > > rest of the header.
+> > >
+> >
+> > Using __aligned(32) in the uAPI header resulted in compilation errors
+> > in user space / camera HAL code.
+> >
+> > e.g
+> > ../../../../../../../../usr/include/linux/intel-ipu3.h:464:57: error: expected ';'
+> > at end of declaration list
+> >  __u8 bayer_table[IPU3_UAPI_AWB_FR_BAYER_TABLE_MAX_SIZE]
+> > __aligned(32);
+> >
+> > So we ended up using __attribute__((aligned(32))) format in uAPI
+> > header and to be consistent, we followed the same format in ABI header as
+> well.
+> >
+> > Let us know if it's okay to deviate between uAPI and ABI header for
+> > this alignment qualifier.
+> 
+> There's a reason for using __attribute__((aligned(32))) in the uAPI header, but
+> not in the in-kernel headers where __aligned(32) is preferred.
+> 
+> I have a patch for addressing this for the uAPI headers as well so
+> __aligned(32) could be used there, too; I'll submit it soon. Let's see...
+> there are kerneldoc issues still in this area.
+> 
 
-On Tuesday, 6 November 2018 23:27:11 EET Kieran Bingham wrote:
-> From: Kieran Bingham <kieran.bingham@ideasonboard.com>
->=20
-> The Linux UVC driver has long provided adequate performance capabilities =
-for
-> web-cams and low data rate video devices in Linux while resolutions were
-> low.
->=20
-> Modern USB cameras are now capable of high data rates thanks to USB3 with
-> 1080p, and even 4k capture resolutions supported.
->=20
-> Cameras such as the Stereolabs ZED (bulk transfers) or the Logitech BRIO
-> (isochronous transfers) can generate more data than an embedded ARM core =
-is
-> able to process on a single core, resulting in frame loss.
->=20
-> A large part of this performance impact is from the requirement to
-> =E2=80=98memcpy=E2=80=99 frames out from URB packets to destination frame=
-s. This unfortunate
-> requirement is due to the UVC protocol allowing a variable length header,
-> and thus it is not possible to provide the target frame buffers directly.
->=20
-> Extra throughput is possible by moving the actual memcpy actions to a work
-> queue, and moving the memcpy out of interrupt context thus allowing work
-> tasks to be scheduled across multiple cores.
->=20
-> This series has been tested on both the ZED and BRIO cameras on arm64
-> platforms, and with thanks to Randy Dunlap, a Dynex 1.3MP Webcam, a Sonix
-> USB2 Camera, and a built in Toshiba Laptop camera, and with thanks to
-> Philipp Zabel for testing on a Lite-On internal Laptop Webcam, Logitech
-> C910 (USB2 isoc), Oculus Sensor (USB3 isoc), and Microsoft HoloLens Senso=
-rs
-> (USB3 bulk).
->=20
-> As far as I am aware iSight devices, and devices which use UVC to encode
-> data (output device) have not yet been tested - but should find no ill
-> effect (at least not until they are tested of course :D )
+Great. Thanks for the patch to address this need.
 
-:-D
-
-I'm not sure whether anyone is still using those devices with Linux. I=20
-wouldn't be surprised if we realized down the road that they already don't=
-=20
-work.
-
-> Tested-by: Randy Dunlap <rdunlap@infradead.org>
-> Tested-by: Philipp Zabel <philipp.zabel@gmail.com>
->=20
-> v2:
->  - Fix race reported by Guennadi
->=20
-> v3:
->  - Fix similar race reported by Laurent
->  - Only queue work if required (encode/isight do not queue work)
->  - Refactor/Rename variables for clarity
->=20
-> v4:
->  - (Yet another) Rework of the uninitialise path.
->    This time to hopefully clean up the shutdown races for good.
->    use usb_poison_urb() to halt all URBs, then flush the work queue
->    before freeing.
->  - Rebase to latest linux-media/master
->=20
-> v5:
->  - Provide lockdep validation
->  - rename uvc_queue_requeue -> uvc_queue_buffer_requeue()
->  - Fix comments and periods throughout
->  - Rebase to media/v4.20-2
->  - Use GFP_KERNEL allocation in uvc_video_copy_data_work()
->  - Fix function documentation for uvc_video_copy_data_work()
->  - Add periods to the end of sentences
->  - Rename 'decode' variable to 'op' in uvc_video_decode_data()
->  - Move uvc_urb->async_operations initialisation to before use
->  - Move async workqueue to match uvc_streaming lifetime instead of
->    streamon/streamoff
->  - bracket the for_each_uvc_urb() macro
->=20
->  - New patches added to series:
->     media: uvcvideo: Split uvc_video_enable into two
->     media: uvcvideo: Rename uvc_{un,}init_video()
->     media: uvcvideo: Utilise for_each_uvc_urb iterator
->=20
-> Kieran Bingham (9):
->   media: uvcvideo: Refactor URB descriptors
->   media: uvcvideo: Convert decode functions to use new context structure
->   media: uvcvideo: Protect queue internals with helper
->   media: uvcvideo: queue: Simplify spin-lock usage
->   media: uvcvideo: queue: Support asynchronous buffer handling
->   media: uvcvideo: Move decode processing to process context
->   media: uvcvideo: Split uvc_video_enable into two
-
-I've taken the above patches in my tree.
-
->   media: uvcvideo: Rename uvc_{un,}init_video()
->   media: uvcvideo: Utilise for_each_uvc_urb iterator
-
-And I've sent review comments for these two.
-
->  drivers/media/usb/uvc/uvc_driver.c |   2 +-
->  drivers/media/usb/uvc/uvc_isight.c |   6 +-
->  drivers/media/usb/uvc/uvc_queue.c  | 110 +++++++++---
->  drivers/media/usb/uvc/uvc_video.c  | 282 +++++++++++++++++++-----------
->  drivers/media/usb/uvc/uvcvideo.h   |  65 ++++++-
->  5 files changed, 331 insertions(+), 134 deletions(-)
->=20
-> base-commit: dafb7f9aef2fd44991ff1691721ff765a23be27b
-
-=2D-=20
-Regards,
-
-Laurent Pinchart
+> --
+> Regards,
+> 
+> Sakari Ailus
+> sakari.ailus@linux.intel.com
