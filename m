@@ -1,124 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51158 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1729430AbeKFRYg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Nov 2018 12:24:36 -0500
+Received: from mga18.intel.com ([134.134.136.126]:5252 "EHLO mga18.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1729021AbeKFR2t (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 6 Nov 2018 12:28:49 -0500
+Date: Tue, 6 Nov 2018 10:04:44 +0200
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org, dave.stevenson@raspberrypi.org,
-        hverkuil@xs4all.nl
-Subject: [PATCH v3 1/1] v4l: event: Add subscription to list before calling "add" operation
-Date: Tue,  6 Nov 2018 10:00:35 +0200
-Message-Id: <20181106080035.30351-1-sakari.ailus@linux.intel.com>
+To: "Mani, Rajmohan" <rajmohan.mani@intel.com>
+Cc: "Zhi, Yong" <yong.zhi@intel.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "tfiga@chromium.org" <tfiga@chromium.org>,
+        "mchehab@kernel.org" <mchehab@kernel.org>,
+        "hans.verkuil@cisco.com" <hans.verkuil@cisco.com>,
+        "laurent.pinchart@ideasonboard.com"
+        <laurent.pinchart@ideasonboard.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "Hu, Jerry W" <jerry.w.hu@intel.com>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
+        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
+        "Cao, Bingbu" <bingbu.cao@intel.com>
+Subject: Re: [PATCH v7 05/16] intel-ipu3: abi: Add structs
+Message-ID: <20181106080444.amyq3erw3ahz7wuc@paasikivi.fi.intel.com>
+References: <1540851790-1777-1-git-send-email-yong.zhi@intel.com>
+ <1540851790-1777-6-git-send-email-yong.zhi@intel.com>
+ <20181105082755.c65oh6c2ztk34kpb@kekkonen.localdomain>
+ <6F87890CF0F5204F892DEA1EF0D77A5981523D7E@fmsmsx122.amr.corp.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <6F87890CF0F5204F892DEA1EF0D77A5981523D7E@fmsmsx122.amr.corp.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Patch ad608fbcf166 changed how events were subscribed to address an issue
-elsewhere. As a side effect of that change, the "add" callback was called
-before the event subscription was added to the list of subscribed events,
-causing the first event queued by the add callback (and possibly other
-events arriving soon afterwards) to be lost.
+Hi Raj,
 
-Fix this by adding the subscription to the list before calling the "add"
-callback, and clean up afterwards if that fails.
+On Mon, Nov 05, 2018 at 07:05:53PM +0000, Mani, Rajmohan wrote:
+> Hi Sakari,
+> 
+> > -----Original Message-----
+> > From: Sakari Ailus [mailto:sakari.ailus@linux.intel.com]
+> > Sent: Monday, November 05, 2018 12:28 AM
+> > To: Zhi, Yong <yong.zhi@intel.com>
+> > Cc: linux-media@vger.kernel.org; tfiga@chromium.org; mchehab@kernel.org;
+> > hans.verkuil@cisco.com; laurent.pinchart@ideasonboard.com; Mani,
+> > Rajmohan <rajmohan.mani@intel.com>; Zheng, Jian Xu
+> > <jian.xu.zheng@intel.com>; Hu, Jerry W <jerry.w.hu@intel.com>; Toivonen,
+> > Tuukka <tuukka.toivonen@intel.com>; Qiu, Tian Shu
+> > <tian.shu.qiu@intel.com>; Cao, Bingbu <bingbu.cao@intel.com>
+> > Subject: Re: [PATCH v7 05/16] intel-ipu3: abi: Add structs
+> > 
+> > Hi Yong,
+> > 
+> > On Mon, Oct 29, 2018 at 03:22:59PM -0700, Yong Zhi wrote:
+> > > This add all the structs of IPU3 firmware ABI.
+> > >
+> > > Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+> > > Signed-off-by: Rajmohan Mani <rajmohan.mani@intel.com>
+> > 
+> > ...
+> > 
+> > > +struct imgu_abi_shd_intra_frame_operations_data {
+> > > +	struct imgu_abi_acc_operation
+> > > +		operation_list[IMGU_ABI_SHD_MAX_OPERATIONS]
+> > __attribute__((aligned(32)));
+> > > +	struct imgu_abi_acc_process_lines_cmd_data
+> > > +		process_lines_data[IMGU_ABI_SHD_MAX_PROCESS_LINES]
+> > __attribute__((aligned(32)));
+> > > +	struct imgu_abi_shd_transfer_luts_set_data
+> > > +		transfer_data[IMGU_ABI_SHD_MAX_TRANSFERS]
+> > > +__attribute__((aligned(32)));
+> > 
+> > Could you replace this wth __aligned(32), please? The same for the rest of the
+> > header.
+> > 
+> 
+> Using __aligned(32) in the uAPI header resulted in compilation errors in
+> user space / camera HAL code.
+> 
+> e.g
+> ../../../../../../../../usr/include/linux/intel-ipu3.h:464:57: error: expected ';' 
+> at end of declaration list
+>  __u8 bayer_table[IPU3_UAPI_AWB_FR_BAYER_TABLE_MAX_SIZE] __aligned(32);
+> 
+> So we ended up using __attribute__((aligned(32))) format in uAPI header and
+> to be consistent, we followed the same format in ABI header as well.
+> 
+> Let us know if it's okay to deviate between uAPI and ABI header for this
+> alignment qualifier.
 
-Fixes: ad608fbcf166 ("media: v4l: event: Prevent freeing event subscriptions while accessed")
+There's a reason for using __attribute__((aligned(32))) in the uAPI header,
+but not in the in-kernel headers where __aligned(32) is preferred.
 
-Reported-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
-since v2:
+I have a patch for addressing this for the uAPI headers as well so
+__aligned(32) could be used there, too; I'll submit it soon. Let's see...
+there are kerneldoc issues still in this area.
 
-- More accurate commit message. No other changes.
-
- drivers/media/v4l2-core/v4l2-event.c | 43 ++++++++++++++++++++----------------
- 1 file changed, 24 insertions(+), 19 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/v4l2-event.c b/drivers/media/v4l2-core/v4l2-event.c
-index a3ef1f50a4b3..481e3c65cf97 100644
---- a/drivers/media/v4l2-core/v4l2-event.c
-+++ b/drivers/media/v4l2-core/v4l2-event.c
-@@ -193,6 +193,22 @@ int v4l2_event_pending(struct v4l2_fh *fh)
- }
- EXPORT_SYMBOL_GPL(v4l2_event_pending);
- 
-+static void __v4l2_event_unsubscribe(struct v4l2_subscribed_event *sev)
-+{
-+	struct v4l2_fh *fh = sev->fh;
-+	unsigned int i;
-+
-+	lockdep_assert_held(&fh->subscribe_lock);
-+	assert_spin_locked(&fh->vdev->fh_lock);
-+
-+	/* Remove any pending events for this subscription */
-+	for (i = 0; i < sev->in_use; i++) {
-+		list_del(&sev->events[sev_pos(sev, i)].list);
-+		fh->navailable--;
-+	}
-+	list_del(&sev->list);
-+}
-+
- int v4l2_event_subscribe(struct v4l2_fh *fh,
- 			 const struct v4l2_event_subscription *sub, unsigned elems,
- 			 const struct v4l2_subscribed_event_ops *ops)
-@@ -224,27 +240,23 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
- 
- 	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
- 	found_ev = v4l2_event_subscribed(fh, sub->type, sub->id);
-+	if (!found_ev)
-+		list_add(&sev->list, &fh->subscribed);
- 	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
- 
- 	if (found_ev) {
- 		/* Already listening */
- 		kvfree(sev);
--		goto out_unlock;
--	}
--
--	if (sev->ops && sev->ops->add) {
-+	} else if (sev->ops && sev->ops->add) {
- 		ret = sev->ops->add(sev, elems);
- 		if (ret) {
-+			spin_lock_irqsave(&fh->vdev->fh_lock, flags);
-+			__v4l2_event_unsubscribe(sev);
-+			spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
- 			kvfree(sev);
--			goto out_unlock;
- 		}
- 	}
- 
--	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
--	list_add(&sev->list, &fh->subscribed);
--	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
--
--out_unlock:
- 	mutex_unlock(&fh->subscribe_lock);
- 
- 	return ret;
-@@ -279,7 +291,6 @@ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
- {
- 	struct v4l2_subscribed_event *sev;
- 	unsigned long flags;
--	int i;
- 
- 	if (sub->type == V4L2_EVENT_ALL) {
- 		v4l2_event_unsubscribe_all(fh);
-@@ -291,14 +302,8 @@ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
- 	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
- 
- 	sev = v4l2_event_subscribed(fh, sub->type, sub->id);
--	if (sev != NULL) {
--		/* Remove any pending events for this subscription */
--		for (i = 0; i < sev->in_use; i++) {
--			list_del(&sev->events[sev_pos(sev, i)].list);
--			fh->navailable--;
--		}
--		list_del(&sev->list);
--	}
-+	if (sev != NULL)
-+		__v4l2_event_unsubscribe(sev);
- 
- 	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
- 
 -- 
-2.11.0
+Regards,
+
+Sakari Ailus
+sakari.ailus@linux.intel.com
