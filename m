@@ -1,130 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm1-f66.google.com ([209.85.128.66]:50629 "EHLO
-        mail-wm1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725796AbeKFJiS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Nov 2018 04:38:18 -0500
-Received: by mail-wm1-f66.google.com with SMTP id 124-v6so5151063wmw.0
-        for <linux-media@vger.kernel.org>; Mon, 05 Nov 2018 16:15:55 -0800 (PST)
-Subject: Re: [RFC] media: imx: queue subdevice events on the video device in
- the same pipeline
-To: Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-References: <20181105150349.8882-1-p.zabel@pengutronix.de>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <ee260dad-0773-bf30-1408-0ec2ebdf0296@gmail.com>
-Date: Mon, 5 Nov 2018 16:15:50 -0800
-MIME-Version: 1.0
-In-Reply-To: <20181105150349.8882-1-p.zabel@pengutronix.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:56604 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726419AbeKFNrt (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 6 Nov 2018 08:47:49 -0500
+Message-ID: <03af9c0a379f96f6fb78c2554a50e602@smtp-cloud7.xs4all.net>
+Date: Tue, 06 Nov 2018 05:24:31 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Thanks, I've been meaning this too. Comments below.
+Results of the daily build of media_tree:
 
+date:			Tue Nov  6 05:00:10 CET 2018
+media-tree git hash:	dafb7f9aef2fd44991ff1691721ff765a23be27b
+media_build git hash:	0c8bb27f3aaa682b9548b656f77505c3d1f11e71
+v4l-utils git hash:	0aa28f4293ee3306b34ea2866ef5f26fa75d2ed0
+edid-decode git hash:	5eeb151a748788666534d6ea3da07f90400d24c2
+gcc version:		i686-linux-gcc (GCC) 8.2.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.18.0-2-amd64
 
-On 11/5/18 7:03 AM, Philipp Zabel wrote:
-> While subdevice and video device are in the same pipeline, pass
-> subdevice events on to userspace via the video device node.
->
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> ---
-> This would allow to see source change events from the source subdevice
-> on the video device node, for example.
-> ---
->   drivers/staging/media/imx/imx-media-dev.c | 18 ++++++++++++++++++
->   1 file changed, 18 insertions(+)
->
-> diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
-> index 4b344a4a3706..2fe6fdf2faf1 100644
-> --- a/drivers/staging/media/imx/imx-media-dev.c
-> +++ b/drivers/staging/media/imx/imx-media-dev.c
-> @@ -442,6 +442,23 @@ static const struct media_device_ops imx_media_md_ops = {
->   	.link_notify = imx_media_link_notify,
->   };
->   
-> +static void imx_media_notify(struct v4l2_subdev *sd, unsigned int notification,
-> +			     void *arg)
-> +{
-> +	struct imx_media_dev *imxmd;
-> +	struct imx_media_video_dev *vdev;
-> +
-> +	imxmd = container_of(sd->v4l2_dev, struct imx_media_dev, v4l2_dev);
-> +	list_for_each_entry(vdev, &imxmd->vdev_list, list) {
-> +		if (sd->entity.pipe &&
-> +		    sd->entity.pipe == vdev->vfd->entity.pipe &&
+linux-git-arm-at91: WARNINGS
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-multi: WARNINGS
+linux-git-arm-pxa: WARNINGS
+linux-git-arm-stm32: WARNINGS
+linux-git-arm64: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-mips: OK
+linux-git-powerpc64: WARNINGS
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+Check COMPILE_TEST: OK
+linux-3.10.108-i686: ERRORS
+linux-3.10.108-x86_64: ERRORS
+linux-3.11.10-i686: ERRORS
+linux-3.11.10-x86_64: ERRORS
+linux-3.12.74-i686: ERRORS
+linux-3.12.74-x86_64: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.79-i686: ERRORS
+linux-3.14.79-x86_64: ERRORS
+linux-3.15.10-i686: ERRORS
+linux-3.15.10-x86_64: ERRORS
+linux-3.16.57-i686: ERRORS
+linux-3.16.57-x86_64: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.123-i686: ERRORS
+linux-3.18.123-x86_64: ERRORS
+linux-3.19.8-i686: ERRORS
+linux-3.19.8-x86_64: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.52-i686: ERRORS
+linux-4.1.52-x86_64: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.159-i686: ERRORS
+linux-4.4.159-x86_64: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.10-i686: ERRORS
+linux-4.7.10-x86_64: ERRORS
+linux-4.8.17-i686: ERRORS
+linux-4.8.17-x86_64: ERRORS
+linux-4.9.131-i686: ERRORS
+linux-4.9.131-x86_64: ERRORS
+linux-4.10.17-i686: ERRORS
+linux-4.10.17-x86_64: ERRORS
+linux-4.11.12-i686: ERRORS
+linux-4.11.12-x86_64: ERRORS
+linux-4.12.14-i686: ERRORS
+linux-4.12.14-x86_64: ERRORS
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.74-i686: OK
+linux-4.14.74-x86_64: OK
+linux-4.15.18-i686: OK
+linux-4.15.18-x86_64: OK
+linux-4.16.18-i686: OK
+linux-4.16.18-x86_64: OK
+linux-4.17.19-i686: OK
+linux-4.17.19-x86_64: OK
+linux-4.18.12-i686: OK
+linux-4.18.12-x86_64: OK
+linux-4.19-i686: OK
+linux-4.19-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
-The problem with this check is that a sensor can be streaming to 
-multiple video capture devices simultaneously (to prpenc and prpvf). The 
-media framework doesn't support an entity being a member of multiple 
-pipelines (there's only one pipe object in 'struct media_entity') so the 
-pipe object ends up just pointing to whichever stream was started last 
-that included that entity. The result being the event will only get 
-queued to whichever video device who's stream was enabled last.
+Logs weren't copied as they are too large (1692 kB)
 
-So I think there should be no if statement in the loop. Also it's better 
-to loop through the sub-devices vdev_list, because that list contains 
-only the video devices reachable from that sub-device. So the function 
-should read:
+The Media Infrastructure API from this daily build is here:
 
-static void imx_media_notify(struct v4l2_subdev *sd,
-                  unsigned int notification,
-                  void *arg)
-{
-     struct media_entity *entity = &sd->entity;
-     int i;
-
-     if (notification != V4L2_DEVICE_NOTIFY_EVENT)
-         return;
-
-     for (i = 0; i < entity->num_pads; i++) {
-         struct media_pad *pad = &entity->pads[i];
-         struct imx_media_pad_vdev *pad_vdev;
-         struct list_head *pad_vdev_list;
-
-         pad_vdev_list = to_pad_vdev_list(sd, pad->index);
-         if (!pad_vdev_list)
-             continue;
-         list_for_each_entry(pad_vdev, pad_vdev_list, list)
-             v4l2_event_queue(pad_vdev->vdev->vfd, arg);
-     }
-}
-
-I posted this to my media-tree fork, see
-
-da05ccab97 ("media: imx: queue subdevice events to the reachable video devices")
-
-and this Note in the commit header:
-
-Note this will queue the event to a video device even if there is
-no actual _enabled_ path from the sub-device to the video device.
-So a future fix is to skip the video device if there is no enabled
-path to it from the sub-device. The entity->pipe pointer can't be
-used for this check because in imx-media a sub-device can be a
-member to more than one streaming pipeline at a time.
-
-
-Steve
-  
-
-> +		    notification == V4L2_DEVICE_NOTIFY_EVENT) {
-> +			v4l2_event_queue(vdev->vfd, arg);
-> +			break;
-> +		}
-> +	}
-> +}
-> +
->   static int imx_media_probe(struct platform_device *pdev)
->   {
->   	struct device *dev = &pdev->dev;
-> @@ -464,6 +481,7 @@ static int imx_media_probe(struct platform_device *pdev)
->   	imxmd->v4l2_dev.mdev = &imxmd->md;
->   	strscpy(imxmd->v4l2_dev.name, "imx-media",
->   		sizeof(imxmd->v4l2_dev.name));
-> +	imxmd->v4l2_dev.notify = imx_media_notify;
->   
->   	media_device_init(&imxmd->md);
->   
+http://www.xs4all.nl/~hverkuil/spec/index.html
