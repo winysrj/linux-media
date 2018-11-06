@@ -1,110 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:40689 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729241AbeKFUDc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Nov 2018 15:03:32 -0500
-Date: Tue, 6 Nov 2018 10:38:56 +0000
-From: Sean Young <sean@mess.org>
-To: Peter Seiderer <ps.report@gmx.net>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v4l-utils] Add missing linux/bpf_common.h
-Message-ID: <20181106103856.66uhadykgsw2dqs3@gofer.mess.org>
-References: <20181105203047.15258-1-ps.report@gmx.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20181105203047.15258-1-ps.report@gmx.net>
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:58267 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2387404AbeKFUG2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Nov 2018 15:06:28 -0500
+Message-ID: <1541500911.5822.9.camel@pengutronix.de>
+Subject: Re: [PATCH 01/15] media: coda: fix memory corruption in case more
+ than 32 instances are opened
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Ian Arkver <ian.arkver.dev@gmail.com>, linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de
+Date: Tue, 06 Nov 2018 11:41:51 +0100
+In-Reply-To: <08ac9e66-1bad-15a5-c30d-03c9c693dcbf@gmail.com>
+References: <20181105152513.26345-1-p.zabel@pengutronix.de>
+         <08ac9e66-1bad-15a5-c30d-03c9c693dcbf@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Nov 05, 2018 at 09:30:47PM +0100, Peter Seiderer wrote:
-> Copy from [1], needed by bpf.h.
+On Mon, 2018-11-05 at 16:32 +0000, Ian Arkver wrote:
+> Hi Philipp,
 > 
-> [1] https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/plain/include/uapi/linux/bpf_common.h?h=v4.19
-
-So bpf.h does include this file, but we don't use anything from it in
-v4l-utils.
-
-This include file is for the original BPF, which has been around for a
-long time. So why is this include file missing, i.e. what problem are you
-trying to solve?
-
-Lastely, the file should be included in the sync-with-kernel target so
-it does not get out of sync -- should it really be necessary to add the
-file.
-
-
-Sean
-
+> On 05/11/2018 15:24, Philipp Zabel wrote:
+> > The ffz() return value is undefined if the instance mask does not
+> > contain any zeros. If it returned 32, the following set_bit would
+> > corrupt the debugfs_root pointer.
+> > Switch to IDA for context index allocation. This also removes the
+> > artificial 32 instance limit for all except CodaDx6.
+> > 
+> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> > ---
+> >   drivers/media/platform/coda/coda-common.c | 25 ++++++++---------------
+> >   drivers/media/platform/coda/coda.h        |  2 +-
+> >   2 files changed, 10 insertions(+), 17 deletions(-)
+> > 
+> > diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+> > index 2848ea5f464d..cbb59c2f3a82 100644
+> > --- a/drivers/media/platform/coda/coda-common.c
+> > +++ b/drivers/media/platform/coda/coda-common.c
+> > @@ -2099,17 +2099,6 @@ int coda_decoder_queue_init(void *priv, struct vb2_queue *src_vq,
+> >   	return coda_queue_init(priv, dst_vq);
+> >   }
+> >   
+> > -static int coda_next_free_instance(struct coda_dev *dev)
+> > -{
+> > -	int idx = ffz(dev->instance_mask);
+> > -
+> > -	if ((idx < 0) ||
+> > -	    (dev->devtype->product == CODA_DX6 && idx > CODADX6_MAX_INSTANCES))
+> > -		return -EBUSY;
+> > -
+> > -	return idx;
+> > -}
+> > -
+> >   /*
+> >    * File operations
+> >    */
+> > @@ -2118,7 +2107,8 @@ static int coda_open(struct file *file)
+> >   {
+> >   	struct video_device *vdev = video_devdata(file);
+> >   	struct coda_dev *dev = video_get_drvdata(vdev);
+> > -	struct coda_ctx *ctx = NULL;
+> > +	struct coda_ctx *ctx;
+> > +	unsigned int max = ~0;
+> >   	char *name;
+> >   	int ret;
+> >   	int idx;
+> > @@ -2127,12 +2117,13 @@ static int coda_open(struct file *file)
+> >   	if (!ctx)
+> >   		return -ENOMEM;
+> >   
+> > -	idx = coda_next_free_instance(dev);
+> > +	if (dev->devtype->product == CODA_DX6)
+> > +		max = CODADX6_MAX_INSTANCES - 1;
+> > +	idx = ida_alloc_max(&dev->ida, max, GFP_KERNEL);
+> >   	if (idx < 0) {
+> >   		ret = idx;
+> >   		goto err_coda_max;
+> >   	}
+> > -	set_bit(idx, &dev->instance_mask);
+> >   
+> >   	name = kasprintf(GFP_KERNEL, "context%d", idx);
+> >   	if (!name) {
+> > @@ -2241,8 +2232,8 @@ static int coda_open(struct file *file)
+> >   err_pm_get:
+> >   	v4l2_fh_del(&ctx->fh);
+> >   	v4l2_fh_exit(&ctx->fh);
+> > -	clear_bit(ctx->idx, &dev->instance_mask);
+> >   err_coda_name_init:
+> > +	ida_free(&dev->ida, ctx->idx);
+> >   err_coda_max:
+> >   	kfree(ctx);
+> >   	return ret;
+> > @@ -2284,7 +2275,7 @@ static int coda_release(struct file *file)
+> >   	pm_runtime_put_sync(&dev->plat_dev->dev);
+> >   	v4l2_fh_del(&ctx->fh);
+> >   	v4l2_fh_exit(&ctx->fh);
+> > -	clear_bit(ctx->idx, &dev->instance_mask);
+> > +	ida_free(&dev->ida, ctx->idx);
+> >   	if (ctx->ops->release)
+> >   		ctx->ops->release(ctx);
+> >   	debugfs_remove_recursive(ctx->debugfs_entry);
+> > @@ -2745,6 +2736,7 @@ static int coda_probe(struct platform_device *pdev)
+> >   
+> >   	mutex_init(&dev->dev_mutex);
+> >   	mutex_init(&dev->coda_mutex);
+> > +	ida_init(&dev->ida);
+> >   
+> >   	dev->debugfs_root = debugfs_create_dir("coda", NULL);
+> >   	if (!dev->debugfs_root)
+> > @@ -2832,6 +2824,7 @@ static int coda_remove(struct platform_device *pdev)
+> >   	coda_free_aux_buf(dev, &dev->tempbuf);
+> >   	coda_free_aux_buf(dev, &dev->workbuf);
+> >   	debugfs_remove_recursive(dev->debugfs_root);
+> > +	ida_destroy(&dev->ida);
+> >   	return 0;
+> >   }
+> >   
+> > diff --git a/drivers/media/platform/coda/coda.h b/drivers/media/platform/coda/coda.h
+> > index 19ac0b9dc6eb..b6cd14ee91ea 100644
+> > --- a/drivers/media/platform/coda/coda.h
+> > +++ b/drivers/media/platform/coda/coda.h
 > 
-> Signed-off-by: Peter Seiderer <ps.report@gmx.net>
-> ---
->  include/linux/bpf_common.h | 57 ++++++++++++++++++++++++++++++++++++++
->  1 file changed, 57 insertions(+)
->  create mode 100644 include/linux/bpf_common.h
-> 
-> diff --git a/include/linux/bpf_common.h b/include/linux/bpf_common.h
-> new file mode 100644
-> index 00000000..ee97668b
-> --- /dev/null
-> +++ b/include/linux/bpf_common.h
-> @@ -0,0 +1,57 @@
-> +/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
-> +#ifndef _UAPI__LINUX_BPF_COMMON_H__
-> +#define _UAPI__LINUX_BPF_COMMON_H__
-> +
-> +/* Instruction classes */
-> +#define BPF_CLASS(code) ((code) & 0x07)
-> +#define		BPF_LD		0x00
-> +#define		BPF_LDX		0x01
-> +#define		BPF_ST		0x02
-> +#define		BPF_STX		0x03
-> +#define		BPF_ALU		0x04
-> +#define		BPF_JMP		0x05
-> +#define		BPF_RET		0x06
-> +#define		BPF_MISC        0x07
-> +
-> +/* ld/ldx fields */
-> +#define BPF_SIZE(code)  ((code) & 0x18)
-> +#define		BPF_W		0x00 /* 32-bit */
-> +#define		BPF_H		0x08 /* 16-bit */
-> +#define		BPF_B		0x10 /*  8-bit */
-> +/* eBPF		BPF_DW		0x18    64-bit */
-> +#define BPF_MODE(code)  ((code) & 0xe0)
-> +#define		BPF_IMM		0x00
-> +#define		BPF_ABS		0x20
-> +#define		BPF_IND		0x40
-> +#define		BPF_MEM		0x60
-> +#define		BPF_LEN		0x80
-> +#define		BPF_MSH		0xa0
-> +
-> +/* alu/jmp fields */
-> +#define BPF_OP(code)    ((code) & 0xf0)
-> +#define		BPF_ADD		0x00
-> +#define		BPF_SUB		0x10
-> +#define		BPF_MUL		0x20
-> +#define		BPF_DIV		0x30
-> +#define		BPF_OR		0x40
-> +#define		BPF_AND		0x50
-> +#define		BPF_LSH		0x60
-> +#define		BPF_RSH		0x70
-> +#define		BPF_NEG		0x80
-> +#define		BPF_MOD		0x90
-> +#define		BPF_XOR		0xa0
-> +
-> +#define		BPF_JA		0x00
-> +#define		BPF_JEQ		0x10
-> +#define		BPF_JGT		0x20
-> +#define		BPF_JGE		0x30
-> +#define		BPF_JSET        0x40
-> +#define BPF_SRC(code)   ((code) & 0x08)
-> +#define		BPF_K		0x00
-> +#define		BPF_X		0x08
-> +
-> +#ifndef BPF_MAXINSNS
-> +#define BPF_MAXINSNS 4096
-> +#endif
-> +
-> +#endif /* _UAPI__LINUX_BPF_COMMON_H__ */
-> -- 
-> 2.19.1
+> Should you add:
+> #include <linux/idr.h>
+> to this header?
+
+Yes, thanks. It currently is pulled in indirectly. I'll send a v2 with
+the #include added for the first patch.
+
+regards
+Philipp
