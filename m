@@ -1,126 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51006 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726863AbeKFRB7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Nov 2018 12:01:59 -0500
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org, dave.stevenson@raspberrypi.org,
-        hverkuil@xs4all.nl
-Subject: [PATCH v2 1/1] v4l: event: Add subscription to list before calling "add" operation
-Date: Tue,  6 Nov 2018 09:38:02 +0200
-Message-Id: <20181106073802.28986-1-sakari.ailus@linux.intel.com>
+Received: from mail-wr1-f65.google.com ([209.85.221.65]:37760 "EHLO
+        mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729349AbeKFRXl (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Nov 2018 12:23:41 -0500
+Received: by mail-wr1-f65.google.com with SMTP id o15-v6so8675004wrv.4
+        for <linux-media@vger.kernel.org>; Mon, 05 Nov 2018 23:59:42 -0800 (PST)
+From: Maxime Jourdan <mjourdan@baylibre.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Rob Herring <robh+dt@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Kevin Hilman <khilman@baylibre.com>,
+        Jerome Brunet <jbrunet@baylibre.com>,
+        Neil Armstrong <narmstrong@baylibre.com>,
+        Martin Blumenstingl <martin.blumenstingl@googlemail.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-amlogic@lists.infradead.org
+Subject: [PATCH v4 1/3] dt-bindings: media: add Amlogic Video Decoder Bindings
+Date: Tue,  6 Nov 2018 08:59:24 +0100
+Message-Id: <20181106075926.19269-2-mjourdan@baylibre.com>
+In-Reply-To: <20181106075926.19269-1-mjourdan@baylibre.com>
+References: <20181106075926.19269-1-mjourdan@baylibre.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Patch ad608fbcf166 changed how events were subscribed to address an issue
-elsewhere. As a side effect of that change, the "add" callback was called
-before the event subscription was added to the list of subscribed events,
-causing the first event (and possibly other events arriving soon
-afterwards) to be lost.
+Add documentation for the meson vdec dts node.
 
-Fix this by adding the subscription to the list before calling the "add"
-callback, and clean up afterwards if that fails.
-
-Fixes: ad608fbcf166 ("media: v4l: event: Prevent freeing event subscriptions while accessed")
-
-Reported-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Maxime Jourdan <mjourdan@baylibre.com>
+Reviewed-by: Rob Herring <robh@kernel.org>
 ---
+ .../bindings/media/amlogic,vdec.txt           | 71 +++++++++++++++++++
+ 1 file changed, 71 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/amlogic,vdec.txt
 
-Hi Dave, Hans,
-
-I figured there was room for some refactoring... so I did that.
-Functionality-wise it should be equivalent.
-
- drivers/media/v4l2-core/v4l2-event.c | 43 ++++++++++++++++++++----------------
- 1 file changed, 24 insertions(+), 19 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/v4l2-event.c b/drivers/media/v4l2-core/v4l2-event.c
-index a3ef1f50a4b3..481e3c65cf97 100644
---- a/drivers/media/v4l2-core/v4l2-event.c
-+++ b/drivers/media/v4l2-core/v4l2-event.c
-@@ -193,6 +193,22 @@ int v4l2_event_pending(struct v4l2_fh *fh)
- }
- EXPORT_SYMBOL_GPL(v4l2_event_pending);
- 
-+static void __v4l2_event_unsubscribe(struct v4l2_subscribed_event *sev)
-+{
-+	struct v4l2_fh *fh = sev->fh;
-+	unsigned int i;
+diff --git a/Documentation/devicetree/bindings/media/amlogic,vdec.txt b/Documentation/devicetree/bindings/media/amlogic,vdec.txt
+new file mode 100644
+index 000000000000..aabdd01bcf32
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/amlogic,vdec.txt
+@@ -0,0 +1,71 @@
++Amlogic Video Decoder
++================================
 +
-+	lockdep_assert_held(&fh->subscribe_lock);
-+	assert_spin_locked(&fh->vdev->fh_lock);
++The video decoding IP lies within the DOS memory region,
++except for the hardware bitstream parser that makes use of an undocumented
++region.
 +
-+	/* Remove any pending events for this subscription */
-+	for (i = 0; i < sev->in_use; i++) {
-+		list_del(&sev->events[sev_pos(sev, i)].list);
-+		fh->navailable--;
-+	}
-+	list_del(&sev->list);
-+}
++It makes use of the following blocks:
 +
- int v4l2_event_subscribe(struct v4l2_fh *fh,
- 			 const struct v4l2_event_subscription *sub, unsigned elems,
- 			 const struct v4l2_subscribed_event_ops *ops)
-@@ -224,27 +240,23 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
- 
- 	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
- 	found_ev = v4l2_event_subscribed(fh, sub->type, sub->id);
-+	if (!found_ev)
-+		list_add(&sev->list, &fh->subscribed);
- 	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
- 
- 	if (found_ev) {
- 		/* Already listening */
- 		kvfree(sev);
--		goto out_unlock;
--	}
--
--	if (sev->ops && sev->ops->add) {
-+	} else if (sev->ops && sev->ops->add) {
- 		ret = sev->ops->add(sev, elems);
- 		if (ret) {
-+			spin_lock_irqsave(&fh->vdev->fh_lock, flags);
-+			__v4l2_event_unsubscribe(sev);
-+			spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
- 			kvfree(sev);
--			goto out_unlock;
- 		}
- 	}
- 
--	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
--	list_add(&sev->list, &fh->subscribed);
--	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
--
--out_unlock:
- 	mutex_unlock(&fh->subscribe_lock);
- 
- 	return ret;
-@@ -279,7 +291,6 @@ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
- {
- 	struct v4l2_subscribed_event *sev;
- 	unsigned long flags;
--	int i;
- 
- 	if (sub->type == V4L2_EVENT_ALL) {
- 		v4l2_event_unsubscribe_all(fh);
-@@ -291,14 +302,8 @@ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
- 	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
- 
- 	sev = v4l2_event_subscribed(fh, sub->type, sub->id);
--	if (sev != NULL) {
--		/* Remove any pending events for this subscription */
--		for (i = 0; i < sev->in_use; i++) {
--			list_del(&sev->events[sev_pos(sev, i)].list);
--			fh->navailable--;
--		}
--		list_del(&sev->list);
--	}
-+	if (sev != NULL)
-+		__v4l2_event_unsubscribe(sev);
- 
- 	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
- 
++- ESPARSER is a bitstream parser that outputs to a VIFIFO. Further VDEC blocks
++then feed from this VIFIFO.
++- VDEC_1 can decode MPEG-1, MPEG-2, MPEG-4 part 2, MJPEG, H.263, H.264, VC-1.
++- VDEC_HEVC can decode HEVC and VP9.
++
++Both VDEC_1 and VDEC_HEVC share the "vdec" IRQ and as such cannot run
++concurrently.
++
++Device Tree Bindings:
++---------------------
++
++VDEC: Video Decoder
++--------------------------
++
++Required properties:
++- compatible: value should be different for each SoC family as :
++	- GXBB (S905) : "amlogic,gxbb-vdec"
++	- GXL (S905X, S905D) : "amlogic,gxl-vdec"
++	- GXM (S912) : "amlogic,gxm-vdec"
++- reg: base address and size of he following memory-mapped regions :
++	- dos
++	- esparser
++- reg-names: should contain the names of the previous memory regions
++- interrupts: should contain the following IRQs:
++	- vdec
++	- esparser
++- interrupt-names: should contain the names of the previous interrupts
++- amlogic,ao-sysctrl: should point to the AOBUS sysctrl node
++- amlogic,canvas: should point to a canvas provider node
++- clocks: should contain the following clocks :
++	- dos_parser
++	- dos
++	- vdec_1
++	- vdec_hevc
++- clock-names: should contain the names of the previous clocks
++- resets: should contain the parser reset
++- reset-names: should be "esparser"
++
++Example:
++
++vdec: video-decoder@c8820000 {
++	compatible = "amlogic,gxbb-vdec";
++	reg = <0x0 0xc8820000 0x0 0x10000>,
++	      <0x0 0xc110a580 0x0 0xe4>;
++	reg-names = "dos", "esparser";
++
++	interrupts = <GIC_SPI 44 IRQ_TYPE_EDGE_RISING>,
++		     <GIC_SPI 32 IRQ_TYPE_EDGE_RISING>;
++	interrupt-names = "vdec", "esparser";
++
++	amlogic,ao-sysctrl = <&sysctrl_AO>;
++	amlogic,canvas = <&canvas>;
++
++	clocks = <&clkc CLKID_DOS_PARSER>,
++		 <&clkc CLKID_DOS>,
++		 <&clkc CLKID_VDEC_1>,
++		 <&clkc CLKID_VDEC_HEVC>;
++	clock-names = "dos_parser", "dos", "vdec_1", "vdec_hevc";
++
++	resets = <&reset RESET_PARSER>;
++	reset-names = "esparser";
++};
 -- 
-2.11.0
+2.19.1
