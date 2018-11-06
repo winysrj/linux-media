@@ -1,106 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:50034 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729728AbeKFWhT (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Nov 2018 17:37:19 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Ezequiel Garcia <ezequiel@collabora.com>
-Subject: Re: [RFC] Create test script(s?) for regression testing
-Date: Tue, 06 Nov 2018 15:12:19 +0200
-Message-ID: <1795902.nUhofaO05U@avalon>
-In-Reply-To: <20181106113654.dhindu3lgaks74rr@paasikivi.fi.intel.com>
-References: <d0b6420c-e6b9-64c3-3577-fd0546790af3@xs4all.nl> <20181106113654.dhindu3lgaks74rr@paasikivi.fi.intel.com>
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:53935 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S2387913AbeKFWra (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 6 Nov 2018 17:47:30 -0500
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Sylwester Nawrocki <snawrocki@kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.21] Convert last remaining g/s_crop/cropcap drivers
+Message-ID: <abf9e001-7fa9-e30c-b4f4-746485cad5b8@xs4all.nl>
+Date: Tue, 6 Nov 2018 14:22:13 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+This pull request converts the last remaining drivers that use g/s_crop and
+cropcap to g/s_selection.
 
-On Tuesday, 6 November 2018 13:36:55 EET Sakari Ailus wrote:
-> On Tue, Nov 06, 2018 at 09:37:07AM +0100, Hans Verkuil wrote:
-> > Hi all,
-> > 
-> > After the media summit (heavy on test discussions) and the V4L2 event
-> > regression we just found it is clear we need to do a better job with
-> > testing.
-> > 
-> > All the pieces are in place, so what is needed is to combine it and create
-> > a script that anyone of us as core developers can run to check for
-> > regressions. The same script can be run as part of the kernelci
-> > regression testing.
-> 
-> I'd say that *some* pieces are in place. Of course, the more there is, the
-> better.
-> 
-> The more there are tests, the more important it would be they're automated,
-> preferrably without the developer having to run them on his/her own
-> machine.
+The first two patches do some minor code cleanup.
 
->From my experience with testing, it's important to have both a core set of 
-tests (a.k.a. smoke tests) that can easily be run on developers' machines, and 
-extended tests that can be offloaded to a shared testing infrastructure (but 
-possibly also run locally if desired).
+The third patch adds a new video_device flag to indicate that the driver
+inverts the normal usage of g/s_crop/cropcap. This applies to the old
+Samsung drivers that predate the Selection API and that abused the existing
+crop API.
 
-> > We have four virtual drivers: vivid, vim2m, vimc and vicodec. The last one
-> > is IMHO not quite good enough yet for testing: it is not fully compliant
-> > to the upcoming stateful codec spec. Work for that is planned as part of
-> > an Outreachy project.
-> > 
-> > My idea is to create a script that is maintained as part of v4l-utils that
-> > loads the drivers and runs v4l2-compliance and possibly other tests
-> > against the virtual drivers.
-> 
-> How about spending a little time to pick a suitable framework for running
-> the tests? It could be useful to get more informative reports than just
-> pass / fail.
+The next three patches do some code cleanup and prepare drivers for the
+removal of g/s_crop and ensure that cropcap only returns the pixelaspect.
 
-We should keep in mind that other tests will be added later, and the test 
-framework should make that easy.
+The next three patches convert the remaining Samsung drivers and set the
+QUIRK flag for all three.
 
-Regarding the test output, many formats exist (see https://testanything.org/ 
-and https://chromium.googlesource.com/chromium/src/+/master/docs/testing/
-json_test_results_format.md for instance), we should pick one of the leading 
-industry standards (what those standards are still needs to be researched 
-:-)).
+The final two patches remove vidioc_g/s_crop and rename vidioc_cropcap
+to vidioc_g_pixelaspect.
 
-> Do note that for different hardware the tests would be likely different as
-> well although there are classes of devices for which the exact same tests
-> would be applicable.
+This pull request is identical to the original RFC patch series:
 
-See http://git.ideasonboard.com/renesas/vsp-tests.git for an example of 
-device-specific tests. I think some of that could be generalized.
+https://www.mail-archive.com/linux-media@vger.kernel.org/msg135494.html
 
-> > It should be simple to use and require very little in the way of
-> > dependencies. Ideally no dependencies other than what is in v4l-utils so
-> > it can easily be run on an embedded system as well.
-> > 
-> > For a 64-bit kernel it should run the tests both with 32-bit and 64-bit
-> > applications.
-> > 
-> > It should also test with both single and multiplanar modes where
-> > available.
-> > 
-> > Since vivid emulates CEC as well, it should run CEC tests too.
-> > 
-> > As core developers we should have an environment where we can easily test
-> > our patches with this script (I use a VM for that).
-> > 
-> > I think maintaining the script (or perhaps scripts) in v4l-utils is best
-> > since that keeps it in sync with the latest kernel and v4l-utils
-> > developments.
-> 
-> Makes sense --- and that can be always changed later on if there's a need
-> to.
+I was waiting for Samsung to test these changes, and Sylwester just did that.
+Thank you very much, Sylwester! It's really nice to have a single driver
+API for cropping and composing instead of having to deal with two.
 
-I wonder whether that would be best going forward, especially if we want to 
-add more tests. Wouldn't a v4l-tests project make sense ?
-
--- 
 Regards,
 
-Laurent Pinchart
+	Hans
+
+
+The following changes since commit ef86eaf97acd6d82cd3fd40f997b1c8c4895a443:
+
+  media: Rename vb2_m2m_request_queue -> v4l2_m2m_request_queue (2018-11-06 05:24:22 -0500)
+
+are available in the Git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git tags/br-crop2sel-v2
+
+for you to fetch changes up to 588488146f93467815fd2ffdbabe7bb37d10e54c:
+
+  vidioc_cropcap -> vidioc_g_pixelaspect (2018-11-06 13:05:45 +0100)
+
+----------------------------------------------------------------
+Tag branch
+
+----------------------------------------------------------------
+Hans Verkuil (11):
+      v4l2-ioctl: don't use CROP/COMPOSE_ACTIVE
+      v4l2-common.h: put backwards compat defines under #ifndef __KERNEL__
+      v4l2-ioctl: add QUIRK_INVERTED_CROP
+      davinci/vpbe: drop unused g_cropcap
+      cropcap/g_selection split
+      exynos-gsc: replace v4l2_crop by v4l2_selection
+      s5p_mfc_dec.c: convert g_crop to g_selection
+      exynos4-is: convert g/s_crop to g/s_selection
+      s5p-g2d: convert g/s_crop to g/s_selection
+      v4l2-ioctl: remove unused vidioc_g/s_crop
+      vidioc_cropcap -> vidioc_g_pixelaspect
+
+ drivers/media/pci/bt8xx/bttv-driver.c         |  12 +++---
+ drivers/media/pci/cobalt/cobalt-v4l2.c        |  48 +++++++++++++++++++----
+ drivers/media/pci/cx18/cx18-ioctl.c           |  13 ++++---
+ drivers/media/pci/cx23885/cx23885-video.c     |  40 +++++++++++++------
+ drivers/media/pci/ivtv/ivtv-ioctl.c           |  17 ++++----
+ drivers/media/pci/saa7134/saa7134-video.c     |  21 +++++-----
+ drivers/media/platform/am437x/am437x-vpfe.c   |  31 ++++++++-------
+ drivers/media/platform/davinci/vpbe.c         |  23 -----------
+ drivers/media/platform/davinci/vpbe_display.c |  10 ++---
+ drivers/media/platform/davinci/vpfe_capture.c |  12 +++---
+ drivers/media/platform/exynos-gsc/gsc-core.c  |  57 +++++++++++----------------
+ drivers/media/platform/exynos-gsc/gsc-core.h  |   3 +-
+ drivers/media/platform/exynos-gsc/gsc-m2m.c   |  23 +++++------
+ drivers/media/platform/exynos4-is/fimc-core.h |   6 ++-
+ drivers/media/platform/exynos4-is/fimc-m2m.c  | 130 ++++++++++++++++++++++++++++++++++++--------------------------
+ drivers/media/platform/rcar-vin/rcar-v4l2.c   |  10 ++---
+ drivers/media/platform/s5p-g2d/g2d.c          | 102 ++++++++++++++++++++++++++++++------------------
+ drivers/media/platform/s5p-mfc/s5p_mfc.c      |   1 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c  |  49 +++++++++++++++--------
+ drivers/media/platform/vivid/vivid-core.c     |   9 +++--
+ drivers/media/platform/vivid/vivid-vid-cap.c  |  18 ++++-----
+ drivers/media/platform/vivid/vivid-vid-cap.h  |   2 +-
+ drivers/media/platform/vivid/vivid-vid-out.c  |  18 ++++-----
+ drivers/media/platform/vivid/vivid-vid-out.h  |   2 +-
+ drivers/media/usb/au0828/au0828-video.c       |  38 ++++++++++++------
+ drivers/media/usb/cpia2/cpia2_v4l.c           |  31 +++++++--------
+ drivers/media/usb/cx231xx/cx231xx-417.c       |  41 ++++++++++++++------
+ drivers/media/usb/cx231xx/cx231xx-video.c     |  41 ++++++++++++++------
+ drivers/media/usb/pvrusb2/pvrusb2-v4l2.c      |  13 ++++---
+ drivers/media/v4l2-core/v4l2-dev.c            |   8 ++--
+ drivers/media/v4l2-core/v4l2-ioctl.c          |  44 +++++++++++++--------
+ include/media/davinci/vpbe.h                  |   4 --
+ include/media/v4l2-dev.h                      |  13 ++++++-
+ include/media/v4l2-ioctl.h                    |  16 ++------
+ include/uapi/linux/v4l2-common.h              |  28 +++++++-------
+ 35 files changed, 537 insertions(+), 397 deletions(-)
