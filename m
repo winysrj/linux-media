@@ -1,146 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:45447 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2387404AbeKFUGk (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Nov 2018 15:06:40 -0500
-From: Philipp Zabel <p.zabel@pengutronix.de>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52612 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1729272AbeKFUOr (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 6 Nov 2018 15:14:47 -0500
+Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id C46A6634C83
+        for <linux-media@vger.kernel.org>; Tue,  6 Nov 2018 12:50:09 +0200 (EET)
+Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
+        (envelope-from <sakari.ailus@retiisi.org.uk>)
+        id 1gJyvx-0002Jc-J3
+        for linux-media@vger.kernel.org; Tue, 06 Nov 2018 12:50:09 +0200
+Date: Tue, 6 Nov 2018 12:50:09 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Ian Arkver <ian.arkver.dev@gmail.com>, kernel@pengutronix.de
-Subject: [PATCH v2] media: coda: fix memory corruption in case more than 32 instances are opened
-Date: Tue,  6 Nov 2018 11:40:54 +0100
-Message-Id: <20181106104054.21599-1-p.zabel@pengutronix.de>
+Subject: [GIT PULL FOR 4.20] Fix first event delivery
+Message-ID: <20181106105009.iq3r3cv7fraks75t@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The ffz() return value is undefined if the instance mask does not
-contain any zeros. If it returned 32, the following set_bit would
-corrupt the debugfs_root pointer.
-Switch to IDA for context index allocation. This also removes the
-artificial 32 instance limit for all except CodaDx6.
+Hi Mauro,
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
-Changes since v1:
- - #include <linux/idr.h> explicitly where struct ida or ida_*
-   functions are used, reported by Ian Arkver
----
- drivers/media/platform/coda/coda-common.c | 26 +++++++++--------------
- drivers/media/platform/coda/coda.h        |  3 ++-
- 2 files changed, 12 insertions(+), 17 deletions(-)
+There turns out to have been an issue in the event subscription fix; in
+particular the first control event is missed due to a subtle bug in the
+patch.
 
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index 2848ea5f464d..547acf80c89d 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -17,6 +17,7 @@
- #include <linux/firmware.h>
- #include <linux/gcd.h>
- #include <linux/genalloc.h>
-+#include <linux/idr.h>
- #include <linux/interrupt.h>
- #include <linux/io.h>
- #include <linux/irq.h>
-@@ -2099,17 +2100,6 @@ int coda_decoder_queue_init(void *priv, struct vb2_queue *src_vq,
- 	return coda_queue_init(priv, dst_vq);
- }
- 
--static int coda_next_free_instance(struct coda_dev *dev)
--{
--	int idx = ffz(dev->instance_mask);
--
--	if ((idx < 0) ||
--	    (dev->devtype->product == CODA_DX6 && idx > CODADX6_MAX_INSTANCES))
--		return -EBUSY;
--
--	return idx;
--}
--
- /*
-  * File operations
-  */
-@@ -2118,7 +2108,8 @@ static int coda_open(struct file *file)
- {
- 	struct video_device *vdev = video_devdata(file);
- 	struct coda_dev *dev = video_get_drvdata(vdev);
--	struct coda_ctx *ctx = NULL;
-+	struct coda_ctx *ctx;
-+	unsigned int max = ~0;
- 	char *name;
- 	int ret;
- 	int idx;
-@@ -2127,12 +2118,13 @@ static int coda_open(struct file *file)
- 	if (!ctx)
- 		return -ENOMEM;
- 
--	idx = coda_next_free_instance(dev);
-+	if (dev->devtype->product == CODA_DX6)
-+		max = CODADX6_MAX_INSTANCES - 1;
-+	idx = ida_alloc_max(&dev->ida, max, GFP_KERNEL);
- 	if (idx < 0) {
- 		ret = idx;
- 		goto err_coda_max;
- 	}
--	set_bit(idx, &dev->instance_mask);
- 
- 	name = kasprintf(GFP_KERNEL, "context%d", idx);
- 	if (!name) {
-@@ -2241,8 +2233,8 @@ static int coda_open(struct file *file)
- err_pm_get:
- 	v4l2_fh_del(&ctx->fh);
- 	v4l2_fh_exit(&ctx->fh);
--	clear_bit(ctx->idx, &dev->instance_mask);
- err_coda_name_init:
-+	ida_free(&dev->ida, ctx->idx);
- err_coda_max:
- 	kfree(ctx);
- 	return ret;
-@@ -2284,7 +2276,7 @@ static int coda_release(struct file *file)
- 	pm_runtime_put_sync(&dev->plat_dev->dev);
- 	v4l2_fh_del(&ctx->fh);
- 	v4l2_fh_exit(&ctx->fh);
--	clear_bit(ctx->idx, &dev->instance_mask);
-+	ida_free(&dev->ida, ctx->idx);
- 	if (ctx->ops->release)
- 		ctx->ops->release(ctx);
- 	debugfs_remove_recursive(ctx->debugfs_entry);
-@@ -2745,6 +2737,7 @@ static int coda_probe(struct platform_device *pdev)
- 
- 	mutex_init(&dev->dev_mutex);
- 	mutex_init(&dev->coda_mutex);
-+	ida_init(&dev->ida);
- 
- 	dev->debugfs_root = debugfs_create_dir("coda", NULL);
- 	if (!dev->debugfs_root)
-@@ -2832,6 +2825,7 @@ static int coda_remove(struct platform_device *pdev)
- 	coda_free_aux_buf(dev, &dev->tempbuf);
- 	coda_free_aux_buf(dev, &dev->workbuf);
- 	debugfs_remove_recursive(dev->debugfs_root);
-+	ida_destroy(&dev->ida);
- 	return 0;
- }
- 
-diff --git a/drivers/media/platform/coda/coda.h b/drivers/media/platform/coda/coda.h
-index 19ac0b9dc6eb..680c7035c9d4 100644
---- a/drivers/media/platform/coda/coda.h
-+++ b/drivers/media/platform/coda/coda.h
-@@ -16,6 +16,7 @@
- #define __CODA_H__
- 
- #include <linux/debugfs.h>
-+#include <linux/idr.h>
- #include <linux/irqreturn.h>
- #include <linux/mutex.h>
- #include <linux/kfifo.h>
-@@ -95,7 +96,7 @@ struct coda_dev {
- 	struct workqueue_struct	*workqueue;
- 	struct v4l2_m2m_dev	*m2m_dev;
- 	struct list_head	instances;
--	unsigned long		instance_mask;
-+	struct ida		ida;
- 	struct dentry		*debugfs_root;
- };
- 
+This patch fixes it. Once it's in, I'll submit the corresponding patches to
+the stable kernels.
+
+Please pull.
+
+
+The following changes since commit dafb7f9aef2fd44991ff1691721ff765a23be27b:
+
+  v4l2-controls: add a missing include (2018-11-02 06:36:32 -0400)
+
+are available in the git repository at:
+
+  ssh://linuxtv.org/git/sailus/media_tree.git tags/event-sub-fix-sign
+
+for you to fetch changes up to cbafeff167c91243f336e1703d7f86aa019b973e:
+
+  v4l: event: Add subscription to list before calling "add" operation (2018-11-06 10:57:34 +0200)
+
+----------------------------------------------------------------
+fix event subscription
+
+----------------------------------------------------------------
+Sakari Ailus (1):
+      v4l: event: Add subscription to list before calling "add" operation
+
+ drivers/media/v4l2-core/v4l2-event.c | 43 ++++++++++++++++++++----------------
+ 1 file changed, 24 insertions(+), 19 deletions(-)
+
 -- 
-2.19.1
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
