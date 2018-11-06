@@ -1,121 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:50118 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2387913AbeKFWrc (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Nov 2018 17:47:32 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc: niklas.soderlund@ragnatech.se, kieran.bingham@ideasonboard.com,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH v4 5/6] media: rcar: rcar-csi2: Update V3M/E3 PHTW tables
-Date: Tue, 06 Nov 2018 15:22:29 +0200
-Message-ID: <5650007.KMox73GGi6@avalon>
-In-Reply-To: <1541501667-28817-6-git-send-email-jacopo+renesas@jmondi.org>
-References: <1541501667-28817-1-git-send-email-jacopo+renesas@jmondi.org> <1541501667-28817-6-git-send-email-jacopo+renesas@jmondi.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:53852 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2388029AbeKFXFH (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Nov 2018 18:05:07 -0500
+Message-ID: <65279fff0f7806478047296d0ef88005e2545b45.camel@collabora.com>
+Subject: Re: [RFC] Create test script(s?) for regression testing
+From: Ezequiel Garcia <ezequiel@collabora.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Date: Tue, 06 Nov 2018 10:39:43 -0300
+In-Reply-To: <d0b6420c-e6b9-64c3-3577-fd0546790af3@xs4all.nl>
+References: <d0b6420c-e6b9-64c3-3577-fd0546790af3@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacopo,
-
-Thank you for the patch.
-
-On Tuesday, 6 November 2018 12:54:26 EET Jacopo Mondi wrote:
-> Update PHTW tables for V3M and E3 SoCs to the latest datasheet release
-> (R-Car Series, 3rd Generation manual rev1.00 20181017).
+On Tue, 2018-11-06 at 09:37 +0100, Hans Verkuil wrote:
+> Hi all,
 > 
-> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> After the media summit (heavy on test discussions) and the V4L2 event regression
+> we just found it is clear we need to do a better job with testing.
 > 
-> ---
-> v1 -> v2:
-> - Limit the PHTW table to 1125 MBps, according to Laurent's comment
-
-Based on the assumption that the values haven't changed between v1 and v2,
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> ---
->  drivers/media/platform/rcar-vin/rcar-csi2.c | 62 ++++++++++++--------------
->  1 file changed, 31 insertions(+), 31 deletions(-)
+> All the pieces are in place, so what is needed is to combine it and create a
+> script that anyone of us as core developers can run to check for regressions.
+> The same script can be run as part of the kernelci regression testing.
 > 
-> diff --git a/drivers/media/platform/rcar-vin/rcar-csi2.c
-> b/drivers/media/platform/rcar-vin/rcar-csi2.c index 695686b..99f5b76 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-csi2.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-csi2.c
-> @@ -152,37 +152,37 @@ static const struct rcsi2_mbps_reg
-> phtw_mbps_h3_v3h_m3n[] = { };
+> We have four virtual drivers: vivid, vim2m, vimc and vicodec. The last one
+> is IMHO not quite good enough yet for testing: it is not fully compliant to the
+> upcoming stateful codec spec. Work for that is planned as part of an Outreachy
+> project.
 > 
->  static const struct rcsi2_mbps_reg phtw_mbps_v3m_e3[] = {
-> -	{ .mbps =   80, .reg = 0x00 },
-> -	{ .mbps =   90, .reg = 0x20 },
-> -	{ .mbps =  100, .reg = 0x40 },
-> -	{ .mbps =  110, .reg = 0x02 },
-> -	{ .mbps =  130, .reg = 0x22 },
-> -	{ .mbps =  140, .reg = 0x42 },
-> -	{ .mbps =  150, .reg = 0x04 },
-> -	{ .mbps =  170, .reg = 0x24 },
-> -	{ .mbps =  180, .reg = 0x44 },
-> -	{ .mbps =  200, .reg = 0x06 },
-> -	{ .mbps =  220, .reg = 0x26 },
-> -	{ .mbps =  240, .reg = 0x46 },
-> -	{ .mbps =  250, .reg = 0x08 },
-> -	{ .mbps =  270, .reg = 0x28 },
-> -	{ .mbps =  300, .reg = 0x0a },
-> -	{ .mbps =  330, .reg = 0x2a },
-> -	{ .mbps =  360, .reg = 0x4a },
-> -	{ .mbps =  400, .reg = 0x0c },
-> -	{ .mbps =  450, .reg = 0x2c },
-> -	{ .mbps =  500, .reg = 0x0e },
-> -	{ .mbps =  550, .reg = 0x2e },
-> -	{ .mbps =  600, .reg = 0x10 },
-> -	{ .mbps =  650, .reg = 0x30 },
-> -	{ .mbps =  700, .reg = 0x12 },
-> -	{ .mbps =  750, .reg = 0x32 },
-> -	{ .mbps =  800, .reg = 0x52 },
-> -	{ .mbps =  850, .reg = 0x72 },
-> -	{ .mbps =  900, .reg = 0x14 },
-> -	{ .mbps =  950, .reg = 0x34 },
-> -	{ .mbps = 1000, .reg = 0x54 },
-> -	{ .mbps = 1050, .reg = 0x74 },
-> +	{ .mbps =   89, .reg = 0x00 },
-> +	{ .mbps =   99, .reg = 0x20 },
-> +	{ .mbps =  109, .reg = 0x40 },
-> +	{ .mbps =  129, .reg = 0x02 },
-> +	{ .mbps =  139, .reg = 0x22 },
-> +	{ .mbps =  149, .reg = 0x42 },
-> +	{ .mbps =  169, .reg = 0x04 },
-> +	{ .mbps =  179, .reg = 0x24 },
-> +	{ .mbps =  199, .reg = 0x44 },
-> +	{ .mbps =  219, .reg = 0x06 },
-> +	{ .mbps =  239, .reg = 0x26 },
-> +	{ .mbps =  249, .reg = 0x46 },
-> +	{ .mbps =  269, .reg = 0x08 },
-> +	{ .mbps =  299, .reg = 0x28 },
-> +	{ .mbps =  329, .reg = 0x0a },
-> +	{ .mbps =  359, .reg = 0x2a },
-> +	{ .mbps =  399, .reg = 0x4a },
-> +	{ .mbps =  449, .reg = 0x0c },
-> +	{ .mbps =  499, .reg = 0x2c },
-> +	{ .mbps =  549, .reg = 0x0e },
-> +	{ .mbps =  599, .reg = 0x2e },
-> +	{ .mbps =  649, .reg = 0x10 },
-> +	{ .mbps =  699, .reg = 0x30 },
-> +	{ .mbps =  749, .reg = 0x12 },
-> +	{ .mbps =  799, .reg = 0x32 },
-> +	{ .mbps =  849, .reg = 0x52 },
-> +	{ .mbps =  899, .reg = 0x72 },
-> +	{ .mbps =  949, .reg = 0x14 },
-> +	{ .mbps =  999, .reg = 0x34 },
-> +	{ .mbps = 1049, .reg = 0x54 },
-> +	{ .mbps = 1099, .reg = 0x74 },
->  	{ .mbps = 1125, .reg = 0x16 },
->  	{ /* sentinel */ },
->  };
+> My idea is to create a script that is maintained as part of v4l-utils that
+> loads the drivers and runs v4l2-compliance and possibly other tests against
+> the virtual drivers.
+> 
+> It should be simple to use and require very little in the way of dependencies.
+> Ideally no dependencies other than what is in v4l-utils so it can easily be run
+> on an embedded system as well.
+> 
+> For a 64-bit kernel it should run the tests both with 32-bit and 64-bit
+> applications.
+> 
+> It should also test with both single and multiplanar modes where available.
+> 
+> Since vivid emulates CEC as well, it should run CEC tests too.
+> 
+> As core developers we should have an environment where we can easily test
+> our patches with this script (I use a VM for that).
+> 
 
+It's quite trivial to setup a qemu environment for this, e.g. you can
+use virtme [1] and set it up so that it runs a script after booting.
 
--- 
-Regards,
+> I think maintaining the script (or perhaps scripts) in v4l-utils is best since
+> that keeps it in sync with the latest kernel and v4l-utils developments.
+> 
+> Comments? Ideas?
+> 
 
-Laurent Pinchart
+Sounds great. I think it makes a lot of sense to have a script for CIs
+and developers to run.
+
+I guess we can start simple, with just a bash script?
+
+> Regards,
+> 
+> 	Hans
+
+[1] https://www.collabora.com/news-and-blog/blog/2018/09/18/virtme-the-kernel-developers-best-friend/
