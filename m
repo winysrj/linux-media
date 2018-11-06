@@ -1,74 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:53852 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388029AbeKFXFH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Nov 2018 18:05:07 -0500
-Message-ID: <65279fff0f7806478047296d0ef88005e2545b45.camel@collabora.com>
-Subject: Re: [RFC] Create test script(s?) for regression testing
-From: Ezequiel Garcia <ezequiel@collabora.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:44644 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S2388029AbeKFXJs (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 6 Nov 2018 18:09:48 -0500
+Subject: Re: [PATCH] media: v4l: fix uapi mpeg slice params definition
+To: Arnd Bergmann <arnd@arndb.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Maxime Ripard <maxime.ripard@bootlin.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Date: Tue, 06 Nov 2018 10:39:43 -0300
-In-Reply-To: <d0b6420c-e6b9-64c3-3577-fd0546790af3@xs4all.nl>
-References: <d0b6420c-e6b9-64c3-3577-fd0546790af3@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+        Tomasz Figa <tfiga@chromium.org>,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <20181102110945.191868-1-arnd@arndb.de>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <d1ba33ad-ca69-1cbc-bd14-4935426c0abf@xs4all.nl>
+Date: Tue, 6 Nov 2018 14:44:23 +0100
+MIME-Version: 1.0
+In-Reply-To: <20181102110945.191868-1-arnd@arndb.de>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2018-11-06 at 09:37 +0100, Hans Verkuil wrote:
-> Hi all,
-> 
-> After the media summit (heavy on test discussions) and the V4L2 event regression
-> we just found it is clear we need to do a better job with testing.
-> 
-> All the pieces are in place, so what is needed is to combine it and create a
-> script that anyone of us as core developers can run to check for regressions.
-> The same script can be run as part of the kernelci regression testing.
-> 
-> We have four virtual drivers: vivid, vim2m, vimc and vicodec. The last one
-> is IMHO not quite good enough yet for testing: it is not fully compliant to the
-> upcoming stateful codec spec. Work for that is planned as part of an Outreachy
-> project.
-> 
-> My idea is to create a script that is maintained as part of v4l-utils that
-> loads the drivers and runs v4l2-compliance and possibly other tests against
-> the virtual drivers.
-> 
-> It should be simple to use and require very little in the way of dependencies.
-> Ideally no dependencies other than what is in v4l-utils so it can easily be run
-> on an embedded system as well.
-> 
-> For a 64-bit kernel it should run the tests both with 32-bit and 64-bit
-> applications.
-> 
-> It should also test with both single and multiplanar modes where available.
-> 
-> Since vivid emulates CEC as well, it should run CEC tests too.
-> 
-> As core developers we should have an environment where we can easily test
-> our patches with this script (I use a VM for that).
-> 
+Hi Arnd, Maxime, Paul,
 
-It's quite trivial to setup a qemu environment for this, e.g. you can
-use virtme [1] and set it up so that it runs a script after booting.
+Sorry for the late reply, I was on vacation and only saw this patch now.
 
-> I think maintaining the script (or perhaps scripts) in v4l-utils is best since
-> that keeps it in sync with the latest kernel and v4l-utils developments.
+On 11/02/18 12:09, Arnd Bergmann wrote:
+> We get a headers_check warning about the newly defined ioctl command
+> structures:
 > 
-> Comments? Ideas?
+> ./usr/include/linux/v4l2-controls.h:1105: found __[us]{8,16,32,64} type without #include <linux/types.h>
 > 
-
-Sounds great. I think it makes a lot of sense to have a script for CIs
-and developers to run.
-
-I guess we can start simple, with just a bash script?
-
-> Regards,
+> This is resolved by including linux/types.h, as suggested by the
+> warning, but there is another problem: Three of the four structures
+> have an odd number of __u8 headers, but are aligned to 32 bit in the
+> v4l2_ctrl_mpeg2_slice_params, so we get an implicit padding byte
+> for each one. To solve that, let's add explicit padding that can
+> be set to zero and verified in the kernel.
 > 
-> 	Hans
+> Fixes: c27bb30e7b6d ("media: v4l: Add definitions for MPEG-2 slice format and metadata")
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
+>  drivers/media/v4l2-core/v4l2-ctrls.c | 5 +++++
+>  include/uapi/linux/v4l2-controls.h   | 5 +++++
+>  2 files changed, 10 insertions(+)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+> index 6e37950292cd..5f2b033a7a42 100644
+> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> @@ -1664,6 +1664,11 @@ static int std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
+>  		    p_mpeg2_slice_params->forward_ref_index >= VIDEO_MAX_FRAME)
+>  			return -EINVAL;
+>  
+> +		if (p_mpeg2_slice_params->pad ||
+> +		    p_mpeg2_slice_params->picture.pad ||
+> +		    p_mpeg2_slice_params->sequence.pad)
+> +			return -EINVAL;
+> +
 
-[1] https://www.collabora.com/news-and-blog/blog/2018/09/18/virtme-the-kernel-developers-best-friend/
+Yuck.
+
+>  		return 0;
+>  
+>  	case V4L2_CTRL_TYPE_MPEG2_QUANTIZATION:
+> diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+> index 51b095898f4b..998983a6e6b7 100644
+> --- a/include/uapi/linux/v4l2-controls.h
+> +++ b/include/uapi/linux/v4l2-controls.h
+> @@ -50,6 +50,8 @@
+>  #ifndef __LINUX_V4L2_CONTROLS_H
+>  #define __LINUX_V4L2_CONTROLS_H
+>  
+> +#include <linux/types.h>
+> +
+>  /* Control classes */
+>  #define V4L2_CTRL_CLASS_USER		0x00980000	/* Old-style 'user' controls */
+>  #define V4L2_CTRL_CLASS_MPEG		0x00990000	/* MPEG-compression controls */
+> @@ -1110,6 +1112,7 @@ struct v4l2_mpeg2_sequence {
+>  	__u8	profile_and_level_indication;
+>  	__u8	progressive_sequence;
+>  	__u8	chroma_format;
+> +	__u8	pad;
+
+Rather than adding spurious 'pad' fields, can't we just change one of the u8 to u16?
+
+Much cleaner that way.
+
+Maxime, Paul, what do you think?
+
+Regards,
+
+	Hans
+
+>  };
+>  
+>  struct v4l2_mpeg2_picture {
+> @@ -1128,6 +1131,7 @@ struct v4l2_mpeg2_picture {
+>  	__u8	alternate_scan;
+>  	__u8	repeat_first_field;
+>  	__u8	progressive_frame;
+> +	__u8	pad;
+>  };
+>  
+>  struct v4l2_ctrl_mpeg2_slice_params {
+> @@ -1142,6 +1146,7 @@ struct v4l2_ctrl_mpeg2_slice_params {
+>  
+>  	__u8	backward_ref_index;
+>  	__u8	forward_ref_index;
+> +	__u8	pad;
+>  };
+>  
+>  struct v4l2_ctrl_mpeg2_quantization {
+> 
