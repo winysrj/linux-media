@@ -1,84 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga18.intel.com ([134.134.136.126]:20164 "EHLO mga18.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730574AbeKFVBo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Nov 2018 16:01:44 -0500
-Date: Tue, 6 Nov 2018 13:36:55 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Ezequiel Garcia <ezequiel@collabora.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFC] Create test script(s?) for regression testing
-Message-ID: <20181106113654.dhindu3lgaks74rr@paasikivi.fi.intel.com>
-References: <d0b6420c-e6b9-64c3-3577-fd0546790af3@xs4all.nl>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53014 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1729728AbeKFVFm (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 6 Nov 2018 16:05:42 -0500
+Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id AC704634C83
+        for <linux-media@vger.kernel.org>; Tue,  6 Nov 2018 13:40:53 +0200 (EET)
+Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
+        (envelope-from <sakari.ailus@retiisi.org.uk>)
+        id 1gJzj3-0002K2-Fs
+        for linux-media@vger.kernel.org; Tue, 06 Nov 2018 13:40:53 +0200
+Date: Tue, 6 Nov 2018 13:40:53 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL for 4.20] Sensor and ISP driver patches for 4.21
+Message-ID: <20181106114053.5i4e25dkfjnroqpg@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <d0b6420c-e6b9-64c3-3577-fd0546790af3@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi Mauro,
 
-On Tue, Nov 06, 2018 at 09:37:07AM +0100, Hans Verkuil wrote:
-> Hi all,
-> 
-> After the media summit (heavy on test discussions) and the V4L2 event regression
-> we just found it is clear we need to do a better job with testing.
-> 
-> All the pieces are in place, so what is needed is to combine it and create a
-> script that anyone of us as core developers can run to check for regressions.
-> The same script can be run as part of the kernelci regression testing.
+Here are a few sensor and ISP driver patches for 4.21, plus a documentation
+fix. The noteworthy change in the sea of bugfixes is the imx214 driver.
 
-I'd say that *some* pieces are in place. Of course, the more there is, the
-better.
+Please pull.
 
-The more there are tests, the more important it would be they're automated,
-preferrably without the developer having to run them on his/her own
-machine.
 
-> 
-> We have four virtual drivers: vivid, vim2m, vimc and vicodec. The last one
-> is IMHO not quite good enough yet for testing: it is not fully compliant to the
-> upcoming stateful codec spec. Work for that is planned as part of an Outreachy
-> project.
-> 
-> My idea is to create a script that is maintained as part of v4l-utils that
-> loads the drivers and runs v4l2-compliance and possibly other tests against
-> the virtual drivers.
+The following changes since commit dafb7f9aef2fd44991ff1691721ff765a23be27b:
 
-How about spending a little time to pick a suitable framework for running
-the tests? It could be useful to get more informative reports than just
-pass / fail.
+  v4l2-controls: add a missing include (2018-11-02 06:36:32 -0400)
 
-Do note that for different hardware the tests would be likely different as
-well although there are classes of devices for which the exact same tests
-would be applicable.
+are available in the git repository at:
 
-> 
-> It should be simple to use and require very little in the way of dependencies.
-> Ideally no dependencies other than what is in v4l-utils so it can easily be run
-> on an embedded system as well.
-> 
-> For a 64-bit kernel it should run the tests both with 32-bit and 64-bit
-> applications.
-> 
-> It should also test with both single and multiplanar modes where available.
-> 
-> Since vivid emulates CEC as well, it should run CEC tests too.
-> 
-> As core developers we should have an environment where we can easily test
-> our patches with this script (I use a VM for that).
-> 
-> I think maintaining the script (or perhaps scripts) in v4l-utils is best since
-> that keeps it in sync with the latest kernel and v4l-utils developments.
+  ssh://linuxtv.org/git/sailus/media_tree.git tags/for-4.21-1-sign
 
-Makes sense --- and that can be always changed later on if there's a need
-to.
+for you to fetch changes up to aaa886f8404b6ae39aad984c8b826c092ebe0092:
+
+  media: ov7740: constify structures stored in fields of v4l2_subdev_ops structure (2018-11-06 13:33:19 +0200)
+
+----------------------------------------------------------------
+Patches or 4.21
+
+----------------------------------------------------------------
+Chiranjeevi Rapolu (1):
+      media: ov13858: Check for possible null pointer
+
+Julia Lawall (2):
+      media: ov5645: constify v4l2_ctrl_ops structure
+      media: ov7740: constify structures stored in fields of v4l2_subdev_ops structure
+
+Rajmohan Mani (1):
+      media: intel-ipu3: cio2: Remove redundant definitions
+
+Ricardo Ribalda Delgado (2):
+      imx214: device tree binding
+      imx214: Add imx214 camera sensor driver
+
+Sakari Ailus (4):
+      media: docs: Document metadata format in struct v4l2_format
+      omap3isp: Unregister media device as first
+      ipu3-cio2: Unregister device nodes first, then release resources
+      ipu3-cio2: Use cio2_queues_exit
+
+ .../devicetree/bindings/media/i2c/sony,imx214.txt  |   53 +
+ Documentation/media/uapi/v4l/dev-meta.rst          |    2 +-
+ Documentation/media/uapi/v4l/vidioc-g-fmt.rst      |    5 +
+ MAINTAINERS                                        |    8 +
+ drivers/media/i2c/Kconfig                          |   12 +
+ drivers/media/i2c/Makefile                         |    1 +
+ drivers/media/i2c/imx214.c                         | 1118 ++++++++++++++++++++
+ drivers/media/i2c/ov13858.c                        |    6 +-
+ drivers/media/i2c/ov5645.c                         |    2 +-
+ drivers/media/i2c/ov7740.c                         |    4 +-
+ drivers/media/pci/intel/ipu3/ipu3-cio2.c           |    6 +-
+ drivers/media/pci/intel/ipu3/ipu3-cio2.h           |    2 -
+ drivers/media/platform/omap3isp/isp.c              |    3 +-
+ 13 files changed, 1209 insertions(+), 13 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/sony,imx214.txt
+ create mode 100644 drivers/media/i2c/imx214.c
 
 -- 
-Regards,
-
 Sakari Ailus
-sakari.ailus@linux.intel.com
+e-mail: sakari.ailus@iki.fi
