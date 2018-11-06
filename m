@@ -1,120 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:51326 "EHLO
+Received: from perceval.ideasonboard.com ([213.167.242.64]:51402 "EHLO
         perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2387848AbeKGAge (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Nov 2018 19:36:34 -0500
+        with ESMTP id S1729574AbeKGAjl (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Nov 2018 19:39:41 -0500
 Reply-To: kieran.bingham@ideasonboard.com
-Subject: Re: [PATCH v4 4/6] media: uvcvideo: queue: Simplify spin-lock usage
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Olivier BRAUN <olivier.braun@stereolabs.com>,
-        Troy Kisky <troy.kisky@boundarydevices.com>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Philipp Zabel <philipp.zabel@gmail.com>,
+Subject: Re: [PATCH v4 6/6] media: uvcvideo: Move decode processing to process
+ context
+To: Tomasz Figa <tfiga@google.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        g.liakhovetski@gmx.de, olivier.braun@stereolabs.com,
+        troy.kisky@boundarydevices.com,
+        Randy Dunlap <rdunlap@infradead.org>, philipp.zabel@gmail.com,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        open list <linux-kernel@vger.kernel.org>
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 References: <cover.3cb9065dabdf5d455da508fb4109201e626d5ee7.1522168131.git-series.kieran.bingham@ideasonboard.com>
- <ec54c7e1cfc4d1846c3dc09f27f609e7cf82b45c.1522168131.git-series.kieran.bingham@ideasonboard.com>
- <18698388.LcrgILxgHI@avalon>
+ <cae511f90085701e7093ce39dc8dabf8fc16b844.1522168131.git-series.kieran.bingham@ideasonboard.com>
+ <CAAFQd5CQEhmuLbs0dmGfu66x1Xq1V_kOT0bV_DoPitkkOX5Q4A@mail.gmail.com>
 From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Message-ID: <4a55341e-859f-934c-41ba-6137bb812439@ideasonboard.com>
-Date: Tue, 6 Nov 2018 15:10:49 +0000
+Message-ID: <4fa1b96d-912c-ec07-f08e-d8de164a0186@ideasonboard.com>
+Date: Tue, 6 Nov 2018 15:13:55 +0000
 MIME-Version: 1.0
-In-Reply-To: <18698388.LcrgILxgHI@avalon>
+In-Reply-To: <CAAFQd5CQEhmuLbs0dmGfu66x1Xq1V_kOT0bV_DoPitkkOX5Q4A@mail.gmail.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-GB
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Tomasz,
 
-On 30/07/2018 20:57, Laurent Pinchart wrote:
+On 07/08/2018 10:54, Tomasz Figa wrote:
 > Hi Kieran,
 > 
-> Thank you for the patch.
-> 
-> On Tuesday, 27 March 2018 19:46:01 EEST Kieran Bingham wrote:
->> Both uvc_start_streaming(), and uvc_stop_streaming() are called from
->> userspace context, with interrupts enabled. As such, they do not need to
->> save the IRQ state, and can use spin_lock_irq() and spin_unlock_irq()
->> respectively.
->>
->> Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
->>
->> ---
->>
->> v4:
->>  - Rebase to v4.16 (linux-media/master)
->>
->>  drivers/media/usb/uvc/uvc_queue.c | 10 ++++------
->>  1 file changed, 4 insertions(+), 6 deletions(-)
->>
->> diff --git a/drivers/media/usb/uvc/uvc_queue.c
->> b/drivers/media/usb/uvc/uvc_queue.c index adcc4928fae4..698d9a5a5aae 100644
->> --- a/drivers/media/usb/uvc/uvc_queue.c
->> +++ b/drivers/media/usb/uvc/uvc_queue.c
->> @@ -169,7 +169,6 @@ static int uvc_start_streaming(struct vb2_queue *vq,
->> unsigned int count) {
->>  	struct uvc_video_queue *queue = vb2_get_drv_priv(vq);
->>  	struct uvc_streaming *stream = uvc_queue_to_stream(queue);
->> -	unsigned long flags;
->>  	int ret;
->>
->>  	queue->buf_used = 0;
->> @@ -178,9 +177,9 @@ static int uvc_start_streaming(struct vb2_queue *vq,
->> unsigned int count) if (ret == 0)
->>  		return 0;
->>
->> -	spin_lock_irqsave(&queue->irqlock, flags);
->> +	spin_lock_irq(&queue->irqlock);
->>  	uvc_queue_return_buffers(queue, UVC_BUF_STATE_QUEUED);
->> -	spin_unlock_irqrestore(&queue->irqlock, flags);
->> +	spin_unlock_irq(&queue->irqlock);
->>
->>  	return ret;
->>  }
->> @@ -188,14 +187,13 @@ static int uvc_start_streaming(struct vb2_queue *vq,
->> unsigned int count) static void uvc_stop_streaming(struct vb2_queue *vq)
+> On Wed, Mar 28, 2018 at 1:47 AM Kieran Bingham
+> <kieran.bingham@ideasonboard.com> wrote:
+> [snip]
+>> @@ -1544,25 +1594,29 @@ static int uvc_alloc_urb_buffers(struct uvc_streaming *stream,
+>>   */
+>>  static void uvc_uninit_video(struct uvc_streaming *stream, int free_buffers)
 >>  {
->>  	struct uvc_video_queue *queue = vb2_get_drv_priv(vq);
->> -	unsigned long flags;
+>> -       struct urb *urb;
+>> -       unsigned int i;
+>> +       struct uvc_urb *uvc_urb;
 >>
->>  	if (vq->type != V4L2_BUF_TYPE_META_CAPTURE)
->>  		uvc_video_enable(uvc_queue_to_stream(queue), 0);
+>>         uvc_video_stats_stop(stream);
 >>
->> -	spin_lock_irqsave(&queue->irqlock, flags);
->> +	spin_lock_irq(&queue->irqlock);
->>  	uvc_queue_return_buffers(queue, UVC_BUF_STATE_ERROR);
->> -	spin_unlock_irqrestore(&queue->irqlock, flags);
->> +	spin_unlock_irq(&queue->irqlock);
->>  }
-> 
-> I think you missed my comment that stated
-> 
->> Please add a one-line comment above both functions to state
+>> -       for (i = 0; i < UVC_URBS; ++i) {
+>> -               struct uvc_urb *uvc_urb = &stream->uvc_urb[i];
+>> +       /*
+>> +        * We must poison the URBs rather than kill them to ensure that even
+>> +        * after the completion handler returns, any asynchronous workqueues
+>> +        * will be prevented from resubmitting the URBs
+>> +        */
+>> +       for_each_uvc_urb(uvc_urb, stream)
+>> +               usb_poison_urb(uvc_urb->urb);
 >>
->> /* Must be called with interrupts enabled. */
+>> -               urb = uvc_urb->urb;
+>> -               if (urb == NULL)
+>> -                       continue;
+>> +       flush_workqueue(stream->async_wq);
+>>
+>> -               usb_kill_urb(urb);
+>> -               usb_free_urb(urb);
+>> +       for_each_uvc_urb(uvc_urb, stream) {
+>> +               usb_free_urb(uvc_urb->urb);
+>>                 uvc_urb->urb = NULL;
+>>         }
+>>
+>>         if (free_buffers)
+>>                 uvc_free_urb_buffers(stream);
+>> +
+>> +       destroy_workqueue(stream->async_wq);
 > 
-> Philipp Zabel commented that you could also add lockdep_assert_irqs_enabled(), 
-> and I think that's a good idea. I'll let you decide whether to do both, or 
-> only add lockdep_assert_irqs_enabled(), I'm fine with either option.
+> In our testing, this function ends up being called twice, if before
+> suspend the camera is streaming and if the camera disconnects between
+> suspend and resume. This is because uvc_video_suspend() calls this
+> function (with free_buffers = 0), but uvc_video_resume() wouldn't call
+> uvc_init_video() due to an earlier failure and uvc_v4l2_release()
+> would end up calling this function again, while the workqueue is
+> already destroyed.
 > 
-> With this fixed,
+> The following diff seems to take care of it:
 
-I think code should talk louder than comments (especially as it provides
-runtime verification and assertions when lockdep is enabled) - so I've
-gone for Philipp's suggestion here.
+Thank you for this. After discussing with Laurent, I have gone with the
+approach of keeping the workqueue for the lifetime of the stream, rather
+than the lifetime of the streamon.
+
 
 > 
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> 8<~~~
+> diff --git a/drivers/media/usb/uvc/uvc_video.c
+> b/drivers/media/usb/uvc/uvc_video.c
+> index c5e0ab564b1a..6fb890c8ba67 100644
+> --- a/drivers/media/usb/uvc/uvc_video.c
+> +++ b/drivers/media/usb/uvc/uvc_video.c
+> @@ -1493,10 +1493,11 @@ static void uvc_uninit_video(struct
+> uvc_streaming *stream, int free_buffers)
+>                uvc_urb->urb = NULL;
+>        }
 > 
-
-Collected, thanks.
-
-
->>  static const struct vb2_ops uvc_queue_qops = {
+> -       if (free_buffers)
+> +       if (free_buffers) {
+>                uvc_free_urb_buffers(stream);
+> -
+> -       destroy_workqueue(stream->async_wq);
+> +               destroy_workqueue(stream->async_wq);
+> +               stream->async_wq = NULL;
+> +       }
+> }
+> 
+> /*
+> @@ -1648,10 +1649,12 @@ static int uvc_init_video(struct uvc_streaming
+> *stream, gfp_t gfp_flags)
+> 
+>        uvc_video_stats_start(stream);
+> 
+> -       stream->async_wq = alloc_workqueue("uvcvideo", WQ_UNBOUND | WQ_HIGHPRI,
+> -                       0);
+> -       if (!stream->async_wq)
+> -               return -ENOMEM;
+> +       if (!stream->async_wq) {
+> +               stream->async_wq = alloc_workqueue("uvcvideo",
+> +                                                  WQ_UNBOUND | WQ_HIGHPRI, 0);
+> +               if (!stream->async_wq)
+> +                       return -ENOMEM;
+> +       }
+> 
+>        if (intf->num_altsetting > 1) {
+>                struct usb_host_endpoint *best_ep = NULL;
+> ~~~>8
+> 
+> Best regards,
+> Tomasz
 > 
 
 -- 
