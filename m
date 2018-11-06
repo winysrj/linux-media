@@ -1,211 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:59836 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726462AbeKGItY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Nov 2018 03:49:24 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kieran Bingham <kieran@ksquared.org.uk>
-Cc: linux-media@vger.kernel.org,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Olivier BRAUN <olivier.braun@stereolabs.com>,
-        Troy Kisky <troy.kisky@boundarydevices.com>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Philipp Zabel <philipp.zabel@gmail.com>,
-        Ezequiel Garcia <ezequiel@collabora.com>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [PATCH v5 9/9] media: uvcvideo: Utilise for_each_uvc_urb iterator
-Date: Wed, 07 Nov 2018 01:21:53 +0200
-Message-ID: <3126243.mbdC0cTV3X@avalon>
-In-Reply-To: <8e669260c648ec44eefce9f554c5a871311832d9.1541534872.git-series.kieran.bingham@ideasonboard.com>
-References: <cover.dd42d667a7f7505b3639149635ef3a0b1431f280.1541534872.git-series.kieran.bingham@ideasonboard.com> <8e669260c648ec44eefce9f554c5a871311832d9.1541534872.git-series.kieran.bingham@ideasonboard.com>
+Received: from mga14.intel.com ([192.55.52.115]:47977 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1730164AbeKGIzd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 7 Nov 2018 03:55:33 -0500
+From: "Mani, Rajmohan" <rajmohan.mani@intel.com>
+To: Tomasz Figa <tfiga@chromium.org>,
+        Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+CC: "Zhi, Yong" <yong.zhi@intel.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "Hu, Jerry W" <jerry.w.hu@intel.com>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
+        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
+        "Cao, Bingbu" <bingbu.cao@intel.com>,
+        "Li, Chao C" <chao.c.li@intel.com>
+Subject: RE: [PATCH v7 03/16] v4l: Add Intel IPU3 meta data uAPI
+Date: Tue, 6 Nov 2018 23:27:53 +0000
+Message-ID: <6F87890CF0F5204F892DEA1EF0D77A5981524580@fmsmsx122.amr.corp.intel.com>
+References: <1540851790-1777-1-git-send-email-yong.zhi@intel.com>
+ <1540851790-1777-4-git-send-email-yong.zhi@intel.com>
+ <20181102104908.609177e5@coco.lan>
+ <CAAFQd5B_OVV-Nh0uOGHdQE4eSKcs5N8Nn1t-Zz-GbvgpB9P38A@mail.gmail.com>
+In-Reply-To: <CAAFQd5B_OVV-Nh0uOGHdQE4eSKcs5N8Nn1t-Zz-GbvgpB9P38A@mail.gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
-
-Thank you for the patch.
-
-On Tuesday, 6 November 2018 23:27:20 EET Kieran Bingham wrote:
-> From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-> 
-> A new iterator is available for processing UVC URB structures. This
-> simplifies the processing of the internal stream data.
-> 
-> Convert the manual loop iterators to the new helper, adding an index
-> helper to keep the existing debug print.
-> 
-> Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
-> 
-> ---
-> This patch converts to using the iterator which for most hunks makes
-> sense. The only one with uncertainty is in uvc_alloc_urb_buffers() where
-> the loop index is used to determine if all the buffers were successfully
-> allocated.
-> 
-> As the loop index is not incremented by the loops, we can obtain the
-> buffer index - but then we are offset and out-by-one.
-> 
-> Adjusting this in the code is fine - but at that point it feels like
-> it's not adding much value. I've left that hunk in for this patch - but
-> that part could be reverted if desired - unless anyone has a better
-> rework of the buffer check?
-> 
->  drivers/media/usb/uvc/uvc_video.c | 51 ++++++++++++++++----------------
->  drivers/media/usb/uvc/uvcvideo.h  |  3 ++-
->  2 files changed, 29 insertions(+), 25 deletions(-)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_video.c
-> b/drivers/media/usb/uvc/uvc_video.c index 020022e6ade4..f6e5db7ea50e 100644
-> --- a/drivers/media/usb/uvc/uvc_video.c
-> +++ b/drivers/media/usb/uvc/uvc_video.c
-> @@ -1556,20 +1556,19 @@ static void uvc_video_complete(struct urb *urb)
->   */
->  static void uvc_free_urb_buffers(struct uvc_streaming *stream)
->  {
-> -	unsigned int i;
-> +	struct uvc_urb *uvc_urb;
-> 
-> -	for (i = 0; i < UVC_URBS; ++i) {
-> -		struct uvc_urb *uvc_urb = &stream->uvc_urb[i];
-> +	for_each_uvc_urb(uvc_urb, stream) {
-> +		if (!uvc_urb->buffer)
-> +			continue;
-> 
-> -		if (uvc_urb->buffer) {
->  #ifndef CONFIG_DMA_NONCOHERENT
-> -			usb_free_coherent(stream->dev->udev, stream->urb_size,
-> -					uvc_urb->buffer, uvc_urb->dma);
-> +		usb_free_coherent(stream->dev->udev, stream->urb_size,
-> +				  uvc_urb->buffer, uvc_urb->dma);
->  #else
-> -			kfree(uvc_urb->buffer);
-> +		kfree(uvc_urb->buffer);
->  #endif
-> -			uvc_urb->buffer = NULL;
-> -		}
-> +		uvc_urb->buffer = NULL;
->  	}
-> 
->  	stream->urb_size = 0;
-> @@ -1589,8 +1588,9 @@ static void uvc_free_urb_buffers(struct uvc_streaming
-> *stream) static int uvc_alloc_urb_buffers(struct uvc_streaming *stream,
->  	unsigned int size, unsigned int psize, gfp_t gfp_flags)
->  {
-> +	struct uvc_urb *uvc_urb;
->  	unsigned int npackets;
-> -	unsigned int i;
-> +	unsigned int i = 0;
-> 
->  	/* Buffers are already allocated, bail out. */
->  	if (stream->urb_size)
-> @@ -1605,8 +1605,12 @@ static int uvc_alloc_urb_buffers(struct uvc_streaming
-> *stream,
-> 
->  	/* Retry allocations until one succeed. */
->  	for (; npackets > 1; npackets /= 2) {
-> -		for (i = 0; i < UVC_URBS; ++i) {
-> -			struct uvc_urb *uvc_urb = &stream->uvc_urb[i];
-> +		for_each_uvc_urb(uvc_urb, stream) {
-> +			/*
-> +			 * Track how many URBs we allocate, adding one to the
-> +			 * index to account for our zero index.
-> +			 */
-> +			i = uvc_urb_index(uvc_urb) + 1;
-
-That's a bit ugly indeed, I think we could keep the existing loop;
-
->  			stream->urb_size = psize * npackets;
->  #ifndef CONFIG_DMA_NONCOHERENT
-> @@ -1700,7 +1704,8 @@ static int uvc_init_video_isoc(struct uvc_streaming
-> *stream, struct usb_host_endpoint *ep, gfp_t gfp_flags)
->  {
->  	struct urb *urb;
-> -	unsigned int npackets, i, j;
-> +	struct uvc_urb *uvc_urb;
-> +	unsigned int npackets, j;
-
-j without i seems weird, could you rename it ?
-
->  	u16 psize;
->  	u32 size;
-> 
-> @@ -1713,9 +1718,7 @@ static int uvc_init_video_isoc(struct uvc_streaming
-> *stream,
-> 
->  	size = npackets * psize;
-> 
-> -	for (i = 0; i < UVC_URBS; ++i) {
-> -		struct uvc_urb *uvc_urb = &stream->uvc_urb[i];
-> -
-> +	for_each_uvc_urb(uvc_urb, stream) {
->  		urb = usb_alloc_urb(npackets, gfp_flags);
->  		if (urb == NULL) {
->  			uvc_video_stop(stream, 1);
-> @@ -1757,7 +1760,8 @@ static int uvc_init_video_bulk(struct uvc_streaming
-> *stream, struct usb_host_endpoint *ep, gfp_t gfp_flags)
->  {
->  	struct urb *urb;
-> -	unsigned int npackets, pipe, i;
-> +	struct uvc_urb *uvc_urb;
-> +	unsigned int npackets, pipe;
->  	u16 psize;
->  	u32 size;
-> 
-> @@ -1781,9 +1785,7 @@ static int uvc_init_video_bulk(struct uvc_streaming
-> *stream, if (stream->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
->  		size = 0;
-> 
-> -	for (i = 0; i < UVC_URBS; ++i) {
-> -		struct uvc_urb *uvc_urb = &stream->uvc_urb[i];
-> -
-> +	for_each_uvc_urb(uvc_urb, stream) {
->  		urb = usb_alloc_urb(0, gfp_flags);
->  		if (urb == NULL) {
->  			uvc_video_stop(stream, 1);
-> @@ -1810,6 +1812,7 @@ static int uvc_video_start(struct uvc_streaming
-> *stream, gfp_t gfp_flags) {
->  	struct usb_interface *intf = stream->intf;
->  	struct usb_host_endpoint *ep;
-> +	struct uvc_urb *uvc_urb;
->  	unsigned int i;
->  	int ret;
-> 
-> @@ -1887,13 +1890,11 @@ static int uvc_video_start(struct uvc_streaming
-> *stream, gfp_t gfp_flags) return ret;
-> 
->  	/* Submit the URBs. */
-> -	for (i = 0; i < UVC_URBS; ++i) {
-> -		struct uvc_urb *uvc_urb = &stream->uvc_urb[i];
-> -
-> +	for_each_uvc_urb(uvc_urb, stream) {
->  		ret = usb_submit_urb(uvc_urb->urb, gfp_flags);
->  		if (ret < 0) {
-> -			uvc_printk(KERN_ERR, "Failed to submit URB %u "
-> -					"(%d).\n", i, ret);
-> +			uvc_printk(KERN_ERR, "Failed to submit URB %u (%d).\n",
-> +				   uvc_urb_index(uvc_urb), ret);
->  			uvc_video_stop(stream, 1);
->  			return ret;
->  		}
-> diff --git a/drivers/media/usb/uvc/uvcvideo.h
-> b/drivers/media/usb/uvc/uvcvideo.h index c0a120496a1f..6a0f1b59356c 100644
-> --- a/drivers/media/usb/uvc/uvcvideo.h
-> +++ b/drivers/media/usb/uvc/uvcvideo.h
-> @@ -617,6 +617,9 @@ struct uvc_streaming {
->  	     (uvc_urb) < &(uvc_streaming)->uvc_urb[UVC_URBS]; \
->  	     ++(uvc_urb))
-> 
-> +#define uvc_urb_index(uvc_urb) \
-> +	(unsigned int)((uvc_urb) - (&(uvc_urb)->stream->uvc_urb[0]))
-> +
->  struct uvc_device_info {
->  	u32	quirks;
->  	u32	meta_format;
-
--- 
-Regards,
-
-Laurent Pinchart
+SGkgTWF1cm8sDQoNClRoYW5rcyBmb3IgdGhlIHJldmlld3MuDQoNCj4gU3ViamVjdDogUmU6IFtQ
+QVRDSCB2NyAwMy8xNl0gdjRsOiBBZGQgSW50ZWwgSVBVMyBtZXRhIGRhdGEgdUFQSQ0KPiANCj4g
+SGkgTWF1cm8sDQo+IA0KPiBPbiBGcmksIE5vdiAyLCAyMDE4IGF0IDEwOjQ5IFBNIE1hdXJvIENh
+cnZhbGhvIENoZWhhYg0KPiA8bWNoZWhhYitzYW1zdW5nQGtlcm5lbC5vcmc+IHdyb3RlOg0KPiA+
+DQo+ID4gRW0gTW9uLCAyOSBPY3QgMjAxOCAxNToyMjo1NyAtMDcwMA0KPiA+IFlvbmcgWmhpIDx5
+b25nLnpoaUBpbnRlbC5jb20+IGVzY3JldmV1Og0KPiBbc25pcF0NCj4gPiA+ICtzdHJ1Y3QgaXB1
+M191YXBpX2F3Yl9jb25maWdfcyB7DQo+ID4gPiArICAgICBfX3UxNiByZ2JzX3Rocl9ncjsNCj4g
+PiA+ICsgICAgIF9fdTE2IHJnYnNfdGhyX3I7DQo+ID4gPiArICAgICBfX3UxNiByZ2JzX3Rocl9n
+YjsNCj4gPiA+ICsgICAgIF9fdTE2IHJnYnNfdGhyX2I7DQo+ID4gPiArICAgICBzdHJ1Y3QgaXB1
+M191YXBpX2dyaWRfY29uZmlnIGdyaWQ7IH0NCj4gPiA+ICtfX2F0dHJpYnV0ZV9fKChhbGlnbmVk
+KDMyKSkpIF9fcGFja2VkOw0KPiA+DQo+ID4gSG1tLi4uIEtlcm5lbCBkZWZpbmVzIGEgbWFjcm8g
+Zm9yIGFsaWduZWQgYXR0cmlidXRlOg0KPiA+DQo+ID4gICAgICAgICBpbmNsdWRlL2xpbnV4L2Nv
+bXBpbGVyX3R5cGVzLmg6I2RlZmluZSBfX2FsaWduZWQoeCkNCj4gX19hdHRyaWJ1dGVfXygoYWxp
+Z25lZCh4KSkpDQo+ID4NCj4gDQo+IEZpcnN0LCB0aGFua3MgZm9yIHJldmlldyENCj4gDQo+IE1h
+eWJlIEkgbWlzc2VkIHNvbWV0aGluZywgYnV0IGxhc3QgdGltZSBJIGNoZWNrZWQsIGl0IHdhc24n
+dCBhY2Nlc3NpYmxlIGZyb20NCj4gVUFQSSBoZWFkZXJzIGluIHVzZXJzcGFjZS4NCg0KQWNrLiBX
+ZSBzZWUgdGhhdCdzIHN0aWxsIHRoZSBjYXNlLg0KDQo+IA0KPiA+IEknbSBub3QgYSBnY2MgZXhw
+ZXJ0LCBidXQgaXQgc291bmRzIHdlaXJkIHRvIGZpcnN0IGFzayBpdCB0byBhbGlnbg0KPiA+IHdp
+dGggMzIgYml0cyBhbmQgdGhlbiBoYXZlIF9fcGFja2VkICh3aXRoIG1lYW5zIHRoYXQgcGFkcyBz
+aG91bGQgYmUNCj4gPiByZW1vdmVkKS4NCj4gPg0KPiA+IEluIG90aGVyIHdvcmRzLCBJICpndWVz
+cyogaXMgaXQgc2hvdWxkIGVpdGhlciBiZSBfX3BhY2tlZCBvcg0KPiA+IF9fYWxpZ25lZCgzMiku
+DQo+ID4NCj4gPiBOb3QgdGhhdCBpdCB3b3VsZCBkbyBhbnkgZGlmZmVyZW5jZSwgaW4gcHJhY3Rp
+Y2UsIGFzIHRoaXMgc3BlY2lmaWMNCj4gPiBzdHJ1Y3QgaGFzIGEgc2l6ZSB3aXRoIGlzIG11bHRp
+cGxlIG9mIDMyIGJpdHMsIGJ1dCBsZXQncyBkbyB0aGUgcmlnaHQNCj4gPiBhbm5vdGF0aW9uIGhl
+cmUsIG5vdCBtaXhpbmcgdHdvIGluY29tcGF0aWJsZSBhbGlnbm1lbnQgcmVxdWlyZW1lbnRzLg0K
+PiA+DQo+IA0KPiBNeSB1bmRlcnN0YW5kaW5nIHdhcyB0aGF0IF9fcGFja2VkIG1ha2VzIHRoZSBj
+b21waWxlciBub3QgaW5zZXJ0IGFueQ0KPiBhbGlnbm1lbnQgYmV0d2VlbiBwYXJ0aWN1bGFyIGZp
+ZWxkcyBvZiB0aGUgc3RydWN0LCB3aGlsZSBfX2FsaWduZWQgbWFrZXMgdGhlDQo+IHdob2xlIHN0
+cnVjdCBiZSBhbGlnbmVkIGF0IGdpdmVuIGJvdW5kYXJ5LCBpZiBwbGFjZWQgaW4gYW5vdGhlciBz
+dHJ1Y3QuIElmIEkNCj4gZGlkbid0IG1pc3MgYW55dGhpbmcsIGhhdmluZyBib3RoIHNob3VsZCBt
+YWtlIHBlcmZlY3Qgc2Vuc2UgaGVyZS4NCg0KQWNrDQoNCkkgYWxzbyByZWNhbGwgdGhhdCBhcyBw
+YXJ0IG9mIGFkZHJlc3NpbmcgcmV2aWV3IGNvbW1lbnRzICAoZnJvbSBIYW5zIGFuZCBTYWthcmkp
+LA0Kb24gZWFybGllciB2ZXJzaW9ucyBvZiB0aGlzIHBhdGNoIHNlcmllcywgd2UgYWRkZWQgX19w
+YWNrZWQgYXR0cmlidXRlIHRvIGFsbCBzdHJ1Y3RzDQp0byBlbnN1cmUgdGhlIHNpemUgb2YgdGhl
+IHN0cnVjdHMgcmVtYWlucyB0aGUgc2FtZSBiZXR3ZWVuIDMyIGFuZCA2NCBiaXQgYnVpbGRzLg0K
+DQpUaGUgYWRkaXRpb24gb2Ygc3RydWN0dXJlIG1lbWJlcnMgb2YgdGhlIG5hbWUgcGFkZGluZ1t4
+XSBpbiBzb21lIG9mIHRoZSBzdHJ1Y3RzDQplbnN1cmVzIHRoYXQgcmVzcGVjdGl2ZSBtZW1iZXJz
+IGFyZSBhbGlnbmVkIGF0IDMyIGJ5dGUgYm91bmRhcmllcywgd2hpbGUgdGhlDQpvdmVyYWxsIHNp
+emUgb2YgdGhlIHN0cnVjdHMgcmVtYWluIHRoZSBzYW1lIGJldHdlZW4gMzIgYW5kIDY0IGJpdCBi
+dWlsZHMuDQoNClRoYW5rcw0KUmFqDQoNCj4gDQo+IEJlc3QgcmVnYXJkcywNCj4gVG9tYXN6DQo=
