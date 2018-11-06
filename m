@@ -1,100 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm1-f65.google.com ([209.85.128.65]:54514 "EHLO
-        mail-wm1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728440AbeKBAFc (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Nov 2018 20:05:32 -0400
-Received: by mail-wm1-f65.google.com with SMTP id r63-v6so1661332wma.4
-        for <linux-media@vger.kernel.org>; Thu, 01 Nov 2018 08:02:10 -0700 (PDT)
-Subject: Re: [PATCH] media: venus: add support for selection rectangles
-To: mgottam@codeaurora.org,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Cc: hverkuil@xs4all.nl, mchehab@kernel.org,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org, acourbot@chromium.org,
-        vgarodia@codeaurora.org
-References: <1539071603-1588-1-git-send-email-mgottam@codeaurora.org>
- <0e0f689e-f6e3-73a6-e145-deb2ef7cafc8@linaro.org>
- <5037ca4b0dd0de80750e35ca889d4225@codeaurora.org>
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <4ccc50dc-c819-ca49-11d2-415053c02c0a@linaro.org>
-Date: Thu, 1 Nov 2018 17:02:07 +0200
+Received: from relay7-d.mail.gandi.net ([217.70.183.200]:55295 "EHLO
+        relay7-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730304AbeKFUTx (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Nov 2018 15:19:53 -0500
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: niklas.soderlund@ragnatech.se, laurent.pinchart@ideasonboard.com,
+        kieran.bingham@ideasonboard.com
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: [PATCH v4 2/6] media: rcar-vin: Add support for R-Car R8A77990
+Date: Tue,  6 Nov 2018 11:54:23 +0100
+Message-Id: <1541501667-28817-3-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1541501667-28817-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1541501667-28817-1-git-send-email-jacopo+renesas@jmondi.org>
 MIME-Version: 1.0
-In-Reply-To: <5037ca4b0dd0de80750e35ca889d4225@codeaurora.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Malathi,
+Add R-Car E3 R8A77990 SoC to the rcar-vin supported ones.
+Based on the experimental patch from Magnus Damm.
 
-On 11/1/18 3:10 PM, mgottam@codeaurora.org wrote:
-> On 2018-10-16 15:11, Stanimir Varbanov wrote:
->> Hi Malathi,
->>
->> On 10/09/2018 10:53 AM, Malathi Gottam wrote:
->>> Handles target type crop by setting the new active rectangle
->>> to hardware. The new rectangle should be within YUV size.
->>>
->>> Signed-off-by: Malathi Gottam <mgottam@codeaurora.org>
->>> ---
->>>  drivers/media/platform/qcom/venus/venc.c | 19 +++++++++++++++++--
->>>  1 file changed, 17 insertions(+), 2 deletions(-)
->>>
->>> diff --git a/drivers/media/platform/qcom/venus/venc.c
->>> b/drivers/media/platform/qcom/venus/venc.c
->>> index 3f50cd0..754c19a 100644
->>> --- a/drivers/media/platform/qcom/venus/venc.c
->>> +++ b/drivers/media/platform/qcom/venus/venc.c
->>> @@ -478,16 +478,31 @@ static int venc_g_fmt(struct file *file, void
->>> *fh, struct v4l2_format *f)
->>>  venc_s_selection(struct file *file, void *fh, struct v4l2_selection *s)
->>>  {
->>>      struct venus_inst *inst = to_inst(file);
->>> +    int ret;
->>> +    u32 buftype;
->>>
->>>      if (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
->>>          return -EINVAL;
->>>
->>>      switch (s->target) {
->>>      case V4L2_SEL_TGT_CROP:
->>> -        if (s->r.width != inst->out_width ||
->>> -            s->r.height != inst->out_height ||
->>> +        if (s->r.width > inst->out_width ||
->>> +            s->r.height > inst->out_height ||
->>>              s->r.top != 0 || s->r.left != 0)
->>>              return -EINVAL;
->>> +        if (s->r.width != inst->width ||
->>> +            s->r.height != inst->height) {
->>> +            buftype = HFI_BUFFER_OUTPUT;
->>> +            ret = venus_helper_set_output_resolution(inst,
->>> +                                 s->r.width,
->>> +                                 s->r.height,
->>> +                                 buftype);
->>
->> I'm afraid that set_output_resolution cannot be called at any time. Do
->> you think we can set it after start_session?
-> 
-> Yes Stan, we can set output_resolution after the session has been
-> initialization.
-> As per the spec, this call s_selection is an optional step under
-> Initialization
-> procedure of encoder even before we request buffers.
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/platform/rcar-vin/rcar-core.c | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
-What spec you are referring to? The spec for the encoders [1] or
-something else.
-
-> 
-> So I think setting output resolution in this api shouldn't cause any
-> issue once
-> we are confident on the instance state.
-
-OK, but I want to test that on v1 and v3 as well (usually the behavior
-differs between versions).
-
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index f476b2f..cae2166 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -1088,6 +1088,22 @@ static const struct rvin_info rcar_info_r8a77970 = {
+ 	.routes = rcar_info_r8a77970_routes,
+ };
+ 
++static const struct rvin_group_route rcar_info_r8a77990_routes[] = {
++	{ .csi = RVIN_CSI40, .channel = 0, .vin = 4, .mask = BIT(0) | BIT(3) },
++	{ .csi = RVIN_CSI40, .channel = 0, .vin = 5, .mask = BIT(2) },
++	{ .csi = RVIN_CSI40, .channel = 1, .vin = 4, .mask = BIT(2) },
++	{ .csi = RVIN_CSI40, .channel = 1, .vin = 5, .mask = BIT(1) | BIT(3) },
++	{ /* Sentinel */ }
++};
++
++static const struct rvin_info rcar_info_r8a77990 = {
++	.model = RCAR_GEN3,
++	.use_mc = true,
++	.max_width = 4096,
++	.max_height = 4096,
++	.routes = rcar_info_r8a77990_routes,
++};
++
+ static const struct rvin_group_route rcar_info_r8a77995_routes[] = {
+ 	{ /* Sentinel */ }
+ };
+@@ -1146,6 +1162,10 @@ static const struct of_device_id rvin_of_id_table[] = {
+ 		.data = &rcar_info_r8a77970,
+ 	},
+ 	{
++		.compatible = "renesas,vin-r8a77990",
++		.data = &rcar_info_r8a77990,
++	},
++	{
+ 		.compatible = "renesas,vin-r8a77995",
+ 		.data = &rcar_info_r8a77995,
+ 	},
 -- 
-regards,
-Stan
-
-[1] https://patchwork.linuxtv.org/patch/52624/
+2.7.4
