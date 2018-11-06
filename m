@@ -1,8 +1,8 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:55636 "EHLO
+Received: from perceval.ideasonboard.com ([213.167.242.64]:55676 "EHLO
         perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726463AbeKGGyl (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Nov 2018 01:54:41 -0500
+        with ESMTP id S1725951AbeKGGym (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Nov 2018 01:54:42 -0500
 From: Kieran Bingham <kieran@ksquared.org.uk>
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         linux-media@vger.kernel.org
@@ -13,9 +13,9 @@ Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
         Philipp Zabel <philipp.zabel@gmail.com>,
         Ezequiel Garcia <ezequiel@collabora.com>,
         Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: [PATCH v5 1/9] media: uvcvideo: Refactor URB descriptors
-Date: Tue,  6 Nov 2018 21:27:12 +0000
-Message-Id: <b80ca2b71c82711109eff4cdef0ae4553ef8af71.1541534872.git-series.kieran.bingham@ideasonboard.com>
+Subject: [PATCH v5 2/9] media: uvcvideo: Convert decode functions to use new context structure
+Date: Tue,  6 Nov 2018 21:27:13 +0000
+Message-Id: <9209b70f2ae81a6d42382457ff1970cb63ef5c19.1541534872.git-series.kieran.bingham@ideasonboard.com>
 In-Reply-To: <cover.dd42d667a7f7505b3639149635ef3a0b1431f280.1541534872.git-series.kieran.bingham@ideasonboard.com>
 References: <cover.dd42d667a7f7505b3639149635ef3a0b1431f280.1541534872.git-series.kieran.bingham@ideasonboard.com>
 In-Reply-To: <cover.dd42d667a7f7505b3639149635ef3a0b1431f280.1541534872.git-series.kieran.bingham@ideasonboard.com>
@@ -25,205 +25,175 @@ List-ID: <linux-media.vger.kernel.org>
 
 From: Kieran Bingham <kieran.bingham@ideasonboard.com>
 
-We currently store three separate arrays for each URB reference we hold.
+The URB completion handlers currently reference the stream context.
 
-Objectify the data needed to track URBs into a single uvc_urb structure,
-allowing better object management and tracking of the URB.
-
-All accesses to the data pointers through stream, are converted to use a
-uvc_urb pointer for consistency.
+Now that each URB has its own context structure, convert the decode (and
+one encode) functions to utilise this context for URB management.
 
 Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
 Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
 ---
 v2:
- - Re-describe URB context structure
- - Re-name uvc_urb->{urb_buffer,urb_dma}{buffer,dma}
+ - fix checkpatch warning (pre-existing in code)
 
-v3:
- - No change
+v3: (none)
 
 v4:
  - Rebase on top of linux-media/master (v4.16-rc4, metadata additions)
 
- drivers/media/usb/uvc/uvc_video.c | 49 +++++++++++++++++++-------------
- drivers/media/usb/uvc/uvcvideo.h  | 18 ++++++++++--
- 2 files changed, 45 insertions(+), 22 deletions(-)
+ drivers/media/usb/uvc/uvc_isight.c |  6 ++++--
+ drivers/media/usb/uvc/uvc_video.c  | 26 ++++++++++++++++++--------
+ drivers/media/usb/uvc/uvcvideo.h   |  8 +++++---
+ 3 files changed, 27 insertions(+), 13 deletions(-)
 
+diff --git a/drivers/media/usb/uvc/uvc_isight.c b/drivers/media/usb/uvc/uvc_isight.c
+index 81e6f2187bfb..39a4e4482b23 100644
+--- a/drivers/media/usb/uvc/uvc_isight.c
++++ b/drivers/media/usb/uvc/uvc_isight.c
+@@ -99,9 +99,11 @@ static int isight_decode(struct uvc_video_queue *queue, struct uvc_buffer *buf,
+ 	return 0;
+ }
+ 
+-void uvc_video_decode_isight(struct urb *urb, struct uvc_streaming *stream,
+-			struct uvc_buffer *buf, struct uvc_buffer *meta_buf)
++void uvc_video_decode_isight(struct uvc_urb *uvc_urb, struct uvc_buffer *buf,
++			struct uvc_buffer *meta_buf)
+ {
++	struct urb *urb = uvc_urb->urb;
++	struct uvc_streaming *stream = uvc_urb->stream;
+ 	int ret, i;
+ 
+ 	for (i = 0; i < urb->number_of_packets; ++i) {
 diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
-index 86a99f461fd8..113881bed2a4 100644
+index 113881bed2a4..6d4384695964 100644
 --- a/drivers/media/usb/uvc/uvc_video.c
 +++ b/drivers/media/usb/uvc/uvc_video.c
-@@ -1506,14 +1506,16 @@ static void uvc_free_urb_buffers(struct uvc_streaming *stream)
- 	unsigned int i;
+@@ -1291,9 +1291,11 @@ static void uvc_video_next_buffers(struct uvc_streaming *stream,
+ 	*video_buf = uvc_queue_next_buffer(&stream->queue, *video_buf);
+ }
  
- 	for (i = 0; i < UVC_URBS; ++i) {
--		if (stream->urb_buffer[i]) {
-+		struct uvc_urb *uvc_urb = &stream->uvc_urb[i];
+-static void uvc_video_decode_isoc(struct urb *urb, struct uvc_streaming *stream,
++static void uvc_video_decode_isoc(struct uvc_urb *uvc_urb,
+ 			struct uvc_buffer *buf, struct uvc_buffer *meta_buf)
+ {
++	struct urb *urb = uvc_urb->urb;
++	struct uvc_streaming *stream = uvc_urb->stream;
+ 	u8 *mem;
+ 	int ret, i;
+ 
+@@ -1334,9 +1336,11 @@ static void uvc_video_decode_isoc(struct urb *urb, struct uvc_streaming *stream,
+ 	}
+ }
+ 
+-static void uvc_video_decode_bulk(struct urb *urb, struct uvc_streaming *stream,
++static void uvc_video_decode_bulk(struct uvc_urb *uvc_urb,
+ 			struct uvc_buffer *buf, struct uvc_buffer *meta_buf)
+ {
++	struct urb *urb = uvc_urb->urb;
++	struct uvc_streaming *stream = uvc_urb->stream;
+ 	u8 *mem;
+ 	int len, ret;
+ 
+@@ -1402,9 +1406,12 @@ static void uvc_video_decode_bulk(struct urb *urb, struct uvc_streaming *stream,
+ 	}
+ }
+ 
+-static void uvc_video_encode_bulk(struct urb *urb, struct uvc_streaming *stream,
++static void uvc_video_encode_bulk(struct uvc_urb *uvc_urb,
+ 	struct uvc_buffer *buf, struct uvc_buffer *meta_buf)
+ {
++	struct urb *urb = uvc_urb->urb;
++	struct uvc_streaming *stream = uvc_urb->stream;
 +
-+		if (uvc_urb->buffer) {
- #ifndef CONFIG_DMA_NONCOHERENT
- 			usb_free_coherent(stream->dev->udev, stream->urb_size,
--				stream->urb_buffer[i], stream->urb_dma[i]);
-+					uvc_urb->buffer, uvc_urb->dma);
- #else
--			kfree(stream->urb_buffer[i]);
-+			kfree(uvc_urb->buffer);
- #endif
--			stream->urb_buffer[i] = NULL;
-+			uvc_urb->buffer = NULL;
- 		}
+ 	u8 *mem = urb->transfer_buffer;
+ 	int len = stream->urb_size, ret;
+ 
+@@ -1447,7 +1454,8 @@ static void uvc_video_encode_bulk(struct urb *urb, struct uvc_streaming *stream,
+ 
+ static void uvc_video_complete(struct urb *urb)
+ {
+-	struct uvc_streaming *stream = urb->context;
++	struct uvc_urb *uvc_urb = urb->context;
++	struct uvc_streaming *stream = uvc_urb->stream;
+ 	struct uvc_video_queue *queue = &stream->queue;
+ 	struct uvc_video_queue *qmeta = &stream->meta.queue;
+ 	struct vb2_queue *vb2_qmeta = stream->meta.vdev.queue;
+@@ -1490,7 +1498,7 @@ static void uvc_video_complete(struct urb *urb)
+ 		spin_unlock_irqrestore(&qmeta->irqlock, flags);
  	}
  
-@@ -1551,16 +1553,18 @@ static int uvc_alloc_urb_buffers(struct uvc_streaming *stream,
- 	/* Retry allocations until one succeed. */
- 	for (; npackets > 1; npackets /= 2) {
- 		for (i = 0; i < UVC_URBS; ++i) {
-+			struct uvc_urb *uvc_urb = &stream->uvc_urb[i];
-+
- 			stream->urb_size = psize * npackets;
- #ifndef CONFIG_DMA_NONCOHERENT
--			stream->urb_buffer[i] = usb_alloc_coherent(
-+			uvc_urb->buffer = usb_alloc_coherent(
- 				stream->dev->udev, stream->urb_size,
--				gfp_flags | __GFP_NOWARN, &stream->urb_dma[i]);
-+				gfp_flags | __GFP_NOWARN, &uvc_urb->dma);
- #else
--			stream->urb_buffer[i] =
-+			uvc_urb->buffer =
- 			    kmalloc(stream->urb_size, gfp_flags | __GFP_NOWARN);
- #endif
--			if (!stream->urb_buffer[i]) {
-+			if (!uvc_urb->buffer) {
+-	stream->decode(urb, stream, buf, buf_meta);
++	stream->decode(uvc_urb, buf, buf_meta);
+ 
+ 	if ((ret = usb_submit_urb(urb, GFP_ATOMIC)) < 0) {
+ 		uvc_printk(KERN_ERR, "Failed to resubmit video URB (%d).\n",
+@@ -1568,6 +1576,8 @@ static int uvc_alloc_urb_buffers(struct uvc_streaming *stream,
  				uvc_free_urb_buffers(stream);
  				break;
  			}
-@@ -1590,13 +1594,15 @@ static void uvc_uninit_video(struct uvc_streaming *stream, int free_buffers)
- 	uvc_video_stats_stop(stream);
- 
- 	for (i = 0; i < UVC_URBS; ++i) {
--		urb = stream->urb[i];
-+		struct uvc_urb *uvc_urb = &stream->uvc_urb[i];
 +
-+		urb = uvc_urb->urb;
- 		if (urb == NULL)
- 			continue;
- 
- 		usb_kill_urb(urb);
- 		usb_free_urb(urb);
--		stream->urb[i] = NULL;
-+		uvc_urb->urb = NULL;
- 	}
- 
- 	if (free_buffers)
-@@ -1651,6 +1657,8 @@ static int uvc_init_video_isoc(struct uvc_streaming *stream,
- 	size = npackets * psize;
- 
- 	for (i = 0; i < UVC_URBS; ++i) {
-+		struct uvc_urb *uvc_urb = &stream->uvc_urb[i];
-+
- 		urb = usb_alloc_urb(npackets, gfp_flags);
- 		if (urb == NULL) {
- 			uvc_uninit_video(stream, 1);
-@@ -1663,12 +1671,12 @@ static int uvc_init_video_isoc(struct uvc_streaming *stream,
- 				ep->desc.bEndpointAddress);
- #ifndef CONFIG_DMA_NONCOHERENT
- 		urb->transfer_flags = URB_ISO_ASAP | URB_NO_TRANSFER_DMA_MAP;
--		urb->transfer_dma = stream->urb_dma[i];
-+		urb->transfer_dma = uvc_urb->dma;
- #else
- 		urb->transfer_flags = URB_ISO_ASAP;
- #endif
- 		urb->interval = ep->desc.bInterval;
--		urb->transfer_buffer = stream->urb_buffer[i];
-+		urb->transfer_buffer = uvc_urb->buffer;
- 		urb->complete = uvc_video_complete;
- 		urb->number_of_packets = npackets;
- 		urb->transfer_buffer_length = size;
-@@ -1678,7 +1686,7 @@ static int uvc_init_video_isoc(struct uvc_streaming *stream,
- 			urb->iso_frame_desc[j].length = psize;
++			uvc_urb->stream = stream;
  		}
  
--		stream->urb[i] = urb;
-+		uvc_urb->urb = urb;
- 	}
+ 		if (i == UVC_URBS) {
+@@ -1666,7 +1676,7 @@ static int uvc_init_video_isoc(struct uvc_streaming *stream,
+ 		}
  
- 	return 0;
-@@ -1717,21 +1725,22 @@ static int uvc_init_video_bulk(struct uvc_streaming *stream,
- 		size = 0;
- 
- 	for (i = 0; i < UVC_URBS; ++i) {
-+		struct uvc_urb *uvc_urb = &stream->uvc_urb[i];
-+
- 		urb = usb_alloc_urb(0, gfp_flags);
- 		if (urb == NULL) {
- 			uvc_uninit_video(stream, 1);
+ 		urb->dev = stream->dev->udev;
+-		urb->context = stream;
++		urb->context = uvc_urb;
+ 		urb->pipe = usb_rcvisocpipe(stream->dev->udev,
+ 				ep->desc.bEndpointAddress);
+ #ifndef CONFIG_DMA_NONCOHERENT
+@@ -1733,8 +1743,8 @@ static int uvc_init_video_bulk(struct uvc_streaming *stream,
  			return -ENOMEM;
  		}
  
--		usb_fill_bulk_urb(urb, stream->dev->udev, pipe,
--			stream->urb_buffer[i], size, uvc_video_complete,
--			stream);
-+		usb_fill_bulk_urb(urb, stream->dev->udev, pipe, uvc_urb->buffer,
-+				  size, uvc_video_complete, stream);
+-		usb_fill_bulk_urb(urb, stream->dev->udev, pipe, uvc_urb->buffer,
+-				  size, uvc_video_complete, stream);
++		usb_fill_bulk_urb(urb, stream->dev->udev, pipe,	uvc_urb->buffer,
++				  size, uvc_video_complete, uvc_urb);
  #ifndef CONFIG_DMA_NONCOHERENT
  		urb->transfer_flags = URB_NO_TRANSFER_DMA_MAP;
--		urb->transfer_dma = stream->urb_dma[i];
-+		urb->transfer_dma = uvc_urb->dma;
- #endif
- 
--		stream->urb[i] = urb;
-+		uvc_urb->urb = urb;
- 	}
- 
- 	return 0;
-@@ -1822,7 +1831,9 @@ static int uvc_init_video(struct uvc_streaming *stream, gfp_t gfp_flags)
- 
- 	/* Submit the URBs. */
- 	for (i = 0; i < UVC_URBS; ++i) {
--		ret = usb_submit_urb(stream->urb[i], gfp_flags);
-+		struct uvc_urb *uvc_urb = &stream->uvc_urb[i];
-+
-+		ret = usb_submit_urb(uvc_urb->urb, gfp_flags);
- 		if (ret < 0) {
- 			uvc_printk(KERN_ERR, "Failed to submit URB %u "
- 					"(%d).\n", i, ret);
+ 		urb->transfer_dma = uvc_urb->dma;
 diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
-index c0cbd833d0a4..29104b968f12 100644
+index 29104b968f12..f7f8db6fc91a 100644
 --- a/drivers/media/usb/uvc/uvcvideo.h
 +++ b/drivers/media/usb/uvc/uvcvideo.h
-@@ -487,6 +487,20 @@ struct uvc_stats_stream {
+@@ -491,11 +491,13 @@ struct uvc_stats_stream {
+  * struct uvc_urb - URB context management structure
+  *
+  * @urb: the URB described by this context structure
++ * @stream: UVC streaming context
+  * @buffer: memory storage for the URB
+  * @dma: DMA coherent addressing for the urb_buffer
+  */
+ struct uvc_urb {
+ 	struct urb *urb;
++	struct uvc_streaming *stream;
  
- #define UVC_METATADA_BUF_SIZE 1024
+ 	char *buffer;
+ 	dma_addr_t dma;
+@@ -531,8 +533,8 @@ struct uvc_streaming {
+ 	/* Buffers queue. */
+ 	unsigned int frozen : 1;
+ 	struct uvc_video_queue queue;
+-	void (*decode) (struct urb *urb, struct uvc_streaming *video,
+-			struct uvc_buffer *buf, struct uvc_buffer *meta_buf);
++	void (*decode)(struct uvc_urb *uvc_urb, struct uvc_buffer *buf,
++		       struct uvc_buffer *meta_buf);
  
-+/**
-+ * struct uvc_urb - URB context management structure
-+ *
-+ * @urb: the URB described by this context structure
-+ * @buffer: memory storage for the URB
-+ * @dma: DMA coherent addressing for the urb_buffer
-+ */
-+struct uvc_urb {
-+	struct urb *urb;
-+
-+	char *buffer;
-+	dma_addr_t dma;
-+};
-+
- struct uvc_streaming {
- 	struct list_head list;
- 	struct uvc_device *dev;
-@@ -535,9 +549,7 @@ struct uvc_streaming {
- 		u32 max_payload_size;
- 	} bulk;
+ 	struct {
+ 		struct video_device vdev;
+@@ -818,7 +820,7 @@ struct usb_host_endpoint *uvc_find_endpoint(struct usb_host_interface *alts,
+ 					    u8 epaddr);
  
--	struct urb *urb[UVC_URBS];
--	char *urb_buffer[UVC_URBS];
--	dma_addr_t urb_dma[UVC_URBS];
-+	struct uvc_urb uvc_urb[UVC_URBS];
- 	unsigned int urb_size;
+ /* Quirks support */
+-void uvc_video_decode_isight(struct urb *urb, struct uvc_streaming *stream,
++void uvc_video_decode_isight(struct uvc_urb *uvc_urb,
+ 			     struct uvc_buffer *buf,
+ 			     struct uvc_buffer *meta_buf);
  
- 	u32 sequence;
 -- 
 git-series 0.9.1
