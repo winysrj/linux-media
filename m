@@ -1,111 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:56604 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726419AbeKFNrt (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Nov 2018 08:47:49 -0500
-Message-ID: <03af9c0a379f96f6fb78c2554a50e602@smtp-cloud7.xs4all.net>
-Date: Tue, 06 Nov 2018 05:24:31 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from mga09.intel.com ([134.134.136.24]:20377 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1729319AbeKFPOZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 6 Nov 2018 10:14:25 -0500
+From: "Zhi, Yong" <yong.zhi@intel.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "tfiga@chromium.org" <tfiga@chromium.org>,
+        "mchehab@kernel.org" <mchehab@kernel.org>,
+        "hans.verkuil@cisco.com" <hans.verkuil@cisco.com>,
+        "laurent.pinchart@ideasonboard.com"
+        <laurent.pinchart@ideasonboard.com>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "Hu, Jerry W" <jerry.w.hu@intel.com>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
+        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
+        "Cao, Bingbu" <bingbu.cao@intel.com>
+Subject: RE: [PATCH v7 06/16] intel-ipu3: mmu: Implement driver
+Date: Tue, 6 Nov 2018 05:50:53 +0000
+Message-ID: <C193D76D23A22742993887E6D207B54D3DB2F0EB@ORSMSX106.amr.corp.intel.com>
+References: <1540851790-1777-1-git-send-email-yong.zhi@intel.com>
+ <1540851790-1777-7-git-send-email-yong.zhi@intel.com>
+ <20181105115525.fuwuxnsyzsvl5oj7@kekkonen.localdomain>
+In-Reply-To: <20181105115525.fuwuxnsyzsvl5oj7@kekkonen.localdomain>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi, Sakari,
 
-Results of the daily build of media_tree:
+Thanks for the feedback.
 
-date:			Tue Nov  6 05:00:10 CET 2018
-media-tree git hash:	dafb7f9aef2fd44991ff1691721ff765a23be27b
-media_build git hash:	0c8bb27f3aaa682b9548b656f77505c3d1f11e71
-v4l-utils git hash:	0aa28f4293ee3306b34ea2866ef5f26fa75d2ed0
-edid-decode git hash:	5eeb151a748788666534d6ea3da07f90400d24c2
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.18.0-2-amd64
+> -----Original Message-----
+> From: Sakari Ailus [mailto:sakari.ailus@linux.intel.com]
+> Sent: Monday, November 5, 2018 3:55 AM
+> To: Zhi, Yong <yong.zhi@intel.com>
+> Cc: linux-media@vger.kernel.org; tfiga@chromium.org;
+> mchehab@kernel.org; hans.verkuil@cisco.com;
+> laurent.pinchart@ideasonboard.com; Mani, Rajmohan
+> <rajmohan.mani@intel.com>; Zheng, Jian Xu <jian.xu.zheng@intel.com>; Hu,
+> Jerry W <jerry.w.hu@intel.com>; Toivonen, Tuukka
+> <tuukka.toivonen@intel.com>; Qiu, Tian Shu <tian.shu.qiu@intel.com>; Cao,
+> Bingbu <bingbu.cao@intel.com>
+> Subject: Re: [PATCH v7 06/16] intel-ipu3: mmu: Implement driver
+> 
+> Hi Yong,
+> 
+> On Mon, Oct 29, 2018 at 03:23:00PM -0700, Yong Zhi wrote:
+> > From: Tomasz Figa <tfiga@chromium.org>
+> >
+> > This driver translates IO virtual address to physical address based on
+> > two levels page tables.
+> >
+> > Signed-off-by: Tomasz Figa <tfiga@chromium.org>
+> > Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+> > ---
+> 
+> ...
+> 
+> > +static void call_if_ipu3_is_powered(struct ipu3_mmu *mmu,
+> > +				    void (*func)(struct ipu3_mmu *mmu)) {
+> > +	pm_runtime_get_noresume(mmu->dev);
+> > +	if (pm_runtime_active(mmu->dev))
+> > +		func(mmu);
+> > +	pm_runtime_put(mmu->dev);
+> 
+> How about:
+> 
+> 	if (!pm_runtime_get_if_in_use(mmu->dev))
+> 		return;
+> 
+> 	func(mmu);
+> 	pm_runtime_put(mmu->dev);
+> 
 
-linux-git-arm-at91: WARNINGS
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-multi: WARNINGS
-linux-git-arm-pxa: WARNINGS
-linux-git-arm-stm32: WARNINGS
-linux-git-arm64: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-mips: OK
-linux-git-powerpc64: WARNINGS
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: ERRORS
-linux-3.10.108-x86_64: ERRORS
-linux-3.11.10-i686: ERRORS
-linux-3.11.10-x86_64: ERRORS
-linux-3.12.74-i686: ERRORS
-linux-3.12.74-x86_64: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.79-i686: ERRORS
-linux-3.14.79-x86_64: ERRORS
-linux-3.15.10-i686: ERRORS
-linux-3.15.10-x86_64: ERRORS
-linux-3.16.57-i686: ERRORS
-linux-3.16.57-x86_64: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.123-i686: ERRORS
-linux-3.18.123-x86_64: ERRORS
-linux-3.19.8-i686: ERRORS
-linux-3.19.8-x86_64: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.52-i686: ERRORS
-linux-4.1.52-x86_64: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.159-i686: ERRORS
-linux-4.4.159-x86_64: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.10-i686: ERRORS
-linux-4.7.10-x86_64: ERRORS
-linux-4.8.17-i686: ERRORS
-linux-4.8.17-x86_64: ERRORS
-linux-4.9.131-i686: ERRORS
-linux-4.9.131-x86_64: ERRORS
-linux-4.10.17-i686: ERRORS
-linux-4.10.17-x86_64: ERRORS
-linux-4.11.12-i686: ERRORS
-linux-4.11.12-x86_64: ERRORS
-linux-4.12.14-i686: ERRORS
-linux-4.12.14-x86_64: ERRORS
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.74-i686: OK
-linux-4.14.74-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: OK
-linux-4.19-i686: OK
-linux-4.19-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+Ack, unless Tomasz has different opinion.
 
-Logs weren't copied as they are too large (1692 kB)
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+> 
+> > +}
+> 
+> --
+> Sakari Ailus
+> sakari.ailus@linux.intel.com
