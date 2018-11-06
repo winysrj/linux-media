@@ -1,141 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:51402 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729574AbeKGAjl (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Nov 2018 19:39:41 -0500
-Reply-To: kieran.bingham@ideasonboard.com
-Subject: Re: [PATCH v4 6/6] media: uvcvideo: Move decode processing to process
- context
-To: Tomasz Figa <tfiga@google.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        g.liakhovetski@gmx.de, olivier.braun@stereolabs.com,
-        troy.kisky@boundarydevices.com,
-        Randy Dunlap <rdunlap@infradead.org>, philipp.zabel@gmail.com,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-References: <cover.3cb9065dabdf5d455da508fb4109201e626d5ee7.1522168131.git-series.kieran.bingham@ideasonboard.com>
- <cae511f90085701e7093ce39dc8dabf8fc16b844.1522168131.git-series.kieran.bingham@ideasonboard.com>
- <CAAFQd5CQEhmuLbs0dmGfu66x1Xq1V_kOT0bV_DoPitkkOX5Q4A@mail.gmail.com>
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Message-ID: <4fa1b96d-912c-ec07-f08e-d8de164a0186@ideasonboard.com>
-Date: Tue, 6 Nov 2018 15:13:55 +0000
+Received: from mail-wr1-f65.google.com ([209.85.221.65]:35656 "EHLO
+        mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2388925AbeKGB7N (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Nov 2018 20:59:13 -0500
+Received: by mail-wr1-f65.google.com with SMTP id z16-v6so14274879wrv.2
+        for <linux-media@vger.kernel.org>; Tue, 06 Nov 2018 08:33:11 -0800 (PST)
+Subject: Re: [PATCH v4 0/3] Add Amlogic video decoder driver
+To: Maxime Jourdan <mjourdan@baylibre.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        Kevin Hilman <khilman@baylibre.com>,
+        Jerome Brunet <jbrunet@baylibre.com>,
+        Martin Blumenstingl <martin.blumenstingl@googlemail.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-amlogic@lists.infradead.org
+References: <20181106075926.19269-1-mjourdan@baylibre.com>
+From: Neil Armstrong <narmstrong@baylibre.com>
+Message-ID: <d248b541-d9f4-a4fc-2b9a-cd8eac377fb0@baylibre.com>
+Date: Tue, 6 Nov 2018 17:33:09 +0100
 MIME-Version: 1.0
-In-Reply-To: <CAAFQd5CQEhmuLbs0dmGfu66x1Xq1V_kOT0bV_DoPitkkOX5Q4A@mail.gmail.com>
+In-Reply-To: <20181106075926.19269-1-mjourdan@baylibre.com>
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz,
-
-On 07/08/2018 10:54, Tomasz Figa wrote:
-> Hi Kieran,
+On 06/11/2018 08:59, Maxime Jourdan wrote:
+> Hi everyone,
 > 
-> On Wed, Mar 28, 2018 at 1:47 AM Kieran Bingham
-> <kieran.bingham@ideasonboard.com> wrote:
-> [snip]
->> @@ -1544,25 +1594,29 @@ static int uvc_alloc_urb_buffers(struct uvc_streaming *stream,
->>   */
->>  static void uvc_uninit_video(struct uvc_streaming *stream, int free_buffers)
->>  {
->> -       struct urb *urb;
->> -       unsigned int i;
->> +       struct uvc_urb *uvc_urb;
->>
->>         uvc_video_stats_stop(stream);
->>
->> -       for (i = 0; i < UVC_URBS; ++i) {
->> -               struct uvc_urb *uvc_urb = &stream->uvc_urb[i];
->> +       /*
->> +        * We must poison the URBs rather than kill them to ensure that even
->> +        * after the completion handler returns, any asynchronous workqueues
->> +        * will be prevented from resubmitting the URBs
->> +        */
->> +       for_each_uvc_urb(uvc_urb, stream)
->> +               usb_poison_urb(uvc_urb->urb);
->>
->> -               urb = uvc_urb->urb;
->> -               if (urb == NULL)
->> -                       continue;
->> +       flush_workqueue(stream->async_wq);
->>
->> -               usb_kill_urb(urb);
->> -               usb_free_urb(urb);
->> +       for_each_uvc_urb(uvc_urb, stream) {
->> +               usb_free_urb(uvc_urb->urb);
->>                 uvc_urb->urb = NULL;
->>         }
->>
->>         if (free_buffers)
->>                 uvc_free_urb_buffers(stream);
->> +
->> +       destroy_workqueue(stream->async_wq);
+> This patch series adds support for the Amlogic video decoder,
+> as well as the corresponding dt bindings for GXBB/GXL/GXM chips.
 > 
-> In our testing, this function ends up being called twice, if before
-> suspend the camera is streaming and if the camera disconnects between
-> suspend and resume. This is because uvc_video_suspend() calls this
-> function (with free_buffers = 0), but uvc_video_resume() wouldn't call
-> uvc_init_video() due to an earlier failure and uvc_v4l2_release()
-> would end up calling this function again, while the workqueue is
-> already destroyed.
+> It features decoding for the following formats:
+> - MPEG 1
+> - MPEG 2
 > 
-> The following diff seems to take care of it:
+> The following formats will be added in future patches:
+> - MJPEG
+> - MPEG 4 (incl. Xvid, H.263)
+> - H.264
+> - HEVC (incl. 10-bit)
+> 
+> The following formats' development has still not started, but they are
+> supported by the hardware:
+> - VC1
+> - VP9
+> 
+> The code was made in such a way to allow easy inclusion of those formats
+> in the future.
+> 
+> The decoder is single instance.
+> 
+> Files:
+>  - vdec.c handles the V4L2 M2M logic
+>  - esparser.c manages the hardware bitstream parser
+>  - vdec_helpers.c provides helpers to DONE the dst buffers as well as
+>  various common code used by the codecs
+>  - vdec_1.c manages the VDEC_1 block of the vdec IP
+>  - codec_mpeg12.c enables decoding for MPEG 1/2.
+>  - vdec_platform.c links codec units with vdec units
+>  (e.g vdec_1 with codec_mpeg12) and lists all the available
+>  src/dst formats and requirements (max width/height, etc.),
+>  per compatible chip.
+> 
+> Firmwares are necessary to run the vdec. They can currently be found at:
+> https://github.com/chewitt/meson-firmware
+> There is an ongoing effort to bring those firmwares to linux-firmware
+> but they're not in yet, currently blocked by licensing issues.
+> 
+> It was tested primarily with ffmpeg's v4l2-m2m implementation. For instance:
+> $ ffmpeg -c:v mpeg2_v4l2m2m -i sample_mpeg2.mkv -f null -
 
-Thank you for this. After discussing with Laurent, I have gone with the
-approach of keeping the workqueue for the lifetime of the stream, rather
-than the lifetime of the streamon.
+Testing on Linux 4.20-rc1 with the proper DT patches using :
+- gstreamer 1.10.4 V4L2 Video Decoder support from gst-plugins-good
+- v4l2-compliance
 
+Tested-by: Neil Armstrong <narmstrong@baylibre.com>
 
 > 
-> 8<~~~
-> diff --git a/drivers/media/usb/uvc/uvc_video.c
-> b/drivers/media/usb/uvc/uvc_video.c
-> index c5e0ab564b1a..6fb890c8ba67 100644
-> --- a/drivers/media/usb/uvc/uvc_video.c
-> +++ b/drivers/media/usb/uvc/uvc_video.c
-> @@ -1493,10 +1493,11 @@ static void uvc_uninit_video(struct
-> uvc_streaming *stream, int free_buffers)
->                uvc_urb->urb = NULL;
->        }
-> 
-> -       if (free_buffers)
-> +       if (free_buffers) {
->                uvc_free_urb_buffers(stream);
-> -
-> -       destroy_workqueue(stream->async_wq);
-> +               destroy_workqueue(stream->async_wq);
-> +               stream->async_wq = NULL;
-> +       }
-> }
-> 
-> /*
-> @@ -1648,10 +1649,12 @@ static int uvc_init_video(struct uvc_streaming
-> *stream, gfp_t gfp_flags)
-> 
->        uvc_video_stats_start(stream);
-> 
-> -       stream->async_wq = alloc_workqueue("uvcvideo", WQ_UNBOUND | WQ_HIGHPRI,
-> -                       0);
-> -       if (!stream->async_wq)
-> -               return -ENOMEM;
-> +       if (!stream->async_wq) {
-> +               stream->async_wq = alloc_workqueue("uvcvideo",
-> +                                                  WQ_UNBOUND | WQ_HIGHPRI, 0);
-> +               if (!stream->async_wq)
-> +                       return -ENOMEM;
-> +       }
-> 
->        if (intf->num_altsetting > 1) {
->                struct usb_host_endpoint *best_ep = NULL;
-> ~~~>8
-> 
-> Best regards,
-> Tomasz
+> The v4l2-compliance results are available below the patch diff.
 > 
 
--- 
-Regards
---
-Kieran
+[...]
