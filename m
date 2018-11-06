@@ -1,101 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:35699 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727781AbeKJAbO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Nov 2018 19:31:14 -0500
-Message-ID: <1541775017.4112.45.camel@pengutronix.de>
-Subject: Re: [PATCH 3/3] media: imx: lift CSI width alignment restriction
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Steve Longerbeam <slongerbeam@gmail.com>,
+Received: from perceval.ideasonboard.com ([213.167.242.64]:55690 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726282AbeKGGyr (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Nov 2018 01:54:47 -0500
+From: Kieran Bingham <kieran@ksquared.org.uk>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Date: Fri, 09 Nov 2018 15:50:17 +0100
-In-Reply-To: <28564f76-1f87-d17e-88c8-b80a343bb649@gmail.com>
-References: <20181105152055.31254-1-p.zabel@pengutronix.de>
-         <20181105152055.31254-3-p.zabel@pengutronix.de>
-         <28564f76-1f87-d17e-88c8-b80a343bb649@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Olivier BRAUN <olivier.braun@stereolabs.com>,
+        Troy Kisky <troy.kisky@boundarydevices.com>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Philipp Zabel <philipp.zabel@gmail.com>,
+        Ezequiel Garcia <ezequiel@collabora.com>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: [PATCH v5 7/9] media: uvcvideo: Split uvc_video_enable into two
+Date: Tue,  6 Nov 2018 21:27:18 +0000
+Message-Id: <5a6b4702bd9da438a0635901d2e44ca737842655.1541534872.git-series.kieran.bingham@ideasonboard.com>
+In-Reply-To: <cover.dd42d667a7f7505b3639149635ef3a0b1431f280.1541534872.git-series.kieran.bingham@ideasonboard.com>
+References: <cover.dd42d667a7f7505b3639149635ef3a0b1431f280.1541534872.git-series.kieran.bingham@ideasonboard.com>
+In-Reply-To: <cover.dd42d667a7f7505b3639149635ef3a0b1431f280.1541534872.git-series.kieran.bingham@ideasonboard.com>
+References: <cover.dd42d667a7f7505b3639149635ef3a0b1431f280.1541534872.git-series.kieran.bingham@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2018-11-08 at 21:46 -0800, Steve Longerbeam wrote:
-> On 11/5/18 7:20 AM, Philipp Zabel wrote:
-> > The CSI subdevice shouldn't have to care about IDMAC line start
-> > address alignment. With compose rectangle support in the capture
-> > driver, it doesn't have to anymore.
-> > 
-> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> > ---
-> >   drivers/staging/media/imx/imx-media-capture.c |  9 ++++-----
-> >   drivers/staging/media/imx/imx-media-csi.c     |  2 +-
-> >   drivers/staging/media/imx/imx-media-utils.c   | 15 ++++++++++++---
-> >   3 files changed, 17 insertions(+), 9 deletions(-)
-> > 
-> > diff --git a/drivers/staging/media/imx/imx-media-capture.c b/drivers/staging/media/imx/imx-media-capture.c
-> > index 2d49d9573056..f87d6e8019e5 100644
-> > --- a/drivers/staging/media/imx/imx-media-capture.c
-> > +++ b/drivers/staging/media/imx/imx-media-capture.c
-> > @@ -204,10 +204,9 @@ static int capture_g_fmt_vid_cap(struct file *file, void *fh,
-> >   }
-> >   
-> >   static int __capture_try_fmt_vid_cap(struct capture_priv *priv,
-> > -				     struct v4l2_subev_format *fmt_src,
-> > +				     struct v4l2_subdev_format *fmt_src,
-> >   				     struct v4l2_format *f)
-> >   {
-> > -	struct capture_priv *priv = video_drvdata(file);
-> >   	const struct imx_media_pixfmt *cc, *cc_src;
-> >   
-> >   	cc_src = imx_media_find_ipu_format(fmt_src->format.code, CS_SEL_ANY);
-> > @@ -250,7 +249,7 @@ static int capture_try_fmt_vid_cap(struct file *file, void *fh,
-> >   	if (ret)
-> >   		return ret;
-> >   
-> > -	return __capture_try_fmt(priv, &fmt_src, f);
-> > +	return __capture_try_fmt_vid_cap(priv, &fmt_src, f);
-> >   }
-> >   
-> >   static int capture_s_fmt_vid_cap(struct file *file, void *fh,
-> > @@ -280,8 +279,8 @@ static int capture_s_fmt_vid_cap(struct file *file, void *fh,
-> >   					      CS_SEL_ANY, true);
-> >   	priv->vdev.compose.left = 0;
-> >   	priv->vdev.compose.top = 0;
-> > -	priv->vdev.compose.width = fmt_src.width;
-> > -	priv->vdev.compose.height = fmt_src.height;
-> > +	priv->vdev.compose.width = fmt_src.format.width;
-> > +	priv->vdev.compose.height = fmt_src.format.height;
-> >   
-> >   	return 0;
-> >   }
-> > diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-> > index c4523afe7b48..d39682192a67 100644
-> > --- a/drivers/staging/media/imx/imx-media-csi.c
-> > +++ b/drivers/staging/media/imx/imx-media-csi.c
-> > @@ -41,7 +41,7 @@
-> >   #define MIN_H       144
-> >   #define MAX_W      4096
-> >   #define MAX_H      4096
-> > -#define W_ALIGN    4 /* multiple of 16 pixels */
-> > +#define W_ALIGN    1 /* multiple of 2 pixels */
-> 
-> 
-> This works for the IDMAC output pad because the channel's cpmem width 
-> and stride can be rounded up, but width align at the CSI sink still 
-> needs to be 8 pixels when directed to the IC via the CSI_SRC_PAD_DIRECT 
-> pad, in order to support the 8x8 block rotator in the IC PRP, and 
-> there's no way AFAIK to do the same trick of rounding up width and 
-> stride for non-IDMAC direct paths through the IPU.
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
 
-Actually, this is not necessary at all. csi_try_crop takes care of this
-by setting:
-	crop->width &= ~0x7;
-Which is then used to set compose rectangle and source pad formats.
+uvc_video_enable() is used both to start and stop the video stream
+object, however the single function entry point shares no code between
+the two operations.
 
-So this should be relaxed as well, if the SRC_DIRECT pad is not enabled.
-And further, I think there is no reason to align crop->left to multiples
-of 4 pixels?
+Split the function into two distinct calls, and rename to
+uvc_video_start_streaming() and uvc_video_stop_streaming() as
+appropriate.
 
-regards
-Philipp
+Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
+---
+ drivers/media/usb/uvc/uvc_queue.c |  4 +-
+ drivers/media/usb/uvc/uvc_video.c | 56 +++++++++++++++-----------------
+ drivers/media/usb/uvc/uvcvideo.h  |  3 +-
+ 3 files changed, 31 insertions(+), 32 deletions(-)
+
+diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
+index cd8c03341de0..682698ec1118 100644
+--- a/drivers/media/usb/uvc/uvc_queue.c
++++ b/drivers/media/usb/uvc/uvc_queue.c
+@@ -176,7 +176,7 @@ static int uvc_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 
+ 	queue->buf_used = 0;
+ 
+-	ret = uvc_video_enable(stream, 1);
++	ret = uvc_video_start_streaming(stream);
+ 	if (ret == 0)
+ 		return 0;
+ 
+@@ -194,7 +194,7 @@ static void uvc_stop_streaming(struct vb2_queue *vq)
+ 	lockdep_assert_irqs_enabled();
+ 
+ 	if (vq->type != V4L2_BUF_TYPE_META_CAPTURE)
+-		uvc_video_enable(uvc_queue_to_stream(queue), 0);
++		uvc_video_stop_streaming(uvc_queue_to_stream(queue));
+ 
+ 	spin_lock_irq(&queue->irqlock);
+ 	uvc_queue_return_buffers(queue, UVC_BUF_STATE_ERROR);
+diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
+index ce9e40444507..0d35e933856a 100644
+--- a/drivers/media/usb/uvc/uvc_video.c
++++ b/drivers/media/usb/uvc/uvc_video.c
+@@ -2082,38 +2082,10 @@ int uvc_video_init(struct uvc_streaming *stream)
+ 	return 0;
+ }
+ 
+-/*
+- * Enable or disable the video stream.
+- */
+-int uvc_video_enable(struct uvc_streaming *stream, int enable)
++int uvc_video_start_streaming(struct uvc_streaming *stream)
+ {
+ 	int ret;
+ 
+-	if (!enable) {
+-		uvc_uninit_video(stream, 1);
+-		if (stream->intf->num_altsetting > 1) {
+-			usb_set_interface(stream->dev->udev,
+-					  stream->intfnum, 0);
+-		} else {
+-			/* UVC doesn't specify how to inform a bulk-based device
+-			 * when the video stream is stopped. Windows sends a
+-			 * CLEAR_FEATURE(HALT) request to the video streaming
+-			 * bulk endpoint, mimic the same behaviour.
+-			 */
+-			unsigned int epnum = stream->header.bEndpointAddress
+-					   & USB_ENDPOINT_NUMBER_MASK;
+-			unsigned int dir = stream->header.bEndpointAddress
+-					 & USB_ENDPOINT_DIR_MASK;
+-			unsigned int pipe;
+-
+-			pipe = usb_sndbulkpipe(stream->dev->udev, epnum) | dir;
+-			usb_clear_halt(stream->dev->udev, pipe);
+-		}
+-
+-		uvc_video_clock_cleanup(stream);
+-		return 0;
+-	}
+-
+ 	ret = uvc_video_clock_init(stream);
+ 	if (ret < 0)
+ 		return ret;
+@@ -2136,3 +2108,29 @@ int uvc_video_enable(struct uvc_streaming *stream, int enable)
+ 
+ 	return ret;
+ }
++
++int uvc_video_stop_streaming(struct uvc_streaming *stream)
++{
++	uvc_uninit_video(stream, 1);
++	if (stream->intf->num_altsetting > 1) {
++		usb_set_interface(stream->dev->udev,
++				  stream->intfnum, 0);
++	} else {
++		/* UVC doesn't specify how to inform a bulk-based device
++		 * when the video stream is stopped. Windows sends a
++		 * CLEAR_FEATURE(HALT) request to the video streaming
++		 * bulk endpoint, mimic the same behaviour.
++		 */
++		unsigned int epnum = stream->header.bEndpointAddress
++				   & USB_ENDPOINT_NUMBER_MASK;
++		unsigned int dir = stream->header.bEndpointAddress
++				 & USB_ENDPOINT_DIR_MASK;
++		unsigned int pipe;
++
++		pipe = usb_sndbulkpipe(stream->dev->udev, epnum) | dir;
++		usb_clear_halt(stream->dev->udev, pipe);
++	}
++
++	uvc_video_clock_cleanup(stream);
++	return 0;
++}
+diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
+index 0953e2e59a79..c0a120496a1f 100644
+--- a/drivers/media/usb/uvc/uvcvideo.h
++++ b/drivers/media/usb/uvc/uvcvideo.h
+@@ -784,7 +784,8 @@ void uvc_mc_cleanup_entity(struct uvc_entity *entity);
+ int uvc_video_init(struct uvc_streaming *stream);
+ int uvc_video_suspend(struct uvc_streaming *stream);
+ int uvc_video_resume(struct uvc_streaming *stream, int reset);
+-int uvc_video_enable(struct uvc_streaming *stream, int enable);
++int uvc_video_start_streaming(struct uvc_streaming *stream);
++int uvc_video_stop_streaming(struct uvc_streaming *stream);
+ int uvc_probe_video(struct uvc_streaming *stream,
+ 		    struct uvc_streaming_control *probe);
+ int uvc_query_ctrl(struct uvc_device *dev, u8 query, u8 unit,
+-- 
+git-series 0.9.1
