@@ -1,68 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:48355 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2387505AbeKFTPc (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Nov 2018 14:15:32 -0500
-Message-ID: <1541497866.5822.6.camel@pengutronix.de>
-Subject: Re: [PATCH v2 3/3] media: imx-pxp: Improve pxp_soft_reset() error
- message
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Fabio Estevam <festevam@gmail.com>
-Cc: mchehab@kernel.org, linux-media@vger.kernel.org
-Date: Tue, 06 Nov 2018 10:51:06 +0100
-In-Reply-To: <1541450716-25523-3-git-send-email-festevam@gmail.com>
-References: <1541450716-25523-1-git-send-email-festevam@gmail.com>
-         <1541450716-25523-3-git-send-email-festevam@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.133]:56738 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2387480AbeKFTkJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Nov 2018 14:40:09 -0500
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Kees Cook <keescook@chromium.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        devel@driverdev.osuosl.org
+Subject: [PATCH] davinci_vpfe: add a missing break
+Date: Tue,  6 Nov 2018 05:15:33 -0500
+Message-Id: <a08b85a2263d742edcd50d371712eaf11fbccd64.1541499323.git.mchehab+samsung@kernel.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2018-11-05 at 18:45 -0200, Fabio Estevam wrote:
-> Improve the pxp_soft_reset() error message by moving it to the
-> caller function, associating it with a proper device and also
-> by displaying the error code.
-> 
-> Signed-off-by: Fabio Estevam <festevam@gmail.com>
-> ---
-> Changes since v1:
-> - Newly introduced in this version
-> 
->  drivers/media/platform/imx-pxp.c | 8 ++++----
->  1 file changed, 4 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/media/platform/imx-pxp.c b/drivers/media/platform/imx-pxp.c
-> index b3700b8..1b765c9 100644
-> --- a/drivers/media/platform/imx-pxp.c
-> +++ b/drivers/media/platform/imx-pxp.c
-> @@ -1619,10 +1619,8 @@ static int pxp_soft_reset(struct pxp_dev *dev)
->  
->  	ret = readl_poll_timeout(dev->mmio + HW_PXP_CTRL, val,
->  				 val & BM_PXP_CTRL_CLKGATE, 0, 100);
-> -	if (ret < 0) {
-> -		pr_err("PXP reset timeout\n");
-> +	if (ret < 0)
->  		return ret;
-> -	}
->  
->  	writel(BM_PXP_CTRL_SFTRST, dev->mmio + HW_PXP_CTRL_CLR);
->  	writel(BM_PXP_CTRL_CLKGATE, dev->mmio + HW_PXP_CTRL_CLR);
-> @@ -1675,8 +1673,10 @@ static int pxp_probe(struct platform_device *pdev)
->  		return ret;
->  
->  	ret = pxp_soft_reset(dev);
-> -	if (ret < 0)
-> +	if (ret < 0) {
-> +		dev_err(&pdev->dev, "PXP reset timeout: %d\n", ret);
->  		return ret;
-> +	}
->  
->  	spin_lock_init(&dev->irqlock);
+As warned by gcc:
 
-This should be rebased onto the fixed 2/2 or squashed into it,
-but otherwise
-Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c: In function 'ipipeif_hw_setup':
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:298:3: warning: this statement may fall through [-Wimplicit-fallthrough=]
+   switch (isif_port_if) {
+   ^~~~~~
+drivers/staging/media/davinci_vpfe/dm365_ipipeif.c:314:2: note: here
+  case IPIPEIF_SDRAM_YUV:
+  ^~~~
 
-regards
-Philipp
+There is a missing break for the raw format.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+---
+ drivers/staging/media/davinci_vpfe/dm365_ipipeif.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/staging/media/davinci_vpfe/dm365_ipipeif.c b/drivers/staging/media/davinci_vpfe/dm365_ipipeif.c
+index a53231b08d30..975272bcf8ca 100644
+--- a/drivers/staging/media/davinci_vpfe/dm365_ipipeif.c
++++ b/drivers/staging/media/davinci_vpfe/dm365_ipipeif.c
+@@ -310,6 +310,7 @@ static int ipipeif_hw_setup(struct v4l2_subdev *sd)
+ 			ipipeif_write(val, ipipeif_base_addr, IPIPEIF_CFG2);
+ 			break;
+ 		}
++		break;
+ 
+ 	case IPIPEIF_SDRAM_YUV:
+ 		/* Set clock divider */
+-- 
+2.19.1
