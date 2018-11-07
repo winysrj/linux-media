@@ -1,39 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:47997 "EHLO gofer.mess.org"
+Received: from gofer.mess.org ([88.97.38.141]:41115 "EHLO gofer.mess.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726725AbeKGVcS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Nov 2018 16:32:18 -0500
+        id S1726369AbeKGVfu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 7 Nov 2018 16:35:50 -0500
+Date: Wed, 7 Nov 2018 12:05:45 +0000
 From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH v4l-utils] keytable: fix compilation warning
-Date: Wed,  7 Nov 2018 12:02:14 +0000
-Message-Id: <20181107120214.13906-1-sean@mess.org>
+To: Peter Seiderer <ps.report@gmx.net>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH v4l-utils] Add missing linux/bpf_common.h
+Message-ID: <20181107120544.zxfbbgibp5ubexn7@gofer.mess.org>
+References: <20181105203047.15258-1-ps.report@gmx.net>
+ <20181106103856.66uhadykgsw2dqs3@gofer.mess.org>
+ <20181106224358.2a1ea449@gmx.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20181106224358.2a1ea449@gmx.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-keytable.c: In function ‘parse_opt’:
-keytable.c:835:7: warning: ‘param’ may be used uninitialized in this function [-Wuninitialized]
+Hi Peter,
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- utils/keytable/keytable.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On Tue, Nov 06, 2018 at 10:43:58PM +0100, Peter Seiderer wrote:
+> On Tue, 6 Nov 2018 10:38:56 +0000, Sean Young <sean@mess.org> wrote:
+> 
+> > On Mon, Nov 05, 2018 at 09:30:47PM +0100, Peter Seiderer wrote:
+> > > Copy from [1], needed by bpf.h.
+> > >
+> > > [1] https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/plain/include/uapi/linux/bpf_common.h?h=v4.19
+> >
+> > So bpf.h does include this file, but we don't use anything from it in
+> > v4l-utils.
+> >
+> 
+> Maybe alternative fix is to remove the include (or not if your want
+> the headers to be in sync with the kernel ones, but then they should
+> be complete enough to be used for compile)?
+> 
+> > This include file is for the original BPF, which has been around for a
+> > long time. So why is this include file missing, i.e. what problem are you
+> > trying to solve?
+> 
+> A buildroot autobuild failure (see [1] for details) with older toolchains
+> not providing this header...
+> 
+> >
+> > Lastely, the file should be included in the sync-with-kernel target so
+> > it does not get out of sync -- should it really be necessary to add the
+> > file.
+> 
+> O.k, can do it on next patch iteration...
+> 
+> Regards,
+> Peter
+> 
+> [1] http://lists.busybox.net/pipermail/buildroot/2018-November/234840.html
 
-diff --git a/utils/keytable/keytable.c b/utils/keytable/keytable.c
-index 6fc22358..e15440de 100644
---- a/utils/keytable/keytable.c
-+++ b/utils/keytable/keytable.c
-@@ -832,7 +832,7 @@ static error_t parse_opt(int k, char *arg, struct argp_state *state)
- 		do {
- 			struct bpf_parameter *param;
- 
--			if (!param) {
-+			if (!p) {
- 				argp_error(state, _("Missing parameter name: %s"), arg);
- 				break;
- 			}
--- 
-2.17.2
+So here libelf was not detected, hence ir-keytable should have been built
+without BPF support, but it is still including bpf.h despite it not
+being used.
+
+I've just sent a patch for better support for building without BPF,
+see here:
+	https://patchwork.linuxtv.org/patch/52841/
+
+
+Would you mind seeing if that works for you?
+
+
+Thanks,
+
+Sean
