@@ -1,113 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:48841 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S2388008AbeKGN7L (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Nov 2018 08:59:11 -0500
-Message-ID: <5ff9b878c96e3905fd435abb55d884f8@smtp-cloud7.xs4all.net>
-Date: Wed, 07 Nov 2018 05:30:30 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from mail-yw1-f66.google.com ([209.85.161.66]:37147 "EHLO
+        mail-yw1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2387839AbeKGOHN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Nov 2018 09:07:13 -0500
+Received: by mail-yw1-f66.google.com with SMTP id v77-v6so6128115ywc.4
+        for <linux-media@vger.kernel.org>; Tue, 06 Nov 2018 20:38:33 -0800 (PST)
+Received: from mail-yb1-f177.google.com (mail-yb1-f177.google.com. [209.85.219.177])
+        by smtp.gmail.com with ESMTPSA id m193-v6sm2663112ywd.92.2018.11.06.20.38.31
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Tue, 06 Nov 2018 20:38:31 -0800 (PST)
+Received: by mail-yb1-f177.google.com with SMTP id n140-v6so6354447yba.1
+        for <linux-media@vger.kernel.org>; Tue, 06 Nov 2018 20:38:31 -0800 (PST)
+MIME-Version: 1.0
+References: <cover.3cb9065dabdf5d455da508fb4109201e626d5ee7.1522168131.git-series.kieran.bingham@ideasonboard.com>
+ <cae511f90085701e7093ce39dc8dabf8fc16b844.1522168131.git-series.kieran.bingham@ideasonboard.com>
+ <CAAFQd5CQEhmuLbs0dmGfu66x1Xq1V_kOT0bV_DoPitkkOX5Q4A@mail.gmail.com> <4fa1b96d-912c-ec07-f08e-d8de164a0186@ideasonboard.com>
+In-Reply-To: <4fa1b96d-912c-ec07-f08e-d8de164a0186@ideasonboard.com>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Wed, 7 Nov 2018 13:38:19 +0900
+Message-ID: <CAAFQd5CKuGRGevKRgqHjQ6nU=EXz720-yxS6uoe3CF-AY5+knQ@mail.gmail.com>
+Subject: Re: [PATCH v4 6/6] media: uvcvideo: Move decode processing to process context
+To: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        olivier.braun@stereolabs.com, troy.kisky@boundarydevices.com,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Philipp Zabel <philipp.zabel@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Kieran,
 
-Results of the daily build of media_tree:
+On Wed, Nov 7, 2018 at 12:13 AM Kieran Bingham
+<kieran.bingham@ideasonboard.com> wrote:
+>
+> Hi Tomasz,
+>
+> On 07/08/2018 10:54, Tomasz Figa wrote:
+> > Hi Kieran,
+> >
+> > On Wed, Mar 28, 2018 at 1:47 AM Kieran Bingham
+> > <kieran.bingham@ideasonboard.com> wrote:
+> > [snip]
+> >> @@ -1544,25 +1594,29 @@ static int uvc_alloc_urb_buffers(struct uvc_streaming *stream,
+> >>   */
+> >>  static void uvc_uninit_video(struct uvc_streaming *stream, int free_buffers)
+> >>  {
+> >> -       struct urb *urb;
+> >> -       unsigned int i;
+> >> +       struct uvc_urb *uvc_urb;
+> >>
+> >>         uvc_video_stats_stop(stream);
+> >>
+> >> -       for (i = 0; i < UVC_URBS; ++i) {
+> >> -               struct uvc_urb *uvc_urb = &stream->uvc_urb[i];
+> >> +       /*
+> >> +        * We must poison the URBs rather than kill them to ensure that even
+> >> +        * after the completion handler returns, any asynchronous workqueues
+> >> +        * will be prevented from resubmitting the URBs
+> >> +        */
+> >> +       for_each_uvc_urb(uvc_urb, stream)
+> >> +               usb_poison_urb(uvc_urb->urb);
+> >>
+> >> -               urb = uvc_urb->urb;
+> >> -               if (urb == NULL)
+> >> -                       continue;
+> >> +       flush_workqueue(stream->async_wq);
+> >>
+> >> -               usb_kill_urb(urb);
+> >> -               usb_free_urb(urb);
+> >> +       for_each_uvc_urb(uvc_urb, stream) {
+> >> +               usb_free_urb(uvc_urb->urb);
+> >>                 uvc_urb->urb = NULL;
+> >>         }
+> >>
+> >>         if (free_buffers)
+> >>                 uvc_free_urb_buffers(stream);
+> >> +
+> >> +       destroy_workqueue(stream->async_wq);
+> >
+> > In our testing, this function ends up being called twice, if before
+> > suspend the camera is streaming and if the camera disconnects between
+> > suspend and resume. This is because uvc_video_suspend() calls this
+> > function (with free_buffers = 0), but uvc_video_resume() wouldn't call
+> > uvc_init_video() due to an earlier failure and uvc_v4l2_release()
+> > would end up calling this function again, while the workqueue is
+> > already destroyed.
+> >
+> > The following diff seems to take care of it:
+>
+> Thank you for this. After discussing with Laurent, I have gone with the
+> approach of keeping the workqueue for the lifetime of the stream, rather
+> than the lifetime of the streamon.
+>
 
-date:			Wed Nov  7 05:00:11 CET 2018
-media-tree git hash:	fbe57dde7126d1b2712ab5ea93fb9d15f89de708
-media_build git hash:	0c8bb27f3aaa682b9548b656f77505c3d1f11e71
-v4l-utils git hash:	aa9d15a24894b884a39701a16998cdb43ecd7e01
-edid-decode git hash:	5eeb151a748788666534d6ea3da07f90400d24c2
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.18.0-2-amd64
+Sounds good to me. Thanks for heads up!
 
-linux-git-arm-at91: WARNINGS
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-multi: WARNINGS
-linux-git-arm-pxa: WARNINGS
-linux-git-arm-stm32: WARNINGS
-linux-git-arm64: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-mips: OK
-linux-git-powerpc64: WARNINGS
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: ERRORS
-linux-3.10.108-x86_64: ERRORS
-linux-3.11.10-i686: ERRORS
-linux-3.11.10-x86_64: ERRORS
-linux-3.12.74-i686: ERRORS
-linux-3.12.74-x86_64: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.79-i686: ERRORS
-linux-3.14.79-x86_64: ERRORS
-linux-3.15.10-i686: ERRORS
-linux-3.15.10-x86_64: ERRORS
-linux-3.16.57-i686: ERRORS
-linux-3.16.57-x86_64: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.123-i686: ERRORS
-linux-3.18.123-x86_64: ERRORS
-linux-3.19.8-i686: ERRORS
-linux-3.19.8-x86_64: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.52-i686: ERRORS
-linux-4.1.52-x86_64: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.159-i686: ERRORS
-linux-4.4.159-x86_64: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.10-i686: ERRORS
-linux-4.7.10-x86_64: ERRORS
-linux-4.8.17-i686: ERRORS
-linux-4.8.17-x86_64: ERRORS
-linux-4.9.131-i686: ERRORS
-linux-4.9.131-x86_64: ERRORS
-linux-4.10.17-i686: ERRORS
-linux-4.10.17-x86_64: ERRORS
-linux-4.11.12-i686: ERRORS
-linux-4.11.12-x86_64: ERRORS
-linux-4.12.14-i686: ERRORS
-linux-4.12.14-x86_64: ERRORS
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.74-i686: OK
-linux-4.14.74-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: OK
-linux-4.19.1-i686: OK
-linux-4.19.1-x86_64: OK
-linux-4.20-rc1-i686: OK
-linux-4.20-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-
-Logs weren't copied as they are too large (1752 kB)
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Best regards,
+Tomasz
