@@ -1,96 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:58192 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726455AbeKHF5R (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Nov 2018 00:57:17 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: kieran.bingham@ideasonboard.com
-Cc: linux-media@vger.kernel.org,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Olivier BRAUN <olivier.braun@stereolabs.com>,
-        Troy Kisky <troy.kisky@boundarydevices.com>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Philipp Zabel <philipp.zabel@gmail.com>,
-        Ezequiel Garcia <ezequiel@collabora.com>
-Subject: Re: [PATCH v5 8/9] media: uvcvideo: Rename uvc_{un,}init_video()
-Date: Wed, 07 Nov 2018 22:25:27 +0200
-Message-ID: <9290334.s72v5oSQOh@avalon>
-In-Reply-To: <bf3dcb4c-0039-8bf7-d059-30ac5279cda2@ideasonboard.com>
-References: <cover.dd42d667a7f7505b3639149635ef3a0b1431f280.1541534872.git-series.kieran.bingham@ideasonboard.com> <1648340.AJeOYgVR3M@avalon> <bf3dcb4c-0039-8bf7-d059-30ac5279cda2@ideasonboard.com>
+Received: from mail.kernel.org ([198.145.29.99]:42286 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726870AbeKHGfO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 8 Nov 2018 01:35:14 -0500
+Subject: Re: [RFC] Create test script(s?) for regression testing
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Ezequiel Garcia <ezequiel@collabora.com>, sean@mess.org,
+        Shuah Khan <shuah@kernel.org>
+References: <d0b6420c-e6b9-64c3-3577-fd0546790af3@xs4all.nl>
+ <2115308.QQYpHGbrpd@avalon> <b1bdffdb-9667-6c2a-b1be-b7bf2022817a@xs4all.nl>
+ <4049608.APCVuh3Y7C@avalon> <20181107171035.0cc0360b@coco.lan>
+From: Shuah Khan <shuah@kernel.org>
+Message-ID: <542253c4-cb09-ba7d-a0af-a9789c56e1af@kernel.org>
+Date: Wed, 7 Nov 2018 14:03:03 -0700
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <20181107171035.0cc0360b@coco.lan>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+On 11/07/2018 12:10 PM, Mauro Carvalho Chehab wrote:
+> Em Wed, 07 Nov 2018 12:06:55 +0200
+> Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+> 
+>> Hi Hans,
+>>
+>> On Wednesday, 7 November 2018 10:05:12 EET Hans Verkuil wrote:
+>>> On 11/06/2018 08:58 PM, Laurent Pinchart wrote:  
+>>>> On Tuesday, 6 November 2018 15:56:34 EET Hans Verkuil wrote:  
+>>>>> On 11/06/18 14:12, Laurent Pinchart wrote:  
+>>>>>> On Tuesday, 6 November 2018 13:36:55 EET Sakari Ailus wrote:  
+>>>>>>> On Tue, Nov 06, 2018 at 09:37:07AM +0100, Hans Verkuil wrote:  
+>>>>>>>> Hi all,
+>>>>>>>>
+>>>>>>>> After the media summit (heavy on test discussions) and the V4L2 event
+>>>>>>>> regression we just found it is clear we need to do a better job with
+>>>>>>>> testing.
+>>>>>>>>
+>>>>>>>> All the pieces are in place, so what is needed is to combine it and
+>>>>>>>> create a script that anyone of us as core developers can run to check
+>>>>>>>> for regressions. The same script can be run as part of the kernelci
+>>>>>>>> regression testing.  
+>>>>>>>
+>>>>>>> I'd say that *some* pieces are in place. Of course, the more there is,
+>>>>>>> the better.
+>>>>>>>
+>>>>>>> The more there are tests, the more important it would be they're
+>>>>>>> automated, preferrably without the developer having to run them on his/
+>>>>>>> her own machine.  
+>>>>>>
+>>>>>> From my experience with testing, it's important to have both a core set
+>>>>>> of tests (a.k.a. smoke tests) that can easily be run on developers'
+>>>>>> machines, and extended tests that can be offloaded to a shared testing
+>>>>>> infrastructure (but possibly also run locally if desired).  
+>>>>>
+>>>>> That was my idea as well for the longer term. First step is to do the
+>>>>> basic smoke tests (i.e. run compliance tests, do some (limited) streaming
+>>>>> test).
+>>>>>
+>>>>> There are more extensive (and longer running) tests that can be done, but
+>>>>> that's something to look at later.
+>>>>>   
+>>>>>>>> We have four virtual drivers: vivid, vim2m, vimc and vicodec. The last
+>>>>>>>> one is IMHO not quite good enough yet for testing: it is not fully
+>>>>>>>> compliant to the upcoming stateful codec spec. Work for that is
+>>>>>>>> planned as part of an Outreachy project.
+>>>>>>>>
+>>>>>>>> My idea is to create a script that is maintained as part of v4l-utils
+>>>>>>>> that loads the drivers and runs v4l2-compliance and possibly other
+>>>>>>>> tests against the virtual drivers.  
+> 
+> (adding Shuah)
+> 
+> IMO, the best would be to have something like that as part of Kernel
+> self test, as this could give a broader covering than just Kernel CI.
+> 
 
-On Wednesday, 7 November 2018 16:30:46 EET Kieran Bingham wrote:
-> On 06/11/2018 23:13, Laurent Pinchart wrote:
-> > On Tuesday, 6 November 2018 23:27:19 EET Kieran Bingham wrote:
-> >> From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-> >> 
-> >> We have both uvc_init_video() and uvc_video_init() calls which can be
-> >> quite confusing to determine the process for each. Now that video
-> >> uvc_video_enable() has been renamed to uvc_video_start_streaming(),
-> >> adapt these calls to suit the new flow.
-> >> 
-> >> Rename uvc_init_video() to uvc_video_start() and uvc_uninit_video() to
-> >> uvc_video_stop().
-> > 
-> > I agree that these functions are badly named and should be renamed. We are
-> > however entering the nitpicking territory :-) The two functions do more
-> > that starting and stopping, they also allocate and free URBs and the
-> > associated buffers. It could also be argued that they don't actually
-> > start and stop anything, as beyond URB management, they just queue the
-> > URBs initially and kill them. I thus wonder if we could come up with
-> > better names.
-> 
-> Well the act of killing (poisoning now) the URBs will certainly stop the
-> stream, but I guess submitting the URBs isn't necessarily the key act to
-> starting the stream.
-> 
-> I believe that needs the interface to be set correctly, and the buffers
-> to be available?
-> 
-> Although - I've just double-checked uvc_{video_start,init_video}() and
-> that is indeed what it does?
-> 
->  - start stats
->  - Initialise endpoints
->    - Perform allocations
->  - Submit URBs
-> 
-> Am I missing something? Is there another step that is pivotal to
-> starting the USB packet/urb stream flow after this point ?
-> 
-> 
-> Is it not true that the USB stack will start processing data at
-> submitting URB completion callbacks after the end of uvc_video_start();
-> and will no longer process data at the end of uvc_video_stop() (and thus
-> no more completion callbacks)?
-> 
->  (That's a real question to verify my interpretation)
-> 
-> To me - these functions feel like the real 'start' and 'stop' components
-> of the data stream - hence my choice in naming.
+I agree with the broader coverage benefit that comes with adding tests to kselftest.
+It makes it easier for making changes to tests/tools coupled with kernel/driver
+changes. Common TAP13 reporting can be taken advantage of without doing any additional
+work in the tests if author chooses to do so.
 
-The other part of the start operation is committing the streaming parameters 
-(see uvc_video_start_streaming()). For the stop operation it's issuing a 
-SET_INTERFACE or CLEAR_FEATURE(HALT) request (see uvc_video_stop_streaming()).
+Tests can be added such that they don't get run by default if there is a reason do so
+and Kernel CI and other rings can invoke it as a special case if necessary.
 
-> Is your concern that you would like the functions to be more descriptive
-> over their other actions such as? :
-> 
->   uvc_video_initialise_start()
->   uvc_video_allocate_init_start()
-> 
-> Or something else? (I don't think those two are good names though)
+There are very clear advantages to making these tests part of the kernel source tree.
+We can discuss at the Kernel Summit next week if you are interested.
 
-Probably something else :-) A possibly equally bad proposal would be 
-uvc_video_start_transfer() and uvc_video_stop_transfer().
-
--- 
-Regards,
-
-Laurent Pinchart
+thanks,
+-- Shuah
