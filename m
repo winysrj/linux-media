@@ -1,38 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:22180 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726218AbeKGULM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Nov 2018 15:11:12 -0500
-Date: Wed, 7 Nov 2018 12:41:13 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Rui Miguel Silva <rui.silva@linaro.org>
-Cc: mchehab@kernel.org, Philipp Zabel <p.zabel@pengutronix.de>,
-        Rob Herring <robh+dt@kernel.org>, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, Fabio Estevam <fabio.estevam@nxp.com>,
-        devicetree@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Ryan Harkin <ryan.harkin@linaro.org>
-Subject: Re: [PATCH v7 05/12] media: dt-bindings: add bindings for i.MX7
- media driver
-Message-ID: <20181107104113.mxqd7m6ffdgp7egb@mara.localdomain>
-References: <20180810142045.27657-1-rui.silva@linaro.org>
- <20180810142045.27657-6-rui.silva@linaro.org>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35516 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1726370AbeKGVP5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 7 Nov 2018 16:15:57 -0500
+Date: Wed, 7 Nov 2018 13:45:55 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 1/3] media: imx: add capture compose rectangle
+Message-ID: <20181107114555.jtw5bzzesbwxgdrx@valkosipuli.retiisi.org.uk>
+References: <20181105152055.31254-1-p.zabel@pengutronix.de>
+ <20181106140133.n2s2y4uhallf2xke@valkosipuli.retiisi.org.uk>
+ <1541515447.5822.20.camel@pengutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20180810142045.27657-6-rui.silva@linaro.org>
+In-Reply-To: <1541515447.5822.20.camel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Aug 10, 2018 at 03:20:38PM +0100, Rui Miguel Silva wrote:
-> Add bindings documentation for i.MX7 media drivers.
-> The imx7 MIPI CSI2 and imx7 CMOS Sensor Interface.
-> 
-> Reviewed-by: Rob Herring <robh@kernel.org>
-> Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+Hi Philipp,
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>-
+On Tue, Nov 06, 2018 at 03:44:07PM +0100, Philipp Zabel wrote:
+> Hi Sakari,
+> 
+> On Tue, 2018-11-06 at 16:01 +0200, Sakari Ailus wrote:
+> [...]
+> > @@ -290,6 +294,35 @@ static int capture_s_std(struct file *file, void *fh, v4l2_std_id std)
+> > >  	return v4l2_subdev_call(priv->src_sd, video, s_std, std);
+> > >  }
+> > >  
+> > > +static int capture_g_selection(struct file *file, void *fh,
+> > > +			       struct v4l2_selection *s)
+> > > +{
+> > > +	struct capture_priv *priv = video_drvdata(file);
+> > > +
+> > > +	switch (s->target) {
+> > > +	case V4L2_SEL_TGT_CROP:
+> > > +	case V4L2_SEL_TGT_CROP_DEFAULT:
+> > > +	case V4L2_SEL_TGT_CROP_BOUNDS:
+> > > +	case V4L2_SEL_TGT_NATIVE_SIZE:
+> > 
+> > The NATIVE_SIZE is for devices such as sensors. It doesn't make sense here.
+> 
+> Should this be documented in Documentation/media/uapi/v4l/v4l2-
+> selection-targets.rst ? There it only mentions when to make it
+> writeable.
+
+This seems to have originated from the documentation before the ReST
+conversion and I had hard time to figure out where the current text (apart
+from sensor pixel array) came from. There is also no driver using it in
+that meaning, and I doubt if the use is not already been covered by the
+compose rectangle.
+
+This indeed requires some follow-up, but that's out of scope of your set.
 
 -- 
+Kind regards,
+
 Sakari Ailus
-sakari.ailus@linux.intel.com
+e-mail: sakari.ailus@iki.fi
