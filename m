@@ -1,83 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:37097 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726225AbeKGUBD (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Nov 2018 15:01:03 -0500
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.21] Various fixes
-Message-ID: <7b793343-2450-f706-ae54-d11bf3c89b13@xs4all.nl>
-Date: Wed, 7 Nov 2018 11:31:14 +0100
+Received: from mga06.intel.com ([134.134.136.31]:65412 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726218AbeKGUB0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 7 Nov 2018 15:01:26 -0500
+Date: Wed, 7 Nov 2018 12:31:35 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: jasonx.z.chen@intel.com
+Cc: linux-media@vger.kernel.org, andy.yeh@intel.com, tfiga@chromium.org
+Subject: Re: [PATCH] media: imx258: remove test pattern map from driver
+Message-ID: <20181107103134.krhcvq77mhpys6r4@mara.localdomain>
+References: <1541575343-6197-1-git-send-email-jasonx.z.chen@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1541575343-6197-1-git-send-email-jasonx.z.chen@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Just one note: the "cec: keep track of outstanding transmits" is CC-ed to stable
-for v4.18 and up, but I prefer to wait until v4.21 before merging it to give it
-more test time. It is not something that happens in normal usage, so delaying
-this isn't a problem.
+Hi Jason,
 
-Regards,
+Thanks for the patch.
 
-	Hans
+On Wed, Nov 07, 2018 at 03:22:23PM +0800, jasonx.z.chen@intel.com wrote:
+> From: "Chen, JasonX Z" <jasonx.z.chen@intel.com>
+> 
+> Test Pattern mode be picked at HAL instead of driver.
+> do a FLIP when userspace use test pattern mode.
+> add entity_ops for validating imx258 link.
+> 
+> Signed-off-by: Chen, JasonX Z <jasonx.z.chen@intel.com>
+> ---
+>  drivers/media/i2c/imx258.c | 28 ++++++++--------------------
+>  1 file changed, 8 insertions(+), 20 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/imx258.c b/drivers/media/i2c/imx258.c
+> index 31a1e22..71f9875 100644
+> --- a/drivers/media/i2c/imx258.c
+> +++ b/drivers/media/i2c/imx258.c
+> @@ -62,11 +62,6 @@
+>  
+>  /* Test Pattern Control */
+>  #define IMX258_REG_TEST_PATTERN		0x0600
+> -#define IMX258_TEST_PATTERN_DISABLE	0
+> -#define IMX258_TEST_PATTERN_SOLID_COLOR	1
+> -#define IMX258_TEST_PATTERN_COLOR_BARS	2
+> -#define IMX258_TEST_PATTERN_GREY_COLOR	3
+> -#define IMX258_TEST_PATTERN_PN9		4
+>  
+>  /* Orientation */
+>  #define REG_MIRROR_FLIP_CONTROL		0x0101
+> @@ -504,20 +499,12 @@ struct imx258_mode {
+>  
+>  static const char * const imx258_test_pattern_menu[] = {
+>  	"Disabled",
+> -	"Color Bars",
+>  	"Solid Color",
+> +	"Color Bars",
+>  	"Grey Color Bars",
+>  	"PN9"
+>  };
+>  
+> -static const int imx258_test_pattern_val[] = {
+> -	IMX258_TEST_PATTERN_DISABLE,
+> -	IMX258_TEST_PATTERN_COLOR_BARS,
+> -	IMX258_TEST_PATTERN_SOLID_COLOR,
+> -	IMX258_TEST_PATTERN_GREY_COLOR,
+> -	IMX258_TEST_PATTERN_PN9,
+> -};
+> -
+>  /* Configurations for supported link frequencies */
+>  #define IMX258_LINK_FREQ_634MHZ	633600000ULL
+>  #define IMX258_LINK_FREQ_320MHZ	320000000ULL
+> @@ -752,7 +739,6 @@ static int imx258_set_ctrl(struct v4l2_ctrl *ctrl)
+>  		container_of(ctrl->handler, struct imx258, ctrl_handler);
+>  	struct i2c_client *client = v4l2_get_subdevdata(&imx258->sd);
+>  	int ret = 0;
+> -
 
-The following changes since commit fbe57dde7126d1b2712ab5ea93fb9d15f89de708:
+This seems like an unrelated change, and it's a common (and usually good)
+practice to add an empty line after variable declarations.
 
-  media: ov7740: constify structures stored in fields of v4l2_subdev_ops structure (2018-11-06 07:17:02 -0500)
+>  	/*
+>  	 * Applying V4L2 control value only happens
+>  	 * when power is up for streaming
+> @@ -778,13 +764,10 @@ static int imx258_set_ctrl(struct v4l2_ctrl *ctrl)
+>  	case V4L2_CID_TEST_PATTERN:
+>  		ret = imx258_write_reg(imx258, IMX258_REG_TEST_PATTERN,
+>  				IMX258_REG_VALUE_16BIT,
+> -				imx258_test_pattern_val[ctrl->val]);
+> -
+> +				ctrl->val);
+>  		ret = imx258_write_reg(imx258, REG_MIRROR_FLIP_CONTROL,
+>  				IMX258_REG_VALUE_08BIT,
+> -				ctrl->val == imx258_test_pattern_val
+> -				[IMX258_TEST_PATTERN_DISABLE] ?
+> -				REG_CONFIG_MIRROR_FLIP :
+> +				!ctrl->val?REG_CONFIG_MIRROR_FLIP :
+>  				REG_CONFIG_FLIP_TEST_PATTERN);
+>  		break;
+>  	default:
+> @@ -1105,6 +1088,10 @@ static int imx258_identify_module(struct imx258 *imx258)
+>  	.pad = &imx258_pad_ops,
+>  };
+>  
+> +static const struct media_entity_operations imx258_subdev_entity_ops = {
+> +	.link_validate = v4l2_subdev_link_validate,
+> +};
+> +
 
-are available in the Git repository at:
+This seems unrelated as well. Do you need the link validation for something?
+As far as I understand, the driver exposes a single source pad; therefore
+the link_validate op will never be called.
 
-  git://linuxtv.org/hverkuil/media_tree.git tags/br-v4.21a
+>  static const struct v4l2_subdev_internal_ops imx258_internal_ops = {
+>  	.open = imx258_open,
+>  };
+> @@ -1250,6 +1237,7 @@ static int imx258_probe(struct i2c_client *client)
+>  
+>  	/* Initialize subdev */
+>  	imx258->sd.internal_ops = &imx258_internal_ops;
+> +	imx258->sd.entity.ops  = &imx258_subdev_entity_ops;
 
-for you to fetch changes up to b6f3defe272a97ea65f4352cdc9c0b943164a75e:
+Ditto.
 
-  vivid: fill in media_device bus_info (2018-11-07 11:15:12 +0100)
+>  	imx258->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+>  	imx258->sd.entity.function = MEDIA_ENT_F_CAM_SENSOR;
+>  
 
-----------------------------------------------------------------
-Tag branch
+-- 
+Kind regards,
 
-----------------------------------------------------------------
-Hans Verkuil (7):
-      adv7604: add CEC support for adv7611/adv7612
-      cec: report Vendor ID after initialization
-      cec: add debug_phys_addr module option
-      cec: keep track of outstanding transmits
-      vivid: fix error handling of kthread_run
-      vivid: set min width/height to a value > 0
-      vivid: fill in media_device bus_info
-
-Julia Lawall (4):
-      media: vicodec: constify v4l2_ctrl_ops structure
-      media: rockchip/rga: constify v4l2_m2m_ops structure
-      media: vimc: constify structures stored in fields of v4l2_subdev_ops structure
-      media: rockchip/rga: constify video_device structure
-
-Sean Young (1):
-      media: v4l uapi docs: few minor corrections and typos
-
- Documentation/media/uapi/v4l/app-pri.rst         |  2 +-
- Documentation/media/uapi/v4l/audio.rst           |  2 +-
- Documentation/media/uapi/v4l/dev-capture.rst     |  2 +-
- Documentation/media/uapi/v4l/dev-teletext.rst    |  2 +-
- Documentation/media/uapi/v4l/format.rst          |  2 +-
- Documentation/media/uapi/v4l/mmap.rst            | 22 ++++++++++-----------
- Documentation/media/uapi/v4l/open.rst            |  2 +-
- Documentation/media/uapi/v4l/tuner.rst           |  4 ++--
- Documentation/media/uapi/v4l/userp.rst           |  8 ++++----
- Documentation/media/uapi/v4l/video.rst           |  4 ++--
- drivers/media/cec/cec-adap.c                     | 34 +++++++++++++++++++++++---------
- drivers/media/cec/cec-core.c                     |  6 ++++++
- drivers/media/i2c/adv7604.c                      | 63 ++++++++++++++++++++++++++++++++++++++++++++++++++----------
- drivers/media/platform/rockchip/rga/rga.c        |  4 ++--
- drivers/media/platform/vicodec/vicodec-core.c    |  2 +-
- drivers/media/platform/vimc/vimc-sensor.c        |  2 +-
- drivers/media/platform/vivid/vivid-core.c        |  2 ++
- drivers/media/platform/vivid/vivid-kthread-cap.c |  5 ++++-
- drivers/media/platform/vivid/vivid-kthread-out.c |  5 ++++-
- drivers/media/platform/vivid/vivid-vid-common.c  |  2 +-
- include/media/cec.h                              |  1 +
- 21 files changed, 125 insertions(+), 51 deletions(-
+Sakari Ailus
+sakari.ailus@linux.intel.com
