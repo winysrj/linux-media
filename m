@@ -1,73 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-eopbgr820058.outbound.protection.outlook.com ([40.107.82.58]:17321
-        "EHLO NAM01-SN1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1727724AbeKHLHK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 8 Nov 2018 06:07:10 -0500
-Date: Wed, 7 Nov 2018 17:22:57 -0800
-From: Hyun Kwon <hyun.kwon@xilinx.com>
-To: Akinobu Mita <akinobu.mita@gmail.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Hyun Kwon <hyunk@xilinx.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: Re: [PATCH] media: xilinx-video: fix bad of_node_put() on endpoint
- error
-Message-ID: <20181108012254.GA25124@smtp.xilinx.com>
-References: <1541337070-4917-1-git-send-email-akinobu.mita@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Disposition: inline
-In-Reply-To: <1541337070-4917-1-git-send-email-akinobu.mita@gmail.com>
+Received: from mga05.intel.com ([192.55.52.43]:47484 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728556AbeKHMVr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 8 Nov 2018 07:21:47 -0500
+From: jasonx.z.chen@intel.com
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@linux.intel.com, andy.yeh@intel.com,
+        tfiga@chromium.org
+Subject: [PATCH] media: imx258: remove test pattern map from driver
+Date: Thu,  8 Nov 2018 10:47:34 +0800
+Message-Id: <1541645254-11011-1-git-send-email-jasonx.z.chen@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Akinobu,
+From: "Chen, JasonX Z" <jasonx.z.chen@intel.com>
 
-Thanks for the patch.
+change bayer order when using test pattern mode.
+remove test pattern mapping method
 
-On Sun, 2018-11-04 at 05:11:10 -0800, Akinobu Mita wrote:
-> The fwnode_graph_get_next_endpoint() returns an 'endpoint' node pointer
-> with refcount incremented, and refcount of the passed as a previous
-> 'endpoint' node is decremented.
-> 
-> So when iterating over all nodes using fwnode_graph_get_next_endpoint(),
-> we don't need to call fwnode_handle_put() for each node except for error
-> exit paths.  Otherwise we get "OF: ERROR: Bad of_node_put() on ..."
-> messages.
-> 
-> Fixes: d079f94c9046 ("media: platform: Switch to v4l2_async_notifier_add_subdev")
-> Cc: Steve Longerbeam <slongerbeam@gmail.com>
-> Cc: Hyun Kwon <hyun.kwon@xilinx.com>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Signed-off-by: Chen, JasonX Z <jasonx.z.chen@intel.com>
+---
+ drivers/media/i2c/imx258.c | 23 ++++-------------------
+ 1 file changed, 4 insertions(+), 19 deletions(-)
 
-This looks good to me,
-
-     Reviewed-by: Hyun Kwon <hyun.kwon@xilinx.com>
-
-Thanks,
--hyun
-
-> ---
->  drivers/media/platform/xilinx/xilinx-vipp.c | 2 --
->  1 file changed, 2 deletions(-)
-> 
-> diff --git a/drivers/media/platform/xilinx/xilinx-vipp.c b/drivers/media/platform/xilinx/xilinx-vipp.c
-> index 574614d..26b13fd 100644
-> --- a/drivers/media/platform/xilinx/xilinx-vipp.c
-> +++ b/drivers/media/platform/xilinx/xilinx-vipp.c
-> @@ -377,8 +377,6 @@ static int xvip_graph_parse_one(struct xvip_composite_device *xdev,
->  			goto err_notifier_cleanup;
->  		}
->  
-> -		fwnode_handle_put(ep);
-> -
->  		/* Skip entities that we have already processed. */
->  		if (remote == of_fwnode_handle(xdev->dev->of_node) ||
->  		    xvip_graph_find_entity(xdev, remote)) {
-> -- 
-> 2.7.4
-> 
+diff --git a/drivers/media/i2c/imx258.c b/drivers/media/i2c/imx258.c
+index 31a1e22..5a72b4a 100644
+--- a/drivers/media/i2c/imx258.c
++++ b/drivers/media/i2c/imx258.c
+@@ -62,11 +62,6 @@
+ 
+ /* Test Pattern Control */
+ #define IMX258_REG_TEST_PATTERN		0x0600
+-#define IMX258_TEST_PATTERN_DISABLE	0
+-#define IMX258_TEST_PATTERN_SOLID_COLOR	1
+-#define IMX258_TEST_PATTERN_COLOR_BARS	2
+-#define IMX258_TEST_PATTERN_GREY_COLOR	3
+-#define IMX258_TEST_PATTERN_PN9		4
+ 
+ /* Orientation */
+ #define REG_MIRROR_FLIP_CONTROL		0x0101
+@@ -504,20 +499,12 @@ struct imx258_mode {
+ 
+ static const char * const imx258_test_pattern_menu[] = {
+ 	"Disabled",
+-	"Color Bars",
+ 	"Solid Color",
++	"Color Bars",
+ 	"Grey Color Bars",
+ 	"PN9"
+ };
+ 
+-static const int imx258_test_pattern_val[] = {
+-	IMX258_TEST_PATTERN_DISABLE,
+-	IMX258_TEST_PATTERN_COLOR_BARS,
+-	IMX258_TEST_PATTERN_SOLID_COLOR,
+-	IMX258_TEST_PATTERN_GREY_COLOR,
+-	IMX258_TEST_PATTERN_PN9,
+-};
+-
+ /* Configurations for supported link frequencies */
+ #define IMX258_LINK_FREQ_634MHZ	633600000ULL
+ #define IMX258_LINK_FREQ_320MHZ	320000000ULL
+@@ -757,6 +744,7 @@ static int imx258_set_ctrl(struct v4l2_ctrl *ctrl)
+ 	 * Applying V4L2 control value only happens
+ 	 * when power is up for streaming
+ 	 */
++
+ 	if (pm_runtime_get_if_in_use(&client->dev) == 0)
+ 		return 0;
+ 
+@@ -778,13 +766,10 @@ static int imx258_set_ctrl(struct v4l2_ctrl *ctrl)
+ 	case V4L2_CID_TEST_PATTERN:
+ 		ret = imx258_write_reg(imx258, IMX258_REG_TEST_PATTERN,
+ 				IMX258_REG_VALUE_16BIT,
+-				imx258_test_pattern_val[ctrl->val]);
+-
++				ctrl->val);
+ 		ret = imx258_write_reg(imx258, REG_MIRROR_FLIP_CONTROL,
+ 				IMX258_REG_VALUE_08BIT,
+-				ctrl->val == imx258_test_pattern_val
+-				[IMX258_TEST_PATTERN_DISABLE] ?
+-				REG_CONFIG_MIRROR_FLIP :
++				!ctrl->val ? REG_CONFIG_MIRROR_FLIP :
+ 				REG_CONFIG_FLIP_TEST_PATTERN);
+ 		break;
+ 	default:
+-- 
+1.9.1
