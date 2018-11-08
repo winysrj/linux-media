@@ -1,56 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:34432 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726710AbeKIDFY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 8 Nov 2018 22:05:24 -0500
-Date: Thu, 8 Nov 2018 12:28:53 -0500
-From: Sasha Levin <sashal@kernel.org>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Dave Stevenson <dave.stevenson@raspberrypi.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>, mchehab@kernel.org,
-        linux-media@vger.kernel.org,
-        "for 4.14 and up" <stable@vger.kernel.org>
-Subject: Re: [PATCH v4.9 1/1] v4l: event: Add subscription to list before
- calling "add" operation
-Message-ID: <20181108172853.GF8097@sasha-vm>
-References: <20181108114606.17148-1-sakari.ailus@linux.intel.com>
+Received: from mail-pf1-f193.google.com ([209.85.210.193]:37878 "EHLO
+        mail-pf1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726862AbeKIDkH (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Nov 2018 22:40:07 -0500
+Received: by mail-pf1-f193.google.com with SMTP id u13-v6so9646033pfm.4
+        for <linux-media@vger.kernel.org>; Thu, 08 Nov 2018 10:03:28 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Disposition: inline
-In-Reply-To: <20181108114606.17148-1-sakari.ailus@linux.intel.com>
+References: <cover.1541451484.git.dafna3@gmail.com> <CAAEAJfC=R3U9Pz0K5MkYT1Y0FM=PA2e6uUfbYL3sfDuobCWMDA@mail.gmail.com>
+ <CAJ1myNSJ5RtaJgAubNyxmH-JrZdVpZtjHL6-jDhW65oStqX-Ow@mail.gmail.com> <20181108175422.GA14882@sasha-vm>
+In-Reply-To: <20181108175422.GA14882@sasha-vm>
+From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Date: Thu, 8 Nov 2018 15:03:16 -0300
+Message-ID: <CAAEAJfDCkavy-32xR_jCUQfu3jofKQdjrMHMikaTND=TUxJhiw@mail.gmail.com>
+Subject: Re: [Outreachy kernel] [PATCH vicodec v4 0/3] Add support to more
+ pixel formats in vicodec
+To: sashal@kernel.org
+Cc: Dafna Hirschfeld <dafna3@gmail.com>, helen.koike@collabora.com,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        outreachy-kernel@googlegroups.com,
+        linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Nov 08, 2018 at 01:46:06PM +0200, Sakari Ailus wrote:
->[ upstream commit 92539d3eda2c090b382699bbb896d4b54e9bdece ]
+On Thu, 8 Nov 2018 at 14:54, Sasha Levin <sashal@kernel.org> wrote:
 >
->Patch ad608fbcf166 changed how events were subscribed to address an issue
->elsewhere. As a side effect of that change, the "add" callback was called
->before the event subscription was added to the list of subscribed events,
->causing the first event queued by the add callback (and possibly other
->events arriving soon afterwards) to be lost.
+> On Thu, Nov 08, 2018 at 10:10:10AM +0200, Dafna Hirschfeld wrote:
+> >On Thu, Nov 8, 2018 at 2:51 AM Ezequiel Garcia <
+> >ezequiel@vanguardiasur.com.ar> wrote:
+> >
+> >> Hello Dafna,
+> >>
+> >> Thanks for the patches.
+> >>
+> >> Just out of curiosity.  Why these patches havent't been submitted to
+> >> the media mailing list?
+> >>
+> >> Hi,
+> >I wasn't sure if I should send it to the media mailing list, since this
+> >part of outreachy application.
 >
->Fix this by adding the subscription to the list before calling the "add"
->callback, and clean up afterwards if that fails.
+> In general, for any patch you send to any subsystem please Cc all the
+> relevant mailing lists and maintainers. For Outreachy application you
+> already did that (by Cc'ing Greg), you just need to keep doing the same
+> as you continue your work on other parts of the kernel.
 >
->Fixes: ad608fbcf166 ("media: v4l: event: Prevent freeing event subscriptions while accessed")
->
->Reported-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
->Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
->Tested-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
->Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
->Tested-by: Hans Verkuil <hans.verkuil@cisco.com>
->Cc: stable@vger.kernel.org (for 4.14 and up)
->Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 
-Hi Sakari,
+Let's Cc the mailing list now, as these patches look good, and the
+test scripts look pretty decent too ;-)
 
-For the sake of completeness, can you sign off on the backport too and
-indicate it was backported to 4.9 in the commit messge? Otherwise, this
-commit message says it's for 4.14+ and will suddenly appear in the 4.9
-tree, and if we have issues later it might cause confusion.
+> >Also, how are you testing these changes?
+> >>
+> >
+> >Based on Helen's decoder:
+> >https://gitlab.collabora.com/koike/v4l2-codec
+> >
+> >I extended it to include encoders and decoders for the new supported
+> >formats.
+> >
+> >testing formats with alpha plane:
+> >https://github.com/kamomil/outreachy/blob/master/argb-and-abgr-full-exam=
+ple.sh
+> >
+> >testing greyscale:
+> >https://github.com/kamomil/outreachy/blob/master/greyscale-full-example.=
+sh
+>
+> It's awesome seeing these testsuites, it gives reviewers confidence that
+> your patch is well tested and they can focus on other parts of the
+> review process rather than check for the basic correctness of the patch.
+>
+> Please include links such as these and indicate how you tested your code
+> in your future patches.
+>
 
---
-Thanks,
-Sasha
++1
+
+Thanks!
+--=20
+Ezequiel Garc=C3=ADa, VanguardiaSur
+www.vanguardiasur.com.ar
