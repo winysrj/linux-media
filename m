@@ -1,63 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr1-f66.google.com ([209.85.221.66]:33278 "EHLO
-        mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729372AbeKLVoM (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:52382 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726359AbeKHW7b (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Nov 2018 16:44:12 -0500
-Received: by mail-wr1-f66.google.com with SMTP id u9-v6so9012882wrr.0
-        for <linux-media@vger.kernel.org>; Mon, 12 Nov 2018 03:51:16 -0800 (PST)
-Subject: Re: [PATCH] media: venus: change the default value of GOP size
-To: Malathi Gottam <mgottam@codeaurora.org>, hverkuil@xs4all.nl,
-        mchehab@kernel.org
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org, acourbot@chromium.org,
-        vgarodia@codeaurora.org
-References: <1542013562-18968-1-git-send-email-mgottam@codeaurora.org>
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <fe5d4fc2-94bb-2224-fea2-91490e28aed0@linaro.org>
-Date: Mon, 12 Nov 2018 13:51:11 +0200
+        Thu, 8 Nov 2018 17:59:31 -0500
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] MAINTAINERS fixups
+Message-ID: <e4b6f459-407a-3ca3-cb52-421fb8f915fd@xs4all.nl>
+Date: Thu, 8 Nov 2018 14:23:58 +0100
 MIME-Version: 1.0
-In-Reply-To: <1542013562-18968-1-git-send-email-mgottam@codeaurora.org>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Malathi,
+Update file paths in MAINTAINERS.
 
-Thanks for the patch!
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reported-by: Joe Perches <joe@perches.com>
+---
+diff --git a/MAINTAINERS b/MAINTAINERS
+index a8588dedc683..4ee360fb33ad 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -2062,7 +2062,6 @@ M:	Andrzej Hajda <a.hajda@samsung.com>
+ L:	linux-arm-kernel@lists.infradead.org
+ L:	linux-media@vger.kernel.org
+ S:	Maintained
+-F:	arch/arm/plat-samsung/s5p-dev-mfc.c
+ F:	drivers/media/platform/s5p-mfc/
 
-On 11/12/18 11:06 AM, Malathi Gottam wrote:
-> When the client doesn't explicitly set any GOP size, current
-> default value is low and overshoots bitrate beyond  tolerance.
-> Hence default value is modified so as to have intra period of 1sec.
-> 
-> Signed-off-by: Malathi Gottam <mgottam@codeaurora.org>
-> ---
->  drivers/media/platform/qcom/venus/venc_ctrls.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
+ ARM/SHMOBILE ARM ARCHITECTURE
+@@ -3913,7 +3912,6 @@ T:	git git://linuxtv.org/media_tree.git
+ W:	http://linuxtv.org
+ S:	Odd Fixes
+ F:	drivers/media/i2c/cs3308.c
+-F:	drivers/media/i2c/cs3308.h
 
-Sounds reasonable :
+ CS5535 Audio ALSA driver
+ M:	Jaya Kumar <jayakumar.alsa@gmail.com>
+@@ -3944,7 +3942,7 @@ T:	git git://linuxtv.org/media_tree.git
+ W:	https://linuxtv.org
+ S:	Maintained
+ F:	drivers/media/common/cx2341x*
+-F:	include/media/cx2341x*
++F:	include/media/drv-intf/cx2341x.h
 
-Acked-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+ CX24120 MEDIA DRIVER
+ M:	Jemma Denson <jdenson@gmail.com>
+@@ -9670,14 +9668,14 @@ L:	linux-media@vger.kernel.org
+ S:	Supported
+ F:	drivers/media/platform/atmel/atmel-isc.c
+ F:	drivers/media/platform/atmel/atmel-isc-regs.h
+-F:	devicetree/bindings/media/atmel-isc.txt
++F:	Documentation/devicetree/bindings/media/atmel-isc.txt
 
-> diff --git a/drivers/media/platform/qcom/venus/venc_ctrls.c b/drivers/media/platform/qcom/venus/venc_ctrls.c
-> index 45910172..e6a43e9 100644
-> --- a/drivers/media/platform/qcom/venus/venc_ctrls.c
-> +++ b/drivers/media/platform/qcom/venus/venc_ctrls.c
-> @@ -295,7 +295,7 @@ int venc_ctrl_init(struct venus_inst *inst)
->  		0, INTRA_REFRESH_MBS_MAX, 1, 0);
->  
->  	v4l2_ctrl_new_std(&inst->ctrl_handler, &venc_ctrl_ops,
-> -		V4L2_CID_MPEG_VIDEO_GOP_SIZE, 0, (1 << 16) - 1, 1, 12);
-> +		V4L2_CID_MPEG_VIDEO_GOP_SIZE, 0, (1 << 16) - 1, 1, 30);
->  
->  	v4l2_ctrl_new_std(&inst->ctrl_handler, &venc_ctrl_ops,
->  		V4L2_CID_MPEG_VIDEO_VPX_MIN_QP, 1, 128, 1, 1);
-> 
+ MICROCHIP ISI DRIVER
+ M:	Eugen Hristev <eugen.hristev@microchip.com>
+ L:	linux-media@vger.kernel.org
+ S:	Supported
+ F:	drivers/media/platform/atmel/atmel-isi.c
+-F:	include/media/atmel-isi.h
++F:	drivers/media/platform/atmel/atmel-isi.h
 
--- 
-regards,
-Stan
+ MICROCHIP AT91 USART MFD DRIVER
+ M:	Radu Pirea <radu_nicolae.pirea@upb.ro>
+@@ -12991,7 +12989,7 @@ T:	git git://linuxtv.org/media_tree.git
+ S:	Maintained
+ F:	drivers/media/common/saa7146/
+ F:	drivers/media/pci/saa7146/
+-F:	include/media/saa7146*
++F:	include/media/drv-intf/saa7146*
+
+ SAMSUNG AUDIO (ASoC) DRIVERS
+ M:	Krzysztof Kozlowski <krzk@kernel.org>
