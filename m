@@ -1,55 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ty1jpn01on0113.outbound.protection.outlook.com ([104.47.93.113]:27528
-        "EHLO JPN01-TY1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726375AbeKIABt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 8 Nov 2018 19:01:49 -0500
-From: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
-To: Simon Horman <horms@verge.net.au>
-CC: Biju Das <biju.das@bp.renesas.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        =?iso-8859-1?Q?Niklas_S=F6derlund?= <niklas.soderlund@ragnatech.se>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "linux-renesas-soc@vger.kernel.org"
-        <linux-renesas-soc@vger.kernel.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+Received: from kirsty.vergenet.net ([202.4.237.240]:46992 "EHLO
+        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726375AbeKIAB6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Nov 2018 19:01:58 -0500
+Date: Thu, 8 Nov 2018 15:26:10 +0100
+From: Simon Horman <horms@verge.net.au>
+To: Biju Das <biju.das@bp.renesas.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Niklas =?utf-8?Q?S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
         Geert Uytterhoeven <geert+renesas@glider.be>,
-        Chris Paterson <Chris.Paterson2@renesas.com>
-Subject: RE: [PATCH 3/5] media: dt-bindings: media: rcar_vin: Add r8a774a1
- support
-Date: Thu, 8 Nov 2018 14:25:59 +0000
-Message-ID: <TY1PR01MB177063A3F18EEAAA635AFB6FC0C50@TY1PR01MB1770.jpnprd01.prod.outlook.com>
+        Chris Paterson <Chris.Paterson2@renesas.com>,
+        Fabrizio Castro <fabrizio.castro@bp.renesas.com>
+Subject: Re: [PATCH 4/5] media: rcar-vin: Enable support for r8a774a1
+Message-ID: <20181108142610.6qm6gsy5mupbbwtp@verge.net.au>
 References: <1536589878-26218-1-git-send-email-biju.das@bp.renesas.com>
- <1536589878-26218-4-git-send-email-biju.das@bp.renesas.com>
- <TY1PR01MB177007A6B145CFE62EE4D72FC0C50@TY1PR01MB1770.jpnprd01.prod.outlook.com>
- <20181108142020.adc3oqd63ehvvuq3@verge.net.au>
-In-Reply-To: <20181108142020.adc3oqd63ehvvuq3@verge.net.au>
-Content-Language: en-US
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+ <1536589878-26218-5-git-send-email-biju.das@bp.renesas.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1536589878-26218-5-git-send-email-biju.das@bp.renesas.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thank you Simon for getting back to me.
+On Mon, Sep 10, 2018 at 03:31:17PM +0100, Biju Das wrote:
+> Add the SoC specific information for RZ/G2M(r8a774a1) SoC.
+> The VIN module of RZ/G2M is similar to R-Car M3-W.
+> 
+> Signed-off-by: Biju Das <biju.das@bp.renesas.com>
+> Reviewed-by: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
 
-Cheers,
-Fab
-
-> Subject: Re: [PATCH 3/5] media: dt-bindings: media: rcar_vin: Add r8a774a=
-1 support
->
-> On Thu, Nov 08, 2018 at 12:52:30PM +0000, Fabrizio Castro wrote:
-> > Dear All,
-> >
-> > Who is the best person to take this patch?
->
-> I believe this is for Mauro.
-
-
-
-Renesas Electronics Europe Ltd, Dukes Meadow, Millboard Road, Bourne End, B=
-uckinghamshire, SL8 5FH, UK. Registered in England & Wales under Registered=
- No. 04586709.
+Reviewed-by: Simon Horman <horms+renesas@verge.net.au>
