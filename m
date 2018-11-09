@@ -1,189 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:34540 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727662AbeKITt7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Nov 2018 14:49:59 -0500
-Date: Fri, 9 Nov 2018 12:09:54 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Bing Bu Cao <bingbu.cao@linux.intel.com>
-Cc: Yong Zhi <yong.zhi@intel.com>, linux-media@vger.kernel.org,
-        tfiga@chromium.org, mchehab@kernel.org, hans.verkuil@cisco.com,
-        laurent.pinchart@ideasonboard.com, rajmohan.mani@intel.com,
-        jian.xu.zheng@intel.com, jerry.w.hu@intel.com,
-        tuukka.toivonen@intel.com, tian.shu.qiu@intel.com,
-        bingbu.cao@intel.com
-Subject: Re: [PATCH v7 00/16] Intel IPU3 ImgU patchset
-Message-ID: <20181109100953.4xfsslyfdhajhqoa@paasikivi.fi.intel.com>
-References: <1540851790-1777-1-git-send-email-yong.zhi@intel.com>
- <20181101120303.g7z2dy24pn5j2slo@kekkonen.localdomain>
- <6bc1a25d-5799-5a9b-546e-3b8cf42ce976@linux.intel.com>
+Received: from mail-yb1-f195.google.com ([209.85.219.195]:43358 "EHLO
+        mail-yb1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727537AbeKIULv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Nov 2018 15:11:51 -0500
+Received: by mail-yb1-f195.google.com with SMTP id h187-v6so827865ybg.10
+        for <linux-media@vger.kernel.org>; Fri, 09 Nov 2018 02:31:52 -0800 (PST)
+Received: from mail-yb1-f171.google.com (mail-yb1-f171.google.com. [209.85.219.171])
+        by smtp.gmail.com with ESMTPSA id d7-v6sm1749522ywd.54.2018.11.09.02.31.49
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 09 Nov 2018 02:31:50 -0800 (PST)
+Received: by mail-yb1-f171.google.com with SMTP id w17-v6so842926ybl.6
+        for <linux-media@vger.kernel.org>; Fri, 09 Nov 2018 02:31:49 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <6bc1a25d-5799-5a9b-546e-3b8cf42ce976@linux.intel.com>
+References: <1541749141-6989-1-git-send-email-mgottam@codeaurora.org>
+ <CAAFQd5CwhPTmh4kF6O23Os2tihaWEez1SM=Th6BGkf_wo_LYDA@mail.gmail.com> <be2906d9d9c3f4618d21d4adef662d75@codeaurora.org>
+In-Reply-To: <be2906d9d9c3f4618d21d4adef662d75@codeaurora.org>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Fri, 9 Nov 2018 19:31:35 +0900
+Message-ID: <CAAFQd5DE4ajq6HxHhKjYFHaqFpBXJdWNcv3Qr95B9dBP=zGsJQ@mail.gmail.com>
+Subject: Re: [PATCH v2] media: venus: add support for selection rectangles
+To: mgottam@codeaurora.org
+Cc: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        vgarodia@codeaurora.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Bing Bu,
+Hi Malathi,
 
-On Wed, Nov 07, 2018 at 12:16:47PM +0800, Bing Bu Cao wrote:
-> 
-> On 11/01/2018 08:03 PM, Sakari Ailus wrote:
-> > Hi Yong,
+On Fri, Nov 9, 2018 at 6:20 PM <mgottam@codeaurora.org> wrote:
+>
+> On 2018-11-09 07:56, Tomasz Figa wrote:
+> > Hi Malathi,
 > >
-> > Thanks for the update!
+> > On Fri, Nov 9, 2018 at 4:39 PM Malathi Gottam <mgottam@codeaurora.org>
+> > wrote:
+> >>
+> >> Handles target type crop by setting the new active rectangle
+> >> to hardware. The new rectangle should be within YUV size.
+> >>
+> >> Signed-off-by: Malathi Gottam <mgottam@codeaurora.org>
+> >> ---
+> >>  drivers/media/platform/qcom/venus/venc.c | 26
+> >> ++++++++++++++++++++++----
+> >>  1 file changed, 22 insertions(+), 4 deletions(-)
+> >>
+> >> diff --git a/drivers/media/platform/qcom/venus/venc.c
+> >> b/drivers/media/platform/qcom/venus/venc.c
+> >> index ce85962..d26c129 100644
+> >> --- a/drivers/media/platform/qcom/venus/venc.c
+> >> +++ b/drivers/media/platform/qcom/venus/venc.c
+> >> @@ -478,16 +478,34 @@ static int venc_g_fmt(struct file *file, void
+> >> *fh, struct v4l2_format *f)
+> >>  venc_s_selection(struct file *file, void *fh, struct v4l2_selection
+> >> *s)
+> >>  {
+> >>         struct venus_inst *inst = to_inst(file);
+> >> +       int ret;
+> >> +       u32 buftype;
+> >>
+> >>         if (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
+> >>                 return -EINVAL;
+> >>
+> >>         switch (s->target) {
+> >>         case V4L2_SEL_TGT_CROP:
+> >> -               if (s->r.width != inst->out_width ||
+> >> -                   s->r.height != inst->out_height ||
+> >> -                   s->r.top != 0 || s->r.left != 0)
+> >> -                       return -EINVAL;
+> >> +               if (s->r.left != 0) {
+> >> +                       s->r.width += s->r.left;
+> >> +                       s->r.left = 0;
+> >> +               }
+> >> +
+> >> +               if (s->r.top != 0) {
+> >> +                       s->r.height += s->r.top;
+> >> +                       s->r.top = 0;
+> >> +               }
+> >> +
+> >> +               if (s->r.width > inst->width)
+> >> +                       s->r.width = inst->width;
+> >> +               else
+> >> +                       inst->width = s->r.width;
+> >> +
+> >> +               if (s->r.height > inst->height)
+> >> +                       s->r.height = inst->height;
+> >> +               else
+> >> +                       inst->height = s->r.height;
+> >> +
 > >
-> > On Mon, Oct 29, 2018 at 03:22:54PM -0700, Yong Zhi wrote:
-> >> Hi,
-> >>
-> >> This series adds support for the Intel IPU3 (Image Processing Unit)
-> >> ImgU which is essentially a modern memory-to-memory ISP. It implements
-> >> raw Bayer to YUV image format conversion as well as a large number of
-> >> other pixel processing algorithms for improving the image quality.
-> >>
-> >> Meta data formats are defined for image statistics (3A, i.e. automatic
-> >> white balance, exposure and focus, histogram and local area contrast
-> >> enhancement) as well as for the pixel processing algorithm parameters.
-> >> The documentation for these formats is currently not included in the
-> >> patchset but will be added in a future version of this set.
-> >>
-> >> The algorithm parameters need to be considered specific to a given frame
-> >> and typically a large number of these parameters change on frame to frame
-> >> basis. Additionally, the parameters are highly structured (and not a flat
-> >> space of independent configuration primitives). They also reflect the
-> >> data structures used by the firmware and the hardware. On top of that,
-> >> the algorithms require highly specialized user space to make meaningful
-> >> use of them. For these reasons it has been chosen video buffers to pass
-> >> the parameters to the device.
-> >>
-> >> On individual patches:
-> >>
-> >> The heart of ImgU is the CSS, or Camera Subsystem, which contains the
-> >> image processors and HW accelerators.
-> >>
-> >> The 3A statistics and other firmware parameter computation related
-> >> functions are implemented in patch 11.
-> >>
-> >> All IPU3 pipeline default settings can be found in patch 10.
-> >>
-> >> To access DDR via ImgU's own memory space, IPU3 is also equipped with
-> >> its own MMU unit, the driver is implemented in patch 6.
-> >>
-> >> Patch 7 uses above driver for DMA mapping operation.
-> >>
-> >> The communication between IPU3 firmware and driver is implemented with circular
-> >> queues in patch 8.
-> >>
-> >> Patch 9 provide some utility functions and manage IPU3 fw download and
-> >> install.
-> >>
-> >> The firmware which is called ipu3-fw.bin can be downloaded from:
-> >>
-> >> git://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git
-> >> (commit 2c27b0cb02f18c022d8378e0e1abaf8b7ae8188f)
-> >>
-> >> Firmware ABI is defined in patches 4 and 5.
-> >>
-> >> Patches 12 and 13 are of the same file, the former contains all h/w programming
-> >> related code, the latter implements interface functions for access fw & hw
-> >> capabilities.
-> >>
-> >> Patch 14 has a dependency on Sakari's V4L2_BUF_TYPE_META_OUTPUT work:
-> >>
-> >> <URL:https://patchwork.kernel.org/patch/9976295/>
-> > I've pushed the latest set here:
+> > From semantic point of view, it looks fine, but where is the rectangle
+> > actually set to the hardware?
 > >
-> > <URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=meta-output>
-> >
-> > You can just say the entire set depends on those going forward; the
-> > documentation is needed, too.
-> >
-> >> Patch 15 represents the top level that glues all of the other components together,
-> >> passing arguments between the components.
-> >>
-> >> Patch 16 is a recent effort to extend v6 for advanced camera features like
-> >> Continuous View Finder (CVF) and Snapshot During Video(SDV) support.
-> >>
-> >> Link to user space implementation:
-> >>
-> >> git clone https://chromium.googlesource.com/chromiumos/platform/arc-camera
-> >>
-> >> ImgU media topology print:
-> >>
-> >> # media-ctl -d /dev/media0 -p
-> >> Media controller API version 4.19.0
-> >>
-> >> Media device information
-> >> ------------------------
-> >> driver          ipu3-imgu
-> >> model           ipu3-imgu
-> >> serial          
-> >> bus info        PCI:0000:00:05.0
-> >> hw revision     0x80862015
-> >> driver version  4.19.0
-> >>
-> >> Device topology
-> >> - entity 1: ipu3-imgu 0 (5 pads, 5 links)
-> >>             type V4L2 subdev subtype Unknown flags 0
-> >>             device node name /dev/v4l-subdev0
-> >> 	pad0: Sink
-> >> 		[fmt:UYVY8_2X8/1920x1080 field:none colorspace:unknown
-> > This doesn't seem right. Which formats can be enumerated from the pad?
+> > Best regards,
+> > Tomasz
+>
+> As this set selection call occurs before the hfi session initialization,
+> for now we are holding these values in driver.
+>
+> As this call is followed by VIDIOC_REQBUFS(), as a part of this
+> we have venc_init_session
+>
+> static int venc_init_session(struct venus_inst *inst)
+> {
+>         int ret;
+>
+>         ret = hfi_session_init(inst, inst->fmt_cap->pixfmt);
+>         if (ret)
+>                 return ret;
+>
+>         ret = venus_helper_set_input_resolution(inst, inst->width,
+>                                                 inst->height);
+>         if (ret)
+>                 goto deinit;
+>
+>         ret = venus_helper_set_output_resolution(inst, inst->width,
+>                                                  inst->height,
+>                                                  HFI_BUFFER_OUTPUT);
 
-Looking at the code, the OUTPUT video nodes have 10-bit GRBG (or a variant)
-format whereas the CAPTURE video nodes always have NV12. Can you confirm?
+Something sounds not right here. Shouldn't one of the width/height be
+the OUPUT format and the other the selection CROP target rectangle?
 
-If the OUTPUT video node format selection has no effect on the rest of the
-pipeline (device capabilities, which processing blocks are in use, CAPTURE
-video nodes formats etc.), I think you could simply use the FIXED media bus
-code for each pad. That would actually make sense: this device always works
-from memory to memory, and thus does not really have a pixel data bus
-external to the device which is what the media bus codes really are for.
+>         if (ret)
+>                 goto deinit;
+>
+>         ret = venus_helper_set_color_format(inst, inst->fmt_out->pixfmt);
+>         if (ret)
+>                 goto deinit;
+>
+>         ret = venc_set_properties(inst);
+>
+>
+>  From here we set these values to hardware.
 
-> >
-> >> 		 crop:(0,0)/1920x1080
-> >> 		 compose:(0,0)/1920x1080]
-> > Does the compose rectangle affect the scaling on all outputs?
-> Sakari, driver use crop and compose targets to help set input-feeder and BDS
-> output resolutions which are 2 key block of whole imaging pipeline, not the
-> actual ending output, but they will impact the final output.
+Okay, thanks for the explanation. In this case, we must return -EBUSY
+if selection is attempted to be set after the session is initialized.
 
-Ack. Thanks for the clarification.
-
-> >
-> >> 		<- "ipu3-imgu 0 input":0 []
-> > Are there links that have no useful link configuration? If so, you should
-> > set them enabled and immutable in the driver.
-> The enabled status of input pads is used to get which pipe that user is
-> trying to enable (ipu3_link_setup()), so it could not been set as immutable.
-
-But the rest of them could be, right?
-
-> >
-> >> 	pad1: Sink
-> >> 		[fmt:UYVY8_2X8/1920x1080 field:none colorspace:unknown]
-> > I'd suggest to use MEDIA_BUS_FMT_FIXED here.
-> >
-> >> 		<- "ipu3-imgu 0 parameters":0 []
-> >> 	pad2: Source
-> >> 		[fmt:UYVY8_2X8/1920x1080 field:none colorspace:unknown]
-> >> 		-> "ipu3-imgu 0 output":0 []
-> >> 	pad3: Source
-> >> 		[fmt:UYVY8_2X8/1920x1080 field:none colorspace:unknown]
-> >> 		-> "ipu3-imgu 0 viewfinder":0 []
-> > Are there other differences between output and viewfinder?
-> output and viewfinder are the main and secondary output of output system.
-> 'main' output is not allowed to be scaled, only support crop. secondary
-> output 'viewfinder'
-> can support both cropping and scaling. User can select different nodes
-> to use
-> as preview and capture flexibly based on the actual use cases.
-
-If there's scaling to be configured, I'd expect to see the COMPOSE target
-supported.
-
--- 
-Kind regards,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+Best regards,
+Tomasz
