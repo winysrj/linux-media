@@ -1,42 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:37679 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727667AbeKIXS3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Nov 2018 18:18:29 -0500
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] vivid: free bitmap_cap when updating std/timings/etc.
-Message-ID: <87284cfc-feea-41fe-cbbd-879a14ae8a6b@xs4all.nl>
-Date: Fri, 9 Nov 2018 14:37:44 +0100
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:51705 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727781AbeKIX1R (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Nov 2018 18:27:17 -0500
+Date: Fri, 9 Nov 2018 14:46:24 +0100
+From: Marco Felsch <m.felsch@pengutronix.de>
+To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com
+Cc: kernel@pengutronix.de, devicetree@vger.kernel.org,
+        p.zabel@pengutronix.de, javierm@redhat.com,
+        laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
+        afshin.nasser@gmail.com, linux-media@vger.kernel.org
+Subject: Re: [PATCH v3 0/9] TVP5150 fixes and new features
+Message-ID: <20181109134624.2fxin2erjun57lrh@pengutronix.de>
+References: <20180918131453.21031-1-m.felsch@pengutronix.de>
+ <20181029184113.5tfdjdlj75m2wd6m@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20181029184113.5tfdjdlj75m2wd6m@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When vivid_update_format_cap() is called it should free any overlay
-bitmap since the compose size will change.
+Hi Mauro,
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
-Reported-by: syzbot+0cc8e3cc63ca373722c6@syzkaller.appspotmail.com
----
- drivers/media/platform/vivid/vivid-vid-cap.c | 2 ++
- 1 file changed, 2 insertions(+)
+I don't want to spam you. Can you give me some feedback? I know the
+merge window is a busy time, so maybe you have some time now.
 
-diff --git a/drivers/media/platform/vivid/vivid-vid-cap.c b/drivers/media/platform/vivid/vivid-vid-cap.c
-index 9c8e8be81ce3..46d4e53ce763 100644
---- a/drivers/media/platform/vivid/vivid-vid-cap.c
-+++ b/drivers/media/platform/vivid/vivid-vid-cap.c
-@@ -451,6 +451,8 @@ void vivid_update_format_cap(struct vivid_dev *dev, bool keep_controls)
- 		tpg_s_rgb_range(&dev->tpg, v4l2_ctrl_g_ctrl(dev->rgb_range_cap));
- 		break;
- 	}
-+	vfree(dev->bitmap_cap);
-+	dev->bitmap_cap = NULL;
- 	vivid_update_quality(dev);
- 	tpg_reset_source(&dev->tpg, dev->src_rect.width, dev->src_rect.height, dev->field_cap);
- 	dev->crop_cap = dev->src_rect;
+Regards,
+Marco
+
+On 18-10-29 19:41, Marco Felsch wrote:
+> Hi Mauro,
+> 
+> just a reminder, Rob already added his ack/rev-by tags.
+> 
+> Thanks,
+> Marco
+> 
+> On 18-09-18 15:14, Marco Felsch wrote:
+> > Hi,
+> > 
+> > this is my v3 with the integrated reviews from my v2 [1]. This serie
+> > applies to Mauro's experimental.git [2].
+> > 
+> > @Mauro:
+> > Patch ("media: tvp5150: fix irq_request error path during probe") is new
+> > in this series. Maybe you can squash them with ("media: tvp5150: Add sync lock
+> > interrupt handling"), thanks.
+> > 
+> > I've tested this series on a customer dt-based board. Unfortunately I
+> > haven't a device which use the em28xx driver. So other tester a welcome :)
+> > 
+> > [1] https://www.spinics.net/lists/devicetree/msg244129.html
+> > [2] https://git.linuxtv.org/mchehab/experimental.git/log/?h=tvp5150-4
+> > 
+> > Javier Martinez Canillas (1):
+> >   partial revert of "[media] tvp5150: add HW input connectors support"
+> > 
+> > Marco Felsch (7):
+> >   media: tvp5150: fix irq_request error path during probe
+> >   media: tvp5150: add input source selection of_graph support
+> >   media: dt-bindings: tvp5150: Add input port connectors DT bindings
+> >   media: v4l2-subdev: add stubs for v4l2_subdev_get_try_*
+> >   media: v4l2-subdev: fix v4l2_subdev_get_try_* dependency
+> >   media: tvp5150: add FORMAT_TRY support for get/set selection handlers
+> >   media: tvp5150: add s_power callback
+> > 
+> > Michael Tretter (1):
+> >   media: tvp5150: initialize subdev before parsing device tree
+> > 
+> >  .../devicetree/bindings/media/i2c/tvp5150.txt |  92 ++-
+> >  drivers/media/i2c/tvp5150.c                   | 657 +++++++++++++-----
+> >  include/dt-bindings/media/tvp5150.h           |   2 -
+> >  include/media/v4l2-subdev.h                   |  15 +-
+> >  4 files changed, 584 insertions(+), 182 deletions(-)
+> > 
+> > -- 
+> > 2.19.0
+> > 
+> > 
+> > 
+> 
+> -- 
+> Pengutronix e.K.                           |                             |
+> Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+> Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+> Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+> 
+> 
+
 -- 
-2.19.1
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
