@@ -1,106 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:34005 "EHLO
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:38530 "EHLO
         lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727995AbeKITgI (ORCPT
+        by vger.kernel.org with ESMTP id S1727532AbeKITgI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Fri, 9 Nov 2018 14:36:08 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Cc: Maxime Ripard <maxime.ripard@bootlin.com>,
         Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 1/5] videodev2.h: add cookie support
-Date: Fri,  9 Nov 2018 10:56:09 +0100
-Message-Id: <20181109095613.28272-2-hverkuil@xs4all.nl>
-In-Reply-To: <20181109095613.28272-1-hverkuil@xs4all.nl>
-References: <20181109095613.28272-1-hverkuil@xs4all.nl>
+        Tomasz Figa <tfiga@chromium.org>
+Subject: [RFC PATCH 0/5] vb2/cedrus: add cookie support
+Date: Fri,  9 Nov 2018 10:56:08 +0100
+Message-Id: <20181109095613.28272-1-hverkuil@xs4all.nl>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+As was discussed here (among other places):
 
-Add support for 'cookies' to struct v4l2_buffer. These can be used to
-by m2m devices so userspace can set a cookie in an output buffer and
-this value will then be copied to the capture buffer(s).
+https://lkml.org/lkml/2018/10/19/440
 
-This cookie can be used to refer to capture buffers, something that
-is needed by stateless HW codecs.
+using capture queue buffer indices to refer to reference frames is
+not a good idea. A better idea is to use 'cookies' (a better name is
+welcome!) where the application can assign a u64 cookie to an output
+buffer, which is then copied to the capture buffer(s) derived from the
+output buffer.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- include/uapi/linux/videodev2.h | 36 +++++++++++++++++++++++++++++++++-
- 1 file changed, 35 insertions(+), 1 deletion(-)
+A u64 is chosen since this allows userspace to also use pointers to
+internal structures as 'cookie'.
 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index c8e8ff810190..180df3451057 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -912,6 +912,11 @@ struct v4l2_plane {
- 	__u32			reserved[11];
- };
- 
-+struct v4l2_cookie {
-+	__u32 low;
-+	__u32 high;
-+};
-+
- /**
-  * struct v4l2_buffer - video buffer info
-  * @index:	id number of the buffer
-@@ -950,7 +955,10 @@ struct v4l2_buffer {
- 	__u32			flags;
- 	__u32			field;
- 	struct timeval		timestamp;
--	struct v4l2_timecode	timecode;
-+	union {
-+		struct v4l2_timecode	timecode;
-+		struct v4l2_cookie	cookie;
-+	};
- 	__u32			sequence;
- 
- 	/* memory location */
-@@ -988,6 +996,8 @@ struct v4l2_buffer {
- #define V4L2_BUF_FLAG_IN_REQUEST		0x00000080
- /* timecode field is valid */
- #define V4L2_BUF_FLAG_TIMECODE			0x00000100
-+/* cookie field is valid */
-+#define V4L2_BUF_FLAG_COOKIE			0x00000200
- /* Buffer is prepared for queuing */
- #define V4L2_BUF_FLAG_PREPARED			0x00000400
- /* Cache handling flags */
-@@ -1007,6 +1017,30 @@ struct v4l2_buffer {
- /* request_fd is valid */
- #define V4L2_BUF_FLAG_REQUEST_FD		0x00800000
- 
-+static inline void v4l2_buffer_set_cookie(struct v4l2_buffer *buf, __u64 cookie)
-+{
-+	buf->cookie.high = cookie >> 32;
-+	buf->cookie.low = cookie & 0xffffffffULL;
-+	buf->flags |= V4L2_BUF_FLAG_COOKIE;
-+}
-+
-+static inline void v4l2_buffer_set_cookie_ptr(struct v4l2_buffer *buf, const void *cookie)
-+{
-+	v4l2_buffer_set_cookie(buf, (__u64)cookie);
-+}
-+
-+static inline __u64 v4l2_buffer_get_cookie(const struct v4l2_buffer *buf)
-+{
-+	if (!(buf->flags & V4L2_BUF_FLAG_COOKIE))
-+		return 0;
-+	return (((__u64)buf->cookie.high) << 32) | (__u64)buf->cookie.low;
-+}
-+
-+static inline void *v4l2_buffer_get_cookie_ptr(const struct v4l2_buffer *buf)
-+{
-+	return (void *)v4l2_buffer_get_cookie(buf);
-+}
-+
- /**
-  * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
-  *
+The first two patches add core cookie support, the next two patches
+add cookie support to vim2m and vicodec, and the final patch (compile
+tested only!) adds support to the cedrus driver.
+
+I also removed the 'pad' fields from the mpeg2 control structs (it
+should never been added in the first place) and aligned the structs
+to a u32 boundary (u64 for the cookie values).
+
+The cedrus code now also copies the timestamps (didn't happen before)
+but the sequence counter is still not set, that's something that should
+still be added.
+
+Note: if no buffer is found for a certain cookie, then the dma address
+is just set to 0. That happened before as well with invalid buffer
+indices. This should be checked in the driver!
+
+Also missing in this series are documentation updates, which is why
+it is marked RFC.
+
+I would very much appreciate it if someone can test the cedrus driver
+with these changes. If it works, then I can prepare a real patch series
+for 4.20. It would be really good if the API is as stable as we can make
+it before 4.20 is released.
+
+Regards,
+
+	Hans
+
+Hans Verkuil (5):
+  videodev2.h: add cookie support
+  vb2: add cookie support
+  vim2m: add cookie support
+  vicodec: add cookie support
+  cedrus: add cookie support
+
+ .../media/common/videobuf2/videobuf2-v4l2.c   | 41 ++++++++++++++++---
+ drivers/media/platform/vicodec/vicodec-core.c |  3 ++
+ drivers/media/platform/vim2m.c                |  3 ++
+ drivers/media/v4l2-core/v4l2-ctrls.c          |  9 ----
+ drivers/staging/media/sunxi/cedrus/cedrus.h   |  8 ++--
+ .../staging/media/sunxi/cedrus/cedrus_dec.c   | 10 +++++
+ .../staging/media/sunxi/cedrus/cedrus_mpeg2.c | 23 +++++------
+ include/media/videobuf2-v4l2.h                | 18 ++++++++
+ include/uapi/linux/v4l2-controls.h            | 14 +++----
+ include/uapi/linux/videodev2.h                | 36 +++++++++++++++-
+ 10 files changed, 126 insertions(+), 39 deletions(-)
+
 -- 
 2.19.1
