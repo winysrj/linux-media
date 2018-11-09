@@ -1,102 +1,261 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk1-f193.google.com ([209.85.222.193]:45552 "EHLO
-        mail-qk1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725799AbeKJGsq (ORCPT
+Received: from mail-it1-f193.google.com ([209.85.166.193]:38550 "EHLO
+        mail-it1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725799AbeKJHAB (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 10 Nov 2018 01:48:46 -0500
-Received: by mail-qk1-f193.google.com with SMTP id d135so4095051qkc.12
-        for <linux-media@vger.kernel.org>; Fri, 09 Nov 2018 13:06:27 -0800 (PST)
-Message-ID: <415abde4ccf854e58df2aaf68d45eae7150d03c7.camel@ndufresne.ca>
-Subject: Re: [RFP] Which V4L2 ioctls could be replaced by better versions?
-From: Nicolas Dufresne <nicolas@ndufresne.ca>
-To: Tomasz Figa <tfiga@chromium.org>
-Cc: pza@pengutronix.de, Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Date: Fri, 09 Nov 2018 16:06:23 -0500
-In-Reply-To: <CAAFQd5DcJ8XSseE-GJDoftsmfDa=Vo9_wwn-_pAx54HNhL1vWA@mail.gmail.com>
-References: <d49940b7-af62-594e-06ad-8ec113589340@xs4all.nl>
-         <6efdab2da3e4263a49a6a2630df7f79511302088.camel@ndufresne.ca>
-         <CAAFQd5BsvtqM3QriFd5vo55ZDKxFcnGAR21Y7ch247jXX6-iQg@mail.gmail.com>
-         <20181021162843.ys6eqbbyg5w5ufrv@pengutronix.de>
-         <CAAFQd5A3a1o55pcV6Kn5ZWXQFYJvuv4y1+oD4=PEZXoYMhrX0Q@mail.gmail.com>
-         <9ac3abb4a8dee94bd2adca6c781bf8c58f68b945.camel@ndufresne.ca>
-         <CAAFQd5DcJ8XSseE-GJDoftsmfDa=Vo9_wwn-_pAx54HNhL1vWA@mail.gmail.com>
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-        boundary="=-sTsG3JM1JUUlhN+TLSOk"
-Mime-Version: 1.0
+        Sat, 10 Nov 2018 02:00:01 -0500
+Received: by mail-it1-f193.google.com with SMTP id k141-v6so5433630itk.3
+        for <linux-media@vger.kernel.org>; Fri, 09 Nov 2018 13:17:39 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <20334055-77db-49cc-f0f6-f467ea9c220f@xs4all.nl>
+References: <CACT4Y+YHx3RUMGLv5T=-FJDZKEavK+sWBbAbenfm8mTQry8F+w@mail.gmail.com>
+ <ea1f7e70-6e8c-76a2-291d-228f99ca0cd4@xs4all.nl> <CACT4Y+Y396cyUx+tmo6_YT7bmBt63-AYe5i0OG_5tuAUc+281A@mail.gmail.com>
+ <20334055-77db-49cc-f0f6-f467ea9c220f@xs4all.nl>
+From: Dmitry Vyukov <dvyukov@google.com>
+Date: Fri, 9 Nov 2018 13:17:18 -0800
+Message-ID: <CACT4Y+Y-0Dge=2atfX+_33+q1=wJ_82hzRKoeGSx7oRrds4R4A@mail.gmail.com>
+Subject: Re: VIVID/VIMC and media fuzzing
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: helen.koike@collabora.com, syzkaller <syzkaller@googlegroups.com>,
+        linux-media@vger.kernel.org, mchehab@kernel.org,
+        Sami Tolvanen <samitolvanen@google.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Fri, Nov 9, 2018 at 6:16 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> Hi Dmitry,
+>
+> On 11/02/18 18:15, Dmitry Vyukov wrote:
+>> On Wed, Oct 31, 2018 at 10:46 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>> On 10/30/2018 03:02 PM, Dmitry Vyukov wrote:
+>>>> Hello Helen and linux-media,
+>>>>
+>>>> I've attended your talk "Shifting Media App Development into High
+>>>> Gear" on OSS Summit last week and approached you with some questions
+>>>> if/how this can be used for kernel testing. Thanks, turn out to be a
+>>>> very useful talk!
+>>>>
+>>>> I am working on syzkaller/syzbot, continuous kernel fuzzing system:
+>>>> https://github.com/google/syzkaller
+>>>> https://github.com/google/syzkaller/blob/master/docs/syzbot.md
+>>>> https://syzkaller.appspot.com
+>>>>
+>>>> After simply enabling CONFIG_VIDEO_VIMC, CONFIG_VIDEO_VIM2M,
+>>>> CONFIG_VIDEO_VIVID, CONFIG_VIDEO_VICODEC syzbot has found 8 bugs in
+>>>> media subsystem in just 24 hours:
+>>>>
+>>>> KASAN: use-after-free Read in vb2_mmap
+>>>> https://groups.google.com/forum/#!msg/syzkaller-bugs/XGGH69jMWQ0/S8vfxgEmCgAJ
+>>>>
+>>>> KASAN: use-after-free Write in __vb2_cleanup_fileio
+>>>> https://groups.google.com/forum/#!msg/syzkaller-bugs/qKKhsZVPo3o/P6AB2of2CQAJ
+>>>>
+>>>> WARNING in __vb2_queue_cancel
+>>>> https://groups.google.com/forum/#!msg/syzkaller-bugs/S29GU_NtfPY/ZvAz8UDtCQAJ
+>>>>
+>>>> divide error in vivid_vid_cap_s_dv_timings
+>>>> https://groups.google.com/forum/#!msg/syzkaller-bugs/GwF5zGBCfyg/wnuWmW_sCQAJ
+>>>
+>>> Should be fixed by https://patchwork.linuxtv.org/patch/52641/
+>>>
+>>>>
+>>>> KASAN: use-after-free Read in wake_up_if_idle
+>>>> https://groups.google.com/forum/#!msg/syzkaller-bugs/aBWb_yV1kiI/sWQO63fkCQAJ
+>>>>
+>>>> KASAN: use-after-free Read in __vb2_perform_fileio
+>>>> https://groups.google.com/forum/#!msg/syzkaller-bugs/MdFCZHz0LUQ/qSK_bFbcCQAJ
+>>>>
+>>>> INFO: task hung in vivid_stop_generating_vid_cap
+>>>> https://groups.google.com/forum/#!msg/syzkaller-bugs/F_KFW6PVyTA/wTBeHLfTCQAJ
+>>>>
+>>>> KASAN: null-ptr-deref Write in kthread_stop
+>>>> https://groups.google.com/forum/#!msg/syzkaller-bugs/u0AGnYvSlf4/fUiyfA_TCQAJ
+>>>
+>>> These last two should be fixed by https://patchwork.linuxtv.org/patch/52640/
+>>
+>> This is great!
+>> This last one happens super frequently, so harms ability to find other bugs.
+>>
+>>> Haven't figured out the others yet (hope to get back to that next week).
+>>
+>> But note that syzbot added few more too! :)
+>
+> As of now (Fri Nov  9 14:47:31 CET 2018) I fixed all media-related syzbot
+> issues with the exception of https://syzkaller.appspot.com/bug?extid=f9966a25169b6d66d61f
 
---=-sTsG3JM1JUUlhN+TLSOk
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+This is great!
+I will look into that one, or maybe syzbot will come up with a repro
+later. But since it happened only 2 times, it's probably either a
+subtle race, or requires interaction between several test processes
+(we generally try to keep them isolated, but since this is a global
+device collisions are possible).
 
-Le jeudi 08 novembre 2018 =C3=A0 16:45 +0900, Tomasz Figa a =C3=A9crit :
-> > In this patch we should consider a way to tell userspace that this has
-> > been opt in, otherwise existing userspace will have to remain using
-> > sub-optimal copy based reclaiming in order to ensure that renegotiation
-> > can work on older kernel tool. At worst someone could probably do trial
-> > and error (reqbufs(1)/mmap/reqbufs(0)) but on CMA with large buffers
-> > this introduces extra startup time.
->=20
-> Would such REQBUFS dance be really needed? Couldn't one simply try
-> reqbufs(0) when it's really needed and if it fails then do the copy,
-> otherwise just proceed normally?
+> There is no reproducer for that one and I couldn't figure out how it could
+> happen.
+>
+> I've posted patches for all issues except for two that deal with reproducers
+> using dup2(). I need to think about my fixes a bit more. dup2() is very nasty :-)
+>
+> What would be a good improvement is if you add this to the kernel command options:
+> "vivid.n_devs=2 vivid.multiplanar=1,2"
+>
+> This will create two vivid instances, one using the single planar API and one using
+> the multiplanar API. That will improve the test coverage.
 
-In simple program, maybe, in modularized code, where the consumer of
-these buffer (the one that is forced to make a copy) does not know the
-origin of the DMABuf, it's a bit complicated.
+Re this and collisions between multiple test processes. We actually
+would like to have moar devices and partition them between test
+processes. Say if we need need devices for 8 test processes, will it
+work to specify something like "vivid.n_devs=16
+vivid.multiplanar=1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2" and then use
+devices 0/1 in the first test process, 2/3 in the second and so on?
 
-In GStreamer as an example, the producer is a plugin called
-libgstvideo4linux2.so, while the common consumer would be libgstkms.so.
-They don't know each other. The pipeline would be described as:
+Without giving any flags, I see 8 /dev/video* devices, does
+vivid.n_devs defaults to 8?
 
-  v4l2src ! kmssink
+> I also noticed that you appear to test only video devices. But vivid also creates
+> vbi, radio and swradio devices. It would be nice to have those tested as well.
 
-GStreamer does not have an explicit reclaiming mechanism. No one knew
-about V4L2 restrictions when this was designed, DMABuf didn't exist and
-GStreamer didn't have OMX support.
+Will do.
+FTR, this is these devices:
 
-What we ended up crafting, as a plaster, is that when upstream element
-(v4l2src) query a new allocation from downstream (kmssink), we always
-copy and return any ancient buffers by copying. kmssink holds on a
-buffer because we can't remove the scannout buffer on the display. This
-is slow and inefficient, and also totally unneeded if the dmabuf
-originate from other kernel subsystems (like DRM).
+# ls -l /dev/{vbi,radio,swradio}*
+crw-rw---- 1 root video 81, 14 Nov  9 21:07 /dev/radio0
+crw-rw---- 1 root video 81, 15 Nov  9 21:07 /dev/radio1
+crw-rw---- 1 root video 81, 13 Nov  9 21:07 /dev/swradio0
+crw-rw---- 1 root video 81, 11 Nov  9 21:07 /dev/vbi0
+crw-rw---- 1 root video 81, 12 Nov  9 21:07 /dev/vbi1
 
-So what I'd like to be able to do, to support this in a more optimal
-and generic way, is to mark the buffers that needs reclaiming before
-letting them go. But for that, I would need a flag somewhere to tell me
-this kernel allow this.
+Why are there 2 radio and vbi? Are they different? Is it possible to
+also create more of them? Are there any other useful command line args
+for them?
 
-You got the context, maybe the conclusion is that I should simply do
-kernel version check, though I'm sure a lot of people will backport
-this, which means that check won't work so well.
 
-Let me know, I understand adding more API is not fun, but as nothing is
-ever versionned in the linux-media world, it's really hard to detect
-and use new behaviour while supporting what everyone currently run on
-their systems.
+>>>> Based on this I think if we put more effort into media fuzzing, it
+>>>> will be able to find dozens more.
+>>>
+>>> Yeah, this is good stuff. Thank you for setting this up.
+>>>
+>>>>
+>>>> syzkaller needs descriptions of kernel interfaces to efficiently cover
+>>>> a subsystem. For example, see:
+>>>> https://github.com/google/syzkaller/blob/master/sys/linux/uinput.txt
+>>>> Hopefully you can read it without much explanation, it basically
+>>>> states that there is that node in /dev and here are ioctls and other
+>>>> syscalls that are relevant for this device and here are types of
+>>>> arguments and layout of involved data structures.
+>>>>
+>>>> Turned we actually have such descriptions for /dev/video* and /dev/v4l-subdev*:
+>>>> https://github.com/google/syzkaller/blob/master/sys/linux/video4linux.txt
+>>>> But we don't have anything for /dev/media*, fuzzer merely knows that
+>>>> it can open the device:
+>>>> https://github.com/google/syzkaller/blob/12b38f22c18c6109a5cc1c0238d015eef121b9b7/sys/linux/sys.txt#L479
+>>>> and then it will just blindly execute completely random workload on
+>>>> it, e.g. most likely it won't be able to come up with a proper complex
+>>>> structure layout for some ioctls. And I am actually not completely
+>>>> sure about completeness and coverage of video4linux.txt descriptions
+>>>> too as they were contributed by somebody interested in android
+>>>> testing.
+>>>
+>>> A quick look suggests that it is based on the 4.9 videodev2.h, which ain't
+>>> too bad. There are some differences between the 4.20 videodev2.h and the
+>>> 4.9, but not too many.
+>>
+>>
+>> Makes sense because the latest android use 4.9.
+>> Looking at the diff with 4.9 it seems that the APIs were mostly just
+>> extended, so we just need to extend syzkaller descriptions
+>> correspondingly.
+>>
+>>>> I wonder if somebody knowledgeable in /dev/media interface be willing
+>>>> to contribute additional descriptions?
+>>>
+>>> We'll have to wait for 4.20-rc1 to be released since there are important
+>>> additions to the media API.
+>>
+>> Additions are fine. We can extend syzkaller descriptions later too.
+>> But if they are already in, say, linux-next, then syzbot tests it too.
+>>
+>>
+>>> I can probably come up with something, I'm
+>>> just not sure when I get around to it. Ping me in three weeks time if you
+>>> haven't heard from me.
+>>>
+>>>>
+>>>> We also have code coverage reports with the coverage fuzzer achieved
+>>>> so far. Here in the Cover column:
+>>>> https://syzkaller.appspot.com/#managers
+>>>> e.g. this one (but note this is a ~80MB html file):
+>>>> https://storage.googleapis.com/syzkaller/cover/ci-upstream-kasan-gce-root.html
+>>>> This can be used to assess e.g. v4l coverage. But I don't know what's
+>>>> coverable in general from syscalls and what's coverable via the stub
+>>>> drivers in particular. So some expertise from media developers would
+>>>> be helpful too.
+>>>
+>>> The four virtual drivers should give pretty decent coverage of the core
+>>> code. Are you able to test with a 32-bit syzkaller application on a 64-bit
+>>> kernel as well? That way the compat32 code is tested.
+>>
+>> This is coverage from 32-bit instance:
+>> https://storage.googleapis.com/syzkaller/cover/ci-upstream-kasan-gce-386.html
+>> There is some coverage in drivers/media, but I don't know where to
+>> look specifically. E.g. drivers/media/v4l2-core/v4l2-ioctl.c does not
+>> mention "compat".
+>
+> It's in drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+>
+> BTW, is ci-upstream-kasan-gce-386.html a 64 bit kernel with 32 bit apps? Or
+> is it a 32-bit kernel? The latter is not very interesting.
 
-I would probably try and find a way to implement your suggestion, and
-then introduce a flag in the query itself, but I would need to think
-about it a little more. It's not as simple as it look like
-unfortunately.
+Yes, it's 64-bit kernel and 32-bit app. Yet to find anybody who would
+be interested in 32-bit x86 kernel today :)
 
-Nicolas
 
---=-sTsG3JM1JUUlhN+TLSOk
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+>>>> Do I understand it correctly that when a process opens /dev/video* or
+>>>> /dev/media* it gets a private instance of the device? In particular,
+>>>> if several processes test this in parallel, will they collide? Or they
+>>>> will stress separate objects?
+>>>
+>>> It actually depends on the driver. M2M devices will give you a private
+>>> instance whenever you open it. Others do not, but you can call most ioctls
+>>> in parallel. But after calling REQBUFS or CREATE_BUFS the filehandle that
+>>> called those ioctls becomes owner of the device until the buffers are
+>>> released. So other filehandles cannot do any streaming operations (EBUSY
+>>> will be returned).
+>>
+>> Are the devices created by VIMC, VIM2M, VIVID, VICODEC M2M or not?
+>> I guess VIM2M is M2M, but what about others?
+>
+> vim2m and vicodec are memory-to-memory devices. But vivid and vimc are not.
+>
+> Easy to check: v4l2-ctl -D -d /dev/videoX will report Video Memory-to-Memory
+> capabilities.
+>
+>>
+>> CREATE_BUFS privatization is somewhat unfortunate, but I guess we can
+>> live with it for now.
+>
+> Sorry, I'm not sure what you mean.
 
------BEGIN PGP SIGNATURE-----
+You said:
 
-iF0EABECAB0WIQSScpfJiL+hb5vvd45xUwItrAaoHAUCW+X20AAKCRBxUwItrAao
-HPZgAJ4t7bAcV6AljSnQUyDShArXUYdcHgCdGKqhLgetcCq7g0hKaFLuqXU/+NE=
-=Ydtj
------END PGP SIGNATURE-----
+>> But after calling REQBUFS or CREATE_BUFS the filehandle that
+>> called those ioctls becomes owner of the device until the buffers are
+>> released. So other filehandles cannot do any streaming operations (EBUSY
+>> will be returned).
 
---=-sTsG3JM1JUUlhN+TLSOk--
+This semantics are somewhat unfortunate for syzkaller because one test
+process will affect/block other test processes, and we try to make
+them as independent as possible. E.g. If this can affect syzkaller
+ability to create reproducers, because in one run of a test if was
+affected by an unrelated test and crashed, but if we try to reproduce
+the crash on the same test it won't crash again because now it's not
+affected by the unrelated test.
+
+But if we create more devices and partition them across test
+processes, it will resolve this problem?
+
+
+>> I assume that when the process dies it will release everything at
+>> least, because fuzzer will sure not pair create with release all the
+>> time.
