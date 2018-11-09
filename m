@@ -1,156 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:45204 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725752AbeKJFOR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 10 Nov 2018 00:14:17 -0500
-Date: Fri, 9 Nov 2018 14:32:14 -0500
-From: Steven Rostedt <rostedt@goodmis.org>
-To: "Matwey V. Kornilov" <matwey@sai.msu.ru>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        matwey.kornilov@gmail.com, tfiga@chromium.org,
-        laurent.pinchart@ideasonboard.com, stern@rowland.harvard.edu,
-        ezequiel@collabora.com, hdegoede@redhat.com, hverkuil@xs4all.nl,
-        mchehab@kernel.org, mingo@redhat.com, isely@pobox.com,
-        bhumirks@gmail.com, colin.king@canonical.com,
-        kieran.bingham@ideasonboard.com, keiichiw@chromium.org
-Subject: Re: [PATCH v6 1/2] media: usb: pwc: Introduce TRACE_EVENTs for
- pwc_isoc_handler()
-Message-ID: <20181109143214.317bf6e2@gandalf.local.home>
-In-Reply-To: <20181109190327.23606-2-matwey@sai.msu.ru>
-References: <20181109190327.23606-1-matwey@sai.msu.ru>
-        <20181109190327.23606-2-matwey@sai.msu.ru>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8BIT
+Received: from mail-qk1-f193.google.com ([209.85.222.193]:45552 "EHLO
+        mail-qk1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725799AbeKJGsq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 10 Nov 2018 01:48:46 -0500
+Received: by mail-qk1-f193.google.com with SMTP id d135so4095051qkc.12
+        for <linux-media@vger.kernel.org>; Fri, 09 Nov 2018 13:06:27 -0800 (PST)
+Message-ID: <415abde4ccf854e58df2aaf68d45eae7150d03c7.camel@ndufresne.ca>
+Subject: Re: [RFP] Which V4L2 ioctls could be replaced by better versions?
+From: Nicolas Dufresne <nicolas@ndufresne.ca>
+To: Tomasz Figa <tfiga@chromium.org>
+Cc: pza@pengutronix.de, Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Date: Fri, 09 Nov 2018 16:06:23 -0500
+In-Reply-To: <CAAFQd5DcJ8XSseE-GJDoftsmfDa=Vo9_wwn-_pAx54HNhL1vWA@mail.gmail.com>
+References: <d49940b7-af62-594e-06ad-8ec113589340@xs4all.nl>
+         <6efdab2da3e4263a49a6a2630df7f79511302088.camel@ndufresne.ca>
+         <CAAFQd5BsvtqM3QriFd5vo55ZDKxFcnGAR21Y7ch247jXX6-iQg@mail.gmail.com>
+         <20181021162843.ys6eqbbyg5w5ufrv@pengutronix.de>
+         <CAAFQd5A3a1o55pcV6Kn5ZWXQFYJvuv4y1+oD4=PEZXoYMhrX0Q@mail.gmail.com>
+         <9ac3abb4a8dee94bd2adca6c781bf8c58f68b945.camel@ndufresne.ca>
+         <CAAFQd5DcJ8XSseE-GJDoftsmfDa=Vo9_wwn-_pAx54HNhL1vWA@mail.gmail.com>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+        boundary="=-sTsG3JM1JUUlhN+TLSOk"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri,  9 Nov 2018 22:03:26 +0300
-"Matwey V. Kornilov" <matwey@sai.msu.ru> wrote:
 
-> There were reports that PWC-based webcams don't work at some
-> embedded ARM platforms. [1] Isochronous transfer handler seems to
-> work too long leading to the issues in MUSB USB host subsystem.
-> Also note, that urb->giveback() handlers are still called with
-> disabled interrupts. In order to be able to measure performance of
-> PWC driver, traces are introduced in URB handler section.
-> 
-> [1] https://www.spinics.net/lists/linux-usb/msg165735.html
+--=-sTsG3JM1JUUlhN+TLSOk
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
->From a tracing perspective, I don't see anything wrong with this patch.
+Le jeudi 08 novembre 2018 =C3=A0 16:45 +0900, Tomasz Figa a =C3=A9crit :
+> > In this patch we should consider a way to tell userspace that this has
+> > been opt in, otherwise existing userspace will have to remain using
+> > sub-optimal copy based reclaiming in order to ensure that renegotiation
+> > can work on older kernel tool. At worst someone could probably do trial
+> > and error (reqbufs(1)/mmap/reqbufs(0)) but on CMA with large buffers
+> > this introduces extra startup time.
+>=20
+> Would such REQBUFS dance be really needed? Couldn't one simply try
+> reqbufs(0) when it's really needed and if it fails then do the copy,
+> otherwise just proceed normally?
 
-Reviewed-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
+In simple program, maybe, in modularized code, where the consumer of
+these buffer (the one that is forced to make a copy) does not know the
+origin of the DMABuf, it's a bit complicated.
 
--- Steve
+In GStreamer as an example, the producer is a plugin called
+libgstvideo4linux2.so, while the common consumer would be libgstkms.so.
+They don't know each other. The pipeline would be described as:
 
-> 
-> Signed-off-by: Matwey V. Kornilov <matwey@sai.msu.ru>
-> ---
->  drivers/media/usb/pwc/pwc-if.c |  7 +++++
->  include/trace/events/pwc.h     | 65 ++++++++++++++++++++++++++++++++++++++++++
->  2 files changed, 72 insertions(+)
->  create mode 100644 include/trace/events/pwc.h
-> 
-> diff --git a/drivers/media/usb/pwc/pwc-if.c b/drivers/media/usb/pwc/pwc-if.c
-> index 72704f4d5330..53c111bd5a22 100644
-> --- a/drivers/media/usb/pwc/pwc-if.c
-> +++ b/drivers/media/usb/pwc/pwc-if.c
-> @@ -76,6 +76,9 @@
->  #include "pwc-dec23.h"
->  #include "pwc-dec1.h"
->  
-> +#define CREATE_TRACE_POINTS
-> +#include <trace/events/pwc.h>
-> +
->  /* Function prototypes and driver templates */
->  
->  /* hotplug device table support */
-> @@ -260,6 +263,8 @@ static void pwc_isoc_handler(struct urb *urb)
->  	int i, fst, flen;
->  	unsigned char *iso_buf = NULL;
->  
-> +	trace_pwc_handler_enter(urb, pdev);
-> +
->  	if (urb->status == -ENOENT || urb->status == -ECONNRESET ||
->  	    urb->status == -ESHUTDOWN) {
->  		PWC_DEBUG_OPEN("URB (%p) unlinked %ssynchronously.\n",
-> @@ -348,6 +353,8 @@ static void pwc_isoc_handler(struct urb *urb)
->  	}
->  
->  handler_end:
-> +	trace_pwc_handler_exit(urb, pdev);
-> +
->  	i = usb_submit_urb(urb, GFP_ATOMIC);
->  	if (i != 0)
->  		PWC_ERROR("Error (%d) re-submitting urb in pwc_isoc_handler.\n", i);
-> diff --git a/include/trace/events/pwc.h b/include/trace/events/pwc.h
-> new file mode 100644
-> index 000000000000..a2da764a3b41
-> --- /dev/null
-> +++ b/include/trace/events/pwc.h
-> @@ -0,0 +1,65 @@
-> +/* SPDX-License-Identifier: GPL-2.0 */
-> +#if !defined(_TRACE_PWC_H) || defined(TRACE_HEADER_MULTI_READ)
-> +#define _TRACE_PWC_H
-> +
-> +#include <linux/usb.h>
-> +#include <linux/tracepoint.h>
-> +
-> +#undef TRACE_SYSTEM
-> +#define TRACE_SYSTEM pwc
-> +
-> +TRACE_EVENT(pwc_handler_enter,
-> +	TP_PROTO(struct urb *urb, struct pwc_device *pdev),
-> +	TP_ARGS(urb, pdev),
-> +	TP_STRUCT__entry(
-> +		__field(struct urb*, urb)
-> +		__field(struct pwc_frame_buf*, fbuf)
-> +		__field(int, urb__status)
-> +		__field(u32, urb__actual_length)
-> +		__field(int, fbuf__filled)
-> +		__string(name, pdev->v4l2_dev.name)
-> +	),
-> +	TP_fast_assign(
-> +		__entry->urb = urb;
-> +		__entry->fbuf = pdev->fill_buf;
-> +		__entry->urb__status = urb->status;
-> +		__entry->urb__actual_length = urb->actual_length;
-> +		__entry->fbuf__filled = (pdev->fill_buf
-> +					 ? pdev->fill_buf->filled : 0);
-> +		__assign_str(name, pdev->v4l2_dev.name);
-> +	),
-> +	TP_printk("dev=%s (fbuf=%p filled=%d) urb=%p (status=%d actual_length=%u)",
-> +		__get_str(name),
-> +		__entry->fbuf,
-> +		__entry->fbuf__filled,
-> +		__entry->urb,
-> +		__entry->urb__status,
-> +		__entry->urb__actual_length)
-> +);
-> +
-> +TRACE_EVENT(pwc_handler_exit,
-> +	TP_PROTO(struct urb *urb, struct pwc_device *pdev),
-> +	TP_ARGS(urb, pdev),
-> +	TP_STRUCT__entry(
-> +		__field(struct urb*, urb)
-> +		__field(struct pwc_frame_buf*, fbuf)
-> +		__field(int, fbuf__filled)
-> +		__string(name, pdev->v4l2_dev.name)
-> +	),
-> +	TP_fast_assign(
-> +		__entry->urb = urb;
-> +		__entry->fbuf = pdev->fill_buf;
-> +		__entry->fbuf__filled = pdev->fill_buf->filled;
-> +		__assign_str(name, pdev->v4l2_dev.name);
-> +	),
-> +	TP_printk(" dev=%s (fbuf=%p filled=%d) urb=%p",
-> +		__get_str(name),
-> +		__entry->fbuf,
-> +		__entry->fbuf__filled,
-> +		__entry->urb)
-> +);
-> +
-> +#endif /* _TRACE_PWC_H */
-> +
-> +/* This part must be outside protection */
-> +#include <trace/define_trace.h>
+  v4l2src ! kmssink
+
+GStreamer does not have an explicit reclaiming mechanism. No one knew
+about V4L2 restrictions when this was designed, DMABuf didn't exist and
+GStreamer didn't have OMX support.
+
+What we ended up crafting, as a plaster, is that when upstream element
+(v4l2src) query a new allocation from downstream (kmssink), we always
+copy and return any ancient buffers by copying. kmssink holds on a
+buffer because we can't remove the scannout buffer on the display. This
+is slow and inefficient, and also totally unneeded if the dmabuf
+originate from other kernel subsystems (like DRM).
+
+So what I'd like to be able to do, to support this in a more optimal
+and generic way, is to mark the buffers that needs reclaiming before
+letting them go. But for that, I would need a flag somewhere to tell me
+this kernel allow this.
+
+You got the context, maybe the conclusion is that I should simply do
+kernel version check, though I'm sure a lot of people will backport
+this, which means that check won't work so well.
+
+Let me know, I understand adding more API is not fun, but as nothing is
+ever versionned in the linux-media world, it's really hard to detect
+and use new behaviour while supporting what everyone currently run on
+their systems.
+
+I would probably try and find a way to implement your suggestion, and
+then introduce a flag in the query itself, but I would need to think
+about it a little more. It's not as simple as it look like
+unfortunately.
+
+Nicolas
+
+--=-sTsG3JM1JUUlhN+TLSOk
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iF0EABECAB0WIQSScpfJiL+hb5vvd45xUwItrAaoHAUCW+X20AAKCRBxUwItrAao
+HPZgAJ4t7bAcV6AljSnQUyDShArXUYdcHgCdGKqhLgetcCq7g0hKaFLuqXU/+NE=
+=Ydtj
+-----END PGP SIGNATURE-----
+
+--=-sTsG3JM1JUUlhN+TLSOk--
