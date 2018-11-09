@@ -1,95 +1,189 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm1-f65.google.com ([209.85.128.65]:54640 "EHLO
-        mail-wm1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727561AbeKITjq (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Nov 2018 14:39:46 -0500
-Received: by mail-wm1-f65.google.com with SMTP id r63-v6so1419805wma.4
-        for <linux-media@vger.kernel.org>; Fri, 09 Nov 2018 01:59:55 -0800 (PST)
-Subject: Re: [PATCH v1 3/5] media: venus: do not destroy video session during
- queue setup
-To: Srinu Gorle <sgorle@codeaurora.org>, stanimir.varbanov@linaro.org,
-        hverkuil@xs4all.nl, mchehab@kernel.org,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org
-Cc: acourbot@chromium.org, vgarodia@codeaurora.org
-References: <1538222432-25894-1-git-send-email-sgorle@codeaurora.org>
- <1538222432-25894-4-git-send-email-sgorle@codeaurora.org>
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <d8cb0c47-a3f7-314b-c65d-3c8eca724e6a@linaro.org>
-Date: Fri, 9 Nov 2018 11:59:49 +0200
+Received: from mga14.intel.com ([192.55.52.115]:34540 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727662AbeKITt7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 9 Nov 2018 14:49:59 -0500
+Date: Fri, 9 Nov 2018 12:09:54 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Bing Bu Cao <bingbu.cao@linux.intel.com>
+Cc: Yong Zhi <yong.zhi@intel.com>, linux-media@vger.kernel.org,
+        tfiga@chromium.org, mchehab@kernel.org, hans.verkuil@cisco.com,
+        laurent.pinchart@ideasonboard.com, rajmohan.mani@intel.com,
+        jian.xu.zheng@intel.com, jerry.w.hu@intel.com,
+        tuukka.toivonen@intel.com, tian.shu.qiu@intel.com,
+        bingbu.cao@intel.com
+Subject: Re: [PATCH v7 00/16] Intel IPU3 ImgU patchset
+Message-ID: <20181109100953.4xfsslyfdhajhqoa@paasikivi.fi.intel.com>
+References: <1540851790-1777-1-git-send-email-yong.zhi@intel.com>
+ <20181101120303.g7z2dy24pn5j2slo@kekkonen.localdomain>
+ <6bc1a25d-5799-5a9b-546e-3b8cf42ce976@linux.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <1538222432-25894-4-git-send-email-sgorle@codeaurora.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <6bc1a25d-5799-5a9b-546e-3b8cf42ce976@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Srinu,
+Hi Bing Bu,
 
-On 9/29/18 3:00 PM, Srinu Gorle wrote:
-> - open and close video sessions for plane properties is incorrect.
-
-Could you rephrase this statement? I really don't understand what you mean.
-
-> - add check to ensure, same instance persist from driver open to close.
-
-This assumption is wrong. The v4l client can change the codec by SFMT
-without close the device node, in that case we have to destroy and
-create a new session with new codec.
-
+On Wed, Nov 07, 2018 at 12:16:47PM +0800, Bing Bu Cao wrote:
 > 
-> Signed-off-by: Srinu Gorle <sgorle@codeaurora.org>
-> ---
->  drivers/media/platform/qcom/venus/hfi.c  | 3 +++
->  drivers/media/platform/qcom/venus/vdec.c | 2 ++
->  2 files changed, 5 insertions(+)
-> 
-> diff --git a/drivers/media/platform/qcom/venus/hfi.c b/drivers/media/platform/qcom/venus/hfi.c
-> index 36a4784..59c34ba 100644
-> --- a/drivers/media/platform/qcom/venus/hfi.c
-> +++ b/drivers/media/platform/qcom/venus/hfi.c
-> @@ -207,6 +207,9 @@ int hfi_session_init(struct venus_inst *inst, u32 pixfmt)
->  	const struct hfi_ops *ops = core->ops;
->  	int ret;
->  
-> +	if (inst->state >= INST_INIT && inst->state < INST_STOP)
-> +		return 0;
+> On 11/01/2018 08:03 PM, Sakari Ailus wrote:
+> > Hi Yong,
+> >
+> > Thanks for the update!
+> >
+> > On Mon, Oct 29, 2018 at 03:22:54PM -0700, Yong Zhi wrote:
+> >> Hi,
+> >>
+> >> This series adds support for the Intel IPU3 (Image Processing Unit)
+> >> ImgU which is essentially a modern memory-to-memory ISP. It implements
+> >> raw Bayer to YUV image format conversion as well as a large number of
+> >> other pixel processing algorithms for improving the image quality.
+> >>
+> >> Meta data formats are defined for image statistics (3A, i.e. automatic
+> >> white balance, exposure and focus, histogram and local area contrast
+> >> enhancement) as well as for the pixel processing algorithm parameters.
+> >> The documentation for these formats is currently not included in the
+> >> patchset but will be added in a future version of this set.
+> >>
+> >> The algorithm parameters need to be considered specific to a given frame
+> >> and typically a large number of these parameters change on frame to frame
+> >> basis. Additionally, the parameters are highly structured (and not a flat
+> >> space of independent configuration primitives). They also reflect the
+> >> data structures used by the firmware and the hardware. On top of that,
+> >> the algorithms require highly specialized user space to make meaningful
+> >> use of them. For these reasons it has been chosen video buffers to pass
+> >> the parameters to the device.
+> >>
+> >> On individual patches:
+> >>
+> >> The heart of ImgU is the CSS, or Camera Subsystem, which contains the
+> >> image processors and HW accelerators.
+> >>
+> >> The 3A statistics and other firmware parameter computation related
+> >> functions are implemented in patch 11.
+> >>
+> >> All IPU3 pipeline default settings can be found in patch 10.
+> >>
+> >> To access DDR via ImgU's own memory space, IPU3 is also equipped with
+> >> its own MMU unit, the driver is implemented in patch 6.
+> >>
+> >> Patch 7 uses above driver for DMA mapping operation.
+> >>
+> >> The communication between IPU3 firmware and driver is implemented with circular
+> >> queues in patch 8.
+> >>
+> >> Patch 9 provide some utility functions and manage IPU3 fw download and
+> >> install.
+> >>
+> >> The firmware which is called ipu3-fw.bin can be downloaded from:
+> >>
+> >> git://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git
+> >> (commit 2c27b0cb02f18c022d8378e0e1abaf8b7ae8188f)
+> >>
+> >> Firmware ABI is defined in patches 4 and 5.
+> >>
+> >> Patches 12 and 13 are of the same file, the former contains all h/w programming
+> >> related code, the latter implements interface functions for access fw & hw
+> >> capabilities.
+> >>
+> >> Patch 14 has a dependency on Sakari's V4L2_BUF_TYPE_META_OUTPUT work:
+> >>
+> >> <URL:https://patchwork.kernel.org/patch/9976295/>
+> > I've pushed the latest set here:
+> >
+> > <URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=meta-output>
+> >
+> > You can just say the entire set depends on those going forward; the
+> > documentation is needed, too.
+> >
+> >> Patch 15 represents the top level that glues all of the other components together,
+> >> passing arguments between the components.
+> >>
+> >> Patch 16 is a recent effort to extend v6 for advanced camera features like
+> >> Continuous View Finder (CVF) and Snapshot During Video(SDV) support.
+> >>
+> >> Link to user space implementation:
+> >>
+> >> git clone https://chromium.googlesource.com/chromiumos/platform/arc-camera
+> >>
+> >> ImgU media topology print:
+> >>
+> >> # media-ctl -d /dev/media0 -p
+> >> Media controller API version 4.19.0
+> >>
+> >> Media device information
+> >> ------------------------
+> >> driver          ipu3-imgu
+> >> model           ipu3-imgu
+> >> serial          
+> >> bus info        PCI:0000:00:05.0
+> >> hw revision     0x80862015
+> >> driver version  4.19.0
+> >>
+> >> Device topology
+> >> - entity 1: ipu3-imgu 0 (5 pads, 5 links)
+> >>             type V4L2 subdev subtype Unknown flags 0
+> >>             device node name /dev/v4l-subdev0
+> >> 	pad0: Sink
+> >> 		[fmt:UYVY8_2X8/1920x1080 field:none colorspace:unknown
+> > This doesn't seem right. Which formats can be enumerated from the pad?
 
-In fact you want to be able to call session_init multiple times but
-deinit the session only once? The hfi.c layer is designed to follow the
-states as they are expected by the firmware side, if you want to call
-session_init multiple times just make a wrapper in the vdec.c with
-reference counting.
+Looking at the code, the OUTPUT video nodes have 10-bit GRBG (or a variant)
+format whereas the CAPTURE video nodes always have NV12. Can you confirm?
 
-> +
->  	inst->hfi_codec = to_codec_type(pixfmt);
->  	reinit_completion(&inst->done);
->  
-> diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
-> index afe3b36..0035cf2 100644
-> --- a/drivers/media/platform/qcom/venus/vdec.c
-> +++ b/drivers/media/platform/qcom/venus/vdec.c
-> @@ -700,6 +700,8 @@ static int vdec_num_buffers(struct venus_inst *inst, unsigned int *in_num,
->  
->  	*out_num = HFI_BUFREQ_COUNT_MIN(&bufreq, ver);
->  
-> +	return 0;
+If the OUTPUT video node format selection has no effect on the rest of the
+pipeline (device capabilities, which processing blocks are in use, CAPTURE
+video nodes formats etc.), I think you could simply use the FIXED media bus
+code for each pad. That would actually make sense: this device always works
+from memory to memory, and thus does not really have a pixel data bus
+external to the device which is what the media bus codes really are for.
 
-OK in present implementation I decided that the codec is settled when
-streamon on both queues is called (i.e. the final session_init is made
-in streamon). IMO the correct one is to init the session in
-reqbuf(output) and deinit session in reqbuf(output, count=0)?
+> >
+> >> 		 crop:(0,0)/1920x1080
+> >> 		 compose:(0,0)/1920x1080]
+> > Does the compose rectangle affect the scaling on all outputs?
+> Sakari, driver use crop and compose targets to help set input-feeder and BDS
+> output resolutions which are 2 key block of whole imaging pipeline, not the
+> actual ending output, but they will impact the final output.
 
-The problem I see when you skip session_deinit is that the codec cannot
-be changed without closing the video node.
+Ack. Thanks for the clarification.
 
-> +
->  deinit:
->  	hfi_session_deinit(inst);
->  
-> 
+> >
+> >> 		<- "ipu3-imgu 0 input":0 []
+> > Are there links that have no useful link configuration? If so, you should
+> > set them enabled and immutable in the driver.
+> The enabled status of input pads is used to get which pipe that user is
+> trying to enable (ipu3_link_setup()), so it could not been set as immutable.
+
+But the rest of them could be, right?
+
+> >
+> >> 	pad1: Sink
+> >> 		[fmt:UYVY8_2X8/1920x1080 field:none colorspace:unknown]
+> > I'd suggest to use MEDIA_BUS_FMT_FIXED here.
+> >
+> >> 		<- "ipu3-imgu 0 parameters":0 []
+> >> 	pad2: Source
+> >> 		[fmt:UYVY8_2X8/1920x1080 field:none colorspace:unknown]
+> >> 		-> "ipu3-imgu 0 output":0 []
+> >> 	pad3: Source
+> >> 		[fmt:UYVY8_2X8/1920x1080 field:none colorspace:unknown]
+> >> 		-> "ipu3-imgu 0 viewfinder":0 []
+> > Are there other differences between output and viewfinder?
+> output and viewfinder are the main and secondary output of output system.
+> 'main' output is not allowed to be scaled, only support crop. secondary
+> output 'viewfinder'
+> can support both cropping and scaling. User can select different nodes
+> to use
+> as preview and capture flexibly based on the actual use cases.
+
+If there's scaling to be configured, I'd expect to see the COMPOSE target
+supported.
 
 -- 
-regards,
-Stan
+Kind regards,
+
+Sakari Ailus
+sakari.ailus@linux.intel.com
