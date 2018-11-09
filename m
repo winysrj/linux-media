@@ -1,46 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf1-f193.google.com ([209.85.210.193]:40809 "EHLO
-        mail-pf1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728310AbeKIRgS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Nov 2018 12:36:18 -0500
-Received: by mail-pf1-f193.google.com with SMTP id x2-v6so569334pfm.7
-        for <linux-media@vger.kernel.org>; Thu, 08 Nov 2018 23:56:55 -0800 (PST)
-From: Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>
-To: mchehab@kernel.org, robh+dt@kernel.org, todor.tomov@linaro.org,
-        hansverk@cisco.com
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>
-Subject: [PATCH] dt-bindings: media: i2c: Fix i2c address for OV5645 camera sensor
-Date: Fri,  9 Nov 2018 13:26:43 +0530
-Message-Id: <20181109075643.17575-1-manivannan.sadhasivam@linaro.org>
+Received: from mail-wm1-f65.google.com ([209.85.128.65]:39924 "EHLO
+        mail-wm1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727598AbeKIS3u (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Nov 2018 13:29:50 -0500
+Received: by mail-wm1-f65.google.com with SMTP id u13-v6so1177712wmc.4
+        for <linux-media@vger.kernel.org>; Fri, 09 Nov 2018 00:50:14 -0800 (PST)
+Subject: Re: [PATCH 0/2] sony-cxd2880: add optional vcc regulator
+To: Frank Rowand <frowand.list@gmail.com>, Yasunari.Takiguchi@sony.com
+Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+References: <1541681410-8187-1-git-send-email-narmstrong@baylibre.com>
+ <5328b351-e768-6c4a-66c4-c5f6d5894244@gmail.com>
+From: Neil Armstrong <narmstrong@baylibre.com>
+Message-ID: <b1a8f0c4-de98-5c8e-bfce-84c8f32789aa@baylibre.com>
+Date: Fri, 9 Nov 2018 09:50:11 +0100
+MIME-Version: 1.0
+In-Reply-To: <5328b351-e768-6c4a-66c4-c5f6d5894244@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The i2c address for the Omnivision OV5645 camera sensor is 0x3c. It is
-incorrectly mentioned as 0x78 in binding. Hence fix that.
+Hi Frank,
 
-Fixes: 09c716af36e6 [media] media: i2c/ov5645: add the device tree binding document
-Signed-off-by: Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>
----
- Documentation/devicetree/bindings/media/i2c/ov5645.txt | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+On 09/11/2018 03:22, Frank Rowand wrote:
+> Hi Neil,
+> 
+> On 11/8/18 4:50 AM, Neil Armstrong wrote:
+>> This patchset adds an optional VCC regulator to the bindings and driver to
+>> make sure power is enabled to the module before starting attaching to
+>> the device.
+>>
+>> Neil Armstrong (2):
+>>   media: cxd2880-spi: Add optional vcc regulator
+>>   media: sony-cxd2880: add optional vcc regulator to bindings
+>>
+>>  .../devicetree/bindings/media/spi/sony-cxd2880.txt       |  4 ++++
+>>  drivers/media/spi/cxd2880-spi.c                          | 16 ++++++++++++++++
+>>  2 files changed, 20 insertions(+)
+>>
+> 
+> Please see Documentation/devicetree/bindings/submitting-patches.txt
+> for some helpful information about submitting a series that includes
+> a bindings patch.
+> 
+> You will want to add 'dt-bindings:' into the subject line, along with the
+> current 'media:'.  And getmaintainer will give you Rob's and Mark's
+> emails.
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/ov5645.txt b/Documentation/devicetree/bindings/media/i2c/ov5645.txt
-index fd7aec9f8e24..1a68ca5eb9a3 100644
---- a/Documentation/devicetree/bindings/media/i2c/ov5645.txt
-+++ b/Documentation/devicetree/bindings/media/i2c/ov5645.txt
-@@ -26,9 +26,9 @@ Example:
- 	&i2c1 {
- 		...
- 
--		ov5645: ov5645@78 {
-+		ov5645: ov5645@3c {
- 			compatible = "ovti,ov5645";
--			reg = <0x78>;
-+			reg = <0x3c>;
- 
- 			enable-gpios = <&gpio1 6 GPIO_ACTIVE_HIGH>;
- 			reset-gpios = <&gpio5 20 GPIO_ACTIVE_LOW>;
--- 
-2.17.1
+I'll re-spin with dt-bindings, but some maintainers don't want or don't care,
+so it's always a wild guess at some point !
+
+> 
+> Thanks,
+> 
+> Frank
+> 
+
+Neil
