@@ -1,113 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:36435 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727391AbeKIOFN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Nov 2018 09:05:13 -0500
-Message-ID: <08adb605da6b848b9565408500054931@smtp-cloud8.xs4all.net>
-Date: Fri, 09 Nov 2018 05:26:24 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from mail-pl1-f195.google.com ([209.85.214.195]:41924 "EHLO
+        mail-pl1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727087AbeKIPMB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Nov 2018 10:12:01 -0500
+Received: by mail-pl1-f195.google.com with SMTP id p16-v6so406658plr.8
+        for <linux-media@vger.kernel.org>; Thu, 08 Nov 2018 21:33:06 -0800 (PST)
+Subject: Re: [PATCH 1/3] media: imx: add capture compose rectangle
+To: Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+References: <20181105152055.31254-1-p.zabel@pengutronix.de>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <67e65cb6-d963-f53d-88e6-a28349477183@gmail.com>
+Date: Thu, 8 Nov 2018 21:33:00 -0800
+MIME-Version: 1.0
+In-Reply-To: <20181105152055.31254-1-p.zabel@pengutronix.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Philipp,
 
-Results of the daily build of media_tree:
+On 11/5/18 7:20 AM, Philipp Zabel wrote:
+> Allowing to compose captured images into larger memory buffers
+> will let us lift alignment restrictions on CSI crop width.
+>
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> ---
+>   drivers/staging/media/imx/imx-ic-prpencvf.c   |  3 +-
+>   drivers/staging/media/imx/imx-media-capture.c | 38 +++++++++++++++++++
+>   drivers/staging/media/imx/imx-media-csi.c     |  3 +-
+>   drivers/staging/media/imx/imx-media-vdic.c    |  4 +-
+>   drivers/staging/media/imx/imx-media.h         |  2 +
+>   5 files changed, 44 insertions(+), 6 deletions(-)
+>
+> diff --git a/drivers/staging/media/imx/imx-ic-prpencvf.c b/drivers/staging/media/imx/imx-ic-prpencvf.c
+> index 28f41caba05d..fe5a77baa592 100644
+> --- a/drivers/staging/media/imx/imx-ic-prpencvf.c
+> +++ b/drivers/staging/media/imx/imx-ic-prpencvf.c
+> @@ -366,8 +366,7 @@ static int prp_setup_channel(struct prp_priv *priv,
+>   
+>   	memset(&image, 0, sizeof(image));
+>   	image.pix = vdev->fmt.fmt.pix;
+> -	image.rect.width = image.pix.width;
+> -	image.rect.height = image.pix.height;
+> +	image.rect = vdev->compose;
+>   
+>   	if (rot_swap_width_height) {
+>   		swap(image.pix.width, image.pix.height);
+> diff --git a/drivers/staging/media/imx/imx-media-capture.c b/drivers/staging/media/imx/imx-media-capture.c
+> index b37e1186eb2f..cace8a51aca8 100644
+> --- a/drivers/staging/media/imx/imx-media-capture.c
+> +++ b/drivers/staging/media/imx/imx-media-capture.c
+> @@ -262,6 +262,10 @@ static int capture_s_fmt_vid_cap(struct file *file, void *fh,
+>   	priv->vdev.fmt.fmt.pix = f->fmt.pix;
+>   	priv->vdev.cc = imx_media_find_format(f->fmt.pix.pixelformat,
+>   					      CS_SEL_ANY, true);
+> +	priv->vdev.compose.left = 0;
+> +	priv->vdev.compose.top = 0;
+> +	priv->vdev.compose.width = f->fmt.fmt.pix.width;
+> +	priv->vdev.compose.height = f->fmt.fmt.pix.height;
 
-date:			Fri Nov  9 05:00:10 CET 2018
-media-tree git hash:	fbe57dde7126d1b2712ab5ea93fb9d15f89de708
-media_build git hash:	0c8bb27f3aaa682b9548b656f77505c3d1f11e71
-v4l-utils git hash:	dd3ff81f58c4e1e6f33765dc61ad33c48ae6bb07
-edid-decode git hash:	5eeb151a748788666534d6ea3da07f90400d24c2
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.18.0-2-amd64
 
-linux-git-arm-at91: WARNINGS
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-multi: WARNINGS
-linux-git-arm-pxa: WARNINGS
-linux-git-arm-stm32: WARNINGS
-linux-git-arm64: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-mips: OK
-linux-git-powerpc64: WARNINGS
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: ERRORS
-linux-3.10.108-x86_64: ERRORS
-linux-3.11.10-i686: ERRORS
-linux-3.11.10-x86_64: ERRORS
-linux-3.12.74-i686: ERRORS
-linux-3.12.74-x86_64: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.79-i686: ERRORS
-linux-3.14.79-x86_64: ERRORS
-linux-3.15.10-i686: ERRORS
-linux-3.15.10-x86_64: ERRORS
-linux-3.16.57-i686: ERRORS
-linux-3.16.57-x86_64: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.123-i686: ERRORS
-linux-3.18.123-x86_64: ERRORS
-linux-3.19.8-i686: ERRORS
-linux-3.19.8-x86_64: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.52-i686: ERRORS
-linux-4.1.52-x86_64: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.159-i686: ERRORS
-linux-4.4.159-x86_64: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.10-i686: ERRORS
-linux-4.7.10-x86_64: ERRORS
-linux-4.8.17-i686: ERRORS
-linux-4.8.17-x86_64: ERRORS
-linux-4.9.131-i686: ERRORS
-linux-4.9.131-x86_64: ERRORS
-linux-4.10.17-i686: ERRORS
-linux-4.10.17-x86_64: ERRORS
-linux-4.11.12-i686: ERRORS
-linux-4.11.12-x86_64: ERRORS
-linux-4.12.14-i686: ERRORS
-linux-4.12.14-x86_64: ERRORS
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.74-i686: OK
-linux-4.14.74-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: OK
-linux-4.19.1-i686: OK
-linux-4.19.1-x86_64: OK
-linux-4.20-rc1-i686: OK
-linux-4.20-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+this should be:
 
-Logs weren't copied as they are too large (1668 kB)
+priv->vdev.compose.width = fmt_src.format.width;
+priv->vdev.compose.height = fmt_src.format.height;
 
-The Media Infrastructure API from this daily build is here:
+(corrected in the next patches but needs to be corrected here).
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+>   
+>   	return 0;
+>   }
+> @@ -290,6 +294,35 @@ static int capture_s_std(struct file *file, void *fh, v4l2_std_id std)
+>   	return v4l2_subdev_call(priv->src_sd, video, s_std, std);
+>   }
+>   
+> +static int capture_g_selection(struct file *file, void *fh,
+> +			       struct v4l2_selection *s)
+> +{
+> +	struct capture_priv *priv = video_drvdata(file);
+> +
+> +	switch (s->target) {
+> +	case V4L2_SEL_TGT_CROP:
+> +	case V4L2_SEL_TGT_CROP_DEFAULT:
+> +	case V4L2_SEL_TGT_CROP_BOUNDS:
+> +	case V4L2_SEL_TGT_NATIVE_SIZE:
+> +	case V4L2_SEL_TGT_COMPOSE:
+> +	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
+> +	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
+> +	case V4L2_SEL_TGT_COMPOSE_PADDED:
+> +		s->r = priv->vdev.compose;
+> +		break;
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int capture_s_selection(struct file *file, void *fh,
+> +			       struct v4l2_selection *s)
+> +{
+> +	return capture_g_selection(file, fh, s);
+> +}
+> +
+>   static int capture_g_parm(struct file *file, void *fh,
+>   			  struct v4l2_streamparm *a)
+>   {
+> @@ -350,6 +383,9 @@ static const struct v4l2_ioctl_ops capture_ioctl_ops = {
+>   	.vidioc_g_std           = capture_g_std,
+>   	.vidioc_s_std           = capture_s_std,
+>   
+> +	.vidioc_g_selection	= capture_g_selection,
+> +	.vidioc_s_selection	= capture_s_selection,
+> +
+>   	.vidioc_g_parm          = capture_g_parm,
+>   	.vidioc_s_parm          = capture_s_parm,
+>   
+> @@ -687,6 +723,8 @@ int imx_media_capture_device_register(struct imx_media_video_dev *vdev)
+>   	vdev->fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+>   	imx_media_mbus_fmt_to_pix_fmt(&vdev->fmt.fmt.pix,
+>   				      &fmt_src.format, NULL);
+> +	vdev->compose.width = fmt_src.format.width;
+> +	vdev->compose.height = fmt_src.format.height;
+>   	vdev->cc = imx_media_find_format(vdev->fmt.fmt.pix.pixelformat,
+>   					 CS_SEL_ANY, false);
+>   
+> diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+> index 4223f8d418ae..c4523afe7b48 100644
+> --- a/drivers/staging/media/imx/imx-media-csi.c
+> +++ b/drivers/staging/media/imx/imx-media-csi.c
+> @@ -413,8 +413,7 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
+>   
+>   	memset(&image, 0, sizeof(image));
+>   	image.pix = vdev->fmt.fmt.pix;
+> -	image.rect.width = image.pix.width;
+> -	image.rect.height = image.pix.height;
+> +	image.rect = vdev->compose;
+>   
+>   	csi_idmac_setup_vb2_buf(priv, phys);
+>   
+> diff --git a/drivers/staging/media/imx/imx-media-vdic.c b/drivers/staging/media/imx/imx-media-vdic.c
+> index 482250d47e7c..e08d296cf4eb 100644
+> --- a/drivers/staging/media/imx/imx-media-vdic.c
+> +++ b/drivers/staging/media/imx/imx-media-vdic.c
+> @@ -263,10 +263,10 @@ static int setup_vdi_channel(struct vdic_priv *priv,
+>   
+>   	memset(&image, 0, sizeof(image));
+>   	image.pix = vdev->fmt.fmt.pix;
+> +	image.rect = vdev->compose;
+>   	/* one field to VDIC channels */
+>   	image.pix.height /= 2;
+> -	image.rect.width = image.pix.width;
+> -	image.rect.height = image.pix.height;
+> +	image.rect.height /= 2;
+>   	image.phys0 = phys0;
+>   	image.phys1 = phys1;
+>   
+> diff --git a/drivers/staging/media/imx/imx-media.h b/drivers/staging/media/imx/imx-media.h
+> index bc7feb81937c..7a0e658753f0 100644
+> --- a/drivers/staging/media/imx/imx-media.h
+> +++ b/drivers/staging/media/imx/imx-media.h
+> @@ -80,6 +80,8 @@ struct imx_media_video_dev {
+>   
+>   	/* the user format */
+>   	struct v4l2_format fmt;
+> +	/* the compose rectangle */
+> +	struct v4l2_rect compose;
+>   	const struct imx_media_pixfmt *cc;
+>   
+>   	/* links this vdev to master list */
