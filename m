@@ -1,64 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:42700 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727802AbeKJA6A (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Nov 2018 19:58:00 -0500
-From: Ezequiel Garcia <ezequiel@collabora.com>
-To: linux-media@vger.kernel.org
-Cc: Ezequiel Garcia <ezequiel@collabora.com>
-Subject: [PATCH] Revert "media: dt-bindings: Document the Rockchip VPU bindings"
-Date: Fri,  9 Nov 2018 12:16:41 -0300
-Message-Id: <20181109151641.29039-1-ezequiel@collabora.com>
+Received: from mail-lf1-f66.google.com ([209.85.167.66]:40953 "EHLO
+        mail-lf1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727806AbeKJBGy (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Nov 2018 20:06:54 -0500
+From: Ricardo Ribalda Delgado <ricardo@ribalda.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo@ribalda.com>
+Subject: [PATCH] media: doc-rst: Fix broken references
+Date: Fri,  9 Nov 2018 16:25:41 +0100
+Message-Id: <20181109152541.8972-1-ricardo@ribalda.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This reverts commit e4183d3256e3cd668e899d06af66da5aac3a51af.
+Documentation and code was linking the old documentation at:
+http://v4l2spec.bytesex.org/spec/x1904.htm
 
-The commit was picked by mistake, as the Rockchip VPU driver
-is not ready for inclusion yet, and it's still under discussion.
-
-Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+Signed-off-by: Ricardo Ribalda Delgado <ricardo@ribalda.com>
 ---
- .../bindings/media/rockchip-vpu.txt           | 29 -------------------
- 1 file changed, 29 deletions(-)
- delete mode 100644 Documentation/devicetree/bindings/media/rockchip-vpu.txt
+ Documentation/media/v4l-drivers/sh_mobile_ceu_camera.rst | 2 +-
+ drivers/media/platform/sh_vou.c                          | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/rockchip-vpu.txt b/Documentation/devicetree/bindings/media/rockchip-vpu.txt
-deleted file mode 100644
-index 35dc464ad7c8..000000000000
---- a/Documentation/devicetree/bindings/media/rockchip-vpu.txt
-+++ /dev/null
-@@ -1,29 +0,0 @@
--device-tree bindings for rockchip VPU codec
--
--Rockchip (Video Processing Unit) present in various Rockchip platforms,
--such as RK3288 and RK3399.
--
--Required properties:
--- compatible: value should be one of the following
--		"rockchip,rk3288-vpu";
--		"rockchip,rk3399-vpu";
--- interrupts: encoding and decoding interrupt specifiers
--- interrupt-names: should be "vepu" and "vdpu"
--- clocks: phandle to VPU aclk, hclk clocks
--- clock-names: should be "aclk" and "hclk"
--- power-domains: phandle to power domain node
--- iommus: phandle to a iommu node
--
--Example:
--SoC-specific DT entry:
--	vpu: video-codec@ff9a0000 {
--		compatible = "rockchip,rk3288-vpu";
--		reg = <0x0 0xff9a0000 0x0 0x800>;
--		interrupts = <GIC_SPI 9 IRQ_TYPE_LEVEL_HIGH>,
--			     <GIC_SPI 10 IRQ_TYPE_LEVEL_HIGH>;
--		interrupt-names = "vepu", "vdpu";
--		clocks = <&cru ACLK_VCODEC>, <&cru HCLK_VCODEC>;
--		clock-names = "aclk", "hclk";
--		power-domains = <&power RK3288_PD_VIDEO>;
--		iommus = <&vpu_mmu>;
--	};
+diff --git a/Documentation/media/v4l-drivers/sh_mobile_ceu_camera.rst b/Documentation/media/v4l-drivers/sh_mobile_ceu_camera.rst
+index e40ffea7708c..9b1e1c5a23f0 100644
+--- a/Documentation/media/v4l-drivers/sh_mobile_ceu_camera.rst
++++ b/Documentation/media/v4l-drivers/sh_mobile_ceu_camera.rst
+@@ -114,7 +114,7 @@ window:
+ S_CROP
+ ------
+ 
+-The API at http://v4l2spec.bytesex.org/spec/x1904.htm says:
++The :ref:`V4L2 crop API <crop-scale>` says:
+ 
+ "...specification does not define an origin or units. However by convention
+ drivers should horizontally count unscaled samples relative to 0H."
+diff --git a/drivers/media/platform/sh_vou.c b/drivers/media/platform/sh_vou.c
+index cee58b125548..5799aa4b9323 100644
+--- a/drivers/media/platform/sh_vou.c
++++ b/drivers/media/platform/sh_vou.c
+@@ -1007,7 +1007,7 @@ static int sh_vou_s_selection(struct file *file, void *fh,
+ 
+ 	/*
+ 	 * No down-scaling. According to the API, current call has precedence:
+-	 * http://v4l2spec.bytesex.org/spec/x1904.htm#AEN1954 paragraph two.
++	 * https://linuxtv.org/downloads/v4l-dvb-apis/uapi/v4l/crop.html#cropping-structures
+ 	 */
+ 	vou_adjust_input(&geo, vou_dev->std);
+ 
 -- 
 2.19.1
