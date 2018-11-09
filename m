@@ -1,18 +1,18 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:58370 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728102AbeKITgK (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:34005 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727995AbeKITgI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Nov 2018 14:36:10 -0500
+        Fri, 9 Nov 2018 14:36:08 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Cc: Maxime Ripard <maxime.ripard@bootlin.com>,
         Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
         Tomasz Figa <tfiga@chromium.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [RFC PATCH 5/5] cedrus: add cookie support
-Date: Fri,  9 Nov 2018 10:56:13 +0100
-Message-Id: <20181109095613.28272-6-hverkuil@xs4all.nl>
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 1/5] videodev2.h: add cookie support
+Date: Fri,  9 Nov 2018 10:56:09 +0100
+Message-Id: <20181109095613.28272-2-hverkuil@xs4all.nl>
 In-Reply-To: <20181109095613.28272-1-hverkuil@xs4all.nl>
 References: <20181109095613.28272-1-hverkuil@xs4all.nl>
 MIME-Version: 1.0
@@ -20,169 +20,87 @@ Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace old reference frame indices by new cookie method.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+Add support for 'cookies' to struct v4l2_buffer. These can be used to
+by m2m devices so userspace can set a cookie in an output buffer and
+this value will then be copied to the capture buffer(s).
+
+This cookie can be used to refer to capture buffers, something that
+is needed by stateless HW codecs.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/v4l2-core/v4l2-ctrls.c          |  9 --------
- drivers/staging/media/sunxi/cedrus/cedrus.h   |  8 ++++---
- .../staging/media/sunxi/cedrus/cedrus_dec.c   | 10 ++++++++
- .../staging/media/sunxi/cedrus/cedrus_mpeg2.c | 23 +++++++++----------
- include/uapi/linux/v4l2-controls.h            | 14 ++++-------
- 5 files changed, 31 insertions(+), 33 deletions(-)
+ include/uapi/linux/videodev2.h | 36 +++++++++++++++++++++++++++++++++-
+ 1 file changed, 35 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 5f2b033a7a42..b854cceb19dc 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1660,15 +1660,6 @@ static int std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
- 			return -EINVAL;
- 		}
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index c8e8ff810190..180df3451057 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -912,6 +912,11 @@ struct v4l2_plane {
+ 	__u32			reserved[11];
+ };
  
--		if (p_mpeg2_slice_params->backward_ref_index >= VIDEO_MAX_FRAME ||
--		    p_mpeg2_slice_params->forward_ref_index >= VIDEO_MAX_FRAME)
--			return -EINVAL;
--
--		if (p_mpeg2_slice_params->pad ||
--		    p_mpeg2_slice_params->picture.pad ||
--		    p_mpeg2_slice_params->sequence.pad)
--			return -EINVAL;
--
- 		return 0;
- 
- 	case V4L2_CTRL_TYPE_MPEG2_QUANTIZATION:
-diff --git a/drivers/staging/media/sunxi/cedrus/cedrus.h b/drivers/staging/media/sunxi/cedrus/cedrus.h
-index 3f61248c57ac..a4bc19ae6bcc 100644
---- a/drivers/staging/media/sunxi/cedrus/cedrus.h
-+++ b/drivers/staging/media/sunxi/cedrus/cedrus.h
-@@ -142,11 +142,13 @@ static inline dma_addr_t cedrus_buf_addr(struct vb2_buffer *buf,
- }
- 
- static inline dma_addr_t cedrus_dst_buf_addr(struct cedrus_ctx *ctx,
--					     unsigned int index,
--					     unsigned int plane)
-+					     int index, unsigned int plane)
- {
--	struct vb2_buffer *buf = ctx->dst_bufs[index];
-+	struct vb2_buffer *buf;
- 
-+	if (index < 0)
-+		return 0;
-+	buf = ctx->dst_bufs[index];
- 	return buf ? cedrus_buf_addr(buf, &ctx->dst_fmt, plane) : 0;
- }
- 
-diff --git a/drivers/staging/media/sunxi/cedrus/cedrus_dec.c b/drivers/staging/media/sunxi/cedrus/cedrus_dec.c
-index e40180a33951..b978c562f7df 100644
---- a/drivers/staging/media/sunxi/cedrus/cedrus_dec.c
-+++ b/drivers/staging/media/sunxi/cedrus/cedrus_dec.c
-@@ -53,6 +53,16 @@ void cedrus_device_run(void *priv)
- 		break;
- 	}
- 
-+	run.dst->vb2_buf.timestamp = run.src->vb2_buf.timestamp;
-+	if (run.src->flags & V4L2_BUF_FLAG_TIMECODE)
-+		run.dst->timecode = run.src->timecode;
-+	else if (run.src->flags & V4L2_BUF_FLAG_COOKIE)
-+		run.dst->cookie = run.src->cookie;
-+	run.dst->flags = run.src->flags &
-+		(V4L2_BUF_FLAG_TIMECODE |
-+		 V4L2_BUF_FLAG_COOKIE |
-+		 V4L2_BUF_FLAG_TSTAMP_SRC_MASK);
++struct v4l2_cookie {
++	__u32 low;
++	__u32 high;
++};
 +
- 	dev->dec_ops[ctx->current_codec]->setup(ctx, &run);
+ /**
+  * struct v4l2_buffer - video buffer info
+  * @index:	id number of the buffer
+@@ -950,7 +955,10 @@ struct v4l2_buffer {
+ 	__u32			flags;
+ 	__u32			field;
+ 	struct timeval		timestamp;
+-	struct v4l2_timecode	timecode;
++	union {
++		struct v4l2_timecode	timecode;
++		struct v4l2_cookie	cookie;
++	};
+ 	__u32			sequence;
  
- 	spin_unlock_irqrestore(&ctx->dev->irq_lock, flags);
-diff --git a/drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c b/drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c
-index 9abd39cae38c..5634ef658904 100644
---- a/drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c
-+++ b/drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c
-@@ -82,7 +82,10 @@ static void cedrus_mpeg2_setup(struct cedrus_ctx *ctx, struct cedrus_run *run)
- 	dma_addr_t fwd_luma_addr, fwd_chroma_addr;
- 	dma_addr_t bwd_luma_addr, bwd_chroma_addr;
- 	struct cedrus_dev *dev = ctx->dev;
-+	struct vb2_queue *cap_q = &ctx->fh.m2m_ctx->cap_q_ctx.q;
- 	const u8 *matrix;
-+	int forward_idx;
-+	int backward_idx;
- 	unsigned int i;
- 	u32 reg;
+ 	/* memory location */
+@@ -988,6 +996,8 @@ struct v4l2_buffer {
+ #define V4L2_BUF_FLAG_IN_REQUEST		0x00000080
+ /* timecode field is valid */
+ #define V4L2_BUF_FLAG_TIMECODE			0x00000100
++/* cookie field is valid */
++#define V4L2_BUF_FLAG_COOKIE			0x00000200
+ /* Buffer is prepared for queuing */
+ #define V4L2_BUF_FLAG_PREPARED			0x00000400
+ /* Cache handling flags */
+@@ -1007,6 +1017,30 @@ struct v4l2_buffer {
+ /* request_fd is valid */
+ #define V4L2_BUF_FLAG_REQUEST_FD		0x00800000
  
-@@ -156,23 +159,19 @@ static void cedrus_mpeg2_setup(struct cedrus_ctx *ctx, struct cedrus_run *run)
- 	cedrus_write(dev, VE_DEC_MPEG_PICBOUNDSIZE, reg);
- 
- 	/* Forward and backward prediction reference buffers. */
-+	forward_idx = vb2_find_cookie(cap_q,
-+				      slice_params->forward_ref_cookie, 0);
- 
--	fwd_luma_addr = cedrus_dst_buf_addr(ctx,
--					    slice_params->forward_ref_index,
--					    0);
--	fwd_chroma_addr = cedrus_dst_buf_addr(ctx,
--					      slice_params->forward_ref_index,
--					      1);
-+	fwd_luma_addr = cedrus_dst_buf_addr(ctx, forward_idx, 0);
-+	fwd_chroma_addr = cedrus_dst_buf_addr(ctx, forward_idx, 1);
- 
- 	cedrus_write(dev, VE_DEC_MPEG_FWD_REF_LUMA_ADDR, fwd_luma_addr);
- 	cedrus_write(dev, VE_DEC_MPEG_FWD_REF_CHROMA_ADDR, fwd_chroma_addr);
- 
--	bwd_luma_addr = cedrus_dst_buf_addr(ctx,
--					    slice_params->backward_ref_index,
--					    0);
--	bwd_chroma_addr = cedrus_dst_buf_addr(ctx,
--					      slice_params->backward_ref_index,
--					      1);
-+	backward_idx = vb2_find_cookie(cap_q,
-+				       slice_params->backward_ref_cookie, 0);
-+	bwd_luma_addr = cedrus_dst_buf_addr(ctx, backward_idx, 0);
-+	bwd_chroma_addr = cedrus_dst_buf_addr(ctx, backward_idx, 1);
- 
- 	cedrus_write(dev, VE_DEC_MPEG_BWD_REF_LUMA_ADDR, bwd_luma_addr);
- 	cedrus_write(dev, VE_DEC_MPEG_BWD_REF_CHROMA_ADDR, bwd_chroma_addr);
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index 998983a6e6b7..e0d135015954 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -1109,10 +1109,9 @@ struct v4l2_mpeg2_sequence {
- 	__u32	vbv_buffer_size;
- 
- 	/* ISO/IEC 13818-2, ITU-T Rec. H.262: Sequence extension */
--	__u8	profile_and_level_indication;
-+	__u16	profile_and_level_indication;
- 	__u8	progressive_sequence;
- 	__u8	chroma_format;
--	__u8	pad;
- };
- 
- struct v4l2_mpeg2_picture {
-@@ -1130,23 +1129,20 @@ struct v4l2_mpeg2_picture {
- 	__u8	intra_vlc_format;
- 	__u8	alternate_scan;
- 	__u8	repeat_first_field;
--	__u8	progressive_frame;
--	__u8	pad;
-+	__u16	progressive_frame;
- };
- 
- struct v4l2_ctrl_mpeg2_slice_params {
- 	__u32	bit_size;
- 	__u32	data_bit_offset;
-+	__u64	backward_ref_cookie;
-+	__u64	forward_ref_cookie;
- 
- 	struct v4l2_mpeg2_sequence sequence;
- 	struct v4l2_mpeg2_picture picture;
- 
- 	/* ISO/IEC 13818-2, ITU-T Rec. H.262: Slice */
--	__u8	quantiser_scale_code;
--
--	__u8	backward_ref_index;
--	__u8	forward_ref_index;
--	__u8	pad;
-+	__u32	quantiser_scale_code;
- };
- 
- struct v4l2_ctrl_mpeg2_quantization {
++static inline void v4l2_buffer_set_cookie(struct v4l2_buffer *buf, __u64 cookie)
++{
++	buf->cookie.high = cookie >> 32;
++	buf->cookie.low = cookie & 0xffffffffULL;
++	buf->flags |= V4L2_BUF_FLAG_COOKIE;
++}
++
++static inline void v4l2_buffer_set_cookie_ptr(struct v4l2_buffer *buf, const void *cookie)
++{
++	v4l2_buffer_set_cookie(buf, (__u64)cookie);
++}
++
++static inline __u64 v4l2_buffer_get_cookie(const struct v4l2_buffer *buf)
++{
++	if (!(buf->flags & V4L2_BUF_FLAG_COOKIE))
++		return 0;
++	return (((__u64)buf->cookie.high) << 32) | (__u64)buf->cookie.low;
++}
++
++static inline void *v4l2_buffer_get_cookie_ptr(const struct v4l2_buffer *buf)
++{
++	return (void *)v4l2_buffer_get_cookie(buf);
++}
++
+ /**
+  * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
+  *
 -- 
 2.19.1
