@@ -1,85 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:48419 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728002AbeKJANe (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Nov 2018 19:13:34 -0500
-Subject: Re: [PATCH] media: staging: tegra-vde: print long unsigned using %lu
- format specifier
-To: Colin King <colin.king@canonical.com>,
-        Dmitry Osipenko <digetx@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
-        linux-media@vger.kernel.org, linux-tegra@vger.kernel.org,
-        devel@driverdev.osuosl.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <20181108110224.1916-1-colin.king@canonical.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <0b3bf728-7b7e-7250-40eb-0827f8fe955b@xs4all.nl>
-Date: Fri, 9 Nov 2018 15:32:37 +0100
+Received: from aer-iport-2.cisco.com ([173.38.203.52]:34398 "EHLO
+        aer-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727793AbeKJAS1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Nov 2018 19:18:27 -0500
+Received: from [10.47.79.81] ([10.47.79.81])
+        (authenticated bits=0)
+        by aer-core-1.cisco.com (8.15.2/8.15.2) with ESMTPSA id wA9EbX6C011321
+        (version=TLSv1.2 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+        for <linux-media@vger.kernel.org>; Fri, 9 Nov 2018 14:37:34 GMT
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hansverk@cisco.com>
+Subject: [GIT PULL FOR v4.21] Various fixes
+Message-ID: <728ac8e5-26e0-c613-489d-9fc2eacd8c5b@cisco.com>
+Date: Fri, 9 Nov 2018 15:37:33 +0100
 MIME-Version: 1.0
-In-Reply-To: <20181108110224.1916-1-colin.king@canonical.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/08/18 12:02, Colin King wrote:
-> From: Colin Ian King <colin.king@canonical.com>
-> 
-> The frame.flags & FLAG_B_FRAME is promoted to a long unsigned because
-> of the use of the BIT() macro when defining FLAG_B_FRAME and causing a
-> build warning. Fix this by using the %lu format specifer.
-> 
-> Cleans up warning:
-> drivers/staging/media/tegra-vde/tegra-vde.c:267:5: warning: format
-> specifies type 'int' but the argument has type 'unsigned long' [-Wformat]
-> 
-> Signed-off-by: Colin Ian King <colin.king@canonical.com>
-> ---
->  drivers/staging/media/tegra-vde/tegra-vde.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/staging/media/tegra-vde/tegra-vde.c b/drivers/staging/media/tegra-vde/tegra-vde.c
-> index 6f06061a40d9..66cf14212c14 100644
-> --- a/drivers/staging/media/tegra-vde/tegra-vde.c
-> +++ b/drivers/staging/media/tegra-vde/tegra-vde.c
-> @@ -262,7 +262,7 @@ static void tegra_vde_setup_iram_tables(struct tegra_vde *vde,
->  			value |= frame->frame_num;
->  
->  			dev_dbg(vde->miscdev.parent,
-> -				"\tFrame %d: frame_num = %d B_frame = %d\n",
-> +				"\tFrame %d: frame_num = %d B_frame = %lu\n",
->  				i + 1, frame->frame_num,
->  				(frame->flags & FLAG_B_FRAME));
->  		} else {
-> 
+Various fixes, mostly related to issues found by syzbot.
 
-Compiling for i686 gives:
+The following changes since commit fbe57dde7126d1b2712ab5ea93fb9d15f89de708:
 
-In file included from /home/hans/work/build/media-git/include/linux/printk.h:336,
-                 from /home/hans/work/build/media-git/include/linux/kernel.h:14,
-                 from /home/hans/work/build/media-git/include/linux/clk.h:16,
-                 from /home/hans/work/build/media-git/drivers/staging/media/tegra-vde/tegra-vde.c:12:
-/home/hans/work/build/media-git/drivers/staging/media/tegra-vde/tegra-vde.c: In function 'tegra_vde_setup_iram_tables':
-/home/hans/work/build/media-git/drivers/staging/media/tegra-vde/tegra-vde.c:265:5: warning: format '%lu' expects argument of type 'long unsigned int', but argument 6 has type 'u32' {aka 'unsigned int'} [-Wformat=]
-     "\tFrame %d: frame_num = %d B_frame = %lu\n",
-     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-/home/hans/work/build/media-git/include/linux/dynamic_debug.h:135:39: note: in definition of macro 'dynamic_dev_dbg'
-   __dynamic_dev_dbg(&descriptor, dev, fmt, \
-                                       ^~~
-/home/hans/work/build/media-git/include/linux/device.h:1463:23: note: in expansion of macro 'dev_fmt'
-  dynamic_dev_dbg(dev, dev_fmt(fmt), ##__VA_ARGS__)
-                       ^~~~~~~
-/home/hans/work/build/media-git/drivers/staging/media/tegra-vde/tegra-vde.c:264:4: note: in expansion of macro 'dev_dbg'
-    dev_dbg(vde->miscdev.parent,
-    ^~~~~~~
+  media: ov7740: constify structures stored in fields of v4l2_subdev_ops structure (2018-11-06 07:17:02 -0500)
 
-Should it be %zu?
+are available in the Git repository at:
 
-Regards,
+  git://linuxtv.org/hverkuil/media_tree.git tags/br-v4.21b
 
-	Hans
+for you to fetch changes up to d0783331c8aa9074e8235ea6d7e73e7010450d90:
+
+  vivid: free bitmap_cap when updating std/timings/etc. (2018-11-09 15:29:13 +0100)
+
+----------------------------------------------------------------
+Tag branch
+
+----------------------------------------------------------------
+Hans Verkuil (6):
+      vim2m: use cancel_delayed_work_sync instead of flush_schedule_work
+      adv*/tc358743/ths8200: fill in min width/height/pixelclock
+      vb2: check memory model for VIDIOC_CREATE_BUFS
+      MAINTAINERS fixups
+      v4l2-tpg: array index could become negative
+      vivid: free bitmap_cap when updating std/timings/etc.
+
+ MAINTAINERS                                     | 10 ++++------
+ drivers/media/common/v4l2-tpg/v4l2-tpg-core.c   |  2 +-
+ drivers/media/common/videobuf2/videobuf2-core.c |  3 +++
+ drivers/media/i2c/ad9389b.c                     |  2 +-
+ drivers/media/i2c/adv7511.c                     |  2 +-
+ drivers/media/i2c/adv7604.c                     |  4 ++--
+ drivers/media/i2c/adv7842.c                     |  4 ++--
+ drivers/media/i2c/tc358743.c                    |  2 +-
+ drivers/media/i2c/ths8200.c                     |  2 +-
+ drivers/media/platform/vim2m.c                  |  3 ++-
+ drivers/media/platform/vivid/vivid-vid-cap.c    |  2 ++
+ 11 files changed, 20 insertions(+), 16 deletions(-)
