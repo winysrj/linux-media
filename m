@@ -1,15 +1,15 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-40133.protonmail.ch ([185.70.40.133]:61359 "EHLO
-        mail-40133.protonmail.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726306AbeKJIHi (ORCPT
+Received: from mail-40130.protonmail.ch ([185.70.40.130]:17832 "EHLO
+        mail-40130.protonmail.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726181AbeKJIR3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 10 Nov 2018 03:07:38 -0500
-Date: Fri, 09 Nov 2018 22:24:55 +0000
+        Sat, 10 Nov 2018 03:17:29 -0500
+Date: Fri, 09 Nov 2018 22:34:45 +0000
 To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 From: softwarebugs <softwarebugs@protonmail.com>
 Reply-To: softwarebugs <softwarebugs@protonmail.com>
 Subject: spca561 webcam support, broken since v4.18
-Message-ID: <cmslSrq7sftuPGsRPzPapsZOcZ2b4G25B48YY76irceURUtGSDd5_GqqALr46RyQ4orzJIh4CK8F99lF-CXoBMM-cOw-R_100bD-2zn-mL0=@protonmail.com>
+Message-ID: <SQH-UeDgiQxEJGs4dEAk4WcLmJe9JcdVNM2Wtk4TrgGlvZl_wQE8BWByj5tHrDezwM4gz8ZceRZNdg5HTHdnD5blpRzz6jnDus8V1eLYvyc=@protonmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
