@@ -1,8 +1,8 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:38888 "EHLO
+Received: from perceval.ideasonboard.com ([213.167.242.64]:38886 "EHLO
         perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728506AbeKJCrJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Nov 2018 21:47:09 -0500
+        with ESMTP id S1728198AbeKJCrL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Nov 2018 21:47:11 -0500
 From: Kieran Bingham <kieran.bingham@ideasonboard.com>
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         linux-media@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
         Kieran Bingham <kieran.bingham@ideasonboard.com>,
         Tomasz Figa <tfiga@google.com>,
         Keiichi Watanabe <keiichiw@chromium.org>
-Subject: [PATCH v6 05/10] media: uvcvideo: queue: Support asynchronous buffer handling
-Date: Fri,  9 Nov 2018 17:05:28 +0000
-Message-Id: <36fe070c8b07e0f71b276a586a06dd61dd564e05.1541782862.git-series.kieran.bingham@ideasonboard.com>
+Subject: [PATCH v6 06/10] media: uvcvideo: Abstract streaming object lifetime
+Date: Fri,  9 Nov 2018 17:05:29 +0000
+Message-Id: <207851fbe7c980dee983f5c3587f911457e37f34.1541782862.git-series.kieran.bingham@ideasonboard.com>
 In-Reply-To: <cover.cae3e85316d733416db58566a05055b6f30785a8.1541782862.git-series.kieran.bingham@ideasonboard.com>
 References: <cover.cae3e85316d733416db58566a05055b6f30785a8.1541782862.git-series.kieran.bingham@ideasonboard.com>
 In-Reply-To: <cover.cae3e85316d733416db58566a05055b6f30785a8.1541782862.git-series.kieran.bingham@ideasonboard.com>
@@ -25,137 +25,124 @@ References: <cover.cae3e85316d733416db58566a05055b6f30785a8.1541782862.git-serie
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The buffer queue interface currently operates sequentially, processing
-buffers after they have fully completed.
+The streaming object is a key part of handling the UVC device. Although
+not critical, we are currently missing a call to destroy the mutex on
+clean up paths, and we are due to extend the objects complexity in the
+near future.
 
-In preparation for supporting parallel tasks operating on the buffers,
-we will need to support buffers being processed on multiple CPUs.
+Facilitate easy management of a stream object by creating a pair of
+functions to handle creating and destroying the allocation. The new
+uvc_stream_delete() function also performs the missing mutex_destroy()
+operation.
 
-Adapt the uvc_queue_next_buffer() such that a reference count tracks the
-active use of the buffer, returning the buffer to the VB2 stack at
-completion.
+Previously a failed streaming object allocation would cause
+uvc_parse_streaming() to return -EINVAL, which is inappropriate. If the
+constructor failes, we will instead return -ENOMEM.
+
+While we're here, fix the trivial spelling error in the function banner
+of uvc_delete().
 
 Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
-
-v5:
- - uvc_queue_requeue() -> uvc_queue_buffer_requeue()
- - Fix comment
 ---
- drivers/media/usb/uvc/uvc_queue.c | 61 ++++++++++++++++++++++++++------
- drivers/media/usb/uvc/uvcvideo.h  |  4 ++-
- 2 files changed, 54 insertions(+), 11 deletions(-)
+ drivers/media/usb/uvc/uvc_driver.c | 54 +++++++++++++++++++++----------
+ 1 file changed, 38 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
-index fa7059aab49a..2752e386f1e8 100644
---- a/drivers/media/usb/uvc/uvc_queue.c
-+++ b/drivers/media/usb/uvc/uvc_queue.c
-@@ -142,6 +142,7 @@ static void uvc_buffer_queue(struct vb2_buffer *vb)
- 
- 	spin_lock_irqsave(&queue->irqlock, flags);
- 	if (likely(!(queue->flags & UVC_QUEUE_DISCONNECTED))) {
-+		kref_init(&buf->ref);
- 		list_add_tail(&buf->queue, &queue->irqqueue);
- 	} else {
- 		/* If the device is disconnected return the buffer to userspace
-@@ -458,28 +459,66 @@ struct uvc_buffer *uvc_queue_get_current_buffer(struct uvc_video_queue *queue)
- 	return nextbuf;
+diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+index 67bd58c6f397..afb44d1c9d04 100644
+--- a/drivers/media/usb/uvc/uvc_driver.c
++++ b/drivers/media/usb/uvc/uvc_driver.c
+@@ -396,6 +396,39 @@ static struct uvc_streaming *uvc_stream_by_id(struct uvc_device *dev, int id)
  }
  
--struct uvc_buffer *uvc_queue_next_buffer(struct uvc_video_queue *queue,
-+/*
-+ * uvc_queue_buffer_requeue: Requeue a buffer on our internal irqqueue
-+ *
-+ * Reuse a buffer through our internal queue without the need to 'prepare'.
-+ * The buffer will be returned to userspace through the uvc_buffer_queue call if
-+ * the device has been disconnected.
+ /* ------------------------------------------------------------------------
++ * Streaming Object Management
 + */
-+static void uvc_queue_buffer_requeue(struct uvc_video_queue *queue,
- 		struct uvc_buffer *buf)
- {
--	struct uvc_buffer *nextbuf;
--	unsigned long flags;
-+	buf->error = 0;
-+	buf->state = UVC_BUF_STATE_QUEUED;
-+	buf->bytesused = 0;
-+	vb2_set_plane_payload(&buf->buf.vb2_buf, 0, 0);
 +
-+	uvc_buffer_queue(&buf->buf.vb2_buf);
++static void uvc_stream_delete(struct uvc_streaming *stream)
++{
++	mutex_destroy(&stream->mutex);
++
++	usb_put_intf(stream->intf);
++
++	kfree(stream->format);
++	kfree(stream->header.bmaControls);
++	kfree(stream);
 +}
 +
-+static void uvc_queue_buffer_complete(struct kref *ref)
++static struct uvc_streaming *uvc_stream_new(struct uvc_device *dev,
++					    struct usb_interface *intf)
 +{
-+	struct uvc_buffer *buf = container_of(ref, struct uvc_buffer, ref);
-+	struct vb2_buffer *vb = &buf->buf.vb2_buf;
-+	struct uvc_video_queue *queue = vb2_get_drv_priv(vb->vb2_queue);
++	struct uvc_streaming *stream;
++
++	stream = kzalloc(sizeof(*stream), GFP_KERNEL);
++	if (stream == NULL)
++		return NULL;
++
++	mutex_init(&stream->mutex);
++
++	stream->dev = dev;
++	stream->intf = usb_get_intf(intf);
++	stream->intfnum = intf->cur_altsetting->desc.bInterfaceNumber;
++
++	return stream;
++}
++
++/* ------------------------------------------------------------------------
+  * Descriptors parsing
+  */
  
- 	if ((queue->flags & UVC_QUEUE_DROP_CORRUPTED) && buf->error) {
--		buf->error = 0;
--		buf->state = UVC_BUF_STATE_QUEUED;
--		buf->bytesused = 0;
--		vb2_set_plane_payload(&buf->buf.vb2_buf, 0, 0);
--		return buf;
-+		uvc_queue_buffer_requeue(queue, buf);
-+		return;
+@@ -687,17 +720,12 @@ static int uvc_parse_streaming(struct uvc_device *dev,
+ 		return -EINVAL;
  	}
  
-+	buf->state = buf->error ? UVC_BUF_STATE_ERROR : UVC_BUF_STATE_DONE;
-+	vb2_set_plane_payload(&buf->buf.vb2_buf, 0, buf->bytesused);
-+	vb2_buffer_done(&buf->buf.vb2_buf, VB2_BUF_STATE_DONE);
-+}
-+
-+/*
-+ * Release a reference on the buffer. Complete the buffer when the last
-+ * reference is released.
-+ */
-+void uvc_queue_buffer_release(struct uvc_buffer *buf)
-+{
-+	kref_put(&buf->ref, uvc_queue_buffer_complete);
-+}
-+
-+/*
-+ * Remove this buffer from the queue. Lifetime will persist while async actions
-+ * are still running (if any), and uvc_queue_buffer_release will give the buffer
-+ * back to VB2 when all users have completed.
-+ */
-+struct uvc_buffer *uvc_queue_next_buffer(struct uvc_video_queue *queue,
-+		struct uvc_buffer *buf)
-+{
-+	struct uvc_buffer *nextbuf;
-+	unsigned long flags;
-+
- 	spin_lock_irqsave(&queue->irqlock, flags);
- 	list_del(&buf->queue);
- 	nextbuf = __uvc_queue_get_current_buffer(queue);
- 	spin_unlock_irqrestore(&queue->irqlock, flags);
+-	streaming = kzalloc(sizeof(*streaming), GFP_KERNEL);
++	streaming = uvc_stream_new(dev, intf);
+ 	if (streaming == NULL) {
+ 		usb_driver_release_interface(&uvc_driver.driver, intf);
+-		return -EINVAL;
++		return -ENOMEM;
+ 	}
  
--	buf->state = buf->error ? UVC_BUF_STATE_ERROR : UVC_BUF_STATE_DONE;
--	vb2_set_plane_payload(&buf->buf.vb2_buf, 0, buf->bytesused);
--	vb2_buffer_done(&buf->buf.vb2_buf, VB2_BUF_STATE_DONE);
-+	uvc_queue_buffer_release(buf);
+-	mutex_init(&streaming->mutex);
+-	streaming->dev = dev;
+-	streaming->intf = usb_get_intf(intf);
+-	streaming->intfnum = intf->cur_altsetting->desc.bInterfaceNumber;
+-
+ 	/* The Pico iMage webcam has its class-specific interface descriptors
+ 	 * after the endpoint descriptors.
+ 	 */
+@@ -904,10 +932,7 @@ static int uvc_parse_streaming(struct uvc_device *dev,
  
- 	return nextbuf;
+ error:
+ 	usb_driver_release_interface(&uvc_driver.driver, intf);
+-	usb_put_intf(intf);
+-	kfree(streaming->format);
+-	kfree(streaming->header.bmaControls);
+-	kfree(streaming);
++	uvc_stream_delete(streaming);
+ 	return ret;
  }
-diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
-index 16b8348f7ff0..7f884c60ae59 100644
---- a/drivers/media/usb/uvc/uvcvideo.h
-+++ b/drivers/media/usb/uvc/uvcvideo.h
-@@ -413,6 +413,9 @@ struct uvc_buffer {
- 	unsigned int bytesused;
  
- 	u32 pts;
-+
-+	/* Asynchronous buffer handling. */
-+	struct kref ref;
- };
+@@ -1815,7 +1840,7 @@ static int uvc_scan_device(struct uvc_device *dev)
+  * is released.
+  *
+  * As this function is called after or during disconnect(), all URBs have
+- * already been canceled by the USB core. There is no need to kill the
++ * already been cancelled by the USB core. There is no need to kill the
+  * interrupt URB manually.
+  */
+ static void uvc_delete(struct kref *kref)
+@@ -1853,10 +1878,7 @@ static void uvc_delete(struct kref *kref)
+ 		streaming = list_entry(p, struct uvc_streaming, list);
+ 		usb_driver_release_interface(&uvc_driver.driver,
+ 			streaming->intf);
+-		usb_put_intf(streaming->intf);
+-		kfree(streaming->format);
+-		kfree(streaming->header.bmaControls);
+-		kfree(streaming);
++		uvc_stream_delete(streaming);
+ 	}
  
- #define UVC_QUEUE_DISCONNECTED		(1 << 0)
-@@ -728,6 +731,7 @@ void uvc_queue_cancel(struct uvc_video_queue *queue, int disconnect);
- struct uvc_buffer *uvc_queue_next_buffer(struct uvc_video_queue *queue,
- 					 struct uvc_buffer *buf);
- struct uvc_buffer *uvc_queue_get_current_buffer(struct uvc_video_queue *queue);
-+void uvc_queue_buffer_release(struct uvc_buffer *buf);
- int uvc_queue_mmap(struct uvc_video_queue *queue,
- 		   struct vm_area_struct *vma);
- __poll_t uvc_queue_poll(struct uvc_video_queue *queue, struct file *file,
+ 	kfree(dev);
 -- 
 git-series 0.9.1
