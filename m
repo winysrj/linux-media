@@ -1,60 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-2.cisco.com ([173.38.203.52]:34398 "EHLO
-        aer-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727793AbeKJAS1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Nov 2018 19:18:27 -0500
-Received: from [10.47.79.81] ([10.47.79.81])
-        (authenticated bits=0)
-        by aer-core-1.cisco.com (8.15.2/8.15.2) with ESMTPSA id wA9EbX6C011321
-        (version=TLSv1.2 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-        for <linux-media@vger.kernel.org>; Fri, 9 Nov 2018 14:37:34 GMT
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hansverk@cisco.com>
-Subject: [GIT PULL FOR v4.21] Various fixes
-Message-ID: <728ac8e5-26e0-c613-489d-9fc2eacd8c5b@cisco.com>
-Date: Fri, 9 Nov 2018 15:37:33 +0100
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:42700 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727802AbeKJA6A (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Nov 2018 19:58:00 -0500
+From: Ezequiel Garcia <ezequiel@collabora.com>
+To: linux-media@vger.kernel.org
+Cc: Ezequiel Garcia <ezequiel@collabora.com>
+Subject: [PATCH] Revert "media: dt-bindings: Document the Rockchip VPU bindings"
+Date: Fri,  9 Nov 2018 12:16:41 -0300
+Message-Id: <20181109151641.29039-1-ezequiel@collabora.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Various fixes, mostly related to issues found by syzbot.
+This reverts commit e4183d3256e3cd668e899d06af66da5aac3a51af.
 
-The following changes since commit fbe57dde7126d1b2712ab5ea93fb9d15f89de708:
+The commit was picked by mistake, as the Rockchip VPU driver
+is not ready for inclusion yet, and it's still under discussion.
 
-  media: ov7740: constify structures stored in fields of v4l2_subdev_ops structure (2018-11-06 07:17:02 -0500)
+Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+---
+ .../bindings/media/rockchip-vpu.txt           | 29 -------------------
+ 1 file changed, 29 deletions(-)
+ delete mode 100644 Documentation/devicetree/bindings/media/rockchip-vpu.txt
 
-are available in the Git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git tags/br-v4.21b
-
-for you to fetch changes up to d0783331c8aa9074e8235ea6d7e73e7010450d90:
-
-  vivid: free bitmap_cap when updating std/timings/etc. (2018-11-09 15:29:13 +0100)
-
-----------------------------------------------------------------
-Tag branch
-
-----------------------------------------------------------------
-Hans Verkuil (6):
-      vim2m: use cancel_delayed_work_sync instead of flush_schedule_work
-      adv*/tc358743/ths8200: fill in min width/height/pixelclock
-      vb2: check memory model for VIDIOC_CREATE_BUFS
-      MAINTAINERS fixups
-      v4l2-tpg: array index could become negative
-      vivid: free bitmap_cap when updating std/timings/etc.
-
- MAINTAINERS                                     | 10 ++++------
- drivers/media/common/v4l2-tpg/v4l2-tpg-core.c   |  2 +-
- drivers/media/common/videobuf2/videobuf2-core.c |  3 +++
- drivers/media/i2c/ad9389b.c                     |  2 +-
- drivers/media/i2c/adv7511.c                     |  2 +-
- drivers/media/i2c/adv7604.c                     |  4 ++--
- drivers/media/i2c/adv7842.c                     |  4 ++--
- drivers/media/i2c/tc358743.c                    |  2 +-
- drivers/media/i2c/ths8200.c                     |  2 +-
- drivers/media/platform/vim2m.c                  |  3 ++-
- drivers/media/platform/vivid/vivid-vid-cap.c    |  2 ++
- 11 files changed, 20 insertions(+), 16 deletions(-)
+diff --git a/Documentation/devicetree/bindings/media/rockchip-vpu.txt b/Documentation/devicetree/bindings/media/rockchip-vpu.txt
+deleted file mode 100644
+index 35dc464ad7c8..000000000000
+--- a/Documentation/devicetree/bindings/media/rockchip-vpu.txt
++++ /dev/null
+@@ -1,29 +0,0 @@
+-device-tree bindings for rockchip VPU codec
+-
+-Rockchip (Video Processing Unit) present in various Rockchip platforms,
+-such as RK3288 and RK3399.
+-
+-Required properties:
+-- compatible: value should be one of the following
+-		"rockchip,rk3288-vpu";
+-		"rockchip,rk3399-vpu";
+-- interrupts: encoding and decoding interrupt specifiers
+-- interrupt-names: should be "vepu" and "vdpu"
+-- clocks: phandle to VPU aclk, hclk clocks
+-- clock-names: should be "aclk" and "hclk"
+-- power-domains: phandle to power domain node
+-- iommus: phandle to a iommu node
+-
+-Example:
+-SoC-specific DT entry:
+-	vpu: video-codec@ff9a0000 {
+-		compatible = "rockchip,rk3288-vpu";
+-		reg = <0x0 0xff9a0000 0x0 0x800>;
+-		interrupts = <GIC_SPI 9 IRQ_TYPE_LEVEL_HIGH>,
+-			     <GIC_SPI 10 IRQ_TYPE_LEVEL_HIGH>;
+-		interrupt-names = "vepu", "vdpu";
+-		clocks = <&cru ACLK_VCODEC>, <&cru HCLK_VCODEC>;
+-		clock-names = "aclk", "hclk";
+-		power-domains = <&power RK3288_PD_VIDEO>;
+-		iommus = <&vpu_mmu>;
+-	};
+-- 
+2.19.1
