@@ -1,27 +1,249 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.anw.at ([195.234.102.72]:39200 "EHLO smtp.anw.at"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726110AbeKJHXM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 10 Nov 2018 02:23:12 -0500
-Subject: Re: [PATCH] media: Use wait_queue_head_t for media_request
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:43910 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727181AbeKJHfT (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 10 Nov 2018 02:35:19 -0500
+From: Ezequiel Garcia <ezequiel@collabora.com>
 To: linux-media@vger.kernel.org
-Cc: hans.verkuil@cisco.com, mchehab+samsung@kernel.org
-References: <20181109210605.12848-1-jasmin@anw.at>
-From: "Jasmin J." <jasmin@anw.at>
-Message-ID: <8f60cd6f-e724-6b7e-425b-57fed3b569f5@anw.at>
-Date: Fri, 9 Nov 2018 22:40:34 +0100
+Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+        Ezequiel Garcia <ezequiel@collabora.com>
+Subject: [PATCH v4l-utils] Introduce v4l2-get-device tool
+Date: Fri,  9 Nov 2018 18:52:38 -0300
+Message-Id: <20181109215238.2384-1-ezequiel@collabora.com>
 MIME-Version: 1.0
-In-Reply-To: <20181109210605.12848-1-jasmin@anw.at>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+This tool allows to find a device by driver name,
+this is useful for scripts to be written in a generic way.
 
-Temporary add this patch to media-build until it is integrated in mainline.
-This should fix the build errors for Kernels older than 4.12.
+Usage:
 
-BR,
-   Jasmin
+v4l2-get-device -d uvcvideo -c V4L2_CAP_VIDEO_CAPTURE
+/dev/video0
+/dev/video2
+
+Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+---
+ configure.ac                            |   1 +
+ utils/Makefile.am                       |   1 +
+ utils/v4l2-get-device/.gitignore        |   1 +
+ utils/v4l2-get-device/Makefile.am       |   4 +
+ utils/v4l2-get-device/v4l2-get-device.c | 147 ++++++++++++++++++++++++
+ v4l-utils.spec.in                       |   1 +
+ 6 files changed, 155 insertions(+)
+ create mode 100644 utils/v4l2-get-device/.gitignore
+ create mode 100644 utils/v4l2-get-device/Makefile.am
+ create mode 100644 utils/v4l2-get-device/v4l2-get-device.c
+
+diff --git a/configure.ac b/configure.ac
+index 5cc34c248fbf..918cb59704b9 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -31,6 +31,7 @@ AC_CONFIG_FILES([Makefile
+ 	utils/v4l2-compliance/Makefile
+ 	utils/v4l2-ctl/Makefile
+ 	utils/v4l2-dbg/Makefile
++	utils/v4l2-get-device/Makefile
+ 	utils/v4l2-sysfs-path/Makefile
+ 	utils/qv4l2/Makefile
+ 	utils/cec-ctl/Makefile
+diff --git a/utils/Makefile.am b/utils/Makefile.am
+index 2d5070288c13..2b2b27107d13 100644
+--- a/utils/Makefile.am
++++ b/utils/Makefile.am
+@@ -9,6 +9,7 @@ SUBDIRS = \
+ 	v4l2-compliance \
+ 	v4l2-ctl \
+ 	v4l2-dbg \
++	v4l2-get-device \
+ 	v4l2-sysfs-path \
+ 	cec-ctl \
+ 	cec-compliance \
+diff --git a/utils/v4l2-get-device/.gitignore b/utils/v4l2-get-device/.gitignore
+new file mode 100644
+index 000000000000..b222144c9f4e
+--- /dev/null
++++ b/utils/v4l2-get-device/.gitignore
+@@ -0,0 +1 @@
++v4l2-get-device
+diff --git a/utils/v4l2-get-device/Makefile.am b/utils/v4l2-get-device/Makefile.am
+new file mode 100644
+index 000000000000..2e5a6e0ba32f
+--- /dev/null
++++ b/utils/v4l2-get-device/Makefile.am
+@@ -0,0 +1,4 @@
++bin_PROGRAMS = v4l2-get-device
++v4l2_get_device_SOURCES = v4l2-get-device.c
++v4l2_get_device_LDADD = ../libmedia_dev/libmedia_dev.la
++v4l2_get_device_LDFLAGS = $(ARGP_LIBS)
+diff --git a/utils/v4l2-get-device/v4l2-get-device.c b/utils/v4l2-get-device/v4l2-get-device.c
+new file mode 100644
+index 000000000000..f9cc323b7057
+--- /dev/null
++++ b/utils/v4l2-get-device/v4l2-get-device.c
+@@ -0,0 +1,147 @@
++/*
++ * Copyright © 2018 Collabora, Ltd.
++ *
++ * Based on v4l2-sysfs-path by Mauro Carvalho Chehab:
++ *
++ * Copyright © 2011 Red Hat, Inc.
++ *
++ * Permission to use, copy, modify, distribute, and sell this software
++ * and its documentation for any purpose is hereby granted without
++ * fee, provided that the above copyright notice appear in all copies
++ * and that both that copyright notice and this permission notice
++ * appear in supporting documentation, and that the name of Red Hat
++ * not be used in advertising or publicity pertaining to distribution
++ * of the software without specific, written prior permission.  Red
++ * Hat makes no representations about the suitability of this software
++ * for any purpose.  It is provided "as is" without express or implied
++ * warranty.
++ *
++ * THE AUTHORS DISCLAIM ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
++ * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN
++ * NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY SPECIAL, INDIRECT OR
++ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
++ * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
++ * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
++ * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
++ *
++ */
++
++#include <argp.h>
++#include <config.h>
++#include <fcntl.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <sys/types.h>
++#include <sys/stat.h>
++#include <sys/ioctl.h>
++#include <sys/unistd.h>
++
++#include <linux/videodev2.h>
++
++#include "../libmedia_dev/get_media_devices.h"
++
++const char *argp_program_version = "v4l2-get-device " V4L_UTILS_VERSION;
++const char *argp_program_bug_address = "Ezequiel Garcia <ezequiel@collabora.com>";
++
++struct args {
++	const char *driver;
++	unsigned int device_caps;
++};
++
++static const struct argp_option options[] = {
++	{"driver", 'd', "DRIVER", 0, "device driver name", 0},
++	{"v4l2-device-caps", 'c', "CAPS", 0, "v4l2 device capabilities", 0},
++	{ 0 }
++};
++
++static unsigned int parse_capabilities(const char *arg)
++{
++	char *s, *str = strdup(arg);
++	unsigned int caps = 0;
++
++	s = strtok (str,",");
++	while (s != NULL) {
++		if (!strcmp(s, "V4L2_CAP_VIDEO_CAPTURE"))
++			caps |= V4L2_CAP_VIDEO_CAPTURE;
++		else if (!strcmp(s, "V4L2_CAP_VIDEO_OUTPUT"))
++			caps |= V4L2_CAP_VIDEO_OUTPUT;
++		else if (!strcmp(s, "V4L2_CAP_VIDEO_OVERLAY"))
++			caps |= V4L2_CAP_VIDEO_OVERLAY;
++		else if (!strcmp(s, "V4L2_CAP_VBI_CAPTURE"))
++			caps |= V4L2_CAP_VBI_CAPTURE;
++		else if (!strcmp(s, "V4L2_CAP_VBI_OUTPUT"))
++			caps |= V4L2_CAP_VBI_OUTPUT;
++		s = strtok (NULL, ",");
++	}
++	free(str);
++	return caps;
++}
++
++static error_t parse_opt(int k, char *arg, struct argp_state *state)
++{
++	struct args *args = state->input;
++
++	switch (k) {
++	case 'd':
++		args->driver = arg;
++		break;
++	case 'c':
++		args->device_caps = parse_capabilities(arg);
++		break;
++	default:
++		return ARGP_ERR_UNKNOWN;
++	}
++	return 0;
++}
++
++static struct argp argp = {
++	.options = options,
++	.parser = parse_opt,
++};
++
++int main(int argc, char *argv[])
++{
++	const char *vid;
++	struct args args;
++	void *md;
++
++	args.driver = NULL;
++	args.device_caps = 0;
++	argp_parse(&argp, argc, argv, 0, 0, &args);
++
++	md = discover_media_devices();
++
++	vid = NULL;
++	do {
++		struct v4l2_capability cap;
++		char devnode[64];
++		int ret;
++		int fd;
++
++		vid = get_associated_device(md, vid, MEDIA_V4L_VIDEO,
++					    NULL, NONE);
++		if (!vid)
++			break;
++		snprintf(devnode, 64, "/dev/%s", vid);
++		fd = open(devnode, O_RDWR);
++		if (fd < 0)
++			continue;
++
++		memset(&cap, 0, sizeof cap);
++		ret = ioctl(fd, VIDIOC_QUERYCAP, &cap);
++		if (ret) {
++			close(fd);
++			continue;
++		}
++		close(fd);
++
++		if (strncmp(args.driver, (char *)cap.driver, sizeof(cap.driver)))
++			continue;
++		if (args.device_caps && (args.device_caps & cap.device_caps) != args.device_caps)
++			continue;
++		fprintf(stdout, "%s\n", devnode);
++	} while (vid);
++	free_media_devices(md);
++	return 0;
++}
+diff --git a/v4l-utils.spec.in b/v4l-utils.spec.in
+index 67bdca57ae92..ab15286b039b 100644
+--- a/v4l-utils.spec.in
++++ b/v4l-utils.spec.in
+@@ -159,6 +159,7 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
+ %{_bindir}/ivtv-ctl
+ %{_bindir}/v4l2-ctl
+ %{_bindir}/v4l2-sysfs-path
++%{_bindir}/v4l2-get-device
+ %{_mandir}/man1/ir-keytable.1*
+ %{_mandir}/man1/ir-ctl.1*
+ 
+-- 
+2.19.1
