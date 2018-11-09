@@ -1,66 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga18.intel.com ([134.134.136.126]:25594 "EHLO mga18.intel.com"
+Received: from gofer.mess.org ([88.97.38.141]:58303 "EHLO gofer.mess.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727742AbeKIVqz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Nov 2018 16:46:55 -0500
-Date: Fri, 9 Nov 2018 14:06:31 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Yong Zhi <yong.zhi@intel.com>
-Cc: linux-media@vger.kernel.org, tfiga@chromium.org,
-        mchehab@kernel.org, hans.verkuil@cisco.com,
-        laurent.pinchart@ideasonboard.com, rajmohan.mani@intel.com,
-        jian.xu.zheng@intel.com, jerry.w.hu@intel.com,
-        tuukka.toivonen@intel.com, tian.shu.qiu@intel.com,
-        bingbu.cao@intel.com
-Subject: Re: [PATCH v7 12/16] intel-ipu3: css: Initialize css hardware
-Message-ID: <20181109120631.7tqw3rplyf7usdng@paasikivi.fi.intel.com>
-References: <1540851790-1777-1-git-send-email-yong.zhi@intel.com>
- <1540851790-1777-13-git-send-email-yong.zhi@intel.com>
+        id S1727560AbeKIVvA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 9 Nov 2018 16:51:00 -0500
+Date: Fri, 9 Nov 2018 12:10:38 +0000
+From: Sean Young <sean@mess.org>
+To: Peter Seiderer <ps.report@gmx.net>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH v4l-utils] Add missing linux/bpf_common.h
+Message-ID: <20181109121038.al23ts654c6vwwbl@gofer.mess.org>
+References: <20181105203047.15258-1-ps.report@gmx.net>
+ <20181106103856.66uhadykgsw2dqs3@gofer.mess.org>
+ <20181106224358.2a1ea449@gmx.net>
+ <20181107120544.zxfbbgibp5ubexn7@gofer.mess.org>
+ <20181108221338.7e91416d@gmx.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1540851790-1777-13-git-send-email-yong.zhi@intel.com>
+In-Reply-To: <20181108221338.7e91416d@gmx.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Yong,
+Hi Peter,
 
-On Mon, Oct 29, 2018 at 03:23:06PM -0700, Yong Zhi wrote:
-> This patch implements the functions to initialize
-> and configure IPU3 h/w such as clock, irq and power.
+On Thu, Nov 08, 2018 at 10:13:38PM +0100, Peter Seiderer wrote:
+> Thanks, works for the buildroot use case (disabling
+> bpf support unconditionally)...
 > 
-> Signed-off-by: Yong Zhi <yong.zhi@intel.com>
-> Signed-off-by: Tomasz Figa <tfiga@chromium.org>
-> ---
->  drivers/media/pci/intel/ipu3/ipu3-css.c | 537 ++++++++++++++++++++++++++++++++
->  drivers/media/pci/intel/ipu3/ipu3-css.h | 203 ++++++++++++
->  2 files changed, 740 insertions(+)
->  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css.c
->  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css.h
+> The reason to provide copies of the linux kernel headers in  v4l-utils
+> is to be independent of old(-er) headers provided by toolchains?
 > 
+> If so a copy of bpf_common.h is still needed (and the fallback, for
+> out of linux kernel usage, define for __NR_bpf in bpf.h enhanced for
+> all supported archs)?
 
-...
+I have seen this problem on debian 7. Why do we care about compiling
+on something that ancient?
 
-> diff --git a/drivers/media/pci/intel/ipu3/ipu3-css.h b/drivers/media/pci/intel/ipu3/ipu3-css.h
-> new file mode 100644
-> index 0000000..d16d0c4
-> --- /dev/null
-> +++ b/drivers/media/pci/intel/ipu3/ipu3-css.h
 
-...
-
-> +/* IPU3 Camera Sub System structure */
-> +struct ipu3_css {
-> +	struct device *dev;
-> +	void __iomem *base;
-> +	const struct firmware *fw;
-> +	struct imgu_fw_header *fwp;
-> +	int iomem_length;
-
-u32? The same for the length parameter in ccs_init().
-
--- 
-Regards,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+Sean
