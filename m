@@ -1,132 +1,278 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:41006 "EHLO
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:50881 "EHLO
         lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728836AbeKJTqC (ORCPT
+        by vger.kernel.org with ESMTP id S1728905AbeKJUOX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 10 Nov 2018 14:46:02 -0500
-Subject: Re: VIVID/VIMC and media fuzzing
-To: Dmitry Vyukov <dvyukov@google.com>
-Cc: helen.koike@collabora.com, syzkaller <syzkaller@googlegroups.com>,
-        linux-media@vger.kernel.org, mchehab@kernel.org,
-        Sami Tolvanen <samitolvanen@google.com>
-References: <CACT4Y+YHx3RUMGLv5T=-FJDZKEavK+sWBbAbenfm8mTQry8F+w@mail.gmail.com>
- <ea1f7e70-6e8c-76a2-291d-228f99ca0cd4@xs4all.nl>
- <CACT4Y+Y396cyUx+tmo6_YT7bmBt63-AYe5i0OG_5tuAUc+281A@mail.gmail.com>
- <20334055-77db-49cc-f0f6-f467ea9c220f@xs4all.nl>
- <CACT4Y+Y-0Dge=2atfX+_33+q1=wJ_82hzRKoeGSx7oRrds4R4A@mail.gmail.com>
- <CACT4Y+a+UkMHZ6kgfLBvgv5QB9++hMtaFnvT67NqHfWXzv3+zg@mail.gmail.com>
+        Sat, 10 Nov 2018 15:14:23 -0500
+Subject: Re: [PATCH v4l-utils] Introduce v4l2-get-device tool
+To: Ezequiel Garcia <ezequiel@collabora.com>,
+        linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com
+References: <20181109215238.2384-1-ezequiel@collabora.com>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <ee98996f-7e4c-84e5-801f-4f381c33950e@xs4all.nl>
-Date: Sat, 10 Nov 2018 11:01:33 +0100
+Message-ID: <63a1fe74-80ef-7e8a-54a2-52452a4096fe@xs4all.nl>
+Date: Sat, 10 Nov 2018 11:29:48 +0100
 MIME-Version: 1.0
-In-Reply-To: <CACT4Y+a+UkMHZ6kgfLBvgv5QB9++hMtaFnvT67NqHfWXzv3+zg@mail.gmail.com>
+In-Reply-To: <20181109215238.2384-1-ezequiel@collabora.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/09/2018 10:34 PM, Dmitry Vyukov wrote:
->>> What would be a good improvement is if you add this to the kernel command options:
->>> "vivid.n_devs=2 vivid.multiplanar=1,2"
->>>
->>> This will create two vivid instances, one using the single planar API and one using
->>> the multiplanar API. That will improve the test coverage.
->>
->> Re this and collisions between multiple test processes. We actually
->> would like to have moar devices and partition them between test
->> processes. Say if we need need devices for 8 test processes, will it
->> work to specify something like "vivid.n_devs=16
->> vivid.multiplanar=1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2" and then use
->> devices 0/1 in the first test process, 2/3 in the second and so on?
->>
->> Without giving any flags, I see 8 /dev/video* devices, does
->> vivid.n_devs defaults to 8?
-> 
-> I am a bit lost.
-> 
-> vivid.n_devs=16 vivid.multiplanar=1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2
-> creates 32 /dev/video* devices.
+On 11/09/2018 10:52 PM, Ezequiel Garcia wrote:
+> This tool allows to find a device by driver name,
+> this is useful for scripts to be written in a generic way.
 
-I see 38 /dev/video* devices: the first 3 are from vimc, then 2 * 16 = 32
-vivid devices (2 video nodes for each instance), then a vim2m device and
-finally two vicodec devices.
-
-So you should always see 6 + n_devs * 2 video devices.
+Why not add support for this to v4l2-sysfs-path? And improve it at the same
+time (swradio devices do not show up when I run v4l2-sysfs-path, I also suspect
+v4l-touch devices aren't recognized. Ditto for media devices.
 
 > 
-> but vivid.n_devs=8 vivid.multiplanar=1,2,1,2,1,2,1,2 creates 24
-> /dev/video* devices.
+> Usage:
 > 
-> These parameters also affect /dev/{vbi,radio,swradio} in strange ways
+> v4l2-get-device -d uvcvideo -c V4L2_CAP_VIDEO_CAPTURE
+> /dev/video0
+> /dev/video2
 > 
-> Also, by default there is /dev/radio0 and /dev/radio1, are these
-> different types of devices, e.g. "source" and "sink"? Or they are
-> identical? And the same question for other types of devices?
-
-vivid creates two radio devices per instance: one emulates a radio tuner,
-one emulates a radio modulator (so yes, source and sink). Same for vbi
-(one source, one sink) and one swradio device. It also creates two cec
-devices (source and sink).
-
+> Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+> ---
+>  configure.ac                            |   1 +
+>  utils/Makefile.am                       |   1 +
+>  utils/v4l2-get-device/.gitignore        |   1 +
+>  utils/v4l2-get-device/Makefile.am       |   4 +
+>  utils/v4l2-get-device/v4l2-get-device.c | 147 ++++++++++++++++++++++++
+>  v4l-utils.spec.in                       |   1 +
+>  6 files changed, 155 insertions(+)
+>  create mode 100644 utils/v4l2-get-device/.gitignore
+>  create mode 100644 utils/v4l2-get-device/Makefile.am
+>  create mode 100644 utils/v4l2-get-device/v4l2-get-device.c
 > 
-> How can I create 8 independent partitions of devices? What devices
-> will belong to each partition?
+> diff --git a/configure.ac b/configure.ac
+> index 5cc34c248fbf..918cb59704b9 100644
+> --- a/configure.ac
+> +++ b/configure.ac
+> @@ -31,6 +31,7 @@ AC_CONFIG_FILES([Makefile
+>  	utils/v4l2-compliance/Makefile
+>  	utils/v4l2-ctl/Makefile
+>  	utils/v4l2-dbg/Makefile
+> +	utils/v4l2-get-device/Makefile
+>  	utils/v4l2-sysfs-path/Makefile
+>  	utils/qv4l2/Makefile
+>  	utils/cec-ctl/Makefile
+> diff --git a/utils/Makefile.am b/utils/Makefile.am
+> index 2d5070288c13..2b2b27107d13 100644
+> --- a/utils/Makefile.am
+> +++ b/utils/Makefile.am
+> @@ -9,6 +9,7 @@ SUBDIRS = \
+>  	v4l2-compliance \
+>  	v4l2-ctl \
+>  	v4l2-dbg \
+> +	v4l2-get-device \
+>  	v4l2-sysfs-path \
+>  	cec-ctl \
+>  	cec-compliance \
+> diff --git a/utils/v4l2-get-device/.gitignore b/utils/v4l2-get-device/.gitignore
+> new file mode 100644
+> index 000000000000..b222144c9f4e
+> --- /dev/null
+> +++ b/utils/v4l2-get-device/.gitignore
+> @@ -0,0 +1 @@
+> +v4l2-get-device
+> diff --git a/utils/v4l2-get-device/Makefile.am b/utils/v4l2-get-device/Makefile.am
+> new file mode 100644
+> index 000000000000..2e5a6e0ba32f
+> --- /dev/null
+> +++ b/utils/v4l2-get-device/Makefile.am
+> @@ -0,0 +1,4 @@
+> +bin_PROGRAMS = v4l2-get-device
+> +v4l2_get_device_SOURCES = v4l2-get-device.c
+> +v4l2_get_device_LDADD = ../libmedia_dev/libmedia_dev.la
+> +v4l2_get_device_LDFLAGS = $(ARGP_LIBS)
+> diff --git a/utils/v4l2-get-device/v4l2-get-device.c b/utils/v4l2-get-device/v4l2-get-device.c
+> new file mode 100644
+> index 000000000000..f9cc323b7057
+> --- /dev/null
+> +++ b/utils/v4l2-get-device/v4l2-get-device.c
+> @@ -0,0 +1,147 @@
+> +/*
+> + * Copyright © 2018 Collabora, Ltd.
+> + *
+> + * Based on v4l2-sysfs-path by Mauro Carvalho Chehab:
+> + *
+> + * Copyright © 2011 Red Hat, Inc.
+> + *
+> + * Permission to use, copy, modify, distribute, and sell this software
+> + * and its documentation for any purpose is hereby granted without
+> + * fee, provided that the above copyright notice appear in all copies
+> + * and that both that copyright notice and this permission notice
+> + * appear in supporting documentation, and that the name of Red Hat
+> + * not be used in advertising or publicity pertaining to distribution
+> + * of the software without specific, written prior permission.  Red
+> + * Hat makes no representations about the suitability of this software
+> + * for any purpose.  It is provided "as is" without express or implied
+> + * warranty.
+> + *
+> + * THE AUTHORS DISCLAIM ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+> + * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN
+> + * NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY SPECIAL, INDIRECT OR
+> + * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
+> + * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+> + * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
+> + * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+> + *
+> + */
+> +
+> +#include <argp.h>
+> +#include <config.h>
+> +#include <fcntl.h>
+> +#include <stdio.h>
+> +#include <stdlib.h>
+> +#include <string.h>
+> +#include <sys/types.h>
+> +#include <sys/stat.h>
+> +#include <sys/ioctl.h>
+> +#include <sys/unistd.h>
+> +
+> +#include <linux/videodev2.h>
+> +
+> +#include "../libmedia_dev/get_media_devices.h"
+> +
+> +const char *argp_program_version = "v4l2-get-device " V4L_UTILS_VERSION;
+> +const char *argp_program_bug_address = "Ezequiel Garcia <ezequiel@collabora.com>";
+> +
+> +struct args {
+> +	const char *driver;
+> +	unsigned int device_caps;
+> +};
+> +
+> +static const struct argp_option options[] = {
+> +	{"driver", 'd', "DRIVER", 0, "device driver name", 0},
+> +	{"v4l2-device-caps", 'c', "CAPS", 0, "v4l2 device capabilities", 0},
 
-Exactly as you did above. Instance X (starting at 0) uses video nodes
-3+2*X and 4+2*X.
+I'd like a bus-info option as well, if possible.
 
+> +	{ 0 }
+> +};
+> +
+> +static unsigned int parse_capabilities(const char *arg)
+> +{
+> +	char *s, *str = strdup(arg);
+> +	unsigned int caps = 0;
+> +
+> +	s = strtok (str,",");
+> +	while (s != NULL) {
+> +		if (!strcmp(s, "V4L2_CAP_VIDEO_CAPTURE"))
+> +			caps |= V4L2_CAP_VIDEO_CAPTURE;
+> +		else if (!strcmp(s, "V4L2_CAP_VIDEO_OUTPUT"))
+> +			caps |= V4L2_CAP_VIDEO_OUTPUT;
+> +		else if (!strcmp(s, "V4L2_CAP_VIDEO_OVERLAY"))
+> +			caps |= V4L2_CAP_VIDEO_OVERLAY;
+> +		else if (!strcmp(s, "V4L2_CAP_VBI_CAPTURE"))
+> +			caps |= V4L2_CAP_VBI_CAPTURE;
+> +		else if (!strcmp(s, "V4L2_CAP_VBI_OUTPUT"))
+> +			caps |= V4L2_CAP_VBI_OUTPUT;
+
+Let's support all CAPS here. I'd also drop the V4L2_CAP_ prefix (or make it optional)
+and make the strcmp case-insensitive to ease typing.
+
+> +		s = strtok (NULL, ",");
+> +	}
+> +	free(str);
+> +	return caps;
+> +}
+> +
+> +static error_t parse_opt(int k, char *arg, struct argp_state *state)
+> +{
+> +	struct args *args = state->input;
+> +
+> +	switch (k) {
+> +	case 'd':
+> +		args->driver = arg;
+> +		break;
+> +	case 'c':
+> +		args->device_caps = parse_capabilities(arg);
+> +		break;
+> +	default:
+> +		return ARGP_ERR_UNKNOWN;
+> +	}
+> +	return 0;
+> +}
+> +
+> +static struct argp argp = {
+> +	.options = options,
+> +	.parser = parse_opt,
+> +};
+> +
+> +int main(int argc, char *argv[])
+> +{
+> +	const char *vid;
+> +	struct args args;
+> +	void *md;
+> +
+> +	args.driver = NULL;
+> +	args.device_caps = 0;
+> +	argp_parse(&argp, argc, argv, 0, 0, &args);
+> +
+> +	md = discover_media_devices();
+
+I never really liked this. My main problem is that it doesn't know about media devices.
+
+In my view it should look for media devices first, query them and get all the device
+nodes referenced in the topology, and then fall back to the old method to discover
+any remaining device nodes for drivers that do not create a media device.
+
+You need media device support anyway since you also want to be able to query the media
+device for a specific driver and find the device node for a specific entity.
+
+> +
+> +	vid = NULL;
+> +	do {
+> +		struct v4l2_capability cap;
+> +		char devnode[64];
+> +		int ret;
+> +		int fd;
+> +
+> +		vid = get_associated_device(md, vid, MEDIA_V4L_VIDEO,
+> +					    NULL, NONE);
+> +		if (!vid)
+> +			break;
+> +		snprintf(devnode, 64, "/dev/%s", vid);
+> +		fd = open(devnode, O_RDWR);
+> +		if (fd < 0)
+> +			continue;
+> +
+> +		memset(&cap, 0, sizeof cap);
+> +		ret = ioctl(fd, VIDIOC_QUERYCAP, &cap);
+> +		if (ret) {
+> +			close(fd);
+> +			continue;
+> +		}
+> +		close(fd);
+> +
+> +		if (strncmp(args.driver, (char *)cap.driver, sizeof(cap.driver)))
+> +			continue;
+> +		if (args.device_caps && (args.device_caps & cap.device_caps) != args.device_caps)
+> +			continue;
+> +		fprintf(stdout, "%s\n", devnode);
+> +	} while (vid);
+> +	free_media_devices(md);
+> +	return 0;
+> +}
+> diff --git a/v4l-utils.spec.in b/v4l-utils.spec.in
+> index 67bdca57ae92..ab15286b039b 100644
+> --- a/v4l-utils.spec.in
+> +++ b/v4l-utils.spec.in
+> @@ -159,6 +159,7 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
+>  %{_bindir}/ivtv-ctl
+>  %{_bindir}/v4l2-ctl
+>  %{_bindir}/v4l2-sysfs-path
+> +%{_bindir}/v4l2-get-device
+>  %{_mandir}/man1/ir-keytable.1*
+>  %{_mandir}/man1/ir-ctl.1*
+>  
 > 
-> 
->>> I also noticed that you appear to test only video devices. But vivid also creates
->>> vbi, radio and swradio devices. It would be nice to have those tested as well.
->>
->> Will do.
->> FTR, this is these devices:
->>
->> # ls -l /dev/{vbi,radio,swradio}*
->> crw-rw---- 1 root video 81, 14 Nov  9 21:07 /dev/radio0
->> crw-rw---- 1 root video 81, 15 Nov  9 21:07 /dev/radio1
->> crw-rw---- 1 root video 81, 13 Nov  9 21:07 /dev/swradio0
->> crw-rw---- 1 root video 81, 11 Nov  9 21:07 /dev/vbi0
->> crw-rw---- 1 root video 81, 12 Nov  9 21:07 /dev/vbi1
->>
->> Why are there 2 radio and vbi? Are they different? Is it possible to
->> also create more of them? Are there any other useful command line args
->> for them?
 
-As mentioned: the first is capture, the second output. It's per vivid
-instance.
+Regards,
 
-<snip>
-
->>>> CREATE_BUFS privatization is somewhat unfortunate, but I guess we can
->>>> live with it for now.
->>>
->>> Sorry, I'm not sure what you mean.
->>
->> You said:
->>
->>>> But after calling REQBUFS or CREATE_BUFS the filehandle that
->>>> called those ioctls becomes owner of the device until the buffers are
->>>> released. So other filehandles cannot do any streaming operations (EBUSY
->>>> will be returned).
->>
->> This semantics are somewhat unfortunate for syzkaller because one test
->> process will affect/block other test processes, and we try to make
->> them as independent as possible. E.g. If this can affect syzkaller
->> ability to create reproducers, because in one run of a test if was
->> affected by an unrelated test and crashed, but if we try to reproduce
->> the crash on the same test it won't crash again because now it's not
->> affected by the unrelated test.
->>
->> But if we create more devices and partition them across test
->> processes, it will resolve this problem?
-
-I think it will help, yes.
-
->>
->>
->>>> I assume that when the process dies it will release everything at
->>>> least, because fuzzer will sure not pair create with release all the
->>>> time.
+	Hans
