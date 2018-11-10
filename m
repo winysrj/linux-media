@@ -1,21 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vps477982.isp.command-line.io ([1.32.58.105]:46932 "EHLO
-        mail.command-line.io" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726244AbeKKDCS (ORCPT
+Received: from mail-it1-f194.google.com ([209.85.166.194]:40837 "EHLO
+        mail-it1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725266AbeKKFPQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 10 Nov 2018 22:02:18 -0500
-Content-Type: text/plain; charset="utf-8"
+        Sun, 11 Nov 2018 00:15:16 -0500
+Received: by mail-it1-f194.google.com with SMTP id e11so8124749itl.5
+        for <linux-media@vger.kernel.org>; Sat, 10 Nov 2018 11:29:12 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Description: Mail message body
-Subject: SPENDE
-To: Recipients <info@drrmlims.ac.in>
-From: info@drrmlims.ac.in
-Date: Sat, 10 Nov 2018 08:32:00 +0700
-Reply-To: maviswanczyk119@gmail.com
-Message-Id: <20181110013222.1D77718C499@mail.command-line.io>
+In-Reply-To: <ee98996f-7e4c-84e5-801f-4f381c33950e@xs4all.nl>
+References: <CACT4Y+YHx3RUMGLv5T=-FJDZKEavK+sWBbAbenfm8mTQry8F+w@mail.gmail.com>
+ <ea1f7e70-6e8c-76a2-291d-228f99ca0cd4@xs4all.nl> <CACT4Y+Y396cyUx+tmo6_YT7bmBt63-AYe5i0OG_5tuAUc+281A@mail.gmail.com>
+ <20334055-77db-49cc-f0f6-f467ea9c220f@xs4all.nl> <CACT4Y+Y-0Dge=2atfX+_33+q1=wJ_82hzRKoeGSx7oRrds4R4A@mail.gmail.com>
+ <CACT4Y+a+UkMHZ6kgfLBvgv5QB9++hMtaFnvT67NqHfWXzv3+zg@mail.gmail.com> <ee98996f-7e4c-84e5-801f-4f381c33950e@xs4all.nl>
+From: Dmitry Vyukov <dvyukov@google.com>
+Date: Sat, 10 Nov 2018 11:28:50 -0800
+Message-ID: <CACT4Y+bL=on5CqFxXpF8W0rSEGWUtcaESC9d9iO1naP_Vam6-Q@mail.gmail.com>
+Subject: Re: VIVID/VIMC and media fuzzing
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: helen.koike@collabora.com, syzkaller <syzkaller@googlegroups.com>,
+        linux-media@vger.kernel.org, mchehab@kernel.org,
+        Sami Tolvanen <samitolvanen@google.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sehr geehrter Herr/Frau,
-Wir freuen uns, Ihnen mitzuteilen, dass Sie ausgewählt wurden, um die Summe zu erhalten €2,000,000.00 Euro aus Mitteln der Mavis Wanczyk Hilfe.  Mein Name ist Mavis Wanczyk der Gewinner des 758,7 Millionen US-Dollar in der Power Ball Lotterie Jackpot als der größte Preis aus einem einzigen Lottoschein in USA.  Meine Wohltätigkeitsstiftung hat dich ausgewählt, als unsere glücklichen Empfänger erhalten die Summe von € 2,000,000.00 EURO. Nehmen Sie dieses Angebot an und kontaktieren Sie mich für Weitere Details.
+On Sat, Nov 10, 2018 at 2:01 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On 11/09/2018 10:34 PM, Dmitry Vyukov wrote:
+>>>> What would be a good improvement is if you add this to the kernel command options:
+>>>> "vivid.n_devs=2 vivid.multiplanar=1,2"
+>>>>
+>>>> This will create two vivid instances, one using the single planar API and one using
+>>>> the multiplanar API. That will improve the test coverage.
+>>>
+>>> Re this and collisions between multiple test processes. We actually
+>>> would like to have moar devices and partition them between test
+>>> processes. Say if we need need devices for 8 test processes, will it
+>>> work to specify something like "vivid.n_devs=16
+>>> vivid.multiplanar=1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2" and then use
+>>> devices 0/1 in the first test process, 2/3 in the second and so on?
+>>>
+>>> Without giving any flags, I see 8 /dev/video* devices, does
+>>> vivid.n_devs defaults to 8?
+>>
+>> I am a bit lost.
+>>
+>> vivid.n_devs=16 vivid.multiplanar=1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2
+>> creates 32 /dev/video* devices.
+>
+> I see 38 /dev/video* devices: the first 3 are from vimc, then 2 * 16 = 32
+> vivid devices (2 video nodes for each instance), then a vim2m device and
+> finally two vicodec devices.
+>
+> So you should always see 6 + n_devs * 2 video devices.
+>
+>>
+>> but vivid.n_devs=8 vivid.multiplanar=1,2,1,2,1,2,1,2 creates 24
+>> /dev/video* devices.
+>>
+>> These parameters also affect /dev/{vbi,radio,swradio} in strange ways
+>>
+>> Also, by default there is /dev/radio0 and /dev/radio1, are these
+>> different types of devices, e.g. "source" and "sink"? Or they are
+>> identical? And the same question for other types of devices?
+>
+> vivid creates two radio devices per instance: one emulates a radio tuner,
+> one emulates a radio modulator (so yes, source and sink). Same for vbi
+> (one source, one sink) and one swradio device. It also creates two cec
+> devices (source and sink).
+>
+>>
+>> How can I create 8 independent partitions of devices? What devices
+>> will belong to each partition?
+>
+> Exactly as you did above. Instance X (starting at 0) uses video nodes
+> 3+2*X and 4+2*X.
+
+Thanks! Now I got it.
+I've extended syzkaller to create more devices, use planar/non-planar,
+radio, swradio, cec, vbi:
+
+https://github.com/google/syzkaller/commit/f3c4e6185953baea53d5651b84bd5897c02627f4#diff-a6fc2c4d3df5a6bcb42a628db614175f
+
+https://github.com/google/syzkaller/commit/f3c4e6185953baea53d5651b84bd5897c02627f4#diff-c60ec5d4add9b876f5d28fdeeaf3b7b8
+
+
+>>>> I also noticed that you appear to test only video devices. But vivid also creates
+>>>> vbi, radio and swradio devices. It would be nice to have those tested as well.
+>>>
+>>> Will do.
+>>> FTR, this is these devices:
+>>>
+>>> # ls -l /dev/{vbi,radio,swradio}*
+>>> crw-rw---- 1 root video 81, 14 Nov  9 21:07 /dev/radio0
+>>> crw-rw---- 1 root video 81, 15 Nov  9 21:07 /dev/radio1
+>>> crw-rw---- 1 root video 81, 13 Nov  9 21:07 /dev/swradio0
+>>> crw-rw---- 1 root video 81, 11 Nov  9 21:07 /dev/vbi0
+>>> crw-rw---- 1 root video 81, 12 Nov  9 21:07 /dev/vbi1
+>>>
+>>> Why are there 2 radio and vbi? Are they different? Is it possible to
+>>> also create more of them? Are there any other useful command line args
+>>> for them?
+>
+> As mentioned: the first is capture, the second output. It's per vivid
+> instance.
+>
+> <snip>
+>
+>>>>> CREATE_BUFS privatization is somewhat unfortunate, but I guess we can
+>>>>> live with it for now.
+>>>>
+>>>> Sorry, I'm not sure what you mean.
+>>>
+>>> You said:
+>>>
+>>>>> But after calling REQBUFS or CREATE_BUFS the filehandle that
+>>>>> called those ioctls becomes owner of the device until the buffers are
+>>>>> released. So other filehandles cannot do any streaming operations (EBUSY
+>>>>> will be returned).
+>>>
+>>> This semantics are somewhat unfortunate for syzkaller because one test
+>>> process will affect/block other test processes, and we try to make
+>>> them as independent as possible. E.g. If this can affect syzkaller
+>>> ability to create reproducers, because in one run of a test if was
+>>> affected by an unrelated test and crashed, but if we try to reproduce
+>>> the crash on the same test it won't crash again because now it's not
+>>> affected by the unrelated test.
+>>>
+>>> But if we create more devices and partition them across test
+>>> processes, it will resolve this problem?
+>
+> I think it will help, yes.
+>
+>>>
+>>>
+>>>>> I assume that when the process dies it will release everything at
+>>>>> least, because fuzzer will sure not pair create with release all the
+>>>>> time.
+>
+> --
+> You received this message because you are subscribed to the Google Groups "syzkaller" group.
+> To unsubscribe from this group and stop receiving emails from it, send an email to syzkaller+unsubscribe@googlegroups.com.
+> For more options, visit https://groups.google.com/d/optout.
