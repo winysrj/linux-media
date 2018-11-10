@@ -1,143 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it1-f194.google.com ([209.85.166.194]:40837 "EHLO
-        mail-it1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725266AbeKKFPQ (ORCPT
+Received: from wp057.webpack.hosteurope.de ([80.237.132.64]:43668 "EHLO
+        wp057.webpack.hosteurope.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725772AbeKKGgF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 11 Nov 2018 00:15:16 -0500
-Received: by mail-it1-f194.google.com with SMTP id e11so8124749itl.5
-        for <linux-media@vger.kernel.org>; Sat, 10 Nov 2018 11:29:12 -0800 (PST)
+        Sun, 11 Nov 2018 01:36:05 -0500
+From: "martin.konopka@mknetz.de" <martin.konopka@mknetz.de>
+Subject: TechnoTrend CT2-4500 remote not working
+To: linux-media@vger.kernel.org
+Message-ID: <6931e289-f302-e6f3-c58b-f3ea50ba0415@mknetz.de>
+Date: Sat, 10 Nov 2018 21:09:09 +0100
 MIME-Version: 1.0
-In-Reply-To: <ee98996f-7e4c-84e5-801f-4f381c33950e@xs4all.nl>
-References: <CACT4Y+YHx3RUMGLv5T=-FJDZKEavK+sWBbAbenfm8mTQry8F+w@mail.gmail.com>
- <ea1f7e70-6e8c-76a2-291d-228f99ca0cd4@xs4all.nl> <CACT4Y+Y396cyUx+tmo6_YT7bmBt63-AYe5i0OG_5tuAUc+281A@mail.gmail.com>
- <20334055-77db-49cc-f0f6-f467ea9c220f@xs4all.nl> <CACT4Y+Y-0Dge=2atfX+_33+q1=wJ_82hzRKoeGSx7oRrds4R4A@mail.gmail.com>
- <CACT4Y+a+UkMHZ6kgfLBvgv5QB9++hMtaFnvT67NqHfWXzv3+zg@mail.gmail.com> <ee98996f-7e4c-84e5-801f-4f381c33950e@xs4all.nl>
-From: Dmitry Vyukov <dvyukov@google.com>
-Date: Sat, 10 Nov 2018 11:28:50 -0800
-Message-ID: <CACT4Y+bL=on5CqFxXpF8W0rSEGWUtcaESC9d9iO1naP_Vam6-Q@mail.gmail.com>
-Subject: Re: VIVID/VIMC and media fuzzing
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: helen.koike@collabora.com, syzkaller <syzkaller@googlegroups.com>,
-        linux-media@vger.kernel.org, mchehab@kernel.org,
-        Sami Tolvanen <samitolvanen@google.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Nov 10, 2018 at 2:01 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On 11/09/2018 10:34 PM, Dmitry Vyukov wrote:
->>>> What would be a good improvement is if you add this to the kernel command options:
->>>> "vivid.n_devs=2 vivid.multiplanar=1,2"
->>>>
->>>> This will create two vivid instances, one using the single planar API and one using
->>>> the multiplanar API. That will improve the test coverage.
->>>
->>> Re this and collisions between multiple test processes. We actually
->>> would like to have moar devices and partition them between test
->>> processes. Say if we need need devices for 8 test processes, will it
->>> work to specify something like "vivid.n_devs=16
->>> vivid.multiplanar=1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2" and then use
->>> devices 0/1 in the first test process, 2/3 in the second and so on?
->>>
->>> Without giving any flags, I see 8 /dev/video* devices, does
->>> vivid.n_devs defaults to 8?
->>
->> I am a bit lost.
->>
->> vivid.n_devs=16 vivid.multiplanar=1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2
->> creates 32 /dev/video* devices.
->
-> I see 38 /dev/video* devices: the first 3 are from vimc, then 2 * 16 = 32
-> vivid devices (2 video nodes for each instance), then a vim2m device and
-> finally two vicodec devices.
->
-> So you should always see 6 + n_devs * 2 video devices.
->
->>
->> but vivid.n_devs=8 vivid.multiplanar=1,2,1,2,1,2,1,2 creates 24
->> /dev/video* devices.
->>
->> These parameters also affect /dev/{vbi,radio,swradio} in strange ways
->>
->> Also, by default there is /dev/radio0 and /dev/radio1, are these
->> different types of devices, e.g. "source" and "sink"? Or they are
->> identical? And the same question for other types of devices?
->
-> vivid creates two radio devices per instance: one emulates a radio tuner,
-> one emulates a radio modulator (so yes, source and sink). Same for vbi
-> (one source, one sink) and one swradio device. It also creates two cec
-> devices (source and sink).
->
->>
->> How can I create 8 independent partitions of devices? What devices
->> will belong to each partition?
->
-> Exactly as you did above. Instance X (starting at 0) uses video nodes
-> 3+2*X and 4+2*X.
+Hi all,
 
-Thanks! Now I got it.
-I've extended syzkaller to create more devices, use planar/non-planar,
-radio, swradio, cec, vbi:
+the remote on my TechnoTrend CT2-4500 is not working with kernel 4.18.
+The TV-card itself works fine:
 
-https://github.com/google/syzkaller/commit/f3c4e6185953baea53d5651b84bd5897c02627f4#diff-a6fc2c4d3df5a6bcb42a628db614175f
-
-https://github.com/google/syzkaller/commit/f3c4e6185953baea53d5651b84bd5897c02627f4#diff-c60ec5d4add9b876f5d28fdeeaf3b7b8
+cx25840 6-0044: loaded v4l-cx23885-avcore-01.fw firmware (16382 bytes)
+cx23885: cx23885_dvb_register() allocating 1 frontend(s)
+cx23885: cx23885[0]: cx23885 based dvb card
+i2c i2c-5: Added multiplexed i2c bus 12
+si2168 5-0064: Silicon Labs Si2168-B40 successfully identified
+si2168 5-0064: firmware version: B 4.0.2
+si2157 12-0060: Silicon Labs Si2147/2148/2157/2158 successfully attached
+dvbdev: DVB: registering new adapter (cx23885[0])
+cx23885 0000:17:00.0: DVB: registering adapter 0 frontend 0 (Silicon
+Labs Si2168)...
+sp2 4-0040: CIMaX SP2 successfully attached
+cx23885: Technotrend TT-budget CT2-4500 CI MAC address: bc:ea:2b:45:05:68
+cx23885: cx23885_dev_checkrevision() Hardware revision = 0xa5
+cx23885: cx23885[0]/0: found at 0000:17:00.0, rev: 4, irq: 31, latency:
+0, mmio: 0xfe000000
 
 
->>>> I also noticed that you appear to test only video devices. But vivid also creates
->>>> vbi, radio and swradio devices. It would be nice to have those tested as well.
->>>
->>> Will do.
->>> FTR, this is these devices:
->>>
->>> # ls -l /dev/{vbi,radio,swradio}*
->>> crw-rw---- 1 root video 81, 14 Nov  9 21:07 /dev/radio0
->>> crw-rw---- 1 root video 81, 15 Nov  9 21:07 /dev/radio1
->>> crw-rw---- 1 root video 81, 13 Nov  9 21:07 /dev/swradio0
->>> crw-rw---- 1 root video 81, 11 Nov  9 21:07 /dev/vbi0
->>> crw-rw---- 1 root video 81, 12 Nov  9 21:07 /dev/vbi1
->>>
->>> Why are there 2 radio and vbi? Are they different? Is it possible to
->>> also create more of them? Are there any other useful command line args
->>> for them?
->
-> As mentioned: the first is capture, the second output. It's per vivid
-> instance.
->
-> <snip>
->
->>>>> CREATE_BUFS privatization is somewhat unfortunate, but I guess we can
->>>>> live with it for now.
->>>>
->>>> Sorry, I'm not sure what you mean.
->>>
->>> You said:
->>>
->>>>> But after calling REQBUFS or CREATE_BUFS the filehandle that
->>>>> called those ioctls becomes owner of the device until the buffers are
->>>>> released. So other filehandles cannot do any streaming operations (EBUSY
->>>>> will be returned).
->>>
->>> This semantics are somewhat unfortunate for syzkaller because one test
->>> process will affect/block other test processes, and we try to make
->>> them as independent as possible. E.g. If this can affect syzkaller
->>> ability to create reproducers, because in one run of a test if was
->>> affected by an unrelated test and crashed, but if we try to reproduce
->>> the crash on the same test it won't crash again because now it's not
->>> affected by the unrelated test.
->>>
->>> But if we create more devices and partition them across test
->>> processes, it will resolve this problem?
->
-> I think it will help, yes.
->
->>>
->>>
->>>>> I assume that when the process dies it will release everything at
->>>>> least, because fuzzer will sure not pair create with release all the
->>>>> time.
->
-> --
-> You received this message because you are subscribed to the Google Groups "syzkaller" group.
-> To unsubscribe from this group and stop receiving emails from it, send an email to syzkaller+unsubscribe@googlegroups.com.
-> For more options, visit https://groups.google.com/d/optout.
+The remote is registered:
+
+Registered IR keymap rc-fusionhdtv-mce
+rc rc0: FusionHDTV as
+/devices/pci0000:00/0000:00:01.2/0000:15:00.2/0000:16:00.0/0000:17:00.0/i2c-4/4-006b/rc/rc0
+input: FusionHDTV as
+/devices/pci0000:00/0000:00:01.2/0000:15:00.2/0000:16:00.0/0000:17:00.0/i2c-4/4-006b/rc/rc0/input18
+rc rc0: lirc_dev: driver ir_kbd_i2c registered at minor = 0, scancode
+receiver, no transmitter
+
+ir-keytable reports:
+
+Found /sys/class/rc/rc0/ (/dev/input/event15) with:
+	Name: FusionHDTV
+	Driver: ir_kbd_i2c, table: rc-fusionhdtv-mce
+	lirc device: /dev/lirc0
+	Supported protocols: unknown
+	Enabled protocols: unknown
+	bus: 24, vendor/product: 0000:0000, version: 0x0000
+	Repeat delay = 500 ms, repeat period = 125 ms
+
+Apparently, no protocols are reported.
+
+evtest on /dev/input/event15 reports no events.
+
+The error was reported before:
+
+http://lirc.10951.n7.nabble.com/Problems-with-cx23885-IR-receiver-td10884.html
+
+The remote is working, I verified it with a camera.
+
+Regards,
+
+Martin
