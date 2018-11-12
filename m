@@ -1,77 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ty1jpn01on0106.outbound.protection.outlook.com ([104.47.93.106]:12822
-        "EHLO JPN01-TY1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726421AbeKHX7p (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 8 Nov 2018 18:59:45 -0500
-From: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
-To: Biju Das <biju.das@bp.renesas.com>,
+Received: from mail-pl1-f195.google.com ([209.85.214.195]:40689 "EHLO
+        mail-pl1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726221AbeKMBzK (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 12 Nov 2018 20:55:10 -0500
+Received: by mail-pl1-f195.google.com with SMTP id q19-v6so4544623pll.7
+        for <linux-media@vger.kernel.org>; Mon, 12 Nov 2018 08:01:19 -0800 (PST)
+From: Akinobu Mita <akinobu.mita@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Akinobu Mita <akinobu.mita@gmail.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>
-CC: Biju Das <biju.das@bp.renesas.com>,
-        =?iso-8859-1?Q?Niklas_S=F6derlund?= <niklas.soderlund@ragnatech.se>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "linux-renesas-soc@vger.kernel.org"
-        <linux-renesas-soc@vger.kernel.org>,
-        Simon Horman <horms@verge.net.au>,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        Chris Paterson <Chris.Paterson2@renesas.com>
-Subject: RE: [PATCH 2/5] media: rcar-csi2: Enable support for r8a774a1
-Date: Thu, 8 Nov 2018 14:23:57 +0000
-Message-ID: <TY1PR01MB177038E4E437F02A2E735DE4C0C50@TY1PR01MB1770.jpnprd01.prod.outlook.com>
-References: <1536589878-26218-1-git-send-email-biju.das@bp.renesas.com>
- <1536589878-26218-3-git-send-email-biju.das@bp.renesas.com>
-In-Reply-To: <1536589878-26218-3-git-send-email-biju.das@bp.renesas.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-MIME-Version: 1.0
+Subject: [PATCH 3/7] media: ov2640: add V4L2_CID_TEST_PATTERN control
+Date: Tue, 13 Nov 2018 01:00:50 +0900
+Message-Id: <1542038454-20066-4-git-send-email-akinobu.mita@gmail.com>
+In-Reply-To: <1542038454-20066-1-git-send-email-akinobu.mita@gmail.com>
+References: <1542038454-20066-1-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Mauro,
+The ov2640 has the test pattern generator features.  This makes use of
+it through V4L2_CID_TEST_PATTERN control.
 
-Does this patch look ok to you?
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+---
+ drivers/media/i2c/ov2640.c | 14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
 
-Thanks,
-Fab
-
-> From: linux-renesas-soc-owner@vger.kernel.org <linux-renesas-soc-owner@vg=
-er.kernel.org> On Behalf Of Biju Das
-> Sent: 10 September 2018 15:31
-> Subject: [PATCH 2/5] media: rcar-csi2: Enable support for r8a774a1
->
-> Add the MIPI CSI-2 driver support for RZ/G2M(r8a774a1) SoC.
-> The CSI-2 module of RZ/G2M is similar to R-Car M3-W.
->
-> Signed-off-by: Biju Das <biju.das@bp.renesas.com>
-> Reviewed-by: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
-> ---
->  drivers/media/platform/rcar-vin/rcar-csi2.c | 4 ++++
->  1 file changed, 4 insertions(+)
->
-> diff --git a/drivers/media/platform/rcar-vin/rcar-csi2.c b/drivers/media/=
-platform/rcar-vin/rcar-csi2.c
-> index daef72d..65c7efb 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-csi2.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-csi2.c
-> @@ -953,6 +953,10 @@ static const struct rcar_csi2_info rcar_csi2_info_r8=
-a77970 =3D {
->
->  static const struct of_device_id rcar_csi2_of_table[] =3D {
->  {
-> +.compatible =3D "renesas,r8a774a1-csi2",
-> +.data =3D &rcar_csi2_info_r8a7796,
-> +},
-> +{
->  .compatible =3D "renesas,r8a7795-csi2",
->  .data =3D &rcar_csi2_info_r8a7795,
->  },
-> --
-> 2.7.4
-
-
-
-
-Renesas Electronics Europe Ltd, Dukes Meadow, Millboard Road, Bourne End, B=
-uckinghamshire, SL8 5FH, UK. Registered in England & Wales under Registered=
- No. 04586709.
+diff --git a/drivers/media/i2c/ov2640.c b/drivers/media/i2c/ov2640.c
+index 20a8853..4992d77 100644
+--- a/drivers/media/i2c/ov2640.c
++++ b/drivers/media/i2c/ov2640.c
+@@ -705,6 +705,11 @@ static int ov2640_reset(struct i2c_client *client)
+ 	return ret;
+ }
+ 
++static const char * const ov2640_test_pattern_menu[] = {
++	"Disabled",
++	"Color bar",
++};
++
+ /*
+  * functions
+  */
+@@ -740,6 +745,9 @@ static int ov2640_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	case V4L2_CID_HFLIP:
+ 		val = ctrl->val ? REG04_HFLIP_IMG : 0x00;
+ 		return ov2640_mask_set(client, REG04, REG04_HFLIP_IMG, val);
++	case V4L2_CID_TEST_PATTERN:
++		val = ctrl->val ? COM7_COLOR_BAR_TEST : 0x00;
++		return ov2640_mask_set(client, COM7, COM7_COLOR_BAR_TEST, val);
+ 	}
+ 
+ 	return -EINVAL;
+@@ -1184,12 +1192,16 @@ static int ov2640_probe(struct i2c_client *client,
+ 	v4l2_i2c_subdev_init(&priv->subdev, client, &ov2640_subdev_ops);
+ 	priv->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 	mutex_init(&priv->lock);
+-	v4l2_ctrl_handler_init(&priv->hdl, 2);
++	v4l2_ctrl_handler_init(&priv->hdl, 3);
+ 	priv->hdl.lock = &priv->lock;
+ 	v4l2_ctrl_new_std(&priv->hdl, &ov2640_ctrl_ops,
+ 			V4L2_CID_VFLIP, 0, 1, 1, 0);
+ 	v4l2_ctrl_new_std(&priv->hdl, &ov2640_ctrl_ops,
+ 			V4L2_CID_HFLIP, 0, 1, 1, 0);
++	v4l2_ctrl_new_std_menu_items(&priv->hdl, &ov2640_ctrl_ops,
++			V4L2_CID_TEST_PATTERN,
++			ARRAY_SIZE(ov2640_test_pattern_menu) - 1, 0, 0,
++			ov2640_test_pattern_menu);
+ 	priv->subdev.ctrl_handler = &priv->hdl;
+ 	if (priv->hdl.error) {
+ 		ret = priv->hdl.error;
+-- 
+2.7.4
