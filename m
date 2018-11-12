@@ -1,119 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:35753 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727286AbeKMA4M (ORCPT
+Received: from mail-wr1-f68.google.com ([209.85.221.68]:41424 "EHLO
+        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729371AbeKMA5v (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Nov 2018 19:56:12 -0500
-Subject: Re: [RFP] Which V4L2 ioctls could be replaced by better versions?
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-        Tomasz Figa <tfiga@chromium.org>, nicolas@ndufresne.ca
-Cc: pza@pengutronix.de,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <d49940b7-af62-594e-06ad-8ec113589340@xs4all.nl>
- <6efdab2da3e4263a49a6a2630df7f79511302088.camel@ndufresne.ca>
- <CAAFQd5BsvtqM3QriFd5vo55ZDKxFcnGAR21Y7ch247jXX6-iQg@mail.gmail.com>
- <20181021162843.ys6eqbbyg5w5ufrv@pengutronix.de>
- <CAAFQd5A3a1o55pcV6Kn5ZWXQFYJvuv4y1+oD4=PEZXoYMhrX0Q@mail.gmail.com>
- <9ac3abb4a8dee94bd2adca6c781bf8c58f68b945.camel@ndufresne.ca>
- <CAAFQd5DcJ8XSseE-GJDoftsmfDa=Vo9_wwn-_pAx54HNhL1vWA@mail.gmail.com>
- <415abde4ccf854e58df2aaf68d45eae7150d03c7.camel@ndufresne.ca>
- <CAAFQd5BixjuLzmgGAK7Xz2CnovM8o00Zq2JQeSmEKpRShwve=A@mail.gmail.com>
- <1542014947.3440.3.camel@pengutronix.de>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <ec0adfbb-ffa9-c6a2-4550-9ef88c89962a@xs4all.nl>
-Date: Mon, 12 Nov 2018 16:02:29 +0100
+        Mon, 12 Nov 2018 19:57:51 -0500
+Received: by mail-wr1-f68.google.com with SMTP id v18-v6so9723273wrt.8
+        for <linux-media@vger.kernel.org>; Mon, 12 Nov 2018 07:04:12 -0800 (PST)
+Subject: Re: [PATCH v2 1/2] media: docs-rst: Document memory-to-memory video
+ decoder interface
+To: Tomasz Figa <tfiga@chromium.org>, linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        =?UTF-8?B?UGF3ZcWCIE/Fm2NpYWs=?= <posciak@chromium.org>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Kamil Debski <kamil@wypas.org>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Jeongtae Park <jtp.park@samsung.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Tiffany Lin <tiffany.lin@mediatek.com>,
+        Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Todor Tomov <todor.tomov@linaro.org>,
+        Nicolas Dufresne <nicolas@ndufresne.ca>,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        dave.stevenson@raspberrypi.org,
+        Ezequiel Garcia <ezequiel@collabora.com>,
+        Maxime Jourdan <maxi.jourdan@wanadoo.fr>
+References: <20181022144901.113852-1-tfiga@chromium.org>
+ <20181022144901.113852-2-tfiga@chromium.org>
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Message-ID: <95f49917-5051-4604-63ea-ba3966d5179e@linaro.org>
+Date: Mon, 12 Nov 2018 17:04:06 +0200
 MIME-Version: 1.0
-In-Reply-To: <1542014947.3440.3.camel@pengutronix.de>
+In-Reply-To: <20181022144901.113852-2-tfiga@chromium.org>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/12/2018 10:29 AM, Philipp Zabel wrote:
-> Hi Tomasz,
+Hi Tomasz,
+
+On 10/22/18 5:48 PM, Tomasz Figa wrote:
+> Due to complexity of the video decoding process, the V4L2 drivers of
+> stateful decoder hardware require specific sequences of V4L2 API calls
+> to be followed. These include capability enumeration, initialization,
+> decoding, seek, pause, dynamic resolution change, drain and end of
+> stream.
 > 
-> On Sun, 2018-11-11 at 12:43 +0900, Tomasz Figa wrote:
->> On Sat, Nov 10, 2018 at 6:06 AM Nicolas Dufresne <nicolas@ndufresne.ca> wrote:
->>>
->>> Le jeudi 08 novembre 2018 à 16:45 +0900, Tomasz Figa a écrit :
->>>>> In this patch we should consider a way to tell userspace that this has
->>>>> been opt in, otherwise existing userspace will have to remain using
->>>>> sub-optimal copy based reclaiming in order to ensure that renegotiation
->>>>> can work on older kernel tool. At worst someone could probably do trial
->>>>> and error (reqbufs(1)/mmap/reqbufs(0)) but on CMA with large buffers
->>>>> this introduces extra startup time.
->>>>
->>>> Would such REQBUFS dance be really needed? Couldn't one simply try
->>>> reqbufs(0) when it's really needed and if it fails then do the copy,
->>>> otherwise just proceed normally?
->>>
->>> In simple program, maybe, in modularized code, where the consumer of
->>> these buffer (the one that is forced to make a copy) does not know the
->>> origin of the DMABuf, it's a bit complicated.
->>>
->>> In GStreamer as an example, the producer is a plugin called
->>> libgstvideo4linux2.so, while the common consumer would be libgstkms.so.
->>> They don't know each other. The pipeline would be described as:
->>>
->>>   v4l2src ! kmssink
->>>
->>> GStreamer does not have an explicit reclaiming mechanism. No one knew
->>> about V4L2 restrictions when this was designed, DMABuf didn't exist and
->>> GStreamer didn't have OMX support.
->>>
->>> What we ended up crafting, as a plaster, is that when upstream element
->>> (v4l2src) query a new allocation from downstream (kmssink), we always
->>> copy and return any ancient buffers by copying. kmssink holds on a
->>> buffer because we can't remove the scannout buffer on the display. This
->>> is slow and inefficient, and also totally unneeded if the dmabuf
->>> originate from other kernel subsystems (like DRM).
->>>
->>> So what I'd like to be able to do, to support this in a more optimal
->>> and generic way, is to mark the buffers that needs reclaiming before
->>> letting them go. But for that, I would need a flag somewhere to tell me
->>> this kernel allow this.
->>
->> Okay, got it. Thanks for explaining it.
->>
->>>
->>> You got the context, maybe the conclusion is that I should simply do
->>> kernel version check, though I'm sure a lot of people will backport
->>> this, which means that check won't work so well.
->>>
->>> Let me know, I understand adding more API is not fun, but as nothing is
->>> ever versionned in the linux-media world, it's really hard to detect
->>> and use new behaviour while supporting what everyone currently run on
->>> their systems.
->>>
->>> I would probably try and find a way to implement your suggestion, and
->>> then introduce a flag in the query itself, but I would need to think
->>> about it a little more. It's not as simple as it look like
->>> unfortunately.
->>
->> It sounds like a good fit for a new capability in v4l2_requestbuffers
->> and v4l2_create_buffers structs [1]. Perhaps something like
->> V4L2_BUF_CAP_SUPPORTS_FREE_AFTER_EXPORT? Hans, what do you think?
+> Specifics of the above have been discussed during Media Workshops at
+> LinuxCon Europe 2012 in Barcelona and then later Embedded Linux
+> Conference Europe 2014 in Düsseldorf. The de facto Codec API that
+> originated at those events was later implemented by the drivers we already
+> have merged in mainline, such as s5p-mfc or coda.
 > 
-> Maybe V4L2_BUF_CAP_SUPPORTS_ORPHANS? With this patch, while the buffers
-> are in use, reqbufs(0) doesn't free them, they are orphaned. Also, this
-> patch allows reqbufs(0) not only after export, but also while mmapped.
-
-Signaling this through a BUF_CAP makes sense. It's really what it is there
-for.
-
-If someone can make an updated patch of
-https://lore.kernel.org/patchwork/patch/607853/, then it makes sense to
-merge it.
-
-How about: 'SUPPORTS_ORPHANED_BUFS'?
-
-Regards,
-
-	Hans
-
+> The only thing missing was the real specification included as a part of
+> Linux Media documentation. Fix it now and document the decoder part of
+> the Codec API.
 > 
-> regards
-> Philipp
+> Signed-off-by: Tomasz Figa <tfiga@chromium.org>
+> ---
+>  Documentation/media/uapi/v4l/dev-decoder.rst  | 1082 +++++++++++++++++
+>  Documentation/media/uapi/v4l/devices.rst      |    1 +
+>  Documentation/media/uapi/v4l/pixfmt-v4l2.rst  |    5 +
+>  Documentation/media/uapi/v4l/v4l2.rst         |   10 +-
+>  .../media/uapi/v4l/vidioc-decoder-cmd.rst     |   40 +-
+>  Documentation/media/uapi/v4l/vidioc-g-fmt.rst |   14 +
+>  6 files changed, 1137 insertions(+), 15 deletions(-)
+>  create mode 100644 Documentation/media/uapi/v4l/dev-decoder.rst
 > 
+> diff --git a/Documentation/media/uapi/v4l/dev-decoder.rst b/Documentation/media/uapi/v4l/dev-decoder.rst
+> new file mode 100644
+> index 000000000000..09c7a6621b8e
+> --- /dev/null
+> +++ b/Documentation/media/uapi/v4l/dev-decoder.rst
+
+
+> +State machine
+> +=============
+> +
+> +.. kernel-render:: DOT
+> +   :alt: DOT digraph of decoder state machine
+> +   :caption: Decoder state machine
+> +
+> +   digraph decoder_state_machine {
+> +       node [shape = doublecircle, label="Decoding"] Decoding;
+> +
+> +       node [shape = circle, label="Initialization"] Initialization;
+> +       node [shape = circle, label="Capture\nsetup"] CaptureSetup;
+> +       node [shape = circle, label="Dynamic\nresolution\nchange"] ResChange;
+> +       node [shape = circle, label="Stopped"] Stopped;
+> +       node [shape = circle, label="Drain"] Drain;
+> +       node [shape = circle, label="Seek"] Seek;
+> +       node [shape = circle, label="End of stream"] EoS;
+> +
+> +       node [shape = point]; qi
+> +       qi -> Initialization [ label = "open()" ];
+> +
+> +       Initialization -> CaptureSetup [ label = "CAPTURE\nformat\nestablished" ];
+> +
+> +       CaptureSetup -> Stopped [ label = "CAPTURE\nbuffers\nready" ];
+> +
+> +       Decoding -> ResChange [ label = "Stream\nresolution\nchange" ];
+> +       Decoding -> Drain [ label = "V4L2_DEC_CMD_STOP" ];
+> +       Decoding -> EoS [ label = "EoS mark\nin the stream" ];
+> +       Decoding -> Seek [ label = "VIDIOC_STREAMOFF(OUTPUT)" ];
+> +       Decoding -> Stopped [ label = "VIDIOC_STREAMOFF(CAPTURE)" ];
+> +       Decoding -> Decoding;
+> +
+> +       ResChange -> CaptureSetup [ label = "CAPTURE\nformat\nestablished" ];
+> +       ResChange -> Seek [ label = "VIDIOC_STREAMOFF(OUTPUT)" ];
+> +
+> +       EoS -> Drain [ label = "Implicit\ndrain" ];
+> +
+> +       Drain -> Stopped [ label = "All CAPTURE\nbuffers dequeued\nor\nVIDIOC_STREAMOFF(CAPTURE)" ];
+> +       Drain -> Seek [ label = "VIDIOC_STREAMOFF(OUTPUT)" ];
+> +
+> +       Seek -> Decoding [ label = "VIDIOC_STREAMON(OUTPUT)" ];
+> +       Seek -> Initialization [ label = "VIDIOC_REQBUFS(OUTPUT, 0)" ];
+
+Shouldn't this be [ label = "VIDIOC_STREAMOFF(CAPTURE)" ], for me it is
+looks more natural for v4l2?
+
+For example I want to exit immediately from decoding state with calls to
+streamoff(OUTPUT) and streamoff(CAPTURE). This could be when you press
+ctrl-c while playing video, in this case I don't expect EoS nor buffers
+draining.
+
+> +
+> +       Stopped -> Decoding [ label = "V4L2_DEC_CMD_START\nor\nVIDIOC_STREAMON(CAPTURE)" ];
+> +       Stopped -> Seek [ label = "VIDIOC_STREAMOFF(OUTPUT)" ];
+> +   }
+> +
+
+
+-- 
+regards,
+Stan
