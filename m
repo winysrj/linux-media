@@ -1,125 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:53072 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727530AbeKMCrd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Nov 2018 21:47:33 -0500
-Message-ID: <023f5c1f74560f1974d302197a549ff04d7a3dd9.camel@bootlin.com>
-Subject: Re: [PATCH v5 5/5] media: cedrus: Get rid of interrupt bottom-half
-From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-To: Ezequiel Garcia <ezequiel@collabora.com>,
-        linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, kernel@collabora.com,
-        maxime.ripard@bootlin.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Date: Mon, 12 Nov 2018 17:53:26 +0100
-In-Reply-To: <20181018180224.3392-6-ezequiel@collabora.com>
-References: <20181018180224.3392-1-ezequiel@collabora.com>
-         <20181018180224.3392-6-ezequiel@collabora.com>
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-R1xhX0VQXPRYRVApuspy"
-Mime-Version: 1.0
+Received: from Galois.linutronix.de ([146.0.238.70]:52955 "EHLO
+        Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725749AbeKMFB3 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Nov 2018 00:01:29 -0500
+Date: Mon, 12 Nov 2018 11:06:43 -0800 (PST)
+From: Thomas Gleixner <tglx@linutronix.de>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+cc: linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Greg KH <gregkh@linuxfoundation.org>,
+        Kate Stewart <kstewart@linuxfoundation.org>,
+        Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [PATCHv18 01/35] Documentation: v4l: document request API
+In-Reply-To: <20180814142047.93856-2-hverkuil@xs4all.nl>
+Message-ID: <alpine.DEB.2.21.1811121048400.14703@nanos.tec.linutronix.de>
+References: <20180814142047.93856-1-hverkuil@xs4all.nl> <20180814142047.93856-2-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Folks,
 
---=-R1xhX0VQXPRYRVApuspy
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+On Tue, 14 Aug 2018, Hans Verkuil wrote:
+> From: Alexandre Courbot <acourbot@chromium.org>
+> 
+> Document the request API for V4L2 devices, and amend the documentation
+> of system calls influenced by it.
+> 
+> Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Reviewed-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 
-Hi,
+> @@ -0,0 +1,65 @@
+> +.. SPDX-License-Identifier: GPL-2.0 OR GFDL-1.1-or-later WITH no-invariant-sections
 
-On Thu, 2018-10-18 at 15:02 -0300, Ezequiel Garcia wrote:
-> Now that the mem2mem framework guarantees that .device_run
-> won't be called from interrupt context, it is safe to call
-> v4l2_m2m_job_finish directly in the top-half.
->=20
-> So this means the bottom-half is no longer needed and we
-> can get rid of it.
->=20
-> Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+It's nice that you try to use SPDX identifiers, but this is absolutely not
+how it works.
 
-Acked-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+We went great length to document how SPDX identifiers are to be used and
+checkpatch emits a warning on this patch as well.
 
-Cheers,
+   WARNING: 'SPDX-License-Identifier: GPL-2.0 OR GFDL-1.1-or-later WITH no-invariant-sections' is not supported in LICENSES/...
 
-Paul
+It's well documented that the license text including metadata needs to be
+available in LICENSES.
 
-> ---
->  .../staging/media/sunxi/cedrus/cedrus_hw.c    | 26 ++++---------------
->  1 file changed, 5 insertions(+), 21 deletions(-)
->=20
-> diff --git a/drivers/staging/media/sunxi/cedrus/cedrus_hw.c b/drivers/sta=
-ging/media/sunxi/cedrus/cedrus_hw.c
-> index 32adbcbe6175..493e65b17b30 100644
-> --- a/drivers/staging/media/sunxi/cedrus/cedrus_hw.c
-> +++ b/drivers/staging/media/sunxi/cedrus/cedrus_hw.c
-> @@ -98,23 +98,6 @@ void cedrus_dst_format_set(struct cedrus_dev *dev,
->  	}
->  }
-> =20
-> -static irqreturn_t cedrus_bh(int irq, void *data)
-> -{
-> -	struct cedrus_dev *dev =3D data;
-> -	struct cedrus_ctx *ctx;
-> -
-> -	ctx =3D v4l2_m2m_get_curr_priv(dev->m2m_dev);
-> -	if (!ctx) {
-> -		v4l2_err(&dev->v4l2_dev,
-> -			 "Instance released before the end of transaction\n");
-> -		return IRQ_HANDLED;
-> -	}
-> -
-> -	v4l2_m2m_job_finish(ctx->dev->m2m_dev, ctx->fh.m2m_ctx);
-> -
-> -	return IRQ_HANDLED;
-> -}
-> -
->  static irqreturn_t cedrus_irq(int irq, void *data)
->  {
->  	struct cedrus_dev *dev =3D data;
-> @@ -165,7 +148,9 @@ static irqreturn_t cedrus_irq(int irq, void *data)
-> =20
->  	spin_unlock_irqrestore(&dev->irq_lock, flags);
-> =20
-> -	return IRQ_WAKE_THREAD;
-> +	v4l2_m2m_job_finish(ctx->dev->m2m_dev, ctx->fh.m2m_ctx);
-> +
-> +	return IRQ_HANDLED;
->  }
-> =20
->  int cedrus_hw_probe(struct cedrus_dev *dev)
-> @@ -187,9 +172,8 @@ int cedrus_hw_probe(struct cedrus_dev *dev)
-> =20
->  		return irq_dec;
->  	}
-> -	ret =3D devm_request_threaded_irq(dev->dev, irq_dec, cedrus_irq,
-> -					cedrus_bh, 0, dev_name(dev->dev),
-> -					dev);
-> +	ret =3D devm_request_irq(dev->dev, irq_dec, cedrus_irq,
-> +			       0, dev_name(dev->dev), dev);
->  	if (ret) {
->  		v4l2_err(&dev->v4l2_dev, "Failed to request IRQ\n");
-> =20
---=20
-Paul Kocialkowski, Bootlin (formerly Free Electrons)
-Embedded Linux and kernel engineering
-https://bootlin.com
+What you are doing here is just counterproductive. The SPDX work is done to
+help automated license compliance. But the SPDX id above is broken and will
+let tools fail.
 
---=-R1xhX0VQXPRYRVApuspy
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+Even if we add the GFDL1.1 to LICENSES, it's still broken because there is
+no such exception 'no-invariant-section' and no, we are not going to create
+it just in the kernel without having sorted that with the SPDX folks first.
 
------BEGIN PGP SIGNATURE-----
+Mauro, you wrote yourself in a reply to this patch:
 
-iQEzBAABCAAdFiEEJZpWjZeIetVBefti3cLmz3+fv9EFAlvpsAYACgkQ3cLmz3+f
-v9ElAwf+KYJ2nDLyzk8l1n5mKubM5Z5yi+lBrZ4/0mgQGPRyZV62YssznR3vNv5k
-tphxA/qW90xJThSm/0zMKGhqxQTFFd17C0eLu0Yq6uST9Imsvipuu7CgPCF9tR/d
-YfgBB7FLkz3Krg/1mY7Yop5iw/SjLewq3Gjjsd1WpvB8fAjec3vsF3Yx/aAKO4ZW
-dxVYNJsryDgYWQVLnFF2ffVKUmO+DgpyKIEiM8JUuGG3u4yIdFmY9qw/0A9XfgIF
-4WHwAmOjCLjP4akNTEI5K1tfTsvJD6UkzXEKocVAslN07VvSAFonc4fjOwlAzV0l
-dVWJn3gHox1GzecgttMqTozgTIwVJQ==
-=Wmpo
------END PGP SIGNATURE-----
+  > Mental note: we'll need to push the no-invariant-sections upstream
+  > before merging this there.
 
---=-R1xhX0VQXPRYRVApuspy--
+and then you went and applied it nevertheless without talking to anyone who
+is involved with that SPDX effort of cleaning up the kernels licensing mess.
+
+I'm grumpy about that particularly because you are the first person who
+complains about legal implications which might affect you.
+
+But then you go and just ignore process and legal implications and push the
+crap into mainline.
+
+Please get this sorted ASAP.
+
+Thanks,
+
+	tglx
