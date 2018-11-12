@@ -1,87 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:53956 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726221AbeKLSZT (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:46819 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1728629AbeKLSZT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Mon, 12 Nov 2018 13:25:19 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Cc: Alexandre Courbot <acourbot@chromium.org>,
         maxime.ripard@bootlin.com, paul.kocialkowski@bootlin.com,
-        tfiga@chromium.org
-Subject: [RFC PATCHv2 0/5] vb2/cedrus: add tag support
-Date: Mon, 12 Nov 2018 09:33:00 +0100
-Message-Id: <20181112083305.22618-1-hverkuil@xs4all.nl>
+        tfiga@chromium.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCHv2 1/5] videodev2.h: add tag support
+Date: Mon, 12 Nov 2018 09:33:01 +0100
+Message-Id: <20181112083305.22618-2-hverkuil@xs4all.nl>
+In-Reply-To: <20181112083305.22618-1-hverkuil@xs4all.nl>
+References: <20181112083305.22618-1-hverkuil@xs4all.nl>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As was discussed here (among other places):
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-https://lkml.org/lkml/2018/10/19/440
+Add support for 'tags' to struct v4l2_buffer. These can be used
+by m2m devices so userspace can set a tag for an output buffer and
+this value will then be copied to the capture buffer(s).
 
-using capture queue buffer indices to refer to reference frames is
-not a good idea. A better idea is to use a 'tag' (thanks to Alexandre
-for the excellent name; it's much better than 'cookie') where the 
-application can assign a u64 tag to an output buffer, which is then 
-copied to the capture buffer(s) derived from the output buffer.
+This tag can be used to refer to capture buffers, something that
+is needed by stateless HW codecs.
 
-A u64 is chosen since this allows userspace to also use pointers to
-internal structures as 'tag'.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ include/uapi/linux/videodev2.h | 37 +++++++++++++++++++++++++++++++++-
+ 1 file changed, 36 insertions(+), 1 deletion(-)
 
-The first two patches add core tag support, the next two patches
-add tag support to vim2m and vicodec, and the final patch (compile
-tested only!) adds support to the cedrus driver.
-
-I also removed the 'pad' fields from the mpeg2 control structs (it
-should never been added in the first place) and aligned the structs
-to a u32 boundary (u64 for the tag values).
-
-The cedrus code now also copies the timestamps (didn't happen before)
-but the sequence counter is still not set, that's something that should
-still be added.
-
-Note: if no buffer is found for a certain tag, then the dma address
-is just set to 0. That happened before as well with invalid buffer
-indices. This should be checked in the driver!
-
-Also missing in this series are documentation updates, which is why
-it is marked RFC.
-
-I would very much appreciate it if someone can test the cedrus driver
-with these changes. If it works, then I can prepare a real patch series
-for 4.20. It would be really good if the API is as stable as we can make
-it before 4.20 is released.
-
-Regards,
-
-        Hans
-
-Changes since v1:
-
-- cookie -> tag
-- renamed v4l2_tag to v4l2_buffer_tag
-- dropped spurious 'to' in the commit log of patch 1
-
-Hans Verkuil (5):
-  videodev2.h: add tag support
-  vb2: add tag support
-  vim2m: add tag support
-  vicodec: add tag support
-  cedrus: add tag support
-
- .../media/common/videobuf2/videobuf2-v4l2.c   | 43 ++++++++++++++++---
- drivers/media/platform/vicodec/vicodec-core.c |  3 ++
- drivers/media/platform/vim2m.c                |  3 ++
- drivers/media/v4l2-core/v4l2-ctrls.c          |  9 ----
- drivers/staging/media/sunxi/cedrus/cedrus.h   |  8 ++--
- .../staging/media/sunxi/cedrus/cedrus_dec.c   | 10 +++++
- .../staging/media/sunxi/cedrus/cedrus_mpeg2.c | 21 ++++-----
- include/media/videobuf2-v4l2.h                | 18 ++++++++
- include/uapi/linux/v4l2-controls.h            | 14 +++---
- include/uapi/linux/videodev2.h                | 37 +++++++++++++++-
- 10 files changed, 127 insertions(+), 39 deletions(-)
-
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index c8e8ff810190..a6f81f368e01 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -912,6 +912,11 @@ struct v4l2_plane {
+ 	__u32			reserved[11];
+ };
+ 
++struct v4l2_buffer_tag {
++	__u32 low;
++	__u32 high;
++};
++
+ /**
+  * struct v4l2_buffer - video buffer info
+  * @index:	id number of the buffer
+@@ -950,7 +955,10 @@ struct v4l2_buffer {
+ 	__u32			flags;
+ 	__u32			field;
+ 	struct timeval		timestamp;
+-	struct v4l2_timecode	timecode;
++	union {
++		struct v4l2_timecode	timecode;
++		struct v4l2_buffer_tag	tag;
++	};
+ 	__u32			sequence;
+ 
+ 	/* memory location */
+@@ -988,6 +996,8 @@ struct v4l2_buffer {
+ #define V4L2_BUF_FLAG_IN_REQUEST		0x00000080
+ /* timecode field is valid */
+ #define V4L2_BUF_FLAG_TIMECODE			0x00000100
++/* tag field is valid */
++#define V4L2_BUF_FLAG_TAG			0x00000200
+ /* Buffer is prepared for queuing */
+ #define V4L2_BUF_FLAG_PREPARED			0x00000400
+ /* Cache handling flags */
+@@ -1007,6 +1017,31 @@ struct v4l2_buffer {
+ /* request_fd is valid */
+ #define V4L2_BUF_FLAG_REQUEST_FD		0x00800000
+ 
++static inline void v4l2_buffer_set_tag(struct v4l2_buffer *buf, __u64 tag)
++{
++	buf->tag.high = tag >> 32;
++	buf->tag.low = tag & 0xffffffffULL;
++	buf->flags |= V4L2_BUF_FLAG_TAG;
++}
++
++static inline void v4l2_buffer_set_tag_ptr(struct v4l2_buffer *buf,
++					   const void *tag)
++{
++	v4l2_buffer_set_tag(buf, (__u64)tag);
++}
++
++static inline __u64 v4l2_buffer_get_tag(const struct v4l2_buffer *buf)
++{
++	if (!(buf->flags & V4L2_BUF_FLAG_TAG))
++		return 0;
++	return (((__u64)buf->tag.high) << 32) | (__u64)buf->tag.low;
++}
++
++static inline void *v4l2_buffer_get_tag_ptr(const struct v4l2_buffer *buf)
++{
++	return (void *)v4l2_buffer_get_tag(buf);
++}
++
+ /**
+  * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
+  *
 -- 
 2.19.1
