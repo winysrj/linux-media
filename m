@@ -1,112 +1,303 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it1-f197.google.com ([209.85.166.197]:56271 "EHLO
-        mail-it1-f197.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730587AbeKMHlH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Nov 2018 02:41:07 -0500
-Received: by mail-it1-f197.google.com with SMTP id 199-v6so13942884ith.5
-        for <linux-media@vger.kernel.org>; Mon, 12 Nov 2018 13:46:04 -0800 (PST)
+Received: from mga09.intel.com ([134.134.136.24]:20511 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726006AbeKMILp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Nov 2018 03:11:45 -0500
+From: "Zhi, Yong" <yong.zhi@intel.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "tfiga@chromium.org" <tfiga@chromium.org>,
+        "mchehab@kernel.org" <mchehab@kernel.org>,
+        "hans.verkuil@cisco.com" <hans.verkuil@cisco.com>,
+        "laurent.pinchart@ideasonboard.com"
+        <laurent.pinchart@ideasonboard.com>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "Hu, Jerry W" <jerry.w.hu@intel.com>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
+        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
+        "Cao, Bingbu" <bingbu.cao@intel.com>
+Subject: RE: [PATCH v7 15/16] intel-ipu3: Add imgu top level pci device
+ driver
+Date: Mon, 12 Nov 2018 22:16:36 +0000
+Message-ID: <C193D76D23A22742993887E6D207B54D3DB30321@ORSMSX106.amr.corp.intel.com>
+References: <1540851790-1777-1-git-send-email-yong.zhi@intel.com>
+ <1540851790-1777-16-git-send-email-yong.zhi@intel.com>
+ <20181109125421.nepjtykhke76gwfa@paasikivi.fi.intel.com>
+In-Reply-To: <20181109125421.nepjtykhke76gwfa@paasikivi.fi.intel.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Date: Mon, 12 Nov 2018 13:46:03 -0800
-Message-ID: <000000000000aa8703057a7ea0bb@google.com>
-Subject: WARNING in dma_buf_vunmap
-From: syzbot <syzbot+a9317fe7ad261fc76b88@syzkaller.appspotmail.com>
-To: dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        sumit.semwal@linaro.org, syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi, Sakari,
 
-syzbot found the following crash on:
+Thanks again for the code review.
 
-HEAD commit:    ccda4af0f4b9 Linux 4.20-rc2
-git tree:       upstream
-console output: https://syzkaller.appspot.com/x/log.txt?x=12e15b83400000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=4a0a89f12ca9b0f5
-dashboard link: https://syzkaller.appspot.com/bug?extid=a9317fe7ad261fc76b88
-compiler:       gcc (GCC) 8.0.1 20180413 (experimental)
+> -----Original Message-----
+> From: Sakari Ailus [mailto:sakari.ailus@linux.intel.com]
+> Sent: Friday, November 9, 2018 6:54 AM
+> To: Zhi, Yong <yong.zhi@intel.com>
+> Cc: linux-media@vger.kernel.org; tfiga@chromium.org;
+> mchehab@kernel.org; hans.verkuil@cisco.com;
+> laurent.pinchart@ideasonboard.com; Mani, Rajmohan
+> <rajmohan.mani@intel.com>; Zheng, Jian Xu <jian.xu.zheng@intel.com>; Hu,
+> Jerry W <jerry.w.hu@intel.com>; Toivonen, Tuukka
+> <tuukka.toivonen@intel.com>; Qiu, Tian Shu <tian.shu.qiu@intel.com>; Cao,
+> Bingbu <bingbu.cao@intel.com>
+> Subject: Re: [PATCH v7 15/16] intel-ipu3: Add imgu top level pci device driver
+> 
+> Hi Yong,
+> 
+> On Mon, Oct 29, 2018 at 03:23:09PM -0700, Yong Zhi wrote:
+> > This patch adds support for the Intel IPU v3 as found on Skylake and
+> > Kaby Lake SoCs.
+> >
+> > The driver glues v4l2, css(camera sub system) and other pieces
+> > together to perform its functions, it also loads the IPU3 firmware
+> > binary as part of its initialization.
+> >
+> > Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+> > Signed-off-by: Tomasz Figa <tfiga@chromium.org>
+> > ---
+> >  drivers/media/pci/intel/ipu3/Kconfig  |  16 +
+> > drivers/media/pci/intel/ipu3/Makefile |  12 +
+> >  drivers/media/pci/intel/ipu3/ipu3.c   | 844
+> ++++++++++++++++++++++++++++++++++
+> >  drivers/media/pci/intel/ipu3/ipu3.h   | 153 ++++++
+> >  4 files changed, 1025 insertions(+)
+> >  create mode 100644 drivers/media/pci/intel/ipu3/ipu3.c
+> >  create mode 100644 drivers/media/pci/intel/ipu3/ipu3.h
+> >
+> > diff --git a/drivers/media/pci/intel/ipu3/Kconfig
+> > b/drivers/media/pci/intel/ipu3/Kconfig
+> > index 715f776..44ebcbb 100644
+> > --- a/drivers/media/pci/intel/ipu3/Kconfig
+> > +++ b/drivers/media/pci/intel/ipu3/Kconfig
+> > @@ -15,3 +15,19 @@ config VIDEO_IPU3_CIO2
+> >  	  Say Y or M here if you have a Skylake/Kaby Lake SoC with MIPI CSI-2
+> >  	  connected camera.
+> >  	  The module will be called ipu3-cio2.
+> > +
+> > +config VIDEO_IPU3_IMGU
+> > +	tristate "Intel ipu3-imgu driver"
+> > +	depends on PCI && VIDEO_V4L2
+> > +	depends on MEDIA_CONTROLLER && VIDEO_V4L2_SUBDEV_API
+> > +	depends on X86
+> > +	select IOMMU_IOVA
+> > +	select VIDEOBUF2_DMA_SG
+> > +
+> 
+> Extra newline.
+> 
 
-Unfortunately, I don't have any reproducer for this crash yet.
+Ack.
 
-IMPORTANT: if you fix the bug, please add the following tag to the commit:
-Reported-by: syzbot+a9317fe7ad261fc76b88@syzkaller.appspotmail.com
+> > +	---help---
+> > +	  This is the video4linux2 driver for Intel IPU3 image processing
+> > +unit,
+> 
+> "Video4Linux2"
+> 
 
-WARNING: CPU: 0 PID: 4274 at drivers/dma-buf/dma-buf.c:992  
-dma_buf_vunmap+0x1bb/0x220 drivers/dma-buf/dma-buf.c:992
-Kernel panic - not syncing: panic_on_warn set ...
-CPU: 0 PID: 4274 Comm: syz-executor4 Not tainted 4.20.0-rc2+ #111
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
-Google 01/01/2011
-Call Trace:
-  __dump_stack lib/dump_stack.c:77 [inline]
-  dump_stack+0x244/0x39d lib/dump_stack.c:113
-  panic+0x2ad/0x55c kernel/panic.c:188
-  __warn.cold.8+0x20/0x45 kernel/panic.c:540
-  report_bug+0x254/0x2d0 lib/bug.c:186
-  fixup_bug arch/x86/kernel/traps.c:178 [inline]
-  do_error_trap+0x11b/0x200 arch/x86/kernel/traps.c:271
-  do_invalid_op+0x36/0x40 arch/x86/kernel/traps.c:290
-  invalid_op+0x14/0x20 arch/x86/entry/entry_64.S:969
-RIP: 0010:dma_buf_vunmap+0x1bb/0x220 drivers/dma-buf/dma-buf.c:992
-Code: 00 00 00 00 e8 b6 f1 27 fd 4c 89 f7 e8 de 1e 77 03 e8 a9 f1 27 fd 48  
-83 c4 08 5b 41 5c 41 5d 41 5e 41 5f 5d c3 e8 95 f1 27 fd <0f> 0b eb e3 e8  
-8c f1 27 fd 0f 0b e8 85 f1 27 fd 0f 0b e8 7e f1 27
-RSP: 0018:ffff88817dff7900 EFLAGS: 00010293
-RAX: ffff8881bd4b8580 RBX: 0000000000000000 RCX: ffffffff854cfb50
-RDX: 0000000000000000 RSI: ffffffff8457964b RDI: 0000000000000000
-RBP: ffff88817dff7930 R08: ffff8881bd4b8580 R09: ffffed103946ee06
-R10: ffff88817dff7a88 R11: ffff8881ca377037 R12: ffffc90014b40000
-R13: ffff8881cde0e4c0 R14: ffff8881cde0e528 R15: ffff8881bc9f4c00
-  vb2_vmalloc_detach_dmabuf+0x5a/0x80  
-drivers/media/common/videobuf2/videobuf2-vmalloc.c:406
-  __vb2_plane_dmabuf_put.isra.5+0x122/0x310  
-drivers/media/common/videobuf2/videobuf2-core.c:275
-  __vb2_buf_dmabuf_put drivers/media/common/videobuf2/videobuf2-core.c:291  
-[inline]
-  __vb2_free_mem drivers/media/common/videobuf2/videobuf2-core.c:415 [inline]
-  __vb2_queue_free+0x7f3/0xa30  
-drivers/media/common/videobuf2/videobuf2-core.c:458
-  vb2_core_queue_release+0x62/0x80  
-drivers/media/common/videobuf2/videobuf2-core.c:2231
-  vb2_queue_release drivers/media/common/videobuf2/videobuf2-v4l2.c:837  
-[inline]
-  _vb2_fop_release+0x1d2/0x2b0  
-drivers/media/common/videobuf2/videobuf2-v4l2.c:1010
-  vb2_fop_release+0x77/0xc0  
-drivers/media/common/videobuf2/videobuf2-v4l2.c:1024
-  vivid_fop_release+0x18e/0x440 drivers/media/platform/vivid/vivid-core.c:474
-  v4l2_release+0x224/0x3a0 drivers/media/v4l2-core/v4l2-dev.c:456
-  __fput+0x385/0xa30 fs/file_table.c:278
-  ____fput+0x15/0x20 fs/file_table.c:309
-  task_work_run+0x1e8/0x2a0 kernel/task_work.c:113
-  tracehook_notify_resume include/linux/tracehook.h:188 [inline]
-  exit_to_usermode_loop+0x318/0x380 arch/x86/entry/common.c:166
-  prepare_exit_to_usermode arch/x86/entry/common.c:197 [inline]
-  syscall_return_slowpath arch/x86/entry/common.c:268 [inline]
-  do_syscall_64+0x6be/0x820 arch/x86/entry/common.c:293
-  entry_SYSCALL_64_after_hwframe+0x49/0xbe
-RIP: 0033:0x411021
-Code: 75 14 b8 03 00 00 00 0f 05 48 3d 01 f0 ff ff 0f 83 34 19 00 00 c3 48  
-83 ec 08 e8 0a fc ff ff 48 89 04 24 b8 03 00 00 00 0f 05 <48> 8b 3c 24 48  
-89 c2 e8 53 fc ff ff 48 89 d0 48 83 c4 08 48 3d 01
-RSP: 002b:00007ffd44e7c0f0 EFLAGS: 00000293 ORIG_RAX: 0000000000000003
-RAX: 0000000000000000 RBX: 0000000000000004 RCX: 0000000000411021
-RDX: 0000000000000001 RSI: 0000000000730e50 RDI: 0000000000000003
-RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
-R10: 00007ffd44e7c020 R11: 0000000000000293 R12: 0000000000000000
-R13: 0000000000000001 R14: 0000000000002fe8 R15: 0000000000000004
-Kernel Offset: disabled
-Rebooting in 86400 seconds..
+Ack.
 
+> > +	  found in Intel Skylake and Kaby Lake SoCs and used for processing
+> > +	  images and video.
+> > +
+> > +	  Say Y or M here if you have a Skylake/Kaby Lake SoC with a MIPI
+> > +	  camera.	The module will be called ipu3-imgu.
+> 
+> The latter tab should be a space only.
+> 
 
----
-This bug is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
+Ack.
 
-syzbot will keep track of this bug report. See:
-https://goo.gl/tpsmEJ#bug-status-tracking for how to communicate with  
-syzbot.
+> > diff --git a/drivers/media/pci/intel/ipu3/Makefile
+> > b/drivers/media/pci/intel/ipu3/Makefile
+> > index 20186e3..60bd5db 100644
+> > --- a/drivers/media/pci/intel/ipu3/Makefile
+> > +++ b/drivers/media/pci/intel/ipu3/Makefile
+> > @@ -1 +1,13 @@
+> > +#
+> > +# Makefile for the IPU3 cio2 and ImgU drivers #
+> > +
+> >  obj-$(CONFIG_VIDEO_IPU3_CIO2) += ipu3-cio2.o
+> > +
+> > +ipu3-imgu-objs += \
+> > +		ipu3-mmu.o ipu3-dmamap.o \
+> > +		ipu3-tables.o ipu3-css-pool.o \
+> > +		ipu3-css-fw.o ipu3-css-params.o \
+> > +		ipu3-css.o ipu3-v4l2.o ipu3.o
+> > +
+> > +obj-$(CONFIG_VIDEO_IPU3_IMGU) += ipu3-imgu.o
+> > diff --git a/drivers/media/pci/intel/ipu3/ipu3.c
+> > b/drivers/media/pci/intel/ipu3/ipu3.c
+> > new file mode 100644
+> > index 0000000..eda7299
+> > --- /dev/null
+> > +++ b/drivers/media/pci/intel/ipu3/ipu3.c
+> > @@ -0,0 +1,844 @@
+> > +// SPDX-License-Identifier: GPL-2.0
+> > +/*
+> > + * Copyright (C) 2017 Intel Corporation
+> > + * Copyright 2017 Google LLC
+> > + *
+> > + * Based on Intel IPU4 driver.
+> > + *
+> > + */
+> > +
+> > +#include <linux/delay.h>
+> > +#include <linux/interrupt.h>
+> > +#include <linux/module.h>
+> > +#include <linux/pm_runtime.h>
+> > +
+> > +#include "ipu3.h"
+> > +#include "ipu3-dmamap.h"
+> > +#include "ipu3-mmu.h"
+> > +
+> > +#define IMGU_PCI_ID			0x1919
+> > +#define IMGU_PCI_BAR			0
+> > +#define IMGU_DMA_MASK			DMA_BIT_MASK(39)
+> > +#define IMGU_MAX_QUEUE_DEPTH		(2 + 2)
+> > +
+> > +/*
+> > + * pre-allocated buffer size for IMGU dummy buffers. Those
+> > + * values should be tuned to big enough to avoid buffer
+> > + * re-allocation when streaming to lower streaming latency.
+> > + */
+> > +#define CSS_QUEUE_IN_BUF_SIZE		0
+> > +#define CSS_QUEUE_PARAMS_BUF_SIZE	0
+> > +#define CSS_QUEUE_OUT_BUF_SIZE		(4160 * 3120 * 12 / 8)
+> > +#define CSS_QUEUE_VF_BUF_SIZE		(1920 * 1080 * 12 / 8)
+> > +#define CSS_QUEUE_STAT_3A_BUF_SIZE	125664
+> 
+> Could you use sizeof(struct ipu3_uapi_stats_3a) instead?
+> 
+> That said, it might not be a bad idea to add a sanity check on the size:
+> 
+> 	BUILD_BUG_ON(sizeof(struct ipu3_uapi_stats_3a) !=
+> 		     CSS_QUEUE_STAT_3A_BUF_SIZE);
+> 
+
+Ack.
+
+> ...
+> 
+> > diff --git a/drivers/media/pci/intel/ipu3/ipu3.h
+> > b/drivers/media/pci/intel/ipu3/ipu3.h
+> > new file mode 100644
+> > index 0000000..5c2b420
+> > --- /dev/null
+> > +++ b/drivers/media/pci/intel/ipu3/ipu3.h
+> > @@ -0,0 +1,153 @@
+> > +/* SPDX-License-Identifier: GPL-2.0 */
+> > +/* Copyright (C) 2018 Intel Corporation */
+> > +
+> > +#ifndef __IPU3_H
+> > +#define __IPU3_H
+> > +
+> > +#include <linux/iova.h>
+> > +#include <linux/pci.h>
+> > +
+> > +#include <media/v4l2-device.h>
+> > +#include <media/videobuf2-dma-sg.h>
+> > +
+> > +#include "ipu3-css.h"
+> > +
+> > +#define IMGU_NAME			"ipu3-imgu"
+> > +
+> > +/*
+> > + * The semantics of the driver is that whenever there is a buffer
+> > +available in
+> > + * master queue, the driver queues a buffer also to all other active nodes.
+> > + * If user space hasn't provided a buffer to all other video nodes
+> > +first,
+> > + * the driver gets an internal dummy buffer and queues it.
+> > + */
+> > +#define IMGU_QUEUE_MASTER		IPU3_CSS_QUEUE_IN
+> > +#define IMGU_QUEUE_FIRST_INPUT		IPU3_CSS_QUEUE_OUT
+> > +#define IMGU_MAX_QUEUE_DEPTH		(2 + 2)
+> > +
+> > +#define IMGU_NODE_IN			0 /* Input RAW image */
+> > +#define IMGU_NODE_PARAMS		1 /* Input parameters */
+> > +#define IMGU_NODE_OUT			2 /* Main output for still or
+> video */
+> > +#define IMGU_NODE_VF			3 /* Preview */
+> > +#define IMGU_NODE_PV			4 /* Postview for still capture
+> */
+> > +#define IMGU_NODE_STAT_3A		5 /* 3A statistics */
+> > +#define IMGU_NODE_NUM			6
+> > +
+> > +#define file_to_intel_ipu3_node(__file) \
+> > +	container_of(video_devdata(__file), struct imgu_video_device, vdev)
+> > +
+> > +#define IPU3_INPUT_MIN_WIDTH		0U
+> > +#define IPU3_INPUT_MIN_HEIGHT		0U
+> > +#define IPU3_INPUT_MAX_WIDTH		5120U
+> > +#define IPU3_INPUT_MAX_HEIGHT		38404U
+> > +#define IPU3_OUTPUT_MIN_WIDTH		2U
+> > +#define IPU3_OUTPUT_MIN_HEIGHT		2U
+> > +#define IPU3_OUTPUT_MAX_WIDTH		4480U
+> > +#define IPU3_OUTPUT_MAX_HEIGHT		34004U
+> > +
+> > +struct ipu3_vb2_buffer {
+> > +	/* Public fields */
+> > +	struct vb2_v4l2_buffer vbb;	/* Must be the first field */
+> > +
+> > +	/* Private fields */
+> > +	struct list_head list;
+> > +};
+> > +
+> > +struct imgu_buffer {
+> > +	struct ipu3_vb2_buffer vid_buf;	/* Must be the first field */
+> > +	struct ipu3_css_buffer css_buf;
+> > +	struct ipu3_css_map map;
+> > +};
+> > +
+> > +struct imgu_node_mapping {
+> > +	unsigned int css_queue;
+> > +	const char *name;
+> > +};
+> > +
+> > +/**
+> > + * struct imgu_video_device
+> > + * each node registers as video device and maintains its
+> > + * own vb2_queue.
+> > + */
+> > +struct imgu_video_device {
+> > +	const char *name;
+> > +	bool output;		/* Frames to the driver? */
+> > +	bool immutable;		/* Can not be enabled/disabled */
+> > +	bool enabled;
+> > +	int queued;		/* Buffers already queued */
+> 
+> The queued field is unused.
+> 
+
+Ack, thanks for catching this.
+
+Best regards,
+Yong
+
+> > +	struct v4l2_format vdev_fmt;	/* Currently set format */
+> > +
+> > +	/* Private fields */
+> > +	struct video_device vdev;
+> > +	struct media_pad vdev_pad;
+> > +	struct v4l2_mbus_framefmt pad_fmt;
+> > +	struct vb2_queue vbq;
+> > +	struct list_head buffers;
+> > +	/* Protect vb2_queue and vdev structs*/
+> > +	struct mutex lock;
+> > +	atomic_t sequence;
+> > +};
+> > +
+> 
+> --
+> Kind regards,
+> 
+> Sakari Ailus
+> sakari.ailus@linux.intel.com
