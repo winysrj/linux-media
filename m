@@ -1,176 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:56713 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726161AbeKLTNj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Nov 2018 14:13:39 -0500
-Date: Mon, 12 Nov 2018 11:21:15 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: "Zhi, Yong" <yong.zhi@intel.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "tfiga@chromium.org" <tfiga@chromium.org>,
-        "mchehab@kernel.org" <mchehab@kernel.org>,
-        "hans.verkuil@cisco.com" <hans.verkuil@cisco.com>,
-        "laurent.pinchart@ideasonboard.com"
-        <laurent.pinchart@ideasonboard.com>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "Hu, Jerry W" <jerry.w.hu@intel.com>,
-        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
-        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
-        "Cao, Bingbu" <bingbu.cao@intel.com>
-Subject: Re: [PATCH v7 08/16] intel-ipu3: css: Add dma buff pool utility
- functions
-Message-ID: <20181112092115.2xjho6wkdhruuvx6@paasikivi.fi.intel.com>
-References: <1540851790-1777-1-git-send-email-yong.zhi@intel.com>
- <1540851790-1777-9-git-send-email-yong.zhi@intel.com>
- <20181108153611.amyq6s7ikvn6aakw@paasikivi.fi.intel.com>
- <C193D76D23A22742993887E6D207B54D3DB2FF65@ORSMSX106.amr.corp.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <C193D76D23A22742993887E6D207B54D3DB2FF65@ORSMSX106.amr.corp.intel.com>
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:46677 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726190AbeKLTVa (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 12 Nov 2018 14:21:30 -0500
+Message-ID: <1542014947.3440.3.camel@pengutronix.de>
+Subject: Re: [RFP] Which V4L2 ioctls could be replaced by better versions?
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Tomasz Figa <tfiga@chromium.org>, nicolas@ndufresne.ca,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: pza@pengutronix.de,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Date: Mon, 12 Nov 2018 10:29:07 +0100
+In-Reply-To: <CAAFQd5BixjuLzmgGAK7Xz2CnovM8o00Zq2JQeSmEKpRShwve=A@mail.gmail.com>
+References: <d49940b7-af62-594e-06ad-8ec113589340@xs4all.nl>
+         <6efdab2da3e4263a49a6a2630df7f79511302088.camel@ndufresne.ca>
+         <CAAFQd5BsvtqM3QriFd5vo55ZDKxFcnGAR21Y7ch247jXX6-iQg@mail.gmail.com>
+         <20181021162843.ys6eqbbyg5w5ufrv@pengutronix.de>
+         <CAAFQd5A3a1o55pcV6Kn5ZWXQFYJvuv4y1+oD4=PEZXoYMhrX0Q@mail.gmail.com>
+         <9ac3abb4a8dee94bd2adca6c781bf8c58f68b945.camel@ndufresne.ca>
+         <CAAFQd5DcJ8XSseE-GJDoftsmfDa=Vo9_wwn-_pAx54HNhL1vWA@mail.gmail.com>
+         <415abde4ccf854e58df2aaf68d45eae7150d03c7.camel@ndufresne.ca>
+         <CAAFQd5BixjuLzmgGAK7Xz2CnovM8o00Zq2JQeSmEKpRShwve=A@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Yong,
+Hi Tomasz,
 
-On Fri, Nov 09, 2018 at 11:16:44PM +0000, Zhi, Yong wrote:
-> Hi, Sakari,
+On Sun, 2018-11-11 at 12:43 +0900, Tomasz Figa wrote:
+> On Sat, Nov 10, 2018 at 6:06 AM Nicolas Dufresne <nicolas@ndufresne.ca> wrote:
+> > 
+> > Le jeudi 08 novembre 2018 à 16:45 +0900, Tomasz Figa a écrit :
+> > > > In this patch we should consider a way to tell userspace that this has
+> > > > been opt in, otherwise existing userspace will have to remain using
+> > > > sub-optimal copy based reclaiming in order to ensure that renegotiation
+> > > > can work on older kernel tool. At worst someone could probably do trial
+> > > > and error (reqbufs(1)/mmap/reqbufs(0)) but on CMA with large buffers
+> > > > this introduces extra startup time.
+> > > 
+> > > Would such REQBUFS dance be really needed? Couldn't one simply try
+> > > reqbufs(0) when it's really needed and if it fails then do the copy,
+> > > otherwise just proceed normally?
+> > 
+> > In simple program, maybe, in modularized code, where the consumer of
+> > these buffer (the one that is forced to make a copy) does not know the
+> > origin of the DMABuf, it's a bit complicated.
+> > 
+> > In GStreamer as an example, the producer is a plugin called
+> > libgstvideo4linux2.so, while the common consumer would be libgstkms.so.
+> > They don't know each other. The pipeline would be described as:
+> > 
+> >   v4l2src ! kmssink
+> > 
+> > GStreamer does not have an explicit reclaiming mechanism. No one knew
+> > about V4L2 restrictions when this was designed, DMABuf didn't exist and
+> > GStreamer didn't have OMX support.
+> > 
+> > What we ended up crafting, as a plaster, is that when upstream element
+> > (v4l2src) query a new allocation from downstream (kmssink), we always
+> > copy and return any ancient buffers by copying. kmssink holds on a
+> > buffer because we can't remove the scannout buffer on the display. This
+> > is slow and inefficient, and also totally unneeded if the dmabuf
+> > originate from other kernel subsystems (like DRM).
+> > 
+> > So what I'd like to be able to do, to support this in a more optimal
+> > and generic way, is to mark the buffers that needs reclaiming before
+> > letting them go. But for that, I would need a flag somewhere to tell me
+> > this kernel allow this.
 > 
-> > -----Original Message-----
-> > From: Sakari Ailus [mailto:sakari.ailus@linux.intel.com]
-> > Sent: Thursday, November 8, 2018 9:36 AM
-> > To: Zhi, Yong <yong.zhi@intel.com>
-> > Cc: linux-media@vger.kernel.org; tfiga@chromium.org;
-> > mchehab@kernel.org; hans.verkuil@cisco.com;
-> > laurent.pinchart@ideasonboard.com; Mani, Rajmohan
-> > <rajmohan.mani@intel.com>; Zheng, Jian Xu <jian.xu.zheng@intel.com>; Hu,
-> > Jerry W <jerry.w.hu@intel.com>; Toivonen, Tuukka
-> > <tuukka.toivonen@intel.com>; Qiu, Tian Shu <tian.shu.qiu@intel.com>; Cao,
-> > Bingbu <bingbu.cao@intel.com>
-> > Subject: Re: [PATCH v7 08/16] intel-ipu3: css: Add dma buff pool utility
-> > functions
-> > 
-> > Hi Yong,
-> > 
-> > On Mon, Oct 29, 2018 at 03:23:02PM -0700, Yong Zhi wrote:
-> > > The pools are used to store previous parameters set by user with the
-> > > parameter queue. Due to pipelining, there needs to be multiple sets
-> > > (up to four) of parameters which are queued in a host-to-sp queue.
-> > >
-> > > Signed-off-by: Yong Zhi <yong.zhi@intel.com>
-> > > ---
-> > >  drivers/media/pci/intel/ipu3/ipu3-css-pool.c | 136
-> > > +++++++++++++++++++++++++++
-> > > drivers/media/pci/intel/ipu3/ipu3-css-pool.h |  56 +++++++++++
-> > >  2 files changed, 192 insertions(+)
-> > >  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css-pool.c
-> > >  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css-pool.h
-> > >
-> > > diff --git a/drivers/media/pci/intel/ipu3/ipu3-css-pool.c
-> > > b/drivers/media/pci/intel/ipu3/ipu3-css-pool.c
-> > > new file mode 100644
-> > > index 0000000..eab41c3
-> > > --- /dev/null
-> > > +++ b/drivers/media/pci/intel/ipu3/ipu3-css-pool.c
-> > > @@ -0,0 +1,136 @@
-> > > +// SPDX-License-Identifier: GPL-2.0
-> > > +// Copyright (C) 2018 Intel Corporation
-> > > +
-> > > +#include <linux/device.h>
-> > > +
-> > > +#include "ipu3.h"
-> > > +#include "ipu3-css-pool.h"
-> > > +#include "ipu3-dmamap.h"
-> > > +
-> > > +int ipu3_css_dma_buffer_resize(struct imgu_device *imgu,
-> > > +			       struct ipu3_css_map *map, size_t size) {
-> > > +	if (map->size < size && map->vaddr) {
-> > > +		dev_warn(&imgu->pci_dev->dev, "dma buf resized from %zu
-> > to %zu",
-> > > +			 map->size, size);
-> > > +
-> > > +		ipu3_dmamap_free(imgu, map);
-> > > +		if (!ipu3_dmamap_alloc(imgu, map, size))
-> > > +			return -ENOMEM;
-> > > +	}
-> > > +
-> > > +	return 0;
-> > > +}
-> > > +
-> > > +void ipu3_css_pool_cleanup(struct imgu_device *imgu, struct
-> > > +ipu3_css_pool *pool) {
-> > > +	unsigned int i;
-> > > +
-> > > +	for (i = 0; i < IPU3_CSS_POOL_SIZE; i++)
-> > > +		ipu3_dmamap_free(imgu, &pool->entry[i].param); }
-> > > +
-> > > +int ipu3_css_pool_init(struct imgu_device *imgu, struct ipu3_css_pool
-> > *pool,
-> > > +		       size_t size)
-> > > +{
-> > > +	unsigned int i;
-> > > +
-> > > +	for (i = 0; i < IPU3_CSS_POOL_SIZE; i++) {
-> > > +		/*
-> > > +		 * entry[i].framenum is initialized to INT_MIN so that
-> > > +		 * ipu3_css_pool_check() can treat it as usesable slot.
-> > > +		 */
-> > > +		pool->entry[i].framenum = INT_MIN;
-> > > +
-> > > +		if (size == 0) {
-> > > +			pool->entry[i].param.vaddr = NULL;
-> > > +			continue;
-> > > +		}
-> > > +
-> > > +		if (!ipu3_dmamap_alloc(imgu, &pool->entry[i].param, size))
-> > > +			goto fail;
-> > > +	}
-> > > +
-> > > +	pool->last = IPU3_CSS_POOL_SIZE;
-> > > +
-> > > +	return 0;
-> > > +
-> > > +fail:
-> > > +	ipu3_css_pool_cleanup(imgu, pool);
-> > > +	return -ENOMEM;
-> > > +}
-> > > +
-> > > +/*
-> > > + * Check that the following call to pool_get succeeds.
-> > > + * Return negative on error.
-> > > + */
-> > > +static int ipu3_css_pool_check(struct ipu3_css_pool *pool, long
-> > > +framenum) {
-> > > +	/* Get the oldest entry */
-> > > +	int n = (pool->last + 1) % IPU3_CSS_POOL_SIZE;
-> > > +	long diff = framenum - pool->entry[n].framenum;
-> > > +
-> > > +	/* if framenum wraps around and becomes smaller than entry n */
-> > > +	if (diff < 0)
-> > > +		diff += LONG_MAX;
-> > 
-> > Have you tested the wrap-around? As a result, the value of the diff is
-> > between -1 and LONG_MAX - 1 (without considering more than just the two
-> > lines above). Is that intended?
-> > 
+> Okay, got it. Thanks for explaining it.
 > 
-> Yes, I simulated wrap-around using a smaller limit in v5.
-> 
-> > You seem to be using different types for the frame number; sometimes int,
-> > sometimes long. Could you align that, preferrably to an unsigned type? u32
-> > would probably be a sound choice.
 > > 
+> > You got the context, maybe the conclusion is that I should simply do
+> > kernel version check, though I'm sure a lot of people will backport
+> > this, which means that check won't work so well.
+> > 
+> > Let me know, I understand adding more API is not fun, but as nothing is
+> > ever versionned in the linux-media world, it's really hard to detect
+> > and use new behaviour while supporting what everyone currently run on
+> > their systems.
+> > 
+> > I would probably try and find a way to implement your suggestion, and
+> > then introduce a flag in the query itself, but I would need to think
+> > about it a little more. It's not as simple as it look like
+> > unfortunately.
 > 
-> Will use u32 at places except entry.framenum, which is initialized to
-> INT_MIN. This is because the frame is counted from 0 at stream start, and
-> the entry.framenum must be smaller enough for the ipu3_css_pool_check()
-> to not return -ENOSPC.
+> It sounds like a good fit for a new capability in v4l2_requestbuffers
+> and v4l2_create_buffers structs [1]. Perhaps something like
+> V4L2_BUF_CAP_SUPPORTS_FREE_AFTER_EXPORT? Hans, what do you think?
 
-You could use another field to tell whether an entry is valid or not.
-That'd simplify the code, as well as remove the need to cap the frame
-number to an arbitrary value.
+Maybe V4L2_BUF_CAP_SUPPORTS_ORPHANS? With this patch, while the buffers
+are in use, reqbufs(0) doesn't free them, they are orphaned. Also, this
+patch allows reqbufs(0) not only after export, but also while mmapped.
 
--- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+regards
+Philipp
