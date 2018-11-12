@@ -1,47 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from shell.v3.sk ([90.176.6.54]:57380 "EHLO shell.v3.sk"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729704AbeKLK0R (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Nov 2018 05:26:17 -0500
-From: Lubomir Rintel <lkundrak@v3.sk>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>, linux-media@vger.kernel.org
-Cc: Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Lubomir Rintel <lkundrak@v3.sk>,
-        James Cameron <quozl@laptop.org>, Pavel Machek <pavel@ucw.cz>,
-        Libin Yang <lbyang@marvell.com>,
-        Albert Wang <twang13@marvell.com>
-Subject: [PATCH v2 0/11] media: make Marvell camera work on DT-based OLPC XO-1.75
-Date: Mon, 12 Nov 2018 01:35:09 +0100
-Message-Id: <20181112003520.577592-1-lkundrak@v3.sk>
+Received: from mail-pl1-f196.google.com ([209.85.214.196]:34215 "EHLO
+        mail-pl1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729181AbeKLKkd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 12 Nov 2018 05:40:33 -0500
+Date: Sun, 11 Nov 2018 16:49:53 -0800
+From: Myungho Jung <mhjungk@gmail.com>
+To: pawel@osciak.com, m.szyprowski@samsung.com,
+        kyungmin.park@samsung.com, mchehab@kernel.org
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] media: videobuf2-core: Fix error handling when fileio is
+ deallocated
+Message-ID: <20181112004951.GA3948@myunghoj-Precision-5530>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+The mutex that is held from vb2_fop_read() can be unlocked while waiting
+for a buffer if the queue is streaming and blocking. Meanwhile, fileio
+can be released. So, it should return an error if the fileio address is
+changed.
 
-this patch set somewhat modernizes the Marvel MMP2 CCIC driver. Notably,
-it ports it from the platform data (which seems unused as the board
-support code never made it) to devicetree.
+Signed-off-by: Myungho Jung <mhjungk@gmail.com>
+Reported-by: syzbot+4180ff9ca6810b06c1e9@syzkaller.appspotmail.com
+---
+ drivers/media/common/videobuf2/videobuf2-core.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-At the core of the rework is the move to asynchronous sensor discovery
-and clock management with the standard clock framework. There are also
-some straightforward fixes for bitrotten parts.
-
-There's probably still room for improvement, but as it is, it seems to
-work well on OLPC XO-1.75 and doesn't break OLPC XO-1 (I've tested on
-both platforms).
-
-Changes since v1:
-- "marvell-ccic: drop ctlr_reset()" patch was replaced with a
-  straightforward revert of the commit that added ctlr_reset() along with=
- an
-  explanation in commit message.
-- Added collected Acks
-- Other changes are noted in individial patches
-
-Thanks,
-Lubo
+diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
+index 975ff5669f72..bff94752eb27 100644
+--- a/drivers/media/common/videobuf2/videobuf2-core.c
++++ b/drivers/media/common/videobuf2/videobuf2-core.c
+@@ -2564,6 +2564,10 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+ 		dprintk(5, "vb2_dqbuf result: %d\n", ret);
+ 		if (ret)
+ 			return ret;
++		if (fileio != q->fileio) {
++			dprintk(3, "fileio deallocated\n");
++			return -EFAULT;
++		}
+ 		fileio->dq_count += 1;
+ 
+ 		fileio->cur_index = index;
+-- 
+2.17.1
