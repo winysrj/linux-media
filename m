@@ -1,142 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr1-f68.google.com ([209.85.221.68]:41424 "EHLO
-        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729371AbeKMA5v (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:52732 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726443AbeKMBFL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Nov 2018 19:57:51 -0500
-Received: by mail-wr1-f68.google.com with SMTP id v18-v6so9723273wrt.8
-        for <linux-media@vger.kernel.org>; Mon, 12 Nov 2018 07:04:12 -0800 (PST)
-Subject: Re: [PATCH v2 1/2] media: docs-rst: Document memory-to-memory video
- decoder interface
-To: Tomasz Figa <tfiga@chromium.org>, linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        =?UTF-8?B?UGF3ZcWCIE/Fm2NpYWs=?= <posciak@chromium.org>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Kamil Debski <kamil@wypas.org>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Jeongtae Park <jtp.park@samsung.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Tiffany Lin <tiffany.lin@mediatek.com>,
-        Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Todor Tomov <todor.tomov@linaro.org>,
-        Nicolas Dufresne <nicolas@ndufresne.ca>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        dave.stevenson@raspberrypi.org,
-        Ezequiel Garcia <ezequiel@collabora.com>,
-        Maxime Jourdan <maxi.jourdan@wanadoo.fr>
-References: <20181022144901.113852-1-tfiga@chromium.org>
- <20181022144901.113852-2-tfiga@chromium.org>
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <95f49917-5051-4604-63ea-ba3966d5179e@linaro.org>
-Date: Mon, 12 Nov 2018 17:04:06 +0200
+        Mon, 12 Nov 2018 20:05:11 -0500
+Subject: Re: VIVID/VIMC and media fuzzing
+To: Dmitry Vyukov <dvyukov@google.com>
+Cc: helen.koike@collabora.com, syzkaller <syzkaller@googlegroups.com>,
+        linux-media@vger.kernel.org, mchehab@kernel.org,
+        Sami Tolvanen <samitolvanen@google.com>
+References: <CACT4Y+YHx3RUMGLv5T=-FJDZKEavK+sWBbAbenfm8mTQry8F+w@mail.gmail.com>
+ <ea1f7e70-6e8c-76a2-291d-228f99ca0cd4@xs4all.nl>
+ <CACT4Y+Y396cyUx+tmo6_YT7bmBt63-AYe5i0OG_5tuAUc+281A@mail.gmail.com>
+ <20334055-77db-49cc-f0f6-f467ea9c220f@xs4all.nl>
+ <CACT4Y+Y-0Dge=2atfX+_33+q1=wJ_82hzRKoeGSx7oRrds4R4A@mail.gmail.com>
+ <CACT4Y+a+UkMHZ6kgfLBvgv5QB9++hMtaFnvT67NqHfWXzv3+zg@mail.gmail.com>
+ <ee98996f-7e4c-84e5-801f-4f381c33950e@xs4all.nl>
+ <CACT4Y+bL=on5CqFxXpF8W0rSEGWUtcaESC9d9iO1naP_Vam6-Q@mail.gmail.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <2424fcd2-d001-4e33-85d3-290e9a5e4168@xs4all.nl>
+Date: Mon, 12 Nov 2018 16:11:25 +0100
 MIME-Version: 1.0
-In-Reply-To: <20181022144901.113852-2-tfiga@chromium.org>
+In-Reply-To: <CACT4Y+bL=on5CqFxXpF8W0rSEGWUtcaESC9d9iO1naP_Vam6-Q@mail.gmail.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz,
-
-On 10/22/18 5:48 PM, Tomasz Figa wrote:
-> Due to complexity of the video decoding process, the V4L2 drivers of
-> stateful decoder hardware require specific sequences of V4L2 API calls
-> to be followed. These include capability enumeration, initialization,
-> decoding, seek, pause, dynamic resolution change, drain and end of
-> stream.
+On 11/10/2018 08:28 PM, Dmitry Vyukov wrote:
+> On Sat, Nov 10, 2018 at 2:01 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> On 11/09/2018 10:34 PM, Dmitry Vyukov wrote:
+>>>>> What would be a good improvement is if you add this to the kernel command options:
+>>>>> "vivid.n_devs=2 vivid.multiplanar=1,2"
+>>>>>
+>>>>> This will create two vivid instances, one using the single planar API and one using
+>>>>> the multiplanar API. That will improve the test coverage.
+>>>>
+>>>> Re this and collisions between multiple test processes. We actually
+>>>> would like to have moar devices and partition them between test
+>>>> processes. Say if we need need devices for 8 test processes, will it
+>>>> work to specify something like "vivid.n_devs=16
+>>>> vivid.multiplanar=1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2" and then use
+>>>> devices 0/1 in the first test process, 2/3 in the second and so on?
+>>>>
+>>>> Without giving any flags, I see 8 /dev/video* devices, does
+>>>> vivid.n_devs defaults to 8?
+>>>
+>>> I am a bit lost.
+>>>
+>>> vivid.n_devs=16 vivid.multiplanar=1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2
+>>> creates 32 /dev/video* devices.
+>>
+>> I see 38 /dev/video* devices: the first 3 are from vimc, then 2 * 16 = 32
+>> vivid devices (2 video nodes for each instance), then a vim2m device and
+>> finally two vicodec devices.
+>>
+>> So you should always see 6 + n_devs * 2 video devices.
+>>
+>>>
+>>> but vivid.n_devs=8 vivid.multiplanar=1,2,1,2,1,2,1,2 creates 24
+>>> /dev/video* devices.
+>>>
+>>> These parameters also affect /dev/{vbi,radio,swradio} in strange ways
+>>>
+>>> Also, by default there is /dev/radio0 and /dev/radio1, are these
+>>> different types of devices, e.g. "source" and "sink"? Or they are
+>>> identical? And the same question for other types of devices?
+>>
+>> vivid creates two radio devices per instance: one emulates a radio tuner,
+>> one emulates a radio modulator (so yes, source and sink). Same for vbi
+>> (one source, one sink) and one swradio device. It also creates two cec
+>> devices (source and sink).
+>>
+>>>
+>>> How can I create 8 independent partitions of devices? What devices
+>>> will belong to each partition?
+>>
+>> Exactly as you did above. Instance X (starting at 0) uses video nodes
+>> 3+2*X and 4+2*X.
 > 
-> Specifics of the above have been discussed during Media Workshops at
-> LinuxCon Europe 2012 in Barcelona and then later Embedded Linux
-> Conference Europe 2014 in Düsseldorf. The de facto Codec API that
-> originated at those events was later implemented by the drivers we already
-> have merged in mainline, such as s5p-mfc or coda.
+> Thanks! Now I got it.
+> I've extended syzkaller to create more devices, use planar/non-planar,
+> radio, swradio, cec, vbi:
 > 
-> The only thing missing was the real specification included as a part of
-> Linux Media documentation. Fix it now and document the decoder part of
-> the Codec API.
+> https://github.com/google/syzkaller/commit/f3c4e6185953baea53d5651b84bd5897c02627f4#diff-a6fc2c4d3df5a6bcb42a628db614175f
 > 
-> Signed-off-by: Tomasz Figa <tfiga@chromium.org>
-> ---
->  Documentation/media/uapi/v4l/dev-decoder.rst  | 1082 +++++++++++++++++
->  Documentation/media/uapi/v4l/devices.rst      |    1 +
->  Documentation/media/uapi/v4l/pixfmt-v4l2.rst  |    5 +
->  Documentation/media/uapi/v4l/v4l2.rst         |   10 +-
->  .../media/uapi/v4l/vidioc-decoder-cmd.rst     |   40 +-
->  Documentation/media/uapi/v4l/vidioc-g-fmt.rst |   14 +
->  6 files changed, 1137 insertions(+), 15 deletions(-)
->  create mode 100644 Documentation/media/uapi/v4l/dev-decoder.rst
+> https://github.com/google/syzkaller/commit/f3c4e6185953baea53d5651b84bd5897c02627f4#diff-c60ec5d4add9b876f5d28fdeeaf3b7b8
+
+The cec devices do not use the V4L2 API, so it might be premature to add those.
+
+I plan on providing a patch for CEC in the near (?) future. Do you happen to
+have a script or something that can convert an API header to something that
+syzkaller needs? Or is it all manual?
+
+Regards,
+
+	Hans
+
 > 
-> diff --git a/Documentation/media/uapi/v4l/dev-decoder.rst b/Documentation/media/uapi/v4l/dev-decoder.rst
-> new file mode 100644
-> index 000000000000..09c7a6621b8e
-> --- /dev/null
-> +++ b/Documentation/media/uapi/v4l/dev-decoder.rst
-
-
-> +State machine
-> +=============
-> +
-> +.. kernel-render:: DOT
-> +   :alt: DOT digraph of decoder state machine
-> +   :caption: Decoder state machine
-> +
-> +   digraph decoder_state_machine {
-> +       node [shape = doublecircle, label="Decoding"] Decoding;
-> +
-> +       node [shape = circle, label="Initialization"] Initialization;
-> +       node [shape = circle, label="Capture\nsetup"] CaptureSetup;
-> +       node [shape = circle, label="Dynamic\nresolution\nchange"] ResChange;
-> +       node [shape = circle, label="Stopped"] Stopped;
-> +       node [shape = circle, label="Drain"] Drain;
-> +       node [shape = circle, label="Seek"] Seek;
-> +       node [shape = circle, label="End of stream"] EoS;
-> +
-> +       node [shape = point]; qi
-> +       qi -> Initialization [ label = "open()" ];
-> +
-> +       Initialization -> CaptureSetup [ label = "CAPTURE\nformat\nestablished" ];
-> +
-> +       CaptureSetup -> Stopped [ label = "CAPTURE\nbuffers\nready" ];
-> +
-> +       Decoding -> ResChange [ label = "Stream\nresolution\nchange" ];
-> +       Decoding -> Drain [ label = "V4L2_DEC_CMD_STOP" ];
-> +       Decoding -> EoS [ label = "EoS mark\nin the stream" ];
-> +       Decoding -> Seek [ label = "VIDIOC_STREAMOFF(OUTPUT)" ];
-> +       Decoding -> Stopped [ label = "VIDIOC_STREAMOFF(CAPTURE)" ];
-> +       Decoding -> Decoding;
-> +
-> +       ResChange -> CaptureSetup [ label = "CAPTURE\nformat\nestablished" ];
-> +       ResChange -> Seek [ label = "VIDIOC_STREAMOFF(OUTPUT)" ];
-> +
-> +       EoS -> Drain [ label = "Implicit\ndrain" ];
-> +
-> +       Drain -> Stopped [ label = "All CAPTURE\nbuffers dequeued\nor\nVIDIOC_STREAMOFF(CAPTURE)" ];
-> +       Drain -> Seek [ label = "VIDIOC_STREAMOFF(OUTPUT)" ];
-> +
-> +       Seek -> Decoding [ label = "VIDIOC_STREAMON(OUTPUT)" ];
-> +       Seek -> Initialization [ label = "VIDIOC_REQBUFS(OUTPUT, 0)" ];
-
-Shouldn't this be [ label = "VIDIOC_STREAMOFF(CAPTURE)" ], for me it is
-looks more natural for v4l2?
-
-For example I want to exit immediately from decoding state with calls to
-streamoff(OUTPUT) and streamoff(CAPTURE). This could be when you press
-ctrl-c while playing video, in this case I don't expect EoS nor buffers
-draining.
-
-> +
-> +       Stopped -> Decoding [ label = "V4L2_DEC_CMD_START\nor\nVIDIOC_STREAMON(CAPTURE)" ];
-> +       Stopped -> Seek [ label = "VIDIOC_STREAMOFF(OUTPUT)" ];
-> +   }
-> +
-
-
--- 
-regards,
-Stan
+> 
+>>>>> I also noticed that you appear to test only video devices. But vivid also creates
+>>>>> vbi, radio and swradio devices. It would be nice to have those tested as well.
+>>>>
+>>>> Will do.
+>>>> FTR, this is these devices:
+>>>>
+>>>> # ls -l /dev/{vbi,radio,swradio}*
+>>>> crw-rw---- 1 root video 81, 14 Nov  9 21:07 /dev/radio0
+>>>> crw-rw---- 1 root video 81, 15 Nov  9 21:07 /dev/radio1
+>>>> crw-rw---- 1 root video 81, 13 Nov  9 21:07 /dev/swradio0
+>>>> crw-rw---- 1 root video 81, 11 Nov  9 21:07 /dev/vbi0
+>>>> crw-rw---- 1 root video 81, 12 Nov  9 21:07 /dev/vbi1
+>>>>
+>>>> Why are there 2 radio and vbi? Are they different? Is it possible to
+>>>> also create more of them? Are there any other useful command line args
+>>>> for them?
+>>
+>> As mentioned: the first is capture, the second output. It's per vivid
+>> instance.
+>>
+>> <snip>
+>>
+>>>>>> CREATE_BUFS privatization is somewhat unfortunate, but I guess we can
+>>>>>> live with it for now.
+>>>>>
+>>>>> Sorry, I'm not sure what you mean.
+>>>>
+>>>> You said:
+>>>>
+>>>>>> But after calling REQBUFS or CREATE_BUFS the filehandle that
+>>>>>> called those ioctls becomes owner of the device until the buffers are
+>>>>>> released. So other filehandles cannot do any streaming operations (EBUSY
+>>>>>> will be returned).
+>>>>
+>>>> This semantics are somewhat unfortunate for syzkaller because one test
+>>>> process will affect/block other test processes, and we try to make
+>>>> them as independent as possible. E.g. If this can affect syzkaller
+>>>> ability to create reproducers, because in one run of a test if was
+>>>> affected by an unrelated test and crashed, but if we try to reproduce
+>>>> the crash on the same test it won't crash again because now it's not
+>>>> affected by the unrelated test.
+>>>>
+>>>> But if we create more devices and partition them across test
+>>>> processes, it will resolve this problem?
+>>
+>> I think it will help, yes.
+>>
+>>>>
+>>>>
+>>>>>> I assume that when the process dies it will release everything at
+>>>>>> least, because fuzzer will sure not pair create with release all the
+>>>>>> time.
+>>
+>> --
+>> You received this message because you are subscribed to the Google Groups "syzkaller" group.
+>> To unsubscribe from this group and stop receiving emails from it, send an email to syzkaller+unsubscribe@googlegroups.com.
+>> For more options, visit https://groups.google.com/d/optout.
