@@ -1,8 +1,8 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from shell.v3.sk ([90.176.6.54]:57425 "EHLO shell.v3.sk"
+Received: from shell.v3.sk ([90.176.6.54]:57460 "EHLO shell.v3.sk"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729780AbeKLK0c (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Nov 2018 05:26:32 -0500
+        id S1729780AbeKLK0h (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 12 Nov 2018 05:26:37 -0500
 From: Lubomir Rintel <lkundrak@v3.sk>
 To: Mauro Carvalho Chehab <mchehab@kernel.org>,
         Jonathan Corbet <corbet@lwn.net>, linux-media@vger.kernel.org
@@ -13,9 +13,9 @@ Cc: Rob Herring <robh+dt@kernel.org>,
         James Cameron <quozl@laptop.org>, Pavel Machek <pavel@ucw.cz>,
         Libin Yang <lbyang@marvell.com>,
         Albert Wang <twang13@marvell.com>
-Subject: [PATCH v2 04/11] [media] marvell-ccic: fix DMA s/g desc number calculation
-Date: Mon, 12 Nov 2018 01:35:13 +0100
-Message-Id: <20181112003520.577592-5-lkundrak@v3.sk>
+Subject: [PATCH v2 07/11] [media] marvell-ccic: drop unused stuff
+Date: Mon, 12 Nov 2018 01:35:16 +0100
+Message-Id: <20181112003520.577592-8-lkundrak@v3.sk>
 In-Reply-To: <20181112003520.577592-1-lkundrak@v3.sk>
 References: <20181112003520.577592-1-lkundrak@v3.sk>
 MIME-Version: 1.0
@@ -23,59 +23,85 @@ Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The commit d790b7eda953 ("[media] vb2-dma-sg: move dma_(un)map_sg here")
-left dma_desc_nent unset. It previously contained the number of DMA
-descriptors as returned from dma_map_sg().
+Remove structure members and headers that are not actually used. Saves
+us from some noise in subsequent cleanup commits.
 
-We can now (since the commit referred to above) obtain the same value fro=
-m
-the sg_table and drop dma_desc_nent altogether.
-
-Tested on OLPC XO-1.75 machine. Doesn't affect the OLPC XO-1's Cafe
-driver, since that one doesn't do DMA.
-
-Fixes: d790b7eda953df474f470169ebdf111c02fa7a2d
 Signed-off-by: Lubomir Rintel <lkundrak@v3.sk>
+Acked-by: Pavel Machek <pavel@ucw.cz>
 ---
- drivers/media/platform/marvell-ccic/mcam-core.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/media/platform/marvell-ccic/mcam-core.c  | 1 -
+ drivers/media/platform/marvell-ccic/mcam-core.h  | 2 --
+ drivers/media/platform/marvell-ccic/mmp-driver.c | 2 --
+ include/linux/platform_data/media/mmp-camera.h   | 1 -
+ 4 files changed, 6 deletions(-)
 
 diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/me=
 dia/platform/marvell-ccic/mcam-core.c
-index f1b301810260..d97f39bde9bd 100644
+index 1b879035948c..0113b8d37d03 100644
 --- a/drivers/media/platform/marvell-ccic/mcam-core.c
 +++ b/drivers/media/platform/marvell-ccic/mcam-core.c
-@@ -200,7 +200,6 @@ struct mcam_vb_buffer {
- 	struct list_head queue;
- 	struct mcam_dma_desc *dma_desc;	/* Descriptor virtual address */
- 	dma_addr_t dma_desc_pa;		/* Descriptor physical address */
--	int dma_desc_nent;		/* Number of mapped descriptors */
- };
+@@ -1776,7 +1776,6 @@ int mccic_register(struct mcam_camera *cam)
+ 	 */
+ 	sensor_cfg.clock_speed =3D cam->clock_speed;
+ 	sensor_cfg.use_smbus =3D cam->use_smbus;
+-	cam->sensor_addr =3D ov7670_info.addr;
+ 	cam->sensor =3D v4l2_i2c_new_subdev_board(&cam->v4l2_dev,
+ 			cam->i2c_adapter, &ov7670_info, NULL);
+ 	if (cam->sensor =3D=3D NULL) {
+diff --git a/drivers/media/platform/marvell-ccic/mcam-core.h b/drivers/me=
+dia/platform/marvell-ccic/mcam-core.h
+index a3a097a45e78..b828b1bb59d3 100644
+--- a/drivers/media/platform/marvell-ccic/mcam-core.h
++++ b/drivers/media/platform/marvell-ccic/mcam-core.h
+@@ -112,7 +112,6 @@ struct mcam_camera {
+ 	short int use_smbus;	/* SMBUS or straight I2c? */
+ 	enum mcam_buffer_mode buffer_mode;
 =20
- static inline struct mcam_vb_buffer *vb_to_mvb(struct vb2_v4l2_buffer *v=
-b)
-@@ -608,9 +607,11 @@ static void mcam_dma_contig_done(struct mcam_camera =
-*cam, int frame)
- static void mcam_sg_next_buffer(struct mcam_camera *cam)
- {
- 	struct mcam_vb_buffer *buf;
-+	struct sg_table *sg_table;
+-	int mclk_min;	/* The minimal value of mclk */
+ 	int mclk_src;	/* which clock source the mclk derives from */
+ 	int mclk_div;	/* Clock Divider Value for MCLK */
 =20
- 	buf =3D list_first_entry(&cam->buffers, struct mcam_vb_buffer, queue);
- 	list_del_init(&buf->queue);
-+	sg_table =3D vb2_dma_sg_plane_desc(&buf->vb_buf.vb2_buf, 0);
+@@ -152,7 +151,6 @@ struct mcam_camera {
+ 	 */
+ 	struct video_device vdev;
+ 	struct v4l2_subdev *sensor;
+-	unsigned short sensor_addr;
+=20
+ 	/* Videobuf2 stuff */
+ 	struct vb2_queue vb_queue;
+diff --git a/drivers/media/platform/marvell-ccic/mmp-driver.c b/drivers/m=
+edia/platform/marvell-ccic/mmp-driver.c
+index dbfc597b955d..f2e43b23af18 100644
+--- a/drivers/media/platform/marvell-ccic/mmp-driver.c
++++ b/drivers/media/platform/marvell-ccic/mmp-driver.c
+@@ -12,7 +12,6 @@
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/i2c.h>
+-#include <linux/platform_data/i2c-gpio.h>
+ #include <linux/interrupt.h>
+ #include <linux/spinlock.h>
+ #include <linux/slab.h>
+@@ -332,7 +331,6 @@ static int mmpcam_probe(struct platform_device *pdev)
+ 	mcam->calc_dphy =3D mmpcam_calc_dphy;
+ 	mcam->dev =3D &pdev->dev;
+ 	mcam->use_smbus =3D 0;
+-	mcam->mclk_min =3D pdata->mclk_min;
+ 	mcam->mclk_src =3D pdata->mclk_src;
+ 	mcam->mclk_div =3D pdata->mclk_div;
+ 	mcam->bus_type =3D pdata->bus_type;
+diff --git a/include/linux/platform_data/media/mmp-camera.h b/include/lin=
+ux/platform_data/media/mmp-camera.h
+index d2d3a443eedf..4c3a80a45883 100644
+--- a/include/linux/platform_data/media/mmp-camera.h
++++ b/include/linux/platform_data/media/mmp-camera.h
+@@ -16,7 +16,6 @@ struct mmp_camera_platform_data {
+ 	int sensor_power_gpio;
+ 	int sensor_reset_gpio;
+ 	enum v4l2_mbus_type bus_type;
+-	int mclk_min;	/* The minimal value of MCLK */
+ 	int mclk_src;	/* which clock source the MCLK derives from */
+ 	int mclk_div;	/* Clock Divider Value for MCLK */
  	/*
- 	 * Very Bad Not Good Things happen if you don't clear
- 	 * C1_DESC_ENA before making any descriptor changes.
-@@ -618,7 +619,7 @@ static void mcam_sg_next_buffer(struct mcam_camera *c=
-am)
- 	mcam_reg_clear_bit(cam, REG_CTRL1, C1_DESC_ENA);
- 	mcam_reg_write(cam, REG_DMA_DESC_Y, buf->dma_desc_pa);
- 	mcam_reg_write(cam, REG_DESC_LEN_Y,
--			buf->dma_desc_nent*sizeof(struct mcam_dma_desc));
-+			sg_table->nents*sizeof(struct mcam_dma_desc));
- 	mcam_reg_write(cam, REG_DESC_LEN_U, 0);
- 	mcam_reg_write(cam, REG_DESC_LEN_V, 0);
- 	mcam_reg_set_bit(cam, REG_CTRL1, C1_DESC_ENA);
 --=20
 2.19.1
