@@ -1,183 +1,185 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:40195 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731345AbeKMSVV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Nov 2018 13:21:21 -0500
-From: Maxime Ripard <maxime.ripard@bootlin.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, Andrzej Hajda <a.hajda@samsung.com>,
-        Chen-Yu Tsai <wens@csie.org>, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
-        Mark Rutland <mark.rutland@arm.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Frank Rowand <frowand.list@gmail.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>
-Subject: [PATCH 0/5] media: Allwinner A10 CSI support
-Date: Tue, 13 Nov 2018 09:24:12 +0100
-Message-Id: <cover.71b0f9855c251f9dc389ee77ee6f0e1fad91fb0b.1542097288.git-series.maxime.ripard@bootlin.com>
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:44221 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726221AbeKLSZV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 12 Nov 2018 13:25:21 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Alexandre Courbot <acourbot@chromium.org>,
+        maxime.ripard@bootlin.com, paul.kocialkowski@bootlin.com,
+        tfiga@chromium.org, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [RFC PATCHv2 5/5] cedrus: add tag support
+Date: Mon, 12 Nov 2018 09:33:05 +0100
+Message-Id: <20181112083305.22618-6-hverkuil@xs4all.nl>
+In-Reply-To: <20181112083305.22618-1-hverkuil@xs4all.nl>
+References: <20181112083305.22618-1-hverkuil@xs4all.nl>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Replace old reference frame indices by new tag method.
 
-Here is a series introducing the support for the A10 (and SoCs of the same
-generation) CMOS Sensor Interface (called CSI, not to be confused with
-MIPI-CSI, which isn't support by that IP).
+Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c          |  9 --------
+ drivers/staging/media/sunxi/cedrus/cedrus.h   |  8 ++++---
+ .../staging/media/sunxi/cedrus/cedrus_dec.c   | 10 +++++++++
+ .../staging/media/sunxi/cedrus/cedrus_mpeg2.c | 21 ++++++++-----------
+ include/uapi/linux/v4l2-controls.h            | 14 +++++--------
+ 5 files changed, 29 insertions(+), 33 deletions(-)
 
-That interface is pretty straightforward, but the driver has a few issues
-that I wanted to bring up:
-
-  * The only board I've been testing this with has an ov5640 sensor
-    attached, which doesn't work with the upstream driver. Copying the
-    Allwinner init sequence works though, and this is how it has been
-    tested. Testing with a second sensor would allow to see if it's an
-    issue on the CSI side or the sensor side.
-  * When starting a capture, the last buffer to capture will fail due to
-    double buffering being used, and we don't have a next buffer for the
-    last frame. I'm not sure how to deal with that though. It seems like
-    some drivers use a scratch buffer in such a case, some don't care, so
-    I'm not sure which solution should be preferred.
-  * We don't have support for the ISP at the moment, but this can be added
-    eventually.
-
-  * How to model the CSI module clock isn't really clear to me. It looks
-    like it goes through the CSI controller and then is muxed to one of the
-    CSI pin so that it can clock the sensor. I'm not quite sure how to
-    model it, if it should be a clock, the CSI driver being a clock
-    provider, or if the sensor should just use the module clock directly.
-
-Here is the v4l2-compliance output:
-v4l2-compliance SHA   : 339d550e92ac15de8668f32d66d16f198137006c
-
-Driver Info:
-	Driver name   : sun4i_csi
-	Card type     : sun4i-csi
-	Bus info      : platform:1c09000.csi
-	Driver version: 4.19.0
-	Capabilities  : 0x84201000
-		Video Capture Multiplanar
-		Streaming
-		Extended Pix Format
-		Device Capabilities
-	Device Caps   : 0x04201000
-		Video Capture Multiplanar
-		Streaming
-		Extended Pix Format
-
-Compliance test for device /dev/video0 (not using libv4l2):
-
-Required ioctls:
-	test VIDIOC_QUERYCAP: OK
-
-Allow for multiple opens:
-	test second video open: OK
-	test VIDIOC_QUERYCAP: OK
-	test VIDIOC_G/S_PRIORITY: OK
-	test for unlimited opens: OK
-
-Debug ioctls:
-	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-	test VIDIOC_LOG_STATUS: OK (Not Supported)
-
-Input ioctls:
-	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-	test VIDIOC_ENUMAUDIO: OK (Not Supported)
-	test VIDIOC_G/S/ENUMINPUT: OK
-	test VIDIOC_G/S_AUDIO: OK (Not Supported)
-	Inputs: 1 Audio Inputs: 0 Tuners: 0
-
-Output ioctls:
-	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-	Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-Input/Output configuration ioctls:
-	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-	test VIDIOC_G/S_EDID: OK (Not Supported)
-
-Test input 0:
-
-	Control ioctls:
-		test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
-		test VIDIOC_QUERYCTRL: OK (Not Supported)
-		test VIDIOC_G/S_CTRL: OK (Not Supported)
-		test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
-		test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
-		test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-		Standard Controls: 0 Private Controls: 0
-
-	Format ioctls:
-		test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-		test VIDIOC_G/S_PARM: OK (Not Supported)
-		test VIDIOC_G_FBUF: OK (Not Supported)
-		test VIDIOC_G_FMT: OK
-		test VIDIOC_TRY_FMT: OK
-		test VIDIOC_S_FMT: OK
-		test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-		test Cropping: OK (Not Supported)
-		test Composing: OK (Not Supported)
-		test Scaling: OK
-
-	Codec ioctls:
-		test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-		test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-		test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-	Buffer ioctls:
-		test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-		test VIDIOC_EXPBUF: OK
-
-Test input 0:
-
-Total: 43, Succeeded: 43, Failed: 0, Warnings: 0
-
-Let me know what you think,
-Maxime
-
-Maxime Ripard (5):
-  dt-bindings: media: Add Allwinner A10 CSI binding
-  media: sunxi: Refactor the Makefile and Kconfig
-  media: sunxi: Add A10 CSI driver
-  ARM: dts: sun7i: Add CSI0 controller
-  DO NOT MERGE: ARM: dts: bananapi: Add Camera support
-
- Documentation/devicetree/bindings/media/sun4i-csi.txt |  71 ++-
- arch/arm/boot/dts/sun7i-a20-bananapi.dts              |  98 +++-
- arch/arm/boot/dts/sun7i-a20.dtsi                      |  13 +-
- drivers/media/platform/Kconfig                        |   2 +-
- drivers/media/platform/Makefile                       |   2 +-
- drivers/media/platform/sunxi/Kconfig                  |   2 +-
- drivers/media/platform/sunxi/Makefile                 |   2 +-
- drivers/media/platform/sunxi/sun4i-csi/Kconfig        |  12 +-
- drivers/media/platform/sunxi/sun4i-csi/Makefile       |   5 +-
- drivers/media/platform/sunxi/sun4i-csi/sun4i_csi.c    | 275 ++++++++-
- drivers/media/platform/sunxi/sun4i-csi/sun4i_csi.h    | 137 ++++-
- drivers/media/platform/sunxi/sun4i-csi/sun4i_dma.c    | 383 +++++++++++-
- drivers/media/platform/sunxi/sun4i-csi/sun4i_v4l2.c   | 287 ++++++++-
- 13 files changed, 1287 insertions(+), 2 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/sun4i-csi.txt
- create mode 100644 drivers/media/platform/sunxi/Kconfig
- create mode 100644 drivers/media/platform/sunxi/Makefile
- create mode 100644 drivers/media/platform/sunxi/sun4i-csi/Kconfig
- create mode 100644 drivers/media/platform/sunxi/sun4i-csi/Makefile
- create mode 100644 drivers/media/platform/sunxi/sun4i-csi/sun4i_csi.c
- create mode 100644 drivers/media/platform/sunxi/sun4i-csi/sun4i_csi.h
- create mode 100644 drivers/media/platform/sunxi/sun4i-csi/sun4i_dma.c
- create mode 100644 drivers/media/platform/sunxi/sun4i-csi/sun4i_v4l2.c
-
-base-commit: 94517eaa3d43005472864615dfd17f1ef6ca3935
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 5f2b033a7a42..b854cceb19dc 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1660,15 +1660,6 @@ static int std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
+ 			return -EINVAL;
+ 		}
+ 
+-		if (p_mpeg2_slice_params->backward_ref_index >= VIDEO_MAX_FRAME ||
+-		    p_mpeg2_slice_params->forward_ref_index >= VIDEO_MAX_FRAME)
+-			return -EINVAL;
+-
+-		if (p_mpeg2_slice_params->pad ||
+-		    p_mpeg2_slice_params->picture.pad ||
+-		    p_mpeg2_slice_params->sequence.pad)
+-			return -EINVAL;
+-
+ 		return 0;
+ 
+ 	case V4L2_CTRL_TYPE_MPEG2_QUANTIZATION:
+diff --git a/drivers/staging/media/sunxi/cedrus/cedrus.h b/drivers/staging/media/sunxi/cedrus/cedrus.h
+index 3f61248c57ac..a4bc19ae6bcc 100644
+--- a/drivers/staging/media/sunxi/cedrus/cedrus.h
++++ b/drivers/staging/media/sunxi/cedrus/cedrus.h
+@@ -142,11 +142,13 @@ static inline dma_addr_t cedrus_buf_addr(struct vb2_buffer *buf,
+ }
+ 
+ static inline dma_addr_t cedrus_dst_buf_addr(struct cedrus_ctx *ctx,
+-					     unsigned int index,
+-					     unsigned int plane)
++					     int index, unsigned int plane)
+ {
+-	struct vb2_buffer *buf = ctx->dst_bufs[index];
++	struct vb2_buffer *buf;
+ 
++	if (index < 0)
++		return 0;
++	buf = ctx->dst_bufs[index];
+ 	return buf ? cedrus_buf_addr(buf, &ctx->dst_fmt, plane) : 0;
+ }
+ 
+diff --git a/drivers/staging/media/sunxi/cedrus/cedrus_dec.c b/drivers/staging/media/sunxi/cedrus/cedrus_dec.c
+index e40180a33951..76fed2f1f5e2 100644
+--- a/drivers/staging/media/sunxi/cedrus/cedrus_dec.c
++++ b/drivers/staging/media/sunxi/cedrus/cedrus_dec.c
+@@ -53,6 +53,16 @@ void cedrus_device_run(void *priv)
+ 		break;
+ 	}
+ 
++	run.dst->vb2_buf.timestamp = run.src->vb2_buf.timestamp;
++	if (run.src->flags & V4L2_BUF_FLAG_TIMECODE)
++		run.dst->timecode = run.src->timecode;
++	else if (run.src->flags & V4L2_BUF_FLAG_TAG)
++		run.dst->tag = run.src->tag;
++	run.dst->flags = run.src->flags &
++		(V4L2_BUF_FLAG_TIMECODE |
++		 V4L2_BUF_FLAG_TAG |
++		 V4L2_BUF_FLAG_TSTAMP_SRC_MASK);
++
+ 	dev->dec_ops[ctx->current_codec]->setup(ctx, &run);
+ 
+ 	spin_unlock_irqrestore(&ctx->dev->irq_lock, flags);
+diff --git a/drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c b/drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c
+index 9abd39cae38c..fdde9a099153 100644
+--- a/drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c
++++ b/drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c
+@@ -82,7 +82,10 @@ static void cedrus_mpeg2_setup(struct cedrus_ctx *ctx, struct cedrus_run *run)
+ 	dma_addr_t fwd_luma_addr, fwd_chroma_addr;
+ 	dma_addr_t bwd_luma_addr, bwd_chroma_addr;
+ 	struct cedrus_dev *dev = ctx->dev;
++	struct vb2_queue *cap_q = &ctx->fh.m2m_ctx->cap_q_ctx.q;
+ 	const u8 *matrix;
++	int forward_idx;
++	int backward_idx;
+ 	unsigned int i;
+ 	u32 reg;
+ 
+@@ -156,23 +159,17 @@ static void cedrus_mpeg2_setup(struct cedrus_ctx *ctx, struct cedrus_run *run)
+ 	cedrus_write(dev, VE_DEC_MPEG_PICBOUNDSIZE, reg);
+ 
+ 	/* Forward and backward prediction reference buffers. */
++	forward_idx = vb2_find_tag(cap_q, slice_params->forward_ref_tag, 0);
+ 
+-	fwd_luma_addr = cedrus_dst_buf_addr(ctx,
+-					    slice_params->forward_ref_index,
+-					    0);
+-	fwd_chroma_addr = cedrus_dst_buf_addr(ctx,
+-					      slice_params->forward_ref_index,
+-					      1);
++	fwd_luma_addr = cedrus_dst_buf_addr(ctx, forward_idx, 0);
++	fwd_chroma_addr = cedrus_dst_buf_addr(ctx, forward_idx, 1);
+ 
+ 	cedrus_write(dev, VE_DEC_MPEG_FWD_REF_LUMA_ADDR, fwd_luma_addr);
+ 	cedrus_write(dev, VE_DEC_MPEG_FWD_REF_CHROMA_ADDR, fwd_chroma_addr);
+ 
+-	bwd_luma_addr = cedrus_dst_buf_addr(ctx,
+-					    slice_params->backward_ref_index,
+-					    0);
+-	bwd_chroma_addr = cedrus_dst_buf_addr(ctx,
+-					      slice_params->backward_ref_index,
+-					      1);
++	backward_idx = vb2_find_tag(cap_q, slice_params->backward_ref_tag, 0);
++	bwd_luma_addr = cedrus_dst_buf_addr(ctx, backward_idx, 0);
++	bwd_chroma_addr = cedrus_dst_buf_addr(ctx, backward_idx, 1);
+ 
+ 	cedrus_write(dev, VE_DEC_MPEG_BWD_REF_LUMA_ADDR, bwd_luma_addr);
+ 	cedrus_write(dev, VE_DEC_MPEG_BWD_REF_CHROMA_ADDR, bwd_chroma_addr);
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index 998983a6e6b7..43f2f9148b3c 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -1109,10 +1109,9 @@ struct v4l2_mpeg2_sequence {
+ 	__u32	vbv_buffer_size;
+ 
+ 	/* ISO/IEC 13818-2, ITU-T Rec. H.262: Sequence extension */
+-	__u8	profile_and_level_indication;
++	__u16	profile_and_level_indication;
+ 	__u8	progressive_sequence;
+ 	__u8	chroma_format;
+-	__u8	pad;
+ };
+ 
+ struct v4l2_mpeg2_picture {
+@@ -1130,23 +1129,20 @@ struct v4l2_mpeg2_picture {
+ 	__u8	intra_vlc_format;
+ 	__u8	alternate_scan;
+ 	__u8	repeat_first_field;
+-	__u8	progressive_frame;
+-	__u8	pad;
++	__u16	progressive_frame;
+ };
+ 
+ struct v4l2_ctrl_mpeg2_slice_params {
+ 	__u32	bit_size;
+ 	__u32	data_bit_offset;
++	__u64	backward_ref_tag;
++	__u64	forward_ref_tag;
+ 
+ 	struct v4l2_mpeg2_sequence sequence;
+ 	struct v4l2_mpeg2_picture picture;
+ 
+ 	/* ISO/IEC 13818-2, ITU-T Rec. H.262: Slice */
+-	__u8	quantiser_scale_code;
+-
+-	__u8	backward_ref_index;
+-	__u8	forward_ref_index;
+-	__u8	pad;
++	__u32	quantiser_scale_code;
+ };
+ 
+ struct v4l2_ctrl_mpeg2_quantization {
 -- 
-git-series 0.9.1
+2.19.1
