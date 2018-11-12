@@ -1,8 +1,8 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from shell.v3.sk ([90.176.6.54]:57388 "EHLO shell.v3.sk"
+Received: from shell.v3.sk ([90.176.6.54]:57432 "EHLO shell.v3.sk"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729780AbeKLK0R (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Nov 2018 05:26:17 -0500
+        id S1728662AbeKLK0b (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 12 Nov 2018 05:26:31 -0500
 From: Lubomir Rintel <lkundrak@v3.sk>
 To: Mauro Carvalho Chehab <mchehab@kernel.org>,
         Jonathan Corbet <corbet@lwn.net>, linux-media@vger.kernel.org
@@ -13,9 +13,9 @@ Cc: Rob Herring <robh+dt@kernel.org>,
         James Cameron <quozl@laptop.org>, Pavel Machek <pavel@ucw.cz>,
         Libin Yang <lbyang@marvell.com>,
         Albert Wang <twang13@marvell.com>
-Subject: [PATCH v2 01/11] media: ov7670: hook s_power onto v4l2 core
-Date: Mon, 12 Nov 2018 01:35:10 +0100
-Message-Id: <20181112003520.577592-2-lkundrak@v3.sk>
+Subject: [PATCH v2 03/11] media: dt-bindings: marvell,mmp2-ccic: Add Marvell MMP2 camera
+Date: Mon, 12 Nov 2018 01:35:12 +0100
+Message-Id: <20181112003520.577592-4-lkundrak@v3.sk>
 In-Reply-To: <20181112003520.577592-1-lkundrak@v3.sk>
 References: <20181112003520.577592-1-lkundrak@v3.sk>
 MIME-Version: 1.0
@@ -23,29 +23,51 @@ Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The commit 71862f63f351 ("media: ov7670: Add the ov7670_s_power function"=
-)
-added a s_power function. For some reason it didn't register it with v4l2=
-,
-only uses it internally. Fix this now.
+Add Marvell MMP2 camera host interface.
 
 Signed-off-by: Lubomir Rintel <lkundrak@v3.sk>
 ---
- drivers/media/i2c/ov7670.c | 1 +
- 1 file changed, 1 insertion(+)
+ .../bindings/media/marvell,mmp2-ccic.txt      | 30 +++++++++++++++++++
+ 1 file changed, 30 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/marvell,mmp2-=
+ccic.txt
 
-diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
-index bc68a3a5b4ec..d87f2362bf40 100644
---- a/drivers/media/i2c/ov7670.c
-+++ b/drivers/media/i2c/ov7670.c
-@@ -1651,6 +1651,7 @@ static int ov7670_open(struct v4l2_subdev *sd, stru=
-ct v4l2_subdev_fh *fh)
- static const struct v4l2_subdev_core_ops ov7670_core_ops =3D {
- 	.reset =3D ov7670_reset,
- 	.init =3D ov7670_init,
-+	.s_power =3D ov7670_s_power,
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- 	.g_register =3D ov7670_g_register,
- 	.s_register =3D ov7670_s_register,
+diff --git a/Documentation/devicetree/bindings/media/marvell,mmp2-ccic.tx=
+t b/Documentation/devicetree/bindings/media/marvell,mmp2-ccic.txt
+new file mode 100644
+index 000000000000..a9c536e58dda
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/marvell,mmp2-ccic.txt
+@@ -0,0 +1,30 @@
++Marvell MMP2 camera host interface
++
++Required properties:
++ - compatible: Should be "marvell,mmp2-ccic"
++ - reg: register base and size
++ - interrupts: the interrupt number
++ - any required generic properties defined in video-interfaces.txt
++
++Optional properties:
++ - clocks: input clock (see clock-bindings.txt)
++ - clock-output-names: should contain the name of the clock driving the
++                       sensor master clock MCLK
++
++Example:
++
++	camera0: camera@d420a000 {
++		compatible =3D "marvell,mmp2-ccic";
++		reg =3D <0xd420a000 0x800>;
++		interrupts =3D <42>;
++		clocks =3D <&soc_clocks MMP2_CLK_CCIC0>;
++		clock-names =3D "CCICAXICLK";
++		#clock-cells =3D <0>;
++		clock-output-names =3D "mclk";
++
++		port {
++			camera0_0: endpoint {
++				remote-endpoint =3D <&ov7670_0>;
++			};
++		};
++	};
 --=20
 2.19.1
