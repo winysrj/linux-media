@@ -1,8 +1,8 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:51170 "EHLO mail.bootlin.com"
+Received: from mail.bootlin.com ([62.4.15.54]:51192 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1733039AbeKMXBu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Nov 2018 18:01:50 -0500
+        id S1733152AbeKMXBv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Nov 2018 18:01:51 -0500
 From: Maxime Ripard <maxime.ripard@bootlin.com>
 To: Mauro Carvalho Chehab <mchehab@kernel.org>
 Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
@@ -18,9 +18,9 @@ Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Daniel Mack <daniel@zonque.org>,
         Jacopo Mondi <jacopo@jmondi.org>,
         Maxime Ripard <maxime.ripard@bootlin.com>
-Subject: [PATCH v5 03/11] media: ov5640: Remove redundant defines
-Date: Tue, 13 Nov 2018 14:03:17 +0100
-Message-Id: <20181113130325.28975-4-maxime.ripard@bootlin.com>
+Subject: [PATCH v5 05/11] media: ov5640: Compute the clock rate at runtime
+Date: Tue, 13 Nov 2018 14:03:19 +0100
+Message-Id: <20181113130325.28975-6-maxime.ripard@bootlin.com>
 In-Reply-To: <20181113130325.28975-1-maxime.ripard@bootlin.com>
 References: <20181113130325.28975-1-maxime.ripard@bootlin.com>
 MIME-Version: 1.0
@@ -28,42 +28,66 @@ Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The OV5640_SCLK2X_ROOT_DIVIDER_DEFAULT and OV5640_SCLK_ROOT_DIVIDER_DEFAULT
-defines represent exactly the same setup, and are at the same value, than
-the more consistent with the rest of the driver OV5640_SCLK2X_ROOT_DIV and
-OV5640_SCLK_ROOT_DIV.
+The clock rate, while hardcoded until now, is actually a function of the
+resolution, framerate and bytes per pixel. Now that we have an algorithm to
+adjust our clock rate, we can select it dynamically when we change the
+mode.
 
-Remove them.
+This changes a bit the clock rate being used, with the following effect:
+
++------+------+------+------+-----+-----------------+----------------+-----------+
+| Hact | Vact | Htot | Vtot | FPS | Hardcoded clock | Computed clock | Deviation |
++------+------+------+------+-----+-----------------+----------------+-----------+
+|  640 |  480 | 1896 | 1080 |  15 |        56000000 |       61430400 | 8.84 %    |
+|  640 |  480 | 1896 | 1080 |  30 |       112000000 |      122860800 | 8.84 %    |
+| 1024 |  768 | 1896 | 1080 |  15 |        56000000 |       61430400 | 8.84 %    |
+| 1024 |  768 | 1896 | 1080 |  30 |       112000000 |      122860800 | 8.84 %    |
+|  320 |  240 | 1896 |  984 |  15 |        56000000 |       55969920 | 0.05 %    |
+|  320 |  240 | 1896 |  984 |  30 |       112000000 |      111939840 | 0.05 %    |
+|  176 |  144 | 1896 |  984 |  15 |        56000000 |       55969920 | 0.05 %    |
+|  176 |  144 | 1896 |  984 |  30 |       112000000 |      111939840 | 0.05 %    |
+|  720 |  480 | 1896 |  984 |  15 |        56000000 |       55969920 | 0.05 %    |
+|  720 |  480 | 1896 |  984 |  30 |       112000000 |      111939840 | 0.05 %    |
+|  720 |  576 | 1896 |  984 |  15 |        56000000 |       55969920 | 0.05 %    |
+|  720 |  576 | 1896 |  984 |  30 |       112000000 |      111939840 | 0.05 %    |
+| 1280 |  720 | 1892 |  740 |  15 |        42000000 |       42002400 | 0.01 %    |
+| 1280 |  720 | 1892 |  740 |  30 |        84000000 |       84004800 | 0.01 %    |
+| 1920 | 1080 | 2500 | 1120 |  15 |        84000000 |       84000000 | 0.00 %    |
+| 1920 | 1080 | 2500 | 1120 |  30 |       168000000 |      168000000 | 0.00 %    |
+| 2592 | 1944 | 2844 | 1944 |  15 |        84000000 |      165862080 | 49.36 %   |
++------+------+------+------+-----+-----------------+----------------+-----------+
+
+Only the 640x480, 1024x768 and 2592x1944 modes are significantly affected
+by the new formula.
+
+In this case, 640x480 and 1024x768 are actually fixed by this change.
+Indeed, the sensor was sending data at, for example, 27.33fps instead of
+30fps. This is -9%, which is roughly what we're seeing in the array.
+Testing these modes with the new clock setup actually fix that error, and
+data are now sent at around 30fps.
+
+2592x1944, on the other hand, is probably due to the fact that this mode
+can only be used using MIPI-CSI2, in a two lane mode, and never really
+tested with a DVP bus.
 
 Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
 ---
- drivers/media/i2c/ov5640.c | 7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ drivers/media/i2c/ov5640.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-index 584e01ea765b..1b295d07aa15 100644
+index 25613ecf83c5..bcfb2b25a450 100644
 --- a/drivers/media/i2c/ov5640.c
 +++ b/drivers/media/i2c/ov5640.c
-@@ -94,9 +94,6 @@
- #define OV5640_REG_SDE_CTRL5		0x5585
- #define OV5640_REG_AVG_READOUT		0x56a1
- 
--#define OV5640_SCLK2X_ROOT_DIVIDER_DEFAULT	1
--#define OV5640_SCLK_ROOT_DIVIDER_DEFAULT	2
--
- enum ov5640_mode_id {
- 	OV5640_MODE_QCIF_176_144 = 0,
- 	OV5640_MODE_QVGA_320_240,
-@@ -2086,8 +2083,8 @@ static int ov5640_restore_mode(struct ov5640_dev *sensor)
- 	sensor->last_mode = &ov5640_mode_init_data;
- 
- 	ret = ov5640_mod_reg(sensor, OV5640_REG_SYS_ROOT_DIVIDER, 0x3f,
--			     (ilog2(OV5640_SCLK2X_ROOT_DIVIDER_DEFAULT) << 2) |
--			     ilog2(OV5640_SCLK_ROOT_DIVIDER_DEFAULT));
-+			     (ilog2(OV5640_SCLK2X_ROOT_DIV) << 2) |
-+			     ilog2(OV5640_SCLK_ROOT_DIV));
- 	if (ret)
- 		return ret;
- 
+@@ -1992,7 +1992,8 @@ static int ov5640_set_mode(struct ov5640_dev *sensor)
+ 	 * All the formats we support have 16 bits per pixel, seems to require
+ 	 * the same rate than YUV, so we can just use 16 bpp all the time.
+ 	 */
+-	rate = mode->pixel_clock * 16;
++	rate = mode->vtot * mode->htot * 16;
++	rate *= ov5640_framerates[sensor->current_fr];
+ 	if (sensor->ep.bus_type == V4L2_MBUS_CSI2_DPHY) {
+ 		rate = rate / sensor->ep.bus.mipi_csi2.num_data_lanes;
+ 		ret = ov5640_set_mipi_pclk(sensor, rate);
 -- 
 2.19.1
