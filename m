@@ -1,93 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi1-f194.google.com ([209.85.167.194]:41302 "EHLO
-        mail-oi1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730979AbeKMT3Z (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60128 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1731580AbeKMTiI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Nov 2018 14:29:25 -0500
-Received: by mail-oi1-f194.google.com with SMTP id g188-v6so9707650oif.8
-        for <linux-media@vger.kernel.org>; Tue, 13 Nov 2018 01:32:11 -0800 (PST)
-Received: from mail-ot1-f46.google.com (mail-ot1-f46.google.com. [209.85.210.46])
-        by smtp.gmail.com with ESMTPSA id q65-v6sm5728040oif.6.2018.11.13.01.32.10
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 13 Nov 2018 01:32:10 -0800 (PST)
-Received: by mail-ot1-f46.google.com with SMTP id 40so10713420oth.4
-        for <linux-media@vger.kernel.org>; Tue, 13 Nov 2018 01:32:10 -0800 (PST)
+        Tue, 13 Nov 2018 14:38:08 -0500
+Date: Tue, 13 Nov 2018 11:40:50 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Dave Stevenson <dave.stevenson@raspberrypi.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        kieran.bingham@ideasonboard.com,
+        niklas.soderlund+renesas@ragnatech.se, jacopo@jmondi.org,
+        LMML <linux-media@vger.kernel.org>,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH 1/3] i2c: adv748x: store number of CSI-2 lanes described
+ in device tree
+Message-ID: <20181113094050.o2b4leihqwkbk3rb@valkosipuli.retiisi.org.uk>
+References: <20180918014509.6394-1-niklas.soderlund+renesas@ragnatech.se>
+ <1658112.YQ0khu1noY@avalon>
+ <CAAoAYcPrEx9bsB0TZ87N8CqsHhWBDzLStOptv2nv6iyfWZqcZg@mail.gmail.com>
+ <6518376.j8BxZoQUpz@avalon>
+ <20180921120342.ku3ed3jkn5puavu6@valkosipuli.retiisi.org.uk>
+ <CAAoAYcOQC37r=CC94qpGjaLu_R=QZoGF0z6A_zFOmMsG0AX_5A@mail.gmail.com>
 MIME-Version: 1.0
-References: <1538222432-25894-1-git-send-email-sgorle@codeaurora.org>
- <1538222432-25894-6-git-send-email-sgorle@codeaurora.org> <a331a717-199d-6d6c-c88d-54f911b942d4@linaro.org>
- <CAPBb6MVio_kYK-P+eASFMzdxbvBMWwQC7-ZjPxP3aaqpMsnEdA@mail.gmail.com> <3097b9b9-e065-e42f-5b19-849313df38c2@linaro.org>
-In-Reply-To: <3097b9b9-e065-e42f-5b19-849313df38c2@linaro.org>
-From: Alexandre Courbot <acourbot@chromium.org>
-Date: Tue, 13 Nov 2018 18:31:58 +0900
-Message-ID: <CAPBb6MWS9aDMTVwG3cdSq-p=tU-1qhTSj5seXFwDBFROpDrhRw@mail.gmail.com>
-Subject: Re: [PATCH v1 5/5] media: venus: update number of bytes used field
- properly for EOS frames
-To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Cc: sgorle@codeaurora.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        linux-arm-msm@vger.kernel.org, vgarodia@codeaurora.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAAoAYcOQC37r=CC94qpGjaLu_R=QZoGF0z6A_zFOmMsG0AX_5A@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Nov 12, 2018 at 9:20 PM Stanimir Varbanov
-<stanimir.varbanov@linaro.org> wrote:
->
-> Hi Alex,
->
-> On 11/12/18 10:12 AM, Alexandre Courbot wrote:
-> > Hi Stan,
-> >
-> > On Thu, Nov 8, 2018 at 7:16 PM Stanimir Varbanov
-> > <stanimir.varbanov@linaro.org> wrote:
-> >>
-> >> Hi,
-> >>
-> >> On 9/29/18 3:00 PM, Srinu Gorle wrote:
-> >>> - In video decoder session, update number of bytes used for
-> >>>   yuv buffers appropriately for EOS buffers.
-> >>>
-> >>> Signed-off-by: Srinu Gorle <sgorle@codeaurora.org>
-> >>> ---
-> >>>  drivers/media/platform/qcom/venus/vdec.c | 2 +-
-> >>>  1 file changed, 1 insertion(+), 1 deletion(-)
-> >>
-> >> NACK, that was already discussed see:
-> >>
-> >> https://patchwork.kernel.org/patch/10630411/
-> >
-> > I believe you are referring to this discussion?
-> >
-> > https://lkml.org/lkml/2018/10/2/302
-> >
-> > In this case, with https://patchwork.kernel.org/patch/10630411/
-> > applied, I am seeing the troublesome case of having the last (empty)
-> > buffer being returned with a payload of obs_sz, which I believe is
-> > incorrect. The present patch seems to restore the correct behavior.
->
-> Sorry, I thought that this solution was suggested (and tested on Venus
-> v4) by you, right?
+Hi Dave,
 
-That's correct. >_< Looks like I overlooked this case.
+Apologies for the delay.
 
->
+On Fri, Sep 21, 2018 at 02:46:23PM +0100, Dave Stevenson wrote:
+> Hi Sakari
+> 
+> On Fri, 21 Sep 2018 at 13:03, Sakari Ailus <sakari.ailus@iki.fi> wrote:
 > >
-> > An alternative would be to set the payload as follows:
+> > Hi Laurent,
 > >
-> > vb2_set_plane_payload(vb, 0, bytesused);
+> > On Fri, Sep 21, 2018 at 01:01:09PM +0300, Laurent Pinchart wrote:
+> > ...
+> > > > There is also the oddball one of the TC358743 which dynamically
+> > > > switches the number of lanes in use based on the data rate required.
+> > > > That's probably a separate discussion, but is currently dealt with via
+> > > > g_mbus_config as amended back in Sept 2017 [1].
+> > >
+> > > This falls into the case of dynamic configuration discovery and negotiation I
+> > > mentioned above, and we clearly need to make sure the v4l2_subdev API supports
+> > > this use case.
 > >
-> > This works for SDM845, but IIRC we weren't sure that this would
-> > display the correct behavior with all firmware versions?
->
-> OK if you are still seeing issues I think we can switch to
-> vb2_set_plane_payload(vb, 0, bytesused); for all buffers? I.e. not only
-> for buffers with flag V4L2_BUF_FLAG_LAST set.
+> > This could be added to struct v4l2_mbus_frame_desc; Niklas has driver that
+> > uses the framework support here, so this would likely end up merged soon:
+> >
+> > <URL:https://git.linuxtv.org/sailus/media_tree.git/tree/include/media/v4l2-subdev.h?h=vc&id=0cbd2b25b37ef5b2e6a14340dbca6d2d2d5af98e>
+> >
+> > The CSI-2 bus parameters are missing there currently but nothing prevents
+> > adding them. The semantics of set_frame_desc() needs to be probably defined
+> > better than it currently is.
+> 
+> So which parameters are you thinking of putting in there? Just the
+> number of lanes, or clocking modes and all other parameters for the
+> CSI interface?
 
-That's the fix I am currently using in my source tree and it indeed
-seems to be ok. I also agree it is better than special-casing EOS
-buffers. I have sent a patch for this.
+I think it could be the number of active lanes, I don't think other
+parameters need to change.
 
-Thanks and sorry for the confusion.
+> It sounds like this should take over from the receiver's DT
+> completely, other than for lane reordering.
+
+Hmm. Right now I don't have an opinion either way. But I'd like to know
+what others think.
+
+The endpoint configuration is currently local to the endpoint only. On
+other busses than CSI-2 there are more parameters that may be different on
+each side of the endpoint. If the parameters are moved to the frame
+descriptor entirely, there's no way to e.g. validate them in probe. At
+least one would need to show that this is not an issue, or address it
+somehow.
+
+> 
+> Of course the $1million question is rough timescales? The last commit
+> on there appears to be March 2017.
+> I've had to backburner my CSI2 receiver driver due to other time
+> pressures, so it sounds like I may as well leave it there until this
+> all settles down, or start looking at Niklas' driver and what changes
+> infers.
+
+Yes; if you write patches to this, please do that on top of Niklas' set.
+
+-- 
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
