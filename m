@@ -1,8 +1,8 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:51233 "EHLO mail.bootlin.com"
+Received: from mail.bootlin.com ([62.4.15.54]:51206 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1733179AbeKMXBv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Nov 2018 18:01:51 -0500
+        id S1733154AbeKMXBu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Nov 2018 18:01:50 -0500
 From: Maxime Ripard <maxime.ripard@bootlin.com>
 To: Mauro Carvalho Chehab <mchehab@kernel.org>
 Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
@@ -18,9 +18,9 @@ Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Daniel Mack <daniel@zonque.org>,
         Jacopo Mondi <jacopo@jmondi.org>,
         Maxime Ripard <maxime.ripard@bootlin.com>
-Subject: [PATCH v5 10/11] media: ov5640: Add 60 fps support
-Date: Tue, 13 Nov 2018 14:03:24 +0100
-Message-Id: <20181113130325.28975-11-maxime.ripard@bootlin.com>
+Subject: [PATCH v5 06/11] media: ov5640: Remove pixel clock rates
+Date: Tue, 13 Nov 2018 14:03:20 +0100
+Message-Id: <20181113130325.28975-7-maxime.ripard@bootlin.com>
 In-Reply-To: <20181113130325.28975-1-maxime.ripard@bootlin.com>
 References: <20181113130325.28975-1-maxime.ripard@bootlin.com>
 MIME-Version: 1.0
@@ -28,83 +28,128 @@ Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that we have everything in place to compute the clock rate at runtime,
-we can enable the 60fps framerate for the mode we tested it with.
+The pixel clock rates were introduced to report the initially static clock
+rate.
+
+Since this is now handled dynamically, we can remove them entirely.
 
 Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
 ---
- drivers/media/i2c/ov5640.c | 20 ++++++++++++++++----
- 1 file changed, 16 insertions(+), 4 deletions(-)
+ drivers/media/i2c/ov5640.c | 21 +--------------------
+ 1 file changed, 1 insertion(+), 20 deletions(-)
 
 diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-index dd6a07a8a4e5..7fa508f61dc6 100644
+index bcfb2b25a450..e96063c9e352 100644
 --- a/drivers/media/i2c/ov5640.c
 +++ b/drivers/media/i2c/ov5640.c
-@@ -110,6 +110,7 @@ enum ov5640_mode_id {
- enum ov5640_frame_rate {
- 	OV5640_15_FPS = 0,
- 	OV5640_30_FPS,
-+	OV5640_60_FPS,
- 	OV5640_NUM_FRAMERATES,
+@@ -172,7 +172,6 @@ struct ov5640_mode_info {
+ 	u32 htot;
+ 	u32 vact;
+ 	u32 vtot;
+-	u32 pixel_clock;
+ 	const struct reg_value *reg_data;
+ 	u32 reg_data_size;
+ };
+@@ -696,7 +695,6 @@ static const struct reg_value ov5640_setting_15fps_QSXGA_2592_1944[] = {
+ /* power-on sensor init reg table */
+ static const struct ov5640_mode_info ov5640_mode_init_data = {
+ 	0, SUBSAMPLING, 640, 1896, 480, 984,
+-	56000000,
+ 	ov5640_init_setting_30fps_VGA,
+ 	ARRAY_SIZE(ov5640_init_setting_30fps_VGA),
+ };
+@@ -706,91 +704,74 @@ ov5640_mode_data[OV5640_NUM_FRAMERATES][OV5640_NUM_MODES] = {
+ 	{
+ 		{OV5640_MODE_QCIF_176_144, SUBSAMPLING,
+ 		 176, 1896, 144, 984,
+-		 28000000,
+ 		 ov5640_setting_15fps_QCIF_176_144,
+ 		 ARRAY_SIZE(ov5640_setting_15fps_QCIF_176_144)},
+ 		{OV5640_MODE_QVGA_320_240, SUBSAMPLING,
+ 		 320, 1896, 240, 984,
+-		 28000000,
+ 		 ov5640_setting_15fps_QVGA_320_240,
+ 		 ARRAY_SIZE(ov5640_setting_15fps_QVGA_320_240)},
+ 		{OV5640_MODE_VGA_640_480, SUBSAMPLING,
+ 		 640, 1896, 480, 1080,
+-		 28000000,
+ 		 ov5640_setting_15fps_VGA_640_480,
+ 		 ARRAY_SIZE(ov5640_setting_15fps_VGA_640_480)},
+ 		{OV5640_MODE_NTSC_720_480, SUBSAMPLING,
+ 		 720, 1896, 480, 984,
+-		 28000000,
+ 		 ov5640_setting_15fps_NTSC_720_480,
+ 		 ARRAY_SIZE(ov5640_setting_15fps_NTSC_720_480)},
+ 		{OV5640_MODE_PAL_720_576, SUBSAMPLING,
+ 		 720, 1896, 576, 984,
+-		 28000000,
+ 		 ov5640_setting_15fps_PAL_720_576,
+ 		 ARRAY_SIZE(ov5640_setting_15fps_PAL_720_576)},
+ 		{OV5640_MODE_XGA_1024_768, SUBSAMPLING,
+ 		 1024, 1896, 768, 1080,
+-		 28000000,
+ 		 ov5640_setting_15fps_XGA_1024_768,
+ 		 ARRAY_SIZE(ov5640_setting_15fps_XGA_1024_768)},
+ 		{OV5640_MODE_720P_1280_720, SUBSAMPLING,
+ 		 1280, 1892, 720, 740,
+-		 21000000,
+ 		 ov5640_setting_15fps_720P_1280_720,
+ 		 ARRAY_SIZE(ov5640_setting_15fps_720P_1280_720)},
+ 		{OV5640_MODE_1080P_1920_1080, SCALING,
+ 		 1920, 2500, 1080, 1120,
+-		 42000000,
+ 		 ov5640_setting_15fps_1080P_1920_1080,
+ 		 ARRAY_SIZE(ov5640_setting_15fps_1080P_1920_1080)},
+ 		{OV5640_MODE_QSXGA_2592_1944, SCALING,
+ 		 2592, 2844, 1944, 1968,
+-		 84000000,
+ 		 ov5640_setting_15fps_QSXGA_2592_1944,
+ 		 ARRAY_SIZE(ov5640_setting_15fps_QSXGA_2592_1944)},
+ 	}, {
+ 		{OV5640_MODE_QCIF_176_144, SUBSAMPLING,
+ 		 176, 1896, 144, 984,
+-		 56000000,
+ 		 ov5640_setting_30fps_QCIF_176_144,
+ 		 ARRAY_SIZE(ov5640_setting_30fps_QCIF_176_144)},
+ 		{OV5640_MODE_QVGA_320_240, SUBSAMPLING,
+ 		 320, 1896, 240, 984,
+-		 56000000,
+ 		 ov5640_setting_30fps_QVGA_320_240,
+ 		 ARRAY_SIZE(ov5640_setting_30fps_QVGA_320_240)},
+ 		{OV5640_MODE_VGA_640_480, SUBSAMPLING,
+ 		 640, 1896, 480, 1080,
+-		 56000000,
+ 		 ov5640_setting_30fps_VGA_640_480,
+ 		 ARRAY_SIZE(ov5640_setting_30fps_VGA_640_480)},
+ 		{OV5640_MODE_NTSC_720_480, SUBSAMPLING,
+ 		 720, 1896, 480, 984,
+-		 56000000,
+ 		 ov5640_setting_30fps_NTSC_720_480,
+ 		 ARRAY_SIZE(ov5640_setting_30fps_NTSC_720_480)},
+ 		{OV5640_MODE_PAL_720_576, SUBSAMPLING,
+ 		 720, 1896, 576, 984,
+-		 56000000,
+ 		 ov5640_setting_30fps_PAL_720_576,
+ 		 ARRAY_SIZE(ov5640_setting_30fps_PAL_720_576)},
+ 		{OV5640_MODE_XGA_1024_768, SUBSAMPLING,
+ 		 1024, 1896, 768, 1080,
+-		 56000000,
+ 		 ov5640_setting_30fps_XGA_1024_768,
+ 		 ARRAY_SIZE(ov5640_setting_30fps_XGA_1024_768)},
+ 		{OV5640_MODE_720P_1280_720, SUBSAMPLING,
+ 		 1280, 1892, 720, 740,
+-		 42000000,
+ 		 ov5640_setting_30fps_720P_1280_720,
+ 		 ARRAY_SIZE(ov5640_setting_30fps_720P_1280_720)},
+ 		{OV5640_MODE_1080P_1920_1080, SCALING,
+ 		 1920, 2500, 1080, 1120,
+-		 84000000,
+ 		 ov5640_setting_30fps_1080P_1920_1080,
+ 		 ARRAY_SIZE(ov5640_setting_30fps_1080P_1920_1080)},
+-		{OV5640_MODE_QSXGA_2592_1944, -1, 0, 0, 0, 0, 0, NULL, 0},
++		{OV5640_MODE_QSXGA_2592_1944, -1, 0, 0, 0, 0, NULL, 0},
+ 	},
  };
  
-@@ -138,6 +139,7 @@ MODULE_PARM_DESC(virtual_channel,
- static const int ov5640_framerates[] = {
- 	[OV5640_15_FPS] = 15,
- 	[OV5640_30_FPS] = 30,
-+	[OV5640_60_FPS] = 60,
- };
- 
- /* regulator supplies */
-@@ -1562,6 +1564,11 @@ ov5640_find_mode(struct ov5640_dev *sensor, enum ov5640_frame_rate fr,
- 	    (!nearest && (mode->hact != width || mode->vact != height)))
- 		return NULL;
- 
-+	/* Only 640x480 can operate at 60fps (for now) */
-+	if (fr == OV5640_60_FPS &&
-+	    !(mode->hact == 640 && mode->vact == 480))
-+		return NULL;
-+
- 	return mode;
- }
- 
-@@ -2057,12 +2064,13 @@ static int ov5640_try_frame_interval(struct ov5640_dev *sensor,
- 	int i;
- 
- 	minfps = ov5640_framerates[OV5640_15_FPS];
--	maxfps = ov5640_framerates[OV5640_30_FPS];
-+	maxfps = ov5640_framerates[OV5640_60_FPS];
- 
- 	if (fi->numerator == 0) {
- 		fi->denominator = maxfps;
- 		fi->numerator = 1;
--		return OV5640_30_FPS;
-+		rate = OV5640_60_FPS;
-+		goto find_mode;
- 	}
- 
- 	fps = clamp_val(DIV_ROUND_CLOSEST(fi->denominator, fi->numerator),
-@@ -2081,6 +2089,7 @@ static int ov5640_try_frame_interval(struct ov5640_dev *sensor,
- 	fi->numerator = 1;
- 	fi->denominator = best_fps;
- 
-+find_mode:
- 	mode = ov5640_find_mode(sensor, rate, width, height, false);
- 	return mode ? rate : -EINVAL;
- }
-@@ -2700,8 +2709,11 @@ static int ov5640_s_frame_interval(struct v4l2_subdev *sd,
- 
- 	frame_rate = ov5640_try_frame_interval(sensor, &fi->interval,
- 					       mode->hact, mode->vact);
--	if (frame_rate < 0)
--		frame_rate = OV5640_15_FPS;
-+	if (frame_rate < 0) {
-+		/* Always return a valid frame interval value */
-+		fi->interval = sensor->frame_interval;
-+		goto out;
-+	}
- 
- 	mode = ov5640_find_mode(sensor, frame_rate, mode->hact,
- 				mode->vact, true);
 -- 
 2.19.1
