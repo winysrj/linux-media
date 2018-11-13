@@ -1,220 +1,161 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:25586 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726022AbeKNH6a (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Nov 2018 02:58:30 -0500
-Date: Tue, 13 Nov 2018 23:58:10 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Bing Bu Cao <bingbu.cao@linux.intel.com>
-Cc: Yong Zhi <yong.zhi@intel.com>, linux-media@vger.kernel.org,
-        tfiga@chromium.org, mchehab@kernel.org, hans.verkuil@cisco.com,
-        laurent.pinchart@ideasonboard.com, rajmohan.mani@intel.com,
-        jian.xu.zheng@intel.com, jerry.w.hu@intel.com,
-        tuukka.toivonen@intel.com, tian.shu.qiu@intel.com,
-        bingbu.cao@intel.com
-Subject: Re: [PATCH v7 00/16] Intel IPU3 ImgU patchset
-Message-ID: <20181113215810.mmktgsfyfjclurfq@kekkonen.localdomain>
-References: <1540851790-1777-1-git-send-email-yong.zhi@intel.com>
- <20181101120303.g7z2dy24pn5j2slo@kekkonen.localdomain>
- <6bc1a25d-5799-5a9b-546e-3b8cf42ce976@linux.intel.com>
- <20181109100953.4xfsslyfdhajhqoa@paasikivi.fi.intel.com>
- <bf13758d-1ca3-5fa3-a573-ee773902f4dd@linux.intel.com>
- <20181113103114.jdcdocmazl2knxid@kekkonen.localdomain>
- <df268c1e-be12-22c4-733a-0110b53c296c@linux.intel.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38696 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1725783AbeKNI2A (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Nov 2018 03:28:00 -0500
+Date: Wed, 14 Nov 2018 00:27:43 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Nicolas Dufresne <nicolas@ndufresne.ca>
+Subject: Re: [PATCH] media: vb2: Allow reqbufs(0) with "in use" MMAP buffers
+Message-ID: <20181113222743.bt452a3xyapuv7ce@valkosipuli.retiisi.org.uk>
+References: <20181113150621.22276-1-p.zabel@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <df268c1e-be12-22c4-733a-0110b53c296c@linux.intel.com>
+In-Reply-To: <20181113150621.22276-1-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Nov 13, 2018 at 07:04:01PM +0800, Bing Bu Cao wrote:
-> 
-> 
-> On 11/13/2018 06:31 PM, Sakari Ailus wrote:
-> > Hi Bing Bu,
-> >
-> > On Mon, Nov 12, 2018 at 12:31:16PM +0800, Bing Bu Cao wrote:
-> >>
-> >> On 11/09/2018 06:09 PM, Sakari Ailus wrote:
-> >>> Hi Bing Bu,
-> >>>
-> >>> On Wed, Nov 07, 2018 at 12:16:47PM +0800, Bing Bu Cao wrote:
-> >>>> On 11/01/2018 08:03 PM, Sakari Ailus wrote:
-> >>>>> Hi Yong,
-> >>>>>
-> >>>>> Thanks for the update!
-> >>>>>
-> >>>>> On Mon, Oct 29, 2018 at 03:22:54PM -0700, Yong Zhi wrote:
-> >>>>>> Hi,
-> >>>>>>
-> >>>>>> This series adds support for the Intel IPU3 (Image Processing Unit)
-> >>>>>> ImgU which is essentially a modern memory-to-memory ISP. It implements
-> >>>>>> raw Bayer to YUV image format conversion as well as a large number of
-> >>>>>> other pixel processing algorithms for improving the image quality.
-> >>>>>>
-> >>>>>> Meta data formats are defined for image statistics (3A, i.e. automatic
-> >>>>>> white balance, exposure and focus, histogram and local area contrast
-> >>>>>> enhancement) as well as for the pixel processing algorithm parameters.
-> >>>>>> The documentation for these formats is currently not included in the
-> >>>>>> patchset but will be added in a future version of this set.
-> >>>>>>
-> >>>>>> The algorithm parameters need to be considered specific to a given frame
-> >>>>>> and typically a large number of these parameters change on frame to frame
-> >>>>>> basis. Additionally, the parameters are highly structured (and not a flat
-> >>>>>> space of independent configuration primitives). They also reflect the
-> >>>>>> data structures used by the firmware and the hardware. On top of that,
-> >>>>>> the algorithms require highly specialized user space to make meaningful
-> >>>>>> use of them. For these reasons it has been chosen video buffers to pass
-> >>>>>> the parameters to the device.
-> >>>>>>
-> >>>>>> On individual patches:
-> >>>>>>
-> >>>>>> The heart of ImgU is the CSS, or Camera Subsystem, which contains the
-> >>>>>> image processors and HW accelerators.
-> >>>>>>
-> >>>>>> The 3A statistics and other firmware parameter computation related
-> >>>>>> functions are implemented in patch 11.
-> >>>>>>
-> >>>>>> All IPU3 pipeline default settings can be found in patch 10.
-> >>>>>>
-> >>>>>> To access DDR via ImgU's own memory space, IPU3 is also equipped with
-> >>>>>> its own MMU unit, the driver is implemented in patch 6.
-> >>>>>>
-> >>>>>> Patch 7 uses above driver for DMA mapping operation.
-> >>>>>>
-> >>>>>> The communication between IPU3 firmware and driver is implemented with circular
-> >>>>>> queues in patch 8.
-> >>>>>>
-> >>>>>> Patch 9 provide some utility functions and manage IPU3 fw download and
-> >>>>>> install.
-> >>>>>>
-> >>>>>> The firmware which is called ipu3-fw.bin can be downloaded from:
-> >>>>>>
-> >>>>>> git://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git
-> >>>>>> (commit 2c27b0cb02f18c022d8378e0e1abaf8b7ae8188f)
-> >>>>>>
-> >>>>>> Firmware ABI is defined in patches 4 and 5.
-> >>>>>>
-> >>>>>> Patches 12 and 13 are of the same file, the former contains all h/w programming
-> >>>>>> related code, the latter implements interface functions for access fw & hw
-> >>>>>> capabilities.
-> >>>>>>
-> >>>>>> Patch 14 has a dependency on Sakari's V4L2_BUF_TYPE_META_OUTPUT work:
-> >>>>>>
-> >>>>>> <URL:https://patchwork.kernel.org/patch/9976295/>
-> >>>>> I've pushed the latest set here:
-> >>>>>
-> >>>>> <URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=meta-output>
-> >>>>>
-> >>>>> You can just say the entire set depends on those going forward; the
-> >>>>> documentation is needed, too.
-> >>>>>
-> >>>>>> Patch 15 represents the top level that glues all of the other components together,
-> >>>>>> passing arguments between the components.
-> >>>>>>
-> >>>>>> Patch 16 is a recent effort to extend v6 for advanced camera features like
-> >>>>>> Continuous View Finder (CVF) and Snapshot During Video(SDV) support.
-> >>>>>>
-> >>>>>> Link to user space implementation:
-> >>>>>>
-> >>>>>> git clone https://chromium.googlesource.com/chromiumos/platform/arc-camera
-> >>>>>>
-> >>>>>> ImgU media topology print:
-> >>>>>>
-> >>>>>> # media-ctl -d /dev/media0 -p
-> >>>>>> Media controller API version 4.19.0
-> >>>>>>
-> >>>>>> Media device information
-> >>>>>> ------------------------
-> >>>>>> driver          ipu3-imgu
-> >>>>>> model           ipu3-imgu
-> >>>>>> serial          
-> >>>>>> bus info        PCI:0000:00:05.0
-> >>>>>> hw revision     0x80862015
-> >>>>>> driver version  4.19.0
-> >>>>>>
-> >>>>>> Device topology
-> >>>>>> - entity 1: ipu3-imgu 0 (5 pads, 5 links)
-> >>>>>>             type V4L2 subdev subtype Unknown flags 0
-> >>>>>>             device node name /dev/v4l-subdev0
-> >>>>>> 	pad0: Sink
-> >>>>>> 		[fmt:UYVY8_2X8/1920x1080 field:none colorspace:unknown
-> >>>>> This doesn't seem right. Which formats can be enumerated from the pad?
-> >>> Looking at the code, the OUTPUT video nodes have 10-bit GRBG (or a variant)
-> >>> format whereas the CAPTURE video nodes always have NV12. Can you confirm?
-> >> Hi, Sakari,
-> >> Yes, I think the pad_fmt should also be changed.
-> >> Yong, could you add some extra code for this and test? like:
-> >>
-> >> static int ipu3_v4l2_node_setup(struct imgu_device *imgu, unsigned int pipe,
-> >> ...
-> >>                         V4L2_PIX_FMT_NV12;
-> >>                 node->vdev_fmt.fmt.pix_mp = def_pix_fmt;
-> >>         }
-> >>
-> >> +       if (node->vdev_fmt.type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
-> >> +               node->pad_fmt.code = MEDIA_BUS_FMT_SGRBG10_1X10;
-> >> +
-> >>  
-> >>> If the OUTPUT video node format selection has no effect on the rest of the
-> >>> pipeline (device capabilities, which processing blocks are in use, CAPTURE
-> >>> video nodes formats etc.), I think you could simply use the FIXED media bus
-> >>> code for each pad. That would actually make sense: this device always works
-> >>> from memory to memory, and thus does not really have a pixel data bus
-> >>> external to the device which is what the media bus codes really are for.
-> >>>
-> >>>>>> 		 crop:(0,0)/1920x1080
-> >>>>>> 		 compose:(0,0)/1920x1080]
-> >>>>> Does the compose rectangle affect the scaling on all outputs?
-> >>>> Sakari, driver use crop and compose targets to help set input-feeder and BDS
-> >>>> output resolutions which are 2 key block of whole imaging pipeline, not the
-> >>>> actual ending output, but they will impact the final output.
-> >>> Ack. Thanks for the clarification.
-> >>>
-> >>>>>> 		<- "ipu3-imgu 0 input":0 []
-> >>>>> Are there links that have no useful link configuration? If so, you should
-> >>>>> set them enabled and immutable in the driver.
-> >>>> The enabled status of input pads is used to get which pipe that user is
-> >>>> trying to enable (ipu3_link_setup()), so it could not been set as immutable.
-> >>> But the rest of them could be, right?
-> >> Yes.
-> >>>>>> 	pad1: Sink
-> >>>>>> 		[fmt:UYVY8_2X8/1920x1080 field:none colorspace:unknown]
-> >>>>> I'd suggest to use MEDIA_BUS_FMT_FIXED here.
-> >>>>>
-> >>>>>> 		<- "ipu3-imgu 0 parameters":0 []
-> >>>>>> 	pad2: Source
-> >>>>>> 		[fmt:UYVY8_2X8/1920x1080 field:none colorspace:unknown]
-> >>>>>> 		-> "ipu3-imgu 0 output":0 []
-> >>>>>> 	pad3: Source
-> >>>>>> 		[fmt:UYVY8_2X8/1920x1080 field:none colorspace:unknown]
-> >>>>>> 		-> "ipu3-imgu 0 viewfinder":0 []
-> >>>>> Are there other differences between output and viewfinder?
-> >>>> output and viewfinder are the main and secondary output of output system.
-> >>>> 'main' output is not allowed to be scaled, only support crop. secondary
-> >>>> output 'viewfinder'
-> >>>> can support both cropping and scaling. User can select different nodes
-> >>>> to use
-> >>>> as preview and capture flexibly based on the actual use cases.
-> >>> If there's scaling to be configured, I'd expect to see the COMPOSE target
-> >>> supported.
-> >> Actually the viewfinder is the result of scaling, that means you can not
-> >> do more scaling.
-> > How do you configure the scaling of the viewfinder currently?
-> We consider that the viewfinder as a secondary output, and set the format by
-> subdev set_fmt() directly and all pads formats will be used to find
-> binary and
-> build pipeline.
+Hi Philipp,
 
-Ok.
+On Tue, Nov 13, 2018 at 04:06:21PM +0100, Philipp Zabel wrote:
+> From: John Sheu <sheu@chromium.org>
+> 
+> Videobuf2 presently does not allow VIDIOC_REQBUFS to destroy outstanding
+> buffers if the queue is of type V4L2_MEMORY_MMAP, and if the buffers are
+> considered "in use".  This is different behavior than for other memory
+> types and prevents us from deallocating buffers in following two cases:
+> 
+> 1) There are outstanding mmap()ed views on the buffer. However even if
+>    we put the buffer in reqbufs(0), there will be remaining references,
+>    due to vma .open/close() adjusting vb2 buffer refcount appropriately.
+>    This means that the buffer will be in fact freed only when the last
+>    mmap()ed view is unmapped.
+> 
+> 2) Buffer has been exported as a DMABUF. Refcount of the vb2 buffer
+>    is managed properly by VB2 DMABUF ops, i.e. incremented on DMABUF
+>    get and decremented on DMABUF release. This means that the buffer
+>    will be alive until all importers release it.
+> 
+> Considering both cases above, there does not seem to be any need to
+> prevent reqbufs(0) operation, because buffer lifetime is already
+> properly managed by both mmap() and DMABUF code paths. Let's remove it
+> and allow userspace freeing the queue (and potentially allocating a new
+> one) even though old buffers might be still in processing.
+> 
+> To let userspace know that the kernel now supports orphaning buffers
+> that are still in use, add a new V4L2_BUF_CAP_SUPPORTS_ORPHANED_BUFS
+> to be set by reqbufs and create_bufs.
+> 
+> Signed-off-by: John Sheu <sheu@chromium.org>
+> Reviewed-by: Pawel Osciak <posciak@chromium.org>
+> Reviewed-by: Tomasz Figa <tfiga@chromium.org>
+> Signed-off-by: Tomasz Figa <tfiga@chromium.org>
+> [p.zabel@pengutronix.de: moved __vb2_queue_cancel out of the mmap_lock
+>  and added V4L2_BUF_CAP_SUPPORTS_ORPHANED_BUFS]
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 
-Could you instead use the compose target to configure the scaling? Setting
-the format on the source pad would have no effect.
+This lets the user to allocate lots of mmap'ed buffers that are pinned in
+physical memory. Considering that we don't really have a proper mechanism
+to limit that anyway,
+
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
+That said, the patch must be accompanied by the documentation change in
+Documentation/media/uapi/v4l/vidioc-reqbufs.rst .
+
+I wonder what Hans thinks.
+
+> ---
+>  .../media/common/videobuf2/videobuf2-core.c   | 26 +------------------
+>  .../media/common/videobuf2/videobuf2-v4l2.c   |  2 +-
+>  include/uapi/linux/videodev2.h                |  1 +
+>  3 files changed, 3 insertions(+), 26 deletions(-)
+> 
+> diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
+> index 975ff5669f72..608459450c1e 100644
+> --- a/drivers/media/common/videobuf2/videobuf2-core.c
+> +++ b/drivers/media/common/videobuf2/videobuf2-core.c
+> @@ -553,20 +553,6 @@ bool vb2_buffer_in_use(struct vb2_queue *q, struct vb2_buffer *vb)
+>  }
+>  EXPORT_SYMBOL(vb2_buffer_in_use);
+>  
+> -/*
+> - * __buffers_in_use() - return true if any buffers on the queue are in use and
+> - * the queue cannot be freed (by the means of REQBUFS(0)) call
+> - */
+> -static bool __buffers_in_use(struct vb2_queue *q)
+> -{
+> -	unsigned int buffer;
+> -	for (buffer = 0; buffer < q->num_buffers; ++buffer) {
+> -		if (vb2_buffer_in_use(q, q->bufs[buffer]))
+> -			return true;
+> -	}
+> -	return false;
+> -}
+> -
+>  void vb2_core_querybuf(struct vb2_queue *q, unsigned int index, void *pb)
+>  {
+>  	call_void_bufop(q, fill_user_buffer, q->bufs[index], pb);
+> @@ -674,23 +660,13 @@ int vb2_core_reqbufs(struct vb2_queue *q, enum vb2_memory memory,
+>  
+>  	if (*count == 0 || q->num_buffers != 0 ||
+>  	    (q->memory != VB2_MEMORY_UNKNOWN && q->memory != memory)) {
+> -		/*
+> -		 * We already have buffers allocated, so first check if they
+> -		 * are not in use and can be freed.
+> -		 */
+> -		mutex_lock(&q->mmap_lock);
+> -		if (q->memory == VB2_MEMORY_MMAP && __buffers_in_use(q)) {
+> -			mutex_unlock(&q->mmap_lock);
+> -			dprintk(1, "memory in use, cannot free\n");
+> -			return -EBUSY;
+> -		}
+> -
+>  		/*
+>  		 * Call queue_cancel to clean up any buffers in the
+>  		 * QUEUED state which is possible if buffers were prepared or
+>  		 * queued without ever calling STREAMON.
+>  		 */
+>  		__vb2_queue_cancel(q);
+> +		mutex_lock(&q->mmap_lock);
+>  		ret = __vb2_queue_free(q, q->num_buffers);
+>  		mutex_unlock(&q->mmap_lock);
+>  		if (ret)
+> diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+> index a17033ab2c22..f02d452ceeb9 100644
+> --- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
+> +++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+> @@ -624,7 +624,7 @@ EXPORT_SYMBOL(vb2_querybuf);
+>  
+>  static void fill_buf_caps(struct vb2_queue *q, u32 *caps)
+>  {
+> -	*caps = 0;
+> +	*caps = V4L2_BUF_CAP_SUPPORTS_ORPHANED_BUFS;
+>  	if (q->io_modes & VB2_MMAP)
+>  		*caps |= V4L2_BUF_CAP_SUPPORTS_MMAP;
+>  	if (q->io_modes & VB2_USERPTR)
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index c8e8ff810190..2a223835214c 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -879,6 +879,7 @@ struct v4l2_requestbuffers {
+>  #define V4L2_BUF_CAP_SUPPORTS_USERPTR	(1 << 1)
+>  #define V4L2_BUF_CAP_SUPPORTS_DMABUF	(1 << 2)
+>  #define V4L2_BUF_CAP_SUPPORTS_REQUESTS	(1 << 3)
+> +#define V4L2_BUF_CAP_SUPPORTS_ORPHANED_BUFS (1 << 4)
+>  
+>  /**
+>   * struct v4l2_plane - plane info for multi-planar buffers
 
 -- 
 Kind regards,
 
 Sakari Ailus
-sakari.ailus@linux.intel.com
+e-mail: sakari.ailus@iki.fi
