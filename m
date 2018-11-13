@@ -1,131 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:41486 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731005AbeKMS7X (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Nov 2018 13:59:23 -0500
-Message-ID: <7de830dee412ead89f4cf7975690da49c500a7f9.camel@bootlin.com>
-Subject: Re: [PATCH v5 0/5] Make sure .device_run is always called in
- non-atomic context
-From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-To: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Cc: Ezequiel Garcia <ezequiel@collabora.com>,
-        linux-media <linux-media@vger.kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>, kernel@collabora.com,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Date: Tue, 13 Nov 2018 10:01:50 +0100
-In-Reply-To: <CAAEAJfBMinxkUxzROq1zxmaBeemhRREHG4nH9BDLMFbh=ambwA@mail.gmail.com>
-References: <20181018180224.3392-1-ezequiel@collabora.com>
-         <2ef1f827b032d1a03f7fb010346ec7ae2ff75b7b.camel@collabora.com>
-         <c799ec2cf938e06a0ecbba770ed3344cd49d3af8.camel@bootlin.com>
-         <CAAEAJfBMinxkUxzROq1zxmaBeemhRREHG4nH9BDLMFbh=ambwA@mail.gmail.com>
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-QvgUvl1uRPMjr0IWsgk8"
-Mime-Version: 1.0
+Received: from mail-yw1-f68.google.com ([209.85.161.68]:43642 "EHLO
+        mail-yw1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727530AbeKMTLA (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Nov 2018 14:11:00 -0500
+Received: by mail-yw1-f68.google.com with SMTP id u202-v6so2414067ywg.10
+        for <linux-media@vger.kernel.org>; Tue, 13 Nov 2018 01:13:50 -0800 (PST)
+Received: from mail-yb1-f169.google.com (mail-yb1-f169.google.com. [209.85.219.169])
+        by smtp.gmail.com with ESMTPSA id h62-v6sm4927158ywa.53.2018.11.13.01.13.48
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Tue, 13 Nov 2018 01:13:48 -0800 (PST)
+Received: by mail-yb1-f169.google.com with SMTP id p144-v6so5049291yba.11
+        for <linux-media@vger.kernel.org>; Tue, 13 Nov 2018 01:13:48 -0800 (PST)
+MIME-Version: 1.0
+References: <1539071530-1441-1-git-send-email-mgottam@codeaurora.org>
+ <CAAFQd5BcFr11Hpngpn6hNL91OibAxUv25yh2qMohgfxsKusACw@mail.gmail.com>
+ <8fe1d205-c5e7-01a0-9569-d3268911cddd@linaro.org> <38dfc098517b3ddb5d96195f2e27429d@codeaurora.org>
+ <86714c89-20ec-07c8-2569-65e78e8d584d@linaro.org>
+In-Reply-To: <86714c89-20ec-07c8-2569-65e78e8d584d@linaro.org>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Tue, 13 Nov 2018 18:13:36 +0900
+Message-ID: <CAAFQd5DXWUCB7HvsLyVYU+h=2j6y1v3kcsTtHfNZYjfbHEgWGw@mail.gmail.com>
+Subject: Re: [PATCH] media: venus: amend buffer size for bitstream plane
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Cc: mgottam@codeaurora.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        vgarodia@codeaurora.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Tue, Nov 13, 2018 at 5:12 PM Stanimir Varbanov
+<stanimir.varbanov@linaro.org> wrote:
+>
+> Hi Malathi,
+>
+> On 11/13/18 9:28 AM, mgottam@codeaurora.org wrote:
+> > On 2018-11-12 18:04, Stanimir Varbanov wrote:
+> >> Hi Tomasz,
+> >>
+> >> On 10/23/2018 05:50 AM, Tomasz Figa wrote:
+> >>> Hi Malathi,
+> >>>
+> >>> On Tue, Oct 9, 2018 at 4:58 PM Malathi Gottam
+> >>> <mgottam@codeaurora.org> wrote:
+> >>>>
+> >>>> For lower resolutions, incase of encoder, the compressed
+> >>>> frame size is more than half of the corresponding input
+> >>>> YUV. Keep the size as same as YUV considering worst case.
+> >>>>
+> >>>> Signed-off-by: Malathi Gottam <mgottam@codeaurora.org>
+> >>>> ---
+> >>>>  drivers/media/platform/qcom/venus/helpers.c | 2 +-
+> >>>>  1 file changed, 1 insertion(+), 1 deletion(-)
+> >>>>
+> >>>> diff --git a/drivers/media/platform/qcom/venus/helpers.c
+> >>>> b/drivers/media/platform/qcom/venus/helpers.c
+> >>>> index 2679adb..05c5423 100644
+> >>>> --- a/drivers/media/platform/qcom/venus/helpers.c
+> >>>> +++ b/drivers/media/platform/qcom/venus/helpers.c
+> >>>> @@ -649,7 +649,7 @@ u32 venus_helper_get_framesz(u32 v4l2_fmt, u32
+> >>>> width, u32 height)
+> >>>>         }
+> >>>>
+> >>>>         if (compressed) {
+> >>>> -               sz = ALIGN(height, 32) * ALIGN(width, 32) * 3 / 2 / 2;
+> >>>> +               sz = ALIGN(height, 32) * ALIGN(width, 32) * 3 / 2;
+> >>>>                 return ALIGN(sz, SZ_4K);
+> >>>>         }
+> >>>
+> >>> Note that the driver should not enforce one particular buffer size for
+> >>> bitstream buffers unless it's a workaround for broken firmware or
+> >>> hardware. The userspace should be able to select the desired size.
+> >>
+> >> Good point! Yes, we have to extend set_fmt to allow bigger sizeimage for
+> >> the compressed buffers (not only for encoder).
+> >
+> > So Stan you meant to say that we should allow s_fmt to accept client
+> > specified size?
+>
+> yes but I do expect:
+>
+> new_sizeimage = max(user_sizeimage, venus_helper_get_framesz)
+>
+> and also user_sizeimage should be sanitized.
+>
+> > If so should we set the inst->input_buf_size here in venc_s_fmt?
+> >
+> > @@ -333,10 +333,10 @@static const struct venus_format *
+> > venc_try_fmt_common(struct venus_inst *inst, struct v4l2_format *f)
+> >
+> >         pixmp->num_planes = fmt->num_planes;
+> >         pixmp->flags = 0;
+> > -
+> > -       pfmt[0].sizeimage = venus_helper_get_framesz(pixmp->pixelformat,
+> > -                                                    pixmp->width,
+> > -                                                    pixmp->height);
+> > +       if (!pfmt[0].sizeimage)
+> > +               pfmt[0].sizeimage =
+> > venus_helper_get_framesz(pixmp->pixelformat,
+> > +                                                            pixmp->width,
+> > +
+> > pixmp->height);
+>
+> yes, but please make
+>
+> pfmt[0].sizeimage = max(pfmt[0].sizeimage, venus_helper_get_framesz)
+>
+> and IMO this should be only for CAPTURE queue i.e. inst->output_buf_size
+>
+> I'm still not sure do we need it for OUTPUT encoder queue.
+>
 
---=-QvgUvl1uRPMjr0IWsgk8
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+This would be indeed only for the queues that operate on a coded
+bitstream, i.e. both encoder CAPTURE and decoder OUTPUT.
 
-Hi,
+For image formats, sizeimage should be calculated by the driver based
+on the bytesperline and height. (Bytesperline may be fixed, if the
+hardware doesn't support flexible strides, but if it does, it's
+strongly recommended to use the bytesperline coming from the
+application as the stride +/- any necessary sanity checks.)
 
-On Mon, 2018-11-12 at 18:05 -0300, Ezequiel Garcia wrote:
-> On Mon, 12 Nov 2018 at 13:52, Paul Kocialkowski
-> <paul.kocialkowski@bootlin.com> wrote:
-> > Hi,
-> >=20
-> > On Sun, 2018-11-11 at 18:26 -0300, Ezequiel Garcia wrote:
-> > > On Thu, 2018-10-18 at 15:02 -0300, Ezequiel Garcia wrote:
-> > > > This series goal is to avoid drivers from having ad-hoc code
-> > > > to call .device_run in non-atomic context. Currently, .device_run
-> > > > can be called via v4l2_m2m_job_finish(), not only running
-> > > > in interrupt context, but also creating a nasty re-entrant
-> > > > path into mem2mem drivers.
-> > > >=20
-> > > > The proposed solution is to add a per-device worker that is schedul=
-ed
-> > > > by v4l2_m2m_job_finish, which replaces drivers having a threaded in=
-terrupt
-> > > > or similar.
-> > > >=20
-> > > > This change allows v4l2_m2m_job_finish() to be called in interrupt
-> > > > context, separating .device_run and v4l2_m2m_job_finish() contexts.
-> > > >=20
-> > > > It's worth mentioning that v4l2_m2m_cancel_job() doesn't need
-> > > > to flush or cancel the new worker, because the job_spinlock
-> > > > synchronizes both and also because the core prevents simultaneous
-> > > > jobs. Either v4l2_m2m_cancel_job() will wait for the worker, or the
-> > > > worker will be unable to run a new job.
-> > > >=20
-> > > > Patches apply on top of Request API and the Cedrus VPU
-> > > > driver.
-> > > >=20
-> > > > Tested with cedrus driver using v4l2-request-test and
-> > > > vicodec driver using gstreamer.
-> > > >=20
-> > > > Ezequiel Garcia (4):
-> > > >   mem2mem: Require capture and output mutexes to match
-> > > >   v4l2-ioctl.c: Simplify locking for m2m devices
-> > > >   v4l2-mem2mem: Avoid calling .device_run in v4l2_m2m_job_finish
-> > > >   media: cedrus: Get rid of interrupt bottom-half
-> > > >=20
-> > > > Sakari Ailus (1):
-> > > >   v4l2-mem2mem: Simplify exiting the function in __v4l2_m2m_try_sch=
-edule
-> > > >=20
-> > > >  drivers/media/v4l2-core/v4l2-ioctl.c          | 47 +------------
-> > > >  drivers/media/v4l2-core/v4l2-mem2mem.c        | 66 ++++++++++++---=
-----
-> > > >  .../staging/media/sunxi/cedrus/cedrus_hw.c    | 26 ++------
-> > > >  3 files changed, 51 insertions(+), 88 deletions(-)
-> > > >=20
-> > >=20
-> > > Hans, Maxime:
-> > >=20
-> > > Any feedback for this?
-> >=20
-> > I just tested the whole series with the cedrus driver and everything
-> > looks good!
-> >=20
->=20
-> Good! So this means we can add a Tested-by for the entire series?
-
-Definitely, I just sent the tested-by line on the cover letter!
-
-> > Removing the interrupt bottom-half in favor of a workqueue in the core
-> > seems like a good way to simplify m2m driver development by avoiding
-> > per-driver workqueues or threaded irqs.
-> >=20
->=20
-> Thanks for the test!
-
-Cheers,
-
-Paul
-
---=20
-Paul Kocialkowski, Bootlin (formerly Free Electrons)
-Embedded Linux and kernel engineering
-https://bootlin.com
-
---=-QvgUvl1uRPMjr0IWsgk8
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCAAdFiEEJZpWjZeIetVBefti3cLmz3+fv9EFAlvqkv4ACgkQ3cLmz3+f
-v9GFIwf/aYUs6tabmO56ZoRGmtOm8Mxn53upxU/4upUwBj+Ax11TIXUDwApUI2VS
-jRfcG1tgMafXCaQkjD9KmuXjt2v6D1y0maszdQXuhRGvRW3F3pnKgcHubrO4Eg2u
-5FS+PsM73tASP/DO1A/5PxScFWK2HuamXyQHJ3Y84x46225wqdTxhIfh83b1dp1R
-5jzaDkTUShJJ4c3hEMBCPQ+/xpwN9Vq/dGt0yJPCXAsqMtrKUccHMqz6P4YTHn3Y
-BqrC/uGr+nPYJkHBUHQHn1e2BXRq02Yn0RT0Ti7pZa1V+FH36oZz8VK5xh9WB0tP
-5anMLhATj9ivXmntg1L9RMZWR2xP/A==
-=SR8i
------END PGP SIGNATURE-----
-
---=-QvgUvl1uRPMjr0IWsgk8--
+Best regards,
+Tomasz
