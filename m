@@ -1,120 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:46924 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727847AbeKMRYw (ORCPT
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:49403 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1728943AbeKMRpv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Nov 2018 12:24:52 -0500
+        Tue, 13 Nov 2018 12:45:51 -0500
+Subject: Re: [RFC PATCHv2 0/5] vb2/cedrus: add tag support
+To: Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        linux-media@vger.kernel.org
+Cc: Alexandre Courbot <acourbot@chromium.org>,
+        maxime.ripard@bootlin.com, tfiga@chromium.org
+References: <20181112083305.22618-1-hverkuil@xs4all.nl>
+ <3240ae26669480fa33c2e4d44e608cccdbfd5626.camel@bootlin.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <0758f871-a210-9e5c-462b-57390ac5a930@xs4all.nl>
+Date: Tue, 13 Nov 2018 08:48:52 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
+In-Reply-To: <3240ae26669480fa33c2e4d44e608cccdbfd5626.camel@bootlin.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
-Date: Tue, 13 Nov 2018 12:58:02 +0530
-From: mgottam@codeaurora.org
-To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Cc: Tomasz Figa <tfiga@chromium.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        vgarodia@codeaurora.org
-Subject: Re: [PATCH] media: venus: amend buffer size for bitstream plane
-In-Reply-To: <8fe1d205-c5e7-01a0-9569-d3268911cddd@linaro.org>
-References: <1539071530-1441-1-git-send-email-mgottam@codeaurora.org>
- <CAAFQd5BcFr11Hpngpn6hNL91OibAxUv25yh2qMohgfxsKusACw@mail.gmail.com>
- <8fe1d205-c5e7-01a0-9569-d3268911cddd@linaro.org>
-Message-ID: <38dfc098517b3ddb5d96195f2e27429d@codeaurora.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2018-11-12 18:04, Stanimir Varbanov wrote:
-> Hi Tomasz,
+On 11/12/2018 05:32 PM, Paul Kocialkowski wrote:
+> Hi,
 > 
-> On 10/23/2018 05:50 AM, Tomasz Figa wrote:
->> Hi Malathi,
->> 
->> On Tue, Oct 9, 2018 at 4:58 PM Malathi Gottam <mgottam@codeaurora.org> 
->> wrote:
->>> 
->>> For lower resolutions, incase of encoder, the compressed
->>> frame size is more than half of the corresponding input
->>> YUV. Keep the size as same as YUV considering worst case.
->>> 
->>> Signed-off-by: Malathi Gottam <mgottam@codeaurora.org>
->>> ---
->>>  drivers/media/platform/qcom/venus/helpers.c | 2 +-
->>>  1 file changed, 1 insertion(+), 1 deletion(-)
->>> 
->>> diff --git a/drivers/media/platform/qcom/venus/helpers.c 
->>> b/drivers/media/platform/qcom/venus/helpers.c
->>> index 2679adb..05c5423 100644
->>> --- a/drivers/media/platform/qcom/venus/helpers.c
->>> +++ b/drivers/media/platform/qcom/venus/helpers.c
->>> @@ -649,7 +649,7 @@ u32 venus_helper_get_framesz(u32 v4l2_fmt, u32 
->>> width, u32 height)
->>>         }
->>> 
->>>         if (compressed) {
->>> -               sz = ALIGN(height, 32) * ALIGN(width, 32) * 3 / 2 / 
->>> 2;
->>> +               sz = ALIGN(height, 32) * ALIGN(width, 32) * 3 / 2;
->>>                 return ALIGN(sz, SZ_4K);
->>>         }
->> 
->> Note that the driver should not enforce one particular buffer size for
->> bitstream buffers unless it's a workaround for broken firmware or
->> hardware. The userspace should be able to select the desired size.
+> On Mon, 2018-11-12 at 09:33 +0100, Hans Verkuil wrote:
+>> As was discussed here (among other places):
+>>
+>> https://lkml.org/lkml/2018/10/19/440
+>>
+>> using capture queue buffer indices to refer to reference frames is
+>> not a good idea. A better idea is to use a 'tag' (thanks to Alexandre
+>> for the excellent name; it's much better than 'cookie') where the 
+>> application can assign a u64 tag to an output buffer, which is then 
+>> copied to the capture buffer(s) derived from the output buffer.
+>>
+>> A u64 is chosen since this allows userspace to also use pointers to
+>> internal structures as 'tag'.
 > 
-> Good point! Yes, we have to extend set_fmt to allow bigger sizeimage 
-> for
-> the compressed buffers (not only for encoder).
+> As I mentionned in the dedicated patch, this approach is troublesome on
+> 32-bit platforms. Do we really need this equivalency?
 
-So Stan you meant to say that we should allow s_fmt to accept client 
-specified size?
-If so should we set the inst->input_buf_size here in venc_s_fmt?
+It's just a bug in the header that I need to fix. I just need to use
+the right cast. I think it is a desirable feature.
 
-@@ -333,10 +333,10 @@static const struct venus_format *
-venc_try_fmt_common(struct venus_inst *inst, struct v4l2_format *f)
+>> The first two patches add core tag support, the next two patches
+>> add tag support to vim2m and vicodec, and the final patch (compile
+>> tested only!) adds support to the cedrus driver.
+>>
+>> I also removed the 'pad' fields from the mpeg2 control structs (it
+>> should never been added in the first place) and aligned the structs
+>> to a u32 boundary (u64 for the tag values).
+>>
+>> The cedrus code now also copies the timestamps (didn't happen before)
+>> but the sequence counter is still not set, that's something that should
+>> still be added.
+>>
+>> Note: if no buffer is found for a certain tag, then the dma address
+>> is just set to 0. That happened before as well with invalid buffer
+>> indices. This should be checked in the driver!
+> 
+> Thanks for making these changes!
+> 
+>> Also missing in this series are documentation updates, which is why
+>> it is marked RFC.
+>>
+>> I would very much appreciate it if someone can test the cedrus driver
+>> with these changes. If it works, then I can prepare a real patch series
+>> for 4.20. It would be really good if the API is as stable as we can make
+>> it before 4.20 is released.
+> 
+> I just had a go at testing the patches on cedrus with minimal userspace
+> adaptation to deal with the tags and everything looks good!
 
-         pixmp->num_planes = fmt->num_planes;
-         pixmp->flags = 0;
--
--       pfmt[0].sizeimage = venus_helper_get_framesz(pixmp->pixelformat,
--                                                    pixmp->width,
--                                                    pixmp->height);
-+       if (!pfmt[0].sizeimage)
-+               pfmt[0].sizeimage = 
-venus_helper_get_framesz(pixmp->pixelformat,
-+                                                            
-pixmp->width,
-+                                                            
-pixmp->height);
+Great!
 
-         if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
-                 pfmt[0].bytesperline = ALIGN(pixmp->width, 128);
-@@ -387,6 +387,7 @@ static int venc_s_fmt(struct file *file, void *fh, 
-struct v4l2_format *f)
-         venc_try_fmt_common(inst, &format);
+> I only set the tag when queing each OUTPUT buffer and the driver
+> properly matched the CAPTURE reference buffer.
+> 
+> I think we should make it clear in the stateless spec that multiple
+> OUTPUT buffers can be allowed for the same tag, but that a single
+> CAPTURE buffer should be used. Otherwise, the hardware can't use
+> different partly-decoded buffers as references (and the tag API doesn't
+> allow that either, since a single buffer index is returned for a tag).
 
-         if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
-+               inst->input_buf_size = pixmp->plane_fmt[0].sizeimage;
-                 inst->out_width = format.fmt.pix_mp.width;
-                 inst->out_height = format.fmt.pix_mp.height;
+Actually, the tag API allows for multiple buffers for the same tag: that's
+what the last argument of vb2_find_tag() is for: you can continue looking
+for buffers with the given tag from where you left off:
 
-Similar implementation is already handled in case of decoder.
+	second_idx = -1;
 
-Then in queue setup, we can compare this against calculated size to 
-obtain final buffer size
+	first_idx = vb2_find_tag(q, tag, 0);
+	if (first_idx >= 0)
+		second_idx = vb2_find_tag(q, tag, first_idx + 1);
 
-@@ -899,7 +900,8 @@ static int venc_queue_setup(struct vb2_queue *q,
-                 sizes[0] = 
-venus_helper_get_framesz(inst->fmt_out->pixfmt,
-                                                     inst->width,
-                                                     inst->height);
--               inst->input_buf_size = sizes[0];
-+               if(inst->input_buf_size < sizes[0])
-+                       inst->input_buf_size = sizes[0];
-                 break;
+I think how OUTPUT buffers relate to CAPTURE buffers is really a property
+of the codec that's used (I mean H.264 vs MPEG vs VP8 etc). The tag API
+supports any combination.
 
-I hope this meets are requirements.
+For the stateless MPEG codec it is simple: one OUTPUT frame produces one
+CAPTURE frame. So this can be documented for the control that has the
+buffer references.
+
+Thank you very much for testing this. I'll prepare a new patch series this
+week which will hopefully be the final version.
+
+Regards,
+
+	Hans
+
+> 
+> What do you think?
+> 
+> Cheers,
+> 
+> Paul
+> 
+>> Regards,
+>>
+>>         Hans
+>>
+>> Changes since v1:
+>>
+>> - cookie -> tag
+>> - renamed v4l2_tag to v4l2_buffer_tag
+>> - dropped spurious 'to' in the commit log of patch 1
+>>
+>> Hans Verkuil (5):
+>>   videodev2.h: add tag support
+>>   vb2: add tag support
+>>   vim2m: add tag support
+>>   vicodec: add tag support
+>>   cedrus: add tag support
+>>
+>>  .../media/common/videobuf2/videobuf2-v4l2.c   | 43 ++++++++++++++++---
+>>  drivers/media/platform/vicodec/vicodec-core.c |  3 ++
+>>  drivers/media/platform/vim2m.c                |  3 ++
+>>  drivers/media/v4l2-core/v4l2-ctrls.c          |  9 ----
+>>  drivers/staging/media/sunxi/cedrus/cedrus.h   |  8 ++--
+>>  .../staging/media/sunxi/cedrus/cedrus_dec.c   | 10 +++++
+>>  .../staging/media/sunxi/cedrus/cedrus_mpeg2.c | 21 ++++-----
+>>  include/media/videobuf2-v4l2.h                | 18 ++++++++
+>>  include/uapi/linux/v4l2-controls.h            | 14 +++---
+>>  include/uapi/linux/videodev2.h                | 37 +++++++++++++++-
+>>  10 files changed, 127 insertions(+), 39 deletions(-)
+>>
