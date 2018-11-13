@@ -1,124 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-2.cisco.com ([173.38.203.52]:4047 "EHLO
-        aer-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726856AbeKNB7J (ORCPT
+Received: from mail-lj1-f194.google.com ([209.85.208.194]:40498 "EHLO
+        mail-lj1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726517AbeKNCwt (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Nov 2018 20:59:09 -0500
-Subject: Re: [PATCH 0/5] media: Allwinner A10 CSI support
-To: Maxime Ripard <maxime.ripard@bootlin.com>
-Cc: Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Tue, 13 Nov 2018 21:52:49 -0500
+Subject: Re: [PATCH] media: staging: tegra-vde: print long unsigned using %lu
+ format specifier
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Colin King <colin.king@canonical.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, Andrzej Hajda <a.hajda@samsung.com>,
-        Chen-Yu Tsai <wens@csie.org>, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
-        Mark Rutland <mark.rutland@arm.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Frank Rowand <frowand.list@gmail.com>
-References: <cover.71b0f9855c251f9dc389ee77ee6f0e1fad91fb0b.1542097288.git-series.maxime.ripard@bootlin.com>
- <df54f2e6-e207-92de-767a-e356345a1a56@xs4all.nl>
- <20181113135259.onutfjtoi25afnfe@flea>
- <f07a0460-cdba-c1a5-acfd-66a39f447a5a@cisco.com>
- <20181113155227.62jjs3mpomwgr7xd@flea>
-From: Hans Verkuil <hansverk@cisco.com>
-Message-ID: <cb504ffc-b74c-d6e3-7bde-6c5840c87997@cisco.com>
-Date: Tue, 13 Nov 2018 17:00:25 +0100
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Jonathan Hunter <jonathanh@nvidia.com>,
+        linux-media@vger.kernel.org, linux-tegra@vger.kernel.org,
+        devel@driverdev.osuosl.org
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <20181108110224.1916-1-colin.king@canonical.com>
+ <0b3bf728-7b7e-7250-40eb-0827f8fe955b@xs4all.nl>
+From: Dmitry Osipenko <digetx@gmail.com>
+Message-ID: <67306f07-f270-3395-48c4-f6d4954e0d04@gmail.com>
+Date: Tue, 13 Nov 2018 19:52:59 +0300
 MIME-Version: 1.0
-In-Reply-To: <20181113155227.62jjs3mpomwgr7xd@flea>
-Content-Type: text/plain; charset=windows-1252
+In-Reply-To: <0b3bf728-7b7e-7250-40eb-0827f8fe955b@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/13/18 16:52, Maxime Ripard wrote:
-> On Tue, Nov 13, 2018 at 03:01:45PM +0100, Hans Verkuil wrote:
->> On 11/13/18 14:52, Maxime Ripard wrote:
->>> Hi Hans,
->>>
->>> On Tue, Nov 13, 2018 at 01:30:49PM +0100, Hans Verkuil wrote:
->>>> On 11/13/18 09:24, Maxime Ripard wrote:
->>>>> Hi,
->>>>>
->>>>> Here is a series introducing the support for the A10 (and SoCs of the same
->>>>> generation) CMOS Sensor Interface (called CSI, not to be confused with
->>>>> MIPI-CSI, which isn't support by that IP).
->>>>>
->>>>> That interface is pretty straightforward, but the driver has a few issues
->>>>> that I wanted to bring up:
->>>>>
->>>>>   * The only board I've been testing this with has an ov5640 sensor
->>>>>     attached, which doesn't work with the upstream driver. Copying the
->>>>>     Allwinner init sequence works though, and this is how it has been
->>>>>     tested. Testing with a second sensor would allow to see if it's an
->>>>>     issue on the CSI side or the sensor side.
->>>>>   * When starting a capture, the last buffer to capture will fail due to
->>>>>     double buffering being used, and we don't have a next buffer for the
->>>>>     last frame. I'm not sure how to deal with that though. It seems like
->>>>>     some drivers use a scratch buffer in such a case, some don't care, so
->>>>>     I'm not sure which solution should be preferred.
->>>>>   * We don't have support for the ISP at the moment, but this can be added
->>>>>     eventually.
->>>>>
->>>>>   * How to model the CSI module clock isn't really clear to me. It looks
->>>>>     like it goes through the CSI controller and then is muxed to one of the
->>>>>     CSI pin so that it can clock the sensor. I'm not quite sure how to
->>>>>     model it, if it should be a clock, the CSI driver being a clock
->>>>>     provider, or if the sensor should just use the module clock directly.
->>>>>
->>>>> Here is the v4l2-compliance output:
->>>>
->>>> Test v4l2-compliance with the -s option so you test streaming as well.
->>>> Even better is -f where it tests streaming with all available formats.
->>>
->>> I will, thanks for the tip!
->>>
->>>>> v4l2-compliance SHA   : 339d550e92ac15de8668f32d66d16f198137006c
->>>>
->>>> Hmm, I can't find this SHA. Was this built from the main v4l-utils repo?
->>>
->>> It was, but using Buildroot. The version packaged in the latest stable
->>> version I was using (2018.08) is 1.14.2.
+On 09.11.2018 17:32, Hans Verkuil wrote:
+> On 11/08/18 12:02, Colin King wrote:
+>> From: Colin Ian King <colin.king@canonical.com>
 >>
->> That's seriously out of date. That's why I show the SHA, to see if
->> someone is testing with a recent version of the utility, so it served
->> its purpose here :-)
+>> The frame.flags & FLAG_B_FRAME is promoted to a long unsigned because
+>> of the use of the BIT() macro when defining FLAG_B_FRAME and causing a
+>> build warning. Fix this by using the %lu format specifer.
 >>
->> Latest release is 1.16.2.
+>> Cleans up warning:
+>> drivers/staging/media/tegra-vde/tegra-vde.c:267:5: warning: format
+>> specifies type 'int' but the argument has type 'unsigned long' [-Wformat]
 >>
->> But when submitting new drivers you really need to build it yourself from
->> the master branch, that's the only way to be sure you have all the latest
->> compliance checks.
+>> Signed-off-by: Colin Ian King <colin.king@canonical.com>
+>> ---
+>>  drivers/staging/media/tegra-vde/tegra-vde.c | 2 +-
+>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/staging/media/tegra-vde/tegra-vde.c b/drivers/staging/media/tegra-vde/tegra-vde.c
+>> index 6f06061a40d9..66cf14212c14 100644
+>> --- a/drivers/staging/media/tegra-vde/tegra-vde.c
+>> +++ b/drivers/staging/media/tegra-vde/tegra-vde.c
+>> @@ -262,7 +262,7 @@ static void tegra_vde_setup_iram_tables(struct tegra_vde *vde,
+>>  			value |= frame->frame_num;
+>>  
+>>  			dev_dbg(vde->miscdev.parent,
+>> -				"\tFrame %d: frame_num = %d B_frame = %d\n",
+>> +				"\tFrame %d: frame_num = %d B_frame = %lu\n",
+>>  				i + 1, frame->frame_num,
+>>  				(frame->flags & FLAG_B_FRAME));
+>>  		} else {
+>>
 > 
-> Ack, I'll update it and test again then.
+> Compiling for i686 gives:
 > 
->>>
->>> Looking at the Makefile from v4l2-compliance, it looks like it just
->>> invokes git to retrieve the git commit and uses that as the hash. In
->>> Buildroot's case, since buildroot will download the tarball, this will
->>> end up returning the SHA commit of the buildroot repo building the
->>> sources, not the version of the sources themselves.
->>>
->>> I'm not sure how to address that properly though. Thomas, how do you
->>> usually deal with this?
->>
->> Note that cec-compliance and cec-follower do the same, for the same
->> reason.
->>
->> Where does the tarball come from?
+> In file included from /home/hans/work/build/media-git/include/linux/printk.h:336,
+>                  from /home/hans/work/build/media-git/include/linux/kernel.h:14,
+>                  from /home/hans/work/build/media-git/include/linux/clk.h:16,
+>                  from /home/hans/work/build/media-git/drivers/staging/media/tegra-vde/tegra-vde.c:12:
+> /home/hans/work/build/media-git/drivers/staging/media/tegra-vde/tegra-vde.c: In function 'tegra_vde_setup_iram_tables':
+> /home/hans/work/build/media-git/drivers/staging/media/tegra-vde/tegra-vde.c:265:5: warning: format '%lu' expects argument of type 'long unsigned int', but argument 6 has type 'u32' {aka 'unsigned int'} [-Wformat=]
+>      "\tFrame %d: frame_num = %d B_frame = %lu\n",
+>      ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> /home/hans/work/build/media-git/include/linux/dynamic_debug.h:135:39: note: in definition of macro 'dynamic_dev_dbg'
+>    __dynamic_dev_dbg(&descriptor, dev, fmt, \
+>                                        ^~~
+> /home/hans/work/build/media-git/include/linux/device.h:1463:23: note: in expansion of macro 'dev_fmt'
+>   dynamic_dev_dbg(dev, dev_fmt(fmt), ##__VA_ARGS__)
+>                        ^~~~~~~
+> /home/hans/work/build/media-git/drivers/staging/media/tegra-vde/tegra-vde.c:264:4: note: in expansion of macro 'dev_dbg'
+>     dev_dbg(vde->miscdev.parent,
+>     ^~~~~~~
 > 
-> This is the official tarball from linuxtv:
-> https://git.buildroot.net/buildroot/tree/package/libv4l/libv4l.mk?h=2018.08.2#n8
+> Should it be %zu?
 
-Weird, if I build directly from that tarball, then v4l2-compliance should say:
-
-v4l2-compliance SHA: not available, 64 bits
-
-So that's what I expect to see from buildroot as well.
-
-Regards,
-
-	Hans
+Same on ARM32. Yes, it should be either %zu or "!!(frame->flags & FLAG_B_FRAME)".
