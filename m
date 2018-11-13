@@ -1,73 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:55030 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1730813AbeKNDPC (ORCPT
+Received: from mail-pl1-f195.google.com ([209.85.214.195]:34337 "EHLO
+        mail-pl1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730730AbeKNDhc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Nov 2018 22:15:02 -0500
-Subject: Re: [PATCH 0/5] media: Allwinner A10 CSI support
-To: Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Hans Verkuil <hansverk@cisco.com>
-Cc: Maxime Ripard <maxime.ripard@bootlin.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, Andrzej Hajda <a.hajda@samsung.com>,
-        Chen-Yu Tsai <wens@csie.org>, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
-        Mark Rutland <mark.rutland@arm.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Frank Rowand <frowand.list@gmail.com>
-References: <cover.71b0f9855c251f9dc389ee77ee6f0e1fad91fb0b.1542097288.git-series.maxime.ripard@bootlin.com>
- <df54f2e6-e207-92de-767a-e356345a1a56@xs4all.nl>
- <20181113135259.onutfjtoi25afnfe@flea>
- <f07a0460-cdba-c1a5-acfd-66a39f447a5a@cisco.com>
- <20181113155227.62jjs3mpomwgr7xd@flea>
- <cb504ffc-b74c-d6e3-7bde-6c5840c87997@cisco.com>
- <20181113175558.3bfa3e8d@windsurf>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <2d25e395-af73-e69b-dc8a-3d0956d668f9@xs4all.nl>
-Date: Tue, 13 Nov 2018 18:15:49 +0100
+        Tue, 13 Nov 2018 22:37:32 -0500
+Date: Tue, 13 Nov 2018 09:38:22 -0800
+From: Myungho Jung <mhjungk@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Marek Szyprowski <m.szyprowski@samsung.com>, pawel@osciak.com,
+        kyungmin.park@samsung.com, mchehab@kernel.org
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] media: videobuf2-core: Fix error handling when fileio is
+ deallocated
+Message-ID: <20181113173821.GA11925@myunghoj-Precision-5530>
+References: <CGME20181112005053epcas4p1c674759797b4a930cfcce3abc7edd9ad@epcas4p1.samsung.com>
+ <20181112004951.GA3948@myunghoj-Precision-5530>
+ <9402424d-6e0c-b628-c6c2-8f87b5276a36@samsung.com>
+ <636c6ed7-25ef-fd51-4555-3aeb28e96f89@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <20181113175558.3bfa3e8d@windsurf>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <636c6ed7-25ef-fd51-4555-3aeb28e96f89@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/13/2018 05:55 PM, Thomas Petazzoni wrote:
-> Hello,
+On Tue, Nov 13, 2018 at 12:56:18PM +0100, Hans Verkuil wrote:
+> On 11/13/18 11:27, Marek Szyprowski wrote:
+> > Hi Myungho,
+> > 
+> > On 2018-11-12 01:49, Myungho Jung wrote:
+> >> The mutex that is held from vb2_fop_read() can be unlocked while waiting
+> >> for a buffer if the queue is streaming and blocking. Meanwhile, fileio
+> >> can be released. So, it should return an error if the fileio address is
+> >> changed.
+> >>
+> >> Signed-off-by: Myungho Jung <mhjungk@gmail.com>
+> >> Reported-by: syzbot+4180ff9ca6810b06c1e9@syzkaller.appspotmail.com
+> > 
+> > Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
 > 
-> On Tue, 13 Nov 2018 17:00:25 +0100, Hans Verkuil wrote:
+> Sorry:
 > 
->> Weird, if I build directly from that tarball, then v4l2-compliance should say:
->>
->> v4l2-compliance SHA: not available, 64 bits
->>
->> So that's what I expect to see from buildroot as well.
+> Nacked-by: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> Indeed, that's strange, I see that the v4l2-compliance Makefile does:
+> This addresses the symptom, not the underlying cause.
 > 
-> version.h:
->         @if git -C $(srcdir) rev-parse HEAD >/dev/null 2>&1; then \
->                 echo -n "#define SHA " >$@ ; \
->                 git -C $(srcdir) rev-parse HEAD >>$@ ; \
->         else \
->                 touch $@ ; \
->         fi
+> I have a patch that fixes the actual cause that I plan to post soon
+> after I review it a bit more.
 > 
-> which correctly uses $(srcdir), so it shouldn't go "up" the libv4l
-> build folder and pick up the latest Buildroot commit SHA1. I'll have a
-> quick look.
+> Regards,
+> 
+> 	Hans
+> 
 
-I think it does, actually. If the tar archive is unpacked inside the
-checked-out buildroot git tree, then it will pick up the buildroot SHA.
+Hi Hans,
 
-I fixed v4l-utils to be a bit smarter about this:
-
-https://git.linuxtv.org/v4l-utils.git/patch/?id=98b4c9f276a18535b5691e5f350f59ffbf5a9aa5
+Thanks for explaining the root cause. I was also thinking a similar
+patch with your second one. It looks like the reported syzbot is needed
+to be added to your first patch.
 
 Regards,
+Myungho
 
-	Hans
+> > 
+> > Thanks for analyzing the code and fixing this issue!
+> > 
+> >> ---
+> >>  drivers/media/common/videobuf2/videobuf2-core.c | 4 ++++
+> >>  1 file changed, 4 insertions(+)
+> >>
+> >> diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
+> >> index 975ff5669f72..bff94752eb27 100644
+> >> --- a/drivers/media/common/videobuf2/videobuf2-core.c
+> >> +++ b/drivers/media/common/videobuf2/videobuf2-core.c
+> >> @@ -2564,6 +2564,10 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+> >>  		dprintk(5, "vb2_dqbuf result: %d\n", ret);
+> >>  		if (ret)
+> >>  			return ret;
+> >> +		if (fileio != q->fileio) {
+> >> +			dprintk(3, "fileio deallocated\n");
+> >> +			return -EFAULT;
+> >> +		}
+> >>  		fileio->dq_count += 1;
+> >>  
+> >>  		fileio->cur_index = index;
+> > 
+> > Best regards
+> > 
+> 
