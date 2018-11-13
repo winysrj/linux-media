@@ -1,60 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg1-f194.google.com ([209.85.215.194]:43445 "EHLO
-        mail-pg1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2387435AbeKMXyN (ORCPT
+Received: from aer-iport-1.cisco.com ([173.38.203.51]:21234 "EHLO
+        aer-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1733079AbeKNAAE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Nov 2018 18:54:13 -0500
-Received: by mail-pg1-f194.google.com with SMTP id n10-v6so5723543pgv.10
-        for <linux-media@vger.kernel.org>; Tue, 13 Nov 2018 05:55:58 -0800 (PST)
+        Tue, 13 Nov 2018 19:00:04 -0500
+Subject: Re: [PATCH 0/5] media: Allwinner A10 CSI support
+To: Maxime Ripard <maxime.ripard@bootlin.com>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org, Andrzej Hajda <a.hajda@samsung.com>,
+        Chen-Yu Tsai <wens@csie.org>, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
+        Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Frank Rowand <frowand.list@gmail.com>
+References: <cover.71b0f9855c251f9dc389ee77ee6f0e1fad91fb0b.1542097288.git-series.maxime.ripard@bootlin.com>
+ <df54f2e6-e207-92de-767a-e356345a1a56@xs4all.nl>
+ <20181113135259.onutfjtoi25afnfe@flea>
+From: Hans Verkuil <hansverk@cisco.com>
+Message-ID: <f07a0460-cdba-c1a5-acfd-66a39f447a5a@cisco.com>
+Date: Tue, 13 Nov 2018 15:01:45 +0100
 MIME-Version: 1.0
-References: <1542038454-20066-1-git-send-email-akinobu.mita@gmail.com>
- <1542038454-20066-4-git-send-email-akinobu.mita@gmail.com> <20181113103653.hl7ukiiy4lcphoxj@kekkonen.localdomain>
-In-Reply-To: <20181113103653.hl7ukiiy4lcphoxj@kekkonen.localdomain>
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Date: Tue, 13 Nov 2018 22:55:46 +0900
-Message-ID: <CAC5umyiqtu+yCUmr48mCddJa_-wM+_bHFVWjLjr0rJu3kJZALQ@mail.gmail.com>
-Subject: Re: [PATCH 3/7] media: ov2640: add V4L2_CID_TEST_PATTERN control
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <20181113135259.onutfjtoi25afnfe@flea>
+Content-Type: text/plain; charset=windows-1252
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2018=E5=B9=B411=E6=9C=8813=E6=97=A5(=E7=81=AB) 19:37 Sakari Ailus <sakari.a=
-ilus@linux.intel.com>:
->
-> On Tue, Nov 13, 2018 at 01:00:50AM +0900, Akinobu Mita wrote:
-> > The ov2640 has the test pattern generator features.  This makes use of
-> > it through V4L2_CID_TEST_PATTERN control.
-> >
-> > Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-> > Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-> > ---
-> >  drivers/media/i2c/ov2640.c | 14 +++++++++++++-
-> >  1 file changed, 13 insertions(+), 1 deletion(-)
-> >
-> > diff --git a/drivers/media/i2c/ov2640.c b/drivers/media/i2c/ov2640.c
-> > index 20a8853..4992d77 100644
-> > --- a/drivers/media/i2c/ov2640.c
-> > +++ b/drivers/media/i2c/ov2640.c
-> > @@ -705,6 +705,11 @@ static int ov2640_reset(struct i2c_client *client)
-> >       return ret;
-> >  }
-> >
-> > +static const char * const ov2640_test_pattern_menu[] =3D {
-> > +     "Disabled",
-> > +     "Color bar",
->
-> s/b/B/
->
-> The smiapp driver uses "Eight Vertical Colour Bars", not sure if that'd f=
-it
-> here or not. FYI.
+On 11/13/18 14:52, Maxime Ripard wrote:
+> Hi Hans,
+> 
+> On Tue, Nov 13, 2018 at 01:30:49PM +0100, Hans Verkuil wrote:
+>> On 11/13/18 09:24, Maxime Ripard wrote:
+>>> Hi,
+>>>
+>>> Here is a series introducing the support for the A10 (and SoCs of the same
+>>> generation) CMOS Sensor Interface (called CSI, not to be confused with
+>>> MIPI-CSI, which isn't support by that IP).
+>>>
+>>> That interface is pretty straightforward, but the driver has a few issues
+>>> that I wanted to bring up:
+>>>
+>>>   * The only board I've been testing this with has an ov5640 sensor
+>>>     attached, which doesn't work with the upstream driver. Copying the
+>>>     Allwinner init sequence works though, and this is how it has been
+>>>     tested. Testing with a second sensor would allow to see if it's an
+>>>     issue on the CSI side or the sensor side.
+>>>   * When starting a capture, the last buffer to capture will fail due to
+>>>     double buffering being used, and we don't have a next buffer for the
+>>>     last frame. I'm not sure how to deal with that though. It seems like
+>>>     some drivers use a scratch buffer in such a case, some don't care, so
+>>>     I'm not sure which solution should be preferred.
+>>>   * We don't have support for the ISP at the moment, but this can be added
+>>>     eventually.
+>>>
+>>>   * How to model the CSI module clock isn't really clear to me. It looks
+>>>     like it goes through the CSI controller and then is muxed to one of the
+>>>     CSI pin so that it can clock the sensor. I'm not quite sure how to
+>>>     model it, if it should be a clock, the CSI driver being a clock
+>>>     provider, or if the sensor should just use the module clock directly.
+>>>
+>>> Here is the v4l2-compliance output:
+>>
+>> Test v4l2-compliance with the -s option so you test streaming as well.
+>> Even better is -f where it tests streaming with all available formats.
+> 
+> I will, thanks for the tip!
+> 
+>>> v4l2-compliance SHA   : 339d550e92ac15de8668f32d66d16f198137006c
+>>
+>> Hmm, I can't find this SHA. Was this built from the main v4l-utils repo?
+> 
+> It was, but using Buildroot. The version packaged in the latest stable
+> version I was using (2018.08) is 1.14.2.
 
-This test pattern shows eight vertical color bars with blending actual
-sensor image, although the datasheet tells just 'Color bar'.
+That's seriously out of date. That's why I show the SHA, to see if
+someone is testing with a recent version of the utility, so it served
+its purpose here :-)
 
-So either is fine for me.
+Latest release is 1.16.2.
+
+But when submitting new drivers you really need to build it yourself from
+the master branch, that's the only way to be sure you have all the latest
+compliance checks.
+
+> 
+> Looking at the Makefile from v4l2-compliance, it looks like it just
+> invokes git to retrieve the git commit and uses that as the hash. In
+> Buildroot's case, since buildroot will download the tarball, this will
+> end up returning the SHA commit of the buildroot repo building the
+> sources, not the version of the sources themselves.
+> 
+> I'm not sure how to address that properly though. Thomas, how do you
+> usually deal with this?
+
+Note that cec-compliance and cec-follower do the same, for the same
+reason.
+
+Where does the tarball come from?
+
+Regards,
+
+	Hans
+
+> 
+> Thanks!
+> Maxime
+> 
