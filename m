@@ -1,86 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay2-d.mail.gandi.net ([217.70.183.194]:42541 "EHLO
-        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1733149AbeKMXCR (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Nov 2018 18:02:17 -0500
-Message-ID: <766230a305f54a37e9d881779a0d81ec439f8bd8.camel@hadess.net>
-Subject: Re: [PATCH v2] Input: Add missing event codes for common IR remote
- buttons
-From: Bastien Nocera <hadess@hadess.net>
-To: Derek Kelly <user.vdr@gmail.com>, linux-input@vger.kernel.org
-Cc: sean@mess.org, mchehab+samsung@kernel.org,
-        linux-media@vger.kernel.org
-Date: Tue, 13 Nov 2018 14:04:10 +0100
-In-Reply-To: <20181103145532.9323-1-user.vdr@gmail.com>
-References: <20181103145532.9323-1-user.vdr@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail.bootlin.com ([62.4.15.54]:52799 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2387453AbeKMXdk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Nov 2018 18:33:40 -0500
+Date: Tue, 13 Nov 2018 14:35:18 +0100
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Yong Deng <yong.deng@magewell.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Neil Armstrong <narmstrong@baylibre.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Todor Tomov <todor.tomov@linaro.org>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH v12 0/2] Initial Allwinner V3s CSI Support
+Message-ID: <20181113133518.6nnh4m37s6awfw6d@flea>
+References: <1540886988-27696-1-git-send-email-yong.deng@magewell.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="aa6ku2d2rt2bopyg"
+Content-Disposition: inline
+In-Reply-To: <1540886988-27696-1-git-send-email-yong.deng@magewell.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2018-11-03 at 07:55 -0700, Derek Kelly wrote:
-> The following patch adds event codes for common buttons found on
-> various
-> provider and universal remote controls. They represent functions not
-> covered by existing event codes. Once added, rc_keymaps can be
-> updated
-> accordingly where applicable.
 
-Would be great to have more than "those are used", such as knowing how
-they are labeled, both with text and/or icons, and an explanation as to
-why a particular existing key isn't usable.
+--aa6ku2d2rt2bopyg
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> v2 changes:
-> Renamed KEY_SYSTEM to KEY_SYSTEM_MENU to avoid conflict with powerpc
-> KEY_SYSTEM define.
-> 
-> Signed-off-by: Derek Kelly <user.vdr@gmail.com>
-> ---
->  include/uapi/linux/input-event-codes.h | 13 +++++++++++++
->  1 file changed, 13 insertions(+)
-> 
-> diff --git a/include/uapi/linux/input-event-codes.h
-> b/include/uapi/linux/input-event-codes.h
-> index 53fbae27b280..a15fd3c944d2 100644
-> --- a/include/uapi/linux/input-event-codes.h
-> +++ b/include/uapi/linux/input-event-codes.h
-> @@ -689,6 +689,19 @@
->  #define BTN_TRIGGER_HAPPY39		0x2e6
->  #define BTN_TRIGGER_HAPPY40		0x2e7
->  
-> +/* Remote control buttons found across provider & universal remotes */
-> +#define KEY_LIVE_TV			0x2e8	/* Jump to live tv viewing */
+Hi Yong,
 
-KEY_TV?
+On Tue, Oct 30, 2018 at 04:09:48PM +0800, Yong Deng wrote:
+> I can't make v4l2-compliance always happy.
+> The V3s CSI support many pixformats. But they are not always available.
+> It's dependent on the input bus format (MEDIA_BUS_FMT_*).=20
+> Example:
+> V4L2_PIX_FMT_SBGGR8: MEDIA_BUS_FMT_SBGGR8_1X8
+> V4L2_PIX_FMT_YUYV: MEDIA_BUS_FMT_YUYV8_2X8
+> But I can't get the subdev's format code before starting stream as the
+> subdev may change it. So I can't know which pixformats are available.
+> So I exports all the pixformats supported by SoC.
+> The result is the app (v4l2-compliance) is likely to fail on streamon.
+>=20
+> This patchset add initial support for Allwinner V3s CSI.
+>=20
+> Allwinner V3s SoC features a CSI module with parallel interface.
+>=20
+> This patchset implement a v4l2 framework driver and add a binding=20
+> documentation for it.=20
 
-> +#define KEY_OPTIONS			0x2e9	/* Jump to options */
+I've tested this version today, and I needed this patch to make it
+work on top of v4.20:
+http://code.bulix.org/9o8fw5-503690?raw
 
-KEY_OPTION?
+Once that patch applied, my tests were working as expected.
 
-> +#define KEY_INTERACTIVE			0x2ea	/* Jump to interactive system/menu/item */
-> +#define KEY_MIC_INPUT			0x2eb	/* Trigger MIC input/listen mode */
+If that make sense, could you resubmit a new version with these merged
+so that we can try to target 4.21?
 
-KEY_MICMUTE?
+Thanks!
+Maxime
 
-> +#define KEY_SCREEN_INPUT		0x2ec	/* Open on-screen input system */
+--=20
+Maxime Ripard, Bootlin
+Embedded Linux and Kernel engineering
+https://bootlin.com
 
-KEY_SWITCHVIDEOMODE?
+--aa6ku2d2rt2bopyg
+Content-Type: application/pgp-signature; name="signature.asc"
 
-> +#define KEY_SYSTEM_MENU			0x2ed	/* Open systems menu/display */
+-----BEGIN PGP SIGNATURE-----
 
-KEY_MENU?
+iHUEABYIAB0WIQRcEzekXsqa64kGDp7j7w1vZxhRxQUCW+rTFgAKCRDj7w1vZxhR
+xYo2AQCjVo2DMx05jzJV1L//qtVnrQ6uzy9rgeGLzFkU83S2LwD+M/yMUjwAJhl1
+suMk4OlZFxntxFuQqwNLoQJMmuBicQI=
+=Vno6
+-----END PGP SIGNATURE-----
 
-> +#define KEY_SERVICES			0x2ee	/* Access services */
-> +#define KEY_DISPLAY_FORMAT		0x2ef	/* Cycle display formats */
-
-KEY_CONTEXT_MENU?
-
-> +#define KEY_PIP				0x2f0	/* Toggle Picture-in-Picture on/off */
-> +#define KEY_PIP_SWAP			0x2f1	/* Swap contents between main view and PIP window */
-> +#define KEY_PIP_POSITION		0x2f2	/* Cycle PIP window position */
-> +
->  /* We avoid low common keys in module aliases so they don't get huge. */
->  #define KEY_MIN_INTERESTING	KEY_MUTE
->  #define KEY_MAX			0x2ff
+--aa6ku2d2rt2bopyg--
