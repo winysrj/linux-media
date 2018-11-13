@@ -1,74 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io1-f72.google.com ([209.85.166.72]:36051 "EHLO
-        mail-io1-f72.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731508AbeKNAKZ (ORCPT
+Received: from mail-ot1-f68.google.com ([209.85.210.68]:36702 "EHLO
+        mail-ot1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728943AbeKNALb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Nov 2018 19:10:25 -0500
-Received: by mail-io1-f72.google.com with SMTP id w5-v6so13066640ioj.3
-        for <linux-media@vger.kernel.org>; Tue, 13 Nov 2018 06:12:05 -0800 (PST)
+        Tue, 13 Nov 2018 19:11:31 -0500
 MIME-Version: 1.0
-Date: Tue, 13 Nov 2018 06:12:04 -0800
-In-Reply-To: <000000000000a91c14057a28a4ae@google.com>
-Message-ID: <000000000000f4d1fb057a8c6621@google.com>
-Subject: Re: KASAN: global-out-of-bounds Read in tpg_print_str_4
-From: syzbot <syzbot+ccf0a61ed12f2a7313ee@syzkaller.appspotmail.com>
-To: bwinther@cisco.com, hverkuil@xs4all.nl, keescook@chromium.org,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        mchehab@kernel.org, syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
+References: <cover.71b0f9855c251f9dc389ee77ee6f0e1fad91fb0b.1542097288.git-series.maxime.ripard@bootlin.com>
+ <c53e1cdc3b139382b00ee06bf3980d3fd1742ec0.1542097288.git-series.maxime.ripard@bootlin.com>
+ <CAOMZO5CjFt1dyu8KOK+jKd88x8hwGNy9aJ-sGgooS9970TGTVQ@mail.gmail.com> <9a9616d2-a189-bd0e-e2e6-f84bdcb1dfd1@cisco.com>
+In-Reply-To: <9a9616d2-a189-bd0e-e2e6-f84bdcb1dfd1@cisco.com>
+From: Fabio Estevam <festevam@gmail.com>
+Date: Tue, 13 Nov 2018 12:13:09 -0200
+Message-ID: <CAOMZO5DHfgV+iDo4ye7DV9CAA0QjSVXsYH1nbD2+5d9iE-uTCg@mail.gmail.com>
+Subject: Re: [PATCH 3/5] media: sunxi: Add A10 CSI driver
+To: Hans Verkuil <hansverk@cisco.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Maxime Ripard <maxime.ripard@bootlin.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media <linux-media@vger.kernel.org>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        "moderated list:ARM/FREESCALE IMX / MXC ARM ARCHITECTURE"
+        <linux-arm-kernel@lists.infradead.org>,
+        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS"
+        <devicetree@vger.kernel.org>, Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Frank Rowand <frowand.list@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-syzbot has found a reproducer for the following crash on:
+Hi Hans,
 
-HEAD commit:    ccda4af0f4b9 Linux 4.20-rc2
-git tree:       upstream
-console output: https://syzkaller.appspot.com/x/log.txt?x=1779cb0b400000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=4a0a89f12ca9b0f5
-dashboard link: https://syzkaller.appspot.com/bug?extid=ccf0a61ed12f2a7313ee
-compiler:       gcc (GCC) 8.0.1 20180413 (experimental)
-userspace arch: i386
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=126f0ed5400000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=15ed6c25400000
+On Tue, Nov 13, 2018 at 11:37 AM Hans Verkuil <hansverk@cisco.com> wrote:
+>
+> On 11/13/18 13:48, Fabio Estevam wrote:
+> > On Tue, Nov 13, 2018 at 6:25 AM Maxime Ripard <maxime.ripard@bootlin.com> wrote:
+> >
+> >> --- /dev/null
+> >> +++ b/drivers/media/platform/sunxi/sun4i-csi/sun4i_csi.c
+> >> @@ -0,0 +1,275 @@
+> >> +// SPDX-License-Identifier: GPL-2.0-or-later
+> >
+> > According to Documentation/process/license-rules.rst this should be:
+> >
+> > +// SPDX-License-Identifier: GPL-2.0+
+> >
+> > Same applies to other places in this patch.
+> >
+>
+> Actually, LICENSES/preferred/GPL-2.0 has GPL-2.0-or-later
+> as a valid license:
+>
+> Valid-License-Identifier: GPL-2.0-or-later
+>
+> Personally I very much prefer GPL-2.0-or-later since I think it is
+> much clearer.
 
-IMPORTANT: if you fix the bug, please add the following tag to the commit:
-Reported-by: syzbot+ccf0a61ed12f2a7313ee@syzkaller.appspotmail.com
+I saw feedback from Greg to use the SPDX style from
+Documentation/process/license-rules.rst.
 
-==================================================================
-BUG: KASAN: global-out-of-bounds in tpg_print_str_4+0xbc9/0xd70  
-drivers/media/common/v4l2-tpg/v4l2-tpg-core.c:1820
-Read of size 1 at addr ffffffff88632850 by task vivid-000-vid-c/5989
-
-CPU: 0 PID: 5989 Comm: vivid-000-vid-c Not tainted 4.20.0-rc2+ #236
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
-Google 01/01/2011
-Call Trace:
-  __dump_stack lib/dump_stack.c:77 [inline]
-  dump_stack+0x244/0x39d lib/dump_stack.c:113
-  print_address_description.cold.7+0x58/0x1ff mm/kasan/report.c:256
-  kasan_report_error mm/kasan/report.c:354 [inline]
-  kasan_report.cold.8+0x242/0x309 mm/kasan/report.c:412
-  __asan_report_load1_noabort+0x14/0x20 mm/kasan/report.c:430
-  tpg_print_str_4+0xbc9/0xd70  
-drivers/media/common/v4l2-tpg/v4l2-tpg-core.c:1820
-  tpg_gen_text+0x4ba/0x540 drivers/media/common/v4l2-tpg/v4l2-tpg-core.c:1874
-  vivid_fillbuff+0x3ff7/0x68e0  
-drivers/media/platform/vivid/vivid-kthread-cap.c:532
-  vivid_thread_vid_cap_tick  
-drivers/media/platform/vivid/vivid-kthread-cap.c:709 [inline]
-  vivid_thread_vid_cap+0xbc1/0x2650  
-drivers/media/platform/vivid/vivid-kthread-cap.c:813
-  kthread+0x35a/0x440 kernel/kthread.c:246
-  ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:352
-
-The buggy address belongs to the variable:
-  font_vga_8x16+0x50/0x60
-
-Memory state around the buggy address:
-  ffffffff88632700: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-  ffffffff88632780: 00 00 00 00 fa fa fa fa 00 fa fa fa fa fa fa fa
-> ffffffff88632800: 00 00 00 00 00 fa fa fa fa fa fa fa 00 00 00 00
-                                                  ^
-  ffffffff88632880: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-  ffffffff88632900: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-==================================================================
+Please check:
+https://lkml.org/lkml/2018/11/10/232
