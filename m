@@ -1,169 +1,183 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:44346 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728832AbeKLSZU (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Nov 2018 13:25:20 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Alexandre Courbot <acourbot@chromium.org>,
-        maxime.ripard@bootlin.com, paul.kocialkowski@bootlin.com,
-        tfiga@chromium.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCHv2 2/5] vb2: add tag support
-Date: Mon, 12 Nov 2018 09:33:02 +0100
-Message-Id: <20181112083305.22618-3-hverkuil@xs4all.nl>
-In-Reply-To: <20181112083305.22618-1-hverkuil@xs4all.nl>
-References: <20181112083305.22618-1-hverkuil@xs4all.nl>
+Received: from mail.bootlin.com ([62.4.15.54]:40195 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1731345AbeKMSVV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Nov 2018 13:21:21 -0500
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org, Andrzej Hajda <a.hajda@samsung.com>,
+        Chen-Yu Tsai <wens@csie.org>, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
+        Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Frank Rowand <frowand.list@gmail.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>
+Subject: [PATCH 0/5] media: Allwinner A10 CSI support
+Date: Tue, 13 Nov 2018 09:24:12 +0100
+Message-Id: <cover.71b0f9855c251f9dc389ee77ee6f0e1fad91fb0b.1542097288.git-series.maxime.ripard@bootlin.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi,
 
-Add support for tags to vb2. Besides just storing and setting
-the tag this patch also adds the vb2_find_tag() function that
-can be used to find a buffer with the given tag.
+Here is a series introducing the support for the A10 (and SoCs of the same
+generation) CMOS Sensor Interface (called CSI, not to be confused with
+MIPI-CSI, which isn't support by that IP).
 
-This function will only look at DEQUEUED and DONE buffers, i.e.
-buffers that are already processed.
+That interface is pretty straightforward, but the driver has a few issues
+that I wanted to bring up:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- .../media/common/videobuf2/videobuf2-v4l2.c   | 43 ++++++++++++++++---
- include/media/videobuf2-v4l2.h                | 18 ++++++++
- 2 files changed, 56 insertions(+), 5 deletions(-)
+  * The only board I've been testing this with has an ov5640 sensor
+    attached, which doesn't work with the upstream driver. Copying the
+    Allwinner init sequence works though, and this is how it has been
+    tested. Testing with a second sensor would allow to see if it's an
+    issue on the CSI side or the sensor side.
+  * When starting a capture, the last buffer to capture will fail due to
+    double buffering being used, and we don't have a next buffer for the
+    last frame. I'm not sure how to deal with that though. It seems like
+    some drivers use a scratch buffer in such a case, some don't care, so
+    I'm not sure which solution should be preferred.
+  * We don't have support for the ISP at the moment, but this can be added
+    eventually.
 
-diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-index a17033ab2c22..0f909573517f 100644
---- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
-+++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-@@ -50,7 +50,8 @@ module_param(debug, int, 0644);
- 				 V4L2_BUF_FLAG_TIMESTAMP_MASK)
- /* Output buffer flags that should be passed on to the driver */
- #define V4L2_BUFFER_OUT_FLAGS	(V4L2_BUF_FLAG_PFRAME | V4L2_BUF_FLAG_BFRAME | \
--				 V4L2_BUF_FLAG_KEYFRAME | V4L2_BUF_FLAG_TIMECODE)
-+				 V4L2_BUF_FLAG_KEYFRAME | \
-+				 V4L2_BUF_FLAG_TIMECODE | V4L2_BUF_FLAG_TAG)
- 
- /*
-  * __verify_planes_array() - verify that the planes array passed in struct
-@@ -144,8 +145,11 @@ static void __copy_timestamp(struct vb2_buffer *vb, const void *pb)
- 		 */
- 		if (q->copy_timestamp)
- 			vb->timestamp = timeval_to_ns(&b->timestamp);
--		vbuf->flags |= b->flags & V4L2_BUF_FLAG_TIMECODE;
--		if (b->flags & V4L2_BUF_FLAG_TIMECODE)
-+		vbuf->flags |= b->flags &
-+			(V4L2_BUF_FLAG_TIMECODE | V4L2_BUF_FLAG_TAG);
-+		if (b->flags & V4L2_BUF_FLAG_TAG)
-+			vbuf->tag = v4l2_buffer_get_tag(b);
-+		else if (b->flags & V4L2_BUF_FLAG_TIMECODE)
- 			vbuf->timecode = b->timecode;
- 	}
- };
-@@ -195,6 +199,7 @@ static int vb2_fill_vb2_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b
- 	}
- 	vbuf->sequence = 0;
- 	vbuf->request_fd = -1;
-+	vbuf->tag = 0;
- 
- 	if (V4L2_TYPE_IS_MULTIPLANAR(b->type)) {
- 		switch (b->memory) {
-@@ -314,13 +319,19 @@ static int vb2_fill_vb2_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b
- 	}
- 
- 	if (V4L2_TYPE_IS_OUTPUT(b->type)) {
-+		if ((b->flags & V4L2_BUF_FLAG_TIMECODE) &&
-+		    (b->flags & V4L2_BUF_FLAG_TAG)) {
-+			dprintk(1, "buffer flag TIMECODE cannot be combined with flag TAG\n");
-+			return -EINVAL;
-+		}
-+
- 		/*
- 		 * For output buffers mask out the timecode flag:
- 		 * this will be handled later in vb2_qbuf().
- 		 * The 'field' is valid metadata for this output buffer
- 		 * and so that needs to be copied here.
- 		 */
--		vbuf->flags &= ~V4L2_BUF_FLAG_TIMECODE;
-+		vbuf->flags &= ~(V4L2_BUF_FLAG_TIMECODE | V4L2_BUF_FLAG_TAG);
- 		vbuf->field = b->field;
- 	} else {
- 		/* Zero any output buffer flags as this is a capture buffer */
-@@ -461,7 +472,10 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
- 	b->flags = vbuf->flags;
- 	b->field = vbuf->field;
- 	b->timestamp = ns_to_timeval(vb->timestamp);
--	b->timecode = vbuf->timecode;
-+	if (b->flags & V4L2_BUF_FLAG_TAG)
-+		v4l2_buffer_set_tag(b, vbuf->tag);
-+	else
-+		b->timecode = vbuf->timecode;
- 	b->sequence = vbuf->sequence;
- 	b->reserved2 = 0;
- 	b->request_fd = 0;
-@@ -587,6 +601,25 @@ static const struct vb2_buf_ops v4l2_buf_ops = {
- 	.copy_timestamp		= __copy_timestamp,
- };
- 
-+int vb2_find_tag(const struct vb2_queue *q, u64 tag,
-+		    unsigned int start_idx)
-+{
-+	unsigned int i;
-+
-+	for (i = start_idx; i < q->num_buffers; i++) {
-+		struct vb2_buffer *vb = q->bufs[i];
-+		struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
-+
-+		if ((vb->state == VB2_BUF_STATE_DEQUEUED ||
-+		     vb->state == VB2_BUF_STATE_DONE) &&
-+		    (vbuf->flags & V4L2_BUF_FLAG_TAG) &&
-+		    vbuf->tag == tag)
-+			return i;
-+	}
-+	return -1;
-+}
-+EXPORT_SYMBOL_GPL(vb2_find_tag);
-+
- /*
-  * vb2_querybuf() - query video buffer information
-  * @q:		videobuf queue
-diff --git a/include/media/videobuf2-v4l2.h b/include/media/videobuf2-v4l2.h
-index 727855463838..28fd1dbbf8ba 100644
---- a/include/media/videobuf2-v4l2.h
-+++ b/include/media/videobuf2-v4l2.h
-@@ -44,6 +44,7 @@ struct vb2_v4l2_buffer {
- 	__u32			flags;
- 	__u32			field;
- 	struct v4l2_timecode	timecode;
-+	__u64			tag;
- 	__u32			sequence;
- 	__s32			request_fd;
- 	struct vb2_plane	planes[VB2_MAX_PLANES];
-@@ -55,6 +56,23 @@ struct vb2_v4l2_buffer {
- #define to_vb2_v4l2_buffer(vb) \
- 	container_of(vb, struct vb2_v4l2_buffer, vb2_buf)
- 
-+/**
-+ * vb2_find_tag() - Find buffer with given tag in the queue
-+ *
-+ * @q:		pointer to &struct vb2_queue with videobuf2 queue.
-+ * @tag:	the tag to find. Only buffers in state DEQUEUED or DONE
-+ *		are considered.
-+ * @start_idx:	the start index (usually 0) in the buffer array to start
-+ *		searching from. Note that there may be multiple buffers
-+ *		with the same tag value, so you can restart the search
-+ *		by setting @start_idx to the previously found index + 1.
-+ *
-+ * Returns the buffer index of the buffer with the given @tag, or
-+ * -1 if no buffer with @tag was found.
-+ */
-+int vb2_find_tag(const struct vb2_queue *q, u64 tag,
-+		    unsigned int start_idx);
-+
- int vb2_querybuf(struct vb2_queue *q, struct v4l2_buffer *b);
- 
- /**
+  * How to model the CSI module clock isn't really clear to me. It looks
+    like it goes through the CSI controller and then is muxed to one of the
+    CSI pin so that it can clock the sensor. I'm not quite sure how to
+    model it, if it should be a clock, the CSI driver being a clock
+    provider, or if the sensor should just use the module clock directly.
+
+Here is the v4l2-compliance output:
+v4l2-compliance SHA   : 339d550e92ac15de8668f32d66d16f198137006c
+
+Driver Info:
+	Driver name   : sun4i_csi
+	Card type     : sun4i-csi
+	Bus info      : platform:1c09000.csi
+	Driver version: 4.19.0
+	Capabilities  : 0x84201000
+		Video Capture Multiplanar
+		Streaming
+		Extended Pix Format
+		Device Capabilities
+	Device Caps   : 0x04201000
+		Video Capture Multiplanar
+		Streaming
+		Extended Pix Format
+
+Compliance test for device /dev/video0 (not using libv4l2):
+
+Required ioctls:
+	test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+	test second video open: OK
+	test VIDIOC_QUERYCAP: OK
+	test VIDIOC_G/S_PRIORITY: OK
+	test for unlimited opens: OK
+
+Debug ioctls:
+	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+	test VIDIOC_LOG_STATUS: OK (Not Supported)
+
+Input ioctls:
+	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+	test VIDIOC_ENUMAUDIO: OK (Not Supported)
+	test VIDIOC_G/S/ENUMINPUT: OK
+	test VIDIOC_G/S_AUDIO: OK (Not Supported)
+	Inputs: 1 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+	Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+	test VIDIOC_G/S_EDID: OK (Not Supported)
+
+Test input 0:
+
+	Control ioctls:
+		test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
+		test VIDIOC_QUERYCTRL: OK (Not Supported)
+		test VIDIOC_G/S_CTRL: OK (Not Supported)
+		test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
+		test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
+		test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+		Standard Controls: 0 Private Controls: 0
+
+	Format ioctls:
+		test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+		test VIDIOC_G/S_PARM: OK (Not Supported)
+		test VIDIOC_G_FBUF: OK (Not Supported)
+		test VIDIOC_G_FMT: OK
+		test VIDIOC_TRY_FMT: OK
+		test VIDIOC_S_FMT: OK
+		test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+		test Cropping: OK (Not Supported)
+		test Composing: OK (Not Supported)
+		test Scaling: OK
+
+	Codec ioctls:
+		test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+		test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+		test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+	Buffer ioctls:
+		test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+		test VIDIOC_EXPBUF: OK
+
+Test input 0:
+
+Total: 43, Succeeded: 43, Failed: 0, Warnings: 0
+
+Let me know what you think,
+Maxime
+
+Maxime Ripard (5):
+  dt-bindings: media: Add Allwinner A10 CSI binding
+  media: sunxi: Refactor the Makefile and Kconfig
+  media: sunxi: Add A10 CSI driver
+  ARM: dts: sun7i: Add CSI0 controller
+  DO NOT MERGE: ARM: dts: bananapi: Add Camera support
+
+ Documentation/devicetree/bindings/media/sun4i-csi.txt |  71 ++-
+ arch/arm/boot/dts/sun7i-a20-bananapi.dts              |  98 +++-
+ arch/arm/boot/dts/sun7i-a20.dtsi                      |  13 +-
+ drivers/media/platform/Kconfig                        |   2 +-
+ drivers/media/platform/Makefile                       |   2 +-
+ drivers/media/platform/sunxi/Kconfig                  |   2 +-
+ drivers/media/platform/sunxi/Makefile                 |   2 +-
+ drivers/media/platform/sunxi/sun4i-csi/Kconfig        |  12 +-
+ drivers/media/platform/sunxi/sun4i-csi/Makefile       |   5 +-
+ drivers/media/platform/sunxi/sun4i-csi/sun4i_csi.c    | 275 ++++++++-
+ drivers/media/platform/sunxi/sun4i-csi/sun4i_csi.h    | 137 ++++-
+ drivers/media/platform/sunxi/sun4i-csi/sun4i_dma.c    | 383 +++++++++++-
+ drivers/media/platform/sunxi/sun4i-csi/sun4i_v4l2.c   | 287 ++++++++-
+ 13 files changed, 1287 insertions(+), 2 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/sun4i-csi.txt
+ create mode 100644 drivers/media/platform/sunxi/Kconfig
+ create mode 100644 drivers/media/platform/sunxi/Makefile
+ create mode 100644 drivers/media/platform/sunxi/sun4i-csi/Kconfig
+ create mode 100644 drivers/media/platform/sunxi/sun4i-csi/Makefile
+ create mode 100644 drivers/media/platform/sunxi/sun4i-csi/sun4i_csi.c
+ create mode 100644 drivers/media/platform/sunxi/sun4i-csi/sun4i_csi.h
+ create mode 100644 drivers/media/platform/sunxi/sun4i-csi/sun4i_dma.c
+ create mode 100644 drivers/media/platform/sunxi/sun4i-csi/sun4i_v4l2.c
+
+base-commit: 94517eaa3d43005472864615dfd17f1ef6ca3935
 -- 
-2.19.1
+git-series 0.9.1
