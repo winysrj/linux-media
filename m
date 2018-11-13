@@ -1,137 +1,210 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm1-f68.google.com ([209.85.128.68]:51800 "EHLO
-        mail-wm1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732191AbeKMUnx (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Nov 2018 15:43:53 -0500
-Received: by mail-wm1-f68.google.com with SMTP id w7-v6so11388359wmc.1
-        for <linux-media@vger.kernel.org>; Tue, 13 Nov 2018 02:46:19 -0800 (PST)
-Subject: Re: [PATCH] media: venus: amend buffer size for bitstream plane
-To: Tomasz Figa <tfiga@chromium.org>
-Cc: mgottam@codeaurora.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        vgarodia@codeaurora.org
-References: <1539071530-1441-1-git-send-email-mgottam@codeaurora.org>
- <CAAFQd5BcFr11Hpngpn6hNL91OibAxUv25yh2qMohgfxsKusACw@mail.gmail.com>
- <8fe1d205-c5e7-01a0-9569-d3268911cddd@linaro.org>
- <38dfc098517b3ddb5d96195f2e27429d@codeaurora.org>
- <86714c89-20ec-07c8-2569-65e78e8d584d@linaro.org>
- <CAAFQd5DXWUCB7HvsLyVYU+h=2j6y1v3kcsTtHfNZYjfbHEgWGw@mail.gmail.com>
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <da2e7cef-5ade-7d43-92c1-f728644e61c9@linaro.org>
-Date: Tue, 13 Nov 2018 12:46:15 +0200
+Received: from mga14.intel.com ([192.55.52.115]:41687 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726581AbeKMU44 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Nov 2018 15:56:56 -0500
+Subject: Re: [PATCH v7 00/16] Intel IPU3 ImgU patchset
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Yong Zhi <yong.zhi@intel.com>, linux-media@vger.kernel.org,
+        tfiga@chromium.org, mchehab@kernel.org, hans.verkuil@cisco.com,
+        laurent.pinchart@ideasonboard.com, rajmohan.mani@intel.com,
+        jian.xu.zheng@intel.com, jerry.w.hu@intel.com,
+        tuukka.toivonen@intel.com, tian.shu.qiu@intel.com,
+        bingbu.cao@intel.com
+References: <1540851790-1777-1-git-send-email-yong.zhi@intel.com>
+ <20181101120303.g7z2dy24pn5j2slo@kekkonen.localdomain>
+ <6bc1a25d-5799-5a9b-546e-3b8cf42ce976@linux.intel.com>
+ <20181109100953.4xfsslyfdhajhqoa@paasikivi.fi.intel.com>
+ <bf13758d-1ca3-5fa3-a573-ee773902f4dd@linux.intel.com>
+ <20181113103114.jdcdocmazl2knxid@kekkonen.localdomain>
+From: Bing Bu Cao <bingbu.cao@linux.intel.com>
+Message-ID: <df268c1e-be12-22c4-733a-0110b53c296c@linux.intel.com>
+Date: Tue, 13 Nov 2018 19:04:01 +0800
 MIME-Version: 1.0
-In-Reply-To: <CAAFQd5DXWUCB7HvsLyVYU+h=2j6y1v3kcsTtHfNZYjfbHEgWGw@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
+In-Reply-To: <20181113103114.jdcdocmazl2knxid@kekkonen.localdomain>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Content-Language: en-US
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz,
 
-On 11/13/18 11:13 AM, Tomasz Figa wrote:
-> On Tue, Nov 13, 2018 at 5:12 PM Stanimir Varbanov
-> <stanimir.varbanov@linaro.org> wrote:
+
+On 11/13/2018 06:31 PM, Sakari Ailus wrote:
+> Hi Bing Bu,
+>
+> On Mon, Nov 12, 2018 at 12:31:16PM +0800, Bing Bu Cao wrote:
 >>
->> Hi Malathi,
->>
->> On 11/13/18 9:28 AM, mgottam@codeaurora.org wrote:
->>> On 2018-11-12 18:04, Stanimir Varbanov wrote:
->>>> Hi Tomasz,
->>>>
->>>> On 10/23/2018 05:50 AM, Tomasz Figa wrote:
->>>>> Hi Malathi,
+>> On 11/09/2018 06:09 PM, Sakari Ailus wrote:
+>>> Hi Bing Bu,
+>>>
+>>> On Wed, Nov 07, 2018 at 12:16:47PM +0800, Bing Bu Cao wrote:
+>>>> On 11/01/2018 08:03 PM, Sakari Ailus wrote:
+>>>>> Hi Yong,
 >>>>>
->>>>> On Tue, Oct 9, 2018 at 4:58 PM Malathi Gottam
->>>>> <mgottam@codeaurora.org> wrote:
->>>>>>
->>>>>> For lower resolutions, incase of encoder, the compressed
->>>>>> frame size is more than half of the corresponding input
->>>>>> YUV. Keep the size as same as YUV considering worst case.
->>>>>>
->>>>>> Signed-off-by: Malathi Gottam <mgottam@codeaurora.org>
->>>>>> ---
->>>>>>  drivers/media/platform/qcom/venus/helpers.c | 2 +-
->>>>>>  1 file changed, 1 insertion(+), 1 deletion(-)
->>>>>>
->>>>>> diff --git a/drivers/media/platform/qcom/venus/helpers.c
->>>>>> b/drivers/media/platform/qcom/venus/helpers.c
->>>>>> index 2679adb..05c5423 100644
->>>>>> --- a/drivers/media/platform/qcom/venus/helpers.c
->>>>>> +++ b/drivers/media/platform/qcom/venus/helpers.c
->>>>>> @@ -649,7 +649,7 @@ u32 venus_helper_get_framesz(u32 v4l2_fmt, u32
->>>>>> width, u32 height)
->>>>>>         }
->>>>>>
->>>>>>         if (compressed) {
->>>>>> -               sz = ALIGN(height, 32) * ALIGN(width, 32) * 3 / 2 / 2;
->>>>>> +               sz = ALIGN(height, 32) * ALIGN(width, 32) * 3 / 2;
->>>>>>                 return ALIGN(sz, SZ_4K);
->>>>>>         }
+>>>>> Thanks for the update!
 >>>>>
->>>>> Note that the driver should not enforce one particular buffer size for
->>>>> bitstream buffers unless it's a workaround for broken firmware or
->>>>> hardware. The userspace should be able to select the desired size.
->>>>
->>>> Good point! Yes, we have to extend set_fmt to allow bigger sizeimage for
->>>> the compressed buffers (not only for encoder).
+>>>>> On Mon, Oct 29, 2018 at 03:22:54PM -0700, Yong Zhi wrote:
+>>>>>> Hi,
+>>>>>>
+>>>>>> This series adds support for the Intel IPU3 (Image Processing Unit)
+>>>>>> ImgU which is essentially a modern memory-to-memory ISP. It implements
+>>>>>> raw Bayer to YUV image format conversion as well as a large number of
+>>>>>> other pixel processing algorithms for improving the image quality.
+>>>>>>
+>>>>>> Meta data formats are defined for image statistics (3A, i.e. automatic
+>>>>>> white balance, exposure and focus, histogram and local area contrast
+>>>>>> enhancement) as well as for the pixel processing algorithm parameters.
+>>>>>> The documentation for these formats is currently not included in the
+>>>>>> patchset but will be added in a future version of this set.
+>>>>>>
+>>>>>> The algorithm parameters need to be considered specific to a given frame
+>>>>>> and typically a large number of these parameters change on frame to frame
+>>>>>> basis. Additionally, the parameters are highly structured (and not a flat
+>>>>>> space of independent configuration primitives). They also reflect the
+>>>>>> data structures used by the firmware and the hardware. On top of that,
+>>>>>> the algorithms require highly specialized user space to make meaningful
+>>>>>> use of them. For these reasons it has been chosen video buffers to pass
+>>>>>> the parameters to the device.
+>>>>>>
+>>>>>> On individual patches:
+>>>>>>
+>>>>>> The heart of ImgU is the CSS, or Camera Subsystem, which contains the
+>>>>>> image processors and HW accelerators.
+>>>>>>
+>>>>>> The 3A statistics and other firmware parameter computation related
+>>>>>> functions are implemented in patch 11.
+>>>>>>
+>>>>>> All IPU3 pipeline default settings can be found in patch 10.
+>>>>>>
+>>>>>> To access DDR via ImgU's own memory space, IPU3 is also equipped with
+>>>>>> its own MMU unit, the driver is implemented in patch 6.
+>>>>>>
+>>>>>> Patch 7 uses above driver for DMA mapping operation.
+>>>>>>
+>>>>>> The communication between IPU3 firmware and driver is implemented with circular
+>>>>>> queues in patch 8.
+>>>>>>
+>>>>>> Patch 9 provide some utility functions and manage IPU3 fw download and
+>>>>>> install.
+>>>>>>
+>>>>>> The firmware which is called ipu3-fw.bin can be downloaded from:
+>>>>>>
+>>>>>> git://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git
+>>>>>> (commit 2c27b0cb02f18c022d8378e0e1abaf8b7ae8188f)
+>>>>>>
+>>>>>> Firmware ABI is defined in patches 4 and 5.
+>>>>>>
+>>>>>> Patches 12 and 13 are of the same file, the former contains all h/w programming
+>>>>>> related code, the latter implements interface functions for access fw & hw
+>>>>>> capabilities.
+>>>>>>
+>>>>>> Patch 14 has a dependency on Sakari's V4L2_BUF_TYPE_META_OUTPUT work:
+>>>>>>
+>>>>>> <URL:https://patchwork.kernel.org/patch/9976295/>
+>>>>> I've pushed the latest set here:
+>>>>>
+>>>>> <URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=meta-output>
+>>>>>
+>>>>> You can just say the entire set depends on those going forward; the
+>>>>> documentation is needed, too.
+>>>>>
+>>>>>> Patch 15 represents the top level that glues all of the other components together,
+>>>>>> passing arguments between the components.
+>>>>>>
+>>>>>> Patch 16 is a recent effort to extend v6 for advanced camera features like
+>>>>>> Continuous View Finder (CVF) and Snapshot During Video(SDV) support.
+>>>>>>
+>>>>>> Link to user space implementation:
+>>>>>>
+>>>>>> git clone https://chromium.googlesource.com/chromiumos/platform/arc-camera
+>>>>>>
+>>>>>> ImgU media topology print:
+>>>>>>
+>>>>>> # media-ctl -d /dev/media0 -p
+>>>>>> Media controller API version 4.19.0
+>>>>>>
+>>>>>> Media device information
+>>>>>> ------------------------
+>>>>>> driver          ipu3-imgu
+>>>>>> model           ipu3-imgu
+>>>>>> serial          
+>>>>>> bus info        PCI:0000:00:05.0
+>>>>>> hw revision     0x80862015
+>>>>>> driver version  4.19.0
+>>>>>>
+>>>>>> Device topology
+>>>>>> - entity 1: ipu3-imgu 0 (5 pads, 5 links)
+>>>>>>             type V4L2 subdev subtype Unknown flags 0
+>>>>>>             device node name /dev/v4l-subdev0
+>>>>>> 	pad0: Sink
+>>>>>> 		[fmt:UYVY8_2X8/1920x1080 field:none colorspace:unknown
+>>>>> This doesn't seem right. Which formats can be enumerated from the pad?
+>>> Looking at the code, the OUTPUT video nodes have 10-bit GRBG (or a variant)
+>>> format whereas the CAPTURE video nodes always have NV12. Can you confirm?
+>> Hi, Sakari,
+>> Yes, I think the pad_fmt should also be changed.
+>> Yong, could you add some extra code for this and test? like:
+>>
+>> static int ipu3_v4l2_node_setup(struct imgu_device *imgu, unsigned int pipe,
+>> ...
+>>                         V4L2_PIX_FMT_NV12;
+>>                 node->vdev_fmt.fmt.pix_mp = def_pix_fmt;
+>>         }
+>>
+>> +       if (node->vdev_fmt.type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+>> +               node->pad_fmt.code = MEDIA_BUS_FMT_SGRBG10_1X10;
+>> +
+>>  
+>>> If the OUTPUT video node format selection has no effect on the rest of the
+>>> pipeline (device capabilities, which processing blocks are in use, CAPTURE
+>>> video nodes formats etc.), I think you could simply use the FIXED media bus
+>>> code for each pad. That would actually make sense: this device always works
+>>> from memory to memory, and thus does not really have a pixel data bus
+>>> external to the device which is what the media bus codes really are for.
 >>>
->>> So Stan you meant to say that we should allow s_fmt to accept client
->>> specified size?
->>
->> yes but I do expect:
->>
->> new_sizeimage = max(user_sizeimage, venus_helper_get_framesz)
->>
->> and also user_sizeimage should be sanitized.
->>
->>> If so should we set the inst->input_buf_size here in venc_s_fmt?
+>>>>>> 		 crop:(0,0)/1920x1080
+>>>>>> 		 compose:(0,0)/1920x1080]
+>>>>> Does the compose rectangle affect the scaling on all outputs?
+>>>> Sakari, driver use crop and compose targets to help set input-feeder and BDS
+>>>> output resolutions which are 2 key block of whole imaging pipeline, not the
+>>>> actual ending output, but they will impact the final output.
+>>> Ack. Thanks for the clarification.
 >>>
->>> @@ -333,10 +333,10 @@static const struct venus_format *
->>> venc_try_fmt_common(struct venus_inst *inst, struct v4l2_format *f)
->>>
->>>         pixmp->num_planes = fmt->num_planes;
->>>         pixmp->flags = 0;
->>> -
->>> -       pfmt[0].sizeimage = venus_helper_get_framesz(pixmp->pixelformat,
->>> -                                                    pixmp->width,
->>> -                                                    pixmp->height);
->>> +       if (!pfmt[0].sizeimage)
->>> +               pfmt[0].sizeimage =
->>> venus_helper_get_framesz(pixmp->pixelformat,
->>> +                                                            pixmp->width,
->>> +
->>> pixmp->height);
->>
->> yes, but please make
->>
->> pfmt[0].sizeimage = max(pfmt[0].sizeimage, venus_helper_get_framesz)
->>
->> and IMO this should be only for CAPTURE queue i.e. inst->output_buf_size
->>
->> I'm still not sure do we need it for OUTPUT encoder queue.
->>
-> 
-> This would be indeed only for the queues that operate on a coded
-> bitstream, i.e. both encoder CAPTURE and decoder OUTPUT.
-
-Thanks for the confirmation.
-
-> 
-> For image formats, sizeimage should be calculated by the driver based
-> on the bytesperline and height. (Bytesperline may be fixed, if the
-> hardware doesn't support flexible strides, but if it does, it's
-> strongly recommended to use the bytesperline coming from the
-> application as the stride +/- any necessary sanity checks.)
-
-the hw should support stride but I'm not sure is that exposed by the
-firmware interface.
-
--- 
-regards,
-Stan
+>>>>>> 		<- "ipu3-imgu 0 input":0 []
+>>>>> Are there links that have no useful link configuration? If so, you should
+>>>>> set them enabled and immutable in the driver.
+>>>> The enabled status of input pads is used to get which pipe that user is
+>>>> trying to enable (ipu3_link_setup()), so it could not been set as immutable.
+>>> But the rest of them could be, right?
+>> Yes.
+>>>>>> 	pad1: Sink
+>>>>>> 		[fmt:UYVY8_2X8/1920x1080 field:none colorspace:unknown]
+>>>>> I'd suggest to use MEDIA_BUS_FMT_FIXED here.
+>>>>>
+>>>>>> 		<- "ipu3-imgu 0 parameters":0 []
+>>>>>> 	pad2: Source
+>>>>>> 		[fmt:UYVY8_2X8/1920x1080 field:none colorspace:unknown]
+>>>>>> 		-> "ipu3-imgu 0 output":0 []
+>>>>>> 	pad3: Source
+>>>>>> 		[fmt:UYVY8_2X8/1920x1080 field:none colorspace:unknown]
+>>>>>> 		-> "ipu3-imgu 0 viewfinder":0 []
+>>>>> Are there other differences between output and viewfinder?
+>>>> output and viewfinder are the main and secondary output of output system.
+>>>> 'main' output is not allowed to be scaled, only support crop. secondary
+>>>> output 'viewfinder'
+>>>> can support both cropping and scaling. User can select different nodes
+>>>> to use
+>>>> as preview and capture flexibly based on the actual use cases.
+>>> If there's scaling to be configured, I'd expect to see the COMPOSE target
+>>> supported.
+>> Actually the viewfinder is the result of scaling, that means you can not
+>> do more scaling.
+> How do you configure the scaling of the viewfinder currently?
+We consider that the viewfinder as a secondary output, and set the format by
+subdev set_fmt() directly and all pads formats will be used to find
+binary and
+build pipeline.
+>
+>> The resolution of output and viewfinder should be fixed once the
+>> pipeline is determined.
