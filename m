@@ -1,118 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lj1-f193.google.com ([209.85.208.193]:34475 "EHLO
-        mail-lj1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726517AbeKNCTZ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Nov 2018 21:19:25 -0500
+Received: from mail.bootlin.com ([62.4.15.54]:51115 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1732958AbeKMXBl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Nov 2018 18:01:41 -0500
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Mylene Josserand <mylene.josserand@bootlin.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Loic Poulain <loic.poulain@linaro.org>,
+        Samuel Bobrowicz <sam@elite-embedded.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Daniel Mack <daniel@zonque.org>,
+        Jacopo Mondi <jacopo@jmondi.org>,
+        Maxime Ripard <maxime.ripard@bootlin.com>
+Subject: [PATCH v5 00/11] media: ov5640: Misc cleanup and improvements
+Date: Tue, 13 Nov 2018 14:03:14 +0100
+Message-Id: <20181113130325.28975-1-maxime.ripard@bootlin.com>
 MIME-Version: 1.0
-References: <20181103145532.9323-1-user.vdr@gmail.com> <766230a305f54a37e9d881779a0d81ec439f8bd8.camel@hadess.net>
-In-Reply-To: <766230a305f54a37e9d881779a0d81ec439f8bd8.camel@hadess.net>
-From: VDR User <user.vdr@gmail.com>
-Date: Tue, 13 Nov 2018 08:20:22 -0800
-Message-ID: <CAA7C2qhCmaJJ1F8D6zz0-9Sp+OspPE2h=KYRYO7seMUrs2q=sA@mail.gmail.com>
-Subject: Re: [PATCH v2] Input: Add missing event codes for common IR remote buttons
-To: hadess@hadess.net
-Cc: linux-input@vger.kernel.org, Sean Young <sean@mess.org>,
-        mchehab+samsung@kernel.org,
-        "mailing list: linux-media" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> On Sat, 2018-11-03 at 07:55 -0700, Derek Kelly wrote:
-> > The following patch adds event codes for common buttons found on
-> > various
-> > provider and universal remote controls. They represent functions not
-> > covered by existing event codes. Once added, rc_keymaps can be
-> > updated
-> > accordingly where applicable.
->
-> Would be great to have more than "those are used", such as knowing how
-> they are labeled, both with text and/or icons, and an explanation as to
-> why a particular existing key isn't usable.
+Hi,
 
-Hi Bastien,
+Here is a "small" series that mostly cleans up the ov5640 driver code,
+slowly getting rid of the big data array for more understandable code
+(hopefully).
 
-Text & icons may vary from remote to remote but the purpose/function
-of those buttons is basically the same. As explained, the defines in
-this patch represent functions not already addressed by other defines.
-See below for more detail. The one thing I will add that I probably
-should've mentioned is that these defines focus on media/htpc/stb. If
-you're not aware, Linux has become a common choice for these types of
-systems thanks to the popularity of software like Plex, Kodi, Mythtv,
-VDR, etc. Lastly, all these represent *common* functions in this area.
-Please keep this in mind as you read further.
+The biggest addition would be the clock rate computation at runtime,
+instead of relying on those arrays to setup the clock tree
+properly. As a side effect, it fixes the framerate that was off by
+around 10% on the smaller resolutions, and we now support 60fps.
 
-> > +/* Remote control buttons found across provider & universal remotes */
-> > +#define KEY_LIVE_TV                  0x2e8   /* Jump to live tv viewing */
->
-> KEY_TV?
+This also introduces a bunch of new features.
 
-KEY_TV selects TV as a *input source* the same as KEY_VCR, KEY_SAT,
-KEY_CD, etc. whereas KEY_LIVE_TV jumps directly to live tv as opposed
-to local/networked media playback, dvr playback, etc.
+Let me know what you think,
+Maxime
 
-> > +#define KEY_OPTIONS                  0x2e9   /* Jump to options */
->
-> KEY_OPTION?
+Changes from v4:
+  - Squashed Jacopo patches fixing the MIPI-CSI case
+  - Prefer clock rates superior to the ideal clock rate, even if it
+    means having a less precise one.
+  - Fix the JPEG case according to Hugues suggestions
+  - Rebased on 4.20
 
-Software vs. media playback options.
+Changes from v3:
+  - Rebased on current Sakari tree
+  - Fixed an error when changing only the framerate
 
-> > +#define KEY_INTERACTIVE                      0x2ea   /* Jump to interactive system/menu/item */
-> > +#define KEY_MIC_INPUT                        0x2eb   /* Trigger MIC input/listen mode */
->
-> KEY_MICMUTE?
+Changes from v2:
+  - Rebased on latest Sakari PR
+  - Fixed the issues reported by Hugues: improper FPS returned for
+    formats, improper rounding of the FPS, some with his suggestions,
+    some by simplifying the logic.
+  - Expanded the clock tree comments based on the feedback from Samuel
+    Bobrowicz and Loic Poulain
+  - Merged some of the changes made by Samuel Bobrowicz to fix the
+    MIPI rate computation, fix the call sites of the
+    ov5640_set_timings function, the auto-exposure calculation call,
+    etc.
+  - Split the patches into smaller ones in order to make it more
+    readable (hopefully)
 
-This button doesn't mute the mic, in fact it does the opposite. The
-mic is off until you press this button, thus triggering MIC
-input/listen mode and allowing the user to speak his commands. It
-automatically shuts off after X seconds of silence.
+Changes from v1:
+  - Integrated Hugues' suggestions to fix v4l2-compliance
+  - Fixed the bus width with JPEG
+  - Dropped the clock rate calculation loops for something simpler as
+    suggested by Sakari
+  - Cache the exposure value instead of using the control value
+  - Rebased on top of 4.17
 
-> > +#define KEY_SCREEN_INPUT             0x2ec   /* Open on-screen input system */
->
-> KEY_SWITCHVIDEOMODE?
+Maxime Ripard (11):
+  media: ov5640: Adjust the clock based on the expected rate
+  media: ov5640: Remove the clocks registers initialization
+  media: ov5640: Remove redundant defines
+  media: ov5640: Remove redundant register setup
+  media: ov5640: Compute the clock rate at runtime
+  media: ov5640: Remove pixel clock rates
+  media: ov5640: Enhance FPS handling
+  media: ov5640: Make the return rate type more explicit
+  media: ov5640: Make the FPS clamping / rounding more extendable
+  media: ov5640: Add 60 fps support
+  media: ov5640: Remove duplicate auto-exposure setup
 
-KEY_SWITCHVIDEOMODE is used for "Cycle between available video outputs
-(Monitor/LCD/TV-out/etc) ". This is poorly labeled in my opinion and
-should've been called KEY_SWITCHVIDEOOUTPUT or something similar.
-"Video mode" typically refers to something entirely different - how
-video is presented on the display, not what physical display you're
-using. KEY_SCREEN_INPUT is used to bring up things like an on-screen
-keyboard or other on-onscreen user input method.
+ drivers/media/i2c/ov5640.c | 748 ++++++++++++++++++++++---------------
+ 1 file changed, 445 insertions(+), 303 deletions(-)
 
-> > +#define KEY_SYSTEM_MENU                      0x2ed   /* Open systems menu/display */
->
-> KEY_MENU?
-
-Systems menus as pertains to DVB. KEY_MENU is generic and having only
-one `menu` option is problematic when you have different types of
-menus which aren't accessible from each other.
-
-> > +#define KEY_SERVICES                 0x2ee   /* Access services */
-> > +#define KEY_DISPLAY_FORMAT           0x2ef   /* Cycle display formats */
->
-> KEY_CONTEXT_MENU?
-
-KEY_DISPLAY_FORMAT doesn't open any menus and is used to cycle through
-how video is displayed on-screen to the user; full, zoomed,
-letterboxed, stretched, etc. KEY_CONTEXT_MENU would be for something
-like bringing up a playback menu where you'd set things like
-upscaling, deinterlacing, audio mixdown/mixup, etc.
-
-> > +#define KEY_PIP                              0x2f0   /* Toggle Picture-in-Picture on/off */
-> > +#define KEY_PIP_SWAP                 0x2f1   /* Swap contents between main view and PIP window */
-> > +#define KEY_PIP_POSITION             0x2f2   /* Cycle PIP window position */
-> > +
-> >  /* We avoid low common keys in module aliases so they don't get huge. */
-> >  #define KEY_MIN_INTERESTING  KEY_MUTE
-> >  #define KEY_MAX                      0x2ff
->
-
-Hopefully that makes things more clear. This patch helps users map
-common (media/htpc/stb) remote control buttons directly to their real
-functions as opposed to mapping them to some random unrelated & unused
-event, which can be both confusing and problematic on systems where
-both remote controls and say bluetooth keyboards are used.
-
-Best regards,
-Derek
+-- 
+2.19.1
