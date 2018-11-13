@@ -1,155 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:51206 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1733154AbeKMXBu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Nov 2018 18:01:50 -0500
-From: Maxime Ripard <maxime.ripard@bootlin.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Mylene Josserand <mylene.josserand@bootlin.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Loic Poulain <loic.poulain@linaro.org>,
-        Samuel Bobrowicz <sam@elite-embedded.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Daniel Mack <daniel@zonque.org>,
-        Jacopo Mondi <jacopo@jmondi.org>,
-        Maxime Ripard <maxime.ripard@bootlin.com>
-Subject: [PATCH v5 06/11] media: ov5640: Remove pixel clock rates
-Date: Tue, 13 Nov 2018 14:03:20 +0100
-Message-Id: <20181113130325.28975-7-maxime.ripard@bootlin.com>
-In-Reply-To: <20181113130325.28975-1-maxime.ripard@bootlin.com>
-References: <20181113130325.28975-1-maxime.ripard@bootlin.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from relay2-d.mail.gandi.net ([217.70.183.194]:42541 "EHLO
+        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1733149AbeKMXCR (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Nov 2018 18:02:17 -0500
+Message-ID: <766230a305f54a37e9d881779a0d81ec439f8bd8.camel@hadess.net>
+Subject: Re: [PATCH v2] Input: Add missing event codes for common IR remote
+ buttons
+From: Bastien Nocera <hadess@hadess.net>
+To: Derek Kelly <user.vdr@gmail.com>, linux-input@vger.kernel.org
+Cc: sean@mess.org, mchehab+samsung@kernel.org,
+        linux-media@vger.kernel.org
+Date: Tue, 13 Nov 2018 14:04:10 +0100
+In-Reply-To: <20181103145532.9323-1-user.vdr@gmail.com>
+References: <20181103145532.9323-1-user.vdr@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The pixel clock rates were introduced to report the initially static clock
-rate.
+On Sat, 2018-11-03 at 07:55 -0700, Derek Kelly wrote:
+> The following patch adds event codes for common buttons found on
+> various
+> provider and universal remote controls. They represent functions not
+> covered by existing event codes. Once added, rc_keymaps can be
+> updated
+> accordingly where applicable.
 
-Since this is now handled dynamically, we can remove them entirely.
+Would be great to have more than "those are used", such as knowing how
+they are labeled, both with text and/or icons, and an explanation as to
+why a particular existing key isn't usable.
 
-Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
----
- drivers/media/i2c/ov5640.c | 21 +--------------------
- 1 file changed, 1 insertion(+), 20 deletions(-)
+> v2 changes:
+> Renamed KEY_SYSTEM to KEY_SYSTEM_MENU to avoid conflict with powerpc
+> KEY_SYSTEM define.
+> 
+> Signed-off-by: Derek Kelly <user.vdr@gmail.com>
+> ---
+>  include/uapi/linux/input-event-codes.h | 13 +++++++++++++
+>  1 file changed, 13 insertions(+)
+> 
+> diff --git a/include/uapi/linux/input-event-codes.h
+> b/include/uapi/linux/input-event-codes.h
+> index 53fbae27b280..a15fd3c944d2 100644
+> --- a/include/uapi/linux/input-event-codes.h
+> +++ b/include/uapi/linux/input-event-codes.h
+> @@ -689,6 +689,19 @@
+>  #define BTN_TRIGGER_HAPPY39		0x2e6
+>  #define BTN_TRIGGER_HAPPY40		0x2e7
+>  
+> +/* Remote control buttons found across provider & universal remotes */
+> +#define KEY_LIVE_TV			0x2e8	/* Jump to live tv viewing */
 
-diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-index bcfb2b25a450..e96063c9e352 100644
---- a/drivers/media/i2c/ov5640.c
-+++ b/drivers/media/i2c/ov5640.c
-@@ -172,7 +172,6 @@ struct ov5640_mode_info {
- 	u32 htot;
- 	u32 vact;
- 	u32 vtot;
--	u32 pixel_clock;
- 	const struct reg_value *reg_data;
- 	u32 reg_data_size;
- };
-@@ -696,7 +695,6 @@ static const struct reg_value ov5640_setting_15fps_QSXGA_2592_1944[] = {
- /* power-on sensor init reg table */
- static const struct ov5640_mode_info ov5640_mode_init_data = {
- 	0, SUBSAMPLING, 640, 1896, 480, 984,
--	56000000,
- 	ov5640_init_setting_30fps_VGA,
- 	ARRAY_SIZE(ov5640_init_setting_30fps_VGA),
- };
-@@ -706,91 +704,74 @@ ov5640_mode_data[OV5640_NUM_FRAMERATES][OV5640_NUM_MODES] = {
- 	{
- 		{OV5640_MODE_QCIF_176_144, SUBSAMPLING,
- 		 176, 1896, 144, 984,
--		 28000000,
- 		 ov5640_setting_15fps_QCIF_176_144,
- 		 ARRAY_SIZE(ov5640_setting_15fps_QCIF_176_144)},
- 		{OV5640_MODE_QVGA_320_240, SUBSAMPLING,
- 		 320, 1896, 240, 984,
--		 28000000,
- 		 ov5640_setting_15fps_QVGA_320_240,
- 		 ARRAY_SIZE(ov5640_setting_15fps_QVGA_320_240)},
- 		{OV5640_MODE_VGA_640_480, SUBSAMPLING,
- 		 640, 1896, 480, 1080,
--		 28000000,
- 		 ov5640_setting_15fps_VGA_640_480,
- 		 ARRAY_SIZE(ov5640_setting_15fps_VGA_640_480)},
- 		{OV5640_MODE_NTSC_720_480, SUBSAMPLING,
- 		 720, 1896, 480, 984,
--		 28000000,
- 		 ov5640_setting_15fps_NTSC_720_480,
- 		 ARRAY_SIZE(ov5640_setting_15fps_NTSC_720_480)},
- 		{OV5640_MODE_PAL_720_576, SUBSAMPLING,
- 		 720, 1896, 576, 984,
--		 28000000,
- 		 ov5640_setting_15fps_PAL_720_576,
- 		 ARRAY_SIZE(ov5640_setting_15fps_PAL_720_576)},
- 		{OV5640_MODE_XGA_1024_768, SUBSAMPLING,
- 		 1024, 1896, 768, 1080,
--		 28000000,
- 		 ov5640_setting_15fps_XGA_1024_768,
- 		 ARRAY_SIZE(ov5640_setting_15fps_XGA_1024_768)},
- 		{OV5640_MODE_720P_1280_720, SUBSAMPLING,
- 		 1280, 1892, 720, 740,
--		 21000000,
- 		 ov5640_setting_15fps_720P_1280_720,
- 		 ARRAY_SIZE(ov5640_setting_15fps_720P_1280_720)},
- 		{OV5640_MODE_1080P_1920_1080, SCALING,
- 		 1920, 2500, 1080, 1120,
--		 42000000,
- 		 ov5640_setting_15fps_1080P_1920_1080,
- 		 ARRAY_SIZE(ov5640_setting_15fps_1080P_1920_1080)},
- 		{OV5640_MODE_QSXGA_2592_1944, SCALING,
- 		 2592, 2844, 1944, 1968,
--		 84000000,
- 		 ov5640_setting_15fps_QSXGA_2592_1944,
- 		 ARRAY_SIZE(ov5640_setting_15fps_QSXGA_2592_1944)},
- 	}, {
- 		{OV5640_MODE_QCIF_176_144, SUBSAMPLING,
- 		 176, 1896, 144, 984,
--		 56000000,
- 		 ov5640_setting_30fps_QCIF_176_144,
- 		 ARRAY_SIZE(ov5640_setting_30fps_QCIF_176_144)},
- 		{OV5640_MODE_QVGA_320_240, SUBSAMPLING,
- 		 320, 1896, 240, 984,
--		 56000000,
- 		 ov5640_setting_30fps_QVGA_320_240,
- 		 ARRAY_SIZE(ov5640_setting_30fps_QVGA_320_240)},
- 		{OV5640_MODE_VGA_640_480, SUBSAMPLING,
- 		 640, 1896, 480, 1080,
--		 56000000,
- 		 ov5640_setting_30fps_VGA_640_480,
- 		 ARRAY_SIZE(ov5640_setting_30fps_VGA_640_480)},
- 		{OV5640_MODE_NTSC_720_480, SUBSAMPLING,
- 		 720, 1896, 480, 984,
--		 56000000,
- 		 ov5640_setting_30fps_NTSC_720_480,
- 		 ARRAY_SIZE(ov5640_setting_30fps_NTSC_720_480)},
- 		{OV5640_MODE_PAL_720_576, SUBSAMPLING,
- 		 720, 1896, 576, 984,
--		 56000000,
- 		 ov5640_setting_30fps_PAL_720_576,
- 		 ARRAY_SIZE(ov5640_setting_30fps_PAL_720_576)},
- 		{OV5640_MODE_XGA_1024_768, SUBSAMPLING,
- 		 1024, 1896, 768, 1080,
--		 56000000,
- 		 ov5640_setting_30fps_XGA_1024_768,
- 		 ARRAY_SIZE(ov5640_setting_30fps_XGA_1024_768)},
- 		{OV5640_MODE_720P_1280_720, SUBSAMPLING,
- 		 1280, 1892, 720, 740,
--		 42000000,
- 		 ov5640_setting_30fps_720P_1280_720,
- 		 ARRAY_SIZE(ov5640_setting_30fps_720P_1280_720)},
- 		{OV5640_MODE_1080P_1920_1080, SCALING,
- 		 1920, 2500, 1080, 1120,
--		 84000000,
- 		 ov5640_setting_30fps_1080P_1920_1080,
- 		 ARRAY_SIZE(ov5640_setting_30fps_1080P_1920_1080)},
--		{OV5640_MODE_QSXGA_2592_1944, -1, 0, 0, 0, 0, 0, NULL, 0},
-+		{OV5640_MODE_QSXGA_2592_1944, -1, 0, 0, 0, 0, NULL, 0},
- 	},
- };
- 
--- 
-2.19.1
+KEY_TV?
+
+> +#define KEY_OPTIONS			0x2e9	/* Jump to options */
+
+KEY_OPTION?
+
+> +#define KEY_INTERACTIVE			0x2ea	/* Jump to interactive system/menu/item */
+> +#define KEY_MIC_INPUT			0x2eb	/* Trigger MIC input/listen mode */
+
+KEY_MICMUTE?
+
+> +#define KEY_SCREEN_INPUT		0x2ec	/* Open on-screen input system */
+
+KEY_SWITCHVIDEOMODE?
+
+> +#define KEY_SYSTEM_MENU			0x2ed	/* Open systems menu/display */
+
+KEY_MENU?
+
+> +#define KEY_SERVICES			0x2ee	/* Access services */
+> +#define KEY_DISPLAY_FORMAT		0x2ef	/* Cycle display formats */
+
+KEY_CONTEXT_MENU?
+
+> +#define KEY_PIP				0x2f0	/* Toggle Picture-in-Picture on/off */
+> +#define KEY_PIP_SWAP			0x2f1	/* Swap contents between main view and PIP window */
+> +#define KEY_PIP_POSITION		0x2f2	/* Cycle PIP window position */
+> +
+>  /* We avoid low common keys in module aliases so they don't get huge. */
+>  #define KEY_MIN_INTERESTING	KEY_MUTE
+>  #define KEY_MAX			0x2ff
