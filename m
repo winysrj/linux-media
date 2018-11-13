@@ -1,95 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:52799 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387453AbeKMXdk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Nov 2018 18:33:40 -0500
-Date: Tue, 13 Nov 2018 14:35:18 +0100
-From: Maxime Ripard <maxime.ripard@bootlin.com>
-To: Yong Deng <yong.deng@magewell.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
+Received: from aer-iport-2.cisco.com ([173.38.203.52]:48052 "EHLO
+        aer-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1732728AbeKMXfV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Nov 2018 18:35:21 -0500
+Subject: Re: [PATCH 3/5] media: sunxi: Add A10 CSI driver
+To: Fabio Estevam <festevam@gmail.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Neil Armstrong <narmstrong@baylibre.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Todor Tomov <todor.tomov@linaro.org>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH v12 0/2] Initial Allwinner V3s CSI Support
-Message-ID: <20181113133518.6nnh4m37s6awfw6d@flea>
-References: <1540886988-27696-1-git-send-email-yong.deng@magewell.com>
+        linux-media <linux-media@vger.kernel.org>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        "moderated list:ARM/FREESCALE IMX / MXC ARM ARCHITECTURE"
+        <linux-arm-kernel@lists.infradead.org>,
+        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS"
+        <devicetree@vger.kernel.org>, Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Frank Rowand <frowand.list@gmail.com>
+References: <cover.71b0f9855c251f9dc389ee77ee6f0e1fad91fb0b.1542097288.git-series.maxime.ripard@bootlin.com>
+ <c53e1cdc3b139382b00ee06bf3980d3fd1742ec0.1542097288.git-series.maxime.ripard@bootlin.com>
+ <CAOMZO5CjFt1dyu8KOK+jKd88x8hwGNy9aJ-sGgooS9970TGTVQ@mail.gmail.com>
+From: Hans Verkuil <hansverk@cisco.com>
+Message-ID: <9a9616d2-a189-bd0e-e2e6-f84bdcb1dfd1@cisco.com>
+Date: Tue, 13 Nov 2018 14:37:08 +0100
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="aa6ku2d2rt2bopyg"
-Content-Disposition: inline
-In-Reply-To: <1540886988-27696-1-git-send-email-yong.deng@magewell.com>
+In-Reply-To: <CAOMZO5CjFt1dyu8KOK+jKd88x8hwGNy9aJ-sGgooS9970TGTVQ@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 11/13/18 13:48, Fabio Estevam wrote:
+> On Tue, Nov 13, 2018 at 6:25 AM Maxime Ripard <maxime.ripard@bootlin.com> wrote:
+> 
+>> --- /dev/null
+>> +++ b/drivers/media/platform/sunxi/sun4i-csi/sun4i_csi.c
+>> @@ -0,0 +1,275 @@
+>> +// SPDX-License-Identifier: GPL-2.0-or-later
+> 
+> According to Documentation/process/license-rules.rst this should be:
+> 
+> +// SPDX-License-Identifier: GPL-2.0+
+> 
+> Same applies to other places in this patch.
+> 
 
---aa6ku2d2rt2bopyg
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Actually, LICENSES/preferred/GPL-2.0 has GPL-2.0-or-later
+as a valid license:
 
-Hi Yong,
+Valid-License-Identifier: GPL-2.0-or-later
 
-On Tue, Oct 30, 2018 at 04:09:48PM +0800, Yong Deng wrote:
-> I can't make v4l2-compliance always happy.
-> The V3s CSI support many pixformats. But they are not always available.
-> It's dependent on the input bus format (MEDIA_BUS_FMT_*).=20
-> Example:
-> V4L2_PIX_FMT_SBGGR8: MEDIA_BUS_FMT_SBGGR8_1X8
-> V4L2_PIX_FMT_YUYV: MEDIA_BUS_FMT_YUYV8_2X8
-> But I can't get the subdev's format code before starting stream as the
-> subdev may change it. So I can't know which pixformats are available.
-> So I exports all the pixformats supported by SoC.
-> The result is the app (v4l2-compliance) is likely to fail on streamon.
->=20
-> This patchset add initial support for Allwinner V3s CSI.
->=20
-> Allwinner V3s SoC features a CSI module with parallel interface.
->=20
-> This patchset implement a v4l2 framework driver and add a binding=20
-> documentation for it.=20
+Personally I very much prefer GPL-2.0-or-later since I think it is
+much clearer.
 
-I've tested this version today, and I needed this patch to make it
-work on top of v4.20:
-http://code.bulix.org/9o8fw5-503690?raw
+Regards,
 
-Once that patch applied, my tests were working as expected.
-
-If that make sense, could you resubmit a new version with these merged
-so that we can try to target 4.21?
-
-Thanks!
-Maxime
-
---=20
-Maxime Ripard, Bootlin
-Embedded Linux and Kernel engineering
-https://bootlin.com
-
---aa6ku2d2rt2bopyg
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iHUEABYIAB0WIQRcEzekXsqa64kGDp7j7w1vZxhRxQUCW+rTFgAKCRDj7w1vZxhR
-xYo2AQCjVo2DMx05jzJV1L//qtVnrQ6uzy9rgeGLzFkU83S2LwD+M/yMUjwAJhl1
-suMk4OlZFxntxFuQqwNLoQJMmuBicQI=
-=Vno6
------END PGP SIGNATURE-----
-
---aa6ku2d2rt2bopyg--
+	Hans
