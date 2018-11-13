@@ -1,7 +1,7 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:36185 "EHLO
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:41884 "EHLO
         lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1731634AbeKMTkC (ORCPT
+        by vger.kernel.org with ESMTP id S1731580AbeKMTkC (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Tue, 13 Nov 2018 14:40:02 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
@@ -9,10 +9,10 @@ To: linux-media@vger.kernel.org
 Cc: Alexandre Courbot <acourbot@chromium.org>,
         maxime.ripard@bootlin.com, paul.kocialkowski@bootlin.com,
         tfiga@chromium.org, Nicolas Dufresne <nicolas@ndufresne.ca>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 6/9] vb2: add new supports_tags queue flag
-Date: Tue, 13 Nov 2018 10:42:35 +0100
-Message-Id: <20181113094238.48253-7-hverkuil@xs4all.nl>
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 7/9] vim2m: add tag support
+Date: Tue, 13 Nov 2018 10:42:36 +0100
+Message-Id: <20181113094238.48253-8-hverkuil@xs4all.nl>
 In-Reply-To: <20181113094238.48253-1-hverkuil@xs4all.nl>
 References: <20181113094238.48253-1-hverkuil@xs4all.nl>
 MIME-Version: 1.0
@@ -20,46 +20,53 @@ Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add new flag to indicate that buffer tags are supported.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+Copy tags in vim2m.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/common/videobuf2/videobuf2-v4l2.c | 2 ++
- include/media/videobuf2-core.h                  | 2 ++
- 2 files changed, 4 insertions(+)
+ drivers/media/platform/vim2m.c | 14 +++-----------
+ 1 file changed, 3 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-index 36781d2367a9..cb46e37b2629 100644
---- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
-+++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-@@ -666,6 +666,8 @@ static void fill_buf_caps(struct vb2_queue *q, u32 *caps)
- 		*caps |= V4L2_BUF_CAP_SUPPORTS_DMABUF;
- 	if (q->supports_requests)
- 		*caps |= V4L2_BUF_CAP_SUPPORTS_REQUESTS;
-+	if (q->supports_tags)
-+		*caps |= V4L2_BUF_CAP_SUPPORTS_TAGS;
+diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
+index d82db738f174..9d1222f489b8 100644
+--- a/drivers/media/platform/vim2m.c
++++ b/drivers/media/platform/vim2m.c
+@@ -241,17 +241,7 @@ static int device_process(struct vim2m_ctx *ctx,
+ 	out_vb->sequence =
+ 		get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE)->sequence++;
+ 	in_vb->sequence = q_data->sequence++;
+-	out_vb->vb2_buf.timestamp = in_vb->vb2_buf.timestamp;
+-
+-	if (in_vb->flags & V4L2_BUF_FLAG_TIMECODE)
+-		out_vb->timecode = in_vb->timecode;
+-	out_vb->field = in_vb->field;
+-	out_vb->flags = in_vb->flags &
+-		(V4L2_BUF_FLAG_TIMECODE |
+-		 V4L2_BUF_FLAG_KEYFRAME |
+-		 V4L2_BUF_FLAG_PFRAME |
+-		 V4L2_BUF_FLAG_BFRAME |
+-		 V4L2_BUF_FLAG_TSTAMP_SRC_MASK);
++	v4l2_m2m_buf_copy_data(out_vb, in_vb, true);
+ 
+ 	switch (ctx->mode) {
+ 	case MEM2MEM_HFLIP | MEM2MEM_VFLIP:
+@@ -856,6 +846,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq, struct vb2_queue *ds
+ 	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 	src_vq->lock = &ctx->dev->dev_mutex;
+ 	src_vq->supports_requests = true;
++	src_vq->supports_tags = true;
+ 
+ 	ret = vb2_queue_init(src_vq);
+ 	if (ret)
+@@ -869,6 +860,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq, struct vb2_queue *ds
+ 	dst_vq->mem_ops = &vb2_vmalloc_memops;
+ 	dst_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 	dst_vq->lock = &ctx->dev->dev_mutex;
++	dst_vq->supports_tags = true;
+ 
+ 	return vb2_queue_init(dst_vq);
  }
- 
- int vb2_reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index e86981d615ae..81f2dbfd0094 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -473,6 +473,7 @@ struct vb2_buf_ops {
-  *              has not been called. This is a vb1 idiom that has been adopted
-  *              also by vb2.
-  * @supports_requests: this queue supports the Request API.
-+ * @supports_tags: this queue supports tags in struct v4l2_buffer.
-  * @uses_qbuf:	qbuf was used directly for this queue. Set to 1 the first
-  *		time this is called. Set to 0 when the queue is canceled.
-  *		If this is 1, then you cannot queue buffers from a request.
-@@ -547,6 +548,7 @@ struct vb2_queue {
- 	unsigned			allow_zero_bytesused:1;
- 	unsigned		   quirk_poll_must_check_waiting_for_buffers:1;
- 	unsigned			supports_requests:1;
-+	unsigned			supports_tags:1;
- 	unsigned			uses_qbuf:1;
- 	unsigned			uses_requests:1;
- 
 -- 
 2.19.1
