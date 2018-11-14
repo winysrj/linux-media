@@ -1,18 +1,18 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:44296 "EHLO
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:47627 "EHLO
         lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1733092AbeKNXvJ (ORCPT
+        by vger.kernel.org with ESMTP id S1733104AbeKNXvK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Nov 2018 18:51:09 -0500
+        Wed, 14 Nov 2018 18:51:10 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Cc: Alexandre Courbot <acourbot@chromium.org>,
         maxime.ripard@bootlin.com, paul.kocialkowski@bootlin.com,
         tfiga@chromium.org, Nicolas Dufresne <nicolas@ndufresne.ca>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 2/9] vb2: add tag support
-Date: Wed, 14 Nov 2018 14:47:36 +0100
-Message-Id: <20181114134743.18993-3-hverkuil@xs4all.nl>
+        Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCHv2 4/9] buffer.rst: document the new buffer tag feature.
+Date: Wed, 14 Nov 2018 14:47:38 +0100
+Message-Id: <20181114134743.18993-5-hverkuil@xs4all.nl>
 In-Reply-To: <20181114134743.18993-1-hverkuil@xs4all.nl>
 References: <20181114134743.18993-1-hverkuil@xs4all.nl>
 MIME-Version: 1.0
@@ -20,162 +20,99 @@ Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Document V4L2_BUF_FLAG_TAG and struct v4l2_buffer_tag.
 
-Add support for tags to vb2. Besides just storing and setting
-the tag this patch also adds the vb2_find_tag() function that
-can be used to find a buffer with the given tag.
-
-This function will only look at DEQUEUED and DONE buffers, i.e.
-buffers that are already processed.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
 ---
- .../media/common/videobuf2/videobuf2-v4l2.c   | 43 ++++++++++++++++---
- include/media/videobuf2-v4l2.h                | 21 ++++++++-
- 2 files changed, 58 insertions(+), 6 deletions(-)
+ Documentation/media/uapi/v4l/buffer.rst       | 32 ++++++++++++++-----
+ .../media/uapi/v4l/vidioc-reqbufs.rst         |  4 +++
+ 2 files changed, 28 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-index a17033ab2c22..115f2868223a 100644
---- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
-+++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-@@ -50,7 +50,8 @@ module_param(debug, int, 0644);
- 				 V4L2_BUF_FLAG_TIMESTAMP_MASK)
- /* Output buffer flags that should be passed on to the driver */
- #define V4L2_BUFFER_OUT_FLAGS	(V4L2_BUF_FLAG_PFRAME | V4L2_BUF_FLAG_BFRAME | \
--				 V4L2_BUF_FLAG_KEYFRAME | V4L2_BUF_FLAG_TIMECODE)
-+				 V4L2_BUF_FLAG_KEYFRAME | \
-+				 V4L2_BUF_FLAG_TIMECODE | V4L2_BUF_FLAG_TAG)
- 
- /*
-  * __verify_planes_array() - verify that the planes array passed in struct
-@@ -144,8 +145,11 @@ static void __copy_timestamp(struct vb2_buffer *vb, const void *pb)
- 		 */
- 		if (q->copy_timestamp)
- 			vb->timestamp = timeval_to_ns(&b->timestamp);
--		vbuf->flags |= b->flags & V4L2_BUF_FLAG_TIMECODE;
--		if (b->flags & V4L2_BUF_FLAG_TIMECODE)
-+		vbuf->flags |= b->flags &
-+			(V4L2_BUF_FLAG_TIMECODE | V4L2_BUF_FLAG_TAG);
-+		if (b->flags & V4L2_BUF_FLAG_TAG)
-+			vbuf->tag = b->tag;
-+		else if (b->flags & V4L2_BUF_FLAG_TIMECODE)
- 			vbuf->timecode = b->timecode;
- 	}
- };
-@@ -195,6 +199,7 @@ static int vb2_fill_vb2_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b
- 	}
- 	vbuf->sequence = 0;
- 	vbuf->request_fd = -1;
-+	vbuf->tag = 0;
- 
- 	if (V4L2_TYPE_IS_MULTIPLANAR(b->type)) {
- 		switch (b->memory) {
-@@ -314,13 +319,19 @@ static int vb2_fill_vb2_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b
- 	}
- 
- 	if (V4L2_TYPE_IS_OUTPUT(b->type)) {
-+		if ((b->flags & V4L2_BUF_FLAG_TIMECODE) &&
-+		    (b->flags & V4L2_BUF_FLAG_TAG)) {
-+			dprintk(1, "buffer flag TIMECODE cannot be combined with flag TAG\n");
-+			return -EINVAL;
-+		}
+diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
+index 2e266d32470a..0d4aa83d2bce 100644
+--- a/Documentation/media/uapi/v4l/buffer.rst
++++ b/Documentation/media/uapi/v4l/buffer.rst
+@@ -220,17 +220,25 @@ struct v4l2_buffer
+ 	use ``V4L2_BUF_FLAG_TIMESTAMP_COPY`` the application has to fill
+ 	in the timestamp which will be copied by the driver to the capture
+ 	stream.
+-    * - struct :c:type:`v4l2_timecode`
++    * - union
++    * -
++      - struct :c:type:`v4l2_timecode`
+       - ``timecode``
+-      -
+-      - When ``type`` is ``V4L2_BUF_TYPE_VIDEO_CAPTURE`` and the
+-	``V4L2_BUF_FLAG_TIMECODE`` flag is set in ``flags``, this
++      - When the ``V4L2_BUF_FLAG_TIMECODE`` flag is set in ``flags``, this
+ 	structure contains a frame timecode. In
+ 	:c:type:`V4L2_FIELD_ALTERNATE <v4l2_field>` mode the top and
+ 	bottom field contain the same timecode. Timecodes are intended to
+ 	help video editing and are typically recorded on video tapes, but
+ 	also embedded in compressed formats like MPEG. This field is
+ 	independent of the ``timestamp`` and ``sequence`` fields.
++    * -
++      - __u32
++      - ``tag``
++      - When the ``V4L2_BUF_FLAG_TAG`` flag is set in ``flags``, this
++	structure contains a user-specified tag value.
 +
- 		/*
- 		 * For output buffers mask out the timecode flag:
- 		 * this will be handled later in vb2_qbuf().
- 		 * The 'field' is valid metadata for this output buffer
- 		 * and so that needs to be copied here.
- 		 */
--		vbuf->flags &= ~V4L2_BUF_FLAG_TIMECODE;
-+		vbuf->flags &= ~(V4L2_BUF_FLAG_TIMECODE | V4L2_BUF_FLAG_TAG);
- 		vbuf->field = b->field;
- 	} else {
- 		/* Zero any output buffer flags as this is a capture buffer */
-@@ -461,7 +472,10 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
- 	b->flags = vbuf->flags;
- 	b->field = vbuf->field;
- 	b->timestamp = ns_to_timeval(vb->timestamp);
--	b->timecode = vbuf->timecode;
-+	if (b->flags & V4L2_BUF_FLAG_TAG)
-+		b->tag = vbuf->tag;
-+	else if (b->flags & V4L2_BUF_FLAG_TIMECODE)
-+		b->timecode = vbuf->timecode;
- 	b->sequence = vbuf->sequence;
- 	b->reserved2 = 0;
- 	b->request_fd = 0;
-@@ -587,6 +601,25 @@ static const struct vb2_buf_ops v4l2_buf_ops = {
- 	.copy_timestamp		= __copy_timestamp,
- };
++	It is used by stateless codecs where this tag can be used to
++	refer to buffers that contain reference frames.
+     * - __u32
+       - ``sequence``
+       -
+@@ -567,6 +575,14 @@ Buffer Flags
+ 	when the ``VIDIOC_DQBUF`` ioctl is called. Applications can set
+ 	this bit and the corresponding ``timecode`` structure when
+ 	``type`` refers to an output stream.
++    * .. _`V4L2-BUF-FLAG-TAG`:
++
++      - ``V4L2_BUF_FLAG_TAG``
++      - 0x00000200
++      - The ``tag`` field is valid. Applications can set
++	this bit and the corresponding ``tag`` structure. If tags are
++	supported then the ``V4L2_BUF_CAP_SUPPORTS_TAGS`` capability
++	is also set.
+     * .. _`V4L2-BUF-FLAG-PREPARED`:
  
-+int vb2_find_tag(const struct vb2_queue *q, u32 tag,
-+		 unsigned int start_idx)
-+{
-+	unsigned int i;
-+
-+	for (i = start_idx; i < q->num_buffers; i++) {
-+		struct vb2_buffer *vb = q->bufs[i];
-+		struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
-+
-+		if ((vb->state == VB2_BUF_STATE_DEQUEUED ||
-+		     vb->state == VB2_BUF_STATE_DONE) &&
-+		    (vbuf->flags & V4L2_BUF_FLAG_TAG) &&
-+		    vbuf->tag == tag)
-+			return i;
-+	}
-+	return -1;
-+}
-+EXPORT_SYMBOL_GPL(vb2_find_tag);
-+
- /*
-  * vb2_querybuf() - query video buffer information
-  * @q:		videobuf queue
-diff --git a/include/media/videobuf2-v4l2.h b/include/media/videobuf2-v4l2.h
-index 727855463838..c2a541af6b2c 100644
---- a/include/media/videobuf2-v4l2.h
-+++ b/include/media/videobuf2-v4l2.h
-@@ -31,8 +31,9 @@
-  * @field:	field order of the image in the buffer, as defined by
-  *		&enum v4l2_field.
-  * @timecode:	frame timecode.
-+ * @tag:	user specified buffer tag value.
-  * @sequence:	sequence count of this frame.
-- * @request_fd:	the request_fd associated with this buffer
-+ * @request_fd:	the request_fd associated with this buffer.
-  * @planes:	plane information (userptr/fd, length, bytesused, data_offset).
-  *
-  * Should contain enough information to be able to cover all the fields
-@@ -44,6 +45,7 @@ struct vb2_v4l2_buffer {
- 	__u32			flags;
- 	__u32			field;
- 	struct v4l2_timecode	timecode;
-+	__u32			tag;
- 	__u32			sequence;
- 	__s32			request_fd;
- 	struct vb2_plane	planes[VB2_MAX_PLANES];
-@@ -55,6 +57,23 @@ struct vb2_v4l2_buffer {
- #define to_vb2_v4l2_buffer(vb) \
- 	container_of(vb, struct vb2_v4l2_buffer, vb2_buf)
+       - ``V4L2_BUF_FLAG_PREPARED``
+@@ -704,10 +720,10 @@ enum v4l2_memory
+ Timecodes
+ =========
  
-+/**
-+ * vb2_find_tag() - Find buffer with given tag in the queue
-+ *
-+ * @q:		pointer to &struct vb2_queue with videobuf2 queue.
-+ * @tag:	the tag to find. Only buffers in state DEQUEUED or DONE
-+ *		are considered.
-+ * @start_idx:	the start index (usually 0) in the buffer array to start
-+ *		searching from. Note that there may be multiple buffers
-+ *		with the same tag value, so you can restart the search
-+ *		by setting @start_idx to the previously found index + 1.
-+ *
-+ * Returns the buffer index of the buffer with the given @tag, or
-+ * -1 if no buffer with @tag was found.
-+ */
-+int vb2_find_tag(const struct vb2_queue *q, u32 tag,
-+		 unsigned int start_idx);
-+
- int vb2_querybuf(struct vb2_queue *q, struct v4l2_buffer *b);
+-The struct :c:type:`v4l2_timecode` structure is designed to hold a
+-:ref:`smpte12m` or similar timecode. (struct
+-struct :c:type:`timeval` timestamps are stored in struct
+-:c:type:`v4l2_buffer` field ``timestamp``.)
++The :c:type:`v4l2_buffer_timecode` structure is designed to hold a
++:ref:`smpte12m` or similar timecode.
++(struct :c:type:`timeval` timestamps are stored in the struct
++:c:type:`v4l2_buffer` ``timestamp`` field.)
  
- /**
+ 
+ .. c:type:: v4l2_timecode
+diff --git a/Documentation/media/uapi/v4l/vidioc-reqbufs.rst b/Documentation/media/uapi/v4l/vidioc-reqbufs.rst
+index d4bbbb0c60e8..5090a62f324c 100644
+--- a/Documentation/media/uapi/v4l/vidioc-reqbufs.rst
++++ b/Documentation/media/uapi/v4l/vidioc-reqbufs.rst
+@@ -112,6 +112,7 @@ any DMA in progress, an implicit
+ .. _V4L2-BUF-CAP-SUPPORTS-USERPTR:
+ .. _V4L2-BUF-CAP-SUPPORTS-DMABUF:
+ .. _V4L2-BUF-CAP-SUPPORTS-REQUESTS:
++.. _V4L2-BUF-CAP-SUPPORTS-TAGS:
+ 
+ .. cssclass:: longtable
+ 
+@@ -132,6 +133,9 @@ any DMA in progress, an implicit
+     * - ``V4L2_BUF_CAP_SUPPORTS_REQUESTS``
+       - 0x00000008
+       - This buffer type supports :ref:`requests <media-request-api>`.
++    * - ``V4L2_BUF_CAP_SUPPORTS_TAGS``
++      - 0x00000010
++      - This buffer type supports ``V4L2_BUF_FLAG_TAG``.
+ 
+ Return Value
+ ============
 -- 
 2.19.1
