@@ -1,47 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:39659 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727966AbeKNSkM (ORCPT
+Received: from out20-62.mail.aliyun.com ([115.124.20.62]:56422 "EHLO
+        out20-62.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729451AbeKNSnP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Nov 2018 13:40:12 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] cec-pin: fix broken tx_ignore_nack_until_eom error injection
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Message-ID: <429529a0-b69b-9ff5-b5c3-bee0df9cd572@xs4all.nl>
-Date: Wed, 14 Nov 2018 09:37:53 +0100
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+        Wed, 14 Nov 2018 13:43:15 -0500
+Date: Wed, 14 Nov 2018 16:40:05 +0800
+From: Yong <yong.deng@magewell.com>
+To: Maxime Ripard <maxime.ripard@bootlin.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Neil Armstrong <narmstrong@baylibre.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Todor Tomov <todor.tomov@linaro.org>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH v12 0/2] Initial Allwinner V3s CSI Support
+Message-Id: <20181114164005.76477b7401345e346def53d7@magewell.com>
+In-Reply-To: <20181113133518.6nnh4m37s6awfw6d@flea>
+References: <1540886988-27696-1-git-send-email-yong.deng@magewell.com>
+        <20181113133518.6nnh4m37s6awfw6d@flea>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If the tx_ignore_nack_until_eom error injection was activated,
-then tx_nacked was never set instead of setting it when the last
-byte of the message was transmitted.
+Hi Maxime,
 
-As a result the transmit was marked as OK, when it should have
-been NACKed.
+On Tue, 13 Nov 2018 14:35:18 +0100
+Maxime Ripard <maxime.ripard@bootlin.com> wrote:
 
-Modify the condition so that it always sets tx_nacked when the
-last byte of the message was transmitted.
+> Hi Yong,
+> 
+> On Tue, Oct 30, 2018 at 04:09:48PM +0800, Yong Deng wrote:
+> > I can't make v4l2-compliance always happy.
+> > The V3s CSI support many pixformats. But they are not always available.
+> > It's dependent on the input bus format (MEDIA_BUS_FMT_*). 
+> > Example:
+> > V4L2_PIX_FMT_SBGGR8: MEDIA_BUS_FMT_SBGGR8_1X8
+> > V4L2_PIX_FMT_YUYV: MEDIA_BUS_FMT_YUYV8_2X8
+> > But I can't get the subdev's format code before starting stream as the
+> > subdev may change it. So I can't know which pixformats are available.
+> > So I exports all the pixformats supported by SoC.
+> > The result is the app (v4l2-compliance) is likely to fail on streamon.
+> > 
+> > This patchset add initial support for Allwinner V3s CSI.
+> > 
+> > Allwinner V3s SoC features a CSI module with parallel interface.
+> > 
+> > This patchset implement a v4l2 framework driver and add a binding 
+> > documentation for it. 
+> 
+> I've tested this version today, and I needed this patch to make it
+> work on top of v4.20:
+> http://code.bulix.org/9o8fw5-503690?raw
+> 
+> Once that patch applied, my tests were working as expected.
+> 
+> If that make sense, could you resubmit a new version with these merged
+> so that we can try to target 4.21?
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: <stable@vger.kernel.org>      # for v4.17 and up
----
-diff --git a/drivers/media/cec/cec-pin.c b/drivers/media/cec/cec-pin.c
-index 635db8e70ead..8f987bc0dd88 100644
---- a/drivers/media/cec/cec-pin.c
-+++ b/drivers/media/cec/cec-pin.c
-@@ -601,8 +601,9 @@ static void cec_pin_tx_states(struct cec_pin *pin, ktime_t ts)
- 			break;
- 		/* Was the message ACKed? */
- 		ack = cec_msg_is_broadcast(&pin->tx_msg) ? v : !v;
--		if (!ack && !pin->tx_ignore_nack_until_eom &&
--		    pin->tx_bit / 10 < pin->tx_msg.len && !pin->tx_post_eom) {
-+		if (!ack && (!pin->tx_ignore_nack_until_eom ||
-+		    pin->tx_bit / 10 == pin->tx_msg.len - 1) &&
-+		    !pin->tx_post_eom) {
- 			/*
- 			 * Note: the CEC spec is ambiguous regarding
- 			 * what action to take when a NACK appears
+OK. I will check it.
+
+Thanks,
+Yong
