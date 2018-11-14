@@ -1,140 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yb1-f195.google.com ([209.85.219.195]:44867 "EHLO
-        mail-yb1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727154AbeKNTMI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Nov 2018 14:12:08 -0500
-Received: by mail-yb1-f195.google.com with SMTP id p144-v6so6582690yba.11
-        for <linux-media@vger.kernel.org>; Wed, 14 Nov 2018 01:09:45 -0800 (PST)
-Received: from mail-yw1-f43.google.com (mail-yw1-f43.google.com. [209.85.161.43])
-        by smtp.gmail.com with ESMTPSA id x127-v6sm5600897ywf.28.2018.11.14.01.09.43
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 14 Nov 2018 01:09:44 -0800 (PST)
-Received: by mail-yw1-f43.google.com with SMTP id z72-v6so7032654ywa.0
-        for <linux-media@vger.kernel.org>; Wed, 14 Nov 2018 01:09:43 -0800 (PST)
-MIME-Version: 1.0
-References: <20180925101434.20327-1-sakari.ailus@linux.intel.com>
- <20180925101434.20327-3-sakari.ailus@linux.intel.com> <ed5a453b-41d3-6ab5-2bc2-8cab309ac749@xs4all.nl>
-In-Reply-To: <ed5a453b-41d3-6ab5-2bc2-8cab309ac749@xs4all.nl>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Wed, 14 Nov 2018 18:09:31 +0900
-Message-ID: <CAAFQd5Dv8ZREnYJwHpDYrNWhaRh=0aPPatx6XPenOQbnRN4aDA@mail.gmail.com>
-Subject: Re: [PATCH 2/5] v4l: controls: Add support for exponential bases,
- prefixes and units
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Cao Bing Bu <bingbu.cao@intel.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
-        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-        Grant Grundler <grundler@chromium.org>,
-        ping-chung.chen@intel.com, "Yeh, Andy" <andy.yeh@intel.com>,
-        "Lai, Jim" <jim.lai@intel.com>, helmut.grohne@intenta.de,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        snawrocki@kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Received: from mga02.intel.com ([134.134.136.20]:60554 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727558AbeKNTk7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Nov 2018 14:40:59 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Dave Stevenson <dave.stevenson@raspberrypi.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>, mchehab@kernel.org,
+        linux-media@vger.kernel.org, Sasha Levin <sashal@kernel.org>
+Subject: [PATCH v2 for v4.4 1/1] v4l: event: Add subscription to list before calling "add" operation
+Date: Wed, 14 Nov 2018 11:37:46 +0200
+Message-Id: <20181114093746.29035-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+[ upstream commit 92539d3eda2c090b382699bbb896d4b54e9bdece ]
 
-On Fri, Sep 28, 2018 at 11:00 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
->
-> On 09/25/2018 12:14 PM, Sakari Ailus wrote:
-> > Add support for exponential bases, prefixes as well as units for V4L2
-> > controls. This makes it possible to convey information on the relation
-> > between the control value and the hardware feature being controlled.
-> >
+Patch ad608fbcf166 changed how events were subscribed to address an issue
+elsewhere. As a side effect of that change, the "add" callback was called
+before the event subscription was added to the list of subscribed events,
+causing the first event queued by the add callback (and possibly other
+events arriving soon afterwards) to be lost.
 
-Sorry for being late to the party.
+Fix this by adding the subscription to the list before calling the "add"
+callback, and clean up afterwards if that fails.
 
-Thanks for the series. I think it has a potential to be very useful.
+Fixes: ad608fbcf166 ("media: v4l: event: Prevent freeing event subscriptions while accessed")
 
-Please see my comments below.
+Reported-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Tested-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+Tested-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+[Sakari Ailus: Backported to v4.4 stable]
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+since v1 (as requested by Sasha):
 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > ---
-> >  include/uapi/linux/videodev2.h | 32 +++++++++++++++++++++++++++++++-
-> >  1 file changed, 31 insertions(+), 1 deletion(-)
-> >
-> > diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> > index ae083978988f1..23b02f2db85a1 100644
-> > --- a/include/uapi/linux/videodev2.h
-> > +++ b/include/uapi/linux/videodev2.h
-> > @@ -1652,6 +1652,32 @@ struct v4l2_queryctrl {
-> >       __u32                reserved[2];
-> >  };
-> >
-> > +/* V4L2 control exponential bases */
-> > +#define V4L2_CTRL_BASE_UNDEFINED     0
-> > +#define V4L2_CTRL_BASE_LINEAR                1
->
-> I'm not really sure you need BASE_LINEAR. That is effectively the same
-> as UNDEFINED since what else can you do? It's also weird to have this
-> as 'base' if the EXPONENTIAL flag is set.
->
-> I don't see why you need the EXPONENTIAL flag at all: if this is non-0,
-> then you know the exponential base.
+- Add my final SoB
+- Indicate specifically this is a backport
+- Remove the extra cc stable
 
-Or vice versa, we could remove UNDEFINED and LINEAR altogether and
-have the EXPONENTIAL flag actually signify the presence of a valid
-base? Besides that, "linear exponential base" just doesn't sound right
-or am I missing some basic maths? ;)
+ drivers/media/v4l2-core/v4l2-event.c | 43 ++++++++++++++++++++----------------
+ 1 file changed, 24 insertions(+), 19 deletions(-)
 
-Then we could actually have a LOGARITHMIC flag and it could reuse the
-same bases enum.
-
->
-> > +#define V4L2_CTRL_BASE_2             2
-> > +#define V4L2_CTRL_BASE_10            10
-> > +
-> > +/* V4L2 control unit prefixes */
-> > +#define V4L2_CTRL_PREFIX_NANO                -9
-> > +#define V4L2_CTRL_PREFIX_MICRO               -6
-> > +#define V4L2_CTRL_PREFIX_MILLI               -3
-> > +#define V4L2_CTRL_PREFIX_1           0
->
-> I would prefer PREFIX_NONE, since there is no prefix in this case.
->
-> I assume this prefix is only valid if the unit is not UNDEFINED and not
-> NONE?
->
-> Is 'base' also dependent on a valid unit? (it doesn't appear to be)
->
-> > +#define V4L2_CTRL_PREFIX_KILO                3
-> > +#define V4L2_CTRL_PREFIX_MEGA                6
-> > +#define V4L2_CTRL_PREFIX_GIGA                9
-> > +
-> > +/* V4L2 control units */
-> > +#define V4L2_CTRL_UNIT_UNDEFINED     0
-> > +#define V4L2_CTRL_UNIT_NONE          1
-
-Hmm, what's the meaning of NONE? How does it differ from UNDEFINED?
-
-> > +#define V4L2_CTRL_UNIT_SECOND                2
-> > +#define V4L2_CTRL_UNIT_AMPERE                3
-> > +#define V4L2_CTRL_UNIT_LINE          4
-> > +#define V4L2_CTRL_UNIT_PIXEL         5
-> > +#define V4L2_CTRL_UNIT_PIXELS_PER_SEC        6
-> > +#define V4L2_CTRL_UNIT_HZ            7
-> > +
-> > +
-> >  /*  Used in the VIDIOC_QUERY_EXT_CTRL ioctl for querying extended controls */
-> >  struct v4l2_query_ext_ctrl {
-> >       __u32                id;
-> > @@ -1666,7 +1692,10 @@ struct v4l2_query_ext_ctrl {
-> >       __u32                elems;
-> >       __u32                nr_of_dims;
-> >       __u32                dims[V4L2_CTRL_MAX_DIMS];
-> > -     __u32                reserved[32];
-> > +     __u8                 base;
-> > +     __s8                 prefix;
-
-Should we make those bigger just in case, or leave some reserved
-fields around so we can make them bigger when we need it?
-
-Best regards,
-Tomasz
+diff --git a/drivers/media/v4l2-core/v4l2-event.c b/drivers/media/v4l2-core/v4l2-event.c
+index b47ac4e053d0e..f5c8a952f0aa3 100644
+--- a/drivers/media/v4l2-core/v4l2-event.c
++++ b/drivers/media/v4l2-core/v4l2-event.c
+@@ -197,6 +197,22 @@ int v4l2_event_pending(struct v4l2_fh *fh)
+ }
+ EXPORT_SYMBOL_GPL(v4l2_event_pending);
+ 
++static void __v4l2_event_unsubscribe(struct v4l2_subscribed_event *sev)
++{
++	struct v4l2_fh *fh = sev->fh;
++	unsigned int i;
++
++	lockdep_assert_held(&fh->subscribe_lock);
++	assert_spin_locked(&fh->vdev->fh_lock);
++
++	/* Remove any pending events for this subscription */
++	for (i = 0; i < sev->in_use; i++) {
++		list_del(&sev->events[sev_pos(sev, i)].list);
++		fh->navailable--;
++	}
++	list_del(&sev->list);
++}
++
+ int v4l2_event_subscribe(struct v4l2_fh *fh,
+ 			 const struct v4l2_event_subscription *sub, unsigned elems,
+ 			 const struct v4l2_subscribed_event_ops *ops)
+@@ -228,27 +244,23 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
+ 
+ 	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
+ 	found_ev = v4l2_event_subscribed(fh, sub->type, sub->id);
++	if (!found_ev)
++		list_add(&sev->list, &fh->subscribed);
+ 	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+ 
+ 	if (found_ev) {
+ 		/* Already listening */
+ 		kfree(sev);
+-		goto out_unlock;
+-	}
+-
+-	if (sev->ops && sev->ops->add) {
++	} else if (sev->ops && sev->ops->add) {
+ 		ret = sev->ops->add(sev, elems);
+ 		if (ret) {
++			spin_lock_irqsave(&fh->vdev->fh_lock, flags);
++			__v4l2_event_unsubscribe(sev);
++			spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+ 			kfree(sev);
+-			goto out_unlock;
+ 		}
+ 	}
+ 
+-	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
+-	list_add(&sev->list, &fh->subscribed);
+-	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+-
+-out_unlock:
+ 	mutex_unlock(&fh->subscribe_lock);
+ 
+ 	return ret;
+@@ -283,7 +295,6 @@ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
+ {
+ 	struct v4l2_subscribed_event *sev;
+ 	unsigned long flags;
+-	int i;
+ 
+ 	if (sub->type == V4L2_EVENT_ALL) {
+ 		v4l2_event_unsubscribe_all(fh);
+@@ -295,14 +306,8 @@ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
+ 	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
+ 
+ 	sev = v4l2_event_subscribed(fh, sub->type, sub->id);
+-	if (sev != NULL) {
+-		/* Remove any pending events for this subscription */
+-		for (i = 0; i < sev->in_use; i++) {
+-			list_del(&sev->events[sev_pos(sev, i)].list);
+-			fh->navailable--;
+-		}
+-		list_del(&sev->list);
+-	}
++	if (sev != NULL)
++		__v4l2_event_unsubscribe(sev);
+ 
+ 	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+ 
+-- 
+2.11.0
