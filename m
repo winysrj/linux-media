@@ -1,65 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:56028 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1732604AbeKNXvK (ORCPT
+Received: from mail-io1-f66.google.com ([209.85.166.66]:46615 "EHLO
+        mail-io1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1732604AbeKNXvU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Nov 2018 18:51:10 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Alexandre Courbot <acourbot@chromium.org>,
-        maxime.ripard@bootlin.com, paul.kocialkowski@bootlin.com,
-        tfiga@chromium.org, Nicolas Dufresne <nicolas@ndufresne.ca>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCHv2 6/9] vb2: add new supports_tags queue flag
-Date: Wed, 14 Nov 2018 14:47:40 +0100
-Message-Id: <20181114134743.18993-7-hverkuil@xs4all.nl>
-In-Reply-To: <20181114134743.18993-1-hverkuil@xs4all.nl>
-References: <20181114134743.18993-1-hverkuil@xs4all.nl>
+        Wed, 14 Nov 2018 18:51:20 -0500
+Received: by mail-io1-f66.google.com with SMTP id m1-v6so882767ioc.13
+        for <linux-media@vger.kernel.org>; Wed, 14 Nov 2018 05:48:00 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20181019121539.12778-1-p.zabel@pengutronix.de>
+In-Reply-To: <20181019121539.12778-1-p.zabel@pengutronix.de>
+From: Adam Ford <aford173@gmail.com>
+Date: Wed, 14 Nov 2018 07:47:48 -0600
+Message-ID: <CAHCN7xKwKBS5FQ7PA+biYmjaS=j5HRbhowtc4wbcXFxx6Z79wA@mail.gmail.com>
+Subject: Re: [PATCH v4 00/22] i.MX media mem2mem scaler
+To: p.zabel@pengutronix.de
+Cc: linux-media@vger.kernel.org, slongerbeam@gmail.com,
+        nicolas@ndufresne.ca, Tim Harvey <tharvey@gateworks.com>,
+        Sascha Hauer <kernel@pengutronix.de>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add new flag to indicate that buffer tags are supported.
+On Fri, Oct 19, 2018 at 7:16 AM Philipp Zabel <p.zabel@pengutronix.de> wrot=
+e:
+>
+> Hi,
+>
+> this is the fourth version of the i.MX mem2mem scaler series.
+>
+> An alignment issue with 24-bit RGB formats has been corrected in the
+> seam position selection patch and a few new fixes by Steve have been
+> added. If there are no more issues, I'll pick up the ipu-v3 patches
+> via imx-drm/next. The first patch could be merged via the media tree
+> independently.
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
----
- drivers/media/common/videobuf2/videobuf2-v4l2.c | 2 ++
- include/media/videobuf2-core.h                  | 2 ++
- 2 files changed, 4 insertions(+)
+I'd like to test this, but I am not sure how.  Do you have
+instructions?  (ideally using gstreamer?)
 
-diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-index 115f2868223a..d2d4985fb352 100644
---- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
-+++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-@@ -666,6 +666,8 @@ static void fill_buf_caps(struct vb2_queue *q, u32 *caps)
- 		*caps |= V4L2_BUF_CAP_SUPPORTS_DMABUF;
- 	if (q->supports_requests)
- 		*caps |= V4L2_BUF_CAP_SUPPORTS_REQUESTS;
-+	if (q->supports_tags)
-+		*caps |= V4L2_BUF_CAP_SUPPORTS_TAGS;
- }
- 
- int vb2_reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index e86981d615ae..81f2dbfd0094 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -473,6 +473,7 @@ struct vb2_buf_ops {
-  *              has not been called. This is a vb1 idiom that has been adopted
-  *              also by vb2.
-  * @supports_requests: this queue supports the Request API.
-+ * @supports_tags: this queue supports tags in struct v4l2_buffer.
-  * @uses_qbuf:	qbuf was used directly for this queue. Set to 1 the first
-  *		time this is called. Set to 0 when the queue is canceled.
-  *		If this is 1, then you cannot queue buffers from a request.
-@@ -547,6 +548,7 @@ struct vb2_queue {
- 	unsigned			allow_zero_bytesused:1;
- 	unsigned		   quirk_poll_must_check_waiting_for_buffers:1;
- 	unsigned			supports_requests:1;
-+	unsigned			supports_tags:1;
- 	unsigned			uses_qbuf:1;
- 	unsigned			uses_requests:1;
- 
--- 
-2.19.1
+adam
+
+>
+> Changes since v3:
+>  - Fix tile_left_align for 24-bit RGB formats and reduce alignment
+>    restrictions for U/V packed planar YUV formats
+>  - Catch unaligned tile offsets in image-convert
+>  - Add chroma plane offset overrides to ipu_cpmem_set_image() to
+>    prevent a false positive warning in some cases
+>  - Fix a race between run and unprepare and make abort reentrant.
+>
+>
+> Changes since v2:
+>  - Rely on ipu_image_convert_adjust() in mem2mem_try_fmt() for format
+>    adjustments. This makes the mem2mem driver mostly a V4L2 mem2mem API
+>    wrapper around the IPU image converter, and independent of the
+>    internal image converter implementation.
+>  - Remove the source and destination buffers on error in device_run().
+>    Otherwise the conversion is re-attempted apparently over and over
+>    again (with WARN() backtraces).
+>  - Allow subscribing to control changes.
+>  - Fix seam position selection for more corner cases:
+>     - Switch width/height properly and align tile top left positions to 8=
+x8
+>       IRT block size when rotating.
+>     - Align input width to input burst length in case the scaling step
+>       flips horizontally.
+>     - Fix bottom edge calculation.
+>
+> Changes since v1:
+>  - Fix inverted allow_overshoot logic
+>  - Correctly switch horizontal / vertical tile alignment when
+>    determining seam positions with the 90=C2=B0 rotator active.
+>  - Fix SPDX-License-Identifier and remove superfluous license
+>    text.
+>  - Fix uninitialized walign in try_fmt
+>
+> Previous cover letter:
+>
+> we have image conversion code for scaling and colorspace conversion in
+> the IPUv3 base driver for a while. Since the IC hardware can only write
+> up to 1024x1024 pixel buffers, it scales to larger output buffers by
+> splitting the input and output frame into similarly sized tiles.
+>
+> This causes the issue that the bilinear interpolation resets at the tile
+> boundary: instead of smoothly interpolating across the seam, there is a
+> jump in the input sample position that is very apparent for high
+> upscaling factors. This can be avoided by slightly changing the scaling
+> coefficients to let the left/top tiles overshoot their input sampling
+> into the first pixel / line of their right / bottom neighbors. The error
+> can be further reduced by letting tiles be differently sized and by
+> selecting seam positions that minimize the input sampling position error
+> at tile boundaries.
+> This is complicated by different DMA start address, burst size, and
+> rotator block size alignment requirements, depending on the input and
+> output pixel formats, and the fact that flipping happens in different
+> places depending on the rotation.
+>
+> This series implements optimal seam position selection and seam hiding
+> with per-tile resizing coefficients and adds a scaling mem2mem device
+> to the imx-media driver.
+>
+> regards
+> Philipp
+>
+> Philipp Zabel (15):
+>   media: imx: add mem2mem device
+>   gpu: ipu-v3: ipu-ic: allow to manually set resize coefficients
+>   gpu: ipu-v3: image-convert: prepare for per-tile configuration
+>   gpu: ipu-v3: image-convert: calculate per-tile resize coefficients
+>   gpu: ipu-v3: image-convert: reconfigure IC per tile
+>   gpu: ipu-v3: image-convert: store tile top/left position
+>   gpu: ipu-v3: image-convert: calculate tile dimensions and offsets
+>     outside fill_image
+>   gpu: ipu-v3: image-convert: move tile alignment helpers
+>   gpu: ipu-v3: image-convert: select optimal seam positions
+>   gpu: ipu-v3: image-convert: fix debug output for varying tile sizes
+>   gpu: ipu-v3: image-convert: relax alignment restrictions
+>   gpu: ipu-v3: image-convert: fix bytesperline adjustment
+>   gpu: ipu-v3: image-convert: add some ASCII art to the exposition
+>   gpu: ipu-v3: image-convert: disable double buffering if necessary
+>   gpu: ipu-v3: image-convert: allow three rows or columns
+>
+> Steve Longerbeam (7):
+>   gpu: ipu-cpmem: add WARN_ON_ONCE() for unaligned dma buffers
+>   gpu: ipu-v3: Add chroma plane offset overrides to
+>     ipu_cpmem_set_image()
+>   gpu: ipu-v3: image-convert: Prevent race between run and unprepare
+>   gpu: ipu-v3: image-convert: Only wait for abort completion if active
+>     run
+>   gpu: ipu-v3: image-convert: Allow reentrancy into abort
+>   gpu: ipu-v3: image-convert: Remove need_abort flag
+>   gpu: ipu-v3: image-convert: Catch unaligned tile offsets
+>
+>  drivers/gpu/ipu-v3/ipu-cpmem.c                |   52 +-
+>  drivers/gpu/ipu-v3/ipu-ic.c                   |   52 +-
+>  drivers/gpu/ipu-v3/ipu-image-convert.c        | 1019 ++++++++++++++---
+>  drivers/staging/media/imx/Kconfig             |    1 +
+>  drivers/staging/media/imx/Makefile            |    1 +
+>  drivers/staging/media/imx/imx-media-dev.c     |   11 +
+>  drivers/staging/media/imx/imx-media-mem2mem.c |  873 ++++++++++++++
+>  drivers/staging/media/imx/imx-media.h         |   10 +
+>  include/video/imx-ipu-v3.h                    |    9 +
+>  9 files changed, 1821 insertions(+), 207 deletions(-)
+>  create mode 100644 drivers/staging/media/imx/imx-media-mem2mem.c
+>
+> --
+> 2.19.0
+>
