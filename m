@@ -1,95 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:59163 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1732653AbeKOBUw (ORCPT
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:43419 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727972AbeKOB3T (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Nov 2018 20:20:52 -0500
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
+        Wed, 14 Nov 2018 20:29:19 -0500
+Subject: Re: [PATCH] media: vb2: Allow reqbufs(0) with "in use" MMAP buffers
+To: Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Nicolas Dufresne <nicolas@ndufresne.ca>
+References: <20181113150621.22276-1-p.zabel@pengutronix.de>
+ <eac4ab89-fde0-d28c-9f56-6b6ad5f9e95a@xs4all.nl>
+ <1542206620.4095.10.camel@pengutronix.de>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.21] Various fixes (coda, rcar, pxp, others)
-Message-ID: <2826cd40-8b70-9b72-02f0-6d92b23fe1e2@xs4all.nl>
-Date: Wed, 14 Nov 2018 16:17:08 +0100
+Message-ID: <d0d5507f-388e-278e-8384-99dd90ce7ece@xs4all.nl>
+Date: Wed, 14 Nov 2018 16:25:33 +0100
 MIME-Version: 1.0
+In-Reply-To: <1542206620.4095.10.camel@pengutronix.de>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit fbe57dde7126d1b2712ab5ea93fb9d15f89de708:
+On 11/14/18 15:43, Philipp Zabel wrote:
+> Hi Hans,
+> 
+> On Tue, 2018-11-13 at 16:43 +0100, Hans Verkuil wrote:
+>> Hi Philipp,
+>>
+>> On 11/13/18 16:06, Philipp Zabel wrote:
+>>> From: John Sheu <sheu@chromium.org>
+>>>
+>>> Videobuf2 presently does not allow VIDIOC_REQBUFS to destroy outstanding
+>>> buffers if the queue is of type V4L2_MEMORY_MMAP, and if the buffers are
+>>> considered "in use".  This is different behavior than for other memory
+>>> types and prevents us from deallocating buffers in following two cases:
+>>>
+>>> 1) There are outstanding mmap()ed views on the buffer. However even if
+>>>    we put the buffer in reqbufs(0), there will be remaining references,
+>>>    due to vma .open/close() adjusting vb2 buffer refcount appropriately.
+>>>    This means that the buffer will be in fact freed only when the last
+>>>    mmap()ed view is unmapped.
+>>>
+>>> 2) Buffer has been exported as a DMABUF. Refcount of the vb2 buffer
+>>>    is managed properly by VB2 DMABUF ops, i.e. incremented on DMABUF
+>>>    get and decremented on DMABUF release. This means that the buffer
+>>>    will be alive until all importers release it.
+>>>
+>>> Considering both cases above, there does not seem to be any need to
+>>> prevent reqbufs(0) operation, because buffer lifetime is already
+>>> properly managed by both mmap() and DMABUF code paths. Let's remove it
+>>> and allow userspace freeing the queue (and potentially allocating a new
+>>> one) even though old buffers might be still in processing.
+>>>
+>>> To let userspace know that the kernel now supports orphaning buffers
+>>> that are still in use, add a new V4L2_BUF_CAP_SUPPORTS_ORPHANED_BUFS
+>>> to be set by reqbufs and create_bufs.
+>>
+>> Looks good, but I have some questions:
+>>
+>> 1) does v4l2-compliance together with vivid (easiest to test) still work?
+>>    I don't think I have a proper test for this in v4l2-compliance, but
+>>    I'm not 100% certain. If it fails with this patch, then please provide
+>>    a fix for v4l2-compliance as well.
+> 
+> I have tested on v4.20-rc2 with 92539d3eda2c ("media: v4l: event: Add
+> subscription to list before calling "add" operation") and this patch
+> applied:
+> 
+> $ modprobe vivid no_error_inj=1
+> vivid-000: V4L2 capture device registered as video15
+> vivid-000: V4L2 output device registered as video16
+> 
+> $ v4l2-compliance -d 15 -s 1 --expbuf-device 16
+> v4l2-compliance SHA: 98b4c9f276a18535b5691e5f350f59ffbf5a9aa5, 32 bits
+> ...
+> Total: 112, Succeeded: 112, Failed: 0, Warnings: 4
+> 
+> The warnings are:
+> 		warn: v4l2-test-formats.cpp(1426): doioctl(node, VIDIOC_CROPCAP, &cap)
 
-  media: ov7740: constify structures stored in fields of v4l2_subdev_ops structure (2018-11-06 07:17:02 -0500)
+Will be fixed when https://patchwork.linuxtv.org/patch/52811/ is merged.
 
-are available in the Git repository at:
+> 	test Cropping: OK
+> (one per input) and:
+> 		warn: v4l2-test-controls.cpp(845): V4L2_CID_DV_RX_POWER_PRESENT not found for input 3
 
-  git://linuxtv.org/hverkuil/media_tree.git tags/br-v4.21c
+Waiting for a volunteer to teach vivid to properly emulate an HDMI connector.
 
-for you to fetch changes up to fb248101254782a3939c40eaaa7e347260b27b77:
+So this looks good.
 
-  pulse8-cec: return 0 when invalidating the logical address (2018-11-14 16:07:47 +0100)
+Will look at the v4l2-compliance patch tomorrow.
 
-----------------------------------------------------------------
-Tag branch
+Regards,
 
-----------------------------------------------------------------
-Fabio Estevam (3):
-      media: imx-pxp: Check the return value from clk_prepare_enable()
-      media: imx-pxp: Check for pxp_soft_reset() error
-      media: imx-pxp: Improve pxp_soft_reset() error message
+	Hans
 
-Hans Verkuil (3):
-      vb2: vb2_mmap: move lock up
-      cec-pin: fix broken tx_ignore_nack_until_eom error injection
-      pulse8-cec: return 0 when invalidating the logical address
-
-Jacopo Mondi (6):
-      media: dt-bindings: rcar-vin: Add R8A77990 support
-      media: rcar-vin: Add support for R-Car R8A77990
-      media: dt-bindings: rcar-csi2: Add R8A77990
-      media: rcar-csi2: Add R8A77990 support
-      media: rcar: rcar-csi2: Update V3M/E3 PHTW tables
-      media: rcar-csi2: Handle per-SoC number of channels
-
-Lucas Stach (2):
-      media: coda: limit queueing into internal bitstream buffer
-      media: coda: don't disable IRQs across buffer meta handling
-
-Michael Tretter (1):
-      media: coda: print SEQ_INIT error code as hex value
-
-Philipp Zabel (12):
-      media: coda: fix memory corruption in case more than 32 instances are opened
-      media: coda: store unmasked fifo position in meta
-      media: coda: always hold back decoder jobs until we have enough bitstream payload
-      media: coda: reduce minimum frame size to 48x16 pixels.
-      media: coda: remove unused instances list
-      media: coda: set V4L2_CAP_TIMEPERFRAME flag in coda_s_parm
-      media: coda: implement ENUM_FRAMEINTERVALS
-      media: coda: never set infinite timeperframe
-      media: coda: fail S_SELECTION for read-only targets
-      media: coda: improve queue busy error message
-      media: coda: normalise debug output
-      media: coda: debug output when setting visible size via crop selection
-
-Ricardo Ribalda Delgado (1):
-      media: doc-rst: Fix broken references
-
-kbuild test robot (1):
-      media: platform: fix platform_no_drv_owner.cocci warnings
-
- Documentation/devicetree/bindings/media/rcar_vin.txt          |   1 +
- Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt |   1 +
- Documentation/media/v4l-drivers/sh_mobile_ceu_camera.rst      |   2 +-
- drivers/media/cec/cec-pin.c                                   |   5 +-
- drivers/media/common/videobuf2/videobuf2-core.c               |  11 ++-
- drivers/media/platform/coda/coda-bit.c                        | 113 +++++++++++++----------
- drivers/media/platform/coda/coda-common.c                     | 231 +++++++++++++++++++++++++---------------------
- drivers/media/platform/coda/coda.h                            |  28 +++++-
- drivers/media/platform/coda/trace.h                           |  10 +-
- drivers/media/platform/imx-pxp.c                              |  17 +++-
- drivers/media/platform/rcar-vin/rcar-core.c                   |  20 ++++
- drivers/media/platform/rcar-vin/rcar-csi2.c                   |  86 ++++++++++-------
- drivers/media/platform/sh_vou.c                               |   2 +-
- drivers/media/usb/pulse8-cec/pulse8-cec.c                     |   2 +-
- drivers/staging/media/sunxi/cedrus/cedrus.c                   |   1 -
- 15 files changed, 319 insertions(+), 211 deletions(-)
+> 	test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+> 
+>> 2) I would like to see a new test in v4l2-compliance for this: i.e. if
+>>    the capability is set, then check that you can call REQBUFS(0) before
+>>    unmapping all buffers. Ditto with dmabuffers.
+>>
+>> I said during the media summit that I wanted to be more strict about
+>> requiring compliance tests before adding new features, so you're the
+>> unlucky victim of that :-)
+> 
+> That's fair. The SHA above is actually a lie, I had one patch applied.
+> 
+> regards
+> Philipp
+> 
