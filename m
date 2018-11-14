@@ -1,230 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga12.intel.com ([192.55.52.136]:38489 "EHLO mga12.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726927AbeKNQ7w (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Nov 2018 11:59:52 -0500
-Subject: Re: [PATCH v7 00/16] Intel IPU3 ImgU patchset
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Yong Zhi <yong.zhi@intel.com>, linux-media@vger.kernel.org,
-        tfiga@chromium.org, mchehab@kernel.org, hans.verkuil@cisco.com,
-        laurent.pinchart@ideasonboard.com, rajmohan.mani@intel.com,
-        jian.xu.zheng@intel.com, jerry.w.hu@intel.com,
-        tuukka.toivonen@intel.com, tian.shu.qiu@intel.com,
-        bingbu.cao@intel.com
-References: <1540851790-1777-1-git-send-email-yong.zhi@intel.com>
- <20181101120303.g7z2dy24pn5j2slo@kekkonen.localdomain>
- <6bc1a25d-5799-5a9b-546e-3b8cf42ce976@linux.intel.com>
- <20181109100953.4xfsslyfdhajhqoa@paasikivi.fi.intel.com>
- <bf13758d-1ca3-5fa3-a573-ee773902f4dd@linux.intel.com>
- <20181113103114.jdcdocmazl2knxid@kekkonen.localdomain>
- <df268c1e-be12-22c4-733a-0110b53c296c@linux.intel.com>
- <20181113215810.mmktgsfyfjclurfq@kekkonen.localdomain>
-From: Bing Bu Cao <bingbu.cao@linux.intel.com>
-Message-ID: <1ceebeab-2114-8611-2cf0-ba16aa00a671@linux.intel.com>
-Date: Wed, 14 Nov 2018 15:02:37 +0800
+Received: from mail-io1-f70.google.com ([209.85.166.70]:33402 "EHLO
+        mail-io1-f70.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727576AbeKNRUG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Nov 2018 12:20:06 -0500
+Received: by mail-io1-f70.google.com with SMTP id u13-v6so4266255iob.0
+        for <linux-media@vger.kernel.org>; Tue, 13 Nov 2018 23:18:07 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <20181113215810.mmktgsfyfjclurfq@kekkonen.localdomain>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+Date: Tue, 13 Nov 2018 23:18:06 -0800
+Message-ID: <00000000000057e614057a9abcd3@google.com>
+Subject: KASAN: null-ptr-deref Read in refcount_sub_and_test_checked (2)
+From: syzbot <syzbot+0468b73bdbb243217224@syzkaller.appspotmail.com>
+To: kyungmin.park@samsung.com, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+        mchehab@kernel.org, pawel@osciak.com,
+        syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hello,
+
+syzbot found the following crash on:
+
+HEAD commit:    ccda4af0f4b9 Linux 4.20-rc2
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=16f9cb0b400000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=4a0a89f12ca9b0f5
+dashboard link: https://syzkaller.appspot.com/bug?extid=0468b73bdbb243217224
+compiler:       gcc (GCC) 8.0.1 20180413 (experimental)
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=16d20893400000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=118f5a2b400000
+
+IMPORTANT: if you fix the bug, please add the following tag to the commit:
+Reported-by: syzbot+0468b73bdbb243217224@syzkaller.appspotmail.com
+
+==================================================================
+BUG: KASAN: null-ptr-deref in atomic_read  
+include/asm-generic/atomic-instrumented.h:21 [inline]
+BUG: KASAN: null-ptr-deref in refcount_sub_and_test_checked+0x9d/0x310  
+lib/refcount.c:179
+Read of size 4 at addr 0000000000000020 by task syz-executor487/6051
+
+CPU: 0 PID: 6051 Comm: syz-executor487 Not tainted 4.20.0-rc2+ #333
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
+Google 01/01/2011
+Call Trace:
+  __dump_stack lib/dump_stack.c:77 [inline]
+  dump_stack+0x244/0x39d lib/dump_stack.c:113
+  kasan_report_error mm/kasan/report.c:352 [inline]
+  kasan_report.cold.8+0x6d/0x309 mm/kasan/report.c:412
+  check_memory_region_inline mm/kasan/kasan.c:260 [inline]
+  check_memory_region+0x13e/0x1b0 mm/kasan/kasan.c:267
+  kasan_check_read+0x11/0x20 mm/kasan/kasan.c:272
+  atomic_read include/asm-generic/atomic-instrumented.h:21 [inline]
+  refcount_sub_and_test_checked+0x9d/0x310 lib/refcount.c:179
+  refcount_dec_and_test_checked+0x1a/0x20 lib/refcount.c:212
+  vb2_vmalloc_put+0x19/0x80  
+drivers/media/common/videobuf2/videobuf2-vmalloc.c:68
+  __vb2_buf_mem_free+0x112/0x210  
+drivers/media/common/videobuf2/videobuf2-core.c:242
+  __vb2_free_mem drivers/media/common/videobuf2/videobuf2-core.c:413 [inline]
+  __vb2_queue_free+0x830/0xa30  
+drivers/media/common/videobuf2/videobuf2-core.c:458
+  vb2_core_queue_release+0x62/0x80  
+drivers/media/common/videobuf2/videobuf2-core.c:2231
+  vb2_queue_release drivers/media/common/videobuf2/videobuf2-v4l2.c:837  
+[inline]
+  _vb2_fop_release+0x1d2/0x2b0  
+drivers/media/common/videobuf2/videobuf2-v4l2.c:1010
+  vb2_fop_release+0x77/0xc0  
+drivers/media/common/videobuf2/videobuf2-v4l2.c:1024
+  vivid_fop_release+0x18e/0x440 drivers/media/platform/vivid/vivid-core.c:474
+  v4l2_release+0x224/0x3a0 drivers/media/v4l2-core/v4l2-dev.c:456
+  __fput+0x385/0xa30 fs/file_table.c:278
+  ____fput+0x15/0x20 fs/file_table.c:309
+  task_work_run+0x1e8/0x2a0 kernel/task_work.c:113
+  exit_task_work include/linux/task_work.h:22 [inline]
+  do_exit+0x1ad6/0x26d0 kernel/exit.c:867
+  do_group_exit+0x177/0x440 kernel/exit.c:970
+  __do_sys_exit_group kernel/exit.c:981 [inline]
+  __se_sys_exit_group kernel/exit.c:979 [inline]
+  __x64_sys_exit_group+0x3e/0x50 kernel/exit.c:979
+  do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x442c78
+Code: Bad RIP value.
+RSP: 002b:00007fff4ac5a278 EFLAGS: 00000246 ORIG_RAX: 00000000000000e7
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 0000000000442c78
+RDX: 0000000000000000 RSI: 000000000000003c RDI: 0000000000000000
+RBP: 00000000004c2848 R08: 00000000000000e7 R09: ffffffffffffffd0
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000001
+R13: 00000000006d4180 R14: 0000000000000000 R15: 0000000000000000
+==================================================================
 
 
-On 11/14/2018 05:58 AM, Sakari Ailus wrote:
-> On Tue, Nov 13, 2018 at 07:04:01PM +0800, Bing Bu Cao wrote:
->>
->> On 11/13/2018 06:31 PM, Sakari Ailus wrote:
->>> Hi Bing Bu,
->>>
->>> On Mon, Nov 12, 2018 at 12:31:16PM +0800, Bing Bu Cao wrote:
->>>> On 11/09/2018 06:09 PM, Sakari Ailus wrote:
->>>>> Hi Bing Bu,
->>>>>
->>>>> On Wed, Nov 07, 2018 at 12:16:47PM +0800, Bing Bu Cao wrote:
->>>>>> On 11/01/2018 08:03 PM, Sakari Ailus wrote:
->>>>>>> Hi Yong,
->>>>>>>
->>>>>>> Thanks for the update!
->>>>>>>
->>>>>>> On Mon, Oct 29, 2018 at 03:22:54PM -0700, Yong Zhi wrote:
->>>>>>>> Hi,
->>>>>>>>
->>>>>>>> This series adds support for the Intel IPU3 (Image Processing Unit)
->>>>>>>> ImgU which is essentially a modern memory-to-memory ISP. It implements
->>>>>>>> raw Bayer to YUV image format conversion as well as a large number of
->>>>>>>> other pixel processing algorithms for improving the image quality.
->>>>>>>>
->>>>>>>> Meta data formats are defined for image statistics (3A, i.e. automatic
->>>>>>>> white balance, exposure and focus, histogram and local area contrast
->>>>>>>> enhancement) as well as for the pixel processing algorithm parameters.
->>>>>>>> The documentation for these formats is currently not included in the
->>>>>>>> patchset but will be added in a future version of this set.
->>>>>>>>
->>>>>>>> The algorithm parameters need to be considered specific to a given frame
->>>>>>>> and typically a large number of these parameters change on frame to frame
->>>>>>>> basis. Additionally, the parameters are highly structured (and not a flat
->>>>>>>> space of independent configuration primitives). They also reflect the
->>>>>>>> data structures used by the firmware and the hardware. On top of that,
->>>>>>>> the algorithms require highly specialized user space to make meaningful
->>>>>>>> use of them. For these reasons it has been chosen video buffers to pass
->>>>>>>> the parameters to the device.
->>>>>>>>
->>>>>>>> On individual patches:
->>>>>>>>
->>>>>>>> The heart of ImgU is the CSS, or Camera Subsystem, which contains the
->>>>>>>> image processors and HW accelerators.
->>>>>>>>
->>>>>>>> The 3A statistics and other firmware parameter computation related
->>>>>>>> functions are implemented in patch 11.
->>>>>>>>
->>>>>>>> All IPU3 pipeline default settings can be found in patch 10.
->>>>>>>>
->>>>>>>> To access DDR via ImgU's own memory space, IPU3 is also equipped with
->>>>>>>> its own MMU unit, the driver is implemented in patch 6.
->>>>>>>>
->>>>>>>> Patch 7 uses above driver for DMA mapping operation.
->>>>>>>>
->>>>>>>> The communication between IPU3 firmware and driver is implemented with circular
->>>>>>>> queues in patch 8.
->>>>>>>>
->>>>>>>> Patch 9 provide some utility functions and manage IPU3 fw download and
->>>>>>>> install.
->>>>>>>>
->>>>>>>> The firmware which is called ipu3-fw.bin can be downloaded from:
->>>>>>>>
->>>>>>>> git://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git
->>>>>>>> (commit 2c27b0cb02f18c022d8378e0e1abaf8b7ae8188f)
->>>>>>>>
->>>>>>>> Firmware ABI is defined in patches 4 and 5.
->>>>>>>>
->>>>>>>> Patches 12 and 13 are of the same file, the former contains all h/w programming
->>>>>>>> related code, the latter implements interface functions for access fw & hw
->>>>>>>> capabilities.
->>>>>>>>
->>>>>>>> Patch 14 has a dependency on Sakari's V4L2_BUF_TYPE_META_OUTPUT work:
->>>>>>>>
->>>>>>>> <URL:https://patchwork.kernel.org/patch/9976295/>
->>>>>>> I've pushed the latest set here:
->>>>>>>
->>>>>>> <URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=meta-output>
->>>>>>>
->>>>>>> You can just say the entire set depends on those going forward; the
->>>>>>> documentation is needed, too.
->>>>>>>
->>>>>>>> Patch 15 represents the top level that glues all of the other components together,
->>>>>>>> passing arguments between the components.
->>>>>>>>
->>>>>>>> Patch 16 is a recent effort to extend v6 for advanced camera features like
->>>>>>>> Continuous View Finder (CVF) and Snapshot During Video(SDV) support.
->>>>>>>>
->>>>>>>> Link to user space implementation:
->>>>>>>>
->>>>>>>> git clone https://chromium.googlesource.com/chromiumos/platform/arc-camera
->>>>>>>>
->>>>>>>> ImgU media topology print:
->>>>>>>>
->>>>>>>> # media-ctl -d /dev/media0 -p
->>>>>>>> Media controller API version 4.19.0
->>>>>>>>
->>>>>>>> Media device information
->>>>>>>> ------------------------
->>>>>>>> driver          ipu3-imgu
->>>>>>>> model           ipu3-imgu
->>>>>>>> serial          
->>>>>>>> bus info        PCI:0000:00:05.0
->>>>>>>> hw revision     0x80862015
->>>>>>>> driver version  4.19.0
->>>>>>>>
->>>>>>>> Device topology
->>>>>>>> - entity 1: ipu3-imgu 0 (5 pads, 5 links)
->>>>>>>>             type V4L2 subdev subtype Unknown flags 0
->>>>>>>>             device node name /dev/v4l-subdev0
->>>>>>>> 	pad0: Sink
->>>>>>>> 		[fmt:UYVY8_2X8/1920x1080 field:none colorspace:unknown
->>>>>>> This doesn't seem right. Which formats can be enumerated from the pad?
->>>>> Looking at the code, the OUTPUT video nodes have 10-bit GRBG (or a variant)
->>>>> format whereas the CAPTURE video nodes always have NV12. Can you confirm?
->>>> Hi, Sakari,
->>>> Yes, I think the pad_fmt should also be changed.
->>>> Yong, could you add some extra code for this and test? like:
->>>>
->>>> static int ipu3_v4l2_node_setup(struct imgu_device *imgu, unsigned int pipe,
->>>> ...
->>>>                         V4L2_PIX_FMT_NV12;
->>>>                 node->vdev_fmt.fmt.pix_mp = def_pix_fmt;
->>>>         }
->>>>
->>>> +       if (node->vdev_fmt.type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
->>>> +               node->pad_fmt.code = MEDIA_BUS_FMT_SGRBG10_1X10;
->>>> +
->>>>  
->>>>> If the OUTPUT video node format selection has no effect on the rest of the
->>>>> pipeline (device capabilities, which processing blocks are in use, CAPTURE
->>>>> video nodes formats etc.), I think you could simply use the FIXED media bus
->>>>> code for each pad. That would actually make sense: this device always works
->>>>> from memory to memory, and thus does not really have a pixel data bus
->>>>> external to the device which is what the media bus codes really are for.
->>>>>
->>>>>>>> 		 crop:(0,0)/1920x1080
->>>>>>>> 		 compose:(0,0)/1920x1080]
->>>>>>> Does the compose rectangle affect the scaling on all outputs?
->>>>>> Sakari, driver use crop and compose targets to help set input-feeder and BDS
->>>>>> output resolutions which are 2 key block of whole imaging pipeline, not the
->>>>>> actual ending output, but they will impact the final output.
->>>>> Ack. Thanks for the clarification.
->>>>>
->>>>>>>> 		<- "ipu3-imgu 0 input":0 []
->>>>>>> Are there links that have no useful link configuration? If so, you should
->>>>>>> set them enabled and immutable in the driver.
->>>>>> The enabled status of input pads is used to get which pipe that user is
->>>>>> trying to enable (ipu3_link_setup()), so it could not been set as immutable.
->>>>> But the rest of them could be, right?
->>>> Yes.
->>>>>>>> 	pad1: Sink
->>>>>>>> 		[fmt:UYVY8_2X8/1920x1080 field:none colorspace:unknown]
->>>>>>> I'd suggest to use MEDIA_BUS_FMT_FIXED here.
->>>>>>>
->>>>>>>> 		<- "ipu3-imgu 0 parameters":0 []
->>>>>>>> 	pad2: Source
->>>>>>>> 		[fmt:UYVY8_2X8/1920x1080 field:none colorspace:unknown]
->>>>>>>> 		-> "ipu3-imgu 0 output":0 []
->>>>>>>> 	pad3: Source
->>>>>>>> 		[fmt:UYVY8_2X8/1920x1080 field:none colorspace:unknown]
->>>>>>>> 		-> "ipu3-imgu 0 viewfinder":0 []
->>>>>>> Are there other differences between output and viewfinder?
->>>>>> output and viewfinder are the main and secondary output of output system.
->>>>>> 'main' output is not allowed to be scaled, only support crop. secondary
->>>>>> output 'viewfinder'
->>>>>> can support both cropping and scaling. User can select different nodes
->>>>>> to use
->>>>>> as preview and capture flexibly based on the actual use cases.
->>>>> If there's scaling to be configured, I'd expect to see the COMPOSE target
->>>>> supported.
->>>> Actually the viewfinder is the result of scaling, that means you can not
->>>> do more scaling.
->>> How do you configure the scaling of the viewfinder currently?
->> We consider that the viewfinder as a secondary output, and set the format by
->> subdev set_fmt() directly and all pads formats will be used to find
->> binary and
->> build pipeline.
-> Ok.
->
-> Could you instead use the compose target to configure the scaling? Setting
-> the format on the source pad would have no effect.
-Hi, Sakari,
+---
+This bug is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
 
-For the secondary output (viewfinder), it support both cropping and
-scaling, in order
-to keep the aspect ratio, system will do [crop --> compose], sounds like
-it should
-have 2 selection targets, but firmware/driver did not provide clear
-interfaces to allow
-user to configure the cropping, driver calculate the scaler and cropping
-parameters
-based on the output-system input and output resolution to keep aspect ratio
-and field of view. I think it is more succinct to set the actual output
-by set format
-instead of using selection targets.
->
+syzbot will keep track of this bug report. See:
+https://goo.gl/tpsmEJ#bug-status-tracking for how to communicate with  
+syzbot.
+syzbot can test patches for this bug, for details see:
+https://goo.gl/tpsmEJ#testing-patches
