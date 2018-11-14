@@ -1,112 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:43630 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725757AbeKOG1M (ORCPT
+Received: from wp057.webpack.hosteurope.de ([80.237.132.64]:41380 "EHLO
+        wp057.webpack.hosteurope.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725895AbeKOG4c (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Nov 2018 01:27:12 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Luis Oliveira <luis.oliveira@synopsys.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        joao.pinto@synopsys.com, festevam@gmail.com,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Neil Armstrong <narmstrong@baylibre.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Thierry Reding <treding@nvidia.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Todor Tomov <todor.tomov@linaro.org>
-Subject: Re: [V3, 4/4] media: platform: dwc: Add MIPI CSI-2 controller driver
-Date: Wed, 14 Nov 2018 22:22:39 +0200
-Message-ID: <1798955.5kaMj8jiTI@avalon>
-In-Reply-To: <1539953556-35762-5-git-send-email-lolivei@synopsys.com>
-References: <1539953556-35762-1-git-send-email-lolivei@synopsys.com> <1539953556-35762-5-git-send-email-lolivei@synopsys.com>
+        Thu, 15 Nov 2018 01:56:32 -0500
+Subject: Re: TechnoTrend CT2-4500 remote not working
+To: Sean Young <sean@mess.org>
+Cc: linux-media@vger.kernel.org
+References: <236ee34e-3052-f511-36c4-5dd48c6b433b@mknetz.de>
+ <20181111214536.q2mplhfb5luzl5mg@gofer.mess.org>
+From: "martin.konopka@mknetz.de" <martin.konopka@mknetz.de>
+Message-ID: <64464af6-a85e-b03a-27e6-42cea34424d8@mknetz.de>
+Date: Wed, 14 Nov 2018 21:51:38 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <20181111214536.q2mplhfb5luzl5mg@gofer.mess.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Luis,
 
-Thank you for the patch.
-
-On Friday, 19 October 2018 15:52:26 EET Luis Oliveira wrote:
-> Add the Synopsys MIPI CSI-2 controller driver. This
-> controller driver is divided in platform dependent functions
-> and core functions. It also includes a platform for future
-> DesignWare drivers.
 > 
-> Signed-off-by: Luis Oliveira <lolivei@synopsys.com>
-> ---
-> Changelog
-> v2-V3
-> - exposed IPI settings to userspace
-
-Could you please explain why you need this and can't use standard APIs ? 
-Custom sysfs attributes are needed, they need to be documented in 
-Documentation/ABI/.
-
-> - fixed headers
+> It would be interesting to see what the device is sending. Please can you turn
+> on dynamic debug for ir-kbd-i2c.c:
 > 
->  MAINTAINERS                              |  11 +
->  drivers/media/platform/dwc/Kconfig       |  30 +-
->  drivers/media/platform/dwc/Makefile      |   2 +
->  drivers/media/platform/dwc/dw-csi-plat.c | 699 ++++++++++++++++++++++++++++
->  drivers/media/platform/dwc/dw-csi-plat.h |  77 ++++
->  drivers/media/platform/dwc/dw-mipi-csi.c | 494 ++++++++++++++++++++++
->  drivers/media/platform/dwc/dw-mipi-csi.h | 202 +++++++++
->  include/media/dwc/dw-mipi-csi-pltfrm.h   | 102 +++++
->  8 files changed, 1616 insertions(+), 1 deletion(-)
->  create mode 100644 drivers/media/platform/dwc/dw-csi-plat.c
->  create mode 100644 drivers/media/platform/dwc/dw-csi-plat.h
->  create mode 100644 drivers/media/platform/dwc/dw-mipi-csi.c
->  create mode 100644 drivers/media/platform/dwc/dw-mipi-csi.h
->  create mode 100644 include/media/dwc/dw-mipi-csi-pltfrm.h
+> echo "file ir-kbd-i2.c +p" > /sys/kernel/debug/dynamic_debug/control
 > 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index da2e509..fd5f1fc 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -14032,6 +14032,16 @@ S:	Maintained
->  F:	drivers/dma/dwi-axi-dmac/
->  F:	Documentation/devicetree/bindings/dma/snps,dw-axi-dmac.txt
+> Try the remote again and report what in the kernel messages.
 > 
-> +SYNOPSYS DESIGNWARE MIPI CSI-2 HOST VIDEO PLATFORM
-> +M:	Luis Oliveira <luis.oliveira@synopsys.com>
-> +L:	linux-media@vger.kernel.org
-> +T:	git git://linuxtv.org/media_tree.git
-> +S:	Maintained
-> +F:	drivers/media/platform/dwc
-> +F:	include/media/dwc/dw-mipi-csi-pltfrm.h
-> +F:	Documentation/devicetree/bindings/media/snps,dw-csi-plat.txt
-> +F:	Documentation/devicetree/bindings/phy/snps,dphy-rx.txt
+>   
+> Sean
+> 
 
-These two lines belong to patches 1/4 and 3/4. Doesn't checkpatch.pl warn 
-about this ? Now that I mentioned checkpatch.pl, I tried running it on this 
-series, and it generates a fair number of warnings and errors. Could you 
-please fix them ?
+I turned on dynamic debug and got the following messages in the kernel log:
 
-> +
->  SYNOPSYS DESIGNWARE DMAC DRIVER
->  M:	Viresh Kumar <vireshk@kernel.org>
->  R:	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> @@ -16217,3 +16227,4 @@ T:	git
-> git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git S:	Buried
-> alive in reporters
->  F:	*
->  F:	*/
-> +
+[  837.160992] rc rc0: get_key_fusionhdtv: ff ff ff ff
+[  837.263927] rc rc0: ir_key_poll
+[  837.264528] rc rc0: get_key_fusionhdtv: ff ff ff ff
+[  837.367840] rc rc0: ir_key_poll
+[  837.368441] rc rc0: get_key_fusionhdtv: ff ff ff ff
 
-Stray new line.
+Pressing a key on the remote did not change the pattern. I rechecked the 
+connection of the IR receiver to the card but it was firmly plugged in.
 
-[snip]
-
--- 
-Regards,
-
-Laurent Pinchart
+Martin
