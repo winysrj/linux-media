@@ -1,85 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lj1-f194.google.com ([209.85.208.194]:40498 "EHLO
-        mail-lj1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726517AbeKNCwt (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:59691 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726813AbeKNOf0 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Nov 2018 21:52:49 -0500
-Subject: Re: [PATCH] media: staging: tegra-vde: print long unsigned using %lu
- format specifier
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Colin King <colin.king@canonical.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
-        linux-media@vger.kernel.org, linux-tegra@vger.kernel.org,
-        devel@driverdev.osuosl.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <20181108110224.1916-1-colin.king@canonical.com>
- <0b3bf728-7b7e-7250-40eb-0827f8fe955b@xs4all.nl>
-From: Dmitry Osipenko <digetx@gmail.com>
-Message-ID: <67306f07-f270-3395-48c4-f6d4954e0d04@gmail.com>
-Date: Tue, 13 Nov 2018 19:52:59 +0300
-MIME-Version: 1.0
-In-Reply-To: <0b3bf728-7b7e-7250-40eb-0827f8fe955b@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Wed, 14 Nov 2018 09:35:26 -0500
+Message-ID: <5146239f8f04fc390c06b2adc6859525@smtp-cloud7.xs4all.net>
+Date: Wed, 14 Nov 2018 05:33:54 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09.11.2018 17:32, Hans Verkuil wrote:
-> On 11/08/18 12:02, Colin King wrote:
->> From: Colin Ian King <colin.king@canonical.com>
->>
->> The frame.flags & FLAG_B_FRAME is promoted to a long unsigned because
->> of the use of the BIT() macro when defining FLAG_B_FRAME and causing a
->> build warning. Fix this by using the %lu format specifer.
->>
->> Cleans up warning:
->> drivers/staging/media/tegra-vde/tegra-vde.c:267:5: warning: format
->> specifies type 'int' but the argument has type 'unsigned long' [-Wformat]
->>
->> Signed-off-by: Colin Ian King <colin.king@canonical.com>
->> ---
->>  drivers/staging/media/tegra-vde/tegra-vde.c | 2 +-
->>  1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/drivers/staging/media/tegra-vde/tegra-vde.c b/drivers/staging/media/tegra-vde/tegra-vde.c
->> index 6f06061a40d9..66cf14212c14 100644
->> --- a/drivers/staging/media/tegra-vde/tegra-vde.c
->> +++ b/drivers/staging/media/tegra-vde/tegra-vde.c
->> @@ -262,7 +262,7 @@ static void tegra_vde_setup_iram_tables(struct tegra_vde *vde,
->>  			value |= frame->frame_num;
->>  
->>  			dev_dbg(vde->miscdev.parent,
->> -				"\tFrame %d: frame_num = %d B_frame = %d\n",
->> +				"\tFrame %d: frame_num = %d B_frame = %lu\n",
->>  				i + 1, frame->frame_num,
->>  				(frame->flags & FLAG_B_FRAME));
->>  		} else {
->>
-> 
-> Compiling for i686 gives:
-> 
-> In file included from /home/hans/work/build/media-git/include/linux/printk.h:336,
->                  from /home/hans/work/build/media-git/include/linux/kernel.h:14,
->                  from /home/hans/work/build/media-git/include/linux/clk.h:16,
->                  from /home/hans/work/build/media-git/drivers/staging/media/tegra-vde/tegra-vde.c:12:
-> /home/hans/work/build/media-git/drivers/staging/media/tegra-vde/tegra-vde.c: In function 'tegra_vde_setup_iram_tables':
-> /home/hans/work/build/media-git/drivers/staging/media/tegra-vde/tegra-vde.c:265:5: warning: format '%lu' expects argument of type 'long unsigned int', but argument 6 has type 'u32' {aka 'unsigned int'} [-Wformat=]
->      "\tFrame %d: frame_num = %d B_frame = %lu\n",
->      ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> /home/hans/work/build/media-git/include/linux/dynamic_debug.h:135:39: note: in definition of macro 'dynamic_dev_dbg'
->    __dynamic_dev_dbg(&descriptor, dev, fmt, \
->                                        ^~~
-> /home/hans/work/build/media-git/include/linux/device.h:1463:23: note: in expansion of macro 'dev_fmt'
->   dynamic_dev_dbg(dev, dev_fmt(fmt), ##__VA_ARGS__)
->                        ^~~~~~~
-> /home/hans/work/build/media-git/drivers/staging/media/tegra-vde/tegra-vde.c:264:4: note: in expansion of macro 'dev_dbg'
->     dev_dbg(vde->miscdev.parent,
->     ^~~~~~~
-> 
-> Should it be %zu?
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Same on ARM32. Yes, it should be either %zu or "!!(frame->flags & FLAG_B_FRAME)".
+Results of the daily build of media_tree:
+
+date:			Wed Nov 14 05:00:11 CET 2018
+media-tree git hash:	fbe57dde7126d1b2712ab5ea93fb9d15f89de708
+media_build git hash:	a8aef9cea0a4a2f3ea86c0b37bd6a1378018c0c1
+v4l-utils git hash:	98b4c9f276a18535b5691e5f350f59ffbf5a9aa5
+edid-decode git hash:	5eeb151a748788666534d6ea3da07f90400d24c2
+gcc version:		i686-linux-gcc (GCC) 8.2.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.18.0-2-amd64
+
+linux-git-arm-at91: WARNINGS
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-multi: WARNINGS
+linux-git-arm-pxa: WARNINGS
+linux-git-arm-stm32: WARNINGS
+linux-git-arm64: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-mips: OK
+linux-git-powerpc64: WARNINGS
+linux-git-sh: WARNINGS
+linux-git-x86_64: WARNINGS
+Check COMPILE_TEST: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.57-i686: OK
+linux-3.16.57-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.123-i686: OK
+linux-3.18.123-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.52-i686: OK
+linux-4.1.52-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.159-i686: OK
+linux-4.4.159-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.131-i686: OK
+linux-4.9.131-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.74-i686: OK
+linux-4.14.74-x86_64: OK
+linux-4.15.18-i686: OK
+linux-4.15.18-x86_64: OK
+linux-4.16.18-i686: OK
+linux-4.16.18-x86_64: OK
+linux-4.17.19-i686: OK
+linux-4.17.19-x86_64: OK
+linux-4.18.12-i686: OK
+linux-4.18.12-x86_64: OK
+linux-4.19.1-i686: OK
+linux-4.19.1-x86_64: OK
+linux-4.20-rc1-i686: OK
+linux-4.20-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
