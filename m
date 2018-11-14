@@ -1,85 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga12.intel.com ([192.55.52.136]:42584 "EHLO mga12.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725907AbeKNRnC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Nov 2018 12:43:02 -0500
-Date: Wed, 14 Nov 2018 09:40:50 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: jacopo mondi <jacopo@jmondi.org>
-Cc: Yong Zhi <yong.zhi@intel.com>, linux-media@vger.kernel.org,
-        tfiga@chromium.org, mchehab@kernel.org, hans.verkuil@cisco.com,
-        laurent.pinchart@ideasonboard.com, rajmohan.mani@intel.com,
-        jian.xu.zheng@intel.com, jerry.w.hu@intel.com,
-        tuukka.toivonen@intel.com, tian.shu.qiu@intel.com,
-        bingbu.cao@intel.com
-Subject: Re: [PATCH v7 00/16] Intel IPU3 ImgU patchset
-Message-ID: <20181114074050.76kv5ygqvt7h2l2p@kekkonen.localdomain>
-References: <1540851790-1777-1-git-send-email-yong.zhi@intel.com>
- <20181114002511.GD19257@w540>
+Received: from mail-yw1-f66.google.com ([209.85.161.66]:41094 "EHLO
+        mail-yw1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727375AbeKNSLh (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Nov 2018 13:11:37 -0500
+Received: by mail-yw1-f66.google.com with SMTP id c126-v6so6911607ywd.8
+        for <linux-media@vger.kernel.org>; Wed, 14 Nov 2018 00:09:28 -0800 (PST)
+Received: from mail-yw1-f41.google.com (mail-yw1-f41.google.com. [209.85.161.41])
+        by smtp.gmail.com with ESMTPSA id b144sm483269ywa.33.2018.11.14.00.09.26
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 14 Nov 2018 00:09:26 -0800 (PST)
+Received: by mail-yw1-f41.google.com with SMTP id x2so498619ywc.9
+        for <linux-media@vger.kernel.org>; Wed, 14 Nov 2018 00:09:26 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20181114002511.GD19257@w540>
+References: <20180803143626.48191-1-hverkuil@xs4all.nl>
+In-Reply-To: <20180803143626.48191-1-hverkuil@xs4all.nl>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Wed, 14 Nov 2018 17:09:13 +0900
+Message-ID: <CAAFQd5AnQRKEcfV2FSeTJELpsN2Y4Jx++X2kNqXfvq7r5NjhMQ@mail.gmail.com>
+Subject: Re: [RFC PATCH 0/3] Media Controller Properties
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacopo,
+Hi Hans,
 
-On Wed, Nov 14, 2018 at 01:25:11AM +0100, jacopo mondi wrote:
-> On Mon, Oct 29, 2018 at 03:22:54PM -0700, Yong Zhi wrote:
-> > Hi,
-> >
-> > This series adds support for the Intel IPU3 (Image Processing Unit)
-> > ImgU which is essentially a modern memory-to-memory ISP. It implements
-> > raw Bayer to YUV image format conversion as well as a large number of
-> > other pixel processing algorithms for improving the image quality.
-> >
-> > Meta data formats are defined for image statistics (3A, i.e. automatic
-> > white balance, exposure and focus, histogram and local area contrast
-> > enhancement) as well as for the pixel processing algorithm parameters.
-> > The documentation for these formats is currently not included in the
-> > patchset but will be added in a future version of this set.
-> >
-> > The algorithm parameters need to be considered specific to a given frame
-> > and typically a large number of these parameters change on frame to frame
-> > basis. Additionally, the parameters are highly structured (and not a flat
-> > space of independent configuration primitives). They also reflect the
-> > data structures used by the firmware and the hardware. On top of that,
-> > the algorithms require highly specialized user space to make meaningful
-> > use of them. For these reasons it has been chosen video buffers to pass
-> > the parameters to the device.
-> >
-> > On individual patches:
-> >
-> > The heart of ImgU is the CSS, or Camera Subsystem, which contains the
-> > image processors and HW accelerators.
-> >
-> > The 3A statistics and other firmware parameter computation related
-> > functions are implemented in patch 11.
-> >
-> > All IPU3 pipeline default settings can be found in patch 10.
-> >
-> 
-> Seems to me that patch 10 didn't make it to the mailing list, am I
-> wrong?
-> 
-> I'm pointing it out as the same happened on your v6.
+On Fri, Aug 3, 2018 at 11:36 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> This RFC patch series implements properties for the media controller.
+>
+> This is not finished, but I wanted to post this so people can discuss
+> this further.
+>
+> No documentation yet (too early for that).
+>
+> An updated v4l2-ctl and v4l2-compliance that can report properties
+> is available here:
+>
+> https://git.linuxtv.org/hverkuil/v4l-utils.git/log/?h=props
+>
+> There is one main missing piece: currently the properties are effectively
+> laid out in random order. My plan is to change that so they are grouped
+> by object type and object owner. So first all properties for each entity,
+> then for each pad, etc. I started to work on that, but it's a bit more
+> work than expected and I wanted to post this before the weekend.
+>
+> While it is possible to have nested properties, this is not currently
+> implemented. Only properties for entities and pads are supported in this
+> code, but that's easy to extend to interfaces and links.
+>
+> I'm not sure about the G_TOPOLOGY ioctl handling: I went with the quickest
+> option by renaming the old ioctl and adding a new one with property support.
+>
+> I think this needs to change (at the very least the old and new should
+> share the same ioctl NR), but that's something for the future.
+>
+> Currently I support u64, s64 and const char * property types. But it
+> can be anything including binary data if needed. No array support (as we
+> have for controls), but there are enough reserved fields in media_v2_prop
+> to add this if needed.
+>
+> I added properties for entities and pads to vimc, so I could test this.
 
-Thanks for pointing this out. I've uploaded the entire set here:
+I think I'm missing the background and the description doesn't mention
+it either. What's the use case for those and why not controls?
 
-<URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=ipu3-v7>
-
-including the 10th patch:
-
-<URL:https://git.linuxtv.org/sailus/media_tree.git/commit/?h=ipu3-v7&id=41e2f0d114dbc195efed079202d22748ddedbe83>
-
-It's too big to get through the list server. :-(
-
-Luckily, it's mostly tables so there's not much to review there. Default
-settings, effectively.
-
--- 
-Regards,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+Best regards,
+Tomasz
