@@ -1,163 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk1-f193.google.com ([209.85.222.193]:44187 "EHLO
-        mail-qk1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726408AbeKNJw3 (ORCPT
+Received: from relay10.mail.gandi.net ([217.70.178.230]:36299 "EHLO
+        relay10.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726937AbeKNKVa (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Nov 2018 04:52:29 -0500
-Received: by mail-qk1-f193.google.com with SMTP id n12so22796387qkh.11
-        for <linux-media@vger.kernel.org>; Tue, 13 Nov 2018 15:51:50 -0800 (PST)
-Message-ID: <1d3b02cd79d073f92604f27f76ff425ad3049291.camel@ndufresne.ca>
-Subject: Re: [PATCH] media: vb2: Allow reqbufs(0) with "in use" MMAP buffers
-From: Nicolas Dufresne <nicolas@ndufresne.ca>
-To: Sakari Ailus <sakari.ailus@iki.fi>,
-        Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Date: Tue, 13 Nov 2018 18:51:47 -0500
-In-Reply-To: <20181113222743.bt452a3xyapuv7ce@valkosipuli.retiisi.org.uk>
-References: <20181113150621.22276-1-p.zabel@pengutronix.de>
-         <20181113222743.bt452a3xyapuv7ce@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        Wed, 14 Nov 2018 05:21:30 -0500
+Date: Wed, 14 Nov 2018 01:20:39 +0100
+From: jacopo mondi <jacopo@jmondi.org>
+To: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: linux-media@vger.kernel.org,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: Re: [PATCH 0/7] media: i2c: small enhancements for camera sensor
+ drivers
+Message-ID: <20181114002039.GC19257@w540>
+References: <1542038454-20066-1-git-send-email-akinobu.mita@gmail.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="4ZLFUWh1odzi/v6L"
+Content-Disposition: inline
+In-Reply-To: <1542038454-20066-1-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Le mercredi 14 novembre 2018 à 00:27 +0200, Sakari Ailus a écrit :
-> Hi Philipp,
-> 
-> On Tue, Nov 13, 2018 at 04:06:21PM +0100, Philipp Zabel wrote:
-> > From: John Sheu <sheu@chromium.org>
-> > 
-> > Videobuf2 presently does not allow VIDIOC_REQBUFS to destroy outstanding
-> > buffers if the queue is of type V4L2_MEMORY_MMAP, and if the buffers are
-> > considered "in use".  This is different behavior than for other memory
-> > types and prevents us from deallocating buffers in following two cases:
-> > 
-> > 1) There are outstanding mmap()ed views on the buffer. However even if
-> >    we put the buffer in reqbufs(0), there will be remaining references,
-> >    due to vma .open/close() adjusting vb2 buffer refcount appropriately.
-> >    This means that the buffer will be in fact freed only when the last
-> >    mmap()ed view is unmapped.
-> > 
-> > 2) Buffer has been exported as a DMABUF. Refcount of the vb2 buffer
-> >    is managed properly by VB2 DMABUF ops, i.e. incremented on DMABUF
-> >    get and decremented on DMABUF release. This means that the buffer
-> >    will be alive until all importers release it.
-> > 
-> > Considering both cases above, there does not seem to be any need to
-> > prevent reqbufs(0) operation, because buffer lifetime is already
-> > properly managed by both mmap() and DMABUF code paths. Let's remove it
-> > and allow userspace freeing the queue (and potentially allocating a new
-> > one) even though old buffers might be still in processing.
-> > 
-> > To let userspace know that the kernel now supports orphaning buffers
-> > that are still in use, add a new V4L2_BUF_CAP_SUPPORTS_ORPHANED_BUFS
-> > to be set by reqbufs and create_bufs.
-> > 
-> > Signed-off-by: John Sheu <sheu@chromium.org>
-> > Reviewed-by: Pawel Osciak <posciak@chromium.org>
-> > Reviewed-by: Tomasz Figa <tfiga@chromium.org>
-> > Signed-off-by: Tomasz Figa <tfiga@chromium.org>
-> > [p.zabel@pengutronix.de: moved __vb2_queue_cancel out of the mmap_lock
-> >  and added V4L2_BUF_CAP_SUPPORTS_ORPHANED_BUFS]
-> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> 
-> This lets the user to allocate lots of mmap'ed buffers that are pinned in
-> physical memory. Considering that we don't really have a proper mechanism
-> to limit that anyway,
 
-It's currently limited to 32 buffers. It's not worst then DRM dumb
-buffers which will let you allocate as much as you want.
+--4ZLFUWh1odzi/v6L
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-> 
-> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> 
-> That said, the patch must be accompanied by the documentation change in
-> Documentation/media/uapi/v4l/vidioc-reqbufs.rst .
-> 
-> I wonder what Hans thinks.
-> 
-> > ---
-> >  .../media/common/videobuf2/videobuf2-core.c   | 26 +------------------
-> >  .../media/common/videobuf2/videobuf2-v4l2.c   |  2 +-
-> >  include/uapi/linux/videodev2.h                |  1 +
-> >  3 files changed, 3 insertions(+), 26 deletions(-)
-> > 
-> > diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
-> > index 975ff5669f72..608459450c1e 100644
-> > --- a/drivers/media/common/videobuf2/videobuf2-core.c
-> > +++ b/drivers/media/common/videobuf2/videobuf2-core.c
-> > @@ -553,20 +553,6 @@ bool vb2_buffer_in_use(struct vb2_queue *q, struct vb2_buffer *vb)
-> >  }
-> >  EXPORT_SYMBOL(vb2_buffer_in_use);
-> >  
-> > -/*
-> > - * __buffers_in_use() - return true if any buffers on the queue are in use and
-> > - * the queue cannot be freed (by the means of REQBUFS(0)) call
-> > - */
-> > -static bool __buffers_in_use(struct vb2_queue *q)
-> > -{
-> > -	unsigned int buffer;
-> > -	for (buffer = 0; buffer < q->num_buffers; ++buffer) {
-> > -		if (vb2_buffer_in_use(q, q->bufs[buffer]))
-> > -			return true;
-> > -	}
-> > -	return false;
-> > -}
-> > -
-> >  void vb2_core_querybuf(struct vb2_queue *q, unsigned int index, void *pb)
-> >  {
-> >  	call_void_bufop(q, fill_user_buffer, q->bufs[index], pb);
-> > @@ -674,23 +660,13 @@ int vb2_core_reqbufs(struct vb2_queue *q, enum vb2_memory memory,
-> >  
-> >  	if (*count == 0 || q->num_buffers != 0 ||
-> >  	    (q->memory != VB2_MEMORY_UNKNOWN && q->memory != memory)) {
-> > -		/*
-> > -		 * We already have buffers allocated, so first check if they
-> > -		 * are not in use and can be freed.
-> > -		 */
-> > -		mutex_lock(&q->mmap_lock);
-> > -		if (q->memory == VB2_MEMORY_MMAP && __buffers_in_use(q)) {
-> > -			mutex_unlock(&q->mmap_lock);
-> > -			dprintk(1, "memory in use, cannot free\n");
-> > -			return -EBUSY;
-> > -		}
-> > -
-> >  		/*
-> >  		 * Call queue_cancel to clean up any buffers in the
-> >  		 * QUEUED state which is possible if buffers were prepared or
-> >  		 * queued without ever calling STREAMON.
-> >  		 */
-> >  		__vb2_queue_cancel(q);
-> > +		mutex_lock(&q->mmap_lock);
-> >  		ret = __vb2_queue_free(q, q->num_buffers);
-> >  		mutex_unlock(&q->mmap_lock);
-> >  		if (ret)
-> > diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-> > index a17033ab2c22..f02d452ceeb9 100644
-> > --- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
-> > +++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-> > @@ -624,7 +624,7 @@ EXPORT_SYMBOL(vb2_querybuf);
-> >  
-> >  static void fill_buf_caps(struct vb2_queue *q, u32 *caps)
-> >  {
-> > -	*caps = 0;
-> > +	*caps = V4L2_BUF_CAP_SUPPORTS_ORPHANED_BUFS;
-> >  	if (q->io_modes & VB2_MMAP)
-> >  		*caps |= V4L2_BUF_CAP_SUPPORTS_MMAP;
-> >  	if (q->io_modes & VB2_USERPTR)
-> > diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> > index c8e8ff810190..2a223835214c 100644
-> > --- a/include/uapi/linux/videodev2.h
-> > +++ b/include/uapi/linux/videodev2.h
-> > @@ -879,6 +879,7 @@ struct v4l2_requestbuffers {
-> >  #define V4L2_BUF_CAP_SUPPORTS_USERPTR	(1 << 1)
-> >  #define V4L2_BUF_CAP_SUPPORTS_DMABUF	(1 << 2)
-> >  #define V4L2_BUF_CAP_SUPPORTS_REQUESTS	(1 << 3)
-> > +#define V4L2_BUF_CAP_SUPPORTS_ORPHANED_BUFS (1 << 4)
-> >  
-> >  /**
-> >   * struct v4l2_plane - plane info for multi-planar buffers
+Hello Mita-san,
+   thanks for the patches
+
+On Tue, Nov 13, 2018 at 01:00:47AM +0900, Akinobu Mita wrote:
+> This patchset addds relatively small enhancements (log_status ioctl, event
+> interface, V4L2_CID_TEST_PATTERN control, and V4L2_CID_COLORFX control) for
+> mt9m111, ov2640, ov5640, ov7670, and ov772x drivers.  I have these devices
+> so these patches are tested with real devices.
+>
+
+For the ov772x part:
+Acked-by: Jacopo Mondi <jacopo@jmondi.org>
+
+Thanks
+   j
+
+> Akinobu Mita (7):
+>   media: mt9m111: support log_status ioctl and event interface
+>   media: mt9m111: add V4L2_CID_COLORFX control
+>   media: ov2640: add V4L2_CID_TEST_PATTERN control
+>   media: ov2640: support log_status ioctl and event interface
+>   media: ov5640: support log_status ioctl and event interface
+>   media: ov7670: support log_status ioctl and event interface
+>   media: ov772x: support log_status ioctl and event interface
+>
+>  drivers/media/i2c/mt9m111.c | 44 ++++++++++++++++++++++++++++++++++++++++++--
+>  drivers/media/i2c/ov2640.c  | 21 +++++++++++++++++++--
+>  drivers/media/i2c/ov5640.c  |  7 ++++++-
+>  drivers/media/i2c/ov7670.c  |  6 +++++-
+>  drivers/media/i2c/ov772x.c  |  7 ++++++-
+>  5 files changed, 78 insertions(+), 7 deletions(-)
+>
+> Cc: Steve Longerbeam <slongerbeam@gmail.com>
+> Cc: Jonathan Corbet <corbet@lwn.net>
+> Cc: Jacopo Mondi <jacopo@jmondi.org>
+> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+> --
+> 2.7.4
+>
+
+--4ZLFUWh1odzi/v6L
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABCAAGBQJb62pXAAoJEHI0Bo8WoVY8sqoP/Az6AvxHm8J313WoEJ/3+ar4
+P+nsTFxfiTQ9HJBFEeM2kjNmPTTA7KbdzV+VXXDLF2RjWHB8H8lZicDDdkeqkV9n
+rUoDwvIY/F/y5kXbFPqUFNVaMtwQrUrTcmX5PezBKcubvw+W1SFVh4kFxj7hE1+Y
+/vQ1h/cGKSRhkXIGSIkhbFvEpfgYwfHeUSbuB4lZeenlM8xfjoLoilXQ2doFYnLB
+LaV5x41W8wk7x3OG9uwJoy6jlAFqHY3KkIzJnBPC5zNd/ogw5LCTk9YXaWvEg75B
+wFKR9kK+WlMOYQ2Veg8MbcI7pbQIKFVHloA+mepk0hqxW5OnUKoPGH6MqwwpxdmC
+peFupfFGw7P0PKCGJYkTvdUmE9xr1oL5snLTauvkp7VV44XNUdjSO2VRSoOmW0VB
+LCAnZdHuZ5EGQHhx6wR8Cucnqdb/ccXVq3dxc9VCoYESj1HuuiF2Xiiy2D2zLzKB
+JgyxA1bJ004oU0rB8j9LvMa3Uh8p3u1/beycnzpOwSFFSAJ51TiXiYzPY50SjhL0
++1AwgpCbvWHWI9gpaHkGsMLhwpxCc6vwT8eXr9JodGiKTlVyOI2X38nZ2wUOi4qB
+h/C05exe+W2KMNTKGwA/if6qMgAJ86ru3Ch+9W+4ECBExkOgj0C/hih3SHxOKa6k
+BdCCAcAWnL2vIdFM48QE
+=W1BT
+-----END PGP SIGNATURE-----
+
+--4ZLFUWh1odzi/v6L--
