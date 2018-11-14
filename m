@@ -1,79 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out20-62.mail.aliyun.com ([115.124.20.62]:56422 "EHLO
-        out20-62.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729451AbeKNSnP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Nov 2018 13:43:15 -0500
-Date: Wed, 14 Nov 2018 16:40:05 +0800
-From: Yong <yong.deng@magewell.com>
-To: Maxime Ripard <maxime.ripard@bootlin.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Neil Armstrong <narmstrong@baylibre.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Todor Tomov <todor.tomov@linaro.org>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH v12 0/2] Initial Allwinner V3s CSI Support
-Message-Id: <20181114164005.76477b7401345e346def53d7@magewell.com>
-In-Reply-To: <20181113133518.6nnh4m37s6awfw6d@flea>
-References: <1540886988-27696-1-git-send-email-yong.deng@magewell.com>
-        <20181113133518.6nnh4m37s6awfw6d@flea>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mga03.intel.com ([134.134.136.65]:33086 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727558AbeKNTAE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Nov 2018 14:00:04 -0500
+Date: Wed, 14 Nov 2018 10:57:39 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Sasha Levin <sashal@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Dave Stevenson <dave.stevenson@raspberrypi.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>, mchehab@kernel.org,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH v4.9 1/1] v4l: event: Add subscription to list before
+ calling "add" operation
+Message-ID: <20181114085738.yitidcf5a2nt6fva@paasikivi.fi.intel.com>
+References: <20181108114606.17148-1-sakari.ailus@linux.intel.com>
+ <20181108172853.GF8097@sasha-vm>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20181108172853.GF8097@sasha-vm>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Maxime,
+Hi Sasha,
 
-On Tue, 13 Nov 2018 14:35:18 +0100
-Maxime Ripard <maxime.ripard@bootlin.com> wrote:
-
-> Hi Yong,
-> 
-> On Tue, Oct 30, 2018 at 04:09:48PM +0800, Yong Deng wrote:
-> > I can't make v4l2-compliance always happy.
-> > The V3s CSI support many pixformats. But they are not always available.
-> > It's dependent on the input bus format (MEDIA_BUS_FMT_*). 
-> > Example:
-> > V4L2_PIX_FMT_SBGGR8: MEDIA_BUS_FMT_SBGGR8_1X8
-> > V4L2_PIX_FMT_YUYV: MEDIA_BUS_FMT_YUYV8_2X8
-> > But I can't get the subdev's format code before starting stream as the
-> > subdev may change it. So I can't know which pixformats are available.
-> > So I exports all the pixformats supported by SoC.
-> > The result is the app (v4l2-compliance) is likely to fail on streamon.
+On Thu, Nov 08, 2018 at 12:28:53PM -0500, Sasha Levin wrote:
+> On Thu, Nov 08, 2018 at 01:46:06PM +0200, Sakari Ailus wrote:
+> > [ upstream commit 92539d3eda2c090b382699bbb896d4b54e9bdece ]
 > > 
-> > This patchset add initial support for Allwinner V3s CSI.
+> > Patch ad608fbcf166 changed how events were subscribed to address an issue
+> > elsewhere. As a side effect of that change, the "add" callback was called
+> > before the event subscription was added to the list of subscribed events,
+> > causing the first event queued by the add callback (and possibly other
+> > events arriving soon afterwards) to be lost.
 > > 
-> > Allwinner V3s SoC features a CSI module with parallel interface.
+> > Fix this by adding the subscription to the list before calling the "add"
+> > callback, and clean up afterwards if that fails.
 > > 
-> > This patchset implement a v4l2 framework driver and add a binding 
-> > documentation for it. 
+> > Fixes: ad608fbcf166 ("media: v4l: event: Prevent freeing event subscriptions while accessed")
+> > 
+> > Reported-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
+> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > Tested-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
+> > Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > Tested-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > Cc: stable@vger.kernel.org (for 4.14 and up)
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 > 
-> I've tested this version today, and I needed this patch to make it
-> work on top of v4.20:
-> http://code.bulix.org/9o8fw5-503690?raw
+> Hi Sakari,
 > 
-> Once that patch applied, my tests were working as expected.
-> 
-> If that make sense, could you resubmit a new version with these merged
-> so that we can try to target 4.21?
+> For the sake of completeness, can you sign off on the backport too and
+> indicate it was backported to 4.9 in the commit messge? Otherwise, this
+> commit message says it's for 4.14+ and will suddenly appear in the 4.9
+> tree, and if we have issues later it might cause confusion.
 
-OK. I will check it.
+Yes; I'll fix the above issues and resend.
 
-Thanks,
-Yong
+Thanks!
+
+-- 
+Sakari Ailus
+sakari.ailus@linux.intel.com
