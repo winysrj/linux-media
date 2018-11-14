@@ -1,114 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wp057.webpack.hosteurope.de ([80.237.132.64]:48194 "EHLO
-        wp057.webpack.hosteurope.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725769AbeKPFL1 (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:45791 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726927AbeKNRe2 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Nov 2018 00:11:27 -0500
-Subject: Re: TechnoTrend CT2-4500 remote not working
-To: Sean Young <sean@mess.org>
-Cc: linux-media@vger.kernel.org
-References: <236ee34e-3052-f511-36c4-5dd48c6b433b@mknetz.de>
- <20181111214536.q2mplhfb5luzl5mg@gofer.mess.org>
- <64464af6-a85e-b03a-27e6-42cea34424d8@mknetz.de>
- <20181114230736.x4uigczm45slcgdr@gofer.mess.org>
-From: "martin.konopka@mknetz.de" <martin.konopka@mknetz.de>
-Message-ID: <9e2205c8-50f7-06de-f1e5-8946258f6a91@mknetz.de>
-Date: Thu, 15 Nov 2018 20:02:20 +0100
+        Wed, 14 Nov 2018 12:34:28 -0500
+Subject: Re: [PATCH 1/9] videodev2.h: add tag support
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Alexandre Courbot <acourbot@chromium.org>,
+        maxime.ripard@bootlin.com, paul.kocialkowski@bootlin.com,
+        tfiga@chromium.org, Nicolas Dufresne <nicolas@ndufresne.ca>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+References: <20181113094238.48253-1-hverkuil@xs4all.nl>
+ <20181113094238.48253-2-hverkuil@xs4all.nl>
+Message-ID: <0a0e6adf-cd44-d4c8-6636-f59e1e789f56@xs4all.nl>
+Date: Wed, 14 Nov 2018 08:32:20 +0100
 MIME-Version: 1.0
-In-Reply-To: <20181114230736.x4uigczm45slcgdr@gofer.mess.org>
+In-Reply-To: <20181113094238.48253-2-hverkuil@xs4all.nl>
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sean,
-
-Am 15.11.2018 um 00:07 schrieb Sean Young:
-
->>
->> I turned on dynamic debug and got the following messages in the kernel log:
->>
->> [  837.160992] rc rc0: get_key_fusionhdtv: ff ff ff ff
->> [  837.263927] rc rc0: ir_key_poll
->> [  837.264528] rc rc0: get_key_fusionhdtv: ff ff ff ff
->> [  837.367840] rc rc0: ir_key_poll
->> [  837.368441] rc rc0: get_key_fusionhdtv: ff ff ff ff
->>
->> Pressing a key on the remote did not change the pattern. I rechecked the
->> connection of the IR receiver to the card but it was firmly plugged in.
+On 11/13/2018 10:42 AM, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> Hmm, either the IR signal is not getting to the device, or this is not
-> where the IR is reported. I guess also the firmware could be incorrect
-> or out of date.
-
-I have obtained the latest firmware from http://www.dvbsky.net/Support_linux.html
-
-si2168 6-0064: downloading firmware from file 'dvb-demod-si2168-b40-01.fw'
-si2168 6-0064: firmware version: B 4.0.25
-
-The firmware is now newer than before (4.0.11), but I still get no output with dynamic debugging.
-
+> Add support for 'tags' to struct v4l2_buffer. These can be used
+> by m2m devices so userspace can set a tag for an output buffer and
+> this value will then be copied to the capture buffer(s).
 > 
-> Certainly a logic analyser would help here to see if the signal is arriving,
-> and where it goes (e.g. directly to a gpio pin).
-
-Currently, I do not have a logic analyser at hand.
-
+> This tag can be used to refer to capture buffers, something that
+> is needed by stateless HW codecs.
 > 
-> What's the output of the lspci -vvv? Maybe it's reported via gpio and not
-> i2c.
+> The new V4L2_BUF_CAP_SUPPORTS_TAGS capability indicates whether
+> or not tags are supported.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  include/uapi/linux/videodev2.h | 38 +++++++++++++++++++++++++++++++++-
+>  1 file changed, 37 insertions(+), 1 deletion(-)
+> 
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index c8e8ff810190..ec1fef2a9445 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -879,6 +879,7 @@ struct v4l2_requestbuffers {
+>  #define V4L2_BUF_CAP_SUPPORTS_USERPTR	(1 << 1)
+>  #define V4L2_BUF_CAP_SUPPORTS_DMABUF	(1 << 2)
+>  #define V4L2_BUF_CAP_SUPPORTS_REQUESTS	(1 << 3)
+> +#define V4L2_BUF_CAP_SUPPORTS_TAGS	(1 << 4)
+>  
+>  /**
+>   * struct v4l2_plane - plane info for multi-planar buffers
+> @@ -912,6 +913,11 @@ struct v4l2_plane {
+>  	__u32			reserved[11];
+>  };
+>  
+> +struct v4l2_buffer_tag {
+> +	__u32 low;
+> +	__u32 high;
+> +};
+> +
+>  /**
+>   * struct v4l2_buffer - video buffer info
+>   * @index:	id number of the buffer
+> @@ -950,7 +956,10 @@ struct v4l2_buffer {
+>  	__u32			flags;
+>  	__u32			field;
+>  	struct timeval		timestamp;
+> -	struct v4l2_timecode	timecode;
+> +	union {
+> +		struct v4l2_timecode	timecode;
+> +		struct v4l2_buffer_tag	tag;
+> +	};
+>  	__u32			sequence;
+>  
+>  	/* memory location */
+> @@ -988,6 +997,8 @@ struct v4l2_buffer {
+>  #define V4L2_BUF_FLAG_IN_REQUEST		0x00000080
+>  /* timecode field is valid */
+>  #define V4L2_BUF_FLAG_TIMECODE			0x00000100
+> +/* tag field is valid */
+> +#define V4L2_BUF_FLAG_TAG			0x00000200
+>  /* Buffer is prepared for queuing */
+>  #define V4L2_BUF_FLAG_PREPARED			0x00000400
+>  /* Cache handling flags */
+> @@ -1007,6 +1018,31 @@ struct v4l2_buffer {
+>  /* request_fd is valid */
+>  #define V4L2_BUF_FLAG_REQUEST_FD		0x00800000
+>  
+> +static inline void v4l2_buffer_set_tag(struct v4l2_buffer *buf, __u64 tag)
+> +{
+> +	buf->tag.high = tag >> 32;
+> +	buf->tag.low = tag & 0xffffffffULL;
+> +	buf->flags |= V4L2_BUF_FLAG_TAG;
+> +}
+> +
+> +static inline void v4l2_buffer_set_tag_ptr(struct v4l2_buffer *buf,
+> +					   const void *tag)
+> +{
+> +	v4l2_buffer_set_tag(buf, (uintptr_t)tag);
+> +}
+> +
+> +static inline __u64 v4l2_buffer_get_tag(const struct v4l2_buffer *buf)
+> +{
+> +	if (!(buf->flags & V4L2_BUF_FLAG_TAG))
+> +		return 0;
+> +	return (((__u64)buf->tag.high) << 32) | (__u64)buf->tag.low;
+> +}
+> +
+> +static inline void *v4l2_buffer_get_tag_ptr(const struct v4l2_buffer *buf)
+> +{
+> +	return (void *)(uintptr_t)v4l2_buffer_get_tag(buf);
+> +}
+> +
 
-The output of lspci -vvv:
+I'm reconsidering my decision to use a u64 for the tag. It is too fiddly due
+to the fact that I have to use a struct v4l2_buffer_tag. I think I'll just
+use a u32.
 
-17:00.0 Multimedia video controller: Conexant Systems, Inc. CX23885 PCI Video and Audio Decoder (rev 04)
-	Subsystem: Technotrend Systemtechnik GmbH TT-budget CT2-4500 CI
-	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx-
-	Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
-	Latency: 0, Cache Line Size: 64 bytes
-	Interrupt: pin A routed to IRQ 31
-	Region 0: Memory at fe000000 (64-bit, non-prefetchable) [size=2M]
-	Capabilities: [40] Express (v1) Endpoint, MSI 00
-		DevCap:	MaxPayload 128 bytes, PhantFunc 0, Latency L0s <64ns, L1 <1us
-			ExtTag- AttnBtn- AttnInd- PwrInd- RBE- FLReset- SlotPowerLimit 26.000W
-		DevCtl:	Report errors: Correctable- Non-Fatal- Fatal- Unsupported-
-			RlxdOrd+ ExtTag- PhantFunc- AuxPwr- NoSnoop+
-			MaxPayload 128 bytes, MaxReadReq 512 bytes
-		DevSta:	CorrErr- UncorrErr- FatalErr- UnsuppReq- AuxPwr- TransPend-
-		LnkCap:	Port #0, Speed 2.5GT/s, Width x1, ASPM L0s L1, Exit Latency L0s <2us, L1 <4us
-			ClockPM- Surprise- LLActRep- BwNot- ASPMOptComp-
-		LnkCtl:	ASPM Disabled; RCB 64 bytes Disabled- CommClk+
-			ExtSynch- ClockPM- AutWidDis- BWInt- AutBWInt-
-		LnkSta:	Speed 2.5GT/s, Width x1, TrErr- Train- SlotClk+ DLActive- BWMgmt- ABWMgmt-
-	Capabilities: [80] Power Management version 2
-		Flags: PMEClk- DSI+ D1+ D2+ AuxCurrent=0mA PME(D0+,D1+,D2+,D3hot+,D3cold-)
-		Status: D0 NoSoftRst- PME-Enable- DSel=0 DScale=0 PME-
-	Capabilities: [90] Vital Product Data
-		Product Name: "
-		End
-	Capabilities: [a0] MSI: Enable- Count=1/1 Maskable- 64bit+
-		Address: 0000000000000000  Data: 0000
-	Capabilities: [100 v1] Advanced Error Reporting
-		UESta:	DLP- SDES- TLP- FCP- CmpltTO- CmpltAbrt- UnxCmplt- RxOF- MalfTLP- ECRC- UnsupReq- ACSViol-
-		UEMsk:	DLP- SDES- TLP- FCP- CmpltTO- CmpltAbrt- UnxCmplt- RxOF- MalfTLP- ECRC- UnsupReq- ACSViol-
-		UESvrt:	DLP+ SDES- TLP- FCP+ CmpltTO- CmpltAbrt- UnxCmplt- RxOF+ MalfTLP+ ECRC- UnsupReq- ACSViol-
-		CESta:	RxErr- BadTLP- BadDLLP- Rollover- Timeout- NonFatalErr-
-		CEMsk:	RxErr- BadTLP- BadDLLP- Rollover- Timeout- NonFatalErr-
-		AERCap:	First Error Pointer: 00, GenCap- CGenEn- ChkCap- ChkEn-
-	Capabilities: [200 v1] Virtual Channel
-		Caps:	LPEVC=0 RefClk=100ns PATEntryBits=1
-		Arb:	Fixed+ WRR32+ WRR64+ WRR128-
-		Ctrl:	ArbSelect=WRR64
-		Status:	InProgress-
-		Port Arbitration Table [240] <?>
-		VC0:	Caps:	PATOffset=00 MaxTimeSlots=1 RejSnoopTrans-
-			Arb:	Fixed- WRR32- WRR64- WRR128- TWRR128- WRR256-
-			Ctrl:	Enable+ ID=0 ArbSelect=Fixed TC/VC=01
-			Status:	NegoPending- InProgress-
-	Kernel driver in use: cx23885
-	Kernel modules: cx23885
-
+I'll post a new version where I make this change.
 
 Regards,
 
-Martin
+	Hans
+
+>  /**
+>   * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
+>   *
+> 
