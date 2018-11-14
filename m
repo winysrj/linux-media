@@ -1,7 +1,7 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:38507 "EHLO mail.bootlin.com"
+Received: from mail.bootlin.com ([62.4.15.54]:38514 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728686AbeKOBDL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        id S1731585AbeKOBDL (ORCPT <rfc822;linux-media@vger.kernel.org>);
         Wed, 14 Nov 2018 20:03:11 -0500
 From: Maxime Ripard <maxime.ripard@bootlin.com>
 To: Yong Deng <yong.deng@magewell.com>
@@ -13,42 +13,46 @@ Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
         linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
         Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
         Mylene Josserand <mylene.josserand@bootlin.com>
-Subject: [PATCH v2 1/4] dt-bindings: media: sun6i: Add A31 and H3 compatibles
-Date: Wed, 14 Nov 2018 15:59:31 +0100
-Message-Id: <20181114145934.26855-2-maxime.ripard@bootlin.com>
-In-Reply-To: <20181114145934.26855-1-maxime.ripard@bootlin.com>
-References: <20181114145934.26855-1-maxime.ripard@bootlin.com>
+Subject: [PATCH v2 0/4] media: sun6i: Add support for the H3 CSI controller
+Date: Wed, 14 Nov 2018 15:59:30 +0100
+Message-Id: <20181114145934.26855-1-maxime.ripard@bootlin.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The H3 has a slightly different CSI controller (no BT656, no CCI) which
-looks a lot like the original A31 controller. Add a compatible for the A31,
-and more specific compatible the for the H3 to be used in combination for
-the A31.
+Hi,
 
-Reviewed-by: Rob Herring <robh@kernel.org>
-Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
----
- Documentation/devicetree/bindings/media/sun6i-csi.txt | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+The H3 and H5 have a CSI controller based on the one previously found
+in the A31, that is currently supported by the sun6i-csi driver.
 
-diff --git a/Documentation/devicetree/bindings/media/sun6i-csi.txt b/Documentation/devicetree/bindings/media/sun6i-csi.txt
-index 2ff47a9507a6..3f8eb0296382 100644
---- a/Documentation/devicetree/bindings/media/sun6i-csi.txt
-+++ b/Documentation/devicetree/bindings/media/sun6i-csi.txt
-@@ -5,7 +5,10 @@ Allwinner V3s SoC features two CSI module. CSI0 is used for MIPI CSI-2
- interface and CSI1 is used for parallel interface.
- 
- Required properties:
--  - compatible: value must be "allwinner,sun8i-v3s-csi"
-+  - compatible: value must be one of:
-+    * "allwinner,sun6i-a31-csi"
-+    * "allwinner,sun8i-h3-csi", "allwinner,sun6i-a31-csi"
-+    * "allwinner,sun8i-v3s-csi"
-   - reg: base address and size of the memory-mapped region.
-   - interrupts: interrupt associated to this IP
-   - clocks: phandles to the clocks feeding the CSI
+Add the compatibles to the device tree bindings and to the driver to
+make it work properly.
+
+This obviously depends on the serie "Initial Allwinner V3s CSI
+Support" by Yong Deng.
+
+Let me know what you think,
+Maxime
+
+Changes from v1:
+  - Rebased on top of latest Yong's series
+
+Maxime Ripard (2):
+  dt-bindings: media: sun6i: Add A31 and H3 compatibles
+  media: sun6i: Add A31 compatible
+
+Mylène Josserand (2):
+  ARM: dts: sun8i: Add the H3/H5 CSI controller
+  [DO NOT MERGE] ARM: dts: sun8i: Add CAM500B camera module to the Nano
+    Pi M1+
+
+ .../devicetree/bindings/media/sun6i-csi.txt   |  5 +-
+ arch/arm/boot/dts/sun8i-h3-nanopi-m1-plus.dts | 85 +++++++++++++++++++
+ arch/arm/boot/dts/sunxi-h3-h5.dtsi            | 22 +++++
+ .../platform/sunxi/sun6i-csi/sun6i_csi.c      |  1 +
+ 4 files changed, 112 insertions(+), 1 deletion(-)
+
 -- 
 2.19.1
