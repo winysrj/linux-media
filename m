@@ -1,222 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:39042 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727736AbeKOF5J (ORCPT
+Received: from mail-lj1-f194.google.com ([209.85.208.194]:34346 "EHLO
+        mail-lj1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725757AbeKOGAp (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Nov 2018 00:57:09 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Philipp Zabel <p.zabel@pengutronix.de>,
-        linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Nicolas Dufresne <nicolas@ndufresne.ca>
-Subject: Re: [PATCH] media: vb2: Allow reqbufs(0) with "in use" MMAP buffers
-Date: Wed, 14 Nov 2018 21:52:21 +0200
-Message-ID: <9523489.9cJbcbEQpD@avalon>
-In-Reply-To: <eac4ab89-fde0-d28c-9f56-6b6ad5f9e95a@xs4all.nl>
-References: <20181113150621.22276-1-p.zabel@pengutronix.de> <eac4ab89-fde0-d28c-9f56-6b6ad5f9e95a@xs4all.nl>
+        Thu, 15 Nov 2018 01:00:45 -0500
+Received: by mail-lj1-f194.google.com with SMTP id u6-v6so15221139ljd.1
+        for <linux-media@vger.kernel.org>; Wed, 14 Nov 2018 11:56:07 -0800 (PST)
+Date: Wed, 14 Nov 2018 20:56:05 +0100
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: laurent.pinchart@ideasonboard.com, kieran.bingham@ideasonboard.com,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH v4 6/6] media: rcar-csi2: Handle per-SoC number of
+ channels
+Message-ID: <20181114195605.GF6901@bigcity.dyn.berto.se>
+References: <1541501667-28817-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1541501667-28817-7-git-send-email-jacopo+renesas@jmondi.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1541501667-28817-7-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi Jacopo,
 
-On Tuesday, 13 November 2018 17:43:48 EET Hans Verkuil wrote:
-> On 11/13/18 16:06, Philipp Zabel wrote:
-> > From: John Sheu <sheu@chromium.org>
-> > 
-> > Videobuf2 presently does not allow VIDIOC_REQBUFS to destroy outstanding
-> > buffers if the queue is of type V4L2_MEMORY_MMAP, and if the buffers are
-> > considered "in use".  This is different behavior than for other memory
-> > types and prevents us from deallocating buffers in following two cases:
-> > 
-> > 1) There are outstanding mmap()ed views on the buffer. However even if
-> >    we put the buffer in reqbufs(0), there will be remaining references,
-> >    due to vma .open/close() adjusting vb2 buffer refcount appropriately.
-> >    This means that the buffer will be in fact freed only when the last
-> >    mmap()ed view is unmapped.
-> > 
-> > 2) Buffer has been exported as a DMABUF. Refcount of the vb2 buffer
-> >    is managed properly by VB2 DMABUF ops, i.e. incremented on DMABUF
-> >    get and decremented on DMABUF release. This means that the buffer
-> >    will be alive until all importers release it.
-> > 
-> > Considering both cases above, there does not seem to be any need to
-> > prevent reqbufs(0) operation, because buffer lifetime is already
-> > properly managed by both mmap() and DMABUF code paths. Let's remove it
-> > and allow userspace freeing the queue (and potentially allocating a new
-> > one) even though old buffers might be still in processing.
-> > 
-> > To let userspace know that the kernel now supports orphaning buffers
-> > that are still in use, add a new V4L2_BUF_CAP_SUPPORTS_ORPHANED_BUFS
-> > to be set by reqbufs and create_bufs.
-> 
-> Looks good, but I have some questions:
-> 
-> 1) does v4l2-compliance together with vivid (easiest to test) still work?
->    I don't think I have a proper test for this in v4l2-compliance, but
->    I'm not 100% certain. If it fails with this patch, then please provide
->    a fix for v4l2-compliance as well.
-> 
-> 2) I would like to see a new test in v4l2-compliance for this: i.e. if
->    the capability is set, then check that you can call REQBUFS(0) before
->    unmapping all buffers. Ditto with dmabuffers.
-> 
-> I said during the media summit that I wanted to be more strict about
-> requiring compliance tests before adding new features, so you're the
-> unlucky victim of that :-)
+Thanks for your patch.
 
-Do you have plans to refactor and document the v4l2-compliance internals to 
-make it easier ?
+On 2018-11-06 11:54:27 +0100, Jacopo Mondi wrote:
+> The R-Car CSI-2 interface has a number of selectable 'channels' that
+> provides pixel data to the VINs during image acquisition.
+> 
+> Each channel can be used to match a CSI-2 data type and a CSI-2 virtual
+> channel to be routed to output path.
+> 
+> Different SoCs have different number of channels, with R-Car E3 being the
+> notable exception supporting only 2 of them.
+> 
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
 
-> Look for munmap_bufs in v4l2-test-buffers.cpp (the MMAP case). The dmabuf
-> tests are a bit trickier since I noticed that I never actually close
-> the dmabuf fds in v4l2-compliance. This will fix that:
-> 
-> diff --git a/utils/v4l2-compliance/v4l2-test-buffers.cpp
-> b/utils/v4l2-compliance/v4l2-test-buffers.cpp index c59a56d9..03639301
-> 100644
-> --- a/utils/v4l2-compliance/v4l2-test-buffers.cpp
-> +++ b/utils/v4l2-compliance/v4l2-test-buffers.cpp
-> @@ -1201,6 +1201,7 @@ int testDmaBuf(struct node *expbuf_node, struct node
-> *node, unsigned frame_count fail_on_test(captureBufs(node, q, m2m_q,
-> frame_count, true));
->  		fail_on_test(node->streamoff(q.g_type()));
->  		fail_on_test(node->streamoff(q.g_type()));
-> +		exp_q.close_exported_fds();
->  	}
->  	return 0;
->  }
-> 
-> What is also missing in testDmaBuf is calling q.reqbufs(node, 0) to free all
-> buffers, and I never munmap the buffers by calling q.munmap_bufs(node);
-> 
-> In other words, clearly I never wrote proper tests for the behavior of
-> mmap()/dmabuf and REQBUFS(0).
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> > Signed-off-by: John Sheu <sheu@chromium.org>
-> > Reviewed-by: Pawel Osciak <posciak@chromium.org>
-> > Reviewed-by: Tomasz Figa <tfiga@chromium.org>
-> > Signed-off-by: Tomasz Figa <tfiga@chromium.org>
-> > [p.zabel@pengutronix.de: moved __vb2_queue_cancel out of the mmap_lock
-> > 
-> >  and added V4L2_BUF_CAP_SUPPORTS_ORPHANED_BUFS]
-> > 
-> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> > ---
-> > 
-> >  .../media/common/videobuf2/videobuf2-core.c   | 26 +------------------
-> >  .../media/common/videobuf2/videobuf2-v4l2.c   |  2 +-
-> >  include/uapi/linux/videodev2.h                |  1 +
-> >  3 files changed, 3 insertions(+), 26 deletions(-)
-> > 
-> > diff --git a/drivers/media/common/videobuf2/videobuf2-core.c
-> > b/drivers/media/common/videobuf2/videobuf2-core.c index
-> > 975ff5669f72..608459450c1e 100644
-> > --- a/drivers/media/common/videobuf2/videobuf2-core.c
-> > +++ b/drivers/media/common/videobuf2/videobuf2-core.c
-> > @@ -553,20 +553,6 @@ bool vb2_buffer_in_use(struct vb2_queue *q, struct
-> > vb2_buffer *vb)> 
-> >  }
-> >  EXPORT_SYMBOL(vb2_buffer_in_use);
-> > 
-> > -/*
-> > - * __buffers_in_use() - return true if any buffers on the queue are in
-> > use and - * the queue cannot be freed (by the means of REQBUFS(0)) call
-> > - */
-> > -static bool __buffers_in_use(struct vb2_queue *q)
-> > -{
-> > -	unsigned int buffer;
-> > -	for (buffer = 0; buffer < q->num_buffers; ++buffer) {
-> > -		if (vb2_buffer_in_use(q, q->bufs[buffer]))
-> > -			return true;
-> > -	}
-> > -	return false;
-> > -}
-> > -
-> > 
-> >  void vb2_core_querybuf(struct vb2_queue *q, unsigned int index, void *pb)
-> >  {
-> >  
-> >  	call_void_bufop(q, fill_user_buffer, q->bufs[index], pb);
-> > 
-> > @@ -674,23 +660,13 @@ int vb2_core_reqbufs(struct vb2_queue *q, enum
-> > vb2_memory memory,> 
-> >  	if (*count == 0 || q->num_buffers != 0 ||
-> >  	
-> >  	    (q->memory != VB2_MEMORY_UNKNOWN && q->memory != memory)) {
-> > 
-> > -		/*
-> > -		 * We already have buffers allocated, so first check if they
-> > -		 * are not in use and can be freed.
-> > -		 */
-> > -		mutex_lock(&q->mmap_lock);
-> > -		if (q->memory == VB2_MEMORY_MMAP && __buffers_in_use(q)) {
-> > -			mutex_unlock(&q->mmap_lock);
-> > -			dprintk(1, "memory in use, cannot free\n");
-> > -			return -EBUSY;
-> > -		}
-> > -
-> > 
-> >  		/*
-> >  		
-> >  		 * Call queue_cancel to clean up any buffers in the
-> >  		 * QUEUED state which is possible if buffers were prepared or
-> >  		 * queued without ever calling STREAMON.
-> >  		 */
-> >  		
-> >  		__vb2_queue_cancel(q);
-> > 
-> > +		mutex_lock(&q->mmap_lock);
-> > 
-> >  		ret = __vb2_queue_free(q, q->num_buffers);
-> >  		mutex_unlock(&q->mmap_lock);
-> >  		if (ret)
-> > 
-> > diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c
-> > b/drivers/media/common/videobuf2/videobuf2-v4l2.c index
-> > a17033ab2c22..f02d452ceeb9 100644
-> > --- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
-> > +++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-> > @@ -624,7 +624,7 @@ EXPORT_SYMBOL(vb2_querybuf);
-> > 
-> >  static void fill_buf_caps(struct vb2_queue *q, u32 *caps)
-> >  {
-> > 
-> > -	*caps = 0;
-> > +	*caps = V4L2_BUF_CAP_SUPPORTS_ORPHANED_BUFS;
-> > 
-> >  	if (q->io_modes & VB2_MMAP)
-> >  	
-> >  		*caps |= V4L2_BUF_CAP_SUPPORTS_MMAP;
-> >  	
-> >  	if (q->io_modes & VB2_USERPTR)
-> > 
-> > diff --git a/include/uapi/linux/videodev2.h
-> > b/include/uapi/linux/videodev2.h index c8e8ff810190..2a223835214c 100644
-> > --- a/include/uapi/linux/videodev2.h
-> > +++ b/include/uapi/linux/videodev2.h
-> > @@ -879,6 +879,7 @@ struct v4l2_requestbuffers {
-> > 
-> >  #define V4L2_BUF_CAP_SUPPORTS_USERPTR	(1 << 1)
-> >  #define V4L2_BUF_CAP_SUPPORTS_DMABUF	(1 << 2)
-> >  #define V4L2_BUF_CAP_SUPPORTS_REQUESTS	(1 << 3)
-> > 
-> > +#define V4L2_BUF_CAP_SUPPORTS_ORPHANED_BUFS (1 << 4)
-> > 
-> >  /**
-> >  
-> >   * struct v4l2_plane - plane info for multi-planar buffers
+Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
+> 
+> ---
+> v1 -> v2:
+> - Use the num_channels variable to decide if VCDT2 has to be written
+>   as suggested by Laurent.
+> ---
+>  drivers/media/platform/rcar-vin/rcar-csi2.c | 15 ++++++++++++---
+>  1 file changed, 12 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/platform/rcar-vin/rcar-csi2.c b/drivers/media/platform/rcar-vin/rcar-csi2.c
+> index 99f5b76..80ad906 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-csi2.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-csi2.c
+> @@ -342,6 +342,7 @@ struct rcar_csi2_info {
+>  	int (*confirm_start)(struct rcar_csi2 *priv);
+>  	const struct rcsi2_mbps_reg *hsfreqrange;
+>  	unsigned int csi0clkfreqrange;
+> +	unsigned int num_channels;
+>  	bool clear_ulps;
+>  };
+>  
+> @@ -476,13 +477,14 @@ static int rcsi2_start(struct rcar_csi2 *priv)
+>  	format = rcsi2_code_to_fmt(priv->mf.code);
+>  
+>  	/*
+> -	 * Enable all Virtual Channels.
+> +	 * Enable all supported CSI-2 channels with virtual channel and
+> +	 * data type matching.
+>  	 *
+>  	 * NOTE: It's not possible to get individual datatype for each
+>  	 *       source virtual channel. Once this is possible in V4L2
+>  	 *       it should be used here.
+>  	 */
+> -	for (i = 0; i < 4; i++) {
+> +	for (i = 0; i < priv->info->num_channels; i++) {
+>  		u32 vcdt_part;
+>  
+>  		vcdt_part = VCDT_SEL_VC(i) | VCDT_VCDTN_EN | VCDT_SEL_DTN_ON |
+> @@ -511,7 +513,8 @@ static int rcsi2_start(struct rcar_csi2 *priv)
+>  	rcsi2_write(priv, FLD_REG, FLD_FLD_NUM(2) | FLD_FLD_EN4 |
+>  		    FLD_FLD_EN3 | FLD_FLD_EN2 | FLD_FLD_EN);
+>  	rcsi2_write(priv, VCDT_REG, vcdt);
+> -	rcsi2_write(priv, VCDT2_REG, vcdt2);
+> +	if (vcdt2)
+> +		rcsi2_write(priv, VCDT2_REG, vcdt2);
+>  	/* Lanes are zero indexed. */
+>  	rcsi2_write(priv, LSWAP_REG,
+>  		    LSWAP_L0SEL(priv->lane_swap[0] - 1) |
+> @@ -940,32 +943,38 @@ static const struct rcar_csi2_info rcar_csi2_info_r8a7795 = {
+>  	.init_phtw = rcsi2_init_phtw_h3_v3h_m3n,
+>  	.hsfreqrange = hsfreqrange_h3_v3h_m3n,
+>  	.csi0clkfreqrange = 0x20,
+> +	.num_channels = 4,
+>  	.clear_ulps = true,
+>  };
+>  
+>  static const struct rcar_csi2_info rcar_csi2_info_r8a7795es1 = {
+>  	.hsfreqrange = hsfreqrange_m3w_h3es1,
+> +	.num_channels = 4,
+>  };
+>  
+>  static const struct rcar_csi2_info rcar_csi2_info_r8a7796 = {
+>  	.hsfreqrange = hsfreqrange_m3w_h3es1,
+> +	.num_channels = 4,
+>  };
+>  
+>  static const struct rcar_csi2_info rcar_csi2_info_r8a77965 = {
+>  	.init_phtw = rcsi2_init_phtw_h3_v3h_m3n,
+>  	.hsfreqrange = hsfreqrange_h3_v3h_m3n,
+>  	.csi0clkfreqrange = 0x20,
+> +	.num_channels = 4,
+>  	.clear_ulps = true,
+>  };
+>  
+>  static const struct rcar_csi2_info rcar_csi2_info_r8a77970 = {
+>  	.init_phtw = rcsi2_init_phtw_v3m_e3,
+>  	.confirm_start = rcsi2_confirm_start_v3m_e3,
+> +	.num_channels = 4,
+>  };
+>  
+>  static const struct rcar_csi2_info rcar_csi2_info_r8a77990 = {
+>  	.init_phtw = rcsi2_init_phtw_v3m_e3,
+>  	.confirm_start = rcsi2_confirm_start_v3m_e3,
+> +	.num_channels = 2,
+>  };
+>  
+>  static const struct of_device_id rcar_csi2_of_table[] = {
+> -- 
+> 2.7.4
+> 
 
 -- 
 Regards,
-
-Laurent Pinchart
+Niklas Söderlund
