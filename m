@@ -1,16 +1,16 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:60554 "EHLO mga02.intel.com"
+Received: from mga04.intel.com ([192.55.52.120]:44693 "EHLO mga04.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727558AbeKNTk7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Nov 2018 14:40:59 -0500
+        id S1727558AbeKNTlG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Nov 2018 14:41:06 -0500
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Dave Stevenson <dave.stevenson@raspberrypi.org>,
         Hans Verkuil <hans.verkuil@cisco.com>, mchehab@kernel.org,
         linux-media@vger.kernel.org, Sasha Levin <sashal@kernel.org>
-Subject: [PATCH v2 for v4.4 1/1] v4l: event: Add subscription to list before calling "add" operation
-Date: Wed, 14 Nov 2018 11:37:46 +0200
-Message-Id: <20181114093746.29035-1-sakari.ailus@linux.intel.com>
+Subject: [PATCH v2 for v4.9 1/1] v4l: event: Add subscription to list before calling "add" operation
+Date: Wed, 14 Nov 2018 11:37:53 +0200
+Message-Id: <20181114093753.29081-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
@@ -33,7 +33,7 @@ Tested-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
 Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 Tested-by: Hans Verkuil <hans.verkuil@cisco.com>
 Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-[Sakari Ailus: Backported to v4.4 stable]
+[Sakari Ailus: Backported to v4.9 stable]
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
 since v1 (as requested by Sasha):
@@ -46,7 +46,7 @@ since v1 (as requested by Sasha):
  1 file changed, 24 insertions(+), 19 deletions(-)
 
 diff --git a/drivers/media/v4l2-core/v4l2-event.c b/drivers/media/v4l2-core/v4l2-event.c
-index b47ac4e053d0e..f5c8a952f0aa3 100644
+index 567d86835f001..1fda2873375f6 100644
 --- a/drivers/media/v4l2-core/v4l2-event.c
 +++ b/drivers/media/v4l2-core/v4l2-event.c
 @@ -197,6 +197,22 @@ int v4l2_event_pending(struct v4l2_fh *fh)
