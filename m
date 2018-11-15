@@ -1,58 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk1-f194.google.com ([209.85.222.194]:44829 "EHLO
-        mail-qk1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388326AbeKPC7p (ORCPT
+Received: from mail-ed1-f68.google.com ([209.85.208.68]:37470 "EHLO
+        mail-ed1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2388088AbeKPDBQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Nov 2018 21:59:45 -0500
-Received: by mail-qk1-f194.google.com with SMTP id n12so32803573qkh.11
-        for <linux-media@vger.kernel.org>; Thu, 15 Nov 2018 08:51:10 -0800 (PST)
-Message-ID: <f3572cbeecbcbeeb37a6e2d29b4e72e2a9ae75bc.camel@ndufresne.ca>
-Subject: Re: [PATCH] media: venus: fix reported size of 0-length buffers
-From: Nicolas Dufresne <nicolas@ndufresne.ca>
-To: Alexandre Courbot <acourbot@chromium.org>
-Cc: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Thu, 15 Nov 2018 22:01:16 -0500
+MIME-Version: 1.0
+References: <20181115145013.3378-1-paul.kocialkowski@bootlin.com> <20181115145013.3378-8-paul.kocialkowski@bootlin.com>
+In-Reply-To: <20181115145013.3378-8-paul.kocialkowski@bootlin.com>
+From: Chen-Yu Tsai <wens@csie.org>
+Date: Fri, 16 Nov 2018 00:52:28 +0800
+Message-ID: <CAGb2v64t6t3Bwf4nc8gQWRDkdv4zGRF1-+Q7snqX6bkEVqirvA@mail.gmail.com>
+Subject: Re: [PATCH 07/15] arm64: dts: allwinner: h5: Add system-control node
+ with SRAM C1
+To: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        devicetree <devicetree@vger.kernel.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        devel@driverdev.osuosl.org,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-arm-msm@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
-Date: Thu, 15 Nov 2018 11:51:08 -0500
-In-Reply-To: <463ac42b795933a54daa8d2bbba3ff1ac2b733db.camel@ndufresne.ca>
-References: <20181113093048.236201-1-acourbot@chromium.org>
-         <CAKQmDh-91tHP1VxLisW1A3GR9G7du3F-Y2XrrgoFU=gvhGoP6w@mail.gmail.com>
-         <CAPBb6MWJ1Qu9YoRRusOGiC7dioMkgvU=1dCF6XZ4xDUxp7ri9A@mail.gmail.com>
-         <463ac42b795933a54daa8d2bbba3ff1ac2b733db.camel@ndufresne.ca>
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-        boundary="=-zHZ7Ei4DWZbZ/lADHTh8"
-Mime-Version: 1.0
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-sunxi@googlegroups.com, Hans Verkuil <hverkuil@xs4all.nl>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Thu, Nov 15, 2018 at 10:50 PM Paul Kocialkowski
+<paul.kocialkowski@bootlin.com> wrote:
+>
+> Add the H5-specific system control node description to its device-tree
+> with support for the SRAM C1 section, that will be used by the video
+> codec node later on.
+>
+> Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+> ---
+>  arch/arm64/boot/dts/allwinner/sun50i-h5.dtsi | 22 ++++++++++++++++++++
+>  1 file changed, 22 insertions(+)
+>
+> diff --git a/arch/arm64/boot/dts/allwinner/sun50i-h5.dtsi b/arch/arm64/boot/dts/allwinner/sun50i-h5.dtsi
+> index b41dc1aab67d..c2d14b22b8c1 100644
+> --- a/arch/arm64/boot/dts/allwinner/sun50i-h5.dtsi
+> +++ b/arch/arm64/boot/dts/allwinner/sun50i-h5.dtsi
+> @@ -94,6 +94,28 @@
+>         };
+>
+>         soc {
+> +               system-control@1c00000 {
+> +                       compatible = "allwinner,sun50i-h5-system-control";
+> +                       reg = <0x01c00000 0x1000>;
+> +                       #address-cells = <1>;
+> +                       #size-cells = <1>;
+> +                       ranges;
+> +
+> +                       sram_c1: sram@1d00000 {
+> +                               compatible = "mmio-sram";
+> +                               reg = <0x01d00000 0x80000>;
 
---=-zHZ7Ei4DWZbZ/lADHTh8
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+I'll try to check this one tomorrow.
 
-Le jeudi 15 novembre 2018 =C3=A0 11:49 -0500, Nicolas Dufresne a =C3=A9crit=
- :
-> Sending buffers with payload size to 0 just for the sake of setting the
-> V4L2_BUF_FLAG_LAST was considered a waste. Specially that after that,
-> every polls should return EPIPE. So in the end, we decided the it
-> should just unblock the userspace and return EPIPE.
+I did find something interesting on the H3: there also seems to be SRAM at
+0x01dc0000 to 0x01dcfeff , again mapped by the same bits as SRAM C1.
 
-errata, DQBUF returns EPIPE, not sure why I keep saying poll.
+And on the A33, the SRAM C1 range is 0x01d00000 to 0x01d478ff.
 
-sorry for that,
-Nicolas
+This was found by mapping the SRAM to the CPU, then using devmem to poke
+around the register range. If there's SRAM, the first read would typically
+return random data, and a subsequent write to it would set some value that
+would be read back correctly. If there's no SRAM, a read either returns 0x0
+or some random data that can't be overwritten.
 
---=-zHZ7Ei4DWZbZ/lADHTh8
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+You might want to check the other SoCs.
 
------BEGIN PGP SIGNATURE-----
+ChenYu
 
-iF0EABECAB0WIQSScpfJiL+hb5vvd45xUwItrAaoHAUCW+2j/AAKCRBxUwItrAao
-HEN5AKDdT0awi1JnbZR4oAi4PaDyutHeegCfXblCg4heJ0HpNxGyNq+4pP2Tewk=
-=0c25
------END PGP SIGNATURE-----
-
---=-zHZ7Ei4DWZbZ/lADHTh8--
+> +                               #address-cells = <1>;
+> +                               #size-cells = <1>;
+> +                               ranges = <0 0x01d00000 0x80000>;
+> +
+> +                               ve_sram: sram-section@0 {
+> +                                       compatible = "allwinner,sun50i-h5-sram-c1",
+> +                                                    "allwinner,sun4i-a10-sram-c1";
+> +                                       reg = <0x000000 0x80000>;
+> +                               };
+> +                       };
+> +               };
+> +
+>                 mali: gpu@1e80000 {
+>                         compatible = "allwinner,sun50i-h5-mali", "arm,mali-450";
+>                         reg = <0x01e80000 0x30000>;
+> --
+> 2.19.1
+>
