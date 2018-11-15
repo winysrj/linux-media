@@ -1,50 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ed1-f65.google.com ([209.85.208.65]:40625 "EHLO
-        mail-ed1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388084AbeKPBnp (ORCPT
+Received: from mail-pg1-f193.google.com ([209.85.215.193]:46594 "EHLO
+        mail-pg1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726432AbeKPBsA (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Nov 2018 20:43:45 -0500
+        Thu, 15 Nov 2018 20:48:00 -0500
+Date: Thu, 15 Nov 2018 21:13:14 +0530
+From: Souptick Joarder <jrdr.linux@gmail.com>
+To: akpm@linux-foundation.org, willy@infradead.org, mhocko@suse.com,
+        kirill.shutemov@linux.intel.com, vbabka@suse.cz, riel@surriel.com,
+        sfr@canb.auug.org.au, rppt@linux.vnet.ibm.com,
+        peterz@infradead.org, linux@armlinux.org.uk, robin.murphy@arm.com,
+        iamjoonsoo.kim@lge.com, treding@nvidia.com, keescook@chromium.org,
+        m.szyprowski@samsung.com, stefanr@s5r6.in-berlin.de,
+        hjc@rock-chips.com, heiko@sntech.de, airlied@linux.ie,
+        oleksandr_andrushchenko@epam.com, joro@8bytes.org,
+        pawel@osciak.com, kyungmin.park@samsung.com, mchehab@kernel.org,
+        boris.ostrovsky@oracle.com, jgross@suse.com
+Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux1394-devel@lists.sourceforge.net,
+        dri-devel@lists.freedesktop.org,
+        linux-rockchip@lists.infradead.org, xen-devel@lists.xen.org,
+        iommu@lists.linux-foundation.org, linux-media@vger.kernel.org
+Subject: [PATCH 0/9] Use vm_insert_range
+Message-ID: <20181115154314.GA27850@jordon-HP-15-Notebook-PC>
 MIME-Version: 1.0
-References: <20181115145013.3378-1-paul.kocialkowski@bootlin.com> <20181115145013.3378-15-paul.kocialkowski@bootlin.com>
-In-Reply-To: <20181115145013.3378-15-paul.kocialkowski@bootlin.com>
-From: Chen-Yu Tsai <wens@csie.org>
-Date: Thu, 15 Nov 2018 23:35:14 +0800
-Message-ID: <CAGb2v64pVKG4mSAF48xR54yj00rQ6iTvgYQB9Bf-XWmH2FhVqQ@mail.gmail.com>
-Subject: Re: [linux-sunxi] [PATCH 14/15] arm64: dts: allwinner: h5: Add Video
- Engine and reserved memory node
-To: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        devicetree <devicetree@vger.kernel.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        devel@driverdev.osuosl.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-sunxi@googlegroups.com, Hans Verkuil <hverkuil@xs4all.nl>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Nov 15, 2018 at 10:51 PM Paul Kocialkowski
-<paul.kocialkowski@bootlin.com> wrote:
->
-> This adds nodes for the Video Engine and the associated reserved memory
-> for the H5. Up to 96 MiB of memory are dedicated to the CMA pool.
->
-> The pool is located at the end of the first 256 MiB of RAM so that the
-> VPU can access it. It is unclear whether this is still a hard
-> requirement for this platform, but it seems safer that way.
+Previouly drivers have their own way of mapping range of
+kernel pages/memory into user vma and this was done by
+invoking vm_insert_page() within a loop.
 
-I think we can actually test this. You could move the reserved memory
-pool beyond 256 MiB, and have cedrus decode stuff, and try to display
-the results. If it's gibberish, or the system crashes, it's likely the
-memory access wrapped around at 256 MiB.
+As this pattern is common across different drivers, it can
+be generalized by creating a new function and use it across
+the drivers.
 
-What do you think?
+vm_insert_range is the new API which will be used to map a
+range of kernel memory/pages to user vma.
 
-ChenYu
+All the applicable places are converted to use new vm_insert_range
+in this patch series.
+
+Souptick Joarder (9):
+  mm: Introduce new vm_insert_range API
+  arch/arm/mm/dma-mapping.c: Convert to use vm_insert_range
+  drivers/firewire/core-iso.c: Convert to use vm_insert_range
+  drm/rockchip/rockchip_drm_gem.c: Convert to use vm_insert_range
+  drm/xen/xen_drm_front_gem.c: Convert to use vm_insert_range
+  iommu/dma-iommu.c: Convert to use vm_insert_range
+  videobuf2/videobuf2-dma-sg.c: Convert to use vm_insert_range
+  xen/gntdev.c: Convert to use vm_insert_range
+  xen/privcmd-buf.c: Convert to use vm_insert_range
+
+ arch/arm/mm/dma-mapping.c                         | 21 ++++++-----------
+ drivers/firewire/core-iso.c                       | 15 ++----------
+ drivers/gpu/drm/rockchip/rockchip_drm_gem.c       | 20 ++--------------
+ drivers/gpu/drm/xen/xen_drm_front_gem.c           | 20 +++++-----------
+ drivers/iommu/dma-iommu.c                         | 12 ++--------
+ drivers/media/common/videobuf2/videobuf2-dma-sg.c | 23 ++++++-------------
+ drivers/xen/gntdev.c                              | 11 ++++-----
+ drivers/xen/privcmd-buf.c                         |  8 ++-----
+ include/linux/mm_types.h                          |  3 +++
+ mm/memory.c                                       | 28 +++++++++++++++++++++++
+ mm/nommu.c                                        |  7 ++++++
+ 11 files changed, 70 insertions(+), 98 deletions(-)
+
+-- 
+1.9.1
