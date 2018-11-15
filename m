@@ -1,194 +1,213 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:36746 "EHLO
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:60290 "EHLO
         lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728757AbeKOU3L (ORCPT
+        by vger.kernel.org with ESMTP id S1728609AbeKOUg5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Nov 2018 15:29:11 -0500
-Subject: Re: [PATCH v4l-utils] v4l2-compliance: test orphaned buffer support
-To: Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-References: <20181114143833.19267-1-p.zabel@pengutronix.de>
+        Thu, 15 Nov 2018 15:36:57 -0500
+Subject: Re: [PATCH v3] media: vb2: Allow reqbufs(0) with "in use" MMAP
+ buffers
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Nicolas Dufresne <nicolas@ndufresne.ca>,
+        Sakari Ailus <sakari.ailus@iki.fi>
+References: <20181114150449.23487-1-p.zabel@pengutronix.de>
+ <7953197.5dbdkFljzD@avalon>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <a7ff5286-2232-3d64-28d2-c46bd30cad5f@xs4all.nl>
-Date: Thu, 15 Nov 2018 11:21:51 +0100
+Message-ID: <c64434d8-8f51-e67a-0883-e052a6599622@xs4all.nl>
+Date: Thu, 15 Nov 2018 11:29:35 +0100
 MIME-Version: 1.0
-In-Reply-To: <20181114143833.19267-1-p.zabel@pengutronix.de>
+In-Reply-To: <7953197.5dbdkFljzD@avalon>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/14/18 15:38, Philipp Zabel wrote:
-> Test that V4L2_BUF_CAP_SUPPORTS_ORPHANED_BUFS is reported equally for
-> both MMAP and DMABUF memory types. If supported, try to orphan buffers
-> by calling reqbufs(0) before unmapping or closing DMABUF fds.
+On 11/14/18 20:59, Laurent Pinchart wrote:
+> Hi Philipp,
 > 
-> Also close exported DMABUF fds and free buffers in testDmaBuf if
-> orphaned buffers are not supported.
+> Thank you for the patch.
 > 
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> ---
->  contrib/freebsd/include/linux/videodev2.h   |  1 +
->  include/linux/videodev2.h                   |  1 +
->  utils/common/v4l2-info.cpp                  |  1 +
->  utils/v4l2-compliance/v4l2-compliance.h     |  1 +
->  utils/v4l2-compliance/v4l2-test-buffers.cpp | 35 +++++++++++++++++----
->  5 files changed, 33 insertions(+), 6 deletions(-)
+> On Wednesday, 14 November 2018 17:04:49 EET Philipp Zabel wrote:
+>> From: John Sheu <sheu@chromium.org>
+>>
+>> Videobuf2 presently does not allow VIDIOC_REQBUFS to destroy outstanding
+>> buffers if the queue is of type V4L2_MEMORY_MMAP, and if the buffers are
+>> considered "in use".  This is different behavior than for other memory
+>> types and prevents us from deallocating buffers in following two cases:
+>>
+>> 1) There are outstanding mmap()ed views on the buffer. However even if
+>>    we put the buffer in reqbufs(0), there will be remaining references,
+>>    due to vma .open/close() adjusting vb2 buffer refcount appropriately.
+>>    This means that the buffer will be in fact freed only when the last
+>>    mmap()ed view is unmapped.
 > 
-> diff --git a/contrib/freebsd/include/linux/videodev2.h b/contrib/freebsd/include/linux/videodev2.h
-> index 9928c00e4b68..33153b53c175 100644
-> --- a/contrib/freebsd/include/linux/videodev2.h
-> +++ b/contrib/freebsd/include/linux/videodev2.h
-> @@ -907,6 +907,7 @@ struct v4l2_requestbuffers {
->  #define V4L2_BUF_CAP_SUPPORTS_USERPTR	(1 << 1)
->  #define V4L2_BUF_CAP_SUPPORTS_DMABUF	(1 << 2)
->  #define V4L2_BUF_CAP_SUPPORTS_REQUESTS	(1 << 3)
-> +#define V4L2_BUF_CAP_SUPPORTS_ORPHANED_BUFS (1 << 4)
->  
->  /**
->   * struct v4l2_plane - plane info for multi-planar buffers
-> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> index 79418cd39480..a39300cacb6a 100644
-> --- a/include/linux/videodev2.h
-> +++ b/include/linux/videodev2.h
-> @@ -873,6 +873,7 @@ struct v4l2_requestbuffers {
->  #define V4L2_BUF_CAP_SUPPORTS_USERPTR	(1 << 1)
->  #define V4L2_BUF_CAP_SUPPORTS_DMABUF	(1 << 2)
->  #define V4L2_BUF_CAP_SUPPORTS_REQUESTS	(1 << 3)
-> +#define V4L2_BUF_CAP_SUPPORTS_ORPHANED_BUFS (1 << 4)
->  
->  /**
->   * struct v4l2_plane - plane info for multi-planar buffers
-> diff --git a/utils/common/v4l2-info.cpp b/utils/common/v4l2-info.cpp
-> index 258e5446f030..3699c35cb9d6 100644
-> --- a/utils/common/v4l2-info.cpp
-> +++ b/utils/common/v4l2-info.cpp
-> @@ -200,6 +200,7 @@ static const flag_def bufcap_def[] = {
->  	{ V4L2_BUF_CAP_SUPPORTS_USERPTR, "userptr" },
->  	{ V4L2_BUF_CAP_SUPPORTS_DMABUF, "dmabuf" },
->  	{ V4L2_BUF_CAP_SUPPORTS_REQUESTS, "requests" },
-> +	{ V4L2_BUF_CAP_SUPPORTS_ORPHANED_BUFS, "orphaned-bufs" },
->  	{ 0, NULL }
->  };
->  
-> diff --git a/utils/v4l2-compliance/v4l2-compliance.h b/utils/v4l2-compliance/v4l2-compliance.h
-> index def185f17261..88ec260a9bcc 100644
-> --- a/utils/v4l2-compliance/v4l2-compliance.h
-> +++ b/utils/v4l2-compliance/v4l2-compliance.h
-> @@ -119,6 +119,7 @@ struct base_node {
->  	__u32 valid_buftypes;
->  	__u32 valid_buftype;
->  	__u32 valid_memorytype;
-> +	bool has_orphaned_bufs;
+> While I agree that we should remove this restriction, it has helped me in the 
+> past to find missing munmap() in userspace. This patch thus has the potential 
+> of causing memory leaks in userspace. Is there a way we could assist 
+> application developers with this ?
 
-I'd rename that to supports_orphaned_bufs.
+Should we just keep the debug message? (rephrased of course)
 
->  };
->  
->  struct node : public base_node, public cv4l_fd {
-> diff --git a/utils/v4l2-compliance/v4l2-test-buffers.cpp b/utils/v4l2-compliance/v4l2-test-buffers.cpp
-> index c59a56d9ced7..6174015cb4e7 100644
-> --- a/utils/v4l2-compliance/v4l2-test-buffers.cpp
-> +++ b/utils/v4l2-compliance/v4l2-test-buffers.cpp
-> @@ -400,8 +400,11 @@ int testReqBufs(struct node *node)
->  		mmap_valid = !ret;
->  		if (mmap_valid)
->  			caps = q.g_capabilities();
-> -		if (caps)
-> +		if (caps) {
->  			fail_on_test(mmap_valid ^ !!(caps & V4L2_BUF_CAP_SUPPORTS_MMAP));
-> +			if (caps & V4L2_BUF_CAP_SUPPORTS_ORPHANED_BUFS)
-> +				node->has_orphaned_bufs = true;
-> +		}
->  
->  		q.init(i, V4L2_MEMORY_USERPTR);
->  		ret = q.reqbufs(node, 0);
-> @@ -418,8 +421,11 @@ int testReqBufs(struct node *node)
->  		fail_on_test(!mmap_valid && dmabuf_valid);
->  		// Note: dmabuf is only supported with vb2, so we can assume a
->  		// non-0 caps value if dmabuf is supported.
-> -		if (caps || dmabuf_valid)
-> +		if (caps || dmabuf_valid) {
->  			fail_on_test(dmabuf_valid ^ !!(caps & V4L2_BUF_CAP_SUPPORTS_DMABUF));
-> +			if (node->has_orphaned_bufs)
-> +				fail_on_test(userptr_valid ^ !!(caps & V4L2_BUF_CAP_SUPPORTS_ORPHANED_BUFS));
+That way you can enable debugging and see that this happens.
 
-Huh? I'm not sure what you are testing here.
-
-> +		}
->  
->  		fail_on_test((can_stream && !is_overlay) && !mmap_valid && !userptr_valid && !dmabuf_valid);
->  		fail_on_test((!can_stream || is_overlay) && (mmap_valid || userptr_valid || dmabuf_valid));
-> @@ -967,12 +973,22 @@ int testMmap(struct node *node, unsigned frame_count)
-
-The setupM2M function should check if m2m_q also sets the V4L2_BUF_CAP_SUPPORTS_ORPHANED_BUFS.
-I.e. this capability for m2m_q must match node->has_orphaned_bufs.
-
-It makes no sense if it is set for the capture queue but not the output queue
-for m2m devices. And since this has to be set manually in the drivers (at least
-for now), this needs to be checked by v4l2-compliance.
-
->  		fail_on_test(captureBufs(node, q, m2m_q, frame_count, true));
->  		fail_on_test(node->streamoff(q.g_type()));
->  		fail_on_test(node->streamoff(q.g_type()));
-> -		q.munmap_bufs(node);
-> -		fail_on_test(q.reqbufs(node, 0));
-> +		if (node->has_orphaned_bufs) {
-> +			fail_on_test(q.reqbufs(node, 0));
-> +			q.munmap_bufs(node);
-> +		} else {
-> +			q.munmap_bufs(node);
-> +			fail_on_test(q.reqbufs(node, 0));
-
-This 'else' can be improved:
-
-		} else if (!q.reqbufs(node, 0)) {
-			// It's either a bug or this driver should set
-			// V4L2_BUF_CAP_SUPPORTS_ORPHANED_BUFS
-			warn("Can free buffers even if still mmap()ed\n");
-			q.munmap_bufs(node);
-		} else {
-			q.munmap_bufs(node);
-			fail_on_test(q.reqbufs(node, 0));
-
-> +		}
->  		if (node->is_m2m) {
->  			fail_on_test(node->streamoff(m2m_q.g_type()));
-> -			m2m_q.munmap_bufs(node);
-> -			fail_on_test(m2m_q.reqbufs(node, 0));
-> +			if (node->has_orphaned_bufs) {
-> +				fail_on_test(m2m_q.reqbufs(node, 0));
-> +				m2m_q.munmap_bufs(node);
-> +			} else {
-> +				m2m_q.munmap_bufs(node);
-> +				fail_on_test(m2m_q.reqbufs(node, 0));
-> +			}
->  		}
->  	}
->  	return 0;
-> @@ -1201,6 +1217,13 @@ int testDmaBuf(struct node *expbuf_node, struct node *node, unsigned frame_count
->  		fail_on_test(captureBufs(node, q, m2m_q, frame_count, true));
->  		fail_on_test(node->streamoff(q.g_type()));
->  		fail_on_test(node->streamoff(q.g_type()));
-> +		if (node->has_orphaned_bufs) {
-> +			fail_on_test(q.reqbufs(node, 0));
-> +			exp_q.close_exported_fds();
-> +		} else {
-
-Something similar to the MMAP case should be done here as well.
-
-If nothing else, that checks that if V4L2_BUF_CAP_SUPPORTS_ORPHANED_BUFS
-is *not* set, then q.reqbufs(node, 0) should fail.
-
-> +			exp_q.close_exported_fds();
-> +			fail_on_test(q.reqbufs(node, 0));
-> +		}
->  	}
->  	return 0;
->  }
-> 
+It sounds reasonable to me.
 
 Regards,
 
 	Hans
+
+> 
+>> 2) Buffer has been exported as a DMABUF. Refcount of the vb2 buffer
+>>    is managed properly by VB2 DMABUF ops, i.e. incremented on DMABUF
+>>    get and decremented on DMABUF release. This means that the buffer
+>>    will be alive until all importers release it.
+>>
+>> Considering both cases above, there does not seem to be any need to
+>> prevent reqbufs(0) operation, because buffer lifetime is already
+>> properly managed by both mmap() and DMABUF code paths. Let's remove it
+>> and allow userspace freeing the queue (and potentially allocating a new
+>> one) even though old buffers might be still in processing.
+>>
+>> To let userspace know that the kernel now supports orphaning buffers
+>> that are still in use, add a new V4L2_BUF_CAP_SUPPORTS_ORPHANED_BUFS
+>> to be set by reqbufs and create_bufs.
+>>
+>> Signed-off-by: John Sheu <sheu@chromium.org>
+>> Reviewed-by: Pawel Osciak <posciak@chromium.org>
+>> Reviewed-by: Tomasz Figa <tfiga@chromium.org>
+>> Signed-off-by: Tomasz Figa <tfiga@chromium.org>
+>> [p.zabel@pengutronix.de: moved __vb2_queue_cancel out of the mmap_lock
+>>  and added V4L2_BUF_CAP_SUPPORTS_ORPHANED_BUFS]
+>> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+>> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+>> ---
+>> Changes since v2:
+>>  - Added documentation for V4L2_BUF_CAP_SUPPORTS_ORPHANED_BUFS
+>> ---
+>>  .../media/uapi/v4l/vidioc-reqbufs.rst         | 15 ++++++++---
+>>  .../media/common/videobuf2/videobuf2-core.c   | 26 +------------------
+>>  .../media/common/videobuf2/videobuf2-v4l2.c   |  2 +-
+>>  include/uapi/linux/videodev2.h                |  1 +
+>>  4 files changed, 15 insertions(+), 29 deletions(-)
+>>
+>> diff --git a/Documentation/media/uapi/v4l/vidioc-reqbufs.rst
+>> b/Documentation/media/uapi/v4l/vidioc-reqbufs.rst index
+>> d4bbbb0c60e8..d53006b938ac 100644
+>> --- a/Documentation/media/uapi/v4l/vidioc-reqbufs.rst
+>> +++ b/Documentation/media/uapi/v4l/vidioc-reqbufs.rst
+>> @@ -59,9 +59,12 @@ When the I/O method is not supported the ioctl returns an
+>> ``EINVAL`` error code.
+>>
+>>  Applications can call :ref:`VIDIOC_REQBUFS` again to change the number of
+>> -buffers, however this cannot succeed when any buffers are still mapped.
+>> -A ``count`` value of zero frees all buffers, after aborting or finishing
+>> -any DMA in progress, an implicit
+>> +buffers. Note that if any buffers are still mapped or exported via DMABUF,
+>> +this can only succeed if the ``V4L2_BUF_CAP_SUPPORTS_ORPHANED_BUFS`` flag
+>> +is set. In that case these buffers are orphaned and will be freed when they
+>> +are unmapped or when the exported DMABUF fds are closed.
+>> +A ``count`` value of zero frees or orphans all buffers, after aborting or
+>> +finishing any DMA in progress, an implicit
+>>
+>>  :ref:`VIDIOC_STREAMOFF <VIDIOC_STREAMON>`.
+>>
+>> @@ -132,6 +135,12 @@ any DMA in progress, an implicit
+>>      * - ``V4L2_BUF_CAP_SUPPORTS_REQUESTS``
+>>        - 0x00000008
+>>        - This buffer type supports :ref:`requests <media-request-api>`.
+>> +    * - ``V4L2_BUF_CAP_SUPPORTS_ORPHANED_BUFS``
+>> +      - 0x00000010
+>> +      - The kernel allows calling :ref:`VIDIOC_REQBUFS` with a ``count``
+>> value +        of zero while buffers are still mapped or exported via
+>> DMABUF. These +        orphaned buffers will be freed when they are
+>> unmapped or when the +        exported DMABUF fds are closed.
+>>
+>>  Return Value
+>>  ============
+>> diff --git a/drivers/media/common/videobuf2/videobuf2-core.c
+>> b/drivers/media/common/videobuf2/videobuf2-core.c index
+>> 975ff5669f72..608459450c1e 100644
+>> --- a/drivers/media/common/videobuf2/videobuf2-core.c
+>> +++ b/drivers/media/common/videobuf2/videobuf2-core.c
+>> @@ -553,20 +553,6 @@ bool vb2_buffer_in_use(struct vb2_queue *q, struct
+>> vb2_buffer *vb) }
+>>  EXPORT_SYMBOL(vb2_buffer_in_use);
+>>
+>> -/*
+>> - * __buffers_in_use() - return true if any buffers on the queue are in use
+>> and - * the queue cannot be freed (by the means of REQBUFS(0)) call
+>> - */
+>> -static bool __buffers_in_use(struct vb2_queue *q)
+>> -{
+>> -	unsigned int buffer;
+>> -	for (buffer = 0; buffer < q->num_buffers; ++buffer) {
+>> -		if (vb2_buffer_in_use(q, q->bufs[buffer]))
+>> -			return true;
+>> -	}
+>> -	return false;
+>> -}
+>> -
+>>  void vb2_core_querybuf(struct vb2_queue *q, unsigned int index, void *pb)
+>>  {
+>>  	call_void_bufop(q, fill_user_buffer, q->bufs[index], pb);
+>> @@ -674,23 +660,13 @@ int vb2_core_reqbufs(struct vb2_queue *q, enum
+>> vb2_memory memory,
+>>
+>>  	if (*count == 0 || q->num_buffers != 0 ||
+>>  	    (q->memory != VB2_MEMORY_UNKNOWN && q->memory != memory)) {
+>> -		/*
+>> -		 * We already have buffers allocated, so first check if they
+>> -		 * are not in use and can be freed.
+>> -		 */
+>> -		mutex_lock(&q->mmap_lock);
+>> -		if (q->memory == VB2_MEMORY_MMAP && __buffers_in_use(q)) {
+>> -			mutex_unlock(&q->mmap_lock);
+>> -			dprintk(1, "memory in use, cannot free\n");
+>> -			return -EBUSY;
+>> -		}
+>> -
+>>  		/*
+>>  		 * Call queue_cancel to clean up any buffers in the
+>>  		 * QUEUED state which is possible if buffers were prepared or
+>>  		 * queued without ever calling STREAMON.
+>>  		 */
+>>  		__vb2_queue_cancel(q);
+>> +		mutex_lock(&q->mmap_lock);
+> 
+> This results in __vb2_queue_cancel() called without the mmap_lock held. Is 
+> that OK ?
+> 
+>>  		ret = __vb2_queue_free(q, q->num_buffers);
+>>  		mutex_unlock(&q->mmap_lock);
+>>  		if (ret)
+>> diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c
+>> b/drivers/media/common/videobuf2/videobuf2-v4l2.c index
+>> a17033ab2c22..f02d452ceeb9 100644
+>> --- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
+>> +++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+>> @@ -624,7 +624,7 @@ EXPORT_SYMBOL(vb2_querybuf);
+>>
+>>  static void fill_buf_caps(struct vb2_queue *q, u32 *caps)
+>>  {
+>> -	*caps = 0;
+>> +	*caps = V4L2_BUF_CAP_SUPPORTS_ORPHANED_BUFS;
+>>  	if (q->io_modes & VB2_MMAP)
+>>  		*caps |= V4L2_BUF_CAP_SUPPORTS_MMAP;
+>>  	if (q->io_modes & VB2_USERPTR)
+>> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+>> index c8e8ff810190..2a223835214c 100644
+>> --- a/include/uapi/linux/videodev2.h
+>> +++ b/include/uapi/linux/videodev2.h
+>> @@ -879,6 +879,7 @@ struct v4l2_requestbuffers {
+>>  #define V4L2_BUF_CAP_SUPPORTS_USERPTR	(1 << 1)
+>>  #define V4L2_BUF_CAP_SUPPORTS_DMABUF	(1 << 2)
+>>  #define V4L2_BUF_CAP_SUPPORTS_REQUESTS	(1 << 3)
+>> +#define V4L2_BUF_CAP_SUPPORTS_ORPHANED_BUFS (1 << 4)
+>>
+>>  /**
+>>   * struct v4l2_plane - plane info for multi-planar buffers
+> 
