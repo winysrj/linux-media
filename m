@@ -1,17 +1,17 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ed1-f68.google.com ([209.85.208.68]:44328 "EHLO
-        mail-ed1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727434AbeKPB6n (ORCPT
+Received: from mail-ed1-f65.google.com ([209.85.208.65]:41351 "EHLO
+        mail-ed1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727434AbeKPB7R (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Nov 2018 20:58:43 -0500
+        Thu, 15 Nov 2018 20:59:17 -0500
 MIME-Version: 1.0
-References: <20181115145013.3378-1-paul.kocialkowski@bootlin.com> <20181115145013.3378-2-paul.kocialkowski@bootlin.com>
-In-Reply-To: <20181115145013.3378-2-paul.kocialkowski@bootlin.com>
+References: <20181115145013.3378-1-paul.kocialkowski@bootlin.com> <20181115145013.3378-3-paul.kocialkowski@bootlin.com>
+In-Reply-To: <20181115145013.3378-3-paul.kocialkowski@bootlin.com>
 From: Chen-Yu Tsai <wens@csie.org>
-Date: Thu, 15 Nov 2018 23:50:09 +0800
-Message-ID: <CAGb2v679sG+KqmkGway8E-CdgQa8ybBv8K2RdNwfB7zWAJkaXQ@mail.gmail.com>
-Subject: Re: [PATCH 01/15] ARM: dts: sun8i-a33: Remove heading 0 in
- video-codec unit address
+Date: Thu, 15 Nov 2018 23:50:41 +0800
+Message-ID: <CAGb2v65HcoxzPJJJqXWffj+xpL9-D_fuVRh+kn83kM4rX636uQ@mail.gmail.com>
+Subject: Re: [PATCH 02/15] ARM: dts: sun8i-h3: Remove heading 0 in video-codec
+ unit address
 To: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
         devicetree <devicetree@vger.kernel.org>,
@@ -38,12 +38,6 @@ On Thu, Nov 15, 2018 at 10:50 PM Paul Kocialkowski
 >
 > Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 
-Nit: I'd prefer the subject prefix format be "<family>: <soc>: ... ",
-or "sun8i: a33:" in this case. This format seems to be used more often
-than your alternative format.
-
-I can fix it up when applying.
+Other than the subject format we can fix when applying,
 
 Acked-by: Chen-Yu Tsai <wens@csie.org>
-
-ChenYu
