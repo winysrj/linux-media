@@ -1,194 +1,189 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:46978 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727310AbeKTARz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Nov 2018 19:17:55 -0500
-Message-ID: <4e517aa9f91b006ddcf2cd9631cee101a66470b8.camel@bootlin.com>
-Subject: Re: [PATCHv2 0/9] vb2/cedrus: add tag support
-From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: Alexandre Courbot <acourbot@chromium.org>,
-        maxime.ripard@bootlin.com, tfiga@chromium.org,
-        Nicolas Dufresne <nicolas@ndufresne.ca>
-Date: Mon, 19 Nov 2018 14:53:51 +0100
-In-Reply-To: <93b53779-2218-e69a-5f2b-bdf5d76d6d15@xs4all.nl>
-References: <20181114134743.18993-1-hverkuil@xs4all.nl>
-         <93b53779-2218-e69a-5f2b-bdf5d76d6d15@xs4all.nl>
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-AnlUza8hGhX2anTDXEft"
-Mime-Version: 1.0
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:37269 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2388019AbeKPCCQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 15 Nov 2018 21:02:16 -0500
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH v2] v4l2-compliance: test orphaned buffer support
+Date: Thu, 15 Nov 2018 16:53:47 +0100
+Message-Id: <20181115155347.22065-1-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Test that V4L2_BUF_CAP_SUPPORTS_ORPHANED_BUFS is reported equally for
+both MMAP and DMABUF memory types. If supported, try to orphan buffers
+by calling reqbufs(0) before unmapping or closing DMABUF fds.
 
---=-AnlUza8hGhX2anTDXEft
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Also close exported DMABUF fds and free buffers in testDmaBuf if
+orphaned buffers are not supported.
 
-Hi,
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+Changes since v1:
+ - Rename has_orphaned_bufs to supports_orphaned_bufs
+ - Check that capabilities are independent of memory type
+ - Check that orphaned buffer support is independent of queue for M2M
+ - Check that reqbufs(0) returns -EBUSY without orphaned buffer support
+---
+ contrib/freebsd/include/linux/videodev2.h   |  1 +
+ include/linux/videodev2.h                   |  1 +
+ utils/common/v4l2-info.cpp                  |  1 +
+ utils/v4l2-compliance/v4l2-compliance.h     |  1 +
+ utils/v4l2-compliance/v4l2-test-buffers.cpp | 51 ++++++++++++++++++++++++++---
+ 5 files changed, 50 insertions(+), 5 deletions(-)
 
-On Mon, 2018-11-19 at 12:18 +0100, Hans Verkuil wrote:
-> On 11/14/2018 02:47 PM, Hans Verkuil wrote:
-> > From: Hans Verkuil <hansverk@cisco.com>
-> >=20
-> > As was discussed here (among other places):
-> >=20
-> > https://lkml.org/lkml/2018/10/19/440
-> >=20
-> > using capture queue buffer indices to refer to reference frames is
-> > not a good idea. A better idea is to use a 'tag' where the
-> > application can assign a u64 tag to an output buffer, which is then=20
-> > copied to the capture buffer(s) derived from the output buffer.
-> >=20
-> > A u64 is chosen since this allows userspace to also use pointers to
-> > internal structures as 'tag'.
-> >=20
-> > The first three patches add core tag support, the next patch document
-> > the tag support, then a new helper function is added to v4l2-mem2mem.c
-> > to easily copy data from a source to a destination buffer that drivers
-> > can use.
-> >=20
-> > Next a new supports_tags vb2_queue flag is added to indicate that
-> > the driver supports tags. Ideally this should not be necessary, but
-> > that would require that all m2m drivers are converted to using the
-> > new helper function introduced in the previous patch. That takes more
-> > time then I have now since we want to get this in for 4.20.
-> >=20
-> > Finally the vim2m, vicodec and cedrus drivers are converted to support
-> > tags.
-> >=20
-> > I also removed the 'pad' fields from the mpeg2 control structs (it
-> > should never been added in the first place) and aligned the structs
-> > to a u32 boundary (u64 for the tag values).
-> >=20
-> > Note that this might change further (Paul suggested using bitfields).
-> >=20
-> > Also note that the cedrus code doesn't set the sequence counter, that's
-> > something that should still be added before this driver can be moved
-> > out of staging.
-> >=20
-> > Note: if no buffer is found for a certain tag, then the dma address
-> > is just set to 0. That happened before as well with invalid buffer
-> > indices. This should be checked in the driver!
-> >=20
-> > The previous RFC series was tested successfully with the cedrus driver.
-> >=20
-> > Regards,
-> >=20
-> >         Hans
->=20
-> I'd like to get some Acked-by or Reviewed-by replies for this series.
-> Or comments if you don't like something.
-
-The series looks good to me, so consider it:
-Reviewed-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-
-Also, I'm glad you made the v4l2_m2m_buf_copy_data helper function,
-since all drivers will need to do these same operations anyway.
-
-> I would really like to get this in for 4.20 so the cedrus API is stable
-> (hopefully), since this is a last outstanding API item.
-
-I see a few more items that we need to tackle before we can consider the
-MPEG-2 stateless API as stable.
-
-* I mentionned using flags in the mpeg2 structures to solve the
-alignment issues, but I failed to provide a patch implementing it at
-this point. This would make the MPEG-2 controls more similar to the
-proposed H.264 ones and generally makes more sense than using a u8 for a
-binary value.
-
-* Some time ago, we also discussed adding extra fields to the structures
-for later use. Do you think that is still relevant? Adding a flags
-elements (with unused bits) would certainly help in this direction
-anyway.
-
-* During the discussions on the spec, the concensus was also to use one
-slice_params per-slice (instead of per-picture) which requires splitting
-the per-picture and the per-slice parameters. On this as well, I fell
-behind and didn't send a proposal yet.
-
-So my question is: does it need to be done for 4.20 or can we affoard
-going through another version cycle for these changes?
-
-It was my impression that we wanted to wait for another driver to use
-the API to declare it stable (and move the driver out of staging).
-
-Cheers,
-
-Paul
-
-> Tomasz: you commented that the text still referred to the tag as a u64,
-> but that was only in the cover letter, not the patches themselves. So
-> I don't plan to post a v3 just for that.
->=20
-> Regards,
->=20
-> 	Hans
->=20
-> > Changes since v1:
-> >=20
-> > - changed to a u32 tag. Using a 64 bit tag was overly complicated due
-> >   to the bad layout of the v4l2_buffer struct, and there is no real
-> >   need for it by applications.
-> >=20
-> > Main changes since the RFC:
-> >=20
-> > - Added new buffer capability flag
-> > - Added m2m helper to copy data between buffers
-> > - Added documentation
-> > - Added tag logging in v4l2-ioctl.c
-> >=20
-> > Hans Verkuil (9):
-> >   videodev2.h: add tag support
-> >   vb2: add tag support
-> >   v4l2-ioctl.c: log v4l2_buffer tag
-> >   buffer.rst: document the new buffer tag feature.
-> >   v4l2-mem2mem: add v4l2_m2m_buf_copy_data helper function
-> >   vb2: add new supports_tags queue flag
-> >   vim2m: add tag support
-> >   vicodec: add tag support
-> >   cedrus: add tag support
-> >=20
-> >  Documentation/media/uapi/v4l/buffer.rst       | 32 +++++++++----
-> >  .../media/uapi/v4l/vidioc-reqbufs.rst         |  4 ++
-> >  .../media/common/videobuf2/videobuf2-v4l2.c   | 45 ++++++++++++++++---
-> >  drivers/media/platform/vicodec/vicodec-core.c | 14 ++----
-> >  drivers/media/platform/vim2m.c                | 14 ++----
-> >  drivers/media/v4l2-core/v4l2-ctrls.c          |  9 ----
-> >  drivers/media/v4l2-core/v4l2-ioctl.c          |  9 ++--
-> >  drivers/media/v4l2-core/v4l2-mem2mem.c        | 23 ++++++++++
-> >  drivers/staging/media/sunxi/cedrus/cedrus.h   |  9 ++--
-> >  .../staging/media/sunxi/cedrus/cedrus_dec.c   |  2 +
-> >  .../staging/media/sunxi/cedrus/cedrus_mpeg2.c | 21 ++++-----
-> >  .../staging/media/sunxi/cedrus/cedrus_video.c |  2 +
-> >  include/media/v4l2-mem2mem.h                  | 21 +++++++++
-> >  include/media/videobuf2-core.h                |  2 +
-> >  include/media/videobuf2-v4l2.h                | 21 ++++++++-
-> >  include/uapi/linux/v4l2-controls.h            | 14 +++---
-> >  include/uapi/linux/videodev2.h                |  9 +++-
-> >  17 files changed, 178 insertions(+), 73 deletions(-)
-> >=20
---=20
-Paul Kocialkowski, Bootlin (formerly Free Electrons)
-Embedded Linux and kernel engineering
-https://bootlin.com
-
---=-AnlUza8hGhX2anTDXEft
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCAAdFiEEJZpWjZeIetVBefti3cLmz3+fv9EFAlvywG8ACgkQ3cLmz3+f
-v9HmNggAj1MP5t5mtQ2XbpEnzkCbjfBIGUamxiWORpUcCDkp1lVqqo+LNXPIg9Ux
-4US9d2n0+Jth2OPpHbz+o9nsBFmADM07tWAfdT3oHLzaE1Ooui5AGugmz+6yzgOV
-632rLbqVUH7sRG+CZPrZqwRaTejNQUvuazuJF19fCkvgRAVv790ArxklysIFkdBc
-TCLx/JJ2eeJsSsjlcIRhDypRbgbYY/oKPJWI5s2S1v2GsCZSfo3iSG773CU5vjae
-D+gMfWlBLo35a1Ymfs3SJ2W3i4UsFs6yCrU9RZovogzI0SmIDLzk+AnvzLkOCl8+
-jrsRR5bGE59C6fLBA1uHXomVj11zkg==
-=OfU1
------END PGP SIGNATURE-----
-
---=-AnlUza8hGhX2anTDXEft--
+diff --git a/contrib/freebsd/include/linux/videodev2.h b/contrib/freebsd/include/linux/videodev2.h
+index 9928c00e4b68..33153b53c175 100644
+--- a/contrib/freebsd/include/linux/videodev2.h
++++ b/contrib/freebsd/include/linux/videodev2.h
+@@ -907,6 +907,7 @@ struct v4l2_requestbuffers {
+ #define V4L2_BUF_CAP_SUPPORTS_USERPTR	(1 << 1)
+ #define V4L2_BUF_CAP_SUPPORTS_DMABUF	(1 << 2)
+ #define V4L2_BUF_CAP_SUPPORTS_REQUESTS	(1 << 3)
++#define V4L2_BUF_CAP_SUPPORTS_ORPHANED_BUFS (1 << 4)
+ 
+ /**
+  * struct v4l2_plane - plane info for multi-planar buffers
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 79418cd39480..a39300cacb6a 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -873,6 +873,7 @@ struct v4l2_requestbuffers {
+ #define V4L2_BUF_CAP_SUPPORTS_USERPTR	(1 << 1)
+ #define V4L2_BUF_CAP_SUPPORTS_DMABUF	(1 << 2)
+ #define V4L2_BUF_CAP_SUPPORTS_REQUESTS	(1 << 3)
++#define V4L2_BUF_CAP_SUPPORTS_ORPHANED_BUFS (1 << 4)
+ 
+ /**
+  * struct v4l2_plane - plane info for multi-planar buffers
+diff --git a/utils/common/v4l2-info.cpp b/utils/common/v4l2-info.cpp
+index 258e5446f030..3699c35cb9d6 100644
+--- a/utils/common/v4l2-info.cpp
++++ b/utils/common/v4l2-info.cpp
+@@ -200,6 +200,7 @@ static const flag_def bufcap_def[] = {
+ 	{ V4L2_BUF_CAP_SUPPORTS_USERPTR, "userptr" },
+ 	{ V4L2_BUF_CAP_SUPPORTS_DMABUF, "dmabuf" },
+ 	{ V4L2_BUF_CAP_SUPPORTS_REQUESTS, "requests" },
++	{ V4L2_BUF_CAP_SUPPORTS_ORPHANED_BUFS, "orphaned-bufs" },
+ 	{ 0, NULL }
+ };
+ 
+diff --git a/utils/v4l2-compliance/v4l2-compliance.h b/utils/v4l2-compliance/v4l2-compliance.h
+index def185f17261..02d616f0b47c 100644
+--- a/utils/v4l2-compliance/v4l2-compliance.h
++++ b/utils/v4l2-compliance/v4l2-compliance.h
+@@ -119,6 +119,7 @@ struct base_node {
+ 	__u32 valid_buftypes;
+ 	__u32 valid_buftype;
+ 	__u32 valid_memorytype;
++	bool supports_orphaned_bufs;
+ };
+ 
+ struct node : public base_node, public cv4l_fd {
+diff --git a/utils/v4l2-compliance/v4l2-test-buffers.cpp b/utils/v4l2-compliance/v4l2-test-buffers.cpp
+index a84be0ab799a..42e743fef43b 100644
+--- a/utils/v4l2-compliance/v4l2-test-buffers.cpp
++++ b/utils/v4l2-compliance/v4l2-test-buffers.cpp
+@@ -400,14 +400,18 @@ int testReqBufs(struct node *node)
+ 		mmap_valid = !ret;
+ 		if (mmap_valid)
+ 			caps = q.g_capabilities();
+-		if (caps)
++		if (caps) {
+ 			fail_on_test(mmap_valid ^ !!(caps & V4L2_BUF_CAP_SUPPORTS_MMAP));
++			if (caps & V4L2_BUF_CAP_SUPPORTS_ORPHANED_BUFS)
++				node->supports_orphaned_bufs = true;
++		}
+ 
+ 		q.init(i, V4L2_MEMORY_USERPTR);
+ 		ret = q.reqbufs(node, 0);
+ 		fail_on_test(ret && ret != EINVAL);
+ 		userptr_valid = !ret;
+ 		fail_on_test(!mmap_valid && userptr_valid);
++		fail_on_test(userptr_valid && (caps != q.g_capabilities()));
+ 		if (caps)
+ 			fail_on_test(userptr_valid ^ !!(caps & V4L2_BUF_CAP_SUPPORTS_USERPTR));
+ 
+@@ -416,6 +420,7 @@ int testReqBufs(struct node *node)
+ 		fail_on_test(ret && ret != EINVAL);
+ 		dmabuf_valid = !ret;
+ 		fail_on_test(!mmap_valid && dmabuf_valid);
++		fail_on_test(dmabuf_valid && (caps != q.g_capabilities()));
+ 		if (caps)
+ 			fail_on_test(dmabuf_valid ^ !!(caps & V4L2_BUF_CAP_SUPPORTS_DMABUF));
+ 
+@@ -754,9 +759,13 @@ static int captureBufs(struct node *node, const cv4l_queue &q,
+ 
+ static int setupM2M(struct node *node, cv4l_queue &q)
+ {
++	__u32 caps;
++
+ 	last_m2m_seq.init();
+ 
+ 	fail_on_test(q.reqbufs(node, 2));
++	caps = q.g_capabilities();
++	fail_on_test(node->supports_orphaned_bufs ^ !!(caps & V4L2_BUF_CAP_SUPPORTS_ORPHANED_BUFS));
+ 	for (unsigned i = 0; i < q.g_buffers(); i++) {
+ 		buffer buf(q);
+ 
+@@ -965,12 +974,32 @@ int testMmap(struct node *node, unsigned frame_count)
+ 		fail_on_test(captureBufs(node, q, m2m_q, frame_count, true));
+ 		fail_on_test(node->streamoff(q.g_type()));
+ 		fail_on_test(node->streamoff(q.g_type()));
+-		q.munmap_bufs(node);
+-		fail_on_test(q.reqbufs(node, 0));
++		if (node->supports_orphaned_bufs) {
++			fail_on_test(q.reqbufs(node, 0));
++			q.munmap_bufs(node);
++		} else if (q.reqbufs(node, 0) != EBUSY) {
++			// It's either a bug or this driver should set
++			// V4L2_BUF_CAP_SUPPORTS_ORPHANED_BUFS
++			warn("Can free buffers even if still mmap()ed\n");
++			q.munmap_bufs(node);
++		} else {
++			q.munmap_bufs(node);
++			fail_on_test(q.reqbufs(node, 0));
++		}
+ 		if (node->is_m2m) {
+ 			fail_on_test(node->streamoff(m2m_q.g_type()));
+-			m2m_q.munmap_bufs(node);
+-			fail_on_test(m2m_q.reqbufs(node, 0));
++			if (node->supports_orphaned_bufs) {
++				fail_on_test(m2m_q.reqbufs(node, 0));
++				m2m_q.munmap_bufs(node);
++			} else if (m2m_q.reqbufs(node, 0) != EBUSY) {
++				// It's either a bug or this driver should set
++				// V4L2_BUF_CAP_SUPPORTS_ORPHANED_BUFS
++				warn("Can free buffers even if still mmap()ed\n");
++				q.munmap_bufs(node);
++			} else {
++				m2m_q.munmap_bufs(node);
++				fail_on_test(m2m_q.reqbufs(node, 0));
++			}
+ 		}
+ 	}
+ 	return 0;
+@@ -1199,6 +1228,18 @@ int testDmaBuf(struct node *expbuf_node, struct node *node, unsigned frame_count
+ 		fail_on_test(captureBufs(node, q, m2m_q, frame_count, true));
+ 		fail_on_test(node->streamoff(q.g_type()));
+ 		fail_on_test(node->streamoff(q.g_type()));
++		if (node->supports_orphaned_bufs) {
++			fail_on_test(q.reqbufs(node, 0));
++			exp_q.close_exported_fds();
++		} else if (q.reqbufs(node, 0) != EBUSY) {
++			// It's either a bug or this driver should set
++			// V4L2_BUF_CAP_SUPPORTS_ORPHANED_BUFS
++			warn("Can free buffers even if exported DMABUF fds still open\n");
++			q.munmap_bufs(node);
++		} else {
++			exp_q.close_exported_fds();
++			fail_on_test(q.reqbufs(node, 0));
++		}
+ 	}
+ 	return 0;
+ }
+-- 
+2.11.0
