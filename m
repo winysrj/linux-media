@@ -1,182 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm1-f68.google.com ([209.85.128.68]:52108 "EHLO
-        mail-wm1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729047AbeKOVcR (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.133]:58646 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729155AbeKOVp5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Nov 2018 16:32:17 -0500
-Received: by mail-wm1-f68.google.com with SMTP id w7-v6so18437596wmc.1
-        for <linux-media@vger.kernel.org>; Thu, 15 Nov 2018 03:24:49 -0800 (PST)
-From: Dafna Hirschfeld <dafna3@gmail.com>
-To: helen.koike@collabora.com, hverkuil@xs4all.nl, mchehab@kernel.org
-Cc: linux-media@vger.kernel.org, Dafna Hirschfeld <dafna3@gmail.com>,
-        outreachy-kernel@googlegroups.com
-Subject: [PATCH vicodec v4 3/3] media: vicodec: Add support for 4 planes formats
-Date: Thu, 15 Nov 2018 13:23:32 +0200
-Message-Id: <a2652e2d86ec5bcf212d4141e7b603c454537e80.1541451484.git.dafna3@gmail.com>
-In-Reply-To: <cover.1541451484.git.dafna3@gmail.com>
-References: <cover.1541451484.git.dafna3@gmail.com>
-In-Reply-To: <cover.1541451484.git.dafna3@gmail.com>
-References: <cover.1541451484.git.dafna3@gmail.com>
+        Thu, 15 Nov 2018 16:45:57 -0500
+Date: Thu, 15 Nov 2018 03:38:20 -0800
+From: Mauro Carvalho Chehab <mchehab@kernel.org>
+To: Paul Menzel <pmenzel@molgen.mpg.de>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: Re: Logitech QuickCam USB detected by Linux, but not user space
+ applications
+Message-ID: <20181115033813.6ff626d5@silica.lan>
+In-Reply-To: <b9140bbf-1537-1431-1250-da0a21208992@molgen.mpg.de>
+References: <b9140bbf-1537-1431-1250-da0a21208992@molgen.mpg.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for formats with 4 planes: V4L2_PIX_FMT_ABGR32,
-V4L2_PIX_FMT_ARGB32.
-Also add alpha plane related flags to the header of the encoded file.
+Em Thu, 15 Nov 2018 11:42:32 +0100
+Paul Menzel <pmenzel@molgen.mpg.de> escreveu:
 
-Signed-off-by: Dafna Hirschfeld <dafna3@gmail.com>
----
- drivers/media/platform/vicodec/codec-fwht.c   | 15 +++++++++
- drivers/media/platform/vicodec/codec-fwht.h   |  2 ++
- .../media/platform/vicodec/codec-v4l2-fwht.c  | 32 +++++++++++++++++++
- drivers/media/platform/vicodec/vicodec-core.c | 12 +++++--
- 4 files changed, 59 insertions(+), 2 deletions(-)
+> Dear Linux folks,
+>=20
+>=20
+> I tried to get a Logitech QuickCam USB camera working, but unfortunately,=
+ it is=20
+> not detected by user space (Cheese, MPlayer).
 
-diff --git a/drivers/media/platform/vicodec/codec-fwht.c b/drivers/media/platform/vicodec/codec-fwht.c
-index 1af9af84163e..9513374e8f44 100644
---- a/drivers/media/platform/vicodec/codec-fwht.c
-+++ b/drivers/media/platform/vicodec/codec-fwht.c
-@@ -782,6 +782,17 @@ u32 fwht_encode_frame(struct fwht_raw_frame *frm,
- 			encoding |= FWHT_CR_UNENCODED;
- 		encoding &= ~FWHT_FRAME_UNENCODED;
- 	}
-+
-+	if (frm->components_num == 4) {
-+		rlco_max = rlco + size / 2 - 256;
-+		encoding = encode_plane(frm->alpha, ref_frm->alpha, &rlco, rlco_max, cf,
-+				frm->height, frm->width,
-+				frm->luma_alpha_step, is_intra, next_is_intra);
-+		if (encoding & FWHT_FRAME_UNENCODED)
-+			encoding |= FWHT_ALPHA_UNENCODED;
-+		encoding &= ~FWHT_FRAME_UNENCODED;
-+	}
-+
- 	cf->size = (rlco - cf->rlc_data) * sizeof(*rlco);
- 	return encoding;
- }
-@@ -860,4 +871,8 @@ void fwht_decode_frame(struct fwht_cframe *cf, struct fwht_raw_frame *ref,
- 		decode_plane(cf, &rlco, ref->cr, h, w,
- 			hdr_flags & FWHT_FL_CR_IS_UNCOMPRESSED);
- 	}
-+
-+	if (components_num == 4)
-+		decode_plane(cf, &rlco, ref->alpha, cf->height, cf->width,
-+		     hdr_flags & FWHT_FL_ALPHA_IS_UNCOMPRESSED);
- }
-diff --git a/drivers/media/platform/vicodec/codec-fwht.h b/drivers/media/platform/vicodec/codec-fwht.h
-index bde11fb93f26..90ff8962fca7 100644
---- a/drivers/media/platform/vicodec/codec-fwht.h
-+++ b/drivers/media/platform/vicodec/codec-fwht.h
-@@ -75,6 +75,7 @@
- #define FWHT_FL_CR_IS_UNCOMPRESSED	BIT(6)
- #define FWHT_FL_CHROMA_FULL_HEIGHT	BIT(7)
- #define FWHT_FL_CHROMA_FULL_WIDTH	BIT(8)
-+#define FWHT_FL_ALPHA_IS_UNCOMPRESSED	BIT(9)
- 
- /* A 4-values flag - the number of components - 1 */
- #define FWHT_FL_COMPONENTS_NUM_MSK	GENMASK(17, 16)
-@@ -119,6 +120,7 @@ struct fwht_raw_frame {
- #define FWHT_LUMA_UNENCODED	BIT(2)
- #define FWHT_CB_UNENCODED	BIT(3)
- #define FWHT_CR_UNENCODED	BIT(4)
-+#define FWHT_ALPHA_UNENCODED	BIT(5)
- 
- u32 fwht_encode_frame(struct fwht_raw_frame *frm,
- 		      struct fwht_raw_frame *ref_frm,
-diff --git a/drivers/media/platform/vicodec/codec-v4l2-fwht.c b/drivers/media/platform/vicodec/codec-v4l2-fwht.c
-index 7dc3918a017e..b53655a8cef6 100644
---- a/drivers/media/platform/vicodec/codec-v4l2-fwht.c
-+++ b/drivers/media/platform/vicodec/codec-v4l2-fwht.c
-@@ -33,6 +33,8 @@ static const struct v4l2_fwht_pixfmt_info v4l2_fwht_pixfmts[] = {
- 	{ V4L2_PIX_FMT_RGB32,   4, 4, 1, 4, 4, 1, 1, 3},
- 	{ V4L2_PIX_FMT_XRGB32,  4, 4, 1, 4, 4, 1, 1, 3},
- 	{ V4L2_PIX_FMT_HSV32,   4, 4, 1, 4, 4, 1, 1, 3},
-+	{ V4L2_PIX_FMT_ARGB32,  4, 4, 1, 4, 4, 1, 1, 4},
-+	{ V4L2_PIX_FMT_ABGR32,  4, 4, 1, 4, 4, 1, 1, 4},
- 
- };
- 
-@@ -146,6 +148,18 @@ int v4l2_fwht_encode(struct v4l2_fwht_state *state, u8 *p_in, u8 *p_out)
- 		rf.cr = rf.cb + 2;
- 		rf.luma++;
- 		break;
-+	case V4L2_PIX_FMT_ARGB32:
-+		rf.alpha = rf.luma;
-+		rf.cr = rf.luma + 1;
-+		rf.cb = rf.cr + 2;
-+		rf.luma += 2;
-+		break;
-+	case V4L2_PIX_FMT_ABGR32:
-+		rf.cb = rf.luma;
-+		rf.cr = rf.cb + 2;
-+		rf.luma++;
-+		rf.alpha = rf.cr + 1;
-+		break;
- 	default:
- 		return -EINVAL;
- 	}
-@@ -177,6 +191,8 @@ int v4l2_fwht_encode(struct v4l2_fwht_state *state, u8 *p_in, u8 *p_out)
- 		flags |= FWHT_FL_CB_IS_UNCOMPRESSED;
- 	if (encoding & FWHT_CR_UNENCODED)
- 		flags |= FWHT_FL_CR_IS_UNCOMPRESSED;
-+	if (encoding & FWHT_ALPHA_UNENCODED)
-+		flags |= FWHT_FL_ALPHA_IS_UNCOMPRESSED;
- 	if (rf.height_div == 1)
- 		flags |= FWHT_FL_CHROMA_FULL_HEIGHT;
- 	if (rf.width_div == 1)
-@@ -356,6 +372,22 @@ int v4l2_fwht_decode(struct v4l2_fwht_state *state, u8 *p_in, u8 *p_out)
- 			*p++ = 0;
- 		}
- 		break;
-+	case V4L2_PIX_FMT_ARGB32:
-+		for (i = 0, p = p_out; i < size; i++) {
-+			*p++ = state->ref_frame.alpha[i];
-+			*p++ = state->ref_frame.cr[i];
-+			*p++ = state->ref_frame.luma[i];
-+			*p++ = state->ref_frame.cb[i];
-+		}
-+		break;
-+	case V4L2_PIX_FMT_ABGR32:
-+		for (i = 0, p = p_out; i < size; i++) {
-+			*p++ = state->ref_frame.cb[i];
-+			*p++ = state->ref_frame.luma[i];
-+			*p++ = state->ref_frame.cr[i];
-+			*p++ = state->ref_frame.alpha[i];
-+		}
-+		break;
- 	default:
- 		return -EINVAL;
- 	}
-diff --git a/drivers/media/platform/vicodec/vicodec-core.c b/drivers/media/platform/vicodec/vicodec-core.c
-index 92bc68694a21..5ae876238e13 100644
---- a/drivers/media/platform/vicodec/vicodec-core.c
-+++ b/drivers/media/platform/vicodec/vicodec-core.c
-@@ -997,9 +997,11 @@ static int vicodec_start_streaming(struct vb2_queue *q,
- 
- 	/*
- 	 * we don't know ahead how many components are in the encoding type
--	 * V4L2_PIX_FMT_FWHT, so we will allocate space for 3 planes.
-+	 * V4L2_PIX_FMT_FWHT, so we will allocate space for 4 planes.
- 	 */
--	if (info->id == V4L2_PIX_FMT_FWHT || info->components_num >= 3)
-+	if (info->id == V4L2_PIX_FMT_FWHT || info->components_num == 4)
-+		total_planes_size = 2 * size + 2 * (size / chroma_div);
-+	else if (info->components_num == 3)
- 		total_planes_size = size + 2 * (size / chroma_div);
- 	else
- 		total_planes_size = size;
-@@ -1028,6 +1030,12 @@ static int vicodec_start_streaming(struct vb2_queue *q,
- 		state->ref_frame.cb = NULL;
- 		state->ref_frame.cr = NULL;
- 	}
-+
-+	if (info->id == V4L2_PIX_FMT_FWHT || info->components_num == 4)
-+		state->ref_frame.alpha = state->ref_frame.cr + size / chroma_div;
-+	else
-+		state->ref_frame.alpha = NULL;
-+
- 	ctx->last_src_buf = NULL;
- 	ctx->last_dst_buf = NULL;
- 	state->gop_cnt = 0;
--- 
-2.17.1
+Could you please try it with Camorama?
+
+	https://github.com/alessio/camorama
+
+>=20
+> It=E2=80=99s an old device, so it could be broken, but as it=E2=80=99s de=
+tected by the Linux
+> kernel, I wanted to check with you first.
+>=20
+> Linux 4.18.10 from Debian Sid/unstable is used.
+>=20
+> ```
+> $ dmesg
+> [=E2=80=A6]
+> [ 2891.404361] usb 3-3: new full-speed USB device number 4 using ohci-pci
+> [ 2891.626934] usb 3-3: New USB device found, idVendor=3D046d, idProduct=
+=3D092e, bcdDevice=3D 0.00
+> [ 2891.626945] usb 3-3: New USB device strings: Mfr=3D1, Product=3D2, Ser=
+ialNumber=3D0
+> [ 2891.626951] usb 3-3: Product: Camera
+> [ 2891.626957] usb 3-3: Manufacturer:
+> [ 2893.110249] calling  media_devnode_init+0x0/0x1000 [media] @ 11704
+> [ 2893.110256] media: Linux media interface: v0.10
+> [ 2893.110329] initcall media_devnode_init+0x0/0x1000 [media] returned 0 =
+after 56 usecs
+> [ 2893.210078] calling  videodev_init+0x0/0x79 [videodev] @ 11704
+> [ 2893.210084] videodev: Linux video capture interface: v2.00
+> [ 2893.210123] initcall videodev_init+0x0/0x79 [videodev] returned 0 afte=
+r 21 usecs
+> [ 2893.333140] calling  gspca_init+0x0/0x1000 [gspca_main] @ 11704
+> [ 2893.333148] gspca_main: v2.14.0 registered
+> [ 2893.333161] initcall gspca_init+0x0/0x1000 [gspca_main] returned 0 aft=
+er 3 usecs
+> [ 2893.370672] calling  sd_driver_init+0x0/0x1000 [gspca_spca561] @ 11704
+> [ 2893.370751] gspca_main: spca561-2.14.0 probing 046d:092e
+> [ 2893.482675] input: spca561 as /devices/pci0000:00/0000:00:12.0/usb3/3-=
+3/input/input17
+> [ 2893.485415] usbcore: registered new interface driver spca561
+> [ 2893.485434] initcall sd_driver_init+0x0/0x1000 [gspca_spca561] returne=
+d 0 after 112054 usecs
+> [=E2=80=A6]
+> $ ls -l /dev/video*
+> crw-rw----+ 1 root video 81, 0 Nov 15 09:26 /dev/video0
+>=20
+> $ mplayer tv:// -tv driver=3Dv4l2:device=3D/dev/video0
+> MPlayer 1.3.0 (Debian), built with gcc-8 (C) 2000-2016 MPlayer Team
+> do_connect: could not connect to socket
+> connect: No such file or directory
+> Failed to open LIRC support. You will not be able to use your remote cont=
+rol.
+>=20
+> Playing tv://.
+> TV file format detected.
+> Selected driver: v4l2
+>  name: Video 4 Linux 2 input
+>  author: Martin Olschewski <olschewski@zpr.uni-koeln.de>
+>  comment: first try, more to come ;-)
+> v4l2: your device driver does not support VIDIOC_G_STD ioctl, VIDIOC_G_PA=
+RM was used instead.
+> Selected device: Camera
+>  Capabilities:  video capture  read/write  streaming
+>  supported norms:
+>  inputs: 0 =3D spca561;
+>  Current input: 0
+>  Current format: unknown (0x31363553)
+
+The problem is likely here: mplayer is probably not using libv4l2. Without
+that, it can't decode the spca561 specific output format. It is probably
+due to some option used when mplayer was built.
+
+In the case of Cheese, it uses Gstreamer, with defaults to not use libv4l2
+either. On newest versions of it, there is an environment var that would
+allow enabling it (I don't remember what var).
+
+Anyway, Camorama is always built with libv4l2, so it should work out of
+the box (although I recommend it to use the latest version, as we did
+lots of improvements there, including support for the latest Gtk libraries).
+
+> tv.c: norm_from_string(pal): Bogus norm parameter, setting default.
+> v4l2: ioctl enum norm failed: Inappropriate ioctl for device
+> Error: Cannot set norm!
+> Selected input hasn't got a tuner!
+> v4l2: ioctl set mute failed: Invalid argument
+> v4l2: ioctl query control failed: Invalid argument
+> v4l2: ioctl query control failed: Invalid argument
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> Cannot find codec matching selected -vo and video format 0x31363553.
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> No stream found.
+>=20
+> v4l2: ioctl set mute failed: Invalid argument
+> v4l2: 0 frames successfully processed, 0 frames dropped.
+>=20
+> Exiting... (End of file)
+> ```
+>=20
+> Do you have an idea, what the issue. I know it worked fine several years
+> ago.
+
+
+
+Cheers,
+Mauro
