@@ -1,135 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:18998 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729034AbeKPCR7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Nov 2018 21:17:59 -0500
-From: "Zhi, Yong" <yong.zhi@intel.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>
-CC: "tfiga@chromium.org" <tfiga@chromium.org>,
-        "mchehab@kernel.org" <mchehab@kernel.org>,
-        "hans.verkuil@cisco.com" <hans.verkuil@cisco.com>,
-        "laurent.pinchart@ideasonboard.com"
-        <laurent.pinchart@ideasonboard.com>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "Hu, Jerry W" <jerry.w.hu@intel.com>,
-        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
-        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
-        "Cao, Bingbu" <bingbu.cao@intel.com>
-Subject: RE: [PATCH v7 14/16] intel-ipu3: Add v4l2 driver based on media
- framework
-Date: Thu, 15 Nov 2018 16:09:30 +0000
-Message-ID: <C193D76D23A22742993887E6D207B54D3DB30D51@ORSMSX106.amr.corp.intel.com>
-References: <1540851790-1777-1-git-send-email-yong.zhi@intel.com>
- <1540851790-1777-15-git-send-email-yong.zhi@intel.com>
- <bb5f135c-4042-1665-4218-802c6441aa2b@xs4all.nl>
-In-Reply-To: <bb5f135c-4042-1665-4218-802c6441aa2b@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Received: from mail-ed1-f65.google.com ([209.85.208.65]:43954 "EHLO
+        mail-ed1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2387839AbeKPCsp (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 15 Nov 2018 21:48:45 -0500
 MIME-Version: 1.0
+References: <20181115145013.3378-1-paul.kocialkowski@bootlin.com> <20181115145013.3378-11-paul.kocialkowski@bootlin.com>
+In-Reply-To: <20181115145013.3378-11-paul.kocialkowski@bootlin.com>
+From: Chen-Yu Tsai <wens@csie.org>
+Date: Fri, 16 Nov 2018 00:39:59 +0800
+Message-ID: <CAGb2v66twfxzMzO-E1WH78N6O9N1J_AcPQcKp3FApE1gTKmn3Q@mail.gmail.com>
+Subject: Re: [PATCH 10/15] arm64: dts: allwinner: a64: Add support for the
+ SRAM C1 section
+To: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        devicetree <devicetree@vger.kernel.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        devel@driverdev.osuosl.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-sunxi@googlegroups.com, Hans Verkuil <hverkuil@xs4all.nl>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGksIEhhbnMsDQoNClRoYW5rcyBmb3IgdGhlIHJldmlldy4NCg0KPiAtLS0tLU9yaWdpbmFsIE1l
-c3NhZ2UtLS0tLQ0KPiBGcm9tOiBIYW5zIFZlcmt1aWwgW21haWx0bzpodmVya3VpbEB4czRhbGwu
-bmxdDQo+IFNlbnQ6IFRodXJzZGF5LCBOb3ZlbWJlciAxNSwgMjAxOCA2OjUxIEFNDQo+IFRvOiBa
-aGksIFlvbmcgPHlvbmcuemhpQGludGVsLmNvbT47IGxpbnV4LW1lZGlhQHZnZXIua2VybmVsLm9y
-ZzsNCj4gc2FrYXJpLmFpbHVzQGxpbnV4LmludGVsLmNvbQ0KPiBDYzogdGZpZ2FAY2hyb21pdW0u
-b3JnOyBtY2hlaGFiQGtlcm5lbC5vcmc7IGhhbnMudmVya3VpbEBjaXNjby5jb207DQo+IGxhdXJl
-bnQucGluY2hhcnRAaWRlYXNvbmJvYXJkLmNvbTsgTWFuaSwgUmFqbW9oYW4NCj4gPHJham1vaGFu
-Lm1hbmlAaW50ZWwuY29tPjsgWmhlbmcsIEppYW4gWHUgPGppYW4ueHUuemhlbmdAaW50ZWwuY29t
-PjsgSHUsDQo+IEplcnJ5IFcgPGplcnJ5LncuaHVAaW50ZWwuY29tPjsgVG9pdm9uZW4sIFR1dWtr
-YQ0KPiA8dHV1a2thLnRvaXZvbmVuQGludGVsLmNvbT47IFFpdSwgVGlhbiBTaHUgPHRpYW4uc2h1
-LnFpdUBpbnRlbC5jb20+OyBDYW8sDQo+IEJpbmdidSA8YmluZ2J1LmNhb0BpbnRlbC5jb20+DQo+
-IFN1YmplY3Q6IFJlOiBbUEFUQ0ggdjcgMTQvMTZdIGludGVsLWlwdTM6IEFkZCB2NGwyIGRyaXZl
-ciBiYXNlZCBvbiBtZWRpYQ0KPiBmcmFtZXdvcmsNCj4gDQo+IE9uIDEwLzI5LzE4IDIzOjIzLCBZ
-b25nIFpoaSB3cm90ZToNCj4gPiBJbXBsZW1lbnQgdmlkZW8gZHJpdmVyIHRoYXQgdXRpbGl6ZXMg
-djRsMiwgdmIyIHF1ZXVlIHN1cHBvcnQgYW5kIG1lZGlhDQo+ID4gY29udHJvbGxlciBBUElzLiBU
-aGUgZHJpdmVyIGV4cG9zZXMgc2luZ2xlIHN1YmRldmljZSBhbmQgc2l4IG5vZGVzLg0KPiA+DQo+
-ID4gU2lnbmVkLW9mZi1ieTogWW9uZyBaaGkgPHlvbmcuemhpQGludGVsLmNvbT4NCj4gPiAtLS0N
-Cj4gPiAgZHJpdmVycy9tZWRpYS9wY2kvaW50ZWwvaXB1My9pcHUzLXY0bDIuYyB8IDEwOTENCj4g
-PiArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysNCj4gPiAgMSBmaWxlIGNoYW5nZWQsIDEw
-OTEgaW5zZXJ0aW9ucygrKQ0KPiA+ICBjcmVhdGUgbW9kZSAxMDA2NDQgZHJpdmVycy9tZWRpYS9w
-Y2kvaW50ZWwvaXB1My9pcHUzLXY0bDIuYw0KPiA+DQo+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMv
-bWVkaWEvcGNpL2ludGVsL2lwdTMvaXB1My12NGwyLmMNCj4gPiBiL2RyaXZlcnMvbWVkaWEvcGNp
-L2ludGVsL2lwdTMvaXB1My12NGwyLmMNCj4gDQo+IDxzbmlwPg0KPiANCj4gPiAraW50IGlwdTNf
-djRsMl9yZWdpc3RlcihzdHJ1Y3QgaW1ndV9kZXZpY2UgKmltZ3UpIHsNCj4gDQo+IDxzbmlwPg0K
-PiANCj4gPiArCQkvKiBJbml0aWFsaXplIHZicSAqLw0KPiA+ICsJCXZicS0+dHlwZSA9IG5vZGUt
-PnZkZXZfZm10LnR5cGU7DQo+ID4gKwkJdmJxLT5pb19tb2RlcyA9IFZCMl9VU0VSUFRSIHwgVkIy
-X01NQVAgfA0KPiBWQjJfRE1BQlVGOw0KPiANCj4gQXJlIHlvdSBzdXJlIFVTRVJQVFIgd29ya3M/
-IElmIHlvdSBoYXZlIGFsaWdubWVudCByZXF1aXJlbWVudHMgdGhhdCB0aGUNCj4gYnVmZmVyIHN0
-YXJ0cyBhdCBhIG11bHRpcGxlIG9mIG1vcmUgdGhhbiAoSSB0aGluaykgOCBieXRlcywgdGhlbiBV
-U0VSUFRSIHdvbid0DQo+IHdvcmsuDQoNClVTUlBUUiB3YXMgdXNlZCBhdCB0aGUgYmVnaW5uaW5n
-IG9mIHByb2plY3QsIHdlIHRoZW4gc3dpdGNoZWQgdG8gZG1hIGJ1ZmZlciBtYWlubHkgZm9yIHBl
-cmZvcm1hbmNlIHJlYXNvbjoNCmh0dHBzOi8vY2hyb21pdW0tcmV2aWV3Lmdvb2dsZXNvdXJjZS5j
-b20vYy9jaHJvbWl1bW9zL3BsYXRmb3JtL2FyYy1jYW1lcmEvKy82MjAyNTINCg0KPiANCj4gPiAr
-CQl2YnEtPm9wcyA9ICZpcHUzX3ZiMl9vcHM7DQo+ID4gKwkJdmJxLT5tZW1fb3BzID0gJnZiMl9k
-bWFfc2dfbWVtb3BzOw0KPiA+ICsJCWlmIChpbWd1LT5idWZfc3RydWN0X3NpemUgPD0gMCkNCj4g
-PiArCQkJaW1ndS0+YnVmX3N0cnVjdF9zaXplID0gc2l6ZW9mKHN0cnVjdA0KPiBpcHUzX3ZiMl9i
-dWZmZXIpOw0KPiA+ICsJCXZicS0+YnVmX3N0cnVjdF9zaXplID0gaW1ndS0+YnVmX3N0cnVjdF9z
-aXplOw0KPiA+ICsJCXZicS0+dGltZXN0YW1wX2ZsYWdzID0NCj4gVjRMMl9CVUZfRkxBR19USU1F
-U1RBTVBfTU9OT1RPTklDOw0KPiA+ICsJCXZicS0+bWluX2J1ZmZlcnNfbmVlZGVkID0gMDsJLyog
-Q2FuIHN0cmVhbW9uIHcvbyBidWZmZXJzDQo+ICovDQo+ID4gKwkJdmJxLT5kcnZfcHJpdiA9IGlt
-Z3U7DQo+ID4gKwkJdmJxLT5sb2NrID0gJm5vZGUtPmxvY2s7DQo+ID4gKwkJciA9IHZiMl9xdWV1
-ZV9pbml0KHZicSk7DQo+ID4gKwkJaWYgKHIpIHsNCj4gPiArCQkJZGV2X2VycigmaW1ndS0+cGNp
-X2Rldi0+ZGV2LA0KPiA+ICsJCQkJImZhaWxlZCB0byBpbml0aWFsaXplIHZpZGVvIHF1ZXVlICgl
-ZClcbiIsIHIpOw0KPiA+ICsJCQlnb3RvIGZhaWxfdmRldjsNCj4gPiArCQl9DQo+ID4gKw0KPiA+
-ICsJCS8qIEluaXRpYWxpemUgdmRldiAqLw0KPiA+ICsJCXNucHJpbnRmKHZkZXYtPm5hbWUsIHNp
-emVvZih2ZGV2LT5uYW1lKSwgIiVzICVzIiwNCj4gPiArCQkJIElNR1VfTkFNRSwgbm9kZS0+bmFt
-ZSk7DQo+ID4gKwkJdmRldi0+cmVsZWFzZSA9IHZpZGVvX2RldmljZV9yZWxlYXNlX2VtcHR5Ow0K
-PiA+ICsJCXZkZXYtPmZvcHMgPSAmaXB1M192NGwyX2ZvcHM7DQo+ID4gKwkJdmRldi0+bG9jayA9
-ICZub2RlLT5sb2NrOw0KPiA+ICsJCXZkZXYtPnY0bDJfZGV2ID0gJmltZ3UtPnY0bDJfZGV2Ow0K
-PiA+ICsJCXZkZXYtPnF1ZXVlID0gJm5vZGUtPnZicTsNCj4gPiArCQl2ZGV2LT52ZmxfZGlyID0g
-bm9kZS0+b3V0cHV0ID8gVkZMX0RJUl9UWCA6IFZGTF9ESVJfUlg7DQo+ID4gKwkJdmlkZW9fc2V0
-X2RydmRhdGEodmRldiwgaW1ndSk7DQo+ID4gKwkJciA9IHZpZGVvX3JlZ2lzdGVyX2RldmljZSh2
-ZGV2LCBWRkxfVFlQRV9HUkFCQkVSLCAtMSk7DQo+ID4gKwkJaWYgKHIpIHsNCj4gPiArCQkJZGV2
-X2VycigmaW1ndS0+cGNpX2Rldi0+ZGV2LA0KPiA+ICsJCQkJImZhaWxlZCB0byByZWdpc3RlciB2
-aWRlbyBkZXZpY2UgKCVkKVxuIiwgcik7DQo+ID4gKwkJCWdvdG8gZmFpbF92ZGV2Ow0KPiA+ICsJ
-CX0NCj4gPiArDQo+ID4gKwkJLyogQ3JlYXRlIGxpbmsgYmV0d2VlbiB2aWRlbyBub2RlIGFuZCB0
-aGUgc3ViZGV2IHBhZCAqLw0KPiA+ICsJCWZsYWdzID0gMDsNCj4gPiArCQlpZiAobm9kZS0+ZW5h
-YmxlZCkNCj4gPiArCQkJZmxhZ3MgfD0gTUVESUFfTE5LX0ZMX0VOQUJMRUQ7DQo+ID4gKwkJaWYg
-KG5vZGUtPmltbXV0YWJsZSkNCj4gPiArCQkJZmxhZ3MgfD0gTUVESUFfTE5LX0ZMX0lNTVVUQUJM
-RTsNCj4gPiArCQlpZiAobm9kZS0+b3V0cHV0KSB7DQo+ID4gKwkJCXIgPSBtZWRpYV9jcmVhdGVf
-cGFkX2xpbmsoJnZkZXYtPmVudGl0eSwgMCwNCj4gPiArCQkJCQkJICAmaW1ndS0+c3ViZGV2LmVu
-dGl0eSwNCj4gPiArCQkJCQkJIGksIGZsYWdzKTsNCj4gPiArCQl9IGVsc2Ugew0KPiA+ICsJCQly
-ID0gbWVkaWFfY3JlYXRlX3BhZF9saW5rKCZpbWd1LT5zdWJkZXYuZW50aXR5LA0KPiA+ICsJCQkJ
-CQkgIGksICZ2ZGV2LT5lbnRpdHksIDAsIGZsYWdzKTsNCj4gPiArCQl9DQo+ID4gKwkJaWYgKHIp
-DQo+ID4gKwkJCWdvdG8gZmFpbF9saW5rOw0KPiA+ICsJfQ0KPiA+ICsNCj4gPiArCXIgPSBtZWRp
-YV9kZXZpY2VfcmVnaXN0ZXIoJmltZ3UtPm1lZGlhX2Rldik7DQo+ID4gKwlpZiAocikgew0KPiA+
-ICsJCWRldl9lcnIoJmltZ3UtPnBjaV9kZXYtPmRldiwNCj4gPiArCQkJImZhaWxlZCB0byByZWdp
-c3RlciBtZWRpYSBkZXZpY2UgKCVkKVxuIiwgcik7DQo+ID4gKwkJaS0tOw0KPiA+ICsJCWdvdG8g
-ZmFpbF9saW5rOw0KPiA+ICsJfQ0KPiA+ICsNCj4gPiArCXJldHVybiAwOw0KPiA+ICsNCj4gPiAr
-CWZvciAoOyBpID49IDA7IGktLSkgew0KPiA+ICtmYWlsX2xpbms6DQo+ID4gKwkJdmlkZW9fdW5y
-ZWdpc3Rlcl9kZXZpY2UoJmltZ3UtPm5vZGVzW2ldLnZkZXYpOw0KPiA+ICtmYWlsX3ZkZXY6DQo+
-ID4gKwkJbWVkaWFfZW50aXR5X2NsZWFudXAoJmltZ3UtPm5vZGVzW2ldLnZkZXYuZW50aXR5KTsN
-Cj4gPiArZmFpbF92ZGV2X21lZGlhX2VudGl0eToNCj4gPiArCQltdXRleF9kZXN0cm95KCZpbWd1
-LT5ub2Rlc1tpXS5sb2NrKTsNCj4gPiArCX0NCj4gPiArZmFpbF9zdWJkZXZzOg0KPiA+ICsJdjRs
-Ml9kZXZpY2VfdW5yZWdpc3Rlcl9zdWJkZXYoJmltZ3UtPnN1YmRldik7DQo+ID4gK2ZhaWxfc3Vi
-ZGV2Og0KPiA+ICsJbWVkaWFfZW50aXR5X2NsZWFudXAoJmltZ3UtPnN1YmRldi5lbnRpdHkpOw0K
-PiA+ICtmYWlsX21lZGlhX2VudGl0eToNCj4gPiArCWtmcmVlKGltZ3UtPnN1YmRldl9wYWRzKTsN
-Cj4gPiArZmFpbF9zdWJkZXZfcGFkczoNCj4gPiArCXY0bDJfZGV2aWNlX3VucmVnaXN0ZXIoJmlt
-Z3UtPnY0bDJfZGV2KTsNCj4gPiArZmFpbF92NGwyX2RldjoNCj4gPiArCW1lZGlhX2RldmljZV9j
-bGVhbnVwKCZpbWd1LT5tZWRpYV9kZXYpOw0KPiA+ICsNCj4gPiArCXJldHVybiByOw0KPiA+ICt9
-DQo+ID4gK0VYUE9SVF9TWU1CT0xfR1BMKGlwdTNfdjRsMl9yZWdpc3Rlcik7DQo+ID4gKw0KPiA+
-ICtpbnQgaXB1M192NGwyX3VucmVnaXN0ZXIoc3RydWN0IGltZ3VfZGV2aWNlICppbWd1KSB7DQo+
-ID4gKwl1bnNpZ25lZCBpbnQgaTsNCj4gPiArDQo+ID4gKwltZWRpYV9kZXZpY2VfdW5yZWdpc3Rl
-cigmaW1ndS0+bWVkaWFfZGV2KTsNCj4gPiArCW1lZGlhX2RldmljZV9jbGVhbnVwKCZpbWd1LT5t
-ZWRpYV9kZXYpOw0KPiA+ICsNCj4gPiArCWZvciAoaSA9IDA7IGkgPCBJTUdVX05PREVfTlVNOyBp
-KyspIHsNCj4gPiArCQl2aWRlb191bnJlZ2lzdGVyX2RldmljZSgmaW1ndS0+bm9kZXNbaV0udmRl
-dik7DQo+ID4gKwkJbWVkaWFfZW50aXR5X2NsZWFudXAoJmltZ3UtPm5vZGVzW2ldLnZkZXYuZW50
-aXR5KTsNCj4gPiArCQltdXRleF9kZXN0cm95KCZpbWd1LT5ub2Rlc1tpXS5sb2NrKTsNCj4gPiAr
-CX0NCj4gPiArDQo+ID4gKwl2NGwyX2RldmljZV91bnJlZ2lzdGVyX3N1YmRldigmaW1ndS0+c3Vi
-ZGV2KTsNCj4gPiArCW1lZGlhX2VudGl0eV9jbGVhbnVwKCZpbWd1LT5zdWJkZXYuZW50aXR5KTsN
-Cj4gPiArCWtmcmVlKGltZ3UtPnN1YmRldl9wYWRzKTsNCj4gPiArCXY0bDJfZGV2aWNlX3VucmVn
-aXN0ZXIoJmltZ3UtPnY0bDJfZGV2KTsNCj4gPiArDQo+ID4gKwlyZXR1cm4gMDsNCj4gPiArfQ0K
-PiA+ICtFWFBPUlRfU1lNQk9MX0dQTChpcHUzX3Y0bDJfdW5yZWdpc3Rlcik7DQo+ID4gKw0KPiA+
-ICt2b2lkIGlwdTNfdjRsMl9idWZmZXJfZG9uZShzdHJ1Y3QgdmIyX2J1ZmZlciAqdmIsDQo+ID4g
-KwkJCSAgIGVudW0gdmIyX2J1ZmZlcl9zdGF0ZSBzdGF0ZSkNCj4gPiArew0KPiA+ICsJc3RydWN0
-IGlwdTNfdmIyX2J1ZmZlciAqYiA9DQo+ID4gKwkJY29udGFpbmVyX29mKHZiLCBzdHJ1Y3QgaXB1
-M192YjJfYnVmZmVyLCB2YmIudmIyX2J1Zik7DQo+ID4gKw0KPiA+ICsJbGlzdF9kZWwoJmItPmxp
-c3QpOw0KPiA+ICsJdmIyX2J1ZmZlcl9kb25lKCZiLT52YmIudmIyX2J1Ziwgc3RhdGUpOyB9DQo+
-ID4gK0VYUE9SVF9TWU1CT0xfR1BMKGlwdTNfdjRsMl9idWZmZXJfZG9uZSk7DQo+ID4NCj4gDQo+
-IFJlZ2FyZHMsDQo+IA0KPiAJSGFucw0K
+On Thu, Nov 15, 2018 at 10:50 PM Paul Kocialkowski
+<paul.kocialkowski@bootlin.com> wrote:
+>
+> Add the description for the SRAM C1 section to the A64 device-tree.
+>
+> Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+> ---
+>  arch/arm64/boot/dts/allwinner/sun50i-a64.dtsi | 14 ++++++++++++++
+>  1 file changed, 14 insertions(+)
+>
+> diff --git a/arch/arm64/boot/dts/allwinner/sun50i-a64.dtsi b/arch/arm64/boot/dts/allwinner/sun50i-a64.dtsi
+> index f3a66f888205..88b3e9110833 100644
+> --- a/arch/arm64/boot/dts/allwinner/sun50i-a64.dtsi
+> +++ b/arch/arm64/boot/dts/allwinner/sun50i-a64.dtsi
+> @@ -277,6 +277,20 @@
+>                                         reg = <0x0000 0x28000>;
+>                                 };
+>                         };
+> +
+> +                       sram_c1: sram@1d00000 {
+> +                               compatible = "mmio-sram";
+> +                               reg = <0x01d00000 0x80000>;
+
+I can confirm that this SRAM region is indeed at this address. However the
+size is only 0x40000, not 0x80000. The address ranges should be fixed.
+
+One hiccup is that the VE reset has to be de-asserted and the VE bus clock
+has to be ungated for the CPU to access this region when it's mapped to the
+CPU.
+
+One other thing I find interesting is that in the previous SoCs, the bits
+that control this mapping says 50K, but in reality it is 512K for the older
+SoCs, and 256K for this one.
+
+ChenYu
+
+> +                               #address-cells = <1>;
+> +                               #size-cells = <1>;
+> +                               ranges = <0 0x01d00000 0x80000>;
+> +
+> +                               ve_sram: sram-section@0 {
+> +                                       compatible = "allwinner,sun50i-a64-sram-c1",
+> +                                                    "allwinner,sun4i-a10-sram-c1";
+> +                                       reg = <0x000000 0x80000>;
+> +                               };
+> +                       };
+>                 };
+>
+>                 dma: dma-controller@1c02000 {
+> --
+> 2.19.1
+>
