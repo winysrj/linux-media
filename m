@@ -1,278 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:43100 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726022AbeKNJNj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Nov 2018 04:13:39 -0500
-Reply-To: kieran.bingham@ideasonboard.com
-Subject: Re: [PATCH v4 1/4] dt-bindings: media: i2c: Add bindings for Maxim
- Integrated MAX9286
-To: Luca Ceresoli <luca@lucaceresoli.net>,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, sakari.ailus@iki.fi
-Cc: =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>,
-        Jacopo Mondi <jacopo@jmondi.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        linux-kernel@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>
-References: <20181102154723.23662-1-kieran.bingham@ideasonboard.com>
- <20181102154723.23662-2-kieran.bingham@ideasonboard.com>
- <b3ef6780-a1a7-e86c-0dba-916d9398c1ef@lucaceresoli.net>
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Message-ID: <66239f2a-0159-8120-6dbb-8af0ce8b132a@ideasonboard.com>
-Date: Tue, 13 Nov 2018 15:12:55 -0800
+Received: from mail.bootlin.com ([62.4.15.54]:44568 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2387548AbeKPBFC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 15 Nov 2018 20:05:02 -0500
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: hans.verkuil@cisco.com, acourbot@chromium.org,
+        sakari.ailus@linux.intel.com,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: tfiga@chromium.org, posciak@chromium.org,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Chen-Yu Tsai <wens@csie.org>, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        nicolas.dufresne@collabora.com, jenskuske@gmail.com,
+        linux-sunxi@googlegroups.com,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>
+Subject: [PATCH v2 0/2] media: cedrus: Add H264 decoding support
+Date: Thu, 15 Nov 2018 15:56:48 +0100
+Message-Id: <20181115145650.9827-1-maxime.ripard@bootlin.com>
 MIME-Version: 1.0
-In-Reply-To: <b3ef6780-a1a7-e86c-0dba-916d9398c1ef@lucaceresoli.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Luca,
 
-On 13/11/2018 14:42, Luca Ceresoli wrote:
-> Hi Kieran, All,
-> 
-> sorry for joining this late... See below my considerations.
+Hi,
 
-I'd say you're on time - not late,
+Here is a new version of the H264 decoding support in the cedrus
+driver.
 
-Thanks for joining :)
+As you might already know, the cedrus driver relies on the Request
+API, and is a reverse engineered driver for the video decoding engine
+found on the Allwinner SoCs.
 
-> 
-> On 02/11/18 16:47, Kieran Bingham wrote:
->> From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
->>
->> The MAX9286 deserializes video data received on up to 4 Gigabit
->> Multimedia Serial Links (GMSL) and outputs them on a CSI-2 port using up
->> to 4 data lanes.
->>
->> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
->> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
->> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
->>
->> ---
->> v3:
->>  - Update binding descriptions
->>
->> v4:
->>  - Define the use of a CSI2 D-PHY
->>  - Rename pwdn-gpios to enable-gpios (with inverted polarity)
->>  - Remove clock-lanes mapping support
->>  - rewrap text blocks
->>  - Fix typos
->> ---
->>  .../bindings/media/i2c/maxim,max9286.txt      | 182 ++++++++++++++++++
->>  1 file changed, 182 insertions(+)
->>  create mode 100644 Documentation/devicetree/bindings/media/i2c/maxim,max9286.txt
->>
->> diff --git a/Documentation/devicetree/bindings/media/i2c/maxim,max9286.txt b/Documentation/devicetree/bindings/media/i2c/maxim,max9286.txt
->> new file mode 100644
->> index 000000000000..672f6a4d417d
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/media/i2c/maxim,max9286.txt
->> @@ -0,0 +1,182 @@
->> +Maxim Integrated Quad GMSL Deserializer
->> +---------------------------------------
->> +
->> +The MAX9286 deserializer receives video data on up to 4 Gigabit Multimedia
->> +Serial Links (GMSL) and outputs them on a CSI-2 D-PHY port using up to 4 data
->> +lanes.
->> +
->> +In addition to video data, the GMSL links carry a bidirectional control channel
->> +that encapsulates I2C messages. The MAX9286 forwards all I2C traffic not
->> +addressed to itself to the other side of the links, where a GMSL serializer
->> +will output it on a local I2C bus. In the other direction all I2C traffic
->> +received over GMSL by the MAX9286 is output on the local I2C bus.
->> +
->> +Required Properties:
->> +
->> +- compatible: Shall be "maxim,max9286"
->> +- reg: I2C device address
->> +
->> +Optional Properties:
->> +
->> +- poc-supply: Regulator providing Power over Coax to the cameras
->> +- enable-gpios: GPIO connected to the #PWDN pin with inverted polarity
->> +
->> +Required endpoint nodes:
->> +-----------------------
->> +
->> +The connections to the MAX9286 GMSL and its endpoint nodes are modeled using
->> +the OF graph bindings in accordance with the video interface bindings defined
->> +in Documentation/devicetree/bindings/media/video-interfaces.txt.
->> +
->> +The following table lists the port number corresponding to each device port.
->> +
->> +        Port            Description
->> +        ----------------------------------------
->> +        Port 0          GMSL Input 0
->> +        Port 1          GMSL Input 1
->> +        Port 2          GMSL Input 2
->> +        Port 3          GMSL Input 3
->> +        Port 4          CSI-2 Output
->> +
->> +Optional Endpoint Properties for GMSL Input Ports (Port [0-3]):
->> +
->> +- remote-endpoint: phandle to the remote GMSL source endpoint subnode in the
->> +  remote node port.
->> +
->> +Required Endpoint Properties for CSI-2 Output Port (Port 4):
->> +
->> +- remote-endpoint: phandle to the remote CSI-2 sink endpoint node.
->> +- data-lanes: array of physical CSI-2 data lane indexes.
->> +
->> +Required i2c-mux nodes:
->> +----------------------
->> +
->> +Each GMSL link is modeled as a child bus of an i2c bus multiplexer/switch, in
->> +accordance with bindings described in
->> +Documentation/devicetree/bindings/i2c/i2c-mux.txt. The serializer device on the
->> +remote end of the GMSL link shall be modelled as a child node of the
->> +corresponding I2C bus.
->> +
->> +Required i2c child bus properties:
->> +- all properties described as required i2c child bus nodes properties in
->> +  Documentation/devicetree/bindings/i2c/i2c-mux.txt.
->> +
->> +Example:
->> +-------
->> +
->> +	gmsl-deserializer@2c {
->> +		compatible = "maxim,max9286";Not at all late - Just on time 
->> +		reg = <0x2c>;
->> +		poc-supply = <&camera_poc_12v>;
->> +		enable-gpios = <&gpio 13 GPIO_ACTIVE_LOW>;
->> +
->> +		#address-cells = <1>;
->> +		#size-cells = <0>;
->> +
->> +		ports {
->> +			#address-cells = <1>;
->> +			#size-cells = <0>;
->> +
->> +			port@0 {
->> +				reg = <0>;
->> +				max9286_in0: endpoint {
->> +					remote-endpoint = <&rdacm20_out0>;
->> +				};
->> +			};
->> +
->> +			port@1 {
->> +				reg = <1>;
->> +				max9286_in1: endpoint {
->> +					remote-endpoint = <&rdacm20_out1>;
->> +				};
->> +			};
->> +
->> +			port@2 {
->> +				reg = <2>;
->> +				max9286_in2: endpoint {
->> +					remote-endpoint = <&rdacm20_out2>;
->> +				};
->> +			};
->> +
->> +			port@3 {
->> +				reg = <3>;
->> +				max9286_in3: endpoint {
->> +					remote-endpoint = <&rdacm20_out3>;
->> +				};
->> +			};
->> +
->> +			port@4 {
->> +				reg = <4>;
->> +				max9286_out: endpoint {
->> +					data-lanes = <1 2 3 4>;
->> +					remote-endpoint = <&csi40_in>;
->> +				};
->> +			};
->> +		};
->> +
->> +		i2c@0 {
->> +			#address-cells = <1>;
->> +			#size-cells = <0>;
->> +			reg = <0>;
->> +
->> +			camera@51 {
->> +				compatible = "imi,rdacm20";
->> +				reg = <0x51 0x61>;
-> 
-> I find this kind of address mapping is the weak point in this patchset.
-> 
-> The ser-deser chipset splits the world in "local" and "remote" side. The
-> camera node belongs to the remote side, but the 0x51 and 0x61 addresses
-> belong to the local side.
+This work has been possible thanks to the work done by the people
+behind libvdpau-sunxi found here:
+https://github.com/linux-sunxi/libvdpau-sunxi/
 
-Well, in our use case - in fact the camera has a set of fixed addresses
-(0x30,0x40,0x50) for each camera - and these are the addresses we are
-requesting the camera to be updated to. Once the camera is communicated
-with - the first step is to reprogram the device to respond to the
-addresses specified here.
+It's based on v4.20-rc1, plus the tag patches sent this week by Hans
+Verkuil.
 
+I've been using the controls currently integrated into ChromeOS that
+have a working version of this particular setup. However, these
+controls have a number of shortcomings and inconsistencies with other
+decoding API. I've worked with libva so far, but I've noticed already
+that:
+  - The kernel UAPI expects to have the nal_ref_idc variable, while
+    libva only exposes whether that frame is a reference frame or
+    not. I've looked at the rockchip driver in the ChromeOS tree, and
+    our own driver, and they both need only the information about
+    whether the frame is a reference one or not, so maybe we should
+    change this?
+  - The H264 bitstream exposes the picture default reference list (for
+    both list 0 and list 1), the slice reference list and an override
+    flag. The libva will only pass the reference list to be used (so
+    either the picture default's or the slice's) depending on the
+    override flag. The kernel UAPI wants the picture default reference
+    list and the slice reference list, but doesn't expose the override
+    flag, which prevents us from configuring properly the
+    hardware. Our video decoding engine needs the three information,
+    but we can easily adapt to having only one. However, having two
+    doesn't really work for us.
 
-> Think about supporting N different main boards
-> and M remote boards. 0x51 might be available on some main boards but not
-> all. IMO under the camera@51 (even the i2c@0) node there should be only
-> remote hardware description. To support the N*M possible combinations,
-> there should be:
+It's pretty much the only one I've noticed so far, but we should
+probably fix them already. And there's probably other, feel free to
+step in.
 
-Of course - well in fact all of our I2C addresses across our two max9286
-instances, and 8 camera devices share the same bus 'address space'.
+I've tested the various ABI using this gdb script:
+http://code.bulix.org/jl4se4-505620?raw
 
-It's crucial to provide this address on a per board level, which is why
-it is specified in the DT.
+And this test script:
+http://code.bulix.org/8zle4s-505623?raw
 
-I wonder if perhaps it was a mistake to include the camera description
-in this part of the example, as it's not related to the max9286
-specifically.
+The application compiled is quite trivial:
+http://code.bulix.org/e34zp8-505624?raw
 
-Rob has already suggested moving these to a lower 'i2c-node' level which
-I like the sound of, and might make this separation more clear.
+The output is:
+arm:	builds/arm-test-v4l2-h264-structures
+	SHA1: 88cbf7485ba81831fc3b93772b215599b3b38318
+x86:	builds/x86-test-v4l2-h264-structures
+	SHA1: 88cbf7485ba81831fc3b93772b215599b3b38318
+x64:	builds/x64-test-v4l2-h264-structures
+	SHA1: 88cbf7485ba81831fc3b93772b215599b3b38318
+arm64:	builds/arm64-test-v4l2-h264-structures
+	SHA1: 88cbf7485ba81831fc3b93772b215599b3b38318
 
+Let me know if there's any flaw using that test setup, or if you have
+any comments on the patches.
 
->  * a DT for the main board mentioning only addresses for the
->    local i2c bus, down to the i2c@0 with address-cells, size-cells and
->    reg properties
->  * a DT overlay for each remote board, mentioning the remote i2c
->    chips with their physical addresses, but no local addresses
-> 
-> The only way I could devise to be generic is to bind each physical
-> remote address to a local address at runtime.
-> 
-> Also, to be implemented reliably, an address translation feature is
-> required on the local (de)ser chip.
-> 
-> So the question is: can the max9286 chip do i2c address translation?
-> 
+Maxime
 
-Yes, The max9286 (deser) can do i2c address translation - but so too can
-the max9271 (serialiser)
+Changes from v1:
+  - Rebased on 4.20
+  - Did the documentation for the userspace API
+  - Used the tags instead of buffer IDs
+  - Added a comment to explain why we still needed the swdec trigger
+  - Reworked the MV col buffer in order to have one slot per frame
+  - Removed the unused neighbor info buffer
+  - Made sure to have the same structure offset and alignments across
+    32 bits and 64 bits architecture
 
-We do our address translation on the camera (serialiser) side.
+Maxime Ripard (1):
+  media: cedrus: Add H264 decoding support
 
-The cameras *all* boot with the same i2c address (and thus all conflict)
- - We disable all links
- - We enable /one/ link
- - We initialise and reprogram the address of that camera to the address
-   specified in the camera node. - Then we move to the next camera.
+Pawel Osciak (1):
+  media: uapi: Add H264 low-level decoder API compound controls.
 
-The reality is we 'just need' a spare address on the I2C bus - but as
-yet - there is no mechanism in I2C core to request a spare address.
-
-Thus it is the responsibility of the DT node to ensure there is no conflict.
-
-For an example, here is our DT overlay file for our max9286 expansion board:
-
-https://git.kernel.org/pub/scm/linux/kernel/git/kbingham/rcar.git/commit/?h=gmsl/v5&id=6f2ec549e128b3ca36e9cae59256723cc39df2b1
-
-
-> Thanks,
-> 
+ Documentation/media/uapi/v4l/biblio.rst       |   9 +
+ .../media/uapi/v4l/extended-controls.rst      | 364 ++++++++++++++
+ .../media/uapi/v4l/pixfmt-compressed.rst      |  20 +
+ .../media/uapi/v4l/vidioc-queryctrl.rst       |  30 ++
+ .../media/videodev2.h.rst.exceptions          |   5 +
+ drivers/media/v4l2-core/v4l2-ctrls.c          |  42 ++
+ drivers/media/v4l2-core/v4l2-ioctl.c          |   1 +
+ drivers/staging/media/sunxi/cedrus/Makefile   |   3 +-
+ drivers/staging/media/sunxi/cedrus/cedrus.c   |  25 +
+ drivers/staging/media/sunxi/cedrus/cedrus.h   |  35 +-
+ .../staging/media/sunxi/cedrus/cedrus_dec.c   |  11 +
+ .../staging/media/sunxi/cedrus/cedrus_h264.c  | 470 ++++++++++++++++++
+ .../staging/media/sunxi/cedrus/cedrus_hw.c    |   4 +
+ .../staging/media/sunxi/cedrus/cedrus_regs.h  |  63 +++
+ .../staging/media/sunxi/cedrus/cedrus_video.c |   9 +
+ include/media/v4l2-ctrls.h                    |  10 +
+ include/uapi/linux/v4l2-controls.h            | 166 +++++++
+ include/uapi/linux/videodev2.h                |  11 +
+ 18 files changed, 1276 insertions(+), 2 deletions(-)
+ create mode 100644 drivers/staging/media/sunxi/cedrus/cedrus_h264.c
 
 -- 
-Regards
---
-Kieran
+2.19.1
