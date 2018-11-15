@@ -1,7 +1,7 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:42835 "EHLO mail.bootlin.com"
+Received: from mail.bootlin.com ([62.4.15.54]:42852 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388484AbeKPA6q (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        id S2388485AbeKPA6q (ORCPT <rfc822;linux-media@vger.kernel.org>);
         Thu, 15 Nov 2018 19:58:46 -0500
 From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 To: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
@@ -17,9 +17,9 @@ Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
         linux-sunxi@googlegroups.com, Hans Verkuil <hverkuil@xs4all.nl>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
         Thomas Petazzoni <thomas.petazzoni@bootlin.com>
-Subject: [PATCH 01/15] ARM: dts: sun8i-a33: Remove heading 0 in video-codec unit address
-Date: Thu, 15 Nov 2018 15:49:59 +0100
-Message-Id: <20181115145013.3378-2-paul.kocialkowski@bootlin.com>
+Subject: [PATCH 02/15] ARM: dts: sun8i-h3: Remove heading 0 in video-codec unit address
+Date: Thu, 15 Nov 2018 15:50:00 +0100
+Message-Id: <20181115145013.3378-3-paul.kocialkowski@bootlin.com>
 In-Reply-To: <20181115145013.3378-1-paul.kocialkowski@bootlin.com>
 References: <20181115145013.3378-1-paul.kocialkowski@bootlin.com>
 MIME-Version: 1.0
@@ -32,20 +32,20 @@ address, as it's done for other nodes.
 
 Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 ---
- arch/arm/boot/dts/sun8i-a33.dtsi | 2 +-
+ arch/arm/boot/dts/sun8i-h3.dtsi | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/sun8i-a33.dtsi b/arch/arm/boot/dts/sun8i-a33.dtsi
-index c1cc8f09dd9a..17f54bd1aee4 100644
---- a/arch/arm/boot/dts/sun8i-a33.dtsi
-+++ b/arch/arm/boot/dts/sun8i-a33.dtsi
-@@ -269,7 +269,7 @@
+diff --git a/arch/arm/boot/dts/sun8i-h3.dtsi b/arch/arm/boot/dts/sun8i-h3.dtsi
+index 3ecfabb10151..35d025af7deb 100644
+--- a/arch/arm/boot/dts/sun8i-h3.dtsi
++++ b/arch/arm/boot/dts/sun8i-h3.dtsi
+@@ -156,7 +156,7 @@
  			};
  		};
  
 -		video-codec@01c0e000 {
 +		video-codec@1c0e000 {
- 			compatible = "allwinner,sun8i-a33-video-engine";
+ 			compatible = "allwinner,sun8i-h3-video-engine";
  			reg = <0x01c0e000 0x1000>;
  			clocks = <&ccu CLK_BUS_VE>, <&ccu CLK_VE>,
 -- 
