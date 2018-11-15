@@ -1,328 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:42126 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388571AbeKPBw1 (ORCPT
+Received: from mail-pg1-f195.google.com ([209.85.215.195]:36595 "EHLO
+        mail-pg1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2388606AbeKPBzY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Nov 2018 20:52:27 -0500
-Date: Thu, 15 Nov 2018 07:44:03 -0800
-From: Mauro Carvalho Chehab <mchehab@kernel.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-kernel@vger.kernel.org, vishal.l.verma@intel.com,
-        ksummit-discuss@lists.linuxfoundation.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-nvdimm@lists.01.org, Dmitry Vyukov <dvyukov@google.com>,
-        Steve French <stfrench@microsoft.com>,
-        "Tobin C. Harding" <me@tobin.cc>, linux-media@vger.kernel.org
-Subject: Re: [Ksummit-discuss] [RFC PATCH 2/3] MAINTAINERS, Handbook:
- Subsystem Profile
-Message-ID: <20181115074403.45d9a16a@silica.lan>
-In-Reply-To: <154225760492.2499188.14152986544451112930.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <154225759358.2499188.15268218778137905050.stgit@dwillia2-desk3.amr.corp.intel.com>
-        <154225760492.2499188.14152986544451112930.stgit@dwillia2-desk3.amr.corp.intel.com>
+        Thu, 15 Nov 2018 20:55:24 -0500
+Date: Thu, 15 Nov 2018 21:20:38 +0530
+From: Souptick Joarder <jrdr.linux@gmail.com>
+To: akpm@linux-foundation.org, willy@infradead.org, mhocko@suse.com,
+        pawel@osciak.com, m.szyprowski@samsung.com,
+        kyungmin.park@samsung.com, mchehab@kernel.org
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-mm@kvack.org
+Subject: [PATCH 7/9] videobuf2/videobuf2-dma-sg.c: Convert to use
+ vm_insert_range
+Message-ID: <20181115155037.GA28004@jordon-HP-15-Notebook-PC>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 14 Nov 2018 20:53:25 -0800
-Dan Williams <dan.j.williams@intel.com> escreveu:
+Convert to use vm_insert_range to map range of kernel memory
+to user vma.
 
-> As presented at the 2018 Linux Plumbers conference [1], the Subsystem
-> Profile is proposed as a way to reduce friction between committers and
-> maintainers and perhaps encourage conversations amongst maintainers
-> about best practice policies.
-> 
-> The profile contains short answers to some of the common policy
-> questions a contributor might have, or that a maintainer might consider
-> formalizing. The current list of maintenance policies is:
-> 
-> Overview: General introduction to maintaining the subsystem
-> Core: List of source files considered core
-> Leaf: List of source files that consume core functionality
-> Patches or Pull requests: Simple statement of expected submission format
-> Last -rc for new feature submissions: Expected lead time for submissions
-> Last -rc to merge features: Deadline for merge decisions
-> Non-author Ack / Review Tags Required: Patch review economics
-> Test Suite: Pass this suite before requesting inclusion
-> Resubmit Cadence: When to ping the maintainer
-> Trusted Reviewers: Help for triaging patches
-> Time Zone / Office Hours: When might a maintainer be available
-> Checkpatch / Style Cleanups: Policy on pure cleanup patches
-> Off-list review: Request for review gates
-> TODO: Potential development tasks up for grabs, or active focus areas
-> 
-> The goal of the Subsystem Profile is to set expectations for
-> contributors and interim or replacement maintainers for a subsystem.
-> 
-> See Documentation/maintainer/subsystem-profile.rst for more details, and
-> a follow-on example profile for the libnvdimm subsystem.
-> 
-> [1]: https://linuxplumbersconf.org/event/2/contributions/59/
-> 
-> Cc: Jonathan Corbet <corbet@lwn.net>
-> Cc: Thomas Gleixner <tglx@linutronix.de>
-> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-> Cc: Steve French <stfrench@microsoft.com>
-> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> Cc: Linus Torvalds <torvalds@linux-foundation.org>
-> Cc: Tobin C. Harding <me@tobin.cc>
-> Cc: Olof Johansson <olof@lixom.net>
-> Cc: Martin K. Petersen <martin.petersen@oracle.com>
-> Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-> Cc: Joe Perches <joe@perches.com>
-> Cc: Dmitry Vyukov <dvyukov@google.com>
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Souptick Joarder <jrdr.linux@gmail.com>
+Reviewed-by: Matthew Wilcox <willy@infradead.org>
+---
+ drivers/media/common/videobuf2/videobuf2-dma-sg.c | 23 +++++++----------------
+ 1 file changed, 7 insertions(+), 16 deletions(-)
 
-Ok, I sort of followed the proposed model, adding a documentation for
-the media subsystem using the template.
-
-I'm pretty sure this is incomplete and more work would be needed.
-So, for now, this is just an example.
-
-Also, I didn't test building it on Sphinx (nor added any reference for it
-at MAINTAINERS), as my main goal here was to see how the model would fit
-for us.
-
-I noticed a few issues there:
-
-1) Describing the "core" files. The media subsystem is complex: depending on
-the device type, we have different APIs and different cores. So, our core
-is actually a set of different cores. I ended by adding sub-sections.
-
-Also, several things were not described there. For example, we store
-DVB frontend drivers on an specific directory. We have drivers there organized
-by bus type. So, one directory for I2C, one for USB, one for PCI, ...
-
-It should probably make sense to be able to tell about that.
-
-So, I would actually prefer to have, at the profile, a "files" section,
-instead of "core".
-
-2) As I said before, on media, we have sub-maintainers. Not sure how to
-describe them on this template.
-
-3) I noticed one big missing thing there: in the case of media, we are
-responsible also to maintaining media staging drivers, that goes at
-drivers/staging/media. IMO, it would be important to be able to describe
-who maintains staging stuff - e. g. if the subsystem maintainers prefer
-to let staging up to staging maintainers or if they'll maintain themselves.
-
-In the latter, it probably makes sense to describe any specific thing
-related to it (where staging will be at the tree, are there any special
-rules for them?)
-
-Anyway, RFC patch follows.
-
+diff --git a/drivers/media/common/videobuf2/videobuf2-dma-sg.c b/drivers/media/common/videobuf2/videobuf2-dma-sg.c
+index 015e737..898adef 100644
+--- a/drivers/media/common/videobuf2/videobuf2-dma-sg.c
++++ b/drivers/media/common/videobuf2/videobuf2-dma-sg.c
+@@ -328,28 +328,19 @@ static unsigned int vb2_dma_sg_num_users(void *buf_priv)
+ static int vb2_dma_sg_mmap(void *buf_priv, struct vm_area_struct *vma)
+ {
+ 	struct vb2_dma_sg_buf *buf = buf_priv;
+-	unsigned long uaddr = vma->vm_start;
+-	unsigned long usize = vma->vm_end - vma->vm_start;
+-	int i = 0;
++	unsigned long page_count = vma_pages(vma);
++	int err;
+ 
+ 	if (!buf) {
+ 		printk(KERN_ERR "No memory to map\n");
+ 		return -EINVAL;
+ 	}
+ 
+-	do {
+-		int ret;
 -
-
-[PATCH] [RFC] Add a system profile description for media subsystem
-
-This RFC aligns with current Dan's proposal for having subsystem
-specific ruleset stored at the Kernel tree.
-
-On this initial RFC, I opted to not add the reviewers e-mail
-(adding just a "<>") as a boilerplate. If we decide keeping emails
-there, I'll add them.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-
-diff --git a/Documentation/media/subsystem-profile.rst b/Documentation/media/subsystem-profile.rst
-new file mode 100644
-index 000000000000..7a5d6f691d05
---- /dev/null
-+++ b/Documentation/media/subsystem-profile.rst
-@@ -0,0 +1,186 @@
-+Media Subsystem Profile
-+=======================
-+
-+Overview
-+--------
-+
-+The media subsystem cover support for a variety of devices: stream
-+capture, analog and digital TV, cameras, remote controllers, HDMI CEC
-+and media pipeline control.
-+
-+Both our userspace and Kernel APIs are documented and should be kept in
-+sync with the API changes. It means that all patches that add new
-+features to the subsystem should also bring changes to the corresponding
-+API files.
-+
-+Also, patches for device drivers that changes the Open Firmware/Device
-+Tree bindings should be reviewed by the Device Tree maintainers.
-+
-+Due to the size and wide scope of the media subsystem, our
-+maintainership model is to have sub-maintainers that have a broad
-+knowledge of an specific aspect of the subsystem. It is a
-+sub-maintainers task to review the patches, providing feedback to users
-+if the patches are following the subsystem rules and are properly using
-+the media internal and external APIs.
-+
-+We have a set of compliance tools at https://git.linuxtv.org/v4l-utils.git/
-+that should be used in order to check if the drivers are properly
-+implementing the media APIs.
-+
-+Patches for the media subsystem should be sent to the media mailing list
-+at linux-media@vger.kernel.org as plain text only e-mail. emails with
-+HTML will be automacially rejected by the mail server.
-+
-+Our workflow is heavily based on Patchwork, meaning that, once a patch
-+is submitted, it should appear at:
-+
-+   - https://patchwork.linuxtv.org/project/linux-media/list/
-+
-+If it doesn't automatically appear there after a few minutes, then
-+probably something got wrong on your submission. Please check if the
-+email is in plain text only and if your emailer is not mangling with
-+whitespaces before complaining or submit it again.
-+
-+Core
-+----
-+
-+Documentation
-++++++++++++++
-+
-+F: Documentation/media
-+
-+Kernelspace API headers
-++++++++++++++++++++++++
-+
-+F: include/media/*.h
-+
-+Digital TV Core
-++++++++++++++++
-+
-+F: drivers/media/dvb-core
-+
-+HDMI CEC Core
-++++++++++++++
-+
-+F: drivers/media/cec
-+
-+Media Controller Core
-++++++++++++++++++++++
-+
-+F: drivers/media/media-\*.[ch]
-+
-+Remote Controller Core
-+++++++++++++++++++++++
-+
-+F: drivers/media/rc/rc-core-priv.h
-+F: drivers/media/rc/rc-ir-raw.c
-+F: drivers/media/rc/rc-main.c
-+F: drivers/media/rc/ir\*-decoder.c
-+F: drivers/media/rc/lirc_dev.c
-+
-+Video4linux Core
-+++++++++++++++++
-+
-+F: drivers/media/v4l2-core
-+
-+Patches or Pull requests
-+------------------------
-+
-+All patches should be submitted via e-mail for review. We use
-+pull requests on our workflow between sub-maintainers and the
-+maintainer.
-+
-+
-+Last day for new feature submissions
-+------------------------------------
-+
-+Before -rc5
-+
-+
-+Last day to merge features
-+--------------------------
-+
-+Before -rc7
-+
-+
-+Non-author Ack / Review Tags Required
-+-------------------------------------
-+
-+Not required, but desirable
-+
-+
-+Test Suite
-+----------
-+
-+Use the several *-compliance tools that are part of the v4l-utils
-+package.
-+
-+
-+Trusted Reviewers
-+-----------------
-+
-+Sub-maintainers
-++++++++++++++++
-+
-+At the media subsystem, we have a group of senior developers that are
-+responsible for doing the code reviews at the drivers (called
-+sub-maintainers), and another senior developer responsible for the
-+subsystem as a hole. For core changes, whenever possible, multiple
-+media (sub-)maintainers do the review.
-+
-+The sub-maintainers work on specific areas of the subsystem, as
-+described below:
-+
-+- Sensor drivers
-+
-+  R: Sakari Ailus <>
-+
-+- V4L2 drivers
-+
-+  R: Hans Verkuil <>
-+
-+- Media controller drivers
-+
-+  R: Laurent Pinchart <>
-+
-+- HDMI CEC
-+
-+- Remote Controllers
-+
-+  R: Sean Young <>
-+
-+- Digital TV
-+
-+  R: Michael Krufky <>
-+  R: Sean Young <>
-+
-+
-+Resubmit Cadence
-+----------------
-+
-+Provided that your patch is at https://patchwork.linuxtv.org, it should
-+be sooner or later handled, so you don't need to re-submit a patch.
-+
-+Please notice that the media subsystem is a high traffic one, so it
-+could take a while for us to be able to review your patches. Feel free
-+to ping if you don't get a feedback on a couple of weeks.
-+
-+Time Zone / Office Hours
-+------------------------
-+
-+Media developers are distributed all around the globe. So, don't assume
-+that we're on your time zone. We usually don't work on local holidays or
-+at weekends. Please also notice that, during the Kernel merge window,
-+we're usually busy ensuring that everything goes smoothly, meaning that
-+we usually have a lot of patches waiting for review just after that. So
-+you should expect a higher delay during the merge window and one week
-+before/after it.
-+
-+
-+Checkpatch / Style cleanups
-+---------------------------
-+
-+Standalone style-cleanups are welcome, but they should be grouped per
-+directory. So, for example, if you're doing a cleanup at drivers
-+under drivers/media, please send a single patch for all drivers under
-+drivers/media/pci, another one for drivers/media/usb and so on.
-
-
-
-
-
-Cheers,
-Mauro
+-		ret = vm_insert_page(vma, uaddr, buf->pages[i++]);
+-		if (ret) {
+-			printk(KERN_ERR "Remapping memory, error: %d\n", ret);
+-			return ret;
+-		}
+-
+-		uaddr += PAGE_SIZE;
+-		usize -= PAGE_SIZE;
+-	} while (usize > 0);
+-
++	err = vm_insert_range(vma, vma->vm_start, buf->pages, page_count);
++	if (err) {
++		printk(KERN_ERR "Remapping memory, error: %d\n", err);
++		return err;
++	}
+ 
+ 	/*
+ 	 * Use common vm_area operations to track buffer refcount.
+-- 
+1.9.1
