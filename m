@@ -1,147 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx0a-001b2d01.pphosted.com ([148.163.156.1]:48610 "EHLO
-        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727710AbeKQEmg (ORCPT
+Received: from wp057.webpack.hosteurope.de ([80.237.132.64]:47418 "EHLO
+        wp057.webpack.hosteurope.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725819AbeKQGbJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Nov 2018 23:42:36 -0500
-Received: from pps.filterd (m0098396.ppops.net [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (8.16.0.22/8.16.0.22) with SMTP id wAGISpq6032367
-        for <linux-media@vger.kernel.org>; Fri, 16 Nov 2018 13:29:06 -0500
-Received: from e06smtp01.uk.ibm.com (e06smtp01.uk.ibm.com [195.75.94.97])
-        by mx0a-001b2d01.pphosted.com with ESMTP id 2nt1kmc62y-1
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
-        for <linux-media@vger.kernel.org>; Fri, 16 Nov 2018 13:29:06 -0500
-Received: from localhost
-        by e06smtp01.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-        for <linux-media@vger.kernel.org> from <rppt@linux.ibm.com>;
-        Fri, 16 Nov 2018 18:29:03 -0000
-Date: Fri, 16 Nov 2018 10:28:37 -0800
-From: Mike Rapoport <rppt@linux.ibm.com>
-To: Souptick Joarder <jrdr.linux@gmail.com>
-Cc: akpm@linux-foundation.org, willy@infradead.org, mhocko@suse.com,
-        kirill.shutemov@linux.intel.com, vbabka@suse.cz, riel@surriel.com,
-        sfr@canb.auug.org.au, rppt@linux.vnet.ibm.com,
-        peterz@infradead.org, linux@armlinux.org.uk, robin.murphy@arm.com,
-        iamjoonsoo.kim@lge.com, treding@nvidia.com, keescook@chromium.org,
-        m.szyprowski@samsung.com, stefanr@s5r6.in-berlin.de,
-        hjc@rock-chips.com, heiko@sntech.de, airlied@linux.ie,
-        oleksandr_andrushchenko@epam.com, joro@8bytes.org,
-        pawel@osciak.com, kyungmin.park@samsung.com, mchehab@kernel.org,
-        boris.ostrovsky@oracle.com, jgross@suse.com,
-        linux-kernel@vger.kernel.org, linux-mm@kvack.org,
-        linux-arm-kernel@lists.infradead.org,
-        linux1394-devel@lists.sourceforge.net,
-        dri-devel@lists.freedesktop.org,
-        linux-rockchip@lists.infradead.org, xen-devel@lists.xen.org,
-        iommu@lists.linux-foundation.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/9] mm: Introduce new vm_insert_range API
-References: <20181115154530.GA27872@jordon-HP-15-Notebook-PC>
+        Sat, 17 Nov 2018 01:31:09 -0500
+Subject: Re: TechnoTrend CT2-4500 remote not working
+To: Sean Young <sean@mess.org>, linux-media@vger.kernel.org
+References: <9e2205c8-50f7-06de-f1e5-8946258f6a91@mknetz.de>
+ <2A2F47EF-335E-4161-A6F4-8B75FF62ED4A@mknetz.de>
+ <20181116112636.c6tnrsrvvttv5u6t@gofer.mess.org>
+From: "martin.konopka@mknetz.de" <martin.konopka@mknetz.de>
+Message-ID: <051c9159-6f33-75cb-acc5-6137c70ed6e6@mknetz.de>
+Date: Fri, 16 Nov 2018 21:17:11 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20181115154530.GA27872@jordon-HP-15-Notebook-PC>
-Message-Id: <20181116182836.GB17088@rapoport-lnx>
+In-Reply-To: <20181116112636.c6tnrsrvvttv5u6t@gofer.mess.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Nov 15, 2018 at 09:15:30PM +0530, Souptick Joarder wrote:
-> Previouly drivers have their own way of mapping range of
-> kernel pages/memory into user vma and this was done by
-> invoking vm_insert_page() within a loop.
-> 
-> As this pattern is common across different drivers, it can
-> be generalized by creating a new function and use it across
-> the drivers.
-> 
-> vm_insert_range is the new API which will be used to map a
-> range of kernel memory/pages to user vma.
-> 
-> Signed-off-by: Souptick Joarder <jrdr.linux@gmail.com>
-> Reviewed-by: Matthew Wilcox <willy@infradead.org>
-> ---
->  include/linux/mm_types.h |  3 +++
->  mm/memory.c              | 28 ++++++++++++++++++++++++++++
->  mm/nommu.c               |  7 +++++++
->  3 files changed, 38 insertions(+)
-> 
-> diff --git a/include/linux/mm_types.h b/include/linux/mm_types.h
-> index 5ed8f62..15ae24f 100644
-> --- a/include/linux/mm_types.h
-> +++ b/include/linux/mm_types.h
-> @@ -523,6 +523,9 @@ extern void tlb_gather_mmu(struct mmu_gather *tlb, struct mm_struct *mm,
->  extern void tlb_finish_mmu(struct mmu_gather *tlb,
->  				unsigned long start, unsigned long end);
-> 
-> +int vm_insert_range(struct vm_area_struct *vma, unsigned long addr,
-> +			struct page **pages, unsigned long page_count);
-> +
->  static inline void init_tlb_flush_pending(struct mm_struct *mm)
->  {
->  	atomic_set(&mm->tlb_flush_pending, 0);
-> diff --git a/mm/memory.c b/mm/memory.c
-> index 15c417e..da904ed 100644
-> --- a/mm/memory.c
-> +++ b/mm/memory.c
-> @@ -1478,6 +1478,34 @@ static int insert_page(struct vm_area_struct *vma, unsigned long addr,
->  }
-> 
->  /**
-> + * vm_insert_range - insert range of kernel pages into user vma
-> + * @vma: user vma to map to
-> + * @addr: target user address of this page
-> + * @pages: pointer to array of source kernel pages
-> + * @page_count: no. of pages need to insert into user vma
-> + *
-> + * This allows drivers to insert range of kernel pages they've allocated
-> + * into a user vma. This is a generic function which drivers can use
-> + * rather than using their own way of mapping range of kernel pages into
-> + * user vma.
+Sean,
 
-Please add the return value and context descriptions.
-
-> + */
-> +int vm_insert_range(struct vm_area_struct *vma, unsigned long addr,
-> +			struct page **pages, unsigned long page_count)
-> +{
-> +	unsigned long uaddr = addr;
-> +	int ret = 0, i;
-> +
-> +	for (i = 0; i < page_count; i++) {
-> +		ret = vm_insert_page(vma, uaddr, pages[i]);
-> +		if (ret < 0)
-> +			return ret;
-> +		uaddr += PAGE_SIZE;
-> +	}
-> +
-> +	return ret;
-> +}
-> +
-> +/**
->   * vm_insert_page - insert single page into user vma
->   * @vma: user vma to map to
->   * @addr: target user address of this page
-> diff --git a/mm/nommu.c b/mm/nommu.c
-> index 749276b..d6ef5c7 100644
-> --- a/mm/nommu.c
-> +++ b/mm/nommu.c
-> @@ -473,6 +473,13 @@ int vm_insert_page(struct vm_area_struct *vma, unsigned long addr,
->  }
->  EXPORT_SYMBOL(vm_insert_page);
+Am 16.11.2018 um 12:26 schrieb Sean Young:
 > 
-> +int vm_insert_range(struct vm_area_struct *vma, unsigned long addr,
-> +			struct page **pages, unsigned long page_count)
-> +{
-> +	return -EINVAL;
-> +}
-> +EXPORT_SYMBOL(vm_insert_range);
-> +
->  /*
->   *  sys_brk() for the most part doesn't need the global kernel
->   *  lock, except when an application is doing something nasty
-> -- 
-> 1.9.1
+> Ok, thank you. Now, we don't know how the IR is wired up. Please
+> could you try enabling the enable_885_ir module parameter for
+> cx23885. If this goes badly, then we might end up in an infinite
+> loop of unending interrupts, so it would be prudent to not change
+> your startup scripts to set this. As root, please run:
 > 
+> rmmod cx23885
+> modprobe cx23885 enable_885_ir=1
 
--- 
-Sincerely yours,
-Mike.
+Thank you, loading the module with enable_885_ir=1 works:
+
+cx23885: cx23885_dev_checkrevision() Hardware revision = 0xa5
+cx23885: cx23885[0]/0: found at 0000:17:00.0, rev: 4, irq: 31, latency: 
+0, mmio: 0xfe000000
+Registered IR keymap rc-tt-1500
+IR RC5(x/sz) protocol handler initialized
+rc rc1: cx23885 IR (Technotrend TT-budget CT2-4500 CI) as 
+/devices/pci0000:00/0000:00:01.2/0000:15:00.2/0000:16:00.0/0000:17:00.0/rc/rc1
+input: cx23885 IR (Technotrend TT-budget CT2-4500 CI) as 
+/devices/pci0000:00/0000:00:01.2/0000:15:00.2/0000:16:00.0/0000:17:00.0/rc/rc1/input21
+
+ir-keytable output:
+
+Found /sys/class/rc/rc1/ (/dev/input/event17) with:
+	Name: cx23885 IR (Technotrend TT-budget CT2-4500 CI)
+	Driver: cx23885, table: rc-tt-1500
+	lirc device: /dev/lirc1
+	Supported protocols: other lirc rc-5 rc-5-sz jvc sony nec sanyo mce_kbd 
+rc-6 sharp xmp
+	Enabled protocols: lirc rc-5
+	bus: 1, vendor/product: 13c2:3013, version: 0x0001
+	Repeat delay = 500 ms, repeat period = 125 ms
+
+
+Using ir-keytable -t I see all the buttons pressed. Maybe you can amend 
+the module options description to include my device:
+
+parm:           enable_885_ir:Enable integrated IR controller for supported
+		    CX2388[57] boards that are wired for it:
+			HVR-1250 (reported safe)
+			TerraTec Cinergy T PCIe Dual (not well tested, appears to be safe)
+			TeVii S470 (reported unsafe)
+		    This can cause an interrupt storm with some cards.
+		    Default: 0 [Disabled] (int)
+
+
+> 
+> You should get another rc device, which might just work.
+
+Thanks again Sean for the help!
+
+Martin
