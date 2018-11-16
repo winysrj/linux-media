@@ -1,277 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from merlin.infradead.org ([205.233.59.134]:54786 "EHLO
-        merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725819AbeKQJn0 (ORCPT
+Received: from mail-io1-f69.google.com ([209.85.166.69]:35429 "EHLO
+        mail-io1-f69.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730826AbeKQJq1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 17 Nov 2018 04:43:26 -0500
-Subject: Re: [Ksummit-discuss] [RFC PATCH 2/3] MAINTAINERS, Handbook:
- Subsystem Profile
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Dan Williams <dan.j.williams@intel.com>
-Cc: linux-kernel@vger.kernel.org, vishal.l.verma@intel.com,
-        ksummit-discuss@lists.linuxfoundation.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-nvdimm@lists.01.org, Dmitry Vyukov <dvyukov@google.com>,
-        Steve French <stfrench@microsoft.com>,
-        "Tobin C. Harding" <me@tobin.cc>, linux-media@vger.kernel.org
-References: <154225759358.2499188.15268218778137905050.stgit@dwillia2-desk3.amr.corp.intel.com>
- <154225760492.2499188.14152986544451112930.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20181115074403.45d9a16a@silica.lan>
-From: Randy Dunlap <rdunlap@infradead.org>
-Message-ID: <487ebe2d-1feb-298e-ef88-bf4443311cab@infradead.org>
-Date: Fri, 16 Nov 2018 15:28:56 -0800
+        Sat, 17 Nov 2018 04:46:27 -0500
+Received: by mail-io1-f69.google.com with SMTP id n12-v6so24389698ioh.2
+        for <linux-media@vger.kernel.org>; Fri, 16 Nov 2018 15:32:03 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <20181115074403.45d9a16a@silica.lan>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Date: Fri, 16 Nov 2018 15:32:03 -0800
+Message-ID: <0000000000001c2b95057ad0935b@google.com>
+Subject: kernel BUG at arch/x86/mm/physaddr.c:LINE! (2)
+From: syzbot <syzbot+6c0effb5877f6b0344e2@syzkaller.appspotmail.com>
+To: hverkuil@xs4all.nl, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org, mchehab@kernel.org,
+        syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/15/18 7:44 AM, Mauro Carvalho Chehab wrote:
-> 
-> Anyway, RFC patch follows.
-> 
-> -
-> 
-> [PATCH] [RFC] Add a system profile description for media subsystem
-> 
-> This RFC aligns with current Dan's proposal for having subsystem
-> specific ruleset stored at the Kernel tree.
-> 
-> On this initial RFC, I opted to not add the reviewers e-mail
-> (adding just a "<>") as a boilerplate. If we decide keeping emails
-> there, I'll add them.
+Hello,
 
-Hi-
-Here are my comments.
+syzbot found the following crash on:
 
-Hopefully the email addresses will be added.  Just having names is a
-half-answer for contact info.
+HEAD commit:    5929a1f0ff30 Merge tag 'riscv-for-linus-4.20-rc2' of git:/..
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=137766a3400000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=4a0a89f12ca9b0f5
+dashboard link: https://syzkaller.appspot.com/bug?extid=6c0effb5877f6b0344e2
+compiler:       gcc (GCC) 8.0.1 20180413 (experimental)
 
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-> 
-> diff --git a/Documentation/media/subsystem-profile.rst b/Documentation/media/subsystem-profile.rst
-> new file mode 100644
-> index 000000000000..7a5d6f691d05
-> --- /dev/null
-> +++ b/Documentation/media/subsystem-profile.rst
-> @@ -0,0 +1,186 @@
-> +Media Subsystem Profile
-> +=======================
-> +
-> +Overview
-> +--------
-> +
-> +The media subsystem cover support for a variety of devices: stream
+Unfortunately, I don't have any reproducer for this crash yet.
 
-                       covers
+IMPORTANT: if you fix the bug, please add the following tag to the commit:
+Reported-by: syzbot+6c0effb5877f6b0344e2@syzkaller.appspotmail.com
 
-> +capture, analog and digital TV, cameras, remote controllers, HDMI CEC
-> +and media pipeline control.
-> +
-> +Both our userspace and Kernel APIs are documented and should be kept in
-> +sync with the API changes. It means that all patches that add new
-> +features to the subsystem should also bring changes to the corresponding
-> +API files.
-> +
-> +Also, patches for device drivers that changes the Open Firmware/Device
-> +Tree bindings should be reviewed by the Device Tree maintainers.
-> +
-> +Due to the size and wide scope of the media subsystem, our
-> +maintainership model is to have sub-maintainers that have a broad
-> +knowledge of an specific aspect of the subsystem. It is a
-
-             of a specific
-
-> +sub-maintainers task to review the patches, providing feedback to users
-> +if the patches are following the subsystem rules and are properly using
-> +the media internal and external APIs.
-> +
-> +We have a set of compliance tools at https://git.linuxtv.org/v4l-utils.git/
-> +that should be used in order to check if the drivers are properly
-> +implementing the media APIs.
-> +
-> +Patches for the media subsystem should be sent to the media mailing list
-> +at linux-media@vger.kernel.org as plain text only e-mail. emails with
-
-                               e-mail or email?  Be consistent. (more below)
-
-> +HTML will be automacially rejected by the mail server.
-
-                automatically
-
-> +
-> +Our workflow is heavily based on Patchwork, meaning that, once a patch
-> +is submitted, it should appear at:
-> +
-> +   - https://patchwork.linuxtv.org/project/linux-media/list/
-> +
-> +If it doesn't automatically appear there after a few minutes, then
-> +probably something got wrong on your submission. Please check if the
-> +email is in plain text only and if your emailer is not mangling with
-
-email
-
-> +whitespaces before complaining or submit it again.
-> +
-> +Core
-> +----
-> +
-> +Documentation
-> ++++++++++++++
-> +
-> +F: Documentation/media
-> +
-> +Kernelspace API headers
-> ++++++++++++++++++++++++
-> +
-> +F: include/media/*.h
-> +
-> +Digital TV Core
-> ++++++++++++++++
-> +
-> +F: drivers/media/dvb-core
-> +
-> +HDMI CEC Core
-> ++++++++++++++
-> +
-> +F: drivers/media/cec
-> +
-> +Media Controller Core
-> ++++++++++++++++++++++
-> +
-> +F: drivers/media/media-\*.[ch]
-> +
-> +Remote Controller Core
-> +++++++++++++++++++++++
-> +
-> +F: drivers/media/rc/rc-core-priv.h
-> +F: drivers/media/rc/rc-ir-raw.c
-> +F: drivers/media/rc/rc-main.c
-> +F: drivers/media/rc/ir\*-decoder.c
-> +F: drivers/media/rc/lirc_dev.c
-> +
-> +Video4linux Core
-> +++++++++++++++++
-> +
-> +F: drivers/media/v4l2-core
-> +
-> +Patches or Pull requests
-> +------------------------
-> +
-> +All patches should be submitted via e-mail for review. We use
-
-and e-mail
-
-> +pull requests on our workflow between sub-maintainers and the
-> +maintainer.
-> +
-> +
-> +Last day for new feature submissions
-> +------------------------------------
-> +
-> +Before -rc5
-> +
-> +
-> +Last day to merge features
-> +--------------------------
-> +
-> +Before -rc7
-> +
-> +
-> +Non-author Ack / Review Tags Required
-> +-------------------------------------
-> +
-> +Not required, but desirable
-> +
-> +
-> +Test Suite
-> +----------
-> +
-> +Use the several *-compliance tools that are part of the v4l-utils
-> +package.
-> +
-> +
-> +Trusted Reviewers
-> +-----------------
-> +
-> +Sub-maintainers
-> ++++++++++++++++
-> +
-> +At the media subsystem, we have a group of senior developers that are
-> +responsible for doing the code reviews at the drivers (called
-> +sub-maintainers), and another senior developer responsible for the
-> +subsystem as a hole. For core changes, whenever possible, multiple
-
-             as a whole.
-
-> +media (sub-)maintainers do the review.
-> +
-> +The sub-maintainers work on specific areas of the subsystem, as
-> +described below:
-> +
-> +- Sensor drivers
-> +
-> +  R: Sakari Ailus <>
-> +
-> +- V4L2 drivers
-> +
-> +  R: Hans Verkuil <>
-> +
-> +- Media controller drivers
-> +
-> +  R: Laurent Pinchart <>
-> +
-> +- HDMI CEC
-> +
-> +- Remote Controllers
-> +
-> +  R: Sean Young <>
-> +
-> +- Digital TV
-> +
-> +  R: Michael Krufky <>
-> +  R: Sean Young <>
-> +
-> +
-> +Resubmit Cadence
-> +----------------
-> +
-> +Provided that your patch is at https://patchwork.linuxtv.org, it should
-> +be sooner or later handled, so you don't need to re-submit a patch.
-
-Resubmit or re-submit?  Be consistent.
-
-> +
-> +Please notice that the media subsystem is a high traffic one, so it
-> +could take a while for us to be able to review your patches. Feel free
-> +to ping if you don't get a feedback on a couple of weeks.
-
-                                       in a
-
-> +
-> +Time Zone / Office Hours
-> +------------------------
-> +
-> +Media developers are distributed all around the globe. So, don't assume
-> +that we're on your time zone. We usually don't work on local holidays or
-> +at weekends. Please also notice that, during the Kernel merge window,
-> +we're usually busy ensuring that everything goes smoothly, meaning that
-> +we usually have a lot of patches waiting for review just after that. So
-> +you should expect a higher delay during the merge window and one week
-> +before/after it.
-> +
-> +
-> +Checkpatch / Style cleanups
-> +---------------------------
-> +
-> +Standalone style-cleanups are welcome, but they should be grouped per
-> +directory. So, for example, if you're doing a cleanup at drivers
-> +under drivers/media, please send a single patch for all drivers under
-> +drivers/media/pci, another one for drivers/media/usb and so on.
+------------[ cut here ]------------
+kernel BUG at arch/x86/mm/physaddr.c:27!
+invalid opcode: 0000 [#1] PREEMPT SMP KASAN
+CPU: 0 PID: 8479 Comm: syz-executor1 Not tainted 4.20.0-rc2+ #113
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
+Google 01/01/2011
+RIP: 0010:__phys_addr+0xb5/0x120 arch/x86/mm/physaddr.c:27
+Code: 08 4c 89 e3 31 ff 48 d3 eb 48 89 de e8 b4 bb 45 00 48 85 db 75 0f e8  
+7a ba 45 00 4c 89 e0 5b 41 5c 41 5d 5d c3 e8 6b ba 45 00 <0f> 0b e8 64 ba  
+45 00 48 c7 c7 10 20 47 89 48 b8 00 00 00 00 00 fc
+RSP: 0018:ffff88815771f410 EFLAGS: 00010016
+RAX: 0000000000040000 RBX: 0000000000000001 RCX: ffffc9000fc04000
+RDX: 0000000000000119 RSI: ffffffff8139cd75 RDI: 0000000000000007
+RBP: ffff88815771f428 R08: ffff888157a101c0 R09: ffffed103b5c5b67
+R10: ffffed103b5c5b67 R11: ffff8881dae2db3b R12: 000040801396c000
+R13: 0000000000000000 R14: 0000000000000010 R15: ffff88815771fab8
+FS:  00007f52131d8700(0000) GS:ffff8881dae00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000000720f9c CR3: 00000001b5073000 CR4: 00000000001406f0
+DR0: 0000000020000000 DR1: 0000000020000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000600
+Call Trace:
+  virt_to_head_page include/linux/mm.h:658 [inline]
+  virt_to_cache mm/slab.c:399 [inline]
+  kfree+0x7b/0x230 mm/slab.c:3813
+  vivid_vid_cap_s_selection+0x2c31/0x38e0  
+drivers/media/platform/vivid/vivid-vid-cap.c:1006
+  vidioc_s_selection+0xa4/0xc0 drivers/media/platform/vivid/vivid-core.c:352
+  v4l_s_selection+0xba/0x140 drivers/media/v4l2-core/v4l2-ioctl.c:2197
+  __video_do_ioctl+0x8b1/0x1050 drivers/media/v4l2-core/v4l2-ioctl.c:2853
+  video_usercopy+0x5c1/0x1760 drivers/media/v4l2-core/v4l2-ioctl.c:3035
+  video_ioctl2+0x2c/0x33 drivers/media/v4l2-core/v4l2-ioctl.c:3079
+  v4l2_ioctl+0x154/0x1b0 drivers/media/v4l2-core/v4l2-dev.c:364
+  vfs_ioctl fs/ioctl.c:46 [inline]
+  file_ioctl fs/ioctl.c:509 [inline]
+  do_vfs_ioctl+0x1de/0x1790 fs/ioctl.c:696
+  ksys_ioctl+0xa9/0xd0 fs/ioctl.c:713
+  __do_sys_ioctl fs/ioctl.c:720 [inline]
+  __se_sys_ioctl fs/ioctl.c:718 [inline]
+  __x64_sys_ioctl+0x73/0xb0 fs/ioctl.c:718
+  do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x457569
+Code: fd b3 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7  
+48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff  
+ff 0f 83 cb b3 fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007f52131d7c78 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 0000000000457569
+RDX: 0000000020000000 RSI: 00000000c040565f RDI: 0000000000000003
+RBP: 000000000072bf00 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007f52131d86d4
+R13: 00000000004c1f77 R14: 00000000004d3090 R15: 00000000ffffffff
+Modules linked in:
+---[ end trace df884aa85ab852c0 ]---
+RIP: 0010:__phys_addr+0xb5/0x120 arch/x86/mm/physaddr.c:27
+Code: 08 4c 89 e3 31 ff 48 d3 eb 48 89 de e8 b4 bb 45 00 48 85 db 75 0f e8  
+7a ba 45 00 4c 89 e0 5b 41 5c 41 5d 5d c3 e8 6b ba 45 00 <0f> 0b e8 64 ba  
+45 00 48 c7 c7 10 20 47 89 48 b8 00 00 00 00 00 fc
+RSP: 0018:ffff88815771f410 EFLAGS: 00010016
+RAX: 0000000000040000 RBX: 0000000000000001 RCX: ffffc9000fc04000
+RDX: 0000000000000119 RSI: ffffffff8139cd75 RDI: 0000000000000007
+RBP: ffff88815771f428 R08: ffff888157a101c0 R09: ffffed103b5c5b67
+R10: ffffed103b5c5b67 R11: ffff8881dae2db3b R12: 000040801396c000
+R13: 0000000000000000 R14: 0000000000000010 R15: ffff88815771fab8
+FS:  00007f52131d8700(0000) GS:ffff8881dae00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000000720f9c CR3: 00000001b5073000 CR4: 00000000001406f0
+DR0: 0000000020000000 DR1: 0000000020000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000600
 
 
-> Cheers.- 
-~Randy
+---
+This bug is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+syzbot will keep track of this bug report. See:
+https://goo.gl/tpsmEJ#bug-status-tracking for how to communicate with  
+syzbot.
