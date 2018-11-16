@@ -1,166 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:44750 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727543AbeKPT76 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Nov 2018 14:59:58 -0500
-Subject: Re: [PATCH 2/2] vb2: don't allow queueing buffers when canceling
- queue
-To: Tomasz Figa <tfiga@chromium.org>
+Received: from mail.bootlin.com ([62.4.15.54]:40709 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727442AbeKPUGq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 16 Nov 2018 15:06:46 -0500
+Message-ID: <0629767b61b22a7cc8ba8b51ab9e347ca06bbbb0.camel@bootlin.com>
+Subject: Re: [PATCH 08/15] ARM/arm64: sunxi: Move H3/H5 syscon label over to
+ soc-specific nodes
+From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+To: Chen-Yu Tsai <wens@csie.org>,
+        Maxime Ripard <maxime.ripard@bootlin.com>
 Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>, mhjungk@gmail.com
-References: <20181113150834.22125-1-hverkuil@xs4all.nl>
- <20181113150834.22125-3-hverkuil@xs4all.nl>
- <CAAFQd5DWXJX29U8wpL=fysNo6TSc4scxa4uhEkdFVMDEQ85F3Q@mail.gmail.com>
- <13809aac-2304-1aef-b87e-4216997ff70b@xs4all.nl>
- <CAAFQd5CbWdh7MKJh41SOFbwHu9yN5d=WOtixVBMPjkSt9V4CMQ@mail.gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <4cc9b992-e09a-61f7-6dbd-4be247086605@xs4all.nl>
-Date: Fri, 16 Nov 2018 10:48:21 +0100
-MIME-Version: 1.0
-In-Reply-To: <CAAFQd5CbWdh7MKJh41SOFbwHu9yN5d=WOtixVBMPjkSt9V4CMQ@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        devicetree <devicetree@vger.kernel.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        devel@driverdev.osuosl.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-sunxi@googlegroups.com, Hans Verkuil <hverkuil@xs4all.nl>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>
+Date: Fri, 16 Nov 2018 10:56:28 +0100
+In-Reply-To: <CAGb2v65EckX0CDbZ5K9VmmayOe3eisOYgUxmPomPgp2_jE5Vww@mail.gmail.com>
+References: <20181115145013.3378-1-paul.kocialkowski@bootlin.com>
+         <20181115145013.3378-9-paul.kocialkowski@bootlin.com>
+         <20181116093904.4ikn7ldksrm3mp5d@flea>
+         <CAGb2v65EckX0CDbZ5K9VmmayOe3eisOYgUxmPomPgp2_jE5Vww@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/16/2018 09:45 AM, Tomasz Figa wrote:
-> On Fri, Nov 16, 2018 at 5:42 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>
->> On 11/16/2018 09:34 AM, Tomasz Figa wrote:
->>> Hi Hans,
->>>
->>> On Wed, Nov 14, 2018 at 12:08 AM Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>>>
->>>> Calling the stop_streaming op can release the core serialization lock
->>>> pointed to by vb2_queue->lock if it has to wait for buffers to finish.
->>>> An example of that behavior is the vivid driver.
->>>
->>> Why would vb2_queue->lock have to be released to wait for buffer to
->>> finish? The drivers I worked with never had to do anything like that.
->>
->> Actually, they all do. It's done through the wait_prepare/finish callbacks
->> and by setting those to vb2_ops_wait_prepare/finish.
->>
->> If you don't, then while one thread is waiting for a buffer to arrive,
->> another thread cannot queue a new buffer since it will be serialized by
->> queue->lock.
->>
->> v4l2-compliance even tests for this.
+Hi,
+
+Le vendredi 16 novembre 2018 à 17:47 +0800, Chen-Yu Tsai a écrit :
+> On Fri, Nov 16, 2018 at 5:39 PM Maxime Ripard <maxime.ripard@bootlin.com> wrote:
+> > On Thu, Nov 15, 2018 at 03:50:06PM +0100, Paul Kocialkowski wrote:
+> > > Now that we have specific nodes for the H3 and H5 system-controller
+> > > that allow proper access to the EMAC clock configuration register,
+> > > we no longer need a common dummy syscon node.
+> > > 
+> > > Switch the syscon label over to each platform's dtsi file.
+> > > 
+> > > Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+> > > ---
+> > >  arch/arm/boot/dts/sun8i-h3.dtsi              | 2 +-
+> > >  arch/arm/boot/dts/sunxi-h3-h5.dtsi           | 6 ------
+> > >  arch/arm64/boot/dts/allwinner/sun50i-h5.dtsi | 2 +-
+> > >  3 files changed, 2 insertions(+), 8 deletions(-)
+> > > 
+> > > diff --git a/arch/arm/boot/dts/sun8i-h3.dtsi b/arch/arm/boot/dts/sun8i-h3.dtsi
+> > > index 7157d954fb8c..b337a9282783 100644
+> > > --- a/arch/arm/boot/dts/sun8i-h3.dtsi
+> > > +++ b/arch/arm/boot/dts/sun8i-h3.dtsi
+> > > @@ -134,7 +134,7 @@
+> > >       };
+> > > 
+> > >       soc {
+> > > -             system-control@1c00000 {
+> > > +             syscon: system-control@1c00000 {
+> > >                       compatible = "allwinner,sun8i-h3-system-control";
+> > >                       reg = <0x01c00000 0x1000>;
+> > >                       #address-cells = <1>;
+> > > diff --git a/arch/arm/boot/dts/sunxi-h3-h5.dtsi b/arch/arm/boot/dts/sunxi-h3-h5.dtsi
+> > > index 4b1530ebe427..9175ff0fb59a 100644
+> > > --- a/arch/arm/boot/dts/sunxi-h3-h5.dtsi
+> > > +++ b/arch/arm/boot/dts/sunxi-h3-h5.dtsi
+> > > @@ -152,12 +152,6 @@
+> > >                       };
+> > >               };
+> > > 
+> > > -             syscon: syscon@1c00000 {
+> > > -                     compatible = "allwinner,sun8i-h3-system-controller",
+> > > -                             "syscon";
+> > > -                     reg = <0x01c00000 0x1000>;
+> > > -             };
+> > > -
+> > 
+> > You're also dropping the syscon compatible there. But I'm not sure how
+> > it could work with the H3 EMAC driver that would overwrite the
+> > compatible already.
 > 
-> Why would you need the userspace to queue more buffers when you're
-> stopping the queue?
-
-Ah, I misunderstood your question. Your question was: why should stop_streaming
-have to release the lock when it waits for buffers to finish.
-
-In this case (vivid) the thread generating the image takes the main lock, which
-is the same as queue->lock. So stop_streaming (which is called with the same
-lock taken) has to unlock it, stop the thread, then retake it.
-
-I thought this would be more common, but after analyzing other usages of kthread
-it appears to be vivid specific. So I agree that it is better to fix vivid
-instead of messing about with vb2.
-
-Regards,
-
-	Hans
-
+> I assume you are referring to the previous patch? The node names are not
+> the same, hence the previous patch is adding another node for the system
+> controller, and this patch removes the old one with the "syscon" compatible.
 > 
->>
->>>
->>>>
->>>> However, if userspace dup()ped the video device filehandle, then it is
->>>> possible to stop streaming on one filehandle and call read/write or
->>>> VIDIOC_QBUF from the other.
->>>
->>> How about other ioctls? I can imagine at least STREAMON could be
->>> called at the same time too, but not sure if it would have any side
->>> effects.
->>
->> STREAMON would return an error since q->streaming is still set while
->> in the stop_streaming callback.
->>
->> So that combination is safe.
->>
-> 
-> Okay, thanks. I'm still slightly worried that this approach with a
-> flag makes it possible to miss some non-trivial cases, though...
-> 
->> Regards,
->>
->>         Hans
->>
->>>
->>> Best regards,
->>> Tomasz
->>>
->>>>
->>>> This is fixed by setting a flag whenever stop_streaming is called and
->>>> checking the flag where needed so we can return -EBUSY.
->>>>
->>>> Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
->>>> Reported-by: syzbot+736c3aae4af7b50d9683@syzkaller.appspotmail.com
->>>> ---
->>>>  drivers/media/common/videobuf2/videobuf2-core.c | 14 +++++++++++++-
->>>>  include/media/videobuf2-core.h                  |  1 +
->>>>  2 files changed, 14 insertions(+), 1 deletion(-)
->>>>
->>>> diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
->>>> index 138223af701f..560577321fe7 100644
->>>> --- a/drivers/media/common/videobuf2/videobuf2-core.c
->>>> +++ b/drivers/media/common/videobuf2/videobuf2-core.c
->>>> @@ -1503,6 +1503,10 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
->>>>                 dprintk(1, "fatal error occurred on queue\n");
->>>>                 return -EIO;
->>>>         }
->>>> +       if (q->in_stop_streaming) {
->>>> +               dprintk(1, "stop_streaming is called\n");
->>>> +               return -EBUSY;
->>>> +       }
->>>>
->>>>         vb = q->bufs[index];
->>>>
->>>> @@ -1834,8 +1838,11 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
->>>>          * Tell driver to stop all transactions and release all queued
->>>>          * buffers.
->>>>          */
->>>> -       if (q->start_streaming_called)
->>>> +       if (q->start_streaming_called) {
->>>> +               q->in_stop_streaming = 1;
->>>>                 call_void_qop(q, stop_streaming, q);
->>>> +               q->in_stop_streaming = 0;
->>>> +       }
->>>>
->>>>         /*
->>>>          * If you see this warning, then the driver isn't cleaning up properly
->>>> @@ -2565,6 +2572,11 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
->>>>                 return -EBUSY;
->>>>         }
->>>>
->>>> +       if (q->in_stop_streaming) {
->>>> +               dprintk(3, "stop_streaming is called\n");
->>>> +               return -EBUSY;
->>>> +       }
->>>> +
->>>>         /*
->>>>          * Initialize emulator on first call.
->>>>          */
->>>> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
->>>> index 613f22910174..5a3d3ada5940 100644
->>>> --- a/include/media/videobuf2-core.h
->>>> +++ b/include/media/videobuf2-core.h
->>>> @@ -585,6 +585,7 @@ struct vb2_queue {
->>>>         unsigned int                    error:1;
->>>>         unsigned int                    waiting_for_buffers:1;
->>>>         unsigned int                    waiting_in_dqbuf:1;
->>>> +       unsigned int                    in_stop_streaming:1;
->>>>         unsigned int                    is_multiplanar:1;
->>>>         unsigned int                    is_output:1;
->>>>         unsigned int                    copy_timestamp:1;
->>>> --
->>>> 2.19.1
->>>>
->>
+> We already patched the EMAC driver to support the new SRAM controller based
+> regmap, so other than making people unhappy about having to update their
+> DT, I don't think there would be any problems. This also means H3 in -next
+> currently has _two_ syscon nodes.
+
+Yes, the point is indeed to only have a single node per platform (in
+the platform dtsi) instead of two (one in the common h3-h5 dtsi and one
+in the platform dtsi).
+
+I guess updating the dt is not even a hard requirement after this
+series: things will keep working with the dummy syscon node for giving
+the EMAC driver access to the syscon registers.
+
+Cheers,
+
+Paul
