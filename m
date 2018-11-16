@@ -1,91 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yb1-f193.google.com ([209.85.219.193]:45425 "EHLO
-        mail-yb1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727142AbeKPOTJ (ORCPT
+Received: from smtp.codeaurora.org ([198.145.29.96]:41594 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727124AbeKPOpt (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Nov 2018 09:19:09 -0500
-Received: by mail-yb1-f193.google.com with SMTP id 131-v6so9263298ybe.12
-        for <linux-media@vger.kernel.org>; Thu, 15 Nov 2018 20:08:25 -0800 (PST)
-Received: from mail-yw1-f50.google.com (mail-yw1-f50.google.com. [209.85.161.50])
-        by smtp.gmail.com with ESMTPSA id o1-v6sm2558151ywf.81.2018.11.15.20.08.22
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 15 Nov 2018 20:08:23 -0800 (PST)
-Received: by mail-yw1-f50.google.com with SMTP id l200so4024652ywe.10
-        for <linux-media@vger.kernel.org>; Thu, 15 Nov 2018 20:08:22 -0800 (PST)
+        Fri, 16 Nov 2018 09:45:49 -0500
 MIME-Version: 1.0
-References: <20181113093048.236201-1-acourbot@chromium.org>
- <CAKQmDh-91tHP1VxLisW1A3GR9G7du3F-Y2XrrgoFU=gvhGoP6w@mail.gmail.com>
- <CAPBb6MWJ1Qu9YoRRusOGiC7dioMkgvU=1dCF6XZ4xDUxp7ri9A@mail.gmail.com> <463ac42b795933a54daa8d2bbba3ff1ac2b733db.camel@ndufresne.ca>
-In-Reply-To: <463ac42b795933a54daa8d2bbba3ff1ac2b733db.camel@ndufresne.ca>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Fri, 16 Nov 2018 13:08:10 +0900
-Message-ID: <CAAFQd5Cw2jmNwHCWYriw4H0TK0uWhVFbgs_RgxXV5npZLWvLbg@mail.gmail.com>
-Subject: Re: [PATCH] media: venus: fix reported size of 0-length buffers
-To: nicolas@ndufresne.ca
-Cc: Alexandre Courbot <acourbot@chromium.org>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+Date: Fri, 16 Nov 2018 10:04:59 +0530
+From: mgottam@codeaurora.org
+To: Tomasz Figa <tfiga@chromium.org>
+Cc: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
         linux-arm-msm <linux-arm-msm@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+        Alexandre Courbot <acourbot@chromium.org>,
+        vgarodia@codeaurora.org
+Subject: Re: [PATCH] media: venus: amend buffer size for bitstream plane
+In-Reply-To: <CAAFQd5AhepthKo4ShsfFQwB4=ALyRZFf6zzEf99DEEBt2gX_jw@mail.gmail.com>
+References: <1539071530-1441-1-git-send-email-mgottam@codeaurora.org>
+ <CAAFQd5BcFr11Hpngpn6hNL91OibAxUv25yh2qMohgfxsKusACw@mail.gmail.com>
+ <8fe1d205-c5e7-01a0-9569-d3268911cddd@linaro.org>
+ <38dfc098517b3ddb5d96195f2e27429d@codeaurora.org>
+ <86714c89-20ec-07c8-2569-65e78e8d584d@linaro.org>
+ <CAAFQd5DXWUCB7HvsLyVYU+h=2j6y1v3kcsTtHfNZYjfbHEgWGw@mail.gmail.com>
+ <da2e7cef-5ade-7d43-92c1-f728644e61c9@linaro.org>
+ <CAAFQd5AhepthKo4ShsfFQwB4=ALyRZFf6zzEf99DEEBt2gX_jw@mail.gmail.com>
+Message-ID: <544e62014dc3dab6c13714226157909c@codeaurora.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Nov 16, 2018 at 1:50 AM Nicolas Dufresne <nicolas@ndufresne.ca> wro=
-te:
->
-> Le mercredi 14 novembre 2018 =C3=A0 13:12 +0900, Alexandre Courbot a =C3=
-=A9crit :
-> > On Wed, Nov 14, 2018 at 3:54 AM Nicolas Dufresne <nicolas@ndufresne.ca>=
- wrote:
-> > >
-> > >
-> > > Le mar. 13 nov. 2018 04 h 30, Alexandre Courbot <acourbot@chromium.or=
-g> a =C3=A9crit :
-> > > > The last buffer is often signaled by an empty buffer with the
-> > > > V4L2_BUF_FLAG_LAST flag set. Such buffers were returned with the
-> > > > bytesused field set to the full size of the OPB, which leads
-> > > > user-space to believe that the buffer actually contains useful data=
-. Fix
-> > > > this by passing the number of bytes reported used by the firmware.
-> > >
-> > > That means the driver does not know on time which one is last. Why no=
-t just returned EPIPE to userspace on DQBUF and ovoid this useless roundtri=
-p ?
-> >
-> > Sorry, I don't understand what you mean. EPIPE is supposed to be
-> > returned after a buffer with V4L2_BUF_FLAG_LAST is made available for
-> > dequeue. This patch amends the code that prepares this LAST-flagged
-> > buffer. How could we avoid a roundtrip in this case?
->
-> Maybe it has changed, but when this was introduced, we found that some
-> firmware (Exynos MFC) could not know which one is last. Instead, it
-> gets an event saying there will be no more buffers.
->
+On 2018-11-14 09:21, Tomasz Figa wrote:
+> On Tue, Nov 13, 2018 at 7:46 PM Stanimir Varbanov
+> <stanimir.varbanov@linaro.org> wrote:
+>> 
+>> Hi Tomasz,
+>> 
+>> On 11/13/18 11:13 AM, Tomasz Figa wrote:
+>> > On Tue, Nov 13, 2018 at 5:12 PM Stanimir Varbanov
+>> > <stanimir.varbanov@linaro.org> wrote:
+>> >>
+>> >> Hi Malathi,
+>> >>
+>> >> On 11/13/18 9:28 AM, mgottam@codeaurora.org wrote:
+>> >>> On 2018-11-12 18:04, Stanimir Varbanov wrote:
+>> >>>> Hi Tomasz,
+>> >>>>
+>> >>>> On 10/23/2018 05:50 AM, Tomasz Figa wrote:
+>> >>>>> Hi Malathi,
+>> >>>>>
+>> >>>>> On Tue, Oct 9, 2018 at 4:58 PM Malathi Gottam
+>> >>>>> <mgottam@codeaurora.org> wrote:
+>> >>>>>>
+>> >>>>>> For lower resolutions, incase of encoder, the compressed
+>> >>>>>> frame size is more than half of the corresponding input
+>> >>>>>> YUV. Keep the size as same as YUV considering worst case.
+>> >>>>>>
+>> >>>>>> Signed-off-by: Malathi Gottam <mgottam@codeaurora.org>
+>> >>>>>> ---
+>> >>>>>>  drivers/media/platform/qcom/venus/helpers.c | 2 +-
+>> >>>>>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>> >>>>>>
+>> >>>>>> diff --git a/drivers/media/platform/qcom/venus/helpers.c
+>> >>>>>> b/drivers/media/platform/qcom/venus/helpers.c
+>> >>>>>> index 2679adb..05c5423 100644
+>> >>>>>> --- a/drivers/media/platform/qcom/venus/helpers.c
+>> >>>>>> +++ b/drivers/media/platform/qcom/venus/helpers.c
+>> >>>>>> @@ -649,7 +649,7 @@ u32 venus_helper_get_framesz(u32 v4l2_fmt, u32
+>> >>>>>> width, u32 height)
+>> >>>>>>         }
+>> >>>>>>
+>> >>>>>>         if (compressed) {
+>> >>>>>> -               sz = ALIGN(height, 32) * ALIGN(width, 32) * 3 / 2 / 2;
+>> >>>>>> +               sz = ALIGN(height, 32) * ALIGN(width, 32) * 3 / 2;
+>> >>>>>>                 return ALIGN(sz, SZ_4K);
+>> >>>>>>         }
+>> >>>>>
+>> >>>>> Note that the driver should not enforce one particular buffer size for
+>> >>>>> bitstream buffers unless it's a workaround for broken firmware or
+>> >>>>> hardware. The userspace should be able to select the desired size.
+>> >>>>
+>> >>>> Good point! Yes, we have to extend set_fmt to allow bigger sizeimage for
+>> >>>> the compressed buffers (not only for encoder).
+>> >>>
+>> >>> So Stan you meant to say that we should allow s_fmt to accept client
+>> >>> specified size?
+>> >>
+>> >> yes but I do expect:
+>> >>
+>> >> new_sizeimage = max(user_sizeimage, venus_helper_get_framesz)
+>> >>
+>> >> and also user_sizeimage should be sanitized.
+>> >>
+>> >>> If so should we set the inst->input_buf_size here in venc_s_fmt?
+>> >>>
+>> >>> @@ -333,10 +333,10 @@static const struct venus_format *
+>> >>> venc_try_fmt_common(struct venus_inst *inst, struct v4l2_format *f)
+>> >>>
+>> >>>         pixmp->num_planes = fmt->num_planes;
+>> >>>         pixmp->flags = 0;
+>> >>> -
+>> >>> -       pfmt[0].sizeimage = venus_helper_get_framesz(pixmp->pixelformat,
+>> >>> -                                                    pixmp->width,
+>> >>> -                                                    pixmp->height);
+>> >>> +       if (!pfmt[0].sizeimage)
+>> >>> +               pfmt[0].sizeimage =
+>> >>> venus_helper_get_framesz(pixmp->pixelformat,
+>> >>> +                                                            pixmp->width,
+>> >>> +
+>> >>> pixmp->height);
+>> >>
+>> >> yes, but please make
+>> >>
+>> >> pfmt[0].sizeimage = max(pfmt[0].sizeimage, venus_helper_get_framesz)
+>> >>
+>> >> and IMO this should be only for CAPTURE queue i.e. inst->output_buf_size
+>> >>
+>> >> I'm still not sure do we need it for OUTPUT encoder queue.
+>> >>
+>> >
+>> > This would be indeed only for the queues that operate on a coded
+>> > bitstream, i.e. both encoder CAPTURE and decoder OUTPUT.
+>> 
+>> Thanks for the confirmation.
 
-It was never the case with the MFC (firmware/driver) we were using on
-Chrome OS and it doesn't seem to be the case for the current upstream
-s5p-mfc driver.
+So in case of encoder, adhering to the above comments
 
-> Sending buffers with payload size to 0 just for the sake of setting the
-> V4L2_BUF_FLAG_LAST was considered a waste. Specially that after that,
-> every polls should return EPIPE. So in the end, we decided the it
-> should just unblock the userspace and return EPIPE.
->
-> If you look at the related GStreamer code, it completely ignores the
-> LAST flag. With fake buffer of size 0, userspace will endup dequeuing
-> and throwing away. This is not useful to the process of terminating the
-> decoding. To me, this LAST flag is not useful in this context.
+@@ -333,10 +333,10 @@static const struct venus_format *
+venc_try_fmt_common(struct venus_inst *inst, struct v4l2_format *f)
 
-Except that -EPIPE is actually signaled by the vb2 core and it happens
-after the user space dequeues a buffer with the LAST flag set:
-https://elixir.bootlin.com/linux/v4.20-rc2/source/drivers/media/common/vide=
-obuf2/videobuf2-core.c#L1634
-https://elixir.bootlin.com/linux/v4.20-rc2/source/drivers/media/common/vide=
-obuf2/videobuf2-v4l2.c#L555
++       sizeimage = venus_helper_get_framesz(pixmp->pixelformat,
+                                                      pixmp->width,
+                                                      pixmp->height);
++       pfmt[0].sizeimage = max(ALIGN(pfmt[0].sizeimage, SZ_4K), 
+sizeimage);
 
-Best regards,
-Tomasz
+@@ -408,8 +412,10 @@ static int venc_s_fmt(struct file *file, void *fh, 
+struct v4l2_format *f)
+
+         if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+                 inst->fmt_out = fmt;
+-       else if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
++       else if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
+                 inst->fmt_cap = fmt;
++               inst->output_buf_size = pixmp->plane_fmt[0].sizeimage;
++       }
+
+
+>> 
+>> >
+>> > For image formats, sizeimage should be calculated by the driver based
+>> > on the bytesperline and height. (Bytesperline may be fixed, if the
+>> > hardware doesn't support flexible strides, but if it does, it's
+>> > strongly recommended to use the bytesperline coming from the
+>> > application as the stride +/- any necessary sanity checks.)
+>> 
+>> the hw should support stride but I'm not sure is that exposed by the
+>> firmware interface.
+> 
+> After thinking a bit more on this, there is actually some redundancy
+> between format width and crop width, since one should be normally able
+> to just set the format width to the buffer stride and crop to the
+> buffer width and have arbitrary strides supported (+/- hw alignment
+> requirements, but that's something that has to always be accounted
+> for).
+> 
+> Best regards,
+> Tomasz
+
+I hope the above change, takes into consideration the application
+provided format width and also uses it in calculation of sizeimage which
+is compared against application provided size aligned.
