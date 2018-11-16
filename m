@@ -1,1238 +1,2284 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io1-f71.google.com ([209.85.166.71]:47692 "EHLO
-        mail-io1-f71.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728760AbeKQIXQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 17 Nov 2018 03:23:16 -0500
-Received: by mail-io1-f71.google.com with SMTP id y8-v6so24105943ioc.14
-        for <linux-media@vger.kernel.org>; Fri, 16 Nov 2018 14:09:05 -0800 (PST)
+Received: from mga18.intel.com ([134.134.136.126]:21189 "EHLO mga18.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725819AbeKQIvQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 17 Nov 2018 03:51:16 -0500
+From: "Zhi, Yong" <yong.zhi@intel.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "tfiga@chromium.org" <tfiga@chromium.org>,
+        "mchehab@kernel.org" <mchehab@kernel.org>,
+        "hans.verkuil@cisco.com" <hans.verkuil@cisco.com>,
+        "laurent.pinchart@ideasonboard.com"
+        <laurent.pinchart@ideasonboard.com>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "Hu, Jerry W" <jerry.w.hu@intel.com>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
+        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
+        "Cao, Bingbu" <bingbu.cao@intel.com>,
+        "Li, Chao C" <chao.c.li@intel.com>
+Subject: RE: [PATCH v7 03/16] v4l: Add Intel IPU3 meta data uAPI
+Date: Fri, 16 Nov 2018 22:37:00 +0000
+Message-ID: <C193D76D23A22742993887E6D207B54D3DB3111C@ORSMSX106.amr.corp.intel.com>
+References: <1540851790-1777-1-git-send-email-yong.zhi@intel.com>
+ <1540851790-1777-4-git-send-email-yong.zhi@intel.com>
+ <20181102130237.yotr2y7ddrrzqphn@paasikivi.fi.intel.com>
+In-Reply-To: <20181102130237.yotr2y7ddrrzqphn@paasikivi.fi.intel.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Date: Fri, 16 Nov 2018 14:09:04 -0800
-Message-ID: <0000000000005943f3057acf6a1e@google.com>
-Subject: possible deadlock in v4l2_release
-From: syzbot <syzbot+ea05c832a73d0615bf33@syzkaller.appspotmail.com>
-To: ezequiel@collabora.com, hans.verkuil@cisco.com,
-        laurent.pinchart@ideasonboard.com, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org, mchehab@kernel.org,
-        sakari.ailus@linux.intel.com, sque@chromium.org,
-        syzkaller-bugs@googlegroups.com, viro@zeniv.linux.org.uk
-Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi, Sakari,
 
-syzbot found the following crash on:
+Thanks for the thorough review.
 
-HEAD commit:    5929a1f0ff30 Merge tag 'riscv-for-linus-4.20-rc2' of git:/..
-git tree:       upstream
-console output: https://syzkaller.appspot.com/x/log.txt?x=1443d26d400000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=4a0a89f12ca9b0f5
-dashboard link: https://syzkaller.appspot.com/bug?extid=ea05c832a73d0615bf33
-compiler:       gcc (GCC) 8.0.1 20180413 (experimental)
+> -----Original Message-----
+> From: Sakari Ailus [mailto:sakari.ailus@linux.intel.com]
+> Sent: Friday, November 2, 2018 8:03 AM
+> To: Zhi, Yong <yong.zhi@intel.com>
+> Cc: linux-media@vger.kernel.org; tfiga@chromium.org;
+> mchehab@kernel.org; hans.verkuil@cisco.com;
+> laurent.pinchart@ideasonboard.com; Mani, Rajmohan
+> <rajmohan.mani@intel.com>; Zheng, Jian Xu <jian.xu.zheng@intel.com>; Hu,
+> Jerry W <jerry.w.hu@intel.com>; Toivonen, Tuukka
+> <tuukka.toivonen@intel.com>; Qiu, Tian Shu <tian.shu.qiu@intel.com>; Cao,
+> Bingbu <bingbu.cao@intel.com>; Li, Chao C <chao.c.li@intel.com>
+> Subject: Re: [PATCH v7 03/16] v4l: Add Intel IPU3 meta data uAPI
+> 
+> Hi Yong,
+> 
+> Thanks for the update! I went through this again... a few comments below
+> but I'd say they're mostly pretty minor issues.
+> 
+> On Mon, Oct 29, 2018 at 03:22:57PM -0700, Yong Zhi wrote:
+> > These meta formats are used on Intel IPU3 ImgU video queues
+> > to carry 3A statistics and ISP pipeline parameters.
+> >
+> > V4L2_META_FMT_IPU3_3A
+> > V4L2_META_FMT_IPU3_PARAMS
+> >
+> > Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+> > Signed-off-by: Chao C Li <chao.c.li@intel.com>
+> > Signed-off-by: Rajmohan Mani <rajmohan.mani@intel.com>
+> > ---
+> >  Documentation/media/uapi/v4l/meta-formats.rst      |    1 +
+> >  .../media/uapi/v4l/pixfmt-meta-intel-ipu3.rst      |  181 ++
+> >  include/uapi/linux/intel-ipu3.h                    | 2819 ++++++++++++++++++++
+> >  3 files changed, 3001 insertions(+)
+> >  create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-intel-
+> ipu3.rst
+> >  create mode 100644 include/uapi/linux/intel-ipu3.h
+> >
+> > diff --git a/Documentation/media/uapi/v4l/meta-formats.rst
+> b/Documentation/media/uapi/v4l/meta-formats.rst
+> > index cf971d5..eafc534 100644
+> > --- a/Documentation/media/uapi/v4l/meta-formats.rst
+> > +++ b/Documentation/media/uapi/v4l/meta-formats.rst
+> > @@ -12,6 +12,7 @@ These formats are used for the :ref:`metadata`
+> interface only.
+> >  .. toctree::
+> >      :maxdepth: 1
+> >
+> > +    pixfmt-meta-intel-ipu3
+> >      pixfmt-meta-d4xx
+> >      pixfmt-meta-uvc
+> >      pixfmt-meta-vsp1-hgo
+> > diff --git a/Documentation/media/uapi/v4l/pixfmt-meta-intel-ipu3.rst
+> b/Documentation/media/uapi/v4l/pixfmt-meta-intel-ipu3.rst
+> > new file mode 100644
+> > index 0000000..23b945b
+> > --- /dev/null
+> > +++ b/Documentation/media/uapi/v4l/pixfmt-meta-intel-ipu3.rst
+> > @@ -0,0 +1,181 @@
+> > +.. -*- coding: utf-8; mode: rst -*-
+> > +
+> > +.. _intel-ipu3:
+> 
+> Instead, to avoid a warning from Sphinx, replace the line with these:
+> 
+> .. _v4l2-meta-fmt-ipu3-params:
+> .. _v4l2-meta-fmt-ipu3-stat-3a:
+> 
 
-Unfortunately, I don't have any reproducer for this crash yet.
+Ack.
 
-IMPORTANT: if you fix the bug, please add the following tag to the commit:
-Reported-by: syzbot+ea05c832a73d0615bf33@syzkaller.appspotmail.com
+> > +
+> >
+> +***************************************************************
+> ***
+> > +V4L2_META_FMT_IPU3_PARAMS ('ip3p'), V4L2_META_FMT_IPU3_3A
+> ('ip3s')
+> >
+> +***************************************************************
+> ***
+> > +
+> > +.. c:type:: ipu3_uapi_stats_3a
+> > +
+> > +3A statistics
+> > +=============
+> > +
+> > +For IPU3 ImgU, the 3A statistics accelerators collect different statistics over
+> > +an input bayer frame. Those statistics, defined in data struct
+> > +:c:type:`ipu3_uapi_stats_3a`, are meta output obtained from "ipu3-imgu
+> 3a stat"
+> > +video node, which are then passed to user space for statistics analysis
+> > +using :c:type:`v4l2_meta_format` interface.
+> > +
+> > +The statistics collected are AWB (Auto-white balance) RGBS (Red, Green,
+> Blue and
+> 
+> Extra whitespace at the end of the line.
+> 
 
-netlink: 'syz-executor0': attribute type 1 has an invalid length.
-netlink: 4 bytes leftover after parsing attributes in process  
-`syz-executor0'.
+Ack.
 
-======================================================
-WARNING: possible circular locking dependency detected
-kobject: 'loop0' (000000009dc3fb20): kobject_uevent_env
-4.20.0-rc2+ #335 Not tainted
-------------------------------------------------------
-kworker/1:0/17 is trying to acquire lock:
-00000000651ab15a (&mdev->req_queue_mutex){+.+.}, at:  
-v4l2_release+0x1d7/0x3a0 drivers/media/v4l2-core/v4l2-dev.c:455
+> > +Saturation measure) cells, AWB filter response, AF (Auto-focus) filter
+> response,
+> > +and AE (Auto-exposure) histogram.
+> > +
+> > +struct :c:type:`ipu3_uapi_4a_config` saves configurable parameters for all
+> above.
+> > +
+> > +
+> > +.. code-block:: c
+> > +
+> > +
+> > +     struct ipu3_uapi_stats_3a {
+> > +	struct ipu3_uapi_awb_raw_buffer awb_raw_buffer
+> > +		 __attribute__((aligned(32)));
+> > +	struct ipu3_uapi_ae_raw_buffer_aligned
+> > +			ae_raw_buffer[IPU3_UAPI_MAX_STRIPES];
+> > +	struct ipu3_uapi_af_raw_buffer af_raw_buffer;
+> > +	struct ipu3_uapi_awb_fr_raw_buffer awb_fr_raw_buffer;
+> > +	struct ipu3_uapi_4a_config stats_4a_config;
+> > +	__u32 ae_join_buffers;
+> > +	__u8 padding[28];
+> > +	struct ipu3_uapi_stats_3a_bubble_info_per_stripe
+> > +			stats_3a_bubble_per_stripe;
+> 
+> I think you could just unwrap these, even if it causes them to be over 80
+> characters per line. They display better in a web browser that way. Or
+> alternatively align the wrapped lines to the same column.
+> 
 
-but task is already holding lock:
-kobject: 'loop0' (000000009dc3fb20): fill_kobj_path: path  
-= '/devices/virtual/block/loop0'
-000000001fd67464 ((delayed_fput_work).work){+.+.}, at:  
-process_one_work+0xb9a/0x1c40 kernel/workqueue.c:2128
+Ack.
 
-which lock already depends on the new lock.
+> > +	struct ipu3_uapi_ff_status stats_3a_status;
+> > +     } __packed;
+> > +
+> > +
+> > +.. c:type:: ipu3_uapi_params
+> > +
+> > +Pipeline parameters
+> > +===================
+> > +
+> > +IPU3 pipeline has a number of image processing stages, each of which
+> takes a
+> > +set of parameters as input. The major stages of pipelines are shown here:
+> > +
+> > +Raw pixels -> Bayer Downscaling -> Optical Black Correction ->
+> > +
+> > +Linearization -> Lens Shading Correction -> White Balance / Exposure /
+> > +
+> > +Focus Apply -> Bayer Noise Reduction -> ANR -> Demosaicing -> Color
+> > +
+> > +Correction Matrix -> Gamma correction -> Color Space Conversion ->
+> > +
+> > +Chroma Down Scaling -> Chromatic Noise Reduction -> Total Color
+> > +
+> > +Correction -> XNR3 -> TNR -> DDR
+> > +
+> > +The table below presents a description of the above algorithms.
+> > +
+> > +========================
+> =======================================================
+> > +Name			 Description
+> > +========================
+> =======================================================
+> > +Optical Black Correction Optical Black Correction block subtracts a pre-
+> defined
+> > +			 value from the respective pixel values to obtain
+> better
+> > +			 image quality.
+> > +			 Defined in :c:type:`ipu3_uapi_obgrid_param`.
+> > +Linearization		 This algo block uses linearization parameters
+> to
+> > +			 address non-linearity sensor effects. The Lookup
+> table
+> > +			 table is defined in
+> > +			 :c:type:`ipu3_uapi_isp_lin_vmem_params`.
+> > +SHD			 Lens shading correction is used to correct spatial
+> > +			 non-uniformity of the pixel response due to optical
+> > +			 lens shading. This is done by applying a different
+> gain
+> > +			 for each pixel. The gain, black level etc are
+> > +			 configured in :c:type:`ipu3_uapi_shd_config_static`.
+> > +BNR			 Bayer noise reduction block removes image noise by
+> > +			 applying a bilateral filter.
+> > +			 See :c:type:`ipu3_uapi_bnr_static_config` for details.
+> > +ANR			 Advanced Noise Reduction is a block based algorithm
+> > +			 that performs noise reduction in the Bayer domain.
+> The
+> > +			 convolution matrix etc can be found in
+> > +			 :c:type:`ipu3_uapi_anr_config`.
+> > +Demosaicing		 Demosaicing converts raw sensor data in
+> Bayer format
+> > +			 into RGB (Red, Green, Blue) presentation. Then add
+> > +			 outputs of estimation of Y channel for following
+> stream
+> > +			 processing by Firmware. The struct is defined as
+> > +			 :c:type:`ipu3_uapi_dm_config`.
+> > +Color Correction	 Color Correction algo transforms sensor specific
+> color
+> > +			 space to the standard "sRGB" color space. This is
+> done
+> > +			 by applying 3x3 matrix defined in
+> > +			 :c:type:`ipu3_uapi_ccm_mat_config`.
+> > +Gamma correction	 Gamma
+> correction :c:type:`ipu3_uapi_gamma_config` is a
+> > +			 basic non-linear tone mapping correction that is
+> > +			 applied per pixel for each pixel component.
+> > +CSC			 Color space conversion transforms each pixel from
+> the
+> > +			 RGB primary presentation to YUV (Y - brightness,
+> > +			 UV - Luminance) presentation. This is done by
+> applying
+> > +			 a 3x3 matrix defined in
+> > +			 :c:type:`ipu3_uapi_csc_mat_config`
+> > +CDS			 Chroma down sampling
+> > +			 After the CSC is performed, the Chroma Down
+> Sampling
+> > +			 is applied for a UV plane down sampling by a factor
+> > +			 of 2 in each direction for YUV 4:2:0 using a 4x2
+> > +			 configurable filter :c:type:`ipu3_uapi_cds_params`.
+> > +CHNR			 Chroma noise reduction
+> > +			 This block processes only the chrominance pixels
+> and
+> > +			 performs noise reduction by cleaning the high
+> > +			 frequency noise.
+> > +			 See struct :c:type:`ipu3_uapi_yuvp1_chnr_config`.
+> > +TCC			 Total color correction as defined in struct
+> > +			 :c:type:`ipu3_uapi_yuvp2_tcc_static_config`.
+> > +XNR3			 eXtreme Noise Reduction V3 is the third
+> revision of
+> > +			 noise reduction algorithm used to improve image
+> > +			 quality. This removes the low frequency noise in the
+> > +			 captured image. Two related structs are  being
+> defined,
+> > +			 :c:type:`ipu3_uapi_isp_xnr3_params` for ISP data
+> memory
+> > +			 and :c:type:`ipu3_uapi_isp_xnr3_vmem_params` for
+> vector
+> > +			 memory.
+> > +TNR			 Temporal Noise Reduction block compares
+> successive
+> > +			 frames in time to remove anomalies / noise in pixel
+> > +			 values. :c:type:`ipu3_uapi_isp_tnr3_vmem_params`
+> and
+> > +			 :c:type:`ipu3_uapi_isp_tnr3_params` are defined for
+> ISP
+> > +			 vector and data memory respectively.
+> > +========================
+> =======================================================
+> > +
+> > +A few stages of the pipeline will be executed by firmware running on the
+> ISP
+> > +processor, while many others will use a set of fixed hardware blocks also
+> > +called accelerator cluster (ACC) to crunch pixel data and produce statistics.
+> > +
+> > +ACC parameters as defined by :c:type:`ipu3_uapi_acc_param`, can be
+> selectively
+> > +enabled / disabled by the user space through
+> struct :c:type:`ipu3_uapi_flags`
+> > +embedded in :c:type:`ipu3_uapi_params` structure. For parameters that
+> are not
+> > +enabled by the user space, corresponding structs are ignored by the ISP.
+> 
+> I presume the "enabled" here means enabling the use of the new parameter
+> values. How about this:
+> 
+> ACC parameters of individual algorithms, as defined by
+> :c:type:`ipu3_uapi_acc_param`, can be chosen to be applied by the user
+> space through struct :c:type:`ipu3_uapi_flags` embedded in
+> :c:type:`ipu3_uapi_params` structure. For parameters that are configured as
+> not enabled by the user space, the corresponding structs are ignored by the
+> driver, in which case the existing configuration of the algorithm will be
+> preserved.
+> 
 
-netlink: 'syz-executor0': attribute type 1 has an invalid length.
+Sure, thanks for the fine tuning the sentences.
 
-the existing dependency chain (in reverse order) is:
+> > +
+> > +Both 3A statistics and pipeline parameters described here are closely tied
+> to
+> > +the underlying camera sub-system (CSS) APIs. They are usually consumed
+> and
+> > +produced by dedicated user space libraries that comprise the important
+> tuning
+> > +tools, thus freeing the developers from being bothered with the low level
+> > +hardware and algorithm details.
+> > +
+> > +It should be noted that IPU3 DMA operations require the addresses of all
+> data
+> > +structures (that includes both input and output) to be aligned on 32 byte
+> > +boundaries.
+> > +
+> > +The meta data :c:type:`ipu3_uapi_params` will be sent to "ipu3-imgu
+> parameters"
+> > +video node in ``V4L2_BUF_TYPE_META_CAPTURE`` format.
+> > +
+> > +.. code-block:: c
+> > +
+> > +    struct ipu3_uapi_params {
+> > +	/* Flags which of the settings below are to be applied */
+> > +	struct ipu3_uapi_flags use __attribute__((aligned(32)));
+> > +
+> > +	/* Accelerator cluster parameters */
+> > +	struct ipu3_uapi_acc_param acc_param;
+> > +
+> > +	/* ISP vector address space parameters */
+> > +	struct ipu3_uapi_isp_lin_vmem_params lin_vmem_params;
+> > +	struct ipu3_uapi_isp_tnr3_vmem_params tnr3_vmem_params;
+> > +	struct ipu3_uapi_isp_xnr3_vmem_params xnr3_vmem_params;
+> > +
+> > +	/* ISP data memory (DMEM) parameters */
+> > +	struct ipu3_uapi_isp_tnr3_params tnr3_dmem_params;
+> > +	struct ipu3_uapi_isp_xnr3_params xnr3_dmem_params;
+> > +
+> > +	/* Optical black level compensation */
+> > +	struct ipu3_uapi_obgrid_param obgrid_param;
+> > +    } __packed;
+> > +
+> > +Intel IPU3 ImgU uAPI data types
+> > +===============================
+> > +
+> > +.. kernel-doc:: include/uapi/linux/intel-ipu3.h
+> > diff --git a/include/uapi/linux/intel-ipu3.h b/include/uapi/linux/intel-ipu3.h
+> > new file mode 100644
+> > index 0000000..c2608b6
+> > --- /dev/null
+> > +++ b/include/uapi/linux/intel-ipu3.h
+> > @@ -0,0 +1,2819 @@
+> > +/* SPDX-License-Identifier: GPL-2.0 */
+> > +/* Copyright (C) 2017 - 2018 Intel Corporation */
+> > +
+> > +#ifndef __IPU3_UAPI_H
+> > +#define __IPU3_UAPI_H
+> > +
+> > +#include <linux/types.h>
+> > +
+> > +/********************* Key Acronyms *************************/
+> > +/*
+> > + * ACC - Accelerator cluster
+> > + * ANR - Adaptive noise reduction
+> > + * AWB_FR- Auto white balance filter response statistics
+> > + * BNR - Bayer noise reduction parameters
+> > + * BDS - Bayer downscaler parameters
+> > + * CCM - Color correction matrix coefficients
+> > + * CDS - Chroma down sample
+> > + * CHNR - Chroma noise reduction
+> > + * CSC - Color space conversion
+> > + * DM - De-mosaic
+> > + * IEFd - Image enhancement filter directed
+> > + * Obgrid - Optical black level compensation
+> > + * OSYS - Output system configuration
+> > + * ROI - Region of interest
+> > + * SHD - Lens shading correction table
+> > + * TCC - Total color correction
+> > + * YDS - Y down sampling
+> > + * YTM - Y-tone mapping
+> > + */
+> > +
+> > +/*
+> > + * IPU3 DMA operations require buffers to be aligned at
+> > + * 32 byte boundaries
+> > + */
+> > +
+> > +/******************* ipu3_uapi_stats_3a *******************/
+> > +
+> > +#define IPU3_UAPI_MAX_STRIPES				2
+> > +#define IPU3_UAPI_MAX_BUBBLE_SIZE			10
+> > +
+> > +#define IPU3_UAPI_GRID_START_MASK			((1 << 12) - 1)
+> > +#define IPU3_UAPI_GRID_Y_START_EN			(1 << 15)
+> > +
+> > +/* controls generation of meta_data (like FF enable/disable) */
+> > +#define IPU3_UAPI_AWB_RGBS_THR_B_EN			(1 << 14)
+> > +#define IPU3_UAPI_AWB_RGBS_THR_B_INCL_SAT		(1 << 15)
+> > +
+> > +/**
+> > + * struct ipu3_uapi_grid_config - Grid plane config
+> > + *
+> > + * @width:	Grid horizontal dimensions, in number of grid blocks(cells).
+> > + * @height:	Grid vertical dimensions, in number of grid cells.
+> > + * @block_width_log2:	Log2 of the width of each cell in pixels.
+> > + *			for (2^3, 2^4, 2^5, 2^6, 2^7), values [3, 7].
+> > + * @block_height_log2:	Log2 of the height of each cell in pixels.
+> > + *			for (2^3, 2^4, 2^5, 2^6, 2^7), values [3, 7].
+> > + * @height_per_slice:	The number of blocks in vertical axis per slice.
+> > + *			Default 2.
+> > + * @x_start: X value of top left corner of Region of Interest(ROI).
+> > + * @y_start: Y value of top left corner of ROI
+> > + * @x_end: X value of bottom right corner of ROI
+> > + * @y_end: Y value of bottom right corner of ROI
+> > + *
+> > + * Due to the size of total amount of collected data, most statistics
+> > + * create a grid-based output, and the data is then divided into "slices".
+> > + */
+> > +struct ipu3_uapi_grid_config {
+> > +	__u8 width;
+> > +	__u8 height;
+> > +	__u16 block_width_log2:3;
+> > +	__u16 block_height_log2:3;
+> > +	__u16 height_per_slice:8;
+> > +	__u16 x_start;
+> > +	__u16 y_start;
+> > +	__u16 x_end;
+> > +	__u16 y_end;
+> > +} __packed;
+> > +
+> > +/*
+> > + * The grid based data is divided into "slices" called set, each slice of setX
+> > + * refers to ipu3_uapi_grid_config width * height_per_slice.
+> > + */
+> > +#define IPU3_UAPI_AWB_MAX_SETS				60
+> > +/* Based on grid size 80 * 60 and cell size 16 x 16 */
+> > +#define IPU3_UAPI_AWB_SET_SIZE				1280
+> > +#define IPU3_UAPI_AWB_MD_ITEM_SIZE			8
+> > +#define IPU3_UAPI_AWB_SPARE_FOR_BUBBLES \
+> > +	(IPU3_UAPI_MAX_BUBBLE_SIZE * IPU3_UAPI_MAX_STRIPES * \
+> > +	 IPU3_UAPI_AWB_MD_ITEM_SIZE)
+> > +#define IPU3_UAPI_AWB_MAX_BUFFER_SIZE \
+> > +	(IPU3_UAPI_AWB_MAX_SETS * \
+> > +	 (IPU3_UAPI_AWB_SET_SIZE +
+> IPU3_UAPI_AWB_SPARE_FOR_BUBBLES))
+> > +/**
+> > + * struct ipu3_uapi_awb_meta_data - AWB meta data
+> > + *
+> > + * @meta_data_buffer:	Average values for each color channel
+> > + */
+> > +struct ipu3_uapi_awb_meta_data {
+> > +	__u8 meta_data_buffer[IPU3_UAPI_AWB_MAX_BUFFER_SIZE];
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_awb_raw_buffer - AWB raw buffer
+> > + *
+> > + * @meta_data: buffer to hold auto white balance meta data.
+> > + */
+> > +struct ipu3_uapi_awb_raw_buffer {
+> > +	struct ipu3_uapi_awb_meta_data meta_data;
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_awb_config_s - AWB config
+> > + *
+> > + * @rgbs_thr_gr: gr threshold value.
+> > + * @rgbs_thr_r: Red threshold value.
+> > + * @rgbs_thr_gb: gb threshold value.
+> > + * @rgbs_thr_b: Blue threshold value.
+> > + * @grid: &ipu3_uapi_grid_config, the default grid resolution is 16x16 cells.
+> > + *
+> > + * The threshold is a saturation measure range [0, 8191], 8191 is default.
+> > + * Values over threshold may be optionally rejected for averaging.
+> > + */
+> > +struct ipu3_uapi_awb_config_s {
+> > +	__u16 rgbs_thr_gr;
+> > +	__u16 rgbs_thr_r;
+> > +	__u16 rgbs_thr_gb;
+> > +	__u16 rgbs_thr_b;
+> > +	struct ipu3_uapi_grid_config grid;
+> > +} __attribute__((aligned(32))) __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_awb_config - AWB config wrapper
+> > + *
+> > + * @config: config for auto white balance as defined by
+> &ipu3_uapi_awb_config_s
+> > + */
+> > +struct ipu3_uapi_awb_config {
+> > +	struct ipu3_uapi_awb_config_s config __attribute__((aligned(32)));
+> > +} __packed;
+> > +
+> > +#define IPU3_UAPI_AE_COLORS				4	/* R,
+> G, B, Y */
+> > +#define IPU3_UAPI_AE_BINS				256
+> > +#define IPU3_UAPI_AE_WEIGHTS				96
+> > +
+> > +/**
+> > + * struct ipu3_uapi_ae_raw_buffer - AE global weighted histogram
+> > + *
+> > + * @vals: Sum of IPU3_UAPI_AE_COLORS in cell
+> > + *
+> > + * Each histogram contains IPU3_UAPI_AE_BINS bins. Each bin has 24 bit
+> unsigned
+> > + * for counting the number of the pixel.
+> > + */
+> > +struct ipu3_uapi_ae_raw_buffer {
+> > +	__u32 vals[IPU3_UAPI_AE_BINS * IPU3_UAPI_AE_COLORS];
+> 
+> What's the order of the colour components? Do the components for the
+> same
+> bin come together, or all bins for a given component?
+> 
+> Could this be written instead as:
+> 
+> 	struct {
+> 		__u32 gr;
+> 		__u32 g;
+> 		__u32 b;
+> 		__u32 gb;
+> 	} vals[IPU3_UAPI_AE_BINS] __packed __attribute__((aligned(32)));
+> 
+> > +} __packed;
+> > +
 
--> #3 ((delayed_fput_work).work){+.+.}:
-        process_one_work+0xc0a/0x1c40 kernel/workqueue.c:2129
-        worker_thread+0x17f/0x1390 kernel/workqueue.c:2296
-        kthread+0x35a/0x440 kernel/kthread.c:246
-        ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:352
-kobject: 'loop5' (00000000e380a391): kobject_uevent_env
+My understanding is that there are 4 histograms, with 256 bins per histogram, so 256 R followed by 256 G et cetera. 
 
--> #2 ((wq_completion)"events"){+.+.}:
-        flush_workqueue+0x30a/0x1e10 kernel/workqueue.c:2655
-        flush_scheduled_work include/linux/workqueue.h:599 [inline]
-        vim2m_stop_streaming+0x7c/0x2c0 drivers/media/platform/vim2m.c:811
-        __vb2_queue_cancel+0x171/0xd20  
-drivers/media/common/videobuf2/videobuf2-core.c:1823
-kobject: 'loop5' (00000000e380a391): fill_kobj_path: path  
-= '/devices/virtual/block/loop5'
-        vb2_core_queue_release+0x26/0x80  
-drivers/media/common/videobuf2/videobuf2-core.c:2229
-        vb2_queue_release+0x15/0x20  
-drivers/media/common/videobuf2/videobuf2-v4l2.c:837
-        v4l2_m2m_ctx_release+0x1e/0x35  
-drivers/media/v4l2-core/v4l2-mem2mem.c:930
-netlink: 4 bytes leftover after parsing attributes in process  
-`syz-executor0'.
-        vim2m_release+0xe6/0x150 drivers/media/platform/vim2m.c:977
-        v4l2_release+0x224/0x3a0 drivers/media/v4l2-core/v4l2-dev.c:456
-        __fput+0x385/0xa30 fs/file_table.c:278
-        ____fput+0x15/0x20 fs/file_table.c:309
-kobject: 'loop0' (000000009dc3fb20): kobject_uevent_env
-        task_work_run+0x1e8/0x2a0 kernel/task_work.c:113
-        tracehook_notify_resume include/linux/tracehook.h:188 [inline]
-        exit_to_usermode_loop+0x318/0x380 arch/x86/entry/common.c:166
-kobject: 'loop0' (000000009dc3fb20): fill_kobj_path: path  
-= '/devices/virtual/block/loop0'
-        prepare_exit_to_usermode arch/x86/entry/common.c:197 [inline]
-        syscall_return_slowpath arch/x86/entry/common.c:268 [inline]
-        do_syscall_64+0x6be/0x820 arch/x86/entry/common.c:293
-        entry_SYSCALL_64_after_hwframe+0x49/0xbe
+> > +/**
+> > + * struct ipu3_uapi_ae_raw_buffer_aligned - AE raw buffer
+> > + *
+> > + * @buff: &ipu3_uapi_ae_raw_buffer to hold full frame meta data.
+> > + */
+> > +struct ipu3_uapi_ae_raw_buffer_aligned {
+> > +	struct ipu3_uapi_ae_raw_buffer buff __attribute__((aligned(32)));
+> 
+> Please use struct ipu3_uapi_ae_raw_buffer directly.
+> 
 
--> #1 (&dev->dev_mutex){+.+.}:
-        __mutex_lock_common kernel/locking/mutex.c:925 [inline]
-        __mutex_lock+0x166/0x16f0 kernel/locking/mutex.c:1072
-        mutex_lock_nested+0x16/0x20 kernel/locking/mutex.c:1087
-        vim2m_release+0xbc/0x150 drivers/media/platform/vim2m.c:976
-        v4l2_release+0x224/0x3a0 drivers/media/v4l2-core/v4l2-dev.c:456
-        __fput+0x385/0xa30 fs/file_table.c:278
-        ____fput+0x15/0x20 fs/file_table.c:309
-        task_work_run+0x1e8/0x2a0 kernel/task_work.c:113
-        tracehook_notify_resume include/linux/tracehook.h:188 [inline]
-        exit_to_usermode_loop+0x318/0x380 arch/x86/entry/common.c:166
-        prepare_exit_to_usermode arch/x86/entry/common.c:197 [inline]
-        syscall_return_slowpath arch/x86/entry/common.c:268 [inline]
-        do_syscall_64+0x6be/0x820 arch/x86/entry/common.c:293
-        entry_SYSCALL_64_after_hwframe+0x49/0xbe
-kobject: 'loop2' (000000001e25d2fb): kobject_uevent_env
+Not sure about this one, but we can use meta_data directly at other places as you suggested.
 
--> #0 (&mdev->req_queue_mutex){+.+.}:
-kobject: 'loop2' (000000001e25d2fb): fill_kobj_path: path  
-= '/devices/virtual/block/loop2'
-        lock_acquire+0x1ed/0x520 kernel/locking/lockdep.c:3844
-        __mutex_lock_common kernel/locking/mutex.c:925 [inline]
-        __mutex_lock+0x166/0x16f0 kernel/locking/mutex.c:1072
-        mutex_lock_nested+0x16/0x20 kernel/locking/mutex.c:1087
-        v4l2_release+0x1d7/0x3a0 drivers/media/v4l2-core/v4l2-dev.c:455
-        __fput+0x385/0xa30 fs/file_table.c:278
-        delayed_fput+0x55/0x80 fs/file_table.c:304
-kobject: 'loop5' (00000000e380a391): kobject_uevent_env
-        process_one_work+0xc90/0x1c40 kernel/workqueue.c:2153
-        worker_thread+0x17f/0x1390 kernel/workqueue.c:2296
-        kthread+0x35a/0x440 kernel/kthread.c:246
-        ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:352
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_ae_grid_config - AE weight grid
+> > + *
+> > + * @width: Grid horizontal dimensions. Value: [16, 32], default 16.
+> > + * @height: Grid vertical dimensions. Value: [16, 24], default 16.
+> > + * @block_width_log2: Log2 of the width of the grid cell, 2^3 = 16.
+> > + * @block_height_log2: Log2 of the height of the grid cell, 2^3 = 16.
+> 
+> 2^3 == 16? Is the example wrong or the description of the field?
+> 
 
-other info that might help us debug this:
+My bad, should be 2^3 = 8, cell size is 8x8, 4 cell per grid.
 
-kobject: 'loop5' (00000000e380a391): fill_kobj_path: path  
-= '/devices/virtual/block/loop5'
-Chain exists of:
-   &mdev->req_queue_mutex --> (wq_completion)"events" -->  
-(delayed_fput_work).work
+> > + * @__reserved0: reserved
+> > + * @ae_en: 0: does not write to meta-data array, 1: write normally.
+> 
+> Is the meta-data array here the AE raw buffer, as defined above? If so,
+> please align the terms used.
+> 
 
-  Possible unsafe locking scenario:
+Ack.
 
-        CPU0                    CPU1
-        ----                    ----
-   lock((delayed_fput_work).work);
-                                lock((wq_completion)"events");
-                                lock((delayed_fput_work).work);
-   lock(&mdev->req_queue_mutex);
+> > + * @rst_hist_array: write 1 to trigger histogram array reset.
+> > + * @done_rst_hist_array: flag for histogram array reset done.
+> > + * @x_start: X value of top left corner of ROI, default 0.
+> > + * @y_start: Y value of top left corner of ROI, default 0.
+> > + * @x_end: X value of bottom right corner of ROI
+> > + * @y_end: Y value of bottom right corner of ROI
+> > + *
+> > + * The AE block accumulates 4 global weighted histograms(R, G, B, Y) over
+> > + * a defined ROI within the frame. The contribution of each pixel into the
+> > + * histogram, defined by &ipu3_uapi_ae_weight_elem LUT, is indexed by a
+> grid.
+> > + */
+> > +struct ipu3_uapi_ae_grid_config {
+> > +	__u8 width;
+> > +	__u8 height;
+> > +	__u8 block_width_log2:4;
+> > +	__u8 block_height_log2:4;
+> > +	__u8 __reserved0:5;
+> > +	__u8 ae_en:1;
+> > +	__u8 rst_hist_array:1;
+> > +	__u8 done_rst_hist_array:1;
+> > +	__u16 x_start;
+> > +	__u16 y_start;
+> > +	__u16 x_end;
+> > +	__u16 y_end;
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_ae_weight_elem - AE weights LUT
+> > + *
+> > + * @cell0: weighted histogram grid value.
+> > + * @cell1: weighted histogram grid value.
+> > + * @cell2: weighted histogram grid value.
+> > + * @cell3: weighted histogram grid value.
+> > + * @cell4: weighted histogram grid value.
+> > + * @cell5: weighted histogram grid value.
+> > + * @cell6: weighted histogram grid value.
+> > + * @cell7: weighted histogram grid value.
+> > + *
+> > + * Use weighted grid value to give a different contribution factor to each
+> cell.
+> > + * Precision u4, range [0, 15].
+> > + */
+> > +struct ipu3_uapi_ae_weight_elem {
+> > +	__u32 cell0:4;
+> > +	__u32 cell1:4;
+> > +	__u32 cell2:4;
+> > +	__u32 cell3:4;
+> > +	__u32 cell4:4;
+> > +	__u32 cell5:4;
+> > +	__u32 cell6:4;
+> > +	__u32 cell7:4;
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_ae_ccm - AE coefficients for WB and CCM
+> > + *
+> > + * @gain_gr: WB gain factor for the gr channels. Default 256.
+> > + * @gain_r: WB gain factor for the r channel. Default 256.
+> > + * @gain_b: WB gain factor for the b channel. Default 256.
+> > + * @gain_gb: WB gain factor for the gb channels. Default 256.
+> > + * @mat: 4x4 matrix that transforms Bayer quad output from WB to
+> RGB+Y.
+> > + *
+> > + * Default:
+> > + *	128, 0, 0, 0,
+> > + *	0, 128, 0, 0,
+> > + *	0, 0, 128, 0,
+> > + *	0, 0, 0, 128,
+> > + *
+> > + * As part of the raw frame pre-process stage, the WB and color
+> conversion need
+> > + * to be applied to expose the impact of these gain operations.
+> > + */
+> > +struct ipu3_uapi_ae_ccm {
+> > +	__u16 gain_gr;
+> > +	__u16 gain_r;
+> > +	__u16 gain_b;
+> > +	__u16 gain_gb;
+> > +	__s16 mat[16];
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_ae_config - AE config
+> > + *
+> > + * @grid_cfg:	config for auto exposure statistics grid. See struct
+> > + *		&ipu3_uapi_ae_grid_config
+> > + * @weights:	&IPU3_UAPI_AE_WEIGHTS is based on 32x24 blocks
+> in the grid.
+> > + *		Each grid cell has a corresponding value in weights LUT called
+> > + *		grid value, global histogram is updated based on grid value
+> and
+> > + *		pixel value.
+> > + * @ae_ccm:	Color convert matrix pre-processing block.
+> > + *
+> > + * Calculate AE grid from image resolution, resample ae weights.
+> > + */
+> > +struct ipu3_uapi_ae_config {
+> > +	struct ipu3_uapi_ae_grid_config grid_cfg __attribute__((aligned(32)));
+> > +	struct ipu3_uapi_ae_weight_elem weights[
+> > +						IPU3_UAPI_AE_WEIGHTS]
+> __attribute__((aligned(32)));
+> 
+> Over 80 characters per line.
+> 
 
-  *** DEADLOCK ***
+Ack.
 
-2 locks held by kworker/1:0/17:
-  #0: 00000000c02a64cb ((wq_completion)"events"){+.+.}, at:  
-__write_once_size include/linux/compiler.h:209 [inline]
-  #0: 00000000c02a64cb ((wq_completion)"events"){+.+.}, at:  
-arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
-  #0: 00000000c02a64cb ((wq_completion)"events"){+.+.}, at: atomic64_set  
-include/asm-generic/atomic-instrumented.h:40 [inline]
-  #0: 00000000c02a64cb ((wq_completion)"events"){+.+.}, at: atomic_long_set  
-include/asm-generic/atomic-long.h:59 [inline]
-  #0: 00000000c02a64cb ((wq_completion)"events"){+.+.}, at: set_work_data  
-kernel/workqueue.c:617 [inline]
-  #0: 00000000c02a64cb ((wq_completion)"events"){+.+.}, at:  
-set_work_pool_and_clear_pending kernel/workqueue.c:644 [inline]
-  #0: 00000000c02a64cb ((wq_completion)"events"){+.+.}, at:  
-process_one_work+0xb43/0x1c40 kernel/workqueue.c:2124
-  #1: 000000001fd67464 ((delayed_fput_work).work){+.+.}, at:  
-process_one_work+0xb9a/0x1c40 kernel/workqueue.c:2128
+> > +	struct ipu3_uapi_ae_ccm ae_ccm __attribute__((aligned(32)));
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_af_filter_config - AF 2D filter for contrast
+> measurements
+> > + *
+> > + * @y1_coeff_0:	filter Y1, structure: 3x11, support both symmetry and
+> > + *		anti-symmetry type. A12 is center, A1-A11 are neighbours.
+> > + *		for analyzing low frequency content, used to calculate sum
+> > + *		of gradients in x direction.
+> > + * @y1_coeff_0.a1:	filter1 coefficients A1, u8, default 0.
+> > + * @y1_coeff_0.a2:	filter1 coefficients A2, u8, default 0.
+> > + * @y1_coeff_0.a3:	filter1 coefficients A3, u8, default 0.
+> > + * @y1_coeff_0.a4:	filter1 coefficients A4, u8, default 0.
+> > + * @y1_coeff_1:		Struct
+> > + * @y1_coeff_1.a5:	filter1 coefficients A5, u8, default 0.
+> > + * @y1_coeff_1.a6:	filter1 coefficients A6, u8, default 0.
+> > + * @y1_coeff_1.a7:	filter1 coefficients A7, u8, default 0.
+> > + * @y1_coeff_1.a8:	filter1 coefficients A8, u8, default 0.
+> > + * @y1_coeff_2:		Struct
+> > + * @y1_coeff_2.a9:	filter1 coefficients A9, u8, default 0.
+> > + * @y1_coeff_2.a10:	filter1 coefficients A10, u8, default 0.
+> > + * @y1_coeff_2.a11:	filter1 coefficients A11, u8, default 0.
+> > + * @y1_coeff_2.a12:	filter1 coefficients A12, u8, default 128.
+> > + * @y1_sign_vec:	Each bit corresponds to one coefficient sign bit,
+> > + *			0: positive, 1: negative, default 0.
+> > + * @y2_coeff_0:	Y2, same structure as Y1. For analyzing high
+> frequency content.
+> > + * @y2_coeff_0.a1:	filter2 coefficients A1, u8, default 0.
+> > + * @y2_coeff_0.a2:	filter2 coefficients A2, u8, default 0.
+> > + * @y2_coeff_0.a3:	filter2 coefficients A3, u8, default 0.
+> > + * @y2_coeff_0.a4:	filter2 coefficients A4, u8, default 0.
+> > + * @y2_coeff_1:	Struct
+> > + * @y2_coeff_1.a5:	filter2 coefficients A5, u8, default 0.
+> > + * @y2_coeff_1.a6:	filter2 coefficients A6, u8, default 0.
+> > + * @y2_coeff_1.a7:	filter2 coefficients A7, u8, default 0.
+> > + * @y2_coeff_1.a8:	filter2 coefficients A8, u8, default 0.
+> > + * @y2_coeff_2:	Struct
+> > + * @y2_coeff_2.a9:	filter1 coefficients A9, u8, default 0.
+> > + * @y2_coeff_2.a10:	filter1 coefficients A10, u8, default 0.
+> > + * @y2_coeff_2.a11:	filter1 coefficients A11, u8, default 0.
+> > + * @y2_coeff_2.a12:	filter1 coefficients A12, u8, default 128.
+> > + * @y2_sign_vec:	Each bit corresponds to one coefficient sign bit,
+> > + *			0: positive, 1: negative, default 0.
+> > + * @y_calc:	Pre-processing that converts Bayer quad to RGB+Y values to
+> be
+> > + *		used for building histogram. Range [0, 32], default 8.
+> > + * Rule:
+> > + *		y_gen_rate_gr + y_gen_rate_r + y_gen_rate_b +
+> y_gen_rate_gb = 32
+> > + *		A single Y is calculated based on sum of Gr/R/B/Gb based on
+> > + *		their contribution ratio.
+> > + * @y_calc.y_gen_rate_gr:	Contribution ratio Gr for Y
+> > + * @y_calc.y_gen_rate_r:	Contribution ratio R for Y
+> > + * @y_calc.y_gen_rate_b:	Contribution ratio B for Y
+> > + * @y_calc.y_gen_rate_gb:	Contribution ratio Gb for Y
+> > + * @nf:	The shift right value that should be applied during the Y1/Y2
+> filter to
+> > + *	make sure the total memory needed is 2 bytes per grid cell.
+> > + * @nf.__reserved0:	reserved
+> > + * @nf.y1_nf:	Normalization factor for the convolution coeffs of y1,
+> > + *		should be log2 of the sum of the abs values of the filter
+> > + *		coeffs, default 7 (2^7 = 128).
+> > + * @nf.__reserved1:	reserved
+> > + * @nf.y2_nf:	Normalization factor for y2, should be log2 of the
+> sum of the
+> > + *		abs values of the filter coeffs.
+> > + * @nf.__reserved2:	reserved
+> > + */
+> > +struct ipu3_uapi_af_filter_config {
+> > +	struct {
+> > +		__u8 a1;
+> > +		__u8 a2;
+> > +		__u8 a3;
+> > +		__u8 a4;
+> > +	} y1_coeff_0;
+> > +	struct {
+> > +		__u8 a5;
+> > +		__u8 a6;
+> > +		__u8 a7;
+> > +		__u8 a8;
+> > +	} y1_coeff_1;
+> > +	struct {
+> > +		__u8 a9;
+> > +		__u8 a10;
+> > +		__u8 a11;
+> > +		__u8 a12;
+> > +	} y1_coeff_2;
+> > +
+> > +	__u32 y1_sign_vec;
+> > +
+> > +	struct {
+> > +		__u8 a1;
+> > +		__u8 a2;
+> > +		__u8 a3;
+> > +		__u8 a4;
+> > +	} y2_coeff_0;
+> > +	struct {
+> > +		__u8 a5;
+> > +		__u8 a6;
+> > +		__u8 a7;
+> > +		__u8 a8;
+> > +	} y2_coeff_1;
+> > +	struct {
+> > +		__u8 a9;
+> > +		__u8 a10;
+> > +		__u8 a11;
+> > +		__u8 a12;
+> > +	} y2_coeff_2;
+> > +
+> > +	__u32 y2_sign_vec;
+> > +
+> > +	struct {
+> > +		__u8 y_gen_rate_gr;
+> > +		__u8 y_gen_rate_r;
+> > +		__u8 y_gen_rate_b;
+> > +		__u8 y_gen_rate_gb;
+> > +	} y_calc;
+> > +
+> > +	struct {
+> > +		__u32 __reserved0:8;
+> > +		__u32 y1_nf:4;
+> > +		__u32 __reserved1:4;
+> > +		__u32 y2_nf:4;
+> > +		__u32 __reserved2:12;
+> > +	} nf;
+> > +} __packed;
+> > +
+> > +#define IPU3_UAPI_AF_MAX_SETS				24
+> > +#define IPU3_UAPI_AF_MD_ITEM_SIZE			4
+> > +#define IPU3_UAPI_AF_SPARE_FOR_BUBBLES \
+> > +	(IPU3_UAPI_MAX_BUBBLE_SIZE * IPU3_UAPI_MAX_STRIPES * \
+> > +	 IPU3_UAPI_AF_MD_ITEM_SIZE)
+> > +#define IPU3_UAPI_AF_Y_TABLE_SET_SIZE			128
+> > +#define IPU3_UAPI_AF_Y_TABLE_MAX_SIZE \
+> > +	(IPU3_UAPI_AF_MAX_SETS * \
+> > +	 (IPU3_UAPI_AF_Y_TABLE_SET_SIZE +
+> IPU3_UAPI_AF_SPARE_FOR_BUBBLES) * \
+> > +	 IPU3_UAPI_MAX_STRIPES)
+> > +
+> > +/**
+> > + * struct ipu3_uapi_af_meta_data - AF meta data
+> > + *
+> > + * @y_table:	Each color component will be convolved separately with
+> filter1
+> > + *		and filter2 and the result will be summed out and averaged
+> for
+> > + *		each cell.
+> > + */
+> > +struct ipu3_uapi_af_meta_data {
+> > +	__u8 y_table[IPU3_UAPI_AF_Y_TABLE_MAX_SIZE]
+> __attribute__((aligned(32)));
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_af_raw_buffer - AF raw buffer
+> > + *
+> > + * @meta_data: raw buffer &ipu3_uapi_af_meta_data for auto focus
+> meta data.
+> > + */
+> > +struct ipu3_uapi_af_raw_buffer {
+> > +	struct ipu3_uapi_af_meta_data meta_data
+> __attribute__((aligned(32)));
+> 
+> How about:
+> 
+> 	__u8 y_table[IPU3_UAPI_AF_Y_TABLE_MAX_SIZE]
+> 		__attribute__((aligned(32)));
+> 
 
-stack backtrace:
-CPU: 1 PID: 17 Comm: kworker/1:0 Not tainted 4.20.0-rc2+ #335
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
-Google 01/01/2011
-Workqueue: events delayed_fput
-Call Trace:
-  __dump_stack lib/dump_stack.c:77 [inline]
-  dump_stack+0x244/0x39d lib/dump_stack.c:113
-  print_circular_bug.isra.35.cold.54+0x1bd/0x27d  
-kernel/locking/lockdep.c:1221
-  check_prev_add kernel/locking/lockdep.c:1863 [inline]
-  check_prevs_add kernel/locking/lockdep.c:1976 [inline]
-  validate_chain kernel/locking/lockdep.c:2347 [inline]
-  __lock_acquire+0x3399/0x4c20 kernel/locking/lockdep.c:3341
-  lock_acquire+0x1ed/0x520 kernel/locking/lockdep.c:3844
-  __mutex_lock_common kernel/locking/mutex.c:925 [inline]
-  __mutex_lock+0x166/0x16f0 kernel/locking/mutex.c:1072
-  mutex_lock_nested+0x16/0x20 kernel/locking/mutex.c:1087
-  v4l2_release+0x1d7/0x3a0 drivers/media/v4l2-core/v4l2-dev.c:455
-  __fput+0x385/0xa30 fs/file_table.c:278
-  delayed_fput+0x55/0x80 fs/file_table.c:304
-  process_one_work+0xc90/0x1c40 kernel/workqueue.c:2153
-  worker_thread+0x17f/0x1390 kernel/workqueue.c:2296
-  kthread+0x35a/0x440 kernel/kthread.c:246
-  ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:352
-kobject: 'loop0' (000000009dc3fb20): kobject_uevent_env
-kobject: 'loop0' (000000009dc3fb20): fill_kobj_path: path  
-= '/devices/virtual/block/loop0'
-kobject: 'loop0' (000000009dc3fb20): kobject_uevent_env
-kobject: 'loop0' (000000009dc3fb20): fill_kobj_path: path  
-= '/devices/virtual/block/loop0'
-kobject: '0:40' (000000007a7460e1): kobject_uevent_env
-kobject: '0:40' (000000007a7460e1): fill_kobj_path: path  
-= '/devices/virtual/bdi/0:40'
-kobject: '0:40' (000000007a7460e1): kobject_cleanup, parent           (null)
-kobject: '0:40' (000000007a7460e1): calling ktype release
-kobject: '0:40': free name
-kobject: 'loop4' (0000000069488bfb): kobject_uevent_env
-kobject: '0:40' (0000000085b8916c): kobject_add_internal: parent: 'bdi',  
-set: 'devices'
-kobject: '0:40' (0000000085b8916c): kobject_uevent_env
-kobject: '0:40' (0000000085b8916c): fill_kobj_path: path  
-= '/devices/virtual/bdi/0:40'
-kobject: 'loop4' (0000000069488bfb): fill_kobj_path: path  
-= '/devices/virtual/block/loop4'
-kobject: 'loop2' (000000001e25d2fb): kobject_uevent_env
-kobject: 'loop2' (000000001e25d2fb): fill_kobj_path: path  
-= '/devices/virtual/block/loop2'
-kobject: 'loop3' (0000000083011be5): kobject_uevent_env
-kobject: 'integrity' (0000000043bbd25a): kobject_uevent_env
-kobject: 'loop3' (0000000083011be5): fill_kobj_path: path  
-= '/devices/virtual/block/loop3'
-kobject: 'loop1' (00000000ccd5dd1a): kobject_uevent_env
-kobject: 'loop1' (00000000ccd5dd1a): fill_kobj_path: path  
-= '/devices/virtual/block/loop1'
-kobject: 'integrity' (0000000043bbd25a): kobject_uevent_env: filter  
-function caused the event to drop!
-kobject: 'loop5' (00000000e380a391): kobject_uevent_env
-kobject: 'loop5' (00000000e380a391): fill_kobj_path: path  
-= '/devices/virtual/block/loop5'
-kobject: 'loop2' (000000001e25d2fb): kobject_uevent_env
-kobject: 'loop2' (000000001e25d2fb): fill_kobj_path: path  
-= '/devices/virtual/block/loop2'
-kobject: 'integrity' (0000000043bbd25a): kobject_cleanup, parent            
-(null)
-kobject: 'integrity' (0000000043bbd25a): does not have a release()  
-function, it is broken and must be fixed.
-kobject: 'integrity': free name
-kobject: '7:0' (0000000070602fa0): kobject_uevent_env
-kobject: '7:0' (0000000070602fa0): fill_kobj_path: path  
-= '/devices/virtual/bdi/7:0'
-kobject: '7:0' (0000000070602fa0): kobject_cleanup, parent           (null)
-kobject: '7:0' (0000000070602fa0): calling ktype release
-kobject: '7:0': free name
-kobject: 'mq' (00000000db9a50f0): kobject_uevent_env
-kobject: 'mq' (00000000db9a50f0): kobject_uevent_env: filter function  
-caused the event to drop!
-kobject: 'queue' (0000000051e17239): kobject_uevent_env
-kobject: 'queue' (0000000051e17239): kobject_uevent_env: filter function  
-caused the event to drop!
-kobject: 'iosched' (0000000048b5576d): kobject_uevent_env
-kobject: 'iosched' (0000000048b5576d): kobject_uevent_env: attempted to  
-send uevent without kset!
-kobject: 'holders' (00000000175a2248): kobject_cleanup, parent  
-000000009dc3fb20
-kobject: 'holders' (00000000175a2248): auto cleanup kobject_del
-kobject: 'holders' (00000000175a2248): calling ktype release
-kobject: (00000000175a2248): dynamic_kobj_release
-kobject: 'holders': free name
-kobject: 'slaves' (00000000caebcf7f): kobject_cleanup, parent  
-000000009dc3fb20
-kobject: 'slaves' (00000000caebcf7f): auto cleanup kobject_del
-kobject: 'slaves' (00000000caebcf7f): calling ktype release
-kobject: (00000000caebcf7f): dynamic_kobj_release
-kobject: 'slaves': free name
-kobject: 'loop0' (000000009dc3fb20): kobject_uevent_env
-kobject: 'loop0' (000000009dc3fb20): fill_kobj_path: path  
-= '/devices/virtual/block/loop0'
-kobject: 'iosched' (0000000048b5576d): kobject_cleanup, parent            
-(null)
-kobject: 'iosched' (0000000048b5576d): calling ktype release
-kobject: 'iosched': free name
-kobject: 'loop0' (000000009dc3fb20): kobject_cleanup, parent            
-(null)
-kobject: 'loop0' (000000009dc3fb20): calling ktype release
-kobject: '7:0' (00000000f0389899): kobject_add_internal: parent: 'bdi',  
-set: 'devices'
-kobject: 'queue' (0000000051e17239): kobject_cleanup, parent            
-(null)
-kobject: '7:0' (00000000f0389899): kobject_uevent_env
-kobject: 'queue' (0000000051e17239): calling ktype release
-kobject: '7:0' (00000000f0389899): fill_kobj_path: path  
-= '/devices/virtual/bdi/7:0'
-kobject: 'loop0' (0000000079c85b46): kobject_add_internal: parent: 'block',  
-set: 'devices'
-kobject: 'queue': free name
-kobject: 'loop0' (0000000079c85b46): kobject_uevent_env
-kobject: '0' (00000000a47afb53): kobject_cleanup, parent           (null)
-kobject: 'loop0' (0000000079c85b46): kobject_uevent_env: uevent_suppress  
-caused the event to drop!
-kobject: '0' (00000000a47afb53): calling ktype release
-kobject: 'holders' (000000006061d428): kobject_add_internal:  
-parent: 'loop0', set: '<NULL>'
-kobject: '0': free name
-kobject: 'slaves' (0000000092b86788): kobject_add_internal:  
-parent: 'loop0', set: '<NULL>'
-kobject: 'cpu0' (0000000004b99a3b): kobject_cleanup, parent           (null)
-kobject: 'loop0': free name
-kobject: 'cpu0' (0000000004b99a3b): calling ktype release
-kobject: 'loop0' (0000000079c85b46): kobject_uevent_env
-kobject: 'cpu0': free name
-kobject: 'loop0' (0000000079c85b46): fill_kobj_path: path  
-= '/devices/virtual/block/loop0'
-kobject: 'cpu1' (000000000175e0e6): kobject_cleanup, parent           (null)
-kobject: 'queue' (000000008ca0932e): kobject_add_internal: parent: 'loop0',  
-set: '<NULL>'
-kobject: 'cpu1' (000000000175e0e6): calling ktype release
-kobject: 'cpu1': free name
-kobject: 'mq' (00000000db9a50f0): kobject_cleanup, parent           (null)
-kobject: 'mq' (00000000dcc29f43): kobject_add_internal: parent: 'loop0',  
-set: '<NULL>'
-kobject: 'mq' (00000000db9a50f0): calling ktype release
-bridge: RTM_NEWNEIGH bridge0 without NUD_PERMANENT
-kobject: 'mq': free name
-bridge: RTM_NEWNEIGH bridge0 without NUD_PERMANENT
-kobject: 'mq' (00000000dcc29f43): kobject_uevent_env
-kobject: '0:40' (0000000085b8916c): kobject_uevent_env
-kobject: 'mq' (00000000dcc29f43): kobject_uevent_env: filter function  
-caused the event to drop!
-kobject: '0:40' (0000000085b8916c): fill_kobj_path: path  
-= '/devices/virtual/bdi/0:40'
-kobject: '0' (000000009280b857): kobject_add_internal: parent: 'mq',  
-set: '<NULL>'
-kobject: 'cpu0' (00000000d4cf0527): kobject_add_internal: parent: '0',  
-set: '<NULL>'
-kobject: 'cpu1' (0000000065a7e78d): kobject_add_internal: parent: '0',  
-set: '<NULL>'
-kobject: 'queue' (000000008ca0932e): kobject_uevent_env
-kobject: 'queue' (000000008ca0932e): kobject_uevent_env: filter function  
-caused the event to drop!
-kobject: 'iosched' (00000000cf653225): kobject_add_internal:  
-parent: 'queue', set: '<NULL>'
-kobject: 'iosched' (00000000cf653225): kobject_uevent_env
-kobject: '0:40' (0000000085b8916c): kobject_cleanup, parent           (null)
-kobject: 'iosched' (00000000cf653225): kobject_uevent_env: filter function  
-caused the event to drop!
-kobject: 'integrity' (00000000875dd409): kobject_add_internal:  
-parent: 'loop0', set: '<NULL>'
-kobject: 'integrity' (00000000875dd409): kobject_uevent_env
-kobject: 'integrity' (00000000875dd409): kobject_uevent_env: filter  
-function caused the event to drop!
-kobject: '0:40' (0000000085b8916c): calling ktype release
-kobject: 'loop1' (00000000ccd5dd1a): kobject_uevent_env
-kobject: 'integrity' (00000000875dd409): kobject_uevent_env
-kobject: '0:40': free name
-kobject: 'loop1' (00000000ccd5dd1a): fill_kobj_path: path  
-= '/devices/virtual/block/loop1'
-bridge: RTM_NEWNEIGH bridge0 without NUD_PERMANENT
-kobject: 'integrity' (00000000875dd409): kobject_uevent_env: filter  
-function caused the event to drop!
-kobject: 'integrity' (00000000875dd409): kobject_cleanup, parent            
-(null)
-kobject: 'integrity' (00000000875dd409): does not have a release()  
-function, it is broken and must be fixed.
-kobject: 'integrity': free name
-kobject: '7:0' (00000000f0389899): kobject_uevent_env
-kobject: '7:0' (00000000f0389899): fill_kobj_path: path  
-= '/devices/virtual/bdi/7:0'
-kobject: '7:0' (00000000f0389899): kobject_cleanup, parent           (null)
-kobject: '7:0' (00000000f0389899): calling ktype release
-kobject: '7:0': free name
-kobject: 'mq' (00000000dcc29f43): kobject_uevent_env
-kobject: 'mq' (00000000dcc29f43): kobject_uevent_env: filter function  
-caused the event to drop!
-kobject: 'queue' (000000008ca0932e): kobject_uevent_env
-kobject: 'queue' (000000008ca0932e): kobject_uevent_env: filter function  
-caused the event to drop!
-kobject: 'iosched' (00000000cf653225): kobject_uevent_env
-kobject: 'iosched' (00000000cf653225): kobject_uevent_env: attempted to  
-send uevent without kset!
-kobject: 'holders' (000000006061d428): kobject_cleanup, parent  
-0000000079c85b46
-kobject: 'holders' (000000006061d428): auto cleanup kobject_del
-kobject: 'holders' (000000006061d428): calling ktype release
-kobject: (000000006061d428): dynamic_kobj_release
-kobject: 'holders': free name
-kobject: 'slaves' (0000000092b86788): kobject_cleanup, parent  
-0000000079c85b46
-kobject: 'slaves' (0000000092b86788): auto cleanup kobject_del
-kobject: 'slaves' (0000000092b86788): calling ktype release
-kobject: (0000000092b86788): dynamic_kobj_release
-kobject: 'slaves': free name
-kobject: 'loop0' (0000000079c85b46): kobject_uevent_env
-kobject: 'loop0' (0000000079c85b46): fill_kobj_path: path  
-= '/devices/virtual/block/loop0'
-kobject: 'iosched' (00000000cf653225): kobject_cleanup, parent            
-(null)
-kobject: 'iosched' (00000000cf653225): calling ktype release
-kobject: 'iosched': free name
-kobject: 'loop0' (0000000079c85b46): kobject_cleanup, parent            
-(null)
-kobject: 'loop0' (0000000079c85b46): calling ktype release
-kobject: 'queue' (000000008ca0932e): kobject_cleanup, parent            
-(null)
-kobject: 'queue' (000000008ca0932e): calling ktype release
-kobject: 'queue': free name
-kobject: '0' (000000009280b857): kobject_cleanup, parent           (null)
-kobject: 'loop0': free name
-kobject: '0' (000000009280b857): calling ktype release
-kobject: '7:0' (000000006977d38d): kobject_add_internal: parent: 'bdi',  
-set: 'devices'
-kobject: '0': free name
-kobject: '7:0' (000000006977d38d): kobject_uevent_env
-kobject: 'cpu0' (00000000d4cf0527): kobject_cleanup, parent           (null)
-kobject: 'cpu0' (00000000d4cf0527): calling ktype release
-kobject: 'cpu0': free name
-kobject: '7:0' (000000006977d38d): fill_kobj_path: path  
-= '/devices/virtual/bdi/7:0'
-kobject: 'cpu1' (0000000065a7e78d): kobject_cleanup, parent           (null)
-kobject: 'cpu1' (0000000065a7e78d): calling ktype release
-kobject: 'cpu1': free name
-kobject: 'mq' (00000000dcc29f43): kobject_cleanup, parent           (null)
-kobject: 'mq' (00000000dcc29f43): calling ktype release
-kobject: 'loop0' (000000003af2323a): kobject_add_internal: parent: 'block',  
-set: 'devices'
-kobject: 'mq': free name
-kobject: 'loop0' (000000003af2323a): kobject_uevent_env
-kobject: 'loop0' (000000003af2323a): kobject_uevent_env: uevent_suppress  
-caused the event to drop!
-kobject: 'holders' (00000000112a596d): kobject_add_internal:  
-parent: 'loop0', set: '<NULL>'
-kobject: 'slaves' (00000000fda2bbf0): kobject_add_internal:  
-parent: 'loop0', set: '<NULL>'
-kobject: 'loop0' (000000003af2323a): kobject_uevent_env
-kobject: 'loop0' (000000003af2323a): fill_kobj_path: path  
-= '/devices/virtual/block/loop0'
-kobject: 'queue' (00000000d3767fc5): kobject_add_internal: parent: 'loop0',  
-set: '<NULL>'
-kobject: 'mq' (000000003b9efe44): kobject_add_internal: parent: 'loop0',  
-set: '<NULL>'
-kobject: 'mq' (000000003b9efe44): kobject_uevent_env
-kobject: 'mq' (000000003b9efe44): kobject_uevent_env: filter function  
-caused the event to drop!
-kobject: '0' (0000000090b1f5b5): kobject_add_internal: parent: 'mq',  
-set: '<NULL>'
-kobject: 'cpu0' (00000000c221c143): kobject_add_internal: parent: '0',  
-set: '<NULL>'
-kobject: 'cpu1' (0000000023ab86cf): kobject_add_internal: parent: '0',  
-set: '<NULL>'
-kobject: 'queue' (00000000d3767fc5): kobject_uevent_env
-kobject: 'queue' (00000000d3767fc5): kobject_uevent_env: filter function  
-caused the event to drop!
-kobject: 'iosched' (00000000460ced90): kobject_add_internal:  
-parent: 'queue', set: '<NULL>'
-kobject: 'iosched' (00000000460ced90): kobject_uevent_env
-kobject: 'iosched' (00000000460ced90): kobject_uevent_env: filter function  
-caused the event to drop!
-kobject: 'integrity' (000000005ccddd52): kobject_add_internal:  
-parent: 'loop0', set: '<NULL>'
-kobject: 'integrity' (000000005ccddd52): kobject_uevent_env
-kobject: 'integrity' (000000005ccddd52): kobject_uevent_env: filter  
-function caused the event to drop!
-kobject: 'loop3' (0000000083011be5): kobject_uevent_env
-kobject: 'loop3' (0000000083011be5): fill_kobj_path: path  
-= '/devices/virtual/block/loop3'
-kobject: '0:40' (00000000449511ea): kobject_add_internal: parent: 'bdi',  
-set: 'devices'
-bridge: RTM_NEWNEIGH bridge0 without NUD_PERMANENT
-kobject: '0:40' (00000000449511ea): kobject_uevent_env
-kobject: 'loop5' (00000000e380a391): kobject_uevent_env
-kobject: '0:40' (00000000449511ea): fill_kobj_path: path  
-= '/devices/virtual/bdi/0:40'
-kobject: 'loop5' (00000000e380a391): fill_kobj_path: path  
-= '/devices/virtual/block/loop5'
-kobject: 'integrity' (000000005ccddd52): kobject_uevent_env
-kobject: 'loop2' (000000001e25d2fb): kobject_uevent_env
-kobject: 'integrity' (000000005ccddd52): kobject_uevent_env: filter  
-function caused the event to drop!
-kobject: 'loop2' (000000001e25d2fb): fill_kobj_path: path  
-= '/devices/virtual/block/loop2'
-kobject: 'integrity' (000000005ccddd52): kobject_cleanup, parent            
-(null)
-kobject: 'loop0' (000000003af2323a): kobject_uevent_env
-kobject: 'loop0' (000000003af2323a): fill_kobj_path: path  
-= '/devices/virtual/block/loop0'
-kobject: 'integrity' (000000005ccddd52): does not have a release()  
-function, it is broken and must be fixed.
-kobject: 'integrity': free name
-kobject: 'loop5' (00000000e380a391): kobject_uevent_env
-bridge: RTM_NEWNEIGH bridge0 without NUD_PERMANENT
-kobject: 'loop5' (00000000e380a391): fill_kobj_path: path  
-= '/devices/virtual/block/loop5'
-kobject: '7:0' (000000006977d38d): kobject_uevent_env
-kobject: 'loop1' (00000000ccd5dd1a): kobject_uevent_env
-kobject: '7:0' (000000006977d38d): fill_kobj_path: path  
-= '/devices/virtual/bdi/7:0'
-kobject: '7:0' (000000006977d38d): kobject_cleanup, parent           (null)
-kobject: '0:40' (00000000449511ea): kobject_uevent_env
-kobject: 'loop1' (00000000ccd5dd1a): fill_kobj_path: path  
-= '/devices/virtual/block/loop1'
-kobject: '0:40' (00000000449511ea): fill_kobj_path: path  
-= '/devices/virtual/bdi/0:40'
-kobject: '7:0' (000000006977d38d): calling ktype release
-kobject: '0:40' (00000000449511ea): kobject_cleanup, parent           (null)
-kobject: '7:0': free name
-kobject: '0:40' (00000000449511ea): calling ktype release
-kobject: 'mq' (000000003b9efe44): kobject_uevent_env
-kobject: '0:40': free name
-kobject: 'mq' (000000003b9efe44): kobject_uevent_env: filter function  
-caused the event to drop!
-kobject: 'queue' (00000000d3767fc5): kobject_uevent_env
-kobject: 'queue' (00000000d3767fc5): kobject_uevent_env: filter function  
-caused the event to drop!
-kobject: 'iosched' (00000000460ced90): kobject_uevent_env
-kobject: 'iosched' (00000000460ced90): kobject_uevent_env: attempted to  
-send uevent without kset!
-kobject: 'holders' (00000000112a596d): kobject_cleanup, parent  
-000000003af2323a
-kobject: 'holders' (00000000112a596d): auto cleanup kobject_del
-kobject: 'holders' (00000000112a596d): calling ktype release
-kobject: (00000000112a596d): dynamic_kobj_release
-kobject: 'holders': free name
-kobject: 'slaves' (00000000fda2bbf0): kobject_cleanup, parent  
-000000003af2323a
-kobject: 'slaves' (00000000fda2bbf0): auto cleanup kobject_del
-kobject: 'slaves' (00000000fda2bbf0): calling ktype release
-kobject: (00000000fda2bbf0): dynamic_kobj_release
-kobject: 'slaves': free name
-kobject: 'loop0' (000000003af2323a): kobject_uevent_env
-kobject: 'loop0' (000000003af2323a): fill_kobj_path: path  
-= '/devices/virtual/block/loop0'
-kobject: 'iosched' (00000000460ced90): kobject_cleanup, parent            
-(null)
-kobject: 'iosched' (00000000460ced90): calling ktype release
-kobject: 'iosched': free name
-kobject: 'loop0' (000000003af2323a): kobject_cleanup, parent            
-(null)
-kobject: 'loop0' (000000003af2323a): calling ktype release
-kobject: 'queue' (00000000d3767fc5): kobject_cleanup, parent            
-(null)
-kobject: 'queue' (00000000d3767fc5): calling ktype release
-kobject: '0' (0000000090b1f5b5): kobject_cleanup, parent           (null)
-kobject: 'queue': free name
-kobject: '0' (0000000090b1f5b5): calling ktype release
-kobject: '0': free name
-kobject: 'loop0': free name
-kobject: 'cpu0' (00000000c221c143): kobject_cleanup, parent           (null)
-kobject: 'cpu0' (00000000c221c143): calling ktype release
-kobject: 'cpu0': free name
-kobject: 'cpu1' (0000000023ab86cf): kobject_cleanup, parent           (null)
-kobject: 'cpu1' (0000000023ab86cf): calling ktype release
-kobject: 'cpu1': free name
-kobject: '7:0' (00000000a988cd45): kobject_add_internal: parent: 'bdi',  
-set: 'devices'
-kobject: 'mq' (000000003b9efe44): kobject_cleanup, parent           (null)
-kobject: 'mq' (000000003b9efe44): calling ktype release
-kobject: 'mq': free name
-kobject: '7:0' (00000000a988cd45): kobject_uevent_env
-kobject: '7:0' (00000000a988cd45): fill_kobj_path: path  
-= '/devices/virtual/bdi/7:0'
-kobject: 'loop0' (00000000ab201e06): kobject_add_internal: parent: 'block',  
-set: 'devices'
-kobject: 'loop0' (00000000ab201e06): kobject_uevent_env
-kobject: 'loop0' (00000000ab201e06): kobject_uevent_env: uevent_suppress  
-caused the event to drop!
-kobject: 'holders' (00000000d34d2b6e): kobject_add_internal:  
-parent: 'loop0', set: '<NULL>'
-kobject: 'slaves' (000000006477d341): kobject_add_internal:  
-parent: 'loop0', set: '<NULL>'
-kobject: 'loop0' (00000000ab201e06): kobject_uevent_env
-kobject: 'loop0' (00000000ab201e06): fill_kobj_path: path  
-= '/devices/virtual/block/loop0'
-kobject: 'queue' (00000000b78327cc): kobject_add_internal: parent: 'loop0',  
-set: '<NULL>'
-kobject: 'mq' (00000000998f011e): kobject_add_internal: parent: 'loop0',  
-set: '<NULL>'
-kobject: 'mq' (00000000998f011e): kobject_uevent_env
-kobject: 'mq' (00000000998f011e): kobject_uevent_env: filter function  
-caused the event to drop!
-kobject: '0' (00000000c9ee7068): kobject_add_internal: parent: 'mq',  
-set: '<NULL>'
-kobject: 'cpu0' (00000000d4cf0527): kobject_add_internal: parent: '0',  
-set: '<NULL>'
-kobject: 'cpu1' (0000000065a7e78d): kobject_add_internal: parent: '0',  
-set: '<NULL>'
-kobject: 'queue' (00000000b78327cc): kobject_uevent_env
-kobject: 'queue' (00000000b78327cc): kobject_uevent_env: filter function  
-caused the event to drop!
-kobject: 'iosched' (000000002a000ab8): kobject_add_internal:  
-parent: 'queue', set: '<NULL>'
-kobject: 'iosched' (000000002a000ab8): kobject_uevent_env
-kobject: 'iosched' (000000002a000ab8): kobject_uevent_env: filter function  
-caused the event to drop!
-kobject: 'integrity' (00000000ae331374): kobject_add_internal:  
-parent: 'loop0', set: '<NULL>'
-kobject: 'integrity' (00000000ae331374): kobject_uevent_env
-kobject: 'integrity' (00000000ae331374): kobject_uevent_env: filter  
-function caused the event to drop!
-kobject: 'loop3' (0000000083011be5): kobject_uevent_env
-kobject: 'loop3' (0000000083011be5): fill_kobj_path: path  
-= '/devices/virtual/block/loop3'
-kobject: 'loop2' (000000001e25d2fb): kobject_uevent_env
-kobject: 'loop2' (000000001e25d2fb): fill_kobj_path: path  
-= '/devices/virtual/block/loop2'
-kobject: 'loop5' (00000000e380a391): kobject_uevent_env
-kobject: 'loop5' (00000000e380a391): fill_kobj_path: path  
-= '/devices/virtual/block/loop5'
-kobject: 'loop0' (00000000ab201e06): kobject_uevent_env
-kobject: 'loop0' (00000000ab201e06): fill_kobj_path: path  
-= '/devices/virtual/block/loop0'
-kobject: 'loop4' (0000000069488bfb): kobject_uevent_env
-kobject: 'integrity' (00000000ae331374): kobject_uevent_env
-kobject: 'loop4' (0000000069488bfb): fill_kobj_path: path  
-= '/devices/virtual/block/loop4'
-kobject: 'integrity' (00000000ae331374): kobject_uevent_env: filter  
-function caused the event to drop!
-kobject: 'integrity' (00000000ae331374): kobject_cleanup, parent            
-(null)
-kobject: 'integrity' (00000000ae331374): does not have a release()  
-function, it is broken and must be fixed.
-kobject: 'integrity': free name
-kobject: '7:0' (00000000a988cd45): kobject_uevent_env
-kobject: '7:0' (00000000a988cd45): fill_kobj_path: path  
-= '/devices/virtual/bdi/7:0'
-kobject: '7:0' (00000000a988cd45): kobject_cleanup, parent           (null)
-kobject: '7:0' (00000000a988cd45): calling ktype release
-kobject: '7:0': free name
-kobject: 'mq' (00000000998f011e): kobject_uevent_env
-kobject: 'mq' (00000000998f011e): kobject_uevent_env: filter function  
-caused the event to drop!
-kobject: 'queue' (00000000b78327cc): kobject_uevent_env
-kobject: 'queue' (00000000b78327cc): kobject_uevent_env: filter function  
-caused the event to drop!
-kobject: 'iosched' (000000002a000ab8): kobject_uevent_env
-kobject: 'iosched' (000000002a000ab8): kobject_uevent_env: attempted to  
-send uevent without kset!
-kobject: 'holders' (00000000d34d2b6e): kobject_cleanup, parent  
-00000000ab201e06
-kobject: 'holders' (00000000d34d2b6e): auto cleanup kobject_del
-kobject: 'holders' (00000000d34d2b6e): calling ktype release
-kobject: (00000000d34d2b6e): dynamic_kobj_release
-kobject: 'holders': free name
-kobject: 'slaves' (000000006477d341): kobject_cleanup, parent  
-00000000ab201e06
-kobject: 'slaves' (000000006477d341): auto cleanup kobject_del
-kobject: 'slaves' (000000006477d341): calling ktype release
-kobject: (000000006477d341): dynamic_kobj_release
-kobject: 'slaves': free name
-kobject: 'loop0' (00000000ab201e06): kobject_uevent_env
-kobject: 'loop0' (00000000ab201e06): fill_kobj_path: path  
-= '/devices/virtual/block/loop0'
-kobject: 'iosched' (000000002a000ab8): kobject_cleanup, parent            
-(null)
-kobject: 'iosched' (000000002a000ab8): calling ktype release
-kobject: 'iosched': free name
-kobject: 'loop0' (00000000ab201e06): kobject_cleanup, parent            
-(null)
-kobject: 'loop0' (00000000ab201e06): calling ktype release
-kobject: 'queue' (00000000b78327cc): kobject_cleanup, parent            
-(null)
-kobject: 'queue' (00000000b78327cc): calling ktype release
-kobject: '0' (00000000c9ee7068): kobject_cleanup, parent           (null)
-kobject: 'queue': free name
-kobject: '0' (00000000c9ee7068): calling ktype release
-kobject: 'loop0': free name
-kobject: '0': free name
-kobject: 'cpu0' (00000000d4cf0527): kobject_cleanup, parent           (null)
-kobject: 'cpu0' (00000000d4cf0527): calling ktype release
-kobject: 'loop2' (000000001e25d2fb): kobject_uevent_env
-kobject: '7:0' (000000008a775ca0): kobject_add_internal: parent: 'bdi',  
-set: 'devices'
-kobject: 'loop2' (000000001e25d2fb): fill_kobj_path: path  
-= '/devices/virtual/block/loop2'
-kobject: 'cpu0': free name
-kobject: '7:0' (000000008a775ca0): kobject_uevent_env
-kobject: 'cpu1' (0000000065a7e78d): kobject_cleanup, parent           (null)
-kobject: '7:0' (000000008a775ca0): fill_kobj_path: path  
-= '/devices/virtual/bdi/7:0'
-kobject: 'cpu1' (0000000065a7e78d): calling ktype release
-kobject: 'loop0' (00000000c1f8624c): kobject_add_internal: parent: 'block',  
-set: 'devices'
-kobject: 'cpu1': free name
-kobject: 'mq' (00000000998f011e): kobject_cleanup, parent           (null)
-kobject: 'loop0' (00000000c1f8624c): kobject_uevent_env
-kobject: 'mq' (00000000998f011e): calling ktype release
-kobject: 'mq': free name
-kobject: 'loop0' (00000000c1f8624c): kobject_uevent_env: uevent_suppress  
-caused the event to drop!
-kobject: 'holders' (000000009d79da8a): kobject_add_internal:  
-parent: 'loop0', set: '<NULL>'
-kobject: 'slaves' (000000005de79b8f): kobject_add_internal:  
-parent: 'loop0', set: '<NULL>'
-kobject: 'loop0' (00000000c1f8624c): kobject_uevent_env
-kobject: 'loop0' (00000000c1f8624c): fill_kobj_path: path  
-= '/devices/virtual/block/loop0'
-kobject: 'queue' (000000002ed0d1ed): kobject_add_internal: parent: 'loop0',  
-set: '<NULL>'
-kobject: 'mq' (000000005d342873): kobject_add_internal: parent: 'loop0',  
-set: '<NULL>'
-kobject: 'mq' (000000005d342873): kobject_uevent_env
-kobject: 'mq' (000000005d342873): kobject_uevent_env: filter function  
-caused the event to drop!
-kobject: '0' (0000000096eb6389): kobject_add_internal: parent: 'mq',  
-set: '<NULL>'
-kobject: 'cpu0' (00000000c221c143): kobject_add_internal: parent: '0',  
-set: '<NULL>'
-kobject: 'cpu1' (0000000023ab86cf): kobject_add_internal: parent: '0',  
-set: '<NULL>'
-kobject: 'queue' (000000002ed0d1ed): kobject_uevent_env
-kobject: 'queue' (000000002ed0d1ed): kobject_uevent_env: filter function  
-caused the event to drop!
-kobject: 'iosched' (00000000e1544fa5): kobject_add_internal:  
-parent: 'queue', set: '<NULL>'
-kobject: 'iosched' (00000000e1544fa5): kobject_uevent_env
-kobject: 'iosched' (00000000e1544fa5): kobject_uevent_env: filter function  
-caused the event to drop!
-kobject: 'integrity' (00000000ec92212b): kobject_add_internal:  
-parent: 'loop0', set: '<NULL>'
-kobject: 'integrity' (00000000ec92212b): kobject_uevent_env
-kobject: 'integrity' (00000000ec92212b): kobject_uevent_env: filter  
-function caused the event to drop!
-kobject: 'loop3' (0000000083011be5): kobject_uevent_env
-kobject: 'integrity' (00000000ec92212b): kobject_uevent_env
-kobject: 'loop3' (0000000083011be5): fill_kobj_path: path  
-= '/devices/virtual/block/loop3'
-kobject: 'integrity' (00000000ec92212b): kobject_uevent_env: filter  
-function caused the event to drop!
-kobject: 'loop5' (00000000e380a391): kobject_uevent_env
-kobject: 'integrity' (00000000ec92212b): kobject_cleanup, parent            
-(null)
-kobject: 'loop5' (00000000e380a391): fill_kobj_path: path  
-= '/devices/virtual/block/loop5'
-kobject: 'integrity' (00000000ec92212b): does not have a release()  
-function, it is broken and must be fixed.
-kobject: 'integrity': free name
-kobject: '7:0' (000000008a775ca0): kobject_uevent_env
-kobject: '7:0' (000000008a775ca0): fill_kobj_path: path  
-= '/devices/virtual/bdi/7:0'
-kobject: '7:0' (000000008a775ca0): kobject_cleanup, parent           (null)
-kobject: '7:0' (000000008a775ca0): calling ktype release
-kobject: '7:0': free name
-kobject: 'mq' (000000005d342873): kobject_uevent_env
-kobject: 'mq' (000000005d342873): kobject_uevent_env: filter function  
-caused the event to drop!
-kobject: 'queue' (000000002ed0d1ed): kobject_uevent_env
-kobject: 'queue' (000000002ed0d1ed): kobject_uevent_env: filter function  
-caused the event to drop!
-kobject: 'iosched' (00000000e1544fa5): kobject_uevent_env
-kobject: 'iosched' (00000000e1544fa5): kobject_uevent_env: attempted to  
-send uevent without kset!
-kobject: 'holders' (000000009d79da8a): kobject_cleanup, parent  
-00000000c1f8624c
-kobject: 'holders' (000000009d79da8a): auto cleanup kobject_del
-kobject: 'holders' (000000009d79da8a): calling ktype release
-kobject: (000000009d79da8a): dynamic_kobj_release
-kobject: 'holders': free name
-kobject: 'slaves' (000000005de79b8f): kobject_cleanup, parent  
-00000000c1f8624c
-kobject: 'slaves' (000000005de79b8f): auto cleanup kobject_del
-kobject: 'slaves' (000000005de79b8f): calling ktype release
-kobject: (000000005de79b8f): dynamic_kobj_release
-kobject: 'slaves': free name
-kobject: 'loop0' (00000000c1f8624c): kobject_uevent_env
-kobject: 'loop0' (00000000c1f8624c): fill_kobj_path: path  
-= '/devices/virtual/block/loop0'
-kobject: 'iosched' (00000000e1544fa5): kobject_cleanup, parent            
-(null)
-kobject: 'iosched' (00000000e1544fa5): calling ktype release
-kobject: 'iosched': free name
-kobject: 'loop1' (00000000ccd5dd1a): kobject_uevent_env
-kobject: 'loop0' (00000000c1f8624c): kobject_cleanup, parent            
-(null)
-kobject: 'loop1' (00000000ccd5dd1a): fill_kobj_path: path  
-= '/devices/virtual/block/loop1'
-kobject: '7:0' (0000000042182656): kobject_add_internal: parent: 'bdi',  
-set: 'devices'
-kobject: 'loop0' (00000000c1f8624c): calling ktype release
-kobject: '7:0' (0000000042182656): kobject_uevent_env
-kobject: 'loop2' (000000001e25d2fb): kobject_uevent_env
-kobject: '7:0' (0000000042182656): fill_kobj_path: path  
-= '/devices/virtual/bdi/7:0'
-kobject: 'queue' (000000002ed0d1ed): kobject_cleanup, parent            
-(null)
-kobject: 'loop0' (00000000e846e269): kobject_add_internal: parent: 'block',  
-set: 'devices'
-kobject: 'loop2' (000000001e25d2fb): fill_kobj_path: path  
-= '/devices/virtual/block/loop2'
-kobject: 'loop0' (00000000e846e269): kobject_uevent_env
-kobject: 'queue' (000000002ed0d1ed): calling ktype release
-kobject: 'loop0' (00000000e846e269): kobject_uevent_env: uevent_suppress  
-caused the event to drop!
-kobject: 'loop4' (0000000069488bfb): kobject_uevent_env
-kobject: 'queue': free name
-kobject: '0' (0000000096eb6389): kobject_cleanup, parent           (null)
-kobject: 'holders' (00000000c09da7de): kobject_add_internal:  
-parent: 'loop0', set: '<NULL>'
-kobject: '0' (0000000096eb6389): calling ktype release
-kobject: 'slaves' (0000000051b93405): kobject_add_internal:  
-parent: 'loop0', set: '<NULL>'
-kobject: 'loop0': free name
-kobject: 'loop0' (00000000e846e269): kobject_uevent_env
-kobject: 'loop4' (0000000069488bfb): fill_kobj_path: path  
-= '/devices/virtual/block/loop4'
-kobject: 'loop0' (00000000e846e269): fill_kobj_path: path  
-= '/devices/virtual/block/loop0'
-kobject: '0': free name
-kobject: 'queue' (000000000dd9aad6): kobject_add_internal: parent: 'loop0',  
-set: '<NULL>'
-kobject: 'cpu0' (00000000c221c143): kobject_cleanup, parent           (null)
-kobject: 'mq' (0000000002e79e66): kobject_add_internal: parent: 'loop0',  
-set: '<NULL>'
-kobject: 'cpu0' (00000000c221c143): calling ktype release
-kobject: 'mq' (0000000002e79e66): kobject_uevent_env
-kobject: 'cpu0': free name
-kobject: 'mq' (0000000002e79e66): kobject_uevent_env: filter function  
-caused the event to drop!
-kobject: 'cpu1' (0000000023ab86cf): kobject_cleanup, parent           (null)
-kobject: '0' (00000000934c8b41): kobject_add_internal: parent: 'mq',  
-set: '<NULL>'
-kobject: 'cpu1' (0000000023ab86cf): calling ktype release
-kobject: 'cpu0' (00000000d4cf0527): kobject_add_internal: parent: '0',  
-set: '<NULL>'
-kobject: 'cpu1': free name
-kobject: 'cpu1' (0000000065a7e78d): kobject_add_internal: parent: '0',  
-set: '<NULL>'
-kobject: 'mq' (000000005d342873): kobject_cleanup, parent           (null)
-kobject: 'queue' (000000000dd9aad6): kobject_uevent_env
-kobject: 'queue' (000000000dd9aad6): kobject_uevent_env: filter function  
-caused the event to drop!
-kobject: 'mq' (000000005d342873): calling ktype release
-kobject: 'iosched' (000000006e45def7): kobject_add_internal:  
-parent: 'queue', set: '<NULL>'
-kobject: 'mq': free name
-kobject: 'iosched' (000000006e45def7): kobject_uevent_env
-kobject: 'iosched' (000000006e45def7): kobject_uevent_env: filter function  
-caused the event to drop!
-kobject: 'integrity' (0000000084d03129): kobject_add_internal:  
-parent: 'loop0', set: '<NULL>'
-kobject: 'integrity' (0000000084d03129): kobject_uevent_env
-kobject: 'integrity' (0000000084d03129): kobject_uevent_env: filter  
-function caused the event to drop!
-kobject: 'integrity' (0000000084d03129): kobject_uevent_env
-kobject: 'integrity' (0000000084d03129): kobject_uevent_env: filter  
-function caused the event to drop!
-kobject: 'integrity' (0000000084d03129): kobject_cleanup, parent            
-(null)
-kobject: 'integrity' (0000000084d03129): does not have a release()  
-function, it is broken and must be fixed.
-kobject: 'integrity': free name
-kobject: '7:0' (0000000042182656): kobject_uevent_env
-kobject: '7:0' (0000000042182656): fill_kobj_path: path  
-= '/devices/virtual/bdi/7:0'
-kobject: '7:0' (0000000042182656): kobject_cleanup, parent           (null)
-kobject: '7:0' (0000000042182656): calling ktype release
-kobject: '7:0': free name
-kobject: 'mq' (0000000002e79e66): kobject_uevent_env
-kobject: 'mq' (0000000002e79e66): kobject_uevent_env: filter function  
-caused the event to drop!
-kobject: 'queue' (000000000dd9aad6): kobject_uevent_env
-kobject: 'queue' (000000000dd9aad6): kobject_uevent_env: filter function  
-caused the event to drop!
-kobject: 'iosched' (000000006e45def7): kobject_uevent_env
-kobject: 'iosched' (000000006e45def7): kobject_uevent_env: attempted to  
-send uevent without kset!
-kobject: 'holders' (00000000c09da7de): kobject_cleanup, parent  
-00000000e846e269
-kobject: 'holders' (00000000c09da7de): auto cleanup kobject_del
-kobject: 'holders' (00000000c09da7de): calling ktype release
-kobject: (00000000c09da7de): dynamic_kobj_release
-kobject: 'holders': free name
-kobject: 'slaves' (0000000051b93405): kobject_cleanup, parent  
-00000000e846e269
-kobject: 'slaves' (0000000051b93405): auto cleanup kobject_del
-kobject: 'slaves' (0000000051b93405): calling ktype release
-kobject: (0000000051b93405): dynamic_kobj_release
-kobject: 'slaves': free name
-kobject: 'loop0' (00000000e846e269): kobject_uevent_env
-kobject: 'loop0' (00000000e846e269): fill_kobj_path: path  
-= '/devices/virtual/block/loop0'
-kobject: 'iosched' (000000006e45def7): kobject_cleanup, parent            
-(null)
-kobject: 'iosched' (000000006e45def7): calling ktype release
-kobject: 'iosched': free name
-kobject: '7:0' (00000000c7ce6b70): kobject_add_internal: parent: 'bdi',  
-set: 'devices'
-kobject: '7:0' (00000000c7ce6b70): kobject_uevent_env
-kobject: '7:0' (00000000c7ce6b70): fill_kobj_path: path  
-= '/devices/virtual/bdi/7:0'
-kobject: 'loop0' (00000000d3975188): kobject_add_internal: parent: 'block',  
-set: 'devices'
-kobject: 'loop0' (00000000d3975188): kobject_uevent_env
-kobject: 'loop0' (00000000d3975188): kobject_uevent_env: uevent_suppress  
-caused the event to drop!
-kobject: 'holders' (000000000d6f1dcc): kobject_add_internal:  
-parent: 'loop0', set: '<NULL>'
-kobject: 'slaves' (0000000003f0c160): kobject_add_internal:  
-parent: 'loop0', set: '<NULL>'
-kobject: 'loop0' (00000000d3975188): kobject_uevent_env
-kobject: 'loop0' (00000000d3975188): fill_kobj_path: path  
-= '/devices/virtual/block/loop0'
-kobject: 'queue' (00000000a0174471): kobject_add_internal: parent: 'loop0',  
-set: '<NULL>'
-kobject: 'mq' (0000000008bd5ae2): kobject_add_internal: parent: 'loop0',  
-set: '<NULL>'
-kobject: 'mq' (0000000008bd5ae2): kobject_uevent_env
-kobject: 'mq' (0000000008bd5ae2): kobject_uevent_env: filter function  
-caused the event to drop!
-kobject: '0' (00000000a0ddde50): kobject_add_internal: parent: 'mq',  
-set: '<NULL>'
-kobject: 'cpu0' (00000000c221c143): kobject_add_internal: parent: '0',  
-set: '<NULL>'
-kobject: 'cpu1' (0000000023ab86cf): kobject_add_internal: parent: '0',  
-set: '<NULL>'
-kobject: 'queue' (00000000a0174471): kobject_uevent_env
-kobject: 'queue' (00000000a0174471): kobject_uevent_env: filter function  
-caused the event to drop!
-kobject: 'iosched' (000000009bbaa4e4): kobject_add_internal:  
-parent: 'queue', set: '<NULL>'
-kobject: 'iosched' (000000009bbaa4e4): kobject_uevent_env
-kobject: 'iosched' (000000009bbaa4e4): kobject_uevent_env: filter function  
-caused the event to drop!
-kobject: 'integrity' (000000001fd01dc2): kobject_add_internal:  
-parent: 'loop0', set: '<NULL>'
-kobject: 'integrity' (000000001fd01dc2): kobject_uevent_env
-kobject: 'integrity' (000000001fd01dc2): kobject_uevent_env: filter  
-function caused the event to drop!
-kobject: 'integrity' (000000001fd01dc2): kobject_uevent_env
-kobject: 'integrity' (000000001fd01dc2): kobject_uevent_env: filter  
-function caused the event to drop!
-kobject: 'integrity' (000000001fd01dc2): kobject_cleanup, parent            
-(null)
-kobject: 'integrity' (000000001fd01dc2): does not have a release()  
-function, it is broken and must be fixed.
-kobject: 'integrity': free name
-kobject: '7:0' (00000000c7ce6b70): kobject_uevent_env
-kobject: '7:0' (00000000c7ce6b70): fill_kobj_path: path  
-= '/devices/virtual/bdi/7:0'
-kobject: '7:0' (00000000c7ce6b70): kobject_cleanup, parent           (null)
-kobject: '7:0' (00000000c7ce6b70): calling ktype release
-kobject: '7:0': free name
-kobject: 'mq' (0000000008bd5ae2): kobject_uevent_env
-kobject: 'mq' (0000000008bd5ae2): kobject_uevent_env: filter function  
-caused the event to drop!
-kobject: 'queue' (00000000a0174471): kobject_uevent_env
-kobject: 'queue' (00000000a0174471): kobject_uevent_env: filter function  
-caused the event to drop!
-kobject: 'iosched' (000000009bbaa4e4): kobject_uevent_env
-kobject: 'iosched' (000000009bbaa4e4): kobject_uevent_env: attempted to  
-send uevent without kset!
-kobject: 'holders' (000000000d6f1dcc): kobject_cleanup, parent  
-00000000d3975188
-kobject: 'holders' (000000000d6f1dcc): auto cleanup kobject_del
-kobject: 'holders' (000000000d6f1dcc): calling ktype release
-kobject: (000000000d6f1dcc): dynamic_kobj_release
-kobject: 'holders': free name
-kobject: 'slaves' (0000000003f0c160): kobject_cleanup, parent  
-00000000d3975188
-kobject: 'slaves' (0000000003f0c160): auto cleanup kobject_del
-kobject: 'slaves' (0000000003f0c160): calling ktype release
-kobject: (0000000003f0c160): dynamic_kobj_release
-kobject: 'slaves': free name
-kobject: 'loop0' (00000000d3975188): kobject_uevent_env
-kobject: 'loop0' (00000000d3975188): fill_kobj_path: path  
-= '/devices/virtual/block/loop0'
-kobject: 'iosched' (000000009bbaa4e4): kobject_cleanup, parent            
-(null)
-kobject: 'iosched' (000000009bbaa4e4): calling ktype release
-kobject: 'iosched': free name
-kobject: 'loop0' (00000000d3975188): kobject_cleanup, parent            
-(null)
-kobject: 'loop0' (00000000d3975188): calling ktype release
-kobject: 'queue' (00000000a0174471): kobject_cleanup, parent            
-(null)
-kobject: 'queue' (00000000a0174471): calling ktype release
-kobject: 'queue': free name
-kobject: '0' (00000000a0ddde50): kobject_cleanup, parent           (null)
-kobject: 'loop0': free name
-kobject: '0' (00000000a0ddde50): calling ktype release
-kobject: 'loop0' (00000000e846e269): kobject_cleanup, parent            
-(null)
-kobject: '0': free name
-kobject: 'loop0' (00000000e846e269): calling ktype release
-kobject: '7:0' (00000000d779594a): kobject_add_internal: parent: 'bdi',  
-set: 'devices'
-kobject: 'queue' (000000000dd9aad6): kobject_cleanup, parent            
-(null)
-kobject: 'cpu0' (00000000c221c143): kobject_cleanup, parent           (null)
-kobject: 'queue' (000000000dd9aad6): calling ktype release
-kobject: '7:0' (00000000d779594a): kobject_uevent_env
-kobject: 'queue': free name
-kobject: 'cpu0' (00000000c221c143): calling ktype release
-kobject: '0' (00000000934c8b41): kobject_cleanup, parent           (null)
-kobject: '7:0' (00000000d779594a): fill_kobj_path: path  
-= '/devices/virtual/bdi/7:0'
-kobject: 'loop0': free name
-kobject: 'cpu0': free name
-kobject: '0' (00000000934c8b41): calling ktype release
-kobject: 'cpu1' (0000000023ab86cf): kobject_cleanup, parent           (null)
-kobject: '0': free name
-kobject: 'cpu1' (0000000023ab86cf): calling ktype release
-kobject: 'cpu0' (00000000d4cf0527): kobject_cleanup, parent           (null)
-kobject: 'loop0' (000000000c1282a5): kobject_add_internal: parent: 'block',  
-set: 'devices'
-kobject: 'cpu0' (00000000d4cf0527): calling ktype release
-kobject: 'cpu1': free name
-kobject: 'mq' (0000000008bd5ae2): kobject_cleanup, parent           (null)
-kobject: 'cpu0': free name
-kobject: 'loop0' (000000000c1282a5): kobject_uevent_env
-kobject: 'cpu1' (0000000065a7e78d): kobject_cleanup, parent           (null)
-kobject: 'mq' (0000000008bd5ae2): calling ktype release
-kobject: 'cpu1' (0000000065a7e78d): calling ktype release
-kobject: 'mq': free name
-kobject: 'cpu1': free name
-kobject: 'loop0' (000000000c1282a5): kobject_uevent_env: uevent_suppress  
-caused the event to drop!
-kobject: 'holders' (000000000f9ab04c): kobject_add_internal:  
-parent: 'loop0', set: '<NULL>'
-kobject: 'mq' (0000000002e79e66): kobject_cleanup, parent           (null)
-kobject: 'slaves' (00000000998b395d): kobject_add_internal:  
-parent: 'loop0', set: '<NULL>'
-kobject: 'mq' (0000000002e79e66): calling ktype release
-kobject: 'loop0' (000000000c1282a5): kobject_uevent_env
-kobject: 'mq': free name
-kobject: 'loop0' (000000000c1282a5): fill_kobj_path: path  
-= '/devices/virtual/block/loop0'
-kobject: 'queue' (00000000bc815593): kobject_add_internal: parent: 'loop0',  
-set: '<NULL>'
-kobject: 'mq' (00000000c600fa9c): kobject_add_internal: parent: 'loop0',  
-set: '<NULL>'
-kobject: 'mq' (00000000c600fa9c): kobject_uevent_env
-kobject: 'mq' (00000000c600fa9c): kobject_uevent_env: filter function  
-caused the event to drop!
-kobject: '0' (000000001894b71a): kobject_add_internal: parent: 'mq',  
-set: '<NULL>'
-kobject: 'cpu0' (00000000d1aaad77): kobject_add_internal: parent: '0',  
-set: '<NULL>'
-kobject: 'cpu1' (00000000dffe2062): kobject_add_internal: parent: '0',  
-set: '<NULL>'
-kobject: 'queue' (00000000bc815593): kobject_uevent_env
-kobject: 'queue' (00000000bc815593): kobject_uevent_env: filter function  
-caused the event to drop!
-kobject: 'iosched' (00000000503550bf): kobject_add_internal:  
-parent: 'queue', set: '<NULL>'
-kobject: 'iosched' (00000000503550bf): kobject_uevent_env
-kobject: 'iosched' (00000000503550bf): kobject_uevent_env: filter function  
-caused the event to drop!
-kobject: 'integrity' (000000009b782ce0): kobject_add_internal:  
-parent: 'loop0', set: '<NULL>'
-kobject: 'integrity' (000000009b782ce0): kobject_uevent_env
-kobject: 'integrity' (000000009b782ce0): kobject_uevent_env: filter  
-function caused the event to drop!
-kobject: 'loop3' (0000000083011be5): kobject_uevent_env
-kobject: 'loop3' (0000000083011be5): fill_kobj_path: path  
-= '/devices/virtual/block/loop3'
-kobject: 'integrity' (000000009b782ce0): kobject_uevent_env
-kobject: 'integrity' (000000009b782ce0): kobject_uevent_env: filter  
-function caused the event to drop!
-kobject: 'loop5' (00000000e380a391): kobject_uevent_env
-kobject: 'loop5' (00000000e380a391): fill_kobj_path: path  
-= '/devices/virtual/block/loop5'
-kobject: 'integrity' (000000009b782ce0): kobject_cleanup, parent            
-(null)
-kobject: 'loop1' (00000000ccd5dd1a): kobject_uevent_env
-kobject: 'integrity' (000000009b782ce0): does not have a release()  
-function, it is broken and must be fixed.
-kobject: 'loop1' (00000000ccd5dd1a): fill_kobj_path: path  
-= '/devices/virtual/block/loop1'
-kobject: 'integrity': free name
-kobject: 'loop4' (0000000069488bfb): kobject_uevent_env
-kobject: 'loop4' (0000000069488bfb): fill_kobj_path: path  
-= '/devices/virtual/block/loop4'
-kobject: '7:0' (00000000d779594a): kobject_uevent_env
-kobject: '7:0' (00000000d779594a): fill_kobj_path: path  
-= '/devices/virtual/bdi/7:0'
-kobject: '7:0' (00000000d779594a): kobject_cleanup, parent           (null)
-kobject: '7:0' (00000000d779594a): calling ktype release
-kobject: '7:0': free name
-kobject: 'mq' (00000000c600fa9c): kobject_uevent_env
-kobject: 'mq' (00000000c600fa9c): kobject_uevent_env: filter function  
-caused the event to drop!
-kobject: 'queue' (00000000bc815593): kobject_uevent_env
-kobject: 'queue' (00000000bc815593): kobject_uevent_env: filter function  
-caused the event to drop!
-kobject: 'iosched' (00000000503550bf): kobject_uevent_env
-kobject: 'iosched' (00000000503550bf): kobject_uevent_env: attempted to  
-send uevent without kset!
-kobject: 'holders' (000000000f9ab04c): kobject_cleanup, parent  
-000000000c1282a5
-kobject: 'holders' (000000000f9ab04c): auto cleanup kobject_del
-kobject: 'holders' (000000000f9ab04c): calling ktype release
-kobject: (000000000f9ab04c): dynamic_kobj_release
-kobject: 'holders': free name
-kobject: 'slaves' (00000000998b395d): kobject_cleanup, parent  
-000000000c1282a5
-kobject: 'slaves' (00000000998b395d): auto cleanup kobject_del
-kobject: 'slaves' (00000000998b395d): calling ktype release
-kobject: (00000000998b395d): dynamic_kobj_release
-kobject: 'slaves': free name
-kobject: 'loop0' (000000000c1282a5): kobject_uevent_env
-kobject: 'loop0' (000000000c1282a5): fill_kobj_path: path  
-= '/devices/virtual/block/loop0'
-kobject: 'iosched' (00000000503550bf): kobject_cleanup, parent            
-(null)
-kobject: 'iosched' (00000000503550bf): calling ktype release
-kobject: 'iosched': free name
-kobject: 'loop0' (000000000c1282a5): kobject_cleanup, parent            
-(null)
-kobject: 'loop0' (000000000c1282a5): calling ktype release
-kobject: 'queue' (00000000bc815593): kobject_cleanup, parent            
-(null)
-kobject: 'queue' (00000000bc815593): calling ktype release
-kobject: '0' (000000001894b71a): kobject_cleanup, parent           (null)
-kobject: '0' (000000001894b71a): calling ktype release
-kobject: 'queue': free name
-kobject: 'loop0': free name
-kobject: '0': free name
-kobject: 'cpu0' (00000000d1aaad77): kobject_cleanup, parent           (null)
-kobject: '7:0' (000000004397ece3): kobject_add_internal: parent: 'bdi',  
-set: 'devices'
-kobject: 'cpu0' (00000000d1aaad77): calling ktype release
-kobject: 'cpu0': free name
-kobject: 'cpu1' (00000000dffe2062): kobject_cleanup, parent           (null)
-kobject: '7:0' (000000004397ece3): kobject_uevent_env
-kobject: 'cpu1' (00000000dffe2062): calling ktype release
-kobject: '7:0' (000000004397ece3): fill_kobj_path: path  
-= '/devices/virtual/bdi/7:0'
-kobject: 'cpu1': free name
-kobject: 'loop0' (000000008e3fb47c): kobject_add_internal: parent: 'block',  
-set: 'devices'
-kobject: 'mq' (00000000c600fa9c): kobject_cleanup, parent           (null)
-kobject: 'loop0' (000000008e3fb47c): kobject_uevent_env
-kobject: 'mq' (00000000c600fa9c): calling ktype release
-kobject: 'loop0' (000000008e3fb47c): kobject_uevent_env: uevent_suppress  
-caused the event to drop!
-kobject: 'mq': free name
-kobject: 'holders' (0000000020f0de39): kobject_add_internal:  
-parent: 'loop0', set: '<NULL>'
-kobject: 'slaves' (000000001494dd85): kobject_add_internal:  
-parent: 'loop0', set: '<NULL>'
-kobject: 'loop0' (000000008e3fb47c): kobject_uevent_env
-kobject: 'loop0' (000000008e3fb47c): fill_kobj_path: path  
-= '/devices/virtual/block/loop0'
-kobject: 'queue' (0000000085a2a2c8): kobject_add_internal: parent: 'loop0',  
-set: '<NULL>'
-kobject: 'mq' (000000008ef59ef5): kobject_add_internal: parent: 'loop0',  
-set: '<NULL>'
-kobject: 'mq' (000000008ef59ef5): kobject_uevent_env
-kobject: 'mq' (000000008ef59ef5): kobject_uevent_env: filter function  
-caused the event to drop!
-kobject: '0' (00000000e39fe280): kobject_add_internal: parent: 'mq',  
-set: '<NULL>'
-kobject: 'cpu0' (0000000096f4d280): kobject_add_internal: parent: '0',  
-set: '<NULL>'
-kobject: 'cpu1' (0000000082769fb8): kobject_add_internal: parent: '0',  
-set: '<NULL>'
-kobject: 'queue' (0000000085a2a2c8): kobject_uevent_env
-kobject: 'queue' (0000000085a2a2c8): kobject_uevent_env: filter function  
-caused the event to drop!
-kobject: 'iosched' (000000009dca673b): kobject_add_internal:  
-parent: 'queue', set: '<NULL>'
-kobject: 'iosched' (000000009dca673b): kobject_uevent_env
-kobject: 'iosched' (000000009dca673b): kobject_uevent_env: filter function  
-caused the event to drop!
-kobject: 'integrity' (000000001224c3c2): kobject_add_internal:  
-parent: 'loop0', set: '<NULL>'
-kobject: 'integrity' (000000001224c3c2): kobject_uevent_env
-kobject: 'integrity' (000000001224c3c2): kobject_uevent_env: filter  
-function caused the event to drop!
-kobject: 'loop2' (000000001e25d2fb): kobject_uevent_env
-kobject: 'loop2' (000000001e25d2fb): fill_kobj_path: path  
-= '/devices/virtual/block/loop2'
-kobject: 'loop1' (00000000ccd5dd1a): kobject_uevent_env
-bridge: RTM_NEWNEIGH bridge0 without NUD_PERMANENT
-kobject: 'loop1' (00000000ccd5dd1a): fill_kobj_path: path  
-= '/devices/virtual/block/loop1'
-kobject: 'loop4' (0000000069488bfb): kobject_uevent_env
-kobject: 'loop4' (0000000069488bfb): fill_kobj_path: path  
-= '/devices/virtual/block/loop4'
-bridge: RTM_NEWNEIGH bridge0 without NUD_PERMANENT
-kobject: 'loop0' (000000008e3fb47c): kobject_uevent_env
-kobject: 'loop0' (000000008e3fb47c): fill_kobj_path: path  
-= '/devices/virtual/block/loop0'
-bridge: RTM_NEWNEIGH bridge0 without NUD_PERMANENT
-kobject: 'loop5' (00000000e380a391): kobject_uevent_env
-kobject: 'loop5' (00000000e380a391): fill_kobj_path: path  
-= '/devices/virtual/block/loop5'
-kobject: 'loop3' (0000000083011be5): kobject_uevent_env
-bridge: RTM_NEWNEIGH bridge0 without NUD_PERMANENT
-kobject: 'loop3' (0000000083011be5): fill_kobj_path: path  
-= '/devices/virtual/block/loop3'
-kobject: 'loop5' (00000000e380a391): kobject_uevent_env
-kobject: 'loop5' (00000000e380a391): fill_kobj_path: path  
-= '/devices/virtual/block/loop5'
-kobject: 'loop3' (0000000083011be5): kobject_uevent_env
-kobject: 'loop3' (0000000083011be5): fill_kobj_path: path  
-= '/devices/virtual/block/loop3'
-bridge: RTM_NEWNEIGH bridge0 without NUD_PERMANENT
-kobject: 'loop5' (00000000e380a391): kobject_uevent_env
-bridge: RTM_NEWNEIGH bridge0 without NUD_PERMANENT
-kobject: 'loop5' (00000000e380a391): fill_kobj_path: path  
-= '/devices/virtual/block/loop5'
-kobject: 'loop3' (0000000083011be5): kobject_uevent_env
-kobject: 'loop3' (0000000083011be5): fill_kobj_path: path  
-= '/devices/virtual/block/loop3'
-kobject: 'loop3' (0000000083011be5): kobject_uevent_env
-kobject: 'loop3' (0000000083011be5): fill_kobj_path: path  
-= '/devices/virtual/block/loop3'
-kobject: 'loop2' (000000001e25d2fb): kobject_uevent_env
-kobject: 'loop2' (000000001e25d2fb): fill_kobj_path: path  
-= '/devices/virtual/block/loop2'
-kobject: 'loop3' (0000000083011be5): kobject_uevent_env
-kobject: 'loop3' (0000000083011be5): fill_kobj_path: path  
-= '/devices/virtual/block/loop3'
-kobject: 'loop0' (000000008e3fb47c): kobject_uevent_env
-kobject: 'loop0' (000000008e3fb47c): fill_kobj_path: path  
-= '/devices/virtual/block/loop0'
-kobject: 'loop1' (00000000ccd5dd1a): kobject_uevent_env
-kobject: 'loop1' (00000000ccd5dd1a): fill_kobj_path: path  
-= '/devices/virtual/block/loop1'
-kobject: 'loop4' (0000000069488bfb): kobject_uevent_env
-kobject: 'loop4' (0000000069488bfb): fill_kobj_path: path  
-= '/devices/virtual/block/loop4'
-kobject: 'loop5' (00000000e380a391): kobject_uevent_env
-kobject: 'loop5' (00000000e380a391): fill_kobj_path: path  
-= '/devices/virtual/block/loop5'
-kobject: 'loop2' (000000001e25d2fb): kobject_uevent_env
-kobject: 'loop2' (000000001e25d2fb): fill_kobj_path: path  
-= '/devices/virtual/block/loop2'
-kobject: 'loop3' (0000000083011be5): kobject_uevent_env
-kobject: 'loop3' (0000000083011be5): fill_kobj_path: path  
-= '/devices/virtual/block/loop3'
-kobject: 'loop5' (00000000e380a391): kobject_uevent_env
-kobject: 'loop5' (00000000e380a391): fill_kobj_path: path  
-= '/devices/virtual/block/loop5'
-kobject: 'loop2' (000000001e25d2fb): kobject_uevent_env
-kobject: 'loop2' (000000001e25d2fb): fill_kobj_path: path  
-= '/devices/virtual/block/loop2'
+Ack.
 
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_af_config_s - AF config
+> > + *
+> > + * @filter_config: AF uses Y1 and Y2 filters as configured in
+> > + *		   &ipu3_uapi_af_filter_config
+> > + * @padding: paddings
+> > + * @grid_cfg: See &ipu3_uapi_grid_config, default resolution 16x16. Use
+> large
+> > + *	      grid size for large image and vice versa.
+> > + */
+> > +struct ipu3_uapi_af_config_s {
+> > +	struct ipu3_uapi_af_filter_config filter_config
+> __attribute__((aligned(32)));
+> > +	__u8 padding[4];
+> > +	struct ipu3_uapi_grid_config grid_cfg __attribute__((aligned(32)));
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_af_config - AF config wrapper
+> > + *
+> > + * @config: config for auto focus as defined by &ipu3_uapi_af_config_s
+> > + */
+> > +struct ipu3_uapi_af_config {
+> 
+> Could you drop struct ipu3_uapi_af_config and use ipu3_uapi_af_config_s
+> instead?
 
----
-This bug is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
+Ack.
 
-syzbot will keep track of this bug report. See:
-https://goo.gl/tpsmEJ#bug-status-tracking for how to communicate with  
-syzbot.
+> 
+> > +	struct ipu3_uapi_af_config_s config;
+> > +} __packed;
+> > +
+> > +#define IPU3_UAPI_AWB_FR_MAX_SETS			24
+> > +#define IPU3_UAPI_AWB_FR_MD_ITEM_SIZE			8
+> > +#define IPU3_UAPI_AWB_FR_BAYER_TBL_SIZE			256
+> > +#define IPU3_UAPI_AWB_FR_SPARE_FOR_BUBBLES \
+> > +	(IPU3_UAPI_MAX_BUBBLE_SIZE * IPU3_UAPI_MAX_STRIPES * \
+> > +	 IPU3_UAPI_AWB_FR_MD_ITEM_SIZE)
+> > +#define IPU3_UAPI_AWB_FR_BAYER_TABLE_MAX_SIZE \
+> > +	(IPU3_UAPI_AWB_FR_MAX_SETS * \
+> > +	(IPU3_UAPI_AWB_FR_BAYER_TBL_SIZE + \
+> > +	 IPU3_UAPI_AWB_FR_SPARE_FOR_BUBBLES) *
+> IPU3_UAPI_MAX_STRIPES)
+> > +
+> > +/**
+> > + * struct ipu3_uapi_awb_fr_meta_data - AWB filter response meta data
+> > + *
+> > + * @bayer_table: Statistics output on the grid after convolving with 1D
+> filter.
+> > + */
+> > +struct ipu3_uapi_awb_fr_meta_data {
+> > +	__u8 bayer_table[IPU3_UAPI_AWB_FR_BAYER_TABLE_MAX_SIZE]
+> __attribute__((aligned(32)));
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_awb_fr_raw_buffer - AWB filter response raw buffer
+> > + *
+> > + * @meta_data: See &ipu3_uapi_awb_fr_meta_data.
+> > + */
+> > +struct ipu3_uapi_awb_fr_raw_buffer {
+> 
+> Same here, please use ipu3_uapi_awb_fr_meta_data instead.
+> 
+
+Ack.
+
+> > +	struct ipu3_uapi_awb_fr_meta_data meta_data;
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_awb_fr_config_s - AWB filter response config
+> > + *
+> > + * @grid_cfg:	grid config, default 16x16.
+> > + * @bayer_coeff:	1D Filter 1x11 center symmetry/anti-symmetry.
+> > + *			coeffcients defaults { 0, 0, 0, 0, 0, 128 }.
+> > + *			Applied on whole image for each Bayer channel
+> separately
+> > + *			by a weighted sum of its 11x1 neighbors.
+> > + * @__reserved1:	reserved
+> > + * @bayer_sign:	sign of filter coeffcients, default 0.
+> > + * @bayer_nf:	normalization factor for the convolution coeffs, to
+> make sure
+> > + *		total memory needed is within pre-determined range.
+> > + *		NF should be the log2 of the sum of the abs values of the
+> > + *		filter coeffs, range [7, 14], default 7.
+> > + * @__reserved2:	reserved
+> > + */
+> > +struct ipu3_uapi_awb_fr_config_s {
+> > +	struct ipu3_uapi_grid_config grid_cfg;
+> > +	__u8 bayer_coeff[6];
+> > +	__u16 __reserved1;
+> > +	__u32 bayer_sign;
+> > +	__u8 bayer_nf;
+> > +	__u8 __reserved2[3];
+> > +} __attribute__((aligned(32))) __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_awb_fr_config - AWB filter response config wrapper
+> > + *
+> > + * @config:	See &ipu3_uapi_awb_fr_config_s.
+> > + */
+> > +struct ipu3_uapi_awb_fr_config {
+> 
+> Ditto.
+
+Ack, will implement and test with corresponding user space changes.
+
+> 
+> > +	struct ipu3_uapi_awb_fr_config_s config;
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_4a_config - 4A config
+> > + *
+> > + * @awb_config: &ipu3_uapi_awb_config_s, default resolution 16x16
+> > + * @ae_grd_config: auto exposure statistics &ipu3_uapi_ae_grid_config
+> > + * @padding: paddings
+> > + * @af_config: auto focus config &ipu3_uapi_af_config_s
+> > + * @awb_fr_config: &ipu3_uapi_awb_fr_config_s, default resolution
+> 16x16
+> > + */
+> > +struct ipu3_uapi_4a_config {
+> > +	struct ipu3_uapi_awb_config_s awb_config
+> __attribute__((aligned(32)));
+> > +	struct ipu3_uapi_ae_grid_config ae_grd_config;
+> > +	__u8 padding[20];
+> > +	struct ipu3_uapi_af_config_s af_config;
+> > +	struct ipu3_uapi_awb_fr_config_s awb_fr_config;
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_bubble_info - Bubble info for host side debugging
+> > + *
+> > + * @num_of_stripes: A single frame is divided into several parts called
+> stripes
+> > + *		    due to limitation on line buffer memory.
+> > + *		    The separation between the stripes is vertical. Each such
+> > + *		    stripe is processed as a single frame by the ISP pipe.
+> > + * @padding: padding bytes.
+> > + * @num_sets: number of sets.
+> > + * @padding1: padding bytes.
+> > + * @size_of_set: set size.
+> > + * @padding2: padding bytes.
+> > + * @bubble_size: is the amount of padding in the bubble expressed in
+> "sets".
+> > + * @padding3: padding bytes.
+> > + */
+> > +struct ipu3_uapi_bubble_info {
+> > +	__u32 num_of_stripes __attribute__((aligned(32)));
+> > +	__u8 padding[28];
+> > +	__u32 num_sets;
+> > +	__u8 padding1[28];
+> > +	__u32 size_of_set;
+> > +	__u8 padding2[28];
+> > +	__u32 bubble_size;
+> > +	__u8 padding3[28];
+> > +} __packed;
+> > +
+> > +/*
+> > + * struct ipu3_uapi_stats_3a_bubble_info_per_stripe
+> > + */
+> > +struct ipu3_uapi_stats_3a_bubble_info_per_stripe {
+> > +	struct ipu3_uapi_bubble_info awb[IPU3_UAPI_MAX_STRIPES];
+> > +	struct ipu3_uapi_bubble_info af[IPU3_UAPI_MAX_STRIPES];
+> > +	struct ipu3_uapi_bubble_info awb_fr[IPU3_UAPI_MAX_STRIPES];
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_ff_status - Enable bits for each 3A fixed function
+> > + *
+> > + * @awb_en: auto white balance enable
+> > + * @padding: padding config
+> > + * @ae_en: auto exposure enable
+> > + * @padding1: padding config
+> > + * @af_en: auto focus enable
+> > + * @padding2: padding config
+> > + * @awb_fr_en: awb filter response enable bit
+> > + * @padding3: padding config
+> > + */
+> > +struct ipu3_uapi_ff_status {
+> > +	__u32 awb_en __attribute__((aligned(32)));
+> > +	__u8 padding[28];
+> > +	__u32 ae_en;
+> > +	__u8 padding1[28];
+> > +	__u32 af_en;
+> > +	__u8 padding2[28];
+> > +	__u32 awb_fr_en;
+> > +	__u8 padding3[28];
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_stats_3a - 3A statistics
+> > + *
+> > + * @awb_raw_buffer: auto white balance meta data
+> &ipu3_uapi_awb_raw_buffer
+> > + * @ae_raw_buffer: auto exposure raw data
+> &ipu3_uapi_ae_raw_buffer_aligned
+> > + * @af_raw_buffer: &ipu3_uapi_af_raw_buffer for auto focus meta data
+> > + * @awb_fr_raw_buffer: value as specified by
+> &ipu3_uapi_awb_fr_raw_buffer
+> > + * @stats_4a_config: 4a statistics config as defined by
+> &ipu3_uapi_4a_config.
+> > + * @ae_join_buffers: 1 to use ae_raw_buffer.
+> > + * @padding: padding config
+> > + * @stats_3a_bubble_per_stripe: a
+> &ipu3_uapi_stats_3a_bubble_info_per_stripe
+> > + * @stats_3a_status: 3a statistics status set in &ipu3_uapi_ff_status
+> > + */
+> > +struct ipu3_uapi_stats_3a {
+> > +	struct ipu3_uapi_awb_raw_buffer awb_raw_buffer
+> __attribute__((aligned(32)));
+> > +	struct ipu3_uapi_ae_raw_buffer_aligned
+> > +			ae_raw_buffer[IPU3_UAPI_MAX_STRIPES];
+> > +	struct ipu3_uapi_af_raw_buffer af_raw_buffer;
+> > +	struct ipu3_uapi_awb_fr_raw_buffer awb_fr_raw_buffer;
+> > +	struct ipu3_uapi_4a_config stats_4a_config;
+> > +	__u32 ae_join_buffers;
+> > +	__u8 padding[28];
+> > +	struct ipu3_uapi_stats_3a_bubble_info_per_stripe
+> > +			stats_3a_bubble_per_stripe;
+> > +	struct ipu3_uapi_ff_status stats_3a_status;
+> > +} __packed;
+> > +
+> > +/******************* ipu3_uapi_acc_param *******************/
+> > +
+> > +#define IPU3_UAPI_ISP_VEC_ELEMS				64
+> > +#define IPU3_UAPI_ISP_TNR3_VMEM_LEN			9
+> > +
+> > +#define IPU3_UAPI_BNR_LUT_SIZE				32
+> > +
+> > +/* number of elements in gamma correction LUT */
+> > +#define IPU3_UAPI_GAMMA_CORR_LUT_ENTRIES		256
+> > +
+> > +/* largest grid is 73x56, for grid_height_per_slice of 2, 73x2 = 146 */
+> > +#define IPU3_UAPI_SHD_MAX_CELLS_PER_SET			146
+> > +#define IPU3_UAPI_SHD_MAX_CFG_SETS			28
+> > +/* Normalization shift aka nf */
+> > +#define IPU3_UAPI_SHD_BLGR_NF_SHIFT			13
+> > +#define IPU3_UAPI_SHD_BLGR_NF_MASK			7
+> > +
+> > +#define IPU3_UAPI_YUVP2_TCC_MACC_TABLE_ELEMENTS		16
+> > +#define IPU3_UAPI_YUVP2_TCC_INV_Y_LUT_ELEMENTS		14
+> > +#define IPU3_UAPI_YUVP2_TCC_GAIN_PCWL_LUT_ELEMENTS	258
+> > +#define IPU3_UAPI_YUVP2_TCC_R_SQR_LUT_ELEMENTS		24
+> > +
+> > +#define IPU3_UAPI_ANR_LUT_SIZE				26
+> > +#define IPU3_UAPI_ANR_PYRAMID_SIZE			22
+> > +
+> > +#define IPU3_UAPI_LIN_LUT_SIZE				64
+> > +
+> > +/* Bayer Noise Reduction related structs */
+> > +
+> > +/**
+> > + * struct ipu3_uapi_bnr_static_config_wb_gains_config - White balance
+> gains
+> > + *
+> > + * @gr:	white balance gain for Gr channel.
+> > + * @r:	white balance gain for R channel.
+> > + * @b:	white balance gain for B channel.
+> > + * @gb:	white balance gain for Gb channel.
+> > + *
+> > + * Precision u3.13, range [0, 8]. White balance correction is done by
+> applying
+> 
+> [0, 8[
+> 
+> (or [0, 8), but the same notation needs to be used everywhere).
+> 
+
+Should be [0, 8).
+
+> > + * a multiplicative gain to each color channels prior to BNR.
+> > + */
+> > +struct ipu3_uapi_bnr_static_config_wb_gains_config {
+> > +	__u16 gr;
+> > +	__u16 r;
+> > +	__u16 b;
+> > +	__u16 gb;
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_bnr_static_config_wb_gains_thr_config - Threshold
+> config
+> > + *
+> > + * @gr:	white balance threshold gain for Gr channel.
+> > + * @r:	white balance threshold gain for R channel.
+> > + * @b:	white balance threshold gain for B channel.
+> > + * @gb:	white balance threshold gain for Gb channel.
+> > + *
+> > + * Defines the threshold that specifies how different a defect pixel can be
+> from
+> > + * its neighbors.(used by dynamic defect pixel correction sub block)
+> > + * Precision u4.4 range [0, 8].
+> > + */
+> > +struct ipu3_uapi_bnr_static_config_wb_gains_thr_config {
+> > +	__u8 gr;
+> > +	__u8 r;
+> > +	__u8 b;
+> > +	__u8 gb;
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_bnr_static_config_thr_coeffs_config - Noise model
+> > + *				coefficients that controls noise threshold
+> > + *
+> > + * @cf:	Free coefficient for threshold calculation, range [0, 8191],
+> default 0.
+> > + * @__reserved0:	reserved
+> > + * @cg:	Gain coefficient for threshold calculation, [0, 31], default 8.
+> > + * @ci:	Intensity coefficient for threshold calculation. range [0, 0x1f]
+> > + *	default 6.
+> > + * 	format: u3.2 (3 most significant bits represent whole number,
+> > + *	2 least significant bits represent the fractional part
+> > + *	with each count representing 0.25)
+> > + *	e.g 6 in binary format is 00110, that translates to 1.5
+> > + * @__reserved1:	reserved
+> > + * @r_nf:	Normalization shift value for r^2 calculation, range [12, 20]
+> > + *		where r is a radius of pixel [row, col] from centor of sensor.
+> > + *		default 14.
+> > + *
+> > + * Threshold used to distinguish between noise and details.
+> > + */
+> > +struct ipu3_uapi_bnr_static_config_thr_coeffs_config {
+> > +	__u32 cf:13;
+> > +	__u32 __reserved0:3;
+> > +	__u32 cg:5;
+> > +	__u32 ci:5;
+> > +	__u32 __reserved1:1;
+> > +	__u32 r_nf:5;
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_bnr_static_config_thr_ctrl_shd_config - Shading config
+> > + *
+> > + * @gr:	Coefficient defines lens shading gain approximation for gr
+> channel
+> > + * @r:	Coefficient defines lens shading gain approximation for r
+> channel
+> > + * @b:	Coefficient defines lens shading gain approximation for b
+> channel
+> > + * @gb:	Coefficient defines lens shading gain approximation for gb
+> channel
+> > + *
+> > + * Parameters for noise model (NM) adaptation of BNR due to shading
+> correction.
+> > + * All above have precision of u3.3, default to 0.
+> > + */
+> > +struct ipu3_uapi_bnr_static_config_thr_ctrl_shd_config {
+> > +	__u8 gr;
+> > +	__u8 r;
+> > +	__u8 b;
+> > +	__u8 gb;
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_bnr_static_config_opt_center_config - Optical center
+> config
+> > + *
+> > + * @x_reset:	Reset value of X (col start - X center). Precision s12.0.
+> > + * @__reserved0:	reserved
+> > + * @y_reset:	Reset value of Y (row start - Y center). Precision s12.0.
+> > + * @__reserved2:	reserved
+> > + *
+> > + * Distance from corner to optical center for NM adaptation due to
+> shading
+> > + * correction (should be calculated based on shading tables)
+> > + */
+> > +struct ipu3_uapi_bnr_static_config_opt_center_config {
+> > +	__s32 x_reset:13;
+> > +	__u32 __reserved0:3;
+> > +	__s32 y_reset:13;
+> > +	__u32 __reserved2:3;
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_bnr_static_config_lut_config - BNR square root lookup
+> table
+> > + *
+> > + * @values: pre-calculated values of square root function.
+> > + *
+> > + * LUT implementation of square root operation.
+> > + */
+> > +struct ipu3_uapi_bnr_static_config_lut_config {
+> > +	__u8 values[IPU3_UAPI_BNR_LUT_SIZE];
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_bnr_static_config_bp_ctrl_config - Detect bad pixels
+> (bp)
+> > + *
+> > + * @bp_thr_gain:	Defines the threshold that specifies how different a
+> > + *			defect pixel can be from its neighbors. Threshold is
+> > + *			dependent on de-noise threshold calculated by
+> algorithm.
+> > + *			Range [4, 31], default 4.
+> > + * @__reserved0:	reserved
+> > + * @defect_mode:	Mode of addressed defect pixels,
+> > + *			0 - single defect pixel is expected,
+> > + *			1 - 2 adjacent defect pixels are expected, default 1.
+> > + * @bp_gain:	Defines how 2nd derivation that passes through a
+> defect pixel
+> > + *		is different from 2nd derivations that pass through
+> > + *		neighbor pixels. u4.2, range [0, 256], default 8.
+> > + * @__reserved1:	reserved
+> > + * @w0_coeff:	Blending coefficient of defect pixel correction.
+> > + *		Precision u4, range [0, 8], default 8.
+> > + * @__reserved2:	reserved
+> > + * @w1_coeff:	Enable influence of incorrect defect pixel correction
+> to be
+> > + *		avoided. Precision u4, range [1, 8], default 8.
+> > + * @__reserved3:	reserved
+> > + */
+> > +struct ipu3_uapi_bnr_static_config_bp_ctrl_config {
+> > +	__u32 bp_thr_gain:5;
+> > +	__u32 __reserved0:2;
+> > +	__u32 defect_mode:1;
+> > +	__u32 bp_gain:6;
+> > +	__u32 __reserved1:18;
+> > +	__u32 w0_coeff:4;
+> > +	__u32 __reserved2:4;
+> > +	__u32 w1_coeff:4;
+> > +	__u32 __reserved3:20;
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_bnr_static_config_dn_detect_ctrl_config - Denoising
+> config
+> > + *
+> > + * @alpha:	Weight of central element of smoothing filter.
+> > + * @beta:	Weight of peripheral elements of smoothing filter, default 4.
+> > + * @gamma:	Weight of diagonal elements of smoothing filter, default 4.
+> > + *
+> > + * beta and gamma parameter define the strength of the noise removal
+> filter.
+> > + *		All above has precision u0.4, range [0, 0xf]
+> > + *		format: u0.4 (no / zero bits represent whole number,
+> > + *		4 bits represent the fractional part
+> > + *		with each count representing 0.0625)
+> > + *		e.g 0xf translates to 0.0625x15 = 0.9375
+> > + *
+> > + * @__reserved0:	reserved
+> > + * @max_inf:	Maximum increase of peripheral or diagonal element
+> influence
+> > + *		relative to the pre-defined value range: [0x5, 0xa]
+> > + * @__reserved1:	reserved
+> > + * @gd_enable:	Green disparity enable control, 0 - disable, 1 - enable.
+> > + * @bpc_enable:	Bad pixel correction enable control, 0 - disable, 1 -
+> enable.
+> > + * @bnr_enable:	Bayer noise removal enable control, 0 - disable, 1 -
+> enable.
+> > + * @ff_enable:	Fixed function enable, 0 - disable, 1 - enable.
+> > + * @__reserved2:	reserved
+> > + */
+> > +struct ipu3_uapi_bnr_static_config_dn_detect_ctrl_config {
+> > +	__u32 alpha:4;
+> > +	__u32 beta:4;
+> > +	__u32 gamma:4;
+> > +	__u32 __reserved0:4;
+> > +	__u32 max_inf:4;
+> > +	__u32 __reserved1:7;
+> > +	__u32 gd_enable:1;
+> > +	__u32 bpc_enable:1;
+> > +	__u32 bnr_enable:1;
+> > +	__u32 ff_enable:1;
+> > +	__u32 __reserved2:1;
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_bnr_static_config_opt_center_sqr_config - BNR optical
+> square
+> > + *
+> > + * @x_sqr_reset: Reset value of X^2.
+> > + * @y_sqr_reset: Reset value of Y^2.
+> > + *
+> > + * Please note:
+> > + *
+> > + *    #. X and Y ref to
+> > + *       &ipu3_uapi_bnr_static_config_opt_center_config
+> > + *    #. Both structs are used in threshold formula to calculate r^2, where r
+> > + *       is a radius of pixel [row, col] from centor of sensor.
+> > + */
+> > +struct ipu3_uapi_bnr_static_config_opt_center_sqr_config {
+> > +	__u32 x_sqr_reset;
+> > +	__u32 y_sqr_reset;
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_bnr_static_config - BNR static config
+> > + *
+> > + * @wb_gains:	white balance gains
+> &ipu3_uapi_bnr_static_config_wb_gains_config
+> > + * @wb_gains_thr:	white balance gains threshold as defined by
+> > + *			&ipu3_uapi_bnr_static_config_wb_gains_thr_config
+> > + * @thr_coeffs:	coefficients of threshold
+> > + *		&ipu3_uapi_bnr_static_config_thr_coeffs_config
+> > + * @thr_ctrl_shd:	control of shading threshold
+> > + *			&ipu3_uapi_bnr_static_config_thr_ctrl_shd_config
+> > + * @opt_center:	optical center
+> &ipu3_uapi_bnr_static_config_opt_center_config
+> > + *
+> > + * Above parameters and opt_center_sqr are used for white balance and
+> shading.
+> > + *
+> > + * @lut:	lookup table &ipu3_uapi_bnr_static_config_lut_config
+> > + * @bp_ctrl:	detect and remove bad pixels as defined in struct
+> > + *		&ipu3_uapi_bnr_static_config_bp_ctrl_config
+> > + * @dn_detect_ctrl:	detect and remove noise.
+> > + *			&ipu3_uapi_bnr_static_config_dn_detect_ctrl_config
+> > + * @column_size:	The number of pixels in column.
+> > + * @opt_center_sqr:	Reset value of r^2 to optical center, see
+> > + *
+> 	&ipu3_uapi_bnr_static_config_opt_center_sqr_config.
+> > + */
+> > +struct ipu3_uapi_bnr_static_config {
+> > +	struct ipu3_uapi_bnr_static_config_wb_gains_config wb_gains;
+> > +	struct ipu3_uapi_bnr_static_config_wb_gains_thr_config
+> wb_gains_thr;
+> > +	struct ipu3_uapi_bnr_static_config_thr_coeffs_config thr_coeffs;
+> > +	struct ipu3_uapi_bnr_static_config_thr_ctrl_shd_config thr_ctrl_shd;
+> > +	struct ipu3_uapi_bnr_static_config_opt_center_config opt_center;
+> > +	struct ipu3_uapi_bnr_static_config_lut_config lut;
+> > +	struct ipu3_uapi_bnr_static_config_bp_ctrl_config bp_ctrl;
+> > +	struct ipu3_uapi_bnr_static_config_dn_detect_ctrl_config
+> dn_detect_ctrl;
+> > +	__u32 column_size;
+> > +	struct ipu3_uapi_bnr_static_config_opt_center_sqr_config
+> opt_center_sqr;
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_bnr_static_config_green_disparity - Correct green
+> disparity
+> > + *
+> > + * @gd_red:	Shading gain coeff for gr disparity level in bright red region.
+> > + *		Precision u0.6, default 4(0.0625).
+> > + * @__reserved0:	reserved
+> > + * @gd_green:	Shading gain coeff for gr disparity level in bright
+> green
+> > + *		region. Precision u0.6, default 4(0.0625).
+> > + * @__reserved1:	reserved
+> > + * @gd_blue:	Shading gain coeff for gr disparity level in bright blue
+> region.
+> > + *		Precision u0.6, default 4(0.0625).
+> > + * @__reserved2:	reserved
+> > + * @gd_black:	Maximal green disparity level in dark region (stronger
+> disparity
+> > + *		assumed to be image detail). Precision u14, default 80.
+> > + * @__reserved3:	reserved
+> > + * @gd_shading:	Change maximal green disparity level according to
+> square
+> > + *		distance from image center.
+> > + * @__reserved4:	reserved
+> > + * @gd_support:	Lower bound for the number of second green color
+> pixels in
+> > + *		current pixel neighborhood with less than threshold
+> difference
+> > + *		from it.
+> > + *
+> > + * The shading gain coeff of red, green, blue and black are used to
+> calculate
+> > + * threshold given a pixel's color value and its coordinates in the image.
+> > + *
+> > + * @__reserved5:	reserved
+> > + * @gd_clip:	Turn green disparity clip on/off, [0, 1], default 1.
+> > + * @gd_central_weight:	Central pixel weight in 9 pixels weighted sum.
+> > + */
+> > +struct ipu3_uapi_bnr_static_config_green_disparity {
+> > +	__u32 gd_red:6;
+> > +	__u32 __reserved0:2;
+> > +	__u32 gd_green:6;
+> > +	__u32 __reserved1:2;
+> > +	__u32 gd_blue:6;
+> > +	__u32 __reserved2:10;
+> > +	__u32 gd_black:14;
+> > +	__u32 __reserved3:2;
+> > +	__u32 gd_shading:7;
+> > +	__u32 __reserved4:1;
+> > +	__u32 gd_support:2;
+> > +	__u32 __reserved5:1;
+> > +	__u32 gd_clip:1;
+> > +	__u32 gd_central_weight:4;
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_dm_config - De-mosaic parameters
+> > + *
+> > + * @dm_en:	de-mosaic enable.
+> > + * @ch_ar_en:	Checker artifacts removal enable flag. Default 0.
+> > + * @fcc_en:	False color correction (FCC) enable flag. Default 0.
+> > + * @__reserved0:	reserved
+> > + * @frame_width:	do not care
+> > + * @gamma_sc:	Sharpening coefficient (coefficient of 2-d derivation
+> of
+> > + *		complementary color in Hamilton-Adams interpolation).
+> > + *		u5, range [0, 31], default 8.
+> > + * @__reserved1:	reserved
+> > + * @lc_ctrl:	Parameter that controls weights of Chroma Homogeneity
+> metric
+> > + *		in calculation of final homogeneity metric.
+> > + *		u5, range [0, 31], default 7.
+> > + * @__reserved2:	reserved
+> > + * @cr_param1:	First parameter that defines Checker artifact removal
+> > + *		feature gain.Precision u5, range [0, 31], default 8.
+> > + * @__reserved3:	reserved
+> > + * @cr_param2:	Second parameter that defines Checker artifact
+> removal
+> > + *		feature gain. Precision u5, range [0, 31], default 8.
+> > + * @__reserved4:	reserved
+> > + * @coring_param:	Defines power of false color correction operation.
+> > + *			low for preserving edge colors, high for preserving
+> gray
+> > + *			edge artifacts. u1.4, range [0, 1.9375], default 4(0.25).
+> > + * @__reserved5:	reserved
+> > + *
+> > + * The demosaic fixed function block is responsible to covert
+> Bayer(mosaiced)
+> > + * images into color images based on demosaicing algorithm.
+> > + */
+> > +struct ipu3_uapi_dm_config {
+> > +	__u32 dm_en:1;
+> > +	__u32 ch_ar_en:1;
+> > +	__u32 fcc_en:1;
+> > +	__u32 __reserved0:13;
+> > +	__u32 frame_width:16;
+> > +
+> > +	__u32 gamma_sc:5;
+> > +	__u32 __reserved1:3;
+> > +	__u32 lc_ctrl:5;
+> > +	__u32 __reserved2:3;
+> > +	__u32 cr_param1:5;
+> > +	__u32 __reserved3:3;
+> > +	__u32 cr_param2:5;
+> > +	__u32 __reserved4:3;
+> > +
+> > +	__u32 coring_param:5;
+> > +	__u32 __reserved5:27;
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_ccm_mat_config - Color correction matrix
+> > + *
+> > + * @coeff_m11: CCM 3x3 coefficient, range [-65536, 65535]
+> > + * @coeff_m12: CCM 3x3 coefficient, range [-8192, 8191]
+> > + * @coeff_m13: CCM 3x3 coefficient, range [-32768, 32767]
+> > + * @coeff_o_r: Bias 3x1 coefficient, range [-8191, 8181]
+> > + * @coeff_m21: CCM 3x3 coefficient, range [-32767, 32767]
+> > + * @coeff_m22: CCM 3x3 coefficient, range [-8192, 8191]
+> > + * @coeff_m23: CCM 3x3 coefficient, range [-32768, 32767]
+> > + * @coeff_o_g: Bias 3x1 coefficient, range [-8191, 8181]
+> > + * @coeff_m31: CCM 3x3 coefficient, range [-32768, 32767]
+> > + * @coeff_m32: CCM 3x3 coefficient, range [-8192, 8191]
+> > + * @coeff_m33: CCM 3x3 coefficient, range [-32768, 32767]
+> > + * @coeff_o_b: Bias 3x1 coefficient, range [-8191, 8181]
+> > + *
+> > + * Transform sensor specific color space to standard sRGB by applying 3x3
+> matrix
+> > + * and adding a bias vector O. The transformation is basically a rotation
+> and
+> > + * translation in the 3-dimensional color spaces. Here are the defaults:
+> > + *
+> > + *	9775,	-2671,	1087,	0
+> > + *	-1071,	8303,	815,	0
+> > + *	-23,	-7887,	16103,	0
+> > + */
+> > +struct ipu3_uapi_ccm_mat_config {
+> > +	__s16 coeff_m11;
+> > +	__s16 coeff_m12;
+> > +	__s16 coeff_m13;
+> > +	__s16 coeff_o_r;
+> > +	__s16 coeff_m21;
+> > +	__s16 coeff_m22;
+> > +	__s16 coeff_m23;
+> > +	__s16 coeff_o_g;
+> > +	__s16 coeff_m31;
+> > +	__s16 coeff_m32;
+> > +	__s16 coeff_m33;
+> > +	__s16 coeff_o_b;
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_gamma_corr_ctrl - Gamma correction
+> > + *
+> > + * @enable: gamma correction enable.
+> > + * @__reserved: reserved
+> > + */
+> > +struct ipu3_uapi_gamma_corr_ctrl {
+> > +	__u32 enable:1;
+> > +	__u32 __reserved:31;
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_gamma_corr_lut - Per-pixel tone mapping
+> implemented as LUT.
+> > + *
+> > + * @lut:	256 tabulated values of the gamma function. LUT[1]..
+> LUT[256]
+> > + *		format u13.0, range [0, 8191].
+> > + *
+> > + * The tone mapping operation is done by a Piece wise linear graph
+> > + * that is implemented as a lookup table(LUT). The pixel component input
+> > + * intensity is the X-axis of the graph which is the table entry.
+> > + */
+> > +struct ipu3_uapi_gamma_corr_lut {
+> > +	__u16 lut[IPU3_UAPI_GAMMA_CORR_LUT_ENTRIES];
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_gamma_config - Gamma config
+> > + *
+> > + * @gc_ctrl: control of gamma correction &ipu3_uapi_gamma_corr_ctrl
+> > + * @gc_lut: lookup table of gamma correction
+> &ipu3_uapi_gamma_corr_lut
+> > + */
+> > +struct ipu3_uapi_gamma_config {
+> > +	struct ipu3_uapi_gamma_corr_ctrl gc_ctrl
+> __attribute__((aligned(32)));
+> > +	struct ipu3_uapi_gamma_corr_lut gc_lut __attribute__((aligned(32)));
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_csc_mat_config - Color space conversion matrix config
+> > + *
+> > + * @coeff_c11:	Conversion matrix value, format s0.14, range [-1, 1],
+> default 1.
+> 
+> You can't represent 1; it's 8191/8192. How about [-1, 1[ ?
+> 
+> Is the default 1 or 8191? The numerical value is used elsewhere but here
+> it seems that this might not be the case. The same for other cases below.
+> 
+
+For C11, the default is 4898 (which 0.299 * 2^ 14), will update the defaults and range for this struct.
+
+> > + * @coeff_c12:	Conversion matrix value, format s0.14, range [-1, 1],
+> default 0.
+> > + * @coeff_c13:	Conversion matrix value, format s0.14, range [-1, 1],
+> default 0.
+> > + * @coeff_b1:	Bias 3x1 coefficient, s13,0 range [-8191, 8181],
+> default 0.
+> > + * @coeff_c21:	Conversion matrix value, format s0.14, range [-1, 1],
+> default 0.
+> > + * @coeff_c22:	Conversion matrix value, format s0.14, range [-1, 1],
+> default 1.
+> > + * @coeff_c23:	Conversion matrix value, format s0.14, range [-1, 1],
+> default 0.
+> > + * @coeff_b2:	Bias 3x1 coefficient, s13,0 range [-8191, 8181],
+> default 0.
+> > + * @coeff_c31:	Conversion matrix value, format s0.14, range [-1, 1],
+> default 0.
+> > + * @coeff_c32:	Conversion matrix value, format s0.14, range [-1, 1],
+> default 0.
+> > + * @coeff_c33:	Conversion matrix value, format s0.14, range [-1, 1],
+> default 1.
+> > + * @coeff_b3:	Bias 3x1 coefficient, s13,0 range [-8191, 8181],
+> default 0.
+> > + *
+> > + * To transform each pixel from RGB to YUV (Y - brightness/luminance,
+> > + * UV -chroma) by applying the pixel's values by a 3x3 matrix and adding
+> an
+> > + * optional bias 3x1 vector.
+> > + */
+> > +struct ipu3_uapi_csc_mat_config {
+> > +	__s16 coeff_c11;
+> > +	__s16 coeff_c12;
+> > +	__s16 coeff_c13;
+> > +	__s16 coeff_b1;
+> > +	__s16 coeff_c21;
+> > +	__s16 coeff_c22;
+> > +	__s16 coeff_c23;
+> > +	__s16 coeff_b2;
+> > +	__s16 coeff_c31;
+> > +	__s16 coeff_c32;
+> > +	__s16 coeff_c33;
+> > +	__s16 coeff_b3;
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_cds_params - Chroma down-scaling
+> > + *
+> > + * @ds_c00:	range [0, 3]
+> > + * @ds_c01:	range [0, 3]
+> > + * @ds_c02:	range [0, 3]
+> > + * @ds_c03:	range [0, 3]
+> > + * @ds_c10:	range [0, 3]
+> > + * @ds_c11:	range [0, 3]
+> > + * @ds_c12:	range [0, 3]
+> > + * @ds_c13:	range [0, 3]
+> > + *
+> > + * In case user does not provide, above 4x2 filter will use following
+> defaults:
+> > + *	1, 3, 3, 1,
+> > + *	1, 3, 3, 1,
+> > + *
+> > + * @ds_nf:	Normalization factor for Chroma output downscaling filter,
+> > + *		range 0,4, default 2.
+> > + * @__reserved0:	reserved
+> > + * @csc_en:	Color space conversion enable
+> > + * @uv_bin_output:	0: output YUV 4.2.0, 1: output YUV 4.2.2(default).
+> > + * @__reserved1:	reserved
+> > + */
+> > +struct ipu3_uapi_cds_params {
+> > +	__u32 ds_c00:2;
+> > +	__u32 ds_c01:2;
+> > +	__u32 ds_c02:2;
+> > +	__u32 ds_c03:2;
+> > +	__u32 ds_c10:2;
+> > +	__u32 ds_c11:2;
+> > +	__u32 ds_c12:2;
+> > +	__u32 ds_c13:2;
+> > +	__u32 ds_nf:5;
+> > +	__u32 __reserved0:3;
+> > +	__u32 csc_en:1;
+> > +	__u32 uv_bin_output:1;
+> > +	__u32 __reserved1:6;
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_shd_grid_config - Bayer shading(darkening) correction
+> > + *
+> > + * @width:	Grid horizontal dimensions, u8, [8, 128], default 73
+> > + * @height:	Grid vertical dimensions, u8, [8, 128], default 56
+> > + * @block_width_log2:	Log2 of the width of the grid cell in pixel
+> count
+> > + *			u4, [0, 15], default value 5.
+> > + * @__reserved0:	reserved
+> > + * @block_height_log2:	Log2 of the height of the grid cell in pixel
+> count
+> > + *			u4, [0, 15], default value 6.
+> > + * @__reserved1:	reserved
+> > + * @grid_height_per_slice:	SHD_MAX_CELLS_PER_SET/width.
+> > + *				(with SHD_MAX_CELLS_PER_SET = 146).
+> > + * @x_start:	X value of top left corner of sensor relative to ROI
+> > + *		u12, [-4096, 0]. default 0, only negative values.
+> > + * @y_start:	Y value of top left corner of sensor relative to ROI
+> > + *		u12, [-4096, 0]. default 0, only negative values.
+> 
+> I suppose u12 is incorrect here, if the value is signed --- and negative
+> (sign bit) if not 0?
+>  
+
+The value will be written to 13 bit register, should use s12.0. 
+
+> > + */
+> > +struct ipu3_uapi_shd_grid_config {
+> > +	/* reg 0 */
+> > +	__u8 width;
+> > +	__u8 height;
+> > +	__u8 block_width_log2:3;
+> > +	__u8 __reserved0:1;
+> > +	__u8 block_height_log2:3;
+> > +	__u8 __reserved1:1;
+> > +	__u8 grid_height_per_slice;
+> > +	/* reg 1 */
+> > +	__s16 x_start;
+> > +	__s16 y_start;
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_shd_general_config - Shading general config
+> > + *
+> > + * @init_set_vrt_offst_ul: set vertical offset,
+> > + *			y_start >> block_height_log2 % grid_height_per_slice.
+> > + * @shd_enable: shading enable.
+> > + * @gain_factor: Gain factor. Shift calculated anti shading value. Precision
+> u2.
+> > + *		0x0 - gain factor [1, 5], means no shift interpolated value.
+> > + *		0x1 - gain factor [1, 9], means shift interpolated by 1.
+> > + *		0x2 - gain factor [1, 17], means shift interpolated by 2.
+> > + * @__reserved: reserved
+> > + *
+> > + * Correction is performed by multiplying a gain factor for each of the 4
+> Bayer
+> > + * channels as a function of the pixel location in the sensor.
+> > + */
+> > +struct ipu3_uapi_shd_general_config {
+> > +	__u32 init_set_vrt_offst_ul:8;
+> > +	__u32 shd_enable:1;
+> > +	__u32 gain_factor:2;
+> > +	__u32 __reserved:21;
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_shd_black_level_config - Black level correction
+> > + *
+> > + * @bl_r:	Bios values for green red. s11 range [-2048, 2047].
+> > + * @bl_gr:	Bios values for green blue. s11 range [-2048, 2047].
+> > + * @bl_gb:	Bios values for red. s11 range [-2048, 2047].
+> > + * @bl_b:	Bios values for blue. s11 range [-2048, 2047].
+> > + */
+> > +struct ipu3_uapi_shd_black_level_config {
+> > +	__s16 bl_r;
+> > +	__s16 bl_gr;
+> > +	__s16 bl_gb;
+> > +	__s16 bl_b;
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_shd_config_static - Shading config static
+> > + *
+> > + * @grid:	shading grid config &ipu3_uapi_shd_grid_config
+> > + * @general:	shading general config &ipu3_uapi_shd_general_config
+> > + * @black_level:	black level config for shading correction as defined by
+> > + *			&ipu3_uapi_shd_black_level_config
+> > + */
+> > +struct ipu3_uapi_shd_config_static {
+> > +	struct ipu3_uapi_shd_grid_config grid;
+> > +	struct ipu3_uapi_shd_general_config general;
+> > +	struct ipu3_uapi_shd_black_level_config black_level;
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_shd_lut - Shading gain factor lookup table.
+> > + *
+> > + * @sets: array
+> > + * @sets.r_and_gr: Red and GreenR Lookup table.
+> > + * @sets.r_and_gr.r: Red shading factor.
+> > + * @sets.r_and_gr.gr: GreenR shading factor.
+> > + * @sets.__reserved1: reserved
+> > + * @sets.gb_and_b: GreenB and Blue Lookup table.
+> > + * @sets.gb_and_b.gb: GreenB shading factor.
+> > + * @sets.gb_and_b.b: Blue shading factor.
+> > + * @sets.__reserved2: reserved
+> > + *
+> > + * Map to shading correction LUT register set.
+> > + */
+> > +struct ipu3_uapi_shd_lut {
+> > +	struct {
+> > +		struct {
+> > +			__u16 r;
+> > +			__u16 gr;
+> > +		} r_and_gr[IPU3_UAPI_SHD_MAX_CELLS_PER_SET];
+> > +		__u8 __reserved1[24];
+> > +		struct {
+> > +			__u16 gb;
+> > +			__u16 b;
+> > +		} gb_and_b[IPU3_UAPI_SHD_MAX_CELLS_PER_SET];
+> > +		__u8 __reserved2[24];
+> > +	} sets[IPU3_UAPI_SHD_MAX_CFG_SETS];
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_shd_config - Shading config
+> > + *
+> > + * @shd:	shading static config, see &ipu3_uapi_shd_config_static
+> > + * @shd_lut:	shading lookup table &ipu3_uapi_shd_lut
+> > + */
+> > +struct ipu3_uapi_shd_config {
+> > +	struct ipu3_uapi_shd_config_static shd __attribute__((aligned(32)));
+> > +	struct ipu3_uapi_shd_lut shd_lut __attribute__((aligned(32)));
+> > +} __packed;
+> > +
+> > +/* Image Enhancement Filter directed */
+> > +
+> > +/**
+> > + * struct ipu3_uapi_iefd_cux2 - IEFd Config Unit 2 parameters
+> > + *
+> > + * @x0:		X0 point of Config Unit, u9.0, default 0.
+> > + * @x1:		X1 point of Config Unit, u9.0, default 0.
+> > + * @a01:	Slope A of Config Unit, s4.4, default 0.
+> > + * @b01:	Always 0.
+> > + *
+> > + * Calculate weight for blending directed and non-directed denoise
+> elements
+> > + *
+> > + * Note:
+> > + * Each instance of Config Unit needs X coordinate of n points and
+> > + * slope A factor between points calculated by driver based on calibration
+> > + * parameters.
+> > + */
+> > +struct ipu3_uapi_iefd_cux2 {
+> > +	__u32 x0:9;
+> > +	__u32 x1:9;
+> > +	__u32 a01:9;
+> > +	__u32 b01:5;	/* NOTE: hardcoded to zero */
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_iefd_cux6_ed - Calculate power of non-directed
+> sharpening
+> > + *				   element, Config Unit 6 for edge detail (ED).
+> > + *
+> > + * @x0:	X coordinate of point 0, u9.0, default 0.
+> > + * @x1:	X coordinate of point 1, u9.0, default 0.
+> > + * @x2:	X coordinate of point 2, u9.0, default 0.
+> > + * @__reserved0:	reserved
+> > + * @x3:	X coordinate of point 3, u9.0, default 0.
+> > + * @x4:	X coordinate of point 4, u9.0, default 0.
+> > + * @x5:	X coordinate of point 5, u9.0, default 0.
+> > + * @__reserved1:	reserved
+> > + * @a01:	slope A points 01, s4.4, default 0.
+> > + * @a12:	slope A points 12, s4.4, default 0.
+> > + * @a23:	slope A points 23, s4.4, default 0.
+> > + * @__reserved2:	reserved
+> > + * @a34:	slope A points 34, s4.4, default 0.
+> > + * @a45:	slope A points 45, s4.4, default 0.
+> > + * @__reserved3:	reserved
+> > + * @b01:	slope B points 01, s4.4, default 0.
+> > + * @b12:	slope B points 12, s4.4, default 0.
+> > + * @b23:	slope B points 23, s4.4, default 0.
+> > + * @__reserved4:	reserved
+> > + * @b34:	slope B points 34, s4.4, default 0.
+> > + * @b45:	slope B points 45, s4.4, default 0.
+> > + * @__reserved5:	reserved
+> > + */
+> > +struct ipu3_uapi_iefd_cux6_ed {
+> > +	__u32 x0:9;
+> > +	__u32 x1:9;
+> > +	__u32 x2:9;
+> > +	__u32 __reserved0:5;
+> > +
+> > +	__u32 x3:9;
+> > +	__u32 x4:9;
+> > +	__u32 x5:9;
+> > +	__u32 __reserved1:5;
+> > +
+> > +	__u32 a01:9;
+> > +	__u32 a12:9;
+> > +	__u32 a23:9;
+> > +	__u32 __reserved2:5;
+> > +
+> > +	__u32 a34:9;
+> > +	__u32 a45:9;
+> > +	__u32 __reserved3:14;
+> > +
+> > +	__u32 b01:9;
+> > +	__u32 b12:9;
+> > +	__u32 b23:9;
+> > +	__u32 __reserved4:5;
+> > +
+> > +	__u32 b34:9;
+> > +	__u32 b45:9;
+> > +	__u32 __reserved5:14;
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_iefd_cux2_1 - Calculate power of non-directed denoise
+> > + *				  element apply.
+> > + * @x0: X0 point of Config Unit, u9.0, default 0.
+> > + * @x1: X1 point of Config Unit, u9.0, default 0.
+> > + * @a01: Slope A of Config Unit, s4.4, default 0.
+> 
+> The field is marked unsigned below. Which one is correct?
+> 
+
+They are both correct, however, s4.4 is the internal representation used by CU, the inputs are unsigned, I will add a note in v8, same applies to the few other places as you commented.   
+
+> > + * @__reserved1: reserved
+> > + * @b01: offset B0 of Config Unit, u7.0, default 0.
+> > + * @__reserved2: reserved
+> > + */
+> > +struct ipu3_uapi_iefd_cux2_1 {
+> > +	__u32 x0:9;
+> > +	__u32 x1:9;
+> > +	__u32 a01:9;
+> > +	__u32 __reserved1:5;
+> > +
+> > +	__u32 b01:8;
+> > +	__u32 __reserved2:24;
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_iefd_cux4 - Calculate power of non-directed
+> sharpening
+> > + *				element.
+> > + *
+> > + * @x0:	X0 point of Config Unit, u9.0, default 0.
+> > + * @x1:	X1 point of Config Unit, u9.0, default 0.
+> > + * @x2:	X2 point of Config Unit, u9.0, default 0.
+> > + * @__reserved0:	reserved
+> > + * @x3:	X3 point of Config Unit, u9.0, default 0.
+> > + * @a01:	Slope A0 of Config Unit, s4.4, default 0.
+> > + * @a12:	Slope A1 of Config Unit, s4.4, default 0.
+> 
+> Same here, suggest __s32 below if this is signed.
+> 
+
+Ack, same reason as ipu3_uapi_iefd_cux2_1, will add a comments.
+
+> > + * @__reserved1:	reserved
+> > + * @a23:	Slope A2 of Config Unit, s4.4, default 0.
+> > + * @b01:	Offset B0 of Config Unit, s7.0, default 0.
+> > + * @b12:	Offset B1 of Config Unit, s7.0, default 0.
+> > + * @__reserved2:	reserved
+> > + * @b23:	Offset B2 of Config Unit, s7.0, default 0.
+> > + * @__reserved3: reserved
+> > + */
+> > +struct ipu3_uapi_iefd_cux4 {
+> > +	__u32 x0:9;
+> > +	__u32 x1:9;
+> > +	__u32 x2:9;
+> > +	__u32 __reserved0:5;
+> > +
+> > +	__u32 x3:9;
+> > +	__u32 a01:9;
+> > +	__u32 a12:9;
+> > +	__u32 __reserved1:5;
+> > +
+> > +	__u32 a23:9;
+> > +	__u32 b01:8;
+> > +	__u32 b12:8;
+> > +	__u32 __reserved2:7;
+> > +
+> > +	__u32 b23:8;
+> > +	__u32 __reserved3:24;
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_iefd_cux6_rad - Radial Config Unit (CU)
+> > + *
+> > + * @x0:	x0 points of Config Unit radial, u8.0
+> > + * @x1:	x1 points of Config Unit radial, u8.0
+> > + * @x2:	x2 points of Config Unit radial, u8.0
+> > + * @x3:	x3 points of Config Unit radial, u8.0
+> > + * @x4:	x4 points of Config Unit radial, u8.0
+> > + * @x5:	x5 points of Config Unit radial, u8.0
+> > + * @__reserved1: reserved
+> > + * @a01:	Slope A of Config Unit radial, s7.8
+> > + * @a12:	Slope A of Config Unit radial, s7.8
+> > + * @a23:	Slope A of Config Unit radial, s7.8
+> > + * @a34:	Slope A of Config Unit radial, s7.8
+> > + * @a45:	Slope A of Config Unit radial, s7.8
+> > + * @__reserved2: reserved
+> > + * @b01:	Slope B of Config Unit radial, s9.0
+> > + * @b12:	Slope B of Config Unit radial, s9.0
+> > + * @b23:	Slope B of Config Unit radial, s9.0
+> > + * @__reserved4: reserved
+> > + * @b34:	Slope B of Config Unit radial, s9.0
+> > + * @b45:	Slope B of Config Unit radial, s9.0
+> > + * @__reserved5: reserved
+> > + */
+> > +struct ipu3_uapi_iefd_cux6_rad {
+> > +	__u32 x0:8;
+> > +	__u32 x1:8;
+> > +	__u32 x2:8;
+> > +	__u32 x3:8;
+> > +
+> > +	__u32 x4:8;
+> > +	__u32 x5:8;
+> > +	__u32 __reserved1:16;
+> > +
+> > +	__u32 a01:16;
+> > +	__u32 a12:16;
+> > +
+> > +	__u32 a23:16;
+> > +	__u32 a34:16;
+> > +
+> > +	__u32 a45:16;
+> > +	__u32 __reserved2:16;
+> > +
+> > +	__u32 b01:10;
+> > +	__u32 b12:10;
+> > +	__u32 b23:10;
+> > +	__u32 __reserved4:2;
+> > +
+> > +	__u32 b34:10;
+> > +	__u32 b45:10;
+> > +	__u32 __reserved5:12;
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_yuvp1_iefd_cfg_units - IEFd Config Units parameters
+> > + *
+> > + * @cu_1: calculate weight for blending directed and
+> > + *	  non-directed denoise elements. See &ipu3_uapi_iefd_cux2
+> > + * @cu_ed: calculate power of non-directed sharpening element, see
+> > + *	   &ipu3_uapi_iefd_cux6_ed
+> > + * @cu_3: calculate weight for blending directed and
+> > + *	  non-directed denoise elements. A &ipu3_uapi_iefd_cux2
+> > + * @cu_5: calculate power of non-directed denoise element apply, use
+> > + *	  &ipu3_uapi_iefd_cux2_1
+> > + * @cu_6: calculate power of non-directed sharpening element. See
+> > + *	  &ipu3_uapi_iefd_cux4
+> > + * @cu_7: calculate weight for blending directed and
+> > + *	  non-directed denoise elements. Use &ipu3_uapi_iefd_cux2
+> > + * @cu_unsharp: Config Unit of unsharp &ipu3_uapi_iefd_cux4
+> > + * @cu_radial: Config Unit of radial &ipu3_uapi_iefd_cux6_rad
+> > + * @cu_vssnlm: Config Unit of vssnlm &ipu3_uapi_iefd_cux2
+> > + */
+> > +struct ipu3_uapi_yuvp1_iefd_cfg_units {
+> > +	struct ipu3_uapi_iefd_cux2 cu_1;
+> > +	struct ipu3_uapi_iefd_cux6_ed cu_ed;
+> > +	struct ipu3_uapi_iefd_cux2 cu_3;
+> > +	struct ipu3_uapi_iefd_cux2_1 cu_5;
+> > +	struct ipu3_uapi_iefd_cux4 cu_6;
+> > +	struct ipu3_uapi_iefd_cux2 cu_7;
+> > +	struct ipu3_uapi_iefd_cux4 cu_unsharp;
+> > +	struct ipu3_uapi_iefd_cux6_rad cu_radial;
+> > +	struct ipu3_uapi_iefd_cux2 cu_vssnlm;
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_yuvp1_iefd_config_s - IEFd config
+> > + *
+> > + * @horver_diag_coeff: Gradiant compensation, coefficient that
+> compensates for
+> > + *		       different distance for vertical / horizontal and diagonal
+> > + *		       * gradient calculation (~1/sqrt(2)).
+> > + * @__reserved0: reserved
+> > + * @clamp_stitch: Slope to stitch between clamped and unclamped edge
+> values
+> > + * @__reserved1: reserved
+> > + * @direct_metric_update: Update coeff for direction metric
+> > + * @__reserved2: reserved
+> > + * @ed_horver_diag_coeff: Radial Coefficient that compensates for
+> > + *			  different distance for vertical/horizontal and
+> > + *			  diagonal gradient calculation (~1/sqrt(2))
+> > + * @__reserved3: reserved
+> > + */
+> > +struct ipu3_uapi_yuvp1_iefd_config_s {
+> > +	__u32 horver_diag_coeff:7;
+> > +	__u32 __reserved0:1;
+> > +	__u32 clamp_stitch:6;
+> > +	__u32 __reserved1:2;
+> > +	__u32 direct_metric_update:5;
+> > +	__u32 __reserved2:3;
+> > +	__u32 ed_horver_diag_coeff:7;
+> > +	__u32 __reserved3:1;
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_yuvp1_iefd_control - IEFd control
+> > + *
+> > + * @iefd_en:	Enable IEFd
+> > + * @denoise_en:	Enable denoise
+> > + * @direct_smooth_en:	Enable directional smooth
+> > + * @rad_en:	Enable radial update
+> > + * @vssnlm_en:	Enable VSSNLM output filter
+> > + * @__reserved:	reserved
+> > + */
+> > +struct ipu3_uapi_yuvp1_iefd_control {
+> > +	__u32 iefd_en:1;
+> > +	__u32 denoise_en:1;
+> > +	__u32 direct_smooth_en:1;
+> > +	__u32 rad_en:1;
+> > +	__u32 vssnlm_en:1;
+> > +	__u32 __reserved:27;
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_sharp_cfg - Sharpening config
+> > + *
+> > + * @nega_lmt_txt: Sharpening limit for negative overshoots for texture.
+> > + * @__reserved0: reserved
+> > + * @posi_lmt_txt: Sharpening limit for positive overshoots for texture.
+> > + * @__reserved1: reserved
+> > + * @nega_lmt_dir: Sharpening limit for negative overshoots for direction
+> (edge).
+> > + * @__reserved2: reserved
+> > + * @posi_lmt_dir: Sharpening limit for positive overshoots for direction
+> (edge).
+> > + * @__reserved3: reserved
+> > + *
+> > + * Fixed point type u13.0, range [0, 8191].
+> > + */
+> > +struct ipu3_uapi_sharp_cfg {
+> > +	__u32 nega_lmt_txt:13;
+> > +	__u32 __reserved0:19;
+> > +	__u32 posi_lmt_txt:13;
+> > +	__u32 __reserved1:19;
+> > +	__u32 nega_lmt_dir:13;
+> > +	__u32 __reserved2:19;
+> > +	__u32 posi_lmt_dir:13;
+> > +	__u32 __reserved3:19;
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct struct ipu3_uapi_far_w - Sharpening config for far sub-group
+> > + *
+> > + * @dir_shrp:	Weight of wide direct sharpening, u1.6, range [0, 64],
+> default 64.
+> > + * @__reserved0:	reserved
+> > + * @dir_dns:	Weight of wide direct denoising, u1.6, range [0, 64],
+> default 0.
+> > + * @__reserved1:	reserved
+> > + * @ndir_dns_powr:	Power of non-direct denoising,
+> > + *			Precision u1.6, range [0, 64], default 64.
+> > + * @__reserved2:	reserved
+> > + */
+> > +struct ipu3_uapi_far_w {
+> > +	__u32 dir_shrp:7;
+> > +	__u32 __reserved0:1;
+> > +	__u32 dir_dns:7;
+> > +	__u32 __reserved1:1;
+> > +	__u32 ndir_dns_powr:7;
+> > +	__u32 __reserved2:9;
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct struct ipu3_uapi_unsharp_cfg - Unsharp config
+> > + *
+> > + * @unsharp_weight: Unsharp mask blending weight.
+> > + *		    u1.6, range [0, 64], default 16.
+> > + *		    0 - disabled, 64 - use only unsharp.
+> > + * @__reserved0: reserved
+> > + * @unsharp_amount: Unsharp mask amount, u4.5, range [0, 511],
+> default 0.
+> > + * @__reserved1: reserved
+> > + */
+> > +struct ipu3_uapi_unsharp_cfg {
+> > +	__u32 unsharp_weight:7;
+> > +	__u32 __reserved0:1;
+> > +	__u32 unsharp_amount:9;
+> > +	__u32 __reserved1:15;
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_yuvp1_iefd_shrp_cfg - IEFd sharpness config
+> > + *
+> > + * @cfg: sharpness config &ipu3_uapi_sharp_cfg
+> > + * @far_w: wide range config, value as specified by &ipu3_uapi_far_w:
+> > + *	The 5x5 environment is separated into 2 sub-groups, the 3x3 nearest
+> > + *	neighbors (8 pixels called Near), and the second order neighborhood
+> > + *	around them (16 pixels called Far).
+> > + * @unshrp_cfg: unsharpness config. &ipu3_uapi_unsharp_cfg
+> > + */
+> > +struct ipu3_uapi_yuvp1_iefd_shrp_cfg {
+> > +	struct ipu3_uapi_sharp_cfg cfg;
+> > +	struct ipu3_uapi_far_w far_w;
+> > +	struct ipu3_uapi_unsharp_cfg unshrp_cfg;
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_unsharp_coef0 - Unsharp mask coefficients
+> > + *
+> > + * @c00: Coeff11, s0.8, range [-255, 255], default 1.
+> > + * @c01: Coeff12, s0.8, range [-255, 255], default 5.
+> > + * @c02: Coeff13, s0.8, range [-255, 255], default 9.
+> > + * @__reserved: reserved
+> > + *
+> > + * Configurable registers for common sharpening support.
+> > + */
+> > +struct ipu3_uapi_unsharp_coef0 {
+> > +	__u32 c00:9;
+> > +	__u32 c01:9;
+> > +	__u32 c02:9;
+> > +	__u32 __reserved:5;
+> 
+> __s32?
+> 
+
+Will add a note, same as ipu3_uapi_iefd_cux2_1.
+
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_unsharp_coef1 - Unsharp mask coefficients
+> > + *
+> > + * @c11: Coeff22, s0.8, range [-255, 255], default 29.
+> > + * @c12: Coeff23, s0.8, range [-255, 255], default 55.
+> > + * @c22: Coeff33, s0.8, range [-255, 255], default 96.
+> > + * @__reserved: reserved
+> > + */
+> > +struct ipu3_uapi_unsharp_coef1 {
+> > +	__u32 c11:9;
+> > +	__u32 c12:9;
+> > +	__u32 c22:9;
+> 
+> __s32?
+> 
+
+Ack.
+
+> > +	__u32 __reserved:5;
+> > +} __packed;
+> > +
+> > +/**
+> > + * struct ipu3_uapi_yuvp1_iefd_unshrp_cfg - Unsharp mask config
+> > + *
+> > + * @unsharp_coef0: unsharp coefficient 0 config. See
+> &ipu3_uapi_unsharp_coef0
+> > + * @unsharp_coef1: unsharp coefficient 1 config. See
+> &ipu3_uapi_unsharp_coef1
+> > + */
+> > +struct ipu3_uapi_yuvp1_iefd_unshrp_cfg {
+> > +	struct ipu3_uapi_unsharp_coef0 unsharp_coef0;
+> > +	struct ipu3_uapi_unsharp_coef1 unsharp_coef1;
+> > +} __packed;
+> > +
+> 
+> ...
+> 
+> > +/**
+> > + * struct ipu3_uapi_isp_lin_vmem_params - Linearization parameters
+> > + *
+> > + * @lin_lutlow_gr: linearization look-up table for GR channel interpolation.
+> > + * @lin_lutlow_r: linearization look-up table for R channel interpolation.
+> > + * @lin_lutlow_b: linearization look-up table for B channel interpolation.
+> > + * @lin_lutlow_gb: linearization look-up table for GB channel interpolation.
+> > + *			lin_lutlow_gr / lin_lutlow_gr / lin_lutlow_gr /
+> 
+> Copy & paste issue here? Should the postfixes be gr, r, b and gb instead?
+> 
+
+Ack.
+
+It's a long file, thanks a lot for your time.
+
+Yong
+
+> > + *			lin_lutlow_gr <= LIN_MAX_VALUE - 1.
+> > + * @lin_lutdif_gr:	lin_lutlow_gr[i+1] - lin_lutlow_gr[i].
+> > + * @lin_lutdif_r:	lin_lutlow_r[i+1] - lin_lutlow_r[i].
+> > + * @lin_lutdif_b:	lin_lutlow_b[i+1] - lin_lutlow_b[i].
+> > + * @lin_lutdif_gb:	lin_lutlow_gb[i+1] - lin_lutlow_gb[i].
+> > + */
+> > +struct ipu3_uapi_isp_lin_vmem_params {
+> > +	__s16 lin_lutlow_gr[IPU3_UAPI_LIN_LUT_SIZE];
+> > +	__s16 lin_lutlow_r[IPU3_UAPI_LIN_LUT_SIZE];
+> > +	__s16 lin_lutlow_b[IPU3_UAPI_LIN_LUT_SIZE];
+> > +	__s16 lin_lutlow_gb[IPU3_UAPI_LIN_LUT_SIZE];
+> > +	__s16 lin_lutdif_gr[IPU3_UAPI_LIN_LUT_SIZE];
+> > +	__s16 lin_lutdif_r[IPU3_UAPI_LIN_LUT_SIZE];
+> > +	__s16 lin_lutdif_b[IPU3_UAPI_LIN_LUT_SIZE];
+> > +	__s16 lin_lutdif_gb[IPU3_UAPI_LIN_LUT_SIZE];
+> > +} __packed;
+> 
+> --
+> Kind regards,
+> 
+> Sakari Ailus
+> sakari.ailus@linux.intel.com
