@@ -1,176 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:41594 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727124AbeKPOpt (ORCPT
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:50715 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S2389043AbeKPOqc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Nov 2018 09:45:49 -0500
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
-Content-Transfer-Encoding: 7bit
-Date: Fri, 16 Nov 2018 10:04:59 +0530
-From: mgottam@codeaurora.org
-To: Tomasz Figa <tfiga@chromium.org>
-Cc: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        vgarodia@codeaurora.org
-Subject: Re: [PATCH] media: venus: amend buffer size for bitstream plane
-In-Reply-To: <CAAFQd5AhepthKo4ShsfFQwB4=ALyRZFf6zzEf99DEEBt2gX_jw@mail.gmail.com>
-References: <1539071530-1441-1-git-send-email-mgottam@codeaurora.org>
- <CAAFQd5BcFr11Hpngpn6hNL91OibAxUv25yh2qMohgfxsKusACw@mail.gmail.com>
- <8fe1d205-c5e7-01a0-9569-d3268911cddd@linaro.org>
- <38dfc098517b3ddb5d96195f2e27429d@codeaurora.org>
- <86714c89-20ec-07c8-2569-65e78e8d584d@linaro.org>
- <CAAFQd5DXWUCB7HvsLyVYU+h=2j6y1v3kcsTtHfNZYjfbHEgWGw@mail.gmail.com>
- <da2e7cef-5ade-7d43-92c1-f728644e61c9@linaro.org>
- <CAAFQd5AhepthKo4ShsfFQwB4=ALyRZFf6zzEf99DEEBt2gX_jw@mail.gmail.com>
-Message-ID: <544e62014dc3dab6c13714226157909c@codeaurora.org>
+        Fri, 16 Nov 2018 09:46:32 -0500
+Message-ID: <412205f3f1e92dfe7224133f0008d334@smtp-cloud8.xs4all.net>
+Date: Fri, 16 Nov 2018 05:35:42 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2018-11-14 09:21, Tomasz Figa wrote:
-> On Tue, Nov 13, 2018 at 7:46 PM Stanimir Varbanov
-> <stanimir.varbanov@linaro.org> wrote:
->> 
->> Hi Tomasz,
->> 
->> On 11/13/18 11:13 AM, Tomasz Figa wrote:
->> > On Tue, Nov 13, 2018 at 5:12 PM Stanimir Varbanov
->> > <stanimir.varbanov@linaro.org> wrote:
->> >>
->> >> Hi Malathi,
->> >>
->> >> On 11/13/18 9:28 AM, mgottam@codeaurora.org wrote:
->> >>> On 2018-11-12 18:04, Stanimir Varbanov wrote:
->> >>>> Hi Tomasz,
->> >>>>
->> >>>> On 10/23/2018 05:50 AM, Tomasz Figa wrote:
->> >>>>> Hi Malathi,
->> >>>>>
->> >>>>> On Tue, Oct 9, 2018 at 4:58 PM Malathi Gottam
->> >>>>> <mgottam@codeaurora.org> wrote:
->> >>>>>>
->> >>>>>> For lower resolutions, incase of encoder, the compressed
->> >>>>>> frame size is more than half of the corresponding input
->> >>>>>> YUV. Keep the size as same as YUV considering worst case.
->> >>>>>>
->> >>>>>> Signed-off-by: Malathi Gottam <mgottam@codeaurora.org>
->> >>>>>> ---
->> >>>>>>  drivers/media/platform/qcom/venus/helpers.c | 2 +-
->> >>>>>>  1 file changed, 1 insertion(+), 1 deletion(-)
->> >>>>>>
->> >>>>>> diff --git a/drivers/media/platform/qcom/venus/helpers.c
->> >>>>>> b/drivers/media/platform/qcom/venus/helpers.c
->> >>>>>> index 2679adb..05c5423 100644
->> >>>>>> --- a/drivers/media/platform/qcom/venus/helpers.c
->> >>>>>> +++ b/drivers/media/platform/qcom/venus/helpers.c
->> >>>>>> @@ -649,7 +649,7 @@ u32 venus_helper_get_framesz(u32 v4l2_fmt, u32
->> >>>>>> width, u32 height)
->> >>>>>>         }
->> >>>>>>
->> >>>>>>         if (compressed) {
->> >>>>>> -               sz = ALIGN(height, 32) * ALIGN(width, 32) * 3 / 2 / 2;
->> >>>>>> +               sz = ALIGN(height, 32) * ALIGN(width, 32) * 3 / 2;
->> >>>>>>                 return ALIGN(sz, SZ_4K);
->> >>>>>>         }
->> >>>>>
->> >>>>> Note that the driver should not enforce one particular buffer size for
->> >>>>> bitstream buffers unless it's a workaround for broken firmware or
->> >>>>> hardware. The userspace should be able to select the desired size.
->> >>>>
->> >>>> Good point! Yes, we have to extend set_fmt to allow bigger sizeimage for
->> >>>> the compressed buffers (not only for encoder).
->> >>>
->> >>> So Stan you meant to say that we should allow s_fmt to accept client
->> >>> specified size?
->> >>
->> >> yes but I do expect:
->> >>
->> >> new_sizeimage = max(user_sizeimage, venus_helper_get_framesz)
->> >>
->> >> and also user_sizeimage should be sanitized.
->> >>
->> >>> If so should we set the inst->input_buf_size here in venc_s_fmt?
->> >>>
->> >>> @@ -333,10 +333,10 @@static const struct venus_format *
->> >>> venc_try_fmt_common(struct venus_inst *inst, struct v4l2_format *f)
->> >>>
->> >>>         pixmp->num_planes = fmt->num_planes;
->> >>>         pixmp->flags = 0;
->> >>> -
->> >>> -       pfmt[0].sizeimage = venus_helper_get_framesz(pixmp->pixelformat,
->> >>> -                                                    pixmp->width,
->> >>> -                                                    pixmp->height);
->> >>> +       if (!pfmt[0].sizeimage)
->> >>> +               pfmt[0].sizeimage =
->> >>> venus_helper_get_framesz(pixmp->pixelformat,
->> >>> +                                                            pixmp->width,
->> >>> +
->> >>> pixmp->height);
->> >>
->> >> yes, but please make
->> >>
->> >> pfmt[0].sizeimage = max(pfmt[0].sizeimage, venus_helper_get_framesz)
->> >>
->> >> and IMO this should be only for CAPTURE queue i.e. inst->output_buf_size
->> >>
->> >> I'm still not sure do we need it for OUTPUT encoder queue.
->> >>
->> >
->> > This would be indeed only for the queues that operate on a coded
->> > bitstream, i.e. both encoder CAPTURE and decoder OUTPUT.
->> 
->> Thanks for the confirmation.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-So in case of encoder, adhering to the above comments
+Results of the daily build of media_tree:
 
-@@ -333,10 +333,10 @@static const struct venus_format *
-venc_try_fmt_common(struct venus_inst *inst, struct v4l2_format *f)
+date:			Fri Nov 16 05:00:11 CET 2018
+media-tree git hash:	fbe57dde7126d1b2712ab5ea93fb9d15f89de708
+media_build git hash:	a8aef9cea0a4a2f3ea86c0b37bd6a1378018c0c1
+v4l-utils git hash:	f61132e81d79880028773b235647892a8340abec
+edid-decode git hash:	5eeb151a748788666534d6ea3da07f90400d24c2
+gcc version:		i686-linux-gcc (GCC) 8.2.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.18.0-2-amd64
 
-+       sizeimage = venus_helper_get_framesz(pixmp->pixelformat,
-                                                      pixmp->width,
-                                                      pixmp->height);
-+       pfmt[0].sizeimage = max(ALIGN(pfmt[0].sizeimage, SZ_4K), 
-sizeimage);
+linux-git-arm-at91: WARNINGS
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-multi: WARNINGS
+linux-git-arm-pxa: WARNINGS
+linux-git-arm-stm32: WARNINGS
+linux-git-arm64: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-mips: OK
+linux-git-powerpc64: WARNINGS
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+Check COMPILE_TEST: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.57-i686: OK
+linux-3.16.57-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.123-i686: OK
+linux-3.18.123-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.52-i686: OK
+linux-4.1.52-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.159-i686: OK
+linux-4.4.159-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.131-i686: OK
+linux-4.9.131-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.74-i686: OK
+linux-4.14.74-x86_64: OK
+linux-4.15.18-i686: OK
+linux-4.15.18-x86_64: OK
+linux-4.16.18-i686: OK
+linux-4.16.18-x86_64: OK
+linux-4.17.19-i686: OK
+linux-4.17.19-x86_64: OK
+linux-4.18.12-i686: OK
+linux-4.18.12-x86_64: OK
+linux-4.19.1-i686: OK
+linux-4.19.1-x86_64: OK
+linux-4.20-rc1-i686: OK
+linux-4.20-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
-@@ -408,8 +412,10 @@ static int venc_s_fmt(struct file *file, void *fh, 
-struct v4l2_format *f)
+Detailed results are available here:
 
-         if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
-                 inst->fmt_out = fmt;
--       else if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
-+       else if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
-                 inst->fmt_cap = fmt;
-+               inst->output_buf_size = pixmp->plane_fmt[0].sizeimage;
-+       }
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
+Full logs are available here:
 
->> 
->> >
->> > For image formats, sizeimage should be calculated by the driver based
->> > on the bytesperline and height. (Bytesperline may be fixed, if the
->> > hardware doesn't support flexible strides, but if it does, it's
->> > strongly recommended to use the bytesperline coming from the
->> > application as the stride +/- any necessary sanity checks.)
->> 
->> the hw should support stride but I'm not sure is that exposed by the
->> firmware interface.
-> 
-> After thinking a bit more on this, there is actually some redundancy
-> between format width and crop width, since one should be normally able
-> to just set the format width to the buffer stride and crop to the
-> buffer width and have arbitrary strides supported (+/- hw alignment
-> requirements, but that's something that has to always be accounted
-> for).
-> 
-> Best regards,
-> Tomasz
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
 
-I hope the above change, takes into consideration the application
-provided format width and also uses it in calculation of sizeimage which
-is compared against application provided size aligned.
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
