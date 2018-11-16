@@ -1,119 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:50715 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S2389043AbeKPOqc (ORCPT
+Received: from mail-lf1-f65.google.com ([209.85.167.65]:34135 "EHLO
+        mail-lf1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727124AbeKPPlk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Nov 2018 09:46:32 -0500
-Message-ID: <412205f3f1e92dfe7224133f0008d334@smtp-cloud8.xs4all.net>
-Date: Fri, 16 Nov 2018 05:35:42 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+        Fri, 16 Nov 2018 10:41:40 -0500
+MIME-Version: 1.0
+References: <20181115154530.GA27872@jordon-HP-15-Notebook-PC> <9655a12e-bd3d-aca2-6155-38924028eb5d@infradead.org>
+In-Reply-To: <9655a12e-bd3d-aca2-6155-38924028eb5d@infradead.org>
+From: Souptick Joarder <jrdr.linux@gmail.com>
+Date: Fri, 16 Nov 2018 11:00:30 +0530
+Message-ID: <CAFqt6zbLjtDab3Bz67trbnQRQdutvgA=YvAFhoW4bxsg657mGQ@mail.gmail.com>
+Subject: Re: [PATCH 1/9] mm: Introduce new vm_insert_range API
+To: Randy Dunlap <rdunlap@infradead.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+        Matthew Wilcox <willy@infradead.org>,
+        Michal Hocko <mhocko@suse.com>,
+        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
+        vbabka@suse.cz, Rik van Riel <riel@surriel.com>,
+        Stephen Rothwell <sfr@canb.auug.org.au>,
+        rppt@linux.vnet.ibm.com, Peter Zijlstra <peterz@infradead.org>,
+        Russell King - ARM Linux <linux@armlinux.org.uk>,
+        robin.murphy@arm.com, iamjoonsoo.kim@lge.com, treding@nvidia.com,
+        Kees Cook <keescook@chromium.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        stefanr@s5r6.in-berlin.de, hjc@rock-chips.com,
+        Heiko Stuebner <heiko@sntech.de>, airlied@linux.ie,
+        oleksandr_andrushchenko@epam.com, joro@8bytes.org,
+        pawel@osciak.com, Kyungmin Park <kyungmin.park@samsung.com>,
+        mchehab@kernel.org, Boris Ostrovsky <boris.ostrovsky@oracle.com>,
+        Juergen Gross <jgross@suse.com>, linux-kernel@vger.kernel.org,
+        Linux-MM <linux-mm@kvack.org>,
+        linux-arm-kernel@lists.infradead.org,
+        linux1394-devel@lists.sourceforge.net,
+        dri-devel@lists.freedesktop.org,
+        linux-rockchip@lists.infradead.org, xen-devel@lists.xen.org,
+        iommu@lists.linux-foundation.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Thu, Nov 15, 2018 at 11:44 PM Randy Dunlap <rdunlap@infradead.org> wrote:
+>
+> On 11/15/18 7:45 AM, Souptick Joarder wrote:
+> > Previouly drivers have their own way of mapping range of
+> > kernel pages/memory into user vma and this was done by
+> > invoking vm_insert_page() within a loop.
+> >
+> > As this pattern is common across different drivers, it can
+> > be generalized by creating a new function and use it across
+> > the drivers.
+> >
+> > vm_insert_range is the new API which will be used to map a
+> > range of kernel memory/pages to user vma.
+> >
+> > Signed-off-by: Souptick Joarder <jrdr.linux@gmail.com>
+> > Reviewed-by: Matthew Wilcox <willy@infradead.org>
+> > ---
+> >  include/linux/mm_types.h |  3 +++
+> >  mm/memory.c              | 28 ++++++++++++++++++++++++++++
+> >  mm/nommu.c               |  7 +++++++
+> >  3 files changed, 38 insertions(+)
+>
+> Hi,
+>
+> What is the opposite of vm_insert_range() or even of vm_insert_page()?
+> or is there no need for that?
 
-Results of the daily build of media_tree:
+There is no opposite function of vm_insert_range() / vm_insert_page().
+My understanding is, in case of any error, mmap handlers will return the
+err to user process and user space will decide the next action. So next
+time when mmap handler is getting invoked it will map from the beginning.
+Correct me if I am wrong.
+>
+>
+> > diff --git a/mm/memory.c b/mm/memory.c
+> > index 15c417e..da904ed 100644
+> > --- a/mm/memory.c
+> > +++ b/mm/memory.c
+> > @@ -1478,6 +1478,34 @@ static int insert_page(struct vm_area_struct *vma, unsigned long addr,
+> >  }
+> >
+> >  /**
+> > + * vm_insert_range - insert range of kernel pages into user vma
+> > + * @vma: user vma to map to
+> > + * @addr: target user address of this page
+> > + * @pages: pointer to array of source kernel pages
+> > + * @page_count: no. of pages need to insert into user vma
+>
+> s/no./number/
 
-date:			Fri Nov 16 05:00:11 CET 2018
-media-tree git hash:	fbe57dde7126d1b2712ab5ea93fb9d15f89de708
-media_build git hash:	a8aef9cea0a4a2f3ea86c0b37bd6a1378018c0c1
-v4l-utils git hash:	f61132e81d79880028773b235647892a8340abec
-edid-decode git hash:	5eeb151a748788666534d6ea3da07f90400d24c2
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.18.0-2-amd64
+I didn't get it ??
+>
+> > + *
+> > + * This allows drivers to insert range of kernel pages they've allocated
+> > + * into a user vma. This is a generic function which drivers can use
+> > + * rather than using their own way of mapping range of kernel pages into
+> > + * user vma.
+> > + */
+> > +int vm_insert_range(struct vm_area_struct *vma, unsigned long addr,
+> > +                     struct page **pages, unsigned long page_count)
+> > +{
+> > +     unsigned long uaddr = addr;
+> > +     int ret = 0, i;
+> > +
+> > +     for (i = 0; i < page_count; i++) {
+> > +             ret = vm_insert_page(vma, uaddr, pages[i]);
+> > +             if (ret < 0)
+> > +                     return ret;
+>
+> For a non-trivial value of page_count:
+> Is it a problem if vm_insert_page() succeeds for several pages
+> and then fails?
 
-linux-git-arm-at91: WARNINGS
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-multi: WARNINGS
-linux-git-arm-pxa: WARNINGS
-linux-git-arm-stm32: WARNINGS
-linux-git-arm64: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-mips: OK
-linux-git-powerpc64: WARNINGS
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.123-i686: OK
-linux-3.18.123-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.159-i686: OK
-linux-4.4.159-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.131-i686: OK
-linux-4.9.131-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.74-i686: OK
-linux-4.14.74-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: OK
-linux-4.19.1-i686: OK
-linux-4.19.1-x86_64: OK
-linux-4.20-rc1-i686: OK
-linux-4.20-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+No, it will be considered as total failure and mmap handler will return
+the err to user space.
+>
+> > +             uaddr += PAGE_SIZE;
+> > +     }
+> > +
+> > +     return ret;
+> > +}
+> > +
+> > +/**
+> >   * vm_insert_page - insert single page into user vma
+> >   * @vma: user vma to map to
+> >   * @addr: target user address of this page
+>
+>
+> thanks.
+> --
+> ~Randy
