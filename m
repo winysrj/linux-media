@@ -1,81 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ot1-f68.google.com ([209.85.210.68]:36964 "EHLO
-        mail-ot1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726128AbeKRB47 (ORCPT
+Received: from mail-oi1-f194.google.com ([209.85.167.194]:33740 "EHLO
+        mail-oi1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726065AbeKRCFN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 17 Nov 2018 20:56:59 -0500
-Date: Sat, 17 Nov 2018 09:39:54 -0600
+        Sat, 17 Nov 2018 21:05:13 -0500
+Date: Sat, 17 Nov 2018 09:48:06 -0600
 From: Rob Herring <robh@kernel.org>
-To: Lubomir Rintel <lkundrak@v3.sk>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>, linux-media@vger.kernel.org,
-        Mark Rutland <mark.rutland@arm.com>,
+To: Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>
+Cc: mchehab@kernel.org, robh+dt@kernel.org, todor.tomov@linaro.org,
+        hansverk@cisco.com, linux-media@vger.kernel.org,
         devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        James Cameron <quozl@laptop.org>, Pavel Machek <pavel@ucw.cz>,
-        Libin Yang <lbyang@marvell.com>,
-        Albert Wang <twang13@marvell.com>
-Subject: Re: [PATCH v2 03/11] media: dt-bindings: marvell,mmp2-ccic: Add
- Marvell MMP2 camera
-Message-ID: <20181117153954.GA28966@bogus>
-References: <20181112003520.577592-1-lkundrak@v3.sk>
- <20181112003520.577592-4-lkundrak@v3.sk>
+        Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>
+Subject: Re: [PATCH v2] dt-bindings: media: i2c: Fix external clock frequency
+ for OV5645
+Message-ID: <20181117154806.GA11193@bogus>
+References: <20181114121338.28026-1-manivannan.sadhasivam@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20181112003520.577592-4-lkundrak@v3.sk>
+In-Reply-To: <20181114121338.28026-1-manivannan.sadhasivam@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Nov 12, 2018 at 01:35:12AM +0100, Lubomir Rintel wrote:
-> Add Marvell MMP2 camera host interface.
+On Wed, 14 Nov 2018 17:43:38 +0530, Manivannan Sadhasivam wrote:
+> Commit "4adb0a0432f4 media: ov5645: Supported external clock is 24MHz"
+> modified the external clock frequency to be 24MHz instead of the
+> 23.88MHz in driver. Hence, modify the frequency value in binding.
 > 
-> Signed-off-by: Lubomir Rintel <lkundrak@v3.sk>
+> Signed-off-by: Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>
 > ---
->  .../bindings/media/marvell,mmp2-ccic.txt      | 30 +++++++++++++++++++
->  1 file changed, 30 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/marvell,mmp2-ccic.txt
 > 
-> diff --git a/Documentation/devicetree/bindings/media/marvell,mmp2-ccic.txt b/Documentation/devicetree/bindings/media/marvell,mmp2-ccic.txt
-> new file mode 100644
-> index 000000000000..a9c536e58dda
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/marvell,mmp2-ccic.txt
-> @@ -0,0 +1,30 @@
-> +Marvell MMP2 camera host interface
-> +
-> +Required properties:
-> + - compatible: Should be "marvell,mmp2-ccic"
-> + - reg: register base and size
-> + - interrupts: the interrupt number
-> + - any required generic properties defined in video-interfaces.txt
-> +
-> +Optional properties:
-> + - clocks: input clock (see clock-bindings.txt)
-> + - clock-output-names: should contain the name of the clock driving the
-> +                       sensor master clock MCLK
-
-Missing #clock-cells and clock-names.
-
-How many ports and endpoints also needs to be documented.
-
-> +
-> +Example:
-> +
-> +	camera0: camera@d420a000 {
-> +		compatible = "marvell,mmp2-ccic";
-> +		reg = <0xd420a000 0x800>;
-> +		interrupts = <42>;
-> +		clocks = <&soc_clocks MMP2_CLK_CCIC0>;
-> +		clock-names = "CCICAXICLK";
-> +		#clock-cells = <0>;
-> +		clock-output-names = "mclk";
-> +
-> +		port {
-> +			camera0_0: endpoint {
-> +				remote-endpoint = <&ov7670_0>;
-> +			};
-> +		};
-> +	};
-> -- 
-> 2.19.1
+> Changes in v2:
 > 
+> * Removed the wording about supported frequency since the hardware is
+>   capable of accepting freq range from 6-27MHz.
+> 
+>  Documentation/devicetree/bindings/media/i2c/ov5645.txt | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+
+Reviewed-by: Rob Herring <robh@kernel.org>
