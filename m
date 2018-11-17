@@ -1,150 +1,181 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf1-f65.google.com ([209.85.167.65]:40882 "EHLO
-        mail-lf1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725791AbeKQRIx (ORCPT
+Received: from mail-io1-f72.google.com ([209.85.166.72]:44956 "EHLO
+        mail-io1-f72.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725849AbeKQSj6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 17 Nov 2018 12:08:53 -0500
+        Sat, 17 Nov 2018 13:39:58 -0500
+Received: by mail-io1-f72.google.com with SMTP id u5-v6so24851026iol.11
+        for <linux-media@vger.kernel.org>; Sat, 17 Nov 2018 00:24:03 -0800 (PST)
 MIME-Version: 1.0
-References: <20181115154530.GA27872@jordon-HP-15-Notebook-PC> <20181116182836.GB17088@rapoport-lnx>
-In-Reply-To: <20181116182836.GB17088@rapoport-lnx>
-From: Souptick Joarder <jrdr.linux@gmail.com>
-Date: Sat, 17 Nov 2018 12:26:38 +0530
-Message-ID: <CAFqt6zYp0j999WXw9Jus0oZMjADQQkPfso8btv6du6L9CE3PXA@mail.gmail.com>
-Subject: Re: [PATCH 1/9] mm: Introduce new vm_insert_range API
-To: rppt@linux.ibm.com
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-        Matthew Wilcox <willy@infradead.org>,
-        Michal Hocko <mhocko@suse.com>,
-        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
-        vbabka@suse.cz, Rik van Riel <riel@surriel.com>,
-        Stephen Rothwell <sfr@canb.auug.org.au>,
-        rppt@linux.vnet.ibm.com, Peter Zijlstra <peterz@infradead.org>,
-        Russell King - ARM Linux <linux@armlinux.org.uk>,
-        robin.murphy@arm.com, iamjoonsoo.kim@lge.com, treding@nvidia.com,
-        Kees Cook <keescook@chromium.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        stefanr@s5r6.in-berlin.de, hjc@rock-chips.com,
-        Heiko Stuebner <heiko@sntech.de>, airlied@linux.ie,
-        oleksandr_andrushchenko@epam.com, joro@8bytes.org,
-        pawel@osciak.com, Kyungmin Park <kyungmin.park@samsung.com>,
-        mchehab@kernel.org, Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-        Juergen Gross <jgross@suse.com>, linux-kernel@vger.kernel.org,
-        Linux-MM <linux-mm@kvack.org>,
-        linux-arm-kernel@lists.infradead.org,
-        linux1394-devel@lists.sourceforge.net,
-        dri-devel@lists.freedesktop.org,
-        linux-rockchip@lists.infradead.org, xen-devel@lists.xen.org,
-        iommu@lists.linux-foundation.org, linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Date: Sat, 17 Nov 2018 00:24:02 -0800
+In-Reply-To: <0000000000005943f3057acf6a1e@google.com>
+Message-ID: <000000000000a93b1d057ad80185@google.com>
+Subject: Re: possible deadlock in v4l2_release
+From: syzbot <syzbot+ea05c832a73d0615bf33@syzkaller.appspotmail.com>
+To: ezequiel@collabora.com, hans.verkuil@cisco.com,
+        laurent.pinchart@ideasonboard.com, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org, mchehab@kernel.org,
+        sakari.ailus@linux.intel.com, sque@chromium.org,
+        syzkaller-bugs@googlegroups.com, viro@zeniv.linux.org.uk
+Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Nov 16, 2018 at 11:59 PM Mike Rapoport <rppt@linux.ibm.com> wrote:
->
-> On Thu, Nov 15, 2018 at 09:15:30PM +0530, Souptick Joarder wrote:
-> > Previouly drivers have their own way of mapping range of
-> > kernel pages/memory into user vma and this was done by
-> > invoking vm_insert_page() within a loop.
-> >
-> > As this pattern is common across different drivers, it can
-> > be generalized by creating a new function and use it across
-> > the drivers.
-> >
-> > vm_insert_range is the new API which will be used to map a
-> > range of kernel memory/pages to user vma.
-> >
-> > Signed-off-by: Souptick Joarder <jrdr.linux@gmail.com>
-> > Reviewed-by: Matthew Wilcox <willy@infradead.org>
-> > ---
-> >  include/linux/mm_types.h |  3 +++
-> >  mm/memory.c              | 28 ++++++++++++++++++++++++++++
-> >  mm/nommu.c               |  7 +++++++
-> >  3 files changed, 38 insertions(+)
-> >
-> > diff --git a/include/linux/mm_types.h b/include/linux/mm_types.h
-> > index 5ed8f62..15ae24f 100644
-> > --- a/include/linux/mm_types.h
-> > +++ b/include/linux/mm_types.h
-> > @@ -523,6 +523,9 @@ extern void tlb_gather_mmu(struct mmu_gather *tlb, struct mm_struct *mm,
-> >  extern void tlb_finish_mmu(struct mmu_gather *tlb,
-> >                               unsigned long start, unsigned long end);
-> >
-> > +int vm_insert_range(struct vm_area_struct *vma, unsigned long addr,
-> > +                     struct page **pages, unsigned long page_count);
-> > +
-> >  static inline void init_tlb_flush_pending(struct mm_struct *mm)
-> >  {
-> >       atomic_set(&mm->tlb_flush_pending, 0);
-> > diff --git a/mm/memory.c b/mm/memory.c
-> > index 15c417e..da904ed 100644
-> > --- a/mm/memory.c
-> > +++ b/mm/memory.c
-> > @@ -1478,6 +1478,34 @@ static int insert_page(struct vm_area_struct *vma, unsigned long addr,
-> >  }
-> >
-> >  /**
-> > + * vm_insert_range - insert range of kernel pages into user vma
-> > + * @vma: user vma to map to
-> > + * @addr: target user address of this page
-> > + * @pages: pointer to array of source kernel pages
-> > + * @page_count: no. of pages need to insert into user vma
-> > + *
-> > + * This allows drivers to insert range of kernel pages they've allocated
-> > + * into a user vma. This is a generic function which drivers can use
-> > + * rather than using their own way of mapping range of kernel pages into
-> > + * user vma.
->
-> Please add the return value and context descriptions.
->
-> > + */
-> > +int vm_insert_range(struct vm_area_struct *vma, unsigned long addr,
-> > +                     struct page **pages, unsigned long page_count)
-> > +{
-> > +     unsigned long uaddr = addr;
-> > +     int ret = 0, i;
-> > +
-> > +     for (i = 0; i < page_count; i++) {
-> > +             ret = vm_insert_page(vma, uaddr, pages[i]);
-> > +             if (ret < 0)
-> > +                     return ret;
-> > +             uaddr += PAGE_SIZE;
-> > +     }
-> > +
-> > +     return ret;
-> > +}
-> > +
-> > +/**
-> >   * vm_insert_page - insert single page into user vma
-> >   * @vma: user vma to map to
-> >   * @addr: target user address of this page
-> > diff --git a/mm/nommu.c b/mm/nommu.c
-> > index 749276b..d6ef5c7 100644
-> > --- a/mm/nommu.c
-> > +++ b/mm/nommu.c
-> > @@ -473,6 +473,13 @@ int vm_insert_page(struct vm_area_struct *vma, unsigned long addr,
-> >  }
-> >  EXPORT_SYMBOL(vm_insert_page);
-> >
-> > +int vm_insert_range(struct vm_area_struct *vma, unsigned long addr,
-> > +                     struct page **pages, unsigned long page_count)
-> > +{
-> > +     return -EINVAL;
-> > +}
-> > +EXPORT_SYMBOL(vm_insert_range);
-> > +
-> >  /*
-> >   *  sys_brk() for the most part doesn't need the global kernel
-> >   *  lock, except when an application is doing something nasty
-> > --
-> > 1.9.1
-> >
->
-> --
-> Sincerely yours,
-> Mike.
->
+syzbot has found a reproducer for the following crash on:
 
-Sure I will wait for some time to get additional review comments and
-add all of those requested changes in v2.
+HEAD commit:    1ce80e0fe98e Merge tag 'fsnotify_for_v4.20-rc3' of git://g..
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=132ee77b400000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=d86f24333880b605
+dashboard link: https://syzkaller.appspot.com/bug?extid=ea05c832a73d0615bf33
+compiler:       gcc (GCC) 8.0.1 20180413 (experimental)
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=10b8e6a3400000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=14e73e2b400000
 
-Any further feedback on driver changes as part of this patch series ?
+IMPORTANT: if you fix the bug, please add the following tag to the commit:
+Reported-by: syzbot+ea05c832a73d0615bf33@syzkaller.appspotmail.com
+
+sshd (5890) used greatest stack depth: 15744 bytes left
+
+======================================================
+WARNING: possible circular locking dependency detected
+4.20.0-rc2+ #338 Not tainted
+------------------------------------------------------
+kworker/0:2/3421 is trying to acquire lock:
+00000000c364a3bd (&mdev->req_queue_mutex){+.+.}, at:  
+v4l2_release+0x1d7/0x3a0 drivers/media/v4l2-core/v4l2-dev.c:455
+
+but task is already holding lock:
+000000009258f90c ((delayed_fput_work).work){+.+.}, at:  
+process_one_work+0xb9a/0x1c40 kernel/workqueue.c:2128
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #3 ((delayed_fput_work).work){+.+.}:
+        process_one_work+0xc0a/0x1c40 kernel/workqueue.c:2129
+        worker_thread+0x17f/0x1390 kernel/workqueue.c:2296
+        kthread+0x35a/0x440 kernel/kthread.c:246
+        ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:352
+
+-> #2 ((wq_completion)"events"){+.+.}:
+        flush_workqueue+0x30a/0x1e10 kernel/workqueue.c:2655
+        flush_scheduled_work include/linux/workqueue.h:599 [inline]
+        vim2m_stop_streaming+0x7c/0x2c0 drivers/media/platform/vim2m.c:811
+        __vb2_queue_cancel+0x171/0xd20  
+drivers/media/common/videobuf2/videobuf2-core.c:1823
+        vb2_core_queue_release+0x26/0x80  
+drivers/media/common/videobuf2/videobuf2-core.c:2229
+        vb2_queue_release+0x15/0x20  
+drivers/media/common/videobuf2/videobuf2-v4l2.c:837
+        v4l2_m2m_ctx_release+0x1e/0x35  
+drivers/media/v4l2-core/v4l2-mem2mem.c:930
+        vim2m_release+0xe6/0x150 drivers/media/platform/vim2m.c:977
+        v4l2_release+0x224/0x3a0 drivers/media/v4l2-core/v4l2-dev.c:456
+        __fput+0x385/0xa30 fs/file_table.c:278
+        ____fput+0x15/0x20 fs/file_table.c:309
+        task_work_run+0x1e8/0x2a0 kernel/task_work.c:113
+        tracehook_notify_resume include/linux/tracehook.h:188 [inline]
+        exit_to_usermode_loop+0x318/0x380 arch/x86/entry/common.c:166
+        prepare_exit_to_usermode arch/x86/entry/common.c:197 [inline]
+        syscall_return_slowpath arch/x86/entry/common.c:268 [inline]
+        do_syscall_64+0x6be/0x820 arch/x86/entry/common.c:293
+        entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+-> #1 (&dev->dev_mutex){+.+.}:
+        __mutex_lock_common kernel/locking/mutex.c:925 [inline]
+        __mutex_lock+0x166/0x16f0 kernel/locking/mutex.c:1072
+        mutex_lock_nested+0x16/0x20 kernel/locking/mutex.c:1087
+        vim2m_release+0xbc/0x150 drivers/media/platform/vim2m.c:976
+        v4l2_release+0x224/0x3a0 drivers/media/v4l2-core/v4l2-dev.c:456
+        __fput+0x385/0xa30 fs/file_table.c:278
+        ____fput+0x15/0x20 fs/file_table.c:309
+        task_work_run+0x1e8/0x2a0 kernel/task_work.c:113
+        tracehook_notify_resume include/linux/tracehook.h:188 [inline]
+        exit_to_usermode_loop+0x318/0x380 arch/x86/entry/common.c:166
+        prepare_exit_to_usermode arch/x86/entry/common.c:197 [inline]
+        syscall_return_slowpath arch/x86/entry/common.c:268 [inline]
+        do_syscall_64+0x6be/0x820 arch/x86/entry/common.c:293
+        entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+-> #0 (&mdev->req_queue_mutex){+.+.}:
+        lock_acquire+0x1ed/0x520 kernel/locking/lockdep.c:3844
+        __mutex_lock_common kernel/locking/mutex.c:925 [inline]
+        __mutex_lock+0x166/0x16f0 kernel/locking/mutex.c:1072
+        mutex_lock_nested+0x16/0x20 kernel/locking/mutex.c:1087
+        v4l2_release+0x1d7/0x3a0 drivers/media/v4l2-core/v4l2-dev.c:455
+        __fput+0x385/0xa30 fs/file_table.c:278
+        delayed_fput+0x55/0x80 fs/file_table.c:304
+        process_one_work+0xc90/0x1c40 kernel/workqueue.c:2153
+        worker_thread+0x17f/0x1390 kernel/workqueue.c:2296
+        kthread+0x35a/0x440 kernel/kthread.c:246
+        ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:352
+
+other info that might help us debug this:
+
+Chain exists of:
+   &mdev->req_queue_mutex --> (wq_completion)"events" -->  
+(delayed_fput_work).work
+
+  Possible unsafe locking scenario:
+
+        CPU0                    CPU1
+        ----                    ----
+   lock((delayed_fput_work).work);
+                                lock((wq_completion)"events");
+                                lock((delayed_fput_work).work);
+   lock(&mdev->req_queue_mutex);
+
+  *** DEADLOCK ***
+
+2 locks held by kworker/0:2/3421:
+  #0: 00000000312444b2 ((wq_completion)"events"){+.+.}, at:  
+__write_once_size include/linux/compiler.h:209 [inline]
+  #0: 00000000312444b2 ((wq_completion)"events"){+.+.}, at:  
+arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+  #0: 00000000312444b2 ((wq_completion)"events"){+.+.}, at: atomic64_set  
+include/asm-generic/atomic-instrumented.h:40 [inline]
+  #0: 00000000312444b2 ((wq_completion)"events"){+.+.}, at: atomic_long_set  
+include/asm-generic/atomic-long.h:59 [inline]
+  #0: 00000000312444b2 ((wq_completion)"events"){+.+.}, at: set_work_data  
+kernel/workqueue.c:617 [inline]
+  #0: 00000000312444b2 ((wq_completion)"events"){+.+.}, at:  
+set_work_pool_and_clear_pending kernel/workqueue.c:644 [inline]
+  #0: 00000000312444b2 ((wq_completion)"events"){+.+.}, at:  
+process_one_work+0xb43/0x1c40 kernel/workqueue.c:2124
+  #1: 000000009258f90c ((delayed_fput_work).work){+.+.}, at:  
+process_one_work+0xb9a/0x1c40 kernel/workqueue.c:2128
+kobject: 'regulatory.0' (0000000078fe9404): kobject_uevent_env
+
+stack backtrace:
+CPU: 0 PID: 3421 Comm: kworker/0:2 Not tainted 4.20.0-rc2+ #338
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
+Google 01/01/2011
+kobject: 'regulatory.0' (0000000078fe9404): fill_kobj_path: path  
+= '/devices/platform/regulatory.0'
+Workqueue: events delayed_fput
+Call Trace:
+  __dump_stack lib/dump_stack.c:77 [inline]
+  dump_stack+0x244/0x39d lib/dump_stack.c:113
+  print_circular_bug.isra.35.cold.54+0x1bd/0x27d  
+kernel/locking/lockdep.c:1221
+  check_prev_add kernel/locking/lockdep.c:1863 [inline]
+  check_prevs_add kernel/locking/lockdep.c:1976 [inline]
+  validate_chain kernel/locking/lockdep.c:2347 [inline]
+  __lock_acquire+0x3399/0x4c20 kernel/locking/lockdep.c:3341
+  lock_acquire+0x1ed/0x520 kernel/locking/lockdep.c:3844
+  __mutex_lock_common kernel/locking/mutex.c:925 [inline]
+  __mutex_lock+0x166/0x16f0 kernel/locking/mutex.c:1072
+  mutex_lock_nested+0x16/0x20 kernel/locking/mutex.c:1087
+  v4l2_release+0x1d7/0x3a0 drivers/media/v4l2-core/v4l2-dev.c:455
+  __fput+0x385/0xa30 fs/file_table.c:278
+  delayed_fput+0x55/0x80 fs/file_table.c:304
+  process_one_work+0xc90/0x1c40 kernel/workqueue.c:2153
+  worker_thread+0x17f/0x1390 kernel/workqueue.c:2296
+  kthread+0x35a/0x440 kernel/kthread.c:246
+  ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:352
+kobject: 'regulatory.0' (0000000078fe9404): kobject_uevent_env
+kobject: 'regulatory.0' (0000000078fe9404): fill_kobj_path: path  
+= '/devices/platform/regulatory.0'
