@@ -1,124 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga17.intel.com ([192.55.52.151]:40109 "EHLO mga17.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727601AbeKTT4i (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 20 Nov 2018 14:56:38 -0500
-Date: Tue, 20 Nov 2018 11:27:24 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Ezequiel Garcia <ezequiel@collabora.com>,
-        Nicolas Dufresne <nicolas@ndufresne.ca>,
-        Tomasz Figa <tfiga@chromium.org>
-Subject: Re: [PATCH] videodev2.h: add
- V4L2_BUF_CAP_SUPPORTS_PREPARE_BUF/CREATE_BUFS
-Message-ID: <20181120092724.yfzxfjxom7ygln3p@paasikivi.fi.intel.com>
-References: <68a6a7d3-cf0b-f631-f113-e388ebb7f5a4@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <68a6a7d3-cf0b-f631-f113-e388ebb7f5a4@xs4all.nl>
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:37318 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1728478AbeKQOtf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 17 Nov 2018 09:49:35 -0500
+Message-ID: <8f0df6c4a5e5a3da7bd7ef0325c5c637@smtp-cloud9.xs4all.net>
+Date: Sat, 17 Nov 2018 05:34:11 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On Tue, Nov 20, 2018 at 09:58:43AM +0100, Hans Verkuil wrote:
-> Add new buffer capability flags to indicate if the VIDIOC_PREPARE_BUF or
-> VIDIOC_CREATE_BUFS ioctls are supported.
+Results of the daily build of media_tree:
 
-Are there practical benefits from the change for the user space?
+date:			Sat Nov 17 05:00:11 CET 2018
+media-tree git hash:	fbe57dde7126d1b2712ab5ea93fb9d15f89de708
+media_build git hash:	a8aef9cea0a4a2f3ea86c0b37bd6a1378018c0c1
+v4l-utils git hash:	2ee0d9434630281dbcbe47719a268044775ec7e6
+edid-decode git hash:	5eeb151a748788666534d6ea3da07f90400d24c2
+gcc version:		i686-linux-gcc (GCC) 8.2.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.18.0-2-amd64
 
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
-> Note: the flag bits will change since there are two other patches that add
-> flags, so the numbering will change.
-> ---
-> diff --git a/Documentation/media/uapi/v4l/vidioc-reqbufs.rst b/Documentation/media/uapi/v4l/vidioc-reqbufs.rst
-> index d4bbbb0c60e8..abf925484aff 100644
-> --- a/Documentation/media/uapi/v4l/vidioc-reqbufs.rst
-> +++ b/Documentation/media/uapi/v4l/vidioc-reqbufs.rst
-> @@ -112,6 +112,8 @@ any DMA in progress, an implicit
->  .. _V4L2-BUF-CAP-SUPPORTS-USERPTR:
->  .. _V4L2-BUF-CAP-SUPPORTS-DMABUF:
->  .. _V4L2-BUF-CAP-SUPPORTS-REQUESTS:
-> +.. _V4L2-BUF-CAP-SUPPORTS-PREPARE-BUF:
-> +.. _V4L2-BUF-CAP-SUPPORTS-CREATE-BUFS:
-> 
->  .. cssclass:: longtable
-> 
-> @@ -132,6 +134,12 @@ any DMA in progress, an implicit
->      * - ``V4L2_BUF_CAP_SUPPORTS_REQUESTS``
->        - 0x00000008
->        - This buffer type supports :ref:`requests <media-request-api>`.
-> +    * - ``V4L2_BUF_CAP_SUPPORTS_PREPARE_BUF``
-> +      - 0x00000010
-> +      - This buffer type supports :ref:`VIDIOC_PREPARE_BUF`.
-> +    * - ``V4L2_BUF_CAP_SUPPORTS_CREATE_BUFS``
-> +      - 0x00000020
-> +      - This buffer type supports :ref:`VIDIOC_CREATE_BUFS`.
-> 
->  Return Value
->  ============
-> diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-> index a17033ab2c22..27c0fafca0bf 100644
-> --- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
-> +++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-> @@ -871,6 +871,16 @@ static inline bool vb2_queue_is_busy(struct video_device *vdev, struct file *fil
->  	return vdev->queue->owner && vdev->queue->owner != file->private_data;
->  }
-> 
-> +static void fill_buf_caps_vdev(struct video_device *vdev, u32 *caps)
-> +{
-> +	*caps = 0;
-> +	fill_buf_caps(vdev->queue, caps);
-> +	if (vdev->ioctl_ops->vidioc_prepare_buf)
-> +		*caps |= V4L2_BUF_CAP_SUPPORTS_PREPARE_BUF;
-> +	if (vdev->ioctl_ops->vidioc_create_bufs)
-> +		*caps |= V4L2_BUF_CAP_SUPPORTS_CREATE_BUFS;
-> +}
-> +
->  /* vb2 ioctl helpers */
-> 
->  int vb2_ioctl_reqbufs(struct file *file, void *priv,
-> @@ -879,7 +889,7 @@ int vb2_ioctl_reqbufs(struct file *file, void *priv,
->  	struct video_device *vdev = video_devdata(file);
->  	int res = vb2_verify_memory_type(vdev->queue, p->memory, p->type);
-> 
-> -	fill_buf_caps(vdev->queue, &p->capabilities);
-> +	fill_buf_caps_vdev(vdev, &p->capabilities);
->  	if (res)
->  		return res;
->  	if (vb2_queue_is_busy(vdev, file))
-> @@ -901,7 +911,7 @@ int vb2_ioctl_create_bufs(struct file *file, void *priv,
->  			p->format.type);
-> 
->  	p->index = vdev->queue->num_buffers;
-> -	fill_buf_caps(vdev->queue, &p->capabilities);
-> +	fill_buf_caps_vdev(vdev, &p->capabilities);
->  	/*
->  	 * If count == 0, then just check if memory and type are valid.
->  	 * Any -EBUSY result from vb2_verify_memory_type can be mapped to 0.
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index c8e8ff810190..6648f8ba2277 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -879,6 +879,8 @@ struct v4l2_requestbuffers {
->  #define V4L2_BUF_CAP_SUPPORTS_USERPTR	(1 << 1)
->  #define V4L2_BUF_CAP_SUPPORTS_DMABUF	(1 << 2)
->  #define V4L2_BUF_CAP_SUPPORTS_REQUESTS	(1 << 3)
+linux-git-arm-at91: WARNINGS
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-multi: WARNINGS
+linux-git-arm-pxa: WARNINGS
+linux-git-arm-stm32: WARNINGS
+linux-git-arm64: OK
+linux-git-i686: WARNINGS
+linux-git-mips: OK
+linux-git-powerpc64: WARNINGS
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+Check COMPILE_TEST: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.57-i686: OK
+linux-3.16.57-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.123-i686: OK
+linux-3.18.123-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.52-i686: OK
+linux-4.1.52-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.159-i686: OK
+linux-4.4.159-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.131-i686: OK
+linux-4.9.131-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.74-i686: OK
+linux-4.14.74-x86_64: OK
+linux-4.15.18-i686: OK
+linux-4.15.18-x86_64: OK
+linux-4.16.18-i686: OK
+linux-4.16.18-x86_64: OK
+linux-4.17.19-i686: OK
+linux-4.17.19-x86_64: OK
+linux-4.18.12-i686: OK
+linux-4.18.12-x86_64: OK
+linux-4.19.1-i686: OK
+linux-4.19.1-x86_64: OK
+linux-4.20-rc1-i686: OK
+linux-4.20-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
-Could you align the previous lines to match the ones below?
+Detailed results are available here:
 
-> +#define V4L2_BUF_CAP_SUPPORTS_PREPARE_BUF	(1 << 4)
-> +#define V4L2_BUF_CAP_SUPPORTS_CREATE_BUFS	(1 << 5)
-> 
->  /**
->   * struct v4l2_plane - plane info for multi-planar buffers
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
--- 
-Kind regards,
+Full logs are available here:
 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
