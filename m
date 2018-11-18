@@ -1,303 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:33378 "EHLO
-        casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726746AbeKSAMr (ORCPT
+Received: from mail-io1-f69.google.com ([209.85.166.69]:46160 "EHLO
+        mail-io1-f69.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725805AbeKSGaQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 18 Nov 2018 19:12:47 -0500
-Date: Sun, 18 Nov 2018 11:52:15 -0200
-From: Mauro Carvalho Chehab <mchehab@kernel.org>
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Greg KH <gregkh@linuxfoundation.org>,
-        Kate Stewart <kstewart@linuxfoundation.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        Ben Hutchings <ben@decadent.org.uk>
-Subject: Re: [PATCHv18 01/35] Documentation: v4l: document request API
-Message-ID: <20181118115215.5ebc681c@coco.lan>
-In-Reply-To: <alpine.DEB.2.21.1811121048400.14703@nanos.tec.linutronix.de>
-References: <20180814142047.93856-1-hverkuil@xs4all.nl>
-        <20180814142047.93856-2-hverkuil@xs4all.nl>
-        <alpine.DEB.2.21.1811121048400.14703@nanos.tec.linutronix.de>
+        Mon, 19 Nov 2018 01:30:16 -0500
+Received: by mail-io1-f69.google.com with SMTP id e144-v6so29345921iof.13
+        for <linux-media@vger.kernel.org>; Sun, 18 Nov 2018 12:09:03 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Date: Sun, 18 Nov 2018 12:09:03 -0800
+In-Reply-To: <0000000000001c2b95057ad0935b@google.com>
+Message-ID: <000000000000c881ea057af5f8a6@google.com>
+Subject: Re: kernel BUG at arch/x86/mm/physaddr.c:LINE! (2)
+From: syzbot <syzbot+6c0effb5877f6b0344e2@syzkaller.appspotmail.com>
+To: hverkuil@xs4all.nl, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org, mchehab@kernel.org,
+        syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Thomas,
+syzbot has found a reproducer for the following crash on:
 
-Em Mon, 12 Nov 2018 11:06:43 -0800 (PST)
-Thomas Gleixner <tglx@linutronix.de> escreveu:
+HEAD commit:    1ce80e0fe98e Merge tag 'fsnotify_for_v4.20-rc3' of git://g..
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=10fd0893400000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=d86f24333880b605
+dashboard link: https://syzkaller.appspot.com/bug?extid=6c0effb5877f6b0344e2
+compiler:       gcc (GCC) 8.0.1 20180413 (experimental)
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=1312062b400000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=131bd093400000
 
-> Folks,
-> 
-> On Tue, 14 Aug 2018, Hans Verkuil wrote:
-> > From: Alexandre Courbot <acourbot@chromium.org>
-> > 
-> > Document the request API for V4L2 devices, and amend the documentation
-> > of system calls influenced by it.
-> > 
-> > Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
-> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > Reviewed-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>  
-> 
-> > @@ -0,0 +1,65 @@
-> > +.. SPDX-License-Identifier: GPL-2.0 OR GFDL-1.1-or-later WITH no-invariant-sections  
-> 
-> It's nice that you try to use SPDX identifiers, but this is absolutely not
-> how it works.
-> 
-> We went great length to document how SPDX identifiers are to be used and
-> checkpatch emits a warning on this patch as well.
-> 
->    WARNING: 'SPDX-License-Identifier: GPL-2.0 OR GFDL-1.1-or-later WITH no-invariant-sections' is not supported in LICENSES/...
-> 
-> It's well documented that the license text including metadata needs to be
-> available in LICENSES.
-> 
-> What you are doing here is just counterproductive. The SPDX work is done to
-> help automated license compliance. But the SPDX id above is broken and will
-> let tools fail.
-> 
-> Even if we add the GFDL1.1 to LICENSES, it's still broken because there is
-> no such exception 'no-invariant-section' and no, we are not going to create
-> it just in the kernel without having sorted that with the SPDX folks first.
+IMPORTANT: if you fix the bug, please add the following tag to the commit:
+Reported-by: syzbot+6c0effb5877f6b0344e2@syzkaller.appspotmail.com
 
-I know, and, after talking with Kate about that, I actually opened a SPDX
-issue in Aug, 30:
-
-	https://github.com/spdx/license-list-XML/issues/686
-
-Btw, this is just the tip of the iceberg: I have another patchset pending
-adding the GFDL license to LICENSES and doing some changes that are
-required for Debian to be able to package the Kernel documentation:
-
-	https://git.linuxtv.org/mchehab/experimental.git/log/?h=doc_license
-
-It starts with Ben's patch:
-	"Documentation/media: uapi: Explicitly say there are no Invariant Sections"
-
-And tag media docs with SPDX headers.
-
-> Mauro, you wrote yourself in a reply to this patch:
-> 
->   > Mental note: we'll need to push the no-invariant-sections upstream
->   > before merging this there.  
-> 
-> and then you went and applied it nevertheless without talking to anyone who
-> is involved with that SPDX effort of cleaning up the kernels licensing mess.
-
-Sorry, I ended by sleeping on this. This specific patch was on a separate
-topic branch. I completely forgot that this was waiting for SPDX committee
-feedback about how to use GFDL.
-
-> I'm grumpy about that particularly because you are the first person who
-> complains about legal implications which might affect you.
-> 
-> But then you go and just ignore process and legal implications and push the
-> crap into mainline.
-> 
-> Please get this sorted ASAP.
-
-It would be great to have an ETA from SPDX about how long they'll
-take to solve this issue. It has been about 2,5 months without
-any concrete way about how we should address it.
-
-I really don't want to add new documents at the media uAPI stuff
-(with is GFDL due to historical reasons) without make them also
-GPL. On the other hand, freezing API submissions to the media
-subsystem just due to the lack of proper SPDX support for GFDL
-seems plain wrong.
-
-Perhaps one workaround would be to explicitly not using the
-SPDX-License-Identifier, adding a longer licensing text that could
-later be replaced by a SPDX license (if they ever figure out how
-GFDL without invariants sections should be used). Something like:
-
-
-	.. SPDX License for this file: GPL-2.0 OR GFDL-1.1-or-later
-	..
-	.. For GPL-2.0, see LICENSES/preferred/GPL-2.0
-	..
-	.. For GFDL-1.1-or-later, see:
-	..
-	.. Permission is granted to copy, distribute and/or modify this document
-	.. under the terms of the GNU Free Documentation License, Version 1.1 or
-	.. any later version published by the Free Software Foundation, with no
-	.. Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.
-	.. A copy of the license is included at
-	.. Documentation/media/uapi/fdl-appendix.rst.
-
-Will that work for you?
-
-If so, the patch solving the current issue is enclosed.
-
-I'll rebase my other SPDX patchset to use the same solution after
-we have an agreement on this.
-
-Thanks,
-Mauro
-
-media: mediactl docs: don't use SPDX for GFDL
-
-There is an open issue for using GFDL without invariant sections:
-
-	https://github.com/spdx/license-list-XML/issues/686
-
-So far, no progress.
-
-While we don't have it, we can't really use SPDX identifiers on media.
-So, replace them by a license text.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-
-diff --git a/Documentation/media/uapi/mediactl/media-ioc-request-alloc.rst b/Documentation/media/uapi/mediactl/media-ioc-request-alloc.rst
-index 0f8b31874002..60874a1f3d89 100644
---- a/Documentation/media/uapi/mediactl/media-ioc-request-alloc.rst
-+++ b/Documentation/media/uapi/mediactl/media-ioc-request-alloc.rst
-@@ -1,4 +1,15 @@
--.. SPDX-License-Identifier: GPL-2.0 OR GFDL-1.1-or-later WITH no-invariant-sections
-+.. SPDX License for this file: GPL-2.0 OR GFDL-1.1-or-later
-+..
-+.. For GPL-2.0, see LICENSES/preferred/GPL-2.0
-+..
-+.. For GFDL-1.1-or-later, see:
-+..
-+.. Permission is granted to copy, distribute and/or modify this document
-+.. under the terms of the GNU Free Documentation License, Version 1.1 or
-+.. any later version published by the Free Software Foundation, with no
-+.. Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.
-+.. A copy of the license is included at
-+.. Documentation/media/uapi/fdl-appendix.rst.
- 
- .. _media_ioc_request_alloc:
- 
-diff --git a/Documentation/media/uapi/mediactl/media-request-ioc-queue.rst b/Documentation/media/uapi/mediactl/media-request-ioc-queue.rst
-index 6dd2d7fea714..3f481256f75a 100644
---- a/Documentation/media/uapi/mediactl/media-request-ioc-queue.rst
-+++ b/Documentation/media/uapi/mediactl/media-request-ioc-queue.rst
-@@ -1,4 +1,15 @@
--.. SPDX-License-Identifier: GPL-2.0 OR GFDL-1.1-or-later WITH no-invariant-sections
-+.. SPDX License for this file: GPL-2.0 OR GFDL-1.1-or-later
-+..
-+.. For GPL-2.0, see LICENSES/preferred/GPL-2.0
-+..
-+.. For GFDL-1.1-or-later, see:
-+..
-+.. Permission is granted to copy, distribute and/or modify this document
-+.. under the terms of the GNU Free Documentation License, Version 1.1 or
-+.. any later version published by the Free Software Foundation, with no
-+.. Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.
-+.. A copy of the license is included at
-+.. Documentation/media/uapi/fdl-appendix.rst.
- 
- .. _media_request_ioc_queue:
- 
-diff --git a/Documentation/media/uapi/mediactl/media-request-ioc-reinit.rst b/Documentation/media/uapi/mediactl/media-request-ioc-reinit.rst
-index febe888494c8..d9c4d308b477 100644
---- a/Documentation/media/uapi/mediactl/media-request-ioc-reinit.rst
-+++ b/Documentation/media/uapi/mediactl/media-request-ioc-reinit.rst
-@@ -1,4 +1,15 @@
--.. SPDX-License-Identifier: GPL-2.0 OR GFDL-1.1-or-later WITH no-invariant-sections
-+.. SPDX License for this file: GPL-2.0 OR GFDL-1.1-or-later
-+..
-+.. For GPL-2.0, see LICENSES/preferred/GPL-2.0
-+..
-+.. For GFDL-1.1-or-later, see:
-+..
-+.. Permission is granted to copy, distribute and/or modify this document
-+.. under the terms of the GNU Free Documentation License, Version 1.1 or
-+.. any later version published by the Free Software Foundation, with no
-+.. Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.
-+.. A copy of the license is included at
-+.. Documentation/media/uapi/fdl-appendix.rst.
- 
- .. _media_request_ioc_reinit:
- 
-diff --git a/Documentation/media/uapi/mediactl/request-api.rst b/Documentation/media/uapi/mediactl/request-api.rst
-index 5f4a23029c48..7a85b346db91 100644
---- a/Documentation/media/uapi/mediactl/request-api.rst
-+++ b/Documentation/media/uapi/mediactl/request-api.rst
-@@ -1,4 +1,15 @@
--.. SPDX-License-Identifier: GPL-2.0 OR GFDL-1.1-or-later WITH no-invariant-sections
-+.. SPDX License for this file: GPL-2.0 OR GFDL-1.1-or-later
-+..
-+.. For GPL-2.0, see LICENSES/preferred/GPL-2.0
-+..
-+.. For GFDL-1.1-or-later, see:
-+..
-+.. Permission is granted to copy, distribute and/or modify this document
-+.. under the terms of the GNU Free Documentation License, Version 1.1 or
-+.. any later version published by the Free Software Foundation, with no
-+.. Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.
-+.. A copy of the license is included at
-+.. Documentation/media/uapi/fdl-appendix.rst.
- 
- .. _media-request-api:
- 
-diff --git a/Documentation/media/uapi/mediactl/request-func-close.rst b/Documentation/media/uapi/mediactl/request-func-close.rst
-index 098d7f2b9548..c85275a8870c 100644
---- a/Documentation/media/uapi/mediactl/request-func-close.rst
-+++ b/Documentation/media/uapi/mediactl/request-func-close.rst
-@@ -1,4 +1,15 @@
--.. SPDX-License-Identifier: GPL-2.0 OR GFDL-1.1-or-later WITH no-invariant-sections
-+.. SPDX License for this file: GPL-2.0 OR GFDL-1.1-or-later
-+..
-+.. For GPL-2.0, see LICENSES/preferred/GPL-2.0
-+..
-+.. For GFDL-1.1-or-later, see:
-+..
-+.. Permission is granted to copy, distribute and/or modify this document
-+.. under the terms of the GNU Free Documentation License, Version 1.1 or
-+.. any later version published by the Free Software Foundation, with no
-+.. Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.
-+.. A copy of the license is included at
-+.. Documentation/media/uapi/fdl-appendix.rst.
- 
- .. _request-func-close:
- 
-diff --git a/Documentation/media/uapi/mediactl/request-func-ioctl.rst b/Documentation/media/uapi/mediactl/request-func-ioctl.rst
-index ff7b072a6999..8b69465bd2dd 100644
---- a/Documentation/media/uapi/mediactl/request-func-ioctl.rst
-+++ b/Documentation/media/uapi/mediactl/request-func-ioctl.rst
-@@ -1,4 +1,15 @@
--.. SPDX-License-Identifier: GPL-2.0 OR GFDL-1.1-or-later WITH no-invariant-sections
-+.. SPDX License for this file: GPL-2.0 OR GFDL-1.1-or-later
-+..
-+.. For GPL-2.0, see LICENSES/preferred/GPL-2.0
-+..
-+.. For GFDL-1.1-or-later, see:
-+..
-+.. Permission is granted to copy, distribute and/or modify this document
-+.. under the terms of the GNU Free Documentation License, Version 1.1 or
-+.. any later version published by the Free Software Foundation, with no
-+.. Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.
-+.. A copy of the license is included at
-+.. Documentation/media/uapi/fdl-appendix.rst.
- 
- .. _request-func-ioctl:
- 
-diff --git a/Documentation/media/uapi/mediactl/request-func-poll.rst b/Documentation/media/uapi/mediactl/request-func-poll.rst
-index 85191254f381..8f58f9948cb6 100644
---- a/Documentation/media/uapi/mediactl/request-func-poll.rst
-+++ b/Documentation/media/uapi/mediactl/request-func-poll.rst
-@@ -1,4 +1,15 @@
--.. SPDX-License-Identifier: GPL-2.0 OR GFDL-1.1-or-later WITH no-invariant-sections
-+.. SPDX License for this file: GPL-2.0 OR GFDL-1.1-or-later
-+..
-+.. For GPL-2.0, see LICENSES/preferred/GPL-2.0
-+..
-+.. For GFDL-1.1-or-later, see:
-+..
-+.. Permission is granted to copy, distribute and/or modify this document
-+.. under the terms of the GNU Free Documentation License, Version 1.1 or
-+.. any later version published by the Free Software Foundation, with no
-+.. Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.
-+.. A copy of the license is included at
-+.. Documentation/media/uapi/fdl-appendix.rst.
- 
- .. _request-func-poll:
- 
+audit: type=1800 audit(1542571519.564:30): pid=5852 uid=0 auid=4294967295  
+ses=4294967295 subj==unconfined op=collect_data cause=failed(directio)  
+comm="startpar" name="rmnologin" dev="sda1" ino=2423 res=0
+------------[ cut here ]------------
+kernel BUG at arch/x86/mm/physaddr.c:27!
+invalid opcode: 0000 [#1] PREEMPT SMP KASAN
+CPU: 0 PID: 6007 Comm: syz-executor386 Not tainted 4.20.0-rc2+ #338
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
+Google 01/01/2011
+RIP: 0010:__phys_addr+0xb5/0x120 arch/x86/mm/physaddr.c:27
+Code: 08 4c 89 e3 31 ff 48 d3 eb 48 89 de e8 b4 bb 45 00 48 85 db 75 0f e8  
+7a ba 45 00 4c 89 e0 5b 41 5c 41 5d 5d c3 e8 6b ba 45 00 <0f> 0b e8 64 ba  
+45 00 48 c7 c7 10 20 47 89 48 b8 00 00 00 00 00 fc
+RSP: 0018:ffff8881c3567410 EFLAGS: 00010093
+RAX: ffff8881d32b4080 RBX: 0000000000000001 RCX: ffffffff8139cd5c
+RDX: 0000000000000000 RSI: ffffffff8139cd75 RDI: 0000000000000007
+RBP: ffff8881c3567428 R08: ffff8881d32b4080 R09: ffffed103b5c5b67
+R10: ffffed103b5c5b67 R11: ffff8881dae2db3b R12: 0000408005dd6000
+R13: 0000000000000000 R14: 0000000000000010 R15: ffff8881c3567ab8
+FS:  0000000001f9e880(0000) GS:ffff8881dae00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00000000203e8008 CR3: 00000001c24cd000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+  virt_to_head_page include/linux/mm.h:658 [inline]
+  virt_to_cache mm/slab.c:399 [inline]
+  kfree+0x7b/0x230 mm/slab.c:3813
+  vivid_vid_cap_s_selection+0x2c31/0x38e0  
+drivers/media/platform/vivid/vivid-vid-cap.c:1006
+  vidioc_s_selection+0xa4/0xc0 drivers/media/platform/vivid/vivid-core.c:352
+  v4l_s_selection+0xba/0x140 drivers/media/v4l2-core/v4l2-ioctl.c:2197
+  __video_do_ioctl+0x8b1/0x1050 drivers/media/v4l2-core/v4l2-ioctl.c:2853
+  video_usercopy+0x5c1/0x1760 drivers/media/v4l2-core/v4l2-ioctl.c:3035
+  video_ioctl2+0x2c/0x33 drivers/media/v4l2-core/v4l2-ioctl.c:3079
+  v4l2_ioctl+0x154/0x1b0 drivers/media/v4l2-core/v4l2-dev.c:364
+  vfs_ioctl fs/ioctl.c:46 [inline]
+  file_ioctl fs/ioctl.c:509 [inline]
+  do_vfs_ioctl+0x1de/0x1790 fs/ioctl.c:696
+  ksys_ioctl+0xa9/0xd0 fs/ioctl.c:713
+  __do_sys_ioctl fs/ioctl.c:720 [inline]
+  __se_sys_ioctl fs/ioctl.c:718 [inline]
+  __x64_sys_ioctl+0x73/0xb0 fs/ioctl.c:718
+  do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x4442c9
+Code: 18 89 d0 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 00 48 89 f8 48 89 f7  
+48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff  
+ff 0f 83 7b d8 fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007fff0d831768 EFLAGS: 00000207 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 00000000004002e0 RCX: 00000000004442c9
+RDX: 0000000020000000 RSI: 00000000c040565f RDI: 0000000000000005
+RBP: 00000000006ce018 R08: 00000000004002e0 R09: 00000000004002e0
+R10: 0000000000000000 R11: 0000000000000207 R12: 0000000000401fd0
+R13: 0000000000402060 R14: 0000000000000000 R15: 0000000000000000
+Modules linked in:
+---[ end trace 57f6f02b74dd3e8e ]---
+RIP: 0010:__phys_addr+0xb5/0x120 arch/x86/mm/physaddr.c:27
+Code: 08 4c 89 e3 31 ff 48 d3 eb 48 89 de e8 b4 bb 45 00 48 85 db 75 0f e8  
+7a ba 45 00 4c 89 e0 5b 41 5c 41 5d 5d c3 e8 6b ba 45 00 <0f> 0b e8 64 ba  
+45 00 48 c7 c7 10 20 47 89 48 b8 00 00 00 00 00 fc
+RSP: 0018:ffff8881c3567410 EFLAGS: 00010093
+RAX: ffff8881d32b4080 RBX: 0000000000000001 RCX: ffffffff8139cd5c
+RDX: 0000000000000000 RSI: ffffffff8139cd75 RDI: 0000000000000007
+RBP: ffff8881c3567428 R08: ffff8881d32b4080 R09: ffffed103b5c5b67
+R10: ffffed103b5c5b67 R11: ffff8881dae2db3b R12: 0000408005dd6000
+R13: 0000000000000000 R14: 0000000000000010 R15: ffff8881c3567ab8
+FS:  0000000001f9e880(0000) GS:ffff8881dae00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00000000203e8008 CR3: 00000001c24cd000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
