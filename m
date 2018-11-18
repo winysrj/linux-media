@@ -1,73 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk1-f196.google.com ([209.85.222.196]:40860 "EHLO
-        mail-qk1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725806AbeKRLwt (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:52806 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725864AbeKROxV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 18 Nov 2018 06:52:49 -0500
-Received: by mail-qk1-f196.google.com with SMTP id y16so43608448qki.7
-        for <linux-media@vger.kernel.org>; Sat, 17 Nov 2018 17:34:11 -0800 (PST)
-Message-ID: <dae0211b3bc01423f1e9de63e9b4ef0aee44c086.camel@ndufresne.ca>
-Subject: Re: [PATCH v2 2/2] media: docs-rst: Document memory-to-memory video
- encoder interface
-From: Nicolas Dufresne <nicolas@ndufresne.ca>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Tomasz Figa <tfiga@chromium.org>, linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        =?UTF-8?Q?Pawe=C5=82_O=C5=9Bciak?= <posciak@chromium.org>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Kamil Debski <kamil@wypas.org>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Jeongtae Park <jtp.park@samsung.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Tiffany Lin <tiffany.lin@mediatek.com>,
-        Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Todor Tomov <todor.tomov@linaro.org>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        dave.stevenson@raspberrypi.org,
-        Ezequiel Garcia <ezequiel@collabora.com>,
-        Maxime Jourdan <maxi.jourdan@wanadoo.fr>
-Date: Sat, 17 Nov 2018 20:34:08 -0500
-In-Reply-To: <d853eb91-c05d-fb10-f154-bc24e4ebb89d@xs4all.nl>
-References: <20181022144901.113852-1-tfiga@chromium.org>
-         <20181022144901.113852-3-tfiga@chromium.org>
-         <4cd223f0-b09c-da07-f26c-3b3f7a8868d7@xs4all.nl>
-         <5fb0f2db44ba7aa3788b61f2aa9a30d4f4984de5.camel@ndufresne.ca>
-         <d853eb91-c05d-fb10-f154-bc24e4ebb89d@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        Sun, 18 Nov 2018 09:53:21 -0500
+Message-ID: <5c7d4e4ed78d9f22b7ffa58b330daf2a@smtp-cloud9.xs4all.net>
+Date: Sun, 18 Nov 2018 05:34:17 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Le samedi 17 novembre 2018 à 12:37 +0100, Hans Verkuil a écrit :
-> > > Does V4L2_CID_MIN_BUFFERS_FOR_CAPTURE make any sense for encoders?
-> > 
-> > We do account for it in GStreamer (the capture/output handling is
-> > generic), but I don't know if it's being used anywhere. 
-> 
-> Do you use this value directly for REQBUFS, or do you use it as the minimum
-> value but in practice use more buffers?
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-We add more buffers to that value. We assume this value is what will be
-held by the driver, hence without adding some buffers, the driver would
-go idle as soon as one is dequeued. We also need to allocate for the
-importing driver.
+Results of the daily build of media_tree:
 
-In general, if we have a pipeline with Driver A sending to Driver B,
-both driver will require a certain amount of buffers to operate. E.g.
-with DRM display, the driver will hold on 1 buffer (the scannout
-buffer).
+date:			Sun Nov 18 05:00:10 CET 2018
+media-tree git hash:	fbe57dde7126d1b2712ab5ea93fb9d15f89de708
+media_build git hash:	a8aef9cea0a4a2f3ea86c0b37bd6a1378018c0c1
+v4l-utils git hash:	99dfae1aa052f46fcc94fabf98e89b47986956f7
+edid-decode git hash:	5eeb151a748788666534d6ea3da07f90400d24c2
+gcc version:		i686-linux-gcc (GCC) 8.2.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.18.0-2-amd64
 
-In GStreamer, it's implemented generically, so we do:
+linux-git-arm-at91: WARNINGS
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-multi: WARNINGS
+linux-git-arm-pxa: WARNINGS
+linux-git-arm-stm32: WARNINGS
+linux-git-arm64: OK
+linux-git-i686: WARNINGS
+linux-git-mips: OK
+linux-git-powerpc64: WARNINGS
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+Check COMPILE_TEST: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.57-i686: OK
+linux-3.16.57-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.123-i686: OK
+linux-3.18.123-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.52-i686: OK
+linux-4.1.52-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.159-i686: OK
+linux-4.4.159-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.131-i686: OK
+linux-4.9.131-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.74-i686: OK
+linux-4.14.74-x86_64: OK
+linux-4.15.18-i686: OK
+linux-4.15.18-x86_64: OK
+linux-4.16.18-i686: OK
+linux-4.16.18-x86_64: OK
+linux-4.17.19-i686: OK
+linux-4.17.19-x86_64: OK
+linux-4.18.12-i686: OK
+linux-4.18.12-x86_64: OK
+linux-4.19.1-i686: OK
+linux-4.19.1-x86_64: OK
+linux-4.20-rc1-i686: OK
+linux-4.20-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
-  MIN_BUFFERS_FOR + remote_min + 1
+Detailed results are available here:
 
-If only MIN_BUFFERS_FOR was allocated, ignoring remote driver
-requirement, the streaming will likely get stuck.
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-regards,
-Nicolas
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
