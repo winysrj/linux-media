@@ -1,330 +1,190 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51514 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1728258AbeKTAWS (ORCPT
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:49270 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1728258AbeKTAZj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Nov 2018 19:22:18 -0500
-Date: Mon, 19 Nov 2018 15:58:34 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Maxime Ripard <maxime.ripard@bootlin.com>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>,
-        Boris Brezillon <boris.brezillon@bootlin.com>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org,
-        Archit Taneja <architt@codeaurora.org>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Chen-Yu Tsai <wens@csie.org>, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        linux-arm-kernel@lists.infradead.org,
-        Krzysztof Witos <kwitos@cadence.com>,
-        Rafal Ciepiela <rafalc@cadence.com>
-Subject: Re: [PATCH v2 3/9] phy: Add MIPI D-PHY configuration options
-Message-ID: <20181119135833.zvgxsl7kwmfewdoa@valkosipuli.retiisi.org.uk>
-References: <cover.c2c2ae47383b9dbbdee6b69cafdd7391c06dde4f.1541516029.git-series.maxime.ripard@bootlin.com>
- <b1f6e4c1c3487e1f048cce699a86bcf50f7fed69.1541516029.git-series.maxime.ripard@bootlin.com>
+        Mon, 19 Nov 2018 19:25:39 -0500
+Subject: Re: [PATCHv2 0/9] vb2/cedrus: add tag support
+To: Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        maxime.ripard@bootlin.com, tfiga@chromium.org,
+        Nicolas Dufresne <nicolas@ndufresne.ca>
+References: <20181114134743.18993-1-hverkuil@xs4all.nl>
+ <93b53779-2218-e69a-5f2b-bdf5d76d6d15@xs4all.nl>
+ <4e517aa9f91b006ddcf2cd9631cee101a66470b8.camel@bootlin.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <e481bba5-2ed3-5cf9-a28a-6e8d7cfa3881@xs4all.nl>
+Date: Mon, 19 Nov 2018 15:01:53 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <b1f6e4c1c3487e1f048cce699a86bcf50f7fed69.1541516029.git-series.maxime.ripard@bootlin.com>
+In-Reply-To: <4e517aa9f91b006ddcf2cd9631cee101a66470b8.camel@bootlin.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Maxime,
-
-On Tue, Nov 06, 2018 at 03:54:15PM +0100, Maxime Ripard wrote:
-> Now that we have some infrastructure for it, allow the MIPI D-PHY phy's to
-> be configured through the generic functions through a custom structure
-> added to the generic union.
+On 11/19/2018 02:53 PM, Paul Kocialkowski wrote:
+> Hi,
 > 
-> The parameters added here are the ones defined in the MIPI D-PHY spec, plus
-> the number of lanes in use. The current set of parameters should cover all
-> the potential users.
+> On Mon, 2018-11-19 at 12:18 +0100, Hans Verkuil wrote:
+>> On 11/14/2018 02:47 PM, Hans Verkuil wrote:
+>>> From: Hans Verkuil <hansverk@cisco.com>
+>>>
+>>> As was discussed here (among other places):
+>>>
+>>> https://lkml.org/lkml/2018/10/19/440
+>>>
+>>> using capture queue buffer indices to refer to reference frames is
+>>> not a good idea. A better idea is to use a 'tag' where the
+>>> application can assign a u64 tag to an output buffer, which is then 
+>>> copied to the capture buffer(s) derived from the output buffer.
+>>>
+>>> A u64 is chosen since this allows userspace to also use pointers to
+>>> internal structures as 'tag'.
+>>>
+>>> The first three patches add core tag support, the next patch document
+>>> the tag support, then a new helper function is added to v4l2-mem2mem.c
+>>> to easily copy data from a source to a destination buffer that drivers
+>>> can use.
+>>>
+>>> Next a new supports_tags vb2_queue flag is added to indicate that
+>>> the driver supports tags. Ideally this should not be necessary, but
+>>> that would require that all m2m drivers are converted to using the
+>>> new helper function introduced in the previous patch. That takes more
+>>> time then I have now since we want to get this in for 4.20.
+>>>
+>>> Finally the vim2m, vicodec and cedrus drivers are converted to support
+>>> tags.
+>>>
+>>> I also removed the 'pad' fields from the mpeg2 control structs (it
+>>> should never been added in the first place) and aligned the structs
+>>> to a u32 boundary (u64 for the tag values).
+>>>
+>>> Note that this might change further (Paul suggested using bitfields).
+>>>
+>>> Also note that the cedrus code doesn't set the sequence counter, that's
+>>> something that should still be added before this driver can be moved
+>>> out of staging.
+>>>
+>>> Note: if no buffer is found for a certain tag, then the dma address
+>>> is just set to 0. That happened before as well with invalid buffer
+>>> indices. This should be checked in the driver!
+>>>
+>>> The previous RFC series was tested successfully with the cedrus driver.
+>>>
+>>> Regards,
+>>>
+>>>         Hans
+>>
+>> I'd like to get some Acked-by or Reviewed-by replies for this series.
+>> Or comments if you don't like something.
 > 
-> Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
-> ---
->  include/linux/phy/phy-mipi-dphy.h | 232 +++++++++++++++++++++++++++++++-
->  include/linux/phy/phy.h           |   6 +-
->  2 files changed, 238 insertions(+)
->  create mode 100644 include/linux/phy/phy-mipi-dphy.h
+> The series looks good to me, so consider it:
+> Reviewed-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 > 
-> diff --git a/include/linux/phy/phy-mipi-dphy.h b/include/linux/phy/phy-mipi-dphy.h
-> new file mode 100644
-> index 000000000000..0b05932916af
-> --- /dev/null
-> +++ b/include/linux/phy/phy-mipi-dphy.h
-> @@ -0,0 +1,232 @@
-> +/* SPDX-License-Identifier: GPL-2.0 */
-> +/*
-> + * Copyright (C) 2018 Cadence Design Systems Inc.
-> + */
-> +
-> +#ifndef __PHY_MIPI_DPHY_H_
-> +#define __PHY_MIPI_DPHY_H_
-> +
-> +#include <video/videomode.h>
-> +
-> +/**
-> + * struct phy_configure_opts_mipi_dphy - MIPI D-PHY configuration set
-> + *
-> + * This structure is used to represent the configuration state of a
-> + * MIPI D-PHY phy.
-> + */
-> +struct phy_configure_opts_mipi_dphy {
-> +	/**
-> +	 * @clk_miss:
-> +	 *
-> +	 * Timeout, in nanoseconds, for receiver to detect absence of
-> +	 * Clock transitions and disable the Clock Lane HS-RX.
-> +	 */
-> +	unsigned int		clk_miss;
-> +
-> +	/**
-> +	 * @clk_post:
-> +	 *
-> +	 * Time, in nanoseconds, that the transmitter continues to
-> +	 * send HS clock after the last associated Data Lane has
-> +	 * transitioned to LP Mode. Interval is defined as the period
-> +	 * from the end of @hs_trail to the beginning of @clk_trail.
-> +	 */
-> +	unsigned int		clk_post;
-> +
-> +	/**
-> +	 * @clk_pre:
-> +	 *
-> +	 * Time, in nanoseconds, that the HS clock shall be driven by
-> +	 * the transmitter prior to any associated Data Lane beginning
-> +	 * the transition from LP to HS mode.
-> +	 */
-> +	unsigned int		clk_pre;
+> Also, I'm glad you made the v4l2_m2m_buf_copy_data helper function,
+> since all drivers will need to do these same operations anyway.
+> 
+>> I would really like to get this in for 4.20 so the cedrus API is stable
+>> (hopefully), since this is a last outstanding API item.
+> 
+> I see a few more items that we need to tackle before we can consider the
+> MPEG-2 stateless API as stable.
+> 
+> * I mentionned using flags in the mpeg2 structures to solve the
+> alignment issues, but I failed to provide a patch implementing it at
+> this point. This would make the MPEG-2 controls more similar to the
+> proposed H.264 ones and generally makes more sense than using a u8 for a
+> binary value.
 
-Is the unit of clk_pre intended to be UI or ns?
+I think it will be good to have this done. If you can make a patch that I can
+rebase my tag series on, then that would be best.
 
-How about adding information on the limits of these values as well?
+> 
+> * Some time ago, we also discussed adding extra fields to the structures
+> for later use. Do you think that is still relevant? Adding a flags
+> elements (with unused bits) would certainly help in this direction
+> anyway.
 
-> +
-> +	/**
-> +	 * @clk_prepare:
-> +	 *
-> +	 * Time, in nanoseconds, that the transmitter drives the Clock
-> +	 * Lane LP-00 Line state immediately before the HS-0 Line
-> +	 * state starting the HS transmission.
-> +	 */
-> +	unsigned int		clk_prepare;
-> +
-> +	/**
-> +	 * @clk_settle:
-> +	 *
-> +	 * Time interval, in nanoseconds, during which the HS receiver
-> +	 * should ignore any Clock Lane HS transitions, starting from
-> +	 * the beginning of @clk_prepare.
-> +	 */
-> +	unsigned int		clk_settle;
-> +
-> +	/**
-> +	 * @clk_term_en:
-> +	 *
-> +	 * Time, in nanoseconds, for the Clock Lane receiver to enable
-> +	 * the HS line termination.
-> +	 */
-> +	unsigned int		clk_term_en;
-> +
-> +	/**
-> +	 * @clk_trail:
-> +	 *
-> +	 * Time, in nanoseconds, that the transmitter drives the HS-0
-> +	 * state after the last payload clock bit of a HS transmission
-> +	 * burst.
-> +	 */
-> +	unsigned int		clk_trail;
-> +
-> +	/**
-> +	 * @clk_zero:
-> +	 *
-> +	 * Time, in nanoseconds, that the transmitter drives the HS-0
-> +	 * state prior to starting the Clock.
-> +	 */
-> +	unsigned int		clk_zero;
-> +
-> +	/**
-> +	 * @d_term_en:
-> +	 *
-> +	 * Time, in nanoseconds, for the Data Lane receiver to enable
-> +	 * the HS line termination.
-> +	 */
-> +	unsigned int		d_term_en;
-> +
-> +	/**
-> +	 * @eot:
-> +	 *
-> +	 * Transmitted time interval, in nanoseconds, from the start
-> +	 * of @hs_trail or @clk_trail, to the start of the LP- 11
-> +	 * state following a HS burst.
-> +	 */
-> +	unsigned int		eot;
-> +
-> +	/**
-> +	 * @hs_exit:
-> +	 *
-> +	 * Time, in nanoseconds, that the transmitter drives LP-11
-> +	 * following a HS burst.
-> +	 */
-> +	unsigned int		hs_exit;
-> +
-> +	/**
-> +	 * @hs_prepare:
-> +	 *
-> +	 * Time, in nanoseconds, that the transmitter drives the Data
-> +	 * Lane LP-00 Line state immediately before the HS-0 Line
-> +	 * state starting the HS transmission
-> +	 */
-> +	unsigned int		hs_prepare;
-> +
-> +	/**
-> +	 * @hs_settle:
-> +	 *
-> +	 * Time interval, in nanoseconds, during which the HS receiver
-> +	 * shall ignore any Data Lane HS transitions, starting from
-> +	 * the beginning of @hs_prepare.
-> +	 */
-> +	unsigned int		hs_settle;
-> +
-> +	/**
-> +	 * @hs_skip:
-> +	 *
-> +	 * Time interval, in nanoseconds, during which the HS-RX
-> +	 * should ignore any transitions on the Data Lane, following a
-> +	 * HS burst. The end point of the interval is defined as the
-> +	 * beginning of the LP-11 state following the HS burst.
-> +	 */
-> +	unsigned int		hs_skip;
-> +
-> +	/**
-> +	 * @hs_trail:
-> +	 *
-> +	 * Time, in nanoseconds, that the transmitter drives the
-> +	 * flipped differential state after last payload data bit of a
-> +	 * HS transmission burst
-> +	 */
-> +	unsigned int		hs_trail;
-> +
-> +	/**
-> +	 * @hs_zero:
-> +	 *
-> +	 * Time, in nanoseconds, that the transmitter drives the HS-0
-> +	 * state prior to transmitting the Sync sequence.
-> +	 */
-> +	unsigned int		hs_zero;
-> +
-> +	/**
-> +	 * @init:
-> +	 *
-> +	 * Time, in nanoseconds for the initialization period to
-> +	 * complete.
-> +	 */
-> +	unsigned int		init;
-> +
-> +	/**
-> +	 * @lpx:
-> +	 *
-> +	 * Transmitted length, in nanoseconds, of any Low-Power state
-> +	 * period.
-> +	 */
-> +	unsigned int		lpx;
-> +
-> +	/**
-> +	 * @ta_get:
-> +	 *
-> +	 * Time, in nanoseconds, that the new transmitter drives the
-> +	 * Bridge state (LP-00) after accepting control during a Link
-> +	 * Turnaround.
-> +	 */
-> +	unsigned int		ta_get;
-> +
-> +	/**
-> +	 * @ta_go:
-> +	 *
-> +	 * Time, in nanoseconds, that the transmitter drives the
-> +	 * Bridge state (LP-00) before releasing control during a Link
-> +	 * Turnaround.
-> +	 */
-> +	unsigned int		ta_go;
-> +
-> +	/**
-> +	 * @ta_sure:
-> +	 *
-> +	 * Time, in nanoseconds, that the new transmitter waits after
-> +	 * the LP-10 state before transmitting the Bridge state
-> +	 * (LP-00) during a Link Turnaround.
-> +	 */
-> +	unsigned int		ta_sure;
-> +
-> +	/**
-> +	 * @wakeup:
-> +	 *
-> +	 * Time, in nanoseconds, that a transmitter drives a Mark-1
-> +	 * state prior to a Stop state in order to initiate an exit
-> +	 * from ULPS.
-> +	 */
-> +	unsigned int		wakeup;
-> +
-> +	/**
-> +	 * @hs_clk_rate:
-> +	 *
-> +	 * Clock rate, in Hertz, of the high-speed clock.
-> +	 */
-> +	unsigned long		hs_clk_rate;
-> +
-> +	/**
-> +	 * @lp_clk_rate:
-> +	 *
-> +	 * Clock rate, in Hertz, of the low-power clock.
-> +	 */
-> +	unsigned long		lp_clk_rate;
-> +
-> +	/**
-> +	 * @lanes:
-> +	 *
-> +	 * Number of lanes used for the transmissions.
-> +	 */
-> +	unsigned char		lanes;
+If you switch to bitfields, then there might be enough room anyway for
+addition flags in the future.
 
-This is related to the data_lanes DT property. I assume this is intended to
-be the number of active lanes. And presumably the first "lanes" number of
-lanes would be used in that case?
+> 
+> * During the discussions on the spec, the concensus was also to use one
+> slice_params per-slice (instead of per-picture) which requires splitting
+> the per-picture and the per-slice parameters. On this as well, I fell
+> behind and didn't send a proposal yet.
+> 
+> So my question is: does it need to be done for 4.20 or can we affoard
+> going through another version cycle for these changes?
+> 
+> It was my impression that we wanted to wait for another driver to use
+> the API to declare it stable (and move the driver out of staging).
 
-> +};
-> +
-> +#endif /* __PHY_MIPI_DPHY_H_ */
-> diff --git a/include/linux/phy/phy.h b/include/linux/phy/phy.h
-> index 89cf8b685546..d7ea2dc4e2be 100644
-> --- a/include/linux/phy/phy.h
-> +++ b/include/linux/phy/phy.h
-> @@ -20,6 +20,8 @@
->  #include <linux/pm_runtime.h>
->  #include <linux/regulator/consumer.h>
->  
-> +#include <linux/phy/phy-mipi-dphy.h>
-> +
->  struct phy;
->  
->  enum phy_mode {
-> @@ -47,8 +49,12 @@ enum phy_mode {
->  
->  /**
->   * union phy_configure_opts - Opaque generic phy configuration
-> + *
-> + * @mipi_dphy:	Configuration set applicable for phys supporting
-> + *		the MIPI_DPHY phy mode.
->   */
->  union phy_configure_opts {
-> +	struct phy_configure_opts_mipi_dphy	mipi_dphy;
->  };
->  
->  /**
+Good question, I would like to hear what Mauro says.
 
--- 
-Kind regards,
+I would prefer to postpone this to 4.21, since I don't feel comfortable
+with such large changes for an rcX (esp. splitting the per-picture/slice
+parameters).
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+Regards,
+
+	Hans
+
+> 
+> Cheers,
+> 
+> Paul
+> 
+>> Tomasz: you commented that the text still referred to the tag as a u64,
+>> but that was only in the cover letter, not the patches themselves. So
+>> I don't plan to post a v3 just for that.
+>>
+>> Regards,
+>>
+>> 	Hans
+>>
+>>> Changes since v1:
+>>>
+>>> - changed to a u32 tag. Using a 64 bit tag was overly complicated due
+>>>   to the bad layout of the v4l2_buffer struct, and there is no real
+>>>   need for it by applications.
+>>>
+>>> Main changes since the RFC:
+>>>
+>>> - Added new buffer capability flag
+>>> - Added m2m helper to copy data between buffers
+>>> - Added documentation
+>>> - Added tag logging in v4l2-ioctl.c
+>>>
+>>> Hans Verkuil (9):
+>>>   videodev2.h: add tag support
+>>>   vb2: add tag support
+>>>   v4l2-ioctl.c: log v4l2_buffer tag
+>>>   buffer.rst: document the new buffer tag feature.
+>>>   v4l2-mem2mem: add v4l2_m2m_buf_copy_data helper function
+>>>   vb2: add new supports_tags queue flag
+>>>   vim2m: add tag support
+>>>   vicodec: add tag support
+>>>   cedrus: add tag support
+>>>
+>>>  Documentation/media/uapi/v4l/buffer.rst       | 32 +++++++++----
+>>>  .../media/uapi/v4l/vidioc-reqbufs.rst         |  4 ++
+>>>  .../media/common/videobuf2/videobuf2-v4l2.c   | 45 ++++++++++++++++---
+>>>  drivers/media/platform/vicodec/vicodec-core.c | 14 ++----
+>>>  drivers/media/platform/vim2m.c                | 14 ++----
+>>>  drivers/media/v4l2-core/v4l2-ctrls.c          |  9 ----
+>>>  drivers/media/v4l2-core/v4l2-ioctl.c          |  9 ++--
+>>>  drivers/media/v4l2-core/v4l2-mem2mem.c        | 23 ++++++++++
+>>>  drivers/staging/media/sunxi/cedrus/cedrus.h   |  9 ++--
+>>>  .../staging/media/sunxi/cedrus/cedrus_dec.c   |  2 +
+>>>  .../staging/media/sunxi/cedrus/cedrus_mpeg2.c | 21 ++++-----
+>>>  .../staging/media/sunxi/cedrus/cedrus_video.c |  2 +
+>>>  include/media/v4l2-mem2mem.h                  | 21 +++++++++
+>>>  include/media/videobuf2-core.h                |  2 +
+>>>  include/media/videobuf2-v4l2.h                | 21 ++++++++-
+>>>  include/uapi/linux/v4l2-controls.h            | 14 +++---
+>>>  include/uapi/linux/videodev2.h                |  9 +++-
+>>>  17 files changed, 178 insertions(+), 73 deletions(-)
+>>>
