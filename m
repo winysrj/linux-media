@@ -1,60 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from shell.v3.sk ([90.176.6.54]:50117 "EHLO shell.v3.sk"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728387AbeKTUca (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 20 Nov 2018 15:32:30 -0500
-From: Lubomir Rintel <lkundrak@v3.sk>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>, linux-media@vger.kernel.org
-Cc: Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Lubomir Rintel <lkundrak@v3.sk>,
-        James Cameron <quozl@laptop.org>, Pavel Machek <pavel@ucw.cz>,
-        Libin Yang <lbyang@marvell.com>,
-        Albert Wang <twang13@marvell.com>
-Subject: [PATCH v3 07/14] [media] marvell-ccic: don't generate EOF on parallel bus
-Date: Tue, 20 Nov 2018 11:03:12 +0100
-Message-Id: <20181120100318.367987-8-lkundrak@v3.sk>
-In-Reply-To: <20181120100318.367987-1-lkundrak@v3.sk>
-References: <20181120100318.367987-1-lkundrak@v3.sk>
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:38603 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1728514AbeKSVcB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 19 Nov 2018 16:32:01 -0500
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Shuah Khan <shuah@kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: videobuf2-core.c: call to v4l_vb2q_enable_media_source()?
+Message-ID: <b71907b6-9e41-f56c-8c25-3b0cf47be645@xs4all.nl>
+Date: Mon, 19 Nov 2018 12:08:42 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The commit 05fed81625bf ("[media] marvell-ccic: add MIPI support for
-marvell-ccic driver") that claimed to add CSI2 turned on C0_EOF_VSYNC for
-parallel bus without a very good explanation.
+Hi Shuah, Mauro,
 
-That broke camera on OLPC XO-1.75 which precisely uses a sensor on a
-parallel bus. Revert that chunk.
+I noticed that the function vb2_core_streamon() in videobuf2-core.c calls
+v4l_vb2q_enable_media_source(q).
 
-Tested on an OLPC XO-1.75.
+That function in turn assumes that q->owner is a v4l2_fh struct. But I
+don't think that is true for DVB devices.
 
-Fixes: 05fed81625bf755cc67c5864cdfd18b69ea828d1
-Signed-off-by: Lubomir Rintel <lkundrak@v3.sk>
----
- drivers/media/platform/marvell-ccic/mcam-core.c | 6 ------
- 1 file changed, 6 deletions(-)
+And since videobuf2-core.c is expected to be DVB/V4L independent, this seems
+wrong.
 
-diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/me=
-dia/platform/marvell-ccic/mcam-core.c
-index d97f39bde9bd..d24e5b7a3bc5 100644
---- a/drivers/media/platform/marvell-ccic/mcam-core.c
-+++ b/drivers/media/platform/marvell-ccic/mcam-core.c
-@@ -792,12 +792,6 @@ static void mcam_ctlr_image(struct mcam_camera *cam)
- 	 * Make sure it knows we want to use hsync/vsync.
- 	 */
- 	mcam_reg_write_mask(cam, REG_CTRL0, C0_SIF_HVSYNC, C0_SIFM_MASK);
--	/*
--	 * This field controls the generation of EOF(DVP only)
--	 */
--	if (cam->bus_type !=3D V4L2_MBUS_CSI2_DPHY)
--		mcam_reg_set_bit(cam, REG_CTRL0,
--				C0_EOF_VSYNC | C0_VEDGE_CTRL);
- }
-=20
-=20
---=20
-2.19.1
+It was introduced over 2 years ago in commit 77fa4e0729987:
+
+commit 77fa4e072998705883c4dc672963b4bf7483cea9
+Author: Shuah Khan <shuahkh@osg.samsung.com>
+Date:   Thu Feb 11 21:41:29 2016 -0200
+
+    [media] media: Change v4l-core to check if source is free
+
+    Change s_input, s_fmt, s_tuner, s_frequency, querystd, s_hw_freq_seek,
+    and vb2_core_streamon interfaces that alter the tuner configuration to
+    check if it is free, by calling v4l_enable_media_source().
+
+    If source isn't free, return -EBUSY.
+
+    v4l_disable_media_source() is called from v4l2_fh_exit() to release
+    tuner (source).
+
+    vb2_core_streamon() uses v4l_vb2q_enable_media_source().
+
+    Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+Note that this precedes the DVB_MMAP config option, so at the time this
+likely worked fine. But I wonder why it works if that DVB_MMAP option is
+set? Pure luck?
+
+I think this call should be moved to videobuf2-v4l2.c (might require some
+refactoring). It really doesn't belong in videobuf2-core.c.
+
+Regards,
+
+	Hans
