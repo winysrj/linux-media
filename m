@@ -1,7 +1,7 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:35984 "EHLO
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:34995 "EHLO
         lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728612AbeKSVcY (ORCPT
+        by vger.kernel.org with ESMTP id S1728613AbeKSVcY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Mon, 19 Nov 2018 16:32:24 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
@@ -10,9 +10,9 @@ Cc: Tomasz Figa <tfiga@chromium.org>,
         Marek Szyprowski <m.szyprowski@samsung.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
         Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCHv2 2/4] vivid: use per-queue mutexes instead of one global mutex.
-Date: Mon, 19 Nov 2018 12:09:01 +0100
-Message-Id: <20181119110903.24383-3-hverkuil@xs4all.nl>
+Subject: [PATCHv2 1/4] vb2: add waiting_in_dqbuf flag
+Date: Mon, 19 Nov 2018 12:09:00 +0100
+Message-Id: <20181119110903.24383-2-hverkuil@xs4all.nl>
 In-Reply-To: <20181119110903.24383-1-hverkuil@xs4all.nl>
 References: <20181119110903.24383-1-hverkuil@xs4all.nl>
 MIME-Version: 1.0
@@ -20,146 +20,108 @@ Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This avoids having to unlock the queue lock in stop_streaming.
+Calling VIDIOC_DQBUF can release the core serialization lock pointed to
+by vb2_queue->lock if it has to wait for a new buffer to arrive.
+
+However, if userspace dup()ped the video device filehandle, then it is
+possible to read or call DQBUF from two filehandles at the same time.
+
+It is also possible to call REQBUFS from one filehandle while the other
+is waiting for a buffer. This will remove all the buffers and reallocate
+new ones. Removing all the buffers isn't the problem here (that's already
+handled correctly by DQBUF), but the reallocating part is: DQBUF isn't
+aware that the buffers have changed.
+
+This is fixed by setting a flag whenever the lock is released while waiting
+for a buffer to arrive. And checking the flag where needed so we can return
+-EBUSY.
 
 Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
-Reported-by: syzbot+736c3aae4af7b50d9683@syzkaller.appspotmail.com
+Reported-by: syzbot+4180ff9ca6810b06c1e9@syzkaller.appspotmail.com
 ---
- drivers/media/platform/vivid/vivid-core.c        | 15 ++++++++++-----
- drivers/media/platform/vivid/vivid-core.h        |  5 +++++
- drivers/media/platform/vivid/vivid-kthread-cap.c |  2 --
- drivers/media/platform/vivid/vivid-kthread-out.c |  2 --
- drivers/media/platform/vivid/vivid-sdr-cap.c     |  2 --
- 5 files changed, 15 insertions(+), 11 deletions(-)
+ .../media/common/videobuf2/videobuf2-core.c   | 22 +++++++++++++++++++
+ include/media/videobuf2-core.h                |  1 +
+ 2 files changed, 23 insertions(+)
 
-diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
-index 626e2b24a403..38389af97b16 100644
---- a/drivers/media/platform/vivid/vivid-core.c
-+++ b/drivers/media/platform/vivid/vivid-core.c
-@@ -1075,7 +1075,8 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		q->mem_ops = vivid_mem_ops[allocator];
- 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 		q->min_buffers_needed = 2;
--		q->lock = &dev->mutex;
-+		mutex_init(&dev->vb_vid_cap_q_lock);
-+		q->lock = &dev->vb_vid_cap_q_lock;
- 		q->dev = dev->v4l2_dev.dev;
- 		q->supports_requests = true;
- 
-@@ -1096,7 +1097,8 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		q->mem_ops = vivid_mem_ops[allocator];
- 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 		q->min_buffers_needed = 2;
--		q->lock = &dev->mutex;
-+		mutex_init(&dev->vb_vid_out_q_lock);
-+		q->lock = &dev->vb_vid_out_q_lock;
- 		q->dev = dev->v4l2_dev.dev;
- 		q->supports_requests = true;
- 
-@@ -1117,7 +1119,8 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		q->mem_ops = vivid_mem_ops[allocator];
- 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 		q->min_buffers_needed = 2;
--		q->lock = &dev->mutex;
-+		mutex_init(&dev->vb_vbi_cap_q_lock);
-+		q->lock = &dev->vb_vbi_cap_q_lock;
- 		q->dev = dev->v4l2_dev.dev;
- 		q->supports_requests = true;
- 
-@@ -1138,7 +1141,8 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		q->mem_ops = vivid_mem_ops[allocator];
- 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 		q->min_buffers_needed = 2;
--		q->lock = &dev->mutex;
-+		mutex_init(&dev->vb_vbi_out_q_lock);
-+		q->lock = &dev->vb_vbi_out_q_lock;
- 		q->dev = dev->v4l2_dev.dev;
- 		q->supports_requests = true;
- 
-@@ -1158,7 +1162,8 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		q->mem_ops = vivid_mem_ops[allocator];
- 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 		q->min_buffers_needed = 8;
--		q->lock = &dev->mutex;
-+		mutex_init(&dev->vb_sdr_cap_q_lock);
-+		q->lock = &dev->vb_sdr_cap_q_lock;
- 		q->dev = dev->v4l2_dev.dev;
- 		q->supports_requests = true;
- 
-diff --git a/drivers/media/platform/vivid/vivid-core.h b/drivers/media/platform/vivid/vivid-core.h
-index 1891254c8f0b..337ccb563f9b 100644
---- a/drivers/media/platform/vivid/vivid-core.h
-+++ b/drivers/media/platform/vivid/vivid-core.h
-@@ -385,8 +385,10 @@ struct vivid_dev {
- 	struct v4l2_rect		compose_cap;
- 	struct v4l2_rect		crop_bounds_cap;
- 	struct vb2_queue		vb_vid_cap_q;
-+	struct mutex			vb_vid_cap_q_lock;
- 	struct list_head		vid_cap_active;
- 	struct vb2_queue		vb_vbi_cap_q;
-+	struct mutex			vb_vbi_cap_q_lock;
- 	struct list_head		vbi_cap_active;
- 
- 	/* thread for generating video capture stream */
-@@ -413,8 +415,10 @@ struct vivid_dev {
- 	struct v4l2_rect		compose_out;
- 	struct v4l2_rect		compose_bounds_out;
- 	struct vb2_queue		vb_vid_out_q;
-+	struct mutex			vb_vid_out_q_lock;
- 	struct list_head		vid_out_active;
- 	struct vb2_queue		vb_vbi_out_q;
-+	struct mutex			vb_vbi_out_q_lock;
- 	struct list_head		vbi_out_active;
- 
- 	/* video loop precalculated rectangles */
-@@ -459,6 +463,7 @@ struct vivid_dev {
- 
- 	/* SDR capture */
- 	struct vb2_queue		vb_sdr_cap_q;
-+	struct mutex			vb_sdr_cap_q_lock;
- 	struct list_head		sdr_cap_active;
- 	u32				sdr_pixelformat; /* v4l2 format id */
- 	unsigned			sdr_buffersize;
-diff --git a/drivers/media/platform/vivid/vivid-kthread-cap.c b/drivers/media/platform/vivid/vivid-kthread-cap.c
-index eebfff2126be..d8bb59e9bcc7 100644
---- a/drivers/media/platform/vivid/vivid-kthread-cap.c
-+++ b/drivers/media/platform/vivid/vivid-kthread-cap.c
-@@ -927,8 +927,6 @@ void vivid_stop_generating_vid_cap(struct vivid_dev *dev, bool *pstreaming)
- 
- 	/* shutdown control thread */
- 	vivid_grab_controls(dev, false);
--	mutex_unlock(&dev->mutex);
- 	kthread_stop(dev->kthread_vid_cap);
- 	dev->kthread_vid_cap = NULL;
--	mutex_lock(&dev->mutex);
- }
-diff --git a/drivers/media/platform/vivid/vivid-kthread-out.c b/drivers/media/platform/vivid/vivid-kthread-out.c
-index 5a14810eeb69..8b864cb0ed52 100644
---- a/drivers/media/platform/vivid/vivid-kthread-out.c
-+++ b/drivers/media/platform/vivid/vivid-kthread-out.c
-@@ -298,8 +298,6 @@ void vivid_stop_generating_vid_out(struct vivid_dev *dev, bool *pstreaming)
- 
- 	/* shutdown control thread */
- 	vivid_grab_controls(dev, false);
--	mutex_unlock(&dev->mutex);
- 	kthread_stop(dev->kthread_vid_out);
- 	dev->kthread_vid_out = NULL;
--	mutex_lock(&dev->mutex);
- }
-diff --git a/drivers/media/platform/vivid/vivid-sdr-cap.c b/drivers/media/platform/vivid/vivid-sdr-cap.c
-index dcdc80e272c2..5dfb598af742 100644
---- a/drivers/media/platform/vivid/vivid-sdr-cap.c
-+++ b/drivers/media/platform/vivid/vivid-sdr-cap.c
-@@ -305,10 +305,8 @@ static void sdr_cap_stop_streaming(struct vb2_queue *vq)
+diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
+index 975ff5669f72..f7e7e633bcd7 100644
+--- a/drivers/media/common/videobuf2/videobuf2-core.c
++++ b/drivers/media/common/videobuf2/videobuf2-core.c
+@@ -672,6 +672,11 @@ int vb2_core_reqbufs(struct vb2_queue *q, enum vb2_memory memory,
+ 		return -EBUSY;
  	}
  
- 	/* shutdown control thread */
--	mutex_unlock(&dev->mutex);
- 	kthread_stop(dev->kthread_sdr_cap);
- 	dev->kthread_sdr_cap = NULL;
--	mutex_lock(&dev->mutex);
- }
++	if (q->waiting_in_dqbuf && *count) {
++		dprintk(1, "another dup()ped fd is waiting for a buffer\n");
++		return -EBUSY;
++	}
++
+ 	if (*count == 0 || q->num_buffers != 0 ||
+ 	    (q->memory != VB2_MEMORY_UNKNOWN && q->memory != memory)) {
+ 		/*
+@@ -809,6 +814,10 @@ int vb2_core_create_bufs(struct vb2_queue *q, enum vb2_memory memory,
+ 	}
  
- static void sdr_cap_buf_request_complete(struct vb2_buffer *vb)
+ 	if (!q->num_buffers) {
++		if (q->waiting_in_dqbuf && *count) {
++			dprintk(1, "another dup()ped fd is waiting for a buffer\n");
++			return -EBUSY;
++		}
+ 		memset(q->alloc_devs, 0, sizeof(q->alloc_devs));
+ 		q->memory = memory;
+ 		q->waiting_for_buffers = !q->is_output;
+@@ -1621,6 +1630,11 @@ static int __vb2_wait_for_done_vb(struct vb2_queue *q, int nonblocking)
+ 	for (;;) {
+ 		int ret;
+ 
++		if (q->waiting_in_dqbuf) {
++			dprintk(1, "another dup()ped fd is waiting for a buffer\n");
++			return -EBUSY;
++		}
++
+ 		if (!q->streaming) {
+ 			dprintk(1, "streaming off, will not wait for buffers\n");
+ 			return -EINVAL;
+@@ -1648,6 +1662,7 @@ static int __vb2_wait_for_done_vb(struct vb2_queue *q, int nonblocking)
+ 			return -EAGAIN;
+ 		}
+ 
++		q->waiting_in_dqbuf = 1;
+ 		/*
+ 		 * We are streaming and blocking, wait for another buffer to
+ 		 * become ready or for streamoff. Driver's lock is released to
+@@ -1668,6 +1683,7 @@ static int __vb2_wait_for_done_vb(struct vb2_queue *q, int nonblocking)
+ 		 * the locks or return an error if one occurred.
+ 		 */
+ 		call_void_qop(q, wait_finish, q);
++		q->waiting_in_dqbuf = 0;
+ 		if (ret) {
+ 			dprintk(1, "sleep was interrupted\n");
+ 			return ret;
+@@ -2539,6 +2555,12 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+ 	if (!data)
+ 		return -EINVAL;
+ 
++	if (q->waiting_in_dqbuf) {
++		dprintk(3, "another dup()ped fd is %s\n",
++			read ? "reading" : "writing");
++		return -EBUSY;
++	}
++
+ 	/*
+ 	 * Initialize emulator on first call.
+ 	 */
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index e86981d615ae..613f22910174 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -584,6 +584,7 @@ struct vb2_queue {
+ 	unsigned int			start_streaming_called:1;
+ 	unsigned int			error:1;
+ 	unsigned int			waiting_for_buffers:1;
++	unsigned int			waiting_in_dqbuf:1;
+ 	unsigned int			is_multiplanar:1;
+ 	unsigned int			is_output:1;
+ 	unsigned int			copy_timestamp:1;
 -- 
 2.19.1
