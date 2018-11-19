@@ -1,120 +1,309 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:47724 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726235AbeKTAgY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Nov 2018 19:36:24 -0500
-Date: Mon, 19 Nov 2018 15:12:37 +0100
-From: Maxime Ripard <maxime.ripard@bootlin.com>
-To: Tomasz Figa <tfiga@chromium.org>
-Cc: Pawel Osciak <posciak@chromium.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:38713 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726235AbeKTAuS (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 19 Nov 2018 19:50:18 -0500
+Subject: Re: [PATCH v4 6/6] media: video-i2c: support runtime PM
+To: Akinobu Mita <akinobu.mita@gmail.com>, linux-media@vger.kernel.org
+Cc: Matt Ranostay <matt.ranostay@konsulko.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        "list@263.net:IOMMU DRIVERS <iommu@lists.linux-foundation.org>, Joerg
-        Roedel <joro@8bytes.org>," <linux-arm-kernel@lists.infradead.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-        jenskuske@gmail.com, linux-sunxi@googlegroups.com,
-        thomas.petazzoni@bootlin.com
-Subject: Re: [PATCH v2 0/2] media: cedrus: Add H264 decoding support
-Message-ID: <20181119141237.qwwdn27e6jwjvhmz@flea>
-References: <20181115145650.9827-1-maxime.ripard@bootlin.com>
- <CAAFQd5DmcC23ZSktBXo=Sz-6G76oaJywha9mXtaPFSx08eV_nA@mail.gmail.com>
+        Hans Verkuil <hansverk@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <1540045588-9091-1-git-send-email-akinobu.mita@gmail.com>
+ <1540045588-9091-7-git-send-email-akinobu.mita@gmail.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <bc0c9149-b3d9-b10e-a715-674d39edc5d5@xs4all.nl>
+Date: Mon, 19 Nov 2018 15:26:28 +0100
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="zmi43yrjnqz7zkau"
-Content-Disposition: inline
-In-Reply-To: <CAAFQd5DmcC23ZSktBXo=Sz-6G76oaJywha9mXtaPFSx08eV_nA@mail.gmail.com>
+In-Reply-To: <1540045588-9091-7-git-send-email-akinobu.mita@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 10/20/2018 04:26 PM, Akinobu Mita wrote:
+> AMG88xx has a register for setting operating mode.  This adds support
+> runtime PM by changing the operating mode.
+> 
+> The instruction for changing sleep mode to normal mode is from the
+> reference specifications.
+> 
+> https://docid81hrs3j1.cloudfront.net/medialibrary/2017/11/PANA-S-A0002141979-1.pdf
+> 
+> Cc: Matt Ranostay <matt.ranostay@konsulko.com>
+> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Cc: Hans Verkuil <hansverk@cisco.com>
+> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+> Reviewed-by: Matt Ranostay <matt.ranostay@konsulko.com>
+> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+> ---
+> * v4
+> - Move set_power() call into release() callback
+> 
+>  drivers/media/i2c/video-i2c.c | 141 +++++++++++++++++++++++++++++++++++++++++-
+>  1 file changed, 139 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/video-i2c.c b/drivers/media/i2c/video-i2c.c
+> index 3334fc2..384a046 100644
+> --- a/drivers/media/i2c/video-i2c.c
+> +++ b/drivers/media/i2c/video-i2c.c
+> @@ -17,6 +17,7 @@
+>  #include <linux/module.h>
+>  #include <linux/mutex.h>
+>  #include <linux/of_device.h>
+> +#include <linux/pm_runtime.h>
+>  #include <linux/regmap.h>
+>  #include <linux/sched.h>
+>  #include <linux/slab.h>
+> @@ -94,10 +95,23 @@ struct video_i2c_chip {
+>  	/* xfer function */
+>  	int (*xfer)(struct video_i2c_data *data, char *buf);
+>  
+> +	/* power control function */
+> +	int (*set_power)(struct video_i2c_data *data, bool on);
+> +
+>  	/* hwmon init function */
+>  	int (*hwmon_init)(struct video_i2c_data *data);
+>  };
+>  
+> +/* Power control register */
+> +#define AMG88XX_REG_PCTL	0x00
+> +#define AMG88XX_PCTL_NORMAL		0x00
+> +#define AMG88XX_PCTL_SLEEP		0x10
+> +
+> +/* Reset register */
+> +#define AMG88XX_REG_RST		0x01
+> +#define AMG88XX_RST_FLAG		0x30
+> +#define AMG88XX_RST_INIT		0x3f
+> +
+>  /* Frame rate register */
+>  #define AMG88XX_REG_FPSC	0x02
+>  #define AMG88XX_FPSC_1FPS		BIT(0)
+> @@ -127,6 +141,59 @@ static int amg88xx_setup(struct video_i2c_data *data)
+>  	return regmap_update_bits(data->regmap, AMG88XX_REG_FPSC, mask, val);
+>  }
+>  
+> +static int amg88xx_set_power_on(struct video_i2c_data *data)
+> +{
+> +	int ret;
+> +
+> +	ret = regmap_write(data->regmap, AMG88XX_REG_PCTL, AMG88XX_PCTL_NORMAL);
+> +	if (ret)
+> +		return ret;
+> +
+> +	msleep(50);
+> +
+> +	ret = regmap_write(data->regmap, AMG88XX_REG_RST, AMG88XX_RST_INIT);
+> +	if (ret)
+> +		return ret;
+> +
+> +	msleep(2);
 
---zmi43yrjnqz7zkau
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+WARNING: msleep < 20ms can sleep for up to 20ms; see Documentation/timers/timers-howto.txt
+#55: FILE: drivers/media/i2c/video-i2c.c:158:
++       msleep(2);
 
-Hi Tomasz,
+Use usleep_range instead.
 
-On Fri, Nov 16, 2018 at 04:04:40PM +0900, Tomasz Figa wrote:
-> > I've been using the controls currently integrated into ChromeOS that
-> > have a working version of this particular setup. However, these
-> > controls have a number of shortcomings and inconsistencies with other
-> > decoding API. I've worked with libva so far, but I've noticed already
-> > that:
-> >   - The kernel UAPI expects to have the nal_ref_idc variable, while
-> >     libva only exposes whether that frame is a reference frame or
-> >     not. I've looked at the rockchip driver in the ChromeOS tree, and
-> >     our own driver, and they both need only the information about
-> >     whether the frame is a reference one or not, so maybe we should
-> >     change this?
->=20
-> Since this is something that is actually present in the stream and the
-> problem is that libva doesn't convey the information properly, I
-> believe you can workaround it in the libva backend using this API by
-> just setting it to 0 and some arbitrary non-zero value in a binary
-> fashion.
+Regards,
 
-That could work yes, thanks for the suggestion!
+	Hans
 
-> >   - The H264 bitstream exposes the picture default reference list (for
-> >     both list 0 and list 1), the slice reference list and an override
-> >     flag. The libva will only pass the reference list to be used (so
-> >     either the picture default's or the slice's) depending on the
-> >     override flag. The kernel UAPI wants the picture default reference
-> >     list and the slice reference list, but doesn't expose the override
-> >     flag, which prevents us from configuring properly the
-> >     hardware. Our video decoding engine needs the three information,
-> >     but we can easily adapt to having only one. However, having two
-> >     doesn't really work for us.
-> >
->=20
-> From what I can see in the H.264 Slice header, there are 3 related data:
->  - num_ref_idx_active_override_flag - affects the number of reference
-> indices for the slice,
->  - ref_list_l{0,1}_modifications - modifications for the reference lists,
->  - ref_pic_list_modification_flag_l{0,1} - selects whether the
-> modifications are applied.
->=20
-> The reference lists inside the v4l2_ctrl_h264_slice_param are expected
-> to already take all the above into account and be the final reference
-> lists to be used for the slice. For reference, the H.264 specification
-> refers to those final reference lists as RefPicList0 and RefPicList1
-> and so the names of the fields in the struct.
->=20
-> There is some interesting background here, though. The Rockchip VPU
-> parses the slice headers itself and handles the above data on its own.
-> This means that it needs to be programmed with the unmodified
-> reference lists, as in v4l2_ctrl_h264_decode_param.
->=20
-> Given that, it sounds like we need to have both. Your driver would
-> always use the lists in v4l2_ctrl_h264_slice_param, while the Rockchip
-> VPU would ignore them, use the ones in v4l2_ctrl_h264_decode_param and
-> perform the per-slice modifications on its own.
-
-I guess that would work, yep
-
-Thanks!
-Maxime
-
---=20
-Maxime Ripard, Bootlin
-Embedded Linux and Kernel engineering
-https://bootlin.com
-
---zmi43yrjnqz7zkau
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iHUEABYIAB0WIQRcEzekXsqa64kGDp7j7w1vZxhRxQUCW/LE1QAKCRDj7w1vZxhR
-xU6lAQCzHT+UfaY4dv6lCYEoscex90eOwXS0/ocDdzhogtlupQEAmk5Cm8O2uK2v
-n7r5Zwk9nm0dlXFOvMi9Auac66YJzw0=
-=6I8o
------END PGP SIGNATURE-----
-
---zmi43yrjnqz7zkau--
+> +
+> +	ret = regmap_write(data->regmap, AMG88XX_REG_RST, AMG88XX_RST_FLAG);
+> +	if (ret)
+> +		return ret;
+> +
+> +	/*
+> +	 * Wait two frames before reading thermistor and temperature registers
+> +	 */
+> +	msleep(200);
+> +
+> +	return 0;
+> +}
+> +
+> +static int amg88xx_set_power_off(struct video_i2c_data *data)
+> +{
+> +	int ret;
+> +
+> +	ret = regmap_write(data->regmap, AMG88XX_REG_PCTL, AMG88XX_PCTL_SLEEP);
+> +	if (ret)
+> +		return ret;
+> +	/*
+> +	 * Wait for a while to avoid resuming normal mode immediately after
+> +	 * entering sleep mode, otherwise the device occasionally goes wrong
+> +	 * (thermistor and temperature registers are not updated at all)
+> +	 */
+> +	msleep(100);
+> +
+> +	return 0;
+> +}
+> +
+> +static int amg88xx_set_power(struct video_i2c_data *data, bool on)
+> +{
+> +	if (on)
+> +		return amg88xx_set_power_on(data);
+> +
+> +	return amg88xx_set_power_off(data);
+> +}
+> +
+>  #if IS_ENABLED(CONFIG_HWMON)
+>  
+>  static const u32 amg88xx_temp_config[] = {
+> @@ -158,7 +225,15 @@ static int amg88xx_read(struct device *dev, enum hwmon_sensor_types type,
+>  	__le16 buf;
+>  	int tmp;
+>  
+> +	tmp = pm_runtime_get_sync(regmap_get_device(data->regmap));
+> +	if (tmp < 0) {
+> +		pm_runtime_put_noidle(regmap_get_device(data->regmap));
+> +		return tmp;
+> +	}
+> +
+>  	tmp = regmap_bulk_read(data->regmap, AMG88XX_REG_TTHL, &buf, 2);
+> +	pm_runtime_mark_last_busy(regmap_get_device(data->regmap));
+> +	pm_runtime_put_autosuspend(regmap_get_device(data->regmap));
+>  	if (tmp)
+>  		return tmp;
+>  
+> @@ -217,6 +292,7 @@ static const struct video_i2c_chip video_i2c_chip[] = {
+>  		.regmap_config	= &amg88xx_regmap_config,
+>  		.setup		= &amg88xx_setup,
+>  		.xfer		= &amg88xx_xfer,
+> +		.set_power	= amg88xx_set_power,
+>  		.hwmon_init	= amg88xx_hwmon_init,
+>  	},
+>  };
+> @@ -343,14 +419,21 @@ static void video_i2c_del_list(struct vb2_queue *vq, enum vb2_buffer_state state
+>  static int start_streaming(struct vb2_queue *vq, unsigned int count)
+>  {
+>  	struct video_i2c_data *data = vb2_get_drv_priv(vq);
+> +	struct device *dev = regmap_get_device(data->regmap);
+>  	int ret;
+>  
+>  	if (data->kthread_vid_cap)
+>  		return 0;
+>  
+> +	ret = pm_runtime_get_sync(dev);
+> +	if (ret < 0) {
+> +		pm_runtime_put_noidle(dev);
+> +		goto error_del_list;
+> +	}
+> +
+>  	ret = data->chip->setup(data);
+>  	if (ret)
+> -		goto error_del_list;
+> +		goto error_rpm_put;
+>  
+>  	data->sequence = 0;
+>  	data->kthread_vid_cap = kthread_run(video_i2c_thread_vid_cap, data,
+> @@ -359,6 +442,9 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
+>  	if (!ret)
+>  		return 0;
+>  
+> +error_rpm_put:
+> +	pm_runtime_mark_last_busy(dev);
+> +	pm_runtime_put_autosuspend(dev);
+>  error_del_list:
+>  	video_i2c_del_list(vq, VB2_BUF_STATE_QUEUED);
+>  
+> @@ -374,6 +460,8 @@ static void stop_streaming(struct vb2_queue *vq)
+>  
+>  	kthread_stop(data->kthread_vid_cap);
+>  	data->kthread_vid_cap = NULL;
+> +	pm_runtime_mark_last_busy(regmap_get_device(data->regmap));
+> +	pm_runtime_put_autosuspend(regmap_get_device(data->regmap));
+>  
+>  	video_i2c_del_list(vq, VB2_BUF_STATE_ERROR);
+>  }
+> @@ -648,6 +736,16 @@ static int video_i2c_probe(struct i2c_client *client,
+>  	video_set_drvdata(&data->vdev, data);
+>  	i2c_set_clientdata(client, data);
+>  
+> +	ret = data->chip->set_power(data, true);
+> +	if (ret)
+> +		goto error_unregister_device;
+> +
+> +	pm_runtime_get_noresume(&client->dev);
+> +	pm_runtime_set_active(&client->dev);
+> +	pm_runtime_enable(&client->dev);
+> +	pm_runtime_set_autosuspend_delay(&client->dev, 2000);
+> +	pm_runtime_use_autosuspend(&client->dev);
+> +
+>  	if (data->chip->hwmon_init) {
+>  		ret = data->chip->hwmon_init(data);
+>  		if (ret < 0) {
+> @@ -658,10 +756,19 @@ static int video_i2c_probe(struct i2c_client *client,
+>  
+>  	ret = video_register_device(&data->vdev, VFL_TYPE_GRABBER, -1);
+>  	if (ret < 0)
+> -		goto error_unregister_device;
+> +		goto error_pm_disable;
+> +
+> +	pm_runtime_mark_last_busy(&client->dev);
+> +	pm_runtime_put_autosuspend(&client->dev);
+>  
+>  	return 0;
+>  
+> +error_pm_disable:
+> +	pm_runtime_disable(&client->dev);
+> +	pm_runtime_set_suspended(&client->dev);
+> +	pm_runtime_put_noidle(&client->dev);
+> +	data->chip->set_power(data, false);
+> +
+>  error_unregister_device:
+>  	v4l2_device_unregister(v4l2_dev);
+>  	mutex_destroy(&data->lock);
+> @@ -680,11 +787,40 @@ static int video_i2c_remove(struct i2c_client *client)
+>  {
+>  	struct video_i2c_data *data = i2c_get_clientdata(client);
+>  
+> +	pm_runtime_get_sync(&client->dev);
+> +	pm_runtime_disable(&client->dev);
+> +	pm_runtime_set_suspended(&client->dev);
+> +	pm_runtime_put_noidle(&client->dev);
+> +	data->chip->set_power(data, false);
+> +
+>  	video_unregister_device(&data->vdev);
+>  
+>  	return 0;
+>  }
+>  
+> +#ifdef CONFIG_PM
+> +
+> +static int video_i2c_pm_runtime_suspend(struct device *dev)
+> +{
+> +	struct video_i2c_data *data = i2c_get_clientdata(to_i2c_client(dev));
+> +
+> +	return data->chip->set_power(data, false);
+> +}
+> +
+> +static int video_i2c_pm_runtime_resume(struct device *dev)
+> +{
+> +	struct video_i2c_data *data = i2c_get_clientdata(to_i2c_client(dev));
+> +
+> +	return data->chip->set_power(data, true);
+> +}
+> +
+> +#endif
+> +
+> +static const struct dev_pm_ops video_i2c_pm_ops = {
+> +	SET_RUNTIME_PM_OPS(video_i2c_pm_runtime_suspend,
+> +			   video_i2c_pm_runtime_resume, NULL)
+> +};
+> +
+>  static const struct i2c_device_id video_i2c_id_table[] = {
+>  	{ "amg88xx", AMG88XX },
+>  	{}
+> @@ -701,6 +837,7 @@ static struct i2c_driver video_i2c_driver = {
+>  	.driver = {
+>  		.name	= VIDEO_I2C_DRIVER,
+>  		.of_match_table = video_i2c_of_match,
+> +		.pm	= &video_i2c_pm_ops,
+>  	},
+>  	.probe		= video_i2c_probe,
+>  	.remove		= video_i2c_remove,
+> 
