@@ -1,56 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54594 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S2405697AbeKTD3b (ORCPT
+Received: from mail-lf1-f66.google.com ([209.85.167.66]:35838 "EHLO
+        mail-lf1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2389109AbeKTEGT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Nov 2018 22:29:31 -0500
-Date: Mon, 19 Nov 2018 19:05:11 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Maxime Ripard <maxime.ripard@bootlin.com>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>,
-        Boris Brezillon <boris.brezillon@bootlin.com>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org,
-        Archit Taneja <architt@codeaurora.org>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Chen-Yu Tsai <wens@csie.org>, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        linux-arm-kernel@lists.infradead.org,
-        Krzysztof Witos <kwitos@cadence.com>,
-        Rafal Ciepiela <rafalc@cadence.com>
-Subject: Re: [PATCH v2 6/9] phy: Move Allwinner A31 D-PHY driver to
- drivers/phy/
-Message-ID: <20181119170511.4yhvpfa7uiybgvty@valkosipuli.retiisi.org.uk>
-References: <cover.c2c2ae47383b9dbbdee6b69cafdd7391c06dde4f.1541516029.git-series.maxime.ripard@bootlin.com>
- <c3fe50ce10d514c15eb4b3e4abec94a7ef15538c.1541516029.git-series.maxime.ripard@bootlin.com>
+        Mon, 19 Nov 2018 23:06:19 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <c3fe50ce10d514c15eb4b3e4abec94a7ef15538c.1541516029.git-series.maxime.ripard@bootlin.com>
+References: <20181115154530.GA27872@jordon-HP-15-Notebook-PC>
+ <20181116182836.GB17088@rapoport-lnx> <CAFqt6zYp0j999WXw9Jus0oZMjADQQkPfso8btv6du6L9CE3PXA@mail.gmail.com>
+ <20181117143742.GB7861@bombadil.infradead.org> <CAFqt6zbOWX5LUTWwoGDJsGdf+pTR6N1yTPVxyr1W3-6Fte39ww@mail.gmail.com>
+ <20181119162623.GA13200@rapoport-lnx>
+In-Reply-To: <20181119162623.GA13200@rapoport-lnx>
+From: Souptick Joarder <jrdr.linux@gmail.com>
+Date: Mon, 19 Nov 2018 23:15:15 +0530
+Message-ID: <CAFqt6zbhodAGQz-RCB3C-wt_Mvb9QDmQ8pFeP2EO+ba2k2OccA@mail.gmail.com>
+Subject: Re: [PATCH 1/9] mm: Introduce new vm_insert_range API
+To: rppt@linux.ibm.com
+Cc: Matthew Wilcox <willy@infradead.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Michal Hocko <mhocko@suse.com>,
+        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
+        vbabka@suse.cz, Rik van Riel <riel@surriel.com>,
+        Stephen Rothwell <sfr@canb.auug.org.au>,
+        rppt@linux.vnet.ibm.com, Peter Zijlstra <peterz@infradead.org>,
+        Russell King - ARM Linux <linux@armlinux.org.uk>,
+        robin.murphy@arm.com, iamjoonsoo.kim@lge.com, treding@nvidia.com,
+        Kees Cook <keescook@chromium.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        stefanr@s5r6.in-berlin.de, hjc@rock-chips.com,
+        Heiko Stuebner <heiko@sntech.de>, airlied@linux.ie,
+        oleksandr_andrushchenko@epam.com, joro@8bytes.org,
+        pawel@osciak.com, Kyungmin Park <kyungmin.park@samsung.com>,
+        mchehab@kernel.org, Boris Ostrovsky <boris.ostrovsky@oracle.com>,
+        Juergen Gross <jgross@suse.com>, linux-kernel@vger.kernel.org,
+        Linux-MM <linux-mm@kvack.org>,
+        linux-arm-kernel@lists.infradead.org,
+        linux1394-devel@lists.sourceforge.net,
+        dri-devel@lists.freedesktop.org,
+        linux-rockchip@lists.infradead.org, xen-devel@lists.xen.org,
+        iommu@lists.linux-foundation.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Maxime,
+On Mon, Nov 19, 2018 at 9:56 PM Mike Rapoport <rppt@linux.ibm.com> wrote:
+>
+> On Mon, Nov 19, 2018 at 08:43:09PM +0530, Souptick Joarder wrote:
+> > Hi Mike,
+> >
+> > On Sat, Nov 17, 2018 at 8:07 PM Matthew Wilcox <willy@infradead.org> wrote:
+> > >
+> > > On Sat, Nov 17, 2018 at 12:26:38PM +0530, Souptick Joarder wrote:
+> > > > On Fri, Nov 16, 2018 at 11:59 PM Mike Rapoport <rppt@linux.ibm.com> wrote:
+> > > > > > + * vm_insert_range - insert range of kernel pages into user vma
+> > > > > > + * @vma: user vma to map to
+> > > > > > + * @addr: target user address of this page
+> > > > > > + * @pages: pointer to array of source kernel pages
+> > > > > > + * @page_count: no. of pages need to insert into user vma
+> > > > > > + *
+> > > > > > + * This allows drivers to insert range of kernel pages they've allocated
+> > > > > > + * into a user vma. This is a generic function which drivers can use
+> > > > > > + * rather than using their own way of mapping range of kernel pages into
+> > > > > > + * user vma.
+> > > > >
+> > > > > Please add the return value and context descriptions.
+> > > > >
+> > > >
+> > > > Sure I will wait for some time to get additional review comments and
+> > > > add all of those requested changes in v2.
+> > >
+> > > You could send your proposed wording now which might remove the need
+> > > for a v3 if we end up arguing about the wording.
+> >
+> > Does this description looks good ?
+> >
+> > /**
+> >  * vm_insert_range - insert range of kernel pages into user vma
+> >  * @vma: user vma to map to
+> >  * @addr: target user address of this page
+> >  * @pages: pointer to array of source kernel pages
+> >  * @page_count: number of pages need to insert into user vma
+> >  *
+> >  * This allows drivers to insert range of kernel pages they've allocated
+> >  * into a user vma. This is a generic function which drivers can use
+> >  * rather than using their own way of mapping range of kernel pages into
+> >  * user vma.
+> >  *
+> >  * Context - Process context. Called by mmap handlers.
+>
+> Context:
+>
+> >  * Return - int error value
+>
+> Return:
+>
+> >  * 0                    - OK
+> >  * -EINVAL              - Invalid argument
+> >  * -ENOMEM              - No memory
+> >  * -EFAULT              - Bad address
+> >  * -EBUSY               - Device or resource busy
+>
+> I don't think that elaborate description of error values is needed, just "0
+> on success and error code otherwise" would be sufficient.
 
-On Tue, Nov 06, 2018 at 03:54:18PM +0100, Maxime Ripard wrote:
-> Now that our MIPI D-PHY driver has been converted to the phy framework,
-> let's move it into the drivers/phy directory.
-> 
-> Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
-> ---
->  drivers/gpu/drm/sun4i/Kconfig               |  10 +-
->  drivers/gpu/drm/sun4i/Makefile              |   1 +-
->  drivers/gpu/drm/sun4i/sun6i_mipi_dphy.c     | 318 +---------------------
->  drivers/phy/allwinner/Kconfig               |  12 +-
->  drivers/phy/allwinner/Makefile              |   1 +-
->  drivers/phy/allwinner/phy-sun6i-mipi-dphy.c | 318 +++++++++++++++++++++-
->  6 files changed, 332 insertions(+), 328 deletions(-)
->  delete mode 100644 drivers/gpu/drm/sun4i/sun6i_mipi_dphy.c
->  create mode 100644 drivers/phy/allwinner/phy-sun6i-mipi-dphy.c
-
-Could you use git format-patch -M option on the next time, please?
-
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+/**
+ * vm_insert_range - insert range of kernel pages into user vma
+ * @vma: user vma to map to
+ * @addr: target user address of this page
+ * @pages: pointer to array of source kernel pages
+ * @page_count: number of pages need to insert into user vma
+ *
+ * This allows drivers to insert range of kernel pages they've allocated
+ * into a user vma. This is a generic function which drivers can use
+ * rather than using their own way of mapping range of kernel pages into
+ * user vma.
+ *
+ * Context: Process context. Called by mmap handlers.
+ * Return: 0 on success and error code otherwise
+ */
