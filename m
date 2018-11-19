@@ -1,139 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:42383 "EHLO
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:47159 "EHLO
         lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728614AbeKSVcY (ORCPT
+        by vger.kernel.org with ESMTP id S1727857AbeKSVmK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Nov 2018 16:32:24 -0500
+        Mon, 19 Nov 2018 16:42:10 -0500
+Subject: Re: [PATCHv2 0/9] vb2/cedrus: add tag support
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Tomasz Figa <tfiga@chromium.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCHv2 4/4] vivid: add queue_setup_(un)lock ops
-Date: Mon, 19 Nov 2018 12:09:03 +0100
-Message-Id: <20181119110903.24383-5-hverkuil@xs4all.nl>
-In-Reply-To: <20181119110903.24383-1-hverkuil@xs4all.nl>
-References: <20181119110903.24383-1-hverkuil@xs4all.nl>
+Cc: Alexandre Courbot <acourbot@chromium.org>,
+        maxime.ripard@bootlin.com, paul.kocialkowski@bootlin.com,
+        tfiga@chromium.org, Nicolas Dufresne <nicolas@ndufresne.ca>
+References: <20181114134743.18993-1-hverkuil@xs4all.nl>
+Message-ID: <93b53779-2218-e69a-5f2b-bdf5d76d6d15@xs4all.nl>
+Date: Mon, 19 Nov 2018 12:18:48 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20181114134743.18993-1-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add these ops to serialize queue_setup with VIDIOC_S_FMT.
+On 11/14/2018 02:47 PM, Hans Verkuil wrote:
+> From: Hans Verkuil <hansverk@cisco.com>
+> 
+> As was discussed here (among other places):
+> 
+> https://lkml.org/lkml/2018/10/19/440
+> 
+> using capture queue buffer indices to refer to reference frames is
+> not a good idea. A better idea is to use a 'tag' where the
+> application can assign a u64 tag to an output buffer, which is then 
+> copied to the capture buffer(s) derived from the output buffer.
+> 
+> A u64 is chosen since this allows userspace to also use pointers to
+> internal structures as 'tag'.
+> 
+> The first three patches add core tag support, the next patch document
+> the tag support, then a new helper function is added to v4l2-mem2mem.c
+> to easily copy data from a source to a destination buffer that drivers
+> can use.
+> 
+> Next a new supports_tags vb2_queue flag is added to indicate that
+> the driver supports tags. Ideally this should not be necessary, but
+> that would require that all m2m drivers are converted to using the
+> new helper function introduced in the previous patch. That takes more
+> time then I have now since we want to get this in for 4.20.
+> 
+> Finally the vim2m, vicodec and cedrus drivers are converted to support
+> tags.
+> 
+> I also removed the 'pad' fields from the mpeg2 control structs (it
+> should never been added in the first place) and aligned the structs
+> to a u32 boundary (u64 for the tag values).
+> 
+> Note that this might change further (Paul suggested using bitfields).
+> 
+> Also note that the cedrus code doesn't set the sequence counter, that's
+> something that should still be added before this driver can be moved
+> out of staging.
+> 
+> Note: if no buffer is found for a certain tag, then the dma address
+> is just set to 0. That happened before as well with invalid buffer
+> indices. This should be checked in the driver!
+> 
+> The previous RFC series was tested successfully with the cedrus driver.
+> 
+> Regards,
+> 
+>         Hans
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
----
- drivers/media/platform/vivid/vivid-core.c    | 14 ++++++++++++++
- drivers/media/platform/vivid/vivid-core.h    |  3 +++
- drivers/media/platform/vivid/vivid-sdr-cap.c |  2 ++
- drivers/media/platform/vivid/vivid-vbi-cap.c |  2 ++
- drivers/media/platform/vivid/vivid-vbi-out.c |  2 ++
- drivers/media/platform/vivid/vivid-vid-cap.c |  2 ++
- drivers/media/platform/vivid/vivid-vid-out.c |  2 ++
- 7 files changed, 27 insertions(+)
+I'd like to get some Acked-by or Reviewed-by replies for this series.
+Or comments if you don't like something.
 
-diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
-index 38389af97b16..51b0a5c99365 100644
---- a/drivers/media/platform/vivid/vivid-core.c
-+++ b/drivers/media/platform/vivid/vivid-core.c
-@@ -475,6 +475,20 @@ static int vivid_fop_release(struct file *file)
- 	return v4l2_fh_release(file);
- }
- 
-+void vivid_queue_setup_lock(struct vb2_queue *q)
-+{
-+	struct vivid_dev *dev = vb2_get_drv_priv(q);
-+
-+	mutex_lock(&dev->mutex);
-+}
-+
-+void vivid_queue_setup_unlock(struct vb2_queue *q)
-+{
-+	struct vivid_dev *dev = vb2_get_drv_priv(q);
-+
-+	mutex_unlock(&dev->mutex);
-+}
-+
- static const struct v4l2_file_operations vivid_fops = {
- 	.owner		= THIS_MODULE,
- 	.open           = v4l2_fh_open,
-diff --git a/drivers/media/platform/vivid/vivid-core.h b/drivers/media/platform/vivid/vivid-core.h
-index 337ccb563f9b..78c97c1dcd25 100644
---- a/drivers/media/platform/vivid/vivid-core.h
-+++ b/drivers/media/platform/vivid/vivid-core.h
-@@ -564,4 +564,7 @@ static inline bool vivid_is_hdmi_out(const struct vivid_dev *dev)
- 	return dev->output_type[dev->output] == HDMI;
- }
- 
-+void vivid_queue_setup_lock(struct vb2_queue *q);
-+void vivid_queue_setup_unlock(struct vb2_queue *q);
-+
- #endif
-diff --git a/drivers/media/platform/vivid/vivid-sdr-cap.c b/drivers/media/platform/vivid/vivid-sdr-cap.c
-index 5dfb598af742..bac0dc47e24e 100644
---- a/drivers/media/platform/vivid/vivid-sdr-cap.c
-+++ b/drivers/media/platform/vivid/vivid-sdr-cap.c
-@@ -318,6 +318,8 @@ static void sdr_cap_buf_request_complete(struct vb2_buffer *vb)
- 
- const struct vb2_ops vivid_sdr_cap_qops = {
- 	.queue_setup		= sdr_cap_queue_setup,
-+	.queue_setup_lock	= vivid_queue_setup_lock,
-+	.queue_setup_unlock	= vivid_queue_setup_unlock,
- 	.buf_prepare		= sdr_cap_buf_prepare,
- 	.buf_queue		= sdr_cap_buf_queue,
- 	.start_streaming	= sdr_cap_start_streaming,
-diff --git a/drivers/media/platform/vivid/vivid-vbi-cap.c b/drivers/media/platform/vivid/vivid-vbi-cap.c
-index 903cebeb5ce5..b5c0ea8b848c 100644
---- a/drivers/media/platform/vivid/vivid-vbi-cap.c
-+++ b/drivers/media/platform/vivid/vivid-vbi-cap.c
-@@ -231,6 +231,8 @@ static void vbi_cap_buf_request_complete(struct vb2_buffer *vb)
- 
- const struct vb2_ops vivid_vbi_cap_qops = {
- 	.queue_setup		= vbi_cap_queue_setup,
-+	.queue_setup_lock	= vivid_queue_setup_lock,
-+	.queue_setup_unlock	= vivid_queue_setup_unlock,
- 	.buf_prepare		= vbi_cap_buf_prepare,
- 	.buf_queue		= vbi_cap_buf_queue,
- 	.start_streaming	= vbi_cap_start_streaming,
-diff --git a/drivers/media/platform/vivid/vivid-vbi-out.c b/drivers/media/platform/vivid/vivid-vbi-out.c
-index 9357c07e30d6..8f8ce00edaa2 100644
---- a/drivers/media/platform/vivid/vivid-vbi-out.c
-+++ b/drivers/media/platform/vivid/vivid-vbi-out.c
-@@ -126,6 +126,8 @@ static void vbi_out_buf_request_complete(struct vb2_buffer *vb)
- 
- const struct vb2_ops vivid_vbi_out_qops = {
- 	.queue_setup		= vbi_out_queue_setup,
-+	.queue_setup_lock	= vivid_queue_setup_lock,
-+	.queue_setup_unlock	= vivid_queue_setup_unlock,
- 	.buf_prepare		= vbi_out_buf_prepare,
- 	.buf_queue		= vbi_out_buf_queue,
- 	.start_streaming	= vbi_out_start_streaming,
-diff --git a/drivers/media/platform/vivid/vivid-vid-cap.c b/drivers/media/platform/vivid/vivid-vid-cap.c
-index 9c8e8be81ce3..f315f5f72616 100644
---- a/drivers/media/platform/vivid/vivid-vid-cap.c
-+++ b/drivers/media/platform/vivid/vivid-vid-cap.c
-@@ -271,6 +271,8 @@ static void vid_cap_buf_request_complete(struct vb2_buffer *vb)
- 
- const struct vb2_ops vivid_vid_cap_qops = {
- 	.queue_setup		= vid_cap_queue_setup,
-+	.queue_setup_lock	= vivid_queue_setup_lock,
-+	.queue_setup_unlock	= vivid_queue_setup_unlock,
- 	.buf_prepare		= vid_cap_buf_prepare,
- 	.buf_finish		= vid_cap_buf_finish,
- 	.buf_queue		= vid_cap_buf_queue,
-diff --git a/drivers/media/platform/vivid/vivid-vid-out.c b/drivers/media/platform/vivid/vivid-vid-out.c
-index aaf13f03d5d4..0fe7f449e416 100644
---- a/drivers/media/platform/vivid/vivid-vid-out.c
-+++ b/drivers/media/platform/vivid/vivid-vid-out.c
-@@ -190,6 +190,8 @@ static void vid_out_buf_request_complete(struct vb2_buffer *vb)
- 
- const struct vb2_ops vivid_vid_out_qops = {
- 	.queue_setup		= vid_out_queue_setup,
-+	.queue_setup_lock	= vivid_queue_setup_lock,
-+	.queue_setup_unlock	= vivid_queue_setup_unlock,
- 	.buf_prepare		= vid_out_buf_prepare,
- 	.buf_queue		= vid_out_buf_queue,
- 	.start_streaming	= vid_out_start_streaming,
--- 
-2.19.1
+I would really like to get this in for 4.20 so the cedrus API is stable
+(hopefully), since this is a last outstanding API item.
+
+Tomasz: you commented that the text still referred to the tag as a u64,
+but that was only in the cover letter, not the patches themselves. So
+I don't plan to post a v3 just for that.
+
+Regards,
+
+	Hans
+
+> 
+> Changes since v1:
+> 
+> - changed to a u32 tag. Using a 64 bit tag was overly complicated due
+>   to the bad layout of the v4l2_buffer struct, and there is no real
+>   need for it by applications.
+> 
+> Main changes since the RFC:
+> 
+> - Added new buffer capability flag
+> - Added m2m helper to copy data between buffers
+> - Added documentation
+> - Added tag logging in v4l2-ioctl.c
+> 
+> Hans Verkuil (9):
+>   videodev2.h: add tag support
+>   vb2: add tag support
+>   v4l2-ioctl.c: log v4l2_buffer tag
+>   buffer.rst: document the new buffer tag feature.
+>   v4l2-mem2mem: add v4l2_m2m_buf_copy_data helper function
+>   vb2: add new supports_tags queue flag
+>   vim2m: add tag support
+>   vicodec: add tag support
+>   cedrus: add tag support
+> 
+>  Documentation/media/uapi/v4l/buffer.rst       | 32 +++++++++----
+>  .../media/uapi/v4l/vidioc-reqbufs.rst         |  4 ++
+>  .../media/common/videobuf2/videobuf2-v4l2.c   | 45 ++++++++++++++++---
+>  drivers/media/platform/vicodec/vicodec-core.c | 14 ++----
+>  drivers/media/platform/vim2m.c                | 14 ++----
+>  drivers/media/v4l2-core/v4l2-ctrls.c          |  9 ----
+>  drivers/media/v4l2-core/v4l2-ioctl.c          |  9 ++--
+>  drivers/media/v4l2-core/v4l2-mem2mem.c        | 23 ++++++++++
+>  drivers/staging/media/sunxi/cedrus/cedrus.h   |  9 ++--
+>  .../staging/media/sunxi/cedrus/cedrus_dec.c   |  2 +
+>  .../staging/media/sunxi/cedrus/cedrus_mpeg2.c | 21 ++++-----
+>  .../staging/media/sunxi/cedrus/cedrus_video.c |  2 +
+>  include/media/v4l2-mem2mem.h                  | 21 +++++++++
+>  include/media/videobuf2-core.h                |  2 +
+>  include/media/videobuf2-v4l2.h                | 21 ++++++++-
+>  include/uapi/linux/v4l2-controls.h            | 14 +++---
+>  include/uapi/linux/videodev2.h                |  9 +++-
+>  17 files changed, 178 insertions(+), 73 deletions(-)
+> 
