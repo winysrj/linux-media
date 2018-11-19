@@ -1,130 +1,565 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:47159 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727857AbeKSVmK (ORCPT
+Received: from mail-pg1-f194.google.com ([209.85.215.194]:42395 "EHLO
+        mail-pg1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727857AbeKSVm6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Nov 2018 16:42:10 -0500
-Subject: Re: [PATCHv2 0/9] vb2/cedrus: add tag support
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Alexandre Courbot <acourbot@chromium.org>,
-        maxime.ripard@bootlin.com, paul.kocialkowski@bootlin.com,
-        tfiga@chromium.org, Nicolas Dufresne <nicolas@ndufresne.ca>
-References: <20181114134743.18993-1-hverkuil@xs4all.nl>
-Message-ID: <93b53779-2218-e69a-5f2b-bdf5d76d6d15@xs4all.nl>
-Date: Mon, 19 Nov 2018 12:18:48 +0100
+        Mon, 19 Nov 2018 16:42:58 -0500
+From: Dmitry Osipenko <digetx@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-tegra@vger.kernel.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v3] media: staging: tegra-vde: Replace debug messages with trace points
+Date: Mon, 19 Nov 2018 14:17:18 +0300
+Message-Id: <20181119111718.5276-1-digetx@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20181114134743.18993-1-hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/14/2018 02:47 PM, Hans Verkuil wrote:
-> From: Hans Verkuil <hansverk@cisco.com>
-> 
-> As was discussed here (among other places):
-> 
-> https://lkml.org/lkml/2018/10/19/440
-> 
-> using capture queue buffer indices to refer to reference frames is
-> not a good idea. A better idea is to use a 'tag' where the
-> application can assign a u64 tag to an output buffer, which is then 
-> copied to the capture buffer(s) derived from the output buffer.
-> 
-> A u64 is chosen since this allows userspace to also use pointers to
-> internal structures as 'tag'.
-> 
-> The first three patches add core tag support, the next patch document
-> the tag support, then a new helper function is added to v4l2-mem2mem.c
-> to easily copy data from a source to a destination buffer that drivers
-> can use.
-> 
-> Next a new supports_tags vb2_queue flag is added to indicate that
-> the driver supports tags. Ideally this should not be necessary, but
-> that would require that all m2m drivers are converted to using the
-> new helper function introduced in the previous patch. That takes more
-> time then I have now since we want to get this in for 4.20.
-> 
-> Finally the vim2m, vicodec and cedrus drivers are converted to support
-> tags.
-> 
-> I also removed the 'pad' fields from the mpeg2 control structs (it
-> should never been added in the first place) and aligned the structs
-> to a u32 boundary (u64 for the tag values).
-> 
-> Note that this might change further (Paul suggested using bitfields).
-> 
-> Also note that the cedrus code doesn't set the sequence counter, that's
-> something that should still be added before this driver can be moved
-> out of staging.
-> 
-> Note: if no buffer is found for a certain tag, then the dma address
-> is just set to 0. That happened before as well with invalid buffer
-> indices. This should be checked in the driver!
-> 
-> The previous RFC series was tested successfully with the cedrus driver.
-> 
-> Regards,
-> 
->         Hans
+Trace points are much more efficient than debug messages for intensive
+tracing and could be conveniently enabled / disabled dynamically, hence
+let's replace debug messages with the trace points. This also makes
+code a bit cleaner.
 
-I'd like to get some Acked-by or Reviewed-by replies for this series.
-Or comments if you don't like something.
+Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
+---
 
-I would really like to get this in for 4.20 so the cedrus API is stable
-(hopefully), since this is a last outstanding API item.
+Changelog:
 
-Tomasz: you commented that the text still referred to the tag as a u64,
-but that was only in the cover letter, not the patches themselves. So
-I don't plan to post a v3 just for that.
+v3:     - Basically a RE-SEND of v2 with some very minor code reshuffling.
 
-Regards,
+v2:
+        - Use __assign_str() for copying of HW sub-engine name during of
+          tracing. There is no functional changes since V1, that's just a
+          bit better variant of the patch that doesn't rely on stopping
+          tracing before releasing of managed resources (struct tegra_vde).
 
-	Hans
+ drivers/staging/media/tegra-vde/tegra-vde.c | 222 +++++++++++---------
+ drivers/staging/media/tegra-vde/trace.h     |  93 ++++++++
+ 2 files changed, 220 insertions(+), 95 deletions(-)
+ create mode 100644 drivers/staging/media/tegra-vde/trace.h
 
-> 
-> Changes since v1:
-> 
-> - changed to a u32 tag. Using a 64 bit tag was overly complicated due
->   to the bad layout of the v4l2_buffer struct, and there is no real
->   need for it by applications.
-> 
-> Main changes since the RFC:
-> 
-> - Added new buffer capability flag
-> - Added m2m helper to copy data between buffers
-> - Added documentation
-> - Added tag logging in v4l2-ioctl.c
-> 
-> Hans Verkuil (9):
->   videodev2.h: add tag support
->   vb2: add tag support
->   v4l2-ioctl.c: log v4l2_buffer tag
->   buffer.rst: document the new buffer tag feature.
->   v4l2-mem2mem: add v4l2_m2m_buf_copy_data helper function
->   vb2: add new supports_tags queue flag
->   vim2m: add tag support
->   vicodec: add tag support
->   cedrus: add tag support
-> 
->  Documentation/media/uapi/v4l/buffer.rst       | 32 +++++++++----
->  .../media/uapi/v4l/vidioc-reqbufs.rst         |  4 ++
->  .../media/common/videobuf2/videobuf2-v4l2.c   | 45 ++++++++++++++++---
->  drivers/media/platform/vicodec/vicodec-core.c | 14 ++----
->  drivers/media/platform/vim2m.c                | 14 ++----
->  drivers/media/v4l2-core/v4l2-ctrls.c          |  9 ----
->  drivers/media/v4l2-core/v4l2-ioctl.c          |  9 ++--
->  drivers/media/v4l2-core/v4l2-mem2mem.c        | 23 ++++++++++
->  drivers/staging/media/sunxi/cedrus/cedrus.h   |  9 ++--
->  .../staging/media/sunxi/cedrus/cedrus_dec.c   |  2 +
->  .../staging/media/sunxi/cedrus/cedrus_mpeg2.c | 21 ++++-----
->  .../staging/media/sunxi/cedrus/cedrus_video.c |  2 +
->  include/media/v4l2-mem2mem.h                  | 21 +++++++++
->  include/media/videobuf2-core.h                |  2 +
->  include/media/videobuf2-v4l2.h                | 21 ++++++++-
->  include/uapi/linux/v4l2-controls.h            | 14 +++---
->  include/uapi/linux/videodev2.h                |  9 +++-
->  17 files changed, 178 insertions(+), 73 deletions(-)
-> 
+diff --git a/drivers/staging/media/tegra-vde/tegra-vde.c b/drivers/staging/media/tegra-vde/tegra-vde.c
+index 66cf14212c14..aa6c6bba961e 100644
+--- a/drivers/staging/media/tegra-vde/tegra-vde.c
++++ b/drivers/staging/media/tegra-vde/tegra-vde.c
+@@ -35,14 +35,6 @@
+ #define BSE_ICMDQUE_EMPTY	BIT(3)
+ #define BSE_DMA_BUSY		BIT(23)
+ 
+-#define VDE_WR(__data, __addr)				\
+-do {							\
+-	dev_dbg(vde->miscdev.parent,			\
+-		"%s: %d: 0x%08X => " #__addr ")\n",	\
+-		__func__, __LINE__, (u32)(__data));	\
+-	writel_relaxed(__data, __addr);			\
+-} while (0)
+-
+ struct video_frame {
+ 	struct dma_buf_attachment *y_dmabuf_attachment;
+ 	struct dma_buf_attachment *cb_dmabuf_attachment;
+@@ -81,12 +73,66 @@ struct tegra_vde {
+ 	u32 *iram;
+ };
+ 
++static __maybe_unused char const *
++tegra_vde_reg_base_name(struct tegra_vde *vde, void __iomem *base)
++{
++	if (vde->sxe == base)
++		return "SXE";
++
++	if (vde->bsev == base)
++		return "BSEV";
++
++	if (vde->mbe == base)
++		return "MBE";
++
++	if (vde->ppe == base)
++		return "PPE";
++
++	if (vde->mce == base)
++		return "MCE";
++
++	if (vde->tfe == base)
++		return "TFE";
++
++	if (vde->ppb == base)
++		return "PPB";
++
++	if (vde->vdma == base)
++		return "VDMA";
++
++	if (vde->frameid == base)
++		return "FRAMEID";
++
++	return "???";
++}
++
++#define CREATE_TRACE_POINTS
++#include "trace.h"
++
++static void tegra_vde_writel(struct tegra_vde *vde,
++			     u32 value, void __iomem *base, u32 offset)
++{
++	trace_vde_writel(vde, base, offset, value);
++
++	writel_relaxed(value, base + offset);
++}
++
++static u32 tegra_vde_readl(struct tegra_vde *vde,
++			   void __iomem *base, u32 offset)
++{
++	u32 value = readl_relaxed(base + offset);
++
++	trace_vde_readl(vde, base, offset, value);
++
++	return value;
++}
++
+ static void tegra_vde_set_bits(struct tegra_vde *vde,
+-			       u32 mask, void __iomem *regs)
++			       u32 mask, void __iomem *base, u32 offset)
+ {
+-	u32 value = readl_relaxed(regs);
++	u32 value = tegra_vde_readl(vde, base, offset);
+ 
+-	VDE_WR(value | mask, regs);
++	tegra_vde_writel(vde, value | mask, base, offset);
+ }
+ 
+ static int tegra_vde_wait_mbe(struct tegra_vde *vde)
+@@ -107,8 +153,8 @@ static int tegra_vde_setup_mbe_frame_idx(struct tegra_vde *vde,
+ 	unsigned int idx;
+ 	int err;
+ 
+-	VDE_WR(0xD0000000 | (0 << 23), vde->mbe + 0x80);
+-	VDE_WR(0xD0200000 | (0 << 23), vde->mbe + 0x80);
++	tegra_vde_writel(vde, 0xD0000000 | (0 << 23), vde->mbe, 0x80);
++	tegra_vde_writel(vde, 0xD0200000 | (0 << 23), vde->mbe, 0x80);
+ 
+ 	err = tegra_vde_wait_mbe(vde);
+ 	if (err)
+@@ -118,8 +164,10 @@ static int tegra_vde_setup_mbe_frame_idx(struct tegra_vde *vde,
+ 		return 0;
+ 
+ 	for (idx = 0, frame_idx = 1; idx < refs_nb; idx++, frame_idx++) {
+-		VDE_WR(0xD0000000 | (frame_idx << 23), vde->mbe + 0x80);
+-		VDE_WR(0xD0200000 | (frame_idx << 23), vde->mbe + 0x80);
++		tegra_vde_writel(vde, 0xD0000000 | (frame_idx << 23),
++				 vde->mbe, 0x80);
++		tegra_vde_writel(vde, 0xD0200000 | (frame_idx << 23),
++				 vde->mbe, 0x80);
+ 
+ 		frame_idx_enb_mask |= frame_idx << (6 * (idx % 4));
+ 
+@@ -128,7 +176,7 @@ static int tegra_vde_setup_mbe_frame_idx(struct tegra_vde *vde,
+ 			value |= (idx >> 2) << 24;
+ 			value |= frame_idx_enb_mask;
+ 
+-			VDE_WR(value, vde->mbe + 0x80);
++			tegra_vde_writel(vde, value, vde->mbe, 0x80);
+ 
+ 			err = tegra_vde_wait_mbe(vde);
+ 			if (err)
+@@ -143,8 +191,10 @@ static int tegra_vde_setup_mbe_frame_idx(struct tegra_vde *vde,
+ 
+ static void tegra_vde_mbe_set_0xa_reg(struct tegra_vde *vde, int reg, u32 val)
+ {
+-	VDE_WR(0xA0000000 | (reg << 24) | (val & 0xFFFF), vde->mbe + 0x80);
+-	VDE_WR(0xA0000000 | ((reg + 1) << 24) | (val >> 16), vde->mbe + 0x80);
++	tegra_vde_writel(vde, 0xA0000000 | (reg << 24) | (val & 0xFFFF),
++			 vde->mbe, 0x80);
++	tegra_vde_writel(vde, 0xA0000000 | ((reg + 1) << 24) | (val >> 16),
++			 vde->mbe, 0x80);
+ }
+ 
+ static int tegra_vde_wait_bsev(struct tegra_vde *vde, bool wait_dma)
+@@ -183,7 +233,7 @@ static int tegra_vde_wait_bsev(struct tegra_vde *vde, bool wait_dma)
+ static int tegra_vde_push_to_bsev_icmdqueue(struct tegra_vde *vde,
+ 					    u32 value, bool wait_dma)
+ {
+-	VDE_WR(value, vde->bsev + ICMDQUE_WR);
++	tegra_vde_writel(vde, value, vde->bsev, ICMDQUE_WR);
+ 
+ 	return tegra_vde_wait_bsev(vde, wait_dma);
+ }
+@@ -199,11 +249,11 @@ static void tegra_vde_setup_frameid(struct tegra_vde *vde,
+ 	u32 value1 = frame ? ((mbs_width << 16) | mbs_height) : 0;
+ 	u32 value2 = frame ? ((((mbs_width + 1) >> 1) << 6) | 1) : 0;
+ 
+-	VDE_WR(y_addr  >> 8, vde->frameid + 0x000 + frameid * 4);
+-	VDE_WR(cb_addr >> 8, vde->frameid + 0x100 + frameid * 4);
+-	VDE_WR(cr_addr >> 8, vde->frameid + 0x180 + frameid * 4);
+-	VDE_WR(value1,       vde->frameid + 0x080 + frameid * 4);
+-	VDE_WR(value2,       vde->frameid + 0x280 + frameid * 4);
++	tegra_vde_writel(vde, y_addr  >> 8, vde->frameid, 0x000 + frameid * 4);
++	tegra_vde_writel(vde, cb_addr >> 8, vde->frameid, 0x100 + frameid * 4);
++	tegra_vde_writel(vde, cr_addr >> 8, vde->frameid, 0x180 + frameid * 4);
++	tegra_vde_writel(vde, value1,       vde->frameid, 0x080 + frameid * 4);
++	tegra_vde_writel(vde, value2,       vde->frameid, 0x280 + frameid * 4);
+ }
+ 
+ static void tegra_setup_frameidx(struct tegra_vde *vde,
+@@ -228,8 +278,7 @@ static void tegra_vde_setup_iram_entry(struct tegra_vde *vde,
+ {
+ 	u32 *iram_tables = vde->iram;
+ 
+-	dev_dbg(vde->miscdev.parent, "IRAM table %u: row %u: 0x%08X 0x%08X\n",
+-		table, row, value1, value2);
++	trace_vde_setup_iram_entry(table, row, value1, value2);
+ 
+ 	iram_tables[0x20 * table + row * 2] = value1;
+ 	iram_tables[0x20 * table + row * 2 + 1] = value2;
+@@ -245,10 +294,7 @@ static void tegra_vde_setup_iram_tables(struct tegra_vde *vde,
+ 	int with_later_poc_nb;
+ 	unsigned int i, k;
+ 
+-	dev_dbg(vde->miscdev.parent, "DPB: Frame 0: frame_num = %d\n",
+-		dpb_frames[0].frame_num);
+-
+-	dev_dbg(vde->miscdev.parent, "REF L0:\n");
++	trace_vde_ref_l0(dpb_frames[0].frame_num);
+ 
+ 	for (i = 0; i < 16; i++) {
+ 		if (i < ref_frames_nb) {
+@@ -260,11 +306,6 @@ static void tegra_vde_setup_iram_tables(struct tegra_vde *vde,
+ 			value |= !(frame->flags & FLAG_B_FRAME) << 25;
+ 			value |= 1 << 24;
+ 			value |= frame->frame_num;
+-
+-			dev_dbg(vde->miscdev.parent,
+-				"\tFrame %d: frame_num = %d B_frame = %lu\n",
+-				i + 1, frame->frame_num,
+-				(frame->flags & FLAG_B_FRAME));
+ 		} else {
+ 			aux_addr = 0x6ADEAD00;
+ 			value = 0;
+@@ -284,9 +325,7 @@ static void tegra_vde_setup_iram_tables(struct tegra_vde *vde,
+ 
+ 	with_later_poc_nb = ref_frames_nb - with_earlier_poc_nb;
+ 
+-	dev_dbg(vde->miscdev.parent,
+-		"REF L1: with_later_poc_nb %d with_earlier_poc_nb %d\n",
+-		 with_later_poc_nb, with_earlier_poc_nb);
++	trace_vde_ref_l1(with_later_poc_nb, with_earlier_poc_nb);
+ 
+ 	for (i = 0, k = with_earlier_poc_nb; i < with_later_poc_nb; i++, k++) {
+ 		frame = &dpb_frames[k + 1];
+@@ -298,10 +337,6 @@ static void tegra_vde_setup_iram_tables(struct tegra_vde *vde,
+ 		value |= 1 << 24;
+ 		value |= frame->frame_num;
+ 
+-		dev_dbg(vde->miscdev.parent,
+-			"\tFrame %d: frame_num = %d\n",
+-			k + 1, frame->frame_num);
+-
+ 		tegra_vde_setup_iram_entry(vde, 2, i, value, aux_addr);
+ 	}
+ 
+@@ -315,10 +350,6 @@ static void tegra_vde_setup_iram_tables(struct tegra_vde *vde,
+ 		value |= 1 << 24;
+ 		value |= frame->frame_num;
+ 
+-		dev_dbg(vde->miscdev.parent,
+-			"\tFrame %d: frame_num = %d\n",
+-			k + 1, frame->frame_num);
+-
+ 		tegra_vde_setup_iram_entry(vde, 2, i, value, aux_addr);
+ 	}
+ }
+@@ -334,32 +365,32 @@ static int tegra_vde_setup_hw_context(struct tegra_vde *vde,
+ 	u32 value;
+ 	int err;
+ 
+-	tegra_vde_set_bits(vde, 0x000A, vde->sxe + 0xF0);
+-	tegra_vde_set_bits(vde, 0x000B, vde->bsev + CMDQUE_CONTROL);
+-	tegra_vde_set_bits(vde, 0x8002, vde->mbe + 0x50);
+-	tegra_vde_set_bits(vde, 0x000A, vde->mbe + 0xA0);
+-	tegra_vde_set_bits(vde, 0x000A, vde->ppe + 0x14);
+-	tegra_vde_set_bits(vde, 0x000A, vde->ppe + 0x28);
+-	tegra_vde_set_bits(vde, 0x0A00, vde->mce + 0x08);
+-	tegra_vde_set_bits(vde, 0x000A, vde->tfe + 0x00);
+-	tegra_vde_set_bits(vde, 0x0005, vde->vdma + 0x04);
+-
+-	VDE_WR(0x00000000, vde->vdma + 0x1C);
+-	VDE_WR(0x00000000, vde->vdma + 0x00);
+-	VDE_WR(0x00000007, vde->vdma + 0x04);
+-	VDE_WR(0x00000007, vde->frameid + 0x200);
+-	VDE_WR(0x00000005, vde->tfe + 0x04);
+-	VDE_WR(0x00000000, vde->mbe + 0x84);
+-	VDE_WR(0x00000010, vde->sxe + 0x08);
+-	VDE_WR(0x00000150, vde->sxe + 0x54);
+-	VDE_WR(0x0000054C, vde->sxe + 0x58);
+-	VDE_WR(0x00000E34, vde->sxe + 0x5C);
+-	VDE_WR(0x063C063C, vde->mce + 0x10);
+-	VDE_WR(0x0003FC00, vde->bsev + INTR_STATUS);
+-	VDE_WR(0x0000150D, vde->bsev + BSE_CONFIG);
+-	VDE_WR(0x00000100, vde->bsev + BSE_INT_ENB);
+-	VDE_WR(0x00000000, vde->bsev + 0x98);
+-	VDE_WR(0x00000060, vde->bsev + 0x9C);
++	tegra_vde_set_bits(vde, 0x000A, vde->sxe, 0xF0);
++	tegra_vde_set_bits(vde, 0x000B, vde->bsev, CMDQUE_CONTROL);
++	tegra_vde_set_bits(vde, 0x8002, vde->mbe, 0x50);
++	tegra_vde_set_bits(vde, 0x000A, vde->mbe, 0xA0);
++	tegra_vde_set_bits(vde, 0x000A, vde->ppe, 0x14);
++	tegra_vde_set_bits(vde, 0x000A, vde->ppe, 0x28);
++	tegra_vde_set_bits(vde, 0x0A00, vde->mce, 0x08);
++	tegra_vde_set_bits(vde, 0x000A, vde->tfe, 0x00);
++	tegra_vde_set_bits(vde, 0x0005, vde->vdma, 0x04);
++
++	tegra_vde_writel(vde, 0x00000000, vde->vdma, 0x1C);
++	tegra_vde_writel(vde, 0x00000000, vde->vdma, 0x00);
++	tegra_vde_writel(vde, 0x00000007, vde->vdma, 0x04);
++	tegra_vde_writel(vde, 0x00000007, vde->frameid, 0x200);
++	tegra_vde_writel(vde, 0x00000005, vde->tfe, 0x04);
++	tegra_vde_writel(vde, 0x00000000, vde->mbe, 0x84);
++	tegra_vde_writel(vde, 0x00000010, vde->sxe, 0x08);
++	tegra_vde_writel(vde, 0x00000150, vde->sxe, 0x54);
++	tegra_vde_writel(vde, 0x0000054C, vde->sxe, 0x58);
++	tegra_vde_writel(vde, 0x00000E34, vde->sxe, 0x5C);
++	tegra_vde_writel(vde, 0x063C063C, vde->mce, 0x10);
++	tegra_vde_writel(vde, 0x0003FC00, vde->bsev, INTR_STATUS);
++	tegra_vde_writel(vde, 0x0000150D, vde->bsev, BSE_CONFIG);
++	tegra_vde_writel(vde, 0x00000100, vde->bsev, BSE_INT_ENB);
++	tegra_vde_writel(vde, 0x00000000, vde->bsev, 0x98);
++	tegra_vde_writel(vde, 0x00000060, vde->bsev, 0x9C);
+ 
+ 	memset(vde->iram + 128, 0, macroblocks_nb / 2);
+ 
+@@ -376,13 +407,13 @@ static int tegra_vde_setup_hw_context(struct tegra_vde *vde,
+ 	 */
+ 	wmb();
+ 
+-	VDE_WR(0x00000000, vde->bsev + 0x8C);
+-	VDE_WR(bitstream_data_addr + bitstream_data_size,
+-	       vde->bsev + 0x54);
++	tegra_vde_writel(vde, 0x00000000, vde->bsev, 0x8C);
++	tegra_vde_writel(vde, bitstream_data_addr + bitstream_data_size,
++			 vde->bsev, 0x54);
+ 
+ 	value = ctx->pic_width_in_mbs << 11 | ctx->pic_height_in_mbs << 3;
+ 
+-	VDE_WR(value, vde->bsev + 0x88);
++	tegra_vde_writel(vde, value, vde->bsev, 0x88);
+ 
+ 	err = tegra_vde_wait_bsev(vde, false);
+ 	if (err)
+@@ -417,7 +448,7 @@ static int tegra_vde_setup_hw_context(struct tegra_vde *vde,
+ 	value |= ctx->pic_width_in_mbs << 11;
+ 	value |= ctx->pic_height_in_mbs << 3;
+ 
+-	VDE_WR(value, vde->sxe + 0x10);
++	tegra_vde_writel(vde, value, vde->sxe, 0x10);
+ 
+ 	value = !ctx->baseline_profile << 17;
+ 	value |= ctx->level_idc << 13;
+@@ -425,54 +456,54 @@ static int tegra_vde_setup_hw_context(struct tegra_vde *vde,
+ 	value |= ctx->pic_order_cnt_type << 5;
+ 	value |= ctx->log2_max_frame_num;
+ 
+-	VDE_WR(value, vde->sxe + 0x40);
++	tegra_vde_writel(vde, value, vde->sxe, 0x40);
+ 
+ 	value = ctx->pic_init_qp << 25;
+ 	value |= !!(ctx->deblocking_filter_control_present_flag) << 2;
+ 	value |= !!ctx->pic_order_present_flag;
+ 
+-	VDE_WR(value, vde->sxe + 0x44);
++	tegra_vde_writel(vde, value, vde->sxe, 0x44);
+ 
+ 	value = ctx->chroma_qp_index_offset;
+ 	value |= ctx->num_ref_idx_l0_active_minus1 << 5;
+ 	value |= ctx->num_ref_idx_l1_active_minus1 << 10;
+ 	value |= !!ctx->constrained_intra_pred_flag << 15;
+ 
+-	VDE_WR(value, vde->sxe + 0x48);
++	tegra_vde_writel(vde, value, vde->sxe, 0x48);
+ 
+ 	value = 0x0C000000;
+ 	value |= !!(dpb_frames[0].flags & FLAG_B_FRAME) << 24;
+ 
+-	VDE_WR(value, vde->sxe + 0x4C);
++	tegra_vde_writel(vde, value, vde->sxe, 0x4C);
+ 
+ 	value = 0x03800000;
+ 	value |= bitstream_data_size & GENMASK(19, 15);
+ 
+-	VDE_WR(value, vde->sxe + 0x68);
++	tegra_vde_writel(vde, value, vde->sxe, 0x68);
+ 
+-	VDE_WR(bitstream_data_addr, vde->sxe + 0x6C);
++	tegra_vde_writel(vde, bitstream_data_addr, vde->sxe, 0x6C);
+ 
+ 	value = 0x10000005;
+ 	value |= ctx->pic_width_in_mbs << 11;
+ 	value |= ctx->pic_height_in_mbs << 3;
+ 
+-	VDE_WR(value, vde->mbe + 0x80);
++	tegra_vde_writel(vde, value, vde->mbe, 0x80);
+ 
+ 	value = 0x26800000;
+ 	value |= ctx->level_idc << 4;
+ 	value |= !ctx->baseline_profile << 1;
+ 	value |= !!ctx->direct_8x8_inference_flag;
+ 
+-	VDE_WR(value, vde->mbe + 0x80);
++	tegra_vde_writel(vde, value, vde->mbe, 0x80);
+ 
+-	VDE_WR(0xF4000001, vde->mbe + 0x80);
+-	VDE_WR(0x20000000, vde->mbe + 0x80);
+-	VDE_WR(0xF4000101, vde->mbe + 0x80);
++	tegra_vde_writel(vde, 0xF4000001, vde->mbe, 0x80);
++	tegra_vde_writel(vde, 0x20000000, vde->mbe, 0x80);
++	tegra_vde_writel(vde, 0xF4000101, vde->mbe, 0x80);
+ 
+ 	value = 0x20000000;
+ 	value |= ctx->chroma_qp_index_offset << 8;
+ 
+-	VDE_WR(value, vde->mbe + 0x80);
++	tegra_vde_writel(vde, value, vde->mbe, 0x80);
+ 
+ 	err = tegra_vde_setup_mbe_frame_idx(vde,
+ 					    ctx->dpb_frames_nb - 1,
+@@ -494,7 +525,7 @@ static int tegra_vde_setup_hw_context(struct tegra_vde *vde,
+ 	if (!ctx->baseline_profile)
+ 		value |= !!(dpb_frames[0].flags & FLAG_REFERENCE) << 1;
+ 
+-	VDE_WR(value, vde->mbe + 0x80);
++	tegra_vde_writel(vde, value, vde->mbe, 0x80);
+ 
+ 	err = tegra_vde_wait_mbe(vde);
+ 	if (err) {
+@@ -510,8 +541,9 @@ static void tegra_vde_decode_frame(struct tegra_vde *vde,
+ {
+ 	reinit_completion(&vde->decode_completion);
+ 
+-	VDE_WR(0x00000001, vde->bsev + 0x8C);
+-	VDE_WR(0x20000000 | (macroblocks_nb - 1), vde->sxe + 0x00);
++	tegra_vde_writel(vde, 0x00000001, vde->bsev, 0x8C);
++	tegra_vde_writel(vde, 0x20000000 | (macroblocks_nb - 1),
++			 vde->sxe, 0x00);
+ }
+ 
+ static void tegra_vde_detach_and_put_dmabuf(struct dma_buf_attachment *a,
+@@ -883,8 +915,8 @@ static int tegra_vde_ioctl_decode_h264(struct tegra_vde *vde,
+ 	timeout = wait_for_completion_interruptible_timeout(
+ 			&vde->decode_completion, msecs_to_jiffies(1000));
+ 	if (timeout == 0) {
+-		bsev_ptr = readl_relaxed(vde->bsev + 0x10);
+-		macroblocks_nb = readl_relaxed(vde->sxe + 0xC8) & 0x1FFF;
++		bsev_ptr = tegra_vde_readl(vde, vde->bsev, 0x10);
++		macroblocks_nb = tegra_vde_readl(vde, vde->sxe, 0xC8) & 0x1FFF;
+ 		read_bytes = bsev_ptr ? bsev_ptr - bitstream_data_addr : 0;
+ 
+ 		dev_err(dev, "Decoding failed: read 0x%X bytes, %u macroblocks parsed\n",
+@@ -962,7 +994,7 @@ static irqreturn_t tegra_vde_isr(int irq, void *data)
+ 	if (completion_done(&vde->decode_completion))
+ 		return IRQ_NONE;
+ 
+-	tegra_vde_set_bits(vde, 0, vde->frameid + 0x208);
++	tegra_vde_set_bits(vde, 0, vde->frameid, 0x208);
+ 	complete(&vde->decode_completion);
+ 
+ 	return IRQ_HANDLED;
+diff --git a/drivers/staging/media/tegra-vde/trace.h b/drivers/staging/media/tegra-vde/trace.h
+new file mode 100644
+index 000000000000..85e2f7e2d4d0
+--- /dev/null
++++ b/drivers/staging/media/tegra-vde/trace.h
+@@ -0,0 +1,93 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM tegra_vde
++
++#if !defined(TEGRA_VDE_TRACE_H) || defined(TRACE_HEADER_MULTI_READ)
++#define TEGRA_VDE_TRACE_H
++
++#include <linux/tracepoint.h>
++
++DECLARE_EVENT_CLASS(register_access,
++	TP_PROTO(struct tegra_vde *vde, void __iomem *base,
++		 u32 offset, u32 value),
++	TP_ARGS(vde, base, offset, value),
++	TP_STRUCT__entry(
++		__string(hw_name, tegra_vde_reg_base_name(vde, base))
++		__field(u32, offset)
++		__field(u32, value)
++	),
++	TP_fast_assign(
++		__assign_str(hw_name, tegra_vde_reg_base_name(vde, base));
++		__entry->offset = offset;
++		__entry->value = value;
++	),
++	TP_printk("%s:0x%03x 0x%08x", __get_str(hw_name), __entry->offset,
++		  __entry->value)
++);
++
++DEFINE_EVENT(register_access, vde_writel,
++	TP_PROTO(struct tegra_vde *vde, void __iomem *base,
++		 u32 offset, u32 value),
++	TP_ARGS(vde, base, offset, value));
++DEFINE_EVENT(register_access, vde_readl,
++	TP_PROTO(struct tegra_vde *vde, void __iomem *base,
++		 u32 offset, u32 value),
++	TP_ARGS(vde, base, offset, value));
++
++TRACE_EVENT(vde_setup_iram_entry,
++	TP_PROTO(unsigned int table, unsigned int row, u32 value, u32 aux_addr),
++	TP_ARGS(table, row, value, aux_addr),
++	TP_STRUCT__entry(
++		__field(unsigned int, table)
++		__field(unsigned int, row)
++		__field(u32, value)
++		__field(u32, aux_addr)
++	),
++	TP_fast_assign(
++		__entry->table = table;
++		__entry->row = row;
++		__entry->value = value;
++		__entry->aux_addr = aux_addr;
++	),
++	TP_printk("[%u][%u] = { 0x%08x (flags = \"%s\", frame_num = %u); 0x%08x }",
++		  __entry->table, __entry->row, __entry->value,
++		  __print_flags(__entry->value, " ", { (1 << 25), "B" }),
++		  __entry->value & 0x7FFFFF, __entry->aux_addr)
++);
++
++TRACE_EVENT(vde_ref_l0,
++	TP_PROTO(unsigned int frame_num),
++	TP_ARGS(frame_num),
++	TP_STRUCT__entry(
++		__field(unsigned int, frame_num)
++	),
++	TP_fast_assign(
++		__entry->frame_num = frame_num;
++	),
++	TP_printk("REF L0: DPB: Frame 0: frame_num = %u", __entry->frame_num)
++);
++
++TRACE_EVENT(vde_ref_l1,
++	TP_PROTO(unsigned int with_later_poc_nb,
++		 unsigned int with_earlier_poc_nb),
++	TP_ARGS(with_later_poc_nb, with_earlier_poc_nb),
++	TP_STRUCT__entry(
++		__field(unsigned int, with_later_poc_nb)
++		__field(unsigned int, with_earlier_poc_nb)
++	),
++	TP_fast_assign(
++		__entry->with_later_poc_nb = with_later_poc_nb;
++		__entry->with_earlier_poc_nb = with_earlier_poc_nb;
++	),
++	TP_printk("REF L1: with_later_poc_nb %u, with_earlier_poc_nb %u",
++		  __entry->with_later_poc_nb, __entry->with_earlier_poc_nb)
++);
++
++#endif /* TEGRA_VDE_TRACE_H */
++
++/* This part must be outside protection */
++#undef TRACE_INCLUDE_PATH
++#define TRACE_INCLUDE_PATH ../../drivers/staging/media/tegra-vde
++#define TRACE_INCLUDE_FILE trace
++#include <trace/define_trace.h>
+-- 
+2.19.1
