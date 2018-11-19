@@ -1,63 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
 Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:38603 "EHLO
         lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728514AbeKSVcB (ORCPT
+        by vger.kernel.org with ESMTP id S1728608AbeKSVcX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Nov 2018 16:32:01 -0500
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Shuah Khan <shuah@kernel.org>
+        Mon, 19 Nov 2018 16:32:23 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: videobuf2-core.c: call to v4l_vb2q_enable_media_source()?
-Message-ID: <b71907b6-9e41-f56c-8c25-3b0cf47be645@xs4all.nl>
-Date: Mon, 19 Nov 2018 12:08:42 +0100
+To: linux-media@vger.kernel.org
+Cc: Tomasz Figa <tfiga@chromium.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCHv2 0/4] vb2: fix syzkaller race conditions
+Date: Mon, 19 Nov 2018 12:08:59 +0100
+Message-Id: <20181119110903.24383-1-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Shuah, Mauro,
+These four patches fix syzkaller race conditions. The first patch
+fixes the case where VIDIOC_DQBUF (and indirectly via read()/write())
+can release the core serialization mutex, thus allowing another thread
+to access the same vb2 queue through a dup()ped filehandle.
 
-I noticed that the function vb2_core_streamon() in videobuf2-core.c calls
-v4l_vb2q_enable_media_source(q).
+If no new buffer is available the DQBUF ioctl will block and wait for
+a new buffer to arrive. Before it waits it releases the serialization
+lock, and afterwards it reacquires it. This is intentional, since you
+do not want to block other ioctls while waiting for a buffer.
 
-That function in turn assumes that q->owner is a v4l2_fh struct. But I
-don't think that is true for DVB devices.
+But this means that you need to flag that you are waiting for a buffer
+and check the flag in the appropriate places.
 
-And since videobuf2-core.c is expected to be DVB/V4L independent, this seems
-wrong.
+Specifically, that has to happen for VIDIOC_REQBUFS and VIDIOC_CREATE_BUFS
+since those can free/reallocate all buffers. Obviously you should not do
+that while waiting for a new frame to arrive. The other place where the
+flag should be checked is in VIDIOC_DQBUF and read/write since it makes
+not sense to call those while another fd is already waiting for a new
+frame.
 
-It was introduced over 2 years ago in commit 77fa4e0729987:
+The remaining three patches fix a problem with vivid: due to the way
+vivid was designed it had to release the dev->mutex lock when stop_streaming
+was called. However, that was the same lock that was assigned to
+queue->lock, so that caused a race condition as well. It really is a
+vivid bug, which I fixed by giving each queue its own lock instead of
+relying on dev->mutex.
 
-commit 77fa4e072998705883c4dc672963b4bf7483cea9
-Author: Shuah Khan <shuahkh@osg.samsung.com>
-Date:   Thu Feb 11 21:41:29 2016 -0200
+It is a good idea to have vivid do this, since, while vb2 has allowed this
+for a long time, no drivers were actually using that feature.
 
-    [media] media: Change v4l-core to check if source is free
+But while analyzing the behavior of vivid and vb2 in this scenario I
+realized that doing this (i.e. separate mutexes per queue) caused another
+race between calling queue_setup and VIDIOC_S_FMT: if queue->lock and
+the ioctl serialization lock are the same, then those operations are
+nicely serialized. But if the locks are different, then it is possible
+that S_FMT changes the buffer size right after queue_setup returns.
 
-    Change s_input, s_fmt, s_tuner, s_frequency, querystd, s_hw_freq_seek,
-    and vb2_core_streamon interfaces that alter the tuner configuration to
-    check if it is free, by calling v4l_enable_media_source().
+So queue_setup might report that each buffer is 1 MB, while the S_FMT
+changes it to 2 MB. So there is now a mismatch between what vb2 thinks
+the size should be and what the driver thinks.
 
-    If source isn't free, return -EBUSY.
+So to do this correctly the ioctl serialization lock (or whatever the
+driver uses for that) should be taken before calling queue_setup and
+released once q->num_buffers has been updated (so vb2_is_busy()
+will return true).
 
-    v4l_disable_media_source() is called from v4l2_fh_exit() to release
-    tuner (source).
-
-    vb2_core_streamon() uses v4l_vb2q_enable_media_source().
-
-    Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
-    Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-Note that this precedes the DVB_MMAP config option, so at the time this
-likely worked fine. But I wonder why it works if that DVB_MMAP option is
-set? Pure luck?
-
-I think this call should be moved to videobuf2-v4l2.c (might require some
-refactoring). It really doesn't belong in videobuf2-core.c.
+The final two patches add support for that.
 
 Regards,
 
 	Hans
+
+Hans Verkuil (4):
+  vb2: add waiting_in_dqbuf flag
+  vivid: use per-queue mutexes instead of one global mutex.
+  vb2 core: add new queue_setup_lock/unlock ops
+  vivid: add queue_setup_(un)lock ops
+
+ .../media/common/videobuf2/videobuf2-core.c   | 71 +++++++++++++++----
+ drivers/media/platform/vivid/vivid-core.c     | 29 ++++++--
+ drivers/media/platform/vivid/vivid-core.h     |  8 +++
+ .../media/platform/vivid/vivid-kthread-cap.c  |  2 -
+ .../media/platform/vivid/vivid-kthread-out.c  |  2 -
+ drivers/media/platform/vivid/vivid-sdr-cap.c  |  4 +-
+ drivers/media/platform/vivid/vivid-vbi-cap.c  |  2 +
+ drivers/media/platform/vivid/vivid-vbi-out.c  |  2 +
+ drivers/media/platform/vivid/vivid-vid-cap.c  |  2 +
+ drivers/media/platform/vivid/vivid-vid-out.c  |  2 +
+ include/media/videobuf2-core.h                | 20 ++++++
+ 11 files changed, 119 insertions(+), 25 deletions(-)
+
+-- 
+2.19.1
