@@ -1,40 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga12.intel.com ([192.55.52.136]:47042 "EHLO mga12.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2405461AbeKTD2e (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Nov 2018 22:28:34 -0500
-Date: Mon, 19 Nov 2018 19:03:54 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Dave Stevenson <dave.stevenson@raspberrypi.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>, mchehab@kernel.org,
-        linux-media@vger.kernel.org, Sasha Levin <sashal@kernel.org>
-Subject: Re: [PATCH v2 for v4.4 1/1] v4l: event: Add subscription to list
- before calling "add" operation
-Message-ID: <20181119170354.kjgob6m2lsbqae2m@kekkonen.localdomain>
-References: <20181114093746.29035-1-sakari.ailus@linux.intel.com>
- <20181119151400.GB5340@kroah.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54594 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S2405697AbeKTD3b (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 19 Nov 2018 22:29:31 -0500
+Date: Mon, 19 Nov 2018 19:05:11 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Maxime Ripard <maxime.ripard@bootlin.com>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>,
+        Boris Brezillon <boris.brezillon@bootlin.com>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org,
+        Archit Taneja <architt@codeaurora.org>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Chen-Yu Tsai <wens@csie.org>, linux-kernel@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        linux-arm-kernel@lists.infradead.org,
+        Krzysztof Witos <kwitos@cadence.com>,
+        Rafal Ciepiela <rafalc@cadence.com>
+Subject: Re: [PATCH v2 6/9] phy: Move Allwinner A31 D-PHY driver to
+ drivers/phy/
+Message-ID: <20181119170511.4yhvpfa7uiybgvty@valkosipuli.retiisi.org.uk>
+References: <cover.c2c2ae47383b9dbbdee6b69cafdd7391c06dde4f.1541516029.git-series.maxime.ripard@bootlin.com>
+ <c3fe50ce10d514c15eb4b3e4abec94a7ef15538c.1541516029.git-series.maxime.ripard@bootlin.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20181119151400.GB5340@kroah.com>
+In-Reply-To: <c3fe50ce10d514c15eb4b3e4abec94a7ef15538c.1541516029.git-series.maxime.ripard@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Greg,
+Hi Maxime,
 
-On Mon, Nov 19, 2018 at 04:14:00PM +0100, Greg Kroah-Hartman wrote:
-> On Wed, Nov 14, 2018 at 11:37:46AM +0200, Sakari Ailus wrote:
-> > [ upstream commit 92539d3eda2c090b382699bbb896d4b54e9bdece ]
+On Tue, Nov 06, 2018 at 03:54:18PM +0100, Maxime Ripard wrote:
+> Now that our MIPI D-PHY driver has been converted to the phy framework,
+> let's move it into the drivers/phy directory.
 > 
-> There is no such git commit id in Linus's tree :(
+> Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
+> ---
+>  drivers/gpu/drm/sun4i/Kconfig               |  10 +-
+>  drivers/gpu/drm/sun4i/Makefile              |   1 +-
+>  drivers/gpu/drm/sun4i/sun6i_mipi_dphy.c     | 318 +---------------------
+>  drivers/phy/allwinner/Kconfig               |  12 +-
+>  drivers/phy/allwinner/Makefile              |   1 +-
+>  drivers/phy/allwinner/phy-sun6i-mipi-dphy.c | 318 +++++++++++++++++++++-
+>  6 files changed, 332 insertions(+), 328 deletions(-)
+>  delete mode 100644 drivers/gpu/drm/sun4i/sun6i_mipi_dphy.c
+>  create mode 100644 drivers/phy/allwinner/phy-sun6i-mipi-dphy.c
 
-Right. At the moment it's in the media tree only. I expect it'll end up to
-Linus's tree once Mauro will send the next pull request from the media tree
-to Linus.
+Could you use git format-patch -M option on the next time, please?
 
 -- 
-Regards,
-
 Sakari Ailus
-sakari.ailus@linux.intel.com
+e-mail: sakari.ailus@iki.fi
