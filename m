@@ -1,99 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:56380 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1731402AbeKVCPX (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:58546 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727880AbeKTPAj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Nov 2018 21:15:23 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+        Tue, 20 Nov 2018 10:00:39 -0500
+Message-ID: <c3e66515222f0c47c99ea480210b7c98@smtp-cloud7.xs4all.net>
+Date: Tue, 20 Nov 2018 05:33:30 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv4 PATCH 3/3] vimc: add property test code
-Date: Wed, 21 Nov 2018 16:40:24 +0100
-Message-Id: <20181121154024.13906-4-hverkuil@xs4all.nl>
-In-Reply-To: <20181121154024.13906-1-hverkuil@xs4all.nl>
-References: <20181121154024.13906-1-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Subject: cron job: media_tree daily build: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Add properties to entities and pads to be able to test the
-properties API.
+Results of the daily build of media_tree:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/vimc/vimc-common.c | 50 +++++++++++++++++++++++
- 1 file changed, 50 insertions(+)
+date:			Tue Nov 20 05:00:12 CET 2018
+media-tree git hash:	fbe57dde7126d1b2712ab5ea93fb9d15f89de708
+media_build git hash:	a8aef9cea0a4a2f3ea86c0b37bd6a1378018c0c1
+v4l-utils git hash:	044d5ab7b0d02683070d01a369c73d462d7a0cee
+edid-decode git hash:	5eeb151a748788666534d6ea3da07f90400d24c2
+gcc version:		i686-linux-gcc (GCC) 8.2.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.18.0-2-amd64
 
-diff --git a/drivers/media/platform/vimc/vimc-common.c b/drivers/media/platform/vimc/vimc-common.c
-index dee1b9dfc4f6..2f70e4e64790 100644
---- a/drivers/media/platform/vimc/vimc-common.c
-+++ b/drivers/media/platform/vimc/vimc-common.c
-@@ -415,6 +415,7 @@ int vimc_ent_sd_register(struct vimc_ent_device *ved,
- 			 const unsigned long *pads_flag,
- 			 const struct v4l2_subdev_ops *sd_ops)
- {
-+	struct media_prop *prop = NULL;
- 	int ret;
- 
- 	/* Allocate the pads */
-@@ -452,6 +453,55 @@ int vimc_ent_sd_register(struct vimc_ent_device *ved,
- 		goto err_clean_m_ent;
- 	}
- 
-+	ret = media_entity_add_prop_u64(&sd->entity, "u64", ~1);
-+	if (!ret)
-+		ret = media_entity_add_prop_s64(&sd->entity, "s64", -5);
-+	if (!ret)
-+		ret = media_entity_add_prop_string(&sd->entity, "string",
-+						   sd->name);
-+	if (!ret) {
-+		prop = media_entity_add_prop_group(&sd->entity, "empty-group");
-+		ret = PTR_ERR_OR_ZERO(prop);
-+	}
-+	if (!ret) {
-+		prop = media_entity_add_prop_group(&sd->entity, "group");
-+		ret = PTR_ERR_OR_ZERO(prop);
-+	}
-+	if (!ret)
-+		ret = media_prop_add_prop_u64(prop, "u64", 42);
-+	if (!ret)
-+		ret = media_prop_add_prop_s64(prop, "s64", -42);
-+	if (!ret)
-+		ret = media_prop_add_prop_string(prop, "string", "42");
-+	if (!ret)
-+		ret = media_pad_add_prop_u64(&sd->entity.pads[num_pads - 1],
-+					     "u64", ~1);
-+	if (!ret)
-+		ret = media_pad_add_prop_s64(&sd->entity.pads[num_pads - 1],
-+					     "s64", -5);
-+	if (!ret) {
-+		prop = media_pad_add_prop_group(&sd->entity.pads[num_pads - 1],
-+						"group");
-+		ret = PTR_ERR_OR_ZERO(prop);
-+	}
-+	if (!ret)
-+		ret = media_prop_add_prop_u64(prop, "u64", 24);
-+	if (!ret)
-+		ret = media_prop_add_prop_s64(prop, "s64", -24);
-+	if (!ret)
-+		ret = media_pad_add_prop_string(&sd->entity.pads[0],
-+						"string", sd->name);
-+	if (!ret)
-+		ret = media_prop_add_prop_string(prop, "string", "24");
-+	if (!ret) {
-+		prop = media_prop_add_prop_group(prop, "subgroup");
-+		ret = PTR_ERR_OR_ZERO(prop);
-+	}
-+	if (!ret)
-+		ret = media_prop_add_prop_string(prop, "string", "substring");
-+	if (ret)
-+		goto err_clean_m_ent;
-+
- 	return 0;
- 
- err_clean_m_ent:
--- 
-2.19.1
+linux-git-arm-at91: WARNINGS
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-multi: WARNINGS
+linux-git-arm-pxa: WARNINGS
+linux-git-arm-stm32: WARNINGS
+linux-git-arm64: OK
+linux-git-i686: WARNINGS
+linux-git-mips: OK
+linux-git-powerpc64: WARNINGS
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+Check COMPILE_TEST: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.57-i686: OK
+linux-3.16.57-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.123-i686: OK
+linux-3.18.123-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.52-i686: OK
+linux-4.1.52-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.159-i686: OK
+linux-4.4.159-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.131-i686: OK
+linux-4.9.131-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.74-i686: OK
+linux-4.14.74-x86_64: OK
+linux-4.15.18-i686: OK
+linux-4.15.18-x86_64: OK
+linux-4.16.18-i686: OK
+linux-4.16.18-x86_64: OK
+linux-4.17.19-i686: OK
+linux-4.17.19-x86_64: OK
+linux-4.18.12-i686: OK
+linux-4.18.12-x86_64: OK
+linux-4.19.1-i686: OK
+linux-4.19.1-x86_64: OK
+linux-4.20-rc1-i686: OK
+linux-4.20-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
