@@ -1,61 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:52364 "EHLO
-        casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726963AbeKTVuo (ORCPT
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:59268 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726963AbeKTVuy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 20 Nov 2018 16:50:44 -0500
-Date: Tue, 20 Nov 2018 09:21:50 -0200
-From: Mauro Carvalho Chehab <mchehab@kernel.org>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Dave Stevenson <dave.stevenson@raspberrypi.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-media@vger.kernel.org, Sasha Levin <sashal@kernel.org>
-Subject: Re: [PATCH v2 for v4.4 1/1] v4l: event: Add subscription to list
- before calling "add" operation
-Message-ID: <20181120092150.5c1bd063@coco.lan>
-In-Reply-To: <20181120104946.jgkotjrp6an76tws@paasikivi.fi.intel.com>
-References: <20181114093746.29035-1-sakari.ailus@linux.intel.com>
-        <20181119151400.GB5340@kroah.com>
-        <20181119170354.kjgob6m2lsbqae2m@kekkonen.localdomain>
-        <20181119174621.GA13098@kroah.com>
-        <20181120104946.jgkotjrp6an76tws@paasikivi.fi.intel.com>
+        Tue, 20 Nov 2018 16:50:54 -0500
+Subject: Re: [RFC PATCH v8 3/4] media: media.h: Enable ALSA MEDIA_INTF_T*
+ interface types
+To: shuah@kernel.org, mchehab@kernel.org, perex@perex.cz,
+        tiwai@suse.com
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        alsa-devel@alsa-project.org
+References: <cover.1541118238.git.shuah@kernel.org>
+ <0f47952fd84fd275646e3c9a18e208ced08dd6bb.1541109584.git.shuah@kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <76e1a986-fb47-869d-ee7e-8c9b919718cb@xs4all.nl>
+Date: Tue, 20 Nov 2018 12:22:12 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <0f47952fd84fd275646e3c9a18e208ced08dd6bb.1541109584.git.shuah@kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 20 Nov 2018 12:49:46 +0200
-Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
-
-> Hi Greg,
+On 11/02/2018 01:31 AM, shuah@kernel.org wrote:
+> From: Shuah Khan <shuah@kernel.org>
 > 
-> On Mon, Nov 19, 2018 at 06:46:21PM +0100, Greg Kroah-Hartman wrote:
-> > On Mon, Nov 19, 2018 at 07:03:54PM +0200, Sakari Ailus wrote:  
-> > > Hi Greg,
-> > > 
-> > > On Mon, Nov 19, 2018 at 04:14:00PM +0100, Greg Kroah-Hartman wrote:  
-> > > > On Wed, Nov 14, 2018 at 11:37:46AM +0200, Sakari Ailus wrote:  
-> > > > > [ upstream commit 92539d3eda2c090b382699bbb896d4b54e9bdece ]  
-> > > > 
-> > > > There is no such git commit id in Linus's tree :(  
-> > > 
-> > > Right. At the moment it's in the media tree only. I expect it'll end up to
-> > > Linus's tree once Mauro will send the next pull request from the media tree
-> > > to Linus.  
-> > 
-> > Ok, please do not send requests for stable tree inclusion until _AFTER_
-> > the patch is in Linus's tree, otherwise it just wastes the stable tree
-> > maintainer's time :(  
+> Move ALSA MEDIA_INTF_T* interface types back into __KERNEL__ scope
+> to get ready for adding ALSA support to the media controller.
 > 
-> Apologies for the noise. I'll send you a note once the patches are in
-> Linus's tree.
+> Signed-off-by: Shuah Khan <shuah@kernel.org>
+> ---
+>  include/uapi/linux/media.h | 25 ++++++++++---------------
+>  1 file changed, 10 insertions(+), 15 deletions(-)
+> 
+> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+> index 36f76e777ef9..07be07263597 100644
+> --- a/include/uapi/linux/media.h
+> +++ b/include/uapi/linux/media.h
+> @@ -262,6 +262,16 @@ struct media_links_enum {
+>  #define MEDIA_INTF_T_V4L_SWRADIO		(MEDIA_INTF_T_V4L_BASE + 4)
+>  #define MEDIA_INTF_T_V4L_TOUCH			(MEDIA_INTF_T_V4L_BASE + 5)
+>  
+> +#define MEDIA_INTF_T_ALSA_BASE			0x00000300
+> +#define MEDIA_INTF_T_ALSA_PCM_CAPTURE		(MEDIA_INTF_T_ALSA_BASE)
+> +#define MEDIA_INTF_T_ALSA_PCM_PLAYBACK		(MEDIA_INTF_T_ALSA_BASE + 1)
+> +#define MEDIA_INTF_T_ALSA_CONTROL		(MEDIA_INTF_T_ALSA_BASE + 2)
+> +#define MEDIA_INTF_T_ALSA_COMPRESS		(MEDIA_INTF_T_ALSA_BASE + 3)
+> +#define MEDIA_INTF_T_ALSA_RAWMIDI		(MEDIA_INTF_T_ALSA_BASE + 4)
+> +#define MEDIA_INTF_T_ALSA_HWDEP			(MEDIA_INTF_T_ALSA_BASE + 5)
+> +#define MEDIA_INTF_T_ALSA_SEQUENCER		(MEDIA_INTF_T_ALSA_BASE + 6)
+> +#define MEDIA_INTF_T_ALSA_TIMER			(MEDIA_INTF_T_ALSA_BASE + 7)
+> +
 
-Btw, just sent a pull request with this patch. 
+I would only enable those defines that you need for the next patch.
 
-I wanted to send this two weeks ago, but I had to do two trips 
-(the final one to be at KS/LPC). This ended by delaying the pull request.
+Regards,
 
-Thanks,
-Mauro
+	Hans
+
+>  #if defined(__KERNEL__)
+>  
+>  /*
+> @@ -404,21 +414,6 @@ struct media_v2_topology {
+>  
+>  #define MEDIA_ENT_F_DTV_DECODER			MEDIA_ENT_F_DV_DECODER
+>  
+> -/*
+> - * There is still no ALSA support in the media controller. These
+> - * defines should not have been added and we leave them here only
+> - * in case some application tries to use these defines.
+> - */
+> -#define MEDIA_INTF_T_ALSA_BASE			0x00000300
+> -#define MEDIA_INTF_T_ALSA_PCM_CAPTURE		(MEDIA_INTF_T_ALSA_BASE)
+> -#define MEDIA_INTF_T_ALSA_PCM_PLAYBACK		(MEDIA_INTF_T_ALSA_BASE + 1)
+> -#define MEDIA_INTF_T_ALSA_CONTROL		(MEDIA_INTF_T_ALSA_BASE + 2)
+> -#define MEDIA_INTF_T_ALSA_COMPRESS		(MEDIA_INTF_T_ALSA_BASE + 3)
+> -#define MEDIA_INTF_T_ALSA_RAWMIDI		(MEDIA_INTF_T_ALSA_BASE + 4)
+> -#define MEDIA_INTF_T_ALSA_HWDEP			(MEDIA_INTF_T_ALSA_BASE + 5)
+> -#define MEDIA_INTF_T_ALSA_SEQUENCER		(MEDIA_INTF_T_ALSA_BASE + 6)
+> -#define MEDIA_INTF_T_ALSA_TIMER			(MEDIA_INTF_T_ALSA_BASE + 7)
+> -
+>  /* Obsolete symbol for media_version, no longer used in the kernel */
+>  #define MEDIA_API_VERSION			((0 << 16) | (1 << 8) | 0)
+>  
+> 
