@@ -1,287 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:36939 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725898AbeKTTHU (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:57075 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725887AbeKTT0t (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 20 Nov 2018 14:07:20 -0500
-Subject: Re: [PATCH 2/2] media: video-i2c: add Melexis MLX90640 thermal camera
- support
-To: Matt Ranostay <matt.ranostay@konsulko.com>
-Cc: linux-media@vger.kernel.org
-References: <20181101041534.5913-1-matt.ranostay@konsulko.com>
- <20181101041534.5913-3-matt.ranostay@konsulko.com>
- <0423f643-cf2d-9329-5b55-1673071150c9@xs4all.nl>
- <CAJCx=g=WoG5QmYeNk-ih1uiYLG850_JLteA9K6byVw3axw53DA@mail.gmail.com>
+        Tue, 20 Nov 2018 14:26:49 -0500
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Ezequiel Garcia <ezequiel@collabora.com>,
+        Nicolas Dufresne <nicolas@ndufresne.ca>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Tomasz Figa <tfiga@chromium.org>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <7a24b4ce-4110-4d42-a375-06602ed4fa32@xs4all.nl>
-Date: Tue, 20 Nov 2018 09:39:20 +0100
+Subject: [PATCH] videodev2.h: add
+ V4L2_BUF_CAP_SUPPORTS_PREPARE_BUF/CREATE_BUFS
+Message-ID: <68a6a7d3-cf0b-f631-f113-e388ebb7f5a4@xs4all.nl>
+Date: Tue, 20 Nov 2018 09:58:43 +0100
 MIME-Version: 1.0
-In-Reply-To: <CAJCx=g=WoG5QmYeNk-ih1uiYLG850_JLteA9K6byVw3axw53DA@mail.gmail.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/19/2018 09:54 PM, Matt Ranostay wrote:
-> On Mon, Nov 19, 2018 at 6:26 AM Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>
->> On 11/01/2018 05:15 AM, Matt Ranostay wrote:
->>> Add initial support for MLX90640 thermal cameras which output an 32x24
->>> greyscale pixel image along with 2 rows of coefficent data.
->>>
->>> Because of this the data outputed is really 32x26 and needs the two rows
->>> removed after using the coefficent information to generate processed
->>> images in userspace.
->>>
->>> Signed-off-by: Matt Ranostay <matt.ranostay@konsulko.com>
->>> ---
->>>  drivers/media/i2c/Kconfig     |   1 +
->>>  drivers/media/i2c/video-i2c.c | 110 +++++++++++++++++++++++++++++++++-
->>>  2 files changed, 110 insertions(+), 1 deletion(-)
->>
->>
->>
->>>
->>> diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
->>> index 704af210e270..4bfb2c66d192 100644
->>> --- a/drivers/media/i2c/Kconfig
->>> +++ b/drivers/media/i2c/Kconfig
->>> @@ -1085,6 +1085,7 @@ config VIDEO_I2C
->>>         Enable the I2C transport video support which supports the
->>>         following:
->>>          * Panasonic AMG88xx Grid-Eye Sensors
->>> +        * Melexis MLX90640 Thermal Cameras
->>>
->>>         To compile this driver as a module, choose M here: the
->>>         module will be called video-i2c
->>> diff --git a/drivers/media/i2c/video-i2c.c b/drivers/media/i2c/video-i2c.c
->>> index 6d3b6df0b634..38ade8cb7656 100644
->>> --- a/drivers/media/i2c/video-i2c.c
->>> +++ b/drivers/media/i2c/video-i2c.c
->>> @@ -6,6 +6,7 @@
->>>   *
->>>   * Supported:
->>>   * - Panasonic AMG88xx Grid-Eye Sensors
->>> + * - Melexis MLX90640 Thermal Cameras
->>>   */
->>>
->>>  #include <linux/delay.h>
->>> @@ -18,6 +19,7 @@
->>>  #include <linux/mutex.h>
->>>  #include <linux/of_device.h>
->>>  #include <linux/pm_runtime.h>
->>> +#include <linux/nvmem-provider.h>
->>>  #include <linux/regmap.h>
->>>  #include <linux/sched.h>
->>>  #include <linux/slab.h>
->>> @@ -66,12 +68,26 @@ static const struct v4l2_frmsize_discrete amg88xx_size = {
->>>       .height = 8,
->>>  };
->>>
->>> +static const struct v4l2_fmtdesc mlx90640_format = {
->>> +     .pixelformat = V4L2_PIX_FMT_Y16_BE,
->>> +};
->>> +
->>> +static const struct v4l2_frmsize_discrete mlx90640_size = {
->>> +     .width = 32,
->>> +     .height = 26, /* 24 lines of pixel data + 2 lines of processing data */
->>> +};
->>> +
->>>  static const struct regmap_config amg88xx_regmap_config = {
->>>       .reg_bits = 8,
->>>       .val_bits = 8,
->>>       .max_register = 0xff
->>>  };
->>>
->>> +static const struct regmap_config mlx90640_regmap_config = {
->>> +     .reg_bits = 16,
->>> +     .val_bits = 16,
->>> +};
->>> +
->>>  struct video_i2c_chip {
->>>       /* video dimensions */
->>>       const struct v4l2_fmtdesc *format;
->>> @@ -88,6 +104,7 @@ struct video_i2c_chip {
->>>       unsigned int bpp;
->>>
->>>       const struct regmap_config *regmap_config;
->>> +     struct nvmem_config *nvmem_config;
->>>
->>>       /* setup function */
->>>       int (*setup)(struct video_i2c_data *data);
->>> @@ -102,6 +119,22 @@ struct video_i2c_chip {
->>>       int (*hwmon_init)(struct video_i2c_data *data);
->>>  };
->>>
->>> +static int mlx90640_nvram_read(void *priv, unsigned int offset, void *val,
->>> +                          size_t bytes)
->>> +{
->>> +     struct video_i2c_data *data = priv;
->>> +
->>> +     return regmap_bulk_read(data->regmap, 0x2400 + offset, val, bytes);
->>> +}
->>> +
->>> +static struct nvmem_config mlx90640_nvram_config = {
->>> +     .name = "mlx90640_nvram",
->>> +     .word_size = 2,
->>> +     .stride = 1,
->>> +     .size = 1664,
->>> +     .reg_read = mlx90640_nvram_read,
->>> +};
->>> +
->>>  /* Power control register */
->>>  #define AMG88XX_REG_PCTL     0x00
->>>  #define AMG88XX_PCTL_NORMAL          0x00
->>> @@ -122,12 +155,23 @@ struct video_i2c_chip {
->>>  /* Temperature register */
->>>  #define AMG88XX_REG_T01L     0x80
->>>
->>> +/* Control register */
->>> +#define MLX90640_REG_CTL1            0x800d
->>> +#define MLX90640_REG_CTL1_MASK               0x0380
->>> +#define MLX90640_REG_CTL1_MASK_SHIFT 7
->>> +
->>>  static int amg88xx_xfer(struct video_i2c_data *data, char *buf)
->>>  {
->>>       return regmap_bulk_read(data->regmap, AMG88XX_REG_T01L, buf,
->>>                               data->chip->buffer_size);
->>>  }
->>>
->>> +static int mlx90640_xfer(struct video_i2c_data *data, char *buf)
->>> +{
->>> +     return regmap_bulk_read(data->regmap, 0x400, buf,
->>> +                             data->chip->buffer_size);
->>> +}
->>> +
->>>  static int amg88xx_setup(struct video_i2c_data *data)
->>>  {
->>>       unsigned int mask = AMG88XX_FPSC_1FPS;
->>> @@ -141,6 +185,27 @@ static int amg88xx_setup(struct video_i2c_data *data)
->>>       return regmap_update_bits(data->regmap, AMG88XX_REG_FPSC, mask, val);
->>>  }
->>>
->>> +static int mlx90640_setup(struct video_i2c_data *data)
->>> +{
->>> +     unsigned int n, idx;
->>> +
->>> +     for (n = 0; n < data->chip->num_frame_intervals - 1; n++) {
->>> +             if (data->frame_interval.numerator
->>> +                             != data->chip->frame_intervals[n].numerator)
->>> +                     continue;
->>> +
->>> +             if (data->frame_interval.denominator
->>> +                             == data->chip->frame_intervals[n].denominator)
->>> +                     break;
->>> +     }
->>> +
->>> +     idx = data->chip->num_frame_intervals - n - 1;
->>> +
->>> +     return regmap_update_bits(data->regmap, MLX90640_REG_CTL1,
->>> +                               MLX90640_REG_CTL1_MASK,
->>> +                               idx << MLX90640_REG_CTL1_MASK_SHIFT);
->>> +}
->>> +
->>>  static int amg88xx_set_power_on(struct video_i2c_data *data)
->>>  {
->>>       int ret;
->>> @@ -274,13 +339,27 @@ static int amg88xx_hwmon_init(struct video_i2c_data *data)
->>>  #define      amg88xx_hwmon_init      NULL
->>>  #endif
->>>
->>> -#define AMG88XX              0
->>> +enum {
->>> +     AMG88XX,
->>> +     MLX90640,
->>> +};
->>>
->>>  static const struct v4l2_fract amg88xx_frame_intervals[] = {
->>>       { 1, 10 },
->>>       { 1, 1 },
->>>  };
->>>
->>> +static const struct v4l2_fract mlx90640_frame_intervals[] = {
->>> +     { 1, 64 },
->>> +     { 1, 32 },
->>> +     { 1, 16 },
->>> +     { 1, 8 },
->>> +     { 1, 4 },
->>> +     { 1, 2 },
->>> +     { 1, 1 },
->>> +     { 2, 1 },
->>> +};
->>> +
->>>  static const struct video_i2c_chip video_i2c_chip[] = {
->>>       [AMG88XX] = {
->>>               .size           = &amg88xx_size,
->>> @@ -295,6 +374,18 @@ static const struct video_i2c_chip video_i2c_chip[] = {
->>>               .set_power      = amg88xx_set_power,
->>>               .hwmon_init     = amg88xx_hwmon_init,
->>>       },
->>> +     [MLX90640] = {
->>> +             .size           = &mlx90640_size,
->>> +             .format         = &mlx90640_format,
->>> +             .frame_intervals        = mlx90640_frame_intervals,
->>> +             .num_frame_intervals    = ARRAY_SIZE(mlx90640_frame_intervals),
->>> +             .buffer_size    = 1664,
->>> +             .bpp            = 16,
->>> +             .regmap_config  = &mlx90640_regmap_config,
->>> +             .nvmem_config   = &mlx90640_nvram_config,
->>> +             .setup          = mlx90640_setup,
->>> +             .xfer           = mlx90640_xfer,
->>> +     },
->>>  };
->>>
->>>  static const struct v4l2_file_operations video_i2c_fops = {
->>> @@ -756,6 +847,21 @@ static int video_i2c_probe(struct i2c_client *client,
->>>               }
->>>       }
->>>
->>> +     if (data->chip->nvmem_config) {
->>> +             struct nvmem_config *config = data->chip->nvmem_config;
->>> +             struct nvmem_device *device;
->>> +
->>> +             config->priv = data;
->>> +             config->dev = &client->dev;
->>> +
->>> +             device = devm_nvmem_register(&client->dev, config);
->>> +
->>> +             if (IS_ERR(device)) {
->>> +                     dev_warn(&client->dev,
->>> +                              "failed to register nvmem device\n");
->>> +             }
->>> +     }
->>> +
->>>       ret = video_register_device(&data->vdev, VFL_TYPE_GRABBER, -1);
->>>       if (ret < 0)
->>>               goto error_pm_disable;
->>> @@ -834,12 +940,14 @@ static const struct dev_pm_ops video_i2c_pm_ops = {
->>>
->>>  static const struct i2c_device_id video_i2c_id_table[] = {
->>>       { "amg88xx", AMG88XX },
->>> +     { "mlx90640", MLX90640 },
->>>       {}
->>>  };
->>>  MODULE_DEVICE_TABLE(i2c, video_i2c_id_table);
->>>
->>>  static const struct of_device_id video_i2c_of_match[] = {
->>>       { .compatible = "panasonic,amg88xx", .data = &video_i2c_chip[AMG88XX] },
->>> +     { .compatible = "melexis,mlx90640", .data = &video_i2c_chip[MLX90640] },
->>
->> Missing documentation for melexis,mlx90640 in bindings:
->>
->> WARNING: DT compatible string "melexis,mlx90640" appears un-documented -- check ./Documentation/devicetree/bindings/
->>
-> 
-> Hmm we don't currently have a device tree documentation for this
-> driver, should there one be created (e.g. video-i2c.rst)?
+Add new buffer capability flags to indicate if the VIDIOC_PREPARE_BUF or
+VIDIOC_CREATE_BUFS ioctls are supported.
 
-There is already a file for panasonic,amg88xx, but perhaps that should be
-renamed to video-i2c.rst and melexis,mlx90640 should be added to it?
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+Note: the flag bits will change since there are two other patches that add
+flags, so the numbering will change.
+---
+diff --git a/Documentation/media/uapi/v4l/vidioc-reqbufs.rst b/Documentation/media/uapi/v4l/vidioc-reqbufs.rst
+index d4bbbb0c60e8..abf925484aff 100644
+--- a/Documentation/media/uapi/v4l/vidioc-reqbufs.rst
++++ b/Documentation/media/uapi/v4l/vidioc-reqbufs.rst
+@@ -112,6 +112,8 @@ any DMA in progress, an implicit
+ .. _V4L2-BUF-CAP-SUPPORTS-USERPTR:
+ .. _V4L2-BUF-CAP-SUPPORTS-DMABUF:
+ .. _V4L2-BUF-CAP-SUPPORTS-REQUESTS:
++.. _V4L2-BUF-CAP-SUPPORTS-PREPARE-BUF:
++.. _V4L2-BUF-CAP-SUPPORTS-CREATE-BUFS:
 
-Either that, or add a new melexis,mlx90640.txt next to
-Documentation/devicetree/bindings/media/i2c/panasonic,amg88xx.txt.
+ .. cssclass:: longtable
 
-Regards,
+@@ -132,6 +134,12 @@ any DMA in progress, an implicit
+     * - ``V4L2_BUF_CAP_SUPPORTS_REQUESTS``
+       - 0x00000008
+       - This buffer type supports :ref:`requests <media-request-api>`.
++    * - ``V4L2_BUF_CAP_SUPPORTS_PREPARE_BUF``
++      - 0x00000010
++      - This buffer type supports :ref:`VIDIOC_PREPARE_BUF`.
++    * - ``V4L2_BUF_CAP_SUPPORTS_CREATE_BUFS``
++      - 0x00000020
++      - This buffer type supports :ref:`VIDIOC_CREATE_BUFS`.
 
-	Hans
+ Return Value
+ ============
+diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+index a17033ab2c22..27c0fafca0bf 100644
+--- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
++++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+@@ -871,6 +871,16 @@ static inline bool vb2_queue_is_busy(struct video_device *vdev, struct file *fil
+ 	return vdev->queue->owner && vdev->queue->owner != file->private_data;
+ }
+
++static void fill_buf_caps_vdev(struct video_device *vdev, u32 *caps)
++{
++	*caps = 0;
++	fill_buf_caps(vdev->queue, caps);
++	if (vdev->ioctl_ops->vidioc_prepare_buf)
++		*caps |= V4L2_BUF_CAP_SUPPORTS_PREPARE_BUF;
++	if (vdev->ioctl_ops->vidioc_create_bufs)
++		*caps |= V4L2_BUF_CAP_SUPPORTS_CREATE_BUFS;
++}
++
+ /* vb2 ioctl helpers */
+
+ int vb2_ioctl_reqbufs(struct file *file, void *priv,
+@@ -879,7 +889,7 @@ int vb2_ioctl_reqbufs(struct file *file, void *priv,
+ 	struct video_device *vdev = video_devdata(file);
+ 	int res = vb2_verify_memory_type(vdev->queue, p->memory, p->type);
+
+-	fill_buf_caps(vdev->queue, &p->capabilities);
++	fill_buf_caps_vdev(vdev, &p->capabilities);
+ 	if (res)
+ 		return res;
+ 	if (vb2_queue_is_busy(vdev, file))
+@@ -901,7 +911,7 @@ int vb2_ioctl_create_bufs(struct file *file, void *priv,
+ 			p->format.type);
+
+ 	p->index = vdev->queue->num_buffers;
+-	fill_buf_caps(vdev->queue, &p->capabilities);
++	fill_buf_caps_vdev(vdev, &p->capabilities);
+ 	/*
+ 	 * If count == 0, then just check if memory and type are valid.
+ 	 * Any -EBUSY result from vb2_verify_memory_type can be mapped to 0.
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index c8e8ff810190..6648f8ba2277 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -879,6 +879,8 @@ struct v4l2_requestbuffers {
+ #define V4L2_BUF_CAP_SUPPORTS_USERPTR	(1 << 1)
+ #define V4L2_BUF_CAP_SUPPORTS_DMABUF	(1 << 2)
+ #define V4L2_BUF_CAP_SUPPORTS_REQUESTS	(1 << 3)
++#define V4L2_BUF_CAP_SUPPORTS_PREPARE_BUF	(1 << 4)
++#define V4L2_BUF_CAP_SUPPORTS_CREATE_BUFS	(1 << 5)
+
+ /**
+  * struct v4l2_plane - plane info for multi-planar buffers
