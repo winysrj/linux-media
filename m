@@ -1,39 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:14441 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728041AbeKTWoO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 20 Nov 2018 17:44:14 -0500
-Date: Tue, 20 Nov 2018 14:15:21 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Fabio Estevam <festevam@gmail.com>
+Received: from mail-oi1-f194.google.com ([209.85.167.194]:36938 "EHLO
+        mail-oi1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728375AbeKTWuY (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 20 Nov 2018 17:50:24 -0500
+Received: by mail-oi1-f194.google.com with SMTP id y23so1317137oia.4
+        for <linux-media@vger.kernel.org>; Tue, 20 Nov 2018 04:21:32 -0800 (PST)
+MIME-Version: 1.0
+References: <CAOMZO5DP8JEMfjXJ8Hihm684+3=pOoCo1Gz7kt-TnCB7h-8EvA@mail.gmail.com>
+ <20181120121521.e5e3wwwvcyl6xwrm@paasikivi.fi.intel.com>
+In-Reply-To: <20181120121521.e5e3wwwvcyl6xwrm@paasikivi.fi.intel.com>
+From: Fabio Estevam <festevam@gmail.com>
+Date: Tue, 20 Nov 2018 10:21:21 -0200
+Message-ID: <CAOMZO5A1-GzCjFdgjEdcq18c31o09EG9NFL4tfPK0QzkM4PEUA@mail.gmail.com>
+Subject: Re: 'bad remote port parent' warnings
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
 Cc: Steve Longerbeam <slongerbeam@gmail.com>,
         Philipp Zabel <p.zabel@pengutronix.de>,
         Hans Verkuil <hverkuil@xs4all.nl>,
         linux-media <linux-media@vger.kernel.org>
-Subject: Re: 'bad remote port parent' warnings
-Message-ID: <20181120121521.e5e3wwwvcyl6xwrm@paasikivi.fi.intel.com>
-References: <CAOMZO5DP8JEMfjXJ8Hihm684+3=pOoCo1Gz7kt-TnCB7h-8EvA@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAOMZO5DP8JEMfjXJ8Hihm684+3=pOoCo1Gz7kt-TnCB7h-8EvA@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Nov 20, 2018 at 10:10:57AM -0200, Fabio Estevam wrote:
-> Hi,
-> 
-> On a imx6q-wandboard running linux-next 20181120 there the following warnings:
-> 
-> [    4.327794] video-mux 20e0000.iomuxc-gpr:ipu1_csi0_mux: bad remote
-> port parent
-> [    4.336118] video-mux 20e0000.iomuxc-gpr:ipu2_csi1_mux: bad remote
-> port parent
-> 
-> Is there anything we should do to prevent this from happening?
+Hi Sakari,
 
-Where's the DT source for the board?
+On Tue, Nov 20, 2018 at 10:15 AM Sakari Ailus
+<sakari.ailus@linux.intel.com> wrote:
 
--- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+> Where's the DT source for the board?
+
+Board dts is arch/arm/boot/dts/imx6qdl-wandboard.dtsi
+
+SoC dtsi is arch/arm/boot/dts/imx6q.dtsi
+
+Also, since 4.20-rc the following errors are seen:
+
+[    3.449564] imx-ipuv3 2400000.ipu: driver could not parse
+port@1/endpoint@0 (-22)
+[    3.457342] imx-ipuv3-csi: probe of imx-ipuv3-csi.1 failed with error -22
+[    3.464498] imx-ipuv3 2800000.ipu: driver could not parse
+port@0/endpoint@0 (-22)
+[    3.472120] imx-ipuv3-csi: probe of imx-ipuv3-csi.4 failed with error -22
+
+which were not present in 4.19.
+
+Log from 4.19:
+https://storage.kernelci.org/stable/linux-4.19.y/v4.19.2/arm/imx_v6_v7_defconfig/lab-baylibre-seattle/boot-imx6q-wandboard.html
+
+Log from 4.20-rc3:
+https://storage.kernelci.org/mainline/master/v4.20-rc3/arm/imx_v6_v7_defconfig/lab-baylibre-seattle/boot-imx6q-wandboard.html
+
+Thanks
