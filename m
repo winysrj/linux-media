@@ -1,46 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:26450 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2390357AbeKVJbh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Nov 2018 04:31:37 -0500
-Date: Thu, 22 Nov 2018 06:54:14 +0800
-From: kbuild test robot <lkp@intel.com>
-To: Rui Miguel Silva <rui.silva@linaro.org>
-Cc: kbuild-all@01.org, sakari.ailus@linux.intel.com,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        devicetree@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Rui Miguel Silva <rui.silva@linaro.org>
-Subject: Re: [PATCH v8 04/12] media: staging/imx7: add MIPI CSI-2 receiver
- subdev for i.MX7
-Message-ID: <201811220609.MIVjrYZv%fengguang.wu@intel.com>
-References: <20181121111558.10838-5-rui.silva@linaro.org>
+Received: from mail-oi1-f175.google.com ([209.85.167.175]:44067 "EHLO
+        mail-oi1-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728432AbeKTWj5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 20 Nov 2018 17:39:57 -0500
+Received: by mail-oi1-f175.google.com with SMTP id p82-v6so1271267oih.11
+        for <linux-media@vger.kernel.org>; Tue, 20 Nov 2018 04:11:08 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20181121111558.10838-5-rui.silva@linaro.org>
+From: Fabio Estevam <festevam@gmail.com>
+Date: Tue, 20 Nov 2018 10:10:57 -0200
+Message-ID: <CAOMZO5DP8JEMfjXJ8Hihm684+3=pOoCo1Gz7kt-TnCB7h-8EvA@mail.gmail.com>
+Subject: 'bad remote port parent' warnings
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Rui,
+Hi,
 
-I love your patch! Perhaps something to improve:
+On a imx6q-wandboard running linux-next 20181120 there the following warnings:
 
-[auto build test WARNING on linuxtv-media/master]
-[also build test WARNING on v4.20-rc3 next-20181121]
-[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+[    4.327794] video-mux 20e0000.iomuxc-gpr:ipu1_csi0_mux: bad remote
+port parent
+[    4.336118] video-mux 20e0000.iomuxc-gpr:ipu2_csi1_mux: bad remote
+port parent
 
-url:    https://github.com/0day-ci/linux/commits/Rui-Miguel-Silva/media-staging-imx7-add-i-MX7-media-driver/20181122-024200
-base:   git://linuxtv.org/media_tree.git master
+Is there anything we should do to prevent this from happening?
 
+Thanks,
 
-coccinelle warnings: (new ones prefixed by >>)
-
->> drivers/staging/media/imx/imx7-mipi-csis.c:1125:3-8: No need to set .owner here. The core will do it.
-
-Please review and possibly fold the followup patch.
-
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+Fabio Estevam
