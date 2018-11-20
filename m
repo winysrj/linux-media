@@ -1,19 +1,17 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:57075 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725887AbeKTT0t (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:40096 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726942AbeKTTlf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 20 Nov 2018 14:26:49 -0500
+        Tue, 20 Nov 2018 14:41:35 -0500
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Ezequiel Garcia <ezequiel@collabora.com>,
-        Nicolas Dufresne <nicolas@ndufresne.ca>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Tomasz Figa <tfiga@chromium.org>
+        Vikash Garodia <vgarodia@codeaurora.org>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] videodev2.h: add
- V4L2_BUF_CAP_SUPPORTS_PREPARE_BUF/CREATE_BUFS
-Message-ID: <68a6a7d3-cf0b-f631-f113-e388ebb7f5a4@xs4all.nl>
-Date: Tue, 20 Nov 2018 09:58:43 +0100
+Subject: [GIT PULL FOR v4.21] mem2mem, venus and vb2 fixes/improvements
+Message-ID: <b94121f5-ef4b-59b5-5c14-bd240367afea@xs4all.nl>
+Date: Tue, 20 Nov 2018 10:13:27 +0100
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
@@ -21,89 +19,60 @@ Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add new buffer capability flags to indicate if the VIDIOC_PREPARE_BUF or
-VIDIOC_CREATE_BUFS ioctls are supported.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
-Note: the flag bits will change since there are two other patches that add
-flags, so the numbering will change.
----
-diff --git a/Documentation/media/uapi/v4l/vidioc-reqbufs.rst b/Documentation/media/uapi/v4l/vidioc-reqbufs.rst
-index d4bbbb0c60e8..abf925484aff 100644
---- a/Documentation/media/uapi/v4l/vidioc-reqbufs.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-reqbufs.rst
-@@ -112,6 +112,8 @@ any DMA in progress, an implicit
- .. _V4L2-BUF-CAP-SUPPORTS-USERPTR:
- .. _V4L2-BUF-CAP-SUPPORTS-DMABUF:
- .. _V4L2-BUF-CAP-SUPPORTS-REQUESTS:
-+.. _V4L2-BUF-CAP-SUPPORTS-PREPARE-BUF:
-+.. _V4L2-BUF-CAP-SUPPORTS-CREATE-BUFS:
 
- .. cssclass:: longtable
+The following changes since commit fbe57dde7126d1b2712ab5ea93fb9d15f89de708:
 
-@@ -132,6 +134,12 @@ any DMA in progress, an implicit
-     * - ``V4L2_BUF_CAP_SUPPORTS_REQUESTS``
-       - 0x00000008
-       - This buffer type supports :ref:`requests <media-request-api>`.
-+    * - ``V4L2_BUF_CAP_SUPPORTS_PREPARE_BUF``
-+      - 0x00000010
-+      - This buffer type supports :ref:`VIDIOC_PREPARE_BUF`.
-+    * - ``V4L2_BUF_CAP_SUPPORTS_CREATE_BUFS``
-+      - 0x00000020
-+      - This buffer type supports :ref:`VIDIOC_CREATE_BUFS`.
+  media: ov7740: constify structures stored in fields of v4l2_subdev_ops structure (2018-11-06 07:17:02 -0500)
 
- Return Value
- ============
-diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-index a17033ab2c22..27c0fafca0bf 100644
---- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
-+++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-@@ -871,6 +871,16 @@ static inline bool vb2_queue_is_busy(struct video_device *vdev, struct file *fil
- 	return vdev->queue->owner && vdev->queue->owner != file->private_data;
- }
+are available in the Git repository at:
 
-+static void fill_buf_caps_vdev(struct video_device *vdev, u32 *caps)
-+{
-+	*caps = 0;
-+	fill_buf_caps(vdev->queue, caps);
-+	if (vdev->ioctl_ops->vidioc_prepare_buf)
-+		*caps |= V4L2_BUF_CAP_SUPPORTS_PREPARE_BUF;
-+	if (vdev->ioctl_ops->vidioc_create_bufs)
-+		*caps |= V4L2_BUF_CAP_SUPPORTS_CREATE_BUFS;
-+}
-+
- /* vb2 ioctl helpers */
+  git://linuxtv.org/hverkuil/media_tree.git tags/br-v4.21e
 
- int vb2_ioctl_reqbufs(struct file *file, void *priv,
-@@ -879,7 +889,7 @@ int vb2_ioctl_reqbufs(struct file *file, void *priv,
- 	struct video_device *vdev = video_devdata(file);
- 	int res = vb2_verify_memory_type(vdev->queue, p->memory, p->type);
+for you to fetch changes up to ef1b25960c21848d5bb748296059cab4a4a0ee4c:
 
--	fill_buf_caps(vdev->queue, &p->capabilities);
-+	fill_buf_caps_vdev(vdev, &p->capabilities);
- 	if (res)
- 		return res;
- 	if (vb2_queue_is_busy(vdev, file))
-@@ -901,7 +911,7 @@ int vb2_ioctl_create_bufs(struct file *file, void *priv,
- 			p->format.type);
+  videobuf2-v4l2: drop WARN_ON in vb2_warn_zero_bytesused() (2018-11-20 10:04:50 +0100)
 
- 	p->index = vdev->queue->num_buffers;
--	fill_buf_caps(vdev->queue, &p->capabilities);
-+	fill_buf_caps_vdev(vdev, &p->capabilities);
- 	/*
- 	 * If count == 0, then just check if memory and type are valid.
- 	 * Any -EBUSY result from vb2_verify_memory_type can be mapped to 0.
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index c8e8ff810190..6648f8ba2277 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -879,6 +879,8 @@ struct v4l2_requestbuffers {
- #define V4L2_BUF_CAP_SUPPORTS_USERPTR	(1 << 1)
- #define V4L2_BUF_CAP_SUPPORTS_DMABUF	(1 << 2)
- #define V4L2_BUF_CAP_SUPPORTS_REQUESTS	(1 << 3)
-+#define V4L2_BUF_CAP_SUPPORTS_PREPARE_BUF	(1 << 4)
-+#define V4L2_BUF_CAP_SUPPORTS_CREATE_BUFS	(1 << 5)
+----------------------------------------------------------------
+Tag branch
 
- /**
-  * struct v4l2_plane - plane info for multi-planar buffers
+----------------------------------------------------------------
+Ezequiel Garcia (4):
+      mem2mem: Require capture and output mutexes to match
+      v4l2-ioctl.c: Simplify locking for m2m devices
+      v4l2-mem2mem: Avoid calling .device_run in v4l2_m2m_job_finish
+      media: cedrus: Get rid of interrupt bottom-half
+
+Hans Verkuil (1):
+      videobuf2-v4l2: drop WARN_ON in vb2_warn_zero_bytesused()
+
+John Sheu (1):
+      media: vb2: Allow reqbufs(0) with "in use" MMAP buffers
+
+Sakari Ailus (1):
+      v4l2-mem2mem: Simplify exiting the function in __v4l2_m2m_try_schedule
+
+Stanimir Varbanov (1):
+      venus: firmware: register separate platform_device for firmware loader
+
+vgarodia@codeaurora.org (4):
+      venus: firmware: add routine to reset ARM9
+      venus: firmware: move load firmware in a separate function
+      venus: firmware: add no TZ boot and shutdown routine
+      dt-bindings: media: Document bindings for venus firmware device
+
+ Documentation/devicetree/bindings/media/qcom,venus.txt |  14 ++-
+ Documentation/media/uapi/v4l/vidioc-reqbufs.rst        |  17 +++-
+ drivers/media/common/videobuf2/videobuf2-core.c        |   8 +-
+ drivers/media/common/videobuf2/videobuf2-v4l2.c        |   3 +-
+ drivers/media/platform/qcom/venus/core.c               |  24 +++--
+ drivers/media/platform/qcom/venus/core.h               |   6 ++
+ drivers/media/platform/qcom/venus/firmware.c           | 235 +++++++++++++++++++++++++++++++++++++++++++-----
+ drivers/media/platform/qcom/venus/firmware.h           |  17 +++-
+ drivers/media/platform/qcom/venus/hfi_venus.c          |  13 +--
+ drivers/media/platform/qcom/venus/hfi_venus_io.h       |   8 ++
+ drivers/media/v4l2-core/v4l2-ioctl.c                   |  47 +---------
+ drivers/media/v4l2-core/v4l2-mem2mem.c                 |  66 +++++++++-----
+ drivers/staging/media/sunxi/cedrus/cedrus_hw.c         |  26 ++----
+ include/uapi/linux/videodev2.h                         |   1 +
+ 14 files changed, 344 insertions(+), 141 deletions(-)
