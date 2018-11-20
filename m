@@ -1,194 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:48056 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728530AbeKSWqP (ORCPT
+Received: from alexa-out-blr-01.qualcomm.com ([103.229.18.197]:29065 "EHLO
+        alexa-out-blr-01.qualcomm.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725949AbeKTUh5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Nov 2018 17:46:15 -0500
-Subject: [PATCHv2.1 2/4] vivid: use per-queue mutexes instead of one global
- mutex.
-To: linux-media@vger.kernel.org
-Cc: Tomasz Figa <tfiga@chromium.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-References: <20181119110903.24383-1-hverkuil@xs4all.nl>
- <20181119110903.24383-3-hverkuil@xs4all.nl>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <cdf8bbd9-2f97-bd5e-1819-547b4f75338c@xs4all.nl>
-Date: Mon, 19 Nov 2018 13:22:44 +0100
-MIME-Version: 1.0
-In-Reply-To: <20181119110903.24383-3-hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Tue, 20 Nov 2018 15:37:57 -0500
+From: Malathi Gottam <mgottam@codeaurora.org>
+To: stanimir.varbanov@linaro.org, hverkuil@xs4all.nl,
+        mchehab@kernel.org
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org, acourbot@chromium.org,
+        vgarodia@codeaurora.org, mgottam@codeaurora.org
+Subject: [PATCH] arm64: dts: sdm845: add video nodes
+Date: Tue, 20 Nov 2018 15:38:26 +0530
+Message-Id: <1542708506-12680-1-git-send-email-mgottam@codeaurora.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->From d15ccd98e557a8cef1362cb591eb3011a6d8e1fd Mon Sep 17 00:00:00 2001
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Date: Fri, 16 Nov 2018 12:14:31 +0100
-Subject: [PATCH 2/4] vivid: use per-queue mutexes instead of one global mutex.
+This adds video nodes to sdm845 based on the examples
+in the bindings.
 
-This avoids having to unlock the queue lock in stop_streaming.
-
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
-Reported-by: syzbot+736c3aae4af7b50d9683@syzkaller.appspotmail.com
+Signed-off-by: Malathi Gottam <mgottam@codeaurora.org>
 ---
-Changes since v2:
-- add mutex_destroy()
----
- drivers/media/platform/vivid/vivid-core.c     | 26 +++++++++++++++----
- drivers/media/platform/vivid/vivid-core.h     |  5 ++++
- .../media/platform/vivid/vivid-kthread-cap.c  |  2 --
- .../media/platform/vivid/vivid-kthread-out.c  |  2 --
- drivers/media/platform/vivid/vivid-sdr-cap.c  |  2 --
- 5 files changed, 26 insertions(+), 11 deletions(-)
+ arch/arm64/boot/dts/qcom/sdm845.dtsi | 34 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 34 insertions(+)
 
-diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
-index 626e2b24a403..9a548eea75cd 100644
---- a/drivers/media/platform/vivid/vivid-core.c
-+++ b/drivers/media/platform/vivid/vivid-core.c
-@@ -624,6 +624,17 @@ static void vivid_dev_release(struct v4l2_device *v4l2_dev)
- 	vfree(dev->bitmap_out);
- 	tpg_free(&dev->tpg);
- 	kfree(dev->query_dv_timings_qmenu);
-+	if (dev->has_vid_cap)
-+		mutex_destroy(&dev->vb_vid_cap_q_lock);
-+	if (dev->has_vid_out)
-+		mutex_destroy(&dev->vb_vid_out_q_lock);
-+	if (dev->has_vbi_cap)
-+		mutex_destroy(&dev->vb_vbi_cap_q_lock);
-+	if (dev->has_vbi_out)
-+		mutex_destroy(&dev->vb_vbi_out_q_lock);
-+	if (dev->has_sdr_cap)
-+		mutex_destroy(&dev->vb_sdr_cap_q_lock);
-+	mutex_destroy(&dev->mutex);
- 	kfree(dev);
- }
-
-@@ -1075,7 +1086,8 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		q->mem_ops = vivid_mem_ops[allocator];
- 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 		q->min_buffers_needed = 2;
--		q->lock = &dev->mutex;
-+		mutex_init(&dev->vb_vid_cap_q_lock);
-+		q->lock = &dev->vb_vid_cap_q_lock;
- 		q->dev = dev->v4l2_dev.dev;
- 		q->supports_requests = true;
-
-@@ -1096,7 +1108,8 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		q->mem_ops = vivid_mem_ops[allocator];
- 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 		q->min_buffers_needed = 2;
--		q->lock = &dev->mutex;
-+		mutex_init(&dev->vb_vid_out_q_lock);
-+		q->lock = &dev->vb_vid_out_q_lock;
- 		q->dev = dev->v4l2_dev.dev;
- 		q->supports_requests = true;
-
-@@ -1117,7 +1130,8 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		q->mem_ops = vivid_mem_ops[allocator];
- 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 		q->min_buffers_needed = 2;
--		q->lock = &dev->mutex;
-+		mutex_init(&dev->vb_vbi_cap_q_lock);
-+		q->lock = &dev->vb_vbi_cap_q_lock;
- 		q->dev = dev->v4l2_dev.dev;
- 		q->supports_requests = true;
-
-@@ -1138,7 +1152,8 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		q->mem_ops = vivid_mem_ops[allocator];
- 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 		q->min_buffers_needed = 2;
--		q->lock = &dev->mutex;
-+		mutex_init(&dev->vb_vbi_out_q_lock);
-+		q->lock = &dev->vb_vbi_out_q_lock;
- 		q->dev = dev->v4l2_dev.dev;
- 		q->supports_requests = true;
-
-@@ -1158,7 +1173,8 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		q->mem_ops = vivid_mem_ops[allocator];
- 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 		q->min_buffers_needed = 8;
--		q->lock = &dev->mutex;
-+		mutex_init(&dev->vb_sdr_cap_q_lock);
-+		q->lock = &dev->vb_sdr_cap_q_lock;
- 		q->dev = dev->v4l2_dev.dev;
- 		q->supports_requests = true;
-
-diff --git a/drivers/media/platform/vivid/vivid-core.h b/drivers/media/platform/vivid/vivid-core.h
-index 1891254c8f0b..337ccb563f9b 100644
---- a/drivers/media/platform/vivid/vivid-core.h
-+++ b/drivers/media/platform/vivid/vivid-core.h
-@@ -385,8 +385,10 @@ struct vivid_dev {
- 	struct v4l2_rect		compose_cap;
- 	struct v4l2_rect		crop_bounds_cap;
- 	struct vb2_queue		vb_vid_cap_q;
-+	struct mutex			vb_vid_cap_q_lock;
- 	struct list_head		vid_cap_active;
- 	struct vb2_queue		vb_vbi_cap_q;
-+	struct mutex			vb_vbi_cap_q_lock;
- 	struct list_head		vbi_cap_active;
-
- 	/* thread for generating video capture stream */
-@@ -413,8 +415,10 @@ struct vivid_dev {
- 	struct v4l2_rect		compose_out;
- 	struct v4l2_rect		compose_bounds_out;
- 	struct vb2_queue		vb_vid_out_q;
-+	struct mutex			vb_vid_out_q_lock;
- 	struct list_head		vid_out_active;
- 	struct vb2_queue		vb_vbi_out_q;
-+	struct mutex			vb_vbi_out_q_lock;
- 	struct list_head		vbi_out_active;
-
- 	/* video loop precalculated rectangles */
-@@ -459,6 +463,7 @@ struct vivid_dev {
-
- 	/* SDR capture */
- 	struct vb2_queue		vb_sdr_cap_q;
-+	struct mutex			vb_sdr_cap_q_lock;
- 	struct list_head		sdr_cap_active;
- 	u32				sdr_pixelformat; /* v4l2 format id */
- 	unsigned			sdr_buffersize;
-diff --git a/drivers/media/platform/vivid/vivid-kthread-cap.c b/drivers/media/platform/vivid/vivid-kthread-cap.c
-index eebfff2126be..d8bb59e9bcc7 100644
---- a/drivers/media/platform/vivid/vivid-kthread-cap.c
-+++ b/drivers/media/platform/vivid/vivid-kthread-cap.c
-@@ -927,8 +927,6 @@ void vivid_stop_generating_vid_cap(struct vivid_dev *dev, bool *pstreaming)
-
- 	/* shutdown control thread */
- 	vivid_grab_controls(dev, false);
--	mutex_unlock(&dev->mutex);
- 	kthread_stop(dev->kthread_vid_cap);
- 	dev->kthread_vid_cap = NULL;
--	mutex_lock(&dev->mutex);
- }
-diff --git a/drivers/media/platform/vivid/vivid-kthread-out.c b/drivers/media/platform/vivid/vivid-kthread-out.c
-index 5a14810eeb69..8b864cb0ed52 100644
---- a/drivers/media/platform/vivid/vivid-kthread-out.c
-+++ b/drivers/media/platform/vivid/vivid-kthread-out.c
-@@ -298,8 +298,6 @@ void vivid_stop_generating_vid_out(struct vivid_dev *dev, bool *pstreaming)
-
- 	/* shutdown control thread */
- 	vivid_grab_controls(dev, false);
--	mutex_unlock(&dev->mutex);
- 	kthread_stop(dev->kthread_vid_out);
- 	dev->kthread_vid_out = NULL;
--	mutex_lock(&dev->mutex);
- }
-diff --git a/drivers/media/platform/vivid/vivid-sdr-cap.c b/drivers/media/platform/vivid/vivid-sdr-cap.c
-index dcdc80e272c2..5dfb598af742 100644
---- a/drivers/media/platform/vivid/vivid-sdr-cap.c
-+++ b/drivers/media/platform/vivid/vivid-sdr-cap.c
-@@ -305,10 +305,8 @@ static void sdr_cap_stop_streaming(struct vb2_queue *vq)
- 	}
-
- 	/* shutdown control thread */
--	mutex_unlock(&dev->mutex);
- 	kthread_stop(dev->kthread_sdr_cap);
- 	dev->kthread_sdr_cap = NULL;
--	mutex_lock(&dev->mutex);
- }
-
- static void sdr_cap_buf_request_complete(struct vb2_buffer *vb)
+diff --git a/arch/arm64/boot/dts/qcom/sdm845.dtsi b/arch/arm64/boot/dts/qcom/sdm845.dtsi
+index 0c9a2aa..d82487d 100644
+--- a/arch/arm64/boot/dts/qcom/sdm845.dtsi
++++ b/arch/arm64/boot/dts/qcom/sdm845.dtsi
+@@ -84,6 +84,10 @@
+ 			reg = <0 0x86200000 0 0x2d00000>;
+ 			no-map;
+ 		};
++		venus_region: venus@95800000 {
++			reg = <0x0 0x95800000 0x0 0x500000>;
++			no-map;
++		};
+ 	};
+ 
+ 	cpus {
+@@ -1103,5 +1107,35 @@
+ 				status = "disabled";
+ 			};
+ 		};
++
++		video-codec@aa00000 {
++			compatible = "qcom,sdm845-venus";
++			reg = <0x0aa00000 0xff000>;
++			interrupts = <GIC_SPI 174 IRQ_TYPE_LEVEL_HIGH>;
++			power-domains = <&videocc VENUS_GDSC>;
++			clocks = <&videocc VIDEO_CC_VENUS_CTL_CORE_CLK>,
++				 <&videocc VIDEO_CC_VENUS_AHB_CLK>,
++				 <&videocc VIDEO_CC_VENUS_CTL_AXI_CLK>;
++			clock-names = "core", "iface", "bus";
++			iommus = <&apps_smmu 0x10a0 0x8>,
++				 <&apps_smmu 0x10b0 0x0>;
++			memory-region = <&venus_region>;
++
++			video-core0 {
++				compatible = "venus-decoder";
++				clocks = <&videocc VIDEO_CC_VCODEC0_CORE_CLK>,
++					 <&videocc VIDEO_CC_VCODEC0_AXI_CLK>;
++				clock-names = "core", "bus";
++				power-domains = <&videocc VCODEC0_GDSC>;
++			};
++
++			video-core1 {
++				compatible = "venus-encoder";
++				clocks = <&videocc VIDEO_CC_VCODEC1_CORE_CLK>,
++					 <&videocc VIDEO_CC_VCODEC1_AXI_CLK>;
++				clock-names = "core", "bus";
++				power-domains = <&videocc VCODEC1_GDSC>;
++			};
++		};
+ 	};
+ };
 -- 
-2.19.1
+1.9.1
