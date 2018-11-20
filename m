@@ -1,8 +1,8 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from shell.v3.sk ([90.176.6.54]:50097 "EHLO shell.v3.sk"
+Received: from shell.v3.sk ([90.176.6.54]:50085 "EHLO shell.v3.sk"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726620AbeKTUcV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 20 Nov 2018 15:32:21 -0500
+        id S1725950AbeKTUcT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 20 Nov 2018 15:32:19 -0500
 From: Lubomir Rintel <lkundrak@v3.sk>
 To: Mauro Carvalho Chehab <mchehab@kernel.org>,
         Jonathan Corbet <corbet@lwn.net>, linux-media@vger.kernel.org
@@ -13,9 +13,9 @@ Cc: Rob Herring <robh+dt@kernel.org>,
         James Cameron <quozl@laptop.org>, Pavel Machek <pavel@ucw.cz>,
         Libin Yang <lbyang@marvell.com>,
         Albert Wang <twang13@marvell.com>
-Subject: [PATCH v3 03/14] media: ov7670: hook s_power onto v4l2 core
-Date: Tue, 20 Nov 2018 11:03:08 +0100
-Message-Id: <20181120100318.367987-4-lkundrak@v3.sk>
+Subject: [PATCH v3 04/14] media: ov7670: control clock along with power
+Date: Tue, 20 Nov 2018 11:03:09 +0100
+Message-Id: <20181120100318.367987-5-lkundrak@v3.sk>
 In-Reply-To: <20181120100318.367987-1-lkundrak@v3.sk>
 References: <20181120100318.367987-1-lkundrak@v3.sk>
 MIME-Version: 1.0
@@ -23,137 +23,114 @@ Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The commit 71862f63f351 ("media: ov7670: Add the ov7670_s_power function"=
-)
-added a power control routing. However, it was not good enough to use as
-a s_power() callback: it merely flipped on the power GPIOs without
-restoring the register settings.
+This provides more power saving when the sensor is off.
 
-Fix this now and register an actual power callback.
+While at that, do the delay on power/clock enable even if the sensor driv=
+er
+itself doesn't control the GPIOs. This is required for the OLPC XO-1
+platform, that lacks the proper power/reset properties in its DT, but
+needs the delay after the sensor is clocked up.
 
 Signed-off-by: Lubomir Rintel <lkundrak@v3.sk>
-
 ---
-Changes since v2:
-- Restore the controls, format and frame rate on power on
-
- drivers/media/i2c/ov7670.c | 50 +++++++++++++++++++++++++++++++++-----
- 1 file changed, 44 insertions(+), 6 deletions(-)
+ drivers/media/i2c/ov7670.c | 30 ++++++++++++++----------------
+ 1 file changed, 14 insertions(+), 16 deletions(-)
 
 diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
-index ead0c360df33..cbaab60aaaac 100644
+index cbaab60aaaac..d7635fb2d713 100644
 --- a/drivers/media/i2c/ov7670.c
 +++ b/drivers/media/i2c/ov7670.c
-@@ -242,6 +242,7 @@ struct ov7670_info {
- 	struct ov7670_format_struct *fmt;  /* Current format */
- 	struct ov7670_win_size *wsize;
- 	struct clk *clk;
-+	int on;
- 	struct gpio_desc *resetb_gpio;
- 	struct gpio_desc *pwdn_gpio;
- 	unsigned int mbus_config;	/* Media bus configuration flags */
-@@ -1615,19 +1616,54 @@ static int ov7670_s_register(struct v4l2_subdev *=
-sd, const struct v4l2_dbg_regis
- }
- #endif
+@@ -1623,14 +1623,17 @@ static void ov7670_power_on(struct v4l2_subdev *s=
+d)
+ 	if (info->on)
+ 		return;
 =20
--static int ov7670_s_power(struct v4l2_subdev *sd, int on)
-+static void ov7670_power_on(struct v4l2_subdev *sd)
- {
- 	struct ov7670_info *info =3D to_state(sd);
-=20
-+	if (info->on)
-+		return;
++	clk_prepare_enable(info->clk);
 +
  	if (info->pwdn_gpio)
--		gpiod_set_value(info->pwdn_gpio, !on);
--	if (on && info->resetb_gpio) {
-+		gpiod_set_value(info->pwdn_gpio, 0);
-+	if (info->resetb_gpio) {
+ 		gpiod_set_value(info->pwdn_gpio, 0);
+ 	if (info->resetb_gpio) {
  		gpiod_set_value(info->resetb_gpio, 1);
  		usleep_range(500, 1000);
  		gpiod_set_value(info->resetb_gpio, 0);
- 		usleep_range(3000, 5000);
+-		usleep_range(3000, 5000);
  	}
++	if (info->pwdn_gpio || info->resetb_gpio || info->clk)
++		usleep_range(3000, 5000);
 =20
-+	info->on =3D true;
-+}
-+
-+static void ov7670_power_off(struct v4l2_subdev *sd)
-+{
-+	struct ov7670_info *info =3D to_state(sd);
-+
-+	if (!info->on)
-+		return;
-+
-+	if (info->pwdn_gpio)
-+		gpiod_set_value(info->pwdn_gpio, 1);
-+
-+	info->on =3D false;
-+}
-+
-+static int ov7670_s_power(struct v4l2_subdev *sd, int on)
-+{
-+	struct ov7670_info *info =3D to_state(sd);
-+
-+	if (info->on =3D=3D on)
-+		return 0;
-+
-+	if (on) {
-+		ov7670_power_on (sd);
-+		ov7670_apply_fmt(sd);
-+		ov7675_apply_framerate(sd);
-+		v4l2_ctrl_handler_setup(&info->hdl);
-+	} else {
-+		ov7670_power_off (sd);
-+	}
-+
- 	return 0;
+ 	info->on =3D true;
  }
+@@ -1642,6 +1645,8 @@ static void ov7670_power_off(struct v4l2_subdev *sd=
+)
+ 	if (!info->on)
+ 		return;
 =20
-@@ -1660,6 +1696,7 @@ static int ov7670_open(struct v4l2_subdev *sd, stru=
-ct v4l2_subdev_fh *fh)
- static const struct v4l2_subdev_core_ops ov7670_core_ops =3D {
- 	.reset =3D ov7670_reset,
- 	.init =3D ov7670_init,
-+	.s_power =3D ov7670_s_power,
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- 	.g_register =3D ov7670_g_register,
- 	.s_register =3D ov7670_s_register,
-@@ -1825,6 +1862,7 @@ static int ov7670_probe(struct i2c_client *client,
- 		else
++	clk_disable_unprepare(info->clk);
++
+ 	if (info->pwdn_gpio)
+ 		gpiod_set_value(info->pwdn_gpio, 1);
+=20
+@@ -1863,24 +1868,20 @@ static int ov7670_probe(struct i2c_client *client=
+,
  			return ret;
  	}
-+
- 	if (info->clk) {
- 		ret =3D clk_prepare_enable(info->clk);
- 		if (ret)
-@@ -1841,7 +1879,7 @@ static int ov7670_probe(struct i2c_client *client,
- 	if (ret)
- 		goto clk_disable;
 =20
--	ov7670_s_power(sd, 1);
+-	if (info->clk) {
+-		ret =3D clk_prepare_enable(info->clk);
+-		if (ret)
+-			return ret;
++	ret =3D ov7670_init_gpio(client, info);
++	if (ret)
++		return ret;
+=20
 +	ov7670_power_on(sd);
++
++	if (info->clk) {
+ 		info->clock_speed =3D clk_get_rate(info->clk) / 1000000;
+ 		if (info->clock_speed < 10 || info->clock_speed > 48) {
+ 			ret =3D -EINVAL;
+-			goto clk_disable;
++			goto power_off;
+ 		}
+ 	}
 =20
+-	ret =3D ov7670_init_gpio(client, info);
+-	if (ret)
+-		goto clk_disable;
+-
+-	ov7670_power_on(sd);
+-
  	/* Make sure it's an ov7670 */
  	ret =3D ov7670_detect(sd);
-@@ -1929,7 +1967,7 @@ static int ov7670_probe(struct i2c_client *client,
- hdl_free:
- 	v4l2_ctrl_handler_free(&info->hdl);
- power_off:
--	ov7670_s_power(sd, 0);
-+	ov7670_power_off(sd);
- clk_disable:
- 	clk_disable_unprepare(info->clk);
- 	return ret;
-@@ -1945,7 +1983,7 @@ static int ov7670_remove(struct i2c_client *client)
- 	v4l2_ctrl_handler_free(&info->hdl);
- 	clk_disable_unprepare(info->clk);
- 	media_entity_cleanup(&info->sd.entity);
--	ov7670_s_power(sd, 0);
+ 	if (ret) {
+@@ -1960,6 +1961,7 @@ static int ov7670_probe(struct i2c_client *client,
+ 	if (ret < 0)
+ 		goto entity_cleanup;
+=20
 +	ov7670_power_off(sd);
  	return 0;
+=20
+ entity_cleanup:
+@@ -1968,12 +1970,9 @@ static int ov7670_probe(struct i2c_client *client,
+ 	v4l2_ctrl_handler_free(&info->hdl);
+ power_off:
+ 	ov7670_power_off(sd);
+-clk_disable:
+-	clk_disable_unprepare(info->clk);
+ 	return ret;
  }
 =20
+-
+ static int ov7670_remove(struct i2c_client *client)
+ {
+ 	struct v4l2_subdev *sd =3D i2c_get_clientdata(client);
+@@ -1981,7 +1980,6 @@ static int ov7670_remove(struct i2c_client *client)
+=20
+ 	v4l2_async_unregister_subdev(sd);
+ 	v4l2_ctrl_handler_free(&info->hdl);
+-	clk_disable_unprepare(info->clk);
+ 	media_entity_cleanup(&info->sd.entity);
+ 	ov7670_power_off(sd);
+ 	return 0;
 --=20
 2.19.1
