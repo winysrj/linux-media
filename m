@@ -1,40 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:43412 "EHLO mga04.intel.com"
+Received: from mail.kernel.org ([198.145.29.99]:58278 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731067AbeKVN3t (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Nov 2018 08:29:49 -0500
-From: "Zhang, Ning A" <ning.a.zhang@intel.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "Zhang, Ning A" <ning.a.zhang@intel.com>
-Subject: is it possible to use single IOCTL to setup media pipeline?
-Date: Thu, 22 Nov 2018 02:51:48 +0000
-Message-ID: <1542855107.1288.32.camel@intel.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <8109FB97C92CEE48A1522AFB4B7F1345@intel.com>
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+        id S1725904AbeKUCy7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 20 Nov 2018 21:54:59 -0500
+Subject: Re: [GIT PULL for v4.20-rc4] media fixes
+From: pr-tracker-bot@kernel.org
+In-Reply-To: <20181120090344.6ba64433@coco.lan>
+References: <20181120090344.6ba64433@coco.lan>
+Message-Id: <20181120162502.9629.25421.pr-tracker-bot@pdx-korg-gitolite-1.ci.codeaurora.org>
+Date: Tue, 20 Nov 2018 16:25:02 +0000
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGVsbG8gZXZlcnlvbmUNCg0Kd2hlbiB3ZSBuZWVkIHRvIHNldHVwIG1lZGlhIHBpcGVsaW5lLCBl
-ZywgZm9yIGNhbWVyYSBjYXB0dXJlLCBtZWRpYS1jdGwgDQpuZWVkcyB0byBiZSBjYWxsZWQgbXVs
-dGlwbGUgdGltZSB0byBzZXR1cCBtZWRpYSBsaW5rIGFuZCBzdWJkZXYNCmZvcm1hdHMsIG9yIHNp
-bWlsYXIgY29kZSBpbiBhIHNpbmdsZSBhcHBsaWNhdGlvbi4gdGhpcyB3aWxsIHVzZQ0KbXVsdGlw
-bGUgSU9DVExzIG9uICIvZGV2L21lZGlhWCIgYW5kICIvZGV2L3Y0bDItc3ViZGV2WSIuDQoNCnRv
-IHNldHVwIG1lZGlhIHBpcGVsaW5lIGluIHVzZXJzcGFjZSByZXF1aXJlcyB0byBmdWxseSB1bmRl
-cnN0YW5kaW5nDQp0aGUgdG9wb2xvZ3kgb2YgdGhlIG1lZGlhIHN0YWNrLiBidXQgdGhlIGZhY3Qg
-aXMgb25seSBtZWRpYSBkcml2ZXINCmRldmVsb3BlciBjb3VsZCBrbm93IGhvdyB0byBzZXR1cCBt
-ZWRpYSBwaXBlbGluZS4gZWFjaCB0aW1lIGRyaXZlcg0KdXBkYXRlcywgdGhpcyB3b3VsZCBicmVh
-ayB1c2Vyc3BhY2UgYXBwbGljYXRpb24gaWYgYXBwbGljYXRpb24NCmVuZ2luZWVycyBkb24ndCBr
-bm93IHRoaXMgY2hhbmdlLiBJbiB0aGlzIGNhc2UsIGlmIGEgSU9DVEwgaXMgZGVzaWduZWQNCnRv
-IHNldHVwIG1lZGlhIHBpcGVsaW5lLCBubyBuZWVkIHRvIHVwZGF0ZSBhcHBsaWNhdGlvbnMsIGFm
-dGVyIGRyaXZlcg0KaXMgdXBkYXRlZC4NCg0KdGhpcyB3aWxsIG5vdCBvbmx5IGJlbmVmaXQgZm9y
-IGRlc2lnbiBhIHNpbmdsZSBJT0NUTCwgdGhpcyBhbHNvIGhlbHBzDQp0byBoaWRlIHRoZSBkZXRh
-aWwgb2YgbWVkaWEgcGlwZWxpbmUsIGJ5IGxvYWQgYSBiaW5hcnkgYmxvYiB3aGljaCBob2xkcw0K
-aW5mb3JtYXRpb24gYWJvdXQgaG93IHRvIHNldHVwIHBpcGVsaW5lLCBvciBoaWRlIGl0IGluIGJv
-b3Rsb2FkZXIvQUNQSQ0KdGFibGVzL2RldmljZSB0cmVlLCBldGMuDQoNCmFub3RoZXIgYmVuZWZp
-dCBpcyBzYXZlIHRpbWUgZm9yIHNldHVwIG1lZGlhIHBpcGVsaW5lLCBpZiB0aGVyZSBpcyBhDQpQ
-S0kgbGlrZSAidGltZSBmb3Igb3BlbiBjYW1lcmEiLiBhcyBteSB0ZXN0LCB0aGlzIHdpbGwgc2F2
-ZXMgaHVuZHJlZHMNCm9mIG1pbGxpc2Vjb25kcy4NCg0KaXMgdGhpcyBhY2NlcHRhYmxlPw0KDQpC
-Ui4NCk5pbmcu
+The pull request you sent on Tue, 20 Nov 2018 09:03:44 -0200:
+
+> git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/v4.20-3
+
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/06e68fed32826b44aa9ffcf282c14d3c58918a70
+
+Thank you!
+
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.wiki.kernel.org/userdoc/prtracker
