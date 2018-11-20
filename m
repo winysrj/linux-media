@@ -1,405 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:42334 "EHLO
-        casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726479AbeKTTqY (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:43846 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725846AbeKTUJ5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 20 Nov 2018 14:46:24 -0500
-Date: Tue, 20 Nov 2018 07:18:10 -0200
-From: Mauro Carvalho Chehab <mchehab@kernel.org>
-To: stakanov <stakanov@eclipso.eu>
-Cc: linux-media@vger.kernel.org, Takashi Iwai <tiwai@suse.de>,
-        linux-kernel@vger.kernel.org
-Subject: Re: DVB-S PCI card regression on 4.19 / 4.20
-Message-ID: <20181120071810.7c8583b3@coco.lan>
-In-Reply-To: <3267610.1jAA2Txdp3@roadrunner.suse>
-References: <s5hbm6l5cdi.wl-tiwai@suse.de>
-        <1837109.xExTbI5ikD@roadrunner.suse>
-        <20181119215841.0a3abd37@coco.lan>
-        <3267610.1jAA2Txdp3@roadrunner.suse>
+        Tue, 20 Nov 2018 15:09:57 -0500
+Subject: Re: [PATCH] videodev2.h: add
+ V4L2_BUF_CAP_SUPPORTS_PREPARE_BUF/CREATE_BUFS
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Ezequiel Garcia <ezequiel@collabora.com>,
+        Nicolas Dufresne <nicolas@ndufresne.ca>,
+        Tomasz Figa <tfiga@chromium.org>
+References: <68a6a7d3-cf0b-f631-f113-e388ebb7f5a4@xs4all.nl>
+ <20181120092724.yfzxfjxom7ygln3p@paasikivi.fi.intel.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <8711051e-df50-181f-d5e3-677d63d63465@xs4all.nl>
+Date: Tue, 20 Nov 2018 10:41:42 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <20181120092724.yfzxfjxom7ygln3p@paasikivi.fi.intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 20 Nov 2018 09:07:57 +0100
-stakanov <stakanov@eclipso.eu> escreveu:
+On 11/20/2018 10:27 AM, Sakari Ailus wrote:
+> Hi Hans,
+> 
+> On Tue, Nov 20, 2018 at 09:58:43AM +0100, Hans Verkuil wrote:
+>> Add new buffer capability flags to indicate if the VIDIOC_PREPARE_BUF or
+>> VIDIOC_CREATE_BUFS ioctls are supported.
+> 
+> Are there practical benefits from the change for the user space?
 
-> In data marted=C3=AC 20 novembre 2018 00:58:41 CET, Mauro Carvalho Chehab=
- ha=20
-> scritto:
-> > Em Tue, 20 Nov 2018 00:19:54 +0100
-> >=20
-> > stakanov <stakanov@eclipso.eu> escreveu: =20
-> > > In data marted=C3=AC 20 novembre 2018 00:08:45 CET, Mauro Carvalho Ch=
-ehab ha
-> > >=20
-> > > scritto: =20
-> > > >  uname -a
-> > > >   =20
-> > > > > Linux silversurfer 4.20.0-rc3-1.g7e16618-default #1 SMP PREEMPT M=
-on
-> > > > > Nov 19
-> > > > > 18:54:15 UTC 2018 (7e16618) x86_64 x86_64 x86_64 GNU/Linux =20
-> > > =20
-> > >  uname -a
-> > >   =20
-> > > > Linux silversurfer 4.20.0-rc3-1.g7e16618-default #1 SMP PREEMPT Mon=
- Nov
-> > > > 19
-> > > > 18:54:15 UTC 2018 (7e16618) x86_64 x86_64 x86_64 GNU/Linux =20
-> > >=20
-> > > from https://download.opensuse.org/repositories/home:/tiwai:/bsc11163=
-74/
-> > > standard/x86_64/
-> > >=20
-> > > So I booted this one, should be the right one.
-> > > sudo dmesg | grep -i b2c2   should give these additional messages?
-> > >=20
-> > > If Takashi is still around, he could confirm. =20
-> >=20
-> > Well, if the patch got applied, you should  now be getting messages sim=
-ilar
-> > (but not identical) to:
-> >=20
-> > 	dvb_frontend_get_frequency_limits: frequencies: tuner: 9150000...21500=
-00,
-> > frontend: 9150000...2150000 dvb_pll_attach: delsys: 5, frequency range:
-> > 9150000..2150000
-> >  =20
-> > > _________________________________________________________________
-> > > ________________________________________________________
-> > > Ihre E-Mail-Postf=C3=A4cher sicher & zentral an einem Ort. Jetzt wech=
-seln und
-> > > alte E-Mail-Adresse mitnehmen! https://www.eclipso.de =20
-> > Thanks,
-> > Mauro =20
->=20
->=20
-> My bad.=20
-> With just dmesg:
->=20
-> [   89.399887] dvb_frontend_get_frequency_limits: frequencies: tuner:=20
-> 950000...2150000, frontend: 950000000...2150000000
-> [   95.020149] dvb_frontend_get_frequency_limits: frequencies: tuner:=20
-> 950000...2150000, frontend: 950000000...2150000000
-> [   95.152049] dvb_frontend_get_frequency_limits: frequencies: tuner:=20
-> 950000...2150000, frontend: 950000000...2150000000
-> [   95.152058] b2c2_flexcop_pci 0000:06:06.0: DVB: adapter 0 frontend 0=20
-> frequency 1880000 out of range (950000..2150)
-> [   98.356539] dvb_frontend_get_frequency_limits: frequencies: tuner:=20
-> 950000...2150000, frontend: 950000000...2150000000
-> [   98.480372] dvb_frontend_get_frequency_limits: frequencies: tuner:=20
-> 950000...2150000, frontend: 950000000...2150000000
-> [   98.480381] b2c2_flexcop_pci 0000:06:06.0: DVB: adapter 0 frontend 0=20
-> frequency 1587500 out of range (950000..2150)
-> [  100.016823] dvb_frontend_get_frequency_limits: frequencies: tuner:=20
-> 950000...2150000, frontend: 950000000...2150000000
-> [  100.140619] dvb_frontend_get_frequency_limits: frequencies: tuner:=20
-> 950000...2150000, frontend: 950000000...2150000000
-> [  100.140629] b2c2_flexcop_pci 0000:06:06.0: DVB: adapter 0 frontend 0=20
-> frequency 1353500 out of range (950000..2150)
-> [  105.361166] dvb_frontend_get_frequency_limits: frequencies: tuner:=20
-> 950000...2150000, frontend: 950000000...2150000000
-> [  105.492972] dvb_frontend_get_frequency_limits: frequencies: tuner:=20
-> 950000...2150000, frontend: 950000000...2150000000
-> [  105.492977] b2c2_flexcop_pci 0000:06:06.0: DVB: adapter 0 frontend 0=20
-> frequency 1944750 out of range (950000..2150)
->=20
->=20
-> Which is, I guess the info you need?
+The more important ioctl to know about is PREPARE_BUF. I noticed this when working
+on v4l2-compliance: the only way to know for an application if PREPARE_BUF exists
+is by trying it, but then you already have prepared a buffer. That's not what you
+want in the application, you need a way to know up front if prepare_buf is present
+or not without having to actually execute it.
 
-Yes, partially. Clearly, the problem is coming from the tuner, with is
-not reporting the frequency in Hz, but I was hoping to see another
-message from the tuner driver, in order for me to be sure about what's
-happening there.
+CREATE_BUFS was added because not all drivers support it. It can be dropped since
+it is possible to test for the existence of CREATE_BUFS without actually allocating
+anything, but if I'm adding V4L2_BUF_CAP_SUPPORTS_PREPARE_BUF anyway, then it is
+trivial to add V4L2_BUF_CAP_SUPPORTS_CREATE_BUFS as well to avoid an additional
+ioctl call.
 
-Didn't you get any message that starts with "dvb_pll_attach"?
+Hmm, I should have explained this in the commit log.
 
-The thing with Flexcop is that there are several variations, each one
-with a different tuner driver.
+Regards,
 
-Anyway, I guess I found the trouble: it is trying to use the DVB
-cache to check the delivery system too early (at attach time).
+	Hans
 
-I suspect that the enclosed patch will fix the issue. Could you please
-test it?
-
-Thanks!
-Mauro
-
-
-diff --git a/drivers/media/dvb-frontends/dvb-pll.c b/drivers/media/dvb-fron=
-tends/dvb-pll.c
-index 6d4b2eec67b4..390ecc915096 100644
---- a/drivers/media/dvb-frontends/dvb-pll.c
-+++ b/drivers/media/dvb-frontends/dvb-pll.c
-@@ -80,8 +80,8 @@ struct dvb_pll_desc {
-=20
- static const struct dvb_pll_desc dvb_pll_thomson_dtt7579 =3D {
- 	.name  =3D "Thomson dtt7579",
--	.min   =3D 177000000,
--	.max   =3D 858000000,
-+	.min   =3D 177 * MHz,
-+	.max   =3D 858 * MHz,
- 	.iffreq=3D 36166667,
- 	.sleepdata =3D (u8[]){ 2, 0xb4, 0x03 },
- 	.count =3D 4,
-@@ -102,8 +102,8 @@ static void thomson_dtt759x_bw(struct dvb_frontend *fe,=
- u8 *buf)
-=20
- static const struct dvb_pll_desc dvb_pll_thomson_dtt759x =3D {
- 	.name  =3D "Thomson dtt759x",
--	.min   =3D 177000000,
--	.max   =3D 896000000,
-+	.min   =3D 177 * MHz,
-+	.max   =3D 896 * MHz,
- 	.set   =3D thomson_dtt759x_bw,
- 	.iffreq=3D 36166667,
- 	.sleepdata =3D (u8[]){ 2, 0x84, 0x03 },
-@@ -126,8 +126,8 @@ static void thomson_dtt7520x_bw(struct dvb_frontend *fe=
-, u8 *buf)
-=20
- static const struct dvb_pll_desc dvb_pll_thomson_dtt7520x =3D {
- 	.name  =3D "Thomson dtt7520x",
--	.min   =3D 185000000,
--	.max   =3D 900000000,
-+	.min   =3D 185 * MHz,
-+	.max   =3D 900 * MHz,
- 	.set   =3D thomson_dtt7520x_bw,
- 	.iffreq =3D 36166667,
- 	.count =3D 7,
-@@ -144,8 +144,8 @@ static const struct dvb_pll_desc dvb_pll_thomson_dtt752=
-0x =3D {
-=20
- static const struct dvb_pll_desc dvb_pll_lg_z201 =3D {
- 	.name  =3D "LG z201",
--	.min   =3D 174000000,
--	.max   =3D 862000000,
-+	.min   =3D 174 * MHz,
-+	.max   =3D 862 * MHz,
- 	.iffreq=3D 36166667,
- 	.sleepdata =3D (u8[]){ 2, 0xbc, 0x03 },
- 	.count =3D 5,
-@@ -160,8 +160,8 @@ static const struct dvb_pll_desc dvb_pll_lg_z201 =3D {
-=20
- static const struct dvb_pll_desc dvb_pll_unknown_1 =3D {
- 	.name  =3D "unknown 1", /* used by dntv live dvb-t */
--	.min   =3D 174000000,
--	.max   =3D 862000000,
-+	.min   =3D 174 * MHz,
-+	.max   =3D 862 * MHz,
- 	.iffreq=3D 36166667,
- 	.count =3D 9,
- 	.entries =3D {
-@@ -182,8 +182,8 @@ static const struct dvb_pll_desc dvb_pll_unknown_1 =3D {
-  */
- static const struct dvb_pll_desc dvb_pll_tua6010xs =3D {
- 	.name  =3D "Infineon TUA6010XS",
--	.min   =3D  44250000,
--	.max   =3D 858000000,
-+	.min   =3D 44250 * kHz,
-+	.max   =3D 858 * MHz,
- 	.iffreq=3D 36125000,
- 	.count =3D 3,
- 	.entries =3D {
-@@ -196,8 +196,8 @@ static const struct dvb_pll_desc dvb_pll_tua6010xs =3D {
- /* Panasonic env57h1xd5 (some Philips PLL ?) */
- static const struct dvb_pll_desc dvb_pll_env57h1xd5 =3D {
- 	.name  =3D "Panasonic ENV57H1XD5",
--	.min   =3D  44250000,
--	.max   =3D 858000000,
-+	.min   =3D 44250 * kHz,
-+	.max   =3D 858 * MHz,
- 	.iffreq=3D 36125000,
- 	.count =3D 4,
- 	.entries =3D {
-@@ -220,8 +220,8 @@ static void tda665x_bw(struct dvb_frontend *fe, u8 *buf)
-=20
- static const struct dvb_pll_desc dvb_pll_tda665x =3D {
- 	.name  =3D "Philips TDA6650/TDA6651",
--	.min   =3D  44250000,
--	.max   =3D 858000000,
-+	.min   =3D 44250 * kHz,
-+	.max   =3D 858 * MHz,
- 	.set   =3D tda665x_bw,
- 	.iffreq=3D 36166667,
- 	.initdata =3D (u8[]){ 4, 0x0b, 0xf5, 0x85, 0xab },
-@@ -254,8 +254,8 @@ static void tua6034_bw(struct dvb_frontend *fe, u8 *buf)
-=20
- static const struct dvb_pll_desc dvb_pll_tua6034 =3D {
- 	.name  =3D "Infineon TUA6034",
--	.min   =3D  44250000,
--	.max   =3D 858000000,
-+	.min   =3D 44250 * kHz,
-+	.max   =3D 858 * MHz,
- 	.iffreq=3D 36166667,
- 	.count =3D 3,
- 	.set   =3D tua6034_bw,
-@@ -278,8 +278,8 @@ static void tded4_bw(struct dvb_frontend *fe, u8 *buf)
-=20
- static const struct dvb_pll_desc dvb_pll_tded4 =3D {
- 	.name =3D "ALPS TDED4",
--	.min =3D 47000000,
--	.max =3D 863000000,
-+	.min =3D  47 * MHz,
-+	.max =3D 863 * MHz,
- 	.iffreq=3D 36166667,
- 	.set   =3D tded4_bw,
- 	.count =3D 4,
-@@ -296,8 +296,8 @@ static const struct dvb_pll_desc dvb_pll_tded4 =3D {
-  */
- static const struct dvb_pll_desc dvb_pll_tdhu2 =3D {
- 	.name =3D "ALPS TDHU2",
--	.min =3D 54000000,
--	.max =3D 864000000,
-+	.min =3D  54 * MHz,
-+	.max =3D 864 * MHz,
- 	.iffreq=3D 44000000,
- 	.count =3D 4,
- 	.entries =3D {
-@@ -313,8 +313,8 @@ static const struct dvb_pll_desc dvb_pll_tdhu2 =3D {
-  */
- static const struct dvb_pll_desc dvb_pll_samsung_tbmv =3D {
- 	.name =3D "Samsung TBMV30111IN / TBMV30712IN1",
--	.min =3D 54000000,
--	.max =3D 860000000,
-+	.min =3D  54 * MHz,
-+	.max =3D 860 * MHz,
- 	.iffreq=3D 44000000,
- 	.count =3D 6,
- 	.entries =3D {
-@@ -332,8 +332,8 @@ static const struct dvb_pll_desc dvb_pll_samsung_tbmv =
-=3D {
-  */
- static const struct dvb_pll_desc dvb_pll_philips_sd1878_tda8261 =3D {
- 	.name  =3D "Philips SD1878",
--	.min   =3D  950000,
--	.max   =3D 2150000,
-+	.min   =3D  950 * MHz,
-+	.max   =3D 2150 * MHz,
- 	.iffreq=3D 249, /* zero-IF, offset 249 is to round up */
- 	.count =3D 4,
- 	.entries =3D {
-@@ -398,8 +398,8 @@ static void opera1_bw(struct dvb_frontend *fe, u8 *buf)
-=20
- static const struct dvb_pll_desc dvb_pll_opera1 =3D {
- 	.name  =3D "Opera Tuner",
--	.min   =3D  900000,
--	.max   =3D 2250000,
-+	.min   =3D  900 * MHz,
-+	.max   =3D 2250 * MHz,
- 	.initdata =3D (u8[]){ 4, 0x08, 0xe5, 0xe1, 0x00 },
- 	.initdata2 =3D (u8[]){ 4, 0x08, 0xe5, 0xe5, 0x00 },
- 	.iffreq=3D 0,
-@@ -445,8 +445,8 @@ static void samsung_dtos403ih102a_set(struct dvb_fronte=
-nd *fe, u8 *buf)
- /* unknown pll used in Samsung DTOS403IH102A DVB-C tuner */
- static const struct dvb_pll_desc dvb_pll_samsung_dtos403ih102a =3D {
- 	.name   =3D "Samsung DTOS403IH102A",
--	.min    =3D  44250000,
--	.max    =3D 858000000,
-+	.min    =3D 44250 * kHz,
-+	.max    =3D 858 * MHz,
- 	.iffreq =3D  36125000,
- 	.count  =3D 8,
- 	.set    =3D samsung_dtos403ih102a_set,
-@@ -465,8 +465,8 @@ static const struct dvb_pll_desc dvb_pll_samsung_dtos40=
-3ih102a =3D {
- /* Samsung TDTC9251DH0 DVB-T NIM, as used on AirStar 2 */
- static const struct dvb_pll_desc dvb_pll_samsung_tdtc9251dh0 =3D {
- 	.name	=3D "Samsung TDTC9251DH0",
--	.min	=3D  48000000,
--	.max	=3D 863000000,
-+	.min	=3D  48 * MHz,
-+	.max	=3D 863 * MHz,
- 	.iffreq	=3D  36166667,
- 	.count	=3D 3,
- 	.entries =3D {
-@@ -479,8 +479,8 @@ static const struct dvb_pll_desc dvb_pll_samsung_tdtc92=
-51dh0 =3D {
- /* Samsung TBDU18132 DVB-S NIM with TSA5059 PLL, used in SkyStar2 DVB-S 2.=
-3 */
- static const struct dvb_pll_desc dvb_pll_samsung_tbdu18132 =3D {
- 	.name =3D "Samsung TBDU18132",
--	.min	=3D  950000,
--	.max	=3D 2150000, /* guesses */
-+	.min	=3D  950 * MHz,
-+	.max	=3D 2150 * MHz, /* guesses */
- 	.iffreq =3D 0,
- 	.count =3D 2,
- 	.entries =3D {
-@@ -500,8 +500,8 @@ static const struct dvb_pll_desc dvb_pll_samsung_tbdu18=
-132 =3D {
- /* Samsung TBMU24112 DVB-S NIM with SL1935 zero-IF tuner */
- static const struct dvb_pll_desc dvb_pll_samsung_tbmu24112 =3D {
- 	.name =3D "Samsung TBMU24112",
--	.min	=3D  950000,
--	.max	=3D 2150000, /* guesses */
-+	.min	=3D  950 * MHz,
-+	.max	=3D 2150 * MHz, /* guesses */
- 	.iffreq =3D 0,
- 	.count =3D 2,
- 	.entries =3D {
-@@ -521,8 +521,8 @@ static const struct dvb_pll_desc dvb_pll_samsung_tbmu24=
-112 =3D {
-  * 822 - 862   1  *  0   0   1   0   0   0   0x88 */
- static const struct dvb_pll_desc dvb_pll_alps_tdee4 =3D {
- 	.name =3D "ALPS TDEE4",
--	.min	=3D  47000000,
--	.max	=3D 862000000,
-+	.min	=3D  47 * MHz,
-+	.max	=3D 862 * MHz,
- 	.iffreq	=3D  36125000,
- 	.count =3D 4,
- 	.entries =3D {
-@@ -537,8 +537,8 @@ static const struct dvb_pll_desc dvb_pll_alps_tdee4 =3D=
- {
- /* CP cur. 50uA, AGC takeover: 103dBuV, PORT3 on */
- static const struct dvb_pll_desc dvb_pll_tua6034_friio =3D {
- 	.name   =3D "Infineon TUA6034 ISDB-T (Friio)",
--	.min    =3D  90000000,
--	.max    =3D 770000000,
-+	.min    =3D  90 * MHz,
-+	.max    =3D 770 * MHz,
- 	.iffreq =3D  57000000,
- 	.initdata =3D (u8[]){ 4, 0x9a, 0x50, 0xb2, 0x08 },
- 	.sleepdata =3D (u8[]){ 4, 0x9a, 0x70, 0xb3, 0x0b },
-@@ -553,8 +553,8 @@ static const struct dvb_pll_desc dvb_pll_tua6034_friio =
-=3D {
- /* Philips TDA6651 ISDB-T, used in Earthsoft PT1 */
- static const struct dvb_pll_desc dvb_pll_tda665x_earth_pt1 =3D {
- 	.name   =3D "Philips TDA6651 ISDB-T (EarthSoft PT1)",
--	.min    =3D  90000000,
--	.max    =3D 770000000,
-+	.min    =3D  90 * MHz,
-+	.max    =3D 770 * MHz,
- 	.iffreq =3D  57000000,
- 	.initdata =3D (u8[]){ 5, 0x0e, 0x7f, 0xc1, 0x80, 0x80 },
- 	.count =3D 10,
-@@ -845,18 +845,11 @@ struct dvb_frontend *dvb_pll_attach(struct dvb_fronte=
-nd *fe, int pll_addr,
-=20
- 	strncpy(fe->ops.tuner_ops.info.name, desc->name,
- 		sizeof(fe->ops.tuner_ops.info.name));
--	switch (c->delivery_system) {
--	case SYS_DVBS:
--	case SYS_DVBS2:
--	case SYS_TURBO:
--	case SYS_ISDBS:
--		fe->ops.tuner_ops.info.frequency_min_hz =3D desc->min * kHz;
--		fe->ops.tuner_ops.info.frequency_max_hz =3D desc->max * kHz;
--		break;
--	default:
--		fe->ops.tuner_ops.info.frequency_min_hz =3D desc->min;
--		fe->ops.tuner_ops.info.frequency_max_hz =3D desc->max;
--	}
-+
-+	fe->ops.tuner_ops.info.frequency_min_hz =3D desc->min;
-+	fe->ops.tuner_ops.info.frequency_max_hz =3D desc->max;
-+printk("%s: delsys: %d, frequency range: %u..%u\n",
-+       __func__, c->delivery_system, fe->ops.tuner_ops.info.frequency_min_=
-hz, fe->ops.tuner_ops.info.frequency_max_hz);
-=20
- 	if (!desc->initdata)
- 		fe->ops.tuner_ops.init =3D NULL;
+> 
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> ---
+>> Note: the flag bits will change since there are two other patches that add
+>> flags, so the numbering will change.
+>> ---
+>> diff --git a/Documentation/media/uapi/v4l/vidioc-reqbufs.rst b/Documentation/media/uapi/v4l/vidioc-reqbufs.rst
+>> index d4bbbb0c60e8..abf925484aff 100644
+>> --- a/Documentation/media/uapi/v4l/vidioc-reqbufs.rst
+>> +++ b/Documentation/media/uapi/v4l/vidioc-reqbufs.rst
+>> @@ -112,6 +112,8 @@ any DMA in progress, an implicit
+>>  .. _V4L2-BUF-CAP-SUPPORTS-USERPTR:
+>>  .. _V4L2-BUF-CAP-SUPPORTS-DMABUF:
+>>  .. _V4L2-BUF-CAP-SUPPORTS-REQUESTS:
+>> +.. _V4L2-BUF-CAP-SUPPORTS-PREPARE-BUF:
+>> +.. _V4L2-BUF-CAP-SUPPORTS-CREATE-BUFS:
+>>
+>>  .. cssclass:: longtable
+>>
+>> @@ -132,6 +134,12 @@ any DMA in progress, an implicit
+>>      * - ``V4L2_BUF_CAP_SUPPORTS_REQUESTS``
+>>        - 0x00000008
+>>        - This buffer type supports :ref:`requests <media-request-api>`.
+>> +    * - ``V4L2_BUF_CAP_SUPPORTS_PREPARE_BUF``
+>> +      - 0x00000010
+>> +      - This buffer type supports :ref:`VIDIOC_PREPARE_BUF`.
+>> +    * - ``V4L2_BUF_CAP_SUPPORTS_CREATE_BUFS``
+>> +      - 0x00000020
+>> +      - This buffer type supports :ref:`VIDIOC_CREATE_BUFS`.
+>>
+>>  Return Value
+>>  ============
+>> diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+>> index a17033ab2c22..27c0fafca0bf 100644
+>> --- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
+>> +++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+>> @@ -871,6 +871,16 @@ static inline bool vb2_queue_is_busy(struct video_device *vdev, struct file *fil
+>>  	return vdev->queue->owner && vdev->queue->owner != file->private_data;D_PACK
+>>  }
+>>
+>> +static void fill_buf_caps_vdev(struct video_device *vdev, u32 *caps)
+>> +{
+>> +	*caps = 0;
+>> +	fill_buf_caps(vdev->queue, caps);
+>> +	if (vdev->ioctl_ops->vidioc_prepare_buf)
+>> +		*caps |= V4L2_BUF_CAP_SUPPORTS_PREPARE_BUF;
+>> +	if (vdev->ioctl_ops->vidioc_create_bufs)
+>> +		*caps |= V4L2_BUF_CAP_SUPPORTS_CREATE_BUFS;
+>> +}
+>> +
+>>  /* vb2 ioctl helpers */
+>>
+>>  int vb2_ioctl_reqbufs(struct file *file, void *priv,
+>> @@ -879,7 +889,7 @@ int vb2_ioctl_reqbufs(struct file *file, void *priv,
+>>  	struct video_device *vdev = video_devdata(file);
+>>  	int res = vb2_verify_memory_type(vdev->queue, p->memory, p->type);
+>>
+>> -	fill_buf_caps(vdev->queue, &p->capabilities);
+>> +	fill_buf_caps_vdev(vdev, &p->capabilities);
+>>  	if (res)
+>>  		return res;
+>>  	if (vb2_queue_is_busy(vdev, file))
+>> @@ -901,7 +911,7 @@ int vb2_ioctl_create_bufs(struct file *file, void *priv,
+>>  			p->format.type);
+>>
+>>  	p->index = vdev->queue->num_buffers;
+>> -	fill_buf_caps(vdev->queue, &p->capabilities);
+>> +	fill_buf_caps_vdev(vdev, &p->capabilities);
+>>  	/*
+>>  	 * If count == 0, then just check if memory and type are valid.
+>>  	 * Any -EBUSY result from vb2_verify_memory_type can be mapped to 0.
+>> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+>> index c8e8ff810190..6648f8ba2277 100644
+>> --- a/include/uapi/linux/videodev2.h
+>> +++ b/include/uapi/linux/videodev2.h
+>> @@ -879,6 +879,8 @@ struct v4l2_requestbuffers {
+>>  #define V4L2_BUF_CAP_SUPPORTS_USERPTR	(1 << 1)
+>>  #define V4L2_BUF_CAP_SUPPORTS_DMABUF	(1 << 2)
+>>  #define V4L2_BUF_CAP_SUPPORTS_REQUESTS	(1 << 3)
+> 
+> Could you align the previous lines to match the ones below?
+> 
+>> +#define V4L2_BUF_CAP_SUPPORTS_PREPARE_BUF	(1 << 4)
+>> +#define V4L2_BUF_CAP_SUPPORTS_CREATE_BUFS	(1 << 5)
+>>
+>>  /**
+>>   * struct v4l2_plane - plane info for multi-planar buffers
+> 
