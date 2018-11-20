@@ -1,640 +1,792 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:29351 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728035AbeKTWUO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 20 Nov 2018 17:20:14 -0500
-Date: Tue, 20 Nov 2018 19:48:45 +0800
-From: kbuild test robot <lkp@intel.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: kbuild-all@01.org,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Ezequiel Garcia <ezequiel@collabora.com>,
-        Nicolas Dufresne <nicolas@ndufresne.ca>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Tomasz Figa <tfiga@chromium.org>
-Subject: Re: [PATCH] videodev2.h: add
- V4L2_BUF_CAP_SUPPORTS_PREPARE_BUF/CREATE_BUFS
-Message-ID: <201811201939.7iqzWm02%fengguang.wu@intel.com>
-References: <68a6a7d3-cf0b-f631-f113-e388ebb7f5a4@xs4all.nl>
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:34905 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1728035AbeKTWXT (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 20 Nov 2018 17:23:19 -0500
+Subject: Re: [RFC PATCH v8 4/4] sound/usb: Use Media Controller API to share
+ media resources
+To: shuah@kernel.org, mchehab@kernel.org, perex@perex.cz,
+        tiwai@suse.com
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        alsa-devel@alsa-project.org
+References: <cover.1541118238.git.shuah@kernel.org>
+ <ba3bb65b4250fa470c7319d50ebdf1047793efad.1541109584.git.shuah@kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <0b919080-669a-a266-c85c-66dc724a536b@xs4all.nl>
+Date: Tue, 20 Nov 2018 12:54:27 +0100
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="azLHFNyN32YCQGCU"
-Content-Disposition: inline
-In-Reply-To: <68a6a7d3-cf0b-f631-f113-e388ebb7f5a4@xs4all.nl>
+In-Reply-To: <ba3bb65b4250fa470c7319d50ebdf1047793efad.1541109584.git.shuah@kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 11/02/2018 01:31 AM, shuah@kernel.org wrote:
+> From: Shuah Khan <shuah@kernel.org>
+> 
+> Change ALSA driver to use Media Controller API to share media resources
+> with DVB, and V4L2 drivers on a AU0828 media device.
+> 
+> Media Controller specific initialization is done after sound card is
+> registered. ALSA creates Media interface and entity function graph
+> nodes for Control, Mixer, PCM Playback, and PCM Capture devices.
+> 
+> snd_usb_hw_params() will call Media Controller enable source handler
+> interface to request the media resource. If resource request is granted,
+> it will release it from snd_usb_hw_free(). If resource is busy, -EBUSY is
+> returned.
+> 
+> Media specific cleanup is done in usb_audio_disconnect().
+> 
+> Signed-off-by: Shuah Khan <shuah@kernel.org>
+> ---
+>  sound/usb/Kconfig        |   4 +
+>  sound/usb/Makefile       |   2 +
+>  sound/usb/card.c         |  14 ++
+>  sound/usb/card.h         |   3 +
+>  sound/usb/media.c        | 320 +++++++++++++++++++++++++++++++++++++++
+>  sound/usb/media.h        |  73 +++++++++
+>  sound/usb/mixer.h        |   3 +
+>  sound/usb/pcm.c          |  29 +++-
+>  sound/usb/quirks-table.h |   1 +
+>  sound/usb/stream.c       |   2 +
+>  sound/usb/usbaudio.h     |   6 +
+>  11 files changed, 453 insertions(+), 4 deletions(-)
+>  create mode 100644 sound/usb/media.c
+>  create mode 100644 sound/usb/media.h
+> 
+> diff --git a/sound/usb/Kconfig b/sound/usb/Kconfig
+> index f61b5662bb89..6319b544ba3a 100644
+> --- a/sound/usb/Kconfig
+> +++ b/sound/usb/Kconfig
+> @@ -15,6 +15,7 @@ config SND_USB_AUDIO
+>  	select SND_RAWMIDI
+>  	select SND_PCM
+>  	select BITREVERSE
+> +	select SND_USB_AUDIO_USE_MEDIA_CONTROLLER if MEDIA_CONTROLLER && (MEDIA_SUPPORT=y || MEDIA_SUPPORT=SND_USB_AUDIO)
+>  	help
+>  	  Say Y here to include support for USB audio and USB MIDI
+>  	  devices.
+> @@ -22,6 +23,9 @@ config SND_USB_AUDIO
+>  	  To compile this driver as a module, choose M here: the module
+>  	  will be called snd-usb-audio.
+>  
+> +config SND_USB_AUDIO_USE_MEDIA_CONTROLLER
+> +	bool
+> +
+>  config SND_USB_UA101
+>  	tristate "Edirol UA-101/UA-1000 driver"
+>  	select SND_PCM
+> diff --git a/sound/usb/Makefile b/sound/usb/Makefile
+> index d330f74c90e6..e1ce257ab705 100644
+> --- a/sound/usb/Makefile
+> +++ b/sound/usb/Makefile
+> @@ -18,6 +18,8 @@ snd-usb-audio-objs := 	card.o \
+>  			quirks.o \
+>  			stream.o
+>  
+> +snd-usb-audio-$(CONFIG_SND_USB_AUDIO_USE_MEDIA_CONTROLLER) += media.o
+> +
+>  snd-usbmidi-lib-objs := midi.o
+>  
+>  # Toplevel Module Dependency
+> diff --git a/sound/usb/card.c b/sound/usb/card.c
+> index 2bfe4e80a6b9..d9ae331280a2 100644
+> --- a/sound/usb/card.c
+> +++ b/sound/usb/card.c
+> @@ -68,6 +68,7 @@
+>  #include "format.h"
+>  #include "power.h"
+>  #include "stream.h"
+> +#include "media.h"
+>  
+>  MODULE_AUTHOR("Takashi Iwai <tiwai@suse.de>");
+>  MODULE_DESCRIPTION("USB Audio");
+> @@ -673,6 +674,11 @@ static int usb_audio_probe(struct usb_interface *intf,
+>  	if (err < 0)
+>  		goto __error;
+>  
+> +	if (quirk && quirk->media_device) {
+> +		/* don't want to fail when media_snd_device_create() fails */
+> +		media_snd_device_create(chip, intf);
 
---azLHFNyN32YCQGCU
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+I'd change the prefix to snd_media_device_create. After all, you are creating
+a media_device for a sound device.
 
-Hi Hans,
+> +	}
+> +
+>  	usb_chip[chip->index] = chip;
+>  	chip->num_interfaces++;
+>  	usb_set_intfdata(intf, chip);
+> @@ -729,6 +735,14 @@ static void usb_audio_disconnect(struct usb_interface *intf)
+>  		list_for_each(p, &chip->midi_list) {
+>  			snd_usbmidi_disconnect(p);
+>  		}
+> +		/*
+> +		 * Nice to check quirk && quirk->media_device and
+> +		 * then call media_snd_device_delete(). Don't have
+> +		 * access to quirk here. media_snd_device_delete()
+> +		 * acceses mixer_list
 
-I love your patch! Perhaps something to improve:
+acceses -> accesses
 
-[auto build test WARNING on linuxtv-media/master]
-[also build test WARNING on v4.20-rc3 next-20181120]
-[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+> +		 */
+> +		media_snd_device_delete(chip);
+> +
+>  		/* release mixer resources */
+>  		list_for_each_entry(mixer, &chip->mixer_list, list) {
+>  			snd_usb_mixer_disconnect(mixer);
+> diff --git a/sound/usb/card.h b/sound/usb/card.h
+> index ac785d15ced4..5dd3538ed6b5 100644
+> --- a/sound/usb/card.h
+> +++ b/sound/usb/card.h
+> @@ -108,6 +108,8 @@ struct snd_usb_endpoint {
+>  	struct list_head list;
+>  };
+>  
+> +struct media_ctl;
+> +
+>  struct snd_usb_substream {
+>  	struct snd_usb_stream *stream;
+>  	struct usb_device *dev;
+> @@ -160,6 +162,7 @@ struct snd_usb_substream {
+>  	} dsd_dop;
+>  
+>  	bool trigger_tstamp_pending_update; /* trigger timestamp being updated from initial estimate */
+> +	struct media_ctl *media_ctl;
+>  };
+>  
+>  struct snd_usb_stream {
+> diff --git a/sound/usb/media.c b/sound/usb/media.c
+> new file mode 100644
+> index 000000000000..140a98eed294
+> --- /dev/null
+> +++ b/sound/usb/media.c
+> @@ -0,0 +1,320 @@
+> +// SPDX-License-Identifier: GPL-2.0-or-later
+> +/*
+> + * media.c - Media Controller specific ALSA driver code
+> + *
+> + * Copyright (c) 2018 Shuah Khan <shuah@kernel.org>
+> + *
+> + */
+> +
+> +/*
+> + * This file adds Media Controller support to ALSA driver
 
-url:    https://github.com/0day-ci/linux/commits/Hans-Verkuil/videodev2-h-add-V4L2_BUF_CAP_SUPPORTS_PREPARE_BUF-CREATE_BUFS/20181120-190153
-base:   git://linuxtv.org/media_tree.git master
-config: i386-randconfig-x070-201846 (attached as .config)
-compiler: gcc-7 (Debian 7.3.0-1) 7.3.0
-reproduce:
-        # save the attached .config to linux build tree
-        make ARCH=i386 
+to -> to the
 
-All warnings (new ones prefixed by >>):
+> + * to use the Media Controller API to share tuner with DVB
 
-   In file included from include/linux/err.h:5:0,
-                    from drivers/media/common/videobuf2/videobuf2-v4l2.c:17:
-   drivers/media/common/videobuf2/videobuf2-v4l2.c: In function 'fill_buf_caps_vdev':
-   drivers/media/common/videobuf2/videobuf2-v4l2.c:878:21: error: dereferencing pointer to incomplete type 'const struct v4l2_ioctl_ops'
-     if (vdev->ioctl_ops->vidioc_prepare_buf)
-                        ^
-   include/linux/compiler.h:58:30: note: in definition of macro '__trace_if'
-     if (__builtin_constant_p(!!(cond)) ? !!(cond) :   \
-                                 ^~~~
->> drivers/media/common/videobuf2/videobuf2-v4l2.c:878:2: note: in expansion of macro 'if'
-     if (vdev->ioctl_ops->vidioc_prepare_buf)
-     ^~
+tuner -> the tuner
 
-vim +/if +878 drivers/media/common/videobuf2/videobuf2-v4l2.c
+> + * and V4L2 drivers that control media device. Media device
 
-   873	
-   874	static void fill_buf_caps_vdev(struct video_device *vdev, u32 *caps)
-   875	{
-   876		*caps = 0;
-   877		fill_buf_caps(vdev->queue, caps);
- > 878		if (vdev->ioctl_ops->vidioc_prepare_buf)
-   879			*caps |= V4L2_BUF_CAP_SUPPORTS_PREPARE_BUF;
-   880		if (vdev->ioctl_ops->vidioc_create_bufs)
-   881			*caps |= V4L2_BUF_CAP_SUPPORTS_CREATE_BUFS;
-   882	}
-   883	
+that -> that the
+Media -> The media
 
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+> + * is created based on existing quirks framework. Using this
 
---azLHFNyN32YCQGCU
-Content-Type: application/gzip
-Content-Disposition: attachment; filename=".config.gz"
-Content-Transfer-Encoding: base64
+on -> on the
 
-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
+> + * approach, the media controller API usage can be added for
+> + * a specific device.
+> + */
+> +
+> +#include <linux/init.h>
+> +#include <linux/list.h>
+> +#include <linux/mutex.h>
+> +#include <linux/slab.h>
+> +#include <linux/usb.h>
+> +
+> +#include <sound/pcm.h>
+> +#include <sound/core.h>
+> +
+> +#include "usbaudio.h"
+> +#include "card.h"
+> +#include "mixer.h"
+> +#include "media.h"
+> +
+> +int media_snd_stream_init(struct snd_usb_substream *subs, struct snd_pcm *pcm,
 
---azLHFNyN32YCQGCU--
+snd_media_stream_init makes more sense to me. Just my opinion though.
+
+> +			int stream)
+> +{
+> +	struct media_device *mdev;
+> +	struct media_ctl *mctl;
+> +	struct device *pcm_dev = &pcm->streams[stream].dev;
+> +	u32 intf_type;
+> +	int ret = 0;
+> +	u16 mixer_pad;
+> +	struct media_entity *entity;
+> +
+> +	mdev = subs->stream->chip->media_dev;
+> +	if (!mdev)
+> +		return 0;
+> +
+> +	if (subs->media_ctl)
+> +		return 0;
+> +
+> +	/* allocate media_ctl */
+> +	mctl = kzalloc(sizeof(*mctl), GFP_KERNEL);
+> +	if (!mctl)
+> +		return -ENOMEM;
+> +
+> +	mctl->media_dev = mdev;
+> +	if (stream == SNDRV_PCM_STREAM_PLAYBACK) {
+> +		intf_type = MEDIA_INTF_T_ALSA_PCM_PLAYBACK;
+> +		mctl->media_entity.function = MEDIA_ENT_F_AUDIO_PLAYBACK;
+> +		mctl->media_pad.flags = MEDIA_PAD_FL_SOURCE;
+> +		mixer_pad = 1;
+> +	} else {
+> +		intf_type = MEDIA_INTF_T_ALSA_PCM_CAPTURE;
+> +		mctl->media_entity.function = MEDIA_ENT_F_AUDIO_CAPTURE;
+> +		mctl->media_pad.flags = MEDIA_PAD_FL_SINK;
+> +		mixer_pad = 2;
+> +	}
+> +	mctl->media_entity.name = pcm->name;
+> +	media_entity_pads_init(&mctl->media_entity, 1, &mctl->media_pad);
+> +	ret =  media_device_register_entity(mctl->media_dev,
+> +					    &mctl->media_entity);
+> +	if (ret)
+> +		goto free_mctl;
+> +
+> +	mctl->intf_devnode = media_devnode_create(mdev, intf_type, 0,
+> +						  MAJOR(pcm_dev->devt),
+> +						  MINOR(pcm_dev->devt));
+> +	if (!mctl->intf_devnode) {
+> +		ret = -ENOMEM;
+> +		goto unregister_entity;
+> +	}
+> +	mctl->intf_link = media_create_intf_link(&mctl->media_entity,
+> +						 &mctl->intf_devnode->intf,
+> +						 MEDIA_LNK_FL_ENABLED);
+> +	if (!mctl->intf_link) {
+> +		ret = -ENOMEM;
+> +		goto devnode_remove;
+> +	}
+> +
+> +	/* create link between mixer and audio */
+> +	media_device_for_each_entity(entity, mdev) {
+> +		switch (entity->function) {
+> +		case MEDIA_ENT_F_AUDIO_MIXER:
+> +			ret = media_create_pad_link(entity, mixer_pad,
+> +						    &mctl->media_entity, 0,
+> +						    MEDIA_LNK_FL_ENABLED);
+> +			if (ret)
+> +				goto remove_intf_link;
+> +			break;
+> +		}
+> +	}
+> +
+> +	subs->media_ctl = mctl;
+> +	return 0;
+> +
+> +remove_intf_link:
+> +	media_remove_intf_link(mctl->intf_link);
+> +devnode_remove:
+> +	media_devnode_remove(mctl->intf_devnode);
+> +unregister_entity:
+> +	media_device_unregister_entity(&mctl->media_entity);
+> +free_mctl:
+> +	kfree(mctl);
+> +	return ret;
+> +}
+> +
+> +void media_snd_stream_delete(struct snd_usb_substream *subs)
+> +{
+> +	struct media_ctl *mctl = subs->media_ctl;
+> +
+> +	if (mctl) {
+> +		struct media_device *mdev;
+> +
+> +		mdev = mctl->media_dev;
+> +		if (mdev && media_devnode_is_registered(mdev->devnode)) {
+> +			media_devnode_remove(mctl->intf_devnode);
+> +			media_device_unregister_entity(&mctl->media_entity);
+> +			media_entity_cleanup(&mctl->media_entity);
+> +		}
+> +		kfree(mctl);
+> +		subs->media_ctl = NULL;
+> +	}
+> +}
+> +
+> +int media_snd_start_pipeline(struct snd_usb_substream *subs)
+> +{
+> +	struct media_ctl *mctl = subs->media_ctl;
+> +	int ret = 0;
+> +
+> +	if (!mctl)
+> +		return 0;
+> +
+> +	mutex_lock(&mctl->media_dev->graph_mutex);
+> +	if (mctl->media_dev->enable_source)
+> +		ret = mctl->media_dev->enable_source(&mctl->media_entity,
+> +						     &mctl->media_pipe);
+> +	mutex_unlock(&mctl->media_dev->graph_mutex);
+> +	return ret;
+> +}
+> +
+> +void media_snd_stop_pipeline(struct snd_usb_substream *subs)
+> +{
+> +	struct media_ctl *mctl = subs->media_ctl;
+> +
+> +	if (!mctl)
+> +		return;
+> +
+> +	mutex_lock(&mctl->media_dev->graph_mutex);
+> +	if (mctl->media_dev->disable_source)
+> +		mctl->media_dev->disable_source(&mctl->media_entity);
+> +	mutex_unlock(&mctl->media_dev->graph_mutex);
+> +}
+> +
+> +static int media_snd_mixer_init(struct snd_usb_audio *chip)
+> +{
+> +	struct device *ctl_dev = &chip->card->ctl_dev;
+> +	struct media_intf_devnode *ctl_intf;
+> +	struct usb_mixer_interface *mixer;
+> +	struct media_device *mdev = chip->media_dev;
+> +	struct media_mixer_ctl *mctl;
+> +	u32 intf_type = MEDIA_INTF_T_ALSA_CONTROL;
+> +	int ret;
+> +
+> +	if (!mdev)
+> +		return -ENODEV;
+> +
+> +	ctl_intf = chip->ctl_intf_media_devnode;
+> +	if (!ctl_intf) {
+> +		ctl_intf = media_devnode_create(mdev, intf_type, 0,
+> +						MAJOR(ctl_dev->devt),
+> +						MINOR(ctl_dev->devt));
+> +		if (!ctl_intf)
+> +			return -ENOMEM;
+> +		chip->ctl_intf_media_devnode = ctl_intf;
+> +	}
+> +
+> +	list_for_each_entry(mixer, &chip->mixer_list, list) {
+> +
+> +		if (mixer->media_mixer_ctl)
+> +			continue;
+> +
+> +		/* allocate media_mixer_ctl */
+> +		mctl = kzalloc(sizeof(*mctl), GFP_KERNEL);
+> +		if (!mctl)
+> +			return -ENOMEM;
+> +
+> +		mctl->media_dev = mdev;
+> +		mctl->media_entity.function = MEDIA_ENT_F_AUDIO_MIXER;
+> +		mctl->media_entity.name = chip->card->mixername;
+> +		mctl->media_pad[0].flags = MEDIA_PAD_FL_SINK;
+> +		mctl->media_pad[1].flags = MEDIA_PAD_FL_SOURCE;
+> +		mctl->media_pad[2].flags = MEDIA_PAD_FL_SOURCE;
+> +		media_entity_pads_init(&mctl->media_entity, MEDIA_MIXER_PAD_MAX,
+> +				  mctl->media_pad);
+> +		ret =  media_device_register_entity(mctl->media_dev,
+> +						    &mctl->media_entity);
+> +		if (ret) {
+> +			kfree(mctl);
+> +			return ret;
+> +		}
+> +
+> +		mctl->intf_link = media_create_intf_link(&mctl->media_entity,
+> +							 &ctl_intf->intf,
+> +							 MEDIA_LNK_FL_ENABLED);
+> +		if (!mctl->intf_link) {
+> +			media_device_unregister_entity(&mctl->media_entity);
+> +			media_entity_cleanup(&mctl->media_entity);
+> +			kfree(mctl);
+> +			return -ENOMEM;
+> +		}
+> +		mctl->intf_devnode = ctl_intf;
+> +		mixer->media_mixer_ctl = mctl;
+> +	}
+> +	return 0;
+> +}
+> +
+> +static void media_snd_mixer_delete(struct snd_usb_audio *chip)
+> +{
+> +	struct usb_mixer_interface *mixer;
+> +	struct media_device *mdev = chip->media_dev;
+> +
+> +	if (!mdev)
+> +		return;
+> +
+> +	list_for_each_entry(mixer, &chip->mixer_list, list) {
+> +		struct media_mixer_ctl *mctl;
+> +
+> +		mctl = mixer->media_mixer_ctl;
+> +		if (!mixer->media_mixer_ctl)
+> +			continue;
+> +
+> +		if (media_devnode_is_registered(mdev->devnode)) {
+> +			media_device_unregister_entity(&mctl->media_entity);
+> +			media_entity_cleanup(&mctl->media_entity);
+> +		}
+> +		kfree(mctl);
+> +		mixer->media_mixer_ctl = NULL;
+> +	}
+> +	if (media_devnode_is_registered(mdev->devnode))
+> +		media_devnode_remove(chip->ctl_intf_media_devnode);
+> +	chip->ctl_intf_media_devnode = NULL;
+> +}
+> +
+> +int media_snd_device_create(struct snd_usb_audio *chip,
+> +			struct usb_interface *iface)
+> +{
+> +	struct media_device *mdev;
+> +	struct usb_device *usbdev = interface_to_usbdev(iface);
+> +	int ret;
+> +
+> +	/* usb-audio driver is probed for each usb interface, and
+> +	 * there are multiple interfaces per device. Avoid calling
+> +	 * media_device_usb_allocate() each time usb_audio_probe()
+> +	 * is called. Do it only once.
+> +	 */
+> +	if (chip->media_dev)
+> +		goto snd_mixer_init;
+> +
+> +	mdev = media_device_usb_allocate(usbdev, KBUILD_MODNAME);
+> +	if (!mdev)
+> +		return -ENOMEM;
+> +
+> +	if (!media_devnode_is_registered(mdev->devnode)) {
+> +		/* register media_device */
+> +		ret = media_device_register(mdev);
+
+You should first configure the media device before registering it.
+
+General note: since there are two drivers modifying the same media device
+the topology will change as these drivers configure the media device.
+
+This means that there is a short window where the media device is registered
+but the topology is only partially up.
+
+Work is in progress to signal topology changes to userspace, but that is not
+in (or even posted) yet. I do not believe that is an issue in this particular
+case.
+
+> +		if (ret) {
+> +			media_device_delete(mdev, KBUILD_MODNAME);
+> +			dev_err(&usbdev->dev,
+> +				"Couldn't register media device. Error: %d\n",
+> +				ret);
+> +			return ret;
+> +		}
+> +	}
+> +
+> +	/* save media device - avoid lookups */
+> +	chip->media_dev = mdev;
+> +
+> +snd_mixer_init:
+> +	/* Create media entities for mixer and control dev */
+> +	ret = media_snd_mixer_init(chip);
+> +	if (ret) {
+> +		dev_err(&usbdev->dev,
+> +			"Couldn't create media mixer entities. Error: %d\n",
+> +			ret);
+> +
+> +		/* clear saved media_dev */
+> +		chip->media_dev = NULL;
+> +
+> +		return ret;
+> +	}
+> +	return 0;
+> +}
+> +
+> +void media_snd_device_delete(struct snd_usb_audio *chip)
+> +{
+> +	struct media_device *mdev = chip->media_dev;
+> +	struct snd_usb_stream *stream;
+> +
+> +	/* release resources */
+> +	list_for_each_entry(stream, &chip->pcm_list, list) {
+> +		media_snd_stream_delete(&stream->substream[0]);
+> +		media_snd_stream_delete(&stream->substream[1]);
+> +	}
+> +
+> +	media_snd_mixer_delete(chip);
+> +
+> +	if (mdev) {
+> +		media_device_delete(mdev, KBUILD_MODNAME);
+> +		chip->media_dev = NULL;
+> +	}
+> +}
+> diff --git a/sound/usb/media.h b/sound/usb/media.h
+> new file mode 100644
+> index 000000000000..fbefa9cad215
+> --- /dev/null
+> +++ b/sound/usb/media.h
+> @@ -0,0 +1,73 @@
+> +/* SPDX-License-Identifier: GPL-2.0+ */
+> +/*
+> + * media.h - Media Controller specific ALSA driver code
+> + *
+> + * Copyright (c) 2018 Shuah Khan <shuah@kernel.org>
+> + *
+> + */
+> +
+> +/*
+> + * This file adds Media Controller support to ALSA driver
+> + * to use the Media Controller API to share tuner with DVB
+> + * and V4L2 drivers that control media device. Media device
+> + * is created based on existing quirks framework. Using this
+> + * approach, the media controller API usage can be added for
+> + * a specific device.
+> + */
+> +#ifndef __MEDIA_H
+> +
+> +#ifdef CONFIG_SND_USB_AUDIO_USE_MEDIA_CONTROLLER
+> +
+> +#include <linux/media.h>
+> +#include <media/media-device.h>
+> +#include <media/media-entity.h>
+> +#include <media/media-dev-allocator.h>
+> +#include <sound/asound.h>
+> +
+> +struct media_ctl {
+> +	struct media_device *media_dev;
+> +	struct media_entity media_entity;
+> +	struct media_intf_devnode *intf_devnode;
+> +	struct media_link *intf_link;
+> +	struct media_pad media_pad;
+> +	struct media_pipeline media_pipe;
+> +};
+> +
+> +/*
+> + * One source pad each for SNDRV_PCM_STREAM_CAPTURE and
+> + * SNDRV_PCM_STREAM_PLAYBACK. One for sink pad to link
+> + * to AUDIO Source
+> + */
+> +#define MEDIA_MIXER_PAD_MAX    (SNDRV_PCM_STREAM_LAST + 2)
+> +
+> +struct media_mixer_ctl {
+> +	struct media_device *media_dev;
+> +	struct media_entity media_entity;
+> +	struct media_intf_devnode *intf_devnode;
+> +	struct media_link *intf_link;
+> +	struct media_pad media_pad[MEDIA_MIXER_PAD_MAX];
+> +	struct media_pipeline media_pipe;
+> +};
+> +
+> +int media_snd_device_create(struct snd_usb_audio *chip,
+> +			    struct usb_interface *iface);
+> +void media_snd_device_delete(struct snd_usb_audio *chip);
+> +int media_snd_stream_init(struct snd_usb_substream *subs, struct snd_pcm *pcm,
+> +			  int stream);
+> +void media_snd_stream_delete(struct snd_usb_substream *subs);
+> +int media_snd_start_pipeline(struct snd_usb_substream *subs);
+> +void media_snd_stop_pipeline(struct snd_usb_substream *subs);
+> +#else
+> +static inline int media_snd_device_create(struct snd_usb_audio *chip,
+> +					  struct usb_interface *iface)
+> +						{ return 0; }
+> +static inline void media_snd_device_delete(struct snd_usb_audio *chip) { }
+> +static inline int media_snd_stream_init(struct snd_usb_substream *subs,
+> +					struct snd_pcm *pcm, int stream)
+> +						{ return 0; }
+> +static inline void media_snd_stream_delete(struct snd_usb_substream *subs) { }
+> +static inline int media_snd_start_pipeline(struct snd_usb_substream *subs)
+> +					{ return 0; }
+> +static inline void media_snd_stop_pipeline(struct snd_usb_substream *subs) { }
+> +#endif
+> +#endif /* __MEDIA_H */
+> diff --git a/sound/usb/mixer.h b/sound/usb/mixer.h
+> index 3d12af8bf191..394cd9107507 100644
+> --- a/sound/usb/mixer.h
+> +++ b/sound/usb/mixer.h
+> @@ -4,6 +4,8 @@
+>  
+>  #include <sound/info.h>
+>  
+> +struct media_mixer_ctl;
+> +
+>  struct usb_mixer_interface {
+>  	struct snd_usb_audio *chip;
+>  	struct usb_host_interface *hostif;
+> @@ -23,6 +25,7 @@ struct usb_mixer_interface {
+>  	struct urb *rc_urb;
+>  	struct usb_ctrlrequest *rc_setup_packet;
+>  	u8 rc_buffer[6];
+> +	struct media_mixer_ctl *media_mixer_ctl;
+>  
+>  	bool disconnected;
+>  };
+> diff --git a/sound/usb/pcm.c b/sound/usb/pcm.c
+> index 382847154227..a1971a87c613 100644
+> --- a/sound/usb/pcm.c
+> +++ b/sound/usb/pcm.c
+> @@ -35,6 +35,7 @@
+>  #include "pcm.h"
+>  #include "clock.h"
+>  #include "power.h"
+> +#include "media.h"
+>  
+>  #define SUBSTREAM_FLAG_DATA_EP_STARTED	0
+>  #define SUBSTREAM_FLAG_SYNC_EP_STARTED	1
+> @@ -776,6 +777,10 @@ static int snd_usb_hw_params(struct snd_pcm_substream *substream,
+>  	struct audioformat *fmt;
+>  	int ret;
+>  
+> +	ret = media_snd_start_pipeline(subs);
+> +	if (ret)
+> +		return ret;
+> +
+>  	if (snd_usb_use_vmalloc)
+>  		ret = snd_pcm_lib_alloc_vmalloc_buffer(substream,
+>  						       params_buffer_bytes(hw_params));
+> @@ -783,7 +788,7 @@ static int snd_usb_hw_params(struct snd_pcm_substream *substream,
+>  		ret = snd_pcm_lib_malloc_pages(substream,
+>  					       params_buffer_bytes(hw_params));
+>  	if (ret < 0)
+> -		return ret;
+> +		goto stop_pipeline;
+>  
+>  	subs->pcm_format = params_format(hw_params);
+>  	subs->period_bytes = params_period_bytes(hw_params);
+> @@ -797,12 +802,13 @@ static int snd_usb_hw_params(struct snd_pcm_substream *substream,
+>  		dev_dbg(&subs->dev->dev,
+>  			"cannot set format: format = %#x, rate = %d, channels = %d\n",
+>  			   subs->pcm_format, subs->cur_rate, subs->channels);
+> -		return -EINVAL;
+> +		ret = -EINVAL;
+> +		goto stop_pipeline;
+>  	}
+>  
+>  	ret = snd_usb_lock_shutdown(subs->stream->chip);
+>  	if (ret < 0)
+> -		return ret;
+> +		goto stop_pipeline;
+>  
+>  	ret = snd_usb_pcm_change_state(subs, UAC3_PD_STATE_D0);
+>  	if (ret < 0)
+> @@ -818,6 +824,12 @@ static int snd_usb_hw_params(struct snd_pcm_substream *substream,
+>  
+>   unlock:
+>  	snd_usb_unlock_shutdown(subs->stream->chip);
+> +	if (ret < 0)
+> +		goto stop_pipeline;
+> +	return ret;
+> +
+> + stop_pipeline:
+> +	media_snd_stop_pipeline(subs);
+>  	return ret;
+>  }
+>  
+> @@ -830,6 +842,7 @@ static int snd_usb_hw_free(struct snd_pcm_substream *substream)
+>  {
+>  	struct snd_usb_substream *subs = substream->runtime->private_data;
+>  
+> +	media_snd_stop_pipeline(subs);
+>  	subs->cur_audiofmt = NULL;
+>  	subs->cur_rate = 0;
+>  	subs->period_bytes = 0;
+> @@ -1302,6 +1315,7 @@ static int snd_usb_pcm_open(struct snd_pcm_substream *substream)
+>  	struct snd_usb_stream *as = snd_pcm_substream_chip(substream);
+>  	struct snd_pcm_runtime *runtime = substream->runtime;
+>  	struct snd_usb_substream *subs = &as->substream[direction];
+> +	int ret;
+>  
+>  	subs->interface = -1;
+>  	subs->altset_idx = 0;
+> @@ -1315,7 +1329,13 @@ static int snd_usb_pcm_open(struct snd_pcm_substream *substream)
+>  	subs->dsd_dop.channel = 0;
+>  	subs->dsd_dop.marker = 1;
+>  
+> -	return setup_hw_info(runtime, subs);
+> +	ret = setup_hw_info(runtime, subs);
+> +	if (ret == 0) {
+> +		ret = media_snd_stream_init(subs, as->pcm, direction);
+> +		if (ret)
+> +			snd_usb_autosuspend(subs->stream->chip);
+> +	}
+> +	return ret;
+>  }
+>  
+>  static int snd_usb_pcm_close(struct snd_pcm_substream *substream)
+> @@ -1326,6 +1346,7 @@ static int snd_usb_pcm_close(struct snd_pcm_substream *substream)
+>  	int ret;
+>  
+>  	stop_endpoints(subs, true);
+> +	media_snd_stop_pipeline(subs);
+>  
+>  	if (!as->chip->keep_iface &&
+>  	    subs->interface >= 0 &&
+> diff --git a/sound/usb/quirks-table.h b/sound/usb/quirks-table.h
+> index 08aa78007020..02789d1b2fec 100644
+> --- a/sound/usb/quirks-table.h
+> +++ b/sound/usb/quirks-table.h
+> @@ -2887,6 +2887,7 @@ YAMAHA_DEVICE(0x7010, "UB99"),
+>  		.product_name = pname, \
+>  		.ifnum = QUIRK_ANY_INTERFACE, \
+>  		.type = QUIRK_AUDIO_ALIGN_TRANSFER, \
+> +		.media_device = 1, \
+>  	} \
+>  }
+>  
+> diff --git a/sound/usb/stream.c b/sound/usb/stream.c
+> index 67cf849aa16b..5439dd2e6980 100644
+> --- a/sound/usb/stream.c
+> +++ b/sound/usb/stream.c
+> @@ -38,6 +38,7 @@
+>  #include "clock.h"
+>  #include "stream.h"
+>  #include "power.h"
+> +#include "media.h"
+>  
+>  /*
+>   * free a substream
+> @@ -55,6 +56,7 @@ static void free_substream(struct snd_usb_substream *subs)
+>  	}
+>  	kfree(subs->rate_list.list);
+>  	kfree(subs->str_pd);
+> +	media_snd_stream_delete(subs);
+>  }
+>  
+>  
+> diff --git a/sound/usb/usbaudio.h b/sound/usb/usbaudio.h
+> index b9faeca645fd..72bdae5ca54a 100644
+> --- a/sound/usb/usbaudio.h
+> +++ b/sound/usb/usbaudio.h
+> @@ -30,6 +30,9 @@
+>   *
+>   */
+>  
+> +struct media_device;
+> +struct media_intf_devnode;
+> +
+>  struct snd_usb_audio {
+>  	int index;
+>  	struct usb_device *dev;
+> @@ -66,6 +69,8 @@ struct snd_usb_audio {
+>  					 */
+>  
+>  	struct usb_host_interface *ctrl_intf;	/* the audio control interface */
+> +	struct media_device *media_dev;
+> +	struct media_intf_devnode *ctl_intf_media_devnode;
+>  };
+>  
+>  #define usb_audio_err(chip, fmt, args...) \
+> @@ -117,6 +122,7 @@ struct snd_usb_audio_quirk {
+>  	const char *profile_name;	/* override the card->longname */
+>  	int16_t ifnum;
+>  	uint16_t type;
+> +	bool media_device;
+
+I'm not sure this is the right name for the quirk.
+
+The quirk isn't that this audio device needs a media_device, the
+quirk is that it *shares* a media device with another subsystem.
+
+So 'shares_media_device' is a better name IMHO.
+
+>  	const void *data;
+>  };
+>  
+> 
+
+Regards,
+
+	Hans
