@@ -1,36 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-eopbgr810130.outbound.protection.outlook.com ([40.107.81.130]:23376
-        "EHLO NAM01-BY2-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1725899AbeKUBUE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 20 Nov 2018 20:20:04 -0500
-From: Ken Sloat <KSloat@aampglobal.com>
-To: "Eugen.Hristev@microchip.com" <Eugen.Hristev@microchip.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "Nicolas.Ferre@microchip.com" <Nicolas.Ferre@microchip.com>,
-        "Ludovic.Desroches@microchip.com" <Ludovic.Desroches@microchip.com>
-Subject: RE: MICROCHIP ISC DRIVER Bug: Possible NULL struct pointer
- dereference case
-Date: Tue, 20 Nov 2018 14:50:30 +0000
-Message-ID: <DM5PR07MB4119530EBAEE458BF6CF112CADD90@DM5PR07MB4119.namprd07.prod.outlook.com>
-References: <BL0PR07MB41151F40A163E75C8F73E1D6ADD80@BL0PR07MB4115.namprd07.prod.outlook.com>
- <6d1f98c0-31be-9b89-db2e-c1813ed2975d@microchip.com>
-In-Reply-To: <6d1f98c0-31be-9b89-db2e-c1813ed2975d@microchip.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+Received: from mail-pf1-f195.google.com ([209.85.210.195]:46018 "EHLO
+        mail-pf1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725935AbeKUB5k (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 20 Nov 2018 20:57:40 -0500
+Received: by mail-pf1-f195.google.com with SMTP id g62so1142833pfd.12
+        for <linux-media@vger.kernel.org>; Tue, 20 Nov 2018 07:28:00 -0800 (PST)
+From: Akinobu Mita <akinobu.mita@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Akinobu Mita <akinobu.mita@gmail.com>,
+        Matt Ranostay <matt.ranostay@konsulko.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: [PATCH] media: video-i2c: don't use msleep for 1ms - 20ms
+Date: Wed, 21 Nov 2018 00:27:40 +0900
+Message-Id: <1542727660-14117-1-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-PiBIZWxsbyBLZW4sDQo+IA0KPiBJbmRlZWQgdGhpcyBpcyBhIGJ1ZywgSSBzYXcgaXQgYmVmb3Jl
-IGFzIHdlbGwsIGJ1dCBzbyBmYXIsIHRoaXMgaGFzIG5vdCBhcHBlYXJlZCB3aXRoIHRoZSBzZW5z
-b3JzIHdlIGhhdmUgY29ubmVjdGVkLiBJIGhhdmUgYmVlbiB0cnlpbmcgdG8gZ2V0IGFyb3VuZCB0
-byBmaXggaXQsIGJ1dCBpdCdzIG5vdCBhIHNpbXBsZSBmaXgsIG11Y2ggcmF0aGVyIGEgcmV3b3Jr
-IG9mIHRoZSBkcml2ZXIgcGFydCB0aGF0IGhhbmRsZXMgdGhlIHJhdyA+IGZvcm1hdHMuDQo+DQo+
-IEZlZWwgZnJlZSB0byBzdWJtaXQgcGF0Y2hlcyBpZiB5b3UgZmluZCBhIGdvb2QgZml4L3Jld29y
-ayBhbmQgSSB3aWxsIGhhdmUgYSBsb29rIGFuZCB0ZXN0IGl0IGZvciB0aGUgc2Vuc29ycyB3aGlj
-aCBJIGN1cnJlbnRseSBoYXZlLg0KPg0KPiBUaGFua3MgYWdhaW4sDQo+IEV1Z2VuDQoNCkhpIEV1
-Z2VuLA0KDQpUaGFua3MgZm9yIHlvdXIgcXVpY2sgcmVwbHkuIEkgd2lsbCBzZWUgd2hhdCBJIGNh
-biBjb21lIHVwIHdpdGguIEkgbWF5IHJlcGx5IHdpdGggYWRkaXRpb25hbCBxdWVzdGlvbnMuDQoN
-ClRoYW5rcywNCktlbiBTbG9hdA0K
+Documentation/timers/timers-howto.txt says:
+
+"msleep(1~20) may not do what the caller intends, and will often sleep
+longer (~20 ms actual sleep for any value given in the 1~20ms range)."
+
+So replace msleep(2) by usleep_range(2000, 3000).
+
+Reported-by: Hans Verkuil <hansverk@cisco.com>
+Cc: Matt Ranostay <matt.ranostay@konsulko.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Hans Verkuil <hansverk@cisco.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+---
+This fixes "[PATCH v4 6/6] media: video-i2c: support runtime PM" in the
+patchset "[PATCH v4 0/6] media: video-i2c: support changing frame interval
+and runtime PM".
+
+ drivers/media/i2c/video-i2c.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/i2c/video-i2c.c b/drivers/media/i2c/video-i2c.c
+index 0c82131..77080d7 100644
+--- a/drivers/media/i2c/video-i2c.c
++++ b/drivers/media/i2c/video-i2c.c
+@@ -155,7 +155,7 @@ static int amg88xx_set_power_on(struct video_i2c_data *data)
+ 	if (ret)
+ 		return ret;
+ 
+-	msleep(2);
++	usleep_range(2000, 3000);
+ 
+ 	ret = regmap_write(data->regmap, AMG88XX_REG_RST, AMG88XX_RST_FLAG);
+ 	if (ret)
+-- 
+2.7.4
