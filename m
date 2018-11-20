@@ -1,12 +1,13 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:56070 "EHLO mail.bootlin.com"
+Received: from mga18.intel.com ([134.134.136.126]:44281 "EHLO mga18.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725926AbeKTXrY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 20 Nov 2018 18:47:24 -0500
-Date: Tue, 20 Nov 2018 14:18:16 +0100
-From: Maxime Ripard <maxime.ripard@bootlin.com>
+        id S1725926AbeKTXr3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 20 Nov 2018 18:47:29 -0500
+Date: Tue, 20 Nov 2018 15:18:15 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: Jagan Teki <jagan@amarulasolutions.com>
 Cc: Yong Deng <yong.deng@magewell.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
         Rob Herring <robh+dt@kernel.org>,
         Mark Rutland <mark.rutland@arm.com>,
@@ -23,34 +24,25 @@ Cc: Yong Deng <yong.deng@magewell.com>,
         devicetree <devicetree@vger.kernel.org>,
         linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
         linux-kernel <linux-kernel@vger.kernel.org>,
-        linux-sunxi@googlegroups.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
+        linux-sunxi@googlegroups.com
 Subject: Re: [linux-sunxi] [PATCH v12 2/2] media: V3s: Add support for
  Allwinner CSI.
-Message-ID: <20181120131816.sqwiiics7sannl7f@flea>
+Message-ID: <20181120131815.bkhbdtuqkpsfb33u@paasikivi.fi.intel.com>
 References: <1540887490-28316-1-git-send-email-yong.deng@magewell.com>
  <CAMty3ZAprBAxAm+=1kpFsbhV3XGvmQ8XEW+6mOcsV5iaR3xNyQ@mail.gmail.com>
  <CAMty3ZBa3XwQ-0CDYb69qny2MiaCfx1RiQZvQ+WhkoSonU5CbA@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="yxjswbi473wgfxs7"
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 In-Reply-To: <CAMty3ZBa3XwQ-0CDYb69qny2MiaCfx1RiQZvQ+WhkoSonU5CbA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
---yxjswbi473wgfxs7
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
 On Tue, Nov 20, 2018 at 06:27:48PM +0530, Jagan Teki wrote:
-> On Mon, Nov 19, 2018 at 5:38 PM Jagan Teki <jagan@amarulasolutions.com> w=
-rote:
+> On Mon, Nov 19, 2018 at 5:38 PM Jagan Teki <jagan@amarulasolutions.com> wrote:
 > >
-> > On Tue, Oct 30, 2018 at 1:49 PM Yong Deng <yong.deng@magewell.com> wrot=
-e:
+> > On Tue, Oct 30, 2018 at 1:49 PM Yong Deng <yong.deng@magewell.com> wrote:
 > > >
 > > > Allwinner V3s SoC features a CSI module with parallel interface.
 > > >
@@ -66,24 +58,19 @@ e:
 > > >  drivers/media/platform/Makefile                    |   2 +
 > > >  drivers/media/platform/sunxi/sun6i-csi/Kconfig     |   9 +
 > > >  drivers/media/platform/sunxi/sun6i-csi/Makefile    |   3 +
-> > >  drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c | 915 +++++++++++=
-++++++++++
+> > >  drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c | 915 +++++++++++++++++++++
 > > >  drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.h | 135 +++
 > > >  .../media/platform/sunxi/sun6i-csi/sun6i_csi_reg.h | 196 +++++
-> > >  .../media/platform/sunxi/sun6i-csi/sun6i_video.c   | 678 +++++++++++=
-++++
+> > >  .../media/platform/sunxi/sun6i-csi/sun6i_video.c   | 678 +++++++++++++++
 > > >  .../media/platform/sunxi/sun6i-csi/sun6i_video.h   |  38 +
 > > >  10 files changed, 1985 insertions(+)
 > > >  create mode 100644 drivers/media/platform/sunxi/sun6i-csi/Kconfig
 > > >  create mode 100644 drivers/media/platform/sunxi/sun6i-csi/Makefile
 > > >  create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
 > > >  create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.h
-> > >  create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_csi_=
-reg.h
-> > >  create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_vide=
-o.c
-> > >  create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_vide=
-o.h
+> > >  create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_csi_reg.h
+> > >  create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_video.c
+> > >  create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_video.h
 > > >
 > > > diff --git a/MAINTAINERS b/MAINTAINERS
 > > > index 23021e0df5d7..42d73b35ed3e 100644
@@ -104,8 +91,7 @@ o.h
 > > >  CW1200 WLAN driver
 > > >  M:     Solomon Peachy <pizza@shaftnet.org>
 > > >  S:     Maintained
-> > > diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/=
-Kconfig
+> > > diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
 > > > index 0edacfb01f3a..be6626ed0ec8 100644
 > > > --- a/drivers/media/platform/Kconfig
 > > > +++ b/drivers/media/platform/Kconfig
@@ -121,49 +107,30 @@ Kconfig
 > > > +       return 0;
 > > > +}
 > > > +
-> > > +static int sun6i_subdev_notify_complete(struct v4l2_async_notifier *=
-notifier)
+> > > +static int sun6i_subdev_notify_complete(struct v4l2_async_notifier *notifier)
 > > > +{
-> > > +       struct sun6i_csi *csi =3D container_of(notifier, struct sun6i=
-_csi,
+> > > +       struct sun6i_csi *csi = container_of(notifier, struct sun6i_csi,
 > > > +                                            notifier);
-> > > +       struct v4l2_device *v4l2_dev =3D &csi->v4l2_dev;
+> > > +       struct v4l2_device *v4l2_dev = &csi->v4l2_dev;
 > > > +       struct v4l2_subdev *sd;
 > > > +       int ret;
 > > > +
-> > > +       dev_dbg(csi->dev, "notify complete, all subdevs registered\n"=
-);
+> > > +       dev_dbg(csi->dev, "notify complete, all subdevs registered\n");
 > > > +
-> > > +       if (notifier->num_subdevs !=3D 1)
+> > > +       if (notifier->num_subdevs != 1)
 > >
 > > drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c: In function
-> > =E2=80=98sun6i_subdev_notify_complete=E2=80=99:
+> > ‘sun6i_subdev_notify_complete’:
 > > drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c:646:14: error:
-> > =E2=80=98struct v4l2_async_notifier=E2=80=99 has no member named =E2=80=
-=98num_subdevs=E2=80=99
->=20
+> > ‘struct v4l2_async_notifier’ has no member named ‘num_subdevs’
+> 
 > This build issues on linux-next, let me know you have next version
 > changes for this, thanks.
 
-This driver has been merged now, and you have a fix on the thread
-starting from the cover letter of that very same version.
+I've applied Maxime's fixes to the patch that went in:
 
-Maxime
+<URL:https://git.linuxtv.org/sailus/media_tree.git/commit/?id=78d1d55a4fe1f82b83278c93803fbdf6226f698f>
 
---=20
-Maxime Ripard, Bootlin
-Embedded Linux and Kernel engineering
-https://bootlin.com
-
---yxjswbi473wgfxs7
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iHUEABYIAB0WIQRcEzekXsqa64kGDp7j7w1vZxhRxQUCW/QJmAAKCRDj7w1vZxhR
-xXPxAP0XOPSudKmyDUATuzZ0EwbJ7icI2KvTyGc4AoEF4X+//gD+IkJH37A5tu2v
-fPAYHkrJ+U51Qfhijjtv5f3LI/M4jgs=
-=nIVd
------END PGP SIGNATURE-----
-
---yxjswbi473wgfxs7--
+-- 
+Sakari Ailus
+sakari.ailus@linux.intel.com
