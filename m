@@ -1,158 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from esa1.microchip.iphmx.com ([68.232.147.91]:41214 "EHLO
-        esa1.microchip.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726001AbeKUSKR (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:44837 "EHLO
+        mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728220AbeKUS1q (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Nov 2018 13:10:17 -0500
-From: <Eugen.Hristev@microchip.com>
-To: <KSloat@aampglobal.com>
-CC: <linux-media@vger.kernel.org>, <Nicolas.Ferre@microchip.com>,
-        <Ludovic.Desroches@microchip.com>
-Subject: Re: [PATCH v1 1/1] media: atmel-isc: Add safety checks for NULL
- isc->raw_fmt struct
-Date: Wed, 21 Nov 2018 07:36:50 +0000
-Message-ID: <3ed146b5-153c-28b9-e3a9-0b5d2d1fcf28@microchip.com>
-References: <6d1f98c0-31be-9b89-db2e-c1813ed2975d@microchip.com>
- <20181120204309.42339-1-ksloat@aampglobal.com>
-In-Reply-To: <20181120204309.42339-1-ksloat@aampglobal.com>
+        Wed, 21 Nov 2018 13:27:46 -0500
+Received: from eucas1p2.samsung.com (unknown [182.198.249.207])
+        by mailout2.w1.samsung.com (KnoxPortal) with ESMTP id 20181121075417euoutp02300e59d42b4cc032bdacd33d6f9c8507~pFHkO2npq1080410804euoutp02I
+        for <linux-media@vger.kernel.org>; Wed, 21 Nov 2018 07:54:17 +0000 (GMT)
+Subject: Re: [PATCH 7/9] videobuf2/videobuf2-dma-sg.c: Convert to use
+ vm_insert_range
+To: Souptick Joarder <jrdr.linux@gmail.com>, akpm@linux-foundation.org,
+        willy@infradead.org, mhocko@suse.com, pawel@osciak.com,
+        kyungmin.park@samsung.com, mchehab@kernel.org
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-mm@kvack.org
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Message-ID: <1c228982-e1c6-a9d5-87ef-1a3206a426f3@samsung.com>
+Date: Wed, 21 Nov 2018 08:54:14 +0100
+MIME-Version: 1.0
+In-Reply-To: <20181115155037.GA28004@jordon-HP-15-Notebook-PC>
+Content-Transfer-Encoding: 7bit
 Content-Language: en-US
 Content-Type: text/plain; charset="utf-8"
-Content-ID: <BBEF1D885B10A24D9EA70113239D372C@namprd11.prod.outlook.com>
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+References: <CGME20181115154713epcas4p1818fa71d5e67c9a73dc75ceda1704ea3@epcas4p1.samsung.com>
+        <20181115155037.GA28004@jordon-HP-15-Notebook-PC>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-DQoNCk9uIDIwLjExLjIwMTggMjI6NDMsIEtlbiBTbG9hdCB3cm90ZToNCj4gRnJvbTogS2VuIFNs
-b2F0IDxrc2xvYXRAYWFtcGdsb2JhbC5jb20+DQo+IA0KPiBJbiBzb21lIHVzYWdlcyBpc2MtPnJh
-d19mbXQgd2lsbCBub3QgYmUgaW5pdGlhbGl6ZWQuIElmIHRoaXMNCj4gaXMgdGhlIGNhc2UsIGl0
-IGlzIHZlcnkgcG9zc2libGUgdGhhdCBhIE5VTEwgc3RydWN0IGRlLXJlZmVyZW5jZQ0KPiB3aWxs
-IG9jY3VyLCBhcyB0aGlzIG1lbWJlciBpcyByZWZlcmVuY2VkIG1hbnkgdGltZXMuDQoNCkhlbGxv
-ICBLZW4sDQoNCkRvIHlvdSBoYXZlIGFueSBjb25maWRlbmNlIHRoYXQganVzdCBieSBhdm9pZGlu
-ZyB0aGUgTlVMTCBzaXR1YXRpb24sIA0KdGhpcyBmaXggbWFrZXMgdGhpbmdzIHJpZ2h0IGZvciBh
-ZGRpbmcgbmV3IHNlbnNvcnMgdGhhdCBmb3IgZXhhbXBsZSwgZG8gDQpub3Qgb2ZmZXIgYSByYXcg
-Zm9ybWF0ID8NCg0KVGhlIGNoZWNrIHRoYXQgYWN0dWFsbHkgc2V0cyB0aGUgcmF3X2ZtdCBjb21l
-cyBmcm9tIGFuIGl0ZXJhdGlvbiB0aHJvdWdoIA0KdGhlIGZvcm1hdHMsIGFuZCB0aGUgb25lIGhh
-dmluZyB0aGUgUkFXIGZsYWcgZ2V0cyBwdXQgaW50byB0aGlzIA0KdmFyaWFibGUuIE9uZSBjb3Vs
-ZCBqdXN0IGFsdGVyIHRoZSBmb3JtYXRzIHRhYmxlIGFuZCBnZXQgdGhlIHJhd19mbXQgDQp0aGF0
-IGlzIG5lZWRlZC4NCk15IGZlZWxpbmcgaXMgdGhhdCB0aGUgbWV0aG9kIG9mIGFkZGluZyB0aGlz
-IHZhcmlhYmxlIChyYXdfZm10KSBpcyB2ZXJ5IA0KdW5mb3J0dW5hdGUsIGFuZCBJIGRpZCBub3Qg
-Y29tcGxldGVseSB1bmRlcnN0YW5kIHRoZSBzaXR1YXRpb25zIHdoZXJlIA0KaXQncyBuZWVkZWQu
-DQoNCkxvb2sgaW5saW5lIGFib3V0IHdoYXQgSSBtZWFuLi4uDQoNCj4gDQo+IFRvIHByZXZlbnQg
-dGhpcywgYWRkIHNhZmV0eSBjaGVja3MgZm9yIHRoaXMgbWVtYmVyIGFuZCBoYW5kbGUNCj4gc2l0
-dWF0aW9ucyBhY2NvcmRpbmdseS4NCj4gDQo+IFNpZ25lZC1vZmYtYnk6IEtlbiBTbG9hdCA8a3Ns
-b2F0QGFhbXBnbG9iYWwuY29tPg0KPiAtLS0NCj4gICBkcml2ZXJzL21lZGlhL3BsYXRmb3JtL2F0
-bWVsL2F0bWVsLWlzYy5jIHwgNjQgKysrKysrKysrKysrKysrKy0tLS0tLS0tDQo+ICAgMSBmaWxl
-IGNoYW5nZWQsIDQ0IGluc2VydGlvbnMoKyksIDIwIGRlbGV0aW9ucygtKQ0KPiANCj4gZGlmZiAt
-LWdpdCBhL2RyaXZlcnMvbWVkaWEvcGxhdGZvcm0vYXRtZWwvYXRtZWwtaXNjLmMgYi9kcml2ZXJz
-L21lZGlhL3BsYXRmb3JtL2F0bWVsL2F0bWVsLWlzYy5jDQo+IGluZGV4IDUwMTc4OTY4YjhhNi4u
-NGNjY2FhNGYyY2U5IDEwMDY0NA0KPiAtLS0gYS9kcml2ZXJzL21lZGlhL3BsYXRmb3JtL2F0bWVs
-L2F0bWVsLWlzYy5jDQo+ICsrKyBiL2RyaXZlcnMvbWVkaWEvcGxhdGZvcm0vYXRtZWwvYXRtZWwt
-aXNjLmMNCj4gQEAgLTkwMiw2ICs5MDIsMTUgQEAgc3RhdGljIGlubGluZSBib29sIHNlbnNvcl9p
-c19wcmVmZXJyZWQoY29uc3Qgc3RydWN0IGlzY19mb3JtYXQgKmlzY19mbXQpDQo+ICAgCQkhaXNj
-X2ZtdC0+aXNjX3N1cHBvcnQ7DQo+ICAgfQ0KPiAgIA0KPiArc3RhdGljIGlubGluZSB1MzIgZ2V0
-X3ByZWZlcnJlZF9tYnVzX2NvZGUoY29uc3Qgc3RydWN0IGlzY19kZXZpY2UgKmlzYywNCj4gKwkJ
-Y29uc3Qgc3RydWN0IGlzY19mb3JtYXQgKmlzY19mbXQpDQo+ICt7DQo+ICsJaWYgKHNlbnNvcl9p
-c19wcmVmZXJyZWQoaXNjX2ZtdCkgfHwgIWlzYy0+cmF3X2ZtdCkNCj4gKwkJcmV0dXJuIGlzY19m
-bXQtPm1idXNfY29kZTsNCg0KRm9yIGV4YW1wbGUgaGVyZSwgaWYgd2UgZG8gX25vdF8gaGF2ZSBh
-IHJhdyBmb3JtYXQsIHdoYXQgbWFrZXMgdXMgDQpiZWxpZXZlIHRoYXQgdGhlIHJpZ2h0IGZvcm1h
-dCBpcyB0aGUgb25lIGZyb20gdGhlIG1idXNfY29kZSBmcm9tIHRoZSANCmlzY19mbXQgPyBJcyB0
-aGVyZSBhbnl0aGluZyB1c2VmdWwgdGhlcmUgYXQgYWxsID8NCg0KDQo+ICsJZWxzZQ0KPiArCQly
-ZXR1cm4gaXNjLT5yYXdfZm10LT5tYnVzX2NvZGU7DQo+ICt9DQo+ICsNCj4gICBzdGF0aWMgc3Ry
-dWN0IGZtdF9jb25maWcgKmdldF9mbXRfY29uZmlnKHUzMiBmb3VyY2MpDQo+ICAgew0KPiAgIAlz
-dHJ1Y3QgZm10X2NvbmZpZyAqY29uZmlnOw0KPiBAQCAtOTU1LDcgKzk2NCw3IEBAIHN0YXRpYyB2
-b2lkIGlzY19zZXRfcGlwZWxpbmUoc3RydWN0IGlzY19kZXZpY2UgKmlzYywgdTMyIHBpcGVsaW5l
-KQ0KPiAgIHsNCj4gICAJc3RydWN0IHJlZ21hcCAqcmVnbWFwID0gaXNjLT5yZWdtYXA7DQo+ICAg
-CXN0cnVjdCBpc2NfY3RybHMgKmN0cmxzID0gJmlzYy0+Y3RybHM7DQo+IC0Jc3RydWN0IGZtdF9j
-b25maWcgKmNvbmZpZyA9IGdldF9mbXRfY29uZmlnKGlzYy0+cmF3X2ZtdC0+Zm91cmNjKTsNCj4g
-KwlzdHJ1Y3QgZm10X2NvbmZpZyAqY29uZmlnOw0KPiAgIAl1MzIgdmFsLCBiYXlfY2ZnOw0KPiAg
-IAljb25zdCB1MzIgKmdhbW1hOw0KPiAgIAl1bnNpZ25lZCBpbnQgaTsNCj4gQEAgLTk2OSw3ICs5
-NzgsMTIgQEAgc3RhdGljIHZvaWQgaXNjX3NldF9waXBlbGluZShzdHJ1Y3QgaXNjX2RldmljZSAq
-aXNjLCB1MzIgcGlwZWxpbmUpDQo+ICAgCWlmICghcGlwZWxpbmUpDQo+ICAgCQlyZXR1cm47DQo+
-ICAgDQo+IC0JYmF5X2NmZyA9IGNvbmZpZy0+Y2ZhX2JheWNmZzsNCj4gKwlpZiAoaXNjLT5yYXdf
-Zm10KSB7DQo+ICsJCWNvbmZpZyA9IGdldF9mbXRfY29uZmlnKGlzYy0+cmF3X2ZtdC0+Zm91cmNj
-KTsNCj4gKwkJYmF5X2NmZyA9IGNvbmZpZy0+Y2ZhX2JheWNmZzsNCj4gKwl9IGVsc2Ugew0KPiAr
-CQliYXlfY2ZnID0gMDsNCj4gKwl9DQoNCkhhdmluZyBiYXlfY2ZnIHplcm8sIGluIHRoZSBjYXNl
-IHdoZW4gd2UgZG8gbm90IGhhdmUgYSByYXcgZm9ybWF0LCBpcyANCnRoZSByZWFsIHByb3BlciB3
-YXkgdG8gZG8gdGhpcyA/IGl0IGlzIHBvc3NpYmxlIHRoYXQgdGhpcyBiYXkgY2ZnIGlzIA0KcmVx
-dWlyZWQgYXQgYSBkaWZmZXJlbnQgdmFsdWUsIG9yIGNvcnJlc3BvbmRpbmcgdG8gZGlmZmVyZW50
-IGZvcm1hdHMgaW4gDQp0aGUgcGlwZWxpbmUgb2YgdGhlIElTQy4NCg0KPiAgIA0KPiAgIAlyZWdt
-YXBfd3JpdGUocmVnbWFwLCBJU0NfV0JfQ0ZHLCBiYXlfY2ZnKTsNCj4gICAJcmVnbWFwX3dyaXRl
-KHJlZ21hcCwgSVNDX1dCX09fUkdSLCAweDApOw0KPiBAQCAtMTAyMiwxMiArMTAzNiwyMCBAQCBz
-dGF0aWMgdm9pZCBpc2Nfc2V0X2hpc3RvZ3JhbShzdHJ1Y3QgaXNjX2RldmljZSAqaXNjKQ0KPiAg
-IHsNCj4gICAJc3RydWN0IHJlZ21hcCAqcmVnbWFwID0gaXNjLT5yZWdtYXA7DQo+ICAgCXN0cnVj
-dCBpc2NfY3RybHMgKmN0cmxzID0gJmlzYy0+Y3RybHM7DQo+IC0Jc3RydWN0IGZtdF9jb25maWcg
-KmNvbmZpZyA9IGdldF9mbXRfY29uZmlnKGlzYy0+cmF3X2ZtdC0+Zm91cmNjKTsNCj4gKwlzdHJ1
-Y3QgZm10X2NvbmZpZyAqY29uZmlnOw0KPiArCXUzMgljZmFfYmF5Y2ZnOw0KPiArDQo+ICsJaWYg
-KGlzYy0+cmF3X2ZtdCkgew0KPiArCQljb25maWcgPSBnZXRfZm10X2NvbmZpZyhpc2MtPnJhd19m
-bXQtPmZvdXJjYyk7DQo+ICsJCWNmYV9iYXljZmcgPSBjb25maWctPmNmYV9iYXljZmcgPDwgSVND
-X0hJU19DRkdfQkFZU0VMX1NISUZUOw0KPiArCX0gZWxzZSB7DQo+ICsJCWNmYV9iYXljZmcgPSAw
-Ow0KPiArCX0NCg0KRGl0dG8NCg0KPiAgIA0KPiAgIAlpZiAoY3RybHMtPmF3YiAmJiAoY3RybHMt
-Pmhpc3Rfc3RhdCAhPSBISVNUX0VOQUJMRUQpKSB7DQo+ICAgCQlyZWdtYXBfd3JpdGUocmVnbWFw
-LCBJU0NfSElTX0NGRywNCj4gICAJCQkgICAgIElTQ19ISVNfQ0ZHX01PREVfUiB8DQo+IC0JCQkg
-ICAgIChjb25maWctPmNmYV9iYXljZmcgPDwgSVNDX0hJU19DRkdfQkFZU0VMX1NISUZUKSB8DQo+
-ICsJCQkJIGNmYV9iYXljZmcgfA0KPiAgIAkJCSAgICAgSVNDX0hJU19DRkdfUkFSKTsNCj4gICAJ
-CXJlZ21hcF93cml0ZShyZWdtYXAsIElTQ19ISVNfQ1RSTCwgSVNDX0hJU19DVFJMX0VOKTsNCj4g
-ICAJCXJlZ21hcF93cml0ZShyZWdtYXAsIElTQ19JTlRFTiwgSVNDX0lOVF9ISVNET05FKTsNCj4g
-QEAgLTEwNzUsNyArMTA5Nyw3IEBAIHN0YXRpYyBpbnQgaXNjX2NvbmZpZ3VyZShzdHJ1Y3QgaXNj
-X2RldmljZSAqaXNjKQ0KPiAgIAlzdHJ1Y3QgcmVnbWFwICpyZWdtYXAgPSBpc2MtPnJlZ21hcDsN
-Cj4gICAJY29uc3Qgc3RydWN0IGlzY19mb3JtYXQgKmN1cnJlbnRfZm10ID0gaXNjLT5jdXJyZW50
-X2ZtdDsNCj4gICAJc3RydWN0IGZtdF9jb25maWcgKmN1cmZtdF9jb25maWcgPSBnZXRfZm10X2Nv
-bmZpZyhjdXJyZW50X2ZtdC0+Zm91cmNjKTsNCj4gLQlzdHJ1Y3QgZm10X2NvbmZpZyAqcmF3Zm10
-X2NvbmZpZyA9IGdldF9mbXRfY29uZmlnKGlzYy0+cmF3X2ZtdC0+Zm91cmNjKTsNCj4gKwlzdHJ1
-Y3QgZm10X2NvbmZpZyAqcmF3Zm10X2NvbmZpZzsNCj4gICAJc3RydWN0IGlzY19zdWJkZXZfZW50
-aXR5ICpzdWJkZXYgPSBpc2MtPmN1cnJlbnRfc3ViZGV2Ow0KPiAgIAl1MzIgcGZlX2NmZzAsIHJs
-cF9tb2RlLCBkY2ZnLCBtYXNrLCBwaXBlbGluZTsNCj4gICANCj4gQEAgLTEwODUsNyArMTEwNywx
-MiBAQCBzdGF0aWMgaW50IGlzY19jb25maWd1cmUoc3RydWN0IGlzY19kZXZpY2UgKmlzYykNCj4g
-ICAJCWlzY19nZXRfcGFyYW0oY3VycmVudF9mbXQsICZybHBfbW9kZSwgJmRjZmcpOw0KPiAgIAkJ
-aXNjLT5jdHJscy5oaXN0X3N0YXQgPSBISVNUX0lOSVQ7DQo+ICAgCX0gZWxzZSB7DQo+IC0JCXBm
-ZV9jZmcwID0gcmF3Zm10X2NvbmZpZy0+cGZlX2NmZzBfYnBzOw0KPiArCQlpZiAoaXNjLT5yYXdf
-Zm10KSB7DQo+ICsJCQlyYXdmbXRfY29uZmlnID0gZ2V0X2ZtdF9jb25maWcoaXNjLT5yYXdfZm10
-LT5mb3VyY2MpOw0KPiArCQkJcGZlX2NmZzAgPSByYXdmbXRfY29uZmlnLT5wZmVfY2ZnMF9icHM7
-DQo+ICsJCX0gZWxzZSB7DQo+ICsJCQlwZmVfY2ZnMCA9IGN1cmZtdF9jb25maWctPnBmZV9jZmcw
-X2JwczsNCj4gKwkJfQ0KPiAgIAkJcGlwZWxpbmUgPSBjdXJmbXRfY29uZmlnLT5iaXRzX3BpcGVs
-aW5lOw0KPiAgIAkJcmxwX21vZGUgPSBjdXJmbXRfY29uZmlnLT5ybHBfY2ZnX21vZGU7DQo+ICAg
-CQlkY2ZnID0gY3VyZm10X2NvbmZpZy0+ZGNmZ19pbW9kZSB8DQo+IEBAIC0xMzE1LDEwICsxMzQy
-LDcgQEAgc3RhdGljIGludCBpc2NfdHJ5X2ZtdChzdHJ1Y3QgaXNjX2RldmljZSAqaXNjLCBzdHJ1
-Y3QgdjRsMl9mb3JtYXQgKmYsDQo+ICAgCWlmIChwaXhmbXQtPmhlaWdodCA+IElTQ19NQVhfU1VQ
-UE9SVF9IRUlHSFQpDQo+ICAgCQlwaXhmbXQtPmhlaWdodCA9IElTQ19NQVhfU1VQUE9SVF9IRUlH
-SFQ7DQo+ICAgDQo+IC0JaWYgKHNlbnNvcl9pc19wcmVmZXJyZWQoaXNjX2ZtdCkpDQo+IC0JCW1i
-dXNfY29kZSA9IGlzY19mbXQtPm1idXNfY29kZTsNCj4gLQllbHNlDQo+IC0JCW1idXNfY29kZSA9
-IGlzYy0+cmF3X2ZtdC0+bWJ1c19jb2RlOw0KPiArCW1idXNfY29kZSA9IGdldF9wcmVmZXJyZWRf
-bWJ1c19jb2RlKGlzYywgaXNjX2ZtdCk7DQo+ICAgDQo+ICAgCXY0bDJfZmlsbF9tYnVzX2Zvcm1h
-dCgmZm9ybWF0LmZvcm1hdCwgcGl4Zm10LCBtYnVzX2NvZGUpOw0KPiAgIAlyZXQgPSB2NGwyX3N1
-YmRldl9jYWxsKGlzYy0+Y3VycmVudF9zdWJkZXYtPnNkLCBwYWQsIHNldF9mbXQsDQo+IEBAIC0x
-NDQyLDEwICsxNDY2LDcgQEAgc3RhdGljIGludCBpc2NfZW51bV9mcmFtZXNpemVzKHN0cnVjdCBm
-aWxlICpmaWxlLCB2b2lkICpmaCwNCj4gICAJaWYgKCFpc2NfZm10KQ0KPiAgIAkJcmV0dXJuIC1F
-SU5WQUw7DQo+ICAgDQo+IC0JaWYgKHNlbnNvcl9pc19wcmVmZXJyZWQoaXNjX2ZtdCkpDQo+IC0J
-CWZzZS5jb2RlID0gaXNjX2ZtdC0+bWJ1c19jb2RlOw0KPiAtCWVsc2UNCj4gLQkJZnNlLmNvZGUg
-PSBpc2MtPnJhd19mbXQtPm1idXNfY29kZTsNCj4gKwlmc2UuY29kZSA9IGdldF9wcmVmZXJyZWRf
-bWJ1c19jb2RlKGlzYywgaXNjX2ZtdCk7DQo+ICAgDQo+ICAgCXJldCA9IHY0bDJfc3ViZGV2X2Nh
-bGwoaXNjLT5jdXJyZW50X3N1YmRldi0+c2QsIHBhZCwgZW51bV9mcmFtZV9zaXplLA0KPiAgIAkJ
-CSAgICAgICBOVUxMLCAmZnNlKTsNCj4gQEAgLTE0NzYsMTAgKzE0OTcsNyBAQCBzdGF0aWMgaW50
-IGlzY19lbnVtX2ZyYW1laW50ZXJ2YWxzKHN0cnVjdCBmaWxlICpmaWxlLCB2b2lkICpmaCwNCj4g
-ICAJaWYgKCFpc2NfZm10KQ0KPiAgIAkJcmV0dXJuIC1FSU5WQUw7DQo+ICAgDQo+IC0JaWYgKHNl
-bnNvcl9pc19wcmVmZXJyZWQoaXNjX2ZtdCkpDQo+IC0JCWZpZS5jb2RlID0gaXNjX2ZtdC0+bWJ1
-c19jb2RlOw0KPiAtCWVsc2UNCj4gLQkJZmllLmNvZGUgPSBpc2MtPnJhd19mbXQtPm1idXNfY29k
-ZTsNCj4gKwlmaWUuY29kZSA9IGdldF9wcmVmZXJyZWRfbWJ1c19jb2RlKGlzYywgaXNjX2ZtdCk7
-DQo+ICAgDQo+ICAgCXJldCA9IHY0bDJfc3ViZGV2X2NhbGwoaXNjLT5jdXJyZW50X3N1YmRldi0+
-c2QsIHBhZCwNCj4gICAJCQkgICAgICAgZW51bV9mcmFtZV9pbnRlcnZhbCwgTlVMTCwgJmZpZSk7
-DQo+IEBAIC0xNjY4LDcgKzE2ODYsNyBAQCBzdGF0aWMgdm9pZCBpc2NfYXdiX3dvcmsoc3RydWN0
-IHdvcmtfc3RydWN0ICp3KQ0KPiAgIAlzdHJ1Y3QgaXNjX2RldmljZSAqaXNjID0NCj4gICAJCWNv
-bnRhaW5lcl9vZih3LCBzdHJ1Y3QgaXNjX2RldmljZSwgYXdiX3dvcmspOw0KPiAgIAlzdHJ1Y3Qg
-cmVnbWFwICpyZWdtYXAgPSBpc2MtPnJlZ21hcDsNCj4gLQlzdHJ1Y3QgZm10X2NvbmZpZyAqY29u
-ZmlnID0gZ2V0X2ZtdF9jb25maWcoaXNjLT5yYXdfZm10LT5mb3VyY2MpOw0KPiArCXN0cnVjdCBm
-bXRfY29uZmlnICpjb25maWc7DQo+ICAgCXN0cnVjdCBpc2NfY3RybHMgKmN0cmxzID0gJmlzYy0+
-Y3RybHM7DQo+ICAgCXUzMiBoaXN0X2lkID0gY3RybHMtPmhpc3RfaWQ7DQo+ICAgCXUzMiBiYXlz
-ZWw7DQo+IEBAIC0xNjg2LDcgKzE3MDQsMTMgQEAgc3RhdGljIHZvaWQgaXNjX2F3Yl93b3JrKHN0
-cnVjdCB3b3JrX3N0cnVjdCAqdykNCj4gICAJfQ0KPiAgIA0KPiAgIAljdHJscy0+aGlzdF9pZCA9
-IGhpc3RfaWQ7DQo+IC0JYmF5c2VsID0gY29uZmlnLT5jZmFfYmF5Y2ZnIDw8IElTQ19ISVNfQ0ZH
-X0JBWVNFTF9TSElGVDsNCj4gKw0KPiArCWlmIChpc2MtPnJhd19mbXQpIHsNCj4gKwkJY29uZmln
-ID0gZ2V0X2ZtdF9jb25maWcoaXNjLT5yYXdfZm10LT5mb3VyY2MpOw0KPiArCQliYXlzZWwgPSBj
-b25maWctPmNmYV9iYXljZmcgPDwgSVNDX0hJU19DRkdfQkFZU0VMX1NISUZUOw0KPiArCX0gZWxz
-ZSB7DQo+ICsJCWJheXNlbCA9IDA7DQo+ICsJfQ0KPiAgIA0KPiAgIAlwbV9ydW50aW1lX2dldF9z
-eW5jKGlzYy0+ZGV2KTsNCj4gICANCj4gDQoNClNvICwgaW4gc2hvcnQsIEkgYW0gbm90IGNvbnZp
-bmNlZCB0aGF0IHRoaXMgaXMgYSBwcm9wZXIgd2F5IHRvIHNvbHZlIGl0LCANCnNvIHdlIGhhdmUg
-dG8gZGlnIGluIGZ1cnRoZXIgdG8gc2VlIGlmIHRoaXMgaXMgT0sgb3Igbm90Lg0KV2hpY2ggc2Vu
-c29ycyBkbyB5b3UgaGF2ZSBhbmQgaG93IGRpZCB5b3UgdGVzdCB0aGlzLCB3aGljaCBib2FyZCBh
-bmQgc2V0dXA/DQoNClRoYW5rcyBmb3IgeW91ciBoZWxwLA0KDQpFdWdlbg0K
+Hi Souptick,
+
+On 2018-11-15 16:50, Souptick Joarder wrote:
+> Convert to use vm_insert_range to map range of kernel memory
+> to user vma.
+>
+> Signed-off-by: Souptick Joarder <jrdr.linux@gmail.com>
+> Reviewed-by: Matthew Wilcox <willy@infradead.org>
+
+Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
+
+> ---
+>  drivers/media/common/videobuf2/videobuf2-dma-sg.c | 23 +++++++----------------
+>  1 file changed, 7 insertions(+), 16 deletions(-)
+>
+> diff --git a/drivers/media/common/videobuf2/videobuf2-dma-sg.c b/drivers/media/common/videobuf2/videobuf2-dma-sg.c
+> index 015e737..898adef 100644
+> --- a/drivers/media/common/videobuf2/videobuf2-dma-sg.c
+> +++ b/drivers/media/common/videobuf2/videobuf2-dma-sg.c
+> @@ -328,28 +328,19 @@ static unsigned int vb2_dma_sg_num_users(void *buf_priv)
+>  static int vb2_dma_sg_mmap(void *buf_priv, struct vm_area_struct *vma)
+>  {
+>  	struct vb2_dma_sg_buf *buf = buf_priv;
+> -	unsigned long uaddr = vma->vm_start;
+> -	unsigned long usize = vma->vm_end - vma->vm_start;
+> -	int i = 0;
+> +	unsigned long page_count = vma_pages(vma);
+> +	int err;
+>  
+>  	if (!buf) {
+>  		printk(KERN_ERR "No memory to map\n");
+>  		return -EINVAL;
+>  	}
+>  
+> -	do {
+> -		int ret;
+> -
+> -		ret = vm_insert_page(vma, uaddr, buf->pages[i++]);
+> -		if (ret) {
+> -			printk(KERN_ERR "Remapping memory, error: %d\n", ret);
+> -			return ret;
+> -		}
+> -
+> -		uaddr += PAGE_SIZE;
+> -		usize -= PAGE_SIZE;
+> -	} while (usize > 0);
+> -
+> +	err = vm_insert_range(vma, vma->vm_start, buf->pages, page_count);
+> +	if (err) {
+> +		printk(KERN_ERR "Remapping memory, error: %d\n", err);
+> +		return err;
+> +	}
+>  
+>  	/*
+>  	 * Use common vm_area operations to track buffer refcount.
+
+Best regards
+-- 
+Marek Szyprowski, PhD
+Samsung R&D Institute Poland
