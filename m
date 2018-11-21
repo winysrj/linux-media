@@ -1,72 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:49868 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728993AbeKVFwx (ORCPT
+Received: from userp2130.oracle.com ([156.151.31.86]:46152 "EHLO
+        userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1732750AbeKVGPK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Nov 2018 00:52:53 -0500
-From: Ezequiel Garcia <ezequiel@collabora.com>
-To: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-rockchip@lists.infradead.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>, kernel@collabora.com,
-        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Heiko Stuebner <heiko@sntech.de>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Miouyouyou <myy@miouyouyou.fr>,
-        Ezequiel Garcia <ezequiel@collabora.com>
-Subject: [PATCH v10 2/4] ARM: dts: rockchip: add VPU device node for RK3288
-Date: Wed, 21 Nov 2018 16:16:50 -0300
-Message-Id: <20181121191652.22814-3-ezequiel@collabora.com>
-In-Reply-To: <20181121191652.22814-1-ezequiel@collabora.com>
-References: <20181121191652.22814-1-ezequiel@collabora.com>
+        Thu, 22 Nov 2018 01:15:10 -0500
+Subject: Re: [PATCH 0/9] Use vm_insert_range
+To: Souptick Joarder <jrdr.linux@gmail.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Matthew Wilcox <willy@infradead.org>,
+        Michal Hocko <mhocko@suse.com>,
+        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
+        vbabka@suse.cz, Rik van Riel <riel@surriel.com>,
+        Stephen Rothwell <sfr@canb.auug.org.au>,
+        rppt@linux.vnet.ibm.com, Peter Zijlstra <peterz@infradead.org>,
+        Russell King - ARM Linux <linux@armlinux.org.uk>,
+        robin.murphy@arm.com, iamjoonsoo.kim@lge.com, treding@nvidia.com,
+        Kees Cook <keescook@chromium.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        stefanr@s5r6.in-berlin.de, hjc@rock-chips.com,
+        Heiko Stuebner <heiko@sntech.de>, airlied@linux.ie,
+        oleksandr_andrushchenko@epam.com, joro@8bytes.org,
+        pawel@osciak.com, Kyungmin Park <kyungmin.park@samsung.com>,
+        mchehab@kernel.org, Juergen Gross <jgross@suse.com>
+Cc: linux-kernel@vger.kernel.org, Linux-MM <linux-mm@kvack.org>,
+        linux-arm-kernel@lists.infradead.org,
+        linux1394-devel@lists.sourceforge.net,
+        dri-devel@lists.freedesktop.org,
+        linux-rockchip@lists.infradead.org, xen-devel@lists.xen.org,
+        iommu@lists.linux-foundation.org, linux-media@vger.kernel.org
+References: <20181115154314.GA27850@jordon-HP-15-Notebook-PC>
+ <CAFqt6zZGP5DnAQd_19xKcLezOYaLsZpPr=FGxiTb7JRjTEJ4cA@mail.gmail.com>
+From: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Message-ID: <0c6f1144-6ee0-29df-5e1f-d35d2264e06e@oracle.com>
+Date: Wed, 21 Nov 2018 14:37:24 -0500
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAFqt6zZGP5DnAQd_19xKcLezOYaLsZpPr=FGxiTb7JRjTEJ4cA@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the Video Processing Unit node for RK3288 SoC.
+On 11/21/18 1:24 AM, Souptick Joarder wrote:
+> On Thu, Nov 15, 2018 at 9:09 PM Souptick Joarder <jrdr.linux@gmail.com> wrote:
+>> Previouly drivers have their own way of mapping range of
+>> kernel pages/memory into user vma and this was done by
+>> invoking vm_insert_page() within a loop.
+>>
+>> As this pattern is common across different drivers, it can
+>> be generalized by creating a new function and use it across
+>> the drivers.
+>>
+>> vm_insert_range is the new API which will be used to map a
+>> range of kernel memory/pages to user vma.
+>>
+>> All the applicable places are converted to use new vm_insert_range
+>> in this patch series.
+>>
+>> Souptick Joarder (9):
+>>   mm: Introduce new vm_insert_range API
+>>   arch/arm/mm/dma-mapping.c: Convert to use vm_insert_range
+>>   drivers/firewire/core-iso.c: Convert to use vm_insert_range
+>>   drm/rockchip/rockchip_drm_gem.c: Convert to use vm_insert_range
+>>   drm/xen/xen_drm_front_gem.c: Convert to use vm_insert_range
+>>   iommu/dma-iommu.c: Convert to use vm_insert_range
+>>   videobuf2/videobuf2-dma-sg.c: Convert to use vm_insert_range
+>>   xen/gntdev.c: Convert to use vm_insert_range
+>>   xen/privcmd-buf.c: Convert to use vm_insert_range
+> Any further comment on driver changes ?
 
-Fix the VPU IOMMU node, which was disabled and lacking
-its power domain property.
+Xen drivers (the last two patches) look fine to me.
 
-Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
----
- arch/arm/boot/dts/rk3288.dtsi | 14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+-boris
 
-diff --git a/arch/arm/boot/dts/rk3288.dtsi b/arch/arm/boot/dts/rk3288.dtsi
-index 0840ffb3205c..40d203cdca09 100644
---- a/arch/arm/boot/dts/rk3288.dtsi
-+++ b/arch/arm/boot/dts/rk3288.dtsi
-@@ -1223,6 +1223,18 @@
- 		};
- 	};
- 
-+	vpu: video-codec@ff9a0000 {
-+		compatible = "rockchip,rk3288-vpu";
-+		reg = <0x0 0xff9a0000 0x0 0x800>;
-+		interrupts = <GIC_SPI 9 IRQ_TYPE_LEVEL_HIGH>,
-+			     <GIC_SPI 10 IRQ_TYPE_LEVEL_HIGH>;
-+		interrupt-names = "vepu", "vdpu";
-+		clocks = <&cru ACLK_VCODEC>, <&cru HCLK_VCODEC>;
-+		clock-names = "aclk", "hclk";
-+		power-domains = <&power RK3288_PD_VIDEO>;
-+		iommus = <&vpu_mmu>;
-+	};
-+
- 	vpu_mmu: iommu@ff9a0800 {
- 		compatible = "rockchip,iommu";
- 		reg = <0x0 0xff9a0800 0x0 0x100>;
-@@ -1230,8 +1242,8 @@
- 		interrupt-names = "vpu_mmu";
- 		clocks = <&cru ACLK_VCODEC>, <&cru HCLK_VCODEC>;
- 		clock-names = "aclk", "iface";
-+		power-domains = <&power RK3288_PD_VIDEO>;
- 		#iommu-cells = <0>;
--		status = "disabled";
- 	};
- 
- 	hevc_mmu: iommu@ff9c0440 {
--- 
-2.19.1
+
+>>  arch/arm/mm/dma-mapping.c                         | 21 ++++++-----------
+>>  drivers/firewire/core-iso.c                       | 15 ++----------
+>>  drivers/gpu/drm/rockchip/rockchip_drm_gem.c       | 20 ++--------------
+>>  drivers/gpu/drm/xen/xen_drm_front_gem.c           | 20 +++++-----------
+>>  drivers/iommu/dma-iommu.c                         | 12 ++--------
+>>  drivers/media/common/videobuf2/videobuf2-dma-sg.c | 23 ++++++-------------
+>>  drivers/xen/gntdev.c                              | 11 ++++-----
+>>  drivers/xen/privcmd-buf.c                         |  8 ++-----
+>>  include/linux/mm_types.h                          |  3 +++
+>>  mm/memory.c                                       | 28 +++++++++++++++++++++++
+>>  mm/nommu.c                                        |  7 ++++++
+>>  11 files changed, 70 insertions(+), 98 deletions(-)
+>>
+>> --
+>> 1.9.1
+>>
