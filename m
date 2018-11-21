@@ -1,139 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-eopbgr750112.outbound.protection.outlook.com ([40.107.75.112]:11712
-        "EHLO NAM02-BL2-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1730500AbeKVBZC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Nov 2018 20:25:02 -0500
-From: Ken Sloat <KSloat@aampglobal.com>
-To: "Eugen.Hristev@microchip.com" <Eugen.Hristev@microchip.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "Nicolas.Ferre@microchip.com" <Nicolas.Ferre@microchip.com>,
-        "Ludovic.Desroches@microchip.com" <Ludovic.Desroches@microchip.com>
-Subject: RE: [PATCH v1 1/1] media: atmel-isc: Add safety checks for NULL
- isc->raw_fmt struct
-Date: Wed, 21 Nov 2018 14:50:13 +0000
-Message-ID: <MW2PR07MB41212E868BDF28368E62DD9DADDA0@MW2PR07MB4121.namprd07.prod.outlook.com>
-References: <6d1f98c0-31be-9b89-db2e-c1813ed2975d@microchip.com>
- <20181120204309.42339-1-ksloat@aampglobal.com>
- <3ed146b5-153c-28b9-e3a9-0b5d2d1fcf28@microchip.com>
-In-Reply-To: <3ed146b5-153c-28b9-e3a9-0b5d2d1fcf28@microchip.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:37967 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1728289AbeKVCPX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 21 Nov 2018 21:15:23 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [RFCv4 PATCH 0/3] This RFC patch series implements properties for the media controller.
+Date: Wed, 21 Nov 2018 16:40:21 +0100
+Message-Id: <20181121154024.13906-1-hverkuil@xs4all.nl>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Pj4gRnJvbTogS2VuIFNsb2F0IDxrc2xvYXRAYWFtcGdsb2JhbC5jb20+DQo+Pg0KPj4gSW4gc29t
-ZSB1c2FnZXMgaXNjLT5yYXdfZm10IHdpbGwgbm90IGJlIGluaXRpYWxpemVkLiBJZiB0aGlzIGlz
-IHRoZSANCj4+IGNhc2UsIGl0IGlzIHZlcnkgcG9zc2libGUgdGhhdCBhIE5VTEwgc3RydWN0IGRl
-LXJlZmVyZW5jZSB3aWxsIG9jY3VyLCANCj4+IGFzIHRoaXMgbWVtYmVyIGlzIHJlZmVyZW5jZWQg
-bWFueSB0aW1lcy4NCg0KPiBIZWxsbyAgS2VuLA0KDQo+IERvIHlvdSBoYXZlIGFueSBjb25maWRl
-bmNlIHRoYXQganVzdCBieSBhdm9pZGluZyB0aGUgTlVMTCBzaXR1YXRpb24sIHRoaXMgZml4IG1h
-a2VzIHRoaW5ncyByaWdodCBmb3IgYWRkaW5nIG5ldyBzZW5zb3JzIHRoYXQgZm9yIGV4YW1wbGUs
-IGRvIG5vdCBvZmZlciBhIHJhdyBmb3JtYXQgPw0KDQpIaSBFdWdlbiwNCg0KVGhhbmtzIGZvciB5
-b3VyIGNvbW1lbnRzLiBUaGUgcHJpbWFyeSBnb2FsIG9mIG15IHBhdGNoIGlzIHRvIHRoZSBzb2x2
-ZSB0aGUgaW1tZWRpYXRlIGlzc3VlIG9mIE5VTEwgZGUtcmVmZXJlbmNlIG9mIHRoZSB0aGF0IHN0
-cnVjdCBtZW1iZXIuIE15IGN1cnJlbnQgc2Vuc29ycyBhY3R1YWxseSBkbyBub3Qgb2ZmZXIgYSBS
-QVcgZm9ybWF0LCB3aGljaCBpcyB3aHkgdGhpcyBidWcgaGFwcGVucyBpbiBteSBjYXNlIChzZWUg
-bW9yZSBkZXRhaWxzIGJlbG93KS4NCg0KPiBNeSBmZWVsaW5nIGlzIHRoYXQgdGhlIG1ldGhvZCBv
-ZiBhZGRpbmcgdGhpcyB2YXJpYWJsZSAocmF3X2ZtdCkgaXMgdmVyeSB1bmZvcnR1bmF0ZSwgYW5k
-IEkgZGlkIG5vdCBjb21wbGV0ZWx5IHVuZGVyc3RhbmQgdGhlIHNpdHVhdGlvbnMgd2hlcmUgaXQn
-cyBuZWVkZWQuDQoNCkkgYWdyZWUgdGhhdCB0aGUgY3VycmVudCBtZXRob2Qgb2Ygc2V0dGluZyBh
-IHN0cnVjdCBtZW1iZXIgYmFzZWQgb24gYSBSQVcgZmxhZyBpcyBmbGF3ZWQgYW5kIGlkZWFsbHkg
-dGhlcmUgbmVlZHMgdG8gYmUgYSBtb3JlIGZ1bmRhbWVudGFsIGNoYW5nZSB0byB0aGUgYXJjaGl0
-ZWN0dXJlIG9mIHRoZSBkcml2ZXIgc28gdGhhdCB0aGlzIHNpdHVhdGlvbiB3b3VsZCBuZXZlciBw
-b3NzaWJseSBvY2N1ciwgaG93ZXZlciBJIHdpbGwgcHJlc2VudCBvbmUgYmVsb3cgdGhhdCBjYW4g
-dmVyeSBsaWtlbHkgaGFwcGVuIGFzIGl0IGRvZXMgZm9yIG1lOg0KDQo+IFRoZSBjaGVjayB0aGF0
-IGFjdHVhbGx5IHNldHMgdGhlIHJhd19mbXQgY29tZXMgZnJvbSBhbiBpdGVyYXRpb24gdGhyb3Vn
-aCB0aGUgZm9ybWF0cywgYW5kIHRoZSBvbmUgaGF2aW5nIHRoZSBSQVcgZmxhZyBnZXRzIHB1dCBp
-bnRvIHRoaXMgdmFyaWFibGUuIE9uZSBjb3VsZCBqdXN0IGFsdGVyIHRoZSBmb3JtYXRzIHRhYmxl
-IGFuZCBnZXQgdGhlIHJhd19mbXQgdGhhdCBpcyBuZWVkZWQuDQoNClJpZ2h0LCBzbyBpbiB0aGUg
-aW5pdGlhbCBpdGVyYXRpb24gaW4gaXNjX2Zvcm1hdHNfaW5pdCgpIHRoZSBkcml2ZXIgY2FsbHMg
-dGhlIHN1Yi1kZXZpY2Uvc2Vuc29yIGVudW1fbWJ1c19jb2RlIGZ1bmN0aW9uIHRvIHN0ZXAgdGhy
-b3VnaCBhbGwgaXRzIHN1cHBvcnRlZCBmb3JtYXRzIGFuZCB0cnkgYW5kIGZpbmQgdGhlbSBpbiB0
-aGUgbGlzdCBvZiBzdXBwb3J0ZWQgSVNDIGZvcm1hdHMuIElmIG5vbmUgb2YgdGhlIGZvcm1hdHMg
-aW4gdGhlIHN1Yi1kZXZpY2Uvc2Vuc29yIGFyZSBvZiBSQVcgdHlwZSwgdGhlbiBpc2MtcmF3X2Zt
-dCB3aWxsIG5vdCBiZSBzZXQuIFRoaXMgaXMgdGhlIGZ1bmRhbWVudGFsIGZsYXcgaW4gdXNpbmcg
-dGhpcyBtZW1iZXIuDQoNCkZvbGxvd2luZyB0aGlzLCB0aGUgZHJpdmVyIHdpbGwgYXR0ZW1wdCB0
-byBzZXQgYSBkZWZhdWx0IGZvcm1hdCBmb3IgdGhlIElTQyBpbiBpc2Nfc2V0X2RlZmF1bHRfZm10
-KCkuIFRoaXMgYXBwZWFycyB0byBiZSBiYXNlZCBvbiB0aGUgZmlyc3QgZm9ybWF0IGluIHRoZSBs
-aXN0IG9mIElTQyBmb3JtYXRzLiBUaGUgZHJpdmVyIHRoZW4gZG9lcyBhIGNoZWNrIHRvIHNlZSBp
-ZiB0aGUgc2Vuc29yIGlzIHByZWZlcnJlZCB0byB0aGUgSVNDLiBJZiB0aGUgZGVmYXVsdCBmb3Jt
-YXQgaXMgbm90IHN1cHBvcnRlZCBieSB0aGUgc3ViLWRldmljZS9zZW5zb3IsIGl0IHdpbGwgbm90
-IGJlIHByZWZlcnJlZCBhbmQgd2Ugd2lsbCBnZXQgYSByZXN1bHRpbmcgY3Jhc2ggYmVjYXVzZSBp
-dCB3aWxsIGFzc3VtZSB0aGF0IHdlIG11c3QgdXNlIHRoZSByYXdfZm10IG1lbWJlciB0aGF0IG5l
-dmVyIGdvdCBzZXQuDQoNCj4+IA0KPj4gVG8gcHJldmVudCB0aGlzLCBhZGQgc2FmZXR5IGNoZWNr
-cyBmb3IgdGhpcyBtZW1iZXIgYW5kIGhhbmRsZSANCj4+IHNpdHVhdGlvbnMgYWNjb3JkaW5nbHku
-DQo+PiANCj4+IFNpZ25lZC1vZmYtYnk6IEtlbiBTbG9hdCA8a3Nsb2F0QGFhbXBnbG9iYWwuY29t
-Pg0KPj4gLS0tDQo+PiAgIGRyaXZlcnMvbWVkaWEvcGxhdGZvcm0vYXRtZWwvYXRtZWwtaXNjLmMg
-fCA2NCArKysrKysrKysrKysrKysrLS0tLS0tLS0NCj4+ICAgMSBmaWxlIGNoYW5nZWQsIDQ0IGlu
-c2VydGlvbnMoKyksIDIwIGRlbGV0aW9ucygtKQ0KPj4gDQo+PiBkaWZmIC0tZ2l0IGEvZHJpdmVy
-cy9tZWRpYS9wbGF0Zm9ybS9hdG1lbC9hdG1lbC1pc2MuYyANCj4+IGIvZHJpdmVycy9tZWRpYS9w
-bGF0Zm9ybS9hdG1lbC9hdG1lbC1pc2MuYw0KPj4gaW5kZXggNTAxNzg5NjhiOGE2Li40Y2NjYWE0
-ZjJjZTkgMTAwNjQ0DQo+PiAtLS0gYS9kcml2ZXJzL21lZGlhL3BsYXRmb3JtL2F0bWVsL2F0bWVs
-LWlzYy5jDQo+PiArKysgYi9kcml2ZXJzL21lZGlhL3BsYXRmb3JtL2F0bWVsL2F0bWVsLWlzYy5j
-DQo+PiBAQCAtOTAyLDYgKzkwMiwxNSBAQCBzdGF0aWMgaW5saW5lIGJvb2wgc2Vuc29yX2lzX3By
-ZWZlcnJlZChjb25zdCBzdHJ1Y3QgaXNjX2Zvcm1hdCAqaXNjX2ZtdCkNCj4+ICAgCQkhaXNjX2Zt
-dC0+aXNjX3N1cHBvcnQ7DQo+PiAgIH0NCj4+ICAgDQo+PiArc3RhdGljIGlubGluZSB1MzIgZ2V0
-X3ByZWZlcnJlZF9tYnVzX2NvZGUoY29uc3Qgc3RydWN0IGlzY19kZXZpY2UgKmlzYywNCj4+ICsJ
-CWNvbnN0IHN0cnVjdCBpc2NfZm9ybWF0ICppc2NfZm10KQ0KPj4gK3sNCj4+ICsJaWYgKHNlbnNv
-cl9pc19wcmVmZXJyZWQoaXNjX2ZtdCkgfHwgIWlzYy0+cmF3X2ZtdCkNCj4+ICsJCXJldHVybiBp
-c2NfZm10LT5tYnVzX2NvZGU7DQoNCj4gRm9yIGV4YW1wbGUgaGVyZSwgaWYgd2UgZG8gX25vdF8g
-aGF2ZSBhIHJhdyBmb3JtYXQsIHdoYXQgbWFrZXMgdXMgYmVsaWV2ZSB0aGF0IHRoZSByaWdodCBm
-b3JtYXQgaXMgdGhlIG9uZSBmcm9tIHRoZSBtYnVzX2NvZGUgZnJvbSB0aGUgaXNjX2ZtdCA/IElz
-IHRoZXJlIGFueXRoaW5nIHVzZWZ1bCB0aGVyZSBhdCBhbGwgPw0KDQpJdCdzIG1vcmUgb2YgYSBz
-YWZlIGNhc2UgZm9yIHdoZXJlIHRoaXMgb2NjdXJzIGluIG15IGV4YW1wbGUgYWJvdmUuIEFzIHlv
-dSBtZW50aW9uZWQgeW91cnNlbGYsIHJhd19mbXQgY291bGQgcG9zc2libHkgc2V0IHRvIGFueSBv
-ZiB0aGUgUkFXIGZsYWcgZm9ybWF0cyBzdXBwb3J0ZWQgYnkgdGhlIHN1Yi1kZXZpY2UuICBBc3N1
-bWluZyB0aGUgc3ViLWRldmljZSBkaWQgaW5kZWVkIHN1cHBvcnQgYSBSQVcgZm9ybWF0IG9mIHNv
-bWUgc29ydCwgYnV0IGRpZCBub3QgbmVjZXNzYXJpbHkgc3VwcG9ydCB0aGUgY3VycmVudCBmb3Jt
-YXQsIHRoZSBkcml2ZXIgYXMgb2YgdG9kYXkgd291bGQgYmUgcmVmZXJlbmNpbmcgdGhpcyBhbHRl
-cm5hdGl2ZSBtYnVzIGNvZGUgYW55d2F5cy4gSW4gdGhlIGV4YW1wbGUgYWJvdmUsIHRoaXMgb2Nj
-dXJyZWQgd2hpbGUgc2V0dGluZyB0aGUgZGVmYXVsdCBmb3JtYXQsIGFuZCB0aGVuIHN1YnNlcXVl
-bnRseSB3aWxsIGFsd2F5cyBvY2N1ciB3aGVuIHNldHRpbmcgdGhlIHBpcGVsaW5lIGluIGlzY19z
-ZXRfcGlwZWxpbmUoKSBhcyB0aGlzIGZ1bmN0aW9uIGFsd2F5cyBkZS1yZWZlcmVuY2VzIHRoaXMg
-bWVtYmVyIHRvIHNldCB0aGUgcG9pbnRlciBldmVuIGlmIGEgUkFXIGZvcm1hdCBpc24ndCBuZWNl
-c3NhcmlseSBiZWluZyB1c2VkIChhbmQgc28gZG8gb3RoZXJzIGFzIHNlZW4gaW4gbXkgcGF0Y2gp
-LiANCg0KPj4gKwllbHNlDQo+PiArCQlyZXR1cm4gaXNjLT5yYXdfZm10LT5tYnVzX2NvZGU7DQo+
-PiArfQ0KPj4gKw0KPj4gICBzdGF0aWMgc3RydWN0IGZtdF9jb25maWcgKmdldF9mbXRfY29uZmln
-KHUzMiBmb3VyY2MpDQo+PiAgIHsNCj4+ICAgCXN0cnVjdCBmbXRfY29uZmlnICpjb25maWc7DQo+
-PiBAQCAtOTU1LDcgKzk2NCw3IEBAIHN0YXRpYyB2b2lkIGlzY19zZXRfcGlwZWxpbmUoc3RydWN0
-IGlzY19kZXZpY2UgKmlzYywgdTMyIHBpcGVsaW5lKQ0KPj4gICB7DQo+PiAgIAlzdHJ1Y3QgcmVn
-bWFwICpyZWdtYXAgPSBpc2MtPnJlZ21hcDsNCj4+ICAgCXN0cnVjdCBpc2NfY3RybHMgKmN0cmxz
-ID0gJmlzYy0+Y3RybHM7DQo+PiAtCXN0cnVjdCBmbXRfY29uZmlnICpjb25maWcgPSBnZXRfZm10
-X2NvbmZpZyhpc2MtPnJhd19mbXQtPmZvdXJjYyk7DQo+PiArCXN0cnVjdCBmbXRfY29uZmlnICpj
-b25maWc7DQo+PiAgIAl1MzIgdmFsLCBiYXlfY2ZnOw0KPj4gICAJY29uc3QgdTMyICpnYW1tYTsN
-Cj4+ICAgCXVuc2lnbmVkIGludCBpOw0KPj4gQEAgLTk2OSw3ICs5NzgsMTIgQEAgc3RhdGljIHZv
-aWQgaXNjX3NldF9waXBlbGluZShzdHJ1Y3QgaXNjX2RldmljZSAqaXNjLCB1MzIgcGlwZWxpbmUp
-DQo+PiAgIAlpZiAoIXBpcGVsaW5lKQ0KPj4gICAJCXJldHVybjsNCj4+ICAgDQo+PiAtCWJheV9j
-ZmcgPSBjb25maWctPmNmYV9iYXljZmc7DQo+PiArCWlmIChpc2MtPnJhd19mbXQpIHsNCj4+ICsJ
-CWNvbmZpZyA9IGdldF9mbXRfY29uZmlnKGlzYy0+cmF3X2ZtdC0+Zm91cmNjKTsNCj4+ICsJCWJh
-eV9jZmcgPSBjb25maWctPmNmYV9iYXljZmc7DQo+PiArCX0gZWxzZSB7DQo+PiArCQliYXlfY2Zn
-ID0gMDsNCj4+ICsJfQ0KDQo+IEhhdmluZyBiYXlfY2ZnIHplcm8sIGluIHRoZSBjYXNlIHdoZW4g
-d2UgZG8gbm90IGhhdmUgYSByYXcgZm9ybWF0LCBpcyB0aGUgcmVhbCBwcm9wZXIgd2F5IHRvIGRv
-IHRoaXMgPyBpdCBpcyBwb3NzaWJsZSB0aGF0IHRoaXMgYmF5IGNmZyBpcyByZXF1aXJlZCBhdCBh
-IGRpZmZlcmVudCB2YWx1ZSwgb3IgY29ycmVzcG9uZGluZyB0byBkaWZmZXJlbnQgZm9ybWF0cyBp
-biB0aGUgcGlwZWxpbmUgb2YgdGhlIElTQy4NCkkgc2hvdWxkIHByb2JhYmx5IG1ha2UgY29uZmln
-IHBvaW50IHRvIHRoZSBjdXJyZW50X2ZtdCBpbiB0aGUgZWxzZSBjYXNlIGhlcmUgc28gdGhhdCBp
-dCB1c2VzIGl0cyBiYXlfY2ZnLCBob3dldmVyIEkgYmVsaWV2ZSB0aGUgV0IgbW9kdWxlIHdvdWxk
-IGJlIGRpc2FibGVkIGFueXdheXMgaW4gdGhpcyBjYXNlLiBSZWdhcmRpbmcgaWYgdGhpcyB3b3Vs
-ZCBiZSBwcm9wZXIgb3IgdXNlZnVsLCBzaW1pbGFyIGNvbW1lbnRzIHRvIGFib3ZlLg0KDQo+IFNv
-ICwgaW4gc2hvcnQsIEkgYW0gbm90IGNvbnZpbmNlZCB0aGF0IHRoaXMgaXMgYSBwcm9wZXIgd2F5
-IHRvIHNvbHZlIGl0LCBzbyB3ZSBoYXZlIHRvIGRpZyBpbiBmdXJ0aGVyIHRvIHNlZSBpZiB0aGlz
-IGlzIE9LIG9yIG5vdC4NCj4gV2hpY2ggc2Vuc29ycyBkbyB5b3UgaGF2ZSBhbmQgaG93IGRpZCB5
-b3UgdGVzdCB0aGlzLCB3aGljaCBib2FyZCBhbmQgc2V0dXA/DQoNCj4gVGhhbmtzIGZvciB5b3Vy
-IGhlbHAsDQoNCj4gRXVnZW4NCg0KTXkgc2Vuc29yIGlucHV0cyBhIElUVS1SIDY1NiBpbnRlcmZh
-Y2UgdG8gdGhlIElTQywgc28gdGhpcyB3b3VsZCBiZSB0aGUgZm9ybWF0Og0KDQp7DQoJLmZvdXJj
-YwkJPSBWNEwyX1BJWF9GTVRfWVVZViwNCgkubWJ1c19jb2RlCT0gTUVESUFfQlVTX0ZNVF9ZVVlW
-OF8yWDgsDQoJLmZsYWdzCQk9IEZNVF9GTEFHX0ZST01fQ09OVFJPTExFUiB8DQoJCQkgIEZNVF9G
-TEFHX0ZST01fU0VOU09SLA0KCS5icHAJCT0gMTYsDQp9LA0KDQpOb3RlIHRoYXQgdGhlIGRyaXZl
-ciBhcyBvZiB0b2RheSBkb2VzIG5vdCBzdXBwb3J0IElUVS1SIDY1NiB3aXRob3V0IG1vZGlmaWNh
-dGlvbnMgYnV0IHJhdGhlciBJVFUtUiA2MDEuIEhvd2V2ZXIsIHRoaXMgaXMgYXMgc2ltcGxlIGFz
-IHNldHRpbmcgc29tZSBhZGRpdGlvbmFsIGJpdHMgYW5kIEkgcGxhbiB0byBzdWJtaXQgYSBzZXBh
-cmF0ZSBwYXRjaCBzb29uIHRoYXQgYWxsb3dzIHRoaXMgdG8gb2NjdXIgZnJvbSBkZXZpY2UgdHJl
-ZSBpbiBhIHN0YW5kYXJkIHdheS4NCkkgYW0gdXNpbmcgYSBjdXN0b20gYm9hcmQgdGhhdCBpcyBi
-YXNlZCBvbiB0aGUgU0FNQTVEMjctU09NMS1FSzEgYm9hcmQgc28gSSB0ZXN0ZWQgbXkgc2Vuc29y
-IHdpdGggdGhpcyBib2FyZCB1c2luZyBnc3RyZWFtZXIgdG8gZGlyZWN0IHRoZSBpbWFnZSB0byB0
-aGUgZGlzcGxheS4gSGFwcHkgdG8gaGVscCBvdXQgYXMgSSBhbSBhYmxlLCBsZXQgbWUga25vdyB3
-aGF0IHlvdSB0aGluay4NCg0KVGhhbmtzLA0KS2VuDQo=
+The main changes since RFCv3 are:
+
+- Add entity index to media_v2_pad
+- Add source/sink pad index to media_v2_link
+- Add owner_idx and owner type flags to media_v2_prop
+
+An updated v4l2-ctl and v4l2-compliance that can report properties
+is available here:
+
+https://git.linuxtv.org/hverkuil/v4l-utils.git/log/?h=props
+
+Currently I support u64, s64 and const char * property types. And also
+a 'group' type that groups sub-properties. But it can be extended to any
+type including binary data if needed. No array support (as we have for
+controls), but there are enough reserved fields in media_v2_prop
+to add this if needed.
+
+I added properties for entities and pads to vimc, so I could test this.
+
+Note that the changes to media_device_get_topology() are hard to read
+from the patch. It is easier to just look at the source code:
+
+https://git.linuxtv.org/hverkuil/media_tree.git/tree/drivers/media/media-device.c?h=mc-props
+
+I have some ideas to improve this some more:
+
+1) Add the properties directly to media_gobj. This would simplify some
+   of the code, but it would require a media_gobj_init function to
+   initialize the property list. In general I am a bit unhappy about
+   media_gobj_create: it doesn't really create the graph object, instead
+   it just adds it to the media_device. It's confusing and it is something
+   I would like to change.
+
+2) The links between pads are stored in media_entity instead of in media_pad.
+   This is a bit unexpected and makes it harder to traverse the data
+   structures since to find the links for a pad you need to walk the entity
+   links and find the links for that pad. Putting all links in the entity
+   also mixes up pad and interface links, and it would be much cleaner if
+   those are separated.
+
+3) I still think adding support for backlinks to G_TOPOLOGY is a good idea.
+   Since the current data structure represents a flattened tree that is easy
+   to navigate the only thing missing for userspace is backlink support.
+   This is still something that userspace needs to figure out when the kernel
+   has this readily available. I think that with this in place applications
+   can just do all the lookups directly on the topology data structure.
+
+1+2 are internal cleanups that can be done later.
+
+3 is a low-priority future enhancement. This might become easier to implement
+once 1+2 are done.
+
+This is pretty much the last RFC. If everyone agree with this approach, then
+I can make a final patch series, adding documentation etc.
+
+Regards,
+
+        Hans
+
+
+Hans Verkuil (3):
+  uapi/linux/media.h: add property support
+  media controller: add properties support
+  vimc: add property test code
+
+ drivers/media/media-device.c              | 335 +++++++++++++++++-----
+ drivers/media/media-entity.c              | 107 ++++++-
+ drivers/media/platform/vimc/vimc-common.c |  50 ++++
+ include/media/media-device.h              |   6 +
+ include/media/media-entity.h              | 318 ++++++++++++++++++++
+ include/uapi/linux/media.h                |  88 +++++-
+ 6 files changed, 819 insertions(+), 85 deletions(-)
+
+-- 
+2.19.1
