@@ -1,91 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.eclipso.de ([217.69.254.104]:35074 "EHLO mail.eclipso.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731678AbeKTJao (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 20 Nov 2018 04:30:44 -0500
-Received: from roadrunner.suse (p5B318D4A.dip0.t-ipconnect.de [91.49.141.74])
-        by mail.eclipso.de with ESMTPS id 3CD92A0B
-        for <linux-media@vger.kernel.org>; Mon, 19 Nov 2018 23:59:42 +0100 (CET)
-From: stakanov <stakanov@eclipso.eu>
-To: Takashi Iwai <tiwai@suse.de>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Stakanov Schufter <stakanov@freenet.de>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: DVB-S PCI card regression on 4.19 / 4.20
-Date: Mon, 19 Nov 2018 23:59:39 +0100
-Message-ID: <2988162.jBOhpiBzca@roadrunner.suse>
-In-Reply-To: <s5hwop8g88o.wl-tiwai@suse.de>
-References: <s5hbm6l5cdi.wl-tiwai@suse.de> <20181119155326.24f6083f@coco.lan> <s5hwop8g88o.wl-tiwai@suse.de>
+Received: from mail-wm1-f68.google.com ([209.85.128.68]:37730 "EHLO
+        mail-wm1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730087AbeKUVut (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 21 Nov 2018 16:50:49 -0500
+Received: by mail-wm1-f68.google.com with SMTP id p2-v6so5324221wmc.2
+        for <linux-media@vger.kernel.org>; Wed, 21 Nov 2018 03:16:49 -0800 (PST)
+From: Rui Miguel Silva <rui.silva@linaro.org>
+To: sakari.ailus@linux.intel.com,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        devicetree@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Rui Miguel Silva <rui.silva@linaro.org>
+Subject: [PATCH v8 12/12] media: video-mux: add bayer formats
+Date: Wed, 21 Nov 2018 11:15:58 +0000
+Message-Id: <20181121111558.10838-13-rui.silva@linaro.org>
+In-Reply-To: <20181121111558.10838-1-rui.silva@linaro.org>
+References: <20181121111558.10838-1-rui.silva@linaro.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In data lunedì 19 novembre 2018 20:47:19 CET, Takashi Iwai ha scritto:
-> On Mon, 19 Nov 2018 18:53:26 +0100,
-> 
-> Mauro Carvalho Chehab wrote:
-> > Could you ask the user to apply the enclosed patch and provide us
-> > the results of those prints?
-> 
-> OK, I built a test kernel in OBS home:tiwai:bsc1116374 repo.  Now it's
-> available at
->  
-> https://download.opensuse.org/repositories/home:/tiwai:/bsc1116374/standard
-> /
-> 
-> Stakanov, could you test it and give the kernel messages?
-> 
-> 
-> Thanks!
-> 
-> Takashi
-Here we go, I did saw your mail only late, sorry.
+Add non vendor bayer formats to the  allowed format array.
 
+Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+---
+ drivers/media/platform/video-mux.c | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
-Result of proposed fix (rc3): card has still no function, does not sync, EPG 
-works. No sound no picture. 
-
-entropy@silversurfer:~> uname -a       
-Linux silversurfer 4.20.0-rc3-1.g7e16618-default #1 SMP PREEMPT Mon Nov 19 
-18:54:15 UTC 2018 (7e16618) x86_64 x86_64 x86_64 GNU/Linux
-
-output of 
-entropy@silversurfer:~> sudo dmesg | grep -i b2c2 
-[    4.831163] b2c2-flexcop: B2C2 FlexcopII/II(b)/III digital TV receiver chip 
-loaded successfully
-[    4.862648] b2c2-flexcop: MAC address = xx:xx:xx:xx:xx:xx
-[    5.094173] b2c2-flexcop: found 'ST STV0299 DVB-S' .
-[    5.094177] b2c2_flexcop_pci 0000:06:06.0: DVB: registering adapter 0 
-frontend 0 (ST STV0299 DVB-S)...
-[    5.094248] b2c2-flexcop: initialization of 'Sky2PC/SkyStar 2 DVB-S rev 
-2.6' at the 'PCI' bus controlled by a 'FlexCopIIb' complete
-[  121.789236] b2c2_flexcop_pci 0000:06:06.0: DVB: adapter 0 frontend 0 
-frequency 1880000 out of range (950000..2150)
-[  128.817325] b2c2_flexcop_pci 0000:06:06.0: DVB: adapter 0 frontend 0 
-frequency 1944750 out of range (950000..2150)
-
-sudo lspci -vvv  
-06:06.0 Network controller: Techsan Electronics Co Ltd B2C2 FlexCopII DVB chip 
-/ Technisat SkyStar2 DVB card (rev 02)
-        Subsystem: Techsan Electronics Co Ltd B2C2 FlexCopII DVB chip / 
-Technisat SkyStar2 DVB card
-        Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- 
-Stepping- SERR- FastB2B- DisINTx-
-        Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=slow >TAbort- 
-<TAbort- <MAbort- >SERR- <PERR- INTx-
-        Latency: 32
-        Interrupt: pin A routed to IRQ 20
-        NUMA node: 0
-        Region 0: Memory at fe500000 (32-bit, non-prefetchable) [size=64K]
-        Region 1: I/O ports at b040 [size=32]
-        Kernel driver in use: b2c2_flexcop_pci
-        Kernel modules: b2c2_flexcop_pci
-
-
-
-
-_________________________________________________________________
-________________________________________________________
-Ihre E-Mail-Postfächer sicher & zentral an einem Ort. Jetzt wechseln und alte E-Mail-Adresse mitnehmen! https://www.eclipso.de
+diff --git a/drivers/media/platform/video-mux.c b/drivers/media/platform/video-mux.c
+index c33900e3c23e..0ba30756e1e4 100644
+--- a/drivers/media/platform/video-mux.c
++++ b/drivers/media/platform/video-mux.c
+@@ -263,6 +263,26 @@ static int video_mux_set_format(struct v4l2_subdev *sd,
+ 	case MEDIA_BUS_FMT_UYYVYY16_0_5X48:
+ 	case MEDIA_BUS_FMT_JPEG_1X8:
+ 	case MEDIA_BUS_FMT_AHSV8888_1X32:
++	case MEDIA_BUS_FMT_SBGGR8_1X8:
++	case MEDIA_BUS_FMT_SGBRG8_1X8:
++	case MEDIA_BUS_FMT_SGRBG8_1X8:
++	case MEDIA_BUS_FMT_SRGGB8_1X8:
++	case MEDIA_BUS_FMT_SBGGR10_1X10:
++	case MEDIA_BUS_FMT_SGBRG10_1X10:
++	case MEDIA_BUS_FMT_SGRBG10_1X10:
++	case MEDIA_BUS_FMT_SRGGB10_1X10:
++	case MEDIA_BUS_FMT_SBGGR12_1X12:
++	case MEDIA_BUS_FMT_SGBRG12_1X12:
++	case MEDIA_BUS_FMT_SGRBG12_1X12:
++	case MEDIA_BUS_FMT_SRGGB12_1X12:
++	case MEDIA_BUS_FMT_SBGGR14_1X14:
++	case MEDIA_BUS_FMT_SGBRG14_1X14:
++	case MEDIA_BUS_FMT_SGRBG14_1X14:
++	case MEDIA_BUS_FMT_SRGGB14_1X14:
++	case MEDIA_BUS_FMT_SBGGR16_1X16:
++	case MEDIA_BUS_FMT_SGBRG16_1X16:
++	case MEDIA_BUS_FMT_SGRBG16_1X16:
++	case MEDIA_BUS_FMT_SRGGB16_1X16:
+ 		break;
+ 	default:
+ 		sdformat->format.code = MEDIA_BUS_FMT_Y8_1X8;
+-- 
+2.19.1
