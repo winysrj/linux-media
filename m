@@ -1,89 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:51892 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726016AbeKUTQG (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:36345 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1728210AbeKUTTb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Nov 2018 14:16:06 -0500
-Subject: [PATCH v2] vim2m/vicodec: set device_caps in video_device struct
-From: Hans Verkuil <hverkuil@xs4all.nl>
+        Wed, 21 Nov 2018 14:19:31 -0500
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <26edd663-20f2-014c-b628-2d6bb10aad8b@xs4all.nl>
-Message-ID: <7e0e2e95-792d-1efa-c012-5e6737b219b6@xs4all.nl>
-Date: Wed, 21 Nov 2018 09:42:27 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.21] Various fixes/improvements
+Message-ID: <227cddfb-4340-6e4f-f690-476a45bb480d@xs4all.nl>
+Date: Wed, 21 Nov 2018 09:45:52 +0100
 MIME-Version: 1.0
-In-Reply-To: <26edd663-20f2-014c-b628-2d6bb10aad8b@xs4all.nl>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of setting device_caps/capabilities in the querycap ioctl, set
-it in struct video_device instead.
+Note: this supersedes https://patchwork.linuxtv.org/patch/53017/. The only change
+is an updated device_caps patch: https://patchwork.linuxtv.org/patch/53057/
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
-Changes in v2: vfd->device_caps was only set for the first of the two video
-devices. Set it for the second video_device as well.
----
- drivers/media/platform/vicodec/vicodec-core.c | 9 ++++-----
- drivers/media/platform/vim2m.c                | 3 +--
- 2 files changed, 5 insertions(+), 7 deletions(-)
+Regards,
 
-diff --git a/drivers/media/platform/vicodec/vicodec-core.c b/drivers/media/platform/vicodec/vicodec-core.c
-index b292cff26c86..9b6416ba5901 100644
---- a/drivers/media/platform/vicodec/vicodec-core.c
-+++ b/drivers/media/platform/vicodec/vicodec-core.c
-@@ -397,11 +397,6 @@ static int vidioc_querycap(struct file *file, void *priv,
- 	strncpy(cap->card, VICODEC_NAME, sizeof(cap->card) - 1);
- 	snprintf(cap->bus_info, sizeof(cap->bus_info),
- 			"platform:%s", VICODEC_NAME);
--	cap->device_caps =  V4L2_CAP_STREAMING |
--			    (multiplanar ?
--			     V4L2_CAP_VIDEO_M2M_MPLANE :
--			     V4L2_CAP_VIDEO_M2M);
--	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
- 	return 0;
- }
+	Hans
 
-@@ -1311,6 +1306,8 @@ static int vicodec_probe(struct platform_device *pdev)
- 	vfd->lock = &dev->enc_mutex;
- 	vfd->v4l2_dev = &dev->v4l2_dev;
- 	strscpy(vfd->name, "vicodec-enc", sizeof(vfd->name));
-+	vfd->device_caps = V4L2_CAP_STREAMING |
-+		(multiplanar ? V4L2_CAP_VIDEO_M2M_MPLANE : V4L2_CAP_VIDEO_M2M);
- 	v4l2_disable_ioctl(vfd, VIDIOC_DECODER_CMD);
- 	v4l2_disable_ioctl(vfd, VIDIOC_TRY_DECODER_CMD);
- 	video_set_drvdata(vfd, dev);
-@@ -1327,6 +1324,8 @@ static int vicodec_probe(struct platform_device *pdev)
- 	vfd = &dev->dec_vfd;
- 	vfd->lock = &dev->dec_mutex;
- 	vfd->v4l2_dev = &dev->v4l2_dev;
-+	vfd->device_caps = V4L2_CAP_STREAMING |
-+		(multiplanar ? V4L2_CAP_VIDEO_M2M_MPLANE : V4L2_CAP_VIDEO_M2M);
- 	strscpy(vfd->name, "vicodec-dec", sizeof(vfd->name));
- 	v4l2_disable_ioctl(vfd, VIDIOC_ENCODER_CMD);
- 	v4l2_disable_ioctl(vfd, VIDIOC_TRY_ENCODER_CMD);
-diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
-index d82db738f174..035c7b7c8d87 100644
---- a/drivers/media/platform/vim2m.c
-+++ b/drivers/media/platform/vim2m.c
-@@ -438,8 +438,6 @@ static int vidioc_querycap(struct file *file, void *priv,
- 	strncpy(cap->card, MEM2MEM_NAME, sizeof(cap->card) - 1);
- 	snprintf(cap->bus_info, sizeof(cap->bus_info),
- 			"platform:%s", MEM2MEM_NAME);
--	cap->device_caps = V4L2_CAP_VIDEO_M2M | V4L2_CAP_STREAMING;
--	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
- 	return 0;
- }
+The following changes since commit 5200ab6a32d6055428896a49ec9e3b1652c1a100:
 
-@@ -999,6 +997,7 @@ static const struct video_device vim2m_videodev = {
- 	.ioctl_ops	= &vim2m_ioctl_ops,
- 	.minor		= -1,
- 	.release	= video_device_release_empty,
-+	.device_caps	= V4L2_CAP_VIDEO_M2M | V4L2_CAP_STREAMING,
- };
+  media: vidioc_cropcap -> vidioc_g_pixelaspect (2018-11-20 13:57:21 -0500)
 
- static const struct v4l2_m2m_ops m2m_ops = {
--- 
-2.19.1
+are available in the Git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git tags/br-v4.21dv2
+
+for you to fetch changes up to 982a0280d5b59963b32e32b14dd77cc14697dfc7:
+
+  media: vicodec: Add support for 4 planes formats (2018-11-21 09:40:32 +0100)
+
+----------------------------------------------------------------
+Tag branch
+
+----------------------------------------------------------------
+Akinobu Mita (5):
+      media: video-i2c: avoid accessing released memory area when removing driver
+      media: video-i2c: use i2c regmap
+      media: v4l2-common: add V4L2_FRACT_COMPARE
+      media: vivid: use V4L2_FRACT_COMPARE
+      media: video-i2c: support changing frame interval
+
+Alexey Khoroshilov (1):
+      media: mtk-vcodec: Release device nodes in mtk_vcodec_init_enc_pm()
+
+Dafna Hirschfeld (3):
+      media: vicodec: prepare support for various number of planes
+      media: vicodec: Add support of greyscale format
+      media: vicodec: Add support for 4 planes formats
+
+Eric Biggers (1):
+      media: v4l: constify v4l2_ioctls[]
+
+Hans Verkuil (2):
+      vim2m/vicodec: set device_caps in video_device struct
+      vidioc-enum-fmt.rst: update list of valid buftypes
+
+Julia Lawall (1):
+      media: video-i2c: hwmon: constify vb2_ops structure
+
+Malathi Gottam (1):
+      media: venus: change the default value of GOP size
+
+ Documentation/media/uapi/v4l/vidioc-enum-fmt.rst      |   8 ++-
+ drivers/media/i2c/video-i2c.c                         | 153 +++++++++++++++++++++++++++++++++++--------------
+ drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_pm.c |  10 ++--
+ drivers/media/platform/qcom/venus/venc_ctrls.c        |   2 +-
+ drivers/media/platform/vicodec/codec-fwht.c           |  84 +++++++++++++++++----------
+ drivers/media/platform/vicodec/codec-fwht.h           |  15 +++--
+ drivers/media/platform/vicodec/codec-v4l2-fwht.c      | 123 +++++++++++++++++++++++++++++----------
+ drivers/media/platform/vicodec/codec-v4l2-fwht.h      |   3 +-
+ drivers/media/platform/vicodec/vicodec-core.c         |  45 +++++++++++----
+ drivers/media/platform/vim2m.c                        |   3 +-
+ drivers/media/platform/vivid/vivid-vid-cap.c          |   9 +--
+ drivers/media/v4l2-core/v4l2-ioctl.c                  |   2 +-
+ include/media/v4l2-common.h                           |   5 ++
+ 13 files changed, 328 insertions(+), 134 deletions(-)
