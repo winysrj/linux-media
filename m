@@ -1,98 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:33620 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726039AbeKURIZ (ORCPT
+Received: from mail-pl1-f196.google.com ([209.85.214.196]:33447 "EHLO
+        mail-pl1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726877AbeKURLR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Nov 2018 12:08:25 -0500
+        Wed, 21 Nov 2018 12:11:17 -0500
+Received: by mail-pl1-f196.google.com with SMTP id z23so4015668plo.0
+        for <linux-media@vger.kernel.org>; Tue, 20 Nov 2018 22:38:06 -0800 (PST)
+From: Tomasz Figa <tfiga@chromium.org>
+To: linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org,
+        Tiffany Lin <tiffany.lin@mediatek.com>,
+        Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        linux-arm-kernel@lists.infradead.org,
+        linux-mediatek@lists.infradead.org, hiroh@chromium.org,
+        Tomasz Figa <tfiga@chromium.org>
+Subject: [PATCH] media: mtk-vcodec: Remove VA from encoder frame buffers
+Date: Wed, 21 Nov 2018 15:37:59 +0900
+Message-Id: <20181121063759.26374-1-tfiga@chromium.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
-Content-Transfer-Encoding: 7bit
-Date: Wed, 21 Nov 2018 12:05:13 +0530
-From: Sibi Sankar <sibis@codeaurora.org>
-To: Malathi Gottam <mgottam@codeaurora.org>
-Cc: stanimir.varbanov@linaro.org, hverkuil@xs4all.nl,
-        mchehab@kernel.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org,
-        acourbot@chromium.org, vgarodia@codeaurora.org,
-        linux-arm-msm-owner@vger.kernel.org
-Subject: Re: [PATCH] arm64: dts: sdm845: add video nodes
-In-Reply-To: <1542708506-12680-1-git-send-email-mgottam@codeaurora.org>
-References: <1542708506-12680-1-git-send-email-mgottam@codeaurora.org>
-Message-ID: <81d44fc3504854220ef7926bc6f0b580@codeaurora.org>
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Malathi,
+The encoder driver has no need to do any CPU access to the source frame
+buffers. Use a separate structure for holding DMA addresses and sizes
+for those and remove, so we do not end up introducing any erroneous
+dereferences of those VAs.
 
-On 2018-11-20 15:38, Malathi Gottam wrote:
-> This adds video nodes to sdm845 based on the examples
-> in the bindings.
-> 
-> Signed-off-by: Malathi Gottam <mgottam@codeaurora.org>
-> ---
->  arch/arm64/boot/dts/qcom/sdm845.dtsi | 34 
-> ++++++++++++++++++++++++++++++++++
->  1 file changed, 34 insertions(+)
-> 
-> diff --git a/arch/arm64/boot/dts/qcom/sdm845.dtsi
-> b/arch/arm64/boot/dts/qcom/sdm845.dtsi
-> index 0c9a2aa..d82487d 100644
-> --- a/arch/arm64/boot/dts/qcom/sdm845.dtsi
-> +++ b/arch/arm64/boot/dts/qcom/sdm845.dtsi
-> @@ -84,6 +84,10 @@
->  			reg = <0 0x86200000 0 0x2d00000>;
->  			no-map;
->  		};
-> +		venus_region: venus@95800000 {
-> +			reg = <0x0 0x95800000 0x0 0x500000>;
-> +			no-map;
-> +		};
+This fixes DMA-buf import from exporters that do not provide contiguous
+kernel mappings, which includes the MTK DRM driver.
 
-nit: Please make this venus_region: memory@95800000
-instead and add a new line before venus_region.
+Signed-off-by: Tomasz Figa <tfiga@chromium.org>
+---
+ drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c  | 6 +-----
+ drivers/media/platform/mtk-vcodec/mtk_vcodec_util.h | 5 +++++
+ drivers/media/platform/mtk-vcodec/venc_drv_if.h     | 2 +-
+ 3 files changed, 7 insertions(+), 6 deletions(-)
 
->  	};
-> 
->  	cpus {
-> @@ -1103,5 +1107,35 @@
->  				status = "disabled";
->  			};
->  		};
-> +
-> +		video-codec@aa00000 {
-> +			compatible = "qcom,sdm845-venus";
-> +			reg = <0x0aa00000 0xff000>;
-> +			interrupts = <GIC_SPI 174 IRQ_TYPE_LEVEL_HIGH>;
-> +			power-domains = <&videocc VENUS_GDSC>;
-> +			clocks = <&videocc VIDEO_CC_VENUS_CTL_CORE_CLK>,
-> +				 <&videocc VIDEO_CC_VENUS_AHB_CLK>,
-> +				 <&videocc VIDEO_CC_VENUS_CTL_AXI_CLK>;
-> +			clock-names = "core", "iface", "bus";
-> +			iommus = <&apps_smmu 0x10a0 0x8>,
-> +				 <&apps_smmu 0x10b0 0x0>;
-> +			memory-region = <&venus_region>;
-> +
-> +			video-core0 {
-> +				compatible = "venus-decoder";
-> +				clocks = <&videocc VIDEO_CC_VCODEC0_CORE_CLK>,
-> +					 <&videocc VIDEO_CC_VCODEC0_AXI_CLK>;
-> +				clock-names = "core", "bus";
-> +				power-domains = <&videocc VCODEC0_GDSC>;
-> +			};
-> +
-> +			video-core1 {
-> +				compatible = "venus-encoder";
-> +				clocks = <&videocc VIDEO_CC_VCODEC1_CORE_CLK>,
-> +					 <&videocc VIDEO_CC_VCODEC1_AXI_CLK>;
-> +				clock-names = "core", "bus";
-> +				power-domains = <&videocc VCODEC1_GDSC>;
-> +			};
-> +		};
->  	};
->  };
-
+diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
+index 54631ad1c71e..d1f12257bf66 100644
+--- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
++++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
+@@ -1087,7 +1087,6 @@ static void mtk_venc_worker(struct work_struct *work)
+ 	src_buf = v4l2_m2m_src_buf_remove(ctx->m2m_ctx);
+ 	memset(&frm_buf, 0, sizeof(frm_buf));
+ 	for (i = 0; i < src_buf->num_planes ; i++) {
+-		frm_buf.fb_addr[i].va = vb2_plane_vaddr(src_buf, i);
+ 		frm_buf.fb_addr[i].dma_addr =
+ 				vb2_dma_contig_plane_dma_addr(src_buf, i);
+ 		frm_buf.fb_addr[i].size =
+@@ -1098,14 +1097,11 @@ static void mtk_venc_worker(struct work_struct *work)
+ 	bs_buf.size = (size_t)dst_buf->planes[0].length;
+ 
+ 	mtk_v4l2_debug(2,
+-			"Framebuf VA=%p PA=%llx Size=0x%zx;VA=%p PA=0x%llx Size=0x%zx;VA=%p PA=0x%llx Size=%zu",
+-			frm_buf.fb_addr[0].va,
++			"Framebuf PA=%llx Size=0x%zx;PA=0x%llx Size=0x%zx;PA=0x%llx Size=%zu",
+ 			(u64)frm_buf.fb_addr[0].dma_addr,
+ 			frm_buf.fb_addr[0].size,
+-			frm_buf.fb_addr[1].va,
+ 			(u64)frm_buf.fb_addr[1].dma_addr,
+ 			frm_buf.fb_addr[1].size,
+-			frm_buf.fb_addr[2].va,
+ 			(u64)frm_buf.fb_addr[2].dma_addr,
+ 			frm_buf.fb_addr[2].size);
+ 
+diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_util.h b/drivers/media/platform/mtk-vcodec/mtk_vcodec_util.h
+index 06c254f5c171..9bf6e8d1b9c9 100644
+--- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_util.h
++++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_util.h
+@@ -25,6 +25,11 @@ struct mtk_vcodec_mem {
+ 	dma_addr_t dma_addr;
+ };
+ 
++struct mtk_vcodec_fb {
++	size_t size;
++	dma_addr_t dma_addr;
++};
++
+ struct mtk_vcodec_ctx;
+ struct mtk_vcodec_dev;
+ 
+diff --git a/drivers/media/platform/mtk-vcodec/venc_drv_if.h b/drivers/media/platform/mtk-vcodec/venc_drv_if.h
+index a6e7d32e55cb..55ecda844894 100644
+--- a/drivers/media/platform/mtk-vcodec/venc_drv_if.h
++++ b/drivers/media/platform/mtk-vcodec/venc_drv_if.h
+@@ -106,7 +106,7 @@ struct venc_enc_param {
+  * @fb_addr: plane frame buffer addresses
+  */
+ struct venc_frm_buf {
+-	struct mtk_vcodec_mem fb_addr[MTK_VCODEC_MAX_PLANES];
++	struct mtk_vcodec_fb fb_addr[MTK_VCODEC_MAX_PLANES];
+ };
+ 
+ /*
 -- 
--- Sibi Sankar --
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-a Linux Foundation Collaborative Project.
+2.19.1.1215.g8438c0b245-goog
