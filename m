@@ -1,85 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lj1-f193.google.com ([209.85.208.193]:44130 "EHLO
-        mail-lj1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725939AbeKUQ6P (ORCPT
+Received: from smtp.codeaurora.org ([198.145.29.96]:33620 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726039AbeKURIZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Nov 2018 11:58:15 -0500
+        Wed, 21 Nov 2018 12:08:25 -0500
 MIME-Version: 1.0
-References: <20181115154314.GA27850@jordon-HP-15-Notebook-PC>
-In-Reply-To: <20181115154314.GA27850@jordon-HP-15-Notebook-PC>
-From: Souptick Joarder <jrdr.linux@gmail.com>
-Date: Wed, 21 Nov 2018 11:54:52 +0530
-Message-ID: <CAFqt6zZGP5DnAQd_19xKcLezOYaLsZpPr=FGxiTb7JRjTEJ4cA@mail.gmail.com>
-Subject: Re: [PATCH 0/9] Use vm_insert_range
-To: Andrew Morton <akpm@linux-foundation.org>,
-        Matthew Wilcox <willy@infradead.org>,
-        Michal Hocko <mhocko@suse.com>,
-        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
-        vbabka@suse.cz, Rik van Riel <riel@surriel.com>,
-        Stephen Rothwell <sfr@canb.auug.org.au>,
-        rppt@linux.vnet.ibm.com, Peter Zijlstra <peterz@infradead.org>,
-        Russell King - ARM Linux <linux@armlinux.org.uk>,
-        robin.murphy@arm.com, iamjoonsoo.kim@lge.com, treding@nvidia.com,
-        Kees Cook <keescook@chromium.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        stefanr@s5r6.in-berlin.de, hjc@rock-chips.com,
-        Heiko Stuebner <heiko@sntech.de>, airlied@linux.ie,
-        oleksandr_andrushchenko@epam.com, joro@8bytes.org,
-        pawel@osciak.com, Kyungmin Park <kyungmin.park@samsung.com>,
-        mchehab@kernel.org, Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-        Juergen Gross <jgross@suse.com>
-Cc: linux-kernel@vger.kernel.org, Linux-MM <linux-mm@kvack.org>,
-        linux-arm-kernel@lists.infradead.org,
-        linux1394-devel@lists.sourceforge.net,
-        dri-devel@lists.freedesktop.org,
-        linux-rockchip@lists.infradead.org, xen-devel@lists.xen.org,
-        iommu@lists.linux-foundation.org, linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+Date: Wed, 21 Nov 2018 12:05:13 +0530
+From: Sibi Sankar <sibis@codeaurora.org>
+To: Malathi Gottam <mgottam@codeaurora.org>
+Cc: stanimir.varbanov@linaro.org, hverkuil@xs4all.nl,
+        mchehab@kernel.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org,
+        acourbot@chromium.org, vgarodia@codeaurora.org,
+        linux-arm-msm-owner@vger.kernel.org
+Subject: Re: [PATCH] arm64: dts: sdm845: add video nodes
+In-Reply-To: <1542708506-12680-1-git-send-email-mgottam@codeaurora.org>
+References: <1542708506-12680-1-git-send-email-mgottam@codeaurora.org>
+Message-ID: <81d44fc3504854220ef7926bc6f0b580@codeaurora.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Nov 15, 2018 at 9:09 PM Souptick Joarder <jrdr.linux@gmail.com> wrote:
->
-> Previouly drivers have their own way of mapping range of
-> kernel pages/memory into user vma and this was done by
-> invoking vm_insert_page() within a loop.
->
-> As this pattern is common across different drivers, it can
-> be generalized by creating a new function and use it across
-> the drivers.
->
-> vm_insert_range is the new API which will be used to map a
-> range of kernel memory/pages to user vma.
->
-> All the applicable places are converted to use new vm_insert_range
-> in this patch series.
->
-> Souptick Joarder (9):
->   mm: Introduce new vm_insert_range API
->   arch/arm/mm/dma-mapping.c: Convert to use vm_insert_range
->   drivers/firewire/core-iso.c: Convert to use vm_insert_range
->   drm/rockchip/rockchip_drm_gem.c: Convert to use vm_insert_range
->   drm/xen/xen_drm_front_gem.c: Convert to use vm_insert_range
->   iommu/dma-iommu.c: Convert to use vm_insert_range
->   videobuf2/videobuf2-dma-sg.c: Convert to use vm_insert_range
->   xen/gntdev.c: Convert to use vm_insert_range
->   xen/privcmd-buf.c: Convert to use vm_insert_range
+Hi Malathi,
 
-Any further comment on driver changes ?
->
->  arch/arm/mm/dma-mapping.c                         | 21 ++++++-----------
->  drivers/firewire/core-iso.c                       | 15 ++----------
->  drivers/gpu/drm/rockchip/rockchip_drm_gem.c       | 20 ++--------------
->  drivers/gpu/drm/xen/xen_drm_front_gem.c           | 20 +++++-----------
->  drivers/iommu/dma-iommu.c                         | 12 ++--------
->  drivers/media/common/videobuf2/videobuf2-dma-sg.c | 23 ++++++-------------
->  drivers/xen/gntdev.c                              | 11 ++++-----
->  drivers/xen/privcmd-buf.c                         |  8 ++-----
->  include/linux/mm_types.h                          |  3 +++
->  mm/memory.c                                       | 28 +++++++++++++++++++++++
->  mm/nommu.c                                        |  7 ++++++
->  11 files changed, 70 insertions(+), 98 deletions(-)
->
-> --
-> 1.9.1
->
+On 2018-11-20 15:38, Malathi Gottam wrote:
+> This adds video nodes to sdm845 based on the examples
+> in the bindings.
+> 
+> Signed-off-by: Malathi Gottam <mgottam@codeaurora.org>
+> ---
+>  arch/arm64/boot/dts/qcom/sdm845.dtsi | 34 
+> ++++++++++++++++++++++++++++++++++
+>  1 file changed, 34 insertions(+)
+> 
+> diff --git a/arch/arm64/boot/dts/qcom/sdm845.dtsi
+> b/arch/arm64/boot/dts/qcom/sdm845.dtsi
+> index 0c9a2aa..d82487d 100644
+> --- a/arch/arm64/boot/dts/qcom/sdm845.dtsi
+> +++ b/arch/arm64/boot/dts/qcom/sdm845.dtsi
+> @@ -84,6 +84,10 @@
+>  			reg = <0 0x86200000 0 0x2d00000>;
+>  			no-map;
+>  		};
+> +		venus_region: venus@95800000 {
+> +			reg = <0x0 0x95800000 0x0 0x500000>;
+> +			no-map;
+> +		};
+
+nit: Please make this venus_region: memory@95800000
+instead and add a new line before venus_region.
+
+>  	};
+> 
+>  	cpus {
+> @@ -1103,5 +1107,35 @@
+>  				status = "disabled";
+>  			};
+>  		};
+> +
+> +		video-codec@aa00000 {
+> +			compatible = "qcom,sdm845-venus";
+> +			reg = <0x0aa00000 0xff000>;
+> +			interrupts = <GIC_SPI 174 IRQ_TYPE_LEVEL_HIGH>;
+> +			power-domains = <&videocc VENUS_GDSC>;
+> +			clocks = <&videocc VIDEO_CC_VENUS_CTL_CORE_CLK>,
+> +				 <&videocc VIDEO_CC_VENUS_AHB_CLK>,
+> +				 <&videocc VIDEO_CC_VENUS_CTL_AXI_CLK>;
+> +			clock-names = "core", "iface", "bus";
+> +			iommus = <&apps_smmu 0x10a0 0x8>,
+> +				 <&apps_smmu 0x10b0 0x0>;
+> +			memory-region = <&venus_region>;
+> +
+> +			video-core0 {
+> +				compatible = "venus-decoder";
+> +				clocks = <&videocc VIDEO_CC_VCODEC0_CORE_CLK>,
+> +					 <&videocc VIDEO_CC_VCODEC0_AXI_CLK>;
+> +				clock-names = "core", "bus";
+> +				power-domains = <&videocc VCODEC0_GDSC>;
+> +			};
+> +
+> +			video-core1 {
+> +				compatible = "venus-encoder";
+> +				clocks = <&videocc VIDEO_CC_VCODEC1_CORE_CLK>,
+> +					 <&videocc VIDEO_CC_VCODEC1_AXI_CLK>;
+> +				clock-names = "core", "bus";
+> +				power-domains = <&videocc VCODEC1_GDSC>;
+> +			};
+> +		};
+>  	};
+>  };
+
+-- 
+-- Sibi Sankar --
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project.
