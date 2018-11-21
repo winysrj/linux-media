@@ -1,77 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lelv0143.ext.ti.com ([198.47.23.248]:58642 "EHLO
-        lelv0143.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726001AbeKUVEO (ORCPT
+Received: from mail-wr1-f67.google.com ([209.85.221.67]:34665 "EHLO
+        mail-wr1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726172AbeKUVeZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Nov 2018 16:04:14 -0500
-Subject: Re: [PATCH v2 8/9] phy: Add Cadence D-PHY support
-To: Maxime Ripard <maxime.ripard@bootlin.com>
-CC: Boris Brezillon <boris.brezillon@bootlin.com>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        <linux-media@vger.kernel.org>,
-        Archit Taneja <architt@codeaurora.org>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Chen-Yu Tsai <wens@csie.org>, <linux-kernel@vger.kernel.org>,
-        <dri-devel@lists.freedesktop.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        Krzysztof Witos <kwitos@cadence.com>,
-        Rafal Ciepiela <rafalc@cadence.com>
-References: <cover.c2c2ae47383b9dbbdee6b69cafdd7391c06dde4f.1541516029.git-series.maxime.ripard@bootlin.com>
- <4ec9e47fb5aa9794f69a8e75a04108055094c056.1541516029.git-series.maxime.ripard@bootlin.com>
- <5f5bcc06-51b2-d565-56a0-083c66c1f01a@ti.com>
- <8536050b-40ab-1ec4-d325-e59bb3a92e73@ti.com>
- <20181121101121.7rhe2hz2mnmc72cu@flea>
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Message-ID: <20c0fd85-95f6-9849-c10b-998a1e0f527d@ti.com>
-Date: Wed, 21 Nov 2018 15:59:43 +0530
+        Wed, 21 Nov 2018 16:34:25 -0500
+Received: by mail-wr1-f67.google.com with SMTP id j2so5206921wrw.1
+        for <linux-media@vger.kernel.org>; Wed, 21 Nov 2018 03:00:29 -0800 (PST)
+From: Rui Miguel Silva <rui.silva@linaro.org>
+To: sakari.ailus@linux.intel.com
+Cc: linux-media@vger.kernel.org,
+        Javier Martinez Canillas <javierm@redhat.com>,
+        Rui Miguel Silva <rui.silva@linaro.org>
+Subject: [PATCH] media: ov2680: fix null dereference at power on
+Date: Wed, 21 Nov 2018 10:59:55 +0000
+Message-Id: <20181121105955.9217-1-rui.silva@linaro.org>
 MIME-Version: 1.0
-In-Reply-To: <20181121101121.7rhe2hz2mnmc72cu@flea>
-Content-Type: text/plain; charset="windows-1252"
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Maxime,
+Swapping the order between v4l2 subdevice registration and checking chip id in
+b7a417628abf ("media: ov2680: don't register the v4l2 subdevice before checking chip ID")
+makes the mode restore to use the sensor controls before they are set, so move
+the mode restore call to s_power after the handler setup for controls is done.
 
-On 21/11/18 3:41 PM, Maxime Ripard wrote:
-> Hi Kishon,
-> 
-> On Tue, Nov 20, 2018 at 11:02:34AM +0530, Kishon Vijay Abraham I wrote:
->>>> +static int cdns_dphy_config_from_opts(struct phy *phy,
->>>> +				      struct phy_configure_opts_mipi_dphy *opts,
->>>> +				      struct cdns_dphy_cfg *cfg)
->>>> +{
->>>> +	struct cdns_dphy *dphy = phy_get_drvdata(phy);
->>>> +	unsigned int dsi_hfp_ext = 0;
->>>> +	int ret;
->>>> +
->>>> +	ret = phy_mipi_dphy_config_validate(opts);
->>>> +	if (ret)
->>>> +		return ret;
->>>> +
->>>> +	ret = cdns_dsi_get_dphy_pll_cfg(dphy, cfg,
->>>> +					opts, &dsi_hfp_ext);
->>>> +	if (ret)
->>>> +		return ret;
->>>> +
->>>> +	opts->wakeup = cdns_dphy_get_wakeup_time_ns(dphy);
->>
->> Is the wakeup populated here used by the consumer driver?
-> 
-> It's supposed to, if it can yes.
+This remove also the need for the error code path in power on function.
 
-But I guess right now it's not using. I'm thinking the usefulness of validate
-callback (only from this series point of view). Why should a consumer driver
-invoke validate if it doesn't intend to configure the PHY?
+Fixes: b7a417628abf ("media: ov2680: don't register the v4l2 subdevice before checking chip ID")
 
-The 3 steps required are
-	* The consumer driver gets the default config
-	* The consumer driver changes some of the configuration and
-	* The consumer driver invokes phy configure callback.
+Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+---
+ drivers/media/i2c/ov2680.c | 12 ++----------
+ 1 file changed, 2 insertions(+), 10 deletions(-)
 
-phy_configure anyways can validate the config before actually configuring the phy.
-
-Thanks
-Kishon
+diff --git a/drivers/media/i2c/ov2680.c b/drivers/media/i2c/ov2680.c
+index 0e34e15b67b3..b10bcfabaeeb 100644
+--- a/drivers/media/i2c/ov2680.c
++++ b/drivers/media/i2c/ov2680.c
+@@ -568,10 +568,6 @@ static int ov2680_power_on(struct ov2680_dev *sensor)
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	ret = ov2680_mode_restore(sensor);
+-	if (ret < 0)
+-		goto disable;
+-
+ 	sensor->is_enabled = true;
+ 
+ 	/* Set clock lane into LP-11 state */
+@@ -580,12 +576,6 @@ static int ov2680_power_on(struct ov2680_dev *sensor)
+ 	ov2680_stream_disable(sensor);
+ 
+ 	return 0;
+-
+-disable:
+-	dev_err(dev, "failed to enable sensor: %d\n", ret);
+-	ov2680_power_off(sensor);
+-
+-	return ret;
+ }
+ 
+ static int ov2680_s_power(struct v4l2_subdev *sd, int on)
+@@ -606,6 +596,8 @@ static int ov2680_s_power(struct v4l2_subdev *sd, int on)
+ 		ret = v4l2_ctrl_handler_setup(&sensor->ctrls.handler);
+ 		if (ret < 0)
+ 			return ret;
++
++		ret = ov2680_mode_restore(sensor);
+ 	}
+ 
+ 	return ret;
+-- 
+2.19.1
