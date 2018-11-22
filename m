@@ -1,105 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:59654 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1731714AbeKVTgE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Nov 2018 14:36:04 -0500
-Subject: Re: [PATCH v2 2/2] media: video-i2c: add Melexis MLX90640 thermal
- camera support
-To: Matt Ranostay <matt.ranostay@konsulko.com>,
-        linux-media@vger.kernel.org
-Cc: devicetree@vger.kernel.org
-References: <20181122035229.3630-1-matt.ranostay@konsulko.com>
- <20181122035229.3630-3-matt.ranostay@konsulko.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <4e408e8a-414b-a6cd-37c6-ce3a378c6e25@xs4all.nl>
-Date: Thu, 22 Nov 2018 09:57:28 +0100
-MIME-Version: 1.0
-In-Reply-To: <20181122035229.3630-3-matt.ranostay@konsulko.com>
-Content-Type: text/plain; charset=utf-8
+Received: from mga03.intel.com ([134.134.136.65]:28192 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1731655AbeKVTiV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 22 Nov 2018 14:38:21 -0500
+From: "Zhang, Ning A" <ning.a.zhang@intel.com>
+To: "tfiga@chromium.org" <tfiga@chromium.org>
+CC: "Zhang, Ning A" <ning.a.zhang@intel.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: is it possible to use single IOCTL to setup media pipeline?
+Date: Thu, 22 Nov 2018 08:59:44 +0000
+Message-ID: <1542877183.1288.34.camel@intel.com>
+References: <1542855107.1288.32.camel@intel.com>
+         <CAAFQd5CSXQw2Nk7TMij4qQx6V5diLg8LpuSKOrZG86cWo3vKxg@mail.gmail.com>
+In-Reply-To: <CAAFQd5CSXQw2Nk7TMij4qQx6V5diLg8LpuSKOrZG86cWo3vKxg@mail.gmail.com>
 Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <0B2D429D1B69614CBE7AAB985C511EAE@intel.com>
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/22/2018 04:52 AM, Matt Ranostay wrote:
-> Add initial support for MLX90640 thermal cameras which output an 32x24
-> greyscale pixel image along with 2 rows of coefficent data.
-> 
-> Because of this the data outputed is really 32x26 and needs the two rows
-> removed after using the coefficent information to generate processed
-> images in userspace.
-> 
-> Cc: devicetree@vger.kernel.org
-> Signed-off-by: Matt Ranostay <matt.ranostay@konsulko.com>
-> ---
->  .../bindings/media/i2c/melexis,mlx90640.txt   |  20 ++++
->  drivers/media/i2c/Kconfig                     |   1 +
->  drivers/media/i2c/video-i2c.c                 | 110 +++++++++++++++++-
->  3 files changed, 130 insertions(+), 1 deletion(-)
->  create mode 100644 Documentation/devicetree/bindings/media/i2c/melexis,mlx90640.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/i2c/melexis,mlx90640.txt b/Documentation/devicetree/bindings/media/i2c/melexis,mlx90640.txt
-> new file mode 100644
-> index 000000000000..060d2b7a5893
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/i2c/melexis,mlx90640.txt
-> @@ -0,0 +1,20 @@
-> +* Melexis MLX90640 FIR Sensor
-> +
-> +Melexis MLX90640 FIR sensor support which allows recording of thermal data
-> +with 32x24 resolution excluding 2 lines of coefficient data that is used by
-> +userspace to render processed frames.
-
-So this means that the image doesn't conform to V4L2_PIX_FMT_Y12!
-
-I missed that the first time around.
-
-You have three options here:
-
-1) Create a new V4L2_PIX_FMT define + documentation describing the format that
-   this device produces.
-
-2) Split off the image from the meta data and create a new META_CAPTURE device
-   node. For the META device node you would again have to document the format
-
-3) Split off the image from the meta data and store the meta data in a V4L2
-   control, which again has to be documented.
-
-I'm leaning towards 1 since that's easiest to implement. But the key is that
-you should document those two lines. The datasheet is publicly available,
-so you can refer to it for details.
-
-Those extra two lines return addresses 0x700-0x73f, right? Is it even sufficient
-to calculate the relevant data from just those lines? Looking at 11.2.2 there
-is a whole calculation that should be done that is also dependent on the eeprom
-values, which are not exported.
-
-I wonder if it isn't the job of the driver to do all the calculations. It has
-all the information it needs and looking at the datasheet it seems all the
-calculations are integer based, so it shouldn't be too difficult. This would
-be a fourth option.
-
-BTW, did we document somewhere what the panasonic device returns? It returns
-Y12 data, but what does that data mean? In order to use this in userspace you
-need to be able to convert it to temperatures, so how is that done?
-
-Regards,
-
-	Hans
-
-> +
-> +Required Properties:
-> + - compatible : Must be "melexis,mlx90640"
-> + - reg : i2c address of the device
-> +
-> +Example:
-> +
-> +	i2c0@1c22000 {
-> +		...
-> +		mlx90640@33 {
-> +			compatible = "melexis,mlx90640";
-> +			reg = <0x33>;
-> +		};
-> +		...
-> +	};
+VG9tYXN6LCBUaGFuayB5b3UgZm9yIHlvdXIgYW5zd2Vycy4NCg0KbGVhcm5lZCBhIGxvdC4NCg0K
+QlIuDQpOaW5nLg0KDQrlnKggMjAxOC0xMS0yMuWbm+eahCAxNjowNiArMDkwMO+8jFRvbWFzeiBG
+aWdh5YaZ6YGT77yaDQo+IEhpIE5pbmcsDQo+IA0KPiBPbiBUaHUsIE5vdiAyMiwgMjAxOCBhdCAx
+MTo1MiBBTSBaaGFuZywgTmluZyBBIDxuaW5nLmEuemhhbmdAaW50ZWwuY28NCj4gbT4gd3JvdGU6
+DQo+ID4gDQo+ID4gSGVsbG8gZXZlcnlvbmUNCj4gPiANCj4gPiB3aGVuIHdlIG5lZWQgdG8gc2V0
+dXAgbWVkaWEgcGlwZWxpbmUsIGVnLCBmb3IgY2FtZXJhIGNhcHR1cmUsDQo+ID4gbWVkaWEtY3Rs
+DQo+ID4gbmVlZHMgdG8gYmUgY2FsbGVkIG11bHRpcGxlIHRpbWUgdG8gc2V0dXAgbWVkaWEgbGlu
+ayBhbmQgc3ViZGV2DQo+ID4gZm9ybWF0cywgb3Igc2ltaWxhciBjb2RlIGluIGEgc2luZ2xlIGFw
+cGxpY2F0aW9uLiB0aGlzIHdpbGwgdXNlDQo+ID4gbXVsdGlwbGUgSU9DVExzIG9uICIvZGV2L21l
+ZGlhWCIgYW5kICIvZGV2L3Y0bDItc3ViZGV2WSIuDQo+ID4gDQo+ID4gdG8gc2V0dXAgbWVkaWEg
+cGlwZWxpbmUgaW4gdXNlcnNwYWNlIHJlcXVpcmVzIHRvIGZ1bGx5DQo+ID4gdW5kZXJzdGFuZGlu
+Zw0KPiA+IHRoZSB0b3BvbG9neSBvZiB0aGUgbWVkaWEgc3RhY2suIGJ1dCB0aGUgZmFjdCBpcyBv
+bmx5IG1lZGlhIGRyaXZlcg0KPiA+IGRldmVsb3BlciBjb3VsZCBrbm93IGhvdyB0byBzZXR1cCBt
+ZWRpYSBwaXBlbGluZS4gZWFjaCB0aW1lIGRyaXZlcg0KPiA+IHVwZGF0ZXMsIHRoaXMgd291bGQg
+YnJlYWsgdXNlcnNwYWNlIGFwcGxpY2F0aW9uIGlmIGFwcGxpY2F0aW9uDQo+ID4gZW5naW5lZXJz
+IGRvbid0IGtub3cgdGhpcyBjaGFuZ2UuDQo+IA0KPiBUaGF0J3Mgb2J2aW91c2x5IGEgYnVnIGlu
+IHRoZSBkcml2ZXIuIEtlcm5lbCBpbnRlcmZhY2VzIG11c3Qgbm90DQo+IGNoYW5nZSBpbiBhIHdh
+eSB0aGF0IGFyZSBub3QgY29tcGF0aWJsZSB3aXRoIHRoZSB1c2Vyc3BhY2UuDQoNCkkgbWV0IHRo
+aXMgaXNzdWUgOigNCg0KPiANCj4gPiBJbiB0aGlzIGNhc2UsIGlmIGEgSU9DVEwgaXMgZGVzaWdu
+ZWQNCj4gPiB0byBzZXR1cCBtZWRpYSBwaXBlbGluZSwgbm8gbmVlZCB0byB1cGRhdGUgYXBwbGlj
+YXRpb25zLCBhZnRlcg0KPiA+IGRyaXZlcg0KPiA+IGlzIHVwZGF0ZWQuDQo+ID4gDQo+ID4gdGhp
+cyB3aWxsIG5vdCBvbmx5IGJlbmVmaXQgZm9yIGRlc2lnbiBhIHNpbmdsZSBJT0NUTCwgdGhpcyBh
+bHNvDQo+ID4gaGVscHMNCj4gPiB0byBoaWRlIHRoZSBkZXRhaWwgb2YgbWVkaWEgcGlwZWxpbmUs
+IGJ5IGxvYWQgYSBiaW5hcnkgYmxvYiB3aGljaA0KPiA+IGhvbGRzDQo+ID4gaW5mb3JtYXRpb24g
+YWJvdXQgaG93IHRvIHNldHVwIHBpcGVsaW5lLCBvciBoaWRlIGl0IGluDQo+ID4gYm9vdGxvYWRl
+ci9BQ1BJDQo+ID4gdGFibGVzL2RldmljZSB0cmVlLCBldGMuDQo+IA0KPiBNZWRpYSBwaXBlbGlu
+ZSBjb25maWd1cmF0aW9uIGlzIHNwZWNpZmljIHRvIHRoZSB1c2UgY2FzZS4gSWYgeW91DQo+IGhh
+cmRjb2RlIGl0IGluIHRoZSBkcml2ZXIgb3IgYm9vdGxvYWRlciwgdGhlIHVzZXIgd2lsbCBub3Qg
+YmUgYWJsZSB0bw0KPiB1c2UgYW55IG90aGVyIHVzZSBjYXNlIHRoYW4gdGhlIGhhcmRjb2RlZCBi
+bG9iLCB3aGljaCBpcyB1bmFjY2VwdGFibGUNCj4gZm9yIExpbnV4IGRyaXZlcnMuDQo+IA0KPiBJ
+bnN0ZWFkLCBpdCBzb3VuZHMgbGlrZSB5b3VyIHVzZXJzcGFjZSBzaG91bGQgYmUgZGVzaWduZWQg
+aW4gYSB3YXkNCj4gdGhhdCB0aGUgbWVkaWEgdG9wb2xvZ3kgY29uZmlndXJhdGlvbiBpcyBsb2Fk
+ZWQgZnJvbSBhIGNvbmZpZ3VyYXRpb24NCj4gZmlsZSB0aGF0IHlvdSBjb3VsZCBlaXRoZXIgZ2V0
+IGZyb20geW91ciBrZXJuZWwgZHJpdmVyIGRldmVsb3BlciBvcg0KPiBqdXN0IG1haW50YWluIHlv
+dXJzZWxmIGJhc2VkIG9uIGFueSBjaGFuZ2VzIHRoZSBtZWRpYSBkZXZlbG9wZXJzIGRvLg0KPiBP
+ZiBjb3Vyc2UgdGhhdCdzIHVucmVsYXRlZCB0byB0aGUgYmFja3dhcmRzIGNvbXBhdGliaWxpdHkg
+aXNzdWUsDQo+IHdoaWNoDQo+IHNob3VsZCBub3QgaGFwcGVuIG5vcm1hbGx5LiBUaGUgY29uZmln
+dXJhdGlvbiBmaWxlIHdvdWxkIGJlIGhlbHBmdWwNCj4gZm9yIGhhbmRsaW5nIGZ1dHVyZSBleHRl
+bnNpb25zIGFuZCBuZXcgaGFyZHdhcmUgcGxhdGZvcm1zLg0KDQp5ZXMsIGlmIHRoZXJlIGFyZSBt
+dWx0aXBsZSB1c2VyIGNhc2VzLCB0aGVuIHRoaXMgaXMgbm90IG9wdGlvbmFsLg0KDQo+IA0KPiA+
+IA0KPiA+IGFub3RoZXIgYmVuZWZpdCBpcyBzYXZlIHRpbWUgZm9yIHNldHVwIG1lZGlhIHBpcGVs
+aW5lLCBpZiB0aGVyZSBpcw0KPiA+IGENCj4gPiBQS0kgbGlrZSAidGltZSBmb3Igb3BlbiBjYW1l
+cmEiLiBhcyBteSB0ZXN0LCB0aGlzIHdpbGwgc2F2ZXMNCj4gPiBodW5kcmVkcw0KPiA+IG9mIG1p
+bGxpc2Vjb25kcy4NCj4gDQo+IEZvciB0aGlzIHByb2JsZW0sIHRoZSBwcm9wZXIgc29sdXRpb24g
+d291bGQgYmUgdG8gY3JlYXRlIGFuIGlvY3RsDQo+IHRoYXQNCj4gY2FuIGFnZ3JlZ2F0ZSBzZXR0
+aW5nIG11bHRpcGxlIHBhcnRzIG9mIHRoZSB0b3BvbG9neSBpbiBvbmUgZ28uIEZvcg0KPiBleGFt
+cGxlLCBWNEwyIGhhcyBWSURJT0NfU19DVFJMIGZvciBzZXR0aW5nIGEgY29udHJvbCwgYnV0IHRo
+ZXJlIGlzDQo+IGFsc28gVklESU9DX1NfRVhUX0NUUkxTLCB3aGljaCBsZXRzIHlvdSBzZXQgbXVs
+dGlwbGUgY29udHJvbHMgaW4gb25lDQo+IGNhbGwuIFNvbWV0aGluZyBsaWtlIFZJRElPQ19TX0VY
+VF9DVFJMUyBmb3IgY29uZmlndXJpbmcgdGhlIG1lZGlhDQo+IHRvcG9sb2d5IHdvdWxkIHNvbHZl
+IHRoZSBwZXJmb3JtYW5jZSBwcm9ibGVtLg0KDQp0aGlzIG1heSBiZSBhbHRlcm5hdGl2ZSBjaG9p
+Y2UuDQoNCj4gDQo+IA0KPiBCZXN0IHJlZ2FyZHMsDQo+IFRvbWFzeg==
