@@ -1,117 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57124 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1729105AbeKVXKE (ORCPT
+Received: from mail-ed1-f65.google.com ([209.85.208.65]:40674 "EHLO
+        mail-ed1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729105AbeKVXMy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Nov 2018 18:10:04 -0500
-Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id 0B724634C93
-        for <linux-media@vger.kernel.org>; Thu, 22 Nov 2018 14:30:53 +0200 (EET)
-Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
-        (envelope-from <sakari.ailus@retiisi.org.uk>)
-        id 1gPo8C-000189-Pg
-        for linux-media@vger.kernel.org; Thu, 22 Nov 2018 14:30:52 +0200
-Date: Thu, 22 Nov 2018 14:30:52 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL for 4.21] Sensor and CSI driver patches
-Message-ID: <20181122123052.rvjbzbuuvsniwgyv@valkosipuli.retiisi.org.uk>
+        Thu, 22 Nov 2018 18:12:54 -0500
+Received: by mail-ed1-f65.google.com with SMTP id d3so7574651edx.7
+        for <linux-media@vger.kernel.org>; Thu, 22 Nov 2018 04:33:43 -0800 (PST)
+Received: from mail-wr1-f44.google.com (mail-wr1-f44.google.com. [209.85.221.44])
+        by smtp.gmail.com with ESMTPSA id f35sm5102159edd.80.2018.11.22.04.33.41
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 22 Nov 2018 04:33:41 -0800 (PST)
+Received: by mail-wr1-f44.google.com with SMTP id j2so9126342wrw.1
+        for <linux-media@vger.kernel.org>; Thu, 22 Nov 2018 04:33:41 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+References: <20181114145934.26855-1-maxime.ripard@bootlin.com>
+ <20181114145934.26855-4-maxime.ripard@bootlin.com> <CAMty3ZDFsaFR1zb3Wt0wJ0XkeNuSHGxDsmZZKgWy=wxJpNTnHQ@mail.gmail.com>
+In-Reply-To: <CAMty3ZDFsaFR1zb3Wt0wJ0XkeNuSHGxDsmZZKgWy=wxJpNTnHQ@mail.gmail.com>
+From: Chen-Yu Tsai <wens@csie.org>
+Date: Thu, 22 Nov 2018 20:33:29 +0800
+Message-ID: <CAGb2v67dprbvVNtR-ciH+1d1EsmCejmAMBQ_-y-Jb6Z3S11abA@mail.gmail.com>
+Subject: Re: [PATCH v2 3/4] ARM: dts: sun8i: Add the H3/H5 CSI controller
+To: Jagan Teki <jagan@amarulasolutions.com>
+Cc: Maxime Ripard <maxime.ripard@bootlin.com>,
+        Yong Deng <yong.deng@magewell.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        =?UTF-8?Q?Myl=C3=A8ne_Josserand?= <mylene.josserand@bootlin.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Thu, Nov 22, 2018 at 7:45 PM Jagan Teki <jagan@amarulasolutions.com> wrote:
+>
+> On Wed, Nov 14, 2018 at 8:29 PM Maxime Ripard <maxime.ripard@bootlin.com> wrote:
+> >
+> > From: Mylène Josserand <mylene.josserand@bootlin.com>
+> >
+> > The H3 and H5 features the same CSI controller that was initially found on
+> > the A31.
+> >
+> > Add a DT node for it.
+> >
+> > Signed-off-by: Mylène Josserand <mylene.josserand@bootlin.com>
+> > Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
+> > ---
+> >  arch/arm/boot/dts/sunxi-h3-h5.dtsi | 22 ++++++++++++++++++++++
+> >  1 file changed, 22 insertions(+)
+> >
+> > diff --git a/arch/arm/boot/dts/sunxi-h3-h5.dtsi b/arch/arm/boot/dts/sunxi-h3-h5.dtsi
+> > index 4b1530ebe427..8779ee750bd8 100644
+> > --- a/arch/arm/boot/dts/sunxi-h3-h5.dtsi
+> > +++ b/arch/arm/boot/dts/sunxi-h3-h5.dtsi
+> > @@ -393,6 +393,13 @@
+> >                         interrupt-controller;
+> >                         #interrupt-cells = <3>;
+> >
+> > +                       csi_pins: csi {
+> > +                               pins = "PE0", "PE1", "PE2", "PE3", "PE4",
+> > +                                      "PE5", "PE6", "PE7", "PE8", "PE9",
+> > +                                      "PE10", "PE11";
+> > +                               function = "csi";
+> > +                       };
+> > +
+> >                         emac_rgmii_pins: emac0 {
+> >                                 pins = "PD0", "PD1", "PD2", "PD3", "PD4",
+> >                                        "PD5", "PD7", "PD8", "PD9", "PD10",
+> > @@ -744,6 +751,21 @@
+> >                         interrupts = <GIC_PPI 9 (GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_HIGH)>;
+> >                 };
+> >
+> > +               csi: camera@1cb0000 {
+> > +                       compatible = "allwinner,sun8i-h3-csi",
+> > +                                    "allwinner,sun6i-a31-csi";
+> > +                       reg = <0x01cb0000 0x1000>;
+> > +                       interrupts = <GIC_SPI 84 IRQ_TYPE_LEVEL_HIGH>;
+> > +                       clocks = <&ccu CLK_BUS_CSI>,
+> > +                                <&ccu CLK_CSI_SCLK>,
+> > +                                <&ccu CLK_DRAM_CSI>;
+> > +                       clock-names = "bus", "mod", "ram";
+>
+> Don't we need CLK_CSI_MCLK which can be pinout via PE1?
 
-Here are a bunch of sensor driver improvements as well as a driver for the
-Allwinner CSI parallel bridge. Finally, a small uAPI documentation fix to
-better document the metadata capture buffers as well as interaction between
-frame interval and format.
+The CSI hardware block does not have any controls for MCLK.
+It's simply routed from the CCU directly to the pin.
 
-Please pull.
-
-
-The following changes since commit 5200ab6a32d6055428896a49ec9e3b1652c1a100:
-
-  media: vidioc_cropcap -> vidioc_g_pixelaspect (2018-11-20 13:57:21 -0500)
-
-are available in the git repository at:
-
-  ssh://linuxtv.org/git/sailus/media_tree.git tags/for-4.21-3-sign
-
-for you to fetch changes up to a5dd7998bbee2275e19d64060d634e901d7533f5:
-
-  media: ov2680: fix null dereference at power on (2018-11-22 13:35:51 +0200)
-
-----------------------------------------------------------------
-sensor patches and stuff
-
-----------------------------------------------------------------
-Akinobu Mita (7):
-      media: mt9m111: support log_status ioctl and event interface
-      media: mt9m111: add V4L2_CID_COLORFX control
-      media: ov2640: add V4L2_CID_TEST_PATTERN control
-      media: ov2640: support log_status ioctl and event interface
-      media: ov5640: support log_status ioctl and event interface
-      media: ov7670: support log_status ioctl and event interface
-      media: ov772x: support log_status ioctl and event interface
-
-Chen, JasonX Z (1):
-      media: imx258: remove test pattern map from driver
-
-Maxime Ripard (2):
-      dt-bindings: media: sun6i: Add A31 and H3 compatibles
-      media: sun6i: Add A31 compatible
-
-Nathan Chancellor (1):
-      media: imx214: Remove unnecessary self assignment in for loop
-
-Rui Miguel Silva (1):
-      media: ov2680: fix null dereference at power on
-
-Sakari Ailus (2):
-      v4l: uAPI doc: Simplify NATIVE_SIZE selection target documentation
-      v4l: uAPI doc: Changing frame interval won't change format
-
-Yong Deng (2):
-      dt-bindings: media: Add Allwinner V3s Camera Sensor Interface (CSI)
-      media: V3s: Add support for Allwinner CSI.
-
- .../devicetree/bindings/media/sun6i-csi.txt        |  59 ++
- .../media/uapi/v4l/v4l2-selection-targets.rst      |   7 +-
- Documentation/media/uapi/v4l/vidioc-g-parm.rst     |   3 +
- .../uapi/v4l/vidioc-subdev-g-frame-interval.rst    |   3 +
- MAINTAINERS                                        |   8 +
- drivers/media/i2c/imx214.c                         |   2 +-
- drivers/media/i2c/imx258.c                         |  22 +-
- drivers/media/i2c/mt9m111.c                        |  44 +-
- drivers/media/i2c/ov2640.c                         |  21 +-
- drivers/media/i2c/ov2680.c                         |  12 +-
- drivers/media/i2c/ov5640.c                         |   7 +-
- drivers/media/i2c/ov7670.c                         |   6 +-
- drivers/media/i2c/ov772x.c                         |   7 +-
- drivers/media/platform/Kconfig                     |   1 +
- drivers/media/platform/Makefile                    |   2 +
- drivers/media/platform/sunxi/sun6i-csi/Kconfig     |   9 +
- drivers/media/platform/sunxi/sun6i-csi/Makefile    |   3 +
- drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c | 913 +++++++++++++++++++++
- drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.h | 135 +++
- .../media/platform/sunxi/sun6i-csi/sun6i_csi_reg.h | 196 +++++
- .../media/platform/sunxi/sun6i-csi/sun6i_video.c   | 678 +++++++++++++++
- .../media/platform/sunxi/sun6i-csi/sun6i_video.h   |  38 +
- 22 files changed, 2133 insertions(+), 43 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/sun6i-csi.txt
- create mode 100644 drivers/media/platform/sunxi/sun6i-csi/Kconfig
- create mode 100644 drivers/media/platform/sunxi/sun6i-csi/Makefile
- create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
- create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.h
- create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_csi_reg.h
- create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_video.c
- create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_video.h
-
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+ChenYu
