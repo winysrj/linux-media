@@ -1,56 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.eclipso.de ([217.69.254.104]:56812 "EHLO mail.eclipso.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2392972AbeKWHAv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Nov 2018 02:00:51 -0500
-Received: from roadrunner.suse (p5B318127.dip0.t-ipconnect.de [91.49.129.39])
-        by mail.eclipso.de with ESMTPS id 02899C28
-        for <linux-media@vger.kernel.org>; Thu, 22 Nov 2018 21:19:52 +0100 (CET)
-From: stakanov <stakanov@eclipso.eu>
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: Takashi Iwai <tiwai@suse.de>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: DVB-S PCI card regression on 4.19 / 4.20
-Date: Thu, 22 Nov 2018 21:19:49 +0100
-Message-ID: <12757009.r0OKxgvFl0@roadrunner.suse>
-In-Reply-To: <20181122180611.2e7f1123@coco.lan>
-References: <4e0356d6303c128a3e6d0bcc453ba1be@mail.eclipso.de> <2836654.gWKGMNFOG2@roadrunner.suse> <20181122180611.2e7f1123@coco.lan>
+Received: from casper.infradead.org ([85.118.1.10]:47190 "EHLO
+        casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1732806AbeKWHDB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 23 Nov 2018 02:03:01 -0500
+Date: Thu, 22 Nov 2018 18:21:57 -0200
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL FOR v4.21] Various fixes
+Message-ID: <20181122182157.3e2c8c97@coco.lan>
+In-Reply-To: <7b793343-2450-f706-ae54-d11bf3c89b13@xs4all.nl>
+References: <7b793343-2450-f706-ae54-d11bf3c89b13@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Mauro. 
+Hi Hans,
 
-Thank you so much, for this fast reply and especially for the detailed 
-indications. I expected to have a lack of knowledge. 
+Em Wed, 7 Nov 2018 11:31:14 +0100
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Well,  I am replying to the question as of below: (for convenience I did cut 
-the before text, if you deem it useful for the list I can then correct that in 
-the next posts).
+> Just one note: the "cec: keep track of outstanding transmits" is CC-ed to stable
+> for v4.18 and up, but I prefer to wait until v4.21 before merging it to give it
+> more test time. It is not something that happens in normal usage, so delaying
+> this isn't a problem.
 
-In data giovedì 22 novembre 2018 21:06:11 CET, Mauro Carvalho Chehab ha 
-scritto:
-> Are you sure that the difference is just the Kernel version? Perhaps you
-> also updated some other package.
+Could you please check your trees? 
 
-To be clear: I had the same system(!) with all three kernel 4.18.15-1, 4.19.1  
-(when the problem did arise) and 4.20.2 rc3 from Takashi's repo) installed. 
+Checkpatch is complaining with:
 
-In this very configuration: if one booted in 4.18 (that is in perfect parity 
-with all other packages) the card worked. 4.19.1 no. And the last kernel the 
-same. So whatever might be different, forcefully it has to be in the kernel. 
-(Which is not really a problem if I manage to make it work, so settings will 
-be known to others or, if not, we will find out what is different, and all 
-will be happy. As you see I am still optimist).  
-I will proceed as indicated and report back here tomorrow. 
+	WARNING: Missing Signed-off-by: line by nominal patch author 'Hans Verkuil <hverkuil@xs4all.nl>'
 
-Regards. 
+This particular tree has two of your emails as signatures, but it misses
+the one you're actually using for the Author: tag:
+
+	Signed-off-by:	Hans Verkuil <hans.verkuil@cisco.com>
+	Signed-off-by:	Hans Verkuil <hansverk@cisco.com>
+
+I ended by merging another of your trees that had the same issue.
+We should receive some e-mails when this hits linux-next, due to that :-)
+
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> The following changes since commit fbe57dde7126d1b2712ab5ea93fb9d15f89de708:
+> 
+>   media: ov7740: constify structures stored in fields of v4l2_subdev_ops structure (2018-11-06 07:17:02 -0500)
+> 
+> are available in the Git repository at:
+> 
+>   git://linuxtv.org/hverkuil/media_tree.git tags/br-v4.21a
+> 
+> for you to fetch changes up to b6f3defe272a97ea65f4352cdc9c0b943164a75e:
+> 
+>   vivid: fill in media_device bus_info (2018-11-07 11:15:12 +0100)
+> 
+> ----------------------------------------------------------------
+> Tag branch
+> 
+> ----------------------------------------------------------------
+> Hans Verkuil (7):
+>       adv7604: add CEC support for adv7611/adv7612
+>       cec: report Vendor ID after initialization
+>       cec: add debug_phys_addr module option
+>       cec: keep track of outstanding transmits
+>       vivid: fix error handling of kthread_run
+>       vivid: set min width/height to a value > 0
+>       vivid: fill in media_device bus_info
+> 
+> Julia Lawall (4):
+>       media: vicodec: constify v4l2_ctrl_ops structure
+>       media: rockchip/rga: constify v4l2_m2m_ops structure
+>       media: vimc: constify structures stored in fields of v4l2_subdev_ops structure
+>       media: rockchip/rga: constify video_device structure
+> 
+> Sean Young (1):
+>       media: v4l uapi docs: few minor corrections and typos
+> 
+>  Documentation/media/uapi/v4l/app-pri.rst         |  2 +-
+>  Documentation/media/uapi/v4l/audio.rst           |  2 +-
+>  Documentation/media/uapi/v4l/dev-capture.rst     |  2 +-
+>  Documentation/media/uapi/v4l/dev-teletext.rst    |  2 +-
+>  Documentation/media/uapi/v4l/format.rst          |  2 +-
+>  Documentation/media/uapi/v4l/mmap.rst            | 22 ++++++++++-----------
+>  Documentation/media/uapi/v4l/open.rst            |  2 +-
+>  Documentation/media/uapi/v4l/tuner.rst           |  4 ++--
+>  Documentation/media/uapi/v4l/userp.rst           |  8 ++++----
+>  Documentation/media/uapi/v4l/video.rst           |  4 ++--
+>  drivers/media/cec/cec-adap.c                     | 34 +++++++++++++++++++++++---------
+>  drivers/media/cec/cec-core.c                     |  6 ++++++
+>  drivers/media/i2c/adv7604.c                      | 63 ++++++++++++++++++++++++++++++++++++++++++++++++++----------
+>  drivers/media/platform/rockchip/rga/rga.c        |  4 ++--
+>  drivers/media/platform/vicodec/vicodec-core.c    |  2 +-
+>  drivers/media/platform/vimc/vimc-sensor.c        |  2 +-
+>  drivers/media/platform/vivid/vivid-core.c        |  2 ++
+>  drivers/media/platform/vivid/vivid-kthread-cap.c |  5 ++++-
+>  drivers/media/platform/vivid/vivid-kthread-out.c |  5 ++++-
+>  drivers/media/platform/vivid/vivid-vid-common.c  |  2 +-
+>  include/media/cec.h                              |  1 +
+>  21 files changed, 125 insertions(+), 51 deletions(-
 
 
 
-
-_________________________________________________________________
-________________________________________________________
-Ihre E-Mail-Postfächer sicher & zentral an einem Ort. Jetzt wechseln und alte E-Mail-Adresse mitnehmen! https://www.eclipso.de
+Thanks,
+Mauro
