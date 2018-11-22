@@ -1,68 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:49630 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1730412AbeKVTqm (ORCPT
+Received: from mail-wm1-f68.google.com ([209.85.128.68]:38504 "EHLO
+        mail-wm1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2387840AbeKVURh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Nov 2018 14:46:42 -0500
-Subject: Re: [PATCH 1/1] v4l: uAPI doc: Changing frame interval won't change
- format
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-References: <20181121173344.4055-1-sakari.ailus@linux.intel.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <0e159a5b-e43a-78a0-64d5-0efc8613fcac@xs4all.nl>
-Date: Thu, 22 Nov 2018 10:08:05 +0100
+        Thu, 22 Nov 2018 15:17:37 -0500
+Received: by mail-wm1-f68.google.com with SMTP id k198so8434187wmd.3
+        for <linux-media@vger.kernel.org>; Thu, 22 Nov 2018 01:38:54 -0800 (PST)
+References: <20181121111558.10838-1-rui.silva@linaro.org> <18c5ad5c-e800-c317-4246-a8a207f3dff4@xs4all.nl>
+From: Rui Miguel Silva <rui.silva@linaro.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: sakari.ailus@linux.intel.com,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        devicetree@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH v8 00/12] media: staging/imx7: add i.MX7 media driver
+In-reply-to: <18c5ad5c-e800-c317-4246-a8a207f3dff4@xs4all.nl>
+Date: Thu, 22 Nov 2018 09:38:51 +0000
+Message-ID: <m34lc9moyc.fsf@linaro.org>
 MIME-Version: 1.0
-In-Reply-To: <20181121173344.4055-1-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/21/2018 06:33 PM, Sakari Ailus wrote:
-> Document that changing the frame interval has no effect on frame size.
-> While this was the assumption in the API, it was not documented as such.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Hi Hans,
+On Wed 21 Nov 2018 at 11:53, Hans Verkuil wrote:
+> On 11/21/2018 12:15 PM, Rui Miguel Silva wrote:
+>> Hi,
+>> This series introduces the Media driver to work with the i.MX7 
+>> SoC. it uses the
+>> already existing imx media core drivers but since the i.MX7, 
+>> contrary to
+>> i.MX5/6, do not have an IPU and because of that some changes in 
+>> the imx media
+>> core are made along this series to make it support that case.
+>
+> Can you run scripts/checkpatch.pl --strict over these patches? I 
+> get too
+> many messages from it. Most should be easy to fix.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Yeah, I will fix as much as I think is sane, some I will leave it 
+to
+make code more readable.
 
-Thanks!
-
-	Hans
-
-> ---
->  Documentation/media/uapi/v4l/vidioc-g-parm.rst                  | 3 +++
->  Documentation/media/uapi/v4l/vidioc-subdev-g-frame-interval.rst | 3 +++
->  2 files changed, 6 insertions(+)
-> 
-> diff --git a/Documentation/media/uapi/v4l/vidioc-g-parm.rst b/Documentation/media/uapi/v4l/vidioc-g-parm.rst
-> index e831fa5512f0..c31585a7701b 100644
-> --- a/Documentation/media/uapi/v4l/vidioc-g-parm.rst
-> +++ b/Documentation/media/uapi/v4l/vidioc-g-parm.rst
-> @@ -42,6 +42,9 @@ side. This is especially useful when using the :ref:`read() <func-read>` or
->  :ref:`write() <func-write>`, which are not augmented by timestamps or sequence
->  counters, and to avoid unnecessary data copying.
->  
-> +Changing the frame interval shall never change the format. Changing the
-> +format, on the other hand, may change the frame interval.
-> +
->  Further these ioctls can be used to determine the number of buffers used
->  internally by a driver in read/write mode. For implications see the
->  section discussing the :ref:`read() <func-read>` function.
-> diff --git a/Documentation/media/uapi/v4l/vidioc-subdev-g-frame-interval.rst b/Documentation/media/uapi/v4l/vidioc-subdev-g-frame-interval.rst
-> index 5af0a7179941..f889c20f231c 100644
-> --- a/Documentation/media/uapi/v4l/vidioc-subdev-g-frame-interval.rst
-> +++ b/Documentation/media/uapi/v4l/vidioc-subdev-g-frame-interval.rst
-> @@ -63,6 +63,9 @@ doesn't match the device capabilities. They must instead modify the
->  interval to match what the hardware can provide. The modified interval
->  should be as close as possible to the original request.
->  
-> +Changing the frame interval shall never change the format. Changing the
-> +format, on the other hand, may change the frame interval.
-> +
->  Sub-devices that support the frame interval ioctls should implement them
->  on a single pad only. Their behaviour when supported on multiple pads of
->  the same sub-device is not defined.
-> 
+---
+Cheers,
+	Rui
