@@ -1,93 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ed1-f65.google.com ([209.85.208.65]:40674 "EHLO
-        mail-ed1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729105AbeKVXMy (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:58952 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1729105AbeKVXN7 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Nov 2018 18:12:54 -0500
-Received: by mail-ed1-f65.google.com with SMTP id d3so7574651edx.7
-        for <linux-media@vger.kernel.org>; Thu, 22 Nov 2018 04:33:43 -0800 (PST)
-Received: from mail-wr1-f44.google.com (mail-wr1-f44.google.com. [209.85.221.44])
-        by smtp.gmail.com with ESMTPSA id f35sm5102159edd.80.2018.11.22.04.33.41
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 22 Nov 2018 04:33:41 -0800 (PST)
-Received: by mail-wr1-f44.google.com with SMTP id j2so9126342wrw.1
-        for <linux-media@vger.kernel.org>; Thu, 22 Nov 2018 04:33:41 -0800 (PST)
-MIME-Version: 1.0
-References: <20181114145934.26855-1-maxime.ripard@bootlin.com>
- <20181114145934.26855-4-maxime.ripard@bootlin.com> <CAMty3ZDFsaFR1zb3Wt0wJ0XkeNuSHGxDsmZZKgWy=wxJpNTnHQ@mail.gmail.com>
-In-Reply-To: <CAMty3ZDFsaFR1zb3Wt0wJ0XkeNuSHGxDsmZZKgWy=wxJpNTnHQ@mail.gmail.com>
-From: Chen-Yu Tsai <wens@csie.org>
-Date: Thu, 22 Nov 2018 20:33:29 +0800
-Message-ID: <CAGb2v67dprbvVNtR-ciH+1d1EsmCejmAMBQ_-y-Jb6Z3S11abA@mail.gmail.com>
-Subject: Re: [PATCH v2 3/4] ARM: dts: sun8i: Add the H3/H5 CSI controller
-To: Jagan Teki <jagan@amarulasolutions.com>
-Cc: Maxime Ripard <maxime.ripard@bootlin.com>,
-        Yong Deng <yong.deng@magewell.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
+        Thu, 22 Nov 2018 18:13:59 -0500
+Subject: Re: [PATCH] media: video-i2c: don't use msleep for 1ms - 20ms
+To: Akinobu Mita <akinobu.mita@gmail.com>, linux-media@vger.kernel.org
+Cc: Matt Ranostay <matt.ranostay@konsulko.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        =?UTF-8?Q?Myl=C3=A8ne_Josserand?= <mylene.josserand@bootlin.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+        Hans Verkuil <hansverk@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <1542727660-14117-1-git-send-email-akinobu.mita@gmail.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <2e2f8fcf-ffef-4136-5866-f1a6d55f3961@xs4all.nl>
+Date: Thu, 22 Nov 2018 13:34:46 +0100
+MIME-Version: 1.0
+In-Reply-To: <1542727660-14117-1-git-send-email-akinobu.mita@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Nov 22, 2018 at 7:45 PM Jagan Teki <jagan@amarulasolutions.com> wrote:
->
-> On Wed, Nov 14, 2018 at 8:29 PM Maxime Ripard <maxime.ripard@bootlin.com> wrote:
-> >
-> > From: Mylène Josserand <mylene.josserand@bootlin.com>
-> >
-> > The H3 and H5 features the same CSI controller that was initially found on
-> > the A31.
-> >
-> > Add a DT node for it.
-> >
-> > Signed-off-by: Mylène Josserand <mylene.josserand@bootlin.com>
-> > Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
-> > ---
-> >  arch/arm/boot/dts/sunxi-h3-h5.dtsi | 22 ++++++++++++++++++++++
-> >  1 file changed, 22 insertions(+)
-> >
-> > diff --git a/arch/arm/boot/dts/sunxi-h3-h5.dtsi b/arch/arm/boot/dts/sunxi-h3-h5.dtsi
-> > index 4b1530ebe427..8779ee750bd8 100644
-> > --- a/arch/arm/boot/dts/sunxi-h3-h5.dtsi
-> > +++ b/arch/arm/boot/dts/sunxi-h3-h5.dtsi
-> > @@ -393,6 +393,13 @@
-> >                         interrupt-controller;
-> >                         #interrupt-cells = <3>;
-> >
-> > +                       csi_pins: csi {
-> > +                               pins = "PE0", "PE1", "PE2", "PE3", "PE4",
-> > +                                      "PE5", "PE6", "PE7", "PE8", "PE9",
-> > +                                      "PE10", "PE11";
-> > +                               function = "csi";
-> > +                       };
-> > +
-> >                         emac_rgmii_pins: emac0 {
-> >                                 pins = "PD0", "PD1", "PD2", "PD3", "PD4",
-> >                                        "PD5", "PD7", "PD8", "PD9", "PD10",
-> > @@ -744,6 +751,21 @@
-> >                         interrupts = <GIC_PPI 9 (GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_HIGH)>;
-> >                 };
-> >
-> > +               csi: camera@1cb0000 {
-> > +                       compatible = "allwinner,sun8i-h3-csi",
-> > +                                    "allwinner,sun6i-a31-csi";
-> > +                       reg = <0x01cb0000 0x1000>;
-> > +                       interrupts = <GIC_SPI 84 IRQ_TYPE_LEVEL_HIGH>;
-> > +                       clocks = <&ccu CLK_BUS_CSI>,
-> > +                                <&ccu CLK_CSI_SCLK>,
-> > +                                <&ccu CLK_DRAM_CSI>;
-> > +                       clock-names = "bus", "mod", "ram";
->
-> Don't we need CLK_CSI_MCLK which can be pinout via PE1?
+On 11/20/2018 04:27 PM, Akinobu Mita wrote:
+> Documentation/timers/timers-howto.txt says:
+> 
+> "msleep(1~20) may not do what the caller intends, and will often sleep
+> longer (~20 ms actual sleep for any value given in the 1~20ms range)."
+> 
+> So replace msleep(2) by usleep_range(2000, 3000).
 
-The CSI hardware block does not have any controls for MCLK.
-It's simply routed from the CCU directly to the pin.
+Please just repost patch 6/6 with this change merged in.
 
-ChenYu
+Thanks!
+
+	Hans
+
+> 
+> Reported-by: Hans Verkuil <hansverk@cisco.com>
+> Cc: Matt Ranostay <matt.ranostay@konsulko.com>
+> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Cc: Hans Verkuil <hansverk@cisco.com>
+> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+> ---
+> This fixes "[PATCH v4 6/6] media: video-i2c: support runtime PM" in the
+> patchset "[PATCH v4 0/6] media: video-i2c: support changing frame interval
+> and runtime PM".
+> 
+>  drivers/media/i2c/video-i2c.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/i2c/video-i2c.c b/drivers/media/i2c/video-i2c.c
+> index 0c82131..77080d7 100644
+> --- a/drivers/media/i2c/video-i2c.c
+> +++ b/drivers/media/i2c/video-i2c.c
+> @@ -155,7 +155,7 @@ static int amg88xx_set_power_on(struct video_i2c_data *data)
+>  	if (ret)
+>  		return ret;
+>  
+> -	msleep(2);
+> +	usleep_range(2000, 3000);
+>  
+>  	ret = regmap_write(data->regmap, AMG88XX_REG_RST, AMG88XX_RST_FLAG);
+>  	if (ret)
+> 
