@@ -1,224 +1,244 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1-d.mail.gandi.net ([217.70.183.193]:38283 "EHLO
-        relay1-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729121AbeKWFSM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Nov 2018 00:18:12 -0500
-Date: Thu, 22 Nov 2018 19:37:30 +0100
-From: jacopo mondi <jacopo@jmondi.org>
-To: Lubomir Rintel <lkundrak@v3.sk>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>, linux-media@vger.kernel.org,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        James Cameron <quozl@laptop.org>, Pavel Machek <pavel@ucw.cz>,
-        Libin Yang <lbyang@marvell.com>,
-        Albert Wang <twang13@marvell.com>
-Subject: Re: [PATCH v3 01/14] media: ov7670: split register setting from
- set_fmt() logic
-Message-ID: <20181122183730.GE3808@w540>
-References: <20181120100318.367987-1-lkundrak@v3.sk>
- <20181120100318.367987-2-lkundrak@v3.sk>
+Received: from mail.eclipso.de ([217.69.254.104]:44813 "EHLO mail.eclipso.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2392142AbeKWFjF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 23 Nov 2018 00:39:05 -0500
+Received: from roadrunner.suse (p5B318127.dip0.t-ipconnect.de [91.49.129.39])
+        by mail.eclipso.de with ESMTPS id 51243649
+        for <linux-media@vger.kernel.org>; Thu, 22 Nov 2018 19:58:22 +0100 (CET)
+From: stakanov <stakanov@eclipso.eu>
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: Takashi Iwai <tiwai@suse.de>, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: DVB-S PCI card regression on 4.19 / 4.20
+Date: Thu, 22 Nov 2018 19:58:19 +0100
+Message-ID: <2836654.gWKGMNFOG2@roadrunner.suse>
+In-Reply-To: <20181122141908.1ef2bcae@coco.lan>
+References: <4e0356d6303c128a3e6d0bcc453ba1be@mail.eclipso.de> <20181120140855.29f5dc3f@coco.lan> <20181122141908.1ef2bcae@coco.lan>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="pY3vCvL1qV+PayAL"
-Content-Disposition: inline
-In-Reply-To: <20181120100318.367987-2-lkundrak@v3.sk>
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Mauro!
 
---pY3vCvL1qV+PayAL
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+In data giovedì 22 novembre 2018 17:19:08 CET, Mauro Carvalho Chehab ha 
+scritto:
+> Stakanov,
+> 
+> Em Tue, 20 Nov 2018 14:08:55 -0200
+> 
+> Mauro Carvalho Chehab <mchehab+samsung@kernel.org> escreveu:
+> > Em Tue, 20 Nov 2018 14:20:01 +0100
+> > 
+> > stakanov <stakanov@eclipso.eu> escreveu:
+> > > In data martedì 20 novembre 2018 13:42:17 CET, Mauro Carvalho Chehab ha
+> > > 
+> > > scritto:
+> > > > Em Tue, 20 Nov 2018 13:11:58 +0100
+> > > > 
+> > > > "Stakanov Schufter" <stakanov@eclipso.eu> escreveu:
+> > > > > Sorry for the delay. Apparently my smtp exits are blocking me (for
+> > > > > whatever reason). I am trying now via web mailer.
+> > > > > 
+> > > > > 
+> > > > > In short, no it does not work. Only EPG, no pic no sound.
+> > > > > But the error message in dmesg is gone I think.
+> > > > > 
+> > > > > uname -a
+> > > > > Linux silversurfer 4.20.0-rc3-2.gfe5d771-default #1 SMP PREEMPT Tue
+> > > > > Nov 20
+> > > > > 09:35:04 UTC 2018 (fe5d771) x86_64 x86_64 x86_64 GNU
+> > > > > 
+> > > > > dmesg:
+> > > > > 
+> > > > > [    6.412792] b2c2-flexcop: B2C2 FlexcopII/II(b)/III digital TV
+> > > > > receiver
+> > > > > chip loaded successfully
+> > > > > [    6.416645] flexcop-pci: will use the HW PID filter.
+> > > > > [    6.416648] flexcop-pci: card revision 2
+> > > > > [    6.423749] scsi host10: usb-storage 9-3.1:1.0
+> > > > > [    6.423842] usbcore: registered new interface driver usb-storage
+> > > > > [    6.426029] usbcore: registered new interface driver uas
+> > > > > [    6.439251] dvbdev: DVB: registering new adapter (FlexCop Digital
+> > > > > TV
+> > > > > device)
+> > > > > [    6.440845] b2c2-flexcop: MAC address = 00:d0:d7:11:8b:58
+> > > > > 
+> > > > > [    6.694999] dvb_pll_attach: delsys: 0, frequency range:
+> > > > > 950000000..2150000000
+> > > > > [    6.695001] b2c2-flexcop: found 'ST STV0299 DVB-S' .
+> > > > > [    6.695004] b2c2_flexcop_pci 0000:06:06.0: DVB: registering
+> > > > > adapter 0
+> > > > > frontend 0 (ST STV0299 DVB-S)...
+> > > > > [    6.695050] b2c2-flexcop: initialization of 'Sky2PC/SkyStar 2
+> > > > > DVB-S rev
+> > > > > 2.6' at the 'PCI' bus controlled by a 'FlexCopIIb' complete
+> > > > 
+> > > > Well, the Kernel bug is probably gone. I don't see any other recent
+> > > > changes that would be affecting the b2c2 flexcop driver.
+> > > > 
+> > > > If you're successfully getting EPG data from the transponders, then it
+> > > > should also be receiving audio and video channels too, as, for the
+> > > > Kernel,
+> > > > there's no difference if a given program ID (PID) contains EPG, audio
+> > > > or
+> > > > video.
+> > > > 
+> > > > At the BZ, you're saying that you're using Kaffeine, right?
+> > > > 
+> > > > There are a few reasons why you can't watch audio/video, but you're
+> > > > 
+> > > > able to get EPG tables:
+> > > > 	- the audio/video PID had changed;
+> > > > 	- the audio/video is now encrypted;
+> > > > 	- too weak signal (or bad cabling).
+> > > > 
+> > > > The EPG data comes several times per second on well known PIDs, via a
+> > > > low
+> > > > bandwidth PID and it is not encrypted. So, it is usually trivial to
+> > > > get
+> > > > it.
+> > > > 
+> > > > I suggest you to re-scan your channels on Kaffeine, in order to force
+> > > > it to get the new PIDs. Also, please check that the channels you're
+> > > > trying to use are Free to the Air (FTA).
+> > > > 
+> > > > You can also use libdvbv5 tools in order to check if you're not
+> > > > losing data due to weak signal/bad cabling. The newer versions
+> > > > of dvbv5-zap have a logic with detects and report data loses, when
+> > > > started on monitor mode (-m command line option). It also prints
+> > > > the transponder bandwidth, and check what PIDs are received.
+> > > > 
+> > > > It is very useful to debug problems.
+> > > > 
+> > > > Thanks,
+> > > > Mauro
+> > > 
+> > > I checked again and:
+> > > [sudo] password di root:
+> > > [    6.412792] b2c2-flexcop: B2C2 FlexcopII/II(b)/III digital TV
+> > > receiver chip loaded successfully
+> > > [    6.440845] b2c2-flexcop: MAC address = 00:d0:d7:11:8b:58
+> > > [    6.695001] b2c2-flexcop: found 'ST STV0299 DVB-S' .
+> > > [    6.695004] b2c2_flexcop_pci 0000:06:06.0: DVB: registering adapter 0
+> > > frontend 0 (ST STV0299 DVB-S)...
+> > > [    6.695050] b2c2-flexcop: initialization of 'Sky2PC/SkyStar 2 DVB-S
+> > > rev
+> > > 2.6' at the 'PCI' bus controlled by a 'FlexCopIIb' complete
+> > > [ 6265.403360] b2c2_flexcop_pci 0000:06:06.0: DVB: adapter 0 frontend 0
+> > > frequency 10719000 out of range (950000..2150000)
+> > > [ 6265.405702] b2c2_flexcop_pci 0000:06:06.0: DVB: adapter 0 frontend 0
+> > > frequency 10723000 out of range (950000..2150000)
+> > > [ 6265.407120] b2c2_flexcop_pci 0000:06:06.0: DVB: adapter 0 frontend 0
+> > > frequency 10757000 out of range (950000..2150000)
+> > > [ 6265.408556] b2c2_flexcop_pci 0000:06:06.0: DVB: adapter 0 frontend 0
+> > > frequency 10775000 out of range (950000..2150000)
+> > > [ 6265.409754] b2c2_flexcop_pci 0000:06:06.0: DVB: adapter 0 frontend 0
+> > > frequency 10795000 out of range (950000..2150000)
+> > > [ 6399.837806] b2c2_flexcop_pci 0000:06:06.0: DVB: adapter 0 frontend 0
+> > > frequency 12713000 out of range (950000..2150000)
+> > > [ 6399.839144] b2c2_flexcop_pci 0000:06:06.0: DVB: adapter 0 frontend 0
+> > > frequency 12731000 out of range (950000..2150000)
+> > 
+> > Ok. Now, min/max frequencies are at the same scale. For DVB-S,
+> > dvb_frontend_get_frequency_limits() returns both in kHz, so the frequency
+> > range is now OK.
+> > 
+> > The tuning frequency is wrong through. 10,719,000 kHz - e. g. 10,719 MHz
+> > seems to be the transponder frequency you're trying to tune, and not the
+> > intermediate frequency used at the DVB-S board.
+> > 
+> > That sounds to me either a wrong LNBf setting or a bug at libdvbv5 or
+> > at Kaffeine's side. What happens is that the typical European LNBFs are:
+> > 
+> > 1) the "old" universal one:
+> > 
+> > UNIVERSAL
+> > 
+> > 	Universal, Europe
+> > 	Freqs     : 10800 to 11800 MHz, LO: 9750 MHz
+> > 	Freqs     : 11600 to 12700 MHz, LO: 10600 MHz
+> > 
+> > 2) the "new" universal one, with seems to be used by most modern
+> > satellite dishes in Europe nowadays:
+> > 
+> > EXTENDED
+> > 
+> > 	Astra 1E, European Universal Ku (extended)
+> > 	Freqs     : 10700 to 11700 MHz, LO: 9750 MHz
+> > 	Freqs     : 11700 to 12750 MHz, LO: 10600 MHz
+> > 
+> > Assuming that your satellite dish is equipped with an Astra-1E compatible
+> > LNBf, as you're trying to tune 10,719 MHz, you need to setup Kaffeine
+> > to use the EXTENDED LNBf, with covers the extended frequency range.
+> > 
+> > Kaffeine/libdvbv5 will subtract this value from the LO frequency:
+> > 	10719 MHz - 9750 MHz = 969 MHz
+> > 
+> > And pass the 969 MHz frequency for the Kernel to tune. As this
+> > is between the 950MHz..2150MHz limit, it won't produce any Kernel
+> > messages.
+> > 
+> > Please notice that there were some bugs at v4l-utils and DVB-S/S2,
+> > so be sure to check the v4l-utils version you're using. The last
+> > one is 1.14.2 (released on Feb, 10 2018). I recommend you to have
+> > at least version 1.12.4 (released on May, 6 2017).
+> 
+> Did it work after using the EXTENDED LNBf on Kaffeine?
+> 
+> 
+> Thanks,
+> Mauro
 
-Hi Lubomir,
-
-On Tue, Nov 20, 2018 at 11:03:06AM +0100, Lubomir Rintel wrote:
-> This will allow us to restore the last set format after the device returns
-> from a power off.
->
-> Signed-off-by: Lubomir Rintel <lkundrak@v3.sk>
->
-> ---
-> Changes since v2:
-> - This patch was added to the series
->
->  drivers/media/i2c/ov7670.c | 80 ++++++++++++++++++++++----------------
->  1 file changed, 46 insertions(+), 34 deletions(-)
->
-> diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
-> index bc68a3a5b4ec..ee2302fbdeee 100644
-> --- a/drivers/media/i2c/ov7670.c
-> +++ b/drivers/media/i2c/ov7670.c
-> @@ -240,6 +240,7 @@ struct ov7670_info {
->  	};
->  	struct v4l2_mbus_framefmt format;
->  	struct ov7670_format_struct *fmt;  /* Current format */
-> +	struct ov7670_win_size *wsize;
->  	struct clk *clk;
->  	struct gpio_desc *resetb_gpio;
->  	struct gpio_desc *pwdn_gpio;
-> @@ -1003,48 +1004,20 @@ static int ov7670_try_fmt_internal(struct v4l2_subdev *sd,
->  	return 0;
->  }
->
-> -/*
-> - * Set a format.
-> - */
-> -static int ov7670_set_fmt(struct v4l2_subdev *sd,
-> -		struct v4l2_subdev_pad_config *cfg,
-> -		struct v4l2_subdev_format *format)
-> +static int ov7670_apply_fmt(struct v4l2_subdev *sd)
->  {
-> -	struct ov7670_format_struct *ovfmt;
-> -	struct ov7670_win_size *wsize;
->  	struct ov7670_info *info = to_state(sd);
-> -#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
-> -	struct v4l2_mbus_framefmt *mbus_fmt;
-> -#endif
-> +	struct ov7670_win_size *wsize = info->wsize;
->  	unsigned char com7, com10 = 0;
->  	int ret;
->
-> -	if (format->pad)
-> -		return -EINVAL;
-> -
-> -	if (format->which == V4L2_SUBDEV_FORMAT_TRY) {
-> -		ret = ov7670_try_fmt_internal(sd, &format->format, NULL, NULL);
-> -		if (ret)
-> -			return ret;
-> -#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
-> -		mbus_fmt = v4l2_subdev_get_try_format(sd, cfg, format->pad);
-> -		*mbus_fmt = format->format;
-> -		return 0;
-> -#else
-> -		return -ENOTTY;
-> -#endif
-> -	}
-> -
-> -	ret = ov7670_try_fmt_internal(sd, &format->format, &ovfmt, &wsize);
-> -	if (ret)
-> -		return ret;
->  	/*
->  	 * COM7 is a pain in the ass, it doesn't like to be read then
->  	 * quickly written afterward.  But we have everything we need
->  	 * to set it absolutely here, as long as the format-specific
->  	 * register sets list it first.
->  	 */
-> -	com7 = ovfmt->regs[0].value;
-> +	com7 = info->fmt->regs[0].value;
->  	com7 |= wsize->com7_bit;
->  	ret = ov7670_write(sd, REG_COM7, com7);
->  	if (ret)
-> @@ -1066,7 +1039,7 @@ static int ov7670_set_fmt(struct v4l2_subdev *sd,
->  	/*
->  	 * Now write the rest of the array.  Also store start/stops
->  	 */
-> -	ret = ov7670_write_array(sd, ovfmt->regs + 1);
-> +	ret = ov7670_write_array(sd, info->fmt->regs + 1);
->  	if (ret)
->  		return ret;
->
-> @@ -1081,8 +1054,6 @@ static int ov7670_set_fmt(struct v4l2_subdev *sd,
->  			return ret;
->  	}
->
-> -	info->fmt = ovfmt;
-> -
->  	/*
->  	 * If we're running RGB565, we must rewrite clkrc after setting
->  	 * the other parameters or the image looks poor.  If we're *not*
-> @@ -1100,6 +1071,46 @@ static int ov7670_set_fmt(struct v4l2_subdev *sd,
->  	return 0;
->  }
->
-> +/*
-> + * Set a format.
-> + */
-> +static int ov7670_set_fmt(struct v4l2_subdev *sd,
-> +		struct v4l2_subdev_pad_config *cfg,
-> +		struct v4l2_subdev_format *format)
-> +{
-> +	struct ov7670_info *info = to_state(sd);
-> +#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
-> +	struct v4l2_mbus_framefmt *mbus_fmt;
-> +#endif
-> +	int ret;
-> +
-> +	if (format->pad)
-> +		return -EINVAL;
-> +
-> +	if (format->which == V4L2_SUBDEV_FORMAT_TRY) {
-> +		ret = ov7670_try_fmt_internal(sd, &format->format, NULL, NULL);
-> +		if (ret)
-> +			return ret;
-> +#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
-> +		mbus_fmt = v4l2_subdev_get_try_format(sd, cfg, format->pad);
-
-This #ifdef CONFIG_VIDEO_V4L2_SUBDEV_API seems to be quite in some
-drivers... Maybe stubs should be defined in v4l2-subdev.h.
-
-Anway, that's unrealted, the patch seems fine to me:
-Reviewed-by: Jacopo Mondi <jacopo@jmondi.org>
-
-Thanks
-  j
 
 
-> +		*mbus_fmt = format->format;
-> +		return 0;
-> +#else
-> +		return -ENOTTY;
-> +#endif
-> +	}
-> +
-> +	ret = ov7670_try_fmt_internal(sd, &format->format, &info->fmt, &info->wsize);
-> +	if (ret)
-> +		return ret;
-> +
-> +	ret = ov7670_apply_fmt(sd);
-> +	if (ret)
-> +		return ret;
-> +
-> +	return 0;
-> +}
-> +
->  static int ov7670_get_fmt(struct v4l2_subdev *sd,
->  			  struct v4l2_subdev_pad_config *cfg,
->  			  struct v4l2_subdev_format *format)
-> @@ -1847,6 +1858,7 @@ static int ov7670_probe(struct i2c_client *client,
->
->  	info->devtype = &ov7670_devdata[id->driver_data];
->  	info->fmt = &ov7670_formats[0];
-> +	info->wsize = &info->devtype->win_sizes[0];
->
->  	ov7670_get_default_format(sd, &info->format);
->
-> --
-> 2.19.1
->
+I am not sure to tell the truth.
+I am using Italian language on my machines. So the only setting I have is 
+LNBf "alta tensione". Now this is like "high tension LNBf if this does tell 
+you something.
+There are three settings (that are not well documented to tell the truth. 
+First is:
+selection square empty
+then 
+half empty
+then 
+full
 
---pY3vCvL1qV+PayAL
-Content-Type: application/pgp-signature; name="signature.asc"
+Now, I did not find an explanation on the web for the third position. One 
+should use no reinforcement of the signal. One should offer support by 
+reinforcing the signal (via low tension on the antenna cable?). The middle 
+position I do not know. Maybe it is the degree of reinforcement?
+Now, I tried all three in a sequence. I did not encounter any change. 
+I have however a doubt that I am going to verify today. I am thinking that up 
+to 4.18.15-1 for some reasons you did not use the firmware that Linux TV org 
+does advice for the card. While it could be that it is needed now, I am going 
+to download and verify today. The only rational explanation that I could have 
+is that before it did inadvertently another firmware that comes with TW (there 
+are several) or that TW did take out the firmware but I would have been asked 
+before removal... 
+Anyway, that is the last experiment at least if you do not tell me that up to 
+now I did not do the right thing (in that case be very verbose to be sure I do 
+understand well were to change settings). 
+BTW the only other choice is between "disecq and rotor" and as we do not have 
+a rotor on the roof....
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+Comparison: I have in the machine in parallel a Hauppauge Card 5525 HD and so 
+I can confirm the signal is good. However this card too stayed black only EPG, 
+so I did download the firmware to /lib/firmware. I did reboot and it works now 
+perfectly. I will try the same with the Technisat. But the question remains 
+why it did work without firmware with the previous kernel. I am puzzled. 
 
-iQIcBAABCAAGBQJb9vdqAAoJEHI0Bo8WoVY8HesP/RYmxydVq8sxBz/PBKcGfn2A
-b6u8wRoG6ZmZk0eAch04lWcRqA0XNqoVoTKzlf3B9ab2oaY9lxz/lVCxuLTQooq0
-TZD+qIKB23hs+59aNRWhSQWzNvxCUHyBKQS8gnb4RmKFh9QfmhhGrqJ7RS3ABITY
-cAFRaJPX6VpS+MlXMWRjUfee/HR5vX4FDVVURM75wBL/jwXRn1qrd9TJSsW+IgaN
-XhZtjOjROI4TRdG7z8adIsYitrXW1Amwjt5+KgSNSHp9sryv9cYQ4JxCDJBaKBzJ
-uJ7O+Ha+IOMkl+L5M33tVtzoNa90Rdc6hNG5KXov4ZkaN/h7NZ+hRDeMlAwu64t2
-UHz3bq3bJV+WuD475Yawl5KPDoeuY3lUgFt6MmWnzHYWSaxSVkqxRuOSL9Arz1Pq
-bi7FaMUiJOUp1cCGz3YeydqBvSCbxc4PYqgJdFSqW857F6wgIeqJH71KAzC8Movb
-LA9MIjw9JnijHyx9o6JOhiAR7aPTXSHrI/5oy5NruphUi4rBmKYvDcqcCagwsfAF
-d71PFlu+MfJ4Qd+tw5k92E6IX6pntbT5w1Sf5RH9mOwF+pHrnIkyl3j5lpTdtU8d
-/hXdwkV+q+eNQccvU4dt+t6jOeVRCVvh+I+ufZ2hhmn7cqG1+zF+Vemz6VF4MpqJ
-UkOh8EBrUPd0tYeO/G+P
-=4D55
------END PGP SIGNATURE-----
+I will update you tomorrow. Be patient if you should have found out that I did 
+not check for the right thing. I really appreciate your help given and 
+ignorance is, so to say, never intentional. ;-) 
 
---pY3vCvL1qV+PayAL--
+Thank you, 
+Stak. 
+
+
+
+_________________________________________________________________
+________________________________________________________
+Ihre E-Mail-Postfächer sicher & zentral an einem Ort. Jetzt wechseln und alte E-Mail-Adresse mitnehmen! https://www.eclipso.de
