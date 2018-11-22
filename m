@@ -1,80 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:58669 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725199AbeK0FMU (ORCPT
+Received: from mail-wm1-f65.google.com ([209.85.128.65]:52953 "EHLO
+        mail-wm1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2437573AbeKWB7B (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Nov 2018 00:12:20 -0500
-From: Michael Tretter <m.tretter@pengutronix.de>
-To: hverkuil@xs4all.nl
-Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
-        Michael Tretter <m.tretter@pengutronix.de>
-Subject: [PATCH 2/2] [media] v4l2-pci-skeleton: replace vb2_buffer with vb2_v4l2_buffer
-Date: Mon, 26 Nov 2018 19:01:24 +0100
-Message-Id: <20181126180124.15161-3-m.tretter@pengutronix.de>
-In-Reply-To: <20181126180124.15161-1-m.tretter@pengutronix.de>
-References: <20181126180124.15161-1-m.tretter@pengutronix.de>
+        Thu, 22 Nov 2018 20:59:01 -0500
+Received: by mail-wm1-f65.google.com with SMTP id r11-v6so9290377wmb.2
+        for <linux-media@vger.kernel.org>; Thu, 22 Nov 2018 07:19:13 -0800 (PST)
+From: Rui Miguel Silva <rui.silva@linaro.org>
+To: sakari.ailus@linux.intel.com,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        devicetree@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Rui Miguel Silva <rui.silva@linaro.org>
+Subject: [PATCH v9 09/13] ARM: dts: imx7s-warp: add ov2680 sensor node
+Date: Thu, 22 Nov 2018 15:18:30 +0000
+Message-Id: <20181122151834.6194-10-rui.silva@linaro.org>
+In-Reply-To: <20181122151834.6194-1-rui.silva@linaro.org>
+References: <20181122151834.6194-1-rui.silva@linaro.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Commit 2d7007153f0c ("[media] media: videobuf2: Restructure vb2_buffer")
-replaced vb2_buffer with vb2_v4l2_buffer in all v4l2 drivers. The
-restructuring skipped the v4l2-pci-skeleton, probably because it resides
-outside the drivers directory.
+Warp7 comes with a Omnivision OV2680 sensor, add the node here to make
+complete the camera data path for this system. Add the needed regulator
+to the analog voltage supply, the port and endpoints in mipi_csi node
+and the pinctrl for the reset gpio.
 
-The v4l2_buf_ops assume that the passed buffer is a vb2_v4l2_buffer.
-This is not the case if the skel_buffer is based on vb2_buffer instead
-of vb2_v4l2_buffer.
-
-Replace vb2_buffer with vb2_v4l2_buffer in the skeleton to make sure
-that future drivers that are based on the skeleton use vb2_v4l2_buffer.
-
-Signed-off-by: Michael Tretter <m.tretter@pengutronix.de>
+Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
 ---
- samples/v4l/v4l2-pci-skeleton.c | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ arch/arm/boot/dts/imx7s-warp.dts | 44 ++++++++++++++++++++++++++++++++
+ 1 file changed, 44 insertions(+)
 
-diff --git a/samples/v4l/v4l2-pci-skeleton.c b/samples/v4l/v4l2-pci-skeleton.c
-index f520e3aef9c6..27ec30952cfa 100644
---- a/samples/v4l/v4l2-pci-skeleton.c
-+++ b/samples/v4l/v4l2-pci-skeleton.c
-@@ -80,13 +80,13 @@ struct skeleton {
+diff --git a/arch/arm/boot/dts/imx7s-warp.dts b/arch/arm/boot/dts/imx7s-warp.dts
+index 757856a3964b..4ada85850411 100644
+--- a/arch/arm/boot/dts/imx7s-warp.dts
++++ b/arch/arm/boot/dts/imx7s-warp.dts
+@@ -54,6 +54,14 @@
+ 		regulator-always-on;
+ 	};
+ 
++	reg_peri_3p15v: regulator-peri-3p15v {
++		compatible = "regulator-fixed";
++		regulator-name = "peri_3p15v_reg";
++		regulator-min-microvolt = <3150000>;
++		regulator-max-microvolt = <3150000>;
++		regulator-always-on;
++	};
++
+ 	sound {
+ 		compatible = "simple-audio-card";
+ 		simple-audio-card,name = "imx7-sgtl5000";
+@@ -177,6 +185,27 @@
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_i2c2>;
+ 	status = "okay";
++
++	ov2680: camera@36 {
++		compatible = "ovti,ov2680";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_ov2680>;
++		reg = <0x36>;
++		clocks = <&osc>;
++		clock-names = "xvclk";
++		reset-gpios = <&gpio1 3 GPIO_ACTIVE_LOW>;
++		DOVDD-supply = <&sw2_reg>;
++		DVDD-supply = <&sw2_reg>;
++		AVDD-supply = <&reg_peri_3p15v>;
++
++		port {
++			ov2680_to_mipi: endpoint {
++				remote-endpoint = <&mipi_from_sensor>;
++				clock-lanes = <0>;
++				data-lanes = <1>;
++			};
++		};
++	};
  };
  
- struct skel_buffer {
--	struct vb2_buffer vb;
-+	struct vb2_v4l2_buffer vb;
- 	struct list_head list;
- };
+ &i2c3 {
+@@ -318,6 +347,15 @@
+ 	#size-cells = <0>;
+ 	fsl,csis-hs-settle = <3>;
  
--static inline struct skel_buffer *to_skel_buffer(struct vb2_buffer *vb2)
-+static inline struct skel_buffer *to_skel_buffer(struct vb2_v4l2_buffer *vbuf)
- {
--	return container_of(vb2, struct skel_buffer, vb);
-+	return container_of(vbuf, struct skel_buffer, vb);
- }
++	port@0 {
++		reg = <0>;
++
++		mipi_from_sensor: endpoint {
++			remote-endpoint = <&ov2680_to_mipi>;
++			data-lanes = <1>;
++		};
++	};
++
+ 	port@1 {
+ 		reg = <1>;
  
- static const struct pci_device_id skeleton_pci_tbl[] = {
-@@ -212,8 +212,9 @@ static int buffer_prepare(struct vb2_buffer *vb)
-  */
- static void buffer_queue(struct vb2_buffer *vb)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct skeleton *skel = vb2_get_drv_priv(vb->vb2_queue);
--	struct skel_buffer *buf = to_skel_buffer(vb);
-+	struct skel_buffer *buf = to_skel_buffer(vbuf);
- 	unsigned long flags;
+@@ -381,6 +419,12 @@
+ 		>;
+ 	};
  
- 	spin_lock_irqsave(&skel->qlock, flags);
-@@ -232,7 +233,7 @@ static void return_all_buffers(struct skeleton *skel,
- 
- 	spin_lock_irqsave(&skel->qlock, flags);
- 	list_for_each_entry_safe(buf, node, &skel->buf_list, list) {
--		vb2_buffer_done(&buf->vb, state);
-+		vb2_buffer_done(&buf->vb.vb2_buf, state);
- 		list_del(&buf->list);
- 	}
- 	spin_unlock_irqrestore(&skel->qlock, flags);
++	pinctrl_ov2680: ov2660grp {
++		fsl,pins = <
++			MX7D_PAD_LPSR_GPIO1_IO03__GPIO1_IO3	0x14
++		>;
++	};
++
+ 	pinctrl_sai1: sai1grp {
+ 		fsl,pins = <
+ 			MX7D_PAD_SAI1_RX_DATA__SAI1_RX_DATA0	0x1f
 -- 
 2.19.1
