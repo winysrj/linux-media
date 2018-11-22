@@ -1,67 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr1-f46.google.com ([209.85.221.46]:34136 "EHLO
-        mail-wr1-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2387437AbeKVH4m (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:34690 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S2390585AbeKVVIo (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Nov 2018 02:56:42 -0500
-Subject: Re: DVB-S PCI card regression on 4.19 / 4.20
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        stakanov <stakanov@eclipso.eu>
-Cc: Takashi Iwai <tiwai@suse.de>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-References: <4e0356d6303c128a3e6d0bcc453ba1be@mail.eclipso.de>
- <20181120104217.5b487bcd@coco.lan> <1593929.t9Y74Rdlh1@roadrunner.suse>
- <20181120140855.29f5dc3f@coco.lan>
-From: Malcolm Priestley <tvboxspy@gmail.com>
-Message-ID: <96849b97-3abb-b879-ed05-35bcd58b5e43@gmail.com>
-Date: Wed, 21 Nov 2018 21:20:35 +0000
+        Thu, 22 Nov 2018 16:08:44 -0500
+Subject: Re: [GIT PULL FOR v4.21] Add Rockchip VPU JPEG encoder
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Ezequiel Garcia <ezequiel@collabora.com>,
+        Tomasz Figa <tfiga@chromium.org>
+References: <d7afaa30-6d5b-2d4f-4a84-04ad813a3280@xs4all.nl>
+Message-ID: <6fca8409-3c12-41fb-d5b9-95aa74fa6420@xs4all.nl>
+Date: Thu, 22 Nov 2018 11:29:53 +0100
 MIME-Version: 1.0
-In-Reply-To: <20181120140855.29f5dc3f@coco.lan>
+In-Reply-To: <d7afaa30-6d5b-2d4f-4a84-04ad813a3280@xs4all.nl>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 20/11/2018 16:08, Mauro Carvalho Chehab wrote:
-> Em Tue, 20 Nov 2018 14:20:01 +0100
-<snip>
+Hi Ezeguiel,
 
-> Ok. Now, min/max frequencies are at the same scale. For DVB-S, 
-> dvb_frontend_get_frequency_limits() returns both in kHz, so the frequency
-> range is now OK.
+Just saw Tomasz' in-depth review and decided to drop this pull request.
+
+He found a few too many issues and I prefer those are addressed first.
+
+Sorry, still more work for you, on to v11!
+
+Regards,
+
+	Hans
+
+On 11/22/2018 10:39 AM, Hans Verkuil wrote:
+> The following changes since commit 5200ab6a32d6055428896a49ec9e3b1652c1a100:
 > 
-> The tuning frequency is wrong through. 10,719,000 kHz - e. g. 10,719 MHz
-> seems to be the transponder frequency you're trying to tune, and not the
-> intermediate frequency used at the DVB-S board.
+>   media: vidioc_cropcap -> vidioc_g_pixelaspect (2018-11-20 13:57:21 -0500)
 > 
-> That sounds to me either a wrong LNBf setting or a bug at libdvbv5 or
-> at Kaffeine's side. What happens is that the typical European LNBFs are:
+> are available in the Git repository at:
 > 
-> 1) the "old" universal one:
+>   git://linuxtv.org/hverkuil/media_tree.git tags/br-jpeg
 > 
-> UNIVERSAL
-> 	Universal, Europe
-> 	Freqs     : 10800 to 11800 MHz, LO: 9750 MHz
-> 	Freqs     : 11600 to 12700 MHz, LO: 10600 MHz
-I am pretty certain this type is obsolete it doesn't look right for 9750Mhz oscillator.
-
-I am sure it was 10000Mhz or 96?? or something like that for old analogue transmissions of 
-20 years ago
-
+> for you to fetch changes up to cbf7592cb57ec9986c4d1becfd80b85486fd318a:
 > 
-> 2) the "new" universal one, with seems to be used by most modern
-> satellite dishes in Europe nowadays:
+>   media: add Rockchip VPU JPEG encoder driver (2018-11-22 10:12:29 +0100)
 > 
-> EXTENDED
-> 	Astra 1E, European Universal Ku (extended)
-This needs renaming as 1E has long gone.
-
-Certainly this type is used for Astra 19.2 and 28.2.
-
-Ideally we should use a default LNB type for each Satellite either in libdvbv5, Kaffeine or respective tables.
-
-Regards
-
-
-Malcolm
+> ----------------------------------------------------------------
+> Tag branch
+> 
+> ----------------------------------------------------------------
+> Ezequiel Garcia (1):
+>       media: add Rockchip VPU JPEG encoder driver
+> 
+>  MAINTAINERS                                                 |   7 +
+>  drivers/staging/media/Kconfig                               |   2 +
+>  drivers/staging/media/Makefile                              |   1 +
+>  drivers/staging/media/rockchip/vpu/Kconfig                  |  13 +
+>  drivers/staging/media/rockchip/vpu/Makefile                 |  10 +
+>  drivers/staging/media/rockchip/vpu/TODO                     |   6 +
+>  drivers/staging/media/rockchip/vpu/rk3288_vpu_hw.c          | 118 ++++++++
+>  drivers/staging/media/rockchip/vpu/rk3288_vpu_hw_jpeg_enc.c | 133 ++++++++
+>  drivers/staging/media/rockchip/vpu/rk3288_vpu_regs.h        | 442 +++++++++++++++++++++++++++
+>  drivers/staging/media/rockchip/vpu/rk3399_vpu_hw.c          | 118 ++++++++
+>  drivers/staging/media/rockchip/vpu/rk3399_vpu_hw_jpeg_enc.c | 160 ++++++++++
+>  drivers/staging/media/rockchip/vpu/rk3399_vpu_regs.h        | 600 ++++++++++++++++++++++++++++++++++++
+>  drivers/staging/media/rockchip/vpu/rockchip_vpu.h           | 237 +++++++++++++++
+>  drivers/staging/media/rockchip/vpu/rockchip_vpu_common.h    |  29 ++
+>  drivers/staging/media/rockchip/vpu/rockchip_vpu_drv.c       | 535 +++++++++++++++++++++++++++++++++
+>  drivers/staging/media/rockchip/vpu/rockchip_vpu_enc.c       | 702 +++++++++++++++++++++++++++++++++++++++++++
+>  drivers/staging/media/rockchip/vpu/rockchip_vpu_hw.h        |  58 ++++
+>  drivers/staging/media/rockchip/vpu/rockchip_vpu_jpeg.c      | 290 ++++++++++++++++++
+>  drivers/staging/media/rockchip/vpu/rockchip_vpu_jpeg.h      |  14 +
+>  19 files changed, 3475 insertions(+)
+>  create mode 100644 drivers/staging/media/rockchip/vpu/Kconfig
+>  create mode 100644 drivers/staging/media/rockchip/vpu/Makefile
+>  create mode 100644 drivers/staging/media/rockchip/vpu/TODO
+>  create mode 100644 drivers/staging/media/rockchip/vpu/rk3288_vpu_hw.c
+>  create mode 100644 drivers/staging/media/rockchip/vpu/rk3288_vpu_hw_jpeg_enc.c
+>  create mode 100644 drivers/staging/media/rockchip/vpu/rk3288_vpu_regs.h
+>  create mode 100644 drivers/staging/media/rockchip/vpu/rk3399_vpu_hw.c
+>  create mode 100644 drivers/staging/media/rockchip/vpu/rk3399_vpu_hw_jpeg_enc.c
+>  create mode 100644 drivers/staging/media/rockchip/vpu/rk3399_vpu_regs.h
+>  create mode 100644 drivers/staging/media/rockchip/vpu/rockchip_vpu.h
+>  create mode 100644 drivers/staging/media/rockchip/vpu/rockchip_vpu_common.h
+>  create mode 100644 drivers/staging/media/rockchip/vpu/rockchip_vpu_drv.c
+>  create mode 100644 drivers/staging/media/rockchip/vpu/rockchip_vpu_enc.c
+>  create mode 100644 drivers/staging/media/rockchip/vpu/rockchip_vpu_hw.h
+>  create mode 100644 drivers/staging/media/rockchip/vpu/rockchip_vpu_jpeg.c
+>  create mode 100644 drivers/staging/media/rockchip/vpu/rockchip_vpu_jpeg.h
+> 
