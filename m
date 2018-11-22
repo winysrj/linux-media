@@ -1,119 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:42695 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1730992AbeKVPLu (ORCPT
+Received: from mail-yw1-f68.google.com ([209.85.161.68]:44331 "EHLO
+        mail-yw1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2404967AbeKVRoy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Nov 2018 10:11:50 -0500
-Message-ID: <434d5596051f2c5db5c91ca93e89255f@smtp-cloud7.xs4all.net>
-Date: Thu, 22 Nov 2018 05:34:13 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+        Thu, 22 Nov 2018 12:44:54 -0500
+Received: by mail-yw1-f68.google.com with SMTP id h138-v6so1442814ywa.11
+        for <linux-media@vger.kernel.org>; Wed, 21 Nov 2018 23:06:50 -0800 (PST)
+Received: from mail-yw1-f54.google.com (mail-yw1-f54.google.com. [209.85.161.54])
+        by smtp.gmail.com with ESMTPSA id a72sm7652197ywh.42.2018.11.21.23.06.48
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 21 Nov 2018 23:06:48 -0800 (PST)
+Received: by mail-yw1-f54.google.com with SMTP id v8-v6so3256610ywh.6
+        for <linux-media@vger.kernel.org>; Wed, 21 Nov 2018 23:06:48 -0800 (PST)
+MIME-Version: 1.0
+References: <1542855107.1288.32.camel@intel.com>
+In-Reply-To: <1542855107.1288.32.camel@intel.com>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Thu, 22 Nov 2018 16:06:36 +0900
+Message-ID: <CAAFQd5CSXQw2Nk7TMij4qQx6V5diLg8LpuSKOrZG86cWo3vKxg@mail.gmail.com>
+Subject: Re: is it possible to use single IOCTL to setup media pipeline?
+To: ning.a.zhang@intel.com
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Ning,
 
-Results of the daily build of media_tree:
+On Thu, Nov 22, 2018 at 11:52 AM Zhang, Ning A <ning.a.zhang@intel.com> wrote:
+>
+> Hello everyone
+>
+> when we need to setup media pipeline, eg, for camera capture, media-ctl
+> needs to be called multiple time to setup media link and subdev
+> formats, or similar code in a single application. this will use
+> multiple IOCTLs on "/dev/mediaX" and "/dev/v4l2-subdevY".
+>
+> to setup media pipeline in userspace requires to fully understanding
+> the topology of the media stack. but the fact is only media driver
+> developer could know how to setup media pipeline. each time driver
+> updates, this would break userspace application if application
+> engineers don't know this change.
 
-date:			Thu Nov 22 05:00:11 CET 2018
-media-tree git hash:	5200ab6a32d6055428896a49ec9e3b1652c1a100
-media_build git hash:	a8aef9cea0a4a2f3ea86c0b37bd6a1378018c0c1
-v4l-utils git hash:	fcde9d178adb91cad74ed705c3009f8b05b4b44b
-edid-decode git hash:	5eeb151a748788666534d6ea3da07f90400d24c2
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.18.0-2-amd64
+That's obviously a bug in the driver. Kernel interfaces must not
+change in a way that are not compatible with the userspace.
 
-linux-git-arm-at91: WARNINGS
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-multi: WARNINGS
-linux-git-arm-pxa: WARNINGS
-linux-git-arm-stm32: WARNINGS
-linux-git-arm64: OK
-linux-git-i686: WARNINGS
-linux-git-mips: OK
-linux-git-powerpc64: WARNINGS
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.123-i686: OK
-linux-3.18.123-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.159-i686: OK
-linux-4.4.159-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.131-i686: OK
-linux-4.9.131-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.74-i686: OK
-linux-4.14.74-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: OK
-linux-4.19.1-i686: OK
-linux-4.19.1-x86_64: OK
-linux-4.20-rc1-i686: OK
-linux-4.20-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+> In this case, if a IOCTL is designed
+> to setup media pipeline, no need to update applications, after driver
+> is updated.
+>
+> this will not only benefit for design a single IOCTL, this also helps
+> to hide the detail of media pipeline, by load a binary blob which holds
+> information about how to setup pipeline, or hide it in bootloader/ACPI
+> tables/device tree, etc.
 
-Detailed results are available here:
+Media pipeline configuration is specific to the use case. If you
+hardcode it in the driver or bootloader, the user will not be able to
+use any other use case than the hardcoded blob, which is unacceptable
+for Linux drivers.
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+Instead, it sounds like your userspace should be designed in a way
+that the media topology configuration is loaded from a configuration
+file that you could either get from your kernel driver developer or
+just maintain yourself based on any changes the media developers do.
+Of course that's unrelated to the backwards compatibility issue, which
+should not happen normally. The configuration file would be helpful
+for handling future extensions and new hardware platforms.
 
-Full logs are available here:
+>
+> another benefit is save time for setup media pipeline, if there is a
+> PKI like "time for open camera". as my test, this will saves hundreds
+> of milliseconds.
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+For this problem, the proper solution would be to create an ioctl that
+can aggregate setting multiple parts of the topology in one go. For
+example, V4L2 has VIDIOC_S_CTRL for setting a control, but there is
+also VIDIOC_S_EXT_CTRLS, which lets you set multiple controls in one
+call. Something like VIDIOC_S_EXT_CTRLS for configuring the media
+topology would solve the performance problem.
 
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Best regards,
+Tomasz
