@@ -1,94 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:56876 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388851AbeKWAid (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Nov 2018 19:38:33 -0500
-Date: Thu, 22 Nov 2018 14:58:53 +0100
-From: Maxime Ripard <maxime.ripard@bootlin.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, Andrzej Hajda <a.hajda@samsung.com>,
-        Chen-Yu Tsai <wens@csie.org>, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
-        Mark Rutland <mark.rutland@arm.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Frank Rowand <frowand.list@gmail.com>
-Subject: Re: [PATCH 3/5] media: sunxi: Add A10 CSI driver
-Message-ID: <20181122135853.4rpxb32d6ios5zac@flea>
-References: <cover.71b0f9855c251f9dc389ee77ee6f0e1fad91fb0b.1542097288.git-series.maxime.ripard@bootlin.com>
- <c53e1cdc3b139382b00ee06bf3980d3fd1742ec0.1542097288.git-series.maxime.ripard@bootlin.com>
- <f34c79f5-66d6-2c2f-5616-020ad2b96400@xs4all.nl>
- <20181115205106.thbkojnzdwmaeui3@flea>
- <20181121220102.6nn7uwu2c67zs6pz@mara.localdomain>
+Received: from mail-pf1-f193.google.com ([209.85.210.193]:35973 "EHLO
+        mail-pf1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2403955AbeKWBkf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 22 Nov 2018 20:40:35 -0500
+Received: by mail-pf1-f193.google.com with SMTP id b85so2072732pfc.3
+        for <linux-media@vger.kernel.org>; Thu, 22 Nov 2018 07:00:51 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="3quxuh5gpkv3x7ke"
-Content-Disposition: inline
-In-Reply-To: <20181121220102.6nn7uwu2c67zs6pz@mara.localdomain>
+References: <20181122035229.3630-1-matt.ranostay@konsulko.com>
+ <20181122035229.3630-3-matt.ranostay@konsulko.com> <4e408e8a-414b-a6cd-37c6-ce3a378c6e25@xs4all.nl>
+In-Reply-To: <4e408e8a-414b-a6cd-37c6-ce3a378c6e25@xs4all.nl>
+From: Matt Ranostay <matt.ranostay@konsulko.com>
+Date: Thu, 22 Nov 2018 07:00:40 -0800
+Message-ID: <CAJCx=g=AjDZatGHDVFKbcE3VCmWSuyrmS3Ob-X5+r5R=6WRJqA@mail.gmail.com>
+Subject: Re: [PATCH v2 2/2] media: video-i2c: add Melexis MLX90640 thermal
+ camera support
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Thu, Nov 22, 2018 at 12:57 AM Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>
+> On 11/22/2018 04:52 AM, Matt Ranostay wrote:
+> > Add initial support for MLX90640 thermal cameras which output an 32x24
+> > greyscale pixel image along with 2 rows of coefficent data.
+> >
+> > Because of this the data outputed is really 32x26 and needs the two rows
+> > removed after using the coefficent information to generate processed
+> > images in userspace.
+> >
+> > Cc: devicetree@vger.kernel.org
+> > Signed-off-by: Matt Ranostay <matt.ranostay@konsulko.com>
+> > ---
+> >  .../bindings/media/i2c/melexis,mlx90640.txt   |  20 ++++
+> >  drivers/media/i2c/Kconfig                     |   1 +
+> >  drivers/media/i2c/video-i2c.c                 | 110 +++++++++++++++++-
+> >  3 files changed, 130 insertions(+), 1 deletion(-)
+> >  create mode 100644 Documentation/devicetree/bindings/media/i2c/melexis,mlx90640.txt
+> >
+> > diff --git a/Documentation/devicetree/bindings/media/i2c/melexis,mlx90640.txt b/Documentation/devicetree/bindings/media/i2c/melexis,mlx90640.txt
+> > new file mode 100644
+> > index 000000000000..060d2b7a5893
+> > --- /dev/null
+> > +++ b/Documentation/devicetree/bindings/media/i2c/melexis,mlx90640.txt
+> > @@ -0,0 +1,20 @@
+> > +* Melexis MLX90640 FIR Sensor
+> > +
+> > +Melexis MLX90640 FIR sensor support which allows recording of thermal data
+> > +with 32x24 resolution excluding 2 lines of coefficient data that is used by
+> > +userspace to render processed frames.
+>
+> So this means that the image doesn't conform to V4L2_PIX_FMT_Y12!
+>
 
---3quxuh5gpkv3x7ke
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+The data for this sensor is V4L2_PIX_FMT_Y16BE not Y12
 
-Hi Sakari,
+> I missed that the first time around.
+>
+> You have three options here:
+>
+> 1) Create a new V4L2_PIX_FMT define + documentation describing the format that
+>    this device produces.
+>
+> 2) Split off the image from the meta data and create a new META_CAPTURE device
+>    node. For the META device node you would again have to document the format
+>
+> 3) Split off the image from the meta data and store the meta data in a V4L2
+>    control, which again has to be documented.
+>
+> I'm leaning towards 1 since that's easiest to implement. But the key is that
+> you should document those two lines. The datasheet is publicly available,
+> so you can refer to it for details.
+>
 
-On Thu, Nov 22, 2018 at 12:01:03AM +0200, Sakari Ailus wrote:
-> On Thu, Nov 15, 2018 at 09:51:06PM +0100, Maxime Ripard wrote:
-> > Hi Hans,
-> >=20
-> > Thanks for your review! I'll address the other comments you made.
-> >=20
-> > On Tue, Nov 13, 2018 at 01:24:47PM +0100, Hans Verkuil wrote:
-> > > > +static int csi_probe(struct platform_device *pdev)
-> > > > +{
-> > > > +	struct sun4i_csi *csi;
-> > > > +	struct resource *res;
-> > > > +	int ret;
-> > > > +	int irq;
-> > > > +
-> > > > +	csi =3D devm_kzalloc(&pdev->dev, sizeof(*csi), GFP_KERNEL);
-> > >=20
-> > > devm_kzalloc is not recommended: all devm_ memory is freed when the d=
-river
-> > > is unbound, but a filehandle might still have a reference open.
-> >=20
-> > How would a !devm variant with a kfree in the remove help? We would
-> > still fall in the same case, right?
->=20
-> Not quite. For video nodes this is handled: the release callback gets cal=
-led
-> once there are no file handles open to the device. That may well be much
-> later than the device has been unbound from the driver.
+1 is mostly what I have now, excluding the documentation and new pixel format.
 
-I might be missing something, but how the release callback will be
-able to get the reference to the structure we allocated here so that
-it can free it?
+Although I have to say the META_CAPTURE options seems a bit more
+clean, but doesn't seem
+to be documented well.  So would it basically mux the pixel data, and
+metadata with the same
+timestamp?  Originally I looked at the VBI/closed caption to show the
+metadata/frame-only data but that
+was a way too low of a bandwidth (43-bytes a second IIRC).
 
-Thanks!
-Maxime
+> Those extra two lines return addresses 0x700-0x73f, right? Is it even sufficient
+> to calculate the relevant data from just those lines?
 
---=20
-Maxime Ripard, Bootlin
-Embedded Linux and Kernel engineering
-https://bootlin.com
+Yep that is the last 2 lines so 32x26 of reported data, but only 32x24
+is pixel data.
 
---3quxuh5gpkv3x7ke
-Content-Type: application/pgp-signature; name="signature.asc"
+> Looking at 11.2.2 there
+> is a whole calculation that should be done that is also dependent on the eeprom
+> values, which are not exported.
+>
 
------BEGIN PGP SIGNATURE-----
+You must have missed the nvmem part of the patchset.. :) The
+respective eeprom values are exported to userspace using that.
 
-iHUEABYIAB0WIQRcEzekXsqa64kGDp7j7w1vZxhRxQUCW/a2HQAKCRDj7w1vZxhR
-xeYmAP9yPJlEhJ3rYDcEmTa7fnMkqikKNh6ty85vrrlg+FCEBgD/Xvwbv+mZKRbm
-TOU2UTA8aEpKmFShx9jEqRewxE1iDQw=
-=+FLC
------END PGP SIGNATURE-----
+> I wonder if it isn't the job of the driver to do all the calculations. It has
+> all the information it needs and looking at the datasheet it seems all the
+> calculations are integer based, so it shouldn't be too difficult. This would
+> be a fourth option.
 
---3quxuh5gpkv3x7ke--
+Well it isn't really all integer based.. sure the value from the frame
+and eeprom are integers but the
+coefficients you generate ( frame value divided by eeprom value )
+usually produces a floating point value.
+
+>
+> BTW, did we document somewhere what the panasonic device returns? It returns
+> Y12 data, but what does that data mean? In order to use this in userspace you
+> need to be able to convert it to temperatures, so how is that done?
+
+It is a signed 12-bit value with 0.25C resolution per LSB but doesn't
+need any processing.
+
+>
+> Regards,
+>
+>         Hans
+>
+> > +
+> > +Required Properties:
+> > + - compatible : Must be "melexis,mlx90640"
+> > + - reg : i2c address of the device
+> > +
+> > +Example:
+> > +
+> > +     i2c0@1c22000 {
+> > +             ...
+> > +             mlx90640@33 {
+> > +                     compatible = "melexis,mlx90640";
+> > +                     reg = <0x33>;
+> > +             };
+> > +             ...
+> > +     };
