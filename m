@@ -1,55 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:59100 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1732619AbeKWILx (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Nov 2018 03:11:53 -0500
-Subject: Re: [PATCH] vim2m: use cancel_delayed_work_sync instead of
- flush_schedule_work
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <ff77abc3-7c15-8319-f500-a48db4f4bd5d@xs4all.nl>
-Message-ID: <fb4e5a83-737f-b5f8-0efb-5a18e91442cf@xs4all.nl>
-Date: Thu, 22 Nov 2018 22:30:38 +0100
+Received: from mx3.molgen.mpg.de ([141.14.17.11]:52397 "EHLO mx1.molgen.mpg.de"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726958AbeKWIY2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 23 Nov 2018 03:24:28 -0500
+Subject: Re: Logitech QuickCam USB detected by Linux, but not user space
+ applications
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <b9140bbf-1537-1431-1250-da0a21208992@molgen.mpg.de>
+ <20181115033813.6ff626d5@silica.lan>
+ <53bce637-985e-2c74-1d6b-151ba81550db@molgen.mpg.de>
+ <dd498a43-75cd-eec1-415f-f9d4569a302e@xs4all.nl>
+From: Paul Menzel <pmenzel@molgen.mpg.de>
+Message-ID: <90a7e0e2-ddbb-7762-3eb6-51db0570ffff@molgen.mpg.de>
+Date: Thu, 22 Nov 2018 22:43:11 +0100
 MIME-Version: 1.0
-In-Reply-To: <ff77abc3-7c15-8319-f500-a48db4f4bd5d@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <dd498a43-75cd-eec1-415f-f9d4569a302e@xs4all.nl>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: de-DE
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/07/2018 03:04 PM, Hans Verkuil wrote:
-> The use of flush_schedule_work() made no sense and caused a syzkaller error.
-> Replace with the correct cancel_delayed_work_sync().
+Dear Hans,
+
+
+Am 22.11.18 um 13:43 schrieb Hans Verkuil:
+
+> On 11/16/2018 03:39 PM, Paul Menzel wrote:
+
+>> On 11/15/18 12:38, Mauro Carvalho Chehab wrote:
+>>> Em Thu, 15 Nov 2018 11:42:32 +0100 Paul Menzel escreveu:
+>>
+>>>> I tried to get a Logitech QuickCam USB camera working, but unfortunately, it is
+>>>> not detected by user space (Cheese, MPlayer).
+>>>
+>>> Could you please try it with Camorama?
+>>>
+>>> 	https://github.com/alessio/camorama
+>>
+>> Thank you for the suggestion. At first, I only saw a black image, but changing the
+>> resolution made it work. See the status below.
+>>
+>> 1.  does *not* work
+>>
+>>      a)  160x120
+>>      b)  176x144
+>>
+>> 2.  works
+>>
+>>      a)  320x240
+>>      b)  352x288
 > 
-> Signed-off-by: Hans Verkuil <hans.verkuil>
-
-Mistyped that SoB, this should of course be:
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Regards,
-
-	Hans
-
-> Reported-by: syzbot+69780d144754b8071f4b@syzkaller.appspotmail.com
-> ---
-> diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
-> index d82db738f174..f938a2c54314 100644
-> --- a/drivers/media/platform/vim2m.c
-> +++ b/drivers/media/platform/vim2m.c
-> @@ -805,10 +805,11 @@ static int vim2m_start_streaming(struct vb2_queue *q, unsigned count)
->  static void vim2m_stop_streaming(struct vb2_queue *q)
->  {
->  	struct vim2m_ctx *ctx = vb2_get_drv_priv(q);
-> +	struct vim2m_dev *dev = ctx->dev;
->  	struct vb2_v4l2_buffer *vbuf;
->  	unsigned long flags;
+> Try this patch:
 > 
-> -	flush_scheduled_work();
-> +	cancel_delayed_work_sync(&dev->work_run);
->  	for (;;) {
->  		if (V4L2_TYPE_IS_OUTPUT(q->type))
->  			vbuf = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
+> https://patchwork.linuxtv.org/patch/53043/
 > 
+> It probably fixes the same problem you are experiencing.
+
+It indeed does. I cherry picked it to Linus’ master branch, and it fixed 
+the problem.
+
+Tested-by: Paul Menzel <pmenzel@molgen.mpg.de> (Logitech QuickCam 046d:092e)
+
+[…]
+
+
+Kind regards,
+
+Paul
