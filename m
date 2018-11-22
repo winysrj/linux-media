@@ -1,75 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:28192 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731655AbeKVTiV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Nov 2018 14:38:21 -0500
-From: "Zhang, Ning A" <ning.a.zhang@intel.com>
-To: "tfiga@chromium.org" <tfiga@chromium.org>
-CC: "Zhang, Ning A" <ning.a.zhang@intel.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: is it possible to use single IOCTL to setup media pipeline?
-Date: Thu, 22 Nov 2018 08:59:44 +0000
-Message-ID: <1542877183.1288.34.camel@intel.com>
-References: <1542855107.1288.32.camel@intel.com>
-         <CAAFQd5CSXQw2Nk7TMij4qQx6V5diLg8LpuSKOrZG86cWo3vKxg@mail.gmail.com>
-In-Reply-To: <CAAFQd5CSXQw2Nk7TMij4qQx6V5diLg8LpuSKOrZG86cWo3vKxg@mail.gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <0B2D429D1B69614CBE7AAB985C511EAE@intel.com>
-Content-Transfer-Encoding: base64
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:49630 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1730412AbeKVTqm (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 22 Nov 2018 14:46:42 -0500
+Subject: Re: [PATCH 1/1] v4l: uAPI doc: Changing frame interval won't change
+ format
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+References: <20181121173344.4055-1-sakari.ailus@linux.intel.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <0e159a5b-e43a-78a0-64d5-0efc8613fcac@xs4all.nl>
+Date: Thu, 22 Nov 2018 10:08:05 +0100
 MIME-Version: 1.0
+In-Reply-To: <20181121173344.4055-1-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-VG9tYXN6LCBUaGFuayB5b3UgZm9yIHlvdXIgYW5zd2Vycy4NCg0KbGVhcm5lZCBhIGxvdC4NCg0K
-QlIuDQpOaW5nLg0KDQrlnKggMjAxOC0xMS0yMuWbm+eahCAxNjowNiArMDkwMO+8jFRvbWFzeiBG
-aWdh5YaZ6YGT77yaDQo+IEhpIE5pbmcsDQo+IA0KPiBPbiBUaHUsIE5vdiAyMiwgMjAxOCBhdCAx
-MTo1MiBBTSBaaGFuZywgTmluZyBBIDxuaW5nLmEuemhhbmdAaW50ZWwuY28NCj4gbT4gd3JvdGU6
-DQo+ID4gDQo+ID4gSGVsbG8gZXZlcnlvbmUNCj4gPiANCj4gPiB3aGVuIHdlIG5lZWQgdG8gc2V0
-dXAgbWVkaWEgcGlwZWxpbmUsIGVnLCBmb3IgY2FtZXJhIGNhcHR1cmUsDQo+ID4gbWVkaWEtY3Rs
-DQo+ID4gbmVlZHMgdG8gYmUgY2FsbGVkIG11bHRpcGxlIHRpbWUgdG8gc2V0dXAgbWVkaWEgbGlu
-ayBhbmQgc3ViZGV2DQo+ID4gZm9ybWF0cywgb3Igc2ltaWxhciBjb2RlIGluIGEgc2luZ2xlIGFw
-cGxpY2F0aW9uLiB0aGlzIHdpbGwgdXNlDQo+ID4gbXVsdGlwbGUgSU9DVExzIG9uICIvZGV2L21l
-ZGlhWCIgYW5kICIvZGV2L3Y0bDItc3ViZGV2WSIuDQo+ID4gDQo+ID4gdG8gc2V0dXAgbWVkaWEg
-cGlwZWxpbmUgaW4gdXNlcnNwYWNlIHJlcXVpcmVzIHRvIGZ1bGx5DQo+ID4gdW5kZXJzdGFuZGlu
-Zw0KPiA+IHRoZSB0b3BvbG9neSBvZiB0aGUgbWVkaWEgc3RhY2suIGJ1dCB0aGUgZmFjdCBpcyBv
-bmx5IG1lZGlhIGRyaXZlcg0KPiA+IGRldmVsb3BlciBjb3VsZCBrbm93IGhvdyB0byBzZXR1cCBt
-ZWRpYSBwaXBlbGluZS4gZWFjaCB0aW1lIGRyaXZlcg0KPiA+IHVwZGF0ZXMsIHRoaXMgd291bGQg
-YnJlYWsgdXNlcnNwYWNlIGFwcGxpY2F0aW9uIGlmIGFwcGxpY2F0aW9uDQo+ID4gZW5naW5lZXJz
-IGRvbid0IGtub3cgdGhpcyBjaGFuZ2UuDQo+IA0KPiBUaGF0J3Mgb2J2aW91c2x5IGEgYnVnIGlu
-IHRoZSBkcml2ZXIuIEtlcm5lbCBpbnRlcmZhY2VzIG11c3Qgbm90DQo+IGNoYW5nZSBpbiBhIHdh
-eSB0aGF0IGFyZSBub3QgY29tcGF0aWJsZSB3aXRoIHRoZSB1c2Vyc3BhY2UuDQoNCkkgbWV0IHRo
-aXMgaXNzdWUgOigNCg0KPiANCj4gPiBJbiB0aGlzIGNhc2UsIGlmIGEgSU9DVEwgaXMgZGVzaWdu
-ZWQNCj4gPiB0byBzZXR1cCBtZWRpYSBwaXBlbGluZSwgbm8gbmVlZCB0byB1cGRhdGUgYXBwbGlj
-YXRpb25zLCBhZnRlcg0KPiA+IGRyaXZlcg0KPiA+IGlzIHVwZGF0ZWQuDQo+ID4gDQo+ID4gdGhp
-cyB3aWxsIG5vdCBvbmx5IGJlbmVmaXQgZm9yIGRlc2lnbiBhIHNpbmdsZSBJT0NUTCwgdGhpcyBh
-bHNvDQo+ID4gaGVscHMNCj4gPiB0byBoaWRlIHRoZSBkZXRhaWwgb2YgbWVkaWEgcGlwZWxpbmUs
-IGJ5IGxvYWQgYSBiaW5hcnkgYmxvYiB3aGljaA0KPiA+IGhvbGRzDQo+ID4gaW5mb3JtYXRpb24g
-YWJvdXQgaG93IHRvIHNldHVwIHBpcGVsaW5lLCBvciBoaWRlIGl0IGluDQo+ID4gYm9vdGxvYWRl
-ci9BQ1BJDQo+ID4gdGFibGVzL2RldmljZSB0cmVlLCBldGMuDQo+IA0KPiBNZWRpYSBwaXBlbGlu
-ZSBjb25maWd1cmF0aW9uIGlzIHNwZWNpZmljIHRvIHRoZSB1c2UgY2FzZS4gSWYgeW91DQo+IGhh
-cmRjb2RlIGl0IGluIHRoZSBkcml2ZXIgb3IgYm9vdGxvYWRlciwgdGhlIHVzZXIgd2lsbCBub3Qg
-YmUgYWJsZSB0bw0KPiB1c2UgYW55IG90aGVyIHVzZSBjYXNlIHRoYW4gdGhlIGhhcmRjb2RlZCBi
-bG9iLCB3aGljaCBpcyB1bmFjY2VwdGFibGUNCj4gZm9yIExpbnV4IGRyaXZlcnMuDQo+IA0KPiBJ
-bnN0ZWFkLCBpdCBzb3VuZHMgbGlrZSB5b3VyIHVzZXJzcGFjZSBzaG91bGQgYmUgZGVzaWduZWQg
-aW4gYSB3YXkNCj4gdGhhdCB0aGUgbWVkaWEgdG9wb2xvZ3kgY29uZmlndXJhdGlvbiBpcyBsb2Fk
-ZWQgZnJvbSBhIGNvbmZpZ3VyYXRpb24NCj4gZmlsZSB0aGF0IHlvdSBjb3VsZCBlaXRoZXIgZ2V0
-IGZyb20geW91ciBrZXJuZWwgZHJpdmVyIGRldmVsb3BlciBvcg0KPiBqdXN0IG1haW50YWluIHlv
-dXJzZWxmIGJhc2VkIG9uIGFueSBjaGFuZ2VzIHRoZSBtZWRpYSBkZXZlbG9wZXJzIGRvLg0KPiBP
-ZiBjb3Vyc2UgdGhhdCdzIHVucmVsYXRlZCB0byB0aGUgYmFja3dhcmRzIGNvbXBhdGliaWxpdHkg
-aXNzdWUsDQo+IHdoaWNoDQo+IHNob3VsZCBub3QgaGFwcGVuIG5vcm1hbGx5LiBUaGUgY29uZmln
-dXJhdGlvbiBmaWxlIHdvdWxkIGJlIGhlbHBmdWwNCj4gZm9yIGhhbmRsaW5nIGZ1dHVyZSBleHRl
-bnNpb25zIGFuZCBuZXcgaGFyZHdhcmUgcGxhdGZvcm1zLg0KDQp5ZXMsIGlmIHRoZXJlIGFyZSBt
-dWx0aXBsZSB1c2VyIGNhc2VzLCB0aGVuIHRoaXMgaXMgbm90IG9wdGlvbmFsLg0KDQo+IA0KPiA+
-IA0KPiA+IGFub3RoZXIgYmVuZWZpdCBpcyBzYXZlIHRpbWUgZm9yIHNldHVwIG1lZGlhIHBpcGVs
-aW5lLCBpZiB0aGVyZSBpcw0KPiA+IGENCj4gPiBQS0kgbGlrZSAidGltZSBmb3Igb3BlbiBjYW1l
-cmEiLiBhcyBteSB0ZXN0LCB0aGlzIHdpbGwgc2F2ZXMNCj4gPiBodW5kcmVkcw0KPiA+IG9mIG1p
-bGxpc2Vjb25kcy4NCj4gDQo+IEZvciB0aGlzIHByb2JsZW0sIHRoZSBwcm9wZXIgc29sdXRpb24g
-d291bGQgYmUgdG8gY3JlYXRlIGFuIGlvY3RsDQo+IHRoYXQNCj4gY2FuIGFnZ3JlZ2F0ZSBzZXR0
-aW5nIG11bHRpcGxlIHBhcnRzIG9mIHRoZSB0b3BvbG9neSBpbiBvbmUgZ28uIEZvcg0KPiBleGFt
-cGxlLCBWNEwyIGhhcyBWSURJT0NfU19DVFJMIGZvciBzZXR0aW5nIGEgY29udHJvbCwgYnV0IHRo
-ZXJlIGlzDQo+IGFsc28gVklESU9DX1NfRVhUX0NUUkxTLCB3aGljaCBsZXRzIHlvdSBzZXQgbXVs
-dGlwbGUgY29udHJvbHMgaW4gb25lDQo+IGNhbGwuIFNvbWV0aGluZyBsaWtlIFZJRElPQ19TX0VY
-VF9DVFJMUyBmb3IgY29uZmlndXJpbmcgdGhlIG1lZGlhDQo+IHRvcG9sb2d5IHdvdWxkIHNvbHZl
-IHRoZSBwZXJmb3JtYW5jZSBwcm9ibGVtLg0KDQp0aGlzIG1heSBiZSBhbHRlcm5hdGl2ZSBjaG9p
-Y2UuDQoNCj4gDQo+IA0KPiBCZXN0IHJlZ2FyZHMsDQo+IFRvbWFzeg==
+On 11/21/2018 06:33 PM, Sakari Ailus wrote:
+> Document that changing the frame interval has no effect on frame size.
+> While this was the assumption in the API, it was not documented as such.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Thanks!
+
+	Hans
+
+> ---
+>  Documentation/media/uapi/v4l/vidioc-g-parm.rst                  | 3 +++
+>  Documentation/media/uapi/v4l/vidioc-subdev-g-frame-interval.rst | 3 +++
+>  2 files changed, 6 insertions(+)
+> 
+> diff --git a/Documentation/media/uapi/v4l/vidioc-g-parm.rst b/Documentation/media/uapi/v4l/vidioc-g-parm.rst
+> index e831fa5512f0..c31585a7701b 100644
+> --- a/Documentation/media/uapi/v4l/vidioc-g-parm.rst
+> +++ b/Documentation/media/uapi/v4l/vidioc-g-parm.rst
+> @@ -42,6 +42,9 @@ side. This is especially useful when using the :ref:`read() <func-read>` or
+>  :ref:`write() <func-write>`, which are not augmented by timestamps or sequence
+>  counters, and to avoid unnecessary data copying.
+>  
+> +Changing the frame interval shall never change the format. Changing the
+> +format, on the other hand, may change the frame interval.
+> +
+>  Further these ioctls can be used to determine the number of buffers used
+>  internally by a driver in read/write mode. For implications see the
+>  section discussing the :ref:`read() <func-read>` function.
+> diff --git a/Documentation/media/uapi/v4l/vidioc-subdev-g-frame-interval.rst b/Documentation/media/uapi/v4l/vidioc-subdev-g-frame-interval.rst
+> index 5af0a7179941..f889c20f231c 100644
+> --- a/Documentation/media/uapi/v4l/vidioc-subdev-g-frame-interval.rst
+> +++ b/Documentation/media/uapi/v4l/vidioc-subdev-g-frame-interval.rst
+> @@ -63,6 +63,9 @@ doesn't match the device capabilities. They must instead modify the
+>  interval to match what the hardware can provide. The modified interval
+>  should be as close as possible to the original request.
+>  
+> +Changing the frame interval shall never change the format. Changing the
+> +format, on the other hand, may change the frame interval.
+> +
+>  Sub-devices that support the frame interval ioctls should implement them
+>  on a single pad only. Their behaviour when supported on multiple pads of
+>  the same sub-device is not defined.
+> 
