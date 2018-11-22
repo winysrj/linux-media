@@ -1,84 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw1-f68.google.com ([209.85.161.68]:44331 "EHLO
-        mail-yw1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2404967AbeKVRoy (ORCPT
+Received: from mail-ot1-f65.google.com ([209.85.210.65]:35673 "EHLO
+        mail-ot1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2393078AbeKVTKV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Nov 2018 12:44:54 -0500
-Received: by mail-yw1-f68.google.com with SMTP id h138-v6so1442814ywa.11
-        for <linux-media@vger.kernel.org>; Wed, 21 Nov 2018 23:06:50 -0800 (PST)
-Received: from mail-yw1-f54.google.com (mail-yw1-f54.google.com. [209.85.161.54])
-        by smtp.gmail.com with ESMTPSA id a72sm7652197ywh.42.2018.11.21.23.06.48
+        Thu, 22 Nov 2018 14:10:21 -0500
+Received: by mail-ot1-f65.google.com with SMTP id 81so7400512otj.2
+        for <linux-media@vger.kernel.org>; Thu, 22 Nov 2018 00:31:56 -0800 (PST)
+Received: from mail-ot1-f46.google.com (mail-ot1-f46.google.com. [209.85.210.46])
+        by smtp.gmail.com with ESMTPSA id b18sm2280819otl.33.2018.11.22.00.31.54
         for <linux-media@vger.kernel.org>
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 21 Nov 2018 23:06:48 -0800 (PST)
-Received: by mail-yw1-f54.google.com with SMTP id v8-v6so3256610ywh.6
-        for <linux-media@vger.kernel.org>; Wed, 21 Nov 2018 23:06:48 -0800 (PST)
+        Thu, 22 Nov 2018 00:31:55 -0800 (PST)
+Received: by mail-ot1-f46.google.com with SMTP id i20so7423154otl.0
+        for <linux-media@vger.kernel.org>; Thu, 22 Nov 2018 00:31:54 -0800 (PST)
 MIME-Version: 1.0
-References: <1542855107.1288.32.camel@intel.com>
-In-Reply-To: <1542855107.1288.32.camel@intel.com>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Thu, 22 Nov 2018 16:06:36 +0900
-Message-ID: <CAAFQd5CSXQw2Nk7TMij4qQx6V5diLg8LpuSKOrZG86cWo3vKxg@mail.gmail.com>
-Subject: Re: is it possible to use single IOCTL to setup media pipeline?
-To: ning.a.zhang@intel.com
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <20181113093048.236201-1-acourbot@chromium.org>
+ <CAKQmDh-91tHP1VxLisW1A3GR9G7du3F-Y2XrrgoFU=gvhGoP6w@mail.gmail.com>
+ <CAPBb6MWJ1Qu9YoRRusOGiC7dioMkgvU=1dCF6XZ4xDUxp7ri9A@mail.gmail.com> <463ac42b795933a54daa8d2bbba3ff1ac2b733db.camel@ndufresne.ca>
+In-Reply-To: <463ac42b795933a54daa8d2bbba3ff1ac2b733db.camel@ndufresne.ca>
+From: Alexandre Courbot <acourbot@chromium.org>
+Date: Thu, 22 Nov 2018 17:31:43 +0900
+Message-ID: <CAPBb6MVzqqgUD5faN06=s-UNA9obxjiBQdMDNDK7m=m3=Utk3w@mail.gmail.com>
+Subject: Re: [PATCH] media: venus: fix reported size of 0-length buffers
+To: Nicolas Dufresne <nicolas@ndufresne.ca>
+Cc: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        linux-arm-msm@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ning,
-
-On Thu, Nov 22, 2018 at 11:52 AM Zhang, Ning A <ning.a.zhang@intel.com> wrote:
+On Fri, Nov 16, 2018 at 1:49 AM Nicolas Dufresne <nicolas@ndufresne.ca> wro=
+te:
 >
-> Hello everyone
+> Le mercredi 14 novembre 2018 =C3=A0 13:12 +0900, Alexandre Courbot a =C3=
+=A9crit :
+> > On Wed, Nov 14, 2018 at 3:54 AM Nicolas Dufresne <nicolas@ndufresne.ca>=
+ wrote:
+> > >
+> > >
+> > > Le mar. 13 nov. 2018 04 h 30, Alexandre Courbot <acourbot@chromium.or=
+g> a =C3=A9crit :
+> > > > The last buffer is often signaled by an empty buffer with the
+> > > > V4L2_BUF_FLAG_LAST flag set. Such buffers were returned with the
+> > > > bytesused field set to the full size of the OPB, which leads
+> > > > user-space to believe that the buffer actually contains useful data=
+. Fix
+> > > > this by passing the number of bytes reported used by the firmware.
+> > >
+> > > That means the driver does not know on time which one is last. Why no=
+t just returned EPIPE to userspace on DQBUF and ovoid this useless roundtri=
+p ?
+> >
+> > Sorry, I don't understand what you mean. EPIPE is supposed to be
+> > returned after a buffer with V4L2_BUF_FLAG_LAST is made available for
+> > dequeue. This patch amends the code that prepares this LAST-flagged
+> > buffer. How could we avoid a roundtrip in this case?
 >
-> when we need to setup media pipeline, eg, for camera capture, media-ctl
-> needs to be called multiple time to setup media link and subdev
-> formats, or similar code in a single application. this will use
-> multiple IOCTLs on "/dev/mediaX" and "/dev/v4l2-subdevY".
+> Maybe it has changed, but when this was introduced, we found that some
+> firmware (Exynos MFC) could not know which one is last. Instead, it
+> gets an event saying there will be no more buffers.
 >
-> to setup media pipeline in userspace requires to fully understanding
-> the topology of the media stack. but the fact is only media driver
-> developer could know how to setup media pipeline. each time driver
-> updates, this would break userspace application if application
-> engineers don't know this change.
-
-That's obviously a bug in the driver. Kernel interfaces must not
-change in a way that are not compatible with the userspace.
-
-> In this case, if a IOCTL is designed
-> to setup media pipeline, no need to update applications, after driver
-> is updated.
+> Sending buffers with payload size to 0 just for the sake of setting the
+> V4L2_BUF_FLAG_LAST was considered a waste. Specially that after that,
+> every polls should return EPIPE. So in the end, we decided the it
+> should just unblock the userspace and return EPIPE.
 >
-> this will not only benefit for design a single IOCTL, this also helps
-> to hide the detail of media pipeline, by load a binary blob which holds
-> information about how to setup pipeline, or hide it in bootloader/ACPI
-> tables/device tree, etc.
+> If you look at the related GStreamer code, it completely ignores the
+> LAST flag. With fake buffer of size 0, userspace will endup dequeuing
+> and throwing away. This is not useful to the process of terminating the
+> decoding. To me, this LAST flag is not useful in this context.
 
-Media pipeline configuration is specific to the use case. If you
-hardcode it in the driver or bootloader, the user will not be able to
-use any other use case than the hardcoded blob, which is unacceptable
-for Linux drivers.
+Note that this patch does not interfere with DQBUF returning -EPIPE
+after the last buffer has been dequeued. It just fixes an invalid size
+that was returned for the last buffer.
 
-Instead, it sounds like your userspace should be designed in a way
-that the media topology configuration is loaded from a configuration
-file that you could either get from your kernel driver developer or
-just maintain yourself based on any changes the media developers do.
-Of course that's unrelated to the backwards compatibility issue, which
-should not happen normally. The configuration file would be helpful
-for handling future extensions and new hardware platforms.
+Note also that if I understand the doc properly, the kernel driver
+*must* set the V4L2_BUF_FLAG_LAST on the last buffer. With Venus the
+last buffer is signaled by the firmware with an empty buffer. That's
+not something we can change or predict earlier, so in order to respect
+the specification we need to return that empty buffer. After that
+DQBUF will behave as expected (returning -EPIPE), so GStreamer should
+be happy as well.
 
->
-> another benefit is save time for setup media pipeline, if there is a
-> PKI like "time for open camera". as my test, this will saves hundreds
-> of milliseconds.
+Without the proposed fix however, GStreamer would receive the last
+buffer with an incorrect size, and thus interpret random data as a
+frame.
 
-For this problem, the proper solution would be to create an ioctl that
-can aggregate setting multiple parts of the topology in one go. For
-example, V4L2 has VIDIOC_S_CTRL for setting a control, but there is
-also VIDIOC_S_EXT_CTRLS, which lets you set multiple controls in one
-call. Something like VIDIOC_S_EXT_CTRLS for configuring the media
-topology would solve the performance problem.
+So to me this fix seems to be both correct, and needed. Isn't it?
 
-Best regards,
-Tomasz
+Cheers,
+Alex.
