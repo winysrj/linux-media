@@ -1,65 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:58669 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725199AbeK0FMV (ORCPT
+Received: from mout.kundenserver.de ([217.72.192.75]:55547 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726009AbeKWGE1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Nov 2018 00:12:21 -0500
-From: Michael Grzeschik <m.grzeschik@pengutronix.de>
+        Fri, 23 Nov 2018 01:04:27 -0500
+Received: from Asus-A6VM ([87.164.84.243]) by mrelayeu.kundenserver.de
+ (mreue107 [212.227.15.183]) with ESMTPSA (Nemesis) id
+ 1N18MG-1fSDGm0xre-012a7T for <linux-media@vger.kernel.org>; Thu, 22 Nov 2018
+ 20:23:42 +0100
+Date: Thu, 22 Nov 2018 20:23:41 +0100
+From: Andreas Pape <ap@ca-pape.de>
 To: linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, stoth@kernellabs.com,
-        laurent.pinchart@ideasonboard.com, kernel@pengutronix.de,
-        mchehab@kernel.org, davem@davemloft.net
-Subject: [PATCH v2 0/2] media: Startech usb2hdcapm hdmi2usb framegrabber support
-Date: Mon, 26 Nov 2018 19:09:35 +0100
-Message-Id: <20181126180937.32535-1-m.grzeschik@pengutronix.de>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Subject: Bug in stkwebcam?
+Message-Id: <20181122202341.bddc151d82ce2cb7bb29a61b@ca-pape.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This series adds support for the Startech usb2hdcapm framegrabber. The
-code is based on the external kernel module code from Steven Toth's
-github page:
+Hello,
 
-https://github.com/stoth68000/hdcapm/
+I recently updated my old 2006 Asus A6VM notebook with the latest 32bit
+Ubuntu 18.04 LTS (kernel 4.15.0) and found out that the driver for the
+webcam (Syntek USB2.0, USB ID 174f:a311) was not working. I only got error
+messages like "Sensor resetting failed" in dmesg when starting guvcview
+for example.
 
-We applied checkpatch.pl --strict and cleaned up the 80 character
-length, whitespace issues and replaced simple printks with appropriate
-v4l2_* or dev_* helpers, used WARN_ON instead of BUG and changed all
-errors and warnings checkpatch was complaining about.
+Far from being an expert for video devices, I tried to debug this and
+figured out three patches to make the webcam work again on my old notebook
+(at least I get a video again ;-).
 
-Steven Toth (2):
-  media: mst3367: add support for mstar mst3367 HDMI RX
-  media: hdcapm: add support for usb2hdcapm hdmi2usb framegrabber from
-    startech
+I know the type of notebook and webcam is pretty old and the driver seems
+not to be actively maintained anymore although still being part of actual
+kernel versions.
 
- drivers/media/i2c/Kconfig                    |   10 +
- drivers/media/i2c/Makefile                   |    1 +
- drivers/media/i2c/mst3367.c                  | 1104 ++++++++++++++++++
- drivers/media/usb/Kconfig                    |    1 +
- drivers/media/usb/Makefile                   |    1 +
- drivers/media/usb/hdcapm/Kconfig             |   11 +
- drivers/media/usb/hdcapm/Makefile            |    3 +
- drivers/media/usb/hdcapm/hdcapm-buffer.c     |  230 ++++
- drivers/media/usb/hdcapm/hdcapm-compressor.c |  782 +++++++++++++
- drivers/media/usb/hdcapm/hdcapm-core.c       |  743 ++++++++++++
- drivers/media/usb/hdcapm/hdcapm-i2c.c        |  332 ++++++
- drivers/media/usb/hdcapm/hdcapm-reg.h        |  111 ++
- drivers/media/usb/hdcapm/hdcapm-video.c      |  665 +++++++++++
- drivers/media/usb/hdcapm/hdcapm.h            |  283 +++++
- include/media/i2c/mst3367.h                  |   29 +
- 15 files changed, 4306 insertions(+)
- create mode 100644 drivers/media/i2c/mst3367.c
- create mode 100644 drivers/media/usb/hdcapm/Kconfig
- create mode 100644 drivers/media/usb/hdcapm/Makefile
- create mode 100644 drivers/media/usb/hdcapm/hdcapm-buffer.c
- create mode 100644 drivers/media/usb/hdcapm/hdcapm-compressor.c
- create mode 100644 drivers/media/usb/hdcapm/hdcapm-core.c
- create mode 100644 drivers/media/usb/hdcapm/hdcapm-i2c.c
- create mode 100644 drivers/media/usb/hdcapm/hdcapm-reg.h
- create mode 100644 drivers/media/usb/hdcapm/hdcapm-video.c
- create mode 100644 drivers/media/usb/hdcapm/hdcapm.h
- create mode 100644 include/media/i2c/mst3367.h
+Is there still an interest in getting patches for such an old device? If
+yes, I could try to rebase my patches to the actual version of media_tree.git
+and post them to the mailing list.
 
--- 
-2.19.1
+Kind regards,
+Andreas
