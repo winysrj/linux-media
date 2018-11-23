@@ -1,119 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:57569 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S2408098AbeKWPRS (ORCPT
+Received: from mail-io1-f66.google.com ([209.85.166.66]:46590 "EHLO
+        mail-io1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729253AbeKWREj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Nov 2018 10:17:18 -0500
-Message-ID: <90e01187b368dbbee01f3f27e637035c@smtp-cloud9.xs4all.net>
-Date: Fri, 23 Nov 2018 05:34:43 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+        Fri, 23 Nov 2018 12:04:39 -0500
+Received: by mail-io1-f66.google.com with SMTP id v10so2400337ios.13
+        for <linux-media@vger.kernel.org>; Thu, 22 Nov 2018 22:21:51 -0800 (PST)
+MIME-Version: 1.0
+References: <20181114145934.26855-1-maxime.ripard@bootlin.com> <20181114145934.26855-5-maxime.ripard@bootlin.com>
+In-Reply-To: <20181114145934.26855-5-maxime.ripard@bootlin.com>
+From: Jagan Teki <jagan@amarulasolutions.com>
+Date: Fri, 23 Nov 2018 11:51:38 +0530
+Message-ID: <CAMty3ZDtKNvH75r3m3D1b=0HKrZ+ZVsrP-OwS_Ws2NRqtf4v5g@mail.gmail.com>
+Subject: Re: [PATCH v2 4/4] [DO NOT MERGE] ARM: dts: sun8i: Add CAM500B camera
+ module to the Nano Pi M1+
+To: Maxime Ripard <maxime.ripard@bootlin.com>
+Cc: Yong Deng <yong.deng@magewell.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media <linux-media@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Mylene Josserand <mylene.josserand@bootlin.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Wed, Nov 14, 2018 at 8:29 PM Maxime Ripard <maxime.ripard@bootlin.com> w=
+rote:
+>
+> From: Myl=C3=A8ne Josserand <mylene.josserand@bootlin.com>
+>
+> The Nano Pi M1+ comes with an optional sensor based on the ov5640 from
+> Omnivision. Enable the support for it in the DT.
+>
+> Signed-off-by: Myl=C3=A8ne Josserand <mylene.josserand@bootlin.com>
+> Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
+> ---
+>  arch/arm/boot/dts/sun8i-h3-nanopi-m1-plus.dts | 85 +++++++++++++++++++
+>  1 file changed, 85 insertions(+)
+>
+> diff --git a/arch/arm/boot/dts/sun8i-h3-nanopi-m1-plus.dts b/arch/arm/boo=
+t/dts/sun8i-h3-nanopi-m1-plus.dts
+> index 06010a9afba0..2ac62d109285 100644
+> --- a/arch/arm/boot/dts/sun8i-h3-nanopi-m1-plus.dts
+> +++ b/arch/arm/boot/dts/sun8i-h3-nanopi-m1-plus.dts
+> @@ -52,6 +52,37 @@
+>                 ethernet1 =3D &sdio_wifi;
+>         };
+>
+> +       cam_xclk: cam-xclk {
+> +                #clock-cells =3D <0>;
+> +                compatible =3D "fixed-clock";
+> +                clock-frequency =3D <24000000>;
+> +                clock-output-names =3D "cam-xclk";
+> +        };
+> +
+> +        reg_cam_avdd: cam-avdd {
+> +                compatible =3D "regulator-fixed";
+> +                regulator-name =3D "cam500b-avdd";
+> +                regulator-min-microvolt =3D <2800000>;
+> +                regulator-max-microvolt =3D <2800000>;
+> +                vin-supply =3D <&reg_vcc3v3>;
+> +        };
+> +
+> +        reg_cam_dovdd: cam-dovdd {
+> +                compatible =3D "regulator-fixed";
+> +                regulator-name =3D "cam500b-dovdd";
+> +                regulator-min-microvolt =3D <1800000>;
+> +                regulator-max-microvolt =3D <1800000>;
+> +                vin-supply =3D <&reg_vcc3v3>;
+> +        };
+> +
+> +        reg_cam_dvdd: cam-dvdd {
+> +                compatible =3D "regulator-fixed";
+> +                regulator-name =3D "cam500b-dvdd";
+> +                regulator-min-microvolt =3D <1500000>;
+> +                regulator-max-microvolt =3D <1500000>;
+> +                vin-supply =3D <&reg_vcc3v3>;
+> +        };
+> +
+>         reg_gmac_3v3: gmac-3v3 {
+>                 compatible =3D "regulator-fixed";
+>                 regulator-name =3D "gmac-3v3";
+> @@ -69,6 +100,26 @@
+>         };
+>  };
+>
+> +&csi {
+> +        status =3D "okay";
+> +
+> +        port {
+> +                #address-cells =3D <1>;
+> +                #size-cells =3D <0>;
+> +
+> +                /* Parallel bus endpoint */
+> +                csi_from_ov5640: endpoint {
+> +                        remote-endpoint =3D <&ov5640_to_csi>;
+> +                        bus-width =3D <8>;
+> +                        data-shift =3D <2>;
+> +                        hsync-active =3D <1>; /* Active high */
+> +                        vsync-active =3D <0>; /* Active low */
+> +                        data-active =3D <1>;  /* Active high */
+> +                        pclk-sample =3D <1>;  /* Rising */
+> +                };
+> +        };
+> +};
+> +
+>  &ehci1 {
+>         status =3D "okay";
+>  };
+> @@ -94,6 +145,40 @@
+>         };
+>  };
+>
+> +&i2c2 {
+> +       status =3D "okay";
+> +
+> +       ov5640: camera@3c {
+> +                compatible =3D "ovti,ov5640";
+> +                reg =3D <0x3c>;
+> +                clocks =3D <&cam_xclk>;
 
-Results of the daily build of media_tree:
-
-date:			Fri Nov 23 05:00:11 CET 2018
-media-tree git hash:	8e782fcf78275f505194e767c515202d4fd274bc
-media_build git hash:	a8aef9cea0a4a2f3ea86c0b37bd6a1378018c0c1
-v4l-utils git hash:	f3d77d6df975b6fb8fbf9f9f8fe2c4a809136b86
-edid-decode git hash:	5eeb151a748788666534d6ea3da07f90400d24c2
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.18.0-2-amd64
-
-linux-git-arm-at91: WARNINGS
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-multi: WARNINGS
-linux-git-arm-pxa: WARNINGS
-linux-git-arm-stm32: WARNINGS
-linux-git-arm64: OK
-linux-git-i686: WARNINGS
-linux-git-mips: OK
-linux-git-powerpc64: WARNINGS
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.123-i686: OK
-linux-3.18.123-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.159-i686: OK
-linux-4.4.159-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.131-i686: OK
-linux-4.9.131-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.74-i686: OK
-linux-4.14.74-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: OK
-linux-4.19.1-i686: OK
-linux-4.19.1-x86_64: OK
-linux-4.20-rc1-i686: OK
-linux-4.20-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+I think we can directly use existing 24MHz oscillator, &osc24M
