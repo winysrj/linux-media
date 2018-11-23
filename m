@@ -1,44 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:33202 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732237AbeKXEBJ (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:60986 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2391344AbeKXEFU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Nov 2018 23:01:09 -0500
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Akihiro Tsukada <tskd08@gmail.com>, Michael Buesch <m@bues.ch>
-Subject: [PATCH] media: dvb-pll: don't re-validate tuner frequencies
-Date: Fri, 23 Nov 2018 12:15:58 -0500
-Message-Id: <47d7c8b16d765432221da31a4570a1689a8e3580.1542993354.git.mchehab+samsung@kernel.org>
+        Fri, 23 Nov 2018 23:05:20 -0500
+From: Ezequiel Garcia <ezequiel@collabora.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Ezequiel Garcia <ezequiel@collabora.com>
+Subject: [PATCH] v4l2-ioctl: Zero v4l2_pix_format_mplane reserved fields
+Date: Fri, 23 Nov 2018 14:19:58 -0300
+Message-Id: <20181123171958.17614-1-ezequiel@collabora.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The dvb_frontend core already checks for the frequencies. No
-need for any additional check inside the driver.
+Make the core set the reserved fields to zero in
+v4l2_pix_format_mplane and v4l2_plane_pix_format structs,
+for _MPLANE queue types.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Moving this to the core avoids having to do so in each
+and every driver.
+
+Suggested-by: Tomasz Figa <tfiga@chromium.org>
+Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
 ---
- drivers/media/dvb-frontends/dvb-pll.c | 3 ---
- 1 file changed, 3 deletions(-)
+ drivers/media/v4l2-core/v4l2-ioctl.c | 51 ++++++++++++++++++++++++----
+ 1 file changed, 45 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/dvb-pll.c b/drivers/media/dvb-frontends/dvb-pll.c
-index fff5816f6ec4..29836c1a40e9 100644
---- a/drivers/media/dvb-frontends/dvb-pll.c
-+++ b/drivers/media/dvb-frontends/dvb-pll.c
-@@ -610,9 +610,6 @@ static int dvb_pll_configure(struct dvb_frontend *fe, u8 *buf,
- 	u32 div;
- 	int i;
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 10b862dcbd86..3858fffc3e68 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1420,6 +1420,7 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
+ {
+ 	struct v4l2_format *p = arg;
+ 	int ret = check_fmt(file, p->type);
++	int i;
  
--	if (frequency && (frequency < desc->min || frequency > desc->max))
--		return -EINVAL;
--
- 	for (i = 0; i < desc->count; i++) {
- 		if (frequency > desc->entries[i].limit)
- 			continue;
+ 	if (ret)
+ 		return ret;
+@@ -1458,7 +1459,13 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
+ 		p->fmt.pix.priv = V4L2_PIX_FMT_PRIV_MAGIC;
+ 		return ret;
+ 	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+-		return ops->vidioc_g_fmt_vid_cap_mplane(file, fh, arg);
++		ret = ops->vidioc_g_fmt_vid_cap_mplane(file, fh, arg);
++		memset(p->fmt.pix_mp.reserved, 0,
++		       sizeof(p->fmt.pix_mp.reserved));
++		for (i = 0; i < p->fmt.pix_mp.num_planes; i++)
++			memset(p->fmt.pix_mp.plane_fmt[i].reserved, 0,
++			       sizeof(p->fmt.pix_mp.plane_fmt[i].reserved));
++		return ret;
+ 	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
+ 		return ops->vidioc_g_fmt_vid_overlay(file, fh, arg);
+ 	case V4L2_BUF_TYPE_VBI_CAPTURE:
+@@ -1474,7 +1481,13 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
+ 		p->fmt.pix.priv = V4L2_PIX_FMT_PRIV_MAGIC;
+ 		return ret;
+ 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
+-		return ops->vidioc_g_fmt_vid_out_mplane(file, fh, arg);
++		ret = ops->vidioc_g_fmt_vid_out_mplane(file, fh, arg);
++		memset(p->fmt.pix_mp.reserved, 0,
++		       sizeof(p->fmt.pix_mp.reserved));
++		for (i = 0; i < p->fmt.pix_mp.num_planes; i++)
++			memset(p->fmt.pix_mp.plane_fmt[i].reserved, 0,
++			       sizeof(p->fmt.pix_mp.plane_fmt[i].reserved));
++		return ret;
+ 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
+ 		return ops->vidioc_g_fmt_vid_out_overlay(file, fh, arg);
+ 	case V4L2_BUF_TYPE_VBI_OUTPUT:
+@@ -1512,6 +1525,7 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
+ 	struct v4l2_format *p = arg;
+ 	struct video_device *vfd = video_devdata(file);
+ 	int ret = check_fmt(file, p->type);
++	int i;
+ 
+ 	if (ret)
+ 		return ret;
+@@ -1536,7 +1550,13 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
+ 		if (unlikely(!ops->vidioc_s_fmt_vid_cap_mplane))
+ 			break;
+ 		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
+-		return ops->vidioc_s_fmt_vid_cap_mplane(file, fh, arg);
++		ret = ops->vidioc_s_fmt_vid_cap_mplane(file, fh, arg);
++		memset(p->fmt.pix_mp.reserved, 0,
++		       sizeof(p->fmt.pix_mp.reserved));
++		for (i = 0; i < p->fmt.pix_mp.num_planes; i++)
++			memset(p->fmt.pix_mp.plane_fmt[i].reserved, 0,
++			       sizeof(p->fmt.pix_mp.plane_fmt[i].reserved));
++		return ret;
+ 	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
+ 		if (unlikely(!ops->vidioc_s_fmt_vid_overlay))
+ 			break;
+@@ -1564,7 +1584,13 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
+ 		if (unlikely(!ops->vidioc_s_fmt_vid_out_mplane))
+ 			break;
+ 		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
+-		return ops->vidioc_s_fmt_vid_out_mplane(file, fh, arg);
++		ret = ops->vidioc_s_fmt_vid_out_mplane(file, fh, arg);
++		memset(p->fmt.pix_mp.reserved, 0,
++		       sizeof(p->fmt.pix_mp.reserved));
++		for (i = 0; i < p->fmt.pix_mp.num_planes; i++)
++			memset(p->fmt.pix_mp.plane_fmt[i].reserved, 0,
++			       sizeof(p->fmt.pix_mp.plane_fmt[i].reserved));
++		return ret;
+ 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
+ 		if (unlikely(!ops->vidioc_s_fmt_vid_out_overlay))
+ 			break;
+@@ -1604,6 +1630,7 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
+ {
+ 	struct v4l2_format *p = arg;
+ 	int ret = check_fmt(file, p->type);
++	int i;
+ 
+ 	if (ret)
+ 		return ret;
+@@ -1623,7 +1650,13 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
+ 		if (unlikely(!ops->vidioc_try_fmt_vid_cap_mplane))
+ 			break;
+ 		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
+-		return ops->vidioc_try_fmt_vid_cap_mplane(file, fh, arg);
++		ret = ops->vidioc_try_fmt_vid_cap_mplane(file, fh, arg);
++		memset(p->fmt.pix_mp.reserved, 0,
++		       sizeof(p->fmt.pix_mp.reserved));
++		for (i = 0; i < p->fmt.pix_mp.num_planes; i++)
++			memset(p->fmt.pix_mp.plane_fmt[i].reserved, 0,
++			       sizeof(p->fmt.pix_mp.plane_fmt[i].reserved));
++		return ret;
+ 	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
+ 		if (unlikely(!ops->vidioc_try_fmt_vid_overlay))
+ 			break;
+@@ -1651,7 +1684,13 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
+ 		if (unlikely(!ops->vidioc_try_fmt_vid_out_mplane))
+ 			break;
+ 		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
+-		return ops->vidioc_try_fmt_vid_out_mplane(file, fh, arg);
++		ret = ops->vidioc_try_fmt_vid_out_mplane(file, fh, arg);
++		memset(p->fmt.pix_mp.reserved, 0,
++		       sizeof(p->fmt.pix_mp.reserved));
++		for (i = 0; i < p->fmt.pix_mp.num_planes; i++)
++			memset(p->fmt.pix_mp.plane_fmt[i].reserved, 0,
++			       sizeof(p->fmt.pix_mp.plane_fmt[i].reserved));
++		return ret;
+ 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
+ 		if (unlikely(!ops->vidioc_try_fmt_vid_out_overlay))
+ 			break;
 -- 
 2.19.1
