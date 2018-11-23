@@ -1,152 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:60986 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2391344AbeKXEFU (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.133]:58576 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730291AbeKXFYO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Nov 2018 23:05:20 -0500
-From: Ezequiel Garcia <ezequiel@collabora.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Ezequiel Garcia <ezequiel@collabora.com>
-Subject: [PATCH] v4l2-ioctl: Zero v4l2_pix_format_mplane reserved fields
-Date: Fri, 23 Nov 2018 14:19:58 -0300
-Message-Id: <20181123171958.17614-1-ezequiel@collabora.com>
+        Sat, 24 Nov 2018 00:24:14 -0500
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Kate Stewart <kstewart@linuxfoundation.org>
+Subject: [PATCH 6/6] media: pixfmt-meta-d4xx.rst: Add a license to it
+Date: Fri, 23 Nov 2018 16:38:39 -0200
+Message-Id: <af41c235dcd5b41cec9938ed8e438ed1614d2992.1542997584.git.mchehab+samsung@kernel.org>
+In-Reply-To: <cover.1542997584.git.mchehab+samsung@kernel.org>
+References: <cover.1542997584.git.mchehab+samsung@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make the core set the reserved fields to zero in
-v4l2_pix_format_mplane and v4l2_plane_pix_format structs,
-for _MPLANE queue types.
+This file is a recent addition to media docs, and it is now the
+only one without any license.
 
-Moving this to the core avoids having to do so in each
-and every driver.
+While the best is to dual-license with GFDL and GPL, it is,
+at least, compatible with GFDL, as this is a requirement to be
+part of the media uAPI docs.
 
-Suggested-by: Tomasz Figa <tfiga@chromium.org>
-Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+So, add such license to it.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 ---
- drivers/media/v4l2-core/v4l2-ioctl.c | 51 ++++++++++++++++++++++++----
- 1 file changed, 45 insertions(+), 6 deletions(-)
+ Documentation/media/uapi/v4l/pixfmt-meta-d4xx.rst | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 10b862dcbd86..3858fffc3e68 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1420,6 +1420,7 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
- {
- 	struct v4l2_format *p = arg;
- 	int ret = check_fmt(file, p->type);
-+	int i;
+diff --git a/Documentation/media/uapi/v4l/pixfmt-meta-d4xx.rst b/Documentation/media/uapi/v4l/pixfmt-meta-d4xx.rst
+index 63bf1a2c9116..862e1f327150 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-meta-d4xx.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-meta-d4xx.rst
+@@ -1,4 +1,11 @@
+-.. -*- coding: utf-8; mode: rst -*-
++.. Permission is granted to copy, distribute and/or modify this
++.. document under the terms of the GNU Free Documentation License,
++.. Version 1.1 or any later version published by the Free Software
++.. Foundation, with no Invariant Sections, no Front-Cover Texts
++.. and no Back-Cover Texts. A copy of the license is included at
++.. Documentation/media/uapi/fdl-appendix.rst.
++..
++.. TODO: replace it to GFDL-1.1-or-later WITH no-invariant-sections
  
- 	if (ret)
- 		return ret;
-@@ -1458,7 +1459,13 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
- 		p->fmt.pix.priv = V4L2_PIX_FMT_PRIV_MAGIC;
- 		return ret;
- 	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
--		return ops->vidioc_g_fmt_vid_cap_mplane(file, fh, arg);
-+		ret = ops->vidioc_g_fmt_vid_cap_mplane(file, fh, arg);
-+		memset(p->fmt.pix_mp.reserved, 0,
-+		       sizeof(p->fmt.pix_mp.reserved));
-+		for (i = 0; i < p->fmt.pix_mp.num_planes; i++)
-+			memset(p->fmt.pix_mp.plane_fmt[i].reserved, 0,
-+			       sizeof(p->fmt.pix_mp.plane_fmt[i].reserved));
-+		return ret;
- 	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
- 		return ops->vidioc_g_fmt_vid_overlay(file, fh, arg);
- 	case V4L2_BUF_TYPE_VBI_CAPTURE:
-@@ -1474,7 +1481,13 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
- 		p->fmt.pix.priv = V4L2_PIX_FMT_PRIV_MAGIC;
- 		return ret;
- 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
--		return ops->vidioc_g_fmt_vid_out_mplane(file, fh, arg);
-+		ret = ops->vidioc_g_fmt_vid_out_mplane(file, fh, arg);
-+		memset(p->fmt.pix_mp.reserved, 0,
-+		       sizeof(p->fmt.pix_mp.reserved));
-+		for (i = 0; i < p->fmt.pix_mp.num_planes; i++)
-+			memset(p->fmt.pix_mp.plane_fmt[i].reserved, 0,
-+			       sizeof(p->fmt.pix_mp.plane_fmt[i].reserved));
-+		return ret;
- 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
- 		return ops->vidioc_g_fmt_vid_out_overlay(file, fh, arg);
- 	case V4L2_BUF_TYPE_VBI_OUTPUT:
-@@ -1512,6 +1525,7 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
- 	struct v4l2_format *p = arg;
- 	struct video_device *vfd = video_devdata(file);
- 	int ret = check_fmt(file, p->type);
-+	int i;
+ .. _v4l2-meta-fmt-d4xx:
  
- 	if (ret)
- 		return ret;
-@@ -1536,7 +1550,13 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
- 		if (unlikely(!ops->vidioc_s_fmt_vid_cap_mplane))
- 			break;
- 		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
--		return ops->vidioc_s_fmt_vid_cap_mplane(file, fh, arg);
-+		ret = ops->vidioc_s_fmt_vid_cap_mplane(file, fh, arg);
-+		memset(p->fmt.pix_mp.reserved, 0,
-+		       sizeof(p->fmt.pix_mp.reserved));
-+		for (i = 0; i < p->fmt.pix_mp.num_planes; i++)
-+			memset(p->fmt.pix_mp.plane_fmt[i].reserved, 0,
-+			       sizeof(p->fmt.pix_mp.plane_fmt[i].reserved));
-+		return ret;
- 	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
- 		if (unlikely(!ops->vidioc_s_fmt_vid_overlay))
- 			break;
-@@ -1564,7 +1584,13 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
- 		if (unlikely(!ops->vidioc_s_fmt_vid_out_mplane))
- 			break;
- 		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
--		return ops->vidioc_s_fmt_vid_out_mplane(file, fh, arg);
-+		ret = ops->vidioc_s_fmt_vid_out_mplane(file, fh, arg);
-+		memset(p->fmt.pix_mp.reserved, 0,
-+		       sizeof(p->fmt.pix_mp.reserved));
-+		for (i = 0; i < p->fmt.pix_mp.num_planes; i++)
-+			memset(p->fmt.pix_mp.plane_fmt[i].reserved, 0,
-+			       sizeof(p->fmt.pix_mp.plane_fmt[i].reserved));
-+		return ret;
- 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
- 		if (unlikely(!ops->vidioc_s_fmt_vid_out_overlay))
- 			break;
-@@ -1604,6 +1630,7 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
- {
- 	struct v4l2_format *p = arg;
- 	int ret = check_fmt(file, p->type);
-+	int i;
- 
- 	if (ret)
- 		return ret;
-@@ -1623,7 +1650,13 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
- 		if (unlikely(!ops->vidioc_try_fmt_vid_cap_mplane))
- 			break;
- 		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
--		return ops->vidioc_try_fmt_vid_cap_mplane(file, fh, arg);
-+		ret = ops->vidioc_try_fmt_vid_cap_mplane(file, fh, arg);
-+		memset(p->fmt.pix_mp.reserved, 0,
-+		       sizeof(p->fmt.pix_mp.reserved));
-+		for (i = 0; i < p->fmt.pix_mp.num_planes; i++)
-+			memset(p->fmt.pix_mp.plane_fmt[i].reserved, 0,
-+			       sizeof(p->fmt.pix_mp.plane_fmt[i].reserved));
-+		return ret;
- 	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
- 		if (unlikely(!ops->vidioc_try_fmt_vid_overlay))
- 			break;
-@@ -1651,7 +1684,13 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
- 		if (unlikely(!ops->vidioc_try_fmt_vid_out_mplane))
- 			break;
- 		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
--		return ops->vidioc_try_fmt_vid_out_mplane(file, fh, arg);
-+		ret = ops->vidioc_try_fmt_vid_out_mplane(file, fh, arg);
-+		memset(p->fmt.pix_mp.reserved, 0,
-+		       sizeof(p->fmt.pix_mp.reserved));
-+		for (i = 0; i < p->fmt.pix_mp.num_planes; i++)
-+			memset(p->fmt.pix_mp.plane_fmt[i].reserved, 0,
-+			       sizeof(p->fmt.pix_mp.plane_fmt[i].reserved));
-+		return ret;
- 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
- 		if (unlikely(!ops->vidioc_try_fmt_vid_out_overlay))
- 			break;
 -- 
 2.19.1
