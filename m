@@ -1,72 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:50866 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2394087AbeKWVUR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Nov 2018 16:20:17 -0500
-Subject: Re: [PATCH] mm: Replace all open encodings for NUMA_NO_NODE
-To: Anshuman Khandual <anshuman.khandual@arm.com>, linux-mm@kvack.org,
-        linux-kernel@vger.kernel.org
-Cc: ocfs2-devel@oss.oracle.com, linux-fbdev@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, netdev@vger.kernel.org,
-        intel-wired-lan@lists.osuosl.org, linux-media@vger.kernel.org,
-        iommu@lists.linux-foundation.org, linux-rdma@vger.kernel.org,
-        dmaengine@vger.kernel.org, linux-block@vger.kernel.org,
-        sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-ia64@vger.kernel.org, linux-alpha@vger.kernel.org,
-        akpm@linux-foundation.org, jiangqi903@gmail.com, hverkuil@xs4all.nl
-References: <1542966856-12619-1-git-send-email-anshuman.khandual@arm.com>
-From: David Hildenbrand <david@redhat.com>
-Message-ID: <d7cb905f-76f7-3053-2a46-e1a514bd309b@redhat.com>
-Date: Fri, 23 Nov 2018 11:36:28 +0100
+Received: from Galois.linutronix.de ([146.0.238.70]:50030 "EHLO
+        Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2387633AbeKWVWZ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 23 Nov 2018 16:22:25 -0500
+Date: Fri, 23 Nov 2018 11:38:37 +0100 (CET)
+From: Thomas Gleixner <tglx@linutronix.de>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+cc: linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Greg KH <gregkh@linuxfoundation.org>,
+        Kate Stewart <kstewart@linuxfoundation.org>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        Ben Hutchings <ben@decadent.org.uk>
+Subject: Re: [PATCHv18 01/35] Documentation: v4l: document request API
+In-Reply-To: <20181123075157.077758c0@coco.lan>
+Message-ID: <alpine.DEB.2.21.1811231134100.2603@nanos.tec.linutronix.de>
+References: <20180814142047.93856-1-hverkuil@xs4all.nl> <20180814142047.93856-2-hverkuil@xs4all.nl> <alpine.DEB.2.21.1811121048400.14703@nanos.tec.linutronix.de> <20181118115215.5ebc681c@coco.lan> <20181123075157.077758c0@coco.lan>
 MIME-Version: 1.0
-In-Reply-To: <1542966856-12619-1-git-send-email-anshuman.khandual@arm.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 23.11.18 10:54, Anshuman Khandual wrote:
-> At present there are multiple places where invalid node number is encoded
-> as -1. Even though implicitly understood it is always better to have macros
-> in there. Replace these open encodings for an invalid node number with the
-> global macro NUMA_NO_NODE. This helps remove NUMA related assumptions like
-> 'invalid node' from various places redirecting them to a common definition.
-> 
-> Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-> ---
-> 
-> Changes in V1:
-> 
-> - Dropped OCFS2 changes per Joseph
-> - Dropped media/video drivers changes per Hans
-> 
-> RFC - https://patchwork.kernel.org/patch/10678035/
-> 
-> Build tested this with multiple cross compiler options like alpha, sparc,
-> arm64, x86, powerpc, powerpc64le etc with their default config which might
-> not have compiled tested all driver related changes. I will appreciate
-> folks giving this a test in their respective build environment.
-> 
-> All these places for replacement were found by running the following grep
-> patterns on the entire kernel code. Please let me know if this might have
-> missed some instances. This might also have replaced some false positives.
-> I will appreciate suggestions, inputs and review.
-> 
-> 1. git grep "nid == -1"
-> 2. git grep "node == -1"
-> 3. git grep "nid = -1"
-> 4. git grep "node = -1"
+Mauro,
 
-Hopefully you found most users :)
+On Fri, 23 Nov 2018, Mauro Carvalho Chehab wrote:
+> > While we don't have it, we can't really use SPDX identifiers on media.
+> > So, replace them by a license text.
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+> > 
+> > diff --git a/Documentation/media/uapi/mediactl/media-ioc-request-alloc.rst b/Documentation/media/uapi/mediactl/media-ioc-request-alloc.rst
+> > index 0f8b31874002..60874a1f3d89 100644
+> > --- a/Documentation/media/uapi/mediactl/media-ioc-request-alloc.rst
+> > +++ b/Documentation/media/uapi/mediactl/media-ioc-request-alloc.rst
+> > @@ -1,4 +1,15 @@
+> > -.. SPDX-License-Identifier: GPL-2.0 OR GFDL-1.1-or-later WITH no-invariant-sections
+> > +.. SPDX License for this file: GPL-2.0 OR GFDL-1.1-or-later
+> > +..
+> > +.. For GPL-2.0, see LICENSES/preferred/GPL-2.0
+> > +..
+> > +.. For GFDL-1.1-or-later, see:
+> > +..
+> > +.. Permission is granted to copy, distribute and/or modify this document
+> > +.. under the terms of the GNU Free Documentation License, Version 1.1 or
+> > +.. any later version published by the Free Software Foundation, with no
+> > +.. Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.
+> > +.. A copy of the license is included at
+> > +.. Documentation/media/uapi/fdl-appendix.rst.
 
-Did you check if some are encoded into function calls? f(-1, ...)
+There is still an issue here.
 
-Reviewed-by: David Hildenbrand <david@redhat.com>
+The SPDX id for GFDL requires the license text to be in LICENSES/....
 
+But the plain GFDL-1.1-or-later lacks the invariant/front/back parts which
+are an exception to the license and require an exception ID along with the
+corresponding file in LICENSES/..... again.
 
--- 
+So no, this won't cut it. Please stay with free form license information
+until this is resolved.
+
+Kate, can you have a look into that please on the SPDX side?
 
 Thanks,
 
-David / dhildenb
+	tglx
