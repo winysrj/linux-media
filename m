@@ -1,40 +1,29 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:55649 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387885AbeKWWhs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Nov 2018 17:37:48 -0500
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH v4l-utils] keytable: do not install bpf protocols decoders with execute permission
-Date: Fri, 23 Nov 2018 11:53:51 +0000
-Message-Id: <20181123115351.13856-1-sean@mess.org>
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:46787 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S2387885AbeKWWh4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 23 Nov 2018 17:37:56 -0500
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+Subject: [PATCH] seco-cec: fix Makefile
+Message-ID: <5365e2c4-bbe9-ba75-db84-22501f1c43f5@xs4all.nl>
+Date: Fri, 23 Nov 2018 12:53:58 +0100
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The rpm packaging system will try to extract debug information, which
-fails since there is no build id. This can be avoided by removing
-the execute permission.
+Fix the incorrect obj-y.
 
-BPF relocatable files are executable anyway so this is the right
-thing to do.
-
-See:
-	https://github.com/rpm-software-management/rpm/pull/604
-
-Signed-off-by: Sean Young <sean@mess.org>
+Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 ---
- utils/keytable/bpf_protocols/Makefile.am | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/utils/keytable/bpf_protocols/Makefile.am b/utils/keytable/bpf_protocols/Makefile.am
-index 1b90411b..d1f04cb4 100644
---- a/utils/keytable/bpf_protocols/Makefile.am
-+++ b/utils/keytable/bpf_protocols/Makefile.am
-@@ -21,4 +21,4 @@ EXTRA_DIST = $(PROTOCOLS:%.o=%.c) bpf_helpers.h
- install-data-local:
- 	$(install_sh) -d "$(DESTDIR)$(keytableuserdir)/protocols"
- 	$(install_sh) -d "$(DESTDIR)$(keytablesystemdir)/protocols"
--	$(install_sh) $(PROTOCOLS) "$(DESTDIR)$(keytablesystemdir)/protocols"
-+	$(install_sh) -m 0644 $(PROTOCOLS) "$(DESTDIR)$(keytablesystemdir)/protocols"
--- 
-2.19.1
+diff --git a/drivers/media/platform/seco-cec/Makefile b/drivers/media/platform/seco-cec/Makefile
+index 09900b087d02..a3f2c6bd3ac0 100644
+--- a/drivers/media/platform/seco-cec/Makefile
++++ b/drivers/media/platform/seco-cec/Makefile
+@@ -1 +1 @@
+-obj-y += seco-cec.o
++obj-$(CONFIG_VIDEO_SECO_CEC) += seco-cec.o
