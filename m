@@ -1,62 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf1-f193.google.com ([209.85.210.193]:44721 "EHLO
-        mail-pf1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727498AbeKXJ05 (ORCPT
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44132 "EHLO
+        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727607AbeKXKae (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 24 Nov 2018 04:26:57 -0500
-Received: by mail-pf1-f193.google.com with SMTP id u6so3858053pfh.11
-        for <linux-media@vger.kernel.org>; Fri, 23 Nov 2018 14:40:51 -0800 (PST)
-Subject: Re: [PATCH] media: v4l2-fwnode: Demote warning to debug level
-To: Fabio Estevam <festevam@gmail.com>, mchehab@kernel.org
-Cc: sakari.ailus@linux.intel.com, p.zabel@pengutronix.de,
-        linux-media@vger.kernel.org
-References: <1542977459-14550-1-git-send-email-festevam@gmail.com>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <8ccd4efd-45c5-39a6-0300-43d97b34dff1@gmail.com>
-Date: Fri, 23 Nov 2018 14:40:48 -0800
-MIME-Version: 1.0
-In-Reply-To: <1542977459-14550-1-git-send-email-festevam@gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
+        Sat, 24 Nov 2018 05:30:34 -0500
+Date: Fri, 23 Nov 2018 15:44:15 -0800
+From: Andrew Morton <akpm@linux-foundation.org>
+To: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
+        ocfs2-devel@oss.oracle.com, linux-fbdev@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, netdev@vger.kernel.org,
+        intel-wired-lan@lists.osuosl.org, linux-media@vger.kernel.org,
+        iommu@lists.linux-foundation.org, linux-rdma@vger.kernel.org,
+        dmaengine@vger.kernel.org, linux-block@vger.kernel.org,
+        sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-ia64@vger.kernel.org, linux-alpha@vger.kernel.org,
+        jiangqi903@gmail.com, hverkuil@xs4all.nl
+Subject: Re: [PATCH] mm: Replace all open encodings for NUMA_NO_NODE
+Message-Id: <20181123154415.42898a42e28a31488749738a@linux-foundation.org>
+In-Reply-To: <1542966856-12619-1-git-send-email-anshuman.khandual@arm.com>
+References: <1542966856-12619-1-git-send-email-anshuman.khandual@arm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Reviewed-by: Steve Longerbeam <slongerbeam@gmail.com>
+On Fri, 23 Nov 2018 15:24:16 +0530 Anshuman Khandual <anshuman.khandual@arm.com> wrote:
 
+> At present there are multiple places where invalid node number is encoded
+> as -1. Even though implicitly understood it is always better to have macros
+> in there. Replace these open encodings for an invalid node number with the
+> global macro NUMA_NO_NODE. This helps remove NUMA related assumptions like
+> 'invalid node' from various places redirecting them to a common definition.
+> 
+> ...
+> 
+> Build tested this with multiple cross compiler options like alpha, sparc,
+> arm64, x86, powerpc, powerpc64le etc with their default config which might
+> not have compiled tested all driver related changes. I will appreciate
+> folks giving this a test in their respective build environment.
+> 
+> All these places for replacement were found by running the following grep
+> patterns on the entire kernel code. Please let me know if this might have
+> missed some instances. This might also have replaced some false positives.
+> I will appreciate suggestions, inputs and review.
+> 
+> 1. git grep "nid == -1"
+> 2. git grep "node == -1"
+> 3. git grep "nid = -1"
+> 4. git grep "node = -1"
 
-On 11/23/18 4:50 AM, Fabio Estevam wrote:
-> On a imx6q-wandboard the following warnings are observed:
->
-> [    4.327794] video-mux 20e0000.iomuxc-gpr:ipu1_csi0_mux: bad remote port parent
-> [    4.336118] video-mux 20e0000.iomuxc-gpr:ipu2_csi1_mux: bad remote port parent
->
-> As explained by Philipp Zabel:
->
-> "There are empty endpoint nodes (without remote-endpoint property)
-> labeled ipu1_csi[01]_mux_from_parallel_sensor in the i.MX6 device trees
-> for board DT implementers' convenience. See commit 2539f517acbdc ("ARM:
-> dts: imx6qdl: Add video multiplexers, mipi_csi, and their connections")."
->
-> So demote the warning to debug level and make the wording a bit
-> less misleading.
->
-> Suggested-by: Philipp Zabel <p.zabel@pengutronix.de>
-> Signed-off-by: Fabio Estevam <festevam@gmail.com>
-> ---
->   drivers/media/v4l2-core/v4l2-fwnode.c | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-> index 218f0da..7a3cc10 100644
-> --- a/drivers/media/v4l2-core/v4l2-fwnode.c
-> +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-> @@ -613,7 +613,7 @@ v4l2_async_notifier_fwnode_parse_endpoint(struct device *dev,
->   	asd->match.fwnode =
->   		fwnode_graph_get_remote_port_parent(endpoint);
->   	if (!asd->match.fwnode) {
-> -		dev_warn(dev, "bad remote port parent\n");
-> +		dev_dbg(dev, "no remote endpoint found\n");
->   		ret = -ENOTCONN;
->   		goto out_err;
->   	}
+The build testing is good, but I worry that some of the affected files
+don't clearly have numa.h in their include paths, for the NUMA_NO_NODE
+definition.
+
+The first thing I looked it is arch/powerpc/include/asm/pci-bridge.h. 
+Maybe it somehow manages to include numa.h via some nested include, but
+if so, is that reliable across all config combinations and as code
+evolves?
+
+So I think that the patch should have added an explicit include of
+numa.h, especially in cases where the affected file previously had no
+references to any of the things which numa.h defines.
