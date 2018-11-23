@@ -1,55 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt1-f193.google.com ([209.85.160.193]:42592 "EHLO
-        mail-qt1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388147AbeKWXfK (ORCPT
+Received: from mail-ot1-f46.google.com ([209.85.210.46]:41187 "EHLO
+        mail-ot1-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2403778AbeKWXjN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Nov 2018 18:35:10 -0500
-Received: by mail-qt1-f193.google.com with SMTP id d19so10352276qtq.9
-        for <linux-media@vger.kernel.org>; Fri, 23 Nov 2018 04:51:05 -0800 (PST)
+        Fri, 23 Nov 2018 18:39:13 -0500
+Received: by mail-ot1-f46.google.com with SMTP id u16so10556654otk.8
+        for <linux-media@vger.kernel.org>; Fri, 23 Nov 2018 04:55:08 -0800 (PST)
+MIME-Version: 1.0
+References: <CAOMZO5DP8JEMfjXJ8Hihm684+3=pOoCo1Gz7kt-TnCB7h-8EvA@mail.gmail.com>
+ <1542904065.16720.2.camel@pengutronix.de> <CAOMZO5CRWC1qbYa3wAYfd+_ig0s9Bq2Z8Hz1SmM95Zuxb6LqRw@mail.gmail.com>
+ <20181123123518.k753f6wclbq4bf3e@kekkonen.localdomain>
+In-Reply-To: <20181123123518.k753f6wclbq4bf3e@kekkonen.localdomain>
 From: Fabio Estevam <festevam@gmail.com>
-To: mchehab@kernel.org
-Cc: sakari.ailus@linux.intel.com, slongerbeam@gmail.com,
-        p.zabel@pengutronix.de, linux-media@vger.kernel.org,
-        Fabio Estevam <festevam@gmail.com>
-Subject: [PATCH] media: v4l2-fwnode: Demote warning to debug level
-Date: Fri, 23 Nov 2018 10:50:59 -0200
-Message-Id: <1542977459-14550-1-git-send-email-festevam@gmail.com>
+Date: Fri, 23 Nov 2018 10:54:59 -0200
+Message-ID: <CAOMZO5Bne1ZX8VP75c63fsSALfWDqZnt=8DVXwmJ9ZumBnFuLw@mail.gmail.com>
+Subject: Re: 'bad remote port parent' warnings
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On a imx6q-wandboard the following warnings are observed:
+Hi Sakari,
 
-[    4.327794] video-mux 20e0000.iomuxc-gpr:ipu1_csi0_mux: bad remote port parent
-[    4.336118] video-mux 20e0000.iomuxc-gpr:ipu2_csi1_mux: bad remote port parent
+On Fri, Nov 23, 2018 at 10:35 AM Sakari Ailus
+<sakari.ailus@linux.intel.com> wrote:
 
-As explained by Philipp Zabel:
+> Makes sense. This is not necessarily a fatal error. Could you send a patch?
 
-"There are empty endpoint nodes (without remote-endpoint property)
-labeled ipu1_csi[01]_mux_from_parallel_sensor in the i.MX6 device trees
-for board DT implementers' convenience. See commit 2539f517acbdc ("ARM:
-dts: imx6qdl: Add video multiplexers, mipi_csi, and their connections")."
+Yes, I have just sent it.
 
-So demote the warning to debug level and make the wording a bit
-less misleading.
-
-Suggested-by: Philipp Zabel <p.zabel@pengutronix.de>
-Signed-off-by: Fabio Estevam <festevam@gmail.com>
----
- drivers/media/v4l2-core/v4l2-fwnode.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-index 218f0da..7a3cc10 100644
---- a/drivers/media/v4l2-core/v4l2-fwnode.c
-+++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-@@ -613,7 +613,7 @@ v4l2_async_notifier_fwnode_parse_endpoint(struct device *dev,
- 	asd->match.fwnode =
- 		fwnode_graph_get_remote_port_parent(endpoint);
- 	if (!asd->match.fwnode) {
--		dev_warn(dev, "bad remote port parent\n");
-+		dev_dbg(dev, "no remote endpoint found\n");
- 		ret = -ENOTCONN;
- 		goto out_err;
- 	}
--- 
-2.7.4
+Thanks
