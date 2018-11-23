@@ -1,228 +1,297 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:57584 "EHLO
-        casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388876AbeKXELp (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.133]:58582 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730291AbeKXFYO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Nov 2018 23:11:45 -0500
-Date: Fri, 23 Nov 2018 15:26:25 -0200
+        Sat, 24 Nov 2018 00:24:14 -0500
 From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: stakanov <stakanov@eclipso.eu>, Takashi Iwai <tiwai@suse.de>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Michael Ira Krufky <mkrufky@linuxtv.org>,
-        Sean Young <sean@mess.org>, Brad Love <brad@nextdimension.cc>,
-        Malcolm Priestley <tvboxspy@gmail.com>
-Subject: Re: DVB-S PCI card regression on 4.19 / 4.20
-Message-ID: <20181123152625.7992ceb4@coco.lan>
-In-Reply-To: <4969775.51lmc1uXLO@roadrunner.suse>
-References: <4e0356d6303c128a3e6d0bcc453ba1be@mail.eclipso.de>
-        <12757009.r0OKxgvFl0@roadrunner.suse>
-        <20181122183549.331ecbc4@coco.lan>
-        <4969775.51lmc1uXLO@roadrunner.suse>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Kate Stewart <kstewart@linuxfoundation.org>
+Subject: [PATCH 4/6] media: svg files: dual-licence some files with GPL and GFDL
+Date: Fri, 23 Nov 2018 16:38:37 -0200
+Message-Id: <c6fbc45db904b3284faec7a31055072850f90536.1542997584.git.mchehab+samsung@kernel.org>
+In-Reply-To: <cover.1542997584.git.mchehab+samsung@kernel.org>
+References: <cover.1542997584.git.mchehab+samsung@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Stakarov,
+Along the time, several image files got replaced by me by
+new ones with similar contents.
 
-Em Fri, 23 Nov 2018 16:55:35 +0100
-stakanov <stakanov@eclipso.eu> escreveu:
-
-> In data gioved=C3=AC 22 novembre 2018 21:35:49 CET, Mauro Carvalho Chehab=
- ha=20
-> scritto:
-> > Em Thu, 22 Nov 2018 21:19:49 +0100
-> >=20
-> > stakanov <stakanov@eclipso.eu> escreveu: =20
-> > > Hello Mauro.
-> > >=20
-> > > Thank you so much, for this fast reply and especially for the detailed
-> > > indications. I expected to have a lack of knowledge.
-> > >=20
-> > > Well,  I am replying to the question as of below: (for convenience I =
-did
-> > > cut the before text, if you deem it useful for the list I can then
-> > > correct that in the next posts).
-> > >=20
-> > > In data gioved=C3=AC 22 novembre 2018 21:06:11 CET, Mauro Carvalho Ch=
-ehab ha
-> > >=20
-> > > scritto: =20
-> > > > Are you sure that the difference is just the Kernel version? Perhap=
-s you
-> > > > also updated some other package. =20
-> > >=20
-> > > To be clear: I had the same system(!) with all three kernel 4.18.15-1,
-> > > 4.19.1 (when the problem did arise) and 4.20.2 rc3 from Takashi's rep=
-o)
-> > > installed. =20
-> > Ok, so rebooting to 4.18.15-1 solves the issue?
-> >=20
-> > Also, what GPU driver are you using?
-> >=20
-> > In any case, by using the old "Universal" LNBf, you're likely missing s=
-ome
-> > transponders, and missing several channels.
-> >  =20
-> > > In this very configuration: if one booted in 4.18 (that is in perfect
-> > > parity with all other packages) the card worked. 4.19.1 no. And the l=
-ast
-> > > kernel the same. So whatever might be different, forcefully it has to=
- be
-> > > in the kernel. (Which is not really a problem if I manage to make it
-> > > work, so settings will be known to others or, if not, we will find out
-> > > what is different, and all will be happy. As you see I am still
-> > > optimist). =20
-> >=20
-> > Well, we don't want regressions in Kernel. If there's an issue there,
-> > it should be fixed. However, I can't think on any other changes since
-> > 4.18 that would be causing troubles for b2c2 driver.
-> >=20
-> > See, the only change at the driver itself is just a simple API
-> > replacement that wouldn't cause this kind of problems:
-> >=20
-> > 	$ git log --oneline v4.18.. drivers/media/common/b2c2/
-> > 	c0decac19da3 media: use strscpy() instead of strlcpy()
-> >=20
-> > There were a few changes at the DVB core:
-> >=20
-> > 	$ git log --no-merges --oneline v4.18.. drivers/media/dvb-core/
-> > 	f3efe15a2f05 media: dvb: use signal types to discover pads
-> > 	b5d3206112dd media: dvb: dmxdev: move compat_ioctl handling to dmxdev.c
-> > 	cc1e6315e83d media: replace strcpy() by strscpy()
-> > 	c0decac19da3 media: use strscpy() instead of strlcpy()
-> > 	fd89e0bb6ebf media: videobuf2-core: integrate with media requests
-> > 	db6e8d57e2cd media: vb2: store userspace data in vb2_v4l2_buffer
-> > 	6a2a1ca34ca6 media: dvb_frontend: ensure that the step is ok for both =
-FE
-> > and tuner f1b1eabff0eb media: dvb: represent min/max/step/tolerance fre=
-qs
-> > in Hz a3f90c75b833 media: dvb: convert tuner_info frequencies to Hz
-> > 	6706fe55af6f media: dvb_ca_en50221: off by one in
-> > dvb_ca_en50221_io_do_ioctl() 4d1e4545a659 media: mark entity-intf links=
- as
-> > IMMUTABLE
-> >=20
-> > But, on a first glance, the only ones that has potential to cause issues
-> > were the ones addressed that the patch I wrote (merged by Takashi).
-> >=20
-> > If you're really receiving data from EPG (you may just have it
-> > cached), it means that the DVB driver is doing the right thing.
-> >=20
-> > Btw, to be sure that you're not just seeing the old EPG data, you
-> > should move or remove this file:
-> >=20
-> > 	~/.local/share/kaffeine/epgdata.dvb
-> >=20
-> > Kaffeine will generate a new one again once it tunes into a TV channel.
-> >  =20
-> > > I will proceed as indicated and report back here tomorrow. =20
-> >=20
-> > Ok.
-> >=20
-> > Thanks,
-> > Mauro =20
-> So, I confirm that:
-> a) 4.18.15-1 this card worked flawlessly.
-> b) above that, included the kernel with correction, it does not work any =
-more.
-> c) downloading and copying the respective firmware from openelec does not=
-=20
-> change, the card stays dead.=20
-> d) astra: no search of channels, search interrupted after seconds.
-> e) hotbird: search without finding any channel - only noise
-> f) lnbf setting was to "Astra E" as indicated.=20
-> g) after erasing the file in local/share it is clear that EPG data does N=
-OT=20
-> work either.
-> When using the channels as they were recorded before, the signal strength=
- is 0=20
-> but the fictional led is green (as if it would receive).=20
->=20
->=20
->=20
-> No picture, no tone, no channel sync, no EPG. A brick.=20
-> So, with 4.18 that worked, only that now (due to an error I lost access t=
-o the=20
-> 4.18.15-1 driver of TW, so if Takashi has a link, I can reinstall it and =
-we=20
-> can check if, parity all packages this is still the case. I assure you th=
-at it=20
-> was, but that would be a perfect proof.=20
-> Firmware downloaded and installed in /lib/firmware was:
-> https://www.linuxtv.org/wiki/index.php/TechniSat_SkyStar_S2 following the=
- link=20
-> to open Elec:
->=20
-> https://github.com/OpenELEC/dvb-firmware/blob/master/firmware/dvb-fe-cx24=
-120-1.20.58.2.fw
-
-Thank you for the tests. Yeah, from what you're describing, there's
-still another Kernel bug that the frequency patch didn't fix.
-
-I'm c/c a few DVB developers. Maybe they may have some ideas about
-what's happening or may have some b2c2-based board to run some tests.
-I'm very busy up to next Wed, so it is unlikely that I would have any
-time to look on it. Also, I don't have any b2c2 board to test.
-
-Yet, let's do one last attempt: could you please test if the
-enclosed patch changes anything? This was supposed to be just
-a cleanup, but, after thinking a little bit, I guess it may fix
-the issue you're reporting.
-
-In order to make easier for people to test it, I'm applying the 3 patch
-series I posted on my tree, plus the enclosed followup cleanup
-patch at linux_media development tree. With that, everyone will
-have a common base for the tests.
-
-Takashi,
-
-Could you please produce a Kernel for Stakanov to test
-with the following patches:
-
-https://patchwork.linuxtv.org/patch/53044/
-https://patchwork.linuxtv.org/patch/53045/
-https://patchwork.linuxtv.org/patch/53046/
-https://patchwork.linuxtv.org/patch/53128/
-
-Stakanov,
-
-Before booting the new Kernel, please create a new file
-as /etc/modprobe.d/media.conf with:
-
-	options dvb-core debug=3D1
-	options dvb-pll debug=3D1
-
-With this, the next time the Kernel boots, it will cause both
-dvb-core and dvb-pll to be more verbose, enabling the new debug
-messages that the above patches add. Once we get this fixed,
-you may remove the file (or comment the lines), in order to
-avoid uneeded messages on your dmesg.
-
-Thanks,
-Mauro
-
-[PATCH] media: dvb-pll: don't re-validate tuner frequencies
-
-The dvb_frontend core already checks for the frequencies. No
-need for any additional check inside the driver.
+As those were not simple conversions, dual-license them.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+---
+ Documentation/media/uapi/dvb/dvbstb.svg       | 33 ++++++++++++++-----
+ Documentation/media/uapi/v4l/bayer.svg        | 33 ++++++++++++++-----
+ Documentation/media/uapi/v4l/constraints.svg  | 33 ++++++++++++++-----
+ Documentation/media/uapi/v4l/nv12mt.svg       | 33 ++++++++++++++-----
+ .../media/uapi/v4l/nv12mt_example.svg         | 33 ++++++++++++++-----
+ Documentation/media/uapi/v4l/selection.svg    | 33 ++++++++++++++-----
+ 6 files changed, 150 insertions(+), 48 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/dvb-pll.c b/drivers/media/dvb-fron=
-tends/dvb-pll.c
-index fff5816f6ec4..29836c1a40e9 100644
---- a/drivers/media/dvb-frontends/dvb-pll.c
-+++ b/drivers/media/dvb-frontends/dvb-pll.c
-@@ -610,9 +610,6 @@ static int dvb_pll_configure(struct dvb_frontend *fe, u=
-8 *buf,
- 	u32 div;
- 	int i;
-=20
--	if (frequency && (frequency < desc->min || frequency > desc->max))
--		return -EINVAL;
+diff --git a/Documentation/media/uapi/dvb/dvbstb.svg b/Documentation/media/uapi/dvb/dvbstb.svg
+index 3fe083b3b410..9700c864d3c3 100644
+--- a/Documentation/media/uapi/dvb/dvbstb.svg
++++ b/Documentation/media/uapi/dvb/dvbstb.svg
+@@ -1,13 +1,30 @@
+ <?xml version="1.0" encoding="UTF-8"?>
+ <!--
+-    Permission is granted to copy, distribute and/or modify this
+-    document under the terms of the GNU Free Documentation License,
+-    Version 1.1 or any later version published by the Free Software
+-    Foundation, with no Invariant Sections, no Front-Cover Texts
+-    and no Back-Cover Texts. A copy of the license is included at
+-    Documentation/media/uapi/fdl-appendix.rst.
 -
- 	for (i =3D 0; i < desc->count; i++) {
- 		if (frequency > desc->entries[i].limit)
- 			continue;
+-    TODO: replace it to GFDL-1.1-or-later WITH no-invariant-sections
++    This file is dual-licensed: you can use it either under the terms
++    of the GPL or the GFDL 1.1+ license, at your option. Note that this
++    dual licensing only applies to this file, and not this project as a
++    whole.
++
++    a) This file is free software; you can redistribute it and/or
++       modify it under the terms of the GNU General Public License as
++       published by the Free Software Foundation; either version 2 of
++       the License, or (at your option) any later version.
++
++       This file is distributed in the hope that it will be useful,
++       but WITHOUT ANY WARRANTY; without even the implied warranty of
++       MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++       GNU General Public License for more details.
++
++    Or, alternatively,
++
++    b) Permission is granted to copy, distribute and/or modify this
++       document under the terms of the GNU Free Documentation License,
++       Version 1.1 or any later version published by the Free Software
++       Foundation, with no Invariant Sections, no Front-Cover Texts
++       and no Back-Cover Texts. A copy of the license is included at
++       Documentation/media/uapi/fdl-appendix.rst.
++
++    TODO: replace it to GPL-2.0 OR GFDL-1.1-or-later WITH no-invariant-sections
+ -->
+ <svg id="svg2" width="15.847cm" height="8.4187cm" fill-rule="evenodd" stroke-linejoin="round" stroke-width="28.222" preserveAspectRatio="xMidYMid" version="1.2" viewBox="0 0 23770.123 12628.122" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><defs id="defs142"><marker id="Arrow1Lend" overflow="visible" orient="auto"><path id="path954" transform="matrix(-.8 0 0 -.8 -10 0)" d="m0 0 5-5-17.5 5 17.5 5z" fill-rule="evenodd" stroke="#000" stroke-width="1pt"/></marker><marker id="marker1243" overflow="visible" orient="auto"><path id="path1241" transform="matrix(-.8 0 0 -.8 -10 0)" d="m0 0 5-5-17.5 5 17.5 5z" fill-rule="evenodd" stroke="#000" stroke-width="1pt"/></marker></defs><metadata id="metadata519"><rdf:RDF><cc:Work
+ rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><rect id="rect197" class="BoundingBox" x="5355.1" y="13.122" width="18403" height="9603" fill="none"/><path id="path199" d="m14556 9614.1h-9200v-9600h18400v9600z" fill="#fff"/><path id="path201" d="m14556 9614.1h-9200v-9600h18400v9600z" fill="none" stroke="#000"/><rect id="rect206" class="BoundingBox" x="13.122" y="4013.1" width="4544" height="2403" fill="none"/><path id="path208" d="m2285.1 6414.1h-2271v-2400h4541v2400z" fill="#fff"/><path id="path210" d="m2285.1 6414.1h-2271v-2400h4541v2400z" fill="none" stroke="#000"/><text id="text212" class="TextShape" x="-2443.8779" y="-4585.8779"><tspan id="tspan214" class="TextParagraph" font-family="sans-serif" font-size="635px" font-weight="400"><tspan id="tspan216" class="TextPosition"
+diff --git a/Documentation/media/uapi/v4l/bayer.svg b/Documentation/media/uapi/v4l/bayer.svg
+index 2ce3ebc70b29..abec45b7873b 100644
+--- a/Documentation/media/uapi/v4l/bayer.svg
++++ b/Documentation/media/uapi/v4l/bayer.svg
+@@ -1,13 +1,30 @@
+ <?xml version="1.0" encoding="UTF-8"?>
+ <!--
+-    Permission is granted to copy, distribute and/or modify this
+-    document under the terms of the GNU Free Documentation License,
+-    Version 1.1 or any later version published by the Free Software
+-    Foundation, with no Invariant Sections, no Front-Cover Texts
+-    and no Back-Cover Texts. A copy of the license is included at
+-    Documentation/media/uapi/fdl-appendix.rst.
+-
+-    TODO: replace it to GFDL-1.1-or-later WITH no-invariant-sections
++    This file is dual-licensed: you can use it either under the terms
++    of the GPL or the GFDL 1.1+ license, at your option. Note that this
++    dual licensing only applies to this file, and not this project as a
++    whole.
++
++    a) This file is free software; you can redistribute it and/or
++       modify it under the terms of the GNU General Public License as
++       published by the Free Software Foundation; either version 2 of
++       the License, or (at your option) any later version.
++
++       This file is distributed in the hope that it will be useful,
++       but WITHOUT ANY WARRANTY; without even the implied warranty of
++       MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++       GNU General Public License for more details.
++
++    Or, alternatively,
++
++    b) Permission is granted to copy, distribute and/or modify this
++       document under the terms of the GNU Free Documentation License,
++       Version 1.1 or any later version published by the Free Software
++       Foundation, with no Invariant Sections, no Front-Cover Texts
++       and no Back-Cover Texts. A copy of the license is included at
++       Documentation/media/uapi/fdl-appendix.rst.
++
++    TODO: replace it to GPL-2.0 OR GFDL-1.1-or-later WITH no-invariant-sections
+ -->
+ <svg id="svg2" width="164.15mm" height="46.771mm" fill-rule="evenodd" stroke-linejoin="round" stroke-width="28.222" preserveAspectRatio="xMidYMid" version="1.2" viewBox="0 0 16415.333 4677.1107" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><metadata id="metadata652"><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g id="g186" class="com.sun.star.drawing.CustomShape" transform="translate(-3285.9 -3185.9)"><g id="id6"><rect id="rect189" class="BoundingBox" x="3299" y="3199" width="1303" height="1203" fill="none"/><path id="path191" d="m3950 4400h-650v-1200h1300v1200h-650z" fill="#00f"/><path id="path193" d="m3950
+ 4400h-650v-1200h1300v1200h-650z" fill="none" stroke="#3465a4"/><text id="text195" class="TextShape"><tspan id="tspan197" class="TextParagraph" font-family="sans-serif" font-size="635px" font-weight="400"><tspan id="tspan199" class="TextPosition" x="3739" y="4021"><tspan id="tspan201" fill="#ffffff">B</tspan></tspan></tspan></text>
+diff --git a/Documentation/media/uapi/v4l/constraints.svg b/Documentation/media/uapi/v4l/constraints.svg
+index 3e3887629389..18e314c60757 100644
+--- a/Documentation/media/uapi/v4l/constraints.svg
++++ b/Documentation/media/uapi/v4l/constraints.svg
+@@ -1,13 +1,30 @@
+ <?xml version="1.0" encoding="UTF-8"?>
+ <!--
+-    Permission is granted to copy, distribute and/or modify this
+-    document under the terms of the GNU Free Documentation License,
+-    Version 1.1 or any later version published by the Free Software
+-    Foundation, with no Invariant Sections, no Front-Cover Texts
+-    and no Back-Cover Texts. A copy of the license is included at
+-    Documentation/media/uapi/fdl-appendix.rst.
+-
+-    TODO: replace it to GFDL-1.1-or-later WITH no-invariant-sections
++    This file is dual-licensed: you can use it either under the terms
++    of the GPL or the GFDL 1.1+ license, at your option. Note that this
++    dual licensing only applies to this file, and not this project as a
++    whole.
++
++    a) This file is free software; you can redistribute it and/or
++       modify it under the terms of the GNU General Public License as
++       published by the Free Software Foundation; either version 2 of
++       the License, or (at your option) any later version.
++
++       This file is distributed in the hope that it will be useful,
++       but WITHOUT ANY WARRANTY; without even the implied warranty of
++       MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++       GNU General Public License for more details.
++
++    Or, alternatively,
++
++    b) Permission is granted to copy, distribute and/or modify this
++       document under the terms of the GNU Free Documentation License,
++       Version 1.1 or any later version published by the Free Software
++       Foundation, with no Invariant Sections, no Front-Cover Texts
++       and no Back-Cover Texts. A copy of the license is included at
++       Documentation/media/uapi/fdl-appendix.rst.
++
++    TODO: replace it to GPL-2.0 OR GFDL-1.1-or-later WITH no-invariant-sections
+ -->
+ <svg id="svg2" width="249.01mm" height="143.01mm" fill-rule="evenodd" stroke-linejoin="round" stroke-width="28.222" preserveAspectRatio="xMidYMid" version="1.2" viewBox="0 0 24900.998 14300.999" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><metadata id="metadata325"><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><defs id="defs4" class="ClipPathGroup"><marker id="marker6261" overflow="visible" orient="auto"><path id="path6263" transform="matrix(-.4 0 0 -.4 -4 0)" d="m0 0 5-5-17.5 5 17.5 5-5-5z" fill="#f00" fill-rule="evenodd" stroke="#f00" stroke-width="1pt"/></marker><marker id="marker6125" overflow="visible"
+ orient="auto"><path id="path6127" transform="matrix(-.4 0 0 -.4 -4 0)" d="m0 0 5-5-17.5 5 17.5 5-5-5z" fill="#f00" fill-rule="evenodd" stroke="#f00" stroke-width="1pt"/></marker><marker id="marker6001" overflow="visible" orient="auto"><path id="path6003" transform="matrix(-.4 0 0 -.4 -4 0)" d="m0 0 5-5-17.5 5 17.5 5-5-5z" fill="#f00" fill-rule="evenodd" stroke="#f00" stroke-width="1pt"/></marker><marker id="marker5693" overflow="visible" orient="auto"><path id="path5695" transform="matrix(-.4 0 0 -.4 -4 0)" d="m0 0 5-5-17.5 5 17.5 5-5-5z" fill="#f00" fill-rule="evenodd" stroke="#f00" stroke-width="1pt"/></marker><marker id="marker5575" overflow="visible" orient="auto"><path id="path5577" transform="matrix(-.4 0 0 -.4 -4 0)" d="m0 0 5-5-17.5 5 17.5 5-5-5z" fill="#000080" fill-rule="evenodd" stroke="#000080" stroke-width="1pt"/></marker><marker id="marker5469" overflow="visible"
+diff --git a/Documentation/media/uapi/v4l/nv12mt.svg b/Documentation/media/uapi/v4l/nv12mt.svg
+index 924937366d52..54ae99d64342 100644
+--- a/Documentation/media/uapi/v4l/nv12mt.svg
++++ b/Documentation/media/uapi/v4l/nv12mt.svg
+@@ -1,13 +1,30 @@
+ <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+ <!--
+-    Permission is granted to copy, distribute and/or modify this
+-    document under the terms of the GNU Free Documentation License,
+-    Version 1.1 or any later version published by the Free Software
+-    Foundation, with no Invariant Sections, no Front-Cover Texts
+-    and no Back-Cover Texts. A copy of the license is included at
+-    Documentation/media/uapi/fdl-appendix.rst.
+-
+-    TODO: replace it to GFDL-1.1-or-later WITH no-invariant-sections
++    This file is dual-licensed: you can use it either under the terms
++    of the GPL or the GFDL 1.1+ license, at your option. Note that this
++    dual licensing only applies to this file, and not this project as a
++    whole.
++
++    a) This file is free software; you can redistribute it and/or
++       modify it under the terms of the GNU General Public License as
++       published by the Free Software Foundation; either version 2 of
++       the License, or (at your option) any later version.
++
++       This file is distributed in the hope that it will be useful,
++       but WITHOUT ANY WARRANTY; without even the implied warranty of
++       MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++       GNU General Public License for more details.
++
++    Or, alternatively,
++
++    b) Permission is granted to copy, distribute and/or modify this
++       document under the terms of the GNU Free Documentation License,
++       Version 1.1 or any later version published by the Free Software
++       Foundation, with no Invariant Sections, no Front-Cover Texts
++       and no Back-Cover Texts. A copy of the license is included at
++       Documentation/media/uapi/fdl-appendix.rst.
++
++    TODO: replace it to GPL-2.0 OR GFDL-1.1-or-later WITH no-invariant-sections
+ -->
+ <svg
+    xmlns:dc="http://purl.org/dc/elements/1.1/"
+diff --git a/Documentation/media/uapi/v4l/nv12mt_example.svg b/Documentation/media/uapi/v4l/nv12mt_example.svg
+index 4dd9cbf7c72e..5eb8bcacc56c 100644
+--- a/Documentation/media/uapi/v4l/nv12mt_example.svg
++++ b/Documentation/media/uapi/v4l/nv12mt_example.svg
+@@ -1,13 +1,30 @@
+ <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+ <!--
+-    Permission is granted to copy, distribute and/or modify this
+-    document under the terms of the GNU Free Documentation License,
+-    Version 1.1 or any later version published by the Free Software
+-    Foundation, with no Invariant Sections, no Front-Cover Texts
+-    and no Back-Cover Texts. A copy of the license is included at
+-    Documentation/media/uapi/fdl-appendix.rst.
+-
+-    TODO: replace it to GFDL-1.1-or-later WITH no-invariant-sections
++    This file is dual-licensed: you can use it either under the terms
++    of the GPL or the GFDL 1.1+ license, at your option. Note that this
++    dual licensing only applies to this file, and not this project as a
++    whole.
++
++    a) This file is free software; you can redistribute it and/or
++       modify it under the terms of the GNU General Public License as
++       published by the Free Software Foundation; either version 2 of
++       the License, or (at your option) any later version.
++
++       This file is distributed in the hope that it will be useful,
++       but WITHOUT ANY WARRANTY; without even the implied warranty of
++       MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++       GNU General Public License for more details.
++
++    Or, alternatively,
++
++    b) Permission is granted to copy, distribute and/or modify this
++       document under the terms of the GNU Free Documentation License,
++       Version 1.1 or any later version published by the Free Software
++       Foundation, with no Invariant Sections, no Front-Cover Texts
++       and no Back-Cover Texts. A copy of the license is included at
++       Documentation/media/uapi/fdl-appendix.rst.
++
++    TODO: replace it to GPL-2.0 OR GFDL-1.1-or-later WITH no-invariant-sections
+ -->
+ <svg
+    xmlns:dc="http://purl.org/dc/elements/1.1/"
+diff --git a/Documentation/media/uapi/v4l/selection.svg b/Documentation/media/uapi/v4l/selection.svg
+index fa97217f1195..eeb195744e60 100644
+--- a/Documentation/media/uapi/v4l/selection.svg
++++ b/Documentation/media/uapi/v4l/selection.svg
+@@ -1,13 +1,30 @@
+ <?xml version="1.0" encoding="UTF-8"?>
+ <!--
+-    Permission is granted to copy, distribute and/or modify this
+-    document under the terms of the GNU Free Documentation License,
+-    Version 1.1 or any later version published by the Free Software
+-    Foundation, with no Invariant Sections, no Front-Cover Texts
+-    and no Back-Cover Texts. A copy of the license is included at
+-    Documentation/media/uapi/fdl-appendix.rst.
+-
+-    TODO: replace it to GFDL-1.1-or-later WITH no-invariant-sections
++    This file is dual-licensed: you can use it either under the terms
++    of the GPL or the GFDL 1.1+ license, at your option. Note that this
++    dual licensing only applies to this file, and not this project as a
++    whole.
++
++    a) This file is free software; you can redistribute it and/or
++       modify it under the terms of the GNU General Public License as
++       published by the Free Software Foundation; either version 2 of
++       the License, or (at your option) any later version.
++
++       This file is distributed in the hope that it will be useful,
++       but WITHOUT ANY WARRANTY; without even the implied warranty of
++       MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++       GNU General Public License for more details.
++
++    Or, alternatively,
++
++    b) Permission is granted to copy, distribute and/or modify this
++       document under the terms of the GNU Free Documentation License,
++       Version 1.1 or any later version published by the Free Software
++       Foundation, with no Invariant Sections, no Front-Cover Texts
++       and no Back-Cover Texts. A copy of the license is included at
++       Documentation/media/uapi/fdl-appendix.rst.
++
++    TODO: replace it to GPL-2.0 OR GFDL-1.1-or-later WITH no-invariant-sections
+ -->
+ <svg enable-background="new" version="1" viewBox="0 0 4226.3 1686.8" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <defs>
+-- 
+2.19.1
