@@ -1,128 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io1-f66.google.com ([209.85.166.66]:46590 "EHLO
-        mail-io1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729253AbeKWREj (ORCPT
+Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:37814 "EHLO
+        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S2390187AbeKWSCo (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Nov 2018 12:04:39 -0500
-Received: by mail-io1-f66.google.com with SMTP id v10so2400337ios.13
-        for <linux-media@vger.kernel.org>; Thu, 22 Nov 2018 22:21:51 -0800 (PST)
+        Fri, 23 Nov 2018 13:02:44 -0500
+Received: from pps.filterd (m0098417.ppops.net [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (8.16.0.22/8.16.0.22) with SMTP id wAN7JDIZ112521
+        for <linux-media@vger.kernel.org>; Fri, 23 Nov 2018 02:19:44 -0500
+Received: from e06smtp04.uk.ibm.com (e06smtp04.uk.ibm.com [195.75.94.100])
+        by mx0a-001b2d01.pphosted.com with ESMTP id 2nxcng95tp-1
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
+        for <linux-media@vger.kernel.org>; Fri, 23 Nov 2018 02:19:44 -0500
+Received: from localhost
+        by e06smtp04.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+        for <linux-media@vger.kernel.org> from <rppt@linux.ibm.com>;
+        Fri, 23 Nov 2018 07:19:41 -0000
+Date: Fri, 23 Nov 2018 09:19:25 +0200
+From: Mike Rapoport <rppt@linux.ibm.com>
+To: Souptick Joarder <jrdr.linux@gmail.com>
+Cc: Matthew Wilcox <willy@infradead.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Michal Hocko <mhocko@suse.com>,
+        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
+        vbabka@suse.cz, Rik van Riel <riel@surriel.com>,
+        Stephen Rothwell <sfr@canb.auug.org.au>,
+        rppt@linux.vnet.ibm.com, Peter Zijlstra <peterz@infradead.org>,
+        Russell King - ARM Linux <linux@armlinux.org.uk>,
+        robin.murphy@arm.com, iamjoonsoo.kim@lge.com, treding@nvidia.com,
+        Kees Cook <keescook@chromium.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        stefanr@s5r6.in-berlin.de, hjc@rock-chips.com,
+        Heiko Stuebner <heiko@sntech.de>, airlied@linux.ie,
+        oleksandr_andrushchenko@epam.com, joro@8bytes.org,
+        pawel@osciak.com, Kyungmin Park <kyungmin.park@samsung.com>,
+        mchehab@kernel.org, Boris Ostrovsky <boris.ostrovsky@oracle.com>,
+        Juergen Gross <jgross@suse.com>, linux-kernel@vger.kernel.org,
+        Linux-MM <linux-mm@kvack.org>,
+        linux-arm-kernel@lists.infradead.org,
+        linux1394-devel@lists.sourceforge.net,
+        dri-devel@lists.freedesktop.org,
+        linux-rockchip@lists.infradead.org, xen-devel@lists.xen.org,
+        iommu@lists.linux-foundation.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/9] mm: Introduce new vm_insert_range API
+References: <20181115154530.GA27872@jordon-HP-15-Notebook-PC>
+ <20181116182836.GB17088@rapoport-lnx>
+ <CAFqt6zYp0j999WXw9Jus0oZMjADQQkPfso8btv6du6L9CE3PXA@mail.gmail.com>
+ <20181117143742.GB7861@bombadil.infradead.org>
+ <CAFqt6zbOWX5LUTWwoGDJsGdf+pTR6N1yTPVxyr1W3-6Fte39ww@mail.gmail.com>
+ <20181119162623.GA13200@rapoport-lnx>
+ <CAFqt6zbhodAGQz-RCB3C-wt_Mvb9QDmQ8pFeP2EO+ba2k2OccA@mail.gmail.com>
 MIME-Version: 1.0
-References: <20181114145934.26855-1-maxime.ripard@bootlin.com> <20181114145934.26855-5-maxime.ripard@bootlin.com>
-In-Reply-To: <20181114145934.26855-5-maxime.ripard@bootlin.com>
-From: Jagan Teki <jagan@amarulasolutions.com>
-Date: Fri, 23 Nov 2018 11:51:38 +0530
-Message-ID: <CAMty3ZDtKNvH75r3m3D1b=0HKrZ+ZVsrP-OwS_Ws2NRqtf4v5g@mail.gmail.com>
-Subject: Re: [PATCH v2 4/4] [DO NOT MERGE] ARM: dts: sun8i: Add CAM500B camera
- module to the Nano Pi M1+
-To: Maxime Ripard <maxime.ripard@bootlin.com>
-Cc: Yong Deng <yong.deng@magewell.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media <linux-media@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Mylene Josserand <mylene.josserand@bootlin.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAFqt6zbhodAGQz-RCB3C-wt_Mvb9QDmQ8pFeP2EO+ba2k2OccA@mail.gmail.com>
+Message-Id: <20181123071924.GF5704@rapoport-lnx>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Nov 14, 2018 at 8:29 PM Maxime Ripard <maxime.ripard@bootlin.com> w=
-rote:
->
-> From: Myl=C3=A8ne Josserand <mylene.josserand@bootlin.com>
->
-> The Nano Pi M1+ comes with an optional sensor based on the ov5640 from
-> Omnivision. Enable the support for it in the DT.
->
-> Signed-off-by: Myl=C3=A8ne Josserand <mylene.josserand@bootlin.com>
-> Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
-> ---
->  arch/arm/boot/dts/sun8i-h3-nanopi-m1-plus.dts | 85 +++++++++++++++++++
->  1 file changed, 85 insertions(+)
->
-> diff --git a/arch/arm/boot/dts/sun8i-h3-nanopi-m1-plus.dts b/arch/arm/boo=
-t/dts/sun8i-h3-nanopi-m1-plus.dts
-> index 06010a9afba0..2ac62d109285 100644
-> --- a/arch/arm/boot/dts/sun8i-h3-nanopi-m1-plus.dts
-> +++ b/arch/arm/boot/dts/sun8i-h3-nanopi-m1-plus.dts
-> @@ -52,6 +52,37 @@
->                 ethernet1 =3D &sdio_wifi;
->         };
->
-> +       cam_xclk: cam-xclk {
-> +                #clock-cells =3D <0>;
-> +                compatible =3D "fixed-clock";
-> +                clock-frequency =3D <24000000>;
-> +                clock-output-names =3D "cam-xclk";
-> +        };
-> +
-> +        reg_cam_avdd: cam-avdd {
-> +                compatible =3D "regulator-fixed";
-> +                regulator-name =3D "cam500b-avdd";
-> +                regulator-min-microvolt =3D <2800000>;
-> +                regulator-max-microvolt =3D <2800000>;
-> +                vin-supply =3D <&reg_vcc3v3>;
-> +        };
-> +
-> +        reg_cam_dovdd: cam-dovdd {
-> +                compatible =3D "regulator-fixed";
-> +                regulator-name =3D "cam500b-dovdd";
-> +                regulator-min-microvolt =3D <1800000>;
-> +                regulator-max-microvolt =3D <1800000>;
-> +                vin-supply =3D <&reg_vcc3v3>;
-> +        };
-> +
-> +        reg_cam_dvdd: cam-dvdd {
-> +                compatible =3D "regulator-fixed";
-> +                regulator-name =3D "cam500b-dvdd";
-> +                regulator-min-microvolt =3D <1500000>;
-> +                regulator-max-microvolt =3D <1500000>;
-> +                vin-supply =3D <&reg_vcc3v3>;
-> +        };
-> +
->         reg_gmac_3v3: gmac-3v3 {
->                 compatible =3D "regulator-fixed";
->                 regulator-name =3D "gmac-3v3";
-> @@ -69,6 +100,26 @@
->         };
->  };
->
-> +&csi {
-> +        status =3D "okay";
-> +
-> +        port {
-> +                #address-cells =3D <1>;
-> +                #size-cells =3D <0>;
-> +
-> +                /* Parallel bus endpoint */
-> +                csi_from_ov5640: endpoint {
-> +                        remote-endpoint =3D <&ov5640_to_csi>;
-> +                        bus-width =3D <8>;
-> +                        data-shift =3D <2>;
-> +                        hsync-active =3D <1>; /* Active high */
-> +                        vsync-active =3D <0>; /* Active low */
-> +                        data-active =3D <1>;  /* Active high */
-> +                        pclk-sample =3D <1>;  /* Rising */
-> +                };
-> +        };
-> +};
-> +
->  &ehci1 {
->         status =3D "okay";
->  };
-> @@ -94,6 +145,40 @@
->         };
->  };
->
-> +&i2c2 {
-> +       status =3D "okay";
-> +
-> +       ov5640: camera@3c {
-> +                compatible =3D "ovti,ov5640";
-> +                reg =3D <0x3c>;
-> +                clocks =3D <&cam_xclk>;
+On Mon, Nov 19, 2018 at 11:15:15PM +0530, Souptick Joarder wrote:
+> On Mon, Nov 19, 2018 at 9:56 PM Mike Rapoport <rppt@linux.ibm.com> wrote:
+> >
+> > On Mon, Nov 19, 2018 at 08:43:09PM +0530, Souptick Joarder wrote:
+> > > Hi Mike,
+> > >
+> > > On Sat, Nov 17, 2018 at 8:07 PM Matthew Wilcox <willy@infradead.org> wrote:
+> > > >
+> > > > On Sat, Nov 17, 2018 at 12:26:38PM +0530, Souptick Joarder wrote:
+> > > > > On Fri, Nov 16, 2018 at 11:59 PM Mike Rapoport <rppt@linux.ibm.com> wrote:
+> > > > > > > + * vm_insert_range - insert range of kernel pages into user vma
+> > > > > > > + * @vma: user vma to map to
+> > > > > > > + * @addr: target user address of this page
+> > > > > > > + * @pages: pointer to array of source kernel pages
+> > > > > > > + * @page_count: no. of pages need to insert into user vma
+> > > > > > > + *
+> > > > > > > + * This allows drivers to insert range of kernel pages they've allocated
+> > > > > > > + * into a user vma. This is a generic function which drivers can use
+> > > > > > > + * rather than using their own way of mapping range of kernel pages into
+> > > > > > > + * user vma.
+> > > > > >
+> > > > > > Please add the return value and context descriptions.
+> > > > > >
+> > > > >
+> > > > > Sure I will wait for some time to get additional review comments and
+> > > > > add all of those requested changes in v2.
+> > > >
+> > > > You could send your proposed wording now which might remove the need
+> > > > for a v3 if we end up arguing about the wording.
+> > >
+> > > Does this description looks good ?
+> > >
+> > > /**
+> > >  * vm_insert_range - insert range of kernel pages into user vma
+> > >  * @vma: user vma to map to
+> > >  * @addr: target user address of this page
+> > >  * @pages: pointer to array of source kernel pages
+> > >  * @page_count: number of pages need to insert into user vma
+> > >  *
+> > >  * This allows drivers to insert range of kernel pages they've allocated
+> > >  * into a user vma. This is a generic function which drivers can use
+> > >  * rather than using their own way of mapping range of kernel pages into
+> > >  * user vma.
+> > >  *
+> > >  * Context - Process context. Called by mmap handlers.
+> >
+> > Context:
+> >
+> > >  * Return - int error value
+> >
+> > Return:
+> >
+> > >  * 0                    - OK
+> > >  * -EINVAL              - Invalid argument
+> > >  * -ENOMEM              - No memory
+> > >  * -EFAULT              - Bad address
+> > >  * -EBUSY               - Device or resource busy
+> >
+> > I don't think that elaborate description of error values is needed, just "0
+> > on success and error code otherwise" would be sufficient.
+> 
+> /**
+>  * vm_insert_range - insert range of kernel pages into user vma
+>  * @vma: user vma to map to
+>  * @addr: target user address of this page
+>  * @pages: pointer to array of source kernel pages
+>  * @page_count: number of pages need to insert into user vma
+>  *
+>  * This allows drivers to insert range of kernel pages they've allocated
+>  * into a user vma. This is a generic function which drivers can use
+>  * rather than using their own way of mapping range of kernel pages into
+>  * user vma.
+>  *
+>  * Context: Process context. Called by mmap handlers.
+>  * Return: 0 on success and error code otherwise
+>  */
 
-I think we can directly use existing 24MHz oscillator, &osc24M
+Looks good to me.
+
+-- 
+Sincerely yours,
+Mike.
