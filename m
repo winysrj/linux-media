@@ -1,43 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([217.72.192.73]:46667 "EHLO
+Received: from mout.kundenserver.de ([212.227.17.10]:45969 "EHLO
         mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388714AbeKXDAR (ORCPT
+        with ESMTP id S2388714AbeKXDAT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Nov 2018 22:00:17 -0500
+        Fri, 23 Nov 2018 22:00:19 -0500
 From: Andreas Pape <ap@ca-pape.de>
 To: linux-media@vger.kernel.org, kieran.bingham@ideasonboard.com
 Cc: Andreas Pape <ap@ca-pape.de>
-Subject: [PATCH 2/3] media: stkwebcam: Bugfix for not correctly initialized camera
-Date: Fri, 23 Nov 2018 17:14:53 +0100
-Message-Id: <20181123161454.3215-3-ap@ca-pape.de>
+Subject: [PATCH 3/3] media: stkwebcam: Bugfix for wrong return values
+Date: Fri, 23 Nov 2018 17:14:54 +0100
+Message-Id: <20181123161454.3215-4-ap@ca-pape.de>
 In-Reply-To: <20181123161454.3215-1-ap@ca-pape.de>
 References: <20181123161454.3215-1-ap@ca-pape.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-stk_start_stream can only be called successfully if stk_initialise and
-stk_setup_format are called before. When using e.g. cheese it was observed
-that stk_initialise and stk_setup_format have not been called before which
-leads to no picture in that software whereas other tools like guvcview
-worked flawlessly. This patch solves the issue when using e.g. cheese.
+usb_control_msg returns in case of a successfully sent message the number
+of sent bytes as a positive number. Don't use this value as a return value
+for stk_camera_read_reg, as a non-zero return value is used as an error
+condition in some cases when stk_camera_read_reg is called.
 
 Signed-off-by: Andreas Pape <ap@ca-pape.de>
 ---
- drivers/media/usb/stkwebcam/stk-webcam.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/media/usb/stkwebcam/stk-webcam.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/media/usb/stkwebcam/stk-webcam.c b/drivers/media/usb/stkwebcam/stk-webcam.c
-index e61427e50525..c64928e36a5a 100644
+index c64928e36a5a..66a3665fc826 100644
 --- a/drivers/media/usb/stkwebcam/stk-webcam.c
 +++ b/drivers/media/usb/stkwebcam/stk-webcam.c
-@@ -1155,6 +1155,8 @@ static int stk_vidioc_streamon(struct file *filp,
- 	if (dev->sio_bufs == NULL)
- 		return -EINVAL;
- 	dev->sequence = 0;
-+	stk_initialise(dev);
-+	stk_setup_format(dev);
- 	return stk_start_stream(dev);
+@@ -171,7 +171,11 @@ int stk_camera_read_reg(struct stk_camera *dev, u16 index, u8 *value)
+ 		*value = *buf;
+ 
+ 	kfree(buf);
+-	return ret;
++
++	if (ret < 0)
++		return ret;
++	else
++		return 0;
  }
  
+ static int stk_start_stream(struct stk_camera *dev)
 -- 
 2.17.1
