@@ -1,14 +1,14 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:54947 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S2393741AbeKWTY1 (ORCPT
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:39202 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S2387605AbeKWT3S (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Nov 2018 14:24:27 -0500
+        Fri, 23 Nov 2018 14:29:18 -0500
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.21 v2] Various fixes/improvements
-Message-ID: <387d3330-5b15-d7a6-dacb-5b0cbf33446e@xs4all.nl>
-Date: Fri, 23 Nov 2018 09:41:08 +0100
+Subject: [GIT PULL FOR v4.21 v2] mem2mem, venus and vb2 fixes/improvements
+Message-ID: <76f3c0b7-63ee-50d0-d56c-fc403d4ba5e0@xs4all.nl>
+Date: Fri, 23 Nov 2018 09:45:59 +0100
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
@@ -16,61 +16,60 @@ Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 5200ab6a32d6055428896a49ec9e3b1652c1a100:
+(Fixed my SoB mess)
 
-  media: vidioc_cropcap -> vidioc_g_pixelaspect (2018-11-20 13:57:21 -0500)
+The following changes since commit fbe57dde7126d1b2712ab5ea93fb9d15f89de708:
+
+  media: ov7740: constify structures stored in fields of v4l2_subdev_ops structure (2018-11-06 07:17:02 -0500)
 
 are available in the Git repository at:
 
-  git://linuxtv.org/hverkuil/media_tree.git tags/br-v4.20d3
+  git://linuxtv.org/hverkuil/media_tree.git tags/br-v4.21e2
 
-for you to fetch changes up to d5d871b0c676aed893d928a2ad3ac69c55f1da8c:
+for you to fetch changes up to 67a4b0da269c44e3efb59ec471566d48268bd23d:
 
-  media: vicodec: Add support for 4 planes formats (2018-11-23 09:37:43 +0100)
+  videobuf2-v4l2: drop WARN_ON in vb2_warn_zero_bytesused() (2018-11-23 09:44:43 +0100)
 
 ----------------------------------------------------------------
 Tag branch
 
 ----------------------------------------------------------------
-Akinobu Mita (5):
-      media: video-i2c: avoid accessing released memory area when removing driver
-      media: video-i2c: use i2c regmap
-      media: v4l2-common: add V4L2_FRACT_COMPARE
-      media: vivid: use V4L2_FRACT_COMPARE
-      media: video-i2c: support changing frame interval
+Ezequiel Garcia (4):
+      mem2mem: Require capture and output mutexes to match
+      v4l2-ioctl.c: Simplify locking for m2m devices
+      v4l2-mem2mem: Avoid calling .device_run in v4l2_m2m_job_finish
+      media: cedrus: Get rid of interrupt bottom-half
 
-Alexey Khoroshilov (1):
-      media: mtk-vcodec: Release device nodes in mtk_vcodec_init_enc_pm()
+Hans Verkuil (1):
+      videobuf2-v4l2: drop WARN_ON in vb2_warn_zero_bytesused()
 
-Dafna Hirschfeld (3):
-      media: vicodec: prepare support for various number of planes
-      media: vicodec: Add support of greyscale format
-      media: vicodec: Add support for 4 planes formats
+John Sheu (1):
+      media: vb2: Allow reqbufs(0) with "in use" MMAP buffers
 
-Eric Biggers (1):
-      media: v4l: constify v4l2_ioctls[]
+Sakari Ailus (1):
+      v4l2-mem2mem: Simplify exiting the function in __v4l2_m2m_try_schedule
 
-Hans Verkuil (2):
-      vim2m/vicodec: set device_caps in video_device struct
-      vidioc-enum-fmt.rst: update list of valid buftypes
+Stanimir Varbanov (1):
+      venus: firmware: register separate platform_device for firmware loader
 
-Julia Lawall (1):
-      media: video-i2c: hwmon: constify vb2_ops structure
+vgarodia@codeaurora.org (4):
+      venus: firmware: add routine to reset ARM9
+      venus: firmware: move load firmware in a separate function
+      venus: firmware: add no TZ boot and shutdown routine
+      dt-bindings: media: Document bindings for venus firmware device
 
-Malathi Gottam (1):
-      media: venus: change the default value of GOP size
-
- Documentation/media/uapi/v4l/vidioc-enum-fmt.rst      |   8 ++-
- drivers/media/i2c/video-i2c.c                         | 153 +++++++++++++++++++++++++++++++++++--------------
- drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_pm.c |  10 ++--
- drivers/media/platform/qcom/venus/venc_ctrls.c        |   2 +-
- drivers/media/platform/vicodec/codec-fwht.c           |  84 +++++++++++++++++----------
- drivers/media/platform/vicodec/codec-fwht.h           |  15 +++--
- drivers/media/platform/vicodec/codec-v4l2-fwht.c      | 123 +++++++++++++++++++++++++++++----------
- drivers/media/platform/vicodec/codec-v4l2-fwht.h      |   3 +-
- drivers/media/platform/vicodec/vicodec-core.c         |  45 +++++++++++----
- drivers/media/platform/vim2m.c                        |   3 +-
- drivers/media/platform/vivid/vivid-vid-cap.c          |   9 +--
- drivers/media/v4l2-core/v4l2-ioctl.c                  |   2 +-
- include/media/v4l2-common.h                           |   5 ++
- 13 files changed, 328 insertions(+), 134 deletions(-)
+ Documentation/devicetree/bindings/media/qcom,venus.txt |  14 ++-
+ Documentation/media/uapi/v4l/vidioc-reqbufs.rst        |  17 +++-
+ drivers/media/common/videobuf2/videobuf2-core.c        |   8 +-
+ drivers/media/common/videobuf2/videobuf2-v4l2.c        |   3 +-
+ drivers/media/platform/qcom/venus/core.c               |  24 +++--
+ drivers/media/platform/qcom/venus/core.h               |   6 ++
+ drivers/media/platform/qcom/venus/firmware.c           | 235 +++++++++++++++++++++++++++++++++++++++++++-----
+ drivers/media/platform/qcom/venus/firmware.h           |  17 +++-
+ drivers/media/platform/qcom/venus/hfi_venus.c          |  13 +--
+ drivers/media/platform/qcom/venus/hfi_venus_io.h       |   8 ++
+ drivers/media/v4l2-core/v4l2-ioctl.c                   |  47 +---------
+ drivers/media/v4l2-core/v4l2-mem2mem.c                 |  66 +++++++++-----
+ drivers/staging/media/sunxi/cedrus/cedrus_hw.c         |  26 ++----
+ include/uapi/linux/videodev2.h                         |   1 +
+ 14 files changed, 344 insertions(+), 141 deletions(-)
