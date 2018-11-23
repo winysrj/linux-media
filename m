@@ -1,34 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from Galois.linutronix.de ([146.0.238.70]:50429 "EHLO
-        Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388147AbeKWX2b (ORCPT
+Received: from mail-qt1-f193.google.com ([209.85.160.193]:42592 "EHLO
+        mail-qt1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2388147AbeKWXfK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Nov 2018 18:28:31 -0500
-Date: Fri, 23 Nov 2018 13:44:24 +0100 (CET)
-From: Thomas Gleixner <tglx@linutronix.de>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-cc: linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Greg KH <gregkh@linuxfoundation.org>,
-        Kate Stewart <kstewart@linuxfoundation.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        Ben Hutchings <ben@decadent.org.uk>
-Subject: Re: [PATCHv18 01/35] Documentation: v4l: document request API
-In-Reply-To: <20181123102908.2ec61ce4@coco.lan>
-Message-ID: <alpine.DEB.2.21.1811231343490.2603@nanos.tec.linutronix.de>
-References: <20180814142047.93856-1-hverkuil@xs4all.nl> <20180814142047.93856-2-hverkuil@xs4all.nl> <alpine.DEB.2.21.1811121048400.14703@nanos.tec.linutronix.de> <20181118115215.5ebc681c@coco.lan> <20181123075157.077758c0@coco.lan>
- <alpine.DEB.2.21.1811231134100.2603@nanos.tec.linutronix.de> <20181123102908.2ec61ce4@coco.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+        Fri, 23 Nov 2018 18:35:10 -0500
+Received: by mail-qt1-f193.google.com with SMTP id d19so10352276qtq.9
+        for <linux-media@vger.kernel.org>; Fri, 23 Nov 2018 04:51:05 -0800 (PST)
+From: Fabio Estevam <festevam@gmail.com>
+To: mchehab@kernel.org
+Cc: sakari.ailus@linux.intel.com, slongerbeam@gmail.com,
+        p.zabel@pengutronix.de, linux-media@vger.kernel.org,
+        Fabio Estevam <festevam@gmail.com>
+Subject: [PATCH] media: v4l2-fwnode: Demote warning to debug level
+Date: Fri, 23 Nov 2018 10:50:59 -0200
+Message-Id: <1542977459-14550-1-git-send-email-festevam@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 23 Nov 2018, Mauro Carvalho Chehab wrote:
-> Ok, I'll use then the enclosed patch, replacing them by a free
-> form license info, adding a TODO at the end, as a reminder.
+On a imx6q-wandboard the following warnings are observed:
 
-LGTM. Thanks for fixing this.
+[    4.327794] video-mux 20e0000.iomuxc-gpr:ipu1_csi0_mux: bad remote port parent
+[    4.336118] video-mux 20e0000.iomuxc-gpr:ipu2_csi1_mux: bad remote port parent
 
-      tglx
+As explained by Philipp Zabel:
+
+"There are empty endpoint nodes (without remote-endpoint property)
+labeled ipu1_csi[01]_mux_from_parallel_sensor in the i.MX6 device trees
+for board DT implementers' convenience. See commit 2539f517acbdc ("ARM:
+dts: imx6qdl: Add video multiplexers, mipi_csi, and their connections")."
+
+So demote the warning to debug level and make the wording a bit
+less misleading.
+
+Suggested-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Fabio Estevam <festevam@gmail.com>
+---
+ drivers/media/v4l2-core/v4l2-fwnode.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+index 218f0da..7a3cc10 100644
+--- a/drivers/media/v4l2-core/v4l2-fwnode.c
++++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+@@ -613,7 +613,7 @@ v4l2_async_notifier_fwnode_parse_endpoint(struct device *dev,
+ 	asd->match.fwnode =
+ 		fwnode_graph_get_remote_port_parent(endpoint);
+ 	if (!asd->match.fwnode) {
+-		dev_warn(dev, "bad remote port parent\n");
++		dev_dbg(dev, "no remote endpoint found\n");
+ 		ret = -ENOTCONN;
+ 		goto out_err;
+ 	}
+-- 
+2.7.4
