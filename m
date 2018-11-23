@@ -1,7 +1,7 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:55754 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.133]:55752 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2390258AbeKWU5I (ORCPT
+        with ESMTP id S2390102AbeKWU5I (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Fri, 23 Nov 2018 15:57:08 -0500
 From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
@@ -12,137 +12,134 @@ Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
         Maxime Ripard <maxime.ripard@bootlin.com>,
         Chen-Yu Tsai <wens@csie.org>,
         linux-arm-kernel@lists.infradead.org
-Subject: [PATCH 2/2] media: sun6i-csi: manually fix other coding style issues
-Date: Fri, 23 Nov 2018 05:13:23 -0500
-Message-Id: <5470d46e7afc781f858eda7d7013934e46764f14.1542967999.git.mchehab+samsung@kernel.org>
-In-Reply-To: <ad8d7a438746a7f6dd3300ff9f07bd5506de100c.1542967999.git.mchehab+samsung@kernel.org>
-References: <ad8d7a438746a7f6dd3300ff9f07bd5506de100c.1542967999.git.mchehab+samsung@kernel.org>
+Subject: [PATCH 1/2] media: sum6i-csi: Fix a few coding style issues
+Date: Fri, 23 Nov 2018 05:13:22 -0500
+Message-Id: <ad8d7a438746a7f6dd3300ff9f07bd5506de100c.1542967999.git.mchehab+samsung@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are a few other coding style issues reported by checkpatch
-while in --strict mode. Fix the ones that make sense.
+Make checkpatch.pl happier by running it on strict mode and
+using the --fix-inline to solve some issues.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 ---
- .../platform/sunxi/sun6i-csi/sun6i_csi.c      |  9 +++----
- .../platform/sunxi/sun6i-csi/sun6i_csi_reg.h  | 24 +++++++++----------
- .../platform/sunxi/sun6i-csi/sun6i_video.c    |  3 ++-
- 3 files changed, 19 insertions(+), 17 deletions(-)
+ drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c     |  9 ++++-----
+ drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.h     |  2 +-
+ drivers/media/platform/sunxi/sun6i-csi/sun6i_csi_reg.h |  2 +-
+ drivers/media/platform/sunxi/sun6i-csi/sun6i_video.c   | 10 +++++-----
+ 4 files changed, 11 insertions(+), 12 deletions(-)
 
 diff --git a/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c b/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
-index 89fe2c1e21a8..9c8a98d78c97 100644
+index 7af55ad142dc..89fe2c1e21a8 100644
 --- a/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
 +++ b/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
-@@ -57,7 +57,7 @@ bool sun6i_csi_is_format_supported(struct sun6i_csi *csi,
- 	 * Identify the media bus format from device tree.
- 	 */
- 	if ((sdev->csi.v4l2_ep.bus_type == V4L2_MBUS_PARALLEL
--	      || sdev->csi.v4l2_ep.bus_type == V4L2_MBUS_BT656)
-+	     || sdev->csi.v4l2_ep.bus_type == V4L2_MBUS_BT656)
- 	     && sdev->csi.v4l2_ep.bus.parallel.bus_width == 16) {
- 		switch (pixformat) {
- 		case V4L2_PIX_FMT_HM12:
-@@ -726,9 +726,10 @@ static int sun6i_csi_v4l2_init(struct sun6i_csi *csi)
- 	if (ret)
- 		goto unreg_v4l2;
+@@ -279,7 +279,6 @@ static enum csi_output_fmt get_csi_output_format(struct sun6i_csi_dev *sdev,
+ static enum csi_input_seq get_csi_input_seq(struct sun6i_csi_dev *sdev,
+ 					    u32 mbus_code, u32 pixformat)
+ {
+-
+ 	switch (pixformat) {
+ 	case V4L2_PIX_FMT_HM12:
+ 	case V4L2_PIX_FMT_NV12:
+@@ -543,7 +542,7 @@ int sun6i_csi_update_config(struct sun6i_csi *csi,
+ {
+ 	struct sun6i_csi_dev *sdev = sun6i_csi_to_dev(csi);
  
--	ret = v4l2_async_notifier_parse_fwnode_endpoints(
--		csi->dev, &csi->notifier, sizeof(struct v4l2_async_subdev),
--		sun6i_csi_fwnode_parse);
-+	ret = v4l2_async_notifier_parse_fwnode_endpoints(csi->dev,
-+							 &csi->notifier,
-+							 sizeof(struct v4l2_async_subdev),
-+							 sun6i_csi_fwnode_parse);
- 	if (ret)
- 		goto clean_video;
+-	if (config == NULL)
++	if (!config)
+ 		return -EINVAL;
  
+ 	memcpy(&csi->config, config, sizeof(csi->config));
+@@ -644,7 +643,7 @@ static int sun6i_subdev_notify_complete(struct v4l2_async_notifier *notifier)
+ 	dev_dbg(csi->dev, "notify complete, all subdevs registered\n");
+ 
+ 	sd = list_first_entry(&v4l2_dev->subdevs, struct v4l2_subdev, list);
+-	if (sd == NULL)
++	if (!sd)
+ 		return -EINVAL;
+ 
+ 	ret = sun6i_csi_link_entity(csi, &sd->entity, sd->fwnode);
+@@ -810,7 +809,7 @@ static int sun6i_csi_resource_request(struct sun6i_csi_dev *sdev,
+ 		return PTR_ERR(io_base);
+ 
+ 	sdev->regmap = devm_regmap_init_mmio_clk(&pdev->dev, "bus", io_base,
+-					    &sun6i_csi_regmap_config);
++						 &sun6i_csi_regmap_config);
+ 	if (IS_ERR(sdev->regmap)) {
+ 		dev_err(&pdev->dev, "Failed to init register map\n");
+ 		return PTR_ERR(sdev->regmap);
+@@ -853,7 +852,7 @@ static int sun6i_csi_resource_request(struct sun6i_csi_dev *sdev,
+ 
+ /*
+  * PHYS_OFFSET isn't available on all architectures. In order to
+- * accomodate for COMPILE_TEST, let's define it to something dumb.
++ * accommodate for COMPILE_TEST, let's define it to something dumb.
+  */
+ #if defined(CONFIG_COMPILE_TEST) && !defined(PHYS_OFFSET)
+ #define PHYS_OFFSET 0
+diff --git a/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.h b/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.h
+index bd9be36aabfe..0bb000712c33 100644
+--- a/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.h
++++ b/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.h
+@@ -55,7 +55,7 @@ struct sun6i_csi {
+  * @mbus_code:	media bus format code (MEDIA_BUS_FMT_*)
+  */
+ bool sun6i_csi_is_format_supported(struct sun6i_csi *csi, u32 pixformat,
+-				 u32 mbus_code);
++				   u32 mbus_code);
+ 
+ /**
+  * sun6i_csi_set_power() - power on/off the csi
 diff --git a/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi_reg.h b/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi_reg.h
-index d9b6d89f1927..703fa14bb313 100644
+index 3a55836a5a4d..d9b6d89f1927 100644
 --- a/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi_reg.h
 +++ b/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi_reg.h
-@@ -46,7 +46,7 @@
- 
- #define CSI_CAP_REG			0x8
- #define CSI_CAP_CH0_CAP_MASK_MASK		GENMASK(5, 2)
--#define CSI_CAP_CH0_CAP_MASK(count)		((count << 2) & CSI_CAP_CH0_CAP_MASK_MASK)
-+#define CSI_CAP_CH0_CAP_MASK(count)		(((count) << 2) & CSI_CAP_CH0_CAP_MASK_MASK)
- #define CSI_CAP_CH0_VCAP_ON			BIT(1)
- #define CSI_CAP_CH0_SCAP_ON			BIT(0)
- 
-@@ -59,9 +59,9 @@
- 
- #define CSI_CH_CFG_REG			0x44
- #define CSI_CH_CFG_INPUT_FMT_MASK		GENMASK(23, 20)
--#define CSI_CH_CFG_INPUT_FMT(fmt)		((fmt << 20) & CSI_CH_CFG_INPUT_FMT_MASK)
-+#define CSI_CH_CFG_INPUT_FMT(fmt)		(((fmt) << 20) & CSI_CH_CFG_INPUT_FMT_MASK)
- #define CSI_CH_CFG_OUTPUT_FMT_MASK		GENMASK(19, 16)
--#define CSI_CH_CFG_OUTPUT_FMT(fmt)		((fmt << 16) & CSI_CH_CFG_OUTPUT_FMT_MASK)
-+#define CSI_CH_CFG_OUTPUT_FMT(fmt)		(((fmt) << 16) & CSI_CH_CFG_OUTPUT_FMT_MASK)
- #define CSI_CH_CFG_VFLIP_EN			BIT(13)
- #define CSI_CH_CFG_HFLIP_EN			BIT(12)
- #define CSI_CH_CFG_FIELD_SEL_MASK		GENMASK(11, 10)
-@@ -69,7 +69,7 @@
- #define CSI_CH_CFG_FIELD_SEL_FIELD1		((1 << 10) & CSI_CH_CFG_FIELD_SEL_MASK)
- #define CSI_CH_CFG_FIELD_SEL_BOTH		((2 << 10) & CSI_CH_CFG_FIELD_SEL_MASK)
- #define CSI_CH_CFG_INPUT_SEQ_MASK		GENMASK(9, 8)
--#define CSI_CH_CFG_INPUT_SEQ(seq)		((seq << 8) & CSI_CH_CFG_INPUT_SEQ_MASK)
-+#define CSI_CH_CFG_INPUT_SEQ(seq)		(((seq) << 8) & CSI_CH_CFG_INPUT_SEQ_MASK)
- 
- #define CSI_CH_SCALE_REG		0x4c
- #define CSI_CH_SCALE_QUART_EN			BIT(0)
-@@ -111,27 +111,27 @@
- 
- #define CSI_CH_HSIZE_REG		0x80
- #define CSI_CH_HSIZE_HOR_LEN_MASK		GENMASK(28, 16)
--#define CSI_CH_HSIZE_HOR_LEN(len)		((len << 16) & CSI_CH_HSIZE_HOR_LEN_MASK)
-+#define CSI_CH_HSIZE_HOR_LEN(len)		(((len) << 16) & CSI_CH_HSIZE_HOR_LEN_MASK)
- #define CSI_CH_HSIZE_HOR_START_MASK		GENMASK(12, 0)
--#define CSI_CH_HSIZE_HOR_START(start)		((start << 0) & CSI_CH_HSIZE_HOR_START_MASK)
-+#define CSI_CH_HSIZE_HOR_START(start)		(((start) << 0) & CSI_CH_HSIZE_HOR_START_MASK)
- 
- #define CSI_CH_VSIZE_REG		0x84
- #define CSI_CH_VSIZE_VER_LEN_MASK		GENMASK(28, 16)
--#define CSI_CH_VSIZE_VER_LEN(len)		((len << 16) & CSI_CH_VSIZE_VER_LEN_MASK)
-+#define CSI_CH_VSIZE_VER_LEN(len)		(((len) << 16) & CSI_CH_VSIZE_VER_LEN_MASK)
- #define CSI_CH_VSIZE_VER_START_MASK		GENMASK(12, 0)
--#define CSI_CH_VSIZE_VER_START(start)		((start << 0) & CSI_CH_VSIZE_VER_START_MASK)
-+#define CSI_CH_VSIZE_VER_START(start)		(((start) << 0) & CSI_CH_VSIZE_VER_START_MASK)
- 
- #define CSI_CH_BUF_LEN_REG		0x88
- #define CSI_CH_BUF_LEN_BUF_LEN_C_MASK		GENMASK(29, 16)
--#define CSI_CH_BUF_LEN_BUF_LEN_C(len)		((len << 16) & CSI_CH_BUF_LEN_BUF_LEN_C_MASK)
-+#define CSI_CH_BUF_LEN_BUF_LEN_C(len)		(((len) << 16) & CSI_CH_BUF_LEN_BUF_LEN_C_MASK)
- #define CSI_CH_BUF_LEN_BUF_LEN_Y_MASK		GENMASK(13, 0)
--#define CSI_CH_BUF_LEN_BUF_LEN_Y(len)		((len << 0) & CSI_CH_BUF_LEN_BUF_LEN_Y_MASK)
-+#define CSI_CH_BUF_LEN_BUF_LEN_Y(len)		(((len) << 0) & CSI_CH_BUF_LEN_BUF_LEN_Y_MASK)
- 
- #define CSI_CH_FLIP_SIZE_REG		0x8c
- #define CSI_CH_FLIP_SIZE_VER_LEN_MASK		GENMASK(28, 16)
--#define CSI_CH_FLIP_SIZE_VER_LEN(len)		((len << 16) & CSI_CH_FLIP_SIZE_VER_LEN_MASK)
-+#define CSI_CH_FLIP_SIZE_VER_LEN(len)		(((len) << 16) & CSI_CH_FLIP_SIZE_VER_LEN_MASK)
- #define CSI_CH_FLIP_SIZE_VALID_LEN_MASK		GENMASK(12, 0)
--#define CSI_CH_FLIP_SIZE_VALID_LEN(len)		((len << 0) & CSI_CH_FLIP_SIZE_VALID_LEN_MASK)
-+#define CSI_CH_FLIP_SIZE_VALID_LEN(len)		(((len) << 0) & CSI_CH_FLIP_SIZE_VALID_LEN_MASK)
- 
- #define CSI_CH_FRM_CLK_CNT_REG		0x90
- #define CSI_CH_ACC_ITNL_CLK_CNT_REG	0x94
+@@ -37,7 +37,7 @@
+ #define CSI_IF_CFG_IF_DATA_WIDTH_12BIT		((2 << 8) & CSI_IF_CFG_IF_DATA_WIDTH_MASK)
+ #define CSI_IF_CFG_MIPI_IF_MASK			BIT(7)
+ #define CSI_IF_CFG_MIPI_IF_CSI			(0 << 7)
+-#define CSI_IF_CFG_MIPI_IF_MIPI			(1 << 7)
++#define CSI_IF_CFG_MIPI_IF_MIPI			BIT(7)
+ #define CSI_IF_CFG_CSI_IF_MASK			GENMASK(4, 0)
+ #define CSI_IF_CFG_CSI_IF_YUV422_INTLV		((0 << 0) & CSI_IF_CFG_CSI_IF_MASK)
+ #define CSI_IF_CFG_CSI_IF_YUV422_16BIT		((1 << 0) & CSI_IF_CFG_CSI_IF_MASK)
 diff --git a/drivers/media/platform/sunxi/sun6i-csi/sun6i_video.c b/drivers/media/platform/sunxi/sun6i-csi/sun6i_video.c
-index 306b9d2aeafb..37c85b8f37a9 100644
+index e1901a38726f..306b9d2aeafb 100644
 --- a/drivers/media/platform/sunxi/sun6i-csi/sun6i_video.c
 +++ b/drivers/media/platform/sunxi/sun6i-csi/sun6i_video.c
-@@ -86,7 +86,8 @@ sun6i_video_remote_subdev(struct sun6i_video *video, u32 *pad)
+@@ -86,9 +86,9 @@ sun6i_video_remote_subdev(struct sun6i_video *video, u32 *pad)
  }
  
  static int sun6i_video_queue_setup(struct vb2_queue *vq,
--				   unsigned int *nbuffers, unsigned int *nplanes,
-+				   unsigned int *nbuffers,
-+				   unsigned int *nplanes,
- 				   unsigned int sizes[],
- 				   struct device *alloc_devs[])
+-				 unsigned int *nbuffers, unsigned int *nplanes,
+-				 unsigned int sizes[],
+-				 struct device *alloc_devs[])
++				   unsigned int *nbuffers, unsigned int *nplanes,
++				   unsigned int sizes[],
++				   struct device *alloc_devs[])
  {
+ 	struct sun6i_video *video = vb2_get_drv_priv(vq);
+ 	unsigned int size = video->fmt.fmt.pix.sizeimage;
+@@ -308,7 +308,7 @@ static const struct vb2_ops sun6i_csi_vb2_ops = {
+ };
+ 
+ static int vidioc_querycap(struct file *file, void *priv,
+-				struct v4l2_capability *cap)
++			   struct v4l2_capability *cap)
+ {
+ 	struct sun6i_video *video = video_drvdata(file);
+ 
+@@ -403,7 +403,7 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
+ }
+ 
+ static int vidioc_enum_input(struct file *file, void *fh,
+-			 struct v4l2_input *inp)
++			     struct v4l2_input *inp)
+ {
+ 	if (inp->index != 0)
+ 		return -EINVAL;
 -- 
 2.19.1
