@@ -1,50 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:39206 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729872AbeKXGhu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 24 Nov 2018 01:37:50 -0500
-Date: Fri, 23 Nov 2018 14:52:05 -0500
-From: Sasha Levin <sashal@kernel.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: stable@vger.kernel.org,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH for v4.9] Revert "media: videobuf2-core: don't call memop
- 'finish' when queueing"
-Message-ID: <20181123195205.GL1917@sasha-vm>
-References: <d9f73b7c-fc28-77ff-8c28-a565e2879efe@xs4all.nl>
+Received: from mail-pf1-f193.google.com ([209.85.210.193]:44721 "EHLO
+        mail-pf1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727498AbeKXJ05 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 24 Nov 2018 04:26:57 -0500
+Received: by mail-pf1-f193.google.com with SMTP id u6so3858053pfh.11
+        for <linux-media@vger.kernel.org>; Fri, 23 Nov 2018 14:40:51 -0800 (PST)
+Subject: Re: [PATCH] media: v4l2-fwnode: Demote warning to debug level
+To: Fabio Estevam <festevam@gmail.com>, mchehab@kernel.org
+Cc: sakari.ailus@linux.intel.com, p.zabel@pengutronix.de,
+        linux-media@vger.kernel.org
+References: <1542977459-14550-1-git-send-email-festevam@gmail.com>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <8ccd4efd-45c5-39a6-0300-43d97b34dff1@gmail.com>
+Date: Fri, 23 Nov 2018 14:40:48 -0800
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Disposition: inline
-In-Reply-To: <d9f73b7c-fc28-77ff-8c28-a565e2879efe@xs4all.nl>
+In-Reply-To: <1542977459-14550-1-git-send-email-festevam@gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Nov 22, 2018 at 12:43:56PM +0100, Hans Verkuil wrote:
->This reverts commit 9ac47200b51cb09d2f15dbefa67e0412741d98aa.
->
->This commit fixes a bug in upstream commit a136f59c0a1f ("vb2: Move
->buffer cache synchronisation to prepare from queue") which isn't
->present in 4.9.
->
->So as a result you get an UNBALANCED message in the kernel log if
->this patch is applied:
->
->vb2:   counters for queue ffffffc0f3687478, buffer 3: UNBALANCED!
->vb2:     buf_init: 1 buf_cleanup: 1 buf_prepare: 805 buf_finish: 805
->vb2:     buf_queue: 806 buf_done: 806
->vb2:     alloc: 0 put: 0 prepare: 806 finish: 805 mmap: 0
->vb2:     get_userptr: 0 put_userptr: 0
->vb2:     attach_dmabuf: 1 detach_dmabuf: 1 map_dmabuf: 805 unmap_dmabuf: 805
->vb2:     get_dmabuf: 0 num_users: 1609 vaddr: 0 cookie: 805
->
->Reverting this patch solves this regression.
->
->Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Steve Longerbeam <slongerbeam@gmail.com>
 
-I've queued both reverts to their respective branches, thank you.
 
---
-Thanks,
-Sasha
+On 11/23/18 4:50 AM, Fabio Estevam wrote:
+> On a imx6q-wandboard the following warnings are observed:
+>
+> [    4.327794] video-mux 20e0000.iomuxc-gpr:ipu1_csi0_mux: bad remote port parent
+> [    4.336118] video-mux 20e0000.iomuxc-gpr:ipu2_csi1_mux: bad remote port parent
+>
+> As explained by Philipp Zabel:
+>
+> "There are empty endpoint nodes (without remote-endpoint property)
+> labeled ipu1_csi[01]_mux_from_parallel_sensor in the i.MX6 device trees
+> for board DT implementers' convenience. See commit 2539f517acbdc ("ARM:
+> dts: imx6qdl: Add video multiplexers, mipi_csi, and their connections")."
+>
+> So demote the warning to debug level and make the wording a bit
+> less misleading.
+>
+> Suggested-by: Philipp Zabel <p.zabel@pengutronix.de>
+> Signed-off-by: Fabio Estevam <festevam@gmail.com>
+> ---
+>   drivers/media/v4l2-core/v4l2-fwnode.c | 2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+> index 218f0da..7a3cc10 100644
+> --- a/drivers/media/v4l2-core/v4l2-fwnode.c
+> +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+> @@ -613,7 +613,7 @@ v4l2_async_notifier_fwnode_parse_endpoint(struct device *dev,
+>   	asd->match.fwnode =
+>   		fwnode_graph_get_remote_port_parent(endpoint);
+>   	if (!asd->match.fwnode) {
+> -		dev_warn(dev, "bad remote port parent\n");
+> +		dev_dbg(dev, "no remote endpoint found\n");
+>   		ret = -ENOTCONN;
+>   		goto out_err;
+>   	}
