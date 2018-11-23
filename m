@@ -1,165 +1,311 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from esa3.microchip.iphmx.com ([68.232.153.233]:45203 "EHLO
-        esa3.microchip.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388620AbeKXAdw (ORCPT
+Received: from relay6-d.mail.gandi.net ([217.70.183.198]:36201 "EHLO
+        relay6-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2388620AbeKXAqT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Nov 2018 19:33:52 -0500
-From: <Eugen.Hristev@microchip.com>
-To: <KSloat@aampglobal.com>
-CC: <linux-media@vger.kernel.org>, <Nicolas.Ferre@microchip.com>,
-        <Ludovic.Desroches@microchip.com>
-Subject: Re: [PATCH v1 1/1] media: atmel-isc: Add safety checks for NULL
- isc->raw_fmt struct
-Date: Fri, 23 Nov 2018 13:49:32 +0000
-Message-ID: <22700e98-08a7-a0f2-78ce-c5a1a1be9474@microchip.com>
-References: <6d1f98c0-31be-9b89-db2e-c1813ed2975d@microchip.com>
- <20181120204309.42339-1-ksloat@aampglobal.com>
- <3ed146b5-153c-28b9-e3a9-0b5d2d1fcf28@microchip.com>
- <MW2PR07MB41212E868BDF28368E62DD9DADDA0@MW2PR07MB4121.namprd07.prod.outlook.com>
-In-Reply-To: <MW2PR07MB41212E868BDF28368E62DD9DADDA0@MW2PR07MB4121.namprd07.prod.outlook.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <7000A6CFA343B64EBBFA9CEE4BC08D60@namprd11.prod.outlook.com>
-Content-Transfer-Encoding: base64
+        Fri, 23 Nov 2018 19:46:19 -0500
+Date: Fri, 23 Nov 2018 15:01:54 +0100
+From: jacopo mondi <jacopo@jmondi.org>
+To: Niklas =?utf-8?Q?S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH v3 4/4] i2c: adv748x: configure number of lanes used for
+ TXA CSI-2 transmitter
+Message-ID: <20181123140154.GF8279@w540>
+References: <20181102160009.17267-1-niklas.soderlund+renesas@ragnatech.se>
+ <20181102160009.17267-5-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="gm5TwAJMO0F2iVRz"
+Content-Disposition: inline
+In-Reply-To: <20181102160009.17267-5-niklas.soderlund+renesas@ragnatech.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-DQoNCk9uIDIxLjExLjIwMTggMTY6NTAsIEtlbiBTbG9hdCB3cm90ZToNCj4+PiBGcm9tOiBLZW4g
-U2xvYXQgPGtzbG9hdEBhYW1wZ2xvYmFsLmNvbT4NCj4+Pg0KPj4+IEluIHNvbWUgdXNhZ2VzIGlz
-Yy0+cmF3X2ZtdCB3aWxsIG5vdCBiZSBpbml0aWFsaXplZC4gSWYgdGhpcyBpcyB0aGUNCj4+PiBj
-YXNlLCBpdCBpcyB2ZXJ5IHBvc3NpYmxlIHRoYXQgYSBOVUxMIHN0cnVjdCBkZS1yZWZlcmVuY2Ug
-d2lsbCBvY2N1ciwNCj4+PiBhcyB0aGlzIG1lbWJlciBpcyByZWZlcmVuY2VkIG1hbnkgdGltZXMu
-DQo+IA0KPj4gSGVsbG8gIEtlbiwNCj4gDQo+PiBEbyB5b3UgaGF2ZSBhbnkgY29uZmlkZW5jZSB0
-aGF0IGp1c3QgYnkgYXZvaWRpbmcgdGhlIE5VTEwgc2l0dWF0aW9uLCB0aGlzIGZpeCBtYWtlcyB0
-aGluZ3MgcmlnaHQgZm9yIGFkZGluZyBuZXcgc2Vuc29ycyB0aGF0IGZvciBleGFtcGxlLCBkbyBu
-b3Qgb2ZmZXIgYSByYXcgZm9ybWF0ID8NCj4gDQo+IEhpIEV1Z2VuLA0KPiANCj4gVGhhbmtzIGZv
-ciB5b3VyIGNvbW1lbnRzLiBUaGUgcHJpbWFyeSBnb2FsIG9mIG15IHBhdGNoIGlzIHRvIHRoZSBz
-b2x2ZSB0aGUgaW1tZWRpYXRlIGlzc3VlIG9mIE5VTEwgZGUtcmVmZXJlbmNlIG9mIHRoZSB0aGF0
-IHN0cnVjdCBtZW1iZXIuIE15IGN1cnJlbnQgc2Vuc29ycyBhY3R1YWxseSBkbyBub3Qgb2ZmZXIg
-YSBSQVcgZm9ybWF0LCB3aGljaCBpcyB3aHkgdGhpcyBidWcgaGFwcGVucyBpbiBteSBjYXNlIChz
-ZWUgbW9yZSBkZXRhaWxzIGJlbG93KS4NCg0KSSBhbSBub3Qgc3VyZSBpZiBJIGFtIGNvcnJlY3Qs
-IGJ1dCB5b3VyIHNlbnNvciBzdXJlbHkgcHJvdmlkZXMgZGF0YSBpbiANCnNvbWUgZm9ybWF0LiBU
-aGlzIGZvcm1hdCBtaWdodCBiZSB0aGUgJ3Jhdycgb25lIHRoYXQgSVNDIHJlY2VpdmVzLiBTbywg
-DQphZGp1c3RtZW50cyB0byB0aGUgZm9ybWF0IGxpc3QgbWlnaHQgc29sdmUgdGhpcy4NCg0KPiAN
-Cj4+IE15IGZlZWxpbmcgaXMgdGhhdCB0aGUgbWV0aG9kIG9mIGFkZGluZyB0aGlzIHZhcmlhYmxl
-IChyYXdfZm10KSBpcyB2ZXJ5IHVuZm9ydHVuYXRlLCBhbmQgSSBkaWQgbm90IGNvbXBsZXRlbHkg
-dW5kZXJzdGFuZCB0aGUgc2l0dWF0aW9ucyB3aGVyZSBpdCdzIG5lZWRlZC4NCj4gDQo+IEkgYWdy
-ZWUgdGhhdCB0aGUgY3VycmVudCBtZXRob2Qgb2Ygc2V0dGluZyBhIHN0cnVjdCBtZW1iZXIgYmFz
-ZWQgb24gYSBSQVcgZmxhZyBpcyBmbGF3ZWQgYW5kIGlkZWFsbHkgdGhlcmUgbmVlZHMgdG8gYmUg
-YSBtb3JlIGZ1bmRhbWVudGFsIGNoYW5nZSB0byB0aGUgYXJjaGl0ZWN0dXJlIG9mIHRoZSBkcml2
-ZXIgc28gdGhhdCB0aGlzIHNpdHVhdGlvbiB3b3VsZCBuZXZlciBwb3NzaWJseSBvY2N1ciwgaG93
-ZXZlciBJIHdpbGwgcHJlc2VudCBvbmUgYmVsb3cgdGhhdCBjYW4gdmVyeSBsaWtlbHkgaGFwcGVu
-IGFzIGl0IGRvZXMgZm9yIG1lOg0KPiANCj4+IFRoZSBjaGVjayB0aGF0IGFjdHVhbGx5IHNldHMg
-dGhlIHJhd19mbXQgY29tZXMgZnJvbSBhbiBpdGVyYXRpb24gdGhyb3VnaCB0aGUgZm9ybWF0cywg
-YW5kIHRoZSBvbmUgaGF2aW5nIHRoZSBSQVcgZmxhZyBnZXRzIHB1dCBpbnRvIHRoaXMgdmFyaWFi
-bGUuIE9uZSBjb3VsZCBqdXN0IGFsdGVyIHRoZSBmb3JtYXRzIHRhYmxlIGFuZCBnZXQgdGhlIHJh
-d19mbXQgdGhhdCBpcyBuZWVkZWQuDQo+IA0KPiBSaWdodCwgc28gaW4gdGhlIGluaXRpYWwgaXRl
-cmF0aW9uIGluIGlzY19mb3JtYXRzX2luaXQoKSB0aGUgZHJpdmVyIGNhbGxzIHRoZSBzdWItZGV2
-aWNlL3NlbnNvciBlbnVtX21idXNfY29kZSBmdW5jdGlvbiB0byBzdGVwIHRocm91Z2ggYWxsIGl0
-cyBzdXBwb3J0ZWQgZm9ybWF0cyBhbmQgdHJ5IGFuZCBmaW5kIHRoZW0gaW4gdGhlIGxpc3Qgb2Yg
-c3VwcG9ydGVkIElTQyBmb3JtYXRzLiBJZiBub25lIG9mIHRoZSBmb3JtYXRzIGluIHRoZSBzdWIt
-ZGV2aWNlL3NlbnNvciBhcmUgb2YgUkFXIHR5cGUsIHRoZW4gaXNjLXJhd19mbXQgd2lsbCBub3Qg
-YmUgc2V0LiBUaGlzIGlzIHRoZSBmdW5kYW1lbnRhbCBmbGF3IGluIHVzaW5nIHRoaXMgbWVtYmVy
-Lg0KPiANCj4gRm9sbG93aW5nIHRoaXMsIHRoZSBkcml2ZXIgd2lsbCBhdHRlbXB0IHRvIHNldCBh
-IGRlZmF1bHQgZm9ybWF0IGZvciB0aGUgSVNDIGluIGlzY19zZXRfZGVmYXVsdF9mbXQoKS4gVGhp
-cyBhcHBlYXJzIHRvIGJlIGJhc2VkIG9uIHRoZSBmaXJzdCBmb3JtYXQgaW4gdGhlIGxpc3Qgb2Yg
-SVNDIGZvcm1hdHMuIFRoZSBkcml2ZXIgdGhlbiBkb2VzIGEgY2hlY2sgdG8gc2VlIGlmIHRoZSBz
-ZW5zb3IgaXMgcHJlZmVycmVkIHRvIHRoZSBJU0MuIElmIHRoZSBkZWZhdWx0IGZvcm1hdCBpcyBu
-b3Qgc3VwcG9ydGVkIGJ5IHRoZSBzdWItZGV2aWNlL3NlbnNvciwgaXQgd2lsbCBub3QgYmUgcHJl
-ZmVycmVkIGFuZCB3ZSB3aWxsIGdldCBhIHJlc3VsdGluZyBjcmFzaCBiZWNhdXNlIGl0IHdpbGwg
-YXNzdW1lIHRoYXQgd2UgbXVzdCB1c2UgdGhlIHJhd19mbXQgbWVtYmVyIHRoYXQgbmV2ZXIgZ290
-IHNldC4NCg0KSSBzYXcgdGhpcyBwYXJ0IG9mIHRoZSBjb2RlIGFzIHdlbGwuIEkgd2FzIHRoaW5r
-aW5nIHRvIHJld3JpdGUgaXQgdG8gDQpoYXZlIGl0IGl0ZXJhdGUgdGhyb3VnaCBhbGwgZm9ybWF0
-cyB1bnRpbCBhIHN1aXRhYmxlIG9uZSBpcyBmb3VuZCANCihpbnN0ZWFkIG9mIGp1c3QgdGFraW5n
-IHRoZSBmaXJzdCBhbmQgd2luIG9yIGZhaWwgZGlyZWN0bHkpLg0KDQo+IA0KPj4+DQo+Pj4gVG8g
-cHJldmVudCB0aGlzLCBhZGQgc2FmZXR5IGNoZWNrcyBmb3IgdGhpcyBtZW1iZXIgYW5kIGhhbmRs
-ZQ0KPj4+IHNpdHVhdGlvbnMgYWNjb3JkaW5nbHkuDQo+Pj4NCj4+PiBTaWduZWQtb2ZmLWJ5OiBL
-ZW4gU2xvYXQgPGtzbG9hdEBhYW1wZ2xvYmFsLmNvbT4NCj4+PiAtLS0NCj4+PiAgICBkcml2ZXJz
-L21lZGlhL3BsYXRmb3JtL2F0bWVsL2F0bWVsLWlzYy5jIHwgNjQgKysrKysrKysrKysrKysrKy0t
-LS0tLS0tDQo+Pj4gICAgMSBmaWxlIGNoYW5nZWQsIDQ0IGluc2VydGlvbnMoKyksIDIwIGRlbGV0
-aW9ucygtKQ0KPj4+DQo+Pj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvcGxhdGZvcm0vYXRt
-ZWwvYXRtZWwtaXNjLmMNCj4+PiBiL2RyaXZlcnMvbWVkaWEvcGxhdGZvcm0vYXRtZWwvYXRtZWwt
-aXNjLmMNCj4+PiBpbmRleCA1MDE3ODk2OGI4YTYuLjRjY2NhYTRmMmNlOSAxMDA2NDQNCj4+PiAt
-LS0gYS9kcml2ZXJzL21lZGlhL3BsYXRmb3JtL2F0bWVsL2F0bWVsLWlzYy5jDQo+Pj4gKysrIGIv
-ZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS9hdG1lbC9hdG1lbC1pc2MuYw0KPj4+IEBAIC05MDIsNiAr
-OTAyLDE1IEBAIHN0YXRpYyBpbmxpbmUgYm9vbCBzZW5zb3JfaXNfcHJlZmVycmVkKGNvbnN0IHN0
-cnVjdCBpc2NfZm9ybWF0ICppc2NfZm10KQ0KPj4+ICAgIAkJIWlzY19mbXQtPmlzY19zdXBwb3J0
-Ow0KPj4+ICAgIH0NCj4+PiAgICANCj4+PiArc3RhdGljIGlubGluZSB1MzIgZ2V0X3ByZWZlcnJl
-ZF9tYnVzX2NvZGUoY29uc3Qgc3RydWN0IGlzY19kZXZpY2UgKmlzYywNCj4+PiArCQljb25zdCBz
-dHJ1Y3QgaXNjX2Zvcm1hdCAqaXNjX2ZtdCkNCj4+PiArew0KPj4+ICsJaWYgKHNlbnNvcl9pc19w
-cmVmZXJyZWQoaXNjX2ZtdCkgfHwgIWlzYy0+cmF3X2ZtdCkNCj4+PiArCQlyZXR1cm4gaXNjX2Zt
-dC0+bWJ1c19jb2RlOw0KPiANCj4+IEZvciBleGFtcGxlIGhlcmUsIGlmIHdlIGRvIF9ub3RfIGhh
-dmUgYSByYXcgZm9ybWF0LCB3aGF0IG1ha2VzIHVzIGJlbGlldmUgdGhhdCB0aGUgcmlnaHQgZm9y
-bWF0IGlzIHRoZSBvbmUgZnJvbSB0aGUgbWJ1c19jb2RlIGZyb20gdGhlIGlzY19mbXQgPyBJcyB0
-aGVyZSBhbnl0aGluZyB1c2VmdWwgdGhlcmUgYXQgYWxsID8NCj4gDQo+IEl0J3MgbW9yZSBvZiBh
-IHNhZmUgY2FzZSBmb3Igd2hlcmUgdGhpcyBvY2N1cnMgaW4gbXkgZXhhbXBsZSBhYm92ZS4gQXMg
-eW91IG1lbnRpb25lZCB5b3Vyc2VsZiwgcmF3X2ZtdCBjb3VsZCBwb3NzaWJseSBzZXQgdG8gYW55
-IG9mIHRoZSBSQVcgZmxhZyBmb3JtYXRzIHN1cHBvcnRlZCBieSB0aGUgc3ViLWRldmljZS4gIEFz
-c3VtaW5nIHRoZSBzdWItZGV2aWNlIGRpZCBpbmRlZWQgc3VwcG9ydCBhIFJBVyBmb3JtYXQgb2Yg
-c29tZSBzb3J0LCBidXQgZGlkIG5vdCBuZWNlc3NhcmlseSBzdXBwb3J0IHRoZSBjdXJyZW50IGZv
-cm1hdCwgdGhlIGRyaXZlciBhcyBvZiB0b2RheSB3b3VsZCBiZSByZWZlcmVuY2luZyB0aGlzIGFs
-dGVybmF0aXZlIG1idXMgY29kZSBhbnl3YXlzLiBJbiB0aGUgZXhhbXBsZSBhYm92ZSwgdGhpcyBv
-Y2N1cnJlZCB3aGlsZSBzZXR0aW5nIHRoZSBkZWZhdWx0IGZvcm1hdCwgYW5kIHRoZW4gc3Vic2Vx
-dWVudGx5IHdpbGwgYWx3YXlzIG9jY3VyIHdoZW4gc2V0dGluZyB0aGUgcGlwZWxpbmUgaW4gaXNj
-X3NldF9waXBlbGluZSgpIGFzIHRoaXMgZnVuY3Rpb24gYWx3YXlzIGRlLXJlZmVyZW5jZXMgdGhp
-cyBtZW1iZXIgdG8gc2V0IHRoZSBwb2ludGVyIGV2ZW4gaWYgYSBSQVcgZm9ybWF0IGlzbid0IG5l
-Y2Vzc2FyaWx5IGJlaW5nIHVzZWQgKGFuZCBzbyBkbyBvdGhlcnMgYXMgc2VlbiBpbiBteSBwYXRj
-aCkuDQoNCkkgdGVuZCB0byBkaXNhZ3JlZSwgdGhlIGRyaXZlciBvZiB0b2RheSB3aWxsIGZhaWwg
-aWYgdGhlIHNlbnNvciBkb2VzIG5vdCANCnByb3ZpZGUgYSBSQVcgZm9ybWF0IG9mIHNvbWUgc29y
-dCwgc28gaXQgd2lsbCBub3QgdXNlIGFsdGVybmF0aXZlIG1idXMgY29kZS4NCg0KPiANCj4+PiAr
-CWVsc2UNCj4+PiArCQlyZXR1cm4gaXNjLT5yYXdfZm10LT5tYnVzX2NvZGU7DQo+Pj4gK30NCj4+
-PiArDQo+Pj4gICAgc3RhdGljIHN0cnVjdCBmbXRfY29uZmlnICpnZXRfZm10X2NvbmZpZyh1MzIg
-Zm91cmNjKQ0KPj4+ICAgIHsNCj4+PiAgICAJc3RydWN0IGZtdF9jb25maWcgKmNvbmZpZzsNCj4+
-PiBAQCAtOTU1LDcgKzk2NCw3IEBAIHN0YXRpYyB2b2lkIGlzY19zZXRfcGlwZWxpbmUoc3RydWN0
-IGlzY19kZXZpY2UgKmlzYywgdTMyIHBpcGVsaW5lKQ0KPj4+ICAgIHsNCj4+PiAgICAJc3RydWN0
-IHJlZ21hcCAqcmVnbWFwID0gaXNjLT5yZWdtYXA7DQo+Pj4gICAgCXN0cnVjdCBpc2NfY3RybHMg
-KmN0cmxzID0gJmlzYy0+Y3RybHM7DQo+Pj4gLQlzdHJ1Y3QgZm10X2NvbmZpZyAqY29uZmlnID0g
-Z2V0X2ZtdF9jb25maWcoaXNjLT5yYXdfZm10LT5mb3VyY2MpOw0KPj4+ICsJc3RydWN0IGZtdF9j
-b25maWcgKmNvbmZpZzsNCj4+PiAgICAJdTMyIHZhbCwgYmF5X2NmZzsNCj4+PiAgICAJY29uc3Qg
-dTMyICpnYW1tYTsNCj4+PiAgICAJdW5zaWduZWQgaW50IGk7DQo+Pj4gQEAgLTk2OSw3ICs5Nzgs
-MTIgQEAgc3RhdGljIHZvaWQgaXNjX3NldF9waXBlbGluZShzdHJ1Y3QgaXNjX2RldmljZSAqaXNj
-LCB1MzIgcGlwZWxpbmUpDQo+Pj4gICAgCWlmICghcGlwZWxpbmUpDQo+Pj4gICAgCQlyZXR1cm47
-DQo+Pj4gICAgDQo+Pj4gLQliYXlfY2ZnID0gY29uZmlnLT5jZmFfYmF5Y2ZnOw0KPj4+ICsJaWYg
-KGlzYy0+cmF3X2ZtdCkgew0KPj4+ICsJCWNvbmZpZyA9IGdldF9mbXRfY29uZmlnKGlzYy0+cmF3
-X2ZtdC0+Zm91cmNjKTsNCj4+PiArCQliYXlfY2ZnID0gY29uZmlnLT5jZmFfYmF5Y2ZnOw0KPj4+
-ICsJfSBlbHNlIHsNCj4+PiArCQliYXlfY2ZnID0gMDsNCj4+PiArCX0NCj4gDQo+PiBIYXZpbmcg
-YmF5X2NmZyB6ZXJvLCBpbiB0aGUgY2FzZSB3aGVuIHdlIGRvIG5vdCBoYXZlIGEgcmF3IGZvcm1h
-dCwgaXMgdGhlIHJlYWwgcHJvcGVyIHdheSB0byBkbyB0aGlzID8gaXQgaXMgcG9zc2libGUgdGhh
-dCB0aGlzIGJheSBjZmcgaXMgcmVxdWlyZWQgYXQgYSBkaWZmZXJlbnQgdmFsdWUsIG9yIGNvcnJl
-c3BvbmRpbmcgdG8gZGlmZmVyZW50IGZvcm1hdHMgaW4gdGhlIHBpcGVsaW5lIG9mIHRoZSBJU0Mu
-DQo+IEkgc2hvdWxkIHByb2JhYmx5IG1ha2UgY29uZmlnIHBvaW50IHRvIHRoZSBjdXJyZW50X2Zt
-dCBpbiB0aGUgZWxzZSBjYXNlIGhlcmUgc28gdGhhdCBpdCB1c2VzIGl0cyBiYXlfY2ZnLCBob3dl
-dmVyIEkgYmVsaWV2ZSB0aGUgV0IgbW9kdWxlIHdvdWxkIGJlIGRpc2FibGVkIGFueXdheXMgaW4g
-dGhpcyBjYXNlLiBSZWdhcmRpbmcgaWYgdGhpcyB3b3VsZCBiZSBwcm9wZXIgb3IgdXNlZnVsLCBz
-aW1pbGFyIGNvbW1lbnRzIHRvIGFib3ZlLg0KDQpJIGFtIG5vdCBzdXJlIHRoYXQgdGhlIGN1cnJl
-bnRfZm10IGlzIHRoZSBhY3R1YWwgZm9ybWF0IHRoYXQgdGhlIHNlbnNvciANCmlzIHNldCB0byB1
-c2UsIGFuZCBpZiB0aGlzIGZvcm1hdCBpcyBPSywgaG93ZXZlciB5b3UgbWF5IGJlIHJpZ2h0IHRo
-YXQgDQp0aGUgYmF5X2NmZyBpcyBub3QgbmVlZGVkDQoNCj4gDQo+PiBTbyAsIGluIHNob3J0LCBJ
-IGFtIG5vdCBjb252aW5jZWQgdGhhdCB0aGlzIGlzIGEgcHJvcGVyIHdheSB0byBzb2x2ZSBpdCwg
-c28gd2UgaGF2ZSB0byBkaWcgaW4gZnVydGhlciB0byBzZWUgaWYgdGhpcyBpcyBPSyBvciBub3Qu
-DQo+PiBXaGljaCBzZW5zb3JzIGRvIHlvdSBoYXZlIGFuZCBob3cgZGlkIHlvdSB0ZXN0IHRoaXMs
-IHdoaWNoIGJvYXJkIGFuZCBzZXR1cD8NCj4gDQo+PiBUaGFua3MgZm9yIHlvdXIgaGVscCwNCj4g
-DQo+PiBFdWdlbg0KPiANCj4gTXkgc2Vuc29yIGlucHV0cyBhIElUVS1SIDY1NiBpbnRlcmZhY2Ug
-dG8gdGhlIElTQywgc28gdGhpcyB3b3VsZCBiZSB0aGUgZm9ybWF0Og0KPiANCj4gew0KPiAJLmZv
-dXJjYwkJPSBWNEwyX1BJWF9GTVRfWVVZViwNCj4gCS5tYnVzX2NvZGUJPSBNRURJQV9CVVNfRk1U
-X1lVWVY4XzJYOCwNCj4gCS5mbGFncwkJPSBGTVRfRkxBR19GUk9NX0NPTlRST0xMRVIgfA0KPiAJ
-CQkgIEZNVF9GTEFHX0ZST01fU0VOU09SLA0KPiAJLmJwcAkJPSAxNiwNCj4gfSwNCg0KSWYgdGhp
-cyBmb3JtYXQgaXMgYWRkZWQgd2l0aCBhIFJBVyBmbGFnLCBob3cgZG9lcyB0aGlzIGFmZmVjdCB5
-b3VyIG91dHB1dCA/DQoNCj4gDQo+IE5vdGUgdGhhdCB0aGUgZHJpdmVyIGFzIG9mIHRvZGF5IGRv
-ZXMgbm90IHN1cHBvcnQgSVRVLVIgNjU2IHdpdGhvdXQgbW9kaWZpY2F0aW9ucyBidXQgcmF0aGVy
-IElUVS1SIDYwMS4gSG93ZXZlciwgdGhpcyBpcyBhcyBzaW1wbGUgYXMgc2V0dGluZyBzb21lIGFk
-ZGl0aW9uYWwgYml0cyBhbmQgSSBwbGFuIHRvIHN1Ym1pdCBhIHNlcGFyYXRlIHBhdGNoIHNvb24g
-dGhhdCBhbGxvd3MgdGhpcyB0byBvY2N1ciBmcm9tIGRldmljZSB0cmVlIGluIGEgc3RhbmRhcmQg
-d2F5Lg0KPiBJIGFtIHVzaW5nIGEgY3VzdG9tIGJvYXJkIHRoYXQgaXMgYmFzZWQgb24gdGhlIFNB
-TUE1RDI3LVNPTTEtRUsxIGJvYXJkIHNvIEkgdGVzdGVkIG15IHNlbnNvciB3aXRoIHRoaXMgYm9h
-cmQgdXNpbmcgZ3N0cmVhbWVyIHRvIGRpcmVjdCB0aGUgaW1hZ2UgdG8gdGhlIGRpc3BsYXkuIEhh
-cHB5IHRvIGhlbHAgb3V0IGFzIEkgYW0gYWJsZSwgbGV0IG1lIGtub3cgd2hhdCB5b3UgdGhpbmsu
-DQpXaGljaCBzZW5zb3IgaXMgaXQ/DQpZb3UgbWFuYWdlZCB0byBnZXQgaXQgd29ya2luZyBPSyB3
-aXRoIGp1c3QgdGhpcyBwYXRjaD8NCg0KTXkgZ2VuZXJhbCBmZWVsaW5nIGlzIHRoYXQgdGhpcyB3
-b3JrYXJvdW5kIHBhdGNoIHdpbGwgaGlkZSB0aGUgcHJvYmxlbSwgDQphbmQgbm90IHNvbHZlIHRo
-ZSBpc3N1ZSB3ZSBhcmUgaGF2aW5nIGhlcmUsIHdlIGFkZCBtb3JlIGNvZGUgdG8gY29wZSANCmFy
-b3VuZCB3aXRoIHRoaXMgcmF3X2ZtdCBOVUxMIGlzc3VlLg0KDQpBbnl3YXkgSSBhbSB0aGlua2lu
-ZyB0byBnZXQgbW9yZSBvcGluaW9ucyBvbiB0aGlzIGlzc3VlLCBhYm91dCB3aGljaCBpcyANCnRo
-ZSBiZXN0IHdheSB3ZSBjYW4gZ28gZnVydGhlciB3aXRoIGl0Lg0KDQpUaGFua3MsDQpFdWdlbg0K
-DQo+IA0KPiBUaGFua3MsDQo+IEtlbg0KPiANCg==
+
+--gm5TwAJMO0F2iVRz
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi Niklas,
+
+On Fri, Nov 02, 2018 at 05:00:09PM +0100, Niklas S=C3=B6derlund wrote:
+> The driver fixed the TXA CSI-2 transmitter in 4-lane mode while it could
+> operate using 1-, 2- and 4-lanes. Update the driver to support all modes
+> the hardware does.
+>
+> The driver make use of large tables of static register/value writes when
+> powering up/down the TXA and TXB transmitters which include the write to
+> the NUM_LANES register. By converting the tables into functions and
+> using parameters the power up/down functions for TXA and TXB power
+> up/down can be merged and used for both transmitters.
+>
+> Signed-off-by: Niklas S=C3=B6derlund <niklas.soderlund+renesas@ragnatech.=
+se>
+>
+> ---
+> * Changes since v2
+> - Fix typos in comments.
+> - Remove unneeded boiler plait code in adv748x_tx_power() as suggested
+>   by Jacopo and Laurent.
+> - Take into account the two different register used when powering up TXA
+>   and TXB due to an earlier patch in this series aligns the power
+>   sequence with the manual.
+>
+> * Changes since v1
+> - Convert tables of register/value writes into functions instead of
+>   intercepting and modifying the writes to the NUM_LANES register.
+> ---
+>  drivers/media/i2c/adv748x/adv748x-core.c | 157 ++++++++++++-----------
+>  1 file changed, 79 insertions(+), 78 deletions(-)
+>
+> diff --git a/drivers/media/i2c/adv748x/adv748x-core.c b/drivers/media/i2c=
+/adv748x/adv748x-core.c
+> index 9d80d7f3062b16bc..d94c63cb6a2efdba 100644
+> --- a/drivers/media/i2c/adv748x/adv748x-core.c
+> +++ b/drivers/media/i2c/adv748x/adv748x-core.c
+> @@ -125,6 +125,16 @@ int adv748x_write(struct adv748x_state *state, u8 pa=
+ge, u8 reg, u8 value)
+>  	return regmap_write(state->regmap[page], reg, value);
+>  }
+>
+> +static int adv748x_write_check(struct adv748x_state *state, u8 page, u8 =
+reg,
+> +			       u8 value, int *error)
+> +{
+> +	if (*error)
+> +		return *error;
+> +
+> +	*error =3D adv748x_write(state, page, reg, value);
+> +	return *error;
+> +}
+> +
+>  /* adv748x_write_block(): Write raw data with a maximum of I2C_SMBUS_BLO=
+CK_MAX
+>   * size to one or more registers.
+>   *
+> @@ -231,79 +241,77 @@ static int adv748x_write_regs(struct adv748x_state =
+*state,
+>   * TXA and TXB
+>   */
+>
+> -static const struct adv748x_reg_value adv748x_power_up_txa_4lane[] =3D {
+> -
+> -	{ADV748X_PAGE_TXA, 0x00, 0x84},	/* Enable 4-lane MIPI */
+> -	{ADV748X_PAGE_TXA, 0x00, 0xa4},	/* Set Auto DPHY Timing */
+> -	{ADV748X_PAGE_TXA, 0xdb, 0x10},	/* ADI Required Write */
+> -	{ADV748X_PAGE_TXA, 0xd6, 0x07},	/* ADI Required Write */
+> -	{ADV748X_PAGE_TXA, 0xc4, 0x0a},	/* ADI Required Write */
+> -	{ADV748X_PAGE_TXA, 0x71, 0x33},	/* ADI Required Write */
+> -	{ADV748X_PAGE_TXA, 0x72, 0x11},	/* ADI Required Write */
+> -	{ADV748X_PAGE_TXA, 0xf0, 0x00},	/* i2c_dphy_pwdn - 1'b0 */
+> -
+> -	{ADV748X_PAGE_TXA, 0x31, 0x82},	/* ADI Required Write */
+> -	{ADV748X_PAGE_TXA, 0x1e, 0x40},	/* ADI Required Write */
+> -	{ADV748X_PAGE_TXA, 0xda, 0x01},	/* i2c_mipi_pll_en - 1'b1 */
+> -	{ADV748X_PAGE_WAIT, 0x00, 0x02},/* delay 2 */
+> -	{ADV748X_PAGE_TXA, 0x00, 0x24 },/* Power-up CSI-TX */
+> -	{ADV748X_PAGE_WAIT, 0x00, 0x01},/* delay 1 */
+> -	{ADV748X_PAGE_TXA, 0xc1, 0x2b},	/* ADI Required Write */
+> -	{ADV748X_PAGE_WAIT, 0x00, 0x01},/* delay 1 */
+> -	{ADV748X_PAGE_TXA, 0x31, 0x80},	/* ADI Required Write */
+> -
+> -	{ADV748X_PAGE_EOR, 0xff, 0xff}	/* End of register table */
+> -};
+> -
+> -static const struct adv748x_reg_value adv748x_power_down_txa_4lane[] =3D=
+ {
+> -
+> -	{ADV748X_PAGE_TXA, 0x31, 0x82},	/* ADI Required Write */
+> -	{ADV748X_PAGE_TXA, 0x1e, 0x00},	/* ADI Required Write */
+> -	{ADV748X_PAGE_TXA, 0x00, 0x84},	/* Enable 4-lane MIPI */
+> -	{ADV748X_PAGE_TXA, 0xda, 0x01},	/* i2c_mipi_pll_en - 1'b1 */
+> -	{ADV748X_PAGE_TXA, 0xc1, 0x3b},	/* ADI Required Write */
+> -
+> -	{ADV748X_PAGE_EOR, 0xff, 0xff}	/* End of register table */
+> -};
+> -
+> -static const struct adv748x_reg_value adv748x_power_up_txb_1lane[] =3D {
+> -
+> -	{ADV748X_PAGE_TXB, 0x00, 0x81},	/* Enable 1-lane MIPI */
+> -	{ADV748X_PAGE_TXB, 0x00, 0xa1},	/* Set Auto DPHY Timing */
+> -	{ADV748X_PAGE_TXB, 0xd2, 0x40},	/* ADI Required Write */
+> -	{ADV748X_PAGE_TXB, 0xc4, 0x0a},	/* ADI Required Write */
+> -	{ADV748X_PAGE_TXB, 0x71, 0x33},	/* ADI Required Write */
+> -	{ADV748X_PAGE_TXB, 0x72, 0x11},	/* ADI Required Write */
+> -	{ADV748X_PAGE_TXB, 0xf0, 0x00},	/* i2c_dphy_pwdn - 1'b0 */
+> -
+> -	{ADV748X_PAGE_TXB, 0x31, 0x82},	/* ADI Required Write */
+> -	{ADV748X_PAGE_TXB, 0x1e, 0x40},	/* ADI Required Write */
+> -	{ADV748X_PAGE_TXB, 0xda, 0x01},	/* i2c_mipi_pll_en - 1'b1 */
+> -	{ADV748X_PAGE_WAIT, 0x00, 0x02},/* delay 2 */
+> -	{ADV748X_PAGE_TXB, 0x00, 0x21 },/* Power-up CSI-TX */
+> -	{ADV748X_PAGE_WAIT, 0x00, 0x01},/* delay 1 */
+> -	{ADV748X_PAGE_TXB, 0xc1, 0x2b},	/* ADI Required Write */
+> -	{ADV748X_PAGE_WAIT, 0x00, 0x01},/* delay 1 */
+> -	{ADV748X_PAGE_TXB, 0x31, 0x80},	/* ADI Required Write */
+> -
+> -	{ADV748X_PAGE_EOR, 0xff, 0xff}	/* End of register table */
+> -};
+> -
+> -static const struct adv748x_reg_value adv748x_power_down_txb_1lane[] =3D=
+ {
+> -
+> -	{ADV748X_PAGE_TXB, 0x31, 0x82},	/* ADI Required Write */
+> -	{ADV748X_PAGE_TXB, 0x1e, 0x00},	/* ADI Required Write */
+> -	{ADV748X_PAGE_TXB, 0x00, 0x81},	/* Enable 1-lane MIPI */
+> -	{ADV748X_PAGE_TXB, 0xda, 0x01},	/* i2c_mipi_pll_en - 1'b1 */
+> -	{ADV748X_PAGE_TXB, 0xc1, 0x3b},	/* ADI Required Write */
+> -
+> -	{ADV748X_PAGE_EOR, 0xff, 0xff}	/* End of register table */
+> -};
+> +static int adv748x_power_up_tx(struct adv748x_csi2 *tx)
+> +{
+> +	struct adv748x_state *state =3D tx->state;
+> +	u8 page =3D is_txa(tx) ? ADV748X_PAGE_TXA : ADV748X_PAGE_TXB;
+> +	int ret =3D 0;
+> +
+> +	/* Enable n-lane MIPI */
+> +	adv748x_write_check(state, page, 0x00, 0x80 | tx->num_lanes, &ret);
+> +
+> +	/* Set Auto DPHY Timing */
+> +	adv748x_write_check(state, page, 0x00, 0xa0 | tx->num_lanes, &ret);
+> +
+> +	/* ADI Required Write */
+> +	if (is_txa(tx)) {
+> +		adv748x_write_check(state, page, 0xdb, 0x10, &ret);
+> +		adv748x_write_check(state, page, 0xd6, 0x07, &ret);
+> +	} else {
+> +		adv748x_write_check(state, page, 0xd2, 0x40, &ret);
+> +	}
+> +
+> +	adv748x_write_check(state, page, 0xc4, 0x0a, &ret);
+> +	adv748x_write_check(state, page, 0x71, 0x33, &ret);
+> +	adv748x_write_check(state, page, 0x72, 0x11, &ret);
+> +
+> +	/* i2c_dphy_pwdn - 1'b0 */
+> +	adv748x_write_check(state, page, 0xf0, 0x00, &ret);
+> +
+> +	/* ADI Required Writes*/
+> +	adv748x_write_check(state, page, 0x31, 0x82, &ret);
+> +	adv748x_write_check(state, page, 0x1e, 0x40, &ret);
+> +
+> +	/* i2c_mipi_pll_en - 1'b1 */
+> +	adv748x_write_check(state, page, 0xda, 0x01, &ret);
+> +	usleep_range(2000, 2500);
+> +
+> +	/* Power-up CSI-TX */
+> +	adv748x_write_check(state, page, 0x00, 0x20 | tx->num_lanes, &ret);
+
+Where does the 0x20 come from? I don't see it in the register
+description in the HW manual..
+
+> +	usleep_range(1000, 1500);
+> +
+> +	/* ADI Required Writes */
+> +	adv748x_write_check(state, page, 0xc1, 0x2b, &ret);
+> +	usleep_range(1000, 1500);
+> +	adv748x_write_check(state, page, 0x31, 0x80, &ret);
+> +
+> +	return ret;
+> +}
+> +
+> +static int adv748x_power_down_tx(struct adv748x_csi2 *tx)
+> +{
+> +	struct adv748x_state *state =3D tx->state;
+> +	u8 page =3D is_txa(tx) ? ADV748X_PAGE_TXA : ADV748X_PAGE_TXB;
+> +	int ret =3D 0;
+> +
+> +	/* ADI Required Writes */
+> +	adv748x_write_check(state, page, 0x31, 0x82, &ret);
+> +	adv748x_write_check(state, page, 0x1e, 0x00, &ret);
+> +
+> +	/* Enable n-lane MIPI */
+
+The comment is wrong here: this write disables the CSI TX interface.
+
+> +	adv748x_write_check(state, page, 0x00, 0x80 | tx->num_lanes, &ret);
+> +
+> +	/* i2c_mipi_pll_en - 1'b1 */
+> +	adv748x_write_check(state, page, 0xda, 0x01, &ret);
+
+Re-looking at power up/down sequences, this should actually be 0xda =3D 0x0=
+0,
+as specified in seciont 9.5.2 of the HW manual.
+
+I know all of these come from tables in the previous version and has not
+been introduced by this patch, but while at there it might be worth
+fixing them.
+
+And actually, I don't like much the comments for registers pll_en and
+dphy_pdn registers, and they might be improved, since you're rewriting
+this sequence anyhow.
+
+I had a patch pending, before I realized you could change this in your
+next v4. In case you want to have a look:
+https://paste.debian.net/1052965/
+
+Thanks
+   j
+
+> +
+> +	/* ADI Required Write */
+> +	adv748x_write_check(state, page, 0xc1, 0x3b, &ret);
+> +
+> +	return ret;
+> +}
+>
+>  int adv748x_tx_power(struct adv748x_csi2 *tx, bool on)
+>  {
+> -	struct adv748x_state *state =3D tx->state;
+> -	const struct adv748x_reg_value *reglist;
+>  	int val;
+>
+>  	if (!is_tx_enabled(tx))
+> @@ -321,14 +329,7 @@ int adv748x_tx_power(struct adv748x_csi2 *tx, bool o=
+n)
+>  	WARN_ONCE((on && val & ADV748X_CSI_FS_AS_LS_UNKNOWN),
+>  			"Enabling with unknown bit set");
+>
+> -	if (on)
+> -		reglist =3D is_txa(tx) ? adv748x_power_up_txa_4lane :
+> -				       adv748x_power_up_txb_1lane;
+> -	else
+> -		reglist =3D is_txa(tx) ? adv748x_power_down_txa_4lane :
+> -				       adv748x_power_down_txb_1lane;
+> -
+> -	return adv748x_write_regs(state, reglist);
+> +	return on ? adv748x_power_up_tx(tx) : adv748x_power_down_tx(tx);
+>  }
+>
+>  /* ---------------------------------------------------------------------=
+--------
+> --
+> 2.19.1
+>
+
+--gm5TwAJMO0F2iVRz
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABCAAGBQJb+AhSAAoJEHI0Bo8WoVY8nmsP/2iRzR4ZoKtZ5YPHzQIi4txl
+dlpIQcExMiUd9EUATiouEkHNj+6gtbJB+cIZzlFYPJfMakF/5wZ3epMM5YEGBk+G
+2XX0EwzuCvjZ/wGaZTj/TY/XsPCw8Bo7eceZIGg5UdIBW98wxQ3skMVINo02CMKo
++mTQei26rib3f2vP3KFsC0MBDjjUql7t5Wnm5SorkWpZsB53udsFPDtRxwV+utZG
+h/JsS/0X/rBwuPDeKoypliizg7BhetzbEbxGtJ87pYcOqpiFVyir8VncYZudWY5r
+ijJiApzCX/vCbWT+dmxELOmd3JBOFufo01g1flJRcbTnJGCI7pMu5P5BNQFD38r/
+PbZKLckrsZh95jhCYxw8E2NyL1auCvLFNdKJfLF3+fwi1qvrkUqZVOUObGLV0aZp
+467pgXHtmMsMcyaSPdQ1UWuPoDpq4cN6rly0IyVLu39W5j6jgvGEUgOH2PFTyKur
+zcAOVKtoKQUwq+Mh41M5sFF6g+aLKBjepMDfoEUH5zXXpBCaLo+4jqPgAFN0bkqZ
+kZhjkBwZoIaYMGIh+tx5cCwosfwynhh1Av7fOdkEEkhIPdyZ4plfXIYmd2r2xTj5
+JqRBl0rXqkyITgIhr4P/HbJJazsYygXYqOjVpkiXx5QJSDTVKtfHQtnqXgz++9IN
+xxEf6UHcpb/Pyc8y+iPQ
+=b2OW
+-----END PGP SIGNATURE-----
+
+--gm5TwAJMO0F2iVRz--
