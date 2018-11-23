@@ -1,29 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:46787 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S2387885AbeKWWh4 (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.133]:38116 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2503912AbeKWWop (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Nov 2018 17:37:56 -0500
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Subject: [PATCH] seco-cec: fix Makefile
-Message-ID: <5365e2c4-bbe9-ba75-db84-22501f1c43f5@xs4all.nl>
-Date: Fri, 23 Nov 2018 12:53:58 +0100
+        Fri, 23 Nov 2018 17:44:45 -0500
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Ettore Chimenti <ek5.chimenti@gmail.com>
+Subject: [PATCH] media: seco-cec: declare ops as static const
+Date: Fri, 23 Nov 2018 07:00:43 -0500
+Message-Id: <a2717eae73ac4f1548fa5195adb9fafbacdfc1ad.1542974442.git.mchehab+samsung@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix the incorrect obj-y.
+As warned by smatch:
 
-Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+	drivers/media/platform/seco-cec/seco-cec.c:338:21:  warning: symbol 'secocec_cec_adap_ops' was not declared. Should it be static?
+
+This struct should be static. Also, it is const, so declare it
+as such.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 ---
-diff --git a/drivers/media/platform/seco-cec/Makefile b/drivers/media/platform/seco-cec/Makefile
-index 09900b087d02..a3f2c6bd3ac0 100644
---- a/drivers/media/platform/seco-cec/Makefile
-+++ b/drivers/media/platform/seco-cec/Makefile
-@@ -1 +1 @@
--obj-y += seco-cec.o
-+obj-$(CONFIG_VIDEO_SECO_CEC) += seco-cec.o
+ drivers/media/platform/seco-cec/seco-cec.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/platform/seco-cec/seco-cec.c b/drivers/media/platform/seco-cec/seco-cec.c
+index 8308873c53ab..01ada99de723 100644
+--- a/drivers/media/platform/seco-cec/seco-cec.c
++++ b/drivers/media/platform/seco-cec/seco-cec.c
+@@ -335,7 +335,7 @@ static void secocec_rx_done(struct cec_adapter *adap, u16 status_val)
+ 	smb_wr16(SECOCEC_STATUS, status_val);
+ }
+ 
+-struct cec_adap_ops secocec_cec_adap_ops = {
++static const struct cec_adap_ops secocec_cec_adap_ops = {
+ 	/* Low-level callbacks */
+ 	.adap_enable = secocec_adap_enable,
+ 	.adap_log_addr = secocec_adap_log_addr,
+-- 
+2.19.1
