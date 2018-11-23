@@ -1,145 +1,185 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:55752 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2390102AbeKWU5I (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Nov 2018 15:57:08 -0500
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Yong Deng <yong.deng@magewell.com>,
+Received: from mail.bootlin.com ([62.4.15.54]:55674 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2394087AbeKWVTy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 23 Nov 2018 16:19:54 -0500
+Message-ID: <6faa1471b1c3c1ea80e6576b0e29950bcca47614.camel@bootlin.com>
+Subject: Re: [PATCH 1/2] media: v4l: Add definitions for the HEVC slice
+ format and controls
+From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+To: Tomasz Figa <tfiga@chromium.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        devel@driverdev.osuosl.org,
+        "list@263.net:IOMMU DRIVERS <iommu@lists.linux-foundation.org>, Joerg "
+         "Roedel <joro@8bytes.org>," <linux-arm-kernel@lists.infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
         Maxime Ripard <maxime.ripard@bootlin.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        linux-arm-kernel@lists.infradead.org
-Subject: [PATCH 1/2] media: sum6i-csi: Fix a few coding style issues
-Date: Fri, 23 Nov 2018 05:13:22 -0500
-Message-Id: <ad8d7a438746a7f6dd3300ff9f07bd5506de100c.1542967999.git.mchehab+samsung@kernel.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+        Greg KH <gregkh@linuxfoundation.org>,
+        Chen-Yu Tsai <wens@csie.org>, thomas.petazzoni@bootlin.com,
+        linux-sunxi@googlegroups.com, ayaka <ayaka@soulik.info>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Ezequiel Garcia <ezequiel@collabora.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Date: Fri, 23 Nov 2018 11:35:55 +0100
+In-Reply-To: <CAAFQd5An1htKNpNJmwHAzw6Oz+Z=T_MuBg+T=_yMbT7SkkokBw@mail.gmail.com>
+References: <20180828080240.10982-1-paul.kocialkowski@bootlin.com>
+         <20180828080240.10982-2-paul.kocialkowski@bootlin.com>
+         <CAAFQd5An1htKNpNJmwHAzw6Oz+Z=T_MuBg+T=_yMbT7SkkokBw@mail.gmail.com>
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-goocbv+/s3BLSfNn1i/W"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make checkpatch.pl happier by running it on strict mode and
-using the --fix-inline to solve some issues.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
----
- drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c     |  9 ++++-----
- drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.h     |  2 +-
- drivers/media/platform/sunxi/sun6i-csi/sun6i_csi_reg.h |  2 +-
- drivers/media/platform/sunxi/sun6i-csi/sun6i_video.c   | 10 +++++-----
- 4 files changed, 11 insertions(+), 12 deletions(-)
+--=-goocbv+/s3BLSfNn1i/W
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c b/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
-index 7af55ad142dc..89fe2c1e21a8 100644
---- a/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
-+++ b/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
-@@ -279,7 +279,6 @@ static enum csi_output_fmt get_csi_output_format(struct sun6i_csi_dev *sdev,
- static enum csi_input_seq get_csi_input_seq(struct sun6i_csi_dev *sdev,
- 					    u32 mbus_code, u32 pixformat)
- {
--
- 	switch (pixformat) {
- 	case V4L2_PIX_FMT_HM12:
- 	case V4L2_PIX_FMT_NV12:
-@@ -543,7 +542,7 @@ int sun6i_csi_update_config(struct sun6i_csi *csi,
- {
- 	struct sun6i_csi_dev *sdev = sun6i_csi_to_dev(csi);
- 
--	if (config == NULL)
-+	if (!config)
- 		return -EINVAL;
- 
- 	memcpy(&csi->config, config, sizeof(csi->config));
-@@ -644,7 +643,7 @@ static int sun6i_subdev_notify_complete(struct v4l2_async_notifier *notifier)
- 	dev_dbg(csi->dev, "notify complete, all subdevs registered\n");
- 
- 	sd = list_first_entry(&v4l2_dev->subdevs, struct v4l2_subdev, list);
--	if (sd == NULL)
-+	if (!sd)
- 		return -EINVAL;
- 
- 	ret = sun6i_csi_link_entity(csi, &sd->entity, sd->fwnode);
-@@ -810,7 +809,7 @@ static int sun6i_csi_resource_request(struct sun6i_csi_dev *sdev,
- 		return PTR_ERR(io_base);
- 
- 	sdev->regmap = devm_regmap_init_mmio_clk(&pdev->dev, "bus", io_base,
--					    &sun6i_csi_regmap_config);
-+						 &sun6i_csi_regmap_config);
- 	if (IS_ERR(sdev->regmap)) {
- 		dev_err(&pdev->dev, "Failed to init register map\n");
- 		return PTR_ERR(sdev->regmap);
-@@ -853,7 +852,7 @@ static int sun6i_csi_resource_request(struct sun6i_csi_dev *sdev,
- 
- /*
-  * PHYS_OFFSET isn't available on all architectures. In order to
-- * accomodate for COMPILE_TEST, let's define it to something dumb.
-+ * accommodate for COMPILE_TEST, let's define it to something dumb.
-  */
- #if defined(CONFIG_COMPILE_TEST) && !defined(PHYS_OFFSET)
- #define PHYS_OFFSET 0
-diff --git a/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.h b/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.h
-index bd9be36aabfe..0bb000712c33 100644
---- a/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.h
-+++ b/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.h
-@@ -55,7 +55,7 @@ struct sun6i_csi {
-  * @mbus_code:	media bus format code (MEDIA_BUS_FMT_*)
-  */
- bool sun6i_csi_is_format_supported(struct sun6i_csi *csi, u32 pixformat,
--				 u32 mbus_code);
-+				   u32 mbus_code);
- 
- /**
-  * sun6i_csi_set_power() - power on/off the csi
-diff --git a/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi_reg.h b/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi_reg.h
-index 3a55836a5a4d..d9b6d89f1927 100644
---- a/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi_reg.h
-+++ b/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi_reg.h
-@@ -37,7 +37,7 @@
- #define CSI_IF_CFG_IF_DATA_WIDTH_12BIT		((2 << 8) & CSI_IF_CFG_IF_DATA_WIDTH_MASK)
- #define CSI_IF_CFG_MIPI_IF_MASK			BIT(7)
- #define CSI_IF_CFG_MIPI_IF_CSI			(0 << 7)
--#define CSI_IF_CFG_MIPI_IF_MIPI			(1 << 7)
-+#define CSI_IF_CFG_MIPI_IF_MIPI			BIT(7)
- #define CSI_IF_CFG_CSI_IF_MASK			GENMASK(4, 0)
- #define CSI_IF_CFG_CSI_IF_YUV422_INTLV		((0 << 0) & CSI_IF_CFG_CSI_IF_MASK)
- #define CSI_IF_CFG_CSI_IF_YUV422_16BIT		((1 << 0) & CSI_IF_CFG_CSI_IF_MASK)
-diff --git a/drivers/media/platform/sunxi/sun6i-csi/sun6i_video.c b/drivers/media/platform/sunxi/sun6i-csi/sun6i_video.c
-index e1901a38726f..306b9d2aeafb 100644
---- a/drivers/media/platform/sunxi/sun6i-csi/sun6i_video.c
-+++ b/drivers/media/platform/sunxi/sun6i-csi/sun6i_video.c
-@@ -86,9 +86,9 @@ sun6i_video_remote_subdev(struct sun6i_video *video, u32 *pad)
- }
- 
- static int sun6i_video_queue_setup(struct vb2_queue *vq,
--				 unsigned int *nbuffers, unsigned int *nplanes,
--				 unsigned int sizes[],
--				 struct device *alloc_devs[])
-+				   unsigned int *nbuffers, unsigned int *nplanes,
-+				   unsigned int sizes[],
-+				   struct device *alloc_devs[])
- {
- 	struct sun6i_video *video = vb2_get_drv_priv(vq);
- 	unsigned int size = video->fmt.fmt.pix.sizeimage;
-@@ -308,7 +308,7 @@ static const struct vb2_ops sun6i_csi_vb2_ops = {
- };
- 
- static int vidioc_querycap(struct file *file, void *priv,
--				struct v4l2_capability *cap)
-+			   struct v4l2_capability *cap)
- {
- 	struct sun6i_video *video = video_drvdata(file);
- 
-@@ -403,7 +403,7 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
- }
- 
- static int vidioc_enum_input(struct file *file, void *fh,
--			 struct v4l2_input *inp)
-+			     struct v4l2_input *inp)
- {
- 	if (inp->index != 0)
- 		return -EINVAL;
--- 
-2.19.1
+Hi,
+
+On Wed, 2018-10-10 at 17:33 +0900, Tomasz Figa wrote:
+> Hi Paul,
+>=20
+> On Tue, Aug 28, 2018 at 5:02 PM Paul Kocialkowski
+> <paul.kocialkowski@bootlin.com> wrote:
+> > This introduces the required definitions for HEVC decoding support with
+> > stateless VPUs. The controls associated to the HEVC slice format provid=
+e
+> > the required meta-data for decoding slices extracted from the bitstream=
+.
+> >=20
+>=20
+> Sorry for being late to the party. Please see my comments inline. Only
+> high level, because I don't know too much about HEVC.
+>=20
+> [snip]
+> > +``V4L2_CID_MPEG_VIDEO_HEVC_SPS (struct)``
+> > +    Specifies the Sequence Parameter Set fields (as extracted from the
+> > +    bitstream) for the associated HEVC slice data.
+> > +    The bitstream parameters are defined according to the ISO/IEC 2300=
+8-2 and
+> > +    ITU-T Rec. H.265 specifications.
+> > +
+> > +.. c:type:: v4l2_ctrl_hevc_sps
+> > +
+> > +.. cssclass:: longtable
+> > +
+> > +.. flat-table:: struct v4l2_ctrl_hevc_sps
+> > +    :header-rows:  0
+> > +    :stub-columns: 0
+> > +    :widths:       1 1 2
+> > +
+> > +    * - __u8
+> > +      - ``chroma_format_idc``
+> > +      - Syntax description inherited from the specification.
+>=20
+> I wonder if it wouldn't make sense to instead document this in C code
+> using kernel-doc and then have the kernel-doc included in the sphinx
+> doc. It seems to be possible, according to
+> https://www.kernel.org/doc/html/latest/doc-guide/kernel-doc.html .
+>=20
+> Such approach would have the advantage of the person looking through C
+> cross reference being able to actually see the documentation of the
+> struct in question and also making it easier to ensure the relevant C
+> code and documentation are in sync. (Although this is UAPI so it would
+> be unlikely to change too often or at all.)
+
+I have somewhat mixed feelings about this. I believe we should be
+keeping the video codec control structures as close as we can to the
+codec specs (and in the case of H.265, most of the fields are directly
+inherited from the spec). So for most of them, the documentation
+wouldn't be in the kernel docs but in the spec itself. From that
+perspective, it doesn't really help much to move the documentation in
+the headers.
+
+> [snip]
+> > +``V4L2_CID_MPEG_VIDEO_HEVC_SLICE_PARAMS (struct)``
+> > +    Specifies various slice-specific parameters, especially from the N=
+AL unit
+> > +    header, general slice segment header and weighted prediction param=
+eter
+> > +    parts of the bitstream.
+> > +    The bitstream parameters are defined according to the ISO/IEC 2300=
+8-2 and
+> > +    ITU-T Rec. H.265 specifications.
+>=20
+> In the Chromium H.264 controls, we define this as an array control, so
+> that we can include multiple slices in one buffer and each entry of
+> the array has an offset field pointing to the part of the buffer that
+> contains corresponding slice data. I've mentioned this in the
+> discussion on Alex's stateless decoder interface documentation, so
+> let's keep the discussion there, though.
+
+Yes definitely. Out current proposals (for H.264 and H.265) still
+require "as many macroblocks as needed for a full frame", but we should
+definitely move away from that as discussed in the thread you
+mentionned. I think this is something we should aim for before declaring
+the API as stable.
+
+> [snip]
+> > @@ -1696,6 +1708,11 @@ static int std_validate(const struct v4l2_ctrl *=
+ctrl, u32 idx,
+> >         case V4L2_CTRL_TYPE_H264_DECODE_PARAMS:
+> >                 return 0;
+> >=20
+> > +       case V4L2_CTRL_TYPE_HEVC_SPS:
+> > +       case V4L2_CTRL_TYPE_HEVC_PPS:
+> > +       case V4L2_CTRL_TYPE_HEVC_SLICE_PARAMS:
+> > +               return 0;
+> > +
+>=20
+> I wonder to what extent we should be validating this. I can see 3 options=
+:
+> 1) Defer validation to drivers completely. - Potentially error prone
+> and leading to a lot of code duplication?
+> 2) Validate completely. - Might need solving some interesting
+> problems, e.g. validating reference frame indices in DPB against
+> current state of respective VB2 queue...
+> 3) Validate only what we can easily do, defer more complicated
+> validation to the drivers. - Potentially a good middle ground?
+
+I definitely agree with you that option 1 is not really desirable, for
+the reasons you mentionned.
+
+I would tend to back option 3 with the following suggestion: we should
+validate controls for "syntax" (that is, checking that the bitstream
+fields take values permitted by the spec) when they are submitted and
+leave it up to the driver to deal with requirements on other frames
+(validity of the DPB). I don't think we can validate the availability of
+reference frames at control submission time anyway since it would be
+valid to queue and set controls for frames in reverse decoding order.
+
+What do you think?
+
+Cheers,
+
+Paul
+
+--=20
+Paul Kocialkowski, Bootlin (formerly Free Electrons)
+Embedded Linux and kernel engineering
+https://bootlin.com
+
+--=-goocbv+/s3BLSfNn1i/W
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCAAdFiEEJZpWjZeIetVBefti3cLmz3+fv9EFAlv32AsACgkQ3cLmz3+f
+v9GiVAf/XVvSm7LtrYxCWx6xbpHSYtqNzLppWiQRfF/BInc9MlaNjNzKZuDevycC
+JR9VmmkZrMT1kOKrV0VG3tDo8N0EkhnYgyxr2tPNqbsJL+EbzzrMdX8GXQevo2AE
+xKhyfA+nv+4dGsIk4bbcqQ31eV1FFKZlMQ7Ryk5BNMsGd5Rfjw4CgoaxGSLoti7V
+MoxIL5OHnKoB1/J15yXFj+Cgg3n0nEgVSgR8u5C6vMLQZhivMZMsIC0XBC+Lc8uK
+ZE6q75tHm5l8Sd48jMCoWc0HKjsK+lvPdYjbYGVLYxsJh4c5XGnjkkRz0LDgH61x
+/tWWyYqjaZkJn5TqYUvIBFN7NGiWJg==
+=F7Xq
+-----END PGP SIGNATURE-----
+
+--=-goocbv+/s3BLSfNn1i/W--
