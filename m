@@ -1,119 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:33131 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1731286AbeKXPWm (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 24 Nov 2018 10:22:42 -0500
-Message-ID: <e0018c752aa04a6e18777f1e5a97eddd@smtp-cloud8.xs4all.net>
-Date: Sat, 24 Nov 2018 05:35:40 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:33308 "EHLO
+        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725844AbeKXWBm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 24 Nov 2018 17:01:42 -0500
+Subject: Re: [PATCH] mm: Replace all open encodings for NUMA_NO_NODE
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
+        ocfs2-devel@oss.oracle.com, linux-fbdev@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, netdev@vger.kernel.org,
+        intel-wired-lan@lists.osuosl.org, linux-media@vger.kernel.org,
+        iommu@lists.linux-foundation.org, linux-rdma@vger.kernel.org,
+        dmaengine@vger.kernel.org, linux-block@vger.kernel.org,
+        sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-ia64@vger.kernel.org, linux-alpha@vger.kernel.org,
+        jiangqi903@gmail.com, hverkuil@xs4all.nl
+References: <1542966856-12619-1-git-send-email-anshuman.khandual@arm.com>
+ <20181123154415.42898a42e28a31488749738a@linux-foundation.org>
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Message-ID: <8e16e9d1-8f64-d2ca-7d06-985ce601f75b@arm.com>
+Date: Sat, 24 Nov 2018 16:43:15 +0530
+MIME-Version: 1.0
+In-Reply-To: <20181123154415.42898a42e28a31488749738a@linux-foundation.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
 
-Results of the daily build of media_tree:
 
-date:			Sat Nov 24 05:00:11 CET 2018
-media-tree git hash:	708d75fe1c7c6e9abc5381b6fcc32b49830383d0
-media_build git hash:	a8aef9cea0a4a2f3ea86c0b37bd6a1378018c0c1
-v4l-utils git hash:	cdc046863805b3a3082890ce91f71538e0dbf88c
-edid-decode git hash:	5eeb151a748788666534d6ea3da07f90400d24c2
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.18.0-2-amd64
+On 11/24/2018 05:14 AM, Andrew Morton wrote:
+> On Fri, 23 Nov 2018 15:24:16 +0530 Anshuman Khandual <anshuman.khandual@arm.com> wrote:
+> 
+>> At present there are multiple places where invalid node number is encoded
+>> as -1. Even though implicitly understood it is always better to have macros
+>> in there. Replace these open encodings for an invalid node number with the
+>> global macro NUMA_NO_NODE. This helps remove NUMA related assumptions like
+>> 'invalid node' from various places redirecting them to a common definition.
+>>
+>> ...
+>>
+>> Build tested this with multiple cross compiler options like alpha, sparc,
+>> arm64, x86, powerpc, powerpc64le etc with their default config which might
+>> not have compiled tested all driver related changes. I will appreciate
+>> folks giving this a test in their respective build environment.
+>>
+>> All these places for replacement were found by running the following grep
+>> patterns on the entire kernel code. Please let me know if this might have
+>> missed some instances. This might also have replaced some false positives.
+>> I will appreciate suggestions, inputs and review.
+>>
+>> 1. git grep "nid == -1"
+>> 2. git grep "node == -1"
+>> 3. git grep "nid = -1"
+>> 4. git grep "node = -1"
+> 
+> The build testing is good, but I worry that some of the affected files
+> don't clearly have numa.h in their include paths, for the NUMA_NO_NODE
+> definition.
+> 
+> The first thing I looked it is arch/powerpc/include/asm/pci-bridge.h. 
+> Maybe it somehow manages to include numa.h via some nested include, but
+> if so, is that reliable across all config combinations and as code
+> evolves?
+> 
+> So I think that the patch should have added an explicit include of
+> numa.h, especially in cases where the affected file previously had no
+> references to any of the things which numa.h defines.
 
-linux-git-arm-at91: WARNINGS
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-multi: WARNINGS
-linux-git-arm-pxa: WARNINGS
-linux-git-arm-stm32: WARNINGS
-linux-git-arm64: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-mips: OK
-linux-git-powerpc64: WARNINGS
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.123-i686: ERRORS
-linux-3.18.123-x86_64: ERRORS
-linux-3.19.8-i686: ERRORS
-linux-3.19.8-x86_64: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.52-i686: ERRORS
-linux-4.1.52-x86_64: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.159-i686: ERRORS
-linux-4.4.159-x86_64: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.10-i686: ERRORS
-linux-4.7.10-x86_64: ERRORS
-linux-4.8.17-i686: ERRORS
-linux-4.8.17-x86_64: ERRORS
-linux-4.9.131-i686: ERRORS
-linux-4.9.131-x86_64: ERRORS
-linux-4.10.17-i686: ERRORS
-linux-4.10.17-x86_64: ERRORS
-linux-4.11.12-i686: ERRORS
-linux-4.11.12-x86_64: ERRORS
-linux-4.12.14-i686: ERRORS
-linux-4.12.14-x86_64: ERRORS
-linux-4.13.16-i686: ERRORS
-linux-4.13.16-x86_64: ERRORS
-linux-4.14.74-i686: ERRORS
-linux-4.14.74-x86_64: ERRORS
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: OK
-linux-4.19.1-i686: OK
-linux-4.19.1-x86_64: OK
-linux-4.20-rc1-i686: OK
-linux-4.20-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Fair enough. Will include numa.h in those particular files.
