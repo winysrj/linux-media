@@ -1,22 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mhgbbhxrt02p.mhg.thalesgroup.com ([192.93.166.102]:55936 "EHLO
-        mhgbbhxrt02p.mhg.thalesgroup.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726407AbeKYA6X (ORCPT
+Received: from mail-oi1-f170.google.com ([209.85.167.170]:37081 "EHLO
+        mail-oi1-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726011AbeKYCIs (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 24 Nov 2018 19:58:23 -0500
-Content-Type: text/plain; charset="iso-8859-1"
+        Sat, 24 Nov 2018 21:08:48 -0500
+Received: by mail-oi1-f170.google.com with SMTP id y23so12170987oia.4
+        for <linux-media@vger.kernel.org>; Sat, 24 Nov 2018 07:20:09 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Description: Mail message body
-Subject: RE,
-To: Recipients <yalikun.tashi@cnrs.fr>
-From: Miss Sharifah Ahmad Mustahfa <yalikun.tashi@cnrs.fr>
-Date: Sat, 24 Nov 2018 08:08:55 -0600
-Reply-To: <m.sharifahahmadmustahfa@gmail.com>
-Message-ID: <3182e5f1-6364-4cb7-8fdc-44eb2dd986d1@CNREXCMBX07P.core-res.rootcore.local>
+References: <CAOMZO5DP8JEMfjXJ8Hihm684+3=pOoCo1Gz7kt-TnCB7h-8EvA@mail.gmail.com>
+ <1542904065.16720.2.camel@pengutronix.de> <CAOMZO5CRWC1qbYa3wAYfd+_ig0s9Bq2Z8Hz1SmM95Zuxb6LqRw@mail.gmail.com>
+ <5d63d8ba-94d5-ffb6-cd7c-3217138c5ad4@gmail.com>
+In-Reply-To: <5d63d8ba-94d5-ffb6-cd7c-3217138c5ad4@gmail.com>
+From: Fabio Estevam <festevam@gmail.com>
+Date: Sat, 24 Nov 2018 13:20:04 -0200
+Message-ID: <CAOMZO5B0kCjij-=bHGgeFWrqDK-svxD+th42CHMnqKLo5uMP-Q@mail.gmail.com>
+Subject: Re: 'bad remote port parent' warnings
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi Steve,
 
-First of all i will like to apologies for my manner of communication because you do not know me personally, its due to the fact that i have a very important proposal for you.
+On Fri, Nov 23, 2018 at 8:37 PM Steve Longerbeam <slongerbeam@gmail.com> wrote:
+
+> Yes, this is a regression caused by the imx subdev notifier patches.
+> I've already sent a patch to the list for this, see
+>
+> https://www.spinics.net/lists/linux-media/msg141809.html
+
+Thanks, this fixes it.
+
+Hopefully it will be applied as a fix for 4.20.
+
+Thanks
