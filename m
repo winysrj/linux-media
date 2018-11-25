@@ -1,119 +1,351 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:50804 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726828AbeKYPSO (ORCPT
+Received: from relay6-d.mail.gandi.net ([217.70.183.198]:34285 "EHLO
+        relay6-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727182AbeKYU74 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 25 Nov 2018 10:18:14 -0500
-Message-ID: <86a8725c86d9f32e6409767ff9da7f54@smtp-cloud7.xs4all.net>
-Date: Sun, 25 Nov 2018 05:28:02 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Sun, 25 Nov 2018 15:59:56 -0500
+Date: Sun, 25 Nov 2018 11:09:04 +0100
+From: jacopo mondi <jacopo@jmondi.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Niklas =?utf-8?Q?S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH v3 4/4] i2c: adv748x: configure number of lanes used for
+ TXA CSI-2 transmitter
+Message-ID: <20181125100904.GE6788@w540>
+References: <20181102160009.17267-1-niklas.soderlund+renesas@ragnatech.se>
+ <20181102160009.17267-5-niklas.soderlund+renesas@ragnatech.se>
+ <20181123140154.GF8279@w540>
+ <2306235.pDioDJoL9o@avalon>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="1XWsVB21DFCvn2e8"
+Content-Disposition: inline
+In-Reply-To: <2306235.pDioDJoL9o@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
 
-Results of the daily build of media_tree:
+--1XWsVB21DFCvn2e8
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-date:			Sun Nov 25 05:00:10 CET 2018
-media-tree git hash:	708d75fe1c7c6e9abc5381b6fcc32b49830383d0
-media_build git hash:	a8aef9cea0a4a2f3ea86c0b37bd6a1378018c0c1
-v4l-utils git hash:	cdc046863805b3a3082890ce91f71538e0dbf88c
-edid-decode git hash:	5eeb151a748788666534d6ea3da07f90400d24c2
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.18.0-2-amd64
+Hi Laurent,
 
-linux-git-arm-at91: WARNINGS
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-multi: WARNINGS
-linux-git-arm-pxa: WARNINGS
-linux-git-arm-stm32: WARNINGS
-linux-git-arm64: OK
-linux-git-i686: WARNINGS
-linux-git-mips: WARNINGS
-linux-git-powerpc64: WARNINGS
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.123-i686: ERRORS
-linux-3.18.123-x86_64: ERRORS
-linux-3.19.8-i686: ERRORS
-linux-3.19.8-x86_64: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.52-i686: ERRORS
-linux-4.1.52-x86_64: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.159-i686: ERRORS
-linux-4.4.159-x86_64: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.10-i686: ERRORS
-linux-4.7.10-x86_64: ERRORS
-linux-4.8.17-i686: ERRORS
-linux-4.8.17-x86_64: ERRORS
-linux-4.9.131-i686: ERRORS
-linux-4.9.131-x86_64: ERRORS
-linux-4.10.17-i686: ERRORS
-linux-4.10.17-x86_64: ERRORS
-linux-4.11.12-i686: ERRORS
-linux-4.11.12-x86_64: ERRORS
-linux-4.12.14-i686: ERRORS
-linux-4.12.14-x86_64: ERRORS
-linux-4.13.16-i686: ERRORS
-linux-4.13.16-x86_64: ERRORS
-linux-4.14.74-i686: ERRORS
-linux-4.14.74-x86_64: ERRORS
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: OK
-linux-4.19.1-i686: OK
-linux-4.19.1-x86_64: OK
-linux-4.20-rc1-i686: OK
-linux-4.20-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+On Fri, Nov 23, 2018 at 04:43:18PM +0200, Laurent Pinchart wrote:
+> Hi Jacopo,
+>
+> On Friday, 23 November 2018 16:01:54 EET jacopo mondi wrote:
+> > On Fri, Nov 02, 2018 at 05:00:09PM +0100, Niklas S=C3=B6derlund wrote:
+> > > The driver fixed the TXA CSI-2 transmitter in 4-lane mode while it co=
+uld
+> > > operate using 1-, 2- and 4-lanes. Update the driver to support all mo=
+des
+> > > the hardware does.
+> > >
+> > > The driver make use of large tables of static register/value writes w=
+hen
+> > > powering up/down the TXA and TXB transmitters which include the write=
+ to
+> > > the NUM_LANES register. By converting the tables into functions and
+> > > using parameters the power up/down functions for TXA and TXB power
+> > > up/down can be merged and used for both transmitters.
+> > >
+> > > Signed-off-by: Niklas S=C3=B6derlund <niklas.soderlund+renesas@ragnat=
+ech.se>
+> > >
+> > > ---
+> > > * Changes since v2
+> > > - Fix typos in comments.
+> > > - Remove unneeded boiler plait code in adv748x_tx_power() as suggested
+> > >
+> > >   by Jacopo and Laurent.
+> > >
+> > > - Take into account the two different register used when powering up =
+TXA
+> > >
+> > >   and TXB due to an earlier patch in this series aligns the power
+> > >   sequence with the manual.
+> > >
+> > > * Changes since v1
+> > > - Convert tables of register/value writes into functions instead of
+> > >
+> > >   intercepting and modifying the writes to the NUM_LANES register.
+> > >
+> > > ---
+> > >
+> > >  drivers/media/i2c/adv748x/adv748x-core.c | 157 ++++++++++++---------=
+--
+> > >  1 file changed, 79 insertions(+), 78 deletions(-)
+> > >
+> > > diff --git a/drivers/media/i2c/adv748x/adv748x-core.c
+> > > b/drivers/media/i2c/adv748x/adv748x-core.c index
+> > > 9d80d7f3062b16bc..d94c63cb6a2efdba 100644
+> > > --- a/drivers/media/i2c/adv748x/adv748x-core.c
+> > > +++ b/drivers/media/i2c/adv748x/adv748x-core.c
+> > > @@ -125,6 +125,16 @@ int adv748x_write(struct adv748x_state *state, u8
+> > > page, u8 reg, u8 value)
+> > >  	return regmap_write(state->regmap[page], reg, value);
+> > >  }
+> > >
+> > > +static int adv748x_write_check(struct adv748x_state *state, u8 page,=
+ u8
+> > > reg,
+> > > +			       u8 value, int *error)
+> > > +{
+> > > +	if (*error)
+> > > +		return *error;
+> > > +
+> > > +	*error =3D adv748x_write(state, page, reg, value);
+> > > +	return *error;
+> > > +}
+> > > +
+> > >  /* adv748x_write_block(): Write raw data with a maximum of
+> > >  I2C_SMBUS_BLOCK_MAX>
+> > >   * size to one or more registers.
+> > >   *
+> > > @@ -231,79 +241,77 @@ static int adv748x_write_regs(struct adv748x_st=
+ate
+> > > *state,
+> > >   * TXA and TXB
+> > >   */
+> > >
+> > > -static const struct adv748x_reg_value adv748x_power_up_txa_4lane[] =
+=3D {
+> > > -
+> > > -	{ADV748X_PAGE_TXA, 0x00, 0x84},	/* Enable 4-lane MIPI */
+> > > -	{ADV748X_PAGE_TXA, 0x00, 0xa4},	/* Set Auto DPHY Timing */
+> > > -	{ADV748X_PAGE_TXA, 0xdb, 0x10},	/* ADI Required Write */
+> > > -	{ADV748X_PAGE_TXA, 0xd6, 0x07},	/* ADI Required Write */
+> > > -	{ADV748X_PAGE_TXA, 0xc4, 0x0a},	/* ADI Required Write */
+> > > -	{ADV748X_PAGE_TXA, 0x71, 0x33},	/* ADI Required Write */
+> > > -	{ADV748X_PAGE_TXA, 0x72, 0x11},	/* ADI Required Write */
+> > > -	{ADV748X_PAGE_TXA, 0xf0, 0x00},	/* i2c_dphy_pwdn - 1'b0 */
+> > > -
+> > > -	{ADV748X_PAGE_TXA, 0x31, 0x82},	/* ADI Required Write */
+> > > -	{ADV748X_PAGE_TXA, 0x1e, 0x40},	/* ADI Required Write */
+> > > -	{ADV748X_PAGE_TXA, 0xda, 0x01},	/* i2c_mipi_pll_en - 1'b1 */
+> > > -	{ADV748X_PAGE_WAIT, 0x00, 0x02},/* delay 2 */
+> > > -	{ADV748X_PAGE_TXA, 0x00, 0x24 },/* Power-up CSI-TX */
+> > > -	{ADV748X_PAGE_WAIT, 0x00, 0x01},/* delay 1 */
+> > > -	{ADV748X_PAGE_TXA, 0xc1, 0x2b},	/* ADI Required Write */
+> > > -	{ADV748X_PAGE_WAIT, 0x00, 0x01},/* delay 1 */
+> > > -	{ADV748X_PAGE_TXA, 0x31, 0x80},	/* ADI Required Write */
+> > > -
+> > > -	{ADV748X_PAGE_EOR, 0xff, 0xff}	/* End of register table */
+> > > -};
+> > > -
+> > > -static const struct adv748x_reg_value adv748x_power_down_txa_4lane[]=
+ =3D {
+> > > -
+> > > -	{ADV748X_PAGE_TXA, 0x31, 0x82},	/* ADI Required Write */
+> > > -	{ADV748X_PAGE_TXA, 0x1e, 0x00},	/* ADI Required Write */
+> > > -	{ADV748X_PAGE_TXA, 0x00, 0x84},	/* Enable 4-lane MIPI */
+> > > -	{ADV748X_PAGE_TXA, 0xda, 0x01},	/* i2c_mipi_pll_en - 1'b1 */
+> > > -	{ADV748X_PAGE_TXA, 0xc1, 0x3b},	/* ADI Required Write */
+> > > -
+> > > -	{ADV748X_PAGE_EOR, 0xff, 0xff}	/* End of register table */
+> > > -};
+> > > -
+> > > -static const struct adv748x_reg_value adv748x_power_up_txb_1lane[] =
+=3D {
+> > > -
+> > > -	{ADV748X_PAGE_TXB, 0x00, 0x81},	/* Enable 1-lane MIPI */
+> > > -	{ADV748X_PAGE_TXB, 0x00, 0xa1},	/* Set Auto DPHY Timing */
+> > > -	{ADV748X_PAGE_TXB, 0xd2, 0x40},	/* ADI Required Write */
+> > > -	{ADV748X_PAGE_TXB, 0xc4, 0x0a},	/* ADI Required Write */
+> > > -	{ADV748X_PAGE_TXB, 0x71, 0x33},	/* ADI Required Write */
+> > > -	{ADV748X_PAGE_TXB, 0x72, 0x11},	/* ADI Required Write */
+> > > -	{ADV748X_PAGE_TXB, 0xf0, 0x00},	/* i2c_dphy_pwdn - 1'b0 */
+> > > -
+> > > -	{ADV748X_PAGE_TXB, 0x31, 0x82},	/* ADI Required Write */
+> > > -	{ADV748X_PAGE_TXB, 0x1e, 0x40},	/* ADI Required Write */
+> > > -	{ADV748X_PAGE_TXB, 0xda, 0x01},	/* i2c_mipi_pll_en - 1'b1 */
+> > > -	{ADV748X_PAGE_WAIT, 0x00, 0x02},/* delay 2 */
+> > > -	{ADV748X_PAGE_TXB, 0x00, 0x21 },/* Power-up CSI-TX */
+> > > -	{ADV748X_PAGE_WAIT, 0x00, 0x01},/* delay 1 */
+> > > -	{ADV748X_PAGE_TXB, 0xc1, 0x2b},	/* ADI Required Write */
+> > > -	{ADV748X_PAGE_WAIT, 0x00, 0x01},/* delay 1 */
+> > > -	{ADV748X_PAGE_TXB, 0x31, 0x80},	/* ADI Required Write */
+> > > -
+> > > -	{ADV748X_PAGE_EOR, 0xff, 0xff}	/* End of register table */
+> > > -};
+> > > -
+> > > -static const struct adv748x_reg_value adv748x_power_down_txb_1lane[]=
+ =3D {
+> > > -
+> > > -	{ADV748X_PAGE_TXB, 0x31, 0x82},	/* ADI Required Write */
+> > > -	{ADV748X_PAGE_TXB, 0x1e, 0x00},	/* ADI Required Write */
+> > > -	{ADV748X_PAGE_TXB, 0x00, 0x81},	/* Enable 1-lane MIPI */
+> > > -	{ADV748X_PAGE_TXB, 0xda, 0x01},	/* i2c_mipi_pll_en - 1'b1 */
+> > > -	{ADV748X_PAGE_TXB, 0xc1, 0x3b},	/* ADI Required Write */
+> > > -
+> > > -	{ADV748X_PAGE_EOR, 0xff, 0xff}	/* End of register table */
+> > > -};
+> > > +static int adv748x_power_up_tx(struct adv748x_csi2 *tx)
+> > > +{
+> > > +	struct adv748x_state *state =3D tx->state;
+> > > +	u8 page =3D is_txa(tx) ? ADV748X_PAGE_TXA : ADV748X_PAGE_TXB;
+> > > +	int ret =3D 0;
+> > > +
+> > > +	/* Enable n-lane MIPI */
+> > > +	adv748x_write_check(state, page, 0x00, 0x80 | tx->num_lanes, &ret);
+> > > +
+> > > +	/* Set Auto DPHY Timing */
+> > > +	adv748x_write_check(state, page, 0x00, 0xa0 | tx->num_lanes, &ret);
+> > > +
+> > > +	/* ADI Required Write */
+> > > +	if (is_txa(tx)) {
+> > > +		adv748x_write_check(state, page, 0xdb, 0x10, &ret);
+> > > +		adv748x_write_check(state, page, 0xd6, 0x07, &ret);
+> > > +	} else {
+> > > +		adv748x_write_check(state, page, 0xd2, 0x40, &ret);
+> > > +	}
+> > > +
+> > > +	adv748x_write_check(state, page, 0xc4, 0x0a, &ret);
+> > > +	adv748x_write_check(state, page, 0x71, 0x33, &ret);
+> > > +	adv748x_write_check(state, page, 0x72, 0x11, &ret);
+> > > +
+> > > +	/* i2c_dphy_pwdn - 1'b0 */
+> > > +	adv748x_write_check(state, page, 0xf0, 0x00, &ret);
+> > > +
+> > > +	/* ADI Required Writes*/
+> > > +	adv748x_write_check(state, page, 0x31, 0x82, &ret);
+> > > +	adv748x_write_check(state, page, 0x1e, 0x40, &ret);
+> > > +
+> > > +	/* i2c_mipi_pll_en - 1'b1 */
+> > > +	adv748x_write_check(state, page, 0xda, 0x01, &ret);
+> > > +	usleep_range(2000, 2500);
+> > > +
+> > > +	/* Power-up CSI-TX */
+> > > +	adv748x_write_check(state, page, 0x00, 0x20 | tx->num_lanes, &ret);
+> >
+> > Where does the 0x20 come from? I don't see it in the register
+> > description in the HW manual..
+>
+> Isn't it the EN_AUTOCALC_DPHY_PARAMS bit ?
+>
 
-Detailed results are available here:
+Right, I missed that :)
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+> > > +	usleep_range(1000, 1500);
+> > > +
+> > > +	/* ADI Required Writes */
+> > > +	adv748x_write_check(state, page, 0xc1, 0x2b, &ret);
+> > > +	usleep_range(1000, 1500);
+> > > +	adv748x_write_check(state, page, 0x31, 0x80, &ret);
+> > > +
+> > > +	return ret;
+> > > +}
+> > > +
+> > > +static int adv748x_power_down_tx(struct adv748x_csi2 *tx)
+> > > +{
+> > > +	struct adv748x_state *state =3D tx->state;
+> > > +	u8 page =3D is_txa(tx) ? ADV748X_PAGE_TXA : ADV748X_PAGE_TXB;
+> > > +	int ret =3D 0;
+> > > +
+> > > +	/* ADI Required Writes */
+> > > +	adv748x_write_check(state, page, 0x31, 0x82, &ret);
+> > > +	adv748x_write_check(state, page, 0x1e, 0x00, &ret);
+> > > +
+> > > +	/* Enable n-lane MIPI */
+> >
+> > The comment is wrong here: this write disables the CSI TX interface.
+> >
+> > > +	adv748x_write_check(state, page, 0x00, 0x80 | tx->num_lanes, &ret);
+> > > +
+> > > +	/* i2c_mipi_pll_en - 1'b1 */
+> > > +	adv748x_write_check(state, page, 0xda, 0x01, &ret);
+> >
+> > Re-looking at power up/down sequences, this should actually be 0xda =3D=
+ 0x00,
+> > as specified in seciont 9.5.2 of the HW manual.
+> >
+> > I know all of these come from tables in the previous version and has not
+> > been introduced by this patch, but while at there it might be worth
+> > fixing them.
+> >
+> > And actually, I don't like much the comments for registers pll_en and
+> > dphy_pdn registers, and they might be improved, since you're rewriting
+> > this sequence anyhow.
+> >
+> > I had a patch pending, before I realized you could change this in your
+> > next v4. In case you want to have a look:
+> > https://paste.debian.net/1052965/
+>
+> I would prefer fixes to be made on top of this patch, to separate the
+> refactoring from the functional changes as much as possible.
+>
 
-Full logs are available here:
+Fine. I will send them based on next iteration of this series from
+Niklas.
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+Thanks
+   j
 
-The Media Infrastructure API from this daily build is here:
+> > > +
+> > > +	/* ADI Required Write */
+> > > +	adv748x_write_check(state, page, 0xc1, 0x3b, &ret);
+> > > +
+> > > +	return ret;
+> > > +}
+> > >
+> > >  int adv748x_tx_power(struct adv748x_csi2 *tx, bool on)
+> > >  {
+> > > -	struct adv748x_state *state =3D tx->state;
+> > > -	const struct adv748x_reg_value *reglist;
+> > >  	int val;
+> > >
+> > >  	if (!is_tx_enabled(tx))
+> > > @@ -321,14 +329,7 @@ int adv748x_tx_power(struct adv748x_csi2 *tx, bo=
+ol
+> > > on)
+> > >  	WARN_ONCE((on && val & ADV748X_CSI_FS_AS_LS_UNKNOWN),
+> > >  			"Enabling with unknown bit set");
+> > >
+> > > -	if (on)
+> > > -		reglist =3D is_txa(tx) ? adv748x_power_up_txa_4lane :
+> > > -				       adv748x_power_up_txb_1lane;
+> > > -	else
+> > > -		reglist =3D is_txa(tx) ? adv748x_power_down_txa_4lane :
+> > > -				       adv748x_power_down_txb_1lane;
+> > > -
+> > > -	return adv748x_write_regs(state, reglist);
+> > > +	return on ? adv748x_power_up_tx(tx) : adv748x_power_down_tx(tx);
+> > >  }
+> > >
+> > >  /* -----------------------------------------------------------------=
+-----
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
+>
+>
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+--1XWsVB21DFCvn2e8
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABCAAGBQJb+nTAAAoJEHI0Bo8WoVY8wxkP/jF3jtGKWDe55pMgA3fwVIea
+vJwicoaZSwOblEYJkpabxs3xhp3kFdwbOdPTud+rl/4EP6PWQ3AnLLZbPELW5xvm
+KmviOEdkqvwMLiAYD+pgN9j8pCNGPGSZnFoyMsb3KPiPzHe0XqaYDW145KxsaRvM
+WfF+/XKZy5TpVHT9kraHACj53/k8pYJ+Pgn1Q/qk6DCrEMp3370OlMFYZUJHMIOQ
++RyjFn59yXMcq2nhAZjGO3OhuXZl87EpDqwnTzwXnjdPtu2O/u2w7PR3326y0zWu
+x3N52hgvChSV/V5S55OTmB3/WsiQ20ctgV2Vbf6d+KKt2rIURBzD5ngICUEZ9pI/
+mBnzVea1TEQod6sy/XGXks58nHoWE54VLTnjv95MSEn1cBRS6j+vRJRjEM1Q8jsZ
+o5bmJQPLQeTNPhqO3qAeEojwZeqzK2xCISpX2W+pKyqJbXft8gKJlgy+zuzmbyPP
+5m49U2zG87RKkgchIPLYO2uBDbGHGvKgTV4cKr3+ygGUtdmW1zug3UrsOWSCpA4t
++eQDLOPwWS4qHqhHptDKqsUUYK+u5jc2DdzHky7L5kSsShTdFw6Bl/WmeQSUc31L
+jb1tQ+Q3p4v/Tu6e2a9EcRtfohSXsHtHVpC0DaMl62XBN9YbHCK2wPl7TgJ/jIMY
+H+1+0JmPqmUWg88Napd9
+=eXb8
+-----END PGP SIGNATURE-----
+
+--1XWsVB21DFCvn2e8--
