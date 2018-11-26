@@ -1,84 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:37564 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726328AbeKZXmP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
+Received: from mx1.redhat.com ([209.132.183.28]:43234 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726321AbeKZXmP (ORCPT <rfc822;linux-media@vger.kernel.org>);
         Mon, 26 Nov 2018 18:42:15 -0500
-Reply-To: kieran.bingham@ideasonboard.com
-Subject: Re: [PATCH 2/3] media: stkwebcam: Bugfix for not correctly
- initialized camera
-To: Andreas Pape <ap@ca-pape.de>, linux-media@vger.kernel.org
-References: <20181123161454.3215-1-ap@ca-pape.de>
- <20181123161454.3215-3-ap@ca-pape.de>
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Message-ID: <b527358c-8fb9-fbe5-be19-43e8992e85c7@ideasonboard.com>
-Date: Mon, 26 Nov 2018 12:48:08 +0000
+Subject: Re: [PATCH V2] mm: Replace all open encodings for NUMA_NO_NODE
+To: Anshuman Khandual <anshuman.khandual@arm.com>, linux-mm@kvack.org,
+        linux-kernel@vger.kernel.org
+Cc: ocfs2-devel@oss.oracle.com, linux-fbdev@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, netdev@vger.kernel.org,
+        intel-wired-lan@lists.osuosl.org, linux-media@vger.kernel.org,
+        iommu@lists.linux-foundation.org, linux-rdma@vger.kernel.org,
+        dmaengine@vger.kernel.org, linux-block@vger.kernel.org,
+        sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-ia64@vger.kernel.org, linux-alpha@vger.kernel.org,
+        akpm@linux-foundation.org, jiangqi903@gmail.com,
+        hverkuil@xs4all.nl, vkoul@kernel.org
+References: <1543235202-9075-1-git-send-email-anshuman.khandual@arm.com>
+From: David Hildenbrand <david@redhat.com>
+Message-ID: <bcf609de-c60a-d6ad-7acb-6c59c412adbc@redhat.com>
+Date: Mon, 26 Nov 2018 13:48:07 +0100
 MIME-Version: 1.0
-In-Reply-To: <20181123161454.3215-3-ap@ca-pape.de>
+In-Reply-To: <1543235202-9075-1-git-send-email-anshuman.khandual@arm.com>
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andreas,
-
-Thank you for the patch,
-
-On 23/11/2018 16:14, Andreas Pape wrote:
-> stk_start_stream can only be called successfully if stk_initialise and
-> stk_setup_format are called before. When using e.g. cheese it was observed
-> that stk_initialise and stk_setup_format have not been called before which
-> leads to no picture in that software whereas other tools like guvcview
-> worked flawlessly. This patch solves the issue when using e.g. cheese.
+On 26.11.18 13:26, Anshuman Khandual wrote:
+> At present there are multiple places where invalid node number is encoded
+> as -1. Even though implicitly understood it is always better to have macros
+> in there. Replace these open encodings for an invalid node number with the
+> global macro NUMA_NO_NODE. This helps remove NUMA related assumptions like
+> 'invalid node' from various places redirecting them to a common definition.
 > 
-
-This one worries me a little... (but hopefully not too much)
-
-
-> Signed-off-by: Andreas Pape <ap@ca-pape.de>
+> Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
 > ---
->  drivers/media/usb/stkwebcam/stk-webcam.c | 2 ++
->  1 file changed, 2 insertions(+)
+> Changes in V2:
 > 
-> diff --git a/drivers/media/usb/stkwebcam/stk-webcam.c b/drivers/media/usb/stkwebcam/stk-webcam.c
-> index e61427e50525..c64928e36a5a 100644
-> --- a/drivers/media/usb/stkwebcam/stk-webcam.c
-> +++ b/drivers/media/usb/stkwebcam/stk-webcam.c
-> @@ -1155,6 +1155,8 @@ static int stk_vidioc_streamon(struct file *filp,
->  	if (dev->sio_bufs == NULL)
->  		return -EINVAL;
->  	dev->sequence = 0;
-> +	stk_initialise(dev);
-> +	stk_setup_format(dev);
+> - Added inclusion of 'numa.h' header at various places per Andrew
+> - Updated 'dev_to_node' to use NUMA_NO_NODE instead per Vinod
 
-Glancing through the code base - this seems to imply to me that s_fmt
-was not set/called (presumably by cheese) as stk_setup_format() is
-called only by stk_vidioc_s_fmt_vid_cap() and stk_camera_resume().
-
-Is this an issue?
-
-I presume that this means the camera will just operate in a default
-configuration until cheese chooses something more specific.
-
-Actually - looking further this seems to be the case, as the mode is
-simply stored in dev->vsettings.mode, and so this last setup stage will
-just ensure the configuration of the hardware matches the driver.
-
-So it seems reasonable to me - but should it be set any earlier?
-Perhaps not.
-
-
-Are there any complaints when running v4l2-compliance on this device node?
-
-
-
->  	return stk_start_stream(dev);
->  }
->  
-> 
+Reviewed-by: David Hildenbrand <david@redhat.com>
 
 -- 
-Regards
---
-Kieran
+
+Thanks,
+
+David / dhildenb
