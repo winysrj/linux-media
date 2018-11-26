@@ -1,73 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga12.intel.com ([192.55.52.136]:7559 "EHLO mga12.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726176AbeKZUc0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Nov 2018 15:32:26 -0500
-Subject: Re: [PATCH 2/2] media: imx355: fix wrong order in test pattern menus
-To: Sakari Ailus <sakari.ailus@linux.intel.com>, bingbu.cao@intel.com
-Cc: linux-media@vger.kernel.org, tfiga@chromium.org,
-        rajmohan.mani@intel.com, mchehab+samsung@kernel.org,
-        hverkuil@xs4all.nl
-References: <1543218214-10767-1-git-send-email-bingbu.cao@intel.com>
- <1543218214-10767-2-git-send-email-bingbu.cao@intel.com>
- <20181126085732.vupidoa2lozp5ndo@paasikivi.fi.intel.com>
-From: Bingbu Cao <bingbu.cao@linux.intel.com>
-Message-ID: <668dba08-2b2f-8827-07d0-8e3b4821b455@linux.intel.com>
-Date: Mon, 26 Nov 2018 17:43:46 +0800
+Received: from mail-wr1-f65.google.com ([209.85.221.65]:39805 "EHLO
+        mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726176AbeKZUg5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 26 Nov 2018 15:36:57 -0500
+Received: by mail-wr1-f65.google.com with SMTP id t27so10159298wra.6
+        for <linux-media@vger.kernel.org>; Mon, 26 Nov 2018 01:43:23 -0800 (PST)
+Subject: Re: [PATCH v2] media: venus: amend buffer size for bitstream plane
+To: Malathi Gottam <mgottam@codeaurora.org>, hverkuil@xs4all.nl,
+        mchehab@kernel.org
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org, acourbot@chromium.org,
+        vgarodia@codeaurora.org
+References: <1542696783-23016-1-git-send-email-mgottam@codeaurora.org>
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Message-ID: <986d29fb-bc31-a6e3-1a10-499bebd8f5f5@linaro.org>
+Date: Mon, 26 Nov 2018 11:43:19 +0200
 MIME-Version: 1.0
-In-Reply-To: <20181126085732.vupidoa2lozp5ndo@paasikivi.fi.intel.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1542696783-23016-1-git-send-email-mgottam@codeaurora.org>
+Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Malathi,
 
+thanks for the patch!
 
-On 11/26/2018 04:57 PM, Sakari Ailus wrote:
-> Hi Bing Bu,
->
-> On Mon, Nov 26, 2018 at 03:43:34PM +0800, bingbu.cao@intel.com wrote:
->> From: Bingbu Cao <bingbu.cao@intel.com>
->>
->> current imx355 test pattern order in ctrl menu
->> is not correct, this patch fixes it.
->>
->> Signed-off-by: Bingbu Cao <bingbu.cao@intel.com>
->> ---
->>   drivers/media/i2c/imx355.c | 2 +-
->>   1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/drivers/media/i2c/imx355.c b/drivers/media/i2c/imx355.c
->> index 20c8eea5db4b..9c9559dfd3dd 100644
->> --- a/drivers/media/i2c/imx355.c
->> +++ b/drivers/media/i2c/imx355.c
->> @@ -876,8 +876,8 @@ struct imx355 {
->>   
->>   static const char * const imx355_test_pattern_menu[] = {
->>   	"Disabled",
->> -	"100% color bars",
->>   	"Solid color",
->> +	"100% color bars",
->>   	"Fade to gray color bars",
->>   	"PN9"
->>   };
-> While at it, could you use the existing test pattern naming as well for the
-> drivers? That could be a separate patch.
-Good point, thanks.
-I am trying to check whether all the existing Sony camera sensors
-use same test pattern definition, I can put them together.
->
-> >From drivers/media/i2c/smiapp/smiapp-core.c :
->
-> static const char * const smiapp_test_patterns[] = {
-> 	"Disabled",
-> 	"Solid Colour",
->    	"Eight Vertical Colour Bars",
-> 	"Colour Bars With Fade to Grey",
-> 	"Pseudorandom Sequence (PN9)",
-> };
->
-> It's not strictly necessary from interface point of view, but for the user
-> space it'd be good to align the naming.
->
+On 11/20/18 8:53 AM, Malathi Gottam wrote:
+> Accept the buffer size requested by client and compare it
+> against driver calculated size and set the maximum to
+> bitstream plane.
+> 
+> Signed-off-by: Malathi Gottam <mgottam@codeaurora.org>
+> ---
+>  drivers/media/platform/qcom/venus/venc.c | 13 +++++++++----
+>  1 file changed, 9 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/platform/qcom/venus/venc.c b/drivers/media/platform/qcom/venus/venc.c
+> index ce85962..ecfdbd6 100644
+> --- a/drivers/media/platform/qcom/venus/venc.c
+> +++ b/drivers/media/platform/qcom/venus/venc.c
+> @@ -303,6 +303,7 @@ static int venc_enum_fmt(struct file *file, void *fh, struct v4l2_fmtdesc *f)
+>  	struct v4l2_pix_format_mplane *pixmp = &f->fmt.pix_mp;
+>  	struct v4l2_plane_pix_format *pfmt = pixmp->plane_fmt;
+>  	const struct venus_format *fmt;
+> +	__u32 sizeimage;
+
+please use u32 for kernel internal variables.
+
+Otherwise looks good to me:
+
+Acked-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+
+>  
+>  	memset(pfmt[0].reserved, 0, sizeof(pfmt[0].reserved));
+>  	memset(pixmp->reserved, 0, sizeof(pixmp->reserved));
+> @@ -334,9 +335,10 @@ static int venc_enum_fmt(struct file *file, void *fh, struct v4l2_fmtdesc *f)
+>  	pixmp->num_planes = fmt->num_planes;
+>  	pixmp->flags = 0;
+>  
+> -	pfmt[0].sizeimage = venus_helper_get_framesz(pixmp->pixelformat,
+> -						     pixmp->width,
+> -						     pixmp->height);
+> +	sizeimage = venus_helper_get_framesz(pixmp->pixelformat,
+> +					     pixmp->width,
+> +					     pixmp->height);
+> +	pfmt[0].sizeimage = max(ALIGN(pfmt[0].sizeimage, SZ_4K), sizeimage);
+>  
+>  	if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+>  		pfmt[0].bytesperline = ALIGN(pixmp->width, 128);
+> @@ -408,8 +410,10 @@ static int venc_s_fmt(struct file *file, void *fh, struct v4l2_format *f)
+>  
+>  	if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+>  		inst->fmt_out = fmt;
+> -	else if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+> +	else if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
+>  		inst->fmt_cap = fmt;
+> +		inst->output_buf_size = pixmp->plane_fmt[0].sizeimage;
+> +	}
+>  
+>  	return 0;
+>  }
+> @@ -908,6 +912,7 @@ static int venc_queue_setup(struct vb2_queue *q,
+>  		sizes[0] = venus_helper_get_framesz(inst->fmt_cap->pixfmt,
+>  						    inst->width,
+>  						    inst->height);
+> +		sizes[0] = max(sizes[0], inst->output_buf_size);
+>  		inst->output_buf_size = sizes[0];
+>  		break;
+>  	default:
+> 
+
+-- 
+regards,
+Stan
