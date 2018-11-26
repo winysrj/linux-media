@@ -1,47 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:58669 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726599AbeK0FMj (ORCPT
+Received: from mail-wr1-f66.google.com ([209.85.221.66]:35319 "EHLO
+        mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726918AbeK0HNp (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Nov 2018 00:12:39 -0500
-From: Michael Tretter <m.tretter@pengutronix.de>
-To: hverkuil@xs4all.nl
-Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
-        Michael Tretter <m.tretter@pengutronix.de>
-Subject: [PATCH 1/2] [media] v4l2-pci-skeleton: depend on CONFIG_SAMPLES
-Date: Mon, 26 Nov 2018 19:01:23 +0100
-Message-Id: <20181126180124.15161-2-m.tretter@pengutronix.de>
-In-Reply-To: <20181126180124.15161-1-m.tretter@pengutronix.de>
-References: <20181126180124.15161-1-m.tretter@pengutronix.de>
+        Tue, 27 Nov 2018 02:13:45 -0500
+From: Malcolm Priestley <tvboxspy@gmail.com>
+Subject: [PATCH v3] [bug/urgent] dvb-usb-v2: Fix incorrect use of
+ transfer_flags URB_FREE_BUFFER
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Antti Palosaari <crope@iki.fi>, stable@vger.kernel.org
+Message-ID: <7dd3e986-d838-1210-922c-4f8793eea2e9@gmail.com>
+Date: Mon, 26 Nov 2018 20:18:25 +0000
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Commit 0185f8501762 ("[media] samples: v4l: from Documentation to
-samples directory") moved the v4l2-pci-skeleton driver to the samples
-directory. The samples are only be built, if CONFIG_SAMPLES is enabled.
+In commit 1a0c10ed7b media: dvb-usb-v2: stop using coherent memory for URBs
+incorrectly adds URB_FREE_BUFFER after every urb transfer.
 
-Therefore, VIDEO_PCI_SKELETON is not enough to build the
-v4l2-pci-skeleton driver, but SAMPLES needs to be enabled, too. Let
-VIDEO_PCI_SKELETON depend on SAMPLES.
+It cannot use this flag because it reconfigures the URBs accordingly
+to suit connected devices. In doing a call to usb_free_urb is made and
+invertedly frees the buffers.
 
-Signed-off-by: Michael Tretter <m.tretter@pengutronix.de>
+The stream buffer should remain constant while driver is up.
+
+Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+CC: stable@vger.kernel.org # v4.18+
 ---
- drivers/media/v4l2-core/Kconfig | 1 +
- 1 file changed, 1 insertion(+)
+v3 change commit message to the actual cause
 
-diff --git a/drivers/media/v4l2-core/Kconfig b/drivers/media/v4l2-core/Kconfig
-index b97090e85996..c0940f5c69b4 100644
---- a/drivers/media/v4l2-core/Kconfig
-+++ b/drivers/media/v4l2-core/Kconfig
-@@ -30,6 +30,7 @@ config VIDEO_FIXED_MINOR_RANGES
- config VIDEO_PCI_SKELETON
- 	tristate "Skeleton PCI V4L2 driver"
- 	depends on PCI
-+	depends on SAMPLES
- 	depends on VIDEO_V4L2 && VIDEOBUF2_CORE
- 	depends on VIDEOBUF2_MEMOPS && VIDEOBUF2_DMA_CONTIG
- 	---help---
+ drivers/media/usb/dvb-usb-v2/usb_urb.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/usb/dvb-usb-v2/usb_urb.c b/drivers/media/usb/dvb-usb-v2/usb_urb.c
+index 024c751eb165..2ad2ddeaff51 100644
+--- a/drivers/media/usb/dvb-usb-v2/usb_urb.c
++++ b/drivers/media/usb/dvb-usb-v2/usb_urb.c
+@@ -155,7 +155,6 @@ static int usb_urb_alloc_bulk_urbs(struct usb_data_stream *stream)
+ 				stream->props.u.bulk.buffersize,
+ 				usb_urb_complete, stream);
+ 
+-		stream->urb_list[i]->transfer_flags = URB_FREE_BUFFER;
+ 		stream->urbs_initialized++;
+ 	}
+ 	return 0;
+@@ -186,7 +185,7 @@ static int usb_urb_alloc_isoc_urbs(struct usb_data_stream *stream)
+ 		urb->complete = usb_urb_complete;
+ 		urb->pipe = usb_rcvisocpipe(stream->udev,
+ 				stream->props.endpoint);
+-		urb->transfer_flags = URB_ISO_ASAP | URB_FREE_BUFFER;
++		urb->transfer_flags = URB_ISO_ASAP;
+ 		urb->interval = stream->props.u.isoc.interval;
+ 		urb->number_of_packets = stream->props.u.isoc.framesperurb;
+ 		urb->transfer_buffer_length = stream->props.u.isoc.framesize *
+@@ -210,7 +209,7 @@ static int usb_free_stream_buffers(struct usb_data_stream *stream)
+ 	if (stream->state & USB_STATE_URB_BUF) {
+ 		while (stream->buf_num) {
+ 			stream->buf_num--;
+-			stream->buf_list[stream->buf_num] = NULL;
++			kfree(stream->buf_list[stream->buf_num]);
+ 		}
+ 	}
+ 
 -- 
 2.19.1
