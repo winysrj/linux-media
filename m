@@ -1,43 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out4-smtp.messagingengine.com ([66.111.4.28]:45121 "EHLO
-        out4-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726147AbeKZS1i (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Nov 2018 13:27:38 -0500
-Date: Mon, 26 Nov 2018 08:34:22 +0100
-From: Greg KH <greg@kroah.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Ben Hutchings <ben@decadent.org.uk>,
-        Dave Stevenson <dave.stevenson@raspberrypi.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>, mchehab@kernel.org,
-        linux-media@vger.kernel.org,
-        "for 4.14 and up" <stable@vger.kernel.org>
-Subject: Re: [PATCH v3.16 2/2] v4l: event: Add subscription to list before
- calling "add" operation
-Message-ID: <20181126073422.GF18375@kroah.com>
-References: <20181108120350.17266-1-sakari.ailus@linux.intel.com>
- <20181108120350.17266-3-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20181108120350.17266-3-sakari.ailus@linux.intel.com>
+Received: from mga01.intel.com ([192.55.52.88]:13150 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726154AbeKZSbz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 26 Nov 2018 13:31:55 -0500
+From: bingbu.cao@intel.com
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@linux.intel.com, tfiga@chromium.org,
+        rajmohan.mani@intel.com, bingbu.cao@linux.intel.com,
+        mchehab+samsung@kernel.org, hverkuil@xs4all.nl
+Subject: [PATCH 1/2] media: imx319: fix wrong order in test pattern menus
+Date: Mon, 26 Nov 2018 15:43:33 +0800
+Message-Id: <1543218214-10767-1-git-send-email-bingbu.cao@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Nov 08, 2018 at 02:03:50PM +0200, Sakari Ailus wrote:
-> [ upstream commit 92539d3eda2c090b382699bbb896d4b54e9bdece ]
-> 
-> Patch ad608fbcf166 changed how events were subscribed to address an issue
-> elsewhere. As a side effect of that change, the "add" callback was called
-> before the event subscription was added to the list of subscribed events,
-> causing the first event queued by the add callback (and possibly other
-> events arriving soon afterwards) to be lost.
-> 
-> Fix this by adding the subscription to the list before calling the "add"
-> callback, and clean up afterwards if that fails.
-> 
-> Fixes: ad608fbcf166 ("media: v4l: event: Prevent freeing event subscriptions while accessed")
+From: Bingbu Cao <bingbu.cao@intel.com>
 
-Now applied, thanks.
+current imx319 test pattern order in ctrl menu
+is not correct, this patch fixes it.
 
-greg k-h
+Signed-off-by: Bingbu Cao <bingbu.cao@intel.com>
+---
+ drivers/media/i2c/imx319.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/i2c/imx319.c b/drivers/media/i2c/imx319.c
+index 0d3e27812b93..acd988d2d7f1 100644
+--- a/drivers/media/i2c/imx319.c
++++ b/drivers/media/i2c/imx319.c
+@@ -1648,8 +1648,8 @@ struct imx319 {
+ 
+ static const char * const imx319_test_pattern_menu[] = {
+ 	"Disabled",
+-	"100% color bars",
+ 	"Solid color",
++	"100% color bars",
+ 	"Fade to gray color bars",
+ 	"PN9"
+ };
+-- 
+1.9.1
