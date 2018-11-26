@@ -1,70 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr1-f66.google.com ([209.85.221.66]:35319 "EHLO
-        mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726918AbeK0HNp (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Nov 2018 02:13:45 -0500
-From: Malcolm Priestley <tvboxspy@gmail.com>
-Subject: [PATCH v3] [bug/urgent] dvb-usb-v2: Fix incorrect use of
- transfer_flags URB_FREE_BUFFER
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Antti Palosaari <crope@iki.fi>, stable@vger.kernel.org
-Message-ID: <7dd3e986-d838-1210-922c-4f8793eea2e9@gmail.com>
-Date: Mon, 26 Nov 2018 20:18:25 +0000
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from smtp.anw.at ([195.234.102.72]:51966 "EHLO smtp.anw.at"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726296AbeK0I5D (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 27 Nov 2018 03:57:03 -0500
+From: "Jasmin J." <jasmin@anw.at>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, mchehab+samsung@kernel.org, jasmin@anw.at
+Subject: [PATCH] media: adv7604 added include of linux/interrupt.h
+Date: Mon, 26 Nov 2018 23:01:09 +0100
+Message-Id: <20181126220109.29743-1-jasmin@anw.at>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In commit 1a0c10ed7b media: dvb-usb-v2: stop using coherent memory for URBs
-incorrectly adds URB_FREE_BUFFER after every urb transfer.
+From: Jasmin Jessich <jasmin@anw.at>
 
-It cannot use this flag because it reconfigures the URBs accordingly
-to suit connected devices. In doing a call to usb_free_urb is made and
-invertedly frees the buffers.
+On older Kernels (prior to 4.15) irqreturn_t and devm_request_threaded_irq
+is not defined when compiling adv7604.c. It seems more recent Kernels
+include it via another header which is included by adv7604.c.
+Now we include linux/interrupt.h explicitly to get the type also defined
+for Kernels prior to 4.15.
 
-The stream buffer should remain constant while driver is up.
-
-Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
-CC: stable@vger.kernel.org # v4.18+
+Signed-off-by: Jasmin Jessich <jasmin@anw.at>
 ---
-v3 change commit message to the actual cause
+ drivers/media/i2c/adv7604.c | 1 +
+ 1 file changed, 1 insertion(+)
 
- drivers/media/usb/dvb-usb-v2/usb_urb.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/media/usb/dvb-usb-v2/usb_urb.c b/drivers/media/usb/dvb-usb-v2/usb_urb.c
-index 024c751eb165..2ad2ddeaff51 100644
---- a/drivers/media/usb/dvb-usb-v2/usb_urb.c
-+++ b/drivers/media/usb/dvb-usb-v2/usb_urb.c
-@@ -155,7 +155,6 @@ static int usb_urb_alloc_bulk_urbs(struct usb_data_stream *stream)
- 				stream->props.u.bulk.buffersize,
- 				usb_urb_complete, stream);
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index 43d27edac636..dfb4400f0445 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -27,6 +27,7 @@
+ #include <linux/videodev2.h>
+ #include <linux/workqueue.h>
+ #include <linux/regmap.h>
++#include <linux/interrupt.h>
  
--		stream->urb_list[i]->transfer_flags = URB_FREE_BUFFER;
- 		stream->urbs_initialized++;
- 	}
- 	return 0;
-@@ -186,7 +185,7 @@ static int usb_urb_alloc_isoc_urbs(struct usb_data_stream *stream)
- 		urb->complete = usb_urb_complete;
- 		urb->pipe = usb_rcvisocpipe(stream->udev,
- 				stream->props.endpoint);
--		urb->transfer_flags = URB_ISO_ASAP | URB_FREE_BUFFER;
-+		urb->transfer_flags = URB_ISO_ASAP;
- 		urb->interval = stream->props.u.isoc.interval;
- 		urb->number_of_packets = stream->props.u.isoc.framesperurb;
- 		urb->transfer_buffer_length = stream->props.u.isoc.framesize *
-@@ -210,7 +209,7 @@ static int usb_free_stream_buffers(struct usb_data_stream *stream)
- 	if (stream->state & USB_STATE_URB_BUF) {
- 		while (stream->buf_num) {
- 			stream->buf_num--;
--			stream->buf_list[stream->buf_num] = NULL;
-+			kfree(stream->buf_list[stream->buf_num]);
- 		}
- 	}
- 
+ #include <media/i2c/adv7604.h>
+ #include <media/cec.h>
 -- 
-2.19.1
+2.17.1
