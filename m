@@ -1,44 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:13150 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726154AbeKZSb4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Nov 2018 13:31:56 -0500
-From: bingbu.cao@intel.com
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@linux.intel.com, tfiga@chromium.org,
-        rajmohan.mani@intel.com, bingbu.cao@linux.intel.com,
-        mchehab+samsung@kernel.org, hverkuil@xs4all.nl
-Subject: [PATCH 2/2] media: imx355: fix wrong order in test pattern menus
-Date: Mon, 26 Nov 2018 15:43:34 +0800
-Message-Id: <1543218214-10767-2-git-send-email-bingbu.cao@intel.com>
-In-Reply-To: <1543218214-10767-1-git-send-email-bingbu.cao@intel.com>
-References: <1543218214-10767-1-git-send-email-bingbu.cao@intel.com>
+Received: from userp2130.oracle.com ([156.151.31.86]:50522 "EHLO
+        userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726165AbeKZTEr (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 26 Nov 2018 14:04:47 -0500
+Date: Mon, 26 Nov 2018 11:10:44 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Maxime Ripard <maxime.ripard@bootlin.com>,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Chen-Yu Tsai <wens@csie.org>, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-arm-kernel@lists.infradead.org,
+        linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [PATCH] media: cedrus: Fix a NULL vs IS_ERR() check
+Message-ID: <20181126081044.yz5tenssdbt7mugb@kili.mountain>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Bingbu Cao <bingbu.cao@intel.com>
+The devm_ioremap_resource() function doesn't return NULL pointers, it
+returns error pointers.
 
-current imx355 test pattern order in ctrl menu
-is not correct, this patch fixes it.
-
-Signed-off-by: Bingbu Cao <bingbu.cao@intel.com>
+Fixes: 50e761516f2b ("media: platform: Add Cedrus VPU decoder driver")
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 ---
- drivers/media/i2c/imx355.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/staging/media/sunxi/cedrus/cedrus_hw.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/i2c/imx355.c b/drivers/media/i2c/imx355.c
-index 20c8eea5db4b..9c9559dfd3dd 100644
---- a/drivers/media/i2c/imx355.c
-+++ b/drivers/media/i2c/imx355.c
-@@ -876,8 +876,8 @@ struct imx355 {
+diff --git a/drivers/staging/media/sunxi/cedrus/cedrus_hw.c b/drivers/staging/media/sunxi/cedrus/cedrus_hw.c
+index 32adbcbe6175..07520a2ce179 100644
+--- a/drivers/staging/media/sunxi/cedrus/cedrus_hw.c
++++ b/drivers/staging/media/sunxi/cedrus/cedrus_hw.c
+@@ -255,10 +255,10 @@ int cedrus_hw_probe(struct cedrus_dev *dev)
  
- static const char * const imx355_test_pattern_menu[] = {
- 	"Disabled",
--	"100% color bars",
- 	"Solid color",
-+	"100% color bars",
- 	"Fade to gray color bars",
- 	"PN9"
- };
+ 	res = platform_get_resource(dev->pdev, IORESOURCE_MEM, 0);
+ 	dev->base = devm_ioremap_resource(dev->dev, res);
+-	if (!dev->base) {
++	if (IS_ERR(dev->base)) {
+ 		v4l2_err(&dev->v4l2_dev, "Failed to map registers\n");
+ 
+-		ret = -ENOMEM;
++		ret = PTR_ERR(dev->base);
+ 		goto err_sram;
+ 	}
+ 
 -- 
-1.9.1
+2.11.0
