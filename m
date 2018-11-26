@@ -1,146 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:50600 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726248AbeK0Cyd (ORCPT
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:50915 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726260AbeK0Czu (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Nov 2018 21:54:33 -0500
-Subject: Re: [PATCH v3] media: venus: amend buffer size for bitstream plane
-To: Tomasz Figa <tfiga@chromium.org>
-Cc: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        mgottam@codeaurora.org, Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        vgarodia@codeaurora.org
-References: <1543227173-2160-1-git-send-email-mgottam@codeaurora.org>
- <d74281c8-a177-12a3-9e72-7a7db3014943@xs4all.nl>
- <f6106d20-abee-979c-8ac1-6c9115e8373c@linaro.org>
- <57b28a7f-8c5c-22d2-2f89-e6d6ebdcb8a2@xs4all.nl>
- <CAAFQd5DJn-_y5dHySAB6_ed-syBOr3Ybo7KfsPLNd+0Z7X0N7g@mail.gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <2a8bbdf7-cec6-4bdf-5833-93d5014ddf89@xs4all.nl>
-Date: Mon, 26 Nov 2018 16:59:56 +0100
+        Mon, 26 Nov 2018 21:55:50 -0500
+Date: Mon, 26 Nov 2018 17:01:04 +0100
+From: Marco Felsch <m.felsch@pengutronix.de>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, mark.rutland@arm.com,
+        devicetree@vger.kernel.org,
+        Michael Grzeschik <m.grzeschik@pengutronix.de>,
+        enrico.scholz@sigma-chemnitz.de, akinobu.mita@gmail.com,
+        robh+dt@kernel.org, sakari.ailus@linux.intel.com,
+        mchehab@kernel.org, graphics@pengutronix.de,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 3/6] media: mt9m111: add support to select formats and
+ fps for {Q,SXGA}
+Message-ID: <20181126160104.gqdved5aoxy42t4h@pengutronix.de>
+References: <20181029182410.18783-1-m.felsch@pengutronix.de>
+ <20181029182410.18783-4-m.felsch@pengutronix.de>
+ <20181116132610.54elo2dqsrrlydlh@valkosipuli.retiisi.org.uk>
+ <e28d74c2-d2de-6450-d572-6d691b7416c7@xs4all.nl>
+ <20181116133359.ecni6us77qc7hkxg@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <CAAFQd5DJn-_y5dHySAB6_ed-syBOr3Ybo7KfsPLNd+0Z7X0N7g@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20181116133359.ecni6us77qc7hkxg@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/26/2018 04:44 PM, Tomasz Figa wrote:
+Hi Sakari, Hans,
+
+On 18-11-16 15:33, Sakari Ailus wrote:
 > Hi Hans,
 > 
-> On Tue, Nov 27, 2018 at 12:24 AM Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>
->> On 11/26/2018 03:57 PM, Stanimir Varbanov wrote:
->>> Hi Hans,
->>>
->>> On 11/26/18 3:37 PM, Hans Verkuil wrote:
->>>> On 11/26/2018 11:12 AM, Malathi Gottam wrote:
->>>>> Accept the buffer size requested by client and compare it
->>>>> against driver calculated size and set the maximum to
->>>>> bitstream plane.
->>>>>
->>>>> Signed-off-by: Malathi Gottam <mgottam@codeaurora.org>
->>>>
->>>> Sorry, this isn't allowed. It is the driver that sets the sizeimage value,
->>>> never the other way around.
->>>
->>> I think for decoders (OUTPUT queue) and encoders (CAPTURE queue) we
->>> allowed userspace to set sizeimage for buffers. See [1] Initialization
->>> paragraph point 2:
->>>
->>>     ``sizeimage``
->>>        desired size of ``CAPTURE`` buffers; the encoder may adjust it to
->>>        match hardware requirements
->>>
->>> Similar patch we be needed for decoder as well.
->>
->> I may have missed that change since it wasn't present in v1 of the stateful
->> encoder spec.
-> 
-> It's been there from the very beginning, even before I started working
-> on it. Actually, even the early slides from Kamil mention the
-> application setting the buffer size for compressed streams:
-> https://events.static.linuxfound.org/images/stories/pdf/lceu2012_debski.pdf
-> 
->>
->> Tomasz, what was the reason for this change? I vaguely remember some thread
->> about this, but I forgot the details. Since this would be a departure of
->> the current API this should be explained in more detail.
-> 
-> The kernel is not the place to encode assumptions about optimal
-> bitstream chunk sizes. It depends on the use case and the application
-> should be able decide. It may for example want to use smaller buffers,
-> optimizing for the well compressible video streams and just reallocate
-> if bigger chunks are needed.
-> 
->>
->> I don't really see the point of requiring userspace to fill this in. For
->> stateful codecs it can just return some reasonable size. Possibly calculated
->> using the provided width/height values or (if those are 0) some default value.
-> 
-> How do we decide what's "reasonable"? Would it be reasonable for all
-> applications?
+> On Fri, Nov 16, 2018 at 02:31:01PM +0100, Hans Verkuil wrote:
+> > On 11/16/2018 02:26 PM, Sakari Ailus wrote:
+> > > Hi Marco, Michael,
+> > > 
+> > > On Mon, Oct 29, 2018 at 07:24:07PM +0100, Marco Felsch wrote:
+> > >> From: Michael Grzeschik <m.grzeschik@pengutronix.de>
+> > >>
+> > >> This patch implements the framerate selection using the skipping and
+> > >> readout power-modi features. The power-modi cut the framerate by half
+> > >> and each context has an independent selection bit. The same applies to
+> > >> the 2x skipping feature.
+> > >>
+> > >> Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
+> > >> Signed-off-by: Marco Felsch <m.felsch@pengutronix.de>
+> > >>
+> > >> ---
+> > >> Changelog
+> > >>
+> > >> v2:
+> > >> - fix updating read mode register, use mt9m111_reg_mask() to update the
+> > >>   relevant bits only. For this purpose add reg_mask field to
+> > >>   struct mt9m111_mode_info.
+> > >>
+> > >>  drivers/media/i2c/mt9m111.c | 163 ++++++++++++++++++++++++++++++++++++
+> > >>  1 file changed, 163 insertions(+)
+> > >>
+> > >> diff --git a/drivers/media/i2c/mt9m111.c b/drivers/media/i2c/mt9m111.c
+> > 
+> > <snip>
+> > 
+> > >> +static const struct mt9m111_mode_info *
+> > >> +mt9m111_find_mode(struct mt9m111 *mt9m111, unsigned int req_fps,
+> > >> +		  unsigned int width, unsigned int height)
+> > >> +{
+> > >> +	const struct mt9m111_mode_info *mode;
+> > >> +	struct v4l2_rect *sensor_rect = &mt9m111->rect;
+> > >> +	unsigned int gap, gap_best = (unsigned int) -1;
+> > >> +	int i, best_gap_idx = 1;
+> > >> +
+> > >> +	/* find best matched fps */
+> > >> +	for (i = 0; i < MT9M111_NUM_MODES; i++) {
+> > >> +		unsigned int fps = mt9m111_mode_data[i].max_fps;
+> > >> +
+> > >> +		gap = abs(fps - req_fps);
+> > >> +		if (gap < gap_best) {
+> > >> +			best_gap_idx = i;
+> > >> +			gap_best = gap;
+> > >> +		}
+> > > 
+> > > Could you use v4l2_find_nearest_size() instead?
 
-In theory it should be the minimum size that the hardware supports. But it is
-silly to i.e. provide the size of one PAGE as the minimum. In practice you
-probably want to set sizeimage to something larger than that. Depending on
-the typical compression ratio perhaps 5 or 10% of what a raw YUV 4:2:0 frame
-would be.
+I'm try to find the best matching framerate, so I think no.
 
+> > > 
+> > > Also see below...
+> > > 
+> > >> +	}
+> > >> +
+> > >> +	/*
+> > >> +	 * Use context a/b default timing values instead of calculate blanking
+> > >> +	 * timing values.
+> > >> +	 */
+> > >> +	mode = &mt9m111_mode_data[best_gap_idx];
+> > >> +	mt9m111->ctx = (best_gap_idx == MT9M111_MODE_QSXGA_30FPS) ? &context_a :
+> > >> +								    &context_b;
+> > >> +
+> > >> +	/*
+> > >> +	 * Check if current settings support the fps because fps selection is
+> > >> +	 * based on the row/col skipping mechanism which has some restriction.
+> > >> +	 */
+> > >> +	if (sensor_rect->width != mode->sensor_w ||
+> > >> +	    sensor_rect->height != mode->sensor_h ||
+> > >> +	    width > mode->max_image_w ||
+> > >> +	    height > mode->max_image_h) {
+> > >> +		/* reset sensor window size */
+> > >> +		mt9m111->rect.left = MT9M111_MIN_DARK_COLS;
+> > >> +		mt9m111->rect.top = MT9M111_MIN_DARK_ROWS;
+> > >> +		mt9m111->rect.width = mode->sensor_w;
+> > >> +		mt9m111->rect.height = mode->sensor_h;
+> > >> +
+> > >> +		/* reset image size */
+> > >> +		mt9m111->width = mode->max_image_w;
+> > >> +		mt9m111->height = mode->max_image_h;
+> > >> +
+> > >> +		dev_warn(mt9m111->subdev.dev,
+> > >> +			 "Warning: update image size %dx%d[%dx%d] -> %dx%d[%dx%d]\n",
+> > >> +			 sensor_rect->width, sensor_rect->height, width, height,
+> > >> +			 mode->sensor_w, mode->sensor_h, mode->max_image_w,
+> > >> +			 mode->max_image_h);
+> > > 
+> > > I wouldn't expect requesting a particular frame rate to change the sensor
+> > > format. The other way around is definitely fine though.
+> > > 
+> > > Cc Hans.
+> > 
+> > I agree with Sakari. Changing the framerate should never change the format.
+> > When you enumerate framerates those framerates are the allowed framerates
+> > for the mediabus format and the resolution. So changing the framerate should
+> > never modify the format or resolution. Instead, the framerate should be
+> > mapped to a framerate that is valid for the format/resolution combo.
 > 
->>
->> Ditto for decoders.
->>
->> Stanimir, I certainly cannot merge this until this has been fully nailed down
->> as it would be a departure from the current API.
-> 
-> It would not be a departure, because I can see existing stateful
-> drivers behaving like that:
-> https://elixir.bootlin.com/linux/v4.20-rc4/source/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c#L1444
-> https://elixir.bootlin.com/linux/v4.20-rc4/source/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c#L469
+> I don't think this is actually documented, at least not for the sub-device
+> API. I can send a patch.
 
-Yes, and that's out of spec. Clearly v4l2-compliance doesn't test for this.
-It should have been caught at least for the mtk driver.
+Thanks for this hint. I changed it in my v3 so the format isn't touched
+anymore.
 
-> 
-> Also, Chromium has been setting the size on its own for long time
-> using its own heuristics.
-> 
->>
->> And looking at the venus patch I do not see how it helps userspace.
->>
->> Regards,
->>
->>         Hans
->>
->>>
->>>>
->>>> If you need to allocate larger buffers, then use VIDIOC_CREATE_BUFS instead
->>>> of VIDIOC_REQBUFS.
-> 
-> CREATE_BUFS wouldn't work, because one needs to use TRY_FMT to obtain
-> a format for it and the format returned by it would have the sizeimage
-> as hardcoded in the driver...
+Kind regards,
+Marco
 
-???
-
-Userspace can change the sizeimage to whatever it wants before calling
-CREATE_BUFS as long as it is >= the sizeimage of the current format.
-
-If we want to allow smaller sizes, then I think that would not be
-unreasonable for stateful codecs. I actually think that drivers can
-already do this in queue_setup(), but the spec would have to be updated
-a bit.
-
-Regards,
-
-	Hans
-
-> 
-> Best regards,
-> Tomasz
+> -- 
+> Sakari Ailus
+> e-mail: sakari.ailus@iki.fi
 > 
