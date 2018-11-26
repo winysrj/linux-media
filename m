@@ -1,41 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.anw.at ([195.234.102.72]:51966 "EHLO smtp.anw.at"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726296AbeK0I5D (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Nov 2018 03:57:03 -0500
-From: "Jasmin J." <jasmin@anw.at>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, mchehab+samsung@kernel.org, jasmin@anw.at
-Subject: [PATCH] media: adv7604 added include of linux/interrupt.h
-Date: Mon, 26 Nov 2018 23:01:09 +0100
-Message-Id: <20181126220109.29743-1-jasmin@anw.at>
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:44710 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727487AbeK0KZh (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 27 Nov 2018 05:25:37 -0500
+Message-ID: <95c67b23fcba7157f25d387e4ba8eb27cc85d2b5.camel@collabora.com>
+Subject: Re: [PATCH] v4l2-ioctl: Zero v4l2_pix_format_mplane reserved fields
+From: Ezequiel Garcia <ezequiel@collabora.com>
+To: Tomasz Figa <tfiga@chromium.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Date: Mon, 26 Nov 2018 20:29:40 -0300
+In-Reply-To: <CAAFQd5Aub8AmM-U9FM-UhOYPtMP=MbGwuX0svkVP-4p0H8MejA@mail.gmail.com>
+References: <20181123171958.17614-1-ezequiel@collabora.com>
+         <CAAFQd5Aub8AmM-U9FM-UhOYPtMP=MbGwuX0svkVP-4p0H8MejA@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jasmin Jessich <jasmin@anw.at>
+On Mon, 2018-11-26 at 13:14 +0900, Tomasz Figa wrote:
+> Hi Ezequiel,
+> 
+> On Sat, Nov 24, 2018 at 2:20 AM Ezequiel Garcia <ezequiel@collabora.com> wrote:
+> > Make the core set the reserved fields to zero in
+> > v4l2_pix_format_mplane and v4l2_plane_pix_format structs,
+> > for _MPLANE queue types.
+> > 
+> > Moving this to the core avoids having to do so in each
+> > and every driver.
+> > 
+> > Suggested-by: Tomasz Figa <tfiga@chromium.org>
+> > Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+> > ---
+> >  drivers/media/v4l2-core/v4l2-ioctl.c | 51 ++++++++++++++++++++++++----
+> >  1 file changed, 45 insertions(+), 6 deletions(-)
+> > 
+> 
+> Thanks for the patch. Please see my comments inline.
+> 
+> > diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+> > index 10b862dcbd86..3858fffc3e68 100644
+> > --- a/drivers/media/v4l2-core/v4l2-ioctl.c
+> > +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+> > @@ -1420,6 +1420,7 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
+> >  {
+> >         struct v4l2_format *p = arg;
+> >         int ret = check_fmt(file, p->type);
+> > +       int i;
+> > 
+> >         if (ret)
+> >                 return ret;
+> > @@ -1458,7 +1459,13 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
+> >                 p->fmt.pix.priv = V4L2_PIX_FMT_PRIV_MAGIC;
+> >                 return ret;
+> >         case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+> > -               return ops->vidioc_g_fmt_vid_cap_mplane(file, fh, arg);
+> > +               ret = ops->vidioc_g_fmt_vid_cap_mplane(file, fh, arg);
+> > +               memset(p->fmt.pix_mp.reserved, 0,
+> > +                      sizeof(p->fmt.pix_mp.reserved));
+> > +               for (i = 0; i < p->fmt.pix_mp.num_planes; i++)
+> > +                       memset(p->fmt.pix_mp.plane_fmt[i].reserved, 0,
+> > +                              sizeof(p->fmt.pix_mp.plane_fmt[i].reserved));
+> > +               return ret;
+> >         case V4L2_BUF_TYPE_VIDEO_OVERLAY:
+> >                 return ops->vidioc_g_fmt_vid_overlay(file, fh, arg);
+> >         case V4L2_BUF_TYPE_VBI_CAPTURE:
+> > @@ -1474,7 +1481,13 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
+> >                 p->fmt.pix.priv = V4L2_PIX_FMT_PRIV_MAGIC;
+> >                 return ret;
+> >         case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
+> > -               return ops->vidioc_g_fmt_vid_out_mplane(file, fh, arg);
+> > +               ret = ops->vidioc_g_fmt_vid_out_mplane(file, fh, arg);
+> > +               memset(p->fmt.pix_mp.reserved, 0,
+> > +                      sizeof(p->fmt.pix_mp.reserved));
+> > +               for (i = 0; i < p->fmt.pix_mp.num_planes; i++)
+> > +                       memset(p->fmt.pix_mp.plane_fmt[i].reserved, 0,
+> > +                              sizeof(p->fmt.pix_mp.plane_fmt[i].reserved));
+> > +               return ret;
+> 
+> I wonder if we need this for G_FMT. The driver can just memset() the
+> whole struct itself and then just initialize the fields it cares
+> about, but actually in many cases the driver will just include an
+> instance of the pix_fmt(_mp) struct in its internal state (which has
+> the reserved fields already zeroed) and just copy it to the target
+> struct in the callback.
+> 
 
-On older Kernels (prior to 4.15) irqreturn_t and devm_request_threaded_irq
-is not defined when compiling adv7604.c. It seems more recent Kernels
-include it via another header which is included by adv7604.c.
-Now we include linux/interrupt.h explicitly to get the type also defined
-for Kernels prior to 4.15.
+Perhaps in many cases, but from code inspection it seems not
+all of them (randomly opened vicodec & mtk-jpeg and both need
+a memset!). 
 
-Signed-off-by: Jasmin Jessich <jasmin@anw.at>
----
- drivers/media/i2c/adv7604.c | 1 +
- 1 file changed, 1 insertion(+)
+I'm thinkig it'd best to keep it this way for consistency
+and to avoid having the worry at all about this in the drivers.
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 43d27edac636..dfb4400f0445 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -27,6 +27,7 @@
- #include <linux/videodev2.h>
- #include <linux/workqueue.h>
- #include <linux/regmap.h>
-+#include <linux/interrupt.h>
- 
- #include <media/i2c/adv7604.h>
- #include <media/cec.h>
--- 
-2.17.1
+Should we use CLEAR_AFTER_FIELD here as well?
+
+> >         case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
+> >                 return ops->vidioc_g_fmt_vid_out_overlay(file, fh, arg);
+> >         case V4L2_BUF_TYPE_VBI_OUTPUT:
+> > @@ -1512,6 +1525,7 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
+> >         struct v4l2_format *p = arg;
+> >         struct video_device *vfd = video_devdata(file);
+> >         int ret = check_fmt(file, p->type);
+> > +       int i;
+> > 
+> >         if (ret)
+> >                 return ret;
+> > @@ -1536,7 +1550,13 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
+> >                 if (unlikely(!ops->vidioc_s_fmt_vid_cap_mplane))
+> >                         break;
+> >                 CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
+> > -               return ops->vidioc_s_fmt_vid_cap_mplane(file, fh, arg);
+> > +               ret = ops->vidioc_s_fmt_vid_cap_mplane(file, fh, arg);
+> > +               memset(p->fmt.pix_mp.reserved, 0,
+> > +                      sizeof(p->fmt.pix_mp.reserved));
+> 
+> Note that we're already zeroing this field before calling driver's callback.
+> 
+
+Right, I missed the CLEAR_AFTER_FIELD macro was also covering reserved fields.
+
+> > +               for (i = 0; i < p->fmt.pix_mp.num_planes; i++)
+> > +                       memset(p->fmt.pix_mp.plane_fmt[i].reserved, 0,
+> > +                              sizeof(p->fmt.pix_mp.plane_fmt[i].reserved));
+> 
+> Should we use the CLEAR_AFTER_FIELD() macro? Also, should we do before
+> calling the driver, as with pix_mp.reserved?
+
+Yeah, that makes more sense.
+
+Thanks for reviewing,
+Eze
