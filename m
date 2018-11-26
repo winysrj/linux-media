@@ -1,50 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:43234 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726321AbeKZXmP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Nov 2018 18:42:15 -0500
-Subject: Re: [PATCH V2] mm: Replace all open encodings for NUMA_NO_NODE
-To: Anshuman Khandual <anshuman.khandual@arm.com>, linux-mm@kvack.org,
-        linux-kernel@vger.kernel.org
-Cc: ocfs2-devel@oss.oracle.com, linux-fbdev@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, netdev@vger.kernel.org,
-        intel-wired-lan@lists.osuosl.org, linux-media@vger.kernel.org,
-        iommu@lists.linux-foundation.org, linux-rdma@vger.kernel.org,
-        dmaengine@vger.kernel.org, linux-block@vger.kernel.org,
-        sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-ia64@vger.kernel.org, linux-alpha@vger.kernel.org,
-        akpm@linux-foundation.org, jiangqi903@gmail.com,
-        hverkuil@xs4all.nl, vkoul@kernel.org
-References: <1543235202-9075-1-git-send-email-anshuman.khandual@arm.com>
-From: David Hildenbrand <david@redhat.com>
-Message-ID: <bcf609de-c60a-d6ad-7acb-6c59c412adbc@redhat.com>
-Date: Mon, 26 Nov 2018 13:48:07 +0100
+Received: from perceval.ideasonboard.com ([213.167.242.64]:37586 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726177AbeKZXm7 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 26 Nov 2018 18:42:59 -0500
+Reply-To: kieran.bingham@ideasonboard.com
+Subject: Re: [PATCH 1/3] media: stkwebcam: Support for ASUS A6VM notebook
+ added.
+To: Andreas Pape <ap@ca-pape.de>, linux-media@vger.kernel.org
+References: <20181123161454.3215-1-ap@ca-pape.de>
+ <20181123161454.3215-2-ap@ca-pape.de>
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Message-ID: <ca22a6ae-f17a-8158-99af-376657adf730@ideasonboard.com>
+Date: Mon, 26 Nov 2018 12:48:53 +0000
 MIME-Version: 1.0
-In-Reply-To: <1543235202-9075-1-git-send-email-anshuman.khandual@arm.com>
+In-Reply-To: <20181123161454.3215-2-ap@ca-pape.de>
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 26.11.18 13:26, Anshuman Khandual wrote:
-> At present there are multiple places where invalid node number is encoded
-> as -1. Even though implicitly understood it is always better to have macros
-> in there. Replace these open encodings for an invalid node number with the
-> global macro NUMA_NO_NODE. This helps remove NUMA related assumptions like
-> 'invalid node' from various places redirecting them to a common definition.
-> 
-> Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-> ---
-> Changes in V2:
-> 
-> - Added inclusion of 'numa.h' header at various places per Andrew
-> - Updated 'dev_to_node' to use NUMA_NO_NODE instead per Vinod
+Hi Andreas,
 
-Reviewed-by: David Hildenbrand <david@redhat.com>
+Thank you for the patch,
+
+On 23/11/2018 16:14, Andreas Pape wrote:
+> The ASUS A6VM notebook has a built in stk11xx webcam which is mounted
+> in a way that the video is vertically and horizontally flipped.
+> Therefore this notebook is added to the special handling in the driver
+> to automatically flip the video into the correct orientation.
+> 
+> Signed-off-by: Andreas Pape <ap@ca-pape.de>
+> ---
+>  drivers/media/usb/stkwebcam/stk-webcam.c | 7 +++++++
+>  1 file changed, 7 insertions(+)
+> 
+> diff --git a/drivers/media/usb/stkwebcam/stk-webcam.c b/drivers/media/usb/stkwebcam/stk-webcam.c
+> index e11d5d5b7c26..e61427e50525 100644
+> --- a/drivers/media/usb/stkwebcam/stk-webcam.c
+> +++ b/drivers/media/usb/stkwebcam/stk-webcam.c
+> @@ -116,6 +116,13 @@ static const struct dmi_system_id stk_upside_down_dmi_table[] = {
+>  			DMI_MATCH(DMI_PRODUCT_NAME, "T12Rg-H")
+>  		}
+>  	},
+> +	{
+> +		.ident = "ASUS A6VM",
+> +		.matches = {
+> +			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK Computer Inc."),
+> +			DMI_MATCH(DMI_PRODUCT_NAME, "A6VM")
+> +		}
+
+I guess these strings match the strings produced by dmi-decode on your
+laptop?
+
+Assuming so:
+
+Reviewed-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
+
+
+> +	},
+>  	{}
+>  };
+>  
+> 
 
 -- 
-
-Thanks,
-
-David / dhildenb
+Regards
+--
+Kieran
