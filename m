@@ -1,49 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:51998 "EHLO foss.arm.com"
+Received: from mail.kernel.org ([198.145.29.99]:37864 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726150AbeKZRiN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Nov 2018 12:38:13 -0500
-Subject: Re: [PATCH] mm: Replace all open encodings for NUMA_NO_NODE
-To: Vinod Koul <vkoul@kernel.org>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
-        ocfs2-devel@oss.oracle.com, linux-fbdev@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, netdev@vger.kernel.org,
-        intel-wired-lan@lists.osuosl.org, linux-media@vger.kernel.org,
-        iommu@lists.linux-foundation.org, linux-rdma@vger.kernel.org,
-        dmaengine@vger.kernel.org, linux-block@vger.kernel.org,
-        sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-ia64@vger.kernel.org, linux-alpha@vger.kernel.org,
-        akpm@linux-foundation.org, jiangqi903@gmail.com, hverkuil@xs4all.nl
-References: <1542966856-12619-1-git-send-email-anshuman.khandual@arm.com>
- <20181124140554.GG3175@vkoul-mobl.Dlink>
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Message-ID: <5228bcdb-b140-a86a-6c9c-488f1a723353@arm.com>
-Date: Mon, 26 Nov 2018 12:15:04 +0530
+        id S1726147AbeKZSVO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 26 Nov 2018 13:21:14 -0500
+Date: Mon, 26 Nov 2018 08:27:59 +0100
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Dave Stevenson <dave.stevenson@raspberrypi.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        linux-media@vger.kernel.org, Sasha Levin <sashal@kernel.org>
+Subject: Re: [PATCH v2 for v4.4 1/1] v4l: event: Add subscription to list
+ before calling "add" operation
+Message-ID: <20181126072759.GB18375@kroah.com>
+References: <20181114093746.29035-1-sakari.ailus@linux.intel.com>
+ <20181119151400.GB5340@kroah.com>
+ <20181119170354.kjgob6m2lsbqae2m@kekkonen.localdomain>
+ <20181119174621.GA13098@kroah.com>
+ <20181120104946.jgkotjrp6an76tws@paasikivi.fi.intel.com>
+ <20181120092150.5c1bd063@coco.lan>
+ <20181122113332.vl6pwnvpt54appbr@paasikivi.fi.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <20181124140554.GG3175@vkoul-mobl.Dlink>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20181122113332.vl6pwnvpt54appbr@paasikivi.fi.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-
-On 11/24/2018 07:35 PM, Vinod Koul wrote:
-> On 23-11-18, 15:24, Anshuman Khandual wrote:
+On Thu, Nov 22, 2018 at 01:33:33PM +0200, Sakari Ailus wrote:
+> On Tue, Nov 20, 2018 at 09:21:50AM -0200, Mauro Carvalho Chehab wrote:
+> > Em Tue, 20 Nov 2018 12:49:46 +0200
+> > Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+> > 
+> > > Hi Greg,
+> > > 
+> > > On Mon, Nov 19, 2018 at 06:46:21PM +0100, Greg Kroah-Hartman wrote:
+> > > > On Mon, Nov 19, 2018 at 07:03:54PM +0200, Sakari Ailus wrote:  
+> > > > > Hi Greg,
+> > > > > 
+> > > > > On Mon, Nov 19, 2018 at 04:14:00PM +0100, Greg Kroah-Hartman wrote:  
+> > > > > > On Wed, Nov 14, 2018 at 11:37:46AM +0200, Sakari Ailus wrote:  
+> > > > > > > [ upstream commit 92539d3eda2c090b382699bbb896d4b54e9bdece ]  
+> > > > > > 
+> > > > > > There is no such git commit id in Linus's tree :(  
+> > > > > 
+> > > > > Right. At the moment it's in the media tree only. I expect it'll end up to
+> > > > > Linus's tree once Mauro will send the next pull request from the media tree
+> > > > > to Linus.  
+> > > > 
+> > > > Ok, please do not send requests for stable tree inclusion until _AFTER_
+> > > > the patch is in Linus's tree, otherwise it just wastes the stable tree
+> > > > maintainer's time :(  
+> > > 
+> > > Apologies for the noise. I'll send you a note once the patches are in
+> > > Linus's tree.
+> > 
+> > Btw, just sent a pull request with this patch. 
+> > 
+> > I wanted to send this two weeks ago, but I had to do two trips 
+> > (the final one to be at KS/LPC). This ended by delaying the pull request.
 > 
->> --- a/drivers/dma/dmaengine.c
->> +++ b/drivers/dma/dmaengine.c
->> @@ -386,7 +386,8 @@ EXPORT_SYMBOL(dma_issue_pending_all);
->>  static bool dma_chan_is_local(struct dma_chan *chan, int cpu)
->>  {
->>  	int node = dev_to_node(chan->device->dev);
->> -	return node == -1 || cpumask_test_cpu(cpu, cpumask_of_node(node));
->> +	return node == NUMA_NO_NODE ||
->> +		cpumask_test_cpu(cpu, cpumask_of_node(node));
->>  }
-> 
-> I do not see dev_to_node being updated first, that returns -1 so I would
-> prefer to check for -1 unless it return NUMA_NO_NODE
+> The patch is in Linus's tree now.
 
-Sure will update dev_to_node() to return NUMA_NO_NODE as well.
+And what is the git commit id?
+
+thanks,
+
+gre k-h
