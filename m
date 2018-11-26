@@ -1,49 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:42101 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726200AbeK0AqY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Nov 2018 19:46:24 -0500
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.21] venus fixes
-Message-ID: <a3dc6a6e-1ad7-e8a3-18ac-869338bc85c6@xs4all.nl>
-Date: Mon, 26 Nov 2018 14:52:08 +0100
+Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:38200 "EHLO
+        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726201AbeK0A47 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 26 Nov 2018 19:56:59 -0500
+Subject: Re: [PATCH V2] mm: Replace all open encodings for NUMA_NO_NODE
+To: David Hildenbrand <david@redhat.com>, linux-mm@kvack.org,
+        linux-kernel@vger.kernel.org
+Cc: ocfs2-devel@oss.oracle.com, linux-fbdev@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, netdev@vger.kernel.org,
+        intel-wired-lan@lists.osuosl.org, linux-media@vger.kernel.org,
+        iommu@lists.linux-foundation.org, linux-rdma@vger.kernel.org,
+        dmaengine@vger.kernel.org, linux-block@vger.kernel.org,
+        sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-ia64@vger.kernel.org, linux-alpha@vger.kernel.org,
+        akpm@linux-foundation.org, jiangqi903@gmail.com,
+        hverkuil@xs4all.nl, vkoul@kernel.org
+References: <1543235202-9075-1-git-send-email-anshuman.khandual@arm.com>
+ <bcf609de-c60a-d6ad-7acb-6c59c412adbc@redhat.com>
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Message-ID: <20049f8a-b68f-8af2-c4c7-9410781f37fa@arm.com>
+Date: Mon, 26 Nov 2018 19:32:44 +0530
 MIME-Version: 1.0
+In-Reply-To: <bcf609de-c60a-d6ad-7acb-6c59c412adbc@redhat.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 708d75fe1c7c6e9abc5381b6fcc32b49830383d0:
 
-  media: dvb-pll: don't re-validate tuner frequencies (2018-11-23 12:27:18 -0500)
 
-are available in the Git repository at:
+On 11/26/2018 06:18 PM, David Hildenbrand wrote:
+> On 26.11.18 13:26, Anshuman Khandual wrote:
+>> At present there are multiple places where invalid node number is encoded
+>> as -1. Even though implicitly understood it is always better to have macros
+>> in there. Replace these open encodings for an invalid node number with the
+>> global macro NUMA_NO_NODE. This helps remove NUMA related assumptions like
+>> 'invalid node' from various places redirecting them to a common definition.
+>>
+>> Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+>> ---
+>> Changes in V2:
+>>
+>> - Added inclusion of 'numa.h' header at various places per Andrew
+>> - Updated 'dev_to_node' to use NUMA_NO_NODE instead per Vinod
+> 
+> Reviewed-by: David Hildenbrand <david@redhat.com>
 
-  git://linuxtv.org/hverkuil/media_tree.git tags/br-v4.21f
-
-for you to fetch changes up to 6d26aaad0d1e1d0588c07f6cffdfce0839fdb21c:
-
-  media: venus: fix reported size of 0-length buffers (2018-11-26 14:31:00 +0100)
-
-----------------------------------------------------------------
-Tag branch
-
-----------------------------------------------------------------
-Alexandre Courbot (1):
-      media: venus: fix reported size of 0-length buffers
-
-Malathi Gottam (3):
-      media: venus: add support for USERPTR to queue
-      media: venus: handle peak bitrate set property
-      media: venus: dynamic handling of bitrate
-
- drivers/media/platform/qcom/venus/hfi_cmds.c   |  2 +-
- drivers/media/platform/qcom/venus/hfi_venus.c  |  2 ++
- drivers/media/platform/qcom/venus/vdec.c       |  4 +---
- drivers/media/platform/qcom/venus/venc.c       |  4 ++--
- drivers/media/platform/qcom/venus/venc_ctrls.c | 15 +++++++++++++++
- 5 files changed, 21 insertions(+), 6 deletions(-)
+Thanks David. My bad, forgot to add your review tag from the earlier version.
