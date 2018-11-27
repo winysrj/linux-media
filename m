@@ -1,90 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:33486 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726312AbeK1AMz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Nov 2018 19:12:55 -0500
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Subject: [PATCH] dvb-sat: rename Astra 1E to Astra 19.2 E and move it to beginning
-Date: Tue, 27 Nov 2018 11:14:52 -0200
-Message-Id: <a5fc0e08339708a21a0d254ece4feab45421ce50.1543324451.git.mchehab+samsung@kernel.org>
+Received: from mga04.intel.com ([192.55.52.120]:12756 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726266AbeK1ARq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 27 Nov 2018 19:17:46 -0500
+Date: Tue, 27 Nov 2018 15:19:48 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Marco Felsch <m.felsch@pengutronix.de>
+Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        enrico.scholz@sigma-chemnitz.de, devicetree@vger.kernel.org,
+        akinobu.mita@gmail.com, linux-media@vger.kernel.org,
+        graphics@pengutronix.de,
+        Michael Grzeschik <m.grzeschik@pengutronix.de>
+Subject: Re: [PATCH v3 6/6] media: mt9m111: allow to setup pixclk polarity
+Message-ID: <20181127131948.maqwyqmlnwowf4ng@paasikivi.fi.intel.com>
+References: <20181127100253.30845-1-m.felsch@pengutronix.de>
+ <20181127100253.30845-7-m.felsch@pengutronix.de>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20181127100253.30845-7-m.felsch@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The "European Universal" LNBf was now replaced by the model with
-also supports the Astra satellites in almost all EU. We're keeping
-seeing people reporting problems on Kaffeine and other digital TV
-software due to that.
+Hi Marco,
 
-So, in order to make easier for new people that just want to make
-their Satellite-based TV to work in Europe, let's move the Astra
-entry to be the first one and giving it a better name, as the
-Astra 1E satellite was retired a long time ago, and, since 2008,
-the satellites that replaced it are known as "Astra 19.2 E",
-in order to reflect their orbital position.
+On Tue, Nov 27, 2018 at 11:02:53AM +0100, Marco Felsch wrote:
+> From: Enrico Scholz <enrico.scholz@sigma-chemnitz.de>
+> 
+> The chip can be configured to output data transitions on the
+> rising or falling edge of PIXCLK (Datasheet R58:1[9]), default is on the
+> falling edge.
+> 
+> Parsing the fw-node is made in a subfunction to bundle all (future)
+> dt-parsing / fw-parsing stuff.
+> 
+> Signed-off-by: Enrico Scholz <enrico.scholz@sigma-chemnitz.de>
+> (m.grzeschik@pengutronix.de: Fix inverting clock. INV_PIX_CLOCK bit is set
+> per default. Set bit to 0 (enable mask bit without value) to enable
+> falling edge sampling.)
+> Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
+> (m.felsch@pengutronix.de: use fwnode helpers)
+> (m.felsch@pengutronix.de: mv fw parsing into own function)
+> (m.felsch@pengutronix.de: adapt commit msg)
+> Signed-off-by: Marco Felsch <m.felsch@pengutronix.de>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
----
- lib/libdvbv5/dvb-sat.c | 36 ++++++++++++++++++------------------
- 1 file changed, 18 insertions(+), 18 deletions(-)
+Applied with the following diff:
 
-diff --git a/lib/libdvbv5/dvb-sat.c b/lib/libdvbv5/dvb-sat.c
-index 8c04f66f973b..18e2359c053b 100644
---- a/lib/libdvbv5/dvb-sat.c
-+++ b/lib/libdvbv5/dvb-sat.c
-@@ -53,7 +53,24 @@ struct dvb_sat_lnb_priv {
- static const struct dvb_sat_lnb_priv lnb_array[] = {
- 	{
- 		.desc = {
--			.name = N_("Universal, Europe"),
-+			.name = N_("Astra 19.2E, European Universal Ku (extended)"),
-+			.alias = "EXTENDED",
-+			// Legacy fields - kept just to avoid API/ABI breakages
-+			.lowfreq = 9750,
-+			.highfreq = 10600,
-+			.rangeswitch = 11700,
-+			.freqrange = {
-+				{ 10700, 11700 },
-+				{ 11700, 12750 },
-+			},
-+		},
-+		.freqrange = {
-+			{ 10700, 11700, 9750, 11700},
-+			{ 11700, 12750, 10600, 0 },
-+		}
-+	}, {
-+		.desc = {
-+			.name = N_("Old European Universal. Nowadays mostly replaced by Astra 19.2E"),
- 			.alias = "UNIVERSAL",
- 			// Legacy fields - kept just to avoid API/ABI breakages
- 			.lowfreq = 9750,
-@@ -81,23 +98,6 @@ static const struct dvb_sat_lnb_priv lnb_array[] = {
- 		.freqrange = {
- 			{ 12200, 12700, 11250 }
- 		}
--	}, {
--		.desc = {
--			.name = N_("Astra 1E, European Universal Ku (extended)"),
--			.alias = "EXTENDED",
--			// Legacy fields - kept just to avoid API/ABI breakages
--			.lowfreq = 9750,
--			.highfreq = 10600,
--			.rangeswitch = 11700,
--			.freqrange = {
--				{ 10700, 11700 },
--				{ 11700, 12750 },
--			},
--		},
--		.freqrange = {
--			{ 10700, 11700, 9750, 11700},
--			{ 11700, 12750, 10600, 0 },
--		}
- 	}, {
- 		.desc = {
- 			.name = N_("Standard"),
+diff --git a/drivers/media/i2c/mt9m111.c b/drivers/media/i2c/mt9m111.c
+index 2ef332b9b914..b6011bfddde8 100644
+--- a/drivers/media/i2c/mt9m111.c
++++ b/drivers/media/i2c/mt9m111.c
+@@ -1172,24 +1172,24 @@ static int mt9m111_video_probe(struct i2c_client *client)
+ 
+ static int mt9m111_probe_fw(struct i2c_client *client, struct mt9m111 *mt9m111)
+ {
+-	struct v4l2_fwnode_endpoint *bus_cfg;
++	struct v4l2_fwnode_endpoint bus_cfg = {
++		.bus_type = V4L2_MBUS_PARALLEL
++	};
+ 	struct fwnode_handle *np;
+-	int ret = 0;
++	int ret;
+ 
+ 	np = fwnode_graph_get_next_endpoint(dev_fwnode(&client->dev), NULL);
+ 	if (!np)
+ 		return -EINVAL;
+ 
+-	bus_cfg = v4l2_fwnode_endpoint_alloc_parse(np);
+-	if (IS_ERR(bus_cfg)) {
+-		ret = PTR_ERR(bus_cfg);
++	ret = v4l2_fwnode_endpoint_alloc_parse(np, &bus_cfg);
++	if (ret)
+ 		goto out_put_fw;
+-	}
+ 
+-	mt9m111->pclk_sample = !!(bus_cfg->bus.parallel.flags &
++	mt9m111->pclk_sample = !!(bus_cfg.bus.parallel.flags &
+ 				  V4L2_MBUS_PCLK_SAMPLE_RISING);
+ 
+-	v4l2_fwnode_endpoint_free(bus_cfg);
++	v4l2_fwnode_endpoint_free(&bus_cfg);
+ 
+ out_put_fw:
+ 	fwnode_handle_put(np);
+
+Please base on current media tree master on the next time. Thanks.
+
 -- 
-2.19.1
+Kind regards,
+
+Sakari Ailus
+sakari.ailus@linux.intel.com
