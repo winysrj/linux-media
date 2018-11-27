@@ -1,85 +1,189 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:39103 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726576AbeK0Vkz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Nov 2018 16:40:55 -0500
-Date: Tue, 27 Nov 2018 10:43:25 +0000
-From: Sean Young <sean@mess.org>
-To: Wenwen Wang <wang6495@umn.edu>
-Cc: Kangjie Lu <kjlu@umn.edu>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        viro@zeniv.linux.org.uk,
-        "open list:STAGING - ATOMISP DRIVER" <linux-media@vger.kernel.org>,
-        open list <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] media: dvb: fix a missing-check bug
-Message-ID: <20181127104325.x23qy6cq6ddxee57@gofer.mess.org>
-References: <1539958334-11531-1-git-send-email-wang6495@umn.edu>
- <CAAa=b7ceXdaB9KcZy9ML5pcEwMjYF0ibaB_f6LuuHFe_jSuMYQ@mail.gmail.com>
+Received: from mail-io1-f65.google.com ([209.85.166.65]:45269 "EHLO
+        mail-io1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729004AbeK0V6k (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 27 Nov 2018 16:58:40 -0500
+Received: by mail-io1-f65.google.com with SMTP id w7so16598141iom.12
+        for <linux-media@vger.kernel.org>; Tue, 27 Nov 2018 03:01:08 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAAa=b7ceXdaB9KcZy9ML5pcEwMjYF0ibaB_f6LuuHFe_jSuMYQ@mail.gmail.com>
+References: <cover.71b0f9855c251f9dc389ee77ee6f0e1fad91fb0b.1542097288.git-series.maxime.ripard@bootlin.com>
+ <12093630fdd7d8b43ebcb0340691e0f2200e26c6.1542097288.git-series.maxime.ripard@bootlin.com>
+ <CAMty3ZBO6B=vgduv5u28zC8P1DOm1TYGFAVjDtJOpU8dozrk=A@mail.gmail.com> <20181127103106.vykudp36vkyy5vme@flea>
+In-Reply-To: <20181127103106.vykudp36vkyy5vme@flea>
+From: Jagan Teki <jagan@amarulasolutions.com>
+Date: Tue, 27 Nov 2018 16:30:55 +0530
+Message-ID: <CAMty3ZAhGAN2nEJkiRLHqFHz9Oi1WboiyqLL4ox+-0z7NhbG8w@mail.gmail.com>
+Subject: Re: [PATCH 5/5] DO NOT MERGE: ARM: dts: bananapi: Add Camera support
+To: Maxime Ripard <maxime.ripard@bootlin.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        laurent.pinchart@ideasonboard.com,
+        linux-media <linux-media@vger.kernel.org>, a.hajda@samsung.com,
+        Chen-Yu Tsai <wens@csie.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        devicetree <devicetree@vger.kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>, frowand.list@gmail.com
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Wenwen,
-
-On Mon, Oct 29, 2018 at 01:46:04PM -0500, Wenwen Wang wrote:
-> Hello,
-> 
-> Can anyone confirm this bug? Thanks!
-> 
-> Wenwen
-> 
-> On Fri, Oct 19, 2018 at 9:12 AM Wenwen Wang <wang6495@umn.edu> wrote:
+On Tue, Nov 27, 2018 at 4:01 PM Maxime Ripard <maxime.ripard@bootlin.com> wrote:
+>
+> On Tue, Nov 27, 2018 at 12:26:09PM +0530, Jagan Teki wrote:
+> > On Tue, Nov 13, 2018 at 1:54 PM Maxime Ripard <maxime.ripard@bootlin.com> wrote:
+> > >
+> > > Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
+> > > ---
+> > >  arch/arm/boot/dts/sun7i-a20-bananapi.dts | 98 +++++++++++++++++++++++++-
+> > >  1 file changed, 98 insertions(+)
+> > >
+> > > diff --git a/arch/arm/boot/dts/sun7i-a20-bananapi.dts b/arch/arm/boot/dts/sun7i-a20-bananapi.dts
+> > > index 70dfc4ac0bb5..18dbff9f1ce9 100644
+> > > --- a/arch/arm/boot/dts/sun7i-a20-bananapi.dts
+> > > +++ b/arch/arm/boot/dts/sun7i-a20-bananapi.dts
+> > > @@ -54,6 +54,9 @@
+> > >         compatible = "lemaker,bananapi", "allwinner,sun7i-a20";
+> > >
+> > >         aliases {
+> > > +               i2c0 = &i2c0;
+> > > +               i2c1 = &i2c1;
+> > > +               i2c2 = &i2c2;
+> > >                 serial0 = &uart0;
+> > >                 serial1 = &uart3;
+> > >                 serial2 = &uart7;
+> > > @@ -63,6 +66,41 @@
+> > >                 stdout-path = "serial0:115200n8";
+> > >         };
+> > >
+> > > +       reg_cam: cam {
+> > > +               compatible = "regulator-fixed";
+> > > +               regulator-name = "cam";
+> > > +               regulator-min-microvolt = <5000000>;
+> > > +               regulator-max-microvolt = <5000000>;
+> > > +               vin-supply = <&reg_vcc5v0>;
+> > > +               gpio = <&pio 7 16 GPIO_ACTIVE_HIGH>;
+> > > +               enable-active-high;
+> > > +               regulator-always-on;
+> > > +       };
+> > > +
+> > > +        reg_cam_avdd: cam-avdd {
+> > > +                compatible = "regulator-fixed";
+> > > +                regulator-name = "cam500b-avdd";
+> > > +                regulator-min-microvolt = <2800000>;
+> > > +                regulator-max-microvolt = <2800000>;
+> > > +                vin-supply = <&reg_cam>;
+> > > +        };
+> > > +
+> > > +        reg_cam_dovdd: cam-dovdd {
+> > > +                compatible = "regulator-fixed";
+> > > +                regulator-name = "cam500b-dovdd";
+> > > +                regulator-min-microvolt = <1800000>;
+> > > +                regulator-max-microvolt = <1800000>;
+> > > +                vin-supply = <&reg_cam>;
+> > > +        };
+> > > +
+> > > +        reg_cam_dvdd: cam-dvdd {
+> > > +                compatible = "regulator-fixed";
+> > > +                regulator-name = "cam500b-dvdd";
+> > > +                regulator-min-microvolt = <1500000>;
+> > > +                regulator-max-microvolt = <1500000>;
+> > > +                vin-supply = <&reg_cam>;
+> > > +        };
+> > > +
+> > >         hdmi-connector {
+> > >                 compatible = "hdmi-connector";
+> > >                 type = "a";
+> > > @@ -120,6 +158,27 @@
+> > >                 >;
+> > >  };
+> > >
+> > > +&csi0 {
+> > > +       pinctrl-names = "default";
+> > > +       pinctrl-0 = <&csi0_pins_a>;
+> > > +       status = "okay";
+> > > +
+> > > +       port {
+> > > +               #address-cells = <1>;
+> > > +               #size-cells = <0>;
+> > > +
+> > > +               csi_from_ov5640: endpoint {
+> > > +                        remote-endpoint = <&ov5640_to_csi>;
+> > > +                        bus-width = <8>;
+> > > +                        data-shift = <2>;
+> > > +                        hsync-active = <1>; /* Active high */
+> > > +                        vsync-active = <0>; /* Active low */
+> > > +                        data-active = <1>;  /* Active high */
+> > > +                        pclk-sample = <1>;  /* Rising */
+> > > +                };
+> > > +       };
+> > > +};
+> > > +
+> > >  &de {
+> > >         status = "okay";
+> > >  };
+> > > @@ -167,6 +226,39 @@
+> > >         };
+> > >  };
+> > >
+> > > +&i2c1 {
+> > > +       pinctrl-names = "default";
+> > > +       pinctrl-0 = <&i2c1_pins_a>;
+> > > +       status = "okay";
+> > > +
+> > > +       camera: camera@21 {
+> > > +               compatible = "ovti,ov5640";
+> > > +               reg = <0x21>;
+> > > +                clocks = <&ccu CLK_CSI0>;
+> > > +                clock-names = "xclk";
+> > > +               assigned-clocks = <&ccu CLK_CSI0>;
+> > > +               assigned-clock-rates = <24000000>;
+> > > +
+> > > +                reset-gpios = <&pio 7 14 GPIO_ACTIVE_LOW>;
+> > > +                powerdown-gpios = <&pio 7 19 GPIO_ACTIVE_HIGH>;
+> > > +                AVDD-supply = <&reg_cam_avdd>;
+> > > +                DOVDD-supply = <&reg_cam_dovdd>;
+> > > +                DVDD-supply = <&reg_cam_dvdd>;
+> > > +
+> > > +                port {
+> > > +                        ov5640_to_csi: endpoint {
+> > > +                                remote-endpoint = <&csi_from_ov5640>;
+> > > +                                bus-width = <8>;
+> > > +                                data-shift = <2>;
+> > > +                                hsync-active = <1>; /* Active high */
+> > > +                                vsync-active = <0>; /* Active low */
+> > > +                                data-active = <1>;  /* Active high */
+> > > +                                pclk-sample = <1>;  /* Rising */
+> > > +                        };
+> > > +                };
+> > > +       };
 > >
-> > In dvb_audio_write(), the first byte of the user-space buffer 'buf' is
-> > firstly copied and checked to see whether this is a TS packet, which always
-> > starts with 0x47 for synchronization purposes. If yes, ts_play() will be
-> > called. Otherwise, dvb_aplay() will be called. In ts_play(), the content of
-> > 'buf', including the first byte, is copied again from the user space.
-> > However, after the copy, no check is re-enforced on the first byte of the
-> > copied data.  Given that 'buf' is in the user space, a malicious user can
-> > race to change the first byte after the check in dvb_audio_write() but
-> > before the copy in ts_play().
-
-Up to here your analysis makes sense.
-
-> >  Through this way, the user can supply
-> > inconsistent code, which can cause undefined behavior of the kernel and
-> > introduce potential security risk.
-
-So how can this cause undefined behaviour?
-
-> > This patch adds a necessary check in ts_play() to make sure the first byte
-> > acquired in the second copy contains the expected value. Otherwise, an
-> > error code EINVAL will be returned.
-
-So what about the other case, if dvb_play() was called due to the first
-byte not being 0x47 and then swapped for 0x47?
-
-
-Sean
-
+> > Does ov5640 need any further patches, wrt linux-next? I'm trying to
+> > test this on top of linux-next but the slave id seems not detecting.
 > >
-> > Signed-off-by: Wenwen Wang <wang6495@umn.edu>
-> > ---
-> >  drivers/media/pci/ttpci/av7110_av.c | 2 ++
-> >  1 file changed, 2 insertions(+)
+> > [    2.304711] ov5640 1-0021: Linked as a consumer to regulator.5
+> > [    2.310639] ov5640 1-0021: Linked as a consumer to regulator.6
+> > [    2.316592] ov5640 1-0021: Linked as a consumer to regulator.4
+> > [    2.351540] ov5640 1-0021: ov5640_init_slave_id: failed with -6
+> > [    2.357543] ov5640 1-0021: Dropping the link to regulator.5
+> > [    2.363224] ov5640 1-0021: Dropping the link to regulator.6
+> > [    2.368829] ov5640 1-0021: Dropping the link to regulator.4
 > >
-> > diff --git a/drivers/media/pci/ttpci/av7110_av.c b/drivers/media/pci/ttpci/av7110_av.c
-> > index ef1bc17..1ff6062 100644
-> > --- a/drivers/media/pci/ttpci/av7110_av.c
-> > +++ b/drivers/media/pci/ttpci/av7110_av.c
-> > @@ -468,6 +468,8 @@ static ssize_t ts_play(struct av7110 *av7110, const char __user *buf,
-> >                 }
-> >                 if (copy_from_user(kb, buf, TS_SIZE))
-> >                         return -EFAULT;
-> > +               if (kb[0] != 0x47)
-> > +                       return -EINVAL;
-> >                 write_ts_to_decoder(av7110, type, kb, TS_SIZE);
-> >                 todo -= TS_SIZE;
-> >                 buf += TS_SIZE;
-> > --
-> > 2.7.4
-> >
+> > Here is the full log [1], please let me know if I miss anything, I
+> > even tried to remove MCLK pin
+>
+> You seem to have made local modifications to your tree, what are they?
+> This indicates that the communication over i2c doesn't work, what is
+> your setup?
+
+I just used your commits on linux-next [2], with the setup similar in
+Page 5 on datasheet[3]. The only difference is csi build issue, I have
+updated similar fix you mentioned on sun6i_csi [4]
+
+[2] https://github.com/amarula/linux-amarula/commits/CSI-A20
+[3] https://www.tme.eu/gb/Document/187887186b98a8f78b47da2774a34f4c/BPI-CAMERA.pdf
+[4] https://github.com/amarula/linux-amarula/commit/a6762ecd38f000e2bd02dd255f6fd0c1ae755429#diff-0809a7f97ca58771c1cda186e73ec657
