@@ -1,73 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from shell.v3.sk ([90.176.6.54]:39096 "EHLO shell.v3.sk"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729200AbeK2EWD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Nov 2018 23:22:03 -0500
-From: Lubomir Rintel <lkundrak@v3.sk>
-To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rui Miguel Silva <rmfrfs@gmail.com>,
-        Shunqian Zheng <zhengsq@rock-chips.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Wenyou Yang <wenyou.yang@microchip.com>
-Cc: Jacopo Mondi <jacopo@jmondi.org>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Lubomir Rintel <lkundrak@v3.sk>
-Subject: [PATCH 3/6] media: ov2659: get rid of extra ifdefs
-Date: Wed, 28 Nov 2018 18:19:15 +0100
-Message-Id: <20181128171918.160643-4-lkundrak@v3.sk>
-In-Reply-To: <20181128171918.160643-1-lkundrak@v3.sk>
-References: <20181128171918.160643-1-lkundrak@v3.sk>
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:46063 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730438AbeK0VAr (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 27 Nov 2018 16:00:47 -0500
+From: Marco Felsch <m.felsch@pengutronix.de>
+To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        robh+dt@kernel.org, mark.rutland@arm.com
+Cc: enrico.scholz@sigma-chemnitz.de, devicetree@vger.kernel.org,
+        akinobu.mita@gmail.com, linux-media@vger.kernel.org,
+        graphics@pengutronix.de
+Subject: [PATCH v3 4/6] dt-bindings: media: mt9m111: adapt documentation to be more clear
+Date: Tue, 27 Nov 2018 11:02:51 +0100
+Message-Id: <20181127100253.30845-5-m.felsch@pengutronix.de>
+In-Reply-To: <20181127100253.30845-1-m.felsch@pengutronix.de>
+References: <20181127100253.30845-1-m.felsch@pengutronix.de>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Stubbed v4l2_subdev_get_try_format() will return a correct error when
-configured without CONFIG_VIDEO_V4L2_SUBDEV_API.
+Replace the vague binding by a more verbose. Remove the remote property
+from the example since the driver don't support such a property. Also
+remove the bus-width property from the endpoint since the driver don't
+take care of it.
 
-Signed-off-by: Lubomir Rintel <lkundrak@v3.sk>
+Signed-off-by: Marco Felsch <m.felsch@pengutronix.de>
+Reviewed-by: Rob Herring <robh@kernel.org>
+
 ---
- drivers/media/i2c/ov2659.c | 12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
+Changelog:
 
-diff --git a/drivers/media/i2c/ov2659.c b/drivers/media/i2c/ov2659.c
-index 799acce803fe..a66c12c8f278 100644
---- a/drivers/media/i2c/ov2659.c
-+++ b/drivers/media/i2c/ov2659.c
-@@ -1046,17 +1046,15 @@ static int ov2659_get_fmt(struct v4l2_subdev *sd,
- 	dev_dbg(&client->dev, "ov2659_get_fmt\n");
-=20
- 	if (fmt->which =3D=3D V4L2_SUBDEV_FORMAT_TRY) {
--#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
- 		struct v4l2_mbus_framefmt *mf;
-=20
- 		mf =3D v4l2_subdev_get_try_format(sd, cfg, 0);
-+		if (IS_ERR(mf))
-+			return PTR_ERR(mf);
- 		mutex_lock(&ov2659->lock);
- 		fmt->format =3D *mf;
- 		mutex_unlock(&ov2659->lock);
- 		return 0;
--#else
--	return -ENOTTY;
--#endif
- 	}
-=20
- 	mutex_lock(&ov2659->lock);
-@@ -1126,12 +1124,10 @@ static int ov2659_set_fmt(struct v4l2_subdev *sd,
- 	mutex_lock(&ov2659->lock);
-=20
- 	if (fmt->which =3D=3D V4L2_SUBDEV_FORMAT_TRY) {
--#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
- 		mf =3D v4l2_subdev_get_try_format(sd, cfg, fmt->pad);
-+		if (IS_ERR(mf))
-+			return PTR_ERR(mf);
- 		*mf =3D fmt->format;
--#else
--		return -ENOTTY;
--#endif
- 	} else {
- 		s64 val;
-=20
---=20
+v3:
+- drop remote-endpoint docu, since it is documented by
+  video-interfaces.txt.
+
+v2:
+- initial commit
+
+ Documentation/devicetree/bindings/media/i2c/mt9m111.txt | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/Documentation/devicetree/bindings/media/i2c/mt9m111.txt b/Documentation/devicetree/bindings/media/i2c/mt9m111.txt
+index 6b910036b57e..a431fb45704b 100644
+--- a/Documentation/devicetree/bindings/media/i2c/mt9m111.txt
++++ b/Documentation/devicetree/bindings/media/i2c/mt9m111.txt
+@@ -9,8 +9,10 @@ Required Properties:
+ - clocks: reference to the master clock.
+ - clock-names: shall be "mclk".
+ 
+-For further reading on port node refer to
+-Documentation/devicetree/bindings/media/video-interfaces.txt.
++The device node must contain one 'port' child node with one 'endpoint' child
++sub-node for its digital output video port, in accordance with the video
++interface bindings defined in:
++Documentation/devicetree/bindings/media/video-interfaces.txt
+ 
+ Example:
+ 
+@@ -21,10 +23,8 @@ Example:
+ 			clocks = <&mclk>;
+ 			clock-names = "mclk";
+ 
+-			remote = <&pxa_camera>;
+ 			port {
+ 				mt9m111_1: endpoint {
+-					bus-width = <8>;
+ 					remote-endpoint = <&pxa_camera>;
+ 				};
+ 			};
+-- 
 2.19.1
