@@ -1,70 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:52693 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726312AbeK1ALR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Nov 2018 19:11:17 -0500
-Date: Tue, 27 Nov 2018 15:13:21 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Marco Felsch <m.felsch@pengutronix.de>
-Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        enrico.scholz@sigma-chemnitz.de, devicetree@vger.kernel.org,
-        akinobu.mita@gmail.com, linux-media@vger.kernel.org,
-        graphics@pengutronix.de
-Subject: Re: [PATCH v3 5/6] dt-bindings: media: mt9m111: add pclk-sample
- property
-Message-ID: <20181127131320.ejzau4mjqhunlfvu@paasikivi.fi.intel.com>
-References: <20181127100253.30845-1-m.felsch@pengutronix.de>
- <20181127100253.30845-6-m.felsch@pengutronix.de>
+Received: from bombadil.infradead.org ([198.137.202.133]:33486 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726312AbeK1AMz (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 27 Nov 2018 19:12:55 -0500
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Subject: [PATCH] dvb-sat: rename Astra 1E to Astra 19.2 E and move it to beginning
+Date: Tue, 27 Nov 2018 11:14:52 -0200
+Message-Id: <a5fc0e08339708a21a0d254ece4feab45421ce50.1543324451.git.mchehab+samsung@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20181127100253.30845-6-m.felsch@pengutronix.de>
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Marco,
+The "European Universal" LNBf was now replaced by the model with
+also supports the Astra satellites in almost all EU. We're keeping
+seeing people reporting problems on Kaffeine and other digital TV
+software due to that.
 
-On Tue, Nov 27, 2018 at 11:02:52AM +0100, Marco Felsch wrote:
-> Add the pclk-sample property to the list of optional properties
-> for the mt9m111 camera sensor.
-> 
-> Signed-off-by: Marco Felsch <m.felsch@pengutronix.de>
-> Reviewed-by: Rob Herring <robh@kernel.org>
-> ---
->  Documentation/devicetree/bindings/media/i2c/mt9m111.txt | 5 +++++
->  1 file changed, 5 insertions(+)
-> 
-> diff --git a/Documentation/devicetree/bindings/media/i2c/mt9m111.txt b/Documentation/devicetree/bindings/media/i2c/mt9m111.txt
-> index a431fb45704b..d0bed6fa901a 100644
-> --- a/Documentation/devicetree/bindings/media/i2c/mt9m111.txt
-> +++ b/Documentation/devicetree/bindings/media/i2c/mt9m111.txt
-> @@ -14,6 +14,10 @@ sub-node for its digital output video port, in accordance with the video
->  interface bindings defined in:
->  Documentation/devicetree/bindings/media/video-interfaces.txt
->  
-> +Optional endpoint properties:
-> +- pclk-sample: For information see ../video-interfaces.txt. The value is set to
-> +  0 if it isn't specified.
+So, in order to make easier for new people that just want to make
+their Satellite-based TV to work in Europe, let's move the Astra
+entry to be the first one and giving it a better name, as the
+Astra 1E satellite was retired a long time ago, and, since 2008,
+the satellites that replaced it are known as "Astra 19.2 E",
+in order to reflect their orbital position.
 
-How about the data-active, hsync-active and vsync-active properties? Does
-the hardware have a fixed configuration, or can this be set? It appears the
-driver assumes active high for all.
+Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+---
+ lib/libdvbv5/dvb-sat.c | 36 ++++++++++++++++++------------------
+ 1 file changed, 18 insertions(+), 18 deletions(-)
 
-If there's something to change, this should be a separate patch IMO.
-
-> +
->  Example:
->  
->  	i2c_master {
-> @@ -26,6 +30,7 @@ Example:
->  			port {
->  				mt9m111_1: endpoint {
->  					remote-endpoint = <&pxa_camera>;
-> +					pclk-sample = <1>;
->  				};
->  			};
->  		};
-
+diff --git a/lib/libdvbv5/dvb-sat.c b/lib/libdvbv5/dvb-sat.c
+index 8c04f66f973b..18e2359c053b 100644
+--- a/lib/libdvbv5/dvb-sat.c
++++ b/lib/libdvbv5/dvb-sat.c
+@@ -53,7 +53,24 @@ struct dvb_sat_lnb_priv {
+ static const struct dvb_sat_lnb_priv lnb_array[] = {
+ 	{
+ 		.desc = {
+-			.name = N_("Universal, Europe"),
++			.name = N_("Astra 19.2E, European Universal Ku (extended)"),
++			.alias = "EXTENDED",
++			// Legacy fields - kept just to avoid API/ABI breakages
++			.lowfreq = 9750,
++			.highfreq = 10600,
++			.rangeswitch = 11700,
++			.freqrange = {
++				{ 10700, 11700 },
++				{ 11700, 12750 },
++			},
++		},
++		.freqrange = {
++			{ 10700, 11700, 9750, 11700},
++			{ 11700, 12750, 10600, 0 },
++		}
++	}, {
++		.desc = {
++			.name = N_("Old European Universal. Nowadays mostly replaced by Astra 19.2E"),
+ 			.alias = "UNIVERSAL",
+ 			// Legacy fields - kept just to avoid API/ABI breakages
+ 			.lowfreq = 9750,
+@@ -81,23 +98,6 @@ static const struct dvb_sat_lnb_priv lnb_array[] = {
+ 		.freqrange = {
+ 			{ 12200, 12700, 11250 }
+ 		}
+-	}, {
+-		.desc = {
+-			.name = N_("Astra 1E, European Universal Ku (extended)"),
+-			.alias = "EXTENDED",
+-			// Legacy fields - kept just to avoid API/ABI breakages
+-			.lowfreq = 9750,
+-			.highfreq = 10600,
+-			.rangeswitch = 11700,
+-			.freqrange = {
+-				{ 10700, 11700 },
+-				{ 11700, 12750 },
+-			},
+-		},
+-		.freqrange = {
+-			{ 10700, 11700, 9750, 11700},
+-			{ 11700, 12750, 10600, 0 },
+-		}
+ 	}, {
+ 		.desc = {
+ 			.name = N_("Standard"),
 -- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+2.19.1
