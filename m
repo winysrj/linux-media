@@ -1,170 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.eclipso.de ([217.69.254.104]:48235 "EHLO mail.eclipso.de"
+Received: from mga11.intel.com ([192.55.52.93]:57506 "EHLO mga11.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726611AbeK1C5Z (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Nov 2018 21:57:25 -0500
-Received: from roadrunner.suse (p5B31873F.dip0.t-ipconnect.de [91.49.135.63])
-        by mail.eclipso.de with ESMTPS id 26637438
-        for <linux-media@vger.kernel.org>; Tue, 27 Nov 2018 16:59:01 +0100 (CET)
-From: stakanov <stakanov@eclipso.eu>
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: Takashi Iwai <tiwai@suse.de>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        Michael Ira Krufky <mkrufky@linuxtv.org>,
-        Sean Young <sean@mess.org>, Brad Love <brad@nextdimension.cc>,
-        Malcolm Priestley <tvboxspy@gmail.com>
-Subject: Re: DVB-S PCI card regression on 4.19 / 4.20
-Date: Tue, 27 Nov 2018 16:58:58 +0100
-Message-ID: <45396912.h74atscUxZ@roadrunner.suse>
-In-Reply-To: <20181127104946.195487ec@coco.lan>
-References: <4e0356d6303c128a3e6d0bcc453ba1be@mail.eclipso.de> <1673172.qrKGPYx0fj@roadrunner.suse> <20181127104946.195487ec@coco.lan>
+        id S1726384AbeK1C6d (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 27 Nov 2018 21:58:33 -0500
+Date: Tue, 27 Nov 2018 18:00:05 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Marco Felsch <m.felsch@pengutronix.de>, mark.rutland@arm.com,
+        devicetree@vger.kernel.org,
+        Michael Grzeschik <m.grzeschik@pengutronix.de>,
+        enrico.scholz@sigma-chemnitz.de, akinobu.mita@gmail.com,
+        robh+dt@kernel.org, mchehab@kernel.org, graphics@pengutronix.de,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH v3 6/6] media: mt9m111: allow to setup pixclk polarity
+Message-ID: <20181127160005.vy333pxuaam7fmwu@kekkonen.localdomain>
+References: <20181127100253.30845-1-m.felsch@pengutronix.de>
+ <20181127100253.30845-7-m.felsch@pengutronix.de>
+ <20181127131948.maqwyqmlnwowf4ng@paasikivi.fi.intel.com>
+ <1543325967.8212.1.camel@pengutronix.de>
+ <20181127135056.whzulohnohkguk5d@paasikivi.fi.intel.com>
+ <1543327949.8212.4.camel@pengutronix.de>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1543327949.8212.4.camel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In data martedì 27 novembre 2018 13:49:46 CET, Mauro Carvalho Chehab ha 
-scritto:
-> Hi Stakanov,
+On Tue, Nov 27, 2018 at 03:12:29PM +0100, Philipp Zabel wrote:
+> Hi Sakari,
 > 
-> Em Tue, 27 Nov 2018 11:02:57 +0100
-> 
-> stakanov <stakanov@eclipso.eu> escreveu:
-> > In data lunedì 26 novembre 2018 14:31:09 CET, Takashi Iwai ha scritto:
-> > > On Fri, 23 Nov 2018 18:26:25 +0100,
-> > > 
-> > > Mauro Carvalho Chehab wrote:
-> > > > Takashi,
-> > > > 
-> > > > Could you please produce a Kernel for Stakanov to test
-> > > > with the following patches:
-> > > > 
-> > > > https://patchwork.linuxtv.org/patch/53044/
-> > > > https://patchwork.linuxtv.org/patch/53045/
-> > > > https://patchwork.linuxtv.org/patch/53046/
-> > > > https://patchwork.linuxtv.org/patch/53128/
-> > > 
-> > > Sorry for the late reaction.  Now it's queued to OBS
-> > > home:tiwai:bsc1116374-2 repo.  It'll be ready in an hour or so.
-> > > It's based on 4.20-rc4.
-> > > 
-> > > Stakanov, please give it a try later.
-> > > 
-> > > 
-> > > thanks,
-> > > 
-> > > Takashi
+> On Tue, 2018-11-27 at 15:50 +0200, Sakari Ailus wrote:
+> > Hi Philipp,
 > > 
-> > O.K. this unbricks partially the card.
-> 
-> From the logs, the Kernel is now working as expected.
-> 
-> > Now hotbird does search and does sync
-> > on all channels. Quality is very good. Astra still does interrupt the
-> > search immediately and does not receive a thing. So it is a 50% brick
-> > still, but it is a huge progress compared to before.
-> 
-> As I said before, you need to tell Kaffeine what's the LNBf that you're
-> using. The LNBf is a physical device[1] that it is installed on your
-> satellite dish. There's no way to auto-detect the model you actually have,
-> so you need to provide this information to the digital TV software you're
-> using.
-> 
-> [1] It looks like this:
-> 	https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Astra_lnb.jpg/
-240
-> px-Astra_lnb.jpg
-> 
-> The "Universal" one is for an old universal model sold in Europe about
-> 15 years ago. It doesn't support all transponders found on an Astra
-> satellite.
-> 
-> For those, you need to use the LNBf that it is known as "Astra 1E"[2].
-> 
-> [2] The name is there just for historical reasons. The actual Astra 1E
-> satellite was retired, but another satellite occupies the same orbital
-> position (19.2°E), and they keep adding/retiring satellites there as
-> needed (https://en.wikipedia.org/wiki/Astra_19.2%C2%B0E).
-> 
-> As I pointed you on a past e-mail, when you set the DVB-S board on
-> Kaffeine, you should have explicitly set it.
-> 
-> If you start Kaffeine in English:
-> 
-> 	$ LANG=C kaffeine
-> 
-> You'll see it at the following menu:
-> 
-> 	Television -> Configure Television -> Device 0
-> 
-> (assuming that your device is device 0)
-> 
-> There, you need to tell that you'll be using a DiSEqC swith. It
-> will then allow you to select up to 4 satellite sources. Once you
-> set a source, it will allow you to edit the LNB <n> Settings
-> (where <n> will be 1 to 4). Clicking there, it will present you
-> a menu with all known LNBf models. Astra 1E is the third option[3].
-> 
-> [3] yeah, on a separate discussion, we should likely rename "Astra 1E"
-> to just "Astra", and place it as the first option. I'll do such change,
-> but it will be at v4l-utils package (libdvbv5) and it will probably
-> take some time until distros start packaging the new version, even
-> if we add it to the stable branch.
-> 
-> > I paste the output of the directory below, unfortunately the opensuse
-> > paste
-> > does not work currently so I try here, sorry if this is long.
+> > On Tue, Nov 27, 2018 at 02:39:27PM +0100, Philipp Zabel wrote:
+> > > Hi Sakari,
+> > > 
+> > > On Tue, 2018-11-27 at 15:19 +0200, Sakari Ailus wrote:
+> > > > Hi Marco,
+> > > > 
+> > > > On Tue, Nov 27, 2018 at 11:02:53AM +0100, Marco Felsch wrote:
+> > > > > From: Enrico Scholz <enrico.scholz@sigma-chemnitz.de>
+> > > > > 
+> > > > > The chip can be configured to output data transitions on the
+> > > > > rising or falling edge of PIXCLK (Datasheet R58:1[9]), default is on the
+> > > > > falling edge.
+> > > > > 
+> > > > > Parsing the fw-node is made in a subfunction to bundle all (future)
+> > > > > dt-parsing / fw-parsing stuff.
+> > > > > 
+> > > > > Signed-off-by: Enrico Scholz <enrico.scholz@sigma-chemnitz.de>
+> > > > > (m.grzeschik@pengutronix.de: Fix inverting clock. INV_PIX_CLOCK bit is set
+> > > > > per default. Set bit to 0 (enable mask bit without value) to enable
+> > > > > falling edge sampling.)
+> > > > > Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
+> > > > > (m.felsch@pengutronix.de: use fwnode helpers)
+> > > > > (m.felsch@pengutronix.de: mv fw parsing into own function)
+> > > > > (m.felsch@pengutronix.de: adapt commit msg)
+> > > > > Signed-off-by: Marco Felsch <m.felsch@pengutronix.de>
+> > > > 
+> > > > Applied with the following diff:
+> > > > 
+> > > > diff --git a/drivers/media/i2c/mt9m111.c b/drivers/media/i2c/mt9m111.c
+> > > > index 2ef332b9b914..b6011bfddde8 100644
+> > > > --- a/drivers/media/i2c/mt9m111.c
+> > > > +++ b/drivers/media/i2c/mt9m111.c
+> > > > @@ -1172,24 +1172,24 @@ static int mt9m111_video_probe(struct i2c_client *client)
+> > > >  
+> > > >  static int mt9m111_probe_fw(struct i2c_client *client, struct mt9m111 *mt9m111)
+> > > >  {
+> > > > -	struct v4l2_fwnode_endpoint *bus_cfg;
+> > > > +	struct v4l2_fwnode_endpoint bus_cfg = {
+> > > > +		.bus_type = V4L2_MBUS_PARALLEL
+> > > > +	};
+> > > >  	struct fwnode_handle *np;
+> > > > -	int ret = 0;
+> > > > +	int ret;
+> > > >  
+> > > >  	np = fwnode_graph_get_next_endpoint(dev_fwnode(&client->dev), NULL);
+> > > >  	if (!np)
+> > > >  		return -EINVAL;
+> > > >  
+> > > > -	bus_cfg = v4l2_fwnode_endpoint_alloc_parse(np);
+> > > > -	if (IS_ERR(bus_cfg)) {
+> > > > -		ret = PTR_ERR(bus_cfg);
+> > > > +	ret = v4l2_fwnode_endpoint_alloc_parse(np, &bus_cfg);
+> > > 
+> > > Should that be
+> > > 
+> > > +	ret = v4l2_fwnode_endpoint_parse(np, &bus_cfg);
+> > > 
+> > > intead?
 > > 
-> > Content of the directory 99-media.conf created following the indications
-> > (please bear in mind that I have also another card installed (Hauppauge
-> > 5525) although it was not branched to the sat cable and i did change the
-> > settings in Kaffeine to use only the technisat. But my understanding is
-> > limited if this may give "noise" in the output, so I thought to underline
-> > it, just FYI.
-> > Output:
-> Looks ok to me.
+> > Could be. I'd expect the driver to need the link frequency at some point
+> > after which you'd need the variable size properties anyway. But that's not
+> > the case now.
 > 
-> > [  649.009548] cx23885 0000:03:00.0: invalid short VPD tag 01 at offset 1
-> > [  649.011439] r8169 0000:06:00.0: invalid short VPD tag 00 at offset 1
+> I don't think the link-frequencies property will be used, this is just a
+> parallel device. But Marco chose to use _alloc_parse because of what the
+> v4l2_fwnode_endpoint_parse() documentation says:
 > 
-> Those two above are weird... It seems to be related to some issue that
-> the PCI core detected:
+> /*
+>  * NOTE: This function does not parse properties the size of which is variable
+>  * without a low fixed limit. Please use v4l2_fwnode_endpoint_alloc_parse() in                                                                
+>  * new drivers instead.
+>  */
 > 
-> drivers/pci/vpd.c:                      pci_warn(dev, "invalid %s VPD tag
-> %02x at offset %zu",
-> 
-> I've no idea what they mean, nor if you'll face any issues related to it.
-> 
-> Thanks,
-> Mauro
-The two are known annoyances especially the cx23885 complaining in the logs 
-about a "wrong revision". But as they AFAIK do not cause major issues or 
-havoc, it is not a problem, at least for me. 
-Now, the card suddenly works. The only thing you have to do (limited to this 
-technisat PCI card, not applicable to the Hauppauge PCI-e mounted on the same 
-machine) is to set the "square" to high voltage, limited for Astra. Hotbird 
-scans better without this, with "no setting send" as I do for the Hauppauge as 
-well. 
-This must be something weird related to our sat dish.
+> So maybe we want to use v4l2_fwnode_endpoint_alloc_parse() always. There
+> is no unnecessary allocation, just a lookup of the non-existing link-
+> frequencies property.
 
-But the GOOD news is: yes now you made it! The card works. And yes, you should 
-really rename ASTRA E setting. Maybe also be more clear or give some hint in 
-kaffeine when hovering over it, about how to set it, for some reason it came 
-straightforward to me to click on the right radio button to select the type of 
-satellite,  but I did not understand, nor did suspect, I would be able to set, 
-or that I would have to set the left button (must be a cultural deformation, 
-or whatever). Once you told me about I did find it, but in my very limited 
-experience, I think that could be enhanced.
+There could be other properties in the future.
 
-So congratulations. It works and now I am officially even more impressed about 
-Linux and the spirit behind it. Compliments and thank you all for your work 
-and time!
+When I wrote that, I guess I ignored that the link frequency might not be
+relevant for some devices such as CSI-2 receivers. I think it'd make sense
+to remove the latter sentence; I can send a patch. The first sentence that
+tells the limitations of the function is enough IMO.
 
-Regards. 
-
-
-
-_________________________________________________________________
-________________________________________________________
-Ihre E-Mail-Postfächer sicher & zentral an einem Ort. Jetzt wechseln und alte E-Mail-Adresse mitnehmen! https://www.eclipso.de
+-- 
+Sakari Ailus
+sakari.ailus@linux.intel.com
