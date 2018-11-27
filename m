@@ -1,25 +1,25 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:49333 "EHLO gofer.mess.org"
+Received: from gofer.mess.org ([88.97.38.141]:58705 "EHLO gofer.mess.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728381AbeK0VaN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Nov 2018 16:30:13 -0500
-Date: Tue, 27 Nov 2018 10:32:44 +0000
+        id S1726445AbeK0Va5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 27 Nov 2018 16:30:57 -0500
+Date: Tue, 27 Nov 2018 10:33:29 +0000
 From: Sean Young <sean@mess.org>
 To: Victor Toso <victortoso@redhat.com>
 Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH dvb v1 3/4] media: dvb-usb-v2: remove __func__ from
+Subject: Re: [PATCH dvb v1 4/4] media: dvb_frontend: remove __func__ from
  dev_dbg()
-Message-ID: <20181127103244.euayq5jmclchh6mv@gofer.mess.org>
+Message-ID: <20181127103329.yreqjsc225henahn@gofer.mess.org>
 References: <20181030161451.4560-1-victortoso@redhat.com>
- <20181030161451.4560-4-victortoso@redhat.com>
+ <20181030161451.4560-5-victortoso@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20181030161451.4560-4-victortoso@redhat.com>
+In-Reply-To: <20181030161451.4560-5-victortoso@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Oct 30, 2018 at 05:14:50PM +0100, Victor Toso wrote:
+On Tue, Oct 30, 2018 at 05:14:51PM +0100, Victor Toso wrote:
 > From: Victor Toso <me@victortoso.com>
 > 
 > As dynamic debug can be instructed to add the function name to the
@@ -29,456 +29,459 @@ On Tue, Oct 30, 2018 at 05:14:50PM +0100, Victor Toso wrote:
 > 
 > Signed-off-by: Victor Toso <me@victortoso.com>
 > ---
->  drivers/media/usb/dvb-usb-v2/dvb_usb_core.c | 105 ++++++++++----------
->  drivers/media/usb/dvb-usb-v2/dvb_usb_urb.c  |   7 +-
->  2 files changed, 55 insertions(+), 57 deletions(-)
+>  drivers/media/dvb-core/dvb_frontend.c | 142 +++++++++++++-------------
+>  1 file changed, 69 insertions(+), 73 deletions(-)
 > 
-> diff --git a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
-> index d55ef016d418..ad554668cc86 100644
-> --- a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
-> +++ b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
-> @@ -37,7 +37,7 @@ static int dvb_usbv2_download_firmware(struct dvb_usb_device *d,
->  {
->  	int ret;
->  	const struct firmware *fw;
-> -	dev_dbg(&d->udev->dev, "%s:\n", __func__);
-> +	dev_dbg(&d->udev->dev, "\n");
-
-How about "downloading firmware", or maybe deleting the line completely?
-
-Without dynamic debug enabled, you end up with a pretty useless debug
-message now. I think it would be better to convert these debug lines
-to useful messages, rather than "executing this line of code". Some of
-them should probably be deleted.
-
+> diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+> index 961207cf09eb..ab6d778aa641 100644
+> --- a/drivers/media/dvb-core/dvb_frontend.c
+> +++ b/drivers/media/dvb-core/dvb_frontend.c
+> @@ -251,7 +251,7 @@ static void dvb_frontend_add_event(struct dvb_frontend *fe,
+>  	struct dvb_frontend_event *e;
+>  	int wp;
 >  
->  	if (!d->props->download_firmware) {
->  		ret = -EINVAL;
-> @@ -62,14 +62,14 @@ static int dvb_usbv2_download_firmware(struct dvb_usb_device *d,
->  
->  	return ret;
->  err:
-> -	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
-> +	dev_dbg(&d->udev->dev, "failed=%d\n", ret);
+> -	dev_dbg(fe->dvb->device, "%s:\n", __func__);
+> +	dev_dbg(fe->dvb->device, "\n");
 
-Again, just say what failed here. Ideally debug messages should be useful and
-not just "hit this line of code".
+Again same as 3/4. Either make the debug useful or delete it.
 
 
 Sean
 
->  	return ret;
->  }
 >  
->  static int dvb_usbv2_i2c_init(struct dvb_usb_device *d)
+>  	if ((status & FE_HAS_LOCK) && has_get_frontend(fe))
+>  		dtv_get_frontend(fe, c, &fepriv->parameters_out);
+> @@ -293,7 +293,7 @@ static int dvb_frontend_get_event(struct dvb_frontend *fe,
+>  	struct dvb_frontend_private *fepriv = fe->frontend_priv;
+>  	struct dvb_fe_events *events = &fepriv->events;
+>  
+> -	dev_dbg(fe->dvb->device, "%s:\n", __func__);
+> +	dev_dbg(fe->dvb->device, "\n");
+>  
+>  	if (events->overflow) {
+>  		events->overflow = 0;
+> @@ -334,8 +334,8 @@ static void dvb_frontend_clear_events(struct dvb_frontend *fe)
+>  static void dvb_frontend_init(struct dvb_frontend *fe)
 >  {
->  	int ret;
-> -	dev_dbg(&d->udev->dev, "%s:\n", __func__);
-> +	dev_dbg(&d->udev->dev, "\n");
+>  	dev_dbg(fe->dvb->device,
+> -		"%s: initialising adapter %i frontend %i (%s)...\n",
+> -		__func__, fe->dvb->num, fe->id, fe->ops.info.name);
+> +		"initialising adapter %i frontend %i (%s)...\n",
+> +		fe->dvb->num, fe->id, fe->ops.info.name);
 >  
->  	if (!d->props->i2c_algo)
->  		return 0;
-> @@ -87,13 +87,13 @@ static int dvb_usbv2_i2c_init(struct dvb_usb_device *d)
+>  	if (fe->ops.init)
+>  		fe->ops.init(fe);
+> @@ -362,7 +362,7 @@ static void dvb_frontend_swzigzag_update_delay(struct dvb_frontend_private *fepr
+>  	int q2;
+>  	struct dvb_frontend *fe = fepriv->dvbdev->priv;
 >  
->  	return 0;
->  err:
-> -	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
-> +	dev_dbg(&d->udev->dev, "failed=%d\n", ret);
->  	return ret;
->  }
+> -	dev_dbg(fe->dvb->device, "%s:\n", __func__);
+> +	dev_dbg(fe->dvb->device, "\n");
 >  
->  static int dvb_usbv2_i2c_exit(struct dvb_usb_device *d)
->  {
-> -	dev_dbg(&d->udev->dev, "%s:\n", __func__);
-> +	dev_dbg(&d->udev->dev, "\n");
->  
->  	if (d->i2c_adap.algo)
->  		i2c_del_adapter(&d->i2c_adap);
-> @@ -133,7 +133,7 @@ static int dvb_usbv2_remote_init(struct dvb_usb_device *d)
->  {
->  	int ret;
->  	struct rc_dev *dev;
-> -	dev_dbg(&d->udev->dev, "%s:\n", __func__);
-> +	dev_dbg(&d->udev->dev, "\n");
->  
->  	if (dvb_usbv2_disable_rc_polling || !d->props->get_rc_config)
->  		return 0;
-> @@ -188,13 +188,13 @@ static int dvb_usbv2_remote_init(struct dvb_usb_device *d)
->  
->  	return 0;
->  err:
-> -	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
-> +	dev_dbg(&d->udev->dev, "failed=%d\n", ret);
->  	return ret;
->  }
->  
->  static int dvb_usbv2_remote_exit(struct dvb_usb_device *d)
->  {
-> -	dev_dbg(&d->udev->dev, "%s:\n", __func__);
-> +	dev_dbg(&d->udev->dev, "\n");
->  
->  	if (d->rc_dev) {
->  		cancel_delayed_work_sync(&d->rc_query_work);
-> @@ -232,7 +232,7 @@ static void dvb_usb_data_complete_raw(struct usb_data_stream *stream, u8 *buf,
->  
->  static int dvb_usbv2_adapter_stream_init(struct dvb_usb_adapter *adap)
->  {
-> -	dev_dbg(&adap_to_d(adap)->udev->dev, "%s: adap=%d\n", __func__,
-> +	dev_dbg(&adap_to_d(adap)->udev->dev, "adap=%d\n",
->  			adap->id);
->  
->  	adap->stream.udev = adap_to_d(adap)->udev;
-> @@ -244,7 +244,7 @@ static int dvb_usbv2_adapter_stream_init(struct dvb_usb_adapter *adap)
->  
->  static int dvb_usbv2_adapter_stream_exit(struct dvb_usb_adapter *adap)
->  {
-> -	dev_dbg(&adap_to_d(adap)->udev->dev, "%s: adap=%d\n", __func__,
-> +	dev_dbg(&adap_to_d(adap)->udev->dev, "adap=%d\n",
->  			adap->id);
->  
->  	return usb_urb_exitv2(&adap->stream);
-> @@ -257,8 +257,8 @@ static int dvb_usb_start_feed(struct dvb_demux_feed *dvbdmxfeed)
->  	int ret = 0;
->  	struct usb_data_stream_properties stream_props;
->  	dev_dbg(&d->udev->dev,
-> -			"%s: adap=%d active_fe=%d feed_type=%d setting pid [%s]: %04x (%04d) at index %d\n",
-> -			__func__, adap->id, adap->active_fe, dvbdmxfeed->type,
-> +			"adap=%d active_fe=%d feed_type=%d setting pid [%s]: %04x (%04d) at index %d\n",
-> +			adap->id, adap->active_fe, dvbdmxfeed->type,
->  			adap->pid_filtering ? "yes" : "no", dvbdmxfeed->pid,
->  			dvbdmxfeed->pid, dvbdmxfeed->index);
->  
-> @@ -334,7 +334,7 @@ static int dvb_usb_start_feed(struct dvb_demux_feed *dvbdmxfeed)
+>  	if (locked)
+>  		(fepriv->quality) = (fepriv->quality * 220 + 36 * 256) / 256;
+> @@ -458,8 +458,8 @@ static int dvb_frontend_swzigzag_autotune(struct dvb_frontend *fe, int check_wra
 >  	}
 >  
->  	if (ret)
-> -		dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
-> +		dev_dbg(&d->udev->dev, "failed=%d\n", ret);
->  	return ret;
->  }
+>  	dev_dbg(fe->dvb->device,
+> -		"%s: drift:%i inversion:%i auto_step:%i auto_sub_step:%i started_auto_step:%i\n",
+> -		__func__, fepriv->lnb_drift, fepriv->inversion,
+> +		"drift:%i inversion:%i auto_step:%i auto_sub_step:%i started_auto_step:%i\n",
+> +		fepriv->lnb_drift, fepriv->inversion,
+>  		fepriv->auto_step, fepriv->auto_sub_step,
+>  		fepriv->started_auto_step);
 >  
-> @@ -344,8 +344,8 @@ static int dvb_usb_stop_feed(struct dvb_demux_feed *dvbdmxfeed)
->  	struct dvb_usb_device *d = adap_to_d(adap);
->  	int ret = 0;
->  	dev_dbg(&d->udev->dev,
-> -			"%s: adap=%d active_fe=%d feed_type=%d setting pid [%s]: %04x (%04d) at index %d\n",
-> -			__func__, adap->id, adap->active_fe, dvbdmxfeed->type,
-> +			"adap=%d active_fe=%d feed_type=%d setting pid [%s]: %04x (%04d) at index %d\n",
-> +			adap->id, adap->active_fe, dvbdmxfeed->type,
->  			adap->pid_filtering ? "yes" : "no", dvbdmxfeed->pid,
->  			dvbdmxfeed->pid, dvbdmxfeed->index);
+> @@ -661,7 +661,7 @@ static int dvb_frontend_thread(void *data)
+>  	bool re_tune = false;
+>  	bool semheld = false;
 >  
-> @@ -393,7 +393,7 @@ static int dvb_usb_stop_feed(struct dvb_demux_feed *dvbdmxfeed)
->  skip_feed_stop:
+> -	dev_dbg(fe->dvb->device, "%s:\n", __func__);
+> +	dev_dbg(fe->dvb->device, "\n");
 >  
->  	if (ret)
-> -		dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
-> +		dev_dbg(&d->udev->dev, "failed=%d\n", ret);
->  	return ret;
->  }
+>  	fepriv->check_wrapped = 0;
+>  	fepriv->quality = 0;
+> @@ -710,10 +710,10 @@ static int dvb_frontend_thread(void *data)
+>  			algo = fe->ops.get_frontend_algo(fe);
+>  			switch (algo) {
+>  			case DVBFE_ALGO_HW:
+> -				dev_dbg(fe->dvb->device, "%s: Frontend ALGO = DVBFE_ALGO_HW\n", __func__);
+> +				dev_dbg(fe->dvb->device, "Frontend ALGO = DVBFE_ALGO_HW\n");
 >  
-> @@ -446,13 +446,13 @@ static int dvb_usbv2_adapter_dvb_init(struct dvb_usb_adapter *adap)
->  	int ret;
->  	struct dvb_usb_device *d = adap_to_d(adap);
+>  				if (fepriv->state & FESTATE_RETUNE) {
+> -					dev_dbg(fe->dvb->device, "%s: Retune requested, FESTATE_RETUNE\n", __func__);
+> +					dev_dbg(fe->dvb->device, "Retune requested, FESTATE_RETUNE\n");
+>  					re_tune = true;
+>  					fepriv->state = FESTATE_TUNED;
+>  				} else {
+> @@ -724,19 +724,21 @@ static int dvb_frontend_thread(void *data)
+>  					fe->ops.tune(fe, re_tune, fepriv->tune_mode_flags, &fepriv->delay, &s);
 >  
-> -	dev_dbg(&d->udev->dev, "%s: adap=%d\n", __func__, adap->id);
-> +	dev_dbg(&d->udev->dev, "adap=%d\n", adap->id);
->  
->  	ret = dvb_register_adapter(&adap->dvb_adap, d->name, d->props->owner,
->  			&d->udev->dev, d->props->adapter_nr);
->  	if (ret < 0) {
-> -		dev_dbg(&d->udev->dev, "%s: dvb_register_adapter() failed=%d\n",
-> -				__func__, ret);
-> +		dev_dbg(&d->udev->dev, "dvb_register_adapter() failed=%d\n",
-> +				ret);
->  		goto err_dvb_register_adapter;
->  	}
->  
-> @@ -460,8 +460,8 @@ static int dvb_usbv2_adapter_dvb_init(struct dvb_usb_adapter *adap)
->  
->  	ret = dvb_usbv2_media_device_init(adap);
->  	if (ret < 0) {
-> -		dev_dbg(&d->udev->dev, "%s: dvb_usbv2_media_device_init() failed=%d\n",
-> -				__func__, ret);
-> +		dev_dbg(&d->udev->dev, "dvb_usbv2_media_device_init() failed=%d\n",
-> +				ret);
->  		goto err_dvb_register_mc;
->  	}
->  
-> @@ -523,7 +523,7 @@ static int dvb_usbv2_adapter_dvb_init(struct dvb_usb_adapter *adap)
->  
->  static int dvb_usbv2_adapter_dvb_exit(struct dvb_usb_adapter *adap)
+>  				if (s != fepriv->status && !(fepriv->tune_mode_flags & FE_TUNE_MODE_ONESHOT)) {
+> -					dev_dbg(fe->dvb->device, "%s: state changed, adding current state\n", __func__);
+> +					dev_dbg(fe->dvb->device, "state changed, adding current state\n");
+>  					dvb_frontend_add_event(fe, s);
+>  					fepriv->status = s;
+>  				}
+>  				break;
+>  			case DVBFE_ALGO_SW:
+> -				dev_dbg(fe->dvb->device, "%s: Frontend ALGO = DVBFE_ALGO_SW\n", __func__);
+> +				dev_dbg(fe->dvb->device, "Frontend ALGO = DVBFE_ALGO_SW\n");
+>  				dvb_frontend_swzigzag(fe);
+>  				break;
+>  			case DVBFE_ALGO_CUSTOM:
+> -				dev_dbg(fe->dvb->device, "%s: Frontend ALGO = DVBFE_ALGO_CUSTOM, state=%d\n", __func__, fepriv->state);
+> +				dev_dbg(fe->dvb->device,
+> +					"Frontend ALGO = DVBFE_ALGO_CUSTOM, state=%d\n",
+> +					fepriv->state);
+>  				if (fepriv->state & FESTATE_RETUNE) {
+> -					dev_dbg(fe->dvb->device, "%s: Retune requested, FESTAT_RETUNE\n", __func__);
+> +					dev_dbg(fe->dvb->device, "Retune requested, FESTAT_RETUNE\n");
+>  					fepriv->state = FESTATE_TUNED;
+>  				}
+>  				/* Case where we are going to search for a carrier
+> @@ -772,7 +774,7 @@ static int dvb_frontend_thread(void *data)
+>  				}
+>  				break;
+>  			default:
+> -				dev_dbg(fe->dvb->device, "%s: UNDEFINED ALGO !\n", __func__);
+> +				dev_dbg(fe->dvb->device, "UNDEFINED ALGO !\n");
+>  				break;
+>  			}
+>  		} else {
+> @@ -811,7 +813,7 @@ static void dvb_frontend_stop(struct dvb_frontend *fe)
 >  {
-> -	dev_dbg(&adap_to_d(adap)->udev->dev, "%s: adap=%d\n", __func__,
-> +	dev_dbg(&adap_to_d(adap)->udev->dev, "adap=%d\n",
->  			adap->id);
+>  	struct dvb_frontend_private *fepriv = fe->frontend_priv;
 >  
->  	if (adap->dvb_adap.priv) {
-> @@ -548,7 +548,7 @@ static int dvb_usbv2_device_power_ctrl(struct dvb_usb_device *d, int onoff)
+> -	dev_dbg(fe->dvb->device, "%s:\n", __func__);
+> +	dev_dbg(fe->dvb->device, "\n");
 >  
->  	if (d->powered == 0 || (onoff && d->powered == 1)) {
->  		/* when switching from 1 to 0 or from 0 to 1 */
-> -		dev_dbg(&d->udev->dev, "%s: power=%d\n", __func__, onoff);
-> +		dev_dbg(&d->udev->dev, "power=%d\n", onoff);
->  		if (d->props->power_ctrl) {
->  			ret = d->props->power_ctrl(d, onoff);
->  			if (ret < 0)
-> @@ -558,7 +558,7 @@ static int dvb_usbv2_device_power_ctrl(struct dvb_usb_device *d, int onoff)
+>  	if (fe->exit != DVB_FE_DEVICE_REMOVED)
+>  		fe->exit = DVB_FE_NORMAL_EXIT;
+> @@ -860,7 +862,7 @@ static int dvb_frontend_start(struct dvb_frontend *fe)
+>  	struct dvb_frontend_private *fepriv = fe->frontend_priv;
+>  	struct task_struct *fe_thread;
 >  
->  	return 0;
->  err:
-> -	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
-> +	dev_dbg(&d->udev->dev, "failed=%d\n", ret);
->  	return ret;
->  }
+> -	dev_dbg(fe->dvb->device, "%s:\n", __func__);
+> +	dev_dbg(fe->dvb->device, "\n");
 >  
-> @@ -567,7 +567,7 @@ static int dvb_usb_fe_init(struct dvb_frontend *fe)
->  	int ret;
->  	struct dvb_usb_adapter *adap = fe->dvb->priv;
->  	struct dvb_usb_device *d = adap_to_d(adap);
-> -	dev_dbg(&d->udev->dev, "%s: adap=%d fe=%d\n", __func__, adap->id,
-> +	dev_dbg(&d->udev->dev, "adap=%d fe=%d\n", adap->id,
->  			fe->id);
+>  	if (fepriv->thread) {
+>  		if (fe->exit == DVB_FE_NO_EXIT)
+> @@ -1007,8 +1009,8 @@ static int dvb_frontend_clear_cache(struct dvb_frontend *fe)
+>  	memset(c, 0, offsetof(struct dtv_frontend_properties, strength));
+>  	c->delivery_system = delsys;
 >  
->  	if (!adap->suspend_resume_active) {
-> @@ -597,7 +597,7 @@ static int dvb_usb_fe_init(struct dvb_frontend *fe)
->  		wake_up_bit(&adap->state_bits, ADAP_INIT);
+> -	dev_dbg(fe->dvb->device, "%s: Clearing cache for delivery system %d\n",
+> -		__func__, c->delivery_system);
+> +	dev_dbg(fe->dvb->device, "Clearing cache for delivery system %d\n",
+> +		c->delivery_system);
+>  
+>  	c->transmission_mode = TRANSMISSION_MODE_AUTO;
+>  	c->bandwidth_hz = 0;	/* AUTO */
+> @@ -1178,18 +1180,18 @@ static int dtv_property_cache_sync(struct dvb_frontend *fe,
+>  
+>  	switch (dvbv3_type(c->delivery_system)) {
+>  	case DVBV3_QPSK:
+> -		dev_dbg(fe->dvb->device, "%s: Preparing QPSK req\n", __func__);
+> +		dev_dbg(fe->dvb->device, "Preparing QPSK req\n");
+>  		c->symbol_rate = p->u.qpsk.symbol_rate;
+>  		c->fec_inner = p->u.qpsk.fec_inner;
+>  		break;
+>  	case DVBV3_QAM:
+> -		dev_dbg(fe->dvb->device, "%s: Preparing QAM req\n", __func__);
+> +		dev_dbg(fe->dvb->device, "Preparing QAM req\n");
+>  		c->symbol_rate = p->u.qam.symbol_rate;
+>  		c->fec_inner = p->u.qam.fec_inner;
+>  		c->modulation = p->u.qam.modulation;
+>  		break;
+>  	case DVBV3_OFDM:
+> -		dev_dbg(fe->dvb->device, "%s: Preparing OFDM req\n", __func__);
+> +		dev_dbg(fe->dvb->device, "Preparing OFDM req\n");
+>  
+>  		switch (p->u.ofdm.bandwidth) {
+>  		case BANDWIDTH_10_MHZ:
+> @@ -1222,7 +1224,7 @@ static int dtv_property_cache_sync(struct dvb_frontend *fe,
+>  		c->hierarchy = p->u.ofdm.hierarchy_information;
+>  		break;
+>  	case DVBV3_ATSC:
+> -		dev_dbg(fe->dvb->device, "%s: Preparing ATSC req\n", __func__);
+> +		dev_dbg(fe->dvb->device, "Preparing ATSC req\n");
+>  		c->modulation = p->u.vsb.modulation;
+>  		if (c->delivery_system == SYS_ATSCMH)
+>  			break;
+> @@ -1259,18 +1261,18 @@ dtv_property_legacy_params_sync(struct dvb_frontend *fe,
+>  			__func__, c->delivery_system);
+>  		return -EINVAL;
+>  	case DVBV3_QPSK:
+> -		dev_dbg(fe->dvb->device, "%s: Preparing QPSK req\n", __func__);
+> +		dev_dbg(fe->dvb->device, "Preparing QPSK req\n");
+>  		p->u.qpsk.symbol_rate = c->symbol_rate;
+>  		p->u.qpsk.fec_inner = c->fec_inner;
+>  		break;
+>  	case DVBV3_QAM:
+> -		dev_dbg(fe->dvb->device, "%s: Preparing QAM req\n", __func__);
+> +		dev_dbg(fe->dvb->device, "Preparing QAM req\n");
+>  		p->u.qam.symbol_rate = c->symbol_rate;
+>  		p->u.qam.fec_inner = c->fec_inner;
+>  		p->u.qam.modulation = c->modulation;
+>  		break;
+>  	case DVBV3_OFDM:
+> -		dev_dbg(fe->dvb->device, "%s: Preparing OFDM req\n", __func__);
+> +		dev_dbg(fe->dvb->device, "Preparing OFDM req\n");
+>  		switch (c->bandwidth_hz) {
+>  		case 10000000:
+>  			p->u.ofdm.bandwidth = BANDWIDTH_10_MHZ;
+> @@ -1302,7 +1304,7 @@ dtv_property_legacy_params_sync(struct dvb_frontend *fe,
+>  		p->u.ofdm.hierarchy_information = c->hierarchy;
+>  		break;
+>  	case DVBV3_ATSC:
+> -		dev_dbg(fe->dvb->device, "%s: Preparing VSB req\n", __func__);
+> +		dev_dbg(fe->dvb->device, "Preparing VSB req\n");
+>  		p->u.vsb.modulation = c->modulation;
+>  		break;
 >  	}
->  
-> -	dev_dbg(&d->udev->dev, "%s: ret=%d\n", __func__, ret);
-> +	dev_dbg(&d->udev->dev, "ret=%d\n", ret);
->  	return ret;
->  }
->  
-> @@ -606,7 +606,7 @@ static int dvb_usb_fe_sleep(struct dvb_frontend *fe)
->  	int ret;
->  	struct dvb_usb_adapter *adap = fe->dvb->priv;
->  	struct dvb_usb_device *d = adap_to_d(adap);
-> -	dev_dbg(&d->udev->dev, "%s: adap=%d fe=%d\n", __func__, adap->id,
-> +	dev_dbg(&d->udev->dev, "adap=%d fe=%d\n", adap->id,
->  			fe->id);
->  
->  	if (!adap->suspend_resume_active) {
-> @@ -637,7 +637,7 @@ static int dvb_usb_fe_sleep(struct dvb_frontend *fe)
->  		wake_up_bit(&adap->state_bits, ADAP_SLEEP);
->  	}
->  
-> -	dev_dbg(&d->udev->dev, "%s: ret=%d\n", __func__, ret);
-> +	dev_dbg(&d->udev->dev, "ret=%d\n", ret);
->  	return ret;
->  }
->  
-> @@ -645,7 +645,7 @@ static int dvb_usbv2_adapter_frontend_init(struct dvb_usb_adapter *adap)
->  {
->  	int ret, i, count_registered = 0;
->  	struct dvb_usb_device *d = adap_to_d(adap);
-> -	dev_dbg(&d->udev->dev, "%s: adap=%d\n", __func__, adap->id);
-> +	dev_dbg(&d->udev->dev, "adap=%d\n", adap->id);
->  
->  	memset(adap->fe, 0, sizeof(adap->fe));
->  	adap->active_fe = -1;
-> @@ -654,13 +654,12 @@ static int dvb_usbv2_adapter_frontend_init(struct dvb_usb_adapter *adap)
->  		ret = d->props->frontend_attach(adap);
->  		if (ret < 0) {
->  			dev_dbg(&d->udev->dev,
-> -					"%s: frontend_attach() failed=%d\n",
-> -					__func__, ret);
-> +					"frontend_attach() failed=%d\n",
-> +					ret);
->  			goto err_dvb_frontend_detach;
->  		}
->  	} else {
-> -		dev_dbg(&d->udev->dev, "%s: frontend_attach() do not exists\n",
-> -				__func__);
-> +		dev_dbg(&d->udev->dev, "frontend_attach() do not exists\n");
->  		ret = 0;
->  		goto err;
->  	}
-> @@ -687,8 +686,8 @@ static int dvb_usbv2_adapter_frontend_init(struct dvb_usb_adapter *adap)
->  	if (d->props->tuner_attach) {
->  		ret = d->props->tuner_attach(adap);
->  		if (ret < 0) {
-> -			dev_dbg(&d->udev->dev, "%s: tuner_attach() failed=%d\n",
-> -					__func__, ret);
-> +			dev_dbg(&d->udev->dev, "tuner_attach() failed=%d\n",
-> +					ret);
->  			goto err_dvb_unregister_frontend;
->  		}
->  	}
-> @@ -714,7 +713,7 @@ static int dvb_usbv2_adapter_frontend_init(struct dvb_usb_adapter *adap)
->  	}
->  
->  err:
-> -	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
-> +	dev_dbg(&d->udev->dev, "failed=%d\n", ret);
->  	return ret;
->  }
->  
-> @@ -723,7 +722,7 @@ static int dvb_usbv2_adapter_frontend_exit(struct dvb_usb_adapter *adap)
->  	int ret, i;
->  	struct dvb_usb_device *d = adap_to_d(adap);
->  
-> -	dev_dbg(&d->udev->dev, "%s: adap=%d\n", __func__, adap->id);
-> +	dev_dbg(&d->udev->dev, "adap=%d\n", adap->id);
->  
->  	for (i = MAX_NO_OF_FE_PER_ADAP - 1; i >= 0; i--) {
->  		if (adap->fe[i]) {
-> @@ -735,8 +734,8 @@ static int dvb_usbv2_adapter_frontend_exit(struct dvb_usb_adapter *adap)
->  	if (d->props->tuner_detach) {
->  		ret = d->props->tuner_detach(adap);
->  		if (ret < 0) {
-> -			dev_dbg(&d->udev->dev, "%s: tuner_detach() failed=%d\n",
-> -					__func__, ret);
-> +			dev_dbg(&d->udev->dev, "tuner_detach() failed=%d\n",
-> +					ret);
->  		}
->  	}
->  
-> @@ -744,8 +743,8 @@ static int dvb_usbv2_adapter_frontend_exit(struct dvb_usb_adapter *adap)
->  		ret = d->props->frontend_detach(adap);
->  		if (ret < 0) {
->  			dev_dbg(&d->udev->dev,
-> -					"%s: frontend_detach() failed=%d\n",
-> -					__func__, ret);
-> +					"frontend_detach() failed=%d\n",
-> +					ret);
->  		}
->  	}
->  
-> @@ -825,14 +824,14 @@ static int dvb_usbv2_adapter_init(struct dvb_usb_device *d)
->  
->  	return 0;
->  err:
-> -	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
-> +	dev_dbg(&d->udev->dev, "failed=%d\n", ret);
->  	return ret;
->  }
->  
->  static int dvb_usbv2_adapter_exit(struct dvb_usb_device *d)
->  {
->  	int i;
-> -	dev_dbg(&d->udev->dev, "%s:\n", __func__);
-> +	dev_dbg(&d->udev->dev, "\n");
->  
->  	for (i = MAX_NO_OF_ADAPTER_PER_DEVICE - 1; i >= 0; i--) {
->  		if (d->adapter[i].props) {
-> @@ -849,7 +848,7 @@ static int dvb_usbv2_adapter_exit(struct dvb_usb_device *d)
->  /* general initialization functions */
->  static int dvb_usbv2_exit(struct dvb_usb_device *d)
->  {
-> -	dev_dbg(&d->udev->dev, "%s:\n", __func__);
-> +	dev_dbg(&d->udev->dev, "\n");
->  
->  	dvb_usbv2_remote_exit(d);
->  	dvb_usbv2_adapter_exit(d);
-> @@ -861,7 +860,7 @@ static int dvb_usbv2_exit(struct dvb_usb_device *d)
->  static int dvb_usbv2_init(struct dvb_usb_device *d)
->  {
->  	int ret;
-> -	dev_dbg(&d->udev->dev, "%s:\n", __func__);
-> +	dev_dbg(&d->udev->dev, "\n");
->  
->  	dvb_usbv2_device_power_ctrl(d, 1);
->  
-> @@ -894,7 +893,7 @@ static int dvb_usbv2_init(struct dvb_usb_device *d)
->  	return 0;
->  err:
->  	dvb_usbv2_device_power_ctrl(d, 0);
-> -	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
-> +	dev_dbg(&d->udev->dev, "failed=%d\n", ret);
->  	return ret;
->  }
->  
-> @@ -907,7 +906,7 @@ int dvb_usbv2_probe(struct usb_interface *intf,
->  	struct dvb_usb_driver_info *driver_info =
->  			(struct dvb_usb_driver_info *) id->driver_info;
->  
-> -	dev_dbg(&udev->dev, "%s: bInterfaceNumber=%d\n", __func__,
-> +	dev_dbg(&udev->dev, "bInterfaceNumber=%d\n",
->  			intf->cur_altsetting->desc.bInterfaceNumber);
->  
->  	if (!id->driver_info) {
-> @@ -1010,7 +1009,7 @@ int dvb_usbv2_probe(struct usb_interface *intf,
->  err_kfree_d:
->  	kfree(d);
->  err:
-> -	dev_dbg(&udev->dev, "%s: failed=%d\n", __func__, ret);
-> +	dev_dbg(&udev->dev, "failed=%d\n", ret);
->  	return ret;
->  }
->  EXPORT_SYMBOL(dvb_usbv2_probe);
-> @@ -1021,7 +1020,7 @@ void dvb_usbv2_disconnect(struct usb_interface *intf)
->  	const char *devname = kstrdup(dev_name(&d->udev->dev), GFP_KERNEL);
->  	const char *drvname = d->name;
->  
-> -	dev_dbg(&d->udev->dev, "%s: bInterfaceNumber=%d\n", __func__,
-> +	dev_dbg(&d->udev->dev, "bInterfaceNumber=%d\n",
->  			intf->cur_altsetting->desc.bInterfaceNumber);
->  
->  	if (d->props->exit)
-> @@ -1046,7 +1045,7 @@ int dvb_usbv2_suspend(struct usb_interface *intf, pm_message_t msg)
->  	struct dvb_usb_device *d = usb_get_intfdata(intf);
->  	int ret = 0, i, active_fe;
->  	struct dvb_frontend *fe;
-> -	dev_dbg(&d->udev->dev, "%s:\n", __func__);
-> +	dev_dbg(&d->udev->dev, "\n");
->  
->  	/* stop remote controller poll */
->  	if (d->rc_polling_active)
-> @@ -1076,7 +1075,7 @@ static int dvb_usbv2_resume_common(struct dvb_usb_device *d)
->  {
->  	int ret = 0, i, active_fe;
->  	struct dvb_frontend *fe;
-> -	dev_dbg(&d->udev->dev, "%s:\n", __func__);
-> +	dev_dbg(&d->udev->dev, "\n");
->  
->  	for (i = 0; i < MAX_NO_OF_ADAPTER_PER_DEVICE; i++) {
->  		active_fe = d->adapter[i].active_fe;
-> @@ -1106,7 +1105,7 @@ static int dvb_usbv2_resume_common(struct dvb_usb_device *d)
->  int dvb_usbv2_resume(struct usb_interface *intf)
->  {
->  	struct dvb_usb_device *d = usb_get_intfdata(intf);
-> -	dev_dbg(&d->udev->dev, "%s:\n", __func__);
-> +	dev_dbg(&d->udev->dev, "\n");
->  
->  	return dvb_usbv2_resume_common(d);
->  }
-> @@ -1116,7 +1115,7 @@ int dvb_usbv2_reset_resume(struct usb_interface *intf)
->  {
->  	struct dvb_usb_device *d = usb_get_intfdata(intf);
->  	int ret;
-> -	dev_dbg(&d->udev->dev, "%s:\n", __func__);
-> +	dev_dbg(&d->udev->dev, "\n");
->  
->  	dvb_usbv2_device_power_ctrl(d, 1);
->  
-> diff --git a/drivers/media/usb/dvb-usb-v2/dvb_usb_urb.c b/drivers/media/usb/dvb-usb-v2/dvb_usb_urb.c
-> index 5bafeb6486be..f24513159470 100644
-> --- a/drivers/media/usb/dvb-usb-v2/dvb_usb_urb.c
-> +++ b/drivers/media/usb/dvb-usb-v2/dvb_usb_urb.c
-> @@ -28,11 +28,11 @@ static int dvb_usb_v2_generic_io(struct dvb_usb_device *d,
->  
->  	if (!wbuf || !wlen || !d->props->generic_bulk_ctrl_endpoint ||
->  			!d->props->generic_bulk_ctrl_endpoint_response) {
-> -		dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, -EINVAL);
-> +		dev_dbg(&d->udev->dev, "failed=%d\n", -EINVAL);
+> @@ -1557,20 +1559,19 @@ static int dtv_property_process_get(struct dvb_frontend *fe,
+>  		break;
+>  	default:
+>  		dev_dbg(fe->dvb->device,
+> -			"%s: FE property %d doesn't exist\n",
+> -			__func__, tvp->cmd);
+> +			"FE property %d doesn't exist\n",
+> +			tvp->cmd);
 >  		return -EINVAL;
 >  	}
 >  
-> -	dev_dbg(&d->udev->dev, "%s: >>> %*ph\n", __func__, wlen, wbuf);
-> +	dev_dbg(&d->udev->dev, ">>> %*ph\n", wlen, wbuf);
+>  	if (!dtv_cmds[tvp->cmd].buffer)
+>  		dev_dbg(fe->dvb->device,
+> -			"%s: GET cmd 0x%08x (%s) = 0x%08x\n",
+> -			__func__, tvp->cmd, dtv_cmds[tvp->cmd].name,
+> +			"GET cmd 0x%08x (%s) = 0x%08x\n",
+> +			tvp->cmd, dtv_cmds[tvp->cmd].name,
+>  			tvp->u.data);
+>  	else
+>  		dev_dbg(fe->dvb->device,
+> -			"%s: GET cmd 0x%08x (%s) len %d: %*ph\n",
+> -			__func__,
+> +			"GET cmd 0x%08x (%s) len %d: %*ph\n",
+>  			tvp->cmd, dtv_cmds[tvp->cmd].name,
+>  			tvp->u.buffer.len,
+>  			tvp->u.buffer.len, tvp->u.buffer.data);
+> @@ -1608,8 +1609,7 @@ static int emulate_delivery_system(struct dvb_frontend *fe, u32 delsys)
+>  	 */
+>  	if (c->delivery_system == SYS_ISDBT) {
+>  		dev_dbg(fe->dvb->device,
+> -			"%s: Using defaults for SYS_ISDBT\n",
+> -			__func__);
+> +			"Using defaults for SYS_ISDBT\n");
 >  
->  	ret = usb_bulk_msg(d->udev, usb_sndbulkpipe(d->udev,
->  			d->props->generic_bulk_ctrl_endpoint), wbuf, wlen,
-> @@ -58,8 +58,7 @@ static int dvb_usb_v2_generic_io(struct dvb_usb_device *d,
->  					"%s: 2nd usb_bulk_msg() failed=%d\n",
->  					KBUILD_MODNAME, ret);
+>  		if (!c->bandwidth_hz)
+>  			c->bandwidth_hz = 6000000;
+> @@ -1627,8 +1627,8 @@ static int emulate_delivery_system(struct dvb_frontend *fe, u32 delsys)
+>  			c->layer[i].segment_count = 0;
+>  		}
+>  	}
+> -	dev_dbg(fe->dvb->device, "%s: change delivery system on cache to %d\n",
+> -		__func__, c->delivery_system);
+> +	dev_dbg(fe->dvb->device, "change delivery system on cache to %d\n",
+> +		c->delivery_system);
 >  
-> -		dev_dbg(&d->udev->dev, "%s: <<< %*ph\n", __func__,
-> -				actual_length, rbuf);
-> +		dev_dbg(&d->udev->dev, "<<< %*ph\n", actual_length, rbuf);
+>  	return 0;
+>  }
+> @@ -1677,8 +1677,8 @@ static int dvbv5_set_delivery_system(struct dvb_frontend *fe,
+>  		if (fe->ops.delsys[ncaps] == desired_system) {
+>  			c->delivery_system = desired_system;
+>  			dev_dbg(fe->dvb->device,
+> -				"%s: Changing delivery system to %d\n",
+> -				__func__, desired_system);
+> +				"Changing delivery system to %d\n",
+> +				desired_system);
+>  			return 0;
+>  		}
+>  		ncaps++;
+> @@ -1693,8 +1693,8 @@ static int dvbv5_set_delivery_system(struct dvb_frontend *fe,
+>  	 */
+>  	if (!is_dvbv3_delsys(desired_system)) {
+>  		dev_dbg(fe->dvb->device,
+> -			"%s: Delivery system %d not supported.\n",
+> -			__func__, desired_system);
+> +			"Delivery system %d not supported.\n",
+> +			desired_system);
+>  		return -EINVAL;
 >  	}
 >  
->  	return ret;
+> @@ -1714,14 +1714,14 @@ static int dvbv5_set_delivery_system(struct dvb_frontend *fe,
+>  	/* There's nothing compatible with the desired delivery system */
+>  	if (delsys == SYS_UNDEFINED) {
+>  		dev_dbg(fe->dvb->device,
+> -			"%s: Delivery system %d not supported on emulation mode.\n",
+> -			__func__, desired_system);
+> +			"Delivery system %d not supported on emulation mode.\n",
+> +			desired_system);
+>  		return -EINVAL;
+>  	}
+>  
+>  	dev_dbg(fe->dvb->device,
+> -		"%s: Using delivery system %d emulated as if it were %d\n",
+> -		__func__, delsys, desired_system);
+> +		"Using delivery system %d emulated as if it were %d\n",
+> +		delsys, desired_system);
+>  
+>  	return emulate_delivery_system(fe, desired_system);
+>  }
+> @@ -1770,8 +1770,8 @@ static int dvbv3_set_delivery_system(struct dvb_frontend *fe)
+>  	 */
+>  	if (is_dvbv3_delsys(c->delivery_system)) {
+>  		dev_dbg(fe->dvb->device,
+> -			"%s: Using delivery system to %d\n",
+> -			__func__, c->delivery_system);
+> +			"Using delivery system to %d\n",
+> +			c->delivery_system);
+>  		return 0;
+>  	}
+>  
+> @@ -1789,8 +1789,7 @@ static int dvbv3_set_delivery_system(struct dvb_frontend *fe)
+>  	}
+>  	if (delsys == SYS_UNDEFINED) {
+>  		dev_dbg(fe->dvb->device,
+> -			"%s: Couldn't find a delivery system that works with FE_SET_FRONTEND\n",
+> -			__func__);
+> +			"Couldn't find a delivery system that works with FE_SET_FRONTEND\n");
+>  		return -EINVAL;
+>  	}
+>  	return emulate_delivery_system(fe, delsys);
+> @@ -1823,8 +1822,8 @@ static int dtv_property_process_set(struct dvb_frontend *fe,
+>  			 __func__, cmd);
+>  	else
+>  		dev_dbg(fe->dvb->device,
+> -			"%s: SET cmd 0x%08x (%s) to 0x%08x\n",
+> -			__func__, cmd, dtv_cmds[cmd].name, data);
+> +			"SET cmd 0x%08x (%s) to 0x%08x\n",
+> +			cmd, dtv_cmds[cmd].name, data);
+>  	switch (cmd) {
+>  	case DTV_CLEAR:
+>  		/*
+> @@ -1839,8 +1838,7 @@ static int dtv_property_process_set(struct dvb_frontend *fe,
+>  		 * frontend
+>  		 */
+>  		dev_dbg(fe->dvb->device,
+> -			"%s: Setting the frontend from property cache\n",
+> -			__func__);
+> +			"Setting the frontend from property cache\n");
+>  
+>  		r = dtv_set_frontend(fe);
+>  		break;
+> @@ -1998,7 +1996,7 @@ static int dvb_frontend_do_ioctl(struct file *file, unsigned int cmd,
+>  	struct dvb_frontend_private *fepriv = fe->frontend_priv;
+>  	int err;
+>  
+> -	dev_dbg(fe->dvb->device, "%s: (%d)\n", __func__, _IOC_NR(cmd));
+> +	dev_dbg(fe->dvb->device, "(%d)\n", _IOC_NR(cmd));
+>  	if (down_interruptible(&fepriv->sem))
+>  		return -ERESTARTSYS;
+>  
+> @@ -2329,17 +2327,17 @@ static int dvb_frontend_handle_ioctl(struct file *file,
+>  	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+>  	int i, err = -ENOTSUPP;
+>  
+> -	dev_dbg(fe->dvb->device, "%s:\n", __func__);
+> +	dev_dbg(fe->dvb->device, "\n");
+>  
+>  	switch (cmd) {
+>  	case FE_SET_PROPERTY: {
+>  		struct dtv_properties *tvps = parg;
+>  		struct dtv_property *tvp = NULL;
+>  
+> -		dev_dbg(fe->dvb->device, "%s: properties.num = %d\n",
+> -			__func__, tvps->num);
+> -		dev_dbg(fe->dvb->device, "%s: properties.props = %p\n",
+> -			__func__, tvps->props);
+> +		dev_dbg(fe->dvb->device, "properties.num = %d\n",
+> +			tvps->num);
+> +		dev_dbg(fe->dvb->device, "properties.props = %p\n",
+> +			tvps->props);
+>  
+>  		/*
+>  		 * Put an arbitrary limit on the number of messages that can
+> @@ -2370,10 +2368,10 @@ static int dvb_frontend_handle_ioctl(struct file *file,
+>  		struct dtv_property *tvp = NULL;
+>  		struct dtv_frontend_properties getp = fe->dtv_property_cache;
+>  
+> -		dev_dbg(fe->dvb->device, "%s: properties.num = %d\n",
+> -			__func__, tvps->num);
+> -		dev_dbg(fe->dvb->device, "%s: properties.props = %p\n",
+> -			__func__, tvps->props);
+> +		dev_dbg(fe->dvb->device, "properties.num = %d\n",
+> +			tvps->num);
+> +		dev_dbg(fe->dvb->device, "properties.props = %p\n",
+> +			tvps->props);
+>  
+>  		/*
+>  		 * Put an arbitrary limit on the number of messages that can
+> @@ -2462,8 +2460,8 @@ static int dvb_frontend_handle_ioctl(struct file *file,
+>  				__func__, c->delivery_system);
+>  			info->type = FE_OFDM;
+>  		}
+> -		dev_dbg(fe->dvb->device, "%s: current delivery system on cache: %d, V3 type: %d\n",
+> -			__func__, c->delivery_system, info->type);
+> +		dev_dbg(fe->dvb->device, "current delivery system on cache: %d, V3 type: %d\n",
+> +			c->delivery_system, info->type);
+>  
+>  		/* Set CAN_INVERSION_AUTO bit on in other than oneshot mode */
+>  		if (!(fepriv->tune_mode_flags & FE_TUNE_MODE_ONESHOT))
+> @@ -2721,7 +2719,7 @@ static int dvb_frontend_open(struct inode *inode, struct file *file)
+>  	struct dvb_adapter *adapter = fe->dvb;
+>  	int ret;
+>  
+> -	dev_dbg(fe->dvb->device, "%s:\n", __func__);
+> +	dev_dbg(fe->dvb->device, "\n");
+>  	if (fe->exit == DVB_FE_DEVICE_REMOVED)
+>  		return -ENODEV;
+>  
+> @@ -2847,7 +2845,7 @@ static int dvb_frontend_release(struct inode *inode, struct file *file)
+>  	struct dvb_frontend_private *fepriv = fe->frontend_priv;
+>  	int ret;
+>  
+> -	dev_dbg(fe->dvb->device, "%s:\n", __func__);
+> +	dev_dbg(fe->dvb->device, "\n");
+>  
+>  	if ((file->f_flags & O_ACCMODE) != O_RDONLY) {
+>  		fepriv->release_jiffies = jiffies;
+> @@ -2895,8 +2893,7 @@ int dvb_frontend_suspend(struct dvb_frontend *fe)
+>  {
+>  	int ret = 0;
+>  
+> -	dev_dbg(fe->dvb->device, "%s: adap=%d fe=%d\n", __func__, fe->dvb->num,
+> -		fe->id);
+> +	dev_dbg(fe->dvb->device, "adap=%d fe=%d\n", fe->dvb->num, fe->id);
+>  
+>  	if (fe->ops.tuner_ops.suspend)
+>  		ret = fe->ops.tuner_ops.suspend(fe);
+> @@ -2915,8 +2912,7 @@ int dvb_frontend_resume(struct dvb_frontend *fe)
+>  	struct dvb_frontend_private *fepriv = fe->frontend_priv;
+>  	int ret = 0;
+>  
+> -	dev_dbg(fe->dvb->device, "%s: adap=%d fe=%d\n", __func__, fe->dvb->num,
+> -		fe->id);
+> +	dev_dbg(fe->dvb->device, "adap=%d fe=%d\n", fe->dvb->num, fe->id);
+>  
+>  	fe->exit = DVB_FE_DEVICE_RESUME;
+>  	if (fe->ops.init)
+> @@ -2954,7 +2950,7 @@ int dvb_register_frontend(struct dvb_adapter *dvb,
+>  #endif
+>  	};
+>  
+> -	dev_dbg(dvb->device, "%s:\n", __func__);
+> +	dev_dbg(dvb->device, "\n");
+>  
+>  	if (mutex_lock_interruptible(&frontend_mutex))
+>  		return -ERESTARTSYS;
+> @@ -3006,7 +3002,7 @@ int dvb_unregister_frontend(struct dvb_frontend *fe)
+>  {
+>  	struct dvb_frontend_private *fepriv = fe->frontend_priv;
+>  
+> -	dev_dbg(fe->dvb->device, "%s:\n", __func__);
+> +	dev_dbg(fe->dvb->device, "\n");
+>  
+>  	mutex_lock(&frontend_mutex);
+>  	dvb_frontend_stop(fe);
 > -- 
 > 2.17.2
