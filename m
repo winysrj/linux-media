@@ -1,79 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from srv-hp10-72.netsons.net ([94.141.22.72]:44887 "EHLO
-        srv-hp10-72.netsons.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729747AbeK0USz (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35318 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1730114AbeK0UUN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Nov 2018 15:18:55 -0500
-Subject: Re: [PATCH] media: unify some sony camera sensors pattern naming
-To: Bingbu Cao <bingbu.cao@linux.intel.com>, bingbu.cao@intel.com,
-        linux-media@vger.kernel.org
-Cc: sakari.ailus@linux.intel.com, tfiga@chromium.org,
-        andy.yeh@intel.com
-References: <1543291261-26174-1-git-send-email-bingbu.cao@intel.com>
- <9f1be8b6-8736-e204-5e79-89f4c07becba@lucaceresoli.net>
- <a8e26177-5ff2-3884-f6e2-55ce682dad6d@linux.intel.com>
-From: Luca Ceresoli <luca@lucaceresoli.net>
-Message-ID: <34f09776-57f1-a53e-8060-b0118fd60485@lucaceresoli.net>
-Date: Tue, 27 Nov 2018 10:21:36 +0100
+        Tue, 27 Nov 2018 15:20:13 -0500
+Date: Tue, 27 Nov 2018 11:22:55 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Bingbu Cao <bingbu.cao@linux.intel.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>, bingbu.cao@intel.com,
+        linux-media@vger.kernel.org, tfiga@chromium.org,
+        rajmohan.mani@intel.com, mchehab+samsung@kernel.org,
+        hverkuil@xs4all.nl
+Subject: Re: [PATCH 2/2] media: imx355: fix wrong order in test pattern menus
+Message-ID: <20181127092255.xaemioeftx45yi7p@valkosipuli.retiisi.org.uk>
+References: <1543218214-10767-1-git-send-email-bingbu.cao@intel.com>
+ <1543218214-10767-2-git-send-email-bingbu.cao@intel.com>
+ <20181126085732.vupidoa2lozp5ndo@paasikivi.fi.intel.com>
+ <1f9d131f-8b99-3118-5112-ace6ed1b3d0d@linux.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <a8e26177-5ff2-3884-f6e2-55ce682dad6d@linux.intel.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1f9d131f-8b99-3118-5112-ace6ed1b3d0d@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Bingbu,
-
-On 27/11/18 09:55, Bingbu Cao wrote:
+On Tue, Nov 27, 2018 at 10:45:02AM +0800, Bingbu Cao wrote:
 > 
 > 
-> On 11/27/2018 04:05 PM, Luca Ceresoli wrote:
->> Hi Bingbu,
->>
->> On 27/11/18 05:01, bingbu.cao@intel.com wrote:
->>> From: Bingbu Cao <bingbu.cao@intel.com>
->>>
->>> Some Sony camera sensors have same test pattern
->>> definitions, this patch unify the pattern naming
->>> to make it more clear to the userspace.
->>>
->>> Suggested-by: Sakari Ailus <sakari.ailus@linux.intel.com>
->>> Signed-off-by: Bingbu Cao <bingbu.cao@intel.com>
->>> ---
->>>   drivers/media/i2c/imx258.c | 8 ++++----
->>>   drivers/media/i2c/imx319.c | 8 ++++----
->>>   drivers/media/i2c/imx355.c | 8 ++++----
->>>   3 files changed, 12 insertions(+), 12 deletions(-)
->>>
->>> diff --git a/drivers/media/i2c/imx258.c b/drivers/media/i2c/imx258.c
->>> index 31a1e2294843..a8a2880c6b4e 100644
->>> --- a/drivers/media/i2c/imx258.c
->>> +++ b/drivers/media/i2c/imx258.c
->>> @@ -504,10 +504,10 @@ struct imx258_mode {
->>>     static const char * const imx258_test_pattern_menu[] = {
->>>       "Disabled",
->>> -    "Color Bars",
->>> -    "Solid Color",
->>> -    "Grey Color Bars",
->>> -    "PN9"
->>> +    "Solid Colour",
->>> +    "Eight Vertical Colour Bars",
->>> +    "Colour Bars With Fade to Grey",
->>> +    "Pseudorandom Sequence (PN9)",
->> I had a look at imx274, it has many more values but definitely some
->> could be unified too.
->>
->> However I noticed something strange in that driver: The "Horizontal
->> Color Bars" pattern has vertical bars, side-by-side, as in ||||.
->> "Vertical Color Bars" are one on top of the other, as in ==. Is it just
->> me crazy, or are they swapped?
-> Luca, thanks for your review.
-> I do not have the manual of imx274.
-> |||| should be the 'Vertical Color Bars' without any rotation process.
-> If not, I think the definitions there are swapped.
+> On 11/26/2018 04:57 PM, Sakari Ailus wrote:
+> > Hi Bing Bu,
+> > 
+> > On Mon, Nov 26, 2018 at 03:43:34PM +0800, bingbu.cao@intel.com wrote:
+> > > From: Bingbu Cao <bingbu.cao@intel.com>
+> > > 
+> > > current imx355 test pattern order in ctrl menu
+> > > is not correct, this patch fixes it.
+> > > 
+> > > Signed-off-by: Bingbu Cao <bingbu.cao@intel.com>
+> > > ---
+> > >   drivers/media/i2c/imx355.c | 2 +-
+> > >   1 file changed, 1 insertion(+), 1 deletion(-)
+> > > 
+> > > diff --git a/drivers/media/i2c/imx355.c b/drivers/media/i2c/imx355.c
+> > > index 20c8eea5db4b..9c9559dfd3dd 100644
+> > > --- a/drivers/media/i2c/imx355.c
+> > > +++ b/drivers/media/i2c/imx355.c
+> > > @@ -876,8 +876,8 @@ struct imx355 {
+> > >   static const char * const imx355_test_pattern_menu[] = {
+> > >   	"Disabled",
+> > > -	"100% color bars",
+> > >   	"Solid color",
+> > > +	"100% color bars",
+> > >   	"Fade to gray color bars",
+> > >   	"PN9"
+> > >   };
+> > While at it, could you use the existing test pattern naming as well for the
+> > drivers? That could be a separate patch.
+> > 
+> > >From drivers/media/i2c/smiapp/smiapp-core.c :
+> > 
+> > static const char * const smiapp_test_patterns[] = {
+> > 	"Disabled",
+> > 	"Solid Colour",
+> >    	"Eight Vertical Colour Bars",
+> > 	"Colour Bars With Fade to Grey",
+> > 	"Pseudorandom Sequence (PN9)",
+> > };
+> > 
+> > It's not strictly necessary from interface point of view, but for the user
+> > space it'd be good to align the naming.
+> Sakari, ask a question that not really related to this patch.
+> I am wondering whether there are some standardization for the camera sensor
+> pattern generator.
+> Currently there are varied patterns and every vendor has its own pattern types.
 
-Definitely. I'll send a patch for imx274.
+Some vendors (and some models) do have their specific patterns, but if you
+look at a bunch of drivers, these ones repeat over and over. That's why I
+think it'd make sense to have the menu entries aligned.
 
 -- 
-Luca
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
