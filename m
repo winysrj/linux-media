@@ -1,166 +1,239 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm1-f68.google.com ([209.85.128.68]:52439 "EHLO
-        mail-wm1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731571AbeK1EVv (ORCPT
+Received: from casper.infradead.org ([85.118.1.10]:54308 "EHLO
+        casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726288AbeK1Evv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Nov 2018 23:21:51 -0500
-From: Jernej =?utf-8?B?xaBrcmFiZWM=?= <jernej.skrabec@gmail.com>
-To: linux-sunxi@googlegroups.com, maxime.ripard@bootlin.com
-Cc: hans.verkuil@cisco.com, acourbot@chromium.org,
-        sakari.ailus@linux.intel.com,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        tfiga@chromium.org, posciak@chromium.org,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Chen-Yu Tsai <wens@csie.org>, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        nicolas.dufresne@collabora.com, jenskuske@gmail.com,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Guenter Roeck <groeck@chromium.org>
-Subject: Re: [linux-sunxi] [PATCH v2 1/2] media: uapi: Add H264 low-level decoder API compound controls.
-Date: Tue, 27 Nov 2018 18:23:10 +0100
-Message-ID: <2123591.3TCVFQjlgd@jernej-laptop>
-In-Reply-To: <20181115145650.9827-2-maxime.ripard@bootlin.com>
-References: <20181115145650.9827-1-maxime.ripard@bootlin.com> <20181115145650.9827-2-maxime.ripard@bootlin.com>
+        Tue, 27 Nov 2018 23:51:51 -0500
+Date: Tue, 27 Nov 2018 15:53:01 -0200
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Takashi Iwai <tiwai@suse.de>
+Cc: stakanov <stakanov@eclipso.eu>, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        Michael Ira Krufky <mkrufky@linuxtv.org>,
+        Sean Young <sean@mess.org>, Brad Love <brad@nextdimension.cc>,
+        Malcolm Priestley <tvboxspy@gmail.com>
+Subject: Re: DVB-S PCI card regression on 4.19 / 4.20
+Message-ID: <20181127155301.751e545e@coco.lan>
+In-Reply-To: <s5hk1kywlrp.wl-tiwai@suse.de>
+References: <4e0356d6303c128a3e6d0bcc453ba1be@mail.eclipso.de>
+        <1673172.qrKGPYx0fj@roadrunner.suse>
+        <20181127104946.195487ec@coco.lan>
+        <45396912.h74atscUxZ@roadrunner.suse>
+        <s5hk1kywlrp.wl-tiwai@suse.de>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+Em Tue, 27 Nov 2018 17:03:22 +0100
+Takashi Iwai <tiwai@suse.de> escreveu:
 
-Dne =C4=8Detrtek, 15. november 2018 ob 15:56:49 CET je Maxime Ripard napisa=
-l(a):
-> From: Pawel Osciak <posciak@chromium.org>
+> On Tue, 27 Nov 2018 16:58:58 +0100,
+> stakanov wrote:
+> >=20
+> > In data marted=C3=AC 27 novembre 2018 13:49:46 CET, Mauro Carvalho Cheh=
+ab ha=20
+> > scritto: =20
+> > > Hi Stakanov,
+> > >=20
+> > > Em Tue, 27 Nov 2018 11:02:57 +0100
+> > >=20
+> > > stakanov <stakanov@eclipso.eu> escreveu: =20
+> > > > In data luned=C3=AC 26 novembre 2018 14:31:09 CET, Takashi Iwai ha =
+scritto: =20
+> > > > > On Fri, 23 Nov 2018 18:26:25 +0100,
+> > > > >=20
+> > > > > Mauro Carvalho Chehab wrote: =20
+> > > > > > Takashi,
+> > > > > >=20
+> > > > > > Could you please produce a Kernel for Stakanov to test
+> > > > > > with the following patches:
+> > > > > >=20
+> > > > > > https://patchwork.linuxtv.org/patch/53044/
+> > > > > > https://patchwork.linuxtv.org/patch/53045/
+> > > > > > https://patchwork.linuxtv.org/patch/53046/
+> > > > > > https://patchwork.linuxtv.org/patch/53128/ =20
+> > > > >=20
+> > > > > Sorry for the late reaction.  Now it's queued to OBS
+> > > > > home:tiwai:bsc1116374-2 repo.  It'll be ready in an hour or so.
+> > > > > It's based on 4.20-rc4.
+> > > > >=20
+> > > > > Stakanov, please give it a try later.
+> > > > >=20
+> > > > >=20
+> > > > > thanks,
+> > > > >=20
+> > > > > Takashi =20
+> > > >=20
+> > > > O.K. this unbricks partially the card. =20
+> > >=20
+> > > From the logs, the Kernel is now working as expected.
+> > >  =20
+> > > > Now hotbird does search and does sync
+> > > > on all channels. Quality is very good. Astra still does interrupt t=
+he
+> > > > search immediately and does not receive a thing. So it is a 50% bri=
+ck
+> > > > still, but it is a huge progress compared to before. =20
+> > >=20
+> > > As I said before, you need to tell Kaffeine what's the LNBf that you'=
+re
+> > > using. The LNBf is a physical device[1] that it is installed on your
+> > > satellite dish. There's no way to auto-detect the model you actually =
+have,
+> > > so you need to provide this information to the digital TV software yo=
+u're
+> > > using.
+> > >=20
+> > > [1] It looks like this:
+> > > 	https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Astra_lnb.=
+jpg/ =20
+> > 240 =20
+> > > px-Astra_lnb.jpg
+> > >=20
+> > > The "Universal" one is for an old universal model sold in Europe about
+> > > 15 years ago. It doesn't support all transponders found on an Astra
+> > > satellite.
+> > >=20
+> > > For those, you need to use the LNBf that it is known as "Astra 1E"[2].
+> > >=20
+> > > [2] The name is there just for historical reasons. The actual Astra 1E
+> > > satellite was retired, but another satellite occupies the same orbital
+> > > position (19.2=C2=B0E), and they keep adding/retiring satellites ther=
+e as
+> > > needed (https://en.wikipedia.org/wiki/Astra_19.2%C2%B0E).
+> > >=20
+> > > As I pointed you on a past e-mail, when you set the DVB-S board on
+> > > Kaffeine, you should have explicitly set it.
+> > >=20
+> > > If you start Kaffeine in English:
+> > >=20
+> > > 	$ LANG=3DC kaffeine
+> > >=20
+> > > You'll see it at the following menu:
+> > >=20
+> > > 	Television -> Configure Television -> Device 0
+> > >=20
+> > > (assuming that your device is device 0)
+> > >=20
+> > > There, you need to tell that you'll be using a DiSEqC swith. It
+> > > will then allow you to select up to 4 satellite sources. Once you
+> > > set a source, it will allow you to edit the LNB <n> Settings
+> > > (where <n> will be 1 to 4). Clicking there, it will present you
+> > > a menu with all known LNBf models. Astra 1E is the third option[3].
+> > >=20
+> > > [3] yeah, on a separate discussion, we should likely rename "Astra 1E"
+> > > to just "Astra", and place it as the first option. I'll do such chang=
+e,
+> > > but it will be at v4l-utils package (libdvbv5) and it will probably
+> > > take some time until distros start packaging the new version, even
+> > > if we add it to the stable branch.
+> > >  =20
+> > > > I paste the output of the directory below, unfortunately the opensu=
+se
+> > > > paste
+> > > > does not work currently so I try here, sorry if this is long.
+> > > >=20
+> > > > Content of the directory 99-media.conf created following the indica=
+tions
+> > > > (please bear in mind that I have also another card installed (Haupp=
+auge
+> > > > 5525) although it was not branched to the sat cable and i did chang=
+e the
+> > > > settings in Kaffeine to use only the technisat. But my understandin=
+g is
+> > > > limited if this may give "noise" in the output, so I thought to und=
+erline
+> > > > it, just FYI.
+> > > > Output: =20
+> > > Looks ok to me.
+> > >  =20
+> > > > [  649.009548] cx23885 0000:03:00.0: invalid short VPD tag 01 at of=
+fset 1
+> > > > [  649.011439] r8169 0000:06:00.0: invalid short VPD tag 00 at offs=
+et 1 =20
+> > >=20
+> > > Those two above are weird... It seems to be related to some issue that
+> > > the PCI core detected:
+> > >=20
+> > > drivers/pci/vpd.c:                      pci_warn(dev, "invalid %s VPD=
+ tag
+> > > %02x at offset %zu",
+> > >=20
+> > > I've no idea what they mean, nor if you'll face any issues related to=
+ it.
+> > >=20
+> > > Thanks,
+> > > Mauro =20
+> > The two are known annoyances especially the cx23885 complaining in the =
+logs=20
+> > about a "wrong revision". But as they AFAIK do not cause major issues o=
+r=20
+> > havoc, it is not a problem, at least for me.=20
+> > Now, the card suddenly works. The only thing you have to do (limited to=
+ this=20
+> > technisat PCI card, not applicable to the Hauppauge PCI-e mounted on th=
+e same=20
+> > machine) is to set the "square" to high voltage, limited for Astra. Hot=
+bird=20
+> > scans better without this, with "no setting send" as I do for the Haupp=
+auge as=20
+> > well.=20
+> > This must be something weird related to our sat dish.
+> >=20
+> > But the GOOD news is: yes now you made it! The card works. And yes, you=
+ should=20
+> > really rename ASTRA E setting. Maybe also be more clear or give some hi=
+nt in=20
+> > kaffeine when hovering over it, about how to set it, for some reason it=
+ came=20
+> > straightforward to me to click on the right radio button to select the =
+type of=20
+> > satellite,  but I did not understand, nor did suspect, I would be able =
+to set,=20
+> > or that I would have to set the left button (must be a cultural deforma=
+tion,=20
+> > or whatever). Once you told me about I did find it, but in my very limi=
+ted=20
+> > experience, I think that could be enhanced.
+> >=20
+> > So congratulations. It works and now I am officially even more impresse=
+d about=20
+> > Linux and the spirit behind it. Compliments and thank you all for your =
+work=20
+> > and time! =20
 >=20
-> Stateless video codecs will require both the H264 metadata and slices in
-> order to be able to decode frames.
+> Good to hear that now everything nailed down.
+> So, the patch
+>   https://patchwork.linuxtv.org/patch/53128/
+> is needed in addition to=20
+>   https://patchwork.linuxtv.org/patch/53044/
+
+Yes.
+
+> If so, Mauro, please don't forget to put Fixes and stable tags, so
+> that both will be backported to stable trees.
+
+Yeah, I'll do that.
 >=20
-> This introduces the definitions for a new pixel format for H264 slices th=
-at
-> have been parsed, as well as the structures used to pass the metadata from
-> the userspace to the kernel.
->=20
-> Co-Developed-by: Maxime Ripard <maxime.ripard@bootlin.com>
-> Signed-off-by: Pawel Osciak <posciak@chromium.org>
-> Signed-off-by: Guenter Roeck <groeck@chromium.org>
-> Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
-> ---
->  Documentation/media/uapi/v4l/biblio.rst       |   9 +
->  .../media/uapi/v4l/extended-controls.rst      | 364 ++++++++++++++++++
->  .../media/uapi/v4l/pixfmt-compressed.rst      |  20 +
->  .../media/uapi/v4l/vidioc-queryctrl.rst       |  30 ++
->  .../media/videodev2.h.rst.exceptions          |   5 +
->  drivers/media/v4l2-core/v4l2-ctrls.c          |  42 ++
->  drivers/media/v4l2-core/v4l2-ioctl.c          |   1 +
->  include/media/v4l2-ctrls.h                    |  10 +
->  include/uapi/linux/v4l2-controls.h            | 166 ++++++++
->  include/uapi/linux/videodev2.h                |  11 +
->  10 files changed, 658 insertions(+)
->=20
+> Meanwhile I'll backport it to openSUSE kernels so that the issue will
+> be fixed in the next kernel update.
 
-<snip>
+Btw, I'm adding this to v4l-utils (both upstream and stable):
 
-> @@ -1156,4 +1164,162 @@ struct v4l2_ctrl_mpeg2_quantization {
->  	__u8	chroma_non_intra_quantiser_matrix[64];
->  };
->=20
-> +/* Compounds controls */
-> +
-> +#define V4L2_H264_SPS_CONSTRAINT_SET0_FLAG			0x01
-> +#define V4L2_H264_SPS_CONSTRAINT_SET1_FLAG			0x02
-> +#define V4L2_H264_SPS_CONSTRAINT_SET2_FLAG			0x04
-> +#define V4L2_H264_SPS_CONSTRAINT_SET3_FLAG			0x08
-> +#define V4L2_H264_SPS_CONSTRAINT_SET4_FLAG			0x10
-> +#define V4L2_H264_SPS_CONSTRAINT_SET5_FLAG			0x20
+	https://patchwork.linuxtv.org/patch/53172/
 
-How are these constraint flags meant to be used?
+Despite being applied against version 1.16, It should be easy to
+backport it (if openSUSE is using an older version - probably it is,
+since version 1.16 is brand new).
 
-> +
-> +#define V4L2_H264_SPS_FLAG_SEPARATE_COLOUR_PLANE		0x01
-> +#define V4L2_H264_SPS_FLAG_QPPRIME_Y_ZERO_TRANSFORM_BYPASS	0x02
-> +#define V4L2_H264_SPS_FLAG_DELTA_PIC_ORDER_ALWAYS_ZERO		0x04
-> +#define V4L2_H264_SPS_FLAG_GAPS_IN_FRAME_NUM_VALUE_ALLOWED	0x08
-> +#define V4L2_H264_SPS_FLAG_FRAME_MBS_ONLY			0x10
-> +#define V4L2_H264_SPS_FLAG_MB_ADAPTIVE_FRAME_FIELD		0x20
-> +#define V4L2_H264_SPS_FLAG_DIRECT_8X8_INFERENCE			0x40
-> +
-> +struct v4l2_ctrl_h264_sps {
-> +	__u8 profile_idc;
-> +	__u8 constraint_set_flags;
-> +	__u8 level_idc;
-> +	__u8 seq_parameter_set_id;
-> +	__u8 chroma_format_idc;
-> +	__u8 bit_depth_luma_minus8;
-> +	__u8 bit_depth_chroma_minus8;
-> +	__u8 log2_max_frame_num_minus4;
-> +	__u8 pic_order_cnt_type;
-> +	__u8 log2_max_pic_order_cnt_lsb_minus4;
-> +	__u8 max_num_ref_frames;
-> +	__u8 num_ref_frames_in_pic_order_cnt_cycle;
-> +	__s32 offset_for_ref_frame[255];
-> +	__s32 offset_for_non_ref_pic;
-> +	__s32 offset_for_top_to_bottom_field;
-> +	__u16 pic_width_in_mbs_minus1;
-> +	__u16 pic_height_in_map_units_minus1;
-> +	__u8 flags;
-> +};
-> +
-> +#define V4L2_H264_PPS_FLAG_ENTROPY_CODING_MODE				0x0001
-> +#define V4L2_H264_PPS_FLAG_BOTTOM_FIELD_PIC_ORDER_IN_FRAME_PRESENT	0x0002
-> +#define V4L2_H264_PPS_FLAG_WEIGHTED_PRED				0x0004
-> +#define V4L2_H264_PPS_FLAG_DEBLOCKING_FILTER_CONTROL_PRESENT		0x0008
-> +#define V4L2_H264_PPS_FLAG_CONSTRAINED_INTRA_PRED			0x0010
-> +#define V4L2_H264_PPS_FLAG_REDUNDANT_PIC_CNT_PRESENT			0x0020
-> +#define V4L2_H264_PPS_FLAG_TRANSFORM_8X8_MODE				0x0040
-> +#define V4L2_H264_PPS_FLAG_PIC_SCALING_MATRIX_PRESENT			0x0080
-> +
-> +struct v4l2_ctrl_h264_pps {
-> +	__u8 pic_parameter_set_id;
-> +	__u8 seq_parameter_set_id;
-> +	__u8 num_slice_groups_minus1;
-> +	__u8 num_ref_idx_l0_default_active_minus1;
-> +	__u8 num_ref_idx_l1_default_active_minus1;
-> +	__u8 weighted_bipred_idc;
-> +	__s8 pic_init_qp_minus26;
-> +	__s8 pic_init_qs_minus26;
-> +	__s8 chroma_qp_index_offset;
-> +	__s8 second_chroma_qp_index_offset;
-> +	__u8 flags;
-> +};
-> +
-> +struct v4l2_ctrl_h264_scaling_matrix {
-> +	__u8 scaling_list_4x4[6][16];
-> +	__u8 scaling_list_8x8[6][64];
-> +};
-> +
-> +struct v4l2_h264_weight_factors {
-> +	__s8 luma_weight[32];
-> +	__s8 luma_offset[32];
-> +	__s8 chroma_weight[32][2];
-> +	__s8 chroma_offset[32][2];
-> +};
+It is not really a bugfix (it is just renaming an entry's full name
+and moving it to be at the beginning of the file). It shouldn't
+cause any regression (as it doesn't change the short name for the
+LNBf), but it may help new users, as, with that, the default
+european LNBf will the the one with the extended frequency range
+required for Astra satellites.
 
-Regarding weight type __s8 - isn't too small just a bit?
-
-ITU-T Rec. H264 (05/2003) says that this field has value between -128 to 12=
-7 if=20
-weight flag is set. That fits perfectly. However, when weight flag is 0, de=
-fault=20
-value is 2^luma_log2_weight_denom (for example). luma_log2_weight_denom can=
-=20
-have values between 0 and 7, which means that weight will have values from =
-1=20
-to 128. That is just slightly over the max value for __s8.
-
-__s8 is fine for offsets, though.
-
-Best regards,
-Jernej
-
-> +
-> +struct v4l2_h264_pred_weight_table {
-> +	__u8 luma_log2_weight_denom;
-> +	__u8 chroma_log2_weight_denom;
-> +	struct v4l2_h264_weight_factors weight_factors[2];
-> +};
+Thanks,
+Mauro
