@@ -1,290 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm1-f68.google.com ([209.85.128.68]:34185 "EHLO
-        mail-wm1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726244AbeK1HTF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Nov 2018 02:19:05 -0500
-From: Jernej =?utf-8?B?xaBrcmFiZWM=?= <jernej.skrabec@gmail.com>
-To: linux-sunxi@googlegroups.com
-Cc: maxime.ripard@bootlin.com, hans.verkuil@cisco.com,
-        acourbot@chromium.org, sakari.ailus@linux.intel.com,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        tfiga@chromium.org, posciak@chromium.org,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Chen-Yu Tsai <wens@csie.org>, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        nicolas.dufresne@collabora.com, jenskuske@gmail.com,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>
-Subject: Re: [linux-sunxi] [PATCH v2 2/2] media: cedrus: Add H264 decoding support
-Date: Tue, 27 Nov 2018 21:19:56 +0100
-Message-ID: <2974403.Zdfj58HmI4@jernej-laptop>
-In-Reply-To: <6005903.5qHflpuMbl@jernej-laptop>
-References: <20181115145650.9827-1-maxime.ripard@bootlin.com> <20181127155028.5ukw3g6zjbnvarbp@flea> <6005903.5qHflpuMbl@jernej-laptop>
+Received: from mga09.intel.com ([134.134.136.24]:45512 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726038AbeK1IOf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 28 Nov 2018 03:14:35 -0500
+Date: Tue, 27 Nov 2018 23:15:15 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Marco Felsch <m.felsch@pengutronix.de>
+Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        enrico.scholz@sigma-chemnitz.de, devicetree@vger.kernel.org,
+        akinobu.mita@gmail.com, linux-media@vger.kernel.org,
+        graphics@pengutronix.de,
+        Michael Grzeschik <m.grzeschik@pengutronix.de>
+Subject: Re: [PATCH v3 6/6] media: mt9m111: allow to setup pixclk polarity
+Message-ID: <20181127211512.2zqvrqa37vdsk35b@kekkonen.localdomain>
+References: <20181127100253.30845-1-m.felsch@pengutronix.de>
+ <20181127100253.30845-7-m.felsch@pengutronix.de>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20181127100253.30845-7-m.felsch@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dne torek, 27. november 2018 ob 17:30:00 CET je Jernej =C5=A0krabec napisal=
-(a):
-> Dne torek, 27. november 2018 ob 16:50:28 CET je Maxime Ripard napisal(a):
-> > Hi Jernej,
-> >=20
-> > Thanks for your review!
-> >=20
-> > On Sat, Nov 24, 2018 at 09:43:43PM +0100, Jernej =C5=A0krabec wrote:
-> > > > +enum cedrus_h264_sram_off {
-> > > > +	CEDRUS_SRAM_H264_PRED_WEIGHT_TABLE	=3D 0x000,
-> > > > +	CEDRUS_SRAM_H264_FRAMEBUFFER_LIST	=3D 0x100,
-> > > > +	CEDRUS_SRAM_H264_REF_LIST_0		=3D 0x190,
-> > > > +	CEDRUS_SRAM_H264_REF_LIST_1		=3D 0x199,
-> > > > +	CEDRUS_SRAM_H264_SCALING_LIST_8x8	=3D 0x200,
-> > > > +	CEDRUS_SRAM_H264_SCALING_LIST_4x4	=3D 0x218,
-> > >=20
-> > > I triple checked above address and it should be 0x220. For easier
-> > > implementation later, you might want to add second scaling list addre=
-ss
-> > > for
-> > > 8x8 at 0x210. Then you can do something like:
-> > >=20
-> > > cedrus_h264_write_sram(dev, CEDRUS_SRAM_H264_SCALING_LIST_8x8_0,
-> > >=20
-> > > 			       scaling->scaling_list_8x8[0],
-> > > 			       sizeof(scaling->scaling_list_8x8[0]));
-> > >=20
-> > > cedrus_h264_write_sram(dev, CEDRUS_SRAM_H264_SCALING_LIST_8x8_1,
-> > >=20
-> > > 			       scaling->scaling_list_8x8[3],
-> > > 			       sizeof(scaling->scaling_list_8x8[0]));
-> > >=20
-> > > cedrus_h264_write_sram(dev, CEDRUS_SRAM_H264_SCALING_LIST_4x4,
-> > >=20
-> > > 			       scaling->scaling_list_4x4,
-> > > 			       sizeof(scaling->scaling_list_4x4));
-> > >=20
-> > > I know that it's not implemented here, just FYI.
-> >=20
-> > Ack. I guess I can just leave it out entirely for now, since it's not
-> > implemented.
-> >=20
-> > > > +static void cedrus_fill_ref_pic(struct cedrus_ctx *ctx,
-> > > > +				struct cedrus_buffer *buf,
-> > > > +				unsigned int top_field_order_cnt,
-> > > > +				unsigned int bottom_field_order_cnt,
-> > > > +				struct cedrus_h264_sram_ref_pic *pic)
-> > > > +{
-> > > > +	struct vb2_buffer *vbuf =3D &buf->m2m_buf.vb.vb2_buf;
-> > > > +	unsigned int position =3D buf->codec.h264.position;
-> > > > +
-> > > > +	pic->top_field_order_cnt =3D top_field_order_cnt;
-> > > > +	pic->bottom_field_order_cnt =3D bottom_field_order_cnt;
-> > > > +	pic->frame_info =3D buf->codec.h264.pic_type << 8;
-> > > > +
-> > > > +	pic->luma_ptr =3D cedrus_buf_addr(vbuf, &ctx->dst_fmt, 0) -
-> > > > PHYS_OFFSET;
-> > > > +	pic->chroma_ptr =3D cedrus_buf_addr(vbuf, &ctx->dst_fmt, 1) -
-> > > > PHYS_OFFSET;
-> > >=20
-> > > I think subtracting PHYS_OFFSET breaks driver on H3 boards with 2 GiB=
- of
-> > > RAM. Isn't that unnecessary anyway due to
-> > >=20
-> > > dev->dev->dma_pfn_offset =3D PHYS_PFN_OFFSET;
-> > >=20
-> > > in cedrus_hw.c?
-> > >=20
-> > > This comment is meant for all PHYS_OFFSET subtracting in this patch.
-> >=20
-> > PHYS_OFFSET was needed on some older SoCs, and the dma_pfn_offset
-> > trick wasn't working, I hacked it and forgot about it. I'll try to
-> > figure it out for the next version.
-> >=20
-> > > > +static void _cedrus_write_ref_list(struct cedrus_ctx *ctx,
-> > > > +				   struct cedrus_run *run,
-> > > > +				   const u8 *ref_list, u8 num_ref,
-> > > > +				   enum cedrus_h264_sram_off sram)
-> > > > +{
-> > > > +	const struct v4l2_ctrl_h264_decode_param *decode =3D
-> > > > run->h264.decode_param; +	struct vb2_queue *cap_q =3D
-> > > > &ctx->fh.m2m_ctx->cap_q_ctx.q;
-> > > > +	struct cedrus_dev *dev =3D ctx->dev;
-> > > > +	u32 sram_array[CEDRUS_MAX_REF_IDX / sizeof(u32)];
-> > > > +	unsigned int size, i;
-> > > > +
-> > > > +	memset(sram_array, 0, sizeof(sram_array));
-> > > > +
-> > > > +	for (i =3D 0; i < num_ref; i +=3D 4) {
-> > > > +		unsigned int j;
-> > > > +
-> > > > +		for (j =3D 0; j < 4; j++) {
-> > >=20
-> > > I don't think you have to complicate with two loops here.
-> > > cedrus_h264_write_sram() takes void* and it aligns to 4 anyway. So as
-> > > long
-> > > input buffer is multiple of 4 (u8[CEDRUS_MAX_REF_IDX] qualifies for
-> > > that),
-> > > you can use single for loop with "u8 sram_array[CEDRUS_MAX_REF_IDX]".
-> > > This should make code much more readable.
-> >=20
-> > This wasn't really about the alignment, but in order to get the
-> > offsets in the u32 and the array more easily.
-> >=20
-> > Breaking out the loop will make that computation less easy on the eye,
-> > so I guess it's very subjective.
->=20
-> For some strange reason, code below fixes decoding issue from one of my t=
-est
-> samples. This is what I actually meant with 1 loop approach:
->=20
-> static void _cedrus_write_ref_list(struct cedrus_ctx *ctx,
-> 				   struct cedrus_run *run,
-> 				   const u8 *ref_list, u8 num_ref,
-> 				   enum cedrus_h264_sram_off sram)
-> {
-> 	const struct v4l2_ctrl_h264_decode_param *decode =3D run->h264.decode_pa=
-ram;
-> 	struct vb2_queue *cap_q =3D &ctx->fh.m2m_ctx->cap_q_ctx.q;
-> 	struct cedrus_dev *dev =3D ctx->dev;
-> 	u8 sram_array[CEDRUS_MAX_REF_IDX];
-> 	unsigned int i;
->=20
-> 	memset(sram_array, 0, sizeof(sram_array));
-> 	num_ref =3D min(num_ref, (u8)CEDRUS_MAX_REF_IDX);
->=20
-> 	for (i =3D 0; i < num_ref; i++) {
-> 		const struct v4l2_h264_dpb_entry *dpb;
-> 		const struct cedrus_buffer *cedrus_buf;
-> 		const struct vb2_v4l2_buffer *ref_buf;
-> 		unsigned int position;
-> 		int buf_idx;
-> 		u8 dpb_idx;
->=20
-> 		dpb_idx =3D ref_list[i];
-> 		dpb =3D &decode->dpb[dpb_idx];
->=20
-> 		if (!(dpb->flags & V4L2_H264_DPB_ENTRY_FLAG_ACTIVE))
-> 			continue;
->=20
-> 		buf_idx =3D vb2_find_tag(cap_q, dpb->tag, 0);
-> 		if (buf_idx < 0)
-> 			continue;
->=20
-> 		ref_buf =3D to_vb2_v4l2_buffer(ctx->dst_bufs[buf_idx]);
-> 		cedrus_buf =3D vb2_v4l2_to_cedrus_buffer(ref_buf);
-> 		position =3D cedrus_buf->codec.h264.position;
->=20
-> 		sram_array[i] |=3D position << 1;
-> 		if (ref_buf->field =3D=3D V4L2_FIELD_BOTTOM)
-> 			sram_array[i] |=3D BIT(0);
-> 	}
->=20
-> 	cedrus_h264_write_sram(dev, sram, &sram_array, num_ref);
-> }
->=20
-> IMO this code is easier to read.
->=20
-> > > > +			const struct v4l2_h264_dpb_entry *dpb;
-> > > > +			const struct cedrus_buffer *cedrus_buf;
-> > > > +			const struct vb2_v4l2_buffer *ref_buf;
-> > > > +			unsigned int position;
-> > > > +			int buf_idx;
-> > > > +			u8 ref_idx =3D i + j;
-> > > > +			u8 dpb_idx;
-> > > > +
-> > > > +			if (ref_idx >=3D num_ref)
-> > > > +				break;
-> > > > +
-> > > > +			dpb_idx =3D ref_list[ref_idx];
-> > > > +			dpb =3D &decode->dpb[dpb_idx];
-> > > > +
-> > > > +			if (!(dpb->flags & V4L2_H264_DPB_ENTRY_FLAG_ACTIVE))
-> > > > +				continue;
-> > > > +
-> > > > +			buf_idx =3D vb2_find_tag(cap_q, dpb->tag, 0);
-> > > > +			if (buf_idx < 0)
-> > > > +				continue;
-> > > > +
-> > > > +			ref_buf =3D to_vb2_v4l2_buffer(ctx->dst_bufs[buf_idx]);
-> > > > +			cedrus_buf =3D vb2_v4l2_to_cedrus_buffer(ref_buf);
-> > > > +			position =3D cedrus_buf->codec.h264.position;
-> > > > +
-> > > > +			sram_array[i] |=3D position << (j * 8 + 1);
-> > > > +			if (ref_buf->field =3D=3D V4L2_FIELD_BOTTOM)
-> > >=20
-> > > You newer set above flag to buffer so this will be always false.
-> >=20
-> > As far as I know, the field is supposed to be set by the userspace.
->=20
-> How? I thought that only flags at queueing buffers can be set and there is
-> no bottom/top flag.
->=20
-> > > > +	// sequence parameters
-> > > > +	reg =3D BIT(19);
-> > >=20
-> > > This one can be inferred from sps->chroma_format_idc.
-> >=20
-> > I'll look into this
->=20
-> I'm using this:
-> reg |=3D (sps->chroma_format_idc & 0x7) << 19;
->=20
-> Although I can't tell if I tested anything else than 1 there (same as it =
-was
-> before).
->=20
-> > > > +	reg |=3D (sps->pic_width_in_mbs_minus1 & 0xff) << 8;
-> > > > +	reg |=3D sps->pic_height_in_map_units_minus1 & 0xff;
-> > > > +	if (sps->flags & V4L2_H264_SPS_FLAG_FRAME_MBS_ONLY)
-> > > > +		reg |=3D BIT(18);
-> > > > +	if (sps->flags & V4L2_H264_SPS_FLAG_MB_ADAPTIVE_FRAME_FIELD)
-> > > > +		reg |=3D BIT(17);
-> > > > +	if (sps->flags & V4L2_H264_SPS_FLAG_DIRECT_8X8_INFERENCE)
-> > > > +		reg |=3D BIT(16);
-> > > > +	cedrus_write(dev, VE_H264_FRAME_SIZE, reg);
-> > > > +
-> > > > +	// slice parameters
-> > > > +	reg =3D 0;
-> > > > +	/*
-> > > > +	 * FIXME: This bit marks all the frames as references. This
-> > > > +	 * should probably be set based on nal_ref_idc, but the libva
-> > > > +	 * doesn't pass that information along, so this is not always
-> > > > +	 * available. We should find something else, maybe change the
-> > > > +	 * kernel UAPI somehow?
-> > > > +	 */
-> > > > +	reg |=3D BIT(12);
-> > >=20
-> > > I really think you should use nal_ref_idc here as it is in
-> > > specification.
-> > > You can still fake the data from libva backend. I don't think that any
-> > > driver needs this for anything else than check if it is 0 or not.
-> >=20
-> > Yeah, Tomasz suggested the same thing as a reply to the cover letter,
-> > I'll change that in the next version.
-> >=20
-> > > > +	reg |=3D (slice->slice_type & 0xf) << 8;
-> > > > +	reg |=3D slice->cabac_init_idc & 0x3;
-> > > > +	reg |=3D BIT(5);
-> > > > +	if (slice->flags & V4L2_H264_SLICE_FLAG_FIELD_PIC)
-> > > > +		reg |=3D BIT(4);
-> > > > +	if (slice->flags & V4L2_H264_SLICE_FLAG_BOTTOM_FIELD)
-> > > > +		reg |=3D BIT(3);
-> > > > +	if (slice->flags & V4L2_H264_SLICE_FLAG_DIRECT_SPATIAL_MV_PRED)
-> > > > +		reg |=3D BIT(2);
-> > > > +	cedrus_write(dev, VE_H264_SLICE_HDR, reg);
-> > > > +
-> > > > +	reg =3D 0;
-> > >=20
-> > > You might want to set bit 12 here, which enables active reference
-> > > picture
-> > > override. However, I'm not completely sure about that.
-> >=20
-> > Did you find some videos that were broken because of this?
->=20
-> No, not really. That's why I don't really know if it is needed or not.
+On Tue, Nov 27, 2018 at 11:02:53AM +0100, Marco Felsch wrote:
+> From: Enrico Scholz <enrico.scholz@sigma-chemnitz.de>
+> 
+> The chip can be configured to output data transitions on the
+> rising or falling edge of PIXCLK (Datasheet R58:1[9]), default is on the
+> falling edge.
+> 
+> Parsing the fw-node is made in a subfunction to bundle all (future)
+> dt-parsing / fw-parsing stuff.
+> 
+> Signed-off-by: Enrico Scholz <enrico.scholz@sigma-chemnitz.de>
+> (m.grzeschik@pengutronix.de: Fix inverting clock. INV_PIX_CLOCK bit is set
+> per default. Set bit to 0 (enable mask bit without value) to enable
+> falling edge sampling.)
+> Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
+> (m.felsch@pengutronix.de: use fwnode helpers)
+> (m.felsch@pengutronix.de: mv fw parsing into own function)
+> (m.felsch@pengutronix.de: adapt commit msg)
+> Signed-off-by: Marco Felsch <m.felsch@pengutronix.de>
 
-I found a flag in specs: num_ref_idx_active_override_flag
-I guess VAAPI always give correct value, so this doesn't need to be set.
+This one as well:
 
-Best regards,
-Jernej
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index 005fc2bd0d05..902c3cabf44c 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -859,6 +859,7 @@ config VIDEO_MT9M032
+ config VIDEO_MT9M111
+ 	tristate "mt9m111, mt9m112 and mt9m131 support"
+ 	depends on I2C && VIDEO_V4L2
++	select V4L2_FWNODE
+ 	help
+ 	  This driver supports MT9M111, MT9M112 and MT9M131 cameras from
+ 	  Micron/Aptina
+
+-- 
+Sakari Ailus
+sakari.ailus@linux.intel.com
