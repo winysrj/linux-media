@@ -1,175 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it1-f195.google.com ([209.85.166.195]:38666 "EHLO
-        mail-it1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728597AbeK0RxO (ORCPT
+Received: from mail-io1-f72.google.com ([209.85.166.72]:44147 "EHLO
+        mail-io1-f72.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727537AbeK0R56 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Nov 2018 12:53:14 -0500
-Received: by mail-it1-f195.google.com with SMTP id h65so32156571ith.3
-        for <linux-media@vger.kernel.org>; Mon, 26 Nov 2018 22:56:21 -0800 (PST)
+        Tue, 27 Nov 2018 12:57:58 -0500
+Received: by mail-io1-f72.google.com with SMTP id v8so20497719ioh.11
+        for <linux-media@vger.kernel.org>; Mon, 26 Nov 2018 23:01:05 -0800 (PST)
 MIME-Version: 1.0
-References: <cover.71b0f9855c251f9dc389ee77ee6f0e1fad91fb0b.1542097288.git-series.maxime.ripard@bootlin.com>
- <12093630fdd7d8b43ebcb0340691e0f2200e26c6.1542097288.git-series.maxime.ripard@bootlin.com>
-In-Reply-To: <12093630fdd7d8b43ebcb0340691e0f2200e26c6.1542097288.git-series.maxime.ripard@bootlin.com>
-From: Jagan Teki <jagan@amarulasolutions.com>
-Date: Tue, 27 Nov 2018 12:26:09 +0530
-Message-ID: <CAMty3ZBO6B=vgduv5u28zC8P1DOm1TYGFAVjDtJOpU8dozrk=A@mail.gmail.com>
-Subject: Re: [PATCH 5/5] DO NOT MERGE: ARM: dts: bananapi: Add Camera support
-To: Maxime Ripard <maxime.ripard@bootlin.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        laurent.pinchart@ideasonboard.com,
-        linux-media <linux-media@vger.kernel.org>, a.hajda@samsung.com,
-        Chen-Yu Tsai <wens@csie.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        devicetree <devicetree@vger.kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Rob Herring <robh+dt@kernel.org>, frowand.list@gmail.com
-Content-Type: text/plain; charset="UTF-8"
+Date: Mon, 26 Nov 2018 23:01:04 -0800
+Message-ID: <0000000000005b7c64057ba003fb@google.com>
+Subject: BUG: unable to handle kernel paging request in tpg_fill_plane_buffer
+From: syzbot <syzbot+aa8212f63ea8ffaf3bfa@syzkaller.appspotmail.com>
+To: bwinther@cisco.com, hverkuil@xs4all.nl, keescook@chromium.org,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        mchehab@kernel.org, syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Nov 13, 2018 at 1:54 PM Maxime Ripard <maxime.ripard@bootlin.com> wrote:
->
-> Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
-> ---
->  arch/arm/boot/dts/sun7i-a20-bananapi.dts | 98 +++++++++++++++++++++++++-
->  1 file changed, 98 insertions(+)
->
-> diff --git a/arch/arm/boot/dts/sun7i-a20-bananapi.dts b/arch/arm/boot/dts/sun7i-a20-bananapi.dts
-> index 70dfc4ac0bb5..18dbff9f1ce9 100644
-> --- a/arch/arm/boot/dts/sun7i-a20-bananapi.dts
-> +++ b/arch/arm/boot/dts/sun7i-a20-bananapi.dts
-> @@ -54,6 +54,9 @@
->         compatible = "lemaker,bananapi", "allwinner,sun7i-a20";
->
->         aliases {
-> +               i2c0 = &i2c0;
-> +               i2c1 = &i2c1;
-> +               i2c2 = &i2c2;
->                 serial0 = &uart0;
->                 serial1 = &uart3;
->                 serial2 = &uart7;
-> @@ -63,6 +66,41 @@
->                 stdout-path = "serial0:115200n8";
->         };
->
-> +       reg_cam: cam {
-> +               compatible = "regulator-fixed";
-> +               regulator-name = "cam";
-> +               regulator-min-microvolt = <5000000>;
-> +               regulator-max-microvolt = <5000000>;
-> +               vin-supply = <&reg_vcc5v0>;
-> +               gpio = <&pio 7 16 GPIO_ACTIVE_HIGH>;
-> +               enable-active-high;
-> +               regulator-always-on;
-> +       };
-> +
-> +        reg_cam_avdd: cam-avdd {
-> +                compatible = "regulator-fixed";
-> +                regulator-name = "cam500b-avdd";
-> +                regulator-min-microvolt = <2800000>;
-> +                regulator-max-microvolt = <2800000>;
-> +                vin-supply = <&reg_cam>;
-> +        };
-> +
-> +        reg_cam_dovdd: cam-dovdd {
-> +                compatible = "regulator-fixed";
-> +                regulator-name = "cam500b-dovdd";
-> +                regulator-min-microvolt = <1800000>;
-> +                regulator-max-microvolt = <1800000>;
-> +                vin-supply = <&reg_cam>;
-> +        };
-> +
-> +        reg_cam_dvdd: cam-dvdd {
-> +                compatible = "regulator-fixed";
-> +                regulator-name = "cam500b-dvdd";
-> +                regulator-min-microvolt = <1500000>;
-> +                regulator-max-microvolt = <1500000>;
-> +                vin-supply = <&reg_cam>;
-> +        };
-> +
->         hdmi-connector {
->                 compatible = "hdmi-connector";
->                 type = "a";
-> @@ -120,6 +158,27 @@
->                 >;
->  };
->
-> +&csi0 {
-> +       pinctrl-names = "default";
-> +       pinctrl-0 = <&csi0_pins_a>;
-> +       status = "okay";
-> +
-> +       port {
-> +               #address-cells = <1>;
-> +               #size-cells = <0>;
-> +
-> +               csi_from_ov5640: endpoint {
-> +                        remote-endpoint = <&ov5640_to_csi>;
-> +                        bus-width = <8>;
-> +                        data-shift = <2>;
-> +                        hsync-active = <1>; /* Active high */
-> +                        vsync-active = <0>; /* Active low */
-> +                        data-active = <1>;  /* Active high */
-> +                        pclk-sample = <1>;  /* Rising */
-> +                };
-> +       };
-> +};
-> +
->  &de {
->         status = "okay";
->  };
-> @@ -167,6 +226,39 @@
->         };
->  };
->
-> +&i2c1 {
-> +       pinctrl-names = "default";
-> +       pinctrl-0 = <&i2c1_pins_a>;
-> +       status = "okay";
-> +
-> +       camera: camera@21 {
-> +               compatible = "ovti,ov5640";
-> +               reg = <0x21>;
-> +                clocks = <&ccu CLK_CSI0>;
-> +                clock-names = "xclk";
-> +               assigned-clocks = <&ccu CLK_CSI0>;
-> +               assigned-clock-rates = <24000000>;
-> +
-> +                reset-gpios = <&pio 7 14 GPIO_ACTIVE_LOW>;
-> +                powerdown-gpios = <&pio 7 19 GPIO_ACTIVE_HIGH>;
-> +                AVDD-supply = <&reg_cam_avdd>;
-> +                DOVDD-supply = <&reg_cam_dovdd>;
-> +                DVDD-supply = <&reg_cam_dvdd>;
-> +
-> +                port {
-> +                        ov5640_to_csi: endpoint {
-> +                                remote-endpoint = <&csi_from_ov5640>;
-> +                                bus-width = <8>;
-> +                                data-shift = <2>;
-> +                                hsync-active = <1>; /* Active high */
-> +                                vsync-active = <0>; /* Active low */
-> +                                data-active = <1>;  /* Active high */
-> +                                pclk-sample = <1>;  /* Rising */
-> +                        };
-> +                };
-> +       };
+Hello,
 
-Does ov5640 need any further patches, wrt linux-next? I'm trying to
-test this on top of linux-next but the slave id seems not detecting.
+syzbot found the following crash on:
 
-[    2.304711] ov5640 1-0021: Linked as a consumer to regulator.5
-[    2.310639] ov5640 1-0021: Linked as a consumer to regulator.6
-[    2.316592] ov5640 1-0021: Linked as a consumer to regulator.4
-[    2.351540] ov5640 1-0021: ov5640_init_slave_id: failed with -6
-[    2.357543] ov5640 1-0021: Dropping the link to regulator.5
-[    2.363224] ov5640 1-0021: Dropping the link to regulator.6
-[    2.368829] ov5640 1-0021: Dropping the link to regulator.4
+HEAD commit:    6f8b52ba442c Merge tag 'hwmon-for-v4.20-rc5' of git://git...
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=15fd354d400000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=c94f9f0c0363db4b
+dashboard link: https://syzkaller.appspot.com/bug?extid=aa8212f63ea8ffaf3bfa
+compiler:       gcc (GCC) 8.0.1 20180413 (experimental)
 
-Here is the full log [1], please let me know if I miss anything, I
-even tried to remove MCLK pin
+Unfortunately, I don't have any reproducer for this crash yet.
 
-[1] https://paste.ubuntu.com/p/yfy5cvs32x/
+IMPORTANT: if you fix the bug, please add the following tag to the commit:
+Reported-by: syzbot+aa8212f63ea8ffaf3bfa@syzkaller.appspotmail.com
+
+BUG: unable to handle kernel paging request at ffffc90005b5c340
+PGD 1da95a067 P4D 1da95a067 PUD 1da95b067 PMD 1c4863067 PTE 0
+Oops: 0002 [#1] PREEMPT SMP KASAN
+CPU: 0 PID: 5439 Comm: vivid-000-vid-c Not tainted 4.20.0-rc4+ #130
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
+Google 01/01/2011
+RIP: 0010:memcpy_erms+0x6/0x10 arch/x86/lib/memcpy_64.S:54
+Code: 90 90 90 90 eb 1e 0f 1f 00 48 89 f8 48 89 d1 48 c1 e9 03 83 e2 07 f3  
+48 a5 89 d1 f3 a4 c3 66 0f 1f 44 00 00 48 89 f8 48 89 d1 <f3> a4 c3 0f 1f  
+80 00 00 00 00 48 89 f8 48 83 fa 20 72 7e 40 38 fe
+RSP: 0018:ffff888150467518 EFLAGS: 00010246
+RAX: ffffc90005b5c340 RBX: 0000000000000080 RCX: 0000000000000080
+RDX: 0000000000000080 RSI: ffffc90001da3000 RDI: ffffc90005b5c340
+RBP: ffff888150467538 R08: fffff52000b6b878 R09: fffff52000b6b868
+R10: fffff52000b6b877 R11: ffffc90005b5c3bf R12: ffffc90005b5c340
+R13: ffffc90001da3000 R14: dffffc0000000000 R15: ffff8881cb2c5e50
+FS:  0000000000000000(0000) GS:ffff8881dae00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffffc90005b5c340 CR3: 00000001846a4000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+  memcpy include/linux/string.h:352 [inline]
+  tpg_fill_plane_pattern drivers/media/common/v4l2-tpg/v4l2-tpg-core.c:2382  
+[inline]
+  tpg_fill_plane_buffer+0x193f/0x44c0  
+drivers/media/common/v4l2-tpg/v4l2-tpg-core.c:2481
+  vivid_fillbuff+0x1d0d/0x68e0  
+drivers/media/platform/vivid/vivid-kthread-cap.c:473
+  vivid_thread_vid_cap_tick  
+drivers/media/platform/vivid/vivid-kthread-cap.c:709 [inline]
+  vivid_thread_vid_cap+0xbc1/0x2650  
+drivers/media/platform/vivid/vivid-kthread-cap.c:813
+  kthread+0x35a/0x440 kernel/kthread.c:246
+  ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:352
+Modules linked in:
+CR2: ffffc90005b5c340
+---[ end trace 22cabf1d47b26daf ]---
+RIP: 0010:memcpy_erms+0x6/0x10 arch/x86/lib/memcpy_64.S:54
+Code: 90 90 90 90 eb 1e 0f 1f 00 48 89 f8 48 89 d1 48 c1 e9 03 83 e2 07 f3  
+48 a5 89 d1 f3 a4 c3 66 0f 1f 44 00 00 48 89 f8 48 89 d1 <f3> a4 c3 0f 1f  
+80 00 00 00 00 48 89 f8 48 83 fa 20 72 7e 40 38 fe
+RSP: 0018:ffff888150467518 EFLAGS: 00010246
+RAX: ffffc90005b5c340 RBX: 0000000000000080 RCX: 0000000000000080
+RDX: 0000000000000080 RSI: ffffc90001da3000 RDI: ffffc90005b5c340
+RBP: ffff888150467538 R08: fffff52000b6b878 R09: fffff52000b6b868
+R10: fffff52000b6b877 R11: ffffc90005b5c3bf R12: ffffc90005b5c340
+R13: ffffc90001da3000 R14: dffffc0000000000 R15: ffff8881cb2c5e50
+FS:  0000000000000000(0000) GS:ffff8881dae00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffffc90005b5c340 CR3: 00000001846a4000 CR4: 00000000001406f0
+kobject: 'loop0' (00000000664d120c): kobject_uevent_env
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+kobject: 'loop0' (00000000664d120c): fill_kobj_path: path  
+= '/devices/virtual/block/loop0'
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+
+
+---
+This bug is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+syzbot will keep track of this bug report. See:
+https://goo.gl/tpsmEJ#bug-status-tracking for how to communicate with  
+syzbot.
