@@ -1,31 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lj1-f194.google.com ([209.85.208.194]:43946 "EHLO
-        mail-lj1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727596AbeK0LCY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Nov 2018 06:02:24 -0500
-Received: by mail-lj1-f194.google.com with SMTP id 83-v6so18363777ljf.10
-        for <linux-media@vger.kernel.org>; Mon, 26 Nov 2018 16:06:29 -0800 (PST)
+Received: from mga04.intel.com ([192.55.52.120]:19216 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727542AbeK0Ng1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 27 Nov 2018 08:36:27 -0500
+Subject: Re: [PATCH 2/2] media: imx355: fix wrong order in test pattern menus
+To: Sakari Ailus <sakari.ailus@linux.intel.com>, bingbu.cao@intel.com
+Cc: linux-media@vger.kernel.org, tfiga@chromium.org,
+        rajmohan.mani@intel.com, mchehab+samsung@kernel.org,
+        hverkuil@xs4all.nl
+References: <1543218214-10767-1-git-send-email-bingbu.cao@intel.com>
+ <1543218214-10767-2-git-send-email-bingbu.cao@intel.com>
+ <20181126085732.vupidoa2lozp5ndo@paasikivi.fi.intel.com>
+From: Bingbu Cao <bingbu.cao@linux.intel.com>
+Message-ID: <1f9d131f-8b99-3118-5112-ace6ed1b3d0d@linux.intel.com>
+Date: Tue, 27 Nov 2018 10:45:02 +0800
 MIME-Version: 1.0
-Reply-To: worldonlinecreditunion@gmail.com
-From: Offer <ml9635829@gmail.com>
-Date: Mon, 26 Nov 2018 12:06:28 -1200
-Message-ID: <CAMGBzp5zBn7j9n8DFoyEdGPMUo020BiBU4XSp14se7RP0dKn5Q@mail.gmail.com>
-Subject: 
-To: undisclosed-recipients:;
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <20181126085732.vupidoa2lozp5ndo@paasikivi.fi.intel.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---=20
-Guten Tag, Wir sind eine registrierte private Geldverleiher. Wir geben
-Kredite an Firmen, Einzelpersonen, die ihre finanzielle Status auf der
-ganzen Welt aktualisieren m=C3=BCssen, mit minimalen j=C3=A4hrlichen Zinsen=
- von
-2% .reply, wenn n=C3=B6tig.
 
-Good Day, We are a registered private money lender. We give out loans
-to firms, Individual who need to update their financial status all
-over the world, with Minimal annual Interest Rates of 2%reply if
-needed.
+
+On 11/26/2018 04:57 PM, Sakari Ailus wrote:
+> Hi Bing Bu,
+>
+> On Mon, Nov 26, 2018 at 03:43:34PM +0800, bingbu.cao@intel.com wrote:
+>> From: Bingbu Cao <bingbu.cao@intel.com>
+>>
+>> current imx355 test pattern order in ctrl menu
+>> is not correct, this patch fixes it.
+>>
+>> Signed-off-by: Bingbu Cao <bingbu.cao@intel.com>
+>> ---
+>>   drivers/media/i2c/imx355.c | 2 +-
+>>   1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/media/i2c/imx355.c b/drivers/media/i2c/imx355.c
+>> index 20c8eea5db4b..9c9559dfd3dd 100644
+>> --- a/drivers/media/i2c/imx355.c
+>> +++ b/drivers/media/i2c/imx355.c
+>> @@ -876,8 +876,8 @@ struct imx355 {
+>>   
+>>   static const char * const imx355_test_pattern_menu[] = {
+>>   	"Disabled",
+>> -	"100% color bars",
+>>   	"Solid color",
+>> +	"100% color bars",
+>>   	"Fade to gray color bars",
+>>   	"PN9"
+>>   };
+> While at it, could you use the existing test pattern naming as well for the
+> drivers? That could be a separate patch.
+>
+> >From drivers/media/i2c/smiapp/smiapp-core.c :
+>
+> static const char * const smiapp_test_patterns[] = {
+> 	"Disabled",
+> 	"Solid Colour",
+>    	"Eight Vertical Colour Bars",
+> 	"Colour Bars With Fade to Grey",
+> 	"Pseudorandom Sequence (PN9)",
+> };
+>
+> It's not strictly necessary from interface point of view, but for the user
+> space it'd be good to align the naming.
+Sakari, ask a question that not really related to this patch.
+I am wondering whether there are some standardization for the camera sensor
+pattern generator.
+Currently there are varied patterns and every vendor has its own pattern types.
+>
