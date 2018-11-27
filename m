@@ -1,103 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:55477 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728838AbeK0Sx2 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Nov 2018 13:53:28 -0500
-Subject: Re: [PATCH v2 0/2] media: Startech usb2hdcapm hdmi2usb framegrabber
- support
-To: Michael Grzeschik <m.grzeschik@pengutronix.de>,
-        linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, stoth@kernellabs.com,
-        laurent.pinchart@ideasonboard.com, kernel@pengutronix.de,
-        mchehab@kernel.org, davem@davemloft.net
-References: <20181126180937.32535-1-m.grzeschik@pengutronix.de>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <00f284b0-0462-9748-32c8-bce475f2c314@xs4all.nl>
-Date: Tue, 27 Nov 2018 08:56:20 +0100
+Received: from ozlabs.org ([203.11.71.1]:60387 "EHLO ozlabs.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728838AbeK0SyU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 27 Nov 2018 13:54:20 -0500
+From: Michael Ellerman <mpe@ellerman.id.au>
+To: Anshuman Khandual <anshuman.khandual@arm.com>, linux-mm@kvack.org,
+        linux-kernel@vger.kernel.org
+Cc: ocfs2-devel@oss.oracle.com, linux-fbdev@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, netdev@vger.kernel.org,
+        intel-wired-lan@lists.osuosl.org, linux-media@vger.kernel.org,
+        iommu@lists.linux-foundation.org, linux-rdma@vger.kernel.org,
+        dmaengine@vger.kernel.org, linux-block@vger.kernel.org,
+        sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-ia64@vger.kernel.org, linux-alpha@vger.kernel.org,
+        akpm@linux-foundation.org, jiangqi903@gmail.com,
+        hverkuil@xs4all.nl, vkoul@kernel.org
+Subject: Re: [PATCH V2] mm: Replace all open encodings for NUMA_NO_NODE
+In-Reply-To: <1543235202-9075-1-git-send-email-anshuman.khandual@arm.com>
+References: <1543235202-9075-1-git-send-email-anshuman.khandual@arm.com>
+Date: Tue, 27 Nov 2018 18:57:11 +1100
+Message-ID: <87mupvgdgo.fsf@concordia.ellerman.id.au>
 MIME-Version: 1.0
-In-Reply-To: <20181126180937.32535-1-m.grzeschik@pengutronix.de>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Michael,
+Anshuman Khandual <anshuman.khandual@arm.com> writes:
+> At present there are multiple places where invalid node number is encoded
+> as -1. Even though implicitly understood it is always better to have macros
+> in there. Replace these open encodings for an invalid node number with the
+> global macro NUMA_NO_NODE. This helps remove NUMA related assumptions like
+> 'invalid node' from various places redirecting them to a common definition.
+>
+> Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+> ---
+> Changes in V2:
+>
+> - Added inclusion of 'numa.h' header at various places per Andrew
+> - Updated 'dev_to_node' to use NUMA_NO_NODE instead per Vinod
+>
+> Changes in V1: (https://lkml.org/lkml/2018/11/23/485)
+>
+> - Dropped OCFS2 changes per Joseph
+> - Dropped media/video drivers changes per Hans
+>
+> RFC - https://patchwork.kernel.org/patch/10678035/
+>
+> Build tested this with multiple cross compiler options like alpha, sparc,
+> arm64, x86, powerpc, powerpc64le etc with their default config which might
+> not have compiled tested all driver related changes. I will appreciate
+> folks giving this a test in their respective build environment.
+>
+> All these places for replacement were found by running the following grep
+> patterns on the entire kernel code. Please let me know if this might have
+> missed some instances. This might also have replaced some false positives.
+> I will appreciate suggestions, inputs and review.
+>
+> 1. git grep "nid == -1"
+> 2. git grep "node == -1"
+> 3. git grep "nid = -1"
+> 4. git grep "node = -1"
+>
+>  arch/alpha/include/asm/topology.h             |  3 ++-
+>  arch/ia64/kernel/numa.c                       |  2 +-
+>  arch/ia64/mm/discontig.c                      |  6 +++---
+>  arch/ia64/sn/kernel/io_common.c               |  3 ++-
+>  arch/powerpc/include/asm/pci-bridge.h         |  3 ++-
+>  arch/powerpc/kernel/paca.c                    |  3 ++-
+>  arch/powerpc/kernel/pci-common.c              |  3 ++-
+>  arch/powerpc/mm/numa.c                        | 14 +++++++-------
+>  arch/powerpc/platforms/powernv/memtrace.c     |  5 +++--
 
-Apologies for completely missing your v1 post for this driver. It was
-posted just before the ELCE and it looks like it just fell through the
-cracks.
+These powerpc changes all look fine.
 
-Anyway, I did a quick scan and found a few high-level things that need
-to be addressed before I will start reviewing:
+Acked-by: Michael Ellerman <mpe@ellerman.id.au>
 
-1) Please add the output of 'v4l2-compliance -s' to this cover letter
-   (test with a valid source connected). Obviously any failures should
-   be addressed, and if possible also all warnings.
 
-2) Add entries for the new drivers to the MAINTAINERS file.
-
-3) Since you added SPDX lines you can drop the actual license texts. It's
-   one or the other, not both.
-
-4) I see references to a firmware, but it appears to be a firmware that's
-   loaded from an on-board eeprom or something, not an external firmware
-   file. Correct? If I'm wrong and it is an external fw file, then where
-   does it come from?
-
-5) s_dv_timings is missing. That can't be right. Drivers shall *never*
-   change timings automatically when they detect new timings. Instead
-   they should send the SOURCE_CHANGE event to userspace, userspace will
-   stop streaming, call QUERY_DV_TIMINGS and, if a valid signal was detected,
-   call S_DV_TIMINGS with the new timings and restart streaming.
-
-Regards,
-
-	Hans
-
-On 11/26/2018 07:09 PM, Michael Grzeschik wrote:
-> This series adds support for the Startech usb2hdcapm framegrabber. The
-> code is based on the external kernel module code from Steven Toth's
-> github page:
-> 
-> https://github.com/stoth68000/hdcapm/
-> 
-> We applied checkpatch.pl --strict and cleaned up the 80 character
-> length, whitespace issues and replaced simple printks with appropriate
-> v4l2_* or dev_* helpers, used WARN_ON instead of BUG and changed all
-> errors and warnings checkpatch was complaining about.
-> 
-> Steven Toth (2):
->   media: mst3367: add support for mstar mst3367 HDMI RX
->   media: hdcapm: add support for usb2hdcapm hdmi2usb framegrabber from
->     startech
-> 
->  drivers/media/i2c/Kconfig                    |   10 +
->  drivers/media/i2c/Makefile                   |    1 +
->  drivers/media/i2c/mst3367.c                  | 1104 ++++++++++++++++++
->  drivers/media/usb/Kconfig                    |    1 +
->  drivers/media/usb/Makefile                   |    1 +
->  drivers/media/usb/hdcapm/Kconfig             |   11 +
->  drivers/media/usb/hdcapm/Makefile            |    3 +
->  drivers/media/usb/hdcapm/hdcapm-buffer.c     |  230 ++++
->  drivers/media/usb/hdcapm/hdcapm-compressor.c |  782 +++++++++++++
->  drivers/media/usb/hdcapm/hdcapm-core.c       |  743 ++++++++++++
->  drivers/media/usb/hdcapm/hdcapm-i2c.c        |  332 ++++++
->  drivers/media/usb/hdcapm/hdcapm-reg.h        |  111 ++
->  drivers/media/usb/hdcapm/hdcapm-video.c      |  665 +++++++++++
->  drivers/media/usb/hdcapm/hdcapm.h            |  283 +++++
->  include/media/i2c/mst3367.h                  |   29 +
->  15 files changed, 4306 insertions(+)
->  create mode 100644 drivers/media/i2c/mst3367.c
->  create mode 100644 drivers/media/usb/hdcapm/Kconfig
->  create mode 100644 drivers/media/usb/hdcapm/Makefile
->  create mode 100644 drivers/media/usb/hdcapm/hdcapm-buffer.c
->  create mode 100644 drivers/media/usb/hdcapm/hdcapm-compressor.c
->  create mode 100644 drivers/media/usb/hdcapm/hdcapm-core.c
->  create mode 100644 drivers/media/usb/hdcapm/hdcapm-i2c.c
->  create mode 100644 drivers/media/usb/hdcapm/hdcapm-reg.h
->  create mode 100644 drivers/media/usb/hdcapm/hdcapm-video.c
->  create mode 100644 drivers/media/usb/hdcapm/hdcapm.h
->  create mode 100644 include/media/i2c/mst3367.h
-> 
+cheers
