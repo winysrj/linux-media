@@ -1,102 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io1-f72.google.com ([209.85.166.72]:44147 "EHLO
-        mail-io1-f72.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727537AbeK0R56 (ORCPT
+Received: from mail-oi1-f195.google.com ([209.85.167.195]:43017 "EHLO
+        mail-oi1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729092AbeK0S2d (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Nov 2018 12:57:58 -0500
-Received: by mail-io1-f72.google.com with SMTP id v8so20497719ioh.11
-        for <linux-media@vger.kernel.org>; Mon, 26 Nov 2018 23:01:05 -0800 (PST)
+        Tue, 27 Nov 2018 13:28:33 -0500
+Received: by mail-oi1-f195.google.com with SMTP id u18so18422708oie.10
+        for <linux-media@vger.kernel.org>; Mon, 26 Nov 2018 23:31:35 -0800 (PST)
+Received: from mail-ot1-f53.google.com (mail-ot1-f53.google.com. [209.85.210.53])
+        by smtp.gmail.com with ESMTPSA id h25sm1031696otj.27.2018.11.26.23.31.34
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 26 Nov 2018 23:31:34 -0800 (PST)
+Received: by mail-ot1-f53.google.com with SMTP id e12so14938525otl.5
+        for <linux-media@vger.kernel.org>; Mon, 26 Nov 2018 23:31:34 -0800 (PST)
 MIME-Version: 1.0
-Date: Mon, 26 Nov 2018 23:01:04 -0800
-Message-ID: <0000000000005b7c64057ba003fb@google.com>
-Subject: BUG: unable to handle kernel paging request in tpg_fill_plane_buffer
-From: syzbot <syzbot+aa8212f63ea8ffaf3bfa@syzkaller.appspotmail.com>
-To: bwinther@cisco.com, hverkuil@xs4all.nl, keescook@chromium.org,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        mchehab@kernel.org, syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
+References: <1542708506-12680-1-git-send-email-mgottam@codeaurora.org>
+In-Reply-To: <1542708506-12680-1-git-send-email-mgottam@codeaurora.org>
+From: Alexandre Courbot <acourbot@chromium.org>
+Date: Tue, 27 Nov 2018 16:31:22 +0900
+Message-ID: <CAPBb6MVzmxfRstUrTOtkJdCDaZEZO=UeP_u3btGKrsKasBijRg@mail.gmail.com>
+Subject: Re: [PATCH] arm64: dts: sdm845: add video nodes
+To: mgottam@codeaurora.org
+Cc: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        linux-arm-msm@vger.kernel.org, vgarodia@codeaurora.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On Tue, Nov 20, 2018 at 7:08 PM Malathi Gottam <mgottam@codeaurora.org> wrote:
+>
+> This adds video nodes to sdm845 based on the examples
+> in the bindings.
+>
+> Signed-off-by: Malathi Gottam <mgottam@codeaurora.org>
+> ---
+>  arch/arm64/boot/dts/qcom/sdm845.dtsi | 34 ++++++++++++++++++++++++++++++++++
+>  1 file changed, 34 insertions(+)
+>
+> diff --git a/arch/arm64/boot/dts/qcom/sdm845.dtsi b/arch/arm64/boot/dts/qcom/sdm845.dtsi
+> index 0c9a2aa..d82487d 100644
+> --- a/arch/arm64/boot/dts/qcom/sdm845.dtsi
+> +++ b/arch/arm64/boot/dts/qcom/sdm845.dtsi
+> @@ -84,6 +84,10 @@
+>                         reg = <0 0x86200000 0 0x2d00000>;
+>                         no-map;
+>                 };
+> +               venus_region: venus@95800000 {
+> +                       reg = <0x0 0x95800000 0x0 0x500000>;
 
-syzbot found the following crash on:
-
-HEAD commit:    6f8b52ba442c Merge tag 'hwmon-for-v4.20-rc5' of git://git...
-git tree:       upstream
-console output: https://syzkaller.appspot.com/x/log.txt?x=15fd354d400000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=c94f9f0c0363db4b
-dashboard link: https://syzkaller.appspot.com/bug?extid=aa8212f63ea8ffaf3bfa
-compiler:       gcc (GCC) 8.0.1 20180413 (experimental)
-
-Unfortunately, I don't have any reproducer for this crash yet.
-
-IMPORTANT: if you fix the bug, please add the following tag to the commit:
-Reported-by: syzbot+aa8212f63ea8ffaf3bfa@syzkaller.appspotmail.com
-
-BUG: unable to handle kernel paging request at ffffc90005b5c340
-PGD 1da95a067 P4D 1da95a067 PUD 1da95b067 PMD 1c4863067 PTE 0
-Oops: 0002 [#1] PREEMPT SMP KASAN
-CPU: 0 PID: 5439 Comm: vivid-000-vid-c Not tainted 4.20.0-rc4+ #130
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
-Google 01/01/2011
-RIP: 0010:memcpy_erms+0x6/0x10 arch/x86/lib/memcpy_64.S:54
-Code: 90 90 90 90 eb 1e 0f 1f 00 48 89 f8 48 89 d1 48 c1 e9 03 83 e2 07 f3  
-48 a5 89 d1 f3 a4 c3 66 0f 1f 44 00 00 48 89 f8 48 89 d1 <f3> a4 c3 0f 1f  
-80 00 00 00 00 48 89 f8 48 83 fa 20 72 7e 40 38 fe
-RSP: 0018:ffff888150467518 EFLAGS: 00010246
-RAX: ffffc90005b5c340 RBX: 0000000000000080 RCX: 0000000000000080
-RDX: 0000000000000080 RSI: ffffc90001da3000 RDI: ffffc90005b5c340
-RBP: ffff888150467538 R08: fffff52000b6b878 R09: fffff52000b6b868
-R10: fffff52000b6b877 R11: ffffc90005b5c3bf R12: ffffc90005b5c340
-R13: ffffc90001da3000 R14: dffffc0000000000 R15: ffff8881cb2c5e50
-FS:  0000000000000000(0000) GS:ffff8881dae00000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: ffffc90005b5c340 CR3: 00000001846a4000 CR4: 00000000001406f0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-Call Trace:
-  memcpy include/linux/string.h:352 [inline]
-  tpg_fill_plane_pattern drivers/media/common/v4l2-tpg/v4l2-tpg-core.c:2382  
-[inline]
-  tpg_fill_plane_buffer+0x193f/0x44c0  
-drivers/media/common/v4l2-tpg/v4l2-tpg-core.c:2481
-  vivid_fillbuff+0x1d0d/0x68e0  
-drivers/media/platform/vivid/vivid-kthread-cap.c:473
-  vivid_thread_vid_cap_tick  
-drivers/media/platform/vivid/vivid-kthread-cap.c:709 [inline]
-  vivid_thread_vid_cap+0xbc1/0x2650  
-drivers/media/platform/vivid/vivid-kthread-cap.c:813
-  kthread+0x35a/0x440 kernel/kthread.c:246
-  ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:352
-Modules linked in:
-CR2: ffffc90005b5c340
----[ end trace 22cabf1d47b26daf ]---
-RIP: 0010:memcpy_erms+0x6/0x10 arch/x86/lib/memcpy_64.S:54
-Code: 90 90 90 90 eb 1e 0f 1f 00 48 89 f8 48 89 d1 48 c1 e9 03 83 e2 07 f3  
-48 a5 89 d1 f3 a4 c3 66 0f 1f 44 00 00 48 89 f8 48 89 d1 <f3> a4 c3 0f 1f  
-80 00 00 00 00 48 89 f8 48 83 fa 20 72 7e 40 38 fe
-RSP: 0018:ffff888150467518 EFLAGS: 00010246
-RAX: ffffc90005b5c340 RBX: 0000000000000080 RCX: 0000000000000080
-RDX: 0000000000000080 RSI: ffffc90001da3000 RDI: ffffc90005b5c340
-RBP: ffff888150467538 R08: fffff52000b6b878 R09: fffff52000b6b868
-R10: fffff52000b6b877 R11: ffffc90005b5c3bf R12: ffffc90005b5c340
-R13: ffffc90001da3000 R14: dffffc0000000000 R15: ffff8881cb2c5e50
-FS:  0000000000000000(0000) GS:ffff8881dae00000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: ffffc90005b5c340 CR3: 00000001846a4000 CR4: 00000000001406f0
-kobject: 'loop0' (00000000664d120c): kobject_uevent_env
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-kobject: 'loop0' (00000000664d120c): fill_kobj_path: path  
-= '/devices/virtual/block/loop0'
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-
-
----
-This bug is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
-
-syzbot will keep track of this bug report. See:
-https://goo.gl/tpsmEJ#bug-status-tracking for how to communicate with  
-syzbot.
+Note that the driver expects a size of 0x600000 here and will fail to
+probe if this is smaller.
