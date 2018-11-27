@@ -1,98 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34998 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1729387AbeK0T6y (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Nov 2018 14:58:54 -0500
-Date: Tue, 27 Nov 2018 11:01:40 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Received: from mga09.intel.com ([134.134.136.24]:31459 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1729387AbeK0UFy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 27 Nov 2018 15:05:54 -0500
+Date: Tue, 27 Nov 2018 11:08:38 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: Luca Ceresoli <luca@lucaceresoli.net>
-Cc: linux-media@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Leon Luo <leonl@leopardimaging.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Subject: Re: [PATCH] media: imx274: fix stack corruption in imx274_read_reg
-Message-ID: <20181127090140.by7kdguafw3rxkxe@valkosipuli.retiisi.org.uk>
-References: <20181126163507.31598-1-luca@lucaceresoli.net>
+Cc: bingbu.cao@intel.com, linux-media@vger.kernel.org,
+        tfiga@chromium.org, andy.yeh@intel.com, bingbu.cao@linux.intel.com
+Subject: Re: [PATCH] media: unify some sony camera sensors pattern naming
+Message-ID: <20181127090838.gxtb7ljxxd5sr4ko@paasikivi.fi.intel.com>
+References: <1543291261-26174-1-git-send-email-bingbu.cao@intel.com>
+ <9f1be8b6-8736-e204-5e79-89f4c07becba@lucaceresoli.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20181126163507.31598-1-luca@lucaceresoli.net>
+In-Reply-To: <9f1be8b6-8736-e204-5e79-89f4c07becba@lucaceresoli.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Nov 26, 2018 at 05:35:07PM +0100, Luca Ceresoli wrote:
-> imx274_read_reg() takes a u8 pointer ("reg") and casts it to pass it
-> to regmap_read(), which takes an unsigned int pointer. This results in
-> a corrupted stack and random crashes.
-> 
-> Fixes: 0985dd306f72 ("media: imx274: V4l2 driver for Sony imx274 CMOS sensor")
-> Cc: stable@vger.kernel.org # 4.15.x
+Hi Luca,
 
-Applied, with the following line changed to:
+On Tue, Nov 27, 2018 at 09:05:34AM +0100, Luca Ceresoli wrote:
+> Hi Bingbu,
+> 
+> On 27/11/18 05:01, bingbu.cao@intel.com wrote:
+> > From: Bingbu Cao <bingbu.cao@intel.com>
+> > 
+> > Some Sony camera sensors have same test pattern
+> > definitions, this patch unify the pattern naming
+> > to make it more clear to the userspace.
+> > 
+> > Suggested-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > Signed-off-by: Bingbu Cao <bingbu.cao@intel.com>
+> > ---
+> >  drivers/media/i2c/imx258.c | 8 ++++----
+> >  drivers/media/i2c/imx319.c | 8 ++++----
+> >  drivers/media/i2c/imx355.c | 8 ++++----
+> >  3 files changed, 12 insertions(+), 12 deletions(-)
+> > 
+> > diff --git a/drivers/media/i2c/imx258.c b/drivers/media/i2c/imx258.c
+> > index 31a1e2294843..a8a2880c6b4e 100644
+> > --- a/drivers/media/i2c/imx258.c
+> > +++ b/drivers/media/i2c/imx258.c
+> > @@ -504,10 +504,10 @@ struct imx258_mode {
+> >  
+> >  static const char * const imx258_test_pattern_menu[] = {
+> >  	"Disabled",
+> > -	"Color Bars",
+> > -	"Solid Color",
+> > -	"Grey Color Bars",
+> > -	"PN9"
+> > +	"Solid Colour",
+> > +	"Eight Vertical Colour Bars",
+> > +	"Colour Bars With Fade to Grey",
+> > +	"Pseudorandom Sequence (PN9)",
+> 
+> I had a look at imx274, it has many more values but definitely some
+> could be unified too.
+> 
+> However I noticed something strange in that driver: The "Horizontal
+> Color Bars" pattern has vertical bars, side-by-side, as in ||||.
+> "Vertical Color Bars" are one on top of the other, as in ==. Is it just
+> me crazy, or are they swapped?
+> 
+> Only one minor nitpick about your patch. The USA spelling "color" seems
+> a lot more frequent in the kernel sources than the UK "colour", so it's
+> probably better to be consistent.
 
-Cc: stable@vger.kernel.org # for 4.15 and up
+This has been around for some seven or so years in the smiapp driver, and
+changing strings in uAPI isn't something we prefer to do in general.
 
-FYI: if you add Cc: stable tag to the patch, it'll end up to the stable
-trees; no need to explicitly add the stable@vger address to the recipients.
+I wonder what others think.
 
-> Signed-off-by: Luca Ceresoli <luca@lucaceresoli.net>
-> 
-> ---
-> 
-> Notes!
-> 
-> I have no evidence of this bug showing up in the mainline driver. It
-> appeared on a modified version where imx274_read_reg() is used,
-> unmodified, in a different way than it does in mainline (passing a
-> pointer to a single u8 instead of a pointer to an element of a u8
-> array).
-> 
-> Also the bug is only present in versions v4.15 (where the driver was
-> added) to v4.19. The offending function is unused since commit
-> ca017467c78b ("media: imx274: add helper to read multibyte
-> registers"), merged in v4.20-rc1, thus master is not affected. I'm
-> sending this bugfix patch anyway for easier integration in the stable
-> branches. Later I plan to send a patch against master to entirely
-> remove the function. Or somebody might want to use this function
-> again, so better having a fixed version out anyway.
-> 
-> I'm not 100% sure this qualifies this commit for stable trees.
-> ---
->  drivers/media/i2c/imx274.c | 7 +++++--
->  1 file changed, 5 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/imx274.c b/drivers/media/i2c/imx274.c
-> index e1b0395a657f..40c717f13eb8 100644
-> --- a/drivers/media/i2c/imx274.c
-> +++ b/drivers/media/i2c/imx274.c
-> @@ -619,16 +619,19 @@ static int imx274_write_table(struct stimx274 *priv, const struct reg_8 table[])
->  
->  static inline int imx274_read_reg(struct stimx274 *priv, u16 addr, u8 *val)
->  {
-> +	unsigned int uint_val;
->  	int err;
->  
-> -	err = regmap_read(priv->regmap, addr, (unsigned int *)val);
-> +	err = regmap_read(priv->regmap, addr, &uint_val);
->  	if (err)
->  		dev_err(&priv->client->dev,
->  			"%s : i2c read failed, addr = %x\n", __func__, addr);
->  	else
->  		dev_dbg(&priv->client->dev,
->  			"%s : addr 0x%x, val=0x%x\n", __func__,
-> -			addr, *val);
-> +			addr, uint_val);
-> +
-> +	*val = uint_val;
->  	return err;
->  }
->  
-> -- 
-> 2.17.1
-> 
+If that's changed, it should be a separate patch.
 
 -- 
 Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+sakari.ailus@linux.intel.com
