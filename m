@@ -1,150 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35486 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1730051AbeK0UcM (ORCPT
+Received: from mail-wm1-f66.google.com ([209.85.128.66]:38510 "EHLO
+        mail-wm1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726431AbeK0U5m (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Nov 2018 15:32:12 -0500
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+        Tue, 27 Nov 2018 15:57:42 -0500
+Received: by mail-wm1-f66.google.com with SMTP id k198so21568172wmd.3
+        for <linux-media@vger.kernel.org>; Tue, 27 Nov 2018 02:00:19 -0800 (PST)
+From: Fabrice Fontaine <fontaine.fabrice@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: bingbu.cao@intel.com, luca@lucaceresoli.net, andy.yeh@intel.com,
-        tfiga@chromium.org
-Subject: [RESEND PATCH 1/1] media: Use common test pattern menu entries
-Date: Tue, 27 Nov 2018 11:34:51 +0200
-Message-Id: <20181127093451.9066-1-sakari.ailus@linux.intel.com>
+Cc: Fabrice Fontaine <fontaine.fabrice@gmail.com>
+Subject: [PATCH v4l-utils] v4l2-compliance needs fork
+Date: Tue, 27 Nov 2018 11:00:02 +0100
+Message-Id: <20181127100002.12853-1-fontaine.fabrice@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-While the test pattern menu itself is not standardised, many devices
-support the same test patterns. Aligning the menu entries helps the user
-space to use the interface, and adding macros for the menu entry strings
-helps to keep them aligned.
+v4l2-compliance uses fork, since
+https://git.linuxtv.org/v4l-utils.git/commit/utils/v4l2-compliance/?id=79d98edd1a27233667a6bc38d3d7f8958c2ec02c
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+So don't build it if fork is not available
+
+Fixes:
+ - http://autobuild.buildroot.org/results/447d792ce21c0e33a36ca9384fee46e099435ed8
+
+Signed-off-by: Fabrice Fontaine <fontaine.fabrice@gmail.com>
 ---
-Fixed Andy's email.
+ configure.ac      | 5 ++++-
+ utils/Makefile.am | 6 +++++-
+ 2 files changed, 9 insertions(+), 2 deletions(-)
 
- drivers/media/i2c/imx258.c             | 10 +++++-----
- drivers/media/i2c/imx319.c             | 10 +++++-----
- drivers/media/i2c/imx355.c             | 10 +++++-----
- drivers/media/i2c/ov2640.c             |  4 ++--
- drivers/media/i2c/smiapp/smiapp-core.c | 10 +++++-----
- include/uapi/linux/v4l2-controls.h     |  5 +++++
- 6 files changed, 27 insertions(+), 22 deletions(-)
-
-diff --git a/drivers/media/i2c/imx258.c b/drivers/media/i2c/imx258.c
-index f86ae18bc104..c795d4c4c0e4 100644
---- a/drivers/media/i2c/imx258.c
-+++ b/drivers/media/i2c/imx258.c
-@@ -498,11 +498,11 @@ static const struct imx258_reg mode_1048_780_regs[] = {
- };
+diff --git a/configure.ac b/configure.ac
+index 5cc34c24..52ea5c6d 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -478,7 +478,8 @@ AM_CONDITIONAL([WITH_QTGL],	    [test x${qt_pkgconfig_gl} = xtrue])
+ AM_CONDITIONAL([WITH_GCONV],        [test x$enable_gconv = xyes -a x$enable_shared == xyes -a x$with_gconvdir != x -a -f $with_gconvdir/gconv-modules])
+ AM_CONDITIONAL([WITH_V4L2_CTL_LIBV4L], [test x${enable_v4l2_ctl_libv4l} != xno])
+ AM_CONDITIONAL([WITH_V4L2_CTL_STREAM_TO], [test x${enable_v4l2_ctl_stream_to} != xno])
+-AM_CONDITIONAL([WITH_V4L2_COMPLIANCE_LIBV4L], [test x${enable_v4l2_compliance_libv4l} != xno])
++AM_CONDITIONAL([WITH_V4L2_COMPLIANCE], [test x$ac_cv_func_fork = xyes])
++AM_CONDITIONAL([WITH_V4L2_COMPLIANCE_LIBV4L], [test x$ac_cv_func_fork = xyes -a x${enable_v4l2_compliance_libv4l} != xno])
+ AM_CONDITIONAL([WITH_BPF],          [test x$enable_bpf != xno -a x$libelf_pkgconfig = xyes -a x$CLANG = xclang])
  
- static const char * const imx258_test_pattern_menu[] = {
--	"Disabled",
--	"Solid Colour",
--	"Eight Vertical Colour Bars",
--	"Colour Bars With Fade to Grey",
--	"Pseudorandom Sequence (PN9)",
-+	V4L2_TEST_PATTERN_DISABLED,
-+	V4L2_TEST_PATTERN_SOLID_COLOUR,
-+	V4L2_TEST_PATTERN_8_VERT_COLOUR_BARS,
-+	V4L2_TEST_PATTERN_8_VERT_COLOUR_BARS_FADE_TO_GREY,
-+	V4L2_TEST_PATTERN_PN9,
- };
+ # append -static to libtool compile and link command to enforce static libs
+@@ -509,6 +510,7 @@ AM_COND_IF([WITH_V4L_PLUGINS], [USE_V4L_PLUGINS="yes"
+ AM_COND_IF([WITH_V4L_WRAPPERS], [USE_V4L_WRAPPERS="yes"], [USE_V4L_WRAPPERS="no"])
+ AM_COND_IF([WITH_GCONV], [USE_GCONV="yes"], [USE_GCONV="no"])
+ AM_COND_IF([WITH_V4L2_CTL_LIBV4L], [USE_V4L2_CTL_LIBV4L="yes"], [USE_V4L2_CTL_LIBV4L="no"])
++AM_COND_IF([WITH_V4L2_COMPLIANCE], [USE_V4L2_COMPLIANCE="yes"], [USE_V4L2_COMPLIANCE="no"])
+ AM_COND_IF([WITH_V4L2_COMPLIANCE_LIBV4L], [USE_V4L2_COMPLIANCE_LIBV4L="yes"], [USE_V4L2_COMPLIANCE_LIBV4L="no"])
+ AM_COND_IF([WITH_BPF],         [USE_BPF="yes"
+                                 AC_DEFINE([HAVE_BPF], [1], [BPF IR decoder support enabled])],
+@@ -556,6 +558,7 @@ compile time options summary
+     qv4l2                      : $USE_QV4L2
+     qvidcap                    : $USE_QVIDCAP
+     v4l2-ctl uses libv4l       : $USE_V4L2_CTL_LIBV4L
++    v4l2-compliance            : $USE_V4L2_COMPLIANCE
+     v4l2-compliance uses libv4l: $USE_V4L2_COMPLIANCE_LIBV4L
+     BPF IR Decoders:           : $USE_BPF
+ EOF
+diff --git a/utils/Makefile.am b/utils/Makefile.am
+index 2d507028..9c29926a 100644
+--- a/utils/Makefile.am
++++ b/utils/Makefile.am
+@@ -6,7 +6,6 @@ SUBDIRS = \
+ 	cx18-ctl \
+ 	keytable \
+ 	media-ctl \
+-	v4l2-compliance \
+ 	v4l2-ctl \
+ 	v4l2-dbg \
+ 	v4l2-sysfs-path \
+@@ -20,6 +19,11 @@ SUBDIRS += \
+ 	dvb
+ endif
  
- /* Configurations for supported link frequencies */
-diff --git a/drivers/media/i2c/imx319.c b/drivers/media/i2c/imx319.c
-index 17c2e4b41221..eddaf69a67b6 100644
---- a/drivers/media/i2c/imx319.c
-+++ b/drivers/media/i2c/imx319.c
-@@ -1647,11 +1647,11 @@ static const struct imx319_reg mode_1280x720_regs[] = {
- };
- 
- static const char * const imx319_test_pattern_menu[] = {
--	"Disabled",
--	"Solid Colour",
--	"Eight Vertical Colour Bars",
--	"Colour Bars With Fade to Grey",
--	"Pseudorandom Sequence (PN9)",
-+	V4L2_TEST_PATTERN_DISABLED,
-+	V4L2_TEST_PATTERN_SOLID_COLOUR,
-+	V4L2_TEST_PATTERN_8_VERT_COLOUR_BARS,
-+	V4L2_TEST_PATTERN_8_VERT_COLOUR_BARS_FADE_TO_GREY,
-+	V4L2_TEST_PATTERN_PN9,
- };
- 
- /* supported link frequencies */
-diff --git a/drivers/media/i2c/imx355.c b/drivers/media/i2c/imx355.c
-index bed293b60e50..824d07156f9c 100644
---- a/drivers/media/i2c/imx355.c
-+++ b/drivers/media/i2c/imx355.c
-@@ -875,11 +875,11 @@ static const struct imx355_reg mode_820x616_regs[] = {
- };
- 
- static const char * const imx355_test_pattern_menu[] = {
--	"Disabled",
--	"Solid Colour",
--	"Eight Vertical Colour Bars",
--	"Colour Bars With Fade to Grey",
--	"Pseudorandom Sequence (PN9)",
-+	V4L2_TEST_PATTERN_DISABLED,
-+	V4L2_TEST_PATTERN_SOLID_COLOUR,
-+	V4L2_TEST_PATTERN_8_VERT_COLOUR_BARS,
-+	V4L2_TEST_PATTERN_8_VERT_COLOUR_BARS_FADE_TO_GREY,
-+	V4L2_TEST_PATTERN_PN9,
- };
- 
- /* supported link frequencies */
-diff --git a/drivers/media/i2c/ov2640.c b/drivers/media/i2c/ov2640.c
-index 5d2d6735cc78..507ec7176a7d 100644
---- a/drivers/media/i2c/ov2640.c
-+++ b/drivers/media/i2c/ov2640.c
-@@ -707,8 +707,8 @@ static int ov2640_reset(struct i2c_client *client)
- }
- 
- static const char * const ov2640_test_pattern_menu[] = {
--	"Disabled",
--	"Eight Vertical Colour Bars",
-+	V4L2_TEST_PATTERN_DISABLED,
-+	V4L2_TEST_PATTERN_8_VERT_COLOUR_BARS,
- };
- 
- /*
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index 58a45c353e27..f6a92b9f178c 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -409,11 +409,11 @@ static void smiapp_update_mbus_formats(struct smiapp_sensor *sensor)
- }
- 
- static const char * const smiapp_test_patterns[] = {
--	"Disabled",
--	"Solid Colour",
--	"Eight Vertical Colour Bars",
--	"Colour Bars With Fade to Grey",
--	"Pseudorandom Sequence (PN9)",
-+	V4L2_TEST_PATTERN_DISABLED,
-+	V4L2_TEST_PATTERN_SOLID_COLOUR,
-+	V4L2_TEST_PATTERN_8_VERT_COLOUR_BARS,
-+	V4L2_TEST_PATTERN_8_VERT_COLOUR_BARS_FADE_TO_GREY,
-+	V4L2_TEST_PATTERN_PN9,
- };
- 
- static int smiapp_set_ctrl(struct v4l2_ctrl *ctrl)
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index 998983a6e6b7..a74ff6f1ac88 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -1014,6 +1014,11 @@ enum v4l2_jpeg_chroma_subsampling {
- #define V4L2_CID_LINK_FREQ			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 1)
- #define V4L2_CID_PIXEL_RATE			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 2)
- #define V4L2_CID_TEST_PATTERN			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 3)
-+#define V4L2_TEST_PATTERN_DISABLED		"Disabled"
-+#define V4L2_TEST_PATTERN_SOLID_COLOUR		"Solid Colour"
-+#define V4L2_TEST_PATTERN_8_VERT_COLOUR_BARS		"Eight Vertical Colour Bars"
-+#define V4L2_TEST_PATTERN_8_VERT_COLOUR_BARS_FADE_TO_GREY "Colour Bars With Fade to Grey"
-+#define V4L2_TEST_PATTERN_PN9			"Pseudorandom Sequence (PN9)"
- #define V4L2_CID_DEINTERLACING_MODE		(V4L2_CID_IMAGE_PROC_CLASS_BASE + 4)
- #define V4L2_CID_DIGITAL_GAIN			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 5)
- 
++if WITH_V4L2_COMPLIANCE
++SUBDIRS += \
++	v4l2-compliance
++endif
++
+ if WITH_QV4L2
+ SUBDIRS += qv4l2
+ endif
 -- 
-2.11.0
+2.17.1
