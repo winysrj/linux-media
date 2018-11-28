@@ -1,59 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:53008 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727552AbeK1UGN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Nov 2018 15:06:13 -0500
-Date: Wed, 28 Nov 2018 11:05:08 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Marco Felsch <m.felsch@pengutronix.de>
-Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        enrico.scholz@sigma-chemnitz.de, devicetree@vger.kernel.org,
-        akinobu.mita@gmail.com, linux-media@vger.kernel.org,
-        graphics@pengutronix.de,
-        Michael Grzeschik <m.grzeschik@pengutronix.de>
-Subject: Re: [PATCH v3 6/6] media: mt9m111: allow to setup pixclk polarity
-Message-ID: <20181128090507.ciqu6u5dnuzfriyu@kekkonen.localdomain>
-References: <20181127100253.30845-1-m.felsch@pengutronix.de>
- <20181127100253.30845-7-m.felsch@pengutronix.de>
- <20181127211512.2zqvrqa37vdsk35b@kekkonen.localdomain>
- <20181128082901.qsrmi2vrjcyrwypg@pengutronix.de>
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:52830 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727341AbeK1UMw (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 28 Nov 2018 15:12:52 -0500
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] vivid: add req_validate error injection
+Message-ID: <127dd245-f07c-57ea-c430-c0fbbe1938e3@xs4all.nl>
+Date: Wed, 28 Nov 2018 10:11:52 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20181128082901.qsrmi2vrjcyrwypg@pengutronix.de>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Nov 28, 2018 at 09:29:01AM +0100, Marco Felsch wrote:
-> On 18-11-27 23:15, Sakari Ailus wrote:
-> > On Tue, Nov 27, 2018 at 11:02:53AM +0100, Marco Felsch wrote:
-> > > From: Enrico Scholz <enrico.scholz@sigma-chemnitz.de>
-> > > 
-> > > The chip can be configured to output data transitions on the
-> > > rising or falling edge of PIXCLK (Datasheet R58:1[9]), default is on the
-> > > falling edge.
-> > > 
-> > > Parsing the fw-node is made in a subfunction to bundle all (future)
-> > > dt-parsing / fw-parsing stuff.
-> > > 
-> > > Signed-off-by: Enrico Scholz <enrico.scholz@sigma-chemnitz.de>
-> > > (m.grzeschik@pengutronix.de: Fix inverting clock. INV_PIX_CLOCK bit is set
-> > > per default. Set bit to 0 (enable mask bit without value) to enable
-> > > falling edge sampling.)
-> > > Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
-> > > (m.felsch@pengutronix.de: use fwnode helpers)
-> > > (m.felsch@pengutronix.de: mv fw parsing into own function)
-> > > (m.felsch@pengutronix.de: adapt commit msg)
-> > > Signed-off-by: Marco Felsch <m.felsch@pengutronix.de>
-> > 
-> > This one as well:
-> 
-> Sorry for that, I forget to adapt the Kconfig to often. Thanks for your
-> fix.
+Add a new vivid button control to inject an error into the req_validate request
+callback.
 
-No worries. I hope we'll have automated compile testing in not too distant
-future...
+This will help testing with v4l2-compliance.
 
--- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+---
+diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
+index c1b5976af3e6..1adf7cd86f60 100644
+--- a/drivers/media/platform/vivid/vivid-core.c
++++ b/drivers/media/platform/vivid/vivid-core.c
+@@ -629,8 +629,19 @@ static void vivid_dev_release(struct v4l2_device *v4l2_dev)
+ }
+
+ #ifdef CONFIG_MEDIA_CONTROLLER
++static int vivid_req_validate(struct media_request *req)
++{
++	struct vivid_dev *dev = container_of(req->mdev, struct vivid_dev, mdev);
++
++	if (dev->req_validate_error) {
++		dev->req_validate_error = false;
++		return -EINVAL;
++	}
++	return vb2_request_validate(req);
++}
++
+ static const struct media_device_ops vivid_media_ops = {
+-	.req_validate = vb2_request_validate,
++	.req_validate = vivid_req_validate,
+ 	.req_queue = vb2_request_queue,
+ };
+ #endif
+diff --git a/drivers/media/platform/vivid/vivid-core.h b/drivers/media/platform/vivid/vivid-core.h
+index 1891254c8f0b..a6b8d8625ec4 100644
+--- a/drivers/media/platform/vivid/vivid-core.h
++++ b/drivers/media/platform/vivid/vivid-core.h
+@@ -294,6 +294,7 @@ struct vivid_dev {
+ 	bool				buf_prepare_error;
+ 	bool				start_streaming_error;
+ 	bool				dqbuf_error;
++	bool				req_validate_error;
+ 	bool				seq_wrap;
+ 	bool				time_wrap;
+ 	u64				time_wrap_offset;
+diff --git a/drivers/media/platform/vivid/vivid-ctrls.c b/drivers/media/platform/vivid/vivid-ctrls.c
+index bfffeda12f14..4cd526ff248b 100644
+--- a/drivers/media/platform/vivid/vivid-ctrls.c
++++ b/drivers/media/platform/vivid/vivid-ctrls.c
+@@ -81,6 +81,7 @@
+ #define VIVID_CID_START_STR_ERROR	(VIVID_CID_VIVID_BASE + 69)
+ #define VIVID_CID_QUEUE_ERROR		(VIVID_CID_VIVID_BASE + 70)
+ #define VIVID_CID_CLEAR_FB		(VIVID_CID_VIVID_BASE + 71)
++#define VIVID_CID_REQ_VALIDATE_ERROR	(VIVID_CID_VIVID_BASE + 72)
+
+ #define VIVID_CID_RADIO_SEEK_MODE	(VIVID_CID_VIVID_BASE + 90)
+ #define VIVID_CID_RADIO_SEEK_PROG_LIM	(VIVID_CID_VIVID_BASE + 91)
+@@ -1002,6 +1003,9 @@ static int vivid_streaming_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	case VIVID_CID_START_STR_ERROR:
+ 		dev->start_streaming_error = true;
+ 		break;
++	case VIVID_CID_REQ_VALIDATE_ERROR:
++		dev->req_validate_error = true;
++		break;
+ 	case VIVID_CID_QUEUE_ERROR:
+ 		if (vb2_start_streaming_called(&dev->vb_vid_cap_q))
+ 			vb2_queue_error(&dev->vb_vid_cap_q);
+@@ -1087,6 +1091,15 @@ static const struct v4l2_ctrl_config vivid_ctrl_queue_error = {
+ 	.type = V4L2_CTRL_TYPE_BUTTON,
+ };
+
++#ifdef CONFIG_MEDIA_CONTROLLER
++static const struct v4l2_ctrl_config vivid_ctrl_req_validate_error = {
++	.ops = &vivid_streaming_ctrl_ops,
++	.id = VIVID_CID_REQ_VALIDATE_ERROR,
++	.name = "Inject req_validate() Error",
++	.type = V4L2_CTRL_TYPE_BUTTON,
++};
++#endif
++
+ static const struct v4l2_ctrl_config vivid_ctrl_seq_wrap = {
+ 	.ops = &vivid_streaming_ctrl_ops,
+ 	.id = VIVID_CID_SEQ_WRAP,
+@@ -1516,6 +1529,9 @@ int vivid_create_controls(struct vivid_dev *dev, bool show_ccs_cap,
+ 		v4l2_ctrl_new_custom(hdl_streaming, &vivid_ctrl_buf_prepare_error, NULL);
+ 		v4l2_ctrl_new_custom(hdl_streaming, &vivid_ctrl_start_streaming_error, NULL);
+ 		v4l2_ctrl_new_custom(hdl_streaming, &vivid_ctrl_queue_error, NULL);
++#ifdef CONFIG_MEDIA_CONTROLLER
++		v4l2_ctrl_new_custom(hdl_streaming, &vivid_ctrl_req_validate_error, NULL);
++#endif
+ 		v4l2_ctrl_new_custom(hdl_streaming, &vivid_ctrl_seq_wrap, NULL);
+ 		v4l2_ctrl_new_custom(hdl_streaming, &vivid_ctrl_time_wrap, NULL);
+ 	}
