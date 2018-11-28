@@ -1,7 +1,7 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from shell.v3.sk ([90.176.6.54]:39078 "EHLO shell.v3.sk"
+Received: from shell.v3.sk ([90.176.6.54]:39088 "EHLO shell.v3.sk"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728775AbeK2EWC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        id S1729160AbeK2EWC (ORCPT <rfc822;linux-media@vger.kernel.org>);
         Wed, 28 Nov 2018 23:22:02 -0500
 From: Lubomir Rintel <lkundrak@v3.sk>
 To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
@@ -12,9 +12,9 @@ To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
         Wenyou Yang <wenyou.yang@microchip.com>
 Cc: Jacopo Mondi <jacopo@jmondi.org>, linux-media@vger.kernel.org,
         linux-kernel@vger.kernel.org, Lubomir Rintel <lkundrak@v3.sk>
-Subject: [PATCH 4/6] media: ov2680: get rid of extra ifdefs
-Date: Wed, 28 Nov 2018 18:19:16 +0100
-Message-Id: <20181128171918.160643-5-lkundrak@v3.sk>
+Subject: [PATCH 2/6] media: ov7740: get rid of extra ifdefs
+Date: Wed, 28 Nov 2018 18:19:14 +0100
+Message-Id: <20181128171918.160643-3-lkundrak@v3.sk>
 In-Reply-To: <20181128171918.160643-1-lkundrak@v3.sk>
 References: <20181128171918.160643-1-lkundrak@v3.sk>
 MIME-Version: 1.0
@@ -27,53 +27,70 @@ configured without CONFIG_VIDEO_V4L2_SUBDEV_API.
 
 Signed-off-by: Lubomir Rintel <lkundrak@v3.sk>
 ---
- drivers/media/i2c/ov2680.c | 17 ++++++-----------
- 1 file changed, 6 insertions(+), 11 deletions(-)
+ drivers/media/i2c/ov7740.c | 25 ++++++++++---------------
+ 1 file changed, 10 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/media/i2c/ov2680.c b/drivers/media/i2c/ov2680.c
-index 0e34e15b67b3..f8b873aaacec 100644
---- a/drivers/media/i2c/ov2680.c
-+++ b/drivers/media/i2c/ov2680.c
-@@ -680,11 +680,9 @@ static int ov2680_get_fmt(struct v4l2_subdev *sd,
- 	mutex_lock(&sensor->lock);
-=20
- 	if (format->which =3D=3D V4L2_SUBDEV_FORMAT_TRY) {
+diff --git a/drivers/media/i2c/ov7740.c b/drivers/media/i2c/ov7740.c
+index 6e9c233cfbe3..781ddcc743d4 100644
+--- a/drivers/media/i2c/ov7740.c
++++ b/drivers/media/i2c/ov7740.c
+@@ -780,9 +780,7 @@ static int ov7740_set_fmt(struct v4l2_subdev *sd,
+ 	struct ov7740 *ov7740 =3D container_of(sd, struct ov7740, subdev);
+ 	const struct ov7740_pixfmt *ovfmt;
+ 	const struct ov7740_framesize *fsize;
 -#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
- 		fmt =3D v4l2_subdev_get_try_format(&sensor->sd, cfg, format->pad);
+ 	struct v4l2_mbus_framefmt *mbus_fmt;
+-#endif
+ 	int ret;
+=20
+ 	mutex_lock(&ov7740->mutex);
+@@ -795,16 +793,15 @@ static int ov7740_set_fmt(struct v4l2_subdev *sd,
+ 		ret =3D ov7740_try_fmt_internal(sd, &format->format, NULL, NULL);
+ 		if (ret)
+ 			goto error;
+-#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
+ 		mbus_fmt =3D v4l2_subdev_get_try_format(sd, cfg, format->pad);
++		if (IS_ERR(mbus_fmt)) {
++			ret =3D PTR_ERR(mbus_fmt);
++			goto error;
++		}
+ 		*mbus_fmt =3D format->format;
+=20
+ 		mutex_unlock(&ov7740->mutex);
+ 		return 0;
 -#else
 -		ret =3D -ENOTTY;
+-		goto error;
 -#endif
-+		if (IS_ERR(fmt))
-+			return PTR_ERR(fmt);
- 	} else {
- 		fmt =3D &sensor->fmt;
  	}
-@@ -703,9 +701,7 @@ static int ov2680_set_fmt(struct v4l2_subdev *sd,
+=20
+ 	ret =3D ov7740_try_fmt_internal(sd, &format->format, &ovfmt, &fsize);
+@@ -827,20 +824,18 @@ static int ov7740_get_fmt(struct v4l2_subdev *sd,
+ 			  struct v4l2_subdev_format *format)
  {
- 	struct ov2680_dev *sensor =3D to_ov2680_dev(sd);
- 	struct v4l2_mbus_framefmt *fmt =3D &format->format;
+ 	struct ov7740 *ov7740 =3D container_of(sd, struct ov7740, subdev);
 -#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
- 	struct v4l2_mbus_framefmt *try_fmt;
+ 	struct v4l2_mbus_framefmt *mbus_fmt;
 -#endif
- 	const struct ov2680_mode_info *mode;
  	int ret =3D 0;
 =20
-@@ -728,12 +724,11 @@ static int ov2680_set_fmt(struct v4l2_subdev *sd,
- 	}
-=20
+ 	mutex_lock(&ov7740->mutex);
  	if (format->which =3D=3D V4L2_SUBDEV_FORMAT_TRY) {
 -#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
- 		try_fmt =3D v4l2_subdev_get_try_format(sd, cfg, 0);
--		format->format =3D *try_fmt;
+ 		mbus_fmt =3D v4l2_subdev_get_try_format(sd, cfg, 0);
+-		format->format =3D *mbus_fmt;
+-		ret =3D 0;
 -#else
 -		ret =3D -ENOTTY;
 -#endif
-+		if (IS_ERR(try_fmt))
-+			ret =3D PTR_ERR(try_fmt);
-+		else
-+			format->format =3D *try_fmt;
-=20
- 		goto unlock;
++		if (IS_ERR(mbus_fmt)) {
++			ret =3D PTR_ERR(mbus_fmt);
++		} else {
++			format->format =3D *mbus_fmt;
++			ret =3D 0;
++		}
+ 	} else {
+ 		format->format =3D ov7740->format;
  	}
 --=20
 2.19.1
