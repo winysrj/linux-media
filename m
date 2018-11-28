@@ -1,20 +1,17 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:44896 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727814AbeK1Tim (ORCPT
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:50984 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727476AbeK1Tim (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Wed, 28 Nov 2018 14:38:42 -0500
 From: hverkuil-cisco@xs4all.nl
 To: linux-media@vger.kernel.org
 Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
         Tomasz Figa <tfiga@chromium.org>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Hans Verkuil <hverkuil-cisco@xs4all.nl>, stable@vger.kernel.org
-Subject: [PATCH for v4.20 1/5] vb2: don't call __vb2_queue_cancel if vb2_start_streaming failed
-Date: Wed, 28 Nov 2018 09:37:43 +0100
-Message-Id: <20181128083747.18530-2-hverkuil-cisco@xs4all.nl>
-In-Reply-To: <20181128083747.18530-1-hverkuil-cisco@xs4all.nl>
-References: <20181128083747.18530-1-hverkuil-cisco@xs4all.nl>
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+Subject: [PATCH for v4.20 0/5] vb2 fixes (mostly request API related)
+Date: Wed, 28 Nov 2018 09:37:42 +0100
+Message-Id: <20181128083747.18530-1-hverkuil-cisco@xs4all.nl>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
@@ -22,36 +19,70 @@ List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 
-vb2_start_streaming() already rolls back the buffers, so there is no
-need to call __vb2_queue_cancel(). Especially since __vb2_queue_cancel()
-does too much, such as zeroing the q->queued_count value, causing vb2
-to think that no buffers have been queued.
+While improving the v4l2-compliance tests I came across several vb2
+problems.
 
-It appears that this call to __vb2_queue_cancel() is a left-over from
-before commit b3379c6201bb3.
+After modifying v4l2-compliance I was now able to use the vivid error
+injection feature to test what happens if VIDIOC_STREAMON fails and
+a following STREAMON succeeds.
 
-Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Fixes: b3379c6201bb3 ('vb2: only call start_streaming if sufficient buffers are queued')
-Cc: <stable@vger.kernel.org>      # for v4.16 and up
----
- drivers/media/common/videobuf2/videobuf2-core.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+This generated patches 1/5 and 4/5+5/5.
 
-diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
-index 0ca81d495bda..77e2bfe5e722 100644
---- a/drivers/media/common/videobuf2/videobuf2-core.c
-+++ b/drivers/media/common/videobuf2/videobuf2-core.c
-@@ -1941,10 +1941,8 @@ int vb2_core_streamon(struct vb2_queue *q, unsigned int type)
- 		if (ret)
- 			return ret;
- 		ret = vb2_start_streaming(q);
--		if (ret) {
--			__vb2_queue_cancel(q);
-+		if (ret)
- 			return ret;
--		}
- 	}
- 
- 	q->streaming = 1;
+Patch 1/5 fixes an issue that was never noticed before since it didn't
+result in kernel oopses or warnings, but after the second STREAMON it
+won't call start_streaming anymore until you call REQBUFS(0) or close
+the device node.
+
+Patches 4 and 5 are request specific fixes for the same corner case:
+the code would unbind (in vb2) or complete (in vivid) a request if
+start_streaming fails, but it should just leave things as-is. The
+buffer is just put back in the queue, ready for the next attempt at
+STREAMON.
+
+Patch 2/5 was also discovered by v4l2-compliance: the request fd in
+v4l2_buffer should be ignored by VIDIOC_PREPARE_BUF, but it wasn't.
+
+Patch 3/5 fixes a nasty corner case: a buffer with associated request
+is queued, and then the request fd is closed by v4l2-compliance.
+
+When the driver calls vb2_buffer_done, the buffer request object is
+unbound, the object is put, and indirectly the associated request
+is put as well, and since that was the last references to the request
+the whole request is released, which requires the ability to call
+mutex_lock. But vb2_buffer_done is atomic (it can be called
+from interrupt context), so this shouldn't happen.
+
+vb2 now takes an extra refcount to the request on qbuf and releases
+it on dqbuf and at two other places where an internal dqbuf is done.
+
+Note that 'skip request checks for VIDIOC_PREPARE_BUF' is a duplicate
+of https://patchwork.linuxtv.org/patch/53171/, which is now marked as
+superseded.
+
+I've marked all these patches for 4.20, but I think it is also possible
+to apply them for 4.21 since the request API is only used by virtual
+drivers and a staging driver.
+
+Regards,
+
+	Hans
+
+Hans Verkuil (5):
+  vb2: don't call __vb2_queue_cancel if vb2_start_streaming failed
+  vb2: skip request checks for VIDIOC_PREPARE_BUF
+  vb2: keep a reference to the request until dqbuf
+  vb2: don't unbind/put the object when going to state QUEUED
+  vivid: drop v4l2_ctrl_request_complete() from start_streaming
+
+ .../media/common/videobuf2/videobuf2-core.c   | 44 +++++++++++++++----
+ .../media/common/videobuf2/videobuf2-v4l2.c   | 11 +++--
+ drivers/media/platform/vivid/vivid-sdr-cap.c  |  2 -
+ drivers/media/platform/vivid/vivid-vbi-cap.c  |  2 -
+ drivers/media/platform/vivid/vivid-vbi-out.c  |  2 -
+ drivers/media/platform/vivid/vivid-vid-cap.c  |  2 -
+ drivers/media/platform/vivid/vivid-vid-out.c  |  2 -
+ include/media/videobuf2-core.h                |  2 +
+ 8 files changed, 44 insertions(+), 23 deletions(-)
+
 -- 
 2.19.1
