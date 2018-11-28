@@ -1,57 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:60481 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725799AbeK2Hzm (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Nov 2018 02:55:42 -0500
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: vicodec: set state resolution from raw format
-Message-ID: <e5dd5d2c-876e-dea4-d804-d25188d34b7c@xs4all.nl>
-Date: Wed, 28 Nov 2018 21:52:42 +0100
+Received: from mga17.intel.com ([192.55.52.151]:2337 "EHLO mga17.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726462AbeK2JZW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 29 Nov 2018 04:25:22 -0500
+Date: Thu, 29 Nov 2018 00:22:04 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Yong Zhi <yong.zhi@intel.com>
+Cc: linux-media@vger.kernel.org, tfiga@chromium.org,
+        mchehab@kernel.org, hans.verkuil@cisco.com,
+        laurent.pinchart@ideasonboard.com, rajmohan.mani@intel.com,
+        jian.xu.zheng@intel.com, jerry.w.hu@intel.com,
+        tuukka.toivonen@intel.com, tian.shu.qiu@intel.com,
+        bingbu.cao@intel.com
+Subject: Re: [PATCH v7 09/16] intel-ipu3: css: Add support for firmware
+ management
+Message-ID: <20181128222204.usznfaurffntifei@kekkonen.localdomain>
+References: <1540851790-1777-1-git-send-email-yong.zhi@intel.com>
+ <1540851790-1777-10-git-send-email-yong.zhi@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1540851790-1777-10-git-send-email-yong.zhi@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The state structure contains the resolution expected by the decoder
-and encoder. For an encoder that resolution should be taken from the
-OUTPUT format, and for a decoder from the CAPTURE format.
+Hi Yong,
 
-If the wrong format is picked, a buffer overrun can occur if there is
-a mismatch between the CAPTURE and OUTPUT formats.
+On Mon, Oct 29, 2018 at 03:23:03PM -0700, Yong Zhi wrote:
+...
+> diff --git a/drivers/media/pci/intel/ipu3/ipu3-css-fw.h b/drivers/media/pci/intel/ipu3/ipu3-css-fw.h
+> new file mode 100644
+> index 0000000..954bb31
+> --- /dev/null
+> +++ b/drivers/media/pci/intel/ipu3/ipu3-css-fw.h
+> @@ -0,0 +1,188 @@
+> +/* SPDX-License-Identifier: GPL-2.0 */
+> +/* Copyright (C) 2018 Intel Corporation */
+> +
+> +#ifndef __IPU3_CSS_FW_H
+> +#define __IPU3_CSS_FW_H
+> +
+> +/******************* Firmware file definitions *******************/
+> +
+> +#define IMGU_FW_NAME			"ipu3-fw.bin"
 
-The real fix would be to correctly implement the stateful codec
-specification, but that will take more time. For now just prevent the
-buffer overrun.
+Shouldn't this be "intel/ipu3-fw.bin"?
 
-Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
----
-diff --git a/drivers/media/platform/vicodec/vicodec-core.c b/drivers/media/platform/vicodec/vicodec-core.c
-index 0f74fbe2e74c..e75bc263a113 100644
---- a/drivers/media/platform/vicodec/vicodec-core.c
-+++ b/drivers/media/platform/vicodec/vicodec-core.c
-@@ -1004,11 +1004,18 @@ static int vicodec_start_streaming(struct vb2_queue *q,
-
- 	q_data->sequence = 0;
-
--	if (!V4L2_TYPE_IS_OUTPUT(q->type))
-+	if (!V4L2_TYPE_IS_OUTPUT(q->type)) {
-+		if (!ctx->is_enc) {
-+			state->width = q_data->width;
-+			state->height = q_data->height;
-+		}
- 		return 0;
-+	}
-
--	state->width = q_data->width;
--	state->height = q_data->height;
-+	if (ctx->is_enc) {
-+		state->width = q_data->width;
-+		state->height = q_data->height;
-+	}
- 	state->ref_frame.width = state->ref_frame.height = 0;
- 	state->ref_frame.luma = kvmalloc(total_planes_size, GFP_KERNEL);
- 	ctx->comp_max_size = total_planes_size + sizeof(struct fwht_cframe_hdr);
+-- 
+Sakari Ailus
+sakari.ailus@linux.intel.com
