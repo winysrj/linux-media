@@ -1,77 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48842 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1727872AbeK2Bgp (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Nov 2018 20:36:45 -0500
-Date: Wed, 28 Nov 2018 16:34:51 +0200
-From: sakari.ailus@iki.fi
-To: hverkuil-cisco@xs4all.nl
-Cc: linux-media@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-Subject: Re: [PATCH for v4.20 0/5] vb2 fixes (mostly request API related)
-Message-ID: <20181128143451.6m5i5v7le2p5ynm4@valkosipuli.retiisi.org.uk>
-References: <20181128083747.18530-1-hverkuil-cisco@xs4all.nl>
+Received: from gloria.sntech.de ([185.11.138.130]:45110 "EHLO gloria.sntech.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727789AbeK2CYA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 28 Nov 2018 21:24:00 -0500
+From: Heiko =?ISO-8859-1?Q?St=FCbner?= <heiko@sntech.de>
+To: Souptick Joarder <jrdr.linux@gmail.com>
+Cc: akpm@linux-foundation.org, willy@infradead.org, mhocko@suse.com,
+        kirill.shutemov@linux.intel.com, vbabka@suse.cz, riel@surriel.com,
+        sfr@canb.auug.org.au, rppt@linux.vnet.ibm.com,
+        peterz@infradead.org, linux@armlinux.org.uk, robin.murphy@arm.com,
+        iamjoonsoo.kim@lge.com, treding@nvidia.com, keescook@chromium.org,
+        m.szyprowski@samsung.com, stefanr@s5r6.in-berlin.de,
+        hjc@rock-chips.com, airlied@linux.ie,
+        oleksandr_andrushchenko@epam.com, joro@8bytes.org,
+        pawel@osciak.com, kyungmin.park@samsung.com, mchehab@kernel.org,
+        boris.ostrovsky@oracle.com, jgross@suse.com,
+        linux-kernel@vger.kernel.org, linux-mm@kvack.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux1394-devel@lists.sourceforge.net,
+        dri-devel@lists.freedesktop.org,
+        linux-rockchip@lists.infradead.org, xen-devel@lists.xen.org,
+        iommu@lists.linux-foundation.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/9] mm: Introduce new vm_insert_range API
+Date: Wed, 28 Nov 2018 16:21:05 +0100
+Message-ID: <3555131.qyOKUBSTPx@diego>
+In-Reply-To: <20181115154530.GA27872@jordon-HP-15-Notebook-PC>
+References: <20181115154530.GA27872@jordon-HP-15-Notebook-PC>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20181128083747.18530-1-hverkuil-cisco@xs4all.nl>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Nov 28, 2018 at 09:37:42AM +0100, hverkuil-cisco@xs4all.nl wrote:
-> From: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+Am Donnerstag, 15. November 2018, 16:45:30 CET schrieb Souptick Joarder:
+> Previouly drivers have their own way of mapping range of
+> kernel pages/memory into user vma and this was done by
+> invoking vm_insert_page() within a loop.
 > 
-> While improving the v4l2-compliance tests I came across several vb2
-> problems.
+> As this pattern is common across different drivers, it can
+> be generalized by creating a new function and use it across
+> the drivers.
 > 
-> After modifying v4l2-compliance I was now able to use the vivid error
-> injection feature to test what happens if VIDIOC_STREAMON fails and
-> a following STREAMON succeeds.
+> vm_insert_range is the new API which will be used to map a
+> range of kernel memory/pages to user vma.
 > 
-> This generated patches 1/5 and 4/5+5/5.
-> 
-> Patch 1/5 fixes an issue that was never noticed before since it didn't
-> result in kernel oopses or warnings, but after the second STREAMON it
-> won't call start_streaming anymore until you call REQBUFS(0) or close
-> the device node.
-> 
-> Patches 4 and 5 are request specific fixes for the same corner case:
-> the code would unbind (in vb2) or complete (in vivid) a request if
-> start_streaming fails, but it should just leave things as-is. The
-> buffer is just put back in the queue, ready for the next attempt at
-> STREAMON.
-> 
-> Patch 2/5 was also discovered by v4l2-compliance: the request fd in
-> v4l2_buffer should be ignored by VIDIOC_PREPARE_BUF, but it wasn't.
-> 
-> Patch 3/5 fixes a nasty corner case: a buffer with associated request
-> is queued, and then the request fd is closed by v4l2-compliance.
-> 
-> When the driver calls vb2_buffer_done, the buffer request object is
-> unbound, the object is put, and indirectly the associated request
-> is put as well, and since that was the last references to the request
-> the whole request is released, which requires the ability to call
-> mutex_lock. But vb2_buffer_done is atomic (it can be called
-> from interrupt context), so this shouldn't happen.
-> 
-> vb2 now takes an extra refcount to the request on qbuf and releases
-> it on dqbuf and at two other places where an internal dqbuf is done.
-> 
-> Note that 'skip request checks for VIDIOC_PREPARE_BUF' is a duplicate
-> of https://patchwork.linuxtv.org/patch/53171/, which is now marked as
-> superseded.
-> 
-> I've marked all these patches for 4.20, but I think it is also possible
-> to apply them for 4.21 since the request API is only used by virtual
-> drivers and a staging driver.
+> Signed-off-by: Souptick Joarder <jrdr.linux@gmail.com>
+> Reviewed-by: Matthew Wilcox <willy@infradead.org>
 
-For patches 2--5:
-
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+Except the missing EXPORT_SYMBOL for module builds this new
+API is supposed to run also within the Rockchip drm driver, so
+on rk3188, rk3288, rk3328 and rk3399 with graphics
+Tested-by: Heiko Stuebner <heiko@sntech.de>
