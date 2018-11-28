@@ -1,119 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:51328 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726894AbeK1Pe0 (ORCPT
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:56277 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727813AbeK1TaB (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Nov 2018 10:34:26 -0500
-Message-ID: <8a4ee6d7bdc60d6908336e2e8c9fb9aa@smtp-cloud8.xs4all.net>
-Date: Wed, 28 Nov 2018 05:34:09 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Wed, 28 Nov 2018 14:30:01 -0500
+Date: Wed, 28 Nov 2018 09:29:01 +0100
+From: Marco Felsch <m.felsch@pengutronix.de>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        enrico.scholz@sigma-chemnitz.de, devicetree@vger.kernel.org,
+        akinobu.mita@gmail.com, linux-media@vger.kernel.org,
+        graphics@pengutronix.de,
+        Michael Grzeschik <m.grzeschik@pengutronix.de>
+Subject: Re: [PATCH v3 6/6] media: mt9m111: allow to setup pixclk polarity
+Message-ID: <20181128082901.qsrmi2vrjcyrwypg@pengutronix.de>
+References: <20181127100253.30845-1-m.felsch@pengutronix.de>
+ <20181127100253.30845-7-m.felsch@pengutronix.de>
+ <20181127211512.2zqvrqa37vdsk35b@kekkonen.localdomain>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20181127211512.2zqvrqa37vdsk35b@kekkonen.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 18-11-27 23:15, Sakari Ailus wrote:
+> On Tue, Nov 27, 2018 at 11:02:53AM +0100, Marco Felsch wrote:
+> > From: Enrico Scholz <enrico.scholz@sigma-chemnitz.de>
+> > 
+> > The chip can be configured to output data transitions on the
+> > rising or falling edge of PIXCLK (Datasheet R58:1[9]), default is on the
+> > falling edge.
+> > 
+> > Parsing the fw-node is made in a subfunction to bundle all (future)
+> > dt-parsing / fw-parsing stuff.
+> > 
+> > Signed-off-by: Enrico Scholz <enrico.scholz@sigma-chemnitz.de>
+> > (m.grzeschik@pengutronix.de: Fix inverting clock. INV_PIX_CLOCK bit is set
+> > per default. Set bit to 0 (enable mask bit without value) to enable
+> > falling edge sampling.)
+> > Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
+> > (m.felsch@pengutronix.de: use fwnode helpers)
+> > (m.felsch@pengutronix.de: mv fw parsing into own function)
+> > (m.felsch@pengutronix.de: adapt commit msg)
+> > Signed-off-by: Marco Felsch <m.felsch@pengutronix.de>
+> 
+> This one as well:
 
-Results of the daily build of media_tree:
+Sorry for that, I forget to adapt the Kconfig to often. Thanks for your
+fix.
 
-date:			Wed Nov 28 05:00:12 CET 2018
-media-tree git hash:	708d75fe1c7c6e9abc5381b6fcc32b49830383d0
-media_build git hash:	466e4e6f12eeffd6e9f6d91378c9169f7e6b8527
-v4l-utils git hash:	ff41164e10010be7209d3b7b98c209f98407a320
-edid-decode git hash:	5eeb151a748788666534d6ea3da07f90400d24c2
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.18.0-2-amd64
+Kind regards,
+Marco
 
-linux-git-arm-at91: WARNINGS
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-multi: WARNINGS
-linux-git-arm-pxa: WARNINGS
-linux-git-arm-stm32: WARNINGS
-linux-git-arm64: OK
-linux-git-i686: WARNINGS
-linux-git-mips: OK
-linux-git-powerpc64: WARNINGS
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.123-i686: OK
-linux-3.18.123-x86_64: OK
-linux-3.19.8-i686: ERRORS
-linux-3.19.8-x86_64: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.159-i686: OK
-linux-4.4.159-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.131-i686: OK
-linux-4.9.131-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.74-i686: OK
-linux-4.14.74-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: OK
-linux-4.19.1-i686: OK
-linux-4.19.1-x86_64: OK
-linux-4.20-rc1-i686: OK
-linux-4.20-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+> diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+> index 005fc2bd0d05..902c3cabf44c 100644
+> --- a/drivers/media/i2c/Kconfig
+> +++ b/drivers/media/i2c/Kconfig
+> @@ -859,6 +859,7 @@ config VIDEO_MT9M032
+>  config VIDEO_MT9M111
+>  	tristate "mt9m111, mt9m112 and mt9m131 support"
+>  	depends on I2C && VIDEO_V4L2
+> +	select V4L2_FWNODE
+>  	help
+>  	  This driver supports MT9M111, MT9M112 and MT9M131 cameras from
+>  	  Micron/Aptina
+> 
+> -- 
+> Sakari Ailus
+> sakari.ailus@linux.intel.com
+> 
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
