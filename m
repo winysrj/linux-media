@@ -1,110 +1,172 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:52830 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727341AbeK1UMw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Nov 2018 15:12:52 -0500
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] vivid: add req_validate error injection
-Message-ID: <127dd245-f07c-57ea-c430-c0fbbe1938e3@xs4all.nl>
-Date: Wed, 28 Nov 2018 10:11:52 +0100
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Received: from shell.v3.sk ([90.176.6.54]:37728 "EHLO shell.v3.sk"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727476AbeK1WbC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 28 Nov 2018 17:31:02 -0500
+Message-ID: <868bd721260bc8948835fe2a697a047ae2277cd0.camel@v3.sk>
+Subject: Re: [PATCH v3 03/14] media: ov7670: hook s_power onto v4l2 core
+From: Lubomir Rintel <lkundrak@v3.sk>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>, linux-media@vger.kernel.org,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        James Cameron <quozl@laptop.org>, Pavel Machek <pavel@ucw.cz>,
+        Libin Yang <lbyang@marvell.com>,
+        Albert Wang <twang13@marvell.com>
+Date: Wed, 28 Nov 2018 12:29:33 +0100
+In-Reply-To: <20181122122146.a6wydozsg676i3w7@valkosipuli.retiisi.org.uk>
+References: <20181120100318.367987-1-lkundrak@v3.sk>
+         <20181120100318.367987-4-lkundrak@v3.sk>
+         <20181122122146.a6wydozsg676i3w7@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a new vivid button control to inject an error into the req_validate request
-callback.
+On Thu, 2018-11-22 at 14:21 +0200, Sakari Ailus wrote:
+> Hi Lubomir,
+> 
+> On Tue, Nov 20, 2018 at 11:03:08AM +0100, Lubomir Rintel wrote:
+> > The commit 71862f63f351 ("media: ov7670: Add the ov7670_s_power function")
+> > added a power control routing. However, it was not good enough to use as
+> > a s_power() callback: it merely flipped on the power GPIOs without
+> > restoring the register settings.
+> > 
+> > Fix this now and register an actual power callback.
+> > 
+> > Signed-off-by: Lubomir Rintel <lkundrak@v3.sk>
+> > 
+> > ---
+> > Changes since v2:
+> > - Restore the controls, format and frame rate on power on
+> > 
+> >  drivers/media/i2c/ov7670.c | 50 +++++++++++++++++++++++++++++++++-----
+> >  1 file changed, 44 insertions(+), 6 deletions(-)
+> > 
+> > diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
+> > index ead0c360df33..cbaab60aaaac 100644
+> > --- a/drivers/media/i2c/ov7670.c
+> > +++ b/drivers/media/i2c/ov7670.c
+> > @@ -242,6 +242,7 @@ struct ov7670_info {
+> >  	struct ov7670_format_struct *fmt;  /* Current format */
+> >  	struct ov7670_win_size *wsize;
+> >  	struct clk *clk;
+> > +	int on;
+> >  	struct gpio_desc *resetb_gpio;
+> >  	struct gpio_desc *pwdn_gpio;
+> >  	unsigned int mbus_config;	/* Media bus configuration flags */
+> > @@ -1615,19 +1616,54 @@ static int ov7670_s_register(struct v4l2_subdev *sd, const struct v4l2_dbg_regis
+> >  }
+> >  #endif
+> >  
+> > -static int ov7670_s_power(struct v4l2_subdev *sd, int on)
+> > +static void ov7670_power_on(struct v4l2_subdev *sd)
+> >  {
+> >  	struct ov7670_info *info = to_state(sd);
+> >  
+> > +	if (info->on)
+> > +		return;
+> > +
+> >  	if (info->pwdn_gpio)
+> > -		gpiod_set_value(info->pwdn_gpio, !on);
+> > -	if (on && info->resetb_gpio) {
+> > +		gpiod_set_value(info->pwdn_gpio, 0);
+> > +	if (info->resetb_gpio) {
+> >  		gpiod_set_value(info->resetb_gpio, 1);
+> >  		usleep_range(500, 1000);
+> >  		gpiod_set_value(info->resetb_gpio, 0);
+> >  		usleep_range(3000, 5000);
+> >  	}
+> >  
+> > +	info->on = true;
+> > +}
+> > +
+> > +static void ov7670_power_off(struct v4l2_subdev *sd)
+> > +{
+> > +	struct ov7670_info *info = to_state(sd);
+> > +
+> > +	if (!info->on)
+> > +		return;
+> > +
+> > +	if (info->pwdn_gpio)
+> > +		gpiod_set_value(info->pwdn_gpio, 1);
+> > +
+> > +	info->on = false;
+> > +}
+> > +
+> > +static int ov7670_s_power(struct v4l2_subdev *sd, int on)
+> > +{
+> > +	struct ov7670_info *info = to_state(sd);
+> > +
+> > +	if (info->on == on)
+> > +		return 0;
+> > +
+> > +	if (on) {
+> > +		ov7670_power_on (sd);
+> > +		ov7670_apply_fmt(sd);
+> > +		ov7675_apply_framerate(sd);
+> > +		v4l2_ctrl_handler_setup(&info->hdl);
+> > +	} else {
+> > +		ov7670_power_off (sd);
+> > +	}
+> > +
+> >  	return 0;
+> >  }
+> >  
+> > @@ -1660,6 +1696,7 @@ static int ov7670_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
+> >  static const struct v4l2_subdev_core_ops ov7670_core_ops = {
+> >  	.reset = ov7670_reset,
+> >  	.init = ov7670_init,
+> > +	.s_power = ov7670_s_power,
+> >  #ifdef CONFIG_VIDEO_ADV_DEBUG
+> >  	.g_register = ov7670_g_register,
+> >  	.s_register = ov7670_s_register,
+> > @@ -1825,6 +1862,7 @@ static int ov7670_probe(struct i2c_client *client,
+> >  		else
+> >  			return ret;
+> >  	}
+> > +
+> >  	if (info->clk) {
+> >  		ret = clk_prepare_enable(info->clk);
+> >  		if (ret)
+> > @@ -1841,7 +1879,7 @@ static int ov7670_probe(struct i2c_client *client,
+> >  	if (ret)
+> >  		goto clk_disable;
+> >  
+> > -	ov7670_s_power(sd, 1);
+> > +	ov7670_power_on(sd);
+> >  
+> >  	/* Make sure it's an ov7670 */
+> >  	ret = ov7670_detect(sd);
+> > @@ -1929,7 +1967,7 @@ static int ov7670_probe(struct i2c_client *client,
+> >  hdl_free:
+> >  	v4l2_ctrl_handler_free(&info->hdl);
+> >  power_off:
+> > -	ov7670_s_power(sd, 0);
+> > +	ov7670_power_off(sd);
+> >  clk_disable:
+> >  	clk_disable_unprepare(info->clk);
+> >  	return ret;
+> > @@ -1945,7 +1983,7 @@ static int ov7670_remove(struct i2c_client *client)
+> >  	v4l2_ctrl_handler_free(&info->hdl);
+> >  	clk_disable_unprepare(info->clk);
+> >  	media_entity_cleanup(&info->sd.entity);
+> > -	ov7670_s_power(sd, 0);
+> > +	ov7670_power_off(sd);
+> >  	return 0;
+> >  }
+> >  
+> 
+> Could you consider instead switching to runtime PM? A few drivers such as
+> the ov2685 driver does that already.
 
-This will help testing with v4l2-compliance.
+Yes, I'll take a look. Thanks for the suggestion. I didn't know such
+thing exists, so it may take some time for me to grasp it though.
 
-Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
----
-diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
-index c1b5976af3e6..1adf7cd86f60 100644
---- a/drivers/media/platform/vivid/vivid-core.c
-+++ b/drivers/media/platform/vivid/vivid-core.c
-@@ -629,8 +629,19 @@ static void vivid_dev_release(struct v4l2_device *v4l2_dev)
- }
+Take care,
+Lubo
 
- #ifdef CONFIG_MEDIA_CONTROLLER
-+static int vivid_req_validate(struct media_request *req)
-+{
-+	struct vivid_dev *dev = container_of(req->mdev, struct vivid_dev, mdev);
-+
-+	if (dev->req_validate_error) {
-+		dev->req_validate_error = false;
-+		return -EINVAL;
-+	}
-+	return vb2_request_validate(req);
-+}
-+
- static const struct media_device_ops vivid_media_ops = {
--	.req_validate = vb2_request_validate,
-+	.req_validate = vivid_req_validate,
- 	.req_queue = vb2_request_queue,
- };
- #endif
-diff --git a/drivers/media/platform/vivid/vivid-core.h b/drivers/media/platform/vivid/vivid-core.h
-index 1891254c8f0b..a6b8d8625ec4 100644
---- a/drivers/media/platform/vivid/vivid-core.h
-+++ b/drivers/media/platform/vivid/vivid-core.h
-@@ -294,6 +294,7 @@ struct vivid_dev {
- 	bool				buf_prepare_error;
- 	bool				start_streaming_error;
- 	bool				dqbuf_error;
-+	bool				req_validate_error;
- 	bool				seq_wrap;
- 	bool				time_wrap;
- 	u64				time_wrap_offset;
-diff --git a/drivers/media/platform/vivid/vivid-ctrls.c b/drivers/media/platform/vivid/vivid-ctrls.c
-index bfffeda12f14..4cd526ff248b 100644
---- a/drivers/media/platform/vivid/vivid-ctrls.c
-+++ b/drivers/media/platform/vivid/vivid-ctrls.c
-@@ -81,6 +81,7 @@
- #define VIVID_CID_START_STR_ERROR	(VIVID_CID_VIVID_BASE + 69)
- #define VIVID_CID_QUEUE_ERROR		(VIVID_CID_VIVID_BASE + 70)
- #define VIVID_CID_CLEAR_FB		(VIVID_CID_VIVID_BASE + 71)
-+#define VIVID_CID_REQ_VALIDATE_ERROR	(VIVID_CID_VIVID_BASE + 72)
-
- #define VIVID_CID_RADIO_SEEK_MODE	(VIVID_CID_VIVID_BASE + 90)
- #define VIVID_CID_RADIO_SEEK_PROG_LIM	(VIVID_CID_VIVID_BASE + 91)
-@@ -1002,6 +1003,9 @@ static int vivid_streaming_s_ctrl(struct v4l2_ctrl *ctrl)
- 	case VIVID_CID_START_STR_ERROR:
- 		dev->start_streaming_error = true;
- 		break;
-+	case VIVID_CID_REQ_VALIDATE_ERROR:
-+		dev->req_validate_error = true;
-+		break;
- 	case VIVID_CID_QUEUE_ERROR:
- 		if (vb2_start_streaming_called(&dev->vb_vid_cap_q))
- 			vb2_queue_error(&dev->vb_vid_cap_q);
-@@ -1087,6 +1091,15 @@ static const struct v4l2_ctrl_config vivid_ctrl_queue_error = {
- 	.type = V4L2_CTRL_TYPE_BUTTON,
- };
-
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+static const struct v4l2_ctrl_config vivid_ctrl_req_validate_error = {
-+	.ops = &vivid_streaming_ctrl_ops,
-+	.id = VIVID_CID_REQ_VALIDATE_ERROR,
-+	.name = "Inject req_validate() Error",
-+	.type = V4L2_CTRL_TYPE_BUTTON,
-+};
-+#endif
-+
- static const struct v4l2_ctrl_config vivid_ctrl_seq_wrap = {
- 	.ops = &vivid_streaming_ctrl_ops,
- 	.id = VIVID_CID_SEQ_WRAP,
-@@ -1516,6 +1529,9 @@ int vivid_create_controls(struct vivid_dev *dev, bool show_ccs_cap,
- 		v4l2_ctrl_new_custom(hdl_streaming, &vivid_ctrl_buf_prepare_error, NULL);
- 		v4l2_ctrl_new_custom(hdl_streaming, &vivid_ctrl_start_streaming_error, NULL);
- 		v4l2_ctrl_new_custom(hdl_streaming, &vivid_ctrl_queue_error, NULL);
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+		v4l2_ctrl_new_custom(hdl_streaming, &vivid_ctrl_req_validate_error, NULL);
-+#endif
- 		v4l2_ctrl_new_custom(hdl_streaming, &vivid_ctrl_seq_wrap, NULL);
- 		v4l2_ctrl_new_custom(hdl_streaming, &vivid_ctrl_time_wrap, NULL);
- 	}
+> 
