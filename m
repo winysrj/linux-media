@@ -1,142 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-05.binero.net ([195.74.38.228]:60789 "EHLO
-        bin-mail-out-05.binero.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727098AbeK2NHD (ORCPT
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:49073 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727941AbeK2ADI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Nov 2018 08:07:03 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Jacopo Mondi <jacopo@jmondi.org>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v4 2/4] i2c: adv748x: reuse power up sequence when initializing CSI-2
-Date: Thu, 29 Nov 2018 03:01:45 +0100
-Message-Id: <20181129020147.22115-3-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20181129020147.22115-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20181129020147.22115-1-niklas.soderlund+renesas@ragnatech.se>
+        Wed, 28 Nov 2018 19:03:08 -0500
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Kamil Debski <kamil@wypas.org>,
+        Jeongtae Park <jtp.park@samsung.com>,
+        Andrzej Hajda <a.hajda@samsung.com>
+Subject: [PATCH 2/2] media: coda: fix H.264 deblocking filter controls
+Date: Wed, 28 Nov 2018 14:01:22 +0100
+Message-Id: <20181128130122.4916-3-p.zabel@pengutronix.de>
+In-Reply-To: <20181128130122.4916-1-p.zabel@pengutronix.de>
+References: <20181128130122.4916-1-p.zabel@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Extend the MIPI CSI-2 power up sequence to match the power up sequence
-in the hardware manual chapter "9.5.1 Power Up Sequence". This change
-allows the power up functions to be reused when initializing the
-hardware reducing code duplicating as well aligning with the
-documentation.
+Add support for the third loop filter mode
+V4L2_MPEG_VIDEO_H264_LOOP_FILTER_MODE_DISABLED_AT_SLICE_BOUNDARY,
+and fix V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_ALPHA and
+V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_BETA controls.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Tested-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+The filter offset controls are signed values in the -6 to 6 range and
+are stored into the slice header fields slice_alpha_c0_offset_div2 and
+slice_beta_offset_div2. The actual filter offsets FilterOffsetA/B are
+double their value, in range of -12 to 12.
 
+Rename variables to more closely match the nomenclature in the H.264
+specification.
+
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
-* Changes since v2
-- Bring in the undocumented registers in the power on sequence from the
-  initialization sequence after confirming in the hardware manual that
-  this is the correct behavior.
+This is under the assumption that loop filter alpha/beta controls should
+store the slice header values in the -6 to 6 range. If they should store
+the actual filter offset, the controls should be changed to the range
+of -12 to 12, step 2, and the values halved before passing them to the
+firmware.
 ---
- drivers/media/i2c/adv748x/adv748x-core.c | 50 ++++++------------------
- 1 file changed, 13 insertions(+), 37 deletions(-)
+ drivers/media/platform/coda/coda-bit.c    | 19 +++++++++----------
+ drivers/media/platform/coda/coda-common.c | 15 +++++++--------
+ drivers/media/platform/coda/coda.h        |  6 +++---
+ drivers/media/platform/coda/coda_regs.h   |  2 +-
+ 4 files changed, 20 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/media/i2c/adv748x/adv748x-core.c b/drivers/media/i2c/adv748x/adv748x-core.c
-index 6854d898fdd1f192..2384f50dacb0ccff 100644
---- a/drivers/media/i2c/adv748x/adv748x-core.c
-+++ b/drivers/media/i2c/adv748x/adv748x-core.c
-@@ -234,6 +234,12 @@ static const struct adv748x_reg_value adv748x_power_up_txa_4lane[] = {
- 
- 	{ADV748X_PAGE_TXA, 0x00, 0x84},	/* Enable 4-lane MIPI */
- 	{ADV748X_PAGE_TXA, 0x00, 0xa4},	/* Set Auto DPHY Timing */
-+	{ADV748X_PAGE_TXA, 0xdb, 0x10},	/* ADI Required Write */
-+	{ADV748X_PAGE_TXA, 0xd6, 0x07},	/* ADI Required Write */
-+	{ADV748X_PAGE_TXA, 0xc4, 0x0a},	/* ADI Required Write */
-+	{ADV748X_PAGE_TXA, 0x71, 0x33},	/* ADI Required Write */
-+	{ADV748X_PAGE_TXA, 0x72, 0x11},	/* ADI Required Write */
-+	{ADV748X_PAGE_TXA, 0xf0, 0x00},	/* i2c_dphy_pwdn - 1'b0 */
- 
- 	{ADV748X_PAGE_TXA, 0x31, 0x82},	/* ADI Required Write */
- 	{ADV748X_PAGE_TXA, 0x1e, 0x40},	/* ADI Required Write */
-@@ -263,6 +269,11 @@ static const struct adv748x_reg_value adv748x_power_up_txb_1lane[] = {
- 
- 	{ADV748X_PAGE_TXB, 0x00, 0x81},	/* Enable 1-lane MIPI */
- 	{ADV748X_PAGE_TXB, 0x00, 0xa1},	/* Set Auto DPHY Timing */
-+	{ADV748X_PAGE_TXB, 0xd2, 0x40},	/* ADI Required Write */
-+	{ADV748X_PAGE_TXB, 0xc4, 0x0a},	/* ADI Required Write */
-+	{ADV748X_PAGE_TXB, 0x71, 0x33},	/* ADI Required Write */
-+	{ADV748X_PAGE_TXB, 0x72, 0x11},	/* ADI Required Write */
-+	{ADV748X_PAGE_TXB, 0xf0, 0x00},	/* i2c_dphy_pwdn - 1'b0 */
- 
- 	{ADV748X_PAGE_TXB, 0x31, 0x82},	/* ADI Required Write */
- 	{ADV748X_PAGE_TXB, 0x1e, 0x40},	/* ADI Required Write */
-@@ -383,25 +394,6 @@ static const struct adv748x_reg_value adv748x_init_txa_4lane[] = {
- 	{ADV748X_PAGE_IO, 0x0c, 0xe0},	/* Enable LLC_DLL & Double LLC Timing */
- 	{ADV748X_PAGE_IO, 0x0e, 0xdd},	/* LLC/PIX/SPI PINS TRISTATED AUD */
- 
--	{ADV748X_PAGE_TXA, 0x00, 0x84},	/* Enable 4-lane MIPI */
--	{ADV748X_PAGE_TXA, 0x00, 0xa4},	/* Set Auto DPHY Timing */
--	{ADV748X_PAGE_TXA, 0xdb, 0x10},	/* ADI Required Write */
--	{ADV748X_PAGE_TXA, 0xd6, 0x07},	/* ADI Required Write */
--	{ADV748X_PAGE_TXA, 0xc4, 0x0a},	/* ADI Required Write */
--	{ADV748X_PAGE_TXA, 0x71, 0x33},	/* ADI Required Write */
--	{ADV748X_PAGE_TXA, 0x72, 0x11},	/* ADI Required Write */
--	{ADV748X_PAGE_TXA, 0xf0, 0x00},	/* i2c_dphy_pwdn - 1'b0 */
--
--	{ADV748X_PAGE_TXA, 0x31, 0x82},	/* ADI Required Write */
--	{ADV748X_PAGE_TXA, 0x1e, 0x40},	/* ADI Required Write */
--	{ADV748X_PAGE_TXA, 0xda, 0x01},	/* i2c_mipi_pll_en - 1'b1 */
--	{ADV748X_PAGE_WAIT, 0x00, 0x02},/* delay 2 */
--	{ADV748X_PAGE_TXA, 0x00, 0x24 },/* Power-up CSI-TX */
--	{ADV748X_PAGE_WAIT, 0x00, 0x01},/* delay 1 */
--	{ADV748X_PAGE_TXA, 0xc1, 0x2b},	/* ADI Required Write */
--	{ADV748X_PAGE_WAIT, 0x00, 0x01},/* delay 1 */
--	{ADV748X_PAGE_TXA, 0x31, 0x80},	/* ADI Required Write */
--
- 	{ADV748X_PAGE_EOR, 0xff, 0xff}	/* End of register table */
- };
- 
-@@ -435,24 +427,6 @@ static const struct adv748x_reg_value adv748x_init_txb_1lane[] = {
- 	{ADV748X_PAGE_SDP, 0x31, 0x12},	/* ADI Required Write */
- 	{ADV748X_PAGE_SDP, 0xe6, 0x4f},  /* V bit end pos manually in NTSC */
- 
--	{ADV748X_PAGE_TXB, 0x00, 0x81},	/* Enable 1-lane MIPI */
--	{ADV748X_PAGE_TXB, 0x00, 0xa1},	/* Set Auto DPHY Timing */
--	{ADV748X_PAGE_TXB, 0xd2, 0x40},	/* ADI Required Write */
--	{ADV748X_PAGE_TXB, 0xc4, 0x0a},	/* ADI Required Write */
--	{ADV748X_PAGE_TXB, 0x71, 0x33},	/* ADI Required Write */
--	{ADV748X_PAGE_TXB, 0x72, 0x11},	/* ADI Required Write */
--	{ADV748X_PAGE_TXB, 0xf0, 0x00},	/* i2c_dphy_pwdn - 1'b0 */
--	{ADV748X_PAGE_TXB, 0x31, 0x82},	/* ADI Required Write */
--	{ADV748X_PAGE_TXB, 0x1e, 0x40},	/* ADI Required Write */
--	{ADV748X_PAGE_TXB, 0xda, 0x01},	/* i2c_mipi_pll_en - 1'b1 */
--
--	{ADV748X_PAGE_WAIT, 0x00, 0x02},/* delay 2 */
--	{ADV748X_PAGE_TXB, 0x00, 0x21 },/* Power-up CSI-TX */
--	{ADV748X_PAGE_WAIT, 0x00, 0x01},/* delay 1 */
--	{ADV748X_PAGE_TXB, 0xc1, 0x2b},	/* ADI Required Write */
--	{ADV748X_PAGE_WAIT, 0x00, 0x01},/* delay 1 */
--	{ADV748X_PAGE_TXB, 0x31, 0x80},	/* ADI Required Write */
--
- 	{ADV748X_PAGE_EOR, 0xff, 0xff}	/* End of register table */
- };
- 
-@@ -474,6 +448,7 @@ static int adv748x_reset(struct adv748x_state *state)
- 	if (ret)
- 		return ret;
- 
-+	adv748x_tx_power(&state->txa, 1);
- 	adv748x_tx_power(&state->txa, 0);
- 
- 	/* Init and power down TXB */
-@@ -481,6 +456,7 @@ static int adv748x_reset(struct adv748x_state *state)
- 	if (ret)
- 		return ret;
- 
-+	adv748x_tx_power(&state->txb, 1);
- 	adv748x_tx_power(&state->txb, 0);
- 
- 	/* Disable chip powerdown & Enable HDMI Rx block */
+diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
+index f2c0aa261c9b..8e0194993a52 100644
+--- a/drivers/media/platform/coda/coda-bit.c
++++ b/drivers/media/platform/coda/coda-bit.c
+@@ -1002,16 +1002,15 @@ static int coda_start_encoding(struct coda_ctx *ctx)
+ 		else
+ 			coda_write(dev, CODA_STD_H264,
+ 				   CODA_CMD_ENC_SEQ_COD_STD);
+-		if (ctx->params.h264_deblk_enabled) {
+-			value = ((ctx->params.h264_deblk_alpha &
+-				  CODA_264PARAM_DEBLKFILTEROFFSETALPHA_MASK) <<
+-				 CODA_264PARAM_DEBLKFILTEROFFSETALPHA_OFFSET) |
+-				((ctx->params.h264_deblk_beta &
+-				  CODA_264PARAM_DEBLKFILTEROFFSETBETA_MASK) <<
+-				 CODA_264PARAM_DEBLKFILTEROFFSETBETA_OFFSET);
+-		} else {
+-			value = 1 << CODA_264PARAM_DISABLEDEBLK_OFFSET;
+-		}
++		value = ((ctx->params.h264_disable_deblocking_filter_idc &
++			  CODA_264PARAM_DISABLEDEBLK_MASK) <<
++			 CODA_264PARAM_DISABLEDEBLK_OFFSET) |
++			((ctx->params.h264_slice_alpha_c0_offset_div2 &
++			  CODA_264PARAM_DEBLKFILTEROFFSETALPHA_MASK) <<
++			 CODA_264PARAM_DEBLKFILTEROFFSETALPHA_OFFSET) |
++			((ctx->params.h264_slice_beta_offset_div2 &
++			  CODA_264PARAM_DEBLKFILTEROFFSETBETA_MASK) <<
++			 CODA_264PARAM_DEBLKFILTEROFFSETBETA_OFFSET);
+ 		coda_write(dev, value, CODA_CMD_ENC_SEQ_264_PARA);
+ 		break;
+ 	case V4L2_PIX_FMT_JPEG:
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index a62c47843d2f..7518f01c48f7 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -1831,14 +1831,13 @@ static int coda_s_ctrl(struct v4l2_ctrl *ctrl)
+ 		ctx->params.h264_max_qp = ctrl->val;
+ 		break;
+ 	case V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_ALPHA:
+-		ctx->params.h264_deblk_alpha = ctrl->val;
++		ctx->params.h264_slice_alpha_c0_offset_div2 = ctrl->val;
+ 		break;
+ 	case V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_BETA:
+-		ctx->params.h264_deblk_beta = ctrl->val;
++		ctx->params.h264_slice_beta_offset_div2 = ctrl->val;
+ 		break;
+ 	case V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_MODE:
+-		ctx->params.h264_deblk_enabled = (ctrl->val ==
+-				V4L2_MPEG_VIDEO_H264_LOOP_FILTER_MODE_ENABLED);
++		ctx->params.h264_disable_deblocking_filter_idc = ctrl->val;
+ 		break;
+ 	case V4L2_CID_MPEG_VIDEO_H264_PROFILE:
+ 		/* TODO: switch between baseline and constrained baseline */
+@@ -1919,13 +1918,13 @@ static void coda_encode_ctrls(struct coda_ctx *ctx)
+ 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
+ 		V4L2_CID_MPEG_VIDEO_H264_MAX_QP, 0, 51, 1, 51);
+ 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
+-		V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_ALPHA, 0, 15, 1, 0);
++		V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_ALPHA, -6, 6, 1, 0);
+ 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
+-		V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_BETA, 0, 15, 1, 0);
++		V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_BETA, -6, 6, 1, 0);
+ 	v4l2_ctrl_new_std_menu(&ctx->ctrls, &coda_ctrl_ops,
+ 		V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_MODE,
+-		V4L2_MPEG_VIDEO_H264_LOOP_FILTER_MODE_DISABLED, 0x0,
+-		V4L2_MPEG_VIDEO_H264_LOOP_FILTER_MODE_ENABLED);
++		V4L2_MPEG_VIDEO_H264_LOOP_FILTER_MODE_DISABLED_AT_SLICE_BOUNDARY,
++		0x0, V4L2_MPEG_VIDEO_H264_LOOP_FILTER_MODE_ENABLED);
+ 	v4l2_ctrl_new_std_menu(&ctx->ctrls, &coda_ctrl_ops,
+ 		V4L2_CID_MPEG_VIDEO_H264_PROFILE,
+ 		V4L2_MPEG_VIDEO_H264_PROFILE_BASELINE, 0x0,
+diff --git a/drivers/media/platform/coda/coda.h b/drivers/media/platform/coda/coda.h
+index 22f6efaf9510..31cea72f5b2a 100644
+--- a/drivers/media/platform/coda/coda.h
++++ b/drivers/media/platform/coda/coda.h
+@@ -115,9 +115,9 @@ struct coda_params {
+ 	u8			h264_inter_qp;
+ 	u8			h264_min_qp;
+ 	u8			h264_max_qp;
+-	u8			h264_deblk_enabled;
+-	u8			h264_deblk_alpha;
+-	u8			h264_deblk_beta;
++	u8			h264_disable_deblocking_filter_idc;
++	s8			h264_slice_alpha_c0_offset_div2;
++	s8			h264_slice_beta_offset_div2;
+ 	u8			h264_profile_idc;
+ 	u8			h264_level_idc;
+ 	u8			mpeg4_intra_qp;
+diff --git a/drivers/media/platform/coda/coda_regs.h b/drivers/media/platform/coda/coda_regs.h
+index 5e7b00a97671..e675e38f3475 100644
+--- a/drivers/media/platform/coda/coda_regs.h
++++ b/drivers/media/platform/coda/coda_regs.h
+@@ -292,7 +292,7 @@
+ #define		CODA_264PARAM_DEBLKFILTEROFFSETALPHA_OFFSET	8
+ #define		CODA_264PARAM_DEBLKFILTEROFFSETALPHA_MASK	0x0f
+ #define		CODA_264PARAM_DISABLEDEBLK_OFFSET		6
+-#define		CODA_264PARAM_DISABLEDEBLK_MASK		0x01
++#define		CODA_264PARAM_DISABLEDEBLK_MASK		0x03
+ #define		CODA_264PARAM_CONSTRAINEDINTRAPREDFLAG_OFFSET	5
+ #define		CODA_264PARAM_CONSTRAINEDINTRAPREDFLAG_MASK	0x01
+ #define		CODA_264PARAM_CHROMAQPOFFSET_OFFSET		0
 -- 
 2.19.1
