@@ -1,119 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:50221 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727387AbeK2Php (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Nov 2018 10:37:45 -0500
-Message-ID: <2059a32846d44bc6902ef1c3bc1220af@smtp-cloud7.xs4all.net>
-Date: Thu, 29 Nov 2018 05:33:42 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from mail.kernel.org ([198.145.29.99]:33678 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728003AbeK2RA0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 29 Nov 2018 12:00:26 -0500
+From: Sasha Levin <sashal@kernel.org>
+To: stable@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        Sasha Levin <sashal@kernel.org>, linux-media@vger.kernel.org
+Subject: [PATCH AUTOSEL 4.19 04/68] media: ipu3-cio2: Unregister device nodes first, then release resources
+Date: Thu, 29 Nov 2018 00:54:55 -0500
+Message-Id: <20181129055559.159228-4-sashal@kernel.org>
+In-Reply-To: <20181129055559.159228-1-sashal@kernel.org>
+References: <20181129055559.159228-1-sashal@kernel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Results of the daily build of media_tree:
+[ Upstream commit 32388d6ef7cffc7d8291b67f8dfa26acd45217fd ]
 
-date:			Thu Nov 29 05:00:11 CET 2018
-media-tree git hash:	708d75fe1c7c6e9abc5381b6fcc32b49830383d0
-media_build git hash:	466e4e6f12eeffd6e9f6d91378c9169f7e6b8527
-v4l-utils git hash:	f2af3d3e99fb1a7ec215b4b47659e6e19783494b
-edid-decode git hash:	5eeb151a748788666534d6ea3da07f90400d24c2
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.18.0-2-amd64
+While there are issues related to object lifetime management, unregister
+the media device first, followed immediately by other device nodes when
+the driver is being unbound. Only then the resources needed by the driver
+may be released. This is slightly safer.
 
-linux-git-arm-at91: WARNINGS
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-multi: WARNINGS
-linux-git-arm-pxa: WARNINGS
-linux-git-arm-stm32: WARNINGS
-linux-git-arm64: OK
-linux-git-i686: WARNINGS
-linux-git-mips: OK
-linux-git-powerpc64: WARNINGS
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.123-i686: OK
-linux-3.18.123-x86_64: OK
-linux-3.19.8-i686: ERRORS
-linux-3.19.8-x86_64: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.159-i686: OK
-linux-4.4.159-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.131-i686: OK
-linux-4.9.131-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.74-i686: OK
-linux-4.14.74-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: OK
-linux-4.19.1-i686: OK
-linux-4.19.1-x86_64: OK
-linux-4.20-rc1-i686: OK
-linux-4.20-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Tested-by: Bingbu Cao <bingbu.cao@intel.com>
+Reviewed-by: Bingbu Cao <bingbu.cao@intel.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/media/pci/intel/ipu3/ipu3-cio2.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/drivers/media/pci/intel/ipu3/ipu3-cio2.c b/drivers/media/pci/intel/ipu3/ipu3-cio2.c
+index 29027159eced..ca1a4d8e972e 100644
+--- a/drivers/media/pci/intel/ipu3/ipu3-cio2.c
++++ b/drivers/media/pci/intel/ipu3/ipu3-cio2.c
+@@ -1846,12 +1846,12 @@ static void cio2_pci_remove(struct pci_dev *pci_dev)
+ 	struct cio2_device *cio2 = pci_get_drvdata(pci_dev);
+ 	unsigned int i;
+ 
++	media_device_unregister(&cio2->media_dev);
+ 	cio2_notifier_exit(cio2);
+-	cio2_fbpt_exit_dummy(cio2);
+ 	for (i = 0; i < CIO2_QUEUES; i++)
+ 		cio2_queue_exit(cio2, &cio2->queue[i]);
++	cio2_fbpt_exit_dummy(cio2);
+ 	v4l2_device_unregister(&cio2->v4l2_dev);
+-	media_device_unregister(&cio2->media_dev);
+ 	media_device_cleanup(&cio2->media_dev);
+ 	mutex_destroy(&cio2->lock);
+ }
+-- 
+2.17.1
