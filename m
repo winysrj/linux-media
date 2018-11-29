@@ -1,85 +1,169 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it1-f196.google.com ([209.85.166.196]:51108 "EHLO
-        mail-it1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728255AbeK3Eww (ORCPT
+Received: from mail-lj1-f180.google.com ([209.85.208.180]:33713 "EHLO
+        mail-lj1-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726400AbeK3Fxe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Nov 2018 23:52:52 -0500
-Received: by mail-it1-f196.google.com with SMTP id z7so4964943iti.0
-        for <linux-media@vger.kernel.org>; Thu, 29 Nov 2018 09:46:42 -0800 (PST)
+        Fri, 30 Nov 2018 00:53:34 -0500
+Received: by mail-lj1-f180.google.com with SMTP id v1-v6so2707162ljd.0
+        for <linux-media@vger.kernel.org>; Thu, 29 Nov 2018 10:47:12 -0800 (PST)
+Date: Thu, 29 Nov 2018 19:47:10 +0100
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: Steve Longerbeam <slongerbeam@gmail.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-renesas-soc@vger.kernel.org
+Subject: Possible regression in v4l2-async
+Message-ID: <20181129184710.GA10382@bigcity.dyn.berto.se>
 MIME-Version: 1.0
-References: <1543502916-21632-1-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1543502916-21632-1-git-send-email-jacopo+renesas@jmondi.org>
-From: Adam Ford <aford173@gmail.com>
-Date: Thu, 29 Nov 2018 11:46:29 -0600
-Message-ID: <CAHCN7xKSDXqk=J7ZbeXonci0OVoRdnPtb=QCZUm=mNoBQxeR5g@mail.gmail.com>
-Subject: Re: [PATCH 0/2] media: ov5640: MIPI fixes on top of Maxime's v5
-To: jacopo+renesas@jmondi.org
-Cc: maxime.ripard@bootlin.com, sam@elite-embedded.com,
-        Steve Longerbeam <slongerbeam@gmail.com>, mchehab@kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        hans.verkuil@cisco.com, sakari.ailus@linux.intel.com,
-        linux-media@vger.kernel.org, hugues.fruchet@st.com,
-        loic.poulain@linaro.org, daniel@zonque.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Nov 29, 2018 at 8:48 AM Jacopo Mondi <jacopo+renesas@jmondi.org> wrote:
->
-> Hello ov5640-ers,
->    these two patches should be applied on top of Maxime's clock tree rework v5
-> and 'fix' MIPI CSI-2 clock tree configuration.
->
-> The first patch is a fix that appeard in various forms on the list several
-> times: if the image sizes gets updated but not the image format, the size
-> update gets ignored. I had to fix this to run my FPS tests, and thus I'm
-> sending the two together. I wish in future a re-work of the image format
-> handling part, but for now, let's just fix it for v4.21.
->
-> The second patch slightly reworks the MIPI clock tree configuration, based on
-> inputs from Sam. The currently submitted v5 in which Maxime squashed my previous
-> changes is 'broken'. That's my bad, as explained in the patch change log.
->
-> Test results are attacched to patch [2/2].
-> Changelog for [2/2] is included in the patch itself.
->
-> I wish these patches to go in with Maxime awesome clock tree re-work, pending
-> his ack.
->
-> Also, I have tested with an i.MX6Q board, with a CSI-2 2 data lanes setup. There
-> are still a few things not clear to me in the MIPI clock tree, and I welcome
-> more testing, preferibly with 1-lanes setups.
->
-> Also, I had to re-apply Maxime's series and latest ov5640 patches on v4.19,
-> as my test board is sort of broken with v4.20-rcX (it shouldn't make any
-> difference in regard to this series, but I'm pointing it out anyhow).
+Hi Steve, Sakari and Hans,
 
-Greg KH is pulling in some of the first round of fixes to the 4.19.y
-branch.  If they're working, we may want to consider having Greg Apply
-these there as well.
+I have been made aware of a possible regression by a few users of 
+rcar-vin and I'm a bit puzzled how to best handle it. Maybe you can help 
+me out?
 
->
-> Recently Adam has been testing quite some ov5640 patches, if you fill like
-> testing these as well on your setup (which I understand is a MIPI CSI-2 one)
-> please report the results. Same for all other interested ones :)
+The issue is visible when running with LOCKDEP enabled and it prints a 
+warning about a possible circular locking dependency, see end of mail.  
+The warning is triggered because rcar-vin takes a mutex (group->lock) in 
+its async bound call back while the async framework already holds one 
+(lisk_lock).
 
-You are correct, I have an i.MX6 with CSI2 interface.  I'll test
-against 4.20-RCx and my 4.19 version with some of the newer patches
-pulled down.  I will try to get to these before Monday.
+I traced the issue back to [1]. I don't believe this is any real trouble 
+here unless any of the async callbacks where to call into the async 
+framework themself which would trigger further calls to driver 
+callbacks, or maybe I'm naive and this is a real problem today.
 
-adam
+Even if it's no real problem today I'm not sure this is never going to 
+be a problem, it would be nice if this warning could be handled somehow.  
+It is my understanding that any implementation of the async callbacks 
+who take a driver specific lock would trigger this warning which is not 
+nice.
 
->
-> Thanks
->   j
->
-> Jacopo Mondi (2):
->   media: i2c: ov5640: Fix set format regression
->   media: ov5640: make MIPI clock depend on mode
->
->  drivers/media/i2c/ov5640.c | 110 ++++++++++++++++++++++-----------------------
->  1 file changed, 54 insertions(+), 56 deletions(-)
->
-> --
-> 2.7.4
->
+Any suggestions or hints on how to move forward with this would be 
+appreciated.
+
+1. eae2aed1eab9bf08 ("media: v4l2-fwnode: Switch to v4l2_async_notifier_add_subdev")
+
+---->> Warning output <<----
+
+ ======================================================
+ WARNING: possible circular locking dependency detected
+ 4.19.0-rc1-arm64-renesas-00212-geae2aed1eab9bf08 #56 Not tainted
+ ------------------------------------------------------
+ swapper/0/1 is trying to acquire lock:
+ (____ptrval____) (&group->lock){+.+.}, at: rvin_group_notify_bound+0x30/0xa8
+
+ but task is already holding lock:
+ (____ptrval____) (list_lock){+.+.}, at: __v4l2_async_notifier_register+0x54/0x1b0
+
+ which lock already depends on the new lock.
+
+
+ the existing dependency chain (in reverse order) is:
+
+ -> #1 (list_lock){+.+.}:
+        __mutex_lock+0x70/0x7f0
+        mutex_lock_nested+0x1c/0x28
+        v4l2_async_notifier_init+0x28/0x48
+        rcar_vin_probe+0x13c/0x630
+        platform_drv_probe+0x50/0xa0
+        really_probe+0x1e0/0x298
+        driver_probe_device+0x54/0xe8
+        __driver_attach+0xf0/0xf8
+        bus_for_each_dev+0x70/0xc0
+        driver_attach+0x20/0x28
+        bus_add_driver+0x1d4/0x200
+        driver_register+0x60/0x110
+        __platform_driver_register+0x44/0x50
+        rcar_vin_driver_init+0x18/0x20
+        do_one_initcall+0x180/0x35c
+        kernel_init_freeable+0x454/0x4f8
+        kernel_init+0x10/0xfc
+        ret_from_fork+0x10/0x1c
+
+ -> #0 (&group->lock){+.+.}:
+        lock_acquire+0xc8/0x238
+        __mutex_lock+0x70/0x7f0
+        mutex_lock_nested+0x1c/0x28
+        rvin_group_notify_bound+0x30/0xa8
+        v4l2_async_match_notify+0x50/0x138
+        v4l2_async_notifier_try_all_subdevs+0x58/0xb8
+        __v4l2_async_notifier_register+0xdc/0x1b0
+        v4l2_async_notifier_register+0x38/0x58
+        rcar_vin_probe+0x1b8/0x630
+        platform_drv_probe+0x50/0xa0
+        really_probe+0x1e0/0x298
+        driver_probe_device+0x54/0xe8
+        __driver_attach+0xf0/0xf8
+        bus_for_each_dev+0x70/0xc0
+        driver_attach+0x20/0x28
+        bus_add_driver+0x1d4/0x200
+        driver_register+0x60/0x110
+        __platform_driver_register+0x44/0x50
+        rcar_vin_driver_init+0x18/0x20
+        do_one_initcall+0x180/0x35c
+        kernel_init_freeable+0x454/0x4f8
+        kernel_init+0x10/0xfc
+        ret_from_fork+0x10/0x1c
+
+ other info that might help us debug this:
+
+  Possible unsafe locking scenario:
+
+        CPU0                    CPU1
+        ----                    ----
+   lock(list_lock);
+                                lock(&group->lock);
+                                lock(list_lock);
+   lock(&group->lock);
+
+  *** DEADLOCK ***
+
+ 2 locks held by swapper/0/1:
+  #0: (____ptrval____) (&dev->mutex){....}, at: __driver_attach+0x60/0xf8
+  #1: (____ptrval____) (list_lock){+.+.}, at: __v4l2_async_notifier_register+0x54/0x1b0
+
+ stack backtrace:
+ CPU: 0 PID: 1 Comm: swapper/0 Not tainted 4.19.0-rc1-arm64-renesas-00212-geae2aed1eab9bf08 #56
+ Hardware name: Renesas Salvator-X 2nd version board based on r8a77965 (DT)
+ Call trace:
+  dump_backtrace+0x0/0x188
+  show_stack+0x14/0x20
+  dump_stack+0xbc/0xf4
+  print_circular_bug.isra.18+0x270/0x2d8
+  __lock_acquire+0x12e8/0x17c8
+  lock_acquire+0xc8/0x238
+  __mutex_lock+0x70/0x7f0
+  mutex_lock_nested+0x1c/0x28
+  rvin_group_notify_bound+0x30/0xa8
+  v4l2_async_match_notify+0x50/0x138
+  v4l2_async_notifier_try_all_subdevs+0x58/0xb8
+  __v4l2_async_notifier_register+0xdc/0x1b0
+  v4l2_async_notifier_register+0x38/0x58
+  rcar_vin_probe+0x1b8/0x630
+  platform_drv_probe+0x50/0xa0
+  really_probe+0x1e0/0x298
+  driver_probe_device+0x54/0xe8
+  __driver_attach+0xf0/0xf8
+  bus_for_each_dev+0x70/0xc0
+  driver_attach+0x20/0x28
+  bus_add_driver+0x1d4/0x200
+  driver_register+0x60/0x110
+  __platform_driver_register+0x44/0x50
+  rcar_vin_driver_init+0x18/0x20
+  do_one_initcall+0x180/0x35c
+  kernel_init_freeable+0x454/0x4f8
+  kernel_init+0x10/0xfc
+  ret_from_fork+0x10/0x1c
+
+
+-- 
+Regards,
+Niklas Söderlund
