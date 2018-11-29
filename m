@@ -1,217 +1,252 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf1-f180.google.com ([209.85.210.180]:44705 "EHLO
-        mail-pf1-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725905AbeK3GsI (ORCPT
+Received: from mail-yw1-f66.google.com ([209.85.161.66]:39107 "EHLO
+        mail-yw1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725788AbeK3G6V (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 30 Nov 2018 01:48:08 -0500
-Subject: Re: Possible regression in v4l2-async
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-renesas-soc@vger.kernel.org
-References: <20181129184710.GA10382@bigcity.dyn.berto.se>
- <d2eb601a-80a8-41d5-ebd0-56159d339604@gmail.com>
-Message-ID: <880ff893-9e7a-6140-0261-4b8d88c69b5b@gmail.com>
-Date: Thu, 29 Nov 2018 11:41:32 -0800
+        Fri, 30 Nov 2018 01:58:21 -0500
+Received: by mail-yw1-f66.google.com with SMTP id j6so1282711ywj.6
+        for <linux-media@vger.kernel.org>; Thu, 29 Nov 2018 11:51:48 -0800 (PST)
+Received: from mail-yb1-f175.google.com (mail-yb1-f175.google.com. [209.85.219.175])
+        by smtp.gmail.com with ESMTPSA id k206sm915152ywa.16.2018.11.29.11.51.45
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 29 Nov 2018 11:51:45 -0800 (PST)
+Received: by mail-yb1-f175.google.com with SMTP id p144-v6so1244840yba.11
+        for <linux-media@vger.kernel.org>; Thu, 29 Nov 2018 11:51:45 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <d2eb601a-80a8-41d5-ebd0-56159d339604@gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+References: <1540851790-1777-1-git-send-email-yong.zhi@intel.com> <4797131.2nEE5nGW4j@avalon>
+In-Reply-To: <4797131.2nEE5nGW4j@avalon>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Thu, 29 Nov 2018 11:51:32 -0800
+Message-ID: <CAAFQd5DW9PMU3PMMEDbZRtgNZpyV1crH0msxuqgq17dYdPpc8Q@mail.gmail.com>
+Subject: Re: [PATCH v7 00/16] Intel IPU3 ImgU patchset
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Yong Zhi <yong.zhi@intel.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "Hu, Jerry W" <jerry.w.hu@intel.com>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
+        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
+        Cao Bing Bu <bingbu.cao@intel.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Thu, Nov 29, 2018 at 6:43 AM Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+>
+> Hello Yong,
+>
+> On Tuesday, 30 October 2018 00:22:54 EET Yong Zhi wrote:
+> > Hi,
+> >
+> > This series adds support for the Intel IPU3 (Image Processing Unit)
+> > ImgU which is essentially a modern memory-to-memory ISP. It implements
+> > raw Bayer to YUV image format conversion as well as a large number of
+> > other pixel processing algorithms for improving the image quality.
+> >
+> > Meta data formats are defined for image statistics (3A, i.e. automatic
+> > white balance, exposure and focus, histogram and local area contrast
+> > enhancement) as well as for the pixel processing algorithm parameters.
+> > The documentation for these formats is currently not included in the
+> > patchset but will be added in a future version of this set.
+> >
+> > The algorithm parameters need to be considered specific to a given frame
+> > and typically a large number of these parameters change on frame to frame
+> > basis. Additionally, the parameters are highly structured (and not a flat
+> > space of independent configuration primitives). They also reflect the
+> > data structures used by the firmware and the hardware. On top of that,
+> > the algorithms require highly specialized user space to make meaningful
+> > use of them. For these reasons it has been chosen video buffers to pass
+> > the parameters to the device.
+> >
+> > On individual patches:
+> >
+> > The heart of ImgU is the CSS, or Camera Subsystem, which contains the
+> > image processors and HW accelerators.
+> >
+> > The 3A statistics and other firmware parameter computation related
+> > functions are implemented in patch 11.
+> >
+> > All IPU3 pipeline default settings can be found in patch 10.
+> >
+> > To access DDR via ImgU's own memory space, IPU3 is also equipped with
+> > its own MMU unit, the driver is implemented in patch 6.
+> >
+> > Patch 7 uses above driver for DMA mapping operation.
+> >
+> > The communication between IPU3 firmware and driver is implemented with
+> > circular queues in patch 8.
+> >
+> > Patch 9 provide some utility functions and manage IPU3 fw download and
+> > install.
+> >
+> > The firmware which is called ipu3-fw.bin can be downloaded from:
+> >
+> > git://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git
+> > (commit 2c27b0cb02f18c022d8378e0e1abaf8b7ae8188f)
+> >
+> > Firmware ABI is defined in patches 4 and 5.
+> >
+> > Patches 12 and 13 are of the same file, the former contains all h/w
+> > programming related code, the latter implements interface functions for
+> > access fw & hw capabilities.
+> >
+> > Patch 14 has a dependency on Sakari's V4L2_BUF_TYPE_META_OUTPUT work:
+> >
+> > <URL:https://patchwork.kernel.org/patch/9976295/>
+> >
+> > Patch 15 represents the top level that glues all of the other components
+> > together, passing arguments between the components.
+> >
+> > Patch 16 is a recent effort to extend v6 for advanced camera features like
+> > Continuous View Finder (CVF) and Snapshot During Video(SDV) support.
+> >
+> > Link to user space implementation:
+> >
+> > git clone https://chromium.googlesource.com/chromiumos/platform/arc-camera
+> >
+> > ImgU media topology print:
+>
+> [snip]
+>
+> > v4l2-compliance utility is built with Sakari's patches for meta data
+> > output support(rebased):
+> >
+> > <URL:https://patchwork.linuxtv.org/patch/43370/>
+> > <URL:https://patchwork.linuxtv.org/patch/43369/>
+> >
+> > The test (v4l2-compliance -m 0) passes without error, outputs are appended
+> > at the end of revision history.
+> >
+> > Note:
+> >
+> > 1. Link pad flag of video nodes (i.e. ipu3-imgu 0 output) need to be enabled
+> > prior to the test.
+> > 2. Stream tests are not performed since it requires pre-configuration for
+> > each case.
+>
+> And that's a bit of an issue. I've tested the driver with a small script based
+> on media-ctl to configure links and yavta to interface with the video nodes,
+> and got the following oops:
+>
+> [  136.927788] divide error: 0000 [#1] PREEMPT SMP PTI
+> [  136.927801] CPU: 2 PID: 2069 Comm: yavta Not tainted 4.20.0-rc1+ #9
+> [  136.927806] Hardware name: HP Soraka/Soraka, BIOS  08/30/2018
+> [  136.927820] RIP: 0010:ipu3_css_osys_calc+0xc54/0xe14 [ipu3_imgu]
+> [  136.927825] Code: 89 44 24 28 42 8b 44 86 6c f7 54 24 04 81 64 24 28 00 fd
+> ff ff 81 64 24 04 00 03 00 00 8d 44 03 ff 81 44 24 28 80 03 00 00 99 <f7> fb
+> 0f af c3 bb 20 00 00 00 99 f7 fb 8b 5c 24 40 83 fd 01 19 d2
+> [  136.927830] RSP: 0018:ffff9af2c0b837c8 EFLAGS: 00010202
+> [  136.927835] RAX: 00000000ffffffff RBX: 0000000000000000 RCX:
+> ffff9af2c3e353c0
+> [  136.927839] RDX: 00000000ffffffff RSI: ffff9af2c0b838e0 RDI:
+> ffff9af2c3e353c0
+> [  136.927843] RBP: 0000000000000001 R08: 0000000000000000 R09:
+> ffff9af2c0b83880
+> [  136.927846] R10: ffff9af2c3e353c0 R11: ffff9af2c3e357c0 R12:
+> 00000000000003a0
+> [  136.927849] R13: 0000000000025a0a R14: 0000000000000000 R15:
+> 0000000000000000
+> [  136.927854] FS:  00007f1eca167700(0000) GS:ffff8c19fab00000(0000) knlGS:
+> 0000000000000000
+> [  136.927858] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> [  136.927862] CR2: 00007f1ec776c000 CR3: 00000001312a4003 CR4:
+> 00000000003606e0
+> [  136.927865] Call Trace:
+> [  136.927884]  ? __accumulate_pelt_segments+0x29/0x3a
+> [  136.927892]  ? __switch_to_asm+0x40/0x70
+> [  136.927899]  ? alloc_vmap_area+0x78/0x2f6
+> [  136.927903]  ? __switch_to_asm+0x40/0x70
+> [  136.927907]  ? __switch_to_asm+0x34/0x70
+> [  136.927911]  ? __switch_to_asm+0x40/0x70
+> [  136.927915]  ? __switch_to_asm+0x34/0x70
+> [  136.927923]  ? __inc_numa_state+0x28/0x70
+> [  136.927929]  ? preempt_latency_start+0x1e/0x3d
+> [  136.927936]  ? get_page_from_freelist+0x821/0xb62
+> [  136.927943]  ? slab_pre_alloc_hook+0x12/0x3b
+> [  136.927948]  ? kmem_cache_alloc_node_trace+0xf6/0x108
+> [  136.927954]  ? alloc_vmap_area+0x78/0x2f6
 
+Is it just me or the backtrace above doesn't seem to make sense? I
+don't see any allocations inside ipu3_css_cfg_acc().
 
-On 11/29/18 11:26 AM, Steve Longerbeam wrote:
-> Hi Niklas,
+> [  136.927965]  ipu3_css_cfg_acc+0xa0/0x1b5f [ipu3_imgu]
+> [  136.927981]  ipu3_css_set_parameters+0x286/0x6e7 [ipu3_imgu]
+> [  136.927995]  ipu3_css_start_streaming+0x1230/0x130a [ipu3_imgu]
+> [  136.928010]  imgu_s_stream+0x104/0x2f7 [ipu3_imgu]
+> [  136.928022]  ipu3_vb2_start_streaming+0x168/0x1bd [ipu3_imgu]
+> [  136.928034]  vb2_start_streaming+0x6c/0xf2 [videobuf2_common]
+> [  136.928044]  vb2_core_streamon+0xcf/0x109 [videobuf2_common]
+> [  136.928061]  __video_do_ioctl+0x239/0x388 [videodev]
+> [  136.928081]  video_usercopy+0x25d/0x47a [videodev]
+> [  136.928097]  ? copy_overflow+0x14/0x14 [videodev]
+> [  136.928115]  v4l2_ioctl+0x4d/0x58 [videodev]
+> [  136.928123]  vfs_ioctl+0x1b/0x28
+> [  136.928130]  do_vfs_ioctl+0x4de/0x566
+> [  136.928139]  ksys_ioctl+0x50/0x70
+> [  136.928146]  __x64_sys_ioctl+0x16/0x19
+> [  136.928152]  do_syscall_64+0x4d/0x5a
+> [  136.928158]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
+> [  136.928164] RIP: 0033:0x7f1ec9a84f47
+> [  136.928169] Code: 00 00 00 48 8b 05 51 6f 2c 00 64 c7 00 26 00 00 00 48 c7
+> c0 ff ff ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 b8 10 00 00 00 0f 05 <48> 3d
+> 01 f0 ff ff 73 01 c3 48 8b 0d 21 6f 2c 00 f7 d8 64 89 01 48
+> [  136.928173] RSP: 002b:00007ffe279e6188 EFLAGS: 00000246 ORIG_RAX:
+> 0000000000000010
+> [  136.928178] RAX: ffffffffffffffda RBX: 0000000000000007 RCX:
+> 00007f1ec9a84f47
+> [  136.928181] RDX: 00007ffe279e6194 RSI: 0000000040045612 RDI:
+> 0000000000000003
+> [  136.928184] RBP: 0000000000000000 R08: 00007f1ec776d000 R09:
+> 0000000000000000
+> [  136.928188] R10: 0000000000000020 R11: 0000000000000246 R12:
+> 00007ffe279e6360
+> [  136.928191] R13: 0000000000000004 R14: 00007ffe279e6360 R15:
+> 00007ffe279e8826
+> [  136.928198] Modules linked in: ccm zram arc4 iwlmvm mac80211 intel_rapl
+> x86_pkg_temp_thermal intel_powerclamp coretemp iwlwifi cfg80211 hid_multitouch
+> ipu3_imgu ipu3_cio2 8250_dw videobuf2_dma_sg videobuf2_memops videobuf2_v4l2
+> processor_thermal_device intel_soc_dts_iosf videobuf2_common ov5670 ov13858
+> dw9714 v4l2_fwnode v4l2_common videodev media at24 cros_ec_lpcs cros_ec_core
+> int3403_thermal int340x_thermal_zone int3400_thermal acpi_thermal_rel
+> chromeos_pstore mac_hid autofs4 usbhid mmc_block hid_generic i915 sdhci_pci
+> video cqhci i2c_algo_bit sdhci drm_kms_helper syscopyarea sysfillrect
+> sysimgblt fb_sys_fops drm drm_panel_orientation_quirks i2c_hid hid
+> [  136.928273] ---[ end trace 4ec6c2ce09e06d9d ]---
+> [  136.928288] RIP: 0010:ipu3_css_osys_calc+0xc54/0xe14 [ipu3_imgu]
+> [  136.928293] Code: 89 44 24 28 42 8b 44 86 6c f7 54 24 04 81 64 24 28 00 fd
+> ff ff 81 64 24 04 00 03 00 00 8d 44 03 ff 81 44 24 28 80 03 00 00 99 <f7> fb
+> 0f af c3 bb 20 00 00 00 99 f7 fb 8b 5c 24 40 83 fd 01 19 d2
+> [  136.928297] RSP: 0018:ffff9af2c0b837c8 EFLAGS: 00010202
+> [  136.928302] RAX: 00000000ffffffff RBX: 0000000000000000 RCX:
+> ffff9af2c3e353c0
+> [  136.928307] RDX: 00000000ffffffff RSI: ffff9af2c0b838e0 RDI:
+> ffff9af2c3e353c0
+> [  136.928311] RBP: 0000000000000001 R08: 0000000000000000 R09:
+> ffff9af2c0b83880
+> [  136.928320] R10: ffff9af2c3e353c0 R11: ffff9af2c3e357c0 R12:
+> 00000000000003a0
+> [  136.928324] R13: 0000000000025a0a R14: 0000000000000000 R15:
+> 0000000000000000
+> [  136.928330] FS:  00007f1eca167700(0000) GS:ffff8c19fab00000(0000) knlGS:
+> 0000000000000000
+> [  136.928349] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> [  136.928364] CR2: 00007f1ec776c000 CR3: 00000001312a4003 CR4:
+> 00000000003606e0
 >
-> On 11/29/18 10:47 AM, Niklas Söderlund wrote:
->> Hi Steve, Sakari and Hans,
->>
->> I have been made aware of a possible regression by a few users of
->> rcar-vin and I'm a bit puzzled how to best handle it. Maybe you can help
->> me out?
->>
->> The issue is visible when running with LOCKDEP enabled and it prints a
->> warning about a possible circular locking dependency, see end of mail.
->> The warning is triggered because rcar-vin takes a mutex (group->lock) in
->> its async bound call back while the async framework already holds one
->> (lisk_lock).
+> The script can be found at https://lists.libcamera.org/pipermail/libcamera-devel/2018-November/000040.html.
 >
-> I see two possible solutions to this:
->
-> A. Remove acquiring the list_lock in v4l2_async_notifier_init().
->
-> B. Move the call to v4l2_async_notifier_init()**to the top of 
-> rvin_mc_parse_of_graph() (before acquiring group->lock).
->
-> It's most likely safe to remove the list_lock from 
-> v4l2_async_notifier_init(), because all drivers should be calling that 
-> function at probe start, before it begins to add async subdev 
-> descriptors to their notifiers. But just the same, I think it would be 
-> safer to keep list_lock in v4l2_async_notifier_init(), just in case of 
-> some strange corner case (such as a driver that adds descriptors in a 
-> separate thread from the thread that calls v4l2_async_notifier_init()).
+> I may be doing something wrong (and I probably am), but in any case, the
+> driver shouldn't crash. Could you please have a look ?
 
-Well, on second thought that's probably a lame example, no driver should 
-be doing that. So removing the list_lock from v4l2_async_notifier_init() 
-is probably safe. The notifier is not registered with v4l2-async at that 
-point.
+It looks like the driver doesn't have the default state initialized
+correctly somewhere and it ends up using 0 as the divisor in some
+calculation? Something to fix indeed.
 
-Steve
-
->
-> So I would prefer B, but I'm open to either solution.
->
-> **
->>
->> I traced the issue back to [1]. I don't believe this is any real trouble
->> here unless any of the async callbacks where to call into the async
->> framework themself which would trigger further calls to driver
->> callbacks, or maybe I'm naive and this is a real problem today.
->>
->> Even if it's no real problem today I'm not sure this is never going to
->> be a problem, it would be nice if this warning could be handled somehow.
->> It is my understanding that any implementation of the async callbacks
->> who take a driver specific lock would trigger this warning which is not
->> nice.
->
-> It has always been the case that v4l2-async holds the list_lock when 
-> it calls a driver's async bound callback.
->
-> So the problem is only that v4l2_async_notifier_init() acquires the 
-> list_lock, which can create the reverse lock order 
-> driver-specific-lock -> list_lock. Which is solved by either A or B 
-> above.
->
-> Steve
->
->> Any suggestions or hints on how to move forward with this would be
->> appreciated.
->>
->> 1. eae2aed1eab9bf08 ("media: v4l2-fwnode: Switch to 
->> v4l2_async_notifier_add_subdev")
->>
->> ---->> Warning output <<----
->>
->>   ======================================================
->>   WARNING: possible circular locking dependency detected
->>   4.19.0-rc1-arm64-renesas-00212-geae2aed1eab9bf08 #56 Not tainted
->>   ------------------------------------------------------
->>   swapper/0/1 is trying to acquire lock:
->>   (____ptrval____) (&group->lock){+.+.}, at: 
->> rvin_group_notify_bound+0x30/0xa8
->>
->>   but task is already holding lock:
->>   (____ptrval____) (list_lock){+.+.}, at: 
->> __v4l2_async_notifier_register+0x54/0x1b0
->>
->>   which lock already depends on the new lock.
->>
->>
->>   the existing dependency chain (in reverse order) is:
->>
->>   -> #1 (list_lock){+.+.}:
->>          __mutex_lock+0x70/0x7f0
->>          mutex_lock_nested+0x1c/0x28
->>          v4l2_async_notifier_init+0x28/0x48
->>          rcar_vin_probe+0x13c/0x630
->>          platform_drv_probe+0x50/0xa0
->>          really_probe+0x1e0/0x298
->>          driver_probe_device+0x54/0xe8
->>          __driver_attach+0xf0/0xf8
->>          bus_for_each_dev+0x70/0xc0
->>          driver_attach+0x20/0x28
->>          bus_add_driver+0x1d4/0x200
->>          driver_register+0x60/0x110
->>          __platform_driver_register+0x44/0x50
->>          rcar_vin_driver_init+0x18/0x20
->>          do_one_initcall+0x180/0x35c
->>          kernel_init_freeable+0x454/0x4f8
->>          kernel_init+0x10/0xfc
->>          ret_from_fork+0x10/0x1c
->>
->>   -> #0 (&group->lock){+.+.}:
->>          lock_acquire+0xc8/0x238
->>          __mutex_lock+0x70/0x7f0
->>          mutex_lock_nested+0x1c/0x28
->>          rvin_group_notify_bound+0x30/0xa8
->>          v4l2_async_match_notify+0x50/0x138
->>          v4l2_async_notifier_try_all_subdevs+0x58/0xb8
->>          __v4l2_async_notifier_register+0xdc/0x1b0
->>          v4l2_async_notifier_register+0x38/0x58
->>          rcar_vin_probe+0x1b8/0x630
->>          platform_drv_probe+0x50/0xa0
->>          really_probe+0x1e0/0x298
->>          driver_probe_device+0x54/0xe8
->>          __driver_attach+0xf0/0xf8
->>          bus_for_each_dev+0x70/0xc0
->>          driver_attach+0x20/0x28
->>          bus_add_driver+0x1d4/0x200
->>          driver_register+0x60/0x110
->>          __platform_driver_register+0x44/0x50
->>          rcar_vin_driver_init+0x18/0x20
->>          do_one_initcall+0x180/0x35c
->>          kernel_init_freeable+0x454/0x4f8
->>          kernel_init+0x10/0xfc
->>          ret_from_fork+0x10/0x1c
->>
->>   other info that might help us debug this:
->>
->>    Possible unsafe locking scenario:
->>
->>          CPU0                    CPU1
->>          ----                    ----
->>     lock(list_lock);
->>                                  lock(&group->lock);
->>                                  lock(list_lock);
->>     lock(&group->lock);
->>
->>    *** DEADLOCK ***
->>
->>   2 locks held by swapper/0/1:
->>    #0: (____ptrval____) (&dev->mutex){....}, at: 
->> __driver_attach+0x60/0xf8
->>    #1: (____ptrval____) (list_lock){+.+.}, at: 
->> __v4l2_async_notifier_register+0x54/0x1b0
->>
->>   stack backtrace:
->>   CPU: 0 PID: 1 Comm: swapper/0 Not tainted 
->> 4.19.0-rc1-arm64-renesas-00212-geae2aed1eab9bf08 #56
->>   Hardware name: Renesas Salvator-X 2nd version board based on 
->> r8a77965 (DT)
->>   Call trace:
->>    dump_backtrace+0x0/0x188
->>    show_stack+0x14/0x20
->>    dump_stack+0xbc/0xf4
->>    print_circular_bug.isra.18+0x270/0x2d8
->>    __lock_acquire+0x12e8/0x17c8
->>    lock_acquire+0xc8/0x238
->>    __mutex_lock+0x70/0x7f0
->>    mutex_lock_nested+0x1c/0x28
->>    rvin_group_notify_bound+0x30/0xa8
->>    v4l2_async_match_notify+0x50/0x138
->>    v4l2_async_notifier_try_all_subdevs+0x58/0xb8
->>    __v4l2_async_notifier_register+0xdc/0x1b0
->>    v4l2_async_notifier_register+0x38/0x58
->>    rcar_vin_probe+0x1b8/0x630
->>    platform_drv_probe+0x50/0xa0
->>    really_probe+0x1e0/0x298
->>    driver_probe_device+0x54/0xe8
->>    __driver_attach+0xf0/0xf8
->>    bus_for_each_dev+0x70/0xc0
->>    driver_attach+0x20/0x28
->>    bus_add_driver+0x1d4/0x200
->>    driver_register+0x60/0x110
->>    __platform_driver_register+0x44/0x50
->>    rcar_vin_driver_init+0x18/0x20
->>    do_one_initcall+0x180/0x35c
->>    kernel_init_freeable+0x454/0x4f8
->>    kernel_init+0x10/0xfc
->>    ret_from_fork+0x10/0x1c
->>
->>
->
+Best regards,
+Tomasz
