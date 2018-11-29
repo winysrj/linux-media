@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vsp-unauthed02.binero.net ([195.74.38.227]:49334 "EHLO
+Received: from vsp-unauthed02.binero.net ([195.74.38.227]:62544 "EHLO
         vsp-unauthed02.binero.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726954AbeK2NG1 (ORCPT
+        with ESMTP id S1726954AbeK2NG5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Nov 2018 08:06:27 -0500
+        Thu, 29 Nov 2018 08:06:57 -0500
 From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
         <niklas.soderlund+renesas@ragnatech.se>
 To: Kieran Bingham <kieran.bingham@ideasonboard.com>,
@@ -11,44 +11,57 @@ To: Kieran Bingham <kieran.bingham@ideasonboard.com>,
         Jacopo Mondi <jacopo@jmondi.org>, linux-media@vger.kernel.org
 Cc: linux-renesas-soc@vger.kernel.org,
         =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v4 0/4] i2c: adv748x: add support for CSI-2 TXA to work in 1-, 2- and 4-lane mode
-Date: Thu, 29 Nov 2018 03:01:43 +0100
-Message-Id: <20181129020147.22115-1-niklas.soderlund+renesas@ragnatech.se>
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
+Subject: [PATCH v4 1/4] dt-bindings: adv748x: make data-lanes property mandatory for CSI-2 endpoints
+Date: Thu, 29 Nov 2018 03:01:44 +0100
+Message-Id: <20181129020147.22115-2-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20181129020147.22115-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20181129020147.22115-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+The CSI-2 transmitters can use a different number of lanes to transmit
+data. Make the data-lanes mandatory for the endpoints that describe the
+transmitters as no good default can be set to fallback on.
 
-This series allows the TXA CSI-2 transmitter of the adv748x to function
-in 1-, 2- and 4- lane mode. Currently the driver fixes the hardware in
-4-lane mode. The driver looks at the standard DT property 'data-lanes'
-to determine which mode it should operate in.
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-Patch 1/4 lists the 'data-lanes' DT property as mandatory for endpoints
-describing the CSI-2 transmitters. Patch 2/4 refactors the
-initialization sequence of the adv748x to be able to reuse more code.
-Patch 3/4 adds the DT parsing and storing of the number of lanes. Patch
-4/4 merges the TXA and TXB power up/down procedure while also taking the
-configurable number of lanes into account.
+---
+* Changes since v3
+- Add paragraph to describe the accepted values for the source endpoint
+  data-lane property. Thanks Jacopo for pointing this out and sorry for
+  missing this in v2.
+* Changes since v2
+- Update paragraph according to Laurents comments.
+---
+ .../devicetree/bindings/media/i2c/adv748x.txt         | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
-The series is based on the latest media-tree master and is tested on
-Renesas M3-N in 1-, 2- and 4- lane mode.
-
-Niklas Söderlund (4):
-  dt-bindings: adv748x: make data-lanes property mandatory for CSI-2
-    endpoints
-  i2c: adv748x: reuse power up sequence when initializing CSI-2
-  i2c: adv748x: store number of CSI-2 lanes described in device tree
-  i2c: adv748x: configure number of lanes used for TXA CSI-2 transmitter
-
- .../devicetree/bindings/media/i2c/adv748x.txt |  11 +-
- drivers/media/i2c/adv748x/adv748x-core.c      | 235 ++++++++++--------
- drivers/media/i2c/adv748x/adv748x.h           |   1 +
- 3 files changed, 142 insertions(+), 105 deletions(-)
-
+diff --git a/Documentation/devicetree/bindings/media/i2c/adv748x.txt b/Documentation/devicetree/bindings/media/i2c/adv748x.txt
+index 5dddc95f9cc46084..4f91686e54a6b939 100644
+--- a/Documentation/devicetree/bindings/media/i2c/adv748x.txt
++++ b/Documentation/devicetree/bindings/media/i2c/adv748x.txt
+@@ -48,7 +48,16 @@ are numbered as follows.
+ 	  TXA		source		10
+ 	  TXB		source		11
+ 
+-The digital output port nodes must contain at least one endpoint.
++The digital output port nodes, when present, shall contain at least one
++endpoint. Each of those endpoints shall contain the data-lanes property as
++described in video-interfaces.txt.
++
++Required source endpoint properties:
++  - data-lanes: an array of physical data lane indexes
++    The accepted value(s) for this property depends on which of the two
++    sources are described. For TXA 1, 2 or 4 data lanes can be described
++    while for TXB only 1 data lane is valid. See video-interfaces.txt
++    for detailed description.
+ 
+ Ports are optional if they are not connected to anything at the hardware level.
+ 
 -- 
 2.19.1
