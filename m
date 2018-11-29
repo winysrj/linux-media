@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay12.mail.gandi.net ([217.70.178.232]:35679 "EHLO
+Received: from relay12.mail.gandi.net ([217.70.178.232]:45231 "EHLO
         relay12.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731628AbeK3Byd (ORCPT
+        with ESMTP id S1731628AbeK3Byh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Nov 2018 20:54:33 -0500
+        Thu, 29 Nov 2018 20:54:37 -0500
 From: Jacopo Mondi <jacopo+renesas@jmondi.org>
 To: maxime.ripard@bootlin.com, sam@elite-embedded.com,
         slongerbeam@gmail.com, mchehab@kernel.org
@@ -12,53 +12,73 @@ Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
         sakari.ailus@linux.intel.com, linux-media@vger.kernel.org,
         hugues.fruchet@st.com, loic.poulain@linaro.org, daniel@zonque.org,
         aford173@gmail.com
-Subject: [PATCH 0/2] media: ov5640: MIPI fixes on top of Maxime's v5
-Date: Thu, 29 Nov 2018 15:48:34 +0100
-Message-Id: <1543502916-21632-1-git-send-email-jacopo+renesas@jmondi.org>
+Subject: [PATCH 1/2] media: ov5640: Fix set format regression
+Date: Thu, 29 Nov 2018 15:48:35 +0100
+Message-Id: <1543502916-21632-2-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1543502916-21632-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1543502916-21632-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello ov5640-ers,
-   these two patches should be applied on top of Maxime's clock tree rework v5
-and 'fix' MIPI CSI-2 clock tree configuration.
+The set_fmt operations updates the sensor format only when the image format
+is changed. When only the image sizes gets changed, the format do not get
+updated causing the sensor to always report the one that was previously in
+use.
 
-The first patch is a fix that appeard in various forms on the list several
-times: if the image sizes gets updated but not the image format, the size
-update gets ignored. I had to fix this to run my FPS tests, and thus I'm
-sending the two together. I wish in future a re-work of the image format
-handling part, but for now, let's just fix it for v4.21.
+Without this patch, updating frame size only fails:
+  [fmt:UYVY8_2X8/640x480@1/30 field:none colorspace:srgb xfer:srgb ...]
 
-The second patch slightly reworks the MIPI clock tree configuration, based on
-inputs from Sam. The currently submitted v5 in which Maxime squashed my previous
-changes is 'broken'. That's my bad, as explained in the patch change log.
+With this patch applied:
+  [fmt:UYVY8_2X8/1024x768@1/30 field:none colorspace:srgb xfer:srgb ...]
 
-Test results are attacched to patch [2/2].
-Changelog for [2/2] is included in the patch itself.
+Fixes: 6949d864776e ("media: ov5640: do not change mode if format or frame
+interval is unchanged")
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+---
+ drivers/media/i2c/ov5640.c | 17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
-I wish these patches to go in with Maxime awesome clock tree re-work, pending
-his ack.
+diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+index 03a031a42b3e..c659efe918a4 100644
+--- a/drivers/media/i2c/ov5640.c
++++ b/drivers/media/i2c/ov5640.c
+@@ -2160,6 +2160,7 @@ static int ov5640_set_fmt(struct v4l2_subdev *sd,
+ 	struct ov5640_dev *sensor = to_ov5640_dev(sd);
+ 	const struct ov5640_mode_info *new_mode;
+ 	struct v4l2_mbus_framefmt *mbus_fmt = &format->format;
++	struct v4l2_mbus_framefmt *fmt;
+ 	int ret;
 
-Also, I have tested with an i.MX6Q board, with a CSI-2 2 data lanes setup. There
-are still a few things not clear to me in the MIPI clock tree, and I welcome
-more testing, preferibly with 1-lanes setups.
+ 	if (format->pad != 0)
+@@ -2177,22 +2178,20 @@ static int ov5640_set_fmt(struct v4l2_subdev *sd,
+ 	if (ret)
+ 		goto out;
 
-Also, I had to re-apply Maxime's series and latest ov5640 patches on v4.19,
-as my test board is sort of broken with v4.20-rcX (it shouldn't make any
-difference in regard to this series, but I'm pointing it out anyhow).
+-	if (format->which == V4L2_SUBDEV_FORMAT_TRY) {
+-		struct v4l2_mbus_framefmt *fmt =
+-			v4l2_subdev_get_try_format(sd, cfg, 0);
++	if (format->which == V4L2_SUBDEV_FORMAT_TRY)
++		fmt = v4l2_subdev_get_try_format(sd, cfg, 0);
++	else
++		fmt = &sensor->fmt;
 
-Recently Adam has been testing quite some ov5640 patches, if you fill like
-testing these as well on your setup (which I understand is a MIPI CSI-2 one)
-please report the results. Same for all other interested ones :)
+-		*fmt = *mbus_fmt;
+-		goto out;
+-	}
++	*fmt = *mbus_fmt;
 
-Thanks
-  j
-
-Jacopo Mondi (2):
-  media: i2c: ov5640: Fix set format regression
-  media: ov5640: make MIPI clock depend on mode
-
- drivers/media/i2c/ov5640.c | 110 ++++++++++++++++++++++-----------------------
- 1 file changed, 54 insertions(+), 56 deletions(-)
-
+ 	if (new_mode != sensor->current_mode) {
+ 		sensor->current_mode = new_mode;
+ 		sensor->pending_mode_change = true;
+ 	}
+-	if (mbus_fmt->code != sensor->fmt.code) {
+-		sensor->fmt = *mbus_fmt;
++	if (mbus_fmt->code != sensor->fmt.code)
+ 		sensor->pending_fmt_change = true;
+-	}
++
+ out:
+ 	mutex_unlock(&sensor->lock);
+ 	return ret;
 --
 2.7.4
