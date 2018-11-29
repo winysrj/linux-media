@@ -1,97 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw1-f65.google.com ([209.85.161.65]:44019 "EHLO
+Received: from mail-yw1-f65.google.com ([209.85.161.65]:40273 "EHLO
         mail-yw1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725928AbeK3Glt (ORCPT
+        with ESMTP id S1725883AbeK3Gqu (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 30 Nov 2018 01:41:49 -0500
-Received: by mail-yw1-f65.google.com with SMTP id l200so1251304ywe.10
-        for <linux-media@vger.kernel.org>; Thu, 29 Nov 2018 11:35:17 -0800 (PST)
-Received: from mail-yb1-f176.google.com (mail-yb1-f176.google.com. [209.85.219.176])
-        by smtp.gmail.com with ESMTPSA id t2sm2234003ywe.56.2018.11.29.11.35.15
+        Fri, 30 Nov 2018 01:46:50 -0500
+Received: by mail-yw1-f65.google.com with SMTP id r130so1264581ywg.7
+        for <linux-media@vger.kernel.org>; Thu, 29 Nov 2018 11:40:19 -0800 (PST)
+Received: from mail-yw1-f53.google.com (mail-yw1-f53.google.com. [209.85.161.53])
+        by smtp.gmail.com with ESMTPSA id n4sm793680ywc.89.2018.11.29.11.40.16
         for <linux-media@vger.kernel.org>
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 29 Nov 2018 11:35:15 -0800 (PST)
-Received: by mail-yb1-f176.google.com with SMTP id o204-v6so1226748yba.9
-        for <linux-media@vger.kernel.org>; Thu, 29 Nov 2018 11:35:15 -0800 (PST)
+        Thu, 29 Nov 2018 11:40:16 -0800 (PST)
+Received: by mail-yw1-f53.google.com with SMTP id j6so1267870ywj.6
+        for <linux-media@vger.kernel.org>; Thu, 29 Nov 2018 11:40:16 -0800 (PST)
 MIME-Version: 1.0
-References: <20181004133739.19086-1-mjourdan@baylibre.com> <491c3f33-b51b-89cb-09f0-b48949d61efb@xs4all.nl>
-In-Reply-To: <491c3f33-b51b-89cb-09f0-b48949d61efb@xs4all.nl>
+References: <1541163476-23249-1-git-send-email-mgottam@codeaurora.org>
+ <CAAFQd5D=hNdkEovonE6GOaYvq9dBbQwSZ=95V9a80e-sLp7cYg@mail.gmail.com>
+ <4767b56f-420b-dc0c-0ae9-44dbf6dcd0b1@linaro.org> <6d765e0d7d6b873e087a3db823cb1b29@codeaurora.org>
+In-Reply-To: <6d765e0d7d6b873e087a3db823cb1b29@codeaurora.org>
 From: Tomasz Figa <tfiga@chromium.org>
-Date: Thu, 29 Nov 2018 11:35:03 -0800
-Message-ID: <CAAFQd5DqY7zRR9SePWDCL0erB4x0pkBP7x2enuVvdjmyX+ASBw@mail.gmail.com>
-Subject: Re: [PATCH] media: videodev2: add V4L2_FMT_FLAG_NO_SOURCE_CHANGE
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: mjourdan@baylibre.com, Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
+Date: Thu, 29 Nov 2018 11:40:04 -0800
+Message-ID: <CAAFQd5Ask-mw+uEE0OAEabjaAAYcJyCeexaofOAg1bp2NtvpKA@mail.gmail.com>
+Subject: Re: [PATCH v3] media: venus: add support for key frame
+To: mgottam@codeaurora.org
+Cc: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        vgarodia@codeaurora.org
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Nov 29, 2018 at 1:01 AM Hans Verkuil <hverkuil@xs4all.nl> wrote:
+On Thu, Nov 29, 2018 at 3:10 AM <mgottam@codeaurora.org> wrote:
 >
-> On 10/04/2018 03:37 PM, Maxime Jourdan wrote:
-> > When a v4l2 driver exposes V4L2_EVENT_SOURCE_CHANGE, some (usually
-> > OUTPUT) formats may not be able to trigger this event.
+>
+> Hi Stan,
+>
+> On 2018-11-29 16:01, Stanimir Varbanov wrote:
+> > Hi Tomasz,
 > >
-> > Add a enum_fmt format flag to tag those specific formats.
+> > On 11/3/18 5:01 AM, Tomasz Figa wrote:
+> >> Hi Malathi,
+> >>
+> >> On Fri, Nov 2, 2018 at 9:58 PM Malathi Gottam <mgottam@codeaurora.org>
+> >> wrote:
+> >>>
+> >>> When client requests for a keyframe, set the property
+> >>> to hardware to generate the sync frame.
+> >>>
+> >>> Signed-off-by: Malathi Gottam <mgottam@codeaurora.org>
+> >>> ---
+> >>>  drivers/media/platform/qcom/venus/venc_ctrls.c | 20
+> >>> +++++++++++++++++++-
+> >>>  1 file changed, 19 insertions(+), 1 deletion(-)
+> >>>
+> >>> diff --git a/drivers/media/platform/qcom/venus/venc_ctrls.c
+> >>> b/drivers/media/platform/qcom/venus/venc_ctrls.c
+> >>> index 45910172..59fe7fc 100644
+> >>> --- a/drivers/media/platform/qcom/venus/venc_ctrls.c
+> >>> +++ b/drivers/media/platform/qcom/venus/venc_ctrls.c
+> >>> @@ -79,8 +79,10 @@ static int venc_op_s_ctrl(struct v4l2_ctrl *ctrl)
+> >>>  {
+> >>>         struct venus_inst *inst = ctrl_to_inst(ctrl);
+> >>>         struct venc_controls *ctr = &inst->controls.enc;
+> >>> +       struct hfi_enable en = { .enable = 1 };
+> >>>         u32 bframes;
+> >>>         int ret;
+> >>> +       u32 ptype;
+> >>>
+> >>>         switch (ctrl->id) {
+> >>>         case V4L2_CID_MPEG_VIDEO_BITRATE_MODE:
+> >>> @@ -173,6 +175,19 @@ static int venc_op_s_ctrl(struct v4l2_ctrl
+> >>> *ctrl)
+> >>>
+> >>>                 ctr->num_b_frames = bframes;
+> >>>                 break;
+> >>> +       case V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME:
+> >>> +               mutex_lock(&inst->lock);
+> >>> +               if (inst->streamon_out && inst->streamon_cap) {
+> >>
+> >> We had a discussion on this in v2. I don't remember seeing any
+> >> conclusion.
+> >>
+> >> Obviously the hardware should generate a keyframe naturally when the
+> >> CAPTURE streaming starts, which is where the encoding starts, but the
+> >> state of the OUTPUT queue should not affect this.
+> >>
+> >> The application is free to stop and start streaming on the OUTPUT
+> >> queue as it goes and it shouldn't imply any side effects in the
+> >> encoded bitstream (e.g. a keyframe inserted). So:
+> >> - a sequence of STREAMOFF(OUTPUT),
+> >> S_CTRL(V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME), STREAMON(OUTPUT) should
+> >> explicitly generate a keyframe,
+> >
+> > I agree with you, but presently we don't follow strictly the stateful
+> > encoder spec. In this spirit I think proposed patch is applicable to
+> > the
+> > current state of the encoder driver, and your comment should be
+> > addressed in the follow-up patches where we have to re-factor a bit
+> > start/stop_streaming according to the encoder documentation.
+> >
+> > But until then we have to get that patch.
 >
-> I think I missed (or forgot) some discussion about this since I have no
-> idea why this flag is needed. What's the use-case?
+> So I can see that this patch is good implementation of forcing sync
+> frame
+> under current encoder state.
+>
+> Can you please ack the same.
 
-As far as I remember, the hardware/firmware Maxime has been working
-with can't handle resolution changes for some coded formats. Perhaps
-we should explain that better in the commit message and documentation
-of the flag, though. Maxime, could you refresh my memory with the
-details?
+Okay, assuming that when you start streaming you naturally get a
+keyframe, I'm okay with this patch, since it actually fixes the
+missing key frame request, so from the general encoder interface point
+of view:
+
+Acked-by: Tomasz Figa <tfiga@chromium.org>
 
 Best regards,
 Tomasz
-
->
-> Regards,
->
->         Hans
->
-> >
-> > Signed-off-by: Maxime Jourdan <mjourdan@baylibre.com>
-> > ---
-> >  Documentation/media/uapi/v4l/vidioc-enum-fmt.rst | 5 +++++
-> >  include/uapi/linux/videodev2.h                   | 5 +++--
-> >  2 files changed, 8 insertions(+), 2 deletions(-)
-> >
-> > diff --git a/Documentation/media/uapi/v4l/vidioc-enum-fmt.rst b/Documentation/media/uapi/v4l/vidioc-enum-fmt.rst
-> > index 019c513df217..e0040b36ac43 100644
-> > --- a/Documentation/media/uapi/v4l/vidioc-enum-fmt.rst
-> > +++ b/Documentation/media/uapi/v4l/vidioc-enum-fmt.rst
-> > @@ -116,6 +116,11 @@ one until ``EINVAL`` is returned.
-> >        - This format is not native to the device but emulated through
-> >       software (usually libv4l2), where possible try to use a native
-> >       format instead for better performance.
-> > +    * - ``V4L2_FMT_FLAG_NO_SOURCE_CHANGE``
-> > +      - 0x0004
-> > +      - The event ``V4L2_EVENT_SOURCE_CHANGE`` is not supported
-> > +     for this format.
-> > +
-> >
-> >
-> >  Return Value
-> > diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> > index 3a65951ca51e..a28acee1cb52 100644
-> > --- a/include/uapi/linux/videodev2.h
-> > +++ b/include/uapi/linux/videodev2.h
-> > @@ -723,8 +723,9 @@ struct v4l2_fmtdesc {
-> >       __u32               reserved[4];
-> >  };
-> >
-> > -#define V4L2_FMT_FLAG_COMPRESSED 0x0001
-> > -#define V4L2_FMT_FLAG_EMULATED   0x0002
-> > +#define V4L2_FMT_FLAG_COMPRESSED     0x0001
-> > +#define V4L2_FMT_FLAG_EMULATED               0x0002
-> > +#define V4L2_FMT_FLAG_NO_SOURCE_CHANGE       0x0004
-> >
-> >       /* Frame Size and frame rate enumeration */
-> >  /*
-> >
->
