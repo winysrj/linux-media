@@ -1,96 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from shell.v3.sk ([90.176.6.54]:39088 "EHLO shell.v3.sk"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729160AbeK2EWC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Nov 2018 23:22:02 -0500
-From: Lubomir Rintel <lkundrak@v3.sk>
-To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rui Miguel Silva <rmfrfs@gmail.com>,
-        Shunqian Zheng <zhengsq@rock-chips.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Wenyou Yang <wenyou.yang@microchip.com>
-Cc: Jacopo Mondi <jacopo@jmondi.org>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Lubomir Rintel <lkundrak@v3.sk>
-Subject: [PATCH 2/6] media: ov7740: get rid of extra ifdefs
-Date: Wed, 28 Nov 2018 18:19:14 +0100
-Message-Id: <20181128171918.160643-3-lkundrak@v3.sk>
-In-Reply-To: <20181128171918.160643-1-lkundrak@v3.sk>
-References: <20181128171918.160643-1-lkundrak@v3.sk>
+Received: from vsp-unauthed02.binero.net ([195.74.38.227]:8192 "EHLO
+        vsp-unauthed02.binero.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726872AbeK2NHY (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 29 Nov 2018 08:07:24 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Jacopo Mondi <jacopo@jmondi.org>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v4 3/4] i2c: adv748x: store number of CSI-2 lanes described in device tree
+Date: Thu, 29 Nov 2018 03:01:46 +0100
+Message-Id: <20181129020147.22115-4-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20181129020147.22115-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20181129020147.22115-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Stubbed v4l2_subdev_get_try_format() will return a correct error when
-configured without CONFIG_VIDEO_V4L2_SUBDEV_API.
+The adv748x CSI-2 transmitters TXA and TXB can use different number of
+lanes to transmit data. In order to be able to configure the device
+correctly this information need to be parsed from device tree and stored
+in each TX private data structure.
 
-Signed-off-by: Lubomir Rintel <lkundrak@v3.sk>
+TXA supports 1, 2 and 4 lanes while TXB supports 1 lane.
+
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Tested-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+
 ---
- drivers/media/i2c/ov7740.c | 25 ++++++++++---------------
- 1 file changed, 10 insertions(+), 15 deletions(-)
+* Changes since v2
+- Rebase to latest media-tree requires the bus_type filed in struct
+  v4l2_fwnode_endpoint to be initialized, set it to V4L2_MBUS_CSI2_DPHY.
 
-diff --git a/drivers/media/i2c/ov7740.c b/drivers/media/i2c/ov7740.c
-index 6e9c233cfbe3..781ddcc743d4 100644
---- a/drivers/media/i2c/ov7740.c
-+++ b/drivers/media/i2c/ov7740.c
-@@ -780,9 +780,7 @@ static int ov7740_set_fmt(struct v4l2_subdev *sd,
- 	struct ov7740 *ov7740 =3D container_of(sd, struct ov7740, subdev);
- 	const struct ov7740_pixfmt *ovfmt;
- 	const struct ov7740_framesize *fsize;
--#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
- 	struct v4l2_mbus_framefmt *mbus_fmt;
--#endif
- 	int ret;
-=20
- 	mutex_lock(&ov7740->mutex);
-@@ -795,16 +793,15 @@ static int ov7740_set_fmt(struct v4l2_subdev *sd,
- 		ret =3D ov7740_try_fmt_internal(sd, &format->format, NULL, NULL);
- 		if (ret)
- 			goto error;
--#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
- 		mbus_fmt =3D v4l2_subdev_get_try_format(sd, cfg, format->pad);
-+		if (IS_ERR(mbus_fmt)) {
-+			ret =3D PTR_ERR(mbus_fmt);
-+			goto error;
+* Changes since v1
+- Use %u instead of %d to print unsigned int.
+- Fix spelling in commit message, thanks Laurent.
+---
+ drivers/media/i2c/adv748x/adv748x-core.c | 50 ++++++++++++++++++++++++
+ drivers/media/i2c/adv748x/adv748x.h      |  1 +
+ 2 files changed, 51 insertions(+)
+
+diff --git a/drivers/media/i2c/adv748x/adv748x-core.c b/drivers/media/i2c/adv748x/adv748x-core.c
+index 2384f50dacb0ccff..9d80d7f3062b16bc 100644
+--- a/drivers/media/i2c/adv748x/adv748x-core.c
++++ b/drivers/media/i2c/adv748x/adv748x-core.c
+@@ -23,6 +23,7 @@
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-dv-timings.h>
++#include <media/v4l2-fwnode.h>
+ #include <media/v4l2-ioctl.h>
+ 
+ #include "adv748x.h"
+@@ -521,12 +522,56 @@ void adv748x_subdev_init(struct v4l2_subdev *sd, struct adv748x_state *state,
+ 	sd->entity.ops = &adv748x_media_ops;
+ }
+ 
++static int adv748x_parse_csi2_lanes(struct adv748x_state *state,
++				    unsigned int port,
++				    struct device_node *ep)
++{
++	struct v4l2_fwnode_endpoint vep;
++	unsigned int num_lanes;
++	int ret;
++
++	if (port != ADV748X_PORT_TXA && port != ADV748X_PORT_TXB)
++		return 0;
++
++	vep.bus_type = V4L2_MBUS_CSI2_DPHY;
++	ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(ep), &vep);
++	if (ret)
++		return ret;
++
++	num_lanes = vep.bus.mipi_csi2.num_data_lanes;
++
++	if (vep.base.port == ADV748X_PORT_TXA) {
++		if (num_lanes != 1 && num_lanes != 2 && num_lanes != 4) {
++			adv_err(state, "TXA: Invalid number (%u) of lanes\n",
++				num_lanes);
++			return -EINVAL;
 +		}
- 		*mbus_fmt =3D format->format;
-=20
- 		mutex_unlock(&ov7740->mutex);
- 		return 0;
--#else
--		ret =3D -ENOTTY;
--		goto error;
--#endif
- 	}
-=20
- 	ret =3D ov7740_try_fmt_internal(sd, &format->format, &ovfmt, &fsize);
-@@ -827,20 +824,18 @@ static int ov7740_get_fmt(struct v4l2_subdev *sd,
- 			  struct v4l2_subdev_format *format)
++
++		state->txa.num_lanes = num_lanes;
++		adv_dbg(state, "TXA: using %u lanes\n", state->txa.num_lanes);
++	}
++
++	if (vep.base.port == ADV748X_PORT_TXB) {
++		if (num_lanes != 1) {
++			adv_err(state, "TXB: Invalid number (%u) of lanes\n",
++				num_lanes);
++			return -EINVAL;
++		}
++
++		state->txb.num_lanes = num_lanes;
++		adv_dbg(state, "TXB: using %u lanes\n", state->txb.num_lanes);
++	}
++
++	return 0;
++}
++
+ static int adv748x_parse_dt(struct adv748x_state *state)
  {
- 	struct ov7740 *ov7740 =3D container_of(sd, struct ov7740, subdev);
--#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
- 	struct v4l2_mbus_framefmt *mbus_fmt;
--#endif
- 	int ret =3D 0;
-=20
- 	mutex_lock(&ov7740->mutex);
- 	if (format->which =3D=3D V4L2_SUBDEV_FORMAT_TRY) {
--#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
- 		mbus_fmt =3D v4l2_subdev_get_try_format(sd, cfg, 0);
--		format->format =3D *mbus_fmt;
--		ret =3D 0;
--#else
--		ret =3D -ENOTTY;
--#endif
-+		if (IS_ERR(mbus_fmt)) {
-+			ret =3D PTR_ERR(mbus_fmt);
-+		} else {
-+			format->format =3D *mbus_fmt;
-+			ret =3D 0;
-+		}
- 	} else {
- 		format->format =3D ov7740->format;
+ 	struct device_node *ep_np = NULL;
+ 	struct of_endpoint ep;
+ 	bool out_found = false;
+ 	bool in_found = false;
++	int ret;
+ 
+ 	for_each_endpoint_of_node(state->dev->of_node, ep_np) {
+ 		of_graph_parse_endpoint(ep_np, &ep);
+@@ -557,6 +602,11 @@ static int adv748x_parse_dt(struct adv748x_state *state)
+ 			in_found = true;
+ 		else
+ 			out_found = true;
++
++		/* Store number of CSI-2 lanes used for TXA and TXB. */
++		ret = adv748x_parse_csi2_lanes(state, ep.port, ep_np);
++		if (ret)
++			return ret;
  	}
---=20
+ 
+ 	return in_found && out_found ? 0 : -ENODEV;
+diff --git a/drivers/media/i2c/adv748x/adv748x.h b/drivers/media/i2c/adv748x/adv748x.h
+index 39c2fdc3b41667d8..b482c7fe6957eb85 100644
+--- a/drivers/media/i2c/adv748x/adv748x.h
++++ b/drivers/media/i2c/adv748x/adv748x.h
+@@ -79,6 +79,7 @@ struct adv748x_csi2 {
+ 	struct v4l2_mbus_framefmt format;
+ 	unsigned int page;
+ 	unsigned int port;
++	unsigned int num_lanes;
+ 
+ 	struct media_pad pads[ADV748X_CSI2_NR_PADS];
+ 	struct v4l2_ctrl_handler ctrl_hdl;
+-- 
 2.19.1
