@@ -1,77 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:37169 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726565AbeK2UFw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Nov 2018 15:05:52 -0500
-Subject: Re: [PATCH] media: videodev2: add V4L2_FMT_FLAG_NO_SOURCE_CHANGE
-To: Maxime Jourdan <mjourdan@baylibre.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Tomasz Figa <tfiga@chromium.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <20181004133739.19086-1-mjourdan@baylibre.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <491c3f33-b51b-89cb-09f0-b48949d61efb@xs4all.nl>
-Date: Thu, 29 Nov 2018 10:01:07 +0100
+Received: from mail.bootlin.com ([62.4.15.54]:34625 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726565AbeK2UG3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 29 Nov 2018 15:06:29 -0500
+From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+To: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-kernel@vger.kernel.org
+Cc: Maxime Ripard <maxime.ripard@bootlin.com>,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Ezequiel Garcia <ezequiel@collabora.com>
+Subject: [PATCH v2 0/1] media: cedrus: Remove global IRQ spin lock from the driver
+Date: Thu, 29 Nov 2018 10:00:47 +0100
+Message-Id: <20181129090048.16482-1-paul.kocialkowski@bootlin.com>
 MIME-Version: 1.0
-In-Reply-To: <20181004133739.19086-1-mjourdan@baylibre.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/04/2018 03:37 PM, Maxime Jourdan wrote:
-> When a v4l2 driver exposes V4L2_EVENT_SOURCE_CHANGE, some (usually
-> OUTPUT) formats may not be able to trigger this event.
-> 
-> Add a enum_fmt format flag to tag those specific formats.
+Changes since v1:
+* Reworked commit message as suggested by Maxime.
 
-I think I missed (or forgot) some discussion about this since I have no
-idea why this flag is needed. What's the use-case?
+Paul Kocialkowski (1):
+  media: cedrus: Remove global IRQ spin lock from the driver
 
-Regards,
+ drivers/staging/media/sunxi/cedrus/cedrus.c       |  1 -
+ drivers/staging/media/sunxi/cedrus/cedrus.h       |  2 --
+ drivers/staging/media/sunxi/cedrus/cedrus_dec.c   |  9 ---------
+ drivers/staging/media/sunxi/cedrus/cedrus_hw.c    | 13 +------------
+ drivers/staging/media/sunxi/cedrus/cedrus_video.c |  5 -----
+ 5 files changed, 1 insertion(+), 29 deletions(-)
 
-	Hans
-
-> 
-> Signed-off-by: Maxime Jourdan <mjourdan@baylibre.com>
-> ---
->  Documentation/media/uapi/v4l/vidioc-enum-fmt.rst | 5 +++++
->  include/uapi/linux/videodev2.h                   | 5 +++--
->  2 files changed, 8 insertions(+), 2 deletions(-)
-> 
-> diff --git a/Documentation/media/uapi/v4l/vidioc-enum-fmt.rst b/Documentation/media/uapi/v4l/vidioc-enum-fmt.rst
-> index 019c513df217..e0040b36ac43 100644
-> --- a/Documentation/media/uapi/v4l/vidioc-enum-fmt.rst
-> +++ b/Documentation/media/uapi/v4l/vidioc-enum-fmt.rst
-> @@ -116,6 +116,11 @@ one until ``EINVAL`` is returned.
->        - This format is not native to the device but emulated through
->  	software (usually libv4l2), where possible try to use a native
->  	format instead for better performance.
-> +    * - ``V4L2_FMT_FLAG_NO_SOURCE_CHANGE``
-> +      - 0x0004
-> +      - The event ``V4L2_EVENT_SOURCE_CHANGE`` is not supported
-> +	for this format.
-> +
->  
->  
->  Return Value
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index 3a65951ca51e..a28acee1cb52 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -723,8 +723,9 @@ struct v4l2_fmtdesc {
->  	__u32		    reserved[4];
->  };
->  
-> -#define V4L2_FMT_FLAG_COMPRESSED 0x0001
-> -#define V4L2_FMT_FLAG_EMULATED   0x0002
-> +#define V4L2_FMT_FLAG_COMPRESSED	0x0001
-> +#define V4L2_FMT_FLAG_EMULATED		0x0002
-> +#define V4L2_FMT_FLAG_NO_SOURCE_CHANGE	0x0004
->  
->  	/* Frame Size and frame rate enumeration */
->  /*
-> 
+-- 
+2.19.1
