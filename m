@@ -1,16 +1,14 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:59757 "EHLO
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:53657 "EHLO
         lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726641AbeK2Uez (ORCPT
+        by vger.kernel.org with ESMTP id S1726008AbeK2UqN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Nov 2018 15:34:55 -0500
+        Thu, 29 Nov 2018 15:46:13 -0500
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCHv2] videodev2.h: add
- V4L2_BUF_CAP_SUPPORTS_PREPARE_BUF/CREATE_BUFS
-Message-ID: <aa86ac25-de04-a205-053c-82a8f939b7e6@xs4all.nl>
-Date: Thu, 29 Nov 2018 10:30:06 +0100
+Subject: [GIT PULL FOR v4.21] Various fixes/enhancements
+Message-ID: <ecf764bb-52c1-3c34-f7a7-029d6ac6a945@xs4all.nl>
+Date: Thu, 29 Nov 2018 10:41:23 +0100
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
@@ -18,127 +16,83 @@ Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add new buffer capability flags to indicate if the VIDIOC_PREPARE_BUF or
-VIDIOC_CREATE_BUFS ioctls are supported.
+The following changes since commit 708d75fe1c7c6e9abc5381b6fcc32b49830383d0:
 
-The reason for this is that there is currently no way for an application
-to detect if VIDIOC_PREPARE_BUF is implemented other than trying it, but
-then the buffer is already prepared. You would like to know this before
-taking an irreversible action.
+  media: dvb-pll: don't re-validate tuner frequencies (2018-11-23 12:27:18 -0500)
 
-Since we need V4L2_BUF_CAP_SUPPORTS_PREPARE_BUF it makes sense to add
-V4L2_BUF_CAP_SUPPORTS_CREATE_BUFS as well because not all drivers support
-this ioctl.
+are available in the Git repository at:
 
-Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
-Changes since v1:
+  git://linuxtv.org/hverkuil/media_tree.git tags/br-v4.21g
 
-- rebased
-- improved commit msg
-- added missing include for media/v4l2-ioctl.h
----
- Documentation/media/uapi/v4l/vidioc-reqbufs.rst |  8 ++++++++
- drivers/media/common/videobuf2/videobuf2-v4l2.c | 15 +++++++++++++--
- include/uapi/linux/videodev2.h                  | 12 +++++++-----
- 3 files changed, 28 insertions(+), 7 deletions(-)
+for you to fetch changes up to e5b4ae2f474785d61653e8fcb762427ee537e156:
 
-diff --git a/Documentation/media/uapi/v4l/vidioc-reqbufs.rst b/Documentation/media/uapi/v4l/vidioc-reqbufs.rst
-index e62a15782790..092d6373380a 100644
---- a/Documentation/media/uapi/v4l/vidioc-reqbufs.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-reqbufs.rst
-@@ -118,6 +118,8 @@ aborting or finishing any DMA in progress, an implicit
- .. _V4L2-BUF-CAP-SUPPORTS-DMABUF:
- .. _V4L2-BUF-CAP-SUPPORTS-REQUESTS:
- .. _V4L2-BUF-CAP-SUPPORTS-ORPHANED-BUFS:
-+.. _V4L2-BUF-CAP-SUPPORTS-PREPARE-BUF:
-+.. _V4L2-BUF-CAP-SUPPORTS-CREATE-BUFS:
+  vicodec: move the GREY format to the end of the list (2018-11-29 10:09:18 +0100)
 
- .. cssclass:: longtable
+----------------------------------------------------------------
+Tag branch
 
-@@ -143,6 +145,12 @@ aborting or finishing any DMA in progress, an implicit
-       - The kernel allows calling :ref:`VIDIOC_REQBUFS` while buffers are still
-         mapped or exported via DMABUF. These orphaned buffers will be freed
-         when they are unmapped or when the exported DMABUF fds are closed.
-+    * - ``V4L2_BUF_CAP_SUPPORTS_PREPARE_BUF``
-+      - 0x00000020
-+      - This buffer type supports :ref:`VIDIOC_PREPARE_BUF`.
-+    * - ``V4L2_BUF_CAP_SUPPORTS_CREATE_BUFS``
-+      - 0x00000040
-+      - This buffer type supports :ref:`VIDIOC_CREATE_BUFS`.
+----------------------------------------------------------------
+Alexey Khoroshilov (1):
+      DaVinci-VPBE: fix error handling in vpbe_initialize()
 
- Return Value
- ============
-diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-index 1244c246d0c4..5273f574fb7a 100644
---- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
-+++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-@@ -28,6 +28,7 @@
- #include <media/v4l2-device.h>
- #include <media/v4l2-fh.h>
- #include <media/v4l2-event.h>
-+#include <media/v4l2-ioctl.h>
- #include <media/v4l2-common.h>
+Arnd Bergmann (1):
+      media: i2c: TDA1997x: select CONFIG_HDMI
 
- #include <media/videobuf2-v4l2.h>
-@@ -870,6 +871,16 @@ static inline bool vb2_queue_is_busy(struct video_device *vdev, struct file *fil
- 	return vdev->queue->owner && vdev->queue->owner != file->private_data;
- }
+Colin Ian King (4):
+      exynos4-is: fix spelling mistake ACTURATOR -> ACTUATOR
+      media: dib0700: fix spelling mistake "Amplifyer" -> "Amplifier"
+      media: em28xx: fix spelling mistake, "Cinnergy" -> "Cinergy"
+      tda7432: fix spelling mistake "maximium" -> "maximum"
 
-+static void fill_buf_caps_vdev(struct video_device *vdev, u32 *caps)
-+{
-+	*caps = 0;
-+	fill_buf_caps(vdev->queue, caps);
-+	if (vdev->ioctl_ops->vidioc_prepare_buf)
-+		*caps |= V4L2_BUF_CAP_SUPPORTS_PREPARE_BUF;
-+	if (vdev->ioctl_ops->vidioc_create_bufs)
-+		*caps |= V4L2_BUF_CAP_SUPPORTS_CREATE_BUFS;
-+}
-+
- /* vb2 ioctl helpers */
+Hans Verkuil (3):
+      vivid: fix smatch warnings
+      vivid: add req_validate error injection
+      vicodec: move the GREY format to the end of the list
 
- int vb2_ioctl_reqbufs(struct file *file, void *priv,
-@@ -878,7 +889,7 @@ int vb2_ioctl_reqbufs(struct file *file, void *priv,
- 	struct video_device *vdev = video_devdata(file);
- 	int res = vb2_verify_memory_type(vdev->queue, p->memory, p->type);
+Jasmin Jessich (1):
+      media: adv7604 added include of linux/interrupt.h
 
--	fill_buf_caps(vdev->queue, &p->capabilities);
-+	fill_buf_caps_vdev(vdev, &p->capabilities);
- 	if (res)
- 		return res;
- 	if (vb2_queue_is_busy(vdev, file))
-@@ -900,7 +911,7 @@ int vb2_ioctl_create_bufs(struct file *file, void *priv,
- 			p->format.type);
+Jonas Karlman (1):
+      media: v4l: Fix MPEG-2 slice Intra DC Precision validation
 
- 	p->index = vdev->queue->num_buffers;
--	fill_buf_caps(vdev->queue, &p->capabilities);
-+	fill_buf_caps_vdev(vdev, &p->capabilities);
- 	/*
- 	 * If count == 0, then just check if memory and type are valid.
- 	 * Any -EBUSY result from vb2_verify_memory_type can be mapped to 0.
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 2a223835214c..8ebc66e311e0 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -875,11 +875,13 @@ struct v4l2_requestbuffers {
- };
+Michael Tretter (2):
+      v4l2-pci-skeleton: replace vb2_buffer with vb2_v4l2_buffer
+      v4l2-pci-skeleton: depend on CONFIG_SAMPLES
 
- /* capabilities for struct v4l2_requestbuffers and v4l2_create_buffers */
--#define V4L2_BUF_CAP_SUPPORTS_MMAP	(1 << 0)
--#define V4L2_BUF_CAP_SUPPORTS_USERPTR	(1 << 1)
--#define V4L2_BUF_CAP_SUPPORTS_DMABUF	(1 << 2)
--#define V4L2_BUF_CAP_SUPPORTS_REQUESTS	(1 << 3)
--#define V4L2_BUF_CAP_SUPPORTS_ORPHANED_BUFS (1 << 4)
-+#define V4L2_BUF_CAP_SUPPORTS_MMAP		(1 << 0)
-+#define V4L2_BUF_CAP_SUPPORTS_USERPTR		(1 << 1)
-+#define V4L2_BUF_CAP_SUPPORTS_DMABUF		(1 << 2)
-+#define V4L2_BUF_CAP_SUPPORTS_REQUESTS		(1 << 3)
-+#define V4L2_BUF_CAP_SUPPORTS_ORPHANED_BUFS	(1 << 4)
-+#define V4L2_BUF_CAP_SUPPORTS_PREPARE_BUF	(1 << 5)
-+#define V4L2_BUF_CAP_SUPPORTS_CREATE_BUFS	(1 << 6)
+Sakari Ailus (1):
+      v4l: ioctl: Allow drivers to fill in the format description
 
- /**
-  * struct v4l2_plane - plane info for multi-planar buffers
--- 
-2.19.1
+Tim Harvey (1):
+      media: adv7180: add g_skip_frames support
+
+Todor Tomov (1):
+      media: camss: Take in account sensor skip frames
+
+Tomasz Figa (1):
+      media: mtk-vcodec: Remove VA from encoder frame buffers
+
+ Documentation/media/v4l-drivers/em28xx-cardlist.rst |  2 +-
+ drivers/media/i2c/Kconfig                           |  1 +
+ drivers/media/i2c/adv7180.c                         | 15 +++++++++++++++
+ drivers/media/i2c/adv7604.c                         |  1 +
+ drivers/media/i2c/tda7432.c                         |  4 ++--
+ drivers/media/platform/davinci/vpbe.c               |  7 +++++--
+ drivers/media/platform/exynos4-is/fimc-is-errno.c   |  4 ++--
+ drivers/media/platform/exynos4-is/fimc-is-errno.h   |  2 +-
+ drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c  |  6 +-----
+ drivers/media/platform/mtk-vcodec/mtk_vcodec_util.h |  5 +++++
+ drivers/media/platform/mtk-vcodec/venc_drv_if.h     |  2 +-
+ drivers/media/platform/qcom/camss/camss-vfe.c       | 23 ++++++++++++++++++-----
+ drivers/media/platform/qcom/camss/camss.c           |  2 +-
+ drivers/media/platform/qcom/camss/camss.h           |  1 +
+ drivers/media/platform/vicodec/codec-v4l2-fwht.c    |  3 +--
+ drivers/media/platform/vivid/vivid-core.c           | 37 ++++++++++++++++++++++++++++++-------
+ drivers/media/platform/vivid/vivid-core.h           |  2 ++
+ drivers/media/platform/vivid/vivid-ctrls.c          | 16 ++++++++++++++++
+ drivers/media/usb/dvb-usb/dib0700_devices.c         |  2 +-
+ drivers/media/usb/em28xx/em28xx-cards.c             |  2 +-
+ drivers/media/v4l2-core/Kconfig                     |  1 +
+ drivers/media/v4l2-core/v4l2-ctrls.c                |  3 ++-
+ drivers/media/v4l2-core/v4l2-ioctl.c                |  2 +-
+ samples/v4l/v4l2-pci-skeleton.c                     | 11 ++++++-----
+ 24 files changed, 116 insertions(+), 38 deletions(-)
