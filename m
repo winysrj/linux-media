@@ -1,169 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yb1-f194.google.com ([209.85.219.194]:35464 "EHLO
-        mail-yb1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726588AbeK2KaY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Nov 2018 05:30:24 -0500
-Received: by mail-yb1-f194.google.com with SMTP id z2-v6so19068ybj.2
-        for <linux-media@vger.kernel.org>; Wed, 28 Nov 2018 15:27:06 -0800 (PST)
-Received: from mail-yw1-f49.google.com (mail-yw1-f49.google.com. [209.85.161.49])
-        by smtp.gmail.com with ESMTPSA id p3sm16930ywc.14.2018.11.28.15.27.03
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 28 Nov 2018 15:27:04 -0800 (PST)
-Received: by mail-yw1-f49.google.com with SMTP id g75so22709ywb.1
-        for <linux-media@vger.kernel.org>; Wed, 28 Nov 2018 15:27:03 -0800 (PST)
+Received: from mga04.intel.com ([192.55.52.120]:42688 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726485AbeK2LpJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 29 Nov 2018 06:45:09 -0500
+From: "Mani, Rajmohan" <rajmohan.mani@intel.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+CC: "Zhi, Yong" <yong.zhi@intel.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "Hu, Jerry W" <jerry.w.hu@intel.com>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
+        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
+        "Cao, Bingbu" <bingbu.cao@intel.com>,
+        "Li, Chao C" <chao.c.li@intel.com>
+Subject: RE: [PATCH v7 03/16] v4l: Add Intel IPU3 meta data uAPI
+Date: Thu, 29 Nov 2018 00:41:38 +0000
+Message-ID: <6F87890CF0F5204F892DEA1EF0D77A598152864C@fmsmsx122.amr.corp.intel.com>
+References: <1540851790-1777-1-git-send-email-yong.zhi@intel.com>
+ <1540851790-1777-4-git-send-email-yong.zhi@intel.com>
+ <20181102104908.609177e5@coco.lan>
+ <CAAFQd5B_OVV-Nh0uOGHdQE4eSKcs5N8Nn1t-Zz-GbvgpB9P38A@mail.gmail.com>
+ <6F87890CF0F5204F892DEA1EF0D77A5981524580@fmsmsx122.amr.corp.intel.com>
+ <653bae0f-899a-5a8b-a1d0-814f6b44f8f8@xs4all.nl>
+In-Reply-To: <653bae0f-899a-5a8b-a1d0-814f6b44f8f8@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-References: <20181121195907.23752-1-ezequiel@collabora.com>
- <CAAFQd5ArFG0hU6MgcyLd+_UOP3+T_U-aw2FXv6sE7fGqVCVGqw@mail.gmail.com>
- <c36f68773cec5aca0509d8af5172812110df73a5.camel@collabora.com>
- <CAAFQd5Ds=NGfXeEQDkF40-ZPisLah_Bc2j4s4oRp75dKxGr05g@mail.gmail.com> <a3c12459e08b64ac374d7bd477aff3079590c5d4.camel@collabora.com>
-In-Reply-To: <a3c12459e08b64ac374d7bd477aff3079590c5d4.camel@collabora.com>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Wed, 28 Nov 2018 15:26:52 -0800
-Message-ID: <CAAFQd5CVAtzzQbo+AFhoZkAyYE7Y+5bwavZT_tsdE1h3b_X7LA@mail.gmail.com>
-Subject: Re: [PATCH v10 4/4] media: add Rockchip VPU JPEG encoder driver
-To: Ezequiel Garcia <ezequiel@collabora.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        devicetree@vger.kernel.org,
-        "open list:ARM/Rockchip SoC..." <linux-rockchip@lists.infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>, kernel@collabora.com,
-        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-        =?UTF-8?Q?Heiko_St=C3=BCbner?= <heiko@sntech.de>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>, myy@miouyouyou.fr
-Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Nov 28, 2018 at 10:05 AM Ezequiel Garcia <ezequiel@collabora.com> wrote:
->
-> On Tue, 2018-11-27 at 19:09 +0900, Tomasz Figa wrote:
-> > On Fri, Nov 23, 2018 at 5:24 AM Ezequiel Garcia <ezequiel@collabora.com> wrote:
-> > [snip]
-> > > > > +const struct rockchip_vpu_variant rk3288_vpu_variant = {
-> > > > > +       .enc_offset = 0x0,
-> > > > > +       .enc_fmts = rk3288_vpu_enc_fmts,
-> > > > > +       .num_enc_fmts = ARRAY_SIZE(rk3288_vpu_enc_fmts),
-> > > > > +       .codec_ops = rk3288_vpu_codec_ops,
-> > > > > +       .codec = RK_VPU_CODEC_JPEG,
-> > > > > +       .vepu_irq = rk3288_vepu_irq,
-> > > > > +       .init = rk3288_vpu_hw_init,
-> > > > > +       .clk_names = {"aclk", "hclk"},
-> > > >
-> > > > nit: Spaces inside the brackets.
-> > > >
-> > >
-> > > You mean you this style is prefered?
-> > >
-> > > .clk_names = { "aclk", "hclk" },
-> > >
-> > > Grepping thru sources, it seems there is no convention on this,
-> > > so it's your call.
-> > >
-> >
-> > I thought this is a part of CodingStyle, but it doesn't seem to
-> > mention it. I personally prefer to have the spaces there, but we can
-> > go with your personal preferences here. :)
->
-> OK.
->
-> > [snip]
-> > > > > +        * by .vidioc_s_fmt_vid_cap_mplane() callback
-> > > > > +        */
-> > > > > +       reg = VEPU_REG_IN_IMG_CTRL_ROW_LEN(pix_fmt->width);
-> > > > > +       vepu_write_relaxed(vpu, reg, VEPU_REG_INPUT_LUMA_INFO);
-> > > > > +
-> > > > > +       reg = VEPU_REG_IN_IMG_CTRL_OVRFLR_D4(0) |
-> > > > > +             VEPU_REG_IN_IMG_CTRL_OVRFLB(0);
-> > > >
-> > > > For reference, this register controls the input crop, as the offset
-> > > > from the right/bottom within the last macroblock. The offset from the
-> > > > right must be divided by 4 and so the crop must be aligned to 4 pixels
-> > > > horizontally.
-> > > >
-> > >
-> > > OK, I'll add a comment.
-> > >
-> >
-> > I meant to refer to the comment Hans had, about input images of
-> > resolutions that are not of full macroblocks, so the comment would
-> > probably go to the TODO file together with Hans's note.
->
-> Got it.
->
-> > [snip]
-> > > > > +static inline u32 vepu_read(struct rockchip_vpu_dev *vpu, u32 reg)
-> > > > > +{
-> > > > > +       u32 val = readl(vpu->enc_base + reg);
-> > > > > +
-> > > > > +       vpu_debug(6, "MARK: get reg[%03d]: %08x\n", reg / 4, val);
-> > > >
-> > > > I remember seeing this "MARK" in the logs when debugging. I don't
-> > > > think it's desired here.
-> > > >
-> > > > How about printing "%s(%03d) = %08x\n" for reads and "%s(%08x,
-> > > > %03d)\n" for writes?
-> >
-> > Actually, I missed the 0x prefix for hex values and possibly also
-> > changing the decimal register offset to hexadecimal:
-> > "%s(0x%04x) = 0x%08x\n"
-> >
-> > >
-> > > Makes sense, but why a %s string format?
-> > >
-> >
-> > For __func__, so that we end up with messages like:
-> >
-> > vepu_write(0x12345678, 0x0123)
-> > vepu_read(0x0123) = 0x12345678
-> >
->
-> vepu_debug already uses __func__, so it would look like this:
->
-> [   27.125090] vepu_write_relaxed:215: 0x001f = 0x01010101
-> [   27.127413] vepu_write:221: 0x0069 = 0xfc000000
-> [   27.129673] vepu_write_relaxed:215: 0x0036 = 0x00001000
-> [   27.132079] vepu_write:221: 0x0067 = 0x00f01461
-> [   27.135042] vepu_read:229: 0x006d = 0x00001003
-> [   27.137450] vepu_read:229: 0x0035 = 0x00020318
-> [   27.139778] vepu_write:221: 0x006d = 0x00000000
-> [   27.142144] vepu_write:221: 0x0036 = 0x00000000
->
-> Unless we use a different debug macro for i/o access.
->
-
-Okay, I missed that part of vepu_debug(). We can drop the %s and
-explicit __func__ from the message then.
-
-> > [snip]
-> > > > > +       dst->field = src->field;
-> > > > > +       dst->timecode = src->timecode;
-> > > >
-> > > > Time code is only valid if the buffer has V4L2_BUF_FLAG_TIMECODE set.
-> > > > I don't think there is any use case for mem2mem devices for it.
-> > > >
-> > >
-> > > Right. Other mem2mem drivers seem to pass thru the timecode like this:
-> > >
-> > >         if (in_vb->flags & V4L2_BUF_FLAG_TIMECODE)
-> > >                 out_vb->timecode = in_vb->timecode;
-> > >
-> > > It fails a v4l2-compliance test without it.
-> > >
-> >
-> > Hmm, I don't see the spec defining it to be copied by a mem2mem device
-> > and I wonder if it's actually of any use for those. Hans, could you
-> > comment on this?
-> >
->
-> I asked Hans about this and he said timecode should behave as timestamp,
-> and be carried from the output queue to the capture queue.
->
-> This helper will take care of it: https://patchwork.linuxtv.org/patch/52961/
->
-
-Fair enough.
-
-Best regards,
-Tomasz
+SGkgSGFucywNCg0KPiBTdWJqZWN0OiBSZTogW1BBVENIIHY3IDAzLzE2XSB2NGw6IEFkZCBJbnRl
+bCBJUFUzIG1ldGEgZGF0YSB1QVBJDQo+IA0KPiBPbiAxMS8wNy8xOCAwMDoyNywgTWFuaSwgUmFq
+bW9oYW4gd3JvdGU6DQo+ID4gSGkgTWF1cm8sDQo+ID4NCj4gPiBUaGFua3MgZm9yIHRoZSByZXZp
+ZXdzLg0KPiA+DQo+ID4+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggdjcgMDMvMTZdIHY0bDogQWRkIElu
+dGVsIElQVTMgbWV0YSBkYXRhIHVBUEkNCj4gPj4NCj4gPj4gSGkgTWF1cm8sDQo+ID4+DQo+ID4+
+IE9uIEZyaSwgTm92IDIsIDIwMTggYXQgMTA6NDkgUE0gTWF1cm8gQ2FydmFsaG8gQ2hlaGFiDQo+
+ID4+IDxtY2hlaGFiK3NhbXN1bmdAa2VybmVsLm9yZz4gd3JvdGU6DQo+ID4+Pg0KPiA+Pj4gRW0g
+TW9uLCAyOSBPY3QgMjAxOCAxNToyMjo1NyAtMDcwMA0KPiA+Pj4gWW9uZyBaaGkgPHlvbmcuemhp
+QGludGVsLmNvbT4gZXNjcmV2ZXU6DQo+ID4+IFtzbmlwXQ0KPiA+Pj4+ICtzdHJ1Y3QgaXB1M191
+YXBpX2F3Yl9jb25maWdfcyB7DQo+ID4+Pj4gKyAgICAgX191MTYgcmdic190aHJfZ3I7DQo+ID4+
+Pj4gKyAgICAgX191MTYgcmdic190aHJfcjsNCj4gPj4+PiArICAgICBfX3UxNiByZ2JzX3Rocl9n
+YjsNCj4gPj4+PiArICAgICBfX3UxNiByZ2JzX3Rocl9iOw0KPiA+Pj4+ICsgICAgIHN0cnVjdCBp
+cHUzX3VhcGlfZ3JpZF9jb25maWcgZ3JpZDsgfQ0KPiA+Pj4+ICtfX2F0dHJpYnV0ZV9fKChhbGln
+bmVkKDMyKSkpIF9fcGFja2VkOw0KPiA+Pj4NCj4gPj4+IEhtbS4uLiBLZXJuZWwgZGVmaW5lcyBh
+IG1hY3JvIGZvciBhbGlnbmVkIGF0dHJpYnV0ZToNCj4gPj4+DQo+ID4+PiAgICAgICAgIGluY2x1
+ZGUvbGludXgvY29tcGlsZXJfdHlwZXMuaDojZGVmaW5lIF9fYWxpZ25lZCh4KQ0KPiA+PiBfX2F0
+dHJpYnV0ZV9fKChhbGlnbmVkKHgpKSkNCj4gPj4+DQo+ID4+DQo+ID4+IEZpcnN0LCB0aGFua3Mg
+Zm9yIHJldmlldyENCj4gPj4NCj4gPj4gTWF5YmUgSSBtaXNzZWQgc29tZXRoaW5nLCBidXQgbGFz
+dCB0aW1lIEkgY2hlY2tlZCwgaXQgd2Fzbid0DQo+ID4+IGFjY2Vzc2libGUgZnJvbSBVQVBJIGhl
+YWRlcnMgaW4gdXNlcnNwYWNlLg0KPiA+DQo+ID4gQWNrLiBXZSBzZWUgdGhhdCdzIHN0aWxsIHRo
+ZSBjYXNlLg0KPiA+DQo+ID4+DQo+ID4+PiBJJ20gbm90IGEgZ2NjIGV4cGVydCwgYnV0IGl0IHNv
+dW5kcyB3ZWlyZCB0byBmaXJzdCBhc2sgaXQgdG8gYWxpZ24NCj4gPj4+IHdpdGggMzIgYml0cyBh
+bmQgdGhlbiBoYXZlIF9fcGFja2VkICh3aXRoIG1lYW5zIHRoYXQgcGFkcyBzaG91bGQgYmUNCj4g
+Pj4+IHJlbW92ZWQpLg0KPiA+Pj4NCj4gPj4+IEluIG90aGVyIHdvcmRzLCBJICpndWVzcyogaXMg
+aXQgc2hvdWxkIGVpdGhlciBiZSBfX3BhY2tlZCBvcg0KPiA+Pj4gX19hbGlnbmVkKDMyKS4NCj4g
+Pj4+DQo+ID4+PiBOb3QgdGhhdCBpdCB3b3VsZCBkbyBhbnkgZGlmZmVyZW5jZSwgaW4gcHJhY3Rp
+Y2UsIGFzIHRoaXMgc3BlY2lmaWMNCj4gPj4+IHN0cnVjdCBoYXMgYSBzaXplIHdpdGggaXMgbXVs
+dGlwbGUgb2YgMzIgYml0cywgYnV0IGxldCdzIGRvIHRoZQ0KPiA+Pj4gcmlnaHQgYW5ub3RhdGlv
+biBoZXJlLCBub3QgbWl4aW5nIHR3byBpbmNvbXBhdGlibGUgYWxpZ25tZW50DQo+IHJlcXVpcmVt
+ZW50cy4NCj4gPj4+DQo+ID4+DQo+ID4+IE15IHVuZGVyc3RhbmRpbmcgd2FzIHRoYXQgX19wYWNr
+ZWQgbWFrZXMgdGhlIGNvbXBpbGVyIG5vdCBpbnNlcnQgYW55DQo+ID4+IGFsaWdubWVudCBiZXR3
+ZWVuIHBhcnRpY3VsYXIgZmllbGRzIG9mIHRoZSBzdHJ1Y3QsIHdoaWxlIF9fYWxpZ25lZA0KPiA+
+PiBtYWtlcyB0aGUgd2hvbGUgc3RydWN0IGJlIGFsaWduZWQgYXQgZ2l2ZW4gYm91bmRhcnksIGlm
+IHBsYWNlZCBpbg0KPiA+PiBhbm90aGVyIHN0cnVjdC4gSWYgSSBkaWRuJ3QgbWlzcyBhbnl0aGlu
+ZywgaGF2aW5nIGJvdGggc2hvdWxkIG1ha2UgcGVyZmVjdA0KPiBzZW5zZSBoZXJlLg0KPiA+DQo+
+ID4gQWNrDQo+ID4NCj4gPiBJIGFsc28gcmVjYWxsIHRoYXQgYXMgcGFydCBvZiBhZGRyZXNzaW5n
+IHJldmlldyBjb21tZW50cyAgKGZyb20gSGFucw0KPiA+IGFuZCBTYWthcmkpLCBvbiBlYXJsaWVy
+IHZlcnNpb25zIG9mIHRoaXMgcGF0Y2ggc2VyaWVzLCB3ZSBhZGRlZA0KPiA+IF9fcGFja2VkIGF0
+dHJpYnV0ZSB0byBhbGwgc3RydWN0cyB0byBlbnN1cmUgdGhlIHNpemUgb2YgdGhlIHN0cnVjdHMg
+cmVtYWlucyB0aGUNCj4gc2FtZSBiZXR3ZWVuIDMyIGFuZCA2NCBiaXQgYnVpbGRzLg0KPiA+DQo+
+ID4gVGhlIGFkZGl0aW9uIG9mIHN0cnVjdHVyZSBtZW1iZXJzIG9mIHRoZSBuYW1lIHBhZGRpbmdb
+eF0gaW4gc29tZSBvZg0KPiA+IHRoZSBzdHJ1Y3RzIGVuc3VyZXMgdGhhdCByZXNwZWN0aXZlIG1l
+bWJlcnMgYXJlIGFsaWduZWQgYXQgMzIgYnl0ZQ0KPiA+IGJvdW5kYXJpZXMsIHdoaWxlIHRoZSBv
+dmVyYWxsIHNpemUgb2YgdGhlIHN0cnVjdHMgcmVtYWluIHRoZSBzYW1lIGJldHdlZW4gMzINCj4g
+YW5kIDY0IGJpdCBidWlsZHMuDQo+IA0KPiBJIHJlY29tbWVuZCB0aGF0IHRoaXMgaXMgZG9jdW1l
+bnRlZCBpbiB0aGUgaGVhZGVyLiBJdCdzIG5vdCBhIGNvbW1vbg0KPiBjb25zdHJ1Y3Rpb24gc28g
+YW4gZXhwbGFuYXRpb24gd2lsbCBoZWxwLg0KDQpBY2suDQoNCj4gDQo+IFJlZ2FyZHMsDQo+IA0K
+PiAJSGFucw0KPiANCj4gPg0KPiA+IFRoYW5rcw0KPiA+IFJhag0KPiA+DQo+ID4+DQo+ID4+IEJl
+c3QgcmVnYXJkcywNCj4gPj4gVG9tYXN6DQoNCg==
