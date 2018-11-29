@@ -1,224 +1,568 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga12.intel.com ([192.55.52.136]:52933 "EHLO mga12.intel.com"
+Return-Path: <SRS0=7CH4=OI=vger.kernel.org=linux-media-owner@kernel.org>
+X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
+	aws-us-west-2-korg-lkml-1.web.codeaurora.org
+X-Spam-Level: 
+X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BE28C04EB9
+	for <linux-media@archiver.kernel.org>; Thu, 29 Nov 2018 23:06:28 +0000 (UTC)
+Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
+	by mail.kernel.org (Postfix) with ESMTP id E57AD20673
+	for <linux-media@archiver.kernel.org>; Thu, 29 Nov 2018 23:06:27 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org E57AD20673
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
+Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
+        id S1727031AbeK3KNe convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 30 Nov 2018 05:13:34 -0500
+Received: from mga17.intel.com ([192.55.52.151]:18831 "EHLO mga17.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726042AbeLDQHS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 4 Dec 2018 11:07:18 -0500
-From: "Mani, Rajmohan" <rajmohan.mani@intel.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Tomasz Figa <tfiga@chromium.org>
-CC: "Zhi, Yong" <yong.zhi@intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
+        id S1726393AbeK3KNd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 30 Nov 2018 05:13:33 -0500
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from fmsmga006.fm.intel.com ([10.253.24.20])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 29 Nov 2018 15:06:25 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.56,296,1539673200"; 
+   d="scan'208";a="291686000"
+Received: from orsmsx103.amr.corp.intel.com ([10.22.225.130])
+  by fmsmga006.fm.intel.com with ESMTP; 29 Nov 2018 15:06:25 -0800
+Received: from orsmsx113.amr.corp.intel.com (10.22.240.9) by
+ ORSMSX103.amr.corp.intel.com (10.22.225.130) with Microsoft SMTP Server (TLS)
+ id 14.3.408.0; Thu, 29 Nov 2018 15:06:24 -0800
+Received: from orsmsx106.amr.corp.intel.com ([169.254.1.161]) by
+ ORSMSX113.amr.corp.intel.com ([169.254.9.125]) with mapi id 14.03.0415.000;
+ Thu, 29 Nov 2018 15:06:24 -0800
+From:   "Zhi, Yong" <yong.zhi@intel.com>
+To:     Sakari Ailus <sakari.ailus@linux.intel.com>
+CC:     "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "tfiga@chromium.org" <tfiga@chromium.org>,
+        "mchehab@kernel.org" <mchehab@kernel.org>,
+        "hans.verkuil@cisco.com" <hans.verkuil@cisco.com>,
+        "laurent.pinchart@ideasonboard.com" 
+        <laurent.pinchart@ideasonboard.com>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
         "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
         "Hu, Jerry W" <jerry.w.hu@intel.com>,
         "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
         "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
-        "Cao, Bingbu" <bingbu.cao@intel.com>
-Subject: RE: [PATCH v7 00/16] Intel IPU3 ImgU patchset
-Date: Tue, 4 Dec 2018 16:07:16 +0000
-Message-ID: <6F87890CF0F5204F892DEA1EF0D77A5981529599@fmsmsx122.amr.corp.intel.com>
+        "Cao, Bingbu" <bingbu.cao@intel.com>,
+        "Li, Chao C" <chao.c.li@intel.com>
+Subject: RE: [PATCH v7 03/16] v4l: Add Intel IPU3 meta data uAPI
+Thread-Topic: [PATCH v7 03/16] v4l: Add Intel IPU3 meta data uAPI
+Thread-Index: AQHUb9aK175hAOL4EUyHZ9aMbY8R4aU87lQAgBYWUSCAFQxWgP//eqhA
+Date:   Thu, 29 Nov 2018 23:06:23 +0000
+Message-ID:
+ <C193D76D23A22742993887E6D207B54D3DB335C2@ORSMSX106.amr.corp.intel.com>
 References: <1540851790-1777-1-git-send-email-yong.zhi@intel.com>
- <4797131.2nEE5nGW4j@avalon>
- <CAAFQd5DW9PMU3PMMEDbZRtgNZpyV1crH0msxuqgq17dYdPpc8Q@mail.gmail.com>
- <6700442.fUP6q3B3KZ@avalon>
+ <1540851790-1777-4-git-send-email-yong.zhi@intel.com>
+ <20181102130237.yotr2y7ddrrzqphn@paasikivi.fi.intel.com>
+ <C193D76D23A22742993887E6D207B54D3DB3111C@ORSMSX106.amr.corp.intel.com>
+ <20181129224548.qwbkau6suipt2veq@kekkonen.localdomain>
+In-Reply-To: <20181129224548.qwbkau6suipt2veq@kekkonen.localdomain>
+Accept-Language: en-US
 Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+dlp-product: dlpe-windows
+dlp-version: 11.0.400.15
+dlp-reaction: no-action
+x-ctpclassification: CTP_NT
+x-titus-metadata-40: eyJDYXRlZ29yeUxhYmVscyI6IiIsIk1ldGFkYXRhIjp7Im5zIjoiaHR0cDpcL1wvd3d3LnRpdHVzLmNvbVwvbnNcL0ludGVsMyIsImlkIjoiMmU0MTQxYzAtZjlmZi00NjMxLWI4MmEtODMwNmNiMTY4MjliIiwicHJvcHMiOlt7Im4iOiJDVFBDbGFzc2lmaWNhdGlvbiIsInZhbHMiOlt7InZhbHVlIjoiQ1RQX05UIn1dfV19LCJTdWJqZWN0TGFiZWxzIjpbXSwiVE1DVmVyc2lvbiI6IjE3LjEwLjE4MDQuNDkiLCJUcnVzdGVkTGFiZWxIYXNoIjoiM2NWZ2xxSE5cL3R3QzNEOGJ3bVJVSnJqN3N6OEZzN0dxVmJOazZPVWJYQWMyUjBzUk9IM3RwTTYzelNreDFmdVAifQ==
+x-originating-ip: [10.22.254.140]
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
+Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
+X-Mailing-List: linux-media@vger.kernel.org
+Message-ID: <20181129230623.pxkXYcUKs4GsEMCFABpQU_05dQTlzKCXDorB1-7TodA@z>
 
-Hi Laurent, Tomasz,
+Hi, Sakari,
 
+> -----Original Message-----
+> From: Sakari Ailus [mailto:sakari.ailus@linux.intel.com]
+> Sent: Thursday, November 29, 2018 4:46 PM
+> To: Zhi, Yong <yong.zhi@intel.com>
+> Cc: linux-media@vger.kernel.org; tfiga@chromium.org;
+> mchehab@kernel.org; hans.verkuil@cisco.com;
+> laurent.pinchart@ideasonboard.com; Mani, Rajmohan
+> <rajmohan.mani@intel.com>; Zheng, Jian Xu <jian.xu.zheng@intel.com>; Hu,
+> Jerry W <jerry.w.hu@intel.com>; Toivonen, Tuukka
+> <tuukka.toivonen@intel.com>; Qiu, Tian Shu <tian.shu.qiu@intel.com>; Cao,
+> Bingbu <bingbu.cao@intel.com>; Li, Chao C <chao.c.li@intel.com>
+> Subject: Re: [PATCH v7 03/16] v4l: Add Intel IPU3 meta data uAPI
 > 
-> Thanks for the reviews.
+> Hi Yong,
 > 
-> > Subject: Re: [PATCH v7 00/16] Intel IPU3 ImgU patchset
-> >
-> > Hi Tomasz,
-> >
-> > On Thursday, 29 November 2018 21:51:32 EET Tomasz Figa wrote:
-> > > On Thu, Nov 29, 2018 at 6:43 AM Laurent Pinchart wrote:
-> > > > On Tuesday, 30 October 2018 00:22:54 EET Yong Zhi wrote:
-> >
-> > [snip]
-> >
-> > > >> 1. Link pad flag of video nodes (i.e. ipu3-imgu 0 output) need to
-> > > >> be enabled prior to the test.
-> > > >> 2. Stream tests are not performed since it requires
-> > > >> pre-configuration for each case.
-> > > >
-> > > > And that's a bit of an issue. I've tested the driver with a small
-> > > > script based on media-ctl to configure links and yavta to
-> > > > interface with the video nodes, and got the following oops:
-> > > >
-> > > > [  136.927788] divide error: 0000 [#1] PREEMPT SMP PTI [
-> > > > 136.927801] CPU: 2 PID: 2069 Comm: yavta Not tainted 4.20.0-rc1+
-> > > > #9 [  136.927806] Hardware name: HP Soraka/Soraka, BIOS
-> > > > 08/30/2018 [ 136.927820] RIP: 0010:ipu3_css_osys_calc+0xc54/0xe14
-> > > > [ipu3_imgu] [ 136.927825] Code: 89 44 24 28 42 8b 44 86 6c f7 54
-> > > > 24 04 81 64 24 28
-> > > > 00 fd ff ff 81 64 24 04 00 03 00 00 8d 44 03 ff 81 44 24 28 80 03
-> > > > 00
-> > > > 00 99 <f7> fb 0f af c3 bb 20 00 00 00 99 f7 fb 8b 5c 24 40 83 fd
-> > > > 01
-> > > > 19 d2 [  136.927830] RSP: 0018:ffff9af2c0b837c8 EFLAGS: 00010202 [
-> > > > 136.927835] RAX: 00000000ffffffff RBX: 0000000000000000 RCX:
-> > > > ffff9af2c3e353c0
-> > > > [  136.927839] RDX: 00000000ffffffff RSI: ffff9af2c0b838e0 RDI:
-> > > > ffff9af2c3e353c0
-> > > > [  136.927843] RBP: 0000000000000001 R08: 0000000000000000 R09:
-> > > > ffff9af2c0b83880
-> > > > [  136.927846] R10: ffff9af2c3e353c0 R11: ffff9af2c3e357c0 R12:
-> > > > 00000000000003a0
-> > > > [  136.927849] R13: 0000000000025a0a R14: 0000000000000000 R15:
-> > > > 0000000000000000
-> > > > [  136.927854] FS:  00007f1eca167700(0000)
-> > > > GS:ffff8c19fab00000(0000)
-> > > > knlGS:
-> > > > 0000000000000000
-> > > > [  136.927858] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033 [
-> > > > 136.927862] CR2: 00007f1ec776c000 CR3: 00000001312a4003 CR4:
-> > > > 00000000003606e0
-> > > > [  136.927865] Call Trace:
-> > > > [  136.927884]  ? __accumulate_pelt_segments+0x29/0x3a
-> > > > [  136.927892]  ? __switch_to_asm+0x40/0x70 [  136.927899]  ?
-> > > > alloc_vmap_area+0x78/0x2f6 [  136.927903]  ?
-> > > > __switch_to_asm+0x40/0x70 [  136.927907]  ?
-> > > > __switch_to_asm+0x34/0x70 [  136.927911]  ?
-> > > > __switch_to_asm+0x40/0x70 [  136.927915]  ?
-> > > > __switch_to_asm+0x34/0x70 [  136.927923]  ?
-> > > > __inc_numa_state+0x28/0x70 [  136.927929]  ?
-> > > > preempt_latency_start+0x1e/0x3d [  136.927936]  ?
-> > > > get_page_from_freelist+0x821/0xb62
-> > > > [  136.927943]  ? slab_pre_alloc_hook+0x12/0x3b [  136.927948]  ?
-> > > > kmem_cache_alloc_node_trace+0xf6/0x108
-> > > > [  136.927954]  ? alloc_vmap_area+0x78/0x2f6
+> On Fri, Nov 16, 2018 at 10:37:00PM +0000, Zhi, Yong wrote:
+> ...
+> > > > +/**
+> > > > + * struct ipu3_uapi_shd_grid_config - Bayer shading(darkening)
+> > > > +correction
+> > > > + *
+> > > > + * @width:	Grid horizontal dimensions, u8, [8, 128], default 73
+> > > > + * @height:	Grid vertical dimensions, u8, [8, 128], default 56
+> > > > + * @block_width_log2:	Log2 of the width of the grid cell in pixel
+> > > count
+> > > > + *			u4, [0, 15], default value 5.
+> > > > + * @__reserved0:	reserved
+> > > > + * @block_height_log2:	Log2 of the height of the grid cell in pixel
+> > > count
+> > > > + *			u4, [0, 15], default value 6.
+> > > > + * @__reserved1:	reserved
+> > > > + * @grid_height_per_slice:	SHD_MAX_CELLS_PER_SET/width.
+> > > > + *				(with SHD_MAX_CELLS_PER_SET =
+> 146).
+> > > > + * @x_start:	X value of top left corner of sensor relative to ROI
+> > > > + *		u12, [-4096, 0]. default 0, only negative values.
+> > > > + * @y_start:	Y value of top left corner of sensor relative to ROI
+> > > > + *		u12, [-4096, 0]. default 0, only negative values.
 > > >
-> > > Is it just me or the backtrace above doesn't seem to make sense? I
-> > > don't see any allocations inside ipu3_css_cfg_acc().
-> >
-> > I suppose that's why it's prefixed with '?' :-)
-> >
-> > > > [  136.927965]  ipu3_css_cfg_acc+0xa0/0x1b5f [ipu3_imgu] [
-> > > > 136.927981]  ipu3_css_set_parameters+0x286/0x6e7 [ipu3_imgu] [
-> > > > 136.927995]  ipu3_css_start_streaming+0x1230/0x130a [ipu3_imgu] [
-> > > > 136.928010]  imgu_s_stream+0x104/0x2f7 [ipu3_imgu] [  136.928022]
-> > > > ipu3_vb2_start_streaming+0x168/0x1bd [ipu3_imgu] [  136.928034]
-> > > > vb2_start_streaming+0x6c/0xf2 [videobuf2_common] [  136.928044]
-> > > > vb2_core_streamon+0xcf/0x109 [videobuf2_common] [  136.928061]
-> > > > __video_do_ioctl+0x239/0x388 [videodev] [  136.928081]
-> > > > video_usercopy+0x25d/0x47a [videodev] [  136.928097]  ?
-> > > > copy_overflow+0x14/0x14 [videodev] [  136.928115]
-> > > > v4l2_ioctl+0x4d/0x58 [videodev] [  136.928123]
-> > > > vfs_ioctl+0x1b/0x28 [  136.928130]  do_vfs_ioctl+0x4de/0x566 [
-> > > > 136.928139]
-> > > > ksys_ioctl+0x50/0x70 [  136.928146]  __x64_sys_ioctl+0x16/0x19 [
-> > > > 136.928152]  do_syscall_64+0x4d/0x5a [  136.928158]
-> > > > entry_SYSCALL_64_after_hwframe+0x44/0xa9
-> > > > [  136.928164] RIP: 0033:0x7f1ec9a84f47 [  136.928169] Code: 00 00
-> > > > 00 48 8b 05 51 6f 2c 00 64 c7 00 26 00 00 00 48
-> > > > c7 c0 ff ff ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 b8 10 00 00 00
-> > > > 0f
-> > > > 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d 21 6f 2c 00 f7 d8 64 89
-> > > > 01
-> > > > 48 [  136.928173] RSP: 002b:00007ffe279e6188 EFLAGS: 00000246
-> > ORIG_RAX:
-> > > > 0000000000000010
-> > > > [  136.928178] RAX: ffffffffffffffda RBX: 0000000000000007 RCX:
-> > > > 00007f1ec9a84f47
-> > > > [  136.928181] RDX: 00007ffe279e6194 RSI: 0000000040045612 RDI:
-> > > > 0000000000000003
-> > > > [  136.928184] RBP: 0000000000000000 R08: 00007f1ec776d000 R09:
-> > > > 0000000000000000
-> > > > [  136.928188] R10: 0000000000000020 R11: 0000000000000246 R12:
-> > > > 00007ffe279e6360
-> > > > [  136.928191] R13: 0000000000000004 R14: 00007ffe279e6360 R15:
-> > > > 00007ffe279e8826
-> > > > [  136.928198] Modules linked in: ccm zram arc4 iwlmvm mac80211
-> > > > intel_rapl x86_pkg_temp_thermal intel_powerclamp coretemp iwlwifi
-> > > > cfg80211 hid_multitouch ipu3_imgu ipu3_cio2 8250_dw
-> > videobuf2_dma_sg
-> > > > videobuf2_memops videobuf2_v4l2 processor_thermal_device
-> > > > intel_soc_dts_iosf videobuf2_common ov5670 ov13858 dw9714
-> > > > v4l2_fwnode v4l2_common videodev media at24 cros_ec_lpcs
-> > > > cros_ec_core int3403_thermal int340x_thermal_zone int3400_thermal
-> > > > acpi_thermal_rel chromeos_pstore mac_hid autofs4 usbhid mmc_block
-> > > > hid_generic i915 sdhci_pci video cqhci i2c_algo_bit sdhci
-> > > > drm_kms_helper syscopyarea sysfillrect sysimgblt fb_sys_fops drm
-> > > > drm_panel_orientation_quirks i2c_hid hid [  136.928273] ---[ end
-> > > > trace 4ec6c2ce09e06d9d ]--- [  136.928288] RIP:
-> > > > 0010:ipu3_css_osys_calc+0xc54/0xe14 [ipu3_imgu] [  136.928293] Code:
-> > > > 89 44 24 28 42 8b 44 86 6c f7 54 24 04 81 64 24 28 00 fd ff ff 81
-> > > > 64
-> > > > 24 04 00 03 00 00 8d 44 03 ff 81 44 24 28 80 03 00 00 99 <f7> fb
-> > > > 0f af c3 bb 20 00 00 00 99 f7 fb 8b 5c 24 40 83 fd 01 19 d2 [
-> > > > 136.928297] RSP: 0018:ffff9af2c0b837c8 EFLAGS: 00010202 [
-> > > > 136.928302]
-> > RAX: 00000000ffffffff RBX: 0000000000000000 RCX:
-> > > > ffff9af2c3e353c0
-> > > > [  136.928307] RDX: 00000000ffffffff RSI: ffff9af2c0b838e0 RDI:
-> > > > ffff9af2c3e353c0
-> > > > [  136.928311] RBP: 0000000000000001 R08: 0000000000000000 R09:
-> > > > ffff9af2c0b83880
-> > > > [  136.928320] R10: ffff9af2c3e353c0 R11: ffff9af2c3e357c0 R12:
-> > > > 00000000000003a0
-> > > > [  136.928324] R13: 0000000000025a0a R14: 0000000000000000 R15:
-> > > > 0000000000000000
-> > > > [  136.928330] FS:  00007f1eca167700(0000)
-> > > > GS:ffff8c19fab00000(0000)
-> > > > knlGS:
-> > > > 0000000000000000
-> > > > [  136.928349] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033 [
-> > > > 136.928364] CR2: 00007f1ec776c000 CR3: 00000001312a4003 CR4:
-> > > > 00000000003606e0
-> > > >
-> > > > The script can be found at
-> > > > https://lists.libcamera.org/pipermail/libcamera-devel/2018-Novembe
-> > > > r/
-> > > > 00004
-> > > > 0.html.
-> > > >
-> > > > I may be doing something wrong (and I probably am), but in any
-> > > > case, the driver shouldn't crash. Could you please have a look ?
+> > > I suppose u12 is incorrect here, if the value is signed --- and
+> > > negative (sign bit) if not 0?
 > > >
-> > > It looks like the driver doesn't have the default state initialized
-> > > correctly somewhere and it ends up using 0 as the divisor in some
-> > > calculation? Something to fix indeed.
 > >
-> > That's probably the case. I'll trust Intel to fix that in v8 :-)
-> >
+> > The value will be written to 13 bit register, should use s12.0.
 > 
-> Ack.
+> If you have s12, that means the most significant bit is the sign bit. So if the
+> smallest value is -4096, you'd need s13.
+> 
+> But where is the sign bit, i.e. is this either s13 or s16?
 > 
 
-Thanks for catching this.
-I was able to reproduce this error and I see that error handling
-is missing, leading to the panic.
+The notation of s12.0 means 13 bit with fraction bit as 0 right? 
 
-https://git.linuxtv.org/sailus/media_tree.git/tree/drivers/media
-/pci/intel/ipu3/ipu3-css-params.c?h=ipu3-v7&id=
-19cee7329ca2d0156043cac6afcde535e93310af#n433
-
-is where the -EINVAL is returned.
-
-Setting the return type as int for the following function and all
-its callers to use the return value properly to error out, makes
-the panic go away.
-
-ipu3_css_osys_calc_frame_and_stripe_params()
-
-Will include the fix in v8.
-
-Thanks for catching this.
-
-Raj
-
-> > --
-> > Regards,
 > >
-> > Laurent Pinchart
+> > > > + */
+> > > > +struct ipu3_uapi_shd_grid_config {
+> > > > +	/* reg 0 */
+> > > > +	__u8 width;
+> > > > +	__u8 height;
+> > > > +	__u8 block_width_log2:3;
+> > > > +	__u8 __reserved0:1;
+> > > > +	__u8 block_height_log2:3;
+> > > > +	__u8 __reserved1:1;
+> > > > +	__u8 grid_height_per_slice;
+> > > > +	/* reg 1 */
+> > > > +	__s16 x_start;
+> > > > +	__s16 y_start;
+> > > > +} __packed;
+> 
+> ...
+> 
+> > > > +/**
+> > > > + * struct ipu3_uapi_iefd_cux2_1 - Calculate power of non-directed
+> denoise
+> > > > + *				  element apply.
+> > > > + * @x0: X0 point of Config Unit, u9.0, default 0.
+> > > > + * @x1: X1 point of Config Unit, u9.0, default 0.
+> > > > + * @a01: Slope A of Config Unit, s4.4, default 0.
+> > >
+> > > The field is marked unsigned below. Which one is correct?
+> > >
 > >
+> > They are both correct, however, s4.4 is the internal representation
+> > used by CU, the inputs are unsigned, I will add a note in v8, same
+> > applies to the few other places as you commented.
+> 
+> I still find this rather confusing. Is there a sign bit or is there not?
+> 
+
+It's unsigned number from driver perspective, all CU inputs are unsigned, however, they will be "converted" to signed for FW/HW to use. I have to consult FW expert if more clarification is needed.
+
 > >
+> > > > + * @__reserved1: reserved
+> > > > + * @b01: offset B0 of Config Unit, u7.0, default 0.
+> > > > + * @__reserved2: reserved
+> > > > + */
+> > > > +struct ipu3_uapi_iefd_cux2_1 {
+> > > > +	__u32 x0:9;
+> > > > +	__u32 x1:9;
+> > > > +	__u32 a01:9;
+> > > > +	__u32 __reserved1:5;
+> > > > +
+> > > > +	__u32 b01:8;
+> > > > +	__u32 __reserved2:24;
+> > > > +} __packed;
+> > > > +
+> > > > +/**
+> > > > + * struct ipu3_uapi_iefd_cux4 - Calculate power of non-directed
+> > > sharpening
+> > > > + *				element.
+> > > > + *
+> > > > + * @x0:	X0 point of Config Unit, u9.0, default 0.
+> > > > + * @x1:	X1 point of Config Unit, u9.0, default 0.
+> > > > + * @x2:	X2 point of Config Unit, u9.0, default 0.
+> > > > + * @__reserved0:	reserved
+> > > > + * @x3:	X3 point of Config Unit, u9.0, default 0.
+> > > > + * @a01:	Slope A0 of Config Unit, s4.4, default 0.
+> > > > + * @a12:	Slope A1 of Config Unit, s4.4, default 0.
+> > >
+> > > Same here, suggest __s32 below if this is signed.
+> > >
+> >
+> > Ack, same reason as ipu3_uapi_iefd_cux2_1, will add a comments.
+> >
+> > > > + * @__reserved1:	reserved
+> > > > + * @a23:	Slope A2 of Config Unit, s4.4, default 0.
+> > > > + * @b01:	Offset B0 of Config Unit, s7.0, default 0.
+> > > > + * @b12:	Offset B1 of Config Unit, s7.0, default 0.
+> > > > + * @__reserved2:	reserved
+> > > > + * @b23:	Offset B2 of Config Unit, s7.0, default 0.
+> > > > + * @__reserved3: reserved
+> > > > + */
+> > > > +struct ipu3_uapi_iefd_cux4 {
+> > > > +	__u32 x0:9;
+> > > > +	__u32 x1:9;
+> > > > +	__u32 x2:9;
+> > > > +	__u32 __reserved0:5;
+> > > > +
+> > > > +	__u32 x3:9;
+> > > > +	__u32 a01:9;
+> > > > +	__u32 a12:9;
+> > > > +	__u32 __reserved1:5;
+> > > > +
+> > > > +	__u32 a23:9;
+> > > > +	__u32 b01:8;
+> > > > +	__u32 b12:8;
+> > > > +	__u32 __reserved2:7;
+> > > > +
+> > > > +	__u32 b23:8;
+> > > > +	__u32 __reserved3:24;
+> > > > +} __packed;
+> > > > +
+> > > > +/**
+> > > > + * struct ipu3_uapi_iefd_cux6_rad - Radial Config Unit (CU)
+> > > > + *
+> > > > + * @x0:	x0 points of Config Unit radial, u8.0
+> > > > + * @x1:	x1 points of Config Unit radial, u8.0
+> > > > + * @x2:	x2 points of Config Unit radial, u8.0
+> > > > + * @x3:	x3 points of Config Unit radial, u8.0
+> > > > + * @x4:	x4 points of Config Unit radial, u8.0
+> > > > + * @x5:	x5 points of Config Unit radial, u8.0
+> > > > + * @__reserved1: reserved
+> > > > + * @a01:	Slope A of Config Unit radial, s7.8
+> > > > + * @a12:	Slope A of Config Unit radial, s7.8
+> > > > + * @a23:	Slope A of Config Unit radial, s7.8
+> > > > + * @a34:	Slope A of Config Unit radial, s7.8
+> > > > + * @a45:	Slope A of Config Unit radial, s7.8
+> > > > + * @__reserved2: reserved
+> > > > + * @b01:	Slope B of Config Unit radial, s9.0
+> > > > + * @b12:	Slope B of Config Unit radial, s9.0
+> > > > + * @b23:	Slope B of Config Unit radial, s9.0
+> > > > + * @__reserved4: reserved
+> > > > + * @b34:	Slope B of Config Unit radial, s9.0
+> > > > + * @b45:	Slope B of Config Unit radial, s9.0
+> > > > + * @__reserved5: reserved
+> > > > + */
+> > > > +struct ipu3_uapi_iefd_cux6_rad {
+> > > > +	__u32 x0:8;
+> > > > +	__u32 x1:8;
+> > > > +	__u32 x2:8;
+> > > > +	__u32 x3:8;
+> > > > +
+> > > > +	__u32 x4:8;
+> > > > +	__u32 x5:8;
+> > > > +	__u32 __reserved1:16;
+> > > > +
+> > > > +	__u32 a01:16;
+> > > > +	__u32 a12:16;
+> > > > +
+> > > > +	__u32 a23:16;
+> > > > +	__u32 a34:16;
+> > > > +
+> > > > +	__u32 a45:16;
+> > > > +	__u32 __reserved2:16;
+> > > > +
+> > > > +	__u32 b01:10;
+> > > > +	__u32 b12:10;
+> > > > +	__u32 b23:10;
+> > > > +	__u32 __reserved4:2;
+> > > > +
+> > > > +	__u32 b34:10;
+> > > > +	__u32 b45:10;
+> > > > +	__u32 __reserved5:12;
+> > > > +} __packed;
+> > > > +
+> > > > +/**
+> > > > + * struct ipu3_uapi_yuvp1_iefd_cfg_units - IEFd Config Units
+> > > > +parameters
+> > > > + *
+> > > > + * @cu_1: calculate weight for blending directed and
+> > > > + *	  non-directed denoise elements. See &ipu3_uapi_iefd_cux2
+> > > > + * @cu_ed: calculate power of non-directed sharpening element, see
+> > > > + *	   &ipu3_uapi_iefd_cux6_ed
+> > > > + * @cu_3: calculate weight for blending directed and
+> > > > + *	  non-directed denoise elements. A &ipu3_uapi_iefd_cux2
+> > > > + * @cu_5: calculate power of non-directed denoise element apply, use
+> > > > + *	  &ipu3_uapi_iefd_cux2_1
+> > > > + * @cu_6: calculate power of non-directed sharpening element. See
+> > > > + *	  &ipu3_uapi_iefd_cux4
+> > > > + * @cu_7: calculate weight for blending directed and
+> > > > + *	  non-directed denoise elements. Use &ipu3_uapi_iefd_cux2
+> > > > + * @cu_unsharp: Config Unit of unsharp &ipu3_uapi_iefd_cux4
+> > > > + * @cu_radial: Config Unit of radial &ipu3_uapi_iefd_cux6_rad
+> > > > + * @cu_vssnlm: Config Unit of vssnlm &ipu3_uapi_iefd_cux2  */
+> > > > +struct ipu3_uapi_yuvp1_iefd_cfg_units {
+> > > > +	struct ipu3_uapi_iefd_cux2 cu_1;
+> > > > +	struct ipu3_uapi_iefd_cux6_ed cu_ed;
+> > > > +	struct ipu3_uapi_iefd_cux2 cu_3;
+> > > > +	struct ipu3_uapi_iefd_cux2_1 cu_5;
+> > > > +	struct ipu3_uapi_iefd_cux4 cu_6;
+> > > > +	struct ipu3_uapi_iefd_cux2 cu_7;
+> > > > +	struct ipu3_uapi_iefd_cux4 cu_unsharp;
+> > > > +	struct ipu3_uapi_iefd_cux6_rad cu_radial;
+> > > > +	struct ipu3_uapi_iefd_cux2 cu_vssnlm; } __packed;
+> > > > +
+> > > > +/**
+> > > > + * struct ipu3_uapi_yuvp1_iefd_config_s - IEFd config
+> > > > + *
+> > > > + * @horver_diag_coeff: Gradiant compensation, coefficient that
+> > > compensates for
+> > > > + *		       different distance for vertical / horizontal and
+> diagonal
+> > > > + *		       * gradient calculation (~1/sqrt(2)).
+> > > > + * @__reserved0: reserved
+> > > > + * @clamp_stitch: Slope to stitch between clamped and unclamped
+> > > > + edge
+> > > values
+> > > > + * @__reserved1: reserved
+> > > > + * @direct_metric_update: Update coeff for direction metric
+> > > > + * @__reserved2: reserved
+> > > > + * @ed_horver_diag_coeff: Radial Coefficient that compensates for
+> > > > + *			  different distance for vertical/horizontal and
+> > > > + *			  diagonal gradient calculation (~1/sqrt(2))
+> > > > + * @__reserved3: reserved
+> > > > + */
+> > > > +struct ipu3_uapi_yuvp1_iefd_config_s {
+> > > > +	__u32 horver_diag_coeff:7;
+> > > > +	__u32 __reserved0:1;
+> > > > +	__u32 clamp_stitch:6;
+> > > > +	__u32 __reserved1:2;
+> > > > +	__u32 direct_metric_update:5;
+> > > > +	__u32 __reserved2:3;
+> > > > +	__u32 ed_horver_diag_coeff:7;
+> > > > +	__u32 __reserved3:1;
+> > > > +} __packed;
+> > > > +
+> > > > +/**
+> > > > + * struct ipu3_uapi_yuvp1_iefd_control - IEFd control
+> > > > + *
+> > > > + * @iefd_en:	Enable IEFd
+> > > > + * @denoise_en:	Enable denoise
+> > > > + * @direct_smooth_en:	Enable directional smooth
+> > > > + * @rad_en:	Enable radial update
+> > > > + * @vssnlm_en:	Enable VSSNLM output filter
+> > > > + * @__reserved:	reserved
+> > > > + */
+> > > > +struct ipu3_uapi_yuvp1_iefd_control {
+> > > > +	__u32 iefd_en:1;
+> > > > +	__u32 denoise_en:1;
+> > > > +	__u32 direct_smooth_en:1;
+> > > > +	__u32 rad_en:1;
+> > > > +	__u32 vssnlm_en:1;
+> > > > +	__u32 __reserved:27;
+> > > > +} __packed;
+> > > > +
+> > > > +/**
+> > > > + * struct ipu3_uapi_sharp_cfg - Sharpening config
+> > > > + *
+> > > > + * @nega_lmt_txt: Sharpening limit for negative overshoots for texture.
+> > > > + * @__reserved0: reserved
+> > > > + * @posi_lmt_txt: Sharpening limit for positive overshoots for texture.
+> > > > + * @__reserved1: reserved
+> > > > + * @nega_lmt_dir: Sharpening limit for negative overshoots for
+> > > > +direction
+> > > (edge).
+> > > > + * @__reserved2: reserved
+> > > > + * @posi_lmt_dir: Sharpening limit for positive overshoots for
+> > > > + direction
+> > > (edge).
+> > > > + * @__reserved3: reserved
+> > > > + *
+> > > > + * Fixed point type u13.0, range [0, 8191].
+> > > > + */
+> > > > +struct ipu3_uapi_sharp_cfg {
+> > > > +	__u32 nega_lmt_txt:13;
+> > > > +	__u32 __reserved0:19;
+> > > > +	__u32 posi_lmt_txt:13;
+> > > > +	__u32 __reserved1:19;
+> > > > +	__u32 nega_lmt_dir:13;
+> > > > +	__u32 __reserved2:19;
+> > > > +	__u32 posi_lmt_dir:13;
+> > > > +	__u32 __reserved3:19;
+> > > > +} __packed;
+> > > > +
+> > > > +/**
+> > > > + * struct struct ipu3_uapi_far_w - Sharpening config for far
+> > > > +sub-group
+> > > > + *
+> > > > + * @dir_shrp:	Weight of wide direct sharpening, u1.6, range [0, 64],
+> > > default 64.
+> > > > + * @__reserved0:	reserved
+> > > > + * @dir_dns:	Weight of wide direct denoising, u1.6, range [0, 64],
+> > > default 0.
+> > > > + * @__reserved1:	reserved
+> > > > + * @ndir_dns_powr:	Power of non-direct denoising,
+> > > > + *			Precision u1.6, range [0, 64], default 64.
+> > > > + * @__reserved2:	reserved
+> > > > + */
+> > > > +struct ipu3_uapi_far_w {
+> > > > +	__u32 dir_shrp:7;
+> > > > +	__u32 __reserved0:1;
+> > > > +	__u32 dir_dns:7;
+> > > > +	__u32 __reserved1:1;
+> > > > +	__u32 ndir_dns_powr:7;
+> > > > +	__u32 __reserved2:9;
+> > > > +} __packed;
+> > > > +
+> > > > +/**
+> > > > + * struct struct ipu3_uapi_unsharp_cfg - Unsharp config
+> > > > + *
+> > > > + * @unsharp_weight: Unsharp mask blending weight.
+> > > > + *		    u1.6, range [0, 64], default 16.
+> > > > + *		    0 - disabled, 64 - use only unsharp.
+> > > > + * @__reserved0: reserved
+> > > > + * @unsharp_amount: Unsharp mask amount, u4.5, range [0, 511],
+> > > default 0.
+> > > > + * @__reserved1: reserved
+> > > > + */
+> > > > +struct ipu3_uapi_unsharp_cfg {
+> > > > +	__u32 unsharp_weight:7;
+> > > > +	__u32 __reserved0:1;
+> > > > +	__u32 unsharp_amount:9;
+> > > > +	__u32 __reserved1:15;
+> > > > +} __packed;
+> > > > +
+> > > > +/**
+> > > > + * struct ipu3_uapi_yuvp1_iefd_shrp_cfg - IEFd sharpness config
+> > > > + *
+> > > > + * @cfg: sharpness config &ipu3_uapi_sharp_cfg
+> > > > + * @far_w: wide range config, value as specified by &ipu3_uapi_far_w:
+> > > > + *	The 5x5 environment is separated into 2 sub-groups, the 3x3
+> nearest
+> > > > + *	neighbors (8 pixels called Near), and the second order
+> neighborhood
+> > > > + *	around them (16 pixels called Far).
+> > > > + * @unshrp_cfg: unsharpness config. &ipu3_uapi_unsharp_cfg  */
+> > > > +struct ipu3_uapi_yuvp1_iefd_shrp_cfg {
+> > > > +	struct ipu3_uapi_sharp_cfg cfg;
+> > > > +	struct ipu3_uapi_far_w far_w;
+> > > > +	struct ipu3_uapi_unsharp_cfg unshrp_cfg; } __packed;
+> > > > +
+> > > > +/**
+> > > > + * struct ipu3_uapi_unsharp_coef0 - Unsharp mask coefficients
+> > > > + *
+> > > > + * @c00: Coeff11, s0.8, range [-255, 255], default 1.
+> > > > + * @c01: Coeff12, s0.8, range [-255, 255], default 5.
+> > > > + * @c02: Coeff13, s0.8, range [-255, 255], default 9.
+> > > > + * @__reserved: reserved
+> > > > + *
+> > > > + * Configurable registers for common sharpening support.
+> > > > + */
+> > > > +struct ipu3_uapi_unsharp_coef0 {
+> > > > +	__u32 c00:9;
+> > > > +	__u32 c01:9;
+> > > > +	__u32 c02:9;
+> > > > +	__u32 __reserved:5;
+> > >
+> > > __s32?
+> > >
+> >
+> > Will add a note, same as ipu3_uapi_iefd_cux2_1.
+> >
+> > > > +} __packed;
+> > > > +
+> > > > +/**
+> > > > + * struct ipu3_uapi_unsharp_coef1 - Unsharp mask coefficients
+> > > > + *
+> > > > + * @c11: Coeff22, s0.8, range [-255, 255], default 29.
+> > > > + * @c12: Coeff23, s0.8, range [-255, 255], default 55.
+> > > > + * @c22: Coeff33, s0.8, range [-255, 255], default 96.
+> > > > + * @__reserved: reserved
+> > > > + */
+> > > > +struct ipu3_uapi_unsharp_coef1 {
+> > > > +	__u32 c11:9;
+> > > > +	__u32 c12:9;
+> > > > +	__u32 c22:9;
+> > >
+> > > __s32?
+> > >
+> >
+> > Ack.
+> >
+> > > > +	__u32 __reserved:5;
+> > > > +} __packed;
+> > > > +
+> > > > +/**
+> > > > + * struct ipu3_uapi_yuvp1_iefd_unshrp_cfg - Unsharp mask config
+> > > > + *
+> > > > + * @unsharp_coef0: unsharp coefficient 0 config. See
+> > > &ipu3_uapi_unsharp_coef0
+> > > > + * @unsharp_coef1: unsharp coefficient 1 config. See
+> > > &ipu3_uapi_unsharp_coef1
+> > > > + */
+> > > > +struct ipu3_uapi_yuvp1_iefd_unshrp_cfg {
+> > > > +	struct ipu3_uapi_unsharp_coef0 unsharp_coef0;
+> > > > +	struct ipu3_uapi_unsharp_coef1 unsharp_coef1; } __packed;
+> > > > +
+> > >
+> > > ...
+> > >
+> > > > +/**
+> > > > + * struct ipu3_uapi_isp_lin_vmem_params - Linearization
+> > > > +parameters
+> > > > + *
+> > > > + * @lin_lutlow_gr: linearization look-up table for GR channel
+> interpolation.
+> > > > + * @lin_lutlow_r: linearization look-up table for R channel
+> interpolation.
+> > > > + * @lin_lutlow_b: linearization look-up table for B channel
+> interpolation.
+> > > > + * @lin_lutlow_gb: linearization look-up table for GB channel
+> interpolation.
+> > > > + *			lin_lutlow_gr / lin_lutlow_gr / lin_lutlow_gr /
+> > >
+> > > Copy & paste issue here? Should the postfixes be gr, r, b and gb instead?
+> > >
+> >
+> > Ack.
+> >
+> > It's a long file, thanks a lot for your time.
+> >
+> > Yong
+> >
+> > > > + *			lin_lutlow_gr <= LIN_MAX_VALUE - 1.
+> > > > + * @lin_lutdif_gr:	lin_lutlow_gr[i+1] - lin_lutlow_gr[i].
+> > > > + * @lin_lutdif_r:	lin_lutlow_r[i+1] - lin_lutlow_r[i].
+> > > > + * @lin_lutdif_b:	lin_lutlow_b[i+1] - lin_lutlow_b[i].
+> > > > + * @lin_lutdif_gb:	lin_lutlow_gb[i+1] - lin_lutlow_gb[i].
+> > > > + */
+> > > > +struct ipu3_uapi_isp_lin_vmem_params {
+> > > > +	__s16 lin_lutlow_gr[IPU3_UAPI_LIN_LUT_SIZE];
+> > > > +	__s16 lin_lutlow_r[IPU3_UAPI_LIN_LUT_SIZE];
+> > > > +	__s16 lin_lutlow_b[IPU3_UAPI_LIN_LUT_SIZE];
+> > > > +	__s16 lin_lutlow_gb[IPU3_UAPI_LIN_LUT_SIZE];
+> > > > +	__s16 lin_lutdif_gr[IPU3_UAPI_LIN_LUT_SIZE];
+> > > > +	__s16 lin_lutdif_r[IPU3_UAPI_LIN_LUT_SIZE];
+> > > > +	__s16 lin_lutdif_b[IPU3_UAPI_LIN_LUT_SIZE];
+> > > > +	__s16 lin_lutdif_gb[IPU3_UAPI_LIN_LUT_SIZE];
+> > > > +} __packed;
+> > >
+> > > --
+> > > Kind regards,
+> > >
+> > > Sakari Ailus
+> > > sakari.ailus@linux.intel.com
+> 
+> --
+> Regards,
+> 
+> Sakari Ailus
+> sakari.ailus@linux.intel.com
