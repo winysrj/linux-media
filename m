@@ -1,21 +1,21 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr1-f67.google.com ([209.85.221.67]:37410 "EHLO
-        mail-wr1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726374AbeK3JhU (ORCPT
+Received: from mail-wr1-f68.google.com ([209.85.221.68]:39132 "EHLO
+        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726374AbeK3Jhb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 30 Nov 2018 04:37:20 -0500
-Received: by mail-wr1-f67.google.com with SMTP id j10so3465479wru.4
-        for <linux-media@vger.kernel.org>; Thu, 29 Nov 2018 14:30:17 -0800 (PST)
+        Fri, 30 Nov 2018 04:37:31 -0500
+Received: by mail-wr1-f68.google.com with SMTP id t27so3470629wra.6
+        for <linux-media@vger.kernel.org>; Thu, 29 Nov 2018 14:30:28 -0800 (PST)
 Received: from [192.168.43.227] (92.40.249.58.threembb.co.uk. [92.40.249.58])
-        by smtp.gmail.com with ESMTPSA id h131sm5525852wmd.17.2018.11.29.14.30.16
+        by smtp.gmail.com with ESMTPSA id c7sm5121907wre.64.2018.11.29.14.30.26
         for <linux-media@vger.kernel.org>
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 29 Nov 2018 14:30:16 -0800 (PST)
+        Thu, 29 Nov 2018 14:30:26 -0800 (PST)
 From: Malcolm Priestley <tvboxspy@gmail.com>
-Subject: [PATCH 3/4] media: lmedm04: Move interrupt buffer to priv buffer.
+Subject: [PATCH 4/4] media: lmedm04: use dvb_usbv2_generic_rw_locked
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Message-ID: <a54f1631-4279-f580-9a61-75472b2b90e2@gmail.com>
-Date: Thu, 29 Nov 2018 22:30:15 +0000
+Message-ID: <c5920c3c-fa85-eff5-9c3d-d79238287c2e@gmail.com>
+Date: Thu, 29 Nov 2018 22:30:25 +0000
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
@@ -23,68 +23,86 @@ Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Interrupt is always present throught life time of
-there is no dma element move this buffer to private
-area of driver.
+Use dvb-usb-v2 generic usb function for bulk transfers and simplify logic.
 
 Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
 ---
- drivers/media/usb/dvb-usb-v2/lmedm04.c | 26 +++++++++-----------------
- 1 file changed, 9 insertions(+), 17 deletions(-)
+ drivers/media/usb/dvb-usb-v2/lmedm04.c | 42 ++++++++------------------
+ 1 file changed, 12 insertions(+), 30 deletions(-)
 
 diff --git a/drivers/media/usb/dvb-usb-v2/lmedm04.c b/drivers/media/usb/dvb-usb-v2/lmedm04.c
-index 8fb53b83c914..7b1aaed259db 100644
+index 7b1aaed259db..8ca0cc67541f 100644
 --- a/drivers/media/usb/dvb-usb-v2/lmedm04.c
 +++ b/drivers/media/usb/dvb-usb-v2/lmedm04.c
-@@ -134,7 +134,7 @@ struct lme2510_state {
- 	u8 stream_on;
- 	u8 pid_size;
- 	u8 pid_off;
--	void *buffer;
-+	u8 int_buffer[128];
- 	struct urb *lme_urb;
- 	u8 usb_buffer[64];
- 	/* Frontend original calls */
-@@ -408,20 +408,14 @@ static int lme2510_int_read(struct dvb_usb_adapter *adap)
- 	if (lme_int->lme_urb == NULL)
- 			return -ENOMEM;
+@@ -147,50 +147,30 @@ struct lme2510_state {
+ 	u8 dvb_usb_lme2510_firmware;
+ };
  
--	lme_int->buffer = usb_alloc_coherent(d->udev, 128, GFP_ATOMIC,
--					&lme_int->lme_urb->transfer_dma);
+-static int lme2510_bulk_write(struct usb_device *dev,
+-				u8 *snd, int len, u8 pipe)
+-{
+-	int actual_l;
 -
--	if (lme_int->buffer == NULL)
--			return -ENOMEM;
+-	return usb_bulk_msg(dev, usb_sndbulkpipe(dev, pipe),
+-			    snd, len, &actual_l, 100);
+-}
 -
- 	usb_fill_int_urb(lme_int->lme_urb,
--				d->udev,
--				usb_rcvintpipe(d->udev, 0xa),
--				lme_int->buffer,
--				128,
--				lme2510_int_response,
--				adap,
--				8);
-+			 d->udev,
-+			 usb_rcvintpipe(d->udev, 0xa),
-+			 lme_int->int_buffer,
-+			 sizeof(lme_int->int_buffer),
-+			 lme2510_int_response,
-+			 adap,
-+			 8);
+-static int lme2510_bulk_read(struct usb_device *dev,
+-				u8 *rev, int len, u8 pipe)
+-{
+-	int actual_l;
+-
+-	return usb_bulk_msg(dev, usb_rcvbulkpipe(dev, pipe),
+-			    rev, len, &actual_l, 200);
+-}
+-
+ static int lme2510_usb_talk(struct dvb_usb_device *d,
+-		u8 *wbuf, int wlen, u8 *rbuf, int rlen)
++			    u8 *wbuf, int wlen, u8 *rbuf, int rlen)
+ {
+ 	struct lme2510_state *st = d->priv;
+-	u8 *buff = st->usb_buffer;
+ 	int ret = 0;
  
- 	/* Quirk of pipe reporting PIPE_BULK but behaves as interrupt */
- 	ep = usb_pipe_endpoint(d->udev, lme_int->lme_urb->pipe);
-@@ -1245,11 +1239,9 @@ static void lme2510_exit(struct dvb_usb_device *d)
- 		lme2510_kill_urb(&adap->stream);
- 	}
+-	ret = mutex_lock_interruptible(&d->usb_mutex);
++	if (max(wlen, rlen) > sizeof(st->usb_buffer))
++		return -EINVAL;
  
--	if (st->lme_urb != NULL) {
-+	if (st->lme_urb) {
- 		usb_kill_urb(st->lme_urb);
- 		usb_free_urb(st->lme_urb);
--		usb_free_coherent(d->udev, 128, st->buffer,
--				  st->lme_urb->transfer_dma);
- 		info("Interrupt Service Stopped");
- 	}
++	ret = mutex_lock_interruptible(&d->usb_mutex);
+ 	if (ret < 0)
+ 		return -EAGAIN;
+ 
+-	/* the read/write capped at 64 */
+-	memcpy(buff, wbuf, (wlen < 64) ? wlen : 64);
++	memcpy(st->usb_buffer, wbuf, wlen);
+ 
+-	ret |= lme2510_bulk_write(d->udev, buff, wlen , 0x01);
++	ret = dvb_usbv2_generic_rw_locked(d, st->usb_buffer, wlen,
++					  st->usb_buffer, rlen);
+ 
+-	ret |= lme2510_bulk_read(d->udev, buff, (rlen < 64) ?
+-			rlen : 64 , 0x01);
+-
+-	if (rlen > 0)
+-		memcpy(rbuf, buff, rlen);
++	if (rlen)
++		memcpy(rbuf, st->usb_buffer, rlen);
+ 
+ 	mutex_unlock(&d->usb_mutex);
+ 
+-	return (ret < 0) ? -ENODEV : 0;
++	return ret;
  }
+ 
+ static int lme2510_stream_restart(struct dvb_usb_device *d)
+@@ -1252,6 +1232,8 @@ static struct dvb_usb_device_properties lme2510_props = {
+ 	.bInterfaceNumber = 0,
+ 	.adapter_nr = adapter_nr,
+ 	.size_of_priv = sizeof(struct lme2510_state),
++	.generic_bulk_ctrl_endpoint = 0x01,
++	.generic_bulk_ctrl_endpoint_response = 0x01,
+ 
+ 	.download_firmware = lme2510_download_firmware,
+ 
 -- 
 2.19.1
