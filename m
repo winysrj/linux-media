@@ -1,196 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl1-f172.google.com ([209.85.214.172]:34698 "EHLO
-        mail-pl1-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725788AbeK3GdS (ORCPT
+Received: from mail-yw1-f65.google.com ([209.85.161.65]:44019 "EHLO
+        mail-yw1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725928AbeK3Glt (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 30 Nov 2018 01:33:18 -0500
-Subject: Re: Possible regression in v4l2-async
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-renesas-soc@vger.kernel.org
-References: <20181129184710.GA10382@bigcity.dyn.berto.se>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <d2eb601a-80a8-41d5-ebd0-56159d339604@gmail.com>
-Date: Thu, 29 Nov 2018 11:26:45 -0800
+        Fri, 30 Nov 2018 01:41:49 -0500
+Received: by mail-yw1-f65.google.com with SMTP id l200so1251304ywe.10
+        for <linux-media@vger.kernel.org>; Thu, 29 Nov 2018 11:35:17 -0800 (PST)
+Received: from mail-yb1-f176.google.com (mail-yb1-f176.google.com. [209.85.219.176])
+        by smtp.gmail.com with ESMTPSA id t2sm2234003ywe.56.2018.11.29.11.35.15
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 29 Nov 2018 11:35:15 -0800 (PST)
+Received: by mail-yb1-f176.google.com with SMTP id o204-v6so1226748yba.9
+        for <linux-media@vger.kernel.org>; Thu, 29 Nov 2018 11:35:15 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <20181129184710.GA10382@bigcity.dyn.berto.se>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+References: <20181004133739.19086-1-mjourdan@baylibre.com> <491c3f33-b51b-89cb-09f0-b48949d61efb@xs4all.nl>
+In-Reply-To: <491c3f33-b51b-89cb-09f0-b48949d61efb@xs4all.nl>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Thu, 29 Nov 2018 11:35:03 -0800
+Message-ID: <CAAFQd5DqY7zRR9SePWDCL0erB4x0pkBP7x2enuVvdjmyX+ASBw@mail.gmail.com>
+Subject: Re: [PATCH] media: videodev2: add V4L2_FMT_FLAG_NO_SOURCE_CHANGE
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: mjourdan@baylibre.com, Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+On Thu, Nov 29, 2018 at 1:01 AM Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>
+> On 10/04/2018 03:37 PM, Maxime Jourdan wrote:
+> > When a v4l2 driver exposes V4L2_EVENT_SOURCE_CHANGE, some (usually
+> > OUTPUT) formats may not be able to trigger this event.
+> >
+> > Add a enum_fmt format flag to tag those specific formats.
+>
+> I think I missed (or forgot) some discussion about this since I have no
+> idea why this flag is needed. What's the use-case?
 
-On 11/29/18 10:47 AM, Niklas Söderlund wrote:
-> Hi Steve, Sakari and Hans,
->
-> I have been made aware of a possible regression by a few users of
-> rcar-vin and I'm a bit puzzled how to best handle it. Maybe you can help
-> me out?
->
-> The issue is visible when running with LOCKDEP enabled and it prints a
-> warning about a possible circular locking dependency, see end of mail.
-> The warning is triggered because rcar-vin takes a mutex (group->lock) in
-> its async bound call back while the async framework already holds one
-> (lisk_lock).
+As far as I remember, the hardware/firmware Maxime has been working
+with can't handle resolution changes for some coded formats. Perhaps
+we should explain that better in the commit message and documentation
+of the flag, though. Maxime, could you refresh my memory with the
+details?
 
-I see two possible solutions to this:
+Best regards,
+Tomasz
 
-A. Remove acquiring the list_lock in v4l2_async_notifier_init().
-
-B. Move the call to v4l2_async_notifier_init()**to the top of 
-rvin_mc_parse_of_graph() (before acquiring group->lock).
-
-It's most likely safe to remove the list_lock from 
-v4l2_async_notifier_init(), because all drivers should be calling that 
-function at probe start, before it begins to add async subdev 
-descriptors to their notifiers. But just the same, I think it would be 
-safer to keep list_lock in v4l2_async_notifier_init(), just in case of 
-some strange corner case (such as a driver that adds descriptors in a 
-separate thread from the thread that calls v4l2_async_notifier_init()).
-
-So I would prefer B, but I'm open to either solution.
-
-**
 >
-> I traced the issue back to [1]. I don't believe this is any real trouble
-> here unless any of the async callbacks where to call into the async
-> framework themself which would trigger further calls to driver
-> callbacks, or maybe I'm naive and this is a real problem today.
+> Regards,
 >
-> Even if it's no real problem today I'm not sure this is never going to
-> be a problem, it would be nice if this warning could be handled somehow.
-> It is my understanding that any implementation of the async callbacks
-> who take a driver specific lock would trigger this warning which is not
-> nice.
-
-It has always been the case that v4l2-async holds the list_lock when it 
-calls a driver's async bound callback.
-
-So the problem is only that v4l2_async_notifier_init() acquires the 
-list_lock, which can create the reverse lock order driver-specific-lock 
--> list_lock. Which is solved by either A or B above.
-
-Steve
-
-> Any suggestions or hints on how to move forward with this would be
-> appreciated.
+>         Hans
 >
-> 1. eae2aed1eab9bf08 ("media: v4l2-fwnode: Switch to v4l2_async_notifier_add_subdev")
->
-> ---->> Warning output <<----
->
->   ======================================================
->   WARNING: possible circular locking dependency detected
->   4.19.0-rc1-arm64-renesas-00212-geae2aed1eab9bf08 #56 Not tainted
->   ------------------------------------------------------
->   swapper/0/1 is trying to acquire lock:
->   (____ptrval____) (&group->lock){+.+.}, at: rvin_group_notify_bound+0x30/0xa8
->
->   but task is already holding lock:
->   (____ptrval____) (list_lock){+.+.}, at: __v4l2_async_notifier_register+0x54/0x1b0
->
->   which lock already depends on the new lock.
->
->
->   the existing dependency chain (in reverse order) is:
->
->   -> #1 (list_lock){+.+.}:
->          __mutex_lock+0x70/0x7f0
->          mutex_lock_nested+0x1c/0x28
->          v4l2_async_notifier_init+0x28/0x48
->          rcar_vin_probe+0x13c/0x630
->          platform_drv_probe+0x50/0xa0
->          really_probe+0x1e0/0x298
->          driver_probe_device+0x54/0xe8
->          __driver_attach+0xf0/0xf8
->          bus_for_each_dev+0x70/0xc0
->          driver_attach+0x20/0x28
->          bus_add_driver+0x1d4/0x200
->          driver_register+0x60/0x110
->          __platform_driver_register+0x44/0x50
->          rcar_vin_driver_init+0x18/0x20
->          do_one_initcall+0x180/0x35c
->          kernel_init_freeable+0x454/0x4f8
->          kernel_init+0x10/0xfc
->          ret_from_fork+0x10/0x1c
->
->   -> #0 (&group->lock){+.+.}:
->          lock_acquire+0xc8/0x238
->          __mutex_lock+0x70/0x7f0
->          mutex_lock_nested+0x1c/0x28
->          rvin_group_notify_bound+0x30/0xa8
->          v4l2_async_match_notify+0x50/0x138
->          v4l2_async_notifier_try_all_subdevs+0x58/0xb8
->          __v4l2_async_notifier_register+0xdc/0x1b0
->          v4l2_async_notifier_register+0x38/0x58
->          rcar_vin_probe+0x1b8/0x630
->          platform_drv_probe+0x50/0xa0
->          really_probe+0x1e0/0x298
->          driver_probe_device+0x54/0xe8
->          __driver_attach+0xf0/0xf8
->          bus_for_each_dev+0x70/0xc0
->          driver_attach+0x20/0x28
->          bus_add_driver+0x1d4/0x200
->          driver_register+0x60/0x110
->          __platform_driver_register+0x44/0x50
->          rcar_vin_driver_init+0x18/0x20
->          do_one_initcall+0x180/0x35c
->          kernel_init_freeable+0x454/0x4f8
->          kernel_init+0x10/0xfc
->          ret_from_fork+0x10/0x1c
->
->   other info that might help us debug this:
->
->    Possible unsafe locking scenario:
->
->          CPU0                    CPU1
->          ----                    ----
->     lock(list_lock);
->                                  lock(&group->lock);
->                                  lock(list_lock);
->     lock(&group->lock);
->
->    *** DEADLOCK ***
->
->   2 locks held by swapper/0/1:
->    #0: (____ptrval____) (&dev->mutex){....}, at: __driver_attach+0x60/0xf8
->    #1: (____ptrval____) (list_lock){+.+.}, at: __v4l2_async_notifier_register+0x54/0x1b0
->
->   stack backtrace:
->   CPU: 0 PID: 1 Comm: swapper/0 Not tainted 4.19.0-rc1-arm64-renesas-00212-geae2aed1eab9bf08 #56
->   Hardware name: Renesas Salvator-X 2nd version board based on r8a77965 (DT)
->   Call trace:
->    dump_backtrace+0x0/0x188
->    show_stack+0x14/0x20
->    dump_stack+0xbc/0xf4
->    print_circular_bug.isra.18+0x270/0x2d8
->    __lock_acquire+0x12e8/0x17c8
->    lock_acquire+0xc8/0x238
->    __mutex_lock+0x70/0x7f0
->    mutex_lock_nested+0x1c/0x28
->    rvin_group_notify_bound+0x30/0xa8
->    v4l2_async_match_notify+0x50/0x138
->    v4l2_async_notifier_try_all_subdevs+0x58/0xb8
->    __v4l2_async_notifier_register+0xdc/0x1b0
->    v4l2_async_notifier_register+0x38/0x58
->    rcar_vin_probe+0x1b8/0x630
->    platform_drv_probe+0x50/0xa0
->    really_probe+0x1e0/0x298
->    driver_probe_device+0x54/0xe8
->    __driver_attach+0xf0/0xf8
->    bus_for_each_dev+0x70/0xc0
->    driver_attach+0x20/0x28
->    bus_add_driver+0x1d4/0x200
->    driver_register+0x60/0x110
->    __platform_driver_register+0x44/0x50
->    rcar_vin_driver_init+0x18/0x20
->    do_one_initcall+0x180/0x35c
->    kernel_init_freeable+0x454/0x4f8
->    kernel_init+0x10/0xfc
->    ret_from_fork+0x10/0x1c
->
+> >
+> > Signed-off-by: Maxime Jourdan <mjourdan@baylibre.com>
+> > ---
+> >  Documentation/media/uapi/v4l/vidioc-enum-fmt.rst | 5 +++++
+> >  include/uapi/linux/videodev2.h                   | 5 +++--
+> >  2 files changed, 8 insertions(+), 2 deletions(-)
+> >
+> > diff --git a/Documentation/media/uapi/v4l/vidioc-enum-fmt.rst b/Documentation/media/uapi/v4l/vidioc-enum-fmt.rst
+> > index 019c513df217..e0040b36ac43 100644
+> > --- a/Documentation/media/uapi/v4l/vidioc-enum-fmt.rst
+> > +++ b/Documentation/media/uapi/v4l/vidioc-enum-fmt.rst
+> > @@ -116,6 +116,11 @@ one until ``EINVAL`` is returned.
+> >        - This format is not native to the device but emulated through
+> >       software (usually libv4l2), where possible try to use a native
+> >       format instead for better performance.
+> > +    * - ``V4L2_FMT_FLAG_NO_SOURCE_CHANGE``
+> > +      - 0x0004
+> > +      - The event ``V4L2_EVENT_SOURCE_CHANGE`` is not supported
+> > +     for this format.
+> > +
+> >
+> >
+> >  Return Value
+> > diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> > index 3a65951ca51e..a28acee1cb52 100644
+> > --- a/include/uapi/linux/videodev2.h
+> > +++ b/include/uapi/linux/videodev2.h
+> > @@ -723,8 +723,9 @@ struct v4l2_fmtdesc {
+> >       __u32               reserved[4];
+> >  };
+> >
+> > -#define V4L2_FMT_FLAG_COMPRESSED 0x0001
+> > -#define V4L2_FMT_FLAG_EMULATED   0x0002
+> > +#define V4L2_FMT_FLAG_COMPRESSED     0x0001
+> > +#define V4L2_FMT_FLAG_EMULATED               0x0002
+> > +#define V4L2_FMT_FLAG_NO_SOURCE_CHANGE       0x0004
+> >
+> >       /* Frame Size and frame rate enumeration */
+> >  /*
+> >
 >
