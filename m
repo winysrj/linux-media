@@ -1,74 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it1-f194.google.com ([209.85.166.194]:38590 "EHLO
-        mail-it1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725993AbeLAHW4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 1 Dec 2018 02:22:56 -0500
-Received: by mail-it1-f194.google.com with SMTP id h65so287909ith.3
-        for <linux-media@vger.kernel.org>; Fri, 30 Nov 2018 12:12:30 -0800 (PST)
-Subject: Re: [PATCH RFC 00/15] Zero ****s, hugload of hugs <3
-To: Davidlohr Bueso <dave@stgolabs.net>,
-        Kees Cook <keescook@chromium.org>
-Cc: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Amir Goldstein <amir73il@gmail.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Daniel Axtens <dja@axtens.net>,
-        "David S. Miller" <davem@davemloft.net>,
-        Dominik Brodowski <linux@dominikbrodowski.net>,
-        Maling list - DRI developers
-        <dri-devel@lists.freedesktop.org>,
-        Eric Dumazet <edumazet@google.com>, federico.vaga@vaga.pv.it,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        Helge Deller <deller@gmx.de>, Jonathan Corbet <corbet@lwn.net>,
-        Joshua Kinard <kumba@gentoo.org>,
-        "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>,
-        "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
-        linux-ide@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux MIPS Mailing List <linux-mips@linux-mips.org>,
-        Linux mtd <linux-mtd@lists.infradead.org>,
-        linux-parisc <linux-parisc@vger.kernel.org>,
-        Linux PM list <linux-pm@vger.kernel.org>,
-        linux-scsi@vger.kernel.org, matthias.bgg@gmail.com,
-        Network Development <netdev@vger.kernel.org>,
-        nouveau <nouveau@lists.freedesktop.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Paul Burton <paul.burton@mips.com>,
-        Petr Mladek <pmladek@suse.com>, Rob Herring <robh@kernel.org>,
-        sean.wang@mediatek.com,
-        Sergey Senozhatsky <sergey.senozhatsky@gmail.com>,
-        shannon.nelson@oracle.com, Stefano Brivio <sbrivio@redhat.com>,
-        Steven Rostedt <rostedt@goodmis.org>,
-        "Tobin C. Harding" <me@tobin.cc>, makita.toshiaki@lab.ntt.co.jp,
-        Willem de Bruijn <willemb@google.com>,
-        Yonghong Song <yhs@fb.com>, yanjun.zhu@oracle.com
-References: <20181130192737.15053-1-jarkko.sakkinen@linux.intel.com>
- <CAGXu5j+jBNBsD3pvUSfEh6Lc5T1YMpbM0HeG1c6BHiJe+cKVOQ@mail.gmail.com>
- <20181130195652.7syqys76646kpaph@linux-r8p5>
-From: Jens Axboe <axboe@kernel.dk>
-Message-ID: <d7c34289-f03a-b641-cc9c-00395306511d@kernel.dk>
-Date: Fri, 30 Nov 2018 13:12:26 -0700
+Received: from perceval.ideasonboard.com ([213.167.242.64]:55770 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725776AbeK3GWx (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 30 Nov 2018 01:22:53 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Yong Zhi <yong.zhi@intel.com>
+Cc: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
+        tfiga@chromium.org, mchehab@kernel.org, hans.verkuil@cisco.com,
+        rajmohan.mani@intel.com, jian.xu.zheng@intel.com,
+        jerry.w.hu@intel.com, tuukka.toivonen@intel.com,
+        tian.shu.qiu@intel.com, bingbu.cao@intel.com
+Subject: Re: [PATCH v7 01/16] v4l: Add Intel IPU3 meta buffer formats
+Date: Thu, 29 Nov 2018 21:16:51 +0200
+Message-ID: <3858085.x2vJft3ZLq@avalon>
+In-Reply-To: <1540851790-1777-2-git-send-email-yong.zhi@intel.com>
+References: <1540851790-1777-1-git-send-email-yong.zhi@intel.com> <1540851790-1777-2-git-send-email-yong.zhi@intel.com>
 MIME-Version: 1.0
-In-Reply-To: <20181130195652.7syqys76646kpaph@linux-r8p5>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/30/18 12:56 PM, Davidlohr Bueso wrote:
-> On Fri, 30 Nov 2018, Kees Cook wrote:
-> 
->> On Fri, Nov 30, 2018 at 11:27 AM Jarkko Sakkinen
->> <jarkko.sakkinen@linux.intel.com> wrote:
->>>
->>> In order to comply with the CoC, replace **** with a hug.
-> 
-> I hope this is some kind of joke. How would anyone get offended by reading
-> technical comments? This is all beyond me...
+Hello Yong,
 
-Agree, this is insanity.
+Thank you for the patch.
+
+On Tuesday, 30 October 2018 00:22:55 EET Yong Zhi wrote:
+> Add IPU3-specific meta formats for parameter
+> processing and 3A, DVS statistics:
+
+Unless I'm mistaken DVS support has been removed. You can write this as
+
+Add IPU3-specific meta formats for processing parameters and 3A
+statistics.
+
+> 
+>   V4L2_META_FMT_IPU3_PARAMS
+>   V4L2_META_FMT_IPU3_STAT_3A
+> 
+> Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-ioctl.c | 2 ++
+>  include/uapi/linux/videodev2.h       | 4 ++++
+>  2 files changed, 6 insertions(+)
+
+I would squash this with patch 03/16.
+
+> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c
+> b/drivers/media/v4l2-core/v4l2-ioctl.c index 6489f25..abff64b 100644
+> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
+> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+> @@ -1299,6 +1299,8 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+> case V4L2_META_FMT_VSP1_HGO:	descr = "R-Car VSP1 1-D Histogram"; break;
+> case V4L2_META_FMT_VSP1_HGT:	descr = "R-Car VSP1 2-D Histogram"; break;
+> case V4L2_META_FMT_UVC:		descr = "UVC payload header metadata"; break;
+> +	case V4L2_META_FMT_IPU3_PARAMS:	descr = "IPU3 processing parameters";
+> break;
+> +	case V4L2_META_FMT_IPU3_STAT_3A:	descr = "IPU3 3A statistics"; break;
+> 
+>  	default:
+>  		/* Compressed formats */
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index f0a968a..bdccd7a 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -718,6 +718,10 @@ struct v4l2_pix_format {
+>  #define V4L2_META_FMT_UVC         v4l2_fourcc('U', 'V', 'C', 'H') /* UVC
+> Payload Header metadata */ #define V4L2_META_FMT_D4XX       
+> v4l2_fourcc('D', '4', 'X', 'X') /* D4XX Payload Header metadata */
+> 
+> +/* Vendor specific - used for IPU3 camera sub-system */
+> +#define V4L2_META_FMT_IPU3_PARAMS	v4l2_fourcc('i', 'p', '3', 'p') /* IPU3
+> params */
+
+Maybe "IPU3 processing parameters" in full ?
+
+Apart from that the patch looks good to me.
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> +#define V4L2_META_FMT_IPU3_STAT_3A	v4l2_fourcc('i', 'p', '3', 's') /* IPU3
+> 3A statistics */
+> +
+>  /* priv field value to indicates that subsequent fields are valid. */
+>  #define V4L2_PIX_FMT_PRIV_MAGIC		0xfeedcafe
+
 
 -- 
-Jens Axboe
+Regards,
+
+Laurent Pinchart
