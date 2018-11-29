@@ -1,87 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:57181 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726587AbeK2TgJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Nov 2018 14:36:09 -0500
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT FIXES FOR v4.20] Various fixes
-Message-ID: <53932235-9f31-ac99-ba3e-76249c79aac0@xs4all.nl>
-Date: Thu, 29 Nov 2018 09:31:30 +0100
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from mail.bootlin.com ([62.4.15.54]:34349 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726766AbeK2ToE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 29 Nov 2018 14:44:04 -0500
+Message-ID: <41b39e603db7eb068dd9f4542d37c1f5f07ba1c0.camel@bootlin.com>
+Subject: Re: [PATCH] media: v4l: Fix MPEG-2 slice Intra DC Precision
+ validation
+From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+To: Jonas Karlman <jonas@kwiboo.se>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Keiichi Watanabe <keiichiw@chromium.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Smitha T Murthy <smitha.t@samsung.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Date: Thu, 29 Nov 2018 09:39:15 +0100
+In-Reply-To: <AM0PR03MB46764B5CB90B17825C56DFFFACD60@AM0PR03MB4676.eurprd03.prod.outlook.com>
+References: <AM0PR03MB46764B5CB90B17825C56DFFFACD60@AM0PR03MB4676.eurprd03.prod.outlook.com>
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-SweGNEz9sQH5vT+vZWq+"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
 
-Some more fixes for 4.20.
+--=-SweGNEz9sQH5vT+vZWq+
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Four of these are related to the new Request API. Found after extending the
-Request API tests in v4l2-compliance. Most relate to a new test where I
-check what happens if STREAMON returns an error the first time it is called.
+Hi,
 
-v4l2-compliance now has code to detect that it is testing the vivid driver
-and it can now do error injection. It turned out that handling this error
-(STREAMON fails) has been broken since forever, both with and without the
-Request API.
+On Sun, 2018-11-25 at 15:21 +0000, Jonas Karlman wrote:
+> intra_dc_precision is a 2-bit integer [1]
+> allow use of all valid options, 8 - 11 bits precision
+>=20
+> [1] ISO/IEC 13818-2 Table 6-13
 
-These patches fix this.
+Thanks for this patch, this is definitely a mistake from my side here!
 
-The biggest change is "vb2: keep a reference to the request until dqbuf"
-which was discovered after I added a test where I close the request fd
-after the request was queued. Then the last reference to the request
-itself goes away when vb2_buffer_done() was called, but that requires
-the ability to use mutexes, and since that's not allowed from vb2_buffer_done
-(both because a spinlock is held and because it can be called from irq context)
-I got a BUG.
+> Fixes: c27bb30e7b6d ("media: v4l: Add definitions for MPEG-2 slice format=
+ and metadata")
+> Signed-off-by: Jonas Karlman <jonas@kwiboo.se>
 
-So this required some more work to keep a request reference while vb2 owns
-the buffer. It all makes sense, but it takes a bit of time to figure it all
-out.
+Acked-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 
-Regards,
+Cheers,
 
-	Hans
+Paul
 
-The following changes since commit 708d75fe1c7c6e9abc5381b6fcc32b49830383d0:
+> ---
+>=20
+>  drivers/media/v4l2-core/v4l2-ctrls.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+>=20
+> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-co=
+re/v4l2-ctrls.c
+> index 5f2b033a7a42..129a986fa7e1 100644
+> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> @@ -1636,7 +1636,8 @@ static int std_validate(const struct v4l2_ctrl *ctr=
+l, u32 idx,
+>  		switch (p_mpeg2_slice_params->picture.intra_dc_precision) {
+>  		case 0: /* 8 bits */
+>  		case 1: /* 9 bits */
+> -		case 11: /* 11 bits */
+> +		case 2: /* 10 bits */
+> +		case 3: /* 11 bits */
+>  			break;
+>  		default:
+>  			return -EINVAL;
+--=20
+Paul Kocialkowski, Bootlin (formerly Free Electrons)
+Embedded Linux and kernel engineering
+https://bootlin.com
 
-  media: dvb-pll: don't re-validate tuner frequencies (2018-11-23 12:27:18 -0500)
+--=-SweGNEz9sQH5vT+vZWq+
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
-are available in the Git repository at:
+-----BEGIN PGP SIGNATURE-----
 
-  git://linuxtv.org/hverkuil/media_tree.git tags/br-v4.20o
+iQEzBAABCAAdFiEEJZpWjZeIetVBefti3cLmz3+fv9EFAlv/pbMACgkQ3cLmz3+f
+v9HFqwf6AzYrrKCqzWqu/baN/TlCE+TCB06su234j89/QHoZENfQ59dEY3I79YuN
+IY0abi7RMz5QD1pR5Zouks+NRsvwTQMYiO2y15XSUCrAJaG9xl4ZcUB43kvtAIkK
+2HS6PgMAxmuT1NbIQ5VLtrAisbZIf2g4jQULUwMuf+a5DY0S4X7PFqHMLFCeSjBl
+VamoR9IzwURP+04qULVAOoKsu12dH6+fo2PS4FG4AK/rnh8/hhcgq9+XC9l7aNfN
+8Af9iUBTycB+jstbX5i8uMtMGHOGHlSm2VBQ620Ha6jKImhWwCzPeLMslU6mXV48
+EQTlGFc5AYg1CgMERzjo/QDibApEDQ==
+=Axt0
+-----END PGP SIGNATURE-----
 
-for you to fetch changes up to 759683e3fa1695014690dfc5b22bbe09d55681e8:
-
-  vicodec: set state resolution from raw format (2018-11-29 09:00:20 +0100)
-
-----------------------------------------------------------------
-Tag branch
-
-----------------------------------------------------------------
-Dan Carpenter (1):
-      media: cedrus: Fix a NULL vs IS_ERR() check
-
-Hans Verkuil (6):
-      vb2: don't call __vb2_queue_cancel if vb2_start_streaming failed
-      vb2: skip request checks for VIDIOC_PREPARE_BUF
-      vb2: keep a reference to the request until dqbuf
-      vb2: don't unbind/put the object when going to state QUEUED
-      vivid: drop v4l2_ctrl_request_complete() from start_streaming
-      vicodec: set state resolution from raw format
-
- drivers/media/common/videobuf2/videobuf2-core.c | 44 +++++++++++++++++++++++++++++++++++---------
- drivers/media/common/videobuf2/videobuf2-v4l2.c | 11 +++++++----
- drivers/media/platform/vicodec/vicodec-core.c   | 13 ++++++++++---
- drivers/media/platform/vivid/vivid-sdr-cap.c    |  2 --
- drivers/media/platform/vivid/vivid-vbi-cap.c    |  2 --
- drivers/media/platform/vivid/vivid-vbi-out.c    |  2 --
- drivers/media/platform/vivid/vivid-vid-cap.c    |  2 --
- drivers/media/platform/vivid/vivid-vid-out.c    |  2 --
- drivers/staging/media/sunxi/cedrus/cedrus_hw.c  |  4 ++--
- include/media/videobuf2-core.h                  |  2 ++
- 10 files changed, 56 insertions(+), 28 deletions(-)
+--=-SweGNEz9sQH5vT+vZWq+--
