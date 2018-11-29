@@ -1,98 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:53657 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726008AbeK2UqN (ORCPT
+Received: from mail-wr1-f68.google.com ([209.85.221.68]:36907 "EHLO
+        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726621AbeK2VJe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Nov 2018 15:46:13 -0500
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.21] Various fixes/enhancements
-Message-ID: <ecf764bb-52c1-3c34-f7a7-029d6ac6a945@xs4all.nl>
-Date: Thu, 29 Nov 2018 10:41:23 +0100
+        Thu, 29 Nov 2018 16:09:34 -0500
+Received: by mail-wr1-f68.google.com with SMTP id j10so1242225wru.4
+        for <linux-media@vger.kernel.org>; Thu, 29 Nov 2018 02:04:46 -0800 (PST)
+Subject: Re: [PATCH] media: venus: Support V4L2 QP parameters in Venus encoder
+To: Kelvin Lawson <klawson@lisden.com>, linux-media@vger.kernel.org
+References: <CADZgX3xfzqU3BLu2sc7R=TSJWwKE8bLTUprDvyVn3GcVGKYtDA@mail.gmail.com>
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Message-ID: <96b0d248-8719-e637-63f7-3468948f1c78@linaro.org>
+Date: Thu, 29 Nov 2018 12:04:41 +0200
 MIME-Version: 1.0
+In-Reply-To: <CADZgX3xfzqU3BLu2sc7R=TSJWwKE8bLTUprDvyVn3GcVGKYtDA@mail.gmail.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 708d75fe1c7c6e9abc5381b6fcc32b49830383d0:
+Hi Kelvin,
 
-  media: dvb-pll: don't re-validate tuner frequencies (2018-11-23 12:27:18 -0500)
+Thanks for the patch!
 
-are available in the Git repository at:
+On 11/12/18 12:59 PM, Kelvin Lawson wrote:
+> Support V4L2 QP parameters in Venus encoder:
+>  * V4L2_CID_MPEG_VIDEO_H264_I_FRAME_QP
+>  * V4L2_CID_MPEG_VIDEO_H264_B_FRAME_QP
+>  * V4L2_CID_MPEG_VIDEO_H264_MIN_QP
+>  * V4L2_CID_MPEG_VIDEO_H264_MAX_QP
+> 
+> Signed-off-by: Kelvin Lawson <klawson@lisden.com>
+> ---
+>  drivers/media/platform/qcom/venus/venc.c | 19 +++++++++++++++++++
+>  1 file changed, 19 insertions(+)
 
-  git://linuxtv.org/hverkuil/media_tree.git tags/br-v4.21g
+As functional changes the patch is fine, but it has many coding style
+issues. Did you read [1]?
 
-for you to fetch changes up to e5b4ae2f474785d61653e8fcb762427ee537e156:
+> 
+> diff --git a/drivers/media/platform/qcom/venus/venc.c
+> b/drivers/media/platform/qcom/venus/venc.c
+> index ce85962..321d612 100644
+> --- a/drivers/media/platform/qcom/venus/venc.c
+> +++ b/drivers/media/platform/qcom/venus/venc.c
+> @@ -651,6 +651,8 @@ static int venc_set_properties(struct venus_inst *inst)
+>   struct hfi_framerate frate;
+>   struct hfi_bitrate brate;
+>   struct hfi_idr_period idrp;
+> + struct hfi_quantization quant;
+> + struct hfi_quantization_range quant_range;
+>   u32 ptype, rate_control, bitrate, profile = 0, level = 0;
+>   int ret;
+> 
+> @@ -770,6 +772,23 @@ static int venc_set_properties(struct venus_inst *inst)
+>   if (ret)
+>   return ret;
+> 
+> + ptype = HFI_PROPERTY_PARAM_VENC_SESSION_QP;
+> + quant.qp_i = ctr->h264_i_qp;
+> + quant.qp_p = ctr->h264_p_qp;
+> + quant.qp_b = ctr->h264_b_qp;
+> + quant.layer_id = 0;
+> + ret = hfi_session_set_property(inst, ptype, &quant);
+> + if (ret)
+> + return ret;
 
-  vicodec: move the GREY format to the end of the list (2018-11-29 10:09:18 +0100)
+please fix the indentation according to coding style
+> +
+> + ptype = HFI_PROPERTY_PARAM_VENC_SESSION_QP_RANGE;
+> + quant_range.min_qp = ctr->h264_min_qp;
+> + quant_range.max_qp = ctr->h264_max_qp;
+> + quant_range.layer_id = 0;
+> + ret = hfi_session_set_property(inst, ptype, &quant_range);
+> + if (ret)
+> + return ret;
 
-----------------------------------------------------------------
-Tag branch
+ditto
 
-----------------------------------------------------------------
-Alexey Khoroshilov (1):
-      DaVinci-VPBE: fix error handling in vpbe_initialize()
+> +
+>   if (inst->fmt_cap->pixfmt == V4L2_PIX_FMT_H264) {
+>   profile = venc_v4l2_to_hfi(V4L2_CID_MPEG_VIDEO_H264_PROFILE,
+>      ctr->profile.h264);
+> 
 
-Arnd Bergmann (1):
-      media: i2c: TDA1997x: select CONFIG_HDMI
+Maybe your mail server is mangling the patches, but also please run
+checkpatch before sending patches.
 
-Colin Ian King (4):
-      exynos4-is: fix spelling mistake ACTURATOR -> ACTUATOR
-      media: dib0700: fix spelling mistake "Amplifyer" -> "Amplifier"
-      media: em28xx: fix spelling mistake, "Cinnergy" -> "Cinergy"
-      tda7432: fix spelling mistake "maximium" -> "maximum"
+-- 
+regards,
+Stan
 
-Hans Verkuil (3):
-      vivid: fix smatch warnings
-      vivid: add req_validate error injection
-      vicodec: move the GREY format to the end of the list
-
-Jasmin Jessich (1):
-      media: adv7604 added include of linux/interrupt.h
-
-Jonas Karlman (1):
-      media: v4l: Fix MPEG-2 slice Intra DC Precision validation
-
-Michael Tretter (2):
-      v4l2-pci-skeleton: replace vb2_buffer with vb2_v4l2_buffer
-      v4l2-pci-skeleton: depend on CONFIG_SAMPLES
-
-Sakari Ailus (1):
-      v4l: ioctl: Allow drivers to fill in the format description
-
-Tim Harvey (1):
-      media: adv7180: add g_skip_frames support
-
-Todor Tomov (1):
-      media: camss: Take in account sensor skip frames
-
-Tomasz Figa (1):
-      media: mtk-vcodec: Remove VA from encoder frame buffers
-
- Documentation/media/v4l-drivers/em28xx-cardlist.rst |  2 +-
- drivers/media/i2c/Kconfig                           |  1 +
- drivers/media/i2c/adv7180.c                         | 15 +++++++++++++++
- drivers/media/i2c/adv7604.c                         |  1 +
- drivers/media/i2c/tda7432.c                         |  4 ++--
- drivers/media/platform/davinci/vpbe.c               |  7 +++++--
- drivers/media/platform/exynos4-is/fimc-is-errno.c   |  4 ++--
- drivers/media/platform/exynos4-is/fimc-is-errno.h   |  2 +-
- drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c  |  6 +-----
- drivers/media/platform/mtk-vcodec/mtk_vcodec_util.h |  5 +++++
- drivers/media/platform/mtk-vcodec/venc_drv_if.h     |  2 +-
- drivers/media/platform/qcom/camss/camss-vfe.c       | 23 ++++++++++++++++++-----
- drivers/media/platform/qcom/camss/camss.c           |  2 +-
- drivers/media/platform/qcom/camss/camss.h           |  1 +
- drivers/media/platform/vicodec/codec-v4l2-fwht.c    |  3 +--
- drivers/media/platform/vivid/vivid-core.c           | 37 ++++++++++++++++++++++++++++++-------
- drivers/media/platform/vivid/vivid-core.h           |  2 ++
- drivers/media/platform/vivid/vivid-ctrls.c          | 16 ++++++++++++++++
- drivers/media/usb/dvb-usb/dib0700_devices.c         |  2 +-
- drivers/media/usb/em28xx/em28xx-cards.c             |  2 +-
- drivers/media/v4l2-core/Kconfig                     |  1 +
- drivers/media/v4l2-core/v4l2-ctrls.c                |  3 ++-
- drivers/media/v4l2-core/v4l2-ioctl.c                |  2 +-
- samples/v4l/v4l2-pci-skeleton.c                     | 11 ++++++-----
- 24 files changed, 116 insertions(+), 38 deletions(-)
+[1] https://www.kernel.org/doc/html/v4.19/process/submitting-patches.html
