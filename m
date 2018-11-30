@@ -2,36 +2,38 @@ Return-Path: <SRS0=A0HE=OJ=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AE912C04EB8
-	for <linux-media@archiver.kernel.org>; Fri, 30 Nov 2018 21:04:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6251BC64EB4
+	for <linux-media@archiver.kernel.org>; Fri, 30 Nov 2018 21:07:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7CFE820834
-	for <linux-media@archiver.kernel.org>; Fri, 30 Nov 2018 21:04:40 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 7CFE820834
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=lwn.net
+	by mail.kernel.org (Postfix) with ESMTP id 2F2E520834
+	for <linux-media@archiver.kernel.org>; Fri, 30 Nov 2018 21:07:48 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 2F2E520834
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726649AbeLAIPF (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sat, 1 Dec 2018 03:15:05 -0500
-Received: from ms.lwn.net ([45.79.88.28]:43700 "EHLO ms.lwn.net"
+        id S1726732AbeLAISQ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sat, 1 Dec 2018 03:18:16 -0500
+Received: from mga02.intel.com ([134.134.136.20]:20447 "EHLO mga02.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725991AbeLAIPF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 1 Dec 2018 03:15:05 -0500
-Received: from localhost.localdomain (localhost [127.0.0.1])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ms.lwn.net (Postfix) with ESMTPSA id BBF54145;
-        Fri, 30 Nov 2018 21:04:28 +0000 (UTC)
-Date:   Fri, 30 Nov 2018 14:04:27 -0700
-From:   Jonathan Corbet <corbet@lwn.net>
-To:     Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
-Cc:     Davidlohr Bueso <dave@stgolabs.net>,
-        Kees Cook <keescook@chromium.org>,
-        LKML <linux-kernel@vger.kernel.org>,
+        id S1726424AbeLAISQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 1 Dec 2018 03:18:16 -0500
+X-Amp-Result: UNSCANNABLE
+X-Amp-File-Uploaded: False
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by orsmga101.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 30 Nov 2018 13:07:40 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.56,299,1539673200"; 
+   d="scan'208";a="121033317"
+Received: from jsakkine-mobl1.jf.intel.com (HELO localhost) ([10.241.225.27])
+  by fmsmga001.fm.intel.com with ESMTP; 30 Nov 2018 13:07:39 -0800
+Date:   Fri, 30 Nov 2018 13:07:39 -0800
+From:   Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
+To:     Kees Cook <keescook@chromium.org>
+Cc:     LKML <linux-kernel@vger.kernel.org>,
         Amir Goldstein <amir73il@gmail.com>,
         Andrew Morton <akpm@linux-foundation.org>,
         Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
@@ -42,7 +44,8 @@ Cc:     Davidlohr Bueso <dave@stgolabs.net>,
         <dri-devel@lists.freedesktop.org>,
         Eric Dumazet <edumazet@google.com>, federico.vaga@vaga.pv.it,
         Geert Uytterhoeven <geert+renesas@glider.be>,
-        Helge Deller <deller@gmx.de>, Joshua Kinard <kumba@gentoo.org>,
+        Helge Deller <deller@gmx.de>, Jonathan Corbet <corbet@lwn.net>,
+        Joshua Kinard <kumba@gentoo.org>,
         "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>,
         "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
         linux-ide@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
@@ -65,43 +68,49 @@ Cc:     Davidlohr Bueso <dave@stgolabs.net>,
         Willem de Bruijn <willemb@google.com>,
         Yonghong Song <yhs@fb.com>, yanjun.zhu@oracle.com
 Subject: Re: [PATCH RFC 00/15] Zero ****s, hugload of hugs <3
-Message-ID: <20181130140427.1d4fd1c1@lwn.net>
-In-Reply-To: <20181130205521.GA21006@linux.intel.com>
+Message-ID: <20181130210739.GD22338@linux.intel.com>
 References: <20181130192737.15053-1-jarkko.sakkinen@linux.intel.com>
-        <CAGXu5j+jBNBsD3pvUSfEh6Lc5T1YMpbM0HeG1c6BHiJe+cKVOQ@mail.gmail.com>
-        <20181130195652.7syqys76646kpaph@linux-r8p5>
-        <20181130205521.GA21006@linux.intel.com>
-Organization: LWN.net
-X-Mailer: Claws Mail 3.17.1 (GTK+ 2.24.32; x86_64-redhat-linux-gnu)
+ <CAGXu5j+jBNBsD3pvUSfEh6Lc5T1YMpbM0HeG1c6BHiJe+cKVOQ@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAGXu5j+jBNBsD3pvUSfEh6Lc5T1YMpbM0HeG1c6BHiJe+cKVOQ@mail.gmail.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
-Message-ID: <20181130210427.GVub6GVKhdtUxvaPH9jpC5l46AzHL69AGXcLZ5XzQ6g@z>
+Message-ID: <20181130210739.0h-pVIO4q_nbP1D0KypTvu6HdkoQJEuYm0V4YYIW5QE@z>
 
-On Fri, 30 Nov 2018 12:55:21 -0800
-Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com> wrote:
-
-> This a direct quote from the CoC:
+On Fri, Nov 30, 2018 at 11:40:17AM -0800, Kees Cook wrote:
+> On Fri, Nov 30, 2018 at 11:27 AM Jarkko Sakkinen
+> <jarkko.sakkinen@linux.intel.com> wrote:
+> >
+> > In order to comply with the CoC, replace **** with a hug.
 > 
-> "Harassment includes the use of abusive, offensive or degrading
-> language, intimidation, stalking, harassing photography or recording,
-> inappropriate physical contact, sexual imagery and unwelcome sexual
-> advances or requests for sexual favors."
+> Heh. I support the replacement of the stronger language, but I find
+> "hug", "hugged", and "hugging" to be very weird replacements. Can we
+> bikeshed this to "heck", "hecked", and "hecking" (or "heckin" to
+> follow true Doggo meme style).
+> 
+> "This API is hugged" doesn't make any sense to me. "This API is
+> hecked" is better, or at least funnier (to me). "Hug this interface"
+> similarly makes no sense, but "Heck this interface" seems better.
+> "Don't touch my hecking code", "What the heck were they thinking?"
+> etc... "hug" is odd.
+> 
+> Better yet, since it's only 17 files, how about doing context-specific
+> changes? "This API is terrible", "Hateful interface", "Don't touch my
+> freakin' code", "What in the world were they thinking?" etc?
 
-...and this is from the interpretation document:
+I'm happy to refine this (thus the RFC tag)! And depending on the
+culture, hugging could fall in the harrasment category. Actually, when I
+think about it, in Finland this kind of poking of ones personal bubble
+would be such :-)
 
-> Contributions submitted for the kernel should use appropriate language.
-> Content that already exists predating the Code of Conduct will not be
-> addressed now as a violation.
+I'll refine the patch set with more context sensitive replacements,
+perhaps removing the comment altogether in some places. Thank you for
+the feedback!
 
-So existing code is explicitly not a CoC violation and need not be
-treated as such.  That said, improvements to the comments are always
-welcome, as long as they are actually improvements.
-
-Thanks,
-
-jon
+/Jarkko
