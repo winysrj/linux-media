@@ -1,11 +1,11 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ms.lwn.net ([45.79.88.28]:44048 "EHLO ms.lwn.net"
+Received: from mga17.intel.com ([192.55.52.151]:28702 "EHLO mga17.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725867AbeLAJZs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 1 Dec 2018 04:25:48 -0500
-Date: Fri, 30 Nov 2018 15:14:59 -0700
-From: Jonathan Corbet <corbet@lwn.net>
-To: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
+        id S1725867AbeLAJgy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 1 Dec 2018 04:36:54 -0500
+Date: Fri, 30 Nov 2018 14:26:05 -0800
+From: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
+To: Jonathan Corbet <corbet@lwn.net>
 Cc: James Bottomley <James.Bottomley@HansenPartnership.com>,
         Davidlohr Bueso <dave@stgolabs.net>,
         Kees Cook <keescook@chromium.org>,
@@ -43,40 +43,45 @@ Cc: James Bottomley <James.Bottomley@HansenPartnership.com>,
         Willem de Bruijn <willemb@google.com>,
         Yonghong Song <yhs@fb.com>, yanjun.zhu@oracle.com
 Subject: Re: [PATCH RFC 00/15] Zero ****s, hugload of hugs <3
-Message-ID: <20181130151459.3ca2f5c8@lwn.net>
-In-Reply-To: <20181130221219.GA25537@linux.intel.com>
+Message-ID: <20181130222605.GA26261@linux.intel.com>
 References: <20181130192737.15053-1-jarkko.sakkinen@linux.intel.com>
-        <CAGXu5j+jBNBsD3pvUSfEh6Lc5T1YMpbM0HeG1c6BHiJe+cKVOQ@mail.gmail.com>
-        <20181130195652.7syqys76646kpaph@linux-r8p5>
-        <20181130205521.GA21006@linux.intel.com>
-        <1543611662.3031.20.camel@HansenPartnership.com>
-        <20181130214405.GG23772@linux.intel.com>
-        <1543615069.3031.27.camel@HansenPartnership.com>
-        <20181130221219.GA25537@linux.intel.com>
+ <CAGXu5j+jBNBsD3pvUSfEh6Lc5T1YMpbM0HeG1c6BHiJe+cKVOQ@mail.gmail.com>
+ <20181130195652.7syqys76646kpaph@linux-r8p5>
+ <20181130205521.GA21006@linux.intel.com>
+ <1543611662.3031.20.camel@HansenPartnership.com>
+ <20181130214405.GG23772@linux.intel.com>
+ <1543615069.3031.27.camel@HansenPartnership.com>
+ <20181130221219.GA25537@linux.intel.com>
+ <20181130151459.3ca2f5c8@lwn.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20181130151459.3ca2f5c8@lwn.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 30 Nov 2018 14:12:19 -0800
-Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com> wrote:
-
-> As a maintainer myself (and based on somewhat disturbed feedback from
-> other maintainers) I can only make the conclusion that nobody knows what
-> the responsibility part here means.
+On Fri, Nov 30, 2018 at 03:14:59PM -0700, Jonathan Corbet wrote:
+> On Fri, 30 Nov 2018 14:12:19 -0800
+> Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com> wrote:
 > 
-> I would interpret, if I read it like at lawyer at least, that even for
-> existing code you would need to do the changes postmorterm.
+> > As a maintainer myself (and based on somewhat disturbed feedback from
+> > other maintainers) I can only make the conclusion that nobody knows what
+> > the responsibility part here means.
+> > 
+> > I would interpret, if I read it like at lawyer at least, that even for
+> > existing code you would need to do the changes postmorterm.
+> > 
+> > Is this wrong interpretation?  Should I conclude that I made a mistake
+> > by reading the CoC and trying to understand what it *actually* says?
+> > After this discussion, I can say that I understand it less than before.
 > 
-> Is this wrong interpretation?  Should I conclude that I made a mistake
-> by reading the CoC and trying to understand what it *actually* says?
-> After this discussion, I can say that I understand it less than before.
+> Have you read Documentation/process/code-of-conduct-interpretation.rst?
+> As has been pointed out, it contains a clear answer to how things should
+> be interpreted here.
 
-Have you read Documentation/process/code-of-conduct-interpretation.rst?
-As has been pointed out, it contains a clear answer to how things should
-be interpreted here.
+Ugh, was not aware that there two documents.
 
-Thanks,
+Yeah, definitely sheds light. Why the documents could not be merged to
+single common sense code of conduct?
 
-jon
+/Jarkko
