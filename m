@@ -1,85 +1,187 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:50629 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726270AbeLAAqq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 30 Nov 2018 19:46:46 -0500
-Date: Fri, 30 Nov 2018 15:37:15 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Bing Bu Cao <bingbu.cao@linux.intel.com>,
-        Yong Zhi <yong.zhi@intel.com>, linux-media@vger.kernel.org,
-        tfiga@chromium.org, mchehab@kernel.org, hans.verkuil@cisco.com,
-        rajmohan.mani@intel.com, jian.xu.zheng@intel.com,
-        jerry.w.hu@intel.com, tuukka.toivonen@intel.com,
-        tian.shu.qiu@intel.com, bingbu.cao@intel.com
-Subject: Re: [PATCH v7 00/16] Intel IPU3 ImgU patchset
-Message-ID: <20181130133714.qokfwzkijmwowq2r@kekkonen.localdomain>
-References: <1540851790-1777-1-git-send-email-yong.zhi@intel.com>
- <6bc1a25d-5799-5a9b-546e-3b8cf42ce976@linux.intel.com>
- <20181109100953.4xfsslyfdhajhqoa@paasikivi.fi.intel.com>
- <59385138.zhZiANFFLA@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <59385138.zhZiANFFLA@avalon>
+Received: from mout.kundenserver.de ([212.227.126.131]:37073 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726563AbeLACHq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 30 Nov 2018 21:07:46 -0500
+Date: Fri, 30 Nov 2018 15:58:07 +0100
+From: Andreas Pape <ap@ca-pape.de>
+To: kieran.bingham@ideasonboard.com
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/3] media: stkwebcam: Bugfix for not correctly
+ initialized camera
+Message-Id: <20181130155807.f1be928e4fc3a05e13fc710b@ca-pape.de>
+In-Reply-To: <b527358c-8fb9-fbe5-be19-43e8992e85c7@ideasonboard.com>
+References: <20181123161454.3215-1-ap@ca-pape.de>
+        <20181123161454.3215-3-ap@ca-pape.de>
+        <b527358c-8fb9-fbe5-be19-43e8992e85c7@ideasonboard.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Kieran,
 
-On Fri, Nov 30, 2018 at 01:09:37AM +0200, Laurent Pinchart wrote:
-> Hi Sakari,
-> 
-> 
-> On Friday, 9 November 2018 12:09:54 EET Sakari Ailus wrote:
-> > On Wed, Nov 07, 2018 at 12:16:47PM +0800, Bing Bu Cao wrote:
-> > > On 11/01/2018 08:03 PM, Sakari Ailus wrote:
-> > >> On Mon, Oct 29, 2018 at 03:22:54PM -0700, Yong Zhi wrote:
-> 
-> [snip]
-> 
-> > >>> ImgU media topology print:
-> > >>> 
-> > >>> # media-ctl -d /dev/media0 -p
-> > >>> Media controller API version 4.19.0
-> > >>> 
-> > >>> Media device information
-> > >>> ------------------------
-> > >>> driver          ipu3-imgu
-> > >>> model           ipu3-imgu
-> > >>> serial
-> > >>> bus info        PCI:0000:00:05.0
-> > >>> hw revision     0x80862015
-> > >>> driver version  4.19.0
-> > >>> 
-> > >>> Device topology
-> > >>> - entity 1: ipu3-imgu 0 (5 pads, 5 links)
-> > >>> type V4L2 subdev subtype Unknown flags 0
-> > >>> device node name /dev/v4l-subdev0
-> > >>> pad0: Sink
-> > >>> [fmt:UYVY8_2X8/1920x1080 field:none colorspace:unknown
-> > >> 
-> > >> This doesn't seem right. Which formats can be enumerated from the pad?
-> > 
-> > Looking at the code, the OUTPUT video nodes have 10-bit GRBG (or a variant)
-> > format whereas the CAPTURE video nodes always have NV12. Can you confirm?
-> > 
-> > If the OUTPUT video node format selection has no effect on the rest of the
-> > pipeline (device capabilities, which processing blocks are in use, CAPTURE
-> > video nodes formats etc.), I think you could simply use the FIXED media bus
-> > code for each pad. That would actually make sense: this device always works
-> > from memory to memory, and thus does not really have a pixel data bus
-> > external to the device which is what the media bus codes really are for.
-> 
-> Isn't the Bayer variant useful information to configure debayering ? I would 
-> expect it to be passed through the format on pad 0.
+thanks for the review.
 
-That's already configured on the video node. The FIXED media bus code is
-intended for links where there's nothing to configure --- which is the case
-here.
+On Mon, 26 Nov 2018 12:48:08 +0000
+Kieran Bingham <kieran.bingham@ideasonboard.com> wrote:
+
+> This one worries me a little... (but hopefully not too much)
+>
+
+As mentioned, I don't have any experience concerning video drivers;-). I found
+this patch more or less experimentally....
+ 
+> 
+> > Signed-off-by: Andreas Pape <ap@ca-pape.de>
+> > ---
+> >  drivers/media/usb/stkwebcam/stk-webcam.c | 2 ++
+> >  1 file changed, 2 insertions(+)
+> > 
+> > diff --git a/drivers/media/usb/stkwebcam/stk-webcam.c b/drivers/media/usb/stkwebcam/stk-webcam.c
+> > index e61427e50525..c64928e36a5a 100644
+> > --- a/drivers/media/usb/stkwebcam/stk-webcam.c
+> > +++ b/drivers/media/usb/stkwebcam/stk-webcam.c
+> > @@ -1155,6 +1155,8 @@ static int stk_vidioc_streamon(struct file *filp,
+> >  	if (dev->sio_bufs == NULL)
+> >  		return -EINVAL;
+> >  	dev->sequence = 0;
+> > +	stk_initialise(dev);
+> > +	stk_setup_format(dev);
+> 
+> Glancing through the code base - this seems to imply to me that s_fmt
+> was not set/called (presumably by cheese) as stk_setup_format() is
+> called only by stk_vidioc_s_fmt_vid_cap() and stk_camera_resume().
+> 
+> Is this an issue?
+> 
+> I presume that this means the camera will just operate in a default
+> configuration until cheese chooses something more specific.
+>
+
+Could be. I had a video but colours, sensitivity and possibly other things
+were crap or at least very "psychedelic". Therefore the idea came up that
+some kind of initialisation was missing here. 
+
+> Actually - looking further this seems to be the case, as the mode is
+> simply stored in dev->vsettings.mode, and so this last setup stage will
+> just ensure the configuration of the hardware matches the driver.
+> 
+> So it seems reasonable to me - but should it be set any earlier?
+> Perhaps not.
+> 
+> 
+> Are there any complaints when running v4l2-compliance on this device node?
+> 
+
+Here is the output of v4l2-compliance:
+
+v4l2-compliance SHA   : not available
+
+Driver Info:
+	Driver name   : stk
+	Card type     : stk
+	Bus info      : usb-0000:00:1d.7-5
+	Driver version: 4.15.18
+	Capabilities  : 0x85200001
+		Video Capture
+		Read/Write
+		Streaming
+		Extended Pix Format
+		Device Capabilities
+	Device Caps   : 0x05200001
+		Video Capture
+		Read/Write
+		Streaming
+		Extended Pix Format
+
+Compliance test for device /dev/video0 (not using libv4l2):
+
+Required ioctls:
+	test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+	test second video open: OK
+	test VIDIOC_QUERYCAP: OK
+	test VIDIOC_G/S_PRIORITY: OK
+	test for unlimited opens: OK
+
+Debug ioctls:
+	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+	test VIDIOC_LOG_STATUS: OK
+
+Input ioctls:
+	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+	test VIDIOC_ENUMAUDIO: OK (Not Supported)
+	test VIDIOC_G/S/ENUMINPUT: OK
+	test VIDIOC_G/S_AUDIO: OK (Not Supported)
+	Inputs: 1 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+	Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+	test VIDIOC_G/S_EDID: OK (Not Supported)
+
+Test input 0:
+
+	Control ioctls:
+		test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
+		test VIDIOC_QUERYCTRL: OK
+		test VIDIOC_G/S_CTRL: OK
+		test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+		test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+		test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+		Standard Controls: 4 Private Controls: 0
+
+	Format ioctls:
+		test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+		test VIDIOC_G/S_PARM: OK
+		test VIDIOC_G_FBUF: OK (Not Supported)
+		test VIDIOC_G_FMT: OK
+		warn: v4l2-test-formats.cpp(732): TRY_FMT cannot handle an invalid pixelformat.
+		warn: v4l2-test-formats.cpp(733): This may or may not be a problem. For more information see:
+		warn: v4l2-test-formats.cpp(734): http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
+		test VIDIOC_TRY_FMT: OK
+		warn: v4l2-test-formats.cpp(997): S_FMT cannot handle an invalid pixelformat.
+		warn: v4l2-test-formats.cpp(998): This may or may not be a problem. For more information see:
+		warn: v4l2-test-formats.cpp(999): http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
+		test VIDIOC_S_FMT: OK
+		test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+		test Cropping: OK (Not Supported)
+		test Composing: OK (Not Supported)
+		test Scaling: OK (Not Supported)
+
+	Codec ioctls:
+		test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+		test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+		test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+	Buffer ioctls:
+		warn: v4l2-test-buffers.cpp(538): VIDIOC_CREATE_BUFS not supported
+		test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+		test VIDIOC_EXPBUF: OK (Not Supported)
+
+Test input 0:
+
+
+Total: 43, Succeeded: 43, Failed: 0, Warnings: 7
+
+Kind regards,
+Andreas
+
 
 -- 
-Regards,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+Andreas Pape <ap@ca-pape.de>
