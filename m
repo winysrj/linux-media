@@ -1,71 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yb1-f194.google.com ([209.85.219.194]:43494 "EHLO
-        mail-yb1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726006AbeLAFSn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 1 Dec 2018 00:18:43 -0500
-Received: by mail-yb1-f194.google.com with SMTP id h187-v6so2555272ybg.10
-        for <linux-media@vger.kernel.org>; Fri, 30 Nov 2018 10:08:37 -0800 (PST)
-Received: from mail-yb1-f170.google.com (mail-yb1-f170.google.com. [209.85.219.170])
-        by smtp.gmail.com with ESMTPSA id a72sm2491933ywh.42.2018.11.30.10.08.35
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Fri, 30 Nov 2018 10:08:35 -0800 (PST)
-Received: by mail-yb1-f170.google.com with SMTP id h187-v6so2555233ybg.10
-        for <linux-media@vger.kernel.org>; Fri, 30 Nov 2018 10:08:35 -0800 (PST)
+Received: from mga02.intel.com ([134.134.136.20]:60856 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726057AbeLAGiH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 1 Dec 2018 01:38:07 -0500
+From: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
+To: linux-kernel@vger.kernel.org
+Cc: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org (open list:MEDIA INPUT INFRASTRUCTURE
+        (V4L/DVB))
+Subject: [PATCH RFC 08/15] media: replace **** with a hug
+Date: Fri, 30 Nov 2018 11:27:17 -0800
+Message-Id: <20181130192737.15053-9-jarkko.sakkinen@linux.intel.com>
+In-Reply-To: <20181130192737.15053-1-jarkko.sakkinen@linux.intel.com>
+References: <20181130192737.15053-1-jarkko.sakkinen@linux.intel.com>
 MIME-Version: 1.0
-References: <1543291261-26174-1-git-send-email-bingbu.cao@intel.com>
-In-Reply-To: <1543291261-26174-1-git-send-email-bingbu.cao@intel.com>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Fri, 30 Nov 2018 10:08:23 -0800
-Message-ID: <CAAFQd5Dzk2AxMXA+QUFJ+LqRudVe6T6-tt2wY1q4Zpw2Hhhhrw@mail.gmail.com>
-Subject: Re: [PATCH] media: unify some sony camera sensors pattern naming
-To: Cao Bing Bu <bingbu.cao@intel.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "Yeh, Andy" <andy.yeh@intel.com>, bingbu.cao@linux.intel.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Bingbu,
+In order to comply with the CoC, replace **** with a hug. In
+addition, fix a coding style issue (lines with over 80 chars).
 
-On Mon, Nov 26, 2018 at 7:56 PM <bingbu.cao@intel.com> wrote:
->
-> From: Bingbu Cao <bingbu.cao@intel.com>
->
-> Some Sony camera sensors have same test pattern
-> definitions, this patch unify the pattern naming
-> to make it more clear to the userspace.
->
-> Suggested-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Signed-off-by: Bingbu Cao <bingbu.cao@intel.com>
-> ---
->  drivers/media/i2c/imx258.c | 8 ++++----
->  drivers/media/i2c/imx319.c | 8 ++++----
->  drivers/media/i2c/imx355.c | 8 ++++----
->  3 files changed, 12 insertions(+), 12 deletions(-)
->
+Signed-off-by: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
+---
+ drivers/media/i2c/bt819.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-Thanks for the patch! One comment inline.
-
-> diff --git a/drivers/media/i2c/imx258.c b/drivers/media/i2c/imx258.c
-> index 31a1e2294843..a8a2880c6b4e 100644
-> --- a/drivers/media/i2c/imx258.c
-> +++ b/drivers/media/i2c/imx258.c
-> @@ -504,10 +504,10 @@ struct imx258_mode {
->
->  static const char * const imx258_test_pattern_menu[] = {
->         "Disabled",
-> -       "Color Bars",
-> -       "Solid Color",
-> -       "Grey Color Bars",
-> -       "PN9"
-> +       "Solid Colour",
-> +       "Eight Vertical Colour Bars",
-
-Is it just me or "solid color" and "color bars" are being swapped
-here? Did the driver had the names mixed up before or the order of
-modes is different between these sensors?
-
-Best regards,
-Tomasz
+diff --git a/drivers/media/i2c/bt819.c b/drivers/media/i2c/bt819.c
+index 472e37637c8d..c0f198b764f0 100644
+--- a/drivers/media/i2c/bt819.c
++++ b/drivers/media/i2c/bt819.c
+@@ -165,9 +165,11 @@ static int bt819_init(struct v4l2_subdev *sd)
+ 		0x0f, 0x00,	/* 0x0f Hue control */
+ 		0x12, 0x04,	/* 0x12 Output Format */
+ 		0x13, 0x20,	/* 0x13 Vertial Scaling msb 0x00
+-					   chroma comb OFF, line drop scaling, interlace scaling
+-					   BUG? Why does turning the chroma comb on fuck up color?
+-					   Bug in the bt819 stepping on my board?
++					   chroma comb OFF, line drop scaling,
++					   interlace scaling BUG? Why does
++					   turning the chroma comb on hug up
++					   color?  Bug in the bt819 stepping on
++					   my board?
+ 					*/
+ 		0x14, 0x00,	/* 0x14 Vertial Scaling lsb */
+ 		0x16, 0x07,	/* 0x16 Video Timing Polarity
+-- 
+2.19.1
