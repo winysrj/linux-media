@@ -1,78 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:55694 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725871AbeK3GE6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 30 Nov 2018 01:04:58 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Jacopo Mondi <jacopo@jmondi.org>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org,
-        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
-Subject: Re: [PATCH v4 1/4] dt-bindings: adv748x: make data-lanes property mandatory for CSI-2 endpoints
-Date: Thu, 29 Nov 2018 20:58:59 +0200
-Message-ID: <4738724.38cIGBxbul@avalon>
-In-Reply-To: <20181129020147.22115-2-niklas.soderlund+renesas@ragnatech.se>
-References: <20181129020147.22115-1-niklas.soderlund+renesas@ragnatech.se> <20181129020147.22115-2-niklas.soderlund+renesas@ragnatech.se>
+Received: from mail-it1-f194.google.com ([209.85.166.194]:38590 "EHLO
+        mail-it1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725993AbeLAHW4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 1 Dec 2018 02:22:56 -0500
+Received: by mail-it1-f194.google.com with SMTP id h65so287909ith.3
+        for <linux-media@vger.kernel.org>; Fri, 30 Nov 2018 12:12:30 -0800 (PST)
+Subject: Re: [PATCH RFC 00/15] Zero ****s, hugload of hugs <3
+To: Davidlohr Bueso <dave@stgolabs.net>,
+        Kees Cook <keescook@chromium.org>
+Cc: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Amir Goldstein <amir73il@gmail.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Daniel Axtens <dja@axtens.net>,
+        "David S. Miller" <davem@davemloft.net>,
+        Dominik Brodowski <linux@dominikbrodowski.net>,
+        Maling list - DRI developers
+        <dri-devel@lists.freedesktop.org>,
+        Eric Dumazet <edumazet@google.com>, federico.vaga@vaga.pv.it,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        Helge Deller <deller@gmx.de>, Jonathan Corbet <corbet@lwn.net>,
+        Joshua Kinard <kumba@gentoo.org>,
+        "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>,
+        "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
+        linux-ide@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux MIPS Mailing List <linux-mips@linux-mips.org>,
+        Linux mtd <linux-mtd@lists.infradead.org>,
+        linux-parisc <linux-parisc@vger.kernel.org>,
+        Linux PM list <linux-pm@vger.kernel.org>,
+        linux-scsi@vger.kernel.org, matthias.bgg@gmail.com,
+        Network Development <netdev@vger.kernel.org>,
+        nouveau <nouveau@lists.freedesktop.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Paul Burton <paul.burton@mips.com>,
+        Petr Mladek <pmladek@suse.com>, Rob Herring <robh@kernel.org>,
+        sean.wang@mediatek.com,
+        Sergey Senozhatsky <sergey.senozhatsky@gmail.com>,
+        shannon.nelson@oracle.com, Stefano Brivio <sbrivio@redhat.com>,
+        Steven Rostedt <rostedt@goodmis.org>,
+        "Tobin C. Harding" <me@tobin.cc>, makita.toshiaki@lab.ntt.co.jp,
+        Willem de Bruijn <willemb@google.com>,
+        Yonghong Song <yhs@fb.com>, yanjun.zhu@oracle.com
+References: <20181130192737.15053-1-jarkko.sakkinen@linux.intel.com>
+ <CAGXu5j+jBNBsD3pvUSfEh6Lc5T1YMpbM0HeG1c6BHiJe+cKVOQ@mail.gmail.com>
+ <20181130195652.7syqys76646kpaph@linux-r8p5>
+From: Jens Axboe <axboe@kernel.dk>
+Message-ID: <d7c34289-f03a-b641-cc9c-00395306511d@kernel.dk>
+Date: Fri, 30 Nov 2018 13:12:26 -0700
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+In-Reply-To: <20181130195652.7syqys76646kpaph@linux-r8p5>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+On 11/30/18 12:56 PM, Davidlohr Bueso wrote:
+> On Fri, 30 Nov 2018, Kees Cook wrote:
+> 
+>> On Fri, Nov 30, 2018 at 11:27 AM Jarkko Sakkinen
+>> <jarkko.sakkinen@linux.intel.com> wrote:
+>>>
+>>> In order to comply with the CoC, replace **** with a hug.
+> 
+> I hope this is some kind of joke. How would anyone get offended by reading
+> technical comments? This is all beyond me...
 
-Thank you for the patch.
+Agree, this is insanity.
 
-On Thursday, 29 November 2018 04:01:44 EET Niklas S=F6derlund wrote:
-> The CSI-2 transmitters can use a different number of lanes to transmit
-> data. Make the data-lanes mandatory for the endpoints that describe the
-> transmitters as no good default can be set to fallback on.
->=20
-> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> ---
-> * Changes since v3
-> - Add paragraph to describe the accepted values for the source endpoint
->   data-lane property. Thanks Jacopo for pointing this out and sorry for
->   missing this in v2.
-> * Changes since v2
-> - Update paragraph according to Laurents comments.
-> ---
->  .../devicetree/bindings/media/i2c/adv748x.txt         | 11 ++++++++++-
->  1 file changed, 10 insertions(+), 1 deletion(-)
->=20
-> diff --git a/Documentation/devicetree/bindings/media/i2c/adv748x.txt
-> b/Documentation/devicetree/bindings/media/i2c/adv748x.txt index
-> 5dddc95f9cc46084..4f91686e54a6b939 100644
-> --- a/Documentation/devicetree/bindings/media/i2c/adv748x.txt
-> +++ b/Documentation/devicetree/bindings/media/i2c/adv748x.txt
-> @@ -48,7 +48,16 @@ are numbered as follows.
->  	  TXA		source		10
->  	  TXB		source		11
->=20
-> -The digital output port nodes must contain at least one endpoint.
-> +The digital output port nodes, when present, shall contain at least one
-> +endpoint. Each of those endpoints shall contain the data-lanes property =
-as
-> +described in video-interfaces.txt.
-> +
-> +Required source endpoint properties:
-> +  - data-lanes: an array of physical data lane indexes
-> +    The accepted value(s) for this property depends on which of the two
-> +    sources are described. For TXA 1, 2 or 4 data lanes can be described
-> +    while for TXB only 1 data lane is valid. See video-interfaces.txt
-> +    for detailed description.
->=20
->  Ports are optional if they are not connected to anything at the hardware
-> level.
-
-
-=2D-=20
-Regards,
-
-Laurent Pinchart
+-- 
+Jens Axboe
