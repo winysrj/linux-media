@@ -1,13 +1,13 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:36138 "EHLO mx1.suse.de"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1725941AbeLAHHi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 1 Dec 2018 02:07:38 -0500
-Date: Fri, 30 Nov 2018 11:56:52 -0800
-From: Davidlohr Bueso <dave@stgolabs.net>
-To: Kees Cook <keescook@chromium.org>
-Cc: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>,
-        LKML <linux-kernel@vger.kernel.org>,
+Received: from outpost1.zedat.fu-berlin.de ([130.133.4.66]:33205 "EHLO
+        outpost1.zedat.fu-berlin.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725749AbeLAH31 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 1 Dec 2018 02:29:27 -0500
+Subject: Re: [PATCH RFC 00/15] Zero ****s, hugload of hugs <3
+To: Kees Cook <keescook@chromium.org>,
+        Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
         Amir Goldstein <amir73il@gmail.com>,
         Andrew Morton <akpm@linux-foundation.org>,
         Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
@@ -41,26 +41,34 @@ Cc: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>,
         "Tobin C. Harding" <me@tobin.cc>, makita.toshiaki@lab.ntt.co.jp,
         Willem de Bruijn <willemb@google.com>,
         Yonghong Song <yhs@fb.com>, yanjun.zhu@oracle.com
-Subject: Re: [PATCH RFC 00/15] Zero ****s, hugload of hugs <3
-Message-ID: <20181130195652.7syqys76646kpaph@linux-r8p5>
 References: <20181130192737.15053-1-jarkko.sakkinen@linux.intel.com>
  <CAGXu5j+jBNBsD3pvUSfEh6Lc5T1YMpbM0HeG1c6BHiJe+cKVOQ@mail.gmail.com>
+From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Message-ID: <40926843-4983-fc6f-4800-df105f9595ea@physik.fu-berlin.de>
+Date: Fri, 30 Nov 2018 21:09:48 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Disposition: inline
 In-Reply-To: <CAGXu5j+jBNBsD3pvUSfEh6Lc5T1YMpbM0HeG1c6BHiJe+cKVOQ@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 30 Nov 2018, Kees Cook wrote:
+On 11/30/18 8:40 PM, Kees Cook wrote:
+> Better yet, since it's only 17 files, how about doing context-specific
+> changes? "This API is terrible", "Hateful interface", "Don't touch my
+> freakin' code", "What in the world were they thinking?" etc?
+Or just leave it as is because we're all grown up and don't freak out
+when a piece of text contains the word "fuck".
 
->On Fri, Nov 30, 2018 at 11:27 AM Jarkko Sakkinen
-><jarkko.sakkinen@linux.intel.com> wrote:
->>
->> In order to comply with the CoC, replace **** with a hug.
+I still don't understand why people think that the word "fuck" is what
+would keep certain groups from contributing to the Linux kernel. In all
+seriousness, it doesn't.
 
-I hope this is some kind of joke. How would anyone get offended by reading
-technical comments? This is all beyond me...
+Adrian
 
-Thanks,
-Davidlohr
+-- 
+ .''`.  John Paul Adrian Glaubitz
+: :' :  Debian Developer - glaubitz@debian.org
+`. `'   Freie Universitaet Berlin - glaubitz@physik.fu-berlin.de
+  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
