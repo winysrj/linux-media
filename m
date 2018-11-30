@@ -1,119 +1,226 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:57121 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726375AbeK3Plz (ORCPT
+Received: from mail-pg1-f193.google.com ([209.85.215.193]:44981 "EHLO
+        mail-pg1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726355AbeK3RO7 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 30 Nov 2018 10:41:55 -0500
-Message-ID: <0fbe9bf783c8879cda7e3a84c03e7bd8@smtp-cloud8.xs4all.net>
-Date: Fri, 30 Nov 2018 05:33:53 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Fri, 30 Nov 2018 12:14:59 -0500
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Subject: Re: Possible regression in v4l2-async
+To: =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-renesas-soc@vger.kernel.org
+References: <20181129184710.GA10382@bigcity.dyn.berto.se>
+ <d2eb601a-80a8-41d5-ebd0-56159d339604@gmail.com>
+ <880ff893-9e7a-6140-0261-4b8d88c69b5b@gmail.com>
+ <20181129203752.lw6cy4gopxmoc7fe@kekkonen.localdomain>
+ <20181130022529.GA30723@bigcity.dyn.berto.se>
+Message-ID: <9f0144fd-90aa-a965-3f90-b47588e72b84@gmail.com>
+Date: Thu, 29 Nov 2018 22:06:36 -0800
+MIME-Version: 1.0
+In-Reply-To: <20181130022529.GA30723@bigcity.dyn.berto.se>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Niklas,
 
-Results of the daily build of media_tree:
+On 11/29/18 6:25 PM, Niklas Söderlund wrote:
+> Hi Sakari, Steve,
+>
+> Thanks for your quick response.
+>
+> On 2018-11-29 22:37:53 +0200, Sakari Ailus wrote:
+>> Hi Steve, Niklas,
+>>
+>> On Thu, Nov 29, 2018 at 11:41:32AM -0800, Steve Longerbeam wrote:
+>>> On 11/29/18 11:26 AM, Steve Longerbeam wrote:
+>>>> Hi Niklas,
+>>>>
+>>>> On 11/29/18 10:47 AM, Niklas Söderlund wrote:
+>>>>> Hi Steve, Sakari and Hans,
+>>>>>
+>>>>> I have been made aware of a possible regression by a few users of
+>>>>> rcar-vin and I'm a bit puzzled how to best handle it. Maybe you can help
+>>>>> me out?
+>>>>>
+>>>>> The issue is visible when running with LOCKDEP enabled and it prints a
+>>>>> warning about a possible circular locking dependency, see end of mail.
+>>>>> The warning is triggered because rcar-vin takes a mutex (group->lock) in
+>>>>> its async bound call back while the async framework already holds one
+>>>>> (lisk_lock).
+>>>> I see two possible solutions to this:
+>>>>
+>>>> A. Remove acquiring the list_lock in v4l2_async_notifier_init().
+>>>>
+>>>> B. Move the call to v4l2_async_notifier_init()**to the top of
+>>>> rvin_mc_parse_of_graph() (before acquiring group->lock).
+>>>>
+>>>> It's most likely safe to remove the list_lock from
+>>>> v4l2_async_notifier_init(), because all drivers should be calling that
+>>>> function at probe start, before it begins to add async subdev
+>>>> descriptors to their notifiers. But just the same, I think it would be
+>>>> safer to keep list_lock in v4l2_async_notifier_init(), just in case of
+>>>> some strange corner case (such as a driver that adds descriptors in a
+>>>> separate thread from the thread that calls v4l2_async_notifier_init()).
+>>> Well, on second thought that's probably a lame example, no driver should be
+>>> doing that. So removing the list_lock from v4l2_async_notifier_init() is
+>>> probably safe. The notifier is not registered with v4l2-async at that point.
+>> I agree, apart from "probably". It is safe.
+>>
+>> Niklas: would you like to send a patch? :-)
+> Thanks for your suggestions, I have sent a patch [1] for Steves
+> alternative A as I agree that is the correct approach to cure the
+> symptom of the problem and have value in its own right. Unfortunately
+> this do not cover the core of the problem.
+>
+> As I tried to describe in my first mail, maybe I could have described it
+> better, sorry about that. This problem comes from the adding of
+> subdevices to notifiers using a list instead of a array allocated and
+> handled by the driver. Even with [1] applied a LOCKDEP warning is still
+> trigged (see end of mail) as one thread could be busy adding subdevs to
+> it's notifier using the fwnode helpers who take the list_lock as another
+> thread is busy processing and binding subdevices also holding the
+> list_lock. Then if a async callback implemented by a driver also takes a
+> driver local lock the warning is still triggered as described in my
+> first mail.
 
-date:			Fri Nov 30 05:00:11 CET 2018
-media-tree git hash:	708d75fe1c7c6e9abc5381b6fcc32b49830383d0
-media_build git hash:	466e4e6f12eeffd6e9f6d91378c9169f7e6b8527
-v4l-utils git hash:	767eb8be92cd04917885ddf82235ea539a6c0644
-edid-decode git hash:	5eeb151a748788666534d6ea3da07f90400d24c2
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.18.0-2-amd64
+Understood. So the root issue is that by acquiring list_lock in
+v4l2_async_notifier_add_subdev(), it can create the reverse locking
+order driver-specific-lock -> list_lock in some drivers.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.123-i686: OK
-linux-3.18.123-x86_64: OK
-linux-3.19.8-i686: ERRORS
-linux-3.19.8-x86_64: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.159-i686: OK
-linux-4.4.159-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.131-i686: OK
-linux-4.9.131-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.74-i686: OK
-linux-4.14.74-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: OK
-linux-4.19.1-i686: OK
-linux-4.19.1-x86_64: OK
-linux-4.20-rc1-i686: OK
-linux-4.20-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+My first thought was a new mutex who's sole use is to protect the
+notifier->asd_list, instead of using the global list_lock, in
+in v4l2_async_notifier_add_subdev().
 
-Detailed results are available here:
+But that won't work. The list_lock is needed in 
+v4l2_async_notifier_add_subdev(),
+because the latter calls v4l2_async_notifier_has_async_subdev() which
+requires holding the list_lock in order to scan all notifier's waiting and
+done lists.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+Is it possible rcar-vin can use the graph_mutex in place of the group->lock?
+It seems the group->lock is meant to protect changes to the media graph, so
+could the driver use the graph_mutex for that purpose instead?
 
-Full logs are available here:
+Steve
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
 
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+> 1. [PATCH] v4l2: async: remove locking when initializing async notifier
+>
+> ---->> warning output <<----
+>   ======================================================
+>   WARNING: possible circular locking dependency detected
+>   4.20.0-rc1-arm64-renesas-00141-gcadfba6a1339544c #58 Not tainted
+>   ------------------------------------------------------
+>   swapper/0/1 is trying to acquire lock:
+>   (____ptrval____) (&group->lock){+.+.}, at: rvin_group_notify_bound+0x30/0xa8
+>   
+>   but task is already holding lock:
+>   (____ptrval____) (list_lock){+.+.}, at: __v4l2_async_notifier_register+0x4c/0x140
+>   
+>   which lock already depends on the new lock.
+>   
+>   
+>   the existing dependency chain (in reverse order) is:
+>   
+>   -> #1 (list_lock){+.+.}:
+>          __mutex_lock+0x70/0x7e0
+>          mutex_lock_nested+0x1c/0x28
+>          v4l2_async_notifier_add_subdev+0x2c/0x78
+>          __v4l2_async_notifier_parse_fwnode_ep+0x17c/0x310
+>          v4l2_async_notifier_parse_fwnode_endpoints_by_port+0x14/0x20
+>          rcar_vin_probe+0x174/0x638
+>          platform_drv_probe+0x50/0xa0
+>          really_probe+0x1c8/0x2a8
+>          driver_probe_device+0x54/0xe8
+>          __driver_attach+0xf0/0xf8
+>          bus_for_each_dev+0x70/0xc0
+>          driver_attach+0x20/0x28
+>          bus_add_driver+0x1d4/0x200
+>          driver_register+0x60/0x110
+>          __platform_driver_register+0x44/0x50
+>          rcar_vin_driver_init+0x18/0x20
+>          do_one_initcall+0x180/0x35c
+>          kernel_init_freeable+0x450/0x4f4
+>          kernel_init+0x10/0xfc
+>          ret_from_fork+0x10/0x1c
+>   
+>   -> #0 (&group->lock){+.+.}:
+>          lock_acquire+0xc8/0x238
+>          __mutex_lock+0x70/0x7e0
+>          mutex_lock_nested+0x1c/0x28
+>          rvin_group_notify_bound+0x30/0xa8
+>          v4l2_async_match_notify+0x50/0x138
+>          v4l2_async_notifier_try_all_subdevs+0x58/0xb8
+>          __v4l2_async_notifier_register+0xd0/0x140
+>          v4l2_async_notifier_register+0x38/0x58
+>          rcar_vin_probe+0x1c0/0x638
+>          platform_drv_probe+0x50/0xa0
+>          really_probe+0x1c8/0x2a8
+>          driver_probe_device+0x54/0xe8
+>          __driver_attach+0xf0/0xf8
+>          bus_for_each_dev+0x70/0xc0
+>          driver_attach+0x20/0x28
+>          bus_add_driver+0x1d4/0x200
+>          driver_register+0x60/0x110
+>          __platform_driver_register+0x44/0x50
+>          rcar_vin_driver_init+0x18/0x20
+>          do_one_initcall+0x180/0x35c
+>          kernel_init_freeable+0x450/0x4f4
+>          kernel_init+0x10/0xfc
+>          ret_from_fork+0x10/0x1c
+>   
+>   other info that might help us debug this:
+>   
+>    Possible unsafe locking scenario:
+>   
+>          CPU0                    CPU1
+>          ----                    ----
+>     lock(list_lock);
+>                                  lock(&group->lock);
+>                                  lock(list_lock);
+>     lock(&group->lock);
+>   
+>    *** DEADLOCK ***
+>   
+>   2 locks held by swapper/0/1:
+>    #0: (____ptrval____) (&dev->mutex){....}, at: __driver_attach+0x60/0xf8
+>    #1: (____ptrval____) (list_lock){+.+.}, at: __v4l2_async_notifier_register+0x4c/0x140
+>   
+>   stack backtrace:
+>   CPU: 0 PID: 1 Comm: swapper/0 Not tainted 4.20.0-rc1-arm64-renesas-00141-gcadfba6a1339544c #58
+>   Hardware name: Renesas Salvator-X 2nd version board based on r8a77965 (DT)
+>   Call trace:
+>    dump_backtrace+0x0/0x188
+>    show_stack+0x14/0x20
+>    dump_stack+0xbc/0xf4
+>    print_circular_bug.isra.18+0x270/0x2d8
+>    __lock_acquire+0x12e8/0x1790
+>    lock_acquire+0xc8/0x238
+>    __mutex_lock+0x70/0x7e0
+>    mutex_lock_nested+0x1c/0x28
+>    rvin_group_notify_bound+0x30/0xa8
+>    v4l2_async_match_notify+0x50/0x138
+>    v4l2_async_notifier_try_all_subdevs+0x58/0xb8
+>    __v4l2_async_notifier_register+0xd0/0x140
+>    v4l2_async_notifier_register+0x38/0x58
+>    rcar_vin_probe+0x1c0/0x638
+>    platform_drv_probe+0x50/0xa0
+>    really_probe+0x1c8/0x2a8
+>    driver_probe_device+0x54/0xe8
+>    __driver_attach+0xf0/0xf8
+>    bus_for_each_dev+0x70/0xc0
+>    driver_attach+0x20/0x28
+>    bus_add_driver+0x1d4/0x200
+>    driver_register+0x60/0x110
+>    __platform_driver_register+0x44/0x50
+>    rcar_vin_driver_init+0x18/0x20
+>    do_one_initcall+0x180/0x35c
+>    kernel_init_freeable+0x450/0x4f4
+>    kernel_init+0x10/0xfc
+>    ret_from_fork+0x10/0x1c
+>
