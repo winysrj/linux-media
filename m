@@ -1,12 +1,12 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([23.128.96.9]:59056 "EHLO
+Received: from shards.monkeyblade.net ([23.128.96.9]:59268 "EHLO
         shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725993AbeLAHpj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 1 Dec 2018 02:45:39 -0500
-Date: Fri, 30 Nov 2018 12:35:07 -0800 (PST)
-Message-Id: <20181130.123507.1940310466680455876.davem@davemloft.net>
-To: axboe@kernel.dk
-Cc: dave@stgolabs.net, keescook@chromium.org,
+        with ESMTP id S1726424AbeLAHxC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 1 Dec 2018 02:53:02 -0500
+Date: Fri, 30 Nov 2018 12:42:28 -0800 (PST)
+Message-Id: <20181130.124228.979846577878820546.davem@davemloft.net>
+To: abuse@2.abuse.bgcomp.co.uk
+Cc: axboe@kernel.dk, dave@stgolabs.net, keescook@chromium.org,
         jarkko.sakkinen@linux.intel.com, linux-kernel@vger.kernel.org,
         amir73il@gmail.com, akpm@linux-foundation.org,
         andriy.shevchenko@linux.intel.com, dja@axtens.net,
@@ -28,30 +28,27 @@ Cc: dave@stgolabs.net, keescook@chromium.org,
         yanjun.zhu@oracle.com
 Subject: Re: [PATCH RFC 00/15] Zero ****s, hugload of hugs <3
 From: David Miller <davem@davemloft.net>
-In-Reply-To: <d7c34289-f03a-b641-cc9c-00395306511d@kernel.dk>
-References: <CAGXu5j+jBNBsD3pvUSfEh6Lc5T1YMpbM0HeG1c6BHiJe+cKVOQ@mail.gmail.com>
-        <20181130195652.7syqys76646kpaph@linux-r8p5>
-        <d7c34289-f03a-b641-cc9c-00395306511d@kernel.dk>
+In-Reply-To: <2007856.n5V9iKLVsV@eth7>
+References: <d7c34289-f03a-b641-cc9c-00395306511d@kernel.dk>
+        <20181130.123507.1940310466680455876.davem@davemloft.net>
+        <2007856.n5V9iKLVsV@eth7>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jens Axboe <axboe@kernel.dk>
-Date: Fri, 30 Nov 2018 13:12:26 -0700
+From: Abuse <abuse@2.abuse.bgcomp.co.uk>
+Date: Fri, 30 Nov 2018 20:39:01 +0000
 
-> On 11/30/18 12:56 PM, Davidlohr Bueso wrote:
->> On Fri, 30 Nov 2018, Kees Cook wrote:
->> 
->>> On Fri, Nov 30, 2018 at 11:27 AM Jarkko Sakkinen
->>> <jarkko.sakkinen@linux.intel.com> wrote:
->>>>
->>>> In order to comply with the CoC, replace **** with a hug.
->> 
->> I hope this is some kind of joke. How would anyone get offended by reading
->> technical comments? This is all beyond me...
-> 
-> Agree, this is insanity.
+> I assume I will now be barred.
 
-And even worse it is censorship.
+Perhaps, but not because you said fuck.  It would be because you're
+intentionally creating a disturbance on the list and making it more
+difficult for developers to get their work done and intentionally
+creating a distraction and a hostile environment for the discussion at
+hand.
+
+That would not be censorship.
+
+There is a big difference.
