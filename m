@@ -1,38 +1,233 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.mm-sol.com ([37.157.136.199]:53439 "EHLO extserv.mm-sol.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726582AbeK3XLz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 30 Nov 2018 18:11:55 -0500
-From: Todor Tomov <todor.tomov@linaro.org>
-To: mchehab@kernel.org, linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org,
-        Todor Tomov <todor.tomov@linaro.org>
-Subject: [PATCH] MAINTAINERS: Change Todor Tomov's email address
-Date: Fri, 30 Nov 2018 14:01:39 +0200
-Message-Id: <1543579299-19440-1-git-send-email-todor.tomov@linaro.org>
+Received: from mail-ot1-f67.google.com ([209.85.210.67]:35505 "EHLO
+        mail-ot1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726512AbeK3XaR (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 30 Nov 2018 18:30:17 -0500
+MIME-Version: 1.0
+References: <20181109190327.23606-1-matwey@sai.msu.ru> <20181109190327.23606-3-matwey@sai.msu.ru>
+ <CAJs94Eb6Ev5O+Q_THYruxozSW2sTjWCrHhU8wciFNgYx7oCRuQ@mail.gmail.com>
+In-Reply-To: <CAJs94Eb6Ev5O+Q_THYruxozSW2sTjWCrHhU8wciFNgYx7oCRuQ@mail.gmail.com>
+From: "Matwey V. Kornilov" <matwey.kornilov@gmail.com>
+Date: Fri, 30 Nov 2018 15:20:57 +0300
+Message-ID: <CAJs94EYmRpUSnxzyt-8bdSwp3WgvOuqpt4b55wKQ41jDynFceg@mail.gmail.com>
+Subject: Re: [PATCH v6 2/2] media: usb: pwc: Don't use coherent DMA buffers
+ for ISO transfer
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        open list <linux-kernel@vger.kernel.org>
+Cc: Tomasz Figa <tfiga@chromium.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Alan Stern <stern@rowland.harvard.edu>,
+        Ezequiel Garcia <ezequiel@collabora.com>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Steven Rostedt <rostedt@goodmis.org>, mingo@redhat.com,
+        Mike Isely <isely@pobox.com>,
+        Bhumika Goyal <bhumirks@gmail.com>,
+        Colin King <colin.king@canonical.com>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        keiichiw@chromium.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-My Linaro email address with be inactive very soon so switch
-it to my Gmail address.
+=D1=81=D1=80, 21 =D0=BD=D0=BE=D1=8F=D0=B1. 2018 =D0=B3. =D0=B2 21:15, Matwe=
+y V. Kornilov <matwey.kornilov@gmail.com>:
+>
+> =D0=BF=D1=82, 9 =D0=BD=D0=BE=D1=8F=D0=B1. 2018 =D0=B3. =D0=B2 22:03, Matw=
+ey V. Kornilov <matwey@sai.msu.ru>:
+> >
+> > DMA cocherency slows the transfer down on systems without hardware
+> > coherent DMA.
+> > Instead we use noncocherent DMA memory and explicit sync at data receiv=
+e
+> > handler.
+> >
+> > Based on previous commit the following performance benchmarks have been
+> > carried out. Average memcpy() data transfer rate (rate) and handler
+> > completion time (time) have been measured when running video stream at
+> > 640x480 resolution at 10fps.
+> >
+> > x86_64 based system (Intel Core i5-3470). This platform has hardware
+> > coherent DMA support and proposed change doesn't make big difference he=
+re.
+> >
+> >  * kmalloc:            rate =3D (2.0 +- 0.4) GBps
+> >                        time =3D (5.0 +- 3.0) usec
+> >  * usb_alloc_coherent: rate =3D (3.4 +- 1.2) GBps
+> >                        time =3D (3.5 +- 3.0) usec
+> >
+> > We see that the measurements agree within error ranges in this case.
+> > So theoretically predicted performance downgrade cannot be reliably
+> > measured here.
+> >
+> > armv7l based system (TI AM335x BeagleBone Black @ 300MHz). This platfor=
+m
+> > has no hardware coherent DMA support. DMA coherence is implemented via
+> > disabled page caching that slows down memcpy() due to memory controller
+> > behaviour.
+> >
+> >  * kmalloc:            rate =3D  ( 94 +- 4) MBps
+> >                        time =3D  (101 +- 4) usec
+> >  * usb_alloc_coherent: rate =3D (28.1 +- 0.1) MBps
+> >                        time =3D  (341 +- 2) usec
+> >
+> > Note, that quantative difference leads (this commit leads to 3.3 times
+> > acceleration) to qualitative behavior change in this case. As it was
+> > stated before, the video stream cannot be successfully received at AM33=
+5x
+> > platforms with MUSB based USB host controller due to performance issues
+> > [1].
+> >
+> > [1] https://www.spinics.net/lists/linux-usb/msg165735.html
+> >
+> > Signed-off-by: Matwey V. Kornilov <matwey@sai.msu.ru>
+>
+> Ping
 
-Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
----
- MAINTAINERS | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Ping
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 3f6db87..c4aec8c 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -12463,7 +12463,7 @@ S:	Supported
- F:	drivers/net/wireless/ath/ath9k/
- 
- QUALCOMM CAMERA SUBSYSTEM DRIVER
--M:	Todor Tomov <todor.tomov@linaro.org>
-+M:	Todor Tomov <todor.too@gmail.com>
- L:	linux-media@vger.kernel.org
- S:	Maintained
- F:	Documentation/devicetree/bindings/media/qcom,camss.txt
--- 
-2.7.4
+>
+> > ---
+> >  drivers/media/usb/pwc/pwc-if.c | 62 +++++++++++++++++++++++++++++++++-=
+--------
+> >  1 file changed, 49 insertions(+), 13 deletions(-)
+> >
+> > diff --git a/drivers/media/usb/pwc/pwc-if.c b/drivers/media/usb/pwc/pwc=
+-if.c
+> > index 53c111bd5a22..a81fb319b339 100644
+> > --- a/drivers/media/usb/pwc/pwc-if.c
+> > +++ b/drivers/media/usb/pwc/pwc-if.c
+> > @@ -159,6 +159,32 @@ static const struct video_device pwc_template =3D =
+{
+> >  /*********************************************************************=
+******/
+> >  /* Private functions */
+> >
+> > +static void *pwc_alloc_urb_buffer(struct device *dev,
+> > +                                 size_t size, dma_addr_t *dma_handle)
+> > +{
+> > +       void *buffer =3D kmalloc(size, GFP_KERNEL);
+> > +
+> > +       if (!buffer)
+> > +               return NULL;
+> > +
+> > +       *dma_handle =3D dma_map_single(dev, buffer, size, DMA_FROM_DEVI=
+CE);
+> > +       if (dma_mapping_error(dev, *dma_handle)) {
+> > +               kfree(buffer);
+> > +               return NULL;
+> > +       }
+> > +
+> > +       return buffer;
+> > +}
+> > +
+> > +static void pwc_free_urb_buffer(struct device *dev,
+> > +                               size_t size,
+> > +                               void *buffer,
+> > +                               dma_addr_t dma_handle)
+> > +{
+> > +       dma_unmap_single(dev, dma_handle, size, DMA_FROM_DEVICE);
+> > +       kfree(buffer);
+> > +}
+> > +
+> >  static struct pwc_frame_buf *pwc_get_next_fill_buf(struct pwc_device *=
+pdev)
+> >  {
+> >         unsigned long flags =3D 0;
+> > @@ -306,6 +332,11 @@ static void pwc_isoc_handler(struct urb *urb)
+> >         /* Reset ISOC error counter. We did get here, after all. */
+> >         pdev->visoc_errors =3D 0;
+> >
+> > +       dma_sync_single_for_cpu(&urb->dev->dev,
+> > +                               urb->transfer_dma,
+> > +                               urb->transfer_buffer_length,
+> > +                               DMA_FROM_DEVICE);
+> > +
+> >         /* vsync: 0 =3D don't copy data
+> >                   1 =3D sync-hunt
+> >                   2 =3D synched
+> > @@ -352,6 +383,11 @@ static void pwc_isoc_handler(struct urb *urb)
+> >                 pdev->vlast_packet_size =3D flen;
+> >         }
+> >
+> > +       dma_sync_single_for_device(&urb->dev->dev,
+> > +                                  urb->transfer_dma,
+> > +                                  urb->transfer_buffer_length,
+> > +                                  DMA_FROM_DEVICE);
+> > +
+> >  handler_end:
+> >         trace_pwc_handler_exit(urb, pdev);
+> >
+> > @@ -428,16 +464,15 @@ static int pwc_isoc_init(struct pwc_device *pdev)
+> >                 urb->dev =3D udev;
+> >                 urb->pipe =3D usb_rcvisocpipe(udev, pdev->vendpoint);
+> >                 urb->transfer_flags =3D URB_ISO_ASAP | URB_NO_TRANSFER_=
+DMA_MAP;
+> > -               urb->transfer_buffer =3D usb_alloc_coherent(udev,
+> > -                                                         ISO_BUFFER_SI=
+ZE,
+> > -                                                         GFP_KERNEL,
+> > -                                                         &urb->transfe=
+r_dma);
+> > +               urb->transfer_buffer_length =3D ISO_BUFFER_SIZE;
+> > +               urb->transfer_buffer =3D pwc_alloc_urb_buffer(&udev->de=
+v,
+> > +                                                           urb->transf=
+er_buffer_length,
+> > +                                                           &urb->trans=
+fer_dma);
+> >                 if (urb->transfer_buffer =3D=3D NULL) {
+> >                         PWC_ERROR("Failed to allocate urb buffer %d\n",=
+ i);
+> >                         pwc_isoc_cleanup(pdev);
+> >                         return -ENOMEM;
+> >                 }
+> > -               urb->transfer_buffer_length =3D ISO_BUFFER_SIZE;
+> >                 urb->complete =3D pwc_isoc_handler;
+> >                 urb->context =3D pdev;
+> >                 urb->start_frame =3D 0;
+> > @@ -488,15 +523,16 @@ static void pwc_iso_free(struct pwc_device *pdev)
+> >
+> >         /* Freeing ISOC buffers one by one */
+> >         for (i =3D 0; i < MAX_ISO_BUFS; i++) {
+> > -               if (pdev->urbs[i]) {
+> > +               struct urb *urb =3D pdev->urbs[i];
+> > +
+> > +               if (urb) {
+> >                         PWC_DEBUG_MEMORY("Freeing URB\n");
+> > -                       if (pdev->urbs[i]->transfer_buffer) {
+> > -                               usb_free_coherent(pdev->udev,
+> > -                                       pdev->urbs[i]->transfer_buffer_=
+length,
+> > -                                       pdev->urbs[i]->transfer_buffer,
+> > -                                       pdev->urbs[i]->transfer_dma);
+> > -                       }
+> > -                       usb_free_urb(pdev->urbs[i]);
+> > +                       if (urb->transfer_buffer)
+> > +                               pwc_free_urb_buffer(&urb->dev->dev,
+> > +                                                   urb->transfer_buffe=
+r_length,
+> > +                                                   urb->transfer_buffe=
+r,
+> > +                                                   urb->transfer_dma);
+> > +                       usb_free_urb(urb);
+> >                         pdev->urbs[i] =3D NULL;
+> >                 }
+> >         }
+> > --
+> > 2.16.4
+> >
+>
+>
+> --
+> With best regards,
+> Matwey V. Kornilov
+
+
+
+--=20
+With best regards,
+Matwey V. Kornilov
