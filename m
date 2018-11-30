@@ -1,11 +1,11 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:52527 "EHLO mail.bootlin.com"
+Received: from mail.bootlin.com ([62.4.15.54]:53569 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726070AbeLAA0J (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 30 Nov 2018 19:26:09 -0500
-Message-ID: <2a52719446c1050990494e44a991acb932da8273.camel@bootlin.com>
-Subject: Re: [linux-sunxi] [PATCH 14/15] arm64: dts: allwinner: h5: Add
- Video Engine and reserved memory node
+        id S1726070AbeLAAfz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 30 Nov 2018 19:35:55 -0500
+Message-ID: <82a1ef7ea170ba50f58f74e26dac6170ac87783f.camel@bootlin.com>
+Subject: Re: [PATCH 07/15] arm64: dts: allwinner: h5: Add system-control
+ node with SRAM C1
 From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 To: Chen-Yu Tsai <wens@csie.org>
 Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
@@ -21,69 +21,148 @@ Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
         linux-sunxi@googlegroups.com, Hans Verkuil <hverkuil@xs4all.nl>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
         Thomas Petazzoni <thomas.petazzoni@bootlin.com>
-Date: Fri, 30 Nov 2018 14:16:50 +0100
-In-Reply-To: <CAGb2v64pVKG4mSAF48xR54yj00rQ6iTvgYQB9Bf-XWmH2FhVqQ@mail.gmail.com>
+Date: Fri, 30 Nov 2018 14:26:34 +0100
+In-Reply-To: <CAGb2v65yNKnqbeQmUYjMzDtydYL=7kxmtPrAEEU9U=a5XbMiFg@mail.gmail.com>
 References: <20181115145013.3378-1-paul.kocialkowski@bootlin.com>
-         <20181115145013.3378-15-paul.kocialkowski@bootlin.com>
-         <CAGb2v64pVKG4mSAF48xR54yj00rQ6iTvgYQB9Bf-XWmH2FhVqQ@mail.gmail.com>
+         <20181115145013.3378-8-paul.kocialkowski@bootlin.com>
+         <CAGb2v64t6t3Bwf4nc8gQWRDkdv4zGRF1-+Q7snqX6bkEVqirvA@mail.gmail.com>
+         <CAGb2v65yNKnqbeQmUYjMzDtydYL=7kxmtPrAEEU9U=a5XbMiFg@mail.gmail.com>
 Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-453EcI7CdM8GuIru8Jyr"
+        protocol="application/pgp-signature"; boundary="=-GiwLARmS2nmhlZHes8Vi"
 Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
---=-453EcI7CdM8GuIru8Jyr
+--=-GiwLARmS2nmhlZHes8Vi
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Thu, 2018-11-15 at 23:35 +0800, Chen-Yu Tsai wrote:
-> On Thu, Nov 15, 2018 at 10:51 PM Paul Kocialkowski
-> <paul.kocialkowski@bootlin.com> wrote:
-> > This adds nodes for the Video Engine and the associated reserved memory
-> > for the H5. Up to 96 MiB of memory are dedicated to the CMA pool.
+On Fri, 2018-11-30 at 11:38 +0800, Chen-Yu Tsai wrote:
+> On Fri, Nov 16, 2018 at 12:52 AM Chen-Yu Tsai <wens@csie.org> wrote:
+> > On Thu, Nov 15, 2018 at 10:50 PM Paul Kocialkowski
+> > <paul.kocialkowski@bootlin.com> wrote:
+> > > Add the H5-specific system control node description to its device-tre=
+e
+> > > with support for the SRAM C1 section, that will be used by the video
+> > > codec node later on.
+> > >=20
+> > > Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+> > > ---
+> > >  arch/arm64/boot/dts/allwinner/sun50i-h5.dtsi | 22 ++++++++++++++++++=
+++
+> > >  1 file changed, 22 insertions(+)
+> > >=20
+> > > diff --git a/arch/arm64/boot/dts/allwinner/sun50i-h5.dtsi b/arch/arm6=
+4/boot/dts/allwinner/sun50i-h5.dtsi
+> > > index b41dc1aab67d..c2d14b22b8c1 100644
+> > > --- a/arch/arm64/boot/dts/allwinner/sun50i-h5.dtsi
+> > > +++ b/arch/arm64/boot/dts/allwinner/sun50i-h5.dtsi
+> > > @@ -94,6 +94,28 @@
+> > >         };
+> > >=20
+> > >         soc {
+> > > +               system-control@1c00000 {
+> > > +                       compatible =3D "allwinner,sun50i-h5-system-co=
+ntrol";
+> > > +                       reg =3D <0x01c00000 0x1000>;
+> > > +                       #address-cells =3D <1>;
+> > > +                       #size-cells =3D <1>;
+> > > +                       ranges;
+> > > +
+> > > +                       sram_c1: sram@1d00000 {
+> > > +                               compatible =3D "mmio-sram";
+> > > +                               reg =3D <0x01d00000 0x80000>;
 > >=20
-> > The pool is located at the end of the first 256 MiB of RAM so that the
-> > VPU can access it. It is unclear whether this is still a hard
-> > requirement for this platform, but it seems safer that way.
+> > I'll try to check this one tomorrow.
+> >=20
+> > I did find something interesting on the H3: there also seems to be SRAM=
+ at
+> > 0x01dc0000 to 0x01dcfeff , again mapped by the same bits as SRAM C1.
+> >=20
+> > And on the A33, the SRAM C1 range is 0x01d00000 to 0x01d478ff.
+> >=20
+> > This was found by mapping the SRAM to the CPU, then using devmem to pok=
+e
+> > around the register range. If there's SRAM, the first read would typica=
+lly
+> > return random data, and a subsequent write to it would set some value t=
+hat
+> > would be read back correctly. If there's no SRAM, a read either returns=
+ 0x0
+> > or some random data that can't be overwritten.
+> >=20
+> > You might want to check the other SoCs.
 >=20
-> I think we can actually test this. You could move the reserved memory
-> pool beyond 256 MiB, and have cedrus decode stuff, and try to display
-> the results. If it's gibberish, or the system crashes, it's likely the
-> memory access wrapped around at 256 MiB.
->=20
-> What do you think?
+> This range seems to contain stuff other than SRAM, possibly fixed lookup
+> tables. Since this is entirely unknown, lets just stick to the known full
+> range instead.
 
-I did the test on various platforms and found that starting with the
-A33, the VPU can map any address in RAM! SO we shouldn't need reserved
-memory nodes for these devices after all.
+Thanks for investigating all this!
+
+I also conducted some tests and found that the H5 has its SRAM C1
+(marked as SRAM C in the manual) at 0x18000. However for the A64, SRAM
+C1 gets mapped to 0x1D00000. There is also SRAM C at 0x18000 but this
+one seems unrelated to the VPU and only used by DE2 (as already
+described in the A64 dt).
+
+I share your conclusion that there seems to be more than SRAM in there.
+Testing with devmem write/read on the start address was reliable as a
+test, but some chunks in the range did not behave like SRAM (not the
+same value read).
+
+I agree that we should keep the known full range as there are lots of
+unknowns here.
 
 Cheers,
 
 Paul
 
+> ChenYu
+>=20
+> > > +                               #address-cells =3D <1>;
+> > > +                               #size-cells =3D <1>;
+> > > +                               ranges =3D <0 0x01d00000 0x80000>;
+> > > +
+> > > +                               ve_sram: sram-section@0 {
+> > > +                                       compatible =3D "allwinner,sun=
+50i-h5-sram-c1",
+> > > +                                                    "allwinner,sun4i=
+-a10-sram-c1";
+> > > +                                       reg =3D <0x000000 0x80000>;
+> > > +                               };
+> > > +                       };
+> > > +               };
+> > > +
+> > >                 mali: gpu@1e80000 {
+> > >                         compatible =3D "allwinner,sun50i-h5-mali", "a=
+rm,mali-450";
+> > >                         reg =3D <0x01e80000 0x30000>;
+> > > --
+> > > 2.19.1
+> > >=20
 --=20
 Paul Kocialkowski, Bootlin (formerly Free Electrons)
 Embedded Linux and kernel engineering
 https://bootlin.com
 
---=-453EcI7CdM8GuIru8Jyr
+--=-GiwLARmS2nmhlZHes8Vi
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
 
 -----BEGIN PGP SIGNATURE-----
 
-iQEzBAABCAAdFiEEJZpWjZeIetVBefti3cLmz3+fv9EFAlwBOEIACgkQ3cLmz3+f
-v9FV/Af+JpWv2W/HOaxK1G4Ane+uWUNIMUUgOaXhtOWvSfOu9arSCtcVqerpnZHu
-TegKhEKLo5GMEcEBOFbnqiFEno9JkrY+fN7ukdUp0QGqX8uSry5ehpm/yznNDTnZ
-IvzNrsRO1CrcC0/YKn3+6hxbcD81wf86ALVtQwpUvVv3FNGsvEaKyi7YKKDNOyQs
-Yevz1VInlDEXFJ5SXmR99LMbAyjNBt7UtHVM5jKODv3lkdXyAta5MGCaRlv8oqxk
-hZnEe5M4mPns7vmNTa/wM0+zHkAORNs9IoOTepMep2f9pmMNq9qw03PT6hV0bxcU
-2ZgSh2jiSJBB8jJk+VhAAUmB+iS8qg==
-=wjcm
+iQEzBAABCAAdFiEEJZpWjZeIetVBefti3cLmz3+fv9EFAlwBOooACgkQ3cLmz3+f
+v9H5cAf/Y4PYNTtU8z80K7NkG2UKbqz1WClI50UXcS49VGXlbAN+Q4scGjd2bzML
+JMgd3lpH5sCqmMR0B3sZBe1H7qPuTQQwZ6h94h8aULW7BppqjT3X2FGuaOr5TT5l
+0OL4Rlsj1RzKB8vFn3prDtwOlDanSjq1Akrf8F1pNs6CH4wmtVhEOtQq6Pzgb6RY
+KQZrD9Ahyh01YQd2eWvmCEEwQKMbS61uFRWSKbi6PPqCn9NjkyzYYB5MhDOQ2Rl5
+OtLiDpcTMR3GwpbfNczbUsy3C/Ad8Yo0iZvVMoqKgZpLbqyXkT4r5qIcNc80uY8u
+LEep4QqRU2g3pCM3AY0wvpAfzidZgg==
+=LKPm
 -----END PGP SIGNATURE-----
 
---=-453EcI7CdM8GuIru8Jyr--
+--=-GiwLARmS2nmhlZHes8Vi--
