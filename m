@@ -1,69 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr1-f67.google.com ([209.85.221.67]:34478 "EHLO
-        mail-wr1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726393AbeK3LPB (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:37888 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726332AbeK3M75 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 30 Nov 2018 06:15:01 -0500
-Received: by mail-wr1-f67.google.com with SMTP id j2so3638519wrw.1
-        for <linux-media@vger.kernel.org>; Thu, 29 Nov 2018 16:07:42 -0800 (PST)
-From: Kelvin Lawson <klawson@lisden.com>
-To: linux-media@vger.kernel.org, stanimir.varbanov@linaro.org
-Cc: Kelvin Lawson <klawson@lisden.com>
-Subject: [PATCH v2] media: venus: Support V4L2 QP parameters in Venus encoder
-Date: Fri, 30 Nov 2018 00:07:28 +0000
-Message-Id: <1543536448-16442-1-git-send-email-klawson@lisden.com>
-In-Reply-To: <96b0d248-8719-e637-63f7-3468948f1c78@linaro.org>
-References: <96b0d248-8719-e637-63f7-3468948f1c78@linaro.org>
+        Fri, 30 Nov 2018 07:59:57 -0500
+Received: from avalon.localnet (dfj612ybrt5fhg77mgycy-3.rev.dnainternet.fi [IPv6:2001:14ba:21f5:5b00:2e86:4862:ef6a:2804])
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 90A3B553
+        for <linux-media@vger.kernel.org>; Fri, 30 Nov 2018 02:52:21 +0100 (CET)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v4.21] Xilinx media drivers updates
+Date: Fri, 30 Nov 2018 03:52:50 +0200
+Message-ID: <2073802.cUNYQbHYTa@avalon>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Support V4L2 QP parameters in Venus encoder:
- * V4L2_CID_MPEG_VIDEO_H264_I_FRAME_QP
- * V4L2_CID_MPEG_VIDEO_H264_B_FRAME_QP
- * V4L2_CID_MPEG_VIDEO_H264_MIN_QP
- * V4L2_CID_MPEG_VIDEO_H264_MAX_QP
+Hi Mauro,
 
-Signed-off-by: Kelvin Lawson <klawson@lisden.com>
----
- drivers/media/platform/qcom/venus/venc.c | 19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+The following changes since commit 708d75fe1c7c6e9abc5381b6fcc32b49830383d0:
 
-diff --git a/drivers/media/platform/qcom/venus/venc.c b/drivers/media/platform/qcom/venus/venc.c
-index 41249d1..15deba7 100644
---- a/drivers/media/platform/qcom/venus/venc.c
-+++ b/drivers/media/platform/qcom/venus/venc.c
-@@ -651,6 +651,8 @@ static int venc_set_properties(struct venus_inst *inst)
- 	struct hfi_framerate frate;
- 	struct hfi_bitrate brate;
- 	struct hfi_idr_period idrp;
-+	struct hfi_quantization quant;
-+	struct hfi_quantization_range quant_range;
- 	u32 ptype, rate_control, bitrate, profile = 0, level = 0;
- 	int ret;
- 
-@@ -770,6 +772,23 @@ static int venc_set_properties(struct venus_inst *inst)
- 	if (ret)
- 		return ret;
- 
-+	ptype = HFI_PROPERTY_PARAM_VENC_SESSION_QP;
-+	quant.qp_i = ctr->h264_i_qp;
-+	quant.qp_p = ctr->h264_p_qp;
-+	quant.qp_b = ctr->h264_b_qp;
-+	quant.layer_id = 0;
-+	ret = hfi_session_set_property(inst, ptype, &quant);
-+	if (ret)
-+		return ret;
-+
-+	ptype = HFI_PROPERTY_PARAM_VENC_SESSION_QP_RANGE;
-+	quant_range.min_qp = ctr->h264_min_qp;
-+	quant_range.max_qp = ctr->h264_max_qp;
-+	quant_range.layer_id = 0;
-+	ret = hfi_session_set_property(inst, ptype, &quant_range);
-+	if (ret)
-+		return ret;
-+
- 	if (inst->fmt_cap->pixfmt == V4L2_PIX_FMT_H264) {
- 		profile = venc_v4l2_to_hfi(V4L2_CID_MPEG_VIDEO_H264_PROFILE,
- 					   ctr->profile.h264);
+  media: dvb-pll: don't re-validate tuner frequencies (2018-11-23 12:27:18 
+-0500)
+
+are available in the Git repository at:
+
+  git://linuxtv.org/pinchartl/media.git xilinx/next
+
+for you to fetch changes up to 672d25bacfce9b50168b0ab7db872d66ae3aa4a6:
+
+  media: xilinx: fix typo in formats table (2018-11-30 03:37:24 +0200)
+
+----------------------------------------------------------------
+Andrea Merello (1):
+      media: xilinx: fix typo in formats table
+
+Dhaval Shah (1):
+      media: xilinx: Use SPDX-License-Identifier
+
+ drivers/media/platform/xilinx/Kconfig       | 2 ++
+ drivers/media/platform/xilinx/Makefile      | 2 ++
+ drivers/media/platform/xilinx/xilinx-dma.c  | 5 +----
+ drivers/media/platform/xilinx/xilinx-dma.h  | 5 +----
+ drivers/media/platform/xilinx/xilinx-tpg.c  | 5 +----
+ drivers/media/platform/xilinx/xilinx-vip.c  | 7 ++-----
+ drivers/media/platform/xilinx/xilinx-vip.h  | 5 +----
+ drivers/media/platform/xilinx/xilinx-vipp.c | 5 +----
+ drivers/media/platform/xilinx/xilinx-vipp.h | 5 +----
+ drivers/media/platform/xilinx/xilinx-vtc.c  | 5 +----
+ drivers/media/platform/xilinx/xilinx-vtc.h  | 5 +----
+ include/dt-bindings/media/xilinx-vip.h      | 5 +----
+ 12 files changed, 15 insertions(+), 41 deletions(-)
+
 -- 
-2.7.4
+Regards,
+
+Laurent Pinchart
