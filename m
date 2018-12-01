@@ -1,176 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga17.intel.com ([192.55.52.151]:35470 "EHLO mga17.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726139AbeLAPUA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 1 Dec 2018 10:20:00 -0500
-Date: Fri, 30 Nov 2018 20:08:05 -0800
-From: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
-To: Abuse <abuse@2.abuse.bgcomp.co.uk>
-Cc: David Miller <davem@davemloft.net>, axboe@kernel.dk,
-        dave@stgolabs.net, keescook@chromium.org,
-        linux-kernel@vger.kernel.org, amir73il@gmail.com,
-        akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com,
-        dja@axtens.net, linux@dominikbrodowski.net,
-        dri-devel@lists.freedesktop.org, edumazet@google.com,
-        federico.vaga@vaga.pv.it, geert+renesas@glider.be, deller@gmx.de,
-        corbet@lwn.net, kumba@gentoo.org, linux-doc@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, linux-ide@vger.kernel.org,
-        linux-m68k@lists.linux-m68k.org, linux-media@vger.kernel.org,
-        linux-mips@linux-mips.org, linux-mtd@lists.infradead.org,
-        linux-parisc@vger.kernel.org, linux-pm@vger.kernel.org,
-        linux-scsi@vger.kernel.org, matthias.bgg@gmail.com,
-        netdev@vger.kernel.org, nouveau@lists.freedesktop.org,
-        pabeni@redhat.com, paul.burton@mips.com, pmladek@suse.com,
-        robh@kernel.org, sean.wang@mediatek.com,
-        sergey.senozhatsky@gmail.com, shannon.nelson@oracle.com,
-        sbrivio@redhat.com, rostedt@goodmis.org, me@tobin.cc,
-        makita.toshiaki@lab.ntt.co.jp, willemb@google.com, yhs@fb.com,
-        yanjun.zhu@oracle.com
-Subject: Re: [PATCH RFC 00/15] Zero ****s, hugload of hugs <3
-Message-ID: <20181201040805.GA14569@linux.intel.com>
-References: <CAGXu5j+jBNBsD3pvUSfEh6Lc5T1YMpbM0HeG1c6BHiJe+cKVOQ@mail.gmail.com>
- <d7c34289-f03a-b641-cc9c-00395306511d@kernel.dk>
- <20181130.123507.1940310466680455876.davem@davemloft.net>
- <2007856.n5V9iKLVsV@eth7>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2007856.n5V9iKLVsV@eth7>
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:53580 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726014AbeLAPrs (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 1 Dec 2018 10:47:48 -0500
+Message-ID: <c1e452601ffe1a6fdb6d17652699a8c2@smtp-cloud7.xs4all.net>
+Date: Sat, 01 Dec 2018 05:36:09 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Nov 30, 2018 at 08:39:01PM +0000, Abuse wrote:
-> On Friday, 30 November 2018 20:35:07 GMT David Miller wrote:
-> > From: Jens Axboe <axboe@kernel.dk>
-> > Date: Fri, 30 Nov 2018 13:12:26 -0700
-> > 
-> > > On 11/30/18 12:56 PM, Davidlohr Bueso wrote:
-> > >> On Fri, 30 Nov 2018, Kees Cook wrote:
-> > >> 
-> > >>> On Fri, Nov 30, 2018 at 11:27 AM Jarkko Sakkinen
-> > >>> <jarkko.sakkinen@linux.intel.com> wrote:
-> > >>>>
-> > >>>> In order to comply with the CoC, replace **** with a hug.
-> > >> 
-> > >> I hope this is some kind of joke. How would anyone get offended by reading
-> > >> technical comments? This is all beyond me...
-> > > 
-> > > Agree, this is insanity.
-> > 
-> > And even worse it is censorship.
-> > 
-> 
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> Fuck
-> 
-> I assume I will now be barred.
-> 
-> 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Thank you for taking the opportunity to practice free speech in the
-always so welcoming and inclusive on-line world :-) Now I'll just have
-to find my notebook and write this prose down so that I'll never forget
-it. Thanks again.
+Results of the daily build of media_tree:
 
-/Jarkko
+date:			Sat Dec  1 05:00:11 CET 2018
+media-tree git hash:	708d75fe1c7c6e9abc5381b6fcc32b49830383d0
+media_build git hash:	47bf46ff21f75d1fe4ae3275a8692cb6ff77b6e8
+v4l-utils git hash:	cff58fcfbdf75381d5351f5ea8e7846f59cb7905
+edid-decode git hash:	5eeb151a748788666534d6ea3da07f90400d24c2
+gcc version:		i686-linux-gcc (GCC) 8.2.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.18.0-2-amd64
+
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.57-i686: OK
+linux-3.16.57-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.123-i686: OK
+linux-3.18.123-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.52-i686: OK
+linux-4.1.52-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.159-i686: OK
+linux-4.4.159-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.131-i686: OK
+linux-4.9.131-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.74-i686: OK
+linux-4.14.74-x86_64: OK
+linux-4.15.18-i686: OK
+linux-4.15.18-x86_64: OK
+linux-4.16.18-i686: OK
+linux-4.16.18-x86_64: OK
+linux-4.17.19-i686: OK
+linux-4.17.19-x86_64: OK
+linux-4.18.12-i686: OK
+linux-4.18.12-x86_64: OK
+linux-4.19.1-i686: OK
+linux-4.19.1-x86_64: OK
+linux-4.20-rc1-i686: OK
+linux-4.20-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
