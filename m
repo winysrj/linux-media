@@ -1,146 +1,257 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:56013 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725726AbeLBIKs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 2 Dec 2018 03:10:48 -0500
-Date: Sat, 1 Dec 2018 22:57:18 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: "Zhi, Yong" <yong.zhi@intel.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "tfiga@chromium.org" <tfiga@chromium.org>,
-        "mchehab@kernel.org" <mchehab@kernel.org>,
-        "hans.verkuil@cisco.com" <hans.verkuil@cisco.com>,
-        "laurent.pinchart@ideasonboard.com"
-        <laurent.pinchart@ideasonboard.com>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "Hu, Jerry W" <jerry.w.hu@intel.com>,
-        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
-        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
-        "Cao, Bingbu" <bingbu.cao@intel.com>,
-        "Li, Chao C" <chao.c.li@intel.com>
-Subject: Re: [PATCH v7 03/16] v4l: Add Intel IPU3 meta data uAPI
-Message-ID: <20181201205717.2q3u6qf576zhmynj@kekkonen.localdomain>
-References: <1540851790-1777-1-git-send-email-yong.zhi@intel.com>
- <1540851790-1777-4-git-send-email-yong.zhi@intel.com>
- <20181102130237.yotr2y7ddrrzqphn@paasikivi.fi.intel.com>
- <C193D76D23A22742993887E6D207B54D3DB3111C@ORSMSX106.amr.corp.intel.com>
- <20181129224548.qwbkau6suipt2veq@kekkonen.localdomain>
- <C193D76D23A22742993887E6D207B54D3DB335C2@ORSMSX106.amr.corp.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <C193D76D23A22742993887E6D207B54D3DB335C2@ORSMSX106.amr.corp.intel.com>
+Received: from mail-pg1-f195.google.com ([209.85.215.195]:46658 "EHLO
+        mail-pg1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725727AbeLBNSW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 2 Dec 2018 08:18:22 -0500
+From: Yangtao Li <tiny.windzz@gmail.com>
+To: kyungmin.park@samsung.com, s.nawrocki@samsung.com,
+        mchehab@kernel.org, kgene@kernel.org, krzk@kernel.org,
+        fabien.dessenne@st.com, jean-christophe.trotin@st.com
+Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Yangtao Li <tiny.windzz@gmail.com>
+Subject: [PATCH v2] media: remove bdisp_dbg_declare() and hva_dbg_declare()
+Date: Sat,  1 Dec 2018 21:04:25 -0500
+Message-Id: <20181202020425.9189-1-tiny.windzz@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Yong,
+We already have the DEFINE_SHOW_ATTRIBUTE.There is no need to define
+bdisp_dbg_declare and hva_dbg_declare,so remove them.Also use
+DEFINE_SHOW_ATTRIBUTE to simplify some code.
 
-On Thu, Nov 29, 2018 at 11:06:23PM +0000, Zhi, Yong wrote:
-> Hi, Sakari,
-> 
-> > -----Original Message-----
-> > From: Sakari Ailus [mailto:sakari.ailus@linux.intel.com]
-> > Sent: Thursday, November 29, 2018 4:46 PM
-> > To: Zhi, Yong <yong.zhi@intel.com>
-> > Cc: linux-media@vger.kernel.org; tfiga@chromium.org;
-> > mchehab@kernel.org; hans.verkuil@cisco.com;
-> > laurent.pinchart@ideasonboard.com; Mani, Rajmohan
-> > <rajmohan.mani@intel.com>; Zheng, Jian Xu <jian.xu.zheng@intel.com>; Hu,
-> > Jerry W <jerry.w.hu@intel.com>; Toivonen, Tuukka
-> > <tuukka.toivonen@intel.com>; Qiu, Tian Shu <tian.shu.qiu@intel.com>; Cao,
-> > Bingbu <bingbu.cao@intel.com>; Li, Chao C <chao.c.li@intel.com>
-> > Subject: Re: [PATCH v7 03/16] v4l: Add Intel IPU3 meta data uAPI
-> > 
-> > Hi Yong,
-> > 
-> > On Fri, Nov 16, 2018 at 10:37:00PM +0000, Zhi, Yong wrote:
-> > ...
-> > > > > +/**
-> > > > > + * struct ipu3_uapi_shd_grid_config - Bayer shading(darkening)
-> > > > > +correction
-> > > > > + *
-> > > > > + * @width:	Grid horizontal dimensions, u8, [8, 128], default 73
-> > > > > + * @height:	Grid vertical dimensions, u8, [8, 128], default 56
-> > > > > + * @block_width_log2:	Log2 of the width of the grid cell in pixel
-> > > > count
-> > > > > + *			u4, [0, 15], default value 5.
-> > > > > + * @__reserved0:	reserved
-> > > > > + * @block_height_log2:	Log2 of the height of the grid cell in pixel
-> > > > count
-> > > > > + *			u4, [0, 15], default value 6.
-> > > > > + * @__reserved1:	reserved
-> > > > > + * @grid_height_per_slice:	SHD_MAX_CELLS_PER_SET/width.
-> > > > > + *				(with SHD_MAX_CELLS_PER_SET =
-> > 146).
-> > > > > + * @x_start:	X value of top left corner of sensor relative to ROI
-> > > > > + *		u12, [-4096, 0]. default 0, only negative values.
-> > > > > + * @y_start:	Y value of top left corner of sensor relative to ROI
-> > > > > + *		u12, [-4096, 0]. default 0, only negative values.
-> > > >
-> > > > I suppose u12 is incorrect here, if the value is signed --- and
-> > > > negative (sign bit) if not 0?
-> > > >
-> > >
-> > > The value will be written to 13 bit register, should use s12.0.
-> > 
-> > If you have s12, that means the most significant bit is the sign bit. So if the
-> > smallest value is -4096, you'd need s13.
-> > 
-> > But where is the sign bit, i.e. is this either s13 or s16?
-> > 
-> 
-> The notation of s12.0 means 13 bit with fraction bit as 0 right? 
+Signed-off-by: Yangtao Li <tiny.windzz@gmail.com>
+---
+Changes in v2:
+-delete fimc_is_debugfs_open
+---
+ drivers/media/platform/exynos4-is/fimc-is.c   | 16 ++-------
+ .../media/platform/sti/bdisp/bdisp-debug.c    | 34 ++++++------------
+ drivers/media/platform/sti/hva/hva-debugfs.c  | 36 +++++++------------
+ 3 files changed, 26 insertions(+), 60 deletions(-)
 
-In s12.0, bit 11 is the sign bit, and bits 10--0 are the integer part. The
-smallest number that can be represented is thus -2048 (not -4096).
-
-> 
-> > >
-> > > > > + */
-> > > > > +struct ipu3_uapi_shd_grid_config {
-> > > > > +	/* reg 0 */
-> > > > > +	__u8 width;
-> > > > > +	__u8 height;
-> > > > > +	__u8 block_width_log2:3;
-> > > > > +	__u8 __reserved0:1;
-> > > > > +	__u8 block_height_log2:3;
-> > > > > +	__u8 __reserved1:1;
-> > > > > +	__u8 grid_height_per_slice;
-> > > > > +	/* reg 1 */
-> > > > > +	__s16 x_start;
-> > > > > +	__s16 y_start;
-> > > > > +} __packed;
-> > 
-> > ...
-> > 
-> > > > > +/**
-> > > > > + * struct ipu3_uapi_iefd_cux2_1 - Calculate power of non-directed
-> > denoise
-> > > > > + *				  element apply.
-> > > > > + * @x0: X0 point of Config Unit, u9.0, default 0.
-> > > > > + * @x1: X1 point of Config Unit, u9.0, default 0.
-> > > > > + * @a01: Slope A of Config Unit, s4.4, default 0.
-> > > >
-> > > > The field is marked unsigned below. Which one is correct?
-> > > >
-> > >
-> > > They are both correct, however, s4.4 is the internal representation
-> > > used by CU, the inputs are unsigned, I will add a note in v8, same
-> > > applies to the few other places as you commented.
-> > 
-> > I still find this rather confusing. Is there a sign bit or is there not?
-> > 
-> 
-> It's unsigned number from driver perspective, all CU inputs are unsigned,
-> however, they will be "converted" to signed for FW/HW to use. I have to
-> consult FW expert if more clarification is needed.
-
-I think that would be good to have; if you somehow convert an unsigned
-integer to a negative number, there's more than just the type cast there.
-
+diff --git a/drivers/media/platform/exynos4-is/fimc-is.c b/drivers/media/platform/exynos4-is/fimc-is.c
+index f5fc54de19da..02da0b06e56a 100644
+--- a/drivers/media/platform/exynos4-is/fimc-is.c
++++ b/drivers/media/platform/exynos4-is/fimc-is.c
+@@ -738,7 +738,7 @@ int fimc_is_hw_initialize(struct fimc_is *is)
+ 	return 0;
+ }
+ 
+-static int fimc_is_log_show(struct seq_file *s, void *data)
++static int fimc_is_show(struct seq_file *s, void *data)
+ {
+ 	struct fimc_is *is = s->private;
+ 	const u8 *buf = is->memory.vaddr + FIMC_IS_DEBUG_REGION_OFFSET;
+@@ -752,17 +752,7 @@ static int fimc_is_log_show(struct seq_file *s, void *data)
+ 	return 0;
+ }
+ 
+-static int fimc_is_debugfs_open(struct inode *inode, struct file *file)
+-{
+-	return single_open(file, fimc_is_log_show, inode->i_private);
+-}
+-
+-static const struct file_operations fimc_is_debugfs_fops = {
+-	.open		= fimc_is_debugfs_open,
+-	.read		= seq_read,
+-	.llseek		= seq_lseek,
+-	.release	= single_release,
+-};
++DEFINE_SHOW_ATTRIBUTE(fimc_is);
+ 
+ static void fimc_is_debugfs_remove(struct fimc_is *is)
+ {
+@@ -777,7 +767,7 @@ static int fimc_is_debugfs_create(struct fimc_is *is)
+ 	is->debugfs_entry = debugfs_create_dir("fimc_is", NULL);
+ 
+ 	dentry = debugfs_create_file("fw_log", S_IRUGO, is->debugfs_entry,
+-				     is, &fimc_is_debugfs_fops);
++				     is, &fimc_is_fops);
+ 	if (!dentry)
+ 		fimc_is_debugfs_remove(is);
+ 
+diff --git a/drivers/media/platform/sti/bdisp/bdisp-debug.c b/drivers/media/platform/sti/bdisp/bdisp-debug.c
+index c6a4e2de5c0c..77ca7517fa3e 100644
+--- a/drivers/media/platform/sti/bdisp/bdisp-debug.c
++++ b/drivers/media/platform/sti/bdisp/bdisp-debug.c
+@@ -315,7 +315,7 @@ static void bdisp_dbg_dump_ivmx(struct seq_file *s,
+ 	seq_puts(s, "Unknown conversion\n");
+ }
+ 
+-static int bdisp_dbg_last_nodes(struct seq_file *s, void *data)
++static int last_nodes_show(struct seq_file *s, void *data)
+ {
+ 	/* Not dumping all fields, focusing on significant ones */
+ 	struct bdisp_dev *bdisp = s->private;
+@@ -388,7 +388,7 @@ static int bdisp_dbg_last_nodes(struct seq_file *s, void *data)
+ 	return 0;
+ }
+ 
+-static int bdisp_dbg_last_nodes_raw(struct seq_file *s, void *data)
++static int last_nodes_raw_show(struct seq_file *s, void *data)
+ {
+ 	struct bdisp_dev *bdisp = s->private;
+ 	struct bdisp_node *node;
+@@ -437,7 +437,7 @@ static const char *bdisp_fmt_to_str(struct bdisp_frame frame)
+ 	}
+ }
+ 
+-static int bdisp_dbg_last_request(struct seq_file *s, void *data)
++static int last_request_show(struct seq_file *s, void *data)
+ {
+ 	struct bdisp_dev *bdisp = s->private;
+ 	struct bdisp_request *request = &bdisp->dbg.copy_request;
+@@ -474,7 +474,7 @@ static int bdisp_dbg_last_request(struct seq_file *s, void *data)
+ 
+ #define DUMP(reg) seq_printf(s, #reg " \t0x%08X\n", readl(bdisp->regs + reg))
+ 
+-static int bdisp_dbg_regs(struct seq_file *s, void *data)
++static int regs_show(struct seq_file *s, void *data)
+ {
+ 	struct bdisp_dev *bdisp = s->private;
+ 	int ret;
+@@ -582,7 +582,7 @@ static int bdisp_dbg_regs(struct seq_file *s, void *data)
+ 
+ #define SECOND 1000000
+ 
+-static int bdisp_dbg_perf(struct seq_file *s, void *data)
++static int perf_show(struct seq_file *s, void *data)
+ {
+ 	struct bdisp_dev *bdisp = s->private;
+ 	struct bdisp_request *request = &bdisp->dbg.copy_request;
+@@ -627,27 +627,15 @@ static int bdisp_dbg_perf(struct seq_file *s, void *data)
+ 	return 0;
+ }
+ 
+-#define bdisp_dbg_declare(name) \
+-	static int bdisp_dbg_##name##_open(struct inode *i, struct file *f) \
+-	{ \
+-		return single_open(f, bdisp_dbg_##name, i->i_private); \
+-	} \
+-	static const struct file_operations bdisp_dbg_##name##_fops = { \
+-		.open           = bdisp_dbg_##name##_open, \
+-		.read           = seq_read, \
+-		.llseek         = seq_lseek, \
+-		.release        = single_release, \
+-	}
+-
+ #define bdisp_dbg_create_entry(name) \
+ 	debugfs_create_file(#name, S_IRUGO, bdisp->dbg.debugfs_entry, bdisp, \
+-			    &bdisp_dbg_##name##_fops)
++			    &name##_fops)
+ 
+-bdisp_dbg_declare(regs);
+-bdisp_dbg_declare(last_nodes);
+-bdisp_dbg_declare(last_nodes_raw);
+-bdisp_dbg_declare(last_request);
+-bdisp_dbg_declare(perf);
++DEFINE_SHOW_ATTRIBUTE(regs);
++DEFINE_SHOW_ATTRIBUTE(last_nodes);
++DEFINE_SHOW_ATTRIBUTE(last_nodes_raw);
++DEFINE_SHOW_ATTRIBUTE(last_request);
++DEFINE_SHOW_ATTRIBUTE(perf);
+ 
+ int bdisp_debugfs_create(struct bdisp_dev *bdisp)
+ {
+diff --git a/drivers/media/platform/sti/hva/hva-debugfs.c b/drivers/media/platform/sti/hva/hva-debugfs.c
+index 9f7e8ac875d1..7d12a5b5d914 100644
+--- a/drivers/media/platform/sti/hva/hva-debugfs.c
++++ b/drivers/media/platform/sti/hva/hva-debugfs.c
+@@ -271,7 +271,7 @@ static void hva_dbg_perf_compute(struct hva_ctx *ctx)
+  * device debug info
+  */
+ 
+-static int hva_dbg_device(struct seq_file *s, void *data)
++static int device_show(struct seq_file *s, void *data)
+ {
+ 	struct hva_dev *hva = s->private;
+ 
+@@ -281,7 +281,7 @@ static int hva_dbg_device(struct seq_file *s, void *data)
+ 	return 0;
+ }
+ 
+-static int hva_dbg_encoders(struct seq_file *s, void *data)
++static int encoders_show(struct seq_file *s, void *data)
+ {
+ 	struct hva_dev *hva = s->private;
+ 	unsigned int i = 0;
+@@ -299,7 +299,7 @@ static int hva_dbg_encoders(struct seq_file *s, void *data)
+ 	return 0;
+ }
+ 
+-static int hva_dbg_last(struct seq_file *s, void *data)
++static int last_show(struct seq_file *s, void *data)
+ {
+ 	struct hva_dev *hva = s->private;
+ 	struct hva_ctx *last_ctx = &hva->dbg.last_ctx;
+@@ -316,7 +316,7 @@ static int hva_dbg_last(struct seq_file *s, void *data)
+ 	return 0;
+ }
+ 
+-static int hva_dbg_regs(struct seq_file *s, void *data)
++static int regs_show(struct seq_file *s, void *data)
+ {
+ 	struct hva_dev *hva = s->private;
+ 
+@@ -325,26 +325,14 @@ static int hva_dbg_regs(struct seq_file *s, void *data)
+ 	return 0;
+ }
+ 
+-#define hva_dbg_declare(name)						  \
+-	static int hva_dbg_##name##_open(struct inode *i, struct file *f) \
+-	{								  \
+-		return single_open(f, hva_dbg_##name, i->i_private);	  \
+-	}								  \
+-	static const struct file_operations hva_dbg_##name##_fops = {	  \
+-		.open		= hva_dbg_##name##_open,		  \
+-		.read		= seq_read,				  \
+-		.llseek		= seq_lseek,				  \
+-		.release	= single_release,			  \
+-	}
+-
+ #define hva_dbg_create_entry(name)					 \
+ 	debugfs_create_file(#name, 0444, hva->dbg.debugfs_entry, hva, \
+-			    &hva_dbg_##name##_fops)
++			    &name##_fops)
+ 
+-hva_dbg_declare(device);
+-hva_dbg_declare(encoders);
+-hva_dbg_declare(last);
+-hva_dbg_declare(regs);
++DEFINE_SHOW_ATTRIBUTE(device);
++DEFINE_SHOW_ATTRIBUTE(encoders);
++DEFINE_SHOW_ATTRIBUTE(last);
++DEFINE_SHOW_ATTRIBUTE(regs);
+ 
+ void hva_debugfs_create(struct hva_dev *hva)
+ {
+@@ -380,7 +368,7 @@ void hva_debugfs_remove(struct hva_dev *hva)
+  * context (instance) debug info
+  */
+ 
+-static int hva_dbg_ctx(struct seq_file *s, void *data)
++static int ctx_show(struct seq_file *s, void *data)
+ {
+ 	struct hva_ctx *ctx = s->private;
+ 
+@@ -392,7 +380,7 @@ static int hva_dbg_ctx(struct seq_file *s, void *data)
+ 	return 0;
+ }
+ 
+-hva_dbg_declare(ctx);
++DEFINE_SHOW_ATTRIBUTE(ctx);
+ 
+ void hva_dbg_ctx_create(struct hva_ctx *ctx)
+ {
+@@ -407,7 +395,7 @@ void hva_dbg_ctx_create(struct hva_ctx *ctx)
+ 
+ 	ctx->dbg.debugfs_entry = debugfs_create_file(name, 0444,
+ 						     hva->dbg.debugfs_entry,
+-						     ctx, &hva_dbg_ctx_fops);
++						     ctx, &ctx_fops);
+ }
+ 
+ void hva_dbg_ctx_remove(struct hva_ctx *ctx)
 -- 
-Kind regards,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+2.17.0
