@@ -1,71 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:50038 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725535AbeLBSpj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 2 Dec 2018 13:45:39 -0500
-Subject: Re: [PATCH] pulse8-cec: return 0 when invalidating the logical
- address
-To: Torbjorn Jansson <torbjorn.jansson@mbox200.swipnet.se>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <3bc19549-ea46-1273-11b9-49482e3574f0@xs4all.nl>
- <ad8d4315-59d7-f7eb-6c35-630c57a6b64b@mbox200.swipnet.se>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <e6e2ce0a-9917-f2ad-eb2c-6abd1386adf5@xs4all.nl>
-Date: Sun, 2 Dec 2018 19:45:31 +0100
+Received: from mail-qt1-f196.google.com ([209.85.160.196]:41303 "EHLO
+        mail-qt1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725730AbeLBUoO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 2 Dec 2018 15:44:14 -0500
 MIME-Version: 1.0
-In-Reply-To: <ad8d4315-59d7-f7eb-6c35-630c57a6b64b@mbox200.swipnet.se>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+References: <20181202134538.GA18886@gfm-note>
+In-Reply-To: <20181202134538.GA18886@gfm-note>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Sun, 2 Dec 2018 21:43:53 +0100
+Message-ID: <CAK8P3a2of9sZ5BGCKshCjFkpt8q6s-KD-9XC4SGYP2Ppj7fjEw@mail.gmail.com>
+Subject: Re: [PATCH v4] media: vivid: Improve timestamping
+To: gfmandaji@gmail.com
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        lkcamp@lists.libreplanetbr.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/02/2018 04:25 PM, Torbjorn Jansson wrote:
-> On 2018-11-14 14:25, Hans Verkuil wrote:
->> Return 0 when invalidating the logical address. The cec core produces
->> a warning for drivers that do this.
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> Reported-by: Torbjorn Jansson <torbjorn.jansson@mbox200.swipnet.se>
->> ---
->> diff --git a/drivers/media/usb/pulse8-cec/pulse8-cec.c b/drivers/media/usb/pulse8-cec/pulse8-cec.c
->> index 365c78b748dd..b085b14f3f87 100644
->> --- a/drivers/media/usb/pulse8-cec/pulse8-cec.c
->> +++ b/drivers/media/usb/pulse8-cec/pulse8-cec.c
->> @@ -586,7 +586,7 @@ static int pulse8_cec_adap_log_addr(struct cec_adapter *adap, u8 log_addr)
->>   	else
->>   		pulse8->config_pending = true;
->>   	mutex_unlock(&pulse8->config_lock);
->> -	return err;
->> +	return log_addr == CEC_LOG_ADDR_INVALID ? 0 : err;
->>   }
->>
->>   static int pulse8_cec_adap_transmit(struct cec_adapter *adap, u8 attempts,
->>
-> 
-> 
-> question, is below warning also fixed by this patch? or is it a different problem?
-> note that this warning showed up without me unplugging the usb device.
-> and cec-ctl have stopped working (again...)
+On Sun, Dec 2, 2018 at 2:47 PM Gabriel Francisco Mandaji
+<gfmandaji@gmail.com> wrote:
 
-Yes, same problem. Nothing to do with cec-ctl having stopped working.
+> @@ -667,10 +653,28 @@ static void vivid_overlay(struct vivid_dev *dev, struct vivid_buffer *buf)
+>         }
+>  }
+>
+> +static void vivid_cap_update_frame_period(struct vivid_dev *dev)
+> +{
+> +       u64 f_period;
+> +
+> +       f_period = (u64)dev->timeperframe_vid_cap.numerator * 1000000000;
+> +       do_div(f_period, dev->timeperframe_vid_cap.denominator);
+> +       if (dev->field_cap == V4L2_FIELD_ALTERNATE)
+> +               do_div(f_period, 2);
+> +       /*
+> +        * If "End of Frame", then offset the exposure time by 0.9
+> +        * of the frame period.
+> +        */
+> +       dev->cap_frame_eof_offset = f_period * 9;
+> +       do_div(dev->cap_frame_eof_offset, 10);
+> +       dev->cap_frame_period = f_period;
+> +}
 
-The real problem is this (quoted from https://hverkuil.home.xs4all.nl/cec-status.txt,
-end of the section "USB CEC Dongles"):
+Doing two or three do_div() operations is going to make this rather
+expensive on 32-bit architectures, and it looks like this happens for
+each frame?
 
-"I'm no systemd hero and sometimes it won't pick up the device, esp. at boot
-time. I would be very happy if someone can take a good look at this and
-come up with better ideas. As far as I can tell the CEC device is picked
-up the first time it is connected to a USB port. But unplugging it, then
-replugging it into the same USB port will not pick it up again. You need
-to run inputattach manually in that case. It's something in udev/systemd,
-but I have no idea how to fix it."
+Since each one is a multiplication followed by a division, could this
+be changed to using a different factor followed by a bit shift?
 
-I have no time to chase this issue down. It probably requires contacting
-some systemd mailinglist and talk to people who actually understand
-systemd. If you want, you can give that a go.
-
-Regards,
-
-	Hans
+      Arnd
