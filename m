@@ -1,119 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:51762 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725372AbeLBEdw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 1 Dec 2018 23:33:52 -0500
-Message-ID: <e5e32f35cdc6ecef2202dd38c209daf5@smtp-cloud9.xs4all.net>
-Date: Sun, 02 Dec 2018 05:33:46 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
+Received: from mail-pg1-f194.google.com ([209.85.215.194]:35466 "EHLO
+        mail-pg1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725379AbeLBGN3 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 2 Dec 2018 01:13:29 -0500
+Date: Sun, 2 Dec 2018 11:47:07 +0530
+From: Souptick Joarder <jrdr.linux@gmail.com>
+To: akpm@linux-foundation.org, willy@infradead.org, mhocko@suse.com,
+        kirill.shutemov@linux.intel.com, vbabka@suse.cz, riel@surriel.com,
+        sfr@canb.auug.org.au, rppt@linux.vnet.ibm.com,
+        peterz@infradead.org, linux@armlinux.org.uk, robin.murphy@arm.com,
+        iamjoonsoo.kim@lge.com, treding@nvidia.com, keescook@chromium.org,
+        m.szyprowski@samsung.com, stefanr@s5r6.in-berlin.de,
+        hjc@rock-chips.com, heiko@sntech.de, airlied@linux.ie,
+        oleksandr_andrushchenko@epam.com, joro@8bytes.org,
+        pawel@osciak.com, kyungmin.park@samsung.com, mchehab@kernel.org,
+        boris.ostrovsky@oracle.com, jgross@suse.com
+Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux1394-devel@lists.sourceforge.net,
+        dri-devel@lists.freedesktop.org,
+        linux-rockchip@lists.infradead.org, xen-devel@lists.xen.org,
+        iommu@lists.linux-foundation.org, linux-media@vger.kernel.org
+Subject: [PATCH v2 0/9] Use vm_insert_range
+Message-ID: <20181202061707.GA3070@jordon-HP-15-Notebook-PC>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Previouly drivers have their own way of mapping range of
+kernel pages/memory into user vma and this was done by
+invoking vm_insert_page() within a loop.
 
-Results of the daily build of media_tree:
+As this pattern is common across different drivers, it can
+be generalized by creating a new function and use it across
+the drivers.
 
-date:			Sun Dec  2 05:00:10 CET 2018
-media-tree git hash:	708d75fe1c7c6e9abc5381b6fcc32b49830383d0
-media_build git hash:	47bf46ff21f75d1fe4ae3275a8692cb6ff77b6e8
-v4l-utils git hash:	cff58fcfbdf75381d5351f5ea8e7846f59cb7905
-edid-decode git hash:	5eeb151a748788666534d6ea3da07f90400d24c2
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.18.0-2-amd64
+vm_insert_range is the new API which will be used to map a
+range of kernel memory/pages to user vma.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.123-i686: OK
-linux-3.18.123-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.159-i686: OK
-linux-4.4.159-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.131-i686: OK
-linux-4.9.131-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.74-i686: OK
-linux-4.14.74-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: OK
-linux-4.19.1-i686: OK
-linux-4.19.1-x86_64: OK
-linux-4.20-rc1-i686: OK
-linux-4.20-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+All the applicable places are converted to use new vm_insert_range
+in this patch series.
 
-Detailed results are available here:
+v1 -> v2:
+	Address review comment on mm/memory.c. Add EXPORT_SYMBOL
+	for vm_insert_range and corrected the documentation part
+	for this API.
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+	In drivers/gpu/drm/xen/xen_drm_front_gem.c, replace err
+	with ret as suggested.
 
-Full logs are available here:
+	In drivers/iommu/dma-iommu.c, handle the scenario of partial
+	mmap() of large buffer by passing *pages + vma->vm_pgoff* to
+	vm_insert_range().
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+Souptick Joarder (9):
+  mm: Introduce new vm_insert_range API
+  arch/arm/mm/dma-mapping.c: Convert to use vm_insert_range
+  drivers/firewire/core-iso.c: Convert to use vm_insert_range
+  drm/rockchip/rockchip_drm_gem.c: Convert to use vm_insert_range
+  drm/xen/xen_drm_front_gem.c: Convert to use vm_insert_range
+  iommu/dma-iommu.c: Convert to use vm_insert_range
+  videobuf2/videobuf2-dma-sg.c: Convert to use vm_insert_range
+  xen/gntdev.c: Convert to use vm_insert_range
+  xen/privcmd-buf.c: Convert to use vm_insert_range
 
-The Media Infrastructure API from this daily build is here:
+ arch/arm/mm/dma-mapping.c                         | 21 +++++--------
+ drivers/firewire/core-iso.c                       | 15 ++-------
+ drivers/gpu/drm/rockchip/rockchip_drm_gem.c       | 20 ++----------
+ drivers/gpu/drm/xen/xen_drm_front_gem.c           | 20 ++++--------
+ drivers/iommu/dma-iommu.c                         | 13 ++------
+ drivers/media/common/videobuf2/videobuf2-dma-sg.c | 23 +++++---------
+ drivers/xen/gntdev.c                              | 11 +++----
+ drivers/xen/privcmd-buf.c                         |  8 ++---
+ include/linux/mm_types.h                          |  3 ++
+ mm/memory.c                                       | 38 +++++++++++++++++++++++
+ mm/nommu.c                                        |  7 +++++
+ 11 files changed, 81 insertions(+), 98 deletions(-)
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+-- 
+1.9.1
