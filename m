@@ -1,221 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:59597 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725749AbeLAK51 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 1 Dec 2018 05:57:27 -0500
-Date: Sat, 1 Dec 2018 01:46:21 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: Possible regression in v4l2-async
-Message-ID: <20181130234620.4v75ztth3fj5nxtb@kekkonen.localdomain>
-References: <20181129184710.GA10382@bigcity.dyn.berto.se>
- <d2eb601a-80a8-41d5-ebd0-56159d339604@gmail.com>
- <880ff893-9e7a-6140-0261-4b8d88c69b5b@gmail.com>
- <20181129203752.lw6cy4gopxmoc7fe@kekkonen.localdomain>
- <20181130022529.GA30723@bigcity.dyn.berto.se>
+Received: from mail-pf1-f195.google.com ([209.85.210.195]:44038 "EHLO
+        mail-pf1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725355AbeLBGQE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 2 Dec 2018 01:16:04 -0500
+Date: Sun, 2 Dec 2018 11:49:44 +0530
+From: Souptick Joarder <jrdr.linux@gmail.com>
+To: akpm@linux-foundation.org, willy@infradead.org, mhocko@suse.com,
+        kirill.shutemov@linux.intel.com, vbabka@suse.cz, riel@surriel.com,
+        sfr@canb.auug.org.au, rppt@linux.vnet.ibm.com,
+        peterz@infradead.org, linux@armlinux.org.uk, robin.murphy@arm.com,
+        iamjoonsoo.kim@lge.com, treding@nvidia.com, keescook@chromium.org,
+        m.szyprowski@samsung.com, stefanr@s5r6.in-berlin.de,
+        hjc@rock-chips.com, heiko@sntech.de, airlied@linux.ie,
+        oleksandr_andrushchenko@epam.com, joro@8bytes.org,
+        pawel@osciak.com, kyungmin.park@samsung.com, mchehab@kernel.org,
+        boris.ostrovsky@oracle.com, jgross@suse.com
+Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux1394-devel@lists.sourceforge.net,
+        dri-devel@lists.freedesktop.org,
+        linux-rockchip@lists.infradead.org, xen-devel@lists.xen.org,
+        iommu@lists.linux-foundation.org, linux-media@vger.kernel.org
+Subject: [PATCH v2 1/9] mm: Introduce new vm_insert_range API
+Message-ID: <20181202061944.GA3094@jordon-HP-15-Notebook-PC>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20181130022529.GA30723@bigcity.dyn.berto.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+Previouly drivers have their own way of mapping range of
+kernel pages/memory into user vma and this was done by
+invoking vm_insert_page() within a loop.
 
-On Fri, Nov 30, 2018 at 03:25:29AM +0100, Niklas Söderlund wrote:
-> Hi Sakari, Steve,
-> 
-> Thanks for your quick response.
-> 
-> On 2018-11-29 22:37:53 +0200, Sakari Ailus wrote:
-> > Hi Steve, Niklas,
-> > 
-> > On Thu, Nov 29, 2018 at 11:41:32AM -0800, Steve Longerbeam wrote:
-> > > 
-> > > 
-> > > On 11/29/18 11:26 AM, Steve Longerbeam wrote:
-> > > > Hi Niklas,
-> > > > 
-> > > > On 11/29/18 10:47 AM, Niklas Söderlund wrote:
-> > > > > Hi Steve, Sakari and Hans,
-> > > > > 
-> > > > > I have been made aware of a possible regression by a few users of
-> > > > > rcar-vin and I'm a bit puzzled how to best handle it. Maybe you can help
-> > > > > me out?
-> > > > > 
-> > > > > The issue is visible when running with LOCKDEP enabled and it prints a
-> > > > > warning about a possible circular locking dependency, see end of mail.
-> > > > > The warning is triggered because rcar-vin takes a mutex (group->lock) in
-> > > > > its async bound call back while the async framework already holds one
-> > > > > (lisk_lock).
-> > > > 
-> > > > I see two possible solutions to this:
-> > > > 
-> > > > A. Remove acquiring the list_lock in v4l2_async_notifier_init().
-> > > > 
-> > > > B. Move the call to v4l2_async_notifier_init()**to the top of
-> > > > rvin_mc_parse_of_graph() (before acquiring group->lock).
-> > > > 
-> > > > It's most likely safe to remove the list_lock from
-> > > > v4l2_async_notifier_init(), because all drivers should be calling that
-> > > > function at probe start, before it begins to add async subdev
-> > > > descriptors to their notifiers. But just the same, I think it would be
-> > > > safer to keep list_lock in v4l2_async_notifier_init(), just in case of
-> > > > some strange corner case (such as a driver that adds descriptors in a
-> > > > separate thread from the thread that calls v4l2_async_notifier_init()).
-> > > 
-> > > Well, on second thought that's probably a lame example, no driver should be
-> > > doing that. So removing the list_lock from v4l2_async_notifier_init() is
-> > > probably safe. The notifier is not registered with v4l2-async at that point.
-> > 
-> > I agree, apart from "probably". It is safe.
-> > 
-> > Niklas: would you like to send a patch? :-)
-> 
-> Thanks for your suggestions, I have sent a patch [1] for Steves 
-> alternative A as I agree that is the correct approach to cure the 
-> symptom of the problem and have value in its own right. Unfortunately 
-> this do not cover the core of the problem.
-> 
-> As I tried to describe in my first mail, maybe I could have described it 
-> better, sorry about that. This problem comes from the adding of 
-> subdevices to notifiers using a list instead of a array allocated and 
-> handled by the driver. Even with [1] applied a LOCKDEP warning is still 
-> trigged (see end of mail) as one thread could be busy adding subdevs to 
-> it's notifier using the fwnode helpers who take the list_lock as another 
-> thread is busy processing and binding subdevices also holding the 
-> list_lock. Then if a async callback implemented by a driver also takes a 
-> driver local lock the warning is still triggered as described in my 
-> first mail.
+As this pattern is common across different drivers, it can
+be generalized by creating a new function and use it across
+the drivers.
 
-A stupid question perhaps... what are you serialising with the group lock?
+vm_insert_range is the new API which will be used to map a
+range of kernel memory/pages to user vma.
 
-> 
-> 1. [PATCH] v4l2: async: remove locking when initializing async notifier
-> 
-> ---->> warning output <<----
->  ======================================================
->  WARNING: possible circular locking dependency detected
->  4.20.0-rc1-arm64-renesas-00141-gcadfba6a1339544c #58 Not tainted
->  ------------------------------------------------------
->  swapper/0/1 is trying to acquire lock:
->  (____ptrval____) (&group->lock){+.+.}, at: rvin_group_notify_bound+0x30/0xa8
->  
->  but task is already holding lock:
->  (____ptrval____) (list_lock){+.+.}, at: __v4l2_async_notifier_register+0x4c/0x140
->  
->  which lock already depends on the new lock.
->  
->  
->  the existing dependency chain (in reverse order) is:
->  
->  -> #1 (list_lock){+.+.}:
->         __mutex_lock+0x70/0x7e0
->         mutex_lock_nested+0x1c/0x28
->         v4l2_async_notifier_add_subdev+0x2c/0x78
->         __v4l2_async_notifier_parse_fwnode_ep+0x17c/0x310
->         v4l2_async_notifier_parse_fwnode_endpoints_by_port+0x14/0x20
->         rcar_vin_probe+0x174/0x638
->         platform_drv_probe+0x50/0xa0
->         really_probe+0x1c8/0x2a8
->         driver_probe_device+0x54/0xe8
->         __driver_attach+0xf0/0xf8
->         bus_for_each_dev+0x70/0xc0
->         driver_attach+0x20/0x28
->         bus_add_driver+0x1d4/0x200
->         driver_register+0x60/0x110
->         __platform_driver_register+0x44/0x50
->         rcar_vin_driver_init+0x18/0x20
->         do_one_initcall+0x180/0x35c
->         kernel_init_freeable+0x450/0x4f4
->         kernel_init+0x10/0xfc
->         ret_from_fork+0x10/0x1c
->  
->  -> #0 (&group->lock){+.+.}:
->         lock_acquire+0xc8/0x238
->         __mutex_lock+0x70/0x7e0
->         mutex_lock_nested+0x1c/0x28
->         rvin_group_notify_bound+0x30/0xa8
->         v4l2_async_match_notify+0x50/0x138
->         v4l2_async_notifier_try_all_subdevs+0x58/0xb8
->         __v4l2_async_notifier_register+0xd0/0x140
->         v4l2_async_notifier_register+0x38/0x58
->         rcar_vin_probe+0x1c0/0x638
->         platform_drv_probe+0x50/0xa0
->         really_probe+0x1c8/0x2a8
->         driver_probe_device+0x54/0xe8
->         __driver_attach+0xf0/0xf8
->         bus_for_each_dev+0x70/0xc0
->         driver_attach+0x20/0x28
->         bus_add_driver+0x1d4/0x200
->         driver_register+0x60/0x110
->         __platform_driver_register+0x44/0x50
->         rcar_vin_driver_init+0x18/0x20
->         do_one_initcall+0x180/0x35c
->         kernel_init_freeable+0x450/0x4f4
->         kernel_init+0x10/0xfc
->         ret_from_fork+0x10/0x1c
->  
->  other info that might help us debug this:
->  
->   Possible unsafe locking scenario:
->  
->         CPU0                    CPU1
->         ----                    ----
->    lock(list_lock);
->                                 lock(&group->lock);
->                                 lock(list_lock);
->    lock(&group->lock);
->  
->   *** DEADLOCK ***
->  
->  2 locks held by swapper/0/1:
->   #0: (____ptrval____) (&dev->mutex){....}, at: __driver_attach+0x60/0xf8
->   #1: (____ptrval____) (list_lock){+.+.}, at: __v4l2_async_notifier_register+0x4c/0x140
->  
->  stack backtrace:
->  CPU: 0 PID: 1 Comm: swapper/0 Not tainted 4.20.0-rc1-arm64-renesas-00141-gcadfba6a1339544c #58
->  Hardware name: Renesas Salvator-X 2nd version board based on r8a77965 (DT)
->  Call trace:
->   dump_backtrace+0x0/0x188
->   show_stack+0x14/0x20
->   dump_stack+0xbc/0xf4
->   print_circular_bug.isra.18+0x270/0x2d8
->   __lock_acquire+0x12e8/0x1790
->   lock_acquire+0xc8/0x238
->   __mutex_lock+0x70/0x7e0
->   mutex_lock_nested+0x1c/0x28
->   rvin_group_notify_bound+0x30/0xa8
->   v4l2_async_match_notify+0x50/0x138
->   v4l2_async_notifier_try_all_subdevs+0x58/0xb8
->   __v4l2_async_notifier_register+0xd0/0x140
->   v4l2_async_notifier_register+0x38/0x58
->   rcar_vin_probe+0x1c0/0x638
->   platform_drv_probe+0x50/0xa0
->   really_probe+0x1c8/0x2a8
->   driver_probe_device+0x54/0xe8
->   __driver_attach+0xf0/0xf8
->   bus_for_each_dev+0x70/0xc0
->   driver_attach+0x20/0x28
->   bus_add_driver+0x1d4/0x200
->   driver_register+0x60/0x110
->   __platform_driver_register+0x44/0x50
->   rcar_vin_driver_init+0x18/0x20
->   do_one_initcall+0x180/0x35c
->   kernel_init_freeable+0x450/0x4f4
->   kernel_init+0x10/0xfc
->   ret_from_fork+0x10/0x1c
-> 
-> -- 
-> Regards,
-> Niklas Söderlund
+This API is tested by Heiko for Rockchip drm driver, on rk3188,
+rk3288, rk3328 and rk3399 with graphics.
 
+Signed-off-by: Souptick Joarder <jrdr.linux@gmail.com>
+Reviewed-by: Matthew Wilcox <willy@infradead.org>
+Tested-by: Heiko Stuebner <heiko@sntech.de>
+---
+ include/linux/mm_types.h |  3 +++
+ mm/memory.c              | 38 ++++++++++++++++++++++++++++++++++++++
+ mm/nommu.c               |  7 +++++++
+ 3 files changed, 48 insertions(+)
+
+diff --git a/include/linux/mm_types.h b/include/linux/mm_types.h
+index 5ed8f62..15ae24f 100644
+--- a/include/linux/mm_types.h
++++ b/include/linux/mm_types.h
+@@ -523,6 +523,9 @@ extern void tlb_gather_mmu(struct mmu_gather *tlb, struct mm_struct *mm,
+ extern void tlb_finish_mmu(struct mmu_gather *tlb,
+ 				unsigned long start, unsigned long end);
+ 
++int vm_insert_range(struct vm_area_struct *vma, unsigned long addr,
++			struct page **pages, unsigned long page_count);
++
+ static inline void init_tlb_flush_pending(struct mm_struct *mm)
+ {
+ 	atomic_set(&mm->tlb_flush_pending, 0);
+diff --git a/mm/memory.c b/mm/memory.c
+index 15c417e..84ea46c 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -1478,6 +1478,44 @@ static int insert_page(struct vm_area_struct *vma, unsigned long addr,
+ }
+ 
+ /**
++ * vm_insert_range - insert range of kernel pages into user vma
++ * @vma: user vma to map to
++ * @addr: target user address of this page
++ * @pages: pointer to array of source kernel pages
++ * @page_count: number of pages need to insert into user vma
++ *
++ * This allows drivers to insert range of kernel pages they've allocated
++ * into a user vma. This is a generic function which drivers can use
++ * rather than using their own way of mapping range of kernel pages into
++ * user vma.
++ *
++ * If we fail to insert any page into the vma, the function will return
++ * immediately leaving any previously-inserted pages present.  Callers
++ * from the mmap handler may immediately return the error as their caller
++ * will destroy the vma, removing any successfully-inserted pages. Other
++ * callers should make their own arrangements for calling unmap_region().
++ *
++ * Context: Process context. Called by mmap handlers.
++ * Return: 0 on success and error code otherwise
++ */
++int vm_insert_range(struct vm_area_struct *vma, unsigned long addr,
++			struct page **pages, unsigned long page_count)
++{
++	unsigned long uaddr = addr;
++	int ret = 0, i;
++
++	for (i = 0; i < page_count; i++) {
++		ret = vm_insert_page(vma, uaddr, pages[i]);
++		if (ret < 0)
++			return ret;
++		uaddr += PAGE_SIZE;
++	}
++
++	return ret;
++}
++EXPORT_SYMBOL(vm_insert_range);
++
++/**
+  * vm_insert_page - insert single page into user vma
+  * @vma: user vma to map to
+  * @addr: target user address of this page
+diff --git a/mm/nommu.c b/mm/nommu.c
+index 749276b..d6ef5c7 100644
+--- a/mm/nommu.c
++++ b/mm/nommu.c
+@@ -473,6 +473,13 @@ int vm_insert_page(struct vm_area_struct *vma, unsigned long addr,
+ }
+ EXPORT_SYMBOL(vm_insert_page);
+ 
++int vm_insert_range(struct vm_area_struct *vma, unsigned long addr,
++			struct page **pages, unsigned long page_count)
++{
++	return -EINVAL;
++}
++EXPORT_SYMBOL(vm_insert_range);
++
+ /*
+  *  sys_brk() for the most part doesn't need the global kernel
+  *  lock, except when an application is doing something nasty
 -- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+1.9.1
