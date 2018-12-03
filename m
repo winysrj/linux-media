@@ -1,93 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:29982 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725864AbeLCJvY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 3 Dec 2018 04:51:24 -0500
-Date: Mon, 3 Dec 2018 11:51:01 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Bing Bu Cao <bingbu.cao@linux.intel.com>,
-        Yong Zhi <yong.zhi@intel.com>, linux-media@vger.kernel.org,
-        tfiga@chromium.org, mchehab@kernel.org, hans.verkuil@cisco.com,
-        rajmohan.mani@intel.com, jian.xu.zheng@intel.com,
-        jerry.w.hu@intel.com, tuukka.toivonen@intel.com,
-        tian.shu.qiu@intel.com, bingbu.cao@intel.com
-Subject: Re: [PATCH v7 00/16] Intel IPU3 ImgU patchset
-Message-ID: <20181203095101.hqds7iwkrz5lvfli@paasikivi.fi.intel.com>
-References: <1540851790-1777-1-git-send-email-yong.zhi@intel.com>
- <20181101120303.g7z2dy24pn5j2slo@kekkonen.localdomain>
- <6bc1a25d-5799-5a9b-546e-3b8cf42ce976@linux.intel.com>
- <14050603.QCN9zesBFv@avalon>
+Received: from mail-it1-f195.google.com ([209.85.166.195]:54418 "EHLO
+        mail-it1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726108AbeLCJwV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Dec 2018 04:52:21 -0500
+Received: by mail-it1-f195.google.com with SMTP id i145so8233015ita.4
+        for <linux-media@vger.kernel.org>; Mon, 03 Dec 2018 01:52:02 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <14050603.QCN9zesBFv@avalon>
+References: <20181130075849.16941-1-wens@csie.org> <20181130075849.16941-6-wens@csie.org>
+In-Reply-To: <20181130075849.16941-6-wens@csie.org>
+From: Jagan Teki <jagan@amarulasolutions.com>
+Date: Mon, 3 Dec 2018 15:21:50 +0530
+Message-ID: <CAMty3ZAuBM0s3eNhQBySSaUrUAkiF=Hk+Ab=gsN=QucLJv0zyw@mail.gmail.com>
+Subject: Re: [PATCH 5/6] [DO NOT MERGE] ARM: dts: sunxi: bananapi-m2p: Add
+ HDF5640 camera module
+To: Chen-Yu Tsai <wens@csie.org>
+Cc: Yong Deng <yong.deng@magewell.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        linux-media <linux-media@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        devicetree <devicetree@vger.kernel.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+On Fri, Nov 30, 2018 at 1:29 PM Chen-Yu Tsai <wens@csie.org> wrote:
+>
+> The Bananapi M2+ comes with an optional sensor based on the ov5640 from
+> Omnivision. Enable the support for it in the DT.
+>
+> Signed-off-by: Chen-Yu Tsai <wens@csie.org>
+> ---
+>  arch/arm/boot/dts/sunxi-bananapi-m2-plus.dtsi | 87 +++++++++++++++++++
+>  1 file changed, 87 insertions(+)
+>
+> diff --git a/arch/arm/boot/dts/sunxi-bananapi-m2-plus.dtsi b/arch/arm/boot/dts/sunxi-bananapi-m2-plus.dtsi
+> index b3283aeb5b7d..d97a98acf378 100644
+> --- a/arch/arm/boot/dts/sunxi-bananapi-m2-plus.dtsi
+> +++ b/arch/arm/boot/dts/sunxi-bananapi-m2-plus.dtsi
+> @@ -89,6 +89,42 @@
+>                 };
+>         };
+>
+> +       reg_cam_avdd: cam-avdd {
+> +               compatible = "regulator-fixed";
+> +               regulator-name = "csi-avdd";
+> +               regulator-min-microvolt = <2800000>;
+> +               regulator-max-microvolt = <2800000>;
+> +               startup-delay-us = <200>; /* 50 us + board delays */
+> +               enable-active-high;
+> +               gpio = <&pio 3 14 GPIO_ACTIVE_HIGH>; /* PD14 */
+> +       };
+> +
+> +       reg_cam_dovdd: cam-dovdd {
+> +               compatible = "regulator-fixed";
+> +               regulator-name = "csi-dovdd";
+> +               regulator-min-microvolt = <2800000>;
+> +               regulator-max-microvolt = <2800000>;
+> +               /*
+> +                * This regulator also powers the pull-ups for the I2C bus.
+> +                * For some reason, if this is turned off, subsequent use
+> +                * of the I2C bus, even when turned on, does not work.
+> +                */
+> +               startup-delay-us = <200>; /* 50 us + board delays */
+> +               regulator-always-on;
+> +               enable-active-high;
+> +               gpio = <&pio 3 14 GPIO_ACTIVE_HIGH>; /* PD14 */
+> +       };
+> +
+> +       reg_cam_dvdd: cam-dvdd {
+> +               compatible = "regulator-fixed";
+> +               regulator-name = "csi-dvdd";
+> +               regulator-min-microvolt = <1500000>;
+> +               regulator-max-microvolt = <1500000>;
+> +               startup-delay-us = <200>; /* 50 us + board delays */
+> +               enable-active-high;
+> +               gpio = <&pio 3 14 GPIO_ACTIVE_HIGH>; /* PD14 */
+> +       };
+> +
+>         reg_gmac_3v3: gmac-3v3 {
+>                       compatible = "regulator-fixed";
+>                       regulator-name = "gmac-3v3";
+> @@ -106,6 +142,26 @@
+>         };
+>  };
+>
+> +&csi {
+> +       status = "okay";
+> +
+> +       port {
+> +               #address-cells = <1>;
+> +               #size-cells = <0>;
+> +
+> +               /* Parallel bus endpoint */
+> +               csi_from_ov5640: endpoint {
+> +                       remote-endpoint = <&ov5640_to_csi>;
+> +                       bus-width = <8>;
+> +                       data-shift = <2>;
 
-On Fri, Nov 30, 2018 at 01:07:53AM +0200, Laurent Pinchart wrote:
-> Hello Bing,
-> 
-> On Wednesday, 7 November 2018 06:16:47 EET Bing Bu Cao wrote:
-> > On 11/01/2018 08:03 PM, Sakari Ailus wrote:
-> > > On Mon, Oct 29, 2018 at 03:22:54PM -0700, Yong Zhi wrote:
-> 
-> [snip]
-> 
-> > >> ImgU media topology print:
-> > >> 
-> > >> # media-ctl -d /dev/media0 -p
-> > >> Media controller API version 4.19.0
-> > >> 
-> > >> Media device information
-> > >> ------------------------
-> > >> driver          ipu3-imgu
-> > >> model           ipu3-imgu
-> > >> serial
-> > >> bus info        PCI:0000:00:05.0
-> > >> hw revision     0x80862015
-> > >> driver version  4.19.0
-> > >> 
-> > >> Device topology
-> > >> - entity 1: ipu3-imgu 0 (5 pads, 5 links)
-> > >>             type V4L2 subdev subtype Unknown flags 0
-> > >>             device node name /dev/v4l-subdev0
-> > >> 	pad0: Sink
-> > >> 		[fmt:UYVY8_2X8/1920x1080 field:none colorspace:unknown
-> > > 
-> > > This doesn't seem right. Which formats can be enumerated from the pad?
-> > > 
-> > >> 		 crop:(0,0)/1920x1080
-> > >> 		 compose:(0,0)/1920x1080]
-> > > 
-> > > Does the compose rectangle affect the scaling on all outputs?
-> > 
-> > Sakari, driver use crop and compose targets to help set input-feeder and BDS
-> > output resolutions which are 2 key block of whole imaging pipeline, not the
-> > actual ending output, but they will impact the final output.
-> > 
-> > >> 		<- "ipu3-imgu 0 input":0 []
-> > > 
-> > > Are there links that have no useful link configuration? If so, you should
-> > > set them enabled and immutable in the driver.
-> > 
-> > The enabled status of input pads is used to get which pipe that user is
-> > trying to enable (ipu3_link_setup()), so it could not been set as immutable.
-> 
-> Each pipe needs an input in order to operate, so from that point of view the 
-> input is mandatory. Why can't we make this link immutable, and use the stream 
-> state (VIDIOC_STREAMON/VIDIOC_STREAMOFF) to enable/disable the pipes ?
-
-There are only two options (AFAIK) in choosing the firmware, and by
-configuring the links this is better visible to the user: the links the
-state of which can be changed are not immutable. The driver can also obtain
-the explicit pipeline configuration, which makes the implementation more
-simple.
-
--- 
-Regards,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+If I'm not wrong, the data-shift is not available in sun6i at-least in
+conf register.
