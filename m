@@ -1,95 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:39854 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726163AbeLCMen (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Dec 2018 07:34:43 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Bing Bu Cao <bingbu.cao@linux.intel.com>,
-        Yong Zhi <yong.zhi@intel.com>, linux-media@vger.kernel.org,
-        tfiga@chromium.org, mchehab@kernel.org, hans.verkuil@cisco.com,
-        rajmohan.mani@intel.com, jian.xu.zheng@intel.com,
-        jerry.w.hu@intel.com, tuukka.toivonen@intel.com,
-        tian.shu.qiu@intel.com, bingbu.cao@intel.com
-Subject: Re: [PATCH v7 00/16] Intel IPU3 ImgU patchset
-Date: Mon, 03 Dec 2018 14:34:21 +0200
-Message-ID: <2911537.Qa1ReeH21r@avalon>
-In-Reply-To: <20181203095101.hqds7iwkrz5lvfli@paasikivi.fi.intel.com>
-References: <1540851790-1777-1-git-send-email-yong.zhi@intel.com> <14050603.QCN9zesBFv@avalon> <20181203095101.hqds7iwkrz5lvfli@paasikivi.fi.intel.com>
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:56628 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726369AbeLCMrD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 3 Dec 2018 07:47:03 -0500
+From: hverkuil-cisco@xs4all.nl
+To: linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hverkuil-cisco@xs4all.nl>
+Subject: [PATCH 2/3] vim2m: add buf_validate callback
+Date: Mon,  3 Dec 2018 13:46:02 +0100
+Message-Id: <20181203124603.17932-2-hverkuil-cisco@xs4all.nl>
+In-Reply-To: <20181203124603.17932-1-hverkuil-cisco@xs4all.nl>
+References: <20181203124603.17932-1-hverkuil-cisco@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+From: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 
-On Monday, 3 December 2018 11:51:01 EET Sakari Ailus wrote:
-> On Fri, Nov 30, 2018 at 01:07:53AM +0200, Laurent Pinchart wrote:
-> > On Wednesday, 7 November 2018 06:16:47 EET Bing Bu Cao wrote:
-> >> On 11/01/2018 08:03 PM, Sakari Ailus wrote:
-> >>> On Mon, Oct 29, 2018 at 03:22:54PM -0700, Yong Zhi wrote:
-> > 
-> > [snip]
-> > 
-> >>>> ImgU media topology print:
-> >>>> 
-> >>>> # media-ctl -d /dev/media0 -p
-> >>>> Media controller API version 4.19.0
-> >>>> 
-> >>>> Media device information
-> >>>> ------------------------
-> >>>> driver          ipu3-imgu
-> >>>> model           ipu3-imgu
-> >>>> serial
-> >>>> bus info        PCI:0000:00:05.0
-> >>>> hw revision     0x80862015
-> >>>> driver version  4.19.0
-> >>>> 
-> >>>> Device topology
-> >>>> - entity 1: ipu3-imgu 0 (5 pads, 5 links)
-> >>>>             type V4L2 subdev subtype Unknown flags 0
-> >>>>             device node name /dev/v4l-subdev0
-> >>>> 	pad0: Sink
-> >>>> 		[fmt:UYVY8_2X8/1920x1080 field:none colorspace:unknown
-> >>> 
-> >>> This doesn't seem right. Which formats can be enumerated from the pad?
-> >>> 
-> >>>> 		 crop:(0,0)/1920x1080
-> >>>> 		 compose:(0,0)/1920x1080]
-> >>> 
-> >>> Does the compose rectangle affect the scaling on all outputs?
-> >> 
-> >> Sakari, driver use crop and compose targets to help set input-feeder and
-> >> BDS output resolutions which are 2 key block of whole imaging pipeline,
-> >> not the actual ending output, but they will impact the final output.
-> >> 
-> >>>> 		<- "ipu3-imgu 0 input":0 []
-> >>> 
-> >>> Are there links that have no useful link configuration? If so, you
-> >>> should set them enabled and immutable in the driver.
-> >> 
-> >> The enabled status of input pads is used to get which pipe that user is
-> >> trying to enable (ipu3_link_setup()), so it could not been set as
-> >> immutable.
-> > 
-> > Each pipe needs an input in order to operate, so from that point of view
-> > the input is mandatory. Why can't we make this link immutable, and use
-> > the stream state (VIDIOC_STREAMON/VIDIOC_STREAMOFF) to enable/disable the
-> > pipes ?
-> 
-> There are only two options (AFAIK) in choosing the firmware, and by
-> configuring the links this is better visible to the user: the links the
-> state of which can be changed are not immutable. The driver can also obtain
-> the explicit pipeline configuration, which makes the implementation more
-> simple.
+Split off the field validation from buf_prepare into a new
+buf_validate function. Field validation for output buffers should
+be done there since buf_prepare is not guaranteed to be called at
+QBUF time.
 
-Do you mean that different firmwares are loaded based on link configuration ? 
-Does it also mean that once we start using the first pipeline the 
-configuration of the second pipeline can't be changed anymore ? If so, what's 
-the reason for such a limitation ?
+Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+---
+ drivers/media/platform/vim2m.c | 16 +++++++++++++---
+ 1 file changed, 13 insertions(+), 3 deletions(-)
 
+diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
+index d01821a6906a..9559be91daca 100644
+--- a/drivers/media/platform/vim2m.c
++++ b/drivers/media/platform/vim2m.c
+@@ -753,15 +753,13 @@ static int vim2m_queue_setup(struct vb2_queue *vq,
+ 	return 0;
+ }
+ 
+-static int vim2m_buf_prepare(struct vb2_buffer *vb)
++static int vim2m_buf_validate(struct vb2_buffer *vb)
+ {
+ 	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
+ 	struct vim2m_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
+-	struct vim2m_q_data *q_data;
+ 
+ 	dprintk(ctx->dev, "type: %d\n", vb->vb2_queue->type);
+ 
+-	q_data = get_q_data(ctx, vb->vb2_queue->type);
+ 	if (V4L2_TYPE_IS_OUTPUT(vb->vb2_queue->type)) {
+ 		if (vbuf->field == V4L2_FIELD_ANY)
+ 			vbuf->field = V4L2_FIELD_NONE;
+@@ -772,6 +770,17 @@ static int vim2m_buf_prepare(struct vb2_buffer *vb)
+ 		}
+ 	}
+ 
++	return 0;
++}
++
++static int vim2m_buf_prepare(struct vb2_buffer *vb)
++{
++	struct vim2m_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
++	struct vim2m_q_data *q_data;
++
++	dprintk(ctx->dev, "type: %d\n", vb->vb2_queue->type);
++
++	q_data = get_q_data(ctx, vb->vb2_queue->type);
+ 	if (vb2_plane_size(vb, 0) < q_data->sizeimage) {
+ 		dprintk(ctx->dev, "%s data will not fit into plane (%lu < %lu)\n",
+ 				__func__, vb2_plane_size(vb, 0), (long)q_data->sizeimage);
+@@ -832,6 +841,7 @@ static void vim2m_buf_request_complete(struct vb2_buffer *vb)
+ 
+ static const struct vb2_ops vim2m_qops = {
+ 	.queue_setup	 = vim2m_queue_setup,
++	.buf_validate	 = vim2m_buf_validate,
+ 	.buf_prepare	 = vim2m_buf_prepare,
+ 	.buf_queue	 = vim2m_buf_queue,
+ 	.start_streaming = vim2m_start_streaming,
 -- 
-Regards,
-
-Laurent Pinchart
+2.19.1
