@@ -1,85 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:60647 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726386AbeLCMrD (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:33713 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725830AbeLCNY3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 3 Dec 2018 07:47:03 -0500
-From: hverkuil-cisco@xs4all.nl
-To: linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Subject: [PATCH 3/3] vivid: add buf_validate callback
-Date: Mon,  3 Dec 2018 13:46:03 +0100
-Message-Id: <20181203124603.17932-3-hverkuil-cisco@xs4all.nl>
-In-Reply-To: <20181203124603.17932-1-hverkuil-cisco@xs4all.nl>
-References: <20181203124603.17932-1-hverkuil-cisco@xs4all.nl>
+        Mon, 3 Dec 2018 08:24:29 -0500
+Subject: Re: [PATCHv2] videodev2.h: add
+ V4L2_BUF_CAP_SUPPORTS_PREPARE_BUF/CREATE_BUFS
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+References: <aa86ac25-de04-a205-053c-82a8f939b7e6@xs4all.nl>
+Message-ID: <b599a6ca-10a1-591a-8370-4371174fee58@xs4all.nl>
+Date: Mon, 3 Dec 2018 14:23:23 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <aa86ac25-de04-a205-053c-82a8f939b7e6@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+On 11/29/2018 10:30 AM, Hans Verkuil wrote:
+> Add new buffer capability flags to indicate if the VIDIOC_PREPARE_BUF or
+> VIDIOC_CREATE_BUFS ioctls are supported.
+> 
+> The reason for this is that there is currently no way for an application
+> to detect if VIDIOC_PREPARE_BUF is implemented other than trying it, but
+> then the buffer is already prepared. You would like to know this before
+> taking an irreversible action.
+> 
+> Since we need V4L2_BUF_CAP_SUPPORTS_PREPARE_BUF it makes sense to add
+> V4L2_BUF_CAP_SUPPORTS_CREATE_BUFS as well because not all drivers support
+> this ioctl.
+> 
+> Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+> Changes since v1:
+> 
+> - rebased
+> - improved commit msg
+> - added missing include for media/v4l2-ioctl.h
+> ---
+>  Documentation/media/uapi/v4l/vidioc-reqbufs.rst |  8 ++++++++
+>  drivers/media/common/videobuf2/videobuf2-v4l2.c | 15 +++++++++++++--
+>  include/uapi/linux/videodev2.h                  | 12 +++++++-----
+>  3 files changed, 28 insertions(+), 7 deletions(-)
+> 
+> diff --git a/Documentation/media/uapi/v4l/vidioc-reqbufs.rst b/Documentation/media/uapi/v4l/vidioc-reqbufs.rst
+> index e62a15782790..092d6373380a 100644
+> --- a/Documentation/media/uapi/v4l/vidioc-reqbufs.rst
+> +++ b/Documentation/media/uapi/v4l/vidioc-reqbufs.rst
+> @@ -118,6 +118,8 @@ aborting or finishing any DMA in progress, an implicit
+>  .. _V4L2-BUF-CAP-SUPPORTS-DMABUF:
+>  .. _V4L2-BUF-CAP-SUPPORTS-REQUESTS:
+>  .. _V4L2-BUF-CAP-SUPPORTS-ORPHANED-BUFS:
+> +.. _V4L2-BUF-CAP-SUPPORTS-PREPARE-BUF:
+> +.. _V4L2-BUF-CAP-SUPPORTS-CREATE-BUFS:
+> 
+>  .. cssclass:: longtable
+> 
+> @@ -143,6 +145,12 @@ aborting or finishing any DMA in progress, an implicit
+>        - The kernel allows calling :ref:`VIDIOC_REQBUFS` while buffers are still
+>          mapped or exported via DMABUF. These orphaned buffers will be freed
+>          when they are unmapped or when the exported DMABUF fds are closed.
+> +    * - ``V4L2_BUF_CAP_SUPPORTS_PREPARE_BUF``
+> +      - 0x00000020
+> +      - This buffer type supports :ref:`VIDIOC_PREPARE_BUF`.
+> +    * - ``V4L2_BUF_CAP_SUPPORTS_CREATE_BUFS``
+> +      - 0x00000040
+> +      - This buffer type supports :ref:`VIDIOC_CREATE_BUFS`.
+> 
+>  Return Value
+>  ============
+> diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+> index 1244c246d0c4..5273f574fb7a 100644
+> --- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
+> +++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+> @@ -28,6 +28,7 @@
+>  #include <media/v4l2-device.h>
+>  #include <media/v4l2-fh.h>
+>  #include <media/v4l2-event.h>
+> +#include <media/v4l2-ioctl.h>
+>  #include <media/v4l2-common.h>
+> 
+>  #include <media/videobuf2-v4l2.h>
+> @@ -870,6 +871,16 @@ static inline bool vb2_queue_is_busy(struct video_device *vdev, struct file *fil
+>  	return vdev->queue->owner && vdev->queue->owner != file->private_data;
+>  }
+> 
+> +static void fill_buf_caps_vdev(struct video_device *vdev, u32 *caps)
+> +{
+> +	*caps = 0;
+> +	fill_buf_caps(vdev->queue, caps);
+> +	if (vdev->ioctl_ops->vidioc_prepare_buf)
+> +		*caps |= V4L2_BUF_CAP_SUPPORTS_PREPARE_BUF;
+> +	if (vdev->ioctl_ops->vidioc_create_bufs)
+> +		*caps |= V4L2_BUF_CAP_SUPPORTS_CREATE_BUFS;
+> +}
+> +
+>  /* vb2 ioctl helpers */
+> 
+>  int vb2_ioctl_reqbufs(struct file *file, void *priv,
+> @@ -878,7 +889,7 @@ int vb2_ioctl_reqbufs(struct file *file, void *priv,
+>  	struct video_device *vdev = video_devdata(file);
+>  	int res = vb2_verify_memory_type(vdev->queue, p->memory, p->type);
+> 
+> -	fill_buf_caps(vdev->queue, &p->capabilities);
+> +	fill_buf_caps_vdev(vdev, &p->capabilities);
+>  	if (res)
+>  		return res;
+>  	if (vb2_queue_is_busy(vdev, file))
+> @@ -900,7 +911,7 @@ int vb2_ioctl_create_bufs(struct file *file, void *priv,
+>  			p->format.type);
+> 
+>  	p->index = vdev->queue->num_buffers;
+> -	fill_buf_caps(vdev->queue, &p->capabilities);
+> +	fill_buf_caps_vdev(vdev, &p->capabilities);
+>  	/*
+>  	 * If count == 0, then just check if memory and type are valid.
+>  	 * Any -EBUSY result from vb2_verify_memory_type can be mapped to 0.
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index 2a223835214c..8ebc66e311e0 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -875,11 +875,13 @@ struct v4l2_requestbuffers {
+>  };
+> 
+>  /* capabilities for struct v4l2_requestbuffers and v4l2_create_buffers */
+> -#define V4L2_BUF_CAP_SUPPORTS_MMAP	(1 << 0)
+> -#define V4L2_BUF_CAP_SUPPORTS_USERPTR	(1 << 1)
+> -#define V4L2_BUF_CAP_SUPPORTS_DMABUF	(1 << 2)
+> -#define V4L2_BUF_CAP_SUPPORTS_REQUESTS	(1 << 3)
+> -#define V4L2_BUF_CAP_SUPPORTS_ORPHANED_BUFS (1 << 4)
+> +#define V4L2_BUF_CAP_SUPPORTS_MMAP		(1 << 0)
+> +#define V4L2_BUF_CAP_SUPPORTS_USERPTR		(1 << 1)
+> +#define V4L2_BUF_CAP_SUPPORTS_DMABUF		(1 << 2)
+> +#define V4L2_BUF_CAP_SUPPORTS_REQUESTS		(1 << 3)
+> +#define V4L2_BUF_CAP_SUPPORTS_ORPHANED_BUFS	(1 << 4)
+> +#define V4L2_BUF_CAP_SUPPORTS_PREPARE_BUF	(1 << 5)
+> +#define V4L2_BUF_CAP_SUPPORTS_CREATE_BUFS	(1 << 6)
 
-Split off the field validation from buf_prepare into a new
-buf_validate function. Field validation for output buffers should
-be done there since buf_prepare is not guaranteed to be called at
-QBUF time.
+I'm not happy with this patch. The problem is that if these new caps are
+not set, you still do not know if that's because the kernel is older and
+didn't have these caps yet, or because the ioctls in question are actually
+not supported.
 
-Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
----
- drivers/media/platform/vivid/vivid-vid-out.c | 23 ++++++++++++++------
- 1 file changed, 16 insertions(+), 7 deletions(-)
+I think I'll drop this patch for now, possibly to be resurrected in the
+future.
 
-diff --git a/drivers/media/platform/vivid/vivid-vid-out.c b/drivers/media/platform/vivid/vivid-vid-out.c
-index 7642cbdb0e14..3e93dbbb4ffe 100644
---- a/drivers/media/platform/vivid/vivid-vid-out.c
-+++ b/drivers/media/platform/vivid/vivid-vid-out.c
-@@ -81,10 +81,24 @@ static int vid_out_queue_setup(struct vb2_queue *vq,
- 	return 0;
- }
- 
--static int vid_out_buf_prepare(struct vb2_buffer *vb)
-+static int vid_out_buf_validate(struct vb2_buffer *vb)
- {
- 	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct vivid_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
-+
-+	dprintk(dev, 1, "%s\n", __func__);
-+
-+	if (dev->field_out != V4L2_FIELD_ALTERNATE)
-+		vbuf->field = dev->field_out;
-+	else if (vbuf->field != V4L2_FIELD_TOP &&
-+		 vbuf->field != V4L2_FIELD_BOTTOM)
-+		return -EINVAL;
-+	return 0;
-+}
-+
-+static int vid_out_buf_prepare(struct vb2_buffer *vb)
-+{
-+	struct vivid_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
- 	unsigned long size;
- 	unsigned planes;
- 	unsigned p;
-@@ -105,12 +119,6 @@ static int vid_out_buf_prepare(struct vb2_buffer *vb)
- 		return -EINVAL;
- 	}
- 
--	if (dev->field_out != V4L2_FIELD_ALTERNATE)
--		vbuf->field = dev->field_out;
--	else if (vbuf->field != V4L2_FIELD_TOP &&
--		 vbuf->field != V4L2_FIELD_BOTTOM)
--		return -EINVAL;
--
- 	for (p = 0; p < planes; p++) {
- 		size = dev->bytesperline_out[p] * dev->fmt_out_rect.height +
- 			vb->planes[p].data_offset;
-@@ -190,6 +198,7 @@ static void vid_out_buf_request_complete(struct vb2_buffer *vb)
- 
- const struct vb2_ops vivid_vid_out_qops = {
- 	.queue_setup		= vid_out_queue_setup,
-+	.buf_validate		= vid_out_buf_validate,
- 	.buf_prepare		= vid_out_buf_prepare,
- 	.buf_queue		= vid_out_buf_queue,
- 	.start_streaming	= vid_out_start_streaming,
--- 
-2.19.1
+Regards,
+
+	Hans
+
+> 
+>  /**
+>   * struct v4l2_plane - plane info for multi-planar buffers
+> 
