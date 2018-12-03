@@ -1,119 +1,188 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:41132 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725790AbeLCEgk (ORCPT
+Received: from mx0a-001b2d01.pphosted.com ([148.163.156.1]:36082 "EHLO
+        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725876AbeLCGWp (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 2 Dec 2018 23:36:40 -0500
-Message-ID: <9e9ededc4c04a09a09db7e90518f16a3@smtp-cloud9.xs4all.net>
-Date: Mon, 03 Dec 2018 05:36:35 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
+        Mon, 3 Dec 2018 01:22:45 -0500
+Received: from pps.filterd (m0098404.ppops.net [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (8.16.0.22/8.16.0.22) with SMTP id wB36IiMq028407
+        for <linux-media@vger.kernel.org>; Mon, 3 Dec 2018 01:22:40 -0500
+Received: from e06smtp01.uk.ibm.com (e06smtp01.uk.ibm.com [195.75.94.97])
+        by mx0a-001b2d01.pphosted.com with ESMTP id 2p4xycrgda-1
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
+        for <linux-media@vger.kernel.org>; Mon, 03 Dec 2018 01:22:40 -0500
+Received: from localhost
+        by e06smtp01.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+        for <linux-media@vger.kernel.org> from <rppt@linux.ibm.com>;
+        Mon, 3 Dec 2018 06:22:37 -0000
+Date: Mon, 3 Dec 2018 08:22:22 +0200
+From: Mike Rapoport <rppt@linux.ibm.com>
+To: Souptick Joarder <jrdr.linux@gmail.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+        Matthew Wilcox <willy@infradead.org>,
+        Michal Hocko <mhocko@suse.com>,
+        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
+        vbabka@suse.cz, Rik van Riel <riel@surriel.com>,
+        Stephen Rothwell <sfr@canb.auug.org.au>,
+        rppt@linux.vnet.ibm.com, Peter Zijlstra <peterz@infradead.org>,
+        Russell King - ARM Linux <linux@armlinux.org.uk>,
+        robin.murphy@arm.com, iamjoonsoo.kim@lge.com, treding@nvidia.com,
+        Kees Cook <keescook@chromium.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        stefanr@s5r6.in-berlin.de, hjc@rock-chips.com,
+        Heiko Stuebner <heiko@sntech.de>, airlied@linux.ie,
+        oleksandr_andrushchenko@epam.com, joro@8bytes.org,
+        pawel@osciak.com, Kyungmin Park <kyungmin.park@samsung.com>,
+        mchehab@kernel.org, Boris Ostrovsky <boris.ostrovsky@oracle.com>,
+        Juergen Gross <jgross@suse.com>, linux-kernel@vger.kernel.org,
+        Linux-MM <linux-mm@kvack.org>,
+        linux-arm-kernel@lists.infradead.org,
+        linux1394-devel@lists.sourceforge.net,
+        dri-devel@lists.freedesktop.org,
+        linux-rockchip@lists.infradead.org, xen-devel@lists.xen.org,
+        iommu@lists.linux-foundation.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 1/9] mm: Introduce new vm_insert_range API
+References: <20181202061944.GA3094@jordon-HP-15-Notebook-PC>
+ <20181202111313.GC6959@rapoport-lnx>
+ <CAFqt6zbvyaPF3tUA1-=RsfSM14p7Rx5NgQqAeW5-JUfd+NrJ2g@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAFqt6zbvyaPF3tUA1-=RsfSM14p7Rx5NgQqAeW5-JUfd+NrJ2g@mail.gmail.com>
+Message-Id: <20181203062222.GF6959@rapoport-lnx>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Mon, Dec 03, 2018 at 09:51:45AM +0530, Souptick Joarder wrote:
+> Hi Mike,
+> 
+> On Sun, Dec 2, 2018 at 4:43 PM Mike Rapoport <rppt@linux.ibm.com> wrote:
+> >
+> > On Sun, Dec 02, 2018 at 11:49:44AM +0530, Souptick Joarder wrote:
+> > > Previouly drivers have their own way of mapping range of
+> > > kernel pages/memory into user vma and this was done by
+> > > invoking vm_insert_page() within a loop.
+> > >
+> > > As this pattern is common across different drivers, it can
+> > > be generalized by creating a new function and use it across
+> > > the drivers.
+> > >
+> > > vm_insert_range is the new API which will be used to map a
+> > > range of kernel memory/pages to user vma.
+> > >
+> > > This API is tested by Heiko for Rockchip drm driver, on rk3188,
+> > > rk3288, rk3328 and rk3399 with graphics.
+> > >
+> > > Signed-off-by: Souptick Joarder <jrdr.linux@gmail.com>
+> > > Reviewed-by: Matthew Wilcox <willy@infradead.org>
+> > > Tested-by: Heiko Stuebner <heiko@sntech.de>
+> > > ---
+> > >  include/linux/mm_types.h |  3 +++
+> > >  mm/memory.c              | 38 ++++++++++++++++++++++++++++++++++++++
+> > >  mm/nommu.c               |  7 +++++++
+> > >  3 files changed, 48 insertions(+)
+> > >
+> > > diff --git a/include/linux/mm_types.h b/include/linux/mm_types.h
+> > > index 5ed8f62..15ae24f 100644
+> > > --- a/include/linux/mm_types.h
+> > > +++ b/include/linux/mm_types.h
+> > > @@ -523,6 +523,9 @@ extern void tlb_gather_mmu(struct mmu_gather *tlb, struct mm_struct *mm,
+> > >  extern void tlb_finish_mmu(struct mmu_gather *tlb,
+> > >                               unsigned long start, unsigned long end);
+> > >
+> > > +int vm_insert_range(struct vm_area_struct *vma, unsigned long addr,
+> > > +                     struct page **pages, unsigned long page_count);
+> > > +
+> >
+> > This seem to belong to include/linux/mm.h, near vm_insert_page()
+> 
+> Ok, I will change it. Apart from this change does it looks good ?
 
-Results of the daily build of media_tree:
+With this change you can add
 
-date:			Mon Dec  3 05:00:11 CET 2018
-media-tree git hash:	708d75fe1c7c6e9abc5381b6fcc32b49830383d0
-media_build git hash:	47bf46ff21f75d1fe4ae3275a8692cb6ff77b6e8
-v4l-utils git hash:	cff58fcfbdf75381d5351f5ea8e7846f59cb7905
-edid-decode git hash:	5eeb151a748788666534d6ea3da07f90400d24c2
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.18.0-2-amd64
+Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
+ 
+> >
+> > >  static inline void init_tlb_flush_pending(struct mm_struct *mm)
+> > >  {
+> > >       atomic_set(&mm->tlb_flush_pending, 0);
+> > > diff --git a/mm/memory.c b/mm/memory.c
+> > > index 15c417e..84ea46c 100644
+> > > --- a/mm/memory.c
+> > > +++ b/mm/memory.c
+> > > @@ -1478,6 +1478,44 @@ static int insert_page(struct vm_area_struct *vma, unsigned long addr,
+> > >  }
+> > >
+> > >  /**
+> > > + * vm_insert_range - insert range of kernel pages into user vma
+> > > + * @vma: user vma to map to
+> > > + * @addr: target user address of this page
+> > > + * @pages: pointer to array of source kernel pages
+> > > + * @page_count: number of pages need to insert into user vma
+> > > + *
+> > > + * This allows drivers to insert range of kernel pages they've allocated
+> > > + * into a user vma. This is a generic function which drivers can use
+> > > + * rather than using their own way of mapping range of kernel pages into
+> > > + * user vma.
+> > > + *
+> > > + * If we fail to insert any page into the vma, the function will return
+> > > + * immediately leaving any previously-inserted pages present.  Callers
+> > > + * from the mmap handler may immediately return the error as their caller
+> > > + * will destroy the vma, removing any successfully-inserted pages. Other
+> > > + * callers should make their own arrangements for calling unmap_region().
+> > > + *
+> > > + * Context: Process context. Called by mmap handlers.
+> > > + * Return: 0 on success and error code otherwise
+> > > + */
+> > > +int vm_insert_range(struct vm_area_struct *vma, unsigned long addr,
+> > > +                     struct page **pages, unsigned long page_count)
+> > > +{
+> > > +     unsigned long uaddr = addr;
+> > > +     int ret = 0, i;
+> > > +
+> > > +     for (i = 0; i < page_count; i++) {
+> > > +             ret = vm_insert_page(vma, uaddr, pages[i]);
+> > > +             if (ret < 0)
+> > > +                     return ret;
+> > > +             uaddr += PAGE_SIZE;
+> > > +     }
+> > > +
+> > > +     return ret;
+> > > +}
+> > > +EXPORT_SYMBOL(vm_insert_range);
+> > > +
+> > > +/**
+> > >   * vm_insert_page - insert single page into user vma
+> > >   * @vma: user vma to map to
+> > >   * @addr: target user address of this page
+> > > diff --git a/mm/nommu.c b/mm/nommu.c
+> > > index 749276b..d6ef5c7 100644
+> > > --- a/mm/nommu.c
+> > > +++ b/mm/nommu.c
+> > > @@ -473,6 +473,13 @@ int vm_insert_page(struct vm_area_struct *vma, unsigned long addr,
+> > >  }
+> > >  EXPORT_SYMBOL(vm_insert_page);
+> > >
+> > > +int vm_insert_range(struct vm_area_struct *vma, unsigned long addr,
+> > > +                     struct page **pages, unsigned long page_count)
+> > > +{
+> > > +     return -EINVAL;
+> > > +}
+> > > +EXPORT_SYMBOL(vm_insert_range);
+> > > +
+> > >  /*
+> > >   *  sys_brk() for the most part doesn't need the global kernel
+> > >   *  lock, except when an application is doing something nasty
+> > > --
+> > > 1.9.1
+> > >
+> >
+> > --
+> > Sincerely yours,
+> > Mike.
+> >
+> 
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.123-i686: OK
-linux-3.18.123-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.159-i686: OK
-linux-4.4.159-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.131-i686: OK
-linux-4.9.131-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.74-i686: OK
-linux-4.14.74-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: OK
-linux-4.19.1-i686: OK
-linux-4.19.1-x86_64: OK
-linux-4.20-rc1-i686: OK
-linux-4.20-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+-- 
+Sincerely yours,
+Mike.
