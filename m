@@ -1,137 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf1-f195.google.com ([209.85.210.195]:44038 "EHLO
-        mail-pf1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725355AbeLBGQE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 2 Dec 2018 01:16:04 -0500
-Date: Sun, 2 Dec 2018 11:49:44 +0530
-From: Souptick Joarder <jrdr.linux@gmail.com>
-To: akpm@linux-foundation.org, willy@infradead.org, mhocko@suse.com,
-        kirill.shutemov@linux.intel.com, vbabka@suse.cz, riel@surriel.com,
-        sfr@canb.auug.org.au, rppt@linux.vnet.ibm.com,
-        peterz@infradead.org, linux@armlinux.org.uk, robin.murphy@arm.com,
-        iamjoonsoo.kim@lge.com, treding@nvidia.com, keescook@chromium.org,
-        m.szyprowski@samsung.com, stefanr@s5r6.in-berlin.de,
-        hjc@rock-chips.com, heiko@sntech.de, airlied@linux.ie,
-        oleksandr_andrushchenko@epam.com, joro@8bytes.org,
-        pawel@osciak.com, kyungmin.park@samsung.com, mchehab@kernel.org,
-        boris.ostrovsky@oracle.com, jgross@suse.com
-Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org,
-        linux-arm-kernel@lists.infradead.org,
-        linux1394-devel@lists.sourceforge.net,
-        dri-devel@lists.freedesktop.org,
-        linux-rockchip@lists.infradead.org, xen-devel@lists.xen.org,
-        iommu@lists.linux-foundation.org, linux-media@vger.kernel.org
-Subject: [PATCH v2 1/9] mm: Introduce new vm_insert_range API
-Message-ID: <20181202061944.GA3094@jordon-HP-15-Notebook-PC>
+Received: from mail-wr1-f66.google.com ([209.85.221.66]:44296 "EHLO
+        mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726158AbeLCKIS (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Dec 2018 05:08:18 -0500
+Received: by mail-wr1-f66.google.com with SMTP id z5so11452654wrt.11
+        for <linux-media@vger.kernel.org>; Mon, 03 Dec 2018 02:07:55 -0800 (PST)
+From: Jagan Teki <jagan@amarulasolutions.com>
+To: Yong Deng <yong.deng@magewell.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Chen-Yu Tsai <wens@csie.org>, linux-media@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc: Jagan Teki <jagan@amarulasolutions.com>
+Subject: [PATCH 0/5] media/sun6i: Allwinner A64 CSI support
+Date: Mon,  3 Dec 2018 15:37:42 +0530
+Message-Id: <20181203100747.16442-1-jagan@amarulasolutions.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Previouly drivers have their own way of mapping range of
-kernel pages/memory into user vma and this was done by
-invoking vm_insert_page() within a loop.
+This series support CSI on Allwinner A64.
 
-As this pattern is common across different drivers, it can
-be generalized by creating a new function and use it across
-the drivers.
+The CSI controller seems similar to that of in H3, so fallback
+compatible is used to load the driver.
 
-vm_insert_range is the new API which will be used to map a
-range of kernel memory/pages to user vma.
+Unlike other SoC's A64 has set of GPIO Pin gropus SDA, SCK intead
+of dedicated I2C controller, so this series used i2c-gpio bitbanging.
 
-This API is tested by Heiko for Rockchip drm driver, on rk3188,
-rk3288, rk3328 and rk3399 with graphics.
+Right now the camera is able to detect, but capture images shows 
+sequence of red, blue line. any suggestion please help.
 
-Signed-off-by: Souptick Joarder <jrdr.linux@gmail.com>
-Reviewed-by: Matthew Wilcox <willy@infradead.org>
-Tested-by: Heiko Stuebner <heiko@sntech.de>
----
- include/linux/mm_types.h |  3 +++
- mm/memory.c              | 38 ++++++++++++++++++++++++++++++++++++++
- mm/nommu.c               |  7 +++++++
- 3 files changed, 48 insertions(+)
+Any inputs,
+Jagan.
 
-diff --git a/include/linux/mm_types.h b/include/linux/mm_types.h
-index 5ed8f62..15ae24f 100644
---- a/include/linux/mm_types.h
-+++ b/include/linux/mm_types.h
-@@ -523,6 +523,9 @@ extern void tlb_gather_mmu(struct mmu_gather *tlb, struct mm_struct *mm,
- extern void tlb_finish_mmu(struct mmu_gather *tlb,
- 				unsigned long start, unsigned long end);
- 
-+int vm_insert_range(struct vm_area_struct *vma, unsigned long addr,
-+			struct page **pages, unsigned long page_count);
-+
- static inline void init_tlb_flush_pending(struct mm_struct *mm)
- {
- 	atomic_set(&mm->tlb_flush_pending, 0);
-diff --git a/mm/memory.c b/mm/memory.c
-index 15c417e..84ea46c 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -1478,6 +1478,44 @@ static int insert_page(struct vm_area_struct *vma, unsigned long addr,
- }
- 
- /**
-+ * vm_insert_range - insert range of kernel pages into user vma
-+ * @vma: user vma to map to
-+ * @addr: target user address of this page
-+ * @pages: pointer to array of source kernel pages
-+ * @page_count: number of pages need to insert into user vma
-+ *
-+ * This allows drivers to insert range of kernel pages they've allocated
-+ * into a user vma. This is a generic function which drivers can use
-+ * rather than using their own way of mapping range of kernel pages into
-+ * user vma.
-+ *
-+ * If we fail to insert any page into the vma, the function will return
-+ * immediately leaving any previously-inserted pages present.  Callers
-+ * from the mmap handler may immediately return the error as their caller
-+ * will destroy the vma, removing any successfully-inserted pages. Other
-+ * callers should make their own arrangements for calling unmap_region().
-+ *
-+ * Context: Process context. Called by mmap handlers.
-+ * Return: 0 on success and error code otherwise
-+ */
-+int vm_insert_range(struct vm_area_struct *vma, unsigned long addr,
-+			struct page **pages, unsigned long page_count)
-+{
-+	unsigned long uaddr = addr;
-+	int ret = 0, i;
-+
-+	for (i = 0; i < page_count; i++) {
-+		ret = vm_insert_page(vma, uaddr, pages[i]);
-+		if (ret < 0)
-+			return ret;
-+		uaddr += PAGE_SIZE;
-+	}
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL(vm_insert_range);
-+
-+/**
-  * vm_insert_page - insert single page into user vma
-  * @vma: user vma to map to
-  * @addr: target user address of this page
-diff --git a/mm/nommu.c b/mm/nommu.c
-index 749276b..d6ef5c7 100644
---- a/mm/nommu.c
-+++ b/mm/nommu.c
-@@ -473,6 +473,13 @@ int vm_insert_page(struct vm_area_struct *vma, unsigned long addr,
- }
- EXPORT_SYMBOL(vm_insert_page);
- 
-+int vm_insert_range(struct vm_area_struct *vma, unsigned long addr,
-+			struct page **pages, unsigned long page_count)
-+{
-+	return -EINVAL;
-+}
-+EXPORT_SYMBOL(vm_insert_range);
-+
- /*
-  *  sys_brk() for the most part doesn't need the global kernel
-  *  lock, except when an application is doing something nasty
+Jagan Teki (5):
+  dt-bindings: media: sun6i: Add A64 CSI compatible (w/ H3 fallback)
+  dt-bindings: media: sun6i: Add vcc-csi supply property
+  media: sun6i: Add vcc-csi supply regulator
+  arm64: dts: allwinner: a64: Add A64 CSI controller
+  arm64: dts: allwinner: a64-amarula-relic: Add OV5640 camera node
+
+ .../devicetree/bindings/media/sun6i-csi.txt   |  4 ++
+ .../allwinner/sun50i-a64-amarula-relic.dts    | 54 +++++++++++++++++++
+ arch/arm64/boot/dts/allwinner/sun50i-a64.dtsi | 26 +++++++++
+ .../platform/sunxi/sun6i-csi/sun6i_csi.c      | 15 ++++++
+ 4 files changed, 99 insertions(+)
+
 -- 
-1.9.1
+2.18.0.321.gffc6fa0e3
