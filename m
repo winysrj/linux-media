@@ -1,76 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt1-f196.google.com ([209.85.160.196]:44805 "EHLO
-        mail-qt1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726650AbeLCQmD (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Dec 2018 11:42:03 -0500
+Received: from mail-it1-f193.google.com ([209.85.166.193]:35912 "EHLO
+        mail-it1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726664AbeLCRBS (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Dec 2018 12:01:18 -0500
+Received: by mail-it1-f193.google.com with SMTP id c9so9652020itj.1
+        for <linux-media@vger.kernel.org>; Mon, 03 Dec 2018 09:01:15 -0800 (PST)
 MIME-Version: 1.0
-References: <20181202134538.GA18886@gfm-note> <CAK8P3a2of9sZ5BGCKshCjFkpt8q6s-KD-9XC4SGYP2Ppj7fjEw@mail.gmail.com>
- <c3d75256-bfdc-6f36-1e6e-ad4e5cd9b855@xs4all.nl>
-In-Reply-To: <c3d75256-bfdc-6f36-1e6e-ad4e5cd9b855@xs4all.nl>
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Mon, 3 Dec 2018 17:41:40 +0100
-Message-ID: <CAK8P3a3uLxxTkTxvSZ8wqwRD5EKVWdimDuH8X6cHoWXdAGDJ+w@mail.gmail.com>
-Subject: Re: [PATCH v4] media: vivid: Improve timestamping
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: gfmandaji@gmail.com, Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        lkcamp@lists.libreplanetbr.org
+References: <1543502916-21632-1-git-send-email-jacopo+renesas@jmondi.org> <1543502916-21632-2-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1543502916-21632-2-git-send-email-jacopo+renesas@jmondi.org>
+From: Adam Ford <aford173@gmail.com>
+Date: Mon, 3 Dec 2018 11:01:02 -0600
+Message-ID: <CAHCN7x+wFe1FuXx3nW5O=nr7wv25702VnibaEzTsSh1hE=3XmQ@mail.gmail.com>
+Subject: Re: [PATCH 1/2] media: ov5640: Fix set format regression
+To: jacopo+renesas@jmondi.org
+Cc: maxime.ripard@bootlin.com, sam@elite-embedded.com,
+        Steve Longerbeam <slongerbeam@gmail.com>, mchehab@kernel.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        hans.verkuil@cisco.com, sakari.ailus@linux.intel.com,
+        linux-media@vger.kernel.org, hugues.fruchet@st.com,
+        loic.poulain@linaro.org, daniel@zonque.org
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Dec 3, 2018 at 10:15 AM Hans Verkuil <hverkuil@xs4all.nl> wrote:
+On Thu, Nov 29, 2018 at 8:48 AM Jacopo Mondi <jacopo+renesas@jmondi.org> wrote:
 >
-> On 12/02/2018 09:43 PM, Arnd Bergmann wrote:
-> > On Sun, Dec 2, 2018 at 2:47 PM Gabriel Francisco Mandaji
-> > <gfmandaji@gmail.com> wrote:
-> >
-> >> @@ -667,10 +653,28 @@ static void vivid_overlay(struct vivid_dev *dev, struct vivid_buffer *buf)
-> >>         }
-> >>  }
-> >>
-> >> +static void vivid_cap_update_frame_period(struct vivid_dev *dev)
-> >> +{
-> >> +       u64 f_period;
-> >> +
-> >> +       f_period = (u64)dev->timeperframe_vid_cap.numerator * 1000000000;
-> >> +       do_div(f_period, dev->timeperframe_vid_cap.denominator);
-> >> +       if (dev->field_cap == V4L2_FIELD_ALTERNATE)
-> >> +               do_div(f_period, 2);
-> >> +       /*
-> >> +        * If "End of Frame", then offset the exposure time by 0.9
-> >> +        * of the frame period.
-> >> +        */
-> >> +       dev->cap_frame_eof_offset = f_period * 9;
-> >> +       do_div(dev->cap_frame_eof_offset, 10);
-> >> +       dev->cap_frame_period = f_period;
-> >> +}
-> >
-> > Doing two or three do_div() operations is going to make this rather
-> > expensive on 32-bit architectures, and it looks like this happens for
-> > each frame?
-> >
-> > Since each one is a multiplication followed by a division, could this
-> > be changed to using a different factor followed by a bit shift?
+> The set_fmt operations updates the sensor format only when the image format
+> is changed. When only the image sizes gets changed, the format do not get
+> updated causing the sensor to always report the one that was previously in
+> use.
 >
-> The division by 2 can obviously be replaced by a shift, and the
-> 'End of Frame' calculation can be simplified as well by multiplying by
-> 7 and dividing by 8 (again a simple shift): this equals 0.875 which is
-> close enough to 0.9 (so update the comment as well).
+> Without this patch, updating frame size only fails:
+>   [fmt:UYVY8_2X8/640x480@1/30 field:none colorspace:srgb xfer:srgb ...]
+>
+> With this patch applied:
+>   [fmt:UYVY8_2X8/1024x768@1/30 field:none colorspace:srgb xfer:srgb ...]
+>
+> Fixes: 6949d864776e ("media: ov5640: do not change mode if format or frame
+> interval is unchanged")
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
 
-The first division
+For patch 1 of 2 only,
 
-      f_period = (u64)dev->timeperframe_vid_cap.numerator * 1000000000;
-      do_div(f_period, dev->timeperframe_vid_cap.denominator);
+Tested-by: Adam Ford <aford173@gmail.com>    #imx6d with CSI2
+interface on 4.19.6 and 4.20-RC5
 
-looks like it could be replaced with a fixed multiplication with a
-precomputed 'u64 factor = div_u64(numerator * 100000000, denominator)
+It would be great if this could be applied to 4.19+
 
-> It's all a bit overkill since this function isn't called very often,
-> but these are easy changes to make.
-
-Ah, I assumed it was called once per frame or more. If this is only done
-during initalization, it doesn't matter.
-
-        Arnd
+adam
+> ---
+>  drivers/media/i2c/ov5640.c | 17 ++++++++---------
+>  1 file changed, 8 insertions(+), 9 deletions(-)
+>
+> diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+> index 03a031a42b3e..c659efe918a4 100644
+> --- a/drivers/media/i2c/ov5640.c
+> +++ b/drivers/media/i2c/ov5640.c
+> @@ -2160,6 +2160,7 @@ static int ov5640_set_fmt(struct v4l2_subdev *sd,
+>         struct ov5640_dev *sensor = to_ov5640_dev(sd);
+>         const struct ov5640_mode_info *new_mode;
+>         struct v4l2_mbus_framefmt *mbus_fmt = &format->format;
+> +       struct v4l2_mbus_framefmt *fmt;
+>         int ret;
+>
+>         if (format->pad != 0)
+> @@ -2177,22 +2178,20 @@ static int ov5640_set_fmt(struct v4l2_subdev *sd,
+>         if (ret)
+>                 goto out;
+>
+> -       if (format->which == V4L2_SUBDEV_FORMAT_TRY) {
+> -               struct v4l2_mbus_framefmt *fmt =
+> -                       v4l2_subdev_get_try_format(sd, cfg, 0);
+> +       if (format->which == V4L2_SUBDEV_FORMAT_TRY)
+> +               fmt = v4l2_subdev_get_try_format(sd, cfg, 0);
+> +       else
+> +               fmt = &sensor->fmt;
+>
+> -               *fmt = *mbus_fmt;
+> -               goto out;
+> -       }
+> +       *fmt = *mbus_fmt;
+>
+>         if (new_mode != sensor->current_mode) {
+>                 sensor->current_mode = new_mode;
+>                 sensor->pending_mode_change = true;
+>         }
+> -       if (mbus_fmt->code != sensor->fmt.code) {
+> -               sensor->fmt = *mbus_fmt;
+> +       if (mbus_fmt->code != sensor->fmt.code)
+>                 sensor->pending_fmt_change = true;
+> -       }
+> +
+>  out:
+>         mutex_unlock(&sensor->lock);
+>         return ret;
+> --
+> 2.7.4
+>
