@@ -1,159 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:33713 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725830AbeLCNY3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 3 Dec 2018 08:24:29 -0500
-Subject: Re: [PATCHv2] videodev2.h: add
- V4L2_BUF_CAP_SUPPORTS_PREPARE_BUF/CREATE_BUFS
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-References: <aa86ac25-de04-a205-053c-82a8f939b7e6@xs4all.nl>
-Message-ID: <b599a6ca-10a1-591a-8370-4371174fee58@xs4all.nl>
-Date: Mon, 3 Dec 2018 14:23:23 +0100
+Received: from relay12.mail.gandi.net ([217.70.178.232]:57501 "EHLO
+        relay12.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725888AbeLCNtS (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Dec 2018 08:49:18 -0500
+Date: Mon, 3 Dec 2018 14:48:00 +0100
+From: jacopo mondi <jacopo@jmondi.org>
+To: Lubomir Rintel <lkundrak@v3.sk>
+Cc: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rui Miguel Silva <rmfrfs@gmail.com>,
+        Shunqian Zheng <zhengsq@rock-chips.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Wenyou Yang <wenyou.yang@microchip.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 1/6] media: v4l2-subdev: stub
+ v4l2_subdev_get_try_format() =?ISO-8859-1?Q?=1B=1B?=
+Message-ID: <20181203134800.GA2901@w540>
+References: <20181128171918.160643-1-lkundrak@v3.sk>
+ <20181128171918.160643-2-lkundrak@v3.sk>
 MIME-Version: 1.0
-In-Reply-To: <aa86ac25-de04-a205-053c-82a8f939b7e6@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="jRHKVT23PllUwdXP"
+Content-Disposition: inline
+In-Reply-To: <20181128171918.160643-2-lkundrak@v3.sk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/29/2018 10:30 AM, Hans Verkuil wrote:
-> Add new buffer capability flags to indicate if the VIDIOC_PREPARE_BUF or
-> VIDIOC_CREATE_BUFS ioctls are supported.
-> 
-> The reason for this is that there is currently no way for an application
-> to detect if VIDIOC_PREPARE_BUF is implemented other than trying it, but
-> then the buffer is already prepared. You would like to know this before
-> taking an irreversible action.
-> 
-> Since we need V4L2_BUF_CAP_SUPPORTS_PREPARE_BUF it makes sense to add
-> V4L2_BUF_CAP_SUPPORTS_CREATE_BUFS as well because not all drivers support
-> this ioctl.
-> 
-> Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
-> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
+--jRHKVT23PllUwdXP
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+
+Hi Lubomir,
+
+  thanks for the patches
+
+On Wed, Nov 28, 2018 at 06:19:13PM +0100, Lubomir Rintel wrote:
+> Provide a dummy implementation when configured without
+> CONFIG_VIDEO_V4L2_SUBDEV_API to avoid ifdef dance in the drivers that can
+> be built either with or without the option.
+>
+> Suggested-by: Jacopo Mondi <jacopo@jmondi.org>
+> Signed-off-by: Lubomir Rintel <lkundrak@v3.sk>
 > ---
-> Changes since v1:
-> 
-> - rebased
-> - improved commit msg
-> - added missing include for media/v4l2-ioctl.h
-> ---
->  Documentation/media/uapi/v4l/vidioc-reqbufs.rst |  8 ++++++++
->  drivers/media/common/videobuf2/videobuf2-v4l2.c | 15 +++++++++++++--
->  include/uapi/linux/videodev2.h                  | 12 +++++++-----
->  3 files changed, 28 insertions(+), 7 deletions(-)
-> 
-> diff --git a/Documentation/media/uapi/v4l/vidioc-reqbufs.rst b/Documentation/media/uapi/v4l/vidioc-reqbufs.rst
-> index e62a15782790..092d6373380a 100644
-> --- a/Documentation/media/uapi/v4l/vidioc-reqbufs.rst
-> +++ b/Documentation/media/uapi/v4l/vidioc-reqbufs.rst
-> @@ -118,6 +118,8 @@ aborting or finishing any DMA in progress, an implicit
->  .. _V4L2-BUF-CAP-SUPPORTS-DMABUF:
->  .. _V4L2-BUF-CAP-SUPPORTS-REQUESTS:
->  .. _V4L2-BUF-CAP-SUPPORTS-ORPHANED-BUFS:
-> +.. _V4L2-BUF-CAP-SUPPORTS-PREPARE-BUF:
-> +.. _V4L2-BUF-CAP-SUPPORTS-CREATE-BUFS:
-> 
->  .. cssclass:: longtable
-> 
-> @@ -143,6 +145,12 @@ aborting or finishing any DMA in progress, an implicit
->        - The kernel allows calling :ref:`VIDIOC_REQBUFS` while buffers are still
->          mapped or exported via DMABUF. These orphaned buffers will be freed
->          when they are unmapped or when the exported DMABUF fds are closed.
-> +    * - ``V4L2_BUF_CAP_SUPPORTS_PREPARE_BUF``
-> +      - 0x00000020
-> +      - This buffer type supports :ref:`VIDIOC_PREPARE_BUF`.
-> +    * - ``V4L2_BUF_CAP_SUPPORTS_CREATE_BUFS``
-> +      - 0x00000040
-> +      - This buffer type supports :ref:`VIDIOC_CREATE_BUFS`.
-> 
->  Return Value
->  ============
-> diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-> index 1244c246d0c4..5273f574fb7a 100644
-> --- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
-> +++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-> @@ -28,6 +28,7 @@
->  #include <media/v4l2-device.h>
->  #include <media/v4l2-fh.h>
->  #include <media/v4l2-event.h>
-> +#include <media/v4l2-ioctl.h>
->  #include <media/v4l2-common.h>
-> 
->  #include <media/videobuf2-v4l2.h>
-> @@ -870,6 +871,16 @@ static inline bool vb2_queue_is_busy(struct video_device *vdev, struct file *fil
->  	return vdev->queue->owner && vdev->queue->owner != file->private_data;
+>  include/media/v4l2-subdev.h | 11 +++++++++++
+>  1 file changed, 11 insertions(+)
+>
+> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> index 9102d6ca566e..906e28011bb4 100644
+> --- a/include/media/v4l2-subdev.h
+> +++ b/include/media/v4l2-subdev.h
+> @@ -967,6 +967,17 @@ static inline struct v4l2_rect
+>  		pad = 0;
+>  	return &cfg[pad].try_compose;
 >  }
-> 
-> +static void fill_buf_caps_vdev(struct video_device *vdev, u32 *caps)
+> +
+> +#else /* !defined(CONFIG_VIDEO_V4L2_SUBDEV_API) */
+> +
+> +static inline struct v4l2_mbus_framefmt
+> +*v4l2_subdev_get_try_format(struct v4l2_subdev *sd,
+> +			    struct v4l2_subdev_pad_config *cfg,
+> +			    unsigned int pad)
 > +{
-> +	*caps = 0;
-> +	fill_buf_caps(vdev->queue, caps);
-> +	if (vdev->ioctl_ops->vidioc_prepare_buf)
-> +		*caps |= V4L2_BUF_CAP_SUPPORTS_PREPARE_BUF;
-> +	if (vdev->ioctl_ops->vidioc_create_bufs)
-> +		*caps |= V4L2_BUF_CAP_SUPPORTS_CREATE_BUFS;
+> +	return ERR_PTR(-ENOTTY);
 > +}
 > +
->  /* vb2 ioctl helpers */
-> 
->  int vb2_ioctl_reqbufs(struct file *file, void *priv,
-> @@ -878,7 +889,7 @@ int vb2_ioctl_reqbufs(struct file *file, void *priv,
->  	struct video_device *vdev = video_devdata(file);
->  	int res = vb2_verify_memory_type(vdev->queue, p->memory, p->type);
-> 
-> -	fill_buf_caps(vdev->queue, &p->capabilities);
-> +	fill_buf_caps_vdev(vdev, &p->capabilities);
->  	if (res)
->  		return res;
->  	if (vb2_queue_is_busy(vdev, file))
-> @@ -900,7 +911,7 @@ int vb2_ioctl_create_bufs(struct file *file, void *priv,
->  			p->format.type);
-> 
->  	p->index = vdev->queue->num_buffers;
-> -	fill_buf_caps(vdev->queue, &p->capabilities);
-> +	fill_buf_caps_vdev(vdev, &p->capabilities);
->  	/*
->  	 * If count == 0, then just check if memory and type are valid.
->  	 * Any -EBUSY result from vb2_verify_memory_type can be mapped to 0.
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index 2a223835214c..8ebc66e311e0 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -875,11 +875,13 @@ struct v4l2_requestbuffers {
->  };
-> 
->  /* capabilities for struct v4l2_requestbuffers and v4l2_create_buffers */
-> -#define V4L2_BUF_CAP_SUPPORTS_MMAP	(1 << 0)
-> -#define V4L2_BUF_CAP_SUPPORTS_USERPTR	(1 << 1)
-> -#define V4L2_BUF_CAP_SUPPORTS_DMABUF	(1 << 2)
-> -#define V4L2_BUF_CAP_SUPPORTS_REQUESTS	(1 << 3)
-> -#define V4L2_BUF_CAP_SUPPORTS_ORPHANED_BUFS (1 << 4)
-> +#define V4L2_BUF_CAP_SUPPORTS_MMAP		(1 << 0)
-> +#define V4L2_BUF_CAP_SUPPORTS_USERPTR		(1 << 1)
-> +#define V4L2_BUF_CAP_SUPPORTS_DMABUF		(1 << 2)
-> +#define V4L2_BUF_CAP_SUPPORTS_REQUESTS		(1 << 3)
-> +#define V4L2_BUF_CAP_SUPPORTS_ORPHANED_BUFS	(1 << 4)
-> +#define V4L2_BUF_CAP_SUPPORTS_PREPARE_BUF	(1 << 5)
-> +#define V4L2_BUF_CAP_SUPPORTS_CREATE_BUFS	(1 << 6)
+>  #endif
 
-I'm not happy with this patch. The problem is that if these new caps are
-not set, you still do not know if that's because the kernel is older and
-didn't have these caps yet, or because the ioctls in question are actually
-not supported.
+While at there, what about doing the same for get_try_crop and
+get_try_compose? At lease provide stubs, I let you figure out if
+you're willing to fix callers too, it seems there are quite a few of
+them though
 
-I think I'll drop this patch for now, possibly to be resurrected in the
-future.
+$ git grep v4l2_subdev_get_try* drivers/media/ | grep -v '_format' | wc -l
+44
 
-Regards,
+>
+>  extern const struct v4l2_file_operations v4l2_subdev_fops;
+> --
+> 2.19.1
+>
 
-	Hans
+--jRHKVT23PllUwdXP
+Content-Type: application/pgp-signature; name="signature.asc"
 
-> 
->  /**
->   * struct v4l2_plane - plane info for multi-planar buffers
-> 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABCAAGBQJcBTQGAAoJEHI0Bo8WoVY8Y+UP+wbrOpdeFYGcvJXJSq/F0Y97
+WUFCeBY83lZ8hHSbNYJAx12s/RVl9uP8hI6MUDQWgsa/21rtQ4IUkzeXTkVYKRJ4
+vJPwdQw6iIWeJEzunuWBv1AlhXaf2xncEti1Ne4mnezL/aCsIZbRnZQ5QkGQlfyf
+WwqR9A/Y8H8d5hKjAB8Z0H4XNUMKby7tpWGMODN2h67te6DlLBvwCciKA7z7f2oo
+Yn1sTlLhSctfqXfUo1LCvFqntcNu9L3Tsmm7WksuSevwWaeMUFJd3Qea3OvZ28Db
+fXq2C+cy3WUAL4MUKZOruo+B9KV4znucaWI4ldoIZ/Xhp8e4SyRQ+ZoUBbZFv5MD
+2pyGxA8W0Dlh/FJaAWWUDzr5PdMLLDnfmWdKrjIzQ1KA/45t+oa/uKxJQCN0rSuN
+0qgwt7imAcnSWo73ZJh9XX3BvySfUnXV2WdKDKXQuMI5CMpsaLuX0vmsMM8tzOjO
+qCQe3MDcNjeS/6oIQSyGPvIoYQfsneSNF6NjI6RSdUvYd217OHEMmKoLicHOReAG
+Hk5XwUQER6KQYnxLHuW7IQI9VMRnifijzzuwoiQNr8PaPfV8BZXdbtqdbYilEasa
+F/4mryPghCk696q0RK8AVzES7UTpujCVvp4ADBWR8QVb1SFseLTzfMHgt+oKERZ+
+VqG1az7jFgvX+YPpsBqb
+=FEFJ
+-----END PGP SIGNATURE-----
+
+--jRHKVT23PllUwdXP--
