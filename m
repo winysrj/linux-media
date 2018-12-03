@@ -1,111 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ed1-f67.google.com ([209.85.208.67]:39414 "EHLO
-        mail-ed1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725864AbeLCJz1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Dec 2018 04:55:27 -0500
+Received: from mail.mycable.de ([46.4.59.52]:44525 "EHLO mail.mycable.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725901AbeLCKD6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 3 Dec 2018 05:03:58 -0500
+Date: Mon, 3 Dec 2018 11:03:35 +0100 (CET)
+From: Sebastian =?utf-8?Q?S=C3=BCsens?= <su@mycable.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media <linux-media@vger.kernel.org>
+Message-ID: <1362450434.3103.1543831415246.JavaMail.zimbra@mycable.de>
+In-Reply-To: <bc1b8e14-34e8-31bd-8abb-56c599e72929@xs4all.nl>
+References: <927806392.2404.1543824141142.JavaMail.zimbra@mycable.de> <bc1b8e14-34e8-31bd-8abb-56c599e72929@xs4all.nl>
+Subject: Re: v4l controls API
 MIME-Version: 1.0
-References: <20181130075849.16941-1-wens@csie.org> <20181130075849.16941-6-wens@csie.org>
- <CAMty3ZAuBM0s3eNhQBySSaUrUAkiF=Hk+Ab=gsN=QucLJv0zyw@mail.gmail.com>
-In-Reply-To: <CAMty3ZAuBM0s3eNhQBySSaUrUAkiF=Hk+Ab=gsN=QucLJv0zyw@mail.gmail.com>
-From: Chen-Yu Tsai <wens@csie.org>
-Date: Mon, 3 Dec 2018 17:54:54 +0800
-Message-ID: <CAGb2v64dbDW9Fpb_B0d8wQW7WTELqGoUzasV_KXonfEkucRZTA@mail.gmail.com>
-Subject: Re: [PATCH 5/6] [DO NOT MERGE] ARM: dts: sunxi: bananapi-m2p: Add
- HDF5640 camera module
-To: Jagan Teki <jagan@amarulasolutions.com>
-Cc: Yong Deng <yong.deng@magewell.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        devicetree <devicetree@vger.kernel.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Dec 3, 2018 at 5:52 PM Jagan Teki <jagan@amarulasolutions.com> wrote:
->
-> On Fri, Nov 30, 2018 at 1:29 PM Chen-Yu Tsai <wens@csie.org> wrote:
-> >
-> > The Bananapi M2+ comes with an optional sensor based on the ov5640 from
-> > Omnivision. Enable the support for it in the DT.
-> >
-> > Signed-off-by: Chen-Yu Tsai <wens@csie.org>
-> > ---
-> >  arch/arm/boot/dts/sunxi-bananapi-m2-plus.dtsi | 87 +++++++++++++++++++
-> >  1 file changed, 87 insertions(+)
-> >
-> > diff --git a/arch/arm/boot/dts/sunxi-bananapi-m2-plus.dtsi b/arch/arm/boot/dts/sunxi-bananapi-m2-plus.dtsi
-> > index b3283aeb5b7d..d97a98acf378 100644
-> > --- a/arch/arm/boot/dts/sunxi-bananapi-m2-plus.dtsi
-> > +++ b/arch/arm/boot/dts/sunxi-bananapi-m2-plus.dtsi
-> > @@ -89,6 +89,42 @@
-> >                 };
-> >         };
-> >
-> > +       reg_cam_avdd: cam-avdd {
-> > +               compatible = "regulator-fixed";
-> > +               regulator-name = "csi-avdd";
-> > +               regulator-min-microvolt = <2800000>;
-> > +               regulator-max-microvolt = <2800000>;
-> > +               startup-delay-us = <200>; /* 50 us + board delays */
-> > +               enable-active-high;
-> > +               gpio = <&pio 3 14 GPIO_ACTIVE_HIGH>; /* PD14 */
-> > +       };
-> > +
-> > +       reg_cam_dovdd: cam-dovdd {
-> > +               compatible = "regulator-fixed";
-> > +               regulator-name = "csi-dovdd";
-> > +               regulator-min-microvolt = <2800000>;
-> > +               regulator-max-microvolt = <2800000>;
-> > +               /*
-> > +                * This regulator also powers the pull-ups for the I2C bus.
-> > +                * For some reason, if this is turned off, subsequent use
-> > +                * of the I2C bus, even when turned on, does not work.
-> > +                */
-> > +               startup-delay-us = <200>; /* 50 us + board delays */
-> > +               regulator-always-on;
-> > +               enable-active-high;
-> > +               gpio = <&pio 3 14 GPIO_ACTIVE_HIGH>; /* PD14 */
-> > +       };
-> > +
-> > +       reg_cam_dvdd: cam-dvdd {
-> > +               compatible = "regulator-fixed";
-> > +               regulator-name = "csi-dvdd";
-> > +               regulator-min-microvolt = <1500000>;
-> > +               regulator-max-microvolt = <1500000>;
-> > +               startup-delay-us = <200>; /* 50 us + board delays */
-> > +               enable-active-high;
-> > +               gpio = <&pio 3 14 GPIO_ACTIVE_HIGH>; /* PD14 */
-> > +       };
-> > +
-> >         reg_gmac_3v3: gmac-3v3 {
-> >                       compatible = "regulator-fixed";
-> >                       regulator-name = "gmac-3v3";
-> > @@ -106,6 +142,26 @@
-> >         };
-> >  };
-> >
-> > +&csi {
-> > +       status = "okay";
-> > +
-> > +       port {
-> > +               #address-cells = <1>;
-> > +               #size-cells = <0>;
-> > +
-> > +               /* Parallel bus endpoint */
-> > +               csi_from_ov5640: endpoint {
-> > +                       remote-endpoint = <&ov5640_to_csi>;
-> > +                       bus-width = <8>;
-> > +                       data-shift = <2>;
->
-> If I'm not wrong, the data-shift is not available in sun6i at-least in
-> conf register.
+Hey,
 
-Indeed. Seems only a few drivers actually take this into account. Since
-this is just an example, I'm not going to respin it.
+I use the driver mx6s_capture kernel 4.9.88 
+On the device tree it is registered with following name "fsl,imx6s-csi".
 
-ChenYu
+Hint:
+I have no sub-devices on my systems only /dev/video0
+
+------------------------------------------------------------------------
+   Sebastian Süsens               Tel.   +49 4321 559 56-27
+   mycable GmbH                   Fax    +49 4321 559 56-10
+   Gartenstrasse 10
+   24534 Neumuenster, Germany     Email  su@mycable.de
+------------------------------------------------------------------------
+   mycable GmbH, Managing Director: Michael Carstens-Behrens
+   USt-IdNr: DE 214 231 199, Amtsgericht Kiel, HRB 1797 NM
+------------------------------------------------------------------------
+   This e-mail and any files transmitted with it are confidential and
+   intended solely for the use of the individual or entity to whom
+   they are addressed. If you have received this e-mail in error,
+   please notify the sender and delete all copies from your system.
+------------------------------------------------------------------------
+
+----- Ursprüngliche Mail -----
+Von: "Hans Verkuil" <hverkuil@xs4all.nl>
+An: "Sebastian Süsens" <su@mycable.de>, "linux-media" <linux-media@vger.kernel.org>
+Gesendet: Montag, 3. Dezember 2018 09:29:14
+Betreff: Re: v4l controls API
+
+On 12/03/2018 09:02 AM, Sebastian Süsens wrote:
+> Hello,
+> 
+> I don't know how to get access to the v4l controls on a I2C camera sensor.
+> 
+> My driver structure looks following:
+> 
+> bridge driver                            -> csi-driver                                  -> sensor driver (includes controls)
+> register-async-notifer for csi driver        register-async-notifer for sensor driver
+> register video device
+> 
+> The v4l2 API say:
+> When a sub-device is registered with a V4L2 driver by calling v4l2_device_register_subdev() and the ctrl_handler fields of both v4l2_subdev and v4l2_device are set, then the controls of the subdev will become automatically available in the V4L2 driver as well. If the subdev driver contains controls that already exist in the V4L2 driver, then those will be skipped (so a V4L2 driver can always override a subdev control).
+> 
+> But how can I get access to the controls by asynchronous registration, because the controls are not added to the video device automatically?
+
+Yes, they are via v4l2_device_register_subdev(), which is called by the async code
+when the subdev driver arrives.
+
+Note that this assumes that the bridge driver has a control handler that struct
+v4l2_device points to (the ctrl_handler field).
+
+Also note that certain types of drivers (media controller-based) such as the imx
+driver do not 'inherit' controls since each subdev has its own v4l-subdevX device node
+through which its controls can be set. You do not mention which bridge driver you are
+using, so I can't tell whether or not it falls in this category.
+
+Regards,
+
+	Hans
+
+> 
+> Normally I can use:
+> 
+> v4l2-ctl -l -d /dev/video0
+> 
+> I don't know if this forum is the right place for this question, so please answer with a private e-mail su@mycable.de
+> 
+> ------------------------------------------------------------------------
+>    Sebastian Süsens               Tel.   +49 4321 559 56-27
+>    mycable GmbH                   Fax    +49 4321 559 56-10
+>    Gartenstrasse 10
+>    24534 Neumuenster, Germany     Email  su@mycable.de
+> ------------------------------------------------------------------------
+>    mycable GmbH, Managing Director: Michael Carstens-Behrens
+>    USt-IdNr: DE 214 231 199, Amtsgericht Kiel, HRB 1797 NM
+> ------------------------------------------------------------------------
+>    This e-mail and any files transmitted with it are confidential and
+>    intended solely for the use of the individual or entity to whom
+>    they are addressed. If you have received this e-mail in error,
+>    please notify the sender and delete all copies from your system.
+> ------------------------------------------------------------------------
+>
