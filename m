@@ -1,74 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:55186 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725830AbeLCI3X (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 3 Dec 2018 03:29:23 -0500
-Subject: Re: v4l controls API
-To: =?UTF-8?Q?Sebastian_S=c3=bcsens?= <su@mycable.de>,
-        linux-media@vger.kernel.org
-References: <927806392.2404.1543824141142.JavaMail.zimbra@mycable.de>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <bc1b8e14-34e8-31bd-8abb-56c599e72929@xs4all.nl>
-Date: Mon, 3 Dec 2018 09:29:14 +0100
+Received: from mail.bootlin.com ([62.4.15.54]:51373 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725868AbeLCIoo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 3 Dec 2018 03:44:44 -0500
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Mylene Josserand <mylene.josserand@bootlin.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Loic Poulain <loic.poulain@linaro.org>,
+        Samuel Bobrowicz <sam@elite-embedded.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Daniel Mack <daniel@zonque.org>,
+        Jacopo Mondi <jacopo@jmondi.org>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>
+Subject: [PATCH v6 01/12] media: ov5640: Fix set format regression
+Date: Mon,  3 Dec 2018 09:44:16 +0100
+Message-Id: <445b7d9c5d6b62f3f2b00fcbe97bcf65865f7200.1543826654.git-series.maxime.ripard@bootlin.com>
+In-Reply-To: <cover.b1632e0c1a10c3f9f674e00142a554fa79eac762.1543826654.git-series.maxime.ripard@bootlin.com>
+References: <cover.b1632e0c1a10c3f9f674e00142a554fa79eac762.1543826654.git-series.maxime.ripard@bootlin.com>
 MIME-Version: 1.0
-In-Reply-To: <927806392.2404.1543824141142.JavaMail.zimbra@mycable.de>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/03/2018 09:02 AM, Sebastian Süsens wrote:
-> Hello,
-> 
-> I don't know how to get access to the v4l controls on a I2C camera sensor.
-> 
-> My driver structure looks following:
-> 
-> bridge driver                            -> csi-driver                                  -> sensor driver (includes controls)
-> register-async-notifer for csi driver        register-async-notifer for sensor driver
-> register video device
-> 
-> The v4l2 API say:
-> When a sub-device is registered with a V4L2 driver by calling v4l2_device_register_subdev() and the ctrl_handler fields of both v4l2_subdev and v4l2_device are set, then the controls of the subdev will become automatically available in the V4L2 driver as well. If the subdev driver contains controls that already exist in the V4L2 driver, then those will be skipped (so a V4L2 driver can always override a subdev control).
-> 
-> But how can I get access to the controls by asynchronous registration, because the controls are not added to the video device automatically?
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
 
-Yes, they are via v4l2_device_register_subdev(), which is called by the async code
-when the subdev driver arrives.
+The set_fmt operations updates the sensor format only when the image format
+is changed. When only the image sizes gets changed, the format do not get
+updated causing the sensor to always report the one that was previously in
+use.
 
-Note that this assumes that the bridge driver has a control handler that struct
-v4l2_device points to (the ctrl_handler field).
+Without this patch, updating frame size only fails:
+  [fmt:UYVY8_2X8/640x480@1/30 field:none colorspace:srgb xfer:srgb ...]
 
-Also note that certain types of drivers (media controller-based) such as the imx
-driver do not 'inherit' controls since each subdev has its own v4l-subdevX device node
-through which its controls can be set. You do not mention which bridge driver you are
-using, so I can't tell whether or not it falls in this category.
+With this patch applied:
+  [fmt:UYVY8_2X8/1024x768@1/30 field:none colorspace:srgb xfer:srgb ...]
 
-Regards,
+Fixes: 6949d864776e ("media: ov5640: do not change mode if format or frame
+interval is unchanged")
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
+---
+ drivers/media/i2c/ov5640.c | 17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
-	Hans
-
-> 
-> Normally I can use:
-> 
-> v4l2-ctl -l -d /dev/video0
-> 
-> I don't know if this forum is the right place for this question, so please answer with a private e-mail su@mycable.de
-> 
-> ------------------------------------------------------------------------
->    Sebastian Süsens               Tel.   +49 4321 559 56-27
->    mycable GmbH                   Fax    +49 4321 559 56-10
->    Gartenstrasse 10
->    24534 Neumuenster, Germany     Email  su@mycable.de
-> ------------------------------------------------------------------------
->    mycable GmbH, Managing Director: Michael Carstens-Behrens
->    USt-IdNr: DE 214 231 199, Amtsgericht Kiel, HRB 1797 NM
-> ------------------------------------------------------------------------
->    This e-mail and any files transmitted with it are confidential and
->    intended solely for the use of the individual or entity to whom
->    they are addressed. If you have received this e-mail in error,
->    please notify the sender and delete all copies from your system.
-> ------------------------------------------------------------------------
-> 
+diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+index a91d91715d00..807bd0e386a4 100644
+--- a/drivers/media/i2c/ov5640.c
++++ b/drivers/media/i2c/ov5640.c
+@@ -2021,6 +2021,7 @@ static int ov5640_set_fmt(struct v4l2_subdev *sd,
+ 	struct ov5640_dev *sensor = to_ov5640_dev(sd);
+ 	const struct ov5640_mode_info *new_mode;
+ 	struct v4l2_mbus_framefmt *mbus_fmt = &format->format;
++	struct v4l2_mbus_framefmt *fmt;
+ 	int ret;
+ 
+ 	if (format->pad != 0)
+@@ -2038,22 +2039,20 @@ static int ov5640_set_fmt(struct v4l2_subdev *sd,
+ 	if (ret)
+ 		goto out;
+ 
+-	if (format->which == V4L2_SUBDEV_FORMAT_TRY) {
+-		struct v4l2_mbus_framefmt *fmt =
+-			v4l2_subdev_get_try_format(sd, cfg, 0);
++	if (format->which == V4L2_SUBDEV_FORMAT_TRY)
++		fmt = v4l2_subdev_get_try_format(sd, cfg, 0);
++	else
++		fmt = &sensor->fmt;
+ 
+-		*fmt = *mbus_fmt;
+-		goto out;
+-	}
++	*fmt = *mbus_fmt;
+ 
+ 	if (new_mode != sensor->current_mode) {
+ 		sensor->current_mode = new_mode;
+ 		sensor->pending_mode_change = true;
+ 	}
+-	if (mbus_fmt->code != sensor->fmt.code) {
+-		sensor->fmt = *mbus_fmt;
++	if (mbus_fmt->code != sensor->fmt.code)
+ 		sensor->pending_fmt_change = true;
+-	}
++
+ out:
+ 	mutex_unlock(&sensor->lock);
+ 	return ret;
+-- 
+git-series 0.9.1
