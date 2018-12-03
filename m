@@ -1,99 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:52737 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725983AbeLCKZc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 3 Dec 2018 05:25:32 -0500
-Date: Mon, 3 Dec 2018 12:25:04 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Bingbu Cao <bingbu.cao@linux.intel.com>
-Cc: Tomasz Figa <tfiga@chromium.org>,
-        Cao Bing Bu <bingbu.cao@intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        "Yeh, Andy" <andy.yeh@intel.com>
-Subject: Re: [PATCH] media: unify some sony camera sensors pattern naming
-Message-ID: <20181203102503.j5ts32pchn6jdsfk@paasikivi.fi.intel.com>
-References: <1543291261-26174-1-git-send-email-bingbu.cao@intel.com>
- <CAAFQd5Dzk2AxMXA+QUFJ+LqRudVe6T6-tt2wY1q4Zpw2Hhhhrw@mail.gmail.com>
- <28de442c-5893-adc4-5801-c54f45a82849@linux.intel.com>
+Received: from mail-ed1-f67.google.com ([209.85.208.67]:41580 "EHLO
+        mail-ed1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726046AbeLCKZd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Dec 2018 05:25:33 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <28de442c-5893-adc4-5801-c54f45a82849@linux.intel.com>
+References: <20181203100747.16442-1-jagan@amarulasolutions.com> <20181203100747.16442-6-jagan@amarulasolutions.com>
+In-Reply-To: <20181203100747.16442-6-jagan@amarulasolutions.com>
+From: Chen-Yu Tsai <wens@csie.org>
+Date: Mon, 3 Dec 2018 18:24:52 +0800
+Message-ID: <CAGb2v6441wV7PM6q=vF2cpJtP9BGdYjQQqNU54rqELNJ5YcmdQ@mail.gmail.com>
+Subject: Re: [PATCH 5/5] arm64: dts: allwinner: a64-amarula-relic: Add OV5640
+ camera node
+To: Jagan Teki <jagan@amarulasolutions.com>
+Cc: Yong Deng <yong.deng@magewell.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        devicetree <devicetree@vger.kernel.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Bing Bu, Tomasz,
+On Mon, Dec 3, 2018 at 6:08 PM Jagan Teki <jagan@amarulasolutions.com> wrote:
+>
+> Amarula A64-Relic board by default bound with OV5640 camera,
+> so add support for it with below pin information.
+>
+> - PE13, PE12 via i2c-gpio bitbanging
+> - CLK_CSI_MCLK as external clock
+> - PE1 as external clock pin muxing
+> - DLDO3 as vcc-csi supply
+> - DLDO3 as AVDD supply
+> - ALDO1 as DOVDD supply
+> - ELDO3 as DVDD supply
+> - PE14 gpio for reset pin
+> - PE15 gpio for powerdown pin
+>
+> Signed-off-by: Jagan Teki <jagan@amarulasolutions.com>
+> ---
+>  .../allwinner/sun50i-a64-amarula-relic.dts    | 54 +++++++++++++++++++
+>  arch/arm64/boot/dts/allwinner/sun50i-a64.dtsi |  5 ++
+>  2 files changed, 59 insertions(+)
+>
+> diff --git a/arch/arm64/boot/dts/allwinner/sun50i-a64-amarula-relic.dts b/arch/arm64/boot/dts/allwinner/sun50i-a64-amarula-relic.dts
+> index 6cb2b7f0c817..9ac6d773188b 100644
+> --- a/arch/arm64/boot/dts/allwinner/sun50i-a64-amarula-relic.dts
+> +++ b/arch/arm64/boot/dts/allwinner/sun50i-a64-amarula-relic.dts
+> @@ -22,6 +22,41 @@
+>                 stdout-path = "serial0:115200n8";
+>         };
+>
+> +       i2c-csi {
+> +               compatible = "i2c-gpio";
+> +               sda-gpios = <&pio 4 13 (GPIO_ACTIVE_HIGH|GPIO_OPEN_DRAIN)>;
+> +               scl-gpios = <&pio 4 12 (GPIO_ACTIVE_HIGH|GPIO_OPEN_DRAIN)>;
 
-On Mon, Dec 03, 2018 at 10:53:34AM +0800, Bingbu Cao wrote:
-> 
-> 
-> On 12/01/2018 02:08 AM, Tomasz Figa wrote:
-> > Hi Bingbu,
-> > 
-> > On Mon, Nov 26, 2018 at 7:56 PM <bingbu.cao@intel.com> wrote:
-> > > From: Bingbu Cao <bingbu.cao@intel.com>
-> > > 
-> > > Some Sony camera sensors have same test pattern
-> > > definitions, this patch unify the pattern naming
-> > > to make it more clear to the userspace.
-> > > 
-> > > Suggested-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > > Signed-off-by: Bingbu Cao <bingbu.cao@intel.com>
-> > > ---
-> > >   drivers/media/i2c/imx258.c | 8 ++++----
-> > >   drivers/media/i2c/imx319.c | 8 ++++----
-> > >   drivers/media/i2c/imx355.c | 8 ++++----
-> > >   3 files changed, 12 insertions(+), 12 deletions(-)
-> > > 
-> > Thanks for the patch! One comment inline.
-> > 
-> > > diff --git a/drivers/media/i2c/imx258.c b/drivers/media/i2c/imx258.c
-> > > index 31a1e2294843..a8a2880c6b4e 100644
-> > > --- a/drivers/media/i2c/imx258.c
-> > > +++ b/drivers/media/i2c/imx258.c
-> > > @@ -504,10 +504,10 @@ struct imx258_mode {
-> > > 
-> > >   static const char * const imx258_test_pattern_menu[] = {
-> > >          "Disabled",
-> > > -       "Color Bars",
-> > > -       "Solid Color",
-> > > -       "Grey Color Bars",
-> > > -       "PN9"
-> > > +       "Solid Colour",
-> > > +       "Eight Vertical Colour Bars",
-> > Is it just me or "solid color" and "color bars" are being swapped
-> > here? Did the driver had the names mixed up before or the order of
-> > modes is different between these sensors?
-> The test pattern value order of the 3 camera sensors should be same.
-> All are:
-> 0 - Disabled
-> 1 - Solid Colour
-> 2 - Eight Vertical Colour Bars
-> ...
-> 
-> This patch swapped the first 2 item for imx258 (wrong order before) and use unified
-> name for all 3 sensors.
+FYI our hardware doesn't do open drain.
 
-I guess this isn't based on Jason's patch (now merged) that fixed the
-issue. I'll rebase this; it's trivial.
+> +               i2c-gpio,delay-us = <5>;
+> +               #address-cells = <1>;
+> +               #size-cells = <0>;
+> +
+> +               ov5640: camera@3c {
+> +                       compatible = "ovti,ov5640";
+> +                       reg = <0x3c>;
+> +                       pinctrl-names = "default";
+> +                       pinctrl-0 = <&csi_mclk_pin>;
+> +                       clocks = <&ccu CLK_CSI_MCLK>;
+> +                       clock-names = "xclk";
+> +
+> +                       AVDD-supply = <&reg_dldo3>;
+> +                       DOVDD-supply = <&reg_aldo1>;
 
-commit 53f6f81da7db96557fe2bff9b15bd6b83d301f9f
-Author: Chen, JasonX Z <jasonx.z.chen@intel.com>
-Date:   Wed Nov 7 21:47:34 2018 -0500
+DOVDD is the supply for I/O. You say it is ALDO1 here.
 
-    media: imx258: remove test pattern map from driver
-    
-    change bayer order when using test pattern mode.
-    remove test pattern mapping method
-    
-    [Sakari Ailus: Drop extra added newline]
-    
-    Signed-off-by: Chen, JasonX Z <jasonx.z.chen@intel.com>
-    Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-    Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+> +                       DVDD-supply = <&reg_eldo3>;
+> +                       reset-gpios = <&pio 4 14 GPIO_ACTIVE_LOW>; /* CSI-RST-R: PE14 */
+> +                       powerdown-gpios = <&pio 4 15 GPIO_ACTIVE_HIGH>; /* CSI-STBY-R: PE15 */
+> +
+> +                       port {
+> +                               ov5640_ep: endpoint {
+> +                                       remote-endpoint = <&csi_ep>;
+> +                                       bus-width = <8>;
+> +                                       hsync-active = <1>; /* Active high */
+> +                                       vsync-active = <0>; /* Active low */
+> +                                       data-active = <1>;  /* Active high */
+> +                                       pclk-sample = <1>;  /* Rising */
+> +                               };
+> +                       };
+> +               };
+> +       };
+> +
+>         wifi_pwrseq: wifi-pwrseq {
+>                 compatible = "mmc-pwrseq-simple";
+>                 clocks = <&rtc 1>;
+> @@ -30,6 +65,25 @@
+>         };
+>  };
+>
+> +&csi {
+> +       vcc-csi-supply = <&reg_dldo3>;
 
--- 
-Regards,
+But here you say the SoC-side pins are driven from DLDO3.
 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+This is a somewhat odd mismatch.
+
+Regardless, the ov5640 driver enables all three regulators at probe time.
+Shouldn't that be enough to get the I2C bus working? The pin voltage
+supply does not belong here.
+
+> +       status = "okay";
+> +
+> +       port {
+> +               #address-cells = <1>;
+> +               #size-cells = <0>;
+> +
+> +               csi_ep: endpoint {
+> +                       remote-endpoint = <&ov5640_ep>;
+> +                       bus-width = <8>;
+> +                       hsync-active = <1>; /* Active high */
+> +                       vsync-active = <0>; /* Active low */
+> +                       data-active = <1>;  /* Active high */
+> +                       pclk-sample = <1>;  /* Rising */
+> +               };
+> +       };
+> +};
+> +
+>  &ehci0 {
+>         status = "okay";
+>  };
+> diff --git a/arch/arm64/boot/dts/allwinner/sun50i-a64.dtsi b/arch/arm64/boot/dts/allwinner/sun50i-a64.dtsi
+> index d32ff694ac5c..844bb44a78af 100644
+> --- a/arch/arm64/boot/dts/allwinner/sun50i-a64.dtsi
+> +++ b/arch/arm64/boot/dts/allwinner/sun50i-a64.dtsi
+> @@ -538,6 +538,11 @@
+>                                 function = "csi0";
+>                         };
+>
+> +                       csi_mclk_pin: csi-mclk {
+> +                               pins = "PE1";
+> +                               function = "csi0";
+> +                       };
+> +
+
+This should be a separate patch.
+
+ChenYu
+
+>                         i2c0_pins: i2c0_pins {
+>                                 pins = "PH0", "PH1";
+>                                 function = "i2c0";
+> --
+> 2.18.0.321.gffc6fa0e3
+>
