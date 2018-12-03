@@ -1,116 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:44443 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725888AbeLCKGz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 3 Dec 2018 05:06:55 -0500
-Subject: Re: v4l controls API
-To: =?UTF-8?Q?Sebastian_S=c3=bcsens?= <su@mycable.de>
-Cc: linux-media <linux-media@vger.kernel.org>
-References: <927806392.2404.1543824141142.JavaMail.zimbra@mycable.de>
- <bc1b8e14-34e8-31bd-8abb-56c599e72929@xs4all.nl>
- <1362450434.3103.1543831415246.JavaMail.zimbra@mycable.de>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <1d31023a-c018-b741-89a6-396818f52638@xs4all.nl>
-Date: Mon, 3 Dec 2018 11:06:29 +0100
+Received: from mail-wm1-f68.google.com ([209.85.128.68]:38294 "EHLO
+        mail-wm1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726188AbeLCKIV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Dec 2018 05:08:21 -0500
+Received: by mail-wm1-f68.google.com with SMTP id m22so4993621wml.3
+        for <linux-media@vger.kernel.org>; Mon, 03 Dec 2018 02:07:58 -0800 (PST)
+From: Jagan Teki <jagan@amarulasolutions.com>
+To: Yong Deng <yong.deng@magewell.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Chen-Yu Tsai <wens@csie.org>, linux-media@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc: Jagan Teki <jagan@amarulasolutions.com>
+Subject: [PATCH 2/5] dt-bindings: media: sun6i: Add vcc-csi supply property
+Date: Mon,  3 Dec 2018 15:37:44 +0530
+Message-Id: <20181203100747.16442-3-jagan@amarulasolutions.com>
+In-Reply-To: <20181203100747.16442-1-jagan@amarulasolutions.com>
+References: <20181203100747.16442-1-jagan@amarulasolutions.com>
 MIME-Version: 1.0
-In-Reply-To: <1362450434.3103.1543831415246.JavaMail.zimbra@mycable.de>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/03/2018 11:03 AM, Sebastian Süsens wrote:
-> Hey,
-> 
-> I use the driver mx6s_capture kernel 4.9.88 
-> On the device tree it is registered with following name "fsl,imx6s-csi".
+Most of the Allwinner A64 CSI controllers are supply with
+VCC-PE pin. which need to supply for some of the boards to
+trigger the power.
 
-Ah, that's probably the freescale driver. We don't support that. It's known
-to be quite buggy.
+So, document the supply property as vcc-csi so-that the required
+board can eable it via device tree.
 
-Sorry, you're on your own here.
+Used vcc-csi instead of vcc-pe to have better naming convention
+wrt other controller pin supplies.
 
-Regards,
+Signed-off-by: Jagan Teki <jagan@amarulasolutions.com>
+---
+ Documentation/devicetree/bindings/media/sun6i-csi.txt | 3 +++
+ 1 file changed, 3 insertions(+)
 
-	Hans
-
-> 
-> Hint:
-> I have no sub-devices on my systems only /dev/video0
-> 
-> ------------------------------------------------------------------------
->    Sebastian Süsens               Tel.   +49 4321 559 56-27
->    mycable GmbH                   Fax    +49 4321 559 56-10
->    Gartenstrasse 10
->    24534 Neumuenster, Germany     Email  su@mycable.de
-> ------------------------------------------------------------------------
->    mycable GmbH, Managing Director: Michael Carstens-Behrens
->    USt-IdNr: DE 214 231 199, Amtsgericht Kiel, HRB 1797 NM
-> ------------------------------------------------------------------------
->    This e-mail and any files transmitted with it are confidential and
->    intended solely for the use of the individual or entity to whom
->    they are addressed. If you have received this e-mail in error,
->    please notify the sender and delete all copies from your system.
-> ------------------------------------------------------------------------
-> 
-> ----- Ursprüngliche Mail -----
-> Von: "Hans Verkuil" <hverkuil@xs4all.nl>
-> An: "Sebastian Süsens" <su@mycable.de>, "linux-media" <linux-media@vger.kernel.org>
-> Gesendet: Montag, 3. Dezember 2018 09:29:14
-> Betreff: Re: v4l controls API
-> 
-> On 12/03/2018 09:02 AM, Sebastian Süsens wrote:
->> Hello,
->>
->> I don't know how to get access to the v4l controls on a I2C camera sensor.
->>
->> My driver structure looks following:
->>
->> bridge driver                            -> csi-driver                                  -> sensor driver (includes controls)
->> register-async-notifer for csi driver        register-async-notifer for sensor driver
->> register video device
->>
->> The v4l2 API say:
->> When a sub-device is registered with a V4L2 driver by calling v4l2_device_register_subdev() and the ctrl_handler fields of both v4l2_subdev and v4l2_device are set, then the controls of the subdev will become automatically available in the V4L2 driver as well. If the subdev driver contains controls that already exist in the V4L2 driver, then those will be skipped (so a V4L2 driver can always override a subdev control).
->>
->> But how can I get access to the controls by asynchronous registration, because the controls are not added to the video device automatically?
-> 
-> Yes, they are via v4l2_device_register_subdev(), which is called by the async code
-> when the subdev driver arrives.
-> 
-> Note that this assumes that the bridge driver has a control handler that struct
-> v4l2_device points to (the ctrl_handler field).
-> 
-> Also note that certain types of drivers (media controller-based) such as the imx
-> driver do not 'inherit' controls since each subdev has its own v4l-subdevX device node
-> through which its controls can be set. You do not mention which bridge driver you are
-> using, so I can't tell whether or not it falls in this category.
-> 
-> Regards,
-> 
-> 	Hans
-> 
->>
->> Normally I can use:
->>
->> v4l2-ctl -l -d /dev/video0
->>
->> I don't know if this forum is the right place for this question, so please answer with a private e-mail su@mycable.de
->>
->> ------------------------------------------------------------------------
->>    Sebastian Süsens               Tel.   +49 4321 559 56-27
->>    mycable GmbH                   Fax    +49 4321 559 56-10
->>    Gartenstrasse 10
->>    24534 Neumuenster, Germany     Email  su@mycable.de
->> ------------------------------------------------------------------------
->>    mycable GmbH, Managing Director: Michael Carstens-Behrens
->>    USt-IdNr: DE 214 231 199, Amtsgericht Kiel, HRB 1797 NM
->> ------------------------------------------------------------------------
->>    This e-mail and any files transmitted with it are confidential and
->>    intended solely for the use of the individual or entity to whom
->>    they are addressed. If you have received this e-mail in error,
->>    please notify the sender and delete all copies from your system.
->> ------------------------------------------------------------------------
->>
+diff --git a/Documentation/devicetree/bindings/media/sun6i-csi.txt b/Documentation/devicetree/bindings/media/sun6i-csi.txt
+index e78cf4f9bc8c..5fb6fd4e2c7d 100644
+--- a/Documentation/devicetree/bindings/media/sun6i-csi.txt
++++ b/Documentation/devicetree/bindings/media/sun6i-csi.txt
+@@ -18,6 +18,9 @@ Required properties:
+   - clock-names: the clock names mentioned above
+   - resets: phandles to the reset line driving the CSI
+ 
++Optional properties:
++  - vcc-csi-supply: the VCC-CSI power supply of the CSI PE group
++
+ The CSI node should contain one 'port' child node with one child 'endpoint'
+ node, according to the bindings defined in
+ Documentation/devicetree/bindings/media/video-interfaces.txt.
+-- 
+2.18.0.321.gffc6fa0e3
