@@ -1,54 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt1-f196.google.com ([209.85.160.196]:41303 "EHLO
-        mail-qt1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725730AbeLBUoO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 2 Dec 2018 15:44:14 -0500
+Received: from mga18.intel.com ([134.134.136.126]:52699 "EHLO mga18.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725792AbeLCCsk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 2 Dec 2018 21:48:40 -0500
+Subject: Re: [PATCH] media: unify some sony camera sensors pattern naming
+To: Tomasz Figa <tfiga@chromium.org>,
+        Cao Bing Bu <bingbu.cao@intel.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        "Yeh, Andy" <andy.yeh@intel.com>
+References: <1543291261-26174-1-git-send-email-bingbu.cao@intel.com>
+ <CAAFQd5Dzk2AxMXA+QUFJ+LqRudVe6T6-tt2wY1q4Zpw2Hhhhrw@mail.gmail.com>
+From: Bingbu Cao <bingbu.cao@linux.intel.com>
+Message-ID: <28de442c-5893-adc4-5801-c54f45a82849@linux.intel.com>
+Date: Mon, 3 Dec 2018 10:53:34 +0800
 MIME-Version: 1.0
-References: <20181202134538.GA18886@gfm-note>
-In-Reply-To: <20181202134538.GA18886@gfm-note>
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Sun, 2 Dec 2018 21:43:53 +0100
-Message-ID: <CAK8P3a2of9sZ5BGCKshCjFkpt8q6s-KD-9XC4SGYP2Ppj7fjEw@mail.gmail.com>
-Subject: Re: [PATCH v4] media: vivid: Improve timestamping
-To: gfmandaji@gmail.com
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        lkcamp@lists.libreplanetbr.org
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <CAAFQd5Dzk2AxMXA+QUFJ+LqRudVe6T6-tt2wY1q4Zpw2Hhhhrw@mail.gmail.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Dec 2, 2018 at 2:47 PM Gabriel Francisco Mandaji
-<gfmandaji@gmail.com> wrote:
 
-> @@ -667,10 +653,28 @@ static void vivid_overlay(struct vivid_dev *dev, struct vivid_buffer *buf)
->         }
->  }
+
+On 12/01/2018 02:08 AM, Tomasz Figa wrote:
+> Hi Bingbu,
 >
-> +static void vivid_cap_update_frame_period(struct vivid_dev *dev)
-> +{
-> +       u64 f_period;
-> +
-> +       f_period = (u64)dev->timeperframe_vid_cap.numerator * 1000000000;
-> +       do_div(f_period, dev->timeperframe_vid_cap.denominator);
-> +       if (dev->field_cap == V4L2_FIELD_ALTERNATE)
-> +               do_div(f_period, 2);
-> +       /*
-> +        * If "End of Frame", then offset the exposure time by 0.9
-> +        * of the frame period.
-> +        */
-> +       dev->cap_frame_eof_offset = f_period * 9;
-> +       do_div(dev->cap_frame_eof_offset, 10);
-> +       dev->cap_frame_period = f_period;
-> +}
+> On Mon, Nov 26, 2018 at 7:56 PM <bingbu.cao@intel.com> wrote:
+>> From: Bingbu Cao <bingbu.cao@intel.com>
+>>
+>> Some Sony camera sensors have same test pattern
+>> definitions, this patch unify the pattern naming
+>> to make it more clear to the userspace.
+>>
+>> Suggested-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+>> Signed-off-by: Bingbu Cao <bingbu.cao@intel.com>
+>> ---
+>>   drivers/media/i2c/imx258.c | 8 ++++----
+>>   drivers/media/i2c/imx319.c | 8 ++++----
+>>   drivers/media/i2c/imx355.c | 8 ++++----
+>>   3 files changed, 12 insertions(+), 12 deletions(-)
+>>
+> Thanks for the patch! One comment inline.
+>
+>> diff --git a/drivers/media/i2c/imx258.c b/drivers/media/i2c/imx258.c
+>> index 31a1e2294843..a8a2880c6b4e 100644
+>> --- a/drivers/media/i2c/imx258.c
+>> +++ b/drivers/media/i2c/imx258.c
+>> @@ -504,10 +504,10 @@ struct imx258_mode {
+>>
+>>   static const char * const imx258_test_pattern_menu[] = {
+>>          "Disabled",
+>> -       "Color Bars",
+>> -       "Solid Color",
+>> -       "Grey Color Bars",
+>> -       "PN9"
+>> +       "Solid Colour",
+>> +       "Eight Vertical Colour Bars",
+> Is it just me or "solid color" and "color bars" are being swapped
+> here? Did the driver had the names mixed up before or the order of
+> modes is different between these sensors?
+The test pattern value order of the 3 camera sensors should be same.
+All are:
+0 - Disabled
+1 - Solid Colour
+2 - Eight Vertical Colour Bars
+...
 
-Doing two or three do_div() operations is going to make this rather
-expensive on 32-bit architectures, and it looks like this happens for
-each frame?
-
-Since each one is a multiplication followed by a division, could this
-be changed to using a different factor followed by a bit shift?
-
-      Arnd
+This patch swapped the first 2 item for imx258 (wrong order before) and use unified
+name for all 3 sensors.
+>
+> Best regards,
+> Tomasz
+>
