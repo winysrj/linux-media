@@ -1,31 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it1-f194.google.com ([209.85.166.194]:54040 "EHLO
-        mail-it1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726650AbeLCRIk (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Dec 2018 12:08:40 -0500
-Received: by mail-it1-f194.google.com with SMTP id g85so10435207ita.3
-        for <linux-media@vger.kernel.org>; Mon, 03 Dec 2018 09:08:35 -0800 (PST)
-MIME-Version: 1.0
-References: <1543502916-21632-1-git-send-email-jacopo+renesas@jmondi.org>
- <1543502916-21632-3-git-send-email-jacopo+renesas@jmondi.org> <CAHCN7xLb8LRWQiaXYLsJn+bhU=z=kG-oUNU8Euueb3LOvn57PQ@mail.gmail.com>
-In-Reply-To: <CAHCN7xLb8LRWQiaXYLsJn+bhU=z=kG-oUNU8Euueb3LOvn57PQ@mail.gmail.com>
-From: Adam Ford <aford173@gmail.com>
-Date: Mon, 3 Dec 2018 11:08:22 -0600
-Message-ID: <CAHCN7x+jGStkYrWKqNFHnGCRjJc9sOq814KiHtfzXR=NA5x4_w@mail.gmail.com>
-Subject: Re: [PATCH 2/2] media: ov5640: make MIPI clock depend on mode
-To: jacopo+renesas@jmondi.org
-Cc: maxime.ripard@bootlin.com, sam@elite-embedded.com,
-        Steve Longerbeam <slongerbeam@gmail.com>, mchehab@kernel.org,
+Received: from relay1-d.mail.gandi.net ([217.70.183.193]:40331 "EHLO
+        relay1-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725897AbeLCRdt (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Dec 2018 12:33:49 -0500
+Date: Mon, 3 Dec 2018 18:33:27 +0100
+From: jacopo mondi <jacopo@jmondi.org>
+To: Adam Ford <aford173@gmail.com>
+Cc: jacopo+renesas@jmondi.org, maxime.ripard@bootlin.com,
+        sam@elite-embedded.com, Steve Longerbeam <slongerbeam@gmail.com>,
+        mchehab@kernel.org,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         hans.verkuil@cisco.com, sakari.ailus@linux.intel.com,
         linux-media@vger.kernel.org, hugues.fruchet@st.com,
         loic.poulain@linaro.org, daniel@zonque.org
-Content-Type: text/plain; charset="UTF-8"
+Subject: Re: [PATCH 2/2] media: ov5640: make MIPI clock depend on mode
+Message-ID: <20181203173327.GA12431@w540>
+References: <1543502916-21632-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1543502916-21632-3-git-send-email-jacopo+renesas@jmondi.org>
+ <CAHCN7xLb8LRWQiaXYLsJn+bhU=z=kG-oUNU8Euueb3LOvn57PQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="wac7ysb48OaltWcw"
+Content-Disposition: inline
+In-Reply-To: <CAHCN7xLb8LRWQiaXYLsJn+bhU=z=kG-oUNU8Euueb3LOvn57PQ@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Dec 3, 2018 at 10:28 AM Adam Ford <aford173@gmail.com> wrote:
->
+
+--wac7ysb48OaltWcw
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+
+Hi Adam,
+    thanks for testing
+
+On Mon, Dec 03, 2018 at 10:28:04AM -0600, Adam Ford wrote:
 > On Thu, Nov 29, 2018 at 8:49 AM Jacopo Mondi <jacopo+renesas@jmondi.org> wrote:
 > >
 > > The MIPI clock generation tree uses the MIPI_DIV divider to generate both the
@@ -46,14 +55,18 @@ On Mon, Dec 3, 2018 at 10:28 AM Adam Ford <aford173@gmail.com> wrote:
 >
 > Is there a specific branch/repo somewhere I can pull?  I was able to
 > apply patch 1/2 just fine, but 2/2 wouldn't apply
+
+Reading the cover letter:
+"these two patches should be applied on top of Maxime's clock tree rework v5"
+
+Maxime has included those 2 in his v6. You may want to test that one
+:)
+
+Thanks
+   j
+
 >
-
-I also attempted to apply to [2] without success.
-
 > [1] - git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media.git
-
-[2] - git://linuxtv.org/media_tree.git
-
 >
 > adam
 > > ---
@@ -309,3 +322,26 @@ I also attempted to apply to [2] without success.
 > > --
 > > 2.7.4
 > >
+
+--wac7ysb48OaltWcw
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABCAAGBQJcBWjnAAoJEHI0Bo8WoVY8WgkQAJD7rwwToLRrDLMREwGOoAWT
+Aui+OQ6l6nVgOn7uGhAohFwQ+FjIwY4lkt0a70YubtlxudiQg98PMADhumFdzI5Z
+Irskh0eDNV7Kew1QVI3cGmuc1TFwNBx6RJym3YzeH6rzmVuwIFcn1fuJDdlCRUys
+d80QH/cUHOafUGtVN0pcDQhHNrcvbWnmIbdJg9PABl7bCFfabRz4FfQk/vKvNias
+/9cXUOWzgLmRe9flFE+rLBPXz8bDNEVVnFp5IOETEHNePHlIOvusYRduNFpvuvfg
+UvLdxFDmFf0U0Rd3M91o3XEV/nUsoJ0ODw6I3njzk5glEbahGRl9Zy1qhJrd4pHM
+zJXb3Tmza4kTrAqlgcFysJdwG8bc8BHIx8z2W8tzeXXdzecrJkPDxBv7aUWAORBY
+7bH6NdKEdH/oBeAZLkDWnsXSHNXtjvr+zpx5QuiCwFpNtkwGQ+bKkYO4quuDN4sy
+D+gz15G3u2owzAOXX7K4YiKUEvBca9PjU0kowmf95ZUgv5Gez/ZUzKjeIM3Pnj7r
+PmMfu1Ekr8LqmT1Zo1zUSVkqYfq3RmtF5Ozz74ZhDofukSJLoFOC1L8FpMWxKweT
+dpTyxsWN0sJnuOzEgEJmyYn4V0KuCnJFG+S+/nbt4RSfVizxEzTenqH+cHS1LAuU
+AnvMxfXMoTSQPVdLpqTd
+=L6JN
+-----END PGP SIGNATURE-----
+
+--wac7ysb48OaltWcw--
