@@ -1,10 +1,10 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr1-f68.google.com ([209.85.221.68]:36759 "EHLO
+Received: from mail-wr1-f68.google.com ([209.85.221.68]:47045 "EHLO
         mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726209AbeLCKIW (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Dec 2018 05:08:22 -0500
-Received: by mail-wr1-f68.google.com with SMTP id u3so11452689wrs.3
-        for <linux-media@vger.kernel.org>; Mon, 03 Dec 2018 02:07:59 -0800 (PST)
+        with ESMTP id S1726161AbeLCKIT (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Dec 2018 05:08:19 -0500
+Received: by mail-wr1-f68.google.com with SMTP id l9so11450798wrt.13
+        for <linux-media@vger.kernel.org>; Mon, 03 Dec 2018 02:07:57 -0800 (PST)
 From: Jagan Teki <jagan@amarulasolutions.com>
 To: Yong Deng <yong.deng@magewell.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
@@ -15,9 +15,9 @@ To: Yong Deng <yong.deng@magewell.com>,
         linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
         linux-kernel@vger.kernel.org
 Cc: Jagan Teki <jagan@amarulasolutions.com>
-Subject: [PATCH 3/5] media: sun6i: Add vcc-csi supply regulator
-Date: Mon,  3 Dec 2018 15:37:45 +0530
-Message-Id: <20181203100747.16442-4-jagan@amarulasolutions.com>
+Subject: [PATCH 1/5] dt-bindings: media: sun6i: Add A64 CSI compatible (w/ H3 fallback)
+Date: Mon,  3 Dec 2018 15:37:43 +0530
+Message-Id: <20181203100747.16442-2-jagan@amarulasolutions.com>
 In-Reply-To: <20181203100747.16442-1-jagan@amarulasolutions.com>
 References: <20181203100747.16442-1-jagan@amarulasolutions.com>
 MIME-Version: 1.0
@@ -25,69 +25,28 @@ Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Most of the Allwinner A64 CSI controllers are supply with
-VCC-PE pin, which may not be turned on by default.
+Allwinner A64 CSI has single channel time-multiplexed BT.656
+CMOS sensor interface like H3.
 
-Add support for such boards by adding voltage regulator handling
-code to sun6i csi driver.
-
-Used vcc-csi instead of vcc-pe to have better naming convention
-wrt other controller pin supplies.
+Add a compatible string for it with H3 fallback compatible string,
+in this case the H3 driver can be used.
 
 Signed-off-by: Jagan Teki <jagan@amarulasolutions.com>
 ---
- .../media/platform/sunxi/sun6i-csi/sun6i_csi.c    | 15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ Documentation/devicetree/bindings/media/sun6i-csi.txt | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c b/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
-index 6950585edb5a..5836fa5e6b01 100644
---- a/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
-+++ b/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
-@@ -18,6 +18,7 @@
- #include <linux/platform_device.h>
- #include <linux/pm_runtime.h>
- #include <linux/regmap.h>
-+#include <linux/regulator/consumer.h>
- #include <linux/reset.h>
- #include <linux/sched.h>
- #include <linux/sizes.h>
-@@ -36,6 +37,7 @@ struct sun6i_csi_dev {
- 	struct clk			*clk_mod;
- 	struct clk			*clk_ram;
- 	struct reset_control		*rstc_bus;
-+	struct regulator		*regulator;
- 
- 	int				planar_offset[3];
- };
-@@ -163,9 +165,16 @@ int sun6i_csi_set_power(struct sun6i_csi *csi, bool enable)
- 		clk_disable_unprepare(sdev->clk_ram);
- 		clk_disable_unprepare(sdev->clk_mod);
- 		reset_control_assert(sdev->rstc_bus);
-+		regulator_disable(sdev->regulator);
- 		return 0;
- 	}
- 
-+	ret = regulator_enable(sdev->regulator);
-+	if (ret) {
-+		dev_err(sdev->dev, "Enable vcc csi supply err %d\n", ret);
-+		return ret;
-+	}
-+
- 	ret = clk_prepare_enable(sdev->clk_mod);
- 	if (ret) {
- 		dev_err(sdev->dev, "Enable csi clk err %d\n", ret);
-@@ -809,6 +818,12 @@ static int sun6i_csi_resource_request(struct sun6i_csi_dev *sdev,
- 	if (IS_ERR(io_base))
- 		return PTR_ERR(io_base);
- 
-+	sdev->regulator = devm_regulator_get(&pdev->dev, "vcc-csi");
-+	if (IS_ERR(sdev->regulator)) {
-+		dev_err(&pdev->dev, "Unable to acquire csi vcc supply\n");
-+		return PTR_ERR(sdev->regulator);
-+	}
-+
- 	sdev->regmap = devm_regmap_init_mmio_clk(&pdev->dev, "bus", io_base,
- 						 &sun6i_csi_regmap_config);
- 	if (IS_ERR(sdev->regmap)) {
+diff --git a/Documentation/devicetree/bindings/media/sun6i-csi.txt b/Documentation/devicetree/bindings/media/sun6i-csi.txt
+index cc37cf7fd051..e78cf4f9bc8c 100644
+--- a/Documentation/devicetree/bindings/media/sun6i-csi.txt
++++ b/Documentation/devicetree/bindings/media/sun6i-csi.txt
+@@ -7,6 +7,7 @@ Required properties:
+   - compatible: value must be one of:
+     * "allwinner,sun6i-a31-csi"
+     * "allwinner,sun8i-h3-csi"
++    * "allwinner,sun50i-a64-csi", "allwinner,sun8i-h3-csi"
+     * "allwinner,sun8i-v3s-csi"
+   - reg: base address and size of the memory-mapped region.
+   - interrupts: interrupt associated to this IP
 -- 
 2.18.0.321.gffc6fa0e3
