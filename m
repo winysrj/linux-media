@@ -1,55 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ed1-f66.google.com ([209.85.208.66]:35589 "EHLO
-        mail-ed1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725888AbeLCJtE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Dec 2018 04:49:04 -0500
+Received: from mga14.intel.com ([192.55.52.115]:29982 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725864AbeLCJvY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 3 Dec 2018 04:51:24 -0500
+Date: Mon, 3 Dec 2018 11:51:01 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Bing Bu Cao <bingbu.cao@linux.intel.com>,
+        Yong Zhi <yong.zhi@intel.com>, linux-media@vger.kernel.org,
+        tfiga@chromium.org, mchehab@kernel.org, hans.verkuil@cisco.com,
+        rajmohan.mani@intel.com, jian.xu.zheng@intel.com,
+        jerry.w.hu@intel.com, tuukka.toivonen@intel.com,
+        tian.shu.qiu@intel.com, bingbu.cao@intel.com
+Subject: Re: [PATCH v7 00/16] Intel IPU3 ImgU patchset
+Message-ID: <20181203095101.hqds7iwkrz5lvfli@paasikivi.fi.intel.com>
+References: <1540851790-1777-1-git-send-email-yong.zhi@intel.com>
+ <20181101120303.g7z2dy24pn5j2slo@kekkonen.localdomain>
+ <6bc1a25d-5799-5a9b-546e-3b8cf42ce976@linux.intel.com>
+ <14050603.QCN9zesBFv@avalon>
 MIME-Version: 1.0
-References: <20181130075849.16941-1-wens@csie.org> <20181130075849.16941-2-wens@csie.org>
- <CAMty3ZC-4hnVOx9AYhm7uUCUHF=n_NoH3xV-3SyUXWxb_X8TGg@mail.gmail.com>
-In-Reply-To: <CAMty3ZC-4hnVOx9AYhm7uUCUHF=n_NoH3xV-3SyUXWxb_X8TGg@mail.gmail.com>
-From: Chen-Yu Tsai <wens@csie.org>
-Date: Mon, 3 Dec 2018 17:48:31 +0800
-Message-ID: <CAGb2v67xoqV+QuVxDyBrUzzpab9vsbJRQBFPA0OS=h_bZ2H7Tw@mail.gmail.com>
-Subject: Re: [PATCH 1/6] media: dt-bindings: media: sun6i: Separate H3
- compatible from A31
-To: Jagan Teki <jagan@amarulasolutions.com>
-Cc: Yong Deng <yong.deng@magewell.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        devicetree <devicetree@vger.kernel.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <14050603.QCN9zesBFv@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Dec 3, 2018 at 5:42 PM Jagan Teki <jagan@amarulasolutions.com> wrote:
->
-> On Fri, Nov 30, 2018 at 1:29 PM Chen-Yu Tsai <wens@csie.org> wrote:
-> >
-> > The CSI controller found on the H3 (and H5) is a reduced version of the
-> > one found on the A31. It only has 1 channel, instead of 4 channels for
-> > time-multiplexed BT.656. Since the H3 is a reduced version, it cannot
-> > "fallback" to a compatible that implements more features than it
-> > supports.
-> >
-> > Split out the H3 compatible as a separate entry, with no fallback.
-> >
-> > Fixes: b7eadaa3a02a ("media: dt-bindings: media: sun6i: Add A31 and H3
-> >                       compatibles")
-> > Signed-off-by: Chen-Yu Tsai <wens@csie.org>
->
-> "media" text appear two times on commit head.
+Hi Laurent,
 
-Just following what previous commits did. :)
+On Fri, Nov 30, 2018 at 01:07:53AM +0200, Laurent Pinchart wrote:
+> Hello Bing,
+> 
+> On Wednesday, 7 November 2018 06:16:47 EET Bing Bu Cao wrote:
+> > On 11/01/2018 08:03 PM, Sakari Ailus wrote:
+> > > On Mon, Oct 29, 2018 at 03:22:54PM -0700, Yong Zhi wrote:
+> 
+> [snip]
+> 
+> > >> ImgU media topology print:
+> > >> 
+> > >> # media-ctl -d /dev/media0 -p
+> > >> Media controller API version 4.19.0
+> > >> 
+> > >> Media device information
+> > >> ------------------------
+> > >> driver          ipu3-imgu
+> > >> model           ipu3-imgu
+> > >> serial
+> > >> bus info        PCI:0000:00:05.0
+> > >> hw revision     0x80862015
+> > >> driver version  4.19.0
+> > >> 
+> > >> Device topology
+> > >> - entity 1: ipu3-imgu 0 (5 pads, 5 links)
+> > >>             type V4L2 subdev subtype Unknown flags 0
+> > >>             device node name /dev/v4l-subdev0
+> > >> 	pad0: Sink
+> > >> 		[fmt:UYVY8_2X8/1920x1080 field:none colorspace:unknown
+> > > 
+> > > This doesn't seem right. Which formats can be enumerated from the pad?
+> > > 
+> > >> 		 crop:(0,0)/1920x1080
+> > >> 		 compose:(0,0)/1920x1080]
+> > > 
+> > > Does the compose rectangle affect the scaling on all outputs?
+> > 
+> > Sakari, driver use crop and compose targets to help set input-feeder and BDS
+> > output resolutions which are 2 key block of whole imaging pipeline, not the
+> > actual ending output, but they will impact the final output.
+> > 
+> > >> 		<- "ipu3-imgu 0 input":0 []
+> > > 
+> > > Are there links that have no useful link configuration? If so, you should
+> > > set them enabled and immutable in the driver.
+> > 
+> > The enabled status of input pads is used to get which pipe that user is
+> > trying to enable (ipu3_link_setup()), so it could not been set as immutable.
+> 
+> Each pipe needs an input in order to operate, so from that point of view the 
+> input is mandatory. Why can't we make this link immutable, and use the stream 
+> state (VIDIOC_STREAMON/VIDIOC_STREAMOFF) to enable/disable the pipes ?
 
-> Reviewed-by: Jagan Teki <jagan@amarulasolutions.com>
+There are only two options (AFAIK) in choosing the firmware, and by
+configuring the links this is better visible to the user: the links the
+state of which can be changed are not immutable. The driver can also obtain
+the explicit pipeline configuration, which makes the implementation more
+simple.
 
-BTW, I know you've been trying to get CSI to work on the A64.
-I have it working for the Bananapi-M64. The CSI SCLK needs to
-be lowered to 300 MHz or the image gets corrupted.
+-- 
+Regards,
 
-ChenYu
+Sakari Ailus
+sakari.ailus@linux.intel.com
