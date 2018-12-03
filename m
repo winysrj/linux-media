@@ -1,8 +1,8 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:51373 "EHLO mail.bootlin.com"
+Received: from mail.bootlin.com ([62.4.15.54]:51362 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725868AbeLCIoo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 3 Dec 2018 03:44:44 -0500
+        id S1725867AbeLCIop (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 3 Dec 2018 03:44:45 -0500
 From: Maxime Ripard <maxime.ripard@bootlin.com>
 To: Mauro Carvalho Chehab <mchehab@kernel.org>
 Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
@@ -17,80 +17,86 @@ Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Steve Longerbeam <slongerbeam@gmail.com>,
         Daniel Mack <daniel@zonque.org>,
         Jacopo Mondi <jacopo@jmondi.org>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>
-Subject: [PATCH v6 01/12] media: ov5640: Fix set format regression
-Date: Mon,  3 Dec 2018 09:44:16 +0100
-Message-Id: <445b7d9c5d6b62f3f2b00fcbe97bcf65865f7200.1543826654.git-series.maxime.ripard@bootlin.com>
-In-Reply-To: <cover.b1632e0c1a10c3f9f674e00142a554fa79eac762.1543826654.git-series.maxime.ripard@bootlin.com>
-References: <cover.b1632e0c1a10c3f9f674e00142a554fa79eac762.1543826654.git-series.maxime.ripard@bootlin.com>
+        Maxime Ripard <maxime.ripard@bootlin.com>
+Subject: [PATCH v6 00/12] media: ov5640: Misc cleanup and improvements
+Date: Mon,  3 Dec 2018 09:44:15 +0100
+Message-Id: <cover.b1632e0c1a10c3f9f674e00142a554fa79eac762.1543826654.git-series.maxime.ripard@bootlin.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Hi,
 
-The set_fmt operations updates the sensor format only when the image format
-is changed. When only the image sizes gets changed, the format do not get
-updated causing the sensor to always report the one that was previously in
-use.
+Here is a "small" series that mostly cleans up the ov5640 driver code,
+slowly getting rid of the big data array for more understandable code
+(hopefully).
 
-Without this patch, updating frame size only fails:
-  [fmt:UYVY8_2X8/640x480@1/30 field:none colorspace:srgb xfer:srgb ...]
+The biggest addition would be the clock rate computation at runtime,
+instead of relying on those arrays to setup the clock tree
+properly. As a side effect, it fixes the framerate that was off by
+around 10% on the smaller resolutions, and we now support 60fps.
 
-With this patch applied:
-  [fmt:UYVY8_2X8/1024x768@1/30 field:none colorspace:srgb xfer:srgb ...]
+This also introduces a bunch of new features.
 
-Fixes: 6949d864776e ("media: ov5640: do not change mode if format or frame
-interval is unchanged")
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
----
- drivers/media/i2c/ov5640.c | 17 ++++++++---------
- 1 file changed, 8 insertions(+), 9 deletions(-)
+Let me know what you think,
+Maxime
 
-diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-index a91d91715d00..807bd0e386a4 100644
---- a/drivers/media/i2c/ov5640.c
-+++ b/drivers/media/i2c/ov5640.c
-@@ -2021,6 +2021,7 @@ static int ov5640_set_fmt(struct v4l2_subdev *sd,
- 	struct ov5640_dev *sensor = to_ov5640_dev(sd);
- 	const struct ov5640_mode_info *new_mode;
- 	struct v4l2_mbus_framefmt *mbus_fmt = &format->format;
-+	struct v4l2_mbus_framefmt *fmt;
- 	int ret;
- 
- 	if (format->pad != 0)
-@@ -2038,22 +2039,20 @@ static int ov5640_set_fmt(struct v4l2_subdev *sd,
- 	if (ret)
- 		goto out;
- 
--	if (format->which == V4L2_SUBDEV_FORMAT_TRY) {
--		struct v4l2_mbus_framefmt *fmt =
--			v4l2_subdev_get_try_format(sd, cfg, 0);
-+	if (format->which == V4L2_SUBDEV_FORMAT_TRY)
-+		fmt = v4l2_subdev_get_try_format(sd, cfg, 0);
-+	else
-+		fmt = &sensor->fmt;
- 
--		*fmt = *mbus_fmt;
--		goto out;
--	}
-+	*fmt = *mbus_fmt;
- 
- 	if (new_mode != sensor->current_mode) {
- 		sensor->current_mode = new_mode;
- 		sensor->pending_mode_change = true;
- 	}
--	if (mbus_fmt->code != sensor->fmt.code) {
--		sensor->fmt = *mbus_fmt;
-+	if (mbus_fmt->code != sensor->fmt.code)
- 		sensor->pending_fmt_change = true;
--	}
-+
- out:
- 	mutex_unlock(&sensor->lock);
- 	return ret;
+Changes from v5:
+  - Squashed Jacopo patches fixing MIPI-CSI
+
+Changes from v4:
+  - Squashed Jacopo patches fixing the MIPI-CSI case
+  - Prefer clock rates superior to the ideal clock rate, even if it
+    means having a less precise one.
+  - Fix the JPEG case according to Hugues suggestions
+  - Rebased on 4.20
+
+Changes from v3:
+  - Rebased on current Sakari tree
+  - Fixed an error when changing only the framerate
+
+Changes from v2:
+  - Rebased on latest Sakari PR
+  - Fixed the issues reported by Hugues: improper FPS returned for
+    formats, improper rounding of the FPS, some with his suggestions,
+    some by simplifying the logic.
+  - Expanded the clock tree comments based on the feedback from Samuel
+    Bobrowicz and Loic Poulain
+  - Merged some of the changes made by Samuel Bobrowicz to fix the
+    MIPI rate computation, fix the call sites of the
+    ov5640_set_timings function, the auto-exposure calculation call,
+    etc.
+  - Split the patches into smaller ones in order to make it more
+    readable (hopefully)
+
+Changes from v1:
+  - Integrated Hugues' suggestions to fix v4l2-compliance
+  - Fixed the bus width with JPEG
+  - Dropped the clock rate calculation loops for something simpler as
+    suggested by Sakari
+  - Cache the exposure value instead of using the control value
+  - Rebased on top of 4.17
+
+Jacopo Mondi (1):
+  media: ov5640: Fix set format regression
+
+Maxime Ripard (11):
+  media: ov5640: Adjust the clock based on the expected rate
+  media: ov5640: Remove the clocks registers initialization
+  media: ov5640: Remove redundant defines
+  media: ov5640: Remove redundant register setup
+  media: ov5640: Compute the clock rate at runtime
+  media: ov5640: Remove pixel clock rates
+  media: ov5640: Enhance FPS handling
+  media: ov5640: Make the return rate type more explicit
+  media: ov5640: Make the FPS clamping / rounding more extendable
+  media: ov5640: Add 60 fps support
+  media: ov5640: Remove duplicate auto-exposure setup
+
+ drivers/media/i2c/ov5640.c | 764 ++++++++++++++++++++++----------------
+ 1 file changed, 452 insertions(+), 312 deletions(-)
+
+base-commit: 5019ebef9ac7922a8d233cb6fa7a0626454ca80d
 -- 
 git-series 0.9.1
