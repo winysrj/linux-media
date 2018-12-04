@@ -1,129 +1,213 @@
-Return-Path: <SRS0=/YyL=OM=vger.kernel.org=linux-media-owner@kernel.org>
+Return-Path: <SRS0=WxzW=ON=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_NEOMUTT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CFC1BC04EBF
-	for <linux-media@archiver.kernel.org>; Mon,  3 Dec 2018 15:44:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AA129C04EB8
+	for <linux-media@archiver.kernel.org>; Tue,  4 Dec 2018 10:26:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A2A0320850
-	for <linux-media@archiver.kernel.org>; Mon,  3 Dec 2018 15:44:02 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org A2A0320850
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=xs4all.nl
+	by mail.kernel.org (Postfix) with ESMTP id 4C3DB2087F
+	for <linux-media@archiver.kernel.org>; Tue,  4 Dec 2018 10:26:43 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 4C3DB2087F
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=mess.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726696AbeLCPoB (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 3 Dec 2018 10:44:01 -0500
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:45690 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726687AbeLCPoA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 3 Dec 2018 10:44:00 -0500
-Received: from [192.168.2.10] ([212.251.195.8])
-        by smtp-cloud8.xs4all.net with ESMTPA
-        id TqNwg4jqxEPjOTqO0g18zC; Mon, 03 Dec 2018 16:43:53 +0100
-Subject: Re: [PATCH v6 2/2] media: platform: Add Aspeed Video Engine driver
-From:   Hans Verkuil <hverkuil@xs4all.nl>
-To:     Eddie James <eajames@linux.ibm.com>, linux-kernel@vger.kernel.org
-Cc:     mark.rutland@arm.com, devicetree@vger.kernel.org,
-        linux-aspeed@lists.ozlabs.org, robh+dt@kernel.org,
-        mchehab@kernel.org, linux-media@vger.kernel.org
-References: <1543347457-59224-1-git-send-email-eajames@linux.ibm.com>
- <1543347457-59224-3-git-send-email-eajames@linux.ibm.com>
- <1d5f3260-2d95-32b2-090e-2f57ae9e6833@xs4all.nl>
-Message-ID: <d876ac01-238f-7e74-2738-f1c878921c77@xs4all.nl>
-Date:   Mon, 3 Dec 2018 16:43:48 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:52.0) Gecko/20100101
- Thunderbird/52.2.1
+        id S1725770AbeLDK0m (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 4 Dec 2018 05:26:42 -0500
+Received: from gofer.mess.org ([88.97.38.141]:52579 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725767AbeLDK0m (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 4 Dec 2018 05:26:42 -0500
+Received: by gofer.mess.org (Postfix, from userid 1000)
+        id 6C51360B84; Tue,  4 Dec 2018 10:26:40 +0000 (GMT)
+Date:   Tue, 4 Dec 2018 10:26:40 +0000
+From:   Sean Young <sean@mess.org>
+To:     Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc:     Nick Desaulniers <ndesaulniers@google.com>,
+        Nathan Chancellor <natechancellor@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] [media] dib7000p: Remove dead code
+Message-ID: <20181204102639.3qsvfxrzmsvybiop@gofer.mess.org>
+References: <20180915054739.14117-1-natechancellor@gmail.com>
+ <CAKwvOdmQ4pbbPuvYrVYB9myD8ap36h6nLjEdL-mSbYjM37UJ_g@mail.gmail.com>
+ <20180917193936.33e90d5a@coco.lan>
 MIME-Version: 1.0
-In-Reply-To: <1d5f3260-2d95-32b2-090e-2f57ae9e6833@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfFpNj9b4ZPa2+V+LV0xyft9L9RMrA6bfWUt/te5Y0RdTdVCJQZcfc44qlWP+LapShbXeGGF6jhtnmm5mRilivLWzj+BZR1drq9zzLlZ1oCri+fNnQqZ9
- scy1ysJYL0/p6RYUX2egKcTX+UBwHhfQeRtMFBnfbh0GQoNzizOo1JqWzZRl+J+k+qelXRvLJL6AAw038KqvrohCoIg8FfjZgLFVdJachU/mCMr6Yfv9E2Jm
- uvcUFB6Oy3boCgl8wM0fiBvDCVsTfAm7Z5o2K1xtGVNdGSEaTmy8EsHDqu+VauysTuu5fZzKmC0Jc2DdtVgFgMGBECuDS2L1DZ8FOxSQ7eP1MLLAYVrmTQ6R
- YL5T5RKsaFq1yClgkOPp4QBGdh7E2h9P23Z75giT16/mHNljwoo2VIbV1xA86u2mWXI5NUCTX4MkSDeBKjYtF++M6qE95g==
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180917193936.33e90d5a@coco.lan>
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
-Message-ID: <20181203154348.s28N394oo4bQaNmcZy1WFu7gyxfB0s1YpZv9hm_F_4w@z>
+Message-ID: <20181204102640.ve8viw_FfTwGjXCflG_2N885_SzAIqz0BHclbhYVKRo@z>
 
-On 12/03/2018 12:04 PM, Hans Verkuil wrote:
-> On 11/27/2018 08:37 PM, Eddie James wrote:
->> The Video Engine (VE) embedded in the Aspeed AST2400 and AST2500 SOCs
->> can capture and compress video data from digital or analog sources. With
->> the Aspeed chip acting a service processor, the Video Engine can capture
->> the host processor graphics output.
->>
->> Add a V4L2 driver to capture video data and compress it to JPEG images.
->> Make the video frames available through the V4L2 streaming interface.
->>
->> Signed-off-by: Eddie James <eajames@linux.ibm.com>
->> ---
-
-<snip>
-
->> +static void aspeed_video_bufs_done(struct aspeed_video *video,
->> +				   enum vb2_buffer_state state)
->> +{
->> +	unsigned long flags;
->> +	struct aspeed_video_buffer *buf;
->> +
->> +	spin_lock_irqsave(&video->lock, flags);
->> +	list_for_each_entry(buf, &video->buffers, link) {
->> +		if (list_is_last(&buf->link, &video->buffers))
->> +			buf->vb.flags |= V4L2_BUF_FLAG_LAST;
+On Mon, Sep 17, 2018 at 07:39:36PM -0300, Mauro Carvalho Chehab wrote:
+> Em Mon, 17 Sep 2018 10:58:32 -0700
+> Nick Desaulniers <ndesaulniers@google.com> escreveu:
 > 
-> This really makes no sense. This flag is for codecs, not for receivers.
+> > On Fri, Sep 14, 2018 at 10:47 PM Nathan Chancellor
+> > <natechancellor@gmail.com> wrote:
+> > >
+> > > Clang warns that 'interleaving' is assigned to itself in this function.
+> > >
+> > > drivers/media/dvb-frontends/dib7000p.c:1874:15: warning: explicitly
+> > > assigning value of variable of type 'int' to itself [-Wself-assign]
+> > >         interleaving = interleaving;
+> > >         ~~~~~~~~~~~~ ^ ~~~~~~~~~~~~
+> > > 1 warning generated.
+> > >
+> > > It's correct. Just removing the self-assignment would sufficiently hide
+> > > the warning but all of this code is dead because 'tmp' is zero due to
+> > > being multiplied by zero. This doesn't appear to be an issue with
+> > > dib8000, which this code was copied from in commit 041ad449683b
+> > > ("[media] dib7000p: Add DVBv5 stats support").
+> > >
+> > > Reported-by: Nick Desaulniers <ndesaulniers@google.com>
+> > > Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
+> > > ---
+> > >  drivers/media/dvb-frontends/dib7000p.c | 10 ++--------
+> > >  1 file changed, 2 insertions(+), 8 deletions(-)
+> > >
+> > > diff --git a/drivers/media/dvb-frontends/dib7000p.c b/drivers/media/dvb-frontends/dib7000p.c
+> > > index 58387860b62d..25843658fc68 100644
+> > > --- a/drivers/media/dvb-frontends/dib7000p.c
+> > > +++ b/drivers/media/dvb-frontends/dib7000p.c
+> > > @@ -1800,9 +1800,8 @@ static u32 dib7000p_get_time_us(struct dvb_frontend *demod)  
+> > 
+> > Something looks wrong here (with this function).  The patch is no
+> > functional change, since as you point out `interleaving` is
+> > initialized to 0, then never updated before read, but I think there's
+> > an underlying bug here that should be fixed differently.  Thanks for
+> > the patch though, as it does raise the question.
+> > 
+> > dib7000p_get_time_us has this comment above it:
+> > 
+> >   1798 /* FIXME: may require changes - this one was borrowed from
+> > dib8000 */
 > 
-> You say in an earlier reply about this:
+> The goal of dib7000p_get_time_us() is to estimate how much time it
+> takes, with current tuning parameters, to have a certain number of
+> DVB-T packets. This is used for block error count. That's said,
+> on a quick look, it seems that the code is not right on many ways.
 > 
-> "I mentioned before that dequeue calls hang in an error condition unless
-> this flag is specified. For example if resolution change is detected and
-> application is in the middle of trying to dequeue..."
+> It should be aligned with the amount of data it is required for
+> dib7000 to update the block/bit error counters. There are two kinds
+> of implementation:
 > 
-> What error condition are you referring to? Isn't your application using
-> the select() or poll() calls to wait for events or new buffers to dequeue?
-> If you just call VIDIOC_DQBUF to wait in blocking mode for a new buffer,
-> then it will indeed block in that call.
+> 1) the frontend has an internal counter that it is shifted and made
+>    available to the driver after a certain amount of received data
+>    (usually in the order of 10^5 to 10^7 bits);
 > 
-> No other video receiver needs this flag, so there is something else that is
-> the cause.
-
-Let me give a bit more information on how video receivers behave when the
-signal disappears:
-
-They will all send the SOURCE_CHANGE event, but what they do with respect
-to streaming buffers is hardware dependent:
-
-1) Some receivers have a freewheeling mode where the hardware generates
-   an image when there is no signal (usually this is just a fixed color).
-   In that case the application will just keep receiving buffers.
-
-2) VIDIOC_DQBUF blocks until a new signal appears with the same timings,
-   then the driver will just keep going as if nothing changed. DQBUF
-   remains blocked as long as there is no signal, or the timings are
-   different from the currently active timings.
-
-3) The hardware requires a hard stop and cannot continue streaming. In
-   that case it can call vb2_queue_error().
-
-That last option should be avoided if possible as it's not very polite.
-From what I can tell from this hardware it seems option 2 is the
-appropriate choice.
-
-Regards,
-
-	Hans
-
+> 2) the frontend has an internal timer that shifts the data from its
+>    internal counter after a certain amount of time (usually at the
+>    seconds range).
 > 
->> +		vb2_buffer_done(&buf->vb.vb2_buf, state);
->> +	}
->> +	INIT_LIST_HEAD(&video->buffers);
->> +	spin_unlock_irqrestore(&video->lock, flags);
->> +}
+> Different vendors opt for either one of the strategy. Some updates
+> a counter with the amount of bits taken. Unfortunately, this is not
+> the case of those dib* frontends. So, the Kernel has to estimate
+> it, based on the tuning parameters.
+> 
+> From the code, it seems that, for block errors, it waits for 1,250,000
+> bits to arrive (e. g. about 766 packets), so, it uses type (1) strategy:
+> 
+>                 /* Estimate the number of packets based on bitrate */
+>                 if (!time_us)
+>                         time_us = dib7000p_get_time_us(demod);
+> 
+>                 if (time_us) {
+>                         blocks = 1250000ULL * 1000000ULL;	// the multiply here is to convert to microsseconds...
+>                         do_div(blocks, time_us * 8 * 204);	// As here it divides by the time in microsseconds
+>                         c->block_count.stat[0].scale = FE_SCALE_COUNTER;
+>                         c->block_count.stat[0].uvalue += blocks;
+>                 }
+> 
+> For BER, the logic assumes that the bit error count should be divided
+> by 10^-8:
+> 
+>                 c->post_bit_count.stat[0].uvalue += 100000000;
+> 
+> and the counter is updated every second. So, it uses (2).
+> 
+> > 
+> > Wondering if it has the same bug, it seems it does not:
+> > drivers/media/dvb-frontends/dib8000.c#dib8000_get_time_us():3986
+> > 
+> > dib8000_get_time_us() seems to loop over multiple layers, and then
+> > assigns interleaving to the final layers interleaving (that looks like
+> > loop invariant code to me).
+> > 
+> > Mauro, should dib7000p_get_time_us() use c->layer[???].interleaving?
+> 
+> I don't think that time interleaving would affect the bit rate.
+> I suspect that the dead code on dib8000 is just a dead code.
+> 
+> > I don't see a single reference to `layer` in
+> > drivers/media/dvb-frontends/dib7000p.c.
+> 
+> Layers are specific for ISDB-T, but I think DVB-T (or at least DVB-T2)
+> may use time interleaving. 
+> 
+> Yet, as I said, the goal is to estimate the streaming bit rate. 
+> 
+> I don't remember anymore from where the dib8000 formula came.
+> 
+> My guts tell that time interleaving shouldn't do much changes (if any)
+> to the bit rate. I suspect that removing the dead code is likely
+> OK, but I'll try to see if I can find something related to where this
+> formula came.
+
+So we have two issues. One is the clang issue and clearly the code needs
+fixing up. The second issue is that we're not sure about the algorithm;
+I've been reading up on mpeg-ts but I'm not anywhere near getting to an
+answer on this.
+
+How about we merge a patch which just fixes the clang issue and leave
+the rest of the code as-is for now?
+
+Thanks,
+
+Sean
+
+---
+From c6e4c5f514c38511d2054c69f7b103e98c520af4 Mon Sep 17 00:00:00 2001
+From: Sean Young <sean@mess.org>
+Date: Tue, 4 Dec 2018 09:59:10 +0000
+Subject: [PATCH v2] media: dib7000p: Remove dead code
+
+Clang warns that 'interleaving' is assigned to itself in this function.
+
+drivers/media/dvb-frontends/dib7000p.c:1874:15: warning: explicitly
+assigning value of variable of type 'int' to itself [-Wself-assign]
+        interleaving = interleaving;
+        ~~~~~~~~~~~~ ^ ~~~~~~~~~~~~
+1 warning generated.
+
+Just remove the self-assign and leave existing code in place for now.
+
+Reported-by: Nick Desaulniers <ndesaulniers@google.com>
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/dvb-frontends/dib7000p.c | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/drivers/media/dvb-frontends/dib7000p.c b/drivers/media/dvb-frontends/dib7000p.c
+index 58387860b62d..cd84320c61c9 100644
+--- a/drivers/media/dvb-frontends/dib7000p.c
++++ b/drivers/media/dvb-frontends/dib7000p.c
+@@ -1871,8 +1871,6 @@ static u32 dib7000p_get_time_us(struct dvb_frontend *demod)
+ 		break;
+ 	}
+ 
+-	interleaving = interleaving;
+-
+ 	denom = bits_per_symbol * rate_num * fft_div * 384;
+ 
+ 	/* If calculus gets wrong, wait for 1s for the next stats */
+-- 
+2.19.2
+
