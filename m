@@ -1,108 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52500 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52560 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726151AbeLDNHO (ORCPT
+        by vger.kernel.org with ESMTP id S1725802AbeLDNNi (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 4 Dec 2018 08:07:14 -0500
-Date: Tue, 4 Dec 2018 15:07:09 +0200
+        Tue, 4 Dec 2018 08:13:38 -0500
+Date: Tue, 4 Dec 2018 15:13:33 +0200
 From: sakari.ailus@iki.fi
-To: Ezequiel Garcia <ezequiel@collabora.com>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-        Tomasz Figa <tfiga@chromium.org>, kernel@collabora.com
-Subject: Re: [PATCH v2] v4l2-ioctl: Zero v4l2_plane_pix_format reserved fields
-Message-ID: <20181204130709.gwm2i7h6zsild2ww@valkosipuli.retiisi.org.uk>
-References: <20181127220756.26913-1-ezequiel@collabora.com>
+To: Chen-Yu Tsai <wens@csie.org>
+Cc: Jagan Teki <jagan@amarulasolutions.com>,
+        Yong Deng <yong.deng@magewell.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        devicetree <devicetree@vger.kernel.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH 1/6] media: dt-bindings: media: sun6i: Separate H3
+ compatible from A31
+Message-ID: <20181204131333.peobmjkksl2p3hvv@valkosipuli.retiisi.org.uk>
+References: <20181130075849.16941-1-wens@csie.org>
+ <20181130075849.16941-2-wens@csie.org>
+ <CAMty3ZC-4hnVOx9AYhm7uUCUHF=n_NoH3xV-3SyUXWxb_X8TGg@mail.gmail.com>
+ <CAGb2v67xoqV+QuVxDyBrUzzpab9vsbJRQBFPA0OS=h_bZ2H7Tw@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20181127220756.26913-1-ezequiel@collabora.com>
+In-Reply-To: <CAGb2v67xoqV+QuVxDyBrUzzpab9vsbJRQBFPA0OS=h_bZ2H7Tw@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Nov 27, 2018 at 07:07:56PM -0300, Ezequiel Garcia wrote:
-> Make the core set the reserved fields to zero in
-> vv4l2_pix_format_mplane.4l2_plane_pix_format,
-> for _MPLANE queue types.
-> 
-> Moving this to the core avoids having to do so in each
-> and every driver.
-> 
-> Suggested-by: Tomasz Figa <tfiga@chromium.org>
-> Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
-> --
-> v2:
->   * Drop unneeded clear in g_fmt.
->     The sturct was already being cleared here.
->   * Only zero plane_fmt reserved fields.
->   * Use CLEAR_FIELD_MACRO.
-> 
->  drivers/media/v4l2-core/v4l2-ioctl.c | 10 ++++++++++
->  1 file changed, 10 insertions(+)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-> index e384142d2826..2506b602481f 100644
-> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> @@ -1512,6 +1512,7 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
->  	struct v4l2_format *p = arg;
->  	struct video_device *vfd = video_devdata(file);
->  	int ret = check_fmt(file, p->type);
-> +	int i;
+Hi Chen-Yu,
 
-unsigned int; same below.
+On Mon, Dec 03, 2018 at 05:48:31PM +0800, Chen-Yu Tsai wrote:
+> On Mon, Dec 3, 2018 at 5:42 PM Jagan Teki <jagan@amarulasolutions.com> wrote:
+> >
+> > On Fri, Nov 30, 2018 at 1:29 PM Chen-Yu Tsai <wens@csie.org> wrote:
+> > >
+> > > The CSI controller found on the H3 (and H5) is a reduced version of the
+> > > one found on the A31. It only has 1 channel, instead of 4 channels for
+> > > time-multiplexed BT.656. Since the H3 is a reduced version, it cannot
+> > > "fallback" to a compatible that implements more features than it
+> > > supports.
+> > >
+> > > Split out the H3 compatible as a separate entry, with no fallback.
+> > >
+> > > Fixes: b7eadaa3a02a ("media: dt-bindings: media: sun6i: Add A31 and H3
+> > >                       compatibles")
+> > > Signed-off-by: Chen-Yu Tsai <wens@csie.org>
+> >
+> > "media" text appear two times on commit head.
+> 
+> Just following what previous commits did. :)
 
-With that,
+I understand Mauro has a  script prefixes everything going through the
+media tree with "media: " unless it's already there. I'd drop the latter,
+but perhaps elaborate a bit this is about CSI. Fine details... I think it's
+fine as-is for now.
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
->  
->  	if (ret)
->  		return ret;
-> @@ -1536,6 +1537,8 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
->  		if (unlikely(!ops->vidioc_s_fmt_vid_cap_mplane))
->  			break;
->  		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
-> +		for (i = 0; i < p->fmt.pix_mp.num_planes; i++)
-> +			CLEAR_AFTER_FIELD(p, fmt.pix_mp.plane_fmt[i].bytesperline);
->  		return ops->vidioc_s_fmt_vid_cap_mplane(file, fh, arg);
->  	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
->  		if (unlikely(!ops->vidioc_s_fmt_vid_overlay))
-> @@ -1564,6 +1567,8 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
->  		if (unlikely(!ops->vidioc_s_fmt_vid_out_mplane))
->  			break;
->  		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
-> +		for (i = 0; i < p->fmt.pix_mp.num_planes; i++)
-> +			CLEAR_AFTER_FIELD(p, fmt.pix_mp.plane_fmt[i].bytesperline);
->  		return ops->vidioc_s_fmt_vid_out_mplane(file, fh, arg);
->  	case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
->  		if (unlikely(!ops->vidioc_s_fmt_vid_out_overlay))
-> @@ -1604,6 +1609,7 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
->  {
->  	struct v4l2_format *p = arg;
->  	int ret = check_fmt(file, p->type);
-> +	int i;
->  
->  	if (ret)
->  		return ret;
-> @@ -1623,6 +1629,8 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
->  		if (unlikely(!ops->vidioc_try_fmt_vid_cap_mplane))
->  			break;
->  		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
-> +		for (i = 0; i < p->fmt.pix_mp.num_planes; i++)
-> +			CLEAR_AFTER_FIELD(p, fmt.pix_mp.plane_fmt[i].bytesperline);
->  		return ops->vidioc_try_fmt_vid_cap_mplane(file, fh, arg);
->  	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
->  		if (unlikely(!ops->vidioc_try_fmt_vid_overlay))
-> @@ -1651,6 +1659,8 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
->  		if (unlikely(!ops->vidioc_try_fmt_vid_out_mplane))
->  			break;
->  		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
-> +		for (i = 0; i < p->fmt.pix_mp.num_planes; i++)
-> +			CLEAR_AFTER_FIELD(p, fmt.pix_mp.plane_fmt[i].bytesperline);
->  		return ops->vidioc_try_fmt_vid_out_mplane(file, fh, arg);
->  	case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
->  		if (unlikely(!ops->vidioc_try_fmt_vid_out_overlay))
+> 
+> > Reviewed-by: Jagan Teki <jagan@amarulasolutions.com>
+> 
+> BTW, I know you've been trying to get CSI to work on the A64.
+> I have it working for the Bananapi-M64. The CSI SCLK needs to
+> be lowered to 300 MHz or the image gets corrupted.
+> 
+> ChenYu
 
 -- 
 Sakari Ailus
-e-mail: sakari.ailus@iki.fi
