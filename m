@@ -1,76 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:58268 "EHLO
-        casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725955AbeLDOiJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 4 Dec 2018 09:38:09 -0500
-Date: Tue, 4 Dec 2018 12:38:04 -0200
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, bingbu.cao@intel.com
-Subject: Re: [PATCH 1/1] v4l uapi: Make "Vertical Colour Bars" menu item a
- little more generic
-Message-ID: <20181204123804.1de564d1@coco.lan>
-In-Reply-To: <20181204123232.7901ab7e@coco.lan>
-References: <20181204134506.21529-1-sakari.ailus@linux.intel.com>
-        <20181204123232.7901ab7e@coco.lan>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52858 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1725863AbeLDNlk (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 4 Dec 2018 08:41:40 -0500
+Date: Tue, 4 Dec 2018 15:41:35 +0200
+From: sakari.ailus@iki.fi
+To: Bingbu Cao <bingbu.cao@linux.intel.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, bingbu.cao@intel.com,
+        luca@lucaceresoli.net, ady.yeh@intel.com, tfiga@chromium.org
+Subject: Re: [PATCH 1/1] media: Use common test pattern menu entries
+Message-ID: <20181204134135.3fpcpdcgu5bdtxr2@valkosipuli.retiisi.org.uk>
+References: <20181127093341.8909-1-sakari.ailus@linux.intel.com>
+ <e6b5e98d-0a32-baee-4be3-b67da97b2964@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <e6b5e98d-0a32-baee-4be3-b67da97b2964@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 4 Dec 2018 12:32:32 -0200
-Mauro Carvalho Chehab <mchehab+samsung@kernel.org> escreveu:
-
-> Em Tue,  4 Dec 2018 15:45:06 +0200
-> Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+On Tue, Nov 27, 2018 at 07:19:52PM +0800, Bingbu Cao wrote:
 > 
-> > The test pattern could contain a different number of colour bars than
-> > eight, make the entry more useful by removing "Eight " from the name.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > ---
-> >  include/uapi/linux/v4l2-controls.h | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > 
+> On 11/27/2018 05:33 PM, Sakari Ailus wrote:
 > > diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-> > index acb2a57fa5d6..88f2759c2ce4 100644
+> > index 998983a6e6b7..a74ff6f1ac88 100644
 > > --- a/include/uapi/linux/v4l2-controls.h
 > > +++ b/include/uapi/linux/v4l2-controls.h
-> > @@ -1016,7 +1016,7 @@ enum v4l2_jpeg_chroma_subsampling {
-> >  #define V4L2_CID_TEST_PATTERN			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 3)
-> >  #define V4L2_TEST_PATTERN_DISABLED		"Disabled"
-> >  #define V4L2_TEST_PATTERN_SOLID_COLOUR		"Solid Colour"
-> > -#define V4L2_TEST_PATTERN_VERT_COLOUR_BARS	"Eight Vertical Colour Bars"
-> > +#define V4L2_TEST_PATTERN_VERT_COLOUR_BARS	"Vertical Colour Bars"
-> 
-> No, we can't do that. This is on an uAPI file.
-> 
-> We should, instead, create another #define for non-eight vertical
-> color bars.
-> 
-> Before you say, yeah, I agree that we messed this one, as the defined
-> name doesn't mention 8 bars...
-> 
-> I would, instead, do something like:
-> 
-> -#define V4L2_TEST_PATTERN_VERT_COLOUR_BARS	"Eight Vertical Colour Bars"
-> +#define V4L2_TEST_PATTERN_VERT_8_COLOUR_BARS	"Eight Vertical Colour Bars"
-> +#define V4L2_TEST_PATTERN_VERT_N_COLOUR_BARS	"Vertical Colour Bars"
-> +
-> + /* Kept for backward-compatibility */
-> +#define V4L2_TEST_PATTERN_VERT_COLOUR_BARS	V4L2_TEST_PATTERN_VERT_8_COLOUR_BARS
-> 
-> And, of course, update the documentation accordingly.
+> > @@ -1014,6 +1014,11 @@ enum v4l2_jpeg_chroma_subsampling {
+> >   #define V4L2_CID_LINK_FREQ			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 1)
+> >   #define V4L2_CID_PIXEL_RATE			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 2)
+> >   #define V4L2_CID_TEST_PATTERN			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 3)
+> > +#define V4L2_TEST_PATTERN_DISABLED		"Disabled"
+> > +#define V4L2_TEST_PATTERN_SOLID_COLOUR		"Solid Colour"
+> > +#define V4L2_TEST_PATTERN_8_VERT_COLOUR_BARS		"Eight Vertical Colour Bars"
+> > +#define V4L2_TEST_PATTERN_8_VERT_COLOUR_BARS_FADE_TO_GREY "Colour Bars With Fade to Grey"
+> > +#define V4L2_TEST_PATTERN_PN9			"Pseudorandom Sequence (PN9)"
+> More padding here for alignment?
 
-Please ignore this comment. I didn't realize that those definitions
-don't exist yet at the uAPI file, and that this is a follow up for
-another patch:
-	
-	Subject: [PATCH v2 1/1] media: Use common test pattern menu entries
+Fixed in v2.
 
-Next time, please put them into a patch series, as it makes easier for
-reviewers.
-
-Thanks,
-Mauro
+-- 
+Sakari Ailus
