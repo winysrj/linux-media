@@ -1,90 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga12.intel.com ([192.55.52.136]:33620 "EHLO mga12.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725848AbeLCWQf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 3 Dec 2018 17:16:35 -0500
-Date: Tue, 4 Dec 2018 00:16:29 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Benoit Parrot <bparrot@ti.com>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH v2 00/30] v4l: add support for multiplexed streams
-Message-ID: <20181203221628.rzb7sz5purso4uak@kekkonen.localdomain>
-References: <20181101233144.31507-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20181101233144.31507-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:42358 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725969AbeLDE1O (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 3 Dec 2018 23:27:14 -0500
+Message-ID: <5c5784e6052f196d117f2faf9ffff5c1@smtp-cloud9.xs4all.net>
+Date: Tue, 04 Dec 2018 05:27:10 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On Fri, Nov 02, 2018 at 12:31:14AM +0100, Niklas Söderlund wrote:
-> Hi all,
-> 
-> This series adds support for multiplexed streams within a media device
-> link. The use-case addressed in this series covers CSI-2 Virtual
-> Channels on the Renesas R-Car Gen3 platforms. The v4l2 changes have been
-> a joint effort between Sakari and Laurent and floating around for some
-> time [1].
-> 
-> I have added driver support for the devices used on the Renesas Gen3
-> platforms, a ADV7482 connected to the R-Car CSI-2 receiver. With these
-> changes I can control which of the analog inputs of the ADV7482 the
-> video source is captured from and on which CSI-2 virtual channel the
-> video is transmitted on to the R-Car CSI-2 receiver.
-> 
-> The series adds two new subdev IOCTLs [GS]_ROUTING which allows
-> user-space to get and set routes inside a subdevice. I have added RFC
-> support for these to v4l-utils [2] which can be used to test this
-> series, example:
-> 
->     Check the internal routing of the adv748x csi-2 transmitter:
->     v4l2-ctl -d /dev/v4l-subdev24 --get-routing
->     0/0 -> 1/0 [ENABLED]
->     0/0 -> 1/1 []
->     0/0 -> 1/2 []
->     0/0 -> 1/3 []
-> 
-> 
->     Select that video should be outputed on VC 2 and check the result:
->     $ v4l2-ctl -d /dev/v4l-subdev24 --set-routing '0/0 -> 1/2 [1]'
-> 
->     $ v4l2-ctl -d /dev/v4l-subdev24 --get-routing
->     0/0 -> 1/0 []
->     0/0 -> 1/1 []
->     0/0 -> 1/2 [ENABLED]
->     0/0 -> 1/3 []
-> 
-> This series is tested on R-Car M3-N and for your testing needs this
-> series is available at
-> 
->     git://git.ragnatech.se/linux v4l2/mux
-> 
-> * Changes since v1
-> - Rebased on latest media-tree.
-> - Incorporated changes to patch 'v4l: subdev: compat: Implement handling 
->   for VIDIOC_SUBDEV_[GS]_ROUTING' by Sakari.
-> - Added review tags.
+Results of the daily build of media_tree:
 
-I was looking at the patches and they seem very nice to me. It's not that
-I've written most of them, but I still. X-)
+date:			Tue Dec  4 05:00:13 CET 2018
+media-tree git hash:	9b90dc85c718443a3e573a0ccf55900ff4fa73ae
+media_build git hash:	47bf46ff21f75d1fe4ae3275a8692cb6ff77b6e8
+v4l-utils git hash:	cff58fcfbdf75381d5351f5ea8e7846f59cb7905
+edid-decode git hash:	5eeb151a748788666534d6ea3da07f90400d24c2
+gcc version:		i686-linux-gcc (GCC) 8.2.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.18.0-2-amd64
 
-I noticed that the new [GS]_ROUTING interface has no documentation
-currently. Could you write it?
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-3.10.108-i686: ERRORS
+linux-3.10.108-x86_64: ERRORS
+linux-3.11.10-i686: ERRORS
+linux-3.11.10-x86_64: ERRORS
+linux-3.12.74-i686: ERRORS
+linux-3.12.74-x86_64: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.79-i686: ERRORS
+linux-3.14.79-x86_64: ERRORS
+linux-3.15.10-i686: ERRORS
+linux-3.15.10-x86_64: ERRORS
+linux-3.16.57-i686: ERRORS
+linux-3.16.57-x86_64: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.123-i686: ERRORS
+linux-3.18.123-x86_64: ERRORS
+linux-3.19.8-i686: ERRORS
+linux-3.19.8-x86_64: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.52-i686: ERRORS
+linux-4.1.52-x86_64: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.159-i686: ERRORS
+linux-4.4.159-x86_64: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.10-i686: ERRORS
+linux-4.7.10-x86_64: ERRORS
+linux-4.8.17-i686: ERRORS
+linux-4.8.17-x86_64: ERRORS
+linux-4.9.131-i686: ERRORS
+linux-4.9.131-x86_64: ERRORS
+linux-4.10.17-i686: ERRORS
+linux-4.10.17-x86_64: ERRORS
+linux-4.11.12-i686: ERRORS
+linux-4.11.12-x86_64: ERRORS
+linux-4.12.14-i686: ERRORS
+linux-4.12.14-x86_64: ERRORS
+linux-4.13.16-i686: ERRORS
+linux-4.13.16-x86_64: ERRORS
+linux-4.14.74-i686: ERRORS
+linux-4.14.74-x86_64: ERRORS
+linux-4.15.18-i686: OK
+linux-4.15.18-x86_64: OK
+linux-4.16.18-i686: OK
+linux-4.16.18-x86_64: OK
+linux-4.17.19-i686: OK
+linux-4.17.19-x86_64: OK
+linux-4.18.12-i686: OK
+linux-4.18.12-x86_64: OK
+linux-4.19.1-i686: OK
+linux-4.19.1-x86_64: OK
+linux-4.20-rc1-i686: OK
+linux-4.20-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
-Also what I'd like to see is the media graph of a device that is driven by
-these drivers. That'd help to better understand the use case also for those
-who haven't worked with the patches.
+Detailed results are available here:
 
-Thanks.
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
--- 
-Kind regards,
+Full logs are available here:
 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
