@@ -2,421 +2,89 @@ Return-Path: <SRS0=WxzW=ON=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.9 required=3.0 tests=FREEMAIL_FORGED_FROMDOMAIN,
-	FREEMAIL_FROM,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,URIBL_RHS_DOB,USER_AGENT_MUTT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5318C04EB8
-	for <linux-media@archiver.kernel.org>; Tue,  4 Dec 2018 21:32:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3EBB6C04EB8
+	for <linux-media@archiver.kernel.org>; Tue,  4 Dec 2018 21:47:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 68AF520851
-	for <linux-media@archiver.kernel.org>; Tue,  4 Dec 2018 21:32:25 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 68AF520851
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=free.fr
+	by mail.kernel.org (Postfix) with ESMTP id 0B57420879
+	for <linux-media@archiver.kernel.org>; Tue,  4 Dec 2018 21:47:00 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 0B57420879
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725887AbeLDVcY (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 4 Dec 2018 16:32:24 -0500
-Received: from smtp3-g21.free.fr ([212.27.42.3]:53940 "EHLO smtp3-g21.free.fr"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725875AbeLDVcY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 4 Dec 2018 16:32:24 -0500
-Received: from webmail.free.fr (unknown [172.20.243.6])
-        by smtp3-g21.free.fr (Postfix) with ESMTP id 379D513F879;
-        Tue,  4 Dec 2018 22:32:00 +0100 (CET)
-Received: from lns-bzn-25-82-254-177-192.adsl.proxad.net ([82.254.177.192])
- by webmail.free.fr
+        id S1725887AbeLDVqy (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 4 Dec 2018 16:46:54 -0500
+Received: from mail-ot1-f67.google.com ([209.85.210.67]:32931 "EHLO
+        mail-ot1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725875AbeLDVqy (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 4 Dec 2018 16:46:54 -0500
+Received: by mail-ot1-f67.google.com with SMTP id i20so16697003otl.0;
+        Tue, 04 Dec 2018 13:46:54 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=PH4RkXgWZNeYmS4Q4x0zI5FNArpk5RAZvzpViRvmxU0=;
+        b=MGr+KjpUfGhgoXU7UouDO7EuQ0m4UK0YzUATZt30K0wFUlr78NKkZX4nAQ9CMKLPwv
+         vKLP/CrYtF7ZGdf+fvOlNVdGSlam65duuU6EC5ToDCD/Rl0FGjBtigAdQhozeLi0HFON
+         lIRKWcns4aRP24f/1Jr+zJ3yvVKBzsFHUyIB5AumG6LwPXA5MxTH+44VVCS4PaHcs7k9
+         edeYTUX342AAFgy3fdpi57CczWHU6O9Bu0avSA/491uD8hk2zoGkTVgDYrM3jCU496ye
+         2q8HgMABQaEqwXQOTQCnDWKPO0kvlgsUqqbWjPOJV7RrGiCFbhYzc3DjYz3SY8VMHDNb
+         kuLA==
+X-Gm-Message-State: AA+aEWZ8vfkY12kebLxosNTY6Flnt5VrdU/AOSVKV3537Zb3qMeBRV5/
+        GwJn6Jr4BR5+EqGmOENa8Q==
+X-Google-Smtp-Source: AFSGD/U8r9nqGmNPXCxyLbdMTm1TWpWf0xVL0JUdVORxuPT0Qg32FbmHE/RB84KpDnmfhbOXr8/5Bw==
+X-Received: by 2002:a9d:7001:: with SMTP id k1mr13005907otj.173.1543960013756;
+        Tue, 04 Dec 2018 13:46:53 -0800 (PST)
+Received: from localhost (24-155-109-49.dyn.grandenetworks.net. [24.155.109.49])
+        by smtp.gmail.com with ESMTPSA id g4sm8662152otp.53.2018.12.04.13.46.52
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Tue, 04 Dec 2018 13:46:52 -0800 (PST)
+Date:   Tue, 4 Dec 2018 15:46:51 -0600
+From:   Rob Herring <robh@kernel.org>
+To:     Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+Cc:     linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        devel@driverdev.osuosl.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-sunxi@googlegroups.com, Hans Verkuil <hverkuil@xs4all.nl>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>
+Subject: Re: [PATCH 05/15] dt-bindings: sram: sunxi: Add bindings for the H5
+ with SRAM C1
+Message-ID: <20181204214651.GA12991@bogus>
+References: <20181115145013.3378-1-paul.kocialkowski@bootlin.com>
+ <20181115145013.3378-6-paul.kocialkowski@bootlin.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
-Content-Transfer-Encoding: 7bit
-Date:   Tue, 04 Dec 2018 22:32:00 +0100
-From:   patrick9876@free.fr
-To:     Sean Young <sean@mess.org>
-Cc:     linux-media@vger.kernel.org, linux-media-owner@vger.kernel.org
-Subject: Re: [PATCH] Add ir-rcmm-driver
-In-Reply-To: <c44581638d2525bc383a75413259f708@free.fr>
-References: <20181204202025.24279-2-patrick9876@free.fr>
- <20181204205708.acnlmwpr7kjyr3bo@gofer.mess.org>
- <c44581638d2525bc383a75413259f708@free.fr>
-Message-ID: <bbbbc1dcd77f7adcd5a2bb7a3b0a4bd8@free.fr>
-X-Sender: patrick9876@free.fr
-User-Agent: Webmail Free/1.3.3
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20181115145013.3378-6-paul.kocialkowski@bootlin.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-The toggle flag is well handled with this code and at the kernel level; 
-This adds reliability.
-
-Patrick.
-
-
-On 04/12/2018 22:06, patrick9876@free.fr wrote:
-> We have so many decoders at the linux kernel level now. I'm not sure
-> of the best option.
+On Thu, 15 Nov 2018 15:50:03 +0100, Paul Kocialkowski wrote:
+> This introduces new bindings for the H5 SoC in the SRAM controller.
+> Because the SRAM layout is different from other SoCs, no backward
+> compatibility is assumed with any of them.
 > 
-> Patrick.
+> However, the C1 SRAM section alone looks similar to previous SoCs,
+> so it is compatible with the initial A10 binding.
 > 
-> On 04/12/2018 21:57, Sean Young wrote:
->> On Tue, Dec 04, 2018 at 09:20:25PM +0100, patrick9876@free.fr wrote:
->>> From: Patrick LERDA <patrick9876@free.fr>
->>> 
->>> ---
->>>  drivers/media/rc/Kconfig           |  10 ++
->>>  drivers/media/rc/Makefile          |   1 +
->>>  drivers/media/rc/ir-rcmm-decoder.c | 185 
->>> +++++++++++++++++++++++++++++
->>>  drivers/media/rc/rc-core-priv.h    |   5 +
->>>  drivers/media/rc/rc-main.c         |   3 +
->>>  include/media/rc-map.h             |   6 +-
->>>  include/uapi/linux/lirc.h          |   1 +
->>>  tools/include/uapi/linux/lirc.h    |   1 +
->>>  8 files changed, 210 insertions(+), 2 deletions(-)
->>>  create mode 100644 drivers/media/rc/ir-rcmm-decoder.c
->> 
->> We have a rc-mm decoder written in BPF, see:
->> 
->> https://git.linuxtv.org/v4l-utils.git/tree/utils/keytable/bpf_protocols/rc_mm.c
->> 
->> This is in v4l-utils 1.16 and higher.
->> 
->> Any reason to have it in the kernel rather than in BPF?
->> 
->> 
->> Sean
->> 
->> 
->>> 
->>> diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
->>> index 1021c08a9ba4..b7e08324b874 100644
->>> --- a/drivers/media/rc/Kconfig
->>> +++ b/drivers/media/rc/Kconfig
->>> @@ -133,6 +133,16 @@ config IR_IMON_DECODER
->>>  	   remote control and you would like to use it with a raw IR
->>>  	   receiver, or if you wish to use an encoder to transmit this IR.
->>> 
->>> +config IR_RCMM_DECODER
->>> +	tristate "Enable IR raw decoder for the RC-MM protocol"
->>> +	depends on RC_CORE
->>> +	select BITREVERSE
->>> +	default y
->>> +
->>> +	---help---
->>> +	   Enable this option if you have IR with RC-MM protocol, and
->>> +	   if the IR is decoded in software
->>> +
->>>  endif #RC_DECODERS
->>> 
->>>  menuconfig RC_DEVICES
->>> diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
->>> index e0340d043fe8..fc4058013234 100644
->>> --- a/drivers/media/rc/Makefile
->>> +++ b/drivers/media/rc/Makefile
->>> @@ -16,6 +16,7 @@ obj-$(CONFIG_IR_SHARP_DECODER) += 
->>> ir-sharp-decoder.o
->>>  obj-$(CONFIG_IR_MCE_KBD_DECODER) += ir-mce_kbd-decoder.o
->>>  obj-$(CONFIG_IR_XMP_DECODER) += ir-xmp-decoder.o
->>>  obj-$(CONFIG_IR_IMON_DECODER) += ir-imon-decoder.o
->>> +obj-$(CONFIG_IR_RCMM_DECODER) += ir-rcmm-decoder.o
->>> 
->>>  # stand-alone IR receivers/transmitters
->>>  obj-$(CONFIG_RC_ATI_REMOTE) += ati_remote.o
->>> diff --git a/drivers/media/rc/ir-rcmm-decoder.c 
->>> b/drivers/media/rc/ir-rcmm-decoder.c
->>> new file mode 100644
->>> index 000000000000..b05063f0a552
->>> --- /dev/null
->>> +++ b/drivers/media/rc/ir-rcmm-decoder.c
->>> @@ -0,0 +1,185 @@
->>> +/* ir-rcmm-decoder.c - A decoder for the RCMM IR protocol
->>> + *
->>> + * Copyright (C) 2016 by Patrick Lerda
->>> + *
->>> + * This program is free software; you can redistribute it and/or 
->>> modify
->>> + * it under the terms of the GNU General Public License as published 
->>> by
->>> + * the Free Software Foundation version 2 of the License.
->>> + *
->>> + * This program is distributed in the hope that it will be useful,
->>> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
->>> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
->>> + * GNU General Public License for more details.
->>> + */
->>> +
->>> +#include "rc-core-priv.h"
->>> +#include <linux/module.h>
->>> +#include <linux/version.h>
->>> +
->>> +
->>> +#define RCMM_UNIT		166667	/* nanosecs */
->>> +#define RCMM_0_NBITS		64
->>> +#define RCMM_PREFIX_PULSE	416666  /* 166666.666666666*2.5 */
->>> +#define RCMM_PULSE_0            277777  /* 166666.666666666*(1+2/3) 
->>> */
->>> +#define RCMM_PULSE_1            444444  /* 166666.666666666*(2+2/3) 
->>> */
->>> +#define RCMM_PULSE_2            611111  /* 166666.666666666*(3+2/3) 
->>> */
->>> +#define RCMM_PULSE_3            777778  /* 166666.666666666*(4+2/3) 
->>> */
->>> +#define RCMM_MODE_MASK          0x0000
->>> +
->>> +enum rcmm_state {
->>> +	STATE_INACTIVE,
->>> +	STATE_LOW,
->>> +	STATE_BUMP,
->>> +	STATE_VALUE,
->>> +	STATE_FINISHED,
->>> +};
->>> +
->>> +static bool rcmm_mode(struct rcmm_dec *data)
->>> +{
->>> +        return !((0x000c0000 & data->bits) == 0x000c0000);
->>> +}
->>> +
->>> +/**
->>> + * ir_rcmm_decode() - Decode one RCMM pulse or space
->>> + * @dev:	the struct rc_dev descriptor of the device
->>> + * @ev:		the struct ir_raw_event descriptor of the pulse/space
->>> + *
->>> + * This function returns -EINVAL if the pulse violates the state 
->>> machine
->>> + */
->>> +static int ir_rcmm_decode(struct rc_dev *dev, struct ir_raw_event 
->>> ev)
->>> +{
->>> +	struct rcmm_dec *data = &dev->raw->rcmm;
->>> +	u32 scancode;
->>> +	u8 toggle;
->>> +
->>> +	if (!(dev->enabled_protocols & RC_PROTO_RCMM))
->>> +		return 0;
->>> +
->>> +	if (!is_timing_event(ev)) {
->>> +		if (ev.reset)
->>> +			data->state = STATE_INACTIVE;
->>> +		return 0;
->>> +	}
->>> +
->>> +	if (ev.duration > RCMM_PULSE_3 + RCMM_UNIT)
->>> +		goto out;
->>> +
->>> +	switch (data->state) {
->>> +
->>> +	case STATE_INACTIVE:
->>> +		if (!ev.pulse)
->>> +			break;
->>> +
->>> +		/* Note: larger margin on first pulse since each RCMM_UNIT
->>> +		   is quite short and some hardware takes some time to
->>> +		   adjust to the signal */
->>> +		if (!eq_margin(ev.duration, RCMM_PREFIX_PULSE, RCMM_UNIT/2))
->>> +			break;
->>> +
->>> +		data->state = STATE_LOW;
->>> +		data->count = 0;
->>> +		data->bits  = 0;
->>> +		return 0;
->>> +
->>> +	case STATE_LOW:
->>> +		if (ev.pulse)
->>> +			break;
->>> +
->>> +		/* Note: larger margin on first pulse since each RCMM_UNIT
->>> +		   is quite short and some hardware takes some time to
->>> +		   adjust to the signal */
->>> +		if (!eq_margin(ev.duration, RCMM_PULSE_0, RCMM_UNIT/2))
->>> +			break;
->>> +
->>> +		data->state = STATE_BUMP;
->>> +		return 0;
->>> +
->>> +	case STATE_BUMP:
->>> +		if (!ev.pulse)
->>> +			break;
->>> +
->>> +		if (!eq_margin(ev.duration, RCMM_UNIT, RCMM_UNIT / 2))
->>> +			break;
->>> +
->>> +		data->state = STATE_VALUE;
->>> +		return 0;
->>> +
->>> +	case STATE_VALUE:
->>> +		if (ev.pulse)
->>> +			break;
->>> +	        {
->>> +			int value;
->>> +
->>> +			if (eq_margin(ev.duration, RCMM_PULSE_0, RCMM_UNIT / 2)) {
->>> +				value = 0;
->>> +			} else if (eq_margin(ev.duration, RCMM_PULSE_1, RCMM_UNIT / 2))	{
->>> +				value = 1;
->>> +			} else if (eq_margin(ev.duration, RCMM_PULSE_2, RCMM_UNIT / 2))	{
->>> +				value = 2;
->>> +			} else if (eq_margin(ev.duration, RCMM_PULSE_3, RCMM_UNIT / 2))	{
->>> +				value = 3;
->>> +			} else
->>> +				break;
->>> +
->>> +			data->bits <<= 2;
->>> +			data->bits |= value;
->>> +		}
->>> +
->>> +		data->count+=2;
->>> +
->>> +		if (data->count < 32) {
->>> +			data->state = STATE_BUMP;
->>> +		} else {
->>> +			data->state = STATE_FINISHED;
->>> +		}
->>> +
->>> +		return 0;
->>> +
->>> +	case STATE_FINISHED:
->>> +	        if (!ev.pulse) break;
->>> +
->>> +		if (!eq_margin(ev.duration, RCMM_UNIT, RCMM_UNIT / 2))
->>> +			break;
->>> +
->>> +		if (rcmm_mode(data)) {
->>> +			toggle = !!(0x8000 & data->bits);
->>> +			scancode = data->bits & ~0x8000;
->>> +		} else {
->>> +			toggle = 0;
->>> +			scancode = data->bits;
->>> +		}
->>> +
->>> +		rc_keydown(dev, RC_PROTO_RCMM, scancode, toggle);
->>> +		data->state = STATE_INACTIVE;
->>> +		return 0;
->>> +	}
->>> +
->>> +out:
->>> +	data->state = STATE_INACTIVE;
->>> +	return -EINVAL;
->>> +}
->>> +
->>> +static struct ir_raw_handler rcmm_handler = {
->>> +	.protocols	= RC_PROTO_RCMM,
->>> +	.decode		= ir_rcmm_decode,
->>> +};
->>> +
->>> +static int __init ir_rcmm_decode_init(void)
->>> +{
->>> +	ir_raw_handler_register(&rcmm_handler);
->>> +
->>> +	printk(KERN_INFO "IR RCMM protocol handler initialized\n");
->>> +	return 0;
->>> +}
->>> +
->>> +static void __exit ir_rcmm_decode_exit(void)
->>> +{
->>> +	ir_raw_handler_unregister(&rcmm_handler);
->>> +}
->>> +
->>> +module_init(ir_rcmm_decode_init);
->>> +module_exit(ir_rcmm_decode_exit);
->>> +
->>> +MODULE_LICENSE("GPL");
->>> +MODULE_AUTHOR("Patrick LERDA");
->>> +MODULE_DESCRIPTION("RCMM IR protocol decoder");
->>> diff --git a/drivers/media/rc/rc-core-priv.h 
->>> b/drivers/media/rc/rc-core-priv.h
->>> index c2cbe7f6266c..c63d4ad007cc 100644
->>> --- a/drivers/media/rc/rc-core-priv.h
->>> +++ b/drivers/media/rc/rc-core-priv.h
->>> @@ -131,6 +131,11 @@ struct ir_raw_event_ctrl {
->>>  		unsigned int bits;
->>>  		bool stick_keyboard;
->>>  	} imon;
->>> +	struct rcmm_dec {
->>> +		int state;
->>> +		unsigned count;
->>> +		u64 bits;
->>> +	} rcmm;
->>>  };
->>> 
->>>  /* Mutex for locking raw IR processing and handler change */
->>> diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
->>> index 552bbe82a160..ad1dee921f5b 100644
->>> --- a/drivers/media/rc/rc-main.c
->>> +++ b/drivers/media/rc/rc-main.c
->>> @@ -70,6 +70,8 @@ static const struct {
->>>  	[RC_PROTO_CEC] = { .name = "cec", .repeat_period = 0 },
->>>  	[RC_PROTO_IMON] = { .name = "imon",
->>>  		.scancode_bits = 0x7fffffff, .repeat_period = 114 },
->>> +	[RC_PROTO_RCMM] = { .name = "rcmm",
->>> +		.scancode_bits = 0xffffffff, .repeat_period = 114 },
->>>  };
->>> 
->>>  /* Used to keep track of known keymaps */
->>> @@ -1004,6 +1006,7 @@ static const struct {
->>>  	{ RC_PROTO_BIT_XMP,	"xmp",		"ir-xmp-decoder"	},
->>>  	{ RC_PROTO_BIT_CEC,	"cec",		NULL			},
->>>  	{ RC_PROTO_BIT_IMON,	"imon",		"ir-imon-decoder"	},
->>> +	{ RC_PROTO_BIT_RCMM,	"rcmm",		"ir-rcmm-decoder"	},
->>>  };
->>> 
->>>  /**
->>> diff --git a/include/media/rc-map.h b/include/media/rc-map.h
->>> index bfa3017cecba..28e8e7692b38 100644
->>> --- a/include/media/rc-map.h
->>> +++ b/include/media/rc-map.h
->>> @@ -37,6 +37,7 @@
->>>  #define RC_PROTO_BIT_XMP		BIT_ULL(RC_PROTO_XMP)
->>>  #define RC_PROTO_BIT_CEC		BIT_ULL(RC_PROTO_CEC)
->>>  #define RC_PROTO_BIT_IMON		BIT_ULL(RC_PROTO_IMON)
->>> +#define RC_PROTO_BIT_RCMM		BIT_ULL(RC_PROTO_RCMM)
->>> 
->>>  #define RC_PROTO_BIT_ALL \
->>>  			(RC_PROTO_BIT_UNKNOWN | RC_PROTO_BIT_OTHER | \
->>> @@ -51,7 +52,7 @@
->>>  			 RC_PROTO_BIT_RC6_6A_24 | RC_PROTO_BIT_RC6_6A_32 | \
->>>  			 RC_PROTO_BIT_RC6_MCE | RC_PROTO_BIT_SHARP | \
->>>  			 RC_PROTO_BIT_XMP | RC_PROTO_BIT_CEC | \
->>> -			 RC_PROTO_BIT_IMON)
->>> +			 RC_PROTO_BIT_IMON | RC_PROTO_BIT_RCMM)
->>>  /* All rc protocols for which we have decoders */
->>>  #define RC_PROTO_BIT_ALL_IR_DECODER \
->>>  			(RC_PROTO_BIT_RC5 | RC_PROTO_BIT_RC5X_20 | \
->>> @@ -64,7 +65,8 @@
->>>  			 RC_PROTO_BIT_RC6_0 | RC_PROTO_BIT_RC6_6A_20 | \
->>>  			 RC_PROTO_BIT_RC6_6A_24 |  RC_PROTO_BIT_RC6_6A_32 | \
->>>  			 RC_PROTO_BIT_RC6_MCE | RC_PROTO_BIT_SHARP | \
->>> -			 RC_PROTO_BIT_XMP | RC_PROTO_BIT_IMON)
->>> +			 RC_PROTO_BIT_XMP | RC_PROTO_BIT_IMON | \
->>> +			 RC_PROTO_RCMM)
->>> 
->>>  #define RC_PROTO_BIT_ALL_IR_ENCODER \
->>>  			(RC_PROTO_BIT_RC5 | RC_PROTO_BIT_RC5X_20 | \
->>> diff --git a/include/uapi/linux/lirc.h b/include/uapi/linux/lirc.h
->>> index 6b319581882f..2bc7915ff33a 100644
->>> --- a/include/uapi/linux/lirc.h
->>> +++ b/include/uapi/linux/lirc.h
->>> @@ -218,6 +218,7 @@ enum rc_proto {
->>>  	RC_PROTO_XMP		= 21,
->>>  	RC_PROTO_CEC		= 22,
->>>  	RC_PROTO_IMON		= 23,
->>> +	RC_PROTO_RCMM		= 24,
->>>  };
->>> 
->>>  #endif
->>> diff --git a/tools/include/uapi/linux/lirc.h 
->>> b/tools/include/uapi/linux/lirc.h
->>> index f189931042a7..c03e9562e349 100644
->>> --- a/tools/include/uapi/linux/lirc.h
->>> +++ b/tools/include/uapi/linux/lirc.h
->>> @@ -212,6 +212,7 @@ enum rc_proto {
->>>  	RC_PROTO_XMP		= 21,
->>>  	RC_PROTO_CEC		= 22,
->>>  	RC_PROTO_IMON		= 23,
->>> +	RC_PROTO_RCMM		= 24,
->>>  };
->>> 
->>>  #endif
->>> --
->>> 2.19.2
+> Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+> ---
+>  Documentation/devicetree/bindings/sram/sunxi-sram.txt | 4 ++++
+>  1 file changed, 4 insertions(+)
+> 
+
+Reviewed-by: Rob Herring <robh@kernel.org>
