@@ -2,85 +2,276 @@ Return-Path: <SRS0=WxzW=ON=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,URIBL_RHS_DOB,USER_AGENT_MUTT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	LONGWORDS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 41FBCC04EBF
-	for <linux-media@archiver.kernel.org>; Tue,  4 Dec 2018 21:47:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C88CC04EBF
+	for <linux-media@archiver.kernel.org>; Tue,  4 Dec 2018 22:19:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0D94E20850
-	for <linux-media@archiver.kernel.org>; Tue,  4 Dec 2018 21:47:43 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 0D94E20850
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
+	by mail.kernel.org (Postfix) with ESMTP id 0569D2082B
+	for <linux-media@archiver.kernel.org>; Tue,  4 Dec 2018 22:19:28 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 0569D2082B
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726378AbeLDVrh (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 4 Dec 2018 16:47:37 -0500
-Received: from mail-oi1-f195.google.com ([209.85.167.195]:35255 "EHLO
-        mail-oi1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725875AbeLDVrh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 4 Dec 2018 16:47:37 -0500
-Received: by mail-oi1-f195.google.com with SMTP id v6so15703527oif.2;
-        Tue, 04 Dec 2018 13:47:35 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=h4IfCXMBhmfDml/xc3p3lpzvdTs3Mo2ee3ruNM29h5I=;
-        b=nazxe/C/CXw8BUo+RSie13X63HoiDF7w2jM9gNvTTDGq7gSAFrmvUxD00XKGY6mTCW
-         lktgFnt/njTPVDx1MrUOW4/e7Z8QKqIFQY08VGxkmv7raNiEdA8FIIcB4awMd6+lU5pX
-         4729mX5KH62rwPvRMmZlKlMviFRovW2RdwQf1F9CRvh9SsuTqdflYO/UNZJ+RSqbs3b2
-         /MXcpckw00z7LqeFMHgqCR6HDWTf3gReCABYVVlqt9Aaj3KNxvByZmeOt8FpCNl2Deeo
-         6uVw/APxyvCZSimy3bttfTAYoZ9qhTgdQlFZMsgQICvmZjM0FhaCC2DYo+TrDQeKGYQY
-         +5PA==
-X-Gm-Message-State: AA+aEWYLk5VaYV3C6zZ0yPRU+nU/E2+DUkjhRxAGC2gNnrHFWTwb3QkO
-        MVyp7zcd8yg8YnZeziOcyA==
-X-Google-Smtp-Source: AFSGD/Vg6ShvAjfY/VQ25n/XOjRR/3J2ssxWm80K8x5Ckr0APduYY0hD2SecbtSEiYDw+yWKayl1zQ==
-X-Received: by 2002:aca:f306:: with SMTP id r6mr14195069oih.230.1543960055384;
-        Tue, 04 Dec 2018 13:47:35 -0800 (PST)
-Received: from localhost (24-155-109-49.dyn.grandenetworks.net. [24.155.109.49])
-        by smtp.gmail.com with ESMTPSA id t8sm7316697otp.69.2018.12.04.13.47.34
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Tue, 04 Dec 2018 13:47:34 -0800 (PST)
-Date:   Tue, 4 Dec 2018 15:47:33 -0600
-From:   Rob Herring <robh@kernel.org>
-To:     Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-Cc:     linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        devel@driverdev.osuosl.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-sunxi@googlegroups.com, Hans Verkuil <hverkuil@xs4all.nl>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>
-Subject: Re: [PATCH 11/15] dt-bindings: media: cedrus: Add compatibles for
- the A64 and H5
-Message-ID: <20181204214733.GA14148@bogus>
-References: <20181115145013.3378-1-paul.kocialkowski@bootlin.com>
- <20181115145013.3378-12-paul.kocialkowski@bootlin.com>
+        id S1726073AbeLDWT1 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 4 Dec 2018 17:19:27 -0500
+Received: from mga05.intel.com ([192.55.52.43]:6204 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725875AbeLDWT1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 4 Dec 2018 17:19:27 -0500
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga003.jf.intel.com ([10.7.209.27])
+  by fmsmga105.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 04 Dec 2018 14:19:26 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.56,315,1539673200"; 
+   d="scan'208";a="107310803"
+Received: from lkp-server01.sh.intel.com (HELO lkp-server01) ([10.239.97.150])
+  by orsmga003.jf.intel.com with ESMTP; 04 Dec 2018 14:19:25 -0800
+Received: from kbuild by lkp-server01 with local (Exim 4.89)
+        (envelope-from <lkp@intel.com>)
+        id 1gUJ2K-000127-Et; Wed, 05 Dec 2018 06:19:24 +0800
+Date:   Wed, 05 Dec 2018 06:18:31 +0800
+From:   kbuild test robot <lkp@intel.com>
+To:     Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc:     linux-media@vger.kernel.org
+Subject: [ragnatech:media-tree] BUILD INCOMPLETE
+ 9b90dc85c718443a3e573a0ccf55900ff4fa73ae
+Message-ID: <5c06fd37.OADIE9awPAyxWA+O%lkp@intel.com>
+User-Agent: Heirloom mailx 12.5 6/20/10
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20181115145013.3378-12-paul.kocialkowski@bootlin.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Thu, 15 Nov 2018 15:50:09 +0100, Paul Kocialkowski wrote:
-> This introduces two new compatibles for the cedrus driver, for the
-> A64 and H5 platforms.
-> 
-> Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-> ---
->  Documentation/devicetree/bindings/media/cedrus.txt | 2 ++
->  1 file changed, 2 insertions(+)
-> 
+tree/branch: git://git.ragnatech.se/linux  media-tree
+branch HEAD: 9b90dc85c718443a3e573a0ccf55900ff4fa73ae  media: seco-cec: add missing header file to fix build
 
-Reviewed-by: Rob Herring <robh@kernel.org>
+TIMEOUT after 1554m
+
+
+Sorry we cannot finish the testset for your branch within a reasonable time.
+It's our fault -- either some build server is down or some build worker is busy
+doing bisects for _other_ trees. The branch will get more complete coverage and
+possible error reports when our build infrastructure is restored or catches up.
+There will be no more build success notification for this branch head, but you
+can expect reasonably good test coverage after waiting for 1 day.
+
+configs timed out: 151
+
+alpha                            allmodconfig
+alpha                            allyesconfig
+alpha                               defconfig
+arm                               allnoconfig
+arm                         at91_dt_defconfig
+arm                           efm32_defconfig
+arm                          exynos_defconfig
+arm                        multi_v5_defconfig
+arm                        multi_v7_defconfig
+arm                        shmobile_defconfig
+arm                           sunxi_defconfig
+arm64                             allnoconfig
+arm64                               defconfig
+i386                             allmodconfig
+i386                            randconfig-a0
+i386                            randconfig-a1
+i386                            randconfig-a2
+i386                            randconfig-a3
+i386                            randconfig-f0
+i386                            randconfig-f1
+i386                            randconfig-f2
+i386                            randconfig-f3
+i386                            randconfig-i0
+i386                            randconfig-i1
+i386                            randconfig-i2
+i386                            randconfig-i3
+i386                            randconfig-j0
+i386                            randconfig-j1
+i386                            randconfig-j2
+i386                            randconfig-j3
+i386                            randconfig-k0
+i386                            randconfig-k1
+i386                            randconfig-k2
+i386                            randconfig-k3
+i386                            randconfig-n0
+i386                            randconfig-n1
+i386                            randconfig-n2
+i386                            randconfig-n3
+i386                            randconfig-s0
+i386                            randconfig-s1
+i386                            randconfig-s2
+i386                            randconfig-s3
+i386                          randconfig-x010
+i386                          randconfig-x011
+i386                          randconfig-x012
+i386                          randconfig-x013
+i386                          randconfig-x014
+i386                          randconfig-x015
+i386                          randconfig-x016
+i386                          randconfig-x017
+i386                          randconfig-x018
+i386                          randconfig-x019
+i386                               tinyconfig
+ia64                             allmodconfig
+ia64                             allyesconfig
+m68k                             allmodconfig
+m68k                             allyesconfig
+m68k                       m5475evb_defconfig
+m68k                          multi_defconfig
+m68k                           sun3_defconfig
+microblaze                      mmu_defconfig
+microblaze                    nommu_defconfig
+mips                           32r2_defconfig
+mips                         64r6el_defconfig
+mips                             allmodconfig
+mips                             allyesconfig
+mips                                   jz4740
+mips                                     txx9
+nds32                            allmodconfig
+nds32                            allyesconfig
+openrisc                    or1ksim_defconfig
+parisc                           allmodconfig
+parisc                            allnoconfig
+parisc                           allyesconfig
+parisc                         b180_defconfig
+parisc                        c3000_defconfig
+parisc                              defconfig
+powerpc                          allmodconfig
+powerpc                           allnoconfig
+powerpc                          allyesconfig
+powerpc                             defconfig
+powerpc                       ppc64_defconfig
+riscv                            allmodconfig
+riscv                            allyesconfig
+riscv                              tinyconfig
+s390                             allmodconfig
+s390                             allyesconfig
+s390                        default_defconfig
+sh                               allmodconfig
+sh                                allnoconfig
+sh                               allyesconfig
+sh                          rsk7269_defconfig
+sh                  sh7785lcr_32bit_defconfig
+sh                            titan_defconfig
+sparc                            allmodconfig
+sparc                            allyesconfig
+sparc64                          allmodconfig
+sparc64                          allyesconfig
+um                             i386_defconfig
+um                           x86_64_defconfig
+x86_64                             acpi-redef
+x86_64                           allmodconfig
+x86_64                           allyesconfig
+x86_64                           allyesdebian
+x86_64                              fedora-25
+x86_64                                  kexec
+x86_64                                    lkp
+x86_64                                nfsroot
+x86_64                          randconfig-e0
+x86_64                          randconfig-e1
+x86_64                          randconfig-e2
+x86_64                          randconfig-e3
+x86_64                          randconfig-f0
+x86_64                          randconfig-f1
+x86_64                          randconfig-f2
+x86_64                          randconfig-f3
+x86_64                          randconfig-g0
+x86_64                          randconfig-g1
+x86_64                          randconfig-g2
+x86_64                          randconfig-g3
+x86_64                          randconfig-h0
+x86_64                          randconfig-h1
+x86_64                          randconfig-h2
+x86_64                          randconfig-h3
+x86_64                          randconfig-i0
+x86_64                          randconfig-i1
+x86_64                          randconfig-i2
+x86_64                          randconfig-i3
+x86_64                          randconfig-j0
+x86_64                          randconfig-j1
+x86_64                          randconfig-j2
+x86_64                          randconfig-j3
+x86_64                          randconfig-k0
+x86_64                          randconfig-k1
+x86_64                          randconfig-k2
+x86_64                          randconfig-k3
+x86_64                        randconfig-x010
+x86_64                        randconfig-x011
+x86_64                        randconfig-x012
+x86_64                        randconfig-x013
+x86_64                        randconfig-x014
+x86_64                        randconfig-x015
+x86_64                        randconfig-x016
+x86_64                        randconfig-x017
+x86_64                        randconfig-x018
+x86_64                        randconfig-x019
+x86_64                                   rhel
+x86_64                               rhel-7.2
+x86_64                         rhel-7.2-clear
+xtensa                           allmodconfig
+xtensa                           allyesconfig
+
+configs tested: 53
+
+i386                   randconfig-c0-12042015
+ia64                              allnoconfig
+ia64                                defconfig
+ia64                             alldefconfig
+nds32                               defconfig
+nds32                             allnoconfig
+riscv                             allnoconfig
+riscv                               defconfig
+c6x                        evmc6678_defconfig
+xtensa                       common_defconfig
+xtensa                          iss_defconfig
+nios2                         10m50_defconfig
+h8300                    h8300h-sim_defconfig
+i386                              allnoconfig
+i386                                defconfig
+i386                             alldefconfig
+mips                      malta_kvm_defconfig
+mips                              allnoconfig
+mips                      fuloong2e_defconfig
+sparc                               defconfig
+sparc64                           allnoconfig
+sparc64                             defconfig
+x86_64                 randconfig-u0-12042012
+i386                 randconfig-x078-12031950
+i386                 randconfig-x077-12031950
+i386                 randconfig-x076-12031950
+i386                 randconfig-x072-12031950
+i386                 randconfig-x074-12031950
+i386                 randconfig-x079-12031950
+i386                 randconfig-x070-12031950
+i386                 randconfig-x075-12031950
+i386                 randconfig-x073-12031950
+i386                 randconfig-x071-12031950
+i386                   randconfig-x005-201848
+i386                   randconfig-x006-201848
+i386                   randconfig-x007-201848
+i386                   randconfig-x000-201848
+i386                   randconfig-x004-201848
+i386                   randconfig-x002-201848
+i386                   randconfig-x009-201848
+i386                   randconfig-x001-201848
+i386                   randconfig-x008-201848
+i386                   randconfig-x003-201848
+x86_64                 randconfig-x000-201848
+x86_64                 randconfig-x002-201848
+x86_64                 randconfig-x005-201848
+x86_64                 randconfig-x001-201848
+x86_64                 randconfig-x008-201848
+x86_64                 randconfig-x007-201848
+x86_64                 randconfig-x009-201848
+x86_64                 randconfig-x006-201848
+x86_64                 randconfig-x003-201848
+x86_64                 randconfig-x004-201848
+
+---
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
