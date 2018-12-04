@@ -1,251 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:54559 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725770AbeLDNj0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 4 Dec 2018 08:39:26 -0500
-Date: Tue, 4 Dec 2018 13:39:22 +0000
-From: Sean Young <sean@mess.org>
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: Nick Desaulniers <ndesaulniers@google.com>,
-        Nathan Chancellor <natechancellor@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] [media] dib7000p: Remove dead code
-Message-ID: <20181204133922.aaxvzu3qumbfakzu@gofer.mess.org>
-References: <20180915054739.14117-1-natechancellor@gmail.com>
- <CAKwvOdmQ4pbbPuvYrVYB9myD8ap36h6nLjEdL-mSbYjM37UJ_g@mail.gmail.com>
- <20180917193936.33e90d5a@coco.lan>
- <20181204102639.3qsvfxrzmsvybiop@gofer.mess.org>
- <20181204095714.60ee5b95@coco.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20181204095714.60ee5b95@coco.lan>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52822 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1725770AbeLDNkr (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 4 Dec 2018 08:40:47 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: bingbu.cao@intel.com
+Subject: [PATCH v2 1/1] media: Use common test pattern menu entries
+Date: Tue,  4 Dec 2018 15:40:42 +0200
+Message-Id: <20181204134042.21027-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Dec 04, 2018 at 09:57:14AM -0200, Mauro Carvalho Chehab wrote:
-> Em Tue, 4 Dec 2018 10:26:40 +0000
-> Sean Young <sean@mess.org> escreveu:
-> 
-> > On Mon, Sep 17, 2018 at 07:39:36PM -0300, Mauro Carvalho Chehab wrote:
-> > > Em Mon, 17 Sep 2018 10:58:32 -0700
-> > > Nick Desaulniers <ndesaulniers@google.com> escreveu:
-> > >   
-> > > > On Fri, Sep 14, 2018 at 10:47 PM Nathan Chancellor
-> > > > <natechancellor@gmail.com> wrote:  
-> > > > >
-> > > > > Clang warns that 'interleaving' is assigned to itself in this function.
-> > > > >
-> > > > > drivers/media/dvb-frontends/dib7000p.c:1874:15: warning: explicitly
-> > > > > assigning value of variable of type 'int' to itself [-Wself-assign]
-> > > > >         interleaving = interleaving;
-> > > > >         ~~~~~~~~~~~~ ^ ~~~~~~~~~~~~
-> > > > > 1 warning generated.
-> > > > >
-> > > > > It's correct. Just removing the self-assignment would sufficiently hide
-> > > > > the warning but all of this code is dead because 'tmp' is zero due to
-> > > > > being multiplied by zero. This doesn't appear to be an issue with
-> > > > > dib8000, which this code was copied from in commit 041ad449683b
-> > > > > ("[media] dib7000p: Add DVBv5 stats support").
-> > > > >
-> > > > > Reported-by: Nick Desaulniers <ndesaulniers@google.com>
-> > > > > Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
-> > > > > ---
-> > > > >  drivers/media/dvb-frontends/dib7000p.c | 10 ++--------
-> > > > >  1 file changed, 2 insertions(+), 8 deletions(-)
-> > > > >
-> > > > > diff --git a/drivers/media/dvb-frontends/dib7000p.c b/drivers/media/dvb-frontends/dib7000p.c
-> > > > > index 58387860b62d..25843658fc68 100644
-> > > > > --- a/drivers/media/dvb-frontends/dib7000p.c
-> > > > > +++ b/drivers/media/dvb-frontends/dib7000p.c
-> > > > > @@ -1800,9 +1800,8 @@ static u32 dib7000p_get_time_us(struct dvb_frontend *demod)    
-> > > > 
-> > > > Something looks wrong here (with this function).  The patch is no
-> > > > functional change, since as you point out `interleaving` is
-> > > > initialized to 0, then never updated before read, but I think there's
-> > > > an underlying bug here that should be fixed differently.  Thanks for
-> > > > the patch though, as it does raise the question.
-> > > > 
-> > > > dib7000p_get_time_us has this comment above it:
-> > > > 
-> > > >   1798 /* FIXME: may require changes - this one was borrowed from
-> > > > dib8000 */  
-> > > 
-> > > The goal of dib7000p_get_time_us() is to estimate how much time it
-> > > takes, with current tuning parameters, to have a certain number of
-> > > DVB-T packets. This is used for block error count. That's said,
-> > > on a quick look, it seems that the code is not right on many ways.
-> > > 
-> > > It should be aligned with the amount of data it is required for
-> > > dib7000 to update the block/bit error counters. There are two kinds
-> > > of implementation:
-> > > 
-> > > 1) the frontend has an internal counter that it is shifted and made
-> > >    available to the driver after a certain amount of received data
-> > >    (usually in the order of 10^5 to 10^7 bits);
-> > > 
-> > > 2) the frontend has an internal timer that shifts the data from its
-> > >    internal counter after a certain amount of time (usually at the
-> > >    seconds range).
-> > > 
-> > > Different vendors opt for either one of the strategy. Some updates
-> > > a counter with the amount of bits taken. Unfortunately, this is not
-> > > the case of those dib* frontends. So, the Kernel has to estimate
-> > > it, based on the tuning parameters.
-> > > 
-> > > From the code, it seems that, for block errors, it waits for 1,250,000
-> > > bits to arrive (e. g. about 766 packets), so, it uses type (1) strategy:
-> > > 
-> > >                 /* Estimate the number of packets based on bitrate */
-> > >                 if (!time_us)
-> > >                         time_us = dib7000p_get_time_us(demod);
-> > > 
-> > >                 if (time_us) {
-> > >                         blocks = 1250000ULL * 1000000ULL;	// the multiply here is to convert to microsseconds...
-> > >                         do_div(blocks, time_us * 8 * 204);	// As here it divides by the time in microsseconds
-> > >                         c->block_count.stat[0].scale = FE_SCALE_COUNTER;
-> > >                         c->block_count.stat[0].uvalue += blocks;
-> > >                 }
-> > > 
-> > > For BER, the logic assumes that the bit error count should be divided
-> > > by 10^-8:
-> > > 
-> > >                 c->post_bit_count.stat[0].uvalue += 100000000;
-> > > 
-> > > and the counter is updated every second. So, it uses (2).
-> > >   
-> > > > 
-> > > > Wondering if it has the same bug, it seems it does not:
-> > > > drivers/media/dvb-frontends/dib8000.c#dib8000_get_time_us():3986
-> > > > 
-> > > > dib8000_get_time_us() seems to loop over multiple layers, and then
-> > > > assigns interleaving to the final layers interleaving (that looks like
-> > > > loop invariant code to me).
-> > > > 
-> > > > Mauro, should dib7000p_get_time_us() use c->layer[???].interleaving?  
-> > > 
-> > > I don't think that time interleaving would affect the bit rate.
-> > > I suspect that the dead code on dib8000 is just a dead code.
-> > >   
-> > > > I don't see a single reference to `layer` in
-> > > > drivers/media/dvb-frontends/dib7000p.c.  
-> > > 
-> > > Layers are specific for ISDB-T, but I think DVB-T (or at least DVB-T2)
-> > > may use time interleaving. 
-> > > 
-> > > Yet, as I said, the goal is to estimate the streaming bit rate. 
-> > > 
-> > > I don't remember anymore from where the dib8000 formula came.
-> > > 
-> > > My guts tell that time interleaving shouldn't do much changes (if any)
-> > > to the bit rate. I suspect that removing the dead code is likely
-> > > OK, but I'll try to see if I can find something related to where this
-> > > formula came.  
-> > 
-> > So we have two issues. One is the clang issue and clearly the code needs
-> > fixing up. The second issue is that we're not sure about the algorithm;
-> > I've been reading up on mpeg-ts but I'm not anywhere near getting to an
-> > answer on this.
-> > 
-> > How about we merge a patch which just fixes the clang issue and leave
-> > the rest of the code as-is for now?
-> 
-> I'm ok with that, but it would be better to add a FIXME note somewhere.
-> 
-> > 
-> > Thanks,
-> > 
-> > Sean
-> > 
-> > ---
-> > From c6e4c5f514c38511d2054c69f7b103e98c520af4 Mon Sep 17 00:00:00 2001
-> > From: Sean Young <sean@mess.org>
-> > Date: Tue, 4 Dec 2018 09:59:10 +0000
-> > Subject: [PATCH v2] media: dib7000p: Remove dead code
-> > 
-> > Clang warns that 'interleaving' is assigned to itself in this function.
-> > 
-> > drivers/media/dvb-frontends/dib7000p.c:1874:15: warning: explicitly
-> > assigning value of variable of type 'int' to itself [-Wself-assign]
-> >         interleaving = interleaving;
-> >         ~~~~~~~~~~~~ ^ ~~~~~~~~~~~~
-> > 1 warning generated.
-> > 
-> > Just remove the self-assign and leave existing code in place for now.
-> > 
-> > Reported-by: Nick Desaulniers <ndesaulniers@google.com>
-> > Signed-off-by: Sean Young <sean@mess.org>
-> > ---
-> >  drivers/media/dvb-frontends/dib7000p.c | 2 --
-> >  1 file changed, 2 deletions(-)
-> > 
-> > diff --git a/drivers/media/dvb-frontends/dib7000p.c b/drivers/media/dvb-frontends/dib7000p.c
-> > index 58387860b62d..cd84320c61c9 100644
-> > --- a/drivers/media/dvb-frontends/dib7000p.c
-> > +++ b/drivers/media/dvb-frontends/dib7000p.c
-> > @@ -1871,8 +1871,6 @@ static u32 dib7000p_get_time_us(struct dvb_frontend *demod)
-> >  		break;
-> >  	}
-> >  
-> > -	interleaving = interleaving;
-> > -
-> >  	denom = bits_per_symbol * rate_num * fft_div * 384;
-> 
-> something like:
-> 
-> 	/* 
-> 	 * FIXME: check if the math makes sense. If so, fill the
-> 	 * interleaving var.
-> 	 */
-> >  
-> >  	/* If calculus gets wrong, wait for 1s for the next stats */
-> 
+While the test pattern menu itself is not standardised, many devices
+support the same test patterns. Aligning the menu entries helps the user
+space to use the interface, and adding macros for the menu entry strings
+helps to keep them aligned.
 
-Good point. 
-
-Sean
-
->From a31c18315830da40561db6443d3b90b8584d5232 Mon Sep 17 00:00:00 2001
-From: Sean Young <sean@mess.org>
-Date: Tue, 4 Dec 2018 09:59:10 +0000
-Subject: [PATCH v3] media: dib7000p: Remove dead code
-
-Clang warns that 'interleaving' is assigned to itself in this function.
-
-drivers/media/dvb-frontends/dib7000p.c:1874:15: warning: explicitly
-assigning value of variable of type 'int' to itself [-Wself-assign]
-        interleaving = interleaving;
-        ~~~~~~~~~~~~ ^ ~~~~~~~~~~~~
-1 warning generated.
-
-Just remove the self-assign and leave existing code in place for now.
-
-Reported-by: Nick Desaulniers <ndesaulniers@google.com>
-Signed-off-by: Sean Young <sean@mess.org>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/dvb-frontends/dib7000p.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+since v1:
 
-diff --git a/drivers/media/dvb-frontends/dib7000p.c b/drivers/media/dvb-frontends/dib7000p.c
-index 58387860b62d..2818e8def1b3 100644
---- a/drivers/media/dvb-frontends/dib7000p.c
-+++ b/drivers/media/dvb-frontends/dib7000p.c
-@@ -1871,10 +1871,13 @@ static u32 dib7000p_get_time_us(struct dvb_frontend *demod)
- 		break;
- 	}
+- Fix indentation of menu strings
+- Remove "8" from the macro names
+
+ drivers/media/i2c/imx258.c             | 10 +++++-----
+ drivers/media/i2c/imx319.c             | 10 +++++-----
+ drivers/media/i2c/imx355.c             | 10 +++++-----
+ drivers/media/i2c/ov2640.c             |  4 ++--
+ drivers/media/i2c/smiapp/smiapp-core.c | 10 +++++-----
+ include/uapi/linux/v4l2-controls.h     |  5 +++++
+ 6 files changed, 27 insertions(+), 22 deletions(-)
+
+diff --git a/drivers/media/i2c/imx258.c b/drivers/media/i2c/imx258.c
+index f86ae18bc104..df5f016cebd9 100644
+--- a/drivers/media/i2c/imx258.c
++++ b/drivers/media/i2c/imx258.c
+@@ -498,11 +498,11 @@ static const struct imx258_reg mode_1048_780_regs[] = {
+ };
  
--	interleaving = interleaving;
--
- 	denom = bits_per_symbol * rate_num * fft_div * 384;
+ static const char * const imx258_test_pattern_menu[] = {
+-	"Disabled",
+-	"Solid Colour",
+-	"Eight Vertical Colour Bars",
+-	"Colour Bars With Fade to Grey",
+-	"Pseudorandom Sequence (PN9)",
++	V4L2_TEST_PATTERN_DISABLED,
++	V4L2_TEST_PATTERN_SOLID_COLOUR,
++	V4L2_TEST_PATTERN_VERT_COLOUR_BARS,
++	V4L2_TEST_PATTERN_VERT_COLOUR_BARS_FADE_TO_GREY,
++	V4L2_TEST_PATTERN_PN9,
+ };
  
-+	/*
-+	 * FIXME: check if the math makes sense. If so, fill the
-+	 * interleaving var.
-+	 */
-+
- 	/* If calculus gets wrong, wait for 1s for the next stats */
- 	if (!denom)
- 		return 0;
+ /* Configurations for supported link frequencies */
+diff --git a/drivers/media/i2c/imx319.c b/drivers/media/i2c/imx319.c
+index 17c2e4b41221..d9d4176b9d37 100644
+--- a/drivers/media/i2c/imx319.c
++++ b/drivers/media/i2c/imx319.c
+@@ -1647,11 +1647,11 @@ static const struct imx319_reg mode_1280x720_regs[] = {
+ };
+ 
+ static const char * const imx319_test_pattern_menu[] = {
+-	"Disabled",
+-	"Solid Colour",
+-	"Eight Vertical Colour Bars",
+-	"Colour Bars With Fade to Grey",
+-	"Pseudorandom Sequence (PN9)",
++	V4L2_TEST_PATTERN_DISABLED,
++	V4L2_TEST_PATTERN_SOLID_COLOUR,
++	V4L2_TEST_PATTERN_VERT_COLOUR_BARS,
++	V4L2_TEST_PATTERN_VERT_COLOUR_BARS_FADE_TO_GREY,
++	V4L2_TEST_PATTERN_PN9,
+ };
+ 
+ /* supported link frequencies */
+diff --git a/drivers/media/i2c/imx355.c b/drivers/media/i2c/imx355.c
+index bed293b60e50..99138a291cb8 100644
+--- a/drivers/media/i2c/imx355.c
++++ b/drivers/media/i2c/imx355.c
+@@ -875,11 +875,11 @@ static const struct imx355_reg mode_820x616_regs[] = {
+ };
+ 
+ static const char * const imx355_test_pattern_menu[] = {
+-	"Disabled",
+-	"Solid Colour",
+-	"Eight Vertical Colour Bars",
+-	"Colour Bars With Fade to Grey",
+-	"Pseudorandom Sequence (PN9)",
++	V4L2_TEST_PATTERN_DISABLED,
++	V4L2_TEST_PATTERN_SOLID_COLOUR,
++	V4L2_TEST_PATTERN_VERT_COLOUR_BARS,
++	V4L2_TEST_PATTERN_VERT_COLOUR_BARS_FADE_TO_GREY,
++	V4L2_TEST_PATTERN_PN9,
+ };
+ 
+ /* supported link frequencies */
+diff --git a/drivers/media/i2c/ov2640.c b/drivers/media/i2c/ov2640.c
+index 5d2d6735cc78..65058d9a5d51 100644
+--- a/drivers/media/i2c/ov2640.c
++++ b/drivers/media/i2c/ov2640.c
+@@ -707,8 +707,8 @@ static int ov2640_reset(struct i2c_client *client)
+ }
+ 
+ static const char * const ov2640_test_pattern_menu[] = {
+-	"Disabled",
+-	"Eight Vertical Colour Bars",
++	V4L2_TEST_PATTERN_DISABLED,
++	V4L2_TEST_PATTERN_VERT_COLOUR_BARS,
+ };
+ 
+ /*
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index 58a45c353e27..5c9bcc9438ec 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -409,11 +409,11 @@ static void smiapp_update_mbus_formats(struct smiapp_sensor *sensor)
+ }
+ 
+ static const char * const smiapp_test_patterns[] = {
+-	"Disabled",
+-	"Solid Colour",
+-	"Eight Vertical Colour Bars",
+-	"Colour Bars With Fade to Grey",
+-	"Pseudorandom Sequence (PN9)",
++	V4L2_TEST_PATTERN_DISABLED,
++	V4L2_TEST_PATTERN_SOLID_COLOUR,
++	V4L2_TEST_PATTERN_VERT_COLOUR_BARS,
++	V4L2_TEST_PATTERN_VERT_COLOUR_BARS_FADE_TO_GREY,
++	V4L2_TEST_PATTERN_PN9,
+ };
+ 
+ static int smiapp_set_ctrl(struct v4l2_ctrl *ctrl)
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index 998983a6e6b7..acb2a57fa5d6 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -1014,6 +1014,11 @@ enum v4l2_jpeg_chroma_subsampling {
+ #define V4L2_CID_LINK_FREQ			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 1)
+ #define V4L2_CID_PIXEL_RATE			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 2)
+ #define V4L2_CID_TEST_PATTERN			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 3)
++#define V4L2_TEST_PATTERN_DISABLED		"Disabled"
++#define V4L2_TEST_PATTERN_SOLID_COLOUR		"Solid Colour"
++#define V4L2_TEST_PATTERN_VERT_COLOUR_BARS	"Eight Vertical Colour Bars"
++#define V4L2_TEST_PATTERN_VERT_COLOUR_BARS_FADE_TO_GREY "Colour Bars With Fade to Grey"
++#define V4L2_TEST_PATTERN_PN9			"Pseudorandom Sequence (PN9)"
+ #define V4L2_CID_DEINTERLACING_MODE		(V4L2_CID_IMAGE_PROC_CLASS_BASE + 4)
+ #define V4L2_CID_DIGITAL_GAIN			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 5)
+ 
 -- 
-2.19.2
+2.11.0
