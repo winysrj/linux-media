@@ -7,65 +7,65 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
 	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5567CC04EB9
-	for <linux-media@archiver.kernel.org>; Wed,  5 Dec 2018 15:49:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A7AEDC04EB9
+	for <linux-media@archiver.kernel.org>; Wed,  5 Dec 2018 15:49:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1954E206B7
-	for <linux-media@archiver.kernel.org>; Wed,  5 Dec 2018 15:49:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6EAF1206B7
+	for <linux-media@archiver.kernel.org>; Wed,  5 Dec 2018 15:49:13 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="aQDV+lJI"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 1954E206B7
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="O69PUZ4g"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 6EAF1206B7
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=gmail.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728144AbeLEPs7 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 5 Dec 2018 10:48:59 -0500
-Received: from mail-lf1-f68.google.com ([209.85.167.68]:36561 "EHLO
-        mail-lf1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728051AbeLEPs6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Dec 2018 10:48:58 -0500
-Received: by mail-lf1-f68.google.com with SMTP id a16so15092205lfg.3;
-        Wed, 05 Dec 2018 07:48:56 -0800 (PST)
+        id S1728181AbeLEPtH (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 5 Dec 2018 10:49:07 -0500
+Received: from mail-lj1-f193.google.com ([209.85.208.193]:44988 "EHLO
+        mail-lj1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727606AbeLEPs7 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Dec 2018 10:48:59 -0500
+Received: by mail-lj1-f193.google.com with SMTP id k19-v6so18745650lji.11;
+        Wed, 05 Dec 2018 07:48:57 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=MgD/GG9O1K1FRD9ALik5jgeXm7lZuOo80znVVMI+qnU=;
-        b=aQDV+lJIgY/8SNhwMCQemfFnuO+lF29H+g23P9xVbo9uzCUi9cuEB1bEh29VYxuiul
-         oich56jnVKd1fO02DmNFFlR+qQOLgXc3jzNAyqQqpibCd/gdsl8o4yYIv/yWo6hLJvTY
-         OUbnkw9tVbSUramjMVmqvrxYEEMA9gOHHIMK3CzZv1ciUuSRMLZzINdVnJRbXETC+rze
-         UfA5s68SUm+6q2uhanIPVPBXUU1w9P1WN6JpzmT4Gt1/AsZ3KLTwXXipmLytOwKR7HUi
-         wYMlv8QLEDwpjkdI1eqLq1zCXM9NIijIJ7CWI/pT3ORjZ8yjRtCTlnjhqg63Lh48S/0x
-         TLqg==
+        bh=ivIcikaxHVAK7mUKBs+IidxAX11DCTBttjZ73Q5l9Y0=;
+        b=O69PUZ4gEz81Z978y6YF0z07HixXdnrjTLNBxLcDTwIOkOLYfoQ+QwX1xwdGdymEdn
+         XpuR+a9Y+UXUR0Kr51odq75tI7kzPQ+Y9ygYK0cInubYZlWZAA1hFfq+9slQEaj/deU1
+         H9IiBupU5BDw/aPOhXTlQAGfSWOb7gzRodajpxpTJYTJFSLR+0U3Y+oGMby5iSIH3sLT
+         FcjTaKEga3PoRNBMwK1d+2g531tn4y6uW6y97E4ZeGTbABSRzvALGHlkHs6vz1I6FdTY
+         5OZvUKVp1NFd7YE+IKzvG/5zwP6PgNaGq1kVRwn0rhJBottvkHihVNG/oRNlH9mUY9G4
+         ySzw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=MgD/GG9O1K1FRD9ALik5jgeXm7lZuOo80znVVMI+qnU=;
-        b=fK2vnJHCs94Hl9raRO9tBgIahA2REsQXq4faeW7WS4QRHYrxDbY8qmtdYMfxkmwZ+J
-         3Bc1snQhI3nWKEvwqx7GBD0b79WfnvCNDVC7C04US41udpSaFFAkEUk8uFtogWvHatG2
-         JLcCjb1RLCmKZzisU695KWgL+rwoGP+FgaBGPi6Fp+72jDEuNlHG4rSp4zqyUrl/9fVm
-         42IXe5cA+1Y7gmGQeLpxNECBThR28mZ2uwbSpoCZygXXqqaRvsENE1Nnehdi/zLnoSzK
-         H6jyT5X2qMb3NiNAIXgv82/sCZDsxjWayij3qM/A7iZfcsXUu0H2lZhoormR8la1htIq
-         eU4A==
-X-Gm-Message-State: AA+aEWbWkzfS19zIweJ03cwWaoRog/hXBnyY/oF2jfMHfTi0hC9ILNbH
-        3egNcZqZPVWWt/cSzX6XNsk=
-X-Google-Smtp-Source: AFSGD/Uh6TLHWpmb2xcn2W/t8RF7ODaw/hpyW0cU4FpVubTrSAhmDkI4GQs9pGtivfPWijdNile4Nw==
-X-Received: by 2002:a19:41c4:: with SMTP id o187mr15409826lfa.32.1544024935664;
-        Wed, 05 Dec 2018 07:48:55 -0800 (PST)
+        bh=ivIcikaxHVAK7mUKBs+IidxAX11DCTBttjZ73Q5l9Y0=;
+        b=Ua4kc+PVUaBwzqmeZK8uAc0BYuYzs91SBDs4Hx8xusDO5i4+yknEzBNCIfM+XXOyXY
+         Mlb3viEDLtGrYcBPwgpW9+nT2WPQuNwAfdg0pN2KFb5Iif6Tc4ml1p6fO0J9Gmyx0ala
+         nvdJW026AvXIRSkWtxlpkE6oc+nqgacayO8NCGVbiuYCM3gpYwS9oFnQF67P6DYz+3C1
+         hVonotAg75oZufBvA/7i1Bmnqvt3q4ZkqPXry1JhEZoacIlzmQ4bBxvcgsfZ2LKS0AWr
+         /VE1HOeKIDihKhK2Y5akj3J2OIB0Nlk2x3GAPNdkJnx2a3T0XqwcrlxMBandNxpKucgS
+         AN1w==
+X-Gm-Message-State: AA+aEWbqwRPspNBUVGd0Yy1JOQMR32rD0JJVh2g429yXdI68/Ghx8ac4
+        bl+qH1VoZiP8/GYMFqm/xFQ=
+X-Google-Smtp-Source: AFSGD/WGM9LTKHZgWDG//XgKnLvPaK6vCCJF/1q1SDmuxWStclNijb5F5Db/zu+1Z56dBXo5wNw+Eg==
+X-Received: by 2002:a2e:8045:: with SMTP id p5-v6mr15643880ljg.87.1544024937047;
+        Wed, 05 Dec 2018 07:48:57 -0800 (PST)
 Received: from localhost.localdomain ([2a02:a315:5445:5300:41e8:260c:942a:b736])
-        by smtp.googlemail.com with ESMTPSA id t18sm3592517lft.93.2018.12.05.07.48.54
+        by smtp.googlemail.com with ESMTPSA id t18sm3592517lft.93.2018.12.05.07.48.55
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 05 Dec 2018 07:48:55 -0800 (PST)
+        Wed, 05 Dec 2018 07:48:56 -0800 (PST)
 From:   =?UTF-8?q?Pawe=C5=82=20Chmiel?= <pawel.mikolaj.chmiel@gmail.com>
 To:     mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com
 Cc:     hverkuil@xs4all.nl, fischerdouglasc@gmail.com,
         keescook@chromium.org, linux-media@vger.kernel.org,
         linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
         =?UTF-8?q?Pawe=C5=82=20Chmiel?= <pawel.mikolaj.chmiel@gmail.com>
-Subject: [PATCH 4/5] si470x-i2c: Add optional reset-gpio support
-Date:   Wed,  5 Dec 2018 16:47:49 +0100
-Message-Id: <20181205154750.17996-5-pawel.mikolaj.chmiel@gmail.com>
+Subject: [PATCH 5/5] media: dt-bindings: si470x: Document new reset-gpios property
+Date:   Wed,  5 Dec 2018 16:47:50 +0100
+Message-Id: <20181205154750.17996-6-pawel.mikolaj.chmiel@gmail.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20181205154750.17996-1-pawel.mikolaj.chmiel@gmail.com>
 References: <20181205154750.17996-1-pawel.mikolaj.chmiel@gmail.com>
@@ -77,67 +77,32 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-If reset-gpio is defined, use it to bring device out of reset.
-Without this, it's not possible to access si470x registers.
+Add information about new reset-gpios property to driver documentation
 
 Signed-off-by: Paweł Chmiel <pawel.mikolaj.chmiel@gmail.com>
 ---
- drivers/media/radio/si470x/radio-si470x-i2c.c | 15 +++++++++++++++
- drivers/media/radio/si470x/radio-si470x.h     |  1 +
- 2 files changed, 16 insertions(+)
+ Documentation/devicetree/bindings/media/si470x.txt | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/media/radio/si470x/radio-si470x-i2c.c b/drivers/media/radio/si470x/radio-si470x-i2c.c
-index a7ac09c55188..15eea2b2c90f 100644
---- a/drivers/media/radio/si470x/radio-si470x-i2c.c
-+++ b/drivers/media/radio/si470x/radio-si470x-i2c.c
-@@ -28,6 +28,7 @@
- #include <linux/i2c.h>
- #include <linux/slab.h>
- #include <linux/delay.h>
-+#include <linux/gpio/consumer.h>
- #include <linux/interrupt.h>
+diff --git a/Documentation/devicetree/bindings/media/si470x.txt b/Documentation/devicetree/bindings/media/si470x.txt
+index 9294fdfd3aae..a9403558362e 100644
+--- a/Documentation/devicetree/bindings/media/si470x.txt
++++ b/Documentation/devicetree/bindings/media/si470x.txt
+@@ -10,6 +10,7 @@ Required Properties:
  
- #include "radio-si470x.h"
-@@ -392,6 +393,17 @@ static int si470x_i2c_probe(struct i2c_client *client,
- 	radio->videodev.release = video_device_release_empty;
- 	video_set_drvdata(&radio->videodev, radio);
+ Optional Properties:
+ - interrupts : The interrupt number
++- reset-gpios: GPIO specifier for the chips reset line
  
-+	radio->gpio_reset = devm_gpiod_get_optional(&client->dev, "reset",
-+						    GPIOD_OUT_LOW);
-+	if (IS_ERR(radio->gpio_reset)) {
-+		retval = PTR_ERR(radio->gpio_reset);
-+		dev_err(&client->dev, "Failed to request gpio: %d\n", retval);
-+		goto err_all;
-+	}
-+
-+	if (radio->gpio_reset)
-+		gpiod_set_value(radio->gpio_reset, 1);
-+
- 	/* power up : need 110ms */
- 	radio->registers[POWERCFG] = POWERCFG_ENABLE;
- 	if (si470x_set_register(radio, POWERCFG) < 0) {
-@@ -478,6 +490,9 @@ static int si470x_i2c_remove(struct i2c_client *client)
+ Example:
  
- 	video_unregister_device(&radio->videodev);
+@@ -20,5 +21,6 @@ Example:
  
-+	if (radio->gpio_reset)
-+		gpiod_set_value(radio->gpio_reset, 0);
-+
- 	return 0;
- }
- 
-diff --git a/drivers/media/radio/si470x/radio-si470x.h b/drivers/media/radio/si470x/radio-si470x.h
-index 35fa0f3bbdd2..6fd6a399cb77 100644
---- a/drivers/media/radio/si470x/radio-si470x.h
-+++ b/drivers/media/radio/si470x/radio-si470x.h
-@@ -189,6 +189,7 @@ struct si470x_device {
- 
- #if IS_ENABLED(CONFIG_I2C_SI470X)
- 	struct i2c_client *client;
-+	struct gpio_desc *gpio_reset;
- #endif
+                 interrupt-parent = <&gpj2>;
+                 interrupts = <4 IRQ_TYPE_EDGE_FALLING>;
++                reset-gpios = <&gpj2 5 GPIO_ACTIVE_HIGH>;
+         };
  };
- 
 -- 
 2.17.1
 
