@@ -2,134 +2,94 @@ Return-Path: <SRS0=NzSx=OO=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	URIBL_RHS_DOB,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D93FC04EBF
-	for <linux-media@archiver.kernel.org>; Wed,  5 Dec 2018 10:20:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6CED5C04EB9
+	for <linux-media@archiver.kernel.org>; Wed,  5 Dec 2018 10:31:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 50FEE206B7
-	for <linux-media@archiver.kernel.org>; Wed,  5 Dec 2018 10:20:57 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 50FEE206B7
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=xs4all.nl
+	by mail.kernel.org (Postfix) with ESMTP id 2E7592064D
+	for <linux-media@archiver.kernel.org>; Wed,  5 Dec 2018 10:31:46 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="sXhCbD0m"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 2E7592064D
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727869AbeLEKU4 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 5 Dec 2018 05:20:56 -0500
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:35333 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727623AbeLEKUu (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 5 Dec 2018 05:20:50 -0500
-Received: from tschai.fritz.box ([212.251.195.8])
-        by smtp-cloud7.xs4all.net with ESMTPA
-        id UUIKgznz1aOW5UUISgJejE; Wed, 05 Dec 2018 11:20:49 +0100
-From:   hverkuil-cisco@xs4all.nl
-To:     linux-media@vger.kernel.org
-Cc:     Alexandre Courbot <acourbot@chromium.org>,
-        maxime.ripard@bootlin.com, paul.kocialkowski@bootlin.com,
-        tfiga@chromium.org, nicolas@ndufresne.ca,
-        sakari.ailus@linux.intel.com,
-        Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Subject: [PATCHv4 06/10] v4l2-mem2mem: add v4l2_m2m_buf_copy_data helper function
-Date:   Wed,  5 Dec 2018 11:20:36 +0100
-Message-Id: <20181205102040.11741-7-hverkuil-cisco@xs4all.nl>
-X-Mailer: git-send-email 2.19.1
-In-Reply-To: <20181205102040.11741-1-hverkuil-cisco@xs4all.nl>
-References: <20181205102040.11741-1-hverkuil-cisco@xs4all.nl>
+        id S1727504AbeLEKbk (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 5 Dec 2018 05:31:40 -0500
+Received: from casper.infradead.org ([85.118.1.10]:54500 "EHLO
+        casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727025AbeLEKbj (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Dec 2018 05:31:39 -0500
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
+        MIME-Version:References:In-Reply-To:Message-ID:Subject:Cc:To:From:Date:Sender
+        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
+        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+        bh=4KqDWiP1GGJKYnL+84+zo9iBjKZH0iNJw4HXyUC5u9Y=; b=sXhCbD0mTJXyWG5P81ZORGWRxG
+        hrD1/I4aacvXHy9QTvdO5l0gDpKOtFd6FHOInohqYMb0AUtraQnVhN8nhwpYTNTDBIRLouKLZUSI3
+        RsXNw3qTjy7h9DszNu14RBF29F1p2/uSkhZxvzqbHfpxhDwUydTqx58DfIVvn6bT3E/ElcARbRGl1
+        Lem/tfID6/H+ERKkxPLRUu7T+U1LcKUcWhQJVWuR3H6uowOnzDR+hoIHya8/7LSJDiv4xpXSLrDHM
+        RXIP3TLEbUcI78wv5bTbRDuaW7S0Dn/AJO+6XymqggDXFG4phTdfX12uCMSaUzg8yO71RjslVsLqH
+        BYdPgLQQ==;
+Received: from [191.33.148.129] (helo=coco.lan)
+        by casper.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
+        id 1gUUSt-0001Ou-EM; Wed, 05 Dec 2018 10:31:35 +0000
+Date:   Wed, 5 Dec 2018 08:31:29 -0200
+From:   Mauro Carvalho Chehab <mchehab@kernel.org>
+To:     Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Cc:     Christoph Hellwig <hch@lst.de>, linux-pm@vger.kernel.org,
+        linux-tegra@vger.kernel.org,
+        ML dri-devel <dri-devel@lists.freedesktop.org>,
+        linux-media@vger.kernel.org, linux-spi@vger.kernel.org,
+        Linux Fbdev development list <linux-fbdev@vger.kernel.org>,
+        alsa-devel@alsa-project.org,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 7/8] media: sti/bdisp: don't pass GFP_DMA32 to
+ dma_alloc_attrs
+Message-ID: <20181205083129.20b6b0be@coco.lan>
+In-Reply-To: <CA+M3ks5ebGDgFtMS5mSYz38AnyrTMQr8C_JkbFEzp=k+izJjUQ@mail.gmail.com>
+References: <20181013151707.32210-1-hch@lst.de>
+        <20181013151707.32210-8-hch@lst.de>
+        <CA+M3ks5KO-Yr_PEczaENhTfirthFz2gW1uv4bwZe5mjy3-jZyg@mail.gmail.com>
+        <20181017072020.GD23407@lst.de>
+        <CA+M3ks5ebGDgFtMS5mSYz38AnyrTMQr8C_JkbFEzp=k+izJjUQ@mail.gmail.com>
+X-Mailer: Claws Mail 3.16.0 (GTK+ 2.24.32; x86_64-redhat-linux-gnu)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CMAE-Envelope: MS4wfKM3yVjLB5506EvfR1mN60fB22EHfVQ4CG0Yo0ak7JCVAY/0IZESGypv2+GeV0EvK7ztLNS5meJNANnS8qZP4rUf4nAogXAcfLzw2zXDnM+u/A5ytJS0
- m8ANMEzQWxQuQuJfRVLYnOwqx7h2MwR2siUGdfQBE7KEcO+sqNPcQYPEVqNueLfsiTCYpjBocjlhKAAryXKWNXHmh9Gbmsu85dyZpsL1NcxOkTVH6DG84vDN
- cArUhtHVQlDZkTEH2W0sk0iv3e8daaMqBpyKNS/OaRg8XkroDsaafYITcSicMWR9+/X6RExSkYm5wQR1G1hP4OfzyBEIktRT55RgEoAreUInjP+ACEXuUIqG
- ymw7rQnx0eSc0FaqeNHTbtgWGs581DFT/YEzrLARpdETfaapj9w7drd6pqSJg394bBYAl5uYpid1LOp10wd1rS4sMpa6/w==
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-From: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+Em Thu, 18 Oct 2018 14:00:40 +0200
+Benjamin Gaignard <benjamin.gaignard@linaro.org> escreveu:
 
-Memory-to-memory devices should copy various parts of
-struct v4l2_buffer from the output buffer to the capture buffer.
+> Le mer. 17 oct. 2018 =C3=A0 09:20, Christoph Hellwig <hch@lst.de> a =C3=
+=A9crit :
+> >
+> > On Mon, Oct 15, 2018 at 11:12:55AM +0200, Benjamin Gaignard wrote: =20
+> > > Le sam. 13 oct. 2018 =C3=A0 17:18, Christoph Hellwig <hch@lst.de> a =
+=C3=A9crit : =20
+> > > >
+> > > > The DMA API does its own zone decisions based on the coherent_dma_m=
+ask.
+> > > >
+> > > > Signed-off-by: Christoph Hellwig <hch@lst.de> =20
+> > >
+> > > Reviewed-by: Benjamin Gaignard <benjamin.gaignard@linaro.org> =20
+> >
+> > Can you pick it up through the media tree? =20
+>=20
+> No but Mauros or Hans (in CC) can add it.
 
-Add a helper function that does that to simplify the driver code.
+I'm adding it. Sorry for the delay. All those trips for MS/KS made
+harder to handle it earlier.
 
-Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Reviewed-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-Reviewed-by: Alexandre Courbot <acourbot@chromium.org>
----
- drivers/media/v4l2-core/v4l2-mem2mem.c | 23 +++++++++++++++++++++++
- include/media/v4l2-mem2mem.h           | 21 +++++++++++++++++++++
- 2 files changed, 44 insertions(+)
-
-diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
-index 5bbdec55b7d7..a9cb1ac33dc0 100644
---- a/drivers/media/v4l2-core/v4l2-mem2mem.c
-+++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
-@@ -975,6 +975,29 @@ void v4l2_m2m_buf_queue(struct v4l2_m2m_ctx *m2m_ctx,
- }
- EXPORT_SYMBOL_GPL(v4l2_m2m_buf_queue);
- 
-+void v4l2_m2m_buf_copy_data(const struct vb2_v4l2_buffer *out_vb,
-+			    struct vb2_v4l2_buffer *cap_vb,
-+			    bool copy_frame_flags)
-+{
-+	u32 mask = V4L2_BUF_FLAG_TIMECODE | V4L2_BUF_FLAG_TAG |
-+		   V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
-+
-+	if (copy_frame_flags)
-+		mask |= V4L2_BUF_FLAG_KEYFRAME | V4L2_BUF_FLAG_PFRAME |
-+			V4L2_BUF_FLAG_BFRAME;
-+
-+	cap_vb->vb2_buf.timestamp = out_vb->vb2_buf.timestamp;
-+
-+	if (out_vb->flags & V4L2_BUF_FLAG_TAG)
-+		cap_vb->tag = out_vb->tag;
-+	if (out_vb->flags & V4L2_BUF_FLAG_TIMECODE)
-+		cap_vb->timecode = out_vb->timecode;
-+	cap_vb->field = out_vb->field;
-+	cap_vb->flags &= ~mask;
-+	cap_vb->flags |= out_vb->flags & mask;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_m2m_buf_copy_data);
-+
- void v4l2_m2m_request_queue(struct media_request *req)
- {
- 	struct media_request_object *obj, *obj_safe;
-diff --git a/include/media/v4l2-mem2mem.h b/include/media/v4l2-mem2mem.h
-index 5467264771ec..bb4feb6969d2 100644
---- a/include/media/v4l2-mem2mem.h
-+++ b/include/media/v4l2-mem2mem.h
-@@ -622,6 +622,27 @@ v4l2_m2m_dst_buf_remove_by_idx(struct v4l2_m2m_ctx *m2m_ctx, unsigned int idx)
- 	return v4l2_m2m_buf_remove_by_idx(&m2m_ctx->cap_q_ctx, idx);
- }
- 
-+/**
-+ * v4l2_m2m_buf_copy_data() - copy buffer data from the output buffer to the
-+ * capture buffer
-+ *
-+ * @out_vb: the output buffer that is the source of the data.
-+ * @cap_vb: the capture buffer that will receive the data.
-+ * @copy_frame_flags: copy the KEY/B/PFRAME flags as well.
-+ *
-+ * This helper function copies the timestamp, timecode (if the TIMECODE
-+ * buffer flag was set), tag (if the TAG buffer flag was set), field
-+ * and the TIMECODE, TAG, KEYFRAME, BFRAME, PFRAME and TSTAMP_SRC_MASK
-+ * flags from @out_vb to @cap_vb.
-+ *
-+ * If @copy_frame_flags is false, then the KEYFRAME, BFRAME and PFRAME
-+ * flags are not copied. This is typically needed for encoders that
-+ * set this bits explicitly.
-+ */
-+void v4l2_m2m_buf_copy_data(const struct vb2_v4l2_buffer *out_vb,
-+			    struct vb2_v4l2_buffer *cap_vb,
-+			    bool copy_frame_flags);
-+
- /* v4l2 request helper */
- 
- void v4l2_m2m_request_queue(struct media_request *req);
--- 
-2.19.1
-
+Thanks,
+Mauro
