@@ -6,25 +6,25 @@ X-Spam-Status: No, score=-8.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
 	URIBL_RHS_DOB,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EAB64C04EB9
-	for <linux-media@archiver.kernel.org>; Wed,  5 Dec 2018 10:20:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C54FC04EBF
+	for <linux-media@archiver.kernel.org>; Wed,  5 Dec 2018 10:20:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B1BC32082B
-	for <linux-media@archiver.kernel.org>; Wed,  5 Dec 2018 10:20:54 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org B1BC32082B
+	by mail.kernel.org (Postfix) with ESMTP id 124B72082B
+	for <linux-media@archiver.kernel.org>; Wed,  5 Dec 2018 10:20:55 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 124B72082B
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=xs4all.nl
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727862AbeLEKUx (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 5 Dec 2018 05:20:53 -0500
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:48137 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727660AbeLEKUv (ORCPT
+        id S1727874AbeLEKUy (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 5 Dec 2018 05:20:54 -0500
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:34119 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727652AbeLEKUv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Wed, 5 Dec 2018 05:20:51 -0500
 Received: from tschai.fritz.box ([212.251.195.8])
         by smtp-cloud7.xs4all.net with ESMTPA
-        id UUIKgznz1aOW5UUIUgJekS; Wed, 05 Dec 2018 11:20:50 +0100
+        id UUIKgznz1aOW5UUITgJejb; Wed, 05 Dec 2018 11:20:49 +0100
 From:   hverkuil-cisco@xs4all.nl
 To:     linux-media@vger.kernel.org
 Cc:     Alexandre Courbot <acourbot@chromium.org>,
@@ -32,18 +32,18 @@ Cc:     Alexandre Courbot <acourbot@chromium.org>,
         tfiga@chromium.org, nicolas@ndufresne.ca,
         sakari.ailus@linux.intel.com,
         Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Subject: [PATCHv4 09/10] vicodec: add tag support
-Date:   Wed,  5 Dec 2018 11:20:39 +0100
-Message-Id: <20181205102040.11741-10-hverkuil-cisco@xs4all.nl>
+Subject: [PATCHv4 07/10] vb2: add new supports_tags queue flag
+Date:   Wed,  5 Dec 2018 11:20:37 +0100
+Message-Id: <20181205102040.11741-8-hverkuil-cisco@xs4all.nl>
 X-Mailer: git-send-email 2.19.1
 In-Reply-To: <20181205102040.11741-1-hverkuil-cisco@xs4all.nl>
 References: <20181205102040.11741-1-hverkuil-cisco@xs4all.nl>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-CMAE-Envelope: MS4wfJBvDexiEY0pSrleLccKK8Qkrl0Pyg39te+UIJ3BF3yHLQFAoalqhLZ578R0Rt6I1+82yNstcXP4ZYjlHZsTf52x5+qG22i22cP4pDfk087T4tac5Oh0
- ATsr30EoLA9V7ORo/Z7SCTCKDDyEU4OShU87kHCgP3moPI5TU1+cJUCGDaHAquTIsyQmxiKDwbkp8Ma+maURjh7fxNDgfFgpcJctOxgtaFVEXlo/M3jp+npP
- tCuLORHJtLauYwzTgDRRMCqIxCflrZNhtAIrDrg0XksOpybvgbVXgVWowUGiHZJqDzh/2dXlTzNwV6AqgpvWiQX2Y3RNp0SOXr7af/OQXz0ER+I5jIMugk/X
- pYiImipk39OjtxYwqfbKc2sgmXvb8DcFF6xKfpLqNd06Fb1F+i9ziMZvX77S+XuWQpqk0sOHSCm9xuud5dDKpZ1T8M07Mw==
+X-CMAE-Envelope: MS4wfKM3yVjLB5506EvfR1mN60fB22EHfVQ4CG0Yo0ak7JCVAY/0IZESGypv2+GeV0EvK7ztLNS5meJNANnS8qZP4rUf4nAogXAcfLzw2zXDnM+u/A5ytJS0
+ m8ANMEzQWxQuQuJfRVLYnOwqx7h2MwR2siUGdfQBE7KEcO+sqNPcQYPEVqNueLfsiTCYpjBocjlhKAAryXKWNXHmh9Gbmsu85dyZpsL1NcxOkTVH6DG84vDN
+ cArUhtHVQlDZkTEH2W0sk0iv3e8daaMqBpyKNS/OaRg8XkroDsaafYITcSicMWR9+/X6RExSkYm5wQR1G1hP4OfzyBEIktRT55RgEoAreUInjP+ACEXuUIqG
+ ymw7rQnx0eSc0FaqeNHTbtgWGs581DFT/YEzrLARpdETfaapj9w7drd6pqSJg394bBYAl5uYpid1LOp10wd1rS4sMpa6/w==
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
@@ -51,55 +51,49 @@ X-Mailing-List: linux-media@vger.kernel.org
 
 From: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 
-Copy tags in vicodec.
+Add new flag to indicate that buffer tags are supported.
 
 Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 Reviewed-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 Reviewed-by: Alexandre Courbot <acourbot@chromium.org>
 ---
- drivers/media/platform/vicodec/vicodec-core.c | 14 +++-----------
- 1 file changed, 3 insertions(+), 11 deletions(-)
+ drivers/media/common/videobuf2/videobuf2-v4l2.c | 2 ++
+ include/media/videobuf2-core.h                  | 2 ++
+ 2 files changed, 4 insertions(+)
 
-diff --git a/drivers/media/platform/vicodec/vicodec-core.c b/drivers/media/platform/vicodec/vicodec-core.c
-index b7bdfe97215b..4d39ea033653 100644
---- a/drivers/media/platform/vicodec/vicodec-core.c
-+++ b/drivers/media/platform/vicodec/vicodec-core.c
-@@ -190,18 +190,8 @@ static int device_process(struct vicodec_ctx *ctx,
- 	}
- 
- 	out_vb->sequence = q_cap->sequence++;
--	out_vb->vb2_buf.timestamp = in_vb->vb2_buf.timestamp;
--
--	if (in_vb->flags & V4L2_BUF_FLAG_TIMECODE)
--		out_vb->timecode = in_vb->timecode;
--	out_vb->field = in_vb->field;
- 	out_vb->flags &= ~V4L2_BUF_FLAG_LAST;
--	out_vb->flags |= in_vb->flags &
--		(V4L2_BUF_FLAG_TIMECODE |
--		 V4L2_BUF_FLAG_KEYFRAME |
--		 V4L2_BUF_FLAG_PFRAME |
--		 V4L2_BUF_FLAG_BFRAME |
--		 V4L2_BUF_FLAG_TSTAMP_SRC_MASK);
-+	v4l2_m2m_buf_copy_data(in_vb, out_vb, !ctx->is_enc);
- 
- 	return 0;
+diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+index e0e31e1c67c9..5aa5b1ea90a8 100644
+--- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
++++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+@@ -659,6 +659,8 @@ static void fill_buf_caps(struct vb2_queue *q, u32 *caps)
+ 		*caps |= V4L2_BUF_CAP_SUPPORTS_DMABUF;
+ 	if (q->supports_requests)
+ 		*caps |= V4L2_BUF_CAP_SUPPORTS_REQUESTS;
++	if (q->supports_tags)
++		*caps |= V4L2_BUF_CAP_SUPPORTS_TAGS;
  }
-@@ -1083,6 +1073,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
- 	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
- 	src_vq->lock = ctx->is_enc ? &ctx->dev->enc_mutex :
- 		&ctx->dev->dec_mutex;
-+	src_vq->supports_tags = true;
  
- 	ret = vb2_queue_init(src_vq);
- 	if (ret)
-@@ -1098,6 +1089,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
- 	dst_vq->mem_ops = &vb2_vmalloc_memops;
- 	dst_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
- 	dst_vq->lock = src_vq->lock;
-+	dst_vq->supports_tags = true;
+ int vb2_reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index e86981d615ae..81f2dbfd0094 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -473,6 +473,7 @@ struct vb2_buf_ops {
+  *              has not been called. This is a vb1 idiom that has been adopted
+  *              also by vb2.
+  * @supports_requests: this queue supports the Request API.
++ * @supports_tags: this queue supports tags in struct v4l2_buffer.
+  * @uses_qbuf:	qbuf was used directly for this queue. Set to 1 the first
+  *		time this is called. Set to 0 when the queue is canceled.
+  *		If this is 1, then you cannot queue buffers from a request.
+@@ -547,6 +548,7 @@ struct vb2_queue {
+ 	unsigned			allow_zero_bytesused:1;
+ 	unsigned		   quirk_poll_must_check_waiting_for_buffers:1;
+ 	unsigned			supports_requests:1;
++	unsigned			supports_tags:1;
+ 	unsigned			uses_qbuf:1;
+ 	unsigned			uses_requests:1;
  
- 	return vb2_queue_init(dst_vq);
- }
 -- 
 2.19.1
 
