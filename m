@@ -7,26 +7,26 @@ X-Spam-Status: No, score=-8.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	URIBL_RHS_DOB,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E9D20C04EB9
-	for <linux-media@archiver.kernel.org>; Wed,  5 Dec 2018 09:25:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A27FC04EB9
+	for <linux-media@archiver.kernel.org>; Wed,  5 Dec 2018 09:25:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BBEEC20878
-	for <linux-media@archiver.kernel.org>; Wed,  5 Dec 2018 09:25:19 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org BBEEC20878
+	by mail.kernel.org (Postfix) with ESMTP id 58CF6206B7
+	for <linux-media@archiver.kernel.org>; Wed,  5 Dec 2018 09:25:35 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 58CF6206B7
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=bootlin.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727434AbeLEJZR (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 5 Dec 2018 04:25:17 -0500
-Received: from mail.bootlin.com ([62.4.15.54]:39765 "EHLO mail.bootlin.com"
+        id S1727545AbeLEJZ3 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 5 Dec 2018 04:25:29 -0500
+Received: from mail.bootlin.com ([62.4.15.54]:39881 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726924AbeLEJZQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 5 Dec 2018 04:25:16 -0500
+        id S1727517AbeLEJZ2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 5 Dec 2018 04:25:28 -0500
 Received: by mail.bootlin.com (Postfix, from userid 110)
-        id 3A68020510; Wed,  5 Dec 2018 10:25:14 +0100 (CET)
+        id EC74620E3B; Wed,  5 Dec 2018 10:25:24 +0100 (CET)
 Received: from localhost.localdomain (aaubervilliers-681-1-79-44.w90-88.abo.wanadoo.fr [90.88.21.44])
-        by mail.bootlin.com (Postfix) with ESMTPSA id D3DA920717;
-        Wed,  5 Dec 2018 10:25:03 +0100 (CET)
+        by mail.bootlin.com (Postfix) with ESMTPSA id 1085620A5A;
+        Wed,  5 Dec 2018 10:25:07 +0100 (CET)
 From:   Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 To:     linux-media@vger.kernel.org, devicetree@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
@@ -40,9 +40,9 @@ Cc:     Mauro Carvalho Chehab <mchehab@kernel.org>,
         Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
         linux-sunxi@googlegroups.com, Hans Verkuil <hverkuil@xs4all.nl>,
         Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v2 02/15] ARM: dts: sun8i: a33: Remove unnecessary reserved memory node
-Date:   Wed,  5 Dec 2018 10:24:31 +0100
-Message-Id: <20181205092444.29497-3-paul.kocialkowski@bootlin.com>
+Subject: [PATCH v2 13/15] media: cedrus: Add device-tree compatible and variant for A64 support
+Date:   Wed,  5 Dec 2018 10:24:42 +0100
+Message-Id: <20181205092444.29497-14-paul.kocialkowski@bootlin.com>
 X-Mailer: git-send-email 2.19.2
 In-Reply-To: <20181205092444.29497-1-paul.kocialkowski@bootlin.com>
 References: <20181205092444.29497-1-paul.kocialkowski@bootlin.com>
@@ -53,44 +53,40 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-While we believed that the memory for the video engine had to be kept
-in the first 256 MiBs of DRAM, this is no longer true starting with the
-A33 and any address can be mapped.
-
-As a result, remove the reserved memory node and let the kernel allocate
-the CMA pool wherever it sees fit.
+Add the necessary compatible for supporting the A64 SoC along with a
+description of the capabilities of this variant.
 
 Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 ---
- arch/arm/boot/dts/sun8i-a33.dtsi | 15 ---------------
- 1 file changed, 15 deletions(-)
+ drivers/staging/media/sunxi/cedrus/cedrus.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/arch/arm/boot/dts/sun8i-a33.dtsi b/arch/arm/boot/dts/sun8i-a33.dtsi
-index c2c10cd4a210..9ac4fae6c10d 100644
---- a/arch/arm/boot/dts/sun8i-a33.dtsi
-+++ b/arch/arm/boot/dts/sun8i-a33.dtsi
-@@ -186,21 +186,6 @@
- 		};
- 	};
+diff --git a/drivers/staging/media/sunxi/cedrus/cedrus.c b/drivers/staging/media/sunxi/cedrus/cedrus.c
+index f04b9bf23774..a71d8b659f8d 100644
+--- a/drivers/staging/media/sunxi/cedrus/cedrus.c
++++ b/drivers/staging/media/sunxi/cedrus/cedrus.c
+@@ -388,6 +388,10 @@ static const struct cedrus_variant sun8i_h3_cedrus_variant = {
+ 	.capabilities	= CEDRUS_CAPABILITY_UNTILED,
+ };
  
--	reserved-memory {
--		#address-cells = <1>;
--		#size-cells = <1>;
--		ranges;
--
--		/* Address must be kept in the lower 256 MiBs of DRAM for VE. */
--		default-pool {
--			compatible = "shared-dma-pool";
--			size = <0x6000000>;
--			alloc-ranges = <0x4a000000 0x6000000>;
--			reusable;
--			linux,cma-default;
--		};
--	};
--
- 	sound: sound {
- 		compatible = "simple-audio-card";
- 		simple-audio-card,name = "sun8i-a33-audio";
++static const struct cedrus_variant sun50i_a64_cedrus_variant = {
++	.capabilities	= CEDRUS_CAPABILITY_UNTILED,
++};
++
+ static const struct cedrus_variant sun50i_h5_cedrus_variant = {
+ 	.capabilities	= CEDRUS_CAPABILITY_UNTILED,
+ };
+@@ -413,6 +417,10 @@ static const struct of_device_id cedrus_dt_match[] = {
+ 		.compatible = "allwinner,sun8i-h3-video-engine",
+ 		.data = &sun8i_h3_cedrus_variant,
+ 	},
++	{
++		.compatible = "allwinner,sun50i-a64-video-engine",
++		.data = &sun50i_a64_cedrus_variant,
++	},
+ 	{
+ 		.compatible = "allwinner,sun50i-h5-video-engine",
+ 		.data = &sun50i_h5_cedrus_variant,
 -- 
 2.19.2
 
