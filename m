@@ -7,25 +7,25 @@ X-Spam-Status: No, score=-8.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	URIBL_RHS_DOB,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 14EE7C04EBF
-	for <linux-media@archiver.kernel.org>; Wed,  5 Dec 2018 09:26:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DA171C04EBF
+	for <linux-media@archiver.kernel.org>; Wed,  5 Dec 2018 09:26:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C70FE206B7
-	for <linux-media@archiver.kernel.org>; Wed,  5 Dec 2018 09:26:35 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org C70FE206B7
+	by mail.kernel.org (Postfix) with ESMTP id A89BA206B7
+	for <linux-media@archiver.kernel.org>; Wed,  5 Dec 2018 09:26:47 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org A89BA206B7
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=bootlin.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727710AbeLEJ0f (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 5 Dec 2018 04:26:35 -0500
-Received: from mail.bootlin.com ([62.4.15.54]:39806 "EHLO mail.bootlin.com"
+        id S1727094AbeLEJ0e (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 5 Dec 2018 04:26:34 -0500
+Received: from mail.bootlin.com ([62.4.15.54]:39798 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727485AbeLEJZ0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        id S1726924AbeLEJZ0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
         Wed, 5 Dec 2018 04:25:26 -0500
 Received: by mail.bootlin.com (Postfix, from userid 110)
-        id D563120E35; Wed,  5 Dec 2018 10:25:23 +0100 (CET)
+        id CE15F20E36; Wed,  5 Dec 2018 10:25:23 +0100 (CET)
 Received: from localhost.localdomain (aaubervilliers-681-1-79-44.w90-88.abo.wanadoo.fr [90.88.21.44])
-        by mail.bootlin.com (Postfix) with ESMTPSA id 00815207BD;
+        by mail.bootlin.com (Postfix) with ESMTPSA id AFBDD207B0;
         Wed,  5 Dec 2018 10:25:04 +0100 (CET)
 From:   Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 To:     linux-media@vger.kernel.org, devicetree@vger.kernel.org,
@@ -40,9 +40,9 @@ Cc:     Mauro Carvalho Chehab <mchehab@kernel.org>,
         Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
         linux-sunxi@googlegroups.com, Hans Verkuil <hverkuil@xs4all.nl>,
         Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v2 06/15] soc: sunxi: sram: Add support for the H5 SoC system control
-Date:   Wed,  5 Dec 2018 10:24:35 +0100
-Message-Id: <20181205092444.29497-7-paul.kocialkowski@bootlin.com>
+Subject: [PATCH v2 05/15] dt-bindings: sram: sunxi: Add bindings for the H5 with SRAM C1
+Date:   Wed,  5 Dec 2018 10:24:34 +0100
+Message-Id: <20181205092444.29497-6-paul.kocialkowski@bootlin.com>
 X-Mailer: git-send-email 2.19.2
 In-Reply-To: <20181205092444.29497-1-paul.kocialkowski@bootlin.com>
 References: <20181205092444.29497-1-paul.kocialkowski@bootlin.com>
@@ -53,30 +53,41 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-This adds the H5 SoC compatible to the list of device-tree matches for
-the SRAM driver. Since the variant is the same as the A64 (that precedes
-the H5), the same variant description is used.
+This introduces new bindings for the H5 SoC in the SRAM controller.
+Because the SRAM layout is different from other SoCs, no backward
+compatibility is assumed with any of them.
+
+However, the C1 SRAM section alone looks similar to previous SoCs,
+so it is compatible with the initial A10 binding.
 
 Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+Reviewed-by: Rob Herring <robh@kernel.org>
 ---
- drivers/soc/sunxi/sunxi_sram.c | 4 ++++
+ Documentation/devicetree/bindings/sram/sunxi-sram.txt | 4 ++++
  1 file changed, 4 insertions(+)
 
-diff --git a/drivers/soc/sunxi/sunxi_sram.c b/drivers/soc/sunxi/sunxi_sram.c
-index fd81a3c0db45..1b0d50f36349 100644
---- a/drivers/soc/sunxi/sunxi_sram.c
-+++ b/drivers/soc/sunxi/sunxi_sram.c
-@@ -383,6 +383,10 @@ static const struct of_device_id sunxi_sram_dt_match[] = {
- 		.compatible = "allwinner,sun50i-a64-system-control",
- 		.data = &sun50i_a64_sramc_variant,
- 	},
-+	{
-+		.compatible = "allwinner,sun50i-h5-system-control",
-+		.data = &sun50i_a64_sramc_variant,
-+	},
- 	{ },
- };
- MODULE_DEVICE_TABLE(of, sunxi_sram_dt_match);
+diff --git a/Documentation/devicetree/bindings/sram/sunxi-sram.txt b/Documentation/devicetree/bindings/sram/sunxi-sram.txt
+index 5c84850dd0df..5c9a54ad3b53 100644
+--- a/Documentation/devicetree/bindings/sram/sunxi-sram.txt
++++ b/Documentation/devicetree/bindings/sram/sunxi-sram.txt
+@@ -18,6 +18,7 @@ Required properties:
+     - "allwinner,sun8i-h3-system-control"
+     - "allwinner,sun50i-a64-sram-controller" (deprecated)
+     - "allwinner,sun50i-a64-system-control"
++    - "allwinner,sun50i-h5-system-control"
+     - "allwinner,sun50i-h6-system-control", "allwinner,sun50i-a64-system-control"
+     - "allwinner,suniv-f1c100s-system-control", "allwinner,sun4i-a10-system-control"
+ - reg : sram controller register offset + length
+@@ -56,6 +57,9 @@ The valid sections compatible for H3 are:
+ The valid sections compatible for A64 are:
+     - allwinner,sun50i-a64-sram-c
+ 
++The valid sections compatible for H5 are:
++    - allwinner,sun50i-h5-sram-c1, allwinner,sun4i-a10-sram-c1
++
+ The valid sections compatible for H6 are:
+     - allwinner,sun50i-h6-sram-c, allwinner,sun50i-a64-sram-c
+ 
 -- 
 2.19.2
 
