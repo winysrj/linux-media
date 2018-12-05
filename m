@@ -7,26 +7,26 @@ X-Spam-Status: No, score=-8.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	URIBL_RHS_DOB,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 16C9AC04EBF
-	for <linux-media@archiver.kernel.org>; Wed,  5 Dec 2018 09:26:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 14EE7C04EBF
+	for <linux-media@archiver.kernel.org>; Wed,  5 Dec 2018 09:26:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D95E420850
-	for <linux-media@archiver.kernel.org>; Wed,  5 Dec 2018 09:26:31 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org D95E420850
+	by mail.kernel.org (Postfix) with ESMTP id C70FE206B7
+	for <linux-media@archiver.kernel.org>; Wed,  5 Dec 2018 09:26:35 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org C70FE206B7
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=bootlin.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727680AbeLEJ0U (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 5 Dec 2018 04:26:20 -0500
-Received: from mail.bootlin.com ([62.4.15.54]:39827 "EHLO mail.bootlin.com"
+        id S1727710AbeLEJ0f (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 5 Dec 2018 04:26:35 -0500
+Received: from mail.bootlin.com ([62.4.15.54]:39806 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727486AbeLEJZ0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        id S1727485AbeLEJZ0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
         Wed, 5 Dec 2018 04:25:26 -0500
 Received: by mail.bootlin.com (Postfix, from userid 110)
-        id 20ACA207BF; Wed,  5 Dec 2018 10:25:24 +0100 (CET)
+        id D563120E35; Wed,  5 Dec 2018 10:25:23 +0100 (CET)
 Received: from localhost.localdomain (aaubervilliers-681-1-79-44.w90-88.abo.wanadoo.fr [90.88.21.44])
-        by mail.bootlin.com (Postfix) with ESMTPSA id 9185D20828;
-        Wed,  5 Dec 2018 10:25:05 +0100 (CET)
+        by mail.bootlin.com (Postfix) with ESMTPSA id 00815207BD;
+        Wed,  5 Dec 2018 10:25:04 +0100 (CET)
 From:   Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 To:     linux-media@vger.kernel.org, devicetree@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
@@ -40,9 +40,9 @@ Cc:     Mauro Carvalho Chehab <mchehab@kernel.org>,
         Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
         linux-sunxi@googlegroups.com, Hans Verkuil <hverkuil@xs4all.nl>,
         Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v2 08/15] ARM/arm64: sunxi: Move H3/H5 syscon label over to soc-specific nodes
-Date:   Wed,  5 Dec 2018 10:24:37 +0100
-Message-Id: <20181205092444.29497-9-paul.kocialkowski@bootlin.com>
+Subject: [PATCH v2 06/15] soc: sunxi: sram: Add support for the H5 SoC system control
+Date:   Wed,  5 Dec 2018 10:24:35 +0100
+Message-Id: <20181205092444.29497-7-paul.kocialkowski@bootlin.com>
 X-Mailer: git-send-email 2.19.2
 In-Reply-To: <20181205092444.29497-1-paul.kocialkowski@bootlin.com>
 References: <20181205092444.29497-1-paul.kocialkowski@bootlin.com>
@@ -53,71 +53,30 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-The EMAC driver requires a syscon node to access the EMAC clock
-configuration register (that is part of the system-control register
-range and controlled). For this purpose, a dummy syscon node was
-introduced to let the driver access the register freely.
-
-Recently, the EMAC driver was tuned to get access to the register when
-the SRAM driver is registered (as used on the A64). As a result, it is
-no longer necessary to have a dummy syscon node for that purpose.
-
-Now that we have a proper system-control node for both the H3 and H5,
-we can get rid of that dummy syscon node and have the EMAC driver use
-the node corresponding to the proper SRAM driver (by switching the
-syscon label over to each dtsi). This way, we no longer have two
-separate nodes for the same register space.
+This adds the H5 SoC compatible to the list of device-tree matches for
+the SRAM driver. Since the variant is the same as the A64 (that precedes
+the H5), the same variant description is used.
 
 Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 ---
- arch/arm/boot/dts/sun8i-h3.dtsi              | 2 +-
- arch/arm/boot/dts/sunxi-h3-h5.dtsi           | 6 ------
- arch/arm64/boot/dts/allwinner/sun50i-h5.dtsi | 2 +-
- 3 files changed, 2 insertions(+), 8 deletions(-)
+ drivers/soc/sunxi/sunxi_sram.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/arch/arm/boot/dts/sun8i-h3.dtsi b/arch/arm/boot/dts/sun8i-h3.dtsi
-index e438e54580e1..a858d91dd4c6 100644
---- a/arch/arm/boot/dts/sun8i-h3.dtsi
-+++ b/arch/arm/boot/dts/sun8i-h3.dtsi
-@@ -120,7 +120,7 @@
- 	};
- 
- 	soc {
--		system-control@1c00000 {
-+		syscon: system-control@1c00000 {
- 			compatible = "allwinner,sun8i-h3-system-control";
- 			reg = <0x01c00000 0x1000>;
- 			#address-cells = <1>;
-diff --git a/arch/arm/boot/dts/sunxi-h3-h5.dtsi b/arch/arm/boot/dts/sunxi-h3-h5.dtsi
-index 0d9e9eac518c..ed5846982685 100644
---- a/arch/arm/boot/dts/sunxi-h3-h5.dtsi
-+++ b/arch/arm/boot/dts/sunxi-h3-h5.dtsi
-@@ -152,12 +152,6 @@
- 			};
- 		};
- 
--		syscon: syscon@1c00000 {
--			compatible = "allwinner,sun8i-h3-system-controller",
--				"syscon";
--			reg = <0x01c00000 0x1000>;
--		};
--
- 		dma: dma-controller@1c02000 {
- 			compatible = "allwinner,sun8i-h3-dma";
- 			reg = <0x01c02000 0x1000>;
-diff --git a/arch/arm64/boot/dts/allwinner/sun50i-h5.dtsi b/arch/arm64/boot/dts/allwinner/sun50i-h5.dtsi
-index 42bfb560b367..4e9025431e9f 100644
---- a/arch/arm64/boot/dts/allwinner/sun50i-h5.dtsi
-+++ b/arch/arm64/boot/dts/allwinner/sun50i-h5.dtsi
-@@ -94,7 +94,7 @@
- 	};
- 
- 	soc {
--		system-control@1c00000 {
-+		syscon: system-control@1c00000 {
- 			compatible = "allwinner,sun50i-h5-system-control";
- 			reg = <0x01c00000 0x1000>;
- 			#address-cells = <1>;
+diff --git a/drivers/soc/sunxi/sunxi_sram.c b/drivers/soc/sunxi/sunxi_sram.c
+index fd81a3c0db45..1b0d50f36349 100644
+--- a/drivers/soc/sunxi/sunxi_sram.c
++++ b/drivers/soc/sunxi/sunxi_sram.c
+@@ -383,6 +383,10 @@ static const struct of_device_id sunxi_sram_dt_match[] = {
+ 		.compatible = "allwinner,sun50i-a64-system-control",
+ 		.data = &sun50i_a64_sramc_variant,
+ 	},
++	{
++		.compatible = "allwinner,sun50i-h5-system-control",
++		.data = &sun50i_a64_sramc_variant,
++	},
+ 	{ },
+ };
+ MODULE_DEVICE_TABLE(of, sunxi_sram_dt_match);
 -- 
 2.19.2
 
