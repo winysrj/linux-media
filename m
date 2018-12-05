@@ -2,59 +2,60 @@ Return-Path: <SRS0=NzSx=OO=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,URIBL_RHS_DOB autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	URIBL_RHS_DOB autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B44DC04EBF
-	for <linux-media@archiver.kernel.org>; Wed,  5 Dec 2018 10:01:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CFD24C04EBF
+	for <linux-media@archiver.kernel.org>; Wed,  5 Dec 2018 10:02:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DE73F20989
-	for <linux-media@archiver.kernel.org>; Wed,  5 Dec 2018 10:01:56 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org DE73F20989
+	by mail.kernel.org (Postfix) with ESMTP id A04B620989
+	for <linux-media@archiver.kernel.org>; Wed,  5 Dec 2018 10:02:46 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org A04B620989
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=csie.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727515AbeLEJst (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 5 Dec 2018 04:48:49 -0500
-Received: from mail-ed1-f67.google.com ([209.85.208.67]:45778 "EHLO
+        id S1728501AbeLEKCj (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 5 Dec 2018 05:02:39 -0500
+Received: from mail-ed1-f67.google.com ([209.85.208.67]:40333 "EHLO
         mail-ed1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727337AbeLEJss (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Dec 2018 04:48:48 -0500
-Received: by mail-ed1-f67.google.com with SMTP id d39so16405511edb.12;
-        Wed, 05 Dec 2018 01:48:47 -0800 (PST)
+        with ESMTP id S1729072AbeLEJpe (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Dec 2018 04:45:34 -0500
+Received: by mail-ed1-f67.google.com with SMTP id d3so16431487edx.7;
+        Wed, 05 Dec 2018 01:45:32 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=Gurne33gwhpLkCvGi9a1PbXR8R7tVqXsE2HVurD45GM=;
-        b=Na035VTCTuXT7icNUSqvxHSL4xKvtb1abfdCaIfMNtM8H1Xtg9JvIRsnX0Uz1OAHQK
-         cAOMrQV3Gko8B3hViuwC/QJBtpDgJuk+fIZzsxd8cZm3UCBXe08WcasAkF/26xbYLZe4
-         N9meVlYg7wC/d55TQTkGXf/BE0+wePYl47ubr3sHubrpnL+SR3CKUG38aeTfHkFUK7kW
-         X6WBSndpzTLHetKUpCJuJYturMEvsJXblK+tVi0sergAZdgO3cM7cd4IiTy2RXVXNhtH
-         MQ65+f0GoLx+XWttf2BSP/3AwcQeBDSq6hgoIPuJygT7cQ9uv6+mKZj8NOw/+XqNSlAz
-         /+yA==
-X-Gm-Message-State: AA+aEWbSeOiwvQk7T1DwmM+ZwhbayB/Dtgeg7BI0OjIiY35fTXXwK4Vh
-        qNlcFumcL0n4V2F58PJgHmHn9q5vJ1I=
-X-Google-Smtp-Source: AFSGD/UzCIprbESrXCuNMPzFM50lFepDT/WWfMqyHvk9pAK9tyLqeAEX4tIO1ETQbpTgocq/D5EApg==
-X-Received: by 2002:a50:f5af:: with SMTP id u44mr21771124edm.172.1544003326234;
-        Wed, 05 Dec 2018 01:48:46 -0800 (PST)
-Received: from mail-wm1-f46.google.com (mail-wm1-f46.google.com. [209.85.128.46])
-        by smtp.gmail.com with ESMTPSA id v11sm5460680edy.49.2018.12.05.01.48.45
+        bh=TV1XO0Uved8LFFNzA4LL71DcJa0tScM4mubEOFV4mR0=;
+        b=KroFkHR7ALGcBlw8163R8xnciUG6WPFtjqky3uiikrA/EN5XPUxRbdv2CyVViavt7w
+         5LJ1LKjSeyIV4qFU9M2A52wuF10Nsc99aB3c7A6DMFPjBj9dpS4N6hOgf9amOW7pMdJ8
+         ZURTVtI1mbzqvZRpaXY1EJpJhOIZFywh1ydbOOzu3FKZh++/T/Y5eLkH7zovA+PaYXLt
+         c3b1WqVkQQuJtAPcisg/XVELyhgxTrSjZcoVEfzIHnvN8KFRDKvUU+r3J+2g+zdyJODb
+         0pO4tDnM+zRSaUZ089c8QxsnIw+7oViODSXfnqmpkrlrB+LBN6BLOAPbwbaOPzT0h0iA
+         JEZw==
+X-Gm-Message-State: AA+aEWayT4w6+EolP/+xoZae2GJdrbnMaISYEjnXWMJUhKpoKQWsSn/D
+        xi6fgyPEtblxXTL0jw/okV4YGJpu73g=
+X-Google-Smtp-Source: AFSGD/Uv+7Q6Jef/bi4d+SascgkzjfEmLCGxmooTsf3roYegEsokS/4knjZwj50691todaY2EhcbAg==
+X-Received: by 2002:a50:b0e5:: with SMTP id j92mr19431224edd.188.1544003131995;
+        Wed, 05 Dec 2018 01:45:31 -0800 (PST)
+Received: from mail-wm1-f48.google.com (mail-wm1-f48.google.com. [209.85.128.48])
+        by smtp.gmail.com with ESMTPSA id e53sm5424517ede.90.2018.12.05.01.45.30
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 05 Dec 2018 01:48:45 -0800 (PST)
-Received: by mail-wm1-f46.google.com with SMTP id z18so12538815wmc.4;
-        Wed, 05 Dec 2018 01:48:45 -0800 (PST)
-X-Received: by 2002:a1c:f605:: with SMTP id w5mr15965019wmc.116.1544003325382;
- Wed, 05 Dec 2018 01:48:45 -0800 (PST)
+        Wed, 05 Dec 2018 01:45:31 -0800 (PST)
+Received: by mail-wm1-f48.google.com with SMTP id m22so12185932wml.3;
+        Wed, 05 Dec 2018 01:45:30 -0800 (PST)
+X-Received: by 2002:a1c:c008:: with SMTP id q8mr13866947wmf.99.1544003130312;
+ Wed, 05 Dec 2018 01:45:30 -0800 (PST)
 MIME-Version: 1.0
-References: <20181205092444.29497-1-paul.kocialkowski@bootlin.com>
-In-Reply-To: <20181205092444.29497-1-paul.kocialkowski@bootlin.com>
+References: <20181205092444.29497-1-paul.kocialkowski@bootlin.com> <20181205092444.29497-8-paul.kocialkowski@bootlin.com>
+In-Reply-To: <20181205092444.29497-8-paul.kocialkowski@bootlin.com>
 From:   Chen-Yu Tsai <wens@csie.org>
-Date:   Wed, 5 Dec 2018 17:48:34 +0800
-X-Gmail-Original-Message-ID: <CAGb2v64fjKbxET61S7NzTaPGJc7-XUG=Zb87_BOah9xWr5zpvg@mail.gmail.com>
-Message-ID: <CAGb2v64fjKbxET61S7NzTaPGJc7-XUG=Zb87_BOah9xWr5zpvg@mail.gmail.com>
-Subject: Re: [PATCH v2 00/15] Cedrus H5 and A64 support with A33 and H3 updates
+Date:   Wed, 5 Dec 2018 17:45:18 +0800
+X-Gmail-Original-Message-ID: <CAGb2v66JwZ_RkEdk6sz-0Z7EJx7ieG3zBT6yr-95X6guxUkKTg@mail.gmail.com>
+Message-ID: <CAGb2v66JwZ_RkEdk6sz-0Z7EJx7ieG3zBT6yr-95X6guxUkKTg@mail.gmail.com>
+Subject: Re: [PATCH v2 07/15] arm64: dts: allwinner: h5: Add system-control
+ node with SRAM C1
 To:     Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 Cc:     Linux Media Mailing List <linux-media@vger.kernel.org>,
         devicetree <devicetree@vger.kernel.org>,
@@ -78,44 +79,57 @@ X-Mailing-List: linux-media@vger.kernel.org
 On Wed, Dec 5, 2018 at 5:25 PM Paul Kocialkowski
 <paul.kocialkowski@bootlin.com> wrote:
 >
-> This series adds support for the Allwinner H5 and A64 platforms to the
-> cedrus stateless video codec driver, with minor updates to the A33 and
-> H3 platforms.
+> Add the H5-specific system control node description to its device-tree
+> with support for the SRAM C1 section, that will be used by the video
+> codec node later on.
 >
-> It requires changes to the SRAM driver bindings and driver, to properly
-> support the H5 and the A64 C1 SRAM section. Because a H5-specific
-> system-control node is introduced, the dummy syscon node that was shared
-> between the H3 and H5 is removed in favor of each platform-specific node.
-> A few fixes are included to ensure that the EMAC clock configuration
-> register is still accessible through the sunxi SRAM driver (instead of the
-> dummy syscon node, that was there for this purpose) on the H3 and H5.
+> The CPU-side SRAM address was obtained empirically while the size was
+> taken from the documentation. They may not be entirely accurate.
 >
-> The reserved memory nodes for the A33 and H3 are also removed in this
-> series, since they are not actually necessary.
+> Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+> ---
+>  arch/arm64/boot/dts/allwinner/sun50i-h5.dtsi | 22 ++++++++++++++++++++
+>  1 file changed, 22 insertions(+)
 >
-> Changes since v1:
-> * Removed the reserved-memory nodes for the A64 and H5;
-> * Removed the reserved-memory nodes for the A33 and H3;
-> * Corrected the SRAM bases and sizes to the best of our knowledge;
-> * Dropped cosmetic dt changes already included in the sunxi tree.
+> diff --git a/arch/arm64/boot/dts/allwinner/sun50i-h5.dtsi b/arch/arm64/boot/dts/allwinner/sun50i-h5.dtsi
+> index b41dc1aab67d..42bfb560b367 100644
+> --- a/arch/arm64/boot/dts/allwinner/sun50i-h5.dtsi
+> +++ b/arch/arm64/boot/dts/allwinner/sun50i-h5.dtsi
+> @@ -94,6 +94,28 @@
+>         };
 >
-> Paul Kocialkowski (15):
->   ARM: dts: sun8i: h3: Fix the system-control register range
->   ARM: dts: sun8i: a33: Remove unnecessary reserved memory node
->   ARM: dts: sun8i: h3: Remove unnecessary reserved memory node
->   soc: sunxi: sram: Enable EMAC clock access for H3 variant
->   dt-bindings: sram: sunxi: Add bindings for the H5 with SRAM C1
->   soc: sunxi: sram: Add support for the H5 SoC system control
->   arm64: dts: allwinner: h5: Add system-control node with SRAM C1
->   ARM/arm64: sunxi: Move H3/H5 syscon label over to soc-specific nodes
->   dt-bindings: sram: sunxi: Add compatible for the A64 SRAM C1
->   arm64: dts: allwinner: a64: Add support for the SRAM C1 section
->   dt-bindings: media: cedrus: Add compatibles for the A64 and H5
->   media: cedrus: Add device-tree compatible and variant for H5 support
->   media: cedrus: Add device-tree compatible and variant for A64 support
->   arm64: dts: allwinner: h5: Add Video Engine node
->   arm64: dts: allwinner: a64: Add Video Engine node
+>         soc {
+> +               system-control@1c00000 {
+> +                       compatible = "allwinner,sun50i-h5-system-control";
+> +                       reg = <0x01c00000 0x1000>;
+> +                       #address-cells = <1>;
+> +                       #size-cells = <1>;
+> +                       ranges;
+> +
+> +                       sram_c1: sram@1d00000 {
+> +                               compatible = "mmio-sram";
+> +                               reg = <0x00018000 0x1c000>;
 
-Other than the error in patch 7,
+0x1d00000 or 0x18000?
 
-Acked-by: Chen-Yu Tsai <wens@csie.org>
+> +                               #address-cells = <1>;
+> +                               #size-cells = <1>;
+> +                               ranges = <0 0x00018000 0x1c000>;
+
+Same here.
+
+> +
+> +                               ve_sram: sram-section@0 {
+> +                                       compatible = "allwinner,sun50i-h5-sram-c1",
+> +                                                    "allwinner,sun4i-a10-sram-c1";
+> +                                       reg = <0x000000 0x1c000>;
+> +                               };
+> +                       };
+> +               };
+> +
+>                 mali: gpu@1e80000 {
+>                         compatible = "allwinner,sun50i-h5-mali", "arm,mali-450";
+>                         reg = <0x01e80000 0x30000>;
+> --
+> 2.19.2
+>
