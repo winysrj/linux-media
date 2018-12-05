@@ -2,132 +2,90 @@ Return-Path: <SRS0=NzSx=OO=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,URIBL_RHS_DOB,
+	USER_AGENT_NEOMUTT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 65F36C04EB9
-	for <linux-media@archiver.kernel.org>; Wed,  5 Dec 2018 10:55:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9FC75C04EB9
+	for <linux-media@archiver.kernel.org>; Wed,  5 Dec 2018 11:00:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2D0B6206B7
-	for <linux-media@archiver.kernel.org>; Wed,  5 Dec 2018 10:55:33 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 2D0B6206B7
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=iki.fi
+	by mail.kernel.org (Postfix) with ESMTP id 6E82B20672
+	for <linux-media@archiver.kernel.org>; Wed,  5 Dec 2018 11:00:29 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 6E82B20672
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=bootlin.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727025AbeLEKzc (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 5 Dec 2018 05:55:32 -0500
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39364 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726171AbeLEKzc (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 5 Dec 2018 05:55:32 -0500
-Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id 46EAC634C83
-        for <linux-media@vger.kernel.org>; Wed,  5 Dec 2018 12:55:24 +0200 (EET)
-Received: from sailus by valkosipuli.localdomain with local (Exim 4.89)
-        (envelope-from <sakari.ailus@retiisi.org.uk>)
-        id 1gUUpw-0000Ph-6o
-        for linux-media@vger.kernel.org; Wed, 05 Dec 2018 12:55:24 +0200
-Date:   Wed, 5 Dec 2018 12:55:24 +0200
-From:   sakari.ailus@iki.fi
-To:     linux-media@vger.kernel.org
-Subject: [GIT PULL for 4.21] More sensor driver patches
-Message-ID: <20181205105524.zzugyiya53ytutg7@valkosipuli.retiisi.org.uk>
+        id S1727444AbeLELA2 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 5 Dec 2018 06:00:28 -0500
+Received: from mail.bootlin.com ([62.4.15.54]:47540 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726937AbeLELA2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 5 Dec 2018 06:00:28 -0500
+Received: by mail.bootlin.com (Postfix, from userid 110)
+        id C8F4A20C18; Wed,  5 Dec 2018 12:00:26 +0100 (CET)
+Received: from localhost (aaubervilliers-681-1-79-44.w90-88.abo.wanadoo.fr [90.88.21.44])
+        by mail.bootlin.com (Postfix) with ESMTPSA id 2595B20CC9;
+        Wed,  5 Dec 2018 12:00:09 +0100 (CET)
+Date:   Wed, 5 Dec 2018 12:00:09 +0100
+From:   Maxime Ripard <maxime.ripard@bootlin.com>
+To:     Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+Cc:     linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        devel@driverdev.osuosl.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        linux-sunxi@googlegroups.com, Hans Verkuil <hverkuil@xs4all.nl>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH v2 11/15] dt-bindings: media: cedrus: Add compatibles for
+ the A64 and H5
+Message-ID: <20181205110009.f4st7fspaxiphnmn@flea>
+References: <20181205092444.29497-1-paul.kocialkowski@bootlin.com>
+ <20181205092444.29497-12-paul.kocialkowski@bootlin.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="lzx3jafuwqktgjoq"
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-User-Agent: NeoMutt/20170113 (1.7.2)
+In-Reply-To: <20181205092444.29497-12-paul.kocialkowski@bootlin.com>
+User-Agent: NeoMutt/20180716
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Mauro,
 
-Here are improvements for various sensor drivers for 4.21. There area few
-trivial V4L2 fwnode and async framework changes as well, plus DT binding
-documentation for mt9m111.
+--lzx3jafuwqktgjoq
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Please pull.
+On Wed, Dec 05, 2018 at 10:24:40AM +0100, Paul Kocialkowski wrote:
+> This introduces two new compatibles for the cedrus driver, for the
+> A64 and H5 platforms.
+>=20
+> Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+> Reviewed-by: Rob Herring <robh@kernel.org>
 
+Acked-by: Maxime Ripard <maxime.ripard@bootlin.com>
 
-The following changes since commit 9b90dc85c718443a3e573a0ccf55900ff4fa73ae:
+Maxime
 
-  media: seco-cec: add missing header file to fix build (2018-12-03 15:11:00 -0500)
+--=20
+Maxime Ripard, Bootlin
+Embedded Linux and Kernel engineering
+https://bootlin.com
 
-are available in the git repository at:
+--lzx3jafuwqktgjoq
+Content-Type: application/pgp-signature; name="signature.asc"
 
-  ssh://linuxtv.org/git/sailus/media_tree.git tags/for-4.21-4-sign
+-----BEGIN PGP SIGNATURE-----
 
-for you to fetch changes up to bf8da26398f03704bbf7bb10b9c847fd187f4260:
+iHUEABYIAB0WIQRcEzekXsqa64kGDp7j7w1vZxhRxQUCXAevuQAKCRDj7w1vZxhR
+xftIAP9U8aHjcpqk2dL0l0oLpZZiJ6ZMEbXUCrgStsWNlU9QvgEAvrnA6bduvOGH
+8X8BVPhBM60c42rwTEoR3v7eqRifswQ=
+=6tph
+-----END PGP SIGNATURE-----
 
-  v4l2: async: remove locking when initializing async notifier (2018-12-05 12:10:24 +0200)
-
-----------------------------------------------------------------
-sensor driver patches and stuff for 4.21
-
-----------------------------------------------------------------
-Bingbu Cao (3):
-      media: imx319: fix wrong order in test pattern menus
-      media: imx355: fix wrong order in test pattern menus
-      media: unify some sony camera sensors pattern naming
-
-Enrico Scholz (1):
-      media: mt9m111: allow to setup pixclk polarity
-
-Fabio Estevam (1):
-      media: v4l2-fwnode: Demote warning to debug level
-
-Jacopo Mondi (1):
-      media: ov5640: Fix set format regression
-
-Luca Ceresoli (3):
-      media: imx274: fix stack corruption in imx274_read_reg
-      media: imx274: declare the correct number of controls
-      media: imx274: select REGMAP_I2C
-
-Marco Felsch (3):
-      media: mt9m111: add s_stream callback
-      dt-bindings: media: mt9m111: adapt documentation to be more clear
-      dt-bindings: media: mt9m111: add pclk-sample property
-
-Maxime Ripard (11):
-      media: ov5640: Adjust the clock based on the expected rate
-      media: ov5640: Remove the clocks registers initialization
-      media: ov5640: Remove redundant defines
-      media: ov5640: Remove redundant register setup
-      media: ov5640: Compute the clock rate at runtime
-      media: ov5640: Remove pixel clock rates
-      media: ov5640: Enhance FPS handling
-      media: ov5640: Make the return rate type more explicit
-      media: ov5640: Make the FPS clamping / rounding more extendable
-      media: ov5640: Add 60 fps support
-      media: ov5640: Remove duplicate auto-exposure setup
-
-Michael Grzeschik (2):
-      media: mt9m111: add streaming check to set_fmt
-      media: mt9m111: add support to select formats and fps for {Q,SXGA}
-
-Niklas Söderlund (1):
-      v4l2: async: remove locking when initializing async notifier
-
- .../devicetree/bindings/media/i2c/mt9m111.txt      |  13 +-
- drivers/media/i2c/Kconfig                          |   2 +
- drivers/media/i2c/imx258.c                         |   8 +-
- drivers/media/i2c/imx274.c                         |   9 +-
- drivers/media/i2c/imx319.c                         |   8 +-
- drivers/media/i2c/imx355.c                         |   8 +-
- drivers/media/i2c/mt9m111.c                        | 222 +++++-
- drivers/media/i2c/ov5640.c                         | 764 ++++++++++++---------
- drivers/media/v4l2-core/v4l2-async.c               |   4 -
- drivers/media/v4l2-core/v4l2-fwnode.c              |   2 +-
- 10 files changed, 703 insertions(+), 337 deletions(-)
-
--- 
-Regards,
-
-Sakari Ailus
+--lzx3jafuwqktgjoq--
