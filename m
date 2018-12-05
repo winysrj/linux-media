@@ -2,56 +2,57 @@ Return-Path: <SRS0=NzSx=OO=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A802C04EB9
-	for <linux-media@archiver.kernel.org>; Wed,  5 Dec 2018 17:55:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B416C04EB9
+	for <linux-media@archiver.kernel.org>; Wed,  5 Dec 2018 18:34:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 22DAA213A2
-	for <linux-media@archiver.kernel.org>; Wed,  5 Dec 2018 17:55:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 139D020645
+	for <linux-media@archiver.kernel.org>; Wed,  5 Dec 2018 18:34:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1544032514;
-	bh=w5xZndrWRCV6l+DPdTY9y772dodn4NjwmzQ805J04Eo=;
+	s=default; t=1544034851;
+	bh=YQOSxRqrMDXSzZ416613Cv7VRZLeRMov5z/OhZPDN4g=;
 	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
-	b=hMe8J1Wyu84el+LKm226WaBaH7owp9z5wo7W8u4Fvby+p4zfzRVvROuk6yRJbp3s2
-	 yIo2HR5dKZz5pL0wS6PNFFGn6ch1p4ECDOggWwMe5Qvc+tr2I3Toz0pO+hsNE+0EHo
-	 pQU4HWQ/0rJBBE+MTKmN+tbg66FHLHwV/tiKcIsk=
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 22DAA213A2
+	b=Uen4NKCKgu5+QcH5jj+dNdp5W+/B1wcHwJ2D04LyWbFt+xbZZCuhiFMYxReCpHP6S
+	 gaP5IGVYvlGuQbcjEHRWfn22paMgGMnqsg0aypQV073A73YAHiA/URLY1k9f+LtBCR
+	 58COPJtfCwdWhKn9L34vjhXz1iqglexwHhqke3UQ=
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 139D020645
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727514AbeLERzN (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 5 Dec 2018 12:55:13 -0500
-Received: from casper.infradead.org ([85.118.1.10]:37114 "EHLO
+        id S1728190AbeLESeK (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 5 Dec 2018 13:34:10 -0500
+Received: from casper.infradead.org ([85.118.1.10]:40210 "EHLO
         casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727349AbeLERzN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Dec 2018 12:55:13 -0500
+        with ESMTP id S1727866AbeLESeK (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Dec 2018 13:34:10 -0500
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
         MIME-Version:References:In-Reply-To:Message-ID:Subject:Cc:To:From:Date:Sender
         :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
         Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
         List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=Ly4uw19fvVwBbiOognAT7YhfV4AcIAvUCG6OOl2xnL4=; b=HAUV48diHPWawggLUzAgeXAVUm
-        uY5ZfOlfjsbEoGv8aeZpEshrgJuZa+HxLJuJGtyZfWhanGw9Ma5YFfhCOQnTpre1YCLwr/DAnliY7
-        C13QewqNvhrE2SQGwsOgyee0qlqzyxZv1dhSbMiMQQ/Glow2vfXLo2MnDSvETVgJOGw5q3iZtOk1/
-        etiIsyNLm02CC0dDE/35d5ABW4JLZVu4A/jmARJjS4iG5J7h6O1a7a34SraqnzkfZmd+8uU5XJ7d7
-        KeujN560kImTbA5PAagZr9zr8ltpehsZycyH4hXSmU/86PKhyXWE9eZp5dnEkuvpVmrYwoRUZ2u6/
-        /CG23JVQ==;
+        bh=oqw0eQbDz8IPV1yhKFNyhMettbQgql9vDoLeHm+0CJw=; b=fBbq36haa8ELLsapOpxeajeZ5B
+        wuq22j6NxIEN0C8ccSJCM5dIfjrclSIfuAvxajrYPdwCg13suAaz03GYp8gxIOdM6cuxwGgVFKy8j
+        mgS/YNalSkww9uzLkzFMPrK14XoUl0IBOFiYUXbawbNgi6MgF/bWpa6o+RpEMWthvZXnHKVu6BO+3
+        8fBDbmTeV8n6+RifmBPupRMXhE+quCseNnYHi35ol/JphSSQz19SuEAl0LPuu64Pv8DZ8CO85JCfc
+        axpML0dSpatFJV/5VdvmOJRLJY6LeQv/gPMFCxmwb+uf5LfTne9raSwRHsezJog/WTsZm7m17v5sS
+        LD+UPrQg==;
 Received: from 201.86.173.17.dynamic.adsl.gvt.net.br ([201.86.173.17] helo=coco.lan)
         by casper.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
-        id 1gUbOB-0002hz-6n; Wed, 05 Dec 2018 17:55:11 +0000
-Date:   Wed, 5 Dec 2018 15:55:07 -0200
-From:   Mauro Carvalho Chehab <mchehab@kernel.org>
-To:     Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc:     linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH v2 1/1] media: Add a Kconfig option for the Request API
-Message-ID: <20181205155507.1bae41ed@coco.lan>
-In-Reply-To: <20181205172354.32372-1-sakari.ailus@linux.intel.com>
-References: <20181205172354.32372-1-sakari.ailus@linux.intel.com>
+        id 1gUbzs-0004QV-1O; Wed, 05 Dec 2018 18:34:08 +0000
+Date:   Wed, 5 Dec 2018 16:34:04 -0200
+From:   Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To:     Hans Verkuil <hverkuil@xs4all.nl>
+Cc:     Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Ezequiel Garcia <ezequiel@collabora.com>
+Subject: Re: [GIT PULL FOR v4.21] Rockchip VPU JPEG encoder driver
+Message-ID: <20181205163404.26952aac@coco.lan>
+In-Reply-To: <c7c87316-983a-6918-592c-337a1dc6a739@xs4all.nl>
+References: <c7c87316-983a-6918-592c-337a1dc6a739@xs4all.nl>
 X-Mailer: Claws Mail 3.16.0 (GTK+ 2.24.32; x86_64-redhat-linux-gnu)
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
@@ -61,109 +62,73 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Em Wed,  5 Dec 2018 19:23:54 +0200
-Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+Em Wed, 5 Dec 2018 17:29:38 +0100
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-> The Request API is now merged to the kernel but the confidence on the
-> stability of that API is not great, especially regarding the interaction
-> with V4L2.
+> Note regarding the first 'Revert' patch: that is this patch:
 > 
-> Add a Kconfig option for the API, with a scary-looking warning.
+> https://patchwork.linuxtv.org/patch/52869/
 > 
-> The patch itself disables request creation as well as does not advertise
-> them as buffer flags. The driver requiring requests (cedrus) now depends
-> on the Kconfig option as well.
+> It is currently pending for 4.20 as a fix, but since it is not merged upstream
+> yet, our master branch still has those old bindings.
 > 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Acked-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+> I decided to first apply the Revert patch, then add the new patch on top.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> The following changes since commit da2c94c8f9739e4099ea3cfefc208fc721b22a9c:
+> 
+>   media: v4l2: async: remove locking when initializing async notifier (2018-12-05 06:51:28 -0500)
+> 
+> are available in the Git repository at:
+> 
+>   git://linuxtv.org/hverkuil/media_tree.git tags/br-rkjpeg2
+> 
+> for you to fetch changes up to 7f608cfd52c08e7d84bd38438e330c26263eddcb:
+> 
+>   media: add Rockchip VPU JPEG encoder driver (2018-12-05 17:18:46 +0100)
+> 
+> ----------------------------------------------------------------
+> Tag branch
+> 
+> ----------------------------------------------------------------
+> Ezequiel Garcia (3):
+>       Revert "media: dt-bindings: Document the Rockchip VPU bindings"
+>       media: dt-bindings: Document the Rockchip VPU bindings
+>       media: add Rockchip VPU JPEG encoder driver
 
-Looks good to me. I'll apply it.
+Checkpatch produces a few warnings:
 
-> ---
-> since v1:
-> 
-> - Write out the #ifdef's in request creation
-> 
-> - The option's functionality was reversed in request creation, fixed that
-> 
->  drivers/media/Kconfig                           | 13 +++++++++++++
->  drivers/media/common/videobuf2/videobuf2-v4l2.c |  2 ++
->  drivers/media/media-device.c                    |  4 ++++
->  drivers/staging/media/sunxi/cedrus/Kconfig      |  1 +
->  4 files changed, 20 insertions(+)
-> 
-> diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
-> index 8add62a18293..102eb35fcf3f 100644
-> --- a/drivers/media/Kconfig
-> +++ b/drivers/media/Kconfig
-> @@ -110,6 +110,19 @@ config MEDIA_CONTROLLER_DVB
->  
->  	  This is currently experimental.
->  
-> +config MEDIA_CONTROLLER_REQUEST_API
-> +	bool "Enable Media controller Request API (EXPERIMENTAL)"
-> +	depends on MEDIA_CONTROLLER && STAGING_MEDIA
-> +	default n
-> +	---help---
-> +	  DO NOT ENABLE THIS OPTION UNLESS YOU KNOW WHAT YOU'RE DOING.
-> +
-> +	  This option enables the Request API for the Media controller and V4L2
-> +	  interfaces. It is currently needed by a few stateless codec drivers.
-> +
-> +	  There is currently no intention to provide API or ABI stability for
-> +	  this new API as of yet.
-> +
->  #
->  # Video4Linux support
->  #	Only enables if one of the V4L2 types (ATV, webcam, radio) is selected
-> diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-> index 1244c246d0c4..83c3c0c49e56 100644
-> --- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
-> +++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-> @@ -630,8 +630,10 @@ static void fill_buf_caps(struct vb2_queue *q, u32 *caps)
->  		*caps |= V4L2_BUF_CAP_SUPPORTS_USERPTR;
->  	if (q->io_modes & VB2_DMABUF)
->  		*caps |= V4L2_BUF_CAP_SUPPORTS_DMABUF;
-> +#ifdef CONFIG_MEDIA_CONTROLLER_REQUEST_API
->  	if (q->supports_requests)
->  		*caps |= V4L2_BUF_CAP_SUPPORTS_REQUESTS;
-> +#endif
->  }
->  
->  int vb2_reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
-> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> index bed24372e61f..b8ec88612df7 100644
-> --- a/drivers/media/media-device.c
-> +++ b/drivers/media/media-device.c
-> @@ -381,10 +381,14 @@ static long media_device_get_topology(struct media_device *mdev, void *arg)
->  static long media_device_request_alloc(struct media_device *mdev,
->  				       int *alloc_fd)
->  {
-> +#ifdef CONFIG_MEDIA_CONTROLLER_REQUEST_API
->  	if (!mdev->ops || !mdev->ops->req_validate || !mdev->ops->req_queue)
->  		return -ENOTTY;
->  
->  	return media_request_alloc(mdev, alloc_fd);
-> +#else
-> +	return -ENOTTY;
-> +#endif
->  }
->  
->  static long copy_arg_from_user(void *karg, void __user *uarg, unsigned int cmd)
-> diff --git a/drivers/staging/media/sunxi/cedrus/Kconfig b/drivers/staging/media/sunxi/cedrus/Kconfig
-> index a7a34e89c42d..3252efa422f9 100644
-> --- a/drivers/staging/media/sunxi/cedrus/Kconfig
-> +++ b/drivers/staging/media/sunxi/cedrus/Kconfig
-> @@ -3,6 +3,7 @@ config VIDEO_SUNXI_CEDRUS
->  	depends on VIDEO_DEV && VIDEO_V4L2 && MEDIA_CONTROLLER
->  	depends on HAS_DMA
->  	depends on OF
-> +	depends on MEDIA_CONTROLLER_REQUEST_API
->  	select SUNXI_SRAM
->  	select VIDEOBUF2_DMA_CONTIG
->  	select V4L2_MEM2MEM_DEV
+# CHECK: Alignment should match open parenthesis
+# #385: FILE: drivers/staging/media/rockchip/vpu/rk3288_vpu_hw_jpeg_enc.c:109:
+# +	rk3288_vpu_jpeg_enc_set_qtable(vpu,
+# +		rockchip_vpu_jpeg_get_qtable(&jpeg_ctx, 0),
+# 
+# CHECK: Alignment should match open parenthesis
+# #1124: FILE: drivers/staging/media/rockchip/vpu/rk3399_vpu_hw_jpeg_enc.c:140:
+# +	rk3399_vpu_jpeg_enc_set_qtable(vpu,
+# +			rockchip_vpu_jpeg_get_qtable(&jpeg_ctx, 0),
+# 
+# WARNING: DT compatible string "rockchip,rk3399-vpu" appears un-documented -- check ./Documentation/devicetree/bindings/
+# #2359: FILE: drivers/staging/media/rockchip/vpu/rockchip_vpu_drv.c:326:
+# +	{ .compatible = "rockchip,rk3399-vpu", .data = &rk3399_vpu_variant, },
+# 
+# WARNING: DT compatible string "rockchip,rk3288-vpu" appears un-documented -- check ./Documentation/devicetree/bindings/
+# #2360: FILE: drivers/staging/media/rockchip/vpu/rockchip_vpu_drv.c:327:
+# +	{ .compatible = "rockchip,rk3288-vpu", .data = &rk3288_vpu_variant, },
+# 
+# CHECK: Unnecessary parentheses around 'formats[i].codec_mode != RK_VPU_MODE_NONE'
+# #2721: FILE: drivers/staging/media/rockchip/vpu/rockchip_vpu_enc.c:145:
+# +		if (bitstream == (formats[i].codec_mode != RK_VPU_MODE_NONE))
+# 
+# total: 0 errors, 2 warnings, 3 checks, 3469 lines checked
 
+The more weird ones are the ones related to the DT bindings.
 
+Regards,
+Mauro
 
 Thanks,
 Mauro
