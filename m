@@ -2,148 +2,232 @@ Return-Path: <SRS0=NzSx=OO=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A587CC04EBF
-	for <linux-media@archiver.kernel.org>; Wed,  5 Dec 2018 08:32:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C169FC04EBF
+	for <linux-media@archiver.kernel.org>; Wed,  5 Dec 2018 08:40:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6A8FE20879
-	for <linux-media@archiver.kernel.org>; Wed,  5 Dec 2018 08:32:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 85D4C206B7
+	for <linux-media@archiver.kernel.org>; Wed,  5 Dec 2018 08:40:50 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=codeaurora.org header.i=@codeaurora.org header.b="CHLItWmH";
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=codeaurora.org header.i=@codeaurora.org header.b="CYXkMIhN"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 6A8FE20879
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=codeaurora.org
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="pPRp7L5u"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 85D4C206B7
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727103AbeLEIcC (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 5 Dec 2018 03:32:02 -0500
-Received: from smtp.codeaurora.org ([198.145.29.96]:51328 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726171AbeLEIcC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Dec 2018 03:32:02 -0500
-Received: by smtp.codeaurora.org (Postfix, from userid 1000)
-        id 9303B60397; Wed,  5 Dec 2018 08:32:00 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=codeaurora.org;
-        s=default; t=1543998720;
-        bh=ZHAxQaFhYUvrMpYe1HgTnGfJGCaGzfNdu77ot7ugziI=;
-        h=From:To:Cc:Subject:Date:From;
-        b=CHLItWmHxdj/k0BWuoXKKaeAop8+y/AfDj3QXYPdgI11ebYOcOp6I42o3gzO3p7xe
-         t7SYCrI9McF2dwEr5ihGBr/kR1k4FOPX16SwfVo+O/gGHTQzg8o3RvCmevh2OLkEIl
-         V5VWmDWMGQpl3fY7/OiuCQ7EvQhdwjnJOwC8oFo8=
-Received: from blr-ubuntu-41.ap.qualcomm.com (blr-bdr-fw-01_globalnat_allzones-outside.qualcomm.com [103.229.18.19])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-SHA256 (128/128 bits))
-        (No client certificate requested)
-        (Authenticated sender: vivek.gautam@smtp.codeaurora.org)
-        by smtp.codeaurora.org (Postfix) with ESMTPSA id 50E8060397;
-        Wed,  5 Dec 2018 08:31:57 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=codeaurora.org;
-        s=default; t=1543998719;
-        bh=ZHAxQaFhYUvrMpYe1HgTnGfJGCaGzfNdu77ot7ugziI=;
-        h=From:To:Cc:Subject:Date:From;
-        b=CYXkMIhNWXO5uYrXC9ukwiu+GLZ4sf4vVQZS6ZsC5IC0K2UMO/+7qsLFvhfTnF6qc
-         Wz4ALjwP5TMbQbKymJhIw2wwCRZoZagnpSXFSVhJ+xJyE1VvxwEq2RY9IwiGfMPs1k
-         XAXLuEYWNqNx2C1eEhFk5vqLQX+AW9cp0b+VGvmA=
-DMARC-Filter: OpenDMARC Filter v1.3.2 smtp.codeaurora.org 50E8060397
-Authentication-Results: pdx-caf-mail.web.codeaurora.org; dmarc=none (p=none dis=none) header.from=codeaurora.org
-Authentication-Results: pdx-caf-mail.web.codeaurora.org; spf=none smtp.mailfrom=vivek.gautam@codeaurora.org
-From:   Vivek Gautam <vivek.gautam@codeaurora.org>
-To:     stanimir.varbanov@linaro.org, mchehab@kernel.org
-Cc:     linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org, vgarodia@codeaurora.org,
-        acourbot@chromium.org, Vivek Gautam <vivek.gautam@codeaurora.org>
-Subject: [PATCH 1/1] media: venus: core: Set dma maximum segment size
-Date:   Wed,  5 Dec 2018 14:01:51 +0530
-Message-Id: <20181205083151.3685-1-vivek.gautam@codeaurora.org>
-X-Mailer: git-send-email 2.16.1.72.g5be1f00a9a70
+        id S1727195AbeLEIku (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 5 Dec 2018 03:40:50 -0500
+Received: from casper.infradead.org ([85.118.1.10]:40758 "EHLO
+        casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726866AbeLEIkt (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Dec 2018 03:40:49 -0500
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
+        MIME-Version:References:In-Reply-To:Message-ID:Subject:Cc:To:From:Date:Sender
+        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
+        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+        bh=g7xtgWp88hgFXq2CAQDwVsGPhXCHErj0ThYQwp28HhU=; b=pPRp7L5u8UefkLY/gtMXKBg38Y
+        LTcz+tKRiNEi1TU40rIlfaXuz0m/HWhEqF/2FeR1fEzYAz3/EXCd+4b+rAwnAqh0Cm4rrdZ4QUH1S
+        p5jgsX45E/Em1mErvH/DvxcvCTUle7TTzsXeKF+rM3O0RyldDBZsf7+FmXhHmoWS/LatujXYrvfYO
+        BPycL/yZpPaCENxEr59afeO/ni45jYfSs76Cw7wO3FZds2RrcHiP8tVdjs5WJUnzbuMQcei0IJ9fU
+        H1DoUbhkjCaeeHx/AiZtxYuHITOmlaUG0l8nJfpXDw1pDtVafSYgPwBX+4W61782J+NxAZ9G2Hdv8
+        AkE8QAMw==;
+Received: from [191.33.148.129] (helo=coco.lan)
+        by casper.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
+        id 1gUSjf-00041S-S1; Wed, 05 Dec 2018 08:40:48 +0000
+Date:   Wed, 5 Dec 2018 06:40:44 -0200
+From:   Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To:     =?UTF-8?B?QW5kcsOp?= Roth <neolynx@gmail.com>
+Cc:     linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/4] libdvbv5: do not adjust DVB time daylight saving
+Message-ID: <20181205064044.37e44059@coco.lan>
+In-Reply-To: <20180707112057.7235-1-neolynx@gmail.com>
+References: <20180707112057.7235-1-neolynx@gmail.com>
+X-Mailer: Claws Mail 3.16.0 (GTK+ 2.24.32; x86_64-redhat-linux-gnu)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Turning on CONFIG_DMA_API_DEBUG_SG results in the following error:
+Em Sat,  7 Jul 2018 13:20:54 +0200
+Andr=C3=A9 Roth <neolynx@gmail.com> escreveu:
 
-[  460.308650] ------------[ cut here ]------------
-[  460.313490] qcom-venus aa00000.video-codec: DMA-API: mapping sg segment longer than device claims to support [len=4194304] [max=65536]
-[  460.326017] WARNING: CPU: 3 PID: 3555 at src/kernel/dma/debug.c:1301 debug_dma_map_sg+0x174/0x254
-[  460.338888] Modules linked in: venus_dec venus_enc videobuf2_dma_sg videobuf2_memops hci_uart btqca bluetooth venus_core v4l2_mem2mem videobuf2_v4l2 videobuf2_common ath10k_snoc ath10k_core ath lzo lzo_compress zramjoydev
-[  460.375811] CPU: 3 PID: 3555 Comm: V4L2DecoderThre Tainted: G        W         4.19.1 #82
-[  460.384223] Hardware name: Google Cheza (rev1) (DT)
-[  460.389251] pstate: 60400009 (nZCv daif +PAN -UAO)
-[  460.394191] pc : debug_dma_map_sg+0x174/0x254
-[  460.398680] lr : debug_dma_map_sg+0x174/0x254
-[  460.403162] sp : ffffff80200c37d0
-[  460.406583] x29: ffffff80200c3830 x28: 0000000000010000
-[  460.412056] x27: 00000000ffffffff x26: ffffffc0f785ea80
-[  460.417532] x25: 0000000000000000 x24: ffffffc0f4ea1290
-[  460.423001] x23: ffffffc09e700300 x22: ffffffc0f4ea1290
-[  460.428470] x21: ffffff8009037000 x20: 0000000000000001
-[  460.433936] x19: ffffff80091b0000 x18: 0000000000000000
-[  460.439411] x17: 0000000000000000 x16: 000000000000f251
-[  460.444885] x15: 0000000000000006 x14: 0720072007200720
-[  460.450354] x13: ffffff800af536e0 x12: 0000000000000000
-[  460.455822] x11: 0000000000000000 x10: 0000000000000000
-[  460.461288] x9 : 537944d9c6c48d00 x8 : 537944d9c6c48d00
-[  460.466758] x7 : 0000000000000000 x6 : ffffffc0f8d98f80
-[  460.472230] x5 : 0000000000000000 x4 : 0000000000000000
-[  460.477703] x3 : 000000000000008a x2 : ffffffc0fdb13948
-[  460.483170] x1 : ffffffc0fdb0b0b0 x0 : 000000000000007a
-[  460.488640] Call trace:
-[  460.491165]  debug_dma_map_sg+0x174/0x254
-[  460.495307]  vb2_dma_sg_alloc+0x260/0x2dc [videobuf2_dma_sg]
-[  460.501150]  __vb2_queue_alloc+0x164/0x374 [videobuf2_common]
-[  460.507076]  vb2_core_reqbufs+0xfc/0x23c [videobuf2_common]
-[  460.512815]  vb2_reqbufs+0x44/0x5c [videobuf2_v4l2]
-[  460.517853]  v4l2_m2m_reqbufs+0x44/0x78 [v4l2_mem2mem]
-[  460.523144]  v4l2_m2m_ioctl_reqbufs+0x1c/0x28 [v4l2_mem2mem]
-[  460.528976]  v4l_reqbufs+0x30/0x40
-[  460.532480]  __video_do_ioctl+0x36c/0x454
-[  460.536610]  video_usercopy+0x25c/0x51c
-[  460.540572]  video_ioctl2+0x38/0x48
-[  460.544176]  v4l2_ioctl+0x60/0x74
-[  460.547602]  do_video_ioctl+0x948/0x3520
-[  460.551648]  v4l2_compat_ioctl32+0x60/0x98
-[  460.555872]  __arm64_compat_sys_ioctl+0x134/0x20c
-[  460.560718]  el0_svc_common+0x9c/0xe4
-[  460.564498]  el0_svc_compat_handler+0x2c/0x38
-[  460.568982]  el0_svc_compat+0x8/0x18
-[  460.572672] ---[ end trace ce209b87b2f3af88 ]---
+> This makes dvb_time available outside of EIT parsing, and
+> struct tm to reflect the actual values received from DVB.
+>=20
+> Signed-off-by: Andr=C3=A9 Roth <neolynx@gmail.com>
+> ---
+>  lib/include/libdvbv5/descriptors.h | 11 +++++++++++
+>  lib/include/libdvbv5/eit.h         | 10 ----------
+>  lib/libdvbv5/descriptors.c         | 37 ++++++++++++++++++++++++++++++++=
++++++
+>  lib/libdvbv5/tables/eit.c          | 28 ----------------------------
+>  4 files changed, 48 insertions(+), 38 deletions(-)
+>=20
+> diff --git a/lib/include/libdvbv5/descriptors.h b/lib/include/libdvbv5/de=
+scriptors.h
+> index cb21470c..31f4c73f 100644
+> --- a/lib/include/libdvbv5/descriptors.h
+> +++ b/lib/include/libdvbv5/descriptors.h
+> @@ -47,6 +47,7 @@
+>  #include <unistd.h>
+>  #include <stdint.h>
+>  #include <arpa/inet.h>
+> +#include <time.h>
+> =20
+>  /**
+>   * @brief Maximum size of a table session to be parsed
+> @@ -159,6 +160,16 @@ uint32_t dvb_bcd(uint32_t bcd);
+>  void dvb_hexdump(struct dvb_v5_fe_parms *parms, const char *prefix,
+>  		 const unsigned char *buf, int len);
+> =20
+> +/**
+> + * @brief Converts a DVB formatted timestamp into struct tm
+> + * @ingroup dvb_table
+> + *
+> + * @param data		event on DVB time format
+> + * @param tm		pointer to struct tm where the converted timestamp will
+> + *			be stored.
+> + */
+> +void dvb_time(const uint8_t data[5], struct tm *tm);
+> +
+>  /**
+>   * @brief parse MPEG-TS descriptors
+>   * @ingroup dvb_table
+> diff --git a/lib/include/libdvbv5/eit.h b/lib/include/libdvbv5/eit.h
+> index 9129861e..5af266b1 100644
+> --- a/lib/include/libdvbv5/eit.h
+> +++ b/lib/include/libdvbv5/eit.h
+> @@ -209,16 +209,6 @@ void dvb_table_eit_free(struct dvb_table_eit *table);
+>  void dvb_table_eit_print(struct dvb_v5_fe_parms *parms,
+>  			 struct dvb_table_eit *table);
+> =20
+> -/**
+> - * @brief Converts a DVB EIT formatted timestamp into struct tm
+> - * @ingroup dvb_table
+> - *
+> - * @param data		event on DVB EIT time format
+> - * @param tm		pointer to struct tm where the converted timestamp will
+> - *			be stored.
+> - */
+> -void dvb_time(const uint8_t data[5], struct tm *tm);
+> -
 
-From above warning one would deduce that the sg segment will overflow
-the device's capacity. In reality, the hardware can accommodate larger
-sg segments.
-So, initialize the max segment size properly to weed out this warning.
+This seems to break the existing ABI.
 
-Based on a similar patch sent by Sean Paul for mdss:
-https://patchwork.kernel.org/patch/10671457/
+>  #ifdef __cplusplus
+>  }
+>  #endif
+> diff --git a/lib/libdvbv5/descriptors.c b/lib/libdvbv5/descriptors.c
+> index 0683dc1b..ccec503c 100644
+> --- a/lib/libdvbv5/descriptors.c
+> +++ b/lib/libdvbv5/descriptors.c
+> @@ -56,6 +56,14 @@
+>  #include <libdvbv5/desc_ca_identifier.h>
+>  #include <libdvbv5/desc_extension.h>
+> =20
+> +#ifdef ENABLE_NLS
+> +# include "gettext.h"
+> +# include <libintl.h>
+> +# define _(string) dgettext(LIBDVBV5_DOMAIN, string)
+> +#else
+> +# define _(string) string
+> +#endif
+> +
+>  static void dvb_desc_init(uint8_t type, uint8_t length, struct dvb_desc =
+*desc)
+>  {
+>  	desc->type   =3D type;
+> @@ -1391,3 +1399,32 @@ void dvb_hexdump(struct dvb_v5_fe_parms *parms, co=
+nst char *prefix, const unsign
+>  		dvb_loginfo("%s%s %s %s", prefix, hex, spaces, ascii);
+>  	}
+>  }
+> +
+> +void dvb_time(const uint8_t data[5], struct tm *tm)
+> +{
+> +  /* ETSI EN 300 468 V1.4.1 */
+> +  int year, month, day, hour, min, sec;
+> +  int k =3D 0;
+> +  uint16_t mjd;
+> +
+> +  mjd   =3D *(uint16_t *) data;
+> +  hour  =3D dvb_bcd(data[2]);
+> +  min   =3D dvb_bcd(data[3]);
+> +  sec   =3D dvb_bcd(data[4]);
+> +  year  =3D ((mjd - 15078.2) / 365.25);
+> +  month =3D ((mjd - 14956.1 - (int) (year * 365.25)) / 30.6001);
+> +  day   =3D mjd - 14956 - (int) (year * 365.25) - (int) (month * 30.6001=
+);
+> +  if (month =3D=3D 14 || month =3D=3D 15) k =3D 1;
+> +  year +=3D k;
+> +  month =3D month - 1 - k * 12;
+> +
+> +  tm->tm_sec   =3D sec;
+> +  tm->tm_min   =3D min;
+> +  tm->tm_hour  =3D hour;
+> +  tm->tm_mday  =3D day;
+> +  tm->tm_mon   =3D month - 1;
+> +  tm->tm_year  =3D year;
+> +  tm->tm_isdst =3D -1; /* do not adjust */
 
-Signed-off-by: Vivek Gautam <vivek.gautam@codeaurora.org>
----
- drivers/media/platform/qcom/venus/core.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+It seems that the only real change here is that you replaced 1 by -1 here,
+in order for the mktime() to not handle daylight saving time.
 
-diff --git a/drivers/media/platform/qcom/venus/core.c b/drivers/media/platform/qcom/venus/core.c
-index bb6add9d340e..5b8350e87e75 100644
---- a/drivers/media/platform/qcom/venus/core.c
-+++ b/drivers/media/platform/qcom/venus/core.c
-@@ -264,6 +264,14 @@ static int venus_probe(struct platform_device *pdev)
- 	if (ret)
- 		return ret;
- 
-+	if (!dev->dma_parms) {
-+		dev->dma_parms = devm_kzalloc(dev, sizeof(*dev->dma_parms),
-+					      GFP_KERNEL);
-+		if (!dev->dma_parms)
-+			return -ENOMEM;
-+	}
-+	dma_set_max_seg_size(dev, DMA_BIT_MASK(32));
-+
- 	INIT_LIST_HEAD(&core->instances);
- 	mutex_init(&core->lock);
- 	INIT_DELAYED_WORK(&core->work, venus_sys_error_handler);
--- 
-QUALCOMM INDIA, on behalf of Qualcomm Innovation Center, Inc. is a member
-of Code Aurora Forum, hosted by The Linux Foundation
+Why are you also moving this out of eit.c/eit.h?
 
+> +  mktime( tm );
+> +}
+> +
+> diff --git a/lib/libdvbv5/tables/eit.c b/lib/libdvbv5/tables/eit.c
+> index a6ba566a..799e4c9a 100644
+> --- a/lib/libdvbv5/tables/eit.c
+> +++ b/lib/libdvbv5/tables/eit.c
+> @@ -154,34 +154,6 @@ void dvb_table_eit_print(struct dvb_v5_fe_parms *par=
+ms, struct dvb_table_eit *ei
+>  	dvb_loginfo("|_  %d events", events);
+>  }
+> =20
+> -void dvb_time(const uint8_t data[5], struct tm *tm)
+> -{
+> -  /* ETSI EN 300 468 V1.4.1 */
+> -  int year, month, day, hour, min, sec;
+> -  int k =3D 0;
+> -  uint16_t mjd;
+> -
+> -  mjd   =3D *(uint16_t *) data;
+> -  hour  =3D dvb_bcd(data[2]);
+> -  min   =3D dvb_bcd(data[3]);
+> -  sec   =3D dvb_bcd(data[4]);
+> -  year  =3D ((mjd - 15078.2) / 365.25);
+> -  month =3D ((mjd - 14956.1 - (int) (year * 365.25)) / 30.6001);
+> -  day   =3D mjd - 14956 - (int) (year * 365.25) - (int) (month * 30.6001=
+);
+> -  if (month =3D=3D 14 || month =3D=3D 15) k =3D 1;
+> -  year +=3D k;
+> -  month =3D month - 1 - k * 12;
+> -
+> -  tm->tm_sec   =3D sec;
+> -  tm->tm_min   =3D min;
+> -  tm->tm_hour  =3D hour;
+> -  tm->tm_mday  =3D day;
+> -  tm->tm_mon   =3D month - 1;
+> -  tm->tm_year  =3D year;
+> -  tm->tm_isdst =3D 1; /* dst in effect, do not adjust */
+> -  mktime( tm );
+> -}
+> -
+> =20
+>  const char *dvb_eit_running_status_name[8] =3D {
+>  	[0] =3D "Undefined",
+
+
+
+Thanks,
+Mauro
