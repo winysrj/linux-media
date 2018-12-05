@@ -4,80 +4,135 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C657C04EB9
-	for <linux-media@archiver.kernel.org>; Wed,  5 Dec 2018 16:55:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D31CC04EB9
+	for <linux-media@archiver.kernel.org>; Wed,  5 Dec 2018 17:23:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0EB8F2084C
-	for <linux-media@archiver.kernel.org>; Wed,  5 Dec 2018 16:55:56 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 0EB8F2084C
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=lucaceresoli.net
+	by mail.kernel.org (Postfix) with ESMTP id 20CD420879
+	for <linux-media@archiver.kernel.org>; Wed,  5 Dec 2018 17:23:57 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 20CD420879
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727592AbeLEQzz (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 5 Dec 2018 11:55:55 -0500
-Received: from srv-hp10-72.netsons.net ([94.141.22.72]:44918 "EHLO
-        srv-hp10-72.netsons.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727242AbeLEQzz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Dec 2018 11:55:55 -0500
-Received: from [109.168.11.45] (port=58050 helo=pc-ceresoli.dev.aim)
-        by srv-hp10.netsons.net with esmtpa (Exim 4.91)
-        (envelope-from <luca@lucaceresoli.net>)
-        id 1gUaSl-009CjB-AU; Wed, 05 Dec 2018 17:55:51 +0100
-From:   Luca Ceresoli <luca@lucaceresoli.net>
-To:     linux-media@vger.kernel.org
-Cc:     Luca Ceresoli <luca@lucaceresoli.net>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH] media: v4l2-subdev: document controls need _FL_HAS_DEVNODE
-Date:   Wed,  5 Dec 2018 17:55:37 +0100
-Message-Id: <20181205165537.21502-1-luca@lucaceresoli.net>
-X-Mailer: git-send-email 2.17.1
-X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
-X-AntiAbuse: Primary Hostname - srv-hp10.netsons.net
-X-AntiAbuse: Original Domain - vger.kernel.org
-X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
-X-AntiAbuse: Sender Address Domain - lucaceresoli.net
-X-Get-Message-Sender-Via: srv-hp10.netsons.net: authenticated_id: luca+lucaceresoli.net/only user confirmed/virtual account not confirmed
-X-Authenticated-Sender: srv-hp10.netsons.net: luca@lucaceresoli.net
-X-Source: 
-X-Source-Args: 
-X-Source-Dir: 
+        id S1727809AbeLERX5 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 5 Dec 2018 12:23:57 -0500
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44608 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1727242AbeLERX5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 5 Dec 2018 12:23:57 -0500
+Received: from lanttu.localdomain (unknown [IPv6:2001:1bc8:1a6:d3d5::e1:1001])
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id AA939634C83;
+        Wed,  5 Dec 2018 19:23:47 +0200 (EET)
+From:   Sakari Ailus <sakari.ailus@linux.intel.com>
+To:     mchehab@kernel.org
+Cc:     linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com
+Subject: [PATCH v2 1/1] media: Add a Kconfig option for the Request API
+Date:   Wed,  5 Dec 2018 19:23:54 +0200
+Message-Id: <20181205172354.32372-1-sakari.ailus@linux.intel.com>
+X-Mailer: git-send-email 2.11.0
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Control events can be subscribed and received by the user. Therefore
-drivers that support controls must expose the
-V4L2_SUBDEV_FL_HAS_EVENTS flag.
+The Request API is now merged to the kernel but the confidence on the
+stability of that API is not great, especially regarding the interaction
+with V4L2.
 
-[As discussed in https://lkml.org/lkml/2018/11/27/637]
-Reported-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Signed-off-by: Luca Ceresoli <luca@lucaceresoli.net>
+Add a Kconfig option for the API, with a scary-looking warning.
+
+The patch itself disables request creation as well as does not advertise
+them as buffer flags. The driver requiring requests (cedrus) now depends
+on the Kconfig option as well.
+
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 ---
- include/media/v4l2-subdev.h | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+since v1:
 
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 9102d6ca566e..47af609dc8f1 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -776,7 +776,11 @@ struct v4l2_subdev_internal_ops {
- #define V4L2_SUBDEV_FL_IS_SPI			(1U << 1)
- /* Set this flag if this subdev needs a device node. */
- #define V4L2_SUBDEV_FL_HAS_DEVNODE		(1U << 2)
--/* Set this flag if this subdev generates events. */
-+/*
-+ * Set this flag if this subdev generates events.
-+ * Note controls can send events, thus drivers exposing controls
-+ * should set this flag.
-+ */
- #define V4L2_SUBDEV_FL_HAS_EVENTS		(1U << 3)
+- Write out the #ifdef's in request creation
+
+- The option's functionality was reversed in request creation, fixed that
+
+ drivers/media/Kconfig                           | 13 +++++++++++++
+ drivers/media/common/videobuf2/videobuf2-v4l2.c |  2 ++
+ drivers/media/media-device.c                    |  4 ++++
+ drivers/staging/media/sunxi/cedrus/Kconfig      |  1 +
+ 4 files changed, 20 insertions(+)
+
+diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
+index 8add62a18293..102eb35fcf3f 100644
+--- a/drivers/media/Kconfig
++++ b/drivers/media/Kconfig
+@@ -110,6 +110,19 @@ config MEDIA_CONTROLLER_DVB
  
- struct regulator_bulk_data;
+ 	  This is currently experimental.
+ 
++config MEDIA_CONTROLLER_REQUEST_API
++	bool "Enable Media controller Request API (EXPERIMENTAL)"
++	depends on MEDIA_CONTROLLER && STAGING_MEDIA
++	default n
++	---help---
++	  DO NOT ENABLE THIS OPTION UNLESS YOU KNOW WHAT YOU'RE DOING.
++
++	  This option enables the Request API for the Media controller and V4L2
++	  interfaces. It is currently needed by a few stateless codec drivers.
++
++	  There is currently no intention to provide API or ABI stability for
++	  this new API as of yet.
++
+ #
+ # Video4Linux support
+ #	Only enables if one of the V4L2 types (ATV, webcam, radio) is selected
+diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+index 1244c246d0c4..83c3c0c49e56 100644
+--- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
++++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+@@ -630,8 +630,10 @@ static void fill_buf_caps(struct vb2_queue *q, u32 *caps)
+ 		*caps |= V4L2_BUF_CAP_SUPPORTS_USERPTR;
+ 	if (q->io_modes & VB2_DMABUF)
+ 		*caps |= V4L2_BUF_CAP_SUPPORTS_DMABUF;
++#ifdef CONFIG_MEDIA_CONTROLLER_REQUEST_API
+ 	if (q->supports_requests)
+ 		*caps |= V4L2_BUF_CAP_SUPPORTS_REQUESTS;
++#endif
+ }
+ 
+ int vb2_reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index bed24372e61f..b8ec88612df7 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -381,10 +381,14 @@ static long media_device_get_topology(struct media_device *mdev, void *arg)
+ static long media_device_request_alloc(struct media_device *mdev,
+ 				       int *alloc_fd)
+ {
++#ifdef CONFIG_MEDIA_CONTROLLER_REQUEST_API
+ 	if (!mdev->ops || !mdev->ops->req_validate || !mdev->ops->req_queue)
+ 		return -ENOTTY;
+ 
+ 	return media_request_alloc(mdev, alloc_fd);
++#else
++	return -ENOTTY;
++#endif
+ }
+ 
+ static long copy_arg_from_user(void *karg, void __user *uarg, unsigned int cmd)
+diff --git a/drivers/staging/media/sunxi/cedrus/Kconfig b/drivers/staging/media/sunxi/cedrus/Kconfig
+index a7a34e89c42d..3252efa422f9 100644
+--- a/drivers/staging/media/sunxi/cedrus/Kconfig
++++ b/drivers/staging/media/sunxi/cedrus/Kconfig
+@@ -3,6 +3,7 @@ config VIDEO_SUNXI_CEDRUS
+ 	depends on VIDEO_DEV && VIDEO_V4L2 && MEDIA_CONTROLLER
+ 	depends on HAS_DMA
+ 	depends on OF
++	depends on MEDIA_CONTROLLER_REQUEST_API
+ 	select SUNXI_SRAM
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	select V4L2_MEM2MEM_DEV
 -- 
-2.17.1
+2.11.0
 
