@@ -2,136 +2,77 @@ Return-Path: <SRS0=NzSx=OO=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,URIBL_RHS_DOB,USER_AGENT_NEOMUTT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_PASS autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 21E1FC04EBF
-	for <linux-media@archiver.kernel.org>; Wed,  5 Dec 2018 11:07:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E9105C04EBF
+	for <linux-media@archiver.kernel.org>; Wed,  5 Dec 2018 11:21:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DACAF2082B
-	for <linux-media@archiver.kernel.org>; Wed,  5 Dec 2018 11:07:57 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org DACAF2082B
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=bootlin.com
+	by mail.kernel.org (Postfix) with ESMTP id BA74C20659
+	for <linux-media@archiver.kernel.org>; Wed,  5 Dec 2018 11:21:03 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org BA74C20659
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=arm.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727718AbeLELHq (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 5 Dec 2018 06:07:46 -0500
-Received: from mail.bootlin.com ([62.4.15.54]:48313 "EHLO mail.bootlin.com"
+        id S1727515AbeLELU4 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 5 Dec 2018 06:20:56 -0500
+Received: from foss.arm.com ([217.140.101.70]:52422 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727439AbeLELHp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 5 Dec 2018 06:07:45 -0500
-Received: by mail.bootlin.com (Postfix, from userid 110)
-        id 2C68D20CDE; Wed,  5 Dec 2018 12:07:42 +0100 (CET)
-Received: from localhost (aaubervilliers-681-1-79-44.w90-88.abo.wanadoo.fr [90.88.21.44])
-        by mail.bootlin.com (Postfix) with ESMTPSA id 8F45620E1F;
-        Wed,  5 Dec 2018 12:07:12 +0100 (CET)
-Date:   Wed, 5 Dec 2018 12:07:12 +0100
-From:   Maxime Ripard <maxime.ripard@bootlin.com>
-To:     Chen-Yu Tsai <wens@csie.org>
-Cc:     Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        devicetree <devicetree@vger.kernel.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        devel@driverdev.osuosl.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        linux-sunxi <linux-sunxi@googlegroups.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH v2 00/15] Cedrus H5 and A64 support with A33 and H3
- updates
-Message-ID: <20181205110712.dfzdkixpsayue5k7@flea>
-References: <20181205092444.29497-1-paul.kocialkowski@bootlin.com>
- <CAGb2v64fjKbxET61S7NzTaPGJc7-XUG=Zb87_BOah9xWr5zpvg@mail.gmail.com>
+        id S1726889AbeLELUz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 5 Dec 2018 06:20:55 -0500
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.72.51.249])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id E4D6A80D;
+        Wed,  5 Dec 2018 03:20:54 -0800 (PST)
+Received: from [10.1.34.157] (p8cg001049571a15.cambridge.arm.com [10.1.34.157])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 6A6A93F575;
+        Wed,  5 Dec 2018 03:20:51 -0800 (PST)
+Subject: Re: [LKP] [mm] 19717e78a0: stderr.if(target_node==NUMA_NO_NODE){
+To:     kernel test robot <rong.a.chen@intel.com>
+Cc:     linux-mm@kvack.org, linux-kernel@vger.kernel.org,
+        ocfs2-devel@oss.oracle.com, linux-fbdev@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, netdev@vger.kernel.org,
+        intel-wired-lan@lists.osuosl.org, linux-media@vger.kernel.org,
+        iommu@lists.linux-foundation.org, linux-rdma@vger.kernel.org,
+        dmaengine@vger.kernel.org, linux-block@vger.kernel.org,
+        sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-ia64@vger.kernel.org, linux-alpha@vger.kernel.org,
+        akpm@linux-foundation.org, jiangqi903@gmail.com,
+        hverkuil@xs4all.nl, vkoul@kernel.org, lkp@01.org
+References: <20181205050057.GB23332@shao2-debian>
+From:   Anshuman Khandual <anshuman.khandual@arm.com>
+Message-ID: <d75d097f-78a5-865e-a80a-b1e6faeff337@arm.com>
+Date:   Wed, 5 Dec 2018 16:50:57 +0530
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:52.0) Gecko/20100101
+ Thunderbird/52.9.1
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="f7czaut6wahvetbb"
-Content-Disposition: inline
-In-Reply-To: <CAGb2v64fjKbxET61S7NzTaPGJc7-XUG=Zb87_BOah9xWr5zpvg@mail.gmail.com>
-User-Agent: NeoMutt/20180716
+In-Reply-To: <20181205050057.GB23332@shao2-debian>
+Content-Type: text/plain; charset=windows-1252
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
+On 12/05/2018 10:30 AM, kernel test robot wrote:
+> FYI, we noticed the following commit (built with gcc-7):
+> 
+> commit: 19717e78a04d51512cf0e7b9b09c61f06b2af071 ("[PATCH V2] mm: Replace all open encodings for NUMA_NO_NODE")
+> url: https://github.com/0day-ci/linux/commits/Anshuman-Khandual/mm-Replace-all-open-encodings-for-NUMA_NO_NODE/20181126-203831
+> 
+> 
+> in testcase: perf-sanity-tests
+> with following parameters:
+> 
+> 	perf_compiler: gcc
+> 	ucode: 0x7000013
+> 
+> 
+> 
+> on test machine: 16 threads Intel(R) Xeon(R) CPU D-1541 @ 2.10GHz with 8G memory
+> 
+> caused below changes (please refer to attached dmesg/kmsg for entire log/backtrace):
 
---f7czaut6wahvetbb
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Wed, Dec 05, 2018 at 05:48:34PM +0800, Chen-Yu Tsai wrote:
-> On Wed, Dec 5, 2018 at 5:25 PM Paul Kocialkowski
-> <paul.kocialkowski@bootlin.com> wrote:
-> >
-> > This series adds support for the Allwinner H5 and A64 platforms to the
-> > cedrus stateless video codec driver, with minor updates to the A33 and
-> > H3 platforms.
-> >
-> > It requires changes to the SRAM driver bindings and driver, to properly
-> > support the H5 and the A64 C1 SRAM section. Because a H5-specific
-> > system-control node is introduced, the dummy syscon node that was shared
-> > between the H3 and H5 is removed in favor of each platform-specific nod=
-e.
-> > A few fixes are included to ensure that the EMAC clock configuration
-> > register is still accessible through the sunxi SRAM driver (instead of =
-the
-> > dummy syscon node, that was there for this purpose) on the H3 and H5.
-> >
-> > The reserved memory nodes for the A33 and H3 are also removed in this
-> > series, since they are not actually necessary.
-> >
-> > Changes since v1:
-> > * Removed the reserved-memory nodes for the A64 and H5;
-> > * Removed the reserved-memory nodes for the A33 and H3;
-> > * Corrected the SRAM bases and sizes to the best of our knowledge;
-> > * Dropped cosmetic dt changes already included in the sunxi tree.
-> >
-> > Paul Kocialkowski (15):
-> >   ARM: dts: sun8i: h3: Fix the system-control register range
-> >   ARM: dts: sun8i: a33: Remove unnecessary reserved memory node
-> >   ARM: dts: sun8i: h3: Remove unnecessary reserved memory node
-> >   soc: sunxi: sram: Enable EMAC clock access for H3 variant
-> >   dt-bindings: sram: sunxi: Add bindings for the H5 with SRAM C1
-> >   soc: sunxi: sram: Add support for the H5 SoC system control
-> >   arm64: dts: allwinner: h5: Add system-control node with SRAM C1
-> >   ARM/arm64: sunxi: Move H3/H5 syscon label over to soc-specific nodes
-> >   dt-bindings: sram: sunxi: Add compatible for the A64 SRAM C1
-> >   arm64: dts: allwinner: a64: Add support for the SRAM C1 section
-> >   dt-bindings: media: cedrus: Add compatibles for the A64 and H5
-> >   media: cedrus: Add device-tree compatible and variant for H5 support
-> >   media: cedrus: Add device-tree compatible and variant for A64 support
-> >   arm64: dts: allwinner: h5: Add Video Engine node
-> >   arm64: dts: allwinner: a64: Add Video Engine node
->=20
-> Other than the error in patch 7,
->=20
-> Acked-by: Chen-Yu Tsai <wens@csie.org>
-
-Applied all the patches but 11-13, with the changes discussed on patch 7 fi=
-xed.
-
-Thanks!
-Maxime
-
---=20
-Maxime Ripard, Bootlin
-Embedded Linux and Kernel engineering
-https://bootlin.com
-
---f7czaut6wahvetbb
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iHUEABYIAB0WIQRcEzekXsqa64kGDp7j7w1vZxhRxQUCXAexVQAKCRDj7w1vZxhR
-xTQIAP9eScHqa/h3aoDUWpjYTZeZ8zmrhc865HzvWs9q0+AI1QD/TzgmpdfWEmzj
-TGlTuSGLApWhDZ8SpQ3Dik0onLpBtg4=
-=BZo1
------END PGP SIGNATURE-----
-
---f7czaut6wahvetbb--
+The fix (in Andrew's staging tree) from Stephen Rothwell which adds <linux/numa.h>
+definitions to <tools/include/linux/numa.h> should fix this.
