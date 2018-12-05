@@ -6,25 +6,25 @@ X-Spam-Status: No, score=-8.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
 	URIBL_RHS_DOB,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9AF19C04EB9
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1193FC04EBF
 	for <linux-media@archiver.kernel.org>; Wed,  5 Dec 2018 10:20:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 62680206B7
-	for <linux-media@archiver.kernel.org>; Wed,  5 Dec 2018 10:20:52 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 62680206B7
+	by mail.kernel.org (Postfix) with ESMTP id CC164206B7
+	for <linux-media@archiver.kernel.org>; Wed,  5 Dec 2018 10:20:51 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org CC164206B7
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=xs4all.nl
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727849AbeLEKUv (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        id S1727677AbeLEKUv (ORCPT <rfc822;linux-media@archiver.kernel.org>);
         Wed, 5 Dec 2018 05:20:51 -0500
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:55171 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726909AbeLEKUv (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:51611 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727540AbeLEKUt (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 5 Dec 2018 05:20:51 -0500
+        Wed, 5 Dec 2018 05:20:49 -0500
 Received: from tschai.fritz.box ([212.251.195.8])
         by smtp-cloud7.xs4all.net with ESMTPA
-        id UUIKgznz1aOW5UUISgJeiw; Wed, 05 Dec 2018 11:20:48 +0100
+        id UUIKgznz1aOW5UUIRgJeiA; Wed, 05 Dec 2018 11:20:48 +0100
 From:   hverkuil-cisco@xs4all.nl
 To:     linux-media@vger.kernel.org
 Cc:     Alexandre Courbot <acourbot@chromium.org>,
@@ -32,9 +32,9 @@ Cc:     Alexandre Courbot <acourbot@chromium.org>,
         tfiga@chromium.org, nicolas@ndufresne.ca,
         sakari.ailus@linux.intel.com,
         Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Subject: [PATCHv4 05/10] buffer.rst: clean up timecode documentation
-Date:   Wed,  5 Dec 2018 11:20:35 +0100
-Message-Id: <20181205102040.11741-6-hverkuil-cisco@xs4all.nl>
+Subject: [PATCHv4 03/10] v4l2-ioctl.c: log v4l2_buffer tag
+Date:   Wed,  5 Dec 2018 11:20:33 +0100
+Message-Id: <20181205102040.11741-4-hverkuil-cisco@xs4all.nl>
 X-Mailer: git-send-email 2.19.1
 In-Reply-To: <20181205102040.11741-1-hverkuil-cisco@xs4all.nl>
 References: <20181205102040.11741-1-hverkuil-cisco@xs4all.nl>
@@ -51,47 +51,36 @@ X-Mailing-List: linux-media@vger.kernel.org
 
 From: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 
-V4L2_BUF_FLAG_TIMECODE is not video capture specific, so drop that
-part.
-
-The 'Timecodes' section was a bit messy, so that's cleaned up.
+When debugging is on, log the new tag field of struct v4l2_buffer
+as well.
 
 Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 Reviewed-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 Reviewed-by: Alexandre Courbot <acourbot@chromium.org>
 ---
- Documentation/media/uapi/v4l/buffer.rst | 11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ drivers/media/v4l2-core/v4l2-ioctl.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
-index f83ee00cb30b..359b131a212d 100644
---- a/Documentation/media/uapi/v4l/buffer.rst
-+++ b/Documentation/media/uapi/v4l/buffer.rst
-@@ -223,8 +223,7 @@ struct v4l2_buffer
-     * - struct :c:type:`v4l2_timecode`
-       - ``timecode``
-       -
--      - When ``type`` is ``V4L2_BUF_TYPE_VIDEO_CAPTURE`` and the
--	``V4L2_BUF_FLAG_TIMECODE`` flag is set in ``flags``, this
-+      - When the ``V4L2_BUF_FLAG_TIMECODE`` flag is set in ``flags``, this
- 	structure contains a frame timecode. In
- 	:c:type:`V4L2_FIELD_ALTERNATE <v4l2_field>` mode the top and
- 	bottom field contain the same timecode. Timecodes are intended to
-@@ -715,10 +714,10 @@ enum v4l2_memory
- Timecodes
- =========
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index b9616b1f227b..07c6c939a23c 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -498,9 +498,12 @@ static void v4l_print_buffer(const void *arg, bool write_only)
+ 			p->bytesused, p->m.userptr, p->length);
+ 	}
  
--The struct :c:type:`v4l2_timecode` structure is designed to hold a
--:ref:`smpte12m` or similar timecode. (struct
--struct :c:type:`timeval` timestamps are stored in struct
--:c:type:`v4l2_buffer` field ``timestamp``.)
-+The :c:type:`v4l2_buffer_timecode` structure is designed to hold a
-+:ref:`smpte12m` or similar timecode.
-+(struct :c:type:`timeval` timestamps are stored in the struct
-+:c:type:`v4l2_buffer` ``timestamp`` field.)
+-	printk(KERN_DEBUG "timecode=%02d:%02d:%02d type=%d, flags=0x%08x, frames=%d, userbits=0x%08x\n",
+-			tc->hours, tc->minutes, tc->seconds,
+-			tc->type, tc->flags, tc->frames, *(__u32 *)tc->userbits);
++	if (p->flags & V4L2_BUF_FLAG_TAG)
++		printk(KERN_DEBUG "tag=%x\n", p->tag);
++	if (p->flags & V4L2_BUF_FLAG_TIMECODE)
++		printk(KERN_DEBUG "timecode=%02d:%02d:%02d type=%d, flags=0x%08x, frames=%d, userbits=0x%08x\n",
++		       tc->hours, tc->minutes, tc->seconds,
++		       tc->type, tc->flags, tc->frames, *(__u32 *)tc->userbits);
+ }
  
- 
- .. c:type:: v4l2_timecode
+ static void v4l_print_exportbuffer(const void *arg, bool write_only)
 -- 
 2.19.1
 
