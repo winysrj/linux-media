@@ -2,179 +2,89 @@ Return-Path: <SRS0=eh97=OP=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 192F7C04EB8
-	for <linux-media@archiver.kernel.org>; Thu,  6 Dec 2018 12:16:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D323C04EBF
+	for <linux-media@archiver.kernel.org>; Thu,  6 Dec 2018 12:31:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DF29120878
-	for <linux-media@archiver.kernel.org>; Thu,  6 Dec 2018 12:16:31 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org DF29120878
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=xs4all.nl
+	by mail.kernel.org (Postfix) with ESMTP id F1D1120838
+	for <linux-media@archiver.kernel.org>; Thu,  6 Dec 2018 12:31:43 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org F1D1120838
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=zte.com.cn
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728144AbeLFMQb (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 6 Dec 2018 07:16:31 -0500
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:57261 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727908AbeLFMQa (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 6 Dec 2018 07:16:30 -0500
-Received: from [IPv6:2001:420:44c1:2579:257d:be73:2120:ab20] ([IPv6:2001:420:44c1:2579:257d:be73:2120:ab20])
-        by smtp-cloud8.xs4all.net with ESMTPA
-        id UsZrgZD9BO44XUsZvgUNwB; Thu, 06 Dec 2018 13:16:28 +0100
-Subject: Re: [PATCHv4 00/10] vb2/cedrus: add tag support
-From:   Hans Verkuil <hverkuil-cisco@xs4all.nl>
-To:     linux-media@vger.kernel.org
-Cc:     Alexandre Courbot <acourbot@chromium.org>,
-        maxime.ripard@bootlin.com, paul.kocialkowski@bootlin.com,
-        tfiga@chromium.org, nicolas@ndufresne.ca,
-        sakari.ailus@linux.intel.com
-References: <20181205102040.11741-1-hverkuil-cisco@xs4all.nl>
-Message-ID: <b736b77b-c38b-d5b9-0cf7-c3ea6fcebdc4@xs4all.nl>
-Date:   Thu, 6 Dec 2018 13:16:23 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:52.0) Gecko/20100101
- Thunderbird/52.2.1
+        id S1729132AbeLFMbi (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 6 Dec 2018 07:31:38 -0500
+Received: from out1.zte.com.cn ([202.103.147.172]:55164 "EHLO mxct.zte.com.cn"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728764AbeLFMbi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 6 Dec 2018 07:31:38 -0500
+Received: from mse01.zte.com.cn (unknown [10.30.3.20])
+        by Forcepoint Email with ESMTPS id 519B5EE1C76C85211367;
+        Thu,  6 Dec 2018 20:29:38 +0800 (CST)
+Received: from notes_smtp.zte.com.cn ([10.30.1.239])
+        by mse01.zte.com.cn with ESMTP id wB6CTY2M056602;
+        Thu, 6 Dec 2018 20:29:34 +0800 (GMT-8)
+        (envelope-from wen.yang99@zte.com.cn)
+Received: from LIN-A6CB96A0603.zte.intra ([10.90.106.118])
+          by szsmtp06.zte.com.cn (Lotus Domino Release 8.5.3FP6)
+          with ESMTP id 2018120620300448-15142737 ;
+          Thu, 6 Dec 2018 20:30:04 +0800 
+From:   Wen Yang <wen.yang99@zte.com.cn>
+To:     Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Tomoki Sekiyama <tomoki.sekiyama@gmail.com>
+Cc:     linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        zhong.weidong@zte.com.cn, Wen Yang <wen.yang99@zte.com.cn>
+Subject: [PATCH] media: siano: Use kmemdup instead of duplicating its function
+Date:   Thu, 6 Dec 2018 20:29:10 +0800
+Message-Id: <20181206122910.50908-1-wen.yang99@zte.com.cn>
+X-Mailer: git-send-email 2.19.1
 MIME-Version: 1.0
-In-Reply-To: <20181205102040.11741-1-hverkuil-cisco@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfO0K+9J+EKzf90Ltml04511ZyxnbsWITBb3+qGzw8duBcswWQQM3ukROuGzmNb4v1y02wAK9vHs67efBG6sncaD4h8gToL3nqeFLSSKUyS+F5Yec7wvx
- S58LJXC7N6m0/yNwGJk28wG8NW6yKkIQYcVEzv7W3gTpLZis7plPOVNYKufYIAXgwWi+0NVaiDtl5eDln3hFvjxdRTBdhvOA0h2AQunnv4C2+5Xt+JHNYXF4
- O3Nt6O40WOT/elgEBLvWqk0drr/P4lXrP1NBizcEvVLM+gXVNGZXJgXc775Ql+2E3ujL9MeKL+SaaFaIdakb9Z6hUIngj5ePkfX9allvCdx6Z1GOMnptM7D4
- 3TpFe/V86U2g47X0vEQGG/57uOxL13gQ2MkXBWfL3bADWTPIqDWIlV7lDGCtAIoXS/9HloqPMAb4J8Xui/irfYl5f2eI0BU/pbpk+whFijivhLDHcmIcdkwW
- lGhvesStmCVLhQQrUHxClJfa9kXCQRb6A5zMczjzAvmMJrTKrcNsHVHunPs=
+X-MIMETrack: Itemize by SMTP Server on SZSMTP06/server/zte_ltd(Release 8.5.3FP6|November
+ 21, 2013) at 2018-12-06 20:30:04,
+        Serialize by Router on notes_smtp/zte_ltd(Release 9.0.1FP7|August  17, 2016) at
+ 2018-12-06 20:29:22
+Content-Transfer-Encoding: quoted-printable
+X-MAIL: mse01.zte.com.cn wB6CTY2M056602
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-(fix copy and paste error in the cover letter)
+kmemdup has implemented the function that kmalloc() + memcpy().
+We prefer to kmemdup rather than code opened implementation.
 
-As was discussed here (among other places):
+This issue was detected with the help of coccinelle.
 
-https://lkml.org/lkml/2018/10/19/440
+Signed-off-by: Wen Yang <wen.yang99@zte.com.cn>
+CC: Mauro Carvalho Chehab <mchehab@kernel.org>
+CC: Tomoki Sekiyama <tomoki.sekiyama@gmail.com>
+CC: linux-media@vger.kernel.org
+CC: linux-kernel@vger.kernel.org
+---
+ drivers/media/usb/siano/smsusb.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-using capture queue buffer indices to refer to reference frames is
-not a good idea. A better idea is to use a 'tag' where the
-application can assign a u32 tag to an output buffer, which is then
-copied to the capture buffer(s) derived from the output buffer.
-
-It has been suggested that the timestamp can be used for this. But
-there are a number of reasons why this is a bad idea:
-
-1) the struct timeval is converted to a u64 in vb2. So there can be
-   all sorts of unexpected conversion issues. In particular, the
-   output of ns_to_timeval(timeval_to_ns(tv)) does not necessarily
-   match the input.
-
-2) it gets worse with the y2038 code where userspace either deals
-   with a 32 bit tv_sec value or a 64 bit value.
-
-In other words, using timestamp for this is not a good idea.
-
-This implementation adds a new tag field in a union with the reserved2
-field. The interpretation of that union depends on the flags field, so
-it still can be used for other things as well. In addition, in the previous
-patches the tag was in a union with the timecode field (again determined
-by the flags field), so if we need to cram additional information in this
-struct we can always put it in a union with the timecode field as well.
-It worked for the tag, it should work for other things.
-
-But we really need to start looking at a struct v4l2_ext_buffer.
-
-The first three patches add core tag support, the next two patches document
-the tag support, then a new helper function is added to v4l2-mem2mem.c
-to easily copy data from a source to a destination buffer that drivers
-can use.
-
-Next a new supports_tags vb2_queue flag is added to indicate that
-the driver supports tags. Ideally this should not be necessary, but
-that would require that all m2m drivers are converted to using the
-new helper function introduced in the previous patch. That takes more
-time then I have now.
-
-Finally the vim2m, vicodec and cedrus drivers are converted to support
-tags.
-
-I also removed the 'pad' fields from the mpeg2 control structs (it
-should never been added in the first place) and aligned the structs
-to a u32 boundary.
-
-Note that this might change further (Paul suggested using bitfields).
-
-Also note that the cedrus code doesn't set the sequence counter, that's
-something that should still be added before this driver can be moved
-out of staging.
-
-Note: if no buffer is found for a certain tag, then the dma address
-is just set to 0. That happened before as well with invalid buffer
-indices. This should be checked in the driver!
-
-Regards,
-
-        Hans
-
-Changes since v3:
-
-- use reserved2 for the tag
-- split the documentation in two: one documenting the tag, one
-  cleaning up the timecode documentation.
-
-Changes since v2:
-
-- rebased
-- added Reviewed-by tags
-- fixed a few remaining references in the documentation to the old
-  v4l2_buffer_tag struct that was used in early versions of this
-  series.
-
-Changes since v1:
-
-- changed to a u32 tag. Using a 64 bit tag was overly complicated due
-  to the bad layout of the v4l2_buffer struct, and there is no real
-  need for it by applications.
-
-Main changes since the RFC:
-
-- Added new buffer capability flag
-- Added m2m helper to copy data between buffers
-- Added documentation
-- Added tag logging in v4l2-ioctl.c
-
-
-Hans Verkuil (10):
-  videodev2.h: add tag support
-  vb2: add tag support
-  v4l2-ioctl.c: log v4l2_buffer tag
-  buffer.rst: document the new buffer tag feature.
-  buffer.rst: clean up timecode documentation
-  v4l2-mem2mem: add v4l2_m2m_buf_copy_data helper function
-  vb2: add new supports_tags queue flag
-  vim2m: add tag support
-  vicodec: add tag support
-  cedrus: add tag support
-
- Documentation/media/uapi/v4l/buffer.rst       | 28 +++++++++----
- .../media/uapi/v4l/vidioc-reqbufs.rst         |  4 ++
- .../media/common/videobuf2/videobuf2-v4l2.c   | 41 ++++++++++++++++---
- drivers/media/platform/vicodec/vicodec-core.c | 14 ++-----
- drivers/media/platform/vim2m.c                | 14 ++-----
- drivers/media/v4l2-core/v4l2-ctrls.c          |  9 ----
- drivers/media/v4l2-core/v4l2-ioctl.c          |  9 ++--
- drivers/media/v4l2-core/v4l2-mem2mem.c        | 23 +++++++++++
- drivers/staging/media/sunxi/cedrus/cedrus.h   |  9 ++--
- .../staging/media/sunxi/cedrus/cedrus_dec.c   |  2 +
- .../staging/media/sunxi/cedrus/cedrus_mpeg2.c | 21 ++++------
- .../staging/media/sunxi/cedrus/cedrus_video.c |  2 +
- include/media/v4l2-mem2mem.h                  | 21 ++++++++++
- include/media/videobuf2-core.h                |  2 +
- include/media/videobuf2-v4l2.h                | 21 +++++++++-
- include/uapi/linux/v4l2-controls.h            | 14 +++----
- include/uapi/linux/videodev2.h                |  9 +++-
- 17 files changed, 168 insertions(+), 75 deletions(-)
-
--- 
+diff --git a/drivers/media/usb/siano/smsusb.c b/drivers/media/usb/siano/sms=
+usb.c
+index be3634407f1f..2ffded08407b 100644
+--- a/drivers/media/usb/siano/smsusb.c
++++ b/drivers/media/usb/siano/smsusb.c
+@@ -225,10 +225,9 @@ static int smsusb=5Fsendrequest(void *context, void *b=
+uffer, size=5Ft size)
+ 		return -ENOENT;
+ 	}
+=20
+-	phdr =3D kmalloc(size, GFP=5FKERNEL);
++	phdr =3D kmemdup(buffer, size, GFP=5FKERNEL);
+ 	if (!phdr)
+ 		return -ENOMEM;
+-	memcpy(phdr, buffer, size);
+=20
+ 	pr=5Fdebug("sending %s(%d) size: %d\n",
+ 		  smscore=5Ftranslate=5Fmsg(phdr->msg=5Ftype), phdr->msg=5Ftype,
+--=20
 2.19.1
+
