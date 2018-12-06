@@ -2,214 +2,425 @@ Return-Path: <SRS0=eh97=OP=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.8 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_NEOMUTT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_NEOMUTT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 59648C5CFFE
-	for <linux-media@archiver.kernel.org>; Thu,  6 Dec 2018 13:15:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3CDB9C04EB8
+	for <linux-media@archiver.kernel.org>; Thu,  6 Dec 2018 14:49:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 17A16208E7
-	for <linux-media@archiver.kernel.org>; Thu,  6 Dec 2018 13:15:09 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ti.com header.i=@ti.com header.b="VpFKuYKl"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 17A16208E7
-Authentication-Results: mail.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=ti.com
+	by mail.kernel.org (Postfix) with ESMTP id E72D420661
+	for <linux-media@archiver.kernel.org>; Thu,  6 Dec 2018 14:49:08 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org E72D420661
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=mess.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729404AbeLFNPE (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 6 Dec 2018 08:15:04 -0500
-Received: from fllv0015.ext.ti.com ([198.47.19.141]:35438 "EHLO
-        fllv0015.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728648AbeLFNPE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 6 Dec 2018 08:15:04 -0500
-Received: from fllv0035.itg.ti.com ([10.64.41.0])
-        by fllv0015.ext.ti.com (8.15.2/8.15.2) with ESMTP id wB6DEeLa121476;
-        Thu, 6 Dec 2018 07:14:40 -0600
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com;
-        s=ti-com-17Q1; t=1544102080;
-        bh=+MTMURefE3/6fyDXRd3q19SD+DwM5Zwi/ZDH7hrN4Dg=;
-        h=Date:From:To:CC:Subject:References:In-Reply-To;
-        b=VpFKuYKlZcsa+NKMx0pe1AkPx4VOZgNbhOaaXicNUvQqld+NDtsoITkyF1MMWZRCH
-         c2jUlXV6Bkdswxygiz20gQUyN619CtRRg99pXBq9yIKhRuFvzxI/Id6jIrXlYP3yIa
-         Sdryfse20MNqV47Sbn4LiI0ZUm5qbnxyQ1hECRss=
-Received: from DLEE106.ent.ti.com (dlee106.ent.ti.com [157.170.170.36])
-        by fllv0035.itg.ti.com (8.15.2/8.15.2) with ESMTPS id wB6DEext102255
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Thu, 6 Dec 2018 07:14:40 -0600
-Received: from DLEE109.ent.ti.com (157.170.170.41) by DLEE106.ent.ti.com
- (157.170.170.36) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1591.10; Thu, 6
- Dec 2018 07:14:40 -0600
-Received: from dlep32.itg.ti.com (157.170.170.100) by DLEE109.ent.ti.com
- (157.170.170.41) with Microsoft SMTP Server (version=TLS1_0,
- cipher=TLS_RSA_WITH_AES_256_CBC_SHA) id 15.1.1591.10 via Frontend Transport;
- Thu, 6 Dec 2018 07:14:40 -0600
-Received: from ti.com (ileax41-snat.itg.ti.com [10.172.224.153])
-        by dlep32.itg.ti.com (8.14.3/8.13.8) with SMTP id wB6DEewY007909;
-        Thu, 6 Dec 2018 07:14:40 -0600
-Date:   Thu, 6 Dec 2018 07:15:03 -0600
-From:   Benoit Parrot <bparrot@ti.com>
-To:     Rob Herring <robh@kernel.org>
-CC:     <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Kukjin Kim <kgene@kernel.org>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Hyun Kwon <hyun.kwon@xilinx.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Michal Simek <michal.simek@xilinx.com>,
-        <linux-media@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-samsung-soc@vger.kernel.org>
-Subject: Re: [PATCH] media: Use of_node_name_eq for node name comparisons
-Message-ID: <20181206131503.n543jp3ock3jzrzq@ti.com>
-References: <20181205195050.4759-13-robh@kernel.org>
+        id S1730201AbeLFOtH (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 6 Dec 2018 09:49:07 -0500
+Received: from gofer.mess.org ([88.97.38.141]:54809 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1730783AbeLFOtE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 6 Dec 2018 09:49:04 -0500
+Received: by gofer.mess.org (Postfix, from userid 1000)
+        id C6349607A9; Thu,  6 Dec 2018 14:49:02 +0000 (GMT)
+Date:   Thu, 6 Dec 2018 14:49:02 +0000
+From:   Sean Young <sean@mess.org>
+To:     patrick9876@free.fr
+Cc:     linux-media@vger.kernel.org
+Subject: Re: [PATCH] [PATCHv2] Add ir-rcmm-driver
+Message-ID: <20181206144902.sbtacp44aar4ympg@gofer.mess.org>
+References: <c44581638d2525bc383a75413259f708@free.fr>
+ <20181205002933.20870-1-patrick9876@free.fr>
+ <20181205002933.20870-2-patrick9876@free.fr>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20181205195050.4759-13-robh@kernel.org>
-User-Agent: NeoMutt/20171215
-X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
+In-Reply-To: <20181205002933.20870-2-patrick9876@free.fr>
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Rob,
-
-For ti-vpe/cal.c,
-
-Reviewed-by: Benoit Parrot <bparrot@ti.com>
-
-Regards,
-Benoit
-
-Rob Herring <robh@kernel.org> wrote on Wed [2018-Dec-05 13:50:29 -0600]:
-> Convert string compares of DT node names to use of_node_name_eq helper
-> instead. This removes direct access to the node name pointer.
+On Wed, Dec 05, 2018 at 01:29:33AM +0100, patrick9876@free.fr wrote:
+> From: Patrick LERDA <patrick9876@free.fr>
 > 
-> Cc: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-> Cc: Kukjin Kim <kgene@kernel.org>
-> Cc: Krzysztof Kozlowski <krzk@kernel.org>
-> Cc: Benoit Parrot <bparrot@ti.com>
-> Cc: Hyun Kwon <hyun.kwon@xilinx.com>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Michal Simek <michal.simek@xilinx.com>
-> Cc: linux-media@vger.kernel.org
-> Cc: linux-arm-kernel@lists.infradead.org
-> Cc: linux-samsung-soc@vger.kernel.org
-> Signed-off-by: Rob Herring <robh@kernel.org>
+
+We need a Signed-off-by: here.
+
+https://www.kernel.org/doc/html/v4.12/process/submitting-patches.html#sign-your-work-the-developer-s-certificate-of-origin
+
 > ---
->  drivers/media/platform/exynos4-is/media-dev.c | 12 ++++++------
->  drivers/media/platform/ti-vpe/cal.c           |  4 ++--
->  drivers/media/platform/xilinx/xilinx-tpg.c    |  2 +-
->  drivers/media/v4l2-core/v4l2-fwnode.c         |  6 ++----
->  4 files changed, 11 insertions(+), 13 deletions(-)
+>  drivers/media/rc/Kconfig           |  10 ++
+>  drivers/media/rc/Makefile          |   1 +
+>  drivers/media/rc/ir-rcmm-decoder.c | 185 +++++++++++++++++++++++++++++
+>  drivers/media/rc/rc-core-priv.h    |   5 +
+>  drivers/media/rc/rc-main.c         |   3 +
+>  include/media/rc-map.h             |   6 +-
+>  include/uapi/linux/lirc.h          |   1 +
+>  tools/include/uapi/linux/lirc.h    |   1 +
+>  8 files changed, 210 insertions(+), 2 deletions(-)
+>  create mode 100644 drivers/media/rc/ir-rcmm-decoder.c
 > 
-> diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
-> index 870501b0f351..ced14af56606 100644
-> --- a/drivers/media/platform/exynos4-is/media-dev.c
-> +++ b/drivers/media/platform/exynos4-is/media-dev.c
-> @@ -445,7 +445,7 @@ static int fimc_md_parse_port_node(struct fimc_md *fmd,
->  	 */
->  	np = of_get_parent(rem);
+> diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
+> index 1021c08a9ba4..b7e08324b874 100644
+> --- a/drivers/media/rc/Kconfig
+> +++ b/drivers/media/rc/Kconfig
+> @@ -133,6 +133,16 @@ config IR_IMON_DECODER
+>  	   remote control and you would like to use it with a raw IR
+>  	   receiver, or if you wish to use an encoder to transmit this IR.
 >  
-> -	if (np && !of_node_cmp(np->name, "i2c-isp"))
-> +	if (of_node_name_eq(np, "i2c-isp"))
->  		pd->fimc_bus_type = FIMC_BUS_TYPE_ISP_WRITEBACK;
->  	else
->  		pd->fimc_bus_type = pd->sensor_bus_type;
-> @@ -495,7 +495,7 @@ static int fimc_md_register_sensor_entities(struct fimc_md *fmd)
->  	for_each_available_child_of_node(parent, node) {
->  		struct device_node *port;
+> +config IR_RCMM_DECODER
+> +	tristate "Enable IR raw decoder for the RC-MM protocol"
+> +	depends on RC_CORE
+> +	select BITREVERSE
+
+You're not using bitreverse, so don't depend on it.
+
+> +	default y
+> +
+> +	---help---
+> +	   Enable this option if you have IR with RC-MM protocol, and
+> +	   if the IR is decoded in software
+> +
+>  endif #RC_DECODERS
 >  
-> -		if (of_node_cmp(node->name, "csis"))
-> +		if (!of_node_name_eq(node, "csis"))
->  			continue;
->  		/* The csis node can have only port subnode. */
->  		port = of_get_next_child(node, NULL);
-> @@ -720,13 +720,13 @@ static int fimc_md_register_platform_entities(struct fimc_md *fmd,
->  			continue;
+>  menuconfig RC_DEVICES
+> diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
+> index e0340d043fe8..fc4058013234 100644
+> --- a/drivers/media/rc/Makefile
+> +++ b/drivers/media/rc/Makefile
+> @@ -16,6 +16,7 @@ obj-$(CONFIG_IR_SHARP_DECODER) += ir-sharp-decoder.o
+>  obj-$(CONFIG_IR_MCE_KBD_DECODER) += ir-mce_kbd-decoder.o
+>  obj-$(CONFIG_IR_XMP_DECODER) += ir-xmp-decoder.o
+>  obj-$(CONFIG_IR_IMON_DECODER) += ir-imon-decoder.o
+> +obj-$(CONFIG_IR_RCMM_DECODER) += ir-rcmm-decoder.o
 >  
->  		/* If driver of any entity isn't ready try all again later. */
-> -		if (!strcmp(node->name, CSIS_OF_NODE_NAME))
-> +		if (of_node_name_eq(node, CSIS_OF_NODE_NAME))
->  			plat_entity = IDX_CSIS;
-> -		else if	(!strcmp(node->name, FIMC_IS_OF_NODE_NAME))
-> +		else if	(of_node_name_eq(node, FIMC_IS_OF_NODE_NAME))
->  			plat_entity = IDX_IS_ISP;
-> -		else if (!strcmp(node->name, FIMC_LITE_OF_NODE_NAME))
-> +		else if (of_node_name_eq(node, FIMC_LITE_OF_NODE_NAME))
->  			plat_entity = IDX_FLITE;
-> -		else if	(!strcmp(node->name, FIMC_OF_NODE_NAME) &&
-> +		else if	(of_node_name_eq(node, FIMC_OF_NODE_NAME) &&
->  			 !of_property_read_bool(node, "samsung,lcd-wb"))
->  			plat_entity = IDX_FIMC;
+>  # stand-alone IR receivers/transmitters
+>  obj-$(CONFIG_RC_ATI_REMOTE) += ati_remote.o
+> diff --git a/drivers/media/rc/ir-rcmm-decoder.c b/drivers/media/rc/ir-rcmm-decoder.c
+> new file mode 100644
+> index 000000000000..94d5b70f7a0f
+> --- /dev/null
+> +++ b/drivers/media/rc/ir-rcmm-decoder.c
+> @@ -0,0 +1,185 @@
+> +/* ir-rcmm-decoder.c - A decoder for the RCMM IR protocol
+> + *
+> + * Copyright (C) 2016 by Patrick Lerda
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation version 2 of the License.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+
+Replace this with the SPDX-License-Identifier.
+
+> + */
+> +
+> +#include "rc-core-priv.h"
+> +#include <linux/module.h>
+> +#include <linux/version.h>
+> +
+> +
+> +#define RCMM_UNIT		166667	/* nanosecs */
+> +#define RCMM_0_NBITS		64
+
+Not used.
+
+> +#define RCMM_PREFIX_PULSE	416666  /* 166666.666666666*2.5 */
+> +#define RCMM_PULSE_0            277777  /* 166666.666666666*(1+2/3) */
+> +#define RCMM_PULSE_1            444444  /* 166666.666666666*(2+2/3) */
+> +#define RCMM_PULSE_2            611111  /* 166666.666666666*(3+2/3) */
+> +#define RCMM_PULSE_3            777778  /* 166666.666666666*(4+2/3) */
+> +#define RCMM_MODE_MASK          0x0000
+
+Not used.
+> +
+> +enum rcmm_state {
+> +	STATE_INACTIVE,
+> +	STATE_LOW,
+> +	STATE_BUMP,
+> +	STATE_VALUE,
+> +	STATE_FINISHED,
+> +};
+> +
+> +static bool rcmm_mode(struct rcmm_dec *data)
+> +{
+> +        return !((0x000c0000 & data->bits) == 0x000c0000);
+> +}
+> +
+> +/**
+> + * ir_rcmm_decode() - Decode one RCMM pulse or space
+> + * @dev:	the struct rc_dev descriptor of the device
+> + * @ev:		the struct ir_raw_event descriptor of the pulse/space
+> + *
+> + * This function returns -EINVAL if the pulse violates the state machine
+> + */
+> +static int ir_rcmm_decode(struct rc_dev *dev, struct ir_raw_event ev)
+> +{
+> +	struct rcmm_dec *data = &dev->raw->rcmm;
+> +	u32 scancode;
+> +	u8 toggle;
+> +
+> +	if (!(dev->enabled_protocols & RC_PROTO_BIT_RCMM))
+> +		return 0;
+> +
+> +	if (!is_timing_event(ev)) {
+> +		if (ev.reset)
+> +			data->state = STATE_INACTIVE;
+> +		return 0;
+> +	}
+> +
+> +	if (ev.duration > RCMM_PULSE_3 + RCMM_UNIT)
+> +		goto out;
+> +
+> +	switch (data->state) {
+> +
+> +	case STATE_INACTIVE:
+> +		if (!ev.pulse)
+> +			break;
+> +
+> +		/* Note: larger margin on first pulse since each RCMM_UNIT
+> +		   is quite short and some hardware takes some time to
+> +		   adjust to the signal */
+
+Use:
+ /*
+  * Note:
+  */
+Type multiline comments please.
+
+> +		if (!eq_margin(ev.duration, RCMM_PREFIX_PULSE, RCMM_UNIT/2))
+> +			break;
+> +
+> +		data->state = STATE_LOW;
+> +		data->count = 0;
+> +		data->bits  = 0;
+> +		return 0;
+> +
+> +	case STATE_LOW:
+> +		if (ev.pulse)
+> +			break;
+> +
+> +		/* Note: larger margin on first pulse since each RCMM_UNIT
+> +		   is quite short and some hardware takes some time to
+> +		   adjust to the signal */
+
+Same here
+
+> +		if (!eq_margin(ev.duration, RCMM_PULSE_0, RCMM_UNIT/2))
+> +			break;
+> +
+> +		data->state = STATE_BUMP;
+> +		return 0;
+> +
+> +	case STATE_BUMP:
+> +		if (!ev.pulse)
+> +			break;
+> +
+> +		if (!eq_margin(ev.duration, RCMM_UNIT, RCMM_UNIT / 2))
+> +			break;
+> +
+> +		data->state = STATE_VALUE;
+> +		return 0;
+> +
+> +	case STATE_VALUE:
+> +		if (ev.pulse)
+> +			break;
+> +	        {
+> +			int value;
+
+Please declare value at the top so you don't need a new block.
+
+> +
+> +			if (eq_margin(ev.duration, RCMM_PULSE_0, RCMM_UNIT / 2)) {
+
+No { and } needed for oneline statements after if / else if.
+
+> +				value = 0;
+> +			} else if (eq_margin(ev.duration, RCMM_PULSE_1, RCMM_UNIT / 2))	{
+> +				value = 1;
+> +			} else if (eq_margin(ev.duration, RCMM_PULSE_2, RCMM_UNIT / 2))	{
+> +				value = 2;
+> +			} else if (eq_margin(ev.duration, RCMM_PULSE_3, RCMM_UNIT / 2))	{
+> +				value = 3;
+> +			} else
+> +				break;
+> +
+> +			data->bits <<= 2;
+> +			data->bits |= value;
+> +		}
+> +
+> +		data->count+=2;
+> +
+> +		if (data->count < 32) {
+> +			data->state = STATE_BUMP;
+> +		} else {
+> +			data->state = STATE_FINISHED;
+> +		}
+
+No braces for single line statements.
+
+> +
+> +		return 0;
+> +
+> +	case STATE_FINISHED:
+> +	        if (!ev.pulse) break;
+> +
+> +		if (!eq_margin(ev.duration, RCMM_UNIT, RCMM_UNIT / 2))
+> +			break;
+> +
+> +		if (rcmm_mode(data)) {
+> +			toggle = !!(0x8000 & data->bits);
+> +			scancode = data->bits & ~0x8000;
+> +		} else {
+> +			toggle = 0;
+> +			scancode = data->bits;
+> +		}
+> +
+> +		rc_keydown(dev, RC_PROTO_RCMM, scancode, toggle);
+> +		data->state = STATE_INACTIVE;
+> +		return 0;
+> +	}
+> +
+> +out:
+> +	data->state = STATE_INACTIVE;
+> +	return -EINVAL;
+> +}
+> +
+> +static struct ir_raw_handler rcmm_handler = {
+> +	.protocols	= RC_PROTO_BIT_RCMM,
+> +	.decode		= ir_rcmm_decode,
+
+It would be nice to have an rcmm encoder as well.
+
+> +};
+> +
+> +static int __init ir_rcmm_decode_init(void)
+> +{
+> +	ir_raw_handler_register(&rcmm_handler);
+> +
+> +	printk(KERN_INFO "IR RCMM protocol handler initialized\n");
+Use:
+	pr_info()
+
+> +	return 0;
+> +}
+> +
+> +static void __exit ir_rcmm_decode_exit(void)
+> +{
+> +	ir_raw_handler_unregister(&rcmm_handler);
+> +}
+> +
+> +module_init(ir_rcmm_decode_init);
+> +module_exit(ir_rcmm_decode_exit);
+> +
+> +MODULE_LICENSE("GPL");
+> +MODULE_AUTHOR("Patrick LERDA");
+> +MODULE_DESCRIPTION("RCMM IR protocol decoder");
+> diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
+> index c2cbe7f6266c..c63d4ad007cc 100644
+> --- a/drivers/media/rc/rc-core-priv.h
+> +++ b/drivers/media/rc/rc-core-priv.h
+> @@ -131,6 +131,11 @@ struct ir_raw_event_ctrl {
+>  		unsigned int bits;
+>  		bool stick_keyboard;
+>  	} imon;
+> +	struct rcmm_dec {
+> +		int state;
+> +		unsigned count;
+> +		u64 bits;
+> +	} rcmm;
+>  };
 >  
-> diff --git a/drivers/media/platform/ti-vpe/cal.c b/drivers/media/platform/ti-vpe/cal.c
-> index 95a093f41905..fc3c212b96e1 100644
-> --- a/drivers/media/platform/ti-vpe/cal.c
-> +++ b/drivers/media/platform/ti-vpe/cal.c
-> @@ -1615,7 +1615,7 @@ of_get_next_port(const struct device_node *parent,
->  				return NULL;
->  			}
->  			prev = port;
-> -		} while (of_node_cmp(port->name, "port") != 0);
-> +		} while (!of_node_name_eq(port, "port"));
->  	}
+>  /* Mutex for locking raw IR processing and handler change */
+> diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+> index 552bbe82a160..ad1dee921f5b 100644
+> --- a/drivers/media/rc/rc-main.c
+> +++ b/drivers/media/rc/rc-main.c
+> @@ -70,6 +70,8 @@ static const struct {
+>  	[RC_PROTO_CEC] = { .name = "cec", .repeat_period = 0 },
+>  	[RC_PROTO_IMON] = { .name = "imon",
+>  		.scancode_bits = 0x7fffffff, .repeat_period = 114 },
+> +	[RC_PROTO_RCMM] = { .name = "rcmm",
+> +		.scancode_bits = 0xffffffff, .repeat_period = 114 },
+>  };
 >  
->  	return port;
-> @@ -1635,7 +1635,7 @@ of_get_next_endpoint(const struct device_node *parent,
->  		if (!ep)
->  			return NULL;
->  		prev = ep;
-> -	} while (of_node_cmp(ep->name, "endpoint") != 0);
-> +	} while (!of_node_name_eq(ep, "endpoint"));
+>  /* Used to keep track of known keymaps */
+> @@ -1004,6 +1006,7 @@ static const struct {
+>  	{ RC_PROTO_BIT_XMP,	"xmp",		"ir-xmp-decoder"	},
+>  	{ RC_PROTO_BIT_CEC,	"cec",		NULL			},
+>  	{ RC_PROTO_BIT_IMON,	"imon",		"ir-imon-decoder"	},
+> +	{ RC_PROTO_BIT_RCMM,	"rcmm",		"ir-rcmm-decoder"	},
+>  };
 >  
->  	return ep;
->  }
-> diff --git a/drivers/media/platform/xilinx/xilinx-tpg.c b/drivers/media/platform/xilinx/xilinx-tpg.c
-> index 851d20dcd550..ce686b8d6cff 100644
-> --- a/drivers/media/platform/xilinx/xilinx-tpg.c
-> +++ b/drivers/media/platform/xilinx/xilinx-tpg.c
-> @@ -725,7 +725,7 @@ static int xtpg_parse_of(struct xtpg_device *xtpg)
->  		const struct xvip_video_format *format;
->  		struct device_node *endpoint;
+>  /**
+> diff --git a/include/media/rc-map.h b/include/media/rc-map.h
+> index bfa3017cecba..f06200362a3c 100644
+> --- a/include/media/rc-map.h
+> +++ b/include/media/rc-map.h
+> @@ -37,6 +37,7 @@
+>  #define RC_PROTO_BIT_XMP		BIT_ULL(RC_PROTO_XMP)
+>  #define RC_PROTO_BIT_CEC		BIT_ULL(RC_PROTO_CEC)
+>  #define RC_PROTO_BIT_IMON		BIT_ULL(RC_PROTO_IMON)
+> +#define RC_PROTO_BIT_RCMM		BIT_ULL(RC_PROTO_RCMM)
 >  
-> -		if (!port->name || of_node_cmp(port->name, "port"))
-> +		if (!of_node_name_eq(port, "port"))
->  			continue;
+>  #define RC_PROTO_BIT_ALL \
+>  			(RC_PROTO_BIT_UNKNOWN | RC_PROTO_BIT_OTHER | \
+> @@ -51,7 +52,7 @@
+>  			 RC_PROTO_BIT_RC6_6A_24 | RC_PROTO_BIT_RC6_6A_32 | \
+>  			 RC_PROTO_BIT_RC6_MCE | RC_PROTO_BIT_SHARP | \
+>  			 RC_PROTO_BIT_XMP | RC_PROTO_BIT_CEC | \
+> -			 RC_PROTO_BIT_IMON)
+> +			 RC_PROTO_BIT_IMON | RC_PROTO_BIT_RCMM)
+>  /* All rc protocols for which we have decoders */
+>  #define RC_PROTO_BIT_ALL_IR_DECODER \
+>  			(RC_PROTO_BIT_RC5 | RC_PROTO_BIT_RC5X_20 | \
+> @@ -64,7 +65,8 @@
+>  			 RC_PROTO_BIT_RC6_0 | RC_PROTO_BIT_RC6_6A_20 | \
+>  			 RC_PROTO_BIT_RC6_6A_24 |  RC_PROTO_BIT_RC6_6A_32 | \
+>  			 RC_PROTO_BIT_RC6_MCE | RC_PROTO_BIT_SHARP | \
+> -			 RC_PROTO_BIT_XMP | RC_PROTO_BIT_IMON)
+> +			 RC_PROTO_BIT_XMP | RC_PROTO_BIT_IMON | \
+> +			 RC_PROTO_BIT_RCMM)
 >  
->  		format = xvip_of_get_format(port);
-> diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-> index 218f0da0ce76..849326241b17 100644
-> --- a/drivers/media/v4l2-core/v4l2-fwnode.c
-> +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-> @@ -564,8 +564,7 @@ int v4l2_fwnode_parse_link(struct fwnode_handle *__fwnode,
->  	fwnode = fwnode_get_parent(__fwnode);
->  	fwnode_property_read_u32(fwnode, port_prop, &link->local_port);
->  	fwnode = fwnode_get_next_parent(fwnode);
-> -	if (is_of_node(fwnode) &&
-> -	    of_node_cmp(to_of_node(fwnode)->name, "ports") == 0)
-> +	if (is_of_node(fwnode) && of_node_name_eq(to_of_node(fwnode), "ports"))
->  		fwnode = fwnode_get_next_parent(fwnode);
->  	link->local_node = fwnode;
+>  #define RC_PROTO_BIT_ALL_IR_ENCODER \
+>  			(RC_PROTO_BIT_RC5 | RC_PROTO_BIT_RC5X_20 | \
+> diff --git a/include/uapi/linux/lirc.h b/include/uapi/linux/lirc.h
+> index 6b319581882f..2bc7915ff33a 100644
+> --- a/include/uapi/linux/lirc.h
+> +++ b/include/uapi/linux/lirc.h
+> @@ -218,6 +218,7 @@ enum rc_proto {
+>  	RC_PROTO_XMP		= 21,
+>  	RC_PROTO_CEC		= 22,
+>  	RC_PROTO_IMON		= 23,
+> +	RC_PROTO_RCMM		= 24,
+>  };
 >  
-> @@ -578,8 +577,7 @@ int v4l2_fwnode_parse_link(struct fwnode_handle *__fwnode,
->  	fwnode = fwnode_get_parent(fwnode);
->  	fwnode_property_read_u32(fwnode, port_prop, &link->remote_port);
->  	fwnode = fwnode_get_next_parent(fwnode);
-> -	if (is_of_node(fwnode) &&
-> -	    of_node_cmp(to_of_node(fwnode)->name, "ports") == 0)
-> +	if (is_of_node(fwnode) && of_node_name_eq(to_of_node(fwnode), "ports"))
->  		fwnode = fwnode_get_next_parent(fwnode);
->  	link->remote_node = fwnode;
+>  #endif
+> diff --git a/tools/include/uapi/linux/lirc.h b/tools/include/uapi/linux/lirc.h
+> index f189931042a7..c03e9562e349 100644
+> --- a/tools/include/uapi/linux/lirc.h
+> +++ b/tools/include/uapi/linux/lirc.h
+> @@ -212,6 +212,7 @@ enum rc_proto {
+>  	RC_PROTO_XMP		= 21,
+>  	RC_PROTO_CEC		= 22,
+>  	RC_PROTO_IMON		= 23,
+> +	RC_PROTO_RCMM		= 24,
+>  };
 >  
+
+An entry in MAINTAINERS would be good, and please run 
+./script/checkpatch.pl --strict on your patch and fix any issues you find.
+
+Thanks,
+
+Sean
+
+>  #endif
 > -- 
-> 2.19.1
-> 
+> 2.19.2
