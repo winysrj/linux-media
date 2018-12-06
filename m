@@ -2,203 +2,209 @@ Return-Path: <SRS0=eh97=OP=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_MUTT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 22C8EC04EB9
-	for <linux-media@archiver.kernel.org>; Thu,  6 Dec 2018 08:31:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 717C2C04EBF
+	for <linux-media@archiver.kernel.org>; Thu,  6 Dec 2018 09:06:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DC4E020892
-	for <linux-media@archiver.kernel.org>; Thu,  6 Dec 2018 08:30:59 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org DC4E020892
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=jmondi.org
+	by mail.kernel.org (Postfix) with ESMTP id 36BE420892
+	for <linux-media@archiver.kernel.org>; Thu,  6 Dec 2018 09:06:25 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="S3Geriww"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 36BE420892
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=ideasonboard.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729173AbeLFIay (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 6 Dec 2018 03:30:54 -0500
-Received: from relay3-d.mail.gandi.net ([217.70.183.195]:50165 "EHLO
-        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727575AbeLFIay (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 6 Dec 2018 03:30:54 -0500
-X-Originating-IP: 2.224.242.101
-Received: from w540 (2-224-242-101.ip172.fastwebnet.it [2.224.242.101])
-        (Authenticated sender: jacopo@jmondi.org)
-        by relay3-d.mail.gandi.net (Postfix) with ESMTPSA id CB45C60007;
-        Thu,  6 Dec 2018 08:30:48 +0000 (UTC)
-Date:   Thu, 6 Dec 2018 09:30:41 +0100
-From:   jacopo mondi <jacopo@jmondi.org>
-To:     Lubomir Rintel <lkundrak@v3.sk>
-Cc:     "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+        id S1728144AbeLFJGT (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 6 Dec 2018 04:06:19 -0500
+Received: from perceval.ideasonboard.com ([213.167.242.64]:36634 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727575AbeLFJGT (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 6 Dec 2018 04:06:19 -0500
+Received: from avalon.localnet (dfj612ybrt5fhg77mgycy-3.rev.dnainternet.fi [IPv6:2001:14ba:21f5:5b00:2e86:4862:ef6a:2804])
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id AE0EF546;
+        Thu,  6 Dec 2018 10:06:15 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
+        s=mail; t=1544087176;
+        bh=QqaCaru4HlBngyD5EdpUWfAmiiuTniR1cU9xMfAu5BY=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=S3GeriwwJAho5vsiiSvHErMwLtt5wDeo2OyXRJF6L6tdsPX/BslsfiRpS1Zd0n8+o
+         mvC1iDNXWfTgoTLaWLzGVhexTjh31Wm4OfdOlY4+r8favnyb9TFvp0/uFmZuQxc/ph
+         0hRp+uNO8q1hZ7xm98oMUc5oeCHp+euoubNj45Sk=
+From:   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To:     Rob Herring <robh@kernel.org>
+Cc:     devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rui Miguel Silva <rmfrfs@gmail.com>,
-        Shunqian Zheng <zhengsq@rock-chips.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Wenyou Yang <wenyou.yang@microchip.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 1/6] media: v4l2-subdev: stub
- v4l2_subdev_get_try_format() ??
-Message-ID: <20181206083041.GA5597@w540>
-References: <20181128171918.160643-1-lkundrak@v3.sk>
- <20181128171918.160643-2-lkundrak@v3.sk>
- <20181203134800.GA2901@w540>
- <680ea9621883d53712d701a9859ab2677890daca.camel@v3.sk>
+        Kukjin Kim <kgene@kernel.org>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Benoit Parrot <bparrot@ti.com>,
+        Hyun Kwon <hyun.kwon@xilinx.com>,
+        Michal Simek <michal.simek@xilinx.com>,
+        linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-samsung-soc@vger.kernel.org
+Subject: Re: [PATCH] media: Use of_node_name_eq for node name comparisons
+Date:   Thu, 06 Dec 2018 11:06:53 +0200
+Message-ID: <11464259.SYJ8DM9ezq@avalon>
+Organization: Ideas on Board Oy
+In-Reply-To: <20181205195050.4759-13-robh@kernel.org>
+References: <20181205195050.4759-13-robh@kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="9jxsPFA5p3P2qPhR"
-Content-Disposition: inline
-In-Reply-To: <680ea9621883d53712d701a9859ab2677890daca.camel@v3.sk>
-User-Agent: Mutt/1.5.24 (2015-08-30)
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
+Hi Rob,
 
---9jxsPFA5p3P2qPhR
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+Thank you for the patch.
 
-Hi Lubomir,
+On Wednesday, 5 December 2018 21:50:29 EET Rob Herring wrote:
+> Convert string compares of DT node names to use of_node_name_eq helper
+> instead. This removes direct access to the node name pointer.
+> 
+> Cc: Kyungmin Park <kyungmin.park@samsung.com>
+> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+> Cc: Kukjin Kim <kgene@kernel.org>
+> Cc: Krzysztof Kozlowski <krzk@kernel.org>
+> Cc: Benoit Parrot <bparrot@ti.com>
+> Cc: Hyun Kwon <hyun.kwon@xilinx.com>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: Michal Simek <michal.simek@xilinx.com>
+> Cc: linux-media@vger.kernel.org
+> Cc: linux-arm-kernel@lists.infradead.org
+> Cc: linux-samsung-soc@vger.kernel.org
+> Signed-off-by: Rob Herring <robh@kernel.org>
+> ---
+>  drivers/media/platform/exynos4-is/media-dev.c | 12 ++++++------
+>  drivers/media/platform/ti-vpe/cal.c           |  4 ++--
+>  drivers/media/platform/xilinx/xilinx-tpg.c    |  2 +-
+>  drivers/media/v4l2-core/v4l2-fwnode.c         |  6 ++----
+>  4 files changed, 11 insertions(+), 13 deletions(-)
+> 
+> diff --git a/drivers/media/platform/exynos4-is/media-dev.c
+> b/drivers/media/platform/exynos4-is/media-dev.c index
+> 870501b0f351..ced14af56606 100644
+> --- a/drivers/media/platform/exynos4-is/media-dev.c
+> +++ b/drivers/media/platform/exynos4-is/media-dev.c
+> @@ -445,7 +445,7 @@ static int fimc_md_parse_port_node(struct fimc_md *fmd,
+>  	 */
+>  	np = of_get_parent(rem);
+> 
+> -	if (np && !of_node_cmp(np->name, "i2c-isp"))
+> +	if (of_node_name_eq(np, "i2c-isp"))
+>  		pd->fimc_bus_type = FIMC_BUS_TYPE_ISP_WRITEBACK;
+>  	else
+>  		pd->fimc_bus_type = pd->sensor_bus_type;
+> @@ -495,7 +495,7 @@ static int fimc_md_register_sensor_entities(struct
+> fimc_md *fmd) for_each_available_child_of_node(parent, node) {
+>  		struct device_node *port;
+> 
+> -		if (of_node_cmp(node->name, "csis"))
+> +		if (!of_node_name_eq(node, "csis"))
+>  			continue;
+>  		/* The csis node can have only port subnode. */
+>  		port = of_get_next_child(node, NULL);
+> @@ -720,13 +720,13 @@ static int fimc_md_register_platform_entities(struct
+> fimc_md *fmd, continue;
+> 
+>  		/* If driver of any entity isn't ready try all again later. */
+> -		if (!strcmp(node->name, CSIS_OF_NODE_NAME))
+> +		if (of_node_name_eq(node, CSIS_OF_NODE_NAME))
+>  			plat_entity = IDX_CSIS;
+> -		else if	(!strcmp(node->name, FIMC_IS_OF_NODE_NAME))
+> +		else if	(of_node_name_eq(node, FIMC_IS_OF_NODE_NAME))
 
-On Tue, Dec 04, 2018 at 04:01:43PM +0100, Lubomir Rintel wrote:
-> On Mon, 2018-12-03 at 14:48 +0100, jacopo mondi wrote:
-> > Hi Lubomir,
-> >
-> >   thanks for the patches
-> >
-> > On Wed, Nov 28, 2018 at 06:19:13PM +0100, Lubomir Rintel wrote:
-> > > Provide a dummy implementation when configured without
-> > > CONFIG_VIDEO_V4L2_SUBDEV_API to avoid ifdef dance in the drivers
-> > > that can
-> > > be built either with or without the option.
-> > >
-> > > Suggested-by: Jacopo Mondi <jacopo@jmondi.org>
-> > > Signed-off-by: Lubomir Rintel <lkundrak@v3.sk>
-> > > ---
-> > >  include/media/v4l2-subdev.h | 11 +++++++++++
-> > >  1 file changed, 11 insertions(+)
-> > >
-> > > diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-
-> > > subdev.h
-> > > index 9102d6ca566e..906e28011bb4 100644
-> > > --- a/include/media/v4l2-subdev.h
-> > > +++ b/include/media/v4l2-subdev.h
-> > > @@ -967,6 +967,17 @@ static inline struct v4l2_rect
-> > >  		pad = 0;
-> > >  	return &cfg[pad].try_compose;
-> > >  }
-> > > +
-> > > +#else /* !defined(CONFIG_VIDEO_V4L2_SUBDEV_API) */
-> > > +
-> > > +static inline struct v4l2_mbus_framefmt
-> > > +*v4l2_subdev_get_try_format(struct v4l2_subdev *sd,
-> > > +			    struct v4l2_subdev_pad_config *cfg,
-> > > +			    unsigned int pad)
-> > > +{
-> > > +	return ERR_PTR(-ENOTTY);
-> > > +}
-> > > +
-> > >  #endif
-> >
-> > While at there, what about doing the same for get_try_crop and
-> > get_try_compose? At lease provide stubs, I let you figure out if
-> > you're willing to fix callers too, it seems there are quite a few of
-> > them though
-> >
-> > $ git grep v4l2_subdev_get_try* drivers/media/ | grep -v '_format' |
-> > wc -l
-> > 44
->
-> I'd be happy to do that. However, the drivers that use those seem to
-> depend on CONFIG_VIDEO_V4L2_SUBDEV_API anyway. Should those
-> dependencies be eventually done away with?
->
+You might want to s/if\t/if / while at it.
 
-I don't think it is the case to drop the dependencies. If you go down
-that path you would need to be very careful. It's enough to add stubs
-for those functions like you've done for v4l2_subdev_get_try_format().
+>  			plat_entity = IDX_IS_ISP;
+> -		else if (!strcmp(node->name, FIMC_LITE_OF_NODE_NAME))
+> +		else if (of_node_name_eq(node, FIMC_LITE_OF_NODE_NAME))
+>  			plat_entity = IDX_FLITE;
+> -		else if	(!strcmp(node->name, FIMC_OF_NODE_NAME) &&
+> +		else if	(of_node_name_eq(node, FIMC_OF_NODE_NAME) &&
 
-Now, looking around a bit in more detail, most sensor drivers return
--ENOTTY if you require V4L2_SUBDEV_FORMAT_TRY format when
-CONFIG_VIDEO_V4L2_SUBDEV_API is not defined. I would say all drivers
-but mt9v111.c, which is one of the most recent ones, and that deals
-with the issue as:
+And here too.
 
-static struct v4l2_mbus_framefmt *__mt9v111_get_pad_format(
-					struct mt9v111_dev *mt9v111,
-					struct v4l2_subdev_pad_config *cfg,
-					unsigned int pad,
-					enum v4l2_subdev_format_whence which)
-{
-	switch (which) {
-	case V4L2_SUBDEV_FORMAT_TRY:
-#if IS_ENABLED(CONFIG_VIDEO_V4L2_SUBDEV_API)
-		return v4l2_subdev_get_try_format(&mt9v111->sd, cfg, pad);
-#else
-		return &cfg->try_fmt;
-#endif
-	case V4L2_SUBDEV_FORMAT_ACTIVE:
-		return &mt9v111->fmt;
-	default:
-		return NULL;
-	}
-}
+Apart from that,
 
-Since I wrote that part, and I recall it had been suggested to me, I
-wonder which one of the two approaches it actually correct :/
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+>  			 !of_property_read_bool(node, "samsung,lcd-wb"))
+>  			plat_entity = IDX_FIMC;
+> 
+> diff --git a/drivers/media/platform/ti-vpe/cal.c
+> b/drivers/media/platform/ti-vpe/cal.c index 95a093f41905..fc3c212b96e1
+> 100644
+> --- a/drivers/media/platform/ti-vpe/cal.c
+> +++ b/drivers/media/platform/ti-vpe/cal.c
+> @@ -1615,7 +1615,7 @@ of_get_next_port(const struct device_node *parent,
+>  				return NULL;
+>  			}
+>  			prev = port;
+> -		} while (of_node_cmp(port->name, "port") != 0);
+> +		} while (!of_node_name_eq(port, "port"));
+>  	}
+> 
+>  	return port;
+> @@ -1635,7 +1635,7 @@ of_get_next_endpoint(const struct device_node *parent,
+> if (!ep)
+>  			return NULL;
+>  		prev = ep;
+> -	} while (of_node_cmp(ep->name, "endpoint") != 0);
+> +	} while (!of_node_name_eq(ep, "endpoint"));
+> 
+>  	return ep;
+>  }
+> diff --git a/drivers/media/platform/xilinx/xilinx-tpg.c
+> b/drivers/media/platform/xilinx/xilinx-tpg.c index
+> 851d20dcd550..ce686b8d6cff 100644
+> --- a/drivers/media/platform/xilinx/xilinx-tpg.c
+> +++ b/drivers/media/platform/xilinx/xilinx-tpg.c
+> @@ -725,7 +725,7 @@ static int xtpg_parse_of(struct xtpg_device *xtpg)
+>  		const struct xvip_video_format *format;
+>  		struct device_node *endpoint;
+> 
+> -		if (!port->name || of_node_cmp(port->name, "port"))
+> +		if (!of_node_name_eq(port, "port"))
+>  			continue;
+> 
+>  		format = xvip_of_get_format(port);
+> diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c
+> b/drivers/media/v4l2-core/v4l2-fwnode.c index 218f0da0ce76..849326241b17
+> 100644
+> --- a/drivers/media/v4l2-core/v4l2-fwnode.c
+> +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+> @@ -564,8 +564,7 @@ int v4l2_fwnode_parse_link(struct fwnode_handle
+> *__fwnode, fwnode = fwnode_get_parent(__fwnode);
+>  	fwnode_property_read_u32(fwnode, port_prop, &link->local_port);
+>  	fwnode = fwnode_get_next_parent(fwnode);
+> -	if (is_of_node(fwnode) &&
+> -	    of_node_cmp(to_of_node(fwnode)->name, "ports") == 0)
+> +	if (is_of_node(fwnode) && of_node_name_eq(to_of_node(fwnode), "ports"))
+>  		fwnode = fwnode_get_next_parent(fwnode);
+>  	link->local_node = fwnode;
+> 
+> @@ -578,8 +577,7 @@ int v4l2_fwnode_parse_link(struct fwnode_handle
+> *__fwnode, fwnode = fwnode_get_parent(fwnode);
+>  	fwnode_property_read_u32(fwnode, port_prop, &link->remote_port);
+>  	fwnode = fwnode_get_next_parent(fwnode);
+> -	if (is_of_node(fwnode) &&
+> -	    of_node_cmp(to_of_node(fwnode)->name, "ports") == 0)
+> +	if (is_of_node(fwnode) && of_node_name_eq(to_of_node(fwnode), "ports"))
+>  		fwnode = fwnode_get_next_parent(fwnode);
+>  	link->remote_node = fwnode;
+
+-- 
+Regards,
+
+Laurent Pinchart
 
 
-> Please pardon my ignorance -- I don't actually understand why would
-> anyone disable CONFIG_VIDEO_V4L2_SUBDEV_API.
 
-The config options is described as:
-Enables the V4L2 sub-device pad-level userspace API used to configure
-video format, size and frame rate between hardware blocks.
-
-Some driver simply do not expose a subdev in userspace. It might be
-discussed that if selecting MEDIA_CONTROLLER should in facts be enough
-and to imply CONFIG_VIDEO_V4L2_SUBDEV_API, but that's a separate
-issue.
->
-> I'll be following up with a v2 after I get a response from you. It will
-> address locking issues found with smatch: one introduced by my patch
-> and one that was there before.
->
-
-Yep, ov2659 was b0rken already, thanks for fixing it while at there.
-
-Thanks
-   j
-
-> Cheers,
-> Lubo
->
-> > >  extern const struct v4l2_file_operations v4l2_subdev_fops;
-> > > --
-> > > 2.19.1
-> > >
->
-
---9jxsPFA5p3P2qPhR
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABCAAGBQJcCN4mAAoJEHI0Bo8WoVY8rKIQAIT3SV0K+8AkDuJrAk4z98l/
-/a3tpcWoDaE5nUeyuZHltlMRCwL94rf1gpIoIpn3xIftxW9oiZz35kNpwcke51ou
-J9sqUgTk5K+/PkeneYcM8+ft9G3isSeMFtSXfPpD8mtj6hxpys1THgizx/obPdP+
-Wt2CwBS/AS/lpLnBMNJhCZEXM5uzDBmr90XtA78IQ/8rOsaDie/q8WXxIjB2S5Kz
-DyoCKJpeMgqy9id4iFlk7OqOdVOWss1NYP0UcjXRKzc35YWIx4kFXADAAJYD6kd3
-xG1ACPHTMmMsDE9UPgOa8frlTgaOIHwP+48aIUXBn2VtrrSs6sEz1Bpc66UljLBH
-rn1mt3Yn2DopIy+3oqr6ObCcOi8TwKqfmdzBDnpGzdOyVynNuClmWM33VWeWG9uk
-kEyDPbIKpMEj4DfaMsv1Y5hxBV3UVGtplaR7WalVwpxr3nvRBnU7YzbkhjEBSdel
-GWON0fEDJZJbKQeFafpIWQK9k1AOgy4sbI+Uu4JmeLhRLCQEiWa40rdZ2Do950F1
-8uY2xH7uTkGFsN1DR86VlqANsksxtJ0AknFTo0VjRwxAiK2Ga+CN04hr+GOXq1yc
-u+CYbAXkp1TtFVh1Wa2IXKA95X3g9svS9jn5GLeTTiC9MInvYeckiu/nPQxVtFLs
-rBUF7FyGRc2xPJXe0LDJ
-=QBzN
------END PGP SIGNATURE-----
-
---9jxsPFA5p3P2qPhR--
