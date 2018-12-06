@@ -2,242 +2,179 @@ Return-Path: <SRS0=eh97=OP=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AA40C04EB8
-	for <linux-media@archiver.kernel.org>; Thu,  6 Dec 2018 11:49:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 192F7C04EB8
+	for <linux-media@archiver.kernel.org>; Thu,  6 Dec 2018 12:16:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DB242208E7
-	for <linux-media@archiver.kernel.org>; Thu,  6 Dec 2018 11:49:46 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org DB242208E7
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=st.com
+	by mail.kernel.org (Postfix) with ESMTP id DF29120878
+	for <linux-media@archiver.kernel.org>; Thu,  6 Dec 2018 12:16:31 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org DF29120878
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=xs4all.nl
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729256AbeLFLtk (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 6 Dec 2018 06:49:40 -0500
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:38295 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1727832AbeLFLtk (ORCPT
+        id S1728144AbeLFMQb (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 6 Dec 2018 07:16:31 -0500
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:57261 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727908AbeLFMQa (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 6 Dec 2018 06:49:40 -0500
-Received: from pps.filterd (m0046661.ppops.net [127.0.0.1])
-        by mx08-00178001.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id wB6BjwJb016149;
-        Thu, 6 Dec 2018 12:49:13 +0100
-Received: from beta.dmz-eu.st.com (beta.dmz-eu.st.com [164.129.1.35])
-        by mx08-00178001.pphosted.com with ESMTP id 2p3wt6v1ky-1
-        (version=TLSv1 cipher=ECDHE-RSA-AES256-SHA bits=256 verify=NOT);
-        Thu, 06 Dec 2018 12:49:13 +0100
-Received: from zeta.dmz-eu.st.com (zeta.dmz-eu.st.com [164.129.230.9])
-        by beta.dmz-eu.st.com (STMicroelectronics) with ESMTP id ABD4131;
-        Thu,  6 Dec 2018 11:49:12 +0000 (GMT)
-Received: from Webmail-eu.st.com (sfhdag5node2.st.com [10.75.127.14])
-        by zeta.dmz-eu.st.com (STMicroelectronics) with ESMTP id 7A6AB287B;
-        Thu,  6 Dec 2018 11:49:12 +0000 (GMT)
-Received: from SFHDAG5NODE3.st.com (10.75.127.15) by SFHDAG5NODE2.st.com
- (10.75.127.14) with Microsoft SMTP Server (TLS) id 15.0.1347.2; Thu, 6 Dec
- 2018 12:49:11 +0100
-Received: from SFHDAG5NODE3.st.com ([fe80::7c09:5d6b:d2c7:5f47]) by
- SFHDAG5NODE3.st.com ([fe80::7c09:5d6b:d2c7:5f47%20]) with mapi id
- 15.00.1347.000; Thu, 6 Dec 2018 12:49:12 +0100
-From:   Fabien DESSENNE <fabien.dessenne@st.com>
-To:     Yangtao Li <tiny.windzz@gmail.com>,
-        "kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
-        "s.nawrocki@samsung.com" <s.nawrocki@samsung.com>,
-        "mchehab@kernel.org" <mchehab@kernel.org>,
-        "kgene@kernel.org" <kgene@kernel.org>,
-        "krzk@kernel.org" <krzk@kernel.org>,
-        Jean Christophe TROTIN <jean-christophe.trotin@st.com>
-CC:     "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "linux-arm-kernel@lists.infradead.org" 
-        <linux-arm-kernel@lists.infradead.org>,
-        "linux-samsung-soc@vger.kernel.org" 
-        <linux-samsung-soc@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v2] media: remove bdisp_dbg_declare() and
- hva_dbg_declare()
-Thread-Topic: [PATCH v2] media: remove bdisp_dbg_declare() and
- hva_dbg_declare()
-Thread-Index: AQHUieNcD7uIlY5JtUWqqeHlup+8a6Vxjt2A
-Date:   Thu, 6 Dec 2018 11:49:12 +0000
-Message-ID: <aa26931d-c4f0-32d2-30d8-65fd4376d3d9@st.com>
-References: <20181202020425.9189-1-tiny.windzz@gmail.com>
-In-Reply-To: <20181202020425.9189-1-tiny.windzz@gmail.com>
-Accept-Language: fr-FR, en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-user-agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.2.1
-x-ms-exchange-messagesentrepresentingtype: 1
-x-ms-exchange-transport-fromentityheader: Hosted
-x-originating-ip: [10.75.127.46]
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <5564D1E2BE98B944B64A9343E59EACB0@st.com>
-Content-Transfer-Encoding: base64
+        Thu, 6 Dec 2018 07:16:30 -0500
+Received: from [IPv6:2001:420:44c1:2579:257d:be73:2120:ab20] ([IPv6:2001:420:44c1:2579:257d:be73:2120:ab20])
+        by smtp-cloud8.xs4all.net with ESMTPA
+        id UsZrgZD9BO44XUsZvgUNwB; Thu, 06 Dec 2018 13:16:28 +0100
+Subject: Re: [PATCHv4 00/10] vb2/cedrus: add tag support
+From:   Hans Verkuil <hverkuil-cisco@xs4all.nl>
+To:     linux-media@vger.kernel.org
+Cc:     Alexandre Courbot <acourbot@chromium.org>,
+        maxime.ripard@bootlin.com, paul.kocialkowski@bootlin.com,
+        tfiga@chromium.org, nicolas@ndufresne.ca,
+        sakari.ailus@linux.intel.com
+References: <20181205102040.11741-1-hverkuil-cisco@xs4all.nl>
+Message-ID: <b736b77b-c38b-d5b9-0cf7-c3ea6fcebdc4@xs4all.nl>
+Date:   Thu, 6 Dec 2018 13:16:23 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:52.0) Gecko/20100101
+ Thunderbird/52.2.1
 MIME-Version: 1.0
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:,, definitions=2018-12-06_03:,,
- signatures=0
+In-Reply-To: <20181205102040.11741-1-hverkuil-cisco@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-CMAE-Envelope: MS4wfO0K+9J+EKzf90Ltml04511ZyxnbsWITBb3+qGzw8duBcswWQQM3ukROuGzmNb4v1y02wAK9vHs67efBG6sncaD4h8gToL3nqeFLSSKUyS+F5Yec7wvx
+ S58LJXC7N6m0/yNwGJk28wG8NW6yKkIQYcVEzv7W3gTpLZis7plPOVNYKufYIAXgwWi+0NVaiDtl5eDln3hFvjxdRTBdhvOA0h2AQunnv4C2+5Xt+JHNYXF4
+ O3Nt6O40WOT/elgEBLvWqk0drr/P4lXrP1NBizcEvVLM+gXVNGZXJgXc775Ql+2E3ujL9MeKL+SaaFaIdakb9Z6hUIngj5ePkfX9allvCdx6Z1GOMnptM7D4
+ 3TpFe/V86U2g47X0vEQGG/57uOxL13gQ2MkXBWfL3bADWTPIqDWIlV7lDGCtAIoXS/9HloqPMAb4J8Xui/irfYl5f2eI0BU/pbpk+whFijivhLDHcmIcdkwW
+ lGhvesStmCVLhQQrUHxClJfa9kXCQRb6A5zMczjzAvmMJrTKrcNsHVHunPs=
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-SGksDQoNClRoZSBwYXRjaCBpdHNlbGYgaXMgT0ssIGJ1dCB0aGUgY29tbWl0IHRhbGtzIGFib3V0
-IGJkaXNwICYgaHZhIHdoaWxlIHRoZSANCnBhdGNoIGlzIGFsc28gZm9yIGZpbWMtaXMuDQpDb3Vs
-ZCB5b3UgcGxlYXNlIHVwZGF0ZSB0aGUgY29tbWl0IGhlYWRlciAmIG1lc3NhZ2VzPw0KDQpCUg0K
-DQpGYWJpZW4NCg0KT24gMDIvMTIvMjAxOCAzOjA0IEFNLCBZYW5ndGFvIExpIHdyb3RlOg0KPiBX
-ZSBhbHJlYWR5IGhhdmUgdGhlIERFRklORV9TSE9XX0FUVFJJQlVURS5UaGVyZSBpcyBubyBuZWVk
-IHRvIGRlZmluZQ0KPiBiZGlzcF9kYmdfZGVjbGFyZSBhbmQgaHZhX2RiZ19kZWNsYXJlLHNvIHJl
-bW92ZSB0aGVtLkFsc28gdXNlDQo+IERFRklORV9TSE9XX0FUVFJJQlVURSB0byBzaW1wbGlmeSBz
-b21lIGNvZGUuDQo+DQo+IFNpZ25lZC1vZmYtYnk6IFlhbmd0YW8gTGkgPHRpbnkud2luZHp6QGdt
-YWlsLmNvbT4NCj4gLS0tDQo+IENoYW5nZXMgaW4gdjI6DQo+IC1kZWxldGUgZmltY19pc19kZWJ1
-Z2ZzX29wZW4NCj4gLS0tDQo+ICAgZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS9leHlub3M0LWlzL2Zp
-bWMtaXMuYyAgIHwgMTYgKystLS0tLS0tDQo+ICAgLi4uL21lZGlhL3BsYXRmb3JtL3N0aS9iZGlz
-cC9iZGlzcC1kZWJ1Zy5jICAgIHwgMzQgKysrKysrLS0tLS0tLS0tLS0tDQo+ICAgZHJpdmVycy9t
-ZWRpYS9wbGF0Zm9ybS9zdGkvaHZhL2h2YS1kZWJ1Z2ZzLmMgIHwgMzYgKysrKysrKy0tLS0tLS0t
-LS0tLQ0KPiAgIDMgZmlsZXMgY2hhbmdlZCwgMjYgaW5zZXJ0aW9ucygrKSwgNjAgZGVsZXRpb25z
-KC0pDQo+DQo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL21lZGlhL3BsYXRmb3JtL2V4eW5vczQtaXMv
-ZmltYy1pcy5jIGIvZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS9leHlub3M0LWlzL2ZpbWMtaXMuYw0K
-PiBpbmRleCBmNWZjNTRkZTE5ZGEuLjAyZGEwYjA2ZTU2YSAxMDA2NDQNCj4gLS0tIGEvZHJpdmVy
-cy9tZWRpYS9wbGF0Zm9ybS9leHlub3M0LWlzL2ZpbWMtaXMuYw0KPiArKysgYi9kcml2ZXJzL21l
-ZGlhL3BsYXRmb3JtL2V4eW5vczQtaXMvZmltYy1pcy5jDQo+IEBAIC03MzgsNyArNzM4LDcgQEAg
-aW50IGZpbWNfaXNfaHdfaW5pdGlhbGl6ZShzdHJ1Y3QgZmltY19pcyAqaXMpDQo+ICAgCXJldHVy
-biAwOw0KPiAgIH0NCj4gICANCj4gLXN0YXRpYyBpbnQgZmltY19pc19sb2dfc2hvdyhzdHJ1Y3Qg
-c2VxX2ZpbGUgKnMsIHZvaWQgKmRhdGEpDQo+ICtzdGF0aWMgaW50IGZpbWNfaXNfc2hvdyhzdHJ1
-Y3Qgc2VxX2ZpbGUgKnMsIHZvaWQgKmRhdGEpDQo+ICAgew0KPiAgIAlzdHJ1Y3QgZmltY19pcyAq
-aXMgPSBzLT5wcml2YXRlOw0KPiAgIAljb25zdCB1OCAqYnVmID0gaXMtPm1lbW9yeS52YWRkciAr
-IEZJTUNfSVNfREVCVUdfUkVHSU9OX09GRlNFVDsNCj4gQEAgLTc1MiwxNyArNzUyLDcgQEAgc3Rh
-dGljIGludCBmaW1jX2lzX2xvZ19zaG93KHN0cnVjdCBzZXFfZmlsZSAqcywgdm9pZCAqZGF0YSkN
-Cj4gICAJcmV0dXJuIDA7DQo+ICAgfQ0KPiAgIA0KPiAtc3RhdGljIGludCBmaW1jX2lzX2RlYnVn
-ZnNfb3BlbihzdHJ1Y3QgaW5vZGUgKmlub2RlLCBzdHJ1Y3QgZmlsZSAqZmlsZSkNCj4gLXsNCj4g
-LQlyZXR1cm4gc2luZ2xlX29wZW4oZmlsZSwgZmltY19pc19sb2dfc2hvdywgaW5vZGUtPmlfcHJp
-dmF0ZSk7DQo+IC19DQo+IC0NCj4gLXN0YXRpYyBjb25zdCBzdHJ1Y3QgZmlsZV9vcGVyYXRpb25z
-IGZpbWNfaXNfZGVidWdmc19mb3BzID0gew0KPiAtCS5vcGVuCQk9IGZpbWNfaXNfZGVidWdmc19v
-cGVuLA0KPiAtCS5yZWFkCQk9IHNlcV9yZWFkLA0KPiAtCS5sbHNlZWsJCT0gc2VxX2xzZWVrLA0K
-PiAtCS5yZWxlYXNlCT0gc2luZ2xlX3JlbGVhc2UsDQo+IC19Ow0KPiArREVGSU5FX1NIT1dfQVRU
-UklCVVRFKGZpbWNfaXMpOw0KPiAgIA0KPiAgIHN0YXRpYyB2b2lkIGZpbWNfaXNfZGVidWdmc19y
-ZW1vdmUoc3RydWN0IGZpbWNfaXMgKmlzKQ0KPiAgIHsNCj4gQEAgLTc3Nyw3ICs3NjcsNyBAQCBz
-dGF0aWMgaW50IGZpbWNfaXNfZGVidWdmc19jcmVhdGUoc3RydWN0IGZpbWNfaXMgKmlzKQ0KPiAg
-IAlpcy0+ZGVidWdmc19lbnRyeSA9IGRlYnVnZnNfY3JlYXRlX2RpcigiZmltY19pcyIsIE5VTEwp
-Ow0KPiAgIA0KPiAgIAlkZW50cnkgPSBkZWJ1Z2ZzX2NyZWF0ZV9maWxlKCJmd19sb2ciLCBTX0lS
-VUdPLCBpcy0+ZGVidWdmc19lbnRyeSwNCj4gLQkJCQkgICAgIGlzLCAmZmltY19pc19kZWJ1Z2Zz
-X2ZvcHMpOw0KPiArCQkJCSAgICAgaXMsICZmaW1jX2lzX2ZvcHMpOw0KPiAgIAlpZiAoIWRlbnRy
-eSkNCj4gICAJCWZpbWNfaXNfZGVidWdmc19yZW1vdmUoaXMpOw0KPiAgIA0KPiBkaWZmIC0tZ2l0
-IGEvZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS9zdGkvYmRpc3AvYmRpc3AtZGVidWcuYyBiL2RyaXZl
-cnMvbWVkaWEvcGxhdGZvcm0vc3RpL2JkaXNwL2JkaXNwLWRlYnVnLmMNCj4gaW5kZXggYzZhNGUy
-ZGU1YzBjLi43N2NhNzUxN2ZhM2UgMTAwNjQ0DQo+IC0tLSBhL2RyaXZlcnMvbWVkaWEvcGxhdGZv
-cm0vc3RpL2JkaXNwL2JkaXNwLWRlYnVnLmMNCj4gKysrIGIvZHJpdmVycy9tZWRpYS9wbGF0Zm9y
-bS9zdGkvYmRpc3AvYmRpc3AtZGVidWcuYw0KPiBAQCAtMzE1LDcgKzMxNSw3IEBAIHN0YXRpYyB2
-b2lkIGJkaXNwX2RiZ19kdW1wX2l2bXgoc3RydWN0IHNlcV9maWxlICpzLA0KPiAgIAlzZXFfcHV0
-cyhzLCAiVW5rbm93biBjb252ZXJzaW9uXG4iKTsNCj4gICB9DQo+ICAgDQo+IC1zdGF0aWMgaW50
-IGJkaXNwX2RiZ19sYXN0X25vZGVzKHN0cnVjdCBzZXFfZmlsZSAqcywgdm9pZCAqZGF0YSkNCj4g
-K3N0YXRpYyBpbnQgbGFzdF9ub2Rlc19zaG93KHN0cnVjdCBzZXFfZmlsZSAqcywgdm9pZCAqZGF0
-YSkNCj4gICB7DQo+ICAgCS8qIE5vdCBkdW1waW5nIGFsbCBmaWVsZHMsIGZvY3VzaW5nIG9uIHNp
-Z25pZmljYW50IG9uZXMgKi8NCj4gICAJc3RydWN0IGJkaXNwX2RldiAqYmRpc3AgPSBzLT5wcml2
-YXRlOw0KPiBAQCAtMzg4LDcgKzM4OCw3IEBAIHN0YXRpYyBpbnQgYmRpc3BfZGJnX2xhc3Rfbm9k
-ZXMoc3RydWN0IHNlcV9maWxlICpzLCB2b2lkICpkYXRhKQ0KPiAgIAlyZXR1cm4gMDsNCj4gICB9
-DQo+ICAgDQo+IC1zdGF0aWMgaW50IGJkaXNwX2RiZ19sYXN0X25vZGVzX3JhdyhzdHJ1Y3Qgc2Vx
-X2ZpbGUgKnMsIHZvaWQgKmRhdGEpDQo+ICtzdGF0aWMgaW50IGxhc3Rfbm9kZXNfcmF3X3Nob3co
-c3RydWN0IHNlcV9maWxlICpzLCB2b2lkICpkYXRhKQ0KPiAgIHsNCj4gICAJc3RydWN0IGJkaXNw
-X2RldiAqYmRpc3AgPSBzLT5wcml2YXRlOw0KPiAgIAlzdHJ1Y3QgYmRpc3Bfbm9kZSAqbm9kZTsN
-Cj4gQEAgLTQzNyw3ICs0MzcsNyBAQCBzdGF0aWMgY29uc3QgY2hhciAqYmRpc3BfZm10X3RvX3N0
-cihzdHJ1Y3QgYmRpc3BfZnJhbWUgZnJhbWUpDQo+ICAgCX0NCj4gICB9DQo+ICAgDQo+IC1zdGF0
-aWMgaW50IGJkaXNwX2RiZ19sYXN0X3JlcXVlc3Qoc3RydWN0IHNlcV9maWxlICpzLCB2b2lkICpk
-YXRhKQ0KPiArc3RhdGljIGludCBsYXN0X3JlcXVlc3Rfc2hvdyhzdHJ1Y3Qgc2VxX2ZpbGUgKnMs
-IHZvaWQgKmRhdGEpDQo+ICAgew0KPiAgIAlzdHJ1Y3QgYmRpc3BfZGV2ICpiZGlzcCA9IHMtPnBy
-aXZhdGU7DQo+ICAgCXN0cnVjdCBiZGlzcF9yZXF1ZXN0ICpyZXF1ZXN0ID0gJmJkaXNwLT5kYmcu
-Y29weV9yZXF1ZXN0Ow0KPiBAQCAtNDc0LDcgKzQ3NCw3IEBAIHN0YXRpYyBpbnQgYmRpc3BfZGJn
-X2xhc3RfcmVxdWVzdChzdHJ1Y3Qgc2VxX2ZpbGUgKnMsIHZvaWQgKmRhdGEpDQo+ICAgDQo+ICAg
-I2RlZmluZSBEVU1QKHJlZykgc2VxX3ByaW50ZihzLCAjcmVnICIgXHQweCUwOFhcbiIsIHJlYWRs
-KGJkaXNwLT5yZWdzICsgcmVnKSkNCj4gICANCj4gLXN0YXRpYyBpbnQgYmRpc3BfZGJnX3JlZ3Mo
-c3RydWN0IHNlcV9maWxlICpzLCB2b2lkICpkYXRhKQ0KPiArc3RhdGljIGludCByZWdzX3Nob3co
-c3RydWN0IHNlcV9maWxlICpzLCB2b2lkICpkYXRhKQ0KPiAgIHsNCj4gICAJc3RydWN0IGJkaXNw
-X2RldiAqYmRpc3AgPSBzLT5wcml2YXRlOw0KPiAgIAlpbnQgcmV0Ow0KPiBAQCAtNTgyLDcgKzU4
-Miw3IEBAIHN0YXRpYyBpbnQgYmRpc3BfZGJnX3JlZ3Moc3RydWN0IHNlcV9maWxlICpzLCB2b2lk
-ICpkYXRhKQ0KPiAgIA0KPiAgICNkZWZpbmUgU0VDT05EIDEwMDAwMDANCj4gICANCj4gLXN0YXRp
-YyBpbnQgYmRpc3BfZGJnX3BlcmYoc3RydWN0IHNlcV9maWxlICpzLCB2b2lkICpkYXRhKQ0KPiAr
-c3RhdGljIGludCBwZXJmX3Nob3coc3RydWN0IHNlcV9maWxlICpzLCB2b2lkICpkYXRhKQ0KPiAg
-IHsNCj4gICAJc3RydWN0IGJkaXNwX2RldiAqYmRpc3AgPSBzLT5wcml2YXRlOw0KPiAgIAlzdHJ1
-Y3QgYmRpc3BfcmVxdWVzdCAqcmVxdWVzdCA9ICZiZGlzcC0+ZGJnLmNvcHlfcmVxdWVzdDsNCj4g
-QEAgLTYyNywyNyArNjI3LDE1IEBAIHN0YXRpYyBpbnQgYmRpc3BfZGJnX3BlcmYoc3RydWN0IHNl
-cV9maWxlICpzLCB2b2lkICpkYXRhKQ0KPiAgIAlyZXR1cm4gMDsNCj4gICB9DQo+ICAgDQo+IC0j
-ZGVmaW5lIGJkaXNwX2RiZ19kZWNsYXJlKG5hbWUpIFwNCj4gLQlzdGF0aWMgaW50IGJkaXNwX2Ri
-Z18jI25hbWUjI19vcGVuKHN0cnVjdCBpbm9kZSAqaSwgc3RydWN0IGZpbGUgKmYpIFwNCj4gLQl7
-IFwNCj4gLQkJcmV0dXJuIHNpbmdsZV9vcGVuKGYsIGJkaXNwX2RiZ18jI25hbWUsIGktPmlfcHJp
-dmF0ZSk7IFwNCj4gLQl9IFwNCj4gLQlzdGF0aWMgY29uc3Qgc3RydWN0IGZpbGVfb3BlcmF0aW9u
-cyBiZGlzcF9kYmdfIyNuYW1lIyNfZm9wcyA9IHsgXA0KPiAtCQkub3BlbiAgICAgICAgICAgPSBi
-ZGlzcF9kYmdfIyNuYW1lIyNfb3BlbiwgXA0KPiAtCQkucmVhZCAgICAgICAgICAgPSBzZXFfcmVh
-ZCwgXA0KPiAtCQkubGxzZWVrICAgICAgICAgPSBzZXFfbHNlZWssIFwNCj4gLQkJLnJlbGVhc2Ug
-ICAgICAgID0gc2luZ2xlX3JlbGVhc2UsIFwNCj4gLQl9DQo+IC0NCj4gICAjZGVmaW5lIGJkaXNw
-X2RiZ19jcmVhdGVfZW50cnkobmFtZSkgXA0KPiAgIAlkZWJ1Z2ZzX2NyZWF0ZV9maWxlKCNuYW1l
-LCBTX0lSVUdPLCBiZGlzcC0+ZGJnLmRlYnVnZnNfZW50cnksIGJkaXNwLCBcDQo+IC0JCQkgICAg
-JmJkaXNwX2RiZ18jI25hbWUjI19mb3BzKQ0KPiArCQkJICAgICZuYW1lIyNfZm9wcykNCj4gICAN
-Cj4gLWJkaXNwX2RiZ19kZWNsYXJlKHJlZ3MpOw0KPiAtYmRpc3BfZGJnX2RlY2xhcmUobGFzdF9u
-b2Rlcyk7DQo+IC1iZGlzcF9kYmdfZGVjbGFyZShsYXN0X25vZGVzX3Jhdyk7DQo+IC1iZGlzcF9k
-YmdfZGVjbGFyZShsYXN0X3JlcXVlc3QpOw0KPiAtYmRpc3BfZGJnX2RlY2xhcmUocGVyZik7DQo+
-ICtERUZJTkVfU0hPV19BVFRSSUJVVEUocmVncyk7DQo+ICtERUZJTkVfU0hPV19BVFRSSUJVVEUo
-bGFzdF9ub2Rlcyk7DQo+ICtERUZJTkVfU0hPV19BVFRSSUJVVEUobGFzdF9ub2Rlc19yYXcpOw0K
-PiArREVGSU5FX1NIT1dfQVRUUklCVVRFKGxhc3RfcmVxdWVzdCk7DQo+ICtERUZJTkVfU0hPV19B
-VFRSSUJVVEUocGVyZik7DQo+ICAgDQo+ICAgaW50IGJkaXNwX2RlYnVnZnNfY3JlYXRlKHN0cnVj
-dCBiZGlzcF9kZXYgKmJkaXNwKQ0KPiAgIHsNCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEv
-cGxhdGZvcm0vc3RpL2h2YS9odmEtZGVidWdmcy5jIGIvZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS9z
-dGkvaHZhL2h2YS1kZWJ1Z2ZzLmMNCj4gaW5kZXggOWY3ZThhYzg3NWQxLi43ZDEyYTViNWQ5MTQg
-MTAwNjQ0DQo+IC0tLSBhL2RyaXZlcnMvbWVkaWEvcGxhdGZvcm0vc3RpL2h2YS9odmEtZGVidWdm
-cy5jDQo+ICsrKyBiL2RyaXZlcnMvbWVkaWEvcGxhdGZvcm0vc3RpL2h2YS9odmEtZGVidWdmcy5j
-DQo+IEBAIC0yNzEsNyArMjcxLDcgQEAgc3RhdGljIHZvaWQgaHZhX2RiZ19wZXJmX2NvbXB1dGUo
-c3RydWN0IGh2YV9jdHggKmN0eCkNCj4gICAgKiBkZXZpY2UgZGVidWcgaW5mbw0KPiAgICAqLw0K
-PiAgIA0KPiAtc3RhdGljIGludCBodmFfZGJnX2RldmljZShzdHJ1Y3Qgc2VxX2ZpbGUgKnMsIHZv
-aWQgKmRhdGEpDQo+ICtzdGF0aWMgaW50IGRldmljZV9zaG93KHN0cnVjdCBzZXFfZmlsZSAqcywg
-dm9pZCAqZGF0YSkNCj4gICB7DQo+ICAgCXN0cnVjdCBodmFfZGV2ICpodmEgPSBzLT5wcml2YXRl
-Ow0KPiAgIA0KPiBAQCAtMjgxLDcgKzI4MSw3IEBAIHN0YXRpYyBpbnQgaHZhX2RiZ19kZXZpY2Uo
-c3RydWN0IHNlcV9maWxlICpzLCB2b2lkICpkYXRhKQ0KPiAgIAlyZXR1cm4gMDsNCj4gICB9DQo+
-ICAgDQo+IC1zdGF0aWMgaW50IGh2YV9kYmdfZW5jb2RlcnMoc3RydWN0IHNlcV9maWxlICpzLCB2
-b2lkICpkYXRhKQ0KPiArc3RhdGljIGludCBlbmNvZGVyc19zaG93KHN0cnVjdCBzZXFfZmlsZSAq
-cywgdm9pZCAqZGF0YSkNCj4gICB7DQo+ICAgCXN0cnVjdCBodmFfZGV2ICpodmEgPSBzLT5wcml2
-YXRlOw0KPiAgIAl1bnNpZ25lZCBpbnQgaSA9IDA7DQo+IEBAIC0yOTksNyArMjk5LDcgQEAgc3Rh
-dGljIGludCBodmFfZGJnX2VuY29kZXJzKHN0cnVjdCBzZXFfZmlsZSAqcywgdm9pZCAqZGF0YSkN
-Cj4gICAJcmV0dXJuIDA7DQo+ICAgfQ0KPiAgIA0KPiAtc3RhdGljIGludCBodmFfZGJnX2xhc3Qo
-c3RydWN0IHNlcV9maWxlICpzLCB2b2lkICpkYXRhKQ0KPiArc3RhdGljIGludCBsYXN0X3Nob3co
-c3RydWN0IHNlcV9maWxlICpzLCB2b2lkICpkYXRhKQ0KPiAgIHsNCj4gICAJc3RydWN0IGh2YV9k
-ZXYgKmh2YSA9IHMtPnByaXZhdGU7DQo+ICAgCXN0cnVjdCBodmFfY3R4ICpsYXN0X2N0eCA9ICZo
-dmEtPmRiZy5sYXN0X2N0eDsNCj4gQEAgLTMxNiw3ICszMTYsNyBAQCBzdGF0aWMgaW50IGh2YV9k
-YmdfbGFzdChzdHJ1Y3Qgc2VxX2ZpbGUgKnMsIHZvaWQgKmRhdGEpDQo+ICAgCXJldHVybiAwOw0K
-PiAgIH0NCj4gICANCj4gLXN0YXRpYyBpbnQgaHZhX2RiZ19yZWdzKHN0cnVjdCBzZXFfZmlsZSAq
-cywgdm9pZCAqZGF0YSkNCj4gK3N0YXRpYyBpbnQgcmVnc19zaG93KHN0cnVjdCBzZXFfZmlsZSAq
-cywgdm9pZCAqZGF0YSkNCj4gICB7DQo+ICAgCXN0cnVjdCBodmFfZGV2ICpodmEgPSBzLT5wcml2
-YXRlOw0KPiAgIA0KPiBAQCAtMzI1LDI2ICszMjUsMTQgQEAgc3RhdGljIGludCBodmFfZGJnX3Jl
-Z3Moc3RydWN0IHNlcV9maWxlICpzLCB2b2lkICpkYXRhKQ0KPiAgIAlyZXR1cm4gMDsNCj4gICB9
-DQo+ICAgDQo+IC0jZGVmaW5lIGh2YV9kYmdfZGVjbGFyZShuYW1lKQkJCQkJCSAgXA0KPiAtCXN0
-YXRpYyBpbnQgaHZhX2RiZ18jI25hbWUjI19vcGVuKHN0cnVjdCBpbm9kZSAqaSwgc3RydWN0IGZp
-bGUgKmYpIFwNCj4gLQl7CQkJCQkJCQkgIFwNCj4gLQkJcmV0dXJuIHNpbmdsZV9vcGVuKGYsIGh2
-YV9kYmdfIyNuYW1lLCBpLT5pX3ByaXZhdGUpOwkgIFwNCj4gLQl9CQkJCQkJCQkgIFwNCj4gLQlz
-dGF0aWMgY29uc3Qgc3RydWN0IGZpbGVfb3BlcmF0aW9ucyBodmFfZGJnXyMjbmFtZSMjX2ZvcHMg
-PSB7CSAgXA0KPiAtCQkub3BlbgkJPSBodmFfZGJnXyMjbmFtZSMjX29wZW4sCQkgIFwNCj4gLQkJ
-LnJlYWQJCT0gc2VxX3JlYWQsCQkJCSAgXA0KPiAtCQkubGxzZWVrCQk9IHNlcV9sc2VlaywJCQkJ
-ICBcDQo+IC0JCS5yZWxlYXNlCT0gc2luZ2xlX3JlbGVhc2UsCQkJICBcDQo+IC0JfQ0KPiAtDQo+
-ICAgI2RlZmluZSBodmFfZGJnX2NyZWF0ZV9lbnRyeShuYW1lKQkJCQkJIFwNCj4gICAJZGVidWdm
-c19jcmVhdGVfZmlsZSgjbmFtZSwgMDQ0NCwgaHZhLT5kYmcuZGVidWdmc19lbnRyeSwgaHZhLCBc
-DQo+IC0JCQkgICAgJmh2YV9kYmdfIyNuYW1lIyNfZm9wcykNCj4gKwkJCSAgICAmbmFtZSMjX2Zv
-cHMpDQo+ICAgDQo+IC1odmFfZGJnX2RlY2xhcmUoZGV2aWNlKTsNCj4gLWh2YV9kYmdfZGVjbGFy
-ZShlbmNvZGVycyk7DQo+IC1odmFfZGJnX2RlY2xhcmUobGFzdCk7DQo+IC1odmFfZGJnX2RlY2xh
-cmUocmVncyk7DQo+ICtERUZJTkVfU0hPV19BVFRSSUJVVEUoZGV2aWNlKTsNCj4gK0RFRklORV9T
-SE9XX0FUVFJJQlVURShlbmNvZGVycyk7DQo+ICtERUZJTkVfU0hPV19BVFRSSUJVVEUobGFzdCk7
-DQo+ICtERUZJTkVfU0hPV19BVFRSSUJVVEUocmVncyk7DQo+ICAgDQo+ICAgdm9pZCBodmFfZGVi
-dWdmc19jcmVhdGUoc3RydWN0IGh2YV9kZXYgKmh2YSkNCj4gICB7DQo+IEBAIC0zODAsNyArMzY4
-LDcgQEAgdm9pZCBodmFfZGVidWdmc19yZW1vdmUoc3RydWN0IGh2YV9kZXYgKmh2YSkNCj4gICAg
-KiBjb250ZXh0IChpbnN0YW5jZSkgZGVidWcgaW5mbw0KPiAgICAqLw0KPiAgIA0KPiAtc3RhdGlj
-IGludCBodmFfZGJnX2N0eChzdHJ1Y3Qgc2VxX2ZpbGUgKnMsIHZvaWQgKmRhdGEpDQo+ICtzdGF0
-aWMgaW50IGN0eF9zaG93KHN0cnVjdCBzZXFfZmlsZSAqcywgdm9pZCAqZGF0YSkNCj4gICB7DQo+
-ICAgCXN0cnVjdCBodmFfY3R4ICpjdHggPSBzLT5wcml2YXRlOw0KPiAgIA0KPiBAQCAtMzkyLDcg
-KzM4MCw3IEBAIHN0YXRpYyBpbnQgaHZhX2RiZ19jdHgoc3RydWN0IHNlcV9maWxlICpzLCB2b2lk
-ICpkYXRhKQ0KPiAgIAlyZXR1cm4gMDsNCj4gICB9DQo+ICAgDQo+IC1odmFfZGJnX2RlY2xhcmUo
-Y3R4KTsNCj4gK0RFRklORV9TSE9XX0FUVFJJQlVURShjdHgpOw0KPiAgIA0KPiAgIHZvaWQgaHZh
-X2RiZ19jdHhfY3JlYXRlKHN0cnVjdCBodmFfY3R4ICpjdHgpDQo+ICAgew0KPiBAQCAtNDA3LDcg
-KzM5NSw3IEBAIHZvaWQgaHZhX2RiZ19jdHhfY3JlYXRlKHN0cnVjdCBodmFfY3R4ICpjdHgpDQo+
-ICAgDQo+ICAgCWN0eC0+ZGJnLmRlYnVnZnNfZW50cnkgPSBkZWJ1Z2ZzX2NyZWF0ZV9maWxlKG5h
-bWUsIDA0NDQsDQo+ICAgCQkJCQkJICAgICBodmEtPmRiZy5kZWJ1Z2ZzX2VudHJ5LA0KPiAtCQkJ
-CQkJICAgICBjdHgsICZodmFfZGJnX2N0eF9mb3BzKTsNCj4gKwkJCQkJCSAgICAgY3R4LCAmY3R4
-X2ZvcHMpOw0KPiAgIH0NCj4gICANCj4gICB2b2lkIGh2YV9kYmdfY3R4X3JlbW92ZShzdHJ1Y3Qg
-aHZhX2N0eCAqY3R4KQ==
+(fix copy and paste error in the cover letter)
+
+As was discussed here (among other places):
+
+https://lkml.org/lkml/2018/10/19/440
+
+using capture queue buffer indices to refer to reference frames is
+not a good idea. A better idea is to use a 'tag' where the
+application can assign a u32 tag to an output buffer, which is then
+copied to the capture buffer(s) derived from the output buffer.
+
+It has been suggested that the timestamp can be used for this. But
+there are a number of reasons why this is a bad idea:
+
+1) the struct timeval is converted to a u64 in vb2. So there can be
+   all sorts of unexpected conversion issues. In particular, the
+   output of ns_to_timeval(timeval_to_ns(tv)) does not necessarily
+   match the input.
+
+2) it gets worse with the y2038 code where userspace either deals
+   with a 32 bit tv_sec value or a 64 bit value.
+
+In other words, using timestamp for this is not a good idea.
+
+This implementation adds a new tag field in a union with the reserved2
+field. The interpretation of that union depends on the flags field, so
+it still can be used for other things as well. In addition, in the previous
+patches the tag was in a union with the timecode field (again determined
+by the flags field), so if we need to cram additional information in this
+struct we can always put it in a union with the timecode field as well.
+It worked for the tag, it should work for other things.
+
+But we really need to start looking at a struct v4l2_ext_buffer.
+
+The first three patches add core tag support, the next two patches document
+the tag support, then a new helper function is added to v4l2-mem2mem.c
+to easily copy data from a source to a destination buffer that drivers
+can use.
+
+Next a new supports_tags vb2_queue flag is added to indicate that
+the driver supports tags. Ideally this should not be necessary, but
+that would require that all m2m drivers are converted to using the
+new helper function introduced in the previous patch. That takes more
+time then I have now.
+
+Finally the vim2m, vicodec and cedrus drivers are converted to support
+tags.
+
+I also removed the 'pad' fields from the mpeg2 control structs (it
+should never been added in the first place) and aligned the structs
+to a u32 boundary.
+
+Note that this might change further (Paul suggested using bitfields).
+
+Also note that the cedrus code doesn't set the sequence counter, that's
+something that should still be added before this driver can be moved
+out of staging.
+
+Note: if no buffer is found for a certain tag, then the dma address
+is just set to 0. That happened before as well with invalid buffer
+indices. This should be checked in the driver!
+
+Regards,
+
+        Hans
+
+Changes since v3:
+
+- use reserved2 for the tag
+- split the documentation in two: one documenting the tag, one
+  cleaning up the timecode documentation.
+
+Changes since v2:
+
+- rebased
+- added Reviewed-by tags
+- fixed a few remaining references in the documentation to the old
+  v4l2_buffer_tag struct that was used in early versions of this
+  series.
+
+Changes since v1:
+
+- changed to a u32 tag. Using a 64 bit tag was overly complicated due
+  to the bad layout of the v4l2_buffer struct, and there is no real
+  need for it by applications.
+
+Main changes since the RFC:
+
+- Added new buffer capability flag
+- Added m2m helper to copy data between buffers
+- Added documentation
+- Added tag logging in v4l2-ioctl.c
+
+
+Hans Verkuil (10):
+  videodev2.h: add tag support
+  vb2: add tag support
+  v4l2-ioctl.c: log v4l2_buffer tag
+  buffer.rst: document the new buffer tag feature.
+  buffer.rst: clean up timecode documentation
+  v4l2-mem2mem: add v4l2_m2m_buf_copy_data helper function
+  vb2: add new supports_tags queue flag
+  vim2m: add tag support
+  vicodec: add tag support
+  cedrus: add tag support
+
+ Documentation/media/uapi/v4l/buffer.rst       | 28 +++++++++----
+ .../media/uapi/v4l/vidioc-reqbufs.rst         |  4 ++
+ .../media/common/videobuf2/videobuf2-v4l2.c   | 41 ++++++++++++++++---
+ drivers/media/platform/vicodec/vicodec-core.c | 14 ++-----
+ drivers/media/platform/vim2m.c                | 14 ++-----
+ drivers/media/v4l2-core/v4l2-ctrls.c          |  9 ----
+ drivers/media/v4l2-core/v4l2-ioctl.c          |  9 ++--
+ drivers/media/v4l2-core/v4l2-mem2mem.c        | 23 +++++++++++
+ drivers/staging/media/sunxi/cedrus/cedrus.h   |  9 ++--
+ .../staging/media/sunxi/cedrus/cedrus_dec.c   |  2 +
+ .../staging/media/sunxi/cedrus/cedrus_mpeg2.c | 21 ++++------
+ .../staging/media/sunxi/cedrus/cedrus_video.c |  2 +
+ include/media/v4l2-mem2mem.h                  | 21 ++++++++++
+ include/media/videobuf2-core.h                |  2 +
+ include/media/videobuf2-v4l2.h                | 21 +++++++++-
+ include/uapi/linux/v4l2-controls.h            | 14 +++----
+ include/uapi/linux/videodev2.h                |  9 +++-
+ 17 files changed, 168 insertions(+), 75 deletions(-)
+
+-- 
+2.19.1
