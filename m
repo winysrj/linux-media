@@ -2,124 +2,65 @@ Return-Path: <SRS0=eh97=OP=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,UNPARSEABLE_RELAY,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.0 required=3.0
+	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_PASS,USER_AGENT_NEOMUTT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 957CFC04EB8
-	for <linux-media@archiver.kernel.org>; Thu,  6 Dec 2018 19:46:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D04F4C64EB1
+	for <linux-media@archiver.kernel.org>; Thu,  6 Dec 2018 20:26:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5E2962054F
-	for <linux-media@archiver.kernel.org>; Thu,  6 Dec 2018 19:46:51 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 5E2962054F
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=collabora.com
+	by mail.kernel.org (Postfix) with ESMTP id 9BA2820892
+	for <linux-media@archiver.kernel.org>; Thu,  6 Dec 2018 20:26:52 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 9BA2820892
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=mess.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725927AbeLFTqu (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 6 Dec 2018 14:46:50 -0500
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:54918 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725908AbeLFTqu (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 6 Dec 2018 14:46:50 -0500
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-        (Authenticated sender: ezequiel)
-        with ESMTPSA id 8348A270D92
-From:   Ezequiel Garcia <ezequiel@collabora.com>
+        id S1726186AbeLFU0q (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 6 Dec 2018 15:26:46 -0500
+Received: from gofer.mess.org ([88.97.38.141]:42849 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726141AbeLFU02 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 6 Dec 2018 15:26:28 -0500
+Received: by gofer.mess.org (Postfix, from userid 1000)
+        id A5674607A9; Thu,  6 Dec 2018 20:26:27 +0000 (GMT)
+Date:   Thu, 6 Dec 2018 20:26:27 +0000
+From:   Sean Young <sean@mess.org>
 To:     linux-media@vger.kernel.org
-Cc:     Hans Verkuil <hans.verkuil@cisco.com>,
-        Tomasz Figa <tfiga@chromium.org>, kernel@collabora.com,
-        Ezequiel Garcia <ezequiel@collabora.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v3] v4l2-ioctl: Zero v4l2_plane_pix_format reserved fields
-Date:   Thu,  6 Dec 2018 16:46:39 -0300
-Message-Id: <20181206194639.13472-1-ezequiel@collabora.com>
-X-Mailer: git-send-email 2.20.0.rc1
+Subject: [GIT PULL FOR v4.21] Two DVB patches
+Message-ID: <20181206202627.ncavxzz2xkqd264h@gofer.mess.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Make the core set the reserved fields to zero in
-vv4l2_pix_format_mplane.4l2_plane_pix_format,
-for _MPLANE queue types.
+Hi Mauro,
 
-Moving this to the core avoids having to do so in each
-and every driver.
+Two small dvb fixes which would be nice to have in 4.21.
 
-Suggested-by: Tomasz Figa <tfiga@chromium.org>
-Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
---
-v3:
-  * s/int/unsigned int, suggested by Sakari
+Thanks,
+Sean
 
-v2:
-  * Drop unneeded clear in g_fmt.
-    The sturct was already being cleared here.
-  * Only zero plane_fmt reserved fields.
-  * Use CLEAR_FIELD_MACRO.
+The following changes since commit 3c28b91380dd1183347d32d87d820818031ebecf:
 
- drivers/media/v4l2-core/v4l2-ioctl.c | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+  media: stkwebcam: Bugfix for wrong return values (2018-12-05 14:10:48 -0500)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index e384142d2826..7e8e7915c041 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1512,6 +1512,7 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
- 	struct v4l2_format *p = arg;
- 	struct video_device *vfd = video_devdata(file);
- 	int ret = check_fmt(file, p->type);
-+	unsigned int i;
- 
- 	if (ret)
- 		return ret;
-@@ -1536,6 +1537,8 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
- 		if (unlikely(!ops->vidioc_s_fmt_vid_cap_mplane))
- 			break;
- 		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
-+		for (i = 0; i < p->fmt.pix_mp.num_planes; i++)
-+			CLEAR_AFTER_FIELD(p, fmt.pix_mp.plane_fmt[i].bytesperline);
- 		return ops->vidioc_s_fmt_vid_cap_mplane(file, fh, arg);
- 	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
- 		if (unlikely(!ops->vidioc_s_fmt_vid_overlay))
-@@ -1564,6 +1567,8 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
- 		if (unlikely(!ops->vidioc_s_fmt_vid_out_mplane))
- 			break;
- 		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
-+		for (i = 0; i < p->fmt.pix_mp.num_planes; i++)
-+			CLEAR_AFTER_FIELD(p, fmt.pix_mp.plane_fmt[i].bytesperline);
- 		return ops->vidioc_s_fmt_vid_out_mplane(file, fh, arg);
- 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
- 		if (unlikely(!ops->vidioc_s_fmt_vid_out_overlay))
-@@ -1604,6 +1609,7 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
- {
- 	struct v4l2_format *p = arg;
- 	int ret = check_fmt(file, p->type);
-+	unsigned int i;
- 
- 	if (ret)
- 		return ret;
-@@ -1623,6 +1629,8 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
- 		if (unlikely(!ops->vidioc_try_fmt_vid_cap_mplane))
- 			break;
- 		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
-+		for (i = 0; i < p->fmt.pix_mp.num_planes; i++)
-+			CLEAR_AFTER_FIELD(p, fmt.pix_mp.plane_fmt[i].bytesperline);
- 		return ops->vidioc_try_fmt_vid_cap_mplane(file, fh, arg);
- 	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
- 		if (unlikely(!ops->vidioc_try_fmt_vid_overlay))
-@@ -1651,6 +1659,8 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
- 		if (unlikely(!ops->vidioc_try_fmt_vid_out_mplane))
- 			break;
- 		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
-+		for (i = 0; i < p->fmt.pix_mp.num_planes; i++)
-+			CLEAR_AFTER_FIELD(p, fmt.pix_mp.plane_fmt[i].bytesperline);
- 		return ops->vidioc_try_fmt_vid_out_mplane(file, fh, arg);
- 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
- 		if (unlikely(!ops->vidioc_try_fmt_vid_out_overlay))
--- 
-2.20.0.rc1
+are available in the Git repository at:
 
+  git://linuxtv.org/syoung/media_tree.git for-v4.21d
+
+for you to fetch changes up to 92ca069d61c96701c8660c114bbf8b772b4a33db:
+
+  media: lmedm04: Move interrupt buffer to priv buffer. (2018-12-06 20:15:14 +0000)
+
+----------------------------------------------------------------
+Malcolm Priestley (2):
+      media: lmedm04: Add missing usb_free_urb to free interrupt urb.
+      media: lmedm04: Move interrupt buffer to priv buffer.
+
+ drivers/media/usb/dvb-usb-v2/lmedm04.c | 29 ++++++++++-------------------
+ 1 file changed, 10 insertions(+), 19 deletions(-)
