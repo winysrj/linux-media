@@ -2,133 +2,143 @@ Return-Path: <SRS0=eh97=OP=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.7 required=3.0 tests=DKIM_ADSP_ALL,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 11BB9C07E85
-	for <linux-media@archiver.kernel.org>; Thu,  6 Dec 2018 02:15:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9049DC04EB8
+	for <linux-media@archiver.kernel.org>; Thu,  6 Dec 2018 04:35:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CC866208E7
-	for <linux-media@archiver.kernel.org>; Thu,  6 Dec 2018 02:15:47 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=plaes.org header.i=@plaes.org header.b="OJO043c0"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org CC866208E7
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=plaes.org
+	by mail.kernel.org (Postfix) with ESMTP id 6F1F520659
+	for <linux-media@archiver.kernel.org>; Thu,  6 Dec 2018 04:35:25 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 6F1F520659
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=xs4all.nl
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728648AbeLFCPm (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 5 Dec 2018 21:15:42 -0500
-Received: from plaes.org ([188.166.43.21]:35368 "EHLO plaes.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727712AbeLFCPl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 5 Dec 2018 21:15:41 -0500
-Received: from plaes.org (localhost [127.0.0.1])
-        by plaes.org (Postfix) with ESMTPSA id D9C8440588;
-        Thu,  6 Dec 2018 02:15:38 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=plaes.org; s=mail;
-        t=1544062538; bh=9714Czk1Qqpg4HbknhpRUPDNUe7v/H2WZQf5+YJ+ii0=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=OJO043c0GChxb041Ey3YiZJsCNW5H+GcpSiM+QW9AsBnLNTzD3mcKbO/AKxR4wxKE
-         iS0weBKIyhd1TPpcvFaxRsOHRnukfjadV6y0MRHq8n3+hM3BTYj7ptho4ZGeMP9x27
-         hPu0o1Ap8kM5KwmZPF1vcFNunp+EMoUWS8WgIx9TUVpDItrl58glEwzdOBtgzHnW+q
-         NKHIn2a74ELU2KxFA6HN06Nbr521SyTGEThyK5kbp1HiS9j7e5+RmI9U+lVT6bIckw
-         GFh/tJQ5/V71SYFAElHt3/zqzykaXjcohMQuRLLxW8V9lUEfLjpRnVUrcES/dEXObG
-         qtyMayG0B50/w==
-Date:   Thu, 6 Dec 2018 02:15:37 +0000
-From:   Priit Laes <plaes@plaes.org>
-To:     Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc:     linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] media: Kconfig: Add configuration entry for
- MEDIA_MEM2MEM_SUPPORT
-Message-ID: <20181206021537.24jz4x4bpn5xojwg@plaes.org>
-References: <20181126163844.18729-1-plaes@plaes.org>
- <20181205174703.5d2a8529@coco.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20181205174703.5d2a8529@coco.lan>
-User-Agent: NeoMutt/20170113 (1.7.2)
+        id S1728156AbeLFEfY (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 5 Dec 2018 23:35:24 -0500
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:50281 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727794AbeLFEfY (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 5 Dec 2018 23:35:24 -0500
+Received: from localhost ([IPv6:2001:983:e9a7:1:e193:71eb:a76f:3962])
+        by smtp-cloud8.xs4all.net with ESMTPA
+        id UlNhgVYIkO44XUlNigSXlz; Thu, 06 Dec 2018 05:35:22 +0100
+Message-ID: <fe4564d541ecf877175d08244b6318e1@smtp-cloud8.xs4all.net>
+Date:   Thu, 06 Dec 2018 05:35:21 +0100
+From:   "Hans Verkuil" <hverkuil@xs4all.nl>
+To:     linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+X-CMAE-Envelope: MS4wfLzKc6uk2aR1t40oKzke2SDuIuaxBfkdCUQOe1HdtUucGIAwEafxlXMtLIQb2QBMPwdT/azR6Vp9F2oxXaLx/CRpw1Y6eNV5TfgBsAbFm3VjY3q8BT5S
+ VyrxNm4lN/jlGj3J4s9Za4DUHbgW4kkBqf4OEof7zrpuEQZSQUg+7EIosC0xAq0T9+WmElngHEivi4BFgZfn3FGILsFcB/l1/1yMoJwqUiB9FoMDP+hPRFWv
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Wed, Dec 05, 2018 at 05:47:03PM -0200, Mauro Carvalho Chehab wrote:
-> Em Mon, 26 Nov 2018 18:38:44 +0200
-> Priit Laes <plaes@plaes.org> escreveu:
-> 
-> > Currently there is no easy way to enable mem2mem based video
-> > processor drivers (cedrus for example). Simplify this by adding
-> > separate category to media support.
-> > 
-> > Signed-off-by: Priit Laes <plaes@plaes.org>
-> > ---
-> >  drivers/media/Kconfig | 12 ++++++++++--
-> >  1 file changed, 10 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
-> > index 8add62a18293..f2a773896dcf 100644
-> > --- a/drivers/media/Kconfig
-> > +++ b/drivers/media/Kconfig
-> > @@ -56,6 +56,14 @@ config MEDIA_DIGITAL_TV_SUPPORT
-> >  	  Say Y when you have a board with digital support or a board with
-> >  	  hybrid digital TV and analog TV.
-> >  
-> > +config MEDIA_MEM2MEM_SUPPORT
-> > +    bool "Mem2mem devices (stateless media decoders/encoders support)"
-> > +    ---help---
-> > +	  Enable support for mem2mem / stateless media decoders/encoders.
-> > +
-> > +	  Say Y when you have a system with stateless media encoder/decoder
-> > +	  support.
-> > +
-> >  config MEDIA_RADIO_SUPPORT
-> >  	bool "AM/FM radio receivers/transmitters support"
-> >  	---help---
-> > @@ -95,7 +103,7 @@ source "drivers/media/cec/Kconfig"
-> >  
-> >  config MEDIA_CONTROLLER
-> >  	bool "Media Controller API"
-> > -	depends on MEDIA_CAMERA_SUPPORT || MEDIA_ANALOG_TV_SUPPORT || MEDIA_DIGITAL_TV_SUPPORT
-> > +	depends on MEDIA_CAMERA_SUPPORT || MEDIA_ANALOG_TV_SUPPORT || MEDIA_DIGITAL_TV_SUPPORT || MEDIA_MEM2MEM_SUPPORT
-> >  	---help---
-> >  	  Enable the media controller API used to query media devices internal
-> >  	  topology and configure it dynamically.
-> > @@ -118,7 +126,7 @@ config MEDIA_CONTROLLER_DVB
-> >  config VIDEO_DEV
-> >  	tristate
-> >  	depends on MEDIA_SUPPORT
-> > -	depends on MEDIA_CAMERA_SUPPORT || MEDIA_ANALOG_TV_SUPPORT || MEDIA_RADIO_SUPPORT || MEDIA_SDR_SUPPORT
-> > +	depends on MEDIA_CAMERA_SUPPORT || MEDIA_ANALOG_TV_SUPPORT || MEDIA_RADIO_SUPPORT || MEDIA_SDR_SUPPORT || MEDIA_MEM2MEM_SUPPORT
-> >  	default y
-> >  
-> >  config VIDEO_V4L2_SUBDEV_API
-> 
-> Hmm... this patch looks incomplete. I mean, the main goal of those
-> MEDIA_*_SUPPORT is to make simpler for the users to select a
-> subset of the drivers. Those options actually make visible
-> the corresponding entries for pci/usb/... drivers. So,
-> for example, drivers/media/usb/Kconfig contains:
-> 
-> 	if MEDIA_CAMERA_SUPPORT
-> 		comment "Webcam devices"
-> 	source "drivers/media/usb/uvc/Kconfig"
-> 	source "drivers/media/usb/gspca/Kconfig"
-> 	source "drivers/media/usb/pwc/Kconfig"
-> 	source "drivers/media/usb/cpia2/Kconfig"
-> 	source "drivers/media/usb/zr364xx/Kconfig"
-> 	source "drivers/media/usb/stkwebcam/Kconfig"
-> 	source "drivers/media/usb/s2255/Kconfig"
-> 	source "drivers/media/usb/usbtv/Kconfig"
-> 	endif
-> 
-> If we'll be adding it, I would expect a corresponding change at
-> drivers/media/platform/Kconfig.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Thanks, I will look into it. The current approach at least made it
-somewhat easier to enable sunxi-cedrus via menuconfig.
-> 
-> Thanks,
-> Mauro
+Results of the daily build of media_tree:
+
+date:			Thu Dec  6 05:00:13 CET 2018
+media-tree git hash:	3c28b91380dd1183347d32d87d820818031ebecf
+media_build git hash:	4b9237c73e29e2222a969f6a7b3d00030e14be50
+v4l-utils git hash:	9f0354c3320f3cc62983f726bfed66e1d0c21f83
+edid-decode git hash:	5eeb151a748788666534d6ea3da07f90400d24c2
+gcc version:		i686-linux-gcc (GCC) 8.2.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.18.0-2-amd64
+
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-3.10.108-i686: ERRORS
+linux-3.10.108-x86_64: ERRORS
+linux-3.11.10-i686: ERRORS
+linux-3.11.10-x86_64: ERRORS
+linux-3.12.74-i686: ERRORS
+linux-3.12.74-x86_64: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.79-i686: ERRORS
+linux-3.14.79-x86_64: ERRORS
+linux-3.15.10-i686: ERRORS
+linux-3.15.10-x86_64: ERRORS
+linux-3.16.57-i686: ERRORS
+linux-3.16.57-x86_64: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.123-i686: ERRORS
+linux-3.18.123-x86_64: ERRORS
+linux-3.19.8-i686: ERRORS
+linux-3.19.8-x86_64: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.52-i686: ERRORS
+linux-4.1.52-x86_64: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.159-i686: ERRORS
+linux-4.4.159-x86_64: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.10-i686: ERRORS
+linux-4.7.10-x86_64: ERRORS
+linux-4.8.17-i686: ERRORS
+linux-4.8.17-x86_64: ERRORS
+linux-4.9.131-i686: ERRORS
+linux-4.9.131-x86_64: ERRORS
+linux-4.10.17-i686: ERRORS
+linux-4.10.17-x86_64: ERRORS
+linux-4.11.12-i686: ERRORS
+linux-4.11.12-x86_64: ERRORS
+linux-4.12.14-i686: ERRORS
+linux-4.12.14-x86_64: ERRORS
+linux-4.13.16-i686: ERRORS
+linux-4.13.16-x86_64: ERRORS
+linux-4.14.74-i686: ERRORS
+linux-4.14.74-x86_64: ERRORS
+linux-4.15.18-i686: OK
+linux-4.15.18-x86_64: OK
+linux-4.16.18-i686: OK
+linux-4.16.18-x86_64: OK
+linux-4.17.19-i686: OK
+linux-4.17.19-x86_64: OK
+linux-4.18.12-i686: OK
+linux-4.18.12-x86_64: OK
+linux-4.19.1-i686: OK
+linux-4.19.1-x86_64: OK
+linux-4.20-rc1-i686: OK
+linux-4.20-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
