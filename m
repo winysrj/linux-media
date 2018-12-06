@@ -2,425 +2,141 @@ Return-Path: <SRS0=eh97=OP=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_NEOMUTT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	URIBL_RHS_DOB autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3CDB9C04EB8
-	for <linux-media@archiver.kernel.org>; Thu,  6 Dec 2018 14:49:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 30314C65BAF
+	for <linux-media@archiver.kernel.org>; Thu,  6 Dec 2018 15:08:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E72D420661
-	for <linux-media@archiver.kernel.org>; Thu,  6 Dec 2018 14:49:08 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org E72D420661
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=mess.org
+	by mail.kernel.org (Postfix) with ESMTP id ECB892082B
+	for <linux-media@archiver.kernel.org>; Thu,  6 Dec 2018 15:08:08 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org ECB892082B
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=xs4all.nl
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730201AbeLFOtH (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 6 Dec 2018 09:49:07 -0500
-Received: from gofer.mess.org ([88.97.38.141]:54809 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730783AbeLFOtE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 6 Dec 2018 09:49:04 -0500
-Received: by gofer.mess.org (Postfix, from userid 1000)
-        id C6349607A9; Thu,  6 Dec 2018 14:49:02 +0000 (GMT)
-Date:   Thu, 6 Dec 2018 14:49:02 +0000
-From:   Sean Young <sean@mess.org>
-To:     patrick9876@free.fr
+        id S1725933AbeLFPII (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 6 Dec 2018 10:08:08 -0500
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:34386 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725884AbeLFPII (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 6 Dec 2018 10:08:08 -0500
+Received: from [IPv6:2001:420:44c1:2579:8806:8651:4d22:9eb3] ([IPv6:2001:420:44c1:2579:8806:8651:4d22:9eb3])
+        by smtp-cloud8.xs4all.net with ESMTPA
+        id UvFygasdoO44XUvG1gVKX3; Thu, 06 Dec 2018 16:08:06 +0100
+Subject: Invite for IRC meeting: Re: [PATCHv4 01/10] videodev2.h: add tag
+ support
+To:     Alexandre Courbot <acourbot@chromium.org>,
+        maxime.ripard@bootlin.com, paul.kocialkowski@bootlin.com,
+        tfiga@chromium.org, nicolas@ndufresne.ca,
+        sakari.ailus@linux.intel.com,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
 Cc:     linux-media@vger.kernel.org
-Subject: Re: [PATCH] [PATCHv2] Add ir-rcmm-driver
-Message-ID: <20181206144902.sbtacp44aar4ympg@gofer.mess.org>
-References: <c44581638d2525bc383a75413259f708@free.fr>
- <20181205002933.20870-1-patrick9876@free.fr>
- <20181205002933.20870-2-patrick9876@free.fr>
+References: <20181205102040.11741-1-hverkuil-cisco@xs4all.nl>
+ <20181205102040.11741-2-hverkuil-cisco@xs4all.nl>
+From:   Hans Verkuil <hverkuil-cisco@xs4all.nl>
+Message-ID: <dee778ea-89d5-ddaf-c5d9-6423b7dee005@xs4all.nl>
+Date:   Thu, 6 Dec 2018 16:08:02 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:52.0) Gecko/20100101
+ Thunderbird/52.2.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20181205002933.20870-2-patrick9876@free.fr>
-User-Agent: NeoMutt/20170113 (1.7.2)
+In-Reply-To: <20181205102040.11741-2-hverkuil-cisco@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-CMAE-Envelope: MS4wfJ8E9Vk10fXQS6PEEEfdhBj6/PLHYWAvVR2ua0gWwRifIedTA2XZPwhsPxA+JEJcZ33l5ruH9fVrCh2BZ/xs0+XwtvUBmvkZfMndNYi8xwR2F2IX+/zN
+ G7TFGrRCEBGKuBFQTK93w0yTSlMJwqkARt8W6gRlArSVdmEC4Yqu/AlOtZj7ttkPYDd3jSP9he1FlMLHv4DuKdUj+g15f6r/yHOHjy1k2hvMv9K0TIEjwcXn
+ BSoZj8JCzo3kTHy7G+/qsJW8CVmgqSsRT1+HQ7IiD+88F15X/d8EBUK8oG50IRFi1sy8cn+3PyepBvr0nDHizt9/VKuGQg9lJk4WGINndIQVAVsURuqAy/cd
+ qCdgxZlFr+gVHnNMPji3YwqAvBpf6JtLWoHBaMMjy0sdsPqHysSPPd23+704SxcC/uQ9D87hDkKsotcCJ/JnrJ6bY43RJIP6w1IAL7r733RJC45ggJ9VkQid
+ 1pCek3jiaZT0TBMvz7Wp0BH9UYC9jGWHpVU+7UInUuQc9hzTRIIDTCoXtR6+5fvoxGT3SDmetNYQRwLN
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Wed, Dec 05, 2018 at 01:29:33AM +0100, patrick9876@free.fr wrote:
-> From: Patrick LERDA <patrick9876@free.fr>
+Mauro raised a number of objections on irc regarding tags:
+
+https://linuxtv.org/irc/irclogger_log/media-maint?date=2018-12-06,Thu
+
+I would like to setup an irc meeting to discuss this and come to a
+conclusion, since we need to decide this soon since this is critical
+for stateless codec support.
+
+Unfortunately timezone-wise this is a bit of a nightmare. I think
+that at least Mauro, myself and Tomasz Figa should be there, so UTC-2,
+UTC+1 and UTC+9 (if I got that right).
+
+I propose 9 AM UTC which I think will work for everyone except Nicolas.
+Any day next week works for me, and (for now) as well for Mauro. Let's pick
+Monday to start with, and if you want to join in, then let me know. If that
+day doesn't work for you, let me know what other days next week do work for
+you.
+
+Regards,
+
+	Hans
+
+On 12/05/18 11:20, hverkuil-cisco@xs4all.nl wrote:
+> From: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 > 
-
-We need a Signed-off-by: here.
-
-https://www.kernel.org/doc/html/v4.12/process/submitting-patches.html#sign-your-work-the-developer-s-certificate-of-origin
-
+> Add support for 'tags' to struct v4l2_buffer. These can be used
+> by m2m devices so userspace can set a tag for an output buffer and
+> this value will then be copied to the capture buffer(s).
+> 
+> This tag can be used to refer to capture buffers, something that
+> is needed by stateless HW codecs.
+> 
+> The new V4L2_BUF_CAP_SUPPORTS_TAGS capability indicates whether
+> or not tags are supported.
+> 
+> Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+> Reviewed-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+> Reviewed-by: Alexandre Courbot <acourbot@chromium.org>
 > ---
->  drivers/media/rc/Kconfig           |  10 ++
->  drivers/media/rc/Makefile          |   1 +
->  drivers/media/rc/ir-rcmm-decoder.c | 185 +++++++++++++++++++++++++++++
->  drivers/media/rc/rc-core-priv.h    |   5 +
->  drivers/media/rc/rc-main.c         |   3 +
->  include/media/rc-map.h             |   6 +-
->  include/uapi/linux/lirc.h          |   1 +
->  tools/include/uapi/linux/lirc.h    |   1 +
->  8 files changed, 210 insertions(+), 2 deletions(-)
->  create mode 100644 drivers/media/rc/ir-rcmm-decoder.c
+>  include/uapi/linux/videodev2.h | 9 ++++++++-
+>  1 file changed, 8 insertions(+), 1 deletion(-)
 > 
-> diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
-> index 1021c08a9ba4..b7e08324b874 100644
-> --- a/drivers/media/rc/Kconfig
-> +++ b/drivers/media/rc/Kconfig
-> @@ -133,6 +133,16 @@ config IR_IMON_DECODER
->  	   remote control and you would like to use it with a raw IR
->  	   receiver, or if you wish to use an encoder to transmit this IR.
->  
-> +config IR_RCMM_DECODER
-> +	tristate "Enable IR raw decoder for the RC-MM protocol"
-> +	depends on RC_CORE
-> +	select BITREVERSE
-
-You're not using bitreverse, so don't depend on it.
-
-> +	default y
-> +
-> +	---help---
-> +	   Enable this option if you have IR with RC-MM protocol, and
-> +	   if the IR is decoded in software
-> +
->  endif #RC_DECODERS
->  
->  menuconfig RC_DEVICES
-> diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
-> index e0340d043fe8..fc4058013234 100644
-> --- a/drivers/media/rc/Makefile
-> +++ b/drivers/media/rc/Makefile
-> @@ -16,6 +16,7 @@ obj-$(CONFIG_IR_SHARP_DECODER) += ir-sharp-decoder.o
->  obj-$(CONFIG_IR_MCE_KBD_DECODER) += ir-mce_kbd-decoder.o
->  obj-$(CONFIG_IR_XMP_DECODER) += ir-xmp-decoder.o
->  obj-$(CONFIG_IR_IMON_DECODER) += ir-imon-decoder.o
-> +obj-$(CONFIG_IR_RCMM_DECODER) += ir-rcmm-decoder.o
->  
->  # stand-alone IR receivers/transmitters
->  obj-$(CONFIG_RC_ATI_REMOTE) += ati_remote.o
-> diff --git a/drivers/media/rc/ir-rcmm-decoder.c b/drivers/media/rc/ir-rcmm-decoder.c
-> new file mode 100644
-> index 000000000000..94d5b70f7a0f
-> --- /dev/null
-> +++ b/drivers/media/rc/ir-rcmm-decoder.c
-> @@ -0,0 +1,185 @@
-> +/* ir-rcmm-decoder.c - A decoder for the RCMM IR protocol
-> + *
-> + * Copyright (C) 2016 by Patrick Lerda
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation version 2 of the License.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-
-Replace this with the SPDX-License-Identifier.
-
-> + */
-> +
-> +#include "rc-core-priv.h"
-> +#include <linux/module.h>
-> +#include <linux/version.h>
-> +
-> +
-> +#define RCMM_UNIT		166667	/* nanosecs */
-> +#define RCMM_0_NBITS		64
-
-Not used.
-
-> +#define RCMM_PREFIX_PULSE	416666  /* 166666.666666666*2.5 */
-> +#define RCMM_PULSE_0            277777  /* 166666.666666666*(1+2/3) */
-> +#define RCMM_PULSE_1            444444  /* 166666.666666666*(2+2/3) */
-> +#define RCMM_PULSE_2            611111  /* 166666.666666666*(3+2/3) */
-> +#define RCMM_PULSE_3            777778  /* 166666.666666666*(4+2/3) */
-> +#define RCMM_MODE_MASK          0x0000
-
-Not used.
-> +
-> +enum rcmm_state {
-> +	STATE_INACTIVE,
-> +	STATE_LOW,
-> +	STATE_BUMP,
-> +	STATE_VALUE,
-> +	STATE_FINISHED,
-> +};
-> +
-> +static bool rcmm_mode(struct rcmm_dec *data)
-> +{
-> +        return !((0x000c0000 & data->bits) == 0x000c0000);
-> +}
-> +
-> +/**
-> + * ir_rcmm_decode() - Decode one RCMM pulse or space
-> + * @dev:	the struct rc_dev descriptor of the device
-> + * @ev:		the struct ir_raw_event descriptor of the pulse/space
-> + *
-> + * This function returns -EINVAL if the pulse violates the state machine
-> + */
-> +static int ir_rcmm_decode(struct rc_dev *dev, struct ir_raw_event ev)
-> +{
-> +	struct rcmm_dec *data = &dev->raw->rcmm;
-> +	u32 scancode;
-> +	u8 toggle;
-> +
-> +	if (!(dev->enabled_protocols & RC_PROTO_BIT_RCMM))
-> +		return 0;
-> +
-> +	if (!is_timing_event(ev)) {
-> +		if (ev.reset)
-> +			data->state = STATE_INACTIVE;
-> +		return 0;
-> +	}
-> +
-> +	if (ev.duration > RCMM_PULSE_3 + RCMM_UNIT)
-> +		goto out;
-> +
-> +	switch (data->state) {
-> +
-> +	case STATE_INACTIVE:
-> +		if (!ev.pulse)
-> +			break;
-> +
-> +		/* Note: larger margin on first pulse since each RCMM_UNIT
-> +		   is quite short and some hardware takes some time to
-> +		   adjust to the signal */
-
-Use:
- /*
-  * Note:
-  */
-Type multiline comments please.
-
-> +		if (!eq_margin(ev.duration, RCMM_PREFIX_PULSE, RCMM_UNIT/2))
-> +			break;
-> +
-> +		data->state = STATE_LOW;
-> +		data->count = 0;
-> +		data->bits  = 0;
-> +		return 0;
-> +
-> +	case STATE_LOW:
-> +		if (ev.pulse)
-> +			break;
-> +
-> +		/* Note: larger margin on first pulse since each RCMM_UNIT
-> +		   is quite short and some hardware takes some time to
-> +		   adjust to the signal */
-
-Same here
-
-> +		if (!eq_margin(ev.duration, RCMM_PULSE_0, RCMM_UNIT/2))
-> +			break;
-> +
-> +		data->state = STATE_BUMP;
-> +		return 0;
-> +
-> +	case STATE_BUMP:
-> +		if (!ev.pulse)
-> +			break;
-> +
-> +		if (!eq_margin(ev.duration, RCMM_UNIT, RCMM_UNIT / 2))
-> +			break;
-> +
-> +		data->state = STATE_VALUE;
-> +		return 0;
-> +
-> +	case STATE_VALUE:
-> +		if (ev.pulse)
-> +			break;
-> +	        {
-> +			int value;
-
-Please declare value at the top so you don't need a new block.
-
-> +
-> +			if (eq_margin(ev.duration, RCMM_PULSE_0, RCMM_UNIT / 2)) {
-
-No { and } needed for oneline statements after if / else if.
-
-> +				value = 0;
-> +			} else if (eq_margin(ev.duration, RCMM_PULSE_1, RCMM_UNIT / 2))	{
-> +				value = 1;
-> +			} else if (eq_margin(ev.duration, RCMM_PULSE_2, RCMM_UNIT / 2))	{
-> +				value = 2;
-> +			} else if (eq_margin(ev.duration, RCMM_PULSE_3, RCMM_UNIT / 2))	{
-> +				value = 3;
-> +			} else
-> +				break;
-> +
-> +			data->bits <<= 2;
-> +			data->bits |= value;
-> +		}
-> +
-> +		data->count+=2;
-> +
-> +		if (data->count < 32) {
-> +			data->state = STATE_BUMP;
-> +		} else {
-> +			data->state = STATE_FINISHED;
-> +		}
-
-No braces for single line statements.
-
-> +
-> +		return 0;
-> +
-> +	case STATE_FINISHED:
-> +	        if (!ev.pulse) break;
-> +
-> +		if (!eq_margin(ev.duration, RCMM_UNIT, RCMM_UNIT / 2))
-> +			break;
-> +
-> +		if (rcmm_mode(data)) {
-> +			toggle = !!(0x8000 & data->bits);
-> +			scancode = data->bits & ~0x8000;
-> +		} else {
-> +			toggle = 0;
-> +			scancode = data->bits;
-> +		}
-> +
-> +		rc_keydown(dev, RC_PROTO_RCMM, scancode, toggle);
-> +		data->state = STATE_INACTIVE;
-> +		return 0;
-> +	}
-> +
-> +out:
-> +	data->state = STATE_INACTIVE;
-> +	return -EINVAL;
-> +}
-> +
-> +static struct ir_raw_handler rcmm_handler = {
-> +	.protocols	= RC_PROTO_BIT_RCMM,
-> +	.decode		= ir_rcmm_decode,
-
-It would be nice to have an rcmm encoder as well.
-
-> +};
-> +
-> +static int __init ir_rcmm_decode_init(void)
-> +{
-> +	ir_raw_handler_register(&rcmm_handler);
-> +
-> +	printk(KERN_INFO "IR RCMM protocol handler initialized\n");
-Use:
-	pr_info()
-
-> +	return 0;
-> +}
-> +
-> +static void __exit ir_rcmm_decode_exit(void)
-> +{
-> +	ir_raw_handler_unregister(&rcmm_handler);
-> +}
-> +
-> +module_init(ir_rcmm_decode_init);
-> +module_exit(ir_rcmm_decode_exit);
-> +
-> +MODULE_LICENSE("GPL");
-> +MODULE_AUTHOR("Patrick LERDA");
-> +MODULE_DESCRIPTION("RCMM IR protocol decoder");
-> diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
-> index c2cbe7f6266c..c63d4ad007cc 100644
-> --- a/drivers/media/rc/rc-core-priv.h
-> +++ b/drivers/media/rc/rc-core-priv.h
-> @@ -131,6 +131,11 @@ struct ir_raw_event_ctrl {
->  		unsigned int bits;
->  		bool stick_keyboard;
->  	} imon;
-> +	struct rcmm_dec {
-> +		int state;
-> +		unsigned count;
-> +		u64 bits;
-> +	} rcmm;
->  };
->  
->  /* Mutex for locking raw IR processing and handler change */
-> diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-> index 552bbe82a160..ad1dee921f5b 100644
-> --- a/drivers/media/rc/rc-main.c
-> +++ b/drivers/media/rc/rc-main.c
-> @@ -70,6 +70,8 @@ static const struct {
->  	[RC_PROTO_CEC] = { .name = "cec", .repeat_period = 0 },
->  	[RC_PROTO_IMON] = { .name = "imon",
->  		.scancode_bits = 0x7fffffff, .repeat_period = 114 },
-> +	[RC_PROTO_RCMM] = { .name = "rcmm",
-> +		.scancode_bits = 0xffffffff, .repeat_period = 114 },
->  };
->  
->  /* Used to keep track of known keymaps */
-> @@ -1004,6 +1006,7 @@ static const struct {
->  	{ RC_PROTO_BIT_XMP,	"xmp",		"ir-xmp-decoder"	},
->  	{ RC_PROTO_BIT_CEC,	"cec",		NULL			},
->  	{ RC_PROTO_BIT_IMON,	"imon",		"ir-imon-decoder"	},
-> +	{ RC_PROTO_BIT_RCMM,	"rcmm",		"ir-rcmm-decoder"	},
->  };
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index 2db1635de956..9095d7abe10d 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -881,6 +881,7 @@ struct v4l2_requestbuffers {
+>  #define V4L2_BUF_CAP_SUPPORTS_DMABUF	(1 << 2)
+>  #define V4L2_BUF_CAP_SUPPORTS_REQUESTS	(1 << 3)
+>  #define V4L2_BUF_CAP_SUPPORTS_ORPHANED_BUFS (1 << 4)
+> +#define V4L2_BUF_CAP_SUPPORTS_TAGS	(1 << 5)
 >  
 >  /**
-> diff --git a/include/media/rc-map.h b/include/media/rc-map.h
-> index bfa3017cecba..f06200362a3c 100644
-> --- a/include/media/rc-map.h
-> +++ b/include/media/rc-map.h
-> @@ -37,6 +37,7 @@
->  #define RC_PROTO_BIT_XMP		BIT_ULL(RC_PROTO_XMP)
->  #define RC_PROTO_BIT_CEC		BIT_ULL(RC_PROTO_CEC)
->  #define RC_PROTO_BIT_IMON		BIT_ULL(RC_PROTO_IMON)
-> +#define RC_PROTO_BIT_RCMM		BIT_ULL(RC_PROTO_RCMM)
->  
->  #define RC_PROTO_BIT_ALL \
->  			(RC_PROTO_BIT_UNKNOWN | RC_PROTO_BIT_OTHER | \
-> @@ -51,7 +52,7 @@
->  			 RC_PROTO_BIT_RC6_6A_24 | RC_PROTO_BIT_RC6_6A_32 | \
->  			 RC_PROTO_BIT_RC6_MCE | RC_PROTO_BIT_SHARP | \
->  			 RC_PROTO_BIT_XMP | RC_PROTO_BIT_CEC | \
-> -			 RC_PROTO_BIT_IMON)
-> +			 RC_PROTO_BIT_IMON | RC_PROTO_BIT_RCMM)
->  /* All rc protocols for which we have decoders */
->  #define RC_PROTO_BIT_ALL_IR_DECODER \
->  			(RC_PROTO_BIT_RC5 | RC_PROTO_BIT_RC5X_20 | \
-> @@ -64,7 +65,8 @@
->  			 RC_PROTO_BIT_RC6_0 | RC_PROTO_BIT_RC6_6A_20 | \
->  			 RC_PROTO_BIT_RC6_6A_24 |  RC_PROTO_BIT_RC6_6A_32 | \
->  			 RC_PROTO_BIT_RC6_MCE | RC_PROTO_BIT_SHARP | \
-> -			 RC_PROTO_BIT_XMP | RC_PROTO_BIT_IMON)
-> +			 RC_PROTO_BIT_XMP | RC_PROTO_BIT_IMON | \
-> +			 RC_PROTO_BIT_RCMM)
->  
->  #define RC_PROTO_BIT_ALL_IR_ENCODER \
->  			(RC_PROTO_BIT_RC5 | RC_PROTO_BIT_RC5X_20 | \
-> diff --git a/include/uapi/linux/lirc.h b/include/uapi/linux/lirc.h
-> index 6b319581882f..2bc7915ff33a 100644
-> --- a/include/uapi/linux/lirc.h
-> +++ b/include/uapi/linux/lirc.h
-> @@ -218,6 +218,7 @@ enum rc_proto {
->  	RC_PROTO_XMP		= 21,
->  	RC_PROTO_CEC		= 22,
->  	RC_PROTO_IMON		= 23,
-> +	RC_PROTO_RCMM		= 24,
->  };
->  
->  #endif
-> diff --git a/tools/include/uapi/linux/lirc.h b/tools/include/uapi/linux/lirc.h
-> index f189931042a7..c03e9562e349 100644
-> --- a/tools/include/uapi/linux/lirc.h
-> +++ b/tools/include/uapi/linux/lirc.h
-> @@ -212,6 +212,7 @@ enum rc_proto {
->  	RC_PROTO_XMP		= 21,
->  	RC_PROTO_CEC		= 22,
->  	RC_PROTO_IMON		= 23,
-> +	RC_PROTO_RCMM		= 24,
->  };
->  
+>   * struct v4l2_plane - plane info for multi-planar buffers
+> @@ -940,6 +941,7 @@ struct v4l2_plane {
+>   * @length:	size in bytes of the buffer (NOT its payload) for single-plane
+>   *		buffers (when type != *_MPLANE); number of elements in the
+>   *		planes array for multi-plane buffers
+> + * @tag:	buffer tag
+>   * @request_fd: fd of the request that this buffer should use
+>   *
+>   * Contains data exchanged by application and driver using one of the Streaming
+> @@ -964,7 +966,10 @@ struct v4l2_buffer {
+>  		__s32		fd;
+>  	} m;
+>  	__u32			length;
+> -	__u32			reserved2;
+> +	union {
+> +		__u32		reserved2;
+> +		__u32		tag;
+> +	};
+>  	union {
+>  		__s32		request_fd;
+>  		__u32		reserved;
+> @@ -990,6 +995,8 @@ struct v4l2_buffer {
+>  #define V4L2_BUF_FLAG_IN_REQUEST		0x00000080
+>  /* timecode field is valid */
+>  #define V4L2_BUF_FLAG_TIMECODE			0x00000100
+> +/* tag field is valid */
+> +#define V4L2_BUF_FLAG_TAG			0x00000200
+>  /* Buffer is prepared for queuing */
+>  #define V4L2_BUF_FLAG_PREPARED			0x00000400
+>  /* Cache handling flags */
+> 
 
-An entry in MAINTAINERS would be good, and please run 
-./script/checkpatch.pl --strict on your patch and fix any issues you find.
-
-Thanks,
-
-Sean
-
->  #endif
-> -- 
-> 2.19.2
