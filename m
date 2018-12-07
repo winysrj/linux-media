@@ -6,25 +6,25 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B2224C07E85
-	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 13:56:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A2F5EC64EB1
+	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 13:56:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 70E0E20837
-	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 13:56:44 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 70E0E20837
+	by mail.kernel.org (Postfix) with ESMTP id 7514720837
+	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 13:56:51 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 7514720837
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=bootlin.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726273AbeLGN4h (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 7 Dec 2018 08:56:37 -0500
-Received: from mail.bootlin.com ([62.4.15.54]:58720 "EHLO mail.bootlin.com"
+        id S1726288AbeLGN4p (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 7 Dec 2018 08:56:45 -0500
+Received: from mail.bootlin.com ([62.4.15.54]:58743 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726159AbeLGN4D (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        id S1726166AbeLGN4D (ORCPT <rfc822;linux-media@vger.kernel.org>);
         Fri, 7 Dec 2018 08:56:03 -0500
 Received: by mail.bootlin.com (Postfix, from userid 110)
-        id 8202A20E2C; Fri,  7 Dec 2018 14:56:01 +0100 (CET)
+        id C6C0820CE3; Fri,  7 Dec 2018 14:56:01 +0100 (CET)
 Received: from localhost (aaubervilliers-681-1-79-44.w90-88.abo.wanadoo.fr [90.88.21.44])
-        by mail.bootlin.com (Postfix) with ESMTPSA id 199DB20CDF;
+        by mail.bootlin.com (Postfix) with ESMTPSA id C001F20CE8;
         Fri,  7 Dec 2018 14:55:43 +0100 (CET)
 From:   Maxime Ripard <maxime.ripard@bootlin.com>
 To:     Kishon Vijay Abraham I <kishon@ti.com>,
@@ -40,9 +40,9 @@ Cc:     Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
         Krzysztof Witos <kwitos@cadence.com>,
         Rafal Ciepiela <rafalc@cadence.com>,
         Maxime Ripard <maxime.ripard@bootlin.com>
-Subject: [PATCH v3 04/10] phy: dphy: Add configuration helpers
-Date:   Fri,  7 Dec 2018 14:55:31 +0100
-Message-Id: <0dffe403b8df150746c57c067afe1f4a8c262200.1544190837.git-series.maxime.ripard@bootlin.com>
+Subject: [PATCH v3 06/10] phy: Move Allwinner A31 D-PHY driver to drivers/phy/
+Date:   Fri,  7 Dec 2018 14:55:33 +0100
+Message-Id: <20181207135541.30901-1-maxime.ripard@bootlin.com>
 X-Mailer: git-send-email 2.19.2
 In-Reply-To: <cover.ad7c4feb3905658f10b022df4756a5ade280011f.1544190837.git-series.maxime.ripard@bootlin.com>
 References: <cover.ad7c4feb3905658f10b022df4756a5ade280011f.1544190837.git-series.maxime.ripard@bootlin.com>
@@ -53,237 +53,92 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-The MIPI D-PHY spec defines default values and boundaries for most of the
-parameters it defines. Introduce helpers to help drivers get meaningful
-values based on their current parameters, and validate the boundaries of
-these parameters if needed.
+Now that our MIPI D-PHY driver has been converted to the phy framework,
+let's move it into the drivers/phy directory.
 
 Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
 ---
- drivers/phy/Kconfig               |   8 +-
- drivers/phy/Makefile              |   1 +-
- drivers/phy/phy-core-mipi-dphy.c  | 166 +++++++++++++++++++++++++++++++-
- include/linux/phy/phy-mipi-dphy.h |   6 +-
- 4 files changed, 181 insertions(+)
- create mode 100644 drivers/phy/phy-core-mipi-dphy.c
+ drivers/gpu/drm/sun4i/Kconfig                        | 10 +---------
+ drivers/gpu/drm/sun4i/Makefile                       |  1 -
+ drivers/phy/allwinner/Kconfig                        | 12 ++++++++++++
+ drivers/phy/allwinner/Makefile                       |  1 +
+ .../allwinner/phy-sun6i-mipi-dphy.c}                 |  0
+ 5 files changed, 14 insertions(+), 10 deletions(-)
+ rename drivers/{gpu/drm/sun4i/sun6i_mipi_dphy.c => phy/allwinner/phy-sun6i-mipi-dphy.c} (100%)
 
-diff --git a/drivers/phy/Kconfig b/drivers/phy/Kconfig
-index 60f949e2a684..c87a7d49eaab 100644
---- a/drivers/phy/Kconfig
-+++ b/drivers/phy/Kconfig
-@@ -15,6 +15,14 @@ config GENERIC_PHY
- 	  phy users can obtain reference to the PHY. All the users of this
- 	  framework should select this config.
+diff --git a/drivers/gpu/drm/sun4i/Kconfig b/drivers/gpu/drm/sun4i/Kconfig
+index 2b8db82c4bab..1dbbc3a1b763 100644
+--- a/drivers/gpu/drm/sun4i/Kconfig
++++ b/drivers/gpu/drm/sun4i/Kconfig
+@@ -45,20 +45,12 @@ config DRM_SUN6I_DSI
+ 	default MACH_SUN8I
+ 	select CRC_CCITT
+ 	select DRM_MIPI_DSI
+-	select DRM_SUN6I_DPHY
++	select PHY_SUN6I_MIPI_DPHY
+ 	help
+ 	  Choose this option if you want have an Allwinner SoC with
+ 	  MIPI-DSI support. If M is selected the module will be called
+ 	  sun6i_mipi_dsi.
  
-+config GENERIC_PHY_MIPI_DPHY
-+	bool
+-config DRM_SUN6I_DPHY
+-	tristate "Allwinner A31 MIPI D-PHY Support"
+-	select GENERIC_PHY_MIPI_DPHY
+-	help
+-	  Choose this option if you have an Allwinner SoC with
+-	  MIPI-DSI support. If M is selected, the module will be
+-	  called sun6i_mipi_dphy.
+-
+ config DRM_SUN8I_DW_HDMI
+ 	tristate "Support for Allwinner version of DesignWare HDMI"
+ 	depends on DRM_SUN4I
+diff --git a/drivers/gpu/drm/sun4i/Makefile b/drivers/gpu/drm/sun4i/Makefile
+index 1e2320d824b5..0d04f2447b01 100644
+--- a/drivers/gpu/drm/sun4i/Makefile
++++ b/drivers/gpu/drm/sun4i/Makefile
+@@ -34,7 +34,6 @@ ifdef CONFIG_DRM_SUN4I_BACKEND
+ obj-$(CONFIG_DRM_SUN4I)		+= sun4i-frontend.o
+ endif
+ obj-$(CONFIG_DRM_SUN4I_HDMI)	+= sun4i-drm-hdmi.o
+-obj-$(CONFIG_DRM_SUN6I_DPHY)	+= sun6i_mipi_dphy.o
+ obj-$(CONFIG_DRM_SUN6I_DSI)	+= sun6i_mipi_dsi.o
+ obj-$(CONFIG_DRM_SUN8I_DW_HDMI)	+= sun8i-drm-hdmi.o
+ obj-$(CONFIG_DRM_SUN8I_MIXER)	+= sun8i-mixer.o
+diff --git a/drivers/phy/allwinner/Kconfig b/drivers/phy/allwinner/Kconfig
+index cdc1e745ba47..fb1204bcc454 100644
+--- a/drivers/phy/allwinner/Kconfig
++++ b/drivers/phy/allwinner/Kconfig
+@@ -17,6 +17,18 @@ config PHY_SUN4I_USB
+ 	  This driver controls the entire USB PHY block, both the USB OTG
+ 	  parts, as well as the 2 regular USB 2 host PHYs.
+ 
++config PHY_SUN6I_MIPI_DPHY
++	tristate "Allwinner A31 MIPI D-PHY Support"
++	depends on ARCH_SUNXI && HAS_IOMEM && OF
++	depends on RESET_CONTROLLER
++	select GENERIC_PHY
++	select GENERIC_PHY_MIPI_DPHY
++	select REGMAP_MMIO
 +	help
-+	  Generic MIPI D-PHY support.
++	  Choose this option if you have an Allwinner SoC with
++	  MIPI-DSI support. If M is selected, the module will be
++	  called sun6i_mipi_dphy.
 +
-+	  Provides a number of helpers a core functions for MIPI D-PHY
-+	  drivers to us.
-+
- config PHY_LPC18XX_USB_OTG
- 	tristate "NXP LPC18xx/43xx SoC USB OTG PHY driver"
- 	depends on OF && (ARCH_LPC18XX || COMPILE_TEST)
-diff --git a/drivers/phy/Makefile b/drivers/phy/Makefile
-index 0301e25d07c1..baec59cebbab 100644
---- a/drivers/phy/Makefile
-+++ b/drivers/phy/Makefile
-@@ -4,6 +4,7 @@
- #
- 
- obj-$(CONFIG_GENERIC_PHY)		+= phy-core.o
-+obj-$(CONFIG_GENERIC_PHY_MIPI_DPHY)	+= phy-core-mipi-dphy.o
- obj-$(CONFIG_PHY_LPC18XX_USB_OTG)	+= phy-lpc18xx-usb-otg.o
- obj-$(CONFIG_PHY_XGENE)			+= phy-xgene.o
- obj-$(CONFIG_PHY_PISTACHIO_USB)		+= phy-pistachio-usb.o
-diff --git a/drivers/phy/phy-core-mipi-dphy.c b/drivers/phy/phy-core-mipi-dphy.c
-new file mode 100644
-index 000000000000..465fa1b91a5f
---- /dev/null
-+++ b/drivers/phy/phy-core-mipi-dphy.c
-@@ -0,0 +1,166 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/*
-+ * Copyright (C) 2013 NVIDIA Corporation
-+ * Copyright (C) 2018 Cadence Design Systems Inc.
-+ */
-+
-+#include <linux/errno.h>
-+#include <linux/export.h>
-+#include <linux/kernel.h>
-+#include <linux/time64.h>
-+
-+#include <linux/phy/phy.h>
-+#include <linux/phy/phy-mipi-dphy.h>
-+
-+#define PSEC_PER_SEC	1000000000000LL
-+
-+/*
-+ * Minimum D-PHY timings based on MIPI D-PHY specification. Derived
-+ * from the valid ranges specified in Section 6.9, Table 14, Page 41
-+ * of the D-PHY specification (v2.1).
-+ */
-+int phy_mipi_dphy_get_default_config(unsigned long pixel_clock,
-+				     unsigned int bpp,
-+				     unsigned int lanes,
-+				     struct phy_configure_opts_mipi_dphy *cfg)
-+{
-+	unsigned long long hs_clk_rate;
-+	unsigned long long ui;
-+
-+	if (!cfg)
-+		return -EINVAL;
-+
-+	hs_clk_rate = pixel_clock * bpp;
-+	do_div(hs_clk_rate, lanes);
-+
-+	ui = ALIGN(PSEC_PER_SEC, hs_clk_rate);
-+	do_div(ui, hs_clk_rate);
-+
-+	cfg->clk_miss = 0;
-+	cfg->clk_post = 60000 + 52 * ui;
-+	cfg->clk_pre = 8000;
-+	cfg->clk_prepare = 38000;
-+	cfg->clk_settle = 95000;
-+	cfg->clk_term_en = 0;
-+	cfg->clk_trail = 60000;
-+	cfg->clk_zero = 262000;
-+	cfg->d_term_en = 0;
-+	cfg->eot = 0;
-+	cfg->hs_exit = 100000;
-+	cfg->hs_prepare = 40000 + 4 * ui;
-+	cfg->hs_zero = 105000 + 6 * ui;
-+	cfg->hs_settle = 85000 + 6 * ui;
-+	cfg->hs_skip = 40000;
-+
-+	/*
-+	 * The MIPI D-PHY specification (Section 6.9, v1.2, Table 14, Page 40)
-+	 * contains this formula as:
-+	 *
-+	 *     T_HS-TRAIL = max(n * 8 * ui, 60 + n * 4 * ui)
-+	 *
-+	 * where n = 1 for forward-direction HS mode and n = 4 for reverse-
-+	 * direction HS mode. There's only one setting and this function does
-+	 * not parameterize on anything other that ui, so this code will
-+	 * assumes that reverse-direction HS mode is supported and uses n = 4.
-+	 */
-+	cfg->hs_trail = max(4 * 8 * ui, 60000 + 4 * 4 * ui);
-+
-+	cfg->init = 100000000;
-+	cfg->lpx = 60000;
-+	cfg->ta_get = 5 * cfg->lpx;
-+	cfg->ta_go = 4 * cfg->lpx;
-+	cfg->ta_sure = 2 * cfg->lpx;
-+	cfg->wakeup = 1000000000;
-+
-+	cfg->hs_clk_rate = hs_clk_rate;
-+	cfg->lanes = lanes;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(phy_mipi_dphy_get_default_config);
-+
-+/*
-+ * Validate D-PHY configuration according to MIPI D-PHY specification
-+ * (v1.2, Section Section 6.9 "Global Operation Timing Parameters").
-+ */
-+int phy_mipi_dphy_config_validate(struct phy_configure_opts_mipi_dphy *cfg)
-+{
-+	unsigned long long ui;
-+
-+	if (!cfg)
-+		return -EINVAL;
-+
-+	ui = ALIGN(PSEC_PER_SEC, cfg->hs_clk_rate);
-+	do_div(ui, cfg->hs_clk_rate);
-+
-+	if (cfg->clk_miss > 60000)
-+		return -EINVAL;
-+
-+	if (cfg->clk_post < (60000 + 52 * ui))
-+		return -EINVAL;
-+
-+	if (cfg->clk_pre < 8000)
-+		return -EINVAL;
-+
-+	if (cfg->clk_prepare < 38000 || cfg->clk_prepare > 95000)
-+		return -EINVAL;
-+
-+	if (cfg->clk_settle < 95000 || cfg->clk_settle > 300000)
-+		return -EINVAL;
-+
-+	if (cfg->clk_term_en > 38000)
-+		return -EINVAL;
-+
-+	if (cfg->clk_trail < 60000)
-+		return -EINVAL;
-+
-+	if ((cfg->clk_prepare + cfg->clk_zero) < 300000)
-+		return -EINVAL;
-+
-+	if (cfg->d_term_en > (35000 + 4 * ui))
-+		return -EINVAL;
-+
-+	if (cfg->eot > (105000 + 12 * ui))
-+		return -EINVAL;
-+
-+	if (cfg->hs_exit < 100000)
-+		return -EINVAL;
-+
-+	if (cfg->hs_prepare < (40000 + 4 * ui) ||
-+	    cfg->hs_prepare > (85000 + 6 * ui))
-+		return -EINVAL;
-+
-+	if ((cfg->hs_prepare + cfg->hs_zero) < (145000 + 10 * ui))
-+		return -EINVAL;
-+
-+	if ((cfg->hs_settle < (85000 + 6 * ui)) ||
-+	    (cfg->hs_settle > (145000 + 10 * ui)))
-+		return -EINVAL;
-+
-+	if (cfg->hs_skip < 40000 || cfg->hs_skip > (55000 + 4 * ui))
-+		return -EINVAL;
-+
-+	if (cfg->hs_trail < max(8 * ui, 60000 + 4 * ui))
-+		return -EINVAL;
-+
-+	if (cfg->init < 100000000)
-+		return -EINVAL;
-+
-+	if (cfg->lpx < 50000)
-+		return -EINVAL;
-+
-+	if (cfg->ta_get != (5 * cfg->lpx))
-+		return -EINVAL;
-+
-+	if (cfg->ta_go != (4 * cfg->lpx))
-+		return -EINVAL;
-+
-+	if (cfg->ta_sure < cfg->lpx || cfg->ta_sure > (2 * cfg->lpx))
-+		return -EINVAL;
-+
-+	if (cfg->wakeup < 1000000000)
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(phy_mipi_dphy_config_validate);
-diff --git a/include/linux/phy/phy-mipi-dphy.h b/include/linux/phy/phy-mipi-dphy.h
-index 29bf94db88ad..c08aacc0ac35 100644
---- a/include/linux/phy/phy-mipi-dphy.h
-+++ b/include/linux/phy/phy-mipi-dphy.h
-@@ -276,4 +276,10 @@ struct phy_configure_opts_mipi_dphy {
- 	unsigned char		lanes;
- };
- 
-+int phy_mipi_dphy_get_default_config(unsigned long pixel_clock,
-+				     unsigned int bpp,
-+				     unsigned int lanes,
-+				     struct phy_configure_opts_mipi_dphy *cfg);
-+int phy_mipi_dphy_config_validate(struct phy_configure_opts_mipi_dphy *cfg);
-+
- #endif /* __PHY_MIPI_DPHY_H_ */
+ config PHY_SUN9I_USB
+ 	tristate "Allwinner sun9i SoC USB PHY driver"
+ 	depends on ARCH_SUNXI && HAS_IOMEM && OF
+diff --git a/drivers/phy/allwinner/Makefile b/drivers/phy/allwinner/Makefile
+index 8605529c01a1..7d0053efbfaa 100644
+--- a/drivers/phy/allwinner/Makefile
++++ b/drivers/phy/allwinner/Makefile
+@@ -1,2 +1,3 @@
+ obj-$(CONFIG_PHY_SUN4I_USB)		+= phy-sun4i-usb.o
++obj-$(CONFIG_PHY_SUN6I_MIPI_DPHY)	+= phy-sun6i-mipi-dphy.o
+ obj-$(CONFIG_PHY_SUN9I_USB)		+= phy-sun9i-usb.o
+diff --git a/drivers/gpu/drm/sun4i/sun6i_mipi_dphy.c b/drivers/phy/allwinner/phy-sun6i-mipi-dphy.c
+similarity index 100%
+rename from drivers/gpu/drm/sun4i/sun6i_mipi_dphy.c
+rename to drivers/phy/allwinner/phy-sun6i-mipi-dphy.c
 -- 
-git-series 0.9.1
+2.19.2
+
