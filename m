@@ -2,320 +2,306 @@ Return-Path: <SRS0=1NWX=OQ=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
-	T_DKIMWL_WL_HIGH autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C5754C07E85
-	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 13:53:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F187CC07E85
+	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 13:54:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 70474208E7
-	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 13:53:24 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1544190804;
-	bh=4ny9OPatTdm3uqwiAQq+YuikAdzbQUe5Dg1Z3OCwfFs=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
-	b=pFeq86nI4Hz2JGu3fYbd7T3vEldqDmX2AcfFZVUQMIRRgnwVFryuXLiXFNz6H75R9
-	 yms5YEpYuKGo1qufCPOaMB6UrAvfDPObAY+8zslAzoD7iVoZgglFOoOBlzS5QNNuzw
-	 GgKnuIWCWbk137oVqmcjp0yJLpwkiTsE0wEDNDLk=
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 70474208E7
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
+	by mail.kernel.org (Postfix) with ESMTP id AD51F20989
+	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 13:54:11 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=linaro.org header.i=@linaro.org header.b="VvZG/ywl"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org AD51F20989
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linaro.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726039AbeLGNxY (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 7 Dec 2018 08:53:24 -0500
-Received: from casper.infradead.org ([85.118.1.10]:59164 "EHLO
-        casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726018AbeLGNxX (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Dec 2018 08:53:23 -0500
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
-        MIME-Version:References:In-Reply-To:Message-ID:Subject:Cc:To:From:Date:Sender
-        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
-        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=gtqQFW/auSwjd84yg1o+Nis9KeqH+eiKUXtf8JmkraQ=; b=D5o+lZ2N8MIMCcmrBOrEyBxW9N
-        vi6zkv6EZS021nbbtv2gYPrzCFye+hdin2b24TyJXQEKr7ZL63OreytNNvQ4y2llKOdErggoGz3VN
-        YBxFI/kF84MFyuFR4u8Rq290N0pVap+MHzp/ybm2V7N6mnFBVpeUeTVSf0d2VKdGeucG6MDSKH9YM
-        dGNO8QVHMXyArF0JQG9k4lNv9kQunHG3xzSLCgrhU8vN1X5TzuktRA5xRV0LPyyekYnpImG3wisls
-        pwZCeei2yB05CE1oXnunbTLhVC1oc5DjNOmJCv1NwMS/8XyZ0/CLGz8PKKkatokxXNXDwiAZpCuWH
-        /uHRGMZw==;
-Received: from [179.95.33.236] (helo=coco.lan)
-        by casper.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
-        id 1gVGZF-0002uC-CK; Fri, 07 Dec 2018 13:53:21 +0000
-Date:   Fri, 7 Dec 2018 11:53:17 -0200
-From:   Mauro Carvalho Chehab <mchehab@kernel.org>
+        id S1726043AbeLGNyK (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 7 Dec 2018 08:54:10 -0500
+Received: from mail-wr1-f66.google.com ([209.85.221.66]:39260 "EHLO
+        mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726034AbeLGNyK (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Dec 2018 08:54:10 -0500
+Received: by mail-wr1-f66.google.com with SMTP id t27so3880834wra.6
+        for <linux-media@vger.kernel.org>; Fri, 07 Dec 2018 05:54:07 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=references:user-agent:from:to:cc:subject:in-reply-to:date
+         :message-id:mime-version;
+        bh=PuyDrKsx0Jmeq58JQ62rT+y23TR+FgRQT+zFMVU8FaU=;
+        b=VvZG/ywljW/rzRgq0Nc+n+0eSbSBIaVcIbmzx59yddwKeRWHiy07njHdLj6Wynz5hs
+         wzJXrrpX+e11jeqxDxr3PLJutEWUzQ8BmwMAa5YqRKcGnAnh8U7EajzKzrJzH1TgmVxW
+         3cYr8CIEuQ8+m3dvzoPAwaXURW9mfTJOc2t04=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:references:user-agent:from:to:cc:subject
+         :in-reply-to:date:message-id:mime-version;
+        bh=PuyDrKsx0Jmeq58JQ62rT+y23TR+FgRQT+zFMVU8FaU=;
+        b=uJoldhbNqjgm4zPT0BwIWqrcywGE9ggqR3MPJ37Dcn4zEkzH9hgv5ZSpHXGmhpfHom
+         ifhuNPXSuJTBc4mhqXjkPtY4JOPivIXDbk+8Ar2ehkYEA9hNy2nGG4ayaw7Sf03Yb8Zk
+         gH8diW0SyhkJTzmdaXnILccevAOImd6d78F5bpdQZ8ZsykGin25GUmHMYYxn1P/g3iC1
+         WqQw6k/byGQW7wJJbSYCdtvxKaEFhbF2/aZrVqfa9S+k0pYEkFARGofkKywEXBcQGalS
+         5DftiOcwg7eLkUPjwOogQ0aLSXUXtr/y7Lx3+W7F6G8TQUspY0b3bk8As2XWcUQxXxcZ
+         SWWA==
+X-Gm-Message-State: AA+aEWbvj0sW2g9lq81pTbY9Kmm1qZEEk4jC2kwqQYZ2OLm4RJMVtzim
+        Hyk/1AaXvz64HgsWs7wKOuRqfg==
+X-Google-Smtp-Source: AFSGD/WFl1pvhREElsoRGrFCZEmufyRPiBhcc0hNz+XknkkNSdp3utQOBmnTXB0rx6/ksqtorLFhJQ==
+X-Received: by 2002:adf:9205:: with SMTP id 5mr1879321wrj.189.1544190847040;
+        Fri, 07 Dec 2018 05:54:07 -0800 (PST)
+Received: from arch-late (a109-49-46-234.cpe.netcabo.pt. [109.49.46.234])
+        by smtp.gmail.com with ESMTPSA id r64sm4595331wmg.5.2018.12.07.05.54.05
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Fri, 07 Dec 2018 05:54:06 -0800 (PST)
+References: <20181122151834.6194-1-rui.silva@linaro.org> <20181122151834.6194-6-rui.silva@linaro.org> <5bc1ad92-4d84-62af-396c-9ba8b3be424b@xs4all.nl>
+User-agent: mu4e 1.0; emacs 27.0.50
+From:   Rui Miguel Silva <rui.silva@linaro.org>
 To:     Hans Verkuil <hverkuil@xs4all.nl>
-Cc:     Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>
-Subject: Re: [RFC PATCH] media/Kconfig: always enable MEDIA_CONTROLLER and
- VIDEO_V4L2_SUBDEV_API
-Message-ID: <20181207115317.7a6d5feb@coco.lan>
-In-Reply-To: <7b97e818-278f-0abd-0ee9-b2b7ec12f857@xs4all.nl>
-References: <89b0af6f-1371-50d9-5c19-fac7bb6562a3@xs4all.nl>
-        <20181207092655.40e89b88@coco.lan>
-        <0c25b853-048d-65c3-31fd-9adf9a4a9b9e@xs4all.nl>
-        <20181207104207.7db97930@coco.lan>
-        <7b97e818-278f-0abd-0ee9-b2b7ec12f857@xs4all.nl>
-X-Mailer: Claws Mail 3.16.0 (GTK+ 2.24.32; x86_64-redhat-linux-gnu)
+Cc:     sakari.ailus@linux.intel.com,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        devicetree@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH v9 05/13] media: dt-bindings: add bindings for i.MX7 media driver
+In-reply-to: <5bc1ad92-4d84-62af-396c-9ba8b3be424b@xs4all.nl>
+Date:   Fri, 07 Dec 2018 13:54:05 +0000
+Message-ID: <m35zw530jm.fsf@linaro.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Em Fri, 7 Dec 2018 14:27:48 +0100
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Hi Hans,
 
-> On 12/07/2018 01:42 PM, Mauro Carvalho Chehab wrote:
-> > Em Fri, 7 Dec 2018 12:47:24 +0100
-> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> >   
-> >> On 12/07/2018 12:26 PM, Mauro Carvalho Chehab wrote:  
-> >>> Em Fri, 7 Dec 2018 10:09:04 +0100
-> >>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> >>>     
-> >>>> This patch selects MEDIA_CONTROLLER for all camera, analog TV and
-> >>>> digital TV drivers and selects VIDEO_V4L2_SUBDEV_API automatically.
-> >>>>
-> >>>> This will allow us to simplify drivers that currently have to add
-> >>>> #ifdef CONFIG_MEDIA_CONTROLLER or #ifdef VIDEO_V4L2_SUBDEV_API
-> >>>> to their code, since now this will always be available.
-> >>>>
-> >>>> The original intent of allowing these to be configured by the
-> >>>> user was (I think) to save a bit of memory.     
-> >>>
-> >>> No. The original intent was/is to be sure that adding the media
-> >>> controller support won't be breaking existing working drivers.    
-> >>
-> >> That doesn't make sense. If enabling this option would break existing
-> >> drivers, then something is really wrong, isn't it?  
-> > 
-> > It is the opposite: disabling it should not break any driver that don't
-> > depend on them to work.
-> >   
-> >>  
-> >>>     
-> >>>> But as more and more
-> >>>> drivers have a media controller and all regular distros already
-> >>>> enable one or more of those drivers, the memory for the MC code is
-> >>>> there anyway.
-> >>>>
-> >>>> Complexity has always been the bane of media drivers, so reducing
-> >>>> complexity at the expense of a bit more memory (which is a rounding
-> >>>> error compared to the amount of video buffer memory needed) is IMHO
-> >>>> a good thing.
-> >>>>
-> >>>> Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
-> >>>> ---
-> >>>> diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
-> >>>> index 8add62a18293..56eb01cc8bb4 100644
-> >>>> --- a/drivers/media/Kconfig
-> >>>> +++ b/drivers/media/Kconfig
-> >>>> @@ -31,6 +31,7 @@ comment "Multimedia core support"
-> >>>>  #
-> >>>>  config MEDIA_CAMERA_SUPPORT
-> >>>>  	bool "Cameras/video grabbers support"
-> >>>> +	select MEDIA_CONTROLLER
-> >>>>  	---help---
-> >>>>  	  Enable support for webcams and video grabbers.
-> >>>>
-> >>>> @@ -38,6 +39,7 @@ config MEDIA_CAMERA_SUPPORT
-> >>>>
-> >>>>  config MEDIA_ANALOG_TV_SUPPORT
-> >>>>  	bool "Analog TV support"
-> >>>> +	select MEDIA_CONTROLLER
-> >>>>  	---help---
-> >>>>  	  Enable analog TV support.
-> >>>>
-> >>>> @@ -50,6 +52,7 @@ config MEDIA_ANALOG_TV_SUPPORT
-> >>>>
-> >>>>  config MEDIA_DIGITAL_TV_SUPPORT
-> >>>>  	bool "Digital TV support"
-> >>>> +	select MEDIA_CONTROLLER
-> >>>>  	---help---
-> >>>>  	  Enable digital TV support.    
-> >>>
-> >>> See my comments below.
-> >>>     
-> >>>>
-> >>>> @@ -95,7 +98,6 @@ source "drivers/media/cec/Kconfig"
-> >>>>
-> >>>>  config MEDIA_CONTROLLER
-> >>>>  	bool "Media Controller API"
-> >>>> -	depends on MEDIA_CAMERA_SUPPORT || MEDIA_ANALOG_TV_SUPPORT || MEDIA_DIGITAL_TV_SUPPORT
-> >>>>  	---help---
-> >>>>  	  Enable the media controller API used to query media devices internal
-> >>>>  	  topology and configure it dynamically.    
-> >>>
-> >>> I have split comments with regards to it. Yeah, nowadays media controller
-> >>> has becoming more important. Still, a lot of media drivers work fine
-> >>> without them.
-> >>>
-> >>> Anyway, if we're willing to make it mandatory, better to just remove the
-> >>> entire config option or to make it a silent one.     
-> >>
-> >> Well, that assumes that the media controller will only be used by media
-> >> drivers, and not alsa or anyone else who wants to experiment with the MC.
-> >>
-> >> I won't object to making it silent (since it does reflect the current
-> >> situation), but since this functionality is not actually specific to media
-> >> drivers I think that is a good case to be made to allow it to be selected
-> >> manually.
-> >>  
-> >>>     
-> >>>> @@ -119,16 +121,11 @@ config VIDEO_DEV
-> >>>>  	tristate
-> >>>>  	depends on MEDIA_SUPPORT
-> >>>>  	depends on MEDIA_CAMERA_SUPPORT || MEDIA_ANALOG_TV_SUPPORT || MEDIA_RADIO_SUPPORT || MEDIA_SDR_SUPPORT
-> >>>> +	select VIDEO_V4L2_SUBDEV_API if MEDIA_CONTROLLER
-> >>>>  	default y
-> >>>>
-> >>>>  config VIDEO_V4L2_SUBDEV_API
-> >>>> -	bool "V4L2 sub-device userspace API"
-> >>>> -	depends on VIDEO_DEV && MEDIA_CONTROLLER
-> >>>> -	---help---
-> >>>> -	  Enables the V4L2 sub-device pad-level userspace API used to configure
-> >>>> -	  video format, size and frame rate between hardware blocks.
-> >>>> -
-> >>>> -	  This API is mostly used by camera interfaces in embedded platforms.
-> >>>> +	bool    
-> >>>
-> >>> NACK. 
-> >>>
-> >>> There is a very good reason why the subdev API is optional: there
-> >>> are drivers that use camera sensors but are not MC-centric. On those,
-> >>> the USB bridge driver is responsible to setup the subdevice. 
-> >>>
-> >>> This options helps to ensure that camera sensors used by such drivers
-> >>> won't stop working because of the lack of the subdev-API.    
-> >>
-> >> But they won't stop working if this is enabled.  
-> > 
-> > That's not the issue. I've seen (and nacked) several patches breaking
-> > drivers by assuming that all init would happen via subdev API.
-> > 
-> > By having this as an optional feature that can be disabled, developers
-> > need to ensure that either the driver won't be built as a hole, if
-> > no subdev API suport is enabled, or need to add the needed logic inside
-> > the sub-device in order to support both cases.
-> >   
-> >> This option is used as
-> >> a dependency by drivers that require this functionality, but enabling
-> >> it will never break other drivers that don't need this. Those drivers
-> >> simply won't use it.  
-> > 
-> > Not a 100% sure about that. There are some parts of the logic that seems
-> > to assume that the device has subdev API and MC initialized.
-> > 
-> > See, for example:
-> > 
-> > 	static inline struct v4l2_mbus_framefmt
-> > 	*v4l2_subdev_get_try_format(struct v4l2_subdev *sd,
-> > 				    struct v4l2_subdev_pad_config *cfg,
-> > 				    unsigned int pad)
-> > 	{
-> > 		if (WARN_ON(pad >= sd->entity.num_pads))
-> > 			pad = 0;
-> > 		return &cfg[pad].try_fmt;
-> > 	}
-> > 
-> > If the USB bridge driver doesn't use the media controller, the above
-> > code will OOPS. See, for example, ov2659_get_fmt() logic.  
-> 
-> So if I have that USB bridge driver, and I also enable the V4L2_SUBDEV_API
-> for another driver, then the USB bridge driver would crash?!
-> 
-> If that's the case, then this is really, really broken.
+On Fri 07 Dec 2018 at 12:39, Hans Verkuil wrote:
+> On 11/22/2018 04:18 PM, Rui Miguel Silva wrote:
+>> Add bindings documentation for i.MX7 media drivers.
+>> The imx7 MIPI CSI2 and imx7 CMOS Sensor Interface.
+>> 
+>> Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+>> Reviewed-by: Rob Herring <robh@kernel.org>
+>> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+>
+> Please move this patch to the beginning of the series to avoid
+> checkpatch warnings:
+>
+> WARNING: DT compatible string "fsl,imx7-csi" appears 
+> un-documented -- check ./Documentation/devicetree/bindings/
+> #1378: FILE: drivers/staging/media/imx/imx7-media-csi.c:1336:
+> +       { .compatible = "fsl,imx7-csi" },
 
-Yes.
+Will do, thanks for catching this one.
 
-> I always enable
-> this option whenever I build the media drivers, and I have never seen
-> anything break because of this. And if a driver would break then that
-> is an enormous bug in that driver or the subdev driver.
+---
+Cheers,
+	Rui
 
-Last time I checked, PC distros usually disable it. Not sure how many
-devices are out there that use it. I carefully review the patches for the
-devices I have myself and that I know it would be affected by this
-issue.
-
-> Please note that bridge drivers that do not rely on this config option
-> will never call these subdev ops with V4L2_SUBDEV_FORMAT_TRY.
-> 
-> So it will also never crash on this.
-
-Yes, USB bridges typically handles it on another way. That could be
-a reason why we never received a bug report (the other reason is
-because PC distros may not be enabling subdev API).
-
-> Basically what you want is a way to check that bridge drivers that do
-> not support the media controller or the subdev API (i.e. V4L2_SUBDEV_FORMAT_TRY)
-> do not attempt to use features that rely on subdevs supporting it.
-
-Yes. I also want sensor drivers to either be written considering that
-they can be called by bridges that don't export subdev API or to
-be explicitly tagged as dependent of V4L2_SUBDEV_API.
-
-This way, if someone ever need to use those on a bridge driver
-that doesn't export the subdev API, he will also be aware that
-the sensor driver will require changes in order to work.
-
-> I'm not sure that's possible, but let me think about it.
-> 
-> Regards,
-> 
+>
+> Thanks!
+>
 > 	Hans
-> 
-> > 
-> > Ok, this particular driver (AFAIKT) is only used on platform drivers,
-> > but if the same sensor would be used by another driver that don't
-> > expose subdev API, VIDIOC_GET_FMT won't work. Also, if
-> > CONFIG_VIDEO_V4L2_SUBDEV_API is disabled, the ioctl will just return
-> > an error, but if it is enabled, it will OOPS.
-> >   
-> >> Also note that it is the bridge driver that controls whether or not
-> >> the v4l-subdevX devices are created. If the bridge driver doesn't
-> >> explicitly enable it AND the subdev driver explicitly supports it,
-> >> those devices will not be created.  
-> > 
-> > The problem is not related to subdev creation. It is related to
-> > having support for being fully set without using the subdev API
-> > (or DT).
-> > 
-> > I'm not saying that it is not doable to solve this issue, but, right
-> > now, some parts at the V4L2 core assumes that subdev API is
-> > used if CONFIG_VIDEO_V4L2_SUBDEV_API is enabled.
-> > 
-> > See, for example, the drivers/media/i2c/mt9v011.c driver, with is 
-> > used by a USB bridge driver that doesn't expose subdev API.
-> > 
-> > On this driver, even the probe logic had to be different, as it has 
-> > to explicitly support platform data, as otherwise the sensor won't be
-> > properly initialized, and it won't work.
-> > 
-> > Frankly, I don't see an easy way to make a sensor driver that would
-> > be fully independent, as we would need to move all DT-specific
-> > stuff to be handled outside the sensors and have a common way for
-> > the V4L2 core to handle it, either as platform data or as DT,
-> > and calling subdev-specific logic to handle it depending on the
-> > case.
-> > 
-> > While we don't have the V4L2 fully abstracting the logic
-> > if a device has subdev API or not, we can't get rid of
-> > VIDEO_V4L2_SUBDEV_API.
-> > 
-> > 
-> > Thanks,
-> > Mauro
-> >   
-> 
+>
+>
+>> ---
+>>  .../devicetree/bindings/media/imx7-csi.txt    | 45 ++++++++++
+>>  .../bindings/media/imx7-mipi-csi2.txt         | 90 
+>>  +++++++++++++++++++
+>>  2 files changed, 135 insertions(+)
+>>  create mode 100644 
+>>  Documentation/devicetree/bindings/media/imx7-csi.txt
+>>  create mode 100644 
+>>  Documentation/devicetree/bindings/media/imx7-mipi-csi2.txt
+>> 
+>> diff --git 
+>> a/Documentation/devicetree/bindings/media/imx7-csi.txt 
+>> b/Documentation/devicetree/bindings/media/imx7-csi.txt
+>> new file mode 100644
+>> index 000000000000..3c07bc676bc3
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/media/imx7-csi.txt
+>> @@ -0,0 +1,45 @@
+>> +Freescale i.MX7 CMOS Sensor Interface
+>> +=====================================
+>> +
+>> +csi node
+>> +--------
+>> +
+>> +This is device node for the CMOS Sensor Interface (CSI) which 
+>> enables the chip
+>> +to connect directly to external CMOS image sensors.
+>> +
+>> +Required properties:
+>> +
+>> +- compatible    : "fsl,imx7-csi";
+>> +- reg           : base address and length of the register set 
+>> for the device;
+>> +- interrupts    : should contain CSI interrupt;
+>> +- clocks        : list of clock specifiers, see
+>> + 
+>> Documentation/devicetree/bindings/clock/clock-bindings.txt for 
+>> details;
+>> +- clock-names   : must contain "axi", "mclk" and "dcic" 
+>> entries, matching
+>> +                 entries in the clock property;
+>> +
+>> +The device node shall contain one 'port' child node with one 
+>> child 'endpoint'
+>> +node, according to the bindings defined in:
+>> +Documentation/devicetree/bindings/media/video-interfaces.txt.
+>> +
+>> +In the following example a remote endpoint is a video 
+>> multiplexer.
+>> +
+>> +example:
+>> +
+>> +                csi: csi@30710000 {
+>> +                        #address-cells = <1>;
+>> +                        #size-cells = <0>;
+>> +
+>> +                        compatible = "fsl,imx7-csi";
+>> +                        reg = <0x30710000 0x10000>;
+>> +                        interrupts = <GIC_SPI 7 
+>> IRQ_TYPE_LEVEL_HIGH>;
+>> +                        clocks = <&clks IMX7D_CLK_DUMMY>,
+>> +                                        <&clks 
+>> IMX7D_CSI_MCLK_ROOT_CLK>,
+>> +                                        <&clks 
+>> IMX7D_CLK_DUMMY>;
+>> +                        clock-names = "axi", "mclk", "dcic";
+>> +
+>> +                        port {
+>> +                                csi_from_csi_mux: endpoint {
+>> +                                        remote-endpoint = 
+>> <&csi_mux_to_csi>;
+>> +                                };
+>> +                        };
+>> +                };
+>> diff --git 
+>> a/Documentation/devicetree/bindings/media/imx7-mipi-csi2.txt 
+>> b/Documentation/devicetree/bindings/media/imx7-mipi-csi2.txt
+>> new file mode 100644
+>> index 000000000000..71fd74ed3ec8
+>> --- /dev/null
+>> +++ 
+>> b/Documentation/devicetree/bindings/media/imx7-mipi-csi2.txt
+>> @@ -0,0 +1,90 @@
+>> +Freescale i.MX7 Mipi CSI2
+>> +=========================
+>> +
+>> +mipi_csi2 node
+>> +--------------
+>> +
+>> +This is the device node for the MIPI CSI-2 receiver core in 
+>> i.MX7 SoC. It is
+>> +compatible with previous version of Samsung D-phy.
+>> +
+>> +Required properties:
+>> +
+>> +- compatible    : "fsl,imx7-mipi-csi2";
+>> +- reg           : base address and length of the register set 
+>> for the device;
+>> +- interrupts    : should contain MIPI CSIS interrupt;
+>> +- clocks        : list of clock specifiers, see
+>> + 
+>> Documentation/devicetree/bindings/clock/clock-bindings.txt for 
+>> details;
+>> +- clock-names   : must contain "pclk", "wrap" and "phy" 
+>> entries, matching
+>> +                  entries in the clock property;
+>> +- power-domains : a phandle to the power domain, see
+>> + 
+>> Documentation/devicetree/bindings/power/power_domain.txt for 
+>> details.
+>> +- reset-names   : should include following entry "mrst";
+>> +- resets        : a list of phandle, should contain reset 
+>> entry of
+>> +                  reset-names;
+>> +- phy-supply    : from the generic phy bindings, a phandle to 
+>> a regulator that
+>> +	          provides power to MIPI CSIS core;
+>> +
+>> +Optional properties:
+>> +
+>> +- clock-frequency : The IP's main (system bus) clock frequency 
+>> in Hz, default
+>> +		    value when this property is not specified is 
+>> 166 MHz;
+>> +- fsl,csis-hs-settle : differential receiver (HS-RX) settle 
+>> time;
+>> +
+>> +The device node should contain two 'port' child nodes with one 
+>> child 'endpoint'
+>> +node, according to the bindings defined in:
+>> + Documentation/devicetree/bindings/ 
+>> media/video-interfaces.txt.
+>> + The following are properties specific to those nodes.
+>> +
+>> +port node
+>> +---------
+>> +
+>> +- reg		  : (required) can take the values 0 or 1, 
+>> where 0 shall be
+>> +                     related to the sink port and port 1 shall 
+>> be the source
+>> +                     one;
+>> +
+>> +endpoint node
+>> +-------------
+>> +
+>> +- data-lanes    : (required) an array specifying active 
+>> physical MIPI-CSI2
+>> +		    data input lanes and their mapping to logical 
+>> lanes; this
+>> +                    shall only be applied to port 0 (sink 
+>> port), the array's
+>> +                    content is unused only its length is 
+>> meaningful,
+>> +                    in this case the maximum length supported 
+>> is 2;
+>> +
+>> +example:
+>> +
+>> +        mipi_csi: mipi-csi@30750000 {
+>> +                #address-cells = <1>;
+>> +                #size-cells = <0>;
+>> +
+>> +                compatible = "fsl,imx7-mipi-csi2";
+>> +                reg = <0x30750000 0x10000>;
+>> +                interrupts = <GIC_SPI 25 IRQ_TYPE_LEVEL_HIGH>;
+>> +                clocks = <&clks IMX7D_IPG_ROOT_CLK>,
+>> +                                <&clks 
+>> IMX7D_MIPI_CSI_ROOT_CLK>,
+>> +                                <&clks 
+>> IMX7D_MIPI_DPHY_ROOT_CLK>;
+>> +                clock-names = "pclk", "wrap", "phy";
+>> +                clock-frequency = <166000000>;
+>> +                power-domains = <&pgc_mipi_phy>;
+>> +                phy-supply = <&reg_1p0d>;
+>> +                resets = <&src IMX7_RESET_MIPI_PHY_MRST>;
+>> +                reset-names = "mrst";
+>> +                fsl,csis-hs-settle = <3>;
+>> +
+>> +                port@0 {
+>> +                        reg = <0>;
+>> +
+>> +                        mipi_from_sensor: endpoint {
+>> +                                remote-endpoint = 
+>> <&ov2680_to_mipi>;
+>> +                                data-lanes = <1>;
+>> +                        };
+>> +                };
+>> +
+>> +                port@1 {
+>> +                        reg = <1>;
+>> +
+>> +                        mipi_vc0_to_csi_mux: endpoint {
+>> +                                remote-endpoint = 
+>> <&csi_mux_from_mipi_vc0>;
+>> +                        };
+>> +                };
+>> +        };
+>> 
 
-
-
-Thanks,
-Mauro
