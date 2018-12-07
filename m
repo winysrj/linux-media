@@ -5,67 +5,67 @@ X-Spam-Level:
 X-Spam-Status: No, score=-8.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5685EC07E85
-	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 13:58:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F27CC07E85
+	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 13:58:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1BCC1214C1
-	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 13:58:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 470622146D
+	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 13:58:40 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="GGg0NJeN"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 1BCC1214C1
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="RfD+Ls38"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 470622146D
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=gmail.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726190AbeLGN61 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 7 Dec 2018 08:58:27 -0500
-Received: from mail-lj1-f195.google.com ([209.85.208.195]:42402 "EHLO
-        mail-lj1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726018AbeLGN60 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Dec 2018 08:58:26 -0500
-Received: by mail-lj1-f195.google.com with SMTP id l15-v6so3620564lja.9;
-        Fri, 07 Dec 2018 05:58:24 -0800 (PST)
+        id S1726255AbeLGN6e (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 7 Dec 2018 08:58:34 -0500
+Received: from mail-lj1-f193.google.com ([209.85.208.193]:44995 "EHLO
+        mail-lj1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726218AbeLGN6b (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Dec 2018 08:58:31 -0500
+Received: by mail-lj1-f193.google.com with SMTP id k19-v6so3603446lji.11;
+        Fri, 07 Dec 2018 05:58:29 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=jlxCKYT+/bGGxNDhXvCFjFcnBbho+Yzq9ypg9mJV4aQ=;
-        b=GGg0NJeNOeBUoGwFv223xbra9tj9RNR+bT26siwN5ZyRjTLizhVqMbsjH02IusnhAa
-         OM0d+THOS6DFDSykZAKTDShfRbMXoJHLmX2a2mtqeaYt/TX3aWrkkaNkDQo/4z5UNTqT
-         Wr7IYICeDhBRrZz60o1WZ2BLObNeXsYFshuBjRxUJE9MhZFHwTJ1mXQWLOZTzJBwrR2L
-         vu3zlQAT3kXn/r/cLfajz/SivMxSL56Wagnw1fbrGQiGWalURwBdf6OoFAYD6c35XgM3
-         u68yv26xmtRt+muCgjlvps52iZeuMisrct3mBT0HHV8iQq6mS6/IPlL2MQIwGK7Jx6gI
-         8k4Q==
+        bh=OSWn7aqP5LZdpXIQkIta8Y8DiZPEYX5x20H6MavbjYc=;
+        b=RfD+Ls3868tv2WU7tUqWFDJV3FBoG660b+7Ejk0D/Rgml/ezBKZWaK181IpssZcLyn
+         XecUU/CobBFhTrd8HT+iMZsV8lyhvdp/Hn2LeT3WlQfeVsFJ5h5+4PabAqkES+17IkOU
+         xazaGqfGMp8bICbT8p19/sAEAhTEXA3bjcGlhEOQ6GE6aHUfUy9r7YqSzWB58gKNh4Ka
+         9N5842pjJmlpIBZj3X0RWDm7hx+tmy7mdwQDGkIE5/+/C3jSwuBqekTMWpdnj+AKMWLC
+         wqOIYNsio0QdKW2/aqhxhgyw8exTZ9z3OEjAGE16sbhk/M0XpY1VMtOnCVj2yWMk8EO2
+         ldvA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=jlxCKYT+/bGGxNDhXvCFjFcnBbho+Yzq9ypg9mJV4aQ=;
-        b=Ft6geQF7gcHTVTDUxs4uv4UJya0ZuZEzAOCt+USRhsHml7lZzMLU8iIPfmWtg+Iy4t
-         /26hF1ROKKPIKrPXLdBtYXlC/KjO7eEyLJ7wbnkWrZOsQ2SwrhrdfHPsBpUT8BJHUYxU
-         m2vQb4op3/NeY4XXXdpzMkcWIqqRiFh/qXLmv41oJNGYY2V/SLTFP7GN9jEaeyXbzbbB
-         K3a3BN3zL/0F7DcFCw+wBDTqYoexxD8zfLyOkABkplcvh3yx78nuQJBK+nu/2GJIkxGe
-         2O2a7Z1Pr516OZlMLGlx/VNLpMOLWWp7MoA9PfwktaTVVBC1vnYX/90Ez9Jx9ELr6aGS
-         g6FQ==
-X-Gm-Message-State: AA+aEWZtzRmCIp2LhEo3TkVbe13tPnxg6ypQmT6WR/EPKRSfYZBS2HZk
-        et3wl5Co3q3nP9jTWhTMiw0=
-X-Google-Smtp-Source: AFSGD/XsZbvireXJJWKbCzRWWAmPwtKq7HlCdQCS27+W9GXomxOTRKD47NmNWcvgZRhoRJNfpl8PYw==
-X-Received: by 2002:a2e:5152:: with SMTP id b18-v6mr1252705lje.88.1544191103748;
-        Fri, 07 Dec 2018 05:58:23 -0800 (PST)
+        bh=OSWn7aqP5LZdpXIQkIta8Y8DiZPEYX5x20H6MavbjYc=;
+        b=QCMwf16oF1IAB2Px+yk4VVNqwa2PFWBTE+W96lFDWXyBgkNzyPuyzHmz4ttUxJwnZF
+         VqXYBJqX/1IpvmH2i43rodP6rrqxKn6DyZEy/8PPqoIs9tVIun6GhvtZLo+8FnOl/MTn
+         V9qJ/bgGMeCMIMCz1E8ej8xWjm4UHFHRylfCkO02+3pdFZOoJEwQHzCouSxi7AZmIbEi
+         ftGt0RpR292mLiU9tSYeQ9+sySp9T+QjV6sjAqlNmJiYPyqajOeRsHHK5e8rZy2xqXFv
+         ghY2xsmou8IXWApH8JqIlB/L2TKShBtNgyi5SFlycuOrJJ0FXRRgXyBRFoiRQWOYMSdw
+         9dxg==
+X-Gm-Message-State: AA+aEWb3bhG9C9mqtKQEsK6g59vYc0lIcRnmaye9wbnCcueck4WJTpwH
+        Pm52TLyqQ6Aowfrn6XOvSIY=
+X-Google-Smtp-Source: AFSGD/WneZ/lKYaRlIaa7YZpGFKa4dJbSurAm57JMBwIuYL6ZLtaHO6sSwhd2JL6INzc4891pwhKow==
+X-Received: by 2002:a2e:2d4:: with SMTP id y81-v6mr1459152lje.62.1544191108345;
+        Fri, 07 Dec 2018 05:58:28 -0800 (PST)
 Received: from localhost.localdomain ([2a02:a315:5445:5300:74d5:51ba:2673:f3f4])
-        by smtp.googlemail.com with ESMTPSA id i143sm624609lfg.74.2018.12.07.05.58.22
+        by smtp.googlemail.com with ESMTPSA id i143sm624609lfg.74.2018.12.07.05.58.26
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Fri, 07 Dec 2018 05:58:23 -0800 (PST)
+        Fri, 07 Dec 2018 05:58:27 -0800 (PST)
 From:   =?UTF-8?q?Pawe=C5=82=20Chmiel?= <pawel.mikolaj.chmiel@gmail.com>
 To:     mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com
 Cc:     hverkuil@xs4all.nl, fischerdouglasc@gmail.com,
         keescook@chromium.org, linux-media@vger.kernel.org,
         linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
         =?UTF-8?q?Pawe=C5=82=20Chmiel?= <pawel.mikolaj.chmiel@gmail.com>
-Subject: [PATCH v2 1/4] si470x-i2c: Add device tree support
-Date:   Fri,  7 Dec 2018 14:58:09 +0100
-Message-Id: <20181207135812.12842-2-pawel.mikolaj.chmiel@gmail.com>
+Subject: [PATCH v2 4/4] media: dt-bindings: Add binding for si470x radio
+Date:   Fri,  7 Dec 2018 14:58:12 +0100
+Message-Id: <20181207135812.12842-5-pawel.mikolaj.chmiel@gmail.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20181207135812.12842-1-pawel.mikolaj.chmiel@gmail.com>
 References: <20181207135812.12842-1-pawel.mikolaj.chmiel@gmail.com>
@@ -77,39 +77,49 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-This commit enables device tree support adding simple of_match table.
+Add device tree bindings for si470x family radio receiver driver.
 
 Signed-off-by: Paweł Chmiel <pawel.mikolaj.chmiel@gmail.com>
 ---
- drivers/media/radio/si470x/radio-si470x-i2c.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+Changes from v1:
+	- squashed with patch adding reset-gpio documentation
+---
+ .../devicetree/bindings/media/si470x.txt      | 26 +++++++++++++++++++
+ 1 file changed, 26 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/si470x.txt
 
-diff --git a/drivers/media/radio/si470x/radio-si470x-i2c.c b/drivers/media/radio/si470x/radio-si470x-i2c.c
-index 9751ea1d80be..250828ddb5fa 100644
---- a/drivers/media/radio/si470x/radio-si470x-i2c.c
-+++ b/drivers/media/radio/si470x/radio-si470x-i2c.c
-@@ -527,6 +527,13 @@ static int si470x_i2c_resume(struct device *dev)
- static SIMPLE_DEV_PM_OPS(si470x_i2c_pm, si470x_i2c_suspend, si470x_i2c_resume);
- #endif
- 
-+#if IS_ENABLED(CONFIG_OF)
-+static const struct of_device_id si470x_of_match[] = {
-+	{ .compatible = "silabs,si470x" },
-+	{ },
+diff --git a/Documentation/devicetree/bindings/media/si470x.txt b/Documentation/devicetree/bindings/media/si470x.txt
+new file mode 100644
+index 000000000000..a9403558362e
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/si470x.txt
+@@ -0,0 +1,26 @@
++* Silicon Labs FM Radio receiver
++
++The Silicon Labs Si470x is family of FM radio receivers with receive power scan
++supporting 76-108 MHz, programmable through an I2C interface.
++Some of them includes an RDS encoder.
++
++Required Properties:
++- compatible: Should contain "silabs,si470x"
++- reg: the I2C address of the device
++
++Optional Properties:
++- interrupts : The interrupt number
++- reset-gpios: GPIO specifier for the chips reset line
++
++Example:
++
++&i2c2 {
++        si470x@63 {
++                compatible = "silabs,si470x";
++                reg = <0x63>;
++
++                interrupt-parent = <&gpj2>;
++                interrupts = <4 IRQ_TYPE_EDGE_FALLING>;
++                reset-gpios = <&gpj2 5 GPIO_ACTIVE_HIGH>;
++        };
 +};
-+MODULE_DEVICE_TABLE(of, si470x_of_match);
-+#endif
- 
- /*
-  * si470x_i2c_driver - i2c driver interface
-@@ -534,6 +541,7 @@ static SIMPLE_DEV_PM_OPS(si470x_i2c_pm, si470x_i2c_suspend, si470x_i2c_resume);
- static struct i2c_driver si470x_i2c_driver = {
- 	.driver = {
- 		.name		= "si470x",
-+		.of_match_table = of_match_ptr(si470x_of_match),
- #ifdef CONFIG_PM_SLEEP
- 		.pm		= &si470x_i2c_pm,
- #endif
 -- 
 2.17.1
 
