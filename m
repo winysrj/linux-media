@@ -3,161 +3,173 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+	DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
+	T_DKIMWL_WL_HIGH,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D7F5C07E85
-	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 11:25:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 82B15C07E85
+	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 11:27:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8797920892
-	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 11:25:55 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=amarulasolutions.com header.i=@amarulasolutions.com header.b="dv8A0j1Y"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 8797920892
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=amarulasolutions.com
+	by mail.kernel.org (Postfix) with ESMTP id 46FA920892
+	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 11:27:04 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1544182024;
+	bh=smKJ7RiICpWeTxGKD6H1n2kD+cOa5WFmKgLG24cYVoQ=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
+	b=RnUrQBFQRDd0jpx23JbxfuIMqFn74Z8NFRpvEEC1uwn4dfEy30aLD1HrVpaBT4kIQ
+	 HW98snCtO7zEu1suPjqq71I7tOL7hh8ZbmH4eBehx55GRjjpXg0gif04IdGjGsYEf0
+	 MSUFH8hhkb25ou5aqBHjcY/tZo2zj+18AvNdI/aU=
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 46FA920892
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726032AbeLGLZy (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 7 Dec 2018 06:25:54 -0500
-Received: from mail-wr1-f68.google.com ([209.85.221.68]:45455 "EHLO
-        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725985AbeLGLZy (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Dec 2018 06:25:54 -0500
-Received: by mail-wr1-f68.google.com with SMTP id b14so3427748wru.12
-        for <linux-media@vger.kernel.org>; Fri, 07 Dec 2018 03:25:52 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=amarulasolutions.com; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=X87BwSfwpOAVWrhmNy0HsmeekdgkJntJ+VqX4INhcsA=;
-        b=dv8A0j1YQnTW5sWOknHnFTQ0AnmSyf9pturhoNnrDajrR/7EMl4uLtwW3oc15VrMiz
-         80JLZfPUdZVwWz3WY894eBQ6hTD2xgu2K42yFcyHtExQo0IMIvzCmzHLcN7gczauhzi3
-         +S/4hp0pF6m6yJJzo16RVt8fv0SonVmB/9B+s=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=X87BwSfwpOAVWrhmNy0HsmeekdgkJntJ+VqX4INhcsA=;
-        b=GntNaId3k/ob5MeFOdxnZJ8PoMEMeoqoLXAokChk3CM4ps0ELE2z6TAJPJIHIDgjsR
-         VzvalsojgjCmvtIli0aosT4Sn4hzlf8dvJAGv6C1beH+ZLrPbJ2irFQBTdAMHMMXLERB
-         KLls64reIy7bkjdtdvRn5PxJxr1mfrHZglde8LI91KTMZug8XWUp+BF3UhDWTWPIhUVg
-         Kq0L5T9S4LDlNlo38kRuS7CEo56hJ0zo56AfKOlEOu42fn5UzR1cWNljBpaU2PN5RQqE
-         CiS7zhC+YCz7kxijEQn7AqOgq3lJv8sJItiEo08LqEijTrVvsMkVfAaNYzrxdcBvS5FM
-         qjxA==
-X-Gm-Message-State: AA+aEWYzfykAnwRIURa9Hg/bdHJV8Zi5uoOXjkfDNV+TxpsT9F1vj+YV
-        rt3wA6MIMHRxirE0Ik4u/5LQ65z0+gi0e3tFAg4RX9GK
-X-Google-Smtp-Source: AFSGD/WddUdtiOzAEUkxWl17ZisxQR3N+yWxvIyQ/encLtHkVdt3TO1UoDz5Qyl96QBwLC+l4oTTEKnKdyqhshgiAk8=
-X-Received: by 2002:adf:8001:: with SMTP id 1mr1403206wrk.23.1544181951976;
- Fri, 07 Dec 2018 03:25:51 -0800 (PST)
+        id S1726019AbeLGL1D (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 7 Dec 2018 06:27:03 -0500
+Received: from casper.infradead.org ([85.118.1.10]:47570 "EHLO
+        casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725985AbeLGL1D (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Dec 2018 06:27:03 -0500
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
+        MIME-Version:References:In-Reply-To:Message-ID:Subject:Cc:To:From:Date:Sender
+        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
+        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+        bh=FoqD8zdgq/b6nXnUKi3GsLLmZlRorjDPHzOid7e3+KU=; b=HvM1RABFx86mIyFAjmJTbFxPN7
+        SwEGWpilxSHrJ3/nm8Qdm0muBQvg5gWi1wY7zBA3gfhx2liQJpQXwsbLmgtmNjIR8ALL/rDJomANg
+        rX508l/FoIK9aMqTqFiE5bQnvTgocxgc1uVJHlxizus6DRzBZopJdX+mAckPS6Qjp/jtN6/krGDFp
+        FURoBE5U25EqsggXoYqKqz1Jr2vhgi/7GWaZgkbpd0jheFb14oCpRPuhg95vZBBgNqrN/wO2Xr8Cr
+        4U7vOEATDDHNRBbPf/K3aOS/Co0bhhU/goiMxjFQJMM80mih+PPhcg+CEh19phjA8R8x93ETGPuWw
+        3Xxfjw7g==;
+Received: from 201.86.173.17.dynamic.adsl.gvt.net.br ([201.86.173.17] helo=coco.lan)
+        by casper.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
+        id 1gVEHc-00068o-75; Fri, 07 Dec 2018 11:27:00 +0000
+Date:   Fri, 7 Dec 2018 09:26:55 -0200
+From:   Mauro Carvalho Chehab <mchehab@kernel.org>
+To:     Hans Verkuil <hverkuil@xs4all.nl>
+Cc:     Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>
+Subject: Re: [RFC PATCH] media/Kconfig: always enable MEDIA_CONTROLLER and
+ VIDEO_V4L2_SUBDEV_API
+Message-ID: <20181207092655.40e89b88@coco.lan>
+In-Reply-To: <89b0af6f-1371-50d9-5c19-fac7bb6562a3@xs4all.nl>
+References: <89b0af6f-1371-50d9-5c19-fac7bb6562a3@xs4all.nl>
+X-Mailer: Claws Mail 3.16.0 (GTK+ 2.24.32; x86_64-redhat-linux-gnu)
 MIME-Version: 1.0
-References: <20181205154750.17996-5-pawel.mikolaj.chmiel@gmail.com> <231a4d80-4026-c17c-dfcc-80a304965391@xs4all.nl>
-In-Reply-To: <231a4d80-4026-c17c-dfcc-80a304965391@xs4all.nl>
-From:   Michael Nazzareno Trimarchi <michael@amarulasolutions.com>
-Date:   Fri, 7 Dec 2018 12:25:40 +0100
-Message-ID: <CAOf5uwmXjYMdEj9SCtmem881Jm8YUzjUrjsZf9gjZ48RBdV7DQ@mail.gmail.com>
-Subject: Re: [PATCH 4/5 RESEND] si470x-i2c: Add optional reset-gpio support
-To:     hverkuil@xs4all.nl
-Cc:     linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi
+Em Fri, 7 Dec 2018 10:09:04 +0100
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-On Fri, Dec 7, 2018 at 12:12 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
->
-> Subject: [PATCH 4/5] si470x-i2c: Add optional reset-gpio support
-> Date: Wed,  5 Dec 2018 16:47:49 +0100
-> From: Pawe=C5=82 Chmiel <pawel.mikolaj.chmiel@gmail.com>
-> To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com
-> CC: hverkuil@xs4all.nl, fischerdouglasc@gmail.com, keescook@chromium.org,=
- linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-> devicetree@vger.kernel.org, Pawe=C5=82 Chmiel <pawel.mikolaj.chmiel@gmail=
-.com>
->
-> If reset-gpio is defined, use it to bring device out of reset.
-> Without this, it's not possible to access si470x registers.
->
-> Signed-off-by: Pawe=C5=82 Chmiel <pawel.mikolaj.chmiel@gmail.com>
+> This patch selects MEDIA_CONTROLLER for all camera, analog TV and
+> digital TV drivers and selects VIDEO_V4L2_SUBDEV_API automatically.
+> 
+> This will allow us to simplify drivers that currently have to add
+> #ifdef CONFIG_MEDIA_CONTROLLER or #ifdef VIDEO_V4L2_SUBDEV_API
+> to their code, since now this will always be available.
+> 
+> The original intent of allowing these to be configured by the
+> user was (I think) to save a bit of memory. 
+
+No. The original intent was/is to be sure that adding the media
+controller support won't be breaking existing working drivers.
+
+> But as more and more
+> drivers have a media controller and all regular distros already
+> enable one or more of those drivers, the memory for the MC code is
+> there anyway.
+> 
+> Complexity has always been the bane of media drivers, so reducing
+> complexity at the expense of a bit more memory (which is a rounding
+> error compared to the amount of video buffer memory needed) is IMHO
+> a good thing.
+> 
+> Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 > ---
-> For some reason this patch was not picked up by patchwork. Resending to s=
-ee if
-> it is picked up now.
-> ---
->  drivers/media/radio/si470x/radio-si470x-i2c.c | 15 +++++++++++++++
->  drivers/media/radio/si470x/radio-si470x.h     |  1 +
->  2 files changed, 16 insertions(+)
->
-> diff --git a/drivers/media/radio/si470x/radio-si470x-i2c.c b/drivers/medi=
-a/radio/si470x/radio-si470x-i2c.c
-> index a7ac09c55188..15eea2b2c90f 100644
-> --- a/drivers/media/radio/si470x/radio-si470x-i2c.c
-> +++ b/drivers/media/radio/si470x/radio-si470x-i2c.c
-> @@ -28,6 +28,7 @@
->  #include <linux/i2c.h>
->  #include <linux/slab.h>
->  #include <linux/delay.h>
-> +#include <linux/gpio/consumer.h>
->  #include <linux/interrupt.h>
->   #include "radio-si470x.h"
-> @@ -392,6 +393,17 @@ static int si470x_i2c_probe(struct i2c_client *clien=
-t,
->         radio->videodev.release =3D video_device_release_empty;
->         video_set_drvdata(&radio->videodev, radio);
->  +      radio->gpio_reset =3D devm_gpiod_get_optional(&client->dev, "rese=
-t",
-> +                                                   GPIOD_OUT_LOW);
-> +       if (IS_ERR(radio->gpio_reset)) {
-> +               retval =3D PTR_ERR(radio->gpio_reset);
-> +               dev_err(&client->dev, "Failed to request gpio: %d\n", ret=
-val);
-> +               goto err_all;
-> +       }
-> +
-> +       if (radio->gpio_reset)
-> +               gpiod_set_value(radio->gpio_reset, 1);
-> +
->         /* power up : need 110ms */
->         radio->registers[POWERCFG] =3D POWERCFG_ENABLE;
->         if (si470x_set_register(radio, POWERCFG) < 0) {
-> @@ -478,6 +490,9 @@ static int si470x_i2c_remove(struct i2c_client *clien=
-t)
->         video_unregister_device(&radio->videodev);
->  +      if (radio->gpio_reset)
-> +               gpiod_set_value(radio->gpio_reset, 0);
+> diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
+> index 8add62a18293..56eb01cc8bb4 100644
+> --- a/drivers/media/Kconfig
+> +++ b/drivers/media/Kconfig
+> @@ -31,6 +31,7 @@ comment "Multimedia core support"
+>  #
+>  config MEDIA_CAMERA_SUPPORT
+>  	bool "Cameras/video grabbers support"
+> +	select MEDIA_CONTROLLER
+>  	---help---
+>  	  Enable support for webcams and video grabbers.
+> 
+> @@ -38,6 +39,7 @@ config MEDIA_CAMERA_SUPPORT
+> 
+>  config MEDIA_ANALOG_TV_SUPPORT
+>  	bool "Analog TV support"
+> +	select MEDIA_CONTROLLER
+>  	---help---
+>  	  Enable analog TV support.
+> 
+> @@ -50,6 +52,7 @@ config MEDIA_ANALOG_TV_SUPPORT
+> 
+>  config MEDIA_DIGITAL_TV_SUPPORT
+>  	bool "Digital TV support"
+> +	select MEDIA_CONTROLLER
+>  	---help---
+>  	  Enable digital TV support.
 
-I have a question for you. If the gpio is the last of the bank
-acquired for this cpu, when you put to 0, then the gpio will
-be free on remove and the clock of the logic will be deactivated so I
-think that you don't have any
-garantee that the state will be 0
+See my comments below.
 
-Michael
+> 
+> @@ -95,7 +98,6 @@ source "drivers/media/cec/Kconfig"
+> 
+>  config MEDIA_CONTROLLER
+>  	bool "Media Controller API"
+> -	depends on MEDIA_CAMERA_SUPPORT || MEDIA_ANALOG_TV_SUPPORT || MEDIA_DIGITAL_TV_SUPPORT
+>  	---help---
+>  	  Enable the media controller API used to query media devices internal
+>  	  topology and configure it dynamically.
 
-> +
->         return 0;
->  }
->  diff --git a/drivers/media/radio/si470x/radio-si470x.h b/drivers/media/r=
-adio/si470x/radio-si470x.h
-> index 35fa0f3bbdd2..6fd6a399cb77 100644
-> --- a/drivers/media/radio/si470x/radio-si470x.h
-> +++ b/drivers/media/radio/si470x/radio-si470x.h
-> @@ -189,6 +189,7 @@ struct si470x_device {
->   #if IS_ENABLED(CONFIG_I2C_SI470X)
->         struct i2c_client *client;
-> +       struct gpio_desc *gpio_reset;
->  #endif
->  };
->  -- 2.17.1
->
+I have split comments with regards to it. Yeah, nowadays media controller
+has becoming more important. Still, a lot of media drivers work fine
+without them.
+
+Anyway, if we're willing to make it mandatory, better to just remove the
+entire config option or to make it a silent one. 
+
+> @@ -119,16 +121,11 @@ config VIDEO_DEV
+>  	tristate
+>  	depends on MEDIA_SUPPORT
+>  	depends on MEDIA_CAMERA_SUPPORT || MEDIA_ANALOG_TV_SUPPORT || MEDIA_RADIO_SUPPORT || MEDIA_SDR_SUPPORT
+> +	select VIDEO_V4L2_SUBDEV_API if MEDIA_CONTROLLER
+>  	default y
+> 
+>  config VIDEO_V4L2_SUBDEV_API
+> -	bool "V4L2 sub-device userspace API"
+> -	depends on VIDEO_DEV && MEDIA_CONTROLLER
+> -	---help---
+> -	  Enables the V4L2 sub-device pad-level userspace API used to configure
+> -	  video format, size and frame rate between hardware blocks.
+> -
+> -	  This API is mostly used by camera interfaces in embedded platforms.
+> +	bool
+
+NACK. 
+
+There is a very good reason why the subdev API is optional: there
+are drivers that use camera sensors but are not MC-centric. On those,
+the USB bridge driver is responsible to setup the subdevice. 
+
+This options helps to ensure that camera sensors used by such drivers
+won't stop working because of the lack of the subdev-API.
+
+> 
+>  source "drivers/media/v4l2-core/Kconfig"
+> 
 
 
---=20
-| Michael Nazzareno Trimarchi                     Amarula Solutions BV |
-| COO  -  Founder                                      Cruquiuskade 47 |
-| +31(0)851119172                                 Amsterdam 1018 AM NL |
-|                  [`as] http://www.amarulasolutions.com               |
+
+Thanks,
+Mauro
