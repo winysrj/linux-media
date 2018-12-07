@@ -2,104 +2,141 @@ Return-Path: <SRS0=1NWX=OQ=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
-	T_DKIMWL_WL_HIGH,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.7 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,FROM_EXCESS_BASE64,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ED7C3C64EB1
-	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 11:43:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F0466C07E85
+	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 11:43:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B2BDE2083D
-	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 11:43:10 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1544182990;
-	bh=k5qrp/jhxY89QKAg9lrGGmxCnyvm0iti0svS3gNamJE=;
-	h=From:Cc:Subject:Date:To:List-ID:From;
-	b=1C1MQok0eUl7iFnmaUtQi/mB1xnSnLWi5hp38xwwglEefdjtZ2d3eIPJIwWQ2TVqE
-	 2FG9WGgwDbjNgrdEBAs7btEB5vd94L8wnzPt2tnJkJi5/BKe7e67JkIRDBkO0fBWYX
-	 WYBqPPMdcWUU/Pq+qNn7JOBiNDAOd3IDhr6uVQMs=
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org B2BDE2083D
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
+	by mail.kernel.org (Postfix) with ESMTP id B60F42083D
+	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 11:43:24 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="P7Z2bOQK"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org B60F42083D
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=gmail.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726008AbeLGLnK (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 7 Dec 2018 06:43:10 -0500
-Received: from bombadil.infradead.org ([198.137.202.133]:44094 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725987AbeLGLnK (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Dec 2018 06:43:10 -0500
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=bombadil.20170209; h=Sender:Content-Transfer-Encoding:
-        MIME-Version:Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-Type:
-        Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
-        Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:List-Id:
-        List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-         bh=MH5A1FWUcd7VNWiJrj/6EX2o88rjxpjcC/AyR8kA3Dk=; b=nH6q4hK8sStKseG2vOAFU/0nU
-        skNEsbjcSXjTk7sftKYORzi7zXjbpxrQr5rpVB4ocVuDiaHIp/w3MX0pOdyw6guMPlEcTIuLCe7B2
-        g/x1sFUUuFpNVpHzoCcx9DiM2v4Tyg73xfQ5zRzuFNN+DDHriJaXctKbgLiHhj6Dwo+teWLEHopRX
-        hVQ8t65awldLjhfbDcovJ9TOrCFdRmc2HZdkx2utjvl4IpYMpO5nA4x/8aPrVeAz+OeoYaPgnYMi3
-        aYSaQjb28/WYgr+lUGN3zJ1RLI+UzmxsUKIjaCmlbCUulDAzDvbI28IVRYWp4zy84pmK6FBHAd6Bp
-        D5r1YR1wA==;
-Received: from 201.86.173.17.dynamic.adsl.gvt.net.br ([201.86.173.17] helo=bombadil.infradead.org)
-        by bombadil.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
-        id 1gVEXF-0003gN-4i; Fri, 07 Dec 2018 11:43:09 +0000
-Received: from mchehab by bombadil.infradead.org with local (Exim 4.91)
-        (envelope-from <mchehab@bombadil.infradead.org>)
-        id 1gVEXD-0007i4-11; Fri, 07 Dec 2018 06:43:07 -0500
-From:   Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc:     Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH] media: imx214: don't de-reference a NULL pointer
-Date:   Fri,  7 Dec 2018 06:43:03 -0500
-Message-Id: <4800f277368eb6cc6099eb622988588e5a5de9ae.1544182979.git.mchehab+samsung@kernel.org>
-X-Mailer: git-send-email 2.19.2
+        id S1726021AbeLGLnT (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 7 Dec 2018 06:43:19 -0500
+Received: from mail-lf1-f65.google.com ([209.85.167.65]:36443 "EHLO
+        mail-lf1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725987AbeLGLnS (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Dec 2018 06:43:18 -0500
+Received: by mail-lf1-f65.google.com with SMTP id a16so2812710lfg.3;
+        Fri, 07 Dec 2018 03:43:17 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=ODQEtnuCJlRKrXxoW3vcIw2UtuLeOooXtxQ4nUHkzx0=;
+        b=P7Z2bOQKsbu0+25gJ4AbwnQodlagZ2k4ilQraww4TvAloSVpeAziS7rjTynV8QQE6n
+         wTB1U+sspWSm8Mm5dffMh/2WzRugZtquZTXiGJcWMLA+a2FCLvV73IInqjTIURsGKlfH
+         4dAVnxVpf5QYR5bwI3ziemZsvZA5WNGZJdZBfSLqW9127VlsgoXOgKGG0Fou2v+1TiZj
+         rL42Ah5Zd5vMLuWq3OlzxpZOtxMgsHXE7fyfADs7C/g2H88dWC8Z7vjDYLISE11irGbJ
+         dmQRq77zRM7VjdHTZQVW59XT1PttcW0651pLa/5BG5N68ahaZnj1ZCU5sqRasD5WS/Rc
+         KvFg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=ODQEtnuCJlRKrXxoW3vcIw2UtuLeOooXtxQ4nUHkzx0=;
+        b=TUitLIkAHMea/5rVPlA7nwSv71XEbtMcujCMSVI5gyE8RQWfQ6v43PmKWDPQjFOE0N
+         qZLd6VhPUBPabDng8KETPIaYR/qWfUXAOLuzSUv/6304ssPZXOBlMbDZzdO2Y55APoiu
+         A7qHQie7htvysL+Ib0O7jBk5T1x+P+Fv0bZNI2rKMRQiAFXFoTGx+r/+9f/lrYMJXymZ
+         In48QqL4itQj9nxv6Oo6YL1I0/bMkFeR9NN2IxZCWstaQQsEaorQ+GZvwvDEZzNLHJzM
+         Hfd+RKgeIbrSJnE+/mSOgpubzXUl3n6MtWs1DUfOmTJF/vktd7S5ewX9UAVvcL9j6+sH
+         BsyA==
+X-Gm-Message-State: AA+aEWZy66Nh4pIPVs3SGOVWkwz5UsEJ9eRWpzRF1GPO9E+7y629cc+6
+        DJPujdLvlTmZlqv1LkZ+cVw=
+X-Google-Smtp-Source: AFSGD/UoV6BSNAAK6fMSBsGXsyl0T7xoQ0CUkbTQPUQn0Hv6Uam1SdDWbuof4Vm56IBceMstfMUUiw==
+X-Received: by 2002:a19:4d8d:: with SMTP id a135mr1201523lfb.80.1544182996267;
+        Fri, 07 Dec 2018 03:43:16 -0800 (PST)
+Received: from acerlaptop.localnet ([2a02:a315:5445:5300:74d5:51ba:2673:f3f4])
+        by smtp.gmail.com with ESMTPSA id e13-v6sm528954ljk.53.2018.12.07.03.43.14
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Fri, 07 Dec 2018 03:43:15 -0800 (PST)
+From:   =?utf-8?B?UGF3ZcWC?= Chmiel <pawel.mikolaj.chmiel@gmail.com>
+To:     Hans Verkuil <hverkuil@xs4all.nl>
+Cc:     mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        fischerdouglasc@gmail.com, keescook@chromium.org,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        devicetree@vger.kernel.org
+Subject: Re: [PATCH 2/5] media: dt-bindings: Add binding for si470x radio
+Date:   Fri, 07 Dec 2018 12:43:14 +0100
+Message-ID: <2202435.V78jBJhvEB@acerlaptop>
+In-Reply-To: <2c8bb6ef-5f37-69ef-6829-a9e9ad04579b@xs4all.nl>
+References: <20181205154750.17996-1-pawel.mikolaj.chmiel@gmail.com> <20181205154750.17996-3-pawel.mikolaj.chmiel@gmail.com> <2c8bb6ef-5f37-69ef-6829-a9e9ad04579b@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-To:     unlisted-recipients:; (no To-header on input)
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-As warned by smatch:
-	drivers/media/i2c/imx214.c:591 imx214_set_format() warn: variable dereferenced before check 'format' (see line 589)
+Dnia pi=C4=85tek, 7 grudnia 2018 12:33:10 CET Hans Verkuil pisze:
+> Please combine 2/5 with 5/5. No need to have two patches for these bindin=
+gs.
+I though that it will be better to separate patches which just adds devicet=
+ree support
+and those adding new functionality (reset), so for example if there is more=
+ work needed on one of them,
+the second one can still be picked (devicetree one).
 
-It turns that the code at imx214_set_format() has support for being
-called with the format being NULL. I've no idea why, as it is only
-called internally with the pointer set, and via subdev API (with
-should also set it).
+Ok will do this in next version of patchset.
+=20
+>=20
+> Regards,
+>=20
+> 	Hans
+>=20
+> On 12/05/2018 04:47 PM, Pawe=C5=82 Chmiel wrote:
+> > Add device tree bindings for si470x family radio receiver driver.
+> >=20
+> > Signed-off-by: Pawe=C5=82 Chmiel <pawel.mikolaj.chmiel@gmail.com>
+> > ---
+> >  .../devicetree/bindings/media/si470x.txt      | 24 +++++++++++++++++++
+> >  1 file changed, 24 insertions(+)
+> >  create mode 100644 Documentation/devicetree/bindings/media/si470x.txt
+> >=20
+> > diff --git a/Documentation/devicetree/bindings/media/si470x.txt b/Docum=
+entation/devicetree/bindings/media/si470x.txt
+> > new file mode 100644
+> > index 000000000000..9294fdfd3aae
+> > --- /dev/null
+> > +++ b/Documentation/devicetree/bindings/media/si470x.txt
+> > @@ -0,0 +1,24 @@
+> > +* Silicon Labs FM Radio receiver
+> > +
+> > +The Silicon Labs Si470x is family of FM radio receivers with receive p=
+ower scan
+> > +supporting 76-108 MHz, programmable through an I2C interface.
+> > +Some of them includes an RDS encoder.
+> > +
+> > +Required Properties:
+> > +- compatible: Should contain "silabs,si470x"
+> > +- reg: the I2C address of the device
+> > +
+> > +Optional Properties:
+> > +- interrupts : The interrupt number
+> > +
+> > +Example:
+> > +
+> > +&i2c2 {
+> > +        si470x@63 {
+> > +                compatible =3D "silabs,si470x";
+> > +                reg =3D <0x63>;
+> > +
+> > +                interrupt-parent =3D <&gpj2>;
+> > +                interrupts =3D <4 IRQ_TYPE_EDGE_FALLING>;
+> > +        };
+> > +};
+> >=20
+>=20
+>=20
 
-Also, the entire logic there depends on having format != NULL, so
-just remove the bogus broken support for a null format.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
----
- drivers/media/i2c/imx214.c | 10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/i2c/imx214.c b/drivers/media/i2c/imx214.c
-index ec3d1b855f62..b046a26219a4 100644
---- a/drivers/media/i2c/imx214.c
-+++ b/drivers/media/i2c/imx214.c
-@@ -588,12 +588,10 @@ static int imx214_set_format(struct v4l2_subdev *sd,
- 
- 	__crop = __imx214_get_pad_crop(imx214, cfg, format->pad, format->which);
- 
--	if (format)
--		mode = v4l2_find_nearest_size(imx214_modes,
--				ARRAY_SIZE(imx214_modes), width, height,
--				format->format.width, format->format.height);
--	else
--		mode = &imx214_modes[0];
-+	mode = v4l2_find_nearest_size(imx214_modes,
-+				      ARRAY_SIZE(imx214_modes), width, height,
-+				      format->format.width,
-+				      format->format.height);
- 
- 	__crop->width = mode->width;
- 	__crop->height = mode->height;
--- 
-2.19.2
 
