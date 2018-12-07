@@ -2,360 +2,194 @@ Return-Path: <SRS0=1NWX=OQ=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
+	T_DKIMWL_WL_HIGH,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D9185C07E85
-	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 14:38:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 450F6C07E85
+	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 14:48:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8923F20837
-	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 14:38:29 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 8923F20837
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=xs4all.nl
+	by mail.kernel.org (Postfix) with ESMTP id 0187E20882
+	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 14:48:46 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1544194126;
+	bh=jaaQ8PVFRAAxpq4bMdUgkhUOIJ1F0jmOwGZNTQPv99k=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
+	b=og+NxqR4x8ooOtgH36NzzsDbw3ZA/tJUnqc0tHCCC73G3PW8GzH/XDAqHJ6ic/kr6
+	 0ycdLsZRTqKDQrSXmd8qowb7LgK8ZYyiFtnkd/8EG+eK7L6xiYN0iJatPTOtALpKML
+	 9v9umgVcuS3ufyx5kERRTsIEYptVBPQNClPch9V8=
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 0187E20882
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726029AbeLGOi3 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 7 Dec 2018 09:38:29 -0500
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:43261 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725998AbeLGOi2 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 7 Dec 2018 09:38:28 -0500
-Received: from [192.168.2.10] ([212.251.195.8])
-        by smtp-cloud7.xs4all.net with ESMTPA
-        id VHGngqB3dQMWUVHGrgwwKl; Fri, 07 Dec 2018 15:38:25 +0100
-Subject: Re: [PATCH v2] [RFC v2] v4l2: add support for colorspace conversion
- for video capture
-To:     Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc:     Philipp Zabel <p.zabel@pengutronix.de>,
-        linux-media@vger.kernel.org, kernel@pengutronix.de,
-        Hans Verkuil <hans.verkuil@cisco.com>
-References: <20180905170932.14370-1-p.zabel@pengutronix.de>
- <2cf2e7e5-f79a-4717-a04f-87eff7d8f3e6@xs4all.nl>
- <20181207123003.6218ce55@coco.lan>
-From:   Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <1520e077-2f7d-dc2f-a4f4-5a085048c828@xs4all.nl>
-Date:   Fri, 7 Dec 2018 15:38:21 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:52.0) Gecko/20100101
- Thunderbird/52.2.1
+        id S1726059AbeLGOsj (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 7 Dec 2018 09:48:39 -0500
+Received: from casper.infradead.org ([85.118.1.10]:36492 "EHLO
+        casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725998AbeLGOsj (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Dec 2018 09:48:39 -0500
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
+        MIME-Version:References:In-Reply-To:Message-ID:Subject:Cc:To:From:Date:Sender
+        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
+        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+        bh=oNrFVpEvwM5tm4S1RtkTXeWDU/RF+Ze1Ir2ZnY6+CAM=; b=PdUOL7VdOW5866PdBzfBdxOEHd
+        iCvBJtzhh5fYvtfStmDGKOlwap1S9kw9mNeuOQfFzSVTDiDvwoO2lJFAsEQ+8ma+PwNZWVXScW2HH
+        dkRZuw8a0j8Dgy5b07XcRlP2glp7+1pXyqbjPv8Gk6a7RrnAE2qjfsSTDGg3TCGMLBp/Z/ZdXNanW
+        4DYmXstsURNOfpAHGmtEZHgcW1/EuVtDybYQP67bcf26+gZfK6aevsY7k4gsCvgoSthYmhlHgBGRp
+        nwAcc+VigY0SuXh/1PyMSr62AO6CNym/uj3HYtBxe5fsHxnYMOrNYK4vp9OCKNDJYbsaYi7U4PNHF
+        LQ07fngQ==;
+Received: from [179.95.33.236] (helo=coco.lan)
+        by casper.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
+        id 1gVHPx-0005b8-57; Fri, 07 Dec 2018 14:47:49 +0000
+Date:   Fri, 7 Dec 2018 12:47:37 -0200
+From:   Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To:     Souptick Joarder <jrdr.linux@gmail.com>
+Cc:     akpm@linux-foundation.org, willy@infradead.org, mhocko@suse.com,
+        kirill.shutemov@linux.intel.com, vbabka@suse.cz, riel@surriel.com,
+        sfr@canb.auug.org.au, rppt@linux.vnet.ibm.com,
+        peterz@infradead.org, linux@armlinux.org.uk, robin.murphy@arm.com,
+        iamjoonsoo.kim@lge.com, treding@nvidia.com, keescook@chromium.org,
+        m.szyprowski@samsung.com, stefanr@s5r6.in-berlin.de,
+        hjc@rock-chips.com, heiko@sntech.de, airlied@linux.ie,
+        oleksandr_andrushchenko@epam.com, joro@8bytes.org,
+        pawel@osciak.com, kyungmin.park@samsung.com,
+        boris.ostrovsky@oracle.com, jgross@suse.com,
+        linux-kernel@vger.kernel.org, linux-mm@kvack.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux1394-devel@lists.sourceforge.net,
+        dri-devel@lists.freedesktop.org,
+        linux-rockchip@lists.infradead.org, xen-devel@lists.xen.org,
+        iommu@lists.linux-foundation.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH v3 1/9] mm: Introduce new vm_insert_range API
+Message-ID: <20181207124737.123cb2e1@coco.lan>
+In-Reply-To: <20181206183945.GA20932@jordon-HP-15-Notebook-PC>
+References: <20181206183945.GA20932@jordon-HP-15-Notebook-PC>
+X-Mailer: Claws Mail 3.16.0 (GTK+ 2.24.32; x86_64-redhat-linux-gnu)
 MIME-Version: 1.0
-In-Reply-To: <20181207123003.6218ce55@coco.lan>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfNvB4K2pS7CW7rZKFZSGqGeVkUPzH1KuygJLbUQQBfUEg1MAqwfCAw/ogsQD5rmqcfIP5IoI6DzRJ+1NnrgLZRnqRqPY019dbUTR+rPwpblfi0bST+KA
- 8eugsIcWAWcHvP+Sd0YjIzKiE0VjFsYQL7fUc8x9XpcJ3QusQ4dgLsGn/tEwJrSRXbtG8EtdgDCa9Hs48ZmkMan/d8muiUqTf5AXJBRUdJQ20PAPOXLzEx6g
- L1sG5t+Kdb/aZ7t1YxOx5w1ziehniw9/fk7LFwSaLMzn4TBcuv431z8OA6ANqTIzqsgop+4R6JAzZDlONAaaNg==
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On 12/07/2018 03:30 PM, Mauro Carvalho Chehab wrote:
-> Em Thu, 6 Sep 2018 11:02:28 +0200
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> 
->> Hi Philipp,
->>
->> It is much appreciated that this old RFC of mine is picked up again.
->> I always wanted to get this in, but I never had a driver where it would
->> make sense to do so.
-> 
-> What's the status of this?
+Em Fri, 7 Dec 2018 00:09:45 +0530
+Souptick Joarder <jrdr.linux@gmail.com> escreveu:
 
-Changes were requested, and there was some discussion. I'm basically
-waiting for an update.
+> Previouly drivers have their own way of mapping range of
+> kernel pages/memory into user vma and this was done by
+> invoking vm_insert_page() within a loop.
+> 
+> As this pattern is common across different drivers, it can
+> be generalized by creating a new function and use it across
+> the drivers.
+> 
+> vm_insert_range is the new API which will be used to map a
+> range of kernel memory/pages to user vma.
+> 
+> This API is tested by Heiko for Rockchip drm driver, on rk3188,
+> rk3288, rk3328 and rk3399 with graphics.
+> 
+> Signed-off-by: Souptick Joarder <jrdr.linux@gmail.com>
+> Reviewed-by: Matthew Wilcox <willy@infradead.org>
+> Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
+> Tested-by: Heiko Stuebner <heiko@sntech.de>
 
-I've delegated it to me.
+Looks good to me.
 
-Regards,
+Reviewed-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 
-	Hans
+> ---
+>  include/linux/mm.h |  2 ++
+>  mm/memory.c        | 38 ++++++++++++++++++++++++++++++++++++++
+>  mm/nommu.c         |  7 +++++++
+>  3 files changed, 47 insertions(+)
+> 
+> diff --git a/include/linux/mm.h b/include/linux/mm.h
+> index fcf9cc9..2bc399f 100644
+> --- a/include/linux/mm.h
+> +++ b/include/linux/mm.h
+> @@ -2506,6 +2506,8 @@ unsigned long change_prot_numa(struct vm_area_struct *vma,
+>  int remap_pfn_range(struct vm_area_struct *, unsigned long addr,
+>  			unsigned long pfn, unsigned long size, pgprot_t);
+>  int vm_insert_page(struct vm_area_struct *, unsigned long addr, struct page *);
+> +int vm_insert_range(struct vm_area_struct *vma, unsigned long addr,
+> +			struct page **pages, unsigned long page_count);
+>  vm_fault_t vmf_insert_pfn(struct vm_area_struct *vma, unsigned long addr,
+>  			unsigned long pfn);
+>  vm_fault_t vmf_insert_pfn_prot(struct vm_area_struct *vma, unsigned long addr,
+> diff --git a/mm/memory.c b/mm/memory.c
+> index 15c417e..84ea46c 100644
+> --- a/mm/memory.c
+> +++ b/mm/memory.c
+> @@ -1478,6 +1478,44 @@ static int insert_page(struct vm_area_struct *vma, unsigned long addr,
+>  }
+>  
+>  /**
+> + * vm_insert_range - insert range of kernel pages into user vma
+> + * @vma: user vma to map to
+> + * @addr: target user address of this page
+> + * @pages: pointer to array of source kernel pages
+> + * @page_count: number of pages need to insert into user vma
+> + *
+> + * This allows drivers to insert range of kernel pages they've allocated
+> + * into a user vma. This is a generic function which drivers can use
+> + * rather than using their own way of mapping range of kernel pages into
+> + * user vma.
+> + *
+> + * If we fail to insert any page into the vma, the function will return
+> + * immediately leaving any previously-inserted pages present.  Callers
+> + * from the mmap handler may immediately return the error as their caller
+> + * will destroy the vma, removing any successfully-inserted pages. Other
+> + * callers should make their own arrangements for calling unmap_region().
+> + *
+> + * Context: Process context. Called by mmap handlers.
+> + * Return: 0 on success and error code otherwise
+> + */
+> +int vm_insert_range(struct vm_area_struct *vma, unsigned long addr,
+> +			struct page **pages, unsigned long page_count)
+> +{
+> +	unsigned long uaddr = addr;
+> +	int ret = 0, i;
+> +
+> +	for (i = 0; i < page_count; i++) {
+> +		ret = vm_insert_page(vma, uaddr, pages[i]);
+> +		if (ret < 0)
+> +			return ret;
+> +		uaddr += PAGE_SIZE;
+> +	}
+> +
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL(vm_insert_range);
+> +
+> +/**
+>   * vm_insert_page - insert single page into user vma
+>   * @vma: user vma to map to
+>   * @addr: target user address of this page
+> diff --git a/mm/nommu.c b/mm/nommu.c
+> index 749276b..d6ef5c7 100644
+> --- a/mm/nommu.c
+> +++ b/mm/nommu.c
+> @@ -473,6 +473,13 @@ int vm_insert_page(struct vm_area_struct *vma, unsigned long addr,
+>  }
+>  EXPORT_SYMBOL(vm_insert_page);
+>  
+> +int vm_insert_range(struct vm_area_struct *vma, unsigned long addr,
+> +			struct page **pages, unsigned long page_count)
+> +{
+> +	return -EINVAL;
+> +}
+> +EXPORT_SYMBOL(vm_insert_range);
+> +
+>  /*
+>   *  sys_brk() for the most part doesn't need the global kernel
+>   *  lock, except when an application is doing something nasty
 
-> 
-> Hans,
-> As this is an old RFC from you, I'll delegate it to you at patchwork,
-> for you to track it.
-> 
-> Regards,
-> Mauro
-> 
->>
->> On 09/05/2018 07:09 PM, Philipp Zabel wrote:
->>> For video capture it is the driver that reports the colorspace,  
->>
->> add: "transfer function,"
->>
->>> Y'CbCr/HSV encoding and quantization range used by the video, and there
->>> is no way to request something different, even though many HDTV
->>> receivers have some sort of colorspace conversion capabilities.
->>>
->>> For output video this feature already exists since the application
->>> specifies this information for the video format it will send out, and
->>> the transmitter will enable any available CSC if a format conversion has
->>> to be performed in order to match the capabilities of the sink.
->>>
->>> For video capture we propose adding new pix_format flags:
->>> V4L2_PIX_FMT_FLAG_CSC_COLORSPACE, V4L2_PIX_FMT_FLAG_CSC_YCBCR_ENC,
->>> V4L2_PIX_FMT_FLAG_CSC_HSV_ENC, V4L2_PIX_FMT_FLAG_CSC_QUANTIZATION, and
->>> V4L2_PIX_FMT_FLAG_CSC_XFER_FUNC. These are set by the driver to indicate
->>> its conversion features. When set by the application, the driver will
->>> interpret the colorspace, ycbcr_enc/hsv_enc, quantization and xfer_func
->>> fields as the requested colorspace information and will attempt to do
->>> the conversion it supports.
->>>
->>> Drivers do not have to actually look at the flags: if the flags are not
->>> set, then the colorspace, ycbcr_enc and quantization fields are set to
->>> the default values by the core, i.e. just pass on the received format
->>> without conversion.  
->>
->> Thinking about this some more, I don't think this is quite the right approach.
->> Having userspace set these flags with S_FMT if they want to do explicit
->> conversions makes sense, and that part we can keep.
->>
->> But to signal the capabilities I think should be done via new flags for
->> VIDIOC_ENUM_FMT. Basically the same set of flags, but for the flags field
->> of struct v4l2_fmtdesc.
->>
->> One thing that's not clear to me is what happens if userspace sets one or
->> more flags and calls S_FMT for a driver that doesn't support this. Are the
->> flags zeroed in that case upon return? I don't think so, but I think that
->> is already true for the existing flag V4L2_PIX_FMT_FLAG_PREMUL_ALPHA.
->>
->> I wonder if V4L2_PIX_FMT_FLAG_PREMUL_ALPHA should also get an equivalent
->> flag for v4l2_fmtdesc.
->>
->> Then we can just document that v4l2_format flags are only valid if they
->> are also defined in v4l2_fmtdesc.
->>
->> Does anyone have better ideas for this?
->>
->> Regards,
->>
->> 	Hans
->>
->>>
->>> Signed-off-by: Hans Verkuil <Hans Verkuil@cisco.com>
->>> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
->>> ---
->>> Changes since v1 [1]
->>>  - convert to rst
->>>  - split V4L2_PIX_FMT_FLAG_REQUEST_CSC into four separate flags for
->>>    colorspace, ycbcr_enc/hsv_enc, quantization, and xfer_func
->>>  - let driver set flags to indicate supported features
->>>
->>> [1] https://patchwork.linuxtv.org/patch/28847/
->>> ---
->>>  .../media/uapi/v4l/pixfmt-reserved.rst        | 41 +++++++++++++++++++
->>>  .../media/uapi/v4l/pixfmt-v4l2-mplane.rst     | 16 ++------
->>>  Documentation/media/uapi/v4l/pixfmt-v4l2.rst  | 37 ++++++++++++++---
->>>  drivers/media/v4l2-core/v4l2-ioctl.c          | 12 ++++++
->>>  include/uapi/linux/videodev2.h                |  5 +++
->>>  5 files changed, 94 insertions(+), 17 deletions(-)
->>>
->>> diff --git a/Documentation/media/uapi/v4l/pixfmt-reserved.rst b/Documentation/media/uapi/v4l/pixfmt-reserved.rst
->>> index 38af1472a4b4..c1090027626c 100644
->>> --- a/Documentation/media/uapi/v4l/pixfmt-reserved.rst
->>> +++ b/Documentation/media/uapi/v4l/pixfmt-reserved.rst
->>> @@ -261,3 +261,44 @@ please make a proposal on the linux-media mailing list.
->>>  	by RGBA values (128, 192, 255, 128), the same pixel described with
->>>  	premultiplied colors would be described by RGBA values (64, 96,
->>>  	128, 128)
->>> +    * - ``V4L2_PIX_FMT_FLAG_CSC_COLORSPACE``
->>> +      - 0x00000002
->>> +      - Set by the driver to indicate colorspace conversion support. Set by the
->>> +	application to request conversion to the specified colorspace. It is
->>> +	only used for capture and is ignored for output streams. If set by the
->>> +	application, then request the driver to do colorspace conversion from
->>> +	the received colorspace to the requested colorspace by setting the
->>> +	``colorspace`` field of struct :c:type:`v4l2_pix_format`.
->>> +    * - ``V4L2_PIX_FMT_FLAG_CSC_YCBCR_ENC``
->>> +      - 0x00000004
->>> +      - Set by the driver to indicate Y'CbCr encoding conversion support. Set
->>> +	by the application to request conversion to the specified Y'CbCr
->>> +	encoding.  It is only used for capture and is ignored for output
->>> +	streams. If set by the application, then request the driver to convert
->>> +	from the received Y'CbCr encoding to the requested encoding by setting
->>> +	the ``ycbcr_enc`` field of struct :c:type:`v4l2_pix_format`.
->>> +    * - ``V4L2_PIX_FMT_FLAG_CSC_HSV_ENC``
->>> +      - 0x00000004
->>> +      - Set by the driver to indicate HSV encoding conversion support. Set
->>> +	by the application to request conversion to the specified HSV encoding.
->>> +	It is only used for capture and is ignored for output streams. If set
->>> +	by the application, then request the driver to convert from the
->>> +	received HSV encoding to the requested encoding by setting the
->>> +	``hsv_enc`` field of struct :c:type:`v4l2_pix_format`.
->>> +    * - ``V4L2_PIX_FMT_FLAG_CSC_QUANTIZATION``
->>> +      - 0x00000008
->>> +      - Set by the driver to indicate quantization range conversion support.
->>> +	Set by the application to request conversion to the specified
->>> +	quantization range. It is only used for capture and is ignored for
->>> +	output streams. If set by the application, then request the driver to
->>> +	convert from the received quantization range to the requested
->>> +	quantization by setting the ``quantization`` field of struct
->>> +	:c:type:`v4l2_pix_format`.
->>> +    * - ``V4L2_PIX_FMT_FLAG_CSC_XFER_FUNC``
->>> +      - 0x00000010
->>> +      - Set by the driver to indicate transfer function conversion support.
->>> +	Set by the application to request conversion to the specified transfer
->>> +	function. It is only used for capture and is ignored for output
->>> +	streams. If set by the application, then request the driver to convert
->>> +	from the received transfer function to the requested transfer function
->>> +	by setting the ``xfer_func`` field of struct :c:type:`v4l2_pix_format`.
->>> diff --git a/Documentation/media/uapi/v4l/pixfmt-v4l2-mplane.rst b/Documentation/media/uapi/v4l/pixfmt-v4l2-mplane.rst
->>> index ef52f637d8e9..7ff07411db77 100644
->>> --- a/Documentation/media/uapi/v4l/pixfmt-v4l2-mplane.rst
->>> +++ b/Documentation/media/uapi/v4l/pixfmt-v4l2-mplane.rst
->>> @@ -81,30 +81,22 @@ describing all planes of that format.
->>>      * - __u8
->>>        - ``ycbcr_enc``
->>>        - Y'CbCr encoding, from enum :c:type:`v4l2_ycbcr_encoding`.
->>> -        This information supplements the ``colorspace`` and must be set by
->>> -	the driver for capture streams and by the application for output
->>> -	streams, see :ref:`colorspaces`.
->>> +	See struct :c:type:`v4l2_pix_format`.
->>>      * - __u8
->>>        - ``hsv_enc``
->>>        - HSV encoding, from enum :c:type:`v4l2_hsv_encoding`.
->>> -        This information supplements the ``colorspace`` and must be set by
->>> -	the driver for capture streams and by the application for output
->>> -	streams, see :ref:`colorspaces`.
->>> +	See struct :c:type:`v4l2_pix_format`.
->>>      * - }
->>>        -
->>>        -
->>>      * - __u8
->>>        - ``quantization``
->>>        - Quantization range, from enum :c:type:`v4l2_quantization`.
->>> -        This information supplements the ``colorspace`` and must be set by
->>> -	the driver for capture streams and by the application for output
->>> -	streams, see :ref:`colorspaces`.
->>> +	See struct :c:type:`v4l2_pix_format`.
->>>      * - __u8
->>>        - ``xfer_func``
->>>        - Transfer function, from enum :c:type:`v4l2_xfer_func`.
->>> -        This information supplements the ``colorspace`` and must be set by
->>> -	the driver for capture streams and by the application for output
->>> -	streams, see :ref:`colorspaces`.
->>> +	See struct :c:type:`v4l2_pix_format`.
->>>      * - __u8
->>>        - ``reserved[7]``
->>>        - Reserved for future extensions. Should be zeroed by drivers and
->>> diff --git a/Documentation/media/uapi/v4l/pixfmt-v4l2.rst b/Documentation/media/uapi/v4l/pixfmt-v4l2.rst
->>> index 826f2305da01..932b6a546e61 100644
->>> --- a/Documentation/media/uapi/v4l/pixfmt-v4l2.rst
->>> +++ b/Documentation/media/uapi/v4l/pixfmt-v4l2.rst
->>> @@ -88,7 +88,12 @@ Single-planar format structure
->>>        - Image colorspace, from enum :c:type:`v4l2_colorspace`.
->>>          This information supplements the ``pixelformat`` and must be set
->>>  	by the driver for capture streams and by the application for
->>> -	output streams, see :ref:`colorspaces`.
->>> +	output streams, see :ref:`colorspaces`. If the application sets the
->>> +	flag ``V4L2_PIX_FMT_FLAG_CSC_COLORSPACE`` then the application can set
->>> +	this field for a capture stream to request a specific colorspace for
->>> +	the captured image data. The driver will attempt to do colorspace
->>> +	conversion to the specified colorspace or return the colorspace it will
->>> +	use if it can't do the conversion.
->>>      * - __u32
->>>        - ``priv``
->>>        - This field indicates whether the remaining fields of the
->>> @@ -126,13 +131,25 @@ Single-planar format structure
->>>        - Y'CbCr encoding, from enum :c:type:`v4l2_ycbcr_encoding`.
->>>          This information supplements the ``colorspace`` and must be set by
->>>  	the driver for capture streams and by the application for output
->>> -	streams, see :ref:`colorspaces`.
->>> +	streams, see :ref:`colorspaces`. If the application sets the
->>> +	flag ``V4L2_PIX_FMT_FLAG_CSC_YCBCR_ENC`` then the application can set
->>> +	this field for a capture stream to request a specific Y'CbCr encoding
->>> +	for the captured image data. The driver will attempt to do the
->>> +	conversion to the specified Y'CbCr encoding or return the encoding it
->>> +	will use if it can't do the conversion. This field is ignored for
->>> +	non-Y'CbCr pixelformats.
->>>      * - __u32
->>>        - ``hsv_enc``
->>>        - HSV encoding, from enum :c:type:`v4l2_hsv_encoding`.
->>>          This information supplements the ``colorspace`` and must be set by
->>>  	the driver for capture streams and by the application for output
->>> -	streams, see :ref:`colorspaces`.
->>> +	streams, see :ref:`colorspaces`. If the application sets the flag
->>> +	``V4L2_PIX_FMT_FLAG_CSC_HSV_ENC`` then the application can set this
->>> +	field for a capture stream to request a specific HSV encoding for the
->>> +	captured image data. The driver will attempt to do the conversion to
->>> +	the specified HSV encoding or return the encoding it will use if it
->>> +	can't do the conversion. This field is ignored for non-HSV
->>> +	pixelformats.
->>>      * - }
->>>        -
->>>        -
->>> @@ -141,10 +158,20 @@ Single-planar format structure
->>>        - Quantization range, from enum :c:type:`v4l2_quantization`.
->>>          This information supplements the ``colorspace`` and must be set by
->>>  	the driver for capture streams and by the application for output
->>> -	streams, see :ref:`colorspaces`.
->>> +	streams, see :ref:`colorspaces`. If the application sets the flag
->>> +	``V4L2_PIX_FMT_FLAG_CSC_QUANTIZATION`` then the application can set
->>> +	this field for a capture stream to request a specific quantization
->>> +	range for the captured image data. The driver will attempt to do the
->>> +	conversion to the specified quantization range or return the
->>> +	quantization it will use if it can't do the conversion.
->>>      * - __u32
->>>        - ``xfer_func``
->>>        - Transfer function, from enum :c:type:`v4l2_xfer_func`.
->>>          This information supplements the ``colorspace`` and must be set by
->>>  	the driver for capture streams and by the application for output
->>> -	streams, see :ref:`colorspaces`.
->>> +	streams, see :ref:`colorspaces`. If the application sets the flag
->>> +	``V4L2_PIX_FMT_FLAG_CSC_XFER_FUNC`` then the application can set
->>> +	this field for a capture stream to request a specific transfer function
->>> +	for the captured image data. The driver will attempt to do the
->>> +	conversion to the specified transfer function or return the transfer
->>> +	function it will use if it can't do the conversion.
->>> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
->>> index 54afc9c7ee6e..39def068f13e 100644
->>> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
->>> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
->>> @@ -1019,6 +1019,18 @@ static void v4l_sanitize_format(struct v4l2_format *fmt)
->>>  	 * isn't used by applications.
->>>  	 */
->>>  
->>> +	if (fmt->type == V4L2_BUF_TYPE_VIDEO_CAPTURE ||
->>> +	    fmt->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
->>> +		if (!(fmt->fmt.pix.flags & V4L2_PIX_FMT_FLAG_CSC_COLORSPACE))
->>> +			fmt->fmt.pix.colorspace = V4L2_COLORSPACE_DEFAULT;
->>> +		if (!(fmt->fmt.pix.flags & V4L2_PIX_FMT_FLAG_CSC_YCBCR_ENC))
->>> +			fmt->fmt.pix.ycbcr_enc = V4L2_YCBCR_ENC_DEFAULT;
->>> +		if (!(fmt->fmt.pix.flags & V4L2_PIX_FMT_FLAG_CSC_QUANTIZATION))
->>> +			fmt->fmt.pix.quantization = V4L2_QUANTIZATION_DEFAULT;
->>> +		if (!(fmt->fmt.pix.flags & V4L2_PIX_FMT_FLAG_CSC_XFER_FUNC))
->>> +			fmt->fmt.pix.xfer_func = V4L2_XFER_FUNC_DEFAULT;
->>> +	}
->>> +
->>>  	if (fmt->type != V4L2_BUF_TYPE_VIDEO_CAPTURE &&
->>>  	    fmt->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
->>>  		return;
->>> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
->>> index 622f0479d668..4cbc8f23b828 100644
->>> --- a/include/uapi/linux/videodev2.h
->>> +++ b/include/uapi/linux/videodev2.h
->>> @@ -709,6 +709,11 @@ struct v4l2_pix_format {
->>>  
->>>  /* Flags */
->>>  #define V4L2_PIX_FMT_FLAG_PREMUL_ALPHA	0x00000001
->>> +#define V4L2_PIX_FMT_FLAG_CSC_COLORSPACE	0x00000002
->>> +#define V4L2_PIX_FMT_FLAG_CSC_YCBCR_ENC		0x00000004
->>> +#define V4L2_PIX_FMT_FLAG_CSC_HSV_ENC		0x00000004
->>> +#define V4L2_PIX_FMT_FLAG_CSC_QUANTIZATION	0x00000008
->>> +#define V4L2_PIX_FMT_FLAG_CSC_XFER_FUNC		0x00000010
->>>  
->>>  /*
->>>   *	F O R M A T   E N U M E R A T I O N
->>>   
->>
-> 
-> 
-> 
-> Thanks,
-> Mauro
-> 
 
+
+Thanks,
+Mauro
