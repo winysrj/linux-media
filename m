@@ -4,124 +4,147 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,T_DKIMWL_WL_HIGH,URIBL_BLOCKED autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	SPF_PASS,T_MIXED_ES,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D7DDEC07E85
-	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 10:02:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BE599C07E85
+	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 10:08:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9FFAB2146D
-	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 10:02:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8816E20989
+	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 10:08:31 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="gQxdlhTK"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 9FFAB2146D
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=samsung.com
+	dkim=pass (1024-bit key) header.d=linaro.org header.i=@linaro.org header.b="jh9WpA31"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 8816E20989
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linaro.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726053AbeLGKCQ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 7 Dec 2018 05:02:16 -0500
-Received: from mailout2.samsung.com ([203.254.224.25]:21801 "EHLO
-        mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725992AbeLGKCQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Dec 2018 05:02:16 -0500
-Received: from epcas1p2.samsung.com (unknown [182.195.41.46])
-        by mailout2.samsung.com (KnoxPortal) with ESMTP id 20181207100212epoutp0238fe060b13e7c9a710e2a1541cddbe8f~uBL0M4Wa-0948309483epoutp02D;
-        Fri,  7 Dec 2018 10:02:12 +0000 (GMT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 mailout2.samsung.com 20181207100212epoutp0238fe060b13e7c9a710e2a1541cddbe8f~uBL0M4Wa-0948309483epoutp02D
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
-        s=mail20170921; t=1544176932;
-        bh=rZKQ1M5S5j5L6GvVcrpiuC9wN7ZRU6c8T9VTe4VUg1I=;
-        h=Subject:To:Cc:From:Date:In-reply-to:References:From;
-        b=gQxdlhTKYqRzr//2ucTW1HBT3na4fFwDJUUAsJQVt4cLuNNM9L19HFe95P3UhYzy+
-         y2I2weMZdEtOIvmAyBz7mMOfQWbvSbfOhBwR9j0hEJOmPcj63j3XIBL1RvMK1XYUIn
-         cLBOl9n0rhhBBE5bJm1QH0NF7pMTWTThTvi6bzhQ=
-Received: from epsmges1p1.samsung.com (unknown [182.195.42.53]) by
-        epcas1p3.samsung.com (KnoxPortal) with ESMTP id
-        20181207100211epcas1p3e38405e80fb4cf89f5ede22dbcd24ff5~uBLz5eL5C1074310743epcas1p3D;
-        Fri,  7 Dec 2018 10:02:11 +0000 (GMT)
-Received: from epcas1p1.samsung.com ( [182.195.41.45]) by
-        epsmges1p1.samsung.com (Symantec Messaging Gateway) with SMTP id
-        ED.C3.04058.3254A0C5; Fri,  7 Dec 2018 19:02:11 +0900 (KST)
-Received: from epsmgms2p1new.samsung.com (unknown [182.195.42.142]) by
-        epcas1p2.samsung.com (KnoxPortal) with ESMTP id
-        20181207100211epcas1p2caa3a1da5152bd7c1476d795e788e776~uBLzoQwSg2495024950epcas1p2F;
-        Fri,  7 Dec 2018 10:02:11 +0000 (GMT)
-X-AuditID: b6c32a35-e37ff70000000fda-e4-5c0a4523b456
-Received: from epmmp2 ( [203.254.227.17]) by epsmgms2p1new.samsung.com
-        (Symantec Messaging Gateway) with SMTP id 85.65.03601.3254A0C5; Fri,  7 Dec
-        2018 19:02:11 +0900 (KST)
-Received: from [106.116.147.40] by mmp2.samsung.com (Oracle Communications
-        Messaging Server 7.0.5.31.0 64bit (built May  5 2014)) with ESMTPA id
-        <0PJD009RX2JI0B40@mmp2.samsung.com>; Fri, 07 Dec 2018 19:02:11 +0900 (KST)
-Subject: Re: [PATCH v2] media: Use of_node_name_eq for node name comparisons
-To:     Rob Herring <robh@kernel.org>
-Cc:     devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Kukjin Kim <kgene@kernel.org>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Hyun Kwon <hyun.kwon@xilinx.com>,
-        Michal Simek <michal.simek@xilinx.com>,
-        linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-samsung-soc@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Benoit Parrot <bparrot@ti.com>
-From:   Sylwester Nawrocki <s.nawrocki@samsung.com>
-Message-id: <63971417-f761-e891-f410-9efa26dd2c6d@samsung.com>
-Date:   Fri, 07 Dec 2018 11:02:05 +0100
+        id S1726057AbeLGKIa (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 7 Dec 2018 05:08:30 -0500
+Received: from mail-wr1-f65.google.com ([209.85.221.65]:43745 "EHLO
+        mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725988AbeLGKI0 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Dec 2018 05:08:26 -0500
+Received: by mail-wr1-f65.google.com with SMTP id r10so3199924wrs.10
+        for <linux-media@vger.kernel.org>; Fri, 07 Dec 2018 02:08:23 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=subject:to:cc:references:from:message-id:date:user-agent
+         :mime-version:in-reply-to:content-language:content-transfer-encoding;
+        bh=0Zizx2lHMpqH5V3Aj7mmqJM8bK23abmMAS2tz3iI3JI=;
+        b=jh9WpA31YXM9TMThAgwh16+3uDH8c0me9zX0HZn3DHGqL4AS/a4uJtmtm9R7MPF/YC
+         KRrk4Dyhfaub4u8QW5ujm9lW/S64UQ4U+CVuxBzKIJiElrFAmxfId0snSMH/3egTYkEn
+         jEUq70nQToAXlZhSMoB0Zlg4h5yEJprLxVMzk=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=0Zizx2lHMpqH5V3Aj7mmqJM8bK23abmMAS2tz3iI3JI=;
+        b=HwN5UejXDba3u1CEqYZ03t61c75tsWSlPDK5z1rtoO7Ol/VKLxBGMA9Mrc8s6c1pVY
+         JoKD7de9tG4Ll84WrugVOEJmaxeJ1SXwF4fWnw7Fh1UhprK5tuTKeiPbhQ/k1BOtVVjM
+         4U+1B7nMIgHt+KAEbqCZ2teXcY7995KFdmPgBEO3bfVkpb56iZGexMO8s8lOW17bWrtz
+         UOJQ1F6OwFX0AC21293UMcdaRHzJYazh6XYGnlTvpk6MXK0/AzlxNN6Cp/ec6zwo5v27
+         tFPUkTgfNR3RVduxTOd3IhNNABc67ivXFZlL3DCsZzApErLQ7h33+PmIENg0LaQjEZX8
+         eqBA==
+X-Gm-Message-State: AA+aEWb9j/bFbGosQ+Kt6J7kUNH7gNCG3SlHAA9BoeQ/lDlsIIhXoKDI
+        YbhUDy0VkZm3OZ15zadtSWqmxdJQ/R0=
+X-Google-Smtp-Source: AFSGD/UNdsmxfJ+u67ShRjDZxPElCTaCrnt2SocFtqXHjFAPnc7kL56JGsGtuG5/KMmFi9zopS+6iA==
+X-Received: by 2002:adf:f189:: with SMTP id h9mr1259404wro.35.1544177303069;
+        Fri, 07 Dec 2018 02:08:23 -0800 (PST)
+Received: from [192.168.27.209] (mx2.mm-sol.com. [217.18.243.227])
+        by smtp.googlemail.com with ESMTPSA id v6sm3265923wro.57.2018.12.07.02.08.21
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 07 Dec 2018 02:08:22 -0800 (PST)
+Subject: Re: [PATCH 1/1] media: venus: core: Set dma maximum segment size
+To:     Vivek Gautam <vivek.gautam@codeaurora.org>,
+        stanimir.varbanov@linaro.org, mchehab@kernel.org
+Cc:     linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org, vgarodia@codeaurora.org,
+        acourbot@chromium.org
+References: <20181205083151.3685-1-vivek.gautam@codeaurora.org>
+From:   Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Message-ID: <a28d0542-5d63-7c72-0f39-40e4524d9a2a@linaro.org>
+Date:   Fri, 7 Dec 2018 12:08:20 +0200
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
-        Thunderbird/60.2.1
-MIME-version: 1.0
-In-reply-to: <20181206193519.13367-1-robh@kernel.org>
-Content-type: text/plain; charset="utf-8"
-Content-language: en-GB
-Content-transfer-encoding: 7bit
-X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFtrMKsWRmVeSWpSXmKPExsWy7bCmrq6yK1eMwZkXphbf+ltZLOYfOcdq
-        Mbm1i82i//FrZovz5zewW5xtesNu0TlxCbvFpsfXWC0u75rDZtGzYSurxYzz+5gslm36w2Tx
-        7mWExf89O9gd+Dxmd8xk9di0qpPNY/OSeo++LasYPY7f2M7k8XmTnMfez79ZAtijuGxSUnMy
-        y1KL9O0SuDLOf9jKXnCbueLMmr1sDYy9zF2MnBwSAiYSb4/tYu1i5OIQEtjBKPHs+1QmCOc7
-        o0Tfo2dMMFVr9v9lh0hsYJS4Oa+VEcK5zyhxrvk6G0iVsICPxL5591hAbBEBRYnfbdPA5jIL
-        vGaWuNr3gR0kwSZgKNF7tI8RxOYVsJN4OPMB0CEcHCwCqhIbHySChEUFIiQ67q9mgygRlPgx
-        GWImp4CpxNarT8AuYhbQlHjxZRILhC0ucez+TUYIW15i85q3zCB7JQT62SWe3IPYKyHgInG5
-        9w2ULSzx6vgWdpC9EgLSEpeO2kKEqyV2be+G6u1glGi5sB0aSNYSh49fZIVYwCfx7msPK0Qv
-        r0RHmxBEiYfEkpuPoYEC1Hvxw37GCYyys5D8MAvJ3bOQ3D0Lyd0LGFlWMYqlFhTnpqcWGxYY
-        6hUn5haX5qXrJefnbmIEJyUt0x2MU875HGIU4GBU4uG94MQZI8SaWFZcmXuIUYKDWUmEV8mW
-        K0aINyWxsiq1KD++qDQntfgQozQHi5I47xOpudFCAumJJanZqakFqUUwWSYOTqkGxsh32Ufr
-        bh1b45zBknKY+6z2/V0HKmwWze1d47jHsHe2iM9/geLjxUn7UpJd2H5f+bdgjvTJ6WL8amla
-        Tn/X/j9VWDN1Z7r7v7dSMp17MsvTg3/c8przN/PRcztvo71Hfm659HRL9/mjuReO9rZNOWF4
-        INblwCYGzTzb0qrlM1O3n57scZyrJlSJpTgj0VCLuag4EQDyp+TERgMAAA==
-X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFprKIsWRmVeSWpSXmKPExsVy+t9jQV1lV64Yg1VbZC2+9beyWMw/co7V
-        YnJrF5tF/+PXzBbnz29gtzjb9IbdonPiEnaLTY+vsVpc3jWHzaJnw1ZWixnn9zFZLNv0h8ni
-        3csIi/97drA78HnM7pjJ6rFpVSebx+Yl9R59W1Yxehy/sZ3J4/MmOY+9n3+zBLBHcdmkpOZk
-        lqUW6dslcGWc/7CVveA2c8WZNXvZGhh7mbsYOTkkBEwk1uz/y97FyMUhJLCOUWL9vF5WCOch
-        o8TO91eYQKqEBXwk9s27xwJiiwgoSvxumwZWxCzwllli0umzbCAJIaBRq98/A7PZBAwleo/2
-        MYLYvAJ2Eg9nPgBax8HBIqAqsfFBIkhYVCBC4uzLdVAlghI/JkPM5xQwldh69QkTSDmzgLrE
-        lCm5IGFmAXGJY/dvMkLY8hKb17xlnsAoMAtJ9yyEjllIOmYh6VjAyLKKUTK1oDg3PbfYqMAw
-        L7Vcrzgxt7g0L10vOT93EyMwsrYd1urbwXh/SfwhRgEORiUe3goHzhgh1sSy4srcQ4wSHMxK
-        IrxKtlwxQrwpiZVVqUX58UWlOanFhxilOViUxHlv5x2LFBJITyxJzU5NLUgtgskycXBKNTC2
-        XNx9qv/ZrP0v1fk4Lzw78f7slJU6+kyFZ+u2vQ62WtVwaa98GNcd9hvWqdaLU+JUPFMW+0lO
-        MvPU9Qy7o7k8I+z7rS2zjh7ZWn//S1bcrb4LWzMCRB8fj87tiWKtZdWqfT3rZBRbUnXlUaGT
-        pvsWZkTVaso8n8n/+2+k+crnJ/r/7Fj76JWhEktxRqKhFnNRcSIAjSqNMqgCAAA=
-X-CMS-MailID: 20181207100211epcas1p2caa3a1da5152bd7c1476d795e788e776
-X-Msg-Generator: CA
-CMS-TYPE: 101P
-X-CMS-RootMailID: 20181207100211epcas1p2caa3a1da5152bd7c1476d795e788e776
-References: <20181206193519.13367-1-robh@kernel.org>
-        <CGME20181207100211epcas1p2caa3a1da5152bd7c1476d795e788e776@epcas1p2.samsung.com>
+ Thunderbird/60.2.1
+MIME-Version: 1.0
+In-Reply-To: <20181205083151.3685-1-vivek.gautam@codeaurora.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On 12/6/18 20:35, Rob Herring wrote:
-> Convert string compares of DT node names to use of_node_name_eq helper
-> instead. This removes direct access to the node name pointer.
+Hi Vivek,
 
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Reviewed-by: Benoit Parrot <bparrot@ti.com>
-> Signed-off-by: Rob Herring <robh@kernel.org>
+Thanks for the patch!
+
+On 12/5/18 10:31 AM, Vivek Gautam wrote:
+> Turning on CONFIG_DMA_API_DEBUG_SG results in the following error:
+> 
+> [  460.308650] ------------[ cut here ]------------
+> [  460.313490] qcom-venus aa00000.video-codec: DMA-API: mapping sg segment longer than device claims to support [len=4194304] [max=65536]
+> [  460.326017] WARNING: CPU: 3 PID: 3555 at src/kernel/dma/debug.c:1301 debug_dma_map_sg+0x174/0x254
+> [  460.338888] Modules linked in: venus_dec venus_enc videobuf2_dma_sg videobuf2_memops hci_uart btqca bluetooth venus_core v4l2_mem2mem videobuf2_v4l2 videobuf2_common ath10k_snoc ath10k_core ath lzo lzo_compress zramjoydev
+> [  460.375811] CPU: 3 PID: 3555 Comm: V4L2DecoderThre Tainted: G        W         4.19.1 #82
+> [  460.384223] Hardware name: Google Cheza (rev1) (DT)
+> [  460.389251] pstate: 60400009 (nZCv daif +PAN -UAO)
+> [  460.394191] pc : debug_dma_map_sg+0x174/0x254
+> [  460.398680] lr : debug_dma_map_sg+0x174/0x254
+> [  460.403162] sp : ffffff80200c37d0
+> [  460.406583] x29: ffffff80200c3830 x28: 0000000000010000
+> [  460.412056] x27: 00000000ffffffff x26: ffffffc0f785ea80
+> [  460.417532] x25: 0000000000000000 x24: ffffffc0f4ea1290
+> [  460.423001] x23: ffffffc09e700300 x22: ffffffc0f4ea1290
+> [  460.428470] x21: ffffff8009037000 x20: 0000000000000001
+> [  460.433936] x19: ffffff80091b0000 x18: 0000000000000000
+> [  460.439411] x17: 0000000000000000 x16: 000000000000f251
+> [  460.444885] x15: 0000000000000006 x14: 0720072007200720
+> [  460.450354] x13: ffffff800af536e0 x12: 0000000000000000
+> [  460.455822] x11: 0000000000000000 x10: 0000000000000000
+> [  460.461288] x9 : 537944d9c6c48d00 x8 : 537944d9c6c48d00
+> [  460.466758] x7 : 0000000000000000 x6 : ffffffc0f8d98f80
+> [  460.472230] x5 : 0000000000000000 x4 : 0000000000000000
+> [  460.477703] x3 : 000000000000008a x2 : ffffffc0fdb13948
+> [  460.483170] x1 : ffffffc0fdb0b0b0 x0 : 000000000000007a
+> [  460.488640] Call trace:
+> [  460.491165]  debug_dma_map_sg+0x174/0x254
+> [  460.495307]  vb2_dma_sg_alloc+0x260/0x2dc [videobuf2_dma_sg]
+> [  460.501150]  __vb2_queue_alloc+0x164/0x374 [videobuf2_common]
+> [  460.507076]  vb2_core_reqbufs+0xfc/0x23c [videobuf2_common]
+> [  460.512815]  vb2_reqbufs+0x44/0x5c [videobuf2_v4l2]
+> [  460.517853]  v4l2_m2m_reqbufs+0x44/0x78 [v4l2_mem2mem]
+> [  460.523144]  v4l2_m2m_ioctl_reqbufs+0x1c/0x28 [v4l2_mem2mem]
+> [  460.528976]  v4l_reqbufs+0x30/0x40
+> [  460.532480]  __video_do_ioctl+0x36c/0x454
+> [  460.536610]  video_usercopy+0x25c/0x51c
+> [  460.540572]  video_ioctl2+0x38/0x48
+> [  460.544176]  v4l2_ioctl+0x60/0x74
+> [  460.547602]  do_video_ioctl+0x948/0x3520
+> [  460.551648]  v4l2_compat_ioctl32+0x60/0x98
+> [  460.555872]  __arm64_compat_sys_ioctl+0x134/0x20c
+> [  460.560718]  el0_svc_common+0x9c/0xe4
+> [  460.564498]  el0_svc_compat_handler+0x2c/0x38
+> [  460.568982]  el0_svc_compat+0x8/0x18
+> [  460.572672] ---[ end trace ce209b87b2f3af88 ]---
+> 
+> From above warning one would deduce that the sg segment will overflow
+> the device's capacity. In reality, the hardware can accommodate larger
+> sg segments.
+> So, initialize the max segment size properly to weed out this warning.
+> 
+> Based on a similar patch sent by Sean Paul for mdss:
+> https://patchwork.kernel.org/patch/10671457/
+> 
+> Signed-off-by: Vivek Gautam <vivek.gautam@codeaurora.org>
 > ---
-> v2:
-> - Also convert tabs to spaces between the 'if' and '('
+>  drivers/media/platform/qcom/venus/core.c | 8 ++++++++
+>  1 file changed, 8 insertions(+)
 
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Acked-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+
+-- 
+regards,
+Stan
