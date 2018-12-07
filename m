@@ -2,306 +2,144 @@ Return-Path: <SRS0=1NWX=OQ=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F187CC07E85
-	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 13:54:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E9C6EC07E85
+	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 13:56:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id AD51F20989
-	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 13:54:11 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linaro.org header.i=@linaro.org header.b="VvZG/ywl"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org AD51F20989
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linaro.org
+	by mail.kernel.org (Postfix) with ESMTP id B07AB2146D
+	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 13:56:00 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org B07AB2146D
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=bootlin.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726043AbeLGNyK (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 7 Dec 2018 08:54:10 -0500
-Received: from mail-wr1-f66.google.com ([209.85.221.66]:39260 "EHLO
-        mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726034AbeLGNyK (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Dec 2018 08:54:10 -0500
-Received: by mail-wr1-f66.google.com with SMTP id t27so3880834wra.6
-        for <linux-media@vger.kernel.org>; Fri, 07 Dec 2018 05:54:07 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=references:user-agent:from:to:cc:subject:in-reply-to:date
-         :message-id:mime-version;
-        bh=PuyDrKsx0Jmeq58JQ62rT+y23TR+FgRQT+zFMVU8FaU=;
-        b=VvZG/ywljW/rzRgq0Nc+n+0eSbSBIaVcIbmzx59yddwKeRWHiy07njHdLj6Wynz5hs
-         wzJXrrpX+e11jeqxDxr3PLJutEWUzQ8BmwMAa5YqRKcGnAnh8U7EajzKzrJzH1TgmVxW
-         3cYr8CIEuQ8+m3dvzoPAwaXURW9mfTJOc2t04=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:references:user-agent:from:to:cc:subject
-         :in-reply-to:date:message-id:mime-version;
-        bh=PuyDrKsx0Jmeq58JQ62rT+y23TR+FgRQT+zFMVU8FaU=;
-        b=uJoldhbNqjgm4zPT0BwIWqrcywGE9ggqR3MPJ37Dcn4zEkzH9hgv5ZSpHXGmhpfHom
-         ifhuNPXSuJTBc4mhqXjkPtY4JOPivIXDbk+8Ar2ehkYEA9hNy2nGG4ayaw7Sf03Yb8Zk
-         gH8diW0SyhkJTzmdaXnILccevAOImd6d78F5bpdQZ8ZsykGin25GUmHMYYxn1P/g3iC1
-         WqQw6k/byGQW7wJJbSYCdtvxKaEFhbF2/aZrVqfa9S+k0pYEkFARGofkKywEXBcQGalS
-         5DftiOcwg7eLkUPjwOogQ0aLSXUXtr/y7Lx3+W7F6G8TQUspY0b3bk8As2XWcUQxXxcZ
-         SWWA==
-X-Gm-Message-State: AA+aEWbvj0sW2g9lq81pTbY9Kmm1qZEEk4jC2kwqQYZ2OLm4RJMVtzim
-        Hyk/1AaXvz64HgsWs7wKOuRqfg==
-X-Google-Smtp-Source: AFSGD/WFl1pvhREElsoRGrFCZEmufyRPiBhcc0hNz+XknkkNSdp3utQOBmnTXB0rx6/ksqtorLFhJQ==
-X-Received: by 2002:adf:9205:: with SMTP id 5mr1879321wrj.189.1544190847040;
-        Fri, 07 Dec 2018 05:54:07 -0800 (PST)
-Received: from arch-late (a109-49-46-234.cpe.netcabo.pt. [109.49.46.234])
-        by smtp.gmail.com with ESMTPSA id r64sm4595331wmg.5.2018.12.07.05.54.05
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Fri, 07 Dec 2018 05:54:06 -0800 (PST)
-References: <20181122151834.6194-1-rui.silva@linaro.org> <20181122151834.6194-6-rui.silva@linaro.org> <5bc1ad92-4d84-62af-396c-9ba8b3be424b@xs4all.nl>
-User-agent: mu4e 1.0; emacs 27.0.50
-From:   Rui Miguel Silva <rui.silva@linaro.org>
-To:     Hans Verkuil <hverkuil@xs4all.nl>
-Cc:     sakari.ailus@linux.intel.com,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        devicetree@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH v9 05/13] media: dt-bindings: add bindings for i.MX7 media driver
-In-reply-to: <5bc1ad92-4d84-62af-396c-9ba8b3be424b@xs4all.nl>
-Date:   Fri, 07 Dec 2018 13:54:05 +0000
-Message-ID: <m35zw530jm.fsf@linaro.org>
+        id S1726089AbeLGNzy (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 7 Dec 2018 08:55:54 -0500
+Received: from mail.bootlin.com ([62.4.15.54]:58679 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726027AbeLGNzy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 7 Dec 2018 08:55:54 -0500
+Received: by mail.bootlin.com (Postfix, from userid 110)
+        id 9B1EB20D23; Fri,  7 Dec 2018 14:55:51 +0100 (CET)
+Received: from localhost (aaubervilliers-681-1-79-44.w90-88.abo.wanadoo.fr [90.88.21.44])
+        by mail.bootlin.com (Postfix) with ESMTPSA id 6AB1820726;
+        Fri,  7 Dec 2018 14:55:41 +0100 (CET)
+From:   Maxime Ripard <maxime.ripard@bootlin.com>
+To:     Kishon Vijay Abraham I <kishon@ti.com>,
+        Boris Brezillon <boris.brezillon@bootlin.com>
+Cc:     Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org,
+        Archit Taneja <architt@codeaurora.org>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Chen-Yu Tsai <wens@csie.org>, linux-kernel@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        linux-arm-kernel@lists.infradead.org,
+        Krzysztof Witos <kwitos@cadence.com>,
+        Rafal Ciepiela <rafalc@cadence.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>
+Subject: [PATCH v3 00/10] phy: Add configuration interface for MIPI D-PHY devices
+Date:   Fri,  7 Dec 2018 14:55:27 +0100
+Message-Id: <cover.ad7c4feb3905658f10b022df4756a5ade280011f.1544190837.git-series.maxime.ripard@bootlin.com>
+X-Mailer: git-send-email 2.19.2
 MIME-Version: 1.0
-Content-Type: text/plain; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Hans,
+Hi,
 
-On Fri 07 Dec 2018 at 12:39, Hans Verkuil wrote:
-> On 11/22/2018 04:18 PM, Rui Miguel Silva wrote:
->> Add bindings documentation for i.MX7 media drivers.
->> The imx7 MIPI CSI2 and imx7 CMOS Sensor Interface.
->> 
->> Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
->> Reviewed-by: Rob Herring <robh@kernel.org>
->> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
->
-> Please move this patch to the beginning of the series to avoid
-> checkpatch warnings:
->
-> WARNING: DT compatible string "fsl,imx7-csi" appears 
-> un-documented -- check ./Documentation/devicetree/bindings/
-> #1378: FILE: drivers/staging/media/imx/imx7-media-csi.c:1336:
-> +       { .compatible = "fsl,imx7-csi" },
+Here is a set of patches to allow the phy framework consumers to test and
+apply runtime configurations.
 
-Will do, thanks for catching this one.
+This is needed to support more phy classes that require tuning based on
+parameters depending on the current use case of the device, in addition to
+the power state management already provided by the current functions.
 
----
-Cheers,
-	Rui
+A first test bed for that API are the MIPI D-PHY devices. There's a number
+of solutions that have been used so far to support these phy, most of the
+time being an ad-hoc driver in the consumer.
 
->
-> Thanks!
->
-> 	Hans
->
->
->> ---
->>  .../devicetree/bindings/media/imx7-csi.txt    | 45 ++++++++++
->>  .../bindings/media/imx7-mipi-csi2.txt         | 90 
->>  +++++++++++++++++++
->>  2 files changed, 135 insertions(+)
->>  create mode 100644 
->>  Documentation/devicetree/bindings/media/imx7-csi.txt
->>  create mode 100644 
->>  Documentation/devicetree/bindings/media/imx7-mipi-csi2.txt
->> 
->> diff --git 
->> a/Documentation/devicetree/bindings/media/imx7-csi.txt 
->> b/Documentation/devicetree/bindings/media/imx7-csi.txt
->> new file mode 100644
->> index 000000000000..3c07bc676bc3
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/media/imx7-csi.txt
->> @@ -0,0 +1,45 @@
->> +Freescale i.MX7 CMOS Sensor Interface
->> +=====================================
->> +
->> +csi node
->> +--------
->> +
->> +This is device node for the CMOS Sensor Interface (CSI) which 
->> enables the chip
->> +to connect directly to external CMOS image sensors.
->> +
->> +Required properties:
->> +
->> +- compatible    : "fsl,imx7-csi";
->> +- reg           : base address and length of the register set 
->> for the device;
->> +- interrupts    : should contain CSI interrupt;
->> +- clocks        : list of clock specifiers, see
->> + 
->> Documentation/devicetree/bindings/clock/clock-bindings.txt for 
->> details;
->> +- clock-names   : must contain "axi", "mclk" and "dcic" 
->> entries, matching
->> +                 entries in the clock property;
->> +
->> +The device node shall contain one 'port' child node with one 
->> child 'endpoint'
->> +node, according to the bindings defined in:
->> +Documentation/devicetree/bindings/media/video-interfaces.txt.
->> +
->> +In the following example a remote endpoint is a video 
->> multiplexer.
->> +
->> +example:
->> +
->> +                csi: csi@30710000 {
->> +                        #address-cells = <1>;
->> +                        #size-cells = <0>;
->> +
->> +                        compatible = "fsl,imx7-csi";
->> +                        reg = <0x30710000 0x10000>;
->> +                        interrupts = <GIC_SPI 7 
->> IRQ_TYPE_LEVEL_HIGH>;
->> +                        clocks = <&clks IMX7D_CLK_DUMMY>,
->> +                                        <&clks 
->> IMX7D_CSI_MCLK_ROOT_CLK>,
->> +                                        <&clks 
->> IMX7D_CLK_DUMMY>;
->> +                        clock-names = "axi", "mclk", "dcic";
->> +
->> +                        port {
->> +                                csi_from_csi_mux: endpoint {
->> +                                        remote-endpoint = 
->> <&csi_mux_to_csi>;
->> +                                };
->> +                        };
->> +                };
->> diff --git 
->> a/Documentation/devicetree/bindings/media/imx7-mipi-csi2.txt 
->> b/Documentation/devicetree/bindings/media/imx7-mipi-csi2.txt
->> new file mode 100644
->> index 000000000000..71fd74ed3ec8
->> --- /dev/null
->> +++ 
->> b/Documentation/devicetree/bindings/media/imx7-mipi-csi2.txt
->> @@ -0,0 +1,90 @@
->> +Freescale i.MX7 Mipi CSI2
->> +=========================
->> +
->> +mipi_csi2 node
->> +--------------
->> +
->> +This is the device node for the MIPI CSI-2 receiver core in 
->> i.MX7 SoC. It is
->> +compatible with previous version of Samsung D-phy.
->> +
->> +Required properties:
->> +
->> +- compatible    : "fsl,imx7-mipi-csi2";
->> +- reg           : base address and length of the register set 
->> for the device;
->> +- interrupts    : should contain MIPI CSIS interrupt;
->> +- clocks        : list of clock specifiers, see
->> + 
->> Documentation/devicetree/bindings/clock/clock-bindings.txt for 
->> details;
->> +- clock-names   : must contain "pclk", "wrap" and "phy" 
->> entries, matching
->> +                  entries in the clock property;
->> +- power-domains : a phandle to the power domain, see
->> + 
->> Documentation/devicetree/bindings/power/power_domain.txt for 
->> details.
->> +- reset-names   : should include following entry "mrst";
->> +- resets        : a list of phandle, should contain reset 
->> entry of
->> +                  reset-names;
->> +- phy-supply    : from the generic phy bindings, a phandle to 
->> a regulator that
->> +	          provides power to MIPI CSIS core;
->> +
->> +Optional properties:
->> +
->> +- clock-frequency : The IP's main (system bus) clock frequency 
->> in Hz, default
->> +		    value when this property is not specified is 
->> 166 MHz;
->> +- fsl,csis-hs-settle : differential receiver (HS-RX) settle 
->> time;
->> +
->> +The device node should contain two 'port' child nodes with one 
->> child 'endpoint'
->> +node, according to the bindings defined in:
->> + Documentation/devicetree/bindings/ 
->> media/video-interfaces.txt.
->> + The following are properties specific to those nodes.
->> +
->> +port node
->> +---------
->> +
->> +- reg		  : (required) can take the values 0 or 1, 
->> where 0 shall be
->> +                     related to the sink port and port 1 shall 
->> be the source
->> +                     one;
->> +
->> +endpoint node
->> +-------------
->> +
->> +- data-lanes    : (required) an array specifying active 
->> physical MIPI-CSI2
->> +		    data input lanes and their mapping to logical 
->> lanes; this
->> +                    shall only be applied to port 0 (sink 
->> port), the array's
->> +                    content is unused only its length is 
->> meaningful,
->> +                    in this case the maximum length supported 
->> is 2;
->> +
->> +example:
->> +
->> +        mipi_csi: mipi-csi@30750000 {
->> +                #address-cells = <1>;
->> +                #size-cells = <0>;
->> +
->> +                compatible = "fsl,imx7-mipi-csi2";
->> +                reg = <0x30750000 0x10000>;
->> +                interrupts = <GIC_SPI 25 IRQ_TYPE_LEVEL_HIGH>;
->> +                clocks = <&clks IMX7D_IPG_ROOT_CLK>,
->> +                                <&clks 
->> IMX7D_MIPI_CSI_ROOT_CLK>,
->> +                                <&clks 
->> IMX7D_MIPI_DPHY_ROOT_CLK>;
->> +                clock-names = "pclk", "wrap", "phy";
->> +                clock-frequency = <166000000>;
->> +                power-domains = <&pgc_mipi_phy>;
->> +                phy-supply = <&reg_1p0d>;
->> +                resets = <&src IMX7_RESET_MIPI_PHY_MRST>;
->> +                reset-names = "mrst";
->> +                fsl,csis-hs-settle = <3>;
->> +
->> +                port@0 {
->> +                        reg = <0>;
->> +
->> +                        mipi_from_sensor: endpoint {
->> +                                remote-endpoint = 
->> <&ov2680_to_mipi>;
->> +                                data-lanes = <1>;
->> +                        };
->> +                };
->> +
->> +                port@1 {
->> +                        reg = <1>;
->> +
->> +                        mipi_vc0_to_csi_mux: endpoint {
->> +                                remote-endpoint = 
->> <&csi_mux_from_mipi_vc0>;
->> +                        };
->> +                };
->> +        };
->> 
+That approach has a big shortcoming though, which is that this is quite
+difficult to deal with consumers integrated with multiple variants of phy,
+of multiple consumers integrated with the same phy.
 
+The latter case can be found in the Cadence DSI bridge, and the CSI
+transceiver and receivers. All of them are integrated with the same phy, or
+can be integrated with different phy, depending on the implementation.
+
+I've looked at all the MIPI DSI drivers I could find, and gathered all the
+parameters I could find. The interface should be complete, and most of the
+drivers can be converted in the future. The current set converts two of
+them: the above mentionned Cadence DSI driver so that the v4l2 drivers can
+use them, and the Allwinner MIPI-DSI driver.
+
+Let me know what you think,
+Maxime
+
+Changes from v2:
+  - Rebased on next
+  - Changed the interface to accomodate for the new submodes
+  - Changed the timings units from nanoseconds to picoseconds
+  - Added minimum and maximum boundaries to the documentation
+  - Moved the clock enabling to phy_power_on in the Cadence DPHY driver
+  - Exported the phy_configure and phy_validate symbols
+  - Rework the phy pll divider computation in the cadence dphy driver
+
+Changes from v1:
+  - Rebased on top of 4.20-rc1
+  - Removed the bus mode and timings parameters from the MIPI D-PHY
+    parameters, since that shouldn't have any impact on the PHY itself.
+  - Reworked the Cadence DSI and D-PHY drivers to take this into account.
+  - Remove the mode parameter from phy_configure
+  - Added phy_configure and phy_validate stubs
+  - Return -EOPNOTSUPP in phy_configure and phy_validate when the operation
+    is not implemented
+
+Maxime Ripard (10):
+  phy: Add MIPI D-PHY mode
+  phy: Add configuration interface
+  phy: Add MIPI D-PHY configuration options
+  phy: dphy: Add configuration helpers
+  sun6i: dsi: Convert to generic phy handling
+  phy: Move Allwinner A31 D-PHY driver to drivers/phy/
+  drm/bridge: cdns: Separate DSI and D-PHY configuration
+  dt-bindings: phy: Move the Cadence D-PHY bindings
+  phy: Add Cadence D-PHY support
+  drm/bridge: cdns: Convert to phy framework
+
+ Documentation/devicetree/bindings/display/bridge/cdns,dsi.txt |  21 +-
+ Documentation/devicetree/bindings/phy/cdns,dphy.txt           |  20 +-
+ drivers/gpu/drm/bridge/cdns-dsi.c                             | 535 +------
+ drivers/gpu/drm/sun4i/Kconfig                                 |   3 +-
+ drivers/gpu/drm/sun4i/Makefile                                |   5 +-
+ drivers/gpu/drm/sun4i/sun6i_mipi_dphy.c                       | 292 +----
+ drivers/gpu/drm/sun4i/sun6i_mipi_dsi.c                        |  31 +-
+ drivers/gpu/drm/sun4i/sun6i_mipi_dsi.h                        |  17 +-
+ drivers/phy/Kconfig                                           |   8 +-
+ drivers/phy/Makefile                                          |   1 +-
+ drivers/phy/allwinner/Kconfig                                 |  12 +-
+ drivers/phy/allwinner/Makefile                                |   1 +-
+ drivers/phy/allwinner/phy-sun6i-mipi-dphy.c                   | 318 ++++-
+ drivers/phy/cadence/Kconfig                                   |  13 +-
+ drivers/phy/cadence/Makefile                                  |   1 +-
+ drivers/phy/cadence/cdns-dphy.c                               | 389 +++++-
+ drivers/phy/phy-core-mipi-dphy.c                              | 166 ++-
+ drivers/phy/phy-core.c                                        |  64 +-
+ include/linux/phy/phy-mipi-dphy.h                             | 285 ++++-
+ include/linux/phy/phy.h                                       |  65 +-
+ 20 files changed, 1468 insertions(+), 779 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/phy/cdns,dphy.txt
+ delete mode 100644 drivers/gpu/drm/sun4i/sun6i_mipi_dphy.c
+ create mode 100644 drivers/phy/allwinner/phy-sun6i-mipi-dphy.c
+ create mode 100644 drivers/phy/cadence/cdns-dphy.c
+ create mode 100644 drivers/phy/phy-core-mipi-dphy.c
+ create mode 100644 include/linux/phy/phy-mipi-dphy.h
+
+base-commit: 74c4a24df7cac1f9213a811d79558ecde23be9a2
+-- 
+git-series 0.9.1
