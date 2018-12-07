@@ -2,134 +2,98 @@ Return-Path: <SRS0=1NWX=OQ=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,
+	T_DKIMWL_WL_HIGH,UNPARSEABLE_RELAY,USER_AGENT_MUTT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19C70C07E85
-	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 13:36:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 95F93C07E85
+	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 13:39:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DD3BD20892
-	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 13:36:03 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org DD3BD20892
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=xs4all.nl
+	by mail.kernel.org (Postfix) with ESMTP id 5D5F020989
+	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 13:39:11 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="DhMnHDi4"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 5D5F020989
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=oracle.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726013AbeLGNgD (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 7 Dec 2018 08:36:03 -0500
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:41791 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726008AbeLGNgD (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 7 Dec 2018 08:36:03 -0500
-Received: from [192.168.2.10] ([212.251.195.8])
-        by smtp-cloud7.xs4all.net with ESMTPA
-        id VGINg6vtOgJOKVGISgZ4cZ; Fri, 07 Dec 2018 14:36:00 +0100
-Subject: Re: [PATCH v5 00/12] imx-media: Fixes for interlaced capture
-To:     Steve Longerbeam <slongerbeam@gmail.com>,
+        id S1726052AbeLGNjK (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 7 Dec 2018 08:39:10 -0500
+Received: from aserp2130.oracle.com ([141.146.126.79]:48744 "EHLO
+        aserp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725989AbeLGNjK (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Dec 2018 08:39:10 -0500
+Received: from pps.filterd (aserp2130.oracle.com [127.0.0.1])
+        by aserp2130.oracle.com (8.16.0.22/8.16.0.22) with SMTP id wB7DYhnC055051;
+        Fri, 7 Dec 2018 13:38:59 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=date : from : to : cc
+ : subject : message-id : references : mime-version : content-type :
+ in-reply-to; s=corp-2018-07-02;
+ bh=+TpX5q9EW815UhqRDaBznzaJoMwUNrjVTJwFa9jjIiE=;
+ b=DhMnHDi4ZLefZJGnkBICEr3nS5XdAkTf04EIX8mHS2ty19xqdQ2314WiD7SomAMgZiST
+ xGXtHsAgjK9yuTBq5A6oErhhSL/Q+3Rgb64RsJ4Na8TlwR4AnqT5K4IIjjM/Swy3/sFU
+ oI2rESIuX9lMxTOH29pAZ/MIUCFzEE2cj9s/xd6vH3QEXFJhFpEStiopKsPSSnx3KF7g
+ XhvSra/k6HkIAPluKiu2bBL2vdI3sN3kPUlZANFRriDcP39EnJrmV3yG/wZ34c7rSKt0
+ tECG95t538LMUIJzjvv/p5oVfvEwteydkOE9hdAUVUZApRjJ3mlFvLuRncjB9bI9U5k3 dQ== 
+Received: from aserv0021.oracle.com (aserv0021.oracle.com [141.146.126.233])
+        by aserp2130.oracle.com with ESMTP id 2p3ftfhu6u-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Fri, 07 Dec 2018 13:38:59 +0000
+Received: from aserv0122.oracle.com (aserv0122.oracle.com [141.146.126.236])
+        by aserv0021.oracle.com (8.14.4/8.14.4) with ESMTP id wB7Dcwpl013048
+        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Fri, 7 Dec 2018 13:38:58 GMT
+Received: from abhmp0009.oracle.com (abhmp0009.oracle.com [141.146.116.15])
+        by aserv0122.oracle.com (8.14.4/8.14.4) with ESMTP id wB7Dcwr7019216;
+        Fri, 7 Dec 2018 13:38:58 GMT
+Received: from unbuntlaptop (/197.157.0.47)
+        by default (Oracle Beehive Gateway v4.0)
+        with ESMTP ; Fri, 07 Dec 2018 05:38:57 -0800
+Date:   Fri, 7 Dec 2018 16:38:49 +0300
+From:   Dan Carpenter <dan.carpenter@oracle.com>
+To:     Hans Verkuil <hverkuil@xs4all.nl>
+Cc:     Rui Miguel Silva <rui.silva@linaro.org>,
+        sakari.ailus@linux.intel.com,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        devel@driverdev.osuosl.org, devicetree@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         linux-media@vger.kernel.org
-References: <20181017000027.23696-1-slongerbeam@gmail.com>
-From:   Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <30f8b7b7-3c43-aefd-a37e-245996f1a7bb@xs4all.nl>
-Date:   Fri, 7 Dec 2018 14:35:55 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:52.0) Gecko/20100101
- Thunderbird/52.2.1
+Subject: Re: [PATCH v9 00/13] media: staging/imx7: add i.MX7 media driver
+Message-ID: <20181207133849.GK3095@unbuntlaptop>
+References: <20181122151834.6194-1-rui.silva@linaro.org>
+ <757f8c52-7c23-7cf7-32ee-75ddba767ff8@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <20181017000027.23696-1-slongerbeam@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfOWt/QRM35nvEITNMuA27qXfYyquC2qoiNrI4LAYm4nWn1dtNiB808zGsfg65nlRlOSLLfMkxW9kKSrsruB3YpwlOV9blA01pGZjH2VPF/s56dHUJf7q
- 6rwDmVyUfJVaaexCTENqNE7oWN3k3OidKZXqPPUES9NwoG53cgdmp3W8o1X29EqwuM9LvjNWOewJuaR/67m3nV7LqBlDrq+cuQI=
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <757f8c52-7c23-7cf7-32ee-75ddba767ff8@xs4all.nl>
+User-Agent: Mutt/1.9.4 (2018-02-28)
+X-Proofpoint-Virus-Version: vendor=nai engine=5900 definitions=9099 signatures=668679
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=0 malwarescore=0
+ phishscore=0 bulkscore=0 spamscore=0 mlxscore=0 mlxlogscore=999
+ adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.0.1-1810050000 definitions=main-1812070108
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Steve,
+On Fri, Dec 07, 2018 at 01:44:00PM +0100, Hans Verkuil wrote:
+> CHECK: Alignment should match open parenthesis
+> #936: FILE: drivers/staging/media/imx/imx7-mipi-csis.c:921:
+> +       ret = v4l2_async_register_fwnode_subdev(mipi_sd,
+> +                               sizeof(struct v4l2_async_subdev), &sink_port, 1,
+> 
+> Apparently the latest coding style is that alignment is more important than
+> line length, although I personally do not agree. But since you need to
+> respin in any case due to the wrong SPDX identifier you used you might as
+> well take this into account.
 
-How to proceed with this w.r.t. the two gpu ipu patches? Are those going
-in first through the gpu tree? Or do they have to go in through our tree?
+I'm pretty sure it complains about both equally.  If you make fix one
+warning it will complain about the other.  So you just have to pick
+which warning to not care about.
 
-In that case I need Acks from whoever maintains that code.
-
-Regards,
-
-	Hans
-
-On 10/17/2018 02:00 AM, Steve Longerbeam wrote:
-> A set of patches that fixes some bugs with capturing from an
-> interlaced source, and incompatibilites between IDMAC interlace
-> interweaving and 4:2:0 data write reduction.
-> 
-> History:
-> v5:
-> - Added a regression fix to allow empty endpoints to CSI (fix for imx6q
->   SabreAuto).
-> - Cleaned up some convoluted code in ipu_csi_init_interface(), suggested
->   by Philipp Zabel.
-> - Fixed a regression in csi_setup(), caught by Philipp.
-> - Removed interweave_offset and replace with boolean interweave_swap,
->   suggested by Philipp.
-> - Make clear that it is IDMAC channel that does pixel reordering and
->   interweave, not the CSI, in the imx.rst doc, caught by Philipp.
-> 
-> v4:
-> - rebased to latest media-tree master branch.
-> - Make patch author and SoB email addresses the same.
-> 
-> v3:
-> - add support for/fix interweaved scan with YUV planar output.
-> - fix bug in 4:2:0 U/V offset macros.
-> - add patch that generalizes behavior of field swap in
->   ipu_csi_init_interface().
-> - add support for interweaved scan with field order swap.
->   Suggested by Philipp Zabel.
-> - in v2, inteweave scan was determined using field types of
->   CSI (and PRPENCVF) at the sink and source pads. In v3, this
->   has been moved one hop downstream: interweave is now determined
->   using field type at source pad, and field type selected at
->   capture interface. Suggested by Philipp.
-> - make sure to double CSI crop target height when input field
->   type in alternate.
-> - more updates to media driver doc to reflect above.
-> 
-> v2:
-> - update media driver doc.
-> - enable idmac interweave only if input field is sequential/alternate,
->   and output field is 'interlaced*'.
-> - move field try logic out of *try_fmt and into separate function.
-> - fix bug with resetting crop/compose rectangles.
-> - add a patch that fixes a field order bug in VDIC indirect mode.
-> - remove alternate field type from V4L2_FIELD_IS_SEQUENTIAL() macro
->   Suggested-by: Nicolas Dufresne <nicolas@ndufresne.ca>.
-> - add macro V4L2_FIELD_IS_INTERLACED().
-> 
-> 
-> Steve Longerbeam (12):
->   media: videodev2.h: Add more field helper macros
->   gpu: ipu-csi: Swap fields according to input/output field types
->   gpu: ipu-v3: Add planar support to interlaced scan
->   media: imx: Fix field negotiation
->   media: imx-csi: Input connections to CSI should be optional
->   media: imx-csi: Double crop height for alternate fields at sink
->   media: imx: interweave and odd-chroma-row skip are incompatible
->   media: imx-csi: Allow skipping odd chroma rows for YVU420
->   media: imx: vdic: rely on VDIC for correct field order
->   media: imx-csi: Move crop/compose reset after filling default mbus
->     fields
->   media: imx: Allow interweave with top/bottom lines swapped
->   media: imx.rst: Update doc to reflect fixes to interlaced capture
-> 
->  Documentation/media/v4l-drivers/imx.rst       | 103 +++++++----
->  drivers/gpu/ipu-v3/ipu-cpmem.c                |  26 ++-
->  drivers/gpu/ipu-v3/ipu-csi.c                  | 119 +++++++++----
->  drivers/staging/media/imx/imx-ic-prpencvf.c   |  46 +++--
->  drivers/staging/media/imx/imx-media-capture.c |  14 ++
->  drivers/staging/media/imx/imx-media-csi.c     | 168 +++++++++++++-----
->  drivers/staging/media/imx/imx-media-vdic.c    |  12 +-
->  include/uapi/linux/videodev2.h                |   7 +
->  include/video/imx-ipu-v3.h                    |   6 +-
->  9 files changed, 354 insertions(+), 147 deletions(-)
-> 
+regards,
+dan carpenter
 
