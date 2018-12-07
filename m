@@ -2,409 +2,143 @@ Return-Path: <SRS0=1NWX=OQ=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.0 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1FFAFC6783B
-	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 01:04:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B5AF6C07E85
+	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 04:29:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DAC09208E7
-	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 01:04:17 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org DAC09208E7
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	by mail.kernel.org (Postfix) with ESMTP id 57E6B20838
+	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 04:29:07 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 57E6B20838
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=xs4all.nl
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726020AbeLGBER (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 6 Dec 2018 20:04:17 -0500
-Received: from mga04.intel.com ([192.55.52.120]:47525 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726005AbeLGBER (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 6 Dec 2018 20:04:17 -0500
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 06 Dec 2018 17:04:14 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.56,324,1539673200"; 
-   d="scan'208";a="127821916"
-Received: from twiley-mobl.amr.corp.intel.com (HELO yzhi-desktop.amr.corp.intel.com) ([10.254.183.51])
-  by fmsmga001.fm.intel.com with ESMTP; 06 Dec 2018 17:04:14 -0800
-From:   Yong Zhi <yong.zhi@intel.com>
-To:     linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
-Cc:     tfiga@chromium.org, rajmohan.mani@intel.com,
-        tuukka.toivonen@intel.com, jerry.w.hu@intel.com,
-        tian.shu.qiu@intel.com, laurent.pinchart@ideasonboard.com,
-        hans.verkuil@cisco.com, mchehab@kernel.org, bingbu.cao@intel.com,
-        jian.xu.zheng@intel.com
-Subject: [PATCH v8 17/17] doc-rst: Add Intel IPU3 documentation
-Date:   Thu,  6 Dec 2018 19:03:42 -0600
-Message-Id: <1544144622-29791-18-git-send-email-yong.zhi@intel.com>
-X-Mailer: git-send-email 2.7.4
-In-Reply-To: <1544144622-29791-1-git-send-email-yong.zhi@intel.com>
-References: <1544144622-29791-1-git-send-email-yong.zhi@intel.com>
+        id S1725950AbeLGE3G (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 6 Dec 2018 23:29:06 -0500
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:59863 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725939AbeLGE3G (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 6 Dec 2018 23:29:06 -0500
+Received: from localhost ([IPv6:2001:983:e9a7:1:bcf8:aeeb:7df6:7044])
+        by smtp-cloud8.xs4all.net with ESMTPA
+        id V7l9ggANZO44XV7lAgXaYQ; Fri, 07 Dec 2018 05:29:05 +0100
+Message-ID: <a0232687fb93866252dda01426f24294@smtp-cloud8.xs4all.net>
+Date:   Fri, 07 Dec 2018 05:29:03 +0100
+From:   "Hans Verkuil" <hverkuil@xs4all.nl>
+To:     linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+X-CMAE-Envelope: MS4wfLrkaDwY44lp1t+LmDBhMEncTyu5H2ixhCcX6DqGmsRd7fSDqAeatNgBX1pkTCopF8fhlYsGHf5NLKDI9T7yogDevCNBcaAedCPAspVVYMu+r+cTBXWj
+ bIX8H0iNgEKy/zIVH1/QeH8WyNscO+6QevY6WnLx0qrYkveWmo7wO+Z+5z9KkMBHJtAss45u+JepEzDzUCljoCUoKypahiITtjymQ79Z8dIgoEXNso6Htd8+
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-From: Rajmohan Mani <rajmohan.mani@intel.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-This patch adds the details about the IPU3 Imaging Unit driver.
+Results of the daily build of media_tree:
 
-Change-Id: I560cecf673df2dcc3ec72767cf8077708d649656
-Signed-off-by: Rajmohan Mani <rajmohan.mani@intel.com>
----
- Documentation/media/v4l-drivers/index.rst |   1 +
- Documentation/media/v4l-drivers/ipu3.rst  | 326 ++++++++++++++++++++++++++++++
- 2 files changed, 327 insertions(+)
- create mode 100644 Documentation/media/v4l-drivers/ipu3.rst
+date:			Fri Dec  7 05:00:15 CET 2018
+media-tree git hash:	3c28b91380dd1183347d32d87d820818031ebecf
+media_build git hash:	4b9237c73e29e2222a969f6a7b3d00030e14be50
+v4l-utils git hash:	7086a1ee8dda5ae34852379410432d259215ff5e
+edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
+gcc version:		i686-linux-gcc (GCC) 8.2.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.18.0-2-amd64
 
-diff --git a/Documentation/media/v4l-drivers/index.rst b/Documentation/media/v4l-drivers/index.rst
-index 6cdd3bc98202..f28570ec9e42 100644
---- a/Documentation/media/v4l-drivers/index.rst
-+++ b/Documentation/media/v4l-drivers/index.rst
-@@ -44,6 +44,7 @@ For more details see the file COPYING in the source distribution of Linux.
- 	davinci-vpbe
- 	fimc
- 	imx
-+	ipu3
- 	ivtv
- 	max2175
- 	meye
-diff --git a/Documentation/media/v4l-drivers/ipu3.rst b/Documentation/media/v4l-drivers/ipu3.rst
-new file mode 100644
-index 000000000000..045bf4222b1a
---- /dev/null
-+++ b/Documentation/media/v4l-drivers/ipu3.rst
-@@ -0,0 +1,326 @@
-+.. include:: <isonum.txt>
-+
-+===============================================================
-+Intel Image Processing Unit 3 (IPU3) Imaging Unit (ImgU) driver
-+===============================================================
-+
-+Copyright |copy| 2018 Intel Corporation
-+
-+Introduction
-+============
-+
-+This file documents Intel IPU3 (3rd generation Image Processing Unit) Imaging
-+Unit driver located under drivers/media/pci/intel/ipu3.
-+
-+The Intel IPU3 found in certain Kaby Lake (as well as certain Sky Lake)
-+platforms (U/Y processor lines) is made up of two parts namely Imaging Unit
-+(ImgU) and CIO2 device (MIPI CSI2 receiver).
-+
-+The CIO2 device receives the raw bayer data from the sensors and outputs the
-+frames in a format that is specific to IPU3 (for consumption by IPU3 ImgU).
-+CIO2 driver is available as drivers/media/pci/intel/ipu3/ipu3-cio2* and is
-+enabled through the CONFIG_VIDEO_IPU3_CIO2 config option.
-+
-+The Imaging Unit (ImgU) is responsible for processing images captured
-+through IPU3 CIO2 device. The ImgU driver sources can be found under
-+drivers/media/pci/intel/ipu3 directory. The driver is enabled through the
-+CONFIG_VIDEO_IPU3_IMGU config option.
-+
-+The two driver modules are named ipu3-csi2 and ipu3-imgu, respectively.
-+
-+The driver has been tested on Kaby Lake platforms (U/Y processor lines).
-+
-+The driver implements V4L2, Media controller and V4L2 sub-device interfaces.
-+Camera sensors that have CSI-2 bus, which are connected to the IPU3 CIO2
-+device are supported. Support for lens and flash drivers depends on the
-+above sensors.
-+
-+ImgU device nodes
-+=================
-+
-+The ImgU is represented as two V4L2 subdevs, each of which provides a V4L2
-+subdev interface to the user space.
-+
-+Each V4L2 subdev represents a pipe, which can support a maximum of 2
-+streams. A private ioctl can be used to configure the mode (video or still)
-+of the pipe.
-+
-+This helps to support advanced camera features like Continuous View Finder
-+(CVF) and Snapshot During Video(SDV).
-+
-+CIO2 device
-+===========
-+
-+The CIO2 is represented as a single V4L2 subdev, which provides a V4L2 subdev
-+interface to the user space. There is a video node for each CSI-2 receiver,
-+with a single media controller interface for the entire device.
-+
-+Media controller
-+----------------
-+
-+The media device interface allows to configure the ImgU links, which defines
-+the behavior of the IPU3 firmware.
-+
-+Device operation
-+----------------
-+
-+With IPU3, once the input video node ("ipu3-imgu 0/1":0,
-+in <entity>:<pad-number> format) is queued with buffer (in packed raw bayer
-+format), IPU3 ISP starts processing the buffer and produces the video output
-+in YUV format and statistics output on respective output nodes. The driver
-+is expected to have buffers ready for all of parameter, output and
-+statistics nodes, when input video node is queued with buffer.
-+
-+At a minimum, all of input, main output, 3A statistics and viewfinder
-+video nodes should be enabled for IPU3 to start image processing.
-+
-+Each ImgU V4L2 subdev has the following set of video nodes.
-+
-+input, output and viewfinder video nodes
-+----------------------------------------
-+
-+The frames (in packed raw bayer format specific to IPU3) received by the
-+input video node is processed by the IPU3 Imaging Unit and is output to 2
-+video nodes, with each targeting different purpose (main output and viewfinder
-+output).
-+
-+Details on raw bayer format specific to IPU3 can be found as below.
-+Documentation/media/uapi/v4l/pixfmt-meta-intel-ipu3.rst
-+
-+The driver supports V4L2 Video Capture Interface as defined at :ref:`devices`.
-+
-+Only the multi-planar API is supported. More details can be found at
-+:ref:`planar-apis`.
-+
-+
-+parameters video node
-+---------------------
-+
-+The parameter video node receives the ISP algorithm parameters that are used
-+to configure how the ISP algorithms process the image.
-+
-+Details on raw bayer format specific to IPU3 can be found as below.
-+Documentation/media/uapi/v4l/pixfmt-meta-intel-ipu3.rst
-+
-+3A statistics video node
-+------------------------
-+
-+3A statistics video node is used by the ImgU driver to output the 3A (auto
-+focus, auto exposure and auto white balance) statistics for the frames that
-+are being processed by the ISP to user space applications. User space
-+applications can use this statistics data to arrive at desired algorithm
-+parameters for ISP.
-+
-+CIO2 device nodes
-+=================
-+
-+CIO2 is represented as a single V4L2 sub-device with a video node for each
-+CSI-2 receiver. The video node represents the DMA engine.
-+
-+Configuring the Intel IPU3
-+==========================
-+
-+The Intel IPU3 ImgU driver supports V4L2 interface. Using V4L2 ioctl calls,
-+the ISP can be configured and enabled.
-+
-+The IPU3 ImgU pipelines can be configured using media controller APIs,
-+defined at :ref:`media_controller`.
-+
-+Capturing frames in raw bayer format
-+------------------------------------
-+
-+IPU3 MIPI CSI2 receiver is used to capture frames (in packed raw bayer
-+format) from the raw sensors connected to the CSI2 ports. The captured
-+frames are used as input to the ImgU driver.
-+
-+Image processing using IPU3 ImgU requires tools such as v4l2n [#f1]_,
-+raw2pnm [#f1]_, and yavta [#f2]_ due to the following unique requirements
-+and / or features specific to IPU3.
-+
-+-- The IPU3 CSI2 receiver outputs the captured frames from the sensor in
-+packed raw bayer format that is specific to IPU3
-+
-+-- Multiple video nodes have to be operated simultaneously
-+
-+Let us take the example of ov5670 sensor connected to CSI2 port 0, for a
-+2592x1944 image capture.
-+
-+Using the media contorller APIs, the ov5670 sensor is configured to send
-+frames in packed raw bayer format to IPU3 CSI2 receiver.
-+
-+# This example assumes /dev/media0 as the ImgU media device
-+
-+export MDEV=/dev/media0
-+
-+# and that ov5670 sensor is connected to i2c bus 10 with address 0x36
-+
-+export SDEV="ov5670 10-0036"
-+
-+# Establish the link for the media devices using media-ctl [#f3]_
-+media-ctl -d $MDEV -l "ov5670 ":0 -> "ipu3-csi2 0":0[1]
-+
-+media-ctl -d $MDEV -l "ipu3-csi2 0":1 -> "ipu3-cio2 0":0[1]
-+
-+# Set the format for the media devices
-+media-ctl -d $MDEV -V "ov5670 ":0 [fmt:SGRBG10/2592x1944]
-+
-+media-ctl -d $MDEV -V "ipu3-csi2 0":0 [fmt:SGRBG10/2592x1944]
-+
-+media-ctl -d $MDEV -V "ipu3-csi2 0":1 [fmt:SGRBG10/2592x1944]
-+
-+Once the media pipeline is configured, desired sensor specific settings
-+(such as exposure and gain settings) can be set, using the yavta tool.
-+
-+e.g
-+
-+yavta -w 0x009e0903 444 $(media-ctl -d $MDEV -e "$SDEV")
-+
-+yavta -w 0x009e0913 1024 $(media-ctl -d $MDEV -e "$SDEV")
-+
-+yavta -w 0x009e0911 2046 $(media-ctl -d $MDEV -e "$SDEV")
-+
-+Once the desired sensor settings are set, frame captures can be done as below.
-+
-+e.g
-+
-+yavta --data-prefix -u -c10 -n5 -I -s2592x1944 --file=/tmp/frame-#.bin
-+-f IPU3_GRBG10 media-ctl -d $MDEV -e ipu3-cio2 0
-+
-+With the above command, 10 frames are captured at 2592x1944 resolution, with
-+sGRBG10 format and output as IPU3_GRBG10 format.
-+
-+The captured frames are available as /tmp/frame-#.bin files.
-+
-+Processing the image in raw bayer format
-+----------------------------------------
-+
-+Configuring ImgU V4L2 subdev for image processing
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+
-+The ImgU V4L2 subdevs have to be configured with media controller APIs to
-+have all the video nodes setup correctly.
-+
-+Let us take "ipu3-imgu 0" subdev as an example.
-+
-+media-ctl -d $MDEV -r
-+
-+media-ctl -d $MDEV -l "ipu3-imgu 0 input":0 -> "ipu3-imgu 0":0[1]
-+
-+media-ctl -d $MDEV -l "ipu3-imgu 0":2 -> "output":0[1]
-+
-+media-ctl -d $MDEV -l "ipu3-imgu 0":3 -> "viewfinder":0[1]
-+
-+media-ctl -d $MDEV -l "ipu3-imgu 0":4 -> "3a stat":0[1]
-+
-+Also the pipe mode of the corresponding V4L2 subdev should be set as
-+desired (e.g 0 for video mode or 1 for still mode) through the
-+control id 0x009819a1 as below.
-+
-+e.g
-+
-+v4l2n -d /dev/v4l-subdev7 --ctrl=0x009819A1=1
-+
-+RAW bayer frames go through the following ISP pipeline HW blocks to
-+have the processed image output to the DDR memory.
-+
-+RAW bayer frame -> Input Feeder -> Bayer Down Scaling (BDS) -> Geometric
-+Distortion Correction (GDC) -> DDR
-+
-+The ImgU V4L2 subdev has to be configured with the supported resolutions
-+in all the above HW blocks, for a given input resolution.
-+
-+For a given supported resolution for an input frame, the Input Feeder,
-+Bayer Down Scaling and GDC blocks should be configured with the supported
-+resolutions. This information can be obtained by looking at the following
-+IPU3 ISP configuration table.
-+
-+https://chromium.googlesource.com/chromiumos/overlays/board-overlays/+/master
-+
-+Under baseboard-poppy/media-libs/arc-camera3-hal-configs-poppy/files/gcss
-+directory, graph_settings_ov5670.xml can be used as an example.
-+
-+The following steps prepare the ImgU ISP pipeline for the image processing.
-+
-+1. The ImgU V4L2 subdev data format should be set by using the
-+VIDIOC_SUBDEV_S_FMT on pad 0, using the GDC width and height obtained above.
-+
-+2. The ImgU V4L2 subdev cropping should be set by using the
-+VIDIOC_SUBDEV_S_SELECTION on pad 0, with V4L2_SEL_TGT_CROP as the target,
-+using the input feeder height and width.
-+
-+3. The ImgU V4L2 subdev composing should be set by using the
-+VIDIOC_SUBDEV_S_SELECTION on pad 0, with V4L2_SEL_TGT_COMPOSE as the target,
-+using the BDS height and width.
-+
-+For the ov5670 example, for an input frame with a resolution of 2592x1944
-+(which is input to the ImgU subdev pad 0), the corresponding resolutions
-+for input feeder, BDS and GDC are 2592x1944, 2592x1944 and 2560x1920
-+respectively.
-+
-+Once this is done, the received raw bayer frames can be input to the ImgU
-+V4L2 subdev as below, using the open source application v4l2n.
-+
-+For an image captured with 2592x1944 [#f4]_ resolution, with desired output
-+resolution as 2560x1920 and viewfinder resolution as 2560x1920, the following
-+v4l2n command can be used. This helps process the raw bayer frames and
-+produces the desired results for the main output image and the viewfinder
-+output, in NV12 format.
-+
-+v4l2n --pipe=4 --load=/tmp/frame-#.bin --open=/dev/video4
-+--fmt=type:VIDEO_OUTPUT_MPLANE,width=2592,height=1944,pixelformat=0X47337069
-+--reqbufs=type:VIDEO_OUTPUT_MPLANE,count:1 --pipe=1 --output=/tmp/frames.out
-+--open=/dev/video5
-+--fmt=type:VIDEO_CAPTURE_MPLANE,width=2560,height=1920,pixelformat=NV12
-+--reqbufs=type:VIDEO_CAPTURE_MPLANE,count:1 --pipe=2 --output=/tmp/frames.vf
-+--open=/dev/video6
-+--fmt=type:VIDEO_CAPTURE_MPLANE,width=2560,height=1920,pixelformat=NV12
-+--reqbufs=type:VIDEO_CAPTURE_MPLANE,count:1 --pipe=3 --open=/dev/video7
-+--output=/tmp/frames.3A --fmt=type:META_CAPTURE,?
-+--reqbufs=count:1,type:META_CAPTURE --pipe=1,2,3,4 --stream=5
-+
-+where /dev/video4, /dev/video5, /dev/video6 and /dev/video7 devices point to
-+input, output, viewfinder and 3A statistics video nodes respectively.
-+
-+Converting the raw bayer image into YUV domain
-+----------------------------------------------
-+
-+The processed images after the above step, can be converted to YUV domain
-+as below.
-+
-+Main output frames
-+~~~~~~~~~~~~~~~~~~
-+
-+raw2pnm -x2560 -y1920 -fNV12 /tmp/frames.out /tmp/frames.out.pnm
-+
-+where 2560x1920 is output resolution, NV12 is the video format, followed
-+by input frame and output PNM file.
-+
-+Viewfinder output frames
-+~~~~~~~~~~~~~~~~~~~~~~~~
-+
-+raw2pnm -x2560 -y1920 -fNV12 /tmp/frames.vf /tmp/frames.vf.pnm
-+
-+where 2560x1920 is output resolution, NV12 is the video format, followed
-+by input frame and output PNM file.
-+
-+Example user space code for IPU3
-+================================
-+
-+User space code that configures and uses IPU3 is available here.
-+
-+https://chromium.googlesource.com/chromiumos/platform/arc-camera/+/master/
-+
-+The source can be located under hal/intel directory.
-+
-+References
-+==========
-+
-+include/uapi/linux/intel-ipu3.h
-+
-+.. [#f1] https://github.com/intel/nvt
-+
-+.. [#f2] http://git.ideasonboard.org/yavta.git
-+
-+.. [#f3] http://git.ideasonboard.org/?p=media-ctl.git;a=summary
-+
-+.. [#f4] ImgU limitation requires an additional 16x16 for all input resolutions
--- 
-2.7.4
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-3.10.108-i686: ERRORS
+linux-3.10.108-x86_64: ERRORS
+linux-3.11.10-i686: ERRORS
+linux-3.11.10-x86_64: ERRORS
+linux-3.12.74-i686: ERRORS
+linux-3.12.74-x86_64: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.79-i686: ERRORS
+linux-3.14.79-x86_64: ERRORS
+linux-3.15.10-i686: ERRORS
+linux-3.15.10-x86_64: ERRORS
+linux-3.16.57-i686: ERRORS
+linux-3.16.57-x86_64: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.123-i686: ERRORS
+linux-3.18.123-x86_64: ERRORS
+linux-3.19.8-i686: ERRORS
+linux-3.19.8-x86_64: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.52-i686: ERRORS
+linux-4.1.52-x86_64: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.159-i686: ERRORS
+linux-4.4.159-x86_64: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.10-i686: ERRORS
+linux-4.7.10-x86_64: ERRORS
+linux-4.8.17-i686: ERRORS
+linux-4.8.17-x86_64: ERRORS
+linux-4.9.131-i686: ERRORS
+linux-4.9.131-x86_64: ERRORS
+linux-4.10.17-i686: ERRORS
+linux-4.10.17-x86_64: ERRORS
+linux-4.11.12-i686: ERRORS
+linux-4.11.12-x86_64: ERRORS
+linux-4.12.14-i686: ERRORS
+linux-4.12.14-x86_64: ERRORS
+linux-4.13.16-i686: ERRORS
+linux-4.13.16-x86_64: ERRORS
+linux-4.14.74-i686: ERRORS
+linux-4.14.74-x86_64: ERRORS
+linux-4.15.18-i686: OK
+linux-4.15.18-x86_64: OK
+linux-4.16.18-i686: OK
+linux-4.16.18-x86_64: OK
+linux-4.17.19-i686: OK
+linux-4.17.19-x86_64: OK
+linux-4.18.12-i686: OK
+linux-4.18.12-x86_64: OK
+linux-4.19.1-i686: OK
+linux-4.19.1-x86_64: OK
+linux-4.20-rc1-i686: OK
+linux-4.20-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
