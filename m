@@ -3,172 +3,130 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
-	T_DKIMWL_WL_HIGH,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C2F3C64EB1
-	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 13:42:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F5FFC64EB1
+	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 13:53:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3122E208E7
-	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 13:42:00 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1544190120;
-	bh=OdV6Mox6x1Zrs+2AO7gMKp0TjuOZMzLKEqBr7wePiJ0=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
-	b=l9QK19kOoEWIybqPN7GkdQgAEqb4rBFG8SW11tL+dLIZAvv9h+JnhFaKjW2f5j2hB
-	 Qi3DMWrLmQvQ0mXFIBg6PCssfvrsBgKQ/iPzh9BLtRURqhFwE8UUt6CLuR5YXLpCd1
-	 dC08Hr22yq7gOTymXRQ2jzeUi2LwNHL1U3h9lOi4=
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 3122E208E7
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
+	by mail.kernel.org (Postfix) with ESMTP id 241E9208E7
+	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 13:53:07 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=linaro.org header.i=@linaro.org header.b="WL2uq4ra"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 241E9208E7
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linaro.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726088AbeLGNl7 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 7 Dec 2018 08:41:59 -0500
-Received: from casper.infradead.org ([85.118.1.10]:57982 "EHLO
-        casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725989AbeLGNl6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Dec 2018 08:41:58 -0500
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
-        MIME-Version:References:In-Reply-To:Message-ID:Subject:Cc:To:From:Date:Sender
-        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
-        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=4tMBBj+0C+iJd2F6ACxvnEgAwII0WaYiOyCUwY8ub5U=; b=TNNk0N6H80YctNJDGeaUH+Qyk/
-        j3Yj6H5Tnpldcy1Ck6KtIHE2i9jdN5RTYFFD7xKYLKFB3o7H/M+VP6UhBc5fofoTFNImGhQNPToj6
-        WfBYdUfjjrb5xSRvIYYWw+S+yCExBLxsvaBakXPYEkSMQ4UWfJwF5bU6YDUGqYglFdysNgz64uyXo
-        /8GDIyw87mhdkW2YSrQRTVpCpf3krYJbKRWH8F9LterzHL+EDJduS1ujU5hYN66djZOXlapE8rCbj
-        ief8Dd22vHwE0+tVdQu8IuYwlQHULsdJFARmusS+icwNs4uCvszP8yTI01Fo/jXpeTZnFAlpShm5K
-        Bvl3areQ==;
-Received: from [179.95.33.236] (helo=coco.lan)
-        by casper.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
-        id 1gVGOC-0002Oy-2z; Fri, 07 Dec 2018 13:41:56 +0000
-Date:   Fri, 7 Dec 2018 11:41:50 -0200
-From:   Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To:     Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-Cc:     Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Chen-Yu Tsai <wens@csie.org>, devel@driverdev.osuosl.org,
-        linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH v2] media: cedrus: don't initialize pointers with zero
-Message-ID: <20181207114150.2dc93fb6@coco.lan>
-In-Reply-To: <c426c7ea8159349f3cc23bf7d65d2c24f2ade00e.camel@bootlin.com>
-References: <9db60f061d1c577f14136f81af641f58bccbead3.1544187795.git.mchehab+samsung@kernel.org>
-        <c426c7ea8159349f3cc23bf7d65d2c24f2ade00e.camel@bootlin.com>
-X-Mailer: Claws Mail 3.16.0 (GTK+ 2.24.32; x86_64-redhat-linux-gnu)
+        id S1726094AbeLGNxF (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 7 Dec 2018 08:53:05 -0500
+Received: from mail-wm1-f66.google.com ([209.85.128.66]:40410 "EHLO
+        mail-wm1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726039AbeLGNxF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Dec 2018 08:53:05 -0500
+Received: by mail-wm1-f66.google.com with SMTP id q26so4576664wmf.5
+        for <linux-media@vger.kernel.org>; Fri, 07 Dec 2018 05:53:04 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=references:user-agent:from:to:cc:subject:in-reply-to:date
+         :message-id:mime-version;
+        bh=WqahI3jvbTPYSV6LUSuJFDIy9D16y0xHiT8VG/mqj6s=;
+        b=WL2uq4raU8w0XMIbsNLjecweYMXr3PEgbW8EtEElQ+FZesbNGk5/KreYMOiROSD+Xw
+         jrVb5bQZcrNPu642zOVlkK+6CEOygdltx2Klb+ahWzsae/uGdgepA1M5UcOPzy29OFpi
+         vvPii9uHlVx0sZ+NbgZmFj+mqRPKpSiGTarFs=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:references:user-agent:from:to:cc:subject
+         :in-reply-to:date:message-id:mime-version;
+        bh=WqahI3jvbTPYSV6LUSuJFDIy9D16y0xHiT8VG/mqj6s=;
+        b=YxIfaQXNaQSU8RMj4eO7ahHUlejSB3/+e/s8dFV/vOYSWvjfHCptD/RxjOmNjSlQIq
+         sWim3uRgeutRVJ+BXrgdeoz22DA5tfIXIMrAWDN55gC2+W2/J93Z+uW09wUVVCipLstJ
+         0iUseXLXfTO9fl1vJJzMOgQ1zeSj3u05PIGRLMk47wlwnPISrHbSX0UnZLojCAFmttZh
+         UGznpn/ab57y48GKrqjbJWFL40w08jichLODW5sCu1IsX2jXgMqTFAQm0JEzGZ6Lbepa
+         AB2cGQh41phmucsMUJ8A4p76NtueMh4QCtXjYl6VRp/eTvxQNawXwmg+Ed7JglJa8TMw
+         LG4A==
+X-Gm-Message-State: AA+aEWb9txZP0l1P3T8syEivdZFKojo8+UYr5z7V/+UURHO0mwIx8RtZ
+        edLPXggS4v2lmyQ1f9hFj4gs4Q==
+X-Google-Smtp-Source: AFSGD/X88fNcOiW1dQ3d67WzURlBS3bDzDhFxDwEQ88WN+FPEDWDwNJPbs3PWo1bVslGeUgqmM1W9g==
+X-Received: by 2002:a1c:9dcc:: with SMTP id g195mr2230068wme.153.1544190783498;
+        Fri, 07 Dec 2018 05:53:03 -0800 (PST)
+Received: from arch-late (a109-49-46-234.cpe.netcabo.pt. [109.49.46.234])
+        by smtp.gmail.com with ESMTPSA id f66sm4225670wmd.28.2018.12.07.05.53.02
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Fri, 07 Dec 2018 05:53:02 -0800 (PST)
+References: <20181122151834.6194-1-rui.silva@linaro.org> <20181122151834.6194-2-rui.silva@linaro.org> <b0fffeef-439b-e3a7-67d1-900a7ea1664f@xs4all.nl>
+User-agent: mu4e 1.0; emacs 27.0.50
+From:   Rui Miguel Silva <rui.silva@linaro.org>
+To:     Hans Verkuil <hverkuil@xs4all.nl>
+Cc:     sakari.ailus@linux.intel.com,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        devicetree@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH v9 01/13] media: staging/imx: refactor imx media device probe
+In-reply-to: <b0fffeef-439b-e3a7-67d1-900a7ea1664f@xs4all.nl>
+Date:   Fri, 07 Dec 2018 13:53:01 +0000
+Message-ID: <m37egl30le.fsf@linaro.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Em Fri, 07 Dec 2018 14:21:44 +0100
-Paul Kocialkowski <paul.kocialkowski@bootlin.com> escreveu:
+Hi Hans,
+Thanks for the review.
 
-> Hi,
-> 
-> On Fri, 2018-12-07 at 08:03 -0500, Mauro Carvalho Chehab wrote:
-> > A common mistake is to assume that initializing a var with:
-> > 	struct foo f = { 0 };
-> > 
-> > Would initialize a zeroed struct. Actually, what this does is
-> > to initialize the first element of the struct to zero.
-> > 
-> > According to C99 Standard 6.7.8.21:
-> > 
-> >     "If there are fewer initializers in a brace-enclosed
-> >      list than there are elements or members of an aggregate,
-> >      or fewer characters in a string literal used to initialize
-> >      an array of known size than there are elements in the array,
-> >      the remainder of the aggregate shall be initialized implicitly
-> >      the same as objects that have static storage duration."
-> > 
-> > So, in practice, it could zero the entire struct, but, if the
-> > first element is not an integer, it will produce warnings:
-> > 
-> > 	drivers/staging/media/sunxi/cedrus/cedrus.c:drivers/staging/media/sunxi/cedrus/cedrus.c:78:49:  warning: Using plain integer as NULL pointer
-> > 	drivers/staging/media/sunxi/cedrus/cedrus_dec.c:drivers/staging/media/sunxi/cedrus/cedrus_dec.c:29:35:  warning: Using plain integer as NULL pointer
-> > 
-> > As the right initialization would be, instead:
-> > 
-> > 	struct foo f = { NULL };  
-> 
-> Thanks for sharing these details, it's definitely interesting and good
-> to know :)
+On Fri 07 Dec 2018 at 12:38, Hans Verkuil wrote:
+> On 11/22/2018 04:18 PM, Rui Miguel Silva wrote:
+>> Refactor and move media device initialization code to a new 
+>> common
+>> module, so it can be used by other devices, this will allow for 
+>> example
+>> a near to introduce imx7 CSI driver, to use this media device.
+>> 
+>> Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+>> ---
+>>  drivers/staging/media/imx/Makefile            |   1 +
+>>  .../staging/media/imx/imx-media-dev-common.c  | 102 
+>>  ++++++++++++++++++
+>>  drivers/staging/media/imx/imx-media-dev.c     |  88 
+>>  ++++-----------
+>>  drivers/staging/media/imx/imx-media-of.c      |   6 +-
+>>  drivers/staging/media/imx/imx-media.h         |  15 +++
+>>  5 files changed, 141 insertions(+), 71 deletions(-)
+>>  create mode 100644 
+>>  drivers/staging/media/imx/imx-media-dev-common.c
+>> 
+>> diff --git a/drivers/staging/media/imx/Makefile 
+>> b/drivers/staging/media/imx/Makefile
+>> index 698a4210316e..a30b3033f9a3 100644
+>> --- a/drivers/staging/media/imx/Makefile
+>> +++ b/drivers/staging/media/imx/Makefile
+>> @@ -1,5 +1,6 @@
+>>  # SPDX-License-Identifier: GPL-2.0
+>>  imx-media-objs := imx-media-dev.o imx-media-internal-sd.o 
+>>  imx-media-of.o
+>> +imx-media-objs += imx-media-dev-common.o
+>>  imx-media-common-objs := imx-media-utils.o imx-media-fim.o
+>>  imx-media-ic-objs := imx-ic-common.o imx-ic-prp.o 
+>>  imx-ic-prpencvf.o
+>>  
+>> diff --git a/drivers/staging/media/imx/imx-media-dev-common.c 
+>> b/drivers/staging/media/imx/imx-media-dev-common.c
+>> new file mode 100644
+>> index 000000000000..55fe94fb72f2
+>> --- /dev/null
+>> +++ b/drivers/staging/media/imx/imx-media-dev-common.c
+>> @@ -0,0 +1,102 @@
+>> +// SPDX-License-Identifier: GPL
+>
+> This is an invalid SPDX license identifier. You probably want to 
+> use GPL-2.0.
 
-Yeah, that's something that was bothering for quite a while, as I've
-seen patches using either one of the ways. It took me a while to
-do some research, and having it documented at the patch helps, as
-we should now handle it the same way for similar stuff :-)
+hrr... you are right, I will update it here and others.
 
-> 
-> > Another way to initialize it with gcc is to use:
-> > 
-> > 	struct foo f = {};
-> > 
-> > That seems to be a gcc extension, but clang also does the right thing,
-> > and that's a clean way for doing it.
-> > 
-> > Anyway, I decided to check upstream what's the most commonly pattern.
-> > The "= {}" pattern has about 2000 entries:
-> > 
-> > 	$ git grep -E "=\s*\{\s*\}"|wc -l
-> > 	1951
-> > 
-> > The standard-C compliant pattern has about 2500 entries:
-> > 
-> > 	$ git grep -E "=\s*\{\s*NULL\s*\}"|wc -l
-> > 	137
-> > 	$ git grep -E "=\s*\{\s*0\s*\}"|wc -l
-> > 	2323
-> > 
-> > Meaning that developers have split options on that.
-> > 
-> > So, let's opt to the simpler form.  
-> 
-> Acked-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+---
+Cheers,
+	Rui
 
-Applied, thanks!
-
-> 
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-> > ---
-> >  drivers/staging/media/sunxi/cedrus/cedrus.c     | 2 +-
-> >  drivers/staging/media/sunxi/cedrus/cedrus_dec.c | 2 +-
-> >  2 files changed, 2 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/drivers/staging/media/sunxi/cedrus/cedrus.c b/drivers/staging/media/sunxi/cedrus/cedrus.c
-> > index b538eb0321d8..b7c918fa5fd1 100644
-> > --- a/drivers/staging/media/sunxi/cedrus/cedrus.c
-> > +++ b/drivers/staging/media/sunxi/cedrus/cedrus.c
-> > @@ -75,7 +75,7 @@ static int cedrus_init_ctrls(struct cedrus_dev *dev, struct cedrus_ctx *ctx)
-> >  	memset(ctx->ctrls, 0, ctrl_size);
-> >  
-> >  	for (i = 0; i < CEDRUS_CONTROLS_COUNT; i++) {
-> > -		struct v4l2_ctrl_config cfg = { 0 };
-> > +		struct v4l2_ctrl_config cfg = {};
-> >  
-> >  		cfg.elem_size = cedrus_controls[i].elem_size;
-> >  		cfg.id = cedrus_controls[i].id;
-> > diff --git a/drivers/staging/media/sunxi/cedrus/cedrus_dec.c b/drivers/staging/media/sunxi/cedrus/cedrus_dec.c
-> > index e40180a33951..f10c25f5460e 100644
-> > --- a/drivers/staging/media/sunxi/cedrus/cedrus_dec.c
-> > +++ b/drivers/staging/media/sunxi/cedrus/cedrus_dec.c
-> > @@ -26,7 +26,7 @@ void cedrus_device_run(void *priv)
-> >  {
-> >  	struct cedrus_ctx *ctx = priv;
-> >  	struct cedrus_dev *dev = ctx->dev;
-> > -	struct cedrus_run run = { 0 };
-> > +	struct cedrus_run run = {};
-> >  	struct media_request *src_req;
-> >  	unsigned long flags;
-> >    
-
-
-
-Thanks,
-Mauro
