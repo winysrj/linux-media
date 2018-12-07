@@ -3,142 +3,160 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	MAILING_LIST_MULTI,SPF_PASS autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5AF6C07E85
-	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 04:29:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8550FC64EB1
+	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 05:01:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 57E6B20838
-	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 04:29:07 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 57E6B20838
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=xs4all.nl
+	by mail.kernel.org (Postfix) with ESMTP id 4EF0F2082D
+	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 05:01:47 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 4EF0F2082D
+Authentication-Results: mail.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=ti.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725950AbeLGE3G (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 6 Dec 2018 23:29:06 -0500
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:59863 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725939AbeLGE3G (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 6 Dec 2018 23:29:06 -0500
-Received: from localhost ([IPv6:2001:983:e9a7:1:bcf8:aeeb:7df6:7044])
-        by smtp-cloud8.xs4all.net with ESMTPA
-        id V7l9ggANZO44XV7lAgXaYQ; Fri, 07 Dec 2018 05:29:05 +0100
-Message-ID: <a0232687fb93866252dda01426f24294@smtp-cloud8.xs4all.net>
-Date:   Fri, 07 Dec 2018 05:29:03 +0100
-From:   "Hans Verkuil" <hverkuil@xs4all.nl>
-To:     linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-X-CMAE-Envelope: MS4wfLrkaDwY44lp1t+LmDBhMEncTyu5H2ixhCcX6DqGmsRd7fSDqAeatNgBX1pkTCopF8fhlYsGHf5NLKDI9T7yogDevCNBcaAedCPAspVVYMu+r+cTBXWj
- bIX8H0iNgEKy/zIVH1/QeH8WyNscO+6QevY6WnLx0qrYkveWmo7wO+Z+5z9KkMBHJtAss45u+JepEzDzUCljoCUoKypahiITtjymQ79Z8dIgoEXNso6Htd8+
+        id S1725963AbeLGFBm (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 7 Dec 2018 00:01:42 -0500
+Received: from fllv0016.ext.ti.com ([198.47.19.142]:43312 "EHLO
+        fllv0016.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725939AbeLGFBl (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Dec 2018 00:01:41 -0500
+Received: from lelv0265.itg.ti.com ([10.180.67.224])
+        by fllv0016.ext.ti.com (8.15.2/8.15.2) with ESMTP id wB751AjC077225;
+        Thu, 6 Dec 2018 23:01:10 -0600
+Received: from DLEE102.ent.ti.com (dlee102.ent.ti.com [157.170.170.32])
+        by lelv0265.itg.ti.com (8.15.2/8.15.2) with ESMTPS id wB75195i107015
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Thu, 6 Dec 2018 23:01:09 -0600
+Received: from DLEE108.ent.ti.com (157.170.170.38) by DLEE102.ent.ti.com
+ (157.170.170.32) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1591.10; Thu, 6
+ Dec 2018 23:01:09 -0600
+Received: from dflp32.itg.ti.com (10.64.6.15) by DLEE108.ent.ti.com
+ (157.170.170.38) with Microsoft SMTP Server (version=TLS1_0,
+ cipher=TLS_RSA_WITH_AES_256_CBC_SHA) id 15.1.1591.10 via Frontend Transport;
+ Thu, 6 Dec 2018 23:01:09 -0600
+Received: from [172.24.190.233] (ileax41-snat.itg.ti.com [10.172.224.153])
+        by dflp32.itg.ti.com (8.14.3/8.13.8) with ESMTP id wB7515Jw020376;
+        Thu, 6 Dec 2018 23:01:05 -0600
+Subject: Re: [PATCH v2 0/9] phy: Add configuration interface for MIPI D-PHY
+ devices
+To:     Maxime Ripard <maxime.ripard@bootlin.com>,
+        Boris Brezillon <boris.brezillon@bootlin.com>
+CC:     Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        <linux-media@vger.kernel.org>,
+        Archit Taneja <architt@codeaurora.org>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Chen-Yu Tsai <wens@csie.org>, <linux-kernel@vger.kernel.org>,
+        <dri-devel@lists.freedesktop.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        Krzysztof Witos <kwitos@cadence.com>,
+        Rafal Ciepiela <rafalc@cadence.com>
+References: <cover.c2c2ae47383b9dbbdee6b69cafdd7391c06dde4f.1541516029.git-series.maxime.ripard@bootlin.com>
+From:   Kishon Vijay Abraham I <kishon@ti.com>
+Message-ID: <f149ff50-b158-ef35-bf86-26d6b38c8068@ti.com>
+Date:   Fri, 7 Dec 2018 10:30:55 +0530
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.2.1
+MIME-Version: 1.0
+In-Reply-To: <cover.c2c2ae47383b9dbbdee6b69cafdd7391c06dde4f.1541516029.git-series.maxime.ripard@bootlin.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-EXCLAIMER-MD-CONFIG: e1e8a2fd-e40a-4ac6-ac9b-f7e9cc9ee180
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Maxime,
 
-Results of the daily build of media_tree:
+On 06/11/18 8:24 PM, Maxime Ripard wrote:
+> Hi,
+> 
+> Here is a set of patches to allow the phy framework consumers to test and
+> apply runtime configurations.
+> 
+> This is needed to support more phy classes that require tuning based on
+> parameters depending on the current use case of the device, in addition to
+> the power state management already provided by the current functions.
+> 
+> A first test bed for that API are the MIPI D-PHY devices. There's a number
+> of solutions that have been used so far to support these phy, most of the
+> time being an ad-hoc driver in the consumer.
+> 
+> That approach has a big shortcoming though, which is that this is quite
+> difficult to deal with consumers integrated with multiple variants of phy,
+> of multiple consumers integrated with the same phy.
+> 
+> The latter case can be found in the Cadence DSI bridge, and the CSI
+> transceiver and receivers. All of them are integrated with the same phy, or
+> can be integrated with different phy, depending on the implementation.
+> 
+> I've looked at all the MIPI DSI drivers I could find, and gathered all the
+> parameters I could find. The interface should be complete, and most of the
+> drivers can be converted in the future. The current set converts two of
+> them: the above mentionned Cadence DSI driver so that the v4l2 drivers can
+> use them, and the Allwinner MIPI-DSI driver.
 
-date:			Fri Dec  7 05:00:15 CET 2018
-media-tree git hash:	3c28b91380dd1183347d32d87d820818031ebecf
-media_build git hash:	4b9237c73e29e2222a969f6a7b3d00030e14be50
-v4l-utils git hash:	7086a1ee8dda5ae34852379410432d259215ff5e
-edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.18.0-2-amd64
+Are you planning to send one more revision of this series after fixing the
+comments?
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: ERRORS
-linux-3.10.108-x86_64: ERRORS
-linux-3.11.10-i686: ERRORS
-linux-3.11.10-x86_64: ERRORS
-linux-3.12.74-i686: ERRORS
-linux-3.12.74-x86_64: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.79-i686: ERRORS
-linux-3.14.79-x86_64: ERRORS
-linux-3.15.10-i686: ERRORS
-linux-3.15.10-x86_64: ERRORS
-linux-3.16.57-i686: ERRORS
-linux-3.16.57-x86_64: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.123-i686: ERRORS
-linux-3.18.123-x86_64: ERRORS
-linux-3.19.8-i686: ERRORS
-linux-3.19.8-x86_64: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.52-i686: ERRORS
-linux-4.1.52-x86_64: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.159-i686: ERRORS
-linux-4.4.159-x86_64: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.10-i686: ERRORS
-linux-4.7.10-x86_64: ERRORS
-linux-4.8.17-i686: ERRORS
-linux-4.8.17-x86_64: ERRORS
-linux-4.9.131-i686: ERRORS
-linux-4.9.131-x86_64: ERRORS
-linux-4.10.17-i686: ERRORS
-linux-4.10.17-x86_64: ERRORS
-linux-4.11.12-i686: ERRORS
-linux-4.11.12-x86_64: ERRORS
-linux-4.12.14-i686: ERRORS
-linux-4.12.14-x86_64: ERRORS
-linux-4.13.16-i686: ERRORS
-linux-4.13.16-x86_64: ERRORS
-linux-4.14.74-i686: ERRORS
-linux-4.14.74-x86_64: ERRORS
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: OK
-linux-4.19.1-i686: OK
-linux-4.19.1-x86_64: OK
-linux-4.20-rc1-i686: OK
-linux-4.20-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Thanks
+Kishon
+> 
+> Let me know what you think,
+> Maxime
+> 
+> Changes from v1:
+>   - Rebased on top of 4.20-rc1
+>   - Removed the bus mode and timings parameters from the MIPI D-PHY
+>     parameters, since that shouldn't have any impact on the PHY itself.
+>   - Reworked the Cadence DSI and D-PHY drivers to take this into account.
+>   - Remove the mode parameter from phy_configure
+>   - Added phy_configure and phy_validate stubs
+>   - Return -EOPNOTSUPP in phy_configure and phy_validate when the operation
+>     is not implemented
+> 
+> Maxime Ripard (9):
+>   phy: Add MIPI D-PHY mode
+>   phy: Add configuration interface
+>   phy: Add MIPI D-PHY configuration options
+>   phy: dphy: Add configuration helpers
+>   sun6i: dsi: Convert to generic phy handling
+>   phy: Move Allwinner A31 D-PHY driver to drivers/phy/
+>   drm/bridge: cdns: Separate DSI and D-PHY configuration
+>   phy: Add Cadence D-PHY support
+>   drm/bridge: cdns: Convert to phy framework
+> 
+>  Documentation/devicetree/bindings/display/bridge/cdns,dsi.txt |  21 +-
+>  Documentation/devicetree/bindings/phy/cdns,dphy.txt           |  20 +-
+>  drivers/gpu/drm/bridge/cdns-dsi.c                             | 535 +------
+>  drivers/gpu/drm/sun4i/Kconfig                                 |   3 +-
+>  drivers/gpu/drm/sun4i/Makefile                                |   5 +-
+>  drivers/gpu/drm/sun4i/sun6i_mipi_dphy.c                       | 292 +----
+>  drivers/gpu/drm/sun4i/sun6i_mipi_dsi.c                        |  31 +-
+>  drivers/gpu/drm/sun4i/sun6i_mipi_dsi.h                        |  17 +-
+>  drivers/phy/Kconfig                                           |   8 +-
+>  drivers/phy/Makefile                                          |   1 +-
+>  drivers/phy/allwinner/Kconfig                                 |  12 +-
+>  drivers/phy/allwinner/Makefile                                |   1 +-
+>  drivers/phy/allwinner/phy-sun6i-mipi-dphy.c                   | 318 ++++-
+>  drivers/phy/cadence/Kconfig                                   |  13 +-
+>  drivers/phy/cadence/Makefile                                  |   1 +-
+>  drivers/phy/cadence/cdns-dphy.c                               | 459 ++++++-
+>  drivers/phy/phy-core-mipi-dphy.c                              | 160 ++-
+>  drivers/phy/phy-core.c                                        |  61 +-
+>  include/linux/phy/phy-mipi-dphy.h                             | 238 +++-
+>  include/linux/phy/phy.h                                       |  65 +-
+>  20 files changed, 1482 insertions(+), 779 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/phy/cdns,dphy.txt
+>  delete mode 100644 drivers/gpu/drm/sun4i/sun6i_mipi_dphy.c
+>  create mode 100644 drivers/phy/allwinner/phy-sun6i-mipi-dphy.c
+>  create mode 100644 drivers/phy/cadence/cdns-dphy.c
+>  create mode 100644 drivers/phy/phy-core-mipi-dphy.c
+>  create mode 100644 include/linux/phy/phy-mipi-dphy.h
+> 
+> base-commit: 651022382c7f8da46cb4872a545ee1da6d097d2a
+> 
