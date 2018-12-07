@@ -2,141 +2,193 @@ Return-Path: <SRS0=1NWX=OQ=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.7 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,FROM_EXCESS_BASE64,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F0466C07E85
-	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 11:43:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F1BF3C07E85
+	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 11:47:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B60F42083D
-	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 11:43:24 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="P7Z2bOQK"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org B60F42083D
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=gmail.com
+	by mail.kernel.org (Postfix) with ESMTP id 9EB842083D
+	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 11:47:30 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 9EB842083D
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=xs4all.nl
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726021AbeLGLnT (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 7 Dec 2018 06:43:19 -0500
-Received: from mail-lf1-f65.google.com ([209.85.167.65]:36443 "EHLO
-        mail-lf1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725987AbeLGLnS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Dec 2018 06:43:18 -0500
-Received: by mail-lf1-f65.google.com with SMTP id a16so2812710lfg.3;
-        Fri, 07 Dec 2018 03:43:17 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=ODQEtnuCJlRKrXxoW3vcIw2UtuLeOooXtxQ4nUHkzx0=;
-        b=P7Z2bOQKsbu0+25gJ4AbwnQodlagZ2k4ilQraww4TvAloSVpeAziS7rjTynV8QQE6n
-         wTB1U+sspWSm8Mm5dffMh/2WzRugZtquZTXiGJcWMLA+a2FCLvV73IInqjTIURsGKlfH
-         4dAVnxVpf5QYR5bwI3ziemZsvZA5WNGZJdZBfSLqW9127VlsgoXOgKGG0Fou2v+1TiZj
-         rL42Ah5Zd5vMLuWq3OlzxpZOtxMgsHXE7fyfADs7C/g2H88dWC8Z7vjDYLISE11irGbJ
-         dmQRq77zRM7VjdHTZQVW59XT1PttcW0651pLa/5BG5N68ahaZnj1ZCU5sqRasD5WS/Rc
-         KvFg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=ODQEtnuCJlRKrXxoW3vcIw2UtuLeOooXtxQ4nUHkzx0=;
-        b=TUitLIkAHMea/5rVPlA7nwSv71XEbtMcujCMSVI5gyE8RQWfQ6v43PmKWDPQjFOE0N
-         qZLd6VhPUBPabDng8KETPIaYR/qWfUXAOLuzSUv/6304ssPZXOBlMbDZzdO2Y55APoiu
-         A7qHQie7htvysL+Ib0O7jBk5T1x+P+Fv0bZNI2rKMRQiAFXFoTGx+r/+9f/lrYMJXymZ
-         In48QqL4itQj9nxv6Oo6YL1I0/bMkFeR9NN2IxZCWstaQQsEaorQ+GZvwvDEZzNLHJzM
-         Hfd+RKgeIbrSJnE+/mSOgpubzXUl3n6MtWs1DUfOmTJF/vktd7S5ewX9UAVvcL9j6+sH
-         BsyA==
-X-Gm-Message-State: AA+aEWZy66Nh4pIPVs3SGOVWkwz5UsEJ9eRWpzRF1GPO9E+7y629cc+6
-        DJPujdLvlTmZlqv1LkZ+cVw=
-X-Google-Smtp-Source: AFSGD/UoV6BSNAAK6fMSBsGXsyl0T7xoQ0CUkbTQPUQn0Hv6Uam1SdDWbuof4Vm56IBceMstfMUUiw==
-X-Received: by 2002:a19:4d8d:: with SMTP id a135mr1201523lfb.80.1544182996267;
-        Fri, 07 Dec 2018 03:43:16 -0800 (PST)
-Received: from acerlaptop.localnet ([2a02:a315:5445:5300:74d5:51ba:2673:f3f4])
-        by smtp.gmail.com with ESMTPSA id e13-v6sm528954ljk.53.2018.12.07.03.43.14
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Fri, 07 Dec 2018 03:43:15 -0800 (PST)
-From:   =?utf-8?B?UGF3ZcWC?= Chmiel <pawel.mikolaj.chmiel@gmail.com>
-To:     Hans Verkuil <hverkuil@xs4all.nl>
-Cc:     mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        fischerdouglasc@gmail.com, keescook@chromium.org,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        devicetree@vger.kernel.org
-Subject: Re: [PATCH 2/5] media: dt-bindings: Add binding for si470x radio
-Date:   Fri, 07 Dec 2018 12:43:14 +0100
-Message-ID: <2202435.V78jBJhvEB@acerlaptop>
-In-Reply-To: <2c8bb6ef-5f37-69ef-6829-a9e9ad04579b@xs4all.nl>
-References: <20181205154750.17996-1-pawel.mikolaj.chmiel@gmail.com> <20181205154750.17996-3-pawel.mikolaj.chmiel@gmail.com> <2c8bb6ef-5f37-69ef-6829-a9e9ad04579b@xs4all.nl>
+        id S1725999AbeLGLra (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 7 Dec 2018 06:47:30 -0500
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:56606 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725988AbeLGLra (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 7 Dec 2018 06:47:30 -0500
+Received: from [192.168.2.10] ([212.251.195.8])
+        by smtp-cloud7.xs4all.net with ESMTPA
+        id VEbMg6BPRgJOKVEbPgYd1K; Fri, 07 Dec 2018 12:47:27 +0100
+Subject: Re: [RFC PATCH] media/Kconfig: always enable MEDIA_CONTROLLER and
+ VIDEO_V4L2_SUBDEV_API
+To:     Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc:     Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>
+References: <89b0af6f-1371-50d9-5c19-fac7bb6562a3@xs4all.nl>
+ <20181207092655.40e89b88@coco.lan>
+From:   Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <0c25b853-048d-65c3-31fd-9adf9a4a9b9e@xs4all.nl>
+Date:   Fri, 7 Dec 2018 12:47:24 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:52.0) Gecko/20100101
+ Thunderbird/52.2.1
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <20181207092655.40e89b88@coco.lan>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-CMAE-Envelope: MS4wfBkmSujOW97EMPdIL+Awklw9lW8+4hg+uNjzy5OOO+stush9+pmfqc1WZa+ic0oaaUNc7CY2EDuXuw17gns4/19plBhOhEuOcNAgKO+qE2wa0Z2khpMb
+ EEbc/+L6fgsyQEy1uoBXIkzSd4FawzUI0+3W0hIsky7KARCPkrneWgkOIsrBqPyThGmyv0Yy8jVIH9e6ya9k/piSNln/aGl2xyDXxJBxHjfapsrfjIUTEHop
+ 6TQx7nP00lvGy5oI+64nIADueuPO8kvuvRMYeV7BP0GhicuCCYRj3xtMjCt0jURmnPD2OxcnEO9aXbvfRM3sOxHk/qKGRbXhbb++fzlEKIg=
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Dnia pi=C4=85tek, 7 grudnia 2018 12:33:10 CET Hans Verkuil pisze:
-> Please combine 2/5 with 5/5. No need to have two patches for these bindin=
-gs.
-I though that it will be better to separate patches which just adds devicet=
-ree support
-and those adding new functionality (reset), so for example if there is more=
- work needed on one of them,
-the second one can still be picked (devicetree one).
+On 12/07/2018 12:26 PM, Mauro Carvalho Chehab wrote:
+> Em Fri, 7 Dec 2018 10:09:04 +0100
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+>> This patch selects MEDIA_CONTROLLER for all camera, analog TV and
+>> digital TV drivers and selects VIDEO_V4L2_SUBDEV_API automatically.
+>>
+>> This will allow us to simplify drivers that currently have to add
+>> #ifdef CONFIG_MEDIA_CONTROLLER or #ifdef VIDEO_V4L2_SUBDEV_API
+>> to their code, since now this will always be available.
+>>
+>> The original intent of allowing these to be configured by the
+>> user was (I think) to save a bit of memory. 
+> 
+> No. The original intent was/is to be sure that adding the media
+> controller support won't be breaking existing working drivers.
 
-Ok will do this in next version of patchset.
-=20
->=20
-> Regards,
->=20
-> 	Hans
->=20
-> On 12/05/2018 04:47 PM, Pawe=C5=82 Chmiel wrote:
-> > Add device tree bindings for si470x family radio receiver driver.
-> >=20
-> > Signed-off-by: Pawe=C5=82 Chmiel <pawel.mikolaj.chmiel@gmail.com>
-> > ---
-> >  .../devicetree/bindings/media/si470x.txt      | 24 +++++++++++++++++++
-> >  1 file changed, 24 insertions(+)
-> >  create mode 100644 Documentation/devicetree/bindings/media/si470x.txt
-> >=20
-> > diff --git a/Documentation/devicetree/bindings/media/si470x.txt b/Docum=
-entation/devicetree/bindings/media/si470x.txt
-> > new file mode 100644
-> > index 000000000000..9294fdfd3aae
-> > --- /dev/null
-> > +++ b/Documentation/devicetree/bindings/media/si470x.txt
-> > @@ -0,0 +1,24 @@
-> > +* Silicon Labs FM Radio receiver
-> > +
-> > +The Silicon Labs Si470x is family of FM radio receivers with receive p=
-ower scan
-> > +supporting 76-108 MHz, programmable through an I2C interface.
-> > +Some of them includes an RDS encoder.
-> > +
-> > +Required Properties:
-> > +- compatible: Should contain "silabs,si470x"
-> > +- reg: the I2C address of the device
-> > +
-> > +Optional Properties:
-> > +- interrupts : The interrupt number
-> > +
-> > +Example:
-> > +
-> > +&i2c2 {
-> > +        si470x@63 {
-> > +                compatible =3D "silabs,si470x";
-> > +                reg =3D <0x63>;
-> > +
-> > +                interrupt-parent =3D <&gpj2>;
-> > +                interrupts =3D <4 IRQ_TYPE_EDGE_FALLING>;
-> > +        };
-> > +};
-> >=20
->=20
->=20
+That doesn't make sense. If enabling this option would break existing
+drivers, then something is really wrong, isn't it?
 
+> 
+>> But as more and more
+>> drivers have a media controller and all regular distros already
+>> enable one or more of those drivers, the memory for the MC code is
+>> there anyway.
+>>
+>> Complexity has always been the bane of media drivers, so reducing
+>> complexity at the expense of a bit more memory (which is a rounding
+>> error compared to the amount of video buffer memory needed) is IMHO
+>> a good thing.
+>>
+>> Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+>> ---
+>> diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
+>> index 8add62a18293..56eb01cc8bb4 100644
+>> --- a/drivers/media/Kconfig
+>> +++ b/drivers/media/Kconfig
+>> @@ -31,6 +31,7 @@ comment "Multimedia core support"
+>>  #
+>>  config MEDIA_CAMERA_SUPPORT
+>>  	bool "Cameras/video grabbers support"
+>> +	select MEDIA_CONTROLLER
+>>  	---help---
+>>  	  Enable support for webcams and video grabbers.
+>>
+>> @@ -38,6 +39,7 @@ config MEDIA_CAMERA_SUPPORT
+>>
+>>  config MEDIA_ANALOG_TV_SUPPORT
+>>  	bool "Analog TV support"
+>> +	select MEDIA_CONTROLLER
+>>  	---help---
+>>  	  Enable analog TV support.
+>>
+>> @@ -50,6 +52,7 @@ config MEDIA_ANALOG_TV_SUPPORT
+>>
+>>  config MEDIA_DIGITAL_TV_SUPPORT
+>>  	bool "Digital TV support"
+>> +	select MEDIA_CONTROLLER
+>>  	---help---
+>>  	  Enable digital TV support.
+> 
+> See my comments below.
+> 
+>>
+>> @@ -95,7 +98,6 @@ source "drivers/media/cec/Kconfig"
+>>
+>>  config MEDIA_CONTROLLER
+>>  	bool "Media Controller API"
+>> -	depends on MEDIA_CAMERA_SUPPORT || MEDIA_ANALOG_TV_SUPPORT || MEDIA_DIGITAL_TV_SUPPORT
+>>  	---help---
+>>  	  Enable the media controller API used to query media devices internal
+>>  	  topology and configure it dynamically.
+> 
+> I have split comments with regards to it. Yeah, nowadays media controller
+> has becoming more important. Still, a lot of media drivers work fine
+> without them.
+> 
+> Anyway, if we're willing to make it mandatory, better to just remove the
+> entire config option or to make it a silent one. 
 
+Well, that assumes that the media controller will only be used by media
+drivers, and not alsa or anyone else who wants to experiment with the MC.
 
+I won't object to making it silent (since it does reflect the current
+situation), but since this functionality is not actually specific to media
+drivers I think that is a good case to be made to allow it to be selected
+manually.
+
+> 
+>> @@ -119,16 +121,11 @@ config VIDEO_DEV
+>>  	tristate
+>>  	depends on MEDIA_SUPPORT
+>>  	depends on MEDIA_CAMERA_SUPPORT || MEDIA_ANALOG_TV_SUPPORT || MEDIA_RADIO_SUPPORT || MEDIA_SDR_SUPPORT
+>> +	select VIDEO_V4L2_SUBDEV_API if MEDIA_CONTROLLER
+>>  	default y
+>>
+>>  config VIDEO_V4L2_SUBDEV_API
+>> -	bool "V4L2 sub-device userspace API"
+>> -	depends on VIDEO_DEV && MEDIA_CONTROLLER
+>> -	---help---
+>> -	  Enables the V4L2 sub-device pad-level userspace API used to configure
+>> -	  video format, size and frame rate between hardware blocks.
+>> -
+>> -	  This API is mostly used by camera interfaces in embedded platforms.
+>> +	bool
+> 
+> NACK. 
+> 
+> There is a very good reason why the subdev API is optional: there
+> are drivers that use camera sensors but are not MC-centric. On those,
+> the USB bridge driver is responsible to setup the subdevice. 
+> 
+> This options helps to ensure that camera sensors used by such drivers
+> won't stop working because of the lack of the subdev-API.
+
+But they won't stop working if this is enabled. This option is used as
+a dependency by drivers that require this functionality, but enabling
+it will never break other drivers that don't need this. Those drivers
+simply won't use it.
+
+Also note that it is the bridge driver that controls whether or not
+the v4l-subdevX devices are created. If the bridge driver doesn't
+explicitly enable it AND the subdev driver explicitly supports it,
+those devices will not be created.
+
+Regards,
+
+	Hans
+
+> 
+>>
+>>  source "drivers/media/v4l2-core/Kconfig"
+>>
+> 
+> 
+> 
+> Thanks,
+> Mauro
+> 
 
