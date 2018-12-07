@@ -2,128 +2,179 @@ Return-Path: <SRS0=1NWX=OQ=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_NEOMUTT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D06D5C64EB1
-	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 09:09:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E7857C07E85
+	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 09:33:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A0F2C20882
-	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 09:09:44 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org A0F2C20882
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=bootlin.com
+	by mail.kernel.org (Postfix) with ESMTP id A413020838
+	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 09:33:20 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=linaro.org header.i=@linaro.org header.b="flVRg0VT"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org A413020838
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linaro.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725987AbeLGJJi (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 7 Dec 2018 04:09:38 -0500
-Received: from mail.bootlin.com ([62.4.15.54]:46455 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725966AbeLGJJi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 7 Dec 2018 04:09:38 -0500
-Received: by mail.bootlin.com (Postfix, from userid 110)
-        id 5831E20717; Fri,  7 Dec 2018 10:09:35 +0100 (CET)
-Received: from localhost (aaubervilliers-681-1-79-44.w90-88.abo.wanadoo.fr [90.88.21.44])
-        by mail.bootlin.com (Postfix) with ESMTPSA id 2AF3720510;
-        Fri,  7 Dec 2018 10:09:35 +0100 (CET)
-Date:   Fri, 7 Dec 2018 10:09:35 +0100
-From:   Maxime Ripard <maxime.ripard@bootlin.com>
-To:     Kishon Vijay Abraham I <kishon@ti.com>
-Cc:     Boris Brezillon <boris.brezillon@bootlin.com>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org,
-        Archit Taneja <architt@codeaurora.org>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Chen-Yu Tsai <wens@csie.org>, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        linux-arm-kernel@lists.infradead.org,
-        Krzysztof Witos <kwitos@cadence.com>,
-        Rafal Ciepiela <rafalc@cadence.com>
-Subject: Re: [PATCH v2 0/9] phy: Add configuration interface for MIPI D-PHY
- devices
-Message-ID: <20181207090935.xw5oonoe7od7hmkq@flea>
-References: <cover.c2c2ae47383b9dbbdee6b69cafdd7391c06dde4f.1541516029.git-series.maxime.ripard@bootlin.com>
- <f149ff50-b158-ef35-bf86-26d6b38c8068@ti.com>
+        id S1726088AbeLGJdP (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 7 Dec 2018 04:33:15 -0500
+Received: from mail-wm1-f67.google.com ([209.85.128.67]:39656 "EHLO
+        mail-wm1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725989AbeLGJdO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Dec 2018 04:33:14 -0500
+Received: by mail-wm1-f67.google.com with SMTP id f81so3780560wmd.4
+        for <linux-media@vger.kernel.org>; Fri, 07 Dec 2018 01:33:13 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=subject:to:cc:references:from:message-id:date:user-agent
+         :mime-version:in-reply-to:content-language:content-transfer-encoding;
+        bh=eMnf6ldCLzSIFExqElBpBbrF0a80ehzcW+zL1qWkQFI=;
+        b=flVRg0VT8rf773axgJskOt6mEUkNuIav3OWtUev+VR6+9kCUHhD3g3pj0/HTPpnT3z
+         bBhTTWDmGD5vM9g2SvRc1ZoQfTrTf92V4niKulYBCp7xqRVQ2IH3L2zlAcpCB/Y8j/V3
+         AiIv7yEWETnT1S3aSofPvO3rg11PapadoELmQ=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=eMnf6ldCLzSIFExqElBpBbrF0a80ehzcW+zL1qWkQFI=;
+        b=cLT32PfEYOal1JosT7pOZLnBnGvH8DshGqRifqdpUJdYPAah2hshn6hn0b7k2cvTC9
+         QnXfeqwYlguoeXmgYQvKzMUT1J2DeZmM/l0rtTgfiW5n4CUmSXqAlS3vuRGV6PybcdFL
+         ZIt2Kzt14s6PWfnhUBIXHPyKSwDDtRGJQJLYHtKvpHXuqyr3u2ltfm7ypfByUHC+laig
+         4wsx4NdIlaxsDA93VA4HMgsXxOyul3nC7jotm28q/R3jPe5yszp1iIheZOAhxZ+notj3
+         bUxC72JkoxlV0bgPTiDzzWFZ7hXIq642gw/QKChyMRLhnhVNWDVYQZhxfhVHJJkVU747
+         nyqQ==
+X-Gm-Message-State: AA+aEWZv+bsJ8vCtUl3G12w+J/3i0I2JpdZQGlUsB6cXE75ld3yScZAw
+        ybtAjw7lUg2Up5J5+7RtdAmiIA==
+X-Google-Smtp-Source: AFSGD/V8LYViCHAWSFzE+x9aAPgqaVHDnxTvmIm+FgCPVAuapeKQs8FRRTpoXcQsMPx9wkPNtG8gNQ==
+X-Received: by 2002:a1c:b94b:: with SMTP id j72mr1534084wmf.11.1544175192459;
+        Fri, 07 Dec 2018 01:33:12 -0800 (PST)
+Received: from [192.168.27.209] ([37.157.136.206])
+        by smtp.googlemail.com with ESMTPSA id z12sm3528581wrh.35.2018.12.07.01.33.09
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 07 Dec 2018 01:33:11 -0800 (PST)
+Subject: Re: [PATCH v3] media: venus: add support for key frame
+To:     Tomasz Figa <tfiga@chromium.org>, mgottam@codeaurora.org
+Cc:     Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        vgarodia@codeaurora.org
+References: <1541163476-23249-1-git-send-email-mgottam@codeaurora.org>
+ <CAAFQd5D=hNdkEovonE6GOaYvq9dBbQwSZ=95V9a80e-sLp7cYg@mail.gmail.com>
+ <4767b56f-420b-dc0c-0ae9-44dbf6dcd0b1@linaro.org>
+ <6d765e0d7d6b873e087a3db823cb1b29@codeaurora.org>
+ <CAAFQd5Ask-mw+uEE0OAEabjaAAYcJyCeexaofOAg1bp2NtvpKA@mail.gmail.com>
+From:   Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Message-ID: <0e0cef43-0747-295f-0eef-3e52dc538523@linaro.org>
+Date:   Fri, 7 Dec 2018 11:33:03 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.2.1
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="troqpcfqchs4wkuw"
-Content-Disposition: inline
-In-Reply-To: <f149ff50-b158-ef35-bf86-26d6b38c8068@ti.com>
-User-Agent: NeoMutt/20180716
+In-Reply-To: <CAAFQd5Ask-mw+uEE0OAEabjaAAYcJyCeexaofOAg1bp2NtvpKA@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
+Hi Hans,
 
---troqpcfqchs4wkuw
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 11/29/18 9:40 PM, Tomasz Figa wrote:
+> On Thu, Nov 29, 2018 at 3:10 AM <mgottam@codeaurora.org> wrote:
+>>
+>>
+>> Hi Stan,
+>>
+>> On 2018-11-29 16:01, Stanimir Varbanov wrote:
+>>> Hi Tomasz,
+>>>
+>>> On 11/3/18 5:01 AM, Tomasz Figa wrote:
+>>>> Hi Malathi,
+>>>>
+>>>> On Fri, Nov 2, 2018 at 9:58 PM Malathi Gottam <mgottam@codeaurora.org>
+>>>> wrote:
+>>>>>
+>>>>> When client requests for a keyframe, set the property
+>>>>> to hardware to generate the sync frame.
+>>>>>
+>>>>> Signed-off-by: Malathi Gottam <mgottam@codeaurora.org>
+>>>>> ---
+>>>>>  drivers/media/platform/qcom/venus/venc_ctrls.c | 20
+>>>>> +++++++++++++++++++-
+>>>>>  1 file changed, 19 insertions(+), 1 deletion(-)
+>>>>>
+>>>>> diff --git a/drivers/media/platform/qcom/venus/venc_ctrls.c
+>>>>> b/drivers/media/platform/qcom/venus/venc_ctrls.c
+>>>>> index 45910172..59fe7fc 100644
+>>>>> --- a/drivers/media/platform/qcom/venus/venc_ctrls.c
+>>>>> +++ b/drivers/media/platform/qcom/venus/venc_ctrls.c
+>>>>> @@ -79,8 +79,10 @@ static int venc_op_s_ctrl(struct v4l2_ctrl *ctrl)
+>>>>>  {
+>>>>>         struct venus_inst *inst = ctrl_to_inst(ctrl);
+>>>>>         struct venc_controls *ctr = &inst->controls.enc;
+>>>>> +       struct hfi_enable en = { .enable = 1 };
+>>>>>         u32 bframes;
+>>>>>         int ret;
+>>>>> +       u32 ptype;
+>>>>>
+>>>>>         switch (ctrl->id) {
+>>>>>         case V4L2_CID_MPEG_VIDEO_BITRATE_MODE:
+>>>>> @@ -173,6 +175,19 @@ static int venc_op_s_ctrl(struct v4l2_ctrl
+>>>>> *ctrl)
+>>>>>
+>>>>>                 ctr->num_b_frames = bframes;
+>>>>>                 break;
+>>>>> +       case V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME:
+>>>>> +               mutex_lock(&inst->lock);
+>>>>> +               if (inst->streamon_out && inst->streamon_cap) {
+>>>>
+>>>> We had a discussion on this in v2. I don't remember seeing any
+>>>> conclusion.
+>>>>
+>>>> Obviously the hardware should generate a keyframe naturally when the
+>>>> CAPTURE streaming starts, which is where the encoding starts, but the
+>>>> state of the OUTPUT queue should not affect this.
+>>>>
+>>>> The application is free to stop and start streaming on the OUTPUT
+>>>> queue as it goes and it shouldn't imply any side effects in the
+>>>> encoded bitstream (e.g. a keyframe inserted). So:
+>>>> - a sequence of STREAMOFF(OUTPUT),
+>>>> S_CTRL(V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME), STREAMON(OUTPUT) should
+>>>> explicitly generate a keyframe,
+>>>
+>>> I agree with you, but presently we don't follow strictly the stateful
+>>> encoder spec. In this spirit I think proposed patch is applicable to
+>>> the
+>>> current state of the encoder driver, and your comment should be
+>>> addressed in the follow-up patches where we have to re-factor a bit
+>>> start/stop_streaming according to the encoder documentation.
+>>>
+>>> But until then we have to get that patch.
+>>
+>> So I can see that this patch is good implementation of forcing sync
+>> frame
+>> under current encoder state.
+>>
+>> Can you please ack the same.
+> 
+> Okay, assuming that when you start streaming you naturally get a
+> keyframe, I'm okay with this patch, since it actually fixes the
+> missing key frame request, so from the general encoder interface point
+> of view:
+> 
+> Acked-by: Tomasz Figa <tfiga@chromium.org>
 
-On Fri, Dec 07, 2018 at 10:30:55AM +0530, Kishon Vijay Abraham I wrote:
-> Maxime,
->=20
-> On 06/11/18 8:24 PM, Maxime Ripard wrote:
-> > Hi,
-> >=20
-> > Here is a set of patches to allow the phy framework consumers to test a=
-nd
-> > apply runtime configurations.
-> >=20
-> > This is needed to support more phy classes that require tuning based on
-> > parameters depending on the current use case of the device, in addition=
- to
-> > the power state management already provided by the current functions.
-> >=20
-> > A first test bed for that API are the MIPI D-PHY devices. There's a num=
-ber
-> > of solutions that have been used so far to support these phy, most of t=
-he
-> > time being an ad-hoc driver in the consumer.
-> >=20
-> > That approach has a big shortcoming though, which is that this is quite
-> > difficult to deal with consumers integrated with multiple variants of p=
-hy,
-> > of multiple consumers integrated with the same phy.
-> >=20
-> > The latter case can be found in the Cadence DSI bridge, and the CSI
-> > transceiver and receivers. All of them are integrated with the same phy=
-, or
-> > can be integrated with different phy, depending on the implementation.
-> >=20
-> > I've looked at all the MIPI DSI drivers I could find, and gathered all =
-the
-> > parameters I could find. The interface should be complete, and most of =
-the
-> > drivers can be converted in the future. The current set converts two of
-> > them: the above mentionned Cadence DSI driver so that the v4l2 drivers =
-can
-> > use them, and the Allwinner MIPI-DSI driver.
->=20
-> Are you planning to send one more revision of this series after fixing the
-> comments?
+Thanks Tomasz!
 
-I'll send a new version today.
+Acked-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 
-Thanks!
-Maxime
-
---=20
-Maxime Ripard, Bootlin
-Embedded Linux and Kernel engineering
-https://bootlin.com
-
---troqpcfqchs4wkuw
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iHUEABYIAB0WIQRcEzekXsqa64kGDp7j7w1vZxhRxQUCXAo4zwAKCRDj7w1vZxhR
-xbdOAQCILMy+JAxd6RYgHspolG6rz2rl0icJwBXZiKs8fE/kMwD/ch79eAPk78lF
-sYujEN+9EIEfzYtOZi8/7VZdxA9JKwU=
-=vt2O
------END PGP SIGNATURE-----
-
---troqpcfqchs4wkuw--
+-- 
+regards,
+Stan
