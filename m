@@ -2,155 +2,173 @@ Return-Path: <SRS0=1NWX=OQ=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
+	T_DKIMWL_WL_HIGH,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 71C24C07E85
-	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 13:40:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C2F3C64EB1
+	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 13:42:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 35447208E7
-	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 13:40:17 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="G/t9Px1j"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 35447208E7
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=gmail.com
+	by mail.kernel.org (Postfix) with ESMTP id 3122E208E7
+	for <linux-media@archiver.kernel.org>; Fri,  7 Dec 2018 13:42:00 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1544190120;
+	bh=OdV6Mox6x1Zrs+2AO7gMKp0TjuOZMzLKEqBr7wePiJ0=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
+	b=l9QK19kOoEWIybqPN7GkdQgAEqb4rBFG8SW11tL+dLIZAvv9h+JnhFaKjW2f5j2hB
+	 Qi3DMWrLmQvQ0mXFIBg6PCssfvrsBgKQ/iPzh9BLtRURqhFwE8UUt6CLuR5YXLpCd1
+	 dC08Hr22yq7gOTymXRQ2jzeUi2LwNHL1U3h9lOi4=
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 3122E208E7
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726057AbeLGNkI (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 7 Dec 2018 08:40:08 -0500
-Received: from mail-it1-f195.google.com ([209.85.166.195]:56138 "EHLO
-        mail-it1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725997AbeLGNkI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Dec 2018 08:40:08 -0500
-Received: by mail-it1-f195.google.com with SMTP id o19so6846761itg.5;
-        Fri, 07 Dec 2018 05:40:06 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=QZXOxCmXChwQnEIdXhUUmnLs50L3mvTVM/iVgJWrrCM=;
-        b=G/t9Px1j0jXrR3MzTgIZSl56sw48OTkb7wwT4NJK1HgP9mMfek2XH8LyteYPPDm9nG
-         i+kDA/BD7XgeAB5qBc2Uj6vR1uBOZVhfcdzJwSri8/byDDx1t4SXqetF0vAxBzMnbKme
-         ry5Mya85zw1isLLie2MmFI+QPpGYZVepvMFVQpHD0zezwZFCPuN4kZFYWZpLd6TxTnLE
-         +a2N2iy5SmEIhP/oG478K4vcYuvAO/xrpga2QLx0a8gWobxvoTn05LMHaCLojLIy1iiQ
-         28jtPKT6d2GKGFeXSEV72WA9lZZQJ2ZE41n1bBb0oaDz4PCP5LJ9XG/UoFOwy9WB+Pg+
-         3ZJA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=QZXOxCmXChwQnEIdXhUUmnLs50L3mvTVM/iVgJWrrCM=;
-        b=DHTUHNDrGVQ4c4LCceTKpyc5msVkkUvHTGHbXOkrGeCLBXYCzd4UKUqWZNKKfWWZNy
-         tNR8x17QCTeKYmtjRTHYtLjl2DrT5qI9SBaeuls3MgAROpUegSSQRB58Ps/3CDE33uqJ
-         fPZwmUU8q+3UWDM7tykkOKF5zN1E/rMtzZ0DprkLjtoa21Hj5q24JLPw5tZ4O2V6U5Cr
-         EiTOulZfspHNQUjf/xB+/4862sagatnVtRvES7tPOaO8QcU0BiZ3jwLqvCl4J0b/8Z5J
-         LE34rZQP3pBTRiLG0kalWBCwv9TPovzDXYaKanKCwl1ocqE5hf1NtgX7xCsBu8oE7EJn
-         74PA==
-X-Gm-Message-State: AA+aEWaAAO31g2Dm0v9J6ZrJYxqTWm6QnLedACiTXsaPqDlXeeXL8OuX
-        rtfTMq/XPEelBytZ+uP64mGTJglxsoCIDzIfwDI=
-X-Google-Smtp-Source: AFSGD/XbOHW/zXOhA4bdEgg20HUHD0DtMFmBjzHois75dVpzcZAIuER3IN3Ri1068cAo7NanWHWDGr+Q3FjjtCIyzBA=
-X-Received: by 2002:a02:3f0b:: with SMTP id d11mr1899652jaa.26.1544190005869;
- Fri, 07 Dec 2018 05:40:05 -0800 (PST)
+        id S1726088AbeLGNl7 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 7 Dec 2018 08:41:59 -0500
+Received: from casper.infradead.org ([85.118.1.10]:57982 "EHLO
+        casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725989AbeLGNl6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Dec 2018 08:41:58 -0500
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
+        MIME-Version:References:In-Reply-To:Message-ID:Subject:Cc:To:From:Date:Sender
+        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
+        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+        bh=4tMBBj+0C+iJd2F6ACxvnEgAwII0WaYiOyCUwY8ub5U=; b=TNNk0N6H80YctNJDGeaUH+Qyk/
+        j3Yj6H5Tnpldcy1Ck6KtIHE2i9jdN5RTYFFD7xKYLKFB3o7H/M+VP6UhBc5fofoTFNImGhQNPToj6
+        WfBYdUfjjrb5xSRvIYYWw+S+yCExBLxsvaBakXPYEkSMQ4UWfJwF5bU6YDUGqYglFdysNgz64uyXo
+        /8GDIyw87mhdkW2YSrQRTVpCpf3krYJbKRWH8F9LterzHL+EDJduS1ujU5hYN66djZOXlapE8rCbj
+        ief8Dd22vHwE0+tVdQu8IuYwlQHULsdJFARmusS+icwNs4uCvszP8yTI01Fo/jXpeTZnFAlpShm5K
+        Bvl3areQ==;
+Received: from [179.95.33.236] (helo=coco.lan)
+        by casper.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
+        id 1gVGOC-0002Oy-2z; Fri, 07 Dec 2018 13:41:56 +0000
+Date:   Fri, 7 Dec 2018 11:41:50 -0200
+From:   Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To:     Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+Cc:     Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Chen-Yu Tsai <wens@csie.org>, devel@driverdev.osuosl.org,
+        linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH v2] media: cedrus: don't initialize pointers with zero
+Message-ID: <20181207114150.2dc93fb6@coco.lan>
+In-Reply-To: <c426c7ea8159349f3cc23bf7d65d2c24f2ade00e.camel@bootlin.com>
+References: <9db60f061d1c577f14136f81af641f58bccbead3.1544187795.git.mchehab+samsung@kernel.org>
+        <c426c7ea8159349f3cc23bf7d65d2c24f2ade00e.camel@bootlin.com>
+X-Mailer: Claws Mail 3.16.0 (GTK+ 2.24.32; x86_64-redhat-linux-gnu)
 MIME-Version: 1.0
-References: <20181130192737.15053-1-jarkko.sakkinen@linux.intel.com>
- <CAGXu5j+jBNBsD3pvUSfEh6Lc5T1YMpbM0HeG1c6BHiJe+cKVOQ@mail.gmail.com>
- <20181130195652.7syqys76646kpaph@linux-r8p5> <20181130205521.GA21006@linux.intel.com>
- <1543611662.3031.20.camel@HansenPartnership.com> <20181130214405.GG23772@linux.intel.com>
- <1543615069.3031.27.camel@HansenPartnership.com> <20181130221219.GA25537@linux.intel.com>
- <20181130151459.3ca2f5c8@lwn.net> <CAMuHMdUkpLWm5NZmYj=uMgVncw6ZOb7j9KxFoDGhrnr7vzpx_w@mail.gmail.com>
-In-Reply-To: <CAMuHMdUkpLWm5NZmYj=uMgVncw6ZOb7j9KxFoDGhrnr7vzpx_w@mail.gmail.com>
-From:   Eric Curtin <ericcurtin17@gmail.com>
-Date:   Fri, 7 Dec 2018 13:39:54 +0000
-Message-ID: <CANpvso4ZjJkUA7+saYRR4qssvreZcm-74EPo3nrGSohFZF9akA@mail.gmail.com>
-Subject: Re: [PATCH RFC 00/15] Zero ****s, hugload of hugs <3
-To:     geert@linux-m68k.org
-Cc:     corbet@lwn.net, jarkko.sakkinen@linux.intel.com,
-        James.Bottomley@hansenpartnership.com, dave@stgolabs.net,
-        keescook@chromium.org,
-        Kernel development list <linux-kernel@vger.kernel.org>,
-        amir73il@gmail.com, akpm@linux-foundation.org,
-        andriy.shevchenko@linux.intel.com, dja@axtens.net,
-        davem@davemloft.net, linux@dominikbrodowski.net,
-        dri-devel@lists.freedesktop.org, edumazet@google.com,
-        federico.vaga@vaga.pv.it, geert+renesas@glider.be, deller@gmx.de,
-        kumba@gentoo.org, linux-doc@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, linux-ide@vger.kernel.org,
-        linux-m68k@lists.linux-m68k.org, linux-media@vger.kernel.org,
-        linux-mips@linux-mips.org, linux-mtd@lists.infradead.org,
-        linux-parisc@vger.kernel.org, linux-pm@vger.kernel.org,
-        linux-scsi@vger.kernel.org, matthias.bgg@gmail.com,
-        netdev@vger.kernel.org, nouveau@lists.freedesktop.org,
-        pabeni@redhat.com, paul.burton@mips.com, pmladek@suse.com,
-        robh@kernel.org, sean.wang@mediatek.com,
-        sergey.senozhatsky@gmail.com, shannon.nelson@oracle.com,
-        sbrivio@redhat.com, rostedt@goodmis.org, me@tobin.cc,
-        makita.toshiaki@lab.ntt.co.jp, willemb@google.com, yhs@fb.com,
-        yanjun.zhu@oracle.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Guys,
+Em Fri, 07 Dec 2018 14:21:44 +0100
+Paul Kocialkowski <paul.kocialkowski@bootlin.com> escreveu:
 
-I initially thought these patches were a joke. But I guess they are
-not. I suppose 2018 is the year everything became offensive.
+> Hi,
+> 
+> On Fri, 2018-12-07 at 08:03 -0500, Mauro Carvalho Chehab wrote:
+> > A common mistake is to assume that initializing a var with:
+> > 	struct foo f = { 0 };
+> > 
+> > Would initialize a zeroed struct. Actually, what this does is
+> > to initialize the first element of the struct to zero.
+> > 
+> > According to C99 Standard 6.7.8.21:
+> > 
+> >     "If there are fewer initializers in a brace-enclosed
+> >      list than there are elements or members of an aggregate,
+> >      or fewer characters in a string literal used to initialize
+> >      an array of known size than there are elements in the array,
+> >      the remainder of the aggregate shall be initialized implicitly
+> >      the same as objects that have static storage duration."
+> > 
+> > So, in practice, it could zero the entire struct, but, if the
+> > first element is not an integer, it will produce warnings:
+> > 
+> > 	drivers/staging/media/sunxi/cedrus/cedrus.c:drivers/staging/media/sunxi/cedrus/cedrus.c:78:49:  warning: Using plain integer as NULL pointer
+> > 	drivers/staging/media/sunxi/cedrus/cedrus_dec.c:drivers/staging/media/sunxi/cedrus/cedrus_dec.c:29:35:  warning: Using plain integer as NULL pointer
+> > 
+> > As the right initialization would be, instead:
+> > 
+> > 	struct foo f = { NULL };  
+> 
+> Thanks for sharing these details, it's definitely interesting and good
+> to know :)
 
-Could we avoid the s/fuck/hug/g though? I have nothing against
-re-wording this stuff to remove the curse word, but it should at least
-make sense.
+Yeah, that's something that was bothering for quite a while, as I've
+seen patches using either one of the ways. It took me a while to
+do some research, and having it documented at the patch helps, as
+we should now handle it the same way for similar stuff :-)
 
-What's going to happen is someone is a newbie is going to see a comment
-like "We found an mark in the idr at the right wd, but it's not the
-mark we were told to remove. eparis seriously hugged up somewhere",
-probably google the term as they are unfamiliar with it, find out it's
-an alias for "fucked" and if they are sensitive get offended anyway.
+> 
+> > Another way to initialize it with gcc is to use:
+> > 
+> > 	struct foo f = {};
+> > 
+> > That seems to be a gcc extension, but clang also does the right thing,
+> > and that's a clean way for doing it.
+> > 
+> > Anyway, I decided to check upstream what's the most commonly pattern.
+> > The "= {}" pattern has about 2000 entries:
+> > 
+> > 	$ git grep -E "=\s*\{\s*\}"|wc -l
+> > 	1951
+> > 
+> > The standard-C compliant pattern has about 2500 entries:
+> > 
+> > 	$ git grep -E "=\s*\{\s*NULL\s*\}"|wc -l
+> > 	137
+> > 	$ git grep -E "=\s*\{\s*0\s*\}"|wc -l
+> > 	2323
+> > 
+> > Meaning that developers have split options on that.
+> > 
+> > So, let's opt to the simpler form.  
+> 
+> Acked-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 
-On Sat, 1 Dec 2018 at 08:20, Geert Uytterhoeven <geert@linux-m68k.org> wrote:
->
-> Hi Jon,
->
-> On Fri, Nov 30, 2018 at 11:15 PM Jonathan Corbet <corbet@lwn.net> wrote:
-> > On Fri, 30 Nov 2018 14:12:19 -0800
-> > Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com> wrote:
-> >
-> > > As a maintainer myself (and based on somewhat disturbed feedback from
-> > > other maintainers) I can only make the conclusion that nobody knows what
-> > > the responsibility part here means.
-> > >
-> > > I would interpret, if I read it like at lawyer at least, that even for
-> > > existing code you would need to do the changes postmorterm.
-> > >
-> > > Is this wrong interpretation?  Should I conclude that I made a mistake
-> > > by reading the CoC and trying to understand what it *actually* says?
-> > > After this discussion, I can say that I understand it less than before.
-> >
-> > Have you read Documentation/process/code-of-conduct-interpretation.rst?
-> > As has been pointed out, it contains a clear answer to how things should
-> > be interpreted here.
->
-> Indeed:
->
-> | Contributions submitted for the kernel should use appropriate language.
-> | Content that already exists predating the Code of Conduct will not be
-> | addressed now as a violation.
->
-> However:
->
-> | Inappropriate language can be seen as a
-> | bug, though; such bugs will be fixed more quickly if any interested
-> | parties submit patches to that effect.
->
-> Gr{oetje,eeting}s,
->
->                         Geert
->
-> --
-> Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
->
-> In personal conversations with technical people, I call myself a hacker. But
-> when I'm talking to journalists I just say "programmer" or something like that.
->                                 -- Linus Torvalds
+Applied, thanks!
+
+> 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+> > ---
+> >  drivers/staging/media/sunxi/cedrus/cedrus.c     | 2 +-
+> >  drivers/staging/media/sunxi/cedrus/cedrus_dec.c | 2 +-
+> >  2 files changed, 2 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/drivers/staging/media/sunxi/cedrus/cedrus.c b/drivers/staging/media/sunxi/cedrus/cedrus.c
+> > index b538eb0321d8..b7c918fa5fd1 100644
+> > --- a/drivers/staging/media/sunxi/cedrus/cedrus.c
+> > +++ b/drivers/staging/media/sunxi/cedrus/cedrus.c
+> > @@ -75,7 +75,7 @@ static int cedrus_init_ctrls(struct cedrus_dev *dev, struct cedrus_ctx *ctx)
+> >  	memset(ctx->ctrls, 0, ctrl_size);
+> >  
+> >  	for (i = 0; i < CEDRUS_CONTROLS_COUNT; i++) {
+> > -		struct v4l2_ctrl_config cfg = { 0 };
+> > +		struct v4l2_ctrl_config cfg = {};
+> >  
+> >  		cfg.elem_size = cedrus_controls[i].elem_size;
+> >  		cfg.id = cedrus_controls[i].id;
+> > diff --git a/drivers/staging/media/sunxi/cedrus/cedrus_dec.c b/drivers/staging/media/sunxi/cedrus/cedrus_dec.c
+> > index e40180a33951..f10c25f5460e 100644
+> > --- a/drivers/staging/media/sunxi/cedrus/cedrus_dec.c
+> > +++ b/drivers/staging/media/sunxi/cedrus/cedrus_dec.c
+> > @@ -26,7 +26,7 @@ void cedrus_device_run(void *priv)
+> >  {
+> >  	struct cedrus_ctx *ctx = priv;
+> >  	struct cedrus_dev *dev = ctx->dev;
+> > -	struct cedrus_run run = { 0 };
+> > +	struct cedrus_run run = {};
+> >  	struct media_request *src_req;
+> >  	unsigned long flags;
+> >    
+
+
+
+Thanks,
+Mauro
