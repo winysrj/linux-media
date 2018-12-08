@@ -4,40 +4,40 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-8.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9EFC4C04EB8
-	for <linux-media@archiver.kernel.org>; Sat,  8 Dec 2018 17:41:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 564A7C67839
+	for <linux-media@archiver.kernel.org>; Sat,  8 Dec 2018 17:41:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 539912082D
-	for <linux-media@archiver.kernel.org>; Sat,  8 Dec 2018 17:41:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 10CE22082D
+	for <linux-media@archiver.kernel.org>; Sat,  8 Dec 2018 17:41:35 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="XMfu6/L0"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 539912082D
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="ZhhS/IKe"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 10CE22082D
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=lst.de
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726267AbeLHRla (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sat, 8 Dec 2018 12:41:30 -0500
-Received: from bombadil.infradead.org ([198.137.202.133]:59742 "EHLO
+        id S1726238AbeLHRle (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sat, 8 Dec 2018 12:41:34 -0500
+Received: from bombadil.infradead.org ([198.137.202.133]:59532 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726202AbeLHRl3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 8 Dec 2018 12:41:29 -0500
+        with ESMTP id S1726203AbeLHRl1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 8 Dec 2018 12:41:27 -0500
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=bombadil.20170209; h=Content-Transfer-Encoding:
         MIME-Version:References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender
         :Reply-To:Content-Type:Content-ID:Content-Description:Resent-Date:Resent-From
         :Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
         List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=C9+f+sTZKVaaesLrcg+Cvm1V/YhZblchgVdOQkYRC2w=; b=XMfu6/L06ylsjt2lcONiN6fRPR
-        0lW1iBvN4VEIYj3vmgeSjoDVMDkMAOYUJA0U1BDaNjFhTRJabs7x9HqFvUCkdl9dtimQMainbBFYf
-        /tId001+UDoSKEI8XkrlHEb/ZOWC4ojs/hnCsbc2jCwV1dwLD6DIWUKzDax9Liv0IUmzSaTf98dud
-        dwukQGYiVNFTbbCS7fqlRXzzWUZCRlaseVxnOAizzv0gGmTsybB0s3YGry/tmYdwUwNR5Qjf1eCk1
-        BTmlT6LzPhswVbFGeF9ybv+jsbv4B+xVsCLyvUwGMVl8ls9Il/3KgrgPFMbDDNxWsEwbmDafuQ0YC
-        IA0yxrsw==;
+        bh=HWl3tmq+6mRU3BJi/Tj3ZbJzsWwA8iOoYnJdq8X2jeY=; b=ZhhS/IKe4ZbuxeLvUwojeWqxMt
+        M1dBuhYaTxyTmi3WiLXzkXLcahcgNhMqATENKWtTQCrXiXfC+ZkOgB+R1S9PzZZXKvU28PXAz8VyH
+        Qa0cWL46f+f3sOAMgbATKu/Pt5vDYLsgplHRRtMoUQDMJVDsJMRaLlHkKOskHo7lJkxtU0fTicHjz
+        npZSm6RG1otbk3Wib/3hSKr7De9KwNRejTUCswCb4fF9XSZVk9I8UoBgQu2R7e4bDJmGpnYx2pi9m
+        I1kYJe8d3f5eWmWewQ3VbXDi3RLbsiDVayyRh2ZHFvdX2cB91m2oW/yszr2K0MvHFWo8I1y5DHVaq
+        BjFkVVgw==;
 Received: from [184.48.100.57] (helo=localhost)
         by bombadil.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
-        id 1gVgbN-0000Zt-W8; Sat, 08 Dec 2018 17:41:18 +0000
+        id 1gVgbN-0000ZH-Cw; Sat, 08 Dec 2018 17:41:17 +0000
 From:   Christoph Hellwig <hch@lst.de>
 To:     iommu@lists.linux-foundation.org
 Cc:     Robin Murphy <robin.murphy@arm.com>,
@@ -50,9 +50,9 @@ Cc:     Robin Murphy <robin.murphy@arm.com>,
         dri-devel@lists.freedesktop.org, sparclinux@vger.kernel.org,
         openrisc@lists.librecores.org, linux-parisc@vger.kernel.org,
         linux-mips@vger.kernel.org
-Subject: [PATCH 3/6] sparc: remove the sparc32_dma_ops indirection
-Date:   Sat,  8 Dec 2018 09:41:12 -0800
-Message-Id: <20181208174115.16237-4-hch@lst.de>
+Subject: [PATCH 2/6] sparc: factor the dma coherent mapping into helper
+Date:   Sat,  8 Dec 2018 09:41:11 -0800
+Message-Id: <20181208174115.16237-3-hch@lst.de>
 X-Mailer: git-send-email 2.19.2
 In-Reply-To: <20181208174115.16237-1-hch@lst.de>
 References: <20181208174115.16237-1-hch@lst.de>
@@ -64,631 +64,244 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-There is no good reason to have a double indirection for the sparc32
-dma ops, so remove the sparc32_dma_ops and define separate dma_map_ops
-instance for the different IOMMU types.
+Factor the code to remap memory returned from the DMA coherent allocator
+into two helpers that can be shared by the IOMMU and direct mapping code.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- arch/sparc/include/asm/dma.h |  48 +-----------
- arch/sparc/kernel/ioport.c   | 124 +------------------------------
- arch/sparc/mm/io-unit.c      |  65 ++++++++++++-----
- arch/sparc/mm/iommu.c        | 137 ++++++++++++++++++++++-------------
- 4 files changed, 138 insertions(+), 236 deletions(-)
+ arch/sparc/kernel/ioport.c | 151 ++++++++++++++++---------------------
+ 1 file changed, 67 insertions(+), 84 deletions(-)
 
-diff --git a/arch/sparc/include/asm/dma.h b/arch/sparc/include/asm/dma.h
-index a1d7c86917c6..462e7c794a09 100644
---- a/arch/sparc/include/asm/dma.h
-+++ b/arch/sparc/include/asm/dma.h
-@@ -91,54 +91,10 @@ extern int isa_dma_bridge_buggy;
- #endif
- 
- #ifdef CONFIG_SPARC32
--
--/* Routines for data transfer buffers. */
- struct device;
--struct scatterlist;
--
--struct sparc32_dma_ops {
--	__u32 (*get_scsi_one)(struct device *, char *, unsigned long);
--	void (*get_scsi_sgl)(struct device *, struct scatterlist *, int);
--	void (*release_scsi_one)(struct device *, __u32, unsigned long);
--	void (*release_scsi_sgl)(struct device *, struct scatterlist *,int);
--#ifdef CONFIG_SBUS
--	int (*map_dma_area)(struct device *, dma_addr_t *, unsigned long, unsigned long, int);
--	void (*unmap_dma_area)(struct device *, unsigned long, int);
--#endif
--};
--extern const struct sparc32_dma_ops *sparc32_dma_ops;
--
--#define mmu_get_scsi_one(dev,vaddr,len) \
--	sparc32_dma_ops->get_scsi_one(dev, vaddr, len)
--#define mmu_get_scsi_sgl(dev,sg,sz) \
--	sparc32_dma_ops->get_scsi_sgl(dev, sg, sz)
--#define mmu_release_scsi_one(dev,vaddr,len) \
--	sparc32_dma_ops->release_scsi_one(dev, vaddr,len)
--#define mmu_release_scsi_sgl(dev,sg,sz) \
--	sparc32_dma_ops->release_scsi_sgl(dev, sg, sz)
--
--#ifdef CONFIG_SBUS
--/*
-- * mmu_map/unmap are provided by iommu/iounit; Invalid to call on IIep.
-- *
-- * The mmu_map_dma_area establishes two mappings in one go.
-- * These mappings point to pages normally mapped at 'va' (linear address).
-- * First mapping is for CPU visible address at 'a', uncached.
-- * This is an alias, but it works because it is an uncached mapping.
-- * Second mapping is for device visible address, or "bus" address.
-- * The bus address is returned at '*pba'.
-- *
-- * These functions seem distinct, but are hard to split.
-- * On sun4m, page attributes depend on the CPU type, so we have to
-- * know if we are mapping RAM or I/O, so it has to be an additional argument
-- * to a separate mapping function for CPU visible mappings.
-- */
--#define sbus_map_dma_area(dev,pba,va,a,len) \
--	sparc32_dma_ops->map_dma_area(dev, pba, va, a, len)
--#define sbus_unmap_dma_area(dev,ba,len) \
--	sparc32_dma_ops->unmap_dma_area(dev, ba, len)
--#endif /* CONFIG_SBUS */
- 
-+unsigned long sparc_dma_alloc_resource(struct device *dev, size_t len);
-+bool sparc_dma_free_resource(void *cpu_addr, size_t size);
- #endif
- 
- #endif /* !(_ASM_SPARC_DMA_H) */
 diff --git a/arch/sparc/kernel/ioport.c b/arch/sparc/kernel/ioport.c
-index fd7a41c6d688..f46213035637 100644
+index 4b2167a0ec0b..fd7a41c6d688 100644
 --- a/arch/sparc/kernel/ioport.c
 +++ b/arch/sparc/kernel/ioport.c
-@@ -52,8 +52,6 @@
- #include <asm/io-unit.h>
- #include <asm/leon.h>
- 
--const struct sparc32_dma_ops *sparc32_dma_ops;
--
- /* This function must make sure that caches and memory are coherent after DMA
-  * On LEON systems without cache snooping it flushes the entire D-CACHE.
-  */
-@@ -247,7 +245,7 @@ static void _sparc_free_io(struct resource *res)
+@@ -247,6 +247,53 @@ static void _sparc_free_io(struct resource *res)
  	release_resource(res);
  }
  
--static unsigned long sparc_dma_alloc_resource(struct device *dev, size_t len)
-+unsigned long sparc_dma_alloc_resource(struct device *dev, size_t len)
++static unsigned long sparc_dma_alloc_resource(struct device *dev, size_t len)
++{
++	struct resource *res;
++
++	res = kzalloc(sizeof(*res), GFP_KERNEL);
++	if (!res)
++		return 0;
++	res->name = dev->of_node->name;
++
++	if (allocate_resource(&_sparc_dvma, res, len, _sparc_dvma.start,
++			_sparc_dvma.end, PAGE_SIZE, NULL, NULL) != 0) {
++		printk("sbus_alloc_consistent: cannot occupy 0x%zx", len);
++		kfree(res);
++		return 0;
++	}
++
++	return res->start;
++}
++
++static bool sparc_dma_free_resource(void *cpu_addr, size_t size)
++{
++	unsigned long addr = (unsigned long)cpu_addr;
++	struct resource *res;
++
++	res = lookup_resource(&_sparc_dvma, addr);
++	if (!res) {
++		printk("%s: cannot free %p\n", __func__, cpu_addr);
++		return false;
++	}
++
++	if ((addr & (PAGE_SIZE - 1)) != 0) {
++		printk("%s: unaligned va %p\n", __func__, cpu_addr);
++		return false;
++	}
++
++	size = PAGE_ALIGN(size);
++	if (resource_size(res) != size) {
++		printk("%s: region 0x%lx asked 0x%zx\n",
++			__func__, (long)resource_size(res), size);
++		return false;
++	}
++
++	release_resource(res);
++	kfree(res);
++	return true;
++}
++
+ #ifdef CONFIG_SBUS
+ 
+ void sbus_set_sbus64(struct device *dev, int x)
+@@ -264,10 +311,8 @@ static void *sbus_alloc_coherent(struct device *dev, size_t len,
+ 				 dma_addr_t *dma_addrp, gfp_t gfp,
+ 				 unsigned long attrs)
  {
- 	struct resource *res;
+-	struct platform_device *op = to_platform_device(dev);
+ 	unsigned long len_total = PAGE_ALIGN(len);
+-	unsigned long va;
+-	struct resource *res;
++	unsigned long va, addr;
+ 	int order;
  
-@@ -266,7 +264,7 @@ static unsigned long sparc_dma_alloc_resource(struct device *dev, size_t len)
- 	return res->start;
- }
+ 	/* XXX why are some lengths signed, others unsigned? */
+@@ -284,32 +329,23 @@ static void *sbus_alloc_coherent(struct device *dev, size_t len,
+ 	if (va == 0)
+ 		goto err_nopages;
  
--static bool sparc_dma_free_resource(void *cpu_addr, size_t size)
-+bool sparc_dma_free_resource(void *cpu_addr, size_t size)
+-	if ((res = kzalloc(sizeof(struct resource), GFP_KERNEL)) == NULL)
++	addr = sparc_dma_alloc_resource(dev, len_total);
++	if (!addr)
+ 		goto err_nomem;
+ 
+-	if (allocate_resource(&_sparc_dvma, res, len_total,
+-	    _sparc_dvma.start, _sparc_dvma.end, PAGE_SIZE, NULL, NULL) != 0) {
+-		printk("sbus_alloc_consistent: cannot occupy 0x%lx", len_total);
+-		goto err_nova;
+-	}
+-
+ 	// XXX The sbus_map_dma_area does this for us below, see comments.
+ 	// srmmu_mapiorange(0, virt_to_phys(va), res->start, len_total);
+ 	/*
+ 	 * XXX That's where sdev would be used. Currently we load
+ 	 * all iommu tables with the same translations.
+ 	 */
+-	if (sbus_map_dma_area(dev, dma_addrp, va, res->start, len_total) != 0)
++	if (sbus_map_dma_area(dev, dma_addrp, va, addr, len_total) != 0)
+ 		goto err_noiommu;
+ 
+-	res->name = op->dev.of_node->name;
+-
+-	return (void *)(unsigned long)res->start;
++	return (void *)addr;
+ 
+ err_noiommu:
+-	release_resource(res);
+-err_nova:
+-	kfree(res);
++	sparc_dma_free_resource((void *)addr, len_total);
+ err_nomem:
+ 	free_pages(va, order);
+ err_nopages:
+@@ -319,29 +355,11 @@ static void *sbus_alloc_coherent(struct device *dev, size_t len,
+ static void sbus_free_coherent(struct device *dev, size_t n, void *p,
+ 			       dma_addr_t ba, unsigned long attrs)
  {
- 	unsigned long addr = (unsigned long)cpu_addr;
- 	struct resource *res;
-@@ -302,122 +300,6 @@ void sbus_set_sbus64(struct device *dev, int x)
- }
- EXPORT_SYMBOL(sbus_set_sbus64);
+-	struct resource *res;
+ 	struct page *pgv;
  
--/*
-- * Allocate a chunk of memory suitable for DMA.
-- * Typically devices use them for control blocks.
-- * CPU may access them without any explicit flushing.
-- */
--static void *sbus_alloc_coherent(struct device *dev, size_t len,
--				 dma_addr_t *dma_addrp, gfp_t gfp,
--				 unsigned long attrs)
--{
--	unsigned long len_total = PAGE_ALIGN(len);
--	unsigned long va, addr;
--	int order;
--
--	/* XXX why are some lengths signed, others unsigned? */
--	if (len <= 0) {
--		return NULL;
--	}
--	/* XXX So what is maxphys for us and how do drivers know it? */
--	if (len > 256*1024) {			/* __get_free_pages() limit */
--		return NULL;
--	}
--
--	order = get_order(len_total);
--	va = __get_free_pages(gfp, order);
--	if (va == 0)
--		goto err_nopages;
--
--	addr = sparc_dma_alloc_resource(dev, len_total);
--	if (!addr)
--		goto err_nomem;
--
--	// XXX The sbus_map_dma_area does this for us below, see comments.
--	// srmmu_mapiorange(0, virt_to_phys(va), res->start, len_total);
--	/*
--	 * XXX That's where sdev would be used. Currently we load
--	 * all iommu tables with the same translations.
--	 */
--	if (sbus_map_dma_area(dev, dma_addrp, va, addr, len_total) != 0)
--		goto err_noiommu;
--
--	return (void *)addr;
--
--err_noiommu:
--	sparc_dma_free_resource((void *)addr, len_total);
--err_nomem:
--	free_pages(va, order);
--err_nopages:
--	return NULL;
--}
--
--static void sbus_free_coherent(struct device *dev, size_t n, void *p,
--			       dma_addr_t ba, unsigned long attrs)
--{
--	struct page *pgv;
--
--	n = PAGE_ALIGN(n);
--	if (!sparc_dma_free_resource(p, n))
+-	if ((res = lookup_resource(&_sparc_dvma,
+-	    (unsigned long)p)) == NULL) {
+-		printk("sbus_free_consistent: cannot free %p\n", p);
 -		return;
--
--	pgv = virt_to_page(p);
--	sbus_unmap_dma_area(dev, ba, n);
--
--	__free_pages(pgv, get_order(n));
--}
--
--/*
-- * Map a chunk of memory so that devices can see it.
-- * CPU view of this memory may be inconsistent with
-- * a device view and explicit flushing is necessary.
-- */
--static dma_addr_t sbus_map_page(struct device *dev, struct page *page,
--				unsigned long offset, size_t len,
--				enum dma_data_direction dir,
--				unsigned long attrs)
--{
--	void *va = page_address(page) + offset;
--
--	/* XXX why are some lengths signed, others unsigned? */
--	if (len <= 0) {
--		return 0;
 -	}
--	/* XXX So what is maxphys for us and how do drivers know it? */
--	if (len > 256*1024) {			/* __get_free_pages() limit */
--		return 0;
+-
+-	if (((unsigned long)p & (PAGE_SIZE-1)) != 0) {
+-		printk("sbus_free_consistent: unaligned va %p\n", p);
+-		return;
 -	}
--	return mmu_get_scsi_one(dev, va, len);
--}
 -
--static void sbus_unmap_page(struct device *dev, dma_addr_t ba, size_t n,
--			    enum dma_data_direction dir, unsigned long attrs)
--{
--	mmu_release_scsi_one(dev, ba, n);
--}
+ 	n = PAGE_ALIGN(n);
+-	if (resource_size(res) != n) {
+-		printk("sbus_free_consistent: region 0x%lx asked 0x%zx\n",
+-		    (long)resource_size(res), n);
++	if (!sparc_dma_free_resource(p, n))
+ 		return;
+-	}
 -
--static int sbus_map_sg(struct device *dev, struct scatterlist *sg, int n,
--		       enum dma_data_direction dir, unsigned long attrs)
--{
--	mmu_get_scsi_sgl(dev, sg, n);
--	return n;
--}
--
--static void sbus_unmap_sg(struct device *dev, struct scatterlist *sg, int n,
--			  enum dma_data_direction dir, unsigned long attrs)
--{
--	mmu_release_scsi_sgl(dev, sg, n);
--}
--
--static const struct dma_map_ops sbus_dma_ops = {
--	.alloc			= sbus_alloc_coherent,
--	.free			= sbus_free_coherent,
--	.map_page		= sbus_map_page,
--	.unmap_page		= sbus_unmap_page,
--	.map_sg			= sbus_map_sg,
--	.unmap_sg		= sbus_unmap_sg,
--};
--
- static int __init sparc_register_ioport(void)
+-	release_resource(res);
+-	kfree(res);
+ 
+ 	pgv = virt_to_page(p);
+ 	sbus_unmap_dma_area(dev, ba, n);
+@@ -418,45 +436,30 @@ arch_initcall(sparc_register_ioport);
+ void *arch_dma_alloc(struct device *dev, size_t size, dma_addr_t *dma_handle,
+ 		gfp_t gfp, unsigned long attrs)
  {
- 	register_proc_sparc_ioport();
-@@ -491,7 +373,7 @@ void arch_sync_dma_for_cpu(struct device *dev, phys_addr_t paddr,
- 		dma_make_coherent(paddr, PAGE_ALIGN(size));
- }
+-	unsigned long len_total = PAGE_ALIGN(size);
++	unsigned long addr;
+ 	void *va;
+-	struct resource *res;
+-	int order;
  
--const struct dma_map_ops *dma_ops = &sbus_dma_ops;
-+const struct dma_map_ops *dma_ops;
- EXPORT_SYMBOL(dma_ops);
+-	if (size == 0) {
++	if (!size || size > 256 * 1024)	/* __get_free_pages() limit */
+ 		return NULL;
+-	}
+-	if (size > 256*1024) {			/* __get_free_pages() limit */
+-		return NULL;
+-	}
  
- #ifdef CONFIG_PROC_FS
-diff --git a/arch/sparc/mm/io-unit.c b/arch/sparc/mm/io-unit.c
-index c8cb27d3ea75..2088d292c6e5 100644
---- a/arch/sparc/mm/io-unit.c
-+++ b/arch/sparc/mm/io-unit.c
-@@ -12,7 +12,7 @@
- #include <linux/mm.h>
- #include <linux/highmem.h>	/* pte_offset_map => kmap_atomic */
- #include <linux/bitops.h>
--#include <linux/scatterlist.h>
-+#include <linux/dma-mapping.h>
- #include <linux/of.h>
- #include <linux/of_device.h>
- 
-@@ -140,18 +140,26 @@ nexti:	scan = find_next_zero_bit(iounit->bmap, limit, scan);
- 	return vaddr;
- }
- 
--static __u32 iounit_get_scsi_one(struct device *dev, char *vaddr, unsigned long len)
-+static dma_addr_t iounit_map_page(struct device *dev, struct page *page,
-+		unsigned long offset, size_t len, enum dma_data_direction dir,
-+		unsigned long attrs)
- {
-+	void *vaddr = page_address(page) + offset;
- 	struct iounit_struct *iounit = dev->archdata.iommu;
- 	unsigned long ret, flags;
- 	
-+	/* XXX So what is maxphys for us and how do drivers know it? */
-+	if (!len || len > 256 * 1024)
-+		return DMA_MAPPING_ERROR;
-+
- 	spin_lock_irqsave(&iounit->lock, flags);
- 	ret = iounit_get_area(iounit, (unsigned long)vaddr, len);
- 	spin_unlock_irqrestore(&iounit->lock, flags);
- 	return ret;
- }
- 
--static void iounit_get_scsi_sgl(struct device *dev, struct scatterlist *sg, int sz)
-+static int iounit_map_sg(struct device *dev, struct scatterlist *sg, int sz,
-+		enum dma_data_direction dir, unsigned long attrs)
- {
- 	struct iounit_struct *iounit = dev->archdata.iommu;
- 	unsigned long flags;
-@@ -165,9 +173,11 @@ static void iounit_get_scsi_sgl(struct device *dev, struct scatterlist *sg, int
- 		sg = sg_next(sg);
+-	order = get_order(len_total);
+-	va = (void *) __get_free_pages(gfp, order);
+-	if (va == NULL) {
+-		printk("%s: no %ld pages\n", __func__, len_total>>PAGE_SHIFT);
+-		goto err_nopages;
++	size = PAGE_ALIGN(size);
++	va = (void *) __get_free_pages(gfp, get_order(size));
++	if (!va) {
++		printk("%s: no %zd pages\n", __func__, size >> PAGE_SHIFT);
++		return NULL;
  	}
- 	spin_unlock_irqrestore(&iounit->lock, flags);
-+	return sz;
- }
  
--static void iounit_release_scsi_one(struct device *dev, __u32 vaddr, unsigned long len)
-+static void iounit_unmap_page(struct device *dev, dma_addr_t vaddr, size_t len,
-+		enum dma_data_direction dir, unsigned long attrs)
- {
- 	struct iounit_struct *iounit = dev->archdata.iommu;
- 	unsigned long flags;
-@@ -181,7 +191,8 @@ static void iounit_release_scsi_one(struct device *dev, __u32 vaddr, unsigned lo
- 	spin_unlock_irqrestore(&iounit->lock, flags);
- }
- 
--static void iounit_release_scsi_sgl(struct device *dev, struct scatterlist *sg, int sz)
-+static void iounit_unmap_sg(struct device *dev, struct scatterlist *sg, int sz,
-+		enum dma_data_direction dir, unsigned long attrs)
- {
- 	struct iounit_struct *iounit = dev->archdata.iommu;
- 	unsigned long flags;
-@@ -201,14 +212,27 @@ static void iounit_release_scsi_sgl(struct device *dev, struct scatterlist *sg,
- }
- 
- #ifdef CONFIG_SBUS
--static int iounit_map_dma_area(struct device *dev, dma_addr_t *pba, unsigned long va, unsigned long addr, int len)
-+static void *iounit_alloc(struct device *dev, size_t len,
-+		dma_addr_t *dma_handle, gfp_t gfp, unsigned long attrs)
- {
- 	struct iounit_struct *iounit = dev->archdata.iommu;
--	unsigned long page, end;
-+	unsigned long va, addr, page, end, ret;
- 	pgprot_t dvma_prot;
- 	iopte_t __iomem *iopte;
- 
--	*pba = addr;
-+	/* XXX So what is maxphys for us and how do drivers know it? */
-+	if (!len || len > 256 * 1024)
-+		return NULL;
-+
-+	len = PAGE_ALIGN(len);
-+	va = __get_free_pages(gfp, get_order(len));
-+	if (!va)
-+		return NULL;
-+
-+	addr = ret = sparc_dma_alloc_resource(dev, len);
+-	if ((res = kzalloc(sizeof(struct resource), GFP_KERNEL)) == NULL) {
+-		printk("%s: no core\n", __func__);
++	addr = sparc_dma_alloc_resource(dev, size);
 +	if (!addr)
-+		goto out_free_pages;
-+	*dma_handle = addr;
+ 		goto err_nomem;
+-	}
  
- 	dvma_prot = __pgprot(SRMMU_CACHE | SRMMU_ET_PTE | SRMMU_PRIV);
- 	end = PAGE_ALIGN((addr + len));
-@@ -237,27 +261,32 @@ static int iounit_map_dma_area(struct device *dev, dma_addr_t *pba, unsigned lon
- 	flush_cache_all();
- 	flush_tlb_all();
+-	if (allocate_resource(&_sparc_dvma, res, len_total,
+-	    _sparc_dvma.start, _sparc_dvma.end, PAGE_SIZE, NULL, NULL) != 0) {
+-		printk("%s: cannot occupy 0x%lx", __func__, len_total);
+-		goto err_nova;
+-	}
+-	srmmu_mapiorange(0, virt_to_phys(va), res->start, len_total);
++	srmmu_mapiorange(0, virt_to_phys(va), addr, size);
  
--	return 0;
-+	return (void *)ret;
-+
-+out_free_pages:
-+	free_pages(va, get_order(len));
-+	return NULL;
+ 	*dma_handle = virt_to_phys(va);
+-	return (void *) res->start;
++	return (void *)addr;
+ 
+-err_nova:
+-	kfree(res);
+ err_nomem:
+-	free_pages((unsigned long)va, order);
+-err_nopages:
++	free_pages((unsigned long)va, get_order(size));
+ 	return NULL;
  }
  
--static void iounit_unmap_dma_area(struct device *dev, unsigned long addr, int len)
-+static void iounit_free(struct device *dev, size_t size, void *cpu_addr,
-+		dma_addr_t dma_addr, unsigned long attrs)
+@@ -471,31 +474,11 @@ void *arch_dma_alloc(struct device *dev, size_t size, dma_addr_t *dma_handle,
+ void arch_dma_free(struct device *dev, size_t size, void *cpu_addr,
+ 		dma_addr_t dma_addr, unsigned long attrs)
  {
- 	/* XXX Somebody please fill this in */
- }
- #endif
- 
--static const struct sparc32_dma_ops iounit_dma_ops = {
--	.get_scsi_one		= iounit_get_scsi_one,
--	.get_scsi_sgl		= iounit_get_scsi_sgl,
--	.release_scsi_one	= iounit_release_scsi_one,
--	.release_scsi_sgl	= iounit_release_scsi_sgl,
-+static const struct dma_map_ops iounit_dma_ops = {
- #ifdef CONFIG_SBUS
--	.map_dma_area		= iounit_map_dma_area,
--	.unmap_dma_area		= iounit_unmap_dma_area,
-+	.alloc			= iounit_alloc,
-+	.free			= iounit_free,
- #endif
-+	.map_page		= iounit_map_page,
-+	.unmap_page		= iounit_unmap_page,
-+	.map_sg			= iounit_map_sg,
-+	.unmap_sg		= iounit_unmap_sg,
- };
- 
- void __init ld_mmu_iounit(void)
- {
--	sparc32_dma_ops = &iounit_dma_ops;
-+	dma_ops = &iounit_dma_ops;
- }
-diff --git a/arch/sparc/mm/iommu.c b/arch/sparc/mm/iommu.c
-index 2c5f8a648f8c..3599485717e7 100644
---- a/arch/sparc/mm/iommu.c
-+++ b/arch/sparc/mm/iommu.c
-@@ -13,7 +13,7 @@
- #include <linux/mm.h>
- #include <linux/slab.h>
- #include <linux/highmem.h>	/* pte_offset_map => kmap_atomic */
--#include <linux/scatterlist.h>
-+#include <linux/dma-mapping.h>
- #include <linux/of.h>
- #include <linux/of_device.h>
- 
-@@ -205,38 +205,44 @@ static u32 iommu_get_one(struct device *dev, struct page *page, int npages)
- 	return busa0;
- }
- 
--static u32 iommu_get_scsi_one(struct device *dev, char *vaddr, unsigned int len)
-+static dma_addr_t __sbus_iommu_map_page(struct device *dev, struct page *page,
-+		unsigned long offset, size_t len)
- {
--	unsigned long off;
--	int npages;
--	struct page *page;
--	u32 busa;
+-	struct resource *res;
 -
--	off = (unsigned long)vaddr & ~PAGE_MASK;
--	npages = (off + len + PAGE_SIZE-1) >> PAGE_SHIFT;
--	page = virt_to_page((unsigned long)vaddr & PAGE_MASK);
--	busa = iommu_get_one(dev, page, npages);
--	return busa + off;
-+	void *vaddr = page_address(page) + offset;
-+	unsigned long off = (unsigned long)vaddr & ~PAGE_MASK;
-+	unsigned long npages = (off + len + PAGE_SIZE - 1) >> PAGE_SHIFT;
-+	
-+	/* XXX So what is maxphys for us and how do drivers know it? */
-+	if (!len || len > 256 * 1024)
-+		return DMA_MAPPING_ERROR;
-+	return iommu_get_one(dev, virt_to_page(vaddr), npages) + off;
- }
- 
--static __u32 iommu_get_scsi_one_gflush(struct device *dev, char *vaddr, unsigned long len)
-+static dma_addr_t sbus_iommu_map_page_gflush(struct device *dev,
-+		struct page *page, unsigned long offset, size_t len,
-+		enum dma_data_direction dir, unsigned long attrs)
- {
- 	flush_page_for_dma(0);
--	return iommu_get_scsi_one(dev, vaddr, len);
-+	return __sbus_iommu_map_page(dev, page, offset, len);
- }
- 
--static __u32 iommu_get_scsi_one_pflush(struct device *dev, char *vaddr, unsigned long len)
-+static dma_addr_t sbus_iommu_map_page_pflush(struct device *dev,
-+		struct page *page, unsigned long offset, size_t len,
-+		enum dma_data_direction dir, unsigned long attrs)
- {
--	unsigned long page = ((unsigned long) vaddr) & PAGE_MASK;
-+	void *vaddr = page_address(page) + offset;
-+	unsigned long p = ((unsigned long)vaddr) & PAGE_MASK;
- 
--	while(page < ((unsigned long)(vaddr + len))) {
--		flush_page_for_dma(page);
--		page += PAGE_SIZE;
-+	while (p < (unsigned long)vaddr + len) {
-+		flush_page_for_dma(p);
-+		p += PAGE_SIZE;
- 	}
--	return iommu_get_scsi_one(dev, vaddr, len);
-+
-+	return __sbus_iommu_map_page(dev, page, offset, len);
- }
- 
--static void iommu_get_scsi_sgl_gflush(struct device *dev, struct scatterlist *sg, int sz)
-+static int sbus_iommu_map_sg_gflush(struct device *dev, struct scatterlist *sg,
-+		int sz, enum dma_data_direction dir, unsigned long attrs)
- {
- 	int n;
- 
-@@ -248,9 +254,12 @@ static void iommu_get_scsi_sgl_gflush(struct device *dev, struct scatterlist *sg
- 		sg->dma_length = sg->length;
- 		sg = sg_next(sg);
- 	}
-+
-+	return sz;
- }
- 
--static void iommu_get_scsi_sgl_pflush(struct device *dev, struct scatterlist *sg, int sz)
-+static int sbus_iommu_map_sg_pflush(struct device *dev, struct scatterlist *sg,
-+		int sz, enum dma_data_direction dir, unsigned long attrs)
- {
- 	unsigned long page, oldpage = 0;
- 	int n, i;
-@@ -279,6 +288,8 @@ static void iommu_get_scsi_sgl_pflush(struct device *dev, struct scatterlist *sg
- 		sg->dma_length = sg->length;
- 		sg = sg_next(sg);
- 	}
-+
-+	return sz;
- }
- 
- static void iommu_release_one(struct device *dev, u32 busa, int npages)
-@@ -297,23 +308,23 @@ static void iommu_release_one(struct device *dev, u32 busa, int npages)
- 	bit_map_clear(&iommu->usemap, ioptex, npages);
- }
- 
--static void iommu_release_scsi_one(struct device *dev, __u32 vaddr, unsigned long len)
-+static void sbus_iommu_unmap_page(struct device *dev, dma_addr_t dma_addr,
-+		size_t len, enum dma_data_direction dir, unsigned long attrs)
- {
--	unsigned long off;
-+	unsigned long off = dma_addr & ~PAGE_MASK;
- 	int npages;
- 
--	off = vaddr & ~PAGE_MASK;
- 	npages = (off + len + PAGE_SIZE-1) >> PAGE_SHIFT;
--	iommu_release_one(dev, vaddr & PAGE_MASK, npages);
-+	iommu_release_one(dev, dma_addr & PAGE_MASK, npages);
- }
- 
--static void iommu_release_scsi_sgl(struct device *dev, struct scatterlist *sg, int sz)
-+static void sbus_iommu_unmap_sg(struct device *dev, struct scatterlist *sg,
-+		int sz, enum dma_data_direction dir, unsigned long attrs)
- {
- 	int n;
- 
- 	while(sz != 0) {
- 		--sz;
+-	if ((res = lookup_resource(&_sparc_dvma,
+-	    (unsigned long)cpu_addr)) == NULL) {
+-		printk("%s: cannot free %p\n", __func__, cpu_addr);
+-		return;
+-	}
 -
- 		n = (sg->length + sg->offset + PAGE_SIZE-1) >> PAGE_SHIFT;
- 		iommu_release_one(dev, sg->dma_address & PAGE_MASK, n);
- 		sg->dma_address = 0x21212121;
-@@ -322,15 +333,28 @@ static void iommu_release_scsi_sgl(struct device *dev, struct scatterlist *sg, i
+-	if (((unsigned long)cpu_addr & (PAGE_SIZE-1)) != 0) {
+-		printk("%s: unaligned va %p\n", __func__, cpu_addr);
++	if (!sparc_dma_free_resource(cpu_addr, PAGE_ALIGN(size)))
+ 		return;
+-	}
+-
+-	size = PAGE_ALIGN(size);
+-	if (resource_size(res) != size) {
+-		printk("%s: region 0x%lx asked 0x%zx\n", __func__,
+-		    (long)resource_size(res), size);
+-		return;
+-	}
+ 
+ 	dma_make_coherent(dma_addr, size);
+ 	srmmu_unmapiorange((unsigned long)cpu_addr, size);
+-
+-	release_resource(res);
+-	kfree(res);
+ 	free_pages((unsigned long)phys_to_virt(dma_addr), get_order(size));
  }
  
- #ifdef CONFIG_SBUS
--static int iommu_map_dma_area(struct device *dev, dma_addr_t *pba, unsigned long va,
--			      unsigned long addr, int len)
-+static void *sbus_iommu_alloc(struct device *dev, size_t len,
-+		dma_addr_t *dma_handle, gfp_t gfp, unsigned long attrs)
- {
- 	struct iommu_struct *iommu = dev->archdata.iommu;
--	unsigned long page, end;
-+	unsigned long va, addr, page, end, ret;
- 	iopte_t *iopte = iommu->page_table;
- 	iopte_t *first;
- 	int ioptex;
- 
-+	/* XXX So what is maxphys for us and how do drivers know it? */
-+	if (!len || len > 256 * 1024)
-+		return NULL;
-+
-+	len = PAGE_ALIGN(len);
-+	va = __get_free_pages(gfp, get_order(len));
-+	if (va == 0)
-+		return NULL;
-+
-+	addr = ret = sparc_dma_alloc_resource(dev, len);
-+	if (!addr)
-+		goto out_free_pages;
-+
- 	BUG_ON((va & ~PAGE_MASK) != 0);
- 	BUG_ON((addr & ~PAGE_MASK) != 0);
- 	BUG_ON((len & ~PAGE_MASK) != 0);
-@@ -385,16 +409,25 @@ static int iommu_map_dma_area(struct device *dev, dma_addr_t *pba, unsigned long
- 	flush_tlb_all();
- 	iommu_invalidate(iommu->regs);
- 
--	*pba = iommu->start + (ioptex << PAGE_SHIFT);
--	return 0;
-+	*dma_handle = iommu->start + (ioptex << PAGE_SHIFT);
-+	return (void *)ret;
-+
-+out_free_pages:
-+	free_pages(va, get_order(len));
-+	return NULL;
- }
- 
--static void iommu_unmap_dma_area(struct device *dev, unsigned long busa, int len)
-+static void sbus_iommu_free(struct device *dev, size_t len, void *cpu_addr,
-+			       dma_addr_t busa, unsigned long attrs)
- {
- 	struct iommu_struct *iommu = dev->archdata.iommu;
- 	iopte_t *iopte = iommu->page_table;
--	unsigned long end;
-+	struct page *page = virt_to_page(cpu_addr);
- 	int ioptex = (busa - iommu->start) >> PAGE_SHIFT;
-+	unsigned long end;
-+
-+	if (!sparc_dma_free_resource(cpu_addr, len))
-+		return;
- 
- 	BUG_ON((busa & ~PAGE_MASK) != 0);
- 	BUG_ON((len & ~PAGE_MASK) != 0);
-@@ -408,38 +441,40 @@ static void iommu_unmap_dma_area(struct device *dev, unsigned long busa, int len
- 	flush_tlb_all();
- 	iommu_invalidate(iommu->regs);
- 	bit_map_clear(&iommu->usemap, ioptex, len >> PAGE_SHIFT);
-+
-+	__free_pages(page, get_order(len));
- }
- #endif
- 
--static const struct sparc32_dma_ops iommu_dma_gflush_ops = {
--	.get_scsi_one		= iommu_get_scsi_one_gflush,
--	.get_scsi_sgl		= iommu_get_scsi_sgl_gflush,
--	.release_scsi_one	= iommu_release_scsi_one,
--	.release_scsi_sgl	= iommu_release_scsi_sgl,
-+static const struct dma_map_ops sbus_iommu_dma_gflush_ops = {
- #ifdef CONFIG_SBUS
--	.map_dma_area		= iommu_map_dma_area,
--	.unmap_dma_area		= iommu_unmap_dma_area,
-+	.alloc			= sbus_iommu_alloc,
-+	.free			= sbus_iommu_free,
- #endif
-+	.map_page		= sbus_iommu_map_page_gflush,
-+	.unmap_page		= sbus_iommu_unmap_page,
-+	.map_sg			= sbus_iommu_map_sg_gflush,
-+	.unmap_sg		= sbus_iommu_unmap_sg,
- };
- 
--static const struct sparc32_dma_ops iommu_dma_pflush_ops = {
--	.get_scsi_one		= iommu_get_scsi_one_pflush,
--	.get_scsi_sgl		= iommu_get_scsi_sgl_pflush,
--	.release_scsi_one	= iommu_release_scsi_one,
--	.release_scsi_sgl	= iommu_release_scsi_sgl,
-+static const struct dma_map_ops sbus_iommu_dma_pflush_ops = {
- #ifdef CONFIG_SBUS
--	.map_dma_area		= iommu_map_dma_area,
--	.unmap_dma_area		= iommu_unmap_dma_area,
-+	.alloc			= sbus_iommu_alloc,
-+	.free			= sbus_iommu_free,
- #endif
-+	.map_page		= sbus_iommu_map_page_pflush,
-+	.unmap_page		= sbus_iommu_unmap_page,
-+	.map_sg			= sbus_iommu_map_sg_pflush,
-+	.unmap_sg		= sbus_iommu_unmap_sg,
- };
- 
- void __init ld_mmu_iommu(void)
- {
- 	if (flush_page_for_dma_global) {
- 		/* flush_page_for_dma flushes everything, no matter of what page is it */
--		sparc32_dma_ops = &iommu_dma_gflush_ops;
-+		dma_ops = &sbus_iommu_dma_gflush_ops;
- 	} else {
--		sparc32_dma_ops = &iommu_dma_pflush_ops;
-+		dma_ops = &sbus_iommu_dma_pflush_ops;
- 	}
- 
- 	if (viking_mxcc_present || srmmu_modtype == HyperSparc) {
 -- 
 2.19.2
 
