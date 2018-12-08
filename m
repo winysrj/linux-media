@@ -4,24 +4,24 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-8.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 20483C67839
-	for <linux-media@archiver.kernel.org>; Sat,  8 Dec 2018 17:41:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B931C04EB8
+	for <linux-media@archiver.kernel.org>; Sat,  8 Dec 2018 17:41:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DBABE2146D
-	for <linux-media@archiver.kernel.org>; Sat,  8 Dec 2018 17:41:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 294C9208E7
+	for <linux-media@archiver.kernel.org>; Sat,  8 Dec 2018 17:41:30 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="qjNmqOWG"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org DBABE2146D
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="mkUHGINM"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 294C9208E7
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=lst.de
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726230AbeLHRl2 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        id S1726247AbeLHRl2 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
         Sat, 8 Dec 2018 12:41:28 -0500
-Received: from bombadil.infradead.org ([198.137.202.133]:59556 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.133]:59522 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726204AbeLHRl1 (ORCPT
+        with ESMTP id S1726202AbeLHRl1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>); Sat, 8 Dec 2018 12:41:27 -0500
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=bombadil.20170209; h=Content-Transfer-Encoding:
@@ -29,15 +29,15 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         :Reply-To:Content-Type:Content-ID:Content-Description:Resent-Date:Resent-From
         :Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
         List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=SjF2REwETDF6UoymaDbdiFMUDCSX6A/ZjIR2r7YToLU=; b=qjNmqOWGQOA4xce8nJZhyESMy1
-        2LDsn9cvQY77oc+TyILtl9eV31cmCn9eY8jVBBpxnWOz/YITorrQ3vtd716z+QJBZ/bOYDJgyZLFH
-        xzqNHXHreqqEIbr+mLW/46+Btsf5gLjH8XCKqScePipkb7jEbKLAXIx/K45cvaZBVlcFKUOv9iVa4
-        yOcAXFPErpYfgwG6s/2X5ty7oracc9Hzw+DTaOu+Xa5ZjC5ouIreI6dgjWqUri6mcLw2CK3ruTHRS
-        XIjAQi6nvaCLNBs31CLTMcvFNI16r38BQdc7aipFQ1mgKWXDxFzfH28D35QthSdlaPbvhD0+MI9LI
-        MBCUrx1w==;
+        bh=JNqXUy01mAjLOSiovsDwEKqyphA12E87mkq5An92hyw=; b=mkUHGINMNdPTNJiLYWuBAK8S20
+        Vf3rw56O8UVrS9wIL0rr70Rps0JaDdkTymhnyHTLvW8YxefNGjYu9AqTGboa2/yfC49Q1k0KX68G+
+        C4tVh76l4uoOwmkS168kf8Sf7YJ+t0/ipqfbpUVHOysO8b+M9+EPE4Zp83PimWq9awwCA9LY1/csh
+        /mLx0l7RdXfeTayBNFkSoEJWTaKB27Wlwcv6EYRdivFXBAL/EFcVJ4heKWI8ehIDO0K8q8HF+O/3K
+        r0wY0QhFzr4E2VVW1WY98ffpJtx0YVVjpR5GqzlJVc+MWPEJ186TTFP5hJnriOL58KZHodPTbJvI0
+        Mr1l2LMw==;
 Received: from [184.48.100.57] (helo=localhost)
         by bombadil.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
-        id 1gVgbP-0000bG-41; Sat, 08 Dec 2018 17:41:19 +0000
+        id 1gVgbO-0000ab-HR; Sat, 08 Dec 2018 17:41:18 +0000
 From:   Christoph Hellwig <hch@lst.de>
 To:     iommu@lists.linux-foundation.org
 Cc:     Robin Murphy <robin.murphy@arm.com>,
@@ -50,9 +50,9 @@ Cc:     Robin Murphy <robin.murphy@arm.com>,
         dri-devel@lists.freedesktop.org, sparclinux@vger.kernel.org,
         openrisc@lists.librecores.org, linux-parisc@vger.kernel.org,
         linux-mips@vger.kernel.org
-Subject: [PATCH 5/6] sparc: move the leon PCI memory space comment to <asm/leon.h>
-Date:   Sat,  8 Dec 2018 09:41:14 -0800
-Message-Id: <20181208174115.16237-6-hch@lst.de>
+Subject: [PATCH 4/6] sparc: remove not required includes from dma-mapping.h
+Date:   Sat,  8 Dec 2018 09:41:13 -0800
+Message-Id: <20181208174115.16237-5-hch@lst.de>
 X-Mailer: git-send-email 2.19.2
 In-Reply-To: <20181208174115.16237-1-hch@lst.de>
 References: <20181208174115.16237-1-hch@lst.de>
@@ -64,53 +64,29 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-It has nothing to do with the content of the pci.h header.
+The only thing we need to explicitly pull in is the defines for the
+CPU type.
 
-Suggested by: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- arch/sparc/include/asm/leon.h   | 9 +++++++++
- arch/sparc/include/asm/pci_32.h | 9 ---------
- 2 files changed, 9 insertions(+), 9 deletions(-)
+ arch/sparc/include/asm/dma-mapping.h | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/arch/sparc/include/asm/leon.h b/arch/sparc/include/asm/leon.h
-index c68bb5b76e3d..77ea406ff9df 100644
---- a/arch/sparc/include/asm/leon.h
-+++ b/arch/sparc/include/asm/leon.h
-@@ -255,4 +255,13 @@ extern int leon_ipi_irq;
- #define _pfn_valid(pfn)	 ((pfn < last_valid_pfn) && (pfn >= PFN(phys_base)))
- #define _SRMMU_PTE_PMASK_LEON 0xffffffff
+diff --git a/arch/sparc/include/asm/dma-mapping.h b/arch/sparc/include/asm/dma-mapping.h
+index b0bb2fcaf1c9..55a44f08a9a4 100644
+--- a/arch/sparc/include/asm/dma-mapping.h
++++ b/arch/sparc/include/asm/dma-mapping.h
+@@ -2,9 +2,7 @@
+ #ifndef ___ASM_SPARC_DMA_MAPPING_H
+ #define ___ASM_SPARC_DMA_MAPPING_H
  
-+/*
-+ * On LEON PCI Memory space is mapped 1:1 with physical address space.
-+ *
-+ * I/O space is located at low 64Kbytes in PCI I/O space. The I/O addresses
-+ * are converted into CPU addresses to virtual addresses that are mapped with
-+ * MMU to the PCI Host PCI I/O space window which are translated to the low
-+ * 64Kbytes by the Host controller.
-+ */
-+
- #endif
-diff --git a/arch/sparc/include/asm/pci_32.h b/arch/sparc/include/asm/pci_32.h
-index cfc0ee9476c6..a475380ea108 100644
---- a/arch/sparc/include/asm/pci_32.h
-+++ b/arch/sparc/include/asm/pci_32.h
-@@ -23,15 +23,6 @@
- /* generic pci stuff */
- #include <asm-generic/pci.h>
- #else
--/*
-- * On LEON PCI Memory space is mapped 1:1 with physical address space.
-- *
-- * I/O space is located at low 64Kbytes in PCI I/O space. The I/O addresses
-- * are converted into CPU addresses to virtual addresses that are mapped with
-- * MMU to the PCI Host PCI I/O space window which are translated to the low
-- * 64Kbytes by the Host controller.
-- */
--
- static inline int pci_get_legacy_ide_irq(struct pci_dev *dev, int channel)
- {
- 	return PCI_IRQ_NONE;
+-#include <linux/scatterlist.h>
+-#include <linux/mm.h>
+-#include <linux/dma-debug.h>
++#include <asm/cpu_type.h>
+ 
+ extern const struct dma_map_ops *dma_ops;
+ 
 -- 
 2.19.2
 
