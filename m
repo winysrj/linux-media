@@ -4,25 +4,25 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-8.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D3D38C67839
-	for <linux-media@archiver.kernel.org>; Sat,  8 Dec 2018 17:37:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F386C64EB1
+	for <linux-media@archiver.kernel.org>; Sat,  8 Dec 2018 17:37:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8A0362081C
-	for <linux-media@archiver.kernel.org>; Sat,  8 Dec 2018 17:37:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 268E92081C
+	for <linux-media@archiver.kernel.org>; Sat,  8 Dec 2018 17:37:24 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="qpQidi4L"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 8A0362081C
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="ihDkI2KB"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 268E92081C
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=lst.de
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726277AbeLHRhW (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        id S1726226AbeLHRhW (ORCPT <rfc822;linux-media@archiver.kernel.org>);
         Sat, 8 Dec 2018 12:37:22 -0500
-Received: from bombadil.infradead.org ([198.137.202.133]:42952 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.133]:42956 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726174AbeLHRhS (ORCPT
+        with ESMTP id S1726192AbeLHRhS (ORCPT
         <rfc822;linux-media@vger.kernel.org>); Sat, 8 Dec 2018 12:37:18 -0500
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=bombadil.20170209; h=Content-Transfer-Encoding:
@@ -30,15 +30,15 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         :Reply-To:Content-Type:Content-ID:Content-Description:Resent-Date:Resent-From
         :Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
         List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=yQfz+QIKzBBrHDZauPcpkKETGukfKkWCPbz32A1mz2E=; b=qpQidi4LvpVTFIIWdBieSHClf2
-        4+6gvC6DoGU3SNXpt+SwVkx7wEM4EVi4e9S55PRApLTxE27jySZhyIKExqs1emhqZ7l5ZG4DmKOSk
-        wuGpyRf8aG0Q2WCBvGNHHuFztFjWFs2ldvuuC4Gwy7ljpxUt2Qa7X2BsvIX3b7eA/Y1ES5QTrReRg
-        gim2H3f7xia9oGzumdJ7OVAAkH7QBjLc3s0apWhcVjArkC6IjoPKAi88PW9onWVKfb1yI1dhXrq5p
-        7PVBC7/JHMxlWHwGWZl93fIusgOWXFfMw0Dd76nsjj6u52fUAseYX4DZxlnibukVM5ThXtTnYpCaS
-        hKnrC5Iw==;
+        bh=NLkfdUBEdCMvItDNu9ApfVyxMTjrOso1MH0a7btwpaw=; b=ihDkI2KBJLoZeyxd3zD6I3kY0i
+        BZms6VHd7EFml42ho/Wk/Ab1yUJ5Z7RKMsqFDIsqx/9XUadtmf1Q5+3bAe6KStmKApoGMmy2kldOy
+        2PClm98ZZ+p/9hcZJ+98ZnTEhZgAAOVS4V77SOn8v9DfmUiC2JHkbYu8CUNj9FDaVZqRc9AjKSD8g
+        yOTn36/h8m1BbxZLks4s5YW4JXCAllgq8EQDKDkma+E+WJzw5e5LO02QIA82StUmVpehkfvT3jE++
+        Q5m0OWuykXvlff+gh5p6l6ZreX0TuQxntNZDjVWEg/Ls0RErcTVBl+iDCV2Jajnq6RaI984DcWfNt
+        VYUj8b3g==;
 Received: from [184.48.100.57] (helo=localhost)
         by bombadil.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
-        id 1gVgXI-000546-6l; Sat, 08 Dec 2018 17:37:04 +0000
+        id 1gVgXK-00054Y-Md; Sat, 08 Dec 2018 17:37:06 +0000
 From:   Christoph Hellwig <hch@lst.de>
 To:     iommu@lists.linux-foundation.org
 Cc:     Robin Murphy <robin.murphy@arm.com>,
@@ -51,9 +51,9 @@ Cc:     Robin Murphy <robin.murphy@arm.com>,
         dri-devel@lists.freedesktop.org, sparclinux@vger.kernel.org,
         openrisc@lists.librecores.org, linux-parisc@vger.kernel.org,
         linux-mips@vger.kernel.org
-Subject: [PATCH 04/10] arm: implement DMA_ATTR_NON_CONSISTENT
-Date:   Sat,  8 Dec 2018 09:36:56 -0800
-Message-Id: <20181208173702.15158-5-hch@lst.de>
+Subject: [PATCH 10/10] Documentation: update the description for DMA_ATTR_NON_CONSISTENT
+Date:   Sat,  8 Dec 2018 09:37:02 -0800
+Message-Id: <20181208173702.15158-11-hch@lst.de>
 X-Mailer: git-send-email 2.19.2
 In-Reply-To: <20181208173702.15158-1-hch@lst.de>
 References: <20181208173702.15158-1-hch@lst.de>
@@ -65,179 +65,108 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-For the iommu ops we can just use the implementaton for DMA coherent
-devices.  For the regular ops we need mix and match a bit so that
-we either use the CMA allocator without remapping, but with a special
-error handling case for highmem pages, or the simple allocator.
+We got rid of the odd selective consistent or not behavior, and now
+want the normal dma_sync_single_* functions to be used for strict
+ownership transfers.  While dma_cache_sync hasn't been removed from
+the tree yet it should not be used in any new caller, so documentation
+for it is dropped here.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- arch/arm/mm/dma-mapping.c | 49 ++++++++++++++++++++++++++++-----------
- 1 file changed, 35 insertions(+), 14 deletions(-)
+ Documentation/DMA-API.txt        | 30 ++++--------------------------
+ Documentation/DMA-attributes.txt |  9 +++++----
+ include/linux/dma-mapping.h      |  3 +++
+ 3 files changed, 12 insertions(+), 30 deletions(-)
 
-diff --git a/arch/arm/mm/dma-mapping.c b/arch/arm/mm/dma-mapping.c
-index 2cfb17bad1e6..b3b66b41c450 100644
---- a/arch/arm/mm/dma-mapping.c
-+++ b/arch/arm/mm/dma-mapping.c
-@@ -49,6 +49,7 @@ struct arm_dma_alloc_args {
- 	const void *caller;
- 	bool want_vaddr;
- 	int coherent_flag;
-+	bool nonconsistent_flag;
- };
+diff --git a/Documentation/DMA-API.txt b/Documentation/DMA-API.txt
+index ac66ae2509a9..c81fe8a4aeec 100644
+--- a/Documentation/DMA-API.txt
++++ b/Documentation/DMA-API.txt
+@@ -518,20 +518,9 @@ API at all.
+ 	dma_alloc_attrs(struct device *dev, size_t size, dma_addr_t *dma_handle,
+ 			gfp_t flag, unsigned long attrs)
  
- struct arm_dma_free_args {
-@@ -57,6 +58,7 @@ struct arm_dma_free_args {
- 	void *cpu_addr;
- 	struct page *page;
- 	bool want_vaddr;
-+	bool nonconsistent_flag;
- };
+-Identical to dma_alloc_coherent() except that when the
+-DMA_ATTR_NON_CONSISTENT flags is passed in the attrs argument, the
+-platform will choose to return either consistent or non-consistent memory
+-as it sees fit.  By using this API, you are guaranteeing to the platform
+-that you have all the correct and necessary sync points for this memory
+-in the driver should it choose to return non-consistent memory.
+-
+-Note: where the platform can return consistent memory, it will
+-guarantee that the sync points become nops.
+-
+-Warning:  Handling non-consistent memory is a real pain.  You should
+-only use this API if you positively know your driver will be
+-required to work on one of the rare (usually non-PCI) architectures
+-that simply cannot make consistent memory.
++Similar to dma_alloc_coherent(), except that the behavior can be controlled
++in more detail using the attrs argument.  See Documentation/DMA-attributes.txt
++for more details.
  
- #define NORMAL	    0
-@@ -348,7 +350,8 @@ static void __dma_free_buffer(struct page *page, size_t size)
- static void *__alloc_from_contiguous(struct device *dev, size_t size,
- 				     pgprot_t prot, struct page **ret_page,
- 				     const void *caller, bool want_vaddr,
--				     int coherent_flag, gfp_t gfp);
-+				     int coherent_flag, bool nonconsistent_flag,
-+				     gfp_t gfp);
+ ::
  
- static void *__alloc_remap_buffer(struct device *dev, size_t size, gfp_t gfp,
- 				 pgprot_t prot, struct page **ret_page,
-@@ -405,7 +408,7 @@ static int __init atomic_pool_init(void)
- 	if (dev_get_cma_area(NULL))
- 		ptr = __alloc_from_contiguous(NULL, atomic_pool_size, prot,
- 				      &page, atomic_pool_init, true, NORMAL,
--				      GFP_KERNEL);
-+				      false, GFP_KERNEL);
- 	else
- 		ptr = __alloc_remap_buffer(NULL, atomic_pool_size, gfp, prot,
- 					   &page, atomic_pool_init, true);
-@@ -579,7 +582,8 @@ static int __free_from_pool(void *start, size_t size)
- static void *__alloc_from_contiguous(struct device *dev, size_t size,
- 				     pgprot_t prot, struct page **ret_page,
- 				     const void *caller, bool want_vaddr,
--				     int coherent_flag, gfp_t gfp)
-+				     int coherent_flag, bool nonconsistent_flag,
-+				     gfp_t gfp)
- {
- 	unsigned long order = get_order(size);
- 	size_t count = size >> PAGE_SHIFT;
-@@ -595,12 +599,16 @@ static void *__alloc_from_contiguous(struct device *dev, size_t size,
- 	if (!want_vaddr)
- 		goto out;
+@@ -540,7 +529,7 @@ that simply cannot make consistent memory.
+ 		       dma_addr_t dma_handle, unsigned long attrs)
  
-+	if (nonconsistent_flag) {
-+		if (PageHighMem(page))
-+			goto fail;
-+		goto out;
-+	}
-+
- 	if (PageHighMem(page)) {
- 		ptr = __dma_alloc_remap(page, size, GFP_KERNEL, prot, caller);
--		if (!ptr) {
--			dma_release_from_contiguous(dev, page, count);
--			return NULL;
--		}
-+		if (!ptr)
-+			goto fail;
- 	} else {
- 		__dma_remap(page, size, prot);
- 		ptr = page_address(page);
-@@ -609,12 +617,15 @@ static void *__alloc_from_contiguous(struct device *dev, size_t size,
-  out:
- 	*ret_page = page;
- 	return ptr;
-+ fail:
-+	dma_release_from_contiguous(dev, page, count);
-+	return NULL;
- }
+ Free memory allocated by the dma_alloc_attrs().  All parameters common
+-parameters must identical to those otherwise passed to dma_fre_coherent,
++parameters must identical to those otherwise passed to dma_free_coherent,
+ and the attrs argument must be identical to the attrs passed to
+ dma_alloc_attrs().
  
- static void __free_from_contiguous(struct device *dev, struct page *page,
--				   void *cpu_addr, size_t size, bool want_vaddr)
-+				   void *cpu_addr, size_t size, bool remapped)
- {
--	if (want_vaddr) {
-+	if (remapped) {
- 		if (PageHighMem(page))
- 			__dma_free_remap(cpu_addr, size);
- 		else
-@@ -635,7 +646,11 @@ static void *__alloc_simple_buffer(struct device *dev, size_t size, gfp_t gfp,
- 				   struct page **ret_page)
- {
- 	struct page *page;
--	/* __alloc_simple_buffer is only called when the device is coherent */
-+	/*
-+	 * __alloc_simple_buffer is only called when the device is coherent,
-+	 * or if the caller explicitly asked for an allocation that is not
-+	 * consistent.
-+	 */
- 	page = __dma_alloc_buffer(dev, size, gfp, COHERENT);
- 	if (!page)
- 		return NULL;
-@@ -667,13 +682,15 @@ static void *cma_allocator_alloc(struct arm_dma_alloc_args *args,
- 	return __alloc_from_contiguous(args->dev, args->size, args->prot,
- 				       ret_page, args->caller,
- 				       args->want_vaddr, args->coherent_flag,
-+				       args->nonconsistent_flag,
- 				       args->gfp);
- }
+@@ -560,17 +549,6 @@ memory or doing partial flushes.
+ 	into the width returned by this call.  It will also always be a power
+ 	of two for easy alignment.
  
- static void cma_allocator_free(struct arm_dma_free_args *args)
- {
- 	__free_from_contiguous(args->dev, args->page, args->cpu_addr,
--			       args->size, args->want_vaddr);
-+			       args->size,
-+			       args->want_vaddr || args->nonconsistent_flag);
- }
+-::
+-
+-	void
+-	dma_cache_sync(struct device *dev, void *vaddr, size_t size,
+-		       enum dma_data_direction direction)
+-
+-Do a partial sync of memory that was allocated by dma_alloc_attrs() with
+-the DMA_ATTR_NON_CONSISTENT flag starting at virtual address vaddr and
+-continuing on for size.  Again, you *must* observe the cache line
+-boundaries when doing this.
+-
+ ::
  
- static struct arm_dma_allocator cma_allocator = {
-@@ -735,6 +752,7 @@ static void *__dma_alloc(struct device *dev, size_t size, dma_addr_t *handle,
- 		.caller = caller,
- 		.want_vaddr = ((attrs & DMA_ATTR_NO_KERNEL_MAPPING) == 0),
- 		.coherent_flag = is_coherent ? COHERENT : NORMAL,
-+		.nonconsistent_flag = (attrs & DMA_ATTR_NON_CONSISTENT),
- 	};
+ 	int
+diff --git a/Documentation/DMA-attributes.txt b/Documentation/DMA-attributes.txt
+index 8f8d97f65d73..2bb3fc0a621b 100644
+--- a/Documentation/DMA-attributes.txt
++++ b/Documentation/DMA-attributes.txt
+@@ -46,10 +46,11 @@ behavior.
+ DMA_ATTR_NON_CONSISTENT
+ -----------------------
  
- #ifdef CONFIG_DMA_API_DEBUG
-@@ -773,7 +791,7 @@ static void *__dma_alloc(struct device *dev, size_t size, dma_addr_t *handle,
+-DMA_ATTR_NON_CONSISTENT lets the platform to choose to return either
+-consistent or non-consistent memory as it sees fit.  By using this API,
+-you are guaranteeing to the platform that you have all the correct and
+-necessary sync points for this memory in the driver.
++DMA_ATTR_NON_CONSISTENT specifies that the memory returned is not
++required to be consistent.  The memory is owned by the device when
++returned from this function, and ownership must be explicitly
++transferred to the CPU using dma_sync_single_for_cpu, and back to the
++device using dma_sync_single_for_device.
  
- 	if (cma)
- 		buf->allocator = &cma_allocator;
--	else if (is_coherent)
-+	else if (is_coherent || (attrs & DMA_ATTR_NON_CONSISTENT))
- 		buf->allocator = &simple_allocator;
- 	else if (allowblock)
- 		buf->allocator = &remap_allocator;
-@@ -874,6 +892,7 @@ static void __arm_dma_free(struct device *dev, size_t size, void *cpu_addr,
- 		.cpu_addr = cpu_addr,
- 		.page = page,
- 		.want_vaddr = ((attrs & DMA_ATTR_NO_KERNEL_MAPPING) == 0),
-+		.nonconsistent_flag = (attrs & DMA_ATTR_NON_CONSISTENT),
- 	};
+ DMA_ATTR_NO_KERNEL_MAPPING
+ --------------------------
+diff --git a/include/linux/dma-mapping.h b/include/linux/dma-mapping.h
+index 8c81fa5d1f44..8757ad5087c4 100644
+--- a/include/linux/dma-mapping.h
++++ b/include/linux/dma-mapping.h
+@@ -432,6 +432,9 @@ dma_sync_sg_for_device(struct device *dev, struct scatterlist *sg,
+ #define dma_map_page(d, p, o, s, r) dma_map_page_attrs(d, p, o, s, r, 0)
+ #define dma_unmap_page(d, a, s, r) dma_unmap_page_attrs(d, a, s, r, 0)
  
- 	buf = arm_dma_buffer_find(cpu_addr);
-@@ -1562,7 +1581,8 @@ static void *__arm_iommu_alloc_attrs(struct device *dev, size_t size,
- static void *arm_iommu_alloc_attrs(struct device *dev, size_t size,
- 	    dma_addr_t *handle, gfp_t gfp, unsigned long attrs)
- {
--	return __arm_iommu_alloc_attrs(dev, size, handle, gfp, attrs, NORMAL);
-+	return __arm_iommu_alloc_attrs(dev, size, handle, gfp, attrs,
-+			(attrs & DMA_ATTR_NON_CONSISTENT) ? COHERENT : NORMAL);
- }
- 
- static void *arm_coherent_iommu_alloc_attrs(struct device *dev, size_t size,
-@@ -1650,7 +1670,8 @@ void __arm_iommu_free_attrs(struct device *dev, size_t size, void *cpu_addr,
- void arm_iommu_free_attrs(struct device *dev, size_t size,
- 		    void *cpu_addr, dma_addr_t handle, unsigned long attrs)
- {
--	__arm_iommu_free_attrs(dev, size, cpu_addr, handle, attrs, NORMAL);
-+	__arm_iommu_free_attrs(dev, size, cpu_addr, handle, attrs,
-+			(attrs & DMA_ATTR_NON_CONSISTENT) ? COHERENT : NORMAL);
- }
- 
- void arm_coherent_iommu_free_attrs(struct device *dev, size_t size,
++/*
++ * Don't use in new code, use dma_sync_single_for_{device,cpu} instead.
++ */
+ static inline void
+ dma_cache_sync(struct device *dev, void *vaddr, size_t size,
+ 		enum dma_data_direction dir)
 -- 
 2.19.2
 
