@@ -2,112 +2,204 @@ Return-Path: <SRS0=Hr0N=OT=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.2 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-0.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C2816C65BAF
-	for <linux-media@archiver.kernel.org>; Mon, 10 Dec 2018 03:20:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 17707C67839
+	for <linux-media@archiver.kernel.org>; Mon, 10 Dec 2018 04:30:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 87A3720831
-	for <linux-media@archiver.kernel.org>; Mon, 10 Dec 2018 03:20:33 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="ckyAsw7R"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 87A3720831
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=chromium.org
+	by mail.kernel.org (Postfix) with ESMTP id CF02D2081C
+	for <linux-media@archiver.kernel.org>; Mon, 10 Dec 2018 04:30:16 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org CF02D2081C
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=katsuster.net
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726417AbeLJDUZ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sun, 9 Dec 2018 22:20:25 -0500
-Received: from mail-yb1-f195.google.com ([209.85.219.195]:34211 "EHLO
-        mail-yb1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726413AbeLJDUZ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 9 Dec 2018 22:20:25 -0500
-Received: by mail-yb1-f195.google.com with SMTP id k136so1007896ybk.1
-        for <linux-media@vger.kernel.org>; Sun, 09 Dec 2018 19:20:24 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=UI6wO+eLFCBHOe4696NxtbdBKBil/NyvmFE0lXryLA4=;
-        b=ckyAsw7R3uziZc/UVFJsD3LLkPxGi2+SflWuC2lkBLNxcJ1/sHBBWui9Q8qXw0G8Pn
-         UA/aDbJjqkNWhdxEVOystMHs+XIg3yVbU1m0U3DGydkxSyVd/1rHtobU9Mk2IkNoSPgD
-         GRXVegC+FCueRUxg3sxC7rZxIO9ZjNzUK61iQ=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=UI6wO+eLFCBHOe4696NxtbdBKBil/NyvmFE0lXryLA4=;
-        b=grZDcaMFx3nHGc00ekZGOQZp2VQB2oRkrN1lsao4rTIbXTHdmBUWfeMYJYKXwpwL3R
-         Ce0B3KQfTV1CuQJCoTYWr0aCQ3B/T7t6BTu/oNIeW60CUF8rGMTDvJcKBTNhSKya7TQT
-         CM0tM3WEHZtyCRgqxRMDhYFBr9yDVA6LKBG0t6/WX6jpE9lZZEEGlKHO5Aa/tLLRO6gG
-         ALQAbFzWtJNyl+1maGC9eCliHYUO2uhAYrpVmZC1BH2JpApOdq+3JQf9KGSriTieHpQb
-         aXCp5cwyz4PEP+P6KFqeK4lnyx40olzYtuMVvdDV7gul/akz2Q5OxseXhu/YChe0k/B/
-         Z65Q==
-X-Gm-Message-State: AA+aEWYOwYVGGUD+itzWAh93PLbR++Y2jbJPKyRraHHLnKe5iP1B3Jfv
-        +x9Yr//xpuVKvyXlcF/O3HOW3lSoyYW7NA==
-X-Google-Smtp-Source: AFSGD/Vb9NmGPchARIZgGOjFyC23pXh+qv7hqqa/pUfIpxrA+FAWUDiXyFeJQqA2g0ZchJYagFum8Q==
-X-Received: by 2002:a25:86cc:: with SMTP id y12mr10638446ybm.92.1544412024247;
-        Sun, 09 Dec 2018 19:20:24 -0800 (PST)
-Received: from mail-yb1-f173.google.com (mail-yb1-f173.google.com. [209.85.219.173])
-        by smtp.gmail.com with ESMTPSA id j134sm4767676ywb.91.2018.12.09.19.20.23
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Sun, 09 Dec 2018 19:20:23 -0800 (PST)
-Received: by mail-yb1-f173.google.com with SMTP id f9so1128416ybm.13
-        for <linux-media@vger.kernel.org>; Sun, 09 Dec 2018 19:20:23 -0800 (PST)
-X-Received: by 2002:a25:9907:: with SMTP id z7mr834483ybn.114.1544412023187;
- Sun, 09 Dec 2018 19:20:23 -0800 (PST)
+        id S1726652AbeLJEaP (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sun, 9 Dec 2018 23:30:15 -0500
+Received: from www1102.sakura.ne.jp ([219.94.129.142]:64391 "EHLO
+        www1102.sakura.ne.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726475AbeLJEaO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 9 Dec 2018 23:30:14 -0500
+X-Greylist: delayed 2051 seconds by postgrey-1.27 at vger.kernel.org; Sun, 09 Dec 2018 23:30:13 EST
+Received: from fsav106.sakura.ne.jp (fsav106.sakura.ne.jp [27.133.134.233])
+        by www1102.sakura.ne.jp (8.15.2/8.15.2) with ESMTP id wBA3tIgf031017;
+        Mon, 10 Dec 2018 12:55:18 +0900 (JST)
+        (envelope-from katsuhiro@katsuster.net)
+Received: from www1102.sakura.ne.jp (219.94.129.142)
+ by fsav106.sakura.ne.jp (F-Secure/fsigk_smtp/530/fsav106.sakura.ne.jp);
+ Mon, 10 Dec 2018 12:55:18 +0900 (JST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/530/fsav106.sakura.ne.jp)
+Received: from [192.168.1.2] (199.247.151.153.ap.dti.ne.jp [153.151.247.199])
+        (authenticated bits=0)
+        by www1102.sakura.ne.jp (8.15.2/8.15.2) with ESMTPSA id wBA3t9QS030987
+        (version=TLSv1.2 cipher=AES256-SHA bits=256 verify=NO);
+        Mon, 10 Dec 2018 12:55:17 +0900 (JST)
+        (envelope-from katsuhiro@katsuster.net)
+Subject: Re: [PATCH v2 0/7] add UniPhier DVB Frontend system support
+To:     Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>
+Cc:     linux-media@vger.kernel.org,
+        Masami Hiramatsu <masami.hiramatsu@linaro.org>,
+        Jassi Brar <jaswinder.singh@linaro.org>,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        Michael Ira Krufky <mkrufky@linuxtv.org>,
+        Sean Young <sean@mess.org>, Brad Love <brad@nextdimension.cc>
+References: <20180808052519.14528-1-suzuki.katsuhiro@socionext.com>
+ <000301d43ffe$9e6e9f80$db4bde80$@socionext.com>
+ <20181207121716.17521ac2@coco.lan>
+From:   Katsuhiro Suzuki <katsuhiro@katsuster.net>
+Message-ID: <75775717-e5b3-e08a-ff4d-760b81031717@katsuster.net>
+Date:   Mon, 10 Dec 2018 12:55:08 +0900
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.3.3
 MIME-Version: 1.0
-References: <20181206194639.13472-1-ezequiel@collabora.com>
-In-Reply-To: <20181206194639.13472-1-ezequiel@collabora.com>
-From:   Tomasz Figa <tfiga@chromium.org>
-Date:   Mon, 10 Dec 2018 12:20:12 +0900
-X-Gmail-Original-Message-ID: <CAAFQd5BA15tPoWNd=AKEnMXu8B9nYGEGxzh=XgZj50S3Uofy-Q@mail.gmail.com>
-Message-ID: <CAAFQd5BA15tPoWNd=AKEnMXu8B9nYGEGxzh=XgZj50S3Uofy-Q@mail.gmail.com>
-Subject: Re: [PATCH v3] v4l2-ioctl: Zero v4l2_plane_pix_format reserved fields
-To:     Ezequiel Garcia <ezequiel@collabora.com>
-Cc:     Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>, kernel@collabora.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <20181207121716.17521ac2@coco.lan>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Ezequiel,
+Hello Mauro,
 
-On Fri, Dec 7, 2018 at 4:46 AM Ezequiel Garcia <ezequiel@collabora.com> wrote:
->
-> Make the core set the reserved fields to zero in
-> vv4l2_pix_format_mplane.4l2_plane_pix_format,
-> for _MPLANE queue types.
->
-> Moving this to the core avoids having to do so in each
-> and every driver.
->
-> Suggested-by: Tomasz Figa <tfiga@chromium.org>
-> Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
-> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> --
-> v3:
->   * s/int/unsigned int, suggested by Sakari
->
-> v2:
->   * Drop unneeded clear in g_fmt.
->     The sturct was already being cleared here.
->   * Only zero plane_fmt reserved fields.
->   * Use CLEAR_FIELD_MACRO.
->
->  drivers/media/v4l2-core/v4l2-ioctl.c | 10 ++++++++++
->  1 file changed, 10 insertions(+)
->
+Thank you for reviewing. Actually, I leaved Socionext at October
+this year. I tried to find next person that maintain these patches
+before leaving Socionext but I could not find.
 
-Thanks for the patch.
+And unfortunately, I cannot test and refine these DVB patches
+because Socionext evaluation boards that can receive ISDB are not
+sell and SoC specification is not public.
 
-Reviewed-by: Tomasz Figa <tfiga@chromium.org>
+So it's better to drop my UniPhier DVB patches, I think...
 
-Best regards,
-Tomasz
+Best Regards,
+---
+Katsuhiro Suzuki
+
+On 2018/12/07 23:17, Mauro Carvalho Chehab wrote:
+> Hi Katsuhiro-san,
+> 
+> Em Thu, 30 Aug 2018 10:13:11 +0900
+> "Katsuhiro Suzuki" <suzuki.katsuhiro@socionext.com> escreveu:
+> 
+>> Hello Mauro,
+>>
+>> This is ping...
+> 
+> Sorry for taking a long time to look into it.
+> 
+> Reviewing new drivers take some time, and need to be done right.
+> 
+> I usually let the sub-maintainers to do a first look, but they
+> probably missed this one. So, let me copy them. Hopefully they
+> can do review on it soon.
+> 
+> I'll try to do a review myself, but I won't be able to do it
+> until mid next week.
+> 
+> Regards,
+> Mauro
+> 
+>>
+>>> -----Original Message-----
+>>> From: Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>
+>>> Sent: Wednesday, August 8, 2018 2:25 PM
+>>> To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>;
+>>> linux-media@vger.kernel.org
+>>> Cc: Masami Hiramatsu <masami.hiramatsu@linaro.org>; Jassi Brar
+>>> <jaswinder.singh@linaro.org>; linux-arm-kernel@lists.infradead.org;
+>>> linux-kernel@vger.kernel.org; Suzuki, Katsuhiro
+>>> <suzuki.katsuhiro@socionext.com>
+>>> Subject: [PATCH v2 0/7] add UniPhier DVB Frontend system support
+>>>
+>>> This series adds support for DVB Frontend system named HSC support
+>>> for UniPhier LD11/LD20 SoCs. This driver supports MPEG2-TS serial
+>>> signal input from external demodulator and DMA MPEG2-TS stream data
+>>> onto memory.
+>>>
+>>> UniPhier HSC driver provides many ports of TS input. Since the HSC
+>>> has mixed register map for those ports. It hard to split each register
+>>> areas.
+>>>
+>>> ---
+>>>
+>>> Changes from v1:
+>>>    DT bindings
+>>>      - Fix mistakes of spelling
+>>>      - Rename uniphier,hsc.txt -> socionext,uniphier-hsc.txt
+>>>    Kconfig, Makefile
+>>>      - Add COMPILE_TEST, REGMAP_MMIO
+>>>      - Add $(srctree) to include path option
+>>>    Headers
+>>>      - Split large patch
+>>>      - Remove more unused definitions
+>>>      - Remove unneeded const
+>>>      - Replace enum that has special value into #define
+>>>      - Remove weird macro from register definitions
+>>>      - Remove field_get/prop inline functions
+>>>    Modules
+>>>      - Split register definitions, function prototypes
+>>>      - Fix include lines
+>>>      - Fix depended config
+>>>      - Remove redundant conditions
+>>>      - Drop adapter patches, and need no patches to build
+>>>      - Merge uniphier-adapter.o into each adapter drivers
+>>>      - Split 3 modules (core, ld11, ld20) to build adapter drivers as
+>>>        module
+>>>      - Fix compile error if build as module
+>>>      - Use hardware spec table to remove weird macro from register
+>>>        definitions
+>>>      - Use usleep_range instead of msleep
+>>>      - Use shift and mask instead of field_get/prop inline functions
+>>>
+>>> Katsuhiro Suzuki (7):
+>>>    media: uniphier: add DT bindings documentation for UniPhier HSC
+>>>    media: uniphier: add DMA common file of HSC
+>>>    media: uniphier: add CSS common file of HSC
+>>>    media: uniphier: add TS common file of HSC
+>>>    media: uniphier: add ucode load common file of HSC
+>>>    media: uniphier: add platform driver module of HSC
+>>>    media: uniphier: add LD11/LD20 HSC support
+>>>
+>>>   .../bindings/media/socionext,uniphier-hsc.txt |  38 ++
+>>>   drivers/media/platform/Kconfig                |   1 +
+>>>   drivers/media/platform/Makefile               |   2 +
+>>>   drivers/media/platform/uniphier/Kconfig       |  19 +
+>>>   drivers/media/platform/uniphier/Makefile      |   5 +
+>>>   drivers/media/platform/uniphier/hsc-core.c    | 515 ++++++++++++++++++
+>>>   drivers/media/platform/uniphier/hsc-css.c     | 250 +++++++++
+>>>   drivers/media/platform/uniphier/hsc-dma.c     | 212 +++++++
+>>>   drivers/media/platform/uniphier/hsc-ld11.c    | 273 ++++++++++
+>>>   drivers/media/platform/uniphier/hsc-reg.h     | 272 +++++++++
+>>>   drivers/media/platform/uniphier/hsc-ts.c      | 127 +++++
+>>>   drivers/media/platform/uniphier/hsc-ucode.c   | 416 ++++++++++++++
+>>>   drivers/media/platform/uniphier/hsc.h         | 389 +++++++++++++
+>>>   13 files changed, 2519 insertions(+)
+>>>   create mode 100644
+>>> Documentation/devicetree/bindings/media/socionext,uniphier-hsc.txt
+>>>   create mode 100644 drivers/media/platform/uniphier/Kconfig
+>>>   create mode 100644 drivers/media/platform/uniphier/Makefile
+>>>   create mode 100644 drivers/media/platform/uniphier/hsc-core.c
+>>>   create mode 100644 drivers/media/platform/uniphier/hsc-css.c
+>>>   create mode 100644 drivers/media/platform/uniphier/hsc-dma.c
+>>>   create mode 100644 drivers/media/platform/uniphier/hsc-ld11.c
+>>>   create mode 100644 drivers/media/platform/uniphier/hsc-reg.h
+>>>   create mode 100644 drivers/media/platform/uniphier/hsc-ts.c
+>>>   create mode 100644 drivers/media/platform/uniphier/hsc-ucode.c
+>>>   create mode 100644 drivers/media/platform/uniphier/hsc.h
+>>>
+>>> --
+>>> 2.18.0
+>>
+>>
+>>
+> 
+> 
+> 
+> Thanks,
+> Mauro
+> 
+
