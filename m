@@ -2,98 +2,122 @@ Return-Path: <SRS0=Hr0N=OT=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_NEOMUTT
+X-Spam-Status: No, score=-6.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BEF9C04EB8
-	for <linux-media@archiver.kernel.org>; Mon, 10 Dec 2018 08:14:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 41C85C65BAF
+	for <linux-media@archiver.kernel.org>; Mon, 10 Dec 2018 09:01:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5844B2082F
-	for <linux-media@archiver.kernel.org>; Mon, 10 Dec 2018 08:14:30 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 5844B2082F
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=iki.fi
+	by mail.kernel.org (Postfix) with ESMTP id 0C54120865
+	for <linux-media@archiver.kernel.org>; Mon, 10 Dec 2018 09:01:00 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 0C54120865
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=bootlin.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726212AbeLJIOY (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 10 Dec 2018 03:14:24 -0500
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52368 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726029AbeLJIOY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Dec 2018 03:14:24 -0500
-Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id EFB70634C7F;
-        Mon, 10 Dec 2018 10:14:19 +0200 (EET)
-Received: from sailus by valkosipuli.localdomain with local (Exim 4.89)
-        (envelope-from <sakari.ailus@retiisi.org.uk>)
-        id 1gWGhn-0000Jz-PG; Mon, 10 Dec 2018 10:14:19 +0200
-Date:   Mon, 10 Dec 2018 10:14:19 +0200
-From:   sakari.ailus@iki.fi
-To:     jacopo mondi <jacopo@jmondi.org>
-Cc:     Jacopo Mondi <jacopo+renesas@jmondi.org>, corbet@lwn.net,
-        mchehab@kernel.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] v4l2: i2c: ov7670: Fix PLL bypass register values
-Message-ID: <20181210081419.vkv2vmt6uecorid7@valkosipuli.retiisi.org.uk>
-References: <1514550146-20195-1-git-send-email-jacopo+renesas@jmondi.org>
- <20181209233917.dhtwrpb46y2iyx4m@valkosipuli.retiisi.org.uk>
- <20181210075902.GG5597@w540>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20181210075902.GG5597@w540>
-User-Agent: NeoMutt/20170113 (1.7.2)
+        id S1726754AbeLJJAz (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 10 Dec 2018 04:00:55 -0500
+Received: from mail.bootlin.com ([62.4.15.54]:50889 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726531AbeLJJAy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 10 Dec 2018 04:00:54 -0500
+Received: by mail.bootlin.com (Postfix, from userid 110)
+        id 6D51820CE8; Mon, 10 Dec 2018 10:00:52 +0100 (CET)
+Received: from aptenodytes (aaubervilliers-681-1-79-44.w90-88.abo.wanadoo.fr [90.88.21.44])
+        by mail.bootlin.com (Postfix) with ESMTPSA id 57D8A20E31;
+        Mon, 10 Dec 2018 10:00:34 +0100 (CET)
+Message-ID: <c276fb045ab285c0907c4831f3b71a31f09cd4a5.camel@bootlin.com>
+Subject: Re: [linux-sunxi] [PATCH v2 15/15] arm64: dts: allwinner: a64: Add
+ Video Engine node
+From:   Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+To:     Jernej =?UTF-8?Q?=C5=A0krabec?= <jernej.skrabec@gmail.com>,
+        linux-sunxi@googlegroups.com
+Cc:     linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        devel@driverdev.osuosl.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Date:   Mon, 10 Dec 2018 10:00:34 +0100
+In-Reply-To: <2823800.C4zEU5jiS7@jernej-laptop>
+References: <20181205092444.29497-1-paul.kocialkowski@bootlin.com>
+         <20181205092444.29497-16-paul.kocialkowski@bootlin.com>
+         <2823800.C4zEU5jiS7@jernej-laptop>
+Organization: Bootlin
+Content-Type: text/plain; charset="UTF-8"
+User-Agent: Evolution 3.30.2 
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Mon, Dec 10, 2018 at 08:59:02AM +0100, jacopo mondi wrote:
-> Hi Sakari,
->    thanks for digging this out
-> 
-> On Mon, Dec 10, 2018 at 01:39:17AM +0200, sakari.ailus@iki.fi wrote:
-> > Hi Jacopo,
-> >
-> > On Fri, Dec 29, 2017 at 01:22:26PM +0100, Jacopo Mondi wrote:
-> > > The following commits:
-> > > commit f6dd927f34d6 ("[media] media: ov7670: calculate framerate properly for ov7675")
-> > > commit 04ee6d92047e ("[media] media: ov7670: add possibility to bypass pll for ov7675")
-> > > introduced the ability to bypass PLL multiplier and use input clock (xvclk)
-> > > as pixel clock output frequency for ov7675 sensor.
-> > >
-> > > PLL is bypassed using register DBLV[7:6], according to ov7670 and ov7675
-> > > sensor manuals. Macros used to set DBLV register seem wrong in the
-> > > driver, as their values do not match what reported in the datasheet.
-> > >
-> > > Fix by changing DBLV_* macros to use bits [7:6] and set bits [3:0] to
-> > > default 0x0a reserved value (according to datasheets).
-> > >
-> > > While at there, remove a write to DBLV register in
-> > > "ov7675_set_framerate()" that over-writes the previous one to the same
-> > > register that takes "info->pll_bypass" flag into account instead of setting PLL
-> > > multiplier to 4x unconditionally.
-> > >
-> > > And, while at there, since "info->pll_bypass" is only used in
-> > > set/get_framerate() functions used by ov7675 only, it is not necessary
-> > > to check for the device id at probe time to make sure that when using
-> > > ov7670 "info->pll_bypass" is set to false.
-> > >
-> > > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> >
-> > I assume this is still valid and long overdue for merging. :-) No other
-> > work in the area seem to have been done so I'm picking it up...
-> >
-> 
-> It should still be valid, and should still apply regardless of its
-> age :) Is it worth a proper 'Fixes' tag?
-> 
-> Fixes: f6dd927f34d6 ("[media] media: ov7670: calculate framerate properly for ov7675")
+Hi,
 
-Thanks; I added that to the commit message.
+On Fri, 2018-12-07 at 22:22 +0100, Jernej Škrabec wrote:
+> Hi!
+> 
+> Dne sreda, 05. december 2018 ob 10:24:44 CET je Paul Kocialkowski napisal(a):
+> > This adds the Video Engine node for the A64. Since it can map the whole
+> > DRAM range, there is no particular need for a reserved memory node
+> > (unlike platforms preceding the A33).
+> > 
+> > Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+> > ---
+> >  arch/arm64/boot/dts/allwinner/sun50i-a64.dtsi | 11 +++++++++++
+> >  1 file changed, 11 insertions(+)
+> > 
+> > diff --git a/arch/arm64/boot/dts/allwinner/sun50i-a64.dtsi
+> > b/arch/arm64/boot/dts/allwinner/sun50i-a64.dtsi index
+> > 8557d52c7c99..8d024c10d7cb 100644
+> > --- a/arch/arm64/boot/dts/allwinner/sun50i-a64.dtsi
+> > +++ b/arch/arm64/boot/dts/allwinner/sun50i-a64.dtsi
+> > @@ -397,6 +397,17 @@
+> >  			};
+> >  		};
+> > 
+> > +		video-codec@1c0e000 {
+> > +			compatible = "allwinner,sun50i-h5-video-engine";
+> 
+> You meant A64 instead of H5, right?
 
+Ah yes definitely, that's a mistake right here.
+
+I'll send a follow-up patch for switching the compatible to describe
+the a64 instead of the h5. In practice, having the a64 use the h5
+compatible doesn't cause any issue, but it should be fixed
+nevertheless.
+
+Cheers,
+
+Paul
+
+> Best regards,
+> Jernej
+> 
+> > +			reg = <0x01c0e000 0x1000>;
+> > +			clocks = <&ccu CLK_BUS_VE>, <&ccu CLK_VE>,
+> > +				 <&ccu CLK_DRAM_VE>;
+> > +			clock-names = "ahb", "mod", "ram";
+> > +			resets = <&ccu RST_BUS_VE>;
+> > +			interrupts = <GIC_SPI 58 IRQ_TYPE_LEVEL_HIGH>;
+> > +			allwinner,sram = <&ve_sram 1>;
+> > +		};
+> > +
+> >  		mmc0: mmc@1c0f000 {
+> >  			compatible = "allwinner,sun50i-a64-mmc";
+> >  			reg = <0x01c0f000 0x1000>;
+> 
+> 
+> 
 -- 
-Sakari Ailus
+Paul Kocialkowski, Bootlin (formerly Free Electrons)
+Embedded Linux and kernel engineering
+https://bootlin.com
+
