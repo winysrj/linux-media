@@ -2,94 +2,92 @@ Return-Path: <SRS0=Hr0N=OT=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 37ACAC04EB8
-	for <linux-media@archiver.kernel.org>; Mon, 10 Dec 2018 20:24:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E6751C5CFFE
+	for <linux-media@archiver.kernel.org>; Mon, 10 Dec 2018 20:42:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E14DD2084C
-	for <linux-media@archiver.kernel.org>; Mon, 10 Dec 2018 20:24:27 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="p3S0NLD5"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org E14DD2084C
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=ideasonboard.com
+	by mail.kernel.org (Postfix) with ESMTP id AECC420821
+	for <linux-media@archiver.kernel.org>; Mon, 10 Dec 2018 20:42:28 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org AECC420821
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=arndb.de
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729397AbeLJUY1 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 10 Dec 2018 15:24:27 -0500
-Received: from perceval.ideasonboard.com ([213.167.242.64]:38862 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728182AbeLJUY1 (ORCPT
+        id S1729477AbeLJUmW (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 10 Dec 2018 15:42:22 -0500
+Received: from mout.kundenserver.de ([212.227.126.135]:33207 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727598AbeLJUmW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Dec 2018 15:24:27 -0500
-Received: from avalon.localnet (dfj612ybrt5fhg77mgycy-3.rev.dnainternet.fi [IPv6:2001:14ba:21f5:5b00:2e86:4862:ef6a:2804])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 9E47554B;
-        Mon, 10 Dec 2018 21:24:24 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1544473465;
-        bh=h4gGAhN9EwZtFZq2S+NcQhZcGpUOpVjWjrCn2e/AIrg=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=p3S0NLD5qt/w9W+/R2JEn8Y5xmb1Ac1hPqj+AyZUulHSC6zUeIyJHs5/Kw/KEqia8
-         NKsp4Li0Y2Xy4JizEyfOsRMuRF7FB9qMsDHU8YFA31ePrGdSAZerdHQt3aIj6oA53T
-         O5UaFlwUECKAwVtUMgFCKa1r9Y+RuaJT0JsM+rkk=
-From:   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To:     Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Cc:     linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH] media: vsp1: Fix trivial documentation
-Date:   Mon, 10 Dec 2018 22:25:06 +0200
-Message-ID: <3645934.BnSJS6SbSo@avalon>
-Organization: Ideas on Board Oy
-In-Reply-To: <20181207163134.14279-1-kieran.bingham+renesas@ideasonboard.com>
-References: <20181207163134.14279-1-kieran.bingham+renesas@ideasonboard.com>
+        Mon, 10 Dec 2018 15:42:22 -0500
+Received: from wuerfel.lan ([109.192.41.194]) by mrelayeu.kundenserver.de
+ (mreue009 [212.227.15.129]) with ESMTPA (Nemesis) id
+ 1MIdW9-1gisRL3YBR-00Ehbx; Mon, 10 Dec 2018 21:42:10 +0100
+From:   Arnd Bergmann <arnd@arndb.de>
+To:     Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Cc:     Arnd Bergmann <arnd@arndb.de>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Ettore Chimenti <ek5.chimenti@gmail.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] media: seco-cec: fix RC_CORE dependency
+Date:   Mon, 10 Dec 2018 21:41:40 +0100
+Message-Id: <20181210204208.2223571-1-arnd@arndb.de>
+X-Mailer: git-send-email 2.20.0
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8bit
+X-Provags-ID: V03:K1:Pyr2z/JPJNokWqHGPq/aD0EypsRv48+YISaicVzZoAvAsQWAQTG
+ Hhp8iD5wFDGiixfWA7mKnUrvXwPXHHX1gbKn6hPRK6nrb1FQjzR/xlEa5pRANT8cuyk4F9k
+ 3xlOhkpHb3yClYAsV8Umfk3wgOGbxrZL1FgJcoMLDbRc6zh79Hobd2dudy81b/Ru81EMdxR
+ MfkkFHRjo4h6V4lE3Ma8Q==
+X-UI-Out-Filterresults: notjunk:1;V03:K0:X/PAKrcotEQ=:cvvOBf2vOZ2e5m/Q6lgWoS
+ 4k1WDEf8/UmK5oObTilF0OqCaPHwImZPAQtlZ/sM3wp9FzIoBVfISwmjBjeLGpeDDA4sL/gg4
+ 2hwBPyr6qncyuYn/KD/5kQu2Ac7oQS+1c2ZBlqZ9awoGfZn+zHlxd29cu30oGkTphAni9kRvh
+ StmNsiDfaC0m/iulJxttDkgDLWCZG046yNBT3s1l1acfhz7k7FqGQJeg64bkHI5cmzTjgVvZ4
+ DUfP2bKOuUy/BV2xhoeEqy1eNVHQk7cp8Ue7X5PdGm/IUaqOYx4AiLYeuHAoqDCzu9Wvy6XlO
+ 8NSoSsViknJOsvsvXZcXG6a351E6IbZDhXtIgNk7MyWSs4HaEebRjuECw+BUOGMyWqAOTcAVP
+ HfLf+bdsVW4hYaKIkWxYcsy2e7hGPRgLkaBuq8pwhHbP2AhL8oJO5lWNT/Jd56D4zKSKMPM+9
+ q/oKY4nsyC2lR36FhBDAZ7EINY5eaoVeTBW9TPDZ2IBumuQTveF5+3JrMChb8pPwHzll2q5DE
+ Rik9FLuX/+2zObY1VyzWFlw7ll1EV5qiU5obVm2udPz0uRTAZjJjIAsvxZ4nYA9ssV3GLHRH2
+ Kl0q5vDFlVyv2QUuypPKKhvK822jyUQD5qKYUPFbvK6GpChnCYeUuMc3pXw0Y8GtGpAoncsEf
+ Y8hTrDw6mPMjRC+VpcGcIsw9KG9g6aQAim8qIvI/MyD29D7XbM3S3CbZGnH+G9kgRbXT0DuvP
+ tUnYr4dVPt88nsCqIpltLXW1CKY9KS1zfVJ0AA==
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Kieran,
+All other drivers that need RC_CORE have a dependency rather than using
+'select', so we should do the same here to avoid circular dependencies
+as well as this warning about missing dependencies:
 
-Thank you for the patch.
+WARNING: unmet direct dependencies detected for RC_CORE
+  Depends on [n]: INPUT [=n]
+  Selected by [y]:
+  - VIDEO_SECO_RC [=y] && MEDIA_SUPPORT [=y] && CEC_PLATFORM_DRIVERS [=y] && VIDEO_SECO_CEC [=y]
 
-On Friday, 7 December 2018 18:31:34 EET Kieran Bingham wrote:
-> In the partition sizing the term 'prevents' is inappropriately
-> pluralized.  Simplify to 'prevent'.
-> 
-> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Fixes: daef95769b3a ("media: seco-cec: add Consumer-IR support")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ drivers/media/platform/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-and applied to my tree.
-
-> ---
->  drivers/media/platform/vsp1/vsp1_video.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/vsp1/vsp1_video.c
-> b/drivers/media/platform/vsp1/vsp1_video.c index 771dfe1f7c20..7ceaf3222145
-> 100644
-> --- a/drivers/media/platform/vsp1/vsp1_video.c
-> +++ b/drivers/media/platform/vsp1/vsp1_video.c
-> @@ -223,7 +223,7 @@ static void vsp1_video_calculate_partition(struct
-> vsp1_pipeline *pipe, * If the modulus is less than half of the partition
-> size,
->  	 * the penultimate partition is reduced to half, which is added
->  	 * to the final partition: |1234|1234|1234|12|341|
-> -	 * to prevents this:       |1234|1234|1234|1234|1|.
-> +	 * to prevent this:        |1234|1234|1234|1234|1|.
->  	 */
->  	if (modulus) {
->  		/*
-
-
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index ea3306341edf..d501c6b3b380 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -641,7 +641,7 @@ config VIDEO_SECO_CEC
+ config VIDEO_SECO_RC
+ 	bool "SECO Boards IR RC5 support"
+ 	depends on VIDEO_SECO_CEC
+-	select RC_CORE
++	depends on RC_CORE
+ 	help
+ 	  If you say yes here you will get support for the
+ 	  SECO Boards Consumer-IR in seco-cec driver.
 -- 
-Regards,
-
-Laurent Pinchart
-
-
+2.20.0
 
