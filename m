@@ -2,336 +2,189 @@ Return-Path: <SRS0=Hr0N=OT=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-13.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,URIBL_SBL,
+	URIBL_SBL_A,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0CCE9C5CFFE
-	for <linux-media@archiver.kernel.org>; Mon, 10 Dec 2018 10:00:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B447C04EB8
+	for <linux-media@archiver.kernel.org>; Mon, 10 Dec 2018 11:18:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8A30D2086D
-	for <linux-media@archiver.kernel.org>; Mon, 10 Dec 2018 10:00:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 364E320870
+	for <linux-media@archiver.kernel.org>; Mon, 10 Dec 2018 11:18:15 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="NZZhdjT+"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 8A30D2086D
+	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="Ml4MwZLl"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 364E320870
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=ideasonboard.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726887AbeLJKA2 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 10 Dec 2018 05:00:28 -0500
-Received: from perceval.ideasonboard.com ([213.167.242.64]:55604 "EHLO
+        id S1727384AbeLJLSO (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 10 Dec 2018 06:18:14 -0500
+Received: from perceval.ideasonboard.com ([213.167.242.64]:56070 "EHLO
         perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726136AbeLJKA2 (ORCPT
+        with ESMTP id S1726740AbeLJLSO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Dec 2018 05:00:28 -0500
-Received: from avalon.localnet (dfj612ybrt5fhg77mgycy-3.rev.dnainternet.fi [IPv6:2001:14ba:21f5:5b00:2e86:4862:ef6a:2804])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 6DBB8549;
-        Mon, 10 Dec 2018 11:00:24 +0100 (CET)
+        Mon, 10 Dec 2018 06:18:14 -0500
+Received: from localhost.localdomain (cpc89242-aztw30-2-0-cust488.18-1.cable.virginm.net [86.31.129.233])
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id E061A549;
+        Mon, 10 Dec 2018 12:18:11 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1544436024;
-        bh=mWkGuw1GYvP6oFGdI1A8k9WOsmXNBrjoguHFqmfHqZM=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=NZZhdjT+7nF0Jx5RpD2r9bErdleMxnu95MZbXxzDO8aEi3HXEE+AGx2307mbw7WP8
-         czgGssy0Hj+iUnK5K9RlH1mUJLmUgYEXVKjG34pflo1GMNDlBGYQ8uOyPTBOx6R5nn
-         mvsJ1XSNRmAlEXvewavBTI2nIkhJ07ow8/Za0xnI=
-From:   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To:     sakari.ailus@iki.fi
-Cc:     Edgar Thier <info@edgarthier.net>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] v4l: Add simple packed Bayer raw12 pixel formats
-Date:   Mon, 10 Dec 2018 12:01:05 +0200
-Message-ID: <4044031.kCDiolKvxi@avalon>
-Organization: Ideas on Board Oy
-In-Reply-To: <20181209233103.eu377vpxvk5ks3ch@valkosipuli.retiisi.org.uk>
-References: <8632f42f-f274-b271-be1a-08d940c78487@edgarthier.net> <20181209233103.eu377vpxvk5ks3ch@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        s=mail; t=1544440692;
+        bh=8kuKSQDPcj+R+DI/9UQ8pye6KIyr6wevsopG6ipX8aI=;
+        h=From:To:Cc:Subject:Date:From;
+        b=Ml4MwZLlQUxCkPaw72tTwh5S92vnviXBE5iQ3ytfU/Kt4P8AkIaMVckaKVoKF6hZn
+         9KnTT+xRa6gCJG+wJZbetrkMuv06ENKyOwGjw4j15vtrYqJ/4Cooi+FQdJ49nwniuU
+         15eJz3gEe0KYdGERq5+qS9aa43+HWqYP8uvLbbDs=
+From:   Kieran Bingham <kieran.bingham@ideasonboard.com>
+To:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc:     linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: [PATCH v2] Add support to reset device controls
+Date:   Mon, 10 Dec 2018 11:18:08 +0000
+Message-Id: <20181210111808.10890-1-kieran.bingham@ideasonboard.com>
+X-Mailer: git-send-email 2.17.1
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hello,
+Provide a new option '--reset-controls' which will enumerate the
+available controls on a device or sub-device, and re-initialise them to
+defaults.
 
-On Monday, 10 December 2018 01:31:04 EET sakari.ailus@iki.fi wrote:
-> Hi Edgar,
-> 
-> Apologies for the late reply. I was going through the pending patches in
-> Patchwork, and noticed this one.
-> 
-> On Thu, Aug 23, 2018 at 08:56:50AM +0200, Edgar Thier wrote:
-> > These formats are compressed 12-bit raw bayer formats with four different
-> > pixel orders. They are similar to 10-bit bayer formats 'IPU3'.
-> > The formats added by this patch are
-> > 
-> > V4L2_PIX_FMT_SBGGR12SP
-> > V4L2_PIX_FMT_SGBRG12SP
-> > V4L2_PIX_FMT_SGRBG12SP
-> > V4L2_PIX_FMT_SRGGB12SP
-> > 
-> > Signed-off-by: Edgar Thier <info@edgarthier.net>
-> > ---
-> > Documentation/media/uapi/v4l/pixfmt-rgb.rst   |   1 +
-> > .../media/uapi/v4l/pixfmt-srggb12sp.rst       | 123 ++++++++++++++++++
-> > drivers/media/usb/uvc/uvc_driver.c            |  20 +++
-> > drivers/media/usb/uvc/uvcvideo.h              |  14 +-
-> > include/uapi/linux/videodev2.h                |   7 +
-> > 5 files changed, 164 insertions(+), 1 deletion(-)
-> > create mode 100644 Documentation/media/uapi/v4l/pixfmt-srggb12sp.rst
-> > 
-> > diff --git a/Documentation/media/uapi/v4l/pixfmt-rgb.rst
-> > b/Documentation/media/uapi/v4l/pixfmt-rgb.rst index
-> > 1f9a7e3a07c9..5da00bd085f1 100644
-> > --- a/Documentation/media/uapi/v4l/pixfmt-rgb.rst
-> > +++ b/Documentation/media/uapi/v4l/pixfmt-rgb.rst
-> > @@ -19,5 +19,6 @@ RGB Formats
-> > pixfmt-srggb10-ipu3
-> > pixfmt-srggb12
-> > pixfmt-srggb12p
-> > +    pixfmt-srggb12sp
-> 
-> Extra spaces.
-> 
-> > pixfmt-srggb14p
-> > pixfmt-srggb16
-> > diff --git a/Documentation/media/uapi/v4l/pixfmt-srggb12sp.rst
-> > b/Documentation/media/uapi/v4l/pixfmt-srggb12sp.rst
-> > new file mode 100644
-> > index 000000000000..e99359709c90
-> > --- /dev/null
-> > +++ b/Documentation/media/uapi/v4l/pixfmt-srggb12sp.rst
-> > @@ -0,0 +1,123 @@
-> > +.. -*- coding: utf-8; mode: rst -*-
-> > +
-> > +.. _v4l2-pix-fmt-sbggr12sp:
-> > +.. _v4l2-pix-fmt-sgbrg12sp:
-> > +.. _v4l2-pix-fmt-sgrbg12sp:
-> > +.. _v4l2-pix-fmt-srggb12sp:
-> > +
-> > +*************************************************************************
-> > **************************************************************************
-> > *** +V4L2_PIX_FMT_SBGGR12SP ('SRGGB12SP'), V4L2_PIX_FMT_SGBRG12SP
-> > ('SGBRG12SP'), V4L2_PIX_FMT_SGRBG12SP ('SGRBG12SP'),
-> > V4L2_PIX_FMT_SRGGB12SP ('SRGGB12SP')
-> > +*************************************************************************
-> > **************************************************************************
-> > *** +
-> > +12-bit Bayer formats
-> > +
-> > +Description
-> > +===========
-> > +
-> > +These four pixel formats are used by Intel IPU3 driver, they are raw
-> 
-> I think this comes from the IPU3 packed raw Bayer documentation, and does
-> not hold for these formats. Which devices did support it again? I have a
-> vague recollection this was a somewhat device specific format, not adhering
-> to a standard.
-> 
-> > +sRGB / Bayer formats with 12 bits per sample with every 8 pixels packed
-> > +to 24 bytes.
-> > +The format is little endian.
-> > +
-> > +In other respects this format is similar to
-> > :ref:`V4L2-PIX-FMT-SRGGB10-IPU3`. +Below is an example of a small image
-> > in V4L2_PIX_FMT_SBGGR12SP format. +
-> > +**Byte Order.**
-> > +Each cell is one byte.
-> > +
-> > +.. tabularcolumns:: |p{0.8cm}|p{4.0cm}|p{4.0cm}|p{4.0cm}|p{4.0cm}|
-> > +
-> > +.. flat-table::
-> > +
-> > +    * - start + 0:
-> > +      - B\ :sub:`0000low`
-> > +      - G\ :sub:`0001low`\ (bits 7--4)
-> > +
-> > +        B\ :sub:`0000high`\ (bits 0--3)
-> > +
-> > +      - G\ :sub:`0001high`\
-> > +      - B\ :sub:`0002low`
-> > +
-> > +    * - start + 4:
-> > +      - G\ :sub:`0003low`\ (bits 7--4)
-> > +
-> > +        B\ :sub:`0002high`\ (bits 0--3)
-> > +      - G\ :sub:`0003high`
-> > +      - B\ :sub:`0004low`
-> > +      - G\ :sub:`0005low`\ (bits 7--2)
-> > +
-> > +        B\ :sub:`0004high`\ (bits 1--0)
-> > +
-> > +    * - start + 8:
-> > +      - G\ :sub:`0005high`
-> > +      - B\ :sub:`0006low`
-> > +      - G\ :sub:`0007low`\ (bits 7--4)
-> > +        B\ :sub:`0006high`\ (bits 3--0)
-> > +      - G\ :sub:`0007high`
-> > +
-> > +    * - start + 12:
-> > +      - G\ :sub:`0008low`
-> > +      - R\ :sub:`0009low`\ (bits 7--4)
-> > +
-> > +        G\ :sub:`0008high`\ (bits 3--0)
-> > +      - R\ :sub:`0009high`
-> > +      - G\ :sub:`0010low`
-> > +
-> > +    * - start + 16:
-> > +      - R\ :sub:`0011low`\ (bits 7--4)
-> > +        G\ :sub:`00010high`\ (bits 3--0)
-> > +      - R\ :sub:`0011high`
-> > +      - G\ :sub:`0012low`
-> > +      - R\ :sub:`0013low`\ (bits 7--4)
-> > +        G\ :sub:`0012high`\ (bits 3--0)
-> > +
-> > +    * - start + 20
-> > +      - R\ :sub:`0013high`
-> > +      - G\ :sub:`0014low`
-> > +      - R\ :sub:`0015low`\ (bits 7--4)
-> > +        G\ :sub:`0014high`\ (bits 3--0)
-> > +      - R\ :sub:`0015high`
-> > +
-> > +    * - start + 24:
-> > +      - B\ :sub:`0016low`
-> > +      - G\ :sub:`0017low`\ (bits 7--4)
-> > +        B\ :sub:`0016high`\ (bits 0--3)
-> > +      - G\ :sub:`0017high`\
-> > +      - B\ :sub:`0018low`
-> > +
-> > +    * - start + 28:
-> > +      - G\ :sub:`0019low`\ (bits 7--4)
-> > +        B\ :sub:`00018high`\ (bits 0--3)
-> > +      - G\ :sub:`0019high`
-> > +      - B\ :sub:`0020low`
-> > +      - G\ :sub:`0021low`\ (bits 7--2)
-> > +        B\ :sub:`0020high`\ (bits 1--0)
-> > +
-> > +    * - start + 32:
-> > +      - G\ :sub:`0021high`
-> > +      - B\ :sub:`0022low`
-> > +      - G\ :sub:`0023low`\ (bits 7--4)
-> > +        B\ :sub:`0022high`\ (bits 3--0)
-> > +      - G\ :sub:`0024high`
-> > +
-> > +    * - start + 36:
-> > +      - G\ :sub:`0025low`
-> > +      - R\ :sub:`0026low`\ (bits 7--4)
-> > +        G\ :sub:`0025high`\ (bits 3--0)
-> > +      - R\ :sub:`0026high`
-> > +      - G\ :sub:`0027low`
-> > +
-> > +    * - start + 40:
-> > +      - R\ :sub:`0028low`\ (bits 7--4)
-> > +        G\ :sub:`00027high`\ (bits 3--0)
-> > +      - R\ :sub:`0028high`
-> > +      - G\ :sub:`0029low`
-> > +      - R\ :sub:`0030low`\ (bits 7--4)
-> > +        G\ :sub:`0029high`\ (bits 3--0)
-> > +
-> > +    * - start + 44:
-> > +      - R\ :sub:`0030high`
-> > +      - G\ :sub:`0031low`
-> > +      - R\ :sub:`0033low`\ (bits 7--4)
-> > +        G\ :sub:`0032high`\ (bits 3--0)
-> > +      - R\ :sub:`0033high`
-> > diff --git a/drivers/media/usb/uvc/uvc_driver.c
-> > b/drivers/media/usb/uvc/uvc_driver.c index d46dc432456c..9c9703bab717
-> > 100644
-> > --- a/drivers/media/usb/uvc/uvc_driver.c
-> > +++ b/drivers/media/usb/uvc/uvc_driver.c
-> > @@ -179,6 +179,26 @@ static struct uvc_format_desc uvc_fmts[] = {
-> > .guid		= UVC_GUID_FORMAT_RW10,
-> > .fcc		= V4L2_PIX_FMT_SRGGB10P,
-> > },
-> > +	{
-> 
-> Could you align the alignment with what's already there?
+Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
 
-I would appreciate that. Could you also please split this patch in two, the 
-first patch adding the format in the V4L2 core, and the second patch adding it 
-to the uvcvideo driver ?
+---
 
-> I guess it could be changed, but for now I wouldn't change an established
-> practice.
-> 
-> Cc Laurent as well.
-> 
-> > +		.name		= "Bayer 12-bit simple packed (SBGGR12SP)",
-> > +		.guid		= UVC_GUID_FORMAT_BG12SP,
-> > +		.fcc		= V4L2_PIX_FMT_SBGGR12SP,
-> > +	},
-> > +	{
-> > +		.name		= "Bayer 12-bit simple packed (SGBRG12SP)",
-> > +		.guid		= UVC_GUID_FORMAT_GB12SP,
-> > +		.fcc		= V4L2_PIX_FMT_SGBRG12SP,
-> > +	},
-> > +	{
-> > +		.name		= "Bayer 12-bit simple packed (SRGGB12P)",
-> > +		.guid		= UVC_GUID_FORMAT_RG12SP,
-> > +		.fcc		= V4L2_PIX_FMT_SRGGB12SP,
-> > +	},
-> > +	{
-> > +		.name		= "Bayer 12-bit simple packed (SGRBG12P_ME)",
-> > +		.guid		= UVC_GUID_FORMAT_GR12SP,
-> > +		.fcc		= V4L2_PIX_FMT_SGRBG12SP,
-> > +	},
-> > {
-> > .name		= "Bayer 16-bit (SBGGR16)",
-> > .guid		= UVC_GUID_FORMAT_BG16,
-> > diff --git a/drivers/media/usb/uvc/uvcvideo.h
-> > b/drivers/media/usb/uvc/uvcvideo.h index e5f5d84f1d1d..3cf4a6d17dc1
-> > 100644
-> > --- a/drivers/media/usb/uvc/uvcvideo.h
-> > +++ b/drivers/media/usb/uvc/uvcvideo.h
-> > @@ -108,7 +108,19 @@
-> > #define UVC_GUID_FORMAT_RGGB \
-> > { 'R',  'G',  'G',  'B', 0x00, 0x00, 0x10, 0x00, \
-> > 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
-> > -#define UVC_GUID_FORMAT_BG16 \
-> > +#define UVC_GUID_FORMAT_BG12SP \
-> > +	{ 'B',  'G',  'C',  'p', 0x00, 0x00, 0x10, 0x00, \
-> > +	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
-> > +#define UVC_GUID_FORMAT_GB12SP \
-> > +	{ 'G',  'B',  'C',  'p', 0x00, 0x00, 0x10, 0x00, \
-> > +	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
-> > +#define UVC_GUID_FORMAT_RG12SP \
-> > +	{ 'R',  'G',  'C',  'p', 0x00, 0x00, 0x10, 0x00, \
-> > +	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
-> > +#define UVC_GUID_FORMAT_GR12SP \
-> > +	{ 'G',  'R',  'C',  'p', 0x00, 0x00, 0x10, 0x00, \
-> > +	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
-> > +#define UVC_GUID_FORMAT_BG16                         \
-> > { 'B',  'G',  '1',  '6', 0x00, 0x00, 0x10, 0x00, \
-> > 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
-> > #define UVC_GUID_FORMAT_GB16 \
-> > diff --git a/include/uapi/linux/videodev2.h
-> > b/include/uapi/linux/videodev2.h index 5d1a3685bea9..56807acf8c6d 100644
-> > --- a/include/uapi/linux/videodev2.h
-> > +++ b/include/uapi/linux/videodev2.h
-> > @@ -610,6 +610,13 @@ struct v4l2_pix_format {
-> > #define V4L2_PIX_FMT_SGBRG12P v4l2_fourcc('p', 'G', 'C', 'C')
-> > #define V4L2_PIX_FMT_SGRBG12P v4l2_fourcc('p', 'g', 'C', 'C')
-> > #define V4L2_PIX_FMT_SRGGB12P v4l2_fourcc('p', 'R', 'C', 'C')
-> > +
-> > +	/* 12bit raw bayer simple packed, 6 bytes for every 4 pixels */
-> 
-> Begin the comment at the start of the line, please.
-> 
-> > +#define V4L2_PIX_FMT_SBGGR12SP v4l2_fourcc('B', 'G', 'C', 'p')
-> > +#define V4L2_PIX_FMT_SGBRG12SP v4l2_fourcc('G', 'B', 'C', 'p')
-> > +#define V4L2_PIX_FMT_SGRBG12SP v4l2_fourcc('G', 'R', 'C', 'p')
-> > +#define V4L2_PIX_FMT_SRGGB12SP v4l2_fourcc('R', 'G', 'C', 'p')
-> > +
-> > /* 14bit raw bayer packed, 7 bytes for every 4 pixels */
-> > #define V4L2_PIX_FMT_SBGGR14P v4l2_fourcc('p', 'B', 'E', 'E')
-> > #define V4L2_PIX_FMT_SGBRG14P v4l2_fourcc('p', 'G', 'E', 'E')
+v2:
+ - Rebase and rework to sit on top of the compound control changes
 
+With this patch, and the updated VSP-Tests series, the M3-N now
+successfully passes all of the tests using the VSP1.
+
+This patch is available on the 'vsp' branch at:
+  https://github.com/kbingham/yavta.git
+
+
+ yavta.c | 56 ++++++++++++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 54 insertions(+), 2 deletions(-)
+
+diff --git a/yavta.c b/yavta.c
+index 625a93ba879d..656ead0f0a37 100644
+--- a/yavta.c
++++ b/yavta.c
+@@ -1547,7 +1547,43 @@ static void video_set_control(struct device *dev, unsigned int id,
+ 		free(ctrl.ptr);
+ }
+ 
+-static void video_list_controls(struct device *dev)
++static int video_reset_control(struct device *dev, unsigned int id)
++{
++	struct v4l2_query_ext_ctrl query;
++	struct v4l2_ext_control ctrl;
++	int ret;
++
++	ret = query_control(dev, id, &query);
++	if (ret < 0)
++		return ret;
++
++	if (query.type == V4L2_CTRL_TYPE_CTRL_CLASS)
++		return query.id;
++
++	/* Skip controls that we cannot (or should not) update. */
++	if (query.flags & (V4L2_CTRL_FLAG_DISABLED
++			|  V4L2_CTRL_FLAG_VOLATILE
++			|  V4L2_CTRL_FLAG_READ_ONLY))
++		return query.id;
++
++	ctrl.id = query.id;
++	ctrl.value = query.default_value;
++
++	ret = set_control(dev, &query, &ctrl);
++	if (ret < 0) {
++		printf("unable to reset control 0x%8.8x: %s (%d).\n",
++			id, strerror(errno), errno);
++	} else {
++		printf("control 0x%08x reset to ", id);
++
++		video_print_control_value(&query, &ctrl);
++		printf("\n");
++	}
++
++	return query.id;
++}
++
++static void video_list_controls(struct device *dev, bool reset)
+ {
+ 	unsigned int nctrls = 0;
+ 	unsigned int id;
+@@ -1568,6 +1604,12 @@ static void video_list_controls(struct device *dev)
+ 		if (ret < 0)
+ 			break;
+ 
++		if (reset) {
++			ret = video_reset_control(dev, id);
++			if (ret < 0)
++				break;
++		}
++
+ 		id = ret;
+ 		nctrls++;
+ 	}
+@@ -2206,6 +2248,7 @@ static void usage(const char *argv0)
+ 	printf("    --offset			User pointer buffer offset from page start\n");
+ 	printf("    --premultiplied		Color components are premultiplied by alpha value\n");
+ 	printf("    --queue-late		Queue buffers after streamon, not before\n");
++	printf("    --reset-controls		Enumerate available controls and reset to defaults\n");
+ 	printf("    --requeue-last		Requeue the last buffers before streamoff\n");
+ 	printf("    --timestamp-source		Set timestamp source on output buffers [eof, soe]\n");
+ 	printf("    --skip n			Skip the first n frames\n");
+@@ -2229,6 +2272,7 @@ static void usage(const char *argv0)
+ #define OPT_PREMULTIPLIED	269
+ #define OPT_QUEUE_LATE		270
+ #define OPT_DATA_PREFIX		271
++#define OPT_RESET_CONTROLS	272
+ 
+ static struct option opts[] = {
+ 	{"buffer-size", 1, 0, OPT_BUFFER_SIZE},
+@@ -2257,6 +2301,7 @@ static struct option opts[] = {
+ 	{"queue-late", 0, 0, OPT_QUEUE_LATE},
+ 	{"get-control", 1, 0, 'r'},
+ 	{"requeue-last", 0, 0, OPT_REQUEUE_LAST},
++	{"reset-controls", 0, 0, OPT_RESET_CONTROLS},
+ 	{"realtime", 2, 0, 'R'},
+ 	{"size", 1, 0, 's'},
+ 	{"set-control", 1, 0, 'w'},
+@@ -2284,6 +2329,7 @@ int main(int argc, char *argv[])
+ 	int do_enum_formats = 0, do_set_format = 0;
+ 	int do_enum_inputs = 0, do_set_input = 0;
+ 	int do_list_controls = 0, do_get_control = 0, do_set_control = 0;
++	int do_reset_controls = 0;
+ 	int do_sleep_forever = 0, do_requeue_last = 0;
+ 	int do_rt = 0, do_log_status = 0;
+ 	int no_query = 0, do_queue_late = 0;
+@@ -2476,6 +2522,9 @@ int main(int argc, char *argv[])
+ 		case OPT_QUEUE_LATE:
+ 			do_queue_late = 1;
+ 			break;
++		case OPT_RESET_CONTROLS:
++			do_reset_controls = 1;
++			break;
+ 		case OPT_REQUEUE_LAST:
+ 			do_requeue_last = 1;
+ 			break;
+@@ -2560,7 +2609,10 @@ int main(int argc, char *argv[])
+ 		video_set_control(&dev, ctrl_name, ctrl_value);
+ 
+ 	if (do_list_controls)
+-		video_list_controls(&dev);
++		video_list_controls(&dev, false);
++
++	if (do_reset_controls)
++		video_list_controls(&dev, true);
+ 
+ 	if (do_enum_formats) {
+ 		printf("- Available formats:\n");
 -- 
-Regards,
-
-Laurent Pinchart
-
-
+2.17.1
 
