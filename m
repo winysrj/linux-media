@@ -2,278 +2,156 @@ Return-Path: <SRS0=Hr0N=OT=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS autolearn=ham
+X-Spam-Status: No, score=-2.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_NEOMUTT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 130CDC04EB8
-	for <linux-media@archiver.kernel.org>; Mon, 10 Dec 2018 12:29:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DA547C04EB8
+	for <linux-media@archiver.kernel.org>; Mon, 10 Dec 2018 12:30:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BE76C2086D
-	for <linux-media@archiver.kernel.org>; Mon, 10 Dec 2018 12:29:51 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="kee4b4cA"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org BE76C2086D
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=gmail.com
+	by mail.kernel.org (Postfix) with ESMTP id A8857204FD
+	for <linux-media@archiver.kernel.org>; Mon, 10 Dec 2018 12:30:40 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org A8857204FD
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=mess.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727351AbeLJM3v (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 10 Dec 2018 07:29:51 -0500
-Received: from mail-lf1-f68.google.com ([209.85.167.68]:45502 "EHLO
-        mail-lf1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727637AbeLJM3v (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Dec 2018 07:29:51 -0500
-Received: by mail-lf1-f68.google.com with SMTP id b20so7801656lfa.12
-        for <linux-media@vger.kernel.org>; Mon, 10 Dec 2018 04:29:49 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=subject:to:cc:references:from:message-id:date:user-agent
-         :mime-version:in-reply-to:content-language:content-transfer-encoding;
-        bh=L5gkqJFNDNUQ0TUQozMC4ROtnBNUmfSKaae1ENTCH0M=;
-        b=kee4b4cAydUJxfInA7vy/MIqCrjZS3ixIA057UoUqPlwGdNBWubVQZg4zk+TooVpPH
-         3zGUjTfMtIMW+iepbU5kmmqUzduC4tYPz1dUOgjgk/kJ+8ISAdzsthn7I2shyexI8fZP
-         iKgJTWt7R/8YPZDPxC189EfmPeCbySpCjhXPmTXQv3VGvEIFc6h4+GkAHFwdg9EhnQ8g
-         X69mI3eDQvHhCc6UKRV5dTSWcN/vLpH/jVgDgwaIbjGGubpgMjBcRJA5OmIhhMUJwKOA
-         hWzc877HG9/NkCLJy0IZpZP28TXokdt9g32sRu4kppXNWCvfSdeNWiFjCfHP5hQR+dsH
-         FWcw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=L5gkqJFNDNUQ0TUQozMC4ROtnBNUmfSKaae1ENTCH0M=;
-        b=B+6MCjBOGzoM/yH1PEs5EWcF44CJ/fFuupPdxeotaJj6/QrvE8oUykHH4h8yEJwFOg
-         pouM/RdtKXhsq353//oaW73bjvECtAUqXLuscKuVIoGmP7Y4N+zmwtkVHds1GzGQYxCV
-         hUqP+0isrolAbqibbqTBvk7v4bYQZs2e1rIsMY2wURRqE5X4Pl6TJ58C7k5KvGPt7ilg
-         S13hkbgaq8HmVVXQFR5ALJXXUnLHXtN+j8N3sBzBBxDyUoWgiZFZtXnEG3IZU+jJ4GVN
-         kPsNXlUvigDjmbtUpsAv119Km97XV8LrPmNEI248W+SQ9v1rfjRlLCU2kTTzE7vnlcQh
-         sZyA==
-X-Gm-Message-State: AA+aEWZuAFBW2F1Fbjy6ax1F5LpAN+qgkSVRl53pcvVYUhVQnDcr9yll
-        jX7jyDvLnQRXrGPuHNiEpuw=
-X-Google-Smtp-Source: AFSGD/VWZrbzaqaYGAP4ZioMcPrIeXjLTVQx7M5/mykEOszDLPW9IHc3oJE66LWrplJ+kqc3dI6Oaw==
-X-Received: by 2002:a19:d145:: with SMTP id i66mr7069947lfg.97.1544444988227;
-        Mon, 10 Dec 2018 04:29:48 -0800 (PST)
-Received: from kontron.lan (2001-1ae9-0ff1-f191-cdb6-2150-7b94-b0ad.ip6.tmcz.cz. [2001:1ae9:ff1:f191:cdb6:2150:7b94:b0ad])
-        by smtp.gmail.com with ESMTPSA id p77-v6sm2343379lja.0.2018.12.10.04.29.46
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 10 Dec 2018 04:29:47 -0800 (PST)
-Subject: Re: [PATCH v2 1/4] media: soc_camera: ov9640: move ov9640 out of
- soc_camera
-To:     Sakari Ailus <sakari.ailus@iki.fi>
-Cc:     hans.verkuil@cisco.com, jacopo@jmondi.org, mchehab@kernel.org,
-        marek.vasut@gmail.com, linux-media@vger.kernel.org,
-        robert.jarzmik@free.fr, slapin@ossfans.org, philipp.zabel@gmail.com
-References: <cover.1534339750.git.petrcvekcz@gmail.com>
- <dc99bd37408f42a342b1b878d01c16f8c25b758b.1534339750.git.petrcvekcz@gmail.com>
- <20180914125910.4ju2utqdlk3klmoz@valkosipuli.retiisi.org.uk>
- <e12dab78-5a85-a94f-e892-0723592cd2dd@gmail.com>
- <20181209220408.mkm244qqcii7s3r3@valkosipuli.retiisi.org.uk>
-From:   Petr Cvek <petrcvekcz@gmail.com>
-Message-ID: <0196462b-7e8d-4d2d-7a00-72263e78dee3@gmail.com>
-Date:   Mon, 10 Dec 2018 13:30:01 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.3.3
+        id S1727673AbeLJMak (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 10 Dec 2018 07:30:40 -0500
+Received: from gofer.mess.org ([88.97.38.141]:37923 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727668AbeLJMak (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 10 Dec 2018 07:30:40 -0500
+Received: by gofer.mess.org (Postfix, from userid 1000)
+        id 38AD96010E; Mon, 10 Dec 2018 12:30:38 +0000 (GMT)
+Date:   Mon, 10 Dec 2018 12:30:38 +0000
+From:   Sean Young <sean@mess.org>
+To:     David Howe <howe.david@gmail.com>
+Cc:     linux-media@vger.kernel.org
+Subject: Re: bug report cxusb oops
+Message-ID: <20181210123037.ppyjgzs2dm7m2kst@gofer.mess.org>
+References: <3a51448a-3412-f348-d594-5cd4ec84294e@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20181209220408.mkm244qqcii7s3r3@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=iso-8859-2
-Content-Language: cs
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <3a51448a-3412-f348-d594-5cd4ec84294e@gmail.com>
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Dne 09. 12. 18 v 23:04 Sakari Ailus napsal(a):
-> Hi Petr,
-> 
-> What's the status of this set? It would seem that addressing the issues
-> is fairly trivial. Please also see a few comments below.
-> 
-
 Hi,
 
-Gonna work on it this week. I've had to work on higher priority stuff
-last two months some of which blocked me from playing with my phone
-(with ov9640 camera).
+On Mon, Dec 10, 2018 at 10:51:33AM +1100, David Howe wrote:
+> hi
+> 
+> using the experimental version of the media stack and i get this
+> 
+> [   80.606898] dvb-usb: found a 'DViCO FusionHDTV DVB-T NANO2 w/o firmware'
+> in cold state, will try to load a firmware
+> [   80.620010] dvb-usb: downloading firmware from file
+> 'dvb-usb-bluebird-02.fw'
+> [   80.656195] usbcore: registered new interface driver dvb_usb_cxusb
+> [   80.688792] usb 3-1: USB disconnect, device number 2
+> [   80.688826] BUG: unable to handle kernel paging request at
+> 0000000000002db8
+> [   80.688830] PGD 0 P4D 0
+> [   80.688834] Oops: 0000 [#1] PREEMPT SMP PTI
+> [   80.688838] CPU: 2 PID: 26 Comm: kworker/2:0 Tainted: G           OE    
+> 4.18.0-10-lowlatency #11-Ubuntu
+> [   80.688840] Hardware name: Hewlett-Packard HP EliteBook 8460p/161C, BIOS
+> 68SCF Ver. F.67 02/13/2018
+> [   80.688846] Workqueue: usb_hub_wq hub_event
+> [   80.688852] RIP: 0010:cxusb_disconnect+0x18/0x70 [dvb_usb_cxusb]
 
-best regards,
-Petr
+I'm not entirely sure how it got to cxusb_disconnect() without calling
+usb_set_intfdata(). I would have expected a "found a '%s' in warm state."
+message.
+
+Which kernel version are you running? Are building media_build or just the
+latest media_tree -- if so, what commit?
+
+Does this issue happen every time you boot/connect the usb dvb device?
 
 
-> On Fri, Sep 14, 2018 at 10:54:51PM +0200, Petr Cvek wrote:
->> Dne 14.9.2018 v 14:59 Sakari Ailus napsal(a):
->>> Hi Petr,
->>>
->>> Thanks for the patchset, and my apologies for reviewing it so late!
->>>
->>> I'm commenting this one but feel free to add patches to address the
->>> comments.
->>>
->>
->> Hi and thanks for the review. I would like to have this patch set to be
->> as much as possible only a conversion from soc-camera, but I guess I can
->> fix the error handling in probe and the missing newlines. For the
->> enhanced functionality, I would like to have a new patch set after I'll
->> patch the controller (pxa camera) on my testing platform.
->>
->>>> +/* Start/Stop streaming from the device */
->>>> +static int ov9640_s_stream(struct v4l2_subdev *sd, int enable)
->>>> +{
->>>> +	return 0;
->>>
->>> Doesn't the sensor provide any control over the streaming state? Just
->>> wondering...
->>>
->>
->> Before the PXA camera switch from soc-camera I've found some
->> deficiencies in register settings so I'm planning to test them all. With
->> the current state of vanilla I wouldn't be able to test the change.
->> After the quick search in datasheet I wasn't able to find any (stream,
->> capture, start) flag. It may be controlled by just setting the output
->> format flags, but these registers are some of those I will be changing
->> in the future.
->>
->>>> +static int ov9640_s_power(struct v4l2_subdev *sd, int on)
->>>> +{
->>>> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
->>>> +	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
->>>> +	struct ov9640_priv *priv = to_ov9640_sensor(sd);
->>>> +
->>>> +	return soc_camera_set_power(&client->dev, ssdd, priv->clk, on);
->>>
->>> Runtime PM support would be nice --- but not needed in this set IMO.
->>>
->>
->> If I remember correctly a suspend to mem will freeze the whole machine,
->> so in the future :-/.
->>
->>
->>>> +}
->>>> +
->>>> +/* select nearest higher resolution for capture */
->>>> +static void ov9640_res_roundup(u32 *width, u32 *height)
->>>> +{
->>>> +	int i;
->>>
->>> unsigned int
->>>
->>> Same for other loops where no negative values or test below zero are
->>> needed (or where the value which is compared against is signed).
->>>
->> Just re-declaring: unsigned int i; ... OK
-> 
-> Yes.
-> 
->>
->>>> +
->>>> +	cfg->try_fmt = *mf;
->>>
->>> Newline here?
->>>
->>>> +	return 0;
->>>> +}
->>>> +
->>>> +static int ov9640_enum_mbus_code(struct v4l2_subdev *sd,
->>>> +		struct v4l2_subdev_pad_config *cfg,
->>>> +		struct v4l2_subdev_mbus_code_enum *code)
->>>> +{
->>>> +	if (code->pad || code->index >= ARRAY_SIZE(ov9640_codes))
->>>> +		return -EINVAL;
->>>> +
->>>> +	code->code = ov9640_codes[code->index];
->>>
->>> And here.
->>>
->>
->> np
->>
->>>> +/* Request bus settings on camera side */
->>>> +static int ov9640_g_mbus_config(struct v4l2_subdev *sd,
->>>> +				struct v4l2_mbus_config *cfg)
->>>> +{
->>>> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
->>>> +	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
->>>> +
->>>> +	cfg->flags = V4L2_MBUS_PCLK_SAMPLE_RISING | V4L2_MBUS_MASTER |
->>>> +		V4L2_MBUS_VSYNC_ACTIVE_HIGH | V4L2_MBUS_HSYNC_ACTIVE_HIGH |
->>>> +		V4L2_MBUS_DATA_ACTIVE_HIGH;
->>>
->>> This should come from DT instead. Could you add DT binding documentation
->>> for the sensor, please? There's already some for ov9650; I wonder how
->>> similar that one is.
->>
->> The platform doesn't support it yet, so I have no way to test any DT
->> patches.
-> 
-> Ack. It's fine to leave that out now.
-> 
->>
->>>> +	cfg->type = V4L2_MBUS_PARALLEL;
->>>> +	cfg->flags = soc_camera_apply_board_flags(ssdd, cfg);
->>>> +
->>>> +	return 0;
->>>> +}
->>>> +
->>>> +static const struct v4l2_subdev_video_ops ov9640_video_ops = {
->>>> +	.s_stream	= ov9640_s_stream,
->>>> +	.g_mbus_config	= ov9640_g_mbus_config,
->>>> +};
->>>> +
->>>> +static const struct v4l2_subdev_pad_ops ov9640_pad_ops = {
->>>> +	.enum_mbus_code = ov9640_enum_mbus_code,
->>>> +	.get_selection	= ov9640_get_selection,
->>>> +	.set_fmt	= ov9640_set_fmt,
->>>
->>> Please add an operating to get the format as well.
->>
->> OK, but it will be tested on a preliminary hacked pxa-camera :-).
-> 
-> That's fine.
-> 
->>
->>>
->>>> +};
->>>> +
->>>> +static const struct v4l2_subdev_ops ov9640_subdev_ops = {
->>>> +	.core	= &ov9640_core_ops,
->>>> +	.video	= &ov9640_video_ops,
->>>> +	.pad	= &ov9640_pad_ops,
->>>> +};
->>>> +
->>>> +/*
->>>> + * i2c_driver function
->>>> + */
->>>> +static int ov9640_probe(struct i2c_client *client,
->>>> +			const struct i2c_device_id *did)
->>>> +{
->>>> +	struct ov9640_priv *priv;
->>>> +	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
->>>> +	int ret;
->>>> +
->>>> +	if (!ssdd) {
->>>> +		dev_err(&client->dev, "Missing platform_data for driver\n");
->>>> +		return -EINVAL;
->>>> +	}
->>>> +
->>>> +	priv = devm_kzalloc(&client->dev, sizeof(*priv), GFP_KERNEL);
->>>> +	if (!priv)
->>>> +		return -ENOMEM;
->>>> +
->>>> +	v4l2_i2c_subdev_init(&priv->subdev, client, &ov9640_subdev_ops);
->>>> +
->>>> +	v4l2_ctrl_handler_init(&priv->hdl, 2);
->>>> +	v4l2_ctrl_new_std(&priv->hdl, &ov9640_ctrl_ops,
->>>> +			V4L2_CID_VFLIP, 0, 1, 1, 0);
->>>> +	v4l2_ctrl_new_std(&priv->hdl, &ov9640_ctrl_ops,
->>>> +			V4L2_CID_HFLIP, 0, 1, 1, 0);
->>>> +	priv->subdev.ctrl_handler = &priv->hdl;
->>>> +	if (priv->hdl.error)
->>>
->>> v4l2_ctrl_handler_free() is missing here. The function would benefit from
->>> goto-based error handling.
->>>
->>
->> + rest -> np
-> 
+Thanks
+Sean
+
+> [   80.688853] Code: 85 c0 75 e7 31 c0 48 c7 02 00 00 00 00 5d c3 0f 1f 00
+> 66 66 66 66 90 55 48 89 e5 41 55 41 54 49 89 fc 53 48 8b 87 c8 00 00 00 <4c>
+> 8b a8 b8 2d 00 00 49 8b 5d 10 48 85 db 74 18 48 8b 83 a8 00 00
+> [   80.688885] RSP: 0018:ffffa44f00d97b68 EFLAGS: 00010246
+> [   80.688888] RAX: 0000000000000000 RBX: ffff98db2dad3030 RCX:
+> 0000000000000000
+> [   80.688890] RDX: 0000000000000000 RSI: ffff98db2dad3000 RDI:
+> ffff98db2dad3000
+> [   80.688891] RBP: ffffa44f00d97b80 R08: 0000000000000000 R09:
+> ffffffff95335b00
+> [   80.688893] R10: ffff98db2ef01660 R11: 0000000000000001 R12:
+> ffff98db2dad3000
+> [   80.688895] R13: ffffffffc10530a8 R14: ffff98db307d7000 R15:
+> ffff98db307d70a0
+> [   80.688898] FS:  0000000000000000(0000) GS:ffff98db3dc80000(0000)
+> knlGS:0000000000000000
+> [   80.688900] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> [   80.688902] CR2: 0000000000002db8 CR3: 000000010ae0a001 CR4:
+> 00000000000606e0
+> [   80.688904] Call Trace:
+> [   80.688911]  usb_unbind_interface+0x7a/0x280
+> [   80.688916]  device_release_driver_internal+0x18c/0x260
+> [   80.688919]  device_release_driver+0x12/0x20
+> [   80.688922]  bus_remove_device+0xec/0x160
+> [   80.688925]  device_del+0x13b/0x350
+> [   80.688928]  ? __dev_printk+0x44/0x70
+> [   80.688932]  usb_disable_device+0x9f/0x270
+> [   80.688935]  usb_disconnect+0xca/0x2c0
+> [   80.688938]  hub_port_connect+0x85/0xa70
+> [   80.688941]  port_event+0x45b/0x6d0
+> [   80.688945]  hub_event+0x14f/0x3b0
+> [   80.688951]  process_one_work+0x208/0x3f0
+> [   80.688954]  worker_thread+0x34/0x3f0
+> [   80.688958]  kthread+0x120/0x140
+> [   80.688961]  ? rescuer_thread+0x390/0x390
+> [   80.688964]  ? kthread_create_worker_on_cpu+0x70/0x70
+> [   80.688967]  ret_from_fork+0x35/0x40
+> [   80.688970] Modules linked in: dvb_usb_cxusb(OE) dib0070(OE) dvb_usb(OE)
+> dvb_core(OE) rc_core(OE) rfcomm rpcsec_gss_krb5 auth_rpcgss nfsv4 nfs lockd
+> grace fscache ccm bnep snd_hda_codec_hdmi snd_hda_codec_idt hp_wmi
+> snd_hda_codec_generic snd_hda_intel snd_hda_codec arc4 sparse_keymap iwldvm
+> mac80211 intel_rapl x86_pkg_temp_thermal intel_powerclamp uvcvideo(OE)
+> videobuf2_vmalloc(OE) videobuf2_memops(OE) videobuf2_v4l2(OE) coretemp
+> wmi_bmof videobuf2_common(OE) videodev(OE) snd_hda_core snd_hwdep media(OE)
+> kvm irqbypass crct10dif_pclmul crc32_pclmul btusb ghash_clmulni_intel btrtl
+> iwlwifi pcbc snd_pcm aesni_intel joydev btbcm input_leds snd_seq_midi
+> snd_seq_midi_event btintel aes_x86_64 crypto_simd cryptd bluetooth
+> glue_helper intel_cstate i915 ecdh_generic intel_rapl_perf hp_accel
+> drm_kms_helper drm
+> [   80.689018]  lis3lv02d snd_rawmidi serio_raw mei_me i2c_algo_bit
+> fb_sys_fops syscopyarea sysfillrect cfg80211 wmi tpm_infineon snd_seq
+> snd_seq_device snd_timer mei sysimgblt input_polldev snd soundcore video
+> mac_hid sch_fq_codel cuse parport_pc ppdev lp parport sunrpc ip_tables
+> x_tables autofs4 gpio_ich ahci psmouse libahci lpc_ich firewire_ohci
+> sdhci_pci e1000e firewire_core cqhci sdhci crc_itu_t
+> [   80.689047] CR2: 0000000000002db8
+> [   80.689050] ---[ end trace b4ada9b289256086 ]---
+> [   80.689054] RIP: 0010:cxusb_disconnect+0x18/0x70 [dvb_usb_cxusb]
+> [   80.689056] Code: 85 c0 75 e7 31 c0 48 c7 02 00 00 00 00 5d c3 0f 1f 00
+> 66 66 66 66 90 55 48 89 e5 41 55 41 54 49 89 fc 53 48 8b 87 c8 00 00 00 <4c>
+> 8b a8 b8 2d 00 00 49 8b 5d 10 48 85 db 74 18 48 8b 83 a8 00 00
+> [   80.689090] RSP: 0018:ffffa44f00d97b68 EFLAGS: 00010246
+> [   80.689092] RAX: 0000000000000000 RBX: ffff98db2dad3030 RCX:
+> 0000000000000000
+> [   80.689093] RDX: 0000000000000000 RSI: ffff98db2dad3000 RDI:
+> ffff98db2dad3000
+> [   80.689095] RBP: ffffa44f00d97b80 R08: 0000000000000000 R09:
+> ffffffff95335b00
+> [   80.689097] R10: ffff98db2ef01660 R11: 0000000000000001 R12:
+> ffff98db2dad3000
+> [   80.689098] R13: ffffffffc10530a8 R14: ffff98db307d7000 R15:
+> ffff98db307d70a0
+> [   80.689101] FS:  0000000000000000(0000) GS:ffff98db3dc80000(0000)
+> knlGS:0000000000000000
+> [   80.689103] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> [   80.689105] CR2: 0000000000002db8 CR3: 000000010ae0a001 CR4:
+> 00000000000606e0
