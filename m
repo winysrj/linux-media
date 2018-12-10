@@ -2,362 +2,260 @@ Return-Path: <SRS0=Hr0N=OT=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,
-	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 88927C04EB8
-	for <linux-media@archiver.kernel.org>; Mon, 10 Dec 2018 21:45:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4068FC04EB8
+	for <linux-media@archiver.kernel.org>; Mon, 10 Dec 2018 22:26:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2F9EE20855
-	for <linux-media@archiver.kernel.org>; Mon, 10 Dec 2018 21:45:18 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=amarulasolutions.com header.i=@amarulasolutions.com header.b="ov3oLr17"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 2F9EE20855
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=amarulasolutions.com
+	by mail.kernel.org (Postfix) with ESMTP id EF5332082F
+	for <linux-media@archiver.kernel.org>; Mon, 10 Dec 2018 22:26:43 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org EF5332082F
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728483AbeLJVpR (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 10 Dec 2018 16:45:17 -0500
-Received: from mail-wm1-f65.google.com ([209.85.128.65]:50252 "EHLO
-        mail-wm1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727868AbeLJVpR (ORCPT
+        id S1729179AbeLJW0n (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 10 Dec 2018 17:26:43 -0500
+Received: from mx0a-001b2d01.pphosted.com ([148.163.156.1]:49502 "EHLO
+        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727565AbeLJW0n (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Dec 2018 16:45:17 -0500
-Received: by mail-wm1-f65.google.com with SMTP id n190so189905wmd.0
-        for <linux-media@vger.kernel.org>; Mon, 10 Dec 2018 13:45:15 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=amarulasolutions.com; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=+Z4cJNoUDdc4GPxswmj6JsPzEmpLOhjva3HgqoYU28o=;
-        b=ov3oLr178GAc65keIkipFB3wQNL9ciYd02Xuww2EJDHQzve8gSIHiNq6zG1XHy4v/1
-         jWNFFIs2HVtScTGluIFmlGJECpxr03MsvrqvCJe4KyuDjEeQG04zI14gXxDF611TAFy5
-         1/kPduDO6MAK99C2aGqm+7o0jLV3iboBTWZ6g=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=+Z4cJNoUDdc4GPxswmj6JsPzEmpLOhjva3HgqoYU28o=;
-        b=TF46FP/LyCHVCey+SH6TLNbI0Ka9Wu1IPzo7rNpoHfEEgvGrjAUhxPktkNuokMFg0y
-         Ll1vghEz7UrYDNVW6SJWTMyL0KSo3fpjj0mWLI9EgznF2H/jmtNEz9HUnQBaX+ymepyu
-         PFlq38ltSaZzo5svqksX5htvvM8HVvuoW9edg4SdsZnMwLkRxapJo4krTyxPvNSqKcYV
-         eMRsriBh+wZGYLaWkqShTHuLBz2rLJRz2ncv7zR2Kl4KsK44avnMPy8fQw11y6K1piiN
-         Zl2PG6dhtAPNIQYC/TffOAvrly1GrlUe0UIABFySTE+Pb/2pzJ2RUcr3zRAcXhJfwKCw
-         7lvg==
-X-Gm-Message-State: AA+aEWZ5//qLFiNI/B9xGzhKJFUjkx8bbj9xU38k2SPqMg5DGSfZw17M
-        8elTgnU/TRTQsWPErnASdC/Y979Mwg5LvzOW/JHzRYr/
-X-Google-Smtp-Source: AFSGD/VkT/aYmFkffulAZbBBVN0AS4Ef6keGWyInndG3R1xQ+mC6QpuM462QHY5UKF7Wx4c1XqiOibvaexpXrGu1qdk=
-X-Received: by 2002:a1c:b456:: with SMTP id d83mr58223wmf.115.1544478314321;
- Mon, 10 Dec 2018 13:45:14 -0800 (PST)
-MIME-Version: 1.0
-References: <CAMty3ZAa2_o87YJ=1iak-o-rfZjoYz7PKXM9uGrbHsh6JLOCWw@mail.gmail.com>
- <850c2502-217c-a9f0-b433-0cd26d0419fd@xs4all.nl> <CAOf5uwkirwRPk3=w1fONLrOpwNqGiJbhh6okDmOTWyKWvW+U1w@mail.gmail.com>
- <CAOf5uw=d6D4FGZp8iWKdA1+77ZQtkNZwbJStmO+L-NtW4gqfaA@mail.gmail.com> <20181209193912.GC12193@w540>
-In-Reply-To: <20181209193912.GC12193@w540>
-From:   Michael Nazzareno Trimarchi <michael@amarulasolutions.com>
-Date:   Mon, 10 Dec 2018 22:45:02 +0100
-Message-ID: <CAOf5uwncWDqLsAvQ1H0xN1qQRA_NBt=m2Ncuz_3_nCRhFptpAw@mail.gmail.com>
-Subject: Re: Configure video PAL decoder into media pipeline
-To:     jacopo@jmondi.org
-Cc:     hverkuil@xs4all.nl, Jagan Teki <jagan@amarulasolutions.com>,
+        Mon, 10 Dec 2018 17:26:43 -0500
+Received: from pps.filterd (m0098394.ppops.net [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (8.16.0.22/8.16.0.22) with SMTP id wBAMNmiJ083254
+        for <linux-media@vger.kernel.org>; Mon, 10 Dec 2018 17:26:42 -0500
+Received: from e36.co.us.ibm.com (e36.co.us.ibm.com [32.97.110.154])
+        by mx0a-001b2d01.pphosted.com with ESMTP id 2p9w9yhgqj-1
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
+        for <linux-media@vger.kernel.org>; Mon, 10 Dec 2018 17:26:42 -0500
+Received: from localhost
+        by e36.co.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+        for <linux-media@vger.kernel.org> from <eajames@linux.ibm.com>;
+        Mon, 10 Dec 2018 22:26:41 -0000
+Received: from b03cxnp08027.gho.boulder.ibm.com (9.17.130.19)
+        by e36.co.us.ibm.com (192.168.1.136) with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted;
+        (version=TLSv1/SSLv3 cipher=AES256-GCM-SHA384 bits=256/256)
+        Mon, 10 Dec 2018 22:26:36 -0000
+Received: from b03ledav003.gho.boulder.ibm.com (b03ledav003.gho.boulder.ibm.com [9.17.130.234])
+        by b03cxnp08027.gho.boulder.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id wBAMQZKl28311634
+        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
+        Mon, 10 Dec 2018 22:26:35 GMT
+Received: from b03ledav003.gho.boulder.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id BDCB06A04F;
+        Mon, 10 Dec 2018 22:26:35 +0000 (GMT)
+Received: from b03ledav003.gho.boulder.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id 6A5586A054;
+        Mon, 10 Dec 2018 22:26:34 +0000 (GMT)
+Received: from oc6728276242.ibm.com (unknown [9.85.155.148])
+        by b03ledav003.gho.boulder.ibm.com (Postfix) with ESMTP;
+        Mon, 10 Dec 2018 22:26:34 +0000 (GMT)
+From:   Eddie James <eajames@linux.ibm.com>
+To:     linux-kernel@vger.kernel.org
+Cc:     mark.rutland@arm.com, devicetree@vger.kernel.org,
+        linux-aspeed@lists.ozlabs.org, robh+dt@kernel.org,
         mchehab@kernel.org, linux-media@vger.kernel.org,
-        LKML <linux-kernel@vger.kernel.org>,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Philipp Zabel <p.zabel@pengutronix.de>
-Content-Type: text/plain; charset="UTF-8"
+        hverkuil@xs4all.nl, Eddie James <eajames@linux.vnet.ibm.com>
+Subject: [PATCH v7 0/2] media: platform: Add Aspeed Video Engine driver
+Date:   Mon, 10 Dec 2018 16:26:29 -0600
+X-Mailer: git-send-email 1.8.3.1
+X-TM-AS-GCONF: 00
+x-cbid: 18121022-0020-0000-0000-00000E97C30C
+X-IBM-SpamModules-Scores: 
+X-IBM-SpamModules-Versions: BY=3.00010210; HX=3.00000242; KW=3.00000007;
+ PH=3.00000004; SC=3.00000270; SDB=6.01129916; UDB=6.00587095; IPR=6.00910050;
+ MB=3.00024647; MTD=3.00000008; XFM=3.00000015; UTC=2018-12-10 22:26:39
+X-IBM-AV-DETECTION: SAVI=unused REMOTE=unused XFE=unused
+x-cbparentid: 18121022-0021-0000-0000-000064019EBD
+Message-Id: <1544480791-92746-1-git-send-email-eajames@linux.ibm.com>
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:,, definitions=2018-12-10_08:,,
+ signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
+ malwarescore=0 suspectscore=1 phishscore=0 bulkscore=0 spamscore=0
+ clxscore=1015 lowpriorityscore=0 mlxscore=0 impostorscore=0
+ mlxlogscore=999 adultscore=0 classifier=spam adjust=0 reason=mlx
+ scancount=1 engine=8.0.1-1810050000 definitions=main-1812100200
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Jacopo
+From: Eddie James <eajames@linux.vnet.ibm.com>
 
-Let's see what I have done
+The Video Engine (VE) embedded in the Aspeed AST2400 and AST2500 SOCs
+can capture and compress video data from digital or analog sources. With
+the Aspeed chip acting as a service processor, the Video Engine can
+capture the host processor graphics output.
 
-On Sun, Dec 9, 2018 at 8:39 PM jacopo mondi <jacopo@jmondi.org> wrote:
->
-> Hi Michael, Jagan, Hans,
->
-> On Sat, Dec 08, 2018 at 06:07:04PM +0100, Michael Nazzareno Trimarchi wrote:
-> > Hi
-> >
-> > Down you have my tentative of connection
-> >
-> > I need to hack a bit to have tuner registered. I'm using imx-media
-> >
-> > On Sat, Dec 8, 2018 at 12:48 PM Michael Nazzareno Trimarchi
-> > <michael@amarulasolutions.com> wrote:
-> > >
-> > > Hi
-> > >
-> > > On Fri, Dec 7, 2018 at 1:11 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> > > >
-> > > > On 12/07/2018 12:51 PM, Jagan Teki wrote:
-> > > > > Hi,
-> > > > >
-> > > > > We have some unconventional setup for parallel CSI design where analog
-> > > > > input data is converted into to digital composite using PAL decoder
-> > > > > and it feed to adv7180, camera sensor.
-> > > > >
-> > > > > Analog input =>  Video PAL Decoder => ADV7180 => IPU-CSI0
-> > > >
-> > > > Just PAL? No NTSC support?
-> > > >
-> > > For now does not matter. I have registere the TUNER that support it
-> > > but seems that media-ctl is not suppose to work with the MEDIA_ENT_F_TUNER
-> > >
-> > > Is this correct?
-> > >
->
-> media-types.rst reports:
->
->     *  -  ``MEDIA_ENT_F_IF_VID_DECODER``
->        -  IF-PLL video decoder. It receives the IF from a PLL and decodes
->           the analog TV video signal. This is commonly found on some very
->           old analog tuners, like Philips MK3 designs. They all contain a
->           tda9887 (or some software compatible similar chip, like tda9885).
->           Those devices use a different I2C address than the tuner PLL.
->
-> Is this what you were looking for?
->
-> > > > >
-> > > > > The PAL decoder is I2C based, tda9885 chip. We setup it up via dt
-> > > > > bindings and the chip is
-> > > > > detected fine.
-> > > > >
-> > > > > But we need to know, is this to be part of media control subdev
-> > > > > pipeline? so-that we can configure pads, links like what we do on
-> > > > > conventional pipeline  or it should not to be part of media pipeline?
-> > > >
-> > > > Yes, I would say it should be part of the pipeline.
-> > > >
-> > >
-> > > Ok I have created a draft patch to add the adv some new endpoint but
-> > > is sufficient to declare tuner type in media control?
-> > >
-> > > Michael
-> > >
-> > > > >
-> > > > > Please advise for best possible way to fit this into the design.
-> > > > >
-> > > > > Another observation is since the IPU has more than one sink, source
-> > > > > pads, we source or sink the other components on the pipeline but look
-> > > > > like the same thing seems not possible with adv7180 since if has only
-> > > > > one pad. If it has only one pad sourcing to adv7180 from tda9885 seems
-> > > > > not possible, If I'm not mistaken.
-> > > >
-> > > > Correct, in all cases where the adv7180 is used it is directly connected
-> > > > to the video input connector on a board.
-> > > >
-> > > > So to support this the adv7180 driver should be modified to add an input pad
-> > > > so you can connect the decoder. It will be needed at some point anyway once
-> > > > we add support for connector entities.
-> > > >
-> > > > Regards,
-> > > >
-> > > >         Hans
-> > > >
-> > > > >
-> > > > > I tried to look for similar design in mainline, but I couldn't find
-> > > > > it. is there any design similar to this in mainline?
-> > > > >
-> > > > > Please let us know if anyone has any suggestions on this.
-> > > > >
-> >
-> > [    3.379129] imx-media: ipu1_vdic:2 -> ipu1_ic_prp:0
-> > [    3.384262] imx-media: ipu2_vdic:2 -> ipu2_ic_prp:0
-> > [    3.389217] imx-media: ipu1_ic_prp:1 -> ipu1_ic_prpenc:0
-> > [    3.394616] imx-media: ipu1_ic_prp:2 -> ipu1_ic_prpvf:0
-> > [    3.399867] imx-media: ipu2_ic_prp:1 -> ipu2_ic_prpenc:0
-> > [    3.405289] imx-media: ipu2_ic_prp:2 -> ipu2_ic_prpvf:0
-> > [    3.410552] imx-media: ipu1_csi0:1 -> ipu1_ic_prp:0
-> > [    3.415502] imx-media: ipu1_csi0:1 -> ipu1_vdic:0
-> > [    3.420305] imx-media: ipu1_csi0_mux:5 -> ipu1_csi0:0
-> > [    3.425427] imx-media: ipu1_csi1:1 -> ipu1_ic_prp:0
-> > [    3.430328] imx-media: ipu1_csi1:1 -> ipu1_vdic:0
-> > [    3.435142] imx-media: ipu1_csi1_mux:5 -> ipu1_csi1:0
-> > [    3.440321] imx-media: adv7180 2-0020:1 -> ipu1_csi0_mux:4
-> >
-> > with
-> >        tuner: tuner@43 {
-> >                 compatible = "tuner";
-> >                 reg = <0x43>;
-> >                 pinctrl-names = "default";
-> >                 pinctrl-0 = <&pinctrl_tuner>;
-> >
-> >                 ports {
-> >                         #address-cells = <1>;
-> >                         #size-cells = <0>;
-> >                         port@1 {
-> >                                 reg = <1>;
-> >
-> >                                 tuner_in: endpoint {
->
-> Nit: This is the tuner output, I would call this "tuner_out"
->
+This series adds a V4L2 driver for the VE, providing the usual V4L2 streaming
+interface by way of videobuf2. Each frame, the driver triggers the hardware to
+capture the host graphics output and compress it to JPEG format.
 
-Done
+v4l2-compliance SHA: d039b47a108596ca004b11e52989054882d45888, 32 bits
 
-> >                                         remote-endpoint = <&tuner_out>;
-> >                                 };
-> >                         };
-> >                 };
-> >         };
-> >
-> >         adv7180: camera@20 {
-> >                 compatible = "adi,adv7180";
->
-> One minor thing first: look at the adv7180 bindings documentation, and
-> you'll find out that only devices compatible with "adv7180cp" and
-> "adv7180st" shall declare a 'ports' node. This is minor issues (also,
-> I don't see it enforced in driver's code, but still worth pointing it
-> out from the very beginning)
->
-> >                 reg = <0x20>;
-> >                 pinctrl-names = "default";
-> >                 pinctrl-0 = <&pinctrl_adv7180>;
-> >                 powerdown-gpios = <&gpio3 20 GPIO_ACTIVE_LOW>; /* PDEC_PWRDN */
-> >
-> >                 ports {
-> >                         #address-cells = <1>;
-> >                         #size-cells = <0>;
-> >
-> >                         port@1 {
-> >                                 reg = <1>;
-> >
-> >                                 adv7180_to_ipu1_csi0_mux: endpoint {
-> >                                         remote-endpoint =
-> > <&ipu1_csi0_mux_from_parallel_sensor>;
-> >                                         bus-width = <8>;
-> >                                 };
-> >                         };
-> >
-> >                         port@0 {
-> >                                 reg = <0>;
-> >
-> >                                 tuner_out: endpoint {
->
-> Nit: That's an adv7180 endpoint, I would call it 'adv7180_in'
->
+Compliance test for device /dev/video0:
 
-Done
+Driver Info:
+	Driver name      : aspeed-video
+	Card type        : Aspeed Video Engine
+	Bus info         : platform:aspeed-video
+	Driver version   : 4.19.6
+	Capabilities     : 0x85200001
+		Video Capture
+		Read/Write
+		Streaming
+		Extended Pix Format
+		Device Capabilities
+	Device Caps      : 0x05200001
+		Video Capture
+		Read/Write
+		Streaming
+		Extended Pix Format
 
-> >                                         remote-endpoint = <&tuner_in>;
-> >                                 };
-> >                         };
-> >                 };
-> >         };
-> >
-> > Any help is appreciate
-> >
->
-> The adv7180(cp|st) bindings says the device can declare one (or more)
-> input endpoints, but that's just to make possible to connect in device
-> tree the 7180's device node with the video input port. You can see an
-> example in arch/arm64/boot/dts/renesas/r8a77995-draak.dts which is
-> similar to what you've done here.
->
-> The video input port does not show up in the media graph, as it is
-> just a 'place holder' to describe an input port in DTs, the
-> adv7180 driver does not register any sink pad, where to connect any
-> video source to.
->
-> Your proposed bindings here look almost correct, but to have it
-> working for real you should add a sink pad to the adv7180 registered
-> media entity (possibly only conditionally to the presence of an input
-> endpoint in DTs...). You should then register a subdev-notifier, which
-> registers on an async-subdevice that uses the remote endpoint
-> connected to your newly registered input pad to find out which device
-> you're linked to; then at 'bound' (or possibly 'complete') time
-> register a link between the two entities, on which you can operate on
-> from userspace.
->
-> Your tuner driver for tda9885 (which I don't see in mainline, so I
-> assume it's downstream or custom code) should register an async subdevice,
-> so that the adv7180 registered subdev-notifier gets matched and your
-> callbacks invoked.
->
-> If I were you, I would:
-> 1) Add dt-parsing routine to tda7180, to find out if any input
-> endpoint is registered in DT.
+Required ioctls:
+	test VIDIOC_QUERYCAP: OK
 
-Done
+Allow for multiple opens:
+	test second /dev/video0 open: OK
+	test VIDIOC_QUERYCAP: OK
+	test VIDIOC_G/S_PRIORITY: OK
+	test for unlimited opens: OK
 
-> 2) If it is, then register a SINK pad, along with the single SOURCE pad
-> which is registered today.
+Debug ioctls:
+	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+	test VIDIOC_LOG_STATUS: OK (Not Supported)
 
-Done
+Input ioctls:
+	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+	test VIDIOC_ENUMAUDIO: OK (Not Supported)
+	test VIDIOC_G/S/ENUMINPUT: OK
+	test VIDIOC_G/S_AUDIO: OK (Not Supported)
+	Inputs: 1 Audio Inputs: 0 Tuners: 0
 
-> 3) When parsing DT, for input endpoints, get a reference to the remote
-> endpoint connected to your input and register a subdev-notifier
+Output ioctls:
+	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+	Outputs: 0 Audio Outputs: 0 Modulators: 0
 
-Done
+Input/Output configuration ioctls:
+	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK
+	test VIDIOC_DV_TIMINGS_CAP: OK
+	test VIDIOC_G/S_EDID: OK (Not Supported)
 
-> 4) Fill in the notifier 'bound' callback and register the link to
-> your remote device there.
+Control ioctls (Input 0):
+	test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
+	test VIDIOC_QUERYCTRL: OK
+	test VIDIOC_G/S_CTRL: OK
+	test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+		warn: v4l2-test-controls.cpp(853): V4L2_CID_DV_RX_POWER_PRESENT not found for input 0
+	test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+	test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+	Standard Controls: 3 Private Controls: 0
 
-Both are subdevice that has not a v4l2_device, so bound is not called from two
-sub-device. Is this expected?
+Format ioctls (Input 0):
+	test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+	test VIDIOC_G/S_PARM: OK
+	test VIDIOC_G_FBUF: OK (Not Supported)
+	test VIDIOC_G_FMT: OK
+	test VIDIOC_TRY_FMT: OK
+	test VIDIOC_S_FMT: OK
+	test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+	test Cropping: OK (Not Supported)
+	test Composing: OK (Not Supported)
+	test Scaling: OK (Not Supported)
 
+Codec ioctls (Input 0):
+	test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+	test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+	test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
 
-> 5) Make sure your tuner driver registers its subdevice with
-> v4l2_async_register_subdev()
->
-> A good example on how to register subdev notifier is provided in the
-> rcsi2_parse_dt() function in rcar-csi2.c driver (I'm quite sure imx
-> now uses subdev notifiers from v4.19 on too if you want to have a look
-> there).
+Buffer ioctls (Input 0):
+	test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+	test VIDIOC_EXPBUF: OK
+	test Requests: OK (Not Supported)
 
-Already seen it
+Test input 0:
 
->
-> -- Entering slippery territory here: you might want more inputs on this
->
-> To make thing simpler&nicer (TM), if you blindly do what I've suggested
-> here, you're going to break all current adv7180 users in mainline :(
->
-> That's because the v4l2-async design 'completes' the root notifier,
-> only if all subdev-notifiers connected to it have completed first.
-> If you add a notifier for the adv7180 input ports unconditionally, and
+Streaming ioctls:
+	test read/write: OK
+	test blocking wait: OK
+	test MMAP: OK                                     
+	test USERPTR: OK (Not Supported)
+	test DMABUF: Cannot test, specify --expbuf-device
 
-I don't get to complete. So let's proceed by step
+Total: 48, Succeeded: 48, Failed: 0, Warnings: 1
 
-Michael
+I'm unable to run linux-next or the media tree as our system doesn't boot
+without quite a few patches that aren't yet upstreamed, so I can't grab the
+fix for that warning Hans mentioned.
 
-> to the input port is connected a plain simple "composite-video-connector",
-> as all DTs in mainline are doing right now, the newly registered
-> subdev-notifier will never complete, as the "composite-video-connector"
-> does not register any subdevice to match with. Bummer!
->
-> A quick look in the code base, returns me that, in example:
-> drivers/gpu/drm/meson/meson_drv.c filters on
-> "composite-video-connector" and a few other compatible values. You
-> might want to do the same, and register a notifier if and only if the
-> remote input endpoint is one of those known not to register a
-> subdevice. I'm sure there are other ways to deal with this issue, but
-> that's the best I can come up with...
-> ---
->
-> Hope this is reasonably clear and that I'm not misleading you. I had to
-> use adv7180 recently, and its single pad design confused me a bit as well :)
->
-> Thanks
->   j
->
-> > Michael
-> >
-> > > > > Jagan.
-> > > > >
-> > > >
-> > >
-> > >
-> > > --
+Changes since v6:
+ - Refactor open/start process such that the file handle can be opened without
+   a video signal present
+ - Added standards and capabilities
+ - Removed used of VB2_BUF_FLAG_LAST
+ - Added a few comments
+ - Removed a couple of functions that were only used once
+ - Removed client counter
 
+Changes since v5:
+ - Rework resolution change and v4l2 timings functions again with active and
+   detected timings.
+ - Renamed a few things.
+ - Fixed polarities in the timings.
 
+Changes since v4:
+ - Set real min and max resolution in enum_dv_timings
+ - Add check for vb2_is_busy before settings the timings
+ - Set max frame rate to the actual max rather than max + 1
+ - Correct the input status to 0.
+ - Rework resolution change to only set the relevant h/w regs during startup or
+   when set_timings is called.
+
+Changes since v3:
+ - Switch update reg function to use u32 clear rather than unsigned long mask
+ - Add timing information from host VGA signal
+ - Fix binding documentation mispelling
+ - Fix upper case hex values
+ - Add wait_prepare and wait_finish
+ - Set buffer state to queued (rather than error) if streaming fails to start
+ - Switch engine busy print statement to error
+ - Removed a couple unecessary type assignments in v4l2 ioctls
+ - Added query_dv_timings, fixed get_dv_timings
+ - Corrected source change event to fire if and only if size actually changes
+ - Locked open and release
+
+Changes since v2:
+ - Switch to streaming interface. This involved a lot of changes.
+ - Rework memory allocation due to using videobuf2 buffers, but also only
+   allocate the necessary size of source buffer rather than the max size
+
+Changes since v1:
+ - Removed le32_to_cpu calls for JPEG header data
+ - Reworked v4l2 ioctls to be compliant.
+ - Added JPEG controls
+ - Updated devicetree docs according to Rob's suggestions.
+ - Added myself to MAINTAINERS
+
+Eddie James (2):
+  dt-bindings: media: Add Aspeed Video Engine binding documentation
+  media: platform: Add Aspeed Video Engine driver
+
+ .../devicetree/bindings/media/aspeed-video.txt     |   26 +
+ MAINTAINERS                                        |    8 +
+ drivers/media/platform/Kconfig                     |    9 +
+ drivers/media/platform/Makefile                    |    1 +
+ drivers/media/platform/aspeed-video.c              | 1717 ++++++++++++++++++++
+ 5 files changed, 1761 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/aspeed-video.txt
+ create mode 100644 drivers/media/platform/aspeed-video.c
 
 -- 
-| Michael Nazzareno Trimarchi                     Amarula Solutions BV |
-| COO  -  Founder                                      Cruquiuskade 47 |
-| +31(0)851119172                                 Amsterdam 1018 AM NL |
-|                  [`as] http://www.amarulasolutions.com               |
+1.8.3.1
+
