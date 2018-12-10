@@ -2,156 +2,162 @@ Return-Path: <SRS0=Hr0N=OT=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.4 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CB67CC04EB8
-	for <linux-media@archiver.kernel.org>; Mon, 10 Dec 2018 12:55:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 12B7DC5CFFE
+	for <linux-media@archiver.kernel.org>; Mon, 10 Dec 2018 13:44:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id F308420870
-	for <linux-media@archiver.kernel.org>; Mon, 10 Dec 2018 12:55:37 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ragnatech-se.20150623.gappssmtp.com header.i=@ragnatech-se.20150623.gappssmtp.com header.b="Ss7SM1Uo"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org F308420870
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=ragnatech.se
+	by mail.kernel.org (Postfix) with ESMTP id D4D812084E
+	for <linux-media@archiver.kernel.org>; Mon, 10 Dec 2018 13:44:18 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org D4D812084E
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=xs4all.nl
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726684AbeLJMzh (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 10 Dec 2018 07:55:37 -0500
-Received: from mail-lj1-f194.google.com ([209.85.208.194]:40858 "EHLO
-        mail-lj1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726602AbeLJMzg (ORCPT
+        id S1727558AbeLJNoS (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 10 Dec 2018 08:44:18 -0500
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:44904 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726687AbeLJNoR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Dec 2018 07:55:36 -0500
-Received: by mail-lj1-f194.google.com with SMTP id n18-v6so9502762lji.7
-        for <linux-media@vger.kernel.org>; Mon, 10 Dec 2018 04:55:35 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ragnatech-se.20150623.gappssmtp.com; s=20150623;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:content-transfer-encoding:in-reply-to
-         :user-agent;
-        bh=PpnsTxmCgeC7qDFBrnZ1AcAbPv31ux4+e6FBlvWI6Qw=;
-        b=Ss7SM1UopDhfmZa4L18u7Ql+cYtJU8srBXCR/Q1t28kkKyettz8OGoeiYvjwqBC1JA
-         VPa0wBgIfxcfmiBXZ+80gmmPrHqFe8DSycIpknmD0uhmON5Ucsbs+exWNHif4ggr1mtN
-         2rcThjDW5TmB7tH0XA6YuOl6Y4G5RVjG2URX8iAzBAlJ7jjmLHZYSDL8BFPOi3l9NgM7
-         HVfk9u60ou4JmNj15DvHHp3z5jLCMxwDqrmQ0PIVt8B64X7i8kc9wOTYcXkVwl9NtYVI
-         1rppgULc5NGNv+Knirfip3s8PVC9tKrmJgge+6ufj1BFpEO9BrMg/dX3BYEv1CHTwXNe
-         jgEA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:content-transfer-encoding
-         :in-reply-to:user-agent;
-        bh=PpnsTxmCgeC7qDFBrnZ1AcAbPv31ux4+e6FBlvWI6Qw=;
-        b=rU6i4wqoLBQeKPA4YzOUsMtXylrET6gNlwdDxFwzDD1BJyBH2vxorYbueNRnF4Ixac
-         R9g7yMos2PcymUlHcJLN0fUTrrYL7ey5KMZMiNcCPQgtP+hBlYRm+70teej121DScIA+
-         E6Hp8FA3VBqk2WC8+xh1BiDlYRnMNvCvosK6kgEsO+Ir7ZyBDe6VB+H3VeS9/SeD8LZi
-         LdRZVtrstI1NiAGlO70cKF0zxoCGT5zPcVw/BcjEeaL2zOFOBekq9IzzjFkFEkA9S9y8
-         x15tdUQZVsmSbGKUJtchKE5t11XwejajL+c45W55+V6muypCuinfw7Bk4QlizldMA3AP
-         zW8g==
-X-Gm-Message-State: AA+aEWbVwbU7SN2Ei7U2x89Xv5djgwfX1QrJGlsRfAY01ODXPtBKxnYD
-        E1ihsvXggJ6cpzOoIntS2z2biTq50ac=
-X-Google-Smtp-Source: AFSGD/XVLpRLWOJ5f5Up/BdirU+GHCCdmtimyNIApERZHOOQBydwNe4rsLgdwqngoNGAJzwpzMFLNQ==
-X-Received: by 2002:a2e:2b85:: with SMTP id r5-v6mr6818083ljr.91.1544446534499;
-        Mon, 10 Dec 2018 04:55:34 -0800 (PST)
-Received: from localhost (89-233-230-99.cust.bredband2.com. [89.233.230.99])
-        by smtp.gmail.com with ESMTPSA id g4-v6sm2172044lji.17.2018.12.10.04.55.33
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Mon, 10 Dec 2018 04:55:33 -0800 (PST)
-Date:   Mon, 10 Dec 2018 13:55:33 +0100
-From:   Niklas =?iso-8859-1?Q?S=F6derlund?= 
-        <niklas.soderlund@ragnatech.se>
-To:     Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Cc:     Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        Jacopo Mondi <jacopo@jmondi.org>,
-        Koji Matsuoka <koji.matsuoka.xm@renesas.com>
-Subject: Re: [PATCH v2] media: i2c: adv748x: Fix video standard selection
- register setting
-Message-ID: <20181210125533.GI17972@bigcity.dyn.berto.se>
-References: <20181210122901.14600-1-kieran.bingham+renesas@ideasonboard.com>
+        Mon, 10 Dec 2018 08:44:17 -0500
+Received: from [IPv6:2001:983:e9a7:1:153f:c992:21d9:6742] ([IPv6:2001:983:e9a7:1:153f:c992:21d9:6742])
+        by smtp-cloud9.xs4all.net with ESMTPA
+        id WLr3g28TyMlDTWLr4g5emM; Mon, 10 Dec 2018 14:44:15 +0100
+Subject: Re: [RFC] Create test script(s?) for regression testing
+From:   Hans Verkuil <hverkuil@xs4all.nl>
+To:     Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Ezequiel Garcia <ezequiel@collabora.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Dmitry Vyukov <dvyukov@google.com>
+References: <d0b6420c-e6b9-64c3-3577-fd0546790af3@xs4all.nl>
+Message-ID: <9c6841e8-af5d-358b-7d09-7f572155cca9@xs4all.nl>
+Date:   Mon, 10 Dec 2018 14:44:13 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.3.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20181210122901.14600-1-kieran.bingham+renesas@ideasonboard.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <d0b6420c-e6b9-64c3-3577-fd0546790af3@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-CMAE-Envelope: MS4wfAlVauptOCRHalToHglcha787QUu9oZRvcSsugm+EOWko76j3W1iDyMR2cxP6LMFMmRv6ONs04qheFxmIOWVJMcF3sQHmde4w0b0odVpLyoYbv0QcU0D
+ 4lKKEGmLyBzXNpPkwyAQEqWgE+dh2cHFZy+O7O/322pQPq6WnuySFMTiu9SPrY4PJP/UDGuKaTKY0/GBu4XlT4gJT/bYkPWqO9ltLD5tC5+djoeJ0/1mrNiz
+ xrFbDKLJfXx6r9wEgJTIjqU3j+hE1c58GxCuMSC1GfeskmN/3xRoVh6N+kTccZt4u91jiJKHv7u2RQYlp3QO69WIMDn2enmgxw2DcHcLvVYNy+HvBMgXTRjn
+ tdH+6PUx0UHPrlGs1ThXJu3bINwYqOtER5aq2Vlz+Iu9Og6ZX7l8C7ayv4NeM4k89HiTtaY7Pn75Y64qMY6LaRXnfkJYVQ==
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Koji-san, Kieran(-san),
+A quick status update regarding creating test scripts for regression
+testing on kernelci.
 
-Thanks for your work.
+I'm also CC-ing Dmitry to give an update on the work fixing syzkaller bugs.
 
-On 2018-12-10 12:29:01 +0000, Kieran Bingham wrote:
-> From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+On 11/6/18 9:37 AM, Hans Verkuil wrote:
+> Hi all,
 > 
-> The ADV7481 Register Control Manual states that bit 2 in the Video
-> Standard Selection register is reserved with the value of 1.
+> After the media summit (heavy on test discussions) and the V4L2 event regression
+> we just found it is clear we need to do a better job with testing.
 > 
-> The bit is otherwise undocumented, and currently cleared by the driver
-> when setting the video standard selection.
+> All the pieces are in place, so what is needed is to combine it and create a
+> script that anyone of us as core developers can run to check for regressions.
+> The same script can be run as part of the kernelci regression testing.
 > 
-> Define the bit as reserved, and ensure that it is always set when
-> writing to the SDP_VID_SEL register.
+> We have four virtual drivers: vivid, vim2m, vimc and vicodec. The last one
+> is IMHO not quite good enough yet for testing: it is not fully compliant to the
+> upcoming stateful codec spec. Work for that is planned as part of an Outreachy
+> project.
+
+This Outreachy project started last week, so hopefully we'll have something that
+is usable by January.
+
 > 
-> Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
-> [Kieran: Updated commit message, utilised BIT macro]
-> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> ---
->  drivers/media/i2c/adv748x/adv748x-afe.c | 3 ++-
->  drivers/media/i2c/adv748x/adv748x.h     | 1 +
->  2 files changed, 3 insertions(+), 1 deletion(-)
+> My idea is to create a script that is maintained as part of v4l-utils that
+> loads the drivers and runs v4l2-compliance and possibly other tests against
+> the virtual drivers.
 > 
-> diff --git a/drivers/media/i2c/adv748x/adv748x-afe.c b/drivers/media/i2c/adv748x/adv748x-afe.c
-> index 71714634efb0..c4d9ffc50702 100644
-> --- a/drivers/media/i2c/adv748x/adv748x-afe.c
-> +++ b/drivers/media/i2c/adv748x/adv748x-afe.c
-> @@ -151,7 +151,8 @@ static void adv748x_afe_set_video_standard(struct adv748x_state *state,
->  					  int sdpstd)
->  {
->  	sdp_clrset(state, ADV748X_SDP_VID_SEL, ADV748X_SDP_VID_SEL_MASK,
-> -		   (sdpstd & 0xf) << ADV748X_SDP_VID_SEL_SHIFT);
-> +		   (sdpstd & 0xf) << ADV748X_SDP_VID_SEL_SHIFT |
-> +		   ADV748X_SDP_VID_RESERVED_BIT);
+> It should be simple to use and require very little in the way of dependencies.
+> Ideally no dependencies other than what is in v4l-utils so it can easily be run
+> on an embedded system as well.
 
-Is this really needed? In practice the adv748x driver never touches the 
-reserved bit and this special handling *should* not be needed :-)
+I have a simple script:
 
-  #define sdp_clrset(s, r, m, v) sdp_write(s, r, (sdp_read(s, r) & ~m) | v)
+modprobe vivid no_error_inj=1 n_devs=3 multiplanar=1,2,1
+modprobe vim2m
+modprobe vimc
 
-The full 'user_map_rw_reg_02' register where the upper 4 bits are 
-vid_sel subregister is read and masked. Then the value is updated with 
-the new vid_sel value and written back.
+v4l2-ctl -d0 -i3 -v width=3840,height=2160,pixelformat=XR24
+v4l2-ctl -d1 -o1 -x width=3840,height=2160,pixelformat=XR24
+v4l2-ctl -d2 -i3 -v width=3840,height=2160,pixelformat=XR24
+v4l2-ctl -d3 -o1 -x width=3840,height=2160,pixelformat=XR24
+v4l2-ctl -d4 -i3 -v width=3840,height=2160,pixelformat=XR24
 
-However if this is needed or fixes a real bug I'm not against this 
-change but in such case I feel the mask should be updated to reflect 
-which bits are touched.
+v4l2-compliance -m0 -e4 -s10
+v4l2-compliance -m1 -e4 -s10
 
->  }
->  
->  static int adv748x_afe_s_input(struct adv748x_afe *afe, unsigned int input)
-> diff --git a/drivers/media/i2c/adv748x/adv748x.h b/drivers/media/i2c/adv748x/adv748x.h
-> index b482c7fe6957..778aa55a741a 100644
-> --- a/drivers/media/i2c/adv748x/adv748x.h
-> +++ b/drivers/media/i2c/adv748x/adv748x.h
-> @@ -265,6 +265,7 @@ struct adv748x_state {
->  #define ADV748X_SDP_INSEL		0x00	/* user_map_rw_reg_00 */
->  
->  #define ADV748X_SDP_VID_SEL		0x02	/* user_map_rw_reg_02 */
-> +#define ADV748X_SDP_VID_RESERVED_BIT	BIT(2)	/* undocumented reserved bit */
->  #define ADV748X_SDP_VID_SEL_MASK	0xf0
->  #define ADV748X_SDP_VID_SEL_SHIFT	4
->  
-> -- 
-> 2.17.1
+v4l2-compliance -m3 -e4 -s10
+v4l2-compliance -m4 -e4 -s10
+
+But there are too many failures at the moment. Most are fixed, but several
+first need to be merged into the 4.20 mainline kernel before they can be
+backported to our master branch.
+
+Once they are backported, then there is still one outstanding vivid/vimc failure,
+fixed in this series:
+
+https://www.mail-archive.com/linux-media@vger.kernel.org/msg136900.html
+
+That won't make 4.21, but hopefully it will make 4.22.
+
+This is probably the main blocker for the kernelci regression test.
+
+vimc fails at several places, but most are known API issues that we really need
+to nail down at some point. Finding time is the issue, but in the meantime I
+can probably downgrade the errors to warnings in v4l2-compliance.
+
+In addition, work is ongoing to make the topology configurable with configfs,
+and I think we can postpone regression testing with vimc until that is merged
+(I hope for 4.22).
+
+> For a 64-bit kernel it should run the tests both with 32-bit and 64-bit
+> applications.
+
+Haven't done that yet.
+
 > 
+> It should also test with both single and multiplanar modes where available.
 
--- 
+That's done (see vivid multiplanar module option in the script).
+
+> 
+> Since vivid emulates CEC as well, it should run CEC tests too.
+
+Not done yet.
+
+> 
+> As core developers we should have an environment where we can easily test
+> our patches with this script (I use a VM for that).
+> 
+> I think maintaining the script (or perhaps scripts) in v4l-utils is best since
+> that keeps it in sync with the latest kernel and v4l-utils developments.
+> 
+> Comments? Ideas?
+
+Regarding fixing the open syzkaller issues: most is done, but there is one fix
+still pending:
+
+https://www.mail-archive.com/linux-media@vger.kernel.org/msg136512.html
+
+It's more complex than I'd like, but I'm not sure if it can be improved.
+
+I will have to take another look when 4.22 opens.
+
+This patch series fixes issues when the filehandle is dupped and different
+fds can do actions in parallel that would otherwise not happen.
+
 Regards,
-Niklas Söderlund
+
+	Hans
