@@ -2,121 +2,145 @@ Return-Path: <SRS0=Hr0N=OT=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.5 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EC535C04EB8
-	for <linux-media@archiver.kernel.org>; Mon, 10 Dec 2018 17:14:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CBEFCC04EB8
+	for <linux-media@archiver.kernel.org>; Mon, 10 Dec 2018 17:50:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B53252082F
-	for <linux-media@archiver.kernel.org>; Mon, 10 Dec 2018 17:14:39 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org B53252082F
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=xs4all.nl
+	by mail.kernel.org (Postfix) with ESMTP id 8C6AB2081F
+	for <linux-media@archiver.kernel.org>; Mon, 10 Dec 2018 17:50:56 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="nZTsNvdn"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 8C6AB2081F
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=gmail.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727744AbeLJROd (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 10 Dec 2018 12:14:33 -0500
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:53698 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728558AbeLJRNp (ORCPT
+        id S1728562AbeLJRut (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 10 Dec 2018 12:50:49 -0500
+Received: from mail-it1-f193.google.com ([209.85.166.193]:56112 "EHLO
+        mail-it1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728534AbeLJRus (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Dec 2018 12:13:45 -0500
-Received: from [IPv6:2001:983:e9a7:1:153f:c992:21d9:6742] ([IPv6:2001:983:e9a7:1:153f:c992:21d9:6742])
-        by smtp-cloud8.xs4all.net with ESMTPA
-        id WP7lg6aCVCZKKWP7mgF4Gv; Mon, 10 Dec 2018 18:13:43 +0100
-Subject: Re: [PATCH] media: vimc: add configfs API to configure the topology
-To:     Helen Koike <helen.koike@collabora.com>,
-        linux-media@vger.kernel.org
-Cc:     mchehab@kernel.org, lkcamp@lists.libreplanetbr.org,
-        kernel@collabora.com, linux-kernel@vger.kernel.org
-References: <20181207182200.25283-1-helen.koike@collabora.com>
- <126c3faf-18e0-6fe5-e2f5-8ef0878fb767@xs4all.nl>
- <1cf814ac-60e1-bff7-4e9b-72b2c393d49a@collabora.com>
-From:   Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <159b0f0c-8e75-385d-08de-117d50ab70e3@xs4all.nl>
-Date:   Mon, 10 Dec 2018 18:13:41 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.3.1
+        Mon, 10 Dec 2018 12:50:48 -0500
+Received: by mail-it1-f193.google.com with SMTP id o19so18621947itg.5
+        for <linux-media@vger.kernel.org>; Mon, 10 Dec 2018 09:50:47 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=35kntMjXIZDAJdcjTu4qrAxInxdYQ9hco7YUtpblGAo=;
+        b=nZTsNvdnUI923JudGwYViOuBYyE9A66lHShjAspqzztBNaMStygvafylqylCcmR5Jr
+         owmFhwC3lWeNP3fjZppE4nahNNbD6iZq9lt0Sp7A3sYQnFuXgPIk1vJPsWdq0f8ymzCu
+         5mFduDw4JRFLQfdWAc8uU/r0OzJge7Nlvzb9tbGUyl3J6tGF0hcE0CDBE6zJ2uy9cJT7
+         Q5zCLpIF2GtrQi7wbslW7S9iJPtbCNOuuZ/C3TwIF5Azsu3iMRK/7PuQU0JcgjiTEUAk
+         Dpr70O4NLmYJHuE7UJ6SrXWzKjgU1xN40CZ4d1Ni67gPmLqt6HWZ2aBgCgGRQqqr93+x
+         HK2A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=35kntMjXIZDAJdcjTu4qrAxInxdYQ9hco7YUtpblGAo=;
+        b=unYRvyBnhtG20oS04OStb5+UbplpgLErc0vdT+ym8CNgoz5fxmcTXEoxDN/Tw1g8jk
+         uvyP94A1uf8Fe10cgudUuHE2W1knqWlWIkHzqTHB2uCFgey64RdCVWSUOkVkQH53mh0i
+         rRli5Mfph1TDSaif5HILhN/7RH9Ouk5ZN4z4/aZCb2xJ/mBTsmAW/zrduJD5RSXij8ai
+         dbb2Fvcryrw+b+BzDBeeLWwR4Pq3ungIxDj7qrMPhOLhYNxqYm26ehjtzYsDbvNqtI+W
+         d3kyqoz7vZPK1pBJvQEvzZJZMFdB8qYieUH7yaOTZQ9/7V6ymgUANOYz6WLEUfvp4s/y
+         quDw==
+X-Gm-Message-State: AA+aEWaQ/EjBL+1SI86U97KvA+dwAIRh2Z87YSg1w/BAibuqIxj3Iee8
+        VVPQPhMihaTLoK+0aElHdJo=
+X-Google-Smtp-Source: AFSGD/WrCFIX2wOgq7ZojNceBBGGgiyArm9ymZSbSzSuu5AhMk4EtWFQ2IlnKgRroyw9/qKlvtS9Bg==
+X-Received: by 2002:a24:4606:: with SMTP id j6mr10285043itb.10.1544464247251;
+        Mon, 10 Dec 2018 09:50:47 -0800 (PST)
+Received: from eggsbenedict.adamsnet (24-220-35-37-dynamic.midco.net. [24.220.35.37])
+        by smtp.gmail.com with ESMTPSA id h140sm6802129itb.23.2018.12.10.09.50.45
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 10 Dec 2018 09:50:46 -0800 (PST)
+Date:   Mon, 10 Dec 2018 12:50:44 -0500
+From:   Adam Stylinski <kungfujesus06@gmail.com>
+To:     "French, Nicholas A." <naf@ou.edu>
+Cc:     linux-media@vger.kernel.org
+Subject: Re: [PATCH] media: lgdt330x: fix lock status reporting
+Message-ID: <20181210175044.GA30987@eggsbenedict.adamsnet>
+References: <20181209071054.GA14422@tivo>
 MIME-Version: 1.0
-In-Reply-To: <1cf814ac-60e1-bff7-4e9b-72b2c393d49a@collabora.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfKo9lcqtGuOFKiv+NchOElUxtHaDvs2CzEcZlT0ziIMRSjMy47a5WVAxlN2ZLJRFOHCzpz8taHDamKmBRp9xmViw953FfFj9IwdTXtaiZ2RAEsM8OPIw
- SQO0D7Nm9E7Cwd2GIocVNilB3kq5J4QF6AP2FWDVL2JGtmUWd82rdjdpDbq+WBzbNi03fIQQiJ1CQJmE/4hjuUhRHJnmfvsSjTpwYjrgLVmjljEgSRlrcXFq
- xCMqmUHcfcSGNr+JyxtjXK6j318fJ3Rp/i/gwA3yuaVGcFpgh82qgC081YoM6HndcGCCCrkmYiTuG+OiK3RdgtqrVxWR31P9hBKTJ2Nv77HIYKbRZWEILvCX
- roy37HmbOXwduIF7wpcT6stFoYs2sIKwyfCLdy1h/dTGSaC6twLh5ReqymjV/SEWP4qDXG3W5fZUAeT+XM/CCYN1Ijp39vJMNfG6eKJCEiQruetBmRw=
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="azLHFNyN32YCQGCU"
+Content-Disposition: inline
+In-Reply-To: <20181209071054.GA14422@tivo>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On 12/10/18 5:14 PM, Helen Koike wrote:
-> Hi Hans,
-> 
-> On 12/10/18 9:31 AM, Hans Verkuil wrote:
->> On 12/7/18 7:22 PM, Helen Koike wrote:
 
-<snip>
+--azLHFNyN32YCQGCU
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> 
->>
->> The previewer is effectively similar to a debayer block.
-> 
-> You mean the image it outputs?
+On Sun, Dec 09, 2018 at 07:11:18AM +0000, French, Nicholas A. wrote:
+> A typo in code cleanup commit db9c1007bc07 ("media: lgdt330x: do
+> some cleanups at status logic") broke the FE_HAS_LOCK reporting
+> for 3303 chips by inadvertently modifying the register mask.
+>=20
+> The broken lock status is critial as it prevents video capture
+> cards from reporting signal strength, scanning for channels,
+> and capturing video.
+>=20
+> Fix regression by reverting mask change.
+>=20
+> Signed-off-by: Nick French <naf@ou.edu>
+> ---
+>  drivers/media/dvb-frontends/lgdt330x.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>=20
+> diff --git a/drivers/media/dvb-frontends/lgdt330x.c b/drivers/media/dvb-f=
+rontends/lgdt330x.c
+> index 96807e134886..8abb1a510a81 100644
+> --- a/drivers/media/dvb-frontends/lgdt330x.c
+> +++ b/drivers/media/dvb-frontends/lgdt330x.c
+> @@ -783,7 +783,7 @@ static int lgdt3303_read_status(struct dvb_frontend *=
+fe,
+> =20
+>  		if ((buf[0] & 0x02) =3D=3D 0x00)
+>  			*status |=3D FE_HAS_SYNC;
+> -		if ((buf[0] & 0xfd) =3D=3D 0x01)
+> +		if ((buf[0] & 0x01) =3D=3D 0x01)
+>  			*status |=3D FE_HAS_VITERBI | FE_HAS_LOCK;
+>  		break;
+>  	default:
+> --=20
+> 2.19.2
+>=20
 
-Yes. It takes a bayer image and outputs a non-bayer format on the omap3.
+Patch worked for me.
 
-> 
->>
->> AEWB, AF and histogram are for auto-whitebalance, autofocus and histogram statistics.
->> This isn't supported by vimc, and is a 'nice-to-have' for the future.
-> 
-> Right, I need to check how to include those. I am a bit confused as in
-> the omap3 topology they are seems to be just configuration points (I
-> mean, they are not really part of the image pipeline).
+Tested-by: Adam Stylinski <kungfujesus06@gmail.com>
 
-Typically the SoC analyzes the image and produces statistics of various kinds that
-are given to userspace via devices like this. It is used as input to auto-whitebalance,
-auto-focus and auto-gain algorithms running in userspace that feedback the results to
-sensor config changes.
+--azLHFNyN32YCQGCU
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-The format is usually very SoC-specific.
+-----BEGIN PGP SIGNATURE-----
 
-> 
-> I was reading this
-> https://linuxtv.org/downloads/v4l-dvb-apis-new/v4l-drivers/omap3isp.html?highlight=histogram#statistic-blocks-ioctls
-> It says:
-> "The statistics are dequeueable by the user from the statistics subdev
-> nodes using private IOCTLs"
-> 
-> I suppose we should emulate those private IOCTLs in vimc? If you could
-> provide me some pointers in where I can find docs on these private
-> IOCTLs it would be great.
+iQIzBAEBCAAdFiEEDgVoSkwBBLuwA/n/PqxEcTpO+acFAlwOp3IACgkQPqxEcTpO
++afMrxAA0Pv36WRnyz34a0PM8LZfO2WegGT0gQfVbLL9EKystd75YoAJVqfaeLmn
+HZayOwWTP9faPsHfjxiTUSalSNBtfB8ngLaD4WpkmqWObOlvj2IaQtnxMpxr0mGW
+YDNBNQAhKcxQyZyL2CElh03kUj5RxssjYlQPjTNj52C+wVbWzHbLSLFiVWu4Tf+i
+ay4HCStaTnhu5rIrQCTh+XuiJReL4rNPxqavoUY2FR3xwDPlfoxWcERaOJiHTm60
+RuoSPQe6PXvCug0hl35RzmYwBz4HzZ7+F0rmPKjTmIYW2wz97xMCdqGlHWlg9tv7
+/F8kguu1zf3meiaM9HIGW5Hqt83b7q5VEmVOYh4FO2f1bwIwqSvKs+4BR6z8nQ5b
+ISYpoanpLG+7un+3i75Xb6NT+PbpMokWb6eglnnA5EbGd3UszSpcUv1pJKD100vQ
+/AF3sl+vcHbEn4ID9ollp3U2tBQlcLh2XoJWZ0Z2QflI9J/pjDLRFLWwdraw2Ddi
+CpYDUPAQ+punLW904+VcUOgXSW67XAgRRLtvBv7FwZc342YuZzS4k91LcNZpeA3y
+Ur0UCQgZtm7+JE71ySobWPMj8UMhGJyefqOW/4Ych+TVsA5epku49TLJEfMQRE5m
+w8MvZdDlSAuD2zPyTl/il6eDJ4r4CcwXpzYLw3B9uIZZrzXv3Ws=
+=h3Dz
+-----END PGP SIGNATURE-----
 
-No, just ignore these statistics devices for now. And if we make them, we
-can design a vimc-specific format.
-
-> 
->>
->> The main missing bits in vimc are a CSI block and a splitter block. It should be simple
->> to add the CSI block since it really doesn't do anything in an emulated environment.
-> 
-> CSI would be just a dummy entity with one sink pad and one source pad right?
-
-Right.
-
-> 
->>
->> A splitter might be more complicated, I'm not sure.
-> 
-> splitter shouldn't that complicated in the current state of vimc, but
-> when we start optimizing the pipeline then it is going to be more
-> complicated.
-
-Right.
-
-Regards,
-
-	Hans
+--azLHFNyN32YCQGCU--
