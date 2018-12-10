@@ -7,54 +7,54 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B49DBC04EB8
-	for <linux-media@archiver.kernel.org>; Mon, 10 Dec 2018 11:54:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6518CC04EB8
+	for <linux-media@archiver.kernel.org>; Mon, 10 Dec 2018 11:54:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 75A202086D
-	for <linux-media@archiver.kernel.org>; Mon, 10 Dec 2018 11:54:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2A5852086D
+	for <linux-media@archiver.kernel.org>; Mon, 10 Dec 2018 11:54:11 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=amarulasolutions.com header.i=@amarulasolutions.com header.b="rmKhqxus"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 75A202086D
+	dkim=pass (1024-bit key) header.d=amarulasolutions.com header.i=@amarulasolutions.com header.b="RtODiqXU"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 2A5852086D
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=amarulasolutions.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727634AbeLJLx6 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 10 Dec 2018 06:53:58 -0500
-Received: from mail-wr1-f65.google.com ([209.85.221.65]:33913 "EHLO
-        mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727681AbeLJLxj (ORCPT
+        id S1727650AbeLJLxe (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 10 Dec 2018 06:53:34 -0500
+Received: from mail-wm1-f65.google.com ([209.85.128.65]:53595 "EHLO
+        mail-wm1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727635AbeLJLxd (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Dec 2018 06:53:39 -0500
-Received: by mail-wr1-f65.google.com with SMTP id j2so10194749wrw.1
-        for <linux-media@vger.kernel.org>; Mon, 10 Dec 2018 03:53:38 -0800 (PST)
+        Mon, 10 Dec 2018 06:53:33 -0500
+Received: by mail-wm1-f65.google.com with SMTP id y1so10568983wmi.3
+        for <linux-media@vger.kernel.org>; Mon, 10 Dec 2018 03:53:32 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=amarulasolutions.com; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=/BsYwI4MGKscqtd4fapjUVq4zzWRiadQNZwYTiXxWLI=;
-        b=rmKhqxusc9306yF/sibOGPtsKZ0YVA8oWcI/en0ytdLEkML8BGTwAPRHxDWEtWADjV
-         AeMPrXrMY85YM1J9PexBK5r855XxbqYQDJ77rhBZ1QOB9//dULojVOTEMo5tyS4xqEd9
-         FOzq63vyhY21I+FhdGzSLcJTZgVI1nBKHtlhw=
+        bh=oKwkzMOWRQEWFTLUklhPX6+c5oXA7cimHYq8AEDDkxU=;
+        b=RtODiqXUztsCylKr84fXQveBZmLrwdH33lyx6NYjXRPPW87KzwTSDUG+9HL1+BfYbg
+         nv9abK6HfEuDCL/k46RuMBswxJhvoJbuPy7l7XJByxGo8lFRhpdd67Tck1f3Z0Xg7I2y
+         s8nfDbSFnDNP+JVdETweX8HcgcYPOstKCqQdk=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=/BsYwI4MGKscqtd4fapjUVq4zzWRiadQNZwYTiXxWLI=;
-        b=H7ZsBRcivwOpe27Bz1C0UxxrbocuVjpsilX6XC65L/GUMHGCR5Z1Z52ZkM+4ft/Rjc
-         1iRX5IffCUGKppOJUNLD1koD/9WjxKjqShPq36hAhvwGhv6CSn5piw4H+dZdw/SXiPaU
-         3bIflNYko6ihYNLmfOwIDweenYWhW0jOmeKq7MuX2zkJVDEcw77dZNZH7FYWKZxi8UsJ
-         8D9L+GkqLXKWkhzrvxER0ZvkiNKVtvCk/FEh9dzZt132dZwDjHA9C6Du8Q21xSF65bDn
-         660TadpjR8ILNPbmOYSfwnUqUky1PR05PNk+c7b7pwXCX1TO196lmD76S4n+hb5gAhhZ
-         hnVQ==
-X-Gm-Message-State: AA+aEWaaSzx9uikK1JscqeSbKvNJnHaMgymPSJoZSoyuSkt2jIgJtp5Z
-        aD1GaZoA2BmZsz/+c+J4ly8CsA==
-X-Google-Smtp-Source: AFSGD/X7XXMHhsDkTKBbBpvSsKxiSrvCFJENayMKWOvYt19DYtjdeJANN6bC0YMo0sro4IV6kHdeLg==
-X-Received: by 2002:adf:b592:: with SMTP id c18mr9513454wre.89.1544442817615;
-        Mon, 10 Dec 2018 03:53:37 -0800 (PST)
+        bh=oKwkzMOWRQEWFTLUklhPX6+c5oXA7cimHYq8AEDDkxU=;
+        b=FaFiI/H+TejElkrsX+V6OEMKu3ti4GiO37gWDogSZmY3kJUDL639WtREUOsxllxRnM
+         sI3OxvDB8FyVImhQ3W7NDV91DW9PDC3NVcwv/CdpWPeJYxPKZW7HKk41tgbBoAJFh5bG
+         K950XSL7ALgGwfapsWJJ0cOzws5mRuaBbxvi9qezXn18eMBJj3b1GXSJcsGxdISqmBwN
+         ho2P0WFJ2ekL347e29zoSmqz9xgUATEhK3rqigdLEA8qOqATGQQRH9Tl5w7K0oN5n3mN
+         +QxodPxOgVNi5/lYmnpXHw4R6qIgj2jEp8GsoU631bMKyY9IIQpXictwI5tzxHj99scs
+         gGyw==
+X-Gm-Message-State: AA+aEWaIYexUbtajFgVyMhyCTOuUoKPtPguoySwR+sN6T0JKU7aCOcPo
+        gwzGbt7b5uBkU6VeTiZduLT/UQ==
+X-Google-Smtp-Source: AFSGD/Xz8I6cN84X/FEMHiu6k8Bhi+MoIp1XLoYeowMvi97hhE28IVAlVvNqDdfr3ch1F+AqiR0zfA==
+X-Received: by 2002:a1c:7f0c:: with SMTP id a12mr6650138wmd.89.1544442811948;
+        Mon, 10 Dec 2018 03:53:31 -0800 (PST)
 Received: from localhost.localdomain (ip-162-59.sn-213-198.clouditalia.com. [213.198.162.59])
-        by smtp.gmail.com with ESMTPSA id b16sm7869243wrm.41.2018.12.10.03.53.35
+        by smtp.gmail.com with ESMTPSA id b16sm7869243wrm.41.2018.12.10.03.53.30
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 10 Dec 2018 03:53:36 -0800 (PST)
+        Mon, 10 Dec 2018 03:53:31 -0800 (PST)
 From:   Jagan Teki <jagan@amarulasolutions.com>
 To:     Yong Deng <yong.deng@magewell.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
@@ -68,9 +68,9 @@ To:     Yong Deng <yong.deng@magewell.com>,
         linux-amarula@amarulasolutions.com,
         Michael Trimarchi <michael@amarulasolutions.com>
 Cc:     Jagan Teki <jagan@amarulasolutions.com>
-Subject: [PATCH v3 5/6] arm64: dts: allwinner: a64: Add pinmux setting for CSI MCLK on PE1
-Date:   Mon, 10 Dec 2018 17:22:45 +0530
-Message-Id: <20181210115246.8188-6-jagan@amarulasolutions.com>
+Subject: [PATCH v3 2/6] media: sun6i: Add A64 compatible support
+Date:   Mon, 10 Dec 2018 17:22:42 +0530
+Message-Id: <20181210115246.8188-3-jagan@amarulasolutions.com>
 X-Mailer: git-send-email 2.18.0.321.gffc6fa0e3
 In-Reply-To: <20181210115246.8188-1-jagan@amarulasolutions.com>
 References: <20181210115246.8188-1-jagan@amarulasolutions.com>
@@ -81,34 +81,29 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Some camera modules have the SoC feeding a master clock to the sensor
-instead of having a standalone crystal. This clock signal is generated
-from the clock control unit and output from the CSI MCLK function of
-pin PE1.
+Allwinner A64 CSI has single channel time-multiplexed BT.656
+CMOS sensor interface like H3 but work by lowering clock than
+default mod clock.
 
-Add a pinmux setting for it for camera sensors to reference.
+So use separate compatibe to support it.
 
 Signed-off-by: Jagan Teki <jagan@amarulasolutions.com>
 ---
- arch/arm64/boot/dts/allwinner/sun50i-a64.dtsi | 5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/arch/arm64/boot/dts/allwinner/sun50i-a64.dtsi b/arch/arm64/boot/dts/allwinner/sun50i-a64.dtsi
-index 89a0deb3fe6a..dd5740bc3fc9 100644
---- a/arch/arm64/boot/dts/allwinner/sun50i-a64.dtsi
-+++ b/arch/arm64/boot/dts/allwinner/sun50i-a64.dtsi
-@@ -538,6 +538,11 @@
- 				function = "csi0";
- 			};
+diff --git a/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c b/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
+index ee882b66a5ea..bbe45e893722 100644
+--- a/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
++++ b/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
+@@ -892,6 +892,7 @@ static int sun6i_csi_remove(struct platform_device *pdev)
+ }
  
-+			csi_mclk_pin: csi-mclk {
-+				pins = "PE1";
-+				function = "csi0";
-+			};
-+
- 			i2c0_pins: i2c0_pins {
- 				pins = "PH0", "PH1";
- 				function = "i2c0";
+ static const struct of_device_id sun6i_csi_of_match[] = {
++	{ .compatible = "allwinner,sun50i-a64-csi", },
+ 	{ .compatible = "allwinner,sun6i-a31-csi", },
+ 	{ .compatible = "allwinner,sun8i-h3-csi", },
+ 	{ .compatible = "allwinner,sun8i-v3s-csi", },
 -- 
 2.18.0.321.gffc6fa0e3
 
