@@ -2,140 +2,259 @@ Return-Path: <SRS0=Y87V=OU=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.2 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 02C06C5CFFE
-	for <linux-media@archiver.kernel.org>; Tue, 11 Dec 2018 05:35:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CA45DC07E85
+	for <linux-media@archiver.kernel.org>; Tue, 11 Dec 2018 07:48:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id AC4542081B
-	for <linux-media@archiver.kernel.org>; Tue, 11 Dec 2018 05:35:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 278B420849
+	for <linux-media@archiver.kernel.org>; Tue, 11 Dec 2018 07:48:52 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="H+mZThWf"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org AC4542081B
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=chromium.org
+	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="NG1Kt3JS"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 278B420849
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=ideasonboard.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729181AbeLKFf1 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 11 Dec 2018 00:35:27 -0500
-Received: from mail-yb1-f193.google.com ([209.85.219.193]:36259 "EHLO
-        mail-yb1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727849AbeLKFf1 (ORCPT
+        id S1726212AbeLKHsv (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 11 Dec 2018 02:48:51 -0500
+Received: from perceval.ideasonboard.com ([213.167.242.64]:54744 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726069AbeLKHsq (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Dec 2018 00:35:27 -0500
-Received: by mail-yb1-f193.google.com with SMTP id 64so3554045ybe.3
-        for <linux-media@vger.kernel.org>; Mon, 10 Dec 2018 21:35:26 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=XOzPWrJoHNreLfx8L2F8rw41gMCRyYlpFNhDIaKDDzk=;
-        b=H+mZThWft5fG8j31zQfk8WhiLqAFu0EW3m5Og9GmwL3QtbjUr8OF7zRX7k8XAV9K00
-         +MmFM3q6C5CGtmDwZWmT8KfC1Ik1Gzra1kkuOO9lUSK36J0xFLuqY/DGRX+WqhsZXlds
-         WBrEi7HTI+zyf9JFXQLTTQWcwaHpJAWRjeen0=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=XOzPWrJoHNreLfx8L2F8rw41gMCRyYlpFNhDIaKDDzk=;
-        b=gsl56B4zduvmxL+VyAVC0bAU/4QTCG6JNaLYww+CoWlOnXgQd9R13S5rbDg/eSCxnU
-         /uo+UneUNLK4dOi42aPmKN1Yw4Po2zZfyNf2die8hhh2B/SoS1mUsz2KTsuBTcFXuksO
-         f/XmlWl+cyhffLisD/7mXalgllIdCsFxlqToptEK7DEacnEtMmLJOBVVMJQptCsxDTy+
-         RV1eTYh3TmxGMrGDXUrBuWGqd0wBbjlnMr5Ya8PwJUsqu+O89D8F1T58hL8G+4BlYMcV
-         GML0nanU2NuL+J4P9/lhFOcHs3kY4vGpsq91j9oy+fy2uJP/Ik/i+6HvH08jHSaBzN/A
-         ty5A==
-X-Gm-Message-State: AA+aEWaVyDGHrH1ZhDQVncS9O2n6KXqHXVtJ2rOMRAZ51yL+yHqyz6EF
-        EOfomoAIa77fd2AzSs41mH+MrvecxMM=
-X-Google-Smtp-Source: AFSGD/XGK5ViZDcNq0MFYFBOfN5naID7a63xdQJDqA1hy0qE3HFnjq5GBJECaucNPd4Gk3f4JxwiWg==
-X-Received: by 2002:a25:d34c:: with SMTP id e73mr14023290ybf.176.1544506525871;
-        Mon, 10 Dec 2018 21:35:25 -0800 (PST)
-Received: from mail-yb1-f180.google.com (mail-yb1-f180.google.com. [209.85.219.180])
-        by smtp.gmail.com with ESMTPSA id 139sm4374292ywt.78.2018.12.10.21.35.25
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 10 Dec 2018 21:35:25 -0800 (PST)
-Received: by mail-yb1-f180.google.com with SMTP id z2-v6so6235856ybj.2
-        for <linux-media@vger.kernel.org>; Mon, 10 Dec 2018 21:35:25 -0800 (PST)
-X-Received: by 2002:a25:a44:: with SMTP id 65-v6mr14689190ybk.373.1544506524702;
- Mon, 10 Dec 2018 21:35:24 -0800 (PST)
+        Tue, 11 Dec 2018 02:48:46 -0500
+Received: from avalon.localnet (dfj612ybrt5fhg77mgycy-3.rev.dnainternet.fi [IPv6:2001:14ba:21f5:5b00:2e86:4862:ef6a:2804])
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 6685F53F;
+        Tue, 11 Dec 2018 08:48:43 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
+        s=mail; t=1544514523;
+        bh=mBX1CIJoEA9U5Gx0uU2VAfxtTyzhot56IRzaQFPSx/E=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=NG1Kt3JSEv4FhWMhh+jpt1x7kglN9W+mvg/xrAn2FnLNG6sR7TuqXujaoPWf+Tn+I
+         hDWj1Jcg4hFu91ebCKrGAa/6QQoA20IjkTO/5QeUJAPDK5gAHayFeptZR2SLSTsuKP
+         KiWp0XICXfrn2x2DmU7YMFy9UeX6sGR6ZiqndN+M=
+From:   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To:     Niklas =?ISO-8859-1?Q?S=F6derlund?= 
+        <niklas.soderlund@ragnatech.se>
+Cc:     Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        kieran.bingham@ideasonboard.com, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH] media: rcar-csi2: Fix PHTW table values for E3/V3M
+Date:   Tue, 11 Dec 2018 09:49:26 +0200
+Message-ID: <1776809.Zlo14oacIu@avalon>
+Organization: Ideas on Board Oy
+In-Reply-To: <20181211020115.GK17972@bigcity.dyn.berto.se>
+References: <1544453635-16359-1-git-send-email-jacopo+renesas@jmondi.org> <2063363.Wr8td8jMvS@avalon> <20181211020115.GK17972@bigcity.dyn.berto.se>
 MIME-Version: 1.0
-References: <20181210122202.26558-1-sakari.ailus@linux.intel.com>
-In-Reply-To: <20181210122202.26558-1-sakari.ailus@linux.intel.com>
-From:   Tomasz Figa <tfiga@chromium.org>
-Date:   Tue, 11 Dec 2018 14:35:12 +0900
-X-Gmail-Original-Message-ID: <CAAFQd5Ab8V=uX7_-ufoPHbPWK=uCr1x7nmZW413YqRfAVCoD2A@mail.gmail.com>
-Message-ID: <CAAFQd5Ab8V=uX7_-ufoPHbPWK=uCr1x7nmZW413YqRfAVCoD2A@mail.gmail.com>
-Subject: Re: [PATCH 1/1] ipu3-imgu: Fix compiler warnings
-To:     Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc:     Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Yong Zhi <yong.zhi@intel.com>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Sakari,
+Hi Niklas,
 
-On Mon, Dec 10, 2018 at 9:22 PM Sakari Ailus
-<sakari.ailus@linux.intel.com> wrote:
->
-> Address a few false positive compiler warnings related to uninitialised
-> variables. While at it, use bool where bool is needed and %u to print an
-> unsigned integer.
->
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  drivers/staging/media/ipu3/ipu3.c | 8 ++++----
->  1 file changed, 4 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/staging/media/ipu3/ipu3.c b/drivers/staging/media/ipu3/ipu3.c
-> index b7886edeb01b7..d521b3afb8b1a 100644
-> --- a/drivers/staging/media/ipu3/ipu3.c
-> +++ b/drivers/staging/media/ipu3/ipu3.c
-> @@ -228,7 +228,6 @@ int imgu_queue_buffers(struct imgu_device *imgu, bool initial, unsigned int pipe
->  {
->         unsigned int node;
->         int r = 0;
-> -       struct imgu_buffer *ibuf;
->         struct imgu_media_pipe *imgu_pipe = &imgu->imgu_pipe[pipe];
->
->         if (!ipu3_css_is_streaming(&imgu->css))
-> @@ -250,7 +249,8 @@ int imgu_queue_buffers(struct imgu_device *imgu, bool initial, unsigned int pipe
->                 } else if (imgu_pipe->queue_enabled[node]) {
->                         struct ipu3_css_buffer *buf =
->                                 imgu_queue_getbuf(imgu, node, pipe);
-> -                       int dummy;
-> +                       struct imgu_buffer *ibuf = NULL;
-> +                       bool dummy;
->
->                         if (!buf)
->                                 break;
-> @@ -263,7 +263,7 @@ int imgu_queue_buffers(struct imgu_device *imgu, bool initial, unsigned int pipe
->                                 ibuf = container_of(buf, struct imgu_buffer,
->                                                     css_buf);
->                         dev_dbg(&imgu->pci_dev->dev,
-> -                               "queue %s %s buffer %d to css da: 0x%08x\n",
-> +                               "queue %s %s buffer %u to css da: 0x%08x\n",
->                                 dummy ? "dummy" : "user",
->                                 imgu_node_map[node].name,
->                                 dummy ? 0 : ibuf->vid_buf.vbb.vb2_buf.index,
-> @@ -479,7 +479,7 @@ static irqreturn_t imgu_isr_threaded(int irq, void *imgu_ptr)
->         do {
->                 u64 ns = ktime_get_ns();
->                 struct ipu3_css_buffer *b;
-> -               struct imgu_buffer *buf;
-> +               struct imgu_buffer *buf = NULL;
->                 unsigned int node, pipe;
->                 bool dummy;
+On Tuesday, 11 December 2018 04:01:15 EET Niklas S=F6derlund wrote:
+> On 2018-12-10 22:16:52 +0200, Laurent Pinchart wrote:
+> > On Monday, 10 December 2018 16:53:55 EET Jacopo Mondi wrote:
+> >> The PHTW selection algorithm implemented in rcsi2_phtw_write_mbps()
+> >> checks for lower bound of the interval used to match the desired
+> >> bandwidth. Use that in place of the currently used upport bound.
+> >=20
+> > The rcsi2_phtw_write_mbps() function performs the following (error
+> > handling removed):
+> >=20
+> >         const struct rcsi2_mbps_reg *value;
+> >        =20
+> >         for (value =3D values; value->mbps; value++)
+> >                 if (value->mbps >=3D mbps)
+> >                         break;
+> >        =20
+> >         return rcsi2_phtw_write(priv, value->reg, code);
+> >=20
+> > With this patch, an mbps value of 85 will match the second entry in the
+> > phtw_mbps_v3m_e3 table:
+> >=20
+> > [0]	{ .mbps =3D   80, .reg =3D 0x00 },
+> > [1]	{ .mbps =3D   90, .reg =3D 0x20 },
+> > ...
+> >=20
+> > The datasheet however documents the range 80-89 to map to 0x00.
+> >=20
+> > What am I missing ?
+>=20
+> I'm afraid you are missing a issue with the original implementation of
+> the rcar-csi2 driver (my fault). The issue you point out is a problem
+> with the current freq selection logic not the tables themself which
+> needs to be corrected.
+>=20
+> This patch aligns the table with the other tables in the driver and is
+> sound. A patch (Jacopo care to submit it?) is needed to resolve the
+> faulty logic in the driver. It should select the range according to
+> Laurents findings and not the range above it as the current code does.
 
-Reviewed-by: Tomasz Figa <tfiga@chromium.org>
+I wonder whether we should instead modify the tables, to avoid making the=20
+selection logic more complicated and less efficient CPU-wise.
 
-Both cases look very straightforward, I wonder why they triggered
-those false positives...
+Speaking of which, the tables are interestingly specified in three differen=
+t=20
+ways in the datasheet:
 
-Best regards,
-Tomasz
+=2D The TESTDIN_DATA table specifies non-overlapping ranges
+
+e.g. [80, 89]: 0x00, [90, 99]: 0x20, [100, 109]: 0x40, ...
+
+In this regard this patch is an improvement (that is if the faulty selectio=
+n=20
+logic gets fixed), as otherwise a frequency of 109.5 would be classified in=
+=20
+the [110, 129] range, while I think it is meant to be in the [100, 109] ran=
+ge.
+
+Another option would be to set the table mbps value to the high bound of th=
+e=20
+range:
+
+        { .mbps =3D   90, .reg =3D 0x00 },
+        { .mbps =3D  100, .reg =3D 0x20 },
+        { .mbps =3D  110, .reg =3D 0x40 },
+        ...
+
+and use strict lower comparison logic:
+
+        const struct rcsi2_mbps_reg *value;
+
+        for (value =3D values; value->mbps; value++)
+                if (mbps < value->mbps)
+                        break
+
+=2D The PHTW table specifies individual bit rates
+
+e.g. 80: 0x86, 90: 0x86, 100: 0x87, ..
+
+I'm not sure how to interpret this. If I had to guess, I would say it means
+
+[80, 90[: 0x86, [90, 100[: 0x86, [100, 110[: 0x87, ..
+
+We could thus use the same logic than for the TESTDIN_DATA table (and while=
+ at=20
+it merge adjacent ranges that share the same PHTW value).
+
+=2D The HSFREQRANGE tables specify overlapping ranges
+
+e.g. [80, 131.25]: 0x20, [80.75, 141.75]: 0x30, [90.25, 152.25]: 0x01, ...
+
+This has to be converted to non-overlapping ranges. I would advice centerin=
+g=20
+each non-overlapping range to the center of the corresponding overlapping=20
+range. Today we instead have non-overlapping ranges in the driver whose bou=
+nds=20
+are set to the center of the overlapping ranges, and I don't think this is=
+=20
+right.
+
+And we could then use the same logic as above here too.
+
+The downside is that the tables would need to be carefully reviewed as they=
+=20
+would derive from the values in the datasheet instead of computing them=20
+blindly, and the upside would be simpler code. If we want to instead copy t=
+he=20
+tables blindly for ease of review, then I think we'll need more complex=20
+selection logic, with different logics for the different tables.
+
+> >> Fixes: 10c08812fe60 ("media: rcar: rcar-csi2: Update V3M/E3 PHTW
+> >> tables")
+> >> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> >> ---
+> >>=20
+> >>  drivers/media/platform/rcar-vin/rcar-csi2.c | 62 +++++++++++---------=
+=2D--
+> >>  1 file changed, 31 insertions(+), 31 deletions(-)
+> >>=20
+> >> diff --git a/drivers/media/platform/rcar-vin/rcar-csi2.c
+> >> b/drivers/media/platform/rcar-vin/rcar-csi2.c index
+> >> 80ad906d1136..7e9cb8bcfe70 100644
+> >> --- a/drivers/media/platform/rcar-vin/rcar-csi2.c
+> >> +++ b/drivers/media/platform/rcar-vin/rcar-csi2.c
+> >> @@ -152,37 +152,37 @@ static const struct rcsi2_mbps_reg
+> >> phtw_mbps_h3_v3h_m3n[] =3D { };
+> >>=20
+> >>  static const struct rcsi2_mbps_reg phtw_mbps_v3m_e3[] =3D {
+> >> -	{ .mbps =3D   89, .reg =3D 0x00 },
+> >> -	{ .mbps =3D   99, .reg =3D 0x20 },
+> >> -	{ .mbps =3D  109, .reg =3D 0x40 },
+> >> -	{ .mbps =3D  129, .reg =3D 0x02 },
+> >> -	{ .mbps =3D  139, .reg =3D 0x22 },
+> >> -	{ .mbps =3D  149, .reg =3D 0x42 },
+> >> -	{ .mbps =3D  169, .reg =3D 0x04 },
+> >> -	{ .mbps =3D  179, .reg =3D 0x24 },
+> >> -	{ .mbps =3D  199, .reg =3D 0x44 },
+> >> -	{ .mbps =3D  219, .reg =3D 0x06 },
+> >> -	{ .mbps =3D  239, .reg =3D 0x26 },
+> >> -	{ .mbps =3D  249, .reg =3D 0x46 },
+> >> -	{ .mbps =3D  269, .reg =3D 0x08 },
+> >> -	{ .mbps =3D  299, .reg =3D 0x28 },
+> >> -	{ .mbps =3D  329, .reg =3D 0x0a },
+> >> -	{ .mbps =3D  359, .reg =3D 0x2a },
+> >> -	{ .mbps =3D  399, .reg =3D 0x4a },
+> >> -	{ .mbps =3D  449, .reg =3D 0x0c },
+> >> -	{ .mbps =3D  499, .reg =3D 0x2c },
+> >> -	{ .mbps =3D  549, .reg =3D 0x0e },
+> >> -	{ .mbps =3D  599, .reg =3D 0x2e },
+> >> -	{ .mbps =3D  649, .reg =3D 0x10 },
+> >> -	{ .mbps =3D  699, .reg =3D 0x30 },
+> >> -	{ .mbps =3D  749, .reg =3D 0x12 },
+> >> -	{ .mbps =3D  799, .reg =3D 0x32 },
+> >> -	{ .mbps =3D  849, .reg =3D 0x52 },
+> >> -	{ .mbps =3D  899, .reg =3D 0x72 },
+> >> -	{ .mbps =3D  949, .reg =3D 0x14 },
+> >> -	{ .mbps =3D  999, .reg =3D 0x34 },
+> >> -	{ .mbps =3D 1049, .reg =3D 0x54 },
+> >> -	{ .mbps =3D 1099, .reg =3D 0x74 },
+> >> +	{ .mbps =3D   80, .reg =3D 0x00 },
+> >> +	{ .mbps =3D   90, .reg =3D 0x20 },
+> >> +	{ .mbps =3D  100, .reg =3D 0x40 },
+> >> +	{ .mbps =3D  110, .reg =3D 0x02 },
+> >> +	{ .mbps =3D  130, .reg =3D 0x22 },
+> >> +	{ .mbps =3D  140, .reg =3D 0x42 },
+> >> +	{ .mbps =3D  150, .reg =3D 0x04 },
+> >> +	{ .mbps =3D  170, .reg =3D 0x24 },
+> >> +	{ .mbps =3D  180, .reg =3D 0x44 },
+> >> +	{ .mbps =3D  200, .reg =3D 0x06 },
+> >> +	{ .mbps =3D  220, .reg =3D 0x26 },
+> >> +	{ .mbps =3D  240, .reg =3D 0x46 },
+> >> +	{ .mbps =3D  250, .reg =3D 0x08 },
+> >> +	{ .mbps =3D  270, .reg =3D 0x28 },
+> >> +	{ .mbps =3D  300, .reg =3D 0x0a },
+> >> +	{ .mbps =3D  330, .reg =3D 0x2a },
+> >> +	{ .mbps =3D  360, .reg =3D 0x4a },
+> >> +	{ .mbps =3D  400, .reg =3D 0x0c },
+> >> +	{ .mbps =3D  450, .reg =3D 0x2c },
+> >> +	{ .mbps =3D  500, .reg =3D 0x0e },
+> >> +	{ .mbps =3D  550, .reg =3D 0x2e },
+> >> +	{ .mbps =3D  600, .reg =3D 0x10 },
+> >> +	{ .mbps =3D  650, .reg =3D 0x30 },
+> >> +	{ .mbps =3D  700, .reg =3D 0x12 },
+> >> +	{ .mbps =3D  750, .reg =3D 0x32 },
+> >> +	{ .mbps =3D  800, .reg =3D 0x52 },
+> >> +	{ .mbps =3D  850, .reg =3D 0x72 },
+> >> +	{ .mbps =3D  900, .reg =3D 0x14 },
+> >> +	{ .mbps =3D  950, .reg =3D 0x34 },
+> >> +	{ .mbps =3D 1000, .reg =3D 0x54 },
+> >> +	{ .mbps =3D 1050, .reg =3D 0x74 },
+> >>  	{ .mbps =3D 1125, .reg =3D 0x16 },
+> >>  	{ /* sentinel */ },
+> >> =20
+> >>  };
+
+=2D-=20
+Regards,
+
+Laurent Pinchart
+
+
+
