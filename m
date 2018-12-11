@@ -2,187 +2,115 @@ Return-Path: <SRS0=Y87V=OU=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_PASS,USER_AGENT_NEOMUTT
+X-Spam-Status: No, score=-2.5 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_MUTT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AE61C6783B
-	for <linux-media@archiver.kernel.org>; Tue, 11 Dec 2018 22:07:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 22EAAC6783B
+	for <linux-media@archiver.kernel.org>; Tue, 11 Dec 2018 22:15:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 31DEA20851
-	for <linux-media@archiver.kernel.org>; Tue, 11 Dec 2018 22:07:07 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 31DEA20851
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=mess.org
+	by mail.kernel.org (Postfix) with ESMTP id DC4BF20851
+	for <linux-media@archiver.kernel.org>; Tue, 11 Dec 2018 22:15:47 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="mihBuv1z"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org DC4BF20851
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=gmail.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726237AbeLKWHG (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 11 Dec 2018 17:07:06 -0500
-Received: from gofer.mess.org ([88.97.38.141]:42051 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726158AbeLKWHG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Dec 2018 17:07:06 -0500
-Received: by gofer.mess.org (Postfix, from userid 1000)
-        id 757D6601BF; Tue, 11 Dec 2018 22:07:04 +0000 (GMT)
-Date:   Tue, 11 Dec 2018 22:07:04 +0000
-From:   Sean Young <sean@mess.org>
-To:     David Howe <howe.david@gmail.com>
-Cc:     linux-media@vger.kernel.org
-Subject: Re: bug report cxusb oops
-Message-ID: <20181211220704.lbangxj5spxqa46v@gofer.mess.org>
-References: <3a51448a-3412-f348-d594-5cd4ec84294e@gmail.com>
- <20181210123037.ppyjgzs2dm7m2kst@gofer.mess.org>
- <9ce3fae4-9d95-ff9f-08cc-37e568110c8c@gmail.com>
+        id S1726581AbeLKWPq (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 11 Dec 2018 17:15:46 -0500
+Received: from mail-wm1-f68.google.com ([209.85.128.68]:52781 "EHLO
+        mail-wm1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726327AbeLKWPk (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 11 Dec 2018 17:15:40 -0500
+Received: by mail-wm1-f68.google.com with SMTP id m1so3204221wml.2;
+        Tue, 11 Dec 2018 14:15:38 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=D6xoD625oZNi4kT/b12vQt1b3p5+/KEL218mj96sS9w=;
+        b=mihBuv1zNj9n9r+fyXxH/1F8DQq+Ejmk8vh++xY+HOGJ3Q3sqEelfN5bFooyTJVcCu
+         QY7JGQgZP7ZE0WetWjD/GSFyYVJ/UCQ/w0lzirh0r/JTkGJ2aDZBQTXqnKjbJWtyoFMv
+         7Bq8XH+rNQEvix5DC5+Nojgu02rIkj+RMCSA5FsAN3cAEx+IwNGsraXlWGApMSBpyul1
+         ljdB4O/juIH/hCLRdez5gq3Wffp9GMN27z55ZN7qY6Yw5DrOJm9RTZJC+aUw9rO4/5tX
+         hydSfXSyBPaUBhUubjCxr+Y2PemlsvAdKRfN2ncD2pWKYXn8vOxOanTIB3ExiICdPWD2
+         DSjw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=D6xoD625oZNi4kT/b12vQt1b3p5+/KEL218mj96sS9w=;
+        b=ugbk/Eu24v+VxDVOpWwliLZ3AhSlD2huZ8B0fZDkxSDmdZYtr9+eN93FJSSFQnzECn
+         3l9CaluyIqbA3csYFavVK1lJ7w4TbrgJcgUs9IkyGGgj4t9oJNzM3qbj5r90eovMEwF4
+         zv0NJf6LE+okk0JRwwqz2Lyf4FpECOkbSfnaBoxZtZl7J78Juiq+3jM3S7j6HtPIAuA6
+         Y9DEY2XHefI0mR+Y7gmf02QKa7g5FzXhJefSIakdgY3F+pWiCJ0y9//bM8/aSd3cTKP5
+         7LxRfy3UVwkD9WiRL9r7iZiPWBjkqWfwxi57zsgtCI6+GPn33MMCgI3c5i2HfT3bhlN2
+         obvQ==
+X-Gm-Message-State: AA+aEWZoIrkL/EcTJRHX9+Mgttt+fIwe53fyDvXmCTluRaQ7Xr3SDL/B
+        9SpaoY4ggKpobvAs8tdyvkE=
+X-Google-Smtp-Source: AFSGD/W99q4hL3XgXGWh7Ii1ngZDqHUJdj6vzGZjVkSqVHM4tHIHAa6katv/P8BByxPdcZAGn+k1+w==
+X-Received: by 2002:a1c:7f0c:: with SMTP id a12mr3879047wmd.89.1544566537713;
+        Tue, 11 Dec 2018 14:15:37 -0800 (PST)
+Received: from flashbox ([2a01:4f8:10b:24a5::2])
+        by smtp.gmail.com with ESMTPSA id x20sm1937176wme.6.2018.12.11.14.15.36
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Tue, 11 Dec 2018 14:15:37 -0800 (PST)
+Date:   Tue, 11 Dec 2018 15:15:35 -0700
+From:   Nathan Chancellor <natechancellor@gmail.com>
+To:     Mark Brown <broonie@kernel.org>
+Cc:     Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        Daniel Scheller <d.scheller@gmx.net>,
+        kernel-build-reports@lists.linaro.org,
+        linaro-kernel@lists.linaro.org, linux-next@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        Russell King <linux@armlinux.org.uk>,
+        linux-media@vger.kernel.org
+Subject: Re: next-20181211 build: 1 failures 32 warnings (next-20181211)
+Message-ID: <20181211221535.GA20165@flashbox>
+References: <E1gWnrV-00086U-3m@optimist>
+ <20181211220620.GS6686@sirena.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <9ce3fae4-9d95-ff9f-08cc-37e568110c8c@gmail.com>
-User-Agent: NeoMutt/20170113 (1.7.2)
+In-Reply-To: <20181211220620.GS6686@sirena.org.uk>
+User-Agent: Mutt/1.11.1 (2018-12-01)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Wed, Dec 12, 2018 at 08:02:48AM +1100, David Howe wrote:
-> Hi Sean
+On Tue, Dec 11, 2018 at 10:06:20PM +0000, Mark Brown wrote:
+> On Tue, Dec 11, 2018 at 07:38:33PM +0000, Build bot for Mark Brown wrote:
 > 
-> I have tried a variety of kernels, including my own and the results are all
-> very similar.
+> Today's -next fails to build an arm allmodconfig due to:
 > 
-> current version of kernel (uname -a)
+> > 	arm-allmodconfig
+> > ../arch/arm/include/asm/irq.h:35:50: error: unknown type name 'cpumask_t'
+> > ../arch/arm/include/asm/irq.h:36:9: error: unknown type name 'bool'
+> > ../arch/arm/include/asm/irq.h:35:50: error: unknown type name 'cpumask_t'
+> > ../arch/arm/include/asm/irq.h:36:9: error: unknown type name 'bool'
+> > ../arch/arm/include/asm/irq.h:35:50: error: unknown type name 'cpumask_t'
+> > ../arch/arm/include/asm/irq.h:36:9: error: unknown type name 'bool'
+> > ../arch/arm/include/asm/irq.h:35:50: error: unknown type name 'cpumask_t'
+> > ../arch/arm/include/asm/irq.h:36:9: error: unknown type name 'bool'
 > 
-> Linux david-HP-EliteBook-8460p 4.18.0-13-generic #14~lp1807550 SMP Mon Dec
-> 10 14:01:28 CST 2018 x86_64 x86_64 x86_64 GNU/Linux
-> 
-> I built the media stack this way
-> 
-> git clone/--depth=1/  git://linuxtv.org/media_build.git
-> cd media_build/
-> ./build --main-git --depth 1
-> sudo make install
-> 
-> I can also confirm that the firmware and device loads correctly on an older machine running an i386 platform and 3.13 kernel
+> in ddbridge-ci.c and some other media files.  This is because
+> ddbridge.h includes asm/irq.h but that does not directly include headers
+> which define the above types and it appears some header changes have
+> removed an implicit inclusion of those.  Moving the asm includes after
+> the linux ones in ddbridge.h fixes this though this appears to be
+> against the coding style for media.
 
-It would be helpful to know if this can be reproduced on the current media
-tree, see:
-	https://git.linuxtv.org/media_tree.git/about/
+Hi Mark,
+
+I sent a patch for this yesterday, I think moving the asm includes after
+the linux ones is the correct fix according to the rest of the kernel:
+https://lore.kernel.org/linux-media/20181210233514.3069-1-natechancellor@gmail.com/
+
+Hopefully it can be picked up quickly.
 
 Thanks,
-
-Sean
-> 
-> 
-> On 12/10/18 11:30 PM, Sean Young wrote:
-> > Hi,
-> > 
-> > On Mon, Dec 10, 2018 at 10:51:33AM +1100, David Howe wrote:
-> > > hi
-> > > 
-> > > using the experimental version of the media stack and i get this
-> > > 
-> > > [   80.606898] dvb-usb: found a 'DViCO FusionHDTV DVB-T NANO2 w/o firmware'
-> > > in cold state, will try to load a firmware
-> > > [   80.620010] dvb-usb: downloading firmware from file
-> > > 'dvb-usb-bluebird-02.fw'
-> > > [   80.656195] usbcore: registered new interface driver dvb_usb_cxusb
-> > > [   80.688792] usb 3-1: USB disconnect, device number 2
-> > > [   80.688826] BUG: unable to handle kernel paging request at
-> > > 0000000000002db8
-> > > [   80.688830] PGD 0 P4D 0
-> > > [   80.688834] Oops: 0000 [#1] PREEMPT SMP PTI
-> > > [   80.688838] CPU: 2 PID: 26 Comm: kworker/2:0 Tainted: G           OE
-> > > 4.18.0-10-lowlatency #11-Ubuntu
-> > > [   80.688840] Hardware name: Hewlett-Packard HP EliteBook 8460p/161C, BIOS
-> > > 68SCF Ver. F.67 02/13/2018
-> > > [   80.688846] Workqueue: usb_hub_wq hub_event
-> > > [   80.688852] RIP: 0010:cxusb_disconnect+0x18/0x70 [dvb_usb_cxusb]
-> > I'm not entirely sure how it got to cxusb_disconnect() without calling
-> > usb_set_intfdata(). I would have expected a "found a '%s' in warm state."
-> > message.
-> > 
-> > Which kernel version are you running? Are building media_build or just the
-> > latest media_tree -- if so, what commit?
-> > 
-> > Does this issue happen every time you boot/connect the usb dvb device?
-> > 
-> > 
-> > Thanks
-> > Sean
-> > 
-> > > [   80.688853] Code: 85 c0 75 e7 31 c0 48 c7 02 00 00 00 00 5d c3 0f 1f 00
-> > > 66 66 66 66 90 55 48 89 e5 41 55 41 54 49 89 fc 53 48 8b 87 c8 00 00 00 <4c>
-> > > 8b a8 b8 2d 00 00 49 8b 5d 10 48 85 db 74 18 48 8b 83 a8 00 00
-> > > [   80.688885] RSP: 0018:ffffa44f00d97b68 EFLAGS: 00010246
-> > > [   80.688888] RAX: 0000000000000000 RBX: ffff98db2dad3030 RCX:
-> > > 0000000000000000
-> > > [   80.688890] RDX: 0000000000000000 RSI: ffff98db2dad3000 RDI:
-> > > ffff98db2dad3000
-> > > [   80.688891] RBP: ffffa44f00d97b80 R08: 0000000000000000 R09:
-> > > ffffffff95335b00
-> > > [   80.688893] R10: ffff98db2ef01660 R11: 0000000000000001 R12:
-> > > ffff98db2dad3000
-> > > [   80.688895] R13: ffffffffc10530a8 R14: ffff98db307d7000 R15:
-> > > ffff98db307d70a0
-> > > [   80.688898] FS:  0000000000000000(0000) GS:ffff98db3dc80000(0000)
-> > > knlGS:0000000000000000
-> > > [   80.688900] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> > > [   80.688902] CR2: 0000000000002db8 CR3: 000000010ae0a001 CR4:
-> > > 00000000000606e0
-> > > [   80.688904] Call Trace:
-> > > [   80.688911]  usb_unbind_interface+0x7a/0x280
-> > > [   80.688916]  device_release_driver_internal+0x18c/0x260
-> > > [   80.688919]  device_release_driver+0x12/0x20
-> > > [   80.688922]  bus_remove_device+0xec/0x160
-> > > [   80.688925]  device_del+0x13b/0x350
-> > > [   80.688928]  ? __dev_printk+0x44/0x70
-> > > [   80.688932]  usb_disable_device+0x9f/0x270
-> > > [   80.688935]  usb_disconnect+0xca/0x2c0
-> > > [   80.688938]  hub_port_connect+0x85/0xa70
-> > > [   80.688941]  port_event+0x45b/0x6d0
-> > > [   80.688945]  hub_event+0x14f/0x3b0
-> > > [   80.688951]  process_one_work+0x208/0x3f0
-> > > [   80.688954]  worker_thread+0x34/0x3f0
-> > > [   80.688958]  kthread+0x120/0x140
-> > > [   80.688961]  ? rescuer_thread+0x390/0x390
-> > > [   80.688964]  ? kthread_create_worker_on_cpu+0x70/0x70
-> > > [   80.688967]  ret_from_fork+0x35/0x40
-> > > [   80.688970] Modules linked in: dvb_usb_cxusb(OE) dib0070(OE) dvb_usb(OE)
-> > > dvb_core(OE) rc_core(OE) rfcomm rpcsec_gss_krb5 auth_rpcgss nfsv4 nfs lockd
-> > > grace fscache ccm bnep snd_hda_codec_hdmi snd_hda_codec_idt hp_wmi
-> > > snd_hda_codec_generic snd_hda_intel snd_hda_codec arc4 sparse_keymap iwldvm
-> > > mac80211 intel_rapl x86_pkg_temp_thermal intel_powerclamp uvcvideo(OE)
-> > > videobuf2_vmalloc(OE) videobuf2_memops(OE) videobuf2_v4l2(OE) coretemp
-> > > wmi_bmof videobuf2_common(OE) videodev(OE) snd_hda_core snd_hwdep media(OE)
-> > > kvm irqbypass crct10dif_pclmul crc32_pclmul btusb ghash_clmulni_intel btrtl
-> > > iwlwifi pcbc snd_pcm aesni_intel joydev btbcm input_leds snd_seq_midi
-> > > snd_seq_midi_event btintel aes_x86_64 crypto_simd cryptd bluetooth
-> > > glue_helper intel_cstate i915 ecdh_generic intel_rapl_perf hp_accel
-> > > drm_kms_helper drm
-> > > [   80.689018]  lis3lv02d snd_rawmidi serio_raw mei_me i2c_algo_bit
-> > > fb_sys_fops syscopyarea sysfillrect cfg80211 wmi tpm_infineon snd_seq
-> > > snd_seq_device snd_timer mei sysimgblt input_polldev snd soundcore video
-> > > mac_hid sch_fq_codel cuse parport_pc ppdev lp parport sunrpc ip_tables
-> > > x_tables autofs4 gpio_ich ahci psmouse libahci lpc_ich firewire_ohci
-> > > sdhci_pci e1000e firewire_core cqhci sdhci crc_itu_t
-> > > [   80.689047] CR2: 0000000000002db8
-> > > [   80.689050] ---[ end trace b4ada9b289256086 ]---
-> > > [   80.689054] RIP: 0010:cxusb_disconnect+0x18/0x70 [dvb_usb_cxusb]
-> > > [   80.689056] Code: 85 c0 75 e7 31 c0 48 c7 02 00 00 00 00 5d c3 0f 1f 00
-> > > 66 66 66 66 90 55 48 89 e5 41 55 41 54 49 89 fc 53 48 8b 87 c8 00 00 00 <4c>
-> > > 8b a8 b8 2d 00 00 49 8b 5d 10 48 85 db 74 18 48 8b 83 a8 00 00
-> > > [   80.689090] RSP: 0018:ffffa44f00d97b68 EFLAGS: 00010246
-> > > [   80.689092] RAX: 0000000000000000 RBX: ffff98db2dad3030 RCX:
-> > > 0000000000000000
-> > > [   80.689093] RDX: 0000000000000000 RSI: ffff98db2dad3000 RDI:
-> > > ffff98db2dad3000
-> > > [   80.689095] RBP: ffffa44f00d97b80 R08: 0000000000000000 R09:
-> > > ffffffff95335b00
-> > > [   80.689097] R10: ffff98db2ef01660 R11: 0000000000000001 R12:
-> > > ffff98db2dad3000
-> > > [   80.689098] R13: ffffffffc10530a8 R14: ffff98db307d7000 R15:
-> > > ffff98db307d70a0
-> > > [   80.689101] FS:  0000000000000000(0000) GS:ffff98db3dc80000(0000)
-> > > knlGS:0000000000000000
-> > > [   80.689103] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> > > [   80.689105] CR2: 0000000000002db8 CR3: 000000010ae0a001 CR4:
-> > > 00000000000606e0
+Nathan
