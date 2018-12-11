@@ -4,44 +4,44 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-7.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B2010C6783B
-	for <linux-media@archiver.kernel.org>; Tue, 11 Dec 2018 23:24:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E59C2C6783C
+	for <linux-media@archiver.kernel.org>; Tue, 11 Dec 2018 23:43:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6D2E120851
-	for <linux-media@archiver.kernel.org>; Tue, 11 Dec 2018 23:24:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9CA742084E
+	for <linux-media@archiver.kernel.org>; Tue, 11 Dec 2018 23:43:16 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="AedKm2yB"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 6D2E120851
+	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="HaBKa/RF"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 9CA742084E
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=ideasonboard.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726346AbeLKXY6 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 11 Dec 2018 18:24:58 -0500
-Received: from perceval.ideasonboard.com ([213.167.242.64]:60664 "EHLO
+        id S1726245AbeLKXnP (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 11 Dec 2018 18:43:15 -0500
+Received: from perceval.ideasonboard.com ([213.167.242.64]:33264 "EHLO
         perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726296AbeLKXY5 (ORCPT
+        with ESMTP id S1726183AbeLKXnO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Dec 2018 18:24:57 -0500
+        Tue, 11 Dec 2018 18:43:14 -0500
 Received: from [192.168.0.21] (cpc89242-aztw30-2-0-cust488.18-1.cable.virginm.net [86.31.129.233])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 42F5D55A;
-        Wed, 12 Dec 2018 00:24:55 +0100 (CET)
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id D99A855A;
+        Wed, 12 Dec 2018 00:43:10 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1544570695;
-        bh=Eg8mRZ5lJ90mWSVcQek6ka2LLwHAeTeVNYfcqLLTj2M=;
+        s=mail; t=1544571791;
+        bh=mOCPYQ/Ikr8G1CpyBBQBomjFtJhgBeQPriVs3MIi0lg=;
         h=Reply-To:Subject:To:Cc:References:From:Date:In-Reply-To:From;
-        b=AedKm2yBY0xJfXeuZPDmb2emsm9CfPBNjeAoD54hjLfl+rFEFkZAI3/upBW8NR3Jv
-         JOpyXUc2Y55PtQ+z6RVZFhmwOQHbvDQ9enYUpnBK2IbgFB+rTBPSRLcp/ZN1zI3hRy
-         9/hpLVr/vp0lLb0j8bMBLsVPVhF+Jnsbo6332Nts=
+        b=HaBKa/RFEAAKOrz2kksJuHKO2VD0L5hGH0jFHByKXrc/qo17/dQGE8olNXVVX2vkl
+         ubqTpeUaJC4j+1YiCWTQfP4FSgnyr/Tx0DmBptvy+4COi7xIN34DACQBVOocKdfrcN
+         4MSltNFVfyEOrLwYL8N/qeroVIry8MNqJG8OqLt0=
 Reply-To: kieran.bingham@ideasonboard.com
-Subject: Re: [PATCH 4/5] media: adv748x: Store the TX sink in HDMI/AFE
+Subject: Re: [PATCH 5/5] media: adv748x: Implement link_setup callback
 To:     Jacopo Mondi <jacopo+renesas@jmondi.org>,
         laurent.pinchart@ideasonboard.com,
         niklas.soderlund+renesas@ragnatech.se
 Cc:     linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
 References: <1544541373-30044-1-git-send-email-jacopo+renesas@jmondi.org>
- <1544541373-30044-5-git-send-email-jacopo+renesas@jmondi.org>
+ <1544541373-30044-6-git-send-email-jacopo+renesas@jmondi.org>
 From:   Kieran Bingham <kieran.bingham@ideasonboard.com>
 Openpgp: preference=signencrypt
 Autocrypt: addr=kieran.bingham@ideasonboard.com; keydata=
@@ -88,15 +88,15 @@ Autocrypt: addr=kieran.bingham@ideasonboard.com; keydata=
  JxB1gWThL4kOTbsqqXj9GLcyOImkW0lJGGR3o/fV91Zh63S5TKnf2YGGGzxki+ADdxVQAm+Q
  sbsRB8KNNvVXBOVNwko86rQqF9drZuw=
 Organization: Ideas on Board
-Message-ID: <2312844a-45d2-a84e-dcba-d6e3a3aeff07@ideasonboard.com>
-Date:   Tue, 11 Dec 2018 23:24:52 +0000
+Message-ID: <b4a718b4-ff9b-020e-d64e-09cf40747f6e@ideasonboard.com>
+Date:   Tue, 11 Dec 2018 23:43:08 +0000
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
  Thunderbird/60.2.1
 MIME-Version: 1.0
-In-Reply-To: <1544541373-30044-5-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1544541373-30044-6-git-send-email-jacopo+renesas@jmondi.org>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
@@ -105,131 +105,146 @@ X-Mailing-List: linux-media@vger.kernel.org
 Hi Jacopo,
 
 On 11/12/2018 15:16, Jacopo Mondi wrote:
-> Both the AFE and HDMI s_stream routines (adv748x_afe_s_stream() and
-> adv748x_hdmi_s_stream()) have to enable the CSI-2 TX they are streaming video
-> data to.
-> 
-> With the introduction of dynamic routing between HDMI and AFE entities to
-> TXA, the video stream sink needs to be set at run time, and not statically
-> selected as the s_stream functions are currently doing.
-> 
-> To fix this, store a reference to the active CSI-2 TX sink for both HDMI and
-> AFE sources, and operate on it when starting/stopping the stream.
-
-Keeping these link references certainly feels like a useful thing to do.
-
+> When the adv748x driver is informed about a link being created from HDMI or
+> AFE to a CSI-2 TX output, the 'link_setup()' callback is invoked. Make
+> sure to implement proper routing management at link setup time, to route
+> the selected video stream to the desired TX output.
 > 
 > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
 > ---
->  drivers/media/i2c/adv748x/adv748x-afe.c  |  2 +-
->  drivers/media/i2c/adv748x/adv748x-csi2.c | 19 ++++++++++++++-----
->  drivers/media/i2c/adv748x/adv748x-hdmi.c |  2 +-
->  drivers/media/i2c/adv748x/adv748x.h      |  4 ++++
->  4 files changed, 20 insertions(+), 7 deletions(-)
+>  drivers/media/i2c/adv748x/adv748x-core.c | 63 +++++++++++++++++++++++++++++++-
+>  drivers/media/i2c/adv748x/adv748x.h      |  1 +
+>  2 files changed, 63 insertions(+), 1 deletion(-)
 > 
-> diff --git a/drivers/media/i2c/adv748x/adv748x-afe.c b/drivers/media/i2c/adv748x/adv748x-afe.c
-> index 71714634efb0..dbbb1e4d6363 100644
-> --- a/drivers/media/i2c/adv748x/adv748x-afe.c
-> +++ b/drivers/media/i2c/adv748x/adv748x-afe.c
-> @@ -282,7 +282,7 @@ static int adv748x_afe_s_stream(struct v4l2_subdev *sd, int enable)
->  			goto unlock;
->  	}
->  
-> -	ret = adv748x_tx_power(&state->txb, enable);
-> +	ret = adv748x_tx_power(afe->tx, enable);
-
-And makes that much better...
-
->  	if (ret)
->  		goto unlock;
->  
-> diff --git a/drivers/media/i2c/adv748x/adv748x-csi2.c b/drivers/media/i2c/adv748x/adv748x-csi2.c
-> index 307966f4c736..0d6344a51795 100644
-> --- a/drivers/media/i2c/adv748x/adv748x-csi2.c
-> +++ b/drivers/media/i2c/adv748x/adv748x-csi2.c
-> @@ -85,6 +85,9 @@ static int adv748x_csi2_registered(struct v4l2_subdev *sd)
->  							 MEDIA_LNK_FL_ENABLED);
->  			if (ret)
->  				return ret;
+> diff --git a/drivers/media/i2c/adv748x/adv748x-core.c b/drivers/media/i2c/adv748x/adv748x-core.c
+> index f3aabbccdfb5..08dc0e89b053 100644
+> --- a/drivers/media/i2c/adv748x/adv748x-core.c
+> +++ b/drivers/media/i2c/adv748x/adv748x-core.c
+> @@ -335,9 +335,70 @@ int adv748x_tx_power(struct adv748x_csi2 *tx, bool on)
+>  /* -----------------------------------------------------------------------------
+>   * Media Operations
+>   */
+> +static int adv748x_link_setup(struct media_entity *entity,
+> +			      const struct media_pad *local,
+> +			      const struct media_pad *remote, u32 flags)
+> +{
+> +	struct v4l2_subdev *rsd = media_entity_to_v4l2_subdev(remote->entity);
+> +	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
+> +	struct adv748x_state *state = v4l2_get_subdevdata(sd);
+> +	struct adv748x_csi2 *tx;
+> +	struct media_link *link;
+> +	u8 io10;
 > +
-> +			/* The default HDMI output is TXA. */
-> +			state->hdmi.tx = tx;
+> +	/*
+> +	 * For each link setup from [HDMI|AFE] to TX we receive two
+> +	 * notifications: "[HDMI|AFE]->TX" and "TX<-[HDMI|AFE]".
+> +	 *
+> +	 * Use the second notification form to make sure we're linking
+> +	 * to a TX and find out from where, to set up routing properly.
+> +	 */
 
-It's a shame that we haven't got a 'base class' for the AFE/HDMI so that
-this could be set independently...
+
+> +	if ((sd != &state->txa.sd && sd != &state->txb.sd) ||
+
+I'm starting to think an 'is_txb(tx)' would help clean up some code ...
+Then we could do the assignment of tx above, and then this line would read
+
+  if ( (!(is_txa(tx) && !(is_txb(tx)))
+     || !(flags & MEDIA_LNK_FL_ENABLED) )
 
 
->  		}
->  
->  		if (is_afe_enabled(state)) {
-> @@ -95,11 +98,17 @@ static int adv748x_csi2_registered(struct v4l2_subdev *sd)
->  			if (ret)
->  				return ret;
->  		}
-> -	} else if (is_afe_enabled(state))
-> -		return adv748x_csi2_register_link(tx, sd->v4l2_dev,
-> -						  &state->afe.sd,
-> -						  ADV748X_AFE_SOURCE,
-> -						  MEDIA_LNK_FL_ENABLED);
-> +	} else if (is_afe_enabled(state)) {
-> +		ret = adv748x_csi2_register_link(tx, sd->v4l2_dev,
-> +						 &state->afe.sd,
-> +						 ADV748X_AFE_SOURCE,
-> +						 MEDIA_LNK_FL_ENABLED);
-> +		if (ret)
-> +			return ret;
+It shouldn't matter that the adv748x_sd_to_csi2(sd) could be called on
+non-TX SD's as they will then simply fail to match the above is_txa/is_txb.
+
+
+
+> +	    !(flags & MEDIA_LNK_FL_ENABLED))
+> +		return 0;
+
+Don't we need to clear some local references when disabling links?
+
+(or actually perhaps it doesn't matter if we keep stale references in a
+disabled object, because it's disabled)
+
+> +	tx = adv748x_sd_to_csi2(sd);
+
+
 > +
-> +		/* The default AFE output is TXB. */
+> +	/*
+> +	 * Now that we're sure we're operating on one of the two TXs,
+> +	 * make sure there are no enabled links ending there from
+> +	 * either HDMI or AFE (this can only happens for TXA though).
+> +	 */
+> +	if (is_txa(tx))
+> +		list_for_each_entry(link, &entity->links, list)
+> +			if (link->sink->entity == entity &&
+> +			    link->flags & MEDIA_LNK_FL_ENABLED)
+> +				return -EINVAL;
+> +
+
+What does this protect?
+
+Doesn't this code read as:
+
+  if (is TXA)
+	for each entity
+		Check all links - and if any are enabled, -EINVAL
+
+Don't we ever want a link to be enabled on TXA?
+
+(I must surely be mis-reading this - and it's nearly mid-night - so I'm
+going to say I'm confused and it's time for me to stop and go to bed :D)
+
+
+> +	/* Change video stream routing, according to the newly created link. */
+> +	io10 = io_read(state, ADV748X_IO_10);
+> +	if (rsd == &state->afe.sd) {
 > +		state->afe.tx = tx;
-
-Also - Can this be simplified into the pseudo code I suggested earlier.
-
-I haven't given that much thought here as it's late - and I don't know
-if you'll accept my pseudo code change yet :)
-
-
+> +
+> +		/*
+> +		 * If AFE is routed to TXA, make sure TXB is off;
+> +		 * If AFE goes to TXB, we need TXA powered on.
+> +		 */
+> +		if (is_txa(tx)) {
+> +			io10 |= ADV748X_IO_10_CSI4_IN_SEL_AFE;
+> +			io10 &= ~ADV748X_IO_10_CSI1_EN;
+> +		} else {
+> +			io10 |= ADV748X_IO_10_CSI4_EN |
+> +				ADV748X_IO_10_CSI1_EN;
+> +		}
+> +	} else {
+> +		state->hdmi.tx = tx;
+> +		io10 &= ~ADV748X_IO_10_CSI4_IN_SEL_AFE;
 > +	}
+> +	io_write(state, ADV748X_IO_10, io10);
+> +
+> +	tx->rsd = rsd;
+> +
+> +	return 0;
+> +}
 >  
->  	return 0;
->  }
-> diff --git a/drivers/media/i2c/adv748x/adv748x-hdmi.c b/drivers/media/i2c/adv748x/adv748x-hdmi.c
-> index 35d027941482..c557f8fdf11a 100644
-> --- a/drivers/media/i2c/adv748x/adv748x-hdmi.c
-> +++ b/drivers/media/i2c/adv748x/adv748x-hdmi.c
-> @@ -358,7 +358,7 @@ static int adv748x_hdmi_s_stream(struct v4l2_subdev *sd, int enable)
+>  static const struct media_entity_operations adv748x_media_ops = {
+> -	.link_validate = v4l2_subdev_link_validate,
+> +	.link_setup	= adv748x_link_setup,
+> +	.link_validate	= v4l2_subdev_link_validate,
+>  };
 >  
->  	mutex_lock(&state->mutex);
->  
-> -	ret = adv748x_tx_power(&state->txa, enable);
-> +	ret = adv748x_tx_power(hdmi->tx, enable);
-
-Certainly beneficial here :)
-
->  	if (ret)
->  		goto done;
->  
+>  /* -----------------------------------------------------------------------------
 > diff --git a/drivers/media/i2c/adv748x/adv748x.h b/drivers/media/i2c/adv748x/adv748x.h
-> index 387002d6da65..0ee3b8d5c795 100644
+> index 0ee3b8d5c795..63a17c31c169 100644
 > --- a/drivers/media/i2c/adv748x/adv748x.h
 > +++ b/drivers/media/i2c/adv748x/adv748x.h
-> @@ -118,6 +118,8 @@ struct adv748x_hdmi {
->  	struct v4l2_dv_timings timings;
->  	struct v4l2_fract aspect_ratio;
+> @@ -220,6 +220,7 @@ struct adv748x_state {
+>  #define ADV748X_IO_10_CSI4_EN		BIT(7)
+>  #define ADV748X_IO_10_CSI1_EN		BIT(6)
+>  #define ADV748X_IO_10_PIX_OUT_EN	BIT(5)
+> +#define ADV748X_IO_10_CSI4_IN_SEL_AFE	0x08
+
+Should this be BIT(3)?
+
 >  
-> +	struct adv748x_csi2 *tx;
-> +
->  	struct {
->  		u8 edid[512];
->  		u32 present;
-> @@ -148,6 +150,8 @@ struct adv748x_afe {
->  	struct v4l2_subdev sd;
->  	struct v4l2_mbus_framefmt format;
->  
-> +	struct adv748x_csi2 *tx;
-> +
->  	bool streaming;
->  	v4l2_std_id curr_norm;
->  	unsigned int input;
+>  #define ADV748X_IO_CHIP_REV_ID_1	0xdf
+>  #define ADV748X_IO_CHIP_REV_ID_2	0xe0
 > 
 
 -- 
