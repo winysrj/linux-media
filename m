@@ -6,42 +6,42 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
 	SIGNED_OFF_BY,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E59C2C6783C
-	for <linux-media@archiver.kernel.org>; Tue, 11 Dec 2018 23:43:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 09F87C6783B
+	for <linux-media@archiver.kernel.org>; Tue, 11 Dec 2018 23:52:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9CA742084E
-	for <linux-media@archiver.kernel.org>; Tue, 11 Dec 2018 23:43:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BFE9E2086D
+	for <linux-media@archiver.kernel.org>; Tue, 11 Dec 2018 23:52:09 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="HaBKa/RF"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 9CA742084E
+	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="i7R2QUUQ"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org BFE9E2086D
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=ideasonboard.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726245AbeLKXnP (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 11 Dec 2018 18:43:15 -0500
-Received: from perceval.ideasonboard.com ([213.167.242.64]:33264 "EHLO
+        id S1726218AbeLKXwJ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 11 Dec 2018 18:52:09 -0500
+Received: from perceval.ideasonboard.com ([213.167.242.64]:33336 "EHLO
         perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726183AbeLKXnO (ORCPT
+        with ESMTP id S1726183AbeLKXwI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Dec 2018 18:43:14 -0500
+        Tue, 11 Dec 2018 18:52:08 -0500
 Received: from [192.168.0.21] (cpc89242-aztw30-2-0-cust488.18-1.cable.virginm.net [86.31.129.233])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id D99A855A;
-        Wed, 12 Dec 2018 00:43:10 +0100 (CET)
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 357B555A;
+        Wed, 12 Dec 2018 00:52:06 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1544571791;
-        bh=mOCPYQ/Ikr8G1CpyBBQBomjFtJhgBeQPriVs3MIi0lg=;
+        s=mail; t=1544572326;
+        bh=kPUBMjEjjFMwZkD0UBt939QIFDCFdHoTg9b3CiZ6f2o=;
         h=Reply-To:Subject:To:Cc:References:From:Date:In-Reply-To:From;
-        b=HaBKa/RFEAAKOrz2kksJuHKO2VD0L5hGH0jFHByKXrc/qo17/dQGE8olNXVVX2vkl
-         ubqTpeUaJC4j+1YiCWTQfP4FSgnyr/Tx0DmBptvy+4COi7xIN34DACQBVOocKdfrcN
-         4MSltNFVfyEOrLwYL8N/qeroVIry8MNqJG8OqLt0=
+        b=i7R2QUUQwyyCYEq2cHKXTzBInp+NxM6BIePenDF448PJIo0x55h3BiRakMnj5ITk6
+         XMy7dPOWH+yldBFWtYZcNOXiwEsxijCEge32YY3OXyfBFOiJlVy7KiotRUQYJm6zJR
+         P/IOrBYQp6xm5DCeHYqte71pO7ei9RrOaIjCRt3U=
 Reply-To: kieran.bingham@ideasonboard.com
-Subject: Re: [PATCH 5/5] media: adv748x: Implement link_setup callback
+Subject: Re: [PATCH 1/5] media: adv748x: Rework reset procedure
 To:     Jacopo Mondi <jacopo+renesas@jmondi.org>,
         laurent.pinchart@ideasonboard.com,
         niklas.soderlund+renesas@ragnatech.se
 Cc:     linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
 References: <1544541373-30044-1-git-send-email-jacopo+renesas@jmondi.org>
- <1544541373-30044-6-git-send-email-jacopo+renesas@jmondi.org>
+ <1544541373-30044-2-git-send-email-jacopo+renesas@jmondi.org>
 From:   Kieran Bingham <kieran.bingham@ideasonboard.com>
 Openpgp: preference=signencrypt
 Autocrypt: addr=kieran.bingham@ideasonboard.com; keydata=
@@ -88,15 +88,15 @@ Autocrypt: addr=kieran.bingham@ideasonboard.com; keydata=
  JxB1gWThL4kOTbsqqXj9GLcyOImkW0lJGGR3o/fV91Zh63S5TKnf2YGGGzxki+ADdxVQAm+Q
  sbsRB8KNNvVXBOVNwko86rQqF9drZuw=
 Organization: Ideas on Board
-Message-ID: <b4a718b4-ff9b-020e-d64e-09cf40747f6e@ideasonboard.com>
-Date:   Tue, 11 Dec 2018 23:43:08 +0000
+Message-ID: <32aa95b8-1ae8-9f05-6d57-cf370ff58edf@ideasonboard.com>
+Date:   Tue, 11 Dec 2018 23:52:03 +0000
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
  Thunderbird/60.2.1
 MIME-Version: 1.0
-In-Reply-To: <1544541373-30044-6-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1544541373-30044-2-git-send-email-jacopo+renesas@jmondi.org>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
@@ -105,146 +105,88 @@ X-Mailing-List: linux-media@vger.kernel.org
 Hi Jacopo,
 
 On 11/12/2018 15:16, Jacopo Mondi wrote:
-> When the adv748x driver is informed about a link being created from HDMI or
-> AFE to a CSI-2 TX output, the 'link_setup()' callback is invoked. Make
-> sure to implement proper routing management at link setup time, to route
-> the selected video stream to the desired TX output.
+> Re-work the chip reset procedure to configure the CP (HDMI) and SD (AFE) cores
+> before resetting the MIPI CSI-2 TXs.
 > 
 > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
 > ---
->  drivers/media/i2c/adv748x/adv748x-core.c | 63 +++++++++++++++++++++++++++++++-
->  drivers/media/i2c/adv748x/adv748x.h      |  1 +
->  2 files changed, 63 insertions(+), 1 deletion(-)
+>  drivers/media/i2c/adv748x/adv748x-core.c | 24 ++++++++++--------------
+>  1 file changed, 10 insertions(+), 14 deletions(-)
 > 
 > diff --git a/drivers/media/i2c/adv748x/adv748x-core.c b/drivers/media/i2c/adv748x/adv748x-core.c
-> index f3aabbccdfb5..08dc0e89b053 100644
+> index d94c63cb6a2e..5495dc7891e8 100644
 > --- a/drivers/media/i2c/adv748x/adv748x-core.c
 > +++ b/drivers/media/i2c/adv748x/adv748x-core.c
-> @@ -335,9 +335,70 @@ int adv748x_tx_power(struct adv748x_csi2 *tx, bool on)
->  /* -----------------------------------------------------------------------------
->   * Media Operations
->   */
-> +static int adv748x_link_setup(struct media_entity *entity,
-> +			      const struct media_pad *local,
-> +			      const struct media_pad *remote, u32 flags)
-> +{
-> +	struct v4l2_subdev *rsd = media_entity_to_v4l2_subdev(remote->entity);
-> +	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
-> +	struct adv748x_state *state = v4l2_get_subdevdata(sd);
-> +	struct adv748x_csi2 *tx;
-> +	struct media_link *link;
-> +	u8 io10;
-> +
-> +	/*
-> +	 * For each link setup from [HDMI|AFE] to TX we receive two
-> +	 * notifications: "[HDMI|AFE]->TX" and "TX<-[HDMI|AFE]".
-> +	 *
-> +	 * Use the second notification form to make sure we're linking
-> +	 * to a TX and find out from where, to set up routing properly.
-> +	 */
-
-
-> +	if ((sd != &state->txa.sd && sd != &state->txb.sd) ||
-
-I'm starting to think an 'is_txb(tx)' would help clean up some code ...
-Then we could do the assignment of tx above, and then this line would read
-
-  if ( (!(is_txa(tx) && !(is_txb(tx)))
-     || !(flags & MEDIA_LNK_FL_ENABLED) )
-
-
-It shouldn't matter that the adv748x_sd_to_csi2(sd) could be called on
-non-TX SD's as they will then simply fail to match the above is_txa/is_txb.
-
-
-
-> +	    !(flags & MEDIA_LNK_FL_ENABLED))
-> +		return 0;
-
-Don't we need to clear some local references when disabling links?
-
-(or actually perhaps it doesn't matter if we keep stale references in a
-disabled object, because it's disabled)
-
-> +	tx = adv748x_sd_to_csi2(sd);
-
-
-> +
-> +	/*
-> +	 * Now that we're sure we're operating on one of the two TXs,
-> +	 * make sure there are no enabled links ending there from
-> +	 * either HDMI or AFE (this can only happens for TXA though).
-> +	 */
-> +	if (is_txa(tx))
-> +		list_for_each_entry(link, &entity->links, list)
-> +			if (link->sink->entity == entity &&
-> +			    link->flags & MEDIA_LNK_FL_ENABLED)
-> +				return -EINVAL;
-> +
-
-What does this protect?
-
-Doesn't this code read as:
-
-  if (is TXA)
-	for each entity
-		Check all links - and if any are enabled, -EINVAL
-
-Don't we ever want a link to be enabled on TXA?
-
-(I must surely be mis-reading this - and it's nearly mid-night - so I'm
-going to say I'm confused and it's time for me to stop and go to bed :D)
-
-
-> +	/* Change video stream routing, according to the newly created link. */
-> +	io10 = io_read(state, ADV748X_IO_10);
-> +	if (rsd == &state->afe.sd) {
-> +		state->afe.tx = tx;
-> +
-> +		/*
-> +		 * If AFE is routed to TXA, make sure TXB is off;
-> +		 * If AFE goes to TXB, we need TXA powered on.
-> +		 */
-> +		if (is_txa(tx)) {
-> +			io10 |= ADV748X_IO_10_CSI4_IN_SEL_AFE;
-> +			io10 &= ~ADV748X_IO_10_CSI1_EN;
-> +		} else {
-> +			io10 |= ADV748X_IO_10_CSI4_EN |
-> +				ADV748X_IO_10_CSI1_EN;
-> +		}
-> +	} else {
-> +		state->hdmi.tx = tx;
-> +		io10 &= ~ADV748X_IO_10_CSI4_IN_SEL_AFE;
-> +	}
-> +	io_write(state, ADV748X_IO_10, io10);
-> +
-> +	tx->rsd = rsd;
-> +
-> +	return 0;
-> +}
->  
->  static const struct media_entity_operations adv748x_media_ops = {
-> -	.link_validate = v4l2_subdev_link_validate,
-> +	.link_setup	= adv748x_link_setup,
-> +	.link_validate	= v4l2_subdev_link_validate,
+> @@ -353,9 +353,8 @@ static const struct adv748x_reg_value adv748x_sw_reset[] = {
+>  	{ADV748X_PAGE_EOR, 0xff, 0xff}	/* End of register table */
 >  };
->  
->  /* -----------------------------------------------------------------------------
-> diff --git a/drivers/media/i2c/adv748x/adv748x.h b/drivers/media/i2c/adv748x/adv748x.h
-> index 0ee3b8d5c795..63a17c31c169 100644
-> --- a/drivers/media/i2c/adv748x/adv748x.h
-> +++ b/drivers/media/i2c/adv748x/adv748x.h
-> @@ -220,6 +220,7 @@ struct adv748x_state {
->  #define ADV748X_IO_10_CSI4_EN		BIT(7)
->  #define ADV748X_IO_10_CSI1_EN		BIT(6)
->  #define ADV748X_IO_10_PIX_OUT_EN	BIT(5)
-> +#define ADV748X_IO_10_CSI4_IN_SEL_AFE	0x08
+> 
+> -/* Supported Formats For Script Below */
+> -/* - 01-29 HDMI to MIPI TxA CSI 4-Lane - RGB888: */
 
-Should this be BIT(3)?
+Is this information redundant ? (CSI-4Lane, RGB888 configuration?)
 
->  
->  #define ADV748X_IO_CHIP_REV_ID_1	0xdf
->  #define ADV748X_IO_CHIP_REV_ID_2	0xe0
+> -static const struct adv748x_reg_value adv748x_init_txa_4lane[] = {
+> +/* Initialize CP Core. */
+> +static const struct adv748x_reg_value adv748x_init_hdmi[] = {
+
+While we're here - is there much scope - or value in changing these
+tables to functions with parameters using Niklas' adv748x_write_check() ?
+
+The suggestion only has value if there are parameters that we would need
+to configure. So it might be reasonable to leave these tables.
+
+A general Ack on renaming to the function instead of the
+TX/configuration though - as that makes the purpose clearer.
+
+
+>  	/* Disable chip powerdown & Enable HDMI Rx block */
+>  	{ADV748X_PAGE_IO, 0x00, 0x40},
+> 
+> @@ -399,10 +398,8 @@ static const struct adv748x_reg_value adv748x_init_txa_4lane[] = {
+>  	{ADV748X_PAGE_EOR, 0xff, 0xff}	/* End of register table */
+>  };
+> 
+> -/* 02-01 Analog CVBS to MIPI TX-B CSI 1-Lane - */
+> -/* Autodetect CVBS Single Ended In Ain 1 - MIPI Out */
+> -static const struct adv748x_reg_value adv748x_init_txb_1lane[] = {
+> -
+
+Same comments as above really :)
+
+> +/* Initialize AFE core. */
+> +static const struct adv748x_reg_value adv748x_init_afe[] = {
+>  	{ADV748X_PAGE_IO, 0x00, 0x30},	/* Disable chip powerdown Rx */
+>  	{ADV748X_PAGE_IO, 0xf2, 0x01},	/* Enable I2C Read Auto-Increment */
+> 
+> @@ -445,19 +442,18 @@ static int adv748x_reset(struct adv748x_state *state)
+>  	if (ret < 0)
+>  		return ret;
+> 
+> -	/* Init and power down TXA */
+> -	ret = adv748x_write_regs(state, adv748x_init_txa_4lane);
+> +	/* Initialize CP and AFE cores. */
+> +	ret = adv748x_write_regs(state, adv748x_init_hdmi);
+>  	if (ret)
+>  		return ret;
+> 
+> -	adv748x_tx_power(&state->txa, 1);
+> -	adv748x_tx_power(&state->txa, 0);
+> -
+> -	/* Init and power down TXB */
+> -	ret = adv748x_write_regs(state, adv748x_init_txb_1lane);
+> +	ret = adv748x_write_regs(state, adv748x_init_afe);
+>  	if (ret)
+>  		return ret;
+> 
+> +	/* Reset TXA and TXB */
+> +	adv748x_tx_power(&state->txa, 1);
+> +	adv748x_tx_power(&state->txa, 0);
+>  	adv748x_tx_power(&state->txb, 1);
+>  	adv748x_tx_power(&state->txb, 0);
+> 
+> --
+> 2.7.4
 > 
 
 -- 
