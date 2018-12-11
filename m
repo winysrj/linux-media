@@ -3,39 +3,39 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-8.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DDC91C07E85
-	for <linux-media@archiver.kernel.org>; Tue, 11 Dec 2018 15:16:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1EB4EC5CFFE
+	for <linux-media@archiver.kernel.org>; Tue, 11 Dec 2018 15:16:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A345420851
-	for <linux-media@archiver.kernel.org>; Tue, 11 Dec 2018 15:16:38 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org A345420851
+	by mail.kernel.org (Postfix) with ESMTP id DC60F20851
+	for <linux-media@archiver.kernel.org>; Tue, 11 Dec 2018 15:16:40 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org DC60F20851
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=jmondi.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726667AbeLKPQi (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 11 Dec 2018 10:16:38 -0500
+        id S1726679AbeLKPQk (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 11 Dec 2018 10:16:40 -0500
 Received: from relay6-d.mail.gandi.net ([217.70.183.198]:51813 "EHLO
         relay6-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726329AbeLKPQh (ORCPT
+        with ESMTP id S1726329AbeLKPQj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Dec 2018 10:16:37 -0500
+        Tue, 11 Dec 2018 10:16:39 -0500
 X-Originating-IP: 2.224.242.101
 Received: from w540.lan (2-224-242-101.ip172.fastwebnet.it [2.224.242.101])
         (Authenticated sender: jacopo@jmondi.org)
-        by relay6-d.mail.gandi.net (Postfix) with ESMTPSA id AA350C0004;
-        Tue, 11 Dec 2018 15:16:34 +0000 (UTC)
+        by relay6-d.mail.gandi.net (Postfix) with ESMTPSA id 7EACCC0014;
+        Tue, 11 Dec 2018 15:16:37 +0000 (UTC)
 From:   Jacopo Mondi <jacopo+renesas@jmondi.org>
 To:     laurent.pinchart@ideasonboard.com,
         niklas.soderlund+renesas@ragnatech.se,
         kieran.bingham@ideasonboard.com
 Cc:     Jacopo Mondi <jacopo+renesas@jmondi.org>,
         linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: [PATCH 3/5] media: adv748x: Store the source subdevice in TX
-Date:   Tue, 11 Dec 2018 16:16:11 +0100
-Message-Id: <1544541373-30044-4-git-send-email-jacopo+renesas@jmondi.org>
+Subject: [PATCH 5/5] media: adv748x: Implement link_setup callback
+Date:   Tue, 11 Dec 2018 16:16:13 +0100
+Message-Id: <1544541373-30044-6-git-send-email-jacopo+renesas@jmondi.org>
 X-Mailer: git-send-email 2.7.4
 In-Reply-To: <1544541373-30044-1-git-send-email-jacopo+renesas@jmondi.org>
 References: <1544541373-30044-1-git-send-email-jacopo+renesas@jmondi.org>
@@ -44,62 +44,105 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-The power_up_tx() procedure needs to set a few registers conditionally to
-the selected video source, but it currently checks for the provided tx to
-be either TXA or TXB.
-
-With the introduction of dynamic routing between HDMI and AFE entities to
-TXA, checking which TX the function is operating on is not meaningful anymore.
-
-To fix this, store the subdevice of the source providing video data to the
-CSI-2 TX in the 'struct adv748x_csi2' representing the TX and check on it.
+When the adv748x driver is informed about a link being created from HDMI or
+AFE to a CSI-2 TX output, the 'link_setup()' callback is invoked. Make
+sure to implement proper routing management at link setup time, to route
+the selected video stream to the desired TX output.
 
 Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
 ---
- drivers/media/i2c/adv748x/adv748x-core.c | 2 +-
- drivers/media/i2c/adv748x/adv748x-csi2.c | 3 +++
- drivers/media/i2c/adv748x/adv748x.h      | 1 +
- 3 files changed, 5 insertions(+), 1 deletion(-)
+ drivers/media/i2c/adv748x/adv748x-core.c | 63 +++++++++++++++++++++++++++++++-
+ drivers/media/i2c/adv748x/adv748x.h      |  1 +
+ 2 files changed, 63 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/media/i2c/adv748x/adv748x-core.c b/drivers/media/i2c/adv748x/adv748x-core.c
-index 5495dc7891e8..f3aabbccdfb5 100644
+index f3aabbccdfb5..08dc0e89b053 100644
 --- a/drivers/media/i2c/adv748x/adv748x-core.c
 +++ b/drivers/media/i2c/adv748x/adv748x-core.c
-@@ -254,7 +254,7 @@ static int adv748x_power_up_tx(struct adv748x_csi2 *tx)
- 	adv748x_write_check(state, page, 0x00, 0xa0 | tx->num_lanes, &ret);
- 
- 	/* ADI Required Write */
--	if (is_txa(tx)) {
-+	if (tx->rsd == &state->hdmi.sd) {
- 		adv748x_write_check(state, page, 0xdb, 0x10, &ret);
- 		adv748x_write_check(state, page, 0xd6, 0x07, &ret);
- 	} else {
-diff --git a/drivers/media/i2c/adv748x/adv748x-csi2.c b/drivers/media/i2c/adv748x/adv748x-csi2.c
-index 4d1aefc2c8d0..307966f4c736 100644
---- a/drivers/media/i2c/adv748x/adv748x-csi2.c
-+++ b/drivers/media/i2c/adv748x/adv748x-csi2.c
-@@ -46,6 +46,9 @@ static int adv748x_csi2_register_link(struct adv748x_csi2 *tx,
- 			return ret;
- 	}
- 
-+	if (flags & MEDIA_LNK_FL_ENABLED)
-+		tx->rsd = src;
+@@ -335,9 +335,70 @@ int adv748x_tx_power(struct adv748x_csi2 *tx, bool on)
+ /* -----------------------------------------------------------------------------
+  * Media Operations
+  */
++static int adv748x_link_setup(struct media_entity *entity,
++			      const struct media_pad *local,
++			      const struct media_pad *remote, u32 flags)
++{
++	struct v4l2_subdev *rsd = media_entity_to_v4l2_subdev(remote->entity);
++	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
++	struct adv748x_state *state = v4l2_get_subdevdata(sd);
++	struct adv748x_csi2 *tx;
++	struct media_link *link;
++	u8 io10;
 +
- 	return media_create_pad_link(&src->entity, src_pad,
- 				     &tx->sd.entity, ADV748X_CSI2_SINK,
- 				     flags);
-diff --git a/drivers/media/i2c/adv748x/adv748x.h b/drivers/media/i2c/adv748x/adv748x.h
-index b482c7fe6957..387002d6da65 100644
---- a/drivers/media/i2c/adv748x/adv748x.h
-+++ b/drivers/media/i2c/adv748x/adv748x.h
-@@ -85,6 +85,7 @@ struct adv748x_csi2 {
- 	struct v4l2_ctrl_handler ctrl_hdl;
- 	struct v4l2_ctrl *pixel_rate;
- 	struct v4l2_subdev sd;
-+	struct v4l2_subdev *rsd;
++	/*
++	 * For each link setup from [HDMI|AFE] to TX we receive two
++	 * notifications: "[HDMI|AFE]->TX" and "TX<-[HDMI|AFE]".
++	 *
++	 * Use the second notification form to make sure we're linking
++	 * to a TX and find out from where, to set up routing properly.
++	 */
++	if ((sd != &state->txa.sd && sd != &state->txb.sd) ||
++	    !(flags & MEDIA_LNK_FL_ENABLED))
++		return 0;
++	tx = adv748x_sd_to_csi2(sd);
++
++	/*
++	 * Now that we're sure we're operating on one of the two TXs,
++	 * make sure there are no enabled links ending there from
++	 * either HDMI or AFE (this can only happens for TXA though).
++	 */
++	if (is_txa(tx))
++		list_for_each_entry(link, &entity->links, list)
++			if (link->sink->entity == entity &&
++			    link->flags & MEDIA_LNK_FL_ENABLED)
++				return -EINVAL;
++
++	/* Change video stream routing, according to the newly created link. */
++	io10 = io_read(state, ADV748X_IO_10);
++	if (rsd == &state->afe.sd) {
++		state->afe.tx = tx;
++
++		/*
++		 * If AFE is routed to TXA, make sure TXB is off;
++		 * If AFE goes to TXB, we need TXA powered on.
++		 */
++		if (is_txa(tx)) {
++			io10 |= ADV748X_IO_10_CSI4_IN_SEL_AFE;
++			io10 &= ~ADV748X_IO_10_CSI1_EN;
++		} else {
++			io10 |= ADV748X_IO_10_CSI4_EN |
++				ADV748X_IO_10_CSI1_EN;
++		}
++	} else {
++		state->hdmi.tx = tx;
++		io10 &= ~ADV748X_IO_10_CSI4_IN_SEL_AFE;
++	}
++	io_write(state, ADV748X_IO_10, io10);
++
++	tx->rsd = rsd;
++
++	return 0;
++}
+ 
+ static const struct media_entity_operations adv748x_media_ops = {
+-	.link_validate = v4l2_subdev_link_validate,
++	.link_setup	= adv748x_link_setup,
++	.link_validate	= v4l2_subdev_link_validate,
  };
  
- #define notifier_to_csi2(n) container_of(n, struct adv748x_csi2, notifier)
+ /* -----------------------------------------------------------------------------
+diff --git a/drivers/media/i2c/adv748x/adv748x.h b/drivers/media/i2c/adv748x/adv748x.h
+index 0ee3b8d5c795..63a17c31c169 100644
+--- a/drivers/media/i2c/adv748x/adv748x.h
++++ b/drivers/media/i2c/adv748x/adv748x.h
+@@ -220,6 +220,7 @@ struct adv748x_state {
+ #define ADV748X_IO_10_CSI4_EN		BIT(7)
+ #define ADV748X_IO_10_CSI1_EN		BIT(6)
+ #define ADV748X_IO_10_PIX_OUT_EN	BIT(5)
++#define ADV748X_IO_10_CSI4_IN_SEL_AFE	0x08
+ 
+ #define ADV748X_IO_CHIP_REV_ID_1	0xdf
+ #define ADV748X_IO_CHIP_REV_ID_2	0xe0
 -- 
 2.7.4
 
