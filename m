@@ -3,429 +3,320 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-1.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D0AACC07E85
-	for <linux-media@archiver.kernel.org>; Tue, 11 Dec 2018 13:53:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 16D24C07E85
+	for <linux-media@archiver.kernel.org>; Tue, 11 Dec 2018 14:20:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 801AB2082F
-	for <linux-media@archiver.kernel.org>; Tue, 11 Dec 2018 13:53:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BACFC20849
+	for <linux-media@archiver.kernel.org>; Tue, 11 Dec 2018 14:20:09 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=amarulasolutions.com header.i=@amarulasolutions.com header.b="bfOmR97t"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 801AB2082F
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=amarulasolutions.com
+	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="eN+ASA7w"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org BACFC20849
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=ideasonboard.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726574AbeLKNxj (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 11 Dec 2018 08:53:39 -0500
-Received: from mail-wr1-f65.google.com ([209.85.221.65]:39691 "EHLO
-        mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726350AbeLKNxj (ORCPT
+        id S1726556AbeLKOUF (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 11 Dec 2018 09:20:05 -0500
+Received: from perceval.ideasonboard.com ([213.167.242.64]:42664 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726444AbeLKOUE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Dec 2018 08:53:39 -0500
-Received: by mail-wr1-f65.google.com with SMTP id t27so14157055wra.6
-        for <linux-media@vger.kernel.org>; Tue, 11 Dec 2018 05:53:36 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=amarulasolutions.com; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=h4HO8LkSKHhUFzd8iMyZOw8woGRcuo/3fnRTj8b/AvQ=;
-        b=bfOmR97tjc0tNRoqJ0HDoIwJ++dv1JA/pm8BfGqUHNeSPkGQfVsBxKcHxmojeoaWJy
-         5XvI4t++86NKSLmICc7Yo9j3Wziiwa4XCOR+k/9zihewin5ObkiTRNSl7VbhV/7xOHR8
-         +ARfNuQfoZZYtO5+maaVss6SxSsjeVXzjHiT0=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=h4HO8LkSKHhUFzd8iMyZOw8woGRcuo/3fnRTj8b/AvQ=;
-        b=gkSMXVHC/pCaR/ii8Q6f/8x5h2yVYbzCuvBZC/UzZvM0GAsivDhOQFE/3ZwHLkFWgN
-         HCHfth2c3oXtfIPxLB7ytgm7z3UwzsV+U5jskWfwdWICkgsnowvfmEOQp0Zxt8AeR8tU
-         SoBYk2b95ROfFKtTwFLdniUsT+kcZW9LMS5p8QSOX91GZIV6A0X6sZdCEryKN8C0wO8a
-         u6t7c2f6UBQoIZ+LI2wP+uZD/HK13hu+DlG5OdMYrtEaF/Su2/2de7JYtvBFkST2Nvco
-         t52/ChPmhM5xdXYH3xVvJH/j4zyedF/hIGDyquQtCapYFYDXOfi8ubulLnLA0XI9Gw/o
-         lr7Q==
-X-Gm-Message-State: AA+aEWZ4uYDXv4J8FHhJykMdjf1ZD0WfvToxSjAuNMBZFEFujUte+JIy
-        OPL5IIglwecxqqjdsdcUaq/27LOJi7UrLf3J0Z8TTQ==
-X-Google-Smtp-Source: AFSGD/W4p30cSP0F+iDg/X/z6tp0XVmXqMyv6xQq7BAOX7BFGL/qsu3bmeO5np3LlRDoFJwQJXJUVTfJp6Sxht4hjys=
-X-Received: by 2002:adf:e891:: with SMTP id d17mr14533322wrm.140.1544536415941;
- Tue, 11 Dec 2018 05:53:35 -0800 (PST)
+        Tue, 11 Dec 2018 09:20:04 -0500
+Received: from avalon.localnet (dfj612ybrt5fhg77mgycy-3.rev.dnainternet.fi [IPv6:2001:14ba:21f5:5b00:2e86:4862:ef6a:2804])
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id B69AA55A;
+        Tue, 11 Dec 2018 15:19:59 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
+        s=mail; t=1544538001;
+        bh=7+Iasgn8lt+2XQ+tajYpKMZ5f1HCplWMCM+ND372+nM=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=eN+ASA7wjdQkmBGAKunh69wyDrGv6SVO9ydytOpel1uysQ8txD+wu85pPWvZOimVx
+         C3bGRtDOIeo2VkxqXnkdo3n7LbJ6kvy1nK3nUOQqE9Nwv60vVFqXprgIMb+IxAiypt
+         buJ5rZMgDyk2FO1JMy5jRNeN9d51HqZCWSa+yldk=
+From:   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To:     "Mani, Rajmohan" <rajmohan.mani@intel.com>
+Cc:     Tomasz Figa <tfiga@chromium.org>, "Zhi, Yong" <yong.zhi@intel.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "Hu, Jerry W" <jerry.w.hu@intel.com>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
+        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
+        "Cao, Bingbu" <bingbu.cao@intel.com>
+Subject: Re: [PATCH v7 00/16] Intel IPU3 ImgU patchset
+Date:   Tue, 11 Dec 2018 16:20:43 +0200
+Message-ID: <1819843.KIqgResAvh@avalon>
+Organization: Ideas on Board Oy
+In-Reply-To: <1645510.9NPTHXyo7j@avalon>
+References: <1540851790-1777-1-git-send-email-yong.zhi@intel.com> <3146272.WpjUUU4VRE@avalon> <1645510.9NPTHXyo7j@avalon>
 MIME-Version: 1.0
-References: <CAMty3ZAa2_o87YJ=1iak-o-rfZjoYz7PKXM9uGrbHsh6JLOCWw@mail.gmail.com>
- <850c2502-217c-a9f0-b433-0cd26d0419fd@xs4all.nl> <CAOf5uwkirwRPk3=w1fONLrOpwNqGiJbhh6okDmOTWyKWvW+U1w@mail.gmail.com>
- <CAOf5uw=d6D4FGZp8iWKdA1+77ZQtkNZwbJStmO+L-NtW4gqfaA@mail.gmail.com>
- <20181209193912.GC12193@w540> <CAOf5uwncWDqLsAvQ1H0xN1qQRA_NBt=m2Ncuz_3_nCRhFptpAw@mail.gmail.com>
- <20181211113912.GI5597@w540>
-In-Reply-To: <20181211113912.GI5597@w540>
-From:   Michael Nazzareno Trimarchi <michael@amarulasolutions.com>
-Date:   Tue, 11 Dec 2018 14:53:24 +0100
-Message-ID: <CAOf5uwk0U0BA2vDB1=_Uay30cgtfGuWOm8339jsAwn+O78ZnFA@mail.gmail.com>
-Subject: Re: Configure video PAL decoder into media pipeline
-To:     jacopo@jmondi.org
-Cc:     hverkuil@xs4all.nl, Jagan Teki <jagan@amarulasolutions.com>,
-        mchehab@kernel.org, linux-media@vger.kernel.org,
-        LKML <linux-kernel@vger.kernel.org>,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Philipp Zabel <p.zabel@pengutronix.de>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Jacopo
+Hello again,
 
-On Tue, Dec 11, 2018 at 12:39 PM jacopo mondi <jacopo@jmondi.org> wrote:
->
-> Hi Michael,
->
-> On Mon, Dec 10, 2018 at 10:45:02PM +0100, Michael Nazzareno Trimarchi wrote:
-> > Hi Jacopo
-> >
-> > Let's see what I have done
-> >
-> > On Sun, Dec 9, 2018 at 8:39 PM jacopo mondi <jacopo@jmondi.org> wrote:
-> > >
-> > > Hi Michael, Jagan, Hans,
-> > >
-> > > On Sat, Dec 08, 2018 at 06:07:04PM +0100, Michael Nazzareno Trimarchi wrote:
-> > > > Hi
-> > > >
-> > > > Down you have my tentative of connection
-> > > >
-> > > > I need to hack a bit to have tuner registered. I'm using imx-media
-> > > >
-> > > > On Sat, Dec 8, 2018 at 12:48 PM Michael Nazzareno Trimarchi
-> > > > <michael@amarulasolutions.com> wrote:
-> > > > >
-> > > > > Hi
-> > > > >
-> > > > > On Fri, Dec 7, 2018 at 1:11 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> > > > > >
-> > > > > > On 12/07/2018 12:51 PM, Jagan Teki wrote:
-> > > > > > > Hi,
-> > > > > > >
-> > > > > > > We have some unconventional setup for parallel CSI design where analog
-> > > > > > > input data is converted into to digital composite using PAL decoder
-> > > > > > > and it feed to adv7180, camera sensor.
-> > > > > > >
-> > > > > > > Analog input =>  Video PAL Decoder => ADV7180 => IPU-CSI0
-> > > > > >
-> > > > > > Just PAL? No NTSC support?
-> > > > > >
-> > > > > For now does not matter. I have registere the TUNER that support it
-> > > > > but seems that media-ctl is not suppose to work with the MEDIA_ENT_F_TUNER
-> > > > >
-> > > > > Is this correct?
-> > > > >
-> > >
-> > > media-types.rst reports:
-> > >
-> > >     *  -  ``MEDIA_ENT_F_IF_VID_DECODER``
-> > >        -  IF-PLL video decoder. It receives the IF from a PLL and decodes
-> > >           the analog TV video signal. This is commonly found on some very
-> > >           old analog tuners, like Philips MK3 designs. They all contain a
-> > >           tda9887 (or some software compatible similar chip, like tda9885).
-> > >           Those devices use a different I2C address than the tuner PLL.
-> > >
-> > > Is this what you were looking for?
-> > >
-> > > > > > >
-> > > > > > > The PAL decoder is I2C based, tda9885 chip. We setup it up via dt
-> > > > > > > bindings and the chip is
-> > > > > > > detected fine.
-> > > > > > >
-> > > > > > > But we need to know, is this to be part of media control subdev
-> > > > > > > pipeline? so-that we can configure pads, links like what we do on
-> > > > > > > conventional pipeline  or it should not to be part of media pipeline?
-> > > > > >
-> > > > > > Yes, I would say it should be part of the pipeline.
-> > > > > >
-> > > > >
-> > > > > Ok I have created a draft patch to add the adv some new endpoint but
-> > > > > is sufficient to declare tuner type in media control?
-> > > > >
-> > > > > Michael
-> > > > >
-> > > > > > >
-> > > > > > > Please advise for best possible way to fit this into the design.
-> > > > > > >
-> > > > > > > Another observation is since the IPU has more than one sink, source
-> > > > > > > pads, we source or sink the other components on the pipeline but look
-> > > > > > > like the same thing seems not possible with adv7180 since if has only
-> > > > > > > one pad. If it has only one pad sourcing to adv7180 from tda9885 seems
-> > > > > > > not possible, If I'm not mistaken.
-> > > > > >
-> > > > > > Correct, in all cases where the adv7180 is used it is directly connected
-> > > > > > to the video input connector on a board.
-> > > > > >
-> > > > > > So to support this the adv7180 driver should be modified to add an input pad
-> > > > > > so you can connect the decoder. It will be needed at some point anyway once
-> > > > > > we add support for connector entities.
-> > > > > >
-> > > > > > Regards,
-> > > > > >
-> > > > > >         Hans
-> > > > > >
-> > > > > > >
-> > > > > > > I tried to look for similar design in mainline, but I couldn't find
-> > > > > > > it. is there any design similar to this in mainline?
-> > > > > > >
-> > > > > > > Please let us know if anyone has any suggestions on this.
-> > > > > > >
-> > > >
-> > > > [    3.379129] imx-media: ipu1_vdic:2 -> ipu1_ic_prp:0
-> > > > [    3.384262] imx-media: ipu2_vdic:2 -> ipu2_ic_prp:0
-> > > > [    3.389217] imx-media: ipu1_ic_prp:1 -> ipu1_ic_prpenc:0
-> > > > [    3.394616] imx-media: ipu1_ic_prp:2 -> ipu1_ic_prpvf:0
-> > > > [    3.399867] imx-media: ipu2_ic_prp:1 -> ipu2_ic_prpenc:0
-> > > > [    3.405289] imx-media: ipu2_ic_prp:2 -> ipu2_ic_prpvf:0
-> > > > [    3.410552] imx-media: ipu1_csi0:1 -> ipu1_ic_prp:0
-> > > > [    3.415502] imx-media: ipu1_csi0:1 -> ipu1_vdic:0
-> > > > [    3.420305] imx-media: ipu1_csi0_mux:5 -> ipu1_csi0:0
-> > > > [    3.425427] imx-media: ipu1_csi1:1 -> ipu1_ic_prp:0
-> > > > [    3.430328] imx-media: ipu1_csi1:1 -> ipu1_vdic:0
-> > > > [    3.435142] imx-media: ipu1_csi1_mux:5 -> ipu1_csi1:0
-> > > > [    3.440321] imx-media: adv7180 2-0020:1 -> ipu1_csi0_mux:4
-> > > >
-> > > > with
-> > > >        tuner: tuner@43 {
-> > > >                 compatible = "tuner";
-> > > >                 reg = <0x43>;
-> > > >                 pinctrl-names = "default";
-> > > >                 pinctrl-0 = <&pinctrl_tuner>;
-> > > >
-> > > >                 ports {
-> > > >                         #address-cells = <1>;
-> > > >                         #size-cells = <0>;
-> > > >                         port@1 {
-> > > >                                 reg = <1>;
-> > > >
-> > > >                                 tuner_in: endpoint {
-> > >
-> > > Nit: This is the tuner output, I would call this "tuner_out"
-> > >
-> >
-> > Done
-> >
-> > > >                                         remote-endpoint = <&tuner_out>;
-> > > >                                 };
-> > > >                         };
-> > > >                 };
-> > > >         };
-> > > >
-> > > >         adv7180: camera@20 {
-> > > >                 compatible = "adi,adv7180";
-> > >
-> > > One minor thing first: look at the adv7180 bindings documentation, and
-> > > you'll find out that only devices compatible with "adv7180cp" and
-> > > "adv7180st" shall declare a 'ports' node. This is minor issues (also,
-> > > I don't see it enforced in driver's code, but still worth pointing it
-> > > out from the very beginning)
-> > >
-> > > >                 reg = <0x20>;
-> > > >                 pinctrl-names = "default";
-> > > >                 pinctrl-0 = <&pinctrl_adv7180>;
-> > > >                 powerdown-gpios = <&gpio3 20 GPIO_ACTIVE_LOW>; /* PDEC_PWRDN */
-> > > >
-> > > >                 ports {
-> > > >                         #address-cells = <1>;
-> > > >                         #size-cells = <0>;
-> > > >
-> > > >                         port@1 {
-> > > >                                 reg = <1>;
-> > > >
-> > > >                                 adv7180_to_ipu1_csi0_mux: endpoint {
-> > > >                                         remote-endpoint =
-> > > > <&ipu1_csi0_mux_from_parallel_sensor>;
-> > > >                                         bus-width = <8>;
-> > > >                                 };
-> > > >                         };
-> > > >
-> > > >                         port@0 {
-> > > >                                 reg = <0>;
-> > > >
-> > > >                                 tuner_out: endpoint {
-> > >
-> > > Nit: That's an adv7180 endpoint, I would call it 'adv7180_in'
-> > >
-> >
-> > Done
-> >
-> > > >                                         remote-endpoint = <&tuner_in>;
-> > > >                                 };
-> > > >                         };
-> > > >                 };
-> > > >         };
-> > > >
-> > > > Any help is appreciate
-> > > >
-> > >
-> > > The adv7180(cp|st) bindings says the device can declare one (or more)
-> > > input endpoints, but that's just to make possible to connect in device
-> > > tree the 7180's device node with the video input port. You can see an
-> > > example in arch/arm64/boot/dts/renesas/r8a77995-draak.dts which is
-> > > similar to what you've done here.
-> > >
-> > > The video input port does not show up in the media graph, as it is
-> > > just a 'place holder' to describe an input port in DTs, the
-> > > adv7180 driver does not register any sink pad, where to connect any
-> > > video source to.
-> > >
-> > > Your proposed bindings here look almost correct, but to have it
-> > > working for real you should add a sink pad to the adv7180 registered
-> > > media entity (possibly only conditionally to the presence of an input
-> > > endpoint in DTs...). You should then register a subdev-notifier, which
-> > > registers on an async-subdevice that uses the remote endpoint
-> > > connected to your newly registered input pad to find out which device
-> > > you're linked to; then at 'bound' (or possibly 'complete') time
-> > > register a link between the two entities, on which you can operate on
-> > > from userspace.
-> > >
-> > > Your tuner driver for tda9885 (which I don't see in mainline, so I
-> > > assume it's downstream or custom code) should register an async subdevice,
-> > > so that the adv7180 registered subdev-notifier gets matched and your
-> > > callbacks invoked.
-> > >
-> > > If I were you, I would:
-> > > 1) Add dt-parsing routine to tda7180, to find out if any input
-> > > endpoint is registered in DT.
-> >
-> > Done
-> >
-> > > 2) If it is, then register a SINK pad, along with the single SOURCE pad
-> > > which is registered today.
-> >
-> > Done
-> >
-> > > 3) When parsing DT, for input endpoints, get a reference to the remote
-> > > endpoint connected to your input and register a subdev-notifier
-> >
-> > Done
-> >
-> > > 4) Fill in the notifier 'bound' callback and register the link to
-> > > your remote device there.
-> >
-> > Both are subdevice that has not a v4l2_device, so bound is not called from two
-> > sub-device. Is this expected?
->
-> That should not be an issue. As we discussed, I slightly misleaded
-> you, pointing you to rcar-csi2, which implements a 'custom' matching
-> logic, trying to match its remote on endpoints and not on device node.
->
->         priv->asd.match.fwnode =
->                 fwnode_graph_get_remote_endpoint(of_fwnode_handle(ep));
->
-> I'm sorry about this.
->
-> You better use something like:
->
->         asd->match.fwnode =
->                 fwnode_graph_get_remote_port_parent(endpoint);
->
-> or the recently introduced 'v4l2_async_notifier_parse_fwnode_endpoints_by_port()'
-> function, that does most of that for you.
->
+On Tuesday, 11 December 2018 15:43:53 EET Laurent Pinchart wrote:
+> On Tuesday, 11 December 2018 15:34:49 EET Laurent Pinchart wrote:
+> > On Wednesday, 5 December 2018 02:30:46 EET Mani, Rajmohan wrote:
+> > 
+> > [snip]
+> > 
+> > > I can see a couple of steps missing in the script below.
+> > > (https://lists.libcamera.org/pipermail/libcamera-devel/2018-November/000
+> > > 040.html)
+> > > 
+> > > From patch 02 of this v7 series "doc-rst: Add Intel IPU3 documentation",
+> > > under section "Configuring ImgU V4L2 subdev for image processing"...
+> > > 
+> > > 1. The pipe mode needs to be configured for the V4L2 subdev.
+> > > 
+> > > Also the pipe mode of the corresponding V4L2 subdev should be set as
+> > > desired (e.g 0 for video mode or 1 for still mode) through the control
+> > > id 0x009819a1 as below.
+> > > 
+> > > e.g v4l2n -d /dev/v4l-subdev7 --ctrl=0x009819A1=1
+> > 
+> > I assume the control takes a valid default value ? It's better to set it
+> > explicitly anyway, so I'll do so.
+> > 
+> > > 2. ImgU pipeline needs to be configured for image processing as below.
+> > > 
+> > > RAW bayer frames go through the following ISP pipeline HW blocks to
+> > > have the processed image output to the DDR memory.
+> > > 
+> > > RAW bayer frame -> Input Feeder -> Bayer Down Scaling (BDS) ->
+> > > Geometric Distortion Correction (GDC) -> DDR
+> > > 
+> > > The ImgU V4L2 subdev has to be configured with the supported
+> > > resolutions in all the above HW blocks, for a given input resolution.
+> > > 
+> > > For a given supported resolution for an input frame, the Input Feeder,
+> > > Bayer Down Scaling and GDC blocks should be configured with the
+> > > supported resolutions. This information can be obtained by looking at
+> > > the following IPU3 ISP configuration table for ov5670 sensor.
+> > > 
+> > > https://chromium.googlesource.com/chromiumos/overlays/board-overlays/+/m
+> > > aster/baseboard-poppy/media-libs/cros-camera-hal-configs-poppy/files/
+> > > gcss/graph_settings_ov5670.xml
+> > > 
+> > > For the ov5670 example, for an input frame with a resolution of
+> > > 2592x1944 (which is input to the ImgU subdev pad 0), the corresponding
+> > > resolutions for input feeder, BDS and GDC are 2592x1944, 2592x1944 and
+> > > 2560x1920 respectively.
+> > 
+> > How is the GDC output resolution computed from the input resolution ? Does
+> > the GDC always consume 32 columns and 22 lines ?
+> > 
+> > > The following steps prepare the ImgU ISP pipeline for the image
+> > > processing.
+> > > 
+> > > 1. The ImgU V4L2 subdev data format should be set by using the
+> > > VIDIOC_SUBDEV_S_FMT on pad 0, using the GDC width and height obtained
+> > > above.
+> > 
+> > If I understand things correctly, the GDC resolution is the pipeline
+> > output resolution. Why is it configured on pad 0 ?
+> > 
+> > > 2. The ImgU V4L2 subdev cropping should be set by using the
+> > > VIDIOC_SUBDEV_S_SELECTION on pad 0, with V4L2_SEL_TGT_CROP as the
+> > > target, using the input feeder height and width.
+> > > 
+> > > 3. The ImgU V4L2 subdev composing should be set by using the
+> > > VIDIOC_SUBDEV_S_SELECTION on pad 0, with V4L2_SEL_TGT_COMPOSE as the
+> > > target, using the BDS height and width.
+> > > 
+> > > Once these 2 steps are done, the raw bayer frames can be input to the
+> > > ImgU V4L2 subdev for processing.
+> > 
+> > Do I need to capture from both the output and viewfinder nodes ? How are
+> > they related to the IF -> BDS -> GDC pipeline, are they both fed from the
+> > GDC output ? If so, how does the viewfinder scaler fit in that picture ?
+> > 
+> > I have tried the above configuration with the IPU3 v8 driver, and while
+> > the kernel doesn't crash, no images get processed. The userspace processes
+> > wait forever for buffers to be ready. I then configured pad 2 to 2560x1920
+> > and pad 3 to 1920x1080, and managed to capture images \o/
+> > 
+> > There's one problem though: during capture, or very soon after it, the
+> > machine locks up completely. I suspect a memory corruption, as when it
+> > doesn't log immediately commands such as dmesg will not produce any output
+> > and just block, until the system freezes soon after (especially when
+> > moving the mouse).
+> > 
+> > I would still call this an improvement to some extent, but there's
+> > definitely room for more improvements :-)
+> > 
+> > To reproduce the issue, you can run the ipu3-process.sh script (attached
+> > to this e-mail) with the following arguments:
+> > 
+> > $ ipu3-process.sh --out 2560x1920 frame-2592x1944.cio2
 
-- entity 80: adv7180 2-0020 (2 pads, 5 links)
-             type V4L2 subdev subtype Decoder flags 0
-             device node name /dev/v4l-subdev11
-pad0: Sink
-[fmt:UYVY8_2X8/720x240@1001/30000 field:alternate colorspace:smpte170m]
-<- "ipu1_csi0_mux":4 []
--> "ipu1_csi0_mux":4 []
-<- "tda9887":1 [ENABLED,IMMUTABLE]
-pad1: Source
-[fmt:UYVY8_2X8/720x240@1001/30000 field:alternate colorspace:smpte170m]
--> "tda9887":1 []
-<- "tda9887":1 []
+This should have read
 
-- entity 83: tda9887 (2 pads, 3 links)
-             type V4L2 subdev subtype Unknown flags 0
-pad0: Sink
-pad1: Source
-<- "adv7180 2-0020":1 []
--> "adv7180 2-0020":0 [ENABLED,IMMUTABLE]
--> "adv7180 2-0020":1 []
+$ ipu3-process.sh --out 2560x1920 --vf 1920x1080 frame-2592x1944.cio2
 
+Without the --vf argument no images are processed.
 
-Now the only problem is that I have a link in the graph that I have
-not defined that not le me to stream. Look and png file I can see an
-hard link from tda9887 to csi. Do you know why is coming?
+It seems that the Intel mail server blocked the mail that contained the 
+script. You can find a copy at http://paste.debian.net/hidden/fd5bb8df/.
 
-Michael
+> > frame-2592x1944.cio2 is a binary file containing a 2592x1944 images in the
+> > IPU3-specific Bayer format (for a total of 6469632 bytes).
+> 
+> I managed to get the dmesg output, and it doesn't look pretty.
+> 
+> [  571.217192] WARNING: CPU: 3 PID: 1303 at /home/laurent/src/iob/oss/
+> libcamera/linux/drivers/staging/media/ipu3/ipu3-dmamap.c:172
+> ipu3_dmamap_unmap+0x30/0x75 [ipu3_imgu]
+> [  571.217196] Modules linked in: asix usbnet mii zram arc4 iwlmvm mac80211
+> iwlwifi intel_rapl x86_pkg_temp_thermal intel_powerclamp coretemp cfg80211
+> 8250_dw hid_multitouch ipu3_cio2 ipu3_imgu(C) videobuf2_dma_sg
+> videobuf2_memops videobuf2_v4l2 videobuf2_common processor_thermal_device
+> intel_soc_dts_iosf ov13858 dw9714 ov5670 v4l2_fwnode v4l2_common videodev
+> at24 media int3403_thermal int340x_thermal_zone cros_ec_lpcs cros_ec_core
+> int3400_thermal chromeos_pstore mac_hid acpi_thermal_rel autofs4 usbhid
+> mmc_block hid_generic i915 video i2c_algo_bit drm_kms_helper syscopyarea
+> sysfillrect sdhci_pci sysimgblt fb_sys_fops cqhci sdhci drm
+> drm_panel_orientation_quirks i2c_hid hid
+> [  571.217254] CPU: 3 PID: 1303 Comm: yavta Tainted: G         C
+> 4.20.0-rc6+ #2
+> [  571.217256] Hardware name: HP Soraka/Soraka, BIOS  08/30/2018
+> [  571.217267] RIP: 0010:ipu3_dmamap_unmap+0x30/0x75 [ipu3_imgu]
+> [  571.217271] Code: 54 55 48 8d af d0 6e 00 00 53 48 8b 76 10 49 89 fc f3
+> 48 0f bc 8f f0 6e 00 00 48 89 ef 48 d3 ee e8 e6 73 d9 e6 48 85 c0 75 07
+> <0f> 0b 5b 5d 41 5c c3 48 8b 70 20 48 89 c3 48 8b 40 18 49 8b bc 24
+> [  571.217274] RSP: 0018:ffffb675021c7b38 EFLAGS: 00010246
+> [  571.217278] RAX: 0000000000000000 RBX: ffff8f5cf58f8448 RCX:
+> 000000000000000c
+> [  571.217280] RDX: 0000000000000000 RSI: 0000000000000202 RDI:
+> 00000000ffffffff
+> [  571.217283] RBP: ffff8f5cf58f6ef8 R08: 00000000000006c5 R09:
+> ffff8f5cfaba16f0
+> [  571.217286] R10: ffff8f5cbf508f98 R11: 000000e03da27aba R12:
+> ffff8f5cf58f0028
+> [  571.217289] R13: ffff8f5cf58f0028 R14: 0000000000000000 R15:
+> ffff8f5cf58f04e8
+> [  571.217293] FS:  00007f85d009c700(0000) GS:ffff8f5cfab80000(0000) knlGS:
+> 0000000000000000
+> [  571.217296] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> [  571.217299] CR2: 00007f3440fce4b0 CR3: 000000014abf2001 CR4:
+> 00000000003606e0
+> [  571.217301] Call Trace:
+> [  571.217316]  ipu3_dmamap_free+0x5b/0x8f [ipu3_imgu]
+> [  571.217326]  ipu3_css_pool_cleanup+0x25/0x2f [ipu3_imgu]
+> [  571.217338]  ipu3_css_pipeline_cleanup+0x59/0x8f [ipu3_imgu]
+> [  571.217348]  ipu3_css_stop_streaming+0x15b/0x20f [ipu3_imgu]
+> [  571.217360]  imgu_s_stream+0x5a/0x30a [ipu3_imgu]
+> [  571.217371]  ? ipu3_all_nodes_streaming+0x14f/0x16b [ipu3_imgu]
+> [  571.217382]  ipu3_vb2_stop_streaming+0xe4/0x10f [ipu3_imgu]
+> [  571.217392]  __vb2_queue_cancel+0x2b/0x1b8 [videobuf2_common]
+> [  571.217402]  vb2_core_streamoff+0x30/0x71 [videobuf2_common]
+> [  571.217418]  __video_do_ioctl+0x258/0x38e [videodev]
+> [  571.217438]  video_usercopy+0x25f/0x4e5 [videodev]
+> [  571.217453]  ? copy_overflow+0x14/0x14 [videodev]
+> [  571.217471]  v4l2_ioctl+0x4d/0x58 [videodev]
+> [  571.217480]  vfs_ioctl+0x1e/0x2b
+> [  571.217486]  do_vfs_ioctl+0x531/0x559
+> [  571.217494]  ? vfs_write+0xd1/0xdf
+> [  571.217500]  ksys_ioctl+0x50/0x70
+> [  571.217506]  __x64_sys_ioctl+0x16/0x19
+> [  571.217512]  do_syscall_64+0x53/0x60
+> [  571.217519]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
+> [  571.217524] RIP: 0033:0x7f85cf9b9f47
+> [  571.217528] Code: 00 00 00 48 8b 05 51 6f 2c 00 64 c7 00 26 00 00 00 48
+> c7 c0 ff ff ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 b8 10 00 00 00 0f 05
+> <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d 21 6f 2c 00 f7 d8 64 89 01 48
+> [  571.217531] RSP: 002b:00007ffc59056b78 EFLAGS: 00000246 ORIG_RAX:
+> 0000000000000010
+> [  571.217535] RAX: ffffffffffffffda RBX: 0000000000000000 RCX:
+> 00007f85cf9b9f47
+> [  571.217537] RDX: 00007ffc59056b84 RSI: 0000000040045613 RDI:
+> 0000000000000003
+> [  571.217540] RBP: 000055f4c4dc0af8 R08: 00007f85cd7c4000 R09:
+> 00007f85d009c700
+> [  571.217542] R10: 0000000000000020 R11: 0000000000000246 R12:
+> 000055f4c4dc0b06
+> [  571.217545] R13: 0000000000000004 R14: 00007ffc59056d50 R15:
+> 00007ffc59057825
+> [  571.217553] ---[ end trace 4b42bd84953eff53 ]---
+> [  571.318645] ipu3-imgu 0000:00:05.0: wait cio gate idle timeout
 
-> Sorry about this.
-> Thanks
->    j
->
-> >
-> >
-> > > 5) Make sure your tuner driver registers its subdevice with
-> > > v4l2_async_register_subdev()
-> > >
-> > > A good example on how to register subdev notifier is provided in the
-> > > rcsi2_parse_dt() function in rcar-csi2.c driver (I'm quite sure imx
-> > > now uses subdev notifiers from v4.19 on too if you want to have a look
-> > > there).
-> >
-> > Already seen it
-> >
-> > >
-> > > -- Entering slippery territory here: you might want more inputs on this
-> > >
-> > > To make thing simpler&nicer (TM), if you blindly do what I've suggested
-> > > here, you're going to break all current adv7180 users in mainline :(
-> > >
-> > > That's because the v4l2-async design 'completes' the root notifier,
-> > > only if all subdev-notifiers connected to it have completed first.
-> > > If you add a notifier for the adv7180 input ports unconditionally, and
-> >
-> > I don't get to complete. So let's proceed by step
-> >
-> > Michael
-> >
-> > > to the input port is connected a plain simple "composite-video-connector",
-> > > as all DTs in mainline are doing right now, the newly registered
-> > > subdev-notifier will never complete, as the "composite-video-connector"
-> > > does not register any subdevice to match with. Bummer!
-> > >
-> > > A quick look in the code base, returns me that, in example:
-> > > drivers/gpu/drm/meson/meson_drv.c filters on
-> > > "composite-video-connector" and a few other compatible values. You
-> > > might want to do the same, and register a notifier if and only if the
-> > > remote input endpoint is one of those known not to register a
-> > > subdevice. I'm sure there are other ways to deal with this issue, but
-> > > that's the best I can come up with...
-> > > ---
-> > >
-> > > Hope this is reasonably clear and that I'm not misleading you. I had to
-> > > use adv7180 recently, and its single pad design confused me a bit as well :)
-> > >
-> > > Thanks
-> > >   j
-> > >
-> > > > Michael
-> > > >
-> > > > > > > Jagan.
-> > > > > > >
-> > > > > >
-> > > > >
-> > > > >
-> > > > > --
-> >
-> >
-> >
-> > --
-> > | Michael Nazzareno Trimarchi                     Amarula Solutions BV |
-> > | COO  -  Founder                                      Cruquiuskade 47 |
-> > | +31(0)851119172                                 Amsterdam 1018 AM NL |
-> > |                  [`as] http://www.amarulasolutions.com               |
+And after fixing another issue in the capture script (which was setting the 
+format on the ImgU subdev pad 3 to 2560x1920 but capture in 1920x1080), I now 
+get plenty of the following messages:
 
-
+[  221.366131] BUG: Bad page state in process yavta  pfn:14a4ff
+[  221.366134] page:ffffde5d45293fc0 count:-1 mapcount:0 mapping:
+0000000000000000 index:0x0
+[  221.366137] flags: 0x200000000000000()
+[  221.366140] raw: 0200000000000000 dead000000000100 dead000000000200 
+0000000000000000
+[  221.366143] raw: 0000000000000000 0000000000000000 ffffffffffffffff 
+0000000000000000
+[  221.366145] page dumped because: nonzero _refcount
+[  221.366147] Modules linked in: asix usbnet mii zram arc4 iwlmvm intel_rapl 
+x86_pkg_temp_thermal intel_powerclamp coretemp mac80211 iwlwifi cfg80211 
+hid_multitouch 8250_dw ipu3_cio2 ipu3_imgu(C) videobuf2_dma_sg 
+videobuf2_memops videobuf2_v4l2 processor_thermal_device videobuf2_common 
+intel_soc_dts_iosf ov13858 ov5670 dw9714 v4l2_fwnode v4l2_common videodev 
+media at24 cros_ec_lpcs cros_ec_core int3403_thermal int340x_thermal_zone 
+chromeos_pstore mac_hid int3400_thermal acpi_thermal_rel autofs4 usbhid 
+mmc_block hid_generic i915 video i2c_algo_bit drm_kms_helper syscopyarea 
+sysfillrect sysimgblt fb_sys_fops sdhci_pci cqhci sdhci drm 
+drm_panel_orientation_quirks i2c_hid hid
+[  221.366172] CPU: 3 PID: 1022 Comm: yavta Tainted: G    B   WC        
+4.20.0-rc6+ #2
+[  221.366173] Hardware name: HP Soraka/Soraka, BIOS  08/30/2018
+[  221.366173] Call Trace:
+[  221.366176]  dump_stack+0x46/0x59
+[  221.366179]  bad_page+0xf2/0x10c
+[  221.366182]  free_pages_check+0x78/0x81
+[  221.366186]  free_pcppages_bulk+0xa6/0x236
+[  221.366190]  free_unref_page+0x4b/0x53
+[  221.366193]  vb2_dma_sg_put+0x95/0xb5 [videobuf2_dma_sg]
+[  221.366197]  __vb2_buf_mem_free+0x3a/0x6e [videobuf2_common]
+[  221.366202]  __vb2_queue_free+0xe3/0x1be [videobuf2_common]
+[  221.366207]  vb2_core_reqbufs+0xe9/0x2cc [videobuf2_common]
+[  221.366212]  vb2_ioctl_reqbufs+0x78/0x9e [videobuf2_v4l2]
+[  221.366220]  __video_do_ioctl+0x258/0x38e [videodev]
+[  221.366229]  video_usercopy+0x25f/0x4e5 [videodev]
+[  221.366237]  ? copy_overflow+0x14/0x14 [videodev]
+[  221.366240]  ? unmap_region+0xe0/0x10a
+[  221.366250]  v4l2_ioctl+0x4d/0x58 [videodev]
+[  221.366253]  vfs_ioctl+0x1e/0x2b
+[  221.366255]  do_vfs_ioctl+0x531/0x559
+[  221.366260]  ksys_ioctl+0x50/0x70
+[  221.366263]  __x64_sys_ioctl+0x16/0x19
+[  221.366266]  do_syscall_64+0x53/0x60
+[  221.366269]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
+[  221.366270] RIP: 0033:0x7fbe39f6af47
+[  221.366272] Code: 00 00 00 48 8b 05 51 6f 2c 00 64 c7 00 26 00 00 00 48 c7 
+c0 ff ff ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 b8 10 00 00 00 0f 05 <48> 3d 
+01 f0 ff ff 73 01 c3 48 8b 0d 21 6f 2c 00 f7 d8 64 89 01 48
+[  221.366273] RSP: 002b:00007fff05638e68 EFLAGS: 00000246 ORIG_RAX: 
+0000000000000010
+[  221.366275] RAX: ffffffffffffffda RBX: 0000000000000007 RCX: 
+00007fbe39f6af47
+[  221.366279] RDX: 00007fff05638f90 RSI: 00000000c0145608 RDI: 
+0000000000000003
+[  221.366283] RBP: 0000000000000004 R08: 0000000000000000 R09: 
+0000000000000045
+[  221.366287] R10: 0000000000000557 R11: 0000000000000246 R12: 
+000055c83bd76750
+[  221.366290] R13: 000055c83b6b26a0 R14: 0000000000000001 R15: 
+00007fff0563a825
 
 -- 
-| Michael Nazzareno Trimarchi                     Amarula Solutions BV |
-| COO  -  Founder                                      Cruquiuskade 47 |
-| +31(0)851119172                                 Amsterdam 1018 AM NL |
-|                  [`as] http://www.amarulasolutions.com               |
+Regards,
+
+Laurent Pinchart
+
+
+
