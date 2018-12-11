@@ -2,136 +2,140 @@ Return-Path: <SRS0=Y87V=OU=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.2 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BD99C07E85
-	for <linux-media@archiver.kernel.org>; Tue, 11 Dec 2018 04:32:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 02C06C5CFFE
+	for <linux-media@archiver.kernel.org>; Tue, 11 Dec 2018 05:35:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1445A20672
-	for <linux-media@archiver.kernel.org>; Tue, 11 Dec 2018 04:32:04 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 1445A20672
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=xs4all.nl
+	by mail.kernel.org (Postfix) with ESMTP id AC4542081B
+	for <linux-media@archiver.kernel.org>; Tue, 11 Dec 2018 05:35:28 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="H+mZThWf"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org AC4542081B
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=chromium.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729156AbeLKEcD (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 10 Dec 2018 23:32:03 -0500
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:37587 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728738AbeLKEcD (ORCPT
+        id S1729181AbeLKFf1 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 11 Dec 2018 00:35:27 -0500
+Received: from mail-yb1-f193.google.com ([209.85.219.193]:36259 "EHLO
+        mail-yb1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727849AbeLKFf1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Dec 2018 23:32:03 -0500
-Received: from localhost ([IPv6:2001:983:e9a7:1:5434:d88b:a352:4c5a])
-        by smtp-cloud7.xs4all.net with ESMTPA
-        id WZi5gDQHYQMWUWZi6g5lc6; Tue, 11 Dec 2018 05:32:01 +0100
-Message-ID: <f4110f614aa5e031d0faf2248d803ce7@smtp-cloud7.xs4all.net>
-Date:   Tue, 11 Dec 2018 05:31:53 +0100
-From:   "Hans Verkuil" <hverkuil@xs4all.nl>
-To:     linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-X-CMAE-Envelope: MS4wfMR45ePIXXLLdfXvJuG1rxjmnhbrkMCbniz/90620K06ok2HzJN4HS0SP6t2Eq2S5UoLRlMArC4AuKzFNFGVFC8CzMJY3SeNkOEMcit9XHfc+3kZmLzW
- ntHk0hKZaP3y02V1cJJAH1lyJa6vLeG7K7rNLXK9ZdClPVruUQZVdw/CFS43JkX8ME20UlCoAYTvi2FJqw1It5Tip2X4qICWqqMaOXjMdxRjJEpJDpOuyLPh
+        Tue, 11 Dec 2018 00:35:27 -0500
+Received: by mail-yb1-f193.google.com with SMTP id 64so3554045ybe.3
+        for <linux-media@vger.kernel.org>; Mon, 10 Dec 2018 21:35:26 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=XOzPWrJoHNreLfx8L2F8rw41gMCRyYlpFNhDIaKDDzk=;
+        b=H+mZThWft5fG8j31zQfk8WhiLqAFu0EW3m5Og9GmwL3QtbjUr8OF7zRX7k8XAV9K00
+         +MmFM3q6C5CGtmDwZWmT8KfC1Ik1Gzra1kkuOO9lUSK36J0xFLuqY/DGRX+WqhsZXlds
+         WBrEi7HTI+zyf9JFXQLTTQWcwaHpJAWRjeen0=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=XOzPWrJoHNreLfx8L2F8rw41gMCRyYlpFNhDIaKDDzk=;
+        b=gsl56B4zduvmxL+VyAVC0bAU/4QTCG6JNaLYww+CoWlOnXgQd9R13S5rbDg/eSCxnU
+         /uo+UneUNLK4dOi42aPmKN1Yw4Po2zZfyNf2die8hhh2B/SoS1mUsz2KTsuBTcFXuksO
+         f/XmlWl+cyhffLisD/7mXalgllIdCsFxlqToptEK7DEacnEtMmLJOBVVMJQptCsxDTy+
+         RV1eTYh3TmxGMrGDXUrBuWGqd0wBbjlnMr5Ya8PwJUsqu+O89D8F1T58hL8G+4BlYMcV
+         GML0nanU2NuL+J4P9/lhFOcHs3kY4vGpsq91j9oy+fy2uJP/Ik/i+6HvH08jHSaBzN/A
+         ty5A==
+X-Gm-Message-State: AA+aEWaVyDGHrH1ZhDQVncS9O2n6KXqHXVtJ2rOMRAZ51yL+yHqyz6EF
+        EOfomoAIa77fd2AzSs41mH+MrvecxMM=
+X-Google-Smtp-Source: AFSGD/XGK5ViZDcNq0MFYFBOfN5naID7a63xdQJDqA1hy0qE3HFnjq5GBJECaucNPd4Gk3f4JxwiWg==
+X-Received: by 2002:a25:d34c:: with SMTP id e73mr14023290ybf.176.1544506525871;
+        Mon, 10 Dec 2018 21:35:25 -0800 (PST)
+Received: from mail-yb1-f180.google.com (mail-yb1-f180.google.com. [209.85.219.180])
+        by smtp.gmail.com with ESMTPSA id 139sm4374292ywt.78.2018.12.10.21.35.25
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 10 Dec 2018 21:35:25 -0800 (PST)
+Received: by mail-yb1-f180.google.com with SMTP id z2-v6so6235856ybj.2
+        for <linux-media@vger.kernel.org>; Mon, 10 Dec 2018 21:35:25 -0800 (PST)
+X-Received: by 2002:a25:a44:: with SMTP id 65-v6mr14689190ybk.373.1544506524702;
+ Mon, 10 Dec 2018 21:35:24 -0800 (PST)
+MIME-Version: 1.0
+References: <20181210122202.26558-1-sakari.ailus@linux.intel.com>
+In-Reply-To: <20181210122202.26558-1-sakari.ailus@linux.intel.com>
+From:   Tomasz Figa <tfiga@chromium.org>
+Date:   Tue, 11 Dec 2018 14:35:12 +0900
+X-Gmail-Original-Message-ID: <CAAFQd5Ab8V=uX7_-ufoPHbPWK=uCr1x7nmZW413YqRfAVCoD2A@mail.gmail.com>
+Message-ID: <CAAFQd5Ab8V=uX7_-ufoPHbPWK=uCr1x7nmZW413YqRfAVCoD2A@mail.gmail.com>
+Subject: Re: [PATCH 1/1] ipu3-imgu: Fix compiler warnings
+To:     Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc:     Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Yong Zhi <yong.zhi@intel.com>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Sakari,
 
-Results of the daily build of media_tree:
+On Mon, Dec 10, 2018 at 9:22 PM Sakari Ailus
+<sakari.ailus@linux.intel.com> wrote:
+>
+> Address a few false positive compiler warnings related to uninitialised
+> variables. While at it, use bool where bool is needed and %u to print an
+> unsigned integer.
+>
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  drivers/staging/media/ipu3/ipu3.c | 8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/staging/media/ipu3/ipu3.c b/drivers/staging/media/ipu3/ipu3.c
+> index b7886edeb01b7..d521b3afb8b1a 100644
+> --- a/drivers/staging/media/ipu3/ipu3.c
+> +++ b/drivers/staging/media/ipu3/ipu3.c
+> @@ -228,7 +228,6 @@ int imgu_queue_buffers(struct imgu_device *imgu, bool initial, unsigned int pipe
+>  {
+>         unsigned int node;
+>         int r = 0;
+> -       struct imgu_buffer *ibuf;
+>         struct imgu_media_pipe *imgu_pipe = &imgu->imgu_pipe[pipe];
+>
+>         if (!ipu3_css_is_streaming(&imgu->css))
+> @@ -250,7 +249,8 @@ int imgu_queue_buffers(struct imgu_device *imgu, bool initial, unsigned int pipe
+>                 } else if (imgu_pipe->queue_enabled[node]) {
+>                         struct ipu3_css_buffer *buf =
+>                                 imgu_queue_getbuf(imgu, node, pipe);
+> -                       int dummy;
+> +                       struct imgu_buffer *ibuf = NULL;
+> +                       bool dummy;
+>
+>                         if (!buf)
+>                                 break;
+> @@ -263,7 +263,7 @@ int imgu_queue_buffers(struct imgu_device *imgu, bool initial, unsigned int pipe
+>                                 ibuf = container_of(buf, struct imgu_buffer,
+>                                                     css_buf);
+>                         dev_dbg(&imgu->pci_dev->dev,
+> -                               "queue %s %s buffer %d to css da: 0x%08x\n",
+> +                               "queue %s %s buffer %u to css da: 0x%08x\n",
+>                                 dummy ? "dummy" : "user",
+>                                 imgu_node_map[node].name,
+>                                 dummy ? 0 : ibuf->vid_buf.vbb.vb2_buf.index,
+> @@ -479,7 +479,7 @@ static irqreturn_t imgu_isr_threaded(int irq, void *imgu_ptr)
+>         do {
+>                 u64 ns = ktime_get_ns();
+>                 struct ipu3_css_buffer *b;
+> -               struct imgu_buffer *buf;
+> +               struct imgu_buffer *buf = NULL;
+>                 unsigned int node, pipe;
+>                 bool dummy;
 
-date:			Tue Dec 11 05:00:11 CET 2018
-media-tree git hash:	e159b6074c82fe31b79aad672e02fa204dbbc6d8
-media_build git hash:	bd2896dbe1969af199b9f0569d1c60b0ab2859ff
-v4l-utils git hash:	d039b47a108596ca004b11e52989054882d45888
-edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.18.0-3-amd64
+Reviewed-by: Tomasz Figa <tfiga@chromium.org>
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: ERRORS
-linux-3.10.108-x86_64: ERRORS
-linux-3.11.10-i686: ERRORS
-linux-3.11.10-x86_64: ERRORS
-linux-3.12.74-i686: ERRORS
-linux-3.12.74-x86_64: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.79-i686: ERRORS
-linux-3.14.79-x86_64: ERRORS
-linux-3.15.10-i686: ERRORS
-linux-3.15.10-x86_64: ERRORS
-linux-3.16.57-i686: ERRORS
-linux-3.16.57-x86_64: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.123-i686: OK
-linux-3.18.123-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.159-i686: OK
-linux-4.4.159-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.131-i686: OK
-linux-4.9.131-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.74-i686: OK
-linux-4.14.74-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: OK
-linux-4.19.1-i686: OK
-linux-4.19.1-x86_64: OK
-linux-4.20-rc1-i686: OK
-linux-4.20-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+Both cases look very straightforward, I wonder why they triggered
+those false positives...
 
-Logs weren't copied as they are too large (524 kB)
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Best regards,
+Tomasz
