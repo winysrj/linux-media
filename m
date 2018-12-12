@@ -2,30 +2,29 @@ Return-Path: <SRS0=2Dg0=OV=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.1 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
-	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E8D01C65BAF
-	for <linux-media@archiver.kernel.org>; Wed, 12 Dec 2018 12:39:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D704AC67839
+	for <linux-media@archiver.kernel.org>; Wed, 12 Dec 2018 12:39:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B91512086D
-	for <linux-media@archiver.kernel.org>; Wed, 12 Dec 2018 12:39:11 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org B91512086D
+	by mail.kernel.org (Postfix) with ESMTP id A758A2084E
+	for <linux-media@archiver.kernel.org>; Wed, 12 Dec 2018 12:39:12 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org A758A2084E
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=xs4all.nl
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727446AbeLLMjF (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 12 Dec 2018 07:39:05 -0500
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:55541 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727290AbeLLMjF (ORCPT
+        id S1727459AbeLLMjL (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 12 Dec 2018 07:39:11 -0500
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:52230 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727374AbeLLMjG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Dec 2018 07:39:05 -0500
+        Wed, 12 Dec 2018 07:39:06 -0500
 Received: from test-nl.fritz.box ([80.101.105.217])
         by smtp-cloud8.xs4all.net with ESMTPA
-        id X3n3gidc5uDWoX3n6gHoWI; Wed, 12 Dec 2018 13:39:04 +0100
+        id X3n3gidc5uDWoX3n6gHoWU; Wed, 12 Dec 2018 13:39:04 +0100
 From:   hverkuil-cisco@xs4all.nl
 To:     linux-media@vger.kernel.org
 Cc:     Alexandre Courbot <acourbot@chromium.org>,
@@ -35,9 +34,9 @@ Cc:     Alexandre Courbot <acourbot@chromium.org>,
         Tomasz Figa <tfiga@chromium.org>,
         Nicolas Dufresne <nicolas@ndufresne.ca>,
         Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Subject: [PATCHv5 3/8] vicodec: use v4l2_m2m_buf_copy_data
-Date:   Wed, 12 Dec 2018 13:38:56 +0100
-Message-Id: <20181212123901.34109-4-hverkuil-cisco@xs4all.nl>
+Subject: [PATCHv5 4/8] buffer.rst: clean up timecode documentation
+Date:   Wed, 12 Dec 2018 13:38:57 +0100
+Message-Id: <20181212123901.34109-5-hverkuil-cisco@xs4all.nl>
 X-Mailer: git-send-email 2.19.2
 In-Reply-To: <20181212123901.34109-1-hverkuil-cisco@xs4all.nl>
 References: <20181212123901.34109-1-hverkuil-cisco@xs4all.nl>
@@ -54,37 +53,47 @@ X-Mailing-List: linux-media@vger.kernel.org
 
 From: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 
-Use the new v4l2_m2m_buf_copy_data() function in vicodec.
+V4L2_BUF_FLAG_TIMECODE is not video capture specific, so drop that
+part.
+
+The 'Timecodes' section was a bit messy, so that's cleaned up.
 
 Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+Reviewed-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+Reviewed-by: Alexandre Courbot <acourbot@chromium.org>
 ---
- drivers/media/platform/vicodec/vicodec-core.c | 12 +-----------
- 1 file changed, 1 insertion(+), 11 deletions(-)
+ Documentation/media/uapi/v4l/buffer.rst | 11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/platform/vicodec/vicodec-core.c b/drivers/media/platform/vicodec/vicodec-core.c
-index 2b7daff63425..bed15580f3ec 100644
---- a/drivers/media/platform/vicodec/vicodec-core.c
-+++ b/drivers/media/platform/vicodec/vicodec-core.c
-@@ -190,18 +190,8 @@ static int device_process(struct vicodec_ctx *ctx,
- 	}
+diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
+index c5013adaa44d..3a31f308f136 100644
+--- a/Documentation/media/uapi/v4l/buffer.rst
++++ b/Documentation/media/uapi/v4l/buffer.rst
+@@ -230,8 +230,7 @@ struct v4l2_buffer
+     * - struct :c:type:`v4l2_timecode`
+       - ``timecode``
+       -
+-      - When ``type`` is ``V4L2_BUF_TYPE_VIDEO_CAPTURE`` and the
+-	``V4L2_BUF_FLAG_TIMECODE`` flag is set in ``flags``, this
++      - When the ``V4L2_BUF_FLAG_TIMECODE`` flag is set in ``flags``, this
+ 	structure contains a frame timecode. In
+ 	:c:type:`V4L2_FIELD_ALTERNATE <v4l2_field>` mode the top and
+ 	bottom field contain the same timecode. Timecodes are intended to
+@@ -711,10 +710,10 @@ enum v4l2_memory
+ Timecodes
+ =========
  
- 	dst_vb->sequence = q_dst->sequence++;
--	dst_vb->vb2_buf.timestamp = src_vb->vb2_buf.timestamp;
--
--	if (src_vb->flags & V4L2_BUF_FLAG_TIMECODE)
--		dst_vb->timecode = src_vb->timecode;
--	dst_vb->field = src_vb->field;
- 	dst_vb->flags &= ~V4L2_BUF_FLAG_LAST;
--	dst_vb->flags |= src_vb->flags &
--		(V4L2_BUF_FLAG_TIMECODE |
--		 V4L2_BUF_FLAG_KEYFRAME |
--		 V4L2_BUF_FLAG_PFRAME |
--		 V4L2_BUF_FLAG_BFRAME |
--		 V4L2_BUF_FLAG_TSTAMP_SRC_MASK);
-+	v4l2_m2m_buf_copy_data(src_vb, dst_vb, !ctx->is_enc);
+-The struct :c:type:`v4l2_timecode` structure is designed to hold a
+-:ref:`smpte12m` or similar timecode. (struct
+-struct :c:type:`timeval` timestamps are stored in struct
+-:c:type:`v4l2_buffer` field ``timestamp``.)
++The :c:type:`v4l2_buffer_timecode` structure is designed to hold a
++:ref:`smpte12m` or similar timecode.
++(struct :c:type:`timeval` timestamps are stored in the struct
++:c:type:`v4l2_buffer` ``timestamp`` field.)
  
- 	return 0;
- }
+ 
+ .. c:type:: v4l2_timecode
 -- 
 2.19.2
 
