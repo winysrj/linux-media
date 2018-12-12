@@ -2,302 +2,289 @@ Return-Path: <SRS0=2Dg0=OV=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.3 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,T_MIXED_ES,URIBL_BLOCKED autolearn=ham autolearn_force=no
+X-Spam-Status: No, score=-8.4 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,T_MIXED_ES,
+	URIBL_BLOCKED,USER_AGENT_MUTT autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E767C04EB8
-	for <linux-media@archiver.kernel.org>; Wed, 12 Dec 2018 08:18:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EBC0EC65BAF
+	for <linux-media@archiver.kernel.org>; Wed, 12 Dec 2018 08:21:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BF3D22086D
-	for <linux-media@archiver.kernel.org>; Wed, 12 Dec 2018 08:18:26 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1544602706;
-	bh=uMqjeKS5jfpNVGBlOQhPp0iCt59gnb6qd9kQaZ6sbSg=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
-	b=cD9viFTBXJhWEHa0SpTA0Svyqzz8XOm2491yvLHxbSwgBGCLWhwHRtoBQwA9KCoFp
-	 t9fU6Hs+Xj2zdfOoGDJ8THDmmK9ngR9VJtm+HPkSSAyYgwfZdYXCMs0idVE4PDa055
-	 UkvUQne8ydRvnu8DSjkvtyQRGkWkPl8DLvLLGhFc=
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org BF3D22086D
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
+	by mail.kernel.org (Postfix) with ESMTP id BBE382086D
+	for <linux-media@archiver.kernel.org>; Wed, 12 Dec 2018 08:21:06 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org BBE382086D
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=jmondi.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726440AbeLLIS0 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 12 Dec 2018 03:18:26 -0500
-Received: from casper.infradead.org ([85.118.1.10]:54168 "EHLO
-        casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726317AbeLLIS0 (ORCPT
+        id S1726680AbeLLIVG (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 12 Dec 2018 03:21:06 -0500
+Received: from relay3-d.mail.gandi.net ([217.70.183.195]:37427 "EHLO
+        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726317AbeLLIVF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Dec 2018 03:18:26 -0500
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
-        MIME-Version:References:In-Reply-To:Message-ID:Subject:Cc:To:From:Date:Sender
-        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
-        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=fLMJbZx4pEAyn4jQRtDG+guOuCFxbNFxGFUZk0ZOel0=; b=ouYxr7kQ8dLGZ5MLz0Ssj6fAh0
-        C7aJJJ8TQvuJHeFr/F5jJ8yxtZg99IteGqiQDSqs8vcpl+9QJCaoGyfgjkZIPd+pANFngZIj5TnWt
-        mXnNFpO/MfR9ADNGqSMovGr3ydWIUGXY95LZxLW0vLEqbMcZlQjc8bhqiMwRoy4nqp85fv/HwnrDJ
-        7P1wVSTfibLoojJALpGeF2IHIEh0smK4WEQ2Hq45EHHujzjcj1ow4eMGcDjEIr6X46Iq+wU/Qz80M
-        A5djClsR2eNfLCEao/BmR1SdIH7vOsMIGuXGjIPFDuADYyAQlHiUO+CqjDwMkzjOVrMAiVr6mOcTb
-        iY2IA8qw==;
-Received: from [177.159.254.7] (helo=coco.lan)
-        by casper.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
-        id 1gWzip-0005d0-Ej; Wed, 12 Dec 2018 08:18:23 +0000
-Date:   Wed, 12 Dec 2018 06:18:19 -0200
-From:   Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To:     Hans Verkuil <hverkuil@xs4all.nl>
-Cc:     linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv4 PATCH 1/3] uapi/linux/media.h: add property support
-Message-ID: <20181212061819.111a9631@coco.lan>
-In-Reply-To: <20181121154024.13906-2-hverkuil@xs4all.nl>
-References: <20181121154024.13906-1-hverkuil@xs4all.nl>
-        <20181121154024.13906-2-hverkuil@xs4all.nl>
-X-Mailer: Claws Mail 3.16.0 (GTK+ 2.24.32; x86_64-redhat-linux-gnu)
+        Wed, 12 Dec 2018 03:21:05 -0500
+X-Originating-IP: 2.224.242.101
+Received: from w540 (2-224-242-101.ip172.fastwebnet.it [2.224.242.101])
+        (Authenticated sender: jacopo@jmondi.org)
+        by relay3-d.mail.gandi.net (Postfix) with ESMTPSA id 3047460002;
+        Wed, 12 Dec 2018 08:21:03 +0000 (UTC)
+Date:   Wed, 12 Dec 2018 09:21:01 +0100
+From:   jacopo mondi <jacopo@jmondi.org>
+To:     Kieran Bingham <kieran.bingham@ideasonboard.com>
+Cc:     Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        laurent.pinchart@ideasonboard.com,
+        niklas.soderlund+renesas@ragnatech.se, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH 2/5] media: adv748x: csi2: Link AFE with TXA and TXB
+Message-ID: <20181212082101.GK5597@w540>
+References: <1544541373-30044-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1544541373-30044-3-git-send-email-jacopo+renesas@jmondi.org>
+ <fa3b9980-2a19-2e5a-2e37-e76f1ad04daa@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="f54savKjS/tSNRaU"
+Content-Disposition: inline
+In-Reply-To: <fa3b9980-2a19-2e5a-2e37-e76f1ad04daa@ideasonboard.com>
+User-Agent: Mutt/1.5.24 (2015-08-30)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Em Wed, 21 Nov 2018 16:40:22 +0100
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Add a new topology struct that includes properties and adds
-> index fields to quickly find references from one object to
-> another in the topology arrays.
+--f54savKjS/tSNRaU
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-As mentioned on patch 0/3, hard to review it without documentation.
+Hi Kieran,
 
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  include/uapi/linux/media.h | 88 ++++++++++++++++++++++++++++++++++++--
->  1 file changed, 84 insertions(+), 4 deletions(-)
-> 
-> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-> index e5d0c5c611b5..a81e9723204c 100644
-> --- a/include/uapi/linux/media.h
-> +++ b/include/uapi/linux/media.h
-> @@ -144,6 +144,8 @@ struct media_device_info {
->  /* Entity flags */
->  #define MEDIA_ENT_FL_DEFAULT			(1 << 0)
->  #define MEDIA_ENT_FL_CONNECTOR			(1 << 1)
-> +#define MEDIA_ENT_FL_PAD_IDX			(1 << 2)
-> +#define MEDIA_ENT_FL_PROP_IDX			(1 << 3)
->  
->  /* OR with the entity id value to find the next entity */
->  #define MEDIA_ENT_ID_FLAG_NEXT			(1 << 31)
-> @@ -210,6 +212,9 @@ struct media_entity_desc {
->  #define MEDIA_PAD_FL_SINK			(1 << 0)
->  #define MEDIA_PAD_FL_SOURCE			(1 << 1)
->  #define MEDIA_PAD_FL_MUST_CONNECT		(1 << 2)
-> +#define MEDIA_PAD_FL_LINK_IDX			(1 << 3)
-> +#define MEDIA_PAD_FL_PROP_IDX			(1 << 4)
-> +#define MEDIA_PAD_FL_ENTITY_IDX			(1 << 5)
->  
->  struct media_pad_desc {
->  	__u32 entity;		/* entity ID */
-> @@ -221,6 +226,8 @@ struct media_pad_desc {
->  #define MEDIA_LNK_FL_ENABLED			(1 << 0)
->  #define MEDIA_LNK_FL_IMMUTABLE			(1 << 1)
->  #define MEDIA_LNK_FL_DYNAMIC			(1 << 2)
+On Tue, Dec 11, 2018 at 11:07:09PM +0000, Kieran Bingham wrote:
+> Hi Jacopo,
+>
+> Thank you for the patch,
+>
+> On 11/12/2018 15:16, Jacopo Mondi wrote:
+> > The ADV748x chip supports routing AFE output to either TXA or TXB.
+> > In order to support run-time configuration of video stream path, create an
+> > additional (not enabled) "AFE:8->TXA:0" link, and remove the IMMUTABLE flag
+> > from existing ones.
+> >
+> > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> > ---
+> >  drivers/media/i2c/adv748x/adv748x-csi2.c | 48 ++++++++++++++++++++------------
+> >  1 file changed, 30 insertions(+), 18 deletions(-)
+> >
+> > diff --git a/drivers/media/i2c/adv748x/adv748x-csi2.c b/drivers/media/i2c/adv748x/adv748x-csi2.c
+> > index 6ce21542ed48..4d1aefc2c8d0 100644
+> > --- a/drivers/media/i2c/adv748x/adv748x-csi2.c
+> > +++ b/drivers/media/i2c/adv748x/adv748x-csi2.c
+> > @@ -27,6 +27,7 @@ static int adv748x_csi2_set_virtual_channel(struct adv748x_csi2 *tx,
+> >   * @v4l2_dev: Video registration device
+> >   * @src: Source subdevice to establish link
+> >   * @src_pad: Pad number of source to link to this @tx
+> > + * @flags: Flags for the newly created link
+> >   *
+> >   * Ensure that the subdevice is registered against the v4l2_device, and link the
+> >   * source pad to the sink pad of the CSI2 bus entity.
+> > @@ -34,17 +35,11 @@ static int adv748x_csi2_set_virtual_channel(struct adv748x_csi2 *tx,
+> >  static int adv748x_csi2_register_link(struct adv748x_csi2 *tx,
+> >  				      struct v4l2_device *v4l2_dev,
+> >  				      struct v4l2_subdev *src,
+> > -				      unsigned int src_pad)
+> > +				      unsigned int src_pad,
+> > +				      unsigned int flags)
+> >  {
+> > -	int enabled = MEDIA_LNK_FL_ENABLED;
+> >  	int ret;
+> >
+> > -	/*
+> > -	 * Dynamic linking of the AFE is not supported.
+> > -	 * Register the links as immutable.
+> > -	 */
+> > -	enabled |= MEDIA_LNK_FL_IMMUTABLE;
+> > -
+>
+> Yup - that part certainly needs to go ...
+>
+> >  	if (!src->v4l2_dev) {
+> >  		ret = v4l2_device_register_subdev(v4l2_dev, src);
+> >  		if (ret)
+> > @@ -53,7 +48,7 @@ static int adv748x_csi2_register_link(struct adv748x_csi2 *tx,
+> >
+> >  	return media_create_pad_link(&src->entity, src_pad,
+> >  				     &tx->sd.entity, ADV748X_CSI2_SINK,
+> > -				     enabled);
+> > +				     flags);
+> >  }
+> >
+> >  /* -----------------------------------------------------------------------------
+> > @@ -68,24 +63,41 @@ static int adv748x_csi2_registered(struct v4l2_subdev *sd)
+> >  {
+> >  	struct adv748x_csi2 *tx = adv748x_sd_to_csi2(sd);
+> >  	struct adv748x_state *state = tx->state;
+> > +	int ret;
+> >
+> >  	adv_dbg(state, "Registered %s (%s)", is_txa(tx) ? "TXA":"TXB",
+> >  			sd->name);
+> >
+> >  	/*
+> > -	 * The adv748x hardware allows the AFE to route through the TXA, however
+> > -	 * this is not currently supported in this driver.
+> > +	 * Link TXA to HDMI and AFE, and TXB to AFE only as TXB cannot output
+> > +	 * HDMI.
+> >  	 *
+> > -	 * Link HDMI->TXA, and AFE->TXB directly.
+> > +	 * The HDMI->TXA link is enabled by default, as the AFE->TXB is.
+> >  	 */
+> > -	if (is_txa(tx) && is_hdmi_enabled(state))
+> > -		return adv748x_csi2_register_link(tx, sd->v4l2_dev,
+> > -						  &state->hdmi.sd,
+> > -						  ADV748X_HDMI_SOURCE);
+> > -	if (!is_txa(tx) && is_afe_enabled(state))
+> > +	if (is_txa(tx)) {
+> > +		if (is_hdmi_enabled(state)) {
+> > +			ret = adv748x_csi2_register_link(tx, sd->v4l2_dev,
+> > +							 &state->hdmi.sd,
+> > +							 ADV748X_HDMI_SOURCE,
+> > +							 MEDIA_LNK_FL_ENABLED);
+> > +			if (ret)
+> > +				return ret;
+> > +		}
+> > +
+> > +		if (is_afe_enabled(state)) {
+> > +			ret = adv748x_csi2_register_link(tx, sd->v4l2_dev,
+> > +							 &state->afe.sd,
+> > +							 ADV748X_AFE_SOURCE,
+> > +							 0);
+> > +			if (ret)
+> > +				return ret;
+> > +		}
+>
+>
+> > +	} else if (is_afe_enabled(state))
+>
+> I believe when adding braces to one side of an if statement, we are
+> supposed to add to the else clauses too ?
 
-> +#define MEDIA_LNK_FL_SOURCE_IDX			(1 << 3)
-> +#define MEDIA_LNK_FL_SINK_IDX			(1 << 4)
+Correct
 
-Why do we need those flags?
+>
+> >  		return adv748x_csi2_register_link(tx, sd->v4l2_dev,
+> >  						  &state->afe.sd,
+> > -						  ADV748X_AFE_SOURCE);
+> > +						  ADV748X_AFE_SOURCE,
+> > +						  MEDIA_LNK_FL_ENABLED);
+>
+> Won't this enable the AFE link for both TXA and TXB ?
+> Which one will win? Just the last one ? the first one ?
+> Does it error?
+>
+> (It might not be a problem ... I can't recall what the behaviour is)
+>
+>
 
->  
->  #define MEDIA_LNK_FL_LINK_TYPE			(0xf << 28)
->  #  define MEDIA_LNK_FL_DATA_LINK		(0 << 28)
-> @@ -296,7 +303,9 @@ struct media_v2_entity {
->  	char name[64];
->  	__u32 function;		/* Main function of the entity */
->  	__u32 flags;
-> -	__u32 reserved[5];
-> +	__u16 pad_idx;
-> +	__u16 prop_idx;
+The AFE->TXA link is created as not enabled (see the 0 as last
+argument in the adv748x_csi2_register_link() call above here, in the
+'is_txa(tx)' case
 
-Hmm... pad_idx = 0 and prop_idx = 0 can't be used, in order to
-avoid breaking backward compat. It should be documented somewhere.
+> > +
+>
+> There are a lot of nested if's above, and I think we can simplify
+> greatly if we move the logic for the flags inside
+> adv748x_csi2_register_link(), and adjust the checks on is_xxx_enabled()
+>
+> What do you think about the following pseudo code?:
+>
+>
+> int adv748x_csi2_register_link(struct adv748x_csi2 *tx,
+>   				      struct v4l2_device *v4l2_dev,
+>   				      struct v4l2_subdev *src,
+> 				      unsigned int src_pad,
+> 				      bool enable)
+> {
+>
+>   int flags = 0;
+>   int ret;
+>
+>   if (!src->v4l2_dev) {
+> 	ret = v4l2_device_register_subdev(v4l2_dev, src)
+> 	if (ret) return ret;
+>   }
+>
+>   if (enable)
+> 	flags = MEDIA_LNK_FL_ENABLED;
+>
+>    return media_create_pad_link(&src->entity, src_pad,
+>  			        &tx->sd.entity, ADV748X_CSI2_SINK,
+>  			        flags);
+> }
+>
+> int adv748x_csi2_registered(struct v4l2_subdev *sd)
+> {
+>   int ret;
+>
+>   if (is_afe_enabled(state) {
+>       ret = adv748x_csi2_register_link(tx, sd->v4l2_dev, &state->afe.sd,
+> 				   ADV748X_AFE_SOURCE, !is_txa(tx));
+>       if (ret)
+> 	  return ret;
+>   }
+>
+>   /* TX-B only supports AFE */
+>   if (!is_txa(tx) || !(is_hdmi_enabled(state))
+> 	return 0;
+>
+>   return adv748x_csi2_register_link(tx, sd->v4l2_dev, &state->hdmi.sd,
+> 				    ADV748X_HDMI_SOURCE, true);
+> }
+>
+>
+> The above will for TXA:
+> 	register_link(..., AFE_SOURCE, enable = false );
+> 	register_link(..., HDMI_SOURCE, enable = true );
+>
+> then TXB:
+> 	register_link(..., AFE_SOURCE, enable = true );
+>
+> Does that meet our needs?
+>
 
-I've no idea what you intend here... an entity has multiple pads.
-linking it to a single one sounds a very bad idea. Also, this
-information is already present at the pads.
+Yes it does, and it looks better. Thanks!
 
+>
+>
+>
+> >  	return 0;
+> >  }
+> >
+> > --
+> > 2.7.4
+> >
+>
+> --
+> Regards
+> --
+> Kieran
 
-> +	__u32 reserved[4];
->  } __attribute__ ((packed));
->  
->  /* Should match the specific fields at media_intf_devnode */
-> @@ -305,11 +314,14 @@ struct media_v2_intf_devnode {
->  	__u32 minor;
->  } __attribute__ ((packed));
->  
-> +#define MEDIA_INTF_FL_LINK_IDX			(1 << 0)
-> +
+--f54savKjS/tSNRaU
+Content-Type: application/pgp-signature; name="signature.asc"
 
-Why do we need it?
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
 
->  struct media_v2_interface {
->  	__u32 id;
->  	__u32 intf_type;
->  	__u32 flags;
-> -	__u32 reserved[9];
-> +	__u16 link_idx;
-> +	__u16 reserved[17];
+iQIcBAABCAAGBQJcEMTtAAoJEHI0Bo8WoVY8RyoQAKXZJkR4T8EcrJ5QtPywVQCN
+E23KYkYkE7jvjsO+kEydg95Nt3gj1dtnx/+pKEvmGMAeBXVt+bE1L5PRERMzNQfp
+xhvao8yJnW+1Bv3Jdr/V1bHdN1LqTvGD/vJ+P/sOSVzkDeqhwK4i0WNCa2zCk5SO
+PJr1hSo6vtnmtjhJmhpz06tillfSyOLq9TrC3jVdfNMhDWvOI1eGu41ly79BQeCY
+6xu+SeUGCvUhuoxuTZIXmWcSmJbGSy0wbCHS2ewpG3s6flv9LeUTBVVgOANCpSFA
+tvzNc0fiN7zCUeBCLh6WU5y88ofieXYGyjERSvPJWD/6n094lpA+xNi5XbablxkJ
+zFNK5Cqqb15KqBDJ/MtKGx8xcIJKetMVj4QXhVUXQco5RJsR9BucCIMA8DC/2RZP
+SyXmSGAkBgVgx4TLwUNr0syI0aW7CbqLWPowdagE1ZkbGJZrxZcjFinKK9MjGzsW
+b1dtB1K3uJsOq+pV3N9TgmG5QX/QPddIsO8sX4Li0h6ipQIOTNk8eBj/ONr0nnGZ
+vOlikC1YI1CATZAmn6Q5O9F8SgWwXVesxm2EywafcqR61xQJXJHgCwmswj8F+Ibf
+n6k7XUrVC9TCfQTSo0AlC8S6k1TPjK4uQHZTU2bEmSAcJ08TVbRyV8U1ZGXgfhEl
+TpDmPkORzTKf3urDU160
+=vTk1
+-----END PGP SIGNATURE-----
 
-Why do we need a link_idx? The link itself already points to
-the interface. Also, that would limit the API if we ever
-need to have one interface with multiple links.
-
->  
->  	union {
->  		struct media_v2_intf_devnode devnode;
-> @@ -331,7 +343,10 @@ struct media_v2_pad {
->  	__u32 entity_id;
->  	__u32 flags;
->  	__u32 index;
-> -	__u32 reserved[4];
-> +	__u16 link_idx;
-> +	__u16 prop_idx;
-> +	__u16 entity_idx;
-
-Same comments as above for link_idx and entity_idx.
-
-> +	__u16 reserved[5];
->  } __attribute__ ((packed));
->  
->  struct media_v2_link {
-> @@ -339,9 +354,68 @@ struct media_v2_link {
->  	__u32 source_id;
->  	__u32 sink_id;
->  	__u32 flags;
-> -	__u32 reserved[6];
-> +	__u16 source_idx;
-> +	__u16 sink_idx;
-
-What do you mean by source_idx and sink_idx?
-
-> +	__u32 reserved[5];
->  } __attribute__ ((packed));
->  
-> +#define MEDIA_PROP_TYPE_GROUP	1
-> +#define MEDIA_PROP_TYPE_U64	2
-> +#define MEDIA_PROP_TYPE_S64	3
-> +#define MEDIA_PROP_TYPE_STRING	4
-> +
-> +#define MEDIA_PROP_FL_OWNER			0xf
-
-OWNER_TYPE? Just 0-15? Perhaps we should reserve more
-bits for it.
-
-> +#  define MEDIA_PROP_FL_ENTITY			0
-> +#  define MEDIA_PROP_FL_PAD			1
-> +#  define MEDIA_PROP_FL_LINK			2
-> +#  define MEDIA_PROP_FL_INTF			3
-> +#  define MEDIA_PROP_FL_PROP			4
-> +#define MEDIA_PROP_FL_PROP_IDX			(1 << 4)
-
-Hmm... both OWNER and PROP_IDX are MEDIA_PROP_FL_*...
-are all of them mapped as flags? If so, it doesn't seem a 
-good idea to me to map both as flags.
-
-> +
-> +/**
-> + * struct media_v2_prop - A media property
-> + *
-> + * @id:		The unique non-zero ID of this property
-> + * @owner_id:	The ID of the object this property belongs to
-> + * @type:	Property type
-> + * @flags:	Property flags
-
-But here you added and explicit field for type and flags...
-I'm confused.
-
-> + * @name:	Property name
-> + * @payload_size: Property payload size, 0 for U64/S64
-> + * @payload_offset: Property payload starts at this offset from &prop.id.
-> + *		This is 0 for U64/S64.
-> + * @prop_idx:	Index to sub-properties, 0 means there are no sub-properties.
-> + * @owner_idx:	Index to entities/pads/properties, depending on the owner ID
-> + *		type.
-> + * @reserved:	Property reserved field, will be zeroed.
-> + */
-> +struct media_v2_prop {
-> +	__u32 id;
-> +	__u32 owner_id;
-> +	__u32 type;
-> +	__u32 flags;
-> +	char name[32];
-> +	__u32 payload_size;
-> +	__u32 payload_offset;
-> +	__u16 prop_idx;
-> +	__u16 owner_idx;
-> +	__u32 reserved[17];
-> +} __attribute__ ((packed));
-> +
-> +static inline const char *media_prop2s(const struct media_v2_prop *prop)
-
-Please call it "media_prop2string". Just "s" here is confusing.
-
-> +{
-> +	return (const char *)prop + prop->payload_offset;
-> +}
-> +
-> +static inline __u64 media_prop2u64(const struct media_v2_prop *prop)
-> +{
-> +	return *(const __u64 *)((const char *)prop + prop->payload_offset);
-> +}
-> +
-> +static inline __s64 media_prop2s64(const struct media_v2_prop *prop)
-> +{
-> +	return *(const __s64 *)((const char *)prop + prop->payload_offset);
-> +}
-> +
->  struct media_v2_topology {
->  	__u64 topology_version;
->  
-> @@ -360,6 +434,10 @@ struct media_v2_topology {
->  	__u32 num_links;
->  	__u32 reserved4;
->  	__u64 ptr_links;
-> +
-> +	__u32 num_props;
-> +	__u32 props_payload_size;
-> +	__u64 ptr_props;
->  } __attribute__ ((packed));
->  
->  /* ioctls */
-> @@ -368,6 +446,8 @@ struct media_v2_topology {
->  #define MEDIA_IOC_ENUM_ENTITIES	_IOWR('|', 0x01, struct media_entity_desc)
->  #define MEDIA_IOC_ENUM_LINKS	_IOWR('|', 0x02, struct media_links_enum)
->  #define MEDIA_IOC_SETUP_LINK	_IOWR('|', 0x03, struct media_link_desc)
-> +/* Old MEDIA_IOC_G_TOPOLOGY ioctl without props support */
-> +#define MEDIA_IOC_G_TOPOLOGY_OLD 0xc0487c04
-
-I would avoid calling it "_OLD". we may have a V3, V4, V5, ... of this
-ioctl.
-
-I would, instead, define an _IOWR_COMPAT macro that would take an extra
-parameter, in order to get the size of part of the struct, e. g. something
-like:
-
-#define MEDIA_IOC_G_TOPOLOGY_V1		_IOWR_COMPAT('|', 0x04, struct media_v2_topology, num_props)
-
-Also, I don't see any good reason why to keep this at uAPI (except for a
-mc-compliance tool that would test both versions - but this could be
-defined directly there).
-
->  #define MEDIA_IOC_G_TOPOLOGY	_IOWR('|', 0x04, struct media_v2_topology)
->  #define MEDIA_IOC_REQUEST_ALLOC	_IOR ('|', 0x05, int)
->  
-
-Thanks,
-Mauro
+--f54savKjS/tSNRaU--
