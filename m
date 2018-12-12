@@ -2,225 +2,261 @@ Return-Path: <SRS0=2Dg0=OV=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_PASS,T_MIXED_ES,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.4 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,T_MIXED_ES,
+	USER_AGENT_MUTT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 79FC4C04EB8
-	for <linux-media@archiver.kernel.org>; Wed, 12 Dec 2018 08:27:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B419C65BAF
+	for <linux-media@archiver.kernel.org>; Wed, 12 Dec 2018 08:28:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3B00D20870
-	for <linux-media@archiver.kernel.org>; Wed, 12 Dec 2018 08:27:22 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 3B00D20870
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=xs4all.nl
+	by mail.kernel.org (Postfix) with ESMTP id E380D20849
+	for <linux-media@archiver.kernel.org>; Wed, 12 Dec 2018 08:28:02 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org E380D20849
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=jmondi.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726525AbeLLI1V (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 12 Dec 2018 03:27:21 -0500
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:55651 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726317AbeLLI1V (ORCPT
+        id S1726635AbeLLI2C (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 12 Dec 2018 03:28:02 -0500
+Received: from relay1-d.mail.gandi.net ([217.70.183.193]:38193 "EHLO
+        relay1-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726317AbeLLI2B (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Dec 2018 03:27:21 -0500
-Received: from [IPv6:2001:983:e9a7:1:d5c3:7636:7173:44a0] ([IPv6:2001:983:e9a7:1:d5c3:7636:7173:44a0])
-        by smtp-cloud8.xs4all.net with ESMTPA
-        id WzrRggwcEuDWoWzrSgGpbQ; Wed, 12 Dec 2018 09:27:18 +0100
-Subject: Re: [RFCv4 PATCH 0/3] This RFC patch series implements properties for
- the media controller.
-To:     Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc:     linux-media@vger.kernel.org
-References: <20181121154024.13906-1-hverkuil@xs4all.nl>
- <20181212055854.0a92c404@coco.lan>
-From:   Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <2fde46aa-c5e3-7163-2b0e-ecfac26a6a51@xs4all.nl>
-Date:   Wed, 12 Dec 2018 09:27:17 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.3.1
+        Wed, 12 Dec 2018 03:28:01 -0500
+X-Originating-IP: 2.224.242.101
+Received: from w540 (2-224-242-101.ip172.fastwebnet.it [2.224.242.101])
+        (Authenticated sender: jacopo@jmondi.org)
+        by relay1-d.mail.gandi.net (Postfix) with ESMTPSA id 9B72F240020;
+        Wed, 12 Dec 2018 08:27:58 +0000 (UTC)
+Date:   Wed, 12 Dec 2018 09:27:57 +0100
+From:   jacopo mondi <jacopo@jmondi.org>
+To:     Kieran Bingham <kieran.bingham@ideasonboard.com>
+Cc:     Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        laurent.pinchart@ideasonboard.com,
+        niklas.soderlund+renesas@ragnatech.se, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH 5/5] media: adv748x: Implement link_setup callback
+Message-ID: <20181212082757.GL5597@w540>
+References: <1544541373-30044-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1544541373-30044-6-git-send-email-jacopo+renesas@jmondi.org>
+ <b4a718b4-ff9b-020e-d64e-09cf40747f6e@ideasonboard.com>
 MIME-Version: 1.0
-In-Reply-To: <20181212055854.0a92c404@coco.lan>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfHTOm2VARg8RZNfrHO1kmEOADCU09bcH1SrY2r73kdTe7y91D+eDIBAogfE3lfWtQRP8I/mjtmN5KKAsqFUObz+YANbYshb9HEJWHoPtAWTS6LxLG7R2
- RDR3gpzRKr69Q9U7eAxaq8VmXqZiSG1lgkjjOesz0fArAgA2pkE6SWhJIba8mupr7doemmiPCxxmwKVHWk7254UZvkVC6DkXJpgof1Xa5+1WpUtSv4jlGOqP
- EeZvZAfFDp80+LxNhv6u0EtXFYavJ5jNQf8o8KhkVg2tda318zgMcY2wkN9GclPF8orS7BYIsi2ZgdCLECv/bQ==
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="um2V5WpqCyd73IVb"
+Content-Disposition: inline
+In-Reply-To: <b4a718b4-ff9b-020e-d64e-09cf40747f6e@ideasonboard.com>
+User-Agent: Mutt/1.5.24 (2015-08-30)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On 12/12/18 8:58 AM, Mauro Carvalho Chehab wrote:
-> Hi Hans,
-> 
-> Em Wed, 21 Nov 2018 16:40:21 +0100
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> 
->> The main changes since RFCv3 are:
->>
->> - Add entity index to media_v2_pad
->> - Add source/sink pad index to media_v2_link
->> - Add owner_idx and owner type flags to media_v2_prop
-> 
-> Sorry, but I didn't get why this is needed for properties to work
-> (if the changes are not directly related to properties, please add
-> on separate patches, in order to make easier for review/understanding).
 
-I can separate it.
+--um2V5WpqCyd73IVb
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-> The lack of an uAPI documentation at the patchset makes it harder
-> to understand.
-> 
-> For the last one, you added a documentation at kAPI:
-> 
->> + * @owner_idx:	Index to entities/pads/properties, depending on the owner ID
->> + *		type.
-> 
-> But it doesn't really explain anything. Is it the new owner_id
-> field? Is it something else? Why do we need bot owner_id and 
-> owner_idx?
+Hi Kieran,
 
-Currently when G_TOPOLOGY returns e.g. a link it has two IDs: one
-for the sink object, one for the source object. The application now
-has to traverse the entities array to find the entities referred to
-by the link IDs.
+On Tue, Dec 11, 2018 at 11:43:08PM +0000, Kieran Bingham wrote:
+> Hi Jacopo,
+>
+> On 11/12/2018 15:16, Jacopo Mondi wrote:
+> > When the adv748x driver is informed about a link being created from HDMI or
+> > AFE to a CSI-2 TX output, the 'link_setup()' callback is invoked. Make
+> > sure to implement proper routing management at link setup time, to route
+> > the selected video stream to the desired TX output.
+> >
+> > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> > ---
+> >  drivers/media/i2c/adv748x/adv748x-core.c | 63 +++++++++++++++++++++++++++++++-
+> >  drivers/media/i2c/adv748x/adv748x.h      |  1 +
+> >  2 files changed, 63 insertions(+), 1 deletion(-)
+> >
+> > diff --git a/drivers/media/i2c/adv748x/adv748x-core.c b/drivers/media/i2c/adv748x/adv748x-core.c
+> > index f3aabbccdfb5..08dc0e89b053 100644
+> > --- a/drivers/media/i2c/adv748x/adv748x-core.c
+> > +++ b/drivers/media/i2c/adv748x/adv748x-core.c
+> > @@ -335,9 +335,70 @@ int adv748x_tx_power(struct adv748x_csi2 *tx, bool on)
+> >  /* -----------------------------------------------------------------------------
+> >   * Media Operations
+> >   */
+> > +static int adv748x_link_setup(struct media_entity *entity,
+> > +			      const struct media_pad *local,
+> > +			      const struct media_pad *remote, u32 flags)
+> > +{
+> > +	struct v4l2_subdev *rsd = media_entity_to_v4l2_subdev(remote->entity);
+> > +	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
+> > +	struct adv748x_state *state = v4l2_get_subdevdata(sd);
+> > +	struct adv748x_csi2 *tx;
+> > +	struct media_link *link;
+> > +	u8 io10;
+> > +
+> > +	/*
+> > +	 * For each link setup from [HDMI|AFE] to TX we receive two
+> > +	 * notifications: "[HDMI|AFE]->TX" and "TX<-[HDMI|AFE]".
+> > +	 *
+> > +	 * Use the second notification form to make sure we're linking
+> > +	 * to a TX and find out from where, to set up routing properly.
+> > +	 */
+>
+>
+> > +	if ((sd != &state->txa.sd && sd != &state->txb.sd) ||
+>
+> I'm starting to think an 'is_txb(tx)' would help clean up some code ...
+> Then we could do the assignment of tx above, and then this line would read
+>
+>   if ( (!(is_txa(tx) && !(is_txb(tx)))
+>      || !(flags & MEDIA_LNK_FL_ENABLED) )
+>
+>
+> It shouldn't matter that the adv748x_sd_to_csi2(sd) could be called on
+> non-TX SD's as they will then simply fail to match the above is_txa/is_txb.
+>
 
-That's painful, but by providing indices into the entities array as
-well, userspace can just do a direct lookup entities[sink_idx] to
-find the entity with ID sink_id.
+Checking for is_txa() and is_txb() would require to call
+'adv_sd_to_csi2(sd)' before having made sure the 'sd' actually
+represent a csi2_tx. I would keep it as it is.
+>
+>
+> > +	    !(flags & MEDIA_LNK_FL_ENABLED))
+> > +		return 0;
+>
+> Don't we need to clear some local references when disabling links?
+>
 
-I expect that this will will make it possible in many cases to avoid
-userspace from having to create their own datastructure, but instead
-they can use the returned information directly.
+I don't think so, if the link is disabled the pipeline would never
+start and s_stream() (where the reference to the connected tx is used)
+will never be called the AFE or HDMI backends.
 
-> 
->>
->> An updated v4l2-ctl and v4l2-compliance that can report properties
->> is available here:
->>
->> https://git.linuxtv.org/hverkuil/v4l-utils.git/log/?h=props
->>
->> Currently I support u64, s64 and const char * property types. And also
->> a 'group' type that groups sub-properties. But it can be extended to any
->> type including binary data if needed. No array support (as we have for
->> controls), but there are enough reserved fields in media_v2_prop
->> to add this if needed.
->>
->> I added properties for entities and pads to vimc, so I could test this.
->>
->> Note that the changes to media_device_get_topology() are hard to read
->> from the patch. It is easier to just look at the source code:
->>
->> https://git.linuxtv.org/hverkuil/media_tree.git/tree/drivers/media/media-device.c?h=mc-props
->>
->> I have some ideas to improve this some more:
->>
->> 1) Add the properties directly to media_gobj. This would simplify some
->>    of the code, but it would require a media_gobj_init function to
->>    initialize the property list. In general I am a bit unhappy about
->>    media_gobj_create: it doesn't really create the graph object, instead
->>    it just adds it to the media_device. It's confusing and it is something
->>    I would like to change.
->>
->> 2) The links between pads are stored in media_entity instead of in media_pad.
->>    This is a bit unexpected and makes it harder to traverse the data
->>    structures since to find the links for a pad you need to walk the entity
->>    links and find the links for that pad. Putting all links in the entity
->>    also mixes up pad and interface links, and it would be much cleaner if
->>    those are separated.
->>
->> 3) I still think adding support for backlinks to G_TOPOLOGY is a good idea.
->>    Since the current data structure represents a flattened tree that is easy
->>    to navigate the only thing missing for userspace is backlink support.
->>    This is still something that userspace needs to figure out when the kernel
->>    has this readily available. I think that with this in place applications
->>    can just do all the lookups directly on the topology data structure.
-> 
-> Apps don't need to follow the exact data struct model as the Kernel,
-> and can dynamically create any indexes they need in order to quickly
-> seek for a link (if search performance would be a problem).
 
-But if the kernel can directly without additional cost provide that
-information to userspace, why on earth shouldn't we do that?
+> (or actually perhaps it doesn't matter if we keep stale references in a
+> disabled object, because it's disabled)
 
-> I don't like the idea of reporting all links twice to userspace. 
-> Specially after Spectre/Meltdown, context switches are expensive.
+Yes. Even if both HDMI and AFE have 'TXA' as their connected TX, only one
+of them has an actually enabled link, and to enable that link, the
+previously existing one has to be disabled first, otherwise this
+function fails (see the -EINVAL a few lines below)
 
-You need to call G_TOPOLOGY in any case, so returning backlinks
-in addition to all the other data should not add to the expense. Or
-am I missing something?
+>
+> > +	tx = adv748x_sd_to_csi2(sd);
+>
+>
+> > +
+> > +	/*
+> > +	 * Now that we're sure we're operating on one of the two TXs,
+> > +	 * make sure there are no enabled links ending there from
+> > +	 * either HDMI or AFE (this can only happens for TXA though).
+> > +	 */
+> > +	if (is_txa(tx))
+> > +		list_for_each_entry(link, &entity->links, list)
+> > +			if (link->sink->entity == entity &&
+> > +			    link->flags & MEDIA_LNK_FL_ENABLED)
+> > +				return -EINVAL;
+> > +
+>
+> What does this protect?
+>
+> Doesn't this code read as:
+>
+>   if (is TXA)
+> 	for each entity
+> 		Check all links - and if any are enabled, -EINVAL
+>
+> Don't we ever want a link to be enabled on TXA?
 
-> 
-> Duplicating data is a very bad idea, as it will enforce an specific
-> data model at the application and at userspace. We want to be able
-> to change the internals (on both sides) if needed for whatever
-> reason. 
+Not if we are enabling another one. One should first disable the
+existing link, then create a new one.
 
-Whenever you have a link, you also have a backlink. If userspace doesn't
-need that information, they can just not query for it (i.e. set the
-backlinks pointer to 0). But if they do need it, and the kernel has it
-readily available, then why not export this information? Why force
-applications to make their own data structures?
+>
+> (I must surely be mis-reading this - and it's nearly mid-night - so I'm
+> going to say I'm confused and it's time for me to stop and go to bed :D)
+>
+>
+> > +	/* Change video stream routing, according to the newly created link. */
+> > +	io10 = io_read(state, ADV748X_IO_10);
+> > +	if (rsd == &state->afe.sd) {
+> > +		state->afe.tx = tx;
+> > +
+> > +		/*
+> > +		 * If AFE is routed to TXA, make sure TXB is off;
+> > +		 * If AFE goes to TXB, we need TXA powered on.
+> > +		 */
+> > +		if (is_txa(tx)) {
+> > +			io10 |= ADV748X_IO_10_CSI4_IN_SEL_AFE;
+> > +			io10 &= ~ADV748X_IO_10_CSI1_EN;
+> > +		} else {
+> > +			io10 |= ADV748X_IO_10_CSI4_EN |
+> > +				ADV748X_IO_10_CSI1_EN;
+> > +		}
+> > +	} else {
+> > +		state->hdmi.tx = tx;
+> > +		io10 &= ~ADV748X_IO_10_CSI4_IN_SEL_AFE;
+> > +	}
+> > +	io_write(state, ADV748X_IO_10, io10);
+> > +
+> > +	tx->rsd = rsd;
+> > +
+> > +	return 0;
+> > +}
+> >
+> >  static const struct media_entity_operations adv748x_media_ops = {
+> > -	.link_validate = v4l2_subdev_link_validate,
+> > +	.link_setup	= adv748x_link_setup,
+> > +	.link_validate	= v4l2_subdev_link_validate,
+> >  };
+> >
+> >  /* -----------------------------------------------------------------------------
+> > diff --git a/drivers/media/i2c/adv748x/adv748x.h b/drivers/media/i2c/adv748x/adv748x.h
+> > index 0ee3b8d5c795..63a17c31c169 100644
+> > --- a/drivers/media/i2c/adv748x/adv748x.h
+> > +++ b/drivers/media/i2c/adv748x/adv748x.h
+> > @@ -220,6 +220,7 @@ struct adv748x_state {
+> >  #define ADV748X_IO_10_CSI4_EN		BIT(7)
+> >  #define ADV748X_IO_10_CSI1_EN		BIT(6)
+> >  #define ADV748X_IO_10_PIX_OUT_EN	BIT(5)
+> > +#define ADV748X_IO_10_CSI4_IN_SEL_AFE	0x08
+>
+> Should this be BIT(3)?
+>
 
-> 
-> Also, what happens if the duplicated information is not really
-> the same (that could happen due to a bug somewhere)? Should
+It surely read better. See, you were not that sleepy as you said,
+after all :p
 
-Well, that's called a bug and it should be fixed.
+Thanks for review, I'll wait some more time to receive more comments
+and will resend.
 
-And if we have support for backlinks, then v4l2-compliance will most
-definitely check for consistency.
+Thanks
+  j
 
-> apps validate it? Worse than that, if we report the same link
-> twice (on both directions), userspace will send link changes
-> at the backlinks, making the Kernel code more complex (and
-> bound forever to an specific implementation) for no good reason.
+> >
+> >  #define ADV748X_IO_CHIP_REV_ID_1	0xdf
+> >  #define ADV748X_IO_CHIP_REV_ID_2	0xe0
+> >
+>
+> --
+> Regards
+> --
+> Kieran
 
-Huh? When introducing an S_TOPOLOGY I would expect that initially
-only the flags in the links array can be changed. The backlinks
-array would not be involved.
+--um2V5WpqCyd73IVb
+Content-Type: application/pgp-signature; name="signature.asc"
 
-Now, having all said this, creating support for backlinks isn't
-that easy without first making data structure changes in the kernel.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
 
-So I have no plans to work on backlink support any time soon (if at
-all).
+iQIcBAABCAAGBQJcEMaMAAoJEHI0Bo8WoVY8XLUP/R0GhNVbCGLpbe8dBj152vqX
+ftXe86YHRLu/3YAPRQDb+LxMMoSBgomM9jIZWWXU2e8ce+4ADbYBjWxmVLTTsKf4
+0cKHb9V3UOqD1mkhOgb96lKM08DUQg2rDyVot4mcTAT+g2LSzT4qaZcgkJcol89v
+bFY6+a2H3DpulLGlKz5nxJZYfvWckc1CJCHN/iCsc+FPGnNiHq32KkMg5upX8Vnt
+tI/IMo2mjflkG8UBrdAELEAGve/2TAtL73SClxOjG781IlcvwrYcHGJ1KMK896G/
+fLnc9Pb1eFkdwCCe7LFEvoRfXI70z4dCRPeJ5xAAYlU4FPckPt83qgh6eyrN4hfj
+A/lecN7BvDvj6RrHXf2jVBVfF0xmzeDML9bocvuY2EfGJWFoc0h4yH0A6T3yJOzA
+FmlGG+U+sBKriNEyMwJlg/E+NMovFQtt/BcrBM3M5nfS7hJINnMUEtkTFOKODbNM
+DJGDGjMHYFurzn8/y+GGhJPy3iibUjp47fGCt/qYhR02z5LbMNCm1i9dkmmQdQvY
+N97eN3REZ6K+c6hF+Nl0Ya71ojViA+xj5M1zO2RuGGcq9tjB8UmDKCjwQeEDXu2n
+qRn1UztI4+7NFGiIROvWu6hQcaISNtABrmiKgL6vFnDYm5UqTUv9eQ0bL8wOclgL
+oShk9fDoor+XsoPdWKMX
+=XlhG
+-----END PGP SIGNATURE-----
 
-Regards,
-
-	Hans
-
-> 
->>
->> 1+2 are internal cleanups that can be done later.
->>
->> 3 is a low-priority future enhancement. This might become easier to implement
->> once 1+2 are done.
->>
->> This is pretty much the last RFC. If everyone agree with this approach, then
->> I can make a final patch series, adding documentation etc.
->>
->> Regards,
->>
->>         Hans
->>
->>
->> Hans Verkuil (3):
->>   uapi/linux/media.h: add property support
->>   media controller: add properties support
->>   vimc: add property test code
->>
->>  drivers/media/media-device.c              | 335 +++++++++++++++++-----
->>  drivers/media/media-entity.c              | 107 ++++++-
->>  drivers/media/platform/vimc/vimc-common.c |  50 ++++
->>  include/media/media-device.h              |   6 +
->>  include/media/media-entity.h              | 318 ++++++++++++++++++++
->>  include/uapi/linux/media.h                |  88 +++++-
->>  6 files changed, 819 insertions(+), 85 deletions(-)
->>
-> 
-> 
-> 
-> Thanks,
-> Mauro
-> 
-
+--um2V5WpqCyd73IVb--
