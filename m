@@ -2,138 +2,123 @@ Return-Path: <SRS0=2Dg0=OV=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 926BDC67839
-	for <linux-media@archiver.kernel.org>; Wed, 12 Dec 2018 15:54:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 98261C67839
+	for <linux-media@archiver.kernel.org>; Wed, 12 Dec 2018 16:20:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 59BD82086D
-	for <linux-media@archiver.kernel.org>; Wed, 12 Dec 2018 15:54:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1544630058;
-	bh=VlvrLspD8k/Ifs2EcMmBg1tiuP/synGvJZLeW5KsMws=;
-	h=Date:From:To:Cc:Subject:List-ID:From;
-	b=uOAYc1hBriurZMhpqJAmMF/z9Xx3QUbzQmMx3JbDpredoiyCNca5+gKZxCFJkiAV4
-	 MyydUP+/dhipNERuhicbvLLUVXUHcDkTJNGNwAeiqgdL7y+bp/tNM88Eusd/ZmjFlg
-	 1atZ5cirTVBEDha9ypgN83hotofuWAgDPnlcKU5s=
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 59BD82086D
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
+	by mail.kernel.org (Postfix) with ESMTP id 5DA5820839
+	for <linux-media@archiver.kernel.org>; Wed, 12 Dec 2018 16:20:23 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="pQvTQBJa"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 5DA5820839
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=gmail.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727848AbeLLPyM (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 12 Dec 2018 10:54:12 -0500
-Received: from casper.infradead.org ([85.118.1.10]:36234 "EHLO
-        casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726358AbeLLPyL (ORCPT
+        id S1727691AbeLLQUS (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 12 Dec 2018 11:20:18 -0500
+Received: from mail-pg1-f194.google.com ([209.85.215.194]:45200 "EHLO
+        mail-pg1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726879AbeLLQUS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Dec 2018 10:54:11 -0500
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
-        MIME-Version:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:
-        List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=WbfwLgK7xlauiTjRYJNb2JutczK1M1HeK6JBTckc+kY=; b=kzEaSTbL17KCoEBHVUnwHQX46g
-        27WxCDueSIsoCJ0DbvZ84fKSfzir6V2dXBRaL3MNWy0WUbGqQf91f1RfXa6OY5slveJn3djrGqPtS
-        ZwtHBtv1b6XFMNGSKwG+IRE20vtnYAqTro84VCHpzc1XhnAuAK6K9bRA1rMKva76moDBPZyFcG2yC
-        mHssNbUK6xETrTMeqwME2rHSTgLSwphjWhALaSFqVwd4yISokms381Y+2luQHkv2d8bjtuyrHv3Ah
-        fC/6Ph4lg2J8jjFYLa9AvdVwtNcEB2Q7toZDTt5FkJizJ0+PToyhNEddVsczDkmBbBv0jm2Aywp7Y
-        lIVFaURw==;
-Received: from [177.159.254.7] (helo=coco.lan)
-        by casper.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
-        id 1gX6pt-0005iC-K9; Wed, 12 Dec 2018 15:54:10 +0000
-Date:   Wed, 12 Dec 2018 13:54:03 -0200
-From:   Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: [GIT PULL for v4.20-rc7] media fixes
-Message-ID: <20181212135403.3ce9132a@coco.lan>
-X-Mailer: Claws Mail 3.16.0 (GTK+ 2.24.32; x86_64-redhat-linux-gnu)
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Wed, 12 Dec 2018 11:20:18 -0500
+Received: by mail-pg1-f194.google.com with SMTP id y4so8527915pgc.12;
+        Wed, 12 Dec 2018 08:20:17 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id;
+        bh=6Q/+2+qK3okIZ1zaF6zOX7bxQDy3cH8F5XXDZkvzn0I=;
+        b=pQvTQBJazVT5wuzAdIN01sbXVVwLqsdG3UjOUbZYtXgt9O1Q0M9LHr+wJvK7MOjxd5
+         1OPzYRQOVG7r5Ta+8W9hEnZXPDOzW3QZDVTmpeaEdQSCxxkKziNJ0WKzyeiQiujI4E/j
+         rGmybZZwMMsHUlq88CJiCB0Oa+vCNxDn4YsUijWHaWkhRZJWGFvuqRdybhCDEaTnCn3q
+         Kz9yd2alymKBrJNRF19vRpd+vVpe+emBuCYsHP01xHY+9YWrKMUzb4KI47UOLZf/+MLh
+         yCmJNeIy+4eL1DU0CMO0oMLddWGGtJXstkxzpXQcZZ9aLJ0T3jrF0c3NTEiB9WvtpXY9
+         YLNw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id;
+        bh=6Q/+2+qK3okIZ1zaF6zOX7bxQDy3cH8F5XXDZkvzn0I=;
+        b=Fg27Gh4EsbOAgRhKFVZKSfhSa0pKhbBcCl55SqC+PnkGBBSJ1I6hmNaUgQEuifOYM1
+         ctKm2NfJWFt3J2RENtFDpgj8nMmQDvG6rmsIch2D21JaDRI67Vaw6rQyxOC5YTX81D2A
+         jwf2iDTFPL+Sy76jKRPuRiU94waN7IOvPkq1ekY3D8OvtaJP/oQe5xg4y6VlgBtvGwi1
+         uxmETR+lDGZyKhbtbfUUrvz/3Dl5zIv7Avs7UAUV4mGVtxc01SHRc/pAVPkXQ2Kv1KT9
+         bultD++k3TGlLvEYX3D93v867I6aLmgpeYKlvTLuNjaGr+JZMkNEAh+CDBYn7PXFtABI
+         DYIQ==
+X-Gm-Message-State: AA+aEWYSdJBtRQ7Rzg14KG7uZFtYhPAUkXYOe4eCaZZC2YTG1KO93tE1
+        dM1fKnPHPJYHVbjMdeOMBz4=
+X-Google-Smtp-Source: AFSGD/WGb+lQDbWNpoQEbGn7/dYu9dzescV2XMisM88YcFvhFjxPijOYP3QbAmqaUvl6tOebdz2krw==
+X-Received: by 2002:a62:7086:: with SMTP id l128mr20645206pfc.68.1544631617047;
+        Wed, 12 Dec 2018 08:20:17 -0800 (PST)
+Received: from localhost (68.168.130.77.16clouds.com. [68.168.130.77])
+        by smtp.gmail.com with ESMTPSA id z62sm27586179pfl.33.2018.12.12.08.20.16
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Wed, 12 Dec 2018 08:20:16 -0800 (PST)
+From:   Yangtao Li <tiny.windzz@gmail.com>
+To:     kyungmin.park@samsung.com, s.nawrocki@samsung.com,
+        mchehab@kernel.org, kgene@kernel.org, krzk@kernel.org
+Cc:     linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Yangtao Li <tiny.windzz@gmail.com>
+Subject: [PATCH v3] media: exynos4-is: convert to DEFINE_SHOW_ATTRIBUTE
+Date:   Wed, 12 Dec 2018 11:20:14 -0500
+Message-Id: <20181212162014.23409-1-tiny.windzz@gmail.com>
+X-Mailer: git-send-email 2.17.0
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Linus,
+Use DEFINE_SHOW_ATTRIBUTE macro to simplify the code.
 
-Please pull from:
-  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/v4.20-5
+Signed-off-by: Yangtao Li <tiny.windzz@gmail.com>
+---
+ drivers/media/platform/exynos4-is/fimc-is.c | 16 +++-------------
+ 1 file changed, 3 insertions(+), 13 deletions(-)
 
-
-For 
-  - one regression at vsp1 driver;
-  - some last time changes for the upcoming request API logic and for
-    stateless codec support. As the stateless codec "cedrus" driver
-    is at staging, don't apply the MPEG controls as part of the main
-    V4L2 API, as those may not be ready for production yet.
-
-Regards,
-Mauro
-
-
-The following changes since commit a7c3a0d5f8d8cd5cdb32c06d4d68f5b4e4d2104b:
-
-  media: mediactl docs: Fix licensing message (2018-11-27 13:52:46 -0500)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/v4.20-5
-
-for you to fetch changes up to 078ab3ea2c3bb69cb989d52346fefa1246055e5b:
-
-  media: Add a Kconfig option for the Request API (2018-12-05 13:07:43 -0500)
-
-----------------------------------------------------------------
-media fixes for v4.20-rc7
-
-----------------------------------------------------------------
-Dan Carpenter (1):
-      media: cedrus: Fix a NULL vs IS_ERR() check
-
-Hans Verkuil (8):
-      media: vb2: don't call __vb2_queue_cancel if vb2_start_streaming failed
-      media: vb2: skip request checks for VIDIOC_PREPARE_BUF
-      media: vb2: keep a reference to the request until dqbuf
-      media: vb2: don't unbind/put the object when going to state QUEUED
-      media: vivid: drop v4l2_ctrl_request_complete() from start_streaming
-      media: vicodec: set state resolution from raw format
-      media: mpeg2-ctrls.h: move MPEG2 state controls to non-public header
-      media: extended-controls.rst: add note to the MPEG2 state controls
-
-Laurent Pinchart (1):
-      media: vsp1: Fix LIF buffer thresholds
-
-Sakari Ailus (1):
-      media: Add a Kconfig option for the Request API
-
- Documentation/media/uapi/v4l/extended-controls.rst | 10 +++
- drivers/media/Kconfig                              | 13 ++++
- drivers/media/common/videobuf2/videobuf2-core.c    | 44 ++++++++---
- drivers/media/common/videobuf2/videobuf2-v4l2.c    | 13 +++-
- drivers/media/media-device.c                       |  4 +
- drivers/media/platform/vicodec/vicodec-core.c      | 13 +++-
- drivers/media/platform/vivid/vivid-sdr-cap.c       |  2 -
- drivers/media/platform/vivid/vivid-vbi-cap.c       |  2 -
- drivers/media/platform/vivid/vivid-vbi-out.c       |  2 -
- drivers/media/platform/vivid/vivid-vid-cap.c       |  2 -
- drivers/media/platform/vivid/vivid-vid-out.c       |  2 -
- drivers/media/platform/vsp1/vsp1_lif.c             |  2 +-
- drivers/media/v4l2-core/v4l2-ctrls.c               |  4 +-
- drivers/staging/media/sunxi/cedrus/Kconfig         |  1 +
- drivers/staging/media/sunxi/cedrus/cedrus_hw.c     |  4 +-
- include/media/mpeg2-ctrls.h                        | 86 ++++++++++++++++++++++
- include/media/v4l2-ctrls.h                         |  6 ++
- include/media/videobuf2-core.h                     |  2 +
- include/uapi/linux/v4l2-controls.h                 | 68 -----------------
- include/uapi/linux/videodev2.h                     |  4 -
- 20 files changed, 181 insertions(+), 103 deletions(-)
- create mode 100644 include/media/mpeg2-ctrls.h
+diff --git a/drivers/media/platform/exynos4-is/fimc-is.c b/drivers/media/platform/exynos4-is/fimc-is.c
+index f5fc54de19da..02da0b06e56a 100644
+--- a/drivers/media/platform/exynos4-is/fimc-is.c
++++ b/drivers/media/platform/exynos4-is/fimc-is.c
+@@ -738,7 +738,7 @@ int fimc_is_hw_initialize(struct fimc_is *is)
+ 	return 0;
+ }
+ 
+-static int fimc_is_log_show(struct seq_file *s, void *data)
++static int fimc_is_show(struct seq_file *s, void *data)
+ {
+ 	struct fimc_is *is = s->private;
+ 	const u8 *buf = is->memory.vaddr + FIMC_IS_DEBUG_REGION_OFFSET;
+@@ -752,17 +752,7 @@ static int fimc_is_log_show(struct seq_file *s, void *data)
+ 	return 0;
+ }
+ 
+-static int fimc_is_debugfs_open(struct inode *inode, struct file *file)
+-{
+-	return single_open(file, fimc_is_log_show, inode->i_private);
+-}
+-
+-static const struct file_operations fimc_is_debugfs_fops = {
+-	.open		= fimc_is_debugfs_open,
+-	.read		= seq_read,
+-	.llseek		= seq_lseek,
+-	.release	= single_release,
+-};
++DEFINE_SHOW_ATTRIBUTE(fimc_is);
+ 
+ static void fimc_is_debugfs_remove(struct fimc_is *is)
+ {
+@@ -777,7 +767,7 @@ static int fimc_is_debugfs_create(struct fimc_is *is)
+ 	is->debugfs_entry = debugfs_create_dir("fimc_is", NULL);
+ 
+ 	dentry = debugfs_create_file("fw_log", S_IRUGO, is->debugfs_entry,
+-				     is, &fimc_is_debugfs_fops);
++				     is, &fimc_is_fops);
+ 	if (!dentry)
+ 		fimc_is_debugfs_remove(is);
+ 
+-- 
+2.17.0
 
