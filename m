@@ -2,236 +2,311 @@ Return-Path: <SRS0=2Dg0=OV=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.9 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_PASS,T_MIXED_ES autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.3 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_PASS,
+	T_MIXED_ES autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DDD16C65BAF
-	for <linux-media@archiver.kernel.org>; Wed, 12 Dec 2018 18:28:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C2B1C65BAF
+	for <linux-media@archiver.kernel.org>; Wed, 12 Dec 2018 20:32:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9754120851
-	for <linux-media@archiver.kernel.org>; Wed, 12 Dec 2018 18:28:29 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 9754120851
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=kwiboo.se
+	by mail.kernel.org (Postfix) with ESMTP id 23DEE20851
+	for <linux-media@archiver.kernel.org>; Wed, 12 Dec 2018 20:32:26 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1544646746;
+	bh=l8+fWrgG3zTmqGsaShTKAQVd4vycr5jWbbxDxsnx81c=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
+	b=fJ8YTpiJOKk+RBaeBFYQkwxmTBCLVngLoFwj3KWKTIVAogrVEZ6fIdeWX6uTBdHZZ
+	 Wc852xEUSzSVuaEDKIN1yDguj6/d/BEvB6zUacS3NBOl+wJUaVRU8DBLQf1a9rMb0p
+	 5ZI7Cg5gqPFGFqhr16oQ9RwOz5eiRt0iT/lcohUs=
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 23DEE20851
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728120AbeLLS22 convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 12 Dec 2018 13:28:28 -0500
-Received: from mail-oln040092065093.outbound.protection.outlook.com ([40.92.65.93]:39648
-        "EHLO EUR01-HE1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1727913AbeLLS22 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Dec 2018 13:28:28 -0500
-Received: from DB5EUR01FT007.eop-EUR01.prod.protection.outlook.com
- (10.152.4.59) by DB5EUR01HT078.eop-EUR01.prod.protection.outlook.com
- (10.152.5.51) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id 15.20.1425.16; Wed, 12 Dec
- 2018 18:28:24 +0000
-Received: from AM0PR03MB4676.eurprd03.prod.outlook.com (10.152.4.52) by
- DB5EUR01FT007.mail.protection.outlook.com (10.152.4.107) with Microsoft SMTP
- Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
- 15.20.1425.16 via Frontend Transport; Wed, 12 Dec 2018 18:28:24 +0000
-Received: from AM0PR03MB4676.eurprd03.prod.outlook.com
- ([fe80::f02a:2a6f:1b3b:ee3e]) by AM0PR03MB4676.eurprd03.prod.outlook.com
- ([fe80::f02a:2a6f:1b3b:ee3e%3]) with mapi id 15.20.1404.026; Wed, 12 Dec 2018
- 18:28:24 +0000
-From:   Jonas Karlman <jonas@kwiboo.se>
-To:     "hverkuil-cisco@xs4all.nl" <hverkuil-cisco@xs4all.nl>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC:     Alexandre Courbot <acourbot@chromium.org>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Nicolas Dufresne <nicolas@ndufresne.ca>,
-        =?Windows-1252?Q?Jernej_=8Akrabec?= <jernej.skrabec@gmail.com>
-Subject: Re: [PATCHv5 6/8] vb2: add vb2_find_timestamp()
-Thread-Topic: [PATCHv5 6/8] vb2: add vb2_find_timestamp()
-Thread-Index: AQHUkheubL+OrDRAAUSQIXvjcD4iY6V7bRUA
-Date:   Wed, 12 Dec 2018 18:28:23 +0000
-Message-ID: <AM0PR03MB4676988BC60352DFDFAD0783ACA70@AM0PR03MB4676.eurprd03.prod.outlook.com>
-References: <20181212123901.34109-1-hverkuil-cisco@xs4all.nl>
- <20181212123901.34109-7-hverkuil-cisco@xs4all.nl>
-In-Reply-To: <20181212123901.34109-7-hverkuil-cisco@xs4all.nl>
-Accept-Language: sv-SE, en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-clientproxiedby: HE1PR0902CA0023.eurprd09.prod.outlook.com
- (2603:10a6:3:e5::33) To AM0PR03MB4676.eurprd03.prod.outlook.com
- (2603:10a6:208:cc::33)
-x-incomingtopheadermarker: OriginalChecksum:0B7601691A04E84AE1DE69A636C9BAB52B47193CDD2E392988C0B977897AACE3;UpperCasedChecksum:ECE74C73BF210C411B92C5CB5BE8412029B5EAB4420D414569344E952A100273;SizeAsReceived:7868;Count:50
-x-ms-exchange-messagesentrepresentingtype: 1
-x-tmn:  [SzW7CPXxPUVwp9rPM86FtmPmpBlWT3ss]
-x-ms-publictraffictype: Email
-x-microsoft-exchange-diagnostics: 1;DB5EUR01HT078;6:KL9HCD7HRgW2q/nj+wGe5ywglcqkvWVl57Ms0DXxHXc1gQf6gANB9qm36ACg/+/Fqh8vI56JAboTpC+I2m3cNgASF+sAolfEFnt1cvib/MudNdKFqn8WDm85AJhQWDlf3epKwTe2NvL60KPiiU3cWXU3YnqIYGz/ejpAA3xOIz/3As7KKWm+ny60HYI79GMq1gaMDntt032G5q0/rwu2ZIxNYQVJzMhI+bDdDINCJSEgx6+5brwX2dQW965x88zRJazGKOOo6tFvgsGotZMaMFHBOKz2Rqy3Wb5kZO1ztDDFqwmMjo8wzMQgYG4KeR6rNMokIGlfTFGLA9Ajo5sSXbOx2DqYdBrqjz9Tn94PkZhoL/vz6+kDWCstWsSN/iuNjBGm3TYy1l8kz3YpMuQu6SdMHHWXshhrif1wuy+oraS7TsLqdCgcko5RsBRnT/ASS49HZherYPJ+0Byj50qNKQ==;5:HAXpUNhbIdoTAWxpIyQJZaEadjJ0Vutbn7HdKh0fNbsixURResyMdVwsWfI0Uk8TRLT1EKdI7fr2K/Oqbde4F9ui6HPN3KnEteOlIQvy9L5/IIfyikIuJiYQkZM40GJKKi19edY+QeniHzYI2pNsJRl/Xs3Pc+ZMOADS3v3iRww=;7:5nw3GPCQ1BuVesroF90iR9bok6HiUFUaqVsJtdQ9snKYoHc+0UYshLPMsleVTECh04tAhngjNJBMTuJfzUPF9tBPF7p8g885GqaePCl9kV7Tnm5qWfWT28rWbO8avCBMD74UNJFPIBzZmaMrzNfQKg==
-x-incomingheadercount: 50
-x-eopattributedmessage: 0
-x-microsoft-antispam: BCL:0;PCL:0;RULEID:(2390098)(7020095)(201702061078)(5061506573)(5061507331)(1603103135)(2017031320274)(2017031324274)(2017031323274)(2017031322404)(1603101475)(1601125500)(1701031045);SRVR:DB5EUR01HT078;
-x-ms-traffictypediagnostic: DB5EUR01HT078:
-x-exchange-antispam-report-cfa-test: BCL:0;PCL:0;RULEID:(4566010)(82015058);SRVR:DB5EUR01HT078;BCL:0;PCL:0;RULEID:;SRVR:DB5EUR01HT078;
-x-microsoft-antispam-message-info: cI3nc0ipAPMJjfEIXhiEOyhky/z3F5IrKSjJyhAwyZMIr31SCHVc2o5lZST7dNw+
-Content-Type: text/plain; charset="Windows-1252"
-Content-ID: <DF12A7CED9CAC746A518B1E215B36524@eurprd03.prod.outlook.com>
-Content-Transfer-Encoding: 8BIT
+        id S1726263AbeLLUcZ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 12 Dec 2018 15:32:25 -0500
+Received: from casper.infradead.org ([85.118.1.10]:57558 "EHLO
+        casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726247AbeLLUcZ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 12 Dec 2018 15:32:25 -0500
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
+        MIME-Version:References:In-Reply-To:Message-ID:Subject:Cc:To:From:Date:Sender
+        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
+        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+        bh=T/ognIWh2HOqIrQsxCp9p1JxDG26P6uWXUYGH1ZtMrw=; b=fcEDzJ7pph7oZj9+VuqX1JsJC1
+        fmFv3nWaNGqQJTc1a1rtuR78ZshT9hWNCCTj7nrt2iaU6TWBOHAOam2jyYtcEFbGb40lM2dPhZMJ9
+        EW6AsnAcKZyJ0sC29hsSKodibCktnoIEJzQyVnknsF+RSd3NoJ/W27PXqBf7IdFUku04zGCc80XOk
+        1GQU4K/jM8sZYViHzgQ012aoiGa+Fo2BCtot6+omFciGyNOspEAEpSSpAWzrMzM2AWq0XAIEbteD0
+        CrY7R6nTWGjyoyiuGk+CV/LXrO9zdiMQI+cHesBCQkBeA24zcbA2RXoKJwZAZL9L/k2ziqTxonrIO
+        qc/gkyyg==;
+Received: from [177.159.254.7] (helo=coco.lan)
+        by casper.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
+        id 1gXBB8-0008P5-JR; Wed, 12 Dec 2018 20:32:23 +0000
+Date:   Wed, 12 Dec 2018 18:32:18 -0200
+From:   Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To:     Hans Verkuil <hverkuil@xs4all.nl>
+Cc:     linux-media@vger.kernel.org
+Subject: Re: [RFCv4 PATCH 0/3] This RFC patch series implements properties
+ for the media controller.
+Message-ID: <20181212183218.6e9abc2f@coco.lan>
+In-Reply-To: <2fde46aa-c5e3-7163-2b0e-ecfac26a6a51@xs4all.nl>
+References: <20181121154024.13906-1-hverkuil@xs4all.nl>
+        <20181212055854.0a92c404@coco.lan>
+        <2fde46aa-c5e3-7163-2b0e-ecfac26a6a51@xs4all.nl>
+X-Mailer: Claws Mail 3.16.0 (GTK+ 2.24.32; x86_64-redhat-linux-gnu)
 MIME-Version: 1.0
-X-OriginatorOrg: outlook.com
-X-MS-Exchange-CrossTenant-RMS-PersistedConsumerOrg: 54485d23-c432-40fe-8436-6091d627118c
-X-MS-Exchange-CrossTenant-Network-Message-Id: 9b9a24c9-93b0-4f7b-7067-08d6605f999a
-X-MS-Exchange-CrossTenant-rms-persistedconsumerorg: 54485d23-c432-40fe-8436-6091d627118c
-X-MS-Exchange-CrossTenant-originalarrivaltime: 12 Dec 2018 18:28:23.9592
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Internet
-X-MS-Exchange-CrossTenant-id: 84df9e7f-e9f6-40af-b435-aaaaaaaaaaaa
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DB5EUR01HT078
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Hans,
+Em Wed, 12 Dec 2018 09:27:17 +0100
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Since this function only return DEQUEUED and DONE buffers,
-it cannot be used to find a capture buffer that is both used for
-frame output and is part of the frame reference list.
-E.g. a bottom field referencing a top field that is already
-part of the capture buffer being used for frame output.
-(top and bottom field is output in same buffer)
+> On 12/12/18 8:58 AM, Mauro Carvalho Chehab wrote:
+> > Hi Hans,
+> > 
+> > Em Wed, 21 Nov 2018 16:40:21 +0100
+> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> >   
+> >> The main changes since RFCv3 are:
+> >>
+> >> - Add entity index to media_v2_pad
+> >> - Add source/sink pad index to media_v2_link
+> >> - Add owner_idx and owner type flags to media_v2_prop  
+> > 
+> > Sorry, but I didn't get why this is needed for properties to work
+> > (if the changes are not directly related to properties, please add
+> > on separate patches, in order to make easier for review/understanding).  
+> 
+> I can separate it.
+> 
+> > The lack of an uAPI documentation at the patchset makes it harder
+> > to understand.
+> > 
+> > For the last one, you added a documentation at kAPI:
+> >   
+> >> + * @owner_idx:	Index to entities/pads/properties, depending on the owner ID
+> >> + *		type.  
+> > 
+> > But it doesn't really explain anything. Is it the new owner_id
+> > field? Is it something else? Why do we need bot owner_id and 
+> > owner_idx?  
+> 
+> Currently when G_TOPOLOGY returns e.g. a link it has two IDs: one
+> for the sink object, one for the source object. The application now
+> has to traverse the entities array to find the entities referred to
+> by the link IDs.
 
-Jernej Škrabec and me have worked around this issue in cedrus driver by
-first checking
-the tag/timestamp of the current buffer being used for output frame.
+With is O(n).
+
+> 
+> That's painful, but by providing indices into the entities array as
+> well, userspace can just do a direct lookup entities[sink_idx] to
+> find the entity with ID sink_id.
+
+This only works when there is an 1:1 map (like the current case of
+links). At the moment we have a 1:n association (like the pads that
+belong to and entity), application will still need to do a O(n)
+lookup (with can easily become O(n^2) if it needs to do for all
+entities.
+
+It should be very simple for all lookups to be O(1), Applications (or
+the library) just need to parse the properties once, storing the
+object ID on a hash table (unordered map, in c++). With that, all
+lookups will be O(1), and a lookup for every single object would be
+O(n).
+
+Or, if O(log n) is good enough (probably it is), a binary tree 
+(or a sorted array) would equally work.
+
+> I expect that this will will make it possible in many cases to avoid
+> userspace from having to create their own datastructure, but instead
+> they can use the returned information directly.
+
+It will still need to traverse the objects, depending on what
+userspace wants. Also, in order to optimize object search for the 1:n
+case, you would need to return data on certain order, as, otherwise
+userspace will still need to traverse the entire pads array.
+
+Basically, you're creating a lot of complexity inside the
+Kernel and adding hacks like checking if the index has just 16
+bits inside the G_TOPOLOGY return code just to avoid userspace 
+to create their own index table.
+
+The way I see is that we should have an userspace library that it
+would do the index itself. For userspace apps, the data model used
+to optimize lookups will be transparent.
+
+One advantage is that, once better algorithms are developed, it
+should be easier to switch the library to take advantage of them.
+The userspace library may even decide on runtime if it would use
+a binary tree or a hash, depending on the number of objects returned
+by G_TOPOLOGY.
+
+> 
+> >   
+> >>
+> >> An updated v4l2-ctl and v4l2-compliance that can report properties
+> >> is available here:
+> >>
+> >> https://git.linuxtv.org/hverkuil/v4l-utils.git/log/?h=props
+> >>
+> >> Currently I support u64, s64 and const char * property types. And also
+> >> a 'group' type that groups sub-properties. But it can be extended to any
+> >> type including binary data if needed. No array support (as we have for
+> >> controls), but there are enough reserved fields in media_v2_prop
+> >> to add this if needed.
+> >>
+> >> I added properties for entities and pads to vimc, so I could test this.
+> >>
+> >> Note that the changes to media_device_get_topology() are hard to read
+> >> from the patch. It is easier to just look at the source code:
+> >>
+> >> https://git.linuxtv.org/hverkuil/media_tree.git/tree/drivers/media/media-device.c?h=mc-props
+> >>
+> >> I have some ideas to improve this some more:
+> >>
+> >> 1) Add the properties directly to media_gobj. This would simplify some
+> >>    of the code, but it would require a media_gobj_init function to
+> >>    initialize the property list. In general I am a bit unhappy about
+> >>    media_gobj_create: it doesn't really create the graph object, instead
+> >>    it just adds it to the media_device. It's confusing and it is something
+> >>    I would like to change.
+> >>
+> >> 2) The links between pads are stored in media_entity instead of in media_pad.
+> >>    This is a bit unexpected and makes it harder to traverse the data
+> >>    structures since to find the links for a pad you need to walk the entity
+> >>    links and find the links for that pad. Putting all links in the entity
+> >>    also mixes up pad and interface links, and it would be much cleaner if
+> >>    those are separated.
+> >>
+> >> 3) I still think adding support for backlinks to G_TOPOLOGY is a good idea.
+> >>    Since the current data structure represents a flattened tree that is easy
+> >>    to navigate the only thing missing for userspace is backlink support.
+> >>    This is still something that userspace needs to figure out when the kernel
+> >>    has this readily available. I think that with this in place applications
+> >>    can just do all the lookups directly on the topology data structure.  
+> > 
+> > Apps don't need to follow the exact data struct model as the Kernel,
+> > and can dynamically create any indexes they need in order to quickly
+> > seek for a link (if search performance would be a problem).  
+> 
+> But if the kernel can directly without additional cost provide that
+> information to userspace, why on earth shouldn't we do that?
+
+Based on what I saw on your patches, this is not transparent and
+has a cost of adding ugly hacks to limit the number of objects.
+
+> > I don't like the idea of reporting all links twice to userspace. 
+> > Specially after Spectre/Meltdown, context switches are expensive.  
+> 
+> You need to call G_TOPOLOGY in any case, so returning backlinks
+> in addition to all the other data should not add to the expense. Or
+> am I missing something?
+
+You're doubling the size of the link table for no good reason.
+If the number of links is high, you'll be doubling the number
+of pages to be used between kernelspace-userspace.
+
+> 
+> > 
+> > Duplicating data is a very bad idea, as it will enforce an specific
+> > data model at the application and at userspace. We want to be able
+> > to change the internals (on both sides) if needed for whatever
+> > reason.   
+> 
+> Whenever you have a link, you also have a backlink. If userspace doesn't
+> need that information, they can just not query for it (i.e. set the
+> backlinks pointer to 0). But if they do need it, and the kernel has it
+> readily available, then why not export this information? Why force
+> applications to make their own data structures?
+
+The point is that we're limiting the Kernel to always have backlinks
+stored. The current data model we used internally has it, but IMHO
+we should get rid of that. I remember I wrote something in the past
+on that direction - not sure if I submitted or not. I ended by
+giving up merging it because I got out of time to do such cleanup
+(and, for the current stuff mapped via MC, this is not really an
+issue).
+
+Yet, I remember someone mentioning that the number of links on some
+kinds of hardware (Industrial I/O?) is at the order of 10k. If we
+ever need to support things like that, we should for sure redesign
+the Kernel and get rid of doubling the storage for links.
+
+> > Also, what happens if the duplicated information is not really
+> > the same (that could happen due to a bug somewhere)? Should  
+> 
+> Well, that's called a bug and it should be fixed.
+> 
+> And if we have support for backlinks, then v4l2-compliance will most
+> definitely check for consistency.
+> 
+> > apps validate it? Worse than that, if we report the same link
+> > twice (on both directions), userspace will send link changes
+> > at the backlinks, making the Kernel code more complex (and
+> > bound forever to an specific implementation) for no good reason.  
+> 
+> Huh? When introducing an S_TOPOLOGY I would expect that initially
+> only the flags in the links array can be changed. The backlinks
+> array would not be involved.
+> 
+> Now, having all said this, creating support for backlinks isn't
+> that easy without first making data structure changes in the kernel.
+> 
+> So I have no plans to work on backlink support any time soon (if at
+> all).
+
+Ok, so let's postpone any discussions with regards to it to the
+future, if you decide to work on it.
+
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> >   
+> >>
+> >> 1+2 are internal cleanups that can be done later.
+> >>
+> >> 3 is a low-priority future enhancement. This might become easier to implement
+> >> once 1+2 are done.
+> >>
+> >> This is pretty much the last RFC. If everyone agree with this approach, then
+> >> I can make a final patch series, adding documentation etc.
+> >>
+> >> Regards,
+> >>
+> >>         Hans
+> >>
+> >>
+> >> Hans Verkuil (3):
+> >>   uapi/linux/media.h: add property support
+> >>   media controller: add properties support
+> >>   vimc: add property test code
+> >>
+> >>  drivers/media/media-device.c              | 335 +++++++++++++++++-----
+> >>  drivers/media/media-entity.c              | 107 ++++++-
+> >>  drivers/media/platform/vimc/vimc-common.c |  50 ++++
+> >>  include/media/media-device.h              |   6 +
+> >>  include/media/media-entity.h              | 318 ++++++++++++++++++++
+> >>  include/uapi/linux/media.h                |  88 +++++-
+> >>  6 files changed, 819 insertions(+), 85 deletions(-)
+> >>  
+> > 
+> > 
+> > 
+> > Thanks,
+> > Mauro
+> >   
+> 
 
 
-// field pictures may reference current capture buffer and is not
-returned by vb2_find_tag
-if (v4l2_buf->tag == dpb->tag)
-    buf_idx = v4l2_buf->vb2_buf.index;
-else
-    buf_idx = vb2_find_tag(cap_q, dpb->tag, 0);
 
-
-What is the recommended way to handle such case?
-Could vb2_find_timestamp be extended to allow QUEUED buffers to be returned?
-
-
-In our sample code we only keep at most one output, one capture buffer
-in queue
-and use buffer indices as tag/timestamp to simplify buffer handling.
-FFmpeg keeps track of buffers/frames referenced and a buffer will not be
-reused
-until the codec and display pipeline have released all references to it.
-
-Sample code having interlaced and multi-slice support using previous tag
-version of this patchset can be found at:
-https://github.com/jernejsk/LibreELEC.tv/blob/hw_dec_ffmpeg/projects/Allwinner/patches/linux/0025-H264-fixes.patch#L120-L124
-https://github.com/Kwiboo/FFmpeg/compare/4.0.3-Leia-Beta5...v4l2-request-hwaccel
-
-Regards,
-Jonas
-
-On 2018-12-12 13:38, hverkuil-cisco@xs4all.nl wrote:
-> From: Hans Verkuil <hverkuil-cisco@xs4all.nl>
->
-> Use v4l2_timeval_to_ns instead of timeval_to_ns to ensure that
-> both kernelspace and userspace will use the same conversion
-> function.
->
-> Next add a new vb2_find_timestamp() function to find buffers
-> with a specific timestamp.
->
-> This function will only look at DEQUEUED and DONE buffers, i.e.
-> buffers that are already processed.
->
-> Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
-> ---
->  .../media/common/videobuf2/videobuf2-v4l2.c   | 22 +++++++++++++++++--
->  include/media/videobuf2-v4l2.h                | 19 +++++++++++++++-
->  2 files changed, 38 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-> index 1244c246d0c4..8d1231c2da65 100644
-> --- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
-> +++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-> @@ -143,7 +143,7 @@ static void __copy_timestamp(struct vb2_buffer *vb, const void *pb)
->  		 * and the timecode field and flag if needed.
->  		 */
->  		if (q->copy_timestamp)
-> -			vb->timestamp = timeval_to_ns(&b->timestamp);
-> +			vb->timestamp = v4l2_timeval_to_ns(&b->timestamp);
->  		vbuf->flags |= b->flags & V4L2_BUF_FLAG_TIMECODE;
->  		if (b->flags & V4L2_BUF_FLAG_TIMECODE)
->  			vbuf->timecode = b->timecode;
-> @@ -460,7 +460,8 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
->  	b->flags = vbuf->flags;
->  	b->field = vbuf->field;
->  	b->timestamp = ns_to_timeval(vb->timestamp);
-> -	b->timecode = vbuf->timecode;
-> +	if (b->flags & V4L2_BUF_FLAG_TIMECODE)
-> +		b->timecode = vbuf->timecode;
->  	b->sequence = vbuf->sequence;
->  	b->reserved2 = 0;
->  	b->request_fd = 0;
-> @@ -586,6 +587,23 @@ static const struct vb2_buf_ops v4l2_buf_ops = {
->  	.copy_timestamp		= __copy_timestamp,
->  };
->  
-> +int vb2_find_timestamp(const struct vb2_queue *q, u64 timestamp,
-> +		       unsigned int start_idx)
-> +{
-> +	unsigned int i;
-> +
-> +	for (i = start_idx; i < q->num_buffers; i++) {
-> +		struct vb2_buffer *vb = q->bufs[i];
-> +
-> +		if ((vb->state == VB2_BUF_STATE_DEQUEUED ||
-> +		     vb->state == VB2_BUF_STATE_DONE) &&
-> +		    vb->timestamp == timestamp)
-> +			return i;
-> +	}
-> +	return -1;
-> +}
-> +EXPORT_SYMBOL_GPL(vb2_find_timestamp);
-> +
->  /*
->   * vb2_querybuf() - query video buffer information
->   * @q:		videobuf queue
-> diff --git a/include/media/videobuf2-v4l2.h b/include/media/videobuf2-v4l2.h
-> index 727855463838..80f1afa0edad 100644
-> --- a/include/media/videobuf2-v4l2.h
-> +++ b/include/media/videobuf2-v4l2.h
-> @@ -32,7 +32,7 @@
->   *		&enum v4l2_field.
->   * @timecode:	frame timecode.
->   * @sequence:	sequence count of this frame.
-> - * @request_fd:	the request_fd associated with this buffer
-> + * @request_fd:	the request_fd associated with this buffer.
->   * @planes:	plane information (userptr/fd, length, bytesused, data_offset).
->   *
->   * Should contain enough information to be able to cover all the fields
-> @@ -55,6 +55,23 @@ struct vb2_v4l2_buffer {
->  #define to_vb2_v4l2_buffer(vb) \
->  	container_of(vb, struct vb2_v4l2_buffer, vb2_buf)
->  
-> +/**
-> + * vb2_find_timestamp() - Find buffer with given timestamp in the queue
-> + *
-> + * @q:		pointer to &struct vb2_queue with videobuf2 queue.
-> + * @timestamp:	the timestamp to find. Only buffers in state DEQUEUED or DONE
-> + *		are considered.
-> + * @start_idx:	the start index (usually 0) in the buffer array to start
-> + *		searching from. Note that there may be multiple buffers
-> + *		with the same timestamp value, so you can restart the search
-> + *		by setting @start_idx to the previously found index + 1.
-> + *
-> + * Returns the buffer index of the buffer with the given @timestamp, or
-> + * -1 if no buffer with @timestamp was found.
-> + */
-> +int vb2_find_timestamp(const struct vb2_queue *q, u64 timestamp,
-> +		       unsigned int start_idx);
-> +
->  int vb2_querybuf(struct vb2_queue *q, struct v4l2_buffer *b);
->  
->  /**
+Thanks,
+Mauro
