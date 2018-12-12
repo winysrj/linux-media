@@ -6,25 +6,25 @@ X-Spam-Status: No, score=-8.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A40AAC04EB8
-	for <linux-media@archiver.kernel.org>; Wed, 12 Dec 2018 12:39:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5EA53C67839
+	for <linux-media@archiver.kernel.org>; Wed, 12 Dec 2018 12:39:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4A32F2084E
-	for <linux-media@archiver.kernel.org>; Wed, 12 Dec 2018 12:39:06 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 4A32F2084E
+	by mail.kernel.org (Postfix) with ESMTP id 233FA2084E
+	for <linux-media@archiver.kernel.org>; Wed, 12 Dec 2018 12:39:07 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 233FA2084E
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=xs4all.nl
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727441AbeLLMjF (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 12 Dec 2018 07:39:05 -0500
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:60310 "EHLO
+        id S1727447AbeLLMjG (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 12 Dec 2018 07:39:06 -0500
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:51249 "EHLO
         lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727161AbeLLMjF (ORCPT
+        by vger.kernel.org with ESMTP id S1727360AbeLLMjG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Dec 2018 07:39:05 -0500
+        Wed, 12 Dec 2018 07:39:06 -0500
 Received: from test-nl.fritz.box ([80.101.105.217])
         by smtp-cloud8.xs4all.net with ESMTPA
-        id X3n3gidc5uDWoX3n6gHoW9; Wed, 12 Dec 2018 13:39:04 +0100
+        id X3n3gidc5uDWoX3n6gHoWg; Wed, 12 Dec 2018 13:39:04 +0100
 From:   hverkuil-cisco@xs4all.nl
 To:     linux-media@vger.kernel.org
 Cc:     Alexandre Courbot <acourbot@chromium.org>,
@@ -34,9 +34,9 @@ Cc:     Alexandre Courbot <acourbot@chromium.org>,
         Tomasz Figa <tfiga@chromium.org>,
         Nicolas Dufresne <nicolas@ndufresne.ca>,
         Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Subject: [PATCHv5 2/8] vim2m: use v4l2_m2m_buf_copy_data
-Date:   Wed, 12 Dec 2018 13:38:55 +0100
-Message-Id: <20181212123901.34109-3-hverkuil-cisco@xs4all.nl>
+Subject: [PATCHv5 5/8] videodev2.h: add v4l2_timeval_to_ns inline function
+Date:   Wed, 12 Dec 2018 13:38:58 +0100
+Message-Id: <20181212123901.34109-6-hverkuil-cisco@xs4all.nl>
 X-Mailer: git-send-email 2.19.2
 In-Reply-To: <20181212123901.34109-1-hverkuil-cisco@xs4all.nl>
 References: <20181212123901.34109-1-hverkuil-cisco@xs4all.nl>
@@ -53,36 +53,52 @@ X-Mailing-List: linux-media@vger.kernel.org
 
 From: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 
-Use the new v4l2_m2m_buf_copy_data() function in vim2m.
+We want to be able to uniquely identify buffers for stateless
+codecs. The internal timestamp (a u64) as stored internally in the
+kernel is a suitable candidate for that, but in struct v4l2_buffer
+it is represented as a struct timeval.
+
+Add a v4l2_timeval_to_ns() function that converts the struct timeval
+into a u64 in the same way that the kernel does. This makes it possible
+to use this u64 elsewhere as a unique identifier of the buffer.
+
+Since timestamps are also copied from the output buffer to the
+corresponding capture buffer(s) by M2M devices, the u64 can be
+used to refer to both output and capture buffers.
+
+The plan is that in the future we redesign struct v4l2_buffer and use
+u64 for the timestamp instead of a struct timeval (which has lots of
+problems with 32 vs 64 bit and y2038 layout changes), and then there
+is no more need to use this function.
 
 Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 ---
- drivers/media/platform/vim2m.c | 12 +-----------
- 1 file changed, 1 insertion(+), 11 deletions(-)
+ include/uapi/linux/videodev2.h | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
-index d01821a6906a..33397d4a1402 100644
---- a/drivers/media/platform/vim2m.c
-+++ b/drivers/media/platform/vim2m.c
-@@ -241,17 +241,7 @@ static int device_process(struct vim2m_ctx *ctx,
- 	out_vb->sequence =
- 		get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE)->sequence++;
- 	in_vb->sequence = q_data->sequence++;
--	out_vb->vb2_buf.timestamp = in_vb->vb2_buf.timestamp;
--
--	if (in_vb->flags & V4L2_BUF_FLAG_TIMECODE)
--		out_vb->timecode = in_vb->timecode;
--	out_vb->field = in_vb->field;
--	out_vb->flags = in_vb->flags &
--		(V4L2_BUF_FLAG_TIMECODE |
--		 V4L2_BUF_FLAG_KEYFRAME |
--		 V4L2_BUF_FLAG_PFRAME |
--		 V4L2_BUF_FLAG_BFRAME |
--		 V4L2_BUF_FLAG_TSTAMP_SRC_MASK);
-+	v4l2_m2m_buf_copy_data(out_vb, in_vb, true);
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 2db1635de956..3580c1ea4fba 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -971,6 +971,18 @@ struct v4l2_buffer {
+ 	};
+ };
  
- 	switch (ctx->mode) {
- 	case MEM2MEM_HFLIP | MEM2MEM_VFLIP:
++/**
++ * v4l2_timeval_to_ns - Convert timeval to nanoseconds
++ * @ts:		pointer to the timeval variable to be converted
++ *
++ * Returns the scalar nanosecond representation of the timeval
++ * parameter.
++ */
++static inline u64 v4l2_timeval_to_ns(const struct timeval *tv)
++{
++	return (__u64)tv->tv_sec * 1000000000ULL + tv->tv_usec * 1000;
++}
++
+ /*  Flags for 'flags' field */
+ /* Buffer is mapped (flag) */
+ #define V4L2_BUF_FLAG_MAPPED			0x00000001
 -- 
 2.19.2
 
