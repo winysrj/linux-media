@@ -2,527 +2,349 @@ Return-Path: <SRS0=2Dg0=OV=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.4 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,T_MIXED_ES,URIBL_BLOCKED,USER_AGENT_MUTT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,T_MIXED_ES
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E92EC04EB8
-	for <linux-media@archiver.kernel.org>; Wed, 12 Dec 2018 08:39:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DCBB8C04EB8
+	for <linux-media@archiver.kernel.org>; Wed, 12 Dec 2018 08:43:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DED9A20839
-	for <linux-media@archiver.kernel.org>; Wed, 12 Dec 2018 08:39:48 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org DED9A20839
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=jmondi.org
+	by mail.kernel.org (Postfix) with ESMTP id 9760520839
+	for <linux-media@archiver.kernel.org>; Wed, 12 Dec 2018 08:43:09 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 9760520839
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=xs4all.nl
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726598AbeLLIjm (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 12 Dec 2018 03:39:42 -0500
-Received: from relay1-d.mail.gandi.net ([217.70.183.193]:44145 "EHLO
-        relay1-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726020AbeLLIjm (ORCPT
+        id S1726514AbeLLInJ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 12 Dec 2018 03:43:09 -0500
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:60808 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726242AbeLLInI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Dec 2018 03:39:42 -0500
-X-Originating-IP: 2.224.242.101
-Received: from w540 (2-224-242-101.ip172.fastwebnet.it [2.224.242.101])
-        (Authenticated sender: jacopo@jmondi.org)
-        by relay1-d.mail.gandi.net (Postfix) with ESMTPSA id 7E47024000B;
-        Wed, 12 Dec 2018 08:39:35 +0000 (UTC)
-Date:   Wed, 12 Dec 2018 09:39:34 +0100
-From:   jacopo mondi <jacopo@jmondi.org>
-To:     Michael Nazzareno Trimarchi <michael@amarulasolutions.com>
-Cc:     hverkuil@xs4all.nl, Jagan Teki <jagan@amarulasolutions.com>,
-        mchehab@kernel.org, linux-media@vger.kernel.org,
-        LKML <linux-kernel@vger.kernel.org>,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Philipp Zabel <p.zabel@pengutronix.de>
-Subject: Re: Configure video PAL decoder into media pipeline
-Message-ID: <20181212083934.GM5597@w540>
-References: <CAMty3ZAa2_o87YJ=1iak-o-rfZjoYz7PKXM9uGrbHsh6JLOCWw@mail.gmail.com>
- <850c2502-217c-a9f0-b433-0cd26d0419fd@xs4all.nl>
- <CAOf5uwkirwRPk3=w1fONLrOpwNqGiJbhh6okDmOTWyKWvW+U1w@mail.gmail.com>
- <CAOf5uw=d6D4FGZp8iWKdA1+77ZQtkNZwbJStmO+L-NtW4gqfaA@mail.gmail.com>
- <20181209193912.GC12193@w540>
- <CAOf5uwncWDqLsAvQ1H0xN1qQRA_NBt=m2Ncuz_3_nCRhFptpAw@mail.gmail.com>
- <20181211113912.GI5597@w540>
- <CAOf5uwk0U0BA2vDB1=_Uay30cgtfGuWOm8339jsAwn+O78ZnFA@mail.gmail.com>
+        Wed, 12 Dec 2018 03:43:08 -0500
+Received: from [IPv6:2001:983:e9a7:1:d5c3:7636:7173:44a0] ([IPv6:2001:983:e9a7:1:d5c3:7636:7173:44a0])
+        by smtp-cloud8.xs4all.net with ESMTPA
+        id X06jgh319uDWoX06kgGtJD; Wed, 12 Dec 2018 09:43:06 +0100
+Subject: Re: [RFCv4 PATCH 1/3] uapi/linux/media.h: add property support
+To:     Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc:     linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+References: <20181121154024.13906-1-hverkuil@xs4all.nl>
+ <20181121154024.13906-2-hverkuil@xs4all.nl>
+ <20181212061819.111a9631@coco.lan>
+From:   Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <e26a07ef-836e-5943-508a-dd5f8c73f0cd@xs4all.nl>
+Date:   Wed, 12 Dec 2018 09:43:05 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.3.1
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="GEn4szYucjS2InE7"
-Content-Disposition: inline
-In-Reply-To: <CAOf5uwk0U0BA2vDB1=_Uay30cgtfGuWOm8339jsAwn+O78ZnFA@mail.gmail.com>
-User-Agent: Mutt/1.5.24 (2015-08-30)
+In-Reply-To: <20181212061819.111a9631@coco.lan>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-CMAE-Envelope: MS4wfNtgcrW9M82Bbhq/RNykyUjjphdJT8NezTIAqGeBe593dqtuIicr9Cl9mibSbEYIdLIFnGE9T8LGSa6tLqyZpOVCu9Tkouwx+PNHAGPuWGTK0UOfzihV
+ kmLI5hAFMpXBdLT3wDJQgHumXFdFq3VWbL1nbic0UZaNMJ23coY3nI88jAl0b6RUmgqns1A9a5Rtpr9+p7wVySemp7Vz6PpJ8wuLzE7j/EzjOk/u+I3FilKN
+ OmzKihdinuq92xDHXJSPdyp84hoOFF9OtwXdVthnAw5jw1VtdXJSJxa9TntFC1kqFjN28+QJPzk8hRmWMrnHUCkQlAuNtHhf4O2r1PVdHVeRDPyMQPMsbt7t
+ HWO92vqY
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
+On 12/12/18 9:18 AM, Mauro Carvalho Chehab wrote:
+> Em Wed, 21 Nov 2018 16:40:22 +0100
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> Add a new topology struct that includes properties and adds
+>> index fields to quickly find references from one object to
+>> another in the topology arrays.
+> 
+> As mentioned on patch 0/3, hard to review it without documentation.
+> 
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> ---
+>>  include/uapi/linux/media.h | 88 ++++++++++++++++++++++++++++++++++++--
+>>  1 file changed, 84 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+>> index e5d0c5c611b5..a81e9723204c 100644
+>> --- a/include/uapi/linux/media.h
+>> +++ b/include/uapi/linux/media.h
+>> @@ -144,6 +144,8 @@ struct media_device_info {
+>>  /* Entity flags */
+>>  #define MEDIA_ENT_FL_DEFAULT			(1 << 0)
+>>  #define MEDIA_ENT_FL_CONNECTOR			(1 << 1)
+>> +#define MEDIA_ENT_FL_PAD_IDX			(1 << 2)
+>> +#define MEDIA_ENT_FL_PROP_IDX			(1 << 3)
+>>  
+>>  /* OR with the entity id value to find the next entity */
+>>  #define MEDIA_ENT_ID_FLAG_NEXT			(1 << 31)
+>> @@ -210,6 +212,9 @@ struct media_entity_desc {
+>>  #define MEDIA_PAD_FL_SINK			(1 << 0)
+>>  #define MEDIA_PAD_FL_SOURCE			(1 << 1)
+>>  #define MEDIA_PAD_FL_MUST_CONNECT		(1 << 2)
+>> +#define MEDIA_PAD_FL_LINK_IDX			(1 << 3)
+>> +#define MEDIA_PAD_FL_PROP_IDX			(1 << 4)
+>> +#define MEDIA_PAD_FL_ENTITY_IDX			(1 << 5)
+>>  
+>>  struct media_pad_desc {
+>>  	__u32 entity;		/* entity ID */
+>> @@ -221,6 +226,8 @@ struct media_pad_desc {
+>>  #define MEDIA_LNK_FL_ENABLED			(1 << 0)
+>>  #define MEDIA_LNK_FL_IMMUTABLE			(1 << 1)
+>>  #define MEDIA_LNK_FL_DYNAMIC			(1 << 2)
+> 
+>> +#define MEDIA_LNK_FL_SOURCE_IDX			(1 << 3)
+>> +#define MEDIA_LNK_FL_SINK_IDX			(1 << 4)
+> 
+> Why do we need those flags?
+> 
+>>  
+>>  #define MEDIA_LNK_FL_LINK_TYPE			(0xf << 28)
+>>  #  define MEDIA_LNK_FL_DATA_LINK		(0 << 28)
+>> @@ -296,7 +303,9 @@ struct media_v2_entity {
+>>  	char name[64];
+>>  	__u32 function;		/* Main function of the entity */
+>>  	__u32 flags;
+>> -	__u32 reserved[5];
+>> +	__u16 pad_idx;
+>> +	__u16 prop_idx;
+> 
+> Hmm... pad_idx = 0 and prop_idx = 0 can't be used, in order to
+> avoid breaking backward compat. It should be documented somewhere.
 
---GEn4szYucjS2InE7
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+And that's why we have the flags: to indicate these index fields have
+valid indices. I thought about reversing index 0, preventing it from
+being used, but that's just ugly.
 
-Hi Michael,
+> 
+> I've no idea what you intend here... an entity has multiple pads.
+> linking it to a single one sounds a very bad idea. Also, this
+> information is already present at the pads.
 
-On Tue, Dec 11, 2018 at 02:53:24PM +0100, Michael Nazzareno Trimarchi wrote:
-> Hi Jacopo
->
-> On Tue, Dec 11, 2018 at 12:39 PM jacopo mondi <jacopo@jmondi.org> wrote:
-> >
-> > Hi Michael,
-> >
-> > On Mon, Dec 10, 2018 at 10:45:02PM +0100, Michael Nazzareno Trimarchi w=
-rote:
-> > > Hi Jacopo
-> > >
-> > > Let's see what I have done
-> > >
-> > > On Sun, Dec 9, 2018 at 8:39 PM jacopo mondi <jacopo@jmondi.org> wrote:
-> > > >
-> > > > Hi Michael, Jagan, Hans,
-> > > >
-> > > > On Sat, Dec 08, 2018 at 06:07:04PM +0100, Michael Nazzareno Trimarc=
-hi wrote:
-> > > > > Hi
-> > > > >
-> > > > > Down you have my tentative of connection
-> > > > >
-> > > > > I need to hack a bit to have tuner registered. I'm using imx-media
-> > > > >
-> > > > > On Sat, Dec 8, 2018 at 12:48 PM Michael Nazzareno Trimarchi
-> > > > > <michael@amarulasolutions.com> wrote:
-> > > > > >
-> > > > > > Hi
-> > > > > >
-> > > > > > On Fri, Dec 7, 2018 at 1:11 PM Hans Verkuil <hverkuil@xs4all.nl=
-> wrote:
-> > > > > > >
-> > > > > > > On 12/07/2018 12:51 PM, Jagan Teki wrote:
-> > > > > > > > Hi,
-> > > > > > > >
-> > > > > > > > We have some unconventional setup for parallel CSI design w=
-here analog
-> > > > > > > > input data is converted into to digital composite using PAL=
- decoder
-> > > > > > > > and it feed to adv7180, camera sensor.
-> > > > > > > >
-> > > > > > > > Analog input =3D>  Video PAL Decoder =3D> ADV7180 =3D> IPU-=
-CSI0
-> > > > > > >
-> > > > > > > Just PAL? No NTSC support?
-> > > > > > >
-> > > > > > For now does not matter. I have registere the TUNER that suppor=
-t it
-> > > > > > but seems that media-ctl is not suppose to work with the MEDIA_=
-ENT_F_TUNER
-> > > > > >
-> > > > > > Is this correct?
-> > > > > >
-> > > >
-> > > > media-types.rst reports:
-> > > >
-> > > >     *  -  ``MEDIA_ENT_F_IF_VID_DECODER``
-> > > >        -  IF-PLL video decoder. It receives the IF from a PLL and d=
-ecodes
-> > > >           the analog TV video signal. This is commonly found on som=
-e very
-> > > >           old analog tuners, like Philips MK3 designs. They all con=
-tain a
-> > > >           tda9887 (or some software compatible similar chip, like t=
-da9885).
-> > > >           Those devices use a different I2C address than the tuner =
-PLL.
-> > > >
-> > > > Is this what you were looking for?
-> > > >
-> > > > > > > >
-> > > > > > > > The PAL decoder is I2C based, tda9885 chip. We setup it up =
-via dt
-> > > > > > > > bindings and the chip is
-> > > > > > > > detected fine.
-> > > > > > > >
-> > > > > > > > But we need to know, is this to be part of media control su=
-bdev
-> > > > > > > > pipeline? so-that we can configure pads, links like what we=
- do on
-> > > > > > > > conventional pipeline  or it should not to be part of media=
- pipeline?
-> > > > > > >
-> > > > > > > Yes, I would say it should be part of the pipeline.
-> > > > > > >
-> > > > > >
-> > > > > > Ok I have created a draft patch to add the adv some new endpoin=
-t but
-> > > > > > is sufficient to declare tuner type in media control?
-> > > > > >
-> > > > > > Michael
-> > > > > >
-> > > > > > > >
-> > > > > > > > Please advise for best possible way to fit this into the de=
-sign.
-> > > > > > > >
-> > > > > > > > Another observation is since the IPU has more than one sink=
-, source
-> > > > > > > > pads, we source or sink the other components on the pipelin=
-e but look
-> > > > > > > > like the same thing seems not possible with adv7180 since i=
-f has only
-> > > > > > > > one pad. If it has only one pad sourcing to adv7180 from td=
-a9885 seems
-> > > > > > > > not possible, If I'm not mistaken.
-> > > > > > >
-> > > > > > > Correct, in all cases where the adv7180 is used it is directl=
-y connected
-> > > > > > > to the video input connector on a board.
-> > > > > > >
-> > > > > > > So to support this the adv7180 driver should be modified to a=
-dd an input pad
-> > > > > > > so you can connect the decoder. It will be needed at some poi=
-nt anyway once
-> > > > > > > we add support for connector entities.
-> > > > > > >
-> > > > > > > Regards,
-> > > > > > >
-> > > > > > >         Hans
-> > > > > > >
-> > > > > > > >
-> > > > > > > > I tried to look for similar design in mainline, but I could=
-n't find
-> > > > > > > > it. is there any design similar to this in mainline?
-> > > > > > > >
-> > > > > > > > Please let us know if anyone has any suggestions on this.
-> > > > > > > >
-> > > > >
-> > > > > [    3.379129] imx-media: ipu1_vdic:2 -> ipu1_ic_prp:0
-> > > > > [    3.384262] imx-media: ipu2_vdic:2 -> ipu2_ic_prp:0
-> > > > > [    3.389217] imx-media: ipu1_ic_prp:1 -> ipu1_ic_prpenc:0
-> > > > > [    3.394616] imx-media: ipu1_ic_prp:2 -> ipu1_ic_prpvf:0
-> > > > > [    3.399867] imx-media: ipu2_ic_prp:1 -> ipu2_ic_prpenc:0
-> > > > > [    3.405289] imx-media: ipu2_ic_prp:2 -> ipu2_ic_prpvf:0
-> > > > > [    3.410552] imx-media: ipu1_csi0:1 -> ipu1_ic_prp:0
-> > > > > [    3.415502] imx-media: ipu1_csi0:1 -> ipu1_vdic:0
-> > > > > [    3.420305] imx-media: ipu1_csi0_mux:5 -> ipu1_csi0:0
-> > > > > [    3.425427] imx-media: ipu1_csi1:1 -> ipu1_ic_prp:0
-> > > > > [    3.430328] imx-media: ipu1_csi1:1 -> ipu1_vdic:0
-> > > > > [    3.435142] imx-media: ipu1_csi1_mux:5 -> ipu1_csi1:0
-> > > > > [    3.440321] imx-media: adv7180 2-0020:1 -> ipu1_csi0_mux:4
-> > > > >
-> > > > > with
-> > > > >        tuner: tuner@43 {
-> > > > >                 compatible =3D "tuner";
-> > > > >                 reg =3D <0x43>;
-> > > > >                 pinctrl-names =3D "default";
-> > > > >                 pinctrl-0 =3D <&pinctrl_tuner>;
-> > > > >
-> > > > >                 ports {
-> > > > >                         #address-cells =3D <1>;
-> > > > >                         #size-cells =3D <0>;
-> > > > >                         port@1 {
-> > > > >                                 reg =3D <1>;
-> > > > >
-> > > > >                                 tuner_in: endpoint {
-> > > >
-> > > > Nit: This is the tuner output, I would call this "tuner_out"
-> > > >
-> > >
-> > > Done
-> > >
-> > > > >                                         remote-endpoint =3D <&tun=
-er_out>;
-> > > > >                                 };
-> > > > >                         };
-> > > > >                 };
-> > > > >         };
-> > > > >
-> > > > >         adv7180: camera@20 {
-> > > > >                 compatible =3D "adi,adv7180";
-> > > >
-> > > > One minor thing first: look at the adv7180 bindings documentation, =
-and
-> > > > you'll find out that only devices compatible with "adv7180cp" and
-> > > > "adv7180st" shall declare a 'ports' node. This is minor issues (als=
-o,
-> > > > I don't see it enforced in driver's code, but still worth pointing =
-it
-> > > > out from the very beginning)
-> > > >
-> > > > >                 reg =3D <0x20>;
-> > > > >                 pinctrl-names =3D "default";
-> > > > >                 pinctrl-0 =3D <&pinctrl_adv7180>;
-> > > > >                 powerdown-gpios =3D <&gpio3 20 GPIO_ACTIVE_LOW>; =
-/* PDEC_PWRDN */
-> > > > >
-> > > > >                 ports {
-> > > > >                         #address-cells =3D <1>;
-> > > > >                         #size-cells =3D <0>;
-> > > > >
-> > > > >                         port@1 {
-> > > > >                                 reg =3D <1>;
-> > > > >
-> > > > >                                 adv7180_to_ipu1_csi0_mux: endpoin=
-t {
-> > > > >                                         remote-endpoint =3D
-> > > > > <&ipu1_csi0_mux_from_parallel_sensor>;
-> > > > >                                         bus-width =3D <8>;
-> > > > >                                 };
-> > > > >                         };
-> > > > >
-> > > > >                         port@0 {
-> > > > >                                 reg =3D <0>;
-> > > > >
-> > > > >                                 tuner_out: endpoint {
-> > > >
-> > > > Nit: That's an adv7180 endpoint, I would call it 'adv7180_in'
-> > > >
-> > >
-> > > Done
-> > >
-> > > > >                                         remote-endpoint =3D <&tun=
-er_in>;
-> > > > >                                 };
-> > > > >                         };
-> > > > >                 };
-> > > > >         };
-> > > > >
-> > > > > Any help is appreciate
-> > > > >
-> > > >
-> > > > The adv7180(cp|st) bindings says the device can declare one (or mor=
-e)
-> > > > input endpoints, but that's just to make possible to connect in dev=
-ice
-> > > > tree the 7180's device node with the video input port. You can see =
-an
-> > > > example in arch/arm64/boot/dts/renesas/r8a77995-draak.dts which is
-> > > > similar to what you've done here.
-> > > >
-> > > > The video input port does not show up in the media graph, as it is
-> > > > just a 'place holder' to describe an input port in DTs, the
-> > > > adv7180 driver does not register any sink pad, where to connect any
-> > > > video source to.
-> > > >
-> > > > Your proposed bindings here look almost correct, but to have it
-> > > > working for real you should add a sink pad to the adv7180 registered
-> > > > media entity (possibly only conditionally to the presence of an inp=
-ut
-> > > > endpoint in DTs...). You should then register a subdev-notifier, wh=
-ich
-> > > > registers on an async-subdevice that uses the remote endpoint
-> > > > connected to your newly registered input pad to find out which devi=
-ce
-> > > > you're linked to; then at 'bound' (or possibly 'complete') time
-> > > > register a link between the two entities, on which you can operate =
-on
-> > > > from userspace.
-> > > >
-> > > > Your tuner driver for tda9885 (which I don't see in mainline, so I
-> > > > assume it's downstream or custom code) should register an async sub=
-device,
-> > > > so that the adv7180 registered subdev-notifier gets matched and your
-> > > > callbacks invoked.
-> > > >
-> > > > If I were you, I would:
-> > > > 1) Add dt-parsing routine to tda7180, to find out if any input
-> > > > endpoint is registered in DT.
-> > >
-> > > Done
-> > >
-> > > > 2) If it is, then register a SINK pad, along with the single SOURCE=
- pad
-> > > > which is registered today.
-> > >
-> > > Done
-> > >
-> > > > 3) When parsing DT, for input endpoints, get a reference to the rem=
-ote
-> > > > endpoint connected to your input and register a subdev-notifier
-> > >
-> > > Done
-> > >
-> > > > 4) Fill in the notifier 'bound' callback and register the link to
-> > > > your remote device there.
-> > >
-> > > Both are subdevice that has not a v4l2_device, so bound is not called=
- from two
-> > > sub-device. Is this expected?
-> >
-> > That should not be an issue. As we discussed, I slightly misleaded
-> > you, pointing you to rcar-csi2, which implements a 'custom' matching
-> > logic, trying to match its remote on endpoints and not on device node.
-> >
-> >         priv->asd.match.fwnode =3D
-> >                 fwnode_graph_get_remote_endpoint(of_fwnode_handle(ep));
-> >
-> > I'm sorry about this.
-> >
-> > You better use something like:
-> >
-> >         asd->match.fwnode =3D
-> >                 fwnode_graph_get_remote_port_parent(endpoint);
-> >
-> > or the recently introduced 'v4l2_async_notifier_parse_fwnode_endpoints_=
-by_port()'
-> > function, that does most of that for you.
-> >
->
-> - entity 80: adv7180 2-0020 (2 pads, 5 links)
->              type V4L2 subdev subtype Decoder flags 0
->              device node name /dev/v4l-subdev11
-> pad0: Sink
-> [fmt:UYVY8_2X8/720x240@1001/30000 field:alternate colorspace:smpte170m]
-> <- "ipu1_csi0_mux":4 []
-> -> "ipu1_csi0_mux":4 []
-> <- "tda9887":1 [ENABLED,IMMUTABLE]
-> pad1: Source
-> [fmt:UYVY8_2X8/720x240@1001/30000 field:alternate colorspace:smpte170m]
-> -> "tda9887":1 []
-> <- "tda9887":1 []
->
-> - entity 83: tda9887 (2 pads, 3 links)
->              type V4L2 subdev subtype Unknown flags 0
-> pad0: Sink
-> pad1: Source
-> <- "adv7180 2-0020":1 []
-> -> "adv7180 2-0020":0 [ENABLED,IMMUTABLE]
-> -> "adv7180 2-0020":1 []
->
->
-> Now the only problem is that I have a link in the graph that I have
-> not defined that not le me to stream. Look and png file I can see an
-> hard link from tda9887 to csi. Do you know why is coming?
->
+pad_idx is an index into the pads array where the pads for this entity
+are stored. So all the pads for this entity are available starting at
+index pad_idx and until the end of the pads array or the first pad with
+a different entity ID. This way there is no need to create your own data
+structures just to traverse the data structures.
 
-I don't see any link between tda and csi in the snippet you pasted
-above (nor I see a .png representing the media graph attached).
+Same for properties.
 
-What I see is the link: '"adv7180 2-0020":0 -> "tda9887":1' which is
-fine, but you're missing a link '"adv7180 2-0020":1 -> "ipu1_csi0_mux":4'
+> 
+> 
+>> +	__u32 reserved[4];
+>>  } __attribute__ ((packed));
+>>  
+>>  /* Should match the specific fields at media_intf_devnode */
+>> @@ -305,11 +314,14 @@ struct media_v2_intf_devnode {
+>>  	__u32 minor;
+>>  } __attribute__ ((packed));
+>>  
+>> +#define MEDIA_INTF_FL_LINK_IDX			(1 << 0)
+>> +
+> 
+> Why do we need it?
+> 
+>>  struct media_v2_interface {
+>>  	__u32 id;
+>>  	__u32 intf_type;
+>>  	__u32 flags;
+>> -	__u32 reserved[9];
+>> +	__u16 link_idx;
+>> +	__u16 reserved[17];
+> 
+> Why do we need a link_idx? The link itself already points to
+> the interface. Also, that would limit the API if we ever
+> need to have one interface with multiple links.
 
-=46rom what I see your DTS (or parsing routines, I can't tell without
-the seeing the code) links  adv7180:1->tda9887:1 which is a
-source->source link, and the same time creates an
-adv7180:0->ipu1_csi0_mux:4 which is a sink->sink link.
+Same here: it is the index into the links array where the link for
+this interface is stored.
 
-If you fix that by creating instead a adv7180:1->ipu1_csi0_mux:4 you
-should be fine (provided you keep the tda9887:1->adv7180:0 link you have
-already).
+> 
+>>  
+>>  	union {
+>>  		struct media_v2_intf_devnode devnode;
+>> @@ -331,7 +343,10 @@ struct media_v2_pad {
+>>  	__u32 entity_id;
+>>  	__u32 flags;
+>>  	__u32 index;
+>> -	__u32 reserved[4];
+>> +	__u16 link_idx;
+>> +	__u16 prop_idx;
+>> +	__u16 entity_idx;
+> 
+> Same comments as above for link_idx and entity_idx.
 
-If you send patches, we can comment further, otherwise it gets hard
-without seeing what's happening for real.
+And same comments from me.
 
-Thanks
-   j
+> 
+>> +	__u16 reserved[5];
+>>  } __attribute__ ((packed));
+>>  
+>>  struct media_v2_link {
+>> @@ -339,9 +354,68 @@ struct media_v2_link {
+>>  	__u32 source_id;
+>>  	__u32 sink_id;
+>>  	__u32 flags;
+>> -	__u32 reserved[6];
+>> +	__u16 source_idx;
+>> +	__u16 sink_idx;
+> 
+> What do you mean by source_idx and sink_idx?
 
-> Michael
->
-> > Sorry about this.
-> > Thanks
-> >    j
-> >
-> > >
-> > >
-> > > > 5) Make sure your tuner driver registers its subdevice with
-> > > > v4l2_async_register_subdev()
-> > > >
-> > > > A good example on how to register subdev notifier is provided in the
-> > > > rcsi2_parse_dt() function in rcar-csi2.c driver (I'm quite sure imx
-> > > > now uses subdev notifiers from v4.19 on too if you want to have a l=
-ook
-> > > > there).
-> > >
-> > > Already seen it
-> > >
-> > > >
-> > > > -- Entering slippery territory here: you might want more inputs on =
-this
-> > > >
-> > > > To make thing simpler&nicer (TM), if you blindly do what I've sugge=
-sted
-> > > > here, you're going to break all current adv7180 users in mainline :(
-> > > >
-> > > > That's because the v4l2-async design 'completes' the root notifier,
-> > > > only if all subdev-notifiers connected to it have completed first.
-> > > > If you add a notifier for the adv7180 input ports unconditionally, =
-and
-> > >
-> > > I don't get to complete. So let's proceed by step
-> > >
-> > > Michael
-> > >
-> > > > to the input port is connected a plain simple "composite-video-conn=
-ector",
-> > > > as all DTs in mainline are doing right now, the newly registered
-> > > > subdev-notifier will never complete, as the "composite-video-connec=
-tor"
-> > > > does not register any subdevice to match with. Bummer!
-> > > >
-> > > > A quick look in the code base, returns me that, in example:
-> > > > drivers/gpu/drm/meson/meson_drv.c filters on
-> > > > "composite-video-connector" and a few other compatible values. You
-> > > > might want to do the same, and register a notifier if and only if t=
-he
-> > > > remote input endpoint is one of those known not to register a
-> > > > subdevice. I'm sure there are other ways to deal with this issue, b=
-ut
-> > > > that's the best I can come up with...
-> > > > ---
-> > > >
-> > > > Hope this is reasonably clear and that I'm not misleading you. I ha=
-d to
-> > > > use adv7180 recently, and its single pad design confused me a bit a=
-s well :)
-> > > >
-> > > > Thanks
-> > > >   j
-> > > >
-> > > > > Michael
-> > > > >
-> > > > > > > > Jagan.
-> > > > > > > >
-> > > > > > >
-> > > > > >
-> > > > > >
-> > > > > > --
-> > >
-> > >
-> > >
-> > > --
-> > > | Michael Nazzareno Trimarchi                     Amarula Solutions B=
-V |
-> > > | COO  -  Founder                                      Cruquiuskade 4=
-7 |
-> > > | +31(0)851119172                                 Amsterdam 1018 AM N=
-L |
-> > > |                  [`as] http://www.amarulasolutions.com             =
-  |
->
->
->
-> --
-> | Michael Nazzareno Trimarchi                     Amarula Solutions BV |
-> | COO  -  Founder                                      Cruquiuskade 47 |
-> | +31(0)851119172                                 Amsterdam 1018 AM NL |
-> |                  [`as] http://www.amarulasolutions.com               |
+Index of the source entity in the entities array. Ditto for the sink.
+O(1) lookup for applications.
 
---GEn4szYucjS2InE7
-Content-Type: application/pgp-signature; name="signature.asc"
+> 
+>> +	__u32 reserved[5];
+>>  } __attribute__ ((packed));
+>>  
+>> +#define MEDIA_PROP_TYPE_GROUP	1
+>> +#define MEDIA_PROP_TYPE_U64	2
+>> +#define MEDIA_PROP_TYPE_S64	3
+>> +#define MEDIA_PROP_TYPE_STRING	4
+>> +
+>> +#define MEDIA_PROP_FL_OWNER			0xf
+> 
+> OWNER_TYPE? Just 0-15? Perhaps we should reserve more
+> bits for it.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+You are right, this should be 0xff (equivalent to MEDIA_BITS_PER_TYPE
+as defined in media/media-entity.h).
 
-iQIcBAABCAAGBQJcEMlGAAoJEHI0Bo8WoVY8insP/00TIUfMmMW5nLGGbzWU3SXW
-nF95TCPp87fjigo/F2lhERRk8BBGTcC+q4cMyMXNbCjFpQy83rKvz4+qVGm7yl9x
-JjPmn34pDTxUft87acPe66G2zsRIRTSotcM459tEDkLrIE4bia+D/viSYXVy25P6
-oCNzPRAA9qJ6yVDLEbRdmbCtl4oMf0PueVDattzMoTyuyGDrXs3hNWoV0AQsojxO
-gb7CB/MYyyLYLNTEL/Ym8PkC49uIk/dS3MMD0vNCAxFFO4490k9VWFn+S8xfhMR2
-VlCvZST1L0Gt9r6YNSs5XtyFN9j2Gorsx/pMwrmBYvAEJt6OqCmQD3UHCohEQUIR
-dv0t/9hZkhE7ECaDioNv3Lk/P0/ohxa8qx50QNB62hKiX/uGauBlMgnYRxXndcld
-4ICQ6plhh0t/5Cq4Vx+oZ6xZ4o3PRa92jr56iPLA01/W/8moXJTgMZtQoy3lsDQp
-yMOoRDVc4cD76qXtMumk51luisy2spzXDk1/ddlM2hQbMw9cn7EhU7bhJNWOwlw5
-msA7rS7EGLhRGwo03eaEDSx+WbF7ebk4coVGFCPS/0WI7x6rWqmPqHOC+eSa49us
-Y/czrnjpHQaFRNJ82t0AIIbo+qjaKEbZm8ANw765kITFWK/T2Xz1n6ePckKdNo6+
-AEtO67rJfDziF5sdFb0b
-=s+5F
------END PGP SIGNATURE-----
+> 
+>> +#  define MEDIA_PROP_FL_ENTITY			0
+>> +#  define MEDIA_PROP_FL_PAD			1
+>> +#  define MEDIA_PROP_FL_LINK			2
+>> +#  define MEDIA_PROP_FL_INTF			3
+>> +#  define MEDIA_PROP_FL_PROP			4
+>> +#define MEDIA_PROP_FL_PROP_IDX			(1 << 4)
+> 
+> Hmm... both OWNER and PROP_IDX are MEDIA_PROP_FL_*...
+> are all of them mapped as flags? If so, it doesn't seem a 
+> good idea to me to map both as flags.
 
---GEn4szYucjS2InE7--
+I need to rename MEDIA_PROP_FL_OWNER to something like MEDIA_PROP_FL_OWNER_TYPE_MSK.
+I.e. the first 8 (currently 4) bits of the flags field give the type of the object
+that the property belongs to (entity, pad, link, interface, property).
+
+The naming is confusing here.
+
+> 
+>> +
+>> +/**
+>> + * struct media_v2_prop - A media property
+>> + *
+>> + * @id:		The unique non-zero ID of this property
+>> + * @owner_id:	The ID of the object this property belongs to
+>> + * @type:	Property type
+>> + * @flags:	Property flags
+> 
+> But here you added and explicit field for type and flags...
+> I'm confused.
+
+The type describes the property type: group, string, u64, s64.
+
+Flags describe (among others) the type of the object that owns the property.
+
+An alternative is to drop this and add a macro that extracts the object
+type from an object ID since this is stored in the top 8 bits of the object
+(graph) ID.
+
+> 
+>> + * @name:	Property name
+>> + * @payload_size: Property payload size, 0 for U64/S64
+>> + * @payload_offset: Property payload starts at this offset from &prop.id.
+>> + *		This is 0 for U64/S64.
+>> + * @prop_idx:	Index to sub-properties, 0 means there are no sub-properties.
+>> + * @owner_idx:	Index to entities/pads/properties, depending on the owner ID
+>> + *		type.
+>> + * @reserved:	Property reserved field, will be zeroed.
+>> + */
+>> +struct media_v2_prop {
+>> +	__u32 id;
+>> +	__u32 owner_id;
+>> +	__u32 type;
+>> +	__u32 flags;
+>> +	char name[32];
+>> +	__u32 payload_size;
+>> +	__u32 payload_offset;
+>> +	__u16 prop_idx;
+>> +	__u16 owner_idx;
+>> +	__u32 reserved[17];
+>> +} __attribute__ ((packed));
+>> +
+>> +static inline const char *media_prop2s(const struct media_v2_prop *prop)
+> 
+> Please call it "media_prop2string". Just "s" here is confusing.
+
+What about media_prop2str()? Would that work for you?
+
+> 
+>> +{
+>> +	return (const char *)prop + prop->payload_offset;
+>> +}
+>> +
+>> +static inline __u64 media_prop2u64(const struct media_v2_prop *prop)
+>> +{
+>> +	return *(const __u64 *)((const char *)prop + prop->payload_offset);
+>> +}
+>> +
+>> +static inline __s64 media_prop2s64(const struct media_v2_prop *prop)
+>> +{
+>> +	return *(const __s64 *)((const char *)prop + prop->payload_offset);
+>> +}
+>> +
+>>  struct media_v2_topology {
+>>  	__u64 topology_version;
+>>  
+>> @@ -360,6 +434,10 @@ struct media_v2_topology {
+>>  	__u32 num_links;
+>>  	__u32 reserved4;
+>>  	__u64 ptr_links;
+>> +
+>> +	__u32 num_props;
+>> +	__u32 props_payload_size;
+>> +	__u64 ptr_props;
+>>  } __attribute__ ((packed));
+>>  
+>>  /* ioctls */
+>> @@ -368,6 +446,8 @@ struct media_v2_topology {
+>>  #define MEDIA_IOC_ENUM_ENTITIES	_IOWR('|', 0x01, struct media_entity_desc)
+>>  #define MEDIA_IOC_ENUM_LINKS	_IOWR('|', 0x02, struct media_links_enum)
+>>  #define MEDIA_IOC_SETUP_LINK	_IOWR('|', 0x03, struct media_link_desc)
+>> +/* Old MEDIA_IOC_G_TOPOLOGY ioctl without props support */
+>> +#define MEDIA_IOC_G_TOPOLOGY_OLD 0xc0487c04
+> 
+> I would avoid calling it "_OLD". we may have a V3, V4, V5, ... of this
+> ioctl.
+> 
+> I would, instead, define an _IOWR_COMPAT macro that would take an extra
+> parameter, in order to get the size of part of the struct, e. g. something
+> like:
+> 
+> #define MEDIA_IOC_G_TOPOLOGY_V1		_IOWR_COMPAT('|', 0x04, struct media_v2_topology, num_props)
+
+That's not a bad idea, actually.
+
+> 
+> Also, I don't see any good reason why to keep this at uAPI (except for a
+> mc-compliance tool that would test both versions - but this could be
+> defined directly there).
+
+Makes sense.
+
+> 
+>>  #define MEDIA_IOC_G_TOPOLOGY	_IOWR('|', 0x04, struct media_v2_topology)
+>>  #define MEDIA_IOC_REQUEST_ALLOC	_IOR ('|', 0x05, int)
+>>  
+> 
+> Thanks,
+> Mauro
+> 
+
+Regards,
+
+	Hans
