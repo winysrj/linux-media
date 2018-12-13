@@ -2,111 +2,105 @@ Return-Path: <SRS0=yFxv=OW=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-0.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 501FEC65BAE
-	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 12:49:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6EEE1C65BAE
+	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 12:51:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 14F1220870
-	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 12:49:06 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="YmTGGQXu"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 14F1220870
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=ideasonboard.com
+	by mail.kernel.org (Postfix) with ESMTP id 25B2020879
+	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 12:51:32 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 25B2020879
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=xs4all.nl
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729135AbeLMMtA (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 13 Dec 2018 07:49:00 -0500
-Received: from perceval.ideasonboard.com ([213.167.242.64]:54764 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728517AbeLMMtA (ORCPT
+        id S1729232AbeLMMvb (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 13 Dec 2018 07:51:31 -0500
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:54155 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1729092AbeLMMvb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Dec 2018 07:49:00 -0500
-Received: from avalon.localnet (dfj612ybrt5fhg77mgycy-3.rev.dnainternet.fi [IPv6:2001:14ba:21f5:5b00:2e86:4862:ef6a:2804])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 8BBEC549;
-        Thu, 13 Dec 2018 13:48:58 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1544705338;
-        bh=MWs9zy2sg+3YTvgXLZCzVUQtClfmZwTBWgqPbZ6sBE4=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=YmTGGQXuh5Ty9JMs+0MsI1K7JJDi4hBm2733c4MhjzIUXuoG822kUftSUmihoG6q/
-         MmAltgtMYwGIgUmsqAOoX9x6UzA3T1E/4ZV/9fI5cufp3DTo2r5W75sp+gDE5cg3iE
-         YQOU+xkNxOyBC4mHEYwuh9w8TxL+cdBbaMHGy/Go=
-From:   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To:     Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc:     linux-media@vger.kernel.org, hverkuil@xs4all.nl, mchehab@kernel.org
-Subject: Re: [PATCH 1/3] videobuf2-core: Prevent size alignment wrapping buffer size to 0
-Date:   Thu, 13 Dec 2018 14:49:44 +0200
-Message-ID: <11116293.zm9aLRIdQE@avalon>
-Organization: Ideas on Board Oy
-In-Reply-To: <20181213104006.401-2-sakari.ailus@linux.intel.com>
-References: <20181213104006.401-1-sakari.ailus@linux.intel.com> <20181213104006.401-2-sakari.ailus@linux.intel.com>
+        Thu, 13 Dec 2018 07:51:31 -0500
+Received: from [IPv6:2001:983:e9a7:1:8c39:f7d7:e233:2ba6] ([IPv6:2001:983:e9a7:1:8c39:f7d7:e233:2ba6])
+        by smtp-cloud8.xs4all.net with ESMTPA
+        id XQSegsk5wuDWoXQSfgNnqG; Thu, 13 Dec 2018 13:51:29 +0100
+Subject: Re: [RFCv4 PATCH 1/3] uapi/linux/media.h: add property support
+From:   Hans Verkuil <hverkuil@xs4all.nl>
+To:     Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc:     linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+References: <20181121154024.13906-1-hverkuil@xs4all.nl>
+ <20181121154024.13906-2-hverkuil@xs4all.nl>
+ <20181212061819.111a9631@coco.lan>
+ <e26a07ef-836e-5943-508a-dd5f8c73f0cd@xs4all.nl>
+Message-ID: <e16eb408-92a9-84f1-a6ab-2dbc4e761c98@xs4all.nl>
+Date:   Thu, 13 Dec 2018 13:51:28 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.3.1
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <e26a07ef-836e-5943-508a-dd5f8c73f0cd@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-CMAE-Envelope: MS4wfGK1gxaoNveTFdHzcaQXyzNSeEfcXIVhRAcSZOmpsZzv9Gqp5Ge/Gv61xVFXFJjHZZbnBrGT8NO2lJQt2YG8DPyQJF7yUxSCfnkVXDnUdSoH+CWLIqiT
+ 2wf3nNNOfVTQQF3CUWwksSBxbIWsxS9wIaJ8mGsAg9q1bc3ewizFe5G2lYiRmn60TGHPX52IUZh2bLs2TA+m4bifAl2UhLvnnprBTeHYvQACGfgBspX2SUcn
+ v/bvnB1gZ2fDxYNfRfEjmERG8+gwGR0nABvcLorp7eL/THeEFe5cCCsZEXx3JkPmiQeM46jHVp19l39GlJjDafSx1UqyQ1x7h6W2Y2ADaZKKiayKgtHHucUO
+ t+pLza2E
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Sakari,
-
-Thank you for the patch.
-
-On Thursday, 13 December 2018 12:40:04 EET Sakari Ailus wrote:
-> PAGE_ALIGN() may wrap the buffer size around to 0. Prevent this by
-> checking that the aligned value is not smaller than the unaligned one.
+On 12/12/18 9:43 AM, Hans Verkuil wrote:
+> On 12/12/18 9:18 AM, Mauro Carvalho Chehab wrote:
+>>>  /* ioctls */
+>>> @@ -368,6 +446,8 @@ struct media_v2_topology {
+>>>  #define MEDIA_IOC_ENUM_ENTITIES	_IOWR('|', 0x01, struct media_entity_desc)
+>>>  #define MEDIA_IOC_ENUM_LINKS	_IOWR('|', 0x02, struct media_links_enum)
+>>>  #define MEDIA_IOC_SETUP_LINK	_IOWR('|', 0x03, struct media_link_desc)
+>>> +/* Old MEDIA_IOC_G_TOPOLOGY ioctl without props support */
+>>> +#define MEDIA_IOC_G_TOPOLOGY_OLD 0xc0487c04
+>>
+>> I would avoid calling it "_OLD". we may have a V3, V4, V5, ... of this
+>> ioctl.
+>>
+>> I would, instead, define an _IOWR_COMPAT macro that would take an extra
+>> parameter, in order to get the size of part of the struct, e. g. something
+>> like:
+>>
+>> #define MEDIA_IOC_G_TOPOLOGY_V1		_IOWR_COMPAT('|', 0x04, struct media_v2_topology, num_props)
 > 
-> Note on backporting to stable: the file used to be under
-> drivers/media/v4l2-core, it was moved to the current location after 4.14.
+> That's not a bad idea, actually.
 > 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Cc: stable@vger.kernel.org
-> ---
->  drivers/media/common/videobuf2/videobuf2-core.c | 4 ++++
->  1 file changed, 4 insertions(+)
+>>
+>> Also, I don't see any good reason why to keep this at uAPI (except for a
+>> mc-compliance tool that would test both versions - but this could be
+>> defined directly there).
 > 
-> diff --git a/drivers/media/common/videobuf2/videobuf2-core.c
-> b/drivers/media/common/videobuf2/videobuf2-core.c index
-> 0ca81d495bdaf..0234ddbfa4de2 100644
-> --- a/drivers/media/common/videobuf2/videobuf2-core.c
-> +++ b/drivers/media/common/videobuf2/videobuf2-core.c
-> @@ -207,6 +207,10 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
->  	for (plane = 0; plane < vb->num_planes; ++plane) {
->  		unsigned long size = PAGE_ALIGN(vb->planes[plane].length);
-> 
-> +		/* Did it wrap around? */
-> +		if (size < vb->planes[plane].length)
-> +			goto free;
-> +
->  		mem_priv = call_ptr_memop(vb, alloc,
->  				q->alloc_devs[plane] ? : q->dev,
->  				q->dma_attrs, size, q->dma_dir, q->gfp_flags);
+> Makes sense.
 
-Wouldn't it be better to reject length > INT_MAX (or some variations of that) 
-a few steps before, for instance just before calling __vb2_queue_alloc() ? 
-There's already a check in vb2_core_reqbufs():
+Ah, this means that applications like gstreamer cannot fall back to the older
+G_TOPOLOGY ioctl. They don't know which kernel they are running against, so
+they will probably want to try the new one first before falling back to the
+old version.
 
-        /* Check that driver has set sane values */
-        if (WARN_ON(!num_planes))
-                return -EINVAL;
+I wonder how drm does this. Does anyone know?
 
-        for (i = 0; i < num_planes; i++)
-                if (WARN_ON(!plane_sizes[i]))
-                        return -EINVAL;
-
-It could be extended to validate the sizes against wrap-around, and moved to a 
-separate function to be called in vb2_core_create_bufs() as well (as those 
-checks are missing there). Alternatively, the checks could be moved to the 
-beginning of __vb2_queue_alloc().
-
--- 
 Regards,
 
-Laurent Pinchart
+	Hans
 
-
+> 
+>>
+>>>  #define MEDIA_IOC_G_TOPOLOGY	_IOWR('|', 0x04, struct media_v2_topology)
+>>>  #define MEDIA_IOC_REQUEST_ALLOC	_IOR ('|', 0x05, int)
+>>>  
+>>
+>> Thanks,
+>> Mauro
+>>
+> 
+> Regards,
+> 
+> 	Hans
+> 
 
