@@ -6,43 +6,43 @@ X-Spam-Status: No, score=-8.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,T_MIXED_ES,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D70E0C67873
-	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 09:51:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DFF86C67874
+	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 09:51:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8533F20645
-	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 09:51:31 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 8533F20645
+	by mail.kernel.org (Postfix) with ESMTP id 8DAC720645
+	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 09:51:34 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 8DAC720645
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728195AbeLMJv2 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 13 Dec 2018 04:51:28 -0500
-Received: from mga07.intel.com ([134.134.136.100]:51733 "EHLO mga07.intel.com"
+        id S1728175AbeLMJvU (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 13 Dec 2018 04:51:20 -0500
+Received: from mga06.intel.com ([134.134.136.31]:36728 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727736AbeLMJvX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Dec 2018 04:51:23 -0500
+        id S1728162AbeLMJvT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 13 Dec 2018 04:51:19 -0500
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from fmsmga005.fm.intel.com ([10.253.24.32])
-  by orsmga105.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 13 Dec 2018 01:51:21 -0800
+Received: from fmsmga002.fm.intel.com ([10.253.24.26])
+  by orsmga104.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 13 Dec 2018 01:51:18 -0800
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.56,348,1539673200"; 
-   d="scan'208";a="303483738"
+   d="scan'208";a="125531656"
 Received: from paasikivi.fi.intel.com ([10.237.72.42])
-  by fmsmga005.fm.intel.com with ESMTP; 13 Dec 2018 01:51:18 -0800
+  by fmsmga002.fm.intel.com with ESMTP; 13 Dec 2018 01:51:16 -0800
 Received: from punajuuri.localdomain (punajuuri.localdomain [192.168.240.130])
-        by paasikivi.fi.intel.com (Postfix) with ESMTPS id 5C4992109C;
-        Thu, 13 Dec 2018 11:51:18 +0200 (EET)
+        by paasikivi.fi.intel.com (Postfix) with ESMTPS id 9E4802029C;
+        Thu, 13 Dec 2018 11:51:16 +0200 (EET)
 Received: from sailus by punajuuri.localdomain with local (Exim 4.89)
         (envelope-from <sakari.ailus@linux.intel.com>)
-        id 1gXNeF-0003ty-UJ; Thu, 13 Dec 2018 11:51:16 +0200
+        id 1gXNeE-0003tp-CX; Thu, 13 Dec 2018 11:51:14 +0200
 From:   Sakari Ailus <sakari.ailus@linux.intel.com>
 To:     linux-media@vger.kernel.org
 Cc:     yong.zhi@intel.com, laurent.pinchart@ideasonboard.com,
         rajmohan.mani@intel.com
-Subject: [PATCH v9 15/22] media: staging/intel-ipu3: Add Intel IPU3 meta data uAPI
-Date:   Thu, 13 Dec 2018 11:51:00 +0200
-Message-Id: <20181213095107.14894-16-sakari.ailus@linux.intel.com>
+Subject: [PATCH v9 12/22] media: staging/intel-ipu3: Add css pipeline programming
+Date:   Thu, 13 Dec 2018 11:50:57 +0200
+Message-Id: <20181213095107.14894-13-sakari.ailus@linux.intel.com>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20181213095107.14894-1-sakari.ailus@linux.intel.com>
 References: <20181213095107.14894-1-sakari.ailus@linux.intel.com>
@@ -53,2802 +53,1773 @@ X-Mailing-List: linux-media@vger.kernel.org
 
 From: Yong Zhi <yong.zhi@intel.com>
 
-These meta formats are used on Intel IPU3 ImgU video queues
-to carry 3A statistics and ISP pipeline parameters.
-
-V4L2_META_FMT_IPU3_3A
-V4L2_META_FMT_IPU3_PARAMS
+This provides helper library to be used by v4l2 level to program
+imaging pipelines and control the streaming.
 
 Signed-off-by: Yong Zhi <yong.zhi@intel.com>
-Signed-off-by: Chao C Li <chao.c.li@intel.com>
-Signed-off-by: Rajmohan Mani <rajmohan.mani@intel.com>
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/staging/media/ipu3/include/intel-ipu3.h | 2775 +++++++++++++++++++++++
- 1 file changed, 2775 insertions(+)
- create mode 100644 drivers/staging/media/ipu3/include/intel-ipu3.h
+ drivers/staging/media/ipu3/ipu3-css.c | 1740 +++++++++++++++++++++++++++++++++
+ 1 file changed, 1740 insertions(+)
 
-diff --git a/drivers/staging/media/ipu3/include/intel-ipu3.h b/drivers/staging/media/ipu3/include/intel-ipu3.h
-new file mode 100644
-index 0000000000000..07fd668173589
---- /dev/null
-+++ b/drivers/staging/media/ipu3/include/intel-ipu3.h
-@@ -0,0 +1,2775 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/* Copyright (C) 2017 - 2018 Intel Corporation */
+diff --git a/drivers/staging/media/ipu3/ipu3-css.c b/drivers/staging/media/ipu3/ipu3-css.c
+index 164830fc91ad9..3811ad752e8d9 100644
+--- a/drivers/staging/media/ipu3/ipu3-css.c
++++ b/drivers/staging/media/ipu3/ipu3-css.c
+@@ -16,6 +16,173 @@
+ 				 IMGU_IRQCTRL_IRQ_SW_PIN(0) | \
+ 				 IMGU_IRQCTRL_IRQ_SW_PIN(1))
+ 
++#define IPU3_CSS_FORMAT_BPP_DEN	50	/* Denominator */
 +
-+#ifndef __IPU3_UAPI_H
-+#define __IPU3_UAPI_H
++/* Some sane limits for resolutions */
++#define IPU3_CSS_MIN_RES	32
++#define IPU3_CSS_MAX_H		3136
++#define IPU3_CSS_MAX_W		4224
 +
-+#include <linux/types.h>
-+
-+/* from /drivers/staging/media/ipu3/include/videodev2.h */
-+
-+/* Vendor specific - used for IPU3 camera sub-system */
-+#define V4L2_META_FMT_IPU3_PARAMS	v4l2_fourcc('i', 'p', '3', 'p') /* IPU3 processing parameters */
-+#define V4L2_META_FMT_IPU3_STAT_3A	v4l2_fourcc('i', 'p', '3', 's') /* IPU3 3A statistics */
-+
-+/******************* ipu3_uapi_stats_3a *******************/
-+
-+#define IPU3_UAPI_MAX_STRIPES				2
-+#define IPU3_UAPI_MAX_BUBBLE_SIZE			10
-+
-+#define IPU3_UAPI_GRID_START_MASK			((1 << 12) - 1)
-+#define IPU3_UAPI_GRID_Y_START_EN			(1 << 15)
-+
-+/* controls generation of meta_data (like FF enable/disable) */
-+#define IPU3_UAPI_AWB_RGBS_THR_B_EN			(1 << 14)
-+#define IPU3_UAPI_AWB_RGBS_THR_B_INCL_SAT		(1 << 15)
-+
-+/**
-+ * struct ipu3_uapi_grid_config - Grid plane config
-+ *
-+ * @width:	Grid horizontal dimensions, in number of grid blocks(cells).
-+ * @height:	Grid vertical dimensions, in number of grid cells.
-+ * @block_width_log2:	Log2 of the width of each cell in pixels.
-+ *			for (2^3, 2^4, 2^5, 2^6, 2^7), values [3, 7].
-+ * @block_height_log2:	Log2 of the height of each cell in pixels.
-+ *			for (2^3, 2^4, 2^5, 2^6, 2^7), values [3, 7].
-+ * @height_per_slice:	The number of blocks in vertical axis per slice.
-+ *			Default 2.
-+ * @x_start: X value of top left corner of Region of Interest(ROI).
-+ * @y_start: Y value of top left corner of ROI
-+ * @x_end: X value of bottom right corner of ROI
-+ * @y_end: Y value of bottom right corner of ROI
-+ *
-+ * Due to the size of total amount of collected data, most statistics
-+ * create a grid-based output, and the data is then divided into "slices".
-+ */
-+struct ipu3_uapi_grid_config {
-+	__u8 width;
-+	__u8 height;
-+	__u16 block_width_log2:3;
-+	__u16 block_height_log2:3;
-+	__u16 height_per_slice:8;
-+	__u16 x_start;
-+	__u16 y_start;
-+	__u16 x_end;
-+	__u16 y_end;
-+} __packed;
++/* filter size from graph settings is fixed as 4 */
++#define FILTER_SIZE             4
++#define MIN_ENVELOPE            8
 +
 +/*
-+ * The grid based data is divided into "slices" called set, each slice of setX
-+ * refers to ipu3_uapi_grid_config width * height_per_slice.
++ * pre-allocated buffer size for CSS ABI, auxiliary frames
++ * after BDS and before GDC. Those values should be tuned
++ * to big enough to avoid buffer re-allocation when
++ * streaming to lower streaming latency.
 + */
-+#define IPU3_UAPI_AWB_MAX_SETS				60
-+/* Based on grid size 80 * 60 and cell size 16 x 16 */
-+#define IPU3_UAPI_AWB_SET_SIZE				1280
-+#define IPU3_UAPI_AWB_MD_ITEM_SIZE			8
-+#define IPU3_UAPI_AWB_SPARE_FOR_BUBBLES \
-+	(IPU3_UAPI_MAX_BUBBLE_SIZE * IPU3_UAPI_MAX_STRIPES * \
-+	 IPU3_UAPI_AWB_MD_ITEM_SIZE)
-+#define IPU3_UAPI_AWB_MAX_BUFFER_SIZE \
-+	(IPU3_UAPI_AWB_MAX_SETS * \
-+	 (IPU3_UAPI_AWB_SET_SIZE + IPU3_UAPI_AWB_SPARE_FOR_BUBBLES))
++#define CSS_ABI_SIZE    136
++#define CSS_BDS_SIZE    (4480 * 3200 * 3)
++#define CSS_GDC_SIZE    (4224 * 3200 * 12 / 8)
 +
++#define IPU3_CSS_QUEUE_TO_FLAGS(q)	(1 << (q))
++#define IPU3_CSS_FORMAT_FL_IN		\
++			IPU3_CSS_QUEUE_TO_FLAGS(IPU3_CSS_QUEUE_IN)
++#define IPU3_CSS_FORMAT_FL_OUT		\
++			IPU3_CSS_QUEUE_TO_FLAGS(IPU3_CSS_QUEUE_OUT)
++#define IPU3_CSS_FORMAT_FL_VF		\
++			IPU3_CSS_QUEUE_TO_FLAGS(IPU3_CSS_QUEUE_VF)
 +
-+/**
-+ * struct ipu3_uapi_awb_raw_buffer - AWB raw buffer
-+ *
-+ * @meta_data: buffer to hold auto white balance meta data which is
-+ *		the average values for each color channel.
-+ */
-+struct ipu3_uapi_awb_raw_buffer {
-+	__u8 meta_data[IPU3_UAPI_AWB_MAX_BUFFER_SIZE]
-+		__attribute__((aligned(32)));
-+} __packed;
++/* Formats supported by IPU3 Camera Sub System */
++static const struct ipu3_css_format ipu3_css_formats[] = {
++	{
++		.pixelformat = V4L2_PIX_FMT_NV12,
++		.colorspace = V4L2_COLORSPACE_SRGB,
++		.frame_format = IMGU_ABI_FRAME_FORMAT_NV12,
++		.osys_format = IMGU_ABI_OSYS_FORMAT_NV12,
++		.osys_tiling = IMGU_ABI_OSYS_TILING_NONE,
++		.bytesperpixel_num = 1 * IPU3_CSS_FORMAT_BPP_DEN,
++		.chroma_decim = 4,
++		.width_align = IPU3_UAPI_ISP_VEC_ELEMS,
++		.flags = IPU3_CSS_FORMAT_FL_OUT | IPU3_CSS_FORMAT_FL_VF,
++	}, {
++		/* Each 32 bytes contains 25 10-bit pixels */
++		.pixelformat = V4L2_PIX_FMT_IPU3_SBGGR10,
++		.colorspace = V4L2_COLORSPACE_RAW,
++		.frame_format = IMGU_ABI_FRAME_FORMAT_RAW_PACKED,
++		.bayer_order = IMGU_ABI_BAYER_ORDER_BGGR,
++		.bit_depth = 10,
++		.bytesperpixel_num = 64,
++		.width_align = 2 * IPU3_UAPI_ISP_VEC_ELEMS,
++		.flags = IPU3_CSS_FORMAT_FL_IN,
++	}, {
++		.pixelformat = V4L2_PIX_FMT_IPU3_SGBRG10,
++		.colorspace = V4L2_COLORSPACE_RAW,
++		.frame_format = IMGU_ABI_FRAME_FORMAT_RAW_PACKED,
++		.bayer_order = IMGU_ABI_BAYER_ORDER_GBRG,
++		.bit_depth = 10,
++		.bytesperpixel_num = 64,
++		.width_align = 2 * IPU3_UAPI_ISP_VEC_ELEMS,
++		.flags = IPU3_CSS_FORMAT_FL_IN,
++	}, {
++		.pixelformat = V4L2_PIX_FMT_IPU3_SGRBG10,
++		.colorspace = V4L2_COLORSPACE_RAW,
++		.frame_format = IMGU_ABI_FRAME_FORMAT_RAW_PACKED,
++		.bayer_order = IMGU_ABI_BAYER_ORDER_GRBG,
++		.bit_depth = 10,
++		.bytesperpixel_num = 64,
++		.width_align = 2 * IPU3_UAPI_ISP_VEC_ELEMS,
++		.flags = IPU3_CSS_FORMAT_FL_IN,
++	}, {
++		.pixelformat = V4L2_PIX_FMT_IPU3_SRGGB10,
++		.colorspace = V4L2_COLORSPACE_RAW,
++		.frame_format = IMGU_ABI_FRAME_FORMAT_RAW_PACKED,
++		.bayer_order = IMGU_ABI_BAYER_ORDER_RGGB,
++		.bit_depth = 10,
++		.bytesperpixel_num = 64,
++		.width_align = 2 * IPU3_UAPI_ISP_VEC_ELEMS,
++		.flags = IPU3_CSS_FORMAT_FL_IN,
++	},
++};
 +
-+/**
-+ * struct ipu3_uapi_awb_config_s - AWB config
-+ *
-+ * @rgbs_thr_gr: gr threshold value.
-+ * @rgbs_thr_r: Red threshold value.
-+ * @rgbs_thr_gb: gb threshold value.
-+ * @rgbs_thr_b: Blue threshold value.
-+ * @grid: &ipu3_uapi_grid_config, the default grid resolution is 16x16 cells.
-+ *
-+ * The threshold is a saturation measure range [0, 8191], 8191 is default.
-+ * Values over threshold may be optionally rejected for averaging.
-+ */
-+struct ipu3_uapi_awb_config_s {
-+	__u16 rgbs_thr_gr;
-+	__u16 rgbs_thr_r;
-+	__u16 rgbs_thr_gb;
-+	__u16 rgbs_thr_b;
-+	struct ipu3_uapi_grid_config grid;
-+} __attribute__((aligned(32))) __packed;
++static const struct {
++	enum imgu_abi_queue_id qid;
++	size_t ptr_ofs;
++} ipu3_css_queues[IPU3_CSS_QUEUES] = {
++	[IPU3_CSS_QUEUE_IN] = {
++		IMGU_ABI_QUEUE_C_ID,
++		offsetof(struct imgu_abi_buffer, payload.frame.frame_data)
++	},
++	[IPU3_CSS_QUEUE_OUT] = {
++		IMGU_ABI_QUEUE_D_ID,
++		offsetof(struct imgu_abi_buffer, payload.frame.frame_data)
++	},
++	[IPU3_CSS_QUEUE_VF] = {
++		IMGU_ABI_QUEUE_E_ID,
++		offsetof(struct imgu_abi_buffer, payload.frame.frame_data)
++	},
++	[IPU3_CSS_QUEUE_STAT_3A] = {
++		IMGU_ABI_QUEUE_F_ID,
++		offsetof(struct imgu_abi_buffer, payload.s3a.data_ptr)
++	},
++};
 +
-+/**
-+ * struct ipu3_uapi_awb_config - AWB config wrapper
-+ *
-+ * @config: config for auto white balance as defined by &ipu3_uapi_awb_config_s
-+ */
-+struct ipu3_uapi_awb_config {
-+	struct ipu3_uapi_awb_config_s config __attribute__((aligned(32)));
-+} __packed;
++/* Initialize queue based on given format, adjust format as needed */
++static int ipu3_css_queue_init(struct ipu3_css_queue *queue,
++			       struct v4l2_pix_format_mplane *fmt, u32 flags)
++{
++	struct v4l2_pix_format_mplane *const f = &queue->fmt.mpix;
++	unsigned int i;
++	u32 sizeimage;
 +
-+#define IPU3_UAPI_AE_COLORS				4	/* R, G, B, Y */
-+#define IPU3_UAPI_AE_BINS				256
-+#define IPU3_UAPI_AE_WEIGHTS				96
++	INIT_LIST_HEAD(&queue->bufs);
 +
-+/**
-+ + * struct ipu3_uapi_ae_raw_buffer - AE global weighted histogram
-+ + *
-+ + * @vals: Sum of IPU3_UAPI_AE_COLORS in cell
-+ + *
-+ + * Each histogram contains IPU3_UAPI_AE_BINS bins. Each bin has 24 bit unsigned
-+ + * for counting the number of the pixel.
-+ + */
-+struct ipu3_uapi_ae_raw_buffer {
-+	__u32 vals[IPU3_UAPI_AE_BINS * IPU3_UAPI_AE_COLORS];
-+} __packed;
++	queue->css_fmt = NULL;	/* Disable */
++	if (!fmt)
++		return 0;
 +
-+/**
-+ * struct ipu3_uapi_ae_raw_buffer_aligned - AE raw buffer
-+ *
-+ * @buff: &ipu3_uapi_ae_raw_buffer to hold full frame meta data.
-+ */
-+struct ipu3_uapi_ae_raw_buffer_aligned {
-+	struct ipu3_uapi_ae_raw_buffer buff __attribute__((aligned(32)));
-+} __packed;
++	for (i = 0; i < ARRAY_SIZE(ipu3_css_formats); i++) {
++		if (!(ipu3_css_formats[i].flags & flags))
++			continue;
++		queue->css_fmt = &ipu3_css_formats[i];
++		if (ipu3_css_formats[i].pixelformat == fmt->pixelformat)
++			break;
++	}
++	if (!queue->css_fmt)
++		return -EINVAL;	/* Could not find any suitable format */
 +
-+/**
-+ * struct ipu3_uapi_ae_grid_config - AE weight grid
-+ *
-+ * @width: Grid horizontal dimensions. Value: [16, 32], default 16.
-+ * @height: Grid vertical dimensions. Value: [16, 24], default 16.
-+ * @block_width_log2: Log2 of the width of the grid cell, value: [3, 7].
-+ * @block_height_log2: Log2 of the height of the grid cell, value: [3, 7].
-+ *			default is 3 (cell size 8x8), 4 cell per grid.
-+ * @reserved0: reserved
-+ * @ae_en: 0: does not write to &ipu3_uapi_ae_raw_buffer_aligned array,
-+ *		1: write normally.
-+ * @rst_hist_array: write 1 to trigger histogram array reset.
-+ * @done_rst_hist_array: flag for histogram array reset done.
-+ * @x_start: X value of top left corner of ROI, default 0.
-+ * @y_start: Y value of top left corner of ROI, default 0.
-+ * @x_end: X value of bottom right corner of ROI
-+ * @y_end: Y value of bottom right corner of ROI
-+ *
-+ * The AE block accumulates 4 global weighted histograms(R, G, B, Y) over
-+ * a defined ROI within the frame. The contribution of each pixel into the
-+ * histogram, defined by &ipu3_uapi_ae_weight_elem LUT, is indexed by a grid.
-+ */
-+struct ipu3_uapi_ae_grid_config {
-+	__u8 width;
-+	__u8 height;
-+	__u8 block_width_log2:4;
-+	__u8 block_height_log2:4;
-+	__u8 reserved0:5;
-+	__u8 ae_en:1;
-+	__u8 rst_hist_array:1;
-+	__u8 done_rst_hist_array:1;
-+	__u16 x_start;
-+	__u16 y_start;
-+	__u16 x_end;
-+	__u16 y_end;
-+} __packed;
++	queue->fmt.mpix = *fmt;
 +
-+/**
-+ * struct ipu3_uapi_ae_weight_elem - AE weights LUT
-+ *
-+ * @cell0: weighted histogram grid value.
-+ * @cell1: weighted histogram grid value.
-+ * @cell2: weighted histogram grid value.
-+ * @cell3: weighted histogram grid value.
-+ * @cell4: weighted histogram grid value.
-+ * @cell5: weighted histogram grid value.
-+ * @cell6: weighted histogram grid value.
-+ * @cell7: weighted histogram grid value.
-+ *
-+ * Use weighted grid value to give a different contribution factor to each cell.
-+ * Precision u4, range [0, 15].
-+ */
-+struct ipu3_uapi_ae_weight_elem {
-+	__u32 cell0:4;
-+	__u32 cell1:4;
-+	__u32 cell2:4;
-+	__u32 cell3:4;
-+	__u32 cell4:4;
-+	__u32 cell5:4;
-+	__u32 cell6:4;
-+	__u32 cell7:4;
-+} __packed;
++	f->width = ALIGN(clamp_t(u32, f->width,
++				 IPU3_CSS_MIN_RES, IPU3_CSS_MAX_W), 2);
++	f->height = ALIGN(clamp_t(u32, f->height,
++				  IPU3_CSS_MIN_RES, IPU3_CSS_MAX_H), 2);
++	queue->width_pad = ALIGN(f->width, queue->css_fmt->width_align);
++	if (queue->css_fmt->frame_format != IMGU_ABI_FRAME_FORMAT_RAW_PACKED)
++		f->plane_fmt[0].bytesperline = DIV_ROUND_UP(queue->width_pad *
++					queue->css_fmt->bytesperpixel_num,
++					IPU3_CSS_FORMAT_BPP_DEN);
++	else
++		/* For packed raw, alignment for bpl is by 50 to the width */
++		f->plane_fmt[0].bytesperline =
++				DIV_ROUND_UP(f->width,
++					     IPU3_CSS_FORMAT_BPP_DEN) *
++					     queue->css_fmt->bytesperpixel_num;
 +
-+/**
-+ * struct ipu3_uapi_ae_ccm - AE coefficients for WB and CCM
-+ *
-+ * @gain_gr: WB gain factor for the gr channels. Default 256.
-+ * @gain_r: WB gain factor for the r channel. Default 256.
-+ * @gain_b: WB gain factor for the b channel. Default 256.
-+ * @gain_gb: WB gain factor for the gb channels. Default 256.
-+ * @mat: 4x4 matrix that transforms Bayer quad output from WB to RGB+Y.
-+ *
-+ * Default:
-+ *	128, 0, 0, 0,
-+ *	0, 128, 0, 0,
-+ *	0, 0, 128, 0,
-+ *	0, 0, 0, 128,
-+ *
-+ * As part of the raw frame pre-process stage, the WB and color conversion need
-+ * to be applied to expose the impact of these gain operations.
-+ */
-+struct ipu3_uapi_ae_ccm {
-+	__u16 gain_gr;
-+	__u16 gain_r;
-+	__u16 gain_b;
-+	__u16 gain_gb;
-+	__s16 mat[16];
-+} __packed;
++	sizeimage = f->height * f->plane_fmt[0].bytesperline;
++	if (queue->css_fmt->chroma_decim)
++		sizeimage += 2 * sizeimage / queue->css_fmt->chroma_decim;
 +
-+/**
-+ * struct ipu3_uapi_ae_config - AE config
-+ *
-+ * @grid_cfg:	config for auto exposure statistics grid. See struct
-+ *		&ipu3_uapi_ae_grid_config
-+ * @weights:	&IPU3_UAPI_AE_WEIGHTS is based on 32x24 blocks in the grid.
-+ *		Each grid cell has a corresponding value in weights LUT called
-+ *		grid value, global histogram is updated based on grid value and
-+ *		pixel value.
-+ * @ae_ccm:	Color convert matrix pre-processing block.
-+ *
-+ * Calculate AE grid from image resolution, resample ae weights.
-+ */
-+struct ipu3_uapi_ae_config {
-+	struct ipu3_uapi_ae_grid_config grid_cfg __attribute__((aligned(32)));
-+	struct ipu3_uapi_ae_weight_elem weights[
-+			IPU3_UAPI_AE_WEIGHTS] __attribute__((aligned(32)));
-+	struct ipu3_uapi_ae_ccm ae_ccm __attribute__((aligned(32)));
-+} __packed;
++	f->plane_fmt[0].sizeimage = sizeimage;
++	f->field = V4L2_FIELD_NONE;
++	f->num_planes = 1;
++	f->colorspace = queue->css_fmt->colorspace;
++	f->flags = 0;
++	f->ycbcr_enc = V4L2_YCBCR_ENC_DEFAULT;
++	f->quantization = V4L2_QUANTIZATION_DEFAULT;
++	f->xfer_func = V4L2_XFER_FUNC_DEFAULT;
++	memset(f->reserved, 0, sizeof(f->reserved));
 +
-+/**
-+ * struct ipu3_uapi_af_filter_config - AF 2D filter for contrast measurements
-+ *
-+ * @y1_coeff_0:	filter Y1, structure: 3x11, support both symmetry and
-+ *		anti-symmetry type. A12 is center, A1-A11 are neighbours.
-+ *		for analyzing low frequency content, used to calculate sum
-+ *		of gradients in x direction.
-+ * @y1_coeff_0.a1:	filter1 coefficients A1, u8, default 0.
-+ * @y1_coeff_0.a2:	filter1 coefficients A2, u8, default 0.
-+ * @y1_coeff_0.a3:	filter1 coefficients A3, u8, default 0.
-+ * @y1_coeff_0.a4:	filter1 coefficients A4, u8, default 0.
-+ * @y1_coeff_1:		Struct
-+ * @y1_coeff_1.a5:	filter1 coefficients A5, u8, default 0.
-+ * @y1_coeff_1.a6:	filter1 coefficients A6, u8, default 0.
-+ * @y1_coeff_1.a7:	filter1 coefficients A7, u8, default 0.
-+ * @y1_coeff_1.a8:	filter1 coefficients A8, u8, default 0.
-+ * @y1_coeff_2:		Struct
-+ * @y1_coeff_2.a9:	filter1 coefficients A9, u8, default 0.
-+ * @y1_coeff_2.a10:	filter1 coefficients A10, u8, default 0.
-+ * @y1_coeff_2.a11:	filter1 coefficients A11, u8, default 0.
-+ * @y1_coeff_2.a12:	filter1 coefficients A12, u8, default 128.
-+ * @y1_sign_vec:	Each bit corresponds to one coefficient sign bit,
-+ *			0: positive, 1: negative, default 0.
-+ * @y2_coeff_0:	Y2, same structure as Y1. For analyzing high frequency content.
-+ * @y2_coeff_0.a1:	filter2 coefficients A1, u8, default 0.
-+ * @y2_coeff_0.a2:	filter2 coefficients A2, u8, default 0.
-+ * @y2_coeff_0.a3:	filter2 coefficients A3, u8, default 0.
-+ * @y2_coeff_0.a4:	filter2 coefficients A4, u8, default 0.
-+ * @y2_coeff_1:	Struct
-+ * @y2_coeff_1.a5:	filter2 coefficients A5, u8, default 0.
-+ * @y2_coeff_1.a6:	filter2 coefficients A6, u8, default 0.
-+ * @y2_coeff_1.a7:	filter2 coefficients A7, u8, default 0.
-+ * @y2_coeff_1.a8:	filter2 coefficients A8, u8, default 0.
-+ * @y2_coeff_2:	Struct
-+ * @y2_coeff_2.a9:	filter1 coefficients A9, u8, default 0.
-+ * @y2_coeff_2.a10:	filter1 coefficients A10, u8, default 0.
-+ * @y2_coeff_2.a11:	filter1 coefficients A11, u8, default 0.
-+ * @y2_coeff_2.a12:	filter1 coefficients A12, u8, default 128.
-+ * @y2_sign_vec:	Each bit corresponds to one coefficient sign bit,
-+ *			0: positive, 1: negative, default 0.
-+ * @y_calc:	Pre-processing that converts Bayer quad to RGB+Y values to be
-+ *		used for building histogram. Range [0, 32], default 8.
-+ * Rule:
-+ *		y_gen_rate_gr + y_gen_rate_r + y_gen_rate_b + y_gen_rate_gb = 32
-+ *		A single Y is calculated based on sum of Gr/R/B/Gb based on
-+ *		their contribution ratio.
-+ * @y_calc.y_gen_rate_gr:	Contribution ratio Gr for Y
-+ * @y_calc.y_gen_rate_r:	Contribution ratio R for Y
-+ * @y_calc.y_gen_rate_b:	Contribution ratio B for Y
-+ * @y_calc.y_gen_rate_gb:	Contribution ratio Gb for Y
-+ * @nf:	The shift right value that should be applied during the Y1/Y2 filter to
-+ *	make sure the total memory needed is 2 bytes per grid cell.
-+ * @nf.reserved0:	reserved
-+ * @nf.y1_nf:	Normalization factor for the convolution coeffs of y1,
-+ *		should be log2 of the sum of the abs values of the filter
-+ *		coeffs, default 7 (2^7 = 128).
-+ * @nf.reserved1:	reserved
-+ * @nf.y2_nf:	Normalization factor for y2, should be log2 of the sum of the
-+ *		abs values of the filter coeffs.
-+ * @nf.reserved2:	reserved
-+ */
-+struct ipu3_uapi_af_filter_config {
-+	struct {
-+		__u8 a1;
-+		__u8 a2;
-+		__u8 a3;
-+		__u8 a4;
-+	} y1_coeff_0;
-+	struct {
-+		__u8 a5;
-+		__u8 a6;
-+		__u8 a7;
-+		__u8 a8;
-+	} y1_coeff_1;
-+	struct {
-+		__u8 a9;
-+		__u8 a10;
-+		__u8 a11;
-+		__u8 a12;
-+	} y1_coeff_2;
++	return 0;
++}
 +
-+	__u32 y1_sign_vec;
++static bool ipu3_css_queue_enabled(struct ipu3_css_queue *q)
++{
++	return q->css_fmt;
++}
 +
-+	struct {
-+		__u8 a1;
-+		__u8 a2;
-+		__u8 a3;
-+		__u8 a4;
-+	} y2_coeff_0;
-+	struct {
-+		__u8 a5;
-+		__u8 a6;
-+		__u8 a7;
-+		__u8 a8;
-+	} y2_coeff_1;
-+	struct {
-+		__u8 a9;
-+		__u8 a10;
-+		__u8 a11;
-+		__u8 a12;
-+	} y2_coeff_2;
+ /******************* css hw *******************/
+ 
+ /* In the style of writesl() defined in include/asm-generic/io.h */
+@@ -492,6 +659,1579 @@ static void ipu3_css_hw_cleanup(struct ipu3_css *css)
+ 	usleep_range(200, 300);
+ }
+ 
++static void ipu3_css_pipeline_cleanup(struct ipu3_css *css)
++{
++	struct imgu_device *imgu = dev_get_drvdata(css->dev);
++	unsigned int i;
 +
-+	__u32 y2_sign_vec;
++	ipu3_css_pool_cleanup(imgu, &css->pool.parameter_set_info);
++	ipu3_css_pool_cleanup(imgu, &css->pool.acc);
++	ipu3_css_pool_cleanup(imgu, &css->pool.gdc);
++	ipu3_css_pool_cleanup(imgu, &css->pool.obgrid);
 +
-+	struct {
-+		__u8 y_gen_rate_gr;
-+		__u8 y_gen_rate_r;
-+		__u8 y_gen_rate_b;
-+		__u8 y_gen_rate_gb;
-+	} y_calc;
-+
-+	struct {
-+		__u32 reserved0:8;
-+		__u32 y1_nf:4;
-+		__u32 reserved1:4;
-+		__u32 y2_nf:4;
-+		__u32 reserved2:12;
-+	} nf;
-+} __packed;
-+
-+#define IPU3_UAPI_AF_MAX_SETS				24
-+#define IPU3_UAPI_AF_MD_ITEM_SIZE			4
-+#define IPU3_UAPI_AF_SPARE_FOR_BUBBLES \
-+	(IPU3_UAPI_MAX_BUBBLE_SIZE * IPU3_UAPI_MAX_STRIPES * \
-+	 IPU3_UAPI_AF_MD_ITEM_SIZE)
-+#define IPU3_UAPI_AF_Y_TABLE_SET_SIZE			128
-+#define IPU3_UAPI_AF_Y_TABLE_MAX_SIZE \
-+	(IPU3_UAPI_AF_MAX_SETS * \
-+	 (IPU3_UAPI_AF_Y_TABLE_SET_SIZE + IPU3_UAPI_AF_SPARE_FOR_BUBBLES) * \
-+	 IPU3_UAPI_MAX_STRIPES)
-+
-+/**
-+ * struct ipu3_uapi_af_raw_buffer - AF meta data
-+ *
-+ * @y_table:	Each color component will be convolved separately with filter1
-+ *		and filter2 and the result will be summed out and averaged for
-+ *		each cell.
-+ */
-+struct ipu3_uapi_af_raw_buffer {
-+	__u8 y_table[IPU3_UAPI_AF_Y_TABLE_MAX_SIZE] __attribute__((aligned(32)));
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_af_config_s - AF config
-+ *
-+ * @filter_config: AF uses Y1 and Y2 filters as configured in
-+ *		   &ipu3_uapi_af_filter_config
-+ * @padding: paddings
-+ * @grid_cfg: See &ipu3_uapi_grid_config, default resolution 16x16. Use large
-+ *	      grid size for large image and vice versa.
-+ */
-+struct ipu3_uapi_af_config_s {
-+	struct ipu3_uapi_af_filter_config filter_config __attribute__((aligned(32)));
-+	__u8 padding[4];
-+	struct ipu3_uapi_grid_config grid_cfg __attribute__((aligned(32)));
-+} __packed;
-+
-+#define IPU3_UAPI_AWB_FR_MAX_SETS			24
-+#define IPU3_UAPI_AWB_FR_MD_ITEM_SIZE			8
-+#define IPU3_UAPI_AWB_FR_BAYER_TBL_SIZE			256
-+#define IPU3_UAPI_AWB_FR_SPARE_FOR_BUBBLES \
-+	(IPU3_UAPI_MAX_BUBBLE_SIZE * IPU3_UAPI_MAX_STRIPES * \
-+	 IPU3_UAPI_AWB_FR_MD_ITEM_SIZE)
-+#define IPU3_UAPI_AWB_FR_BAYER_TABLE_MAX_SIZE \
-+	(IPU3_UAPI_AWB_FR_MAX_SETS * \
-+	(IPU3_UAPI_AWB_FR_BAYER_TBL_SIZE + \
-+	 IPU3_UAPI_AWB_FR_SPARE_FOR_BUBBLES) * IPU3_UAPI_MAX_STRIPES)
-+
-+/**
-+ * struct ipu3_uapi_awb_fr_meta_data - AWB filter response meta data
-+ *
-+ * @meta_data: Statistics output on the grid after convolving with 1D filter.
-+ */
-+struct ipu3_uapi_awb_fr_raw_buffer {
-+	__u8 meta_data[IPU3_UAPI_AWB_FR_BAYER_TABLE_MAX_SIZE]
-+		__attribute__((aligned(32)));
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_awb_fr_config_s - AWB filter response config
-+ *
-+ * @grid_cfg:	grid config, default 16x16.
-+ * @bayer_coeff:	1D Filter 1x11 center symmetry/anti-symmetry.
-+ *			coeffcients defaults { 0, 0, 0, 0, 0, 128 }.
-+ *			Applied on whole image for each Bayer channel separately
-+ *			by a weighted sum of its 11x1 neighbors.
-+ * @reserved1:	reserved
-+ * @bayer_sign:	sign of filter coeffcients, default 0.
-+ * @bayer_nf:	normalization factor for the convolution coeffs, to make sure
-+ *		total memory needed is within pre-determined range.
-+ *		NF should be the log2 of the sum of the abs values of the
-+ *		filter coeffs, range [7, 14], default 7.
-+ * @reserved2:	reserved
-+ */
-+struct ipu3_uapi_awb_fr_config_s {
-+	struct ipu3_uapi_grid_config grid_cfg;
-+	__u8 bayer_coeff[6];
-+	__u16 reserved1;
-+	__u32 bayer_sign;
-+	__u8 bayer_nf;
-+	__u8 reserved2[3];
-+} __attribute__((aligned(32))) __packed;
-+
-+/**
-+ * struct ipu3_uapi_4a_config - 4A config
-+ *
-+ * @awb_config: &ipu3_uapi_awb_config_s, default resolution 16x16
-+ * @ae_grd_config: auto exposure statistics &ipu3_uapi_ae_grid_config
-+ * @padding: paddings
-+ * @af_config: auto focus config &ipu3_uapi_af_config_s
-+ * @awb_fr_config: &ipu3_uapi_awb_fr_config_s, default resolution 16x16
-+ */
-+struct ipu3_uapi_4a_config {
-+	struct ipu3_uapi_awb_config_s awb_config __attribute__((aligned(32)));
-+	struct ipu3_uapi_ae_grid_config ae_grd_config;
-+	__u8 padding[20];
-+	struct ipu3_uapi_af_config_s af_config;
-+	struct ipu3_uapi_awb_fr_config_s awb_fr_config;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_bubble_info - Bubble info for host side debugging
-+ *
-+ * @num_of_stripes: A single frame is divided into several parts called stripes
-+ *		    due to limitation on line buffer memory.
-+ *		    The separation between the stripes is vertical. Each such
-+ *		    stripe is processed as a single frame by the ISP pipe.
-+ * @padding: padding bytes.
-+ * @num_sets: number of sets.
-+ * @padding1: padding bytes.
-+ * @size_of_set: set size.
-+ * @padding2: padding bytes.
-+ * @bubble_size: is the amount of padding in the bubble expressed in "sets".
-+ * @padding3: padding bytes.
-+ */
-+struct ipu3_uapi_bubble_info {
-+	__u32 num_of_stripes __attribute__((aligned(32)));
-+	__u8 padding[28];
-+	__u32 num_sets;
-+	__u8 padding1[28];
-+	__u32 size_of_set;
-+	__u8 padding2[28];
-+	__u32 bubble_size;
-+	__u8 padding3[28];
-+} __packed;
++	for (i = 0; i < IMGU_ABI_NUM_MEMORIES; i++)
++		ipu3_css_pool_cleanup(imgu, &css->pool.binary_params_p[i]);
++}
 +
 +/*
-+ * struct ipu3_uapi_stats_3a_bubble_info_per_stripe
-+ */
-+struct ipu3_uapi_stats_3a_bubble_info_per_stripe {
-+	struct ipu3_uapi_bubble_info awb[IPU3_UAPI_MAX_STRIPES];
-+	struct ipu3_uapi_bubble_info af[IPU3_UAPI_MAX_STRIPES];
-+	struct ipu3_uapi_bubble_info awb_fr[IPU3_UAPI_MAX_STRIPES];
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_ff_status - Enable bits for each 3A fixed function
-+ *
-+ * @awb_en: auto white balance enable
-+ * @padding: padding config
-+ * @ae_en: auto exposure enable
-+ * @padding1: padding config
-+ * @af_en: auto focus enable
-+ * @padding2: padding config
-+ * @awb_fr_en: awb filter response enable bit
-+ * @padding3: padding config
-+ */
-+struct ipu3_uapi_ff_status {
-+	__u32 awb_en __attribute__((aligned(32)));
-+	__u8 padding[28];
-+	__u32 ae_en;
-+	__u8 padding1[28];
-+	__u32 af_en;
-+	__u8 padding2[28];
-+	__u32 awb_fr_en;
-+	__u8 padding3[28];
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_stats_3a - 3A statistics
-+ *
-+ * @awb_raw_buffer: auto white balance meta data &ipu3_uapi_awb_raw_buffer
-+ * @ae_raw_buffer: auto exposure raw data &ipu3_uapi_ae_raw_buffer_aligned
-+ * @af_raw_buffer: &ipu3_uapi_af_raw_buffer for auto focus meta data
-+ * @awb_fr_raw_buffer: value as specified by &ipu3_uapi_awb_fr_raw_buffer
-+ * @stats_4a_config: 4a statistics config as defined by &ipu3_uapi_4a_config.
-+ * @ae_join_buffers: 1 to use ae_raw_buffer.
-+ * @padding: padding config
-+ * @stats_3a_bubble_per_stripe: a &ipu3_uapi_stats_3a_bubble_info_per_stripe
-+ * @stats_3a_status: 3a statistics status set in &ipu3_uapi_ff_status
-+ */
-+struct ipu3_uapi_stats_3a {
-+	struct ipu3_uapi_awb_raw_buffer awb_raw_buffer;
-+	struct ipu3_uapi_ae_raw_buffer_aligned
-+			ae_raw_buffer[IPU3_UAPI_MAX_STRIPES];
-+	struct ipu3_uapi_af_raw_buffer af_raw_buffer;
-+	struct ipu3_uapi_awb_fr_raw_buffer awb_fr_raw_buffer;
-+	struct ipu3_uapi_4a_config stats_4a_config;
-+	__u32 ae_join_buffers;
-+	__u8 padding[28];
-+	struct ipu3_uapi_stats_3a_bubble_info_per_stripe
-+			stats_3a_bubble_per_stripe;
-+	struct ipu3_uapi_ff_status stats_3a_status;
-+} __packed;
-+
-+/******************* ipu3_uapi_acc_param *******************/
-+
-+#define IPU3_UAPI_ISP_VEC_ELEMS				64
-+#define IPU3_UAPI_ISP_TNR3_VMEM_LEN			9
-+
-+#define IPU3_UAPI_BNR_LUT_SIZE				32
-+
-+/* number of elements in gamma correction LUT */
-+#define IPU3_UAPI_GAMMA_CORR_LUT_ENTRIES		256
-+
-+/* largest grid is 73x56, for grid_height_per_slice of 2, 73x2 = 146 */
-+#define IPU3_UAPI_SHD_MAX_CELLS_PER_SET			146
-+#define IPU3_UAPI_SHD_MAX_CFG_SETS			28
-+/* Normalization shift aka nf */
-+#define IPU3_UAPI_SHD_BLGR_NF_SHIFT			13
-+#define IPU3_UAPI_SHD_BLGR_NF_MASK			7
-+
-+#define IPU3_UAPI_YUVP2_TCC_MACC_TABLE_ELEMENTS		16
-+#define IPU3_UAPI_YUVP2_TCC_INV_Y_LUT_ELEMENTS		14
-+#define IPU3_UAPI_YUVP2_TCC_GAIN_PCWL_LUT_ELEMENTS	258
-+#define IPU3_UAPI_YUVP2_TCC_R_SQR_LUT_ELEMENTS		24
-+
-+#define IPU3_UAPI_ANR_LUT_SIZE				26
-+#define IPU3_UAPI_ANR_PYRAMID_SIZE			22
-+
-+#define IPU3_UAPI_LIN_LUT_SIZE				64
-+
-+/* Bayer Noise Reduction related structs */
-+
-+/**
-+ * struct ipu3_uapi_bnr_static_config_wb_gains_config - White balance gains
-+ *
-+ * @gr:	white balance gain for Gr channel.
-+ * @r:	white balance gain for R channel.
-+ * @b:	white balance gain for B channel.
-+ * @gb:	white balance gain for Gb channel.
-+ *
-+ * Precision u3.13, range [0, 8). White balance correction is done by applying
-+ * a multiplicative gain to each color channels prior to BNR.
-+ */
-+struct ipu3_uapi_bnr_static_config_wb_gains_config {
-+	__u16 gr;
-+	__u16 r;
-+	__u16 b;
-+	__u16 gb;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_bnr_static_config_wb_gains_thr_config - Threshold config
-+ *
-+ * @gr:	white balance threshold gain for Gr channel.
-+ * @r:	white balance threshold gain for R channel.
-+ * @b:	white balance threshold gain for B channel.
-+ * @gb:	white balance threshold gain for Gb channel.
-+ *
-+ * Defines the threshold that specifies how different a defect pixel can be from
-+ * its neighbors.(used by dynamic defect pixel correction sub block)
-+ * Precision u4.4 range [0, 8].
-+ */
-+struct ipu3_uapi_bnr_static_config_wb_gains_thr_config {
-+	__u8 gr;
-+	__u8 r;
-+	__u8 b;
-+	__u8 gb;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_bnr_static_config_thr_coeffs_config - Noise model
-+ *				coefficients that controls noise threshold
-+ *
-+ * @cf:	Free coefficient for threshold calculation, range [0, 8191], default 0.
-+ * @reserved0:	reserved
-+ * @cg:	Gain coefficient for threshold calculation, [0, 31], default 8.
-+ * @ci:	Intensity coefficient for threshold calculation. range [0, 0x1f]
-+ *	default 6.
-+ * 	format: u3.2 (3 most significant bits represent whole number,
-+ *	2 least significant bits represent the fractional part
-+ *	with each count representing 0.25)
-+ *	e.g. 6 in binary format is 00110, that translates to 1.5
-+ * @reserved1:	reserved
-+ * @r_nf:	Normalization shift value for r^2 calculation, range [12, 20]
-+ *		where r is a radius of pixel [row, col] from centor of sensor.
-+ *		default 14.
-+ *
-+ * Threshold used to distinguish between noise and details.
-+ */
-+struct ipu3_uapi_bnr_static_config_thr_coeffs_config {
-+	__u32 cf:13;
-+	__u32 reserved0:3;
-+	__u32 cg:5;
-+	__u32 ci:5;
-+	__u32 reserved1:1;
-+	__u32 r_nf:5;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_bnr_static_config_thr_ctrl_shd_config - Shading config
-+ *
-+ * @gr:	Coefficient defines lens shading gain approximation for gr channel
-+ * @r:	Coefficient defines lens shading gain approximation for r channel
-+ * @b:	Coefficient defines lens shading gain approximation for b channel
-+ * @gb:	Coefficient defines lens shading gain approximation for gb channel
-+ *
-+ * Parameters for noise model (NM) adaptation of BNR due to shading correction.
-+ * All above have precision of u3.3, default to 0.
-+ */
-+struct ipu3_uapi_bnr_static_config_thr_ctrl_shd_config {
-+	__u8 gr;
-+	__u8 r;
-+	__u8 b;
-+	__u8 gb;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_bnr_static_config_opt_center_config - Optical center config
-+ *
-+ * @x_reset:	Reset value of X (col start - X center). Precision s12.0.
-+ * @reserved0:	reserved
-+ * @y_reset:	Reset value of Y (row start - Y center). Precision s12.0.
-+ * @reserved2:	reserved
-+ *
-+ * Distance from corner to optical center for NM adaptation due to shading
-+ * correction (should be calculated based on shading tables)
-+ */
-+struct ipu3_uapi_bnr_static_config_opt_center_config {
-+	__s32 x_reset:13;
-+	__u32 reserved0:3;
-+	__s32 y_reset:13;
-+	__u32 reserved2:3;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_bnr_static_config_lut_config - BNR square root lookup table
-+ *
-+ * @values: pre-calculated values of square root function.
-+ *
-+ * LUT implementation of square root operation.
-+ */
-+struct ipu3_uapi_bnr_static_config_lut_config {
-+	__u8 values[IPU3_UAPI_BNR_LUT_SIZE];
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_bnr_static_config_bp_ctrl_config - Detect bad pixels (bp)
-+ *
-+ * @bp_thr_gain:	Defines the threshold that specifies how different a
-+ *			defect pixel can be from its neighbors. Threshold is
-+ *			dependent on de-noise threshold calculated by algorithm.
-+ *			Range [4, 31], default 4.
-+ * @reserved0:	reserved
-+ * @defect_mode:	Mode of addressed defect pixels,
-+ *			0 - single defect pixel is expected,
-+ *			1 - 2 adjacent defect pixels are expected, default 1.
-+ * @bp_gain:	Defines how 2nd derivation that passes through a defect pixel
-+ *		is different from 2nd derivations that pass through
-+ *		neighbor pixels. u4.2, range [0, 256], default 8.
-+ * @reserved1:	reserved
-+ * @w0_coeff:	Blending coefficient of defect pixel correction.
-+ *		Precision u4, range [0, 8], default 8.
-+ * @reserved2:	reserved
-+ * @w1_coeff:	Enable influence of incorrect defect pixel correction to be
-+ *		avoided. Precision u4, range [1, 8], default 8.
-+ * @reserved3:	reserved
-+ */
-+struct ipu3_uapi_bnr_static_config_bp_ctrl_config {
-+	__u32 bp_thr_gain:5;
-+	__u32 reserved0:2;
-+	__u32 defect_mode:1;
-+	__u32 bp_gain:6;
-+	__u32 reserved1:18;
-+	__u32 w0_coeff:4;
-+	__u32 reserved2:4;
-+	__u32 w1_coeff:4;
-+	__u32 reserved3:20;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_bnr_static_config_dn_detect_ctrl_config - Denoising config
-+ *
-+ * @alpha:	Weight of central element of smoothing filter.
-+ * @beta:	Weight of peripheral elements of smoothing filter, default 4.
-+ * @gamma:	Weight of diagonal elements of smoothing filter, default 4.
-+ *
-+ * beta and gamma parameter define the strength of the noise removal filter.
-+ *		All above has precision u0.4, range [0, 0xf]
-+ *		format: u0.4 (no / zero bits represent whole number,
-+ *		4 bits represent the fractional part
-+ *		with each count representing 0.0625)
-+ *		e.g. 0xf translates to 0.0625x15 = 0.9375
-+ *
-+ * @reserved0:	reserved
-+ * @max_inf:	Maximum increase of peripheral or diagonal element influence
-+ *		relative to the pre-defined value range: [0x5, 0xa]
-+ * @reserved1:	reserved
-+ * @gd_enable:	Green disparity enable control, 0 - disable, 1 - enable.
-+ * @bpc_enable:	Bad pixel correction enable control, 0 - disable, 1 - enable.
-+ * @bnr_enable:	Bayer noise removal enable control, 0 - disable, 1 - enable.
-+ * @ff_enable:	Fixed function enable, 0 - disable, 1 - enable.
-+ * @reserved2:	reserved
-+ */
-+struct ipu3_uapi_bnr_static_config_dn_detect_ctrl_config {
-+	__u32 alpha:4;
-+	__u32 beta:4;
-+	__u32 gamma:4;
-+	__u32 reserved0:4;
-+	__u32 max_inf:4;
-+	__u32 reserved1:7;
-+	__u32 gd_enable:1;
-+	__u32 bpc_enable:1;
-+	__u32 bnr_enable:1;
-+	__u32 ff_enable:1;
-+	__u32 reserved2:1;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_bnr_static_config_opt_center_sqr_config - BNR optical square
-+ *
-+ * @x_sqr_reset: Reset value of X^2.
-+ * @y_sqr_reset: Reset value of Y^2.
-+ *
-+ * Please note:
-+ *
-+ *    #. X and Y ref to
-+ *       &ipu3_uapi_bnr_static_config_opt_center_config
-+ *    #. Both structs are used in threshold formula to calculate r^2, where r
-+ *       is a radius of pixel [row, col] from centor of sensor.
-+ */
-+struct ipu3_uapi_bnr_static_config_opt_center_sqr_config {
-+	__u32 x_sqr_reset;
-+	__u32 y_sqr_reset;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_bnr_static_config - BNR static config
-+ *
-+ * @wb_gains:	white balance gains &ipu3_uapi_bnr_static_config_wb_gains_config
-+ * @wb_gains_thr:	white balance gains threshold as defined by
-+ *			&ipu3_uapi_bnr_static_config_wb_gains_thr_config
-+ * @thr_coeffs:	coefficients of threshold
-+ *		&ipu3_uapi_bnr_static_config_thr_coeffs_config
-+ * @thr_ctrl_shd:	control of shading threshold
-+ *			&ipu3_uapi_bnr_static_config_thr_ctrl_shd_config
-+ * @opt_center:	optical center &ipu3_uapi_bnr_static_config_opt_center_config
-+ *
-+ * Above parameters and opt_center_sqr are used for white balance and shading.
-+ *
-+ * @lut:	lookup table &ipu3_uapi_bnr_static_config_lut_config
-+ * @bp_ctrl:	detect and remove bad pixels as defined in struct
-+ *		&ipu3_uapi_bnr_static_config_bp_ctrl_config
-+ * @dn_detect_ctrl:	detect and remove noise.
-+ *			&ipu3_uapi_bnr_static_config_dn_detect_ctrl_config
-+ * @column_size:	The number of pixels in column.
-+ * @opt_center_sqr:	Reset value of r^2 to optical center, see
-+ *			&ipu3_uapi_bnr_static_config_opt_center_sqr_config.
-+ */
-+struct ipu3_uapi_bnr_static_config {
-+	struct ipu3_uapi_bnr_static_config_wb_gains_config wb_gains;
-+	struct ipu3_uapi_bnr_static_config_wb_gains_thr_config wb_gains_thr;
-+	struct ipu3_uapi_bnr_static_config_thr_coeffs_config thr_coeffs;
-+	struct ipu3_uapi_bnr_static_config_thr_ctrl_shd_config thr_ctrl_shd;
-+	struct ipu3_uapi_bnr_static_config_opt_center_config opt_center;
-+	struct ipu3_uapi_bnr_static_config_lut_config lut;
-+	struct ipu3_uapi_bnr_static_config_bp_ctrl_config bp_ctrl;
-+	struct ipu3_uapi_bnr_static_config_dn_detect_ctrl_config dn_detect_ctrl;
-+	__u32 column_size;
-+	struct ipu3_uapi_bnr_static_config_opt_center_sqr_config opt_center_sqr;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_bnr_static_config_green_disparity - Correct green disparity
-+ *
-+ * @gd_red:	Shading gain coeff for gr disparity level in bright red region.
-+ *		Precision u0.6, default 4(0.0625).
-+ * @reserved0:	reserved
-+ * @gd_green:	Shading gain coeff for gr disparity level in bright green
-+ *		region. Precision u0.6, default 4(0.0625).
-+ * @reserved1:	reserved
-+ * @gd_blue:	Shading gain coeff for gr disparity level in bright blue region.
-+ *		Precision u0.6, default 4(0.0625).
-+ * @reserved2:	reserved
-+ * @gd_black:	Maximal green disparity level in dark region (stronger disparity
-+ *		assumed to be image detail). Precision u14, default 80.
-+ * @reserved3:	reserved
-+ * @gd_shading:	Change maximal green disparity level according to square
-+ *		distance from image center.
-+ * @reserved4:	reserved
-+ * @gd_support:	Lower bound for the number of second green color pixels in
-+ *		current pixel neighborhood with less than threshold difference
-+ *		from it.
-+ *
-+ * The shading gain coeff of red, green, blue and black are used to calculate
-+ * threshold given a pixel's color value and its coordinates in the image.
-+ *
-+ * @reserved5:	reserved
-+ * @gd_clip:	Turn green disparity clip on/off, [0, 1], default 1.
-+ * @gd_central_weight:	Central pixel weight in 9 pixels weighted sum.
-+ */
-+struct ipu3_uapi_bnr_static_config_green_disparity {
-+	__u32 gd_red:6;
-+	__u32 reserved0:2;
-+	__u32 gd_green:6;
-+	__u32 reserved1:2;
-+	__u32 gd_blue:6;
-+	__u32 reserved2:10;
-+	__u32 gd_black:14;
-+	__u32 reserved3:2;
-+	__u32 gd_shading:7;
-+	__u32 reserved4:1;
-+	__u32 gd_support:2;
-+	__u32 reserved5:1;
-+	__u32 gd_clip:1;
-+	__u32 gd_central_weight:4;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_dm_config - De-mosaic parameters
-+ *
-+ * @dm_en:	de-mosaic enable.
-+ * @ch_ar_en:	Checker artifacts removal enable flag. Default 0.
-+ * @fcc_en:	False color correction (FCC) enable flag. Default 0.
-+ * @reserved0:	reserved
-+ * @frame_width:	do not care
-+ * @gamma_sc:	Sharpening coefficient (coefficient of 2-d derivation of
-+ *		complementary color in Hamilton-Adams interpolation).
-+ *		u5, range [0, 31], default 8.
-+ * @reserved1:	reserved
-+ * @lc_ctrl:	Parameter that controls weights of Chroma Homogeneity metric
-+ *		in calculation of final homogeneity metric.
-+ *		u5, range [0, 31], default 7.
-+ * @reserved2:	reserved
-+ * @cr_param1:	First parameter that defines Checker artifact removal
-+ *		feature gain. Precision u5, range [0, 31], default 8.
-+ * @reserved3:	reserved
-+ * @cr_param2:	Second parameter that defines Checker artifact removal
-+ *		feature gain. Precision u5, range [0, 31], default 8.
-+ * @reserved4:	reserved
-+ * @coring_param:	Defines power of false color correction operation.
-+ *			low for preserving edge colors, high for preserving gray
-+ *			edge artifacts.
-+ *			Precision u1.4, range [0, 1.9375], default 4 (0.25).
-+ * @reserved5:	reserved
-+ *
-+ * The demosaic fixed function block is responsible to covert Bayer(mosaiced)
-+ * images into color images based on demosaicing algorithm.
-+ */
-+struct ipu3_uapi_dm_config {
-+	__u32 dm_en:1;
-+	__u32 ch_ar_en:1;
-+	__u32 fcc_en:1;
-+	__u32 reserved0:13;
-+	__u32 frame_width:16;
-+
-+	__u32 gamma_sc:5;
-+	__u32 reserved1:3;
-+	__u32 lc_ctrl:5;
-+	__u32 reserved2:3;
-+	__u32 cr_param1:5;
-+	__u32 reserved3:3;
-+	__u32 cr_param2:5;
-+	__u32 reserved4:3;
-+
-+	__u32 coring_param:5;
-+	__u32 reserved5:27;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_ccm_mat_config - Color correction matrix
-+ *
-+ * @coeff_m11: CCM 3x3 coefficient, range [-65536, 65535]
-+ * @coeff_m12: CCM 3x3 coefficient, range [-8192, 8191]
-+ * @coeff_m13: CCM 3x3 coefficient, range [-32768, 32767]
-+ * @coeff_o_r: Bias 3x1 coefficient, range [-8191, 8181]
-+ * @coeff_m21: CCM 3x3 coefficient, range [-32767, 32767]
-+ * @coeff_m22: CCM 3x3 coefficient, range [-8192, 8191]
-+ * @coeff_m23: CCM 3x3 coefficient, range [-32768, 32767]
-+ * @coeff_o_g: Bias 3x1 coefficient, range [-8191, 8181]
-+ * @coeff_m31: CCM 3x3 coefficient, range [-32768, 32767]
-+ * @coeff_m32: CCM 3x3 coefficient, range [-8192, 8191]
-+ * @coeff_m33: CCM 3x3 coefficient, range [-32768, 32767]
-+ * @coeff_o_b: Bias 3x1 coefficient, range [-8191, 8181]
-+ *
-+ * Transform sensor specific color space to standard sRGB by applying 3x3 matrix
-+ * and adding a bias vector O. The transformation is basically a rotation and
-+ * translation in the 3-dimensional color spaces. Here are the defaults:
-+ *
-+ *	9775,	-2671,	1087,	0
-+ *	-1071,	8303,	815,	0
-+ *	-23,	-7887,	16103,	0
-+ */
-+struct ipu3_uapi_ccm_mat_config {
-+	__s16 coeff_m11;
-+	__s16 coeff_m12;
-+	__s16 coeff_m13;
-+	__s16 coeff_o_r;
-+	__s16 coeff_m21;
-+	__s16 coeff_m22;
-+	__s16 coeff_m23;
-+	__s16 coeff_o_g;
-+	__s16 coeff_m31;
-+	__s16 coeff_m32;
-+	__s16 coeff_m33;
-+	__s16 coeff_o_b;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_gamma_corr_ctrl - Gamma correction
-+ *
-+ * @enable: gamma correction enable.
-+ * @reserved: reserved
-+ */
-+struct ipu3_uapi_gamma_corr_ctrl {
-+	__u32 enable:1;
-+	__u32 reserved:31;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_gamma_corr_lut - Per-pixel tone mapping implemented as LUT.
-+ *
-+ * @lut:	256 tabulated values of the gamma function. LUT[1].. LUT[256]
-+ *		format u13.0, range [0, 8191].
-+ *
-+ * The tone mapping operation is done by a Piece wise linear graph
-+ * that is implemented as a lookup table(LUT). The pixel component input
-+ * intensity is the X-axis of the graph which is the table entry.
-+ */
-+struct ipu3_uapi_gamma_corr_lut {
-+	__u16 lut[IPU3_UAPI_GAMMA_CORR_LUT_ENTRIES];
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_gamma_config - Gamma config
-+ *
-+ * @gc_ctrl: control of gamma correction &ipu3_uapi_gamma_corr_ctrl
-+ * @gc_lut: lookup table of gamma correction &ipu3_uapi_gamma_corr_lut
-+ */
-+struct ipu3_uapi_gamma_config {
-+	struct ipu3_uapi_gamma_corr_ctrl gc_ctrl __attribute__((aligned(32)));
-+	struct ipu3_uapi_gamma_corr_lut gc_lut __attribute__((aligned(32)));
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_csc_mat_config - Color space conversion matrix config
-+ *
-+ * @coeff_c11:	Conversion matrix value, format s0.14, range [-16384, 16383].
-+ * @coeff_c12:	Conversion matrix value, format s0.14, range [-8192, 8191].
-+ * @coeff_c13:	Conversion matrix value, format s0.14, range [-16384, 16383].
-+ * @coeff_b1:	Bias 3x1 coefficient, s13.0 range [-8192, 8191].
-+ * @coeff_c21:	Conversion matrix value, format s0.14, range [-16384, 16383].
-+ * @coeff_c22:	Conversion matrix value, format s0.14, range [-8192, 8191].
-+ * @coeff_c23:	Conversion matrix value, format s0.14, range [-16384, 16383].
-+ * @coeff_b2:	Bias 3x1 coefficient, s13.0 range [-8192, 8191].
-+ * @coeff_c31:	Conversion matrix value, format s0.14, range [-16384, 16383].
-+ * @coeff_c32:	Conversion matrix value, format s0.14, range [-8192, 8191].
-+ * @coeff_c33:	Conversion matrix value, format s0.14, range [-16384, 16383].
-+ * @coeff_b3:	Bias 3x1 coefficient, s13.0 range [-8192, 8191].
-+ *
-+ * To transform each pixel from RGB to YUV (Y - brightness/luminance,
-+ * UV -chroma) by applying the pixel's values by a 3x3 matrix and adding an
-+ * optional bias 3x1 vector. Here are the default values for the matrix:
-+ *
-+ *	4898,   9617,  1867, 0,
-+ *	-2410, -4732,  7143, 0,
-+ *	10076, -8437, -1638, 0,
-+ *
-+ *	(i.e. for real number 0.299, 0.299 * 2^14 becomes 4898.)
-+ */
-+struct ipu3_uapi_csc_mat_config {
-+	__s16 coeff_c11;
-+	__s16 coeff_c12;
-+	__s16 coeff_c13;
-+	__s16 coeff_b1;
-+	__s16 coeff_c21;
-+	__s16 coeff_c22;
-+	__s16 coeff_c23;
-+	__s16 coeff_b2;
-+	__s16 coeff_c31;
-+	__s16 coeff_c32;
-+	__s16 coeff_c33;
-+	__s16 coeff_b3;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_cds_params - Chroma down-scaling
-+ *
-+ * @ds_c00:	range [0, 3]
-+ * @ds_c01:	range [0, 3]
-+ * @ds_c02:	range [0, 3]
-+ * @ds_c03:	range [0, 3]
-+ * @ds_c10:	range [0, 3]
-+ * @ds_c11:	range [0, 3]
-+ * @ds_c12:	range [0, 3]
-+ * @ds_c13:	range [0, 3]
-+ *
-+ * In case user does not provide, above 4x2 filter will use following defaults:
-+ *	1, 3, 3, 1,
-+ *	1, 3, 3, 1,
-+ *
-+ * @ds_nf:	Normalization factor for Chroma output downscaling filter,
-+ *		range 0,4, default 2.
-+ * @reserved0:	reserved
-+ * @csc_en:	Color space conversion enable
-+ * @uv_bin_output:	0: output YUV 4.2.0, 1: output YUV 4.2.2(default).
-+ * @reserved1:	reserved
-+ */
-+struct ipu3_uapi_cds_params {
-+	__u32 ds_c00:2;
-+	__u32 ds_c01:2;
-+	__u32 ds_c02:2;
-+	__u32 ds_c03:2;
-+	__u32 ds_c10:2;
-+	__u32 ds_c11:2;
-+	__u32 ds_c12:2;
-+	__u32 ds_c13:2;
-+	__u32 ds_nf:5;
-+	__u32 reserved0:3;
-+	__u32 csc_en:1;
-+	__u32 uv_bin_output:1;
-+	__u32 reserved1:6;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_shd_grid_config - Bayer shading(darkening) correction
-+ *
-+ * @width:	Grid horizontal dimensions, u8, [8, 128], default 73
-+ * @height:	Grid vertical dimensions, u8, [8, 128], default 56
-+ * @block_width_log2:	Log2 of the width of the grid cell in pixel count
-+ *			u4, [0, 15], default value 5.
-+ * @reserved0:	reserved
-+ * @block_height_log2:	Log2 of the height of the grid cell in pixel count
-+ *			u4, [0, 15], default value 6.
-+ * @reserved1:	reserved
-+ * @grid_height_per_slice:	SHD_MAX_CELLS_PER_SET/width.
-+ *				(with SHD_MAX_CELLS_PER_SET = 146).
-+ * @x_start:	X value of top left corner of sensor relative to ROI
-+ *		s13, [-4096, 0], default 0, only negative values.
-+ * @y_start:	Y value of top left corner of sensor relative to ROI
-+ *		s13, [-4096, 0], default 0, only negative values.
-+ */
-+struct ipu3_uapi_shd_grid_config {
-+	/* reg 0 */
-+	__u8 width;
-+	__u8 height;
-+	__u8 block_width_log2:3;
-+	__u8 reserved0:1;
-+	__u8 block_height_log2:3;
-+	__u8 reserved1:1;
-+	__u8 grid_height_per_slice;
-+	/* reg 1 */
-+	__s16 x_start;
-+	__s16 y_start;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_shd_general_config - Shading general config
-+ *
-+ * @init_set_vrt_offst_ul: set vertical offset,
-+ *			y_start >> block_height_log2 % grid_height_per_slice.
-+ * @shd_enable: shading enable.
-+ * @gain_factor: Gain factor. Shift calculated anti shading value. Precision u2.
-+ *		0x0 - gain factor [1, 5], means no shift interpolated value.
-+ *		0x1 - gain factor [1, 9], means shift interpolated by 1.
-+ *		0x2 - gain factor [1, 17], means shift interpolated by 2.
-+ * @reserved: reserved
-+ *
-+ * Correction is performed by multiplying a gain factor for each of the 4 Bayer
-+ * channels as a function of the pixel location in the sensor.
-+ */
-+struct ipu3_uapi_shd_general_config {
-+	__u32 init_set_vrt_offst_ul:8;
-+	__u32 shd_enable:1;
-+	__u32 gain_factor:2;
-+	__u32 reserved:21;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_shd_black_level_config - Black level correction
-+ *
-+ * @bl_r:	Bios values for green red. s11 range [-2048, 2047].
-+ * @bl_gr:	Bios values for green blue. s11 range [-2048, 2047].
-+ * @bl_gb:	Bios values for red. s11 range [-2048, 2047].
-+ * @bl_b:	Bios values for blue. s11 range [-2048, 2047].
-+ */
-+struct ipu3_uapi_shd_black_level_config {
-+	__s16 bl_r;
-+	__s16 bl_gr;
-+	__s16 bl_gb;
-+	__s16 bl_b;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_shd_config_static - Shading config static
-+ *
-+ * @grid:	shading grid config &ipu3_uapi_shd_grid_config
-+ * @general:	shading general config &ipu3_uapi_shd_general_config
-+ * @black_level:	black level config for shading correction as defined by
-+ *			&ipu3_uapi_shd_black_level_config
-+ */
-+struct ipu3_uapi_shd_config_static {
-+	struct ipu3_uapi_shd_grid_config grid;
-+	struct ipu3_uapi_shd_general_config general;
-+	struct ipu3_uapi_shd_black_level_config black_level;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_shd_lut - Shading gain factor lookup table.
-+ *
-+ * @sets: array
-+ * @sets.r_and_gr: Red and GreenR Lookup table.
-+ * @sets.r_and_gr.r: Red shading factor.
-+ * @sets.r_and_gr.gr: GreenR shading factor.
-+ * @sets.reserved1: reserved
-+ * @sets.gb_and_b: GreenB and Blue Lookup table.
-+ * @sets.gb_and_b.gb: GreenB shading factor.
-+ * @sets.gb_and_b.b: Blue shading factor.
-+ * @sets.reserved2: reserved
-+ *
-+ * Map to shading correction LUT register set.
-+ */
-+struct ipu3_uapi_shd_lut {
-+	struct {
-+		struct {
-+			__u16 r;
-+			__u16 gr;
-+		} r_and_gr[IPU3_UAPI_SHD_MAX_CELLS_PER_SET];
-+		__u8 reserved1[24];
-+		struct {
-+			__u16 gb;
-+			__u16 b;
-+		} gb_and_b[IPU3_UAPI_SHD_MAX_CELLS_PER_SET];
-+		__u8 reserved2[24];
-+	} sets[IPU3_UAPI_SHD_MAX_CFG_SETS];
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_shd_config - Shading config
-+ *
-+ * @shd:	shading static config, see &ipu3_uapi_shd_config_static
-+ * @shd_lut:	shading lookup table &ipu3_uapi_shd_lut
-+ */
-+struct ipu3_uapi_shd_config {
-+	struct ipu3_uapi_shd_config_static shd __attribute__((aligned(32)));
-+	struct ipu3_uapi_shd_lut shd_lut __attribute__((aligned(32)));
-+} __packed;
-+
-+/* Image Enhancement Filter directed */
-+
-+/**
-+ * struct ipu3_uapi_iefd_cux2 - IEFd Config Unit 2 parameters
-+ *
-+ * @x0:		X0 point of Config Unit, u9.0, default 0.
-+ * @x1:		X1 point of Config Unit, u9.0, default 0.
-+ * @a01:	Slope A of Config Unit, s4.4, default 0.
-+ * @b01:	Slope B, always 0.
-+ *
-+ * Calculate weight for blending directed and non-directed denoise elements
-+ *
-+ * Note:
-+ * Each instance of Config Unit needs X coordinate of n points and
-+ * slope A factor between points calculated by driver based on calibration
-+ * parameters.
-+ *
-+ * All CU inputs are unsigned, they will be converted to signed when written
-+ * to register, i.e. a01 will be written to 9 bit register in s4.4 format.
-+ * This applies to &ipu3_uapi_iefd_cux6_ed, &ipu3_uapi_iefd_cux2_1,
-+ * &ipu3_uapi_iefd_cux2_1, &ipu3_uapi_iefd_cux4 and &ipu3_uapi_iefd_cux6_rad.
-+ */
-+struct ipu3_uapi_iefd_cux2 {
-+	__u32 x0:9;
-+	__u32 x1:9;
-+	__u32 a01:9;
-+	__u32 b01:5;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_iefd_cux6_ed - Calculate power of non-directed sharpening
-+ *				   element, Config Unit 6 for edge detail (ED).
-+ *
-+ * @x0:	X coordinate of point 0, u9.0, default 0.
-+ * @x1:	X coordinate of point 1, u9.0, default 0.
-+ * @x2:	X coordinate of point 2, u9.0, default 0.
-+ * @reserved0:	reserved
-+ * @x3:	X coordinate of point 3, u9.0, default 0.
-+ * @x4:	X coordinate of point 4, u9.0, default 0.
-+ * @x5:	X coordinate of point 5, u9.0, default 0.
-+ * @reserved1:	reserved
-+ * @a01:	slope A points 01, s4.4, default 0.
-+ * @a12:	slope A points 12, s4.4, default 0.
-+ * @a23:	slope A points 23, s4.4, default 0.
-+ * @reserved2:	reserved
-+ * @a34:	slope A points 34, s4.4, default 0.
-+ * @a45:	slope A points 45, s4.4, default 0.
-+ * @reserved3:	reserved
-+ * @b01:	slope B points 01, s4.4, default 0.
-+ * @b12:	slope B points 12, s4.4, default 0.
-+ * @b23:	slope B points 23, s4.4, default 0.
-+ * @reserved4:	reserved
-+ * @b34:	slope B points 34, s4.4, default 0.
-+ * @b45:	slope B points 45, s4.4, default 0.
-+ * @reserved5:	reserved.
-+ */
-+struct ipu3_uapi_iefd_cux6_ed {
-+	__u32 x0:9;
-+	__u32 x1:9;
-+	__u32 x2:9;
-+	__u32 reserved0:5;
-+
-+	__u32 x3:9;
-+	__u32 x4:9;
-+	__u32 x5:9;
-+	__u32 reserved1:5;
-+
-+	__u32 a01:9;
-+	__u32 a12:9;
-+	__u32 a23:9;
-+	__u32 reserved2:5;
-+
-+	__u32 a34:9;
-+	__u32 a45:9;
-+	__u32 reserved3:14;
-+
-+	__u32 b01:9;
-+	__u32 b12:9;
-+	__u32 b23:9;
-+	__u32 reserved4:5;
-+
-+	__u32 b34:9;
-+	__u32 b45:9;
-+	__u32 reserved5:14;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_iefd_cux2_1 - Calculate power of non-directed denoise
-+ *				  element apply.
-+ * @x0: X0 point of Config Unit, u9.0, default 0.
-+ * @x1: X1 point of Config Unit, u9.0, default 0.
-+ * @a01: Slope A of Config Unit, s4.4, default 0.
-+ * @reserved1: reserved
-+ * @b01: offset B0 of Config Unit, u7.0, default 0.
-+ * @reserved2: reserved
-+ */
-+struct ipu3_uapi_iefd_cux2_1 {
-+	__u32 x0:9;
-+	__u32 x1:9;
-+	__u32 a01:9;
-+	__u32 reserved1:5;
-+
-+	__u32 b01:8;
-+	__u32 reserved2:24;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_iefd_cux4 - Calculate power of non-directed sharpening
-+ *				element.
-+ *
-+ * @x0:	X0 point of Config Unit, u9.0, default 0.
-+ * @x1:	X1 point of Config Unit, u9.0, default 0.
-+ * @x2:	X2 point of Config Unit, u9.0, default 0.
-+ * @reserved0:	reserved
-+ * @x3:	X3 point of Config Unit, u9.0, default 0.
-+ * @a01:	Slope A0 of Config Unit, s4.4, default 0.
-+ * @a12:	Slope A1 of Config Unit, s4.4, default 0.
-+ * @reserved1:	reserved
-+ * @a23:	Slope A2 of Config Unit, s4.4, default 0.
-+ * @b01:	Offset B0 of Config Unit, s7.0, default 0.
-+ * @b12:	Offset B1 of Config Unit, s7.0, default 0.
-+ * @reserved2:	reserved
-+ * @b23:	Offset B2 of Config Unit, s7.0, default 0.
-+ * @reserved3: reserved
-+ */
-+struct ipu3_uapi_iefd_cux4 {
-+	__u32 x0:9;
-+	__u32 x1:9;
-+	__u32 x2:9;
-+	__u32 reserved0:5;
-+
-+	__u32 x3:9;
-+	__u32 a01:9;
-+	__u32 a12:9;
-+	__u32 reserved1:5;
-+
-+	__u32 a23:9;
-+	__u32 b01:8;
-+	__u32 b12:8;
-+	__u32 reserved2:7;
-+
-+	__u32 b23:8;
-+	__u32 reserved3:24;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_iefd_cux6_rad - Radial Config Unit (CU)
-+ *
-+ * @x0:	x0 points of Config Unit radial, u8.0
-+ * @x1:	x1 points of Config Unit radial, u8.0
-+ * @x2:	x2 points of Config Unit radial, u8.0
-+ * @x3:	x3 points of Config Unit radial, u8.0
-+ * @x4:	x4 points of Config Unit radial, u8.0
-+ * @x5:	x5 points of Config Unit radial, u8.0
-+ * @reserved1: reserved
-+ * @a01:	Slope A of Config Unit radial, s7.8
-+ * @a12:	Slope A of Config Unit radial, s7.8
-+ * @a23:	Slope A of Config Unit radial, s7.8
-+ * @a34:	Slope A of Config Unit radial, s7.8
-+ * @a45:	Slope A of Config Unit radial, s7.8
-+ * @reserved2: reserved
-+ * @b01:	Slope B of Config Unit radial, s9.0
-+ * @b12:	Slope B of Config Unit radial, s9.0
-+ * @b23:	Slope B of Config Unit radial, s9.0
-+ * @reserved4: reserved
-+ * @b34:	Slope B of Config Unit radial, s9.0
-+ * @b45:	Slope B of Config Unit radial, s9.0
-+ * @reserved5: reserved
-+ */
-+struct ipu3_uapi_iefd_cux6_rad {
-+	__u32 x0:8;
-+	__u32 x1:8;
-+	__u32 x2:8;
-+	__u32 x3:8;
-+
-+	__u32 x4:8;
-+	__u32 x5:8;
-+	__u32 reserved1:16;
-+
-+	__u32 a01:16;
-+	__u32 a12:16;
-+
-+	__u32 a23:16;
-+	__u32 a34:16;
-+
-+	__u32 a45:16;
-+	__u32 reserved2:16;
-+
-+	__u32 b01:10;
-+	__u32 b12:10;
-+	__u32 b23:10;
-+	__u32 reserved4:2;
-+
-+	__u32 b34:10;
-+	__u32 b45:10;
-+	__u32 reserved5:12;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_yuvp1_iefd_cfg_units - IEFd Config Units parameters
-+ *
-+ * @cu_1: calculate weight for blending directed and
-+ *	  non-directed denoise elements. See &ipu3_uapi_iefd_cux2
-+ * @cu_ed: calculate power of non-directed sharpening element, see
-+ *	   &ipu3_uapi_iefd_cux6_ed
-+ * @cu_3: calculate weight for blending directed and
-+ *	  non-directed denoise elements. A &ipu3_uapi_iefd_cux2
-+ * @cu_5: calculate power of non-directed denoise element apply, use
-+ *	  &ipu3_uapi_iefd_cux2_1
-+ * @cu_6: calculate power of non-directed sharpening element. See
-+ *	  &ipu3_uapi_iefd_cux4
-+ * @cu_7: calculate weight for blending directed and
-+ *	  non-directed denoise elements. Use &ipu3_uapi_iefd_cux2
-+ * @cu_unsharp: Config Unit of unsharp &ipu3_uapi_iefd_cux4
-+ * @cu_radial: Config Unit of radial &ipu3_uapi_iefd_cux6_rad
-+ * @cu_vssnlm: Config Unit of vssnlm &ipu3_uapi_iefd_cux2
-+ */
-+struct ipu3_uapi_yuvp1_iefd_cfg_units {
-+	struct ipu3_uapi_iefd_cux2 cu_1;
-+	struct ipu3_uapi_iefd_cux6_ed cu_ed;
-+	struct ipu3_uapi_iefd_cux2 cu_3;
-+	struct ipu3_uapi_iefd_cux2_1 cu_5;
-+	struct ipu3_uapi_iefd_cux4 cu_6;
-+	struct ipu3_uapi_iefd_cux2 cu_7;
-+	struct ipu3_uapi_iefd_cux4 cu_unsharp;
-+	struct ipu3_uapi_iefd_cux6_rad cu_radial;
-+	struct ipu3_uapi_iefd_cux2 cu_vssnlm;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_yuvp1_iefd_config_s - IEFd config
-+ *
-+ * @horver_diag_coeff: Gradient compensation. Compared with vertical /
-+ *		       horizontal (0 / 90 degree), coefficient of diagonal (45 /
-+ *		       135 degree) direction should be corrected by approx.
-+ *		       1/sqrt(2).
-+ * @reserved0: reserved
-+ * @clamp_stitch: Slope to stitch between clamped and unclamped edge values
-+ * @reserved1: reserved
-+ * @direct_metric_update: Update coeff for direction metric
-+ * @reserved2: reserved
-+ * @ed_horver_diag_coeff: Radial Coefficient that compensates for
-+ *			  different distance for vertical/horizontal and
-+ *			  diagonal gradient calculation (approx. 1/sqrt(2))
-+ * @reserved3: reserved
-+ */
-+struct ipu3_uapi_yuvp1_iefd_config_s {
-+	__u32 horver_diag_coeff:7;
-+	__u32 reserved0:1;
-+	__u32 clamp_stitch:6;
-+	__u32 reserved1:2;
-+	__u32 direct_metric_update:5;
-+	__u32 reserved2:3;
-+	__u32 ed_horver_diag_coeff:7;
-+	__u32 reserved3:1;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_yuvp1_iefd_control - IEFd control
-+ *
-+ * @iefd_en:	Enable IEFd
-+ * @denoise_en:	Enable denoise
-+ * @direct_smooth_en:	Enable directional smooth
-+ * @rad_en:	Enable radial update
-+ * @vssnlm_en:	Enable VSSNLM output filter
-+ * @reserved:	reserved
-+ */
-+struct ipu3_uapi_yuvp1_iefd_control {
-+	__u32 iefd_en:1;
-+	__u32 denoise_en:1;
-+	__u32 direct_smooth_en:1;
-+	__u32 rad_en:1;
-+	__u32 vssnlm_en:1;
-+	__u32 reserved:27;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_sharp_cfg - Sharpening config
-+ *
-+ * @nega_lmt_txt: Sharpening limit for negative overshoots for texture.
-+ * @reserved0: reserved
-+ * @posi_lmt_txt: Sharpening limit for positive overshoots for texture.
-+ * @reserved1: reserved
-+ * @nega_lmt_dir: Sharpening limit for negative overshoots for direction (edge).
-+ * @reserved2: reserved
-+ * @posi_lmt_dir: Sharpening limit for positive overshoots for direction (edge).
-+ * @reserved3: reserved
-+ *
-+ * Fixed point type u13.0, range [0, 8191].
-+ */
-+struct ipu3_uapi_sharp_cfg {
-+	__u32 nega_lmt_txt:13;
-+	__u32 reserved0:19;
-+	__u32 posi_lmt_txt:13;
-+	__u32 reserved1:19;
-+	__u32 nega_lmt_dir:13;
-+	__u32 reserved2:19;
-+	__u32 posi_lmt_dir:13;
-+	__u32 reserved3:19;
-+} __packed;
-+
-+/**
-+ * struct struct ipu3_uapi_far_w - Sharpening config for far sub-group
-+ *
-+ * @dir_shrp:	Weight of wide direct sharpening, u1.6, range [0, 64], default 64.
-+ * @reserved0:	reserved
-+ * @dir_dns:	Weight of wide direct denoising, u1.6, range [0, 64], default 0.
-+ * @reserved1:	reserved
-+ * @ndir_dns_powr:	Power of non-direct denoising,
-+ *			Precision u1.6, range [0, 64], default 64.
-+ * @reserved2:	reserved
-+ */
-+struct ipu3_uapi_far_w {
-+	__u32 dir_shrp:7;
-+	__u32 reserved0:1;
-+	__u32 dir_dns:7;
-+	__u32 reserved1:1;
-+	__u32 ndir_dns_powr:7;
-+	__u32 reserved2:9;
-+} __packed;
-+
-+/**
-+ * struct struct ipu3_uapi_unsharp_cfg - Unsharp config
-+ *
-+ * @unsharp_weight: Unsharp mask blending weight.
-+ *		    u1.6, range [0, 64], default 16.
-+ *		    0 - disabled, 64 - use only unsharp.
-+ * @reserved0: reserved
-+ * @unsharp_amount: Unsharp mask amount, u4.5, range [0, 511], default 0.
-+ * @reserved1: reserved
-+ */
-+struct ipu3_uapi_unsharp_cfg {
-+	__u32 unsharp_weight:7;
-+	__u32 reserved0:1;
-+	__u32 unsharp_amount:9;
-+	__u32 reserved1:15;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_yuvp1_iefd_shrp_cfg - IEFd sharpness config
-+ *
-+ * @cfg: sharpness config &ipu3_uapi_sharp_cfg
-+ * @far_w: wide range config, value as specified by &ipu3_uapi_far_w:
-+ *	The 5x5 environment is separated into 2 sub-groups, the 3x3 nearest
-+ *	neighbors (8 pixels called Near), and the second order neighborhood
-+ *	around them (16 pixels called Far).
-+ * @unshrp_cfg: unsharpness config. &ipu3_uapi_unsharp_cfg
-+ */
-+struct ipu3_uapi_yuvp1_iefd_shrp_cfg {
-+	struct ipu3_uapi_sharp_cfg cfg;
-+	struct ipu3_uapi_far_w far_w;
-+	struct ipu3_uapi_unsharp_cfg unshrp_cfg;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_unsharp_coef0 - Unsharp mask coefficients
-+ *
-+ * @c00: Coeff11, s0.8, range [-255, 255], default 1.
-+ * @c01: Coeff12, s0.8, range [-255, 255], default 5.
-+ * @c02: Coeff13, s0.8, range [-255, 255], default 9.
-+ * @reserved: reserved
-+ *
-+ * Configurable registers for common sharpening support.
-+ */
-+struct ipu3_uapi_unsharp_coef0 {
-+	__u32 c00:9;
-+	__u32 c01:9;
-+	__u32 c02:9;
-+	__u32 reserved:5;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_unsharp_coef1 - Unsharp mask coefficients
-+ *
-+ * @c11: Coeff22, s0.8, range [-255, 255], default 29.
-+ * @c12: Coeff23, s0.8, range [-255, 255], default 55.
-+ * @c22: Coeff33, s0.8, range [-255, 255], default 96.
-+ * @reserved: reserved
-+ */
-+struct ipu3_uapi_unsharp_coef1 {
-+	__u32 c11:9;
-+	__u32 c12:9;
-+	__u32 c22:9;
-+	__u32 reserved:5;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_yuvp1_iefd_unshrp_cfg - Unsharp mask config
-+ *
-+ * @unsharp_coef0: unsharp coefficient 0 config. See &ipu3_uapi_unsharp_coef0
-+ * @unsharp_coef1: unsharp coefficient 1 config. See &ipu3_uapi_unsharp_coef1
-+ */
-+struct ipu3_uapi_yuvp1_iefd_unshrp_cfg {
-+	struct ipu3_uapi_unsharp_coef0 unsharp_coef0;
-+	struct ipu3_uapi_unsharp_coef1 unsharp_coef1;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_radial_reset_xy - Radial coordinate reset
-+ *
-+ * @x:	Radial reset of x coordinate. Precision s12, [-4095, 4095], default 0.
-+ * @reserved0:	reserved
-+ * @y:	Radial center y coordinate. Precision s12, [-4095, 4095], default 0.
-+ * @reserved1:	reserved
-+ */
-+struct ipu3_uapi_radial_reset_xy {
-+	__s32 x:13;
-+	__u32 reserved0:3;
-+	__s32 y:13;
-+	__u32 reserved1:3;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_radial_reset_x2 - Radial X^2 reset
-+ *
-+ * @x2:	Radial reset of x^2 coordinate. Precision u24, default 0.
-+ * @reserved:	reserved
-+ */
-+struct ipu3_uapi_radial_reset_x2 {
-+	__u32 x2:24;
-+	__u32 reserved:8;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_radial_reset_y2 - Radial Y^2 reset
-+ *
-+ * @y2:	Radial reset of y^2 coordinate. Precision u24, default 0.
-+ * @reserved:	reserved
-+ */
-+struct ipu3_uapi_radial_reset_y2 {
-+	__u32 y2:24;
-+	__u32 reserved:8;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_radial_cfg - Radial config
-+ *
-+ * @rad_nf: Radial. R^2 normalization factor is scale down by 2^ - (15 + scale)
-+ * @reserved0: reserved
-+ * @rad_inv_r2: Radial R^-2 normelized to (0.5..1).
-+ *		Precision u7, range [0, 127].
-+ * @reserved1: reserved
-+ */
-+struct ipu3_uapi_radial_cfg {
-+	__u32 rad_nf:4;
-+	__u32 reserved0:4;
-+	__u32 rad_inv_r2:7;
-+	__u32 reserved1:17;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_rad_far_w - Radial FAR sub-group
-+ *
-+ * @rad_dir_far_sharp_w: Weight of wide direct sharpening, u1.6, range [0, 64],
-+ *			 default 64.
-+ * @rad_dir_far_dns_w: Weight of wide direct denoising, u1.6, range [0, 64],
-+ *			 default 0.
-+ * @rad_ndir_far_dns_power: power of non-direct sharpening, u1.6, range [0, 64],
-+ *			 default 0.
-+ * @reserved: reserved
-+ */
-+struct ipu3_uapi_rad_far_w {
-+	__u32 rad_dir_far_sharp_w:8;
-+	__u32 rad_dir_far_dns_w:8;
-+	__u32 rad_ndir_far_dns_power:8;
-+	__u32 reserved:8;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_cu_cfg0 - Radius Config Unit cfg0 register
-+ *
-+ * @cu6_pow: Power of CU6. Power of non-direct sharpening, u3.4.
-+ * @reserved0: reserved
-+ * @cu_unsharp_pow: Power of unsharp mask, u2.4.
-+ * @reserved1: reserved
-+ * @rad_cu6_pow: Radial/corner CU6. Directed sharpening power, u3.4.
-+ * @reserved2: reserved
-+ * @rad_cu_unsharp_pow: Radial power of unsharp mask, u2.4.
-+ * @reserved3: reserved
-+ */
-+struct ipu3_uapi_cu_cfg0 {
-+	__u32 cu6_pow:7;
-+	__u32 reserved0:1;
-+	__u32 cu_unsharp_pow:7;
-+	__u32 reserved1:1;
-+	__u32 rad_cu6_pow:7;
-+	__u32 reserved2:1;
-+	__u32 rad_cu_unsharp_pow:6;
-+	__u32 reserved3:2;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_cu_cfg1 - Radius Config Unit cfg1 register
-+ *
-+ * @rad_cu6_x1: X1 point of Config Unit 6, precision u9.0.
-+ * @reserved0: reserved
-+ * @rad_cu_unsharp_x1: X1 point for Config Unit unsharp for radial/corner point
-+ *			precision u9.0.
-+ * @reserved1: reserved
-+ */
-+struct ipu3_uapi_cu_cfg1 {
-+	__u32 rad_cu6_x1:9;
-+	__u32 reserved0:1;
-+	__u32 rad_cu_unsharp_x1:9;
-+	__u32 reserved1:13;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_yuvp1_iefd_rad_cfg - IEFd parameters changed radially over
-+ *					 the picture plane.
-+ *
-+ * @reset_xy: reset xy value in radial calculation. &ipu3_uapi_radial_reset_xy
-+ * @reset_x2: reset x square value in radial calculation. See struct
-+ *	      &ipu3_uapi_radial_reset_x2
-+ * @reset_y2: reset y square value in radial calculation. See struct
-+ *	      &ipu3_uapi_radial_reset_y2
-+ * @cfg: radial config defined in &ipu3_uapi_radial_cfg
-+ * @rad_far_w: weight for wide range radial. &ipu3_uapi_rad_far_w
-+ * @cu_cfg0: configuration unit 0. See &ipu3_uapi_cu_cfg0
-+ * @cu_cfg1: configuration unit 1. See &ipu3_uapi_cu_cfg1
-+ */
-+struct ipu3_uapi_yuvp1_iefd_rad_cfg {
-+	struct ipu3_uapi_radial_reset_xy reset_xy;
-+	struct ipu3_uapi_radial_reset_x2 reset_x2;
-+	struct ipu3_uapi_radial_reset_y2 reset_y2;
-+	struct ipu3_uapi_radial_cfg cfg;
-+	struct ipu3_uapi_rad_far_w rad_far_w;
-+	struct ipu3_uapi_cu_cfg0 cu_cfg0;
-+	struct ipu3_uapi_cu_cfg1 cu_cfg1;
-+} __packed;
-+
-+/* Vssnlm - Very small scale non-local mean algorithm */
-+
-+/**
-+ * struct ipu3_uapi_vss_lut_x - Vssnlm LUT x0/x1/x2
-+ *
-+ * @vs_x0: Vssnlm LUT x0, precision u8, range [0, 255], default 16.
-+ * @vs_x1: Vssnlm LUT x1, precision u8, range [0, 255], default 32.
-+ * @vs_x2: Vssnlm LUT x2, precision u8, range [0, 255], default 64.
-+ * @reserved2: reserved
-+ */
-+struct ipu3_uapi_vss_lut_x {
-+	__u32 vs_x0:8;
-+	__u32 vs_x1:8;
-+	__u32 vs_x2:8;
-+	__u32 reserved2:8;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_vss_lut_y - Vssnlm LUT y0/y1/y2
-+ *
-+ * @vs_y1: Vssnlm LUT y1, precision u4, range [0, 8], default 1.
-+ * @reserved0: reserved
-+ * @vs_y2: Vssnlm LUT y2, precision u4, range [0, 8], default 3.
-+ * @reserved1: reserved
-+ * @vs_y3: Vssnlm LUT y3, precision u4, range [0, 8], default 8.
-+ * @reserved2: reserved
-+ */
-+struct ipu3_uapi_vss_lut_y {
-+	__u32 vs_y1:4;
-+	__u32 reserved0:4;
-+	__u32 vs_y2:4;
-+	__u32 reserved1:4;
-+	__u32 vs_y3:4;
-+	__u32 reserved2:12;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_yuvp1_iefd_vssnlm_cf - IEFd Vssnlm Lookup table
-+ *
-+ * @vss_lut_x: vss lookup table. See &ipu3_uapi_vss_lut_x description
-+ * @vss_lut_y: vss lookup table. See &ipu3_uapi_vss_lut_y description
-+ */
-+struct ipu3_uapi_yuvp1_iefd_vssnlm_cfg {
-+	struct ipu3_uapi_vss_lut_x vss_lut_x;
-+	struct ipu3_uapi_vss_lut_y vss_lut_y;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_yuvp1_iefd_config - IEFd config
-+ *
-+ * @units: configuration unit setting, &ipu3_uapi_yuvp1_iefd_cfg_units
-+ * @config: configuration, as defined by &ipu3_uapi_yuvp1_iefd_config_s
-+ * @control: control setting, as defined by &ipu3_uapi_yuvp1_iefd_control
-+ * @sharp: sharpness setting, as defined by &ipu3_uapi_yuvp1_iefd_shrp_cfg
-+ * @unsharp: unsharpness setting, as defined by &ipu3_uapi_yuvp1_iefd_unshrp_cfg
-+ * @rad: radial setting, as defined by &ipu3_uapi_yuvp1_iefd_rad_cfg
-+ * @vsslnm: vsslnm setting, as defined by &ipu3_uapi_yuvp1_iefd_vssnlm_cfg
-+ */
-+struct ipu3_uapi_yuvp1_iefd_config {
-+	struct ipu3_uapi_yuvp1_iefd_cfg_units units;
-+	struct ipu3_uapi_yuvp1_iefd_config_s config;
-+	struct ipu3_uapi_yuvp1_iefd_control control;
-+	struct ipu3_uapi_yuvp1_iefd_shrp_cfg sharp;
-+	struct ipu3_uapi_yuvp1_iefd_unshrp_cfg unsharp;
-+	struct ipu3_uapi_yuvp1_iefd_rad_cfg rad;
-+	struct ipu3_uapi_yuvp1_iefd_vssnlm_cfg vsslnm;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_yuvp1_yds_config - Y Down-Sampling config
-+ *
-+ * @c00: range [0, 3], default 0x0
-+ * @c01: range [0, 3], default 0x1
-+ * @c02: range [0, 3], default 0x1
-+ * @c03: range [0, 3], default 0x0
-+ * @c10: range [0, 3], default 0x0
-+ * @c11: range [0, 3], default 0x1
-+ * @c12: range [0, 3], default 0x1
-+ * @c13: range [0, 3], default 0x0
-+ *
-+ * Above are 4x2 filter coefficients for chroma output downscaling.
-+ *
-+ * @norm_factor: Normalization factor, range [0, 4], default 2
-+ *		0 - divide by 1
-+ *		1 - divide by 2
-+ *		2 - divide by 4
-+ *		3 - divide by 8
-+ *		4 - divide by 16
-+ * @reserved0: reserved
-+ * @bin_output: Down sampling on Luma channel in two optional modes
-+ *		0 - Bin output 4.2.0 (default), 1 output 4.2.2.
-+ * @reserved1: reserved
-+ */
-+struct ipu3_uapi_yuvp1_yds_config {
-+	__u32 c00:2;
-+	__u32 c01:2;
-+	__u32 c02:2;
-+	__u32 c03:2;
-+	__u32 c10:2;
-+	__u32 c11:2;
-+	__u32 c12:2;
-+	__u32 c13:2;
-+	__u32 norm_factor:5;
-+	__u32 reserved0:4;
-+	__u32 bin_output:1;
-+	__u32 reserved1:6;
-+} __packed;
-+
-+/* Chroma Noise Reduction */
-+
-+/**
-+ * struct ipu3_uapi_yuvp1_chnr_enable_config - Chroma noise reduction enable
-+ *
-+ * @enable: enable/disable chroma noise reduction
-+ * @yuv_mode: 0 - YUV420, 1 - YUV422
-+ * @reserved0: reserved
-+ * @col_size: number of columns in the frame, max width is 2560
-+ * @reserved1: reserved
-+ */
-+struct ipu3_uapi_yuvp1_chnr_enable_config {
-+	__u32 enable:1;
-+	__u32 yuv_mode:1;
-+	__u32 reserved0:14;
-+	__u32 col_size:12;
-+	__u32 reserved1:4;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_yuvp1_chnr_coring_config - Coring thresholds for UV
-+ *
-+ * @u: U coring level, u0.13, range [0.0, 1.0], default 0.0
-+ * @reserved0: reserved
-+ * @v: V coring level, u0.13, range [0.0, 1.0], default 0.0
-+ * @reserved1: reserved
-+ */
-+struct ipu3_uapi_yuvp1_chnr_coring_config {
-+	__u32 u:13;
-+	__u32 reserved0:3;
-+	__u32 v:13;
-+	__u32 reserved1:3;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_yuvp1_chnr_sense_gain_config - Chroma noise reduction gains
-+ *
-+ * All sensitivity gain parameters have precision u13.0, range [0, 8191].
-+ *
-+ * @vy: Sensitivity of horizontal edge of Y, default 100
-+ * @vu: Sensitivity of horizontal edge of U, default 100
-+ * @vv: Sensitivity of horizontal edge of V, default 100
-+ * @reserved0: reserved
-+ * @hy: Sensitivity of vertical edge of Y, default 50
-+ * @hu: Sensitivity of vertical edge of U, default 50
-+ * @hv: Sensitivity of vertical edge of V, default 50
-+ * @reserved1: reserved
-+ */
-+struct ipu3_uapi_yuvp1_chnr_sense_gain_config {
-+	__u32 vy:8;
-+	__u32 vu:8;
-+	__u32 vv:8;
-+	__u32 reserved0:8;
-+
-+	__u32 hy:8;
-+	__u32 hu:8;
-+	__u32 hv:8;
-+	__u32 reserved1:8;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_yuvp1_chnr_iir_fir_config - Chroma IIR/FIR filter config
-+ *
-+ * @fir_0h: Value of center tap in horizontal FIR, range [0, 32], default 8.
-+ * @reserved0: reserved
-+ * @fir_1h: Value of distance 1 in horizontal FIR, range [0, 32], default 12.
-+ * @reserved1: reserved
-+ * @fir_2h: Value of distance 2 tap in horizontal FIR, range [0, 32], default 0.
-+ * @dalpha_clip_val: weight for previous row in IIR, range [1, 256], default 0.
-+ * @reserved2: reserved
-+ */
-+struct ipu3_uapi_yuvp1_chnr_iir_fir_config {
-+	__u32 fir_0h:6;
-+	__u32 reserved0:2;
-+	__u32 fir_1h:6;
-+	__u32 reserved1:2;
-+	__u32 fir_2h:6;
-+	__u32 dalpha_clip_val:9;
-+	__u32 reserved2:1;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_yuvp1_chnr_config - Chroma noise reduction config
-+ *
-+ * @enable: chroma noise reduction enable, see
-+ *	    &ipu3_uapi_yuvp1_chnr_enable_config
-+ * @coring: coring config for chroma noise reduction, see
-+ *	    &ipu3_uapi_yuvp1_chnr_coring_config
-+ * @sense_gain: sensitivity config for chroma noise reduction, see
-+ *		ipu3_uapi_yuvp1_chnr_sense_gain_config
-+ * @iir_fir: iir and fir config for chroma noise reduction, see
-+ *	     ipu3_uapi_yuvp1_chnr_iir_fir_config
-+ */
-+struct ipu3_uapi_yuvp1_chnr_config {
-+	struct ipu3_uapi_yuvp1_chnr_enable_config enable;
-+	struct ipu3_uapi_yuvp1_chnr_coring_config coring;
-+	struct ipu3_uapi_yuvp1_chnr_sense_gain_config sense_gain;
-+	struct ipu3_uapi_yuvp1_chnr_iir_fir_config iir_fir;
-+} __packed;
-+
-+/* Edge Enhancement and Noise Reduction */
-+
-+/**
-+ * struct ipu3_uapi_yuvp1_y_ee_nr_lpf_config - Luma(Y) edge enhancement low-pass
-+ *					       filter coefficients
-+ *
-+ * @a_diag: Smoothing diagonal coefficient, u5.0.
-+ * @reserved0: reserved
-+ * @a_periph: Image smoothing perpherial, u5.0.
-+ * @reserved1: reserved
-+ * @a_cent: Image Smoothing center coefficient, u5.0.
-+ * @reserved2: reserved
-+ * @enable: 0: Y_EE_NR disabled, output = input; 1: Y_EE_NR enabled.
-+ */
-+struct ipu3_uapi_yuvp1_y_ee_nr_lpf_config {
-+	__u32 a_diag:5;
-+	__u32 reserved0:3;
-+	__u32 a_periph:5;
-+	__u32 reserved1:3;
-+	__u32 a_cent:5;
-+	__u32 reserved2:9;
-+	__u32 enable:1;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_yuvp1_y_ee_nr_sense_config - Luma(Y) edge enhancement
-+ *					noise reduction sensitivity gains
-+ *
-+ * @edge_sense_0: Sensitivity of edge in dark area. u13.0, default 8191.
-+ * @reserved0: reserved
-+ * @delta_edge_sense: Difference in the sensitivity of edges between
-+ *		      the bright and dark areas. u13.0, default 0.
-+ * @reserved1: reserved
-+ * @corner_sense_0: Sensitivity of corner in dark area. u13.0, default 0.
-+ * @reserved2: reserved
-+ * @delta_corner_sense: Difference in the sensitivity of corners between
-+ *			the bright and dark areas. u13.0, default 8191.
-+ * @reserved3: reserved
-+ */
-+struct ipu3_uapi_yuvp1_y_ee_nr_sense_config {
-+	__u32 edge_sense_0:13;
-+	__u32 reserved0:3;
-+	__u32 delta_edge_sense:13;
-+	__u32 reserved1:3;
-+	__u32 corner_sense_0:13;
-+	__u32 reserved2:3;
-+	__u32 delta_corner_sense:13;
-+	__u32 reserved3:3;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_yuvp1_y_ee_nr_gain_config - Luma(Y) edge enhancement
-+ *						noise reduction gain config
-+ *
-+ * @gain_pos_0: Gain for positive edge in dark area. u5.0, [0, 16], default 2.
-+ * @reserved0: reserved
-+ * @delta_gain_posi: Difference in the gain of edges between the bright and
-+ *		     dark areas for positive edges. u5.0, [0, 16], default 0.
-+ * @reserved1: reserved
-+ * @gain_neg_0: Gain for negative edge in dark area. u5.0, [0, 16], default 8.
-+ * @reserved2: reserved
-+ * @delta_gain_neg: Difference in the gain of edges between the bright and
-+ *		    dark areas for negative edges. u5.0, [0, 16], default 0.
-+ * @reserved3: reserved
-+ */
-+struct ipu3_uapi_yuvp1_y_ee_nr_gain_config {
-+	__u32 gain_pos_0:5;
-+	__u32 reserved0:3;
-+	__u32 delta_gain_posi:5;
-+	__u32 reserved1:3;
-+	__u32 gain_neg_0:5;
-+	__u32 reserved2:3;
-+	__u32 delta_gain_neg:5;
-+	__u32 reserved3:3;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_yuvp1_y_ee_nr_clip_config - Luma(Y) edge enhancement
-+ *					noise reduction clipping config
-+ *
-+ * @clip_pos_0: Limit of positive edge in dark area
-+ *		u5, value [0, 16], default 8.
-+ * @reserved0: reserved
-+ * @delta_clip_posi: Difference in the limit of edges between the bright
-+ *		     and dark areas for positive edges.
-+ *		     u5, value [0, 16], default 8.
-+ * @reserved1: reserved
-+ * @clip_neg_0: Limit of negative edge in dark area
-+ *		u5, value [0, 16], default 8.
-+ * @reserved2: reserved
-+ * @delta_clip_neg: Difference in the limit of edges between the bright
-+ *		    and dark areas for negative edges.
-+ *		    u5, value [0, 16], default 8.
-+ * @reserved3: reserved
-+ */
-+struct ipu3_uapi_yuvp1_y_ee_nr_clip_config {
-+	__u32 clip_pos_0:5;
-+	__u32 reserved0:3;
-+	__u32 delta_clip_posi:5;
-+	__u32 reserved1:3;
-+	__u32 clip_neg_0:5;
-+	__u32 reserved2:3;
-+	__u32 delta_clip_neg:5;
-+	__u32 reserved3:3;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_yuvp1_y_ee_nr_frng_config - Luma(Y) edge enhancement
-+ *						noise reduction fringe config
-+ *
-+ * @gain_exp: Common exponent of gains, u4, [0, 8], default 2.
-+ * @reserved0: reserved
-+ * @min_edge: Threshold for edge and smooth stitching, u13.
-+ * @reserved1: reserved
-+ * @lin_seg_param: Power of LinSeg, u4.
-+ * @reserved2: reserved
-+ * @t1: Parameter for enabling/disabling the edge enhancement, u1.0, [0, 1],
-+ *	default 1.
-+ * @t2: Parameter for enabling/disabling the smoothing, u1.0, [0, 1],
-+ *	default 1.
-+ * @reserved3: reserved
-+ */
-+struct ipu3_uapi_yuvp1_y_ee_nr_frng_config {
-+	__u32 gain_exp:4;
-+	__u32 reserved0:28;
-+	__u32 min_edge:13;
-+	__u32 reserved1:3;
-+	__u32 lin_seg_param:4;
-+	__u32 reserved2:4;
-+	__u32 t1:1;
-+	__u32 t2:1;
-+	__u32 reserved3:6;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_yuvp1_y_ee_nr_diag_config - Luma(Y) edge enhancement
-+ *					noise reduction diagonal config
-+ *
-+ * @diag_disc_g: Coefficient that prioritize diagonal edge direction on
-+ *		 horizontal or vertical for final enhancement.
-+ *		 u4.0, [1, 15], default 1.
-+ * @reserved0: reserved
-+ * @hvw_hor: Weight of horizontal/vertical edge enhancement for hv edge.
-+ *		u2.2, [1, 15], default 4.
-+ * @dw_hor: Weight of diagonal edge enhancement for hv edge.
-+ *		u2.2, [1, 15], default 1.
-+ * @hvw_diag: Weight of horizontal/vertical edge enhancement for diagonal edge.
-+ *		u2.2, [1, 15], default 1.
-+ * @dw_diag: Weight of diagonal edge enhancement for diagonal edge.
-+ *		u2.2, [1, 15], default 4.
-+ * @reserved1: reserved
-+ */
-+struct ipu3_uapi_yuvp1_y_ee_nr_diag_config {
-+	__u32 diag_disc_g:4;
-+	__u32 reserved0:4;
-+	__u32 hvw_hor:4;
-+	__u32 dw_hor:4;
-+	__u32 hvw_diag:4;
-+	__u32 dw_diag:4;
-+	__u32 reserved1:8;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_yuvp1_y_ee_nr_fc_coring_config - Luma(Y) edge enhancement
-+ *		noise reduction false color correction (FCC) coring config
-+ *
-+ * @pos_0: Gain for positive edge in dark, u13.0, [0, 16], default 0.
-+ * @reserved0: reserved
-+ * @pos_delta: Gain for positive edge in bright, value: pos_0 + pos_delta <=16
-+ *		u13.0, default 0.
-+ * @reserved1: reserved
-+ * @neg_0: Gain for negative edge in dark area, u13.0, range [0, 16], default 0.
-+ * @reserved2: reserved
-+ * @neg_delta: Gain for negative edge in bright area. neg_0 + neg_delta <=16
-+ *		u13.0, default 0.
-+ * @reserved3: reserved
-+ *
-+ * Coring is a simple soft thresholding technique.
-+ */
-+struct ipu3_uapi_yuvp1_y_ee_nr_fc_coring_config {
-+	__u32 pos_0:13;
-+	__u32 reserved0:3;
-+	__u32 pos_delta:13;
-+	__u32 reserved1:3;
-+	__u32 neg_0:13;
-+	__u32 reserved2:3;
-+	__u32 neg_delta:13;
-+	__u32 reserved3:3;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_yuvp1_y_ee_nr_config - Edge enhancement and noise reduction
-+ *
-+ * @lpf: low-pass filter config. See &ipu3_uapi_yuvp1_y_ee_nr_lpf_config
-+ * @sense: sensitivity config. See &ipu3_uapi_yuvp1_y_ee_nr_sense_config
-+ * @gain: gain config as defined in &ipu3_uapi_yuvp1_y_ee_nr_gain_config
-+ * @clip: clip config as defined in &ipu3_uapi_yuvp1_y_ee_nr_clip_config
-+ * @frng: fringe config as defined in &ipu3_uapi_yuvp1_y_ee_nr_frng_config
-+ * @diag: diagonal edge config. See &ipu3_uapi_yuvp1_y_ee_nr_diag_config
-+ * @fc_coring: coring config for fringe control. See
-+ *	       &ipu3_uapi_yuvp1_y_ee_nr_fc_coring_config
-+ */
-+struct ipu3_uapi_yuvp1_y_ee_nr_config {
-+	struct ipu3_uapi_yuvp1_y_ee_nr_lpf_config lpf;
-+	struct ipu3_uapi_yuvp1_y_ee_nr_sense_config sense;
-+	struct ipu3_uapi_yuvp1_y_ee_nr_gain_config gain;
-+	struct ipu3_uapi_yuvp1_y_ee_nr_clip_config clip;
-+	struct ipu3_uapi_yuvp1_y_ee_nr_frng_config frng;
-+	struct ipu3_uapi_yuvp1_y_ee_nr_diag_config diag;
-+	struct ipu3_uapi_yuvp1_y_ee_nr_fc_coring_config fc_coring;
-+} __packed;
-+
-+/* Total Color Correction */
-+
-+/**
-+ * struct ipu3_uapi_yuvp2_tcc_gen_control_static_config - Total color correction
-+ *				general control config
-+ *
-+ * @en:	0 - TCC disabled. Output = input 1 - TCC enabled.
-+ * @blend_shift:	blend shift, Range[3, 4], default NA.
-+ * @gain_according_to_y_only:	0: Gain is calculated according to YUV,
-+ *				1: Gain is calculated according to Y only
-+ * @reserved0: reserved
-+ * @gamma:	Final blending coefficients. Values[-16, 16], default NA.
-+ * @reserved1: reserved
-+ * @delta:	Final blending coefficients. Values[-16, 16], default NA.
-+ * @reserved2: reserved
-+ */
-+struct ipu3_uapi_yuvp2_tcc_gen_control_static_config {
-+	__u32 en:1;
-+	__u32 blend_shift:3;
-+	__u32 gain_according_to_y_only:1;
-+	__u32 reserved0:11;
-+	__s32 gamma:5;
-+	__u32 reserved1:3;
-+	__s32 delta:5;
-+	__u32 reserved2:3;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_yuvp2_tcc_macc_elem_static_config - Total color correction
-+ *				multi-axis color control (MACC) config
-+ *
-+ * @a: a coefficient for 2x2 MACC conversion matrix.
-+ * @reserved0: reserved
-+ * @b: b coefficient  2x2 MACC conversion matrix.
-+ * @reserved1: reserved
-+ * @c: c coefficient for 2x2 MACC conversion matrix.
-+ * @reserved2: reserved
-+ * @d: d coefficient for 2x2 MACC conversion matrix.
-+ * @reserved3: reserved
-+ */
-+struct ipu3_uapi_yuvp2_tcc_macc_elem_static_config {
-+	__s32 a:12;
-+	__u32 reserved0:4;
-+	__s32 b:12;
-+	__u32 reserved1:4;
-+	__s32 c:12;
-+	__u32 reserved2:4;
-+	__s32 d:12;
-+	__u32 reserved3:4;
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_yuvp2_tcc_macc_table_static_config - Total color correction
-+ *				multi-axis color control (MACC) table array
-+ *
-+ * @entries: config for multi axis color correction, as specified by
-+ *	     &ipu3_uapi_yuvp2_tcc_macc_elem_static_config
-+ */
-+struct ipu3_uapi_yuvp2_tcc_macc_table_static_config {
-+	struct ipu3_uapi_yuvp2_tcc_macc_elem_static_config
-+		entries[IPU3_UAPI_YUVP2_TCC_MACC_TABLE_ELEMENTS];
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_yuvp2_tcc_inv_y_lut_static_config - Total color correction
-+ *				inverse y lookup table
-+ *
-+ * @entries: lookup table for inverse y estimation, and use it to estimate the
-+ *	     ratio between luma and chroma. Chroma by approximate the absolute
-+ *	     value of the radius on the chroma plane (R = sqrt(u^2+v^2) ) and
-+ *	     luma by approximate by 1/Y.
-+ */
-+struct ipu3_uapi_yuvp2_tcc_inv_y_lut_static_config {
-+	__u16 entries[IPU3_UAPI_YUVP2_TCC_INV_Y_LUT_ELEMENTS];
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_yuvp2_tcc_gain_pcwl_lut_static_config - Total color
-+ *					correction lookup table for PCWL
-+ *
-+ * @entries: lookup table for gain piece wise linear transformation (PCWL)
-+ */
-+struct ipu3_uapi_yuvp2_tcc_gain_pcwl_lut_static_config {
-+	__u16 entries[IPU3_UAPI_YUVP2_TCC_GAIN_PCWL_LUT_ELEMENTS];
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_yuvp2_tcc_r_sqr_lut_static_config - Total color correction
-+ *				lookup table for r square root
-+ *
-+ * @entries: lookup table for r square root estimation
-+ */
-+struct ipu3_uapi_yuvp2_tcc_r_sqr_lut_static_config {
-+	__s16 entries[IPU3_UAPI_YUVP2_TCC_R_SQR_LUT_ELEMENTS];
-+} __packed;
-+
-+/**
-+ * struct ipu3_uapi_yuvp2_tcc_static_config- Total color correction static
-+ *
-+ * @gen_control: general config for Total Color Correction
-+ * @macc_table: config for multi axis color correction
-+ * @inv_y_lut: lookup table for inverse y estimation
-+ * @gain_pcwl: lookup table for gain PCWL
-+ * @r_sqr_lut: lookup table for r square root estimation.
-+ */
-+struct ipu3_uapi_yuvp2_tcc_static_config {
-+	struct ipu3_uapi_yuvp2_tcc_gen_control_static_config gen_control;
-+	struct ipu3_uapi_yuvp2_tcc_macc_table_static_config macc_table;
-+	struct ipu3_uapi_yuvp2_tcc_inv_y_lut_static_config inv_y_lut;
-+	struct ipu3_uapi_yuvp2_tcc_gain_pcwl_lut_static_config gain_pcwl;
-+	struct ipu3_uapi_yuvp2_tcc_r_sqr_lut_static_config r_sqr_lut;
-+} __packed;
-+
-+/* Advanced Noise Reduction related structs */
++ * This function initializes various stages of the
++ * IPU3 CSS ISP pipeline
++ */
++static int ipu3_css_pipeline_init(struct ipu3_css *css)
++{
++	static const unsigned int PIPE_ID = IPU3_CSS_PIPE_ID_VIDEO;
++	static const int BYPC = 2;	/* Bytes per component */
++	static const struct imgu_abi_buffer_sp buffer_sp_init = {
++		.buf_src = {.queue_id = IMGU_ABI_QUEUE_EVENT_ID},
++		.buf_type = IMGU_ABI_BUFFER_TYPE_INVALID,
++	};
++
++	struct imgu_abi_isp_iterator_config *cfg_iter;
++	struct imgu_abi_isp_ref_config *cfg_ref;
++	struct imgu_abi_isp_dvs_config *cfg_dvs;
++	struct imgu_abi_isp_tnr3_config *cfg_tnr;
++	struct imgu_abi_isp_ref_dmem_state *cfg_ref_state;
++	struct imgu_abi_isp_tnr3_dmem_state *cfg_tnr_state;
++
++	const int pipe = 0, stage = 0, thread = 0;
++	unsigned int i, j;
++
++	const struct imgu_fw_info *bi =
++				&css->fwp->binary_header[css->current_binary];
++	const unsigned int stripes = bi->info.isp.sp.iterator.num_stripes;
++
++	struct imgu_fw_config_memory_offsets *cofs = (void *)css->fwp +
++		bi->blob.memory_offsets.offsets[IMGU_ABI_PARAM_CLASS_CONFIG];
++	struct imgu_fw_state_memory_offsets *sofs = (void *)css->fwp +
++		bi->blob.memory_offsets.offsets[IMGU_ABI_PARAM_CLASS_STATE];
++
++	struct imgu_abi_isp_stage *isp_stage;
++	struct imgu_abi_sp_stage *sp_stage;
++	struct imgu_abi_sp_group *sp_group;
++
++	const unsigned int bds_width_pad =
++				ALIGN(css->rect[IPU3_CSS_RECT_BDS].width,
++				      2 * IPU3_UAPI_ISP_VEC_ELEMS);
++
++	const enum imgu_abi_memories m0 = IMGU_ABI_MEM_ISP_DMEM0;
++	enum imgu_abi_param_class cfg = IMGU_ABI_PARAM_CLASS_CONFIG;
++	void *vaddr = css->binary_params_cs[cfg - 1][m0].vaddr;
++
++	struct imgu_device *imgu = dev_get_drvdata(css->dev);
++
++	/* Configure iterator */
++
++	cfg_iter = ipu3_css_fw_pipeline_params(css, cfg, m0,
++					       &cofs->dmem.iterator,
++					       sizeof(*cfg_iter), vaddr);
++	if (!cfg_iter)
++		goto bad_firmware;
++
++	cfg_iter->input_info.res.width =
++				css->queue[IPU3_CSS_QUEUE_IN].fmt.mpix.width;
++	cfg_iter->input_info.res.height =
++				css->queue[IPU3_CSS_QUEUE_IN].fmt.mpix.height;
++	cfg_iter->input_info.padded_width =
++				css->queue[IPU3_CSS_QUEUE_IN].width_pad;
++	cfg_iter->input_info.format =
++			css->queue[IPU3_CSS_QUEUE_IN].css_fmt->frame_format;
++	cfg_iter->input_info.raw_bit_depth =
++			css->queue[IPU3_CSS_QUEUE_IN].css_fmt->bit_depth;
++	cfg_iter->input_info.raw_bayer_order =
++			css->queue[IPU3_CSS_QUEUE_IN].css_fmt->bayer_order;
++	cfg_iter->input_info.raw_type = IMGU_ABI_RAW_TYPE_BAYER;
++
++	cfg_iter->internal_info.res.width = css->rect[IPU3_CSS_RECT_BDS].width;
++	cfg_iter->internal_info.res.height =
++					css->rect[IPU3_CSS_RECT_BDS].height;
++	cfg_iter->internal_info.padded_width = bds_width_pad;
++	cfg_iter->internal_info.format =
++			css->queue[IPU3_CSS_QUEUE_OUT].css_fmt->frame_format;
++	cfg_iter->internal_info.raw_bit_depth =
++			css->queue[IPU3_CSS_QUEUE_OUT].css_fmt->bit_depth;
++	cfg_iter->internal_info.raw_bayer_order =
++			css->queue[IPU3_CSS_QUEUE_OUT].css_fmt->bayer_order;
++	cfg_iter->internal_info.raw_type = IMGU_ABI_RAW_TYPE_BAYER;
++
++	cfg_iter->output_info.res.width =
++				css->queue[IPU3_CSS_QUEUE_OUT].fmt.mpix.width;
++	cfg_iter->output_info.res.height =
++				css->queue[IPU3_CSS_QUEUE_OUT].fmt.mpix.height;
++	cfg_iter->output_info.padded_width =
++				css->queue[IPU3_CSS_QUEUE_OUT].width_pad;
++	cfg_iter->output_info.format =
++			css->queue[IPU3_CSS_QUEUE_OUT].css_fmt->frame_format;
++	cfg_iter->output_info.raw_bit_depth =
++			css->queue[IPU3_CSS_QUEUE_OUT].css_fmt->bit_depth;
++	cfg_iter->output_info.raw_bayer_order =
++			css->queue[IPU3_CSS_QUEUE_OUT].css_fmt->bayer_order;
++	cfg_iter->output_info.raw_type = IMGU_ABI_RAW_TYPE_BAYER;
++
++	cfg_iter->vf_info.res.width =
++			css->queue[IPU3_CSS_QUEUE_VF].fmt.mpix.width;
++	cfg_iter->vf_info.res.height =
++			css->queue[IPU3_CSS_QUEUE_VF].fmt.mpix.height;
++	cfg_iter->vf_info.padded_width =
++			css->queue[IPU3_CSS_QUEUE_VF].width_pad;
++	cfg_iter->vf_info.format =
++			css->queue[IPU3_CSS_QUEUE_VF].css_fmt->frame_format;
++	cfg_iter->vf_info.raw_bit_depth =
++			css->queue[IPU3_CSS_QUEUE_VF].css_fmt->bit_depth;
++	cfg_iter->vf_info.raw_bayer_order =
++			css->queue[IPU3_CSS_QUEUE_VF].css_fmt->bayer_order;
++	cfg_iter->vf_info.raw_type = IMGU_ABI_RAW_TYPE_BAYER;
++
++	cfg_iter->dvs_envelope.width = css->rect[IPU3_CSS_RECT_ENVELOPE].width;
++	cfg_iter->dvs_envelope.height =
++				css->rect[IPU3_CSS_RECT_ENVELOPE].height;
++
++	/* Configure reference (delay) frames */
++
++	cfg_ref = ipu3_css_fw_pipeline_params(css, cfg, m0, &cofs->dmem.ref,
++					      sizeof(*cfg_ref), vaddr);
++	if (!cfg_ref)
++		goto bad_firmware;
++
++	cfg_ref->port_b.crop = 0;
++	cfg_ref->port_b.elems = IMGU_ABI_ISP_DDR_WORD_BYTES / BYPC;
++	cfg_ref->port_b.width = css->aux_frames[IPU3_CSS_AUX_FRAME_REF].width;
++	cfg_ref->port_b.stride =
++			css->aux_frames[IPU3_CSS_AUX_FRAME_REF].bytesperline;
++	cfg_ref->width_a_over_b =
++				IPU3_UAPI_ISP_VEC_ELEMS / cfg_ref->port_b.elems;
++	cfg_ref->dvs_frame_delay = IPU3_CSS_AUX_FRAMES - 1;
++	for (i = 0; i < IPU3_CSS_AUX_FRAMES; i++) {
++		cfg_ref->ref_frame_addr_y[i] =
++			css->aux_frames[IPU3_CSS_AUX_FRAME_REF].mem[i].daddr;
++		cfg_ref->ref_frame_addr_c[i] =
++			css->aux_frames[IPU3_CSS_AUX_FRAME_REF].mem[i].daddr +
++			css->aux_frames[IPU3_CSS_AUX_FRAME_REF].bytesperline *
++			css->aux_frames[IPU3_CSS_AUX_FRAME_REF].height;
++	}
++	for (; i < IMGU_ABI_FRAMES_REF; i++) {
++		cfg_ref->ref_frame_addr_y[i] = 0;
++		cfg_ref->ref_frame_addr_c[i] = 0;
++	}
++
++	/* Configure DVS (digital video stabilization) */
++
++	cfg_dvs = ipu3_css_fw_pipeline_params(css, cfg, m0,
++					      &cofs->dmem.dvs, sizeof(*cfg_dvs),
++					      vaddr);
++	if (!cfg_dvs)
++		goto bad_firmware;
++
++	cfg_dvs->num_horizontal_blocks =
++			ALIGN(DIV_ROUND_UP(css->rect[IPU3_CSS_RECT_GDC].width,
++					   IMGU_DVS_BLOCK_W), 2);
++	cfg_dvs->num_vertical_blocks =
++			DIV_ROUND_UP(css->rect[IPU3_CSS_RECT_GDC].height,
++				     IMGU_DVS_BLOCK_H);
++
++	/* Configure TNR (temporal noise reduction) */
++
++	if (css->pipe_id == IPU3_CSS_PIPE_ID_VIDEO) {
++		cfg_tnr = ipu3_css_fw_pipeline_params(css, cfg, m0,
++						      &cofs->dmem.tnr3,
++						      sizeof(*cfg_tnr),
++						      vaddr);
++		if (!cfg_tnr)
++			goto bad_firmware;
++
++		cfg_tnr->port_b.crop = 0;
++		cfg_tnr->port_b.elems = IMGU_ABI_ISP_DDR_WORD_BYTES;
++		cfg_tnr->port_b.width =
++				css->aux_frames[IPU3_CSS_AUX_FRAME_TNR].width;
++		cfg_tnr->port_b.stride =
++			css->aux_frames[IPU3_CSS_AUX_FRAME_TNR].bytesperline;
++		cfg_tnr->width_a_over_b =
++				IPU3_UAPI_ISP_VEC_ELEMS / cfg_tnr->port_b.elems;
++		cfg_tnr->frame_height =
++				css->aux_frames[IPU3_CSS_AUX_FRAME_TNR].height;
++		cfg_tnr->delay_frame = IPU3_CSS_AUX_FRAMES - 1;
++		for (i = 0; i < IPU3_CSS_AUX_FRAMES; i++)
++			cfg_tnr->frame_addr[i] =
++					css->aux_frames[IPU3_CSS_AUX_FRAME_TNR]
++					.mem[i].daddr;
++		for (; i < IMGU_ABI_FRAMES_TNR; i++)
++			cfg_tnr->frame_addr[i] = 0;
++	}
++
++	/* Configure ref dmem state parameters */
++
++	cfg = IMGU_ABI_PARAM_CLASS_STATE;
++	vaddr = css->binary_params_cs[cfg - 1][m0].vaddr;
++
++	cfg_ref_state = ipu3_css_fw_pipeline_params(css, cfg, m0,
++						    &sofs->dmem.ref,
++						    sizeof(*cfg_ref_state),
++						    vaddr);
++	if (!cfg_ref_state)
++		goto bad_firmware;
++
++	cfg_ref_state->ref_in_buf_idx = 0;
++	cfg_ref_state->ref_out_buf_idx = 1;
++
++	/* Configure tnr dmem state parameters */
++	if (css->pipe_id == IPU3_CSS_PIPE_ID_VIDEO) {
++		cfg_tnr_state =
++			ipu3_css_fw_pipeline_params(css, cfg, m0,
++						    &sofs->dmem.tnr3,
++						    sizeof(*cfg_tnr_state),
++						    vaddr);
++		if (!cfg_tnr_state)
++			goto bad_firmware;
++
++		cfg_tnr_state->in_bufidx = 0;
++		cfg_tnr_state->out_bufidx = 1;
++		cfg_tnr_state->bypass_filter = 0;
++		cfg_tnr_state->total_frame_counter = 0;
++		for (i = 0; i < IMGU_ABI_BUF_SETS_TNR; i++)
++			cfg_tnr_state->buffer_frame_counter[i] = 0;
++	}
++
++	/* Configure ISP stage */
++
++	isp_stage = css->xmem_isp_stage_ptrs[pipe][stage].vaddr;
++	memset(isp_stage, 0, sizeof(*isp_stage));
++	isp_stage->blob_info = bi->blob;
++	isp_stage->binary_info = bi->info.isp.sp;
++	strscpy(isp_stage->binary_name,
++		(char *)css->fwp + bi->blob.prog_name_offset,
++		sizeof(isp_stage->binary_name));
++	isp_stage->mem_initializers = bi->info.isp.sp.mem_initializers;
++	for (i = IMGU_ABI_PARAM_CLASS_CONFIG; i < IMGU_ABI_PARAM_CLASS_NUM; i++)
++		for (j = 0; j < IMGU_ABI_NUM_MEMORIES; j++)
++			isp_stage->mem_initializers.params[i][j].address =
++					css->binary_params_cs[i - 1][j].daddr;
++
++	/* Configure SP stage */
++
++	sp_stage = css->xmem_sp_stage_ptrs[pipe][stage].vaddr;
++	memset(sp_stage, 0, sizeof(*sp_stage));
++
++	sp_stage->frames.in.buf_attr = buffer_sp_init;
++	for (i = 0; i < IMGU_ABI_BINARY_MAX_OUTPUT_PORTS; i++)
++		sp_stage->frames.out[i].buf_attr = buffer_sp_init;
++	sp_stage->frames.out_vf.buf_attr = buffer_sp_init;
++	sp_stage->frames.s3a_buf = buffer_sp_init;
++	sp_stage->frames.dvs_buf = buffer_sp_init;
++
++	sp_stage->stage_type = IMGU_ABI_STAGE_TYPE_ISP;
++	sp_stage->num = stage;
++	sp_stage->isp_online = 0;
++	sp_stage->isp_copy_vf = 0;
++	sp_stage->isp_copy_output = 0;
++
++	/* Enable VF output only when VF or PV queue requested by user */
++
++	sp_stage->enable.vf_output =
++				(css->vf_output_en != IPU3_NODE_VF_DISABLED);
++
++	sp_stage->frames.effective_in_res.width =
++				css->rect[IPU3_CSS_RECT_EFFECTIVE].width;
++	sp_stage->frames.effective_in_res.height =
++				css->rect[IPU3_CSS_RECT_EFFECTIVE].height;
++	sp_stage->frames.in.info.res.width =
++				css->queue[IPU3_CSS_QUEUE_IN].fmt.mpix.width;
++	sp_stage->frames.in.info.res.height =
++				css->queue[IPU3_CSS_QUEUE_IN].fmt.mpix.height;
++	sp_stage->frames.in.info.padded_width =
++					css->queue[IPU3_CSS_QUEUE_IN].width_pad;
++	sp_stage->frames.in.info.format =
++			css->queue[IPU3_CSS_QUEUE_IN].css_fmt->frame_format;
++	sp_stage->frames.in.info.raw_bit_depth =
++			css->queue[IPU3_CSS_QUEUE_IN].css_fmt->bit_depth;
++	sp_stage->frames.in.info.raw_bayer_order =
++			css->queue[IPU3_CSS_QUEUE_IN].css_fmt->bayer_order;
++	sp_stage->frames.in.info.raw_type = IMGU_ABI_RAW_TYPE_BAYER;
++	sp_stage->frames.in.buf_attr.buf_src.queue_id = IMGU_ABI_QUEUE_C_ID;
++	sp_stage->frames.in.buf_attr.buf_type =
++					IMGU_ABI_BUFFER_TYPE_INPUT_FRAME;
++
++	sp_stage->frames.out[0].info.res.width =
++				css->queue[IPU3_CSS_QUEUE_OUT].fmt.mpix.width;
++	sp_stage->frames.out[0].info.res.height =
++				css->queue[IPU3_CSS_QUEUE_OUT].fmt.mpix.height;
++	sp_stage->frames.out[0].info.padded_width =
++				css->queue[IPU3_CSS_QUEUE_OUT].width_pad;
++	sp_stage->frames.out[0].info.format =
++			css->queue[IPU3_CSS_QUEUE_OUT].css_fmt->frame_format;
++	sp_stage->frames.out[0].info.raw_bit_depth =
++			css->queue[IPU3_CSS_QUEUE_OUT].css_fmt->bit_depth;
++	sp_stage->frames.out[0].info.raw_bayer_order =
++			css->queue[IPU3_CSS_QUEUE_OUT].css_fmt->bayer_order;
++	sp_stage->frames.out[0].info.raw_type = IMGU_ABI_RAW_TYPE_BAYER;
++	sp_stage->frames.out[0].planes.nv.uv.offset =
++				css->queue[IPU3_CSS_QUEUE_OUT].width_pad *
++				css->queue[IPU3_CSS_QUEUE_OUT].fmt.mpix.height;
++	sp_stage->frames.out[0].buf_attr.buf_src.queue_id = IMGU_ABI_QUEUE_D_ID;
++	sp_stage->frames.out[0].buf_attr.buf_type =
++					IMGU_ABI_BUFFER_TYPE_OUTPUT_FRAME;
++
++	sp_stage->frames.out[1].buf_attr.buf_src.queue_id =
++							IMGU_ABI_QUEUE_EVENT_ID;
++
++	sp_stage->frames.internal_frame_info.res.width =
++					css->rect[IPU3_CSS_RECT_BDS].width;
++	sp_stage->frames.internal_frame_info.res.height =
++					css->rect[IPU3_CSS_RECT_BDS].height;
++	sp_stage->frames.internal_frame_info.padded_width = bds_width_pad;
++
++	sp_stage->frames.internal_frame_info.format =
++			css->queue[IPU3_CSS_QUEUE_OUT].css_fmt->frame_format;
++	sp_stage->frames.internal_frame_info.raw_bit_depth =
++			css->queue[IPU3_CSS_QUEUE_OUT].css_fmt->bit_depth;
++	sp_stage->frames.internal_frame_info.raw_bayer_order =
++			css->queue[IPU3_CSS_QUEUE_OUT].css_fmt->bayer_order;
++	sp_stage->frames.internal_frame_info.raw_type = IMGU_ABI_RAW_TYPE_BAYER;
++
++	sp_stage->frames.out_vf.info.res.width =
++				css->queue[IPU3_CSS_QUEUE_VF].fmt.mpix.width;
++	sp_stage->frames.out_vf.info.res.height =
++				css->queue[IPU3_CSS_QUEUE_VF].fmt.mpix.height;
++	sp_stage->frames.out_vf.info.padded_width =
++					css->queue[IPU3_CSS_QUEUE_VF].width_pad;
++	sp_stage->frames.out_vf.info.format =
++			css->queue[IPU3_CSS_QUEUE_VF].css_fmt->frame_format;
++	sp_stage->frames.out_vf.info.raw_bit_depth =
++			css->queue[IPU3_CSS_QUEUE_VF].css_fmt->bit_depth;
++	sp_stage->frames.out_vf.info.raw_bayer_order =
++			css->queue[IPU3_CSS_QUEUE_VF].css_fmt->bayer_order;
++	sp_stage->frames.out_vf.info.raw_type = IMGU_ABI_RAW_TYPE_BAYER;
++	sp_stage->frames.out_vf.planes.yuv.u.offset =
++				css->queue[IPU3_CSS_QUEUE_VF].width_pad *
++				css->queue[IPU3_CSS_QUEUE_VF].fmt.mpix.height;
++	sp_stage->frames.out_vf.planes.yuv.v.offset =
++			css->queue[IPU3_CSS_QUEUE_VF].width_pad *
++			css->queue[IPU3_CSS_QUEUE_VF].fmt.mpix.height * 5 / 4;
++	sp_stage->frames.out_vf.buf_attr.buf_src.queue_id = IMGU_ABI_QUEUE_E_ID;
++	sp_stage->frames.out_vf.buf_attr.buf_type =
++					IMGU_ABI_BUFFER_TYPE_VF_OUTPUT_FRAME;
++
++	sp_stage->frames.s3a_buf.buf_src.queue_id = IMGU_ABI_QUEUE_F_ID;
++	sp_stage->frames.s3a_buf.buf_type = IMGU_ABI_BUFFER_TYPE_3A_STATISTICS;
++
++	sp_stage->frames.dvs_buf.buf_src.queue_id = IMGU_ABI_QUEUE_G_ID;
++	sp_stage->frames.dvs_buf.buf_type = IMGU_ABI_BUFFER_TYPE_DIS_STATISTICS;
++
++	sp_stage->dvs_envelope.width = css->rect[IPU3_CSS_RECT_ENVELOPE].width;
++	sp_stage->dvs_envelope.height =
++				css->rect[IPU3_CSS_RECT_ENVELOPE].height;
++
++	sp_stage->isp_pipe_version =
++				bi->info.isp.sp.pipeline.isp_pipe_version;
++	sp_stage->isp_deci_log_factor =
++			clamp(max(fls(css->rect[IPU3_CSS_RECT_BDS].width /
++				      IMGU_MAX_BQ_GRID_WIDTH),
++				  fls(css->rect[IPU3_CSS_RECT_BDS].height /
++				      IMGU_MAX_BQ_GRID_HEIGHT)) - 1, 3, 5);
++	sp_stage->isp_vf_downscale_bits = 0;
++	sp_stage->if_config_index = 255;
++	sp_stage->sp_enable_xnr = 0;
++	sp_stage->num_stripes = stripes;
++	sp_stage->enable.s3a = 1;
++	sp_stage->enable.dvs_stats = 0;
++
++	sp_stage->xmem_bin_addr = css->binary[css->current_binary].daddr;
++	sp_stage->xmem_map_addr = css->sp_ddr_ptrs.daddr;
++	sp_stage->isp_stage_addr = css->xmem_isp_stage_ptrs[pipe][stage].daddr;
++
++	/* Configure SP group */
++
++	sp_group = css->xmem_sp_group_ptrs.vaddr;
++	memset(sp_group, 0, sizeof(*sp_group));
++
++	sp_group->pipe[thread].num_stages = 1;
++	sp_group->pipe[thread].pipe_id = PIPE_ID;
++	sp_group->pipe[thread].thread_id = thread;
++	sp_group->pipe[thread].pipe_num = pipe;
++	sp_group->pipe[thread].num_execs = -1;
++	sp_group->pipe[thread].pipe_qos_config = -1;
++	sp_group->pipe[thread].required_bds_factor = 0;
++	sp_group->pipe[thread].dvs_frame_delay = IPU3_CSS_AUX_FRAMES - 1;
++	sp_group->pipe[thread].inout_port_config =
++					IMGU_ABI_PORT_CONFIG_TYPE_INPUT_HOST |
++					IMGU_ABI_PORT_CONFIG_TYPE_OUTPUT_HOST;
++	sp_group->pipe[thread].scaler_pp_lut = 0;
++	sp_group->pipe[thread].shading.internal_frame_origin_x_bqs_on_sctbl = 0;
++	sp_group->pipe[thread].shading.internal_frame_origin_y_bqs_on_sctbl = 0;
++	sp_group->pipe[thread].sp_stage_addr[stage] =
++				css->xmem_sp_stage_ptrs[pipe][stage].daddr;
++	sp_group->pipe[thread].pipe_config =
++			bi->info.isp.sp.enable.params ? (1 << thread) : 0;
++	sp_group->pipe[thread].pipe_config |= IMGU_ABI_PIPE_CONFIG_ACQUIRE_ISP;
++
++	/* Initialize parameter pools */
++
++	if (ipu3_css_pool_init(imgu, &css->pool.parameter_set_info,
++			       sizeof(struct imgu_abi_parameter_set_info)) ||
++	    ipu3_css_pool_init(imgu, &css->pool.acc,
++			       sizeof(struct imgu_abi_acc_param)) ||
++	    ipu3_css_pool_init(imgu, &css->pool.gdc,
++			       sizeof(struct imgu_abi_gdc_warp_param) *
++			       3 * cfg_dvs->num_horizontal_blocks / 2 *
++			       cfg_dvs->num_vertical_blocks) ||
++	    ipu3_css_pool_init(imgu, &css->pool.obgrid,
++			       ipu3_css_fw_obgrid_size(
++			       &css->fwp->binary_header[css->current_binary])))
++		goto out_of_memory;
++
++	for (i = 0; i < IMGU_ABI_NUM_MEMORIES; i++)
++		if (ipu3_css_pool_init(imgu, &css->pool.binary_params_p[i],
++				       bi->info.isp.sp.mem_initializers.params
++				       [IMGU_ABI_PARAM_CLASS_PARAM][i].size))
++			goto out_of_memory;
++
++	return 0;
++
++bad_firmware:
++	ipu3_css_pipeline_cleanup(css);
++	return -EPROTO;
++
++out_of_memory:
++	ipu3_css_pipeline_cleanup(css);
++	return -ENOMEM;
++}
++
++static u8 ipu3_css_queue_pos(struct ipu3_css *css, int queue, int thread)
++{
++	static const unsigned int sp;
++	void __iomem *const base = css->base;
++	struct imgu_fw_info *bi = &css->fwp->binary_header[css->fw_sp[sp]];
++	struct imgu_abi_queues __iomem *q = base + IMGU_REG_SP_DMEM_BASE(sp) +
++						bi->info.sp.host_sp_queue;
++
++	return queue >= 0 ? readb(&q->host2sp_bufq_info[thread][queue].end) :
++			    readb(&q->host2sp_evtq_info.end);
++}
++
++/* Sent data to sp using given buffer queue, or if queue < 0, event queue. */
++static int ipu3_css_queue_data(struct ipu3_css *css,
++			       int queue, int thread, u32 data)
++{
++	static const unsigned int sp;
++	void __iomem *const base = css->base;
++	struct imgu_fw_info *bi = &css->fwp->binary_header[css->fw_sp[sp]];
++	struct imgu_abi_queues __iomem *q = base + IMGU_REG_SP_DMEM_BASE(sp) +
++						bi->info.sp.host_sp_queue;
++	u8 size, start, end, end2;
++
++	if (queue >= 0) {
++		size = readb(&q->host2sp_bufq_info[thread][queue].size);
++		start = readb(&q->host2sp_bufq_info[thread][queue].start);
++		end = readb(&q->host2sp_bufq_info[thread][queue].end);
++	} else {
++		size = readb(&q->host2sp_evtq_info.size);
++		start = readb(&q->host2sp_evtq_info.start);
++		end = readb(&q->host2sp_evtq_info.end);
++	}
++
++	if (size == 0)
++		return -EIO;
++
++	end2 = (end + 1) % size;
++	if (end2 == start)
++		return -EBUSY;	/* Queue full */
++
++	if (queue >= 0) {
++		writel(data, &q->host2sp_bufq[thread][queue][end]);
++		writeb(end2, &q->host2sp_bufq_info[thread][queue].end);
++	} else {
++		writel(data, &q->host2sp_evtq[end]);
++		writeb(end2, &q->host2sp_evtq_info.end);
++	}
++
++	return 0;
++}
++
++/* Receive data using given buffer queue, or if queue < 0, event queue. */
++static int ipu3_css_dequeue_data(struct ipu3_css *css, int queue, u32 *data)
++{
++	static const unsigned int sp;
++	void __iomem *const base = css->base;
++	struct imgu_fw_info *bi = &css->fwp->binary_header[css->fw_sp[sp]];
++	struct imgu_abi_queues __iomem *q = base + IMGU_REG_SP_DMEM_BASE(sp) +
++						bi->info.sp.host_sp_queue;
++	u8 size, start, end, start2;
++
++	if (queue >= 0) {
++		size = readb(&q->sp2host_bufq_info[queue].size);
++		start = readb(&q->sp2host_bufq_info[queue].start);
++		end = readb(&q->sp2host_bufq_info[queue].end);
++	} else {
++		size = readb(&q->sp2host_evtq_info.size);
++		start = readb(&q->sp2host_evtq_info.start);
++		end = readb(&q->sp2host_evtq_info.end);
++	}
++
++	if (size == 0)
++		return -EIO;
++
++	if (end == start)
++		return -EBUSY;	/* Queue empty */
++
++	start2 = (start + 1) % size;
++
++	if (queue >= 0) {
++		*data = readl(&q->sp2host_bufq[queue][start]);
++		writeb(start2, &q->sp2host_bufq_info[queue].start);
++	} else {
++		int r;
++
++		*data = readl(&q->sp2host_evtq[start]);
++		writeb(start2, &q->sp2host_evtq_info.start);
++
++		/* Acknowledge events dequeued from event queue */
++		r = ipu3_css_queue_data(css, queue, 0,
++					IMGU_ABI_EVENT_EVENT_DEQUEUED);
++		if (r < 0)
++			return r;
++	}
++
++	return 0;
++}
++
++/* Free binary-specific resources */
++static void ipu3_css_binary_cleanup(struct ipu3_css *css)
++{
++	struct imgu_device *imgu = dev_get_drvdata(css->dev);
++	unsigned int i, j;
++
++	for (j = 0; j < IMGU_ABI_PARAM_CLASS_NUM - 1; j++)
++		for (i = 0; i < IMGU_ABI_NUM_MEMORIES; i++)
++			ipu3_dmamap_free(imgu, &css->binary_params_cs[j][i]);
++
++	j = IPU3_CSS_AUX_FRAME_REF;
++	for (i = 0; i < IPU3_CSS_AUX_FRAMES; i++)
++		ipu3_dmamap_free(imgu, &css->aux_frames[j].mem[i]);
++
++	j = IPU3_CSS_AUX_FRAME_TNR;
++	for (i = 0; i < IPU3_CSS_AUX_FRAMES; i++)
++		ipu3_dmamap_free(imgu, &css->aux_frames[j].mem[i]);
++}
++
++static int ipu3_css_binary_preallocate(struct ipu3_css *css)
++{
++	struct imgu_device *imgu = dev_get_drvdata(css->dev);
++	unsigned int i, j;
++
++	for (j = IMGU_ABI_PARAM_CLASS_CONFIG; j < IMGU_ABI_PARAM_CLASS_NUM; j++)
++		for (i = 0; i < IMGU_ABI_NUM_MEMORIES; i++) {
++			if (!ipu3_dmamap_alloc(imgu,
++				&css->binary_params_cs[j - 1][i],
++				CSS_ABI_SIZE))
++				goto out_of_memory;
++		}
++
++	for (i = 0; i < IPU3_CSS_AUX_FRAMES; i++)
++		if (!ipu3_dmamap_alloc(imgu,
++			&css->aux_frames[IPU3_CSS_AUX_FRAME_REF].mem[i],
++			CSS_BDS_SIZE))
++			goto out_of_memory;
++
++	for (i = 0; i < IPU3_CSS_AUX_FRAMES; i++)
++		if (!ipu3_dmamap_alloc(imgu,
++			&css->aux_frames[IPU3_CSS_AUX_FRAME_TNR].mem[i],
++			CSS_GDC_SIZE))
++			goto out_of_memory;
++
++	return 0;
++
++out_of_memory:
++	ipu3_css_binary_cleanup(css);
++	return -ENOMEM;
++}
++
++/* allocate binary-specific resources */
++static int ipu3_css_binary_setup(struct ipu3_css *css)
++{
++	const struct imgu_abi_binary_info *sp =
++		&css->fwp->binary_header[css->current_binary].info.isp.sp;
++	struct imgu_device *imgu = dev_get_drvdata(css->dev);
++	static const int BYPC = 2;	/* Bytes per component */
++	unsigned int w, h, size, i, j;
++
++	/* Allocate parameter memory blocks for this binary */
++
++	for (j = IMGU_ABI_PARAM_CLASS_CONFIG; j < IMGU_ABI_PARAM_CLASS_NUM; j++)
++		for (i = 0; i < IMGU_ABI_NUM_MEMORIES; i++) {
++			if (ipu3_css_dma_buffer_resize(
++				imgu, &css->binary_params_cs[j - 1][i],
++				sp->mem_initializers.params[j][i].size))
++				goto out_of_memory;
++		}
++
++	/* Allocate internal frame buffers */
++
++	/* Reference frames for DVS, FRAME_FORMAT_YUV420_16 */
++	css->aux_frames[IPU3_CSS_AUX_FRAME_REF].bytesperpixel = BYPC;
++	css->aux_frames[IPU3_CSS_AUX_FRAME_REF].width =
++					css->rect[IPU3_CSS_RECT_BDS].width;
++	css->aux_frames[IPU3_CSS_AUX_FRAME_REF].height =
++				ALIGN(css->rect[IPU3_CSS_RECT_BDS].height,
++				      IMGU_DVS_BLOCK_H) + 2 * IMGU_GDC_BUF_Y;
++	h = css->aux_frames[IPU3_CSS_AUX_FRAME_REF].height;
++	w = ALIGN(css->rect[IPU3_CSS_RECT_BDS].width,
++		  2 * IPU3_UAPI_ISP_VEC_ELEMS) + 2 * IMGU_GDC_BUF_X;
++	css->aux_frames[IPU3_CSS_AUX_FRAME_REF].bytesperline =
++		css->aux_frames[IPU3_CSS_AUX_FRAME_REF].bytesperpixel * w;
++	size = w * h * BYPC + (w / 2) * (h / 2) * BYPC * 2;
++	for (i = 0; i < IPU3_CSS_AUX_FRAMES; i++)
++		if (ipu3_css_dma_buffer_resize(
++			imgu,
++			&css->aux_frames[IPU3_CSS_AUX_FRAME_REF].mem[i], size))
++			goto out_of_memory;
++
++	/* TNR frames for temporal noise reduction, FRAME_FORMAT_YUV_LINE */
++	css->aux_frames[IPU3_CSS_AUX_FRAME_TNR].bytesperpixel = 1;
++	css->aux_frames[IPU3_CSS_AUX_FRAME_TNR].width =
++			roundup(css->rect[IPU3_CSS_RECT_GDC].width,
++				sp->block.block_width *
++				IPU3_UAPI_ISP_VEC_ELEMS);
++	css->aux_frames[IPU3_CSS_AUX_FRAME_TNR].height =
++			roundup(css->rect[IPU3_CSS_RECT_GDC].height,
++				sp->block.output_block_height);
++
++	w = css->aux_frames[IPU3_CSS_AUX_FRAME_TNR].width;
++	css->aux_frames[IPU3_CSS_AUX_FRAME_TNR].bytesperline = w;
++	h = css->aux_frames[IPU3_CSS_AUX_FRAME_TNR].height;
++	size = w * ALIGN(h * 3 / 2 + 3, 2);	/* +3 for vf_pp prefetch */
++	for (i = 0; i < IPU3_CSS_AUX_FRAMES; i++)
++		if (ipu3_css_dma_buffer_resize(
++			imgu,
++			&css->aux_frames[IPU3_CSS_AUX_FRAME_TNR].mem[i], size))
++			goto out_of_memory;
++
++	return 0;
++
++out_of_memory:
++	ipu3_css_binary_cleanup(css);
++	return -ENOMEM;
++}
++
++int ipu3_css_start_streaming(struct ipu3_css *css)
++{
++	u32 data;
++	int r;
++
++	if (css->streaming)
++		return -EPROTO;
++
++	r = ipu3_css_binary_setup(css);
++	if (r < 0)
++		return r;
++
++	r = ipu3_css_hw_init(css);
++	if (r < 0)
++		return r;
++
++	r = ipu3_css_hw_start(css);
++	if (r < 0)
++		goto fail;
++
++	r = ipu3_css_pipeline_init(css);
++	if (r < 0)
++		goto fail;
++
++	css->streaming = true;
++
++	ipu3_css_hw_enable_irq(css);
++
++	/* Initialize parameters to default */
++	r = ipu3_css_set_parameters(css, NULL);
++	if (r < 0)
++		goto fail;
++
++	while (!(r = ipu3_css_dequeue_data(css, IMGU_ABI_QUEUE_A_ID, &data)))
++		;
++	if (r != -EBUSY)
++		goto fail;
++
++	while (!(r = ipu3_css_dequeue_data(css, IMGU_ABI_QUEUE_B_ID, &data)))
++		;
++	if (r != -EBUSY)
++		goto fail;
++
++	r = ipu3_css_queue_data(css, IMGU_ABI_QUEUE_EVENT_ID, 0,
++				IMGU_ABI_EVENT_START_STREAM);
++	if (r < 0)
++		goto fail;
++
++	return 0;
++
++fail:
++	css->streaming = false;
++	ipu3_css_hw_cleanup(css);
++	ipu3_css_pipeline_cleanup(css);
++	ipu3_css_binary_cleanup(css);
++
++	return r;
++}
++
++void ipu3_css_stop_streaming(struct ipu3_css *css)
++{
++	struct ipu3_css_buffer *b, *b0;
++	int q, r;
++
++	r = ipu3_css_queue_data(css, IMGU_ABI_QUEUE_EVENT_ID, 0,
++				IMGU_ABI_EVENT_STOP_STREAM);
++
++	if (r < 0)
++		dev_warn(css->dev, "failed on stop stream event\n");
++
++	if (!css->streaming)
++		return;
++
++	ipu3_css_hw_stop(css);
++
++	ipu3_css_hw_cleanup(css);
++
++	ipu3_css_pipeline_cleanup(css);
++
++	spin_lock(&css->qlock);
++	for (q = 0; q < IPU3_CSS_QUEUES; q++)
++		list_for_each_entry_safe(b, b0, &css->queue[q].bufs, list) {
++			b->state = IPU3_CSS_BUFFER_FAILED;
++			list_del(&b->list);
++		}
++	spin_unlock(&css->qlock);
++
++	css->streaming = false;
++}
++
++bool ipu3_css_queue_empty(struct ipu3_css *css)
++{
++	int q;
++
++	spin_lock(&css->qlock);
++	for (q = 0; q < IPU3_CSS_QUEUES; q++)
++		if (!list_empty(&css->queue[q].bufs))
++			break;
++	spin_unlock(&css->qlock);
++
++	return (q == IPU3_CSS_QUEUES);
++}
++
++bool ipu3_css_is_streaming(struct ipu3_css *css)
++{
++	return css->streaming;
++}
++
++void ipu3_css_cleanup(struct ipu3_css *css)
++{
++	struct imgu_device *imgu = dev_get_drvdata(css->dev);
++	unsigned int p, q, i;
++
++	ipu3_css_stop_streaming(css);
++	ipu3_css_binary_cleanup(css);
++
++	for (q = 0; q < IPU3_CSS_QUEUES; q++)
++		for (i = 0; i < ARRAY_SIZE(css->abi_buffers[q]); i++)
++			ipu3_dmamap_free(imgu, &css->abi_buffers[q][i]);
++
++	for (p = 0; p < IPU3_CSS_PIPE_ID_NUM; p++)
++		for (i = 0; i < IMGU_ABI_MAX_STAGES; i++) {
++			ipu3_dmamap_free(imgu, &css->xmem_sp_stage_ptrs[p][i]);
++			ipu3_dmamap_free(imgu, &css->xmem_isp_stage_ptrs[p][i]);
++		}
++
++	ipu3_dmamap_free(imgu, &css->sp_ddr_ptrs);
++	ipu3_dmamap_free(imgu, &css->xmem_sp_group_ptrs);
++
++	ipu3_css_fw_cleanup(css);
++}
++
++int ipu3_css_init(struct device *dev, struct ipu3_css *css,
++		  void __iomem *base, int length)
++{
++	struct imgu_device *imgu = dev_get_drvdata(dev);
++	int r, p, q, i;
++
++	/* Initialize main data structure */
++	css->dev = dev;
++	css->base = base;
++	css->iomem_length = length;
++	css->current_binary = IPU3_CSS_DEFAULT_BINARY;
++	css->pipe_id = IPU3_CSS_PIPE_ID_NUM;
++	css->vf_output_en = IPU3_NODE_VF_DISABLED;
++	spin_lock_init(&css->qlock);
++
++	for (q = 0; q < IPU3_CSS_QUEUES; q++) {
++		r = ipu3_css_queue_init(&css->queue[q], NULL, 0);
++		if (r)
++			return r;
++	}
++
++	r = ipu3_css_fw_init(css);
++	if (r)
++		return r;
++
++	/* Allocate and map common structures with imgu hardware */
++
++	for (p = 0; p < IPU3_CSS_PIPE_ID_NUM; p++)
++		for (i = 0; i < IMGU_ABI_MAX_STAGES; i++) {
++			if (!ipu3_dmamap_alloc(imgu,
++					&css->xmem_sp_stage_ptrs[p][i],
++					sizeof(struct imgu_abi_sp_stage)))
++				goto error_no_memory;
++			if (!ipu3_dmamap_alloc(imgu,
++					&css->xmem_isp_stage_ptrs[p][i],
++					sizeof(struct imgu_abi_isp_stage)))
++				goto error_no_memory;
++		}
++
++	if (!ipu3_dmamap_alloc(imgu, &css->sp_ddr_ptrs,
++			       ALIGN(sizeof(struct imgu_abi_ddr_address_map),
++				     IMGU_ABI_ISP_DDR_WORD_BYTES)))
++		goto error_no_memory;
++
++	if (!ipu3_dmamap_alloc(imgu, &css->xmem_sp_group_ptrs,
++			       sizeof(struct imgu_abi_sp_group)))
++		goto error_no_memory;
++
++	for (q = 0; q < IPU3_CSS_QUEUES; q++)
++		for (i = 0; i < ARRAY_SIZE(css->abi_buffers[q]); i++)
++			if (!ipu3_dmamap_alloc(imgu, &css->abi_buffers[q][i],
++					       sizeof(struct imgu_abi_buffer)))
++				goto error_no_memory;
++
++	if (ipu3_css_binary_preallocate(css))
++		goto error_binary_setup;
++
++	return 0;
++
++error_binary_setup:
++	ipu3_css_binary_cleanup(css);
++error_no_memory:
++	ipu3_css_cleanup(css);
++
++	return -ENOMEM;
++}
++
++static u32 ipu3_css_adjust(u32 res, u32 align)
++{
++	u32 val = max_t(u32, IPU3_CSS_MIN_RES, res);
++
++	return DIV_ROUND_CLOSEST(val, align) * align;
++}
++
++/* Select a binary matching the required resolutions and formats */
++static int ipu3_css_find_binary(struct ipu3_css *css,
++				struct ipu3_css_queue queue[IPU3_CSS_QUEUES],
++				struct v4l2_rect rects[IPU3_CSS_RECTS])
++{
++	const int binary_nr = css->fwp->file_header.binary_nr;
++	unsigned int binary_mode = (css->pipe_id == IPU3_CSS_PIPE_ID_CAPTURE) ?
++		IA_CSS_BINARY_MODE_PRIMARY : IA_CSS_BINARY_MODE_VIDEO;
++	const struct v4l2_pix_format_mplane *in =
++					&queue[IPU3_CSS_QUEUE_IN].fmt.mpix;
++	const struct v4l2_pix_format_mplane *out =
++					&queue[IPU3_CSS_QUEUE_OUT].fmt.mpix;
++	const struct v4l2_pix_format_mplane *vf =
++					&queue[IPU3_CSS_QUEUE_VF].fmt.mpix;
++	u32 stripe_w = 0, stripe_h = 0;
++	const char *name;
++	int i, j;
++
++	if (!ipu3_css_queue_enabled(&queue[IPU3_CSS_QUEUE_IN]))
++		return -EINVAL;
++
++	/* Find out the strip size boundary */
++	for (i = 0; i < binary_nr; i++) {
++		struct imgu_fw_info *bi = &css->fwp->binary_header[i];
++
++		u32 max_width = bi->info.isp.sp.output.max_width;
++		u32 max_height = bi->info.isp.sp.output.max_height;
++
++		if (bi->info.isp.sp.iterator.num_stripes <= 1) {
++			stripe_w = stripe_w ?
++				min(stripe_w, max_width) : max_width;
++			stripe_h = stripe_h ?
++				min(stripe_h, max_height) : max_height;
++		}
++	}
++
++	for (i = 0; i < binary_nr; i++) {
++		struct imgu_fw_info *bi = &css->fwp->binary_header[i];
++		enum imgu_abi_frame_format q_fmt;
++
++		name = (void *)css->fwp + bi->blob.prog_name_offset;
++
++		/* Check that binary supports memory-to-memory processing */
++		if (bi->info.isp.sp.input.source !=
++		    IMGU_ABI_BINARY_INPUT_SOURCE_MEMORY)
++			continue;
++
++		/* Check that binary supports raw10 input */
++		if (!bi->info.isp.sp.enable.input_feeder &&
++		    !bi->info.isp.sp.enable.input_raw)
++			continue;
++
++		/* Check binary mode */
++		if (bi->info.isp.sp.pipeline.mode != binary_mode)
++			continue;
++
++		/* Since input is RGGB bayer, need to process colors */
++		if (bi->info.isp.sp.enable.luma_only)
++			continue;
++
++		if (in->width < bi->info.isp.sp.input.min_width ||
++		    in->width > bi->info.isp.sp.input.max_width ||
++		    in->height < bi->info.isp.sp.input.min_height ||
++		    in->height > bi->info.isp.sp.input.max_height)
++			continue;
++
++		if (ipu3_css_queue_enabled(&queue[IPU3_CSS_QUEUE_OUT])) {
++			if (bi->info.isp.num_output_pins <= 0)
++				continue;
++
++			q_fmt = queue[IPU3_CSS_QUEUE_OUT].css_fmt->frame_format;
++			for (j = 0; j < bi->info.isp.num_output_formats; j++)
++				if (bi->info.isp.output_formats[j] == q_fmt)
++					break;
++			if (j >= bi->info.isp.num_output_formats)
++				continue;
++
++			if (out->width < bi->info.isp.sp.output.min_width ||
++			    out->width > bi->info.isp.sp.output.max_width ||
++			    out->height < bi->info.isp.sp.output.min_height ||
++			    out->height > bi->info.isp.sp.output.max_height)
++				continue;
++
++			if (out->width > bi->info.isp.sp.internal.max_width ||
++			    out->height > bi->info.isp.sp.internal.max_height)
++				continue;
++		}
++
++		if (ipu3_css_queue_enabled(&queue[IPU3_CSS_QUEUE_VF])) {
++			if (bi->info.isp.num_output_pins <= 1)
++				continue;
++
++			q_fmt = queue[IPU3_CSS_QUEUE_VF].css_fmt->frame_format;
++			for (j = 0; j < bi->info.isp.num_output_formats; j++)
++				if (bi->info.isp.output_formats[j] == q_fmt)
++					break;
++			if (j >= bi->info.isp.num_output_formats)
++				continue;
++
++			if (vf->width < bi->info.isp.sp.output.min_width ||
++			    vf->width > bi->info.isp.sp.output.max_width ||
++			    vf->height < bi->info.isp.sp.output.min_height ||
++			    vf->height > bi->info.isp.sp.output.max_height)
++				continue;
++		}
++
++		/* All checks passed, select the binary */
++		dev_dbg(css->dev, "using binary %s\n", name);
++		return i;
++	}
++
++	/* Can not find suitable binary for these parameters */
++	return -EINVAL;
++}
 +
 +/*
-+ * struct ipu3_uapi_anr_alpha - Advanced noise reduction alpha
-+ *
-+ * Tunable parameters that are subject to modification according to the
-+ * total gain used.
++ * Check that there is a binary matching requirements. Parameters may be
++ * NULL indicating disabled input/output. Return negative if given
++ * parameters can not be supported or on error, zero or positive indicating
++ * found binary number. May modify the given parameters if not exact match
++ * is found.
 + */
-+struct ipu3_uapi_anr_alpha {
-+	__u16 gr;
-+	__u16 r;
-+	__u16 b;
-+	__u16 gb;
-+	__u16 dc_gr;
-+	__u16 dc_r;
-+	__u16 dc_b;
-+	__u16 dc_gb;
-+} __packed;
++int ipu3_css_fmt_try(struct ipu3_css *css,
++		     struct v4l2_pix_format_mplane *fmts[IPU3_CSS_QUEUES],
++		     struct v4l2_rect *rects[IPU3_CSS_RECTS])
++{
++	static const u32 EFF_ALIGN_W = 2;
++	static const u32 BDS_ALIGN_W = 4;
++	static const u32 OUT_ALIGN_W = 8;
++	static const u32 OUT_ALIGN_H = 4;
++	static const u32 VF_ALIGN_W  = 2;
++	static const char *qnames[IPU3_CSS_QUEUES] = {
++		[IPU3_CSS_QUEUE_IN] = "in",
++		[IPU3_CSS_QUEUE_PARAMS]    = "params",
++		[IPU3_CSS_QUEUE_OUT] = "out",
++		[IPU3_CSS_QUEUE_VF] = "vf",
++		[IPU3_CSS_QUEUE_STAT_3A]   = "3a",
++	};
++	static const char *rnames[IPU3_CSS_RECTS] = {
++		[IPU3_CSS_RECT_EFFECTIVE] = "effective resolution",
++		[IPU3_CSS_RECT_BDS]       = "bayer-domain scaled resolution",
++		[IPU3_CSS_RECT_ENVELOPE]  = "DVS envelope size",
++		[IPU3_CSS_RECT_GDC]  = "GDC output res",
++	};
++	struct v4l2_rect r[IPU3_CSS_RECTS] = { };
++	struct v4l2_rect *const eff = &r[IPU3_CSS_RECT_EFFECTIVE];
++	struct v4l2_rect *const bds = &r[IPU3_CSS_RECT_BDS];
++	struct v4l2_rect *const env = &r[IPU3_CSS_RECT_ENVELOPE];
++	struct v4l2_rect *const gdc = &r[IPU3_CSS_RECT_GDC];
++	struct ipu3_css_queue q[IPU3_CSS_QUEUES];
++	struct v4l2_pix_format_mplane *const in =
++					&q[IPU3_CSS_QUEUE_IN].fmt.mpix;
++	struct v4l2_pix_format_mplane *const out =
++					&q[IPU3_CSS_QUEUE_OUT].fmt.mpix;
++	struct v4l2_pix_format_mplane *const vf =
++					&q[IPU3_CSS_QUEUE_VF].fmt.mpix;
++	int binary, i, s;
++
++	/* Decide which pipe to use */
++	if (css->vf_output_en == IPU3_NODE_PV_ENABLED)
++		css->pipe_id = IPU3_CSS_PIPE_ID_CAPTURE;
++	else if (css->vf_output_en == IPU3_NODE_VF_ENABLED)
++		css->pipe_id = IPU3_CSS_PIPE_ID_VIDEO;
++
++	/* Adjust all formats, get statistics buffer sizes and formats */
++	for (i = 0; i < IPU3_CSS_QUEUES; i++) {
++		if (fmts[i])
++			dev_dbg(css->dev, "%s %s: (%i,%i) fmt 0x%x\n", __func__,
++				qnames[i], fmts[i]->width, fmts[i]->height,
++				fmts[i]->pixelformat);
++		else
++			dev_dbg(css->dev, "%s %s: (not set)\n", __func__,
++				qnames[i]);
++		if (ipu3_css_queue_init(&q[i], fmts[i],
++					IPU3_CSS_QUEUE_TO_FLAGS(i))) {
++			dev_notice(css->dev, "can not initialize queue %s\n",
++				   qnames[i]);
++			return -EINVAL;
++		}
++	}
++	for (i = 0; i < IPU3_CSS_RECTS; i++) {
++		if (rects[i]) {
++			dev_dbg(css->dev, "%s %s: (%i,%i)\n", __func__,
++				rnames[i], rects[i]->width, rects[i]->height);
++			r[i].width  = rects[i]->width;
++			r[i].height = rects[i]->height;
++		} else {
++			dev_dbg(css->dev, "%s %s: (not set)\n", __func__,
++				rnames[i]);
++		}
++		/* For now, force known good resolutions */
++		r[i].left = 0;
++		r[i].top  = 0;
++	}
++
++	/* Always require one input and vf only if out is also enabled */
++	if (!ipu3_css_queue_enabled(&q[IPU3_CSS_QUEUE_IN]) ||
++	    (ipu3_css_queue_enabled(&q[IPU3_CSS_QUEUE_VF]) &&
++	    !ipu3_css_queue_enabled(&q[IPU3_CSS_QUEUE_OUT]))) {
++		dev_dbg(css->dev, "required queues are disabled\n");
++		return -EINVAL;
++	}
++
++	if (!ipu3_css_queue_enabled(&q[IPU3_CSS_QUEUE_OUT])) {
++		out->width = in->width;
++		out->height = in->height;
++	}
++	if (eff->width <= 0 || eff->height <= 0) {
++		eff->width = in->width;
++		eff->height = in->height;
++	}
++	if (bds->width <= 0 || bds->height <= 0) {
++		bds->width = out->width;
++		bds->height = out->height;
++	}
++	if (gdc->width <= 0 || gdc->height <= 0) {
++		gdc->width = out->width;
++		gdc->height = out->height;
++	}
++
++	in->width   = ipu3_css_adjust(in->width, 1);
++	in->height  = ipu3_css_adjust(in->height, 1);
++	eff->width  = ipu3_css_adjust(eff->width, EFF_ALIGN_W);
++	eff->height = ipu3_css_adjust(eff->height, 1);
++	bds->width  = ipu3_css_adjust(bds->width, BDS_ALIGN_W);
++	bds->height = ipu3_css_adjust(bds->height, 1);
++	gdc->width  = ipu3_css_adjust(gdc->width, OUT_ALIGN_W);
++	gdc->height = ipu3_css_adjust(gdc->height, OUT_ALIGN_H);
++	out->width  = ipu3_css_adjust(out->width, OUT_ALIGN_W);
++	out->height = ipu3_css_adjust(out->height, OUT_ALIGN_H);
++	vf->width   = ipu3_css_adjust(vf->width, VF_ALIGN_W);
++	vf->height  = ipu3_css_adjust(vf->height, 1);
++
++	s = (bds->width - gdc->width) / 2 - FILTER_SIZE;
++	env->width = s < MIN_ENVELOPE ? MIN_ENVELOPE : s;
++	s = (bds->height - gdc->height) / 2 - FILTER_SIZE;
++	env->height = s < MIN_ENVELOPE ? MIN_ENVELOPE : s;
++
++	binary = ipu3_css_find_binary(css, q, r);
++	if (binary < 0) {
++		dev_err(css->dev, "failed to find suitable binary\n");
++		return -EINVAL;
++	}
++
++	/* Final adjustment and set back the queried formats */
++	for (i = 0; i < IPU3_CSS_QUEUES; i++) {
++		if (fmts[i]) {
++			if (ipu3_css_queue_init(&q[i], &q[i].fmt.mpix,
++						IPU3_CSS_QUEUE_TO_FLAGS(i))) {
++				dev_err(css->dev,
++					"final resolution adjustment failed\n");
++				return -EINVAL;
++			}
++			*fmts[i] = q[i].fmt.mpix;
++		}
++	}
++
++	for (i = 0; i < IPU3_CSS_RECTS; i++)
++		if (rects[i])
++			*rects[i] = r[i];
++
++	dev_dbg(css->dev,
++		"in(%u,%u) if(%u,%u) ds(%u,%u) gdc(%u,%u) out(%u,%u) vf(%u,%u)",
++		 in->width, in->height, eff->width, eff->height,
++		 bds->width, bds->height, gdc->width, gdc->height,
++		 out->width, out->height, vf->width, vf->height);
++
++	return binary;
++}
++
++int ipu3_css_fmt_set(struct ipu3_css *css,
++		     struct v4l2_pix_format_mplane *fmts[IPU3_CSS_QUEUES],
++		     struct v4l2_rect *rects[IPU3_CSS_RECTS])
++{
++	struct v4l2_rect rect_data[IPU3_CSS_RECTS];
++	struct v4l2_rect *all_rects[IPU3_CSS_RECTS];
++	int i, r;
++
++	for (i = 0; i < IPU3_CSS_RECTS; i++) {
++		if (rects[i])
++			rect_data[i] = *rects[i];
++		else
++			memset(&rect_data[i], 0, sizeof(rect_data[i]));
++		all_rects[i] = &rect_data[i];
++	}
++	r = ipu3_css_fmt_try(css, fmts, all_rects);
++	if (r < 0)
++		return r;
++	css->current_binary = (unsigned int)r;
++
++	for (i = 0; i < IPU3_CSS_QUEUES; i++)
++		if (ipu3_css_queue_init(&css->queue[i], fmts[i],
++					IPU3_CSS_QUEUE_TO_FLAGS(i)))
++			return -EINVAL;
++	for (i = 0; i < IPU3_CSS_RECTS; i++) {
++		css->rect[i] = rect_data[i];
++		if (rects[i])
++			*rects[i] = rect_data[i];
++	}
++
++	return 0;
++}
++
++int ipu3_css_meta_fmt_set(struct v4l2_meta_format *fmt)
++{
++	switch (fmt->dataformat) {
++	case V4L2_META_FMT_IPU3_PARAMS:
++		fmt->buffersize = sizeof(struct ipu3_uapi_params);
++		break;
++	case V4L2_META_FMT_IPU3_STAT_3A:
++		fmt->buffersize = sizeof(struct ipu3_uapi_stats_3a);
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	return 0;
++}
 +
 +/*
-+ * struct ipu3_uapi_anr_beta - Advanced noise reduction beta
-+ *
-+ * Tunable parameters that are subject to modification according to the
-+ * total gain used.
++ * Queue given buffer to CSS. ipu3_css_buf_prepare() must have been first
++ * called for the buffer. May be called from interrupt context.
++ * Returns 0 on success, -EBUSY if the buffer queue is full, or some other
++ * code on error conditions.
 + */
-+struct ipu3_uapi_anr_beta {
-+	__u16 beta_gr;
-+	__u16 beta_r;
-+	__u16 beta_b;
-+	__u16 beta_gb;
-+} __packed;
++int ipu3_css_buf_queue(struct ipu3_css *css, struct ipu3_css_buffer *b)
++{
++	static const int thread;
++	struct imgu_abi_buffer *abi_buf;
++	struct imgu_addr_t *buf_addr;
++	u32 data;
++	int r;
++
++	if (!css->streaming)
++		return -EPROTO;	/* CSS or buffer in wrong state */
++
++	if (b->queue >= IPU3_CSS_QUEUES || !ipu3_css_queues[b->queue].qid)
++		return -EINVAL;
++
++	b->queue_pos = ipu3_css_queue_pos(css, ipu3_css_queues[b->queue].qid,
++					  thread);
++
++	if (b->queue_pos >= ARRAY_SIZE(css->abi_buffers[b->queue]))
++		return -EIO;
++	abi_buf = css->abi_buffers[b->queue][b->queue_pos].vaddr;
++
++	/* Fill struct abi_buffer for firmware */
++	memset(abi_buf, 0, sizeof(*abi_buf));
++
++	buf_addr = (void *)abi_buf + ipu3_css_queues[b->queue].ptr_ofs;
++	*(imgu_addr_t *)buf_addr = b->daddr;
++
++	if (b->queue == IPU3_CSS_QUEUE_STAT_3A)
++		abi_buf->payload.s3a.data.dmem.s3a_tbl = b->daddr;
++
++	if (b->queue == IPU3_CSS_QUEUE_OUT)
++		abi_buf->payload.frame.padded_width =
++				css->queue[IPU3_CSS_QUEUE_OUT].width_pad;
++
++	if (b->queue == IPU3_CSS_QUEUE_VF)
++		abi_buf->payload.frame.padded_width =
++					css->queue[IPU3_CSS_QUEUE_VF].width_pad;
++
++	spin_lock(&css->qlock);
++	list_add_tail(&b->list, &css->queue[b->queue].bufs);
++	spin_unlock(&css->qlock);
++	b->state = IPU3_CSS_BUFFER_QUEUED;
++
++	data = css->abi_buffers[b->queue][b->queue_pos].daddr;
++	r = ipu3_css_queue_data(css, ipu3_css_queues[b->queue].qid,
++				thread, data);
++	if (r < 0)
++		goto queueing_failed;
++
++	data = IMGU_ABI_EVENT_BUFFER_ENQUEUED(thread,
++					      ipu3_css_queues[b->queue].qid);
++	r = ipu3_css_queue_data(css, IMGU_ABI_QUEUE_EVENT_ID, 0, data);
++	if (r < 0)
++		goto queueing_failed;
++
++	dev_dbg(css->dev, "queued buffer %p to css queue %i\n", b, b->queue);
++
++	return 0;
++
++queueing_failed:
++	b->state = (r == -EBUSY || r == -EAGAIN) ?
++		IPU3_CSS_BUFFER_NEW : IPU3_CSS_BUFFER_FAILED;
++	list_del(&b->list);
++
++	return r;
++}
 +
 +/*
-+ * struct ipu3_uapi_anr_plane_color - Advanced noise reduction per plane R, Gr,
-+ *				      Gb and B register settings
-+ *
-+ * Tunable parameters that are subject to modification according to the
-+ * total gain used.
++ * Get next ready CSS buffer. Returns -EAGAIN in which case the function
++ * should be called again, or -EBUSY which means that there are no more
++ * buffers available. May be called from interrupt context.
 + */
-+struct ipu3_uapi_anr_plane_color {
-+	__u16 reg_w_gr[16];
-+	__u16 reg_w_r[16];
-+	__u16 reg_w_b[16];
-+	__u16 reg_w_gb[16];
-+} __packed;
++struct ipu3_css_buffer *ipu3_css_buf_dequeue(struct ipu3_css *css)
++{
++	static const int thread;
++	static const unsigned char evtype_to_queue[] = {
++		[IMGU_ABI_EVTTYPE_INPUT_FRAME_DONE] = IPU3_CSS_QUEUE_IN,
++		[IMGU_ABI_EVTTYPE_OUT_FRAME_DONE] = IPU3_CSS_QUEUE_OUT,
++		[IMGU_ABI_EVTTYPE_VF_OUT_FRAME_DONE] = IPU3_CSS_QUEUE_VF,
++		[IMGU_ABI_EVTTYPE_3A_STATS_DONE] = IPU3_CSS_QUEUE_STAT_3A,
++	};
++	struct ipu3_css_buffer *b = ERR_PTR(-EAGAIN);
++	u32 event, daddr;
++	int evtype, pipe, pipeid, queue, qid, r;
 +
-+/**
-+ * struct ipu3_uapi_anr_transform_config - Advanced noise reduction transform
++	if (!css->streaming)
++		return ERR_PTR(-EPROTO);
++
++	r = ipu3_css_dequeue_data(css, IMGU_ABI_QUEUE_EVENT_ID, &event);
++	if (r < 0)
++		return ERR_PTR(r);
++
++	evtype = (event & IMGU_ABI_EVTTYPE_EVENT_MASK) >>
++		  IMGU_ABI_EVTTYPE_EVENT_SHIFT;
++
++	switch (evtype) {
++	case IMGU_ABI_EVTTYPE_OUT_FRAME_DONE:
++	case IMGU_ABI_EVTTYPE_VF_OUT_FRAME_DONE:
++	case IMGU_ABI_EVTTYPE_3A_STATS_DONE:
++	case IMGU_ABI_EVTTYPE_INPUT_FRAME_DONE:
++		pipe = (event & IMGU_ABI_EVTTYPE_PIPE_MASK) >>
++			IMGU_ABI_EVTTYPE_PIPE_SHIFT;
++		pipeid = (event & IMGU_ABI_EVTTYPE_PIPEID_MASK) >>
++			IMGU_ABI_EVTTYPE_PIPEID_SHIFT;
++		queue = evtype_to_queue[evtype];
++		qid = ipu3_css_queues[queue].qid;
++
++		if (qid >= IMGU_ABI_QUEUE_NUM) {
++			dev_err(css->dev, "Invalid qid: %i\n", qid);
++			return ERR_PTR(-EIO);
++		}
++
++		dev_dbg(css->dev,
++			"event: buffer done 0x%x queue %i pipe %i pipeid %i\n",
++			event, queue, pipe, pipeid);
++
++		r = ipu3_css_dequeue_data(css, qid, &daddr);
++		if (r < 0) {
++			dev_err(css->dev, "failed to dequeue buffer\n");
++			/* Force real error, not -EBUSY */
++			return ERR_PTR(-EIO);
++		}
++
++		r = ipu3_css_queue_data(css, IMGU_ABI_QUEUE_EVENT_ID, thread,
++					IMGU_ABI_EVENT_BUFFER_DEQUEUED(qid));
++		if (r < 0) {
++			dev_err(css->dev, "failed to queue event\n");
++			return ERR_PTR(-EIO);
++		}
++
++		spin_lock(&css->qlock);
++		if (list_empty(&css->queue[queue].bufs)) {
++			spin_unlock(&css->qlock);
++			dev_err(css->dev, "event on empty queue\n");
++			return ERR_PTR(-EIO);
++		}
++		b = list_first_entry(&css->queue[queue].bufs,
++				     struct ipu3_css_buffer, list);
++		if (queue != b->queue ||
++		    daddr != css->abi_buffers[b->queue][b->queue_pos].daddr) {
++			spin_unlock(&css->qlock);
++			dev_err(css->dev, "dequeued bad buffer 0x%x\n", daddr);
++			return ERR_PTR(-EIO);
++		}
++		b->state = IPU3_CSS_BUFFER_DONE;
++		list_del(&b->list);
++		spin_unlock(&css->qlock);
++		break;
++	case IMGU_ABI_EVTTYPE_PIPELINE_DONE:
++		dev_dbg(css->dev, "event: pipeline done 0x%x\n", event);
++		break;
++	case IMGU_ABI_EVTTYPE_TIMER:
++		r = ipu3_css_dequeue_data(css, IMGU_ABI_QUEUE_EVENT_ID, &event);
++		if (r < 0)
++			return ERR_PTR(r);
++
++		if ((event & IMGU_ABI_EVTTYPE_EVENT_MASK) >>
++		    IMGU_ABI_EVTTYPE_EVENT_SHIFT == IMGU_ABI_EVTTYPE_TIMER)
++			dev_dbg(css->dev, "event: timer\n");
++		else
++			dev_warn(css->dev, "half of timer event missing\n");
++		break;
++	case IMGU_ABI_EVTTYPE_FW_WARNING:
++		dev_warn(css->dev, "event: firmware warning 0x%x\n", event);
++		break;
++	case IMGU_ABI_EVTTYPE_FW_ASSERT:
++		dev_err(css->dev,
++			"event: firmware assert 0x%x module_id %i line_no %i\n",
++			event,
++			(event & IMGU_ABI_EVTTYPE_MODULEID_MASK) >>
++			IMGU_ABI_EVTTYPE_MODULEID_SHIFT,
++			swab16((event & IMGU_ABI_EVTTYPE_LINENO_MASK) >>
++			       IMGU_ABI_EVTTYPE_LINENO_SHIFT));
++		break;
++	default:
++		dev_warn(css->dev, "received unknown event 0x%x\n", event);
++	}
++
++	return b;
++}
++
++/*
++ * Get a new set of parameters from pool and initialize them based on
++ * the parameters params, gdc, and obgrid. Any of these may be NULL,
++ * in which case the previously set parameters are used.
++ * If parameters haven't been set previously, initialize from scratch.
 + *
-+ * @enable: advanced noise reduction enabled.
-+ * @adaptive_treshhold_en: On IPU3, adaptive threshold is always enabled.
-+ * @reserved1: reserved
-+ * @reserved2: reserved
-+ * @alpha: using following defaults:
-+ *		13, 13, 13, 13, 0, 0, 0, 0
-+ *		11, 11, 11, 11, 0, 0, 0, 0
-+ *		14,  14, 14, 14, 0, 0, 0, 0
-+ * @beta: use following defaults:
-+ *		24, 24, 24, 24
-+ *		21, 20, 20, 21
-+ *		25, 25, 25, 25
-+ * @color: use defaults defined in driver/media/pci/intel/ipu3-tables.c
-+ * @sqrt_lut: 11 bits per element, values =
-+ *					[724 768 810 849 887
-+ *					923 958 991 1024 1056
-+ *					1116 1145 1173 1201 1086
-+ *					1228 1254 1280 1305 1330
-+ *					1355 1379 1402 1425 1448]
-+ * @xreset: Reset value of X for r^2 calculation Value: col_start-X_center
-+ *	Constraint: Xreset + FrameWdith=4095 Xreset= -4095, default -1632.
-+ * @reserved3: reserved
-+ * @yreset: Reset value of Y for r^2 calculation Value: row_start-Y_center
-+ *	 Constraint: Yreset + FrameHeight=4095 Yreset= -4095, default -1224.
-+ * @reserved4: reserved
-+ * @x_sqr_reset: Reset value of X^2 for r^2 calculation Value = (Xreset)^2
-+ * @r_normfactor: Normalization factor for R. Default 14.
-+ * @reserved5: reserved
-+ * @y_sqr_reset: Reset value of Y^2 for r^2 calculation Value = (Yreset)^2
-+ * @gain_scale: Parameter describing shading gain as a function of distance
-+ *		from the image center.
-+ *		A single value per frame, loaded by the driver. Default 115.
++ * Return index to css->parameter_set_info which has the newly created
++ * parameters or negative value on error.
 + */
-+struct ipu3_uapi_anr_transform_config {
-+	__u32 enable:1;			/* 0 or 1, disabled or enabled */
-+	__u32 adaptive_treshhold_en:1;	/* On IPU3, always enabled */
++int ipu3_css_set_parameters(struct ipu3_css *css,
++			    struct ipu3_uapi_params *set_params)
++{
++	struct ipu3_uapi_flags *use = set_params ? &set_params->use : NULL;
++	static const unsigned int queue_id = IMGU_ABI_QUEUE_A_ID;
++	const int stage = 0, thread = 0;
++	const struct imgu_fw_info *bi;
++	unsigned int stripes, i;
++	int obgrid_size;
 +
-+	__u32 reserved1:30;
-+	__u8 reserved2[44];
++	/* Destination buffers which are filled here */
++	struct imgu_abi_parameter_set_info *param_set;
++	struct imgu_abi_acc_param *acc = NULL;
++	struct imgu_abi_gdc_warp_param *gdc = NULL;
++	struct ipu3_uapi_obgrid_param *obgrid = NULL;
++	const struct ipu3_css_map *map;
++	void *vmem0 = NULL;
++	void *dmem0 = NULL;
 +
-+	struct ipu3_uapi_anr_alpha alpha[3];
-+	struct ipu3_uapi_anr_beta beta[3];
-+	struct ipu3_uapi_anr_plane_color color[3];
++	enum imgu_abi_memories m;
++	int r = -EBUSY;
 +
-+	__u16 sqrt_lut[IPU3_UAPI_ANR_LUT_SIZE];	/* 11 bits per element */
++	if (!css->streaming)
++		return -EPROTO;
 +
-+	__s16 xreset:13;
-+	__u16 reserved3:3;
-+	__s16 yreset:13;
-+	__u16 reserved4:3;
++	bi = &css->fwp->binary_header[css->current_binary];
++	obgrid_size = ipu3_css_fw_obgrid_size(bi);
++	stripes = bi->info.isp.sp.iterator.num_stripes ? : 1;
 +
-+	__u32 x_sqr_reset:24;
-+	__u32 r_normfactor:5;
-+	__u32 reserved5:3;
++	ipu3_css_pool_get(&css->pool.parameter_set_info);
++	param_set = ipu3_css_pool_last(&css->pool.parameter_set_info, 0)->vaddr;
 +
-+	__u32 y_sqr_reset:24;
-+	__u32 gain_scale:8;
-+} __packed;
++	map = ipu3_css_pool_last(&css->pool.acc, 0);
++	/* Get a new acc only if new parameters given, or none yet */
++	if (set_params || !map->vaddr) {
++		ipu3_css_pool_get(&css->pool.acc);
++		map = ipu3_css_pool_last(&css->pool.acc, 0);
++		acc = map->vaddr;
++	}
 +
-+/**
-+ * struct ipu3_uapi_anr_stitch_pyramid - ANR stitch pyramid
-+ *
-+ * @entry0: pyramid LUT entry0, range [0x0, 0x3f]
-+ * @entry1: pyramid LUT entry1, range [0x0, 0x3f]
-+ * @entry2: pyramid LUT entry2, range [0x0, 0x3f]
-+ * @reserved: reserved
-+ */
-+struct ipu3_uapi_anr_stitch_pyramid {
-+	__u32 entry0:6;
-+	__u32 entry1:6;
-+	__u32 entry2:6;
-+	__u32 reserved:14;
-+} __packed;
++	/* Get new VMEM0 only if needed, or none yet */
++	m = IMGU_ABI_MEM_ISP_VMEM0;
++	map = ipu3_css_pool_last(&css->pool.binary_params_p[m], 0);
++	if (!map->vaddr || (set_params && (set_params->use.lin_vmem_params ||
++					   set_params->use.tnr3_vmem_params ||
++					   set_params->use.xnr3_vmem_params))) {
++		ipu3_css_pool_get(&css->pool.binary_params_p[m]);
++		map = ipu3_css_pool_last(&css->pool.binary_params_p[m], 0);
++		vmem0 = map->vaddr;
++	}
 +
-+/**
-+ * struct ipu3_uapi_anr_stitch_config - ANR stitch config
-+ *
-+ * @anr_stitch_en: enable stitch. Enabled with 1.
-+ * @reserved: reserved
-+ * @pyramid: pyramid table as defined by &ipu3_uapi_anr_stitch_pyramid
-+ *		default values:
-+ *		{ 1, 3, 5 }, { 7, 7, 5 }, { 3, 1, 3 },
-+ *		{ 9, 15, 21 }, { 21, 15, 9 }, { 3, 5, 15 },
-+ *		{ 25, 35, 35 }, { 25, 15, 5 }, { 7, 21, 35 },
-+ *		{ 49, 49, 35 }, { 21, 7, 7 }, { 21, 35, 49 },
-+ *		{ 49, 35, 21 }, { 7, 5, 15 }, { 25, 35, 35 },
-+ *		{ 25, 15, 5 }, { 3, 9, 15 }, { 21, 21, 15 },
-+ *		{ 9, 3, 1 }, { 3, 5, 7 }, { 7, 5, 3}, { 1 }
-+ */
-+struct ipu3_uapi_anr_stitch_config {
-+	__u32 anr_stitch_en;
-+	__u8 reserved[44];
-+	struct ipu3_uapi_anr_stitch_pyramid pyramid[IPU3_UAPI_ANR_PYRAMID_SIZE];
-+} __packed;
++	/* Get new DMEM0 only if needed, or none yet */
++	m = IMGU_ABI_MEM_ISP_DMEM0;
++	map = ipu3_css_pool_last(&css->pool.binary_params_p[m], 0);
++	if (!map->vaddr || (set_params && (set_params->use.tnr3_dmem_params ||
++					   set_params->use.xnr3_dmem_params))) {
++		ipu3_css_pool_get(&css->pool.binary_params_p[m]);
++		map = ipu3_css_pool_last(&css->pool.binary_params_p[m], 0);
++		dmem0 = map->vaddr;
++	}
 +
-+/**
-+ * struct ipu3_uapi_anr_config - ANR config
-+ *
-+ * @transform:	advanced noise reduction transform config as specified by
-+ *		&ipu3_uapi_anr_transform_config
-+ * @stitch: create 4x4 patch from 4 surrounding 8x8 patches.
-+ */
-+struct ipu3_uapi_anr_config {
-+	struct ipu3_uapi_anr_transform_config transform __attribute__((aligned(32)));
-+	struct ipu3_uapi_anr_stitch_config stitch __attribute__((aligned(32)));
-+} __packed;
++	/* Configure acc parameter cluster */
++	if (acc) {
++		map = ipu3_css_pool_last(&css->pool.acc, 1);
++		r = ipu3_css_cfg_acc(css, use, acc, map->vaddr, set_params ?
++				     &set_params->acc_param : NULL);
++		if (r < 0)
++			goto fail;
++	}
 +
-+/**
-+ * struct ipu3_uapi_acc_param - Accelerator cluster parameters
-+ *
-+ * ACC refers to the HW cluster containing all Fixed Functions (FFs). Each FF
-+ * implements a specific algorithm.
-+ *
-+ * @bnr:	parameters for bayer noise reduction static config. See
-+ *		&ipu3_uapi_bnr_static_config
-+ * @green_disparity:	disparity static config between gr and gb channel.
-+ *			See &ipu3_uapi_bnr_static_config_green_disparity
-+ * @dm:	de-mosaic config. See &ipu3_uapi_dm_config
-+ * @ccm:	color correction matrix. See &ipu3_uapi_ccm_mat_config
-+ * @gamma:	gamma correction config. See &ipu3_uapi_gamma_config
-+ * @csc:	color space conversion matrix. See &ipu3_uapi_csc_mat_config
-+ * @cds:	color down sample config. See &ipu3_uapi_cds_params
-+ * @shd:	lens shading correction config. See &ipu3_uapi_shd_config
-+ * @iefd:	Image enhancement filter and denoise config.
-+ *		&ipu3_uapi_yuvp1_iefd_config
-+ * @yds_c0:	y down scaler config. &ipu3_uapi_yuvp1_yds_config
-+ * @chnr_c0:	chroma noise reduction config. &ipu3_uapi_yuvp1_chnr_config
-+ * @y_ee_nr:	y edge enhancement and noise reduction config.
-+ *		&ipu3_uapi_yuvp1_y_ee_nr_config
-+ * @yds:	y down scaler config. See &ipu3_uapi_yuvp1_yds_config
-+ * @chnr:	chroma noise reduction config. See &ipu3_uapi_yuvp1_chnr_config
-+ * @reserved1: reserved
-+ * @yds2:	y channel down scaler config. See &ipu3_uapi_yuvp1_yds_config
-+ * @tcc:	total color correction config as defined in struct
-+ *		&ipu3_uapi_yuvp2_tcc_static_config
-+ * @reserved2: reserved
-+ * @anr:	advanced noise reduction config.See &ipu3_uapi_anr_config
-+ * @awb_fr:	AWB filter response config. See ipu3_uapi_awb_fr_config
-+ * @ae:	auto exposure config  As specified by &ipu3_uapi_ae_config
-+ * @af:	auto focus config. As specified by &ipu3_uapi_af_config
-+ * @awb:	auto white balance config. As specified by &ipu3_uapi_awb_config
-+ */
-+struct ipu3_uapi_acc_param {
-+	struct ipu3_uapi_bnr_static_config bnr;
-+	struct ipu3_uapi_bnr_static_config_green_disparity
-+				green_disparity __attribute__((aligned(32)));
-+	struct ipu3_uapi_dm_config dm __attribute__((aligned(32)));
-+	struct ipu3_uapi_ccm_mat_config ccm __attribute__((aligned(32)));
-+	struct ipu3_uapi_gamma_config gamma __attribute__((aligned(32)));
-+	struct ipu3_uapi_csc_mat_config csc __attribute__((aligned(32)));
-+	struct ipu3_uapi_cds_params cds __attribute__((aligned(32)));
-+	struct ipu3_uapi_shd_config shd __attribute__((aligned(32)));
-+	struct ipu3_uapi_yuvp1_iefd_config iefd __attribute__((aligned(32)));
-+	struct ipu3_uapi_yuvp1_yds_config yds_c0 __attribute__((aligned(32)));
-+	struct ipu3_uapi_yuvp1_chnr_config chnr_c0 __attribute__((aligned(32)));
-+	struct ipu3_uapi_yuvp1_y_ee_nr_config y_ee_nr __attribute__((aligned(32)));
-+	struct ipu3_uapi_yuvp1_yds_config yds __attribute__((aligned(32)));
-+	struct ipu3_uapi_yuvp1_chnr_config chnr __attribute__((aligned(32)));
-+	struct ipu3_uapi_yuvp1_yds_config yds2 __attribute__((aligned(32)));
-+	struct ipu3_uapi_yuvp2_tcc_static_config tcc __attribute__((aligned(32)));
-+	struct ipu3_uapi_anr_config anr;
-+	struct ipu3_uapi_awb_fr_config_s awb_fr;
-+	struct ipu3_uapi_ae_config ae;
-+	struct ipu3_uapi_af_config_s af;
-+	struct ipu3_uapi_awb_config awb;
-+} __packed;
++	/* Configure late binding parameters */
++	if (vmem0) {
++		m = IMGU_ABI_MEM_ISP_VMEM0;
++		map = ipu3_css_pool_last(&css->pool.binary_params_p[m], 1);
++		r = ipu3_css_cfg_vmem0(css, use, vmem0, map->vaddr, set_params);
++		if (r < 0)
++			goto fail;
++	}
 +
-+/**
-+ * struct ipu3_uapi_isp_lin_vmem_params - Linearization parameters
-+ *
-+ * @lin_lutlow_gr: linearization look-up table for GR channel interpolation.
-+ * @lin_lutlow_r: linearization look-up table for R channel interpolation.
-+ * @lin_lutlow_b: linearization look-up table for B channel interpolation.
-+ * @lin_lutlow_gb: linearization look-up table for GB channel interpolation.
-+ *			lin_lutlow_gr / lin_lutlow_r / lin_lutlow_b /
-+ *			lin_lutlow_gb <= LIN_MAX_VALUE - 1.
-+ * @lin_lutdif_gr:	lin_lutlow_gr[i+1] - lin_lutlow_gr[i].
-+ * @lin_lutdif_r:	lin_lutlow_r[i+1] - lin_lutlow_r[i].
-+ * @lin_lutdif_b:	lin_lutlow_b[i+1] - lin_lutlow_b[i].
-+ * @lin_lutdif_gb:	lin_lutlow_gb[i+1] - lin_lutlow_gb[i].
-+ */
-+struct ipu3_uapi_isp_lin_vmem_params {
-+	__s16 lin_lutlow_gr[IPU3_UAPI_LIN_LUT_SIZE];
-+	__s16 lin_lutlow_r[IPU3_UAPI_LIN_LUT_SIZE];
-+	__s16 lin_lutlow_b[IPU3_UAPI_LIN_LUT_SIZE];
-+	__s16 lin_lutlow_gb[IPU3_UAPI_LIN_LUT_SIZE];
-+	__s16 lin_lutdif_gr[IPU3_UAPI_LIN_LUT_SIZE];
-+	__s16 lin_lutdif_r[IPU3_UAPI_LIN_LUT_SIZE];
-+	__s16 lin_lutdif_b[IPU3_UAPI_LIN_LUT_SIZE];
-+	__s16 lin_lutdif_gb[IPU3_UAPI_LIN_LUT_SIZE];
-+} __packed;
++	if (dmem0) {
++		m = IMGU_ABI_MEM_ISP_DMEM0;
++		map = ipu3_css_pool_last(&css->pool.binary_params_p[m], 1);
++		r = ipu3_css_cfg_dmem0(css, use, dmem0, map->vaddr, set_params);
++		if (r < 0)
++			goto fail;
++	}
 +
-+/* Temporal Noise Reduction */
++	/* Get a new gdc only if a new gdc is given, or none yet */
++	if (bi->info.isp.sp.enable.dvs_6axis) {
++		unsigned int a = IPU3_CSS_AUX_FRAME_REF;
++		unsigned int g = IPU3_CSS_RECT_GDC;
++		unsigned int e = IPU3_CSS_RECT_ENVELOPE;
 +
-+/**
-+ * struct ipu3_uapi_isp_tnr3_vmem_params - Temporal noise reduction vector
-+ *					   memory parameters
-+ *
-+ * @slope: slope setting in interpolation curve for temporal noise reduction.
-+ * @reserved1: reserved
-+ * @sigma: knee point setting in interpolation curve for temporal
-+ *	   noise reduction.
-+ * @reserved2: reserved
-+ */
-+struct ipu3_uapi_isp_tnr3_vmem_params {
-+	__u16 slope[IPU3_UAPI_ISP_TNR3_VMEM_LEN];
-+	__u16 reserved1[IPU3_UAPI_ISP_VEC_ELEMS
-+						- IPU3_UAPI_ISP_TNR3_VMEM_LEN];
-+	__u16 sigma[IPU3_UAPI_ISP_TNR3_VMEM_LEN];
-+	__u16 reserved2[IPU3_UAPI_ISP_VEC_ELEMS
-+						- IPU3_UAPI_ISP_TNR3_VMEM_LEN];
-+} __packed;
++		map = ipu3_css_pool_last(&css->pool.gdc, 0);
++		if (!map->vaddr) {
++			ipu3_css_pool_get(&css->pool.gdc);
++			map = ipu3_css_pool_last(&css->pool.gdc, 0);
++			gdc = map->vaddr;
++			ipu3_css_cfg_gdc_table(gdc,
++					       css->aux_frames[a].bytesperline /
++					       css->aux_frames[a].bytesperpixel,
++					       css->aux_frames[a].height,
++					       css->rect[g].width,
++					       css->rect[g].height,
++					       css->rect[e].width + FILTER_SIZE,
++					       css->rect[e].height +
++					       FILTER_SIZE);
++		}
++	}
 +
-+/**
-+ * struct ipu3_uapi_isp_tnr3_params - Temporal noise reduction v3 parameters
-+ *
-+ * @knee_y1: Knee point TNR3 assumes standard deviation of Y,U and
-+ *	V at Y1 are TnrY1_Sigma_Y, U and V.
-+ * @knee_y2: Knee point TNR3 assumes standard deviation of Y,U and
-+ *		V at Y2 are TnrY2_Sigma_Y, U and V.
-+ * @maxfb_y: Max feedback gain for Y
-+ * @maxfb_u: Max feedback gain for U
-+ * @maxfb_v: Max feedback gain for V
-+ * @round_adj_y: rounding Adjust for Y
-+ * @round_adj_u: rounding Adjust for U
-+ * @round_adj_v: rounding Adjust for V
-+ * @ref_buf_select: selection of the reference frame buffer to be used.
-+ */
-+struct ipu3_uapi_isp_tnr3_params {
-+	__u32 knee_y1;
-+	__u32 knee_y2;
-+	__u32 maxfb_y;
-+	__u32 maxfb_u;
-+	__u32 maxfb_v;
-+	__u32 round_adj_y;
-+	__u32 round_adj_u;
-+	__u32 round_adj_v;
-+	__u32 ref_buf_select;
-+} __packed;
++	/* Get a new obgrid only if a new obgrid is given, or none yet */
++	map = ipu3_css_pool_last(&css->pool.obgrid, 0);
++	if (!map->vaddr || (set_params && set_params->use.obgrid_param)) {
++		ipu3_css_pool_get(&css->pool.obgrid);
++		map = ipu3_css_pool_last(&css->pool.obgrid, 0);
++		obgrid = map->vaddr;
 +
-+/* Extreme Noise Reduction version 3 */
++		/* Configure optical black level grid (obgrid) */
++		if (set_params && set_params->use.obgrid_param)
++			for (i = 0; i < obgrid_size / sizeof(*obgrid); i++)
++				obgrid[i] = set_params->obgrid_param;
++		else
++			memset(obgrid, 0, obgrid_size);
++	}
 +
-+/**
-+ * struct ipu3_uapi_isp_xnr3_vmem_params - Extreme noise reduction v3
-+ *					   vector memory parameters
-+ *
-+ * @x: xnr3 parameters.
-+ * @a: xnr3 parameters.
-+ * @b: xnr3 parameters.
-+ * @c: xnr3 parameters.
-+ */
-+struct ipu3_uapi_isp_xnr3_vmem_params {
-+	__u16 x[IPU3_UAPI_ISP_VEC_ELEMS];
-+	__u16 a[IPU3_UAPI_ISP_VEC_ELEMS];
-+	__u16 b[IPU3_UAPI_ISP_VEC_ELEMS];
-+	__u16 c[IPU3_UAPI_ISP_VEC_ELEMS];
-+} __packed;
++	/* Configure parameter set info, queued to `queue_id' */
 +
-+/**
-+ * struct ipu3_uapi_xnr3_alpha_params - Extreme noise reduction v3
-+ *					alpha tuning parameters
-+ *
-+ * @y0: Sigma for Y range similarity in dark area.
-+ * @u0: Sigma for U range similarity in dark area.
-+ * @v0: Sigma for V range similarity in dark area.
-+ * @ydiff: Sigma difference for Y between bright area and dark area.
-+ * @udiff: Sigma difference for U between bright area and dark area.
-+ * @vdiff: Sigma difference for V between bright area and dark area.
-+ */
-+struct ipu3_uapi_xnr3_alpha_params {
-+	__u32 y0;
-+	__u32 u0;
-+	__u32 v0;
-+	__u32 ydiff;
-+	__u32 udiff;
-+	__u32 vdiff;
-+} __packed;
++	memset(param_set, 0, sizeof(*param_set));
++	map = ipu3_css_pool_last(&css->pool.acc, 0);
++	param_set->mem_map.acc_cluster_params_for_sp = map->daddr;
 +
-+/**
-+ * struct ipu3_uapi_xnr3_coring_params - Extreme noise reduction v3
-+ *					 coring parameters
-+ *
-+ * @u0: Coring Threshold of U channel in dark area.
-+ * @v0: Coring Threshold of V channel in dark area.
-+ * @udiff: Threshold difference of U channel between bright and dark area.
-+ * @vdiff: Threshold difference of V channel between bright and dark area.
-+ */
-+struct ipu3_uapi_xnr3_coring_params {
-+	__u32 u0;
-+	__u32 v0;
-+	__u32 udiff;
-+	__u32 vdiff;
-+} __packed;
++	map = ipu3_css_pool_last(&css->pool.gdc, 0);
++	param_set->mem_map.dvs_6axis_params_y = map->daddr;
 +
-+/**
-+ * struct ipu3_uapi_xnr3_blending_params - Blending factor
-+ *
-+ * @strength: The factor for blending output with input. This is tuning
-+ *	      parameterHigher values lead to more aggressive XNR operation.
-+ */
-+struct ipu3_uapi_xnr3_blending_params {
-+	__u32 strength;
-+} __packed;
++	map = ipu3_css_pool_last(&css->pool.obgrid, 0);
++	for (i = 0; i < stripes; i++)
++		param_set->mem_map.obgrid_tbl[i] =
++				map->daddr + (obgrid_size / stripes) * i;
 +
-+/**
-+ * struct ipu3_uapi_isp_xnr3_params - Extreme noise reduction v3 parameters
-+ *
-+ * @alpha: parameters for xnr3 alpha. See &ipu3_uapi_xnr3_alpha_params
-+ * @coring: parameters for xnr3 coring. See &ipu3_uapi_xnr3_coring_params
-+ * @blending: parameters for xnr3 blending. See &ipu3_uapi_xnr3_blending_params
-+ */
-+struct ipu3_uapi_isp_xnr3_params {
-+	struct ipu3_uapi_xnr3_alpha_params alpha;
-+	struct ipu3_uapi_xnr3_coring_params coring;
-+	struct ipu3_uapi_xnr3_blending_params blending;
-+} __packed;
++	for (m = 0; m < IMGU_ABI_NUM_MEMORIES; m++) {
++		map = ipu3_css_pool_last(&css->pool.binary_params_p[m], 0);
++		param_set->mem_map.isp_mem_param[stage][m] = map->daddr;
++	}
++	/* Then queue the new parameter buffer */
++	map = ipu3_css_pool_last(&css->pool.parameter_set_info, 0);
++	r = ipu3_css_queue_data(css, queue_id, thread, map->daddr);
++	if (r < 0)
++		goto fail;
 +
-+/***** Obgrid (optical black level compensation) table entry *****/
++	r = ipu3_css_queue_data(css, IMGU_ABI_QUEUE_EVENT_ID, 0,
++				IMGU_ABI_EVENT_BUFFER_ENQUEUED(thread,
++							       queue_id));
++	if (r < 0)
++		goto fail_no_put;
 +
-+/**
-+ * struct ipu3_uapi_obgrid_param - Optical black level compensation parameters
-+ *
-+ * @gr: Grid table values for color GR
-+ * @r: Grid table values for color R
-+ * @b: Grid table values for color B
-+ * @gb: Grid table values for color GB
-+ *
-+ * Black level is different for red, green, and blue channels. So black level
-+ * compensation is different per channel.
-+ */
-+struct ipu3_uapi_obgrid_param {
-+	__u16 gr;
-+	__u16 r;
-+	__u16 b;
-+	__u16 gb;
-+} __packed;
++	/* Finally dequeue all old parameter buffers */
 +
-+/******************* V4L2_META_FMT_IPU3_PARAMS *******************/
++	do {
++		u32 daddr;
 +
-+/**
-+ * struct ipu3_uapi_flags - bits to indicate which pipeline needs update
-+ *
-+ * @gdc: 0 = no update, 1 = update.
-+ * @obgrid: 0 = no update, 1 = update.
-+ * @reserved1: Not used.
-+ * @acc_bnr: 0 = no update, 1 = update.
-+ * @acc_green_disparity: 0 = no update, 1 = update.
-+ * @acc_dm: 0 = no update, 1 = update.
-+ * @acc_ccm: 0 = no update, 1 = update.
-+ * @acc_gamma: 0 = no update, 1 = update.
-+ * @acc_csc: 0 = no update, 1 = update.
-+ * @acc_cds: 0 = no update, 1 = update.
-+ * @acc_shd: 0 = no update, 1 = update.
-+ * @reserved2: Not used.
-+ * @acc_iefd: 0 = no update, 1 = update.
-+ * @acc_yds_c0: 0 = no update, 1 = update.
-+ * @acc_chnr_c0: 0 = no update, 1 = update.
-+ * @acc_y_ee_nr: 0 = no update, 1 = update.
-+ * @acc_yds: 0 = no update, 1 = update.
-+ * @acc_chnr: 0 = no update, 1 = update.
-+ * @acc_ytm: 0 = no update, 1 = update.
-+ * @acc_yds2: 0 = no update, 1 = update.
-+ * @acc_tcc: 0 = no update, 1 = update.
-+ * @acc_dpc: 0 = no update, 1 = update.
-+ * @acc_bds: 0 = no update, 1 = update.
-+ * @acc_anr: 0 = no update, 1 = update.
-+ * @acc_awb_fr: 0 = no update, 1 = update.
-+ * @acc_ae: 0 = no update, 1 = update.
-+ * @acc_af: 0 = no update, 1 = update.
-+ * @acc_awb: 0 = no update, 1 = update.
-+ * @__acc_osys: 0 = no update, 1 = update.
-+ * @reserved3: Not used.
-+ * @lin_vmem_params: 0 = no update, 1 = update.
-+ * @tnr3_vmem_params: 0 = no update, 1 = update.
-+ * @xnr3_vmem_params: 0 = no update, 1 = update.
-+ * @tnr3_dmem_params: 0 = no update, 1 = update.
-+ * @xnr3_dmem_params: 0 = no update, 1 = update.
-+ * @reserved4: Not used.
-+ * @obgrid_param: 0 = no update, 1 = update.
-+ * @reserved5: Not used.
-+ */
-+struct ipu3_uapi_flags {
-+	__u32 gdc:1;
-+	__u32 obgrid:1;
-+	__u32 reserved1:30;
++		r = ipu3_css_dequeue_data(css, queue_id, &daddr);
++		if (r == -EBUSY)
++			break;
++		if (r)
++			goto fail_no_put;
++		r = ipu3_css_queue_data(css, IMGU_ABI_QUEUE_EVENT_ID, thread,
++					IMGU_ABI_EVENT_BUFFER_DEQUEUED
++					(queue_id));
++		if (r < 0) {
++			dev_err(css->dev, "failed to queue parameter event\n");
++			goto fail_no_put;
++		}
++	} while (1);
 +
-+	__u32 acc_bnr:1;
-+	__u32 acc_green_disparity:1;
-+	__u32 acc_dm:1;
-+	__u32 acc_ccm:1;
-+	__u32 acc_gamma:1;
-+	__u32 acc_csc:1;
-+	__u32 acc_cds:1;
-+	__u32 acc_shd:1;
-+	__u32 reserved2:2;
-+	__u32 acc_iefd:1;
-+	__u32 acc_yds_c0:1;
-+	__u32 acc_chnr_c0:1;
-+	__u32 acc_y_ee_nr:1;
-+	__u32 acc_yds:1;
-+	__u32 acc_chnr:1;
-+	__u32 acc_ytm:1;
-+	__u32 acc_yds2:1;
-+	__u32 acc_tcc:1;
-+	__u32 acc_dpc:1;
-+	__u32 acc_bds:1;
-+	__u32 acc_anr:1;
-+	__u32 acc_awb_fr:1;
-+	__u32 acc_ae:1;
-+	__u32 acc_af:1;
-+	__u32 acc_awb:1;
-+	__u32 reserved3:4;
++	return 0;
 +
-+	__u32 lin_vmem_params:1;
-+	__u32 tnr3_vmem_params:1;
-+	__u32 xnr3_vmem_params:1;
-+	__u32 tnr3_dmem_params:1;
-+	__u32 xnr3_dmem_params:1;
-+	__u32 reserved4:1;
-+	__u32 obgrid_param:1;
-+	__u32 reserved5:25;
-+} __packed;
++fail:
++	/*
++	 * A failure, most likely the parameter queue was full.
++	 * Return error but continue streaming. User can try submitting new
++	 * parameters again later.
++	 */
 +
-+/**
-+ * struct ipu3_uapi_params - V4L2_META_FMT_IPU3_PARAMS
-+ *
-+ * @use:	select which parameters to apply, see &ipu3_uapi_flags
-+ * @acc_param:	ACC parameters, as specified by &ipu3_uapi_acc_param
-+ * @lin_vmem_params:	linearization VMEM, as specified by
-+ *			&ipu3_uapi_isp_lin_vmem_params
-+ * @tnr3_vmem_params:	tnr3 VMEM as specified by
-+ *			&ipu3_uapi_isp_tnr3_vmem_params
-+ * @xnr3_vmem_params:	xnr3 VMEM as specified by
-+ *			&ipu3_uapi_isp_xnr3_vmem_params
-+ * @tnr3_dmem_params:	tnr3 DMEM as specified by &ipu3_uapi_isp_tnr3_params
-+ * @xnr3_dmem_params:	xnr3 DMEM as specified by &ipu3_uapi_isp_xnr3_params
-+ * @obgrid_param:	obgrid parameters as specified by
-+ *			&ipu3_uapi_obgrid_param
-+ *
-+ * The video queue "parameters" is of format V4L2_META_FMT_IPU3_PARAMS.
-+ * This is a "single plane" v4l2_meta_format using V4L2_BUF_TYPE_META_OUTPUT.
-+ *
-+ * struct ipu3_uapi_params as defined below contains a lot of parameters and
-+ * ipu3_uapi_flags selects which parameters to apply.
-+ */
-+struct ipu3_uapi_params {
-+	/* Flags which of the settings below are to be applied */
-+	struct ipu3_uapi_flags use __attribute__((aligned(32)));
++	ipu3_css_pool_put(&css->pool.parameter_set_info);
++	if (acc)
++		ipu3_css_pool_put(&css->pool.acc);
++	if (gdc)
++		ipu3_css_pool_put(&css->pool.gdc);
++	if (obgrid)
++		ipu3_css_pool_put(&css->pool.obgrid);
++	if (vmem0)
++		ipu3_css_pool_put(
++			&css->pool.binary_params_p[IMGU_ABI_MEM_ISP_VMEM0]);
++	if (dmem0)
++		ipu3_css_pool_put(
++			&css->pool.binary_params_p[IMGU_ABI_MEM_ISP_DMEM0]);
 +
-+	/* Accelerator cluster parameters */
-+	struct ipu3_uapi_acc_param acc_param;
++fail_no_put:
++	return r;
++}
 +
-+	/* ISP vector address space parameters */
-+	struct ipu3_uapi_isp_lin_vmem_params lin_vmem_params;
-+	struct ipu3_uapi_isp_tnr3_vmem_params tnr3_vmem_params;
-+	struct ipu3_uapi_isp_xnr3_vmem_params xnr3_vmem_params;
-+
-+	/* ISP data memory (DMEM) parameters */
-+	struct ipu3_uapi_isp_tnr3_params tnr3_dmem_params;
-+	struct ipu3_uapi_isp_xnr3_params xnr3_dmem_params;
-+
-+	/* Optical black level compensation */
-+	struct ipu3_uapi_obgrid_param obgrid_param;
-+} __packed;
-+
-+#endif /* __IPU3_UAPI_H */
+ int ipu3_css_irq_ack(struct ipu3_css *css)
+ {
+ 	static const int NUM_SWIRQS = 3;
 -- 
 2.11.0
 
