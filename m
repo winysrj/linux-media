@@ -6,73 +6,77 @@ X-Spam-Status: No, score=-8.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 800B2C65BAE
-	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 20:20:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 527B7C65BAE
+	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 20:22:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4196420672
-	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 20:20:47 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 4196420672
+	by mail.kernel.org (Postfix) with ESMTP id 252CA20851
+	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 20:22:02 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 252CA20851
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=bp.renesas.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727554AbeLMUUm (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 13 Dec 2018 15:20:42 -0500
-Received: from relmlor1.renesas.com ([210.160.252.171]:39527 "EHLO
+        id S1727849AbeLMUV4 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 13 Dec 2018 15:21:56 -0500
+Received: from relmlor1.renesas.com ([210.160.252.171]:53805 "EHLO
         relmlie5.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1727343AbeLMUUl (ORCPT
+        by vger.kernel.org with ESMTP id S1726408AbeLMUV4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Dec 2018 15:20:41 -0500
+        Thu, 13 Dec 2018 15:21:56 -0500
 X-IronPort-AV: E=Sophos;i="5.56,349,1539615600"; 
-   d="scan'208";a="2765854"
+   d="scan'208";a="2765909"
 Received: from unknown (HELO relmlir6.idc.renesas.com) ([10.200.68.152])
-  by relmlie5.idc.renesas.com with ESMTP; 14 Dec 2018 05:20:39 +0900
+  by relmlie5.idc.renesas.com with ESMTP; 14 Dec 2018 05:21:54 +0900
 Received: from fabrizio-dev.ree.adwin.renesas.com (unknown [10.226.37.69])
-        by relmlir6.idc.renesas.com (Postfix) with ESMTP id 1757340F76BA;
-        Fri, 14 Dec 2018 05:20:36 +0900 (JST)
+        by relmlir6.idc.renesas.com (Postfix) with ESMTP id 9257240F76C4;
+        Fri, 14 Dec 2018 05:21:51 +0900 (JST)
 From:   Fabrizio Castro <fabrizio.castro@bp.renesas.com>
 To:     Mauro Carvalho Chehab <mchehab@kernel.org>,
         Rob Herring <robh+dt@kernel.org>,
         Mark Rutland <mark.rutland@arm.com>
 Cc:     Fabrizio Castro <fabrizio.castro@bp.renesas.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
         linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
         devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
         Simon Horman <horms@verge.net.au>,
         Geert Uytterhoeven <geert+renesas@glider.be>,
         Chris Paterson <Chris.Paterson2@renesas.com>,
         Biju Das <biju.das@bp.renesas.com>
-Subject: [PATCH] dt-bindings: media: renesas-fcp: Add RZ/G2 support
-Date:   Thu, 13 Dec 2018 20:20:33 +0000
-Message-Id: <1544732433-6543-1-git-send-email-fabrizio.castro@bp.renesas.com>
+Subject: [PATCH] media: dt-bindings: rcar-csi2: Add r8a774c0
+Date:   Thu, 13 Dec 2018 20:21:49 +0000
+Message-Id: <1544732509-6911-1-git-send-email-fabrizio.castro@bp.renesas.com>
 X-Mailer: git-send-email 2.7.4
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Document RZ/G2 support.
+Add the compatible string for RZ/G2E (a.k.a. R8A774C0) to the
+list of supported SoCs.
 
 Signed-off-by: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
 ---
- Documentation/devicetree/bindings/media/renesas,fcp.txt | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/devicetree/bindings/media/renesas,fcp.txt b/Documentation/devicetree/bindings/media/renesas,fcp.txt
-index 3ec9180..79c3739 100644
---- a/Documentation/devicetree/bindings/media/renesas,fcp.txt
-+++ b/Documentation/devicetree/bindings/media/renesas,fcp.txt
-@@ -2,8 +2,9 @@ Renesas R-Car Frame Compression Processor (FCP)
- -----------------------------------------------
+diff --git a/Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt b/Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt
+index 2824489..11cf38d 100644
+--- a/Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt
++++ b/Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt
+@@ -2,12 +2,13 @@ Renesas R-Car MIPI CSI-2
+ ------------------------
  
- The FCP is a companion module of video processing modules in the Renesas R-Car
--Gen3 SoCs. It provides data compression and decompression, data caching, and
--conversion of AXI transactions in order to reduce the memory bandwidth.
-+Gen3 and RZ/G2 SoCs. It provides data compression and decompression, data
-+caching, and conversion of AXI transactions in order to reduce the memory
-+bandwidth.
+ The R-Car CSI-2 receiver device provides MIPI CSI-2 capabilities for the
+-Renesas R-Car family of devices. It is used in conjunction with the
++Renesas R-Car and RZ/G2 family of devices. It is used in conjunction with the
+ R-Car VIN module, which provides the video capture capabilities.
  
- There are three types of FCP: FCP for Codec (FCPC), FCP for VSP (FCPV) and FCP
- for FDP (FCPF). Their configuration and behaviour depend on the module they
+ Mandatory properties
+ --------------------
+  - compatible: Must be one or more of the following
++   - "renesas,r8a774c0-csi2" for the R8A774C0 device.
+    - "renesas,r8a7795-csi2" for the R8A7795 device.
+    - "renesas,r8a7796-csi2" for the R8A7796 device.
+    - "renesas,r8a77965-csi2" for the R8A77965 device.
 -- 
 2.7.4
 
