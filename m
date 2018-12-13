@@ -2,295 +2,408 @@ Return-Path: <SRS0=yFxv=OW=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,
-	T_MIXED_ES,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.9 required=3.0 tests=FREEMAIL_FORGED_FROMDOMAIN,
+	FREEMAIL_FROM,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_PASS,T_MIXED_ES,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6617EC65BAE
-	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 22:24:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D4568C65BAE
+	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 22:51:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 14F3D2086D
-	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 22:24:04 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="qoPsso5w"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 14F3D2086D
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=ideasonboard.com
+	by mail.kernel.org (Postfix) with ESMTP id 746192086D
+	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 22:51:45 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 746192086D
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=free.fr
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727775AbeLMWYD (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 13 Dec 2018 17:24:03 -0500
-Received: from perceval.ideasonboard.com ([213.167.242.64]:54274 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726618AbeLMWYC (ORCPT
+        id S1727499AbeLMWvo (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 13 Dec 2018 17:51:44 -0500
+Received: from lns-bzn-25-82-254-177-192.adsl.proxad.net ([82.254.177.192]:58695
+        "EHLO maze.fork.zz" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1726813AbeLMWvo (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Dec 2018 17:24:02 -0500
-Received: from avalon.localnet (dfj612ybrt5fhg77mgycy-3.rev.dnainternet.fi [IPv6:2001:14ba:21f5:5b00:2e86:4862:ef6a:2804])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id B7CAE549;
-        Thu, 13 Dec 2018 23:23:58 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1544739839;
-        bh=9C5c3zYpTkRLZhLFEiuFiykJv6HwSYAGo3zaGV8MPxY=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=qoPsso5wp3nti6VOqiqsrYZz04+31Z8Ra2OOaLg7Ac7SEtaQFXA+oiFMv2yuygJu2
-         AE3HSly1SUY5/V+w9UC/xBfOM+2ZahztDwbkQgJOYtZe+SQIPbm08LW3ksUs6yd2f8
-         1AQ82KUgmSNQYTfuC9FOCPmBd0OVcz4oB1pfxNgY=
-From:   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To:     Bingbu Cao <bingbu.cao@linux.intel.com>
-Cc:     "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        "Zhi, Yong" <yong.zhi@intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "Hu, Jerry W" <jerry.w.hu@intel.com>,
-        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
-        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
-        "Cao, Bingbu" <bingbu.cao@intel.com>
-Subject: Re: [PATCH v7 00/16] Intel IPU3 ImgU patchset
-Date:   Fri, 14 Dec 2018 00:24:46 +0200
-Message-ID: <1609628.n3aCoxV5Mp@avalon>
-Organization: Ideas on Board Oy
-In-Reply-To: <14cba24a-a2c3-f0d4-5d5b-f514f9a24035@linux.intel.com>
-References: <1540851790-1777-1-git-send-email-yong.zhi@intel.com> <1645510.9NPTHXyo7j@avalon> <14cba24a-a2c3-f0d4-5d5b-f514f9a24035@linux.intel.com>
+        Thu, 13 Dec 2018 17:51:44 -0500
+X-Greylist: delayed 635 seconds by postgrey-1.27 at vger.kernel.org; Thu, 13 Dec 2018 17:51:42 EST
+Received: from blok.fork.zz (blok.fork.zz [192.168.0.7])
+        by maze.fork.zz (8.15.2/8.15.2) with ESMTPS id wBDMf2BF008716
+        (version=TLSv1.2 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Thu, 13 Dec 2018 23:41:04 +0100
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+        by blok.fork.zz (8.15.2/8.15.2) with ESMTP id wBDMf1IQ008268;
+        Thu, 13 Dec 2018 23:41:02 +0100
+Subject: Re: [PATCH v5 1/1] media: rc: rcmm decoder
+To:     linux-media@vger.kernel.org
+Cc:     sean@mess.org, linux-media-owner@vger.kernel.org
+References: <c44581638d2525bc383a75413259f708@free.fr>
+ <cover.1544231670.git.patrick9876@free.fr>
+ <20181205002933.20870-1-patrick9876@free.fr>
+ <20181205002933.20870-2-patrick9876@free.fr>
+ <3a057647b40d9246aca4f64ee771594c32922974.1544175403.git.patrick9876@free.fr>
+ <20181207101231.of7c3j67pcz7cetp@gofer.mess.org>
+ <28f4bc366ebdb585a5b74a25dd1ee8a525e99884.1544231670.git.patrick9876@free.fr>
+From:   Patrick Lerda <patrick9876@free.fr>
+Message-ID: <2e368afe-da25-0ab9-c076-6f8831bd26ec@free.fr>
+Date:   Thu, 13 Dec 2018 23:41:01 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:52.0) Gecko/20100101
+ Firefox/52.0 SeaMonkey/2.49.4
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <28f4bc366ebdb585a5b74a25dd1ee8a525e99884.1544231670.git.patrick9876@free.fr>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hello Bingbu,
+Hi Sean,
 
-On Wednesday, 12 December 2018 06:55:53 EET Bingbu Cao wrote:
-> On 12/11/2018 09:43 PM, Laurent Pinchart wrote:
-> > On Tuesday, 11 December 2018 15:34:49 EET Laurent Pinchart wrote:
-> >> On Wednesday, 5 December 2018 02:30:46 EET Mani, Rajmohan wrote:
-> >> 
-> >> [snip]
-> >> 
-> >>> I can see a couple of steps missing in the script below.
-> >>> (https://lists.libcamera.org/pipermail/libcamera-devel/2018-November/000
-> >>> 040.html)
-> >>> 
-> >>>  From patch 02 of this v7 series "doc-rst: Add Intel IPU3
-> >>>  documentation", under section "Configuring ImgU V4L2 subdev for image
-> >>>  processing"...
-> >>> 
-> >>> 1. The pipe mode needs to be configured for the V4L2 subdev.
-> >>> 
-> >>> Also the pipe mode of the corresponding V4L2 subdev should be set as
-> >>> desired (e.g 0 for video mode or 1 for still mode) through the control
-> >>> id 0x009819a1 as below.
-> >>> 
-> >>> e.g v4l2n -d /dev/v4l-subdev7 --ctrl=0x009819A1=1
-> >> 
-> >> I assume the control takes a valid default value ? It's better to set it
-> >> explicitly anyway, so I'll do so.
-> 
-> The video mode is set by default. If you want to set to still mode or change
-> mode, you need set the subdev control.
-> 
-> >>> 2. ImgU pipeline needs to be configured for image processing as below.
-> >>> 
-> >>> RAW bayer frames go through the following ISP pipeline HW blocks to
-> >>> have the processed image output to the DDR memory.
-> >>> 
-> >>> RAW bayer frame -> Input Feeder -> Bayer Down Scaling (BDS) ->
-> >>> Geometric Distortion Correction (GDC) -> DDR
-> >>> 
-> >>> The ImgU V4L2 subdev has to be configured with the supported
-> >>> resolutions in all the above HW blocks, for a given input resolution.
-> >>> 
-> >>> For a given supported resolution for an input frame, the Input Feeder,
-> >>> Bayer Down Scaling and GDC blocks should be configured with the
-> >>> supported resolutions. This information can be obtained by looking at
-> >>> the following IPU3 ISP configuration table for ov5670 sensor.
-> >>> 
-> >>> https://chromium.googlesource.com/chromiumos/overlays/board-overlays/+/m
-> >>> aster/baseboard-poppy/media-libs/cros-camera-hal-configs-poppy/files/
-> >>> gcss/graph_settings_ov5670.xml
-> >>> 
-> >>> For the ov5670 example, for an input frame with a resolution of
-> >>> 2592x1944 (which is input to the ImgU subdev pad 0), the corresponding
-> >>> resolutions for input feeder, BDS and GDC are 2592x1944, 2592x1944 and
-> >>> 2560x1920 respectively.
-> >> 
-> >> How is the GDC output resolution computed from the input resolution ?
-> >> Does the GDC always consume 32 columns and 22 lines ?
-> 
-> All the intermediate resolutions in the pipeline are determined by the
-> actual use case, in other word determined by the IMGU input
-> resolution(sensor output) and the final output and viewfinder resolution.
-> BDS mainly do Bayer downscaling, it has limitation that the downscaling
-> factor must be a value a integer multiple of 1/32.
-> GDC output depends on the input and width should be x8 and height x4
-> alignment.
+    Is the v5 OK?
 
-Thank you for the information. This will need to be captured in the 
-documentation, along with information related to how each block in the 
-hardware pipeline interacts with the image size. It should be possible for a 
-developer to compute the output and viewfinder resolutions based on the 
-parameters of the image processing algorithms just with the information 
-contained in the driver documentation.
+    Thanks,
 
-> >>> The following steps prepare the ImgU ISP pipeline for the image
-> >>> processing.
-> >>> 
-> >>> 1. The ImgU V4L2 subdev data format should be set by using the
-> >>> VIDIOC_SUBDEV_S_FMT on pad 0, using the GDC width and height obtained
-> >>> above.
-> >> 
-> >> If I understand things correctly, the GDC resolution is the pipeline
-> >> output resolution. Why is it configured on pad 0 ?
-> 
-> We see the GDC output resolution as the input of output system, the sink pad
-> format is used for output and viewfinder resolutions.
-
-The ImgU subdev is supposed to represent the ImgU. Pad 0 should thus be the 
-ImgU input, the format configured there should correspond to the format on the 
-connected video node, and should thus be the sensor format. You can then use 
-the crop and compose rectangles on pad 0, along with the format, crop and 
-compose rectangles on the output and viewfinder pads, to configure the device. 
-This should be fixed in the driver, and the documentation should then be 
-updated accordingly.
-
-> >>> 2. The ImgU V4L2 subdev cropping should be set by using the
-> >>> VIDIOC_SUBDEV_S_SELECTION on pad 0, with V4L2_SEL_TGT_CROP as the
-> >>> target, using the input feeder height and width.
-> >>> 
-> >>> 3. The ImgU V4L2 subdev composing should be set by using the
-> >>> VIDIOC_SUBDEV_S_SELECTION on pad 0, with V4L2_SEL_TGT_COMPOSE as the
-> >>> target, using the BDS height and width.
-> >>> 
-> >>> Once these 2 steps are done, the raw bayer frames can be input to the
-> >>> ImgU V4L2 subdev for processing.
-> >> 
-> >> Do I need to capture from both the output and viewfinder nodes ? How are
-> >> they related to the IF -> BDS -> GDC pipeline, are they both fed from the
-> >> GDC output ? If so, how does the viewfinder scaler fit in that picture ?
-> 
-> The output capture should be set, the viewfinder can be disabled.
-> The IF and BDS are seen as crop and compose of the imgu input video
-> device. The GDC is seen as the subdev sink pad and OUTPUT/VF are source
-> pads.
-
-The GDC is the last block in the pipeline according to the information 
-provided above. How can it be seen as the subdev sink pad ? That doesn't make 
-sense to me. I'm not asking for the MC graph to expose all internal blocks of 
-the ImgU, but if you want to retain a single subdev model, the format on the 
-sink pad needs to correspond to what is provided to the ImgU. Please see 
-figure 4.6 of https://linuxtv.org/downloads/v4l-dvb-apis/uapi/v4l/dev-subdev.html for more information regarding how you can use the sink crop, sink 
-compose and source crop rectangles.
-
-> >> I have tried the above configuration with the IPU3 v8 driver, and while
-> >> the kernel doesn't crash, no images get processed. The userspace
-> >> processes wait forever for buffers to be ready. I then configured pad 2
-> >> to 2560x1920 and pad 3 to 1920x1080, and managed to capture images \o/
-> >> 
-> >> There's one problem though: during capture, or very soon after it, the
-> >> machine locks up completely. I suspect a memory corruption, as when it
-> >> doesn't log immediately commands such as dmesg will not produce any
-> >> output and just block, until the system freezes soon after (especially
-> >> when moving the mouse).
-> >> 
-> >> I would still call this an improvement to some extent, but there's
-> >> definitely room for more improvements :-)
-> >> 
-> >> To reproduce the issue, you can run the ipu3-process.sh script (attached
-> >> to this e-mail) with the following arguments:
-> >> 
-> >> $ ipu3-process.sh --out 2560x1920 frame-2592x1944.cio2
-> >> 
-> >> frame-2592x1944.cio2 is a binary file containing a 2592x1944 images in
-> >> the IPU3-specific Bayer format (for a total of 6469632 bytes).
-> > 
-> > I managed to get the dmesg output, and it doesn't look pretty.
-> > 
-> > [  571.217192] WARNING: CPU: 3 PID: 1303 at /home/laurent/src/iob/oss/
-> > libcamera/linux/drivers/staging/media/ipu3/ipu3-dmamap.c:172
-> > ipu3_dmamap_unmap+0x30/0x75 [ipu3_imgu]
-> > [  571.217196] Modules linked in: asix usbnet mii zram arc4 iwlmvm
-> > mac80211
-> > iwlwifi intel_rapl x86_pkg_temp_thermal intel_powerclamp coretemp cfg80211
-> > 8250_dw hid_multitouch ipu3_cio2 ipu3_imgu(C) videobuf2_dma_sg
-> > videobuf2_memops videobuf2_v4l2 videobuf2_common processor_thermal_device
-> > intel_soc_dts_iosf ov13858 dw9714 ov5670 v4l2_fwnode v4l2_common videodev
-> > at24 media int3403_thermal int340x_thermal_zone cros_ec_lpcs cros_ec_core
-> > int3400_thermal chromeos_pstore mac_hid acpi_thermal_rel autofs4 usbhid
-> > mmc_block hid_generic i915 video i2c_algo_bit drm_kms_helper syscopyarea
-> > sysfillrect sdhci_pci sysimgblt fb_sys_fops cqhci sdhci drm
-> > drm_panel_orientation_quirks i2c_hid hid
-> > [  571.217254] CPU: 3 PID: 1303 Comm: yavta Tainted: G         C
-> > 4.20.0-rc6+ #2
-> > [  571.217256] Hardware name: HP Soraka/Soraka, BIOS  08/30/2018
-> > [  571.217267] RIP: 0010:ipu3_dmamap_unmap+0x30/0x75 [ipu3_imgu]
-> > [  571.217271] Code: 54 55 48 8d af d0 6e 00 00 53 48 8b 76 10 49 89 fc f3
-> > 48 0f bc 8f f0 6e 00 00 48 89 ef 48 d3 ee e8 e6 73 d9 e6 48 85 c0 75 07
-> > <0f> 0b 5b 5d 41 5c c3 48 8b 70 20 48 89 c3 48 8b 40 18 49 8b bc 24
-> > [  571.217274] RSP: 0018:ffffb675021c7b38 EFLAGS: 00010246
-> > [  571.217278] RAX: 0000000000000000 RBX: ffff8f5cf58f8448 RCX:
-> > 000000000000000c
-> > [  571.217280] RDX: 0000000000000000 RSI: 0000000000000202 RDI:
-> > 00000000ffffffff
-> > [  571.217283] RBP: ffff8f5cf58f6ef8 R08: 00000000000006c5 R09:
-> > ffff8f5cfaba16f0
-> > [  571.217286] R10: ffff8f5cbf508f98 R11: 000000e03da27aba R12:
-> > ffff8f5cf58f0028
-> > [  571.217289] R13: ffff8f5cf58f0028 R14: 0000000000000000 R15:
-> > ffff8f5cf58f04e8
-> > [  571.217293] FS:  00007f85d009c700(0000) GS:ffff8f5cfab80000(0000)
-> > knlGS:
-> > 0000000000000000
-> > [  571.217296] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> > [  571.217299] CR2: 00007f3440fce4b0 CR3: 000000014abf2001 CR4:
-> > 00000000003606e0
-> > [  571.217301] Call Trace:
-> > [  571.217316]  ipu3_dmamap_free+0x5b/0x8f [ipu3_imgu]
-> > [  571.217326]  ipu3_css_pool_cleanup+0x25/0x2f [ipu3_imgu]
-> > [  571.217338]  ipu3_css_pipeline_cleanup+0x59/0x8f [ipu3_imgu]
-> > [  571.217348]  ipu3_css_stop_streaming+0x15b/0x20f [ipu3_imgu]
-> > [  571.217360]  imgu_s_stream+0x5a/0x30a [ipu3_imgu]
-> > [  571.217371]  ? ipu3_all_nodes_streaming+0x14f/0x16b [ipu3_imgu]
-> > [  571.217382]  ipu3_vb2_stop_streaming+0xe4/0x10f [ipu3_imgu]
-> > [  571.217392]  __vb2_queue_cancel+0x2b/0x1b8 [videobuf2_common]
-> > [  571.217402]  vb2_core_streamoff+0x30/0x71 [videobuf2_common]
-> > [  571.217418]  __video_do_ioctl+0x258/0x38e [videodev]
-> > [  571.217438]  video_usercopy+0x25f/0x4e5 [videodev]
-> > [  571.217453]  ? copy_overflow+0x14/0x14 [videodev]
-> > [  571.217471]  v4l2_ioctl+0x4d/0x58 [videodev]
-> > [  571.217480]  vfs_ioctl+0x1e/0x2b
-> > [  571.217486]  do_vfs_ioctl+0x531/0x559
-> > [  571.217494]  ? vfs_write+0xd1/0xdf
-> > [  571.217500]  ksys_ioctl+0x50/0x70
-> > [  571.217506]  __x64_sys_ioctl+0x16/0x19
-> > [  571.217512]  do_syscall_64+0x53/0x60
-> > [  571.217519]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
-> > [  571.217524] RIP: 0033:0x7f85cf9b9f47
-> > [  571.217528] Code: 00 00 00 48 8b 05 51 6f 2c 00 64 c7 00 26 00 00 00 48
-> > c7 c0 ff ff ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 b8 10 00 00 00 0f 05
-> > <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d 21 6f 2c 00 f7 d8 64 89 01 48
-> > [  571.217531] RSP: 002b:00007ffc59056b78 EFLAGS: 00000246 ORIG_RAX:
-> > 0000000000000010
-> > [  571.217535] RAX: ffffffffffffffda RBX: 0000000000000000 RCX:
-> > 00007f85cf9b9f47
-> > [  571.217537] RDX: 00007ffc59056b84 RSI: 0000000040045613 RDI:
-> > 0000000000000003
-> > [  571.217540] RBP: 000055f4c4dc0af8 R08: 00007f85cd7c4000 R09:
-> > 00007f85d009c700
-> > [  571.217542] R10: 0000000000000020 R11: 0000000000000246 R12:
-> > 000055f4c4dc0b06
-> > [  571.217545] R13: 0000000000000004 R14: 00007ffc59056d50 R15:
-> > 00007ffc59057825
-> > [  571.217553] ---[ end trace 4b42bd84953eff53 ]---
-> > [  571.318645] ipu3-imgu 0000:00:05.0: wait cio gate idle timeout
-
--- 
-Regards,
-
-Laurent Pinchart
+Patrick.
 
 
+
+Patrick Lerda wrote:
+> media: add support for RCMM infrared remote controls.
+>
+> Signed-off-by: Patrick Lerda <patrick9876@free.fr>
+> ---
+>   MAINTAINERS                        |   5 +
+>   drivers/media/rc/Kconfig           |   7 ++
+>   drivers/media/rc/Makefile          |   1 +
+>   drivers/media/rc/ir-rcmm-decoder.c | 164 +++++++++++++++++++++++++++++
+>   drivers/media/rc/rc-core-priv.h    |   5 +
+>   drivers/media/rc/rc-main.c         |   3 +
+>   include/media/rc-map.h             |   6 +-
+>   include/uapi/linux/lirc.h          |   2 +
+>   tools/include/uapi/linux/lirc.h    |   2 +
+>   9 files changed, 193 insertions(+), 2 deletions(-)
+>   create mode 100644 drivers/media/rc/ir-rcmm-decoder.c
+>
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index 3e9f1710ed13..80426d1faaba 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -16277,6 +16277,11 @@ M:	David Härdeman <david@hardeman.nu>
+>   S:	Maintained
+>   F:	drivers/media/rc/winbond-cir.c
+>   
+> +RCMM REMOTE CONTROLS DECODER
+> +M:	Patrick Lerda <patrick9876@free.fr>
+> +S:	Maintained
+> +F:	drivers/media/rc/ir-rcmm-decoder.c
+> +
+>   WINSYSTEMS EBC-C384 WATCHDOG DRIVER
+>   M:	William Breathitt Gray <vilhelm.gray@gmail.com>
+>   L:	linux-watchdog@vger.kernel.org
+> diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
+> index 8a216068a35a..43775ac74268 100644
+> --- a/drivers/media/rc/Kconfig
+> +++ b/drivers/media/rc/Kconfig
+> @@ -133,6 +133,13 @@ config IR_IMON_DECODER
+>   	   remote control and you would like to use it with a raw IR
+>   	   receiver, or if you wish to use an encoder to transmit this IR.
+>   
+> +config IR_RCMM_DECODER
+> +	tristate "Enable IR raw decoder for the RC-MM protocol"
+> +	depends on RC_CORE
+> +	help
+> +	   Enable this option if you have IR with RC-MM protocol, and
+> +	   if the IR is decoded in software
+> +
+>   endif #RC_DECODERS
+>   
+>   menuconfig RC_DEVICES
+> diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
+> index 92c163816849..48d23433b3c0 100644
+> --- a/drivers/media/rc/Makefile
+> +++ b/drivers/media/rc/Makefile
+> @@ -16,6 +16,7 @@ obj-$(CONFIG_IR_SHARP_DECODER) += ir-sharp-decoder.o
+>   obj-$(CONFIG_IR_MCE_KBD_DECODER) += ir-mce_kbd-decoder.o
+>   obj-$(CONFIG_IR_XMP_DECODER) += ir-xmp-decoder.o
+>   obj-$(CONFIG_IR_IMON_DECODER) += ir-imon-decoder.o
+> +obj-$(CONFIG_IR_RCMM_DECODER) += ir-rcmm-decoder.o
+>   
+>   # stand-alone IR receivers/transmitters
+>   obj-$(CONFIG_RC_ATI_REMOTE) += ati_remote.o
+> diff --git a/drivers/media/rc/ir-rcmm-decoder.c b/drivers/media/rc/ir-rcmm-decoder.c
+> new file mode 100644
+> index 000000000000..a3c09885da5f
+> --- /dev/null
+> +++ b/drivers/media/rc/ir-rcmm-decoder.c
+> @@ -0,0 +1,164 @@
+> +// SPDX-License-Identifier: GPL-2.0+
+> +// ir-rcmm-decoder.c - A decoder for the RCMM IR protocol
+> +//
+> +// Copyright (C) 2018 by Patrick Lerda <patrick9876@free.fr>
+> +
+> +#include "rc-core-priv.h"
+> +#include <linux/module.h>
+> +#include <linux/version.h>
+> +
+> +#define RCMM_UNIT		166667	/* nanosecs */
+> +#define RCMM_PREFIX_PULSE	416666  /* 166666.666666666*2.5 */
+> +#define RCMM_PULSE_0            277777  /* 166666.666666666*(1+2/3) */
+> +#define RCMM_PULSE_1            444444  /* 166666.666666666*(2+2/3) */
+> +#define RCMM_PULSE_2            611111  /* 166666.666666666*(3+2/3) */
+> +#define RCMM_PULSE_3            777778  /* 166666.666666666*(4+2/3) */
+> +
+> +enum rcmm_state {
+> +	STATE_INACTIVE,
+> +	STATE_LOW,
+> +	STATE_BUMP,
+> +	STATE_VALUE,
+> +	STATE_FINISHED,
+> +};
+> +
+> +static bool rcmm_mode(struct rcmm_dec *data)
+> +{
+> +	return !((0x000c0000 & data->bits) == 0x000c0000);
+> +}
+> +
+> +/**
+> + * ir_rcmm_decode() - Decode one RCMM pulse or space
+> + * @dev:	the struct rc_dev descriptor of the device
+> + * @ev:		the struct ir_raw_event descriptor of the pulse/space
+> + *
+> + * This function returns -EINVAL if the pulse violates the state machine
+> + */
+> +static int ir_rcmm_decode(struct rc_dev *dev, struct ir_raw_event ev)
+> +{
+> +	struct rcmm_dec *data = &dev->raw->rcmm;
+> +	u32 scancode;
+> +	u8 toggle;
+> +	int value;
+> +
+> +	if (!(dev->enabled_protocols & RC_PROTO_BIT_RCMM))
+> +		return 0;
+> +
+> +	if (!is_timing_event(ev)) {
+> +		if (ev.reset)
+> +			data->state = STATE_INACTIVE;
+> +		return 0;
+> +	}
+> +
+> +	if (ev.duration > RCMM_PULSE_3 + RCMM_UNIT)
+> +		goto out;
+> +
+> +	switch (data->state) {
+> +	case STATE_INACTIVE:
+> +		if (!ev.pulse)
+> +			break;
+> +
+> +		if (!eq_margin(ev.duration, RCMM_PREFIX_PULSE, RCMM_UNIT / 2))
+> +			break;
+> +
+> +		data->state = STATE_LOW;
+> +		data->count = 0;
+> +		data->bits  = 0;
+> +		return 0;
+> +
+> +	case STATE_LOW:
+> +		if (ev.pulse)
+> +			break;
+> +
+> +		if (!eq_margin(ev.duration, RCMM_PULSE_0, RCMM_UNIT / 2))
+> +			break;
+> +
+> +		data->state = STATE_BUMP;
+> +		return 0;
+> +
+> +	case STATE_BUMP:
+> +		if (!ev.pulse)
+> +			break;
+> +
+> +		if (!eq_margin(ev.duration, RCMM_UNIT, RCMM_UNIT / 2))
+> +			break;
+> +
+> +		data->state = STATE_VALUE;
+> +		return 0;
+> +
+> +	case STATE_VALUE:
+> +		if (ev.pulse)
+> +			break;
+> +
+> +		if (eq_margin(ev.duration, RCMM_PULSE_0, RCMM_UNIT / 2))
+> +			value = 0;
+> +		else if (eq_margin(ev.duration, RCMM_PULSE_1, RCMM_UNIT / 2))
+> +			value = 1;
+> +		else if (eq_margin(ev.duration, RCMM_PULSE_2, RCMM_UNIT / 2))
+> +			value = 2;
+> +		else if (eq_margin(ev.duration, RCMM_PULSE_3, RCMM_UNIT / 2))
+> +			value = 3;
+> +		else
+> +			break;
+> +
+> +		data->bits <<= 2;
+> +		data->bits |= value;
+> +
+> +		data->count += 2;
+> +
+> +		if (data->count < 32)
+> +			data->state = STATE_BUMP;
+> +		else
+> +			data->state = STATE_FINISHED;
+> +
+> +		return 0;
+> +
+> +	case STATE_FINISHED:
+> +		if (!ev.pulse)
+> +			break;
+> +
+> +		if (!eq_margin(ev.duration, RCMM_UNIT, RCMM_UNIT / 2))
+> +			break;
+> +
+> +		if (rcmm_mode(data)) {
+> +			toggle = !!(0x8000 & data->bits);
+> +			scancode = data->bits & ~0x8000;
+> +		} else {
+> +			toggle = 0;
+> +			scancode = data->bits;
+> +		}
+> +
+> +		rc_keydown(dev, RC_PROTO_RCMM, scancode, toggle);
+> +		data->state = STATE_INACTIVE;
+> +		return 0;
+> +	}
+> +
+> +out:
+> +	data->state = STATE_INACTIVE;
+> +	return -EINVAL;
+> +}
+> +
+> +static struct ir_raw_handler rcmm_handler = {
+> +	.protocols	= RC_PROTO_BIT_RCMM,
+> +	.decode		= ir_rcmm_decode,
+> +};
+> +
+> +static int __init ir_rcmm_decode_init(void)
+> +{
+> +	ir_raw_handler_register(&rcmm_handler);
+> +
+> +	pr_info("IR RCMM protocol handler initialized\n");
+> +	return 0;
+> +}
+> +
+> +static void __exit ir_rcmm_decode_exit(void)
+> +{
+> +	ir_raw_handler_unregister(&rcmm_handler);
+> +}
+> +
+> +module_init(ir_rcmm_decode_init);
+> +module_exit(ir_rcmm_decode_exit);
+> +
+> +MODULE_LICENSE("GPL");
+> +MODULE_AUTHOR("Patrick Lerda");
+> +MODULE_DESCRIPTION("RCMM IR protocol decoder");
+> diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
+> index c2cbe7f6266c..2266f61f887f 100644
+> --- a/drivers/media/rc/rc-core-priv.h
+> +++ b/drivers/media/rc/rc-core-priv.h
+> @@ -131,6 +131,11 @@ struct ir_raw_event_ctrl {
+>   		unsigned int bits;
+>   		bool stick_keyboard;
+>   	} imon;
+> +	struct rcmm_dec {
+> +		int state;
+> +		unsigned int count;
+> +		u64 bits;
+> +	} rcmm;
+>   };
+>   
+>   /* Mutex for locking raw IR processing and handler change */
+> diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+> index 66a174979b3c..7df40578dac0 100644
+> --- a/drivers/media/rc/rc-main.c
+> +++ b/drivers/media/rc/rc-main.c
+> @@ -70,6 +70,8 @@ static const struct {
+>   	[RC_PROTO_CEC] = { .name = "cec", .repeat_period = 0 },
+>   	[RC_PROTO_IMON] = { .name = "imon",
+>   		.scancode_bits = 0x7fffffff, .repeat_period = 114 },
+> +	[RC_PROTO_RCMM] = { .name = "rcmm",
+> +		.scancode_bits = 0xffffffff, .repeat_period = 114 },
+>   };
+>   
+>   /* Used to keep track of known keymaps */
+> @@ -1006,6 +1008,7 @@ static const struct {
+>   	{ RC_PROTO_BIT_XMP,	"xmp",		"ir-xmp-decoder"	},
+>   	{ RC_PROTO_BIT_CEC,	"cec",		NULL			},
+>   	{ RC_PROTO_BIT_IMON,	"imon",		"ir-imon-decoder"	},
+> +	{ RC_PROTO_BIT_RCMM,	"rcmm",		"ir-rcmm-decoder"	},
+>   };
+>   
+>   /**
+> diff --git a/include/media/rc-map.h b/include/media/rc-map.h
+> index d621acadfbf3..ff5e3b002f91 100644
+> --- a/include/media/rc-map.h
+> +++ b/include/media/rc-map.h
+> @@ -37,6 +37,7 @@
+>   #define RC_PROTO_BIT_XMP		BIT_ULL(RC_PROTO_XMP)
+>   #define RC_PROTO_BIT_CEC		BIT_ULL(RC_PROTO_CEC)
+>   #define RC_PROTO_BIT_IMON		BIT_ULL(RC_PROTO_IMON)
+> +#define RC_PROTO_BIT_RCMM		BIT_ULL(RC_PROTO_RCMM)
+>   
+>   #define RC_PROTO_BIT_ALL \
+>   			(RC_PROTO_BIT_UNKNOWN | RC_PROTO_BIT_OTHER | \
+> @@ -51,7 +52,7 @@
+>   			 RC_PROTO_BIT_RC6_6A_24 | RC_PROTO_BIT_RC6_6A_32 | \
+>   			 RC_PROTO_BIT_RC6_MCE | RC_PROTO_BIT_SHARP | \
+>   			 RC_PROTO_BIT_XMP | RC_PROTO_BIT_CEC | \
+> -			 RC_PROTO_BIT_IMON)
+> +			 RC_PROTO_BIT_IMON | RC_PROTO_BIT_RCMM)
+>   /* All rc protocols for which we have decoders */
+>   #define RC_PROTO_BIT_ALL_IR_DECODER \
+>   			(RC_PROTO_BIT_RC5 | RC_PROTO_BIT_RC5X_20 | \
+> @@ -64,7 +65,8 @@
+>   			 RC_PROTO_BIT_RC6_0 | RC_PROTO_BIT_RC6_6A_20 | \
+>   			 RC_PROTO_BIT_RC6_6A_24 |  RC_PROTO_BIT_RC6_6A_32 | \
+>   			 RC_PROTO_BIT_RC6_MCE | RC_PROTO_BIT_SHARP | \
+> -			 RC_PROTO_BIT_XMP | RC_PROTO_BIT_IMON)
+> +			 RC_PROTO_BIT_XMP | RC_PROTO_BIT_IMON | \
+> +			 RC_PROTO_BIT_RCMM)
+>   
+>   #define RC_PROTO_BIT_ALL_IR_ENCODER \
+>   			(RC_PROTO_BIT_RC5 | RC_PROTO_BIT_RC5X_20 | \
+> diff --git a/include/uapi/linux/lirc.h b/include/uapi/linux/lirc.h
+> index 6b319581882f..56106ccea2cb 100644
+> --- a/include/uapi/linux/lirc.h
+> +++ b/include/uapi/linux/lirc.h
+> @@ -192,6 +192,7 @@ struct lirc_scancode {
+>    * @RC_PROTO_XMP: XMP protocol
+>    * @RC_PROTO_CEC: CEC protocol
+>    * @RC_PROTO_IMON: iMon Pad protocol
+> + * @RC_PROTO_RCMM: RC-MM protocol
+>    */
+>   enum rc_proto {
+>   	RC_PROTO_UNKNOWN	= 0,
+> @@ -218,6 +219,7 @@ enum rc_proto {
+>   	RC_PROTO_XMP		= 21,
+>   	RC_PROTO_CEC		= 22,
+>   	RC_PROTO_IMON		= 23,
+> +	RC_PROTO_RCMM		= 24,
+>   };
+>   
+>   #endif
+> diff --git a/tools/include/uapi/linux/lirc.h b/tools/include/uapi/linux/lirc.h
+> index f189931042a7..c1e5850c56e1 100644
+> --- a/tools/include/uapi/linux/lirc.h
+> +++ b/tools/include/uapi/linux/lirc.h
+> @@ -186,6 +186,7 @@ struct lirc_scancode {
+>    * @RC_PROTO_XMP: XMP protocol
+>    * @RC_PROTO_CEC: CEC protocol
+>    * @RC_PROTO_IMON: iMon Pad protocol
+> + * @RC_PROTO_RCMM: RC-MM protocol
+>    */
+>   enum rc_proto {
+>   	RC_PROTO_UNKNOWN	= 0,
+> @@ -212,6 +213,7 @@ enum rc_proto {
+>   	RC_PROTO_XMP		= 21,
+>   	RC_PROTO_CEC		= 22,
+>   	RC_PROTO_IMON		= 23,
+> +	RC_PROTO_RCMM		= 24,
+>   };
+>   
+>   #endif
 
