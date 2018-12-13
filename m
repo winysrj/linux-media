@@ -2,131 +2,124 @@ Return-Path: <SRS0=yFxv=OW=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_MUTT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 57BFFC65BAE
-	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 14:03:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6FA87C67839
+	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 15:39:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1876920849
-	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 14:03:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 36A452086D
+	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 15:39:01 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="StbrLesM"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 1876920849
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="QCVHobpm"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 36A452086D
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=gmail.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729610AbeLMODf (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 13 Dec 2018 09:03:35 -0500
-Received: from bombadil.infradead.org ([198.137.202.133]:41450 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729568AbeLMODf (ORCPT
+        id S1728930AbeLMPjA (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 13 Dec 2018 10:39:00 -0500
+Received: from mail-lj1-f195.google.com ([209.85.208.195]:39429 "EHLO
+        mail-lj1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726150AbeLMPjA (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Dec 2018 09:03:35 -0500
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=bombadil.20170209; h=In-Reply-To:Content-Type:MIME-Version
-        :References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-        Content-Transfer-Encoding:Content-ID:Content-Description:Resent-Date:
-        Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:
-        List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-         bh=/CF9W99XVoYJNDd3+iCcFlq55XNH3VI4Dmssok+metU=; b=StbrLesMyZm3hkPcFR0TlBB1k
-        biToAlqNNAU45exC7ziE3x5zylI/5DM2pEuWQbX+3rIujDKvV4nLE6a76ZP9Hr/lZI40Bet7qMKIl
-        uP3fxp9jCjilL/goM/EICUSBndGtlO/1Wfa5ICoeaS/XYaonlXuKmrb3c0BF1VwgrMFhBTsvHid7W
-        SfxQySuBN38hg/3YQIZAdOK3fARjKc0XymAlAW2zm3VjchDATUpbqTqprgSUcH+2LxaRNI6rTAcNf
-        m4boOKC3D79vEuu733ahoW4FoVXLJcxVHMBF9zV5t0N5yDsUCP5vTwgHCrL3px2Qg8J/tzTjW6jyo
-        xeKh/YU/A==;
-Received: from hch by bombadil.infradead.org with local (Exim 4.90_1 #2 (Red Hat Linux))
-        id 1gXRaL-0001kl-9S; Thu, 13 Dec 2018 14:03:29 +0000
-Date:   Thu, 13 Dec 2018 06:03:29 -0800
-From:   Christoph Hellwig <hch@infradead.org>
-To:     Tomasz Figa <tfiga@chromium.org>
-Cc:     Christoph Hellwig <hch@infradead.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        "Matwey V. Kornilov" <matwey@sai.msu.ru>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        "Matwey V. Kornilov" <matwey.kornilov@gmail.com>,
-        Alan Stern <stern@rowland.harvard.edu>,
-        Ezequiel Garcia <ezequiel@collabora.com>, hdegoede@redhat.com,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        rostedt@goodmis.org, mingo@redhat.com,
-        Mike Isely <isely@pobox.com>,
-        Bhumika Goyal <bhumirks@gmail.com>,
-        Colin King <colin.king@canonical.com>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        keiichiw@chromium.org
-Subject: Re: [PATCH v5 2/2] media: usb: pwc: Don't use coherent DMA buffers
- for ISO transfer
-Message-ID: <20181213140329.GA25339@infradead.org>
-References: <20180821170629.18408-1-matwey@sai.msu.ru>
- <20180821170629.18408-3-matwey@sai.msu.ru>
- <2213616.rQm4DhIJ7U@avalon>
- <20181207152502.GA30455@infradead.org>
- <CAAFQd5C6gUvg8p0+Gtk22Z-dmeMPytdF4HujL9evYAew15bUmA@mail.gmail.com>
- <20181212090917.GA30598@infradead.org>
- <CAAFQd5DhDOfk_2Dhq4MfJmoxpXP=Bm36HMZ55PSXxwkTAoCXSQ@mail.gmail.com>
- <20181212135440.GA6137@infradead.org>
- <CAAFQd5C4RbMxRP+ox+BDuApMusTD=WUD9Vs6aWL3u=HovuWUig@mail.gmail.com>
+        Thu, 13 Dec 2018 10:39:00 -0500
+Received: by mail-lj1-f195.google.com with SMTP id t9-v6so2160061ljh.6
+        for <linux-media@vger.kernel.org>; Thu, 13 Dec 2018 07:38:59 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=I/yNImDiLblblJ13XRnDQucQ3yK337j5ChF/Py07e9A=;
+        b=QCVHobpm2N6t8LsSzGu+LOZTgh1gfLRYI/ntgbNvInx2MSAg6qeb9X8M+GHuWNZF52
+         a9Vok43GG6Oa4AvnYPfbt6z5hZd01pKgn+gm+7y3ayoQHNbGpMwmglLx+GHiWTAoTY5S
+         M107IezQcDeGLTNiB7Wsbos05sjkpFmMdGSdjWE+6CX8bO8wjqgO1fuArHe0EbHi1ZB0
+         YtXBmL2Q34Nqu1f43js7XHFpxxiraCUj/fxdHje391/QEuJOhNKhmTHGwFcqKLp1ro3P
+         EFabOD9iip+F8Sk5VQzrn3LrxUchSM8F2KPwOmRZ0pgTEAL245MgIqfhRSTNMWDZFDqC
+         8gxQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=I/yNImDiLblblJ13XRnDQucQ3yK337j5ChF/Py07e9A=;
+        b=kV9xXvkYZzn7MhSfmBgX+530HSP6AoqdZ/HBmhTZ8LVTAFHHW66BziwD2ETXWiDh4p
+         dcdowBIKYK615sSiKxN8MLG7KbIDwJn8Gc3YHwf7/pfJW5EHBH5Dqws0zqD4BeMJ3KKe
+         Z1y4AQEgQo4AMw7BG1NEVC6pqYB1LnJV2v1+7+rWy8WdXkDOtiXJwjWglKof8gouYxTj
+         0GlJq5ejQYi8KRwRpU6KLD9CwoC6uMKXA9mWoDAJ+lvYecgQF8Rp5VXzIcCOVAnIDCSV
+         Ttnp+OCKLBMJPaApPUCeEzWLSZrDtTzxv80laee52g0jLzxF+PFG9fv4RZl92SAr6RU0
+         qyBQ==
+X-Gm-Message-State: AA+aEWb5Nr7XWBWlWw3Mb0937Vl3b8s38ohc27QZ1+/MAIJ/3FjM8dKm
+        Czd01iAwjQCCsmVUphmygf4=
+X-Google-Smtp-Source: AFSGD/XekQiMMgSStwaR6CCmRHpG262FcOJ+NYsr3/5BQWjRUDCMlTTEYl3V3tcW/dYk0349Q7Ixuw==
+X-Received: by 2002:a2e:6109:: with SMTP id v9-v6mr14802310ljb.126.1544715538161;
+        Thu, 13 Dec 2018 07:38:58 -0800 (PST)
+Received: from kontron.lan (2001-1ae9-0ff1-f191-41f2-812a-df1c-0485.ip6.tmcz.cz. [2001:1ae9:ff1:f191:41f2:812a:df1c:485])
+        by smtp.gmail.com with ESMTPSA id q67sm412869lfe.19.2018.12.13.07.38.56
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 13 Dec 2018 07:38:57 -0800 (PST)
+From:   petrcvekcz@gmail.com
+X-Google-Original-From: petrcvekcz.gmail.com
+To:     hans.verkuil@cisco.com, jacopo@jmondi.org, mchehab@kernel.org,
+        marek.vasut@gmail.com
+Cc:     Petr Cvek <petrcvekcz@gmail.com>, linux-media@vger.kernel.org,
+        robert.jarzmik@free.fr, slapin@ossfans.org,
+        philipp.zabel@gmail.com, sakari.ailus@iki.fi
+Subject: [PATCH v3 0/8] media: soc_camera: ov9640: switch driver to v4l2_async
+Date:   Thu, 13 Dec 2018 16:39:11 +0100
+Message-Id: <cover.1544713575.git.petrcvekcz@gmail.com>
+X-Mailer: git-send-email 2.20.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAAFQd5C4RbMxRP+ox+BDuApMusTD=WUD9Vs6aWL3u=HovuWUig@mail.gmail.com>
-User-Agent: Mutt/1.9.2 (2017-12-15)
-X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Thu, Dec 13, 2018 at 12:13:29PM +0900, Tomasz Figa wrote:
-> Putting aside the problem of memory without struct page, one thing to
-> note here that what is a contiguous DMA range for device X, may not be
-> mappable contiguously for device Y and it would still need something
-> like a scatter list to fully describe the buffer.
+From: Petr Cvek <petrcvekcz@gmail.com>
 
-I think we need to define contiguous here.
+This patch series transfer the ov9640 driver from the soc_camera subsystem
+into a standalone v4l2 driver. There is no changes except the required
+v4l2_async calls, GPIO allocation, deletion of now unused variables,
+a change from mdelay() to msleep() and an addition of SPDX identifiers
+(as suggested in the v1 version RFC).
 
-If the buffer always is physically contiguous, as it is in the currently
-posted series, we can always map it with a single dma_map_single call
-(if the hardware can handle that in a single segment is a different
-question, but out of scope here).
+The config symbol has been changed from CONFIG_SOC_CAMERA_OV9640 to
+CONFIG_VIDEO_OV9640.
 
-If on the other hand we have multiple discontiguous physical address
-range that are mapped using the iommu and vmap this interface doesn't
-work anyway.
+Also as the drivers of the soc_camera seems to be orphaned I'm volunteering
+as a maintainer of the driver (I own the hardware).
 
-But in that case you should just do multiple allocations and then use
-dma_map_sg coalescing on the hardware side, and vmap [1] if really
-needed.  I guess for this we want to gurantee that dma_alloc_attrs
-with the DMA_ATTR_NON_CONSISTENT allows virt_to_page to be used on
-the return value, which the currently posted implementation does,
-although I'm a it reluctant about the API guarantee.
+I've found the ov9640 seems to be used at least in (the future) HTC
+Magician and Palm Zire72. These will need to define power and reset GPIOs
+and remove the soc_camera definitions. I'm debugging it on magician now
+(ov9640 was unusable on them since the pxa_camera switched from
+the soc_camera).
 
+Additional fixes (from v2) are: a fix of the probe error path, variables
+change to an unsigned type (indexes, lengths), a redefinition of formats
+array to const and better clarity of code near returns.
 
-> Do we already have a structure that would work for this purposes? I'd
-> assume that we need something like the existing scatterlist but with
-> page links replaced with something that doesn't require the memory to
-> have struct page, possibly just PFN?
+Petr Cvek (8):
+  media: soc_camera: ov9640: move ov9640 out of soc_camera
+  media: i2c: ov9640: drop soc_camera code and switch to v4l2_async
+  MAINTAINERS: add Petr Cvek as a maintainer for the ov9640 driver
+  media: i2c: ov9640: add missing SPDX identifiers
+  media: i2c: ov9640: change array index or length variables to unsigned
+  media: i2c: ov9640: add space before return for better clarity
+  media: i2c: ov9640: make array of supported formats constant
+  media: i2c: ov9640: fix missing error handling in probe
 
-The problem is that just the PFN / physical address isn't enough for
-most use cases as you also need a kernel virtual address.  But moving
-struct scatterlist to store a pfn instead of a struct page would be
-pretty nice for various reasons anyway.
+ MAINTAINERS                          |   6 +
+ drivers/media/i2c/Kconfig            |   7 +
+ drivers/media/i2c/Makefile           |   1 +
+ drivers/media/i2c/ov9640.c           | 776 +++++++++++++++++++++++++++
+ drivers/media/i2c/ov9640.h           | 207 +++++++
+ drivers/media/i2c/soc_camera/Kconfig |   6 +-
+ 6 files changed, 1001 insertions(+), 2 deletions(-)
+ create mode 100644 drivers/media/i2c/ov9640.c
+ create mode 100644 drivers/media/i2c/ov9640.h
 
-> 
-> >
-> > It would also be great to use that opportunity to get rid of all the
-> > code duplication of almost the same dmabug provides backed by the
-> > DMA API.
-> 
-> Could you sched some more light on this? I'm curious what is the code
-> duplication you're referring to.
+-- 
+2.20.0
 
-It seems like a lot of the dmabuf ops are just slight various of
-dma_alloc + dma_get_sttable + dma_map_sg / dma_unmap_sg.  There must be
-a void to not duplicate that over and over.
-
-[1] and use invalidate_kernel_vmap_range and flush_kernel_vmap_range
-    to manually take care of cache flushing.
