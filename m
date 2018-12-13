@@ -3,46 +3,46 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-8.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,T_MIXED_ES,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BC124C67839
-	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 09:51:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 388BBC67873
+	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 09:51:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 82FD820645
-	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 09:51:18 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 82FD820645
+	by mail.kernel.org (Postfix) with ESMTP id 094EE208E7
+	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 09:51:19 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 094EE208E7
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727965AbeLMJvR (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 13 Dec 2018 04:51:17 -0500
-Received: from mga07.intel.com ([134.134.136.100]:51733 "EHLO mga07.intel.com"
+        id S1728008AbeLMJvS (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 13 Dec 2018 04:51:18 -0500
+Received: from mga06.intel.com ([134.134.136.31]:36728 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728008AbeLMJvQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Dec 2018 04:51:16 -0500
+        id S1727969AbeLMJvR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 13 Dec 2018 04:51:17 -0500
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from fmsmga005.fm.intel.com ([10.253.24.32])
-  by orsmga105.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 13 Dec 2018 01:51:16 -0800
+Received: from fmsmga002.fm.intel.com ([10.253.24.26])
+  by orsmga104.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 13 Dec 2018 01:51:16 -0800
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.56,348,1539673200"; 
-   d="scan'208";a="303483707"
+   d="scan'208";a="125531649"
 Received: from paasikivi.fi.intel.com ([10.237.72.42])
-  by fmsmga005.fm.intel.com with ESMTP; 13 Dec 2018 01:51:14 -0800
+  by fmsmga002.fm.intel.com with ESMTP; 13 Dec 2018 01:51:14 -0800
 Received: from punajuuri.localdomain (punajuuri.localdomain [192.168.240.130])
-        by paasikivi.fi.intel.com (Postfix) with ESMTPS id BB9422029C;
-        Thu, 13 Dec 2018 11:51:13 +0200 (EET)
+        by paasikivi.fi.intel.com (Postfix) with ESMTPS id 321BC204CC;
+        Thu, 13 Dec 2018 11:51:14 +0200 (EET)
 Received: from sailus by punajuuri.localdomain with local (Exim 4.89)
         (envelope-from <sakari.ailus@linux.intel.com>)
-        id 1gXNeB-0003tX-8L; Thu, 13 Dec 2018 11:51:11 +0200
+        id 1gXNeB-0003ta-TU; Thu, 13 Dec 2018 11:51:11 +0200
 From:   Sakari Ailus <sakari.ailus@linux.intel.com>
 To:     linux-media@vger.kernel.org
 Cc:     yong.zhi@intel.com, laurent.pinchart@ideasonboard.com,
         rajmohan.mani@intel.com
-Subject: [PATCH v9 06/22] media: staging/intel-ipu3: Implement DMA mapping functions
-Date:   Thu, 13 Dec 2018 11:50:51 +0200
-Message-Id: <20181213095107.14894-7-sakari.ailus@linux.intel.com>
+Subject: [PATCH v9 07/22] media: staging/intel-ipu3: css: Add dma buff pool utility functions
+Date:   Thu, 13 Dec 2018 11:50:52 +0200
+Message-Id: <20181213095107.14894-8-sakari.ailus@linux.intel.com>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20181213095107.14894-1-sakari.ailus@linux.intel.com>
 References: <20181213095107.14894-1-sakari.ailus@linux.intel.com>
@@ -51,323 +51,187 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-From: Tomasz Figa <tfiga@chromium.org>
+From: Yong Zhi <yong.zhi@intel.com>
 
-This driver uses IOVA space for buffer mapping through IPU3 MMU
-to transfer data between imaging pipelines and system DDR.
+The pools are used to store previous parameters set by
+user with the parameter queue. Due to pipelining,
+there needs to be multiple sets (up to four)
+of parameters which are queued in a host-to-sp queue.
 
-Signed-off-by: Tomasz Figa <tfiga@chromium.org>
 Signed-off-by: Yong Zhi <yong.zhi@intel.com>
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/staging/media/ipu3/ipu3-dmamap.c | 270 +++++++++++++++++++++++++++++++
- drivers/staging/media/ipu3/ipu3-dmamap.h |  22 +++
- 2 files changed, 292 insertions(+)
- create mode 100644 drivers/staging/media/ipu3/ipu3-dmamap.c
- create mode 100644 drivers/staging/media/ipu3/ipu3-dmamap.h
+ drivers/staging/media/ipu3/ipu3-css-pool.c | 100 +++++++++++++++++++++++++++++
+ drivers/staging/media/ipu3/ipu3-css-pool.h |  55 ++++++++++++++++
+ 2 files changed, 155 insertions(+)
+ create mode 100644 drivers/staging/media/ipu3/ipu3-css-pool.c
+ create mode 100644 drivers/staging/media/ipu3/ipu3-css-pool.h
 
-diff --git a/drivers/staging/media/ipu3/ipu3-dmamap.c b/drivers/staging/media/ipu3/ipu3-dmamap.c
+diff --git a/drivers/staging/media/ipu3/ipu3-css-pool.c b/drivers/staging/media/ipu3/ipu3-css-pool.c
 new file mode 100644
-index 0000000000000..93a393d4e15e5
+index 0000000000000..6f271f81669b7
 --- /dev/null
-+++ b/drivers/staging/media/ipu3/ipu3-dmamap.c
-@@ -0,0 +1,270 @@
++++ b/drivers/staging/media/ipu3/ipu3-css-pool.c
+@@ -0,0 +1,100 @@
 +// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * Copyright (C) 2018 Intel Corporation
-+ * Copyright 2018 Google LLC.
-+ *
-+ * Author: Tomasz Figa <tfiga@chromium.org>
-+ * Author: Yong Zhi <yong.zhi@intel.com>
-+ */
++// Copyright (C) 2018 Intel Corporation
 +
-+#include <linux/vmalloc.h>
++#include <linux/device.h>
 +
 +#include "ipu3.h"
 +#include "ipu3-css-pool.h"
-+#include "ipu3-mmu.h"
++#include "ipu3-dmamap.h"
 +
-+/*
-+ * Free a buffer allocated by ipu3_dmamap_alloc_buffer()
-+ */
-+static void ipu3_dmamap_free_buffer(struct page **pages,
-+				    size_t size)
++int ipu3_css_dma_buffer_resize(struct imgu_device *imgu,
++			       struct ipu3_css_map *map, size_t size)
 +{
-+	int count = size >> PAGE_SHIFT;
++	if (map->size < size && map->vaddr) {
++		dev_warn(&imgu->pci_dev->dev, "dma buf resized from %zu to %zu",
++			 map->size, size);
 +
-+	while (count--)
-+		__free_page(pages[count]);
-+	kvfree(pages);
++		ipu3_dmamap_free(imgu, map);
++		if (!ipu3_dmamap_alloc(imgu, map, size))
++			return -ENOMEM;
++	}
++
++	return 0;
++}
++
++void ipu3_css_pool_cleanup(struct imgu_device *imgu, struct ipu3_css_pool *pool)
++{
++	unsigned int i;
++
++	for (i = 0; i < IPU3_CSS_POOL_SIZE; i++)
++		ipu3_dmamap_free(imgu, &pool->entry[i].param);
++}
++
++int ipu3_css_pool_init(struct imgu_device *imgu, struct ipu3_css_pool *pool,
++		       size_t size)
++{
++	unsigned int i;
++
++	for (i = 0; i < IPU3_CSS_POOL_SIZE; i++) {
++		pool->entry[i].valid = false;
++		if (size == 0) {
++			pool->entry[i].param.vaddr = NULL;
++			continue;
++		}
++
++		if (!ipu3_dmamap_alloc(imgu, &pool->entry[i].param, size))
++			goto fail;
++	}
++
++	pool->last = IPU3_CSS_POOL_SIZE;
++
++	return 0;
++
++fail:
++	ipu3_css_pool_cleanup(imgu, pool);
++	return -ENOMEM;
 +}
 +
 +/*
-+ * Based on the implementation of __iommu_dma_alloc_pages()
-+ * defined in drivers/iommu/dma-iommu.c
++ * Allocate a new parameter via recycling the oldest entry in the pool.
 + */
-+static struct page **ipu3_dmamap_alloc_buffer(size_t size,
-+					      unsigned long order_mask,
-+					      gfp_t gfp)
++void ipu3_css_pool_get(struct ipu3_css_pool *pool)
 +{
-+	struct page **pages;
-+	unsigned int i = 0, count = size >> PAGE_SHIFT;
-+	const gfp_t high_order_gfp = __GFP_NOWARN | __GFP_NORETRY;
++	/* Get the oldest entry */
++	u32 n = (pool->last + 1) % IPU3_CSS_POOL_SIZE;
 +
-+	/* Allocate mem for array of page ptrs */
-+	pages = kvmalloc_array(count, sizeof(*pages), GFP_KERNEL);
++	pool->entry[n].valid = true;
++	pool->last = n;
++}
 +
-+	if (!pages)
-+		return NULL;
-+
-+	order_mask &= (2U << MAX_ORDER) - 1;
-+	if (!order_mask)
-+		return NULL;
-+
-+	gfp |= __GFP_HIGHMEM | __GFP_ZERO;
-+
-+	while (count) {
-+		struct page *page = NULL;
-+		unsigned int order_size;
-+
-+		for (order_mask &= (2U << __fls(count)) - 1;
-+		     order_mask; order_mask &= ~order_size) {
-+			unsigned int order = __fls(order_mask);
-+
-+			order_size = 1U << order;
-+			page = alloc_pages((order_mask - order_size) ?
-+					   gfp | high_order_gfp : gfp, order);
-+			if (!page)
-+				continue;
-+			if (!order)
-+				break;
-+			if (!PageCompound(page)) {
-+				split_page(page, order);
-+				break;
-+			}
-+
-+			__free_pages(page, order);
-+		}
-+		if (!page) {
-+			ipu3_dmamap_free_buffer(pages, i << PAGE_SHIFT);
-+			return NULL;
-+		}
-+		count -= order_size;
-+		while (order_size--)
-+			pages[i++] = page++;
-+	}
-+
-+	return pages;
++/*
++ * Undo, for all practical purposes, the effect of pool_get().
++ */
++void ipu3_css_pool_put(struct ipu3_css_pool *pool)
++{
++	pool->entry[pool->last].valid = false;
++	pool->last = (pool->last + IPU3_CSS_POOL_SIZE - 1) % IPU3_CSS_POOL_SIZE;
 +}
 +
 +/**
-+ * ipu3_dmamap_alloc - allocate and map a buffer into KVA
-+ * @imgu: struct device pointer
-+ * @map: struct to store mapping variables
-+ * @len: size required
++ * ipu3_css_pool_last - Retrieve the nth pool entry from last
++ *
++ * @pool: a pointer to &struct ipu3_css_pool.
++ * @n: the distance to the last index.
 + *
 + * Returns:
-+ *  KVA on success
-+ *  %NULL on failure
++ *  The nth entry from last or null map to indicate no frame stored.
 + */
-+void *ipu3_dmamap_alloc(struct imgu_device *imgu, struct ipu3_css_map *map,
-+			size_t len)
++const struct ipu3_css_map *
++ipu3_css_pool_last(struct ipu3_css_pool *pool, unsigned int n)
 +{
-+	unsigned long shift = iova_shift(&imgu->iova_domain);
-+	unsigned int alloc_sizes = imgu->mmu->pgsize_bitmap;
-+	struct device *dev = &imgu->pci_dev->dev;
-+	size_t size = PAGE_ALIGN(len);
-+	struct page **pages;
-+	dma_addr_t iovaddr;
-+	struct iova *iova;
-+	int i, rval;
++	static const struct ipu3_css_map null_map = { 0 };
++	int i = (pool->last + IPU3_CSS_POOL_SIZE - n) % IPU3_CSS_POOL_SIZE;
 +
-+	dev_dbg(dev, "%s: allocating %zu\n", __func__, size);
++	WARN_ON(n >= IPU3_CSS_POOL_SIZE);
 +
-+	iova = alloc_iova(&imgu->iova_domain, size >> shift,
-+			  imgu->mmu->aperture_end >> shift, 0);
-+	if (!iova)
-+		return NULL;
++	if (!pool->entry[i].valid)
++		return &null_map;
 +
-+	pages = ipu3_dmamap_alloc_buffer(size, alloc_sizes >> PAGE_SHIFT,
-+					 GFP_KERNEL);
-+	if (!pages)
-+		goto out_free_iova;
-+
-+	/* Call IOMMU driver to setup pgt */
-+	iovaddr = iova_dma_addr(&imgu->iova_domain, iova);
-+	for (i = 0; i < size / PAGE_SIZE; ++i) {
-+		rval = ipu3_mmu_map(imgu->mmu, iovaddr,
-+				    page_to_phys(pages[i]), PAGE_SIZE);
-+		if (rval)
-+			goto out_unmap;
-+
-+		iovaddr += PAGE_SIZE;
-+	}
-+
-+	/* Now grab a virtual region */
-+	map->vma = __get_vm_area(size, VM_USERMAP, VMALLOC_START, VMALLOC_END);
-+	if (!map->vma)
-+		goto out_unmap;
-+
-+	map->vma->pages = pages;
-+	/* And map it in KVA */
-+	if (map_vm_area(map->vma, PAGE_KERNEL, pages))
-+		goto out_vunmap;
-+
-+	map->size = size;
-+	map->daddr = iova_dma_addr(&imgu->iova_domain, iova);
-+	map->vaddr = map->vma->addr;
-+
-+	dev_dbg(dev, "%s: allocated %zu @ IOVA %pad @ VA %p\n", __func__,
-+		size, &map->daddr, map->vma->addr);
-+
-+	return map->vma->addr;
-+
-+out_vunmap:
-+	vunmap(map->vma->addr);
-+
-+out_unmap:
-+	ipu3_dmamap_free_buffer(pages, size);
-+	ipu3_mmu_unmap(imgu->mmu, iova_dma_addr(&imgu->iova_domain, iova),
-+		       i * PAGE_SIZE);
-+	map->vma = NULL;
-+
-+out_free_iova:
-+	__free_iova(&imgu->iova_domain, iova);
-+
-+	return NULL;
++	return &pool->entry[i].param;
 +}
-+
-+void ipu3_dmamap_unmap(struct imgu_device *imgu, struct ipu3_css_map *map)
-+{
-+	struct iova *iova;
-+
-+	iova = find_iova(&imgu->iova_domain,
-+			 iova_pfn(&imgu->iova_domain, map->daddr));
-+	if (WARN_ON(!iova))
-+		return;
-+
-+	ipu3_mmu_unmap(imgu->mmu, iova_dma_addr(&imgu->iova_domain, iova),
-+		       iova_size(iova) << iova_shift(&imgu->iova_domain));
-+
-+	__free_iova(&imgu->iova_domain, iova);
-+}
-+
-+/*
-+ * Counterpart of ipu3_dmamap_alloc
-+ */
-+void ipu3_dmamap_free(struct imgu_device *imgu, struct ipu3_css_map *map)
-+{
-+	struct vm_struct *area = map->vma;
-+
-+	dev_dbg(&imgu->pci_dev->dev, "%s: freeing %zu @ IOVA %pad @ VA %p\n",
-+		__func__, map->size, &map->daddr, map->vaddr);
-+
-+	if (!map->vaddr)
-+		return;
-+
-+	ipu3_dmamap_unmap(imgu, map);
-+
-+	if (WARN_ON(!area) || WARN_ON(!area->pages))
-+		return;
-+
-+	ipu3_dmamap_free_buffer(area->pages, map->size);
-+	vunmap(map->vaddr);
-+	map->vaddr = NULL;
-+}
-+
-+int ipu3_dmamap_map_sg(struct imgu_device *imgu, struct scatterlist *sglist,
-+		       int nents, struct ipu3_css_map *map)
-+{
-+	unsigned long shift = iova_shift(&imgu->iova_domain);
-+	struct scatterlist *sg;
-+	struct iova *iova;
-+	size_t size = 0;
-+	int i;
-+
-+	for_each_sg(sglist, sg, nents, i) {
-+		if (sg->offset)
-+			return -EINVAL;
-+
-+		if (i != nents - 1 && !PAGE_ALIGNED(sg->length))
-+			return -EINVAL;
-+
-+		size += sg->length;
-+	}
-+
-+	size = iova_align(&imgu->iova_domain, size);
-+	dev_dbg(&imgu->pci_dev->dev, "dmamap: mapping sg %d entries, %zu pages\n",
-+		nents, size >> shift);
-+
-+	iova = alloc_iova(&imgu->iova_domain, size >> shift,
-+			  imgu->mmu->aperture_end >> shift, 0);
-+	if (!iova)
-+		return -ENOMEM;
-+
-+	dev_dbg(&imgu->pci_dev->dev, "dmamap: iova low pfn %lu, high pfn %lu\n",
-+		iova->pfn_lo, iova->pfn_hi);
-+
-+	if (ipu3_mmu_map_sg(imgu->mmu, iova_dma_addr(&imgu->iova_domain, iova),
-+			    sglist, nents) < size)
-+		goto out_fail;
-+
-+	memset(map, 0, sizeof(*map));
-+	map->daddr = iova_dma_addr(&imgu->iova_domain, iova);
-+	map->size = size;
-+
-+	return 0;
-+
-+out_fail:
-+	__free_iova(&imgu->iova_domain, iova);
-+
-+	return -EFAULT;
-+}
-+
-+int ipu3_dmamap_init(struct imgu_device *imgu)
-+{
-+	unsigned long order, base_pfn;
-+	int ret = iova_cache_get();
-+
-+	if (ret)
-+		return ret;
-+
-+	order = __ffs(imgu->mmu->pgsize_bitmap);
-+	base_pfn = max_t(unsigned long, 1, imgu->mmu->aperture_start >> order);
-+	init_iova_domain(&imgu->iova_domain, 1UL << order, base_pfn);
-+
-+	return 0;
-+}
-+
-+void ipu3_dmamap_exit(struct imgu_device *imgu)
-+{
-+	put_iova_domain(&imgu->iova_domain);
-+	iova_cache_put();
-+}
-diff --git a/drivers/staging/media/ipu3/ipu3-dmamap.h b/drivers/staging/media/ipu3/ipu3-dmamap.h
+diff --git a/drivers/staging/media/ipu3/ipu3-css-pool.h b/drivers/staging/media/ipu3/ipu3-css-pool.h
 new file mode 100644
-index 0000000000000..b9d224a332733
+index 0000000000000..9c895efd2bfac
 --- /dev/null
-+++ b/drivers/staging/media/ipu3/ipu3-dmamap.h
-@@ -0,0 +1,22 @@
++++ b/drivers/staging/media/ipu3/ipu3-css-pool.h
+@@ -0,0 +1,55 @@
 +/* SPDX-License-Identifier: GPL-2.0 */
 +/* Copyright (C) 2018 Intel Corporation */
-+/* Copyright 2018 Google LLC. */
 +
-+#ifndef __IPU3_DMAMAP_H
-+#define __IPU3_DMAMAP_H
++#ifndef __IPU3_UTIL_H
++#define __IPU3_UTIL_H
 +
++struct device;
 +struct imgu_device;
-+struct scatterlist;
 +
-+void *ipu3_dmamap_alloc(struct imgu_device *imgu, struct ipu3_css_map *map,
-+			size_t len);
-+void ipu3_dmamap_free(struct imgu_device *imgu, struct ipu3_css_map *map);
++#define IPU3_CSS_POOL_SIZE		4
 +
-+int ipu3_dmamap_map_sg(struct imgu_device *imgu, struct scatterlist *sglist,
-+		       int nents, struct ipu3_css_map *map);
-+void ipu3_dmamap_unmap(struct imgu_device *imgu, struct ipu3_css_map *map);
++/**
++ * ipu3_css_map - store DMA mapping info for buffer
++ *
++ * @size:		size of the buffer in bytes.
++ * @vaddr:		kernel virtual address.
++ * @daddr:		iova dma address to access IPU3.
++ * @vma:		private, a pointer to &struct vm_struct,
++ * 			used for ipu3_dmamap_free.
++ */
++struct ipu3_css_map {
++	size_t size;
++	void *vaddr;
++	dma_addr_t daddr;
++	struct vm_struct *vma;
++};
 +
-+int ipu3_dmamap_init(struct imgu_device *imgu);
-+void ipu3_dmamap_exit(struct imgu_device *imgu);
++/**
++ * ipu3_css_pool - circular buffer pool definition
++ *
++ * @entry:		array with IPU3_CSS_POOL_SIZE elements.
++ * @entry.param:	a &struct ipu3_css_map for storing the mem mapping.
++ * @entry.valid:	used to mark if the entry has vaid data.
++ * @last:		write pointer, initialized to IPU3_CSS_POOL_SIZE.
++ */
++struct ipu3_css_pool {
++	struct {
++		struct ipu3_css_map param;
++		bool valid;
++	} entry[IPU3_CSS_POOL_SIZE];
++	u32 last;
++};
++
++int ipu3_css_dma_buffer_resize(struct imgu_device *imgu,
++			       struct ipu3_css_map *map, size_t size);
++void ipu3_css_pool_cleanup(struct imgu_device *imgu,
++			   struct ipu3_css_pool *pool);
++int ipu3_css_pool_init(struct imgu_device *imgu, struct ipu3_css_pool *pool,
++		       size_t size);
++void ipu3_css_pool_get(struct ipu3_css_pool *pool);
++void ipu3_css_pool_put(struct ipu3_css_pool *pool);
++const struct ipu3_css_map *ipu3_css_pool_last(struct ipu3_css_pool *pool,
++					      u32 last);
 +
 +#endif
 -- 
