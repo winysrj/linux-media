@@ -2,111 +2,91 @@ Return-Path: <SRS0=yFxv=OW=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_NEOMUTT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5AB27C67839
-	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 21:27:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EC6E8C65BAE
+	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 22:10:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1DDA620811
-	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 21:27:47 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="HVhvEjp5"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 1DDA620811
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=ideasonboard.com
+	by mail.kernel.org (Postfix) with ESMTP id B7EBC2075B
+	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 22:10:55 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org B7EBC2075B
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=iki.fi
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727210AbeLMV1m (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 13 Dec 2018 16:27:42 -0500
-Received: from perceval.ideasonboard.com ([213.167.242.64]:44808 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726442AbeLMV1l (ORCPT
+        id S1728227AbeLMWKu (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 13 Dec 2018 17:10:50 -0500
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38042 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1726457AbeLMWKt (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Dec 2018 16:27:41 -0500
-Received: from avalon.localnet (dfj612ybrt5fhg77mgycy-3.rev.dnainternet.fi [IPv6:2001:14ba:21f5:5b00:2e86:4862:ef6a:2804])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id D5D04549;
-        Thu, 13 Dec 2018 22:27:38 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1544736459;
-        bh=NNLvVXb3vvj9BYXaiMjHXN7Nbt/wZGuQ4BEaWKiuiqg=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=HVhvEjp5ts2UrqAB/vIGmyPoh9SKTgR2QiWW/2ls31CNP3OjxjIUoZfUgUJAzWp69
-         fTquNkHaYRatusQGXAWD6JBVOHRCKHHVirtN+XzIreVTz98v8whTSFA9ppbsViaXE4
-         O1ZOQmELrcWu1j5c27ch2Eai31ZcF91wyuGcEUHY=
-From:   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To:     Fabrizio Castro <fabrizio.castro@bp.renesas.com>
-Cc:     Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Thu, 13 Dec 2018 17:10:49 -0500
+Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id 1CE71634C7D;
+        Fri, 14 Dec 2018 00:10:31 +0200 (EET)
+Received: from sailus by valkosipuli.localdomain with local (Exim 4.89)
+        (envelope-from <sakari.ailus@retiisi.org.uk>)
+        id 1gXZBf-0000lZ-3R; Fri, 14 Dec 2018 00:10:31 +0200
+Date:   Fri, 14 Dec 2018 00:10:31 +0200
+From:   sakari.ailus@iki.fi
+To:     Chen-Yu Tsai <wens@csie.org>
+Cc:     Yong Deng <yong.deng@magewell.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
         Rob Herring <robh+dt@kernel.org>,
         Mark Rutland <mark.rutland@arm.com>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Simon Horman <horms@verge.net.au>,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        Chris Paterson <Chris.Paterson2@renesas.com>,
-        Biju Das <biju.das@bp.renesas.com>
-Subject: Re: [PATCH] [media] v4l: vsp1: Add RZ/G support
-Date:   Thu, 13 Dec 2018 23:28:26 +0200
-Message-ID: <2255820.0av6PIPOI9@avalon>
-Organization: Ideas on Board Oy
-In-Reply-To: <1544732424-6498-1-git-send-email-fabrizio.castro@bp.renesas.com>
-References: <1544732424-6498-1-git-send-email-fabrizio.castro@bp.renesas.com>
+        linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 0/6] media: sun6i: Separate H3 compatible from A31
+Message-ID: <20181213221030.f7c5mzuyke3ik43r@valkosipuli.retiisi.org.uk>
+References: <20181130075849.16941-1-wens@csie.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20181130075849.16941-1-wens@csie.org>
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Fabrizio,
+Hi Chen-Yu,
 
-Thank you for the patch.
+On Fri, Nov 30, 2018 at 03:58:43PM +0800, Chen-Yu Tsai wrote:
+> The CSI (camera sensor interface) controller found on the H3 (and H5)
+> is a reduced version of the one found on the A31. It only has 1 channel,
+> instead of 4 channels supporting time-multiplexed BT.656 on the A31.
+> Since the H3 is a reduced version, it cannot "fallback" to a compatible
+> that implements more features than it supports.
+> 
+> This series separates support for the H3 variant from the A31 variant.
+> 
+> Patches 1 ~ 3 separate H3 CSI from A31 CSI in the bindings, driver, and
+> device tree, respectively.
+> 
+> Patch 4 adds a pinmux setting for the MCLK (master clock). Some camera
+> sensors use the master clock from the SoC instead of a standalone
+> crystal.
 
-On Thursday, 13 December 2018 22:20:24 EET Fabrizio Castro wrote:
-> Document RZ/G1 and RZ/G2 support.
-> 
-> Signed-off-by: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
+I've picked patches 1 and 2, but I presume patches 3 and 4 would go through
+another tree. Is that right?
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-And applied to my tree.
-
-> ---
->  Documentation/devicetree/bindings/media/renesas,vsp1.txt | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
 > 
-> diff --git a/Documentation/devicetree/bindings/media/renesas,vsp1.txt
-> b/Documentation/devicetree/bindings/media/renesas,vsp1.txt index
-> 1642701..cd5a955 100644
-> --- a/Documentation/devicetree/bindings/media/renesas,vsp1.txt
-> +++ b/Documentation/devicetree/bindings/media/renesas,vsp1.txt
-> @@ -2,13 +2,13 @@
+> Patches 5 and 6 are examples of using a camera sensor with an SBC.
+> Since the modules are detachable, these changes should not be merged.
+> They should be implemented as overlays instead.
 > 
->  The VSP is a video processing engine that supports up-/down-scaling, alpha
->  blending, color space conversion and various other image processing
-> features. -It can be found in the Renesas R-Car second generation SoCs.
-> +It can be found in the Renesas R-Car Gen2, R-Car Gen3, RZ/G1, and RZ/G2
-> SoCs.
+> Please have a look.
 > 
->  Required properties:
-> 
->    - compatible: Must contain one of the following values
-> -    - "renesas,vsp1" for the R-Car Gen2 VSP1
-> -    - "renesas,vsp2" for the R-Car Gen3 VSP2
-> +    - "renesas,vsp1" for the R-Car Gen2 and RZ/G1 VSP1
-> +    - "renesas,vsp2" for the R-Car Gen3 and RZ/G2 VSP2
-> 
->    - reg: Base address and length of the registers block for the VSP.
->    - interrupts: VSP interrupt specifier.
+> In addition, I found that the first frame captured seems to always be
+> incomplete, with either parts cropped, out of position, or missing
+> color components.
 
 
 -- 
 Regards,
 
-Laurent Pinchart
-
-
-
+Sakari Ailus
