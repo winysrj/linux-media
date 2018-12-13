@@ -5,60 +5,59 @@ X-Spam-Level:
 X-Spam-Status: No, score=-9.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 20601C65BAE
-	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 15:39:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 62F6BC67839
+	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 15:39:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DD6D8208E7
-	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 15:39:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2775F20880
+	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 15:39:16 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="veYyEAOT"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org DD6D8208E7
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="NjSTYytx"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 2775F20880
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=gmail.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729196AbeLMPjN (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 13 Dec 2018 10:39:13 -0500
-Received: from mail-lf1-f67.google.com ([209.85.167.67]:39729 "EHLO
-        mail-lf1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728983AbeLMPjN (ORCPT
+        id S1729205AbeLMPjP (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 13 Dec 2018 10:39:15 -0500
+Received: from mail-lf1-f65.google.com ([209.85.167.65]:34748 "EHLO
+        mail-lf1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728983AbeLMPjP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Dec 2018 10:39:13 -0500
-Received: by mail-lf1-f67.google.com with SMTP id n18so1895660lfh.6
-        for <linux-media@vger.kernel.org>; Thu, 13 Dec 2018 07:39:10 -0800 (PST)
+        Thu, 13 Dec 2018 10:39:15 -0500
+Received: by mail-lf1-f65.google.com with SMTP id p6so1917240lfc.1
+        for <linux-media@vger.kernel.org>; Thu, 13 Dec 2018 07:39:12 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=I/WeZtUIF/kAVoZSlRa9CMWzDdQmisHIbkScuIUoHRM=;
-        b=veYyEAOTwyCNgkpiBvWzlznlimAfFuJTcxp/Rz4D6zzMbGk/iwzFKm0arGOPP/uU/9
-         oIakF+ZefGxmdSNMSYm4W5GssNpd+AA2ZxIJ8emFrKu8XXFjgnIxL9S4x53gY0jZIPIk
-         P7igIgTboyxg68Ic9C2PHg948LfjGrm13lWjFgStki95iPeoxaMedf4yiWK5RTKqI74e
-         JIQsuyyNbgQQ+Q864DIQWOVz4NB83kd8CvQWLI71moI1wSr3+MwH2KxNBae4MTNKXKtM
-         5bWQ6YTyk2L8ay1v+2erk3E45fxosAN2uH1yN0Va1/ChG+gMX5I4zR+xPQECDwwG4Sj9
-         bwqQ==
+        bh=6dGXOF0cDB4LtShhmKT4RqvqUe3HA/a5W5ibddUw/Nc=;
+        b=NjSTYytxr+2ZIVQlQ/PwWBjwn0OrkxI832PLZI4MYQvV4MLbx4IxOXCk5xduLlifLI
+         UocMGpVxnNlyOiTW9lDRQsso5xFh0FoYWaBprxVQsp7JV+gst+EymyiPYVlwsTPVUl66
+         A4RYBtx0xsH90uIuvGS/heJuys82jQ050qa8oq4Lw5b0+UZ5UF7eX7BwlvaJXmbJo4Gi
+         d5O5TWXlmoCKqCHFeOQvZdukBIEosYUJdVT0hT7JC+ZHhZA9kOorRnXLu9vuCAtByyv1
+         2ym7PpfE/dIHCQiOR12jesDE7PPhTbY3ptxkW2vLG0iyWKSY9upf9zW9cHYLzeWIdU2q
+         odsQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=I/WeZtUIF/kAVoZSlRa9CMWzDdQmisHIbkScuIUoHRM=;
-        b=MBo39JMrnwAKbSUWx4TiSrVwrmXi37c6Jv9nVxDN//dFwlEBzLuZYJQKik481LpnXR
-         gTjPAt6fSn2r8WJpLYzOuWwcPjCxe/mjrxtTFOL7jTuw7nKp+LttkxbRTg3uc1t0dbK2
-         PztjhPtW5YHfaH9E2SsXumR87LIbtp68kNkN3o8Kw9RImG9KaE03nreJeH/+2PV61oa1
-         Cs07mRZDATs6NadbwF6yv43qwJ0ybVxfJZT1jca9WSC5h+0KC5RDkeAA/m2wKJE7On1d
-         zcWXztM4EMkZiwXHlAAyhP69879uFE6VWxvFxYwbo9/gms9I9rQAtpFHDZq0ZUB4Jpp2
-         6/KA==
-X-Gm-Message-State: AA+aEWaaw63CEOUU7O9RGWmlqQ1Zub5MFeA2WzVXtROenKz5JiS7TWK5
-        JWun5jTnZ8WDUHeDT8UXjHA=
-X-Google-Smtp-Source: AFSGD/VMZSdX3mi2JU5w69JMo5Hy9lgahLqRGxEmp6+h5pBojMwKpV1QgzLILICJaVS9pZEn9sBjOg==
-X-Received: by 2002:a19:789:: with SMTP id 131mr15253446lfh.11.1544715550251;
-        Thu, 13 Dec 2018 07:39:10 -0800 (PST)
+        bh=6dGXOF0cDB4LtShhmKT4RqvqUe3HA/a5W5ibddUw/Nc=;
+        b=H+M8KBWLQosxckXCmpEbgjtnHS4QzWqKcaNdaVCI/TQkjIE8d0SaypovNq2QzqM9xe
+         sAEmz1/uETOYsBQjLzenbe/2sxo7lYvjdZMExsoQCjiL7qrZLjUI+U7esw50DUUDx1mO
+         CgY/dICILaSosW5uOQhkc1lJdNdkZMIvhQrCu8zeCUCMQ9aBSA9gax9wxO2/2GJ3sMQ5
+         CFALwZ+bdBteeN3SMREwWrD3r/BphzyCW3oZ5ubVJmwsgBADkk5fvKm6Ux2MpsjdEw40
+         15/xZ9VsiA560vk1gx5fy6EWUirXbKovGlOlpl1Naxh4seXjjrmQRGbVpyU6+sFHDYQL
+         537w==
+X-Gm-Message-State: AA+aEWZahVvBZzOFSzkpfrpCq65GcopwnsZ0Zwi6IROqXwuIqd/27Piu
+        lDDx2HjWDd31CCPo65lErK3HcGdf
+X-Google-Smtp-Source: AFSGD/VbHJsVyhNRLWnna0Yj04fiwSGzb7/TiLlFAAItufYEYwOAwF2j6mSIS1pjdjRtsK2J7dxabQ==
+X-Received: by 2002:a19:1cb:: with SMTP id 194mr14369556lfb.61.1544715552003;
+        Thu, 13 Dec 2018 07:39:12 -0800 (PST)
 Received: from kontron.lan (2001-1ae9-0ff1-f191-41f2-812a-df1c-0485.ip6.tmcz.cz. [2001:1ae9:ff1:f191:41f2:812a:df1c:485])
-        by smtp.gmail.com with ESMTPSA id q67sm412869lfe.19.2018.12.13.07.39.08
+        by smtp.gmail.com with ESMTPSA id q67sm412869lfe.19.2018.12.13.07.39.10
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 13 Dec 2018 07:39:09 -0800 (PST)
+        Thu, 13 Dec 2018 07:39:11 -0800 (PST)
 From:   petrcvekcz@gmail.com
 X-Google-Original-From: petrcvekcz.gmail.com
 To:     hans.verkuil@cisco.com, jacopo@jmondi.org, mchehab@kernel.org,
@@ -66,9 +65,9 @@ To:     hans.verkuil@cisco.com, jacopo@jmondi.org, mchehab@kernel.org,
 Cc:     Petr Cvek <petrcvekcz@gmail.com>, linux-media@vger.kernel.org,
         robert.jarzmik@free.fr, slapin@ossfans.org,
         philipp.zabel@gmail.com, sakari.ailus@iki.fi
-Subject: [PATCH v3 4/8] media: i2c: ov9640: add missing SPDX identifiers
-Date:   Thu, 13 Dec 2018 16:39:15 +0100
-Message-Id: <3b92813bc04a177cab684a1f2c8d77f6e2e5560e.1544713575.git.petrcvekcz@gmail.com>
+Subject: [PATCH v3 5/8] media: i2c: ov9640: change array index or length variables to unsigned
+Date:   Thu, 13 Dec 2018 16:39:16 +0100
+Message-Id: <7be67dac73289e3d6dbc25f16cdb051a53a76f2f.1544713575.git.petrcvekcz@gmail.com>
 X-Mailer: git-send-email 2.20.0
 In-Reply-To: <cover.1544713575.git.petrcvekcz@gmail.com>
 References: <cover.1544713575.git.petrcvekcz@gmail.com>
@@ -81,51 +80,54 @@ X-Mailing-List: linux-media@vger.kernel.org
 
 From: Petr Cvek <petrcvekcz@gmail.com>
 
-Add missing SPDX identifiers to .c and .h files of the sensor driver.
+The driver uses variables to store frame resolutions and to indexing
+various arrays. These should be unsigned.
 
 Signed-off-by: Petr Cvek <petrcvekcz@gmail.com>
 ---
- drivers/media/i2c/ov9640.c | 5 +----
- drivers/media/i2c/ov9640.h | 5 +----
- 2 files changed, 2 insertions(+), 8 deletions(-)
+ drivers/media/i2c/ov9640.c | 14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/media/i2c/ov9640.c b/drivers/media/i2c/ov9640.c
-index 1f7cf01d037f..9a6fa609e8c4 100644
+index 9a6fa609e8c4..08f3f8247759 100644
 --- a/drivers/media/i2c/ov9640.c
 +++ b/drivers/media/i2c/ov9640.c
-@@ -1,3 +1,4 @@
-+// SPDX-License-Identifier: GPL-2.0
- /*
-  * OmniVision OV96xx Camera Driver
-  *
-@@ -14,10 +15,6 @@
-  * Copyright 2006-7 Jonathan Corbet <corbet@lwn.net>
-  * Copyright (C) 2008 Magnus Damm
-  * Copyright (C) 2008, Guennadi Liakhovetski <kernel@pengutronix.de>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-  */
+@@ -347,10 +347,10 @@ static int ov9640_s_power(struct v4l2_subdev *sd, int on)
+ /* select nearest higher resolution for capture */
+ static void ov9640_res_roundup(u32 *width, u32 *height)
+ {
+-	int i;
++	unsigned int i;
+ 	enum { QQCIF, QQVGA, QCIF, QVGA, CIF, VGA, SXGA };
+-	static const int res_x[] = { 88, 160, 176, 320, 352, 640, 1280 };
+-	static const int res_y[] = { 72, 120, 144, 240, 288, 480, 960 };
++	static const u32 res_x[] = { 88, 160, 176, 320, 352, 640, 1280 };
++	static const u32 res_y[] = { 72, 120, 144, 240, 288, 480, 960 };
  
- #include <linux/init.h>
-diff --git a/drivers/media/i2c/ov9640.h b/drivers/media/i2c/ov9640.h
-index be5e4b29ac69..a8ed6992c1a8 100644
---- a/drivers/media/i2c/ov9640.h
-+++ b/drivers/media/i2c/ov9640.h
-@@ -1,11 +1,8 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
- /*
-  * OmniVision OV96xx Camera Header File
-  *
-  * Copyright (C) 2009 Marek Vasut <marek.vasut@gmail.com>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-  */
+ 	for (i = 0; i < ARRAY_SIZE(res_x); i++) {
+ 		if (res_x[i] >= *width && res_y[i] >= *height) {
+@@ -393,8 +393,9 @@ static int ov9640_write_regs(struct i2c_client *client, u32 width,
+ 		u32 code, struct ov9640_reg_alt *alts)
+ {
+ 	const struct ov9640_reg	*ov9640_regs, *matrix_regs;
+-	int			ov9640_regs_len, matrix_regs_len;
+-	int			i, ret;
++	unsigned int		ov9640_regs_len, matrix_regs_len;
++	unsigned int		i;
++	int			ret;
+ 	u8			val;
  
- #ifndef	__DRIVERS_MEDIA_VIDEO_OV9640_H__
+ 	/* select register configuration for given resolution */
+@@ -479,7 +480,8 @@ static int ov9640_write_regs(struct i2c_client *client, u32 width,
+ /* program default register values */
+ static int ov9640_prog_dflt(struct i2c_client *client)
+ {
+-	int i, ret;
++	unsigned int i;
++	int ret;
+ 
+ 	for (i = 0; i < ARRAY_SIZE(ov9640_regs_dflt); i++) {
+ 		ret = ov9640_reg_write(client, ov9640_regs_dflt[i].reg,
 -- 
 2.20.0
 
