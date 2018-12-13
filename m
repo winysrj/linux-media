@@ -6,43 +6,43 @@ X-Spam-Status: No, score=-8.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,T_MIXED_ES,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B623C65BAE
-	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 09:51:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BC124C67839
+	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 09:51:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4D6F720645
-	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 09:51:17 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 4D6F720645
+	by mail.kernel.org (Postfix) with ESMTP id 82FD820645
+	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 09:51:18 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 82FD820645
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728159AbeLMJvQ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 13 Dec 2018 04:51:16 -0500
+        id S1727965AbeLMJvR (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 13 Dec 2018 04:51:17 -0500
 Received: from mga07.intel.com ([134.134.136.100]:51733 "EHLO mga07.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727969AbeLMJvQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        id S1728008AbeLMJvQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
         Thu, 13 Dec 2018 04:51:16 -0500
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
 Received: from fmsmga005.fm.intel.com ([10.253.24.32])
-  by orsmga105.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 13 Dec 2018 01:51:13 -0800
+  by orsmga105.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 13 Dec 2018 01:51:16 -0800
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.56,348,1539673200"; 
-   d="scan'208";a="303483695"
+   d="scan'208";a="303483707"
 Received: from paasikivi.fi.intel.com ([10.237.72.42])
-  by fmsmga005.fm.intel.com with ESMTP; 13 Dec 2018 01:51:11 -0800
+  by fmsmga005.fm.intel.com with ESMTP; 13 Dec 2018 01:51:14 -0800
 Received: from punajuuri.localdomain (punajuuri.localdomain [192.168.240.130])
-        by paasikivi.fi.intel.com (Postfix) with ESMTPS id 262B5204CC;
-        Thu, 13 Dec 2018 11:51:11 +0200 (EET)
+        by paasikivi.fi.intel.com (Postfix) with ESMTPS id BB9422029C;
+        Thu, 13 Dec 2018 11:51:13 +0200 (EET)
 Received: from sailus by punajuuri.localdomain with local (Exim 4.89)
         (envelope-from <sakari.ailus@linux.intel.com>)
-        id 1gXNe8-0003tI-NM; Thu, 13 Dec 2018 11:51:08 +0200
+        id 1gXNeB-0003tX-8L; Thu, 13 Dec 2018 11:51:11 +0200
 From:   Sakari Ailus <sakari.ailus@linux.intel.com>
 To:     linux-media@vger.kernel.org
 Cc:     yong.zhi@intel.com, laurent.pinchart@ideasonboard.com,
         rajmohan.mani@intel.com
-Subject: [PATCH v9 01/22] v4l: Add support for V4L2_BUF_TYPE_META_OUTPUT
-Date:   Thu, 13 Dec 2018 11:50:46 +0200
-Message-Id: <20181213095107.14894-2-sakari.ailus@linux.intel.com>
+Subject: [PATCH v9 06/22] media: staging/intel-ipu3: Implement DMA mapping functions
+Date:   Thu, 13 Dec 2018 11:50:51 +0200
+Message-Id: <20181213095107.14894-7-sakari.ailus@linux.intel.com>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20181213095107.14894-1-sakari.ailus@linux.intel.com>
 References: <20181213095107.14894-1-sakari.ailus@linux.intel.com>
@@ -51,274 +51,325 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-The V4L2_BUF_TYPE_META_OUTPUT mirrors the V4L2_BUF_TYPE_META_CAPTURE with
-the exception that it is an OUTPUT type. The use case for this is to pass
-buffers to the device that are not image data but metadata. The formats,
-just as the metadata capture formats, are typically device specific and
-highly structured.
+From: Tomasz Figa <tfiga@chromium.org>
 
+This driver uses IOVA space for buffer mapping through IPU3 MMU
+to transfer data between imaging pipelines and system DDR.
+
+Signed-off-by: Tomasz Figa <tfiga@chromium.org>
+Signed-off-by: Yong Zhi <yong.zhi@intel.com>
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Tomasz Figa <tfiga@chromium.org>
-Tested-by: Tian Shu Qiu <tian.shu.qiu@intel.com>
 ---
- drivers/media/common/videobuf2/videobuf2-v4l2.c |  1 +
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c   |  2 ++
- drivers/media/v4l2-core/v4l2-dev.c              | 12 ++++++++----
- drivers/media/v4l2-core/v4l2-ioctl.c            | 23 +++++++++++++++++++++++
- include/media/v4l2-ioctl.h                      | 17 +++++++++++++++++
- include/uapi/linux/videodev2.h                  |  2 ++
- 6 files changed, 53 insertions(+), 4 deletions(-)
+ drivers/staging/media/ipu3/ipu3-dmamap.c | 270 +++++++++++++++++++++++++++++++
+ drivers/staging/media/ipu3/ipu3-dmamap.h |  22 +++
+ 2 files changed, 292 insertions(+)
+ create mode 100644 drivers/staging/media/ipu3/ipu3-dmamap.c
+ create mode 100644 drivers/staging/media/ipu3/ipu3-dmamap.h
 
-diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-index 1244c246d0c40..8e7ab0283f06b 100644
---- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
-+++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-@@ -704,6 +704,7 @@ int vb2_create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create)
- 		requested_sizes[0] = f->fmt.sdr.buffersize;
- 		break;
- 	case V4L2_BUF_TYPE_META_CAPTURE:
-+	case V4L2_BUF_TYPE_META_OUTPUT:
- 		requested_sizes[0] = f->fmt.meta.buffersize;
- 		break;
- 	default:
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index f4325329fbd6f..fe4577a46869d 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -323,6 +323,7 @@ static int __get_v4l2_format32(struct v4l2_format __user *p64,
- 		return copy_in_user(&p64->fmt.sdr, &p32->fmt.sdr,
- 				    sizeof(p64->fmt.sdr)) ? -EFAULT : 0;
- 	case V4L2_BUF_TYPE_META_CAPTURE:
-+	case V4L2_BUF_TYPE_META_OUTPUT:
- 		return copy_in_user(&p64->fmt.meta, &p32->fmt.meta,
- 				    sizeof(p64->fmt.meta)) ? -EFAULT : 0;
- 	default:
-@@ -392,6 +393,7 @@ static int __put_v4l2_format32(struct v4l2_format __user *p64,
- 		return copy_in_user(&p32->fmt.sdr, &p64->fmt.sdr,
- 				    sizeof(p64->fmt.sdr)) ? -EFAULT : 0;
- 	case V4L2_BUF_TYPE_META_CAPTURE:
-+	case V4L2_BUF_TYPE_META_OUTPUT:
- 		return copy_in_user(&p32->fmt.meta, &p64->fmt.meta,
- 				    sizeof(p64->fmt.meta)) ? -EFAULT : 0;
- 	default:
-diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-index 2130e3a0f4dac..d7528f82a66aa 100644
---- a/drivers/media/v4l2-core/v4l2-dev.c
-+++ b/drivers/media/v4l2-core/v4l2-dev.c
-@@ -597,7 +597,8 @@ static void determine_valid_ioctls(struct video_device *vdev)
- 			       ops->vidioc_enum_fmt_vid_overlay ||
- 			       ops->vidioc_enum_fmt_meta_cap)) ||
- 		    (is_tx && (ops->vidioc_enum_fmt_vid_out ||
--			       ops->vidioc_enum_fmt_vid_out_mplane)))
-+			       ops->vidioc_enum_fmt_vid_out_mplane ||
-+			       ops->vidioc_enum_fmt_meta_out)))
- 			set_bit(_IOC_NR(VIDIOC_ENUM_FMT), valid_ioctls);
- 		if ((is_rx && (ops->vidioc_g_fmt_vid_cap ||
- 			       ops->vidioc_g_fmt_vid_cap_mplane ||
-@@ -605,7 +606,8 @@ static void determine_valid_ioctls(struct video_device *vdev)
- 			       ops->vidioc_g_fmt_meta_cap)) ||
- 		    (is_tx && (ops->vidioc_g_fmt_vid_out ||
- 			       ops->vidioc_g_fmt_vid_out_mplane ||
--			       ops->vidioc_g_fmt_vid_out_overlay)))
-+			       ops->vidioc_g_fmt_vid_out_overlay ||
-+			       ops->vidioc_g_fmt_meta_out)))
- 			 set_bit(_IOC_NR(VIDIOC_G_FMT), valid_ioctls);
- 		if ((is_rx && (ops->vidioc_s_fmt_vid_cap ||
- 			       ops->vidioc_s_fmt_vid_cap_mplane ||
-@@ -613,7 +615,8 @@ static void determine_valid_ioctls(struct video_device *vdev)
- 			       ops->vidioc_s_fmt_meta_cap)) ||
- 		    (is_tx && (ops->vidioc_s_fmt_vid_out ||
- 			       ops->vidioc_s_fmt_vid_out_mplane ||
--			       ops->vidioc_s_fmt_vid_out_overlay)))
-+			       ops->vidioc_s_fmt_vid_out_overlay ||
-+			       ops->vidioc_s_fmt_meta_out)))
- 			 set_bit(_IOC_NR(VIDIOC_S_FMT), valid_ioctls);
- 		if ((is_rx && (ops->vidioc_try_fmt_vid_cap ||
- 			       ops->vidioc_try_fmt_vid_cap_mplane ||
-@@ -621,7 +624,8 @@ static void determine_valid_ioctls(struct video_device *vdev)
- 			       ops->vidioc_try_fmt_meta_cap)) ||
- 		    (is_tx && (ops->vidioc_try_fmt_vid_out ||
- 			       ops->vidioc_try_fmt_vid_out_mplane ||
--			       ops->vidioc_try_fmt_vid_out_overlay)))
-+			       ops->vidioc_try_fmt_vid_out_overlay ||
-+			       ops->vidioc_try_fmt_meta_out)))
- 			 set_bit(_IOC_NR(VIDIOC_TRY_FMT), valid_ioctls);
- 		SET_VALID_IOCTL(ops, VIDIOC_OVERLAY, vidioc_overlay);
- 		SET_VALID_IOCTL(ops, VIDIOC_G_FBUF, vidioc_g_fbuf);
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index ef58bc31bfde8..1441a73ce64cf 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -194,6 +194,7 @@ const char *v4l2_type_names[] = {
- 	[V4L2_BUF_TYPE_SDR_CAPTURE]        = "sdr-cap",
- 	[V4L2_BUF_TYPE_SDR_OUTPUT]         = "sdr-out",
- 	[V4L2_BUF_TYPE_META_CAPTURE]       = "meta-cap",
-+	[V4L2_BUF_TYPE_META_OUTPUT]	   = "meta-out",
- };
- EXPORT_SYMBOL(v4l2_type_names);
- 
-@@ -366,6 +367,7 @@ static void v4l_print_format(const void *arg, bool write_only)
- 			(sdr->pixelformat >> 24) & 0xff);
- 		break;
- 	case V4L2_BUF_TYPE_META_CAPTURE:
-+	case V4L2_BUF_TYPE_META_OUTPUT:
- 		meta = &p->fmt.meta;
- 		pr_cont(", dataformat=%c%c%c%c, buffersize=%u\n",
- 			(meta->dataformat >>  0) & 0xff,
-@@ -999,6 +1001,10 @@ static int check_fmt(struct file *file, enum v4l2_buf_type type)
- 		if (is_vid && is_rx && ops->vidioc_g_fmt_meta_cap)
- 			return 0;
- 		break;
-+	case V4L2_BUF_TYPE_META_OUTPUT:
-+		if (is_vid && is_tx && ops->vidioc_g_fmt_meta_out)
-+			return 0;
-+		break;
- 	default:
- 		break;
- 	}
-@@ -1410,6 +1416,11 @@ static int v4l_enum_fmt(const struct v4l2_ioctl_ops *ops,
- 			break;
- 		ret = ops->vidioc_enum_fmt_meta_cap(file, fh, arg);
- 		break;
-+	case V4L2_BUF_TYPE_META_OUTPUT:
-+		if (unlikely(!ops->vidioc_enum_fmt_meta_out))
-+			break;
-+		ret = ops->vidioc_enum_fmt_meta_out(file, fh, arg);
-+		break;
- 	}
- 	if (ret == 0)
- 		v4l_fill_fmtdesc(p);
-@@ -1488,6 +1499,8 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
- 		return ops->vidioc_g_fmt_sdr_out(file, fh, arg);
- 	case V4L2_BUF_TYPE_META_CAPTURE:
- 		return ops->vidioc_g_fmt_meta_cap(file, fh, arg);
-+	case V4L2_BUF_TYPE_META_OUTPUT:
-+		return ops->vidioc_g_fmt_meta_out(file, fh, arg);
- 	}
- 	return -EINVAL;
- }
-@@ -1601,6 +1614,11 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
- 			break;
- 		CLEAR_AFTER_FIELD(p, fmt.meta);
- 		return ops->vidioc_s_fmt_meta_cap(file, fh, arg);
-+	case V4L2_BUF_TYPE_META_OUTPUT:
-+		if (unlikely(!ops->vidioc_s_fmt_meta_out))
-+			break;
-+		CLEAR_AFTER_FIELD(p, fmt.meta);
-+		return ops->vidioc_s_fmt_meta_out(file, fh, arg);
- 	}
- 	return -EINVAL;
- }
-@@ -1693,6 +1711,11 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
- 			break;
- 		CLEAR_AFTER_FIELD(p, fmt.meta);
- 		return ops->vidioc_try_fmt_meta_cap(file, fh, arg);
-+	case V4L2_BUF_TYPE_META_OUTPUT:
-+		if (unlikely(!ops->vidioc_try_fmt_meta_out))
-+			break;
-+		CLEAR_AFTER_FIELD(p, fmt.meta);
-+		return ops->vidioc_try_fmt_meta_out(file, fh, arg);
- 	}
- 	return -EINVAL;
- }
-diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-index aa4511aa5ffcf..8533ece5026e4 100644
---- a/include/media/v4l2-ioctl.h
-+++ b/include/media/v4l2-ioctl.h
-@@ -48,6 +48,9 @@ struct v4l2_fh;
-  * @vidioc_enum_fmt_meta_cap: pointer to the function that implements
-  *	:ref:`VIDIOC_ENUM_FMT <vidioc_enum_fmt>` ioctl logic
-  *	for metadata capture
-+ * @vidioc_enum_fmt_meta_out: pointer to the function that implements
-+ *	:ref:`VIDIOC_ENUM_FMT <vidioc_enum_fmt>` ioctl logic
-+ *	for metadata output
-  * @vidioc_g_fmt_vid_cap: pointer to the function that implements
-  *	:ref:`VIDIOC_G_FMT <vidioc_g_fmt>` ioctl logic for video capture
-  *	in single plane mode
-@@ -80,6 +83,8 @@ struct v4l2_fh;
-  *	Radio output
-  * @vidioc_g_fmt_meta_cap: pointer to the function that implements
-  *	:ref:`VIDIOC_G_FMT <vidioc_g_fmt>` ioctl logic for metadata capture
-+ * @vidioc_g_fmt_meta_out: pointer to the function that implements
-+ *	:ref:`VIDIOC_G_FMT <vidioc_g_fmt>` ioctl logic for metadata output
-  * @vidioc_s_fmt_vid_cap: pointer to the function that implements
-  *	:ref:`VIDIOC_S_FMT <vidioc_g_fmt>` ioctl logic for video capture
-  *	in single plane mode
-@@ -112,6 +117,8 @@ struct v4l2_fh;
-  *	Radio output
-  * @vidioc_s_fmt_meta_cap: pointer to the function that implements
-  *	:ref:`VIDIOC_S_FMT <vidioc_g_fmt>` ioctl logic for metadata capture
-+ * @vidioc_s_fmt_meta_out: pointer to the function that implements
-+ *	:ref:`VIDIOC_S_FMT <vidioc_g_fmt>` ioctl logic for metadata output
-  * @vidioc_try_fmt_vid_cap: pointer to the function that implements
-  *	:ref:`VIDIOC_TRY_FMT <vidioc_g_fmt>` ioctl logic for video capture
-  *	in single plane mode
-@@ -146,6 +153,8 @@ struct v4l2_fh;
-  *	Radio output
-  * @vidioc_try_fmt_meta_cap: pointer to the function that implements
-  *	:ref:`VIDIOC_TRY_FMT <vidioc_g_fmt>` ioctl logic for metadata capture
-+ * @vidioc_try_fmt_meta_out: pointer to the function that implements
-+ *	:ref:`VIDIOC_TRY_FMT <vidioc_g_fmt>` ioctl logic for metadata output
-  * @vidioc_reqbufs: pointer to the function that implements
-  *	:ref:`VIDIOC_REQBUFS <vidioc_reqbufs>` ioctl
-  * @vidioc_querybuf: pointer to the function that implements
-@@ -314,6 +323,8 @@ struct v4l2_ioctl_ops {
- 				       struct v4l2_fmtdesc *f);
- 	int (*vidioc_enum_fmt_meta_cap)(struct file *file, void *fh,
- 					struct v4l2_fmtdesc *f);
-+	int (*vidioc_enum_fmt_meta_out)(struct file *file, void *fh,
-+					struct v4l2_fmtdesc *f);
- 
- 	/* VIDIOC_G_FMT handlers */
- 	int (*vidioc_g_fmt_vid_cap)(struct file *file, void *fh,
-@@ -342,6 +353,8 @@ struct v4l2_ioctl_ops {
- 				    struct v4l2_format *f);
- 	int (*vidioc_g_fmt_meta_cap)(struct file *file, void *fh,
- 				     struct v4l2_format *f);
-+	int (*vidioc_g_fmt_meta_out)(struct file *file, void *fh,
-+				     struct v4l2_format *f);
- 
- 	/* VIDIOC_S_FMT handlers */
- 	int (*vidioc_s_fmt_vid_cap)(struct file *file, void *fh,
-@@ -370,6 +383,8 @@ struct v4l2_ioctl_ops {
- 				    struct v4l2_format *f);
- 	int (*vidioc_s_fmt_meta_cap)(struct file *file, void *fh,
- 				     struct v4l2_format *f);
-+	int (*vidioc_s_fmt_meta_out)(struct file *file, void *fh,
-+				     struct v4l2_format *f);
- 
- 	/* VIDIOC_TRY_FMT handlers */
- 	int (*vidioc_try_fmt_vid_cap)(struct file *file, void *fh,
-@@ -398,6 +413,8 @@ struct v4l2_ioctl_ops {
- 				      struct v4l2_format *f);
- 	int (*vidioc_try_fmt_meta_cap)(struct file *file, void *fh,
- 				       struct v4l2_format *f);
-+	int (*vidioc_try_fmt_meta_out)(struct file *file, void *fh,
-+				       struct v4l2_format *f);
- 
- 	/* Buffer handlers */
- 	int (*vidioc_reqbufs)(struct file *file, void *fh,
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 2db1635de9561..a9d47b1b94375 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -145,6 +145,7 @@ enum v4l2_buf_type {
- 	V4L2_BUF_TYPE_SDR_CAPTURE          = 11,
- 	V4L2_BUF_TYPE_SDR_OUTPUT           = 12,
- 	V4L2_BUF_TYPE_META_CAPTURE         = 13,
-+	V4L2_BUF_TYPE_META_OUTPUT	   = 14,
- 	/* Deprecated, do not use */
- 	V4L2_BUF_TYPE_PRIVATE              = 0x80,
- };
-@@ -469,6 +470,7 @@ struct v4l2_capability {
- #define V4L2_CAP_READWRITE              0x01000000  /* read/write systemcalls */
- #define V4L2_CAP_ASYNCIO                0x02000000  /* async I/O */
- #define V4L2_CAP_STREAMING              0x04000000  /* streaming I/O ioctls */
-+#define V4L2_CAP_META_OUTPUT		0x08000000  /* Is a metadata output device */
- 
- #define V4L2_CAP_TOUCH                  0x10000000  /* Is a touch device */
- 
+diff --git a/drivers/staging/media/ipu3/ipu3-dmamap.c b/drivers/staging/media/ipu3/ipu3-dmamap.c
+new file mode 100644
+index 0000000000000..93a393d4e15e5
+--- /dev/null
++++ b/drivers/staging/media/ipu3/ipu3-dmamap.c
+@@ -0,0 +1,270 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Copyright (C) 2018 Intel Corporation
++ * Copyright 2018 Google LLC.
++ *
++ * Author: Tomasz Figa <tfiga@chromium.org>
++ * Author: Yong Zhi <yong.zhi@intel.com>
++ */
++
++#include <linux/vmalloc.h>
++
++#include "ipu3.h"
++#include "ipu3-css-pool.h"
++#include "ipu3-mmu.h"
++
++/*
++ * Free a buffer allocated by ipu3_dmamap_alloc_buffer()
++ */
++static void ipu3_dmamap_free_buffer(struct page **pages,
++				    size_t size)
++{
++	int count = size >> PAGE_SHIFT;
++
++	while (count--)
++		__free_page(pages[count]);
++	kvfree(pages);
++}
++
++/*
++ * Based on the implementation of __iommu_dma_alloc_pages()
++ * defined in drivers/iommu/dma-iommu.c
++ */
++static struct page **ipu3_dmamap_alloc_buffer(size_t size,
++					      unsigned long order_mask,
++					      gfp_t gfp)
++{
++	struct page **pages;
++	unsigned int i = 0, count = size >> PAGE_SHIFT;
++	const gfp_t high_order_gfp = __GFP_NOWARN | __GFP_NORETRY;
++
++	/* Allocate mem for array of page ptrs */
++	pages = kvmalloc_array(count, sizeof(*pages), GFP_KERNEL);
++
++	if (!pages)
++		return NULL;
++
++	order_mask &= (2U << MAX_ORDER) - 1;
++	if (!order_mask)
++		return NULL;
++
++	gfp |= __GFP_HIGHMEM | __GFP_ZERO;
++
++	while (count) {
++		struct page *page = NULL;
++		unsigned int order_size;
++
++		for (order_mask &= (2U << __fls(count)) - 1;
++		     order_mask; order_mask &= ~order_size) {
++			unsigned int order = __fls(order_mask);
++
++			order_size = 1U << order;
++			page = alloc_pages((order_mask - order_size) ?
++					   gfp | high_order_gfp : gfp, order);
++			if (!page)
++				continue;
++			if (!order)
++				break;
++			if (!PageCompound(page)) {
++				split_page(page, order);
++				break;
++			}
++
++			__free_pages(page, order);
++		}
++		if (!page) {
++			ipu3_dmamap_free_buffer(pages, i << PAGE_SHIFT);
++			return NULL;
++		}
++		count -= order_size;
++		while (order_size--)
++			pages[i++] = page++;
++	}
++
++	return pages;
++}
++
++/**
++ * ipu3_dmamap_alloc - allocate and map a buffer into KVA
++ * @imgu: struct device pointer
++ * @map: struct to store mapping variables
++ * @len: size required
++ *
++ * Returns:
++ *  KVA on success
++ *  %NULL on failure
++ */
++void *ipu3_dmamap_alloc(struct imgu_device *imgu, struct ipu3_css_map *map,
++			size_t len)
++{
++	unsigned long shift = iova_shift(&imgu->iova_domain);
++	unsigned int alloc_sizes = imgu->mmu->pgsize_bitmap;
++	struct device *dev = &imgu->pci_dev->dev;
++	size_t size = PAGE_ALIGN(len);
++	struct page **pages;
++	dma_addr_t iovaddr;
++	struct iova *iova;
++	int i, rval;
++
++	dev_dbg(dev, "%s: allocating %zu\n", __func__, size);
++
++	iova = alloc_iova(&imgu->iova_domain, size >> shift,
++			  imgu->mmu->aperture_end >> shift, 0);
++	if (!iova)
++		return NULL;
++
++	pages = ipu3_dmamap_alloc_buffer(size, alloc_sizes >> PAGE_SHIFT,
++					 GFP_KERNEL);
++	if (!pages)
++		goto out_free_iova;
++
++	/* Call IOMMU driver to setup pgt */
++	iovaddr = iova_dma_addr(&imgu->iova_domain, iova);
++	for (i = 0; i < size / PAGE_SIZE; ++i) {
++		rval = ipu3_mmu_map(imgu->mmu, iovaddr,
++				    page_to_phys(pages[i]), PAGE_SIZE);
++		if (rval)
++			goto out_unmap;
++
++		iovaddr += PAGE_SIZE;
++	}
++
++	/* Now grab a virtual region */
++	map->vma = __get_vm_area(size, VM_USERMAP, VMALLOC_START, VMALLOC_END);
++	if (!map->vma)
++		goto out_unmap;
++
++	map->vma->pages = pages;
++	/* And map it in KVA */
++	if (map_vm_area(map->vma, PAGE_KERNEL, pages))
++		goto out_vunmap;
++
++	map->size = size;
++	map->daddr = iova_dma_addr(&imgu->iova_domain, iova);
++	map->vaddr = map->vma->addr;
++
++	dev_dbg(dev, "%s: allocated %zu @ IOVA %pad @ VA %p\n", __func__,
++		size, &map->daddr, map->vma->addr);
++
++	return map->vma->addr;
++
++out_vunmap:
++	vunmap(map->vma->addr);
++
++out_unmap:
++	ipu3_dmamap_free_buffer(pages, size);
++	ipu3_mmu_unmap(imgu->mmu, iova_dma_addr(&imgu->iova_domain, iova),
++		       i * PAGE_SIZE);
++	map->vma = NULL;
++
++out_free_iova:
++	__free_iova(&imgu->iova_domain, iova);
++
++	return NULL;
++}
++
++void ipu3_dmamap_unmap(struct imgu_device *imgu, struct ipu3_css_map *map)
++{
++	struct iova *iova;
++
++	iova = find_iova(&imgu->iova_domain,
++			 iova_pfn(&imgu->iova_domain, map->daddr));
++	if (WARN_ON(!iova))
++		return;
++
++	ipu3_mmu_unmap(imgu->mmu, iova_dma_addr(&imgu->iova_domain, iova),
++		       iova_size(iova) << iova_shift(&imgu->iova_domain));
++
++	__free_iova(&imgu->iova_domain, iova);
++}
++
++/*
++ * Counterpart of ipu3_dmamap_alloc
++ */
++void ipu3_dmamap_free(struct imgu_device *imgu, struct ipu3_css_map *map)
++{
++	struct vm_struct *area = map->vma;
++
++	dev_dbg(&imgu->pci_dev->dev, "%s: freeing %zu @ IOVA %pad @ VA %p\n",
++		__func__, map->size, &map->daddr, map->vaddr);
++
++	if (!map->vaddr)
++		return;
++
++	ipu3_dmamap_unmap(imgu, map);
++
++	if (WARN_ON(!area) || WARN_ON(!area->pages))
++		return;
++
++	ipu3_dmamap_free_buffer(area->pages, map->size);
++	vunmap(map->vaddr);
++	map->vaddr = NULL;
++}
++
++int ipu3_dmamap_map_sg(struct imgu_device *imgu, struct scatterlist *sglist,
++		       int nents, struct ipu3_css_map *map)
++{
++	unsigned long shift = iova_shift(&imgu->iova_domain);
++	struct scatterlist *sg;
++	struct iova *iova;
++	size_t size = 0;
++	int i;
++
++	for_each_sg(sglist, sg, nents, i) {
++		if (sg->offset)
++			return -EINVAL;
++
++		if (i != nents - 1 && !PAGE_ALIGNED(sg->length))
++			return -EINVAL;
++
++		size += sg->length;
++	}
++
++	size = iova_align(&imgu->iova_domain, size);
++	dev_dbg(&imgu->pci_dev->dev, "dmamap: mapping sg %d entries, %zu pages\n",
++		nents, size >> shift);
++
++	iova = alloc_iova(&imgu->iova_domain, size >> shift,
++			  imgu->mmu->aperture_end >> shift, 0);
++	if (!iova)
++		return -ENOMEM;
++
++	dev_dbg(&imgu->pci_dev->dev, "dmamap: iova low pfn %lu, high pfn %lu\n",
++		iova->pfn_lo, iova->pfn_hi);
++
++	if (ipu3_mmu_map_sg(imgu->mmu, iova_dma_addr(&imgu->iova_domain, iova),
++			    sglist, nents) < size)
++		goto out_fail;
++
++	memset(map, 0, sizeof(*map));
++	map->daddr = iova_dma_addr(&imgu->iova_domain, iova);
++	map->size = size;
++
++	return 0;
++
++out_fail:
++	__free_iova(&imgu->iova_domain, iova);
++
++	return -EFAULT;
++}
++
++int ipu3_dmamap_init(struct imgu_device *imgu)
++{
++	unsigned long order, base_pfn;
++	int ret = iova_cache_get();
++
++	if (ret)
++		return ret;
++
++	order = __ffs(imgu->mmu->pgsize_bitmap);
++	base_pfn = max_t(unsigned long, 1, imgu->mmu->aperture_start >> order);
++	init_iova_domain(&imgu->iova_domain, 1UL << order, base_pfn);
++
++	return 0;
++}
++
++void ipu3_dmamap_exit(struct imgu_device *imgu)
++{
++	put_iova_domain(&imgu->iova_domain);
++	iova_cache_put();
++}
+diff --git a/drivers/staging/media/ipu3/ipu3-dmamap.h b/drivers/staging/media/ipu3/ipu3-dmamap.h
+new file mode 100644
+index 0000000000000..b9d224a332733
+--- /dev/null
++++ b/drivers/staging/media/ipu3/ipu3-dmamap.h
+@@ -0,0 +1,22 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/* Copyright (C) 2018 Intel Corporation */
++/* Copyright 2018 Google LLC. */
++
++#ifndef __IPU3_DMAMAP_H
++#define __IPU3_DMAMAP_H
++
++struct imgu_device;
++struct scatterlist;
++
++void *ipu3_dmamap_alloc(struct imgu_device *imgu, struct ipu3_css_map *map,
++			size_t len);
++void ipu3_dmamap_free(struct imgu_device *imgu, struct ipu3_css_map *map);
++
++int ipu3_dmamap_map_sg(struct imgu_device *imgu, struct scatterlist *sglist,
++		       int nents, struct ipu3_css_map *map);
++void ipu3_dmamap_unmap(struct imgu_device *imgu, struct ipu3_css_map *map);
++
++int ipu3_dmamap_init(struct imgu_device *imgu);
++void ipu3_dmamap_exit(struct imgu_device *imgu);
++
++#endif
 -- 
 2.11.0
 
