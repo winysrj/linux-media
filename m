@@ -2,58 +2,59 @@ Return-Path: <SRS0=yFxv=OW=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+X-Spam-Status: No, score=-7.3 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+	SPF_PASS,T_MIXED_ES,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A119C65BAE
-	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 17:17:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DF221C65BAE
+	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 17:30:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0EE5C20851
-	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 17:17:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 93A0020879
+	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 17:30:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1544721444;
-	bh=H3bItAXFcKHy299H8eITSB1erQdG/fUf7pP0oaI1+x8=;
+	s=default; t=1544722236;
+	bh=bt04h5SEnarMiHxk9ElxwB34vqcbRO9TVune1vy93y0=;
 	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
-	b=bEp8QpJAuDXDFnRNECyfacuYxoHPh7I2Kl/Di7VCL1hpTNSbTtagl+i4Fqc3YCy2b
-	 jj6pyDYwzf3oW7MePU1Dh1Hl8YqjR7U9EcjmOdoXSXvQ3SMwIhCYANeQ4NXxI/jYrQ
-	 Y9Lp2YkmzH3xeScm9DsodP7LnziBN7c7R/MwwoVk=
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 0EE5C20851
+	b=wZoHTzzebW2tT/Ml2I0uv2nX8khLORMFKjONhhtTpgUyqutdYh6uaN54uNcpj7CX+
+	 n8zOIdRgDAgQ5/SdCrN7SKOEbqBkZK9MWOIqRKBwenQqq/hwSN3PjnAHLk3PyWN4+3
+	 1fjpoVjfR69F8A0X9ENrD6QlrP+XSe33srv/ADxU=
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 93A0020879
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727874AbeLMRRX (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 13 Dec 2018 12:17:23 -0500
-Received: from casper.infradead.org ([85.118.1.10]:34754 "EHLO
+        id S1729569AbeLMRaf (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 13 Dec 2018 12:30:35 -0500
+Received: from casper.infradead.org ([85.118.1.10]:35918 "EHLO
         casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727579AbeLMRRX (ORCPT
+        with ESMTP id S1728779AbeLMRaf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Dec 2018 12:17:23 -0500
+        Thu, 13 Dec 2018 12:30:35 -0500
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
         MIME-Version:References:In-Reply-To:Message-ID:Subject:Cc:To:From:Date:Sender
         :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
         Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
         List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=NMni2aa1T0VVCda7hPFV/d4AXeROYWp/nQvGVolI6L0=; b=kUqnlG2oNjWfnAhorOe5eKpDcx
-        ECDC4I8Aod8gGHW0bRgEDR5535LQiKb0GJyrDs/QoHQFoc7JAuuu40PSerICDPQyxtYtgZPUu9rO5
-        ZeVvN1sbs21olmx4F0OulzlOXPpbnI0p3uvQbRSjEvNr/258jEkp9iHwF/xTsbfqUMa0GzVRCP/b4
-        RkxV/YWIxHSOJ+QpD/Mcj2tAmiY2fq47fDajCa90LxvwakBGvS0ECT6XuZyNhzQ3TxaI4N6Bb2wgr
-        PPyhqeZ4xolKmQEfygtzNPQEnWefuUIBRlhk5UHTv63Qs31biqzwkOnS0ddq+pJDhZufmsHjs1wI0
-        V1ARwmMg==;
+        bh=NIku+Eqqk7uw0FXk0QZZmEkx9a5K4P/TplYxi+8pR28=; b=cKGI+SUzoLEEmN0YwLRmGJQCmV
+        1tMkBBs94Wgk4DR4P7EpxARpjLbXyEd3hbjQuPHgsYIToxe2G6kJJhg59sq30wrQ2AU2BhzDspum5
+        rihGnnyx1Do0ZoAUEhOxSsZ4DvUfmFPKGmH3fdqYSpi5XzU5qo+We65ig92tOyho7wO5GQgJbiN9i
+        V/regsugIwlT/5TehR62id1iMwnfvqRoM2wd0iPXpNwOCEy+LNtDdB3PNHv9SCd++3UKO1PwHTlAc
+        II1ik8NtkSw9KBjGQ9lIp6ZbT9jwf89356bUbomDRuoHkySlkNVpwG1JJxkHyPhZmE7mKVrigslAm
+        QgV1tTQQ==;
 Received: from 177.43.150.95.dynamic.adsl.gvt.net.br ([177.43.150.95] helo=coco.lan)
         by casper.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
-        id 1gXUbw-00038f-LW; Thu, 13 Dec 2018 17:17:21 +0000
-Date:   Thu, 13 Dec 2018 15:17:17 -0200
+        id 1gXUoi-0003ae-VL; Thu, 13 Dec 2018 17:30:33 +0000
+Date:   Thu, 13 Dec 2018 15:30:29 -0200
 From:   Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 To:     hverkuil-cisco@xs4all.nl
-Cc:     linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv5 PATCH 1/4] uapi/linux/media.h: add property support
-Message-ID: <20181213151717.7ac302d6@coco.lan>
-In-Reply-To: <20181213144113.713ce59c@coco.lan>
+Cc:     linux-media@vger.kernel.org
+Subject: Re: [RFCv5 PATCH 3/4] media: add functions to add properties to
+ objects
+Message-ID: <20181213153029.29b35064@coco.lan>
+In-Reply-To: <20181213134113.15247-4-hverkuil-cisco@xs4all.nl>
 References: <20181213134113.15247-1-hverkuil-cisco@xs4all.nl>
-        <20181213134113.15247-2-hverkuil-cisco@xs4all.nl>
-        <20181213144113.713ce59c@coco.lan>
+        <20181213134113.15247-4-hverkuil-cisco@xs4all.nl>
 X-Mailer: Claws Mail 3.16.0 (GTK+ 2.24.32; x86_64-redhat-linux-gnu)
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
@@ -63,139 +64,393 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Em Thu, 13 Dec 2018 14:41:13 -0200
-Mauro Carvalho Chehab <mchehab+samsung@kernel.org> escreveu:
+Em Thu, 13 Dec 2018 14:41:12 +0100
+hverkuil-cisco@xs4all.nl escreveu:
 
-> Em Thu, 13 Dec 2018 14:41:10 +0100
-> hverkuil-cisco@xs4all.nl escreveu:
+> From: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 > 
-> > From: Hans Verkuil <hans.verkuil@cisco.com>
-> > 
-> > Extend the topology struct with a properties array.
-> > 
-> > Add a new media_v2_prop structure to store property information.
-> > 
-> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > ---
-> >  include/uapi/linux/media.h | 56 ++++++++++++++++++++++++++++++++++++++
-> >  1 file changed, 56 insertions(+)
-> > 
-> > diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-> > index e5d0c5c611b5..12982327381e 100644
-> > --- a/include/uapi/linux/media.h
-> > +++ b/include/uapi/linux/media.h
-> > @@ -342,6 +342,58 @@ struct media_v2_link {
-> >  	__u32 reserved[6];
-> >  } __attribute__ ((packed));
-> >  
-> > +#define MEDIA_PROP_TYPE_GROUP	1
-> > +#define MEDIA_PROP_TYPE_U64	2
-> > +#define MEDIA_PROP_TYPE_S64	3
-> > +#define MEDIA_PROP_TYPE_STRING	4  
+> Add functions to add properties to entities, pads and other
+> properties. This can be extended to include interfaces and links
+> in the future when needed.
 > 
-> > +#define MEDIA_OWNER_TYPE_ENTITY			0
-> > +#define MEDIA_OWNER_TYPE_PAD			1
-> > +#define MEDIA_OWNER_TYPE_LINK			2
-> > +#define MEDIA_OWNER_TYPE_INTF			3
-> > +#define MEDIA_OWNER_TYPE_PROP			4  
+> Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+> ---
+>  drivers/media/media-entity.c |  64 +++++++++
+>  include/media/media-entity.h | 264 +++++++++++++++++++++++++++++++++++
+>  2 files changed, 328 insertions(+)
 > 
-> > +
-> > +/**
-> > + * struct media_v2_prop - A media property
-> > + *
-> > + * @id:		The unique non-zero ID of this property
-> > + * @type:	Property type  
-> 
-> > + * @owner_id:	The ID of the object this property belongs to  
-> 
-> I'm in doubt about this. With this field, properties and objects
-> will have a 1:1 mapping. If this is removed, it would be possible
-> to map 'n' objects to a single property (N:1 mapping), with could
-> be interesting.
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index 62c4d5b4d33f..cdb35bc8e9a0 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -251,6 +251,70 @@ int media_entity_pads_init(struct media_entity *entity, u16 num_pads,
+>  }
+>  EXPORT_SYMBOL_GPL(media_entity_pads_init);
+>  
+> +static struct media_prop *media_create_prop(struct media_gobj *owner, u32 type,
+> +					    const char *name, const void *ptr,
+> +					    u32 payload_size)
+> +{
+> +	struct media_prop *prop = kzalloc(sizeof(*prop) + payload_size,
+> +					  GFP_KERNEL);
+> +
+> +	if (!prop)
+> +		return ERR_PTR(-ENOMEM);
+> +	prop->type = type;
+> +	strscpy(prop->name, name, sizeof(prop->name));
+> +	if (owner->mdev)
+> +		media_gobj_create(owner->mdev, MEDIA_GRAPH_PROP,
+> +				  &prop->graph_obj);
+> +	prop->owner = owner;
+> +	prop->payload_size = payload_size;
+> +	if (payload_size && ptr)
+> +		memcpy(prop->payload, ptr, payload_size);
+> +	INIT_LIST_HEAD(&prop->props);
+> +	return prop;
+> +}
+> +
+> +struct media_prop *media_entity_add_prop(struct media_entity *ent, u32 type,
+> +					 const char *name, const void *ptr,
+> +					 u32 payload_size)
+> +{
+> +	struct media_prop *prop;
+> +
+> +	if (!ent->inited)
+> +		media_entity_init(ent);
+> +	prop = media_create_prop(&ent->graph_obj, type,
+> +				 name, ptr, payload_size);
+> +	if (!IS_ERR(prop))
+> +		list_add_tail(&prop->list, &ent->props);
+> +	return prop;
+> +}
+> +EXPORT_SYMBOL_GPL(media_entity_add_prop);
+> +
+> +struct media_prop *media_pad_add_prop(struct media_pad *pad, u32 type,
+> +				      const char *name, const void *ptr,
+> +				      u32 payload_size)
+> +{
+> +	struct media_prop *prop = media_create_prop(&pad->graph_obj, type,
+> +						    name, ptr, payload_size);
+> +
+> +	if (!IS_ERR(prop))
+> +		list_add_tail(&prop->list, &pad->props);
+> +	return prop;
+> +}
+> +EXPORT_SYMBOL_GPL(media_pad_add_prop);
+> +
+> +struct media_prop *media_prop_add_prop(struct media_prop *prop, u32 type,
+> +				       const char *name, const void *ptr,
+> +				       u32 payload_size)
+> +{
+> +	struct media_prop *subprop = media_create_prop(&prop->graph_obj, type,
+> +						       name, ptr, payload_size);
+> +
+> +	if (!IS_ERR(subprop))
+> +		list_add_tail(&subprop->list, &prop->props);
+> +	return subprop;
+> +}
+> +EXPORT_SYMBOL_GPL(media_prop_add_prop);
+> +
+>  /* -----------------------------------------------------------------------------
+>   * Graph traversal
+>   */
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> index 5d05ebf712d0..695acfd3fe9c 100644
+> --- a/include/media/media-entity.h
+> +++ b/include/media/media-entity.h
+> @@ -833,6 +833,270 @@ int media_create_pad_links(const struct media_device *mdev,
+>  
+>  void __media_entity_remove_links(struct media_entity *entity);
+>  
+> +/**
+> + * media_entity_add_prop() - Add property to entity
+> + *
+> + * @entity:	entity where to add the property
+> + * @type:	property type
+> + * @name:	property name
+> + * @ptr:	property pointer to payload
+> + * @payload_size: property payload size
+> + *
+> + * Returns the new property on success, or an error pointer on failure.
+> + */
+> +struct media_prop *media_entity_add_prop(struct media_entity *ent, u32 type,
+> +					 const char *name, const void *ptr,
+> +					 u32 payload_size);
+> +
+> +/**
+> + * media_pad_add_prop() - Add property to pad
+> + *
+> + * @pad:	pad where to add the property
+> + * @type:	property type
+> + * @name:	property name
+> + * @ptr:	property pointer to payload
+> + * @payload_size: property payload size
+> + *
+> + * Returns the new property on success, or an error pointer on failure.
+> + */
+> +struct media_prop *media_pad_add_prop(struct media_pad *pad, u32 type,
+> +				      const char *name, const void *ptr,
+> +				      u32 payload_size);
+> +
+> +/**
+> + * media_prop() - Add sub-property to property
+> + *
+> + * @prop:	property where to add the sub-property
+> + * @type:	sub-property type
+> + * @name:	sub-property name
+> + * @ptr:	sub-property pointer to payload
+> + * @payload_size: sub-property payload size
+> + *
+> + * Returns the new property on success, or an error pointer on failure.
+> + */
+> +struct media_prop *media_prop_add_prop(struct media_prop *prop, u32 type,
+> +				       const char *name, const void *ptr,
+> +				       u32 payload_size);
+> +
+> +/**
+> + * media_entity_add_prop_group() - Add group property to entity
+> + *
+> + * @entity:	entity where to add the property
+> + * @name:	property name
+> + *
+> + * Returns the new property on success, or an error pointer on failure.
+> + */
+> +static inline struct media_prop *
+> +media_entity_add_prop_group(struct media_entity *entity, const char *name)
+> +{
+> +	return media_entity_add_prop(entity, MEDIA_PROP_TYPE_GROUP,
+> +				     name, NULL, 0);
+> +}
 
-Just to be clear: if we don't add it here, we would need to add a
-properties ID for every object type (zero meaning that no properties
-were associated to it).
+Hmm... group is just a string? On my past comments for patches 1/4 and 2/4
+I assumed it would be an u32 array :-)
 
-> 
-> > + * @owner_type:	The type of the object this property belongs to  
-> 
-> I would remove this (and the corresponding defines). The type
-> can easily be identified from the owner_id - as it already contains
-> the object type embedded at the ID.
-> In other words, it is:
-> 
-> 	owner_type = (owner_id & MEDIA_ENT_TYPE_MASK) >> MEDIA_ENT_TYPE_SHIFT;
-> 
-> > + * @flags:	Property flags
-> > + * @name:	Property name
-> > + * @payload_size: Property payload size, 0 for U64/S64
-> > + * @payload_offset: Property payload starts at this offset from &prop.id.
-> > + *		This is 0 for U64/S64.  
-> 
-> Please specify how this will be used for the group type, with is not
-> obvious. I *suspect* that, on a group, you'll be adding a vector of
-> u32 (cpu endian) and payload_size is the number of elements at the
-> vector (or the vector size?).
-> 
-> > + * @reserved:	Property reserved field, will be zeroed.
-> > + */
-> > +struct media_v2_prop {
-> > +	__u32 id;
-> > +	__u32 type;
-> > +	__u32 owner_id;
-> > +	__u32 owner_type;
-> > +	__u32 flags;  
-> 
-> The way it is defined, name won't be 64-bits aligned (well, it will, if
-> you remove the owner_type).
-> 
-> > +	char name[32];
-> > +	__u32 payload_size;
-> > +	__u32 payload_offset;
-> > +	__u32 reserved[18];
-> > +} __attribute__ ((packed));
-> > +
-> > +static inline const char *media_prop2string(const struct media_v2_prop *prop)
-> > +{
-> > +	return (const char *)prop + prop->payload_offset;
-> > +}
-> > +
-> > +static inline __u64 media_prop2u64(const struct media_v2_prop *prop)
-> > +{
-> > +	return *(const __u64 *)((const char *)prop + prop->payload_offset);
-> > +}
-> > +
-> > +static inline __s64 media_prop2s64(const struct media_v2_prop *prop)
-> > +{
-> > +	return *(const __s64 *)((const char *)prop + prop->payload_offset);
-> > +}
-> > +  
-> 
-> Shouldn't you define also a media_prop2group()?
-> 
-> >  struct media_v2_topology {
-> >  	__u64 topology_version;
-> >  
-> > @@ -360,6 +412,10 @@ struct media_v2_topology {
-> >  	__u32 num_links;
-> >  	__u32 reserved4;
-> >  	__u64 ptr_links;
-> > +
-> > +	__u32 num_props;
-> > +	__u32 props_payload_size;
-> > +	__u64 ptr_props;  
-> 
-> Please document those new fields.
-> 
-> >  } __attribute__ ((packed));
-> >  
-> >  /* ioctls */  
-> 
-> 
-> 
-> Thanks,
-> Mauro
+That's btw why I asked you to add some documentation. That would avoid
+reviewers of guessing some things ;-)
+
+Why are you using zero for the payload? At patch 1/4, you said that
+only u64 and s64 would have payload_size == 0:
+
+	+ * @payload_size: Property payload size, 0 for U64/S64
+
+One would infer that, for all other types, payload_size would be
+a non-zero value.
+
+> +
+> +/**
+> + * media_entity_add_prop_u64() - Add u64 property to entity
+> + *
+> + * @entity:	entity where to add the property
+> + * @name:	property name
+> + * @val:	property value
+> + *
+> + * Returns 0 on success, or an error on failure.
+> + */
+> +static inline int media_entity_add_prop_u64(struct media_entity *entity,
+> +					    const char *name, u64 val)
+> +{
+> +	struct media_prop *prop =
+> +		media_entity_add_prop(entity, MEDIA_PROP_TYPE_U64,
+> +				      name, &val, sizeof(val));
+> +
+> +	return PTR_ERR_OR_ZERO(prop);
+> +}
+> +
+> +/**
+> + * media_entity_add_prop_s64() - Add s64 property to entity
+> + *
+> + * @entity:	entity where to add the property
+> + * @name:	property name
+> + * @val:	property value
+> + *
+> + * Returns 0 on success, or an error on failure.
+> + */
+> +static inline int media_entity_add_prop_s64(struct media_entity *entity,
+> +					    const char *name, s64 val)
+> +{
+> +	struct media_prop *prop =
+> +		media_entity_add_prop(entity, MEDIA_PROP_TYPE_S64,
+> +				      name, &val, sizeof(val));
+> +
+> +	return PTR_ERR_OR_ZERO(prop);
+> +}
+> +
+> +/**
+> + * media_entity_add_prop_string() - Add string property to entity
+> + *
+> + * @entity:	entity where to add the property
+> + * @name:	property name
+> + * @string:	property string value
+> + *
+> + * Returns 0 on success, or an error on failure.
+> + */
+> +static inline int media_entity_add_prop_string(struct media_entity *entity,
+> +					       const char *name,
+> +					       const char *string)
+> +{
+> +	struct media_prop *prop =
+> +		media_entity_add_prop(entity, MEDIA_PROP_TYPE_STRING,
+> +				      name, string, strlen(string) + 1);
+
+Ok, so, you're assuming that, for strings, payload_type will include
+the ending '\0' character, and that strings are NUL-terminated.
+
+Please document it, as we usually have NUL-terminated strings OR
+LEN + string. Having both is non-trivial.
+
+> +
+> +	return PTR_ERR_OR_ZERO(prop);
+> +}
+> +
+> +/**
+> + * media_pad_add_prop_group() - Add group property to pad
+> + *
+> + * @pad:	pad where to add the property
+> + * @name:	property name
+> + *
+> + * Returns the new property on success, or an error pointer on failure.
+> + */
+> +static inline struct media_prop *media_pad_add_prop_group(struct media_pad *pad,
+> +							  const char *name)
+> +{
+> +	return media_pad_add_prop(pad, MEDIA_PROP_TYPE_GROUP,
+> +				  name, NULL, 0);
+> +}
+> +
+> +/**
+> + * media_pad_add_prop_u64() - Add u64 property to pad
+> + *
+> + * @pad:	pad where to add the property
+> + * @name:	property name
+> + * @val:	property value
+> + *
+> + * Returns 0 on success, or an error on failure.
+> + */
+> +static inline int media_pad_add_prop_u64(struct media_pad *pad,
+> +					 const char *name, u64 val)
+> +{
+> +	struct media_prop *prop =
+> +		media_pad_add_prop(pad, MEDIA_PROP_TYPE_U64,
+> +				   name, &val, sizeof(val));
+> +
+> +	return PTR_ERR_OR_ZERO(prop);
+> +}
+> +
+> +/**
+> + * media_pad_add_prop_s64() - Add s64 property to pad
+> + *
+> + * @pad:	pad where to add the property
+> + * @name:	property name
+> + * @val:	property value
+> + *
+> + * Returns 0 on success, or an error on failure.
+> + */
+> +static inline int media_pad_add_prop_s64(struct media_pad *pad,
+> +					 const char *name, s64 val)
+> +{
+> +	struct media_prop *prop =
+> +		media_pad_add_prop(pad, MEDIA_PROP_TYPE_S64,
+> +				   name, &val, sizeof(val));
+> +
+> +	return PTR_ERR_OR_ZERO(prop);
+> +}
+> +
+> +/**
+> + * media_pad_add_prop_string() - Add string property to pad
+> + *
+> + * @pad:	pad where to add the property
+> + * @name:	property name
+> + * @string:	property string value
+> + *
+> + * Returns 0 on success, or an error on failure.
+> + */
+> +static inline int media_pad_add_prop_string(struct media_pad *pad,
+> +					    const char *name,
+> +					    const char *string)
+> +{
+> +	struct media_prop *prop =
+> +		media_pad_add_prop(pad, MEDIA_PROP_TYPE_STRING,
+> +				   name, string, strlen(string) + 1);
+> +
+> +	return PTR_ERR_OR_ZERO(prop);
+> +}
+> +
+> +/**
+> + * media_prop_add_prop_group() - Add group sub-property to property
+> + *
+> + * @prop:	property where to add the sub-property
+> + * @name:	sub-property name
+> + *
+> + * Returns the new property on success, or an error pointer on failure.
+> + */
+> +static inline struct media_prop *
+> +media_prop_add_prop_group(struct media_prop *prop, const char *name)
+> +{
+> +	return media_prop_add_prop(prop, MEDIA_PROP_TYPE_GROUP,
+> +				  name, NULL, 0);
+> +}
+> +
+> +/**
+> + * media_prop_add_prop_u64() - Add u64 property to property
+> + *
+> + * @prop:	property where to add the sub-property
+> + * @name:	sub-property name
+> + * @val:	sub-property value
+> + *
+> + * Returns 0 on success, or an error on failure.
+> + */
+> +static inline int media_prop_add_prop_u64(struct media_prop *prop,
+> +					  const char *name, u64 val)
+> +{
+> +	struct media_prop *subprop =
+> +		media_prop_add_prop(prop, MEDIA_PROP_TYPE_U64,
+> +				    name, &val, sizeof(val));
+> +
+> +	return PTR_ERR_OR_ZERO(subprop);
+> +}
+> +
+> +/**
+> + * media_prop_add_prop_s64() - Add s64 property to property
+> + *
+> + * @prop:	property where to add the sub-property
+> + * @name:	sub-property name
+> + * @val:	sub-property value
+> + *
+> + * Returns 0 on success, or an error on failure.
+> + */
+> +static inline int media_prop_add_prop_s64(struct media_prop *prop,
+> +					  const char *name, s64 val)
+> +{
+> +	struct media_prop *subprop =
+> +		media_prop_add_prop(prop, MEDIA_PROP_TYPE_S64,
+> +				    name, &val, sizeof(val));
+> +
+> +	return PTR_ERR_OR_ZERO(subprop);
+> +}
+> +
+> +/**
+> + * media_prop_add_prop_string() - Add string property to property
+> + *
+> + * @prop:	property where to add the sub-property
+> + * @name:	sub-property name
+> + * @string:	sub-property string value
+> + *
+> + * Returns 0 on success, or an error on failure.
+> + */
+> +static inline int media_prop_add_prop_string(struct media_prop *prop,
+> +					     const char *name,
+> +					     const char *string)
+> +{
+> +	struct media_prop *subprop =
+> +		media_prop_add_prop(prop, MEDIA_PROP_TYPE_STRING,
+> +				    name, string, strlen(string) + 1);
+> +
+> +	return PTR_ERR_OR_ZERO(subprop);
+> +}
+> +
+>  /**
+>   * media_entity_remove_links() - remove all links associated with an entity
+>   *
 
 
 
