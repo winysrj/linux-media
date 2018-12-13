@@ -3,40 +3,40 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-7.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,SPF_PASS,T_MIXED_ES,
+	INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,SPF_PASS,T_MIXED_ES,URIBL_BLOCKED,
 	USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C07CFC65BAE
-	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 11:10:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C2F51C65BAE
+	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 11:19:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5E2F820849
-	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 11:10:08 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 5E2F820849
+	by mail.kernel.org (Postfix) with ESMTP id 85C822086D
+	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 11:19:25 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 85C822086D
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=iki.fi
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728517AbeLMLKH (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 13 Dec 2018 06:10:07 -0500
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60050 "EHLO
+        id S1728517AbeLMLTZ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 13 Dec 2018 06:19:25 -0500
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60094 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726178AbeLMLKH (ORCPT
+        by vger.kernel.org with ESMTP id S1727590AbeLMLTY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Dec 2018 06:10:07 -0500
+        Thu, 13 Dec 2018 06:19:24 -0500
 Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id 10651634C7D
-        for <linux-media@vger.kernel.org>; Thu, 13 Dec 2018 13:09:51 +0200 (EET)
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id C8831634C7D
+        for <linux-media@vger.kernel.org>; Thu, 13 Dec 2018 13:19:08 +0200 (EET)
 Received: from sailus by valkosipuli.localdomain with local (Exim 4.89)
         (envelope-from <sakari.ailus@retiisi.org.uk>)
-        id 1gXOsJ-0000fq-3K
-        for linux-media@vger.kernel.org; Thu, 13 Dec 2018 13:09:51 +0200
-Date:   Thu, 13 Dec 2018 13:09:51 +0200
+        id 1gXP1I-0000g4-Pc
+        for linux-media@vger.kernel.org; Thu, 13 Dec 2018 13:19:08 +0200
+Date:   Thu, 13 Dec 2018 13:19:08 +0200
 From:   sakari.ailus@iki.fi
 To:     linux-media@vger.kernel.org
-Subject: [GIT PULL v2 for 4.21] META_OUTPUT buffer type and the ipu3 staging
+Subject: [GIT PULL v3 for 4.21] META_OUTPUT buffer type and the ipu3 staging
  driver
-Message-ID: <20181213110950.zat5mc7whf5zjcql@valkosipuli.retiisi.org.uk>
+Message-ID: <20181213111908.kmdnv4hmm6xcah7f@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
@@ -57,7 +57,7 @@ Note: DO NOT WORRY about the documentation build warnings, they'll be
 adderessed by commit fdf8298f7ff167e4e7522465a3c6e6b908cdb2af from the
 documentation tree (already in linux-next).
 
-Since the earlier pull request, this contains the content of the v9
+Since the v1 pull request, this contains the content of the v9
 patchset (since v8):
 
 - Addressed most of Laurent's comments on the driver documentation. Some
@@ -73,6 +73,10 @@ patchset (since v8):
 
 - checkpatch.pl warnings remain; those need to be fixed as well.
 
+since v2 pull request:
+
+- Use correct tag.
+
 Please pull.
 
 
@@ -82,14 +86,14 @@ The following changes since commit e159b6074c82fe31b79aad672e02fa204dbbc6d8:
 
 are available in the git repository at:
 
-  ssh://linuxtv.org/git/sailus/media_tree.git tags/ipu3-v8-4.20-2-sign
+  ssh://linuxtv.org/git/sailus/media_tree.git tags/ipu3-v8-4.20-3-sign
 
-for you to fetch changes up to bd4ed3f04a65abec5fd71d554bd92c4eb847527d:
+for you to fetch changes up to 48acf4640e698334bfd9dc41a94b17b568a97b31:
 
-  staging/ipu3-imgu: Add MAINTAINERS entry (2018-12-13 12:51:48 +0200)
+  staging/ipu3-imgu: Add MAINTAINERS entry (2018-12-13 13:04:00 +0200)
 
 ----------------------------------------------------------------
-ipu3 staging driver v9
+imgu staging driver v9
 
 ----------------------------------------------------------------
 Cao,Bing Bu (1):
