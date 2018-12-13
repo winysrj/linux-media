@@ -2,188 +2,221 @@ Return-Path: <SRS0=yFxv=OW=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.4 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,T_MIXED_ES,
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F473C65BAE
-	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 16:41:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CC2E5C65BAE
+	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 17:13:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C3FED20851
-	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 16:41:21 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1544719281;
-	bh=2+QovrLruU13/Vj77txSsJY0/Gvt4kexhtFgtaffaew=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
-	b=BlMh31VFHA+fzzNmiSeWZm+QlMofvoNWR7MGSgzX3GoldLhdoHw0LqPgbM+oRrK5o
-	 z2xMb0uE8JALxZ41hev9eCwnz/GgzGUrl250VIKKgYVgHyHuD+vSCBujw3Xu4cbXXu
-	 GWoNkzWEqgWqzFMVzBg9z4IKgL45+f7/AJH+M27s=
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org C3FED20851
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
+	by mail.kernel.org (Postfix) with ESMTP id 92FD620851
+	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 17:13:07 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 92FD620851
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=xs4all.nl
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728682AbeLMQlV (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 13 Dec 2018 11:41:21 -0500
-Received: from casper.infradead.org ([85.118.1.10]:59252 "EHLO
-        casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727579AbeLMQlU (ORCPT
+        id S1727768AbeLMRNG (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 13 Dec 2018 12:13:06 -0500
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:37071 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727511AbeLMRNG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Dec 2018 11:41:20 -0500
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
-        MIME-Version:References:In-Reply-To:Message-ID:Subject:Cc:To:From:Date:Sender
-        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
-        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=KmjsuTPJ8DBpFlJy/QTLoRt4bCbys9VdM4sgdcDuOKQ=; b=BxEWG+svbVhJsIouk8dyeBvmE+
-        jmYleDNtZiLwsoUoGoOxrTxv2oIsZq0LUmZ9ZUbeuuAKyV8UQ3FvYiwwY8o0RB7mRdnLVhsw7AiIW
-        nZNDzbkC4N3OjxSsmWXoePeh98+y9SucMgIAixXBkfJX2iIcBdZlxTlVYeFZEo84LLB/RROLnS6Af
-        EDLSCZYGq0tOw/rA0IlS/yoSll8+4JhSnKQ641uJKhjxhKrvcf0ulrjwES+Gue5gcTybAtZ67aMbm
-        Nfscz+nGMPw/EFIUtGzyNwis8teRezmp+f9IvzaveyzwRRP0EQQNMdcVK7Cxclt6hTPznK8XPgs9N
-        u5F8pJqA==;
-Received: from 177.43.150.95.dynamic.adsl.gvt.net.br ([177.43.150.95] helo=coco.lan)
-        by casper.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
-        id 1gXU33-0001SA-No; Thu, 13 Dec 2018 16:41:18 +0000
-Date:   Thu, 13 Dec 2018 14:41:13 -0200
-From:   Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To:     hverkuil-cisco@xs4all.nl
-Cc:     linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+        Thu, 13 Dec 2018 12:13:06 -0500
+Received: from [IPv6:2001:983:e9a7:1:8c39:f7d7:e233:2ba6] ([IPv6:2001:983:e9a7:1:8c39:f7d7:e233:2ba6])
+        by smtp-cloud9.xs4all.net with ESMTPA
+        id XUXngrsFIMlDTXUXogPoFY; Thu, 13 Dec 2018 18:13:04 +0100
 Subject: Re: [RFCv5 PATCH 1/4] uapi/linux/media.h: add property support
-Message-ID: <20181213144113.713ce59c@coco.lan>
-In-Reply-To: <20181213134113.15247-2-hverkuil-cisco@xs4all.nl>
+To:     Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc:     linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
 References: <20181213134113.15247-1-hverkuil-cisco@xs4all.nl>
-        <20181213134113.15247-2-hverkuil-cisco@xs4all.nl>
-X-Mailer: Claws Mail 3.16.0 (GTK+ 2.24.32; x86_64-redhat-linux-gnu)
+ <20181213134113.15247-2-hverkuil-cisco@xs4all.nl>
+ <20181213144113.713ce59c@coco.lan>
+From:   Hans Verkuil <hverkuil-cisco@xs4all.nl>
+Message-ID: <44af48c1-8daf-7022-6cda-bf984f9d2322@xs4all.nl>
+Date:   Thu, 13 Dec 2018 18:13:03 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.3.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <20181213144113.713ce59c@coco.lan>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
+X-CMAE-Envelope: MS4wfFMNN81c2/a4eKNtSjZOu3VCh7o4Kl0Kd0vdw9s/iGxfZdoVuoCj/F6AtQR2Gt3DjSpEVJuppVaz/j1vom67brI/UWDYJgJ6IQR1c3NSWWCrEx9ZN9A4
+ PStbuFqfeeECHy3LskJ5lIZHJJt9PB8lvXMS6CNFcr0/s4R4pcdX2oAL/LEsVWcWxLqQT3wJWTT3p0lufcYiW8/iiBZ+3UGrQvcFDZrR+JcCczh+pEhGjWWs
+ AkibX5rxSnk6btn0e9YBGPvXiIo5R37PaApbFtFsTbs6vXmqFz1vivcERKeC+c8DKGl4H8rKQ+OzrClThe5+Y7qrxcXxLaNeyZFTkzzfrQyQhAzlxCCJQZZg
+ ef5DMJ8j
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Em Thu, 13 Dec 2018 14:41:10 +0100
-hverkuil-cisco@xs4all.nl escreveu:
-
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+On 12/13/18 5:41 PM, Mauro Carvalho Chehab wrote:
+> Em Thu, 13 Dec 2018 14:41:10 +0100
+> hverkuil-cisco@xs4all.nl escreveu:
 > 
-> Extend the topology struct with a properties array.
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> Extend the topology struct with a properties array.
+>>
+>> Add a new media_v2_prop structure to store property information.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> ---
+>>  include/uapi/linux/media.h | 56 ++++++++++++++++++++++++++++++++++++++
+>>  1 file changed, 56 insertions(+)
+>>
+>> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+>> index e5d0c5c611b5..12982327381e 100644
+>> --- a/include/uapi/linux/media.h
+>> +++ b/include/uapi/linux/media.h
+>> @@ -342,6 +342,58 @@ struct media_v2_link {
+>>  	__u32 reserved[6];
+>>  } __attribute__ ((packed));
+>>  
+>> +#define MEDIA_PROP_TYPE_GROUP	1
+>> +#define MEDIA_PROP_TYPE_U64	2
+>> +#define MEDIA_PROP_TYPE_S64	3
+>> +#define MEDIA_PROP_TYPE_STRING	4
 > 
-> Add a new media_v2_prop structure to store property information.
+>> +#define MEDIA_OWNER_TYPE_ENTITY			0
+>> +#define MEDIA_OWNER_TYPE_PAD			1
+>> +#define MEDIA_OWNER_TYPE_LINK			2
+>> +#define MEDIA_OWNER_TYPE_INTF			3
+>> +#define MEDIA_OWNER_TYPE_PROP			4
 > 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  include/uapi/linux/media.h | 56 ++++++++++++++++++++++++++++++++++++++
->  1 file changed, 56 insertions(+)
+>> +
+>> +/**
+>> + * struct media_v2_prop - A media property
+>> + *
+>> + * @id:		The unique non-zero ID of this property
+>> + * @type:	Property type
 > 
-> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-> index e5d0c5c611b5..12982327381e 100644
-> --- a/include/uapi/linux/media.h
-> +++ b/include/uapi/linux/media.h
-> @@ -342,6 +342,58 @@ struct media_v2_link {
->  	__u32 reserved[6];
->  } __attribute__ ((packed));
->  
-> +#define MEDIA_PROP_TYPE_GROUP	1
-> +#define MEDIA_PROP_TYPE_U64	2
-> +#define MEDIA_PROP_TYPE_S64	3
-> +#define MEDIA_PROP_TYPE_STRING	4
+>> + * @owner_id:	The ID of the object this property belongs to
+> 
+> I'm in doubt about this. With this field, properties and objects
+> will have a 1:1 mapping. If this is removed, it would be possible
+> to map 'n' objects to a single property (N:1 mapping), with could
+> be interesting.
 
-> +#define MEDIA_OWNER_TYPE_ENTITY			0
-> +#define MEDIA_OWNER_TYPE_PAD			1
-> +#define MEDIA_OWNER_TYPE_LINK			2
-> +#define MEDIA_OWNER_TYPE_INTF			3
-> +#define MEDIA_OWNER_TYPE_PROP			4
+But then every object would somehow have to list all the properties
+that belong to it. That doesn't easily fit in e.g. the entities array
+that's returned by G_TOPOLOGY.
 
-> +
-> +/**
-> + * struct media_v2_prop - A media property
-> + *
-> + * @id:		The unique non-zero ID of this property
-> + * @type:	Property type
+> 
+>> + * @owner_type:	The type of the object this property belongs to
+> 
+> I would remove this (and the corresponding defines). The type
+> can easily be identified from the owner_id - as it already contains
+> the object type embedded at the ID.
+> In other words, it is:
+> 
+> 	owner_type = (owner_id & MEDIA_ENT_TYPE_MASK) >> MEDIA_ENT_TYPE_SHIFT;
 
-> + * @owner_id:	The ID of the object this property belongs to
+I'm fine with that as well, but you expose how the ID is constructed as part of
+the uAPI. And you can't later change that.
 
-I'm in doubt about this. With this field, properties and objects
-will have a 1:1 mapping. If this is removed, it would be possible
-to map 'n' objects to a single property (N:1 mapping), with could
-be interesting.
+If nobody has a problem with that, then I can switch to this.
 
-> + * @owner_type:	The type of the object this property belongs to
+> 
+>> + * @flags:	Property flags
+>> + * @name:	Property name
+>> + * @payload_size: Property payload size, 0 for U64/S64
+>> + * @payload_offset: Property payload starts at this offset from &prop.id.
+>> + *		This is 0 for U64/S64.
+> 
+> Please specify how this will be used for the group type, with is not
+> obvious. I *suspect* that, on a group, you'll be adding a vector of
+> u32 (cpu endian) and payload_size is the number of elements at the
+> vector (or the vector size?).
 
-I would remove this (and the corresponding defines). The type
-can easily be identified from the owner_id - as it already contains
-the object type embedded at the ID.
-In other words, it is:
+Ah, sorry, groups were added later and the comments above were not updated.
+A group property has no payload, so these payload fields are 0. A group really
+just has a name and an ID, and that ID is referred to as the owner_id by
+subproperties.
 
-	owner_type = (owner_id & MEDIA_ENT_TYPE_MASK) >> MEDIA_ENT_TYPE_SHIFT;
+So you can have an entity with a 'sensor' group property, and that can have
+a sub-property called 'orientation'.
 
-> + * @flags:	Property flags
-> + * @name:	Property name
-> + * @payload_size: Property payload size, 0 for U64/S64
-> + * @payload_offset: Property payload starts at this offset from &prop.id.
-> + *		This is 0 for U64/S64.
+These properties will be part of the uAPI, so they will have to be defined
+and documented. So in this example you'd have to document the sensor.orientation
+property.
 
-Please specify how this will be used for the group type, with is not
-obvious. I *suspect* that, on a group, you'll be adding a vector of
-u32 (cpu endian) and payload_size is the number of elements at the
-vector (or the vector size?).
+> 
+>> + * @reserved:	Property reserved field, will be zeroed.
+>> + */
+>> +struct media_v2_prop {
+>> +	__u32 id;
+>> +	__u32 type;
+>> +	__u32 owner_id;
+>> +	__u32 owner_type;
+>> +	__u32 flags;
+> 
+> The way it is defined, name won't be 64-bits aligned (well, it will, if
+> you remove the owner_type).
 
-> + * @reserved:	Property reserved field, will be zeroed.
-> + */
-> +struct media_v2_prop {
-> +	__u32 id;
-> +	__u32 type;
-> +	__u32 owner_id;
-> +	__u32 owner_type;
-> +	__u32 flags;
+Why should name be 64 bit aligned? Not that I mind moving 'flags' after
+'name'.
 
-The way it is defined, name won't be 64-bits aligned (well, it will, if
-you remove the owner_type).
+> 
+>> +	char name[32];
+>> +	__u32 payload_size;
+>> +	__u32 payload_offset;
+>> +	__u32 reserved[18];
 
-> +	char name[32];
-> +	__u32 payload_size;
-> +	__u32 payload_offset;
-> +	__u32 reserved[18];
-> +} __attribute__ ((packed));
-> +
-> +static inline const char *media_prop2string(const struct media_v2_prop *prop)
-> +{
-> +	return (const char *)prop + prop->payload_offset;
-> +}
-> +
-> +static inline __u64 media_prop2u64(const struct media_v2_prop *prop)
-> +{
-> +	return *(const __u64 *)((const char *)prop + prop->payload_offset);
-> +}
-> +
-> +static inline __s64 media_prop2s64(const struct media_v2_prop *prop)
-> +{
-> +	return *(const __s64 *)((const char *)prop + prop->payload_offset);
-> +}
-> +
+If we keep owner_type, then 18 should be changed to 17. I forgot that.
 
-Shouldn't you define also a media_prop2group()?
+>> +} __attribute__ ((packed));
+>> +
+>> +static inline const char *media_prop2string(const struct media_v2_prop *prop)
+>> +{
+>> +	return (const char *)prop + prop->payload_offset;
+>> +}
+>> +
+>> +static inline __u64 media_prop2u64(const struct media_v2_prop *prop)
+>> +{
+>> +	return *(const __u64 *)((const char *)prop + prop->payload_offset);
+>> +}
+>> +
+>> +static inline __s64 media_prop2s64(const struct media_v2_prop *prop)
+>> +{
+>> +	return *(const __s64 *)((const char *)prop + prop->payload_offset);
+>> +}
+>> +
+> 
+> Shouldn't you define also a media_prop2group()?
 
->  struct media_v2_topology {
->  	__u64 topology_version;
->  
-> @@ -360,6 +412,10 @@ struct media_v2_topology {
->  	__u32 num_links;
->  	__u32 reserved4;
->  	__u64 ptr_links;
-> +
-> +	__u32 num_props;
-> +	__u32 props_payload_size;
-> +	__u64 ptr_props;
+No, groups have no payload.
 
-Please document those new fields.
+> 
+>>  struct media_v2_topology {
+>>  	__u64 topology_version;
+>>  
+>> @@ -360,6 +412,10 @@ struct media_v2_topology {
+>>  	__u32 num_links;
+>>  	__u32 reserved4;
+>>  	__u64 ptr_links;
+>> +
+>> +	__u32 num_props;
+>> +	__u32 props_payload_size;
+>> +	__u64 ptr_props;
+> 
+> Please document those new fields.
 
->  } __attribute__ ((packed));
->  
->  /* ioctls */
+This struct doesn't have any docbook documentation. I can add that once everyone agrees
+with this API.
 
+Regards,
 
+	Hans
 
-Thanks,
-Mauro
+> 
+>>  } __attribute__ ((packed));
+>>  
+>>  /* ioctls */
+> 
+> 
+> 
+> Thanks,
+> Mauro
+> 
+
