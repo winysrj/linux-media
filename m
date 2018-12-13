@@ -4,57 +4,57 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.2 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,T_MIXED_ES,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 80295C65BAE
-	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 13:31:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 27E0DC65BAE
+	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 13:36:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CC1AD20870
-	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 13:31:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D252C20880
+	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 13:36:55 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="jLGR6Mzo"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org CC1AD20870
+	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="HGbdegIO"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org D252C20880
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=samsung.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729404AbeLMNbi (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 13 Dec 2018 08:31:38 -0500
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:56340 "EHLO
-        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729318AbeLMNbh (ORCPT
+        id S1729528AbeLMNgz (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 13 Dec 2018 08:36:55 -0500
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:46285 "EHLO
+        mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729422AbeLMNgy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Dec 2018 08:31:37 -0500
+        Thu, 13 Dec 2018 08:36:54 -0500
 Received: from eucas1p2.samsung.com (unknown [182.198.249.207])
-        by mailout1.w1.samsung.com (KnoxPortal) with ESMTP id 20181213133136euoutp015f40af4c3e2d74a2913490c5b2255444~v56W7869C1030810308euoutp01J;
-        Thu, 13 Dec 2018 13:31:36 +0000 (GMT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 mailout1.w1.samsung.com 20181213133136euoutp015f40af4c3e2d74a2913490c5b2255444~v56W7869C1030810308euoutp01J
+        by mailout2.w1.samsung.com (KnoxPortal) with ESMTP id 20181213133652euoutp02d9cde9638d90ae948cfc88f362b5dc2e~v5_91S9Xn2788027880euoutp02s;
+        Thu, 13 Dec 2018 13:36:52 +0000 (GMT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 mailout2.w1.samsung.com 20181213133652euoutp02d9cde9638d90ae948cfc88f362b5dc2e~v5_91S9Xn2788027880euoutp02s
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
-        s=mail20170921; t=1544707896;
-        bh=ZtCcY8UOey8IpByRC06DpyLtrHRmuOHUxmvO3Z/iMZU=;
+        s=mail20170921; t=1544708212;
+        bh=jIxJPn6eBex0qkK4BE4E2hF66HdFbVMHCNxswfgF0H0=;
         h=From:To:Cc:Subject:Date:References:From;
-        b=jLGR6Mzo6thcWlAgpQrnWUcfGbfnYQvwYcWtErxUoCx9IRPpRKjICZItLRBNLvYMS
-         WOV2YZqgD5O6wwuYL+berLDV8haBSPUyXVcf2tcxQWzP6BbKbmAP0MU7EjMF+yMq+h
-         8eAOicCopnHXq1w+pxkopkog2Ecg40wMBvThuB6s=
-Received: from eusmges2new.samsung.com (unknown [203.254.199.244]) by
+        b=HGbdegIOv6ZLYcCDmKpYvnoytnHbDMgjpQZyy07jg2oDbznaFSrcyQ3WCCfa/T7mm
+         l36hPQ5veq7qhBYYYNYs42clXET7YcueqMLOlI36tKKsQmQDyur5t11PqiN63yddqM
+         R6xvfY353C9wYgrx2NnnV6P1murRFRBh4EUFmT0A=
+Received: from eusmges1new.samsung.com (unknown [203.254.199.242]) by
         eucas1p2.samsung.com (KnoxPortal) with ESMTP id
-        20181213133135eucas1p28b3ffb4c5db9b4e0f41e783f80756e76~v56WB2H5C2481624816eucas1p2d;
-        Thu, 13 Dec 2018 13:31:35 +0000 (GMT)
-Received: from eucas1p1.samsung.com ( [182.198.249.206]) by
-        eusmges2new.samsung.com (EUCPMTA) with SMTP id 9C.AC.04294.63F521C5; Thu, 13
-        Dec 2018 13:31:34 +0000 (GMT)
+        20181213133652eucas1p200c39e2cd5a1fcb9f32fee31d7b4cc31~v5_9PbbB80160201602eucas1p2h;
+        Thu, 13 Dec 2018 13:36:52 +0000 (GMT)
+Received: from eucas1p2.samsung.com ( [182.198.249.207]) by
+        eusmges1new.samsung.com (EUCPMTA) with SMTP id 6C.CC.04441.370621C5; Thu, 13
+        Dec 2018 13:36:51 +0000 (GMT)
 Received: from eusmgms2.samsung.com (unknown [182.198.249.180]) by
-        eucas1p2.samsung.com (KnoxPortal) with ESMTP id
-        20181213133134eucas1p2d8a80fb77e65cf2979ba936c36c45eb9~v56VZmG9u2481424814eucas1p2O;
-        Thu, 13 Dec 2018 13:31:34 +0000 (GMT)
-X-AuditID: cbfec7f4-835ff700000010c6-c6-5c125f36e77e
-Received: from eusync1.samsung.com ( [203.254.199.211]) by
-        eusmgms2.samsung.com (EUCPMTA) with SMTP id 94.F8.04128.63F521C5; Thu, 13
-        Dec 2018 13:31:34 +0000 (GMT)
+        eucas1p1.samsung.com (KnoxPortal) with ESMTP id
+        20181213133651eucas1p11e936033c184c6f4046564e4cdea3b67~v5_8fxin-2509725097eucas1p1I;
+        Thu, 13 Dec 2018 13:36:51 +0000 (GMT)
+X-AuditID: cbfec7f2-5e3ff70000001159-bb-5c126073b60a
+Received: from eusync3.samsung.com ( [203.254.199.213]) by
+        eusmgms2.samsung.com (EUCPMTA) with SMTP id 7E.A9.04128.370621C5; Thu, 13
+        Dec 2018 13:36:51 +0000 (GMT)
 Received: from mcdsrvbld02.digital.local ([106.116.37.23]) by
-        eusync1.samsung.com (Oracle Communications Messaging Server 7.0.5.31.0 64bit
-        (built May  5 2014)) with ESMTPA id <0PJO00G9TG836Q50@eusync1.samsung.com>;
-        Thu, 13 Dec 2018 13:31:34 +0000 (GMT)
+        eusync3.samsung.com (Oracle Communications Messaging Server 7.0.5.31.0 64bit
+        (built May  5 2014)) with ESMTPA id <0PJO00GDJGHA8I20@eusync3.samsung.com>;
+        Thu, 13 Dec 2018 13:36:51 +0000 (GMT)
 From:   Andrzej Pietrasiewicz <andrzej.p@samsung.com>
 To:     linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
 Cc:     Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
@@ -64,40 +64,41 @@ Cc:     Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
         Pawel Osciak <pawel@osciak.com>,
         Kyungmin Park <kyungmin.park@samsung.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Jacek Anaszewski <jacek.anaszewski@gmail.com>
-Subject: [PATCH] media: Change Andrzej Pietrasiewicz's e-mail address
-Date:   Thu, 13 Dec 2018 14:31:07 +0100
-Message-id: <20181213133107.5385-1-andrzej.p@samsung.com>
+        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH] MAINTAINERS: Change s5p-jpeg maintainer information.
+Date:   Thu, 13 Dec 2018 14:36:38 +0100
+Message-id: <20181213133638.6079-1-andrzej.p@samsung.com>
 X-Mailer: git-send-email 2.11.0
-X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFlrHIsWRmVeSWpSXmKPExsWy7djPc7pm8UIxBgfX2VjMetnOYrFizRNG
-        i40z1rNa3N66gcXibNMbdotNj6+xWvRs2MpqsfbIXXaLZZv+MFlMefuT3YHLY+esu+wem1Z1
-        snlsXlLv8fjXSzaPvi2rGD0+b5ILYIvisklJzcksSy3St0vgyvj3QaZgjmbFhhMPWRoY25S7
-        GDk5JARMJI6unsbcxcjFISSwglGi4f90JgjnM6PErJ6pjDBVU+6+g6paxihx6MVdKKeJSaLn
-        yH5mkCo2AWOJvQc7wDpEBFwltm65CWYzC3xjkpizlQPEFgaKd/1YxAZiswioSnx9/I8dxOYV
-        sJTYd3UqE8Q2eYldbRdZQRZICHSwSazqmg51hovEoYctbBC2sMSr41vYIWwZicuTu1kg7HqJ
-        TV/2QNVMYZS4N9cbwraWOHwcZCjIQXwSk7ZNBzqaAyjOK9HRJgRR4iHxvbcHbJWQQKzEx6N7
-        2CcwSixgZFjFKJ5aWpybnlpslJdarlecmFtcmpeul5yfu4kRGIun/x3/soNx15+kQ4wCHIxK
-        PLwHZAVjhFgTy4orcw8xSnAwK4nwPo4CCvGmJFZWpRblxxeV5qQWH2KU5mBREuetZngQLSSQ
-        nliSmp2aWpBaBJNl4uCUamCsPP/oc/Xyhq2V6Qes1Dx2s7v6b99z/N/mMxoM5nVGxQopfE6O
-        LzTN/yTaerlrBjE2dM64yPy7fLKg59SSGJVt12vfPLJOP3zwcSTn5XnfL8v4OJ/X3CL3/PaD
-        u9PnfX3VXBzmdUZQfsZ6F/+vJ+VedGsJx124fnC6YFjB5fW1M+vudfduO+etxFKckWioxVxU
-        nAgArdXTXMECAAA=
-X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFmpiluLIzCtJLcpLzFFi42I5/e/4ZV2zeKEYg6kT+CxmvWxnsVix5gmj
-        xcYZ61ktbm/dwGJxtukNu8Wmx9dYLXo2bGW1WHvkLrvFsk1/mCymvP3J7sDlsXPWXXaPTas6
-        2Tw2L6n3ePzrJZtH35ZVjB6fN8kFsEVx2aSk5mSWpRbp2yVwZfz7IFMwR7Niw4mHLA2Mbcpd
-        jJwcEgImElPuvmPuYuTiEBJYwijRf+EbE4TTwiQx/dEHVpAqNgFjib0HOxhBbBEBV4mtW24y
-        ghQxC/xgkliwohesSBgo0fVjERuIzSKgKvH18T92EJtXwFJi39WpTBDr5CV2tV1kncDItYCR
-        YRWjSGppcW56brGRXnFibnFpXrpecn7uJkZgyGw79nPLDsaud8GHGAU4GJV4eA/ICsYIsSaW
-        FVfmHmKU4GBWEuF9HAUU4k1JrKxKLcqPLyrNSS0+xCjNwaIkznveoDJKSCA9sSQ1OzW1ILUI
-        JsvEwSnVwHi6yWbKbz29Da0TOp243q/QUHvNwV0sn8zsLffffc/FzVmc3+e1Ou2auHXljaon
-        bBc516sWtl0vi5m36dc3513zrI3nnHb6eFY1cI7BJ2WpjtfqHfFeBab6XUKWjS/m5Re8dAru
-        uj3j24u6yKuWqeeLfn574+osOV+/ZMevBc37ijXuJF+ZskmJpTgj0VCLuag4EQACGlDLFQIA
-        AA==
-X-CMS-MailID: 20181213133134eucas1p2d8a80fb77e65cf2979ba936c36c45eb9
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFtrAIsWRmVeSWpSXmKPExsWy7djP87rFCUIxBmvum1rMetnOYrFizRNG
+        i40z1rNa3N66gcXibNMbdotNj6+xWvRs2MpqsfbIXXaLZZv+MFlMefuT3eLwm3ZWB26PnbPu
+        sntsWtXJ5rF5Sb3H418v2Tz6tqxi9Pi8SS6ALYrLJiU1J7MstUjfLoEr49TtuoIt7BWnJl9h
+        a2BcxNbFyMkhIWAicXvmfHYQW0hgBaNE2yamLkYuIPszo8TMqbNZYYper1zNApFYxigx8fxa
+        VginiUli8qFDLCBVbALGEnsPdjCC2CICrhJbt9xkBCliFljMLNH35C/YPmGgxLT7s8CKWARU
+        JZ7t7QOyOTh4BSwlVj5XgdgmL7Gr7SLU5h42idkNqRC2i8Smy9PZIWxhiVfHt0DZMhKXJ3ez
+        QNj1Epu+7IF6bQqjxL253hC2tcTh4xAzmQX4JCZtm84MslZCgFeio00IosRDYkXbXFaQsJBA
+        rMTV+UYTGCUWMDKsYhRPLS3OTU8tNsxLLdcrTswtLs1L10vOz93ECIzH0/+Of9rB+PVS0iFG
+        AQ5GJR7eA7KCMUKsiWXFlbmHGCU4mJVEeB9HAYV4UxIrq1KL8uOLSnNSiw8xSnOwKInzVjM8
+        iBYSSE8sSc1OTS1ILYLJMnFwSjUwln828NTW3WHwSelYzJYnH79fU75S77ls5tTG0rSbT/8q
+        32S/FSyc4BPG6eN+6FDsPi+Tc4G3+F5aGP8UrVx+oH3rozvpl6xrFRc8qVtdwHxS/9N+5Xm6
+        Z8qMcq3nP5ysbDgr56TrrMhrj30PTVJZ8Ng/68+PL6U5N6/KfneKPl/iG/NdVLj+lxJLcUai
+        oRZzUXEiANCbZqjDAgAA
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFmphluLIzCtJLcpLzFFi42I5/e/4Vd3iBKEYg7ZJYhazXrazWKxY84TR
+        YuOM9awWt7duYLE42/SG3WLT42usFj0btrJarD1yl91i2aY/TBZT3v5ktzj8pp3Vgdtj56y7
+        7B6bVnWyeWxeUu/x+NdLNo++LasYPT5vkgtgi+KySUnNySxLLdK3S+DKOHW7rmALe8WpyVfY
+        GhgXsXUxcnJICJhIvF65mqWLkYtDSGAJo8TOrjagBAeQ08IkcYoPpIZNwFhi78EORhBbRMBV
+        YuuWm4wg9cwCy5klfj2YwwKSEAZKTLs/C6yIRUBV4tnePkaQObwClhIrn6tA7JKX2NV2kXUC
+        I9cCRoZVjCKppcW56bnFRnrFibnFpXnpesn5uZsYgWGz7djPLTsYu94FH2IU4GBU4uE9ICsY
+        I8SaWFZcmXuIUYKDWUmE93EUUIg3JbGyKrUoP76oNCe1+BCjNAeLkjjveYPKKCGB9MSS1OzU
+        1ILUIpgsEwenVAPjQuuyKZ0v22XKz/H8MzCZtXFD7rEHJq7Sn1ha1QLareZo6bSvvbb9390T
+        U0oFV06oEny7kPmh9MtAjwPvBJJevXtgt2pR9tN3r5bqbhC8v/T9uY4ctkX8qsYro10ldoru
+        c6/3LhL//5nnZcSfUxZaYvGzJux67LlCQbr5vv90/l8TL777tl9/phJLcUaioRZzUXEiAOPZ
+        NZ4XAgAA
+X-CMS-MailID: 20181213133651eucas1p11e936033c184c6f4046564e4cdea3b67
 X-Msg-Generator: CA
 CMS-TYPE: 201P
-X-CMS-RootMailID: 20181213133134eucas1p2d8a80fb77e65cf2979ba936c36c45eb9
-References: <CGME20181213133134eucas1p2d8a80fb77e65cf2979ba936c36c45eb9@eucas1p2.samsung.com>
+X-CMS-RootMailID: 20181213133651eucas1p11e936033c184c6f4046564e4cdea3b67
+References: <CGME20181213133651eucas1p11e936033c184c6f4046564e4cdea3b67@eucas1p1.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
@@ -106,117 +107,29 @@ X-Mailing-List: linux-media@vger.kernel.org
 My @samusung.com address is going to cease existing soon, so change it to
 an address which can actually be used to contact me.
 
+Adding Sylwester Nawrocki, who still has access to a wide spectrum
+of Exynos-based hardware.
+
 Signed-off-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
 ---
- drivers/media/common/videobuf2/videobuf2-dma-sg.c | 2 +-
- drivers/media/platform/s5p-jpeg/jpeg-core.c       | 4 ++--
- drivers/media/platform/s5p-jpeg/jpeg-core.h       | 2 +-
- drivers/media/platform/s5p-jpeg/jpeg-hw-s5p.c     | 2 +-
- drivers/media/platform/s5p-jpeg/jpeg-hw-s5p.h     | 2 +-
- drivers/media/platform/s5p-jpeg/jpeg-regs.h       | 2 +-
- include/media/videobuf2-dma-sg.h                  | 2 +-
- 7 files changed, 8 insertions(+), 8 deletions(-)
+ MAINTAINERS | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/common/videobuf2/videobuf2-dma-sg.c b/drivers/media/common/videobuf2/videobuf2-dma-sg.c
-index 015e737..f02876d 100644
---- a/drivers/media/common/videobuf2/videobuf2-dma-sg.c
-+++ b/drivers/media/common/videobuf2/videobuf2-dma-sg.c
-@@ -3,7 +3,7 @@
-  *
-  * Copyright (C) 2010 Samsung Electronics
-  *
-- * Author: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-+ * Author: Andrzej Pietrasiewicz <andrzejtp2010@gmail.com>
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index 3f9000b..580d6d0 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -3,7 +3,7 @@
-  * Copyright (c) 2011-2014 Samsung Electronics Co., Ltd.
-  *		http://www.samsung.com
-  *
-- * Author: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-+ * Author: Andrzej Pietrasiewicz <andrzejtp2010@gmail.com>
-  * Author: Jacek Anaszewski <j.anaszewski@samsung.com>
-  *
-  * This program is free software; you can redistribute it and/or modify
-@@ -3220,7 +3220,7 @@ static struct platform_driver s5p_jpeg_driver = {
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 8119141..9a9acd3 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -2048,8 +2048,9 @@ F:	drivers/media/platform/s5p-cec/
+ F:	Documentation/devicetree/bindings/media/s5p-cec.txt
  
- module_platform_driver(s5p_jpeg_driver);
- 
--MODULE_AUTHOR("Andrzej Pietrasiewicz <andrzej.p@samsung.com>");
-+MODULE_AUTHOR("Andrzej Pietrasiewicz <andrzejtp2010@gmail.com>");
- MODULE_AUTHOR("Jacek Anaszewski <j.anaszewski@samsung.com>");
- MODULE_DESCRIPTION("Samsung JPEG codec driver");
- MODULE_LICENSE("GPL");
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.h b/drivers/media/platform/s5p-jpeg/jpeg-core.h
-index a46465e..90fda4b 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.h
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.h
-@@ -3,7 +3,7 @@
-  * Copyright (c) 2011 Samsung Electronics Co., Ltd.
-  *		http://www.samsung.com
-  *
-- * Author: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-+ * Author: Andrzej Pietrasiewicz <andrzejtp2010@gmail.com>
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License version 2 as
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-hw-s5p.c b/drivers/media/platform/s5p-jpeg/jpeg-hw-s5p.c
-index b5f20e7..59c6263 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-hw-s5p.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-hw-s5p.c
-@@ -3,7 +3,7 @@
-  * Copyright (c) 2011 Samsung Electronics Co., Ltd.
-  *		http://www.samsung.com
-  *
-- * Author: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-+ * Author: Andrzej Pietrasiewicz <andrzejtp2010@gmail.com>
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License version 2 as
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-hw-s5p.h b/drivers/media/platform/s5p-jpeg/jpeg-hw-s5p.h
-index f208fa3..bfe746f 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-hw-s5p.h
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-hw-s5p.h
-@@ -3,7 +3,7 @@
-  * Copyright (c) 2011 Samsung Electronics Co., Ltd.
-  *		http://www.samsung.com
-  *
-- * Author: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-+ * Author: Andrzej Pietrasiewicz <andrzejtp2010@gmail.com>
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License version 2 as
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-regs.h b/drivers/media/platform/s5p-jpeg/jpeg-regs.h
-index df790b1..574f0e8 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-regs.h
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-regs.h
-@@ -5,7 +5,7 @@
-  * Copyright (c) 2011-2014 Samsung Electronics Co., Ltd.
-  *		http://www.samsung.com
-  *
-- * Author: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-+ * Author: Andrzej Pietrasiewicz <andrzejtp2010@gmail.com>
-  * Author: Jacek Anaszewski <j.anaszewski@samsung.com>
-  *
-  * This program is free software; you can redistribute it and/or modify
-diff --git a/include/media/videobuf2-dma-sg.h b/include/media/videobuf2-dma-sg.h
-index 52afa0e..f28fcb0 100644
---- a/include/media/videobuf2-dma-sg.h
-+++ b/include/media/videobuf2-dma-sg.h
-@@ -3,7 +3,7 @@
-  *
-  * Copyright (C) 2010 Samsung Electronics
-  *
-- * Author: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-+ * Author: Andrzej Pietrasiewicz <andrzejtp2010@gmail.com>
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
+ ARM/SAMSUNG S5P SERIES JPEG CODEC SUPPORT
+-M:	Andrzej Pietrasiewicz <andrzej.p@samsung.com>
++M:	Andrzej Pietrasiewicz <andrzejtp2010@gmail.com>
+ M:	Jacek Anaszewski <jacek.anaszewski@gmail.com>
++M:	Sylwester Nawrocki <s.nawrocki@samsung.com>
+ L:	linux-arm-kernel@lists.infradead.org
+ L:	linux-media@vger.kernel.org
+ S:	Maintained
 -- 
 2.7.4
 
