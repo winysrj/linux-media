@@ -2,182 +2,805 @@ Return-Path: <SRS0=yFxv=OW=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.9 required=3.0
+	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_PASS,T_MIXED_ES,URIBL_BLOCKED,
+	USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 274EAC67839
-	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 09:33:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D9B2CC67839
+	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 09:38:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E02962080F
-	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 09:33:20 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="vdWDdZPW"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org E02962080F
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=ideasonboard.com
+	by mail.kernel.org (Postfix) with ESMTP id 8A9122080F
+	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 09:38:33 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 8A9122080F
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727629AbeLMJdU (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 13 Dec 2018 04:33:20 -0500
-Received: from perceval.ideasonboard.com ([213.167.242.64]:43754 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727072AbeLMJdU (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Dec 2018 04:33:20 -0500
-Received: from avalon.localnet (dfj612ybrt5fhg77mgycy-3.rev.dnainternet.fi [IPv6:2001:14ba:21f5:5b00:2e86:4862:ef6a:2804])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 65F67549;
-        Thu, 13 Dec 2018 10:33:17 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1544693597;
-        bh=CCZ9+iK2Ur/qtbyJRyv6wmaQ8C6tEa0ibKJiqH4zU9U=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=vdWDdZPW9G8euxok0qSU/obTcqEMuTWChPnm5oViemanEepMu3M0KTylP7ZPgd4x6
-         FbmtC+/h02ob8tfqRlcR5xUpnXPRoIWjNxT+HWpHr5xEAi9ogctxys/20Nj7Ev6Dk6
-         MUl7eZLJYWVH8b6kGu4YzXTvjjN498KYFmHdoBgE=
-From:   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To:     Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc:     niklas.soderlund+renesas@ragnatech.se,
-        kieran.bingham@ideasonboard.com, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH 4/5] media: adv748x: Store the TX sink in HDMI/AFE
-Date:   Thu, 13 Dec 2018 11:34:03 +0200
-Message-ID: <1922179.BUMsX2vHZM@avalon>
-Organization: Ideas on Board Oy
-In-Reply-To: <1544541373-30044-5-git-send-email-jacopo+renesas@jmondi.org>
-References: <1544541373-30044-1-git-send-email-jacopo+renesas@jmondi.org> <1544541373-30044-5-git-send-email-jacopo+renesas@jmondi.org>
+        id S1727775AbeLMJic (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 13 Dec 2018 04:38:32 -0500
+Received: from mga11.intel.com ([192.55.52.93]:27837 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727063AbeLMJib (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 13 Dec 2018 04:38:31 -0500
+X-Amp-Result: UNKNOWN
+X-Amp-Original-Verdict: FILE UNKNOWN
+X-Amp-File-Uploaded: False
+Received: from fmsmga007.fm.intel.com ([10.253.24.52])
+  by fmsmga102.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 13 Dec 2018 01:38:30 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.56,348,1539673200"; 
+   d="scan'208";a="107123900"
+Received: from paasikivi.fi.intel.com ([10.237.72.42])
+  by fmsmga007.fm.intel.com with ESMTP; 13 Dec 2018 01:38:27 -0800
+Received: by paasikivi.fi.intel.com (Postfix, from userid 1000)
+        id 5E0CE204CC; Thu, 13 Dec 2018 11:38:26 +0200 (EET)
+Date:   Thu, 13 Dec 2018 11:38:26 +0200
+From:   Sakari Ailus <sakari.ailus@linux.intel.com>
+To:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc:     Yong Zhi <yong.zhi@intel.com>, linux-media@vger.kernel.org,
+        tfiga@chromium.org, mchehab@kernel.org, hans.verkuil@cisco.com,
+        rajmohan.mani@intel.com, jian.xu.zheng@intel.com,
+        jerry.w.hu@intel.com, tuukka.toivonen@intel.com,
+        tian.shu.qiu@intel.com, bingbu.cao@intel.com
+Subject: Re: [PATCH v7 02/16] doc-rst: Add Intel IPU3 documentation
+Message-ID: <20181213093825.zgtybcr5q4hwvveg@paasikivi.fi.intel.com>
+References: <1540851790-1777-1-git-send-email-yong.zhi@intel.com>
+ <1540851790-1777-3-git-send-email-yong.zhi@intel.com>
+ <10308698.8BjB4BRxet@avalon>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <10308698.8BjB4BRxet@avalon>
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Jacopo,
+Hi Laurent,
 
-Thank you for the patch.
+I'm sending a separate patch to address the comments.
 
-On Tuesday, 11 December 2018 17:16:12 EET Jacopo Mondi wrote:
-> Both the AFE and HDMI s_stream routines (adv748x_afe_s_stream() and
-> adv748x_hdmi_s_stream()) have to enable the CSI-2 TX they are streaming
-> video data to.
+On Fri, Nov 30, 2018 at 12:50:36AM +0200, Laurent Pinchart wrote:
+> Hello Yong,
 > 
-> With the introduction of dynamic routing between HDMI and AFE entities to
-> TXA, the video stream sink needs to be set at run time, and not statically
-> selected as the s_stream functions are currently doing.
+> Thank you for the patch.
 > 
-> To fix this, store a reference to the active CSI-2 TX sink for both HDMI and
-> AFE sources, and operate on it when starting/stopping the stream.
+> On Tuesday, 30 October 2018 00:22:56 EET Yong Zhi wrote:
+> > From: Rajmohan Mani <rajmohan.mani@intel.com>
+> > 
+> > This patch adds the details about the IPU3 Imaging Unit driver.
 > 
-> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> ---
->  drivers/media/i2c/adv748x/adv748x-afe.c  |  2 +-
->  drivers/media/i2c/adv748x/adv748x-csi2.c | 19 ++++++++++++++-----
->  drivers/media/i2c/adv748x/adv748x-hdmi.c |  2 +-
->  drivers/media/i2c/adv748x/adv748x.h      |  4 ++++
->  4 files changed, 20 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/adv748x/adv748x-afe.c
-> b/drivers/media/i2c/adv748x/adv748x-afe.c index 71714634efb0..dbbb1e4d6363
-> 100644
-> --- a/drivers/media/i2c/adv748x/adv748x-afe.c
-> +++ b/drivers/media/i2c/adv748x/adv748x-afe.c
-> @@ -282,7 +282,7 @@ static int adv748x_afe_s_stream(struct v4l2_subdev *sd,
-> int enable) goto unlock;
->  	}
-> 
-> -	ret = adv748x_tx_power(&state->txb, enable);
-> +	ret = adv748x_tx_power(afe->tx, enable);
->  	if (ret)
->  		goto unlock;
-> 
-> diff --git a/drivers/media/i2c/adv748x/adv748x-csi2.c
-> b/drivers/media/i2c/adv748x/adv748x-csi2.c index 307966f4c736..0d6344a51795
-> 100644
-> --- a/drivers/media/i2c/adv748x/adv748x-csi2.c
-> +++ b/drivers/media/i2c/adv748x/adv748x-csi2.c
-> @@ -85,6 +85,9 @@ static int adv748x_csi2_registered(struct v4l2_subdev *sd)
-> MEDIA_LNK_FL_ENABLED);
->  			if (ret)
->  				return ret;
-> +
-> +			/* The default HDMI output is TXA. */
-> +			state->hdmi.tx = tx;
->  		}
-> 
->  		if (is_afe_enabled(state)) {
-> @@ -95,11 +98,17 @@ static int adv748x_csi2_registered(struct v4l2_subdev
-> *sd) if (ret)
->  				return ret;
->  		}
-> -	} else if (is_afe_enabled(state))
-> -		return adv748x_csi2_register_link(tx, sd->v4l2_dev,
-> -						  &state->afe.sd,
-> -						  ADV748X_AFE_SOURCE,
-> -						  MEDIA_LNK_FL_ENABLED);
-> +	} else if (is_afe_enabled(state)) {
-> +		ret = adv748x_csi2_register_link(tx, sd->v4l2_dev,
-> +						 &state->afe.sd,
-> +						 ADV748X_AFE_SOURCE,
-> +						 MEDIA_LNK_FL_ENABLED);
-> +		if (ret)
-> +			return ret;
-> +
-> +		/* The default AFE output is TXB. */
-> +		state->afe.tx = tx;
-> +	}
-> 
->  	return 0;
->  }
-> diff --git a/drivers/media/i2c/adv748x/adv748x-hdmi.c
-> b/drivers/media/i2c/adv748x/adv748x-hdmi.c index 35d027941482..c557f8fdf11a
-> 100644
-> --- a/drivers/media/i2c/adv748x/adv748x-hdmi.c
-> +++ b/drivers/media/i2c/adv748x/adv748x-hdmi.c
-> @@ -358,7 +358,7 @@ static int adv748x_hdmi_s_stream(struct v4l2_subdev *sd,
-> int enable)
-> 
->  	mutex_lock(&state->mutex);
-> 
-> -	ret = adv748x_tx_power(&state->txa, enable);
-> +	ret = adv748x_tx_power(hdmi->tx, enable);
->  	if (ret)
->  		goto done;
-> 
-> diff --git a/drivers/media/i2c/adv748x/adv748x.h
-> b/drivers/media/i2c/adv748x/adv748x.h index 387002d6da65..0ee3b8d5c795
-> 100644
-> --- a/drivers/media/i2c/adv748x/adv748x.h
-> +++ b/drivers/media/i2c/adv748x/adv748x.h
-> @@ -118,6 +118,8 @@ struct adv748x_hdmi {
->  	struct v4l2_dv_timings timings;
->  	struct v4l2_fract aspect_ratio;
-> 
-> +	struct adv748x_csi2 *tx;
-> +
->  	struct {
->  		u8 edid[512];
->  		u32 present;
-> @@ -148,6 +150,8 @@ struct adv748x_afe {
->  	struct v4l2_subdev sd;
->  	struct v4l2_mbus_framefmt format;
-> 
-> +	struct adv748x_csi2 *tx;
-> +
->  	bool streaming;
->  	v4l2_std_id curr_norm;
->  	unsigned int input;
+> Strictly speaking this documents both the CIO2 and the IMGU. As they're 
+> handled by two separate drivers, should they be split in two separate files ? 
+> If you prefer keeping them together you should update the commit message 
+> accordingly. I would in that case also split the documentation in a CIO2 and a 
+> IMGU section in the file, instead of mixing them.
 
-This may call for defining a common structure to store the common fields of 
-adv748x_hdmi and adv748x_afe. Out of scope for this patch, but please keep it 
-in mind.
+I'm keeping it in a single document for now. In practice these devices
+always come together as neither is really usable without the other.
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> 
+> > Change-Id: I560cecf673df2dcc3ec72767cf8077708d649656
+> 
+> The Change-Id: tag isn't suitable for mainline, you can drop it.
+
+Fixed.
+
+> 
+> > Signed-off-by: Rajmohan Mani <rajmohan.mani@intel.com>
+> > ---
+> >  Documentation/media/v4l-drivers/index.rst |   1 +
+> >  Documentation/media/v4l-drivers/ipu3.rst  | 326 +++++++++++++++++++++++++++
+> >  2 files changed, 327 insertions(+)
+> >  create mode 100644 Documentation/media/v4l-drivers/ipu3.rst
+> > 
+> > diff --git a/Documentation/media/v4l-drivers/index.rst
+> > b/Documentation/media/v4l-drivers/index.rst index 679238e..179a393 100644
+> > --- a/Documentation/media/v4l-drivers/index.rst
+> > +++ b/Documentation/media/v4l-drivers/index.rst
+> > @@ -44,6 +44,7 @@ For more details see the file COPYING in the source
+> > distribution of Linux. davinci-vpbe
+> >  	fimc
+> >  	imx
+> > +	ipu3
+> >  	ivtv
+> >  	max2175
+> >  	meye
+> > diff --git a/Documentation/media/v4l-drivers/ipu3.rst
+> > b/Documentation/media/v4l-drivers/ipu3.rst new file mode 100644
+> > index 0000000..045bf42
+> > --- /dev/null
+> > +++ b/Documentation/media/v4l-drivers/ipu3.rst
+> > @@ -0,0 +1,326 @@
+> > +.. include:: <isonum.txt>
+> > +
+> > +===============================================================
+> > +Intel Image Processing Unit 3 (IPU3) Imaging Unit (ImgU) driver
+> > +===============================================================
+> > +
+> > +Copyright |copy| 2018 Intel Corporation
+> > +
+> > +Introduction
+> > +============
+> > +
+> > +This file documents Intel IPU3 (3rd generation Image Processing Unit)
+> > Imaging
+> 
+> s/documents Intel/documents the Intel/
+
+Fixed.
+
+> 
+> > +Unit driver located under drivers/media/pci/intel/ipu3.
+
+Added the staging tree directory, too.
+
+> > +
+> > +The Intel IPU3 found in certain Kaby Lake (as well as certain Sky Lake)
+> > +platforms (U/Y processor lines) is made up of two parts namely Imaging Unit
+> > +(ImgU) and CIO2 device (MIPI CSI2 receiver).
+> 
+> s/namely Imaging Unit/, namely the Imaging Unit/
+> s/and CIO2/and the CIO2/
+
+Fixed.
+
+> 
+> > +
+> > +The CIO2 device receives the raw bayer data from the sensors and outputs
+> > the +frames in a format that is specific to IPU3 (for consumption by IPU3
+> > ImgU).
+> 
+> s/to IPU3/to the IPU3/
+> s/by IPU3/by the IPU3/
+
+Fixed.
+
+> 
+> > +CIO2 driver is available as drivers/media/pci/intel/ipu3/ipu3-cio2*
+> > and is +enabled through the CONFIG_VIDEO_IPU3_CIO2 config option.
+> 
+> s/CIO2 driver/The CIO2 driver/
+
+Fixed.
+
+> 
+> > +
+> > +The Imaging Unit (ImgU) is responsible for processing images captured
+> 
+> s/images/the images/
+
+As these are not any particular images, I'd leave out "the".
+
+> 
+> > +through IPU3 CIO2 device. The ImgU driver sources can be found under
+> 
+> s/IPU3 CIO2/the IPU3 CIO2/
+
+Yes, and through -> by.
+
+> 
+> > +drivers/media/pci/intel/ipu3 directory. The driver is enabled through the
+> > +CONFIG_VIDEO_IPU3_IMGU config option.
+> > +
+> > +The two driver modules are named ipu3-csi2 and ipu3-imgu, respectively.
+
+s/-/_/g
+
+> > +
+> > +The driver has been tested on Kaby Lake platforms (U/Y processor lines).
+> 
+> I assume both drivers have been tested, so I would write
+> 
+> s/The driver has/The drivers have/
+
+Yes.
+
+> 
+> > +The driver implements V4L2, Media controller and V4L2 sub-device
+> > interfaces.
+> 
+> As this is true for both drivers,
+> 
+> s/The driver implements V4L2/Both drivers implement the V4L2/
+> s/Media controller/Media Controller/
+
+Yes.
+
+> 
+> > +Camera sensors that have CSI-2 bus, which are connected to the IPU3 CIO2
+> > +device are supported.
+> 
+> I would rephrase this slightly, as "The IPU3 CIO2 driver supports camera 
+> sensors connected to the CIO2 MIPI CSI-2 interfaces through V4L2 sub-device 
+> sensor drivers."
+
+Yes.
+
+> 
+> > Support for lens and flash drivers depends on the
+> > +above sensors.
+> 
+> That's a very good introduction !
+
+I dropped the sentence as it's not relevant for IPU3.
+
+> 
+> I would follow with two sections, "IPU3 CIO2" followed by "IPU3 ImgU".
+
+Ack.
+
+> 
+> > +ImgU device nodes
+> > +=================
+> > +
+> > +The ImgU is represented as two V4L2 subdevs, each of which provides a V4L2
+> > +subdev interface to the user space.
+> 
+> Not just subdevs, but video nodes too. I would rephrase as follows (please 
+> note that this might not be valid .rst content, I haven't tried compiling it, 
+> it might need to be reworked slightly) :
+> 
+> "The ImgU contains two independent pipes, each modelled as a V4L2 sub-device 
+> exposed to userspace as a V4L2 sub-device node.
+> 
+> Each pipe has two input pads and three output pads for the following purpose:
+> 
+> Pad 0 (input): Input raw video stream
+> Pad 1 (input): Processing parameters
+> Pad 2 (output): Output processed video stream
+> Pad 3 (output): Output viewfinder video stream
+> Pad 4 (output): 3A statistics
+> 
+> Each pad is connected to a corresponding V4L2 video interface, exposed to 
+> userspace as a V4L2 video device node."
+
+Added that, with s/input/sink/; s/output/source/.
+
+> 
+> > +Each V4L2 subdev represents a pipe, which can support a maximum of 2
+> > +streams. A private ioctl can be used to configure the mode (video or still)
+> > +of the pipe.
+> > +
+> > +This helps to support advanced camera features like Continuous View Finder
+> > +(CVF) and Snapshot During Video(SDV).
+> 
+> As far as I know there's no private ioctl anymore, at least I can't find it in 
+> the source code. Could you thus rephrase that sentence and the next one to 
+> explain the current method to implement CVF and SDV ?
+
+I removed the sentence; the parameter video node is explained below.
+
+> 
+> > +CIO2 device
+> > +===========
+> > +
+> > +The CIO2 is represented as a single V4L2 subdev, which provides a V4L2
+> > subdev +interface to the user space. There is a video node for each CSI-2
+> > receiver, +with a single media controller interface for the entire device.
+> 
+> Similarly, I think we should explain here that there are four channels :
+> 
+> "The CIO2 contains four independent capture channel, each with its own MIPI 
+> CSI-2 receiver and DMA engine. Each channel is modelled as a V4L2 sub-device 
+> exposed to userspace as a V4L2 sub-device node and has two pads:
+> 
+> Pad 0 (input): MIPI CSI-2 input, connected to the sensor subdev
+> Pad 1 (output): Raw video capture, connected to the V4L2 video interface
+> 
+> The V4L2 video interfaces model the DMA engines. They are exposed to userspace 
+> as V4L2 video device nodes."
+> 
+> The section should be moved above the IPU3 ImgU section.
+
+Fixed. I added a table for the pads, too.
+
+> 
+> > +Media controller
+> > +----------------
+> > +
+> > +The media device interface allows to configure the ImgU links, which
+> > defines +the behavior of the IPU3 firmware.
+> 
+> s/defines/define/ or possibly better s/defines/control/
+
+I'm removing the section as the binary is selected using a control in the
+current version. I'm adding this instead:
+
+Firmware binary selection
+-------------------------
+
+The firmware binary is selected using the V4L2_CID_INTEL_IPU3_MODE, currently
+defined in drivers/staging/media/ipu3/include/intel-ipu3.h . "VIDEO" and "STILL"
+modes are available.
+
+> 
+> > +
+> > +Device operation
+> > +----------------
+> > +
+> > +With IPU3, once the input video node ("ipu3-imgu 0/1":0,
+> > +in <entity>:<pad-number> format) is queued with buffer (in packed raw bayer
+> 
+> s/bayer/Bayer/
+> 
+
+Fixed in the entire file.
+
+> > +format), IPU3 ISP starts processing the buffer and produces the video
+> 
+> s/IPU3 ISP/the IPU3 ISP/
+> 
+> This is the first time you mention an ISP. Should the term ISP be replaced by 
+> ImgU here and below ? I'm fine keeping it, but it should then be defined in 
+> the introduction, in particular with an explanation of the difference between 
+> ImgU and ISP.
+
+I replaced IPU3 with ImgU in this section.
+
+> 
+> > output +in YUV format and statistics output on respective output nodes. The
+> > driver +is expected to have buffers ready for all of parameter, output and
+> > +statistics nodes, when input video node is queued with buffer.
+> 
+> Why is that, shouldn't the driver wait for all necessary buffers to be ready 
+> before processing ?
+
+Not all are mandatory.
+
+> 
+> > +At a minimum, all of input, main output, 3A statistics and viewfinder
+> > +video nodes should be enabled for IPU3 to start image processing.
+> 
+> If they all need to be enabled, shouldn't the respective links be ENABLED and 
+> IMMUTABLE ?
+
+Yes.
+
+> 
+> > +Each ImgU V4L2 subdev has the following set of video nodes.
+> > +
+> > +input, output and viewfinder video nodes
+> > +----------------------------------------
+> > +
+> > +The frames (in packed raw bayer format specific to IPU3) received by the
+> 
+> s/bayer/Bayer/
+> 
+> (same in a few other locations below)
+> 
+> > +input video node is processed by the IPU3 Imaging Unit and is output to 2
+> 
+> s/is output/are output/
+
+Fixed.
+
+> 
+> > +video nodes, with each targeting different purpose (main output and
+> 
+> s/different purpose/a different purpose/
+
+ditto.
+
+> 
+> > viewfinder +output).
+> 
+> We will eventually need more information about this, but that could come as a 
+> separate patch.
+> 
+> > +Details on raw bayer format specific to IPU3 can be found as below.
+> > +Documentation/media/uapi/v4l/pixfmt-meta-intel-ipu3.rst
+> 
+> How about linking to the document using :ref: instead of adding the file path 
+> ?
+
+Fixed.
+
+> 
+> > +The driver supports V4L2 Video Capture Interface as defined at
+> > :ref:`devices`.
+> > +
+> > +Only the multi-planar API is supported. More details can be found at
+> > +:ref:`planar-apis`.
+> > +
+> > +
+> > +parameters video node
+> > +---------------------
+> > +
+> > +The parameter video node receives the ISP algorithm parameters that are
+> 
+> s/parameters/parameter/
+
+Fixed.
+
+> 
+> > used +to configure how the ISP algorithms process the image.
+> > +
+> > +Details on raw bayer format specific to IPU3 can be found as below.
+> 
+> I assume you meant processing parameters, not raw Bayer format.
+
+Fixed.
+
+> 
+> > +Documentation/media/uapi/v4l/pixfmt-meta-intel-ipu3.rst
+> 
+> :ref: here too.
+
+Yes.
+
+> 
+> > +3A statistics video node
+> > +------------------------
+> > +
+> > +3A statistics video node is used by the ImgU driver to output the 3A (auto
+> > +focus, auto exposure and auto white balance) statistics for the frames that
+> > +are being processed by the ISP to user space applications. User space
+> > +applications can use this statistics data to arrive at desired algorithm
+> > +parameters for ISP.
+> 
+> s/arrive at/compute the/
+> s/ISP/the ISP/
+
+Fixed; ISP -> ImgU.
+
+> 
+> > +
+> > +CIO2 device nodes
+> > +=================
+> > +
+> > +CIO2 is represented as a single V4L2 sub-device with a video node for each
+> > +CSI-2 receiver. The video node represents the DMA engine.
+> 
+> I think you can remove this section, it's already explained above. If you want 
+> to keep it, please move it with the rest of the CIO2 documentation above the 
+> ImgU documentation.
+
+Fixed.
+
+> 
+> > +Configuring the Intel IPU3
+> > +==========================
+> > +
+> > +The Intel IPU3 ImgU driver supports V4L2 interface. Using V4L2 ioctl calls,
+> > +the ISP can be configured and enabled.
+> > +
+> > +The IPU3 ImgU pipelines can be configured using media controller APIs,
+> > +defined at :ref:`media_controller`.
+> > +
+> > +Capturing frames in raw bayer format
+> > +------------------------------------
+> > +
+> > +IPU3 MIPI CSI2 receiver is used to capture frames (in packed raw bayer
+> > +format) from the raw sensors connected to the CSI2 ports. The captured
+> > +frames are used as input to the ImgU driver.
+> > +
+> > +Image processing using IPU3 ImgU requires tools such as v4l2n [#f1]_,
+> 
+> I would drop v4l2n from the documentation as it's not maintained and is not 
+> functional (in particular it doesn't implement MPLANE support which the driver 
+> requires).
+
+Ack. I'm leaving the command plus the reference to v4l2n, this might
+contain information useful still.
+
+> 
+> > +raw2pnm [#f1]_, and yavta [#f2]_ due to the following unique requirements
+> > +and / or features specific to IPU3.
+> > +
+> > +-- The IPU3 CSI2 receiver outputs the captured frames from the sensor in
+> > +packed raw bayer format that is specific to IPU3
+> 
+> s/to IPU3/to the IPU3/.
+
+Fixed.
+
+> 
+> > +
+> > +-- Multiple video nodes have to be operated simultaneously
+> > +
+> > +Let us take the example of ov5670 sensor connected to CSI2 port 0, for a
+> > +2592x1944 image capture.
+> > +
+> > +Using the media contorller APIs, the ov5670 sensor is configured to send
+> > +frames in packed raw bayer format to IPU3 CSI2 receiver.
+> > +
+> > +# This example assumes /dev/media0 as the ImgU media device
+> 
+> Shouldn't that be CIO2 ?
+
+Fixed.
+
+> 
+> > +
+> > +export MDEV=/dev/media0
+> > +
+> > +# and that ov5670 sensor is connected to i2c bus 10 with address 0x36
+> > +
+> > +export SDEV="ov5670 10-0036"
+> > +
+> > +# Establish the link for the media devices using media-ctl [#f3]_
+> > +media-ctl -d $MDEV -l "ov5670 ":0 -> "ipu3-csi2 0":0[1]
+> 
+> You're missing quotes around the link description, and the entity name is 
+> incorrect. Please test all the commands listed here with the upstream driver.
+> 
+> > +media-ctl -d $MDEV -l "ipu3-csi2 0":1 -> "ipu3-cio2 0":0[1]
+> 
+> Shouldn't this link be immutable ?
+
+To be changed in the driver I presume. I'm removing this line for now.
+
+> 
+> > +# Set the format for the media devices
+> > +media-ctl -d $MDEV -V "ov5670 ":0 [fmt:SGRBG10/2592x1944]
+> 
+> The entity name is incorrect.
+
+I fixed the quotes below, too...
+
+> 
+> > +media-ctl -d $MDEV -V "ipu3-csi2 0":0 [fmt:SGRBG10/2592x1944]
+> > +
+> > +media-ctl -d $MDEV -V "ipu3-csi2 0":1 [fmt:SGRBG10/2592x1944]
+> > +
+> > +Once the media pipeline is configured, desired sensor specific settings
+> > +(such as exposure and gain settings) can be set, using the yavta tool.
+> > +
+> > +e.g
+> > +
+> > +yavta -w 0x009e0903 444 $(media-ctl -d $MDEV -e "$SDEV")
+> > +
+> > +yavta -w 0x009e0913 1024 $(media-ctl -d $MDEV -e "$SDEV")
+> > +
+> > +yavta -w 0x009e0911 2046 $(media-ctl -d $MDEV -e "$SDEV")
+
+I simplified this a little...
+
+> > +
+> > +Once the desired sensor settings are set, frame captures can be done as
+> > below.
+> > +
+> > +e.g
+> > +
+> > +yavta --data-prefix -u -c10 -n5 -I -s2592x1944 --file=/tmp/frame-#.bin
+> 
+> Do you need --data-prefix ?
+> 
+> > +-f IPU3_GRBG10 media-ctl -d $MDEV -e ipu3-cio2 0
+> 
+> The upstream yavta names the format IPU3_SGRBG10.
+
+Fixed.
+
+> 
+> You're missing $(...) around the media-ctl command, and double quotes around 
+> the entity name.
+
+That, too.
+
+> 
+> > +
+> > +With the above command, 10 frames are captured at 2592x1944 resolution,
+> > with +sGRBG10 format and output as IPU3_GRBG10 format.
+> 
+> IPU3_SGRBG10 here too.
+
+Yes.
+
+> 
+> > +
+> > +The captured frames are available as /tmp/frame-#.bin files.
+> 
+> All this should be moved to the CIO2 section.
+
+Done.
+
+> 
+> > +Processing the image in raw bayer format
+> > +----------------------------------------
+> > +
+> > +Configuring ImgU V4L2 subdev for image processing
+> > +~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> > +
+> > +The ImgU V4L2 subdevs have to be configured with media controller APIs to
+> > +have all the video nodes setup correctly.
+> > +
+> > +Let us take "ipu3-imgu 0" subdev as an example.
+> > +
+> > +media-ctl -d $MDEV -r
+> > +
+> > +media-ctl -d $MDEV -l "ipu3-imgu 0 input":0 -> "ipu3-imgu 0":0[1]
+> > +
+> > +media-ctl -d $MDEV -l "ipu3-imgu 0":2 -> "output":0[1]
+> > +
+> > +media-ctl -d $MDEV -l "ipu3-imgu 0":3 -> "viewfinder":0[1]
+> > +
+> > +media-ctl -d $MDEV -l "ipu3-imgu 0":4 -> "3a stat":0[1]
+> 
+> Entity names are incorrect here too.
+
+Fixed.
+
+> 
+> > +Also the pipe mode of the corresponding V4L2 subdev should be set as
+> > +desired (e.g 0 for video mode or 1 for still mode) through the
+> > +control id 0x009819a1 as below.
+> > +
+> > +e.g
+> > +
+> > +v4l2n -d /dev/v4l-subdev7 --ctrl=0x009819A1=1
+> 
+> You can use yavta instead of v4l2n. Another option would be v4l2-ctl, but I'd 
+> avoid adding a dependency to another tool if yavta is already used in other 
+> places.
+
+Switched to yavta.
+
+> 
+> > +RAW bayer frames go through the following ISP pipeline HW blocks to
+> > +have the processed image output to the DDR memory.
+> > +
+> > +RAW bayer frame -> Input Feeder -> Bayer Down Scaling (BDS) -> Geometric
+> > +Distortion Correction (GDC) -> DDR
+> 
+> A more detailed block diagram, with the other blocks included, should be added 
+> to the ImgU description above. Each block should have a short description of 
+> its purpose.
+
+I think we have one in conjunction with the parameter format description.
+
+> 
+> > +The ImgU V4L2 subdev has to be configured with the supported resolutions
+> > +in all the above HW blocks, for a given input resolution.
+> > +
+> > +For a given supported resolution for an input frame, the Input Feeder,
+> > +Bayer Down Scaling and GDC blocks should be configured with the supported
+> > +resolutions. This information can be obtained by looking at the following
+> > +IPU3 ISP configuration table.
+> 
+> Does this mean that the ImgU will not operate properly when exercised through 
+> the MC and V4L2 only without configuration of the internal blocks through the 
+> processing parameters device node ?
+
+I need to let Raj and Yong to answer that. My understanding is the default
+parameters should be usable. If they're not, that needs to be addressed.
+
+> 
+> > +https://chromium.googlesource.com/chromiumos/overlays/board-overlays/+/mast
+> > er
+> > +
+> > +Under baseboard-poppy/media-libs/arc-camera3-hal-configs-poppy/files/gcss
+> > +directory, graph_settings_ov5670.xml can be used as an example.
+> 
+> The directory name is incorrect.
+
+Fixed.
+
+> 
+> > +The following steps prepare the ImgU ISP pipeline for the image processing.
+> > +
+> > +1. The ImgU V4L2 subdev data format should be set by using the
+> > +VIDIOC_SUBDEV_S_FMT on pad 0, using the GDC width and height obtained
+> > above.
+> > +
+> > +2. The ImgU V4L2 subdev cropping should be set by using the
+> > +VIDIOC_SUBDEV_S_SELECTION on pad 0, with V4L2_SEL_TGT_CROP as the target,
+> > +using the input feeder height and width.
+> > +
+> > +3. The ImgU V4L2 subdev composing should be set by using the
+> > +VIDIOC_SUBDEV_S_SELECTION on pad 0, with V4L2_SEL_TGT_COMPOSE as the
+> > target, +using the BDS height and width.
+> 
+> How the format and selection rectangles related to the internal processing 
+> blocks should also be explained in more details.
+
+To be added later.
+
+> 
+> > +For the ov5670 example, for an input frame with a resolution of 2592x1944
+> > +(which is input to the ImgU subdev pad 0), the corresponding resolutions
+> > +for input feeder, BDS and GDC are 2592x1944, 2592x1944 and 2560x1920
+> > +respectively.
+> 
+> Why ? How is that computed ? If my input resolution was different, how would I 
+> compute the other resolutions ?
+
+Ditto.
+
+> 
+> > +Once this is done, the received raw bayer frames can be input to the ImgU
+> > +V4L2 subdev as below, using the open source application v4l2n.
+> > +
+> > +For an image captured with 2592x1944 [#f4]_ resolution, with desired output
+> > +resolution as 2560x1920 and viewfinder resolution as 2560x1920, the
+> > following +v4l2n command can be used. This helps process the raw bayer
+> > frames and +produces the desired results for the main output image and the
+> > viewfinder +output, in NV12 format.
+> > +
+> > +v4l2n --pipe=4 --load=/tmp/frame-#.bin --open=/dev/video4
+> > +--fmt=type:VIDEO_OUTPUT_MPLANE,width=2592,height=1944,pixelformat=0X4733706
+> > 9 +--reqbufs=type:VIDEO_OUTPUT_MPLANE,count:1 --pipe=1
+> > --output=/tmp/frames.out +--open=/dev/video5
+> > +--fmt=type:VIDEO_CAPTURE_MPLANE,width=2560,height=1920,pixelformat=NV12
+> > +--reqbufs=type:VIDEO_CAPTURE_MPLANE,count:1 --pipe=2
+> > --output=/tmp/frames.vf +--open=/dev/video6
+> > +--fmt=type:VIDEO_CAPTURE_MPLANE,width=2560,height=1920,pixelformat=NV12
+> > +--reqbufs=type:VIDEO_CAPTURE_MPLANE,count:1 --pipe=3 --open=/dev/video7
+> > +--output=/tmp/frames.3A --fmt=type:META_CAPTURE,?
+> > +--reqbufs=count:1,type:META_CAPTURE --pipe=1,2,3,4 --stream=5
+> 
+> You can replace this with four yavta commands.
+
+Ditto.
+
+> 
+> > +where /dev/video4, /dev/video5, /dev/video6 and /dev/video7 devices point
+> > to +input, output, viewfinder and 3A statistics video nodes respectively. +
+> > +Converting the raw bayer image into YUV domain
+> > +----------------------------------------------
+> > +
+> > +The processed images after the above step, can be converted to YUV domain
+> > +as below.
+> > +
+> > +Main output frames
+> > +~~~~~~~~~~~~~~~~~~
+> > +
+> > +raw2pnm -x2560 -y1920 -fNV12 /tmp/frames.out /tmp/frames.out.pnm
+> 
+> PNM is an umbrella term that refers to any of the PBM, PGM or PPM format. As 
+> the raw2pnm tool outputs PPM files, let's name them .ppm here and below. This 
+> helps with some image viewers that use file extensions to identify the format, 
+> and have trouble handling .pnm files.
+
+Fixed.
+
+> 
+> > +where 2560x1920 is output resolution, NV12 is the video format, followed
+> > +by input frame and output PNM file.
+> > +
+> > +Viewfinder output frames
+> > +~~~~~~~~~~~~~~~~~~~~~~~~
+> > +
+> > +raw2pnm -x2560 -y1920 -fNV12 /tmp/frames.vf /tmp/frames.vf.pnm
+> > +
+> > +where 2560x1920 is output resolution, NV12 is the video format, followed
+> > +by input frame and output PNM file.
+> > +
+> > +Example user space code for IPU3
+> > +================================
+> > +
+> > +User space code that configures and uses IPU3 is available here.
+> > +
+> > +https://chromium.googlesource.com/chromiumos/platform/arc-camera/+/master/
+> > +
+> > +The source can be located under hal/intel directory.
+> > +
+> > +References
+> > +==========
+> > +
+> > +include/uapi/linux/intel-ipu3.h
+> > +
+> > +.. [#f1] https://github.com/intel/nvt
+> > +
+> > +.. [#f2] http://git.ideasonboard.org/yavta.git
+> > +
+> > +.. [#f3] http://git.ideasonboard.org/?p=media-ctl.git;a=summary
+> > +
+> > +.. [#f4] ImgU limitation requires an additional 16x16 for all input
+> > resolutions
+> 
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+> 
+> 
+> 
 
 -- 
 Regards,
 
-Laurent Pinchart
-
-
-
+Sakari Ailus
+sakari.ailus@linux.intel.com
