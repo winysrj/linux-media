@@ -2,143 +2,82 @@ Return-Path: <SRS0=yFxv=OW=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,T_MIXED_ES,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BC0D6C65BAE
-	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 10:04:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DD0E9C65BAE
+	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 10:40:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8205520989
-	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 10:04:45 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 8205520989
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=xs4all.nl
+	by mail.kernel.org (Postfix) with ESMTP id A255620811
+	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 10:40:12 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org A255620811
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727736AbeLMKEo (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 13 Dec 2018 05:04:44 -0500
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:55333 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727489AbeLMKEo (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Dec 2018 05:04:44 -0500
-Received: from localhost ([IPv6:2001:983:e9a7:1:8c39:f7d7:e233:2ba6])
-        by smtp-cloud8.xs4all.net with ESMTPA
-        id XNrFgr4GjuDWoXNrGgMoBj; Thu, 13 Dec 2018 11:04:42 +0100
-Message-ID: <5190acd360ae718c8e63dfbe4d69b034@smtp-cloud8.xs4all.net>
-Date:   Thu, 13 Dec 2018 11:04:41 +0100
-From:   "Hans Verkuil" <hverkuil@xs4all.nl>
+        id S1728594AbeLMKkM (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 13 Dec 2018 05:40:12 -0500
+Received: from mga01.intel.com ([192.55.52.88]:50877 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728537AbeLMKkM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 13 Dec 2018 05:40:12 -0500
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 13 Dec 2018 02:40:11 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.56,348,1539673200"; 
+   d="scan'208";a="129600906"
+Received: from paasikivi.fi.intel.com ([10.237.72.42])
+  by fmsmga001.fm.intel.com with ESMTP; 13 Dec 2018 02:40:10 -0800
+Received: from punajuuri.localdomain (punajuuri.localdomain [192.168.240.130])
+        by paasikivi.fi.intel.com (Postfix) with ESMTPS id B07C7204CC;
+        Thu, 13 Dec 2018 12:40:09 +0200 (EET)
+Received: from sailus by punajuuri.localdomain with local (Exim 4.89)
+        (envelope-from <sakari.ailus@linux.intel.com>)
+        id 1gXOPX-00007E-8H; Thu, 13 Dec 2018 12:40:07 +0200
+From:   Sakari Ailus <sakari.ailus@linux.intel.com>
 To:     linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-X-CMAE-Envelope: MS4wfNy11nYjsyc0ALzDr9aBrkDX7tBsJrPOgw3Sm6WEVqKnPPVgc01y2kA7MjcsXPiDFV2F/AhFMiu7dD1AI7p1RM4IRR4n4n2GQxwQ/Mc74aPOgb2DU3Mx
- gl5s09LSO19bODV2bQZvXpfkQ9d4dPyfQbun7U1eAgjIZfuGV0x9cCos4+bE+0tjUaYQdm26zeAj3TPSHMv6n5zgR/fMPcWwy2AEGilsaLZfmW38w4jYuk5S
+Cc:     hverkuil@xs4all.nl, mchehab@kernel.org,
+        laurent.pinchart@ideasonboard.com
+Subject: [PATCH 1/3] videobuf2-core: Prevent size alignment wrapping buffer size to 0
+Date:   Thu, 13 Dec 2018 12:40:04 +0200
+Message-Id: <20181213104006.401-2-sakari.ailus@linux.intel.com>
+X-Mailer: git-send-email 2.11.0
+In-Reply-To: <20181213104006.401-1-sakari.ailus@linux.intel.com>
+References: <20181213104006.401-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+PAGE_ALIGN() may wrap the buffer size around to 0. Prevent this by
+checking that the aligned value is not smaller than the unaligned one.
 
-Results of the daily build of media_tree:
+Note on backporting to stable: the file used to be under
+drivers/media/v4l2-core, it was moved to the current location after 4.14.
 
-date:			Thu Dec 13 10:12:56 CET 2018
-media-tree git hash:	d2b4387f3bdf016e266d23cf657465f557721488
-media_build git hash:	282066d93c925718ca9f49d4790fd044162694d6
-v4l-utils git hash:	56cd068e426c17d63457bbf772b7c8c475f254bc
-edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.18.0-3-amd64
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: stable@vger.kernel.org
+---
+ drivers/media/common/videobuf2/videobuf2-core.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.123-i686: OK
-linux-3.18.123-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.159-i686: OK
-linux-4.4.159-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.131-i686: OK
-linux-4.9.131-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.74-i686: OK
-linux-4.14.74-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: OK
-linux-4.19.1-i686: OK
-linux-4.19.1-x86_64: OK
-linux-4.20-rc1-i686: OK
-linux-4.20-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
+index 0ca81d495bdaf..0234ddbfa4de2 100644
+--- a/drivers/media/common/videobuf2/videobuf2-core.c
++++ b/drivers/media/common/videobuf2/videobuf2-core.c
+@@ -207,6 +207,10 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
+ 	for (plane = 0; plane < vb->num_planes; ++plane) {
+ 		unsigned long size = PAGE_ALIGN(vb->planes[plane].length);
+ 
++		/* Did it wrap around? */
++		if (size < vb->planes[plane].length)
++			goto free;
++
+ 		mem_priv = call_ptr_memop(vb, alloc,
+ 				q->alloc_devs[plane] ? : q->dev,
+ 				q->dma_attrs, size, q->dma_dir, q->gfp_flags);
+-- 
+2.11.0
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
