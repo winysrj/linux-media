@@ -2,36 +2,35 @@ Return-Path: <SRS0=AYlV=OX=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.1 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
-	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F08CDC43612
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CD728C43387
 	for <linux-media@archiver.kernel.org>; Fri, 14 Dec 2018 15:43:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 388222070B
+	by mail.kernel.org (Postfix) with ESMTP id 0AB28206C0
 	for <linux-media@archiver.kernel.org>; Fri, 14 Dec 2018 15:43:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729017AbeLNPng (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        id S1726520AbeLNPng (ORCPT <rfc822;linux-media@archiver.kernel.org>);
         Fri, 14 Dec 2018 10:43:36 -0500
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:35714 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727256AbeLNPnf (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:54322 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1728958AbeLNPnf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Fri, 14 Dec 2018 10:43:35 -0500
 Received: from test-nl.fritz.box ([80.101.105.217])
         by smtp-cloud7.xs4all.net with ESMTPA
-        id XpcSgqK2FdllcXpcjgJJFY; Fri, 14 Dec 2018 16:43:33 +0100
+        id XpcSgqK2FdllcXpcjgJJFP; Fri, 14 Dec 2018 16:43:33 +0100
 From:   hverkuil-cisco@xs4all.nl
 To:     linux-media@vger.kernel.org
 Cc:     Tomasz Figa <tfiga@chromium.org>,
         Ezequiel Garcia <ezequiel@collabora.com>,
         Philipp Zabel <p.zabel@pengutronix.de>,
         Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Subject: [PATCH 2/2] vicodec: add encoder support to write to multiple buffers
-Date:   Fri, 14 Dec 2018 16:43:16 +0100
-Message-Id: <20181214154316.62011-3-hverkuil-cisco@xs4all.nl>
+Subject: [PATCH 1/2] v4l2-mem2mem: add job_write callback
+Date:   Fri, 14 Dec 2018 16:43:15 +0100
+Message-Id: <20181214154316.62011-2-hverkuil-cisco@xs4all.nl>
 X-Mailer: git-send-email 2.19.2
 In-Reply-To: <20181214154316.62011-1-hverkuil-cisco@xs4all.nl>
 References: <20181214154316.62011-1-hverkuil-cisco@xs4all.nl>
@@ -47,191 +46,226 @@ X-Mailing-List: linux-media@vger.kernel.org
 
 From: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 
-With the new mem2mem functionality it is now easy to write the
-result of the encoder to multiple buffers.
+The m2m framework works well for a stateful decoder: in job_ready()
+you can process all output buffers until the whole compressed frame
+is available for decoding, and then you return true to signal that
+the decoder can start. The decoder decodes to a single capture buffer,
+and the job is finished.
+
+For encoders, however, life is harder: currently the m2m framework
+assumes that the result of the encoder fits in a single buffer. There
+is no nice API to be able to store the compressed frames into multiple
+capture buffers.
+
+This patch adds a new mode (TRANS_WRITING) where the result of the
+device_run is written out buffer-by-buffer until all the data is
+written. At that time v4l2_m2m_job_finish() is called and the next
+job can start.
+
+This mode is triggered by calling v4l2_m2m_job_writing() if it is
+clear in the process step that multiple buffers are required.
 
 Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 ---
- drivers/media/platform/vicodec/vicodec-core.c | 91 +++++++++++++++----
- 1 file changed, 75 insertions(+), 16 deletions(-)
+ drivers/media/v4l2-core/v4l2-mem2mem.c | 61 +++++++++++++++++++++-----
+ include/media/v4l2-mem2mem.h           | 27 +++++++++++-
+ 2 files changed, 77 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/media/platform/vicodec/vicodec-core.c b/drivers/media/platform/vicodec/vicodec-core.c
-index 2b7daff63425..f422804ab40e 100644
---- a/drivers/media/platform/vicodec/vicodec-core.c
-+++ b/drivers/media/platform/vicodec/vicodec-core.c
-@@ -115,6 +115,11 @@ struct vicodec_ctx {
- 	struct vb2_v4l2_buffer *last_src_buf;
- 	struct vb2_v4l2_buffer *last_dst_buf;
+diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
+index 5bbdec55b7d7..e00277e175f3 100644
+--- a/drivers/media/v4l2-core/v4l2-mem2mem.c
++++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
+@@ -43,8 +43,10 @@ module_param(debug, bool, 0644);
+ #define TRANS_QUEUED		(1 << 0)
+ /* Instance is currently running in hardware */
+ #define TRANS_RUNNING		(1 << 1)
++/* Instance is writing the result */
++#define TRANS_WRITING		(1 << 2)
+ /* Instance is currently aborting */
+-#define TRANS_ABORT		(1 << 2)
++#define TRANS_ABORT		(1 << 3)
  
-+	u64			dst_timestamp;
-+	u32			dst_field;
-+	u32			dst_flags;
-+	struct v4l2_timecode	dst_timecode;
-+
- 	/* Source and destination queue data */
- 	struct vicodec_q_data   q_data[2];
- 	struct v4l2_fwht_state	state;
-@@ -161,11 +166,13 @@ static int device_process(struct vicodec_ctx *ctx,
- 	int ret;
  
- 	q_dst = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
--	if (ctx->is_enc)
-+	if (ctx->is_enc) {
- 		p_src = vb2_plane_vaddr(&src_vb->vb2_buf, 0);
--	else
-+		p_dst = state->compressed_frame;
-+	} else {
- 		p_src = state->compressed_frame;
--	p_dst = vb2_plane_vaddr(&dst_vb->vb2_buf, 0);
-+		p_dst = vb2_plane_vaddr(&dst_vb->vb2_buf, 0);
-+	}
- 	if (!p_src || !p_dst) {
- 		v4l2_err(&dev->v4l2_dev,
- 			 "Acquiring kernel pointers to buffers failed\n");
-@@ -180,7 +187,11 @@ static int device_process(struct vicodec_ctx *ctx,
- 		ret = v4l2_fwht_encode(state, p_src, p_dst);
- 		if (ret < 0)
- 			return ret;
-+		ctx->comp_size = ret;
-+		ret = min_t(u32, ret, vb2_plane_size(&dst_vb->vb2_buf, 0));
-+		ctx->cur_buf_offset = ret;
- 		vb2_set_plane_payload(&dst_vb->vb2_buf, 0, ret);
-+		memcpy(vb2_plane_vaddr(&dst_vb->vb2_buf, 0), p_dst, ret);
- 	} else {
- 		state->info = q_dst->info;
- 		ret = v4l2_fwht_decode(state, p_src, p_dst);
-@@ -240,6 +251,14 @@ static void device_run(void *priv)
- 		src_buf->sequence = q_src->sequence++;
- 		src_buf = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
- 		v4l2_m2m_buf_done(src_buf, state);
-+		if (ctx->cur_buf_offset < ctx->comp_size) {
-+			ctx->dst_timestamp = dst_buf->vb2_buf.timestamp;
-+			ctx->dst_field = dst_buf->field;
-+			ctx->dst_flags = dst_buf->flags;
-+			dst_buf->flags &= ~V4L2_BUF_FLAG_LAST;
-+			if (dst_buf->flags & V4L2_BUF_FLAG_TIMECODE)
-+				ctx->dst_timecode = dst_buf->timecode;
-+		}
- 	} else if (vb2_get_plane_payload(&src_buf->vb2_buf, 0) == ctx->cur_buf_offset) {
- 		src_buf->sequence = q_src->sequence++;
- 		src_buf = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
-@@ -247,16 +266,22 @@ static void device_run(void *priv)
- 		ctx->cur_buf_offset = 0;
- 		ctx->comp_has_next_frame = false;
- 	}
--	v4l2_m2m_buf_done(dst_buf, state);
--	ctx->comp_size = 0;
--	ctx->comp_magic_cnt = 0;
--	ctx->comp_has_frame = false;
-+	if (!ctx->is_enc) {
-+		ctx->comp_size = 0;
-+		ctx->comp_magic_cnt = 0;
-+		ctx->comp_has_frame = false;
-+	}
- 	spin_unlock(ctx->lock);
- 
--	if (ctx->is_enc)
--		v4l2_m2m_job_finish(dev->enc_dev, ctx->fh.m2m_ctx);
--	else
-+	if (ctx->is_enc) {
-+		if (ctx->cur_buf_offset < ctx->comp_size)
-+			v4l2_m2m_job_writing(dev->enc_dev, ctx->fh.m2m_ctx);
-+		else
-+			v4l2_m2m_job_finish(dev->enc_dev, ctx->fh.m2m_ctx);
-+	} else {
- 		v4l2_m2m_job_finish(dev->dec_dev, ctx->fh.m2m_ctx);
-+	}
-+	v4l2_m2m_buf_done(dst_buf, state);
- }
- 
- static void job_remove_src_buf(struct vicodec_ctx *ctx, u32 state)
-@@ -273,6 +298,41 @@ static void job_remove_src_buf(struct vicodec_ctx *ctx, u32 state)
- 	spin_unlock(ctx->lock);
- }
- 
-+static void job_write(void *priv)
-+{
-+	struct vicodec_ctx *ctx = priv;
-+	struct v4l2_fwht_state *state = &ctx->state;
-+	struct vb2_v4l2_buffer *dst_buf;
-+	struct vicodec_q_data *q_cap;
-+	u32 size;
-+
-+	q_cap = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
-+	while (v4l2_m2m_num_dst_bufs_ready(ctx->fh.m2m_ctx) &&
-+	       ctx->cur_buf_offset < ctx->comp_size) {
-+		dst_buf = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
-+		size = min_t(u32, ctx->comp_size - ctx->cur_buf_offset,
-+			     vb2_plane_size(&dst_buf->vb2_buf, 0));
-+		vb2_set_plane_payload(&dst_buf->vb2_buf, 0, size);
-+		memcpy(vb2_plane_vaddr(&dst_buf->vb2_buf, 0),
-+		       state->compressed_frame + ctx->cur_buf_offset, size);
-+		ctx->cur_buf_offset += size;
-+
-+		dst_buf->sequence = q_cap->sequence++;
-+		dst_buf->vb2_buf.timestamp = ctx->dst_timestamp;
-+		if (ctx->dst_flags & V4L2_BUF_FLAG_TIMECODE)
-+			dst_buf->timecode = ctx->dst_timecode;
-+		dst_buf->field = ctx->dst_field;
-+		dst_buf->flags = ctx->dst_flags;
-+
-+		if (ctx->cur_buf_offset < ctx->comp_size)
-+			dst_buf->flags &= ~V4L2_BUF_FLAG_LAST;
-+
-+		if (ctx->cur_buf_offset == ctx->comp_size)
-+			v4l2_m2m_job_finish(ctx->dev->enc_dev, ctx->fh.m2m_ctx);
-+		v4l2_m2m_buf_done(dst_buf, VB2_BUF_STATE_DONE);
-+	}
-+}
-+
- static int job_ready(void *priv)
+ /* Offset base for buffers on the destination queue - used to distinguish
+@@ -253,9 +255,10 @@ EXPORT_SYMBOL(v4l2_m2m_get_curr_priv);
+ static void v4l2_m2m_try_run(struct v4l2_m2m_dev *m2m_dev)
  {
- 	static const u8 magic[] = {
-@@ -536,7 +596,7 @@ static int vidioc_try_fmt(struct vicodec_ctx *ctx, struct v4l2_format *f)
- 		pix->sizeimage = pix->width * pix->height *
- 			info->sizeimage_mult / info->sizeimage_div;
- 		if (pix->pixelformat == V4L2_PIX_FMT_FWHT)
--			pix->sizeimage += sizeof(struct fwht_cframe_hdr);
-+			pix->sizeimage /= 16;
- 		break;
- 	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
- 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
-@@ -554,7 +614,7 @@ static int vidioc_try_fmt(struct vicodec_ctx *ctx, struct v4l2_format *f)
- 		plane->sizeimage = pix_mp->width * pix_mp->height *
- 			info->sizeimage_mult / info->sizeimage_div;
- 		if (pix_mp->pixelformat == V4L2_PIX_FMT_FWHT)
--			plane->sizeimage += sizeof(struct fwht_cframe_hdr);
-+			plane->sizeimage /= 16;
- 		memset(pix_mp->reserved, 0, sizeof(pix_mp->reserved));
- 		memset(plane->reserved, 0, sizeof(plane->reserved));
- 		break;
-@@ -1204,16 +1264,14 @@ static int vicodec_open(struct file *file)
- 	if (ctx->is_enc)
- 		ctx->q_data[V4L2_M2M_SRC].sizeimage = size;
- 	else
--		ctx->q_data[V4L2_M2M_SRC].sizeimage =
--			size + sizeof(struct fwht_cframe_hdr);
-+		ctx->q_data[V4L2_M2M_SRC].sizeimage = size / 16;
- 	ctx->q_data[V4L2_M2M_DST] = ctx->q_data[V4L2_M2M_SRC];
- 	ctx->q_data[V4L2_M2M_DST].info =
- 		ctx->is_enc ? &pixfmt_fwht : v4l2_fwht_get_pixfmt(0);
- 	size = 1280 * 720 * ctx->q_data[V4L2_M2M_DST].info->sizeimage_mult /
- 		ctx->q_data[V4L2_M2M_DST].info->sizeimage_div;
- 	if (ctx->is_enc)
--		ctx->q_data[V4L2_M2M_DST].sizeimage =
--			size + sizeof(struct fwht_cframe_hdr);
-+		ctx->q_data[V4L2_M2M_DST].sizeimage = size / 16;
- 	else
- 		ctx->q_data[V4L2_M2M_DST].sizeimage = size;
- 	ctx->state.colorspace = V4L2_COLORSPACE_REC709;
-@@ -1281,6 +1339,7 @@ static const struct video_device vicodec_videodev = {
- static const struct v4l2_m2m_ops m2m_ops = {
- 	.device_run	= device_run,
- 	.job_ready	= job_ready,
-+	.job_write	= job_write,
+ 	unsigned long flags;
++	bool is_writing;
+ 
+ 	spin_lock_irqsave(&m2m_dev->job_spinlock, flags);
+-	if (NULL != m2m_dev->curr_ctx) {
++	if (m2m_dev->curr_ctx) {
+ 		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags);
+ 		dprintk("Another instance is running, won't run now\n");
+ 		return;
+@@ -274,6 +277,15 @@ static void v4l2_m2m_try_run(struct v4l2_m2m_dev *m2m_dev)
+ 
+ 	dprintk("Running job on m2m_ctx: %p\n", m2m_dev->curr_ctx);
+ 	m2m_dev->m2m_ops->device_run(m2m_dev->curr_ctx->priv);
++
++	spin_lock_irqsave(&m2m_dev->job_spinlock, flags);
++	is_writing = m2m_dev->curr_ctx &&
++		v4l2_m2m_num_dst_bufs_ready(m2m_dev->curr_ctx) &&
++		(m2m_dev->curr_ctx->job_flags & TRANS_WRITING);
++	spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags);
++
++	if (is_writing)
++		m2m_dev->m2m_ops->job_write(m2m_dev->curr_ctx->priv);
+ }
+ 
+ /*
+@@ -326,8 +338,8 @@ static void __v4l2_m2m_try_queue(struct v4l2_m2m_dev *m2m_dev,
+ 	spin_unlock_irqrestore(&m2m_ctx->cap_q_ctx.rdy_spinlock, flags_cap);
+ 	spin_unlock_irqrestore(&m2m_ctx->out_q_ctx.rdy_spinlock, flags_out);
+ 
+-	if (m2m_dev->m2m_ops->job_ready
+-		&& (!m2m_dev->m2m_ops->job_ready(m2m_ctx->priv))) {
++	if (m2m_dev->m2m_ops->job_ready &&
++	    !m2m_dev->m2m_ops->job_ready(m2m_ctx->priv)) {
+ 		dprintk("Driver not ready\n");
+ 		goto job_unlock;
+ 	}
+@@ -384,7 +396,8 @@ static void v4l2_m2m_device_run_work(struct work_struct *work)
+  * @m2m_ctx: m2m context with jobs to be canceled
+  *
+  * In case of streamoff or release called on any context,
+- * 1] If the context is currently running, then abort job will be called
++ * 1] If the context is currently running or writing, then abort job will be
++ *    called
+  * 2] If the context is queued, then the context will be removed from
+  *    the job_queue
+  */
+@@ -397,16 +410,19 @@ static void v4l2_m2m_cancel_job(struct v4l2_m2m_ctx *m2m_ctx)
+ 	spin_lock_irqsave(&m2m_dev->job_spinlock, flags);
+ 
+ 	m2m_ctx->job_flags |= TRANS_ABORT;
+-	if (m2m_ctx->job_flags & TRANS_RUNNING) {
++	if (m2m_ctx->job_flags & (TRANS_RUNNING | TRANS_WRITING)) {
+ 		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags);
+ 		if (m2m_dev->m2m_ops->job_abort)
+ 			m2m_dev->m2m_ops->job_abort(m2m_ctx->priv);
++		if (m2m_ctx->job_flags & TRANS_WRITING)
++			v4l2_m2m_job_finish(m2m_dev, m2m_ctx);
+ 		dprintk("m2m_ctx %p running, will wait to complete\n", m2m_ctx);
+-		wait_event(m2m_ctx->finished,
+-				!(m2m_ctx->job_flags & TRANS_RUNNING));
++		wait_event(m2m_ctx->finished, !(m2m_ctx->job_flags &
++					(TRANS_RUNNING | TRANS_WRITING)));
+ 	} else if (m2m_ctx->job_flags & TRANS_QUEUED) {
+ 		list_del(&m2m_ctx->queue);
+-		m2m_ctx->job_flags &= ~(TRANS_QUEUED | TRANS_RUNNING);
++		m2m_ctx->job_flags &= ~(TRANS_QUEUED | TRANS_RUNNING |
++					TRANS_WRITING);
+ 		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags);
+ 		dprintk("m2m_ctx: %p had been on queue and was removed\n",
+ 			m2m_ctx);
+@@ -416,6 +432,26 @@ static void v4l2_m2m_cancel_job(struct v4l2_m2m_ctx *m2m_ctx)
+ 	}
+ }
+ 
++void v4l2_m2m_job_writing(struct v4l2_m2m_dev *m2m_dev,
++			  struct v4l2_m2m_ctx *m2m_ctx)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&m2m_dev->job_spinlock, flags);
++	if (!m2m_dev->curr_ctx || m2m_dev->curr_ctx != m2m_ctx) {
++		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags);
++		dprintk("Called by an instance not currently running\n");
++		return;
++	}
++
++	m2m_dev->curr_ctx->job_flags &= ~TRANS_RUNNING;
++	m2m_dev->curr_ctx->job_flags |= TRANS_WRITING;
++
++	spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags);
++}
++EXPORT_SYMBOL(v4l2_m2m_job_writing);
++
++
+ void v4l2_m2m_job_finish(struct v4l2_m2m_dev *m2m_dev,
+ 			 struct v4l2_m2m_ctx *m2m_ctx)
+ {
+@@ -429,7 +465,8 @@ void v4l2_m2m_job_finish(struct v4l2_m2m_dev *m2m_dev,
+ 	}
+ 
+ 	list_del(&m2m_dev->curr_ctx->queue);
+-	m2m_dev->curr_ctx->job_flags &= ~(TRANS_QUEUED | TRANS_RUNNING);
++	m2m_dev->curr_ctx->job_flags &= ~(TRANS_QUEUED | TRANS_RUNNING |
++					  TRANS_WRITING);
+ 	wake_up(&m2m_dev->curr_ctx->finished);
+ 	m2m_dev->curr_ctx = NULL;
+ 
+@@ -504,6 +541,10 @@ int v4l2_m2m_qbuf(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
+ 		return -EPERM;
+ 	}
+ 	ret = vb2_qbuf(vq, vdev->v4l2_dev->mdev, buf);
++	if (!ret && !V4L2_TYPE_IS_OUTPUT(vq->type) &&
++	    (m2m_ctx->job_flags & TRANS_WRITING))
++		m2m_ctx->m2m_dev->m2m_ops->job_write(m2m_ctx->priv);
++
+ 	if (!ret && !(buf->flags & V4L2_BUF_FLAG_IN_REQUEST))
+ 		v4l2_m2m_try_schedule(m2m_ctx);
+ 
+diff --git a/include/media/v4l2-mem2mem.h b/include/media/v4l2-mem2mem.h
+index 5467264771ec..380f8aea9191 100644
+--- a/include/media/v4l2-mem2mem.h
++++ b/include/media/v4l2-mem2mem.h
+@@ -25,13 +25,18 @@
+  *		callback.
+  *		The job does NOT have to end before this callback returns
+  *		(and it will be the usual case). When the job finishes,
+- *		v4l2_m2m_job_finish() has to be called.
++ *		v4l2_m2m_job_writing() or v4l2_m2m_job_finish() has to be called.
+  * @job_ready:	optional. Should return 0 if the driver does not have a job
+  *		fully prepared to run yet (i.e. it will not be able to finish a
+  *		transaction without sleeping). If not provided, it will be
+  *		assumed that one source and one destination buffer are all
+  *		that is required for the driver to perform one full transaction.
+  *		This method may not sleep.
++ * @job_write:	optional. After v4l2_m2m_job_writing() was called, this callback
++ *		is called whenever a new capture buffer was queued so the result
++ *		of the job can be written to the newly queued buffer(s). Once the
++ *		full result has been written the job can be finished by calling
++ *		v4l2_m2m_job_finish().
+  * @job_abort:	optional. Informs the driver that it has to abort the currently
+  *		running transaction as soon as possible (i.e. as soon as it can
+  *		stop the device safely; e.g. in the next interrupt handler),
+@@ -44,6 +49,7 @@
+ struct v4l2_m2m_ops {
+ 	void (*device_run)(void *priv);
+ 	int (*job_ready)(void *priv);
++	void (*job_write)(void *priv);
+ 	void (*job_abort)(void *priv);
  };
  
- static int vicodec_probe(struct platform_device *pdev)
+@@ -159,6 +165,25 @@ struct vb2_queue *v4l2_m2m_get_vq(struct v4l2_m2m_ctx *m2m_ctx,
+  */
+ void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx);
+ 
++/**
++ * v4l2_m2m_job_writing() - inform the framework that the result of the job
++ * is ready and is now being written to capture buffers
++ *
++ * @m2m_dev: opaque pointer to the internal data to handle M2M context
++ * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
++ *
++ * Called by a driver if the resulting data of the job is being written to
++ * capture buffers. This means that whenever a new capture buffer is queued
++ * up the &v4l2_m2m_ops->job_write callback is called. Once all the data has
++ * been written v4l2_m2m_job_finish() is called.
++ *
++ * This is typically only needed by stateful encoders where it is not known
++ * until the compressed data arrives how many capture buffers are needed to
++ * store the result and it has to wait for new capture buffers to be queued.
++ */
++void v4l2_m2m_job_writing(struct v4l2_m2m_dev *m2m_dev,
++			  struct v4l2_m2m_ctx *m2m_ctx);
++
+ /**
+  * v4l2_m2m_job_finish() - inform the framework that a job has been finished
+  * and have it clean up
 -- 
 2.19.2
 
