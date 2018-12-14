@@ -2,282 +2,168 @@ Return-Path: <SRS0=AYlV=OX=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,T_MIXED_ES autolearn=ham autolearn_force=no
+X-Spam-Status: No, score=-6.2 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 35886C65BAE
-	for <linux-media@archiver.kernel.org>; Fri, 14 Dec 2018 02:48:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B2CDCC65BAE
+	for <linux-media@archiver.kernel.org>; Fri, 14 Dec 2018 03:12:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DC56E20870
-	for <linux-media@archiver.kernel.org>; Fri, 14 Dec 2018 02:48:49 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org DC56E20870
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.intel.com
+	by mail.kernel.org (Postfix) with ESMTP id 719B020879
+	for <linux-media@archiver.kernel.org>; Fri, 14 Dec 2018 03:12:54 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="IGSSdUc6"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 719B020879
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=chromium.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726359AbeLNCst (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 13 Dec 2018 21:48:49 -0500
-Received: from mga04.intel.com ([192.55.52.120]:26022 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725949AbeLNCss (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Dec 2018 21:48:48 -0500
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from orsmga001.jf.intel.com ([10.7.209.18])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 13 Dec 2018 18:48:47 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.56,351,1539673200"; 
-   d="scan'208";a="118712247"
-Received: from ipu5-build.bj.intel.com (HELO [10.238.232.171]) ([10.238.232.171])
-  by orsmga001.jf.intel.com with ESMTP; 13 Dec 2018 18:48:44 -0800
-Subject: Re: [PATCH v7 00/16] Intel IPU3 ImgU patchset
-To:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc:     "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        "Zhi, Yong" <yong.zhi@intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "Hu, Jerry W" <jerry.w.hu@intel.com>,
-        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
-        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
-        "Cao, Bingbu" <bingbu.cao@intel.com>
-References: <1540851790-1777-1-git-send-email-yong.zhi@intel.com>
- <1645510.9NPTHXyo7j@avalon>
- <14cba24a-a2c3-f0d4-5d5b-f514f9a24035@linux.intel.com>
- <1609628.n3aCoxV5Mp@avalon>
-From:   Bingbu Cao <bingbu.cao@linux.intel.com>
-Message-ID: <cbd00861-a715-2744-9c4d-48b972b7c7d0@linux.intel.com>
-Date:   Fri, 14 Dec 2018 10:53:56 +0800
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:52.0) Gecko/20100101
- Thunderbird/52.9.1
+        id S1726634AbeLNDMx (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 13 Dec 2018 22:12:53 -0500
+Received: from mail-yw1-f68.google.com ([209.85.161.68]:35073 "EHLO
+        mail-yw1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725949AbeLNDMx (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 13 Dec 2018 22:12:53 -0500
+Received: by mail-yw1-f68.google.com with SMTP id h32so1748787ywk.2
+        for <linux-media@vger.kernel.org>; Thu, 13 Dec 2018 19:12:52 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=6chvDpYuKOUdNKAhe8SqsSGz5gKVHREizTUjW93gBBA=;
+        b=IGSSdUc6+P3lkRXfOyEfw7/1isV/6KpGPmHELrENxMdUc1FplkWRDfhO2ubD52uRYD
+         E8LBvKkk24JMp5/qxdO5aW11YgW57cMtQuiQRRamCy2xj/6J+q82hbEl6f9hDxEE78fr
+         ZY/h5FK5Hox0VeSHXp5IuvafDSDqjQihnqX9M=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=6chvDpYuKOUdNKAhe8SqsSGz5gKVHREizTUjW93gBBA=;
+        b=nkraH/fmOr/g9s2lGnb9cayO+nOjAX+z15IH5Fkp3ySY2zKEJucrwefyvWgnSB308R
+         /eA+Q5v37cF+3Nybq++keIEUCGuBsn1M0UFegyWPT8PlpZAzjnQliFcI9umb1OEXV0nZ
+         i7i2bunIDneJwKzQ566ZwidC9gLOzCeqqchShAaMZx4ZNMmv04rzdS69DZFC8iq7o2vw
+         k1ArXsTCXpWKrtd3rl8CanHtFF1l7Ua+an4EAO2VgrPknfNbU5lESrfuzzDDLncg85Rj
+         9lUEY6Bcuz8Il6af0nDKbZt6qdUwL0z6oJCS98K8sqJuFO4keMd1Bksv5Rgg25mGabzY
+         8CtA==
+X-Gm-Message-State: AA+aEWbqiGJZeeuusVbRGFOajJE+tPHybD0MMXTJVoXAFu+4chRDoFhq
+        CkONI6xPF8ApYulrswWrQiWrTFCrwHw=
+X-Google-Smtp-Source: AFSGD/Uii0ULIkbDkPKG0T9ucutHKAOIzNQ6CNO4En/NgdmoGHz1Ds9UuJstTDKHMOzaLN8K64RLAQ==
+X-Received: by 2002:a81:6a04:: with SMTP id f4mr1381271ywc.485.1544757171959;
+        Thu, 13 Dec 2018 19:12:51 -0800 (PST)
+Received: from mail-yb1-f171.google.com (mail-yb1-f171.google.com. [209.85.219.171])
+        by smtp.gmail.com with ESMTPSA id w77sm1117757ywa.9.2018.12.13.19.12.50
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 13 Dec 2018 19:12:51 -0800 (PST)
+Received: by mail-yb1-f171.google.com with SMTP id d136so1708849ybh.10
+        for <linux-media@vger.kernel.org>; Thu, 13 Dec 2018 19:12:50 -0800 (PST)
+X-Received: by 2002:a25:84c6:: with SMTP id x6mr1366869ybm.293.1544757170391;
+ Thu, 13 Dec 2018 19:12:50 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <1609628.n3aCoxV5Mp@avalon>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+References: <20180821170629.18408-1-matwey@sai.msu.ru> <20180821170629.18408-3-matwey@sai.msu.ru>
+ <2213616.rQm4DhIJ7U@avalon> <20181207152502.GA30455@infradead.org>
+ <CAAFQd5C6gUvg8p0+Gtk22Z-dmeMPytdF4HujL9evYAew15bUmA@mail.gmail.com>
+ <20181212090917.GA30598@infradead.org> <CAAFQd5DhDOfk_2Dhq4MfJmoxpXP=Bm36HMZ55PSXxwkTAoCXSQ@mail.gmail.com>
+ <20181212135440.GA6137@infradead.org> <CAAFQd5C4RbMxRP+ox+BDuApMusTD=WUD9Vs6aWL3u=HovuWUig@mail.gmail.com>
+ <20181213140329.GA25339@infradead.org>
+In-Reply-To: <20181213140329.GA25339@infradead.org>
+From:   Tomasz Figa <tfiga@chromium.org>
+Date:   Fri, 14 Dec 2018 12:12:38 +0900
+X-Gmail-Original-Message-ID: <CAAFQd5BudF84jVaiy7KwevzBZnfYUZggDK=4W=g+Znf5VJjHsQ@mail.gmail.com>
+Message-ID: <CAAFQd5BudF84jVaiy7KwevzBZnfYUZggDK=4W=g+Znf5VJjHsQ@mail.gmail.com>
+Subject: Re: [PATCH v5 2/2] media: usb: pwc: Don't use coherent DMA buffers
+ for ISO transfer
+To:     Christoph Hellwig <hch@infradead.org>
+Cc:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        "Matwey V. Kornilov" <matwey@sai.msu.ru>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        "Matwey V. Kornilov" <matwey.kornilov@gmail.com>,
+        Alan Stern <stern@rowland.harvard.edu>,
+        Ezequiel Garcia <ezequiel@collabora.com>, hdegoede@redhat.com,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        rostedt@goodmis.org, mingo@redhat.com,
+        Mike Isely <isely@pobox.com>,
+        Bhumika Goyal <bhumirks@gmail.com>,
+        Colin King <colin.king@canonical.com>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        keiichiw@chromium.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
+On Thu, Dec 13, 2018 at 11:03 PM Christoph Hellwig <hch@infradead.org> wrote:
+>
+> On Thu, Dec 13, 2018 at 12:13:29PM +0900, Tomasz Figa wrote:
+> > Putting aside the problem of memory without struct page, one thing to
+> > note here that what is a contiguous DMA range for device X, may not be
+> > mappable contiguously for device Y and it would still need something
+> > like a scatter list to fully describe the buffer.
+>
+> I think we need to define contiguous here.
+>
+> If the buffer always is physically contiguous, as it is in the currently
+> posted series, we can always map it with a single dma_map_single call
+> (if the hardware can handle that in a single segment is a different
+> question, but out of scope here).
 
+Are you sure the buffer is always physically contiguous? At least the
+ARM IOMMU dma_ops [1] and the DMA-IOMMU dma_ops [2] will simply
+allocate pages without any continuity guarantees and remap the pages
+into a contiguous kernel VA (unless DMA_ATTR_NO_KERNEL_MAPPING is
+given, which makes them return an opaque cookie instead of the kernel
+VA).
 
-On 12/14/2018 06:24 AM, Laurent Pinchart wrote:
-> Hello Bingbu,
->
-> On Wednesday, 12 December 2018 06:55:53 EET Bingbu Cao wrote:
->> On 12/11/2018 09:43 PM, Laurent Pinchart wrote:
->>> On Tuesday, 11 December 2018 15:34:49 EET Laurent Pinchart wrote:
->>>> On Wednesday, 5 December 2018 02:30:46 EET Mani, Rajmohan wrote:
->>>>
->>>> [snip]
->>>>
->>>>> I can see a couple of steps missing in the script below.
->>>>> (https://lists.libcamera.org/pipermail/libcamera-devel/2018-November/000
->>>>> 040.html)
->>>>>
->>>>>   From patch 02 of this v7 series "doc-rst: Add Intel IPU3
->>>>>   documentation", under section "Configuring ImgU V4L2 subdev for image
->>>>>   processing"...
->>>>>
->>>>> 1. The pipe mode needs to be configured for the V4L2 subdev.
->>>>>
->>>>> Also the pipe mode of the corresponding V4L2 subdev should be set as
->>>>> desired (e.g 0 for video mode or 1 for still mode) through the control
->>>>> id 0x009819a1 as below.
->>>>>
->>>>> e.g v4l2n -d /dev/v4l-subdev7 --ctrl=0x009819A1=1
->>>> I assume the control takes a valid default value ? It's better to set it
->>>> explicitly anyway, so I'll do so.
->> The video mode is set by default. If you want to set to still mode or change
->> mode, you need set the subdev control.
->>
->>>>> 2. ImgU pipeline needs to be configured for image processing as below.
->>>>>
->>>>> RAW bayer frames go through the following ISP pipeline HW blocks to
->>>>> have the processed image output to the DDR memory.
->>>>>
->>>>> RAW bayer frame -> Input Feeder -> Bayer Down Scaling (BDS) ->
->>>>> Geometric Distortion Correction (GDC) -> DDR
->>>>>
->>>>> The ImgU V4L2 subdev has to be configured with the supported
->>>>> resolutions in all the above HW blocks, for a given input resolution.
->>>>>
->>>>> For a given supported resolution for an input frame, the Input Feeder,
->>>>> Bayer Down Scaling and GDC blocks should be configured with the
->>>>> supported resolutions. This information can be obtained by looking at
->>>>> the following IPU3 ISP configuration table for ov5670 sensor.
->>>>>
->>>>> https://chromium.googlesource.com/chromiumos/overlays/board-overlays/+/m
->>>>> aster/baseboard-poppy/media-libs/cros-camera-hal-configs-poppy/files/
->>>>> gcss/graph_settings_ov5670.xml
->>>>>
->>>>> For the ov5670 example, for an input frame with a resolution of
->>>>> 2592x1944 (which is input to the ImgU subdev pad 0), the corresponding
->>>>> resolutions for input feeder, BDS and GDC are 2592x1944, 2592x1944 and
->>>>> 2560x1920 respectively.
->>>> How is the GDC output resolution computed from the input resolution ?
->>>> Does the GDC always consume 32 columns and 22 lines ?
->> All the intermediate resolutions in the pipeline are determined by the
->> actual use case, in other word determined by the IMGU input
->> resolution(sensor output) and the final output and viewfinder resolution.
->> BDS mainly do Bayer downscaling, it has limitation that the downscaling
->> factor must be a value a integer multiple of 1/32.
->> GDC output depends on the input and width should be x8 and height x4
->> alignment.
-> Thank you for the information. This will need to be captured in the
-> documentation, along with information related to how each block in the
-> hardware pipeline interacts with the image size. It should be possible for a
-> developer to compute the output and viewfinder resolutions based on the
-> parameters of the image processing algorithms just with the information
-> contained in the driver documentation.
->
->>>>> The following steps prepare the ImgU ISP pipeline for the image
->>>>> processing.
->>>>>
->>>>> 1. The ImgU V4L2 subdev data format should be set by using the
->>>>> VIDIOC_SUBDEV_S_FMT on pad 0, using the GDC width and height obtained
->>>>> above.
->>>> If I understand things correctly, the GDC resolution is the pipeline
->>>> output resolution. Why is it configured on pad 0 ?
->> We see the GDC output resolution as the input of output system, the sink pad
->> format is used for output and viewfinder resolutions.
-> The ImgU subdev is supposed to represent the ImgU. Pad 0 should thus be the
-> ImgU input, the format configured there should correspond to the format on the
-> connected video node, and should thus be the sensor format. You can then use
-> the crop and compose rectangles on pad 0, along with the format, crop and
-> compose rectangles on the output and viewfinder pads, to configure the device.
-> This should be fixed in the driver, and the documentation should then be
-> updated accordingly.
-Ack.
->
->>>>> 2. The ImgU V4L2 subdev cropping should be set by using the
->>>>> VIDIOC_SUBDEV_S_SELECTION on pad 0, with V4L2_SEL_TGT_CROP as the
->>>>> target, using the input feeder height and width.
->>>>>
->>>>> 3. The ImgU V4L2 subdev composing should be set by using the
->>>>> VIDIOC_SUBDEV_S_SELECTION on pad 0, with V4L2_SEL_TGT_COMPOSE as the
->>>>> target, using the BDS height and width.
->>>>>
->>>>> Once these 2 steps are done, the raw bayer frames can be input to the
->>>>> ImgU V4L2 subdev for processing.
->>>> Do I need to capture from both the output and viewfinder nodes ? How are
->>>> they related to the IF -> BDS -> GDC pipeline, are they both fed from the
->>>> GDC output ? If so, how does the viewfinder scaler fit in that picture ?
->> The output capture should be set, the viewfinder can be disabled.
->> The IF and BDS are seen as crop and compose of the imgu input video
->> device. The GDC is seen as the subdev sink pad and OUTPUT/VF are source
->> pads.
-> The GDC is the last block in the pipeline according to the information
-> provided above. How can it be seen as the subdev sink pad ? That doesn't make
-> sense to me. I'm not asking for the MC graph to expose all internal blocks of
-> the ImgU, but if you want to retain a single subdev model, the format on the
-> sink pad needs to correspond to what is provided to the ImgU. Please see
-> figure 4.6 of https://linuxtv.org/downloads/v4l-dvb-apis/uapi/v4l/dev-subdev.html for more information regarding how you can use the sink crop, sink
-> compose and source crop rectangles.
-Ack, thanks!
->
->>>> I have tried the above configuration with the IPU3 v8 driver, and while
->>>> the kernel doesn't crash, no images get processed. The userspace
->>>> processes wait forever for buffers to be ready. I then configured pad 2
->>>> to 2560x1920 and pad 3 to 1920x1080, and managed to capture images \o/
->>>>
->>>> There's one problem though: during capture, or very soon after it, the
->>>> machine locks up completely. I suspect a memory corruption, as when it
->>>> doesn't log immediately commands such as dmesg will not produce any
->>>> output and just block, until the system freezes soon after (especially
->>>> when moving the mouse).
->>>>
->>>> I would still call this an improvement to some extent, but there's
->>>> definitely room for more improvements :-)
->>>>
->>>> To reproduce the issue, you can run the ipu3-process.sh script (attached
->>>> to this e-mail) with the following arguments:
->>>>
->>>> $ ipu3-process.sh --out 2560x1920 frame-2592x1944.cio2
->>>>
->>>> frame-2592x1944.cio2 is a binary file containing a 2592x1944 images in
->>>> the IPU3-specific Bayer format (for a total of 6469632 bytes).
->>> I managed to get the dmesg output, and it doesn't look pretty.
->>>
->>> [  571.217192] WARNING: CPU: 3 PID: 1303 at /home/laurent/src/iob/oss/
->>> libcamera/linux/drivers/staging/media/ipu3/ipu3-dmamap.c:172
->>> ipu3_dmamap_unmap+0x30/0x75 [ipu3_imgu]
->>> [  571.217196] Modules linked in: asix usbnet mii zram arc4 iwlmvm
->>> mac80211
->>> iwlwifi intel_rapl x86_pkg_temp_thermal intel_powerclamp coretemp cfg80211
->>> 8250_dw hid_multitouch ipu3_cio2 ipu3_imgu(C) videobuf2_dma_sg
->>> videobuf2_memops videobuf2_v4l2 videobuf2_common processor_thermal_device
->>> intel_soc_dts_iosf ov13858 dw9714 ov5670 v4l2_fwnode v4l2_common videodev
->>> at24 media int3403_thermal int340x_thermal_zone cros_ec_lpcs cros_ec_core
->>> int3400_thermal chromeos_pstore mac_hid acpi_thermal_rel autofs4 usbhid
->>> mmc_block hid_generic i915 video i2c_algo_bit drm_kms_helper syscopyarea
->>> sysfillrect sdhci_pci sysimgblt fb_sys_fops cqhci sdhci drm
->>> drm_panel_orientation_quirks i2c_hid hid
->>> [  571.217254] CPU: 3 PID: 1303 Comm: yavta Tainted: G         C
->>> 4.20.0-rc6+ #2
->>> [  571.217256] Hardware name: HP Soraka/Soraka, BIOS  08/30/2018
->>> [  571.217267] RIP: 0010:ipu3_dmamap_unmap+0x30/0x75 [ipu3_imgu]
->>> [  571.217271] Code: 54 55 48 8d af d0 6e 00 00 53 48 8b 76 10 49 89 fc f3
->>> 48 0f bc 8f f0 6e 00 00 48 89 ef 48 d3 ee e8 e6 73 d9 e6 48 85 c0 75 07
->>> <0f> 0b 5b 5d 41 5c c3 48 8b 70 20 48 89 c3 48 8b 40 18 49 8b bc 24
->>> [  571.217274] RSP: 0018:ffffb675021c7b38 EFLAGS: 00010246
->>> [  571.217278] RAX: 0000000000000000 RBX: ffff8f5cf58f8448 RCX:
->>> 000000000000000c
->>> [  571.217280] RDX: 0000000000000000 RSI: 0000000000000202 RDI:
->>> 00000000ffffffff
->>> [  571.217283] RBP: ffff8f5cf58f6ef8 R08: 00000000000006c5 R09:
->>> ffff8f5cfaba16f0
->>> [  571.217286] R10: ffff8f5cbf508f98 R11: 000000e03da27aba R12:
->>> ffff8f5cf58f0028
->>> [  571.217289] R13: ffff8f5cf58f0028 R14: 0000000000000000 R15:
->>> ffff8f5cf58f04e8
->>> [  571.217293] FS:  00007f85d009c700(0000) GS:ffff8f5cfab80000(0000)
->>> knlGS:
->>> 0000000000000000
->>> [  571.217296] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
->>> [  571.217299] CR2: 00007f3440fce4b0 CR3: 000000014abf2001 CR4:
->>> 00000000003606e0
->>> [  571.217301] Call Trace:
->>> [  571.217316]  ipu3_dmamap_free+0x5b/0x8f [ipu3_imgu]
->>> [  571.217326]  ipu3_css_pool_cleanup+0x25/0x2f [ipu3_imgu]
->>> [  571.217338]  ipu3_css_pipeline_cleanup+0x59/0x8f [ipu3_imgu]
->>> [  571.217348]  ipu3_css_stop_streaming+0x15b/0x20f [ipu3_imgu]
->>> [  571.217360]  imgu_s_stream+0x5a/0x30a [ipu3_imgu]
->>> [  571.217371]  ? ipu3_all_nodes_streaming+0x14f/0x16b [ipu3_imgu]
->>> [  571.217382]  ipu3_vb2_stop_streaming+0xe4/0x10f [ipu3_imgu]
->>> [  571.217392]  __vb2_queue_cancel+0x2b/0x1b8 [videobuf2_common]
->>> [  571.217402]  vb2_core_streamoff+0x30/0x71 [videobuf2_common]
->>> [  571.217418]  __video_do_ioctl+0x258/0x38e [videodev]
->>> [  571.217438]  video_usercopy+0x25f/0x4e5 [videodev]
->>> [  571.217453]  ? copy_overflow+0x14/0x14 [videodev]
->>> [  571.217471]  v4l2_ioctl+0x4d/0x58 [videodev]
->>> [  571.217480]  vfs_ioctl+0x1e/0x2b
->>> [  571.217486]  do_vfs_ioctl+0x531/0x559
->>> [  571.217494]  ? vfs_write+0xd1/0xdf
->>> [  571.217500]  ksys_ioctl+0x50/0x70
->>> [  571.217506]  __x64_sys_ioctl+0x16/0x19
->>> [  571.217512]  do_syscall_64+0x53/0x60
->>> [  571.217519]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
->>> [  571.217524] RIP: 0033:0x7f85cf9b9f47
->>> [  571.217528] Code: 00 00 00 48 8b 05 51 6f 2c 00 64 c7 00 26 00 00 00 48
->>> c7 c0 ff ff ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 b8 10 00 00 00 0f 05
->>> <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d 21 6f 2c 00 f7 d8 64 89 01 48
->>> [  571.217531] RSP: 002b:00007ffc59056b78 EFLAGS: 00000246 ORIG_RAX:
->>> 0000000000000010
->>> [  571.217535] RAX: ffffffffffffffda RBX: 0000000000000000 RCX:
->>> 00007f85cf9b9f47
->>> [  571.217537] RDX: 00007ffc59056b84 RSI: 0000000040045613 RDI:
->>> 0000000000000003
->>> [  571.217540] RBP: 000055f4c4dc0af8 R08: 00007f85cd7c4000 R09:
->>> 00007f85d009c700
->>> [  571.217542] R10: 0000000000000020 R11: 0000000000000246 R12:
->>> 000055f4c4dc0b06
->>> [  571.217545] R13: 0000000000000004 R14: 00007ffc59056d50 R15:
->>> 00007ffc59057825
->>> [  571.217553] ---[ end trace 4b42bd84953eff53 ]---
->>> [  571.318645] ipu3-imgu 0000:00:05.0: wait cio gate idle timeout
+[1] http://git.infradead.org/users/hch/misc.git/blob/2dbb028e4a3017e1b71a6ae3828a3548545eba24:/arch/arm/mm/dma-mapping.c#l1291
+[2] http://git.infradead.org/users/hch/misc.git/blob/2dbb028e4a3017e1b71a6ae3828a3548545eba24:/drivers/iommu/dma-iommu.c#l450
 
+>
+> If on the other hand we have multiple discontiguous physical address
+> range that are mapped using the iommu and vmap this interface doesn't
+> work anyway.
+>
+> But in that case you should just do multiple allocations and then use
+> dma_map_sg coalescing on the hardware side, and vmap [1] if really
+> needed.  I guess for this we want to gurantee that dma_alloc_attrs
+> with the DMA_ATTR_NON_CONSISTENT allows virt_to_page to be used on
+> the return value, which the currently posted implementation does,
+> although I'm a it reluctant about the API guarantee.
+>
+>
+> > Do we already have a structure that would work for this purposes? I'd
+> > assume that we need something like the existing scatterlist but with
+> > page links replaced with something that doesn't require the memory to
+> > have struct page, possibly just PFN?
+>
+> The problem is that just the PFN / physical address isn't enough for
+> most use cases as you also need a kernel virtual address.  But moving
+> struct scatterlist to store a pfn instead of a struct page would be
+> pretty nice for various reasons anyway.
+>
+> >
+> > >
+> > > It would also be great to use that opportunity to get rid of all the
+> > > code duplication of almost the same dmabug provides backed by the
+> > > DMA API.
+> >
+> > Could you sched some more light on this? I'm curious what is the code
+> > duplication you're referring to.
+>
+> It seems like a lot of the dmabuf ops are just slight various of
+> dma_alloc + dma_get_sttable + dma_map_sg / dma_unmap_sg.  There must be
+> a void to not duplicate that over and over.
+
+Device/kernel/userspace maps/unmaps shouldn't really be
+exporter-specific indeed, as long as one provides a uniform way of
+describing a buffer and then have dma_map_*() work on that. Possibly a
+part that manages the CPU cache maintenance either. There is still
+some space for some special device caches (or other synchronization),
+though.
+
+>
+> [1] and use invalidate_kernel_vmap_range and flush_kernel_vmap_range
+>     to manually take care of cache flushing.
