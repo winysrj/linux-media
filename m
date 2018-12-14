@@ -7,61 +7,61 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
 	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2CA66C43387
-	for <linux-media@archiver.kernel.org>; Fri, 14 Dec 2018 16:40:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B4DADC43387
+	for <linux-media@archiver.kernel.org>; Fri, 14 Dec 2018 16:40:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C689F206C2
-	for <linux-media@archiver.kernel.org>; Fri, 14 Dec 2018 16:40:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 58613206DD
+	for <linux-media@archiver.kernel.org>; Fri, 14 Dec 2018 16:40:46 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="EetMesHU"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="sOcbuqqS"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729982AbeLNQkm (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 14 Dec 2018 11:40:42 -0500
-Received: from mail-wr1-f65.google.com ([209.85.221.65]:38970 "EHLO
-        mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729619AbeLNQkm (ORCPT
+        id S1730090AbeLNQkp (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 14 Dec 2018 11:40:45 -0500
+Received: from mail-wr1-f66.google.com ([209.85.221.66]:42970 "EHLO
+        mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729619AbeLNQko (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Dec 2018 11:40:42 -0500
-Received: by mail-wr1-f65.google.com with SMTP id t27so6050701wra.6
-        for <linux-media@vger.kernel.org>; Fri, 14 Dec 2018 08:40:41 -0800 (PST)
+        Fri, 14 Dec 2018 11:40:44 -0500
+Received: by mail-wr1-f66.google.com with SMTP id q18so6043286wrx.9
+        for <linux-media@vger.kernel.org>; Fri, 14 Dec 2018 08:40:43 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=oYcA9EHF8OFyGzhe2E5tic7eN4P0pkwHdAnCokxENPA=;
-        b=EetMesHUAVKjIAccLAxAunVjFJ+n0oWKHRxHYdDt0/iZbt2N6G8OLBSGxZtMxKy6ac
-         yAswuA5Y6OH3kwiGqnJy2So218h68XqzjAOJgc4jHmra82iEcnAKcCuVg+jTHGbWF6Vd
-         lUMlBSh3ZLdZeGbRQ11hteK3KN4PBPv1criIlroqwu++3uZ7S6AES+wLQyu85JS0kyD6
-         o+Qofz5/+hOhlg7BlI99t/DuM2X953sHfx+pIXbCPnvTqgbIcEc7Pv1kB7HchaW3V7wP
-         nW86BD5D+Wcx6WD5xlbHHQdMD7CgYzPE1u9jZ9Uy9jGJtB4TwQFSHp03a7bC0ogsqjUC
-         islA==
+        bh=JIPWtui+JS8yVaI5mPX+bGhjb5g1JesbJdchtjV2uns=;
+        b=sOcbuqqSlt0dQfhv2KX9lOvbD1FWpHTtGtc9OMfsyugy4yC+7JEbC3/fkHYfR/UpSV
+         hLa2MbzDyYG+F65HH1O2x8XknNlJtjSeOWCDTnQL74cIahDvWhyeX21Pk8lN7yNCvqEO
+         iYBNOx0ZAoWHu0hsMI1BWn6TZS0yVyCBJyvciJmHT3I5fJ54+2bFFI8sPfmj42bzI2aL
+         gGZSomM/ynyD8pxRX6weXjwYB/7QHQpcqS4s2tVdvNqpnNefPqN5p4/1pgNjYaRLFE17
+         n6R4kSLMQgWTObWzHyYvurMWsepDg77tTWISGfSVUhZvICQtxdQy8d0qlap0yUn+ycPM
+         uUHw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=oYcA9EHF8OFyGzhe2E5tic7eN4P0pkwHdAnCokxENPA=;
-        b=mn0Bm4eqqN0N6ELc8R1VudhYoXl+eOrFrtffrZmSWeANnlY2JLwC4TB5aHRGUL7u9T
-         FG02+CiE+zPgVGYuJyMVQNiPzjizV0yudIIA9Dq4yYFA3CPRJTULuR9bToVTnK3jwxIF
-         5tPf6A5H7Ax9aVj+3csKkCaWJNVBS+ewkfQgSiAMujlLN+stQ6Tb7Lq+n6kTlzt88kpk
-         ZZAlIhp9nwospOW1C9iCvxOCr2Oylz9qjNR/KpZdKNmvq5pcK0/DZ5XDY3s4l4oc5WL4
-         JlbNW/aYrZxpbnsjx++nMf4hmRM76rvoTTEV7cssMJv1ayvTKxwozy0JpX7+ZjBml/ma
-         qTcQ==
-X-Gm-Message-State: AA+aEWZdR0GnCKyO116VXED3GhjJNCUMIYAF28hsq1Lez1fIcYXJdE7C
-        5qptuuvQqQL/EqrzI8J7Vpx4Xh8z
-X-Google-Smtp-Source: AFSGD/VQI2xNSGdtqNBA7nN627REP4/VEbsVoInPu6IXvBlB5d7L1fDRK+1P1x2dXlSQHcbOxLrXkQ==
-X-Received: by 2002:adf:fc09:: with SMTP id i9mr3055476wrr.299.1544805640310;
-        Fri, 14 Dec 2018 08:40:40 -0800 (PST)
+        bh=JIPWtui+JS8yVaI5mPX+bGhjb5g1JesbJdchtjV2uns=;
+        b=E+EZzhAPUkBRVMuayB7/uT9xGBazT/68C3la1iB9dP1xFMLWV220gZ15i64ScJNOOv
+         SpgWRS5fEbgbrWpKwBlS+qfgAWKQ2P4jf6G3yMDyrmoUFauyHqhIV+hUypHmEfQWutwk
+         xfmMUKXnYsHZ07JM+uW4iu5NZByWlbJHfEEcsZAchFH0iZPMNL4O8F/kUYHTPw6oF1Zu
+         Qr/y9Y6JpG2RG6vRRO+tuf0+H5AtqT3bl/fetTuJXRVr7imbUf8YtqnYtnK0V3OOepm0
+         Pqclq8wI/KqKyYs5S2+tIvXgbubFgA7HEOteAxBrlZnTxEjc5cpvCcSoxT0/kditggf3
+         qDaA==
+X-Gm-Message-State: AA+aEWbN/AWGzmyjhG3kAGm8FTsKKTBCLBslfy6v5I2yYq5As9rSfn0d
+        OrLx6lYnE/vUm85Wk/GNK7RWRqpp
+X-Google-Smtp-Source: AFSGD/VaYbxjJpyxIwEXfJDZ23rRdte2EndHqJcVwT0xTHFTUQfTqU5JLoINJa+CCaGoHF6p0P373g==
+X-Received: by 2002:a5d:480d:: with SMTP id l13mr3408296wrq.175.1544805642205;
+        Fri, 14 Dec 2018 08:40:42 -0800 (PST)
 Received: from ped.lan (ip5f5abcae.dynamic.kabel-deutschland.de. [95.90.188.174])
-        by smtp.googlemail.com with ESMTPSA id c13sm7680392wrb.38.2018.12.14.08.40.38
+        by smtp.googlemail.com with ESMTPSA id c13sm7680392wrb.38.2018.12.14.08.40.40
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Fri, 14 Dec 2018 08:40:39 -0800 (PST)
+        Fri, 14 Dec 2018 08:40:41 -0800 (PST)
 From:   Philipp Zabel <philipp.zabel@gmail.com>
 To:     linux-media@vger.kernel.org
 Cc:     Hans Verkuil <hverkuil@xs4all.nl>,
         Philipp Zabel <philipp.zabel@gmail.com>
-Subject: [PATCH 1/8] media: gspca: ov534: replace msleep(10) with usleep_range
-Date:   Fri, 14 Dec 2018 17:40:24 +0100
-Message-Id: <20181214164031.16757-2-philipp.zabel@gmail.com>
+Subject: [PATCH 2/8] media: gspca: support multiple pixel formats in ENUM_FRAMEINTERVALS
+Date:   Fri, 14 Dec 2018 17:40:25 +0100
+Message-Id: <20181214164031.16757-3-philipp.zabel@gmail.com>
 X-Mailer: git-send-email 2.20.0
 In-Reply-To: <20181214164031.16757-1-philipp.zabel@gmail.com>
 References: <20181214164031.16757-1-philipp.zabel@gmail.com>
@@ -72,36 +72,46 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-For short waits, usleep_range should be used instead of msleep,
-see Documentation/timers/timers-howto.txt.
+If a driver supports multiple pixel formats with the same frame size,
+ENUM_FRAMEINTERVALS will currently only work for the first pixel format.
+Fix this by adding pixelformat support to wxh_to_mode().
 
 Signed-off-by: Philipp Zabel <philipp.zabel@gmail.com>
 ---
- drivers/media/usb/gspca/ov534.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/usb/gspca/gspca.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/usb/gspca/ov534.c b/drivers/media/usb/gspca/ov534.c
-index d06dc0755b9a..44f06a58bb67 100644
---- a/drivers/media/usb/gspca/ov534.c
-+++ b/drivers/media/usb/gspca/ov534.c
-@@ -679,7 +679,7 @@ static int sccb_check_status(struct gspca_dev *gspca_dev)
+diff --git a/drivers/media/usb/gspca/gspca.c b/drivers/media/usb/gspca/gspca.c
+index 3137f5d89d80..13361cfa6903 100644
+--- a/drivers/media/usb/gspca/gspca.c
++++ b/drivers/media/usb/gspca/gspca.c
+@@ -912,13 +912,14 @@ static void gspca_set_default_mode(struct gspca_dev *gspca_dev)
+ }
+ 
+ static int wxh_to_mode(struct gspca_dev *gspca_dev,
+-			int width, int height)
++			int width, int height, u32 pixelformat)
+ {
  	int i;
  
- 	for (i = 0; i < 5; i++) {
--		msleep(10);
-+		usleep_range(10000, 20000);
- 		data = ov534_reg_read(gspca_dev, OV534_REG_STATUS);
+ 	for (i = 0; i < gspca_dev->cam.nmodes; i++) {
+ 		if (width == gspca_dev->cam.cam_mode[i].width
+-		    && height == gspca_dev->cam.cam_mode[i].height)
++		    && height == gspca_dev->cam.cam_mode[i].height
++		    && pixelformat == gspca_dev->cam.cam_mode[i].pixelformat)
+ 			return i;
+ 	}
+ 	return -EINVAL;
+@@ -1152,7 +1153,8 @@ static int vidioc_enum_frameintervals(struct file *filp, void *priv,
+ 	int mode;
+ 	__u32 i;
  
- 		switch (data) {
-@@ -1277,7 +1277,7 @@ static int sd_init(struct gspca_dev *gspca_dev)
+-	mode = wxh_to_mode(gspca_dev, fival->width, fival->height);
++	mode = wxh_to_mode(gspca_dev, fival->width, fival->height,
++			   fival->pixel_format);
+ 	if (mode < 0)
+ 		return -EINVAL;
  
- 	/* reset sensor */
- 	sccb_reg_write(gspca_dev, 0x12, 0x80);
--	msleep(10);
-+	usleep_range(10000, 20000);
- 
- 	/* probe the sensor */
- 	sccb_reg_read(gspca_dev, 0x0a);
 -- 
 2.20.0
 
