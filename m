@@ -2,76 +2,63 @@ Return-Path: <SRS0=AYlV=OX=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.9 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT autolearn=ham
+X-Spam-Status: No, score=-2.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_NEOMUTT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B777C67839
-	for <linux-media@archiver.kernel.org>; Fri, 14 Dec 2018 12:28:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 06538C67839
+	for <linux-media@archiver.kernel.org>; Fri, 14 Dec 2018 12:30:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 144982146D
-	for <linux-media@archiver.kernel.org>; Fri, 14 Dec 2018 12:28:04 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 144982146D
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.intel.com
+	by mail.kernel.org (Postfix) with ESMTP id BE11721104
+	for <linux-media@archiver.kernel.org>; Fri, 14 Dec 2018 12:30:47 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org BE11721104
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=mess.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731753AbeLNM2C (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 14 Dec 2018 07:28:02 -0500
-Received: from mga01.intel.com ([192.55.52.88]:22009 "EHLO mga01.intel.com"
+        id S1731178AbeLNMak (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 14 Dec 2018 07:30:40 -0500
+Received: from gofer.mess.org ([88.97.38.141]:41709 "EHLO gofer.mess.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730406AbeLNM2B (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Dec 2018 07:28:01 -0500
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from orsmga001.jf.intel.com ([10.7.209.18])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 14 Dec 2018 04:28:00 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.56,352,1539673200"; 
-   d="scan'208";a="118816638"
-Received: from paasikivi.fi.intel.com ([10.237.72.42])
-  by orsmga001.jf.intel.com with ESMTP; 14 Dec 2018 04:27:59 -0800
-Received: from punajuuri.localdomain (punajuuri.localdomain [192.168.240.130])
-        by paasikivi.fi.intel.com (Postfix) with ESMTPS id 1607320B3C;
-        Fri, 14 Dec 2018 14:27:59 +0200 (EET)
-Received: from sailus by punajuuri.localdomain with local (Exim 4.89)
-        (envelope-from <sakari.ailus@linux.intel.com>)
-        id 1gXmZP-0008WR-Pm; Fri, 14 Dec 2018 14:27:55 +0200
-From:   Sakari Ailus <sakari.ailus@linux.intel.com>
-To:     mchehab@kernel.org
+        id S1731187AbeLNMaj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 14 Dec 2018 07:30:39 -0500
+Received: by gofer.mess.org (Postfix, from userid 1000)
+        id 4172860157; Fri, 14 Dec 2018 12:30:37 +0000 (GMT)
+Date:   Fri, 14 Dec 2018 12:30:37 +0000
+From:   Sean Young <sean@mess.org>
+To:     Patrick Lerda <patrick9876@free.fr>
 Cc:     linux-media@vger.kernel.org
-Subject: [PATCH 2/2] Documentation: staging/ipu3-imgu: Fix reference file name
-Date:   Fri, 14 Dec 2018 14:27:54 +0200
-Message-Id: <20181214122754.32714-3-sakari.ailus@linux.intel.com>
-X-Mailer: git-send-email 2.11.0
-In-Reply-To: <20181214122754.32714-1-sakari.ailus@linux.intel.com>
-References: <20181214122754.32714-1-sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH v5 1/1] media: rc: rcmm decoder
+Message-ID: <20181214123036.qycl3wrzyigqiott@gofer.mess.org>
+References: <c44581638d2525bc383a75413259f708@free.fr>
+ <cover.1544231670.git.patrick9876@free.fr>
+ <20181205002933.20870-1-patrick9876@free.fr>
+ <20181205002933.20870-2-patrick9876@free.fr>
+ <3a057647b40d9246aca4f64ee771594c32922974.1544175403.git.patrick9876@free.fr>
+ <20181207101231.of7c3j67pcz7cetp@gofer.mess.org>
+ <28f4bc366ebdb585a5b74a25dd1ee8a525e99884.1544231670.git.patrick9876@free.fr>
+ <2e368afe-da25-0ab9-c076-6f8831bd26ec@free.fr>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <2e368afe-da25-0ab9-c076-6f8831bd26ec@free.fr>
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-The intel-ipu3.h intended-to-be-uAPI header is currently under
-drivers/staging/media/ipu3/include/, not include/uapi/linux.
+Hi Patrick,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- Documentation/media/v4l-drivers/ipu3.rst | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On Thu, Dec 13, 2018 at 11:41:01PM +0100, Patrick Lerda wrote:
+> Hi Sean,
+> 
+>    Is the v5 OK?
 
-diff --git a/Documentation/media/v4l-drivers/ipu3.rst b/Documentation/media/v4l-drivers/ipu3.rst
-index eb4ad488b3ddc..804f37300623c 100644
---- a/Documentation/media/v4l-drivers/ipu3.rst
-+++ b/Documentation/media/v4l-drivers/ipu3.rst
-@@ -360,7 +360,7 @@ The source can be located under hal/intel directory.
- References
- ==========
- 
--.. [#f5] include/uapi/linux/intel-ipu3.h
-+.. [#f5] drivers/staging/media/ipu3/include/intel-ipu3.h
- 
- .. [#f1] https://github.com/intel/nvt
- 
--- 
-2.11.0
+Sorry I'm currently at the Linux Foundation Hyperledger event in Basel, I'll
+be back next week and then I'll do a proper review. Looks good at first
+glance.
 
+Thanks
+
+Sean
