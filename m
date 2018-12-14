@@ -2,63 +2,58 @@ Return-Path: <SRS0=AYlV=OX=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.3 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.3 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,SPF_PASS
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A6E81C6786C
-	for <linux-media@archiver.kernel.org>; Fri, 14 Dec 2018 11:02:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AA048C67839
+	for <linux-media@archiver.kernel.org>; Fri, 14 Dec 2018 11:18:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 60CDA2080F
-	for <linux-media@archiver.kernel.org>; Fri, 14 Dec 2018 11:02:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5C42B2080F
+	for <linux-media@archiver.kernel.org>; Fri, 14 Dec 2018 11:18:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1544785360;
-	bh=KFuc/QjmL4rdCmVY6yRhEXWqhsVasHM4PuFhtZ1nDhA=;
+	s=default; t=1544786337;
+	bh=eGiwizBxCqSgBQHz+iEb3fc77LoPUQvza6xsj6ZNsB8=;
 	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
-	b=oKXNJnox1LaBgGKeaK2d0waAItRE4owyBAXM/CjEOUL9xJePct5S9o/ut/yOBggxY
-	 pJiSzIv9D7h2ZPqzYmOVzfG5vfhctQJbuOYHtdwCRQyla3XM82rEn9/SAU/dNrRMIV
-	 i8g925SWdK0HQ+EDaZ2T+F2hfXYr7L18ON/n5y18=
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 60CDA2080F
+	b=o1sc+hcph12cd+17BMXMWTPBBspDWkNfD+V++J8PpV1B3nNSa0pdqAWVokwso3FNY
+	 n2HNcBIDuhRV1mc7QyMTVEzEQgsi8mmYPiz5qhnYzB3wOgU3IVcxXHrTtGGTC9z8C4
+	 XNME6a3siZiSgC1eCN5qZng4x39tCfrGsw01sm1M=
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 5C42B2080F
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728415AbeLNLCj (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 14 Dec 2018 06:02:39 -0500
-Received: from casper.infradead.org ([85.118.1.10]:60660 "EHLO
+        id S1726554AbeLNLS4 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 14 Dec 2018 06:18:56 -0500
+Received: from casper.infradead.org ([85.118.1.10]:34014 "EHLO
         casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727540AbeLNLCj (ORCPT
+        with ESMTP id S1726344AbeLNLS4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Dec 2018 06:02:39 -0500
+        Fri, 14 Dec 2018 06:18:56 -0500
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
         MIME-Version:References:In-Reply-To:Message-ID:Subject:Cc:To:From:Date:Sender
         :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
         Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
         List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=Nf3Uo/A/hSkdaIefws9jDDqXgLVCU54NfycHKBnlBcY=; b=irPEVrSZsBw+Bn60GdZUkgR/ea
-        +Qi6rMNr4IIcYwRQMxiEv1G+E9SVCzXpT7vvs3WMDZpNfyvgS9uIt9ND8ydhOuAVOfGf/eU9oZX85
-        3rrnESGV5KHE/B/vgM8bp8Pf3hL1N1ur2afCTU2qW4Lu6U9Ym+bXyEgJ0g/cyVQRFLUZKu4qDwSkV
-        kUOxXGGg/Rj1iLKMu36SbhMUsHl3ieWTH591YmNdC0VvbnrQjur9gX1cSWUjX56h5iQXxTAYGK5DH
-        Da31YWwmtUs/+zbfMksXOTJOzhcQ4FistPfR2bikbMXe9TQKY/tGiWvKNN4KKQ6Lk/Ci9sGrbVd7A
-        Y4DAumIw==;
+        bh=6+UEFZs6fA5wUzoZ1llgRwZchiddSfGB+M9QfAAFZ6w=; b=vq2oTZKe21HIJmIRA+CO1/Z42a
+        GJuHZpnMII38NGIREtk7aiolo3P9u3FyAaBYi1cV6d20q1Qx8XKN0t8s0KgJqjLyt1TQcuFtXYzKI
+        njRGgdk5P+/7L7oZ5f+BsdWtAr+FW2ml/Oh0UW26iyrTzmyeKBlvpmY4M5sHBeL6GfNAIsdUtQ82f
+        zMjT4iiasUA0hWmZibo4ZJDqnVSFggH2bzu8wcCMx+fvzqDW71ga/VY1hcyAO42S+0GUf9g5JDbQO
+        sMzJC1ym730ChJxN9qBcnZaqH9uUG1GX2z/hdooiGh4MuOrr+QaWjzNDl2Vq3KF/36ANgunjs7SWS
+        WA+Bw4tQ==;
 Received: from 177.43.150.95.dynamic.adsl.gvt.net.br ([177.43.150.95] helo=coco.lan)
         by casper.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
-        id 1gXlEo-0003I8-7Y; Fri, 14 Dec 2018 11:02:34 +0000
-Date:   Fri, 14 Dec 2018 09:02:24 -0200
-From:   Mauro Carvalho Chehab <mchehab@kernel.org>
-To:     Yong Zhi <yong.zhi@intel.com>
-Cc:     linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
-        tfiga@chromium.org, rajmohan.mani@intel.com,
-        tuukka.toivonen@intel.com, jerry.w.hu@intel.com,
-        tian.shu.qiu@intel.com, laurent.pinchart@ideasonboard.com,
-        hans.verkuil@cisco.com, bingbu.cao@intel.com,
-        jian.xu.zheng@intel.com
-Subject: Re: [PATCH v8 17/17] doc-rst: Add Intel IPU3 documentation
-Message-ID: <20181214090224.0391df5d@coco.lan>
-In-Reply-To: <1544144622-29791-18-git-send-email-yong.zhi@intel.com>
-References: <1544144622-29791-1-git-send-email-yong.zhi@intel.com>
-        <1544144622-29791-18-git-send-email-yong.zhi@intel.com>
+        id 1gXlUb-0003zV-SE; Fri, 14 Dec 2018 11:18:54 +0000
+Date:   Fri, 14 Dec 2018 09:18:50 -0200
+From:   Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To:     sakari.ailus@iki.fi
+Cc:     linux-media@vger.kernel.org
+Subject: Re: [GIT PULL v4 for 4.21] META_OUTPUT buffer type and the ipu3
+ staging driver
+Message-ID: <20181214091850.0ab0cd22@coco.lan>
+In-Reply-To: <20181213101905.6ad7c481@coco.lan>
+References: <20181213120340.2oakeelp2b5w7zzq@valkosipuli.retiisi.org.uk>
+        <20181213101905.6ad7c481@coco.lan>
 X-Mailer: Claws Mail 3.16.0 (GTK+ 2.24.32; x86_64-redhat-linux-gnu)
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
@@ -68,377 +63,211 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Em Thu,  6 Dec 2018 19:03:42 -0600
-Yong Zhi <yong.zhi@intel.com> escreveu:
+Hi Sakari,
 
-> From: Rajmohan Mani <rajmohan.mani@intel.com>
+Em Thu, 13 Dec 2018 10:19:05 -0200
+Mauro Carvalho Chehab <mchehab+samsung@kernel.org> escreveu:
+
+> Em Thu, 13 Dec 2018 14:03:40 +0200
+> sakari.ailus@iki.fi escreveu:
 > 
-> This patch adds the details about the IPU3 Imaging Unit driver.
+> > Hi Mauro,
+> > 
+> > Here's the ipu3 staging driver plus the META_OUTPUT buffer type needed to
+> > pass the parameters for the device. If you think this there's still time to
+> > get this to 4.21, then please pull. The non-staging patches have been
+> > around for more than half a year and they're relatively simple.
+> > 
+> > Note: DO NOT WORRY about the documentation build warnings, they'll be
+> > adderessed by commit fdf8298f7ff167e4e7522465a3c6e6b908cdb2af from the
+> > documentation tree (already in linux-next).  
 > 
-> Change-Id: I560cecf673df2dcc3ec72767cf8077708d649656
-> Signed-off-by: Rajmohan Mani <rajmohan.mani@intel.com>
-> ---
->  Documentation/media/v4l-drivers/index.rst |   1 +
->  Documentation/media/v4l-drivers/ipu3.rst  | 326 ++++++++++++++++++++++++++++++
->  2 files changed, 327 insertions(+)
->  create mode 100644 Documentation/media/v4l-drivers/ipu3.rst
+> I'm assuming you're talking about this patch:
 > 
-> diff --git a/Documentation/media/v4l-drivers/index.rst b/Documentation/media/v4l-drivers/index.rst
-> index 6cdd3bc98202..f28570ec9e42 100644
-> --- a/Documentation/media/v4l-drivers/index.rst
-> +++ b/Documentation/media/v4l-drivers/index.rst
-> @@ -44,6 +44,7 @@ For more details see the file COPYING in the source distribution of Linux.
->  	davinci-vpbe
->  	fimc
->  	imx
-> +	ipu3
->  	ivtv
->  	max2175
->  	meye
-> diff --git a/Documentation/media/v4l-drivers/ipu3.rst b/Documentation/media/v4l-drivers/ipu3.rst
-> new file mode 100644
-> index 000000000000..045bf4222b1a
-> --- /dev/null
-> +++ b/Documentation/media/v4l-drivers/ipu3.rst
-> @@ -0,0 +1,326 @@
-> +.. include:: <isonum.txt>
+> 3d9bfb19bd70 ("scripts/kernel-doc: Fix struct and struct field attribute processing")
+> 
+> Ok, I'll remind about that when pulling from it.
 
-For this (and any further documentation), please add the proper license
-tag. as this is kAPI, it should be released with, at least, GPL-2.0, 
-e. g., it should contain a tag like:
+Pulled, thanks.
 
-	.. SPDX-License-Identifier: GPL-2.0
+After reviewing the patchset (considering that it is for staging), I
+opted to merge it on a separate topic branch. On one ot the builds,
+I got this:
 
-as the first line.
+	WARNING: kernel-doc './scripts/kernel-doc -rst -enable-lineno ./include/uapi/linux/intel-ipu3.h' failed with return code 1
 
-Please send such ASAP.
+Maybe it is related to the troubles with parsing __attribute, so
+I'll wait until upstream pulls from docs-next, in order to run
+a test and be sure that it won't break documentation build nor
+produce the warnings.
+
+Also, for 4.21, all documentation files now have either a SPDX tag
+or a dual-license text (for stuff under Documentation/media/uapi).
+
+The IPU3 doc files added by this series doesn't have it - and one
+of the new doc files still have a encoding line like:
+
+	.. -*- coding: utf-8; mode: rst -*-
+
+Please remove it, and be sure that all new doc files under
+Documentation/media/v4l-drivers will have a SPDX tag compatible
+with GPL 2.0.
+
+Ah, I made a notice about some gotos to some code that it is
+inside a for() loop. That's very ugly and weird (and not sure if this
+is correct according with C spec). Please fix that too.
+
+Thanks!
+Mauro
 
 
-> +
-> +===============================================================
-> +Intel Image Processing Unit 3 (IPU3) Imaging Unit (ImgU) driver
-> +===============================================================
-> +
-> +Copyright |copy| 2018 Intel Corporation
-> +
-> +Introduction
-> +============
-> +
-> +This file documents Intel IPU3 (3rd generation Image Processing Unit) Imaging
-> +Unit driver located under drivers/media/pci/intel/ipu3.
-> +
-> +The Intel IPU3 found in certain Kaby Lake (as well as certain Sky Lake)
-> +platforms (U/Y processor lines) is made up of two parts namely Imaging Unit
-> +(ImgU) and CIO2 device (MIPI CSI2 receiver).
-> +
-> +The CIO2 device receives the raw bayer data from the sensors and outputs the
-> +frames in a format that is specific to IPU3 (for consumption by IPU3 ImgU).
-> +CIO2 driver is available as drivers/media/pci/intel/ipu3/ipu3-cio2* and is
-> +enabled through the CONFIG_VIDEO_IPU3_CIO2 config option.
-> +
-> +The Imaging Unit (ImgU) is responsible for processing images captured
-> +through IPU3 CIO2 device. The ImgU driver sources can be found under
-> +drivers/media/pci/intel/ipu3 directory. The driver is enabled through the
-> +CONFIG_VIDEO_IPU3_IMGU config option.
-> +
-> +The two driver modules are named ipu3-csi2 and ipu3-imgu, respectively.
-> +
-> +The driver has been tested on Kaby Lake platforms (U/Y processor lines).
-> +
-> +The driver implements V4L2, Media controller and V4L2 sub-device interfaces.
-> +Camera sensors that have CSI-2 bus, which are connected to the IPU3 CIO2
-> +device are supported. Support for lens and flash drivers depends on the
-> +above sensors.
-> +
-> +ImgU device nodes
-> +=================
-> +
-> +The ImgU is represented as two V4L2 subdevs, each of which provides a V4L2
-> +subdev interface to the user space.
-> +
-> +Each V4L2 subdev represents a pipe, which can support a maximum of 2
-> +streams. A private ioctl can be used to configure the mode (video or still)
-> +of the pipe.
-> +
-> +This helps to support advanced camera features like Continuous View Finder
-> +(CVF) and Snapshot During Video(SDV).
-> +
-> +CIO2 device
-> +===========
-> +
-> +The CIO2 is represented as a single V4L2 subdev, which provides a V4L2 subdev
-> +interface to the user space. There is a video node for each CSI-2 receiver,
-> +with a single media controller interface for the entire device.
-> +
-> +Media controller
-> +----------------
-> +
-> +The media device interface allows to configure the ImgU links, which defines
-> +the behavior of the IPU3 firmware.
-> +
-> +Device operation
-> +----------------
-> +
-> +With IPU3, once the input video node ("ipu3-imgu 0/1":0,
-> +in <entity>:<pad-number> format) is queued with buffer (in packed raw bayer
-> +format), IPU3 ISP starts processing the buffer and produces the video output
-> +in YUV format and statistics output on respective output nodes. The driver
-> +is expected to have buffers ready for all of parameter, output and
-> +statistics nodes, when input video node is queued with buffer.
-> +
-> +At a minimum, all of input, main output, 3A statistics and viewfinder
-> +video nodes should be enabled for IPU3 to start image processing.
-> +
-> +Each ImgU V4L2 subdev has the following set of video nodes.
-> +
-> +input, output and viewfinder video nodes
-> +----------------------------------------
-> +
-> +The frames (in packed raw bayer format specific to IPU3) received by the
-> +input video node is processed by the IPU3 Imaging Unit and is output to 2
-> +video nodes, with each targeting different purpose (main output and viewfinder
-> +output).
-> +
-> +Details on raw bayer format specific to IPU3 can be found as below.
-> +Documentation/media/uapi/v4l/pixfmt-meta-intel-ipu3.rst
-> +
-> +The driver supports V4L2 Video Capture Interface as defined at :ref:`devices`.
-> +
-> +Only the multi-planar API is supported. More details can be found at
-> +:ref:`planar-apis`.
-> +
-> +
-> +parameters video node
-> +---------------------
-> +
-> +The parameter video node receives the ISP algorithm parameters that are used
-> +to configure how the ISP algorithms process the image.
-> +
-> +Details on raw bayer format specific to IPU3 can be found as below.
-> +Documentation/media/uapi/v4l/pixfmt-meta-intel-ipu3.rst
-> +
-> +3A statistics video node
-> +------------------------
-> +
-> +3A statistics video node is used by the ImgU driver to output the 3A (auto
-> +focus, auto exposure and auto white balance) statistics for the frames that
-> +are being processed by the ISP to user space applications. User space
-> +applications can use this statistics data to arrive at desired algorithm
-> +parameters for ISP.
-> +
-> +CIO2 device nodes
-> +=================
-> +
-> +CIO2 is represented as a single V4L2 sub-device with a video node for each
-> +CSI-2 receiver. The video node represents the DMA engine.
-> +
-> +Configuring the Intel IPU3
-> +==========================
-> +
-> +The Intel IPU3 ImgU driver supports V4L2 interface. Using V4L2 ioctl calls,
-> +the ISP can be configured and enabled.
-> +
-> +The IPU3 ImgU pipelines can be configured using media controller APIs,
-> +defined at :ref:`media_controller`.
-> +
-> +Capturing frames in raw bayer format
-> +------------------------------------
-> +
-> +IPU3 MIPI CSI2 receiver is used to capture frames (in packed raw bayer
-> +format) from the raw sensors connected to the CSI2 ports. The captured
-> +frames are used as input to the ImgU driver.
-> +
-> +Image processing using IPU3 ImgU requires tools such as v4l2n [#f1]_,
-> +raw2pnm [#f1]_, and yavta [#f2]_ due to the following unique requirements
-> +and / or features specific to IPU3.
-> +
-> +-- The IPU3 CSI2 receiver outputs the captured frames from the sensor in
-> +packed raw bayer format that is specific to IPU3
-> +
-> +-- Multiple video nodes have to be operated simultaneously
-> +
-> +Let us take the example of ov5670 sensor connected to CSI2 port 0, for a
-> +2592x1944 image capture.
-> +
-> +Using the media contorller APIs, the ov5670 sensor is configured to send
-> +frames in packed raw bayer format to IPU3 CSI2 receiver.
-> +
-> +# This example assumes /dev/media0 as the ImgU media device
-> +
-> +export MDEV=/dev/media0
-> +
-> +# and that ov5670 sensor is connected to i2c bus 10 with address 0x36
-> +
-> +export SDEV="ov5670 10-0036"
-> +
-> +# Establish the link for the media devices using media-ctl [#f3]_
-> +media-ctl -d $MDEV -l "ov5670 ":0 -> "ipu3-csi2 0":0[1]
-> +
-> +media-ctl -d $MDEV -l "ipu3-csi2 0":1 -> "ipu3-cio2 0":0[1]
-> +
-> +# Set the format for the media devices
-> +media-ctl -d $MDEV -V "ov5670 ":0 [fmt:SGRBG10/2592x1944]
-> +
-> +media-ctl -d $MDEV -V "ipu3-csi2 0":0 [fmt:SGRBG10/2592x1944]
-> +
-> +media-ctl -d $MDEV -V "ipu3-csi2 0":1 [fmt:SGRBG10/2592x1944]
-> +
-> +Once the media pipeline is configured, desired sensor specific settings
-> +(such as exposure and gain settings) can be set, using the yavta tool.
-> +
-> +e.g
-> +
-> +yavta -w 0x009e0903 444 $(media-ctl -d $MDEV -e "$SDEV")
-> +
-> +yavta -w 0x009e0913 1024 $(media-ctl -d $MDEV -e "$SDEV")
-> +
-> +yavta -w 0x009e0911 2046 $(media-ctl -d $MDEV -e "$SDEV")
-> +
-> +Once the desired sensor settings are set, frame captures can be done as below.
-> +
-> +e.g
-> +
-> +yavta --data-prefix -u -c10 -n5 -I -s2592x1944 --file=/tmp/frame-#.bin
-> +-f IPU3_GRBG10 media-ctl -d $MDEV -e ipu3-cio2 0
-> +
-> +With the above command, 10 frames are captured at 2592x1944 resolution, with
-> +sGRBG10 format and output as IPU3_GRBG10 format.
-> +
-> +The captured frames are available as /tmp/frame-#.bin files.
-> +
-> +Processing the image in raw bayer format
-> +----------------------------------------
-> +
-> +Configuring ImgU V4L2 subdev for image processing
-> +~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> +
-> +The ImgU V4L2 subdevs have to be configured with media controller APIs to
-> +have all the video nodes setup correctly.
-> +
-> +Let us take "ipu3-imgu 0" subdev as an example.
-> +
-> +media-ctl -d $MDEV -r
-> +
-> +media-ctl -d $MDEV -l "ipu3-imgu 0 input":0 -> "ipu3-imgu 0":0[1]
-> +
-> +media-ctl -d $MDEV -l "ipu3-imgu 0":2 -> "output":0[1]
-> +
-> +media-ctl -d $MDEV -l "ipu3-imgu 0":3 -> "viewfinder":0[1]
-> +
-> +media-ctl -d $MDEV -l "ipu3-imgu 0":4 -> "3a stat":0[1]
-> +
-> +Also the pipe mode of the corresponding V4L2 subdev should be set as
-> +desired (e.g 0 for video mode or 1 for still mode) through the
-> +control id 0x009819a1 as below.
-> +
-> +e.g
-> +
-> +v4l2n -d /dev/v4l-subdev7 --ctrl=0x009819A1=1
-> +
-> +RAW bayer frames go through the following ISP pipeline HW blocks to
-> +have the processed image output to the DDR memory.
-> +
-> +RAW bayer frame -> Input Feeder -> Bayer Down Scaling (BDS) -> Geometric
-> +Distortion Correction (GDC) -> DDR
-> +
-> +The ImgU V4L2 subdev has to be configured with the supported resolutions
-> +in all the above HW blocks, for a given input resolution.
-> +
-> +For a given supported resolution for an input frame, the Input Feeder,
-> +Bayer Down Scaling and GDC blocks should be configured with the supported
-> +resolutions. This information can be obtained by looking at the following
-> +IPU3 ISP configuration table.
-> +
-> +https://chromium.googlesource.com/chromiumos/overlays/board-overlays/+/master
-> +
-> +Under baseboard-poppy/media-libs/arc-camera3-hal-configs-poppy/files/gcss
-> +directory, graph_settings_ov5670.xml can be used as an example.
-> +
-> +The following steps prepare the ImgU ISP pipeline for the image processing.
-> +
-> +1. The ImgU V4L2 subdev data format should be set by using the
-> +VIDIOC_SUBDEV_S_FMT on pad 0, using the GDC width and height obtained above.
-> +
-> +2. The ImgU V4L2 subdev cropping should be set by using the
-> +VIDIOC_SUBDEV_S_SELECTION on pad 0, with V4L2_SEL_TGT_CROP as the target,
-> +using the input feeder height and width.
-> +
-> +3. The ImgU V4L2 subdev composing should be set by using the
-> +VIDIOC_SUBDEV_S_SELECTION on pad 0, with V4L2_SEL_TGT_COMPOSE as the target,
-> +using the BDS height and width.
-> +
-> +For the ov5670 example, for an input frame with a resolution of 2592x1944
-> +(which is input to the ImgU subdev pad 0), the corresponding resolutions
-> +for input feeder, BDS and GDC are 2592x1944, 2592x1944 and 2560x1920
-> +respectively.
-> +
-> +Once this is done, the received raw bayer frames can be input to the ImgU
-> +V4L2 subdev as below, using the open source application v4l2n.
-> +
-> +For an image captured with 2592x1944 [#f4]_ resolution, with desired output
-> +resolution as 2560x1920 and viewfinder resolution as 2560x1920, the following
-> +v4l2n command can be used. This helps process the raw bayer frames and
-> +produces the desired results for the main output image and the viewfinder
-> +output, in NV12 format.
-> +
-> +v4l2n --pipe=4 --load=/tmp/frame-#.bin --open=/dev/video4
-> +--fmt=type:VIDEO_OUTPUT_MPLANE,width=2592,height=1944,pixelformat=0X47337069
-> +--reqbufs=type:VIDEO_OUTPUT_MPLANE,count:1 --pipe=1 --output=/tmp/frames.out
-> +--open=/dev/video5
-> +--fmt=type:VIDEO_CAPTURE_MPLANE,width=2560,height=1920,pixelformat=NV12
-> +--reqbufs=type:VIDEO_CAPTURE_MPLANE,count:1 --pipe=2 --output=/tmp/frames.vf
-> +--open=/dev/video6
-> +--fmt=type:VIDEO_CAPTURE_MPLANE,width=2560,height=1920,pixelformat=NV12
-> +--reqbufs=type:VIDEO_CAPTURE_MPLANE,count:1 --pipe=3 --open=/dev/video7
-> +--output=/tmp/frames.3A --fmt=type:META_CAPTURE,?
-> +--reqbufs=count:1,type:META_CAPTURE --pipe=1,2,3,4 --stream=5
-> +
-> +where /dev/video4, /dev/video5, /dev/video6 and /dev/video7 devices point to
-> +input, output, viewfinder and 3A statistics video nodes respectively.
-> +
-> +Converting the raw bayer image into YUV domain
-> +----------------------------------------------
-> +
-> +The processed images after the above step, can be converted to YUV domain
-> +as below.
-> +
-> +Main output frames
-> +~~~~~~~~~~~~~~~~~~
-> +
-> +raw2pnm -x2560 -y1920 -fNV12 /tmp/frames.out /tmp/frames.out.pnm
-> +
-> +where 2560x1920 is output resolution, NV12 is the video format, followed
-> +by input frame and output PNM file.
-> +
-> +Viewfinder output frames
-> +~~~~~~~~~~~~~~~~~~~~~~~~
-> +
-> +raw2pnm -x2560 -y1920 -fNV12 /tmp/frames.vf /tmp/frames.vf.pnm
-> +
-> +where 2560x1920 is output resolution, NV12 is the video format, followed
-> +by input frame and output PNM file.
-> +
-> +Example user space code for IPU3
-> +================================
-> +
-> +User space code that configures and uses IPU3 is available here.
-> +
-> +https://chromium.googlesource.com/chromiumos/platform/arc-camera/+/master/
-> +
-> +The source can be located under hal/intel directory.
-> +
-> +References
-> +==========
-> +
-> +include/uapi/linux/intel-ipu3.h
-> +
-> +.. [#f1] https://github.com/intel/nvt
-> +
-> +.. [#f2] http://git.ideasonboard.org/yavta.git
-> +
-> +.. [#f3] http://git.ideasonboard.org/?p=media-ctl.git;a=summary
-> +
-> +.. [#f4] ImgU limitation requires an additional 16x16 for all input resolutions
+> 
+> > 
+> > Since the v1 pull request, this contains the content of the v9
+> > patchset (since v8):
+> > 
+> > - Addressed most of Laurent's comments on the driver documentation. Some
+> >   have been postponed and added to TODO.
+> > 
+> > - Added a MAINTAINERS entry.
+> > 
+> > - Removed uAPI definitions (formats etc.) added by the patches originally
+> >   not intended to be merged (documentation outside the staging tree).
+> > 
+> > - Added a patch to fix a few compiler warnings (false positives) plus
+> >   fixed the firmware location.
+> > 
+> > - checkpatch.pl warnings remain; those need to be fixed as well.
+> > 
+> > since v2 pull request:
+> > 
+> > - Use correct tag.
+> > 
+> > since v3 pull request:
+> > 
+> > - Remove extra Reviewed-by: tags.
+> > 
+> > Please pull.
+> > 
+> > 
+> > The following changes since commit e159b6074c82fe31b79aad672e02fa204dbbc6d8:
+> > 
+> >   media: vimc: fix start stream when link is disabled (2018-12-07 13:08:41 -0500)
+> > 
+> > are available in the git repository at:
+> > 
+> >   ssh://linuxtv.org/git/sailus/media_tree.git tags/ipu3-v8-4.20-3-sign
+> > 
+> > for you to fetch changes up to 48acf4640e698334bfd9dc41a94b17b568a97b31:
+> > 
+> >   staging/ipu3-imgu: Add MAINTAINERS entry (2018-12-13 13:04:00 +0200)
+> > 
+> > ----------------------------------------------------------------
+> > imgu staging driver v9
+> > 
+> > ----------------------------------------------------------------
+> > Cao,Bing Bu (1):
+> >       media: staging/intel-ipu3: Add dual pipe support
+> > 
+> > Rajmohan Mani (1):
+> >       doc-rst: Add Intel IPU3 documentation
+> > 
+> > Sakari Ailus (6):
+> >       v4l: Add support for V4L2_BUF_TYPE_META_OUTPUT
+> >       docs-rst: v4l: Document V4L2_BUF_TYPE_META_OUTPUT interface
+> >       ipu3-imgu: Fix compiler warnings
+> >       ipu3-imgu: Fix firmware binary location
+> >       staging/ipu3-imgu: Address documentation comments
+> >       staging/ipu3-imgu: Add MAINTAINERS entry
+> > 
+> > Tomasz Figa (2):
+> >       media: staging/intel-ipu3: mmu: Implement driver
+> >       media: staging/intel-ipu3: Implement DMA mapping functions
+> > 
+> > Yong Zhi (12):
+> >       media: staging/intel-ipu3: abi: Add register definitions and enum
+> >       media: staging/intel-ipu3: abi: Add structs
+> >       media: staging/intel-ipu3: css: Add dma buff pool utility functions
+> >       media: staging/intel-ipu3: css: Add support for firmware management
+> >       media: staging/intel-ipu3: css: Add static settings for image pipeline
+> >       media: staging/intel-ipu3: css: Compute and program ccs
+> >       media: staging/intel-ipu3: css: Initialize css hardware
+> >       media: staging/intel-ipu3: Add css pipeline programming
+> >       media: staging/intel-ipu3: Add v4l2 driver based on media framework
+> >       media: staging/intel-ipu3: Add imgu top level pci device driver
+> >       media: staging/intel-ipu3: Add Intel IPU3 meta data uAPI
+> >       media: v4l: Add Intel IPU3 meta buffer formats
+> > 
+> >  Documentation/media/uapi/v4l/buffer.rst            |    3 +
+> >  Documentation/media/uapi/v4l/dev-meta.rst          |   33 +-
+> >  Documentation/media/uapi/v4l/meta-formats.rst      |    1 +
+> >  .../media/uapi/v4l/pixfmt-meta-intel-ipu3.rst      |  178 +
+> >  Documentation/media/uapi/v4l/vidioc-querycap.rst   |    3 +
+> >  Documentation/media/v4l-drivers/index.rst          |    1 +
+> >  Documentation/media/v4l-drivers/ipu3.rst           |  369 +
+> >  Documentation/media/videodev2.h.rst.exceptions     |    2 +
+> >  MAINTAINERS                                        |    8 +
+> >  drivers/media/common/videobuf2/videobuf2-v4l2.c    |    1 +
+> >  drivers/media/v4l2-core/v4l2-compat-ioctl32.c      |    2 +
+> >  drivers/media/v4l2-core/v4l2-dev.c                 |   12 +-
+> >  drivers/media/v4l2-core/v4l2-ioctl.c               |   23 +
+> >  drivers/staging/media/Kconfig                      |    2 +
+> >  drivers/staging/media/Makefile                     |    1 +
+> >  drivers/staging/media/ipu3/Kconfig                 |   14 +
+> >  drivers/staging/media/ipu3/Makefile                |   11 +
+> >  drivers/staging/media/ipu3/TODO                    |   34 +
+> >  drivers/staging/media/ipu3/include/intel-ipu3.h    | 2785 ++++++
+> >  drivers/staging/media/ipu3/ipu3-abi.h              | 2011 ++++
+> >  drivers/staging/media/ipu3/ipu3-css-fw.c           |  265 +
+> >  drivers/staging/media/ipu3/ipu3-css-fw.h           |  188 +
+> >  drivers/staging/media/ipu3/ipu3-css-params.c       | 2943 ++++++
+> >  drivers/staging/media/ipu3/ipu3-css-params.h       |   28 +
+> >  drivers/staging/media/ipu3/ipu3-css-pool.c         |  100 +
+> >  drivers/staging/media/ipu3/ipu3-css-pool.h         |   55 +
+> >  drivers/staging/media/ipu3/ipu3-css.c              | 2391 +++++
+> >  drivers/staging/media/ipu3/ipu3-css.h              |  213 +
+> >  drivers/staging/media/ipu3/ipu3-dmamap.c           |  270 +
+> >  drivers/staging/media/ipu3/ipu3-dmamap.h           |   22 +
+> >  drivers/staging/media/ipu3/ipu3-mmu.c              |  561 ++
+> >  drivers/staging/media/ipu3/ipu3-mmu.h              |   35 +
+> >  drivers/staging/media/ipu3/ipu3-tables.c           | 9609 ++++++++++++++++++++
+> >  drivers/staging/media/ipu3/ipu3-tables.h           |   66 +
+> >  drivers/staging/media/ipu3/ipu3-v4l2.c             | 1419 +++
+> >  drivers/staging/media/ipu3/ipu3.c                  |  830 ++
+> >  drivers/staging/media/ipu3/ipu3.h                  |  168 +
+> >  include/media/v4l2-ioctl.h                         |   17 +
+> >  include/uapi/linux/videodev2.h                     |    2 +
+> >  39 files changed, 24659 insertions(+), 17 deletions(-)
+> >  create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-intel-ipu3.rst
+> >  create mode 100644 Documentation/media/v4l-drivers/ipu3.rst
+> >  create mode 100644 drivers/staging/media/ipu3/Kconfig
+> >  create mode 100644 drivers/staging/media/ipu3/Makefile
+> >  create mode 100644 drivers/staging/media/ipu3/TODO
+> >  create mode 100644 drivers/staging/media/ipu3/include/intel-ipu3.h
+> >  create mode 100644 drivers/staging/media/ipu3/ipu3-abi.h
+> >  create mode 100644 drivers/staging/media/ipu3/ipu3-css-fw.c
+> >  create mode 100644 drivers/staging/media/ipu3/ipu3-css-fw.h
+> >  create mode 100644 drivers/staging/media/ipu3/ipu3-css-params.c
+> >  create mode 100644 drivers/staging/media/ipu3/ipu3-css-params.h
+> >  create mode 100644 drivers/staging/media/ipu3/ipu3-css-pool.c
+> >  create mode 100644 drivers/staging/media/ipu3/ipu3-css-pool.h
+> >  create mode 100644 drivers/staging/media/ipu3/ipu3-css.c
+> >  create mode 100644 drivers/staging/media/ipu3/ipu3-css.h
+> >  create mode 100644 drivers/staging/media/ipu3/ipu3-dmamap.c
+> >  create mode 100644 drivers/staging/media/ipu3/ipu3-dmamap.h
+> >  create mode 100644 drivers/staging/media/ipu3/ipu3-mmu.c
+> >  create mode 100644 drivers/staging/media/ipu3/ipu3-mmu.h
+> >  create mode 100644 drivers/staging/media/ipu3/ipu3-tables.c
+> >  create mode 100644 drivers/staging/media/ipu3/ipu3-tables.h
+> >  create mode 100644 drivers/staging/media/ipu3/ipu3-v4l2.c
+> >  create mode 100644 drivers/staging/media/ipu3/ipu3.c
+> >  create mode 100644 drivers/staging/media/ipu3/ipu3.h
+> >   
+> 
+> 
+> 
+> Thanks,
+> Mauro
 
 
 
