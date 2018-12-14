@@ -1,409 +1,205 @@
-Return-Path: <SRS0=yFxv=OW=vger.kernel.org=linux-media-owner@kernel.org>
+Return-Path: <SRS0=AYlV=OX=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.9 required=3.0 tests=FREEMAIL_FORGED_FROMDOMAIN,
-	FREEMAIL_FROM,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,T_MIXED_ES,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,
+	T_MIXED_ES,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D4568C65BAE
-	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 22:51:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DAE5DC67839
+	for <linux-media@archiver.kernel.org>; Fri, 14 Dec 2018 01:09:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 746192086D
-	for <linux-media@archiver.kernel.org>; Thu, 13 Dec 2018 22:51:45 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 746192086D
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=free.fr
+	by mail.kernel.org (Postfix) with ESMTP id 950A92086D
+	for <linux-media@archiver.kernel.org>; Fri, 14 Dec 2018 01:09:32 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=jms.id.au header.i=@jms.id.au header.b="A0poBn2e"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 950A92086D
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=jms.id.au
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727499AbeLMWvo (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 13 Dec 2018 17:51:44 -0500
-Received: from lns-bzn-25-82-254-177-192.adsl.proxad.net ([82.254.177.192]:58695
-        "EHLO maze.fork.zz" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726813AbeLMWvo (ORCPT
+        id S1728502AbeLNBJ1 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 13 Dec 2018 20:09:27 -0500
+Received: from mail-qk1-f196.google.com ([209.85.222.196]:44143 "EHLO
+        mail-qk1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727638AbeLNBJ0 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Dec 2018 17:51:44 -0500
-X-Greylist: delayed 635 seconds by postgrey-1.27 at vger.kernel.org; Thu, 13 Dec 2018 17:51:42 EST
-Received: from blok.fork.zz (blok.fork.zz [192.168.0.7])
-        by maze.fork.zz (8.15.2/8.15.2) with ESMTPS id wBDMf2BF008716
-        (version=TLSv1.2 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Thu, 13 Dec 2018 23:41:04 +0100
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-        by blok.fork.zz (8.15.2/8.15.2) with ESMTP id wBDMf1IQ008268;
-        Thu, 13 Dec 2018 23:41:02 +0100
-Subject: Re: [PATCH v5 1/1] media: rc: rcmm decoder
-To:     linux-media@vger.kernel.org
-Cc:     sean@mess.org, linux-media-owner@vger.kernel.org
-References: <c44581638d2525bc383a75413259f708@free.fr>
- <cover.1544231670.git.patrick9876@free.fr>
- <20181205002933.20870-1-patrick9876@free.fr>
- <20181205002933.20870-2-patrick9876@free.fr>
- <3a057647b40d9246aca4f64ee771594c32922974.1544175403.git.patrick9876@free.fr>
- <20181207101231.of7c3j67pcz7cetp@gofer.mess.org>
- <28f4bc366ebdb585a5b74a25dd1ee8a525e99884.1544231670.git.patrick9876@free.fr>
-From:   Patrick Lerda <patrick9876@free.fr>
-Message-ID: <2e368afe-da25-0ab9-c076-6f8831bd26ec@free.fr>
-Date:   Thu, 13 Dec 2018 23:41:01 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:52.0) Gecko/20100101
- Firefox/52.0 SeaMonkey/2.49.4
+        Thu, 13 Dec 2018 20:09:26 -0500
+Received: by mail-qk1-f196.google.com with SMTP id n12so2338960qkh.11;
+        Thu, 13 Dec 2018 17:09:25 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=jms.id.au; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=3eJr9O2aEYMtTU2WSqrQ760DaZO5yOh27Q66lC6WD6o=;
+        b=A0poBn2eU7av0AnRm78Woeuk+Jf1RBUkCyfebNS/knU8HrQnk+xr2HryPF2xIvWmJv
+         GK/OnqDscytSX8ixiGzz6BX38Ygc+BxJVouY/l99KGE1yIJ/WMpJszPfUqbKY0cu2y5I
+         VUcrEgaRXbBVrEHo8XmuOlK1v+3sI2Y7fUqyo=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=3eJr9O2aEYMtTU2WSqrQ760DaZO5yOh27Q66lC6WD6o=;
+        b=JQxgCdtWP/TL0Yk1+qUPpg3O9sgmeSniUlffNWiNBYAdUsJGvq4mudNhxixGlAEk76
+         Uo5NfMc8khVYOUSYvf82nnZxjROp6mVuTuomEX/2F/+IELM9dxTeM1wCLXmJOi/ly1PS
+         RkAcJyRoGU2wr2HmDZ53mmGPMru6MFvVN1RC5cSzSyjCEsMIEXUmlbZovYbxeB3OAVO6
+         G47A6mjL5dpLdEHAp2mD55BIdP/jHHOCEUIaVSR+hjHzzGkq6AuF8MZ4owmp0DTT0pew
+         1Fa8mNPsqK7NNOHrFaOQGOpQUxvPjnwCWlPtkj2BYIi4oZWlhVn5vN2mhemeFjbCHYyB
+         YxKA==
+X-Gm-Message-State: AA+aEWYusX6FUC8fGMvyZeiTuINu5WQ88LSOJ5DK1ia3HXzR0W0/Eksq
+        VqPja5gK+ZmVIXOOAGuPQ3Fc4GioHEqTZ4fIi5A=
+X-Google-Smtp-Source: AFSGD/VVR5PQhOAKZ+xnZSIzeLQmYHIIZL4k4aS+V7bDK32MftEs8KWvpAY1pB5h7vkchuu/GJFMl04wtO3DoNsUOTo=
+X-Received: by 2002:a37:781:: with SMTP id 123mr887498qkh.231.1544749765265;
+ Thu, 13 Dec 2018 17:09:25 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <28f4bc366ebdb585a5b74a25dd1ee8a525e99884.1544231670.git.patrick9876@free.fr>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+References: <1544547421-25724-1-git-send-email-eajames@linux.ibm.com> <1544547421-25724-3-git-send-email-eajames@linux.ibm.com>
+In-Reply-To: <1544547421-25724-3-git-send-email-eajames@linux.ibm.com>
+From:   Joel Stanley <joel@jms.id.au>
+Date:   Fri, 14 Dec 2018 11:39:14 +1030
+Message-ID: <CACPK8XdQbq-9MbP7uMemyp0=Q+t1qnWNREdZRiyEcrART9vRig@mail.gmail.com>
+Subject: Re: [PATCH v8 2/2] media: platform: Add Aspeed Video Engine driver
+To:     eajames@linux.ibm.com
+Cc:     Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        devicetree <devicetree@vger.kernel.org>,
+        linux-aspeed@lists.ozlabs.org, hverkuil@xs4all.nl,
+        Rob Herring <robh+dt@kernel.org>, mchehab@kernel.org,
+        linux-media@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Sean,
-
-    Is the v5 OK?
-
-    Thanks,
-
-Patrick.
-
-
-
-Patrick Lerda wrote:
-> media: add support for RCMM infrared remote controls.
+On Wed, 12 Dec 2018 at 04:09, Eddie James <eajames@linux.ibm.com> wrote:
 >
-> Signed-off-by: Patrick Lerda <patrick9876@free.fr>
-> ---
->   MAINTAINERS                        |   5 +
->   drivers/media/rc/Kconfig           |   7 ++
->   drivers/media/rc/Makefile          |   1 +
->   drivers/media/rc/ir-rcmm-decoder.c | 164 +++++++++++++++++++++++++++++
->   drivers/media/rc/rc-core-priv.h    |   5 +
->   drivers/media/rc/rc-main.c         |   3 +
->   include/media/rc-map.h             |   6 +-
->   include/uapi/linux/lirc.h          |   2 +
->   tools/include/uapi/linux/lirc.h    |   2 +
->   9 files changed, 193 insertions(+), 2 deletions(-)
->   create mode 100644 drivers/media/rc/ir-rcmm-decoder.c
+> The Video Engine (VE) embedded in the Aspeed AST2400 and AST2500 SOCs
+> can capture and compress video data from digital or analog sources. With
+> the Aspeed chip acting a service processor, the Video Engine can capture
+> the host processor graphics output.
+
+> +ASPEED VIDEO ENGINE DRIVER
+> +M:     Eddie James <eajames@linux.ibm.com>
+> +L:     linux-media@vger.kernel.org
+> +L:     openbmc@lists.ozlabs.org (moderated for non-subscribers)
+
+We tend to use the linux-aspeed list for upstream kernel discussions.
+Up to you if you want to use the openbmc list though.
+
+>  source "drivers/media/platform/omap/Kconfig"
 >
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 3e9f1710ed13..80426d1faaba 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -16277,6 +16277,11 @@ M:	David Härdeman <david@hardeman.nu>
->   S:	Maintained
->   F:	drivers/media/rc/winbond-cir.c
->   
-> +RCMM REMOTE CONTROLS DECODER
-> +M:	Patrick Lerda <patrick9876@free.fr>
-> +S:	Maintained
-> +F:	drivers/media/rc/ir-rcmm-decoder.c
-> +
->   WINSYSTEMS EBC-C384 WATCHDOG DRIVER
->   M:	William Breathitt Gray <vilhelm.gray@gmail.com>
->   L:	linux-watchdog@vger.kernel.org
-> diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
-> index 8a216068a35a..43775ac74268 100644
-> --- a/drivers/media/rc/Kconfig
-> +++ b/drivers/media/rc/Kconfig
-> @@ -133,6 +133,13 @@ config IR_IMON_DECODER
->   	   remote control and you would like to use it with a raw IR
->   	   receiver, or if you wish to use an encoder to transmit this IR.
->   
-> +config IR_RCMM_DECODER
-> +	tristate "Enable IR raw decoder for the RC-MM protocol"
-> +	depends on RC_CORE
-> +	help
-> +	   Enable this option if you have IR with RC-MM protocol, and
-> +	   if the IR is decoded in software
-> +
->   endif #RC_DECODERS
->   
->   menuconfig RC_DEVICES
-> diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
-> index 92c163816849..48d23433b3c0 100644
-> --- a/drivers/media/rc/Makefile
-> +++ b/drivers/media/rc/Makefile
-> @@ -16,6 +16,7 @@ obj-$(CONFIG_IR_SHARP_DECODER) += ir-sharp-decoder.o
->   obj-$(CONFIG_IR_MCE_KBD_DECODER) += ir-mce_kbd-decoder.o
->   obj-$(CONFIG_IR_XMP_DECODER) += ir-xmp-decoder.o
->   obj-$(CONFIG_IR_IMON_DECODER) += ir-imon-decoder.o
-> +obj-$(CONFIG_IR_RCMM_DECODER) += ir-rcmm-decoder.o
->   
->   # stand-alone IR receivers/transmitters
->   obj-$(CONFIG_RC_ATI_REMOTE) += ati_remote.o
-> diff --git a/drivers/media/rc/ir-rcmm-decoder.c b/drivers/media/rc/ir-rcmm-decoder.c
-> new file mode 100644
-> index 000000000000..a3c09885da5f
-> --- /dev/null
-> +++ b/drivers/media/rc/ir-rcmm-decoder.c
-> @@ -0,0 +1,164 @@
+> +config VIDEO_ASPEED
+> +       tristate "Aspeed AST2400 and AST2500 Video Engine driver"
+> +       depends on VIDEO_V4L2
+> +       select VIDEOBUF2_DMA_CONTIG
+> +       help
+> +         Support for the Aspeed Video Engine (VE) embedded in the Aspeed
+> +         AST2400 and AST2500 SOCs. The VE can capture and compress video data
+> +         from digital or analog sources.
+
+This might need updating in response to my questions below about
+ast2400 testing.
+
+> +++ b/drivers/media/platform/aspeed-video.c
+> @@ -0,0 +1,1729 @@
 > +// SPDX-License-Identifier: GPL-2.0+
-> +// ir-rcmm-decoder.c - A decoder for the RCMM IR protocol
-> +//
-> +// Copyright (C) 2018 by Patrick Lerda <patrick9876@free.fr>
-> +
-> +#include "rc-core-priv.h"
-> +#include <linux/module.h>
-> +#include <linux/version.h>
-> +
-> +#define RCMM_UNIT		166667	/* nanosecs */
-> +#define RCMM_PREFIX_PULSE	416666  /* 166666.666666666*2.5 */
-> +#define RCMM_PULSE_0            277777  /* 166666.666666666*(1+2/3) */
-> +#define RCMM_PULSE_1            444444  /* 166666.666666666*(2+2/3) */
-> +#define RCMM_PULSE_2            611111  /* 166666.666666666*(3+2/3) */
-> +#define RCMM_PULSE_3            777778  /* 166666.666666666*(4+2/3) */
-> +
-> +enum rcmm_state {
-> +	STATE_INACTIVE,
-> +	STATE_LOW,
-> +	STATE_BUMP,
-> +	STATE_VALUE,
-> +	STATE_FINISHED,
-> +};
-> +
-> +static bool rcmm_mode(struct rcmm_dec *data)
-> +{
-> +	return !((0x000c0000 & data->bits) == 0x000c0000);
-> +}
-> +
-> +/**
-> + * ir_rcmm_decode() - Decode one RCMM pulse or space
-> + * @dev:	the struct rc_dev descriptor of the device
-> + * @ev:		the struct ir_raw_event descriptor of the pulse/space
-> + *
-> + * This function returns -EINVAL if the pulse violates the state machine
-> + */
-> +static int ir_rcmm_decode(struct rc_dev *dev, struct ir_raw_event ev)
-> +{
-> +	struct rcmm_dec *data = &dev->raw->rcmm;
-> +	u32 scancode;
-> +	u8 toggle;
-> +	int value;
-> +
-> +	if (!(dev->enabled_protocols & RC_PROTO_BIT_RCMM))
-> +		return 0;
-> +
-> +	if (!is_timing_event(ev)) {
-> +		if (ev.reset)
-> +			data->state = STATE_INACTIVE;
-> +		return 0;
-> +	}
-> +
-> +	if (ev.duration > RCMM_PULSE_3 + RCMM_UNIT)
-> +		goto out;
-> +
-> +	switch (data->state) {
-> +	case STATE_INACTIVE:
-> +		if (!ev.pulse)
-> +			break;
-> +
-> +		if (!eq_margin(ev.duration, RCMM_PREFIX_PULSE, RCMM_UNIT / 2))
-> +			break;
-> +
-> +		data->state = STATE_LOW;
-> +		data->count = 0;
-> +		data->bits  = 0;
-> +		return 0;
-> +
-> +	case STATE_LOW:
-> +		if (ev.pulse)
-> +			break;
-> +
-> +		if (!eq_margin(ev.duration, RCMM_PULSE_0, RCMM_UNIT / 2))
-> +			break;
-> +
-> +		data->state = STATE_BUMP;
-> +		return 0;
-> +
-> +	case STATE_BUMP:
-> +		if (!ev.pulse)
-> +			break;
-> +
-> +		if (!eq_margin(ev.duration, RCMM_UNIT, RCMM_UNIT / 2))
-> +			break;
-> +
-> +		data->state = STATE_VALUE;
-> +		return 0;
-> +
-> +	case STATE_VALUE:
-> +		if (ev.pulse)
-> +			break;
-> +
-> +		if (eq_margin(ev.duration, RCMM_PULSE_0, RCMM_UNIT / 2))
-> +			value = 0;
-> +		else if (eq_margin(ev.duration, RCMM_PULSE_1, RCMM_UNIT / 2))
-> +			value = 1;
-> +		else if (eq_margin(ev.duration, RCMM_PULSE_2, RCMM_UNIT / 2))
-> +			value = 2;
-> +		else if (eq_margin(ev.duration, RCMM_PULSE_3, RCMM_UNIT / 2))
-> +			value = 3;
-> +		else
-> +			break;
-> +
-> +		data->bits <<= 2;
-> +		data->bits |= value;
-> +
-> +		data->count += 2;
-> +
-> +		if (data->count < 32)
-> +			data->state = STATE_BUMP;
-> +		else
-> +			data->state = STATE_FINISHED;
-> +
-> +		return 0;
-> +
-> +	case STATE_FINISHED:
-> +		if (!ev.pulse)
-> +			break;
-> +
-> +		if (!eq_margin(ev.duration, RCMM_UNIT, RCMM_UNIT / 2))
-> +			break;
-> +
-> +		if (rcmm_mode(data)) {
-> +			toggle = !!(0x8000 & data->bits);
-> +			scancode = data->bits & ~0x8000;
-> +		} else {
-> +			toggle = 0;
-> +			scancode = data->bits;
-> +		}
-> +
-> +		rc_keydown(dev, RC_PROTO_RCMM, scancode, toggle);
-> +		data->state = STATE_INACTIVE;
-> +		return 0;
-> +	}
-> +
-> +out:
-> +	data->state = STATE_INACTIVE;
-> +	return -EINVAL;
-> +}
-> +
-> +static struct ir_raw_handler rcmm_handler = {
-> +	.protocols	= RC_PROTO_BIT_RCMM,
-> +	.decode		= ir_rcmm_decode,
-> +};
-> +
-> +static int __init ir_rcmm_decode_init(void)
-> +{
-> +	ir_raw_handler_register(&rcmm_handler);
-> +
-> +	pr_info("IR RCMM protocol handler initialized\n");
-> +	return 0;
-> +}
-> +
-> +static void __exit ir_rcmm_decode_exit(void)
-> +{
-> +	ir_raw_handler_unregister(&rcmm_handler);
-> +}
-> +
-> +module_init(ir_rcmm_decode_init);
-> +module_exit(ir_rcmm_decode_exit);
-> +
-> +MODULE_LICENSE("GPL");
-> +MODULE_AUTHOR("Patrick Lerda");
-> +MODULE_DESCRIPTION("RCMM IR protocol decoder");
-> diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
-> index c2cbe7f6266c..2266f61f887f 100644
-> --- a/drivers/media/rc/rc-core-priv.h
-> +++ b/drivers/media/rc/rc-core-priv.h
-> @@ -131,6 +131,11 @@ struct ir_raw_event_ctrl {
->   		unsigned int bits;
->   		bool stick_keyboard;
->   	} imon;
-> +	struct rcmm_dec {
-> +		int state;
-> +		unsigned int count;
-> +		u64 bits;
-> +	} rcmm;
->   };
->   
->   /* Mutex for locking raw IR processing and handler change */
-> diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-> index 66a174979b3c..7df40578dac0 100644
-> --- a/drivers/media/rc/rc-main.c
-> +++ b/drivers/media/rc/rc-main.c
-> @@ -70,6 +70,8 @@ static const struct {
->   	[RC_PROTO_CEC] = { .name = "cec", .repeat_period = 0 },
->   	[RC_PROTO_IMON] = { .name = "imon",
->   		.scancode_bits = 0x7fffffff, .repeat_period = 114 },
-> +	[RC_PROTO_RCMM] = { .name = "rcmm",
-> +		.scancode_bits = 0xffffffff, .repeat_period = 114 },
->   };
->   
->   /* Used to keep track of known keymaps */
-> @@ -1006,6 +1008,7 @@ static const struct {
->   	{ RC_PROTO_BIT_XMP,	"xmp",		"ir-xmp-decoder"	},
->   	{ RC_PROTO_BIT_CEC,	"cec",		NULL			},
->   	{ RC_PROTO_BIT_IMON,	"imon",		"ir-imon-decoder"	},
-> +	{ RC_PROTO_BIT_RCMM,	"rcmm",		"ir-rcmm-decoder"	},
->   };
->   
->   /**
-> diff --git a/include/media/rc-map.h b/include/media/rc-map.h
-> index d621acadfbf3..ff5e3b002f91 100644
-> --- a/include/media/rc-map.h
-> +++ b/include/media/rc-map.h
-> @@ -37,6 +37,7 @@
->   #define RC_PROTO_BIT_XMP		BIT_ULL(RC_PROTO_XMP)
->   #define RC_PROTO_BIT_CEC		BIT_ULL(RC_PROTO_CEC)
->   #define RC_PROTO_BIT_IMON		BIT_ULL(RC_PROTO_IMON)
-> +#define RC_PROTO_BIT_RCMM		BIT_ULL(RC_PROTO_RCMM)
->   
->   #define RC_PROTO_BIT_ALL \
->   			(RC_PROTO_BIT_UNKNOWN | RC_PROTO_BIT_OTHER | \
-> @@ -51,7 +52,7 @@
->   			 RC_PROTO_BIT_RC6_6A_24 | RC_PROTO_BIT_RC6_6A_32 | \
->   			 RC_PROTO_BIT_RC6_MCE | RC_PROTO_BIT_SHARP | \
->   			 RC_PROTO_BIT_XMP | RC_PROTO_BIT_CEC | \
-> -			 RC_PROTO_BIT_IMON)
-> +			 RC_PROTO_BIT_IMON | RC_PROTO_BIT_RCMM)
->   /* All rc protocols for which we have decoders */
->   #define RC_PROTO_BIT_ALL_IR_DECODER \
->   			(RC_PROTO_BIT_RC5 | RC_PROTO_BIT_RC5X_20 | \
-> @@ -64,7 +65,8 @@
->   			 RC_PROTO_BIT_RC6_0 | RC_PROTO_BIT_RC6_6A_20 | \
->   			 RC_PROTO_BIT_RC6_6A_24 |  RC_PROTO_BIT_RC6_6A_32 | \
->   			 RC_PROTO_BIT_RC6_MCE | RC_PROTO_BIT_SHARP | \
-> -			 RC_PROTO_BIT_XMP | RC_PROTO_BIT_IMON)
-> +			 RC_PROTO_BIT_XMP | RC_PROTO_BIT_IMON | \
-> +			 RC_PROTO_BIT_RCMM)
->   
->   #define RC_PROTO_BIT_ALL_IR_ENCODER \
->   			(RC_PROTO_BIT_RC5 | RC_PROTO_BIT_RC5X_20 | \
-> diff --git a/include/uapi/linux/lirc.h b/include/uapi/linux/lirc.h
-> index 6b319581882f..56106ccea2cb 100644
-> --- a/include/uapi/linux/lirc.h
-> +++ b/include/uapi/linux/lirc.h
-> @@ -192,6 +192,7 @@ struct lirc_scancode {
->    * @RC_PROTO_XMP: XMP protocol
->    * @RC_PROTO_CEC: CEC protocol
->    * @RC_PROTO_IMON: iMon Pad protocol
-> + * @RC_PROTO_RCMM: RC-MM protocol
->    */
->   enum rc_proto {
->   	RC_PROTO_UNKNOWN	= 0,
-> @@ -218,6 +219,7 @@ enum rc_proto {
->   	RC_PROTO_XMP		= 21,
->   	RC_PROTO_CEC		= 22,
->   	RC_PROTO_IMON		= 23,
-> +	RC_PROTO_RCMM		= 24,
->   };
->   
->   #endif
-> diff --git a/tools/include/uapi/linux/lirc.h b/tools/include/uapi/linux/lirc.h
-> index f189931042a7..c1e5850c56e1 100644
-> --- a/tools/include/uapi/linux/lirc.h
-> +++ b/tools/include/uapi/linux/lirc.h
-> @@ -186,6 +186,7 @@ struct lirc_scancode {
->    * @RC_PROTO_XMP: XMP protocol
->    * @RC_PROTO_CEC: CEC protocol
->    * @RC_PROTO_IMON: iMon Pad protocol
-> + * @RC_PROTO_RCMM: RC-MM protocol
->    */
->   enum rc_proto {
->   	RC_PROTO_UNKNOWN	= 0,
-> @@ -212,6 +213,7 @@ enum rc_proto {
->   	RC_PROTO_XMP		= 21,
->   	RC_PROTO_CEC		= 22,
->   	RC_PROTO_IMON		= 23,
-> +	RC_PROTO_RCMM		= 24,
->   };
->   
->   #endif
 
+You need to put this there as well:
+
+// Copyright 2018 IBM Corp
+
+
+> +static int aspeed_video_init(struct aspeed_video *video)
+> +{
+> +       int irq;
+> +       int rc;
+> +       struct device *dev = video->dev;
+> +
+> +       irq = irq_of_parse_and_map(dev->of_node, 0);
+> +       if (!irq) {
+> +               dev_err(dev, "Unable to find IRQ\n");
+> +               return -ENODEV;
+> +       }
+> +
+> +       rc = devm_request_irq(dev, irq, aspeed_video_irq, IRQF_SHARED,
+
+The datasheet indicates this IRQ is for the video engline only, so I
+don't think you want IRQF_SHARED.
+
+> +                             DEVICE_NAME, video);
+> +       if (rc < 0) {
+> +               dev_err(dev, "Unable to request IRQ %d\n", irq);
+> +               return rc;
+> +       }
+> +
+> +       video->eclk = devm_clk_get(dev, "eclk");
+> +       if (IS_ERR(video->eclk)) {
+> +               dev_err(dev, "Unable to get ECLK\n");
+> +               return PTR_ERR(video->eclk);
+> +       }
+> +
+> +       video->vclk = devm_clk_get(dev, "vclk");
+> +       if (IS_ERR(video->vclk)) {
+> +               dev_err(dev, "Unable to get VCLK\n");
+> +               return PTR_ERR(video->vclk);
+> +       }
+> +
+> +       video->rst = devm_reset_control_get_exclusive(dev, NULL);
+> +       if (IS_ERR(video->rst)) {
+> +               dev_err(dev, "Unable to get VE reset\n");
+> +               return PTR_ERR(video->rst);
+> +       }
+
+As discussed in the clock driver, this can go as you've already
+released the reset when enabling the eclk.
+
+However, you're requesting the clock without enabling it. You need to
+do a clk_prepare_enable().
+
+> +
+> +       rc = of_reserved_mem_device_init(dev);
+> +       if (rc) {
+> +               dev_err(dev, "Unable to reserve memory\n");
+> +               return rc;
+> +       }
+> +
+> +       rc = dma_set_mask_and_coherent(dev, DMA_BIT_MASK(32));
+> +       if (rc) {
+> +               dev_err(dev, "Failed to set DMA mask\n");
+> +               of_reserved_mem_device_release(dev);
+> +               return rc;
+> +       }
+> +
+> +       if (!aspeed_video_alloc_buf(video, &video->jpeg,
+> +                                   VE_JPEG_HEADER_SIZE)) {
+> +               dev_err(dev, "Failed to allocate DMA for JPEG header\n");
+> +               of_reserved_mem_device_release(dev);
+> +               return rc;
+> +       }
+> +
+> +       aspeed_video_init_jpeg_table(video->jpeg.virt, video->yuv420);
+> +
+> +       return 0;
+> +}
+
+> +
+> +static const struct of_device_id aspeed_video_of_match[] = {
+> +       { .compatible = "aspeed,ast2400-video-engine" },
+
+I noticed the clock driver did not have the changed required for the
+2400. Have you tested this on the ast2400?
+
+
+> +       { .compatible = "aspeed,ast2500-video-engine" },
+> +       {}
+> +};
+> +MODULE_DEVICE_TABLE(of, aspeed_video_of_match);
+> +
+> +static struct platform_driver aspeed_video_driver = {
+> +       .driver = {
+> +               .name = DEVICE_NAME,
+> +               .of_match_table = aspeed_video_of_match,
+> +       },
+> +       .probe = aspeed_video_probe,
+> +       .remove = aspeed_video_remove,
+> +};
