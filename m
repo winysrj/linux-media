@@ -3,119 +3,281 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-0.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_PASS,T_MIXED_ES autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 138B5C65BAE
-	for <linux-media@archiver.kernel.org>; Fri, 14 Dec 2018 02:24:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 35886C65BAE
+	for <linux-media@archiver.kernel.org>; Fri, 14 Dec 2018 02:48:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D6C9820811
-	for <linux-media@archiver.kernel.org>; Fri, 14 Dec 2018 02:24:07 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org D6C9820811
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=csie.org
+	by mail.kernel.org (Postfix) with ESMTP id DC56E20870
+	for <linux-media@archiver.kernel.org>; Fri, 14 Dec 2018 02:48:49 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org DC56E20870
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729079AbeLNCYC (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 13 Dec 2018 21:24:02 -0500
-Received: from mail-ed1-f67.google.com ([209.85.208.67]:47083 "EHLO
-        mail-ed1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728987AbeLNCYC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Dec 2018 21:24:02 -0500
-Received: by mail-ed1-f67.google.com with SMTP id o10so3687375edt.13;
-        Thu, 13 Dec 2018 18:24:00 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=WrNL09/DBqFQdRHyvLiqUAfyU2rTzrkrVarVXUnajTc=;
-        b=S+4QEu77uSRlSTTPczBx0iefEyx/zCDCJDfaXUWAjU9a64c+BhBWPXrM0fgZWEIp1y
-         sv4KXmsGOzLRAUwZDrr4Dtkry5Oe0xDdv3FQ02obksE1JidqqkdXv7TEidewRFxaHnZw
-         Hv8QDzIIRIGi0SRubjR36TCPCLarKD8V6DyWyiEzxL5OOS6VjSst++IqDFrMsRp6EpiP
-         GEC4QVqM/YIei3ZGprdiOLM9To/QrXfSiPJXm10FwI2BLtjiMKiLXzKCpwpG6jdymxT6
-         8UyyoLdJ0cIGFcOAYyIEnugia0h10iVUuJFvd2V9jtCFCs6eaamTCxzKa/m59Mke17dN
-         wuAg==
-X-Gm-Message-State: AA+aEWbmXmY+f9v023O9NO9IzHDBW2R/FU76UbwwMxiYwXET1LQWJUxj
-        kBO6/m7r8KSI80BBlIMEoCnj7G01m0w=
-X-Google-Smtp-Source: AFSGD/XpHQWyXtdxR6TPU6AN+2yT1zUAGBcArETjbMb+++H0SPAZdAsk5DndG2WcwNg98VXlsEfs4A==
-X-Received: by 2002:a50:a826:: with SMTP id j35mr1417136edc.230.1544754239671;
-        Thu, 13 Dec 2018 18:23:59 -0800 (PST)
-Received: from mail-wr1-f41.google.com (mail-wr1-f41.google.com. [209.85.221.41])
-        by smtp.gmail.com with ESMTPSA id b49sm1184102edb.73.2018.12.13.18.23.58
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 13 Dec 2018 18:23:59 -0800 (PST)
-Received: by mail-wr1-f41.google.com with SMTP id t27so3943795wra.6;
-        Thu, 13 Dec 2018 18:23:58 -0800 (PST)
-X-Received: by 2002:a5d:5208:: with SMTP id j8mr1018504wrv.188.1544754238556;
- Thu, 13 Dec 2018 18:23:58 -0800 (PST)
-MIME-Version: 1.0
-References: <20181130075849.16941-1-wens@csie.org> <20181213221030.f7c5mzuyke3ik43r@valkosipuli.retiisi.org.uk>
-In-Reply-To: <20181213221030.f7c5mzuyke3ik43r@valkosipuli.retiisi.org.uk>
-From:   Chen-Yu Tsai <wens@csie.org>
-Date:   Fri, 14 Dec 2018 10:23:46 +0800
-X-Gmail-Original-Message-ID: <CAGb2v675OQ6CQLr3Gzjd6yN-wkfB=ZfttgtTceN5AD2EXo2YEw@mail.gmail.com>
-Message-ID: <CAGb2v675OQ6CQLr3Gzjd6yN-wkfB=ZfttgtTceN5AD2EXo2YEw@mail.gmail.com>
-Subject: Re: [PATCH 0/6] media: sun6i: Separate H3 compatible from A31
-To:     sakari.ailus@iki.fi
-Cc:     Yong Deng <yong.deng@magewell.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
+        id S1726359AbeLNCst (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 13 Dec 2018 21:48:49 -0500
+Received: from mga04.intel.com ([192.55.52.120]:26022 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725949AbeLNCss (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 13 Dec 2018 21:48:48 -0500
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga001.jf.intel.com ([10.7.209.18])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 13 Dec 2018 18:48:47 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.56,351,1539673200"; 
+   d="scan'208";a="118712247"
+Received: from ipu5-build.bj.intel.com (HELO [10.238.232.171]) ([10.238.232.171])
+  by orsmga001.jf.intel.com with ESMTP; 13 Dec 2018 18:48:44 -0800
+Subject: Re: [PATCH v7 00/16] Intel IPU3 ImgU patchset
+To:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc:     "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        "Zhi, Yong" <yong.zhi@intel.com>,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        devicetree <devicetree@vger.kernel.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "Hu, Jerry W" <jerry.w.hu@intel.com>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
+        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
+        "Cao, Bingbu" <bingbu.cao@intel.com>
+References: <1540851790-1777-1-git-send-email-yong.zhi@intel.com>
+ <1645510.9NPTHXyo7j@avalon>
+ <14cba24a-a2c3-f0d4-5d5b-f514f9a24035@linux.intel.com>
+ <1609628.n3aCoxV5Mp@avalon>
+From:   Bingbu Cao <bingbu.cao@linux.intel.com>
+Message-ID: <cbd00861-a715-2744-9c4d-48b972b7c7d0@linux.intel.com>
+Date:   Fri, 14 Dec 2018 10:53:56 +0800
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:52.0) Gecko/20100101
+ Thunderbird/52.9.1
+MIME-Version: 1.0
+In-Reply-To: <1609628.n3aCoxV5Mp@avalon>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Fri, Dec 14, 2018 at 6:10 AM <sakari.ailus@iki.fi> wrote:
->
-> Hi Chen-Yu,
->
-> On Fri, Nov 30, 2018 at 03:58:43PM +0800, Chen-Yu Tsai wrote:
-> > The CSI (camera sensor interface) controller found on the H3 (and H5)
-> > is a reduced version of the one found on the A31. It only has 1 channel,
-> > instead of 4 channels supporting time-multiplexed BT.656 on the A31.
-> > Since the H3 is a reduced version, it cannot "fallback" to a compatible
-> > that implements more features than it supports.
-> >
-> > This series separates support for the H3 variant from the A31 variant.
-> >
-> > Patches 1 ~ 3 separate H3 CSI from A31 CSI in the bindings, driver, and
-> > device tree, respectively.
-> >
-> > Patch 4 adds a pinmux setting for the MCLK (master clock). Some camera
-> > sensors use the master clock from the SoC instead of a standalone
-> > crystal.
->
-> I've picked patches 1 and 2, but I presume patches 3 and 4 would go through
-> another tree. Is that right?
 
-We'll merge patch 3 through the sunxi tree, probably as a fix for 4.21-rc.
-Maxime has said that pinmux settings won't be merged unless there are actual
-users in tree, so patch 4 won't be merged for now.
 
-Thanks!
-ChenYu
+On 12/14/2018 06:24 AM, Laurent Pinchart wrote:
+> Hello Bingbu,
+>
+> On Wednesday, 12 December 2018 06:55:53 EET Bingbu Cao wrote:
+>> On 12/11/2018 09:43 PM, Laurent Pinchart wrote:
+>>> On Tuesday, 11 December 2018 15:34:49 EET Laurent Pinchart wrote:
+>>>> On Wednesday, 5 December 2018 02:30:46 EET Mani, Rajmohan wrote:
+>>>>
+>>>> [snip]
+>>>>
+>>>>> I can see a couple of steps missing in the script below.
+>>>>> (https://lists.libcamera.org/pipermail/libcamera-devel/2018-November/000
+>>>>> 040.html)
+>>>>>
+>>>>>   From patch 02 of this v7 series "doc-rst: Add Intel IPU3
+>>>>>   documentation", under section "Configuring ImgU V4L2 subdev for image
+>>>>>   processing"...
+>>>>>
+>>>>> 1. The pipe mode needs to be configured for the V4L2 subdev.
+>>>>>
+>>>>> Also the pipe mode of the corresponding V4L2 subdev should be set as
+>>>>> desired (e.g 0 for video mode or 1 for still mode) through the control
+>>>>> id 0x009819a1 as below.
+>>>>>
+>>>>> e.g v4l2n -d /dev/v4l-subdev7 --ctrl=0x009819A1=1
+>>>> I assume the control takes a valid default value ? It's better to set it
+>>>> explicitly anyway, so I'll do so.
+>> The video mode is set by default. If you want to set to still mode or change
+>> mode, you need set the subdev control.
+>>
+>>>>> 2. ImgU pipeline needs to be configured for image processing as below.
+>>>>>
+>>>>> RAW bayer frames go through the following ISP pipeline HW blocks to
+>>>>> have the processed image output to the DDR memory.
+>>>>>
+>>>>> RAW bayer frame -> Input Feeder -> Bayer Down Scaling (BDS) ->
+>>>>> Geometric Distortion Correction (GDC) -> DDR
+>>>>>
+>>>>> The ImgU V4L2 subdev has to be configured with the supported
+>>>>> resolutions in all the above HW blocks, for a given input resolution.
+>>>>>
+>>>>> For a given supported resolution for an input frame, the Input Feeder,
+>>>>> Bayer Down Scaling and GDC blocks should be configured with the
+>>>>> supported resolutions. This information can be obtained by looking at
+>>>>> the following IPU3 ISP configuration table for ov5670 sensor.
+>>>>>
+>>>>> https://chromium.googlesource.com/chromiumos/overlays/board-overlays/+/m
+>>>>> aster/baseboard-poppy/media-libs/cros-camera-hal-configs-poppy/files/
+>>>>> gcss/graph_settings_ov5670.xml
+>>>>>
+>>>>> For the ov5670 example, for an input frame with a resolution of
+>>>>> 2592x1944 (which is input to the ImgU subdev pad 0), the corresponding
+>>>>> resolutions for input feeder, BDS and GDC are 2592x1944, 2592x1944 and
+>>>>> 2560x1920 respectively.
+>>>> How is the GDC output resolution computed from the input resolution ?
+>>>> Does the GDC always consume 32 columns and 22 lines ?
+>> All the intermediate resolutions in the pipeline are determined by the
+>> actual use case, in other word determined by the IMGU input
+>> resolution(sensor output) and the final output and viewfinder resolution.
+>> BDS mainly do Bayer downscaling, it has limitation that the downscaling
+>> factor must be a value a integer multiple of 1/32.
+>> GDC output depends on the input and width should be x8 and height x4
+>> alignment.
+> Thank you for the information. This will need to be captured in the
+> documentation, along with information related to how each block in the
+> hardware pipeline interacts with the image size. It should be possible for a
+> developer to compute the output and viewfinder resolutions based on the
+> parameters of the image processing algorithms just with the information
+> contained in the driver documentation.
+>
+>>>>> The following steps prepare the ImgU ISP pipeline for the image
+>>>>> processing.
+>>>>>
+>>>>> 1. The ImgU V4L2 subdev data format should be set by using the
+>>>>> VIDIOC_SUBDEV_S_FMT on pad 0, using the GDC width and height obtained
+>>>>> above.
+>>>> If I understand things correctly, the GDC resolution is the pipeline
+>>>> output resolution. Why is it configured on pad 0 ?
+>> We see the GDC output resolution as the input of output system, the sink pad
+>> format is used for output and viewfinder resolutions.
+> The ImgU subdev is supposed to represent the ImgU. Pad 0 should thus be the
+> ImgU input, the format configured there should correspond to the format on the
+> connected video node, and should thus be the sensor format. You can then use
+> the crop and compose rectangles on pad 0, along with the format, crop and
+> compose rectangles on the output and viewfinder pads, to configure the device.
+> This should be fixed in the driver, and the documentation should then be
+> updated accordingly.
+Ack.
+>
+>>>>> 2. The ImgU V4L2 subdev cropping should be set by using the
+>>>>> VIDIOC_SUBDEV_S_SELECTION on pad 0, with V4L2_SEL_TGT_CROP as the
+>>>>> target, using the input feeder height and width.
+>>>>>
+>>>>> 3. The ImgU V4L2 subdev composing should be set by using the
+>>>>> VIDIOC_SUBDEV_S_SELECTION on pad 0, with V4L2_SEL_TGT_COMPOSE as the
+>>>>> target, using the BDS height and width.
+>>>>>
+>>>>> Once these 2 steps are done, the raw bayer frames can be input to the
+>>>>> ImgU V4L2 subdev for processing.
+>>>> Do I need to capture from both the output and viewfinder nodes ? How are
+>>>> they related to the IF -> BDS -> GDC pipeline, are they both fed from the
+>>>> GDC output ? If so, how does the viewfinder scaler fit in that picture ?
+>> The output capture should be set, the viewfinder can be disabled.
+>> The IF and BDS are seen as crop and compose of the imgu input video
+>> device. The GDC is seen as the subdev sink pad and OUTPUT/VF are source
+>> pads.
+> The GDC is the last block in the pipeline according to the information
+> provided above. How can it be seen as the subdev sink pad ? That doesn't make
+> sense to me. I'm not asking for the MC graph to expose all internal blocks of
+> the ImgU, but if you want to retain a single subdev model, the format on the
+> sink pad needs to correspond to what is provided to the ImgU. Please see
+> figure 4.6 of https://linuxtv.org/downloads/v4l-dvb-apis/uapi/v4l/dev-subdev.html for more information regarding how you can use the sink crop, sink
+> compose and source crop rectangles.
+Ack, thanks!
+>
+>>>> I have tried the above configuration with the IPU3 v8 driver, and while
+>>>> the kernel doesn't crash, no images get processed. The userspace
+>>>> processes wait forever for buffers to be ready. I then configured pad 2
+>>>> to 2560x1920 and pad 3 to 1920x1080, and managed to capture images \o/
+>>>>
+>>>> There's one problem though: during capture, or very soon after it, the
+>>>> machine locks up completely. I suspect a memory corruption, as when it
+>>>> doesn't log immediately commands such as dmesg will not produce any
+>>>> output and just block, until the system freezes soon after (especially
+>>>> when moving the mouse).
+>>>>
+>>>> I would still call this an improvement to some extent, but there's
+>>>> definitely room for more improvements :-)
+>>>>
+>>>> To reproduce the issue, you can run the ipu3-process.sh script (attached
+>>>> to this e-mail) with the following arguments:
+>>>>
+>>>> $ ipu3-process.sh --out 2560x1920 frame-2592x1944.cio2
+>>>>
+>>>> frame-2592x1944.cio2 is a binary file containing a 2592x1944 images in
+>>>> the IPU3-specific Bayer format (for a total of 6469632 bytes).
+>>> I managed to get the dmesg output, and it doesn't look pretty.
+>>>
+>>> [  571.217192] WARNING: CPU: 3 PID: 1303 at /home/laurent/src/iob/oss/
+>>> libcamera/linux/drivers/staging/media/ipu3/ipu3-dmamap.c:172
+>>> ipu3_dmamap_unmap+0x30/0x75 [ipu3_imgu]
+>>> [  571.217196] Modules linked in: asix usbnet mii zram arc4 iwlmvm
+>>> mac80211
+>>> iwlwifi intel_rapl x86_pkg_temp_thermal intel_powerclamp coretemp cfg80211
+>>> 8250_dw hid_multitouch ipu3_cio2 ipu3_imgu(C) videobuf2_dma_sg
+>>> videobuf2_memops videobuf2_v4l2 videobuf2_common processor_thermal_device
+>>> intel_soc_dts_iosf ov13858 dw9714 ov5670 v4l2_fwnode v4l2_common videodev
+>>> at24 media int3403_thermal int340x_thermal_zone cros_ec_lpcs cros_ec_core
+>>> int3400_thermal chromeos_pstore mac_hid acpi_thermal_rel autofs4 usbhid
+>>> mmc_block hid_generic i915 video i2c_algo_bit drm_kms_helper syscopyarea
+>>> sysfillrect sdhci_pci sysimgblt fb_sys_fops cqhci sdhci drm
+>>> drm_panel_orientation_quirks i2c_hid hid
+>>> [  571.217254] CPU: 3 PID: 1303 Comm: yavta Tainted: G         C
+>>> 4.20.0-rc6+ #2
+>>> [  571.217256] Hardware name: HP Soraka/Soraka, BIOS  08/30/2018
+>>> [  571.217267] RIP: 0010:ipu3_dmamap_unmap+0x30/0x75 [ipu3_imgu]
+>>> [  571.217271] Code: 54 55 48 8d af d0 6e 00 00 53 48 8b 76 10 49 89 fc f3
+>>> 48 0f bc 8f f0 6e 00 00 48 89 ef 48 d3 ee e8 e6 73 d9 e6 48 85 c0 75 07
+>>> <0f> 0b 5b 5d 41 5c c3 48 8b 70 20 48 89 c3 48 8b 40 18 49 8b bc 24
+>>> [  571.217274] RSP: 0018:ffffb675021c7b38 EFLAGS: 00010246
+>>> [  571.217278] RAX: 0000000000000000 RBX: ffff8f5cf58f8448 RCX:
+>>> 000000000000000c
+>>> [  571.217280] RDX: 0000000000000000 RSI: 0000000000000202 RDI:
+>>> 00000000ffffffff
+>>> [  571.217283] RBP: ffff8f5cf58f6ef8 R08: 00000000000006c5 R09:
+>>> ffff8f5cfaba16f0
+>>> [  571.217286] R10: ffff8f5cbf508f98 R11: 000000e03da27aba R12:
+>>> ffff8f5cf58f0028
+>>> [  571.217289] R13: ffff8f5cf58f0028 R14: 0000000000000000 R15:
+>>> ffff8f5cf58f04e8
+>>> [  571.217293] FS:  00007f85d009c700(0000) GS:ffff8f5cfab80000(0000)
+>>> knlGS:
+>>> 0000000000000000
+>>> [  571.217296] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+>>> [  571.217299] CR2: 00007f3440fce4b0 CR3: 000000014abf2001 CR4:
+>>> 00000000003606e0
+>>> [  571.217301] Call Trace:
+>>> [  571.217316]  ipu3_dmamap_free+0x5b/0x8f [ipu3_imgu]
+>>> [  571.217326]  ipu3_css_pool_cleanup+0x25/0x2f [ipu3_imgu]
+>>> [  571.217338]  ipu3_css_pipeline_cleanup+0x59/0x8f [ipu3_imgu]
+>>> [  571.217348]  ipu3_css_stop_streaming+0x15b/0x20f [ipu3_imgu]
+>>> [  571.217360]  imgu_s_stream+0x5a/0x30a [ipu3_imgu]
+>>> [  571.217371]  ? ipu3_all_nodes_streaming+0x14f/0x16b [ipu3_imgu]
+>>> [  571.217382]  ipu3_vb2_stop_streaming+0xe4/0x10f [ipu3_imgu]
+>>> [  571.217392]  __vb2_queue_cancel+0x2b/0x1b8 [videobuf2_common]
+>>> [  571.217402]  vb2_core_streamoff+0x30/0x71 [videobuf2_common]
+>>> [  571.217418]  __video_do_ioctl+0x258/0x38e [videodev]
+>>> [  571.217438]  video_usercopy+0x25f/0x4e5 [videodev]
+>>> [  571.217453]  ? copy_overflow+0x14/0x14 [videodev]
+>>> [  571.217471]  v4l2_ioctl+0x4d/0x58 [videodev]
+>>> [  571.217480]  vfs_ioctl+0x1e/0x2b
+>>> [  571.217486]  do_vfs_ioctl+0x531/0x559
+>>> [  571.217494]  ? vfs_write+0xd1/0xdf
+>>> [  571.217500]  ksys_ioctl+0x50/0x70
+>>> [  571.217506]  __x64_sys_ioctl+0x16/0x19
+>>> [  571.217512]  do_syscall_64+0x53/0x60
+>>> [  571.217519]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
+>>> [  571.217524] RIP: 0033:0x7f85cf9b9f47
+>>> [  571.217528] Code: 00 00 00 48 8b 05 51 6f 2c 00 64 c7 00 26 00 00 00 48
+>>> c7 c0 ff ff ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 b8 10 00 00 00 0f 05
+>>> <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d 21 6f 2c 00 f7 d8 64 89 01 48
+>>> [  571.217531] RSP: 002b:00007ffc59056b78 EFLAGS: 00000246 ORIG_RAX:
+>>> 0000000000000010
+>>> [  571.217535] RAX: ffffffffffffffda RBX: 0000000000000000 RCX:
+>>> 00007f85cf9b9f47
+>>> [  571.217537] RDX: 00007ffc59056b84 RSI: 0000000040045613 RDI:
+>>> 0000000000000003
+>>> [  571.217540] RBP: 000055f4c4dc0af8 R08: 00007f85cd7c4000 R09:
+>>> 00007f85d009c700
+>>> [  571.217542] R10: 0000000000000020 R11: 0000000000000246 R12:
+>>> 000055f4c4dc0b06
+>>> [  571.217545] R13: 0000000000000004 R14: 00007ffc59056d50 R15:
+>>> 00007ffc59057825
+>>> [  571.217553] ---[ end trace 4b42bd84953eff53 ]---
+>>> [  571.318645] ipu3-imgu 0000:00:05.0: wait cio gate idle timeout
 
->
-> >
-> > Patches 5 and 6 are examples of using a camera sensor with an SBC.
-> > Since the modules are detachable, these changes should not be merged.
-> > They should be implemented as overlays instead.
-> >
-> > Please have a look.
-> >
-> > In addition, I found that the first frame captured seems to always be
-> > incomplete, with either parts cropped, out of position, or missing
-> > color components.
->
->
-> --
-> Regards,
->
-> Sakari Ailus
