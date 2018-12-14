@@ -7,44 +7,44 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1DE4DC6786C
-	for <linux-media@archiver.kernel.org>; Fri, 14 Dec 2018 08:22:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B2E0C67872
+	for <linux-media@archiver.kernel.org>; Fri, 14 Dec 2018 08:26:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D8B362086D
-	for <linux-media@archiver.kernel.org>; Fri, 14 Dec 2018 08:22:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 33E2520879
+	for <linux-media@archiver.kernel.org>; Fri, 14 Dec 2018 08:26:37 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="dIRDvlPy"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org D8B362086D
+	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="BvcI1TIE"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 33E2520879
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=ideasonboard.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726998AbeLNIWj (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 14 Dec 2018 03:22:39 -0500
-Received: from perceval.ideasonboard.com ([213.167.242.64]:49352 "EHLO
+        id S1728759AbeLNI0g (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 14 Dec 2018 03:26:36 -0500
+Received: from perceval.ideasonboard.com ([213.167.242.64]:49490 "EHLO
         perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726520AbeLNIWj (ORCPT
+        with ESMTP id S1726520AbeLNI0g (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Dec 2018 03:22:39 -0500
+        Fri, 14 Dec 2018 03:26:36 -0500
 Received: from avalon.localnet (dfj612ybrt5fhg77mgycy-3.rev.dnainternet.fi [IPv6:2001:14ba:21f5:5b00:2e86:4862:ef6a:2804])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 56CC0549;
-        Fri, 14 Dec 2018 09:22:37 +0100 (CET)
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 35D25549;
+        Fri, 14 Dec 2018 09:26:34 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1544775757;
-        bh=VNQxDNRgYy027upeTy209RVX7BAXy+qOjg43HA1fgpQ=;
+        s=mail; t=1544775994;
+        bh=MgAufgl2JuzgglUJOvyn0UD4lBG+kOn7h9BviEHBRW4=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=dIRDvlPyDlHWgLCI6yL3GnqvmpYrOaMnB+h6+lPHchRaNtbXzPgHCnmuk/MkPpxDp
-         cbvjc7YZeHeVgfSJqFeBF7XydrjA2Q0MMY4nJ0SjusLwNopCo3jUaGDbTxhAA0smXR
-         pA+uFexJshmurSBMiylKmp6VNdTpNKpcnqJ/HiA4=
+        b=BvcI1TIEqc+9p+DMNLyejFn1Au8clzdF5H0jCVLw/Ew17uPaxs99+0tAzuKYqJbJT
+         bHKeTbTvGf2AHW1IrwuzgtqpBQMdnmnZRvMs8u8NAH8N13ou/tmtzxzuylWxUxLaTT
+         HvaumrsKWFIvilwmXxI38ZEuPMNbHwGrryuJtjao=
 From:   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To:     Niklas =?ISO-8859-1?Q?S=F6derlund?= 
         <niklas.soderlund+renesas@ragnatech.se>
 Cc:     linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH 2/4] rcar-vin: cache the CSI-2 channel selection value
-Date:   Fri, 14 Dec 2018 10:23:25 +0200
-Message-ID: <14327612.kiatMVmQX0@avalon>
+Subject: Re: [PATCH 3/4] rcar-vin: make rvin_{start,stop}_streaming() available for internal use
+Date:   Fri, 14 Dec 2018 10:27:22 +0200
+Message-ID: <23080491.FYkgn8OxuK@avalon>
 Organization: Ideas on Board Oy
-In-Reply-To: <20181214061824.10296-3-niklas.soderlund+renesas@ragnatech.se>
-References: <20181214061824.10296-1-niklas.soderlund+renesas@ragnatech.se> <20181214061824.10296-3-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20181214061824.10296-4-niklas.soderlund+renesas@ragnatech.se>
+References: <20181214061824.10296-1-niklas.soderlund+renesas@ragnatech.se> <20181214061824.10296-4-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
 Content-Transfer-Encoding: quoted-printable
 Content-Type: text/plain; charset="iso-8859-1"
@@ -57,67 +57,98 @@ Hi Niklas,
 
 Thank you for the patch.
 
-On Friday, 14 December 2018 08:18:22 EET Niklas S=F6derlund wrote:
-> In preparation of suspend/resume support cache the chsel value when we
-> write it to the register so it can be restored on resume if needed.
+On Friday, 14 December 2018 08:18:23 EET Niklas S=F6derlund wrote:
+> To support suspend/resume rvin_{start,stop}_streaming() needs to be
+> accessible from the suspend and resume callbacks. Up until now the only
+> users of these functions have been the callbacks in struct vb2_ops so
+> the arguments to the functions are not suitable for use by the driver it
+> self.
+>=20
+> Fix this by adding wrappers for the struct vb2_ops callbacks which calls
+> the new rvin_{start,stop}_streaming() using more friendly arguments.
 >=20
 > Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
 > ---
->  drivers/media/platform/rcar-vin/rcar-dma.c | 2 ++
->  drivers/media/platform/rcar-vin/rcar-vin.h | 2 ++
->  2 files changed, 4 insertions(+)
+>  drivers/media/platform/rcar-vin/rcar-dma.c | 20 ++++++++++++++------
+>  drivers/media/platform/rcar-vin/rcar-vin.h |  3 +++
+>  2 files changed, 17 insertions(+), 6 deletions(-)
 >=20
 > diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c
 > b/drivers/media/platform/rcar-vin/rcar-dma.c index
-> beb9248992a48a74..64f7636f94d6a0a3 100644
+> 64f7636f94d6a0a3..d11d4df1906a8962 100644
 > --- a/drivers/media/platform/rcar-vin/rcar-dma.c
 > +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-> @@ -1336,6 +1336,8 @@ int rvin_set_channel_routing(struct rvin_dev *vin, =
-u8
-> chsel)
+> @@ -1143,9 +1143,8 @@ static int rvin_set_stream(struct rvin_dev *vin, int
+> on) return ret;
+>  }
 >=20
->  	vin_dbg(vin, "Set IFMD 0x%x\n", ifmd);
+> -static int rvin_start_streaming(struct vb2_queue *vq, unsigned int count)
+> +int rvin_start_streaming(struct rvin_dev *vin)
+>  {
+> -	struct rvin_dev *vin =3D vb2_get_drv_priv(vq);
+>  	unsigned long flags;
+>  	int ret;
 >=20
-> +	vin->chsel =3D chsel;
+> @@ -1187,9 +1186,13 @@ static int rvin_start_streaming(struct vb2_queue *=
+vq,
+> unsigned int count) return ret;
+>  }
+>=20
+> -static void rvin_stop_streaming(struct vb2_queue *vq)
+> +static int rvin_start_streaming_vq(struct vb2_queue *vq, unsigned int
+> count)
+> +{
+> +	return rvin_start_streaming(vb2_get_drv_priv(vq));
+> +}
 > +
-
-Would it be useful to add a
-
-	if (vin->chsel =3D=3D chsel)
-		return 0;
-
-at the beginning of the function, or is that impossible ?
-
->  	/* Restore VNMC. */
->  	rvin_write(vin, vnmc, VNMC_REG);
+> +void rvin_stop_streaming(struct rvin_dev *vin)
+>  {
+> -	struct rvin_dev *vin =3D vb2_get_drv_priv(vq);
+>  	unsigned long flags;
+>  	int retries =3D 0;
 >=20
+> @@ -1238,12 +1241,17 @@ static void rvin_stop_streaming(struct vb2_queue
+> *vq) vin->scratch_phys);
+>  }
+>=20
+> +static void rvin_stop_streaming_vq(struct vb2_queue *vq)
+> +{
+> +	rvin_stop_streaming(vb2_get_drv_priv(vq));
+> +}
+
+You'll need a bit more than this. rvin_stop_streaming() calls=20
+return_all_buffers() and dma_free_coherent() which you don't want at suspen=
+d=20
+time. Buffers should not be returned to userspace but kept for reuse, and i=
+t's=20
+pointless to free the scratch buffer at suspend time to reallocate it at=20
+resume time.
+
+>  static const struct vb2_ops rvin_qops =3D {
+>  	.queue_setup		=3D rvin_queue_setup,
+>  	.buf_prepare		=3D rvin_buffer_prepare,
+>  	.buf_queue		=3D rvin_buffer_queue,
+> -	.start_streaming	=3D rvin_start_streaming,
+> -	.stop_streaming		=3D rvin_stop_streaming,
+> +	.start_streaming	=3D rvin_start_streaming_vq,
+> +	.stop_streaming		=3D rvin_stop_streaming_vq,
+>  	.wait_prepare		=3D vb2_ops_wait_prepare,
+>  	.wait_finish		=3D vb2_ops_wait_finish,
+>  };
 > diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h
 > b/drivers/media/platform/rcar-vin/rcar-vin.h index
-> 0b13b34d03e3dce4..d21fc991b7a9da36 100644
+> d21fc991b7a9da36..700fae1c1225a2f3 100644
 > --- a/drivers/media/platform/rcar-vin/rcar-vin.h
 > +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-> @@ -170,6 +170,7 @@ struct rvin_info {
->   * @state:		keeps track of operation state
->   *
->   * @is_csi:		flag to mark the VIN as using a CSI-2 subdevice
-> + * @chsel		Cached value of the current CSI-2 channel selection
-
-Nitpicking, the documentation for other fields don't start with a capital=20
-letter.
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
->   *
->   * @mbus_code:		media bus format code
->   * @format:		active V4L2 pixel format
-> @@ -207,6 +208,7 @@ struct rvin_dev {
->  	enum rvin_dma_state state;
+> @@ -269,4 +269,7 @@ void rvin_crop_scale_comp(struct rvin_dev *vin);
 >=20
->  	bool is_csi;
-> +	unsigned int chsel;
+>  int rvin_set_channel_routing(struct rvin_dev *vin, u8 chsel);
 >=20
->  	u32 mbus_code;
->  	struct v4l2_pix_format format;
+> +int rvin_start_streaming(struct rvin_dev *vin);
+> +void rvin_stop_streaming(struct rvin_dev *vin);
+> +
+>  #endif
+
 
 =2D-=20
 Regards,
