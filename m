@@ -3,31 +3,31 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-8.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A2380C67872
-	for <linux-media@archiver.kernel.org>; Fri, 14 Dec 2018 06:19:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3665DC6786C
+	for <linux-media@archiver.kernel.org>; Fri, 14 Dec 2018 06:19:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 67FF12086D
-	for <linux-media@archiver.kernel.org>; Fri, 14 Dec 2018 06:19:27 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 67FF12086D
+	by mail.kernel.org (Postfix) with ESMTP id 05DAA20811
+	for <linux-media@archiver.kernel.org>; Fri, 14 Dec 2018 06:19:33 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 05DAA20811
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=ragnatech.se
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-media-owner@vger.kernel.org
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727124AbeLNGT0 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 14 Dec 2018 01:19:26 -0500
-Received: from bin-mail-out-06.binero.net ([195.74.38.229]:2898 "EHLO
+        id S1727158AbeLNGTc (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 14 Dec 2018 01:19:32 -0500
+Received: from bin-mail-out-06.binero.net ([195.74.38.229]:23789 "EHLO
         bin-mail-out-06.binero.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727054AbeLNGT0 (ORCPT
+        by vger.kernel.org with ESMTP id S1726500AbeLNGTc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Dec 2018 01:19:26 -0500
-X-Halon-ID: 2c68c44e-ff68-11e8-911a-0050569116f7
+        Fri, 14 Dec 2018 01:19:32 -0500
+X-Halon-ID: 2faf7d72-ff68-11e8-911a-0050569116f7
 Authorized-sender: niklas@soderlund.pp.se
 Received: from bismarck.berto.se (unknown [89.233.230.99])
         by bin-vsp-out-03.atm.binero.net (Halon) with ESMTPA
-        id 2c68c44e-ff68-11e8-911a-0050569116f7;
-        Fri, 14 Dec 2018 07:19:17 +0100 (CET)
+        id 2faf7d72-ff68-11e8-911a-0050569116f7;
+        Fri, 14 Dec 2018 07:19:20 +0100 (CET)
 From:   =?UTF-8?q?Niklas=20S=C3=B6derlund?= 
         <niklas.soderlund+renesas@ragnatech.se>
 To:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
@@ -35,9 +35,9 @@ To:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
 Cc:     linux-renesas-soc@vger.kernel.org,
         =?UTF-8?q?Niklas=20S=C3=B6derlund?= 
         <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH 2/4] rcar-vin: cache the CSI-2 channel selection value
-Date:   Fri, 14 Dec 2018 07:18:22 +0100
-Message-Id: <20181214061824.10296-3-niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH 3/4] rcar-vin: make rvin_{start,stop}_streaming() available for internal use
+Date:   Fri, 14 Dec 2018 07:18:23 +0100
+Message-Id: <20181214061824.10296-4-niklas.soderlund+renesas@ragnatech.se>
 X-Mailer: git-send-email 2.19.2
 In-Reply-To: <20181214061824.10296-1-niklas.soderlund+renesas@ragnatech.se>
 References: <20181214061824.10296-1-niklas.soderlund+renesas@ragnatech.se>
@@ -49,48 +49,84 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-In preparation of suspend/resume support cache the chsel value when we
-write it to the register so it can be restored on resume if needed.
+To support suspend/resume rvin_{start,stop}_streaming() needs to be
+accessible from the suspend and resume callbacks. Up until now the only
+users of these functions have been the callbacks in struct vb2_ops so
+the arguments to the functions are not suitable for use by the driver it
+self.
+
+Fix this by adding wrappers for the struct vb2_ops callbacks which calls
+the new rvin_{start,stop}_streaming() using more friendly arguments.
 
 Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
- drivers/media/platform/rcar-vin/rcar-dma.c | 2 ++
- drivers/media/platform/rcar-vin/rcar-vin.h | 2 ++
- 2 files changed, 4 insertions(+)
+ drivers/media/platform/rcar-vin/rcar-dma.c | 20 ++++++++++++++------
+ drivers/media/platform/rcar-vin/rcar-vin.h |  3 +++
+ 2 files changed, 17 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index beb9248992a48a74..64f7636f94d6a0a3 100644
+index 64f7636f94d6a0a3..d11d4df1906a8962 100644
 --- a/drivers/media/platform/rcar-vin/rcar-dma.c
 +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -1336,6 +1336,8 @@ int rvin_set_channel_routing(struct rvin_dev *vin, u8 chsel)
+@@ -1143,9 +1143,8 @@ static int rvin_set_stream(struct rvin_dev *vin, int on)
+ 	return ret;
+ }
  
- 	vin_dbg(vin, "Set IFMD 0x%x\n", ifmd);
+-static int rvin_start_streaming(struct vb2_queue *vq, unsigned int count)
++int rvin_start_streaming(struct rvin_dev *vin)
+ {
+-	struct rvin_dev *vin = vb2_get_drv_priv(vq);
+ 	unsigned long flags;
+ 	int ret;
  
-+	vin->chsel = chsel;
+@@ -1187,9 +1186,13 @@ static int rvin_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	return ret;
+ }
+ 
+-static void rvin_stop_streaming(struct vb2_queue *vq)
++static int rvin_start_streaming_vq(struct vb2_queue *vq, unsigned int count)
++{
++	return rvin_start_streaming(vb2_get_drv_priv(vq));
++}
 +
- 	/* Restore VNMC. */
- 	rvin_write(vin, vnmc, VNMC_REG);
++void rvin_stop_streaming(struct rvin_dev *vin)
+ {
+-	struct rvin_dev *vin = vb2_get_drv_priv(vq);
+ 	unsigned long flags;
+ 	int retries = 0;
  
+@@ -1238,12 +1241,17 @@ static void rvin_stop_streaming(struct vb2_queue *vq)
+ 			  vin->scratch_phys);
+ }
+ 
++static void rvin_stop_streaming_vq(struct vb2_queue *vq)
++{
++	rvin_stop_streaming(vb2_get_drv_priv(vq));
++}
++
+ static const struct vb2_ops rvin_qops = {
+ 	.queue_setup		= rvin_queue_setup,
+ 	.buf_prepare		= rvin_buffer_prepare,
+ 	.buf_queue		= rvin_buffer_queue,
+-	.start_streaming	= rvin_start_streaming,
+-	.stop_streaming		= rvin_stop_streaming,
++	.start_streaming	= rvin_start_streaming_vq,
++	.stop_streaming		= rvin_stop_streaming_vq,
+ 	.wait_prepare		= vb2_ops_wait_prepare,
+ 	.wait_finish		= vb2_ops_wait_finish,
+ };
 diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index 0b13b34d03e3dce4..d21fc991b7a9da36 100644
+index d21fc991b7a9da36..700fae1c1225a2f3 100644
 --- a/drivers/media/platform/rcar-vin/rcar-vin.h
 +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -170,6 +170,7 @@ struct rvin_info {
-  * @state:		keeps track of operation state
-  *
-  * @is_csi:		flag to mark the VIN as using a CSI-2 subdevice
-+ * @chsel		Cached value of the current CSI-2 channel selection
-  *
-  * @mbus_code:		media bus format code
-  * @format:		active V4L2 pixel format
-@@ -207,6 +208,7 @@ struct rvin_dev {
- 	enum rvin_dma_state state;
+@@ -269,4 +269,7 @@ void rvin_crop_scale_comp(struct rvin_dev *vin);
  
- 	bool is_csi;
-+	unsigned int chsel;
+ int rvin_set_channel_routing(struct rvin_dev *vin, u8 chsel);
  
- 	u32 mbus_code;
- 	struct v4l2_pix_format format;
++int rvin_start_streaming(struct rvin_dev *vin);
++void rvin_stop_streaming(struct rvin_dev *vin);
++
+ #endif
 -- 
 2.19.2
 
