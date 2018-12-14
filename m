@@ -7,61 +7,61 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
 	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 69303C43387
-	for <linux-media@archiver.kernel.org>; Fri, 14 Dec 2018 16:40:55 +0000 (UTC)
-Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 105EF206E0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D8CDC43387
 	for <linux-media@archiver.kernel.org>; Fri, 14 Dec 2018 16:40:56 +0000 (UTC)
+Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
+	by mail.kernel.org (Postfix) with ESMTP id 2C6E7206DD
+	for <linux-media@archiver.kernel.org>; Fri, 14 Dec 2018 16:40:57 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="T+UWouVe"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TEpvX+f0"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730073AbeLNQkx (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 14 Dec 2018 11:40:53 -0500
-Received: from mail-wm1-f67.google.com ([209.85.128.67]:38156 "EHLO
-        mail-wm1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730263AbeLNQkx (ORCPT
+        id S1730269AbeLNQkw (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 14 Dec 2018 11:40:52 -0500
+Received: from mail-wm1-f65.google.com ([209.85.128.65]:50681 "EHLO
+        mail-wm1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729923AbeLNQkv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Dec 2018 11:40:53 -0500
-Received: by mail-wm1-f67.google.com with SMTP id m22so6435332wml.3
-        for <linux-media@vger.kernel.org>; Fri, 14 Dec 2018 08:40:51 -0800 (PST)
+        Fri, 14 Dec 2018 11:40:51 -0500
+Received: by mail-wm1-f65.google.com with SMTP id n190so6315334wmd.0
+        for <linux-media@vger.kernel.org>; Fri, 14 Dec 2018 08:40:50 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=kzhQWoew42A1nYV5l020Z5/UB55GqT3SXwsSzqRKNR8=;
-        b=T+UWouVeddM1syzeZs+j3efcPCjbAVd1/FQyHjUEmMWybPm5OQZLENvLPfNREi73bo
-         SXIWPnGynxNdUrmgNLYn5NgWUt0Ooesmk0NkOLIY6NVF3hIJAObsVSR1laC7RHakPHD3
-         kP6c9Wi9YYyKjXTZddSckaE4jBn5eYkWSYovzvntWATy32JZxE0ijnHgGADAphWM4ZJG
-         Sp8SBjcJIfaNzUSI0t7ExhKB16lqQw6Q7magTy192hSK7iv9yL3++0lUq38uGDEIn5Ym
-         x9wSNG+NEDzBjPDFywqYcQem9v6BsddnigPDW7kBpcNPMonFM3RPGC4XLBx0u/HNwkD/
-         TmtA==
+        bh=edGN2e55Mash8D1PpsoVee7XbO7aYKpVlUUQ7NbLuos=;
+        b=TEpvX+f0zr9o6eWTxF9g4LALbdI6L75UKIXQYAjlNB5ePfD4va+I+HEZ9PyS70Dl/x
+         iqrGNC/2e+j15B1AjmqPCWhsSAn82hdzpmpJzrgpttO6OxKNAboWIEDT/X9j/aGAK0wr
+         YXevwVcz+NZaYTEDwsX5yFTACbSHeGVTCfqJz8q9frxVcShSX21oNHVSFWIL/iqHsldg
+         ekMKoPpVdOGSKCLm4cnL1UJU6PVIQEhJ0/1d40LFpaRTDZxhrN6JsnCAY5VPVZzP2KhA
+         /iMlXgeXWPRbz1B9xZaQqHQdTAPtM1snOozIYRo+WD3KPRz38e8I/IyqehjBwJiI8nxm
+         z6Gw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=kzhQWoew42A1nYV5l020Z5/UB55GqT3SXwsSzqRKNR8=;
-        b=F1QnIrIsHSbsVDI7mn0kw4FDLBw4mtI1yVV2guEInugdjPbWvhaYlcqoI3+DyX+IGY
-         tRp8A6sVdb6K4p1iO+VJSDhRbAk1tA5E1xmkNkPU5O9LKsdQyJXXxM3QIWxh3gdM7OkP
-         XAyLiKhb14lCoaDly9apCNOnnPCc283xXOQN0QZIlLZwzQHyYJFmjgewcAOJgvYo6Z2t
-         SKlplnN3jESw4zGBbx99bSau5UPCmrb7fC6EzAJYQiV2BEb3gwRqiUk91sPZM8ak8hY4
-         K71nvZJ0JMeaC25/s8dk0dsEqGCchgZajnU8TzyW9GdzrxeLt3mPI9KUD0DKqfNFFbK+
-         ndng==
-X-Gm-Message-State: AA+aEWZYL3RE65rsPCvp5WKnn5LaPD2LsN4enNYZxiANRG8I4qR8dags
-        9EAK3CALIfg8OYLnazCJpqHddkfW
-X-Google-Smtp-Source: AFSGD/WTljKW5tdKXHiATxeLtAoc43LYQs6Ww0NPK3+OM+cXe3sVhUwq223JRXu7CxS84aIMJYeurA==
-X-Received: by 2002:a1c:1d2:: with SMTP id 201mr4160229wmb.69.1544805650762;
-        Fri, 14 Dec 2018 08:40:50 -0800 (PST)
-Received: from ped.lan (ip5f5abcae.dynamic.kabel-deutschland.de. [95.90.188.174])
-        by smtp.googlemail.com with ESMTPSA id c13sm7680392wrb.38.2018.12.14.08.40.49
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        bh=edGN2e55Mash8D1PpsoVee7XbO7aYKpVlUUQ7NbLuos=;
+        b=pXQCk9rC/tZdil7V3R3v0WpE/5PoBVhmtbNkmyGNFS83CoXCh0ViiJjdIIjTl7YP9M
+         f8CCjq3xv85KL62FOuXKdxKCJhsSWJqRVk4bF4rro0Zu934vCkWJSJpBzVXM5OpQVeGB
+         u98qsmjAeggaUaEOQo4/LKjVaSUIMHbZoAjzJhlkZInzg9tovPlWaodjpGPSCAJUyVjl
+         xy1la/aEgJcVu3b+ZmCW3+qmZ0vARgcjcfO0JQMB+MIh4t8QbyI4ZBdzpLlq4VK08Zuh
+         TXoMvocrdIOPAW5XpBy5WpVYTAJqSAZyGLdXyIbLTPRF32fJHIQlERN/WR8XboHuUlnz
+         Do/Q==
+X-Gm-Message-State: AA+aEWa0YlXPf1Z4F1xyKlGKlEgsolj3VYP8O0heuOxTV20cQ1slwP7c
+        tTwCN2N7GrHrSjtKwSibEDMcQExa
+X-Google-Smtp-Source: AFSGD/WXrxaSmPkyt1CCwcZhdQLlQi5RsTnl8fo/xRtC769/g79zZnNLbbyd+nQV+WlnAZBRh+AKjg==
+X-Received: by 2002:a7b:cd85:: with SMTP id y5mr2232025wmj.129.1544805649034;
         Fri, 14 Dec 2018 08:40:49 -0800 (PST)
+Received: from ped.lan (ip5f5abcae.dynamic.kabel-deutschland.de. [95.90.188.174])
+        by smtp.googlemail.com with ESMTPSA id c13sm7680392wrb.38.2018.12.14.08.40.47
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 14 Dec 2018 08:40:48 -0800 (PST)
 From:   Philipp Zabel <philipp.zabel@gmail.com>
 To:     linux-media@vger.kernel.org
 Cc:     Hans Verkuil <hverkuil@xs4all.nl>,
         Philipp Zabel <philipp.zabel@gmail.com>
-Subject: [PATCH 8/8] media: gspca: ov534-ov772x: remove unnecessary COM3 initialization
-Date:   Fri, 14 Dec 2018 17:40:31 +0100
-Message-Id: <20181214164031.16757-9-philipp.zabel@gmail.com>
+Subject: [PATCH 7/8] media: gspca: ov534-ov722x: remove camera clock setup from bridge_init
+Date:   Fri, 14 Dec 2018 17:40:30 +0100
+Message-Id: <20181214164031.16757-8-philipp.zabel@gmail.com>
 X-Mailer: git-send-email 2.20.0
 In-Reply-To: <20181214164031.16757-1-philipp.zabel@gmail.com>
 References: <20181214164031.16757-1-philipp.zabel@gmail.com>
@@ -72,41 +72,26 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-The COM3 register at address 0x0c already defaults to 0x10, the two bits
-COM3[7:6] are set according to V4L2 controls by sethvflip later.
-There is no need to set it multiple times during bridge initialization.
+This register is later overwritten by set_frame_rate anyway.
 
 Signed-off-by: Philipp Zabel <philipp.zabel@gmail.com>
 ---
- drivers/media/usb/gspca/ov534.c | 4 ----
- 1 file changed, 4 deletions(-)
+ drivers/media/usb/gspca/ov534.c | 2 --
+ 1 file changed, 2 deletions(-)
 
 diff --git a/drivers/media/usb/gspca/ov534.c b/drivers/media/usb/gspca/ov534.c
-index 23deeedd3279..02c90ad96b76 100644
+index bc9d2eb5db30..23deeedd3279 100644
 --- a/drivers/media/usb/gspca/ov534.c
 +++ b/drivers/media/usb/gspca/ov534.c
-@@ -543,13 +543,10 @@ static const u8 sensor_init_772x[][2] = {
- 	{ 0x8c, 0xe8 },
- 	{ 0x8d, 0x20 },
- 
--	{ 0x0c, 0x90 },
+@@ -465,8 +465,6 @@ static const u8 bridge_init_772x[][2] = {
+ 	{ 0x1c, 0x0a },
+ 	{ 0x1d, 0x08 }, /* turn on UVC header */
+ 	{ 0x1d, 0x0e }, /* .. */
 -
- 	{ 0x2b, 0x00 },
- 	{ 0x22, 0x7f },
- 	{ 0x23, 0x03 },
- 	{ 0x11, 0x01 },
--	{ 0x0c, 0xd0 },
- 	{ 0x64, 0xff },
- 	{ 0x0d, 0x41 },
- 
-@@ -557,7 +554,6 @@ static const u8 sensor_init_772x[][2] = {
- 	{ 0x0e, 0xcd },
- 	{ 0xac, 0xbf },
- 	{ 0x8e, 0x00 },		/* De-noise threshold */
--	{ 0x0c, 0xd0 }
+-	{ 0xe5, 0x04 },
  };
- static const u8 bridge_start_vga_yuyv_772x[][2] = {
- 	{0x88, 0x00},
+ static const u8 sensor_init_772x[][2] = {
+ 	{ 0x12, 0x80 },
 -- 
 2.20.0
 
