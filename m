@@ -2,140 +2,109 @@ Return-Path: <SRS0=dU+R=OY=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,T_MIXED_ES,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_MUTT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8644BC43387
-	for <linux-media@archiver.kernel.org>; Sat, 15 Dec 2018 04:34:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5949BC43612
+	for <linux-media@archiver.kernel.org>; Sat, 15 Dec 2018 06:30:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6B18B21720
-	for <linux-media@archiver.kernel.org>; Sat, 15 Dec 2018 04:34:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 34CAD2171F
+	for <linux-media@archiver.kernel.org>; Sat, 15 Dec 2018 06:30:23 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="OG1noszi"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729519AbeLOEeJ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 14 Dec 2018 23:34:09 -0500
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:34367 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1729077AbeLOEeJ (ORCPT
+        id S1729723AbeLOGaW (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sat, 15 Dec 2018 01:30:22 -0500
+Received: from mail-pf1-f195.google.com ([209.85.210.195]:43558 "EHLO
+        mail-pf1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727757AbeLOGaV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Dec 2018 23:34:09 -0500
-Received: from localhost ([IPv6:2001:983:e9a7:1:c4dc:d79a:7501:1942])
-        by smtp-cloud7.xs4all.net with ESMTPA
-        id Y1eNguzINdllcY1eOgLDes; Sat, 15 Dec 2018 05:34:04 +0100
-Message-ID: <b34a5c7ecb3569f09b15b3cbc6af6714@smtp-cloud7.xs4all.net>
-Date:   Sat, 15 Dec 2018 05:34:03 +0100
-From:   "Hans Verkuil" <hverkuil@xs4all.nl>
-To:     linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-X-CMAE-Envelope: MS4wfKLhtQQA2EKWWyNJ65T3wunscSmDbc6UoYJRAYgk7Lu9IBqz1Mgt0u6xNbpXzXzq3IsgoTjPxPMcOtGZlJQsYdcljWmc0iIuAJXib+vTYwVGJi2+rF7B
- 2rVbbyhNGf7sO7ElYGWqJWHcwWfP67E/qU2hLoiHnwj+AHBZ4mZZY0MMt3wZILsETxtv3ZHdwifEFoS2Ij/XP8ahScda/WiXC2jtpNUeyDUlhpg/fdH6l06a
+        Sat, 15 Dec 2018 01:30:21 -0500
+Received: by mail-pf1-f195.google.com with SMTP id w73so3847473pfk.10;
+        Fri, 14 Dec 2018 22:30:21 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=sender:date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=tzH4fhsUhl3IHK4OwnrkxhHc5sZa4QDSuGx19nV84pA=;
+        b=OG1noszi4jduCQPyVDpRUMYFu2te2FPgwot9XYZiN5/eDaGOxMFEojzMNaAt5mSdKA
+         tNk7O3NdwHNKfSHuHkMaYrq8jG586rtmpBPrP7TS8vjXM8PAenMoAK4gA+rwytQTTvhl
+         4xkIX4aotww17wQzUpnyllXZd0RPs8cubWs2Xs4qrUOndRo9OC+KFOsLxUzVbnn0S2qc
+         Gb7J2YATK+/BWv65uwcCG+Hh8bHvXGstt7+1c37iq8LUNAiEyCZTsUmFzdGOhNcfFxOn
+         7kgYQS/Z7IiGrmq6nnJQW7qQjMu09NiK6Ow35vuzzgS+eC2D01wrMycAtXi3GVMxE+Lq
+         dsZg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:sender:date:from:to:cc:subject:message-id
+         :references:mime-version:content-disposition:in-reply-to:user-agent;
+        bh=tzH4fhsUhl3IHK4OwnrkxhHc5sZa4QDSuGx19nV84pA=;
+        b=SG9TFJFO2gCKAK4auFkCG7oFppDcBfHjeLfAcAf5UBkZzKStmkQv+8axgwzXNwdIWJ
+         vVCHMLEYMMYyh595UpKXzZ9TiPj+hvlLODSwfZ3WpBtWb3kKTPYvzedUN04f+GOerBL4
+         w5ePM6Lbx8PvE2/GQ5VBksgwHvbyhEYmr1cgct0rAObm0LL2o+iRDSeQ4TGf6YBDWo4f
+         1SX5FF3PndWYnu1Rj1dlyino6Fixi/e0EvU4We+MGXdMurAMAoV+xlTLwVIGUUb4mLhS
+         qKUd6ycWTb3XrKv6oRNtBxxXxCcsVjx/1Asg2hw42N4Xx8HTQkyrUrIwjU+wBdFZ4kyE
+         lUEA==
+X-Gm-Message-State: AA+aEWY6Jc/6lCVBJuAnbqftfHcXNc0Mncc/UYTZo4C+bGeyp3tUjlyL
+        sCpdi3j8Q91gWi2Kul7PBy0=
+X-Google-Smtp-Source: AFSGD/WPuSk6zoP0Mr2OLxGWbsOkqyn/5QK4fc98MSYr3w5jWtgC9IbRRuriXdklsgERbhS+kp96dw==
+X-Received: by 2002:a62:5a03:: with SMTP id o3mr5474571pfb.19.1544855420740;
+        Fri, 14 Dec 2018 22:30:20 -0800 (PST)
+Received: from localhost ([2600:1700:e321:62f0:329c:23ff:fee3:9d7c])
+        by smtp.gmail.com with ESMTPSA id m76sm9175311pfi.102.2018.12.14.22.30.18
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 14 Dec 2018 22:30:19 -0800 (PST)
+Date:   Fri, 14 Dec 2018 22:30:18 -0800
+From:   Guenter Roeck <linux@roeck-us.net>
+To:     Christoph Hellwig <hch@lst.de>
+Cc:     iommu@lists.linux-foundation.org,
+        Robin Murphy <robin.murphy@arm.com>,
+        Vineet Gupta <vgupta@synopsys.com>,
+        "Matwey V. Kornilov" <matwey@sai.msu.ru>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-snps-arc@lists.infradead.org,
+        Ezequiel Garcia <ezequiel@collabora.com>,
+        linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        dri-devel@lists.freedesktop.org, sparclinux@vger.kernel.org,
+        openrisc@lists.librecores.org, linux-parisc@vger.kernel.org,
+        linux-mips@vger.kernel.org
+Subject: Re: [PATCH 3/6] sparc: remove the sparc32_dma_ops indirection
+Message-ID: <20181215063018.GA11415@roeck-us.net>
+References: <20181208174115.16237-1-hch@lst.de>
+ <20181208174115.16237-4-hch@lst.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20181208174115.16237-4-hch@lst.de>
+User-Agent: Mutt/1.5.24 (2015-08-30)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Sat, Dec 08, 2018 at 09:41:12AM -0800, Christoph Hellwig wrote:
+> There is no good reason to have a double indirection for the sparc32
+> dma ops, so remove the sparc32_dma_ops and define separate dma_map_ops
+> instance for the different IOMMU types.
+> 
 
-Results of the daily build of media_tree:
+Except maybe this:
 
-date:			Sat Dec 15 05:00:13 CET 2018
-media-tree git hash:	d2b4387f3bdf016e266d23cf657465f557721488
-media_build git hash:	282066d93c925718ca9f49d4790fd044162694d6
-v4l-utils git hash:	56cd068e426c17d63457bbf772b7c8c475f254bc
-edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.18.0-3-amd64
+scsi host0: esp
+scsi host0: Data transfer overflow.
+scsi host0: cur_residue[0] tot_residue[-36] len[36]
+scsi 0:0:0:0: Direct-Access     QEMU     QEMU HARDDISK    2.5+ PQ: 0 ANSI: 5
+scsi target0:0:0: Beginning Domain Validation
+scsi host0: Data transfer overflow.
+scsi host0: cur_residue[0] tot_residue[-36] len[36]
+scsi host0: Data transfer overflow.
+scsi host0: cur_residue[0] tot_residue[-36] len[36]
+scsi host0: Data transfer overflow.
+scsi host0: cur_residue[0] tot_residue[-36] len[36]
+scsi host0: Data transfer overflow.
+scsi host0: cur_residue[0] tot_residue[-36] len[36]
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: WARNINGS
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.123-i686: OK
-linux-3.18.123-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.159-i686: OK
-linux-4.4.159-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.131-i686: OK
-linux-4.9.131-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.74-i686: OK
-linux-4.14.74-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: OK
-linux-4.19.1-i686: OK
-linux-4.19.1-x86_64: OK
-linux-4.20-rc1-i686: OK
-linux-4.20-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+and so on, until qemu is terminated. This is seen with all sparc32
+qemu emulations. Reverting the patch fixes the problem.
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Guenter
