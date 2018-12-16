@@ -2,93 +2,80 @@ Return-Path: <SRS0=vP0A=OZ=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=FREEMAIL_FORGED_FROMDOMAIN,
-	FREEMAIL_FROM,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,
-	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C72BC43387
-	for <linux-media@archiver.kernel.org>; Sun, 16 Dec 2018 10:37:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 22756C43387
+	for <linux-media@archiver.kernel.org>; Sun, 16 Dec 2018 11:30:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id F41A1217FA
-	for <linux-media@archiver.kernel.org>; Sun, 16 Dec 2018 10:37:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E5FE72086C
+	for <linux-media@archiver.kernel.org>; Sun, 16 Dec 2018 11:30:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729811AbeLPKhL (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sun, 16 Dec 2018 05:37:11 -0500
-Received: from mout.gmx.net ([212.227.17.22]:40213 "EHLO mout.gmx.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726164AbeLPKhL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 16 Dec 2018 05:37:11 -0500
-Received: from mail.dobel.click ([87.188.252.140]) by mail.gmx.com (mrgmx102
- [212.227.17.168]) with ESMTPSA (Nemesis) id 0MZwYd-1gqxzD0Mb1-00Lm91; Sun, 16
- Dec 2018 11:37:04 +0100
+        id S1730181AbeLPLaz (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sun, 16 Dec 2018 06:30:55 -0500
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:55651 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1730145AbeLPLay (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 16 Dec 2018 06:30:54 -0500
+Received: from [IPv6:2001:983:e9a7:1:f082:bc65:7eed:3c74] ([IPv6:2001:983:e9a7:1:f082:bc65:7eed:3c74])
+        by smtp-cloud9.xs4all.net with ESMTPA
+        id YUdHgQ0ZuMlDTYUdIgYQRf; Sun, 16 Dec 2018 12:30:53 +0100
+Subject: Re: [PATCH] media: vicodec: bugfix - replace '=' with '|='
+To:     Dafna Hirschfeld <dafna3@gmail.com>, linux-media@vger.kernel.org
+Cc:     helen.koike@collabora.com
+References: <20181215115119.2732-1-dafna3@gmail.com>
+From:   Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <8b9ef022-be49-682f-0316-b1f735033caf@xs4all.nl>
+Date:   Sun, 16 Dec 2018 12:30:51 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.3.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
+In-Reply-To: <20181215115119.2732-1-dafna3@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
-Date:   Sun, 16 Dec 2018 11:37:02 +0100
-From:   Markus Dobel <markus.dobel@gmx.de>
-To:     Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc:     Brad Love <brad@nextdimension.cc>, linux-media@vger.kernel.org,
-        linux-media-owner@vger.kernel.org
-Subject: Re: [PATCH] Revert 95f408bb Ryzen DMA related RiSC engine stall fixes
-Organization: Old Europe
-In-Reply-To: <20181206160145.2d23ac0e@coco.lan>
-References: <3d7393a6287db137a69c4d05785522d5@gmx.de>
- <20181205090721.43e7f36c@coco.lan>
- <96c74fe9-d48f-5249-1b17-a8046493b383@nextdimension.cc>
- <5528BC99-512E-4CEC-AE26-99D3991AB598@gmx.de>
- <20181206160145.2d23ac0e@coco.lan>
-Message-ID: <8858694d5934ce78e46ef48d6f90061a@gmx.de>
-X-Sender: markus.dobel@gmx.de
-User-Agent: Roundcube Webmail/1.3.8
-X-Provags-ID: V03:K1:oxAO3uM3UFch4CbCn3/NYfRQ9bo5sKIzxFQs11WtpDCy7k0YnsB
- mBemhwZpqntdCy8MLEn861gcSIp1fRzndfYzXF69ZHGL73Ur8KqMeXwevQ6rW2C2lM6pXGL
- RazOi/bci9ZJSjOsCd+kJRWsSUbdzi5zIRUz707lOOZooalfMfmUC0IlSttFeGOEKqUMAgW
- aAtX6TlJJ91qRuCbhMhFw==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:i3wdfTwvK64=:7+QDJFKznnowNxmgp2Zt2G
- PP5ZGN7Hye+5XPXK560mGt1LL9qhrZ1A7NIEnlVgLhOPOp0FVH4wkkUGf4GSyGT39uVAEzakr
- iwli6yBn7WSHlfD6J/+hafzcquVJqqIT9MKchFYlqhrMPF/+vffUwW/AhaqWOTRn2zqz7ePcQ
- JGmDDskT8J/GFTQqUSPtQX3GVeYIzNKICdM9R3YlKiO9ArrYlnWMPRbeDLmuK0N6K6AFpEgXx
- 3bLOC7eseGGqWVDZjWk227SluJldJ9XfOuD7ETF8/kZ6f1cfvuBOK7hMIbXz/Xi2aYlwSQkmf
- gAO4YJcgr7gnzaQT67OxA9p+rfqjH7xzsIPoKNhaEmvCdditFyb3AcsWghKL2vWaqoUAYzu6l
- TRDEfeFBLf0ZAm76+y1vM2U4jJcIkTkMKPOABewQDxm3rDjj/MMVJE3bBgUQTzlFMAL060YyH
- esjDPUBRBB1CzgO1w0tWaYZIT61Ou1cmGyBsgnh6F0VW67o8y9VTG4cSHRwJD8ZMYM8u1noXK
- /vqtveTrN9fsdGxpKXJI5r6h1w9OPq23hrA/nkQx41bXXUDwdJY4rg+nS8q4ypcXOhvJSrsvy
- 0iOK7NBmL8Gq3KVrE33xFE3QrBuCnYglULM2kv9mOueLDO2vQ2ciAwK9u5HRAE7zeTQw3y7Lj
- DWbtatDiK0/KqqQvFezcAqFwsu+nC55r1LGYRNyhg6N+1fr4PKgfFyxxzoUJAEMqLuL7Mgvw7
- yE3aGm3O1zD/MPvVYx3FLZrXzs7J86FW0ptE+rp8HjCTtLSvjfePyBQ7j69qD8zcKJv7aT8gF
- Kk+wiUtuC5v11hDyCLedRYSZxhDvWPM3Hagqlv7dLHLXlJ5hezTFLJ2DDKojalfKa+wTNZBZ9
- wmbjwI25raEEwr+8QwHbOm5YBsYXRLeyd3K/ImBC1R+jYeVLP/zIKqyPz2JILi
+X-CMAE-Envelope: MS4wfMyHt2+0o3IpFtV5O94gQhZ+koJqO7omz3U0HjwsueQibFzhuUnlJ89aIaoY4o1J614h62oBqlvQ5KYypoIM9j0W9OKobBzFwyY1I98FMVRmFaKzCzfQ
+ X4ELDVkIWba8qSTRfQ4DC3+W50n7C+7YvJAaAOxnk33aWa+W1BTFieNGrj4/VeBnFeMTnwpmls9dpn4KCxK+TR6kkdACnHBKeynZbSWdhfNaHOSHqtxihchl
+ 1QVyrD7l37EgIDEGqq/wfN7E+rZBZhYJWIM3mJ1EyBMCtMh0jn19rXL1iNQoiLDX5fOElBRsSAKjNPU9tlQbzNycR8pKSF6BIgK26agdtXI=
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On 06.12.2018 19:01, Mauro Carvalho Chehab wrote:
-> Em Thu, 06 Dec 2018 18:18:23 +0100
-> Markus Dobel <markus.dobel@gmx.de> escreveu:
-> 
->> Hi everyone,
->> 
->> I will try if the hack mentioned fixes the issue for me on the weekend 
->> (but I assume, as if effectively removes the function).
-> 
-> It should, but it keeps a few changes. Just want to be sure that what
-> would be left won't cause issues. If this works, the logic that would
-> solve Ryzen DMA fixes will be contained into a single point, making
-> easier to maintain it.
+On 12/15/18 12:51 PM, Dafna Hirschfeld wrote:
+> In the function fwht_encode_frame, 'encoding = encode_plane'
+> should be replaced with 'encoding |= encode_plane'
+> so existing flags won't be overwrriten.
 
-Hi,
+Good catch.
 
-I wanted to have this setup running stable for a few days before 
-replying, that's why I am answering only now.
-
-But yes, as expected, with Mauro's hack, the driver has been stable for 
-me for about a week, with several
-scheduled recordings in tvheadend, none of them missed.
-
-So, adding a reliable detection for affected chipsets, where the `if 
-(1)` currently is, should work.
+Hmm, it looks like you didn't update the alignment of the arguments.
+I expect checkpatch to complain about it. Can you post a v2 fixing that?
 
 Regards,
-Markus
+
+	Hans
+
+> 
+> Signed-off-by: Dafna Hirschfeld <dafna3@gmail.com>
+> ---
+>  drivers/media/platform/vicodec/codec-fwht.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/platform/vicodec/codec-fwht.c b/drivers/media/platform/vicodec/codec-fwht.c
+> index 5630f1dc45e6..a678a716580c 100644
+> --- a/drivers/media/platform/vicodec/codec-fwht.c
+> +++ b/drivers/media/platform/vicodec/codec-fwht.c
+> @@ -787,7 +787,7 @@ u32 fwht_encode_frame(struct fwht_raw_frame *frm,
+>  
+>  	if (frm->components_num == 4) {
+>  		rlco_max = rlco + size / 2 - 256;
+> -		encoding = encode_plane(frm->alpha, ref_frm->alpha, &rlco,
+> +		encoding |= encode_plane(frm->alpha, ref_frm->alpha, &rlco,
+>  					rlco_max, cf, frm->height, frm->width,
+>  					frm->luma_alpha_step,
+>  					is_intra, next_is_intra);
+> 
+
