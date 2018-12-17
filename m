@@ -2,94 +2,362 @@ Return-Path: <SRS0=E4aF=O2=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.2 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D6DBC43387
-	for <linux-media@archiver.kernel.org>; Mon, 17 Dec 2018 15:55:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8320CC43387
+	for <linux-media@archiver.kernel.org>; Mon, 17 Dec 2018 16:00:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0D4AF2145D
-	for <linux-media@archiver.kernel.org>; Mon, 17 Dec 2018 15:55:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 122982146E
+	for <linux-media@archiver.kernel.org>; Mon, 17 Dec 2018 16:00:52 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1545062452;
+	bh=SbCCixYWd6hbbYZCGXxdnSBbXabfom5y/lIKwstqzNc=;
+	h=From:Cc:Subject:Date:To:List-ID:From;
+	b=UXH913i4dRtzrcpMUR3t9OvtC27qKOTe+t3ElNgXC9FqAdsvnDBya6FsuPA5byDKH
+	 ZoiAtbOiUcEvfrwfRxGXtujw6rs+0EqiPAI89RVZxhGELozZISF0P0q4b5AuWXWfKG
+	 CFQzUbRK/cJe0VFGOk3h/LPCDXH6zfrxnO9VM5vE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387958AbeLQPzG (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 17 Dec 2018 10:55:06 -0500
-Received: from mga06.intel.com ([134.134.136.31]:50789 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726548AbeLQPzG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Dec 2018 10:55:06 -0500
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from orsmga001.jf.intel.com ([10.7.209.18])
-  by orsmga104.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 17 Dec 2018 07:55:05 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.56,365,1539673200"; 
-   d="scan'208";a="119514391"
-Received: from stinkbox.fi.intel.com (HELO stinkbox) ([10.237.72.174])
-  by orsmga001.jf.intel.com with SMTP; 17 Dec 2018 07:55:02 -0800
-Received: by stinkbox (sSMTP sendmail emulation); Mon, 17 Dec 2018 17:55:01 +0200
-From:   Ville Syrjala <ville.syrjala@linux.intel.com>
-To:     intel-gfx@lists.freedesktop.org
-Cc:     Hans de Goede <hdegoede@redhat.com>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-media@vger.kernel.org
-Subject: [PATCH v2 01/10] video/hdmi: Add an enum for HDMI packet types
-Date:   Mon, 17 Dec 2018 17:54:49 +0200
-Message-Id: <20181217155458.5503-2-ville.syrjala@linux.intel.com>
-X-Mailer: git-send-email 2.18.1
-In-Reply-To: <20181217155458.5503-1-ville.syrjala@linux.intel.com>
-References: <20181217155458.5503-1-ville.syrjala@linux.intel.com>
+        id S1727752AbeLQQAv (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 17 Dec 2018 11:00:51 -0500
+Received: from bombadil.infradead.org ([198.137.202.133]:44708 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726667AbeLQQAv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 17 Dec 2018 11:00:51 -0500
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=bombadil.20170209; h=Sender:Content-Transfer-Encoding:
+        MIME-Version:Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-Type:
+        Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
+        Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:List-Id:
+        List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+         bh=y5EStQ4T10O9XOnMgW3rxEoJjjKtPht5nxchqp7aLBs=; b=ClDur9Nb+VOCBKtyAOq4NROE7
+        Amst5nC2BpcA3GRu8iANxureg3Qd9RQRlebuK4nqwVFhxow2mr10E4X/JkejbKlQF5EzNGfiVvnDF
+        81yNE8LJsWRqFTj9q1CQxamUtX1nlYaqNCUvtKZXs4tpQOPQZG8sw3kI7UAQ3adeAS7NBZDUgAMY5
+        2Vny0FWbrPqtAj1jkfve/7Sat/f9Ms6sK52SAbA6v9SILcFvFg3OIgR5d+nHDjcup/8zGPbCYOkzz
+        kkuhYEGJ8k0+fmrNRHnkXBELqQ3DhL0lyOcur/5SIvo6kaaio/FEs5Q3oCeSHbOZf+HIJ7v79j0YZ
+        n1XLjnWyQ==;
+Received: from 177.205.112.95.dynamic.adsl.gvt.net.br ([177.205.112.95] helo=bombadil.infradead.org)
+        by bombadil.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
+        id 1gYvK4-0002TE-KV; Mon, 17 Dec 2018 16:00:50 +0000
+Received: from mchehab by bombadil.infradead.org with local (Exim 4.91)
+        (envelope-from <mchehab@bombadil.infradead.org>)
+        id 1gYvJy-0003HH-Tj; Mon, 17 Dec 2018 11:00:42 -0500
+From:   Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc:     Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH] media: docs: fix some GPL licensing ambiguity at the text
+Date:   Mon, 17 Dec 2018 11:00:39 -0500
+Message-Id: <e7121ab4056ff3419f981bbf03c1e7db39223149.1545062435.git.mchehab+samsung@kernel.org>
+X-Mailer: git-send-email 2.19.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
+To:     unlisted-recipients:; (no To-header on input)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-From: Ville Syrjälä <ville.syrjala@linux.intel.com>
+Those files are meant to be dual GPL 2.0 and GFDL without
+implicit sections. However, by a wrong cut-and-paste, I ended
+by applying a GPL 2+ license text to it, while still using the
+GPL 2.0 SPDX tag, with would cause an ambiguity about the
+licensing model.
 
-We'll be wanting to send more than just infoframes over HDMI. So add an
-enum for other packet types.
+Solve this by explicitly mentioning that the dual licensing
+is between GPL 2.0 and GFDL and correcting the text.
 
-TODO: Maybe just include the infoframe types in the packet type enum
-      and get rid of the infoframe type enum?
-
-Cc: Thierry Reding <thierry.reding@gmail.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: linux-media@vger.kernel.org
-Signed-off-by: Ville Syrjälä <ville.syrjala@linux.intel.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 ---
- include/linux/hdmi.h | 15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ Documentation/media/uapi/dvb/dvbstb.svg                     | 6 +++---
+ .../media/uapi/mediactl/media-ioc-request-alloc.rst         | 6 +++---
+ .../media/uapi/mediactl/media-request-ioc-queue.rst         | 6 +++---
+ .../media/uapi/mediactl/media-request-ioc-reinit.rst        | 6 +++---
+ Documentation/media/uapi/mediactl/request-api.rst           | 6 +++---
+ Documentation/media/uapi/mediactl/request-func-close.rst    | 6 +++---
+ Documentation/media/uapi/mediactl/request-func-ioctl.rst    | 6 +++---
+ Documentation/media/uapi/mediactl/request-func-poll.rst     | 6 +++---
+ Documentation/media/uapi/v4l/bayer.svg                      | 6 +++---
+ Documentation/media/uapi/v4l/constraints.svg                | 6 +++---
+ Documentation/media/uapi/v4l/nv12mt.svg                     | 6 +++---
+ Documentation/media/uapi/v4l/nv12mt_example.svg             | 6 +++---
+ Documentation/media/uapi/v4l/selection.svg                  | 6 +++---
+ 13 files changed, 39 insertions(+), 39 deletions(-)
 
-diff --git a/include/linux/hdmi.h b/include/linux/hdmi.h
-index d2bacf502429..ade19b0cf9d2 100644
---- a/include/linux/hdmi.h
-+++ b/include/linux/hdmi.h
-@@ -27,6 +27,21 @@
- #include <linux/types.h>
- #include <linux/device.h>
+diff --git a/Documentation/media/uapi/dvb/dvbstb.svg b/Documentation/media/uapi/dvb/dvbstb.svg
+index 9700c864d3c3..c7672148d6ff 100644
+--- a/Documentation/media/uapi/dvb/dvbstb.svg
++++ b/Documentation/media/uapi/dvb/dvbstb.svg
+@@ -1,14 +1,14 @@
+ <?xml version="1.0" encoding="UTF-8"?>
+ <!--
+     This file is dual-licensed: you can use it either under the terms
+-    of the GPL or the GFDL 1.1+ license, at your option. Note that this
++    of the GPL 2.0 or the GFDL 1.1+ license, at your option. Note that this
+     dual licensing only applies to this file, and not this project as a
+     whole.
  
-+enum hdmi_packet_type {
-+	HDMI_PACKET_TYPE_NULL = 0x00,
-+	HDMI_PACKET_TYPE_AUDIO_CLOCK_REGEN = 0x01,
-+	HDMI_PACKET_TYPE_AUDIO_SAMPLE = 0x02,
-+	HDMI_PACKET_TYPE_GENERAL_CONTROL = 0x03,
-+	HDMI_PACKET_TYPE_AUDIO_CP = 0x04,
-+	HDMI_PACKET_TYPE_ISRC1 = 0x05,
-+	HDMI_PACKET_TYPE_ISRC2 = 0x06,
-+	HDMI_PACKET_TYPE_ONE_BIT_AUDIO_SAMPLE = 0x07,
-+	HDMI_PACKET_TYPE_DST_AUDIO = 0x08,
-+	HDMI_PACKET_TYPE_HBR_AUDIO_STREAM = 0x09,
-+	HDMI_PACKET_TYPE_GAMUT_METADATA = 0x0a,
-+	/* + enum hdmi_infoframe_type */
-+};
-+
- enum hdmi_infoframe_type {
- 	HDMI_INFOFRAME_TYPE_VENDOR = 0x81,
- 	HDMI_INFOFRAME_TYPE_AVI = 0x82,
+     a) This file is free software; you can redistribute it and/or
+        modify it under the terms of the GNU General Public License as
+-       published by the Free Software Foundation; either version 2 of
+-       the License, or (at your option) any later version.
++       published by the Free Software Foundation version 2 of
++       the License.
+ 
+        This file is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+diff --git a/Documentation/media/uapi/mediactl/media-ioc-request-alloc.rst b/Documentation/media/uapi/mediactl/media-ioc-request-alloc.rst
+index de131f00c249..6d4ca4ada2e0 100644
+--- a/Documentation/media/uapi/mediactl/media-ioc-request-alloc.rst
++++ b/Documentation/media/uapi/mediactl/media-ioc-request-alloc.rst
+@@ -1,12 +1,12 @@
+ .. This file is dual-licensed: you can use it either under the terms
+-.. of the GPL or the GFDL 1.1+ license, at your option. Note that this
++.. of the GPL 2.0 or the GFDL 1.1+ license, at your option. Note that this
+ .. dual licensing only applies to this file, and not this project as a
+ .. whole.
+ ..
+ .. a) This file is free software; you can redistribute it and/or
+ ..    modify it under the terms of the GNU General Public License as
+-..    published by the Free Software Foundation; either version 2 of
+-..    the License, or (at your option) any later version.
++..    published by the Free Software Foundation version 2 of
++..    the License.
+ ..
+ ..    This file is distributed in the hope that it will be useful,
+ ..    but WITHOUT ANY WARRANTY; without even the implied warranty of
+diff --git a/Documentation/media/uapi/mediactl/media-request-ioc-queue.rst b/Documentation/media/uapi/mediactl/media-request-ioc-queue.rst
+index 5d2604345e19..fc8458746d51 100644
+--- a/Documentation/media/uapi/mediactl/media-request-ioc-queue.rst
++++ b/Documentation/media/uapi/mediactl/media-request-ioc-queue.rst
+@@ -1,12 +1,12 @@
+ .. This file is dual-licensed: you can use it either under the terms
+-.. of the GPL or the GFDL 1.1+ license, at your option. Note that this
++.. of the GPL 2.0 or the GFDL 1.1+ license, at your option. Note that this
+ .. dual licensing only applies to this file, and not this project as a
+ .. whole.
+ ..
+ .. a) This file is free software; you can redistribute it and/or
+ ..    modify it under the terms of the GNU General Public License as
+-..    published by the Free Software Foundation; either version 2 of
+-..    the License, or (at your option) any later version.
++..    published by the Free Software Foundation version 2 of
++..    the License.
+ ..
+ ..    This file is distributed in the hope that it will be useful,
+ ..    but WITHOUT ANY WARRANTY; without even the implied warranty of
+diff --git a/Documentation/media/uapi/mediactl/media-request-ioc-reinit.rst b/Documentation/media/uapi/mediactl/media-request-ioc-reinit.rst
+index ec61960c81ce..61381e87665a 100644
+--- a/Documentation/media/uapi/mediactl/media-request-ioc-reinit.rst
++++ b/Documentation/media/uapi/mediactl/media-request-ioc-reinit.rst
+@@ -1,12 +1,12 @@
+ .. This file is dual-licensed: you can use it either under the terms
+-.. of the GPL or the GFDL 1.1+ license, at your option. Note that this
++.. of the GPL 2.0 or the GFDL 1.1+ license, at your option. Note that this
+ .. dual licensing only applies to this file, and not this project as a
+ .. whole.
+ ..
+ .. a) This file is free software; you can redistribute it and/or
+ ..    modify it under the terms of the GNU General Public License as
+-..    published by the Free Software Foundation; either version 2 of
+-..    the License, or (at your option) any later version.
++..    published by the Free Software Foundation version 2 of
++..    the License.
+ ..
+ ..    This file is distributed in the hope that it will be useful,
+ ..    but WITHOUT ANY WARRANTY; without even the implied warranty of
+diff --git a/Documentation/media/uapi/mediactl/request-api.rst b/Documentation/media/uapi/mediactl/request-api.rst
+index 945113dcb218..4b25ad03f45a 100644
+--- a/Documentation/media/uapi/mediactl/request-api.rst
++++ b/Documentation/media/uapi/mediactl/request-api.rst
+@@ -1,12 +1,12 @@
+ .. This file is dual-licensed: you can use it either under the terms
+-.. of the GPL or the GFDL 1.1+ license, at your option. Note that this
++.. of the GPL 2.0 or the GFDL 1.1+ license, at your option. Note that this
+ .. dual licensing only applies to this file, and not this project as a
+ .. whole.
+ ..
+ .. a) This file is free software; you can redistribute it and/or
+ ..    modify it under the terms of the GNU General Public License as
+-..    published by the Free Software Foundation; either version 2 of
+-..    the License, or (at your option) any later version.
++..    published by the Free Software Foundation version 2 of
++..    the License.
+ ..
+ ..    This file is distributed in the hope that it will be useful,
+ ..    but WITHOUT ANY WARRANTY; without even the implied warranty of
+diff --git a/Documentation/media/uapi/mediactl/request-func-close.rst b/Documentation/media/uapi/mediactl/request-func-close.rst
+index dcf3f35bcf17..2cff7770558e 100644
+--- a/Documentation/media/uapi/mediactl/request-func-close.rst
++++ b/Documentation/media/uapi/mediactl/request-func-close.rst
+@@ -1,12 +1,12 @@
+ .. This file is dual-licensed: you can use it either under the terms
+-.. of the GPL or the GFDL 1.1+ license, at your option. Note that this
++.. of the GPL 2.0 or the GFDL 1.1+ license, at your option. Note that this
+ .. dual licensing only applies to this file, and not this project as a
+ .. whole.
+ ..
+ .. a) This file is free software; you can redistribute it and/or
+ ..    modify it under the terms of the GNU General Public License as
+-..    published by the Free Software Foundation; either version 2 of
+-..    the License, or (at your option) any later version.
++..    published by the Free Software Foundation version 2 of
++..    the License.
+ ..
+ ..    This file is distributed in the hope that it will be useful,
+ ..    but WITHOUT ANY WARRANTY; without even the implied warranty of
+diff --git a/Documentation/media/uapi/mediactl/request-func-ioctl.rst b/Documentation/media/uapi/mediactl/request-func-ioctl.rst
+index 11a22f887843..de0781c61873 100644
+--- a/Documentation/media/uapi/mediactl/request-func-ioctl.rst
++++ b/Documentation/media/uapi/mediactl/request-func-ioctl.rst
+@@ -1,12 +1,12 @@
+ .. This file is dual-licensed: you can use it either under the terms
+-.. of the GPL or the GFDL 1.1+ license, at your option. Note that this
++.. of the GPL 2.0 or the GFDL 1.1+ license, at your option. Note that this
+ .. dual licensing only applies to this file, and not this project as a
+ .. whole.
+ ..
+ .. a) This file is free software; you can redistribute it and/or
+ ..    modify it under the terms of the GNU General Public License as
+-..    published by the Free Software Foundation; either version 2 of
+-..    the License, or (at your option) any later version.
++..    published by the Free Software Foundation version 2 of
++..    the License.
+ ..
+ ..    This file is distributed in the hope that it will be useful,
+ ..    but WITHOUT ANY WARRANTY; without even the implied warranty of
+diff --git a/Documentation/media/uapi/mediactl/request-func-poll.rst b/Documentation/media/uapi/mediactl/request-func-poll.rst
+index 2609fd54d519..ebaf33e21873 100644
+--- a/Documentation/media/uapi/mediactl/request-func-poll.rst
++++ b/Documentation/media/uapi/mediactl/request-func-poll.rst
+@@ -1,12 +1,12 @@
+ .. This file is dual-licensed: you can use it either under the terms
+-.. of the GPL or the GFDL 1.1+ license, at your option. Note that this
++.. of the GPL 2.0 or the GFDL 1.1+ license, at your option. Note that this
+ .. dual licensing only applies to this file, and not this project as a
+ .. whole.
+ ..
+ .. a) This file is free software; you can redistribute it and/or
+ ..    modify it under the terms of the GNU General Public License as
+-..    published by the Free Software Foundation; either version 2 of
+-..    the License, or (at your option) any later version.
++..    published by the Free Software Foundation version 2 of
++..    the License.
+ ..
+ ..    This file is distributed in the hope that it will be useful,
+ ..    but WITHOUT ANY WARRANTY; without even the implied warranty of
+diff --git a/Documentation/media/uapi/v4l/bayer.svg b/Documentation/media/uapi/v4l/bayer.svg
+index abec45b7873b..c5bf85103901 100644
+--- a/Documentation/media/uapi/v4l/bayer.svg
++++ b/Documentation/media/uapi/v4l/bayer.svg
+@@ -1,14 +1,14 @@
+ <?xml version="1.0" encoding="UTF-8"?>
+ <!--
+     This file is dual-licensed: you can use it either under the terms
+-    of the GPL or the GFDL 1.1+ license, at your option. Note that this
++    of the GPL 2.0 or the GFDL 1.1+ license, at your option. Note that this
+     dual licensing only applies to this file, and not this project as a
+     whole.
+ 
+     a) This file is free software; you can redistribute it and/or
+        modify it under the terms of the GNU General Public License as
+-       published by the Free Software Foundation; either version 2 of
+-       the License, or (at your option) any later version.
++       published by the Free Software Foundation version 2 of
++       the License.
+ 
+        This file is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+diff --git a/Documentation/media/uapi/v4l/constraints.svg b/Documentation/media/uapi/v4l/constraints.svg
+index 18e314c60757..08f9f8b0985e 100644
+--- a/Documentation/media/uapi/v4l/constraints.svg
++++ b/Documentation/media/uapi/v4l/constraints.svg
+@@ -1,14 +1,14 @@
+ <?xml version="1.0" encoding="UTF-8"?>
+ <!--
+     This file is dual-licensed: you can use it either under the terms
+-    of the GPL or the GFDL 1.1+ license, at your option. Note that this
++    of the GPL 2.0 or the GFDL 1.1+ license, at your option. Note that this
+     dual licensing only applies to this file, and not this project as a
+     whole.
+ 
+     a) This file is free software; you can redistribute it and/or
+        modify it under the terms of the GNU General Public License as
+-       published by the Free Software Foundation; either version 2 of
+-       the License, or (at your option) any later version.
++       published by the Free Software Foundation version 2 of
++       the License.
+ 
+        This file is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+diff --git a/Documentation/media/uapi/v4l/nv12mt.svg b/Documentation/media/uapi/v4l/nv12mt.svg
+index 54ae99d64342..067d8fb34ba2 100644
+--- a/Documentation/media/uapi/v4l/nv12mt.svg
++++ b/Documentation/media/uapi/v4l/nv12mt.svg
+@@ -1,14 +1,14 @@
+ <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+ <!--
+     This file is dual-licensed: you can use it either under the terms
+-    of the GPL or the GFDL 1.1+ license, at your option. Note that this
++    of the GPL 2.0 or the GFDL 1.1+ license, at your option. Note that this
+     dual licensing only applies to this file, and not this project as a
+     whole.
+ 
+     a) This file is free software; you can redistribute it and/or
+        modify it under the terms of the GNU General Public License as
+-       published by the Free Software Foundation; either version 2 of
+-       the License, or (at your option) any later version.
++       published by the Free Software Foundation version 2 of
++       the License.
+ 
+        This file is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+diff --git a/Documentation/media/uapi/v4l/nv12mt_example.svg b/Documentation/media/uapi/v4l/nv12mt_example.svg
+index 5eb8bcacc56c..70c3200fdb32 100644
+--- a/Documentation/media/uapi/v4l/nv12mt_example.svg
++++ b/Documentation/media/uapi/v4l/nv12mt_example.svg
+@@ -1,14 +1,14 @@
+ <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+ <!--
+     This file is dual-licensed: you can use it either under the terms
+-    of the GPL or the GFDL 1.1+ license, at your option. Note that this
++    of the GPL 2.0 or the GFDL 1.1+ license, at your option. Note that this
+     dual licensing only applies to this file, and not this project as a
+     whole.
+ 
+     a) This file is free software; you can redistribute it and/or
+        modify it under the terms of the GNU General Public License as
+-       published by the Free Software Foundation; either version 2 of
+-       the License, or (at your option) any later version.
++       published by the Free Software Foundation version 2 of
++       the License.
+ 
+        This file is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+diff --git a/Documentation/media/uapi/v4l/selection.svg b/Documentation/media/uapi/v4l/selection.svg
+index eeb195744e60..59d2bec9b278 100644
+--- a/Documentation/media/uapi/v4l/selection.svg
++++ b/Documentation/media/uapi/v4l/selection.svg
+@@ -1,14 +1,14 @@
+ <?xml version="1.0" encoding="UTF-8"?>
+ <!--
+     This file is dual-licensed: you can use it either under the terms
+-    of the GPL or the GFDL 1.1+ license, at your option. Note that this
++    of the GPL 2.0 or the GFDL 1.1+ license, at your option. Note that this
+     dual licensing only applies to this file, and not this project as a
+     whole.
+ 
+     a) This file is free software; you can redistribute it and/or
+        modify it under the terms of the GNU General Public License as
+-       published by the Free Software Foundation; either version 2 of
+-       the License, or (at your option) any later version.
++       published by the Free Software Foundation version 2 of
++       the License.
+ 
+        This file is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
 -- 
-2.18.1
+2.19.2
 
