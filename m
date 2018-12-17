@@ -2,68 +2,73 @@ Return-Path: <SRS0=E4aF=O2=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_NEOMUTT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D3CFC43387
-	for <linux-media@archiver.kernel.org>; Mon, 17 Dec 2018 11:56:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A7B62C43387
+	for <linux-media@archiver.kernel.org>; Mon, 17 Dec 2018 12:07:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id F2F26206A2
-	for <linux-media@archiver.kernel.org>; Mon, 17 Dec 2018 11:56:45 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=verge.net.au header.i=@verge.net.au header.b="sIXklN1M"
+	by mail.kernel.org (Postfix) with ESMTP id 79BE02133F
+	for <linux-media@archiver.kernel.org>; Mon, 17 Dec 2018 12:07:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732598AbeLQL4j (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 17 Dec 2018 06:56:39 -0500
-Received: from kirsty.vergenet.net ([202.4.237.240]:39341 "EHLO
-        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732415AbeLQL4i (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Dec 2018 06:56:38 -0500
-Received: from reginn.horms.nl (watermunt.horms.nl [80.127.179.77])
-        by kirsty.vergenet.net (Postfix) with ESMTPA id B70A925B781;
-        Mon, 17 Dec 2018 22:56:35 +1100 (AEDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=verge.net.au; s=mail;
-        t=1545047796; bh=g0jTqRS2boOGanJFfbr7smdRwESdv2eaCF3QN75Uz3A=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=sIXklN1MY+SLOfDfZXU0Or+nFURbL8k97DOU0lYRcLz5LS0T5ACeI8yP77hbELdhr
-         dNKapmCKSrEA0ILDd5pMwgUrGFXKVSgItKNuBO6IgIoa/0Pjx10fzqiNou+Wq69mqB
-         7r8eRI2VwtLo6632iz3nrqcQtp+L0awPdWPTyzU0=
-Received: by reginn.horms.nl (Postfix, from userid 7100)
-        id 1E39A94048A; Mon, 17 Dec 2018 12:56:34 +0100 (CET)
-Date:   Mon, 17 Dec 2018 12:56:34 +0100
-From:   Simon Horman <horms@verge.net.au>
-To:     Fabrizio Castro <fabrizio.castro@bp.renesas.com>
-Cc:     Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        Chris Paterson <Chris.Paterson2@renesas.com>,
-        Biju Das <biju.das@bp.renesas.com>
-Subject: Re: [PATCH] [media] v4l: vsp1: Add RZ/G support
-Message-ID: <20181217115633.bt2da7mwktz2tds4@verge.net.au>
-References: <1544732424-6498-1-git-send-email-fabrizio.castro@bp.renesas.com>
+        id S1732560AbeLQMHJ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 17 Dec 2018 07:07:09 -0500
+Received: from szxga07-in.huawei.com ([45.249.212.35]:59264 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726831AbeLQMHJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 17 Dec 2018 07:07:09 -0500
+Received: from DGGEMS414-HUB.china.huawei.com (unknown [172.30.72.60])
+        by Forcepoint Email with ESMTP id A332691D192D6;
+        Mon, 17 Dec 2018 20:07:04 +0800 (CST)
+Received: from localhost.localdomain.localdomain (10.175.113.25) by
+ DGGEMS414-HUB.china.huawei.com (10.3.19.214) with Microsoft SMTP Server id
+ 14.3.408.0; Mon, 17 Dec 2018 20:06:55 +0800
+From:   Wei Yongjun <weiyongjun1@huawei.com>
+To:     Eddie James <eajames@linux.ibm.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Joel Stanley <joel@jms.id.au>, Andrew Jeffery <andrew@aj.id.au>
+CC:     Wei Yongjun <weiyongjun1@huawei.com>,
+        <linux-media@vger.kernel.org>, <openbmc@lists.ozlabs.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-aspeed@lists.ozlabs.org>, <kernel-janitors@vger.kernel.org>
+Subject: [PATCH -next] media: platform: Fix missing spin_lock_init()
+Date:   Mon, 17 Dec 2018 12:14:35 +0000
+Message-ID: <1545048875-157403-1-git-send-email-weiyongjun1@huawei.com>
+X-Mailer: git-send-email 1.8.3.1
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1544732424-6498-1-git-send-email-fabrizio.castro@bp.renesas.com>
-Organisation: Horms Solutions BV
-User-Agent: NeoMutt/20170113 (1.7.2)
+X-Originating-IP: [10.175.113.25]
+X-CFilter-Loop: Reflected
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Thu, Dec 13, 2018 at 08:20:24PM +0000, Fabrizio Castro wrote:
-> Document RZ/G1 and RZ/G2 support.
-> 
-> Signed-off-by: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
+The driver allocates the spinlock but not initialize it.
+Use spin_lock_init() on it to initialize it correctly.
 
-Reviewed-by: Simon Horman <horms+renesas@verge.net.au>
+This is detected by Coccinelle semantic patch.
+
+Fixes: d2b4387f3bdf ("media: platform: Add Aspeed Video Engine driver")
+Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
+---
+ drivers/media/platform/aspeed-video.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/media/platform/aspeed-video.c b/drivers/media/platform/aspeed-video.c
+index dfec813..692e08e 100644
+--- a/drivers/media/platform/aspeed-video.c
++++ b/drivers/media/platform/aspeed-video.c
+@@ -1661,6 +1661,7 @@ static int aspeed_video_probe(struct platform_device *pdev)
+ 
+ 	video->frame_rate = 30;
+ 	video->dev = &pdev->dev;
++	spin_lock_init(&video->lock);
+ 	mutex_init(&video->video_lock);
+ 	init_waitqueue_head(&video->wait);
+ 	INIT_DELAYED_WORK(&video->res_work, aspeed_video_resolution_work);
+
+
 
