@@ -2,60 +2,61 @@ Return-Path: <SRS0=E4aF=O2=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_MUTT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D585C43387
-	for <linux-media@archiver.kernel.org>; Mon, 17 Dec 2018 20:16:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EC401C43387
+	for <linux-media@archiver.kernel.org>; Mon, 17 Dec 2018 20:17:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1AFE221473
-	for <linux-media@archiver.kernel.org>; Mon, 17 Dec 2018 20:15:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B1AF620578
+	for <linux-media@archiver.kernel.org>; Mon, 17 Dec 2018 20:17:36 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="fGyPRsWD"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="p/e9LBg0"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388976AbeLQUPy (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 17 Dec 2018 15:15:54 -0500
-Received: from mail-pl1-f193.google.com ([209.85.214.193]:46490 "EHLO
-        mail-pl1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388083AbeLQUPx (ORCPT
+        id S2387998AbeLQURb (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 17 Dec 2018 15:17:31 -0500
+Received: from mail-pf1-f196.google.com ([209.85.210.196]:44870 "EHLO
+        mail-pf1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728204AbeLQURb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Dec 2018 15:15:53 -0500
-Received: by mail-pl1-f193.google.com with SMTP id t13so6630102ply.13;
-        Mon, 17 Dec 2018 12:15:52 -0800 (PST)
+        Mon, 17 Dec 2018 15:17:31 -0500
+Received: by mail-pf1-f196.google.com with SMTP id u6so6904128pfh.11;
+        Mon, 17 Dec 2018 12:17:30 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=date:from:to:cc:subject:message-id:mime-version:content-disposition
          :user-agent;
-        bh=3vyqNF2AY3a98If6IXFQYuTsTHWXYSwI0xNLA0HcJhQ=;
-        b=fGyPRsWDJn6Kj0Fg0NK2CHb8lm2wpyJMPu69HAivJuYK13NTR/Fm7RG4BGWJRgANwN
-         gqRaCCrlzg1HzxTnTO+mVE35R6zDT9HfArCP2PgcSIIpHCoVIQXu08QiSoaPOq4Kr/1H
-         S4zhEkJ18wFGfdMipkVsQB9Q0iqB+paWWQ3FAQqCuZF4g9XpwJqNutc5OkaNi/21rzn7
-         Z9h7IMPC7m2mUXOUlD5FxSEBkCRbYJfkPWwLwC7KVn+bOEBPWF47xpQVjstuw1u3EbnK
-         4lUBPSqwiu4dYr91tYfWcSXSsKiowwIsgen2M8nfGYTCk8AN+KF9diFAXrSa0zOu7MON
-         BkEw==
+        bh=LP5lsofdni2cSLjgAraOzOMBqzsN96J57RYIndiS9eY=;
+        b=p/e9LBg09urJWLaio2BVun4A6kGUQCG7HWz9LLsvx7iRIBvbaKonR5S0UKsIOc35I7
+         SSVLxSCuJqmJlEbu5QtUruzWvMTPabWv1I6cmgAzPKZ+UoKGTtflhdKlyvEmf9RpxgjJ
+         jgZlhJTMJQ8243EIkKtQ6gL1JidxGUbiNWT4LYKMyzoJouaLP3bUfsgcbYxIQkBi+g7L
+         73YRfXK3iBDh/kpNWD7HgQ1vG55H+CgsVYjWo0In+Jx/SeF7VmnhMlECM2b7QHQ0chbv
+         +xri/+GSpBZqI9ExlEHam5pX5MDN3BwJ1Gb9xJmzHrzKGNoTgpVbEglFsGdjNrLD9aeH
+         t2VQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:date:from:to:cc:subject:message-id:mime-version
          :content-disposition:user-agent;
-        bh=3vyqNF2AY3a98If6IXFQYuTsTHWXYSwI0xNLA0HcJhQ=;
-        b=oayw9Q5qr3cvNJQ38g7cWGE23lHpgmm9NQyyam9yLEIjt2NcX9zKGRHtOajB19llZY
-         Xt39+z92XfCLPO5dqnSsBVbuwrC3APnaxvuBAwQ2YRNKyL0zVN1E+9uEgIPIk9zZn/gu
-         UOghd0hg7jok9Aa6g/tMXlvG413PqCZKkSyyvRAG5SCJ3EgujviG75NRolkeNN+wqPxH
-         2RyGpyx4v5oamSz0i++TstoVuHRtjdOJcRRSslurDpbgkgWCrAnxaT0AxK1/bXOLhihX
-         EydRn2tVfb9v019Vy7U9D6P/ew2G/cYlKDmW4AnObRE/BMpg9V9sLTXCtpq8PqyKdjbV
-         Q24A==
-X-Gm-Message-State: AA+aEWYz1TuMO5U3DnauhoWVtihgG9UcCMjPAr9+7AGWs3zvXOME8o5A
-        Ghn3KrJvLM1zV6MOgfraQ1RvHx2r
-X-Google-Smtp-Source: AFSGD/UwgNW1q7B1Tl/WOz2n048Sng10rkAssfluJ7vJAib6KbxfmhOWdEj5Pb0Em8FBTBItR70xVw==
-X-Received: by 2002:a17:902:bd86:: with SMTP id q6mr13486898pls.16.1545077751326;
-        Mon, 17 Dec 2018 12:15:51 -0800 (PST)
+        bh=LP5lsofdni2cSLjgAraOzOMBqzsN96J57RYIndiS9eY=;
+        b=djrx6zLPvwt6l+h7EVVIbexA+MVLIBAolryK8u0Dbm1WpaPCrZWsQYkit7MoC4Tgzf
+         zr9hvP2XrALn1jWlIX3mwA+H48kSVoqoE7LenW8qGyjL0sinUvgru87jorSiv2bHKELe
+         C9oqmDIZPaybAH8gD0cEJ+AZohFerw4hA1u/oBE8klPq2755PFDDJnx3naq6SF6fObUh
+         YXQDuFADDVwfxSMnVfZiyEHnI6+cKWD++Nejx9JjBJ1VEZaclj7Koy9jkquCnouDEF4v
+         UKjZcVBJL9krmAurFJxmv6ucH0M6OSnrx8Yyt5LHaGlQtLI8qBxZeBvsJNSsG6bsfrPw
+         Ipow==
+X-Gm-Message-State: AA+aEWY3YMDt4OHvSPNCkcxCGBSoopu9H1bgWKmzrsZJnxMufJAldTwW
+        Oo9YKTeCBW2rkbV1hywowGFD7ssh
+X-Google-Smtp-Source: AFSGD/X4Uak/TI8ZYtxtZsFEKfKGnP+/T22Np31XBV/bP6gFwwiKErESpa4F78Q5JQiA2M4ia/MNlw==
+X-Received: by 2002:a62:33c1:: with SMTP id z184mr13951345pfz.104.1545077849354;
+        Mon, 17 Dec 2018 12:17:29 -0800 (PST)
 Received: from jordon-HP-15-Notebook-PC ([103.227.98.208])
-        by smtp.gmail.com with ESMTPSA id b68sm21569889pfg.160.2018.12.17.12.15.49
+        by smtp.gmail.com with ESMTPSA id h129sm18659195pfb.110.2018.12.17.12.17.27
         (version=TLS1 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
-        Mon, 17 Dec 2018 12:15:50 -0800 (PST)
-Date:   Tue, 18 Dec 2018 01:49:42 +0530
+        Mon, 17 Dec 2018 12:17:28 -0800 (PST)
+Date:   Tue, 18 Dec 2018 01:51:21 +0530
 From:   Souptick Joarder <jrdr.linux@gmail.com>
 To:     akpm@linux-foundation.org, willy@infradead.org, mhocko@suse.com,
         kirill.shutemov@linux.intel.com, vbabka@suse.cz, riel@surriel.com,
@@ -73,8 +74,8 @@ Cc:     linux-kernel@vger.kernel.org, linux-mm@kvack.org,
         dri-devel@lists.freedesktop.org,
         linux-rockchip@lists.infradead.org, xen-devel@lists.xen.org,
         iommu@lists.linux-foundation.org, linux-media@vger.kernel.org
-Subject: [PATCH v4 0/9] Use vm_insert_range
-Message-ID: <20181217201942.GA31335@jordon-HP-15-Notebook-PC>
+Subject: [PATCH v4 1/9] mm: Introduce new vm_insert_range API
+Message-ID: <20181217202121.GA4335@jordon-HP-15-Notebook-PC>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
@@ -95,63 +96,103 @@ the drivers.
 vm_insert_range is the new API which will be used to map a
 range of kernel memory/pages to user vma.
 
-All the applicable places are converted to use new vm_insert_range
-in this patch series.
+This API is tested by Heiko for Rockchip drm driver, on rk3188,
+rk3288, rk3328 and rk3399 with graphics.
 
-v1 -> v2:
-        Address review comment on mm/memory.c. Add EXPORT_SYMBOL
-        for vm_insert_range and corrected the documentation part
-        for this API.
+Signed-off-by: Souptick Joarder <jrdr.linux@gmail.com>
+Reviewed-by: Matthew Wilcox <willy@infradead.org>
+Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
+Reviewed-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Tested-by: Heiko Stuebner <heiko@sntech.de>
+---
+ include/linux/mm.h |  2 ++
+ mm/memory.c        | 41 +++++++++++++++++++++++++++++++++++++++++
+ mm/nommu.c         |  7 +++++++
+ 3 files changed, 50 insertions(+)
 
-        In drivers/gpu/drm/xen/xen_drm_front_gem.c, replace err
-        with ret as suggested.
-
-        In drivers/iommu/dma-iommu.c, handle the scenario of partial
-        mmap() of large buffer by passing *pages + vma->vm_pgoff* to
-        vm_insert_range().
-
-v2 -> v3:
-        Declaration of vm_insert_range() moved to include/linux/mm.h
-
-v3 -> v4:
-	Address review comments.
-	
-	In mm/memory.c. Added error check.
-
-	In arch/arm/mm/dma-mapping.c, remove part of error check as the
-	similar is checked inside vm_insert_range.
-
-	In rockchip/rockchip_drm_gem.c, vma->vm_pgoff is respected as
-	this might be passed as non zero value considering partial
-	mapping of large buffer.
-
-	In iommu/dma-iommu.c, count is modifed as (count - vma->vm_pgoff)
-	to handle partial mapping scenario in v2.
-
-Souptick Joarder (9):
-  mm: Introduce new vm_insert_range API
-  arch/arm/mm/dma-mapping.c: Convert to use vm_insert_range
-  drivers/firewire/core-iso.c: Convert to use vm_insert_range
-  drm/rockchip/rockchip_drm_gem.c: Convert to use vm_insert_range
-  drm/xen/xen_drm_front_gem.c: Convert to use vm_insert_range
-  iommu/dma-iommu.c: Convert to use vm_insert_range
-  videobuf2/videobuf2-dma-sg.c: Convert to use vm_insert_range
-  xen/gntdev.c: Convert to use vm_insert_range
-  xen/privcmd-buf.c: Convert to use vm_insert_range
-
- arch/arm/mm/dma-mapping.c                         | 21 ++++--------
- drivers/firewire/core-iso.c                       | 15 ++-------
- drivers/gpu/drm/rockchip/rockchip_drm_gem.c       | 19 ++---------
- drivers/gpu/drm/xen/xen_drm_front_gem.c           | 20 ++++-------
- drivers/iommu/dma-iommu.c                         | 13 ++-----
- drivers/media/common/videobuf2/videobuf2-dma-sg.c | 23 ++++---------
- drivers/xen/gntdev.c                              | 11 +++---
- drivers/xen/privcmd-buf.c                         |  8 ++---
- include/linux/mm.h                                |  2 ++
- mm/memory.c                                       | 41 +++++++++++++++++++++++
- mm/nommu.c                                        |  7 ++++
- 11 files changed, 83 insertions(+), 97 deletions(-)
-
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index fcf9cc9..2bc399f 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -2506,6 +2506,8 @@ unsigned long change_prot_numa(struct vm_area_struct *vma,
+ int remap_pfn_range(struct vm_area_struct *, unsigned long addr,
+ 			unsigned long pfn, unsigned long size, pgprot_t);
+ int vm_insert_page(struct vm_area_struct *, unsigned long addr, struct page *);
++int vm_insert_range(struct vm_area_struct *vma, unsigned long addr,
++			struct page **pages, unsigned long page_count);
+ vm_fault_t vmf_insert_pfn(struct vm_area_struct *vma, unsigned long addr,
+ 			unsigned long pfn);
+ vm_fault_t vmf_insert_pfn_prot(struct vm_area_struct *vma, unsigned long addr,
+diff --git a/mm/memory.c b/mm/memory.c
+index 15c417e..d44d4a8 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -1478,6 +1478,47 @@ static int insert_page(struct vm_area_struct *vma, unsigned long addr,
+ }
+ 
+ /**
++ * vm_insert_range - insert range of kernel pages into user vma
++ * @vma: user vma to map to
++ * @addr: target user address of this page
++ * @pages: pointer to array of source kernel pages
++ * @page_count: number of pages need to insert into user vma
++ *
++ * This allows drivers to insert range of kernel pages they've allocated
++ * into a user vma. This is a generic function which drivers can use
++ * rather than using their own way of mapping range of kernel pages into
++ * user vma.
++ *
++ * If we fail to insert any page into the vma, the function will return
++ * immediately leaving any previously-inserted pages present.  Callers
++ * from the mmap handler may immediately return the error as their caller
++ * will destroy the vma, removing any successfully-inserted pages. Other
++ * callers should make their own arrangements for calling unmap_region().
++ *
++ * Context: Process context. Called by mmap handlers.
++ * Return: 0 on success and error code otherwise
++ */
++int vm_insert_range(struct vm_area_struct *vma, unsigned long addr,
++			struct page **pages, unsigned long page_count)
++{
++	unsigned long uaddr = addr;
++	int ret = 0, i;
++
++	if (page_count > vma_pages(vma))
++		return -ENXIO;
++
++	for (i = 0; i < page_count; i++) {
++		ret = vm_insert_page(vma, uaddr, pages[i]);
++		if (ret < 0)
++			return ret;
++		uaddr += PAGE_SIZE;
++	}
++
++	return ret;
++}
++EXPORT_SYMBOL(vm_insert_range);
++
++/**
+  * vm_insert_page - insert single page into user vma
+  * @vma: user vma to map to
+  * @addr: target user address of this page
+diff --git a/mm/nommu.c b/mm/nommu.c
+index 749276b..d6ef5c7 100644
+--- a/mm/nommu.c
++++ b/mm/nommu.c
+@@ -473,6 +473,13 @@ int vm_insert_page(struct vm_area_struct *vma, unsigned long addr,
+ }
+ EXPORT_SYMBOL(vm_insert_page);
+ 
++int vm_insert_range(struct vm_area_struct *vma, unsigned long addr,
++			struct page **pages, unsigned long page_count)
++{
++	return -EINVAL;
++}
++EXPORT_SYMBOL(vm_insert_range);
++
+ /*
+  *  sys_brk() for the most part doesn't need the global kernel
+  *  lock, except when an application is doing something nasty
 -- 
 1.9.1
 
