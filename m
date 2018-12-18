@@ -2,114 +2,87 @@ Return-Path: <SRS0=J9mZ=O3=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.7 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
+	USER_AGENT_MUTT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F9CDC43387
-	for <linux-media@archiver.kernel.org>; Tue, 18 Dec 2018 15:44:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EE8DEC43387
+	for <linux-media@archiver.kernel.org>; Tue, 18 Dec 2018 16:13:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2FAF621852
-	for <linux-media@archiver.kernel.org>; Tue, 18 Dec 2018 15:44:33 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=amarulasolutions.com header.i=@amarulasolutions.com header.b="bOXKUD+i"
+	by mail.kernel.org (Postfix) with ESMTP id BE574218A2
+	for <linux-media@archiver.kernel.org>; Tue, 18 Dec 2018 16:13:50 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1545149630;
+	bh=/099VrXkXSUllqd98g/tHds7GvGT+pyPdawwrtm67GA=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=OsmCwT9b9uKV82zsVuWtq3oKSnvTFm5zs9fUOzRbIMmQkUlWbO8jyYVwA90MEcryI
+	 W/ahCk3QUdKfQDZgF0GYDQM2wOgGh2eCYhUwqyUrR0BJqEihJ0cp5E87NfRWPJ62cs
+	 lCIDbErC/J+wyKmykIxI+VXXWdxKFmC4qU2r0D+8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727118AbeLRPoc (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 18 Dec 2018 10:44:32 -0500
-Received: from mail-io1-f68.google.com ([209.85.166.68]:45521 "EHLO
-        mail-io1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727114AbeLRPob (ORCPT
+        id S1727220AbeLRQNo (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 18 Dec 2018 11:13:44 -0500
+Received: from mail-ot1-f65.google.com ([209.85.210.65]:34533 "EHLO
+        mail-ot1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727205AbeLRQNn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Dec 2018 10:44:31 -0500
-Received: by mail-io1-f68.google.com with SMTP id p7so5473986iog.12
-        for <linux-media@vger.kernel.org>; Tue, 18 Dec 2018 07:44:31 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=amarulasolutions.com; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=1/zhACGiqYxD973F16CJgW7lHQ7NOo+F2AGOaW1Tmr0=;
-        b=bOXKUD+ium5IZD/ej6gBo6AoeyCaxHe8W9E5ZCZ9r7rduXf5QJjE0bAwXxg5B+JEfK
-         WS01OpHBsjkNblLxpp6gAfnuzn6KtYTbtpH0ctGniiWx9TjXXVTgeEuZn9Iu+P9Xowri
-         3MGz/BfMlSZXAHytSqm5GvouhhTxIq6b0pQV0=
+        Tue, 18 Dec 2018 11:13:43 -0500
+Received: by mail-ot1-f65.google.com with SMTP id t5so16221480otk.1;
+        Tue, 18 Dec 2018 08:13:43 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=1/zhACGiqYxD973F16CJgW7lHQ7NOo+F2AGOaW1Tmr0=;
-        b=lFXl+62RvEK0pQ7+3CEoJuwB3F9k6TRHPiqOE1yZSWrBh85wc4gCEGloIKED6SsIbd
-         +n2qiDw3VqlxCTWbBrCBaU+eLknjOJzG5Uw7LoerE35olhcewfnIzWtLQpWgRNBwCwpa
-         DTinaY6boVOaPyv0rXhy9UEJ45kwoPR9FlULl+9pze87kJvYEqLlgeWhraNuGZPVQlr4
-         EJzwmfj8j8WwNJ3NM92NKriFQ/sPJ7Ta2f7iUnuXwDu8rBBMe3Kx+Vah1+j48DRYGAZn
-         CMAw/HyIo1AcGO4oAIJemaVi2H4gN7lU+T8/kG7AB2cvUodYJVR3lHLs9Yw1L89kNbtc
-         6GeA==
-X-Gm-Message-State: AA+aEWZYRAq7i+BB6aIwRnTU/7AtDlmckG3HSTLPbXCraYquB0u01QGY
-        N6Wfi4cuNnkwbZJltpCgFsO5qXyQ2SQ3zcT01LJFQQ==
-X-Google-Smtp-Source: AFSGD/Vw0JOZ8RKR8b2+LlUMZj0hoUL5Xw8rRsU9Uzbab7HLMC2KsHzEDHMZE7NyQ0gEePst9K8pHK0stt+GL7m2nTU=
-X-Received: by 2002:a5e:c609:: with SMTP id f9mr13929097iok.114.1545147508734;
- Tue, 18 Dec 2018 07:38:28 -0800 (PST)
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:content-transfer-encoding
+         :in-reply-to:user-agent;
+        bh=tSjoTxoGv235BBzqJEt372NZWsn6e4Eg1sBMXs5E6uM=;
+        b=po99Cp2s7yat+LM61WrGHwMAXd7xaZAJLF3XWAet400SzLP90Dz1t9YRVbls99GLJJ
+         Q9/8TNO4YD+KKePz/wBg1KukYTJBfO/hsFp/k9kYpVTaRP0txVjN2B4FH+eXJdn7Amfb
+         xEXTBHBFIQJ/Tm+f19qhJjP80OEauMpA4qWtJIilTds0mM6N29Y1Vjpc61lAyrlQ7sSq
+         ytXTNwg686Dj3suUaIp6uodtlT3OX4R2DGK2FvJB5x51ivEcI6e2foRaj0ZHGb2Buro6
+         XPObCJDh4236tDV8hhHahq/8Fy+czSc0pcDM1zUq2jZMva7zUgqT+/MExZoYCSIrVW3T
+         b8NQ==
+X-Gm-Message-State: AA+aEWYI/stCDiO+4CBvBaJ40bNRN1O+n+nwl3LNgBlJ9k38GD0rXqz/
+        MuSU7wmR1eSnSsSstnZTsg==
+X-Google-Smtp-Source: AFSGD/XDuaS5YANnWoRjWw+BPNJxkLvgpmeqzjFBjnRAv9dkYIw+8dv+BWWc+DiZQjchIGwew+87wQ==
+X-Received: by 2002:a05:6830:c7:: with SMTP id x7mr816850oto.31.1545149622604;
+        Tue, 18 Dec 2018 08:13:42 -0800 (PST)
+Received: from localhost (24-155-109-49.dyn.grandenetworks.net. [24.155.109.49])
+        by smtp.gmail.com with ESMTPSA id h24sm9546527otm.72.2018.12.18.08.13.41
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Tue, 18 Dec 2018 08:13:41 -0800 (PST)
+Date:   Tue, 18 Dec 2018 10:13:41 -0600
+From:   Rob Herring <robh@kernel.org>
+To:     =?utf-8?B?UGF3ZcWC?= Chmiel <pawel.mikolaj.chmiel@gmail.com>
+Cc:     mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        hverkuil@xs4all.nl, fischerdouglasc@gmail.com,
+        keescook@chromium.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
+        =?utf-8?B?UGF3ZcWC?= Chmiel <pawel.mikolaj.chmiel@gmail.com>
+Subject: Re: [PATCH v2 4/4] media: dt-bindings: Add binding for si470x radio
+Message-ID: <20181218161341.GA5282@bogus>
+References: <20181207135812.12842-1-pawel.mikolaj.chmiel@gmail.com>
+ <20181207135812.12842-5-pawel.mikolaj.chmiel@gmail.com>
 MIME-Version: 1.0
-References: <20181218113320.4856-1-jagan@amarulasolutions.com>
- <20181218113320.4856-4-jagan@amarulasolutions.com> <20181218152318.duynff7f5m2gxtv4@flea>
-In-Reply-To: <20181218152318.duynff7f5m2gxtv4@flea>
-From:   Jagan Teki <jagan@amarulasolutions.com>
-Date:   Tue, 18 Dec 2018 21:08:17 +0530
-Message-ID: <CAMty3ZCS+QT_YqbJueR-qeityaDxNbQ7p_d3D6bNATSJLQpRnQ@mail.gmail.com>
-Subject: Re: [PATCH v4 3/6] media: sun6i: Update default CSI_SCLK for A64
-To:     Maxime Ripard <maxime.ripard@bootlin.com>
-Cc:     Yong Deng <yong.deng@magewell.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        linux-media <linux-media@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        devicetree <devicetree@vger.kernel.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        linux-sunxi <linux-sunxi@googlegroups.com>,
-        linux-amarula@amarulasolutions.com,
-        Michael Trimarchi <michael@amarulasolutions.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20181207135812.12842-5-pawel.mikolaj.chmiel@gmail.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Tue, Dec 18, 2018 at 8:53 PM Maxime Ripard <maxime.ripard@bootlin.com> wrote:
->
-> On Tue, Dec 18, 2018 at 05:03:17PM +0530, Jagan Teki wrote:
-> > Unfortunately A64 CSI cannot work with default CSI_SCLK rate.
-> >
-> > A64 BSP is using 300MHz clock rate as default csi clock,
-> > so sun6i_csi require explicit change to update CSI_SCLK
-> > rate to 300MHZ for A64 SoC's.
-> >
-> > So, set the clk_mod to 300MHz only for A64.
-> >
-> > Signed-off-by: Jagan Teki <jagan@amarulasolutions.com>
-> > ---
-> >  drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c | 5 +++++
-> >  1 file changed, 5 insertions(+)
-> >
-> > diff --git a/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c b/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
-> > index 9ff61896e4bb..91470edf7581 100644
-> > --- a/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
-> > +++ b/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
-> > @@ -822,6 +822,11 @@ static int sun6i_csi_resource_request(struct sun6i_csi_dev *sdev,
-> >               return PTR_ERR(sdev->clk_mod);
-> >       }
-> >
-> > +     /* A64 require 300MHz mod clock to operate properly */
-> > +     if (of_device_is_compatible(pdev->dev.of_node,
-> > +                                 "allwinner,sun50i-a64-csi"))
-> > +             clk_set_rate_exclusive(sdev->clk_mod, 300000000);
-> > +
->
-> If you're using clk_set_rate_exclusive, you need to put back the
-> "exclusive" reference once you're not using the clock.
->
-> Doing it here is not really optimal either, since you'll put a
-> constraint on the system (maintaining that clock at 300MHz), while
-> it's not in use.
+On Fri,  7 Dec 2018 14:58:12 +0100, =?UTF-8?q?Pawe=C5=82=20Chmiel?= wrote:
+> Add device tree bindings for si470x family radio receiver driver.
+> 
+> Signed-off-by: Paweł Chmiel <pawel.mikolaj.chmiel@gmail.com>
+> ---
+> Changes from v1:
+> 	- squashed with patch adding reset-gpio documentation
+> ---
+>  .../devicetree/bindings/media/si470x.txt      | 26 +++++++++++++++++++
+>  1 file changed, 26 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/si470x.txt
+> 
 
-I think we can handle via clk_rate_exclusive_put for those errors
-cases? If I'm not wrong
+Reviewed-by: Rob Herring <robh@kernel.org>
