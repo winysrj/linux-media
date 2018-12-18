@@ -2,114 +2,102 @@ Return-Path: <SRS0=J9mZ=O3=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_NEOMUTT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EEA16C43387
-	for <linux-media@archiver.kernel.org>; Tue, 18 Dec 2018 15:23:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A7E2C43387
+	for <linux-media@archiver.kernel.org>; Tue, 18 Dec 2018 15:29:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C9A3820815
-	for <linux-media@archiver.kernel.org>; Tue, 18 Dec 2018 15:23:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E222B218A1
+	for <linux-media@archiver.kernel.org>; Tue, 18 Dec 2018 15:29:04 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=amarulasolutions.com header.i=@amarulasolutions.com header.b="HHPeTCmr"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726556AbeLRPXb (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 18 Dec 2018 10:23:31 -0500
-Received: from mail.bootlin.com ([62.4.15.54]:34331 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726421AbeLRPXa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Dec 2018 10:23:30 -0500
-Received: by mail.bootlin.com (Postfix, from userid 110)
-        id 0BE86207B2; Tue, 18 Dec 2018 16:23:28 +0100 (CET)
-Received: from localhost (aaubervilliers-681-1-38-38.w90-88.abo.wanadoo.fr [90.88.157.38])
-        by mail.bootlin.com (Postfix) with ESMTPSA id CBC8220CC9;
-        Tue, 18 Dec 2018 16:23:17 +0100 (CET)
-Date:   Tue, 18 Dec 2018 16:23:18 +0100
-From:   Maxime Ripard <maxime.ripard@bootlin.com>
-To:     Jagan Teki <jagan@amarulasolutions.com>
+        id S1726837AbeLRP3E (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 18 Dec 2018 10:29:04 -0500
+Received: from mail-it1-f196.google.com ([209.85.166.196]:39494 "EHLO
+        mail-it1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726767AbeLRP3E (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 18 Dec 2018 10:29:04 -0500
+Received: by mail-it1-f196.google.com with SMTP id a6so4736847itl.4
+        for <linux-media@vger.kernel.org>; Tue, 18 Dec 2018 07:29:03 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=amarulasolutions.com; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=U/EqxXLPNuG+pYUcOI24Scjn0TlAIbGPDff7dYdIyAY=;
+        b=HHPeTCmrzxvyQc0FaA6OBu4PGjuYnDX/bz2ds8z4KbOZcMci3PqBySc01k0QoP90B4
+         GvDV265A9iCuQHJ+HAYh72jwZQvBUi0TpUkwPFyIQNczLkfOdiLJ0dRdj+Rhxt7+AJt8
+         oCyPaTGczl8KxHFrsgpVyMubzFu2qQ+8VL6IY=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=U/EqxXLPNuG+pYUcOI24Scjn0TlAIbGPDff7dYdIyAY=;
+        b=kFKJRMwAhigyZ6jaQj9GtlPXJsLJm3A9Tes8NX1Lmiyy5bSZkfgv4I3ygOIKEqPXfL
+         VDZISLYiseAu/jlMlF90hA/ZN4gzk/bn/AxMjvN4PTlQGKRQlhfk+gvEZpDlg24E2SBO
+         vduAF3cgSRxVMk7bHF8voV1QAW6HJu0mjjBoEKcmoUjlMgdDUixcunTivsr48rJozlj0
+         7gM3vs+/vw5uxS4W4VEk9eNj4+bvxvhhS6l63n8Hwq1nmRb9LPjWHOTnWfq+WnBjCKsY
+         NZ8LgRVFUeB9FgqQQLcw275FtO8zu5c2I764myuC1DgcbKV3MWzgnq8XiQCSgMiDyBYT
+         4Fjg==
+X-Gm-Message-State: AA+aEWZWP9rrGHRFkyegKqxLlUYUH2eY7nQN1hqdKyExZ8UgcQT6fkq5
+        UXHH9DF1Fs3I0BOYz8S3roVrCJe8ehSOzbaReRdCAA==
+X-Google-Smtp-Source: AFSGD/X9yZd+A05H/fXKGE0JNZ8ViU/SZnwqn0N1KKqSg/Y5U0VvzoCHgixQT2zD0Jv5nqXFDC6baQzPRffnrVDSntg=
+X-Received: by 2002:a24:10cb:: with SMTP id 194mr3338404ity.173.1545146943081;
+ Tue, 18 Dec 2018 07:29:03 -0800 (PST)
+MIME-Version: 1.0
+References: <20181218113320.4856-1-jagan@amarulasolutions.com> <20181218152122.4zj6wgbukhrl6ly6@flea>
+In-Reply-To: <20181218152122.4zj6wgbukhrl6ly6@flea>
+From:   Jagan Teki <jagan@amarulasolutions.com>
+Date:   Tue, 18 Dec 2018 20:58:22 +0530
+Message-ID: <CAMty3ZA4xXVLKx-yj+2_iJ700+yTLesjEAgS8Wu2i8otPScpaw@mail.gmail.com>
+Subject: Re: [PATCH v4 0/6] media/sun6i: Allwinner A64 CSI support
+To:     Maxime Ripard <maxime.ripard@bootlin.com>
 Cc:     Yong Deng <yong.deng@magewell.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
         Rob Herring <robh+dt@kernel.org>,
         Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>, linux-media@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
+        Chen-Yu Tsai <wens@csie.org>,
+        linux-media <linux-media@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        devicetree <devicetree@vger.kernel.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
         linux-sunxi <linux-sunxi@googlegroups.com>,
         linux-amarula@amarulasolutions.com,
         Michael Trimarchi <michael@amarulasolutions.com>
-Subject: Re: [PATCH v4 3/6] media: sun6i: Update default CSI_SCLK for A64
-Message-ID: <20181218152318.duynff7f5m2gxtv4@flea>
-References: <20181218113320.4856-1-jagan@amarulasolutions.com>
- <20181218113320.4856-4-jagan@amarulasolutions.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="4rtcmfm6g5qdxw5j"
-Content-Disposition: inline
-In-Reply-To: <20181218113320.4856-4-jagan@amarulasolutions.com>
-User-Agent: NeoMutt/20180716
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
+On Tue, Dec 18, 2018 at 8:51 PM Maxime Ripard <maxime.ripard@bootlin.com> wrote:
+>
+> On Tue, Dec 18, 2018 at 05:03:14PM +0530, Jagan Teki wrote:
+> > This series support CSI on Allwinner A64.
+> >
+> > Tested 640x480, 320x240, 720p, 1080p resolutions UYVY8_2X8 format.
+> >
+> > Changes for v4:
+> > - update the compatible string order
+> > - add proper commit message
+> > - included BPI-M64 patch
+> > - skipped amarula-a64 patch
+> > Changes for v3:
+> > - update dt-bindings for A64
+> > - set mod clock via csi driver
+> > - remove assign clocks from dtsi
+> > - remove i2c-gpio opendrian
+> > - fix avdd and dovdd supplies
+> > - remove vcc-csi pin group supply
+> >
+> > Note: This series created on top of H3 changes [1]
+> >
+> > [1] https://patchwork.kernel.org/cover/10705905/
+>
+> You had memory corruption before, how was this fixed?
 
---4rtcmfm6g5qdxw5j
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Tue, Dec 18, 2018 at 05:03:17PM +0530, Jagan Teki wrote:
-> Unfortunately A64 CSI cannot work with default CSI_SCLK rate.
->=20
-> A64 BSP is using 300MHz clock rate as default csi clock,
-> so sun6i_csi require explicit change to update CSI_SCLK
-> rate to 300MHZ for A64 SoC's.
->=20
-> So, set the clk_mod to 300MHz only for A64.
->=20
-> Signed-off-by: Jagan Teki <jagan@amarulasolutions.com>
-> ---
->  drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c | 5 +++++
->  1 file changed, 5 insertions(+)
->=20
-> diff --git a/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c b/drivers=
-/media/platform/sunxi/sun6i-csi/sun6i_csi.c
-> index 9ff61896e4bb..91470edf7581 100644
-> --- a/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
-> +++ b/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
-> @@ -822,6 +822,11 @@ static int sun6i_csi_resource_request(struct sun6i_c=
-si_dev *sdev,
->  		return PTR_ERR(sdev->clk_mod);
->  	}
-> =20
-> +	/* A64 require 300MHz mod clock to operate properly */
-> +	if (of_device_is_compatible(pdev->dev.of_node,
-> +				    "allwinner,sun50i-a64-csi"))
-> +		clk_set_rate_exclusive(sdev->clk_mod, 300000000);
-> +
-
-If you're using clk_set_rate_exclusive, you need to put back the
-"exclusive" reference once you're not using the clock.
-
-Doing it here is not really optimal either, since you'll put a
-constraint on the system (maintaining that clock at 300MHz), while
-it's not in use.
-
-Maxime
-
---=20
-Maxime Ripard, Bootlin
-Embedded Linux and Kernel engineering
-https://bootlin.com
-
---4rtcmfm6g5qdxw5j
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iHUEABYIAB0WIQRcEzekXsqa64kGDp7j7w1vZxhRxQUCXBkQ5gAKCRDj7w1vZxhR
-xQfnAQCLy8uWDrSK1eiEhduglmuwquW5pVDaaf80iBhg2iP3fgEAsk2H6EeHeTAD
-GBlKJX0bjUHXYyh9gM64c6P8PkuAxgk=
-=Uh0F
------END PGP SIGNATURE-----
-
---4rtcmfm6g5qdxw5j--
+Memory corruption observed with default 600MHz on 1080p. It worked
+fine on BPI-M64 (with 300MHz)
