@@ -2,111 +2,144 @@ Return-Path: <SRS0=J9mZ=O3=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_MUTT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 473ABC43387
-	for <linux-media@archiver.kernel.org>; Tue, 18 Dec 2018 07:39:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E4272C43387
+	for <linux-media@archiver.kernel.org>; Tue, 18 Dec 2018 09:42:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 16254214C6
-	for <linux-media@archiver.kernel.org>; Tue, 18 Dec 2018 07:39:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B3DC421849
+	for <linux-media@archiver.kernel.org>; Tue, 18 Dec 2018 09:42:13 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="eTElaZPL"
+	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="MW/Kutmz"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726368AbeLRHi5 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 18 Dec 2018 02:38:57 -0500
-Received: from bombadil.infradead.org ([198.137.202.133]:34004 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726346AbeLRHi5 (ORCPT
+        id S1726379AbeLRJmH (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 18 Dec 2018 04:42:07 -0500
+Received: from perceval.ideasonboard.com ([213.167.242.64]:38432 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726358AbeLRJmH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Dec 2018 02:38:57 -0500
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=bombadil.20170209; h=In-Reply-To:Content-Type:MIME-Version
-        :References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-        Content-Transfer-Encoding:Content-ID:Content-Description:Resent-Date:
-        Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:
-        List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-         bh=WzeH3TUgsIdeLiBDUJctOAhNPrFwEjE+QueOyLQxYCA=; b=eTElaZPLrVJKh7nAcsbB19+hi
-        okOtAo88127AYLlij5sJfivLV5Qm1pFzx21H7kEPs6nNwPIPjhrIi+ij3MQ6KiF5m8jhoT9W7dO/P
-        O24o6fsY317KwhPDxmioC9e2q7fNWSIIizZFU0aYjLeieLSQBGPSzMhK8aDKOSph5mwZlWaAMyBaL
-        1wsavnj3gLgV9AgZca3bmIXsPYw+awCJv9MQpHgY+uxsAYu0EPuUvCA8U/1EeL8a8uuCNU3BFv+gM
-        4EVxTtFyJynyR9dh6+/MMlS/ApHxQCzbQqDp2CxvMDbP7r6R5a94RPjQCdBAuYsQGmuWWrDKs6wgi
-        7bft4M1HQ==;
-Received: from hch by bombadil.infradead.org with local (Exim 4.90_1 #2 (Red Hat Linux))
-        id 1gZ9xn-0002fj-Bx; Tue, 18 Dec 2018 07:38:47 +0000
-Date:   Mon, 17 Dec 2018 23:38:47 -0800
-From:   Christoph Hellwig <hch@infradead.org>
-To:     Tomasz Figa <tfiga@chromium.org>
-Cc:     Christoph Hellwig <hch@infradead.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        "Matwey V. Kornilov" <matwey@sai.msu.ru>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        "Matwey V. Kornilov" <matwey.kornilov@gmail.com>,
-        Alan Stern <stern@rowland.harvard.edu>,
-        Ezequiel Garcia <ezequiel@collabora.com>, hdegoede@redhat.com,
-        Hans Verkuil <hverkuil@xs4all.nl>,
+        Tue, 18 Dec 2018 04:42:07 -0500
+Received: from avalon.localnet (dfj612ybrt5fhg77mgycy-3.rev.dnainternet.fi [IPv6:2001:14ba:21f5:5b00:2e86:4862:ef6a:2804])
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id AE2C953A;
+        Tue, 18 Dec 2018 10:42:03 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
+        s=mail; t=1545126124;
+        bh=XunOINnwadmpU9sTmIhA/wdBl8KY10IfxKFHeeqi4ks=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=MW/KutmzKu1sS4EtaZ2OypD2PbyvAUhmLLhlisfU0C8tEiKaY1QQ7VgzkDSIdqJgt
+         sGx7/fnkCccezUr5U6B1fJgxJYNlLAlmqhe/wuBRJPiBpDrKWhwjeOGQG9tCFVerrQ
+         rRUEyOU6GZ7azOMi+lGY07RRyJyLu7Bl3Ie+OWpc=
+From:   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To:     Alistair Strachan <astrachan@google.com>
+Cc:     linux-kernel@vger.kernel.org, syzbot <syzkaller@googlegroups.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        rostedt@goodmis.org, mingo@redhat.com,
-        Mike Isely <isely@pobox.com>,
-        Bhumika Goyal <bhumirks@gmail.com>,
-        Colin King <colin.king@canonical.com>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        keiichiw@chromium.org
-Subject: Re: [PATCH v5 2/2] media: usb: pwc: Don't use coherent DMA buffers
- for ISO transfer
-Message-ID: <20181218073847.GA4552@infradead.org>
-References: <20181207152502.GA30455@infradead.org>
- <CAAFQd5C6gUvg8p0+Gtk22Z-dmeMPytdF4HujL9evYAew15bUmA@mail.gmail.com>
- <20181212090917.GA30598@infradead.org>
- <CAAFQd5DhDOfk_2Dhq4MfJmoxpXP=Bm36HMZ55PSXxwkTAoCXSQ@mail.gmail.com>
- <20181212135440.GA6137@infradead.org>
- <CAAFQd5C4RbMxRP+ox+BDuApMusTD=WUD9Vs6aWL3u=HovuWUig@mail.gmail.com>
- <20181213140329.GA25339@infradead.org>
- <CAAFQd5BudF84jVaiy7KwevzBZnfYUZggDK=4W=g+Znf5VJjHsQ@mail.gmail.com>
- <20181214123624.GA5824@infradead.org>
- <CAAFQd5BnZHhNjOc6HKt=YVBVQFCcqN0RxAcfDp3S+gDKRvciqQ@mail.gmail.com>
+        linux-media@vger.kernel.org, kernel-team@android.com
+Subject: Re: [PATCH] media: uvcvideo: Fix 'type' check leading to overflow
+Date:   Tue, 18 Dec 2018 11:42:54 +0200
+Message-ID: <45456214.XvNNoR8qLh@avalon>
+Organization: Ideas on Board Oy
+In-Reply-To: <20181217210222.115419-1-astrachan@google.com>
+References: <20181217210222.115419-1-astrachan@google.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAAFQd5BnZHhNjOc6HKt=YVBVQFCcqN0RxAcfDp3S+gDKRvciqQ@mail.gmail.com>
-User-Agent: Mutt/1.9.2 (2017-12-15)
-X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Tue, Dec 18, 2018 at 04:22:43PM +0900, Tomasz Figa wrote:
-> It kind of limits the usability of this API, since it enforces
-> contiguous allocations even for big sizes even for devices behind
-> IOMMU (contrary to the case when DMA_ATTR_NON_CONSISTENT is not set),
-> but given that it's just a temporary solution for devices like these
-> USB cameras, I guess that's fine.
+Hi Alistair,
 
-The problem is that you can't have flexibility and simplicity at the
-same time.  Once you use kernel virtual address remapping you need to
-be prepared to have multiple segments.
+Thank you for the patch.
 
-So as I said you can call dma_alloc_attrs with DMA_ATTR_NON_CONSISTENT
-in a loop with a suitably small chunk size, then stuff the results into
-a scatterlist and map that again for the device share with if you don't
-want a single contigous region.  You just have to either deal with
-non-contigous access from the kernel or use vmap and the right vmap
-cache flushing helpers.
-
-> Note that in V4L2 we use the DMA API extensively, so that we don't
-> need to embed any device-specific or integration-specific knowledge in
-> the framework. Right now we're using dma_alloc_attrs() with
-> driver-provided attrs [1], but current driver never request
-> non-consistent memory. We're however thinking about making it possible
-> to allocate non-consistent memory. What would you suggest for this?
+On Monday, 17 December 2018 23:02:22 EET Alistair Strachan wrote:
+> When initially testing the Camera Terminal Descriptor wTerminalType
+> field (buffer[4]), no mask is used. Later in the function, the MSB is
+> overloaded to store the descriptor subtype, and so a mask of 0x7fff
+> is used to check the type.
 > 
-> [1] https://elixir.bootlin.com/linux/v4.20-rc7/source/drivers/media/common/videobuf2/videobuf2-dma-contig.c#L139
+> If a descriptor is specially crafted to set this overloaded bit in the
+> original wTerminalType field, the initial type check will fail (falling
+> through, without adjusting the buffer size), but the later type checks
+> will pass, assuming the buffer has been made suitably large, causing an
+> overflow.
+> 
+> This problem could be resolved in a few different ways, but this fix
+> applies the same initial type check as used by UVC_ENTITY_TYPE (once we
+> have a 'term' structure.) Such crafted wTerminalType fields will then be
+> treated as *generic* Input Terminals, not as CAMERA or
+> MEDIA_TRANSPORT_INPUT, avoiding an overflow.
+> 
+> Originally reported here:
+> https://groups.google.com/forum/#!topic/syzkaller/Ot1fOE6v1d8
+> A similar (non-compiling) patch was provided at that time.
+> 
+> Reported-by: syzbot <syzkaller@googlegroups.com>
+> Signed-off-by: Alistair Strachan <astrachan@google.com>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+> Cc: linux-media@vger.kernel.org
+> Cc: kernel-team@android.com
+> ---
+>  drivers/media/usb/uvc/uvc_driver.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_driver.c
+> b/drivers/media/usb/uvc/uvc_driver.c index bc369a0934a3..279a967b8264
+> 100644
+> --- a/drivers/media/usb/uvc/uvc_driver.c
+> +++ b/drivers/media/usb/uvc/uvc_driver.c
+> @@ -1082,11 +1082,11 @@ static int uvc_parse_standard_control(struct
+> uvc_device *dev, p = 0;
+>  		len = 8;
+> 
+> -		if (type == UVC_ITT_CAMERA) {
+> +		if ((type & 0x7fff) == UVC_ITT_CAMERA) {
+>  			n = buflen >= 15 ? buffer[14] : 0;
+>  			len = 15;
+> 
+> -		} else if (type == UVC_ITT_MEDIA_TRANSPORT_INPUT) {
+> +		} else if ((type & 0x7fff) == UVC_ITT_MEDIA_TRANSPORT_INPUT) {
+>  			n = buflen >= 9 ? buffer[8] : 0;
+>  			p = buflen >= 10 + n ? buffer[9+n] : 0;
+>  			len = 10;
 
-I would advice against new non-consistent users until this series
-goes through, mostly because dma_cache_sync is such an amazing bad
-API.  Otherwise things will just work at the allocation side, you'll
-just need to be careful to transfer ownership between the cpu and
-the device(s) carefully using the dma_sync_* APIs.
+How about rejecting invalid types instead ? Something along the lines of
+
+diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+index b62cbd800111..33a22c016456 100644
+--- a/drivers/media/usb/uvc/uvc_driver.c
++++ b/drivers/media/usb/uvc/uvc_driver.c
+@@ -1106,11 +1106,19 @@ static int uvc_parse_standard_control(struct uvc_device *dev,
+ 			return -EINVAL;
+ 		}
+ 
+-		/* Make sure the terminal type MSB is not null, otherwise it
+-		 * could be confused with a unit.
++		/*
++		 * Reject invalid terminal types that would cause issues:
++		 *
++		 * - The high byte must be non-zero, otherwise it would be
++		 *   confused with a unit.
++		 *
++		 * - Bit 15 must be 0, as we use it internally as a terminal
++		 *   direction flag.
++		 *
++		 * Other unknown types are accepted.
+ 		 */
+ 		type = get_unaligned_le16(&buffer[4]);
+-		if ((type & 0xff00) == 0) {
++		if ((type & 0x7f00) == 0 || (type & 0x8000) != 0) {
+ 			uvc_trace(UVC_TRACE_DESCR, "device %d videocontrol "
+ 				"interface %d INPUT_TERMINAL %d has invalid "
+ 				"type 0x%04x, skipping\n", udev->devnum,
+
+-- 
+Regards,
+
+Laurent Pinchart
+
+
+
