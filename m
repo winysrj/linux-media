@@ -2,140 +2,81 @@ Return-Path: <SRS0=J9mZ=O3=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,T_MIXED_ES,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C35CFC43387
-	for <linux-media@archiver.kernel.org>; Tue, 18 Dec 2018 04:48:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ADF52C43387
+	for <linux-media@archiver.kernel.org>; Tue, 18 Dec 2018 06:44:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8B59D217D8
-	for <linux-media@archiver.kernel.org>; Tue, 18 Dec 2018 04:48:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D742221841
+	for <linux-media@archiver.kernel.org>; Tue, 18 Dec 2018 06:44:43 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=spam.dobel.click header.i=@spam.dobel.click header.b="IPDOQcxU"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726322AbeLREs6 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 17 Dec 2018 23:48:58 -0500
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:59913 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726308AbeLREs6 (ORCPT
+        id S1726409AbeLRGom (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 18 Dec 2018 01:44:42 -0500
+Received: from mo4-p05-ob.smtp.rzone.de ([85.215.255.131]:27638 "EHLO
+        mo4-p05-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726330AbeLRGom (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Dec 2018 23:48:58 -0500
-Received: from localhost ([IPv6:2001:983:e9a7:1:59e2:4cb7:1f98:4b88])
-        by smtp-cloud8.xs4all.net with ESMTPA
-        id Z7JPgBDVCeA2FZ7JQgMTCi; Tue, 18 Dec 2018 05:48:56 +0100
-Message-ID: <d7c9cf374e82b000065544fe15e4498b@smtp-cloud8.xs4all.net>
-Date:   Tue, 18 Dec 2018 05:48:55 +0100
-From:   "Hans Verkuil" <hverkuil@xs4all.nl>
-To:     linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-X-CMAE-Envelope: MS4wfLyJe3xoJ9UQcPJfZ1Cc6ore/V6b4D0OQ+MWFa50yzdNmOKCxtd3AtGqMHTF9fN7R8aNMsCY2++E4eINK3cSoKFvjA3jT+7AWynSMU9X9T60MlpZx8cv
- irf/FVy75JnYfKY40n7+afhffz0G3ta910vUTySPxoAlBjf3FK+tbrSSwzDxHQcn5FR0nXnEesFvsHGp0zZJ3pa8c671PUxBNlbkKhhTrfoqh8GZ3KOxJ1T4
+        Tue, 18 Dec 2018 01:44:42 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1545115480;
+        s=strato-dkim-0002; d=spam.dobel.click;
+        h=Message-ID:From:CC:To:Subject:References:In-Reply-To:Date:
+        X-RZG-CLASS-ID:X-RZG-AUTH:From:Subject:Sender;
+        bh=hytjffTwMgOexxg8Bjcz30SICgRdjgUzSC+p7dHCLoA=;
+        b=IPDOQcxUOagNOla/+i/bOxmCzXaRv+XBCyNINuhGMK6bRUjI5L43ZMX+XP8xntly0k
+        qflD77EoH/Ic7zWMtTkd29hvNpRWxUN3GDqWniVK5KHuPJ0tnRCL7hodtAkNitRni328
+        L3+yy/bmwblappzBkhnfFUGlDdWVbSjpofxOaj1gioXyVW6k2U5fApTuSv4ZtIoPCV0l
+        n3Gx9Om5B9iysPaiGVAj9tjFrzb4SYr9n9uo8JiHu2+J8IEVaKDfTARNtuzvLQbLqFeu
+        xyjHnBmGOHLIxbYNf7zeUZg5dB6TeCvOt8iUPS8JRl2I0lp1Ljs7uYMajT+Ex/d0/obx
+        oP/Q==
+X-RZG-AUTH: ":O2kGeEG7b/pS1F6pSnL9jeN+13y5RJmU4P3fJr/G5t0ui5Acx8X0cDNeCSxopc53VF6bgGbyVolcMoOkh9bmg4rtFcrFUReGxan5UJOhBzM="
+X-RZG-CLASS-ID: mo05
+Received: from [IPv6:2003:e3:5710:3b00:4468:88c9:a13:24d3]
+        by smtp.strato.de (RZmta 44.8 AUTH)
+        with ESMTPSA id n06405uBI6WeFlU
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (curve secp384r1 with 384 ECDH bits, eq. 7680 bits RSA))
+        (Client did not present a certificate);
+        Tue, 18 Dec 2018 07:32:40 +0100 (CET)
+Date:   Tue, 18 Dec 2018 07:32:42 +0100
+User-Agent: K-9 Mail for Android
+In-Reply-To: <CADnq5_Ntq7_pXkTE53-PV15G5BUP9WOJ8YQ8+Q+OBzCkWVRCgQ@mail.gmail.com>
+References: <3d7393a6287db137a69c4d05785522d5@gmx.de> <20181205090721.43e7f36c@coco.lan> <96c74fe9-d48f-5249-1b17-a8046493b383@nextdimension.cc> <5528BC99-512E-4CEC-AE26-99D3991AB598@gmx.de> <20181206160145.2d23ac0e@coco.lan> <8858694d5934ce78e46ef48d6f90061a@gmx.de> <20181216122315.2539ae80@coco.lan> <CADnq5_Ntq7_pXkTE53-PV15G5BUP9WOJ8YQ8+Q+OBzCkWVRCgQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain;
+ charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Subject: Re: [PATCH] Revert 95f408bb Ryzen DMA related RiSC engine stall fixes
+To:     Alex Deucher <alexdeucher@gmail.com>, mchehab@kernel.org,
+        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>
+CC:     Brad Love <brad@nextdimension.cc>,
+        linux-media <linux-media@vger.kernel.org>,
+        linux-media-owner@vger.kernel.org
+From:   Markus Dobel <markus.dobel@gmx.de>
+Message-ID: <D95D27BE-8761-4451-9AC7-11677F6D1DAD@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
 
-Results of the daily build of media_tree:
 
-date:			Tue Dec 18 05:00:14 CET 2018
-media-tree git hash:	daad52c8aa4fcf27d2e8b69daf851d82c141fd2f
-media_build git hash:	282066d93c925718ca9f49d4790fd044162694d6
-v4l-utils git hash:	56cd068e426c17d63457bbf772b7c8c475f254bc
-edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.18.0-3-amd64
+Am 18=2E Dezember 2018 03:05:11 MEZ schrieb Alex Deucher <alexdeucher@gmai=
+l=2Ecom>:
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.123-i686: OK
-linux-3.18.123-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.159-i686: OK
-linux-4.4.159-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.131-i686: OK
-linux-4.9.131-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.74-i686: OK
-linux-4.14.74-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: OK
-linux-4.19.1-i686: OK
-linux-4.19.1-x86_64: OK
-linux-4.20-rc1-i686: OK
-linux-4.20-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+>possibly?  It's still not clear to me that this is specific to ryzen
+>chips rather than a problem with the DMA setup on the cx board=2E  Is
+>there a downside to enabling the workaround in general? =20
 
-Detailed results are available here:
+Hi Alex,
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+yes, there is=2E At least for me, the resetting function breaks the driver=
+, making the card unresponsive after a few hours of uptime=2E Without that =
+function, the card is perfectly stable=2E
 
-Full logs are available here:
+Markus
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+--=20
+Gesendet mit zwei Streichh=C3=B6lzern, einem Gummiband und etwas Draht=2E
