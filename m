@@ -2,81 +2,132 @@ Return-Path: <SRS0=J9mZ=O3=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_PASS autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ADF52C43387
-	for <linux-media@archiver.kernel.org>; Tue, 18 Dec 2018 06:44:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 88A4AC43387
+	for <linux-media@archiver.kernel.org>; Tue, 18 Dec 2018 07:28:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D742221841
-	for <linux-media@archiver.kernel.org>; Tue, 18 Dec 2018 06:44:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 50A52214C6
+	for <linux-media@archiver.kernel.org>; Tue, 18 Dec 2018 07:28:29 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=spam.dobel.click header.i=@spam.dobel.click header.b="IPDOQcxU"
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="mX1EOumc"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726409AbeLRGom (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 18 Dec 2018 01:44:42 -0500
-Received: from mo4-p05-ob.smtp.rzone.de ([85.215.255.131]:27638 "EHLO
-        mo4-p05-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726330AbeLRGom (ORCPT
+        id S1726354AbeLRH22 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 18 Dec 2018 02:28:28 -0500
+Received: from mail-yb1-f193.google.com ([209.85.219.193]:46683 "EHLO
+        mail-yb1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726316AbeLRH22 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Dec 2018 01:44:42 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1545115480;
-        s=strato-dkim-0002; d=spam.dobel.click;
-        h=Message-ID:From:CC:To:Subject:References:In-Reply-To:Date:
-        X-RZG-CLASS-ID:X-RZG-AUTH:From:Subject:Sender;
-        bh=hytjffTwMgOexxg8Bjcz30SICgRdjgUzSC+p7dHCLoA=;
-        b=IPDOQcxUOagNOla/+i/bOxmCzXaRv+XBCyNINuhGMK6bRUjI5L43ZMX+XP8xntly0k
-        qflD77EoH/Ic7zWMtTkd29hvNpRWxUN3GDqWniVK5KHuPJ0tnRCL7hodtAkNitRni328
-        L3+yy/bmwblappzBkhnfFUGlDdWVbSjpofxOaj1gioXyVW6k2U5fApTuSv4ZtIoPCV0l
-        n3Gx9Om5B9iysPaiGVAj9tjFrzb4SYr9n9uo8JiHu2+J8IEVaKDfTARNtuzvLQbLqFeu
-        xyjHnBmGOHLIxbYNf7zeUZg5dB6TeCvOt8iUPS8JRl2I0lp1Ljs7uYMajT+Ex/d0/obx
-        oP/Q==
-X-RZG-AUTH: ":O2kGeEG7b/pS1F6pSnL9jeN+13y5RJmU4P3fJr/G5t0ui5Acx8X0cDNeCSxopc53VF6bgGbyVolcMoOkh9bmg4rtFcrFUReGxan5UJOhBzM="
-X-RZG-CLASS-ID: mo05
-Received: from [IPv6:2003:e3:5710:3b00:4468:88c9:a13:24d3]
-        by smtp.strato.de (RZmta 44.8 AUTH)
-        with ESMTPSA id n06405uBI6WeFlU
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (curve secp384r1 with 384 ECDH bits, eq. 7680 bits RSA))
-        (Client did not present a certificate);
-        Tue, 18 Dec 2018 07:32:40 +0100 (CET)
-Date:   Tue, 18 Dec 2018 07:32:42 +0100
-User-Agent: K-9 Mail for Android
-In-Reply-To: <CADnq5_Ntq7_pXkTE53-PV15G5BUP9WOJ8YQ8+Q+OBzCkWVRCgQ@mail.gmail.com>
-References: <3d7393a6287db137a69c4d05785522d5@gmx.de> <20181205090721.43e7f36c@coco.lan> <96c74fe9-d48f-5249-1b17-a8046493b383@nextdimension.cc> <5528BC99-512E-4CEC-AE26-99D3991AB598@gmx.de> <20181206160145.2d23ac0e@coco.lan> <8858694d5934ce78e46ef48d6f90061a@gmx.de> <20181216122315.2539ae80@coco.lan> <CADnq5_Ntq7_pXkTE53-PV15G5BUP9WOJ8YQ8+Q+OBzCkWVRCgQ@mail.gmail.com>
+        Tue, 18 Dec 2018 02:28:28 -0500
+Received: by mail-yb1-f193.google.com with SMTP id f9so6101213ybm.13
+        for <linux-media@vger.kernel.org>; Mon, 17 Dec 2018 23:28:27 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=rXAbq+7gPg7ftySi18RLKiOZP5ChhlNAMQPad33V3tg=;
+        b=mX1EOumciwAlufHq4kC0L/SFQ6FPBBSLMp4Zz4dyUI/cUO+3Vb+vZLK5S6GXWC2vag
+         QH+1SLYmb/7MMPajrfD6ThOUALiKhTnAs5pT71BVgXYtCyUdriG+7MSX0DvYo6sQfYZj
+         I86CbY6af+3m8NISO7eQZJZOSCLXFFUbPkiis=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=rXAbq+7gPg7ftySi18RLKiOZP5ChhlNAMQPad33V3tg=;
+        b=sskwMaK6KXMihQ0L6QCK2J+m5b99hfBfT/rePuBMmWFfUISwmyfY07dA1GjQ+m7/FL
+         wGZzfz27NtkW2/tSoym2D9ZfuHOcF/ABdGxLskRflZVHJYia1D4x+IjEJJkbAGh3q4o/
+         RCAtvUwjP05aD3UOxk4RozHB5WNMSlJKxycZZypLzziGHvzZjTnHWgONAyLYmbj08j2+
+         z3L+/fSf2tj2yErHhOzGrJ5mWdR5MM2cH9a8cZn0YgLKKIiZw1KieB2XYMLloVIxkcug
+         irXfJ7q8AGvVEWL+z7IGvHA7yEB2e+TQtZ4bScbWHPHPLgNnoIpNxAE95O43rIRxvP1B
+         JPPg==
+X-Gm-Message-State: AA+aEWbTQfiRv2q3SnVxdSJ3lTdna2eEqaW91bjifo0QtQBayrhRMpcr
+        HbWpl9+SlC5ENClz9xCJjEllmTqpRO3XYQ==
+X-Google-Smtp-Source: AFSGD/V+TmEIV9ovLbJPqzI1Rps6st/5iBWgoNbue6bENYc+a1K8D5zCf5HqdpmnnLdtx+PNfERRtw==
+X-Received: by 2002:a25:e095:: with SMTP id x143mr16166467ybg.42.1545118106974;
+        Mon, 17 Dec 2018 23:28:26 -0800 (PST)
+Received: from mail-yw1-f43.google.com (mail-yw1-f43.google.com. [209.85.161.43])
+        by smtp.gmail.com with ESMTPSA id x132sm5779610ywx.27.2018.12.17.23.28.26
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 17 Dec 2018 23:28:26 -0800 (PST)
+Received: by mail-yw1-f43.google.com with SMTP id n21so5243270ywd.10
+        for <linux-media@vger.kernel.org>; Mon, 17 Dec 2018 23:28:26 -0800 (PST)
+X-Received: by 2002:a81:3194:: with SMTP id x142mr15655803ywx.92.1545117775088;
+ Mon, 17 Dec 2018 23:22:55 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain;
- charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Subject: Re: [PATCH] Revert 95f408bb Ryzen DMA related RiSC engine stall fixes
-To:     Alex Deucher <alexdeucher@gmail.com>, mchehab@kernel.org,
-        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>
-CC:     Brad Love <brad@nextdimension.cc>,
-        linux-media <linux-media@vger.kernel.org>,
-        linux-media-owner@vger.kernel.org
-From:   Markus Dobel <markus.dobel@gmx.de>
-Message-ID: <D95D27BE-8761-4451-9AC7-11677F6D1DAD@gmx.de>
+References: <20180821170629.18408-3-matwey@sai.msu.ru> <2213616.rQm4DhIJ7U@avalon>
+ <20181207152502.GA30455@infradead.org> <CAAFQd5C6gUvg8p0+Gtk22Z-dmeMPytdF4HujL9evYAew15bUmA@mail.gmail.com>
+ <20181212090917.GA30598@infradead.org> <CAAFQd5DhDOfk_2Dhq4MfJmoxpXP=Bm36HMZ55PSXxwkTAoCXSQ@mail.gmail.com>
+ <20181212135440.GA6137@infradead.org> <CAAFQd5C4RbMxRP+ox+BDuApMusTD=WUD9Vs6aWL3u=HovuWUig@mail.gmail.com>
+ <20181213140329.GA25339@infradead.org> <CAAFQd5BudF84jVaiy7KwevzBZnfYUZggDK=4W=g+Znf5VJjHsQ@mail.gmail.com>
+ <20181214123624.GA5824@infradead.org>
+In-Reply-To: <20181214123624.GA5824@infradead.org>
+From:   Tomasz Figa <tfiga@chromium.org>
+Date:   Tue, 18 Dec 2018 16:22:43 +0900
+X-Gmail-Original-Message-ID: <CAAFQd5BnZHhNjOc6HKt=YVBVQFCcqN0RxAcfDp3S+gDKRvciqQ@mail.gmail.com>
+Message-ID: <CAAFQd5BnZHhNjOc6HKt=YVBVQFCcqN0RxAcfDp3S+gDKRvciqQ@mail.gmail.com>
+Subject: Re: [PATCH v5 2/2] media: usb: pwc: Don't use coherent DMA buffers
+ for ISO transfer
+To:     Christoph Hellwig <hch@infradead.org>
+Cc:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        "Matwey V. Kornilov" <matwey@sai.msu.ru>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        "Matwey V. Kornilov" <matwey.kornilov@gmail.com>,
+        Alan Stern <stern@rowland.harvard.edu>,
+        Ezequiel Garcia <ezequiel@collabora.com>, hdegoede@redhat.com,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        rostedt@goodmis.org, mingo@redhat.com,
+        Mike Isely <isely@pobox.com>,
+        Bhumika Goyal <bhumirks@gmail.com>,
+        Colin King <colin.king@canonical.com>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        keiichiw@chromium.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
+On Fri, Dec 14, 2018 at 9:36 PM Christoph Hellwig <hch@infradead.org> wrote:
+>
+> On Fri, Dec 14, 2018 at 12:12:38PM +0900, Tomasz Figa wrote:
+> > > If the buffer always is physically contiguous, as it is in the currently
+> > > posted series, we can always map it with a single dma_map_single call
+> > > (if the hardware can handle that in a single segment is a different
+> > > question, but out of scope here).
+> >
+> > Are you sure the buffer is always physically contiguous? At least the
+> > ARM IOMMU dma_ops [1] and the DMA-IOMMU dma_ops [2] will simply
+> > allocate pages without any continuity guarantees and remap the pages
+> > into a contiguous kernel VA (unless DMA_ATTR_NO_KERNEL_MAPPING is
+> > given, which makes them return an opaque cookie instead of the kernel
+> > VA).
+> >
+> > [1] http://git.infradead.org/users/hch/misc.git/blob/2dbb028e4a3017e1b71a6ae3828a3548545eba24:/arch/arm/mm/dma-mapping.c#l1291
+> > [2] http://git.infradead.org/users/hch/misc.git/blob/2dbb028e4a3017e1b71a6ae3828a3548545eba24:/drivers/iommu/dma-iommu.c#l450
+>
+> We never end up in this allocator for the new DMA_ATTR_NON_CONSISTENT
+> case, and that is intentional.
 
+It kind of limits the usability of this API, since it enforces
+contiguous allocations even for big sizes even for devices behind
+IOMMU (contrary to the case when DMA_ATTR_NON_CONSISTENT is not set),
+but given that it's just a temporary solution for devices like these
+USB cameras, I guess that's fine.
 
-Am 18=2E Dezember 2018 03:05:11 MEZ schrieb Alex Deucher <alexdeucher@gmai=
-l=2Ecom>:
+Note that in V4L2 we use the DMA API extensively, so that we don't
+need to embed any device-specific or integration-specific knowledge in
+the framework. Right now we're using dma_alloc_attrs() with
+driver-provided attrs [1], but current driver never request
+non-consistent memory. We're however thinking about making it possible
+to allocate non-consistent memory. What would you suggest for this?
 
->possibly?  It's still not clear to me that this is specific to ryzen
->chips rather than a problem with the DMA setup on the cx board=2E  Is
->there a downside to enabling the workaround in general? =20
+[1] https://elixir.bootlin.com/linux/v4.20-rc7/source/drivers/media/common/videobuf2/videobuf2-dma-contig.c#L139
 
-Hi Alex,
-
-yes, there is=2E At least for me, the resetting function breaks the driver=
-, making the card unresponsive after a few hours of uptime=2E Without that =
-function, the card is perfectly stable=2E
-
-Markus
-
---=20
-Gesendet mit zwei Streichh=C3=B6lzern, einem Gummiband und etwas Draht=2E
+Best regards,
+Tomasz
