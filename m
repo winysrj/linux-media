@@ -2,135 +2,100 @@ Return-Path: <SRS0=J9mZ=O3=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C4A33C43387
-	for <linux-media@archiver.kernel.org>; Tue, 18 Dec 2018 15:13:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C8CF1C43612
+	for <linux-media@archiver.kernel.org>; Tue, 18 Dec 2018 15:21:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9CF4521873
-	for <linux-media@archiver.kernel.org>; Tue, 18 Dec 2018 15:13:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A5017218A1
+	for <linux-media@archiver.kernel.org>; Tue, 18 Dec 2018 15:21:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726651AbeLRPNR (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 18 Dec 2018 10:13:17 -0500
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:46675 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726546AbeLRPNR (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Dec 2018 10:13:17 -0500
-Received: from [IPv6:2001:983:e9a7:1:fde7:94a4:18d3:95d6] ([IPv6:2001:983:e9a7:1:fde7:94a4:18d3:95d6])
-        by smtp-cloud8.xs4all.net with ESMTPA
-        id ZH3ZgFHJjeA2FZH3agOqJd; Tue, 18 Dec 2018 16:13:15 +0100
-Subject: Re: [PATCHv5 6/8] vb2: add vb2_find_timestamp()
-To:     Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Jonas Karlman <jonas@kwiboo.se>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc:     Alexandre Courbot <acourbot@chromium.org>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Nicolas Dufresne <nicolas@ndufresne.ca>,
-        =?UTF-8?Q?Jernej_=c5=a0krabec?= <jernej.skrabec@gmail.com>
-References: <20181212123901.34109-1-hverkuil-cisco@xs4all.nl>
- <20181212123901.34109-7-hverkuil-cisco@xs4all.nl>
- <AM0PR03MB4676988BC60352DFDFAD0783ACA70@AM0PR03MB4676.eurprd03.prod.outlook.com>
- <985a4c64-f914-8405-2a78-422bcd8f2139@xs4all.nl>
- <d1be50c07d19713a7813e5fed4b88e56d4d106e8.camel@bootlin.com>
-From:   Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Message-ID: <e7c4c9f9-a724-f872-fb2d-db38edff76f9@xs4all.nl>
-Date:   Tue, 18 Dec 2018 16:13:12 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.3.1
+        id S1726737AbeLRPVf (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 18 Dec 2018 10:21:35 -0500
+Received: from mail.bootlin.com ([62.4.15.54]:34080 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726555AbeLRPVe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 18 Dec 2018 10:21:34 -0500
+Received: by mail.bootlin.com (Postfix, from userid 110)
+        id DF1C4207D9; Tue, 18 Dec 2018 16:21:31 +0100 (CET)
+Received: from localhost (aaubervilliers-681-1-38-38.w90-88.abo.wanadoo.fr [90.88.157.38])
+        by mail.bootlin.com (Postfix) with ESMTPSA id B02A520717;
+        Tue, 18 Dec 2018 16:21:21 +0100 (CET)
+Date:   Tue, 18 Dec 2018 16:21:22 +0100
+From:   Maxime Ripard <maxime.ripard@bootlin.com>
+To:     Jagan Teki <jagan@amarulasolutions.com>
+Cc:     Yong Deng <yong.deng@magewell.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Chen-Yu Tsai <wens@csie.org>, linux-media@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        linux-sunxi <linux-sunxi@googlegroups.com>,
+        linux-amarula@amarulasolutions.com,
+        Michael Trimarchi <michael@amarulasolutions.com>
+Subject: Re: [PATCH v4 0/6] media/sun6i: Allwinner A64 CSI support
+Message-ID: <20181218152122.4zj6wgbukhrl6ly6@flea>
+References: <20181218113320.4856-1-jagan@amarulasolutions.com>
 MIME-Version: 1.0
-In-Reply-To: <d1be50c07d19713a7813e5fed4b88e56d4d106e8.camel@bootlin.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
-X-CMAE-Envelope: MS4wfOxhsj+php2WGwFQuIxFaC1GQRswr1tTg/VJxIk8b2mjlMHfRFKSwuAEQYgtloWwAjOltbGOBYbFiEjU7lcss8PyvGatdjspV/0RJWOxzC1TzpyVCUu5
- 4RtWY6U5tiZRbMqwHASVgY4qahi/vO4fJtweSO2TaxXELLf54SEoJ3A3UVAZLdRiUKL21fDdnwEd5Zd7q9s7NxxvEGWOs9s01Ff9DrXQJ1o1uqGJ1B7WecPd
- Rs56jwNOQp5O/7oIn2qdxccXGwk9ZFVSyYpYv/1ZfFE44ZgB0xqzKrNF1BOvguW8wTBrHXAIjmDyl4ZkuXsuKrfuQqS9Qo85DRjAP9n1/nphLXFk/urGXfS2
- TTsu+5oCqiUHCtrmAEytu6b+nvMOCS01PgyPUM9s5ZxxUc1zUpJtUy9/sUFbOauYh71kVWPO9v2kdiAJEgaZwo8YM+0jE2lw+BMT+/WLVWH5CUlyI3Yb2Uwc
- JtLCbDr6aGbO0j9c2FVoFnFxD6X8q7J5pnpKMOwRE/IiPWLh7hgfrnXr64LCx/806iCYGs6sdeTf/VxlWjmupgvTLPrpcSz8XCP1dw==
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="3jygq7kzqfz5lk2a"
+Content-Disposition: inline
+In-Reply-To: <20181218113320.4856-1-jagan@amarulasolutions.com>
+User-Agent: NeoMutt/20180716
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On 12/18/18 3:21 PM, Paul Kocialkowski wrote:
-> Hi,
-> 
-> On Thu, 2018-12-13 at 13:28 +0100, Hans Verkuil wrote:
->> On 12/12/18 7:28 PM, Jonas Karlman wrote:
->>> Hi Hans,
->>>
->>> Since this function only return DEQUEUED and DONE buffers,
->>> it cannot be used to find a capture buffer that is both used for
->>> frame output and is part of the frame reference list.
->>> E.g. a bottom field referencing a top field that is already
->>> part of the capture buffer being used for frame output.
->>> (top and bottom field is output in same buffer)
->>>
->>> Jernej Škrabec and me have worked around this issue in cedrus driver by
->>> first checking
->>> the tag/timestamp of the current buffer being used for output frame.
->>>
->>>
->>> // field pictures may reference current capture buffer and is not
->>> returned by vb2_find_tag
->>> if (v4l2_buf->tag == dpb->tag)
->>>     buf_idx = v4l2_buf->vb2_buf.index;
->>> else
->>>     buf_idx = vb2_find_tag(cap_q, dpb->tag, 0);
->>>
->>>
->>> What is the recommended way to handle such case?
->>
->> That is the right approach for this. Interesting corner case, I hadn't
->> considered that.
->>
->>> Could vb2_find_timestamp be extended to allow QUEUED buffers to be returned?
->>
->> No, because only the driver knows what the current buffer is.
->>
->> Buffers that are queued to the driver are in state ACTIVE. But there may be
->> multiple ACTIVE buffers and vb2 doesn't know which buffer is currently
->> being processed by the driver.
->>
->> So this will have to be checked by the driver itself.
-> 
-> Interesting corner case indeed, we hadn't considered the possibility of
-> interlaced pictures refeering to the current capture buffer.
-> 
-> Hans, do you want to include that change in a future revision of this
-> series or should that be a separate follow-up patch?
-> 
-> I'm fine with both options (and could definitely craft the change in
-> the latter case).
 
-If you can make a separate patch for this, then that would be great!
+--3jygq7kzqfz5lk2a
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Regards,
+On Tue, Dec 18, 2018 at 05:03:14PM +0530, Jagan Teki wrote:
+> This series support CSI on Allwinner A64.
+>=20
+> Tested 640x480, 320x240, 720p, 1080p resolutions UYVY8_2X8 format.
+>=20
+> Changes for v4:
+> - update the compatible string order
+> - add proper commit message
+> - included BPI-M64 patch
+> - skipped amarula-a64 patch
+> Changes for v3:
+> - update dt-bindings for A64
+> - set mod clock via csi driver
+> - remove assign clocks from dtsi
+> - remove i2c-gpio opendrian
+> - fix avdd and dovdd supplies
+> - remove vcc-csi pin group supply
+>=20
+> Note: This series created on top of H3 changes [1]
+>=20
+> [1] https://patchwork.kernel.org/cover/10705905/
 
-	Hans
+You had memory corruption before, how was this fixed?
 
-> 
-> Cheers,
-> 
-> Paul
-> 
->>> In our sample code we only keep at most one output, one capture buffer
->>> in queue
->>> and use buffer indices as tag/timestamp to simplify buffer handling.
->>> FFmpeg keeps track of buffers/frames referenced and a buffer will not be
->>> reused
->>> until the codec and display pipeline have released all references to it.
->>>
->>> Sample code having interlaced and multi-slice support using previous tag
->>> version of this patchset can be found at:
->>> https://github.com/jernejsk/LibreELEC.tv/blob/hw_dec_ffmpeg/projects/Allwinner/patches/linux/0025-H264-fixes.patch#L120-L124
->>> https://github.com/Kwiboo/FFmpeg/compare/4.0.3-Leia-Beta5...v4l2-request-hwaccel
->>>
->>> Regards,
->>> Jonas
+Maxime
 
+--=20
+Maxime Ripard, Bootlin
+Embedded Linux and Kernel engineering
+https://bootlin.com
+
+--3jygq7kzqfz5lk2a
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iHUEABYIAB0WIQRcEzekXsqa64kGDp7j7w1vZxhRxQUCXBkQcgAKCRDj7w1vZxhR
+xWb3AQC8q265ZMAVuhoTZ8pMHZUKhmZQ8/4stdIQXP1f0auOLgD+La+k8HKFfCu5
+0oo3sjmrYWVWitbbjOhbURpB5iLNkQ8=
+=vneK
+-----END PGP SIGNATURE-----
+
+--3jygq7kzqfz5lk2a--
