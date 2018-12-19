@@ -2,88 +2,151 @@ Return-Path: <SRS0=l98e=O4=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_MUTT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-14.6 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_IN_DEF_DKIM_WL
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E1D9C43387
-	for <linux-media@archiver.kernel.org>; Wed, 19 Dec 2018 14:51:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EF2B2C43387
+	for <linux-media@archiver.kernel.org>; Wed, 19 Dec 2018 15:13:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0C45021841
-	for <linux-media@archiver.kernel.org>; Wed, 19 Dec 2018 14:51:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BB2A5218D0
+	for <linux-media@archiver.kernel.org>; Wed, 19 Dec 2018 15:13:15 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="DL1tGE9g"
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="kO1VMmZO"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729265AbeLSOv3 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 19 Dec 2018 09:51:29 -0500
-Received: from bombadil.infradead.org ([198.137.202.133]:35206 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728432AbeLSOv2 (ORCPT
+        id S1728726AbeLSPNP (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 19 Dec 2018 10:13:15 -0500
+Received: from mail-io1-f68.google.com ([209.85.166.68]:44213 "EHLO
+        mail-io1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726631AbeLSPNO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Dec 2018 09:51:28 -0500
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=bombadil.20170209; h=In-Reply-To:Content-Type:MIME-Version
-        :References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-        Content-Transfer-Encoding:Content-ID:Content-Description:Resent-Date:
-        Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:
-        List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-         bh=o+bT8uJ7twTfSVANB3fgFwiG42Ku6gwOghEO7zhPR+Y=; b=DL1tGE9gY5Us8bdthVr84Pjjb
-        dPvqVhcHImb34IatIEPkUmIjSmA8/eSN/gbdzeUJNcsF7JUYYrBmUcclEY0FTj8vK9VbmqxXEDXzw
-        gi+GJUde46GItOYNiRPRlee+jHCsCICasKvPWhVEWclviIHKyUpGxPXPrdy/9CuPdjgm3hMfyimdi
-        U914H6j0zz0cBIET2ccPMLH6xhFNHtF60G7uWzXN6QS9nf7Jg4lgjODB9sKM0D8+KM2nBjpKG+wK6
-        hdLyV4qkaLJtfdB/vbLo5nUsIofpgZiMnGV8bUPBnFmh8WonC8NHPDXLqVSB0wBb9GBgWefsx3qxD
-        k+08YnXUA==;
-Received: from hch by bombadil.infradead.org with local (Exim 4.90_1 #2 (Red Hat Linux))
-        id 1gZdBy-0001LO-Pp; Wed, 19 Dec 2018 14:51:22 +0000
-Date:   Wed, 19 Dec 2018 06:51:22 -0800
-From:   Christoph Hellwig <hch@infradead.org>
-To:     Tomasz Figa <tfiga@chromium.org>
-Cc:     Christoph Hellwig <hch@infradead.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        "Matwey V. Kornilov" <matwey@sai.msu.ru>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        "Matwey V. Kornilov" <matwey.kornilov@gmail.com>,
-        Alan Stern <stern@rowland.harvard.edu>,
-        Ezequiel Garcia <ezequiel@collabora.com>, hdegoede@redhat.com,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        rostedt@goodmis.org, mingo@redhat.com,
-        Mike Isely <isely@pobox.com>,
-        Bhumika Goyal <bhumirks@gmail.com>,
-        Colin King <colin.king@canonical.com>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        keiichiw@chromium.org
-Subject: Re: [PATCH v5 2/2] media: usb: pwc: Don't use coherent DMA buffers
- for ISO transfer
-Message-ID: <20181219145122.GA31947@infradead.org>
-References: <20181212135440.GA6137@infradead.org>
- <CAAFQd5C4RbMxRP+ox+BDuApMusTD=WUD9Vs6aWL3u=HovuWUig@mail.gmail.com>
- <20181213140329.GA25339@infradead.org>
- <CAAFQd5BudF84jVaiy7KwevzBZnfYUZggDK=4W=g+Znf5VJjHsQ@mail.gmail.com>
- <20181214123624.GA5824@infradead.org>
- <CAAFQd5BnZHhNjOc6HKt=YVBVQFCcqN0RxAcfDp3S+gDKRvciqQ@mail.gmail.com>
- <20181218073847.GA4552@infradead.org>
- <CAAFQd5AT3ixnbZRm3TOjoWrk2UNH0bXqgR+Z8wyjMhr0xHtSOg@mail.gmail.com>
- <20181219075150.GA26656@infradead.org>
- <CAAFQd5DJPDpFDxU_m2r02bA59J8RCHW7iE8zYQUmkL4sFSz05Q@mail.gmail.com>
+        Wed, 19 Dec 2018 10:13:14 -0500
+Received: by mail-io1-f68.google.com with SMTP id r200so15839886iod.11
+        for <linux-media@vger.kernel.org>; Wed, 19 Dec 2018 07:13:14 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=URlhHRdYm31zg5n1/ufG2xxVGWBH9VnczapWYR/uG/A=;
+        b=kO1VMmZOTK9Pn6gMHGmDPcaUkq0XklAZIvXoe5SRlZN20GabTxruaW/B4SweWgydbS
+         iF1FmAcX8xpavc+/VA3I0bs7Q8K2+MgDvpCO/SLBeUWnlRbBnt4Jr4IxVi6GINVgImbq
+         CMCQ6RR8DVS8Bp9UuRgHcZpdSOJwePih03TxtjJRaIiGPeWb0jrzgSr+iXNwybFu1kK4
+         yIsNcTGMr3+hZCeddjEWihiKPhITQ1jsO3tnYPePlSnJSbQ91LqisN4VAmLd+cmIBp1h
+         cUzRoweNQH3HNYsubT6G3Qwk3tPQP2btsw/9jUQQ+P7ud2b8VzYhfIU7afm1bSDhLqTl
+         cssQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=URlhHRdYm31zg5n1/ufG2xxVGWBH9VnczapWYR/uG/A=;
+        b=Ro8mWj1SCHbDDNixA+fK7HUdE1AyYqdIBA8M0ki6HcYGK7DHzcS2/gOMyZNo5oLbys
+         Z//5JRLGj20S6P0WldBJAnc/gn0x0KWNVmrPXRw+cGr1VDB9vyvHmSYsgYB4Cln3ecKH
+         uMVFgmsO9w3YlbiPKc8T0TK4OaYXuiN9bp2C+oKvH1TRWV/FrP5i1BnfABuL8K+zSau9
+         +9a5F1uJ1N7dSx+yoVtXGgBt3rObojVFA3DNjYJBdn3WZpKCG7G91zv4PB/JfFyjuBgp
+         4p2My0+uVo+u8ioF5JdpVDPifxglYyPiAq8nxcHHoCy5DSQfCrz1DBbGAqiq1aBBwBDT
+         H70A==
+X-Gm-Message-State: AJcUukdOfCqzBUfMKgs8PwUMHKgzf/Sth1/fvr0liNaQARegnw0Wkh/H
+        eI7EMJrxXmPf2HLk56k/4i9UXiJ6UnbOU1/2uuEgVA==
+X-Google-Smtp-Source: AFSGD/V6jdNO2jB5vJbWyMOmrGDVW2GrFMZUCxwgvwKkOpcDB4pFODXhssQ941IT03vOOsA4OVr+Qq838iHyDK6hXqs=
+X-Received: by 2002:a6b:e607:: with SMTP id g7mr1586979ioh.292.1545232393364;
+ Wed, 19 Dec 2018 07:13:13 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAAFQd5DJPDpFDxU_m2r02bA59J8RCHW7iE8zYQUmkL4sFSz05Q@mail.gmail.com>
-User-Agent: Mutt/1.9.2 (2017-12-15)
-X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
+References: <20181219013248.94850-1-astrachan@google.com> <7327024.PA5BtzYvEC@avalon>
+In-Reply-To: <7327024.PA5BtzYvEC@avalon>
+From:   Alistair Strachan <astrachan@google.com>
+Date:   Wed, 19 Dec 2018 07:13:01 -0800
+Message-ID: <CANDihLFgMSV09gdiPcTJPZpYQrpPk3kjD=R94hVif1V-YCChhw@mail.gmail.com>
+Subject: Re: [PATCH v2] media: uvcvideo: Fix 'type' check leading to overflow
+To:     laurent.pinchart@ideasonboard.com
+Cc:     linux-kernel@vger.kernel.org, syzkaller@googlegroups.com,
+        mchehab@kernel.org, linux-media@vger.kernel.org,
+        kernel-team@android.com
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Wed, Dec 19, 2018 at 05:18:35PM +0900, Tomasz Figa wrote:
-> The existing code that deals with dma_alloc_attrs() without
-> DMA_ATTR_NON_CONSISTENT would just call dma_get_sgtable_attrs() like
-> here:
+On Wed, Dec 19, 2018 at 12:16 AM Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+>
+> Hi Alistair,
+>
+> Thank you for the patch.
+>
+> On Wednesday, 19 December 2018 03:32:48 EET Alistair Strachan wrote:
+> > From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>
+> Are you sure you don't want to keep authorship ? I've merely reviewed v1 and
+> proposed an alternative implementation :-) Let me know what you would prefer
+> and I'll apply this to my tree.
 
-I know.  And dma_get_sgtable_attrs is fundamentally flawed and we
-need to kill this interface as it just can't worked with virtually
-tagged cases.  It is a prime example for an interface that looks
-nice and simple but is plain wrong.
+Whatever attribution you think is best works for me! Thank you for
+picking up this patch.
+
+> > When initially testing the Camera Terminal Descriptor wTerminalType
+> > field (buffer[4]), no mask is used. Later in the function, the MSB is
+> > overloaded to store the descriptor subtype, and so a mask of 0x7fff
+> > is used to check the type.
+> >
+> > If a descriptor is specially crafted to set this overloaded bit in the
+> > original wTerminalType field, the initial type check will fail (falling
+> > through, without adjusting the buffer size), but the later type checks
+> > will pass, assuming the buffer has been made suitably large, causing an
+> > overflow.
+> >
+> > Avoid this problem by checking for the MSB in the wTerminalType field.
+> > If the bit is set, assume the descriptor is bad, and abort parsing it.
+> >
+> > Originally reported here:
+> > https://groups.google.com/forum/#!topic/syzkaller/Ot1fOE6v1d8
+> > A similar (non-compiling) patch was provided at that time.
+> >
+> > Reported-by: syzbot <syzkaller@googlegroups.com>
+> > Signed-off-by: Alistair Strachan <astrachan@google.com>
+> > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+> > Cc: linux-media@vger.kernel.org
+> > Cc: kernel-team@android.com
+> > ---
+> > v2: Use an alternative fix suggested by Laurent
+> >  drivers/media/usb/uvc/uvc_driver.c | 14 +++++++++++---
+> >  1 file changed, 11 insertions(+), 3 deletions(-)
+> >
+> > diff --git a/drivers/media/usb/uvc/uvc_driver.c
+> > b/drivers/media/usb/uvc/uvc_driver.c index bc369a0934a3..7fde3ce642c4
+> > 100644
+> > --- a/drivers/media/usb/uvc/uvc_driver.c
+> > +++ b/drivers/media/usb/uvc/uvc_driver.c
+> > @@ -1065,11 +1065,19 @@ static int uvc_parse_standard_control(struct
+> > uvc_device *dev, return -EINVAL;
+> >               }
+> >
+> > -             /* Make sure the terminal type MSB is not null, otherwise it
+> > -              * could be confused with a unit.
+> > +             /*
+> > +              * Reject invalid terminal types that would cause issues:
+> > +              *
+> > +              * - The high byte must be non-zero, otherwise it would be
+> > +              *   confused with a unit.
+> > +              *
+> > +              * - Bit 15 must be 0, as we use it internally as a terminal
+> > +              *   direction flag.
+> > +              *
+> > +              * Other unknown types are accepted.
+> >                */
+> >               type = get_unaligned_le16(&buffer[4]);
+> > -             if ((type & 0xff00) == 0) {
+> > +             if ((type & 0x7f00) == 0 || (type & 0x8000) != 0) {
+> >                       uvc_trace(UVC_TRACE_DESCR, "device %d videocontrol "
+> >                               "interface %d INPUT_TERMINAL %d has invalid "
+> >                               "type 0x%04x, skipping\n", udev->devnum,
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
+>
+>
