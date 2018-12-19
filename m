@@ -2,208 +2,614 @@ Return-Path: <SRS0=l98e=O4=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A10CC43387
-	for <linux-media@archiver.kernel.org>; Wed, 19 Dec 2018 09:18:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E1BBC43387
+	for <linux-media@archiver.kernel.org>; Wed, 19 Dec 2018 10:04:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1F42E217D9
-	for <linux-media@archiver.kernel.org>; Wed, 19 Dec 2018 09:18:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 21186218AE
+	for <linux-media@archiver.kernel.org>; Wed, 19 Dec 2018 10:04:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728197AbeLSJSu (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 19 Dec 2018 04:18:50 -0500
-Received: from mail-oln040092064018.outbound.protection.outlook.com ([40.92.64.18]:34992
-        "EHLO EUR01-DB5-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726774AbeLSJSt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Dec 2018 04:18:49 -0500
-Received: from VE1EUR01FT019.eop-EUR01.prod.protection.outlook.com
- (10.152.2.55) by VE1EUR01HT239.eop-EUR01.prod.protection.outlook.com
- (10.152.3.15) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id 15.20.1446.11; Wed, 19 Dec
- 2018 09:18:41 +0000
-Received: from AM0PR03MB4676.eurprd03.prod.outlook.com (10.152.2.59) by
- VE1EUR01FT019.mail.protection.outlook.com (10.152.2.231) with Microsoft SMTP
- Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
- 15.20.1446.11 via Frontend Transport; Wed, 19 Dec 2018 09:18:40 +0000
-Received: from AM0PR03MB4676.eurprd03.prod.outlook.com
- ([fe80::f02a:2a6f:1b3b:ee3e]) by AM0PR03MB4676.eurprd03.prod.outlook.com
- ([fe80::f02a:2a6f:1b3b:ee3e%4]) with mapi id 15.20.1425.024; Wed, 19 Dec 2018
- 09:18:40 +0000
-From:   Jonas Karlman <jonas@kwiboo.se>
-To:     Tomasz Figa <tfiga@chromium.org>
-CC:     "hverkuil-cisco@xs4all.nl" <hverkuil-cisco@xs4all.nl>,
-        "Linux Media Mailing List" <linux-media@vger.kernel.org>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        "Paul Kocialkowski" <paul.kocialkowski@bootlin.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "nicolas@ndufresne.ca" <nicolas@ndufresne.ca>,
-        Jernej Skrabec <jernej.skrabec@gmail.com>
-Subject: Re: [PATCHv5 6/8] vb2: add vb2_find_timestamp()
-Thread-Topic: [PATCHv5 6/8] vb2: add vb2_find_timestamp()
-Thread-Index: AQHUkheubL+OrDRAAUSQIXvjcD4iY6V7bRUAgAEthACACPNrAIAAIDQAgAADBQCAACKagA==
-Date:   Wed, 19 Dec 2018 09:18:40 +0000
-Message-ID: <AM0PR03MB4676A22D94B1B528895185F1ACBE0@AM0PR03MB4676.eurprd03.prod.outlook.com>
-References: <20181212123901.34109-1-hverkuil-cisco@xs4all.nl>
- <20181212123901.34109-7-hverkuil-cisco@xs4all.nl>
- <AM0PR03MB4676988BC60352DFDFAD0783ACA70@AM0PR03MB4676.eurprd03.prod.outlook.com>
- <985a4c64-f914-8405-2a78-422bcd8f2139@xs4all.nl>
- <CAAFQd5BKizq20x+kyeH1nE1RUs9S2O7coQEXkPu6bCw8EAhmHA@mail.gmail.com>
- <AM0PR03MB467606D6C482F06F4E401767ACBE0@AM0PR03MB4676.eurprd03.prod.outlook.com>
- <CAAFQd5AJ4NYfHyWSW7N+a8DtTfKKEkHOmaY8fNpwQrkjzrA7Ng@mail.gmail.com>
-In-Reply-To: <CAAFQd5AJ4NYfHyWSW7N+a8DtTfKKEkHOmaY8fNpwQrkjzrA7Ng@mail.gmail.com>
-Accept-Language: sv-SE, en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-clientproxiedby: HE1PR0402CA0014.eurprd04.prod.outlook.com
- (2603:10a6:3:d0::24) To AM0PR03MB4676.eurprd03.prod.outlook.com
- (2603:10a6:208:cc::33)
-x-incomingtopheadermarker: OriginalChecksum:643609472DE93EDC93B3082A3DCB967AFF6B2CE0BEA94917B5706602BB2DFC5E;UpperCasedChecksum:0F5418ED35EBCE6934061D9E8D73C3D96FD4ADDCE7B2217D2BF0BDE2E83B505D;SizeAsReceived:8241;Count:50
-x-ms-exchange-messagesentrepresentingtype: 1
-x-tmn:  [McyqX7b8dEuEnpdYsx3RPnvgofTAMQxI]
-x-ms-publictraffictype: Email
-x-microsoft-exchange-diagnostics: 1;VE1EUR01HT239;6:KbNzzHHOk4Mc98hAbj352xCQWfTv0CUaXYdSeq+L/mJfpQfqikU3DguzebjFRGmdG2+ekRNjOD/lgixCNi+Zn8YI33IlyJR0WyTpT8Tn+0grzNaqB+QBJbAXE1FmkOM5Ce1TqSokGd+jPz8dEngDLFT4/8eqgx9eQMH8lrchDSr+TK1i6L2CD6t0MuVR+oBZKGJPeg8nKs6DA0lf4GnW0A2VFoK7l2GXxe/hZaRRgM9dKK7R6d1+/x27yfVEG5xfn7jwOKPP2s7821+t/ARsJ78qEHV/slTGN9S+3fOOUMA+n5Mrl5HV4ZSGgSTjIVuExv34fCynbCM9H7qZdCBVfvd+pVDNTohkAj3QFODzPGiENdPpFke1FufPfSPF4eLoS0GnQxSCfLpSOStG63toJQlEaLINWTsA4OLoi5fa9GwE1IUWu9yVOPiSYdMB/M7BAJHXrtQVsMqHIZmlPN+0Cw==;5:VNYgDvBeTJ07IRCVG+bxr7oxbmfOpkF457PyK6gVrA7XWYz3ke1MOKSRjPQzK/BHlk381l7V/Uz+eAGvE8kPbLHJjatdSzTBL7Z3dqptN2Kum4vHXk2zgMgz7KvViLi7g93v5YFnufQziICSSVgj1ApvbUUALC+7ZSJM+zJwEdo=;7:qkokrvbU/93pte8PeHSMwcVYtFn87RF20mcS9g7uYOQcx5y6OSzRNqPbv9EUktGblI2lz+e63QZKaQxFLT5oVdlhkZU+NmQ4IjNeLy8PoQFYJ1z/8Ys0IvY1f8kRTzbsO7yIMgCGKv6xWoAVyLAs3Q==
-x-incomingheadercount: 50
-x-eopattributedmessage: 0
-x-microsoft-antispam: BCL:0;PCL:0;RULEID:(2390118)(7020095)(201702061078)(5061506573)(5061507331)(1603103135)(2017031320274)(2017031324274)(2017031323274)(2017031322404)(1603101475)(1601125500)(1701031045);SRVR:VE1EUR01HT239;
-x-ms-traffictypediagnostic: VE1EUR01HT239:
-x-exchange-antispam-report-cfa-test: BCL:0;PCL:0;RULEID:(4566010)(82015058);SRVR:VE1EUR01HT239;BCL:0;PCL:0;RULEID:;SRVR:VE1EUR01HT239;
-x-microsoft-antispam-message-info: sjQB08AcVj9AuKw3mNHQeP0+ASQCydHnj5fC8QSNI8CQScX/wKe+i6coXXBlSO5j
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <1F19D20B3F3AEB44AF53970D4774C2AE@eurprd03.prod.outlook.com>
-Content-Transfer-Encoding: base64
+        id S1728754AbeLSKD7 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 19 Dec 2018 05:03:59 -0500
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:33241 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727963AbeLSKD7 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 19 Dec 2018 05:03:59 -0500
+Received: from [IPv6:2001:983:e9a7:1:fde7:94a4:18d3:95d6] ([IPv6:2001:983:e9a7:1:fde7:94a4:18d3:95d6])
+        by smtp-cloud7.xs4all.net with ESMTPA
+        id ZYhggdJgydllcZYhhgfgqf; Wed, 19 Dec 2018 11:03:55 +0100
+Subject: Re: [PATCH v4l-utils] v4l2-ctl: Add support for CROP selection in m2m
+ streaming
+To:     Dafna Hirschfeld <dafna3@gmail.com>
+Cc:     Linux Media Mailing List <linux-media@vger.kernel.org>,
+        helen.koike@collabora.com
+References: <20181218111140.90645-1-dafna3@gmail.com>
+ <603cad44-4a52-73d1-3ad5-5474ee549977@xs4all.nl>
+ <CAJ1myNRieZveHD95YBXiLx6Ka6pDBrW8Cvmh0Nvxt1f=YDDUyg@mail.gmail.com>
+From:   Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <a0e7ade6-d3e4-132a-0629-4fb6a4b664b2@xs4all.nl>
+Date:   Wed, 19 Dec 2018 11:03:48 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.3.1
 MIME-Version: 1.0
-X-OriginatorOrg: outlook.com
-X-MS-Exchange-CrossTenant-RMS-PersistedConsumerOrg: 54485d23-c432-40fe-8436-6091d627118c
-X-MS-Exchange-CrossTenant-Network-Message-Id: 09e1c0ab-08f6-4eed-5ebd-08d66592f6e4
-X-MS-Exchange-CrossTenant-rms-persistedconsumerorg: 54485d23-c432-40fe-8436-6091d627118c
-X-MS-Exchange-CrossTenant-originalarrivaltime: 19 Dec 2018 09:18:40.8831
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Internet
-X-MS-Exchange-CrossTenant-id: 84df9e7f-e9f6-40af-b435-aaaaaaaaaaaa
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: VE1EUR01HT239
+In-Reply-To: <CAJ1myNRieZveHD95YBXiLx6Ka6pDBrW8Cvmh0Nvxt1f=YDDUyg@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-CMAE-Envelope: MS4wfAmaQhdoh54PEFMBCHU+OLqdnQOahSfwGB5ygSw8UFsrQQLWJ6czJabi2FKxrkweYHApxYocs4uFZbKjchGOuJDwmAlorQ5TN/lUmlZ9Ad3pOF+tZ34u
+ OuTItClKtuLy+t8UcZOXWveN9KgOM9fNCabRPaUhayCQ99yRKrdceyOQQIL3cAkSZ+aHrVmr0Asi+TIpzUmS6mRodLmo60MxJuLgxWjPo6RDkNDaY2+u/oxD
+ h/EUUFGNjkUO+m4T8S8kxTUEdzI8MmN8ZwGxbXN037AnvWlvmViQ9o5OBzJcDSQ+VVlW3ugr/Du2e7L9dQeTN6G8ZBISgZKa6dQ6QqwfxhY=
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-T24gMjAxOC0xMi0xOSAwODoxNiwgVG9tYXN6IEZpZ2Egd3JvdGU6DQo+IE9uIFdlZCwgRGVjIDE5
-LCAyMDE4IGF0IDQ6MDQgUE0gSm9uYXMgS2FybG1hbiA8am9uYXNAa3dpYm9vLnNlPiB3cm90ZToN
-Cj4+IE9uIDIwMTgtMTItMTkgMDY6MTAsIFRvbWFzeiBGaWdhIHdyb3RlOg0KPj4+IE9uIFRodSwg
-RGVjIDEzLCAyMDE4IGF0IDk6MjggUE0gSGFucyBWZXJrdWlsIDxodmVya3VpbC1jaXNjb0B4czRh
-bGwubmw+IHdyb3RlOg0KPj4+PiBPbiAxMi8xMi8xOCA3OjI4IFBNLCBKb25hcyBLYXJsbWFuIHdy
-b3RlOg0KPj4+Pj4gSGkgSGFucywNCj4+Pj4+DQo+Pj4+PiBTaW5jZSB0aGlzIGZ1bmN0aW9uIG9u
-bHkgcmV0dXJuIERFUVVFVUVEIGFuZCBET05FIGJ1ZmZlcnMsDQo+Pj4+PiBpdCBjYW5ub3QgYmUg
-dXNlZCB0byBmaW5kIGEgY2FwdHVyZSBidWZmZXIgdGhhdCBpcyBib3RoIHVzZWQgZm9yDQo+Pj4+
-PiBmcmFtZSBvdXRwdXQgYW5kIGlzIHBhcnQgb2YgdGhlIGZyYW1lIHJlZmVyZW5jZSBsaXN0Lg0K
-Pj4+Pj4gRS5nLiBhIGJvdHRvbSBmaWVsZCByZWZlcmVuY2luZyBhIHRvcCBmaWVsZCB0aGF0IGlz
-IGFscmVhZHkNCj4+Pj4+IHBhcnQgb2YgdGhlIGNhcHR1cmUgYnVmZmVyIGJlaW5nIHVzZWQgZm9y
-IGZyYW1lIG91dHB1dC4NCj4+Pj4+ICh0b3AgYW5kIGJvdHRvbSBmaWVsZCBpcyBvdXRwdXQgaW4g
-c2FtZSBidWZmZXIpDQo+Pj4+Pg0KPj4+Pj4gSmVybmVqIMWga3JhYmVjIGFuZCBtZSBoYXZlIHdv
-cmtlZCBhcm91bmQgdGhpcyBpc3N1ZSBpbiBjZWRydXMgZHJpdmVyIGJ5DQo+Pj4+PiBmaXJzdCBj
-aGVja2luZw0KPj4+Pj4gdGhlIHRhZy90aW1lc3RhbXAgb2YgdGhlIGN1cnJlbnQgYnVmZmVyIGJl
-aW5nIHVzZWQgZm9yIG91dHB1dCBmcmFtZS4NCj4+Pj4+DQo+Pj4+Pg0KPj4+Pj4gLy8gZmllbGQg
-cGljdHVyZXMgbWF5IHJlZmVyZW5jZSBjdXJyZW50IGNhcHR1cmUgYnVmZmVyIGFuZCBpcyBub3QN
-Cj4+Pj4+IHJldHVybmVkIGJ5IHZiMl9maW5kX3RhZw0KPj4+Pj4gaWYgKHY0bDJfYnVmLT50YWcg
-PT0gZHBiLT50YWcpDQo+Pj4+PiAgICAgYnVmX2lkeCA9IHY0bDJfYnVmLT52YjJfYnVmLmluZGV4
-Ow0KPj4+Pj4gZWxzZQ0KPj4+Pj4gICAgIGJ1Zl9pZHggPSB2YjJfZmluZF90YWcoY2FwX3EsIGRw
-Yi0+dGFnLCAwKTsNCj4+Pj4+DQo+Pj4+Pg0KPj4+Pj4gV2hhdCBpcyB0aGUgcmVjb21tZW5kZWQg
-d2F5IHRvIGhhbmRsZSBzdWNoIGNhc2U/DQo+Pj4+IFRoYXQgaXMgdGhlIHJpZ2h0IGFwcHJvYWNo
-IGZvciB0aGlzLiBJbnRlcmVzdGluZyBjb3JuZXIgY2FzZSwgSSBoYWRuJ3QNCj4+Pj4gY29uc2lk
-ZXJlZCB0aGF0Lg0KPj4+Pg0KPj4+Pj4gQ291bGQgdmIyX2ZpbmRfdGltZXN0YW1wIGJlIGV4dGVu
-ZGVkIHRvIGFsbG93IFFVRVVFRCBidWZmZXJzIHRvIGJlIHJldHVybmVkPw0KPj4+PiBObywgYmVj
-YXVzZSBvbmx5IHRoZSBkcml2ZXIga25vd3Mgd2hhdCB0aGUgY3VycmVudCBidWZmZXIgaXMuDQo+
-Pj4+DQo+Pj4+IEJ1ZmZlcnMgdGhhdCBhcmUgcXVldWVkIHRvIHRoZSBkcml2ZXIgYXJlIGluIHN0
-YXRlIEFDVElWRS4gQnV0IHRoZXJlIG1heSBiZQ0KPj4+PiBtdWx0aXBsZSBBQ1RJVkUgYnVmZmVy
-cyBhbmQgdmIyIGRvZXNuJ3Qga25vdyB3aGljaCBidWZmZXIgaXMgY3VycmVudGx5DQo+Pj4+IGJl
-aW5nIHByb2Nlc3NlZCBieSB0aGUgZHJpdmVyLg0KPj4+Pg0KPj4+PiBTbyB0aGlzIHdpbGwgaGF2
-ZSB0byBiZSBjaGVja2VkIGJ5IHRoZSBkcml2ZXIgaXRzZWxmLg0KPj4+IEhvbGQgb24sIGl0J3Mg
-YSBwZXJmZWN0bHkgdmFsaWQgdXNlIGNhc2UgdG8gaGF2ZSB0aGUgYnVmZmVyIHF1ZXVlZCBidXQN
-Cj4+PiBzdGlsbCB1c2VkIGFzIGEgcmVmZXJlbmNlIGZvciBwcmV2aW91c2x5IHF1ZXVlZCBidWZm
-ZXJzLCBlLmcuDQo+Pj4NCj4+PiBRQlVGKE8sIDApDQo+Pj4gUUJVRihDLCAwKQ0KPj4+IFJFRihy
-ZWYwLCBvdXRfdGltZXN0YW1wKDApKQ0KPj4+IFFCVUYoTywgMSkNCj4+PiBRQlVGKEMsIDEpDQo+
-Pj4gUkVGKHJlZjAsIG91dF90aW1lc3RhbXAoMCkpDQo+Pj4gUUJVRihPLCAyKQ0KPj4+IFFCVUYo
-QywgMikNCj4+PiA8LSBkcml2ZXIgcmV0dXJucyBPKDApIGFuZCBDKDApIGhlcmUNCj4+PiA8LSB1
-c2Vyc3BhY2UgYWxzbyBrbm93cyB0aGF0IGFueSBuZXh0IGZyYW1lIHdpbGwgbm90IHJlZmVyZW5j
-ZSBDKDApIGFueW1vcmUNCj4+PiBSRUYocmVmMCwgb3V0X3RpbWVzdGFtcCgyKSkNCj4+PiBRQlVG
-KE8sIDApDQo+Pj4gUUJVRihDLCAwKQ0KPj4+IDwtIGRyaXZlciBtYXkgcGljayBPKDEpK0MoMSkg
-b3IgTygyKStDKDIpIHRvIGRlY29kZSBoZXJlLCBidXQgQygwKQ0KPj4+IHdoaWNoIGlzIHRoZSBy
-ZWZlcmVuY2UgZm9yIGl0IGlzIGFscmVhZHkgUVVFVUVELg0KPj4+DQo+Pj4gSXQncyBhIHBlcmZl
-Y3RseSBmaW5lIHNjZW5hcmlvIGFuZCBvcHRpbWFsIGZyb20gcGlwZWxpbmluZyBwb2ludCBvZg0K
-Pj4+IHZpZXcsIGJ1dCBpZiBJJ20gbm90IG1pc3Npbmcgc29tZXRoaW5nLCB0aGUgY3VycmVudCBw
-YXRjaCB3b3VsZG4ndA0KPj4+IGFsbG93IGl0Lg0KPj4gVGhpcyBzY2VuYXJpbyBzaG91bGQgbmV2
-ZXIgaGFwcGVuIHdpdGggRkZtcGVnICsgdjRsMnJlcXVlc3QgaHdhY2NlbCArDQo+PiBLb2RpIHVz
-ZXJzcGFjZS4NCj4+IEZGbXBlZyB3b3VsZCBvbmx5IFFCVUYgTygwKStDKDApIGFnYWluIGFmdGVy
-IGl0IGhhcyBiZWVuIHByZXNlbnRlZCBvbg0KPj4gc2NyZWVuIGFuZCBLb2RpIGhhdmUgcmVsZWFz
-ZWQgdGhlIGxhc3QgcmVmZXJlbmNlIHRvIHRoZSBBVkZyYW1lLg0KPj4NCj4gSSBza2lwcGVkIHRo
-ZSBkaXNwbGF5IGluIHRoZSBleGFtcGxlIGluZGVlZCwgYnV0IHdlIGNhbiBlYXNpbHkgYWRkIGl0
-Og0KPg0KPiBRQlVGKE8sIDApDQo+IFFCVUYoQywgMCkNCj4gUkVGKHJlZjAsIG91dF90aW1lc3Rh
-bXAoMCkpDQo+IFFCVUYoTywgMSkNCj4gUUJVRihDLCAxKQ0KPiA8LSBkcml2ZXIgcmV0dXJucyBP
-KDApIGFuZCBDKDApIGhlcmUNCj4gPC0gdXNlcnNwYWNlIGRpc3BsYXlzIEMoMCkNCj4gUkVGKHJl
-ZjAsIG91dF90aW1lc3RhbXAoMCkpDQo+IFFCVUYoTywgMikNCj4gUUJVRihDLCAyKQ0KPiBSRUYo
-cmVmMCwgb3V0X3RpbWVzdGFtcCgwKSkNCj4gUUJVRihPLCAzKQ0KPiBRQlVGKEMsIDMpDQo+IDwt
-IGRyaXZlciByZXR1cm5zIE8oMSkgYW5kIEMoMSkgaGVyZQ0KPiA8LSB1c2Vyc3BhY2UgZGlzcGxh
-eXMgQygxKSBhbmQgcmVjbGFpbXMgQygwKQ0KPiA8LSB1c2Vyc3BhY2UgYWxzbyBrbm93cyB0aGF0
-IGFueSBuZXh0IGZyYW1lIHdpbGwgbm90IHJlZmVyZW5jZSBDKDApIGFueW1vcmUNCj4gUkVGKHJl
-ZjAsIG91dF90aW1lc3RhbXAoMykpDQo+IFFCVUYoTywgMCkNCj4gUUJVRihDLCAwKQ0KPiA8LSBk
-cml2ZXIgbWF5IHBpY2sgTygzKStDKDMpIHRvIGRlY29kZSBoZXJlLCBidXQgQygwKQ0KPiB3aGlj
-aCBpcyB0aGUgcmVmZXJlbmNlIGZvciBpdCBpcyBhbHJlYWR5IFFVRVVFRC4NCj4NCj4gQWxzbyB0
-aGUgZmFjdCB0aGF0IEZGbXBlZyB3b3VsZG4ndCB0cmlnZ2VyIHN1Y2ggY2FzZSBkb2Vzbid0IG1l
-YW4gdGhhdA0KPiBpdCdzIGFuIGludmFsaWQgb25lLiBJZiBJIHJlbWVtYmVyIGNvcnJlY3RseSwg
-Q2hyb21pdW0gd291bGQgYWN0dWFsbHkNCj4gdHJpZ2dlciBzdWNoLCBzaW5jZSB3ZSBhdHRlbXB0
-IHRvIHBpcGVsaW5lIHRoaW5ncyBhcyBtdWNoIGFzIHBvc3NpYmxlLg0KSSBzdGlsbCB0aGluayB0
-aGlzIG1heSBiZSBhbiBpbnZhbGlkIHVzZS1jYXNlIG9yIG90aGVyd2lzZSBiYWQgaGFuZGxpbmcN
-CmZyb20gdXNlcnNwYWNlLiBTaW5jZSB1c2Vyc3BhY2Uga25vd3MgdGhhdCBDKDApIHdvbid0IGJl
-IHJlZmVyZW5jZWQgaW4NCm5leHQgZnJhbWUgaXQgc2hvdWxkIGFsc28ga25vdyB0aGF0IGl0IHN0
-aWxsIGhhcyB0d28gZnJhbWVzIHF1ZXVlZCBmb3INCmRlY29kaW5nIHRoYXQgcmVmZXJlbmNlcyBD
-KDApIGZyYW1lIGFuZCBzdGlsbCBoYXZlIG5vdCBiZWVuIHJldHVybmVkDQpmcm9tIGRlY29kZXIu
-DQpBbmQgaWYgdGhlIGRyaXZlciBoYXZlIG5vdCBzdGFydGVkIGRlY29kaW5nIHRoZSByZXF1ZXN0
-cy9mcmFtZXMgdGhhdA0KcmVmZXJlbmNlIEMoMCkgaG93IHdvdWxkIGl0IGtub3cgdGhhdCBpdCBj
-YW5ub3QgcGljayB0aGUgbm93IHF1ZXVlZCBDKDApDQphcyBvdXRwdXQgZm9yIG5leHQgZnJhbWUg
-aXQgZGVjb2Rlcz8NCkluIEZGbXBlZyBjYXNlIHdlIG9ubHkgcmUtcXVldWUgdGhlIGJ1ZmZlciBv
-bmNlIGFsbCBmcmFtZXMgdGhhdA0KcmVmZXJlbmNlcyB0aGF0IGJ1ZmZlci9mcmFtZSBoYXZlIGJl
-ZW4gb3V0cHV0IGZyb20gZGVjb2RlciwgSSBndWVzcyB0aGUNCm1haW4gZGlmZmVyZW5jZSBpcyB0
-aGF0IEZGbXBlZyBjdXJyZW50bHkgb25seSBrZWVwIG9uZSByZXF1ZXN0IGluIGZsaWdodA0KYXQg
-dGhlIHRpbWUgKHdhaXQgb24gcmVxdWVzdCB0byBmaW5pc2ggYmVmb3JlIHF1ZXVlIG5leHQpLCB0
-aGlzIG1heQ0KY2hhbmdlIGluIGZ1dHVyZSBhcyB3ZSBjb250aW51ZSB0byBpbXByb3ZlIHRoZSB2
-NGwycmVxdWVzdCBod2FjY2VsLg0KDQpSZWdhcmRzLA0KSm9uYXMNCj4NCj4+IFRoZSB2NGwycmVx
-dWVzdCBod2FjY2VsIHdpbGwga2VlcCBhIEFWRnJhbWUgcG9vbCB3aXRoIHByZWFsbG9jYXRlZA0K
-Pj4gZnJhbWVzLCBBVkZyYW1lKHgpIGlzIGtlZXBpbmcgdXNlcnNwYWNlIHJlZiB0byBPKHgpK0Mo
-eCkuDQo+PiBBbiBBVkZyYW1lIHdpbGwgbm90IGJlIHJlbGVhc2VkIGJhY2sgdG8gdGhlIHBvb2wg
-dW50aWwgRkZtcGVnIGhhdmUNCj4+IHJlbW92ZWQgaXQgZnJvbSBEUEIgYW5kIEtvZGkgaGF2ZSBy
-ZWxlYXNlZCBpdCBhZnRlciBpdCBubyBsb25nZXIgaXMNCj4+IGJlaW5nIHByZXNlbnRlZCBvbiBz
-Y3JlZW4uDQo+Pg0KPj4gRS5nLiBhbiBJUEJJUEIgc2VxdWVuc2Ugd2l0aCBkaXNwbGF5IG9yZGVy
-IDAgMiAxIDMgNSA0DQo+Pg0KPj4gRkZtcGVnOiBBVkZyYW1lKDApDQo+PiBRQlVGOiBPKDApK0Mo
-MCkNCj4+IERRQlVGOiBPKDApK0MoMCkNCj4+IEtvZGk6IEFWRnJhbWUoMCkgcmV0dXJuZWQgZnJv
-bSBGRm1wZWcgYW5kIHByZXNlbnRlZCBvbiBzY3JlZW4NCj4+IEZGbXBlZzogQVZGcmFtZSgxKSB3
-aXRoIHJlZiB0byBBVkZyYW1lKDApDQo+PiBRQlVGOiBPKDEpK0MoMSkgd2l0aCByZWYgdG8gdGlt
-ZXN0YW1wKDApDQo+PiBEUUJVRjogTygxKStDKDEpDQo+PiBGRm1wZWc6IEFWRnJhbWUoMikgd2l0
-aCByZWYgdG8gQVZGcmFtZSgwKStBVkZyYW1lKDEpDQo+PiBRQlVGOiBPKDIpK0MoMikgd2l0aCBy
-ZWYgdG8gdGltZXN0YW1wKDApK3RpbWVzdGFtcCgxKQ0KPj4gRFFCVUY6IE8oMikrQygyKQ0KPj4g
-S29kaTogQVZGcmFtZSgyKSByZXR1cm5lZCBmcm9tIEZGbXBlZyBhbmQgcHJlc2VudGVkIG9uIHNj
-cmVlbg0KPj4gS29kaTogQVZGcmFtZSgwKSByZWxlYXNlZCAobm8gbG9uZ2VyIHByZXNlbnRlZCkN
-Cj4+IEZGbXBlZzogQVZGcmFtZSgzKQ0KPj4gUUJVRjogTygzKStDKDMpDQo+PiBEUUJVRjogTygz
-KStDKDMpDQo+PiBLb2RpOiBBVkZyYW1lKDEpIHJldHVybmVkIGZyb20gRkZtcGVnIGFuZCBwcmVz
-ZW50ZWQgb24gc2NyZWVuDQo+PiBLb2RpOiBBVkZyYW1lKDIpIHJlbGVhc2VkIChubyBsb25nZXIg
-cHJlc2VudGVkKQ0KPj4gRkZtcGVnOiBBVkZyYW1lKDIpIHJldHVybmVkIHRvIHBvb2wNCj4+IEZG
-bXBlZzogQVZGcmFtZSgyKSB3aXRoIHJlZiB0byBBVkZyYW1lKDMpDQo+PiBRQlVGOiBPKDIpK0Mo
-Mikgd2l0aCByZWYgdG8gdGltZXN0YW1wKDMpDQo+PiBEUUJVRjogTygyKStDKDIpDQo+PiBLb2Rp
-OiBBVkZyYW1lKDMpIHJldHVybmVkIGZyb20gRkZtcGVnIGFuZCBwcmVzZW50ZWQgb24gc2NyZWVu
-DQo+PiBLb2RpOiBBVkZyYW1lKDEpIHJlbGVhc2VkIChubyBsb25nZXIgcHJlc2VudGVkKQ0KPj4g
-RkZtcGVnOiBBVkZyYW1lKDApK0FWRnJhbWUoMSkgcmV0dXJuZWQgdG8gcG9vbCAobm8gbG9uZ2Vy
-IHJlZmVyZW5jZWQpDQo+PiBGRm1wZWc6IEFWRnJhbWUoMCkgd2l0aCByZWYgdG8gQVZGcmFtZSgz
-KStBVkZyYW1lKDIpDQo+PiBRQlVGOiBPKDApK0MoMCkgd2l0aCByZWYgdG8gdGltZXN0YW1wKDMp
-K3RpbWVzdGFtcCgyKQ0KPj4gRFFCVUY6IE8oMCkrQygwKQ0KPj4gS29kaTogQVZGcmFtZSgwKSBy
-ZXR1cm5lZCBmcm9tIEZGbXBlZyBhbmQgcHJlc2VudGVkIG9uIHNjcmVlbg0KPj4gS29kaTogQVZG
-cmFtZSgzKSByZWxlYXNlZCAobm8gbG9uZ2VyIHByZXNlbnRlZCkNCj4+IGFuZCBzbyBvbg0KPj4N
-Cj4+IEhlcmUgd2UgY2FuIHNlZSB0aGF0IE8oMCkrQygwKSB3aWxsIG5vdCBiZSBRQlVGIHVudGls
-IGFmdGVyIEZGbXBlZyArDQo+PiBLb2RpIGhhdmUgcmVsZWFzZWQgYWxsIHVzZXJzcGFjZSByZWZz
-IHRvIEFWRnJhbWUoMCkuDQo+PiBBYm92ZSBleGFtcGxlIHdhcyBzaW1wbGlmaWVkLCBLb2RpIHdp
-bGwgbm9ybWFsbHkga2VlcCBhIGZldyBkZWNvZGVkDQo+PiBmcmFtZXMgaW4gYnVmZmVyIGJlZm9y
-ZSBiZWluZyBwcmVzZW50ZWQgYW5kIEZGbXBlZyB3aWxsIENSRUFURV9CVUYNCj4+IGFueXRpbWUg
-dGhlIHBvb2wgaXMgZW1wdHkgYW5kIG5ldyBPL0MgYnVmZmVycyBpcyBuZWVkZWQuDQo+Pg0KPj4g
-UmVnYXJkcywNCj4+IEpvbmFzDQo+Pg0KPj4+IEJlc3QgcmVnYXJkcywNCj4+PiBUb21hc3oNCg==
+On 12/19/18 9:34 AM, Dafna Hirschfeld wrote:
+>>> +bool is_m2m_enc = false;
+>>
+>> This should be static.
+>>
+>> I'm assuming that in a future patch we'll get a is_m2m_dec as well?
+> 
+> I forgot that there can be more options other than m2m_enc/_dec.
+> So actually adding is_m2m_dec is needed. Or I can define an enum with
+> 3 possible values
+> IS_M2M_ENC, IS_M2M_DEC, NOT_M2M_DEV
+
+I think using bools will make the code easier.
+
+> 
+>>
+>>> +
+>>>  #define TS_WINDOW 241
+>>>  #define FILE_HDR_ID                  v4l2_fourcc('V', 'h', 'd', 'r')
+>>>
+>>> @@ -108,6 +114,84 @@ public:
+>>>       unsigned dropped();
+>>>  };
+>>>
+>>> +static int get_codec_type(int fd, bool &is_enc) {
+>>
+>> { on the next line.
+>>
+>>> +     struct v4l2_capability vcap;
+>>> +
+>>> +     memset(&vcap,0,sizeof(vcap));
+>>
+>> Space after ,
+>>
+>> Please use the kernel coding style for these v4l utilities.
+>>
+> I ran the checkpatch script on this file and it didn't catch theses things.
+> Do you use checkpatch for v4l-utils ?
+
+No. As far as I can tell checkpatch skips cpp files so it can't be used for C++ files.
+
+> 
+>>> +
+>>> +     int ret = ioctl(fd, VIDIOC_QUERYCAP, &vcap);
+>>
+>> Please use the cv4l_fd class. It comes with lots of helpers for all these ioctls
+>> and it already used in v4l2-ctl-streaming.cpp.
+>>
+>> In this function you can just do:
+>>
+>>         if (!fd.has_vid_m2m())
+>>                 return -1;
+>>
+>>> +     if(ret) {
+>>> +             fprintf(stderr, "get_codec_type: VIDIOC_QUERYCAP failed: %d\n", ret);
+>>> +             return ret;
+>>> +     }
+>>> +     unsigned int caps = vcap.capabilities;
+>>> +     if (caps & V4L2_CAP_DEVICE_CAPS)
+>>> +             caps = vcap.device_caps;
+>>> +     if(!(caps & V4L2_CAP_VIDEO_M2M) && !(caps & V4L2_CAP_VIDEO_M2M_MPLANE)) {
+>>> +             is_enc = false;
+>>> +             fprintf(stderr,"get_codec_type: not an M2M device\n");
+>>> +             return -1;
+>>> +     }
+>>> +
+>>> +     struct v4l2_fmtdesc fmt;
+>>> +     memset(&fmt,0,sizeof(fmt));
+>>> +     fmt.index = 0;
+>>> +     fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+>>> +
+>>> +     while ((ret = ioctl(fd, VIDIOC_ENUM_FMT, &fmt)) == 0) {
+>>> +             if((fmt.flags & V4L2_FMT_FLAG_COMPRESSED) == 0)
+>>> +                     break;
+>>> +             fmt.index++;
+>>> +     }
+>>
+>> These tests aren't good enough. You need to enumerate over all formats.
+>> Easiest is to keep a tally of the total number of formats and how many
+>> are compressed.
+>>
+>> An encoder is a device where all output formats are uncompressed and
+>> all capture formats are compressed. It's the reverse for a decoder.
+>>
+>> If you get a mix on either side, or both sides are raw or both sides
+>> are compressed, then it isn't a codec.
+>>
+>>> +     if (ret) {
+>>> +             is_enc = true;
+>>> +             return 0;
+>>> +     }
+>>> +     memset(&fmt,0,sizeof(fmt));
+>>> +     fmt.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+>>> +     while ((ret = ioctl(fd, VIDIOC_ENUM_FMT, &fmt)) == 0) {
+>>> +             if((fmt.flags & V4L2_FMT_FLAG_COMPRESSED) == 0)
+>>> +                     break;
+>>> +             fmt.index++;
+>>> +     }
+>>> +     if (ret) {
+>>> +             is_enc = false;
+>>> +             return 0;
+>>> +     }
+>>> +     fprintf(stderr, "get_codec_type: could no determine codec type\n");
+>>> +     return -1;
+>>> +}
+>>> +
+>>> +static void get_frame_dims(unsigned int &frame_width, unsigned int &frame_height) {
+>>> +
+>>> +     if(is_m2m_enc)
+>>> +             vidout_get_orig_from_set(frame_width, frame_height);
+>>> +     else
+>>> +             vidcap_get_orig_from_set(frame_width, frame_height);
+>>> +}
+>>> +
+>>> +static int get_visible_format(int fd, unsigned int &width, unsigned int &height) {
+>>> +     int ret = 0;
+>>> +     if(is_m2m_enc) {
+>>> +             struct v4l2_selection in_selection;
+>>> +
+>>> +             in_selection.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+>>> +             in_selection.target = V4L2_SEL_TGT_CROP;
+>>> +
+>>> +             if ( (ret = ioctl(fd, VIDIOC_G_SELECTION, &in_selection)) != 0) {
+>>> +                     fprintf(stderr,"get_visible_format: error in g_selection ioctl: %d\n",ret);
+>>> +                     return ret;
+>>> +             }
+>>> +             width = in_selection.r.width;
+>>> +             height = in_selection.r.height;
+>>> +     }
+>>> +     else { //TODO - g_selection with COMPOSE should be used here when implemented in driver
+>>> +             vidcap_get_orig_from_set(width, height);
+>>> +     }
+>>> +     return 0;
+>>> +}
+>>> +
+>>> +
+>>>  void fps_timestamps::determine_field(int fd, unsigned type)
+>>>  {
+>>>       struct v4l2_format fmt = { };
+>>> @@ -419,7 +503,6 @@ static void print_buffer(FILE *f, struct v4l2_buffer &buf)
+>>>                       fprintf(f, "\t\tData Offset: %u\n", p->data_offset);
+>>>               }
+>>>       }
+>>> -
+>>>       fprintf(f, "\n");
+>>>  }
+>>>
+>>> @@ -657,7 +740,131 @@ void streaming_cmd(int ch, char *optarg)
+>>>       }
+>>>  }
+>>>
+>>> -static bool fill_buffer_from_file(cv4l_queue &q, cv4l_buffer &b, FILE *fin)
+>>> +bool padding(cv4l_fd &fd, cv4l_queue &q, unsigned char* buf, FILE *fpointer, unsigned &sz, unsigned &len, bool is_read)
+>>
+>> This should definitely be a static function. Also, this is not a very good name.
+>>
+>> Why not call it fill_padded_buffer_from_file()?
+> 
+> This function is used both for reading from file for the encoder and
+> writing to file for the decoder.
+> Maybe it can be called read_write_padded_frame ?
+
+That would work.
+
+> 
+>>
+>>> +{
+>>> +     cv4l_fmt fmt(q.g_type());
+>>
+>> No need to use q.g_type(). 'cv4l_fmt fmt;' is sufficient.
+>>
+>>> +     fd.g_fmt(fmt, q.g_type());
+>>
+>> After all, it's filled here.
+>>
+>>> +     const struct v4l2_fwht_pixfmt_info *vic_fmt = v4l2_fwht_find_pixfmt(fmt.g_pixelformat());
+>>
+>> This test should be moved to fill_buffer_from_file. If it is not an encoder and
+>> the pixelformat is not known (v4l2_fwht_find_pixfmt() returns NULL), then it should
+>> fallback to the old behavior. So this function should only be called when you have
+>> all the information about the pixelformat.
+>>
+> 
+> This function is supposed to be called only for m2m encoder on the
+> output buffer and m2m decoder on the capture buffer
+> so vic_format is not NULL in those case.
+
+Actually, handling padding is not specific to codecs. Any video device can have
+cropping or composing.
+
+The generic rules are:
+
+1) if a video output device supports TGT_CROP, then use that rectangle when reading
+   from a file.
+
+2) if a video capture device supports TGT_COMPOSE, then use that rectangle when
+   writing to a file.
+
+The problem with this is that doing this requires v4l2-ctl to understand all the pixelformats.
+That's a lot more work so for now just use v4l2_fwht_find_pixfmt() which has the information
+needed for the most common formats.
+
+Anything not known by v4l2_fwht_find_pixfmt() can just fall back to the old behavior.
+
+> 
+>>> +     unsigned coded_width = fmt.g_width();
+>>> +     unsigned coded_height = fmt.g_height();
+>>> +     unsigned real_width;
+>>> +     unsigned real_height;
+>>> +     unsigned char *buf_p = (unsigned char*) buf;
+>>> +
+>>> +     if(is_read) {
+>>> +             real_width  = frame_width;
+>>> +             real_height = frame_height;
+>>> +     }
+>>> +     else {
+>>> +             real_width  = visible_width;
+>>> +             real_height = visible_height;
+>>> +     }
+>>> +     sz = 0;
+>>> +     len = real_width * real_height * vic_fmt->sizeimage_mult / vic_fmt->sizeimage_div;
+>>> +     switch(vic_fmt->id) {
+>>> +     case V4L2_PIX_FMT_YUYV:
+>>> +     case V4L2_PIX_FMT_YVYU:
+>>> +     case V4L2_PIX_FMT_UYVY:
+>>> +     case V4L2_PIX_FMT_VYUY:
+>>> +     case V4L2_PIX_FMT_RGB24:
+>>> +     case V4L2_PIX_FMT_HSV24:
+>>> +     case V4L2_PIX_FMT_BGR24:
+>>> +     case V4L2_PIX_FMT_RGB32:
+>>> +     case V4L2_PIX_FMT_XRGB32:
+>>> +     case V4L2_PIX_FMT_HSV32:
+>>> +     case V4L2_PIX_FMT_BGR32:
+>>> +     case V4L2_PIX_FMT_XBGR32:
+>>> +     case V4L2_PIX_FMT_ARGB32:
+>>> +     case V4L2_PIX_FMT_ABGR32:
+>>
+>> I'd put this all under a 'default' case. I think GREY can also be added here.
+>>
+>> What I would really like to see is that only the information from v4l2_fwht_pixfmt_info
+>> can be used here without requiring a switch.
+>>
+>> I think all that is needed to do that is that struct v4l2_fwht_pixfmt_info is extended
+>> with a 'planes_num' field, which is 1 for interleaved formats, 2 for luma/interleaved chroma
+>> planar formats and 3 for luma/cr/cb planar formats.
+>>
+> So I should send a patch to the kernel code, adding this field ?
+
+Yes.
+
+> 
+>>> +             for(unsigned i=0; i < real_height; i++) {
+>>> +                     unsigned int consume_sz = vic_fmt->bytesperline_mult*real_width;
+>>> +                     unsigned int wsz = 0;
+>>> +                     if(is_read)
+>>> +                             wsz = fread(buf_p, 1, consume_sz, fpointer);
+>>> +                     else
+>>> +                             wsz = fwrite(buf_p, 1, consume_sz, fpointer);
+>>> +                     sz += wsz;
+>>> +                     if(wsz == 0 && i == 0)
+>>> +                             break;
+>>> +                     if(wsz != consume_sz) {
+>>> +                             fprintf(stderr, "padding: needed %u bytes, got %u\n",consume_sz, wsz);
+>>> +                             return false;
+>>> +                     }
+>>> +                     buf_p += vic_fmt->chroma_step*coded_width;
+>>> +             }
+>>> +     break;
+>>> +
+>>> +     case V4L2_PIX_FMT_NV12:
+>>> +     case V4L2_PIX_FMT_NV16:
+>>> +     case V4L2_PIX_FMT_NV24:
+>>> +     case V4L2_PIX_FMT_NV21:
+>>> +     case V4L2_PIX_FMT_NV61:
+>>> +     case V4L2_PIX_FMT_NV42:
+>>> +             for(unsigned plane_idx = 0; plane_idx < 2; plane_idx++) {
+>>> +                     unsigned h_div = (plane_idx == 0) ? 1 : vic_fmt->height_div;
+>>> +                     unsigned w_div = (plane_idx == 0) ? 1 : vic_fmt->width_div;
+>>> +                     unsigned step  =  (plane_idx == 0) ? vic_fmt->luma_alpha_step : vic_fmt->chroma_step;
+>>> +
+>>> +                     for(unsigned i=0; i <  real_height/h_div; i++) {
+>>> +                             unsigned int wsz = 0;
+>>> +                             unsigned int consume_sz = step * real_width / w_div;
+>>> +                             if(is_read)
+>>> +                                     wsz = fread(buf_p, 1,  consume_sz, fpointer);
+>>> +                             else
+>>> +                                     wsz = fwrite(buf_p, 1, consume_sz, fpointer);
+>>> +                             if(wsz == 0 && i == 0 && plane_idx == 0)
+>>> +                                     break;
+>>> +                             if(wsz != consume_sz) {
+>>> +                                     fprintf(stderr, "padding: needed %u bytes, got %u\n",consume_sz, wsz);
+>>> +                                     return true;
+>>> +                             }
+>>> +                             sz += wsz;
+>>> +                             buf_p += step*coded_width/w_div;
+>>> +                     }
+>>> +                     buf_p += (coded_width / w_div) * (coded_height - real_height) / h_div;
+>>> +
+>>> +                     if(sz == 0)
+>>> +                             break;
+>>> +             }
+>>> +     break;
+>>> +     case V4L2_PIX_FMT_YUV420:
+>>> +     case V4L2_PIX_FMT_YUV422P:
+>>> +     case V4L2_PIX_FMT_YVU420:
+>>> +     case V4L2_PIX_FMT_GREY:
+>>> +             for(unsigned comp_idx = 0; comp_idx < vic_fmt->components_num; comp_idx++) {
+>>> +                     unsigned h_div = (comp_idx == 0) ? 1 : vic_fmt->height_div;
+>>> +                     unsigned w_div = (comp_idx == 0) ? 1 : vic_fmt->width_div;
+>>> +
+>>> +                     for(unsigned i=0; i < real_height/h_div; i++) {
+>>> +                             unsigned int wsz = 0;
+>>> +                             unsigned int consume_sz = real_width/w_div;
+>>> +                             if(is_read)
+>>> +                                     wsz = fread(buf_p, 1, consume_sz, fpointer);
+>>> +                             else
+>>> +                                     wsz = fwrite(buf_p, 1, consume_sz, fpointer);
+>>> +                             if(wsz == 0 && i == 0 && comp_idx == 0)
+>>> +                                     break;
+>>> +                             if(wsz != consume_sz) {
+>>> +                                     fprintf(stderr, "padding: needed %u bytes, got %u\n",consume_sz, wsz);
+>>> +                                     return true;
+>>> +                             }
+>>> +                             sz += wsz;
+>>> +                             buf_p += coded_width/w_div;
+>>> +                     }
+>>> +                     buf_p += (coded_width / w_div) * (coded_height - real_height) / h_div;
+>>> +
+>>> +                     if(sz == 0)
+>>> +                             break;
+>>> +             }
+>>> +             break;
+>>> +     default:
+>>> +             fprintf(stderr,"the format is not supported yet\n");
+>>> +             return false;
+>>> +     }
+>>> +     return true;
+>>> +}
+>>> +
+>>> +static bool fill_buffer_from_file(cv4l_fd &fd, cv4l_queue &q, cv4l_buffer &b, FILE *fin)
+>>>  {
+>>>       static bool first = true;
+>>>       static bool is_fwht = false;
+>>> @@ -785,7 +992,15 @@ restart:
+>>>                               return false;
+>>>                       }
+>>>               }
+>>> -             sz = fread(buf, 1, len, fin);
+>>> +
+>>> +             if(is_m2m_enc) {
+>>> +                     if(!padding(fd, q, (unsigned char*) buf, fin, sz, len, true))
+>>> +                             return false;
+>>> +             }
+>>> +             else {
+>>> +                     sz = fread(buf, 1, len, fin);
+>>> +             }
+>>> +
+>>>               if (first && sz != len) {
+>>>                       fprintf(stderr, "Insufficient data\n");
+>>>                       return false;
+>>> @@ -908,7 +1123,7 @@ static int do_setup_out_buffers(cv4l_fd &fd, cv4l_queue &q, FILE *fin, bool qbuf
+>>>                                       tpg_fillbuffer(&tpg, stream_out_std, j, (u8 *)q.g_dataptr(i, j));
+>>>                       }
+>>>               }
+>>> -             if (fin && !fill_buffer_from_file(q, buf, fin))
+>>> +             if (fin && !fill_buffer_from_file(fd, q, buf, fin))
+>>>                       return -2;
+>>>
+>>>               if (qbuf) {
+>>> @@ -960,7 +1175,7 @@ static int do_handle_cap(cv4l_fd &fd, cv4l_queue &q, FILE *fout, int *index,
+>>>               if (fd.qbuf(buf))
+>>>                       return -1;
+>>>       }
+>>> -
+>>> +
+>>
+>> Seems to be a whitespace only change, just drop this change.
+>>
+>>>       double ts_secs = buf.g_timestamp().tv_sec + buf.g_timestamp().tv_usec / 1000000.0;
+>>>       fps_ts.add_ts(ts_secs, buf.g_sequence(), buf.g_field());
+>>>
+>>> @@ -1023,8 +1238,15 @@ static int do_handle_cap(cv4l_fd &fd, cv4l_queue &q, FILE *fout, int *index,
+>>>                       }
+>>>                       if (host_fd_to >= 0)
+>>>                               sz = fwrite(comp_ptr[j] + offset, 1, used, fout);
+>>> -                     else
+>>> -                             sz = fwrite((u8 *)q.g_dataptr(buf.g_index(), j) + offset, 1, used, fout);
+>>> +                     else {
+>>> +                             if(!is_m2m_enc) {
+>>> +                                     if(!padding(fd, q, (u8 *)q.g_dataptr(buf.g_index(), j) + offset, fout, sz, used, false))
+>>> +                                             return false;
+>>> +                             }
+>>> +                             else {
+>>> +                                     sz = fwrite((u8 *)q.g_dataptr(buf.g_index(), j) + offset, 1, used, fout);
+>>> +                             }
+>>> +                     }
+>>
+>> This doesn't feel right.
+>>
+>> I think a write_buffer_to_file() function should be introduced that deals with these
+>> variations.
+> 
+> Not sure what you meant, should I implement this if-else in another function ?
+> The "padding" function is used both for reading and writing to/from
+> padded buffer.
+> The condition for calling it here should be changed to
+> "if(is_m2m_dec)" in which case "padding" will
+> write a raw frame to a file from the padded capture buffer.
+
+static void write_buffer_to_file(cv4l_queue &q, cv4l_buffer &b, FILE *fout)
+{
+#ifndef NO_STREAM_TO
+	// code
+#endif
+}
+
+And in do_handle_cap() drop the NO_STREAM_TO and replace it with a call
+to the new function:
+
+        if (fout && (!stream_skip || ignore_count_skip) &&
+            buf.g_bytesused(0) && !(buf.g_flags() & V4L2_BUF_FLAG_ERROR))
+		write_buffer_to_file(q, buf, fout);
+
+This can be done in a separate patch: first refactor the code, introducing the
+new function, then add support for handling padding.
+
+> 
+>>
+>>>
+>>>                       if (sz != used)
+>>>                               fprintf(stderr, "%u != %u\n", sz, used);
+>>> @@ -1130,7 +1352,7 @@ static int do_handle_out(cv4l_fd &fd, cv4l_queue &q, FILE *fin, cv4l_buffer *cap
+>>>                       output_field = V4L2_FIELD_TOP;
+>>>       }
+>>>
+>>> -     if (fin && !fill_buffer_from_file(q, buf, fin))
+>>> +     if (fin && !fill_buffer_from_file(fd, q, buf, fin))
+>>>               return -2;
+>>>
+>>>       if (!fin && stream_out_refresh) {
+>>> @@ -1227,7 +1449,7 @@ static void streaming_set_cap(cv4l_fd &fd)
+>>>               }
+>>>               break;
+>>>       }
+>>> -
+>>> +
+>>>       memset(&sub, 0, sizeof(sub));
+>>>       sub.type = V4L2_EVENT_EOS;
+>>>       fd.subscribe_event(sub);
+>>> @@ -2031,6 +2253,21 @@ void streaming_set(cv4l_fd &fd, cv4l_fd &out_fd)
+>>>       int do_cap = options[OptStreamMmap] + options[OptStreamUser] + options[OptStreamDmaBuf];
+>>>       int do_out = options[OptStreamOutMmap] + options[OptStreamOutUser] + options[OptStreamOutDmaBuf];
+>>>
+>>> +     int r = get_codec_type(fd.g_fd(), is_m2m_enc);
+>>> +     if(r) {
+>>> +             fprintf(stderr, "error checking codec type\n");
+>>> +             return;
+>>> +     }
+>>> +
+>>> +     r = get_visible_format(fd.g_fd(), visible_width, visible_height);
+>>> +
+>>> +     if(r) {
+>>> +             fprintf(stderr, "error getting the visible width\n");
+>>> +             return;
+>>> +     }
+>>> +
+>>> +     get_frame_dims(frame_width, frame_height);
+>>> +
+>>>       if (out_fd.g_fd() < 0) {
+>>>               out_capabilities = capabilities;
+>>>               out_priv_magic = priv_magic;
+>>> diff --git a/utils/v4l2-ctl/v4l2-ctl-vidcap.cpp b/utils/v4l2-ctl/v4l2-ctl-vidcap.cpp
+>>> index dc17a868..932f1fd2 100644
+>>> --- a/utils/v4l2-ctl/v4l2-ctl-vidcap.cpp
+>>> +++ b/utils/v4l2-ctl/v4l2-ctl-vidcap.cpp
+>>> @@ -244,6 +244,12 @@ void vidcap_get(cv4l_fd &fd)
+>>>       }
+>>>  }
+>>>
+>>> +void vidcap_get_orig_from_set(unsigned int &r_width, unsigned int &r_height) {
+>>> +     r_height = height;
+>>> +     r_width = width;
+>>> +}
+>>> +
+>>> +
+>>>  void vidcap_list(cv4l_fd &fd)
+>>>  {
+>>>       if (options[OptListFormats]) {
+>>> diff --git a/utils/v4l2-ctl/v4l2-ctl-vidout.cpp b/utils/v4l2-ctl/v4l2-ctl-vidout.cpp
+>>> index 5823df9c..05bd43ed 100644
+>>> --- a/utils/v4l2-ctl/v4l2-ctl-vidout.cpp
+>>> +++ b/utils/v4l2-ctl/v4l2-ctl-vidout.cpp
+>>> @@ -208,6 +208,11 @@ void vidout_get(cv4l_fd &fd)
+>>>       }
+>>>  }
+>>>
+>>> +void vidout_get_orig_from_set(unsigned int &r_width, unsigned int &r_height) {
+>>> +     r_height = height;
+>>> +     r_width = width;
+>>> +}
+>>
+>> Don't do this (same for vidcap_get_orig_from_set).
+>>
+>> I think you just want to get the width and height from VIDIOC_G_FMT here,
+>> so why not just call that?
+>>
+> Those width/height are the values that are given by the user command.
+
+Yes, but those values are used in ioctl calls to the driver, so rather
+than using those values you query the driver.
+
+> They are needed in order to
+> read raw frames line by line for the encoder.
+
+Why not call G_FMT and G_SELECTION(TGT_CROP) to obtain that information?
+
+Please note that all the set and get options are all processed before the
+streaming options. So when you start streaming the driver is fully configured.
+
+> Maybe I can implement it by calling 'parse_fmt' in 'stream_cmd'
+> function similar to how 'vidout_cmd' do it.
+> 
+> https://git.linuxtv.org/v4l-utils.git/tree/utils/v4l2-ctl/v4l2-ctl-vidout.cpp#n90
+> 
+> 
+>> Remember that you can call v4l2-ctl without setting the output width and height
+>> if the defaults that the driver sets are already fine. In that case the width and height
+>> variables in this source are just 0.
+>>
+>>> +
+>>>  void vidout_list(cv4l_fd &fd)
+>>>  {
+>>>       if (options[OptListOutFormats]) {
+>>> diff --git a/utils/v4l2-ctl/v4l2-ctl.h b/utils/v4l2-ctl/v4l2-ctl.h
+>>> index 5a52a0a4..ab2994b2 100644
+>>> --- a/utils/v4l2-ctl/v4l2-ctl.h
+>>> +++ b/utils/v4l2-ctl/v4l2-ctl.h
+>>> @@ -357,6 +357,8 @@ void vidout_cmd(int ch, char *optarg);
+>>>  void vidout_set(cv4l_fd &fd);
+>>>  void vidout_get(cv4l_fd &fd);
+>>>  void vidout_list(cv4l_fd &fd);
+>>> +void vidcap_get_orig_from_set(unsigned int &r_width, unsigned int &r_height);
+>>> +void vidout_get_orig_from_set(unsigned int &r_width, unsigned int &r_height);
+>>>
+>>>  // v4l2-ctl-overlay.cpp
+>>>  void overlay_usage(void);
+>>>
+>>
+>> This patch needs more work (not surprisingly, since it takes a bit of time to
+>> understand the v4l2-ctl source code).
+>>
+>> Please stick to the kernel coding style! Using a different style makes it harder
+>> for me to review since my pattern matches routines in my brain no longer work
+>> optimally. It's like reading text with spelling mistakes, you cn stil undrstant iT,
+>> but it tekes moore teem. :-)
+>>
+> okei :)
+> 
+>> Regards,
+>>
+>>         Hans
+
+Regards,
+
+	Hans
