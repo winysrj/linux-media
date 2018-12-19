@@ -4,68 +4,68 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+	SIGNED_OFF_BY,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FE53C43387
-	for <linux-media@archiver.kernel.org>; Wed, 19 Dec 2018 17:27:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 475E0C43387
+	for <linux-media@archiver.kernel.org>; Wed, 19 Dec 2018 17:40:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BAA6920989
-	for <linux-media@archiver.kernel.org>; Wed, 19 Dec 2018 17:27:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F3DAA217D9
+	for <linux-media@archiver.kernel.org>; Wed, 19 Dec 2018 17:40:39 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=nextdimension.cc header.i=@nextdimension.cc header.b="QYYsFrfz"
+	dkim=pass (1024-bit key) header.d=nextdimension.cc header.i=@nextdimension.cc header.b="Y4DYb7O0"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730411AbeLSR1M (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 19 Dec 2018 12:27:12 -0500
-Received: from bonobo.maple.relay.mailchannels.net ([23.83.214.22]:28129 "EHLO
-        bonobo.maple.relay.mailchannels.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728582AbeLSR1L (ORCPT
+        id S1729188AbeLSRkj (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 19 Dec 2018 12:40:39 -0500
+Received: from goldenrod.birch.relay.mailchannels.net ([23.83.209.74]:1862
+        "EHLO goldenrod.birch.relay.mailchannels.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727652AbeLSRki (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Dec 2018 12:27:11 -0500
+        Wed, 19 Dec 2018 12:40:38 -0500
 X-Sender-Id: dreamhost|x-authsender|brad@b-rad.cc
 Received: from relay.mailchannels.net (localhost [127.0.0.1])
-        by relay.mailchannels.net (Postfix) with ESMTP id 64AFE123F92;
-        Wed, 19 Dec 2018 17:27:03 +0000 (UTC)
-Received: from pdx1-sub0-mail-a53.g.dreamhost.com (unknown [100.96.36.160])
+        by relay.mailchannels.net (Postfix) with ESMTP id 738551231F2;
+        Wed, 19 Dec 2018 17:40:33 +0000 (UTC)
+Received: from pdx1-sub0-mail-a53.g.dreamhost.com (unknown [100.96.33.121])
         (Authenticated sender: dreamhost)
-        by relay.mailchannels.net (Postfix) with ESMTPA id B919D1241B8;
-        Wed, 19 Dec 2018 17:27:02 +0000 (UTC)
+        by relay.mailchannels.net (Postfix) with ESMTPA id B1A39122FAF;
+        Wed, 19 Dec 2018 17:40:32 +0000 (UTC)
 X-Sender-Id: dreamhost|x-authsender|brad@b-rad.cc
 Received: from pdx1-sub0-mail-a53.g.dreamhost.com (pop.dreamhost.com
  [64.90.62.162])
         (using TLSv1.2 with cipher DHE-RSA-AES256-GCM-SHA384)
         by 0.0.0.0:2500 (trex/5.16.2);
-        Wed, 19 Dec 2018 17:27:03 +0000
+        Wed, 19 Dec 2018 17:40:33 +0000
 X-MC-Relay: Neutral
 X-MailChannels-SenderId: dreamhost|x-authsender|brad@b-rad.cc
 X-MailChannels-Auth-Id: dreamhost
-X-Arch-Abiding: 492d1b4e048d5e7d_1545240423224_3091080074
-X-MC-Loop-Signature: 1545240423224:1887303933
-X-MC-Ingress-Time: 1545240423223
+X-Left-Stupid: 0c2e06ca49b52b1a_1545241233124_4051547293
+X-MC-Loop-Signature: 1545241233124:1675980144
+X-MC-Ingress-Time: 1545241233124
 Received: from pdx1-sub0-mail-a53.g.dreamhost.com (localhost [127.0.0.1])
-        by pdx1-sub0-mail-a53.g.dreamhost.com (Postfix) with ESMTP id 2FC0C80430;
-        Wed, 19 Dec 2018 09:27:02 -0800 (PST)
+        by pdx1-sub0-mail-a53.g.dreamhost.com (Postfix) with ESMTP id B31D180433;
+        Wed, 19 Dec 2018 09:40:31 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed; d=nextdimension.cc; h=
         subject:to:cc:references:from:message-id:date:mime-version
         :in-reply-to:content-type:content-transfer-encoding; s=
-        nextdimension.cc; bh=YilCur7J++d5rxxJ+oIeBQSKhy4=; b=QYYsFrfz7cd
-        9rDkZkhSSx8uvuxvGPZCzjS4yJMzQ2J97FBxXjHZOK9hX+zdlg7SQKXZv23eLvdg
-        Do7mvwPzAq+tNwJAecERcmPCb9dxwsJL9+B6r3KXnd1kj3fdcBCIqrYepy68Lt8M
-        BgkNeUl5TSlssO1AjpV0Or9FacC/PYy8=
+        nextdimension.cc; bh=2kUUOQuknEo/Uz6yTdMiaWgy38I=; b=Y4DYb7O0QV8
+        TsZPPQwipcWmVmP8NJriyy0/aHHB2MkhB5dS4F3Qzdggw5BfW5pHgf/HDmx2H8et
+        rvf7D75mMy5W8L9gcfYC5GQRHjg4qnGrSXBooliKFLCrhr4Cs9YuMvdPIZ9CxpXf
+        gvM2eaI90paRm8O9mAugWwLKkCXeYKfk=
 Received: from [192.168.0.21] (66-90-189-166.dyn.grandenetworks.net [66.90.189.166])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
         (Authenticated sender: brad@b-rad.cc)
-        by pdx1-sub0-mail-a53.g.dreamhost.com (Postfix) with ESMTPSA id 12B7980413;
-        Wed, 19 Dec 2018 09:27:00 -0800 (PST)
+        by pdx1-sub0-mail-a53.g.dreamhost.com (Postfix) with ESMTPSA id 0FA888042E;
+        Wed, 19 Dec 2018 09:40:29 -0800 (PST)
 Subject: Re: [PATCH v2] cx23885: only reset DMA on problematic CPUs
-To:     Alex Deucher <alexdeucher@gmail.com>,
-        Brad Love <brad@nextdimension.cc>
+To:     Brad Love <brad@nextdimension.cc>,
+        Alex Deucher <alexdeucher@gmail.com>
 Cc:     linux-media <linux-media@vger.kernel.org>, mchehab@kernel.org,
         Markus Dobel <markus.dobel@gmx.de>
 References: <20181206173204.21b9366e@coco.lan>
  <1545173976-16992-1-git-send-email-brad@nextdimension.cc>
  <CADnq5_P8-7crcjcoOqNbHgkMzk-x6nGERXPNhuW=wny0WTt3wQ@mail.gmail.com>
+ <dc9eea72-10bf-0708-f6b0-78d620e88db3@nextdimension.cc>
 X-DH-BACKEND: pdx1-sub0-mail-a53
 From:   Brad Love <brad@nextdimension.cc>
 Openpgp: preference=signencrypt
@@ -111,18 +111,18 @@ Autocrypt: addr=brad@nextdimension.cc; prefer-encrypt=mutual; keydata=
  Om93LaUGEs5Cqb/hUv9k6eqjjQre9mB0ImDsGXkuuP0X6eN6yrstcaPAYl82NW+PGJ1Zz2ai
  AHkvsjIskeau68XRcm301QJI3qAZghhD7uJUH/NWBlr+w+F9vLlCgKvJLpahrd3PGHwgJnfV
  1qqhouQNjsUrwpkXdQjTbSwtZaDPzCeSUSMArNjQMp21IYg/LhafLMzBqVODgaTsFDuVyRg=
-Message-ID: <dc9eea72-10bf-0708-f6b0-78d620e88db3@nextdimension.cc>
-Date:   Wed, 19 Dec 2018 11:26:59 -0600
+Message-ID: <2d336f89-011e-4836-bdd3-7bc3cb1db344@nextdimension.cc>
+Date:   Wed, 19 Dec 2018 11:40:28 -0600
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
  Thunderbird/60.2.1
 MIME-Version: 1.0
-In-Reply-To: <CADnq5_P8-7crcjcoOqNbHgkMzk-x6nGERXPNhuW=wny0WTt3wQ@mail.gmail.com>
+In-Reply-To: <dc9eea72-10bf-0708-f6b0-78d620e88db3@nextdimension.cc>
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: quoted-printable
 Content-Language: en-GB
 X-VR-OUT-STATUS: OK
 X-VR-OUT-SCORE: -85
-X-VR-OUT-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedtkedrudejtddguddtudcutefuodetggdotefrodftvfcurfhrohhfihhlvgemucggtfgfnhhsuhgsshgtrhhisggvpdfftffgtefojffquffvnecuuegrihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenfghrlhcuvffnffculdduhedmnecujfgurhepuffvfhfhkffffgggjggtgfesthejredttdefjeenucfhrhhomhepuehrrgguucfnohhvvgcuoegsrhgrugesnhgvgihtughimhgvnhhsihhonhdrtggtqeenucffohhmrghinhepohhpvghnsggvnhgthhhmrghrkhhinhhgrdhorhhgnecukfhppeeiiedrledtrddukeelrdduieeinecurfgrrhgrmhepmhhouggvpehsmhhtphdphhgvlhhopegludelvddrudeikedrtddrvddungdpihhnvghtpeeiiedrledtrddukeelrdduieeipdhrvghtuhhrnhdqphgrthhhpeeurhgrugcunfhovhgvuceosghrrggusehnvgigthguihhmvghnshhiohhnrdgttgeqpdhmrghilhhfrhhomhepsghrrggusehnvgigthguihhmvghnshhiohhnrdgttgdpnhhrtghpthhtoheprghlvgiguggvuhgthhgvrhesghhmrghilhdrtghomhenucevlhhushhtvghrufhiiigvpedt
+X-VR-OUT-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedtkedrudejtddguddtgecutefuodetggdotefrodftvfcurfhrohhfihhlvgemucggtfgfnhhsuhgsshgtrhhisggvpdfftffgtefojffquffvnecuuegrihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenfghrlhcuvffnffculdduhedmnecujfgurhepuffvfhfhkffffgggjggtgfesthhqredttdefjeenucfhrhhomhepuehrrgguucfnohhvvgcuoegsrhgrugesnhgvgihtughimhgvnhhsihhonhdrtggtqeenucffohhmrghinhepohhpvghnsggvnhgthhhmrghrkhhinhhgrdhorhhgnecukfhppeeiiedrledtrddukeelrdduieeinecurfgrrhgrmhepmhhouggvpehsmhhtphdphhgvlhhopegludelvddrudeikedrtddrvddungdpihhnvghtpeeiiedrledtrddukeelrdduieeipdhrvghtuhhrnhdqphgrthhhpeeurhgrugcunfhovhgvuceosghrrggusehnvgigthguihhmvghnshhiohhnrdgttgeqpdhmrghilhhfrhhomhepsghrrggusehnvgigthguihhmvghnshhiohhnrdgttgdpnhhrtghpthhtohepsghrrggusehnvgigthguihhmvghnshhiohhnrdgttgenucevlhhushhtvghrufhiiigvpedt
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
@@ -131,99 +131,130 @@ X-Mailing-List: linux-media@vger.kernel.org
 Hi Alex,
 
 
-On 18/12/2018 17.49, Alex Deucher wrote:
-> On Tue, Dec 18, 2018 at 5:59 PM Brad Love <brad@nextdimension.cc> wrote:
->> It is reported that commit 95f408bbc4e4 ("media: cx23885: Ryzen DMA
->> related RiSC engine stall fixes") caused regresssions with other CPUs.
->>
->> Ensure that the quirk will be applied only for the CPUs that
->> are known to cause problems.
->>
->> A module option is added for explicit control of the behaviour.
->>
->> Fixes: 95f408bbc4e4 ("media: cx23885: Ryzen DMA related RiSC engine stall fixes")
->>
->> Signed-off-by: Brad Love <brad@nextdimension.cc>
->> ---
->> Changes since v1:
->> - Added module option for three way control
->> - Removed '7' from pci id description, Ryzen 3 is the same id
->>
->>  drivers/media/pci/cx23885/cx23885-core.c | 54 ++++++++++++++++++++++++++++++--
->>  drivers/media/pci/cx23885/cx23885.h      |  2 ++
->>  2 files changed, 54 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/media/pci/cx23885/cx23885-core.c b/drivers/media/pci/cx23885/cx23885-core.c
->> index 39804d8..fb721c7 100644
->> --- a/drivers/media/pci/cx23885/cx23885-core.c
->> +++ b/drivers/media/pci/cx23885/cx23885-core.c
->> @@ -23,6 +23,7 @@
->>  #include <linux/moduleparam.h>
->>  #include <linux/kmod.h>
->>  #include <linux/kernel.h>
->> +#include <linux/pci.h>
->>  #include <linux/slab.h>
->>  #include <linux/interrupt.h>
->>  #include <linux/delay.h>
->> @@ -41,6 +42,18 @@ MODULE_AUTHOR("Steven Toth <stoth@linuxtv.org>");
->>  MODULE_LICENSE("GPL");
->>  MODULE_VERSION(CX23885_VERSION);
->>
->> +/*
->> + * Some platforms have been found to require periodic resetting of the DMA
->> + * engine. Ryzen and XEON platforms are known to be affected. The symptom
->> + * encountered is "mpeg risc op code error". Only Ryzen platforms employ
->> + * this workaround if the option equals 1. The workaround can be explicitly
->> + * disabled for all platforms by setting to 0, the workaround can be forced
->> + * on for any platform by setting to 2.
->> + */
->> +static unsigned int dma_reset_workaround = 1;
->> +module_param(dma_reset_workaround, int, 0644);
->> +MODULE_PARM_DESC(dma_reset_workaround, "periodic RiSC dma engine reset; 0-force disable, 1-driver detect (default), 2-force enable");
->> +
->>  static unsigned int debug;
->>  module_param(debug, int, 0644);
->>  MODULE_PARM_DESC(debug, "enable debug messages");
->> @@ -603,8 +616,13 @@ static void cx23885_risc_disasm(struct cx23885_tsport *port,
->>
->>  static void cx23885_clear_bridge_error(struct cx23885_dev *dev)
->>  {
->> -       uint32_t reg1_val = cx_read(TC_REQ); /* read-only */
->> -       uint32_t reg2_val = cx_read(TC_REQ_SET);
->> +       uint32_t reg1_val, reg2_val;
->> +
->> +       if (!dev->need_dma_reset)
->> +               return;
->> +
->> +       reg1_val = cx_read(TC_REQ); /* read-only */
->> +       reg2_val = cx_read(TC_REQ_SET);
->>
->>         if (reg1_val && reg2_val) {
->>                 cx_write(TC_REQ, reg1_val);
->> @@ -2058,6 +2076,36 @@ void cx23885_gpio_enable(struct cx23885_dev *dev, u32 mask, int asoutput)
->>         /* TODO: 23-19 */
->>  }
->>
->> +static struct {
->> +       int vendor, dev;
->> +} const broken_dev_id[] = {
->> +       /* According with
->> +        * https://openbenchmarking.org/system/1703021-RI-AMDZEN08075/Ryzen%207%201800X/lspci,
->> +        * 0x1451 is PCI ID for the IOMMU found on Ryzen
->> +        */
->> +       { PCI_VENDOR_ID_AMD, 0x1451 },
-> Does this issue only happen with the IOMMU is enabled?  Is it only for
-> p2p transfers?  Until recently the DMA and PCI subsystems didn't
-> actually support p2p properly when the IOMMU was enabled.  that might
-> explain some of the issues.  Additionally, if you match based on the
-> IOMMU id, you won't match if the user disables the IOMMU in the sbios.
-> Is this only an issue with the IOMMU enabled?
+On 19/12/2018 11.26, Brad Love wrote:
+> Hi Alex,
 >
-> Alex
+>
+> On 18/12/2018 17.49, Alex Deucher wrote:
+>> On Tue, Dec 18, 2018 at 5:59 PM Brad Love <brad@nextdimension.cc> wrot=
+e:
+>>> It is reported that commit 95f408bbc4e4 ("media: cx23885: Ryzen DMA
+>>> related RiSC engine stall fixes") caused regresssions with other CPUs=
+=2E
+>>>
+>>> Ensure that the quirk will be applied only for the CPUs that
+>>> are known to cause problems.
+>>>
+>>> A module option is added for explicit control of the behaviour.
+>>>
+>>> Fixes: 95f408bbc4e4 ("media: cx23885: Ryzen DMA related RiSC engine s=
+tall fixes")
+>>>
+>>> Signed-off-by: Brad Love <brad@nextdimension.cc>
+>>> ---
+>>> Changes since v1:
+>>> - Added module option for three way control
+>>> - Removed '7' from pci id description, Ryzen 3 is the same id
+>>>
+>>>  drivers/media/pci/cx23885/cx23885-core.c | 54 ++++++++++++++++++++++=
+++++++++--
+>>>  drivers/media/pci/cx23885/cx23885.h      |  2 ++
+>>>  2 files changed, 54 insertions(+), 2 deletions(-)
+>>>
+>>> diff --git a/drivers/media/pci/cx23885/cx23885-core.c b/drivers/media=
+/pci/cx23885/cx23885-core.c
+>>> index 39804d8..fb721c7 100644
+>>> --- a/drivers/media/pci/cx23885/cx23885-core.c
+>>> +++ b/drivers/media/pci/cx23885/cx23885-core.c
+>>> @@ -23,6 +23,7 @@
+>>>  #include <linux/moduleparam.h>
+>>>  #include <linux/kmod.h>
+>>>  #include <linux/kernel.h>
+>>> +#include <linux/pci.h>
+>>>  #include <linux/slab.h>
+>>>  #include <linux/interrupt.h>
+>>>  #include <linux/delay.h>
+>>> @@ -41,6 +42,18 @@ MODULE_AUTHOR("Steven Toth <stoth@linuxtv.org>");
+>>>  MODULE_LICENSE("GPL");
+>>>  MODULE_VERSION(CX23885_VERSION);
+>>>
+>>> +/*
+>>> + * Some platforms have been found to require periodic resetting of t=
+he DMA
+>>> + * engine. Ryzen and XEON platforms are known to be affected. The sy=
+mptom
+>>> + * encountered is "mpeg risc op code error". Only Ryzen platforms em=
+ploy
+>>> + * this workaround if the option equals 1. The workaround can be exp=
+licitly
+>>> + * disabled for all platforms by setting to 0, the workaround can be=
+ forced
+>>> + * on for any platform by setting to 2.
+>>> + */
+>>> +static unsigned int dma_reset_workaround =3D 1;
+>>> +module_param(dma_reset_workaround, int, 0644);
+>>> +MODULE_PARM_DESC(dma_reset_workaround, "periodic RiSC dma engine res=
+et; 0-force disable, 1-driver detect (default), 2-force enable");
+>>> +
+>>>  static unsigned int debug;
+>>>  module_param(debug, int, 0644);
+>>>  MODULE_PARM_DESC(debug, "enable debug messages");
+>>> @@ -603,8 +616,13 @@ static void cx23885_risc_disasm(struct cx23885_t=
+sport *port,
+>>>
+>>>  static void cx23885_clear_bridge_error(struct cx23885_dev *dev)
+>>>  {
+>>> -       uint32_t reg1_val =3D cx_read(TC_REQ); /* read-only */
+>>> -       uint32_t reg2_val =3D cx_read(TC_REQ_SET);
+>>> +       uint32_t reg1_val, reg2_val;
+>>> +
+>>> +       if (!dev->need_dma_reset)
+>>> +               return;
+>>> +
+>>> +       reg1_val =3D cx_read(TC_REQ); /* read-only */
+>>> +       reg2_val =3D cx_read(TC_REQ_SET);
+>>>
+>>>         if (reg1_val && reg2_val) {
+>>>                 cx_write(TC_REQ, reg1_val);
+>>> @@ -2058,6 +2076,36 @@ void cx23885_gpio_enable(struct cx23885_dev *d=
+ev, u32 mask, int asoutput)
+>>>         /* TODO: 23-19 */
+>>>  }
+>>>
+>>> +static struct {
+>>> +       int vendor, dev;
+>>> +} const broken_dev_id[] =3D {
+>>> +       /* According with
+>>> +        * https://openbenchmarking.org/system/1703021-RI-AMDZEN08075=
+/Ryzen%207%201800X/lspci,
+>>> +        * 0x1451 is PCI ID for the IOMMU found on Ryzen
+>>> +        */
+>>> +       { PCI_VENDOR_ID_AMD, 0x1451 },
+>> Does this issue only happen with the IOMMU is enabled?  Is it only for=
+
+>> p2p transfers?  Until recently the DMA and PCI subsystems didn't
+>> actually support p2p properly when the IOMMU was enabled.  that might
+>> explain some of the issues.  Additionally, if you match based on the
+>> IOMMU id, you won't match if the user disables the IOMMU in the sbios.=
+
+>> Is this only an issue with the IOMMU enabled?
+>>
+>> Alex
+>
+> I'm unsure of the answers to your questions. I do still have my Ryzen3
+> system around, I'll see if I can disable IOMMU and do some tests.
+>
+> Regards,
+>
+> Brad
 
 
-I'm unsure of the answers to your questions. I do still have my Ryzen3
-system around, I'll see if I can disable IOMMU and do some tests.
+The moment I looked this up I recalled something. During testing I had
+to pass iommu=3Dpt as a kernel command line option, that option is still
+in my grub config. Without that set I would get critical AMD-VI errors
+from the onboard ethernet as well as gpu. I have left that setting as is
+the entire time (~8mo) I've been testing the system, because I could not
+boot initially without it. I'll try other options now.
 
 Regards,
 
@@ -231,53 +262,61 @@ Brad
 
 
 
->> +};
->> +
->> +static bool cx23885_does_need_dma_reset(void)
->> +{
->> +       int i;
->> +       struct pci_dev *pdev = NULL;
->> +
->> +       if (dma_reset_workaround == 0)
->> +               return false;
->> +       else if (dma_reset_workaround == 2)
->> +               return true;
->> +
->> +       for (i = 0; i < sizeof(broken_dev_id); i++) {
->> +               pdev = pci_get_device(broken_dev_id[i].vendor, broken_dev_id[i].dev, NULL);
->> +               if (pdev) {
->> +                       pci_dev_put(pdev);
->> +                       return true;
->> +               }
->> +       }
->> +       return false;
->> +}
->> +
->>  static int cx23885_initdev(struct pci_dev *pci_dev,
->>                            const struct pci_device_id *pci_id)
->>  {
->> @@ -2069,6 +2117,8 @@ static int cx23885_initdev(struct pci_dev *pci_dev,
->>         if (NULL == dev)
->>                 return -ENOMEM;
->>
->> +       dev->need_dma_reset = cx23885_does_need_dma_reset();
->> +
->>         err = v4l2_device_register(&pci_dev->dev, &dev->v4l2_dev);
->>         if (err < 0)
->>                 goto fail_free;
->> diff --git a/drivers/media/pci/cx23885/cx23885.h b/drivers/media/pci/cx23885/cx23885.h
->> index d54c7ee..cf965ef 100644
->> --- a/drivers/media/pci/cx23885/cx23885.h
->> +++ b/drivers/media/pci/cx23885/cx23885.h
->> @@ -451,6 +451,8 @@ struct cx23885_dev {
->>         /* Analog raw audio */
->>         struct cx23885_audio_dev   *audio_dev;
->>
->> +       /* Does the system require periodic DMA resets? */
->> +       unsigned int            need_dma_reset:1;
->>  };
->>
->>  static inline struct cx23885_dev *to_cx23885(struct v4l2_device *v4l2_dev)
->> --
->> 2.7.4
->>
+
+>
+>
+>>> +};
+>>> +
+>>> +static bool cx23885_does_need_dma_reset(void)
+>>> +{
+>>> +       int i;
+>>> +       struct pci_dev *pdev =3D NULL;
+>>> +
+>>> +       if (dma_reset_workaround =3D=3D 0)
+>>> +               return false;
+>>> +       else if (dma_reset_workaround =3D=3D 2)
+>>> +               return true;
+>>> +
+>>> +       for (i =3D 0; i < sizeof(broken_dev_id); i++) {
+>>> +               pdev =3D pci_get_device(broken_dev_id[i].vendor, brok=
+en_dev_id[i].dev, NULL);
+>>> +               if (pdev) {
+>>> +                       pci_dev_put(pdev);
+>>> +                       return true;
+>>> +               }
+>>> +       }
+>>> +       return false;
+>>> +}
+>>> +
+>>>  static int cx23885_initdev(struct pci_dev *pci_dev,
+>>>                            const struct pci_device_id *pci_id)
+>>>  {
+>>> @@ -2069,6 +2117,8 @@ static int cx23885_initdev(struct pci_dev *pci_=
+dev,
+>>>         if (NULL =3D=3D dev)
+>>>                 return -ENOMEM;
+>>>
+>>> +       dev->need_dma_reset =3D cx23885_does_need_dma_reset();
+>>> +
+>>>         err =3D v4l2_device_register(&pci_dev->dev, &dev->v4l2_dev);
+>>>         if (err < 0)
+>>>                 goto fail_free;
+>>> diff --git a/drivers/media/pci/cx23885/cx23885.h b/drivers/media/pci/=
+cx23885/cx23885.h
+>>> index d54c7ee..cf965ef 100644
+>>> --- a/drivers/media/pci/cx23885/cx23885.h
+>>> +++ b/drivers/media/pci/cx23885/cx23885.h
+>>> @@ -451,6 +451,8 @@ struct cx23885_dev {
+>>>         /* Analog raw audio */
+>>>         struct cx23885_audio_dev   *audio_dev;
+>>>
+>>> +       /* Does the system require periodic DMA resets? */
+>>> +       unsigned int            need_dma_reset:1;
+>>>  };
+>>>
+>>>  static inline struct cx23885_dev *to_cx23885(struct v4l2_device *v4l=
+2_dev)
+>>> --
+>>> 2.7.4
+>>>
+
