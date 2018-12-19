@@ -2,109 +2,126 @@ Return-Path: <SRS0=l98e=O4=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.7 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7CE29C43387
-	for <linux-media@archiver.kernel.org>; Wed, 19 Dec 2018 15:41:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E5CEC43387
+	for <linux-media@archiver.kernel.org>; Wed, 19 Dec 2018 15:58:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 55213218C3
-	for <linux-media@archiver.kernel.org>; Wed, 19 Dec 2018 15:41:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6B140217D9
+	for <linux-media@archiver.kernel.org>; Wed, 19 Dec 2018 15:58:28 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1545235108;
+	bh=WFjmUESCuYzgG5fu+T0BncSymYl5O7PV1e0RRELZmgc=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=0W1M5HlDKfP/ZVtrtc704CwcfE59kYJARYQa2eh8K6Zj79uyGOHQzGxojLoyGMFg8
+	 Yg1Sfx/rRXhDIBotPqNl+cNCsFpBigzW4QYSdpOGSdNava7RchYyspqi2VSfReNgFz
+	 lB1239XSlTyiuc7nE26NjRWeXYywDyT2EwBhjp2k=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729225AbeLSPlE (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 19 Dec 2018 10:41:04 -0500
-Received: from mail.bootlin.com ([62.4.15.54]:37265 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728135AbeLSPlE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Dec 2018 10:41:04 -0500
-Received: by mail.bootlin.com (Postfix, from userid 110)
-        id 4BE3920AB9; Wed, 19 Dec 2018 16:41:01 +0100 (CET)
-Received: from localhost (aaubervilliers-681-1-38-38.w90-88.abo.wanadoo.fr [90.88.157.38])
-        by mail.bootlin.com (Postfix) with ESMTPSA id 975F4206A7;
-        Wed, 19 Dec 2018 16:40:39 +0100 (CET)
-Date:   Wed, 19 Dec 2018 16:40:40 +0100
-From:   Maxime Ripard <maxime.ripard@bootlin.com>
-To:     sakari.ailus@iki.fi
-Cc:     Kishon Vijay Abraham I <kishon@ti.com>,
-        Boris Brezillon <boris.brezillon@bootlin.com>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org,
-        Archit Taneja <architt@codeaurora.org>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Chen-Yu Tsai <wens@csie.org>, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        linux-arm-kernel@lists.infradead.org,
-        Krzysztof Witos <kwitos@cadence.com>,
-        Rafal Ciepiela <rafalc@cadence.com>
-Subject: Re: [PATCH v3 03/10] phy: Add MIPI D-PHY configuration options
-Message-ID: <20181219154040.k424xkzz3xap6462@flea>
-References: <cover.ad7c4feb3905658f10b022df4756a5ade280011f.1544190837.git-series.maxime.ripard@bootlin.com>
- <96a74b72be8db491dea720fdd7394bcd09880c84.1544190837.git-series.maxime.ripard@bootlin.com>
- <20181213204928.34hwq63nj5ircvkf@valkosipuli.retiisi.org.uk>
- <20181217154921.c4ttksa6bg2yxxjp@flea>
- <20181217202039.zhsxozdw7dlc3xdj@valkosipuli.retiisi.org.uk>
+        id S1728827AbeLSP6W (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 19 Dec 2018 10:58:22 -0500
+Received: from mail-oi1-f195.google.com ([209.85.167.195]:33667 "EHLO
+        mail-oi1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728095AbeLSP6V (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 19 Dec 2018 10:58:21 -0500
+Received: by mail-oi1-f195.google.com with SMTP id c206so2004259oib.0;
+        Wed, 19 Dec 2018 07:58:21 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=CZ6helZFIbNZWd2xpX2RWEIGe/GgpkbWYhxxRVvlPGY=;
+        b=ds3aEwrJvLvJSQwAviAWVEMJ+EL8DpRWFRjkJmypflAyMB05Hf5r/Il7804f7uK4QW
+         USHQqSfMCZFhF1fMsZNzGAkU16kco+7PMpJ3sGmZwiJIqXXE9qQ/vSvLuU9IelSzJE32
+         KPIFfokkCPFneX/4m7zSviNEiCVNbn//Pj5d/yb8+ocEmejLXBCLu2L9i6ssYESLWW6F
+         oH6MMtv1uRGBg9A95SLnP4slo7j85A/l9VTv42awQ+svp8H+D0HhIeEcI8SHvKYo2BNL
+         P3jnTpEK9ACy+7HsMD3JMqbzUcG79liEDuZ4prhvrZEbgi+O408KlBk5wYZJIhIQLlKC
+         00jg==
+X-Gm-Message-State: AA+aEWZHFR8lUbIh2C7lqDXrxMOFg/bqcEeDEJHlDcLEmgF3vVcevA7u
+        judrG/76aqhwD5uYT2T4bdlb2yc=
+X-Google-Smtp-Source: AFSGD/W9GXq5kAsnWs/Xnz7z663VsKaUGUVw1RXyP8zm6/ltLOF3fLAu87v6trOzW/o02sT4ob4rFQ==
+X-Received: by 2002:aca:f244:: with SMTP id q65mr1333524oih.50.1545235100970;
+        Wed, 19 Dec 2018 07:58:20 -0800 (PST)
+Received: from localhost (24-155-109-49.dyn.grandenetworks.net. [24.155.109.49])
+        by smtp.gmail.com with ESMTPSA id 75sm8770634otc.67.2018.12.19.07.58.20
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Wed, 19 Dec 2018 07:58:20 -0800 (PST)
+Date:   Wed, 19 Dec 2018 09:58:19 -0600
+From:   Rob Herring <robh@kernel.org>
+To:     Jagan Teki <jagan@amarulasolutions.com>
+Cc:     Chen-Yu Tsai <wens@csie.org>, Yong Deng <yong.deng@magewell.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Mark Rutland <mark.rutland@arm.com>,
+        linux-media <linux-media@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        devicetree <devicetree@vger.kernel.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        Michael Trimarchi <michael@amarulasolutions.com>
+Subject: Re: [PATCH 5/5] arm64: dts: allwinner: a64-amarula-relic: Add OV5640
+ camera node
+Message-ID: <20181219155819.GA22708@bogus>
+References: <20181203100747.16442-1-jagan@amarulasolutions.com>
+ <20181203100747.16442-6-jagan@amarulasolutions.com>
+ <CAGb2v6441wV7PM6q=vF2cpJtP9BGdYjQQqNU54rqELNJ5YcmdQ@mail.gmail.com>
+ <CAMty3ZBBcum5CF1xQ_ePNUkcMoBPXngbiwf2V7hWHrH7-k3xuQ@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="5iqyg7jbpm2uyidw"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20181217202039.zhsxozdw7dlc3xdj@valkosipuli.retiisi.org.uk>
-User-Agent: NeoMutt/20180716
+In-Reply-To: <CAMty3ZBBcum5CF1xQ_ePNUkcMoBPXngbiwf2V7hWHrH7-k3xuQ@mail.gmail.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
+On Thu, Dec 06, 2018 at 04:43:33PM +0530, Jagan Teki wrote:
+> On Mon, Dec 3, 2018 at 3:55 PM Chen-Yu Tsai <wens@csie.org> wrote:
+> >
+> > On Mon, Dec 3, 2018 at 6:08 PM Jagan Teki <jagan@amarulasolutions.com> wrote:
+> > >
+> > > Amarula A64-Relic board by default bound with OV5640 camera,
+> > > so add support for it with below pin information.
+> > >
+> > > - PE13, PE12 via i2c-gpio bitbanging
+> > > - CLK_CSI_MCLK as external clock
+> > > - PE1 as external clock pin muxing
+> > > - DLDO3 as vcc-csi supply
+> > > - DLDO3 as AVDD supply
+> > > - ALDO1 as DOVDD supply
+> > > - ELDO3 as DVDD supply
+> > > - PE14 gpio for reset pin
+> > > - PE15 gpio for powerdown pin
+> > >
+> > > Signed-off-by: Jagan Teki <jagan@amarulasolutions.com>
+> > > ---
+> > >  .../allwinner/sun50i-a64-amarula-relic.dts    | 54 +++++++++++++++++++
+> > >  arch/arm64/boot/dts/allwinner/sun50i-a64.dtsi |  5 ++
+> > >  2 files changed, 59 insertions(+)
+> > >
+> > > diff --git a/arch/arm64/boot/dts/allwinner/sun50i-a64-amarula-relic.dts b/arch/arm64/boot/dts/allwinner/sun50i-a64-amarula-relic.dts
+> > > index 6cb2b7f0c817..9ac6d773188b 100644
+> > > --- a/arch/arm64/boot/dts/allwinner/sun50i-a64-amarula-relic.dts
+> > > +++ b/arch/arm64/boot/dts/allwinner/sun50i-a64-amarula-relic.dts
+> > > @@ -22,6 +22,41 @@
+> > >                 stdout-path = "serial0:115200n8";
+> > >         };
+> > >
+> > > +       i2c-csi {
+> > > +               compatible = "i2c-gpio";
+> > > +               sda-gpios = <&pio 4 13 (GPIO_ACTIVE_HIGH|GPIO_OPEN_DRAIN)>;
+> > > +               scl-gpios = <&pio 4 12 (GPIO_ACTIVE_HIGH|GPIO_OPEN_DRAIN)>;
+> >
+> > FYI our hardware doesn't do open drain.
+> 
+> True, but the kernel is enforcing it seems, from the change from [1].
+> does that mean Linux use open drain even though hardware doens't have?
+> or did I miss anything?
 
---5iqyg7jbpm2uyidw
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+It's forced because you can't do I2C without open drain. Things like the 
+slave doing clock stretching won't work.
 
-On Mon, Dec 17, 2018 at 10:20:39PM +0200, sakari.ailus@iki.fi wrote:
-> Hi Maxime,
->=20
-> On Mon, Dec 17, 2018 at 04:49:21PM +0100, Maxime Ripard wrote:
-> > Hi Sakari,
-> >=20
-> > Thanks for your feedback.
-> >=20
-> > On Thu, Dec 13, 2018 at 10:49:28PM +0200, sakari.ailus@iki.fi wrote:
-> > > > +	/**
-> > > > +	 * @lanes:
-> > > > +	 *
-> > > > +	 * Number of active data lanes used for the transmissions.
-> > >=20
-> > > Could you add that these are the first "lanes" number of lanes from w=
-hat
-> > > are available?
-> >=20
-> > I'm not quite sure I understood this part though, what did you mean?
->=20
-> A number of lanes are routed between the two devices on hardware, and this
-> field is specifying how many of them are in use. In order for the bus to
-> function, both ends need to be in agreement on which of these lanes are
-> actually being used. The current practice I've seen without exceptions is
-> that these are the first n lanes.
-
-Ah, right, I get it now, thanks!
-Maxime
-
---=20
-Maxime Ripard, Bootlin
-Embedded Linux and Kernel engineering
-https://bootlin.com
-
---5iqyg7jbpm2uyidw
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iHUEABYIAB0WIQRcEzekXsqa64kGDp7j7w1vZxhRxQUCXBpmeAAKCRDj7w1vZxhR
-xTnFAQCP+5QVwIA2UFCKHNRgxL3GIau3a9c+AWOb3EwOgHtSKQEA9BNznxa/TFI6
-EtTZ9A7KaebGQBSMkfkKIaBrEGGaqQQ=
-=PQh1
------END PGP SIGNATURE-----
-
---5iqyg7jbpm2uyidw--
+Rob
