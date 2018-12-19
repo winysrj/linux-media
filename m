@@ -2,144 +2,88 @@ Return-Path: <SRS0=l98e=O4=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.2 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_MUTT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B9EFC43387
-	for <linux-media@archiver.kernel.org>; Wed, 19 Dec 2018 14:11:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E1D9C43387
+	for <linux-media@archiver.kernel.org>; Wed, 19 Dec 2018 14:51:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 078792084A
-	for <linux-media@archiver.kernel.org>; Wed, 19 Dec 2018 14:11:25 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1545228685;
-	bh=XKLQUPIf/89RrUOEQxC/Z/Qr5R53TjHX+Cj2gpBHduI=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
-	b=qxDq9T/TnGJycrmnp3/gWcpENOtZxFFEWWHlRDKBx3uwIZPhdaVOQLf73DS8A/FCS
-	 +2m8MSIrMqBpIGNXoJOD9VjmDoqoVkD8+p32E9X5DVktE/oeFjffYtGffEuKGq17La
-	 Uh1NNgUFU8nwvl7mfvXO4kF/X93/CgyvKnutBJ1M=
+	by mail.kernel.org (Postfix) with ESMTP id 0C45021841
+	for <linux-media@archiver.kernel.org>; Wed, 19 Dec 2018 14:51:35 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="DL1tGE9g"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727594AbeLSOLY (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 19 Dec 2018 09:11:24 -0500
-Received: from casper.infradead.org ([85.118.1.10]:51742 "EHLO
-        casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727310AbeLSOLY (ORCPT
+        id S1729265AbeLSOv3 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 19 Dec 2018 09:51:29 -0500
+Received: from bombadil.infradead.org ([198.137.202.133]:35206 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728432AbeLSOv2 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Dec 2018 09:11:24 -0500
+        Wed, 19 Dec 2018 09:51:28 -0500
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
-        MIME-Version:References:In-Reply-To:Message-ID:Subject:Cc:To:From:Date:Sender
-        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
-        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=5XMBj8N/43y8ZibssIeerh/+QDy6dwdwHUNwyagmgyc=; b=mumbeDP9emSy0gb3TCO0JU71mP
-        RGOJzucHVfxhBDW3CmWEt3iUCHq+PLUUv3JZQqjTCehF3p4qp/7ENXMSY3raaiD991qxANmB5FRD7
-        V8WzuQ9cCm+G/fgwXf22ZRATm4CBXsjJT2wGiwTmsm4xoYz68UDleGb4hmhS5ItkRKA3MTTO2pMVr
-        XqpIDuvutYM1gkH8x3508u1yVypS1WZoCKJYl3wgP85I2GPUEsiERQuUT9sZKfvOBZOxdV8VHFvaH
-        EBKFHXzvTR22tGKYqXrl+rHWk4o4e8Xz8R2bdM5sd5cQlrhnb4gYOXBmVIZU8NAzSlLOyZMVLV5my
-        D7Dgl4JA==;
-Received: from [191.33.191.108] (helo=coco.lan)
-        by casper.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
-        id 1gZcZG-00079u-LT; Wed, 19 Dec 2018 14:11:23 +0000
-Date:   Wed, 19 Dec 2018 12:11:17 -0200
-From:   Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To:     Josef Wolf <jw@raven.inka.de>
-Cc:     linux-media@vger.kernel.org
-Subject: Re: SYS_DVBS vs. SYS_DVBS2
-Message-ID: <20181219121117.0a942d85@coco.lan>
-In-Reply-To: <20181219121649.GK11337@raven.inka.de>
-References: <20181219102846.GJ11337@raven.inka.de>
-        <20181219092211.16d67c61@coco.lan>
-        <20181219121649.GK11337@raven.inka.de>
-X-Mailer: Claws Mail 3.16.0 (GTK+ 2.24.32; x86_64-redhat-linux-gnu)
+        d=infradead.org; s=bombadil.20170209; h=In-Reply-To:Content-Type:MIME-Version
+        :References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description:Resent-Date:
+        Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:
+        List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+         bh=o+bT8uJ7twTfSVANB3fgFwiG42Ku6gwOghEO7zhPR+Y=; b=DL1tGE9gY5Us8bdthVr84Pjjb
+        dPvqVhcHImb34IatIEPkUmIjSmA8/eSN/gbdzeUJNcsF7JUYYrBmUcclEY0FTj8vK9VbmqxXEDXzw
+        gi+GJUde46GItOYNiRPRlee+jHCsCICasKvPWhVEWclviIHKyUpGxPXPrdy/9CuPdjgm3hMfyimdi
+        U914H6j0zz0cBIET2ccPMLH6xhFNHtF60G7uWzXN6QS9nf7Jg4lgjODB9sKM0D8+KM2nBjpKG+wK6
+        hdLyV4qkaLJtfdB/vbLo5nUsIofpgZiMnGV8bUPBnFmh8WonC8NHPDXLqVSB0wBb9GBgWefsx3qxD
+        k+08YnXUA==;
+Received: from hch by bombadil.infradead.org with local (Exim 4.90_1 #2 (Red Hat Linux))
+        id 1gZdBy-0001LO-Pp; Wed, 19 Dec 2018 14:51:22 +0000
+Date:   Wed, 19 Dec 2018 06:51:22 -0800
+From:   Christoph Hellwig <hch@infradead.org>
+To:     Tomasz Figa <tfiga@chromium.org>
+Cc:     Christoph Hellwig <hch@infradead.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        "Matwey V. Kornilov" <matwey@sai.msu.ru>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        "Matwey V. Kornilov" <matwey.kornilov@gmail.com>,
+        Alan Stern <stern@rowland.harvard.edu>,
+        Ezequiel Garcia <ezequiel@collabora.com>, hdegoede@redhat.com,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        rostedt@goodmis.org, mingo@redhat.com,
+        Mike Isely <isely@pobox.com>,
+        Bhumika Goyal <bhumirks@gmail.com>,
+        Colin King <colin.king@canonical.com>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        keiichiw@chromium.org
+Subject: Re: [PATCH v5 2/2] media: usb: pwc: Don't use coherent DMA buffers
+ for ISO transfer
+Message-ID: <20181219145122.GA31947@infradead.org>
+References: <20181212135440.GA6137@infradead.org>
+ <CAAFQd5C4RbMxRP+ox+BDuApMusTD=WUD9Vs6aWL3u=HovuWUig@mail.gmail.com>
+ <20181213140329.GA25339@infradead.org>
+ <CAAFQd5BudF84jVaiy7KwevzBZnfYUZggDK=4W=g+Znf5VJjHsQ@mail.gmail.com>
+ <20181214123624.GA5824@infradead.org>
+ <CAAFQd5BnZHhNjOc6HKt=YVBVQFCcqN0RxAcfDp3S+gDKRvciqQ@mail.gmail.com>
+ <20181218073847.GA4552@infradead.org>
+ <CAAFQd5AT3ixnbZRm3TOjoWrk2UNH0bXqgR+Z8wyjMhr0xHtSOg@mail.gmail.com>
+ <20181219075150.GA26656@infradead.org>
+ <CAAFQd5DJPDpFDxU_m2r02bA59J8RCHW7iE8zYQUmkL4sFSz05Q@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAAFQd5DJPDpFDxU_m2r02bA59J8RCHW7iE8zYQUmkL4sFSz05Q@mail.gmail.com>
+User-Agent: Mutt/1.9.2 (2017-12-15)
+X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Em Wed, 19 Dec 2018 13:16:49 +0100
-Josef Wolf <jw@raven.inka.de> escreveu:
+On Wed, Dec 19, 2018 at 05:18:35PM +0900, Tomasz Figa wrote:
+> The existing code that deals with dma_alloc_attrs() without
+> DMA_ATTR_NON_CONSISTENT would just call dma_get_sgtable_attrs() like
+> here:
 
-> Thanks for your response, Mauro!
-> 
-> On Wed, Dec 19, 2018 at 09:22:11AM -0200, Mauro Carvalho Chehab wrote:
-> > Em Wed, 19 Dec 2018 11:28:46 +0100
-> > Josef Wolf <jw@raven.inka.de> escreveu:  
-> 
-> > > I would like to know how to know whether for a specific program SYS_DVBS or
-> > > SYS_DVBS2 should be specified to the FE_SET_PROPERTY ioctl() call.  
-> > 
-> > This is not specific to a program. It affects the hole transponder. Either
-> > the transponder is DVB-S or DVB-S2.  
-> 
-> Yes, I'm aware of it. In my question I meant: when I want to tune to some
-> program, I need to set the SYS_DVBx property in addition to the other tuning
-> parameters (like frequency, polarization, FEC etc/pp)
-> 
-> > > Is this somehow broadcasted in some PAT/PMT tables?  
-> > 
-> > It is at the NAT tables. They contain all needed information to properly
-> > tune into the transponders. There are different tables, depending if the
-> > transponder is -S or -S2.  
-> 
-> OK.
-> 
-> > > Or is it possible to simple always specify SYS_DVBS2 and the kernel will
-> > > manage the backwards compatibilities when a DVB-S transponder is specified in
-> > > the tuning parameters?  
-> > 
-> > The Kernel can't and shouldn't guess the tuning parameters. It depends
-> > on userspace to parse the NAT tables and get it right.  
-> 
-> It is pretty much obvois to me that the kernel can't guess tuning parameters
-> like diseqc-sequence, polarity, frequency and symrate. This is because the
-> kernel needs those parameters to get a signal at all.
-> 
-> But, on the other side, there are lots of parameters that the kernel (or
-> hardware?) _can_ guess: INVERSION_AUTO, FEC_AUTO, QAM_AUTO just to name some.
-
-The Kernel implements only INVERSION_AUTO. The rest is implemented by
-the device itself, if it has support for it.
-
-> So what' so special about SYS_DVBS/SYS_DVBS2 that it has to be handled
-> differently from those other parameters?
-
-DVB-S2 adds a lot more parameters, including the possibility of using
-different modulations (QPSK, 8PSK, 16APSK, 32APSK). DVB-S was just QPSK.
-
-The rolloff parameter also can be changed. DVB-S was just 0.35. On
-DVB-S2 it can also be 0.20 and 0.25. That affects frequency filtering.
-
-It even allows to have multiple MPEG-TS streams inside a physical
-transponder, each with a separate ID. 
-
-If, for example, there are multiple streams, neither the device nor 
-the Kernel could know what ID would contain the MPEG stream that
-the user wants.
-
-It may also use a scrambling code, with requires userspace to
-pass the gold code, in order to de-scramble it.
-
-So, if the transponder is using those extra features provided by
-DVB-S2, the device has to know how to properly tune transponder and 
-how filter/de-scramble the transport stream that contains the program
-the user wants.
-
-It is worth to say that DVB-S2 is a superset of DVB-S. If your
-tuner can do DVB-S2 and you want to tune to a DVB-S transponder,
-provided that you properly fill all DVB-S2 properties to match
-a DVB-S channel (rollback, modulation, ...), in thesis[1] you could
-use SYS_DVBS2 as delivery system.
-
-[1] In practice, I'm not so sure, as this is something that
-developers don't usually test. Both userspace apps and Kernelspace
-don't assume that. So, it is not warranted to work.
-I guess that, if one uses SYS_DVBS2 to tune, the results will vary
-from driver to driver. Things like gold code and PLS ID, if set wrong,
-could prevent the channel to tune.
-
-Thanks,
-Mauro
+I know.  And dma_get_sgtable_attrs is fundamentally flawed and we
+need to kill this interface as it just can't worked with virtually
+tagged cases.  It is a prime example for an interface that looks
+nice and simple but is plain wrong.
