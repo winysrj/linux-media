@@ -6,50 +6,50 @@ X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9617EC43387
-	for <linux-media@archiver.kernel.org>; Wed, 19 Dec 2018 15:39:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7CE29C43387
+	for <linux-media@archiver.kernel.org>; Wed, 19 Dec 2018 15:41:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6F7022086C
-	for <linux-media@archiver.kernel.org>; Wed, 19 Dec 2018 15:39:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 55213218C3
+	for <linux-media@archiver.kernel.org>; Wed, 19 Dec 2018 15:41:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730258AbeLSPjt (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 19 Dec 2018 10:39:49 -0500
-Received: from mail.bootlin.com ([62.4.15.54]:37160 "EHLO mail.bootlin.com"
+        id S1729225AbeLSPlE (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 19 Dec 2018 10:41:04 -0500
+Received: from mail.bootlin.com ([62.4.15.54]:37265 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728249AbeLSPjs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Dec 2018 10:39:48 -0500
+        id S1728135AbeLSPlE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 19 Dec 2018 10:41:04 -0500
 Received: by mail.bootlin.com (Postfix, from userid 110)
-        id DD8C1206FF; Wed, 19 Dec 2018 16:39:45 +0100 (CET)
+        id 4BE3920AB9; Wed, 19 Dec 2018 16:41:01 +0100 (CET)
 Received: from localhost (aaubervilliers-681-1-38-38.w90-88.abo.wanadoo.fr [90.88.157.38])
-        by mail.bootlin.com (Postfix) with ESMTPSA id B12E72037D;
-        Wed, 19 Dec 2018 16:39:35 +0100 (CET)
-Date:   Wed, 19 Dec 2018 16:39:36 +0100
+        by mail.bootlin.com (Postfix) with ESMTPSA id 975F4206A7;
+        Wed, 19 Dec 2018 16:40:39 +0100 (CET)
+Date:   Wed, 19 Dec 2018 16:40:40 +0100
 From:   Maxime Ripard <maxime.ripard@bootlin.com>
-To:     Jagan Teki <jagan@amarulasolutions.com>
-Cc:     Yong Deng <yong.deng@magewell.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        linux-media <linux-media@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        devicetree <devicetree@vger.kernel.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        linux-sunxi <linux-sunxi@googlegroups.com>,
-        linux-amarula@amarulasolutions.com,
-        Michael Trimarchi <michael@amarulasolutions.com>
-Subject: Re: [PATCH v4 0/6] media/sun6i: Allwinner A64 CSI support
-Message-ID: <20181219153936.pxu6nwf2conp4b3m@flea>
-References: <20181218113320.4856-1-jagan@amarulasolutions.com>
- <20181218152122.4zj6wgbukhrl6ly6@flea>
- <CAMty3ZA4xXVLKx-yj+2_iJ700+yTLesjEAgS8Wu2i8otPScpaw@mail.gmail.com>
- <20181219102450.picswsg3yevba23j@flea>
- <CAMty3ZB04E46kMKVvo-QxpVQBus74at3uKJC_QzS788UiCAeeg@mail.gmail.com>
+To:     sakari.ailus@iki.fi
+Cc:     Kishon Vijay Abraham I <kishon@ti.com>,
+        Boris Brezillon <boris.brezillon@bootlin.com>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org,
+        Archit Taneja <architt@codeaurora.org>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Chen-Yu Tsai <wens@csie.org>, linux-kernel@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        linux-arm-kernel@lists.infradead.org,
+        Krzysztof Witos <kwitos@cadence.com>,
+        Rafal Ciepiela <rafalc@cadence.com>
+Subject: Re: [PATCH v3 03/10] phy: Add MIPI D-PHY configuration options
+Message-ID: <20181219154040.k424xkzz3xap6462@flea>
+References: <cover.ad7c4feb3905658f10b022df4756a5ade280011f.1544190837.git-series.maxime.ripard@bootlin.com>
+ <96a74b72be8db491dea720fdd7394bcd09880c84.1544190837.git-series.maxime.ripard@bootlin.com>
+ <20181213204928.34hwq63nj5ircvkf@valkosipuli.retiisi.org.uk>
+ <20181217154921.c4ttksa6bg2yxxjp@flea>
+ <20181217202039.zhsxozdw7dlc3xdj@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="42s4xmtnspqvogyw"
+        protocol="application/pgp-signature"; boundary="5iqyg7jbpm2uyidw"
 Content-Disposition: inline
-In-Reply-To: <CAMty3ZB04E46kMKVvo-QxpVQBus74at3uKJC_QzS788UiCAeeg@mail.gmail.com>
+In-Reply-To: <20181217202039.zhsxozdw7dlc3xdj@valkosipuli.retiisi.org.uk>
 User-Agent: NeoMutt/20180716
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
@@ -57,68 +57,38 @@ List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
 
---42s4xmtnspqvogyw
+--5iqyg7jbpm2uyidw
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-65;5402;1c
-On Wed, Dec 19, 2018 at 04:11:50PM +0530, Jagan Teki wrote:
-> On Wed, Dec 19, 2018 at 3:55 PM Maxime Ripard <maxime.ripard@bootlin.com>=
- wrote:
-> >
-> > On Tue, Dec 18, 2018 at 08:58:22PM +0530, Jagan Teki wrote:
-> > > On Tue, Dec 18, 2018 at 8:51 PM Maxime Ripard <maxime.ripard@bootlin.=
-com> wrote:
-> > > >
-> > > > On Tue, Dec 18, 2018 at 05:03:14PM +0530, Jagan Teki wrote:
-> > > > > This series support CSI on Allwinner A64.
-> > > > >
-> > > > > Tested 640x480, 320x240, 720p, 1080p resolutions UYVY8_2X8 format.
-> > > > >
-> > > > > Changes for v4:
-> > > > > - update the compatible string order
-> > > > > - add proper commit message
-> > > > > - included BPI-M64 patch
-> > > > > - skipped amarula-a64 patch
-> > > > > Changes for v3:
-> > > > > - update dt-bindings for A64
-> > > > > - set mod clock via csi driver
-> > > > > - remove assign clocks from dtsi
-> > > > > - remove i2c-gpio opendrian
-> > > > > - fix avdd and dovdd supplies
-> > > > > - remove vcc-csi pin group supply
-> > > > >
-> > > > > Note: This series created on top of H3 changes [1]
-> > > > >
-> > > > > [1] https://patchwork.kernel.org/cover/10705905/
-> > > >
-> > > > You had memory corruption before, how was this fixed?
-> > >
-> > > Memory corruption observed with default 600MHz on 1080p. It worked
-> > > fine on BPI-M64 (with 300MHz)
-> >
-> > I don't get it. In the previous version of those patches, you were
-> > mentionning you were still having this issue, even though you had the
-> > clock running at 300MHz, and then you tried to convince us to merge
-> > the patches nonetheless.
-> >
-> > Why would you say that then if that issue was fixed?
+On Mon, Dec 17, 2018 at 10:20:39PM +0200, sakari.ailus@iki.fi wrote:
+> Hi Maxime,
 >=20
-> Previous version has A64-Relic board, which has some xclk issue on
-> sensor side wrt 1080p. I have tried 300MHz on the same hardware, it's
-> failing to capture on 30fps and so I tried 600MHz(which is default) on
-> the same configuration but it encounter memory corruption.
+> On Mon, Dec 17, 2018 at 04:49:21PM +0100, Maxime Ripard wrote:
+> > Hi Sakari,
+> >=20
+> > Thanks for your feedback.
+> >=20
+> > On Thu, Dec 13, 2018 at 10:49:28PM +0200, sakari.ailus@iki.fi wrote:
+> > > > +	/**
+> > > > +	 * @lanes:
+> > > > +	 *
+> > > > +	 * Number of active data lanes used for the transmissions.
+> > >=20
+> > > Could you add that these are the first "lanes" number of lanes from w=
+hat
+> > > are available?
+> >=20
+> > I'm not quite sure I understood this part though, what did you mean?
 >=20
-> So, for checking whether there is an issue with hardware on A64-Relic
-> I moved with BPI-M64 dev board. which is working 1080p with 300MHz, ie
-> reason I have not included A64-Relic on this version and included
-> BPI-M64. We processed A64-Relic to hardware team to figure out the
-> clock and once ie fixed I'm planning to send DTS patch for that.
->=20
-> This is overall summary, hope you understand.
+> A number of lanes are routed between the two devices on hardware, and this
+> field is specifying how many of them are in use. In order for the bus to
+> function, both ends need to be in agreement on which of these lanes are
+> actually being used. The current practice I've seen without exceptions is
+> that these are the first n lanes.
 
-Ok, great, thanks!
+Ah, right, I get it now, thanks!
 Maxime
 
 --=20
@@ -126,15 +96,15 @@ Maxime Ripard, Bootlin
 Embedded Linux and Kernel engineering
 https://bootlin.com
 
---42s4xmtnspqvogyw
+--5iqyg7jbpm2uyidw
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iHUEABYIAB0WIQRcEzekXsqa64kGDp7j7w1vZxhRxQUCXBpmOAAKCRDj7w1vZxhR
-xS6UAQDZ0gzJ6Cpqb1L748mR/KCe7R4lzSPjadp+Ltn60pN+WgEAwiW65t5DGkTU
-TkBvF6d0ycQwn2u7f7jwIzCs/pG+XgM=
-=7Fyr
+iHUEABYIAB0WIQRcEzekXsqa64kGDp7j7w1vZxhRxQUCXBpmeAAKCRDj7w1vZxhR
+xTnFAQCP+5QVwIA2UFCKHNRgxL3GIau3a9c+AWOb3EwOgHtSKQEA9BNznxa/TFI6
+EtTZ9A7KaebGQBSMkfkKIaBrEGGaqQQ=
+=PQh1
 -----END PGP SIGNATURE-----
 
---42s4xmtnspqvogyw--
+--5iqyg7jbpm2uyidw--
