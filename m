@@ -1,85 +1,114 @@
-Return-Path: <SRS0=l98e=O4=vger.kernel.org=linux-media-owner@kernel.org>
+Return-Path: <SRS0=s3Lq=O5=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.7 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
-	USER_AGENT_MUTT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.2 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CEB8EC43387
-	for <linux-media@archiver.kernel.org>; Wed, 19 Dec 2018 20:38:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 004B6C43387
+	for <linux-media@archiver.kernel.org>; Thu, 20 Dec 2018 03:24:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9932D2086C
-	for <linux-media@archiver.kernel.org>; Wed, 19 Dec 2018 20:38:05 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1545251885;
-	bh=eWvyJBBYN0fAuhpjwov9ACCGeqUpOUGGtHgzWICM4DM=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=Z6xHPnLI+t07/5ghHU6XjhizTkvS0xylHwtHirdxKkMoYCF+4ygr4U0cJK6IQtuYP
-	 2Q9giBmzW287TL5Z2DvLYESxByNtITTUHkDqmh9D3RdHqDdqU0pf42MCDtu8qLICPZ
-	 t+2imKbMLVkha0D9qttQHy2dJZFJ2HtRTOjITJf0=
+	by mail.kernel.org (Postfix) with ESMTP id C2BA321741
+	for <linux-media@archiver.kernel.org>; Thu, 20 Dec 2018 03:24:01 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="A4PCzdCB"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730187AbeLSUh7 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 19 Dec 2018 15:37:59 -0500
-Received: from mail-oi1-f195.google.com ([209.85.167.195]:45810 "EHLO
-        mail-oi1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729090AbeLSUh7 (ORCPT
+        id S1727972AbeLTDYB (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 19 Dec 2018 22:24:01 -0500
+Received: from mail-yb1-f196.google.com ([209.85.219.196]:34793 "EHLO
+        mail-yb1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726725AbeLTDYB (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Dec 2018 15:37:59 -0500
-Received: by mail-oi1-f195.google.com with SMTP id y1so2696506oie.12;
-        Wed, 19 Dec 2018 12:37:58 -0800 (PST)
+        Wed, 19 Dec 2018 22:24:01 -0500
+Received: by mail-yb1-f196.google.com with SMTP id k136so131322ybk.1
+        for <linux-media@vger.kernel.org>; Wed, 19 Dec 2018 19:24:00 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=WigGHmhn8ueQ8GS23th66pOl8fNI6k+244A3qCu/rIY=;
+        b=A4PCzdCBcDpDg6jnoPh26NIecKmndkn9twNXlDxDiGE8VvF3QlfIjIIiRhy1cLGxXT
+         AeUtg/MyNRsAPtkDWlJD94bIdFBFbL4pbPXuGpePl4m9WtRHymSQawjxvQCmCdC2BX9p
+         KzFKIQ7hl7Dcd9B/nKuRUJoM+Tl/jwg7nIfJ4=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:content-transfer-encoding
-         :in-reply-to:user-agent;
-        bh=viso4VjcJ6vxD3i5+8KcRCIdWRW6qJD4fiP3njk0uL8=;
-        b=jQgaScH1m5CQ8xxHa8sVogtAk1CK6TExsZkVgrxInZ8mxYxG3cpduEUlENvWZ4oq/b
-         fi9WGjME1QPD889PGFSv5cWSjNPbe3PXJ+kf0/266WwtGcKprTJr6ui/jHdf0JKA+sCl
-         LBpn5ncflxiYQ0Tnlc1F5HEkO6dl+J441SRLXtrwDy6U6jgxzDxi4jizkYhsOAS/p0DR
-         Sok0cPMm4N5tW8pQa9FHw7cfZW5LUnoW0byLMvO/7NRsCKWALjXTKilq6Lqs/V40EZlX
-         koa9g/exOhkNYx5VqTsL9Ou8+oVK45E3I40GTY/YQRnXS3Uny8VS6gyPmoe8alPLTggn
-         pLPA==
-X-Gm-Message-State: AA+aEWYiknEdfd6V3MvPB/DCgzZeTy5PRm+I2B8y4HcFsWLKwamg5356
-        E75GaPX8NT1xc79LzRvJNw==
-X-Google-Smtp-Source: AFSGD/XzeduizDAKcuK6/RPPnWQ8Y5Agx+B8lydJAQPyEmc4a59rnke5Rb2BFRm3qKmnABkg6jic3w==
-X-Received: by 2002:aca:d4c9:: with SMTP id l192mr226436oig.307.1545251877637;
-        Wed, 19 Dec 2018 12:37:57 -0800 (PST)
-Received: from localhost (24-155-109-49.dyn.grandenetworks.net. [24.155.109.49])
-        by smtp.gmail.com with ESMTPSA id d10sm8594386otl.62.2018.12.19.12.37.56
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Wed, 19 Dec 2018 12:37:57 -0800 (PST)
-Date:   Wed, 19 Dec 2018 14:37:56 -0600
-From:   Rob Herring <robh@kernel.org>
-To:     =?utf-8?B?UGF3ZcWC?= Chmiel <pawel.mikolaj.chmiel@gmail.com>
-Cc:     mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        hverkuil@xs4all.nl, fischerdouglasc@gmail.com,
-        keescook@chromium.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
-        =?utf-8?B?UGF3ZcWC?= Chmiel <pawel.mikolaj.chmiel@gmail.com>
-Subject: Re: [PATCH 5/5] media: dt-bindings: si470x: Document new reset-gpios
- property
-Message-ID: <20181219203756.GA29877@bogus>
-References: <20181205154750.17996-1-pawel.mikolaj.chmiel@gmail.com>
- <20181205154750.17996-6-pawel.mikolaj.chmiel@gmail.com>
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=WigGHmhn8ueQ8GS23th66pOl8fNI6k+244A3qCu/rIY=;
+        b=rUNx07F9CPqMkrbcGnt+/yCYYoYjm4J/PE+i6/6yy9vj1zwNbMJ5pNi5p325L3VyXp
+         zIvFyW6BJHOtsUin59zwQ6NMvF29jGURn/E/bKdgYYdAmGzsOURr5vmfgq6JA4bRKG9p
+         p1/4TJYk9Namdyh3V7Ga8ZC2e83iFUAkGHNv6XbeCR1hjP68G38QZnVLrokEV3FdwQ2n
+         XPsqq3pmBeAFLaHN+UK6mJ7bz9pgRGecTxJ+y0yhpl6fbk+OPBB+Sbr4hKE4nkV2Ifbg
+         IftMGMSxrOJYAEo9O8ssc3sAHOgl6/TFfLbxWIUQApNPm2QlI+84Vn3CNVcOCizy/VQx
+         BcBg==
+X-Gm-Message-State: AA+aEWZoH/zliY2KOhITpDqdxJSb46Vo2OwA1+EmSWkDNd6eCcspjbO+
+        ZvjKo4zdd79lpOlLaWavgb/90IquVOk=
+X-Google-Smtp-Source: AFSGD/VA+v2EPXwenTlCoQasQ1YWCPgmhJN/qsi09pih1kTLbTzchbqxm1aBmfzIj82fackBC9gI5Q==
+X-Received: by 2002:a25:aa10:: with SMTP id s16mr23971312ybi.327.1545276240176;
+        Wed, 19 Dec 2018 19:24:00 -0800 (PST)
+Received: from mail-yb1-f175.google.com (mail-yb1-f175.google.com. [209.85.219.175])
+        by smtp.gmail.com with ESMTPSA id j65sm6919377ywf.21.2018.12.19.19.23.58
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 19 Dec 2018 19:23:59 -0800 (PST)
+Received: by mail-yb1-f175.google.com with SMTP id e124so119129ybb.8
+        for <linux-media@vger.kernel.org>; Wed, 19 Dec 2018 19:23:58 -0800 (PST)
+X-Received: by 2002:a25:9907:: with SMTP id z7mr24009772ybn.114.1545276238429;
+ Wed, 19 Dec 2018 19:23:58 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20181205154750.17996-6-pawel.mikolaj.chmiel@gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+References: <20181212135440.GA6137@infradead.org> <CAAFQd5C4RbMxRP+ox+BDuApMusTD=WUD9Vs6aWL3u=HovuWUig@mail.gmail.com>
+ <20181213140329.GA25339@infradead.org> <CAAFQd5BudF84jVaiy7KwevzBZnfYUZggDK=4W=g+Znf5VJjHsQ@mail.gmail.com>
+ <20181214123624.GA5824@infradead.org> <CAAFQd5BnZHhNjOc6HKt=YVBVQFCcqN0RxAcfDp3S+gDKRvciqQ@mail.gmail.com>
+ <20181218073847.GA4552@infradead.org> <CAAFQd5AT3ixnbZRm3TOjoWrk2UNH0bXqgR+Z8wyjMhr0xHtSOg@mail.gmail.com>
+ <20181219075150.GA26656@infradead.org> <CAAFQd5DJPDpFDxU_m2r02bA59J8RCHW7iE8zYQUmkL4sFSz05Q@mail.gmail.com>
+ <20181219145122.GA31947@infradead.org>
+In-Reply-To: <20181219145122.GA31947@infradead.org>
+From:   Tomasz Figa <tfiga@chromium.org>
+Date:   Thu, 20 Dec 2018 12:23:46 +0900
+X-Gmail-Original-Message-ID: <CAAFQd5CsX-YJdwQUS+eEK6kj1xU94AiGHY0QX=QGnf67JcKyaQ@mail.gmail.com>
+Message-ID: <CAAFQd5CsX-YJdwQUS+eEK6kj1xU94AiGHY0QX=QGnf67JcKyaQ@mail.gmail.com>
+Subject: Re: [PATCH v5 2/2] media: usb: pwc: Don't use coherent DMA buffers
+ for ISO transfer
+To:     Christoph Hellwig <hch@infradead.org>
+Cc:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        "Matwey V. Kornilov" <matwey@sai.msu.ru>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        "Matwey V. Kornilov" <matwey.kornilov@gmail.com>,
+        Alan Stern <stern@rowland.harvard.edu>,
+        Ezequiel Garcia <ezequiel@collabora.com>, hdegoede@redhat.com,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        rostedt@goodmis.org, mingo@redhat.com,
+        Mike Isely <isely@pobox.com>,
+        Bhumika Goyal <bhumirks@gmail.com>,
+        Colin King <colin.king@canonical.com>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        keiichiw@chromium.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Wed,  5 Dec 2018 16:47:50 +0100, =?UTF-8?q?Pawe=C5=82=20Chmiel?= wrote:
-> Add information about new reset-gpios property to driver documentation
-> 
-> Signed-off-by: Paweł Chmiel <pawel.mikolaj.chmiel@gmail.com>
-> ---
->  Documentation/devicetree/bindings/media/si470x.txt | 2 ++
->  1 file changed, 2 insertions(+)
-> 
+On Wed, Dec 19, 2018 at 11:51 PM Christoph Hellwig <hch@infradead.org> wrote:
+>
+> On Wed, Dec 19, 2018 at 05:18:35PM +0900, Tomasz Figa wrote:
+> > The existing code that deals with dma_alloc_attrs() without
+> > DMA_ATTR_NON_CONSISTENT would just call dma_get_sgtable_attrs() like
+> > here:
+>
+> I know.  And dma_get_sgtable_attrs is fundamentally flawed and we
+> need to kill this interface as it just can't worked with virtually
+> tagged cases.  It is a prime example for an interface that looks
+> nice and simple but is plain wrong.
 
-Reviewed-by: Rob Herring <robh@kernel.org>
+Got it, thanks.
+
+I haven't been following the problems with virtually tagged cases,
+would you mind sharing some background, so that we can consider it
+when adding non-consistent allocations to VB2?
+
+Best regards,
+Tomasz
