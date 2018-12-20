@@ -2,674 +2,1362 @@ Return-Path: <SRS0=s3Lq=O5=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.5 required=3.0 tests=MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 01FECC43387
-	for <linux-media@archiver.kernel.org>; Thu, 20 Dec 2018 10:54:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A0CFAC43387
+	for <linux-media@archiver.kernel.org>; Thu, 20 Dec 2018 12:32:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A31B32177E
-	for <linux-media@archiver.kernel.org>; Thu, 20 Dec 2018 10:54:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 464762186A
+	for <linux-media@archiver.kernel.org>; Thu, 20 Dec 2018 12:32:41 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1545309161;
+	bh=99KZ6cKeSP2gHZ6Y5kr39cQE/ZEe8i4Lsmf3b7st66M=;
+	h=Date:From:To:Cc:Subject:List-ID:From;
+	b=ZMAYLzS1b9Ho8eJAajVdV2GVwAzqJUmflKyv9YZHrsjLuLR87T4tNwB6C7jF+paa2
+	 Q0aiuXuVemSyIUbNuyXvVduxSN0CEfMqQI9kdm2CAlX2jKNiGg8uCcgeSF0dweUu8V
+	 NxmyBo9UO/7U5GhsjyXeBAR74EmJCz5RIfkbJyxw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731183AbeLTKyB (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 20 Dec 2018 05:54:01 -0500
-Received: from mga06.intel.com ([134.134.136.31]:19462 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725869AbeLTKyB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 20 Dec 2018 05:54:01 -0500
-X-Amp-Result: UNSCANNABLE
-X-Amp-File-Uploaded: False
-Received: from fmsmga006.fm.intel.com ([10.253.24.20])
-  by orsmga104.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 20 Dec 2018 02:53:52 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.56,376,1539673200"; 
-   d="gz'50?scan'50,208,50";a="303744800"
-Received: from lkp-server01.sh.intel.com (HELO lkp-server01) ([10.239.97.150])
-  by fmsmga006.fm.intel.com with ESMTP; 20 Dec 2018 02:53:49 -0800
-Received: from kbuild by lkp-server01 with local (Exim 4.89)
-        (envelope-from <lkp@intel.com>)
-        id 1gZvxc-000IV5-NM; Thu, 20 Dec 2018 18:53:48 +0800
-Date:   Thu, 20 Dec 2018 18:52:57 +0800
-From:   kbuild test robot <lkp@intel.com>
-To:     Maxime Ripard <maxime.ripard@bootlin.com>
-Cc:     kbuild-all@01.org, Kishon Vijay Abraham I <kishon@ti.com>,
-        Boris Brezillon <boris.brezillon@bootlin.com>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org,
-        Archit Taneja <architt@codeaurora.org>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Chen-Yu Tsai <wens@csie.org>, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        linux-arm-kernel@lists.infradead.org,
-        Krzysztof Witos <kwitos@cadence.com>,
-        Rafal Ciepiela <rafalc@cadence.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>
-Subject: Re: [PATCH v3 10/10] drm/bridge: cdns: Convert to phy framework
-Message-ID: <201812201825.n2cIuaeo%fengguang.wu@intel.com>
-References: <64bda0631842bf10ca140cd562b71feea2f98ff2.1544190837.git-series.maxime.ripard@bootlin.com>
+        id S1731574AbeLTMcd (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 20 Dec 2018 07:32:33 -0500
+Received: from casper.infradead.org ([85.118.1.10]:44912 "EHLO
+        casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728172AbeLTMcd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 20 Dec 2018 07:32:33 -0500
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
+        MIME-Version:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:
+        List-Subscribe:List-Post:List-Owner:List-Archive;
+        bh=mlBd4vCnOR7XGeWBkQEhWnhm7pkrWK/vV2j07u/EVuY=; b=dr6N/Bu1Y+XdznyHvFZRFIFmLR
+        IhS+o3lIIM9kPDBNFYOlllXgeLlPnF2HnY7Q42EJWrT2nrUqgR5XfRk59tvplcJmAZIAUN768m1F3
+        l51x67k10k8D4GGAHa0RBB5VMCfl9KnBZur6tah/tOtd+qTPS0Qyz7TY/BGaToBmDltI3LVSIF0cZ
+        rKLhUs/DdCZajOXLyiCHeTLu/NqxAPdc+ACQUweUw9uNHJsL7jSzR44HeVYem0G3zG4T4tv5j8PAG
+        2OIsc7T+OqYc8tEuZJXw+DL2jJa9KoMk0b/kSIotydA6BwlQHRWXpOREnIuMeF9xIvEvOXMzxsjTe
+        i0Vu0Lpw==;
+Received: from [191.33.191.108] (helo=coco.lan)
+        by casper.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
+        id 1gZxV6-0007jq-5j; Thu, 20 Dec 2018 12:32:29 +0000
+Date:   Thu, 20 Dec 2018 10:32:23 -0200
+From:   Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: [GIT PULL for v4.21] First part of media patches
+Message-ID: <20181220103223.3b5c64da@coco.lan>
+X-Mailer: Claws Mail 3.16.0 (GTK+ 2.24.32; x86_64-redhat-linux-gnu)
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="W/nzBZO5zC0uMSeA"
-Content-Disposition: inline
-In-Reply-To: <64bda0631842bf10ca140cd562b71feea2f98ff2.1544190837.git-series.maxime.ripard@bootlin.com>
-User-Agent: Mutt/1.5.23 (2014-03-12)
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
+Hi Linus,
 
---W/nzBZO5zC0uMSeA
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Please pull from:
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/me=
+dia/v4.20-6
 
-Hi Maxime,
+For the first set of media patches for 4.21. It contains:
 
-I love your patch! Yet something to improve:
+- Three new platform drivers: aspeed-video seco-sed and sun5i-csi;
+- One new sensor driver: imx214;
+- Support for Xbox DVD Movie Playback kit remote controller;
+- Removal of the legacy friio driver. The functionalities were ported to
+  another driver, already merged;
+- New staging driver: Rockchip VPU;
+- Added license text or SPDX tags to all media documentation files;
+- Usual set of cleanup, fixes and enhancements.
 
-[auto build test ERROR on phy/next]
-[cannot apply to v4.20-rc7 next-20181220]
-[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+PS.: The last patch here is a regression fix that I received yesterday.
+Usually, I would wait for an extra day for it to get merged at -next,
+but as you wanted an early submission, I'm opting to send it to you
+before arriving -next.=20
 
-url:    https://github.com/0day-ci/linux/commits/Maxime-Ripard/phy-Add-MIPI-D-PHY-mode/20181208-034527
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/kishon/linux-phy.git next
-config: i386-randconfig-a2-12191846 (attached as .config)
-compiler: gcc-4.9 (Debian 4.9.4-2) 4.9.4
-reproduce:
-        # save the attached .config to linux build tree
-        make ARCH=i386 
+Regards,
+Mauro
 
-All errors (new ones prefixed by >>):
 
->> ERROR: "phy_mipi_dphy_get_default_config" [drivers/gpu/drm/bridge/cdns-dsi.ko] undefined!
 
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+The following changes since commit 7566ec393f4161572ba6f11ad5171fd5d59b0fbd:
 
---W/nzBZO5zC0uMSeA
-Content-Type: application/gzip
-Content-Disposition: attachment; filename=".config.gz"
-Content-Transfer-Encoding: base64
+  Linux 4.20-rc7 (2018-12-16 15:46:55 -0800)
 
-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
-4AEA
+are available in the Git repository at:
 
---W/nzBZO5zC0uMSeA--
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/me=
+dia/v4.20-6
+
+for you to fetch changes up to 4bd46aa0353e022c2401a258e93b107880a66533:
+
+  media: cx23885: only reset DMA on problematic CPUs (2018-12-20 06:52:01 -=
+0500)
+
+----------------------------------------------------------------
+media fixes for v4.20-rc8
+
+----------------------------------------------------------------
+Akinobu Mita (13):
+      media: video-i2c: avoid accessing released memory area when removing =
+driver
+      media: video-i2c: use i2c regmap
+      media: v4l2-common: add V4L2_FRACT_COMPARE
+      media: vivid: use V4L2_FRACT_COMPARE
+      media: video-i2c: support changing frame interval
+      media: mt9m111: support log_status ioctl and event interface
+      media: mt9m111: add V4L2_CID_COLORFX control
+      media: ov2640: add V4L2_CID_TEST_PATTERN control
+      media: ov2640: support log_status ioctl and event interface
+      media: ov5640: support log_status ioctl and event interface
+      media: ov7670: support log_status ioctl and event interface
+      media: ov772x: support log_status ioctl and event interface
+      media: video-i2c: support runtime PM
+
+Alexandre Courbot (1):
+      media: venus: fix reported size of 0-length buffers
+
+Alexey Khoroshilov (2):
+      media: mtk-vcodec: Release device nodes in mtk_vcodec_init_enc_pm()
+      media: DaVinci-VPBE: fix error handling in vpbe_initialize()
+
+Andrea Merello (1):
+      media: xilinx: fix typo in formats table
+
+Andreas Pape (2):
+      media: stkwebcam: Support for ASUS A6VM notebook added.
+      media: stkwebcam: Bugfix for wrong return values
+
+Andrey Abramov (1):
+      media: Staging: media: replace deprecated probe method
+
+Arnd Bergmann (1):
+      media: i2c: TDA1997x: select CONFIG_HDMI
+
+Ben Hutchings (1):
+      media: Documentation/media: uapi: Explicitly say there are no Invaria=
+nt Sections
+
+Benjamin Valentin (1):
+      media: rc: add driver for Xbox DVD Movie Playback Kit
+
+Bingbu Cao (3):
+      media: imx319: fix wrong order in test pattern menus
+      media: imx355: fix wrong order in test pattern menus
+      media: unify some sony camera sensors pattern naming
+
+Brad Love (2):
+      media: mceusb: Include three Hauppauge USB dvb device with IR rx
+      media: cx23885: only reset DMA on problematic CPUs
+
+Chen, JasonX Z (1):
+      media: imx258: remove test pattern map from driver
+
+Chiranjeevi Rapolu (1):
+      media: ov13858: Check for possible null pointer
+
+Christoph Hellwig (1):
+      media: sti/bdisp: don't pass GFP_DMA32 to dma_alloc_attrs
+
+Colin Ian King (6):
+      media: dib0700: fix spelling mistake "Amplifyer" -> "Amplifier"
+      media: exynos4-is: fix spelling mistake ACTURATOR -> ACTUATOR
+      media: em28xx: fix spelling mistake, "Cinnergy" -> "Cinergy"
+      media: tda7432: fix spelling mistake "maximium" -> "maximum"
+      media: pvrusb2: fix spelling mistake "statuss" -> "status"
+      media: sun6i: fix spelling mistake "droped" -> "dropped"
+
+Corentin Labbe (1):
+      media: usb: dvb-usb: remove old friio driver
+
+Dafna Hirschfeld (4):
+      media: vicodec: prepare support for various number of planes
+      media: vicodec: Add support of greyscale format
+      media: vicodec: Add support for 4 planes formats
+      media: vicodec: Change variable names
+
+Daniel Axtens (1):
+      media: uvcvideo: Refactor teardown of uvc on USB disconnect
+
+Dhaval Shah (1):
+      media: xilinx: Use SPDX-License-Identifier
+
+Dmitry Osipenko (1):
+      media: staging: tegra-vde: Replace debug messages with trace points
+
+Eddie James (2):
+      media: dt-bindings: media: Add Aspeed Video Engine binding documentat=
+ion
+      media: platform: Add Aspeed Video Engine driver
+
+Enrico Scholz (1):
+      media: mt9m111: allow to setup pixclk polarity
+
+Eric Biggers (1):
+      media: v4l: constify v4l2_ioctls[]
+
+Ettore Chimenti (2):
+      media: add SECO cec driver
+      media: seco-cec: add Consumer-IR support
+
+Ezequiel Garcia (7):
+      media: mem2mem: Require capture and output mutexes to match
+      media: v4l2-ioctl.c: Simplify locking for m2m devices
+      media: v4l2-mem2mem: Avoid calling .device_run in v4l2_m2m_job_finish
+      media: cedrus: Get rid of interrupt bottom-half
+      media: dt-bindings: Document the Rockchip VPU bindings
+      media: add Rockchip VPU JPEG encoder driver
+      media: v4l2-ioctl: Zero v4l2_plane_pix_format reserved fields
+
+Fabio Estevam (4):
+      media: imx-pxp: Check the return value from clk_prepare_enable()
+      media: imx-pxp: Check for pxp_soft_reset() error
+      media: imx-pxp: Improve pxp_soft_reset() error message
+      media: v4l2-fwnode: Demote warning to debug level
+
+Gabriel Francisco Mandaji (1):
+      media: vivid: Improve timestamping
+
+Hans Verkuil (35):
+      media: v4l2-ioctl: don't use CROP/COMPOSE_ACTIVE
+      media: v4l2-common.h: put backwards compat defines under #ifndef __KE=
+RNEL__
+      media: v4l2-ioctl: add QUIRK_INVERTED_CROP
+      media: davinci/vpbe: drop unused g_cropcap
+      media: cropcap/g_selection split
+      media: exynos-gsc: replace v4l2_crop by v4l2_selection
+      media: s5p_mfc_dec.c: convert g_crop to g_selection
+      media: exynos4-is: convert g/s_crop to g/s_selection
+      media: s5p-g2d: convert g/s_crop to g/s_selection
+      media: v4l2-ioctl: remove unused vidioc_g/s_crop
+      media: vidioc_cropcap -> vidioc_g_pixelaspect
+      media: vim2m/vicodec: set device_caps in video_device struct
+      media: vidioc-enum-fmt.rst: update list of valid buftypes
+      media: cec-pin: fix broken tx_ignore_nack_until_eom error injection
+      media: pulse8-cec: return 0 when invalidating the logical address
+      media: vb2: vb2_mmap: move lock up
+      media: adv7604: add CEC support for adv7611/adv7612
+      media: cec: report Vendor ID after initialization
+      media: cec: add debug_phys_addr module option
+      media: cec: keep track of outstanding transmits
+      media: vivid: fix error handling of kthread_run
+      media: vivid: set min width/height to a value > 0
+      media: vivid: fill in media_device bus_info
+      media: vim2m: use cancel_delayed_work_sync instead of flush_schedule_=
+work
+      media: adv*/tc358743/ths8200: fill in min width/height/pixelclock
+      media: vb2: check memory model for VIDIOC_CREATE_BUFS
+      media: MAINTAINERS fixups
+      media: v4l2-tpg: array index could become negative
+      media: vivid: free bitmap_cap when updating std/timings/etc.
+      media: videobuf2-v4l2: drop WARN_ON in vb2_warn_zero_bytesused()
+      media: seco-cec: fix Makefile
+      media: dib0900: fix smatch warnings
+      media: vivid: fix smatch warnings
+      media: vivid: add req_validate error injection
+      media: vicodec: move the GREY format to the end of the list
+
+Helen Fornazier (1):
+      media: vimc: fix start stream when link is disabled
+
+Iliya Iliev (1):
+      media: drivers: media: pci: b2c2: Fix errors due to unappropriate cod=
+ing style.
+
+Jacopo Mondi (7):
+      media: dt-bindings: rcar-vin: Add R8A77990 support
+      media: rcar-vin: Add support for R-Car R8A77990
+      media: dt-bindings: rcar-csi2: Add R8A77990
+      media: rcar-csi2: Add R8A77990 support
+      media: rcar: rcar-csi2: Update V3M/E3 PHTW tables
+      media: rcar-csi2: Handle per-SoC number of channels
+      media: ov5640: Fix set format regression
+
+Jasmin Jessich (1):
+      media: adv7604 added include of linux/interrupt.h
+
+John Sheu (1):
+      media: vb2: Allow reqbufs(0) with "in use" MMAP buffers
+
+Jonas Karlman (1):
+      media: v4l: Fix MPEG-2 slice Intra DC Precision validation
+
+Julia Lawall (8):
+      media: ov5645: constify v4l2_ctrl_ops structure
+      media: ov7740: constify structures stored in fields of v4l2_subdev_op=
+s structure
+      media: video-i2c: hwmon: constify vb2_ops structure
+      media: vicodec: constify v4l2_ctrl_ops structure
+      media: rockchip/rga: constify v4l2_m2m_ops structure
+      media: vimc: constify structures stored in fields of v4l2_subdev_ops =
+structure
+      media: rockchip/rga: constify video_device structure
+      media: mxl5xx: constify dvb_frontend_ops structure
+
+Kelvin Lawson (1):
+      media: venus: Support V4L2 QP parameters in Venus encoder
+
+Kieran Bingham (10):
+      media: uvcvideo: Refactor URB descriptors
+      media: uvcvideo: Convert decode functions to use new context structure
+      media: uvcvideo: Protect queue internals with helper
+      media: uvcvideo: queue: Simplify spin-lock usage
+      media: uvcvideo: queue: Support asynchronous buffer handling
+      media: uvcvideo: Abstract streaming object lifetime
+      media: uvcvideo: Move decode processing to process context
+      media: uvcvideo: Split uvc_video_enable into two
+      media: uvcvideo: Rename uvc_{un,}init_video()
+      media: uvcvideo: Utilise for_each_uvc_urb iterator
+
+Lubomir Rintel (1):
+      media: marvell-ccic: trivial fix to the datasheet URL
+
+Luca Ceresoli (4):
+      media: imx274: fix stack corruption in imx274_read_reg
+      media: imx274: declare the correct number of controls
+      media: imx274: select REGMAP_I2C
+      media: v4l2-subdev: document controls need _FL_HAS_DEVNODE
+
+Lucas Stach (2):
+      media: coda: limit queueing into internal bitstream buffer
+      media: coda: don't disable IRQs across buffer meta handling
+
+Malathi Gottam (5):
+      media: venus: change the default value of GOP size
+      media: venus: add support for USERPTR to queue
+      media: venus: handle peak bitrate set property
+      media: venus: dynamic handling of bitrate
+      media: venus: add support for key frame
+
+Malcolm Priestley (5):
+      media: dvb-usb-v2: Fix incorrect use of transfer_flags URB_FREE_BUFFER
+      media: lmedm04: Move usb buffer to lme2510_state.
+      media: lmedm04: use dvb_usbv2_generic_rw_locked
+      media: lmedm04: Add missing usb_free_urb to free interrupt urb.
+      media: lmedm04: Move interrupt buffer to priv buffer.
+
+Marco Felsch (4):
+      media: tvp5150: fix irq_request error path during probe
+      media: mt9m111: add s_stream callback
+      media: dt-bindings: media: mt9m111: adapt documentation to be more cl=
+ear
+      media: dt-bindings: media: mt9m111: add pclk-sample property
+
+Matt Ranostay (1):
+      media: video-i2c: check if chip struct has set_power function
+
+Mauro Carvalho Chehab (23):
+      media: rc: imon: replace strcpy() by strscpy()
+      media: sum6i: Fix a few coding style issues
+      media: sun6i: manually fix other coding style issues
+      media: seco-cec: declare ops as static const
+      media: vb2: be sure to unlock mutex on errors
+      media: dvb_frontend: don't print function names twice
+      media: dvb_frontend: add debug message for frequency intervals
+      media: dvb-pll: fix tuner frequency ranges
+      media: dvb-pll: don't re-validate tuner frequencies
+      media: ddbridge: remove another duplicate of io.h and sort includes
+      media: remove text encoding from rst files
+      media: add SPDX header to media uAPI files
+      media: svg files: dual-licence some files with GPL and GFDL
+      media: docs: brainless mass add SPDX headers to all media files
+      media: pixfmt-meta-d4xx.rst: Add a license to it
+      Merge commit '0072a0c14d5b7cb72c611d396f143f5dcd73ebe2' into patchwork
+      media: rockchip/vpu: fix a few alignments
+      media: cetrus: return an error if alloc fails
+      media: cedrus: don't initialize pointers with zero
+      media: rockchip vpu: remove some unused vars
+      Merge tag 'v4.20-rc7' into patchwork
+      media: docs: fix some GPL licensing ambiguity at the text
+      media: drxk_hard: check if parameter is not NULL
+
+Maxime Ripard (13):
+      media: dt-bindings: media: sun6i: Add A31 and H3 compatibles
+      media: sun6i: Add A31 compatible
+      media: ov5640: Adjust the clock based on the expected rate
+      media: ov5640: Remove the clocks registers initialization
+      media: ov5640: Remove redundant defines
+      media: ov5640: Remove redundant register setup
+      media: ov5640: Compute the clock rate at runtime
+      media: ov5640: Remove pixel clock rates
+      media: ov5640: Enhance FPS handling
+      media: ov5640: Make the return rate type more explicit
+      media: ov5640: Make the FPS clamping / rounding more extendable
+      media: ov5640: Add 60 fps support
+      media: ov5640: Remove duplicate auto-exposure setup
+
+Michael Grzeschik (2):
+      media: mt9m111: add streaming check to set_fmt
+      media: mt9m111: add support to select formats and fps for {Q,SXGA}
+
+Michael Tretter (3):
+      media: coda: print SEQ_INIT error code as hex value
+      media: v4l2-pci-skeleton: replace vb2_buffer with vb2_v4l2_buffer
+      media: v4l2-pci-skeleton: depend on CONFIG_SAMPLES
+
+Nathan Chancellor (3):
+      media: imx214: Remove unnecessary self assignment in for loop
+      media: firewire: Fix app_info parameter type in avc_ca{,_app}_info
+      media: ddbridge: Move asm includes after linux ones
+
+Neil Armstrong (3):
+      media: cxd2880-spi: fix probe when dvb_attach fails
+      media: cxd2880-spi: Add optional vcc regulator
+      media: sony-cxd2880: add optional vcc regulator to bindings
+
+Nikita Gerasimov (1):
+      media: rtl28xxu: add support for Sony CXD2837ER slave demod
+
+Niklas S=C3=B6derlund (1):
+      media: v4l2: async: remove locking when initializing async notifier
+
+Paul Kocialkowski (4):
+      media: cedrus: Remove global IRQ spin lock from the driver
+      media: dt-bindings: media: cedrus: Add compatibles for the A64 and H5
+      media: cedrus: Add device-tree compatible and variant for H5 support
+      media: cedrus: Add device-tree compatible and variant for A64 support
+
+Philipp Zabel (14):
+      media: coda: fix memory corruption in case more than 32 instances are=
+ opened
+      media: coda: store unmasked fifo position in meta
+      media: coda: always hold back decoder jobs until we have enough bitst=
+ream payload
+      media: coda: reduce minimum frame size to 48x16 pixels.
+      media: coda: remove unused instances list
+      media: coda: set V4L2_CAP_TIMEPERFRAME flag in coda_s_parm
+      media: coda: implement ENUM_FRAMEINTERVALS
+      media: coda: never set infinite timeperframe
+      media: coda: fail S_SELECTION for read-only targets
+      media: coda: improve queue busy error message
+      media: coda: normalise debug output
+      media: coda: debug output when setting visible size via crop selection
+      media: v4l2: clarify H.264 loop filter offset controls
+      media: coda: fix H.264 deblocking filter controls
+
+Rajmohan Mani (1):
+      media: intel-ipu3: cio2: Remove redundant definitions
+
+Randy Dunlap (1):
+      media: seco-cec: add missing header file to fix build
+
+Ricardo Ribalda Delgado (3):
+      media: imx214: device tree binding
+      media: imx214: Add imx214 camera sensor driver
+      media: doc-rst: Fix broken references
+
+Rob Herring (2):
+      media: Use of_node_name_eq for node name comparisons
+      media: staging: media: imx: Use of_node_name_eq for node name compari=
+sons
+
+Rui Miguel Silva (1):
+      media: ov2680: fix null dereference at power on
+
+Sakari Ailus (4):
+      media: v4l: uAPI doc: Simplify NATIVE_SIZE selection target documenta=
+tion
+      media: v4l: uAPI doc: Changing frame interval won't change format
+      media: v4l2-mem2mem: Simplify exiting the function in __v4l2_m2m_try_=
+schedule
+      media: v4l: ioctl: Allow drivers to fill in the format description
+
+Sean Young (9):
+      media: rc: XBox DVD Remote uses 12 bits scancodes
+      media: rc: imon_raw: use fls rather than loop per bit
+      media: saa7134: rc device does not need 'saa7134 IR (' prefix
+      media: saa7134: hvr1110 can decode rc6
+      media: rc: cec devices do not have a lirc chardev
+      media: rc: ensure close() is called on rc_unregister_device
+      media: v4l uapi docs: few minor corrections and typos
+      media: saa7134: rc-core maintains users count, no need to duplicate
+      media: dib7000p: Remove dead code
+
+Sergei Shtylyov (2):
+      media: rcar-csi2: add R8A77980 support
+      media: rcar-vin: add R8A77980 support
+
+Sergey Dorodnicov (2):
+      media: v4l: Add 4bpp packed depth confidence format CNF4
+      media: uvcvideo: Add support for the CNF4 format
+
+Stanimir Varbanov (1):
+      media: venus: firmware: register separate platform_device for firmwar=
+e loader
+
+Tim Harvey (1):
+      media: adv7180: add g_skip_frames support
+
+Todor Tomov (2):
+      media: camss: Take in account sensor skip frames
+      media: MAINTAINERS: Change Todor Tomov's email address
+
+Tomasz Figa (2):
+      media: mtk-vcodec: Remove VA from encoder frame buffers
+      media: v4l2-device: Link subdevices to their parent devices if availa=
+ble
+
+Victor Toso (2):
+      media: af9033: Remove duplicated switch statement
+      media: dvb: Use WARM definition from identify_state()
+
+Vikash Garodia (4):
+      media: venus: firmware: add routine to reset ARM9
+      media: venus: firmware: move load firmware in a separate function
+      media: venus: firmware: add no TZ boot and shutdown routine
+      media: dt-bindings: media: Document bindings for venus firmware device
+
+Vivek Gautam (1):
+      media: venus: core: Set dma maximum segment size
+
+Wen Yang (1):
+      media: siano: Use kmemdup instead of duplicating its function
+
+Yong Deng (2):
+      media: dt-bindings: media: Add Allwinner V3s Camera Sensor Interface =
+(CSI)
+      media: sun6i: Add support for Allwinner CSI V3s
+
+YueHaibing (1):
+      media: imx-pxp: remove duplicated include from imx-pxp.c
+
+kbuild test robot (1):
+      media: platform: fix platform_no_drv_owner.cocci warnings
+
+zhong jiang (4):
+      media: usb: Use kmemdup instead of duplicating its function.
+      media: dvb-frontends: Use kmemdup instead of duplicating its function
+      media: remove redundant include moduleparam.h
+      media: ddbridge: remove some duplicated include file
+
+ .../devicetree/bindings/media/aspeed-video.txt     |   26 +
+ Documentation/devicetree/bindings/media/cedrus.txt |    2 +
+ .../devicetree/bindings/media/i2c/mt9m111.txt      |   13 +-
+ .../devicetree/bindings/media/i2c/sony,imx214.txt  |   53 +
+ .../devicetree/bindings/media/qcom,venus.txt       |   14 +-
+ .../devicetree/bindings/media/rcar_vin.txt         |    2 +
+ .../bindings/media/renesas,rcar-csi2.txt           |    2 +
+ .../devicetree/bindings/media/rockchip-vpu.txt     |   29 +
+ .../devicetree/bindings/media/spi/sony-cxd2880.txt |    4 +
+ .../devicetree/bindings/media/sun6i-csi.txt        |   59 +
+ Documentation/media/.gitignore                     |    2 +
+ Documentation/media/Makefile                       |    2 +
+ Documentation/media/audio.h.rst.exceptions         |    2 +
+ Documentation/media/ca.h.rst.exceptions            |    2 +
+ Documentation/media/cec-drivers/index.rst          |    2 +-
+ Documentation/media/cec-drivers/pulse8-cec.rst     |    2 +
+ Documentation/media/cec.h.rst.exceptions           |    2 +
+ Documentation/media/conf.py                        |    2 +
+ Documentation/media/conf_nitpick.py                |    2 +
+ Documentation/media/dmx.h.rst.exceptions           |    2 +
+ Documentation/media/dvb-drivers/avermedia.rst      |    2 +
+ Documentation/media/dvb-drivers/bt8xx.rst          |    2 +
+ Documentation/media/dvb-drivers/cards.rst          |    2 +
+ Documentation/media/dvb-drivers/ci.rst             |    2 +
+ Documentation/media/dvb-drivers/contributors.rst   |    2 +
+ Documentation/media/dvb-drivers/dvb-usb.rst        |    2 +
+ Documentation/media/dvb-drivers/faq.rst            |    2 +
+ Documentation/media/dvb-drivers/frontends.rst      |    2 +
+ Documentation/media/dvb-drivers/index.rst          |    2 +-
+ Documentation/media/dvb-drivers/intro.rst          |    2 +
+ Documentation/media/dvb-drivers/lmedm04.rst        |    2 +
+ Documentation/media/dvb-drivers/opera-firmware.rst |    2 +
+ Documentation/media/dvb-drivers/technisat.rst      |    2 +
+ Documentation/media/dvb-drivers/ttusb-dec.rst      |    2 +
+ Documentation/media/dvb-drivers/udev.rst           |    2 +
+ Documentation/media/frontend.h.rst.exceptions      |    2 +
+ Documentation/media/index.rst                      |    2 +
+ Documentation/media/intro.rst                      |    2 +-
+ Documentation/media/kapi/cec-core.rst              |    2 +
+ Documentation/media/kapi/csi2.rst                  |    2 +
+ Documentation/media/kapi/dtv-ca.rst                |    2 +
+ Documentation/media/kapi/dtv-common.rst            |    2 +
+ Documentation/media/kapi/dtv-core.rst              |    2 +
+ Documentation/media/kapi/dtv-demux.rst             |    2 +
+ Documentation/media/kapi/dtv-frontend.rst          |    2 +
+ Documentation/media/kapi/dtv-net.rst               |    2 +
+ Documentation/media/kapi/mc-core.rst               |    2 +
+ Documentation/media/kapi/rc-core.rst               |    2 +
+ Documentation/media/kapi/v4l2-async.rst            |    2 +
+ Documentation/media/kapi/v4l2-clocks.rst           |    2 +
+ Documentation/media/kapi/v4l2-common.rst           |    2 +
+ Documentation/media/kapi/v4l2-controls.rst         |    2 +
+ Documentation/media/kapi/v4l2-core.rst             |    2 +
+ Documentation/media/kapi/v4l2-dev.rst              |    2 +
+ Documentation/media/kapi/v4l2-device.rst           |    2 +
+ Documentation/media/kapi/v4l2-dv-timings.rst       |    2 +
+ Documentation/media/kapi/v4l2-event.rst            |    1 +
+ Documentation/media/kapi/v4l2-fh.rst               |    2 +
+ Documentation/media/kapi/v4l2-flash-led-class.rst  |    2 +
+ Documentation/media/kapi/v4l2-fwnode.rst           |    2 +
+ Documentation/media/kapi/v4l2-intro.rst            |    2 +
+ Documentation/media/kapi/v4l2-mc.rst               |    2 +
+ Documentation/media/kapi/v4l2-mediabus.rst         |    2 +
+ Documentation/media/kapi/v4l2-mem2mem.rst          |    2 +
+ Documentation/media/kapi/v4l2-rect.rst             |    2 +
+ Documentation/media/kapi/v4l2-subdev.rst           |    2 +
+ Documentation/media/kapi/v4l2-tuner.rst            |    2 +
+ Documentation/media/kapi/v4l2-tveeprom.rst         |    2 +
+ Documentation/media/kapi/v4l2-videobuf.rst         |    2 +
+ Documentation/media/kapi/v4l2-videobuf2.rst        |    2 +
+ Documentation/media/lirc.h.rst.exceptions          |    2 +
+ Documentation/media/media.h.rst.exceptions         |    2 +
+ Documentation/media/media_kapi.rst                 |    2 +-
+ Documentation/media/media_uapi.rst                 |    8 +-
+ Documentation/media/net.h.rst.exceptions           |    2 +
+ Documentation/media/typical_media_device.svg       |   10 +
+ Documentation/media/uapi/cec/cec-api.rst           |    9 +-
+ Documentation/media/uapi/cec/cec-func-close.rst    |    9 +-
+ Documentation/media/uapi/cec/cec-func-ioctl.rst    |    9 +-
+ Documentation/media/uapi/cec/cec-func-open.rst     |    9 +-
+ Documentation/media/uapi/cec/cec-func-poll.rst     |    9 +-
+ Documentation/media/uapi/cec/cec-funcs.rst         |    9 +
+ Documentation/media/uapi/cec/cec-header.rst        |    9 +-
+ Documentation/media/uapi/cec/cec-intro.rst         |    9 +
+ .../media/uapi/cec/cec-ioc-adap-g-caps.rst         |    9 +-
+ .../media/uapi/cec/cec-ioc-adap-g-log-addrs.rst    |    9 +-
+ .../media/uapi/cec/cec-ioc-adap-g-phys-addr.rst    |    9 +-
+ Documentation/media/uapi/cec/cec-ioc-dqevent.rst   |    9 +-
+ Documentation/media/uapi/cec/cec-ioc-g-mode.rst    |    9 +-
+ Documentation/media/uapi/cec/cec-ioc-receive.rst   |    9 +-
+ Documentation/media/uapi/cec/cec-pin-error-inj.rst |    9 +
+ .../uapi/dvb/audio-bilingual-channel-select.rst    |    9 +-
+ .../media/uapi/dvb/audio-channel-select.rst        |    9 +-
+ .../media/uapi/dvb/audio-clear-buffer.rst          |    9 +-
+ Documentation/media/uapi/dvb/audio-continue.rst    |    9 +-
+ Documentation/media/uapi/dvb/audio-fclose.rst      |    9 +-
+ Documentation/media/uapi/dvb/audio-fopen.rst       |    9 +-
+ Documentation/media/uapi/dvb/audio-fwrite.rst      |    9 +-
+ .../media/uapi/dvb/audio-get-capabilities.rst      |    9 +-
+ Documentation/media/uapi/dvb/audio-get-status.rst  |    9 +-
+ Documentation/media/uapi/dvb/audio-pause.rst       |    9 +-
+ Documentation/media/uapi/dvb/audio-play.rst        |    9 +-
+ .../media/uapi/dvb/audio-select-source.rst         |    9 +-
+ Documentation/media/uapi/dvb/audio-set-av-sync.rst |    9 +-
+ .../media/uapi/dvb/audio-set-bypass-mode.rst       |    9 +-
+ Documentation/media/uapi/dvb/audio-set-id.rst      |    9 +-
+ Documentation/media/uapi/dvb/audio-set-mixer.rst   |    9 +-
+ Documentation/media/uapi/dvb/audio-set-mute.rst    |    9 +-
+ .../media/uapi/dvb/audio-set-streamtype.rst        |    9 +-
+ Documentation/media/uapi/dvb/audio-stop.rst        |    9 +-
+ Documentation/media/uapi/dvb/audio.rst             |    9 +-
+ Documentation/media/uapi/dvb/audio_data_types.rst  |    9 +-
+ .../media/uapi/dvb/audio_function_calls.rst        |    9 +-
+ Documentation/media/uapi/dvb/ca-fclose.rst         |    9 +-
+ Documentation/media/uapi/dvb/ca-fopen.rst          |    9 +-
+ Documentation/media/uapi/dvb/ca-get-cap.rst        |    9 +-
+ Documentation/media/uapi/dvb/ca-get-descr-info.rst |    9 +-
+ Documentation/media/uapi/dvb/ca-get-msg.rst        |    9 +-
+ Documentation/media/uapi/dvb/ca-get-slot-info.rst  |    9 +-
+ Documentation/media/uapi/dvb/ca-reset.rst          |    9 +-
+ Documentation/media/uapi/dvb/ca-send-msg.rst       |    9 +-
+ Documentation/media/uapi/dvb/ca-set-descr.rst      |    9 +-
+ Documentation/media/uapi/dvb/ca.rst                |    9 +-
+ Documentation/media/uapi/dvb/ca_data_types.rst     |    9 +-
+ Documentation/media/uapi/dvb/ca_function_calls.rst |    9 +-
+ Documentation/media/uapi/dvb/demux.rst             |    9 +-
+ Documentation/media/uapi/dvb/dmx-add-pid.rst       |    9 +-
+ Documentation/media/uapi/dvb/dmx-expbuf.rst        |    9 +
+ Documentation/media/uapi/dvb/dmx-fclose.rst        |    9 +-
+ Documentation/media/uapi/dvb/dmx-fopen.rst         |    9 +-
+ Documentation/media/uapi/dvb/dmx-fread.rst         |    9 +-
+ Documentation/media/uapi/dvb/dmx-fwrite.rst        |    9 +-
+ Documentation/media/uapi/dvb/dmx-get-pes-pids.rst  |    9 +-
+ Documentation/media/uapi/dvb/dmx-get-stc.rst       |    9 +-
+ Documentation/media/uapi/dvb/dmx-mmap.rst          |    9 +
+ Documentation/media/uapi/dvb/dmx-munmap.rst        |    9 +
+ Documentation/media/uapi/dvb/dmx-qbuf.rst          |    9 +
+ Documentation/media/uapi/dvb/dmx-querybuf.rst      |    9 +
+ Documentation/media/uapi/dvb/dmx-remove-pid.rst    |    9 +-
+ Documentation/media/uapi/dvb/dmx-reqbufs.rst       |    9 +
+ .../media/uapi/dvb/dmx-set-buffer-size.rst         |    9 +-
+ Documentation/media/uapi/dvb/dmx-set-filter.rst    |    9 +-
+ .../media/uapi/dvb/dmx-set-pes-filter.rst          |    9 +-
+ Documentation/media/uapi/dvb/dmx-start.rst         |    9 +-
+ Documentation/media/uapi/dvb/dmx-stop.rst          |    9 +-
+ Documentation/media/uapi/dvb/dmx_fcalls.rst        |    9 +-
+ Documentation/media/uapi/dvb/dmx_types.rst         |    9 +-
+ .../media/uapi/dvb/dvb-fe-read-status.rst          |    9 +-
+ .../media/uapi/dvb/dvb-frontend-event.rst          |    9 +-
+ .../media/uapi/dvb/dvb-frontend-parameters.rst     |    9 +-
+ Documentation/media/uapi/dvb/dvbapi.rst            |    9 +-
+ Documentation/media/uapi/dvb/dvbproperty.rst       |    9 +-
+ Documentation/media/uapi/dvb/dvbstb.svg            |   27 +
+ Documentation/media/uapi/dvb/examples.rst          |    9 +-
+ Documentation/media/uapi/dvb/fe-bandwidth-t.rst    |    9 +-
+ .../media/uapi/dvb/fe-diseqc-recv-slave-reply.rst  |    9 +-
+ .../media/uapi/dvb/fe-diseqc-reset-overload.rst    |    9 +-
+ .../media/uapi/dvb/fe-diseqc-send-burst.rst        |    9 +-
+ .../media/uapi/dvb/fe-diseqc-send-master-cmd.rst   |    9 +-
+ .../uapi/dvb/fe-dishnetwork-send-legacy-cmd.rst    |    9 +-
+ .../media/uapi/dvb/fe-enable-high-lnb-voltage.rst  |    9 +-
+ Documentation/media/uapi/dvb/fe-get-event.rst      |    9 +-
+ Documentation/media/uapi/dvb/fe-get-frontend.rst   |    9 +-
+ Documentation/media/uapi/dvb/fe-get-info.rst       |    9 +-
+ Documentation/media/uapi/dvb/fe-get-property.rst   |    9 +-
+ Documentation/media/uapi/dvb/fe-read-ber.rst       |    9 +-
+ .../media/uapi/dvb/fe-read-signal-strength.rst     |    9 +-
+ Documentation/media/uapi/dvb/fe-read-snr.rst       |    9 +-
+ Documentation/media/uapi/dvb/fe-read-status.rst    |    9 +-
+ .../media/uapi/dvb/fe-read-uncorrected-blocks.rst  |    9 +-
+ .../media/uapi/dvb/fe-set-frontend-tune-mode.rst   |    9 +-
+ Documentation/media/uapi/dvb/fe-set-frontend.rst   |    9 +-
+ Documentation/media/uapi/dvb/fe-set-tone.rst       |    9 +-
+ Documentation/media/uapi/dvb/fe-set-voltage.rst    |    9 +-
+ Documentation/media/uapi/dvb/fe-type-t.rst         |    9 +-
+ .../media/uapi/dvb/fe_property_parameters.rst      |    9 +-
+ Documentation/media/uapi/dvb/frontend-header.rst   |    9 +
+ .../uapi/dvb/frontend-property-cable-systems.rst   |    9 +-
+ .../dvb/frontend-property-satellite-systems.rst    |    9 +-
+ .../dvb/frontend-property-terrestrial-systems.rst  |    9 +-
+ .../media/uapi/dvb/frontend-stat-properties.rst    |    9 +-
+ Documentation/media/uapi/dvb/frontend.rst          |    9 +-
+ Documentation/media/uapi/dvb/frontend_f_close.rst  |    9 +-
+ Documentation/media/uapi/dvb/frontend_f_open.rst   |    9 +-
+ Documentation/media/uapi/dvb/frontend_fcalls.rst   |    9 +-
+ .../media/uapi/dvb/frontend_legacy_api.rst         |    9 +-
+ .../media/uapi/dvb/frontend_legacy_dvbv3_api.rst   |    9 +-
+ Documentation/media/uapi/dvb/headers.rst           |    9 +
+ Documentation/media/uapi/dvb/intro.rst             |    9 +-
+ Documentation/media/uapi/dvb/legacy_dvb_apis.rst   |    9 +-
+ Documentation/media/uapi/dvb/net-add-if.rst        |    9 +-
+ Documentation/media/uapi/dvb/net-get-if.rst        |    9 +-
+ Documentation/media/uapi/dvb/net-remove-if.rst     |    9 +-
+ Documentation/media/uapi/dvb/net-types.rst         |    9 +-
+ Documentation/media/uapi/dvb/net.rst               |    9 +-
+ .../media/uapi/dvb/query-dvb-frontend-info.rst     |    9 +-
+ .../media/uapi/dvb/video-clear-buffer.rst          |    9 +-
+ Documentation/media/uapi/dvb/video-command.rst     |    9 +-
+ Documentation/media/uapi/dvb/video-continue.rst    |    9 +-
+ .../media/uapi/dvb/video-fast-forward.rst          |    9 +-
+ Documentation/media/uapi/dvb/video-fclose.rst      |    9 +-
+ Documentation/media/uapi/dvb/video-fopen.rst       |    9 +-
+ Documentation/media/uapi/dvb/video-freeze.rst      |    9 +-
+ Documentation/media/uapi/dvb/video-fwrite.rst      |    9 +-
+ .../media/uapi/dvb/video-get-capabilities.rst      |    9 +-
+ Documentation/media/uapi/dvb/video-get-event.rst   |    9 +-
+ .../media/uapi/dvb/video-get-frame-count.rst       |    9 +-
+ Documentation/media/uapi/dvb/video-get-pts.rst     |    9 +-
+ Documentation/media/uapi/dvb/video-get-size.rst    |    9 +-
+ Documentation/media/uapi/dvb/video-get-status.rst  |    9 +-
+ Documentation/media/uapi/dvb/video-play.rst        |    9 +-
+ .../media/uapi/dvb/video-select-source.rst         |    9 +-
+ Documentation/media/uapi/dvb/video-set-blank.rst   |    9 +-
+ .../media/uapi/dvb/video-set-display-format.rst    |    9 +-
+ Documentation/media/uapi/dvb/video-set-format.rst  |    9 +-
+ .../media/uapi/dvb/video-set-streamtype.rst        |    9 +-
+ Documentation/media/uapi/dvb/video-slowmotion.rst  |    9 +-
+ .../media/uapi/dvb/video-stillpicture.rst          |    9 +-
+ Documentation/media/uapi/dvb/video-stop.rst        |    9 +-
+ Documentation/media/uapi/dvb/video-try-command.rst |    9 +-
+ Documentation/media/uapi/dvb/video.rst             |    9 +-
+ .../media/uapi/dvb/video_function_calls.rst        |    9 +-
+ Documentation/media/uapi/dvb/video_types.rst       |    9 +-
+ Documentation/media/uapi/fdl-appendix.rst          |    9 +-
+ Documentation/media/uapi/gen-errors.rst            |    9 +-
+ .../media/uapi/mediactl/media-controller-intro.rst |    9 +-
+ .../media/uapi/mediactl/media-controller-model.rst |    9 +-
+ .../media/uapi/mediactl/media-controller.rst       |    9 +-
+ .../media/uapi/mediactl/media-func-close.rst       |    9 +-
+ .../media/uapi/mediactl/media-func-ioctl.rst       |    9 +-
+ .../media/uapi/mediactl/media-func-open.rst        |    9 +-
+ Documentation/media/uapi/mediactl/media-funcs.rst  |    9 +
+ Documentation/media/uapi/mediactl/media-header.rst |    9 +-
+ .../media/uapi/mediactl/media-ioc-device-info.rst  |    9 +-
+ .../uapi/mediactl/media-ioc-enum-entities.rst      |    9 +-
+ .../media/uapi/mediactl/media-ioc-enum-links.rst   |    9 +-
+ .../media/uapi/mediactl/media-ioc-g-topology.rst   |    9 +-
+ .../uapi/mediactl/media-ioc-request-alloc.rst      |    6 +-
+ .../media/uapi/mediactl/media-ioc-setup-link.rst   |    9 +-
+ .../uapi/mediactl/media-request-ioc-queue.rst      |    6 +-
+ .../uapi/mediactl/media-request-ioc-reinit.rst     |    6 +-
+ Documentation/media/uapi/mediactl/media-types.rst  |    9 +-
+ Documentation/media/uapi/mediactl/request-api.rst  |    6 +-
+ .../media/uapi/mediactl/request-func-close.rst     |    6 +-
+ .../media/uapi/mediactl/request-func-ioctl.rst     |    6 +-
+ .../media/uapi/mediactl/request-func-poll.rst      |    6 +-
+ Documentation/media/uapi/rc/keytable.c.rst         |    9 +-
+ Documentation/media/uapi/rc/lirc-dev-intro.rst     |    9 +-
+ Documentation/media/uapi/rc/lirc-dev.rst           |    9 +-
+ Documentation/media/uapi/rc/lirc-func.rst          |    9 +-
+ Documentation/media/uapi/rc/lirc-get-features.rst  |    9 +-
+ Documentation/media/uapi/rc/lirc-get-rec-mode.rst  |    9 +-
+ .../media/uapi/rc/lirc-get-rec-resolution.rst      |    9 +-
+ Documentation/media/uapi/rc/lirc-get-send-mode.rst |    9 +-
+ Documentation/media/uapi/rc/lirc-get-timeout.rst   |    9 +-
+ Documentation/media/uapi/rc/lirc-header.rst        |    9 +-
+ Documentation/media/uapi/rc/lirc-read.rst          |    9 +-
+ .../uapi/rc/lirc-set-measure-carrier-mode.rst      |    9 +-
+ .../media/uapi/rc/lirc-set-rec-carrier-range.rst   |    9 +-
+ .../media/uapi/rc/lirc-set-rec-carrier.rst         |    9 +-
+ .../media/uapi/rc/lirc-set-rec-timeout-reports.rst |    9 +-
+ .../media/uapi/rc/lirc-set-rec-timeout.rst         |    9 +-
+ .../media/uapi/rc/lirc-set-send-carrier.rst        |    9 +-
+ .../media/uapi/rc/lirc-set-send-duty-cycle.rst     |    9 +-
+ .../media/uapi/rc/lirc-set-transmitter-mask.rst    |    9 +-
+ .../media/uapi/rc/lirc-set-wideband-receiver.rst   |    9 +-
+ Documentation/media/uapi/rc/lirc-write.rst         |    9 +-
+ Documentation/media/uapi/rc/rc-intro.rst           |    9 +-
+ Documentation/media/uapi/rc/rc-sysfs-nodes.rst     |    9 +-
+ Documentation/media/uapi/rc/rc-table-change.rst    |    9 +-
+ Documentation/media/uapi/rc/rc-tables.rst          |    9 +-
+ Documentation/media/uapi/rc/remote_controllers.rst |    9 +-
+ Documentation/media/uapi/v4l/app-pri.rst           |   11 +-
+ Documentation/media/uapi/v4l/async.rst             |    9 +-
+ Documentation/media/uapi/v4l/audio.rst             |   11 +-
+ Documentation/media/uapi/v4l/bayer.svg             |   27 +
+ Documentation/media/uapi/v4l/biblio.rst            |    9 +-
+ Documentation/media/uapi/v4l/buffer.rst            |    9 +-
+ Documentation/media/uapi/v4l/capture-example.rst   |    9 +-
+ Documentation/media/uapi/v4l/capture.c.rst         |    9 +-
+ Documentation/media/uapi/v4l/colorspaces-defs.rst  |    9 +-
+ .../media/uapi/v4l/colorspaces-details.rst         |    9 +-
+ Documentation/media/uapi/v4l/colorspaces.rst       |    9 +-
+ Documentation/media/uapi/v4l/common-defs.rst       |    9 +-
+ Documentation/media/uapi/v4l/common.rst            |    9 +-
+ Documentation/media/uapi/v4l/compat.rst            |    9 +-
+ Documentation/media/uapi/v4l/constraints.svg       |   27 +
+ Documentation/media/uapi/v4l/control.rst           |    9 +-
+ Documentation/media/uapi/v4l/crop.rst              |    9 +-
+ Documentation/media/uapi/v4l/crop.svg              |   10 +-
+ Documentation/media/uapi/v4l/depth-formats.rst     |   10 +-
+ Documentation/media/uapi/v4l/dev-capture.rst       |   11 +-
+ Documentation/media/uapi/v4l/dev-codec.rst         |    9 +-
+ Documentation/media/uapi/v4l/dev-effect.rst        |    9 +-
+ Documentation/media/uapi/v4l/dev-event.rst         |    9 +-
+ Documentation/media/uapi/v4l/dev-meta.rst          |    9 +-
+ Documentation/media/uapi/v4l/dev-osd.rst           |    9 +-
+ Documentation/media/uapi/v4l/dev-output.rst        |    9 +-
+ Documentation/media/uapi/v4l/dev-overlay.rst       |    9 +-
+ Documentation/media/uapi/v4l/dev-radio.rst         |    9 +-
+ Documentation/media/uapi/v4l/dev-raw-vbi.rst       |    9 +-
+ Documentation/media/uapi/v4l/dev-rds.rst           |    9 +-
+ Documentation/media/uapi/v4l/dev-sdr.rst           |    9 +-
+ Documentation/media/uapi/v4l/dev-sliced-vbi.rst    |    9 +-
+ Documentation/media/uapi/v4l/dev-subdev.rst        |    9 +-
+ Documentation/media/uapi/v4l/dev-teletext.rst      |   11 +-
+ Documentation/media/uapi/v4l/dev-touch.rst         |    9 +-
+ Documentation/media/uapi/v4l/devices.rst           |    9 +-
+ Documentation/media/uapi/v4l/diff-v4l.rst          |    9 +-
+ Documentation/media/uapi/v4l/dmabuf.rst            |    9 +-
+ Documentation/media/uapi/v4l/dv-timings.rst        |    9 +-
+ Documentation/media/uapi/v4l/extended-controls.rst |   15 +-
+ Documentation/media/uapi/v4l/field-order.rst       |    9 +-
+ Documentation/media/uapi/v4l/fieldseq_bt.svg       |   12 +-
+ Documentation/media/uapi/v4l/fieldseq_tb.svg       |   12 +-
+ Documentation/media/uapi/v4l/format.rst            |   11 +-
+ Documentation/media/uapi/v4l/func-close.rst        |    9 +-
+ Documentation/media/uapi/v4l/func-ioctl.rst        |    9 +-
+ Documentation/media/uapi/v4l/func-mmap.rst         |    9 +-
+ Documentation/media/uapi/v4l/func-munmap.rst       |    9 +-
+ Documentation/media/uapi/v4l/func-open.rst         |    9 +-
+ Documentation/media/uapi/v4l/func-poll.rst         |    9 +-
+ Documentation/media/uapi/v4l/func-read.rst         |    9 +-
+ Documentation/media/uapi/v4l/func-select.rst       |    9 +-
+ Documentation/media/uapi/v4l/func-write.rst        |    9 +-
+ Documentation/media/uapi/v4l/hist-v4l2.rst         |    9 +-
+ Documentation/media/uapi/v4l/hsv-formats.rst       |    9 +-
+ Documentation/media/uapi/v4l/io.rst                |    9 +-
+ .../media/uapi/v4l/libv4l-introduction.rst         |    9 +-
+ Documentation/media/uapi/v4l/libv4l.rst            |    9 +-
+ Documentation/media/uapi/v4l/meta-formats.rst      |    9 +-
+ Documentation/media/uapi/v4l/mmap.rst              |   31 +-
+ Documentation/media/uapi/v4l/nv12mt.svg            |   27 +
+ Documentation/media/uapi/v4l/nv12mt_example.svg    |   27 +
+ Documentation/media/uapi/v4l/open.rst              |   11 +-
+ Documentation/media/uapi/v4l/pipeline.dot          |    2 +
+ Documentation/media/uapi/v4l/pixfmt-cnf4.rst       |   31 +
+ Documentation/media/uapi/v4l/pixfmt-compressed.rst |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-grey.rst       |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-indexed.rst    |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-intro.rst      |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-inzi.rst       |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-m420.rst       |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-meta-d4xx.rst  |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-meta-uvc.rst   |    9 +-
+ .../media/uapi/v4l/pixfmt-meta-vsp1-hgo.rst        |    9 +-
+ .../media/uapi/v4l/pixfmt-meta-vsp1-hgt.rst        |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-nv12.rst       |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-nv12m.rst      |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-nv12mt.rst     |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-nv16.rst       |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-nv16m.rst      |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-nv24.rst       |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-packed-hsv.rst |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-packed-rgb.rst |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-packed-yuv.rst |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-reserved.rst   |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-rgb.rst        |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-sdr-cs08.rst   |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-sdr-cs14le.rst |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-sdr-cu08.rst   |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-sdr-cu16le.rst |    9 +-
+ .../media/uapi/v4l/pixfmt-sdr-pcu16be.rst          |    9 +-
+ .../media/uapi/v4l/pixfmt-sdr-pcu18be.rst          |    9 +-
+ .../media/uapi/v4l/pixfmt-sdr-pcu20be.rst          |   10 +-
+ Documentation/media/uapi/v4l/pixfmt-sdr-ru12le.rst |    9 +-
+ .../media/uapi/v4l/pixfmt-srggb10-ipu3.rst         |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-srggb10.rst    |    9 +-
+ .../media/uapi/v4l/pixfmt-srggb10alaw8.rst         |    9 +-
+ .../media/uapi/v4l/pixfmt-srggb10dpcm8.rst         |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-srggb10p.rst   |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-srggb12.rst    |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-srggb12p.rst   |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-srggb14p.rst   |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-srggb16.rst    |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-srggb8.rst     |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-tch-td08.rst   |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-tch-td16.rst   |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-tch-tu08.rst   |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-tch-tu16.rst   |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-uv8.rst        |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-uyvy.rst       |    9 +-
+ .../media/uapi/v4l/pixfmt-v4l2-mplane.rst          |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-v4l2.rst       |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-vyuy.rst       |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-y10.rst        |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-y10b.rst       |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-y10p.rst       |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-y12.rst        |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-y12i.rst       |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-y16-be.rst     |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-y16.rst        |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-y41p.rst       |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-y8i.rst        |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-yuv410.rst     |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-yuv411p.rst    |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-yuv420.rst     |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-yuv420m.rst    |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-yuv422m.rst    |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-yuv422p.rst    |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-yuv444m.rst    |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-yuyv.rst       |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-yvyu.rst       |    9 +-
+ Documentation/media/uapi/v4l/pixfmt-z16.rst        |    9 +-
+ Documentation/media/uapi/v4l/pixfmt.rst            |    9 +-
+ Documentation/media/uapi/v4l/planar-apis.rst       |    9 +-
+ Documentation/media/uapi/v4l/querycap.rst          |    9 +-
+ Documentation/media/uapi/v4l/rw.rst                |    9 +-
+ Documentation/media/uapi/v4l/sdr-formats.rst       |    9 +-
+ .../media/uapi/v4l/selection-api-configuration.rst |    9 +-
+ .../media/uapi/v4l/selection-api-examples.rst      |    9 +-
+ .../media/uapi/v4l/selection-api-intro.rst         |    9 +-
+ .../media/uapi/v4l/selection-api-targets.rst       |    9 +-
+ .../media/uapi/v4l/selection-api-vs-crop-api.rst   |    9 +-
+ Documentation/media/uapi/v4l/selection-api.rst     |    9 +-
+ Documentation/media/uapi/v4l/selection.svg         |   27 +
+ Documentation/media/uapi/v4l/selections-common.rst |    9 +-
+ Documentation/media/uapi/v4l/standard.rst          |    9 +-
+ Documentation/media/uapi/v4l/streaming-par.rst     |    9 +-
+ Documentation/media/uapi/v4l/subdev-formats.rst    |    9 +-
+ .../uapi/v4l/subdev-image-processing-crop.svg      |   10 +
+ .../uapi/v4l/subdev-image-processing-full.svg      |   10 +
+ ...ubdev-image-processing-scaling-multi-source.svg |   10 +
+ Documentation/media/uapi/v4l/tch-formats.rst       |    9 +-
+ Documentation/media/uapi/v4l/tuner.rst             |   13 +-
+ Documentation/media/uapi/v4l/user-func.rst         |    9 +-
+ Documentation/media/uapi/v4l/userp.rst             |   17 +-
+ .../media/uapi/v4l/v4l2-selection-flags.rst        |    9 +-
+ .../media/uapi/v4l/v4l2-selection-targets.rst      |   16 +-
+ Documentation/media/uapi/v4l/v4l2.rst              |    9 +-
+ Documentation/media/uapi/v4l/v4l2grab-example.rst  |    9 +-
+ Documentation/media/uapi/v4l/v4l2grab.c.rst        |    9 +-
+ Documentation/media/uapi/v4l/vbi_525.svg           |   12 +-
+ Documentation/media/uapi/v4l/vbi_625.svg           |   12 +-
+ Documentation/media/uapi/v4l/vbi_hsync.svg         |   12 +-
+ Documentation/media/uapi/v4l/video.rst             |   13 +-
+ Documentation/media/uapi/v4l/videodev.rst          |    9 +-
+ .../media/uapi/v4l/vidioc-create-bufs.rst          |    9 +-
+ Documentation/media/uapi/v4l/vidioc-cropcap.rst    |    9 +-
+ .../media/uapi/v4l/vidioc-dbg-g-chip-info.rst      |    9 +-
+ .../media/uapi/v4l/vidioc-dbg-g-register.rst       |    9 +-
+ .../media/uapi/v4l/vidioc-decoder-cmd.rst          |    9 +-
+ Documentation/media/uapi/v4l/vidioc-dqevent.rst    |    9 +-
+ .../media/uapi/v4l/vidioc-dv-timings-cap.rst       |    9 +-
+ .../media/uapi/v4l/vidioc-encoder-cmd.rst          |    9 +-
+ .../media/uapi/v4l/vidioc-enum-dv-timings.rst      |    9 +-
+ Documentation/media/uapi/v4l/vidioc-enum-fmt.rst   |   17 +-
+ .../media/uapi/v4l/vidioc-enum-frameintervals.rst  |    9 +-
+ .../media/uapi/v4l/vidioc-enum-framesizes.rst      |    9 +-
+ .../media/uapi/v4l/vidioc-enum-freq-bands.rst      |    9 +-
+ Documentation/media/uapi/v4l/vidioc-enumaudio.rst  |    9 +-
+ .../media/uapi/v4l/vidioc-enumaudioout.rst         |    9 +-
+ Documentation/media/uapi/v4l/vidioc-enuminput.rst  |    9 +-
+ Documentation/media/uapi/v4l/vidioc-enumoutput.rst |    9 +-
+ Documentation/media/uapi/v4l/vidioc-enumstd.rst    |    9 +-
+ Documentation/media/uapi/v4l/vidioc-expbuf.rst     |    9 +-
+ Documentation/media/uapi/v4l/vidioc-g-audio.rst    |    9 +-
+ Documentation/media/uapi/v4l/vidioc-g-audioout.rst |    9 +-
+ Documentation/media/uapi/v4l/vidioc-g-crop.rst     |    9 +-
+ Documentation/media/uapi/v4l/vidioc-g-ctrl.rst     |    9 +-
+ .../media/uapi/v4l/vidioc-g-dv-timings.rst         |    9 +-
+ Documentation/media/uapi/v4l/vidioc-g-edid.rst     |    9 +-
+ .../media/uapi/v4l/vidioc-g-enc-index.rst          |    9 +-
+ .../media/uapi/v4l/vidioc-g-ext-ctrls.rst          |    9 +-
+ Documentation/media/uapi/v4l/vidioc-g-fbuf.rst     |    9 +-
+ Documentation/media/uapi/v4l/vidioc-g-fmt.rst      |    9 +-
+ .../media/uapi/v4l/vidioc-g-frequency.rst          |    9 +-
+ Documentation/media/uapi/v4l/vidioc-g-input.rst    |    9 +-
+ Documentation/media/uapi/v4l/vidioc-g-jpegcomp.rst |    9 +-
+ .../media/uapi/v4l/vidioc-g-modulator.rst          |    9 +-
+ Documentation/media/uapi/v4l/vidioc-g-output.rst   |    9 +-
+ Documentation/media/uapi/v4l/vidioc-g-parm.rst     |   12 +-
+ Documentation/media/uapi/v4l/vidioc-g-priority.rst |    9 +-
+ .../media/uapi/v4l/vidioc-g-selection.rst          |    9 +-
+ .../media/uapi/v4l/vidioc-g-sliced-vbi-cap.rst     |    9 +-
+ Documentation/media/uapi/v4l/vidioc-g-std.rst      |    9 +-
+ Documentation/media/uapi/v4l/vidioc-g-tuner.rst    |    9 +-
+ Documentation/media/uapi/v4l/vidioc-log-status.rst |    9 +-
+ Documentation/media/uapi/v4l/vidioc-overlay.rst    |    9 +-
+ .../media/uapi/v4l/vidioc-prepare-buf.rst          |    9 +-
+ Documentation/media/uapi/v4l/vidioc-qbuf.rst       |    9 +-
+ .../media/uapi/v4l/vidioc-query-dv-timings.rst     |    9 +-
+ Documentation/media/uapi/v4l/vidioc-querybuf.rst   |    9 +-
+ Documentation/media/uapi/v4l/vidioc-querycap.rst   |    9 +-
+ Documentation/media/uapi/v4l/vidioc-queryctrl.rst  |    9 +-
+ Documentation/media/uapi/v4l/vidioc-querystd.rst   |    9 +-
+ Documentation/media/uapi/v4l/vidioc-reqbufs.rst    |   26 +-
+ .../media/uapi/v4l/vidioc-s-hw-freq-seek.rst       |    9 +-
+ Documentation/media/uapi/v4l/vidioc-streamon.rst   |    9 +-
+ .../uapi/v4l/vidioc-subdev-enum-frame-interval.rst |    9 +-
+ .../uapi/v4l/vidioc-subdev-enum-frame-size.rst     |    9 +-
+ .../uapi/v4l/vidioc-subdev-enum-mbus-code.rst      |    9 +-
+ .../media/uapi/v4l/vidioc-subdev-g-crop.rst        |    9 +-
+ .../media/uapi/v4l/vidioc-subdev-g-fmt.rst         |    9 +-
+ .../uapi/v4l/vidioc-subdev-g-frame-interval.rst    |   12 +-
+ .../media/uapi/v4l/vidioc-subdev-g-selection.rst   |    9 +-
+ .../media/uapi/v4l/vidioc-subscribe-event.rst      |    9 +-
+ Documentation/media/uapi/v4l/yuv-formats.rst       |    9 +-
+ .../media/v4l-drivers/au0828-cardlist.rst          |    2 +
+ Documentation/media/v4l-drivers/bttv-cardlist.rst  |    2 +
+ Documentation/media/v4l-drivers/bttv.rst           |    2 +
+ Documentation/media/v4l-drivers/cafe_ccic.rst      |    2 +
+ Documentation/media/v4l-drivers/cardlist.rst       |    2 +
+ Documentation/media/v4l-drivers/cpia2.rst          |    2 +
+ Documentation/media/v4l-drivers/cx18.rst           |    2 +
+ Documentation/media/v4l-drivers/cx2341x.rst        |    2 +
+ .../media/v4l-drivers/cx23885-cardlist.rst         |    2 +
+ Documentation/media/v4l-drivers/cx88-cardlist.rst  |    2 +
+ Documentation/media/v4l-drivers/cx88.rst           |    2 +
+ Documentation/media/v4l-drivers/davinci-vpbe.rst   |    2 +
+ .../media/v4l-drivers/em28xx-cardlist.rst          |    4 +-
+ Documentation/media/v4l-drivers/fimc.rst           |    2 +
+ Documentation/media/v4l-drivers/fourcc.rst         |    2 +
+ Documentation/media/v4l-drivers/gspca-cardlist.rst |    2 +
+ Documentation/media/v4l-drivers/imx.rst            |    2 +
+ Documentation/media/v4l-drivers/index.rst          |    2 +-
+ Documentation/media/v4l-drivers/ivtv-cardlist.rst  |    2 +
+ Documentation/media/v4l-drivers/ivtv.rst           |    1 +
+ Documentation/media/v4l-drivers/max2175.rst        |    2 +
+ Documentation/media/v4l-drivers/meye.rst           |    2 +
+ Documentation/media/v4l-drivers/omap3isp.rst       |    2 +
+ Documentation/media/v4l-drivers/omap4_camera.rst   |    2 +
+ Documentation/media/v4l-drivers/philips.rst        |    2 +
+ Documentation/media/v4l-drivers/pvrusb2.rst        |    2 +
+ Documentation/media/v4l-drivers/pxa_camera.rst     |    2 +
+ Documentation/media/v4l-drivers/qcom_camss.rst     |    2 +
+ .../media/v4l-drivers/qcom_camss_8x96_graph.dot    |    2 +
+ .../media/v4l-drivers/qcom_camss_graph.dot         |    2 +
+ Documentation/media/v4l-drivers/radiotrack.rst     |    2 +
+ Documentation/media/v4l-drivers/rcar-fdp1.rst      |    2 +
+ .../media/v4l-drivers/saa7134-cardlist.rst         |    2 +
+ Documentation/media/v4l-drivers/saa7134.rst        |    2 +
+ .../media/v4l-drivers/saa7164-cardlist.rst         |    2 +
+ .../media/v4l-drivers/sh_mobile_ceu_camera.rst     |    4 +-
+ Documentation/media/v4l-drivers/si470x.rst         |    2 +
+ Documentation/media/v4l-drivers/si4713.rst         |    2 +
+ Documentation/media/v4l-drivers/si476x.rst         |    2 +
+ Documentation/media/v4l-drivers/soc-camera.rst     |    2 +
+ .../media/v4l-drivers/tm6000-cardlist.rst          |    2 +
+ Documentation/media/v4l-drivers/tuner-cardlist.rst |    2 +
+ Documentation/media/v4l-drivers/tuners.rst         |    2 +
+ .../media/v4l-drivers/usbvision-cardlist.rst       |    2 +
+ Documentation/media/v4l-drivers/uvcvideo.rst       |    2 +
+ Documentation/media/v4l-drivers/v4l-with-ir.rst    |    2 +
+ Documentation/media/v4l-drivers/vivid.rst          |    2 +
+ Documentation/media/v4l-drivers/zoran.rst          |    2 +
+ Documentation/media/v4l-drivers/zr364xx.rst        |    2 +
+ Documentation/media/video.h.rst.exceptions         |    2 +
+ Documentation/media/videodev2.h.rst.exceptions     |    2 +
+ MAINTAINERS                                        |   55 +-
+ drivers/media/cec/cec-adap.c                       |   34 +-
+ drivers/media/cec/cec-core.c                       |    6 +
+ drivers/media/cec/cec-pin.c                        |    5 +-
+ drivers/media/common/v4l2-tpg/v4l2-tpg-core.c      |    2 +-
+ drivers/media/common/videobuf2/videobuf2-core.c    |   25 +-
+ drivers/media/common/videobuf2/videobuf2-v4l2.c    |    3 +-
+ drivers/media/dvb-core/dvb_frontend.c              |   11 +-
+ drivers/media/dvb-frontends/af9033.c               |   12 +-
+ drivers/media/dvb-frontends/dib0090.c              |   32 +-
+ drivers/media/dvb-frontends/dib7000p.c             |    7 +-
+ drivers/media/dvb-frontends/drxk_hard.c            |    8 +-
+ drivers/media/dvb-frontends/lgdt3306a.c            |    6 +-
+ drivers/media/dvb-frontends/mxl5xx.c               |    2 +-
+ drivers/media/dvb-frontends/tda18271c2dd.c         |    1 -
+ drivers/media/firewire/firedtv-avc.c               |    6 +-
+ drivers/media/firewire/firedtv.h                   |    6 +-
+ drivers/media/i2c/Kconfig                          |   15 +
+ drivers/media/i2c/Makefile                         |    1 +
+ drivers/media/i2c/ad9389b.c                        |    2 +-
+ drivers/media/i2c/adv7180.c                        |   15 +
+ drivers/media/i2c/adv7511.c                        |    2 +-
+ drivers/media/i2c/adv7604.c                        |   68 +-
+ drivers/media/i2c/adv7842.c                        |    4 +-
+ drivers/media/i2c/imx214.c                         | 1118 +++++++++++++
+ drivers/media/i2c/imx258.c                         |   28 +-
+ drivers/media/i2c/imx274.c                         |    9 +-
+ drivers/media/i2c/imx319.c                         |    8 +-
+ drivers/media/i2c/imx355.c                         |    8 +-
+ drivers/media/i2c/mt9m111.c                        |  266 ++-
+ drivers/media/i2c/ov13858.c                        |    6 +-
+ drivers/media/i2c/ov2640.c                         |   21 +-
+ drivers/media/i2c/ov2680.c                         |   12 +-
+ drivers/media/i2c/ov5640.c                         |  771 +++++----
+ drivers/media/i2c/ov5645.c                         |    2 +-
+ drivers/media/i2c/ov7670.c                         |    6 +-
+ drivers/media/i2c/ov772x.c                         |    7 +-
+ drivers/media/i2c/ov7740.c                         |    4 +-
+ drivers/media/i2c/tc358743.c                       |    2 +-
+ drivers/media/i2c/tda7432.c                        |    4 +-
+ drivers/media/i2c/ths8200.c                        |    2 +-
+ drivers/media/i2c/tvp5150.c                        |    2 +-
+ drivers/media/i2c/video-i2c.c                      |  300 +++-
+ drivers/media/pci/b2c2/flexcop-dma.c               |   70 +-
+ drivers/media/pci/bt8xx/bttv-driver.c              |   12 +-
+ drivers/media/pci/cobalt/cobalt-v4l2.c             |   48 +-
+ drivers/media/pci/cx18/cx18-ioctl.c                |   13 +-
+ drivers/media/pci/cx23885/cx23885-core.c           |   55 +-
+ drivers/media/pci/cx23885/cx23885-i2c.c            |    1 -
+ drivers/media/pci/cx23885/cx23885-video.c          |   40 +-
+ drivers/media/pci/cx23885/cx23885.h                |    2 +
+ drivers/media/pci/ddbridge/ddbridge.h              |   48 +-
+ drivers/media/pci/intel/ipu3/ipu3-cio2.h           |    2 -
+ drivers/media/pci/ivtv/ivtv-ioctl.c                |   17 +-
+ drivers/media/pci/mantis/mantis_cards.c            |    1 -
+ drivers/media/pci/saa7134/saa7134-core.c           |    8 +-
+ drivers/media/pci/saa7134/saa7134-input.c          |  115 +-
+ drivers/media/pci/saa7134/saa7134-video.c          |   21 +-
+ drivers/media/pci/saa7134/saa7134.h                |   10 +-
+ drivers/media/platform/Kconfig                     |   32 +
+ drivers/media/platform/Makefile                    |    5 +
+ drivers/media/platform/am437x/am437x-vpfe.c        |   31 +-
+ drivers/media/platform/aspeed-video.c              | 1729 ++++++++++++++++=
+++++
+ drivers/media/platform/coda/coda-bit.c             |  132 +-
+ drivers/media/platform/coda/coda-common.c          |  246 +--
+ drivers/media/platform/coda/coda.h                 |   34 +-
+ drivers/media/platform/coda/coda_regs.h            |    2 +-
+ drivers/media/platform/coda/trace.h                |   10 +-
+ drivers/media/platform/davinci/vpbe.c              |   30 +-
+ drivers/media/platform/davinci/vpbe_display.c      |   10 +-
+ drivers/media/platform/davinci/vpfe_capture.c      |   12 +-
+ drivers/media/platform/exynos-gsc/gsc-core.c       |   57 +-
+ drivers/media/platform/exynos-gsc/gsc-core.h       |    3 +-
+ drivers/media/platform/exynos-gsc/gsc-m2m.c        |   23 +-
+ drivers/media/platform/exynos4-is/fimc-core.h      |    6 +-
+ drivers/media/platform/exynos4-is/fimc-is-errno.c  |    4 +-
+ drivers/media/platform/exynos4-is/fimc-is-errno.h  |    2 +-
+ drivers/media/platform/exynos4-is/fimc-m2m.c       |  130 +-
+ drivers/media/platform/exynos4-is/media-dev.c      |   12 +-
+ drivers/media/platform/imx-pxp.c                   |   18 +-
+ drivers/media/platform/marvell-ccic/cafe-driver.c  |    2 +-
+ drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c |    6 +-
+ .../media/platform/mtk-vcodec/mtk_vcodec_enc_pm.c  |   10 +-
+ .../media/platform/mtk-vcodec/mtk_vcodec_util.h    |    5 +
+ drivers/media/platform/mtk-vcodec/venc_drv_if.h    |    2 +-
+ drivers/media/platform/qcom/camss/camss-vfe.c      |   23 +-
+ drivers/media/platform/qcom/camss/camss.c          |    2 +-
+ drivers/media/platform/qcom/camss/camss.h          |    1 +
+ drivers/media/platform/qcom/venus/core.c           |   32 +-
+ drivers/media/platform/qcom/venus/core.h           |    6 +
+ drivers/media/platform/qcom/venus/firmware.c       |  235 ++-
+ drivers/media/platform/qcom/venus/firmware.h       |   17 +-
+ drivers/media/platform/qcom/venus/hfi_cmds.c       |    2 +-
+ drivers/media/platform/qcom/venus/hfi_venus.c      |   15 +-
+ drivers/media/platform/qcom/venus/hfi_venus_io.h   |    8 +
+ drivers/media/platform/qcom/venus/vdec.c           |    4 +-
+ drivers/media/platform/qcom/venus/venc.c           |   23 +-
+ drivers/media/platform/qcom/venus/venc_ctrls.c     |   36 +-
+ drivers/media/platform/rcar-vin/rcar-core.c        |   52 +
+ drivers/media/platform/rcar-vin/rcar-csi2.c        |   97 +-
+ drivers/media/platform/rcar-vin/rcar-v4l2.c        |   10 +-
+ drivers/media/platform/rockchip/rga/rga.c          |    4 +-
+ drivers/media/platform/s5p-g2d/g2d.c               |  102 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc.c           |    1 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       |   49 +-
+ drivers/media/platform/seco-cec/Makefile           |    1 +
+ drivers/media/platform/seco-cec/seco-cec.c         |  796 +++++++++
+ drivers/media/platform/seco-cec/seco-cec.h         |  141 ++
+ drivers/media/platform/sh_vou.c                    |    2 +-
+ drivers/media/platform/sti/bdisp/bdisp-hw.c        |    2 +-
+ drivers/media/platform/sunxi/sun6i-csi/Kconfig     |    9 +
+ drivers/media/platform/sunxi/sun6i-csi/Makefile    |    3 +
+ drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c |  913 +++++++++++
+ drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.h |  135 ++
+ .../media/platform/sunxi/sun6i-csi/sun6i_csi_reg.h |  196 +++
+ .../media/platform/sunxi/sun6i-csi/sun6i_video.c   |  679 ++++++++
+ .../media/platform/sunxi/sun6i-csi/sun6i_video.h   |   38 +
+ drivers/media/platform/ti-vpe/cal.c                |    4 +-
+ drivers/media/platform/vicodec/codec-fwht.c        |   84 +-
+ drivers/media/platform/vicodec/codec-fwht.h        |   15 +-
+ drivers/media/platform/vicodec/codec-v4l2-fwht.c   |  122 +-
+ drivers/media/platform/vicodec/codec-v4l2-fwht.h   |    3 +-
+ drivers/media/platform/vicodec/vicodec-core.c      |  143 +-
+ drivers/media/platform/vim2m.c                     |    6 +-
+ drivers/media/platform/vimc/vimc-common.c          |    2 +
+ drivers/media/platform/vimc/vimc-sensor.c          |    2 +-
+ drivers/media/platform/vivid/vivid-core.c          |   48 +-
+ drivers/media/platform/vivid/vivid-core.h          |    5 +
+ drivers/media/platform/vivid/vivid-ctrls.c         |   16 +
+ drivers/media/platform/vivid/vivid-kthread-cap.c   |   56 +-
+ drivers/media/platform/vivid/vivid-kthread-out.c   |    5 +-
+ drivers/media/platform/vivid/vivid-vbi-cap.c       |    4 -
+ drivers/media/platform/vivid/vivid-vid-cap.c       |   29 +-
+ drivers/media/platform/vivid/vivid-vid-cap.h       |    2 +-
+ drivers/media/platform/vivid/vivid-vid-common.c    |    2 +-
+ drivers/media/platform/vivid/vivid-vid-out.c       |   18 +-
+ drivers/media/platform/vivid/vivid-vid-out.h       |    2 +-
+ drivers/media/platform/xilinx/Kconfig              |    2 +
+ drivers/media/platform/xilinx/Makefile             |    2 +
+ drivers/media/platform/xilinx/xilinx-dma.c         |    5 +-
+ drivers/media/platform/xilinx/xilinx-dma.h         |    5 +-
+ drivers/media/platform/xilinx/xilinx-tpg.c         |    7 +-
+ drivers/media/platform/xilinx/xilinx-vip.c         |    7 +-
+ drivers/media/platform/xilinx/xilinx-vip.h         |    5 +-
+ drivers/media/platform/xilinx/xilinx-vipp.c        |    5 +-
+ drivers/media/platform/xilinx/xilinx-vipp.h        |    5 +-
+ drivers/media/platform/xilinx/xilinx-vtc.c         |    5 +-
+ drivers/media/platform/xilinx/xilinx-vtc.h         |    5 +-
+ drivers/media/rc/Kconfig                           |   12 +
+ drivers/media/rc/Makefile                          |    1 +
+ drivers/media/rc/imon.c                            |    4 +-
+ drivers/media/rc/imon_raw.c                        |   47 +-
+ drivers/media/rc/keymaps/Makefile                  |    1 +
+ drivers/media/rc/keymaps/rc-xbox-dvd.c             |   63 +
+ drivers/media/rc/mceusb.c                          |    9 +
+ drivers/media/rc/rc-main.c                         |    8 +-
+ drivers/media/rc/xbox_remote.c                     |  306 ++++
+ drivers/media/spi/cxd2880-spi.c                    |   17 +
+ drivers/media/usb/au0828/au0828-video.c            |   38 +-
+ drivers/media/usb/cpia2/cpia2_v4l.c                |   31 +-
+ drivers/media/usb/cx231xx/cx231xx-417.c            |   41 +-
+ drivers/media/usb/cx231xx/cx231xx-video.c          |   41 +-
+ drivers/media/usb/dvb-usb-v2/Kconfig               |    1 +
+ drivers/media/usb/dvb-usb-v2/dvb_usb_core.c        |    6 +-
+ drivers/media/usb/dvb-usb-v2/gl861.c               |    3 +-
+ drivers/media/usb/dvb-usb-v2/lmedm04.c             |  102 +-
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c            |   40 +-
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.h            |    4 +-
+ drivers/media/usb/dvb-usb-v2/usb_urb.c             |    5 +-
+ drivers/media/usb/dvb-usb/dib0700_devices.c        |    2 +-
+ drivers/media/usb/dvb-usb/friio-fe.c               |  440 -----
+ drivers/media/usb/dvb-usb/friio.c                  |  522 ------
+ drivers/media/usb/dvb-usb/friio.h                  |   99 --
+ drivers/media/usb/em28xx/em28xx-cards.c            |    2 +-
+ drivers/media/usb/pulse8-cec/pulse8-cec.c          |    2 +-
+ drivers/media/usb/pvrusb2/pvrusb2-hdw.c            |    2 +-
+ drivers/media/usb/pvrusb2/pvrusb2-v4l2.c           |   13 +-
+ drivers/media/usb/siano/smsusb.c                   |    3 +-
+ drivers/media/usb/stkwebcam/stk-webcam.c           |   13 +-
+ drivers/media/usb/uvc/uvc_driver.c                 |   83 +-
+ drivers/media/usb/uvc/uvc_isight.c                 |    6 +-
+ drivers/media/usb/uvc/uvc_queue.c                  |  110 +-
+ drivers/media/usb/uvc/uvc_status.c                 |   12 +-
+ drivers/media/usb/uvc/uvc_video.c                  |  274 ++--
+ drivers/media/usb/uvc/uvcvideo.h                   |   69 +-
+ drivers/media/v4l2-core/Kconfig                    |    1 +
+ drivers/media/v4l2-core/v4l2-async.c               |    4 -
+ drivers/media/v4l2-core/v4l2-ctrls.c               |    3 +-
+ drivers/media/v4l2-core/v4l2-dev.c                 |    8 +-
+ drivers/media/v4l2-core/v4l2-device.c              |    1 +
+ drivers/media/v4l2-core/v4l2-fwnode.c              |    8 +-
+ drivers/media/v4l2-core/v4l2-ioctl.c               |  106 +-
+ drivers/media/v4l2-core/v4l2-mem2mem.c             |   66 +-
+ drivers/staging/media/Kconfig                      |    2 +
+ drivers/staging/media/Makefile                     |    1 +
+ drivers/staging/media/bcm2048/radio-bcm2048.c      |    5 +-
+ drivers/staging/media/imx/imx-media-of.c           |    2 +-
+ drivers/staging/media/rockchip/vpu/Kconfig         |   13 +
+ drivers/staging/media/rockchip/vpu/Makefile        |   10 +
+ drivers/staging/media/rockchip/vpu/TODO            |   13 +
+ drivers/staging/media/rockchip/vpu/rk3288_vpu_hw.c |  118 ++
+ .../media/rockchip/vpu/rk3288_vpu_hw_jpeg_enc.c    |  125 ++
+ .../staging/media/rockchip/vpu/rk3288_vpu_regs.h   |  442 +++++
+ drivers/staging/media/rockchip/vpu/rk3399_vpu_hw.c |  118 ++
+ .../media/rockchip/vpu/rk3399_vpu_hw_jpeg_enc.c    |  159 ++
+ .../staging/media/rockchip/vpu/rk3399_vpu_regs.h   |  600 +++++++
+ drivers/staging/media/rockchip/vpu/rockchip_vpu.h  |  232 +++
+ .../media/rockchip/vpu/rockchip_vpu_common.h       |   29 +
+ .../staging/media/rockchip/vpu/rockchip_vpu_drv.c  |  537 ++++++
+ .../staging/media/rockchip/vpu/rockchip_vpu_enc.c  |  670 ++++++++
+ .../staging/media/rockchip/vpu/rockchip_vpu_hw.h   |   58 +
+ .../staging/media/rockchip/vpu/rockchip_vpu_jpeg.c |  290 ++++
+ .../staging/media/rockchip/vpu/rockchip_vpu_jpeg.h |   14 +
+ drivers/staging/media/sunxi/cedrus/cedrus.c        |   23 +-
+ drivers/staging/media/sunxi/cedrus/cedrus.h        |    2 -
+ drivers/staging/media/sunxi/cedrus/cedrus_dec.c    |   11 +-
+ drivers/staging/media/sunxi/cedrus/cedrus_hw.c     |   37 +-
+ drivers/staging/media/sunxi/cedrus/cedrus_video.c  |    5 -
+ drivers/staging/media/tegra-vde/tegra-vde.c        |  222 +--
+ drivers/staging/media/tegra-vde/trace.h            |   93 ++
+ include/dt-bindings/media/xilinx-vip.h             |    5 +-
+ include/media/cec.h                                |    1 +
+ include/media/davinci/vpbe.h                       |    4 -
+ include/media/rc-map.h                             |    1 +
+ include/media/v4l2-common.h                        |    5 +
+ include/media/v4l2-dev.h                           |   13 +-
+ include/media/v4l2-ioctl.h                         |   16 +-
+ include/media/v4l2-subdev.h                        |    6 +-
+ include/uapi/linux/v4l2-common.h                   |   28 +-
+ include/uapi/linux/videodev2.h                     |    2 +
+ samples/v4l/v4l2-pci-skeleton.c                    |   11 +-
+ 780 files changed, 17553 insertions(+), 3643 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/aspeed-video.txt
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/sony,imx214=
+.txt
+ create mode 100644 Documentation/devicetree/bindings/media/rockchip-vpu.txt
+ create mode 100644 Documentation/devicetree/bindings/media/sun6i-csi.txt
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-cnf4.rst
+ create mode 100644 drivers/media/i2c/imx214.c
+ create mode 100644 drivers/media/platform/aspeed-video.c
+ create mode 100644 drivers/media/platform/seco-cec/Makefile
+ create mode 100644 drivers/media/platform/seco-cec/seco-cec.c
+ create mode 100644 drivers/media/platform/seco-cec/seco-cec.h
+ create mode 100644 drivers/media/platform/sunxi/sun6i-csi/Kconfig
+ create mode 100644 drivers/media/platform/sunxi/sun6i-csi/Makefile
+ create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
+ create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.h
+ create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_csi_reg.h
+ create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_video.c
+ create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_video.h
+ create mode 100644 drivers/media/rc/keymaps/rc-xbox-dvd.c
+ create mode 100644 drivers/media/rc/xbox_remote.c
+ delete mode 100644 drivers/media/usb/dvb-usb/friio-fe.c
+ delete mode 100644 drivers/media/usb/dvb-usb/friio.c
+ delete mode 100644 drivers/media/usb/dvb-usb/friio.h
+ create mode 100644 drivers/staging/media/rockchip/vpu/Kconfig
+ create mode 100644 drivers/staging/media/rockchip/vpu/Makefile
+ create mode 100644 drivers/staging/media/rockchip/vpu/TODO
+ create mode 100644 drivers/staging/media/rockchip/vpu/rk3288_vpu_hw.c
+ create mode 100644 drivers/staging/media/rockchip/vpu/rk3288_vpu_hw_jpeg_e=
+nc.c
+ create mode 100644 drivers/staging/media/rockchip/vpu/rk3288_vpu_regs.h
+ create mode 100644 drivers/staging/media/rockchip/vpu/rk3399_vpu_hw.c
+ create mode 100644 drivers/staging/media/rockchip/vpu/rk3399_vpu_hw_jpeg_e=
+nc.c
+ create mode 100644 drivers/staging/media/rockchip/vpu/rk3399_vpu_regs.h
+ create mode 100644 drivers/staging/media/rockchip/vpu/rockchip_vpu.h
+ create mode 100644 drivers/staging/media/rockchip/vpu/rockchip_vpu_common.h
+ create mode 100644 drivers/staging/media/rockchip/vpu/rockchip_vpu_drv.c
+ create mode 100644 drivers/staging/media/rockchip/vpu/rockchip_vpu_enc.c
+ create mode 100644 drivers/staging/media/rockchip/vpu/rockchip_vpu_hw.h
+ create mode 100644 drivers/staging/media/rockchip/vpu/rockchip_vpu_jpeg.c
+ create mode 100644 drivers/staging/media/rockchip/vpu/rockchip_vpu_jpeg.h
+ create mode 100644 drivers/staging/media/tegra-vde/trace.h
+
