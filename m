@@ -4,114 +4,110 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 874A1C43387
-	for <linux-media@archiver.kernel.org>; Thu, 20 Dec 2018 07:03:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D1838C43387
+	for <linux-media@archiver.kernel.org>; Thu, 20 Dec 2018 07:49:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4614220869
-	for <linux-media@archiver.kernel.org>; Thu, 20 Dec 2018 07:03:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9FE5F21720
+	for <linux-media@archiver.kernel.org>; Thu, 20 Dec 2018 07:49:09 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=umn.edu header.i=@umn.edu header.b="C6OGDMqb"
+	dkim=pass (2048-bit key) header.d=umn.edu header.i=@umn.edu header.b="Z7aztYeT"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730203AbeLTHDv (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 20 Dec 2018 02:03:51 -0500
-Received: from mta-p7.oit.umn.edu ([134.84.196.207]:34770 "EHLO
-        mta-p7.oit.umn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727976AbeLTHDv (ORCPT
+        id S1730602AbeLTHtI (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 20 Dec 2018 02:49:08 -0500
+Received: from mta-p8.oit.umn.edu ([134.84.196.208]:58540 "EHLO
+        mta-p8.oit.umn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727829AbeLTHtH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 20 Dec 2018 02:03:51 -0500
-X-Greylist: delayed 338 seconds by postgrey-1.27 at vger.kernel.org; Thu, 20 Dec 2018 02:03:50 EST
+        Thu, 20 Dec 2018 02:49:07 -0500
 Received: from localhost (unknown [127.0.0.1])
-        by mta-p7.oit.umn.edu (Postfix) with ESMTP id 30A7393C
-        for <linux-media@vger.kernel.org>; Thu, 20 Dec 2018 06:58:12 +0000 (UTC)
+        by mta-p8.oit.umn.edu (Postfix) with ESMTP id D424991E
+        for <linux-media@vger.kernel.org>; Thu, 20 Dec 2018 07:49:05 +0000 (UTC)
 X-Virus-Scanned: amavisd-new at umn.edu
-Received: from mta-p7.oit.umn.edu ([127.0.0.1])
-        by localhost (mta-p7.oit.umn.edu [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id f6NbRp4p-4r0 for <linux-media@vger.kernel.org>;
-        Thu, 20 Dec 2018 00:58:12 -0600 (CST)
-Received: from mail-io1-f69.google.com (mail-io1-f69.google.com [209.85.166.69])
+Received: from mta-p8.oit.umn.edu ([127.0.0.1])
+        by localhost (mta-p8.oit.umn.edu [127.0.0.1]) (amavisd-new, port 10024)
+        with ESMTP id Zwqw9Cft6XUf for <linux-media@vger.kernel.org>;
+        Thu, 20 Dec 2018 01:49:05 -0600 (CST)
+Received: from mail-it1-f197.google.com (mail-it1-f197.google.com [209.85.166.197])
         (using TLSv1.2 with cipher AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mta-p7.oit.umn.edu (Postfix) with ESMTPS id 07116C14
-        for <linux-media@vger.kernel.org>; Thu, 20 Dec 2018 00:58:12 -0600 (CST)
-Received: by mail-io1-f69.google.com with SMTP id y5so738504ion.16
-        for <linux-media@vger.kernel.org>; Wed, 19 Dec 2018 22:58:11 -0800 (PST)
+        by mta-p8.oit.umn.edu (Postfix) with ESMTPS id A4B60863
+        for <linux-media@vger.kernel.org>; Thu, 20 Dec 2018 01:49:05 -0600 (CST)
+Received: by mail-it1-f197.google.com with SMTP id 128so1362068itw.8
+        for <linux-media@vger.kernel.org>; Wed, 19 Dec 2018 23:49:05 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=umn.edu; s=google;
         h=from:to:cc:subject:date:message-id;
-        bh=KMYQEMyyybUcQQyBJoB5ewVLk/EnSbZoz+SUWx1zAAQ=;
-        b=C6OGDMqbJOiddAkIhfXdDAtudXouRc7ncV0itJNexjnUu6FAbi+XtR4T3FWSd53csG
-         t2UC6H0gU5Q/ixH1auCZbTx3CFqqTG3O3q7wYhZZ+YgeB+BGuDxdYl4zvyBmGUzt+qBG
-         prUvX2BF4yldU3BhUHfSXGUlSr63qKfrAEP7boZ+s3n6OA3BgfRg4P4Et8uUCrpBswqG
-         meuetEy4cQHqCrICGXjX3qAmDZW+BJOh/sn+rbe+3y+quJnwgJXZdx/L8x8oTCRhOgyX
-         bG2BN6115YQr2L5DC5UoQ6dL1aOp83Zz5nbxNNg6n1k5YMfERPadmxWbYqECYlnO4KXr
-         dGhg==
+        bh=IW8nFsGJ120mWoROgUXJuT+1N+HNIJQhDiQ6MIXoCJs=;
+        b=Z7aztYeTxM6JUlWHJIdUCAzs2UxECuo0vFJB/3MaBcRE8WWkJf06fs0d6r0Kfz0yQa
+         6kfBXpfBE0jdL/7uhzEPa/Qyjtjr/9ivCIDvMkQaw71CHkz96cgRHR5BrFtHLMDc/M4X
+         Jdti4I4hpOREQ+fUBbD6XH5Fj9wOn0QeELvaqFdZSpOjZC09/BZnftHkklgGuwv8X59R
+         YqQG5Z3RKB2+Oh3ZJm37HKCn3L1nRiiGwue34iMXz7dWFNxUjV3W1HxF54B5EiwFGp/Z
+         1jcV+3GCruiw8gPAIGWMZWANwyxJl9XXN2TXSj/lfD7LBIadKhom85e5UVPQgW1z8gMg
+         iKrw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id;
-        bh=KMYQEMyyybUcQQyBJoB5ewVLk/EnSbZoz+SUWx1zAAQ=;
-        b=O6HrQgPaepfMMuy9vrrhhCX4LXPFhC6YKL8OxZ/iutECB40/oRU3C+tQYXGzO9lHxY
-         DFDKfMnIYomQ9IxgWAFSOHYzjUz4KRuuGR++5A8XtjWPcu5dOAxY0x6t5qLFC/gWZYOT
-         u2i8T206ROhdV5Ln3lPZv+Adrf4zC1hqLi55ykimmYdCMcgQFv2Td8brVDzPhbQI7W6A
-         8C4o9EYUv5KhQOsqF7mMTHr9rJ0VcbfCFqxMeNGRN/GUUOkJubXzfCUbmZGbxWNLihD1
-         XiknXPY8l7zKgQjrMLZwMZOIx0M4tJnJbs/thV1XmL+v91yw8pCF/QTHEnuw8lk7cHIx
-         O+/A==
-X-Gm-Message-State: AA+aEWaM7fKA3oXkrQX60usbxtg+vW1eUBYyj40OgSnbrROS5TbtVSZn
-        Gnd+hwXmM8Tms2JyftewOniifKQ8y20dGCeE/ZqxMN0rcQgOs9bupBq71+TqA9c0qktjPh1Rm7Y
-        n4LuacZPnxZ+7B1i8en4A0/SZEFw=
-X-Received: by 2002:a05:660c:914:: with SMTP id s20mr9015062itj.160.1545289091608;
-        Wed, 19 Dec 2018 22:58:11 -0800 (PST)
-X-Google-Smtp-Source: AFSGD/VbQC14M/r9MEHUWy44St4FxV3kKHO/z/lhW/e0xyq1tOyYDkaFmea2jjufxGk2AR4Incmwyw==
-X-Received: by 2002:a05:660c:914:: with SMTP id s20mr9015055itj.160.1545289091304;
-        Wed, 19 Dec 2018 22:58:11 -0800 (PST)
+        bh=IW8nFsGJ120mWoROgUXJuT+1N+HNIJQhDiQ6MIXoCJs=;
+        b=EBfulbtua6HFKfvw2+KhDG7+o8HD8iBNFMUv5YykOr5wfUTnTl+MkbRkqXoZ4PHjXV
+         USwsIhXXNq/64uiCTw0ShPUEH9I+meSYuO1i2jtSN76qkJ7f08YTLt+pDDW1nQG/d4iR
+         84fgkSPFMZ16ZNY60ZykmVcjAkeIWu/lvNpGwSoC4Ldostfc0qjmhPXc5SNOwUtkVdEn
+         o1aDw3ombaBdjaq8pC3oJ6KgXCYWnMb3qRGlmWfE7+EXp6EmOqXW0bEAUD7r2Z0bdiqk
+         cwYvFofn6FO9GtFjcSH3VHOZnbx/Dlzoxs9bYIGYzxp/0sZR+YeqY9bcE8OgkcasXx+T
+         oZug==
+X-Gm-Message-State: AA+aEWb6HnVvxo14lY03BRPQTOvE0SK6G8h9mnkI9x+sNdQOauAPgbyo
+        8tvb31h4nardHzZi2ilz5R3ET3UUEo8QEzIbMa3BK1VygLyE4ILE7o5uvtFTrLgkEiEViZXG/80
+        OU8dkxq/g1TeEqmjyxQAR2uazOQg=
+X-Received: by 2002:a24:67c6:: with SMTP id u189mr9310951itc.106.1545292145287;
+        Wed, 19 Dec 2018 23:49:05 -0800 (PST)
+X-Google-Smtp-Source: AFSGD/WkriPr96sNFq3ew2/vkmZdHuaJbGNbEKGPBKLqZMOCHj7KYwmFxHOi+pf3yfXOC5iPk51l1g==
+X-Received: by 2002:a24:67c6:: with SMTP id u189mr9310938itc.106.1545292145046;
+        Wed, 19 Dec 2018 23:49:05 -0800 (PST)
 Received: from localhost.localdomain (host-173-230-104-24.mnmigsc.mn.minneapolis.us.clients.pavlovmedia.net. [173.230.104.24])
-        by smtp.gmail.com with ESMTPSA id m37sm4558529iti.6.2018.12.19.22.58.10
+        by smtp.gmail.com with ESMTPSA id j14sm9625305ioa.5.2018.12.19.23.49.03
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
-        Wed, 19 Dec 2018 22:58:10 -0800 (PST)
+        Wed, 19 Dec 2018 23:49:04 -0800 (PST)
 From:   Kangjie Lu <kjlu@umn.edu>
 To:     kjlu@umn.edu
 Cc:     pakki001@umn.edu, Mauro Carvalho Chehab <mchehab@kernel.org>,
-        "Gustavo A. R. Silva" <gustavo@embeddedor.com>,
+        Brad Love <brad@nextdimension.cc>,
+        Michael Ira Krufky <mkrufky@linuxtv.org>,
+        Luc Van Oostenryck <luc.vanoostenryck@gmail.com>,
         linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] media: drx: fix a missing check of return value
-Date:   Thu, 20 Dec 2018 00:57:44 -0600
-Message-Id: <20181220065747.40379-1-kjlu@umn.edu>
+Subject: [PATCH] media: lgdt3306a: fix a missing check of return value
+Date:   Thu, 20 Dec 2018 01:48:42 -0600
+Message-Id: <20181220074844.40666-1-kjlu@umn.edu>
 X-Mailer: git-send-email 2.17.2 (Apple Git-113)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Function drxj_dap_write_reg16(), which writes data to buffer, may fail.
-We need to check if it fails, and if so, we should goto error.
-Otherwise, the buffer will have incorrect data.
+If lgdt3306a_read_reg() fails, the read data in "val" is incorrect, thus
+shouldn't be further used. The fix inserts a check for the return value
+of lgdt3306a_read_reg(). If it fails, goto fail.
 
 Signed-off-by: Kangjie Lu <kjlu@umn.edu>
 ---
- drivers/media/dvb-frontends/drx39xyj/drxj.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ drivers/media/dvb-frontends/lgdt3306a.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/dvb-frontends/drx39xyj/drxj.c b/drivers/media/dvb-frontends/drx39xyj/drxj.c
-index 551b7d65fa66..d105125bc1c3 100644
---- a/drivers/media/dvb-frontends/drx39xyj/drxj.c
-+++ b/drivers/media/dvb-frontends/drx39xyj/drxj.c
-@@ -2136,9 +2136,13 @@ int drxj_dap_atomic_read_write_block(struct i2c_device_addr *dev_addr,
- 
- 			word = ((u16) data[2 * i]);
- 			word += (((u16) data[(2 * i) + 1]) << 8);
--			drxj_dap_write_reg16(dev_addr,
-+			rc = drxj_dap_write_reg16(dev_addr,
- 					     (DRXJ_HI_ATOMIC_BUF_START + i),
- 					    word, 0);
-+			if (rc) {
-+				pr_err("error %d\n", rc);
-+				goto rw_error;
-+			}
- 		}
- 	}
- 
+diff --git a/drivers/media/dvb-frontends/lgdt3306a.c b/drivers/media/dvb-frontends/lgdt3306a.c
+index 0e1f5daaf20c..7410f23314bc 100644
+--- a/drivers/media/dvb-frontends/lgdt3306a.c
++++ b/drivers/media/dvb-frontends/lgdt3306a.c
+@@ -1685,7 +1685,9 @@ static int lgdt3306a_read_signal_strength(struct dvb_frontend *fe,
+ 	case QAM_256:
+ 	case QAM_AUTO:
+ 		/* need to know actual modulation to set proper SNR baseline */
+-		lgdt3306a_read_reg(state, 0x00a6, &val);
++		ret = lgdt3306a_read_reg(state, 0x00a6, &val);
++		if (lg_chkerr(ret))
++			goto fail;
+ 		if(val & 0x04)
+ 			ref_snr = 2800; /* QAM-256 28dB */
+ 		else
 -- 
 2.17.2 (Apple Git-113)
 
