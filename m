@@ -2,737 +2,1925 @@ Return-Path: <SRS0=s3Lq=O5=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-14.0 required=3.0 tests=INCLUDES_PATCH,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_NEOMUTT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 433DCC43387
-	for <linux-media@archiver.kernel.org>; Thu, 20 Dec 2018 22:24:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EB7E6C43387
+	for <linux-media@archiver.kernel.org>; Thu, 20 Dec 2018 23:12:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E0CC6218FD
-	for <linux-media@archiver.kernel.org>; Thu, 20 Dec 2018 22:24:26 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="RYbuXGhM"
+	by mail.kernel.org (Postfix) with ESMTP id 99814218FD
+	for <linux-media@archiver.kernel.org>; Thu, 20 Dec 2018 23:12:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390143AbeLTWY0 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 20 Dec 2018 17:24:26 -0500
-Received: from perceval.ideasonboard.com ([213.167.242.64]:55874 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2390141AbeLTWY0 (ORCPT
+        id S1731920AbeLTXMD (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 20 Dec 2018 18:12:03 -0500
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34064 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1730098AbeLTXMC (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 20 Dec 2018 17:24:26 -0500
-Received: from avalon.localnet (dfj612ybrt5fhg77mgycy-3.rev.dnainternet.fi [IPv6:2001:14ba:21f5:5b00:2e86:4862:ef6a:2804])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 0302B565;
-        Thu, 20 Dec 2018 23:24:18 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1545344659;
-        bh=lP3uX2gQ3kNFuFy4x8SSICxvnZysXSNQyKH35bC9mJQ=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=RYbuXGhMHNkfIzV3r4nYrupweLIuBtmcV9m+12AUpvV77xg7mKgcFoRPsEHDXBu2Z
-         IMQhZToS3NvXLOXMfz2j42J4zc8ZE9ANnJfYqUsJf3NqTpBfAcP4rfCzfBt3H8ZSHe
-         5p1VXPtnDaw/NbkMGZAQuDnEB6pv6Fcv+CvuSmRA=
-From:   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc:     "Zhi, Yong" <yong.zhi@intel.com>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "Hu, Jerry W" <jerry.w.hu@intel.com>,
-        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
-        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
-        "Cao, Bingbu" <bingbu.cao@intel.com>
-Subject: Re: [PATCH v7 00/16] Intel IPU3 ImgU patchset
-Date:   Fri, 21 Dec 2018 00:25:14 +0200
-Message-ID: <3475971.piroVKfGO7@avalon>
-Organization: Ideas on Board Oy
-In-Reply-To: <2135468.G1bK1392oW@avalon>
-References: <1540851790-1777-1-git-send-email-yong.zhi@intel.com> <1819843.KIqgResAvh@avalon> <2135468.G1bK1392oW@avalon>
+        Thu, 20 Dec 2018 18:12:02 -0500
+Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id 18278634C58;
+        Fri, 21 Dec 2018 01:11:15 +0200 (EET)
+Received: from sailus by valkosipuli.localdomain with local (Exim 4.89)
+        (envelope-from <sakari.ailus@retiisi.org.uk>)
+        id 1ga7TH-0001aA-1E; Fri, 21 Dec 2018 01:11:15 +0200
+Date:   Fri, 21 Dec 2018 01:11:14 +0200
+From:   Sakari Ailus <sakari.ailus@iki.fi>
+To:     Kieran Bingham <kieran.bingham@ideasonboard.com>
+Cc:     linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org,
+        Niklas =?iso-8859-1?Q?S=F6derlund?= 
+        <niklas.soderlund@ragnatech.se>, Jacopo Mondi <jacopo@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        linux-kernel@vger.kernel.org,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Niklas =?iso-8859-1?Q?S=F6derlund?= 
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: Re: [PATCH v4 4/4] media: i2c: Add RDACM20 driver
+Message-ID: <20181220231114.frij25qhwtzpfjrr@valkosipuli.retiisi.org.uk>
+References: <20181102154723.23662-1-kieran.bingham@ideasonboard.com>
+ <20181102154723.23662-5-kieran.bingham@ideasonboard.com>
+ <20181120083452.vocipsw2ebjum6oa@valkosipuli.retiisi.org.uk>
+ <cb663bd5-479a-25d3-6545-a525df1329ca@ideasonboard.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <cb663bd5-479a-25d3-6545-a525df1329ca@ideasonboard.com>
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hellon
+Hu Kieran,
 
-On Sunday, 16 December 2018 09:26:18 EET Laurent Pinchart wrote:
-> Hello Yong,
+Apologies for the late reply.
+
+On Wed, Nov 28, 2018 at 12:51:39PM +0000, Kieran Bingham wrote:
+> Hi Sakari,
 > 
-> Could you please have a look at the crash reported below ?
-
-A bit more information to help you debugging this. I've enabled KASAN in the
-kernel configuration, and get the following use-after-free reports.
-
-[  166.332920] ==================================================================
-[  166.332937] BUG: KASAN: use-after-free in __cached_rbnode_delete_update+0x36/0x202
-[  166.332944] Read of size 8 at addr ffff888133823718 by task yavta/1305
-
-[  166.332955] CPU: 3 PID: 1305 Comm: yavta Tainted: G         C        4.20.0-rc6+ #3
-[  166.332958] Hardware name: HP Soraka/Soraka, BIOS  08/30/2018
-[  166.332959] Call Trace:
-[  166.332967]  dump_stack+0x5b/0x81
-[  166.332974]  print_address_description+0x65/0x227
-[  166.332979]  ? __cached_rbnode_delete_update+0x36/0x202
-[  166.332983]  kasan_report+0x247/0x285
-[  166.332989]  __cached_rbnode_delete_update+0x36/0x202
-[  166.332995]  private_free_iova+0x57/0x6d
-[  166.332999]  __free_iova+0x23/0x31
-[  166.333011]  ipu3_dmamap_free+0x118/0x1d6 [ipu3_imgu]
-[  166.333022]  ipu3_css_pool_cleanup+0x25/0x2f [ipu3_imgu]
-[  166.333032]  ipu3_css_pipeline_cleanup+0x79/0xcf [ipu3_imgu]
-[  166.333043]  ipu3_css_stop_streaming+0x2fe/0x4dc [ipu3_imgu]
-[  166.333056]  imgu_s_stream+0xc0/0x6c0 [ipu3_imgu]
-[  166.333067]  ? ipu3_all_nodes_streaming+0x1ee/0x20d [ipu3_imgu]
-[  166.333079]  ipu3_vb2_stop_streaming+0x27c/0x2d2 [ipu3_imgu]
-[  166.333088]  __vb2_queue_cancel+0xa8/0x705 [videobuf2_common]
-[  166.333096]  ? __mutex_lock_interruptible_slowpath+0xf/0xf
-[  166.333104]  vb2_core_streamoff+0x68/0xf8 [videobuf2_common]
-[  166.333123]  __video_do_ioctl+0x625/0x887 [videodev]
-[  166.333142]  ? copy_overflow+0x14/0x14 [videodev]
-[  166.333147]  ? slab_free_freelist_hook+0x46/0x94
-[  166.333151]  ? kfree+0x107/0x1a0
-[  166.333169]  video_usercopy+0x3a3/0x8ae [videodev]
-[  166.333187]  ? copy_overflow+0x14/0x14 [videodev]
-[  166.333203]  ? v4l_enumstd+0x49/0x49 [videodev]
-[  166.333207]  ? __wake_up_common+0x342/0x342
-[  166.333215]  ? atomic_long_add_return+0x15/0x24
-[  166.333219]  ? ldsem_up_read+0x15/0x29
-[  166.333223]  ? tty_write+0x4c6/0x4d8
-[  166.333227]  ? n_tty_receive_char_special+0x1152/0x1152
-[  166.333244]  ? video_usercopy+0x8ae/0x8ae [videodev]
-[  166.333260]  v4l2_ioctl+0xb7/0xc5 [videodev]
-[  166.333266]  vfs_ioctl+0x76/0x89
-[  166.333271]  do_vfs_ioctl+0xb33/0xb7e
-[  166.333275]  ? __switch_to_asm+0x40/0x70
-[  166.333279]  ? __switch_to_asm+0x40/0x70
-[  166.333282]  ? __switch_to_asm+0x34/0x70
-[  166.333286]  ? __switch_to_asm+0x40/0x70
-[  166.333290]  ? ioctl_preallocate+0x174/0x174
-[  166.333294]  ? __switch_to+0x71c/0xb00
-[  166.333299]  ? compat_start_thread+0x6b/0x6b
-[  166.333302]  ? __switch_to_asm+0x34/0x70
-[  166.333305]  ? __switch_to_asm+0x40/0x70
-[  166.333309]  ? mmdrop+0x12/0x23
-[  166.333313]  ? finish_task_switch+0x34d/0x3de
-[  166.333319]  ? __schedule+0x1004/0x1045
-[  166.333325]  ? firmware_map_remove+0x119/0x119
-[  166.333330]  ksys_ioctl+0x50/0x70
-[  166.333335]  __x64_sys_ioctl+0x82/0x89
-[  166.333340]  do_syscall_64+0xa0/0xd2
-[  166.333345]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
-[  166.333349] RIP: 0033:0x7f2481541f47
-[  166.333354] Code: 00 00 00 48 8b 05 51 6f 2c 00 64 c7 00 26 00 00 00 48 c7 c0 ff ff ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 b8 10 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d 21 6f 2c 00 f7 d8 64 89 01 48
-[  166.333357] RSP: 002b:00007fffd6aff9b8 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
-[  166.333362] RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00007f2481541f47
-[  166.333364] RDX: 00007fffd6aff9c4 RSI: 0000000040045613 RDI: 0000000000000003
-[  166.333367] RBP: 0000555f1c494af8 R08: 00007f247f34c000 R09: 00007f2481c24700
-[  166.333369] R10: 0000000000000020 R11: 0000000000000246 R12: 0000555f1c494b06
-[  166.333372] R13: 0000000000000004 R14: 00007fffd6affb90 R15: 00007fffd6b00825
-
-[  166.333383] Allocated by task 1305:
-[  166.333389]  kasan_kmalloc+0x8a/0x98
-[  166.333392]  slab_post_alloc_hook+0x31/0x51
-[  166.333396]  kmem_cache_alloc+0xd7/0x174
-[  166.333399]  alloc_iova+0x24/0x2ea
-[  166.333407]  ipu3_dmamap_alloc+0x193/0x83f [ipu3_imgu]
-[  166.333415]  ipu3_css_pool_init+0x80/0xdf [ipu3_imgu]
-[  166.333424]  ipu3_css_start_streaming+0x58df/0x5ddc [ipu3_imgu]
-[  166.333433]  imgu_s_stream+0x2dd/0x6c0 [ipu3_imgu]
-[  166.333442]  ipu3_vb2_start_streaming+0x35f/0x3de [ipu3_imgu]
-[  166.333449]  vb2_start_streaming+0x164/0x33b [videobuf2_common]
-[  166.333455]  vb2_core_streamon+0x1a1/0x208 [videobuf2_common]
-[  166.333471]  __video_do_ioctl+0x625/0x887 [videodev]
-[  166.333487]  video_usercopy+0x3a3/0x8ae [videodev]
-[  166.333501]  v4l2_ioctl+0xb7/0xc5 [videodev]
-[  166.333505]  vfs_ioctl+0x76/0x89
-[  166.333508]  do_vfs_ioctl+0xb33/0xb7e
-[  166.333511]  ksys_ioctl+0x50/0x70
-[  166.333514]  __x64_sys_ioctl+0x82/0x89
-[  166.333518]  do_syscall_64+0xa0/0xd2
-[  166.333521]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
-
-[  166.333526] Freed by task 1301:
-[  166.333532]  __kasan_slab_free+0xfa/0x11c
-[  166.333535]  slab_free_freelist_hook+0x46/0x94
-[  166.333538]  kmem_cache_free+0x7b/0x172
-[  166.333542]  __free_iova+0x23/0x31
-[  166.333550]  ipu3_dmamap_free+0x118/0x1d6 [ipu3_imgu]
-[  166.333557]  ipu3_css_pool_cleanup+0x25/0x2f [ipu3_imgu]
-[  166.333566]  ipu3_css_pipeline_cleanup+0x79/0xcf [ipu3_imgu]
-[  166.333574]  ipu3_css_stop_streaming+0x2fe/0x4dc [ipu3_imgu]
-[  166.333584]  imgu_s_stream+0xc0/0x6c0 [ipu3_imgu]
-[  166.333593]  ipu3_vb2_stop_streaming+0x27c/0x2d2 [ipu3_imgu]
-[  166.333599]  __vb2_queue_cancel+0xa8/0x705 [videobuf2_common]
-[  166.333606]  vb2_core_streamoff+0x68/0xf8 [videobuf2_common]
-[  166.333621]  __video_do_ioctl+0x625/0x887 [videodev]
-[  166.333637]  video_usercopy+0x3a3/0x8ae [videodev]
-[  166.333652]  v4l2_ioctl+0xb7/0xc5 [videodev]
-[  166.333655]  vfs_ioctl+0x76/0x89
-[  166.333658]  do_vfs_ioctl+0xb33/0xb7e
-[  166.333662]  ksys_ioctl+0x50/0x70
-[  166.333665]  __x64_sys_ioctl+0x82/0x89
-[  166.333668]  do_syscall_64+0xa0/0xd2
-[  166.333671]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
-
-[  166.333678] The buggy address belongs to the object at ffff888133823700
-                which belongs to the cache iommu_iova of size 40                                                                                                                                          
-[  166.333685] The buggy address is located 24 bytes inside of
-                40-byte region [ffff888133823700, ffff888133823728)                                                                                                                                       
-[  166.333690] The buggy address belongs to the page:
-[  166.333696] page:ffffea0004ce0880 count:1 mapcount:0 mapping:ffff8881519e8640 index:0x0 compound_mapcount: 0
-[  166.333703] flags: 0x200000000010200(slab|head)
-[  166.333710] raw: 0200000000010200 ffffea0004dfc488 ffff88814bfbde70 ffff8881519e8640
-[  166.333717] raw: 0000000000000000 0000000000120012 00000001ffffffff 0000000000000000
-[  166.333720] page dumped because: kasan: bad access detected
-
-[  166.333726] Memory state around the buggy address:
-[  166.333732]  ffff888133823600: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
-[  166.333737]  ffff888133823680: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
-[  166.333742] >ffff888133823700: fb fb fb fb fb fc fc fc fc fc fc fc fc fc fc fc
-[  166.333745]                             ^
-[  166.333750]  ffff888133823780: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
-[  166.333755]  ffff888133823800: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
-[  166.333759] ==================================================================
-[  166.333762] Disabling lock debugging due to kernel taint
-[  166.333764] ==================================================================
-[  166.333770] BUG: KASAN: double-free or invalid-free in kmem_cache_free+0x7b/0x172
-
-[  166.333780] CPU: 3 PID: 1305 Comm: yavta Tainted: G    B    C        4.20.0-rc6+ #3
-[  166.333782] Hardware name: HP Soraka/Soraka, BIOS  08/30/2018
-[  166.333783] Call Trace:
-[  166.333789]  dump_stack+0x5b/0x81
-[  166.333795]  print_address_description+0x65/0x227
-[  166.333799]  ? kmem_cache_free+0x7b/0x172
-[  166.333803]  kasan_report_invalid_free+0x67/0xa0
-[  166.333807]  ? kmem_cache_free+0x7b/0x172
-[  166.333812]  __kasan_slab_free+0x86/0x11c
-[  166.333817]  slab_free_freelist_hook+0x46/0x94
-[  166.333822]  kmem_cache_free+0x7b/0x172
-[  166.333826]  ? __free_iova+0x23/0x31
-[  166.333831]  __free_iova+0x23/0x31
-[  166.333840]  ipu3_dmamap_free+0x118/0x1d6 [ipu3_imgu]
-[  166.333851]  ipu3_css_pool_cleanup+0x25/0x2f [ipu3_imgu]
-[  166.333861]  ipu3_css_pipeline_cleanup+0x79/0xcf [ipu3_imgu]
-[  166.333872]  ipu3_css_stop_streaming+0x2fe/0x4dc [ipu3_imgu]
-[  166.333885]  imgu_s_stream+0xc0/0x6c0 [ipu3_imgu]
-[  166.333896]  ? ipu3_all_nodes_streaming+0x1ee/0x20d [ipu3_imgu]
-[  166.333908]  ipu3_vb2_stop_streaming+0x27c/0x2d2 [ipu3_imgu]
-[  166.333917]  __vb2_queue_cancel+0xa8/0x705 [videobuf2_common]
-[  166.333923]  ? __mutex_lock_interruptible_slowpath+0xf/0xf
-[  166.333932]  vb2_core_streamoff+0x68/0xf8 [videobuf2_common]
-[  166.333950]  __video_do_ioctl+0x625/0x887 [videodev]
-[  166.333970]  ? copy_overflow+0x14/0x14 [videodev]
-[  166.333974]  ? slab_free_freelist_hook+0x46/0x94
-[  166.333979]  ? kfree+0x107/0x1a0
-[  166.333997]  video_usercopy+0x3a3/0x8ae [videodev]
-[  166.334015]  ? copy_overflow+0x14/0x14 [videodev]
-[  166.334031]  ? v4l_enumstd+0x49/0x49 [videodev]
-[  166.334035]  ? __wake_up_common+0x342/0x342
-[  166.334042]  ? atomic_long_add_return+0x15/0x24
-[  166.334046]  ? ldsem_up_read+0x15/0x29
-[  166.334050]  ? tty_write+0x4c6/0x4d8
-[  166.334054]  ? n_tty_receive_char_special+0x1152/0x1152
-[  166.334071]  ? video_usercopy+0x8ae/0x8ae [videodev]
-[  166.334087]  v4l2_ioctl+0xb7/0xc5 [videodev]
-[  166.334092]  vfs_ioctl+0x76/0x89
-[  166.334097]  do_vfs_ioctl+0xb33/0xb7e
-[  166.334101]  ? __switch_to_asm+0x40/0x70
-[  166.334105]  ? __switch_to_asm+0x40/0x70
-[  166.334108]  ? __switch_to_asm+0x34/0x70
-[  166.334111]  ? __switch_to_asm+0x40/0x70
-[  166.334116]  ? ioctl_preallocate+0x174/0x174
-[  166.334120]  ? __switch_to+0x71c/0xb00
-[  166.334124]  ? compat_start_thread+0x6b/0x6b
-[  166.334127]  ? __switch_to_asm+0x34/0x70
-[  166.334130]  ? __switch_to_asm+0x40/0x70
-[  166.334134]  ? mmdrop+0x12/0x23
-[  166.334137]  ? finish_task_switch+0x34d/0x3de
-[  166.334143]  ? __schedule+0x1004/0x1045
-[  166.334148]  ? firmware_map_remove+0x119/0x119
-[  166.334153]  ksys_ioctl+0x50/0x70
-[  166.334158]  __x64_sys_ioctl+0x82/0x89
-[  166.334163]  do_syscall_64+0xa0/0xd2
-[  166.334167]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
-[  166.334171] RIP: 0033:0x7f2481541f47
-[  166.334175] Code: 00 00 00 48 8b 05 51 6f 2c 00 64 c7 00 26 00 00 00 48 c7 c0 ff ff ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 b8 10 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d 21 6f 2c 00 f7 d8 64 89 01 48
-[  166.334177] RSP: 002b:00007fffd6aff9b8 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
-[  166.334181] RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00007f2481541f47
-[  166.334184] RDX: 00007fffd6aff9c4 RSI: 0000000040045613 RDI: 0000000000000003
-[  166.334186] RBP: 0000555f1c494af8 R08: 00007f247f34c000 R09: 00007f2481c24700
-[  166.334189] R10: 0000000000000020 R11: 0000000000000246 R12: 0000555f1c494b06
-[  166.334191] R13: 0000000000000004 R14: 00007fffd6affb90 R15: 00007fffd6b00825
-
-[  166.334201] Allocated by task 1305:
-[  166.334207]  kasan_kmalloc+0x8a/0x98
-[  166.334210]  slab_post_alloc_hook+0x31/0x51
-[  166.334213]  kmem_cache_alloc+0xd7/0x174
-[  166.334216]  alloc_iova+0x24/0x2ea
-[  166.334225]  ipu3_dmamap_alloc+0x193/0x83f [ipu3_imgu]
-[  166.334233]  ipu3_css_pool_init+0x80/0xdf [ipu3_imgu]
-[  166.334241]  ipu3_css_start_streaming+0x58df/0x5ddc [ipu3_imgu]
-[  166.334250]  imgu_s_stream+0x2dd/0x6c0 [ipu3_imgu]
-[  166.334259]  ipu3_vb2_start_streaming+0x35f/0x3de [ipu3_imgu]
-[  166.334266]  vb2_start_streaming+0x164/0x33b [videobuf2_common]
-[  166.334273]  vb2_core_streamon+0x1a1/0x208 [videobuf2_common]
-[  166.334288]  __video_do_ioctl+0x625/0x887 [videodev]
-[  166.334304]  video_usercopy+0x3a3/0x8ae [videodev]
-[  166.334319]  v4l2_ioctl+0xb7/0xc5 [videodev]
-[  166.334322]  vfs_ioctl+0x76/0x89
-[  166.334325]  do_vfs_ioctl+0xb33/0xb7e
-[  166.334328]  ksys_ioctl+0x50/0x70
-[  166.334332]  __x64_sys_ioctl+0x82/0x89
-[  166.334335]  do_syscall_64+0xa0/0xd2
-[  166.334338]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
-
-[  166.334343] Freed by task 1301:
-[  166.334349]  __kasan_slab_free+0xfa/0x11c
-[  166.334352]  slab_free_freelist_hook+0x46/0x94
-[  166.334355]  kmem_cache_free+0x7b/0x172
-[  166.334359]  __free_iova+0x23/0x31
-[  166.334367]  ipu3_dmamap_free+0x118/0x1d6 [ipu3_imgu]
-[  166.334375]  ipu3_css_pool_cleanup+0x25/0x2f [ipu3_imgu]
-[  166.334383]  ipu3_css_pipeline_cleanup+0x79/0xcf [ipu3_imgu]
-[  166.334392]  ipu3_css_stop_streaming+0x2fe/0x4dc [ipu3_imgu]
-[  166.334401]  imgu_s_stream+0xc0/0x6c0 [ipu3_imgu]
-[  166.334410]  ipu3_vb2_stop_streaming+0x27c/0x2d2 [ipu3_imgu]
-[  166.334416]  __vb2_queue_cancel+0xa8/0x705 [videobuf2_common]
-[  166.334423]  vb2_core_streamoff+0x68/0xf8 [videobuf2_common]
-[  166.334438]  __video_do_ioctl+0x625/0x887 [videodev]
-[  166.334454]  video_usercopy+0x3a3/0x8ae [videodev]
-[  166.334469]  v4l2_ioctl+0xb7/0xc5 [videodev]
-[  166.334472]  vfs_ioctl+0x76/0x89
-[  166.334475]  do_vfs_ioctl+0xb33/0xb7e
-[  166.334479]  ksys_ioctl+0x50/0x70
-[  166.334482]  __x64_sys_ioctl+0x82/0x89
-[  166.334485]  do_syscall_64+0xa0/0xd2
-[  166.334488]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
-
-[  166.334494] The buggy address belongs to the object at ffff888133823700
-                which belongs to the cache iommu_iova of size 40                                                                                                                                          
-[  166.334501] The buggy address is located 0 bytes inside of
-                40-byte region [ffff888133823700, ffff888133823728)                                                                                                                                       
-[  166.334506] The buggy address belongs to the page:
-[  166.334511] page:ffffea0004ce0880 count:1 mapcount:0 mapping:ffff8881519e8640 index:0x0 compound_mapcount: 0
-[  166.334517] flags: 0x200000000010200(slab|head)
-[  166.334524] raw: 0200000000010200 ffffea0004dfc488 ffff88814bfbde70 ffff8881519e8640
-[  166.334530] raw: 0000000000000000 0000000000120012 00000001ffffffff 0000000000000000
-[  166.334533] page dumped because: kasan: bad access detected
-
-[  166.334539] Memory state around the buggy address:
-[  166.334544]  ffff888133823600: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
-[  166.334549]  ffff888133823680: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
-[  166.334554] >ffff888133823700: fb fb fb fb fb fc fc fc fc fc fc fc fc fc fc fc
-[  166.334558]                    ^
-[  166.334562]  ffff888133823780: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
-[  166.334567]  ffff888133823800: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
-[  166.334571] ==================================================================
-[  166.340377] ==================================================================
-[  166.340388] BUG: KASAN: double-free or invalid-free in kfree+0x107/0x1a0
-
-[  166.340399] CPU: 3 PID: 1305 Comm: yavta Tainted: G    B    C        4.20.0-rc6+ #3
-[  166.340401] Hardware name: HP Soraka/Soraka, BIOS  08/30/2018
-[  166.340403] Call Trace:
-[  166.340410]  dump_stack+0x5b/0x81
-[  166.340416]  print_address_description+0x65/0x227
-[  166.340420]  ? kfree+0x107/0x1a0
-[  166.340425]  kasan_report_invalid_free+0x67/0xa0
-[  166.340428]  ? kfree+0x107/0x1a0
-[  166.340433]  __kasan_slab_free+0x86/0x11c
-[  166.340438]  slab_free_freelist_hook+0x46/0x94
-[  166.340443]  kfree+0x107/0x1a0
-[  166.340454]  ? ipu3_dmamap_free+0x17b/0x1d6 [ipu3_imgu]
-[  166.340464]  ipu3_dmamap_free+0x17b/0x1d6 [ipu3_imgu]
-[  166.340475]  ipu3_css_pool_cleanup+0x25/0x2f [ipu3_imgu]
-[  166.340485]  ipu3_css_pipeline_cleanup+0x79/0xcf [ipu3_imgu]
-[  166.340495]  ipu3_css_stop_streaming+0x2fe/0x4dc [ipu3_imgu]
-[  166.340509]  imgu_s_stream+0xc0/0x6c0 [ipu3_imgu]
-[  166.340520]  ? ipu3_all_nodes_streaming+0x1ee/0x20d [ipu3_imgu]
-[  166.340531]  ipu3_vb2_stop_streaming+0x27c/0x2d2 [ipu3_imgu]
-[  166.340541]  __vb2_queue_cancel+0xa8/0x705 [videobuf2_common]
-[  166.340548]  ? __mutex_lock_interruptible_slowpath+0xf/0xf
-[  166.340557]  vb2_core_streamoff+0x68/0xf8 [videobuf2_common]
-[  166.340575]  __video_do_ioctl+0x625/0x887 [videodev]
-[  166.340595]  ? copy_overflow+0x14/0x14 [videodev]
-[  166.340600]  ? slab_free_freelist_hook+0x46/0x94
-[  166.340604]  ? kfree+0x107/0x1a0
-[  166.340622]  video_usercopy+0x3a3/0x8ae [videodev]
-[  166.340640]  ? copy_overflow+0x14/0x14 [videodev]
-[  166.340657]  ? v4l_enumstd+0x49/0x49 [videodev]
-[  166.340660]  ? __wake_up_common+0x342/0x342
-[  166.340668]  ? atomic_long_add_return+0x15/0x24
-[  166.340672]  ? ldsem_up_read+0x15/0x29
-[  166.340677]  ? tty_write+0x4c6/0x4d8
-[  166.340681]  ? n_tty_receive_char_special+0x1152/0x1152
-[  166.340698]  ? video_usercopy+0x8ae/0x8ae [videodev]
-[  166.340714]  v4l2_ioctl+0xb7/0xc5 [videodev]
-[  166.340720]  vfs_ioctl+0x76/0x89
-[  166.340725]  do_vfs_ioctl+0xb33/0xb7e
-[  166.340729]  ? __switch_to_asm+0x40/0x70
-[  166.340733]  ? __switch_to_asm+0x40/0x70
-[  166.340736]  ? __switch_to_asm+0x34/0x70
-[  166.340739]  ? __switch_to_asm+0x40/0x70
-[  166.340743]  ? ioctl_preallocate+0x174/0x174
-[  166.340748]  ? __switch_to+0x71c/0xb00
-[  166.340752]  ? compat_start_thread+0x6b/0x6b
-[  166.340756]  ? __switch_to_asm+0x34/0x70
-[  166.340759]  ? __switch_to_asm+0x40/0x70
-[  166.340762]  ? mmdrop+0x12/0x23
-[  166.340766]  ? finish_task_switch+0x34d/0x3de
-[  166.340772]  ? __schedule+0x1004/0x1045
-[  166.340777]  ? firmware_map_remove+0x119/0x119
-[  166.340782]  ksys_ioctl+0x50/0x70
-[  166.340788]  __x64_sys_ioctl+0x82/0x89
-[  166.340793]  do_syscall_64+0xa0/0xd2
-[  166.340797]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
-[  166.340802] RIP: 0033:0x7f2481541f47
-[  166.340806] Code: 00 00 00 48 8b 05 51 6f 2c 00 64 c7 00 26 00 00 00 48 c7 c0 ff ff ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 b8 10 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d 21 6f 2c 00 f7 d8 64 89 01 48
-[  166.340809] RSP: 002b:00007fffd6aff9b8 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
-[  166.340813] RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00007f2481541f47
-[  166.340816] RDX: 00007fffd6aff9c4 RSI: 0000000040045613 RDI: 0000000000000003
-[  166.340819] RBP: 0000555f1c494af8 R08: 00007f247f34c000 R09: 00007f2481c24700
-[  166.340821] R10: 0000000000000020 R11: 0000000000000246 R12: 0000555f1c494b06
-[  166.340824] R13: 0000000000000004 R14: 00007fffd6affb90 R15: 00007fffd6b00825
-
-[  166.340834] Allocated by task 1305:
-[  166.340840]  kasan_kmalloc+0x8a/0x98
-[  166.340844]  __kmalloc_node+0x193/0x1ba
-[  166.340848]  kvmalloc_node+0x44/0x6d
-[  166.340856]  ipu3_dmamap_alloc+0x1c9/0x83f [ipu3_imgu]
-[  166.340864]  ipu3_css_pool_init+0x80/0xdf [ipu3_imgu]
-[  166.340873]  ipu3_css_start_streaming+0x58df/0x5ddc [ipu3_imgu]
-[  166.340882]  imgu_s_stream+0x2dd/0x6c0 [ipu3_imgu]
-[  166.340891]  ipu3_vb2_start_streaming+0x35f/0x3de [ipu3_imgu]
-[  166.340897]  vb2_start_streaming+0x164/0x33b [videobuf2_common]
-[  166.340904]  vb2_core_streamon+0x1a1/0x208 [videobuf2_common]
-[  166.340920]  __video_do_ioctl+0x625/0x887 [videodev]
-[  166.340935]  video_usercopy+0x3a3/0x8ae [videodev]
-[  166.340950]  v4l2_ioctl+0xb7/0xc5 [videodev]
-[  166.340954]  vfs_ioctl+0x76/0x89
-[  166.340957]  do_vfs_ioctl+0xb33/0xb7e
-[  166.340960]  ksys_ioctl+0x50/0x70
-[  166.340963]  __x64_sys_ioctl+0x82/0x89
-[  166.340966]  do_syscall_64+0xa0/0xd2
-[  166.340969]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
-
-[  166.340974] Freed by task 1301:
-[  166.340980]  __kasan_slab_free+0xfa/0x11c
-[  166.340983]  slab_free_freelist_hook+0x46/0x94
-[  166.340986]  kfree+0x107/0x1a0
-[  166.340994]  ipu3_dmamap_free+0x17b/0x1d6 [ipu3_imgu]
-[  166.341002]  ipu3_css_pool_cleanup+0x25/0x2f [ipu3_imgu]
-[  166.341010]  ipu3_css_pipeline_cleanup+0x79/0xcf [ipu3_imgu]
-[  166.341019]  ipu3_css_stop_streaming+0x2fe/0x4dc [ipu3_imgu]
-[  166.341028]  imgu_s_stream+0xc0/0x6c0 [ipu3_imgu]
-[  166.341037]  ipu3_vb2_stop_streaming+0x27c/0x2d2 [ipu3_imgu]
-[  166.341043]  __vb2_queue_cancel+0xa8/0x705 [videobuf2_common]
-[  166.341050]  vb2_core_streamoff+0x68/0xf8 [videobuf2_common]
-[  166.341066]  __video_do_ioctl+0x625/0x887 [videodev]
-[  166.341081]  video_usercopy+0x3a3/0x8ae [videodev]
-[  166.341096]  v4l2_ioctl+0xb7/0xc5 [videodev]
-[  166.341100]  vfs_ioctl+0x76/0x89
-[  166.341103]  do_vfs_ioctl+0xb33/0xb7e
-[  166.341106]  ksys_ioctl+0x50/0x70
-[  166.341109]  __x64_sys_ioctl+0x82/0x89
-[  166.341112]  do_syscall_64+0xa0/0xd2
-[  166.341116]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
-
-[  166.341122] The buggy address belongs to the object at ffff88811d228440
-                which belongs to the cache kmalloc-8 of size 8
-[  166.341129] The buggy address is located 0 bytes inside of
-                8-byte region [ffff88811d228440, ffff88811d228448)
-[  166.341134] The buggy address belongs to the page:
-[  166.341140] page:ffffea0004748a00 count:1 mapcount:0 mapping:ffff88815a80c340 index:0xffff88811d228f80 compound_mapcount: 0
-[  166.341146] flags: 0x200000000010200(slab|head)
-[  166.341153] raw: 0200000000010200 ffffea000564b288 ffffea00049ef708 ffff88815a80c340
-[  166.341159] raw: ffff88811d228f80 0000000000160013 00000001ffffffff 0000000000000000
-[  166.341163] page dumped because: kasan: bad access detected
-
-[  166.341169] Memory state around the buggy address:
-[  166.341174]  ffff88811d228300: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
-[  166.341179]  ffff88811d228380: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
-[  166.341184] >ffff88811d228400: fc fc fc fc fc fc fc fc fb fc fc fc fc fc fc fc
-[  166.341188]                                            ^
-[  166.341192]  ffff88811d228480: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
-[  166.341197]  ffff88811d228500: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
-[  166.341201] ==================================================================
-
-> On Tuesday, 11 December 2018 16:20:43 EET Laurent Pinchart wrote:
-> > On Tuesday, 11 December 2018 15:43:53 EET Laurent Pinchart wrote:
-> > > On Tuesday, 11 December 2018 15:34:49 EET Laurent Pinchart wrote:
-> > >> On Wednesday, 5 December 2018 02:30:46 EET Mani, Rajmohan wrote:
-> > >> 
-> > >> [snip]
-> > >> 
-> > >>> I can see a couple of steps missing in the script below.
-> > >>> (https://lists.libcamera.org/pipermail/libcamera-devel/2018-November/0
-> > >>> 00040.html)
-> > >>> 
-> > >>> From patch 02 of this v7 series "doc-rst: Add Intel IPU3
-> > >>> documentation",
-> > >>> under section "Configuring ImgU V4L2 subdev for image processing"...
-> > >>> 
-> > >>> 1. The pipe mode needs to be configured for the V4L2 subdev.
-> > >>> 
-> > >>> Also the pipe mode of the corresponding V4L2 subdev should be set as
-> > >>> desired (e.g 0 for video mode or 1 for still mode) through the control
-> > >>> id 0x009819a1 as below.
-> > >>> 
-> > >>> e.g v4l2n -d /dev/v4l-subdev7 --ctrl=0x009819A1=1
-> > >> 
-> > >> I assume the control takes a valid default value ? It's better to set
-> > >> it
-> > >> explicitly anyway, so I'll do so.
-> > >> 
-> > >>> 2. ImgU pipeline needs to be configured for image processing as below.
-> > >>> 
-> > >>> RAW bayer frames go through the following ISP pipeline HW blocks to
-> > >>> have the processed image output to the DDR memory.
-> > >>> 
-> > >>> RAW bayer frame -> Input Feeder -> Bayer Down Scaling (BDS) ->
-> > >>> Geometric Distortion Correction (GDC) -> DDR
-> > >>> 
-> > >>> The ImgU V4L2 subdev has to be configured with the supported
-> > >>> resolutions in all the above HW blocks, for a given input resolution.
-> > >>> 
-> > >>> For a given supported resolution for an input frame, the Input Feeder,
-> > >>> Bayer Down Scaling and GDC blocks should be configured with the
-> > >>> supported resolutions. This information can be obtained by looking at
-> > >>> the following IPU3 ISP configuration table for ov5670 sensor.
-> > >>> 
-> > >>> https://chromium.googlesource.com/chromiumos/overlays/board-overlays/+
-> > >>> /master/baseboard-poppy/media-libs/cros-camera-hal-configs-poppy/files
-> > >>> /
-> > >>> gcss/graph_settings_ov5670.xml
-> > >>> 
-> > >>> For the ov5670 example, for an input frame with a resolution of
-> > >>> 2592x1944 (which is input to the ImgU subdev pad 0), the corresponding
-> > >>> resolutions for input feeder, BDS and GDC are 2592x1944, 2592x1944 and
-> > >>> 2560x1920 respectively.
-> > >> 
-> > >> How is the GDC output resolution computed from the input resolution ?
-> > >> Does the GDC always consume 32 columns and 22 lines ?
-> > >> 
-> > >>> The following steps prepare the ImgU ISP pipeline for the image
-> > >>> processing.
-> > >>> 
-> > >>> 1. The ImgU V4L2 subdev data format should be set by using the
-> > >>> VIDIOC_SUBDEV_S_FMT on pad 0, using the GDC width and height obtained
-> > >>> above.
-> > >> 
-> > >> If I understand things correctly, the GDC resolution is the pipeline
-> > >> output resolution. Why is it configured on pad 0 ?
-> > >> 
-> > >>> 2. The ImgU V4L2 subdev cropping should be set by using the
-> > >>> VIDIOC_SUBDEV_S_SELECTION on pad 0, with V4L2_SEL_TGT_CROP as the
-> > >>> target, using the input feeder height and width.
-> > >>> 
-> > >>> 3. The ImgU V4L2 subdev composing should be set by using the
-> > >>> VIDIOC_SUBDEV_S_SELECTION on pad 0, with V4L2_SEL_TGT_COMPOSE as the
-> > >>> target, using the BDS height and width.
-> > >>> 
-> > >>> Once these 2 steps are done, the raw bayer frames can be input to the
-> > >>> ImgU V4L2 subdev for processing.
-> > >> 
-> > >> Do I need to capture from both the output and viewfinder nodes ? How
-> > >> are
-> > >> they related to the IF -> BDS -> GDC pipeline, are they both fed from
-> > >> the GDC output ? If so, how does the viewfinder scaler fit in that
-> > >> picture ?
-> > >> 
-> > >> I have tried the above configuration with the IPU3 v8 driver, and while
-> > >> the kernel doesn't crash, no images get processed. The userspace
-> > >> processes wait forever for buffers to be ready. I then configured pad 2
-> > >> to 2560x1920 and pad 3 to 1920x1080, and managed to capture images \o/
-> > >> 
-> > >> There's one problem though: during capture, or very soon after it, the
-> > >> machine locks up completely. I suspect a memory corruption, as when it
-> > >> doesn't log immediately commands such as dmesg will not produce any
-> > >> output and just block, until the system freezes soon after (especially
-> > >> when moving the mouse).
-> > >> 
-> > >> I would still call this an improvement to some extent, but there's
-> > >> definitely room for more improvements :-)
-> > >> 
-> > >> To reproduce the issue, you can run the ipu3-process.sh script
-> > >> (attached
-> > >> to this e-mail) with the following arguments:
-> > >> 
-> > >> $ ipu3-process.sh --out 2560x1920 frame-2592x1944.cio2
+> Thank you for your review,
+> 
+> On 20/11/2018 08:34, Sakari Ailus wrote:
+> > Hi Kieran,
 > > 
-> > This should have read
+> > On Fri, Nov 02, 2018 at 03:47:23PM +0000, Kieran Bingham wrote:
+> >> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> >>
+> >> The RDACM20 is a GMSL camera supporting 1280x800 resolution images
+> >> developed by IMI based on an Omnivision 10635 sensor and a Maxim MAX9271
+> >> GMSL serializer.
+> >>
+> >> The GMSL link carries power, control (I2C) and video data over a
+> >> single coax cable.
+> >>
+> >> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> >> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+> >> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> >> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> >>
+> >> ---
+> >> v2:
+> >>  - Fix MAINTAINERS entry
+> >>
+> >> v3:
+> >>  - Use new V4L2_MBUS_CSI2_DPHY bus type
+> >>  - Remove 'always zero' error print
+> >>  - Fix module description
+> >> ---
+> >>  MAINTAINERS                         |  10 +
+> >>  drivers/media/i2c/Kconfig           |  11 +
+> >>  drivers/media/i2c/Makefile          |   1 +
+> >>  drivers/media/i2c/rdacm20-ov10635.h | 953 ++++++++++++++++++++++++++++
+> >>  drivers/media/i2c/rdacm20.c         | 635 ++++++++++++++++++
+> >>  5 files changed, 1610 insertions(+)
+> >>  create mode 100644 drivers/media/i2c/rdacm20-ov10635.h
+> >>  create mode 100644 drivers/media/i2c/rdacm20.c
+> >>
+> >> diff --git a/MAINTAINERS b/MAINTAINERS
+> >> index 745f0fd1fff1..26ef20087a43 100644
+> >> --- a/MAINTAINERS
+> >> +++ b/MAINTAINERS
+> >> @@ -12230,6 +12230,16 @@ S:	Supported
+> >>  T:	git git://git.kernel.org/pub/scm/linux/kernel/git/paulmck/linux-rcu.git
+> >>  F:	tools/testing/selftests/rcutorture
+> >>  
+> >> +RDACM20 Camera Sensor
+> >> +M:	Jacopo Mondi <jacopo+renesas@jmondi.org>
+> >> +M:	Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> >> +M:	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+> >> +M:	Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 > > 
-> > $ ipu3-process.sh --out 2560x1920 --vf 1920x1080 frame-2592x1944.cio2
+> > I'm happy to see this will be well maintained. :-)
+> 
+> Well it means /someone/ should always be able to pick it up :D
+> 
+> I didn't know who to put here - so I put all of the current blamees ;)
+> We've all put a lot of time and work in to the GMSL bring up and
+> refactoring.
+> 
+> If you think it's overkill, I can reduce the names. Same on max9286.
+
+Not at all. There are too many drivers that do not receive the attention
+they'd need. :-I
+
+> 
+> 
+> >> +L:	linux-media@vger.kernel.org
+> >> +S:	Maintained
+> >> +F:	Documentation/devicetree/bindings/media/i2c/rdacm20.txt
+> >> +F:	drivers/media/i2c/rdacm20*
+> >> +
+> >>  RDC R-321X SoC
+> >>  M:	Florian Fainelli <florian@openwrt.org>
+> >>  S:	Maintained
+> >> diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+> >> index eadc00bdd3bf..5eded5e337ec 100644
+> >> --- a/drivers/media/i2c/Kconfig
+> >> +++ b/drivers/media/i2c/Kconfig
+> >> @@ -989,6 +989,17 @@ config VIDEO_S5C73M3
+> >>  	  This is a V4L2 sensor driver for Samsung S5C73M3
+> >>  	  8 Mpixel camera.
+> >>  
+> >> +config VIDEO_RDACM20
+
+Btw. I think this might be worth a new comment to tell what devices can be
+found here --- it's not a camera sensor as such really. But I wonder how
+should it be called. We do have "Miscellaneous helper chips" at the end.
+I'm not sure that'd be better. As-is could be fine, too.
+
+> >> +	tristate "IMI RDACM20 camera support"
+> >> +	depends on I2C && VIDEO_V4L2_SUBDEV_API && MEDIA_CONTROLLER
+> >> +	select V4L2_FWNODE
+> >> +	help
+> >> +	  This driver supports the IMI RDACM20 GMSL camera, used in
+> >> +	  ADAS systems.
+> >> +
+> >> +	  This camera should be used in conjunction with a GMSL
+> >> +	  deserialiser such as the MAX9286.
+> >> +
+> >>  comment "Flash devices"
+> >>  
+> >>  config VIDEO_ADP1653
+> >> diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
+> >> index 4de7fe62b179..121d28283d45 100644
+> >> --- a/drivers/media/i2c/Makefile
+> >> +++ b/drivers/media/i2c/Makefile
+> >> @@ -111,5 +111,6 @@ obj-$(CONFIG_VIDEO_IMX274)	+= imx274.o
+> >>  obj-$(CONFIG_VIDEO_IMX319)	+= imx319.o
+> >>  obj-$(CONFIG_VIDEO_IMX355)	+= imx355.o
+> >>  obj-$(CONFIG_VIDEO_MAX9286)	+= max9286.o
+> >> +obj-$(CONFIG_VIDEO_RDACM20)	+= rdacm20.o
+> >>  
+> >>  obj-$(CONFIG_SDR_MAX2175) += max2175.o
+> >> diff --git a/drivers/media/i2c/rdacm20-ov10635.h b/drivers/media/i2c/rdacm20-ov10635.h
+> >> new file mode 100644
+> >> index 000000000000..3c53a3262ee2
+> >> --- /dev/null
+> >> +++ b/drivers/media/i2c/rdacm20-ov10635.h
+> >> @@ -0,0 +1,953 @@
+> >> +/* SPDX-License-Identifier: GPL-2.0+ */
+> >> +/*
+> >> + * IMI RDACM20 camera OV10635 sensor register initialization values
+> >> + *
+> >> + * Copyright (C) 2017-2018 Jacopo Mondi
+> >> + * Copyright (C) 2017-2018 Kieran Bingham
+> >> + * Copyright (C) 2017-2018 Laurent Pinchart
+> >> + * Copyright (C) 2017-2018 Niklas Söderlund
+> >> + * Copyright (C) 2016 Renesas Electronics Corporation
+> >> + * Copyright (C) 2015 Cogent Embedded, Inc.
+> >> + *
+> >> + */
+> >> +
+> >> +/*
+> >> + * Generated by the OmniVision ov10635 sensor camera wizard for
+> >> + * 1280x800@30/UYVY/BT601/8bit.
+> >> + */
+> >> +
+> >> +#ifndef __RDACM20_OV10635_H__
+> >> +#define __RDACM20_OV10635_H__
+> >> +
+> >> +#define OV10635_SENSOR_WIDTH		1312
+> >> +#define OV10635_SENSOR_HEIGHT		814
+> >> +
+> >> +#define OV10635_MAX_WIDTH		1280
+> >> +#define OV10635_MAX_HEIGHT		800
+> >> +
+> >> +/* VTS = PCLK / FPS / HTS / 2 (= 88MHz / 1572 / 30 / 2) */
+> >> +#define OV10635_HTS			1572
+> >> +/* FPS = 29,9998 */
+> >> +#define OV10635_VTS			933
 > > 
-> > Without the --vf argument no images are processed.
+> > A part of this driver looks like a driver for an OV camera sensor. Would
+> > there be something that prevents separating the camera sensor driver from
+> > this one?
+> 
+> I don't think there's anything preventing it - except (a fair bit of)
+> development time.
+> 
+> We also have the RDACM21 to support, which uses the max9271 and an
+> OV10640. At that time - this will absolutely have to be split. We
+> shouldn't replicate the max9271 code.
+> 
+> I mentioned briefly in the cover letter:
+> 
+> > Further anticipated work in this area includes supporting the RDACM21
+> > camera, at which point the RDACM20 will be adapted to separate out the
+> > MAX9271 and the OV10635 sensor components.
+
+Oh, sorry; I missed that.
+
+Does the DT currently contain all the necessary information for the drivers
+to get everything they need, if you separated them?
+
+> 
+> But to get more dedicated time to work this - we need to show some
+> progress on GMSL up-streaming, so the max9286 and bindings take priority
+> for now.
+> 
+> A little bit catch 22 ... :D
+> 
+> I'm sure there will be overlap between GMSL and FPD-Link with the RDACM
+> range [0] of cameras too, which also provide TI-FPD Link serialisers.
+> 
+> I currently envisage that we would have an RDACM20 'driver' which would
+> know that it has a max9271 serialiser and an OV10635 sensor, and would
+> handle the links of any subdevices internally.
+
+I don't remember all the details, but my understanding is that RDACM20 is
+much more than just a box that contains the serialiser and the sensors. So
+very probably it'll need its own driver, too. Powering on the sensors, for
+instance, seemed hard to make generic.
+
+> 
+> As the RDACM20 is an object itself, I think this makes sense ... unless
+> anyone suggests that each part should be broken down into the DT
+> directly ? (I think that would possibly be a bit too much)
+> 
+> 
+> [0]
+> https://www.global-imi.com/sites/default/files/Generic-Minicube-Catalogue-1020151.pdf
+> 
+> 
+> >> +
+> >> +struct ov10635_reg {
+> >> +	u16	reg;
+> >> +	u8	val;
+> >> +};
+> >> +
+> >> +static const struct ov10635_reg ov10635_regs_wizard[] = {
+> >> +	{ 0x301b, 0xff },
+> >> +	{ 0x301c, 0xff },
+> >> +	{ 0x301a, 0xff },
+> >> +	{ 0x3011, 0x42 },
+> >> +	{ 0x6900, 0x0c },
+> >> +	{ 0x6901, 0x19 },
+> >> +	{ 0x3503, 0x10 },
+> >> +	{ 0x3025, 0x03 },
+> >> +	{ 0x3003, 0x16 },
+> >> +	{ 0x3004, 0x30 },
+> >> +	{ 0x3005, 0x40 },
+> >> +	{ 0x3006, 0x91 },
+> >> +	{ 0x3600, 0x74 },
+> >> +	{ 0x3601, 0x2b },
+> >> +	{ 0x3612, 0x00 },
+> >> +	{ 0x3611, 0x67 },
+> >> +	{ 0x3633, 0xca },
+> >> +	{ 0x3602, 0xaf },
+> >> +	{ 0x3603, 0x04 },
+> >> +	{ 0x3630, 0x28 },
+> >> +	{ 0x3631, 0x16 },
+> >> +	{ 0x3714, 0x10 },
+> >> +	{ 0x371d, 0x01 },
+> >> +	{ 0x4300, 0x3a },
+> >> +	{ 0x3007, 0x01 },
+> >> +	{ 0x3024, 0x03 },
+> >> +	{ 0x3020, 0x0a },
+> >> +	{ 0x3702, 0x0d },
+> >> +	{ 0x3703, 0x20 },
+> >> +	{ 0x3704, 0x15 },
+> >> +	{ 0x3709, 0xa8 },
+> >> +	{ 0x370c, 0xc7 },
+> >> +	{ 0x370d, 0x80 },
+> >> +	{ 0x3712, 0x00 },
+> >> +	{ 0x3713, 0x20 },
+> >> +	{ 0x3715, 0x04 },
+> >> +	{ 0x381d, 0x40 },
+> >> +	{ 0x381c, 0x00 },
+> >> +	{ 0x3822, 0x50 },
+> >> +	{ 0x3824, 0x10 },
+> >> +	{ 0x3815, 0x8c },
+> >> +	{ 0x3804, 0x05 },
+> >> +	{ 0x3805, 0x1f },
+> >> +	{ 0x3800, 0x00 },
+> >> +	{ 0x3801, 0x00 },
+> >> +	{ 0x3806, 0x03 },
+> >> +	{ 0x3807, 0x28 },
+> >> +	{ 0x3802, 0x00 },
+> >> +	{ 0x3803, 0x07 },
+> >> +	{ 0x3808, 0x05 },
+> >> +	{ 0x3809, 0x00 },
+> >> +	{ 0x380a, 0x03 },
+> >> +	{ 0x380b, 0x20 },
+> >> +	{ 0x380c, OV10635_HTS >> 8 },
+> >> +	{ 0x380d, OV10635_HTS & 0xff },
+> >> +	{ 0x380e, OV10635_VTS >> 8 },
+> >> +	{ 0x380f, OV10635_VTS & 0xff },
+> >> +	{ 0x3813, 0x02 },
+> >> +	{ 0x3811, 0x08 },
+> >> +	{ 0x381f, 0x0c },
+> >> +	{ 0x3819, 0x04 },
+> >> +	{ 0x3804, 0x01 },
+> >> +	{ 0x3805, 0x00 },
+> >> +	{ 0x3828, 0x03 },
+> >> +	{ 0x3829, 0x10 },
+> >> +	{ 0x382a, 0x10 },
+> >> +	{ 0x3621, 0x63 },
+> >> +	{ 0x5005, 0x08 },
+> >> +	{ 0x56d5, 0x00 },
+> >> +	{ 0x56d6, 0x80 },
+> >> +	{ 0x56d7, 0x00 },
+> >> +	{ 0x56d8, 0x00 },
+> >> +	{ 0x56d9, 0x00 },
+> >> +	{ 0x56da, 0x80 },
+> >> +	{ 0x56db, 0x00 },
+> >> +	{ 0x56dc, 0x00 },
+> >> +	{ 0x56e8, 0x00 },
+> >> +	{ 0x56e9, 0x7f },
+> >> +	{ 0x56ea, 0x00 },
+> >> +	{ 0x56eb, 0x7f },
+> >> +	{ 0x5100, 0x00 },
+> >> +	{ 0x5101, 0x80 },
+> >> +	{ 0x5102, 0x00 },
+> >> +	{ 0x5103, 0x80 },
+> >> +	{ 0x5104, 0x00 },
+> >> +	{ 0x5105, 0x80 },
+> >> +	{ 0x5106, 0x00 },
+> >> +	{ 0x5107, 0x80 },
+> >> +	{ 0x5108, 0x00 },
+> >> +	{ 0x5109, 0x00 },
+> >> +	{ 0x510a, 0x00 },
+> >> +	{ 0x510b, 0x00 },
+> >> +	{ 0x510c, 0x00 },
+> >> +	{ 0x510d, 0x00 },
+> >> +	{ 0x510e, 0x00 },
+> >> +	{ 0x510f, 0x00 },
+> >> +	{ 0x5110, 0x00 },
+> >> +	{ 0x5111, 0x80 },
+> >> +	{ 0x5112, 0x00 },
+> >> +	{ 0x5113, 0x80 },
+> >> +	{ 0x5114, 0x00 },
+> >> +	{ 0x5115, 0x80 },
+> >> +	{ 0x5116, 0x00 },
+> >> +	{ 0x5117, 0x80 },
+> >> +	{ 0x5118, 0x00 },
+> >> +	{ 0x5119, 0x00 },
+> >> +	{ 0x511a, 0x00 },
+> >> +	{ 0x511b, 0x00 },
+> >> +	{ 0x511c, 0x00 },
+> >> +	{ 0x511d, 0x00 },
+> >> +	{ 0x511e, 0x00 },
+> >> +	{ 0x511f, 0x00 },
+> >> +	{ 0x56d0, 0x00 },
+> >> +	{ 0x5006, 0x04 },
+> >> +	{ 0x5608, 0x05 },
+> >> +	{ 0x52d7, 0x06 },
+> >> +	{ 0x528d, 0x08 },
+> >> +	{ 0x5293, 0x12 },
+> >> +	{ 0x52d3, 0x12 },
+> >> +	{ 0x5288, 0x06 },
+> >> +	{ 0x5289, 0x20 },
+> >> +	{ 0x52c8, 0x06 },
+> >> +	{ 0x52c9, 0x20 },
+> >> +	{ 0x52cd, 0x04 },
+> >> +	{ 0x5381, 0x00 },
+> >> +	{ 0x5382, 0xff },
+> >> +	{ 0x5589, 0x76 },
+> >> +	{ 0x558a, 0x47 },
+> >> +	{ 0x558b, 0xef },
+> >> +	{ 0x558c, 0xc9 },
+> >> +	{ 0x558d, 0x49 },
+> >> +	{ 0x558e, 0x30 },
+> >> +	{ 0x558f, 0x67 },
+> >> +	{ 0x5590, 0x3f },
+> >> +	{ 0x5591, 0xf0 },
+> >> +	{ 0x5592, 0x10 },
+> >> +	{ 0x55a2, 0x6d },
+> >> +	{ 0x55a3, 0x55 },
+> >> +	{ 0x55a4, 0xc3 },
+> >> +	{ 0x55a5, 0xb5 },
+> >> +	{ 0x55a6, 0x43 },
+> >> +	{ 0x55a7, 0x38 },
+> >> +	{ 0x55a8, 0x5f },
+> >> +	{ 0x55a9, 0x4b },
+> >> +	{ 0x55aa, 0xf0 },
+> >> +	{ 0x55ab, 0x10 },
+> >> +	{ 0x5581, 0x52 },
+> >> +	{ 0x5300, 0x01 },
+> >> +	{ 0x5301, 0x00 },
+> >> +	{ 0x5302, 0x00 },
+> >> +	{ 0x5303, 0x0e },
+> >> +	{ 0x5304, 0x00 },
+> >> +	{ 0x5305, 0x0e },
+> >> +	{ 0x5306, 0x00 },
+> >> +	{ 0x5307, 0x36 },
+> >> +	{ 0x5308, 0x00 },
+> >> +	{ 0x5309, 0xd9 },
+> >> +	{ 0x530a, 0x00 },
+> >> +	{ 0x530b, 0x0f },
+> >> +	{ 0x530c, 0x00 },
+> >> +	{ 0x530d, 0x2c },
+> >> +	{ 0x530e, 0x00 },
+> >> +	{ 0x530f, 0x59 },
+> >> +	{ 0x5310, 0x00 },
+> >> +	{ 0x5311, 0x7b },
+> >> +	{ 0x5312, 0x00 },
+> >> +	{ 0x5313, 0x22 },
+> >> +	{ 0x5314, 0x00 },
+> >> +	{ 0x5315, 0xd5 },
+> >> +	{ 0x5316, 0x00 },
+> >> +	{ 0x5317, 0x13 },
+> >> +	{ 0x5318, 0x00 },
+> >> +	{ 0x5319, 0x18 },
+> >> +	{ 0x531a, 0x00 },
+> >> +	{ 0x531b, 0x26 },
+> >> +	{ 0x531c, 0x00 },
+> >> +	{ 0x531d, 0xdc },
+> >> +	{ 0x531e, 0x00 },
+> >> +	{ 0x531f, 0x02 },
+> >> +	{ 0x5320, 0x00 },
+> >> +	{ 0x5321, 0x24 },
+> >> +	{ 0x5322, 0x00 },
+> >> +	{ 0x5323, 0x56 },
+> >> +	{ 0x5324, 0x00 },
+> >> +	{ 0x5325, 0x85 },
+> >> +	{ 0x5326, 0x00 },
+> >> +	{ 0x5327, 0x20 },
+> >> +	{ 0x5609, 0x01 },
+> >> +	{ 0x560a, 0x40 },
+> >> +	{ 0x560b, 0x01 },
+> >> +	{ 0x560c, 0x40 },
+> >> +	{ 0x560d, 0x00 },
+> >> +	{ 0x560e, 0xfa },
+> >> +	{ 0x560f, 0x00 },
+> >> +	{ 0x5610, 0xfa },
+> >> +	{ 0x5611, 0x02 },
+> >> +	{ 0x5612, 0x80 },
+> >> +	{ 0x5613, 0x02 },
+> >> +	{ 0x5614, 0x80 },
+> >> +	{ 0x5615, 0x01 },
+> >> +	{ 0x5616, 0x2c },
+> >> +	{ 0x5617, 0x01 },
+> >> +	{ 0x5618, 0x2c },
+> >> +	{ 0x563b, 0x01 },
+> >> +	{ 0x563c, 0x01 },
+> >> +	{ 0x563d, 0x01 },
+> >> +	{ 0x563e, 0x01 },
+> >> +	{ 0x563f, 0x03 },
+> >> +	{ 0x5640, 0x03 },
+> >> +	{ 0x5641, 0x03 },
+> >> +	{ 0x5642, 0x05 },
+> >> +	{ 0x5643, 0x09 },
+> >> +	{ 0x5644, 0x05 },
+> >> +	{ 0x5645, 0x05 },
+> >> +	{ 0x5646, 0x05 },
+> >> +	{ 0x5647, 0x05 },
+> >> +	{ 0x5651, 0x00 },
+> >> +	{ 0x5652, 0x80 },
+> >> +	{ 0x521a, 0x01 },
+> >> +	{ 0x521b, 0x03 },
+> >> +	{ 0x521c, 0x06 },
+> >> +	{ 0x521d, 0x0a },
+> >> +	{ 0x521e, 0x0e },
+> >> +	{ 0x521f, 0x12 },
+> >> +	{ 0x5220, 0x16 },
+> >> +	{ 0x5223, 0x02 },
+> >> +	{ 0x5225, 0x04 },
+> >> +	{ 0x5227, 0x08 },
+> >> +	{ 0x5229, 0x0c },
+> >> +	{ 0x522b, 0x12 },
+> >> +	{ 0x522d, 0x18 },
+> >> +	{ 0x522f, 0x1e },
+> >> +	{ 0x5241, 0x04 },
+> >> +	{ 0x5242, 0x01 },
+> >> +	{ 0x5243, 0x03 },
+> >> +	{ 0x5244, 0x06 },
+> >> +	{ 0x5245, 0x0a },
+> >> +	{ 0x5246, 0x0e },
+> >> +	{ 0x5247, 0x12 },
+> >> +	{ 0x5248, 0x16 },
+> >> +	{ 0x524a, 0x03 },
+> >> +	{ 0x524c, 0x04 },
+> >> +	{ 0x524e, 0x08 },
+> >> +	{ 0x5250, 0x0c },
+> >> +	{ 0x5252, 0x12 },
+> >> +	{ 0x5254, 0x18 },
+> >> +	{ 0x5256, 0x1e },
+> >> +	/* fifo_line_length = 2*hts */
+> >> +	{ 0x4606, (2 * OV10635_HTS) >> 8 },
+> >> +	{ 0x4607, (2 * OV10635_HTS) & 0xff },
+> >> +	/* fifo_hsync_start = 2*(hts - xres) */
+> >> +	{ 0x460a, (2 * (OV10635_HTS - OV10635_MAX_WIDTH)) >> 8 },
+> >> +	{ 0x460b, (2 * (OV10635_HTS - OV10635_MAX_WIDTH)) & 0xff },
+> >> +	{ 0x460c, 0x00 },
+> >> +	{ 0x4620, 0x0e },
+> >> +	/* BT601: 0x08 is also acceptable as HS/VS mode */
+> >> +	{ 0x4700, 0x04 },
+> >> +	{ 0x4701, 0x00 },
+> >> +	{ 0x4702, 0x01 },
+> >> +	{ 0x4004, 0x04 },
+> >> +	{ 0x4005, 0x18 },
+> >> +	{ 0x4001, 0x06 },
+> >> +	{ 0x4050, 0x22 },
+> >> +	{ 0x4051, 0x24 },
+> >> +	{ 0x4052, 0x02 },
+> >> +	{ 0x4057, 0x9c },
+> >> +	{ 0x405a, 0x00 },
+> >> +	{ 0x4202, 0x02 },
+> >> +	{ 0x3023, 0x10 },
+> >> +	{ 0x0100, 0x01 },
+> >> +	{ 0x0100, 0x01 },
+> >> +	{ 0x6f10, 0x07 },
+> >> +	{ 0x6f11, 0x82 },
+> >> +	{ 0x6f12, 0x04 },
+> >> +	{ 0x6f13, 0x00 },
+> >> +	{ 0xd000, 0x19 },
+> >> +	{ 0xd001, 0xa0 },
+> >> +	{ 0xd002, 0x00 },
+> >> +	{ 0xd003, 0x01 },
+> >> +	{ 0xd004, 0xa9 },
+> >> +	{ 0xd005, 0xad },
+> >> +	{ 0xd006, 0x10 },
+> >> +	{ 0xd007, 0x40 },
+> >> +	{ 0xd008, 0x44 },
+> >> +	{ 0xd009, 0x00 },
+> >> +	{ 0xd00a, 0x68 },
+> >> +	{ 0xd00b, 0x00 },
+> >> +	{ 0xd00c, 0x15 },
+> >> +	{ 0xd00d, 0x00 },
+> >> +	{ 0xd00e, 0x00 },
+> >> +	{ 0xd00f, 0x00 },
+> >> +	{ 0xd040, 0x9c },
+> >> +	{ 0xd041, 0x21 },
+> >> +	{ 0xd042, 0xff },
+> >> +	{ 0xd043, 0xf8 },
+> >> +	{ 0xd044, 0xd4 },
+> >> +	{ 0xd045, 0x01 },
+> >> +	{ 0xd046, 0x48 },
+> >> +	{ 0xd047, 0x00 },
+> >> +	{ 0xd048, 0xd4 },
+> >> +	{ 0xd049, 0x01 },
+> >> +	{ 0xd04a, 0x50 },
+> >> +	{ 0xd04b, 0x04 },
+> >> +	{ 0xd04c, 0x18 },
+> >> +	{ 0xd04d, 0x60 },
+> >> +	{ 0xd04e, 0x00 },
+> >> +	{ 0xd04f, 0x01 },
+> >> +	{ 0xd050, 0xa8 },
+> >> +	{ 0xd051, 0x63 },
+> >> +	{ 0xd052, 0x02 },
+> >> +	{ 0xd053, 0xa4 },
+> >> +	{ 0xd054, 0x85 },
+> >> +	{ 0xd055, 0x43 },
+> >> +	{ 0xd056, 0x00 },
+> >> +	{ 0xd057, 0x00 },
+> >> +	{ 0xd058, 0x18 },
+> >> +	{ 0xd059, 0x60 },
+> >> +	{ 0xd05a, 0x00 },
+> >> +	{ 0xd05b, 0x01 },
+> >> +	{ 0xd05c, 0xa8 },
+> >> +	{ 0xd05d, 0x63 },
+> >> +	{ 0xd05e, 0x03 },
+> >> +	{ 0xd05f, 0xf0 },
+> >> +	{ 0xd060, 0x98 },
+> >> +	{ 0xd061, 0xa3 },
+> >> +	{ 0xd062, 0x00 },
+> >> +	{ 0xd063, 0x00 },
+> >> +	{ 0xd064, 0x8c },
+> >> +	{ 0xd065, 0x6a },
+> >> +	{ 0xd066, 0x00 },
+> >> +	{ 0xd067, 0x6e },
+> >> +	{ 0xd068, 0xe5 },
+> >> +	{ 0xd069, 0x85 },
+> >> +	{ 0xd06a, 0x18 },
+> >> +	{ 0xd06b, 0x00 },
+> >> +	{ 0xd06c, 0x10 },
+> >> +	{ 0xd06d, 0x00 },
+> >> +	{ 0xd06e, 0x00 },
+> >> +	{ 0xd06f, 0x10 },
+> >> +	{ 0xd070, 0x9c },
+> >> +	{ 0xd071, 0x80 },
+> >> +	{ 0xd072, 0x00 },
+> >> +	{ 0xd073, 0x03 },
+> >> +	{ 0xd074, 0x18 },
+> >> +	{ 0xd075, 0x60 },
+> >> +	{ 0xd076, 0x00 },
+> >> +	{ 0xd077, 0x01 },
+> >> +	{ 0xd078, 0xa8 },
+> >> +	{ 0xd079, 0x63 },
+> >> +	{ 0xd07a, 0x07 },
+> >> +	{ 0xd07b, 0x80 },
+> >> +	{ 0xd07c, 0x07 },
+> >> +	{ 0xd07d, 0xff },
+> >> +	{ 0xd07e, 0xf9 },
+> >> +	{ 0xd07f, 0x03 },
+> >> +	{ 0xd080, 0x8c },
+> >> +	{ 0xd081, 0x63 },
+> >> +	{ 0xd082, 0x00 },
+> >> +	{ 0xd083, 0x00 },
+> >> +	{ 0xd084, 0xa5 },
+> >> +	{ 0xd085, 0x6b },
+> >> +	{ 0xd086, 0x00 },
+> >> +	{ 0xd087, 0xff },
+> >> +	{ 0xd088, 0x18 },
+> >> +	{ 0xd089, 0x80 },
+> >> +	{ 0xd08a, 0x00 },
+> >> +	{ 0xd08b, 0x01 },
+> >> +	{ 0xd08c, 0xa8 },
+> >> +	{ 0xd08d, 0x84 },
+> >> +	{ 0xd08e, 0x01 },
+> >> +	{ 0xd08f, 0x04 },
+> >> +	{ 0xd090, 0xe1 },
+> >> +	{ 0xd091, 0x6b },
+> >> +	{ 0xd092, 0x58 },
+> >> +	{ 0xd093, 0x00 },
+> >> +	{ 0xd094, 0x94 },
+> >> +	{ 0xd095, 0x6a },
+> >> +	{ 0xd096, 0x00 },
+> >> +	{ 0xd097, 0x70 },
+> >> +	{ 0xd098, 0xe1 },
+> >> +	{ 0xd099, 0x6b },
+> >> +	{ 0xd09a, 0x20 },
+> >> +	{ 0xd09b, 0x00 },
+> >> +	{ 0xd09c, 0x95 },
+> >> +	{ 0xd09d, 0x6b },
+> >> +	{ 0xd09e, 0x00 },
+> >> +	{ 0xd09f, 0x00 },
+> >> +	{ 0xd0a0, 0xe4 },
+> >> +	{ 0xd0a1, 0x8b },
+> >> +	{ 0xd0a2, 0x18 },
+> >> +	{ 0xd0a3, 0x00 },
+> >> +	{ 0xd0a4, 0x0c },
+> >> +	{ 0xd0a5, 0x00 },
+> >> +	{ 0xd0a6, 0x00 },
+> >> +	{ 0xd0a7, 0x23 },
+> >> +	{ 0xd0a8, 0x15 },
+> >> +	{ 0xd0a9, 0x00 },
+> >> +	{ 0xd0aa, 0x00 },
+> >> +	{ 0xd0ab, 0x00 },
+> >> +	{ 0xd0ac, 0x18 },
+> >> +	{ 0xd0ad, 0x60 },
+> >> +	{ 0xd0ae, 0x80 },
+> >> +	{ 0xd0af, 0x06 },
+> >> +	{ 0xd0b0, 0xa8 },
+> >> +	{ 0xd0b1, 0x83 },
+> >> +	{ 0xd0b2, 0x40 },
+> >> +	{ 0xd0b3, 0x08 },
+> >> +	{ 0xd0b4, 0xa8 },
+> >> +	{ 0xd0b5, 0xe3 },
+> >> +	{ 0xd0b6, 0x38 },
+> >> +	{ 0xd0b7, 0x2a },
+> >> +	{ 0xd0b8, 0xa8 },
+> >> +	{ 0xd0b9, 0xc3 },
+> >> +	{ 0xd0ba, 0x40 },
+> >> +	{ 0xd0bb, 0x09 },
+> >> +	{ 0xd0bc, 0xa8 },
+> >> +	{ 0xd0bd, 0xa3 },
+> >> +	{ 0xd0be, 0x38 },
+> >> +	{ 0xd0bf, 0x29 },
+> >> +	{ 0xd0c0, 0x8c },
+> >> +	{ 0xd0c1, 0x65 },
+> >> +	{ 0xd0c2, 0x00 },
+> >> +	{ 0xd0c3, 0x00 },
+> >> +	{ 0xd0c4, 0xd8 },
+> >> +	{ 0xd0c5, 0x04 },
+> >> +	{ 0xd0c6, 0x18 },
+> >> +	{ 0xd0c7, 0x00 },
+> >> +	{ 0xd0c8, 0x8c },
+> >> +	{ 0xd0c9, 0x67 },
+> >> +	{ 0xd0ca, 0x00 },
+> >> +	{ 0xd0cb, 0x00 },
+> >> +	{ 0xd0cc, 0xd8 },
+> >> +	{ 0xd0cd, 0x06 },
+> >> +	{ 0xd0ce, 0x18 },
+> >> +	{ 0xd0cf, 0x00 },
+> >> +	{ 0xd0d0, 0x18 },
+> >> +	{ 0xd0d1, 0x60 },
+> >> +	{ 0xd0d2, 0x80 },
+> >> +	{ 0xd0d3, 0x06 },
+> >> +	{ 0xd0d4, 0xa8 },
+> >> +	{ 0xd0d5, 0xe3 },
+> >> +	{ 0xd0d6, 0x67 },
+> >> +	{ 0xd0d7, 0x02 },
+> >> +	{ 0xd0d8, 0xa9 },
+> >> +	{ 0xd0d9, 0x03 },
+> >> +	{ 0xd0da, 0x67 },
+> >> +	{ 0xd0db, 0x03 },
+> >> +	{ 0xd0dc, 0xa8 },
+> >> +	{ 0xd0dd, 0xc3 },
+> >> +	{ 0xd0de, 0x3d },
+> >> +	{ 0xd0df, 0x05 },
+> >> +	{ 0xd0e0, 0x8c },
+> >> +	{ 0xd0e1, 0x66 },
+> >> +	{ 0xd0e2, 0x00 },
+> >> +	{ 0xd0e3, 0x00 },
+> >> +	{ 0xd0e4, 0xb8 },
+> >> +	{ 0xd0e5, 0x63 },
+> >> +	{ 0xd0e6, 0x00 },
+> >> +	{ 0xd0e7, 0x18 },
+> >> +	{ 0xd0e8, 0xb8 },
+> >> +	{ 0xd0e9, 0x63 },
+> >> +	{ 0xd0ea, 0x00 },
+> >> +	{ 0xd0eb, 0x98 },
+> >> +	{ 0xd0ec, 0xbc },
+> >> +	{ 0xd0ed, 0x03 },
+> >> +	{ 0xd0ee, 0x00 },
+> >> +	{ 0xd0ef, 0x00 },
+> >> +	{ 0xd0f0, 0x10 },
+> >> +	{ 0xd0f1, 0x00 },
+> >> +	{ 0xd0f2, 0x00 },
+> >> +	{ 0xd0f3, 0x16 },
+> >> +	{ 0xd0f4, 0xb8 },
+> >> +	{ 0xd0f5, 0x83 },
+> >> +	{ 0xd0f6, 0x00 },
+> >> +	{ 0xd0f7, 0x19 },
+> >> +	{ 0xd0f8, 0x8c },
+> >> +	{ 0xd0f9, 0x67 },
+> >> +	{ 0xd0fa, 0x00 },
+> >> +	{ 0xd0fb, 0x00 },
+> >> +	{ 0xd0fc, 0xb8 },
+> >> +	{ 0xd0fd, 0xa4 },
+> >> +	{ 0xd0fe, 0x00 },
+> >> +	{ 0xd0ff, 0x98 },
+> >> +	{ 0xd100, 0xb8 },
+> >> +	{ 0xd101, 0x83 },
+> >> +	{ 0xd102, 0x00 },
+> >> +	{ 0xd103, 0x08 },
+> >> +	{ 0xd104, 0x8c },
+> >> +	{ 0xd105, 0x68 },
+> >> +	{ 0xd106, 0x00 },
+> >> +	{ 0xd107, 0x00 },
+> >> +	{ 0xd108, 0xe0 },
+> >> +	{ 0xd109, 0x63 },
+> >> +	{ 0xd10a, 0x20 },
+> >> +	{ 0xd10b, 0x04 },
+> >> +	{ 0xd10c, 0xe0 },
+> >> +	{ 0xd10d, 0x65 },
+> >> +	{ 0xd10e, 0x18 },
+> >> +	{ 0xd10f, 0x00 },
+> >> +	{ 0xd110, 0xa4 },
+> >> +	{ 0xd111, 0x83 },
+> >> +	{ 0xd112, 0xff },
+> >> +	{ 0xd113, 0xff },
+> >> +	{ 0xd114, 0xb8 },
+> >> +	{ 0xd115, 0x64 },
+> >> +	{ 0xd116, 0x00 },
+> >> +	{ 0xd117, 0x48 },
+> >> +	{ 0xd118, 0xd8 },
+> >> +	{ 0xd119, 0x07 },
+> >> +	{ 0xd11a, 0x18 },
+> >> +	{ 0xd11b, 0x00 },
+> >> +	{ 0xd11c, 0xd8 },
+> >> +	{ 0xd11d, 0x08 },
+> >> +	{ 0xd11e, 0x20 },
+> >> +	{ 0xd11f, 0x00 },
+> >> +	{ 0xd120, 0x9c },
+> >> +	{ 0xd121, 0x60 },
+> >> +	{ 0xd122, 0x00 },
+> >> +	{ 0xd123, 0x00 },
+> >> +	{ 0xd124, 0xd8 },
+> >> +	{ 0xd125, 0x06 },
+> >> +	{ 0xd126, 0x18 },
+> >> +	{ 0xd127, 0x00 },
+> >> +	{ 0xd128, 0x00 },
+> >> +	{ 0xd129, 0x00 },
+> >> +	{ 0xd12a, 0x00 },
+> >> +	{ 0xd12b, 0x08 },
+> >> +	{ 0xd12c, 0x15 },
+> >> +	{ 0xd12d, 0x00 },
+> >> +	{ 0xd12e, 0x00 },
+> >> +	{ 0xd12f, 0x00 },
+> >> +	{ 0xd130, 0x8c },
+> >> +	{ 0xd131, 0x6a },
+> >> +	{ 0xd132, 0x00 },
+> >> +	{ 0xd133, 0x76 },
+> >> +	{ 0xd134, 0xbc },
+> >> +	{ 0xd135, 0x23 },
+> >> +	{ 0xd136, 0x00 },
+> >> +	{ 0xd137, 0x00 },
+> >> +	{ 0xd138, 0x13 },
+> >> +	{ 0xd139, 0xff },
+> >> +	{ 0xd13a, 0xff },
+> >> +	{ 0xd13b, 0xe6 },
+> >> +	{ 0xd13c, 0x18 },
+> >> +	{ 0xd13d, 0x60 },
+> >> +	{ 0xd13e, 0x80 },
+> >> +	{ 0xd13f, 0x06 },
+> >> +	{ 0xd140, 0x03 },
+> >> +	{ 0xd141, 0xff },
+> >> +	{ 0xd142, 0xff },
+> >> +	{ 0xd143, 0xdd },
+> >> +	{ 0xd144, 0xa8 },
+> >> +	{ 0xd145, 0x83 },
+> >> +	{ 0xd146, 0x40 },
+> >> +	{ 0xd147, 0x08 },
+> >> +	{ 0xd148, 0x85 },
+> >> +	{ 0xd149, 0x21 },
+> >> +	{ 0xd14a, 0x00 },
+> >> +	{ 0xd14b, 0x00 },
+> >> +	{ 0xd14c, 0x85 },
+> >> +	{ 0xd14d, 0x41 },
+> >> +	{ 0xd14e, 0x00 },
+> >> +	{ 0xd14f, 0x04 },
+> >> +	{ 0xd150, 0x44 },
+> >> +	{ 0xd151, 0x00 },
+> >> +	{ 0xd152, 0x48 },
+> >> +	{ 0xd153, 0x00 },
+> >> +	{ 0xd154, 0x9c },
+> >> +	{ 0xd155, 0x21 },
+> >> +	{ 0xd156, 0x00 },
+> >> +	{ 0xd157, 0x08 },
+> >> +	{ 0x6f0e, 0x03 },
+> >> +	{ 0x6f0f, 0x00 },
+> >> +	{ 0x460e, 0x08 },
+> >> +	{ 0x460f, 0x01 },
+> >> +	{ 0x4610, 0x00 },
+> >> +	{ 0x4611, 0x01 },
+> >> +	{ 0x4612, 0x00 },
+> >> +	{ 0x4613, 0x01 },
+> >> +	/* 8 bits */
+> >> +	{ 0x4605, 0x08 },
+> >> +	/* Swap data bits order [9:0] -> [0:9] */
+> >> +	{ 0x4709, 0x10 },
+> >> +	{ 0x4608, 0x00 },
+> >> +	{ 0x4609, 0x08 },
+> >> +	{ 0x6804, 0x00 },
+> >> +	{ 0x6805, 0x06 },
+> >> +	{ 0x6806, 0x00 },
+> >> +	{ 0x5120, 0x00 },
+> >> +	{ 0x3510, 0x00 },
+> >> +	{ 0x3504, 0x00 },
+> >> +	{ 0x6800, 0x00 },
+> >> +	{ 0x6f0d, 0x01 },
+> >> +	/* PCLK falling edge */
+> >> +	{ 0x4708, 0x01 },
+> >> +	{ 0x5000, 0xff },
+> >> +	{ 0x5001, 0xbf },
+> >> +	{ 0x5002, 0x7e },
+> >> +	{ 0x503d, 0x00 },
+> >> +	{ 0xc450, 0x01 },
+> >> +	{ 0xc452, 0x04 },
+> >> +	{ 0xc453, 0x00 },
+> >> +	{ 0xc454, 0x00 },
+> >> +	{ 0xc455, 0x01 },
+> >> +	{ 0xc456, 0x01 },
+> >> +	{ 0xc457, 0x00 },
+> >> +	{ 0xc458, 0x00 },
+> >> +	{ 0xc459, 0x00 },
+> >> +	{ 0xc45b, 0x00 },
+> >> +	{ 0xc45c, 0x01 },
+> >> +	{ 0xc45d, 0x00 },
+> >> +	{ 0xc45e, 0x00 },
+> >> +	{ 0xc45f, 0x00 },
+> >> +	{ 0xc460, 0x00 },
+> >> +	{ 0xc461, 0x01 },
+> >> +	{ 0xc462, 0x01 },
+> >> +	{ 0xc464, 0x03 },
+> >> +	{ 0xc465, 0x00 },
+> >> +	{ 0xc466, 0x8a },
+> >> +	{ 0xc467, 0x00 },
+> >> +	{ 0xc468, 0x86 },
+> >> +	{ 0xc469, 0x00 },
+> >> +	{ 0xc46a, 0x40 },
+> >> +	{ 0xc46b, 0x50 },
+> >> +	{ 0xc46c, 0x30 },
+> >> +	{ 0xc46d, 0x28 },
+> >> +	{ 0xc46e, 0x60 },
+> >> +	{ 0xc46f, 0x40 },
+> >> +	{ 0xc47c, 0x01 },
+> >> +	{ 0xc47d, 0x38 },
+> >> +	{ 0xc47e, 0x00 },
+> >> +	{ 0xc47f, 0x00 },
+> >> +	{ 0xc480, 0x00 },
+> >> +	{ 0xc481, 0xff },
+> >> +	{ 0xc482, 0x00 },
+> >> +	{ 0xc483, 0x40 },
+> >> +	{ 0xc484, 0x00 },
+> >> +	{ 0xc485, 0x18 },
+> >> +	{ 0xc486, 0x00 },
+> >> +	{ 0xc487, 0x18 },
+> >> +	{ 0xc488, (OV10635_VTS - 8) * 16 >> 8},
+> >> +	{ 0xc489, (OV10635_VTS - 8) * 16 & 0xff},
+> >> +	{ 0xc48a, (OV10635_VTS - 8) * 16 >> 8},
+> >> +	{ 0xc48b, (OV10635_VTS - 8) * 16 & 0xff},
+> >> +	{ 0xc48c, 0x00 },
+> >> +	{ 0xc48d, 0x04 },
+> >> +	{ 0xc48e, 0x00 },
+> >> +	{ 0xc48f, 0x04 },
+> >> +	{ 0xc490, 0x03 },
+> >> +	{ 0xc492, 0x20 },
+> >> +	{ 0xc493, 0x08 },
+> >> +	{ 0xc498, 0x02 },
+> >> +	{ 0xc499, 0x00 },
+> >> +	{ 0xc49a, 0x02 },
+> >> +	{ 0xc49b, 0x00 },
+> >> +	{ 0xc49c, 0x02 },
+> >> +	{ 0xc49d, 0x00 },
+> >> +	{ 0xc49e, 0x02 },
+> >> +	{ 0xc49f, 0x60 },
+> >> +	{ 0xc4a0, 0x03 },
+> >> +	{ 0xc4a1, 0x00 },
+> >> +	{ 0xc4a2, 0x04 },
+> >> +	{ 0xc4a3, 0x00 },
+> >> +	{ 0xc4a4, 0x00 },
+> >> +	{ 0xc4a5, 0x10 },
+> >> +	{ 0xc4a6, 0x00 },
+> >> +	{ 0xc4a7, 0x40 },
+> >> +	{ 0xc4a8, 0x00 },
+> >> +	{ 0xc4a9, 0x80 },
+> >> +	{ 0xc4aa, 0x0d },
+> >> +	{ 0xc4ab, 0x00 },
+> >> +	{ 0xc4ac, 0x0f },
+> >> +	{ 0xc4ad, 0xc0 },
+> >> +	{ 0xc4b4, 0x01 },
+> >> +	{ 0xc4b5, 0x01 },
+> >> +	{ 0xc4b6, 0x00 },
+> >> +	{ 0xc4b7, 0x01 },
+> >> +	{ 0xc4b8, 0x00 },
+> >> +	{ 0xc4b9, 0x01 },
+> >> +	{ 0xc4ba, 0x01 },
+> >> +	{ 0xc4bb, 0x00 },
+> >> +	{ 0xc4bc, 0x01 },
+> >> +	{ 0xc4bd, 0x60 },
+> >> +	{ 0xc4be, 0x02 },
+> >> +	{ 0xc4bf, 0x33 },
+> >> +	{ 0xc4c8, 0x03 },
+> >> +	{ 0xc4c9, 0xd0 },
+> >> +	{ 0xc4ca, 0x0e },
+> >> +	{ 0xc4cb, 0x00 },
+> >> +	{ 0xc4cc, 0x0e },
+> >> +	{ 0xc4cd, 0x51 },
+> >> +	{ 0xc4ce, 0x0e },
+> >> +	{ 0xc4cf, 0x51 },
+> >> +	{ 0xc4d0, 0x04 },
+> >> +	{ 0xc4d1, 0x80 },
+> >> +	{ 0xc4e0, 0x04 },
+> >> +	{ 0xc4e1, 0x02 },
+> >> +	{ 0xc4e2, 0x01 },
+> >> +	{ 0xc4e4, 0x10 },
+> >> +	{ 0xc4e5, 0x20 },
+> >> +	{ 0xc4e6, 0x30 },
+> >> +	{ 0xc4e7, 0x40 },
+> >> +	{ 0xc4e8, 0x50 },
+> >> +	{ 0xc4e9, 0x60 },
+> >> +	{ 0xc4ea, 0x70 },
+> >> +	{ 0xc4eb, 0x80 },
+> >> +	{ 0xc4ec, 0x90 },
+> >> +	{ 0xc4ed, 0xa0 },
+> >> +	{ 0xc4ee, 0xb0 },
+> >> +	{ 0xc4ef, 0xc0 },
+> >> +	{ 0xc4f0, 0xd0 },
+> >> +	{ 0xc4f1, 0xe0 },
+> >> +	{ 0xc4f2, 0xf0 },
+> >> +	{ 0xc4f3, 0x80 },
+> >> +	{ 0xc4f4, 0x00 },
+> >> +	{ 0xc4f5, 0x20 },
+> >> +	{ 0xc4f6, 0x02 },
+> >> +	{ 0xc4f7, 0x00 },
+> >> +	{ 0xc4f8, 0x00 },
+> >> +	{ 0xc4f9, 0x00 },
+> >> +	{ 0xc4fa, 0x00 },
+> >> +	{ 0xc4fb, 0x01 },
+> >> +	{ 0xc4fc, 0x01 },
+> >> +	{ 0xc4fd, 0x00 },
+> >> +	{ 0xc4fe, 0x04 },
+> >> +	{ 0xc4ff, 0x02 },
+> >> +	{ 0xc500, 0x48 },
+> >> +	{ 0xc501, 0x74 },
+> >> +	{ 0xc502, 0x58 },
+> >> +	{ 0xc503, 0x80 },
+> >> +	{ 0xc504, 0x05 },
+> >> +	{ 0xc505, 0x80 },
+> >> +	{ 0xc506, 0x03 },
+> >> +	{ 0xc507, 0x80 },
+> >> +	{ 0xc508, 0x01 },
+> >> +	{ 0xc509, 0xc0 },
+> >> +	{ 0xc50a, 0x01 },
+> >> +	{ 0xc50b, 0xa0 },
+> >> +	{ 0xc50c, 0x01 },
+> >> +	{ 0xc50d, 0x2c },
+> >> +	{ 0xc50e, 0x01 },
+> >> +	{ 0xc50f, 0x0a },
+> >> +	{ 0xc510, 0x00 },
+> >> +	{ 0xc511, 0x00 },
+> >> +	{ 0xc512, 0xe5 },
+> >> +	{ 0xc513, 0x14 },
+> >> +	{ 0xc514, 0x04 },
+> >> +	{ 0xc515, 0x00 },
+> >> +	{ 0xc518, OV10635_VTS >> 8},
+> >> +	{ 0xc519, OV10635_VTS & 0xff},
+> >> +	{ 0xc51a, OV10635_HTS >> 8},
+> >> +	{ 0xc51b, OV10635_HTS & 0xff},
+> >> +	{ 0xc2e0, 0x00 },
+> >> +	{ 0xc2e1, 0x51 },
+> >> +	{ 0xc2e2, 0x00 },
+> >> +	{ 0xc2e3, 0xd6 },
+> >> +	{ 0xc2e4, 0x01 },
+> >> +	{ 0xc2e5, 0x5e },
+> >> +	{ 0xc2e9, 0x01 },
+> >> +	{ 0xc2ea, 0x7a },
+> >> +	{ 0xc2eb, 0x90 },
+> >> +	{ 0xc2ed, 0x00 },
+> >> +	{ 0xc2ee, 0x7a },
+> >> +	{ 0xc2ef, 0x64 },
+> >> +	{ 0xc308, 0x00 },
+> >> +	{ 0xc309, 0x00 },
+> >> +	{ 0xc30a, 0x00 },
+> >> +	{ 0xc30c, 0x00 },
+> >> +	{ 0xc30d, 0x01 },
+> >> +	{ 0xc30e, 0x00 },
+> >> +	{ 0xc30f, 0x00 },
+> >> +	{ 0xc310, 0x01 },
+> >> +	{ 0xc311, 0x60 },
+> >> +	{ 0xc312, 0xff },
+> >> +	{ 0xc313, 0x08 },
+> >> +	{ 0xc314, 0x01 },
+> >> +	{ 0xc315, 0x00 },
+> >> +	{ 0xc316, 0xff },
+> >> +	{ 0xc317, 0x0b },
+> >> +	{ 0xc318, 0x00 },
+> >> +	{ 0xc319, 0x0c },
+> >> +	{ 0xc31a, 0x00 },
+> >> +	{ 0xc31b, 0xe0 },
+> >> +	{ 0xc31c, 0x00 },
+> >> +	{ 0xc31d, 0x14 },
+> >> +	{ 0xc31e, 0x00 },
+> >> +	{ 0xc31f, 0xc5 },
+> >> +	{ 0xc320, 0xff },
+> >> +	{ 0xc321, 0x4b },
+> >> +	{ 0xc322, 0xff },
+> >> +	{ 0xc323, 0xf0 },
+> >> +	{ 0xc324, 0xff },
+> >> +	{ 0xc325, 0xe8 },
+> >> +	{ 0xc326, 0x00 },
+> >> +	{ 0xc327, 0x46 },
+> >> +	{ 0xc328, 0xff },
+> >> +	{ 0xc329, 0xd2 },
+> >> +	{ 0xc32a, 0xff },
+> >> +	{ 0xc32b, 0xe4 },
+> >> +	{ 0xc32c, 0xff },
+> >> +	{ 0xc32d, 0xbb },
+> >> +	{ 0xc32e, 0x00 },
+> >> +	{ 0xc32f, 0x61 },
+> >> +	{ 0xc330, 0xff },
+> >> +	{ 0xc331, 0xf9 },
+> >> +	{ 0xc332, 0x00 },
+> >> +	{ 0xc333, 0xd9 },
+> >> +	{ 0xc334, 0x00 },
+> >> +	{ 0xc335, 0x2e },
+> >> +	{ 0xc336, 0x00 },
+> >> +	{ 0xc337, 0xb1 },
+> >> +	{ 0xc338, 0xff },
+> >> +	{ 0xc339, 0x64 },
+> >> +	{ 0xc33a, 0xff },
+> >> +	{ 0xc33b, 0xeb },
+> >> +	{ 0xc33c, 0xff },
+> >> +	{ 0xc33d, 0xe8 },
+> >> +	{ 0xc33e, 0x00 },
+> >> +	{ 0xc33f, 0x48 },
+> >> +	{ 0xc340, 0xff },
+> >> +	{ 0xc341, 0xd0 },
+> >> +	{ 0xc342, 0xff },
+> >> +	{ 0xc343, 0xed },
+> >> +	{ 0xc344, 0xff },
+> >> +	{ 0xc345, 0xad },
+> >> +	{ 0xc346, 0x00 },
+> >> +	{ 0xc347, 0x66 },
+> >> +	{ 0xc348, 0x01 },
+> >> +	{ 0xc349, 0x00 },
+> >> +	{ 0x6700, 0x04 },
+> >> +	{ 0x6701, 0x7b },
+> >> +	{ 0x6702, 0xfd },
+> >> +	{ 0x6703, 0xf9 },
+> >> +	{ 0x6704, 0x3d },
+> >> +	{ 0x6705, 0x71 },
+> >> +	{ 0x6706, 0x78 },
+> >> +	{ 0x6708, 0x05 },
+> >> +	{ 0x6f06, 0x6f },
+> >> +	{ 0x6f07, 0x00 },
+> >> +	{ 0x6f0a, 0x6f },
+> >> +	{ 0x6f0b, 0x00 },
+> >> +	{ 0x6f00, 0x03 },
+> >> +	{ 0xc34c, 0x01 },
+> >> +	{ 0xc34d, 0x00 },
+> >> +	{ 0xc34e, 0x46 },
+> >> +	{ 0xc34f, 0x55 },
+> >> +	{ 0xc350, 0x00 },
+> >> +	{ 0xc351, 0x40 },
+> >> +	{ 0xc352, 0x00 },
+> >> +	{ 0xc353, 0xff },
+> >> +	{ 0xc354, 0x04 },
+> >> +	{ 0xc355, 0x08 },
+> >> +	{ 0xc356, 0x01 },
+> >> +	{ 0xc357, 0xef },
+> >> +	{ 0xc358, 0x30 },
+> >> +	{ 0xc359, 0x01 },
+> >> +	{ 0xc35a, 0x64 },
+> >> +	{ 0xc35b, 0x46 },
+> >> +	{ 0xc35c, 0x00 },
+> >> +	{ 0x3042, 0xf0 },
+> >> +	{ 0x3042, 0xf0 },
+> >> +	{ 0x3042, 0xf0 },
+> >> +	{ 0x3042, 0xf0 },
+> >> +	{ 0x3042, 0xf0 },
+> >> +	{ 0x3042, 0xf0 },
+> >> +	{ 0x3042, 0xf0 },
+> >> +	{ 0x3042, 0xf0 },
+> >> +	{ 0x3042, 0xf0 },
+> >> +	{ 0x3042, 0xf0 },
+> >> +	{ 0x3042, 0xf0 },
+> >> +	{ 0x3042, 0xf0 },
+> >> +	{ 0x3042, 0xf0 },
+> >> +	{ 0x3042, 0xf0 },
+> >> +	{ 0x3042, 0xf0 },
+> >> +	{ 0x3042, 0xf0 },
+> >> +	{ 0x3042, 0xf0 },
+> >> +	{ 0x3042, 0xf0 },
+> >> +	{ 0x3042, 0xf0 },
+> >> +	{ 0x3042, 0xf0 },
+> >> +	{ 0x3042, 0xf0 },
+> >> +	{ 0x3042, 0xf0 },
+> >> +	{ 0x3042, 0xf0 },
+> >> +	{ 0x3042, 0xf0 },
+> >> +	{ 0x3042, 0xf0 },
+> >> +	{ 0x3042, 0xf0 },
+> >> +	{ 0xc261, 0x01 },
+> >> +	{ 0x301b, 0xf0 },
+> >> +	{ 0x301c, 0xf0 },
+> >> +	{ 0x301a, 0xf0 },
+> >> +	{ 0x6f00, 0xc3 },
+> >> +	{ 0xc46a, 0x30 },
+> >> +	{ 0xc46d, 0x20 },
+> >> +	{ 0xc464, 0x84 },
+> >> +	{ 0xc465, 0x00 },
+> >> +	{ 0x6f00, 0x03 },
+> >> +	{ 0x6f00, 0x43 },
+> >> +	{ 0x381c, 0x00 },
+> >> +	{ 0x381d, 0x40 },
+> >> +	{ 0xc454, 0x01 },
+> >> +	{ 0x6f00, 0xc3 },
+> >> +	{ 0xc454, 0x00 },
+> >> +	{ 0xc4b1, 0x02 },
+> >> +	{ 0xc4b2, 0x01 },
+> >> +	{ 0xc4b3, 0x03 },
+> >> +	{ 0x6f00, 0x03 },
+> >> +	{ 0x6f00, 0x43 },
+> >> +	/* enable FSIN (FRAMESYNC input) functionality */
+> >> +	{ 0x3832, (0x0d + 2 * 0x20 + 0x15 + 38) >> 8 },
+> >> +	{ 0x3833, (0x0d + 2 * 0x20 + 0x15 + 38) & 0xff },
+> >> +	{ 0x3834, OV10635_VTS >> 8 },
+> >> +	{ 0x3835, OV10635_VTS & 0xff },
+> >> +	{ 0x302e, 0x01 },
+> >> +};
+> >> +
+> >> +#endif /* __RDACM20_OV10635_H__ */
+> >> diff --git a/drivers/media/i2c/rdacm20.c b/drivers/media/i2c/rdacm20.c
+> >> new file mode 100644
+> >> index 000000000000..d96b2eb5ab1b
+> >> --- /dev/null
+> >> +++ b/drivers/media/i2c/rdacm20.c
+> >> @@ -0,0 +1,635 @@
+> >> +// SPDX-License-Identifier: GPL-2.0+
+> >> +/*
+> >> + * IMI RDACM20 GMSL Camera Driver
+> >> + *
+> >> + * Copyright (C) 2017-2018 Jacopo Mondi
+> >> + * Copyright (C) 2017-2018 Kieran Bingham
+> >> + * Copyright (C) 2017-2018 Laurent Pinchart
+> >> + * Copyright (C) 2017-2018 Niklas Söderlund
+> >> + * Copyright (C) 2016 Renesas Electronics Corporation
+> >> + * Copyright (C) 2015 Cogent Embedded, Inc.
+> >> + */
+> >> +
+> >> +/*
+> >> + * The camera is mode of an Omnivision OV10635 sensor connected to a Maxim
+> >> + * MAX9271 GMSL serializer.
+> >> + */
+> >> +
+> >> +#include <linux/delay.h>
+> >> +#include <linux/fwnode.h>
+> >> +#include <linux/init.h>
+> >> +#include <linux/i2c.h>
+> >> +#include <linux/module.h>
+> >> +#include <linux/slab.h>
+> >> +#include <linux/videodev2.h>
+> >> +
+> >> +#include <media/v4l2-async.h>
+> >> +#include <media/v4l2-ctrls.h>
+> >> +#include <media/v4l2-subdev.h>
+> >> +
+> >> +#include "rdacm20-ov10635.h"
+> >> +
+> >> +#define RDACM20_SENSOR_HARD_RESET
+> >> +
+> >> +#define MAX9271_I2C_ADDRESS		0x40
+> >> +
+> >> +/* Register 0x04 */
+> >> +#define MAX9271_SEREN			BIT(7)
+> >> +#define MAX9271_CLINKEN			BIT(6)
+> >> +#define MAX9271_PRBSEN			BIT(5)
+> >> +#define MAX9271_SLEEP			BIT(4)
+> >> +#define MAX9271_INTTYPE_I2C		(0 << 2)
+> >> +#define MAX9271_INTTYPE_UART		(1 << 2)
+> >> +#define MAX9271_INTTYPE_NONE		(2 << 2)
+> >> +#define MAX9271_REVCCEN			BIT(1)
+> >> +#define MAX9271_FWDCCEN			BIT(0)
+> >> +/* Register 0x07 */
+> >> +#define MAX9271_DBL			BIT(7)
+> >> +#define MAX9271_DRS			BIT(6)
+> >> +#define MAX9271_BWS			BIT(5)
+> >> +#define MAX9271_ES			BIT(4)
+> >> +#define MAX9271_HVEN			BIT(2)
+> >> +#define MAX9271_EDC_1BIT_PARITY		(0 << 0)
+> >> +#define MAX9271_EDC_6BIT_CRC		(1 << 0)
+> >> +#define MAX9271_EDC_6BIT_HAMMING	(2 << 0)
+> >> +/* Register 0x08 */
+> >> +#define MAX9271_INVVS			BIT(7)
+> >> +#define MAX9271_INVHS			BIT(6)
+> >> +#define MAX9271_REV_LOGAIN		BIT(3)
+> >> +#define MAX9271_REV_HIVTH		BIT(0)
+> >> +/* Register 0x09 */
+> >> +#define MAX9271_ID			0x09
+> >> +/* Register 0x0d */
+> >> +#define MAX9271_I2CLOCACK		BIT(7)
+> >> +#define MAX9271_I2CSLVSH_1046NS_469NS	(3 << 5)
+> >> +#define MAX9271_I2CSLVSH_938NS_352NS	(2 << 5)
+> >> +#define MAX9271_I2CSLVSH_469NS_234NS	(1 << 5)
+> >> +#define MAX9271_I2CSLVSH_352NS_117NS	(0 << 5)
+> >> +#define MAX9271_I2CMSTBT_837KBPS	(7 << 2)
+> >> +#define MAX9271_I2CMSTBT_533KBPS	(6 << 2)
+> >> +#define MAX9271_I2CMSTBT_339KBPS	(5 << 2)
+> >> +#define MAX9271_I2CMSTBT_173KBPS	(4 << 2)
+> >> +#define MAX9271_I2CMSTBT_105KBPS	(3 << 2)
+> >> +#define MAX9271_I2CMSTBT_84KBPS		(2 << 2)
+> >> +#define MAX9271_I2CMSTBT_28KBPS		(1 << 2)
+> >> +#define MAX9271_I2CMSTBT_8KBPS		(0 << 2)
+> >> +#define MAX9271_I2CSLVTO_NONE		(3 << 0)
+> >> +#define MAX9271_I2CSLVTO_1024US		(2 << 0)
+> >> +#define MAX9271_I2CSLVTO_256US		(1 << 0)
+> >> +#define MAX9271_I2CSLVTO_64US		(0 << 0)
+> >> +/* Register 0x0f */
+> >> +#define MAX9271_GPIO5OUT		BIT(5)
+> >> +#define MAX9271_GPIO4OUT		BIT(4)
+> >> +#define MAX9271_GPIO3OUT		BIT(3)
+> >> +#define MAX9271_GPIO2OUT		BIT(2)
+> >> +#define MAX9271_GPIO1OUT		BIT(1)
+> >> +#define MAX9271_SETGPO			BIT(0)
+> >> +/* Register 0x15 */
+> >> +#define MAX9271_PCLKDET			BIT(0)
+> >> +
+> >> +#define MAXIM_I2C_I2C_SPEED_400KHZ	MAX9271_I2CMSTBT_339KBPS
+> >> +#define MAXIM_I2C_I2C_SPEED_100KHZ	MAX9271_I2CMSTBT_105KBPS
+> >> +#define MAXIM_I2C_SPEED			MAXIM_I2C_I2C_SPEED_100KHZ
+> >> +
+> >> +#define OV10635_I2C_ADDRESS		0x30
+> >> +
+> >> +#define OV10635_SOFTWARE_RESET		0x0103
+> >> +#define OV10635_PID			0x300a
+> >> +#define OV10635_VER			0x300b
+> >> +#define OV10635_SC_CMMN_SCCB_ID		0x300c
+> >> +#define OV10635_SC_CMMN_SCCB_ID_SELECT	BIT(0)
+> >> +#define OV10635_VERSION			0xa635
+> >> +
+> >> +#define OV10635_WIDTH			1280
+> >> +#define OV10635_HEIGHT			800
+> >> +#define OV10635_FORMAT			MEDIA_BUS_FMT_UYVY8_2X8
+> >> +/* #define OV10635_FORMAT			MEDIA_BUS_FMT_UYVY10_2X10 */
+> >> +
+> >> +struct rdacm20_device {
+> >> +	struct i2c_client		*client;
+> >> +	struct i2c_client		*sensor;
+> >> +	struct v4l2_subdev		sd;
+> >> +	struct media_pad		pad;
+> >> +	struct v4l2_ctrl_handler	ctrls;
+> >> +};
+> >> +
+> >> +static inline struct rdacm20_device *sd_to_rdacm20(struct v4l2_subdev *sd)
+> >> +{
+> >> +	return container_of(sd, struct rdacm20_device, sd);
+> >> +}
+> >> +
+> >> +static inline struct rdacm20_device *i2c_to_rdacm20(struct i2c_client *client)
+> >> +{
+> >> +	return sd_to_rdacm20(i2c_get_clientdata(client));
+> >> +}
+> >> +
+> >> +static int max9271_read(struct rdacm20_device *dev, u8 reg)
+> >> +{
+> >> +	int ret;
+> >> +
+> >> +	dev_dbg(&dev->client->dev, "%s(0x%02x)\n", __func__, reg);
+> >> +
+> >> +	ret = i2c_smbus_read_byte_data(dev->client, reg);
+> >> +	if (ret < 0)
+> >> +		dev_dbg(&dev->client->dev,
+> >> +			"%s: register 0x%02x read failed (%d)\n",
+> >> +			__func__, reg, ret);
+> >> +
+> >> +	return ret;
+> >> +}
+> >> +
+> >> +static int max9271_write(struct rdacm20_device *dev, u8 reg, u8 val)
+> >> +{
+> >> +	int ret;
+> >> +
+> >> +	dev_dbg(&dev->client->dev, "%s(0x%02x, 0x%02x)\n", __func__, reg, val);
+> >> +
+> >> +	ret = i2c_smbus_write_byte_data(dev->client, reg, val);
+> >> +	if (ret < 0)
+> >> +		dev_err(&dev->client->dev,
+> >> +			"%s: register 0x%02x write failed (%d)\n",
+> >> +			__func__, reg, ret);
+> >> +
+> >> +	return ret;
+> >> +}
+> >> +
+> >> +static int ov10635_read16(struct rdacm20_device *dev, u16 reg)
+> >> +{
+> >> +	u8 buf[2] = { reg >> 8, reg & 0xff };
+> >> +	int ret;
+> >> +
+> >> +	ret = i2c_master_send(dev->sensor, buf, 2);
+> >> +	if (ret == 2)
+> >> +		ret = i2c_master_recv(dev->sensor, buf, 2);
+> >> +
+> >> +	if (ret < 0) {
+> >> +		dev_dbg(&dev->client->dev,
+> >> +			"%s: register 0x%04x read failed (%d)\n",
+> >> +			__func__, reg, ret);
+> >> +		return ret;
+> >> +	}
+> >> +
+> >> +	return (buf[0] << 8) | buf[1];
+> >> +}
+> >> +
+> >> +static int __ov10635_write(struct rdacm20_device *dev, u16 reg, u8 val)
+> >> +{
+> >> +	u8 buf[3] = { reg >> 8, reg & 0xff, val };
+> >> +	int ret;
+> >> +
+> >> +	dev_dbg(&dev->client->dev, "%s(0x%04x, 0x%02x)\n", __func__, reg, val);
+> >> +
+> >> +	ret = i2c_master_send(dev->sensor, buf, 3);
+> >> +	return ret < 0 ? ret : 0;
+> >> +}
+> >> +
+> >> +static int ov10635_write(struct rdacm20_device *dev, u16 reg, u8 val)
+> >> +{
+> >> +	int ret;
+> >> +
+> >> +	ret = __ov10635_write(dev, reg, val);
+> >> +	if (ret < 0)
+> >> +		dev_err(&dev->client->dev,
+> >> +			"%s: register 0x%04x write failed (%d)\n",
+> >> +			__func__, reg, ret);
+> >> +
+> >> +	return ret;
+> >> +}
+> >> +
+> >> +static int ov10635_set_regs(struct rdacm20_device *dev,
+> >> +			    const struct ov10635_reg *regs,
+> >> +			    unsigned int nr_regs)
+> >> +{
+> >> +	unsigned int i;
+> >> +	int ret;
+> >> +
+> >> +	for (i = 0; i < nr_regs; i++) {
+> >> +		ret = __ov10635_write(dev, regs[i].reg, regs[i].val);
+> >> +		if (ret) {
+> >> +			dev_err(&dev->client->dev,
+> >> +				"%s: register %u (0x%04x) write failed (%d)\n",
+> >> +				__func__, i, regs[i].reg, ret);
+> >> +			return ret;
+> >> +		}
+> >> +	}
+> >> +
+> >> +	return 0;
+> >> +}
+> >> +
+> >> +/*
+> >> + * rdacm20_pclk_detect() - Detect valid pixel clock from image sensor
+> >> + *
+> >> + * Wait up to 10ms for a valid pixel clock.
+> >> + *
+> >> + * Returns 0 for success, < 0 for pixel clock not properly detected
+> >> + */
+> >> +static int rdacm20_pclk_detect(struct rdacm20_device *dev)
+> >> +{
+> >> +	unsigned int i;
+> >> +	int ret;
+> >> +
+> >> +	for (i = 0; i < 100; i++) {
+> >> +		ret = max9271_read(dev, 0x15);
+> >> +		if (ret < 0)
+> >> +			return ret;
+> >> +
+> >> +		if (ret & MAX9271_PCLKDET)
+> >> +			return 0;
+> >> +
+> >> +		usleep_range(50, 100);
+> >> +	}
+> >> +
+> >> +	dev_err(&dev->client->dev, "Unable to detect valid pixel clock\n");
+> >> +	return -EIO;
+> >> +}
+> >> +
+> >> +static int rdacm20_s_stream(struct v4l2_subdev *sd, int enable)
+> >> +{
+> >> +	struct rdacm20_device *dev = sd_to_rdacm20(sd);
+> >> +	int ret;
+> >> +
+> >> +	if (enable) {
+> >> +		ret = rdacm20_pclk_detect(dev);
+> >> +		if (ret)
+> >> +			return ret;
+> >> +
+> >> +		/* Enable the serial link. */
+> >> +		max9271_write(dev, 0x04, MAX9271_SEREN | MAX9271_REVCCEN |
+> >> +			      MAX9271_FWDCCEN);
+> >> +	} else {
+> >> +		/* Disable the serial link. */
+> >> +		max9271_write(dev, 0x04, MAX9271_CLINKEN | MAX9271_REVCCEN |
+> >> +			      MAX9271_FWDCCEN);
+> >> +	}
+> >> +
+> >> +	return 0;
+> >> +}
+> >> +
+> >> +static int rdacm20_g_mbus_config(struct v4l2_subdev *sd,
+> >> +				 struct v4l2_mbus_config *cfg)
+> >> +{
+> >> +	cfg->flags = V4L2_MBUS_CSI2_1_LANE | V4L2_MBUS_CSI2_CHANNEL_0 |
+> >> +		     V4L2_MBUS_CSI2_CONTINUOUS_CLOCK;
+> >> +	cfg->type = V4L2_MBUS_CSI2_DPHY;
 > > 
-> > It seems that the Intel mail server blocked the mail that contained the
-> > script. You can find a copy at http://paste.debian.net/hidden/fd5bb8df/.
+> > Hmm. What are you using g_mbus_config() for?
+> 
+> Good point here ... I assumed it was passed through up to the VIN - but
+> it's really not applicable here.
+> 
+> Or if it is - then it should be describing the GMSL bus link!
+> 
+> I'll bet this isn't even getting called and can likely be removed.
+
+There are two use cases I know for this --- SoC camera and something that
+changes dynamically. The former is obsolete and the latter is better
+addressed by the frame descriptors I'd like to see go in for 4.22.
+
+> 
+> 
 > > 
-> > >> frame-2592x1944.cio2 is a binary file containing a 2592x1944 images in
-> > >> the IPU3-specific Bayer format (for a total of 6469632 bytes).
-> > > 
-> > > I managed to get the dmesg output, and it doesn't look pretty.
-> > > 
-> > > [  571.217192] WARNING: CPU: 3 PID: 1303 at /home/laurent/src/iob/oss/
-> > > libcamera/linux/drivers/staging/media/ipu3/ipu3-dmamap.c:172
-> > > ipu3_dmamap_unmap+0x30/0x75 [ipu3_imgu]
-> > > [  571.217196] Modules linked in: asix usbnet mii zram arc4 iwlmvm
-> > > mac80211
-> > > iwlwifi intel_rapl x86_pkg_temp_thermal intel_powerclamp coretemp
-> > > cfg80211
-> > > 8250_dw hid_multitouch ipu3_cio2 ipu3_imgu(C) videobuf2_dma_sg
-> > > videobuf2_memops videobuf2_v4l2 videobuf2_common
-> > > processor_thermal_device
-> > > intel_soc_dts_iosf ov13858 dw9714 ov5670 v4l2_fwnode v4l2_common
-> > > videodev
-> > > at24 media int3403_thermal int340x_thermal_zone cros_ec_lpcs
-> > > cros_ec_core
-> > > int3400_thermal chromeos_pstore mac_hid acpi_thermal_rel autofs4 usbhid
-> > > mmc_block hid_generic i915 video i2c_algo_bit drm_kms_helper syscopyarea
-> > > sysfillrect sdhci_pci sysimgblt fb_sys_fops cqhci sdhci drm
-> > > drm_panel_orientation_quirks i2c_hid hid
-> > > [  571.217254] CPU: 3 PID: 1303 Comm: yavta Tainted: G         C
-> > > 4.20.0-rc6+ #2
-> > > [  571.217256] Hardware name: HP Soraka/Soraka, BIOS  08/30/2018
-> > > [  571.217267] RIP: 0010:ipu3_dmamap_unmap+0x30/0x75 [ipu3_imgu]
-> > > [  571.217271] Code: 54 55 48 8d af d0 6e 00 00 53 48 8b 76 10 49 89 fc
-> > > f3
-> > > 48 0f bc 8f f0 6e 00 00 48 89 ef 48 d3 ee e8 e6 73 d9 e6 48 85 c0 75 07
-> > > <0f> 0b 5b 5d 41 5c c3 48 8b 70 20 48 89 c3 48 8b 40 18 49 8b bc 24
-> > > [  571.217274] RSP: 0018:ffffb675021c7b38 EFLAGS: 00010246
-> > > [  571.217278] RAX: 0000000000000000 RBX: ffff8f5cf58f8448 RCX:
-> > > 000000000000000c
-> > > [  571.217280] RDX: 0000000000000000 RSI: 0000000000000202 RDI:
-> > > 00000000ffffffff
-> > > [  571.217283] RBP: ffff8f5cf58f6ef8 R08: 00000000000006c5 R09:
-> > > ffff8f5cfaba16f0
-> > > [  571.217286] R10: ffff8f5cbf508f98 R11: 000000e03da27aba R12:
-> > > ffff8f5cf58f0028
-> > > [  571.217289] R13: ffff8f5cf58f0028 R14: 0000000000000000 R15:
-> > > ffff8f5cf58f04e8
-> > > [  571.217293] FS:  00007f85d009c700(0000) GS:ffff8f5cfab80000(0000)
-> > > knlGS:
-> > > 0000000000000000
-> > > [  571.217296] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> > > [  571.217299] CR2: 00007f3440fce4b0 CR3: 000000014abf2001 CR4:
-> > > 00000000003606e0
-> > > [  571.217301] Call Trace:
-> > > [  571.217316]  ipu3_dmamap_free+0x5b/0x8f [ipu3_imgu]
-> > > [  571.217326]  ipu3_css_pool_cleanup+0x25/0x2f [ipu3_imgu]
-> > > [  571.217338]  ipu3_css_pipeline_cleanup+0x59/0x8f [ipu3_imgu]
-> > > [  571.217348]  ipu3_css_stop_streaming+0x15b/0x20f [ipu3_imgu]
-> > > [  571.217360]  imgu_s_stream+0x5a/0x30a [ipu3_imgu]
-> > > [  571.217371]  ? ipu3_all_nodes_streaming+0x14f/0x16b [ipu3_imgu]
-> > > [  571.217382]  ipu3_vb2_stop_streaming+0xe4/0x10f [ipu3_imgu]
-> > > [  571.217392]  __vb2_queue_cancel+0x2b/0x1b8 [videobuf2_common]
-> > > [  571.217402]  vb2_core_streamoff+0x30/0x71 [videobuf2_common]
-> > > [  571.217418]  __video_do_ioctl+0x258/0x38e [videodev]
-> > > [  571.217438]  video_usercopy+0x25f/0x4e5 [videodev]
-> > > [  571.217453]  ? copy_overflow+0x14/0x14 [videodev]
-> > > [  571.217471]  v4l2_ioctl+0x4d/0x58 [videodev]
-> > > [  571.217480]  vfs_ioctl+0x1e/0x2b
-> > > [  571.217486]  do_vfs_ioctl+0x531/0x559
-> > > [  571.217494]  ? vfs_write+0xd1/0xdf
-> > > [  571.217500]  ksys_ioctl+0x50/0x70
-> > > [  571.217506]  __x64_sys_ioctl+0x16/0x19
-> > > [  571.217512]  do_syscall_64+0x53/0x60
-> > > [  571.217519]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
-> > > [  571.217524] RIP: 0033:0x7f85cf9b9f47
-> > > [  571.217528] Code: 00 00 00 48 8b 05 51 6f 2c 00 64 c7 00 26 00 00 00
-> > > 48
-> > > c7 c0 ff ff ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 b8 10 00 00 00 0f 05
-> > > <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d 21 6f 2c 00 f7 d8 64 89 01 48
-> > > [  571.217531] RSP: 002b:00007ffc59056b78 EFLAGS: 00000246 ORIG_RAX:
-> > > 0000000000000010
-> > > [  571.217535] RAX: ffffffffffffffda RBX: 0000000000000000 RCX:
-> > > 00007f85cf9b9f47
-> > > [  571.217537] RDX: 00007ffc59056b84 RSI: 0000000040045613 RDI:
-> > > 0000000000000003
-> > > [  571.217540] RBP: 000055f4c4dc0af8 R08: 00007f85cd7c4000 R09:
-> > > 00007f85d009c700
-> > > [  571.217542] R10: 0000000000000020 R11: 0000000000000246 R12:
-> > > 000055f4c4dc0b06
-> > > [  571.217545] R13: 0000000000000004 R14: 00007ffc59056d50 R15:
-> > > 00007ffc59057825
-> > > [  571.217553] ---[ end trace 4b42bd84953eff53 ]---
-> > > [  571.318645] ipu3-imgu 0000:00:05.0: wait cio gate idle timeout
+> >> +
+> >> +	return 0;
+> >> +}
+> >> +
+> >> +static int rdacm20_enum_mbus_code(struct v4l2_subdev *sd,
+> >> +				  struct v4l2_subdev_pad_config *cfg,
+> >> +				  struct v4l2_subdev_mbus_code_enum *code)
+> >> +{
+> >> +	if (code->pad || code->index > 0)
+> >> +		return -EINVAL;
+> >> +
+> >> +	code->code = OV10635_FORMAT;
+> >> +
+> >> +	return 0;
+> >> +}
+> >> +
+> >> +static int rdacm20_get_fmt(struct v4l2_subdev *sd,
+> >> +			   struct v4l2_subdev_pad_config *cfg,
+> >> +			   struct v4l2_subdev_format *format)
+> >> +{
+> >> +	struct v4l2_mbus_framefmt *mf = &format->format;
+> >> +
+> >> +	if (format->pad)
+> >> +		return -EINVAL;
+> >> +
+> >> +	mf->width		= OV10635_WIDTH;
+> >> +	mf->height		= OV10635_HEIGHT;
+> >> +	mf->code		= OV10635_FORMAT;
+> >> +	mf->colorspace		= V4L2_COLORSPACE_RAW;
+> >> +	mf->field		= V4L2_FIELD_NONE;
+> >> +	mf->ycbcr_enc		= V4L2_YCBCR_ENC_601;
+> >> +	mf->quantization	= V4L2_QUANTIZATION_FULL_RANGE;
+> >> +	mf->xfer_func		= V4L2_XFER_FUNC_NONE;
+> >> +
+> >> +	return 0;
+> >> +}
+> >> +
+> >> +static struct v4l2_subdev_video_ops rdacm20_video_ops = {
+> >> +	.s_stream	= rdacm20_s_stream,
+> >> +	.g_mbus_config	= rdacm20_g_mbus_config,
+> >> +};
+> >> +
+> >> +static const struct v4l2_subdev_pad_ops rdacm20_subdev_pad_ops = {
+> >> +	.enum_mbus_code = rdacm20_enum_mbus_code,
+> >> +	.get_fmt	= rdacm20_get_fmt,
+> >> +	.set_fmt	= rdacm20_get_fmt,
+> >> +};
+> >> +
+> >> +static struct v4l2_subdev_ops rdacm20_subdev_ops = {
+> >> +	.video		= &rdacm20_video_ops,
+> >> +	.pad		= &rdacm20_subdev_pad_ops,
+> >> +};
+> >> +
+> >> +static int max9271_configure_i2c(struct rdacm20_device *dev)
+> >> +{
+> >> +	/*
+> >> +	 * Configure the I2C bus:
+> >> +	 *
+> >> +	 * - Enable high thresholds on the reverse channel
+> >> +	 * - Disable artificial ACK and set I2C speed
+> >> +	 */
+> >> +	max9271_write(dev, 0x08, MAX9271_REV_HIVTH);
+> >> +	usleep_range(5000, 8000);
+> >> +
+> >> +	max9271_write(dev, 0x0d, MAX9271_I2CSLVSH_469NS_234NS |
+> >> +		      MAX9271_I2CSLVTO_1024US | MAXIM_I2C_SPEED);
+> >> +	usleep_range(5000, 8000);
+> >> +
+> >> +	return 0;
+> >> +}
+> >> +
+> >> +static int max9271_configure_gmsl_link(struct rdacm20_device *dev)
+> >> +{
+> >> +	/*
+> >> +	 * Disable the serial link and enable the configuration link to allow
+> >> +	 * the control channel to operate in a low-speed mode in the absence of
+> >> +	 * the serial link clock.
+> >> +	 */
+> >> +	max9271_write(dev, 0x04, MAX9271_CLINKEN | MAX9271_REVCCEN |
+> >> +		      MAX9271_FWDCCEN);
+> >> +
+> >> +	/*
+> >> +	 * The serializer temporarily disables the reverse control channel for
+> >> +	 * 350µs after starting/stopping the forward serial link, but the
+> >> +	 * deserializer synchronization time isn't clearly documented.
+> >> +	 *
+> >> +	 * According to the serializer datasheet we should wait 3ms, while
+> >> +	 * according to the deserializer datasheet we should wait 5ms.
+> >> +	 *
+> >> +	 * Short delays here appear to show bit-errors in the writes following.
+> >> +	 * Therefore a conservative delay seems best here.
+> >> +	 */
+> >> +	usleep_range(5000, 8000);
+> >> +
+> >> +	/*
+> >> +	 * Configure the GMSL link:
+> >> +	 *
+> >> +	 * - Double input mode, high data rate, 24-bit mode
+> >> +	 * - Latch input data on PCLKIN rising edge
+> >> +	 * - Enable HS/VS encoding
+> >> +	 * - 1-bit parity error detection
+> >> +	 */
+> >> +	max9271_write(dev, 0x07, MAX9271_DBL | MAX9271_HVEN |
+> >> +		      MAX9271_EDC_1BIT_PARITY);
+> >> +	usleep_range(5000, 8000);
+> >> +
+> >> +	return 0;
+> >> +}
+> >> +
+> >> +static int max9271_verify_id(struct rdacm20_device *dev)
+> >> +{
+> >> +	int ret;
+> >> +
+> >> +	ret = max9271_read(dev, 0x1e);
+> >> +	if (ret < 0) {
+> >> +		dev_err(&dev->client->dev, "MAX9271 ID read failed (%d)\n",
+> >> +			ret);
+> >> +		return ret;
+> >> +	}
+> >> +
+> >> +	if (ret != MAX9271_ID) {
+> >> +		dev_err(&dev->client->dev, "MAX9271 ID mismatch (0x%02x)\n",
+> >> +			ret);
+> >> +		return -ENXIO;
+> >> +	}
+> >> +
+> >> +	return 0;
+> >> +}
+> >> +
+> >> +static int max9271_configure_address(struct rdacm20_device *dev, u8 addr)
+> >> +{
+> >> +	int ret;
+> >> +
+> >> +	/* Change the MAX9271 I2C address. */
+> >> +	ret = max9271_write(dev, 0x00, addr << 1);
+> >> +	if (ret < 0) {
+> >> +		dev_err(&dev->client->dev,
+> >> +			"MAX9271 I2C address change failed (%d)\n", ret);
+> >> +		return ret;
+> >> +	}
+> >> +	dev->client->addr = addr;
+> >> +	usleep_range(3500, 5000);
+> >> +
+> >> +	return 0;
+> >> +}
+> >> +
+> >> +static int rdacm20_initialize(struct rdacm20_device *dev)
+> >> +{
+> >> +	u32 addrs[2];
+> >> +	int ret;
+> >> +
+> >> +	ret = of_property_read_u32_array(dev->client->dev.of_node, "reg",
+> >> +					 addrs, ARRAY_SIZE(addrs));
+> >> +	if (ret < 0) {
+> >> +		dev_err(&dev->client->dev, "Invalid DT reg property\n");
+> >> +		return -EINVAL;
+> >> +	}
+> >> +
+> >> +	/*
+> >> +	 * FIXME: The MAX9271 boots at a default address that we will change to
+> >> +	 * the address specified in DT. Set the client address back to the
+> >> +	 * default for initial communication.
+> >> +	 */
+> >> +	dev->client->addr = MAX9271_I2C_ADDRESS;
+> >> +
+> >> +	/* Verify communication with the MAX9271. */
+> >> +	i2c_smbus_read_byte(dev->client);	/* ping to wake-up */
+> >> +
+> >> +	/*
+> >> +	 *  Ensure that we have a good link configuration before attempting to
+> >> +	 *  identify the device.
+> >> +	 */
+> >> +	max9271_configure_i2c(dev);
+> >> +	max9271_configure_gmsl_link(dev);
+> >> +
+> >> +	ret = max9271_verify_id(dev);
+> >> +	if (ret < 0)
+> >> +		return ret;
+> >> +
+> >> +	ret = max9271_configure_address(dev, addrs[0]);
+> >> +	if (ret < 0)
+> >> +		return ret;
+> >> +
+> >> +	/* Reset and verify communication with the OV10635. */
+> >> +#ifdef RDACM20_SENSOR_HARD_RESET
+> >> +	/* Cycle the OV10635 reset signal connected to the MAX9271 GPIO1. */
+> >> +	max9271_write(dev, 0x0f, 0xff & ~(MAX9271_GPIO1OUT | MAX9271_SETGPO));
+> >> +	mdelay(10);
+> >> +	max9271_write(dev, 0x0f, 0xff & ~MAX9271_SETGPO);
+> >> +	mdelay(10);
 > > 
-> > And after fixing another issue in the capture script (which was setting
-> > the
-> > format on the ImgU subdev pad 3 to 2560x1920 but capture in 1920x1080), I
-> > now get plenty of the following messages:
+> > Do you need a busy loop? Could you use msleep()?
+> 
+> Checkpatch warns here:
+> 
+> WARNING: msleep < 20ms can sleep for up to 20ms; see
+> Documentation/timers/timers-howto.txt
+> #10: FILE: drivers/media/i2c/rdacm20.c:461:
+> +       msleep(10);
+> 
+> I think for this context, msleep(10) even with the warning is fine here,
+> but perhaps we can meet that with a usleep_range(10000, 20000); too.
+
+usleep_range(), then, but just setting the delay to precisely 10 ms is much
+better than a 10 ms busy loop.
+
+> 
+> 
+> >> +#else
+> >> +	/* Perform a software reset. */
+> >> +	ret = ov10635_write(dev, OV10635_SOFTWARE_RESET, 1);
+> >> +	if (ret < 0) {
+> >> +		dev_err(&dev->client->dev, "OV10635 reset failed (%d)\n", ret);
+> >> +		return -ENXIO;
+> >> +	}
+> >> +
+> >> +	udelay(100);
+> >> +#endif
+> >> +
+> >> +	ret = ov10635_read16(dev, OV10635_PID);
+> >> +	if (ret < 0) {
+> >> +		dev_err(&dev->client->dev, "OV10635 ID read failed (%d)\n",
+> >> +			ret);
+> >> +		return -ENXIO;
+> >> +	}
+> >> +
+> >> +	if (ret != OV10635_VERSION) {
+> >> +		dev_err(&dev->client->dev, "OV10635 ID mismatch (0x%04x)\n",
+> >> +			ret);
+> >> +		return -ENXIO;
+> >> +	}
+> >> +
+> >> +	dev_info(&dev->client->dev, "Identified MAX9271 + OV10635 device\n");
+> >> +
+> >> +	/* Change the sensor I2C address. */
+> >> +	ret = ov10635_write(dev, OV10635_SC_CMMN_SCCB_ID,
+> >> +			    (addrs[1] << 1) | OV10635_SC_CMMN_SCCB_ID_SELECT);
+> >> +	if (ret < 0) {
+> >> +		dev_err(&dev->client->dev,
+> >> +			"OV10635 I2C address change failed (%d)\n", ret);
+> >> +		return ret;
+> >> +	}
+> >> +	dev->sensor->addr = addrs[1];
+> >> +	usleep_range(3500, 5000);
+> >> +
+> >> +	/* Program the 0V10635 initial configuration. */
+> >> +	ret = ov10635_set_regs(dev, ov10635_regs_wizard,
+> >> +			       ARRAY_SIZE(ov10635_regs_wizard));
 > > 
-> > [  221.366131] BUG: Bad page state in process yavta  pfn:14a4ff
-> > [  221.366134] page:ffffde5d45293fc0 count:-1 mapcount:0 mapping:
-> > 0000000000000000 index:0x0
-> > [  221.366137] flags: 0x200000000000000()
-> > [  221.366140] raw: 0200000000000000 dead000000000100 dead000000000200
-> > 0000000000000000
-> > [  221.366143] raw: 0000000000000000 0000000000000000 ffffffffffffffff
-> > 0000000000000000
-> > [  221.366145] page dumped because: nonzero _refcount
-> > [  221.366147] Modules linked in: asix usbnet mii zram arc4 iwlmvm
-> > intel_rapl x86_pkg_temp_thermal intel_powerclamp coretemp mac80211 iwlwifi
-> > cfg80211 hid_multitouch 8250_dw ipu3_cio2 ipu3_imgu(C) videobuf2_dma_sg
-> > videobuf2_memops videobuf2_v4l2 processor_thermal_device videobuf2_common
-> > intel_soc_dts_iosf ov13858 ov5670 dw9714 v4l2_fwnode v4l2_common videodev
-> > media at24 cros_ec_lpcs cros_ec_core int3403_thermal int340x_thermal_zone
-> > chromeos_pstore mac_hid int3400_thermal acpi_thermal_rel autofs4 usbhid
-> > mmc_block hid_generic i915 video i2c_algo_bit drm_kms_helper syscopyarea
-> > sysfillrect sysimgblt fb_sys_fops sdhci_pci cqhci sdhci drm
-> > drm_panel_orientation_quirks i2c_hid hid
-> > [  221.366172] CPU: 3 PID: 1022 Comm: yavta Tainted: G    B   WC
-> > 4.20.0-rc6+ #2
-> > [  221.366173] Hardware name: HP Soraka/Soraka, BIOS  08/30/2018
-> > [  221.366173] Call Trace:
-> > [  221.366176]  dump_stack+0x46/0x59
-> > [  221.366179]  bad_page+0xf2/0x10c
-> > [  221.366182]  free_pages_check+0x78/0x81
-> > [  221.366186]  free_pcppages_bulk+0xa6/0x236
-> > [  221.366190]  free_unref_page+0x4b/0x53
-> > [  221.366193]  vb2_dma_sg_put+0x95/0xb5 [videobuf2_dma_sg]
-> > [  221.366197]  __vb2_buf_mem_free+0x3a/0x6e [videobuf2_common]
-> > [  221.366202]  __vb2_queue_free+0xe3/0x1be [videobuf2_common]
-> > [  221.366207]  vb2_core_reqbufs+0xe9/0x2cc [videobuf2_common]
-> > [  221.366212]  vb2_ioctl_reqbufs+0x78/0x9e [videobuf2_v4l2]
-> > [  221.366220]  __video_do_ioctl+0x258/0x38e [videodev]
-> > [  221.366229]  video_usercopy+0x25f/0x4e5 [videodev]
-> > [  221.366237]  ? copy_overflow+0x14/0x14 [videodev]
-> > [  221.366240]  ? unmap_region+0xe0/0x10a
-> > [  221.366250]  v4l2_ioctl+0x4d/0x58 [videodev]
-> > [  221.366253]  vfs_ioctl+0x1e/0x2b
-> > [  221.366255]  do_vfs_ioctl+0x531/0x559
-> > [  221.366260]  ksys_ioctl+0x50/0x70
-> > [  221.366263]  __x64_sys_ioctl+0x16/0x19
-> > [  221.366266]  do_syscall_64+0x53/0x60
-> > [  221.366269]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
-> > [  221.366270] RIP: 0033:0x7fbe39f6af47
-> > [  221.366272] Code: 00 00 00 48 8b 05 51 6f 2c 00 64 c7 00 26 00 00 00 48
-> > c7 c0 ff ff ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 b8 10 00 00 00 0f 05
-> > <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d 21 6f 2c 00 f7 d8 64 89 01 48
-> > [  221.366273] RSP: 002b:00007fff05638e68 EFLAGS: 00000246 ORIG_RAX:
-> > 0000000000000010
-> > [  221.366275] RAX: ffffffffffffffda RBX: 0000000000000007 RCX:
-> > 00007fbe39f6af47
-> > [  221.366279] RDX: 00007fff05638f90 RSI: 00000000c0145608 RDI:
-> > 0000000000000003
-> > [  221.366283] RBP: 0000000000000004 R08: 0000000000000000 R09:
-> > 0000000000000045
-> > [  221.366287] R10: 0000000000000557 R11: 0000000000000246 R12:
-> > 000055c83bd76750
-> > [  221.366290] R13: 000055c83b6b26a0 R14: 0000000000000001 R15:
-> > 00007fff0563a825
+> > return ov...(); ?
+> 
+> Yes, that would be nicer.
+> 
+> > 
+> >> +	if (ret)
+> >> +		return ret;
+> >> +
+> >> +	return 0;
+> >> +}
+> >> +
+> >> +static int rdacm20_probe(struct i2c_client *client,
+> >> +			 const struct i2c_device_id *did)
+> >> +{
+> >> +	struct rdacm20_device *dev;
+> >> +	struct fwnode_handle *ep;
+> >> +	int ret;
+> >> +
+> >> +	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+> > 
+> > You could use devm_kzalloc().
+> 
+> Will change.
+> 
+> > 
+> >> +	if (!dev)
+> >> +		return -ENOMEM;
+> >> +
+> >> +	dev->client = client;
+> >> +
+> >> +	/* Create the dummy I2C client for the sensor. */
+> >> +	dev->sensor = i2c_new_dummy(client->adapter, OV10635_I2C_ADDRESS);
+> >> +	if (!dev->sensor) {
+> >> +		ret = -ENXIO;
+> >> +		goto error;
+> >> +	}
+> >> +
+> >> +	/* Initialize the hardware. */
+> >> +	ret = rdacm20_initialize(dev);
+> >> +	if (ret < 0)
+> >> +		goto error;
+> >> +
+> >> +	/* Initialize and register the subdevice. */
+> >> +	v4l2_i2c_subdev_init(&dev->sd, client, &rdacm20_subdev_ops);
+> >> +	dev->sd.flags = V4L2_SUBDEV_FL_HAS_DEVNODE;
+> > 
+> > |=, as in the other patch.
+> 
+> Bah - yes :)
+> 
+> 
+> > 
+> >> +
+> >> +	v4l2_ctrl_handler_init(&dev->ctrls, 1);
+> >> +	/*
+> >> +	 * FIXME: Compute the real pixel rate. The 50 MP/s value comes from the
+> >> +	 * hardcoded frequency in the BSP CSI-2 receiver driver.
+> >> +	 */
+> >> +	v4l2_ctrl_new_std(&dev->ctrls, NULL, V4L2_CID_PIXEL_RATE, 50000000,
+> >> +			  50000000, 1, 50000000);
+> >> +	dev->sd.ctrl_handler = &dev->ctrls;
+> >> +
+> >> +	ret = dev->ctrls.error;
+> >> +	if (ret)
+> >> +		goto error;
+> >> +
+> >> +	dev->pad.flags = MEDIA_PAD_FL_SOURCE;
+> >> +	dev->sd.entity.flags |= MEDIA_ENT_F_CAM_SENSOR;
+> >> +	ret = media_entity_pads_init(&dev->sd.entity, 1, &dev->pad);
+> >> +	if (ret < 0)
+> >> +		goto error;
+> >> +
+> >> +	ep = fwnode_graph_get_next_endpoint(dev_fwnode(&client->dev), NULL);
+> >> +	if (!ep) {
+> >> +		dev_err(&client->dev,
+> >> +			"Unable to get endpoint in node %pOF\n",
+> >> +			client->dev.of_node);
+> >> +		ret = -ENOENT;
+> >> +		goto error;
+> >> +	}
+> >> +	dev->sd.fwnode = ep;
+> >> +
+> >> +	ret = v4l2_async_register_subdev(&dev->sd);
+> >> +	if (ret)
+> >> +		goto error_put_node;
+> >> +
+> >> +	return 0;
+> >> +
+> >> +error_put_node:
+> >> +	fwnode_handle_put(ep);
+> >> +error:
+> > 
+> > You're missing v4l2_ctrl_handler_free() here.
+> 
+> Good spot. Thanks
+> 
+> > 
+> >> +	media_entity_cleanup(&dev->sd.entity);
+> >> +	if (dev->sensor)
+> >> +		i2c_unregister_device(dev->sensor);
+> >> +	kfree(dev);
+> >> +
+> >> +	dev_err(&client->dev, "probe failed\n");
+> >> +
+> >> +	return ret;
+> >> +}
+> >> +
+> >> +static int rdacm20_remove(struct i2c_client *client)
+> >> +{
+> >> +	struct rdacm20_device *dev = i2c_to_rdacm20(client);
+> >> +
+> >> +	fwnode_handle_put(dev->sd.fwnode);
+> >> +	v4l2_async_unregister_subdev(&dev->sd);
+> > 
+> > As well as here.
+> 
+> 
+> Ack.
+> 
+> 
+> > 
+> >> +	media_entity_cleanup(&dev->sd.entity);
+> >> +	i2c_unregister_device(dev->sensor);
+> >> +	kfree(dev);
+> >> +
+> >> +	return 0;
+> >> +}
+> >> +
+> >> +static void rdacm20_shutdown(struct i2c_client *client)
+> >> +{
+> >> +	struct rdacm20_device *dev = i2c_to_rdacm20(client);
+> >> +
+> >> +	/* make sure stream off during shutdown (reset/reboot) */
+> >> +	rdacm20_s_stream(&dev->sd, 0);
+> >> +}
+> >> +
+> >> +static const struct i2c_device_id rdacm20_id[] = {
+> >> +	{ "rdacm20", 0 },
+> >> +	{ }
+> >> +};
+> >> +MODULE_DEVICE_TABLE(i2c, rdacm20_id);
+> >> +
+> >> +static const struct of_device_id rdacm20_of_ids[] = {
+> >> +	{ .compatible = "imi,rdacm20", },
+> >> +	{ }
+> >> +};
+> >> +MODULE_DEVICE_TABLE(of, rdacm20_of_ids);
+> >> +
+> >> +static struct i2c_driver rdacm20_i2c_driver = {
+> >> +	.driver	= {
+> >> +		.name	= "rdacm20",
+> >> +		.of_match_table = rdacm20_of_ids,
+> >> +	},
+> >> +	.probe		= rdacm20_probe,
+> > 
+> > Could you use probe_new, so you could remove the i2c ID table? Or do you
+> > need that for something?
+> 
+> I believe probe_new is probably fine.
+> 
+> I should really resurrect my i2c-probe-coccinelle patch and get that
+> conversion task done, so we can get to removing and replacing .probe :)
+
+That'd be nice!
+
+> 
+> (note to self ... starting projects when unemployed becomes difficult to
+> continue when someone else gives you projects to work on all the time ...)
+> 
+> 
+> > 
+> >> +	.remove		= rdacm20_remove,
+> >> +	.shutdown	= rdacm20_shutdown,
+> >> +	.id_table	= rdacm20_id,
+> >> +};
+> >> +
+> >> +module_i2c_driver(rdacm20_i2c_driver);
+> >> +
+> >> +MODULE_DESCRIPTION("GMSL Camera driver for RDACM20");
+> >> +MODULE_AUTHOR("Vladimir Barinov");
+> >> +MODULE_LICENSE("GPL");
+> 
+> Changes described above made and tested on a *single MAX9286* capturing
+> 4 cameras simultaneously, now on my rcar.git gmsl/v5 branch ... :D
 
 -- 
 Regards,
 
-Laurent Pinchart
-
-
-
+Sakari Ailus
