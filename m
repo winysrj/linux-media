@@ -2,650 +2,838 @@ Return-Path: <SRS0=s3Lq=O5=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=INCLUDES_PATCH,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F01BC43387
-	for <linux-media@archiver.kernel.org>; Thu, 20 Dec 2018 09:45:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A09E0C43387
+	for <linux-media@archiver.kernel.org>; Thu, 20 Dec 2018 10:20:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 41F3C20811
-	for <linux-media@archiver.kernel.org>; Thu, 20 Dec 2018 09:45:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 50A1B21741
+	for <linux-media@archiver.kernel.org>; Thu, 20 Dec 2018 10:20:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730088AbeLTJph (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 20 Dec 2018 04:45:37 -0500
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:33201 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728458AbeLTJph (ORCPT
+        id S1725385AbeLTKUO (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 20 Dec 2018 05:20:14 -0500
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:53795 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725306AbeLTKUO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 20 Dec 2018 04:45:37 -0500
+        Thu, 20 Dec 2018 05:20:14 -0500
 Received: from [IPv6:2001:983:e9a7:1:1015:4045:7d9c:9cb8] ([IPv6:2001:983:e9a7:1:1015:4045:7d9c:9cb8])
         by smtp-cloud7.xs4all.net with ESMTPA
-        id ZutTgoOGbdllcZutUgkzau; Thu, 20 Dec 2018 10:45:28 +0100
-Subject: Re: [PATCH v4l-utils] v4l2-ctl: Add support for CROP selection in m2m
- streaming
-To:     Dafna Hirschfeld <dafna3@gmail.com>
-Cc:     Linux Media Mailing List <linux-media@vger.kernel.org>,
-        helen.koike@collabora.com
-References: <20181218111140.90645-1-dafna3@gmail.com>
- <603cad44-4a52-73d1-3ad5-5474ee549977@xs4all.nl>
- <CAJ1myNRieZveHD95YBXiLx6Ka6pDBrW8Cvmh0Nvxt1f=YDDUyg@mail.gmail.com>
- <a0e7ade6-d3e4-132a-0629-4fb6a4b664b2@xs4all.nl>
- <CAJ1myNR8JVggC-24y3+mhreM0PoZ82EdG1BBo3OFzisR+hogig@mail.gmail.com>
+        id ZvR1gol1QdllcZvR2glDau; Thu, 20 Dec 2018 11:20:10 +0100
+Subject: Re: [PATCH v2] media: vicodec: add support for CROP selection in the
+ encoder
+To:     Dafna Hirschfeld <dafna3@gmail.com>, linux-media@vger.kernel.org
+Cc:     helen.koike@collabora.com
+References: <20181219121853.122797-1-dafna3@gmail.com>
 From:   Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <26d97ba9-d387-d3e8-3d09-eb6c96fd62dd@xs4all.nl>
-Date:   Thu, 20 Dec 2018 10:45:27 +0100
+Message-ID: <eb25905d-e729-9448-e119-a9d5b5dac052@xs4all.nl>
+Date:   Thu, 20 Dec 2018 11:20:07 +0100
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
  Thunderbird/60.3.1
 MIME-Version: 1.0
-In-Reply-To: <CAJ1myNR8JVggC-24y3+mhreM0PoZ82EdG1BBo3OFzisR+hogig@mail.gmail.com>
+In-Reply-To: <20181219121853.122797-1-dafna3@gmail.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfCLi1QJc90A5zMVcKJJSGaBXbOHoVvrixUleM/hDV9T+6XdhKRE5fhc6VRk6LRtV+TuPlezzCN2VDdTWGt4p3ksY7oI+SqVrdz1W4Nc6qp5c90pkQ4iJ
- Eaok23vjLXo2CkVYoiK546lpVHhd3MWGX+yHxXEZeRMOM5DYB5+SdMac+bHv+fMexpu3xAbSPrKiZqkB0IUuq/3u6VZOlIkCkwWDqosEpyn2BBJ5QRfYV4Aw
- O1gIAO+/++pCr4USoEY5/8Mv8FK1LzBjNEE5LeBHlCrzePzZwTqnLhWuOo+4I+viGAlCRJfv+AwUME1btF7MAiyACmX62bzBBZvtPlDetqg=
+X-CMAE-Envelope: MS4wfDxpsSFpn5eHu4Jp/gdnVcNzcPo6kl9PsC+rn3J0+OPWo1i3SnBzssJ2mQqUEkNunFSDQf9ZEI2vtJIh7TLM7aMdixtx0V4btbHwEs1vUZcaylUbE9Du
+ 228pSSQ+BbI7Co8GtpHig0O/oXuNGnQZhqZxsCVNQtfl3nVy5HDUL2vyBwooU9vuvD+osnpXlHxSrPK9fM877E5SUZwoZIYF9Z0MeVyh9Kwl6EFH931wWu9s
+ f1oAv376qXe4x+r2XRdlvjbt8plELmQQ3YRDp91oiPjd43AVAJiK809k963+Yhq6ZRSDaHXbnIwK5zUqI6eRKK5SLRvGHYpCz0L1scsCHLU=
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On 12/19/18 2:32 PM, Dafna Hirschfeld wrote:
-> On Wed, Dec 19, 2018 at 12:03 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>
->> On 12/19/18 9:34 AM, Dafna Hirschfeld wrote:
->>>>> +bool is_m2m_enc = false;
->>>>
->>>> This should be static.
->>>>
->>>> I'm assuming that in a future patch we'll get a is_m2m_dec as well?
->>>
->>> I forgot that there can be more options other than m2m_enc/_dec.
->>> So actually adding is_m2m_dec is needed. Or I can define an enum with
->>> 3 possible values
->>> IS_M2M_ENC, IS_M2M_DEC, NOT_M2M_DEV
->>
->> I think using bools will make the code easier.
->>
->>>
->>>>
->>>>> +
->>>>>  #define TS_WINDOW 241
->>>>>  #define FILE_HDR_ID                  v4l2_fourcc('V', 'h', 'd', 'r')
->>>>>
->>>>> @@ -108,6 +114,84 @@ public:
->>>>>       unsigned dropped();
->>>>>  };
->>>>>
->>>>> +static int get_codec_type(int fd, bool &is_enc) {
->>>>
->>>> { on the next line.
->>>>
->>>>> +     struct v4l2_capability vcap;
->>>>> +
->>>>> +     memset(&vcap,0,sizeof(vcap));
->>>>
->>>> Space after ,
->>>>
->>>> Please use the kernel coding style for these v4l utilities.
->>>>
->>> I ran the checkpatch script on this file and it didn't catch theses things.
->>> Do you use checkpatch for v4l-utils ?
->>
->> No. As far as I can tell checkpatch skips cpp files so it can't be used for C++ files.
->>
->>>
->>>>> +
->>>>> +     int ret = ioctl(fd, VIDIOC_QUERYCAP, &vcap);
->>>>
->>>> Please use the cv4l_fd class. It comes with lots of helpers for all these ioctls
->>>> and it already used in v4l2-ctl-streaming.cpp.
->>>>
->>>> In this function you can just do:
->>>>
->>>>         if (!fd.has_vid_m2m())
->>>>                 return -1;
->>>>
->>>>> +     if(ret) {
->>>>> +             fprintf(stderr, "get_codec_type: VIDIOC_QUERYCAP failed: %d\n", ret);
->>>>> +             return ret;
->>>>> +     }
->>>>> +     unsigned int caps = vcap.capabilities;
->>>>> +     if (caps & V4L2_CAP_DEVICE_CAPS)
->>>>> +             caps = vcap.device_caps;
->>>>> +     if(!(caps & V4L2_CAP_VIDEO_M2M) && !(caps & V4L2_CAP_VIDEO_M2M_MPLANE)) {
->>>>> +             is_enc = false;
->>>>> +             fprintf(stderr,"get_codec_type: not an M2M device\n");
->>>>> +             return -1;
->>>>> +     }
->>>>> +
->>>>> +     struct v4l2_fmtdesc fmt;
->>>>> +     memset(&fmt,0,sizeof(fmt));
->>>>> +     fmt.index = 0;
->>>>> +     fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
->>>>> +
->>>>> +     while ((ret = ioctl(fd, VIDIOC_ENUM_FMT, &fmt)) == 0) {
->>>>> +             if((fmt.flags & V4L2_FMT_FLAG_COMPRESSED) == 0)
->>>>> +                     break;
->>>>> +             fmt.index++;
->>>>> +     }
->>>>
->>>> These tests aren't good enough. You need to enumerate over all formats.
->>>> Easiest is to keep a tally of the total number of formats and how many
->>>> are compressed.
->>>>
->>>> An encoder is a device where all output formats are uncompressed and
->>>> all capture formats are compressed. It's the reverse for a decoder.
->>>>
->>>> If you get a mix on either side, or both sides are raw or both sides
->>>> are compressed, then it isn't a codec.
->>>>
->>>>> +     if (ret) {
->>>>> +             is_enc = true;
->>>>> +             return 0;
->>>>> +     }
->>>>> +     memset(&fmt,0,sizeof(fmt));
->>>>> +     fmt.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
->>>>> +     while ((ret = ioctl(fd, VIDIOC_ENUM_FMT, &fmt)) == 0) {
->>>>> +             if((fmt.flags & V4L2_FMT_FLAG_COMPRESSED) == 0)
->>>>> +                     break;
->>>>> +             fmt.index++;
->>>>> +     }
->>>>> +     if (ret) {
->>>>> +             is_enc = false;
->>>>> +             return 0;
->>>>> +     }
->>>>> +     fprintf(stderr, "get_codec_type: could no determine codec type\n");
->>>>> +     return -1;
->>>>> +}
->>>>> +
->>>>> +static void get_frame_dims(unsigned int &frame_width, unsigned int &frame_height) {
->>>>> +
->>>>> +     if(is_m2m_enc)
->>>>> +             vidout_get_orig_from_set(frame_width, frame_height);
->>>>> +     else
->>>>> +             vidcap_get_orig_from_set(frame_width, frame_height);
->>>>> +}
->>>>> +
->>>>> +static int get_visible_format(int fd, unsigned int &width, unsigned int &height) {
->>>>> +     int ret = 0;
->>>>> +     if(is_m2m_enc) {
->>>>> +             struct v4l2_selection in_selection;
->>>>> +
->>>>> +             in_selection.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
->>>>> +             in_selection.target = V4L2_SEL_TGT_CROP;
->>>>> +
->>>>> +             if ( (ret = ioctl(fd, VIDIOC_G_SELECTION, &in_selection)) != 0) {
->>>>> +                     fprintf(stderr,"get_visible_format: error in g_selection ioctl: %d\n",ret);
->>>>> +                     return ret;
->>>>> +             }
->>>>> +             width = in_selection.r.width;
->>>>> +             height = in_selection.r.height;
->>>>> +     }
->>>>> +     else { //TODO - g_selection with COMPOSE should be used here when implemented in driver
->>>>> +             vidcap_get_orig_from_set(width, height);
->>>>> +     }
->>>>> +     return 0;
->>>>> +}
->>>>> +
->>>>> +
->>>>>  void fps_timestamps::determine_field(int fd, unsigned type)
->>>>>  {
->>>>>       struct v4l2_format fmt = { };
->>>>> @@ -419,7 +503,6 @@ static void print_buffer(FILE *f, struct v4l2_buffer &buf)
->>>>>                       fprintf(f, "\t\tData Offset: %u\n", p->data_offset);
->>>>>               }
->>>>>       }
->>>>> -
->>>>>       fprintf(f, "\n");
->>>>>  }
->>>>>
->>>>> @@ -657,7 +740,131 @@ void streaming_cmd(int ch, char *optarg)
->>>>>       }
->>>>>  }
->>>>>
->>>>> -static bool fill_buffer_from_file(cv4l_queue &q, cv4l_buffer &b, FILE *fin)
->>>>> +bool padding(cv4l_fd &fd, cv4l_queue &q, unsigned char* buf, FILE *fpointer, unsigned &sz, unsigned &len, bool is_read)
->>>>
->>>> This should definitely be a static function. Also, this is not a very good name.
->>>>
->>>> Why not call it fill_padded_buffer_from_file()?
->>>
->>> This function is used both for reading from file for the encoder and
->>> writing to file for the decoder.
->>> Maybe it can be called read_write_padded_frame ?
->>
->> That would work.
->>
->>>
->>>>
->>>>> +{
->>>>> +     cv4l_fmt fmt(q.g_type());
->>>>
->>>> No need to use q.g_type(). 'cv4l_fmt fmt;' is sufficient.
->>>>
->>>>> +     fd.g_fmt(fmt, q.g_type());
->>>>
->>>> After all, it's filled here.
->>>>
->>>>> +     const struct v4l2_fwht_pixfmt_info *vic_fmt = v4l2_fwht_find_pixfmt(fmt.g_pixelformat());
->>>>
->>>> This test should be moved to fill_buffer_from_file. If it is not an encoder and
->>>> the pixelformat is not known (v4l2_fwht_find_pixfmt() returns NULL), then it should
->>>> fallback to the old behavior. So this function should only be called when you have
->>>> all the information about the pixelformat.
->>>>
->>>
->>> This function is supposed to be called only for m2m encoder on the
->>> output buffer and m2m decoder on the capture buffer
->>> so vic_format is not NULL in those case.
->>
->> Actually, handling padding is not specific to codecs. Any video device can have
->> cropping or composing.
->>
->> The generic rules are:
->>
->> 1) if a video output device supports TGT_CROP, then use that rectangle when reading
->>    from a file.
->>
->> 2) if a video capture device supports TGT_COMPOSE, then use that rectangle when
->>    writing to a file.
->>
->> The problem with this is that doing this requires v4l2-ctl to understand all the pixelformats.
->> That's a lot more work so for now just use v4l2_fwht_find_pixfmt() which has the information
->> needed for the most common formats.
->>
->> Anything not known by v4l2_fwht_find_pixfmt() can just fall back to the old behavior.
->>
-> So I'm not sure what is the correct implementation here,
-> Currently this function suppose to be used only by m2m_enc/dec, I
-> actually have no idea
-> how other types of drivers work. What exactly should be the conditions
-> for calling this function ?
+On 12/19/18 1:18 PM, Dafna Hirschfeld wrote:
+> Add support for the selection api for the crop target in the encoder.
+> The driver rounds up the coded width and height such that
+> all planes dimensions are multiple of 8.
+> 
+> Signed-off-by: Dafna Hirschfeld <dafna3@gmail.com>
+> ---
+> Changes from v1:
+> Renaming fields to be more descriptive.
+> Setting default values to g_selection for compose and
+> ignoring s_selection for compose.
+> Some cleanups.
+> 
+>  drivers/media/platform/vicodec/codec-fwht.c   |  50 ++--
+>  drivers/media/platform/vicodec/codec-fwht.h   |   9 +-
+>  .../media/platform/vicodec/codec-v4l2-fwht.c  |  28 ++-
+>  .../media/platform/vicodec/codec-v4l2-fwht.h  |   6 +-
+>  drivers/media/platform/vicodec/vicodec-core.c | 237 ++++++++++++++----
+>  5 files changed, 241 insertions(+), 89 deletions(-)
+> 
+> diff --git a/drivers/media/platform/vicodec/codec-fwht.c b/drivers/media/platform/vicodec/codec-fwht.c
+> index a6fd0477633b..a862442a500f 100644
+> --- a/drivers/media/platform/vicodec/codec-fwht.c
+> +++ b/drivers/media/platform/vicodec/codec-fwht.c
+> @@ -11,6 +11,7 @@
+>  
+>  #include <linux/string.h>
+>  #include "codec-fwht.h"
+> +#include <linux/kernel.h>
+>  
+>  /*
+>   * Note: bit 0 of the header must always be 0. Otherwise it cannot
+> @@ -659,7 +660,7 @@ static void add_deltas(s16 *deltas, const u8 *ref, int stride)
+>  }
+>  
+>  static u32 encode_plane(u8 *input, u8 *refp, __be16 **rlco, __be16 *rlco_max,
+> -			struct fwht_cframe *cf, u32 height, u32 width,
+> +			struct fwht_cframe *cf, u32 height, u32 width, u32 stride,
+>  			unsigned int input_step,
+>  			bool is_intra, bool next_is_intra)
+>  {
+> @@ -671,7 +672,11 @@ static u32 encode_plane(u8 *input, u8 *refp, __be16 **rlco, __be16 *rlco_max,
+>  	unsigned int last_size = 0;
+>  	unsigned int i, j;
+>  
+> +	width = round_up(width, 8);
+> +	height = round_up(height, 8);
+> +
+>  	for (j = 0; j < height / 8; j++) {
+> +		input = input_start + j * 8 * stride * input_step;
+>  		for (i = 0; i < width / 8; i++) {
+>  			/* intra code, first frame is always intra coded. */
+>  			int blocktype = IBLOCK;
+> @@ -679,9 +684,9 @@ static u32 encode_plane(u8 *input, u8 *refp, __be16 **rlco, __be16 *rlco_max,
+>  
+>  			if (!is_intra)
+>  				blocktype = decide_blocktype(input, refp,
+> -					deltablock, width, input_step);
+> +					deltablock, stride, input_step);
+>  			if (blocktype == IBLOCK) {
+> -				fwht(input, cf->coeffs, width, input_step, 1);
+> +				fwht(input, cf->coeffs, stride, input_step, 1);
+>  				quantize_intra(cf->coeffs, cf->de_coeffs,
+>  					       cf->i_frame_qp);
+>  			} else {
+> @@ -722,7 +727,6 @@ static u32 encode_plane(u8 *input, u8 *refp, __be16 **rlco, __be16 *rlco_max,
+>  			}
+>  			last_size = size;
+>  		}
+> -		input += width * 7 * input_step;
+>  	}
 
-Any driver that supports TGT_CROP for video output or TGT_COMPOSE for video capture
-should use that information when reading from a file or writing to a file in v4l2-ctl.
+This function now looks much better! Nice.
 
-This is independent of the codec implementation or the FWHT codec in particular.
+>  
+>  exit_loop:
+> @@ -756,7 +760,7 @@ u32 fwht_encode_frame(struct fwht_raw_frame *frm,
+>  
+>  	rlco_max = rlco + size / 2 - 256;
+>  	encoding = encode_plane(frm->luma, ref_frm->luma, &rlco, rlco_max, cf,
+> -				frm->height, frm->width,
+> +				frm->height, frm->width, frm->stride,
+>  				frm->luma_alpha_step, is_intra, next_is_intra);
+>  	if (encoding & FWHT_FRAME_UNENCODED)
+>  		encoding |= FWHT_LUMA_UNENCODED;
+> @@ -765,11 +769,12 @@ u32 fwht_encode_frame(struct fwht_raw_frame *frm,
+>  	if (frm->components_num >= 3) {
+>  		u32 chroma_h = frm->height / frm->height_div;
+>  		u32 chroma_w = frm->width / frm->width_div;
+> +		u32 chroma_stride = frm->stride / frm->width_div;
+>  		unsigned int chroma_size = chroma_h * chroma_w;
+>  
+>  		rlco_max = rlco + chroma_size / 2 - 256;
+>  		encoding |= encode_plane(frm->cb, ref_frm->cb, &rlco, rlco_max,
+> -					 cf, chroma_h, chroma_w,
+> +					 cf, chroma_h, chroma_w, chroma_stride,
+>  					 frm->chroma_step,
+>  					 is_intra, next_is_intra);
+>  		if (encoding & FWHT_FRAME_UNENCODED)
+> @@ -777,7 +782,7 @@ u32 fwht_encode_frame(struct fwht_raw_frame *frm,
+>  		encoding &= ~FWHT_FRAME_UNENCODED;
+>  		rlco_max = rlco + chroma_size / 2 - 256;
+>  		encoding |= encode_plane(frm->cr, ref_frm->cr, &rlco, rlco_max,
+> -					 cf, chroma_h, chroma_w,
+> +					 cf, chroma_h, chroma_w, chroma_stride,
+>  					 frm->chroma_step,
+>  					 is_intra, next_is_intra);
+>  		if (encoding & FWHT_FRAME_UNENCODED)
+> @@ -789,7 +794,7 @@ u32 fwht_encode_frame(struct fwht_raw_frame *frm,
+>  		rlco_max = rlco + size / 2 - 256;
+>  		encoding |= encode_plane(frm->alpha, ref_frm->alpha, &rlco,
+>  					 rlco_max, cf, frm->height, frm->width,
+> -					 frm->luma_alpha_step,
+> +					 frm->stride, frm->luma_alpha_step,
+>  					 is_intra, next_is_intra);
+>  		if (encoding & FWHT_FRAME_UNENCODED)
+>  			encoding |= FWHT_ALPHA_UNENCODED;
+> @@ -801,7 +806,7 @@ u32 fwht_encode_frame(struct fwht_raw_frame *frm,
+>  }
+>  
+>  static void decode_plane(struct fwht_cframe *cf, const __be16 **rlco, u8 *ref,
+> -			 u32 height, u32 width, bool uncompressed)
+> +			 u32 height, u32 width, u32 stride, bool uncompressed)
+>  {
+>  	unsigned int copies = 0;
+>  	s16 copy[8 * 8];
+> @@ -813,6 +818,8 @@ static void decode_plane(struct fwht_cframe *cf, const __be16 **rlco, u8 *ref,
+>  		*rlco += width * height / 2;
+>  		return;
+>  	}
+> +	width = round_up(width, 8);
+> +	height = round_up(height, 8);
+>  
+>  	/*
+>  	 * When decoding each macroblock the rlco pointer will be increased
+> @@ -822,13 +829,13 @@ static void decode_plane(struct fwht_cframe *cf, const __be16 **rlco, u8 *ref,
+>  	 */
+>  	for (j = 0; j < height / 8; j++) {
+>  		for (i = 0; i < width / 8; i++) {
+> -			u8 *refp = ref + j * 8 * width + i * 8;
+> +			u8 *refp = ref + j * 8 * stride + i * 8;
+>  
+>  			if (copies) {
+>  				memcpy(cf->de_fwht, copy, sizeof(copy));
+>  				if (stat & PFRAME_BIT)
+> -					add_deltas(cf->de_fwht, refp, width);
+> -				fill_decoder_block(refp, cf->de_fwht, width);
+> +					add_deltas(cf->de_fwht, refp, stride);
+> +				fill_decoder_block(refp, cf->de_fwht, stride);
+>  				copies--;
+>  				continue;
+>  			}
+> @@ -847,35 +854,38 @@ static void decode_plane(struct fwht_cframe *cf, const __be16 **rlco, u8 *ref,
+>  			if (copies)
+>  				memcpy(copy, cf->de_fwht, sizeof(copy));
+>  			if (stat & PFRAME_BIT)
+> -				add_deltas(cf->de_fwht, refp, width);
+> -			fill_decoder_block(refp, cf->de_fwht, width);
+> +				add_deltas(cf->de_fwht, refp, stride);
+> +			fill_decoder_block(refp, cf->de_fwht, stride);
+>  		}
+>  	}
+>  }
+>  
+>  void fwht_decode_frame(struct fwht_cframe *cf, struct fwht_raw_frame *ref,
+> -		       u32 hdr_flags, unsigned int components_num)
+> +		       u32 hdr_flags, unsigned int components_num, unsigned int stride)
+>  {
+>  	const __be16 *rlco = cf->rlc_data;
+>  
+> -	decode_plane(cf, &rlco, ref->luma, cf->height, cf->width,
+> +	decode_plane(cf, &rlco, ref->luma, cf->height, cf->width, stride,
+>  		     hdr_flags & FWHT_FL_LUMA_IS_UNCOMPRESSED);
+>  
+>  	if (components_num >= 3) {
+>  		u32 h = cf->height;
+>  		u32 w = cf->width;
+> +		u32 s = stride;
+>  
+>  		if (!(hdr_flags & FWHT_FL_CHROMA_FULL_HEIGHT))
+>  			h /= 2;
+> -		if (!(hdr_flags & FWHT_FL_CHROMA_FULL_WIDTH))
+> +		if (!(hdr_flags & FWHT_FL_CHROMA_FULL_WIDTH)) {
+>  			w /= 2;
+> -		decode_plane(cf, &rlco, ref->cb, h, w,
+> +			s /= 2;
+> +		}
+> +		decode_plane(cf, &rlco, ref->cb, h, w, s,
+>  			     hdr_flags & FWHT_FL_CB_IS_UNCOMPRESSED);
+> -		decode_plane(cf, &rlco, ref->cr, h, w,
+> +		decode_plane(cf, &rlco, ref->cr, h, w, s,
+>  			     hdr_flags & FWHT_FL_CR_IS_UNCOMPRESSED);
+>  	}
+>  
+>  	if (components_num == 4)
+> -		decode_plane(cf, &rlco, ref->alpha, cf->height, cf->width,
+> +		decode_plane(cf, &rlco, ref->alpha, cf->height, cf->width, stride,
+>  			     hdr_flags & FWHT_FL_ALPHA_IS_UNCOMPRESSED);
+>  }
+> diff --git a/drivers/media/platform/vicodec/codec-fwht.h b/drivers/media/platform/vicodec/codec-fwht.h
+> index 90ff8962fca7..1da0a2384b48 100644
+> --- a/drivers/media/platform/vicodec/codec-fwht.h
+> +++ b/drivers/media/platform/vicodec/codec-fwht.h
+> @@ -81,6 +81,12 @@
+>  #define FWHT_FL_COMPONENTS_NUM_MSK	GENMASK(17, 16)
+>  #define FWHT_FL_COMPONENTS_NUM_OFFSET	16
+>  
+> +/* A macro to calculate the needed padding in order to make sure
+> + * both luma and chroma components resolutions are rounded up to
+> + * closest multiple of 8
+> + */
+> +#define vic_round_dim(dim, div) (round_up((dim) / (div), 8) * (div))
+> +
+>  struct fwht_cframe_hdr {
+>  	u32 magic1;
+>  	u32 magic2;
+> @@ -112,6 +118,7 @@ struct fwht_raw_frame {
+>  	unsigned int luma_alpha_step;
+>  	unsigned int chroma_step;
+>  	unsigned int components_num;
+> +	unsigned int stride;
+>  	u8 *luma, *cb, *cr, *alpha;
+>  };
+>  
+> @@ -127,6 +134,6 @@ u32 fwht_encode_frame(struct fwht_raw_frame *frm,
+>  		      struct fwht_cframe *cf,
+>  		      bool is_intra, bool next_is_intra);
+>  void fwht_decode_frame(struct fwht_cframe *cf, struct fwht_raw_frame *ref,
+> -		       u32 hdr_flags, unsigned int components_num);
+> +		       u32 hdr_flags, unsigned int components_num, unsigned int stride);
+>  
+>  #endif
+> diff --git a/drivers/media/platform/vicodec/codec-v4l2-fwht.c b/drivers/media/platform/vicodec/codec-v4l2-fwht.c
+> index 8cb0212df67f..32a1216e66e6 100644
+> --- a/drivers/media/platform/vicodec/codec-v4l2-fwht.c
+> +++ b/drivers/media/platform/vicodec/codec-v4l2-fwht.c
+> @@ -56,7 +56,7 @@ const struct v4l2_fwht_pixfmt_info *v4l2_fwht_get_pixfmt(u32 idx)
+>  
+>  int v4l2_fwht_encode(struct v4l2_fwht_state *state, u8 *p_in, u8 *p_out)
+>  {
+> -	unsigned int size = state->width * state->height;
+> +	unsigned int size;
+>  	const struct v4l2_fwht_pixfmt_info *info = state->info;
+>  	struct fwht_cframe_hdr *p_hdr;
+>  	struct fwht_cframe cf;
+> @@ -66,8 +66,11 @@ int v4l2_fwht_encode(struct v4l2_fwht_state *state, u8 *p_in, u8 *p_out)
+>  
+>  	if (!info)
+>  		return -EINVAL;
+> -	rf.width = state->width;
+> -	rf.height = state->height;
+> +
+> +	size = state->stride * state->padded_height;
+> +	rf.width = state->visible_width;
+> +	rf.height = state->visible_height;
 
-But implementing this requires knowledge of the memory layout each pixelformat
-represents. But there are many, and some are quite complicated. Rather than trying
-to support all defined raw pixelformats my suggestion was to use the v4l2_fwht_find_pixfmt()
-function since that returns the needed information for most of the common pixelformats
-in use.
+I don't think this is right. I think rf.width/height should be the padded width and height
+since that's what the codec needs and it determined the amount of memory that should be
+allocated for the internal reference buffer.
 
-So this really has nothing to do with FWHT, it has to do with easily obtaining memory
-layout information for most of the common pixelformats.
+Using the padded width/height here also avoids the round_up in the en/decoder_plane functions.
 
-And if v4l2_fwht_find_pixfmt() returns NULL, then just skip the selection handling
-in v4l2-ctl.
+I think that's wrong as well since for a 4:2:0 format the padded_width != round_up(visible_width, 8).
 
-Hope this helps,
+By using the padded width/height for the low-level codec functions you avoid this.
+
+It would mean that the width and height fields in structs fwht_cframe and fwht_raw_frame
+are renamed to padded_width/height.
+
+But to be honest, I think that it would be even better if the width and height fields are
+removed from both structs and instead you add padded_width and padded_height arguments
+to the fwht_en/decode_frame functions.
+
+The width and height fields in these structs are really duplicates and I never liked that.
+
+> +	rf.stride = state->stride;
+>  	rf.luma = p_in;
+>  	rf.width_div = info->width_div;
+>  	rf.height_div = info->height_div;
+> @@ -163,8 +166,8 @@ int v4l2_fwht_encode(struct v4l2_fwht_state *state, u8 *p_in, u8 *p_out)
+>  		return -EINVAL;
+>  	}
+>  
+> -	cf.width = state->width;
+> -	cf.height = state->height;
+> +	cf.width = state->visible_width;
+> +	cf.height = state->visible_height;
+>  	cf.i_frame_qp = state->i_frame_qp;
+>  	cf.p_frame_qp = state->p_frame_qp;
+>  	cf.rlc_data = (__be16 *)(p_out + sizeof(*p_hdr));
+> @@ -209,8 +212,8 @@ int v4l2_fwht_encode(struct v4l2_fwht_state *state, u8 *p_in, u8 *p_out)
+>  
+>  int v4l2_fwht_decode(struct v4l2_fwht_state *state, u8 *p_in, u8 *p_out)
+>  {
+> -	unsigned int size = state->width * state->height;
+> -	unsigned int chroma_size = size;
+> +	unsigned int size;
+> +	unsigned int chroma_size;
+>  	unsigned int i;
+>  	u32 flags;
+>  	struct fwht_cframe_hdr *p_hdr;
+> @@ -218,10 +221,14 @@ int v4l2_fwht_decode(struct v4l2_fwht_state *state, u8 *p_in, u8 *p_out)
+>  	u8 *p;
+>  	unsigned int components_num = 3;
+>  	unsigned int version;
+> +	const struct v4l2_fwht_pixfmt_info *info;
+>  
+>  	if (!state->info)
+>  		return -EINVAL;
+>  
+> +	info = state->info;
+> +	size = state->stride * state->padded_height;
+> +	chroma_size = size;
+>  	p_hdr = (struct fwht_cframe_hdr *)p_in;
+>  	cf.width = ntohl(p_hdr->width);
+>  	cf.height = ntohl(p_hdr->height);
+> @@ -234,12 +241,11 @@ int v4l2_fwht_decode(struct v4l2_fwht_state *state, u8 *p_in, u8 *p_out)
+>  	}
+>  
+>  	if (p_hdr->magic1 != FWHT_MAGIC1 ||
+> -	    p_hdr->magic2 != FWHT_MAGIC2 ||
+> -	    (cf.width & 7) || (cf.height & 7))
+> +	    p_hdr->magic2 != FWHT_MAGIC2)
+>  		return -EINVAL;
+>  
+>  	/* TODO: support resolution changes */
+> -	if (cf.width != state->width || cf.height != state->height)
+> +	if (cf.width != state->visible_width || cf.height != state->visible_height)
+>  		return -EINVAL;
+>  
+>  	flags = ntohl(p_hdr->flags);
+> @@ -260,7 +266,7 @@ int v4l2_fwht_decode(struct v4l2_fwht_state *state, u8 *p_in, u8 *p_out)
+>  	if (!(flags & FWHT_FL_CHROMA_FULL_HEIGHT))
+>  		chroma_size /= 2;
+>  
+> -	fwht_decode_frame(&cf, &state->ref_frame, flags, components_num);
+> +	fwht_decode_frame(&cf, &state->ref_frame, flags, components_num, state->stride);
+>  
+>  	/*
+>  	 * TODO - handle the case where the compressed stream encodes a
+> diff --git a/drivers/media/platform/vicodec/codec-v4l2-fwht.h b/drivers/media/platform/vicodec/codec-v4l2-fwht.h
+> index ed53e28d4f9c..d140ac770866 100644
+> --- a/drivers/media/platform/vicodec/codec-v4l2-fwht.h
+> +++ b/drivers/media/platform/vicodec/codec-v4l2-fwht.h
+> @@ -23,8 +23,10 @@ struct v4l2_fwht_pixfmt_info {
+>  
+>  struct v4l2_fwht_state {
+>  	const struct v4l2_fwht_pixfmt_info *info;
+> -	unsigned int width;
+> -	unsigned int height;
+> +	unsigned int visible_width;
+> +	unsigned int visible_height;
+> +	unsigned int stride;
+> +	unsigned int padded_height;
+
+I think adding padded_width as well will help.
+
+Hmm, I see that later you call this coded_height.
+
+That's probably a better name since it matches the terminology of the codec spec,
+so use coded_width and coded_height instead of padded_width and padded_height in this driver.
+
+>  	unsigned int gop_size;
+>  	unsigned int gop_cnt;
+>  	u16 i_frame_qp;
+> diff --git a/drivers/media/platform/vicodec/vicodec-core.c b/drivers/media/platform/vicodec/vicodec-core.c
+> index 0d7876f5acf0..e94f1a22f5b9 100644
+> --- a/drivers/media/platform/vicodec/vicodec-core.c
+> +++ b/drivers/media/platform/vicodec/vicodec-core.c
+> @@ -75,8 +75,10 @@ static struct platform_device vicodec_pdev = {
+>  
+>  /* Per-queue, driver-specific private data */
+>  struct vicodec_q_data {
+> -	unsigned int		width;
+> -	unsigned int		height;
+> +	unsigned int		coded_width;
+> +	unsigned int		coded_height;
+> +	unsigned int		visible_width;
+> +	unsigned int		visible_height;
+>  	unsigned int		sizeimage;
+>  	unsigned int		sequence;
+>  	const struct v4l2_fwht_pixfmt_info *info;
+> @@ -464,11 +466,11 @@ static int vidioc_g_fmt(struct vicodec_ctx *ctx, struct v4l2_format *f)
+>  		if (multiplanar)
+>  			return -EINVAL;
+>  		pix = &f->fmt.pix;
+> -		pix->width = q_data->width;
+> -		pix->height = q_data->height;
+> +		pix->width = vic_round_dim(q_data->coded_width, info->width_div);
+> +		pix->height = vic_round_dim(q_data->coded_height, info->height_div);
+>  		pix->field = V4L2_FIELD_NONE;
+>  		pix->pixelformat = info->id;
+> -		pix->bytesperline = q_data->width * info->bytesperline_mult;
+> +		pix->bytesperline = pix->width * info->bytesperline_mult;
+>  		pix->sizeimage = q_data->sizeimage;
+>  		pix->colorspace = ctx->state.colorspace;
+>  		pix->xfer_func = ctx->state.xfer_func;
+> @@ -481,13 +483,13 @@ static int vidioc_g_fmt(struct vicodec_ctx *ctx, struct v4l2_format *f)
+>  		if (!multiplanar)
+>  			return -EINVAL;
+>  		pix_mp = &f->fmt.pix_mp;
+> -		pix_mp->width = q_data->width;
+> -		pix_mp->height = q_data->height;
+> +		pix_mp->width = vic_round_dim(q_data->coded_width, info->width_div);
+> +		pix_mp->height = vic_round_dim(q_data->coded_height, info->height_div);
+>  		pix_mp->field = V4L2_FIELD_NONE;
+>  		pix_mp->pixelformat = info->id;
+>  		pix_mp->num_planes = 1;
+>  		pix_mp->plane_fmt[0].bytesperline =
+> -				q_data->width * info->bytesperline_mult;
+> +			pix_mp->width * info->bytesperline_mult;
+>  		pix_mp->plane_fmt[0].sizeimage = q_data->sizeimage;
+>  		pix_mp->colorspace = ctx->state.colorspace;
+>  		pix_mp->xfer_func = ctx->state.xfer_func;
+> @@ -528,8 +530,8 @@ static int vidioc_try_fmt(struct vicodec_ctx *ctx, struct v4l2_format *f)
+>  		pix = &f->fmt.pix;
+>  		if (pix->pixelformat != V4L2_PIX_FMT_FWHT)
+>  			info = find_fmt(pix->pixelformat);
+> -		pix->width = clamp(pix->width, MIN_WIDTH, MAX_WIDTH) & ~7;
+> -		pix->height = clamp(pix->height, MIN_HEIGHT, MAX_HEIGHT) & ~7;
+> +		pix->width = vic_round_dim(clamp(pix->width, MIN_WIDTH, MAX_WIDTH), info->width_div);
+> +		pix->height = vic_round_dim(clamp(pix->height, MIN_HEIGHT, MAX_HEIGHT), info->height_div);
+>  		pix->field = V4L2_FIELD_NONE;
+>  		pix->bytesperline =
+>  			pix->width * info->bytesperline_mult;
+> @@ -545,9 +547,8 @@ static int vidioc_try_fmt(struct vicodec_ctx *ctx, struct v4l2_format *f)
+>  		if (pix_mp->pixelformat != V4L2_PIX_FMT_FWHT)
+>  			info = find_fmt(pix_mp->pixelformat);
+>  		pix_mp->num_planes = 1;
+> -		pix_mp->width = clamp(pix_mp->width, MIN_WIDTH, MAX_WIDTH) & ~7;
+> -		pix_mp->height =
+> -			clamp(pix_mp->height, MIN_HEIGHT, MAX_HEIGHT) & ~7;
+> +		pix_mp->width = vic_round_dim(clamp(pix_mp->width, MIN_WIDTH, MAX_WIDTH), info->width_div);
+> +		pix_mp->height = vic_round_dim(clamp(pix->height, MIN_HEIGHT, MAX_HEIGHT), info->height_div);
+>  		pix_mp->field = V4L2_FIELD_NONE;
+>  		plane->bytesperline =
+>  			pix_mp->width * info->bytesperline_mult;
+> @@ -635,13 +636,15 @@ static int vidioc_try_fmt_vid_out(struct file *file, void *priv,
+>  	return vidioc_try_fmt(ctx, f);
+>  }
+>  
+> -static int vidioc_s_fmt(struct vicodec_ctx *ctx, struct v4l2_format *f)
+> +static int vidioc_s_fmt(struct vicodec_ctx *ctx, struct v4l2_format *f,
+> +			unsigned int orig_width, unsigned int orig_height)
+>  {
+>  	struct vicodec_q_data *q_data;
+>  	struct vb2_queue *vq;
+>  	bool fmt_changed = true;
+>  	struct v4l2_pix_format_mplane *pix_mp;
+>  	struct v4l2_pix_format *pix;
+> +	const struct v4l2_fwht_pixfmt_info *info;
+>  
+>  	vq = v4l2_m2m_get_vq(ctx->fh.m2m_ctx, f->type);
+>  	if (!vq)
+> @@ -650,6 +653,7 @@ static int vidioc_s_fmt(struct vicodec_ctx *ctx, struct v4l2_format *f)
+>  	q_data = get_q_data(ctx, f->type);
+>  	if (!q_data)
+>  		return -EINVAL;
+> +	info = q_data->info;
+>  
+>  	switch (f->type) {
+>  	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
+> @@ -658,8 +662,8 @@ static int vidioc_s_fmt(struct vicodec_ctx *ctx, struct v4l2_format *f)
+>  		if (ctx->is_enc && V4L2_TYPE_IS_OUTPUT(f->type))
+>  			fmt_changed =
+>  				q_data->info->id != pix->pixelformat ||
+> -				q_data->width != pix->width ||
+> -				q_data->height != pix->height;
+> +				vic_round_dim(q_data->coded_width, info->width_div) != pix->width ||
+> +				vic_round_dim(q_data->coded_height, info->height_div) != pix->height;
+>  
+>  		if (vb2_is_busy(vq) && fmt_changed)
+>  			return -EBUSY;
+> @@ -668,8 +672,13 @@ static int vidioc_s_fmt(struct vicodec_ctx *ctx, struct v4l2_format *f)
+>  			q_data->info = &pixfmt_fwht;
+>  		else
+>  			q_data->info = find_fmt(pix->pixelformat);
+> -		q_data->width = pix->width;
+> -		q_data->height = pix->height;
+> +
+> +		q_data->coded_width = orig_width;
+
+Shouldn't this be 'q_data->coded_width = pix->width;' ?
+
+> +		if (q_data->visible_width > orig_width)
+> +			q_data->visible_width = orig_width;
+> +		q_data->coded_height = orig_height;
+> +		if (q_data->visible_height > orig_height)
+> +			q_data->visible_height = orig_height;
+>  		q_data->sizeimage = pix->sizeimage;
+>  		break;
+>  	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+> @@ -678,8 +687,8 @@ static int vidioc_s_fmt(struct vicodec_ctx *ctx, struct v4l2_format *f)
+>  		if (ctx->is_enc && V4L2_TYPE_IS_OUTPUT(f->type))
+>  			fmt_changed =
+>  				q_data->info->id != pix_mp->pixelformat ||
+> -				q_data->width != pix_mp->width ||
+> -				q_data->height != pix_mp->height;
+> +				vic_round_dim(q_data->coded_width, info->width_div) != pix_mp->width ||
+> +				vic_round_dim(q_data->coded_height, info->height_div) != pix_mp->height;
+>  
+>  		if (vb2_is_busy(vq) && fmt_changed)
+>  			return -EBUSY;
+> @@ -688,8 +697,8 @@ static int vidioc_s_fmt(struct vicodec_ctx *ctx, struct v4l2_format *f)
+>  			q_data->info = &pixfmt_fwht;
+>  		else
+>  			q_data->info = find_fmt(pix_mp->pixelformat);
+> -		q_data->width = pix_mp->width;
+> -		q_data->height = pix_mp->height;
+> +		q_data->coded_width = orig_width;
+> +		q_data->coded_height = orig_height;
+
+Same question as above.
+
+I'm also missing the
+
+		if (q_data->visible_width > orig_width)
+			q_data->visible_width = orig_width;
+
+etc. code here. In fact, you get move that code out of the switch so you don't have
+it at two places.
+
+>  		q_data->sizeimage = pix_mp->plane_fmt[0].sizeimage;
+>  		break;
+>  	default:
+> @@ -698,7 +707,7 @@ static int vidioc_s_fmt(struct vicodec_ctx *ctx, struct v4l2_format *f)
+>  
+>  	dprintk(ctx->dev,
+>  		"Setting format for type %d, wxh: %dx%d, fourcc: %08x\n",
+> -		f->type, q_data->width, q_data->height, q_data->info->id);
+> +		f->type, q_data->coded_width, q_data->coded_height, q_data->info->id);
+
+I would recommend logging the visible width/height here as well.
+
+>  
+>  	return 0;
+>  }
+> @@ -707,12 +716,27 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
+>  				struct v4l2_format *f)
+>  {
+>  	int ret;
+> +	unsigned int orig_width, orig_height;
+>  
+> +	switch (f->type) {
+> +	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
+> +	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
+> +		orig_width = f->fmt.pix.width;
+> +		orig_height = f->fmt.pix.height;
+> +		break;
+> +	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+> +	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
+> +		orig_width = f->fmt.pix_mp.width;
+> +		orig_height = f->fmt.pix_mp.height;
+> +		break;
+> +	default:
+> +		break;
+> +	}
+>  	ret = vidioc_try_fmt_vid_cap(file, priv, f);
+>  	if (ret)
+>  		return ret;
+>  
+> -	return vidioc_s_fmt(file2ctx(file), f);
+> +	return vidioc_s_fmt(file2ctx(file), f, orig_width, orig_height);
+>  }
+>  
+>  static int vidioc_s_fmt_vid_out(struct file *file, void *priv,
+> @@ -721,36 +745,128 @@ static int vidioc_s_fmt_vid_out(struct file *file, void *priv,
+>  	struct vicodec_ctx *ctx = file2ctx(file);
+>  	struct v4l2_pix_format_mplane *pix_mp;
+>  	struct v4l2_pix_format *pix;
+> +	unsigned int orig_width, orig_height;
+>  	int ret;
+>  
+> -	ret = vidioc_try_fmt_vid_out(file, priv, f);
+> -	if (ret)
+> -		return ret;
+> +	switch (f->type) {
+> +	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
+> +	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
+> +				pix = &f->fmt.pix;
+> +		orig_width = pix->width;
+> +		orig_height = pix->height;
+> +		ret = vidioc_try_fmt_vid_out(file, priv, f);
+> +		if (ret)
+> +			return ret;
+> +		ret = vidioc_s_fmt(file2ctx(file), f, orig_width, orig_height);
+> +		if (ret)
+> +			return ret;
+> +		ctx->state.colorspace = pix->colorspace;
+> +		ctx->state.xfer_func = pix->xfer_func;
+> +		ctx->state.ycbcr_enc = pix->ycbcr_enc;
+> +		ctx->state.quantization = pix->quantization;
+> +		break;
+> +	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+> +	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
+> +		pix_mp = &f->fmt.pix_mp;
+> +		orig_width = pix_mp->width;
+> +		orig_height = pix_mp->height;
+> +		ret = vidioc_try_fmt_vid_out(file, priv, f);
+> +		if (ret)
+> +			return ret;
+> +		ret = vidioc_s_fmt(file2ctx(file), f, orig_width, orig_height);
+> +		if (ret)
+> +			return ret;
+> +		ctx->state.colorspace = pix_mp->colorspace;
+> +		ctx->state.xfer_func = pix_mp->xfer_func;
+> +		ctx->state.ycbcr_enc = pix_mp->ycbcr_enc;
+> +		ctx->state.quantization = pix_mp->quantization;
+> +		break;
+> +	default:
+> +		break;
+> +	}
+> +	return ret;
+> +}
+>  
+> -	ret = vidioc_s_fmt(file2ctx(file), f);
+> -	if (!ret) {
+> -		switch (f->type) {
+> -		case V4L2_BUF_TYPE_VIDEO_CAPTURE:
+> -		case V4L2_BUF_TYPE_VIDEO_OUTPUT:
+> -			pix = &f->fmt.pix;
+> -			ctx->state.colorspace = pix->colorspace;
+> -			ctx->state.xfer_func = pix->xfer_func;
+> -			ctx->state.ycbcr_enc = pix->ycbcr_enc;
+> -			ctx->state.quantization = pix->quantization;
+> -			break;
+> -		case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+> -		case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
+> -			pix_mp = &f->fmt.pix_mp;
+> -			ctx->state.colorspace = pix_mp->colorspace;
+> -			ctx->state.xfer_func = pix_mp->xfer_func;
+> -			ctx->state.ycbcr_enc = pix_mp->ycbcr_enc;
+> -			ctx->state.quantization = pix_mp->quantization;
+> -			break;
+> +static int vidioc_g_selection(struct file *file, void *priv,
+> +			      struct v4l2_selection *s)
+> +{
+> +	struct vicodec_ctx *ctx = file2ctx(file);
+> +	struct vicodec_q_data *q_data;
+> +
+> +	q_data = get_q_data(ctx, s->type);
+> +	if (!q_data)
+> +		return -EINVAL;
+> +
+> +	/* encoder supports only cropping on the OUTPUT buffer */
+> +	if (ctx->is_enc && s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+> +		switch (s->target) {
+> +		case V4L2_SEL_TGT_CROP_DEFAULT:
+> +		case V4L2_SEL_TGT_CROP_BOUNDS:
+> +			s->r.left = 0;
+> +			s->r.top = 0;
+> +			s->r.width = q_data->coded_width;
+> +			s->r.height = q_data->coded_height;
+> +			return 0;
+> +		case V4L2_SEL_TGT_CROP:
+> +			s->r.left = 0;
+> +			s->r.top = 0;
+> +			s->r.width = q_data->visible_width;
+> +			s->r.height = q_data->visible_height;
+> +			return 0;
+>  		default:
+> -			break;
+> +			return -EINVAL;
+> +		}
+> +	/* decoder supports only composing on the CAPTURE buffer */
+> +	} else if (!ctx->is_enc && s->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
+> +		switch (s->target) {
+> +		case V4L2_SEL_TGT_COMPOSE:
+> +		case V4L2_SEL_TGT_COMPOSE_DEFAULT:
+> +		case V4L2_SEL_TGT_COMPOSE_BOUNDS:
+> +			s->r.left = 0;
+> +			s->r.top = 0;
+> +			s->r.width = q_data->coded_width;
+> +			s->r.height = q_data->coded_height;
+> +			return 0;
+> +		default:
+> +			return -EINVAL;
+>  		}
+>  	}
+> -	return ret;
+> +	return -EINVAL;
+> +}
+> +
+> +static int vidioc_s_selection(struct file *file, void *priv,
+> +			      struct v4l2_selection *s)
+> +{
+> +	struct vicodec_ctx *ctx = file2ctx(file);
+> +	struct vicodec_q_data *q_data;
+> +
+> +	q_data = get_q_data(ctx, s->type);
+> +	if (!q_data)
+> +		return -EINVAL;
+> +
+> +	/* encoder supports only cropping on the OUTPUT buffer */
+> +	if (ctx->is_enc && s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+> +		switch (s->target) {
+> +		case V4L2_SEL_TGT_CROP:
+
+I'd just do 'if (s->target == V4L2_SEL_TGT_CROP) {' here instead of a switch.
+
+> +			s->r.left = 0;
+> +			s->r.top = 0;
+> +			q_data->visible_width = clamp(s->r.width, MIN_WIDTH, q_data->coded_width);
+> +			s->r.width = q_data->visible_width;
+> +			q_data->visible_height = clamp(s->r.height, MIN_HEIGHT, q_data->coded_height);
+> +			s->r.height = q_data->visible_height;
+> +			return 0;
+> +		default:
+> +			return -EINVAL;
+> +		}
+> +	/* decoder supports only composing on the CAPTURE buffer */
+> +	} else if (!ctx->is_enc && s->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
+
+You do can add a '&& s->target == V4L2_SEL_TGT_COMPOSE' to the condition and...
+
+> +		/* TODO - enable COMOPOSE setting on the capture buffer */
+> +		s->r.left = 0;
+> +		s->r.top = 0;
+> +		s->r.width = q_data->coded_width;
+> +		s->r.height = q_data->coded_height;
+
+... return 0 here.
+
+> +	}
+> +	return -EINVAL;
+>  }
+>  
+>  static void vicodec_mark_last_buf(struct vicodec_ctx *ctx)
+> @@ -895,6 +1011,9 @@ static const struct v4l2_ioctl_ops vicodec_ioctl_ops = {
+>  	.vidioc_streamon	= v4l2_m2m_ioctl_streamon,
+>  	.vidioc_streamoff	= v4l2_m2m_ioctl_streamoff,
+>  
+> +	.vidioc_g_selection	= vidioc_g_selection,
+> +	.vidioc_s_selection	= vidioc_s_selection,
+> +
+>  	.vidioc_try_encoder_cmd	= vicodec_try_encoder_cmd,
+>  	.vidioc_encoder_cmd	= vicodec_encoder_cmd,
+>  	.vidioc_try_decoder_cmd	= vicodec_try_decoder_cmd,
+> @@ -988,8 +1107,9 @@ static int vicodec_start_streaming(struct vb2_queue *q,
+>  	struct vicodec_ctx *ctx = vb2_get_drv_priv(q);
+>  	struct vicodec_q_data *q_data = get_q_data(ctx, q->type);
+>  	struct v4l2_fwht_state *state = &ctx->state;
+> -	unsigned int size = q_data->width * q_data->height;
+>  	const struct v4l2_fwht_pixfmt_info *info = q_data->info;
+> +	unsigned int size = vic_round_dim(q_data->coded_width, info->width_div) *
+> +		vic_round_dim(q_data->coded_height, info->height_div);
+>  	unsigned int chroma_div = info->width_div * info->height_div;
+>  	unsigned int total_planes_size;
+>  
+> @@ -1008,15 +1128,20 @@ static int vicodec_start_streaming(struct vb2_queue *q,
+>  
+>  	if (!V4L2_TYPE_IS_OUTPUT(q->type)) {
+>  		if (!ctx->is_enc) {
+> -			state->width = q_data->width;
+> -			state->height = q_data->height;
+> +			state->visible_width = q_data->coded_width;
+> +			state->visible_height = q_data->coded_height;
+> +			state->stride = vic_round_dim(q_data->coded_width, info->width_div);
+> +			state->padded_height = vic_round_dim(q_data->coded_height, info->height_div);
+> +
+>  		}
+>  		return 0;
+>  	}
+>  
+>  	if (ctx->is_enc) {
+> -		state->width = q_data->width;
+> -		state->height = q_data->height;
+> +		state->visible_width = q_data->visible_width;
+> +		state->visible_height = q_data->visible_height;
+> +		state->stride = vic_round_dim(q_data->coded_width, info->width_div);
+> +		state->padded_height = vic_round_dim(q_data->coded_height, info->height_div);
+>  	}
+>  	state->ref_frame.width = state->ref_frame.height = 0;
+>  	state->ref_frame.luma = kvmalloc(total_planes_size, GFP_KERNEL);
+> @@ -1204,8 +1329,10 @@ static int vicodec_open(struct file *file)
+>  
+>  	ctx->q_data[V4L2_M2M_SRC].info =
+>  		ctx->is_enc ? v4l2_fwht_get_pixfmt(0) : &pixfmt_fwht;
+> -	ctx->q_data[V4L2_M2M_SRC].width = 1280;
+> -	ctx->q_data[V4L2_M2M_SRC].height = 720;
+> +	ctx->q_data[V4L2_M2M_SRC].coded_width = 1280;
+> +	ctx->q_data[V4L2_M2M_SRC].coded_height = 720;
+> +	ctx->q_data[V4L2_M2M_SRC].visible_width = 1280;
+> +	ctx->q_data[V4L2_M2M_SRC].visible_height = 720;
+>  	size = 1280 * 720 * ctx->q_data[V4L2_M2M_SRC].info->sizeimage_mult /
+>  		ctx->q_data[V4L2_M2M_SRC].info->sizeimage_div;
+>  	if (ctx->is_enc)
+> 
+
+Regards,
 
 	Hans
-
-> 
-> Dafna
-> 
->>>
->>>>> +     unsigned coded_width = fmt.g_width();
->>>>> +     unsigned coded_height = fmt.g_height();
->>>>> +     unsigned real_width;
->>>>> +     unsigned real_height;
->>>>> +     unsigned char *buf_p = (unsigned char*) buf;
->>>>> +
->>>>> +     if(is_read) {
->>>>> +             real_width  = frame_width;
->>>>> +             real_height = frame_height;
->>>>> +     }
->>>>> +     else {
->>>>> +             real_width  = visible_width;
->>>>> +             real_height = visible_height;
->>>>> +     }
->>>>> +     sz = 0;
->>>>> +     len = real_width * real_height * vic_fmt->sizeimage_mult / vic_fmt->sizeimage_div;
->>>>> +     switch(vic_fmt->id) {
->>>>> +     case V4L2_PIX_FMT_YUYV:
->>>>> +     case V4L2_PIX_FMT_YVYU:
->>>>> +     case V4L2_PIX_FMT_UYVY:
->>>>> +     case V4L2_PIX_FMT_VYUY:
->>>>> +     case V4L2_PIX_FMT_RGB24:
->>>>> +     case V4L2_PIX_FMT_HSV24:
->>>>> +     case V4L2_PIX_FMT_BGR24:
->>>>> +     case V4L2_PIX_FMT_RGB32:
->>>>> +     case V4L2_PIX_FMT_XRGB32:
->>>>> +     case V4L2_PIX_FMT_HSV32:
->>>>> +     case V4L2_PIX_FMT_BGR32:
->>>>> +     case V4L2_PIX_FMT_XBGR32:
->>>>> +     case V4L2_PIX_FMT_ARGB32:
->>>>> +     case V4L2_PIX_FMT_ABGR32:
->>>>
->>>> I'd put this all under a 'default' case. I think GREY can also be added here.
->>>>
->>>> What I would really like to see is that only the information from v4l2_fwht_pixfmt_info
->>>> can be used here without requiring a switch.
->>>>
->>>> I think all that is needed to do that is that struct v4l2_fwht_pixfmt_info is extended
->>>> with a 'planes_num' field, which is 1 for interleaved formats, 2 for luma/interleaved chroma
->>>> planar formats and 3 for luma/cr/cb planar formats.
->>>>
->>> So I should send a patch to the kernel code, adding this field ?
->>
->> Yes.
->>
->>>
->>>>> +             for(unsigned i=0; i < real_height; i++) {
->>>>> +                     unsigned int consume_sz = vic_fmt->bytesperline_mult*real_width;
->>>>> +                     unsigned int wsz = 0;
->>>>> +                     if(is_read)
->>>>> +                             wsz = fread(buf_p, 1, consume_sz, fpointer);
->>>>> +                     else
->>>>> +                             wsz = fwrite(buf_p, 1, consume_sz, fpointer);
->>>>> +                     sz += wsz;
->>>>> +                     if(wsz == 0 && i == 0)
->>>>> +                             break;
->>>>> +                     if(wsz != consume_sz) {
->>>>> +                             fprintf(stderr, "padding: needed %u bytes, got %u\n",consume_sz, wsz);
->>>>> +                             return false;
->>>>> +                     }
->>>>> +                     buf_p += vic_fmt->chroma_step*coded_width;
->>>>> +             }
->>>>> +     break;
->>>>> +
->>>>> +     case V4L2_PIX_FMT_NV12:
->>>>> +     case V4L2_PIX_FMT_NV16:
->>>>> +     case V4L2_PIX_FMT_NV24:
->>>>> +     case V4L2_PIX_FMT_NV21:
->>>>> +     case V4L2_PIX_FMT_NV61:
->>>>> +     case V4L2_PIX_FMT_NV42:
->>>>> +             for(unsigned plane_idx = 0; plane_idx < 2; plane_idx++) {
->>>>> +                     unsigned h_div = (plane_idx == 0) ? 1 : vic_fmt->height_div;
->>>>> +                     unsigned w_div = (plane_idx == 0) ? 1 : vic_fmt->width_div;
->>>>> +                     unsigned step  =  (plane_idx == 0) ? vic_fmt->luma_alpha_step : vic_fmt->chroma_step;
->>>>> +
->>>>> +                     for(unsigned i=0; i <  real_height/h_div; i++) {
->>>>> +                             unsigned int wsz = 0;
->>>>> +                             unsigned int consume_sz = step * real_width / w_div;
->>>>> +                             if(is_read)
->>>>> +                                     wsz = fread(buf_p, 1,  consume_sz, fpointer);
->>>>> +                             else
->>>>> +                                     wsz = fwrite(buf_p, 1, consume_sz, fpointer);
->>>>> +                             if(wsz == 0 && i == 0 && plane_idx == 0)
->>>>> +                                     break;
->>>>> +                             if(wsz != consume_sz) {
->>>>> +                                     fprintf(stderr, "padding: needed %u bytes, got %u\n",consume_sz, wsz);
->>>>> +                                     return true;
->>>>> +                             }
->>>>> +                             sz += wsz;
->>>>> +                             buf_p += step*coded_width/w_div;
->>>>> +                     }
->>>>> +                     buf_p += (coded_width / w_div) * (coded_height - real_height) / h_div;
->>>>> +
->>>>> +                     if(sz == 0)
->>>>> +                             break;
->>>>> +             }
->>>>> +     break;
->>>>> +     case V4L2_PIX_FMT_YUV420:
->>>>> +     case V4L2_PIX_FMT_YUV422P:
->>>>> +     case V4L2_PIX_FMT_YVU420:
->>>>> +     case V4L2_PIX_FMT_GREY:
->>>>> +             for(unsigned comp_idx = 0; comp_idx < vic_fmt->components_num; comp_idx++) {
->>>>> +                     unsigned h_div = (comp_idx == 0) ? 1 : vic_fmt->height_div;
->>>>> +                     unsigned w_div = (comp_idx == 0) ? 1 : vic_fmt->width_div;
->>>>> +
->>>>> +                     for(unsigned i=0; i < real_height/h_div; i++) {
->>>>> +                             unsigned int wsz = 0;
->>>>> +                             unsigned int consume_sz = real_width/w_div;
->>>>> +                             if(is_read)
->>>>> +                                     wsz = fread(buf_p, 1, consume_sz, fpointer);
->>>>> +                             else
->>>>> +                                     wsz = fwrite(buf_p, 1, consume_sz, fpointer);
->>>>> +                             if(wsz == 0 && i == 0 && comp_idx == 0)
->>>>> +                                     break;
->>>>> +                             if(wsz != consume_sz) {
->>>>> +                                     fprintf(stderr, "padding: needed %u bytes, got %u\n",consume_sz, wsz);
->>>>> +                                     return true;
->>>>> +                             }
->>>>> +                             sz += wsz;
->>>>> +                             buf_p += coded_width/w_div;
->>>>> +                     }
->>>>> +                     buf_p += (coded_width / w_div) * (coded_height - real_height) / h_div;
->>>>> +
->>>>> +                     if(sz == 0)
->>>>> +                             break;
->>>>> +             }
->>>>> +             break;
->>>>> +     default:
->>>>> +             fprintf(stderr,"the format is not supported yet\n");
->>>>> +             return false;
->>>>> +     }
->>>>> +     return true;
->>>>> +}
->>>>> +
->>>>> +static bool fill_buffer_from_file(cv4l_fd &fd, cv4l_queue &q, cv4l_buffer &b, FILE *fin)
->>>>>  {
->>>>>       static bool first = true;
->>>>>       static bool is_fwht = false;
->>>>> @@ -785,7 +992,15 @@ restart:
->>>>>                               return false;
->>>>>                       }
->>>>>               }
->>>>> -             sz = fread(buf, 1, len, fin);
->>>>> +
->>>>> +             if(is_m2m_enc) {
->>>>> +                     if(!padding(fd, q, (unsigned char*) buf, fin, sz, len, true))
->>>>> +                             return false;
->>>>> +             }
->>>>> +             else {
->>>>> +                     sz = fread(buf, 1, len, fin);
->>>>> +             }
->>>>> +
->>>>>               if (first && sz != len) {
->>>>>                       fprintf(stderr, "Insufficient data\n");
->>>>>                       return false;
->>>>> @@ -908,7 +1123,7 @@ static int do_setup_out_buffers(cv4l_fd &fd, cv4l_queue &q, FILE *fin, bool qbuf
->>>>>                                       tpg_fillbuffer(&tpg, stream_out_std, j, (u8 *)q.g_dataptr(i, j));
->>>>>                       }
->>>>>               }
->>>>> -             if (fin && !fill_buffer_from_file(q, buf, fin))
->>>>> +             if (fin && !fill_buffer_from_file(fd, q, buf, fin))
->>>>>                       return -2;
->>>>>
->>>>>               if (qbuf) {
->>>>> @@ -960,7 +1175,7 @@ static int do_handle_cap(cv4l_fd &fd, cv4l_queue &q, FILE *fout, int *index,
->>>>>               if (fd.qbuf(buf))
->>>>>                       return -1;
->>>>>       }
->>>>> -
->>>>> +
->>>>
->>>> Seems to be a whitespace only change, just drop this change.
->>>>
->>>>>       double ts_secs = buf.g_timestamp().tv_sec + buf.g_timestamp().tv_usec / 1000000.0;
->>>>>       fps_ts.add_ts(ts_secs, buf.g_sequence(), buf.g_field());
->>>>>
->>>>> @@ -1023,8 +1238,15 @@ static int do_handle_cap(cv4l_fd &fd, cv4l_queue &q, FILE *fout, int *index,
->>>>>                       }
->>>>>                       if (host_fd_to >= 0)
->>>>>                               sz = fwrite(comp_ptr[j] + offset, 1, used, fout);
->>>>> -                     else
->>>>> -                             sz = fwrite((u8 *)q.g_dataptr(buf.g_index(), j) + offset, 1, used, fout);
->>>>> +                     else {
->>>>> +                             if(!is_m2m_enc) {
->>>>> +                                     if(!padding(fd, q, (u8 *)q.g_dataptr(buf.g_index(), j) + offset, fout, sz, used, false))
->>>>> +                                             return false;
->>>>> +                             }
->>>>> +                             else {
->>>>> +                                     sz = fwrite((u8 *)q.g_dataptr(buf.g_index(), j) + offset, 1, used, fout);
->>>>> +                             }
->>>>> +                     }
->>>>
->>>> This doesn't feel right.
->>>>
->>>> I think a write_buffer_to_file() function should be introduced that deals with these
->>>> variations.
->>>
->>> Not sure what you meant, should I implement this if-else in another function ?
->>> The "padding" function is used both for reading and writing to/from
->>> padded buffer.
->>> The condition for calling it here should be changed to
->>> "if(is_m2m_dec)" in which case "padding" will
->>> write a raw frame to a file from the padded capture buffer.
->>
->> static void write_buffer_to_file(cv4l_queue &q, cv4l_buffer &b, FILE *fout)
->> {
->> #ifndef NO_STREAM_TO
->>         // code
->> #endif
->> }
->>
->> And in do_handle_cap() drop the NO_STREAM_TO and replace it with a call
->> to the new function:
->>
->>         if (fout && (!stream_skip || ignore_count_skip) &&
->>             buf.g_bytesused(0) && !(buf.g_flags() & V4L2_BUF_FLAG_ERROR))
->>                 write_buffer_to_file(q, buf, fout);
->>
->> This can be done in a separate patch: first refactor the code, introducing the
->> new function, then add support for handling padding.
->>
->>>
->>>>
->>>>>
->>>>>                       if (sz != used)
->>>>>                               fprintf(stderr, "%u != %u\n", sz, used);
->>>>> @@ -1130,7 +1352,7 @@ static int do_handle_out(cv4l_fd &fd, cv4l_queue &q, FILE *fin, cv4l_buffer *cap
->>>>>                       output_field = V4L2_FIELD_TOP;
->>>>>       }
->>>>>
->>>>> -     if (fin && !fill_buffer_from_file(q, buf, fin))
->>>>> +     if (fin && !fill_buffer_from_file(fd, q, buf, fin))
->>>>>               return -2;
->>>>>
->>>>>       if (!fin && stream_out_refresh) {
->>>>> @@ -1227,7 +1449,7 @@ static void streaming_set_cap(cv4l_fd &fd)
->>>>>               }
->>>>>               break;
->>>>>       }
->>>>> -
->>>>> +
->>>>>       memset(&sub, 0, sizeof(sub));
->>>>>       sub.type = V4L2_EVENT_EOS;
->>>>>       fd.subscribe_event(sub);
->>>>> @@ -2031,6 +2253,21 @@ void streaming_set(cv4l_fd &fd, cv4l_fd &out_fd)
->>>>>       int do_cap = options[OptStreamMmap] + options[OptStreamUser] + options[OptStreamDmaBuf];
->>>>>       int do_out = options[OptStreamOutMmap] + options[OptStreamOutUser] + options[OptStreamOutDmaBuf];
->>>>>
->>>>> +     int r = get_codec_type(fd.g_fd(), is_m2m_enc);
->>>>> +     if(r) {
->>>>> +             fprintf(stderr, "error checking codec type\n");
->>>>> +             return;
->>>>> +     }
->>>>> +
->>>>> +     r = get_visible_format(fd.g_fd(), visible_width, visible_height);
->>>>> +
->>>>> +     if(r) {
->>>>> +             fprintf(stderr, "error getting the visible width\n");
->>>>> +             return;
->>>>> +     }
->>>>> +
->>>>> +     get_frame_dims(frame_width, frame_height);
->>>>> +
->>>>>       if (out_fd.g_fd() < 0) {
->>>>>               out_capabilities = capabilities;
->>>>>               out_priv_magic = priv_magic;
->>>>> diff --git a/utils/v4l2-ctl/v4l2-ctl-vidcap.cpp b/utils/v4l2-ctl/v4l2-ctl-vidcap.cpp
->>>>> index dc17a868..932f1fd2 100644
->>>>> --- a/utils/v4l2-ctl/v4l2-ctl-vidcap.cpp
->>>>> +++ b/utils/v4l2-ctl/v4l2-ctl-vidcap.cpp
->>>>> @@ -244,6 +244,12 @@ void vidcap_get(cv4l_fd &fd)
->>>>>       }
->>>>>  }
->>>>>
->>>>> +void vidcap_get_orig_from_set(unsigned int &r_width, unsigned int &r_height) {
->>>>> +     r_height = height;
->>>>> +     r_width = width;
->>>>> +}
->>>>> +
->>>>> +
->>>>>  void vidcap_list(cv4l_fd &fd)
->>>>>  {
->>>>>       if (options[OptListFormats]) {
->>>>> diff --git a/utils/v4l2-ctl/v4l2-ctl-vidout.cpp b/utils/v4l2-ctl/v4l2-ctl-vidout.cpp
->>>>> index 5823df9c..05bd43ed 100644
->>>>> --- a/utils/v4l2-ctl/v4l2-ctl-vidout.cpp
->>>>> +++ b/utils/v4l2-ctl/v4l2-ctl-vidout.cpp
->>>>> @@ -208,6 +208,11 @@ void vidout_get(cv4l_fd &fd)
->>>>>       }
->>>>>  }
->>>>>
->>>>> +void vidout_get_orig_from_set(unsigned int &r_width, unsigned int &r_height) {
->>>>> +     r_height = height;
->>>>> +     r_width = width;
->>>>> +}
->>>>
->>>> Don't do this (same for vidcap_get_orig_from_set).
->>>>
->>>> I think you just want to get the width and height from VIDIOC_G_FMT here,
->>>> so why not just call that?
->>>>
->>> Those width/height are the values that are given by the user command.
->>
->> Yes, but those values are used in ioctl calls to the driver, so rather
->> than using those values you query the driver.
->>
->>> They are needed in order to
->>> read raw frames line by line for the encoder.
->>
->> Why not call G_FMT and G_SELECTION(TGT_CROP) to obtain that information?
->>
->> Please note that all the set and get options are all processed before the
->> streaming options. So when you start streaming the driver is fully configured.
->>
->>> Maybe I can implement it by calling 'parse_fmt' in 'stream_cmd'
->>> function similar to how 'vidout_cmd' do it.
->>>
->>> https://git.linuxtv.org/v4l-utils.git/tree/utils/v4l2-ctl/v4l2-ctl-vidout.cpp#n90
->>>
->>>
->>>> Remember that you can call v4l2-ctl without setting the output width and height
->>>> if the defaults that the driver sets are already fine. In that case the width and height
->>>> variables in this source are just 0.
->>>>
->>>>> +
->>>>>  void vidout_list(cv4l_fd &fd)
->>>>>  {
->>>>>       if (options[OptListOutFormats]) {
->>>>> diff --git a/utils/v4l2-ctl/v4l2-ctl.h b/utils/v4l2-ctl/v4l2-ctl.h
->>>>> index 5a52a0a4..ab2994b2 100644
->>>>> --- a/utils/v4l2-ctl/v4l2-ctl.h
->>>>> +++ b/utils/v4l2-ctl/v4l2-ctl.h
->>>>> @@ -357,6 +357,8 @@ void vidout_cmd(int ch, char *optarg);
->>>>>  void vidout_set(cv4l_fd &fd);
->>>>>  void vidout_get(cv4l_fd &fd);
->>>>>  void vidout_list(cv4l_fd &fd);
->>>>> +void vidcap_get_orig_from_set(unsigned int &r_width, unsigned int &r_height);
->>>>> +void vidout_get_orig_from_set(unsigned int &r_width, unsigned int &r_height);
->>>>>
->>>>>  // v4l2-ctl-overlay.cpp
->>>>>  void overlay_usage(void);
->>>>>
->>>>
->>>> This patch needs more work (not surprisingly, since it takes a bit of time to
->>>> understand the v4l2-ctl source code).
->>>>
->>>> Please stick to the kernel coding style! Using a different style makes it harder
->>>> for me to review since my pattern matches routines in my brain no longer work
->>>> optimally. It's like reading text with spelling mistakes, you cn stil undrstant iT,
->>>> but it tekes moore teem. :-)
->>>>
->>> okei :)
->>>
->>>> Regards,
->>>>
->>>>         Hans
->>
->> Regards,
->>
->>         Hans
-
