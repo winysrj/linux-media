@@ -2,435 +2,737 @@ Return-Path: <SRS0=s3Lq=O5=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B43EEC43444
-	for <linux-media@archiver.kernel.org>; Thu, 20 Dec 2018 21:57:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 433DCC43387
+	for <linux-media@archiver.kernel.org>; Thu, 20 Dec 2018 22:24:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 782FC21905
-	for <linux-media@archiver.kernel.org>; Thu, 20 Dec 2018 21:57:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E0CC6218FD
+	for <linux-media@archiver.kernel.org>; Thu, 20 Dec 2018 22:24:26 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=nextdimension.cc header.i=@nextdimension.cc header.b="XE2ieY6O"
+	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="RYbuXGhM"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390110AbeLTV5c (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 20 Dec 2018 16:57:32 -0500
-Received: from goldenrod.birch.relay.mailchannels.net ([23.83.209.74]:28407
-        "EHLO goldenrod.birch.relay.mailchannels.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1732798AbeLTV5b (ORCPT
+        id S2390143AbeLTWY0 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 20 Dec 2018 17:24:26 -0500
+Received: from perceval.ideasonboard.com ([213.167.242.64]:55874 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2390141AbeLTWY0 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 20 Dec 2018 16:57:31 -0500
-X-Sender-Id: dreamhost|x-authsender|brad@nextdimension.ws
-Received: from relay.mailchannels.net (localhost [127.0.0.1])
-        by relay.mailchannels.net (Postfix) with ESMTP id 0C4114361B;
-        Thu, 20 Dec 2018 21:57:30 +0000 (UTC)
-Received: from pdx1-sub0-mail-a58.g.dreamhost.com (unknown [100.96.20.98])
-        (Authenticated sender: dreamhost)
-        by relay.mailchannels.net (Postfix) with ESMTPA id 89A65411FC;
-        Thu, 20 Dec 2018 21:57:29 +0000 (UTC)
-X-Sender-Id: dreamhost|x-authsender|brad@nextdimension.ws
-Received: from pdx1-sub0-mail-a58.g.dreamhost.com (pop.dreamhost.com
- [64.90.62.162])
-        (using TLSv1.2 with cipher DHE-RSA-AES256-GCM-SHA384)
-        by 0.0.0.0:2500 (trex/5.16.2);
-        Thu, 20 Dec 2018 21:57:30 +0000
-X-MC-Relay: Neutral
-X-MailChannels-SenderId: dreamhost|x-authsender|brad@nextdimension.ws
-X-MailChannels-Auth-Id: dreamhost
-X-Irritate-Name: 62b948f541ea6128_1545343049846_1526213912
-X-MC-Loop-Signature: 1545343049846:2001834599
-X-MC-Ingress-Time: 1545343049845
-Received: from pdx1-sub0-mail-a58.g.dreamhost.com (localhost [127.0.0.1])
-        by pdx1-sub0-mail-a58.g.dreamhost.com (Postfix) with ESMTP id 334AB80560;
-        Thu, 20 Dec 2018 13:57:29 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed; d=nextdimension.cc; h=from
-        :to:cc:subject:date:message-id:in-reply-to:references; s=
-        nextdimension.cc; bh=ctxRjkI2IEbfvvYizQdyu+CZ8pA=; b=XE2ieY6Ox43
-        eRl4myrR3+Hh/gwtXCbdNJ177Ea9OS9m3kAk08LR750cpFKkEZv2xULYfTo2WXuh
-        TLkitIEj556svEUAuJLOVwg76DOEx3dsSG9MqfyifDjptEqj7u6dIGGD0uLZduSG
-        6ZSejGQy1oRql0JrTfa/IswEG2NHyaL8=
-Received: from localhost.localdomain (66-90-189-166.dyn.grandenetworks.net [66.90.189.166])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-SHA256 (128/128 bits))
-        (No client certificate requested)
-        (Authenticated sender: brad@nextdimension.ws)
-        by pdx1-sub0-mail-a58.g.dreamhost.com (Postfix) with ESMTPSA id 932B080563;
-        Thu, 20 Dec 2018 13:57:28 -0800 (PST)
-X-DH-BACKEND: pdx1-sub0-mail-a58
-From:   Brad Love <brad@nextdimension.cc>
-To:     linux-media@vger.kernel.org, mchehab@kernel.org
-Cc:     Brad Love <brad@nextdimension.cc>
-Subject: [PATCH 4/4] pvrusb2: Add Hauppauge HVR1955/1975 devices
-Date:   Thu, 20 Dec 2018 15:57:11 -0600
-Message-Id: <1545343031-20935-5-git-send-email-brad@nextdimension.cc>
-X-Mailer: git-send-email 2.7.4
-In-Reply-To: <1545343031-20935-1-git-send-email-brad@nextdimension.cc>
-References: <1545343031-20935-1-git-send-email-brad@nextdimension.cc>
-X-VR-OUT-STATUS: OK
-X-VR-OUT-SCORE: 30
-X-VR-OUT-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedtkedrudejfedgudehiecutefuodetggdotefrodftvfcurfhrohhfihhlvgemucggtfgfnhhsuhgsshgtrhhisggvpdfftffgtefojffquffvnecuuegrihhlohhuthemuceftddtnecufghrlhcuvffnffculdeftddmnecujfgurhephffvufffkffojghfsedttdertdertddtnecuhfhrohhmpeeurhgrugcunfhovhgvuceosghrrggusehnvgigthguihhmvghnshhiohhnrdgttgeqnecukfhppeeiiedrledtrddukeelrdduieeinecurfgrrhgrmhepmhhouggvpehsmhhtphdphhgvlhhopehlohgtrghlhhhoshhtrdhlohgtrghlughomhgrihhnpdhinhgvthepieeirdeltddrudekledrudeiiedprhgvthhurhhnqdhprghthhepuehrrgguucfnohhvvgcuoegsrhgrugesnhgvgihtughimhgvnhhsihhonhdrtggtqedpmhgrihhlfhhrohhmpegsrhgrugesnhgvgihtughimhgvnhhsihhonhdrtggtpdhnrhgtphhtthhopegsrhgrugesnhgvgihtughimhgvnhhsihhonhdrtggtnecuvehluhhsthgvrhfuihiivgepvd
+        Thu, 20 Dec 2018 17:24:26 -0500
+Received: from avalon.localnet (dfj612ybrt5fhg77mgycy-3.rev.dnainternet.fi [IPv6:2001:14ba:21f5:5b00:2e86:4862:ef6a:2804])
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 0302B565;
+        Thu, 20 Dec 2018 23:24:18 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
+        s=mail; t=1545344659;
+        bh=lP3uX2gQ3kNFuFy4x8SSICxvnZysXSNQyKH35bC9mJQ=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=RYbuXGhMHNkfIzV3r4nYrupweLIuBtmcV9m+12AUpvV77xg7mKgcFoRPsEHDXBu2Z
+         IMQhZToS3NvXLOXMfz2j42J4zc8ZE9ANnJfYqUsJf3NqTpBfAcP4rfCzfBt3H8ZSHe
+         5p1VXPtnDaw/NbkMGZAQuDnEB6pv6Fcv+CvuSmRA=
+From:   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc:     "Zhi, Yong" <yong.zhi@intel.com>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "Hu, Jerry W" <jerry.w.hu@intel.com>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
+        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
+        "Cao, Bingbu" <bingbu.cao@intel.com>
+Subject: Re: [PATCH v7 00/16] Intel IPU3 ImgU patchset
+Date:   Fri, 21 Dec 2018 00:25:14 +0200
+Message-ID: <3475971.piroVKfGO7@avalon>
+Organization: Ideas on Board Oy
+In-Reply-To: <2135468.G1bK1392oW@avalon>
+References: <1540851790-1777-1-git-send-email-yong.zhi@intel.com> <1819843.KIqgResAvh@avalon> <2135468.G1bK1392oW@avalon>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Includes support to identify and use two Hauppauge device.
-HVR-1955:
-- LGDT3306a ATSC/QAM demod
-- si2177 tuner
-- cx25840 decoder for analog tv/composite/s-video/audio
+Hellon
 
-HVR-1975 dual-frontend:
-- LGDT3306a ATSC/QAM demod
-- si2168 DVB-C/T/T2 demod
-- si2177 tuner
-- cx25840 decoder for analog tv/composite/s-video/audio
+On Sunday, 16 December 2018 09:26:18 EET Laurent Pinchart wrote:
+> Hello Yong,
+> 
+> Could you please have a look at the crash reported below ?
 
-Signed-off-by: Brad Love <brad@nextdimension.cc>
----
- drivers/media/usb/pvrusb2/Kconfig               |   2 +
- drivers/media/usb/pvrusb2/pvrusb2-cx2584x-v4l.c |  25 ++++
- drivers/media/usb/pvrusb2/pvrusb2-devattr.c     | 166 ++++++++++++++++++++++++
- drivers/media/usb/pvrusb2/pvrusb2-devattr.h     |   1 +
- drivers/media/usb/pvrusb2/pvrusb2-fx2-cmd.h     |   4 +
- drivers/media/usb/pvrusb2/pvrusb2-hdw.c         |  36 ++++-
- 6 files changed, 233 insertions(+), 1 deletion(-)
+A bit more information to help you debugging this. I've enabled KASAN in the
+kernel configuration, and get the following use-after-free reports.
 
-diff --git a/drivers/media/usb/pvrusb2/Kconfig b/drivers/media/usb/pvrusb2/Kconfig
-index 1ad913f..144631c 100644
---- a/drivers/media/usb/pvrusb2/Kconfig
-+++ b/drivers/media/usb/pvrusb2/Kconfig
-@@ -40,6 +40,8 @@ config VIDEO_PVRUSB2_DVB
- 	select DVB_S5H1409 if MEDIA_SUBDRV_AUTOSELECT
- 	select DVB_S5H1411 if MEDIA_SUBDRV_AUTOSELECT
- 	select DVB_TDA10048 if MEDIA_SUBDRV_AUTOSELECT
-+	select DVB_LGDT3306A if MEDIA_SUBDRV_AUTOSELECT
-+	select DVB_SI2168 if MEDIA_SUBDRV_AUTOSELECT
- 	select MEDIA_TUNER_TDA18271 if MEDIA_SUBDRV_AUTOSELECT
- 	select MEDIA_TUNER_SIMPLE if MEDIA_SUBDRV_AUTOSELECT
- 	select MEDIA_TUNER_TDA8290 if MEDIA_SUBDRV_AUTOSELECT
-diff --git a/drivers/media/usb/pvrusb2/pvrusb2-cx2584x-v4l.c b/drivers/media/usb/pvrusb2/pvrusb2-cx2584x-v4l.c
-index d5bec0f..36016ab 100644
---- a/drivers/media/usb/pvrusb2/pvrusb2-cx2584x-v4l.c
-+++ b/drivers/media/usb/pvrusb2/pvrusb2-cx2584x-v4l.c
-@@ -111,10 +111,35 @@ static const struct routing_scheme routing_defav400 = {
- 	.cnt = ARRAY_SIZE(routing_schemeav400),
- };
- 
-+static const struct routing_scheme_item routing_scheme160xxx[] = {
-+	[PVR2_CVAL_INPUT_TV] = {
-+		.vid = CX25840_COMPOSITE7,
-+		.aud = CX25840_AUDIO8,
-+	},
-+	[PVR2_CVAL_INPUT_RADIO] = {
-+		.vid = CX25840_COMPOSITE4,
-+		.aud = CX25840_AUDIO6,
-+	},
-+	[PVR2_CVAL_INPUT_COMPOSITE] = {
-+		.vid = CX25840_COMPOSITE3,
-+		.aud = CX25840_AUDIO_SERIAL,
-+	},
-+	[PVR2_CVAL_INPUT_SVIDEO] = {
-+		.vid = CX25840_SVIDEO1,
-+		.aud = CX25840_AUDIO_SERIAL,
-+	},
-+};
-+
-+static const struct routing_scheme routing_def160xxx = {
-+	.def = routing_scheme160xxx,
-+	.cnt = ARRAY_SIZE(routing_scheme160xxx),
-+};
-+
- static const struct routing_scheme *routing_schemes[] = {
- 	[PVR2_ROUTING_SCHEME_HAUPPAUGE] = &routing_def0,
- 	[PVR2_ROUTING_SCHEME_GOTVIEW] = &routing_defgv,
- 	[PVR2_ROUTING_SCHEME_AV400] = &routing_defav400,
-+	[PVR2_ROUTING_SCHEME_HAUP160XXX] = &routing_def160xxx,
- };
- 
- void pvr2_cx25840_subdev_update(struct pvr2_hdw *hdw, struct v4l2_subdev *sd)
-diff --git a/drivers/media/usb/pvrusb2/pvrusb2-devattr.c b/drivers/media/usb/pvrusb2/pvrusb2-devattr.c
-index ef36b62..ecec688 100644
---- a/drivers/media/usb/pvrusb2/pvrusb2-devattr.c
-+++ b/drivers/media/usb/pvrusb2/pvrusb2-devattr.c
-@@ -37,6 +37,9 @@ pvr2_device_desc structures.
- #include "tda18271.h"
- #include "tda8290.h"
- #include "tuner-simple.h"
-+#include "si2157.h"
-+#include "lgdt3306a.h"
-+#include "si2168.h"
- #endif
- 
- 
-@@ -474,6 +477,165 @@ static const struct pvr2_dvb_props pvr2_751xx_dvb_props = {
- };
- #endif
- 
-+/*------------------------------------------------------------------------*/
-+/*    Hauppauge PVR-USB2 Model 160000 / 160111 -- HVR-1955 / HVR-1975     */
-+
-+static int pvr2_si2157_attach(struct pvr2_dvb_adapter *adap)
-+{
-+	struct si2157_config si2157_config = {};
-+
-+	si2157_config.inversion = 1;
-+	si2157_config.fe = adap->fe[0];
-+
-+	adap->i2c_client_tuner = dvb_module_probe("si2157", "si2177",
-+						&adap->channel.hdw->i2c_adap,
-+						0x60, &si2157_config);
-+
-+	if (!adap->i2c_client_tuner)
-+		return -ENODEV;
-+
-+	return 0;
-+}
-+
-+#define PVR2_FIRMWARE_160xxx "v4l-pvrusb2-160xxx-01.fw"
-+static const char *pvr2_fw1_names_160xxx[] = {
-+		PVR2_FIRMWARE_160xxx,
-+};
-+
-+static int pvr2_si2157_attach(struct pvr2_dvb_adapter *adap);
-+static int pvr2_dual_fe_attach(struct pvr2_dvb_adapter *adap);
-+static int pvr2_lgdt3306a_attach(struct pvr2_dvb_adapter *adap);
-+
-+static const struct pvr2_dvb_props pvr2_160000_dvb_props = {
-+	.frontend_attach = pvr2_dual_fe_attach,
-+	.tuner_attach    = pvr2_si2157_attach,
-+};
-+static const struct pvr2_device_client_desc pvr2_cli_160000[] = {
-+	{ .module_id = PVR2_CLIENT_ID_CX25840 },
-+};
-+static const struct pvr2_device_desc pvr2_device_160000 = {
-+		.description = "WinTV HVR-1975 Model 160000",
-+		.shortname = "160000",
-+		.client_table.lst = pvr2_cli_160000,
-+		.client_table.cnt = ARRAY_SIZE(pvr2_cli_160000),
-+		.fx2_firmware.lst = pvr2_fw1_names_160xxx,
-+		.fx2_firmware.cnt = ARRAY_SIZE(pvr2_fw1_names_160xxx),
-+		.default_tuner_type = TUNER_ABSENT,
-+		.flag_has_cx25840 = !0,
-+		.flag_has_hauppauge_rom = !0,
-+		.flag_has_analogtuner = !0,
-+		.flag_has_composite = !0,
-+		.flag_has_svideo = !0,
-+		.flag_fx2_16kb = !0,
-+		.signal_routing_scheme = PVR2_ROUTING_SCHEME_HAUPPAUGE,
-+		.digital_control_scheme = PVR2_DIGITAL_SCHEME_HAUPPAUGE,
-+		.default_std_mask = V4L2_STD_NTSC_M,
-+		.led_scheme = PVR2_LED_SCHEME_HAUPPAUGE,
-+		.ir_scheme = PVR2_IR_SCHEME_ZILOG,
-+#ifdef CONFIG_VIDEO_PVRUSB2_DVB
-+		.dvb_props = &pvr2_160000_dvb_props,
-+#endif
-+};
-+
-+static const struct pvr2_dvb_props pvr2_160111_dvb_props = {
-+	.frontend_attach = pvr2_lgdt3306a_attach,
-+	.tuner_attach    = pvr2_si2157_attach,
-+};
-+static const struct pvr2_device_client_desc pvr2_cli_160111[] = {
-+	{ .module_id = PVR2_CLIENT_ID_CX25840 },
-+};
-+static const struct pvr2_device_desc pvr2_device_160111 = {
-+		.description = "WinTV HVR-1955 Model 160111",
-+		.shortname = "160111",
-+		.client_table.lst = pvr2_cli_160111,
-+		.client_table.cnt = ARRAY_SIZE(pvr2_cli_160111),
-+		.fx2_firmware.lst = pvr2_fw1_names_160xxx,
-+		.fx2_firmware.cnt = ARRAY_SIZE(pvr2_fw1_names_160xxx),
-+		.default_tuner_type = TUNER_ABSENT,
-+		.flag_has_cx25840 = !0,
-+		.flag_has_hauppauge_rom = !0,
-+		.flag_has_analogtuner = !0,
-+		.flag_has_composite = !0,
-+		.flag_has_svideo = !0,
-+		.flag_fx2_16kb = !0,
-+		.signal_routing_scheme = PVR2_ROUTING_SCHEME_HAUPPAUGE,
-+		.digital_control_scheme = PVR2_DIGITAL_SCHEME_HAUPPAUGE,
-+		.default_std_mask = V4L2_STD_NTSC_M,
-+		.led_scheme = PVR2_LED_SCHEME_HAUPPAUGE,
-+		.ir_scheme = PVR2_IR_SCHEME_ZILOG,
-+#ifdef CONFIG_VIDEO_PVRUSB2_DVB
-+		.dvb_props = &pvr2_160111_dvb_props,
-+#endif
-+};
-+
-+static int pvr2_si2168_attach(struct pvr2_dvb_adapter *adap)
-+{
-+	struct si2168_config si2168_config = {};
-+	struct i2c_adapter *adapter;
-+
-+	pr_debug("%s()\n", __func__);
-+
-+	si2168_config.fe = &adap->fe[1];
-+	si2168_config.i2c_adapter = &adapter;
-+	si2168_config.ts_mode = SI2168_TS_PARALLEL; /*2, 1-serial, 2-parallel.*/
-+	si2168_config.ts_clock_gapped = 1; /*0-disabled, 1-enabled.*/
-+	si2168_config.ts_clock_inv = 0; /*0-not-invert, 1-invert*/
-+	si2168_config.spectral_inversion = 1; /*0-not-invert, 1-invert*/
-+
-+	adap->i2c_client_demod[1] = dvb_module_probe("si2168", NULL,
-+						&adap->channel.hdw->i2c_adap,
-+						0x64, &si2168_config);
-+
-+	if (!adap->i2c_client_demod[1])
-+		return -ENODEV;
-+
-+	return 0;
-+}
-+
-+static int pvr2_lgdt3306a_attach(struct pvr2_dvb_adapter *adap)
-+{
-+	struct lgdt3306a_config lgdt3306a_config;
-+	struct i2c_adapter *adapter;
-+
-+	pr_debug("%s()\n", __func__);
-+
-+	/* attach demod */
-+	lgdt3306a_config.fe = &adap->fe[0];
-+	lgdt3306a_config.i2c_adapter = &adapter;
-+	lgdt3306a_config.deny_i2c_rptr = 1;
-+	lgdt3306a_config.spectral_inversion = 1;
-+	lgdt3306a_config.qam_if_khz = 4000;
-+	lgdt3306a_config.vsb_if_khz = 3250;
-+	lgdt3306a_config.mpeg_mode = LGDT3306A_MPEG_PARALLEL;
-+	lgdt3306a_config.tpclk_edge = LGDT3306A_TPCLK_FALLING_EDGE;
-+	lgdt3306a_config.tpvalid_polarity = LGDT3306A_TP_VALID_LOW;
-+	lgdt3306a_config.xtalMHz = 25, /* demod clock MHz; 24/25 supported */
-+
-+	adap->i2c_client_demod[0] = dvb_module_probe("lgdt3306a", NULL,
-+						&adap->channel.hdw->i2c_adap,
-+						0x59, &lgdt3306a_config);
-+
-+	if (!adap->i2c_client_demod[0])
-+		return -ENODEV;
-+
-+	return 0;
-+}
-+
-+static int pvr2_dual_fe_attach(struct pvr2_dvb_adapter *adap)
-+{
-+	pr_debug("%s()\n", __func__);
-+
-+	if (pvr2_lgdt3306a_attach(adap) != 0)
-+		return -ENODEV;
-+
-+	if (pvr2_si2168_attach(adap) != 0) {
-+		dvb_module_release(adap->i2c_client_demod[0]);
-+		return -ENODEV;
-+	}
-+
-+	return 0;
-+}
-+
- #define PVR2_FIRMWARE_75xxx "v4l-pvrusb2-73xxx-01.fw"
- static const char *pvr2_fw1_names_75xxx[] = {
- 		PVR2_FIRMWARE_75xxx,
-@@ -552,6 +714,10 @@ struct usb_device_id pvr2_device_table[] = {
- 	  .driver_info = (kernel_ulong_t)&pvr2_device_751xx},
- 	{ USB_DEVICE(0x0ccd, 0x0039),
- 	  .driver_info = (kernel_ulong_t)&pvr2_device_av400},
-+	{ USB_DEVICE(0x2040, 0x7502),
-+	  .driver_info = (kernel_ulong_t)&pvr2_device_160111},
-+	{ USB_DEVICE(0x2040, 0x7510),
-+	  .driver_info = (kernel_ulong_t)&pvr2_device_160000},
- 	{ }
- };
- 
-diff --git a/drivers/media/usb/pvrusb2/pvrusb2-devattr.h b/drivers/media/usb/pvrusb2/pvrusb2-devattr.h
-index c1e7d48..ea0b2bf 100644
---- a/drivers/media/usb/pvrusb2/pvrusb2-devattr.h
-+++ b/drivers/media/usb/pvrusb2/pvrusb2-devattr.h
-@@ -66,6 +66,7 @@ struct pvr2_string_table {
- #define PVR2_ROUTING_SCHEME_GOTVIEW 1
- #define PVR2_ROUTING_SCHEME_ONAIR 2
- #define PVR2_ROUTING_SCHEME_AV400 3
-+#define PVR2_ROUTING_SCHEME_HAUP160XXX 4
- 
- #define PVR2_DIGITAL_SCHEME_NONE 0
- #define PVR2_DIGITAL_SCHEME_HAUPPAUGE 1
-diff --git a/drivers/media/usb/pvrusb2/pvrusb2-fx2-cmd.h b/drivers/media/usb/pvrusb2/pvrusb2-fx2-cmd.h
-index 0a01de4..640b033 100644
---- a/drivers/media/usb/pvrusb2/pvrusb2-fx2-cmd.h
-+++ b/drivers/media/usb/pvrusb2/pvrusb2-fx2-cmd.h
-@@ -38,6 +38,10 @@
- 
- #define FX2CMD_FWPOST1          0x52u
- 
-+/* These 2 only exist on Model 160xxx */
-+#define FX2CMD_HCW_DEMOD_RESET_PIN 0xd4u
-+#define FX2CMD_HCW_MAKO_SLEEP_PIN  0xd5u
-+
- #define FX2CMD_POWER_OFF        0xdcu
- #define FX2CMD_POWER_ON         0xdeu
- 
-diff --git a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
-index 446a999..ab9e822 100644
---- a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
-+++ b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
-@@ -316,6 +316,8 @@ static const struct pvr2_fx2cmd_descdef pvr2_fx2cmd_desc[] = {
- 	{FX2CMD_ONAIR_DTV_STREAMING_OFF, "onair dtv stream off"},
- 	{FX2CMD_ONAIR_DTV_POWER_ON, "onair dtv power on"},
- 	{FX2CMD_ONAIR_DTV_POWER_OFF, "onair dtv power off"},
-+	{FX2CMD_HCW_DEMOD_RESET_PIN, "hcw demod reset pin"},
-+	{FX2CMD_HCW_MAKO_SLEEP_PIN, "hcw mako sleep pin"},
- };
- 
- 
-@@ -2137,10 +2139,28 @@ static void pvr2_hdw_setup_low(struct pvr2_hdw *hdw)
- 				      ((0) << 16));
- 	}
- 
--	// This step MUST happen after the earlier powerup step.
-+	/* This step MUST happen after the earlier powerup step */
- 	pvr2_i2c_core_init(hdw);
- 	if (!pvr2_hdw_dev_ok(hdw)) return;
- 
-+	/* Reset demod only on Hauppauge 160xxx platform */
-+	if (hdw->usb_dev->descriptor.idVendor == 0x2040 &&
-+	    (hdw->usb_dev->descriptor.idProduct == 0x7502 ||
-+	     hdw->usb_dev->descriptor.idProduct == 0x7510)) {
-+		pr_info("%s(): resetting 160xxx demod\n", __func__);
-+		/* TODO: not sure this is proper place to reset once only */
-+		pvr2_issue_simple_cmd(hdw,
-+				     FX2CMD_HCW_DEMOD_RESET_PIN |
-+				     (1 << 8) |
-+				     ((0) << 16));
-+		usleep_range(10000, 11000);
-+		pvr2_issue_simple_cmd(hdw,
-+				     FX2CMD_HCW_DEMOD_RESET_PIN |
-+				     (1 << 8) |
-+				     ((1) << 16));
-+		usleep_range(10000, 11000);
-+	}
-+
- 	pvr2_hdw_load_modules(hdw);
- 	if (!pvr2_hdw_dev_ok(hdw)) return;
- 
-@@ -4011,6 +4031,20 @@ int pvr2_hdw_cmd_decoder_reset(struct pvr2_hdw *hdw)
- static int pvr2_hdw_cmd_hcw_demod_reset(struct pvr2_hdw *hdw, int onoff)
- {
- 	hdw->flag_ok = !0;
-+
-+	/* Use this for Hauppauge 160xxx only */
-+	if (hdw->usb_dev->descriptor.idVendor == 0x2040 &&
-+	    (hdw->usb_dev->descriptor.idProduct == 0x7502 ||
-+	     hdw->usb_dev->descriptor.idProduct == 0x7510)) {
-+		pr_debug("%s(): resetting demod on Hauppauge 160xxx platform skipped\n",
-+			__func__);
-+		/* Can't reset 160xxx or it will trash Demod tristate */
-+		return pvr2_issue_simple_cmd(hdw,
-+				     FX2CMD_HCW_MAKO_SLEEP_PIN |
-+				     (1 << 8) |
-+				     ((onoff ? 1 : 0) << 16));
-+	}
-+
- 	return pvr2_issue_simple_cmd(hdw,
- 				     FX2CMD_HCW_DEMOD_RESETIN |
- 				     (1 << 8) |
+[  166.332920] ==================================================================
+[  166.332937] BUG: KASAN: use-after-free in __cached_rbnode_delete_update+0x36/0x202
+[  166.332944] Read of size 8 at addr ffff888133823718 by task yavta/1305
+
+[  166.332955] CPU: 3 PID: 1305 Comm: yavta Tainted: G         C        4.20.0-rc6+ #3
+[  166.332958] Hardware name: HP Soraka/Soraka, BIOS  08/30/2018
+[  166.332959] Call Trace:
+[  166.332967]  dump_stack+0x5b/0x81
+[  166.332974]  print_address_description+0x65/0x227
+[  166.332979]  ? __cached_rbnode_delete_update+0x36/0x202
+[  166.332983]  kasan_report+0x247/0x285
+[  166.332989]  __cached_rbnode_delete_update+0x36/0x202
+[  166.332995]  private_free_iova+0x57/0x6d
+[  166.332999]  __free_iova+0x23/0x31
+[  166.333011]  ipu3_dmamap_free+0x118/0x1d6 [ipu3_imgu]
+[  166.333022]  ipu3_css_pool_cleanup+0x25/0x2f [ipu3_imgu]
+[  166.333032]  ipu3_css_pipeline_cleanup+0x79/0xcf [ipu3_imgu]
+[  166.333043]  ipu3_css_stop_streaming+0x2fe/0x4dc [ipu3_imgu]
+[  166.333056]  imgu_s_stream+0xc0/0x6c0 [ipu3_imgu]
+[  166.333067]  ? ipu3_all_nodes_streaming+0x1ee/0x20d [ipu3_imgu]
+[  166.333079]  ipu3_vb2_stop_streaming+0x27c/0x2d2 [ipu3_imgu]
+[  166.333088]  __vb2_queue_cancel+0xa8/0x705 [videobuf2_common]
+[  166.333096]  ? __mutex_lock_interruptible_slowpath+0xf/0xf
+[  166.333104]  vb2_core_streamoff+0x68/0xf8 [videobuf2_common]
+[  166.333123]  __video_do_ioctl+0x625/0x887 [videodev]
+[  166.333142]  ? copy_overflow+0x14/0x14 [videodev]
+[  166.333147]  ? slab_free_freelist_hook+0x46/0x94
+[  166.333151]  ? kfree+0x107/0x1a0
+[  166.333169]  video_usercopy+0x3a3/0x8ae [videodev]
+[  166.333187]  ? copy_overflow+0x14/0x14 [videodev]
+[  166.333203]  ? v4l_enumstd+0x49/0x49 [videodev]
+[  166.333207]  ? __wake_up_common+0x342/0x342
+[  166.333215]  ? atomic_long_add_return+0x15/0x24
+[  166.333219]  ? ldsem_up_read+0x15/0x29
+[  166.333223]  ? tty_write+0x4c6/0x4d8
+[  166.333227]  ? n_tty_receive_char_special+0x1152/0x1152
+[  166.333244]  ? video_usercopy+0x8ae/0x8ae [videodev]
+[  166.333260]  v4l2_ioctl+0xb7/0xc5 [videodev]
+[  166.333266]  vfs_ioctl+0x76/0x89
+[  166.333271]  do_vfs_ioctl+0xb33/0xb7e
+[  166.333275]  ? __switch_to_asm+0x40/0x70
+[  166.333279]  ? __switch_to_asm+0x40/0x70
+[  166.333282]  ? __switch_to_asm+0x34/0x70
+[  166.333286]  ? __switch_to_asm+0x40/0x70
+[  166.333290]  ? ioctl_preallocate+0x174/0x174
+[  166.333294]  ? __switch_to+0x71c/0xb00
+[  166.333299]  ? compat_start_thread+0x6b/0x6b
+[  166.333302]  ? __switch_to_asm+0x34/0x70
+[  166.333305]  ? __switch_to_asm+0x40/0x70
+[  166.333309]  ? mmdrop+0x12/0x23
+[  166.333313]  ? finish_task_switch+0x34d/0x3de
+[  166.333319]  ? __schedule+0x1004/0x1045
+[  166.333325]  ? firmware_map_remove+0x119/0x119
+[  166.333330]  ksys_ioctl+0x50/0x70
+[  166.333335]  __x64_sys_ioctl+0x82/0x89
+[  166.333340]  do_syscall_64+0xa0/0xd2
+[  166.333345]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
+[  166.333349] RIP: 0033:0x7f2481541f47
+[  166.333354] Code: 00 00 00 48 8b 05 51 6f 2c 00 64 c7 00 26 00 00 00 48 c7 c0 ff ff ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 b8 10 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d 21 6f 2c 00 f7 d8 64 89 01 48
+[  166.333357] RSP: 002b:00007fffd6aff9b8 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+[  166.333362] RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00007f2481541f47
+[  166.333364] RDX: 00007fffd6aff9c4 RSI: 0000000040045613 RDI: 0000000000000003
+[  166.333367] RBP: 0000555f1c494af8 R08: 00007f247f34c000 R09: 00007f2481c24700
+[  166.333369] R10: 0000000000000020 R11: 0000000000000246 R12: 0000555f1c494b06
+[  166.333372] R13: 0000000000000004 R14: 00007fffd6affb90 R15: 00007fffd6b00825
+
+[  166.333383] Allocated by task 1305:
+[  166.333389]  kasan_kmalloc+0x8a/0x98
+[  166.333392]  slab_post_alloc_hook+0x31/0x51
+[  166.333396]  kmem_cache_alloc+0xd7/0x174
+[  166.333399]  alloc_iova+0x24/0x2ea
+[  166.333407]  ipu3_dmamap_alloc+0x193/0x83f [ipu3_imgu]
+[  166.333415]  ipu3_css_pool_init+0x80/0xdf [ipu3_imgu]
+[  166.333424]  ipu3_css_start_streaming+0x58df/0x5ddc [ipu3_imgu]
+[  166.333433]  imgu_s_stream+0x2dd/0x6c0 [ipu3_imgu]
+[  166.333442]  ipu3_vb2_start_streaming+0x35f/0x3de [ipu3_imgu]
+[  166.333449]  vb2_start_streaming+0x164/0x33b [videobuf2_common]
+[  166.333455]  vb2_core_streamon+0x1a1/0x208 [videobuf2_common]
+[  166.333471]  __video_do_ioctl+0x625/0x887 [videodev]
+[  166.333487]  video_usercopy+0x3a3/0x8ae [videodev]
+[  166.333501]  v4l2_ioctl+0xb7/0xc5 [videodev]
+[  166.333505]  vfs_ioctl+0x76/0x89
+[  166.333508]  do_vfs_ioctl+0xb33/0xb7e
+[  166.333511]  ksys_ioctl+0x50/0x70
+[  166.333514]  __x64_sys_ioctl+0x82/0x89
+[  166.333518]  do_syscall_64+0xa0/0xd2
+[  166.333521]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+[  166.333526] Freed by task 1301:
+[  166.333532]  __kasan_slab_free+0xfa/0x11c
+[  166.333535]  slab_free_freelist_hook+0x46/0x94
+[  166.333538]  kmem_cache_free+0x7b/0x172
+[  166.333542]  __free_iova+0x23/0x31
+[  166.333550]  ipu3_dmamap_free+0x118/0x1d6 [ipu3_imgu]
+[  166.333557]  ipu3_css_pool_cleanup+0x25/0x2f [ipu3_imgu]
+[  166.333566]  ipu3_css_pipeline_cleanup+0x79/0xcf [ipu3_imgu]
+[  166.333574]  ipu3_css_stop_streaming+0x2fe/0x4dc [ipu3_imgu]
+[  166.333584]  imgu_s_stream+0xc0/0x6c0 [ipu3_imgu]
+[  166.333593]  ipu3_vb2_stop_streaming+0x27c/0x2d2 [ipu3_imgu]
+[  166.333599]  __vb2_queue_cancel+0xa8/0x705 [videobuf2_common]
+[  166.333606]  vb2_core_streamoff+0x68/0xf8 [videobuf2_common]
+[  166.333621]  __video_do_ioctl+0x625/0x887 [videodev]
+[  166.333637]  video_usercopy+0x3a3/0x8ae [videodev]
+[  166.333652]  v4l2_ioctl+0xb7/0xc5 [videodev]
+[  166.333655]  vfs_ioctl+0x76/0x89
+[  166.333658]  do_vfs_ioctl+0xb33/0xb7e
+[  166.333662]  ksys_ioctl+0x50/0x70
+[  166.333665]  __x64_sys_ioctl+0x82/0x89
+[  166.333668]  do_syscall_64+0xa0/0xd2
+[  166.333671]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+[  166.333678] The buggy address belongs to the object at ffff888133823700
+                which belongs to the cache iommu_iova of size 40                                                                                                                                          
+[  166.333685] The buggy address is located 24 bytes inside of
+                40-byte region [ffff888133823700, ffff888133823728)                                                                                                                                       
+[  166.333690] The buggy address belongs to the page:
+[  166.333696] page:ffffea0004ce0880 count:1 mapcount:0 mapping:ffff8881519e8640 index:0x0 compound_mapcount: 0
+[  166.333703] flags: 0x200000000010200(slab|head)
+[  166.333710] raw: 0200000000010200 ffffea0004dfc488 ffff88814bfbde70 ffff8881519e8640
+[  166.333717] raw: 0000000000000000 0000000000120012 00000001ffffffff 0000000000000000
+[  166.333720] page dumped because: kasan: bad access detected
+
+[  166.333726] Memory state around the buggy address:
+[  166.333732]  ffff888133823600: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+[  166.333737]  ffff888133823680: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+[  166.333742] >ffff888133823700: fb fb fb fb fb fc fc fc fc fc fc fc fc fc fc fc
+[  166.333745]                             ^
+[  166.333750]  ffff888133823780: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+[  166.333755]  ffff888133823800: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+[  166.333759] ==================================================================
+[  166.333762] Disabling lock debugging due to kernel taint
+[  166.333764] ==================================================================
+[  166.333770] BUG: KASAN: double-free or invalid-free in kmem_cache_free+0x7b/0x172
+
+[  166.333780] CPU: 3 PID: 1305 Comm: yavta Tainted: G    B    C        4.20.0-rc6+ #3
+[  166.333782] Hardware name: HP Soraka/Soraka, BIOS  08/30/2018
+[  166.333783] Call Trace:
+[  166.333789]  dump_stack+0x5b/0x81
+[  166.333795]  print_address_description+0x65/0x227
+[  166.333799]  ? kmem_cache_free+0x7b/0x172
+[  166.333803]  kasan_report_invalid_free+0x67/0xa0
+[  166.333807]  ? kmem_cache_free+0x7b/0x172
+[  166.333812]  __kasan_slab_free+0x86/0x11c
+[  166.333817]  slab_free_freelist_hook+0x46/0x94
+[  166.333822]  kmem_cache_free+0x7b/0x172
+[  166.333826]  ? __free_iova+0x23/0x31
+[  166.333831]  __free_iova+0x23/0x31
+[  166.333840]  ipu3_dmamap_free+0x118/0x1d6 [ipu3_imgu]
+[  166.333851]  ipu3_css_pool_cleanup+0x25/0x2f [ipu3_imgu]
+[  166.333861]  ipu3_css_pipeline_cleanup+0x79/0xcf [ipu3_imgu]
+[  166.333872]  ipu3_css_stop_streaming+0x2fe/0x4dc [ipu3_imgu]
+[  166.333885]  imgu_s_stream+0xc0/0x6c0 [ipu3_imgu]
+[  166.333896]  ? ipu3_all_nodes_streaming+0x1ee/0x20d [ipu3_imgu]
+[  166.333908]  ipu3_vb2_stop_streaming+0x27c/0x2d2 [ipu3_imgu]
+[  166.333917]  __vb2_queue_cancel+0xa8/0x705 [videobuf2_common]
+[  166.333923]  ? __mutex_lock_interruptible_slowpath+0xf/0xf
+[  166.333932]  vb2_core_streamoff+0x68/0xf8 [videobuf2_common]
+[  166.333950]  __video_do_ioctl+0x625/0x887 [videodev]
+[  166.333970]  ? copy_overflow+0x14/0x14 [videodev]
+[  166.333974]  ? slab_free_freelist_hook+0x46/0x94
+[  166.333979]  ? kfree+0x107/0x1a0
+[  166.333997]  video_usercopy+0x3a3/0x8ae [videodev]
+[  166.334015]  ? copy_overflow+0x14/0x14 [videodev]
+[  166.334031]  ? v4l_enumstd+0x49/0x49 [videodev]
+[  166.334035]  ? __wake_up_common+0x342/0x342
+[  166.334042]  ? atomic_long_add_return+0x15/0x24
+[  166.334046]  ? ldsem_up_read+0x15/0x29
+[  166.334050]  ? tty_write+0x4c6/0x4d8
+[  166.334054]  ? n_tty_receive_char_special+0x1152/0x1152
+[  166.334071]  ? video_usercopy+0x8ae/0x8ae [videodev]
+[  166.334087]  v4l2_ioctl+0xb7/0xc5 [videodev]
+[  166.334092]  vfs_ioctl+0x76/0x89
+[  166.334097]  do_vfs_ioctl+0xb33/0xb7e
+[  166.334101]  ? __switch_to_asm+0x40/0x70
+[  166.334105]  ? __switch_to_asm+0x40/0x70
+[  166.334108]  ? __switch_to_asm+0x34/0x70
+[  166.334111]  ? __switch_to_asm+0x40/0x70
+[  166.334116]  ? ioctl_preallocate+0x174/0x174
+[  166.334120]  ? __switch_to+0x71c/0xb00
+[  166.334124]  ? compat_start_thread+0x6b/0x6b
+[  166.334127]  ? __switch_to_asm+0x34/0x70
+[  166.334130]  ? __switch_to_asm+0x40/0x70
+[  166.334134]  ? mmdrop+0x12/0x23
+[  166.334137]  ? finish_task_switch+0x34d/0x3de
+[  166.334143]  ? __schedule+0x1004/0x1045
+[  166.334148]  ? firmware_map_remove+0x119/0x119
+[  166.334153]  ksys_ioctl+0x50/0x70
+[  166.334158]  __x64_sys_ioctl+0x82/0x89
+[  166.334163]  do_syscall_64+0xa0/0xd2
+[  166.334167]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
+[  166.334171] RIP: 0033:0x7f2481541f47
+[  166.334175] Code: 00 00 00 48 8b 05 51 6f 2c 00 64 c7 00 26 00 00 00 48 c7 c0 ff ff ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 b8 10 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d 21 6f 2c 00 f7 d8 64 89 01 48
+[  166.334177] RSP: 002b:00007fffd6aff9b8 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+[  166.334181] RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00007f2481541f47
+[  166.334184] RDX: 00007fffd6aff9c4 RSI: 0000000040045613 RDI: 0000000000000003
+[  166.334186] RBP: 0000555f1c494af8 R08: 00007f247f34c000 R09: 00007f2481c24700
+[  166.334189] R10: 0000000000000020 R11: 0000000000000246 R12: 0000555f1c494b06
+[  166.334191] R13: 0000000000000004 R14: 00007fffd6affb90 R15: 00007fffd6b00825
+
+[  166.334201] Allocated by task 1305:
+[  166.334207]  kasan_kmalloc+0x8a/0x98
+[  166.334210]  slab_post_alloc_hook+0x31/0x51
+[  166.334213]  kmem_cache_alloc+0xd7/0x174
+[  166.334216]  alloc_iova+0x24/0x2ea
+[  166.334225]  ipu3_dmamap_alloc+0x193/0x83f [ipu3_imgu]
+[  166.334233]  ipu3_css_pool_init+0x80/0xdf [ipu3_imgu]
+[  166.334241]  ipu3_css_start_streaming+0x58df/0x5ddc [ipu3_imgu]
+[  166.334250]  imgu_s_stream+0x2dd/0x6c0 [ipu3_imgu]
+[  166.334259]  ipu3_vb2_start_streaming+0x35f/0x3de [ipu3_imgu]
+[  166.334266]  vb2_start_streaming+0x164/0x33b [videobuf2_common]
+[  166.334273]  vb2_core_streamon+0x1a1/0x208 [videobuf2_common]
+[  166.334288]  __video_do_ioctl+0x625/0x887 [videodev]
+[  166.334304]  video_usercopy+0x3a3/0x8ae [videodev]
+[  166.334319]  v4l2_ioctl+0xb7/0xc5 [videodev]
+[  166.334322]  vfs_ioctl+0x76/0x89
+[  166.334325]  do_vfs_ioctl+0xb33/0xb7e
+[  166.334328]  ksys_ioctl+0x50/0x70
+[  166.334332]  __x64_sys_ioctl+0x82/0x89
+[  166.334335]  do_syscall_64+0xa0/0xd2
+[  166.334338]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+[  166.334343] Freed by task 1301:
+[  166.334349]  __kasan_slab_free+0xfa/0x11c
+[  166.334352]  slab_free_freelist_hook+0x46/0x94
+[  166.334355]  kmem_cache_free+0x7b/0x172
+[  166.334359]  __free_iova+0x23/0x31
+[  166.334367]  ipu3_dmamap_free+0x118/0x1d6 [ipu3_imgu]
+[  166.334375]  ipu3_css_pool_cleanup+0x25/0x2f [ipu3_imgu]
+[  166.334383]  ipu3_css_pipeline_cleanup+0x79/0xcf [ipu3_imgu]
+[  166.334392]  ipu3_css_stop_streaming+0x2fe/0x4dc [ipu3_imgu]
+[  166.334401]  imgu_s_stream+0xc0/0x6c0 [ipu3_imgu]
+[  166.334410]  ipu3_vb2_stop_streaming+0x27c/0x2d2 [ipu3_imgu]
+[  166.334416]  __vb2_queue_cancel+0xa8/0x705 [videobuf2_common]
+[  166.334423]  vb2_core_streamoff+0x68/0xf8 [videobuf2_common]
+[  166.334438]  __video_do_ioctl+0x625/0x887 [videodev]
+[  166.334454]  video_usercopy+0x3a3/0x8ae [videodev]
+[  166.334469]  v4l2_ioctl+0xb7/0xc5 [videodev]
+[  166.334472]  vfs_ioctl+0x76/0x89
+[  166.334475]  do_vfs_ioctl+0xb33/0xb7e
+[  166.334479]  ksys_ioctl+0x50/0x70
+[  166.334482]  __x64_sys_ioctl+0x82/0x89
+[  166.334485]  do_syscall_64+0xa0/0xd2
+[  166.334488]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+[  166.334494] The buggy address belongs to the object at ffff888133823700
+                which belongs to the cache iommu_iova of size 40                                                                                                                                          
+[  166.334501] The buggy address is located 0 bytes inside of
+                40-byte region [ffff888133823700, ffff888133823728)                                                                                                                                       
+[  166.334506] The buggy address belongs to the page:
+[  166.334511] page:ffffea0004ce0880 count:1 mapcount:0 mapping:ffff8881519e8640 index:0x0 compound_mapcount: 0
+[  166.334517] flags: 0x200000000010200(slab|head)
+[  166.334524] raw: 0200000000010200 ffffea0004dfc488 ffff88814bfbde70 ffff8881519e8640
+[  166.334530] raw: 0000000000000000 0000000000120012 00000001ffffffff 0000000000000000
+[  166.334533] page dumped because: kasan: bad access detected
+
+[  166.334539] Memory state around the buggy address:
+[  166.334544]  ffff888133823600: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+[  166.334549]  ffff888133823680: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+[  166.334554] >ffff888133823700: fb fb fb fb fb fc fc fc fc fc fc fc fc fc fc fc
+[  166.334558]                    ^
+[  166.334562]  ffff888133823780: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+[  166.334567]  ffff888133823800: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+[  166.334571] ==================================================================
+[  166.340377] ==================================================================
+[  166.340388] BUG: KASAN: double-free or invalid-free in kfree+0x107/0x1a0
+
+[  166.340399] CPU: 3 PID: 1305 Comm: yavta Tainted: G    B    C        4.20.0-rc6+ #3
+[  166.340401] Hardware name: HP Soraka/Soraka, BIOS  08/30/2018
+[  166.340403] Call Trace:
+[  166.340410]  dump_stack+0x5b/0x81
+[  166.340416]  print_address_description+0x65/0x227
+[  166.340420]  ? kfree+0x107/0x1a0
+[  166.340425]  kasan_report_invalid_free+0x67/0xa0
+[  166.340428]  ? kfree+0x107/0x1a0
+[  166.340433]  __kasan_slab_free+0x86/0x11c
+[  166.340438]  slab_free_freelist_hook+0x46/0x94
+[  166.340443]  kfree+0x107/0x1a0
+[  166.340454]  ? ipu3_dmamap_free+0x17b/0x1d6 [ipu3_imgu]
+[  166.340464]  ipu3_dmamap_free+0x17b/0x1d6 [ipu3_imgu]
+[  166.340475]  ipu3_css_pool_cleanup+0x25/0x2f [ipu3_imgu]
+[  166.340485]  ipu3_css_pipeline_cleanup+0x79/0xcf [ipu3_imgu]
+[  166.340495]  ipu3_css_stop_streaming+0x2fe/0x4dc [ipu3_imgu]
+[  166.340509]  imgu_s_stream+0xc0/0x6c0 [ipu3_imgu]
+[  166.340520]  ? ipu3_all_nodes_streaming+0x1ee/0x20d [ipu3_imgu]
+[  166.340531]  ipu3_vb2_stop_streaming+0x27c/0x2d2 [ipu3_imgu]
+[  166.340541]  __vb2_queue_cancel+0xa8/0x705 [videobuf2_common]
+[  166.340548]  ? __mutex_lock_interruptible_slowpath+0xf/0xf
+[  166.340557]  vb2_core_streamoff+0x68/0xf8 [videobuf2_common]
+[  166.340575]  __video_do_ioctl+0x625/0x887 [videodev]
+[  166.340595]  ? copy_overflow+0x14/0x14 [videodev]
+[  166.340600]  ? slab_free_freelist_hook+0x46/0x94
+[  166.340604]  ? kfree+0x107/0x1a0
+[  166.340622]  video_usercopy+0x3a3/0x8ae [videodev]
+[  166.340640]  ? copy_overflow+0x14/0x14 [videodev]
+[  166.340657]  ? v4l_enumstd+0x49/0x49 [videodev]
+[  166.340660]  ? __wake_up_common+0x342/0x342
+[  166.340668]  ? atomic_long_add_return+0x15/0x24
+[  166.340672]  ? ldsem_up_read+0x15/0x29
+[  166.340677]  ? tty_write+0x4c6/0x4d8
+[  166.340681]  ? n_tty_receive_char_special+0x1152/0x1152
+[  166.340698]  ? video_usercopy+0x8ae/0x8ae [videodev]
+[  166.340714]  v4l2_ioctl+0xb7/0xc5 [videodev]
+[  166.340720]  vfs_ioctl+0x76/0x89
+[  166.340725]  do_vfs_ioctl+0xb33/0xb7e
+[  166.340729]  ? __switch_to_asm+0x40/0x70
+[  166.340733]  ? __switch_to_asm+0x40/0x70
+[  166.340736]  ? __switch_to_asm+0x34/0x70
+[  166.340739]  ? __switch_to_asm+0x40/0x70
+[  166.340743]  ? ioctl_preallocate+0x174/0x174
+[  166.340748]  ? __switch_to+0x71c/0xb00
+[  166.340752]  ? compat_start_thread+0x6b/0x6b
+[  166.340756]  ? __switch_to_asm+0x34/0x70
+[  166.340759]  ? __switch_to_asm+0x40/0x70
+[  166.340762]  ? mmdrop+0x12/0x23
+[  166.340766]  ? finish_task_switch+0x34d/0x3de
+[  166.340772]  ? __schedule+0x1004/0x1045
+[  166.340777]  ? firmware_map_remove+0x119/0x119
+[  166.340782]  ksys_ioctl+0x50/0x70
+[  166.340788]  __x64_sys_ioctl+0x82/0x89
+[  166.340793]  do_syscall_64+0xa0/0xd2
+[  166.340797]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
+[  166.340802] RIP: 0033:0x7f2481541f47
+[  166.340806] Code: 00 00 00 48 8b 05 51 6f 2c 00 64 c7 00 26 00 00 00 48 c7 c0 ff ff ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 b8 10 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d 21 6f 2c 00 f7 d8 64 89 01 48
+[  166.340809] RSP: 002b:00007fffd6aff9b8 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+[  166.340813] RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00007f2481541f47
+[  166.340816] RDX: 00007fffd6aff9c4 RSI: 0000000040045613 RDI: 0000000000000003
+[  166.340819] RBP: 0000555f1c494af8 R08: 00007f247f34c000 R09: 00007f2481c24700
+[  166.340821] R10: 0000000000000020 R11: 0000000000000246 R12: 0000555f1c494b06
+[  166.340824] R13: 0000000000000004 R14: 00007fffd6affb90 R15: 00007fffd6b00825
+
+[  166.340834] Allocated by task 1305:
+[  166.340840]  kasan_kmalloc+0x8a/0x98
+[  166.340844]  __kmalloc_node+0x193/0x1ba
+[  166.340848]  kvmalloc_node+0x44/0x6d
+[  166.340856]  ipu3_dmamap_alloc+0x1c9/0x83f [ipu3_imgu]
+[  166.340864]  ipu3_css_pool_init+0x80/0xdf [ipu3_imgu]
+[  166.340873]  ipu3_css_start_streaming+0x58df/0x5ddc [ipu3_imgu]
+[  166.340882]  imgu_s_stream+0x2dd/0x6c0 [ipu3_imgu]
+[  166.340891]  ipu3_vb2_start_streaming+0x35f/0x3de [ipu3_imgu]
+[  166.340897]  vb2_start_streaming+0x164/0x33b [videobuf2_common]
+[  166.340904]  vb2_core_streamon+0x1a1/0x208 [videobuf2_common]
+[  166.340920]  __video_do_ioctl+0x625/0x887 [videodev]
+[  166.340935]  video_usercopy+0x3a3/0x8ae [videodev]
+[  166.340950]  v4l2_ioctl+0xb7/0xc5 [videodev]
+[  166.340954]  vfs_ioctl+0x76/0x89
+[  166.340957]  do_vfs_ioctl+0xb33/0xb7e
+[  166.340960]  ksys_ioctl+0x50/0x70
+[  166.340963]  __x64_sys_ioctl+0x82/0x89
+[  166.340966]  do_syscall_64+0xa0/0xd2
+[  166.340969]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+[  166.340974] Freed by task 1301:
+[  166.340980]  __kasan_slab_free+0xfa/0x11c
+[  166.340983]  slab_free_freelist_hook+0x46/0x94
+[  166.340986]  kfree+0x107/0x1a0
+[  166.340994]  ipu3_dmamap_free+0x17b/0x1d6 [ipu3_imgu]
+[  166.341002]  ipu3_css_pool_cleanup+0x25/0x2f [ipu3_imgu]
+[  166.341010]  ipu3_css_pipeline_cleanup+0x79/0xcf [ipu3_imgu]
+[  166.341019]  ipu3_css_stop_streaming+0x2fe/0x4dc [ipu3_imgu]
+[  166.341028]  imgu_s_stream+0xc0/0x6c0 [ipu3_imgu]
+[  166.341037]  ipu3_vb2_stop_streaming+0x27c/0x2d2 [ipu3_imgu]
+[  166.341043]  __vb2_queue_cancel+0xa8/0x705 [videobuf2_common]
+[  166.341050]  vb2_core_streamoff+0x68/0xf8 [videobuf2_common]
+[  166.341066]  __video_do_ioctl+0x625/0x887 [videodev]
+[  166.341081]  video_usercopy+0x3a3/0x8ae [videodev]
+[  166.341096]  v4l2_ioctl+0xb7/0xc5 [videodev]
+[  166.341100]  vfs_ioctl+0x76/0x89
+[  166.341103]  do_vfs_ioctl+0xb33/0xb7e
+[  166.341106]  ksys_ioctl+0x50/0x70
+[  166.341109]  __x64_sys_ioctl+0x82/0x89
+[  166.341112]  do_syscall_64+0xa0/0xd2
+[  166.341116]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+[  166.341122] The buggy address belongs to the object at ffff88811d228440
+                which belongs to the cache kmalloc-8 of size 8
+[  166.341129] The buggy address is located 0 bytes inside of
+                8-byte region [ffff88811d228440, ffff88811d228448)
+[  166.341134] The buggy address belongs to the page:
+[  166.341140] page:ffffea0004748a00 count:1 mapcount:0 mapping:ffff88815a80c340 index:0xffff88811d228f80 compound_mapcount: 0
+[  166.341146] flags: 0x200000000010200(slab|head)
+[  166.341153] raw: 0200000000010200 ffffea000564b288 ffffea00049ef708 ffff88815a80c340
+[  166.341159] raw: ffff88811d228f80 0000000000160013 00000001ffffffff 0000000000000000
+[  166.341163] page dumped because: kasan: bad access detected
+
+[  166.341169] Memory state around the buggy address:
+[  166.341174]  ffff88811d228300: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+[  166.341179]  ffff88811d228380: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+[  166.341184] >ffff88811d228400: fc fc fc fc fc fc fc fc fb fc fc fc fc fc fc fc
+[  166.341188]                                            ^
+[  166.341192]  ffff88811d228480: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+[  166.341197]  ffff88811d228500: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+[  166.341201] ==================================================================
+
+> On Tuesday, 11 December 2018 16:20:43 EET Laurent Pinchart wrote:
+> > On Tuesday, 11 December 2018 15:43:53 EET Laurent Pinchart wrote:
+> > > On Tuesday, 11 December 2018 15:34:49 EET Laurent Pinchart wrote:
+> > >> On Wednesday, 5 December 2018 02:30:46 EET Mani, Rajmohan wrote:
+> > >> 
+> > >> [snip]
+> > >> 
+> > >>> I can see a couple of steps missing in the script below.
+> > >>> (https://lists.libcamera.org/pipermail/libcamera-devel/2018-November/0
+> > >>> 00040.html)
+> > >>> 
+> > >>> From patch 02 of this v7 series "doc-rst: Add Intel IPU3
+> > >>> documentation",
+> > >>> under section "Configuring ImgU V4L2 subdev for image processing"...
+> > >>> 
+> > >>> 1. The pipe mode needs to be configured for the V4L2 subdev.
+> > >>> 
+> > >>> Also the pipe mode of the corresponding V4L2 subdev should be set as
+> > >>> desired (e.g 0 for video mode or 1 for still mode) through the control
+> > >>> id 0x009819a1 as below.
+> > >>> 
+> > >>> e.g v4l2n -d /dev/v4l-subdev7 --ctrl=0x009819A1=1
+> > >> 
+> > >> I assume the control takes a valid default value ? It's better to set
+> > >> it
+> > >> explicitly anyway, so I'll do so.
+> > >> 
+> > >>> 2. ImgU pipeline needs to be configured for image processing as below.
+> > >>> 
+> > >>> RAW bayer frames go through the following ISP pipeline HW blocks to
+> > >>> have the processed image output to the DDR memory.
+> > >>> 
+> > >>> RAW bayer frame -> Input Feeder -> Bayer Down Scaling (BDS) ->
+> > >>> Geometric Distortion Correction (GDC) -> DDR
+> > >>> 
+> > >>> The ImgU V4L2 subdev has to be configured with the supported
+> > >>> resolutions in all the above HW blocks, for a given input resolution.
+> > >>> 
+> > >>> For a given supported resolution for an input frame, the Input Feeder,
+> > >>> Bayer Down Scaling and GDC blocks should be configured with the
+> > >>> supported resolutions. This information can be obtained by looking at
+> > >>> the following IPU3 ISP configuration table for ov5670 sensor.
+> > >>> 
+> > >>> https://chromium.googlesource.com/chromiumos/overlays/board-overlays/+
+> > >>> /master/baseboard-poppy/media-libs/cros-camera-hal-configs-poppy/files
+> > >>> /
+> > >>> gcss/graph_settings_ov5670.xml
+> > >>> 
+> > >>> For the ov5670 example, for an input frame with a resolution of
+> > >>> 2592x1944 (which is input to the ImgU subdev pad 0), the corresponding
+> > >>> resolutions for input feeder, BDS and GDC are 2592x1944, 2592x1944 and
+> > >>> 2560x1920 respectively.
+> > >> 
+> > >> How is the GDC output resolution computed from the input resolution ?
+> > >> Does the GDC always consume 32 columns and 22 lines ?
+> > >> 
+> > >>> The following steps prepare the ImgU ISP pipeline for the image
+> > >>> processing.
+> > >>> 
+> > >>> 1. The ImgU V4L2 subdev data format should be set by using the
+> > >>> VIDIOC_SUBDEV_S_FMT on pad 0, using the GDC width and height obtained
+> > >>> above.
+> > >> 
+> > >> If I understand things correctly, the GDC resolution is the pipeline
+> > >> output resolution. Why is it configured on pad 0 ?
+> > >> 
+> > >>> 2. The ImgU V4L2 subdev cropping should be set by using the
+> > >>> VIDIOC_SUBDEV_S_SELECTION on pad 0, with V4L2_SEL_TGT_CROP as the
+> > >>> target, using the input feeder height and width.
+> > >>> 
+> > >>> 3. The ImgU V4L2 subdev composing should be set by using the
+> > >>> VIDIOC_SUBDEV_S_SELECTION on pad 0, with V4L2_SEL_TGT_COMPOSE as the
+> > >>> target, using the BDS height and width.
+> > >>> 
+> > >>> Once these 2 steps are done, the raw bayer frames can be input to the
+> > >>> ImgU V4L2 subdev for processing.
+> > >> 
+> > >> Do I need to capture from both the output and viewfinder nodes ? How
+> > >> are
+> > >> they related to the IF -> BDS -> GDC pipeline, are they both fed from
+> > >> the GDC output ? If so, how does the viewfinder scaler fit in that
+> > >> picture ?
+> > >> 
+> > >> I have tried the above configuration with the IPU3 v8 driver, and while
+> > >> the kernel doesn't crash, no images get processed. The userspace
+> > >> processes wait forever for buffers to be ready. I then configured pad 2
+> > >> to 2560x1920 and pad 3 to 1920x1080, and managed to capture images \o/
+> > >> 
+> > >> There's one problem though: during capture, or very soon after it, the
+> > >> machine locks up completely. I suspect a memory corruption, as when it
+> > >> doesn't log immediately commands such as dmesg will not produce any
+> > >> output and just block, until the system freezes soon after (especially
+> > >> when moving the mouse).
+> > >> 
+> > >> I would still call this an improvement to some extent, but there's
+> > >> definitely room for more improvements :-)
+> > >> 
+> > >> To reproduce the issue, you can run the ipu3-process.sh script
+> > >> (attached
+> > >> to this e-mail) with the following arguments:
+> > >> 
+> > >> $ ipu3-process.sh --out 2560x1920 frame-2592x1944.cio2
+> > 
+> > This should have read
+> > 
+> > $ ipu3-process.sh --out 2560x1920 --vf 1920x1080 frame-2592x1944.cio2
+> > 
+> > Without the --vf argument no images are processed.
+> > 
+> > It seems that the Intel mail server blocked the mail that contained the
+> > script. You can find a copy at http://paste.debian.net/hidden/fd5bb8df/.
+> > 
+> > >> frame-2592x1944.cio2 is a binary file containing a 2592x1944 images in
+> > >> the IPU3-specific Bayer format (for a total of 6469632 bytes).
+> > > 
+> > > I managed to get the dmesg output, and it doesn't look pretty.
+> > > 
+> > > [  571.217192] WARNING: CPU: 3 PID: 1303 at /home/laurent/src/iob/oss/
+> > > libcamera/linux/drivers/staging/media/ipu3/ipu3-dmamap.c:172
+> > > ipu3_dmamap_unmap+0x30/0x75 [ipu3_imgu]
+> > > [  571.217196] Modules linked in: asix usbnet mii zram arc4 iwlmvm
+> > > mac80211
+> > > iwlwifi intel_rapl x86_pkg_temp_thermal intel_powerclamp coretemp
+> > > cfg80211
+> > > 8250_dw hid_multitouch ipu3_cio2 ipu3_imgu(C) videobuf2_dma_sg
+> > > videobuf2_memops videobuf2_v4l2 videobuf2_common
+> > > processor_thermal_device
+> > > intel_soc_dts_iosf ov13858 dw9714 ov5670 v4l2_fwnode v4l2_common
+> > > videodev
+> > > at24 media int3403_thermal int340x_thermal_zone cros_ec_lpcs
+> > > cros_ec_core
+> > > int3400_thermal chromeos_pstore mac_hid acpi_thermal_rel autofs4 usbhid
+> > > mmc_block hid_generic i915 video i2c_algo_bit drm_kms_helper syscopyarea
+> > > sysfillrect sdhci_pci sysimgblt fb_sys_fops cqhci sdhci drm
+> > > drm_panel_orientation_quirks i2c_hid hid
+> > > [  571.217254] CPU: 3 PID: 1303 Comm: yavta Tainted: G         C
+> > > 4.20.0-rc6+ #2
+> > > [  571.217256] Hardware name: HP Soraka/Soraka, BIOS  08/30/2018
+> > > [  571.217267] RIP: 0010:ipu3_dmamap_unmap+0x30/0x75 [ipu3_imgu]
+> > > [  571.217271] Code: 54 55 48 8d af d0 6e 00 00 53 48 8b 76 10 49 89 fc
+> > > f3
+> > > 48 0f bc 8f f0 6e 00 00 48 89 ef 48 d3 ee e8 e6 73 d9 e6 48 85 c0 75 07
+> > > <0f> 0b 5b 5d 41 5c c3 48 8b 70 20 48 89 c3 48 8b 40 18 49 8b bc 24
+> > > [  571.217274] RSP: 0018:ffffb675021c7b38 EFLAGS: 00010246
+> > > [  571.217278] RAX: 0000000000000000 RBX: ffff8f5cf58f8448 RCX:
+> > > 000000000000000c
+> > > [  571.217280] RDX: 0000000000000000 RSI: 0000000000000202 RDI:
+> > > 00000000ffffffff
+> > > [  571.217283] RBP: ffff8f5cf58f6ef8 R08: 00000000000006c5 R09:
+> > > ffff8f5cfaba16f0
+> > > [  571.217286] R10: ffff8f5cbf508f98 R11: 000000e03da27aba R12:
+> > > ffff8f5cf58f0028
+> > > [  571.217289] R13: ffff8f5cf58f0028 R14: 0000000000000000 R15:
+> > > ffff8f5cf58f04e8
+> > > [  571.217293] FS:  00007f85d009c700(0000) GS:ffff8f5cfab80000(0000)
+> > > knlGS:
+> > > 0000000000000000
+> > > [  571.217296] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> > > [  571.217299] CR2: 00007f3440fce4b0 CR3: 000000014abf2001 CR4:
+> > > 00000000003606e0
+> > > [  571.217301] Call Trace:
+> > > [  571.217316]  ipu3_dmamap_free+0x5b/0x8f [ipu3_imgu]
+> > > [  571.217326]  ipu3_css_pool_cleanup+0x25/0x2f [ipu3_imgu]
+> > > [  571.217338]  ipu3_css_pipeline_cleanup+0x59/0x8f [ipu3_imgu]
+> > > [  571.217348]  ipu3_css_stop_streaming+0x15b/0x20f [ipu3_imgu]
+> > > [  571.217360]  imgu_s_stream+0x5a/0x30a [ipu3_imgu]
+> > > [  571.217371]  ? ipu3_all_nodes_streaming+0x14f/0x16b [ipu3_imgu]
+> > > [  571.217382]  ipu3_vb2_stop_streaming+0xe4/0x10f [ipu3_imgu]
+> > > [  571.217392]  __vb2_queue_cancel+0x2b/0x1b8 [videobuf2_common]
+> > > [  571.217402]  vb2_core_streamoff+0x30/0x71 [videobuf2_common]
+> > > [  571.217418]  __video_do_ioctl+0x258/0x38e [videodev]
+> > > [  571.217438]  video_usercopy+0x25f/0x4e5 [videodev]
+> > > [  571.217453]  ? copy_overflow+0x14/0x14 [videodev]
+> > > [  571.217471]  v4l2_ioctl+0x4d/0x58 [videodev]
+> > > [  571.217480]  vfs_ioctl+0x1e/0x2b
+> > > [  571.217486]  do_vfs_ioctl+0x531/0x559
+> > > [  571.217494]  ? vfs_write+0xd1/0xdf
+> > > [  571.217500]  ksys_ioctl+0x50/0x70
+> > > [  571.217506]  __x64_sys_ioctl+0x16/0x19
+> > > [  571.217512]  do_syscall_64+0x53/0x60
+> > > [  571.217519]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
+> > > [  571.217524] RIP: 0033:0x7f85cf9b9f47
+> > > [  571.217528] Code: 00 00 00 48 8b 05 51 6f 2c 00 64 c7 00 26 00 00 00
+> > > 48
+> > > c7 c0 ff ff ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 b8 10 00 00 00 0f 05
+> > > <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d 21 6f 2c 00 f7 d8 64 89 01 48
+> > > [  571.217531] RSP: 002b:00007ffc59056b78 EFLAGS: 00000246 ORIG_RAX:
+> > > 0000000000000010
+> > > [  571.217535] RAX: ffffffffffffffda RBX: 0000000000000000 RCX:
+> > > 00007f85cf9b9f47
+> > > [  571.217537] RDX: 00007ffc59056b84 RSI: 0000000040045613 RDI:
+> > > 0000000000000003
+> > > [  571.217540] RBP: 000055f4c4dc0af8 R08: 00007f85cd7c4000 R09:
+> > > 00007f85d009c700
+> > > [  571.217542] R10: 0000000000000020 R11: 0000000000000246 R12:
+> > > 000055f4c4dc0b06
+> > > [  571.217545] R13: 0000000000000004 R14: 00007ffc59056d50 R15:
+> > > 00007ffc59057825
+> > > [  571.217553] ---[ end trace 4b42bd84953eff53 ]---
+> > > [  571.318645] ipu3-imgu 0000:00:05.0: wait cio gate idle timeout
+> > 
+> > And after fixing another issue in the capture script (which was setting
+> > the
+> > format on the ImgU subdev pad 3 to 2560x1920 but capture in 1920x1080), I
+> > now get plenty of the following messages:
+> > 
+> > [  221.366131] BUG: Bad page state in process yavta  pfn:14a4ff
+> > [  221.366134] page:ffffde5d45293fc0 count:-1 mapcount:0 mapping:
+> > 0000000000000000 index:0x0
+> > [  221.366137] flags: 0x200000000000000()
+> > [  221.366140] raw: 0200000000000000 dead000000000100 dead000000000200
+> > 0000000000000000
+> > [  221.366143] raw: 0000000000000000 0000000000000000 ffffffffffffffff
+> > 0000000000000000
+> > [  221.366145] page dumped because: nonzero _refcount
+> > [  221.366147] Modules linked in: asix usbnet mii zram arc4 iwlmvm
+> > intel_rapl x86_pkg_temp_thermal intel_powerclamp coretemp mac80211 iwlwifi
+> > cfg80211 hid_multitouch 8250_dw ipu3_cio2 ipu3_imgu(C) videobuf2_dma_sg
+> > videobuf2_memops videobuf2_v4l2 processor_thermal_device videobuf2_common
+> > intel_soc_dts_iosf ov13858 ov5670 dw9714 v4l2_fwnode v4l2_common videodev
+> > media at24 cros_ec_lpcs cros_ec_core int3403_thermal int340x_thermal_zone
+> > chromeos_pstore mac_hid int3400_thermal acpi_thermal_rel autofs4 usbhid
+> > mmc_block hid_generic i915 video i2c_algo_bit drm_kms_helper syscopyarea
+> > sysfillrect sysimgblt fb_sys_fops sdhci_pci cqhci sdhci drm
+> > drm_panel_orientation_quirks i2c_hid hid
+> > [  221.366172] CPU: 3 PID: 1022 Comm: yavta Tainted: G    B   WC
+> > 4.20.0-rc6+ #2
+> > [  221.366173] Hardware name: HP Soraka/Soraka, BIOS  08/30/2018
+> > [  221.366173] Call Trace:
+> > [  221.366176]  dump_stack+0x46/0x59
+> > [  221.366179]  bad_page+0xf2/0x10c
+> > [  221.366182]  free_pages_check+0x78/0x81
+> > [  221.366186]  free_pcppages_bulk+0xa6/0x236
+> > [  221.366190]  free_unref_page+0x4b/0x53
+> > [  221.366193]  vb2_dma_sg_put+0x95/0xb5 [videobuf2_dma_sg]
+> > [  221.366197]  __vb2_buf_mem_free+0x3a/0x6e [videobuf2_common]
+> > [  221.366202]  __vb2_queue_free+0xe3/0x1be [videobuf2_common]
+> > [  221.366207]  vb2_core_reqbufs+0xe9/0x2cc [videobuf2_common]
+> > [  221.366212]  vb2_ioctl_reqbufs+0x78/0x9e [videobuf2_v4l2]
+> > [  221.366220]  __video_do_ioctl+0x258/0x38e [videodev]
+> > [  221.366229]  video_usercopy+0x25f/0x4e5 [videodev]
+> > [  221.366237]  ? copy_overflow+0x14/0x14 [videodev]
+> > [  221.366240]  ? unmap_region+0xe0/0x10a
+> > [  221.366250]  v4l2_ioctl+0x4d/0x58 [videodev]
+> > [  221.366253]  vfs_ioctl+0x1e/0x2b
+> > [  221.366255]  do_vfs_ioctl+0x531/0x559
+> > [  221.366260]  ksys_ioctl+0x50/0x70
+> > [  221.366263]  __x64_sys_ioctl+0x16/0x19
+> > [  221.366266]  do_syscall_64+0x53/0x60
+> > [  221.366269]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
+> > [  221.366270] RIP: 0033:0x7fbe39f6af47
+> > [  221.366272] Code: 00 00 00 48 8b 05 51 6f 2c 00 64 c7 00 26 00 00 00 48
+> > c7 c0 ff ff ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 b8 10 00 00 00 0f 05
+> > <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d 21 6f 2c 00 f7 d8 64 89 01 48
+> > [  221.366273] RSP: 002b:00007fff05638e68 EFLAGS: 00000246 ORIG_RAX:
+> > 0000000000000010
+> > [  221.366275] RAX: ffffffffffffffda RBX: 0000000000000007 RCX:
+> > 00007fbe39f6af47
+> > [  221.366279] RDX: 00007fff05638f90 RSI: 00000000c0145608 RDI:
+> > 0000000000000003
+> > [  221.366283] RBP: 0000000000000004 R08: 0000000000000000 R09:
+> > 0000000000000045
+> > [  221.366287] R10: 0000000000000557 R11: 0000000000000246 R12:
+> > 000055c83bd76750
+> > [  221.366290] R13: 000055c83b6b26a0 R14: 0000000000000001 R15:
+> > 00007fff0563a825
+
 -- 
-2.7.4
+Regards,
+
+Laurent Pinchart
+
+
 
