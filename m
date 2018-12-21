@@ -2,117 +2,146 @@ Return-Path: <SRS0=g7QC=O6=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.5 required=3.0 tests=INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
+	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AA52BC43387
-	for <linux-media@archiver.kernel.org>; Fri, 21 Dec 2018 18:02:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3564BC43387
+	for <linux-media@archiver.kernel.org>; Fri, 21 Dec 2018 19:40:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7AD2020836
-	for <linux-media@archiver.kernel.org>; Fri, 21 Dec 2018 18:02:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EAE7521927
+	for <linux-media@archiver.kernel.org>; Fri, 21 Dec 2018 19:40:37 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=nextdimension.cc header.i=@nextdimension.cc header.b="vyf1Qq2t"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387603AbeLUSCK (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 21 Dec 2018 13:02:10 -0500
-Received: from muru.com ([72.249.23.125]:58920 "EHLO muru.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725937AbeLUSCK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 21 Dec 2018 13:02:10 -0500
-Received: from atomide.com (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTPS id BAB9E8068;
-        Fri, 21 Dec 2018 18:02:12 +0000 (UTC)
-Date:   Fri, 21 Dec 2018 10:02:05 -0800
-From:   Tony Lindgren <tony@atomide.com>
-To:     Sebastian Reichel <sre@kernel.org>
-Cc:     Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Marcel Holtmann <marcel@holtmann.org>,
-        Rob Herring <robh@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Pavel Machek <pavel@ucw.cz>, linux-bluetooth@vger.kernel.org,
-        linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 00/14] Add support for FM radio in hcill and kill TI_ST
-Message-ID: <20181221180205.GH6707@atomide.com>
-References: <20181221011752.25627-1-sre@kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20181221011752.25627-1-sre@kernel.org>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+        id S2389667AbeLUTkh (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 21 Dec 2018 14:40:37 -0500
+Received: from goldenrod.birch.relay.mailchannels.net ([23.83.209.74]:60744
+        "EHLO goldenrod.birch.relay.mailchannels.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S2387777AbeLUTkh (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 21 Dec 2018 14:40:37 -0500
+X-Sender-Id: dreamhost|x-authsender|brad@nextdimension.ws
+Received: from relay.mailchannels.net (localhost [127.0.0.1])
+        by relay.mailchannels.net (Postfix) with ESMTP id 6A4985C4348;
+        Fri, 21 Dec 2018 19:40:35 +0000 (UTC)
+Received: from pdx1-sub0-mail-a63.g.dreamhost.com (unknown [100.96.19.74])
+        (Authenticated sender: dreamhost)
+        by relay.mailchannels.net (Postfix) with ESMTPA id F17EA5C3F2A;
+        Fri, 21 Dec 2018 19:40:34 +0000 (UTC)
+X-Sender-Id: dreamhost|x-authsender|brad@nextdimension.ws
+Received: from pdx1-sub0-mail-a63.g.dreamhost.com (pop.dreamhost.com
+ [64.90.62.162])
+        (using TLSv1.2 with cipher DHE-RSA-AES256-GCM-SHA384)
+        by 0.0.0.0:2500 (trex/5.16.2);
+        Fri, 21 Dec 2018 19:40:35 +0000
+X-MC-Relay: Neutral
+X-MailChannels-SenderId: dreamhost|x-authsender|brad@nextdimension.ws
+X-MailChannels-Auth-Id: dreamhost
+X-Arithmetic-Thoughtful: 17fbd970080ba5f7_1545421235236_1975821433
+X-MC-Loop-Signature: 1545421235236:2681580321
+X-MC-Ingress-Time: 1545421235236
+Received: from pdx1-sub0-mail-a63.g.dreamhost.com (localhost [127.0.0.1])
+        by pdx1-sub0-mail-a63.g.dreamhost.com (Postfix) with ESMTP id 8CD0181EF5;
+        Fri, 21 Dec 2018 11:40:34 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed; d=nextdimension.cc; h=from
+        :to:cc:subject:date:message-id:in-reply-to:references; s=
+        nextdimension.cc; bh=1L1cyv0+5q90OlsKg/VP/7DM7Zo=; b=vyf1Qq2t8cT
+        DYfMG2LsmN5sPRYWO9aBsRWT7MxUopiGEwE0t/WI86h4p2dH25TZH48w2kBJaE30
+        GDp6jVCOuF27nPNDO3odYuZ4SgOf6UFxEB+30VjzX/U5L7OLPxEIzqOjXUk24eE9
+        gg9LqGn7VbLNuSyoEBi0OB7xScJubWcM=
+Received: from localhost.localdomain (66-90-189-166.dyn.grandenetworks.net [66.90.189.166])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-SHA256 (128/128 bits))
+        (No client certificate requested)
+        (Authenticated sender: brad@nextdimension.ws)
+        by pdx1-sub0-mail-a63.g.dreamhost.com (Postfix) with ESMTPSA id E4CC481EFA;
+        Fri, 21 Dec 2018 11:40:33 -0800 (PST)
+X-DH-BACKEND: pdx1-sub0-mail-a63
+From:   Brad Love <brad@nextdimension.cc>
+To:     linux-media@vger.kernel.org, mchehab@kernel.org
+Cc:     Brad Love <brad@nextdimension.cc>
+Subject: [PATCH v2 1/4] si2157: add detection of si2177 tuner
+Date:   Fri, 21 Dec 2018 13:40:20 -0600
+Message-Id: <1545421223-3577-2-git-send-email-brad@nextdimension.cc>
+X-Mailer: git-send-email 2.7.4
+In-Reply-To: <1545421223-3577-1-git-send-email-brad@nextdimension.cc>
+References: <1545343031-20935-1-git-send-email-brad@nextdimension.cc>
+ <1545421223-3577-1-git-send-email-brad@nextdimension.cc>
+X-VR-OUT-STATUS: OK
+X-VR-OUT-SCORE: 30
+X-VR-OUT-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedtkedrudejhedgudeftdcutefuodetggdotefrodftvfcurfhrohhfihhlvgemucggtfgfnhhsuhgsshgtrhhisggvpdfftffgtefojffquffvnecuuegrihhlohhuthemuceftddtnecufghrlhcuvffnffculdeftddmnecujfgurhephffvufffkffojghfsedttdertdertddtnecuhfhrohhmpeeurhgrugcunfhovhgvuceosghrrggusehnvgigthguihhmvghnshhiohhnrdgttgeqnecukfhppeeiiedrledtrddukeelrdduieeinecurfgrrhgrmhepmhhouggvpehsmhhtphdphhgvlhhopehlohgtrghlhhhoshhtrdhlohgtrghlughomhgrihhnpdhinhgvthepieeirdeltddrudekledrudeiiedprhgvthhurhhnqdhprghthhepuehrrgguucfnohhvvgcuoegsrhgrugesnhgvgihtughimhgvnhhsihhonhdrtggtqedpmhgrihhlfhhrohhmpegsrhgrugesnhgvgihtughimhgvnhhsihhonhdrtggtpdhnrhgtphhtthhopegsrhgrugesnhgvgihtughimhgvnhhsihhonhdrtggtnecuvehluhhsthgvrhfuihiivgeptd
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-* Sebastian Reichel <sre@kernel.org> [181221 01:18]:
-> The new code has been tested on the Motorola Droid 4. For testing the audio
-> should be configured to route Ext to Speaker or Headphone. Then you need to
-> plug headphone, since its cable is used as antenna. For testing there is a
-> 'radio' utility packages in Debian. When you start the utility you need to
-> specify a frequency, since initial get_frequency returns an error:
+Works in ATSC and QAM as is, DVB is completely untested.
 
-Nice, good to see that ti-st kim stuff gone :) I gave this a quick
-try using fmtools.git and fmscan works just fine. No luck yet with
-fm though, it gives VIDIOC_G_CTRL: Not a tty error somehow so
-maybe I'm missing some options, patch below for omap2plus_defconfig.
+Firmware required.
 
-Hmm so looks like nothing to configure for the clocks or
-CPCAP_BIT_ST_L_TIMESLOT bits for cap for the EXT? So the
-wl12xx audio is wired directly to cpcap EXT then and not a
-TDM slot on the mcbsp huh?
-
-> Merry Christmas!
-
-Same to you!
-
-Tony
-
-8< --------------------------------
-From tony Mon Sep 17 00:00:00 2001
-From: Tony Lindgren <tony@atomide.com>
-Date: Fri, 21 Dec 2018 07:57:09 -0800
-Subject: [PATCH] ARM: omap2plus_defconfig: Add RADIO_WL128X as a loadable
- module
-
-This allows using the FM radio in the wl12xx chips after modprobe
-fm_drv using radio from xawt, or fmtools.
-
-Note that the firmware placed into /lib/firmware/ti-connectivity
-directory:
-
-fm_rx_ch8_1283.2.bts
-fmc_ch8_1283.2.bts
-
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Brad Love <brad@nextdimension.cc>
 ---
- arch/arm/configs/omap2plus_defconfig | 3 +++
- 1 file changed, 3 insertions(+)
+No changes since v1
 
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -126,6 +126,7 @@ CONFIG_AF_RXRPC=m
- CONFIG_RXKAD=y
- CONFIG_CFG80211=m
- CONFIG_MAC80211=m
-+CONFIG_RFKILL=m
- CONFIG_DEVTMPFS=y
- CONFIG_DEVTMPFS_MOUNT=y
- CONFIG_DMA_CMA=y
-@@ -343,12 +344,14 @@ CONFIG_IR_GPIO_TX=m
- CONFIG_IR_PWM_TX=m
- CONFIG_MEDIA_SUPPORT=m
- CONFIG_MEDIA_CAMERA_SUPPORT=y
-+CONFIG_MEDIA_RADIO_SUPPORT=y
- CONFIG_MEDIA_CEC_SUPPORT=y
- CONFIG_MEDIA_CONTROLLER=y
- CONFIG_VIDEO_V4L2_SUBDEV_API=y
- CONFIG_V4L_PLATFORM_DRIVERS=y
- CONFIG_VIDEO_OMAP3=m
- CONFIG_CEC_PLATFORM_DRIVERS=y
-+CONFIG_RADIO_WL128X=m
- # CONFIG_MEDIA_SUBDRV_AUTOSELECT is not set
- CONFIG_VIDEO_TVP5150=m
- CONFIG_DRM=m
+ drivers/media/tuners/si2157.c      | 6 ++++++
+ drivers/media/tuners/si2157_priv.h | 3 ++-
+ 2 files changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
+index d389f1f..3d21af5 100644
+--- a/drivers/media/tuners/si2157.c
++++ b/drivers/media/tuners/si2157.c
+@@ -138,6 +138,7 @@ static int si2157_init(struct dvb_frontend *fe)
+ 	chip_id = cmd.args[1] << 24 | cmd.args[2] << 16 | cmd.args[3] << 8 |
+ 			cmd.args[4] << 0;
+ 
++	#define SI2177_A30 ('A' << 24 | 77 << 16 | '3' << 8 | '0' << 0)
+ 	#define SI2158_A20 ('A' << 24 | 58 << 16 | '2' << 8 | '0' << 0)
+ 	#define SI2148_A20 ('A' << 24 | 48 << 16 | '2' << 8 | '0' << 0)
+ 	#define SI2157_A30 ('A' << 24 | 57 << 16 | '3' << 8 | '0' << 0)
+@@ -153,6 +154,9 @@ static int si2157_init(struct dvb_frontend *fe)
+ 	case SI2141_A10:
+ 		fw_name = SI2141_A10_FIRMWARE;
+ 		break;
++	case SI2177_A30:
++		fw_name = SI2157_A30_FIRMWARE;
++		break;
+ 	case SI2157_A30:
+ 	case SI2147_A30:
+ 	case SI2146_A10:
+@@ -529,6 +533,7 @@ static const struct i2c_device_id si2157_id_table[] = {
+ 	{"si2157", SI2157_CHIPTYPE_SI2157},
+ 	{"si2146", SI2157_CHIPTYPE_SI2146},
+ 	{"si2141", SI2157_CHIPTYPE_SI2141},
++	{"si2177", SI2157_CHIPTYPE_SI2177},
+ 	{}
+ };
+ MODULE_DEVICE_TABLE(i2c, si2157_id_table);
+@@ -550,3 +555,4 @@ MODULE_AUTHOR("Antti Palosaari <crope@iki.fi>");
+ MODULE_LICENSE("GPL");
+ MODULE_FIRMWARE(SI2158_A20_FIRMWARE);
+ MODULE_FIRMWARE(SI2141_A10_FIRMWARE);
++MODULE_FIRMWARE(SI2157_A30_FIRMWARE);
+diff --git a/drivers/media/tuners/si2157_priv.h b/drivers/media/tuners/si2157_priv.h
+index 50f8630..67caee5 100644
+--- a/drivers/media/tuners/si2157_priv.h
++++ b/drivers/media/tuners/si2157_priv.h
+@@ -50,6 +50,7 @@ struct si2157_dev {
+ #define SI2157_CHIPTYPE_SI2157 0
+ #define SI2157_CHIPTYPE_SI2146 1
+ #define SI2157_CHIPTYPE_SI2141 2
++#define SI2157_CHIPTYPE_SI2177 3
+ 
+ /* firmware command struct */
+ #define SI2157_ARGLEN      30
+@@ -61,5 +62,5 @@ struct si2157_cmd {
+ 
+ #define SI2158_A20_FIRMWARE "dvb-tuner-si2158-a20-01.fw"
+ #define SI2141_A10_FIRMWARE "dvb-tuner-si2141-a10-01.fw"
+-
++#define SI2157_A30_FIRMWARE "dvb-tuner-si2157-a30-05.fw"
+ #endif
 -- 
-2.19.2
+2.7.4
+
