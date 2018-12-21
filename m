@@ -2,185 +2,117 @@ Return-Path: <SRS0=g7QC=O6=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
-	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.5 required=3.0 tests=INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BDBCC43387
-	for <linux-media@archiver.kernel.org>; Fri, 21 Dec 2018 16:57:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AA52BC43387
+	for <linux-media@archiver.kernel.org>; Fri, 21 Dec 2018 18:02:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EC20A21903
-	for <linux-media@archiver.kernel.org>; Fri, 21 Dec 2018 16:57:06 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=megous.com header.i=@megous.com header.b="fDLaDDeM"
+	by mail.kernel.org (Postfix) with ESMTP id 7AD2020836
+	for <linux-media@archiver.kernel.org>; Fri, 21 Dec 2018 18:02:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388573AbeLUQ47 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 21 Dec 2018 11:56:59 -0500
-Received: from vps.xff.cz ([195.181.215.36]:42442 "EHLO vps.xff.cz"
+        id S2387603AbeLUSCK (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 21 Dec 2018 13:02:10 -0500
+Received: from muru.com ([72.249.23.125]:58920 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388011AbeLUQ47 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 21 Dec 2018 11:56:59 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=megous.com; s=mail;
-        t=1545411416; bh=gyy90YjTZtqrSOOiV5GFYEb87e0T/+Q/+2syiV6jq0E=;
-        h=From:To:Cc:Subject:Date:From;
-        b=fDLaDDeMEHt172NdlEwyk80ZqrsmA+nw4cNTvY4efjX7HpXLzOmEHLTWDJtwublUx
-         lDc7D/DPLVpRQRMl34FxGgE3d78m7mEVK6Md9GkS0+KVFNyVWhJfX2FqzAgshXCY9e
-         eE0DWl1I2moumvrw3aGXkZBb9BdU2nyUloVuxZZs=
-From:   megous@megous.com
-To:     dev@linux-sunxi.org
-Cc:     Ondrej Jirman <megous@megous.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        id S1725937AbeLUSCK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 21 Dec 2018 13:02:10 -0500
+Received: from atomide.com (localhost [127.0.0.1])
+        by muru.com (Postfix) with ESMTPS id BAB9E8068;
+        Fri, 21 Dec 2018 18:02:12 +0000 (UTC)
+Date:   Fri, 21 Dec 2018 10:02:05 -0800
+From:   Tony Lindgren <tony@atomide.com>
+To:     Sebastian Reichel <sre@kernel.org>
+Cc:     Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Marcel Holtmann <marcel@holtmann.org>,
+        Rob Herring <robh@kernel.org>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Chen-Yu Tsai <wens@csie.org>,
-        linux-media@vger.kernel.org (open list:ALLWINNER VPU DRIVER),
-        devel@driverdev.osuosl.org (open list:STAGING SUBSYSTEM),
-        linux-arm-kernel@lists.infradead.org (moderated list:ARM/Allwinner
-        sunXi SoC support), linux-kernel@vger.kernel.org (open list)
-Subject: [PATCH] media: sunxi: cedrus: Fix missing error message context
-Date:   Fri, 21 Dec 2018 17:56:41 +0100
-Message-Id: <20181221165641.16207-1-megous@megous.com>
+        Pavel Machek <pavel@ucw.cz>, linux-bluetooth@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 00/14] Add support for FM radio in hcill and kill TI_ST
+Message-ID: <20181221180205.GH6707@atomide.com>
+References: <20181221011752.25627-1-sre@kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20181221011752.25627-1-sre@kernel.org>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-From: Ondrej Jirman <megous@megous.com>
+* Sebastian Reichel <sre@kernel.org> [181221 01:18]:
+> The new code has been tested on the Motorola Droid 4. For testing the audio
+> should be configured to route Ext to Speaker or Headphone. Then you need to
+> plug headphone, since its cable is used as antenna. For testing there is a
+> 'radio' utility packages in Debian. When you start the utility you need to
+> specify a frequency, since initial get_frequency returns an error:
 
-When cedrus_hw_probe is called, v4l2_dev is not yet initialized.
-Use dev_err instead.
+Nice, good to see that ti-st kim stuff gone :) I gave this a quick
+try using fmtools.git and fmscan works just fine. No luck yet with
+fm though, it gives VIDIOC_G_CTRL: Not a tty error somehow so
+maybe I'm missing some options, patch below for omap2plus_defconfig.
 
-Signed-off-by: Ondrej Jirman <megous@megous.com>
+Hmm so looks like nothing to configure for the clocks or
+CPCAP_BIT_ST_L_TIMESLOT bits for cap for the EXT? So the
+wl12xx audio is wired directly to cpcap EXT then and not a
+TDM slot on the mcbsp huh?
+
+> Merry Christmas!
+
+Same to you!
+
+Tony
+
+8< --------------------------------
+From tony Mon Sep 17 00:00:00 2001
+From: Tony Lindgren <tony@atomide.com>
+Date: Fri, 21 Dec 2018 07:57:09 -0800
+Subject: [PATCH] ARM: omap2plus_defconfig: Add RADIO_WL128X as a loadable
+ module
+
+This allows using the FM radio in the wl12xx chips after modprobe
+fm_drv using radio from xawt, or fmtools.
+
+Note that the firmware placed into /lib/firmware/ti-connectivity
+directory:
+
+fm_rx_ch8_1283.2.bts
+fmc_ch8_1283.2.bts
+
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- .../staging/media/sunxi/cedrus/cedrus_hw.c    | 28 +++++++++----------
- 1 file changed, 14 insertions(+), 14 deletions(-)
+ arch/arm/configs/omap2plus_defconfig | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/staging/media/sunxi/cedrus/cedrus_hw.c b/drivers/staging/media/sunxi/cedrus/cedrus_hw.c
-index 300339fee1bc..0acf219a8c91 100644
---- a/drivers/staging/media/sunxi/cedrus/cedrus_hw.c
-+++ b/drivers/staging/media/sunxi/cedrus/cedrus_hw.c
-@@ -157,14 +157,14 @@ int cedrus_hw_probe(struct cedrus_dev *dev)
- 
- 	irq_dec = platform_get_irq(dev->pdev, 0);
- 	if (irq_dec <= 0) {
--		v4l2_err(&dev->v4l2_dev, "Failed to get IRQ\n");
-+		dev_err(dev->dev, "Failed to get IRQ\n");
- 
- 		return irq_dec;
- 	}
- 	ret = devm_request_irq(dev->dev, irq_dec, cedrus_irq,
- 			       0, dev_name(dev->dev), dev);
- 	if (ret) {
--		v4l2_err(&dev->v4l2_dev, "Failed to request IRQ\n");
-+		dev_err(dev->dev, "Failed to request IRQ\n");
- 
- 		return ret;
- 	}
-@@ -182,21 +182,21 @@ int cedrus_hw_probe(struct cedrus_dev *dev)
- 
- 	ret = of_reserved_mem_device_init(dev->dev);
- 	if (ret && ret != -ENODEV) {
--		v4l2_err(&dev->v4l2_dev, "Failed to reserve memory\n");
-+		dev_err(dev->dev, "Failed to reserve memory\n");
- 
- 		return ret;
- 	}
- 
- 	ret = sunxi_sram_claim(dev->dev);
- 	if (ret) {
--		v4l2_err(&dev->v4l2_dev, "Failed to claim SRAM\n");
-+		dev_err(dev->dev, "Failed to claim SRAM\n");
- 
- 		goto err_mem;
- 	}
- 
- 	dev->ahb_clk = devm_clk_get(dev->dev, "ahb");
- 	if (IS_ERR(dev->ahb_clk)) {
--		v4l2_err(&dev->v4l2_dev, "Failed to get AHB clock\n");
-+		dev_err(dev->dev, "Failed to get AHB clock\n");
- 
- 		ret = PTR_ERR(dev->ahb_clk);
- 		goto err_sram;
-@@ -204,7 +204,7 @@ int cedrus_hw_probe(struct cedrus_dev *dev)
- 
- 	dev->mod_clk = devm_clk_get(dev->dev, "mod");
- 	if (IS_ERR(dev->mod_clk)) {
--		v4l2_err(&dev->v4l2_dev, "Failed to get MOD clock\n");
-+		dev_err(dev->dev, "Failed to get MOD clock\n");
- 
- 		ret = PTR_ERR(dev->mod_clk);
- 		goto err_sram;
-@@ -212,7 +212,7 @@ int cedrus_hw_probe(struct cedrus_dev *dev)
- 
- 	dev->ram_clk = devm_clk_get(dev->dev, "ram");
- 	if (IS_ERR(dev->ram_clk)) {
--		v4l2_err(&dev->v4l2_dev, "Failed to get RAM clock\n");
-+		dev_err(dev->dev, "Failed to get RAM clock\n");
- 
- 		ret = PTR_ERR(dev->ram_clk);
- 		goto err_sram;
-@@ -220,7 +220,7 @@ int cedrus_hw_probe(struct cedrus_dev *dev)
- 
- 	dev->rstc = devm_reset_control_get(dev->dev, NULL);
- 	if (IS_ERR(dev->rstc)) {
--		v4l2_err(&dev->v4l2_dev, "Failed to get reset control\n");
-+		dev_err(dev->dev, "Failed to get reset control\n");
- 
- 		ret = PTR_ERR(dev->rstc);
- 		goto err_sram;
-@@ -229,7 +229,7 @@ int cedrus_hw_probe(struct cedrus_dev *dev)
- 	res = platform_get_resource(dev->pdev, IORESOURCE_MEM, 0);
- 	dev->base = devm_ioremap_resource(dev->dev, res);
- 	if (IS_ERR(dev->base)) {
--		v4l2_err(&dev->v4l2_dev, "Failed to map registers\n");
-+		dev_err(dev->dev, "Failed to map registers\n");
- 
- 		ret = PTR_ERR(dev->base);
- 		goto err_sram;
-@@ -237,35 +237,35 @@ int cedrus_hw_probe(struct cedrus_dev *dev)
- 
- 	ret = clk_set_rate(dev->mod_clk, CEDRUS_CLOCK_RATE_DEFAULT);
- 	if (ret) {
--		v4l2_err(&dev->v4l2_dev, "Failed to set clock rate\n");
-+		dev_err(dev->dev, "Failed to set clock rate\n");
- 
- 		goto err_sram;
- 	}
- 
- 	ret = clk_prepare_enable(dev->ahb_clk);
- 	if (ret) {
--		v4l2_err(&dev->v4l2_dev, "Failed to enable AHB clock\n");
-+		dev_err(dev->dev, "Failed to enable AHB clock\n");
- 
- 		goto err_sram;
- 	}
- 
- 	ret = clk_prepare_enable(dev->mod_clk);
- 	if (ret) {
--		v4l2_err(&dev->v4l2_dev, "Failed to enable MOD clock\n");
-+		dev_err(dev->dev, "Failed to enable MOD clock\n");
- 
- 		goto err_ahb_clk;
- 	}
- 
- 	ret = clk_prepare_enable(dev->ram_clk);
- 	if (ret) {
--		v4l2_err(&dev->v4l2_dev, "Failed to enable RAM clock\n");
-+		dev_err(dev->dev, "Failed to enable RAM clock\n");
- 
- 		goto err_mod_clk;
- 	}
- 
- 	ret = reset_control_reset(dev->rstc);
- 	if (ret) {
--		v4l2_err(&dev->v4l2_dev, "Failed to apply reset\n");
-+		dev_err(dev->dev, "Failed to apply reset\n");
- 
- 		goto err_ram_clk;
- 	}
+diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -126,6 +126,7 @@ CONFIG_AF_RXRPC=m
+ CONFIG_RXKAD=y
+ CONFIG_CFG80211=m
+ CONFIG_MAC80211=m
++CONFIG_RFKILL=m
+ CONFIG_DEVTMPFS=y
+ CONFIG_DEVTMPFS_MOUNT=y
+ CONFIG_DMA_CMA=y
+@@ -343,12 +344,14 @@ CONFIG_IR_GPIO_TX=m
+ CONFIG_IR_PWM_TX=m
+ CONFIG_MEDIA_SUPPORT=m
+ CONFIG_MEDIA_CAMERA_SUPPORT=y
++CONFIG_MEDIA_RADIO_SUPPORT=y
+ CONFIG_MEDIA_CEC_SUPPORT=y
+ CONFIG_MEDIA_CONTROLLER=y
+ CONFIG_VIDEO_V4L2_SUBDEV_API=y
+ CONFIG_V4L_PLATFORM_DRIVERS=y
+ CONFIG_VIDEO_OMAP3=m
+ CONFIG_CEC_PLATFORM_DRIVERS=y
++CONFIG_RADIO_WL128X=m
+ # CONFIG_MEDIA_SUBDRV_AUTOSELECT is not set
+ CONFIG_VIDEO_TVP5150=m
+ CONFIG_DRM=m
 -- 
-2.20.1
-
+2.19.2
