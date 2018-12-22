@@ -2,38 +2,37 @@ Return-Path: <SRS0=mDsK=O7=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.8 required=3.0 tests=DATE_IN_PAST_06_12,
+X-Spam-Status: No, score=-7.9 required=3.0 tests=DATE_IN_PAST_03_06,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
 	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C81EFC43387
-	for <linux-media@archiver.kernel.org>; Sat, 22 Dec 2018 18:32:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A0C5DC43387
+	for <linux-media@archiver.kernel.org>; Sat, 22 Dec 2018 18:32:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9973B21908
-	for <linux-media@archiver.kernel.org>; Sat, 22 Dec 2018 18:32:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 779D221917
+	for <linux-media@archiver.kernel.org>; Sat, 22 Dec 2018 18:32:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2392053AbeLVSbU (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sat, 22 Dec 2018 13:31:20 -0500
+        id S2388982AbeLVScN (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sat, 22 Dec 2018 13:32:13 -0500
 Received: from youngberry.canonical.com ([91.189.89.112]:42517 "EHLO
         youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2392020AbeLVSbR (ORCPT
+        with ESMTP id S2391852AbeLVSbG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 22 Dec 2018 13:31:17 -0500
+        Sat, 22 Dec 2018 13:31:06 -0500
 Received: from 1.general.cking.uk.vpn ([10.172.193.212] helo=localhost)
         by youngberry.canonical.com with esmtpsa (TLS1.0:RSA_AES_256_CBC_SHA1:32)
         (Exim 4.76)
         (envelope-from <colin.king@canonical.com>)
-        id 1gafmx-0004zr-Mu; Sat, 22 Dec 2018 11:49:51 +0000
+        id 1gai0w-0003yb-Hk; Sat, 22 Dec 2018 14:12:26 +0000
 From:   Colin King <colin.king@canonical.com>
-To:     Sakari Ailus <sakari.ailus@linux.intel.com>,
+To:     Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+        linux-media@vger.kernel.org
 Cc:     kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH][next] media: staging: intel-ipu3: fix unsigned comparison with < 0
-Date:   Sat, 22 Dec 2018 11:49:51 +0000
-Message-Id: <20181222114951.31503-1-colin.king@canonical.com>
+Subject: [PATCH][next] media: cxd2880-spi: fix two memory leaks of dvb_spi
+Date:   Sat, 22 Dec 2018 14:12:26 +0000
+Message-Id: <20181222141226.15775-1-colin.king@canonical.com>
 X-Mailer: git-send-email 2.19.1
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -45,47 +44,42 @@ X-Mailing-List: linux-media@vger.kernel.org
 
 From: Colin Ian King <colin.king@canonical.com>
 
-The comparison css->pipes[pipe].bindex < 0 is always false because
-bindex is an unsigned int.  Fix this by using a signed integer for
-the comparison.
+There are two return paths that do not kfree dvb_spi. Fix the memory
+leaks by returning via the exit label fail_adapter that will free
+dvi_spi.
 
-Detected by CoverityScan, CID#1476023 ("Unsigned compared against 0")
+Detected by CoverityScan, CID#1475991 ("Resource Leak")
 
-Fixes: f5f2e4273518 ("media: staging/intel-ipu3: Add css pipeline programming")
+Fixes: cb496cd472af ("media: cxd2880-spi: Add optional vcc regulator")
 Signed-off-by: Colin Ian King <colin.king@canonical.com>
 ---
- drivers/staging/media/ipu3/ipu3-css.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/media/spi/cxd2880-spi.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/staging/media/ipu3/ipu3-css.c b/drivers/staging/media/ipu3/ipu3-css.c
-index 44c55639389a..b9354d2bb692 100644
---- a/drivers/staging/media/ipu3/ipu3-css.c
-+++ b/drivers/staging/media/ipu3/ipu3-css.c
-@@ -1751,7 +1751,7 @@ int ipu3_css_fmt_try(struct ipu3_css *css,
- 					&q[IPU3_CSS_QUEUE_OUT].fmt.mpix;
- 	struct v4l2_pix_format_mplane *const vf =
- 					&q[IPU3_CSS_QUEUE_VF].fmt.mpix;
--	int i, s;
-+	int i, s, ret;
+diff --git a/drivers/media/spi/cxd2880-spi.c b/drivers/media/spi/cxd2880-spi.c
+index d5c433e20d4a..3499c90dc695 100644
+--- a/drivers/media/spi/cxd2880-spi.c
++++ b/drivers/media/spi/cxd2880-spi.c
+@@ -522,13 +522,15 @@ cxd2880_spi_probe(struct spi_device *spi)
  
- 	/* Adjust all formats, get statistics buffer sizes and formats */
- 	for (i = 0; i < IPU3_CSS_QUEUES; i++) {
-@@ -1826,12 +1826,12 @@ int ipu3_css_fmt_try(struct ipu3_css *css,
- 	s = (bds->height - gdc->height) / 2 - FILTER_SIZE;
- 	env->height = s < MIN_ENVELOPE ? MIN_ENVELOPE : s;
- 
--	css->pipes[pipe].bindex =
--		ipu3_css_find_binary(css, pipe, q, r);
--	if (css->pipes[pipe].bindex < 0) {
-+	ret = ipu3_css_find_binary(css, pipe, q, r);
-+	if (ret < 0) {
- 		dev_err(css->dev, "failed to find suitable binary\n");
- 		return -EINVAL;
+ 	dvb_spi->vcc_supply = devm_regulator_get_optional(&spi->dev, "vcc");
+ 	if (IS_ERR(dvb_spi->vcc_supply)) {
+-		if (PTR_ERR(dvb_spi->vcc_supply) == -EPROBE_DEFER)
+-			return -EPROBE_DEFER;
++		if (PTR_ERR(dvb_spi->vcc_supply) == -EPROBE_DEFER) {
++			ret = -EPROBE_DEFER;
++			goto fail_adapter;
++		}
+ 		dvb_spi->vcc_supply = NULL;
+ 	} else {
+ 		ret = regulator_enable(dvb_spi->vcc_supply);
+-		if (ret)
+-			return ret;
++		if (ret)
++			goto fail_adapter;
  	}
-+	css->pipes[pipe].bindex = ret;
  
- 	dev_dbg(css->dev, "Binary index %d for pipe %d found.",
- 		css->pipes[pipe].bindex, pipe);
+ 	dvb_spi->spi = spi;
 -- 
 2.19.1
 
