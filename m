@@ -8,63 +8,62 @@ X-Spam-Status: No, score=-8.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 817A2C43612
-	for <linux-media@archiver.kernel.org>; Sat, 22 Dec 2018 17:13:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A67AFC43387
+	for <linux-media@archiver.kernel.org>; Sat, 22 Dec 2018 17:13:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5148F21A4B
-	for <linux-media@archiver.kernel.org>; Sat, 22 Dec 2018 17:13:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7680A21A48
+	for <linux-media@archiver.kernel.org>; Sat, 22 Dec 2018 17:13:17 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KOF7kfgy"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="n5BPjMDh"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391038AbeLVRNO (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sat, 22 Dec 2018 12:13:14 -0500
-Received: from mail-pg1-f196.google.com ([209.85.215.196]:34501 "EHLO
-        mail-pg1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2391035AbeLVRNN (ORCPT
+        id S2391047AbeLVRNQ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sat, 22 Dec 2018 12:13:16 -0500
+Received: from mail-pl1-f196.google.com ([209.85.214.196]:41251 "EHLO
+        mail-pl1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2390366AbeLVRNQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 22 Dec 2018 12:13:13 -0500
-Received: by mail-pg1-f196.google.com with SMTP id j10so3918605pga.1;
-        Sat, 22 Dec 2018 09:13:11 -0800 (PST)
+        Sat, 22 Dec 2018 12:13:16 -0500
+Received: by mail-pl1-f196.google.com with SMTP id u6so3908694plm.8;
+        Sat, 22 Dec 2018 09:13:15 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=AJJRYBrX/c/RvKPNHNtMugkVkTDmhhzxZAM8CVus1mk=;
-        b=KOF7kfgyPrGC3KpJTaFrzKsi1z5yGc3PbvqBZj+5dfqxT2hyEZBnsxB2+AOll69mx2
-         3KoHdpP4uGCtvc0lzS6X78d2eb9Fe0lQyRh1NsukYBFZDfC3mf2X1gVYFxgu6URzoumU
-         aJ8/dxyyBiNglfI+dZEVIjRunUfFsLt7MOxM8wRJ7/66RW54xAKVC17mPY7XShDaZi3w
-         76eSVJKOMpaqzJ204jjIZoW7hKv2FuSfOr0KLCJthFgSXy+UhaCaNz5s45HT/H+RbDsB
-         V5B4mVkogaWsPClMVhp0jQNf7fq5xmixjFp9+M/Lw5attC48HkAQl4BzLUAG9ZKCqws3
-         x6jg==
+        bh=2T5vV+fLhKc7N1BoFTrmZ9ISXlab11bC+V+QEg6BFGs=;
+        b=n5BPjMDhBFQXUcNGhBuPKIDtImpKWGZvde5yQAQw5LPPAGvi/HsZQ2qwy9Z+S3PnCp
+         c/ZYHhCYvP03TrQM6Hv5WSNE7pVgxNLVNfp83KnI6PJEyicz5RJQUPcpJlXKoRvTxPlF
+         N7hN/dLuq+VDStaGi0bY3WE5gb6Aq2/Juk6t6liIY7CSukpWnCaElDWK7daZxusvD0BE
+         EacjcuFPcnq+y4h2Ywsm9sr3+1QeXZUWTpahKmqjzwe6kwAEKZXiHXq6uFwoFNcR2/UK
+         xEAHBNE48AiDZNCv4wZ6EJzZreAitNgGa/ObxJqpkK6GdZziedSJd70V87rYwpYcl+Xb
+         CZzA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references;
-        bh=AJJRYBrX/c/RvKPNHNtMugkVkTDmhhzxZAM8CVus1mk=;
-        b=tyhsxP17XYiLxFordufvucY9xsqYxKpgYdz0aqGBA5dT9uJd/bIDPFk2wYe4Mu1zwX
-         61rZxBk6fUDUc8VCVHY5ZvblBb4wyTT7opMwjAUm8k0y52ldQkYD9qWJ6jiL67mA1dvg
-         OKCguzsX+6tAcId3v7zElNoj8Zvq+Fq+D7TsDXBFyTZz2O8/CSPBajJCYGIOPzmCXKmi
-         +9X4awVnQSDvSQfI2/zpErsOMt92oC6c2vDDtLysPegKq1nSG0CBau3ugiw+InlfIpkf
-         8/ZnQgiBsKCoRB/1WKrBDWnUiTmCCHqS0AV9G7KZs1nA6tVN0CIq0x5RI1KE5Tjh69Im
-         MxSA==
-X-Gm-Message-State: AA+aEWZI4vY2BQOB4kg6eerbxHR5x6WlKPmRE444wLsAguQPIyPC1MPZ
-        kTUxioOzwy8m+FrKlp+3UI4AU0KQnPE=
-X-Google-Smtp-Source: AFSGD/XDs4V/r2YqEVFnwik1Wm0gQqGOLiMSlLgMILSTm68bwzofnR4cfNd8xsZbD+0cvvnuKvk/Cg==
-X-Received: by 2002:aa7:810c:: with SMTP id b12mr7122601pfi.44.1545498790964;
-        Sat, 22 Dec 2018 09:13:10 -0800 (PST)
+        bh=2T5vV+fLhKc7N1BoFTrmZ9ISXlab11bC+V+QEg6BFGs=;
+        b=Ybfi05EOCMTFD0QKsk0I7VvXj0PzDEeoak1ceL9bPa7XQgwpfiH5v3N1BV+jvcddWG
+         qbdcoApGuKH1SxJ17wfpSgQPPnjeOT5cMzWAOuQV4885iO/Ms8YBmxlrNcPuZ59zFoJs
+         7fOPp9fIt1eQWe0VDA9hsAILgMnedmbUTcTWXbk/qBz3/97+m3nteEPUIyYTigZicfIG
+         1w18ZKkgLdwd91Gkx+XliYui+CQNrqGYWRCPnoUrtgug/pAvpn/ZgWvK84kFNDCokVD7
+         b2eEWl0V38hfbfJWhbSgXrBZ5WjRtD5z2OT3D2i+b0xBwR41IcKB2tS9XizCYBrbkGft
+         rpSg==
+X-Gm-Message-State: AJcUukcPtPlJByOg989mgmi66RyGP9jYl8SDKQBV8e3arDU53wKfIj43
+        I0WvDYYASI7yEFdiw1VCE2UqFOnoh0g=
+X-Google-Smtp-Source: ALg8bN5qGdyWycoyv3reD1jNEUplXdzcRcnGevsjzQPVIBbPt0jPaI7HQdC7Vy3HsIpUo1DDMUrB/w==
+X-Received: by 2002:a17:902:145:: with SMTP id 63mr7103830plb.256.1545498795317;
+        Sat, 22 Dec 2018 09:13:15 -0800 (PST)
 Received: from localhost.localdomain ([240f:34:212d:1:966:8499:7122:52f6])
-        by smtp.gmail.com with ESMTPSA id w11sm33322025pgk.16.2018.12.22.09.13.08
+        by smtp.gmail.com with ESMTPSA id w11sm33322025pgk.16.2018.12.22.09.13.13
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
-        Sat, 22 Dec 2018 09:13:10 -0800 (PST)
+        Sat, 22 Dec 2018 09:13:14 -0800 (PST)
 From:   Akinobu Mita <akinobu.mita@gmail.com>
 To:     linux-media@vger.kernel.org, devicetree@vger.kernel.org
 Cc:     Akinobu Mita <akinobu.mita@gmail.com>,
-        Rob Herring <robh@kernel.org>,
         Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
         Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH 02/12] media: i2c: mt9m001: dt: add binding for mt9m001
-Date:   Sun, 23 Dec 2018 02:12:44 +0900
-Message-Id: <1545498774-11754-3-git-send-email-akinobu.mita@gmail.com>
+Subject: [PATCH 04/12] media: mt9m001: add of_match_table
+Date:   Sun, 23 Dec 2018 02:12:46 +0900
+Message-Id: <1545498774-11754-5-git-send-email-akinobu.mita@gmail.com>
 X-Mailer: git-send-email 2.7.4
 In-Reply-To: <1545498774-11754-1-git-send-email-akinobu.mita@gmail.com>
 References: <1545498774-11754-1-git-send-email-akinobu.mita@gmail.com>
@@ -73,61 +72,37 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Add device tree binding documentation for the MT9M001 CMOS image sensor.
+Add of_match_table for the MT9M001 CMOS image sensor.
 
-Cc: Rob Herring <robh@kernel.org>
 Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
 Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 ---
- .../devicetree/bindings/media/i2c/mt9m001.txt      | 37 ++++++++++++++++++++++
- 1 file changed, 37 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/mt9m001.txt
+ drivers/media/i2c/mt9m001.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/mt9m001.txt b/Documentation/devicetree/bindings/media/i2c/mt9m001.txt
-new file mode 100644
-index 0000000..794b787
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/mt9m001.txt
-@@ -0,0 +1,37 @@
-+MT9M001: 1/2-Inch Megapixel Digital Image Sensor
+diff --git a/drivers/media/i2c/mt9m001.c b/drivers/media/i2c/mt9m001.c
+index 65ff59d..2d800ca 100644
+--- a/drivers/media/i2c/mt9m001.c
++++ b/drivers/media/i2c/mt9m001.c
+@@ -738,9 +738,16 @@ static const struct i2c_device_id mt9m001_id[] = {
+ };
+ MODULE_DEVICE_TABLE(i2c, mt9m001_id);
+ 
++static const struct of_device_id mt9m001_of_match[] = {
++	{ .compatible = "onnn,mt9m001", },
++	{ /* sentinel */ },
++};
++MODULE_DEVICE_TABLE(of, mt9m001_of_match);
 +
-+The MT9M001 is an SXGA-format with a 1/2-inch CMOS active-pixel digital
-+image sensor. It is programmable through a simple two-wire serial
-+interface.
-+
-+Required Properties:
-+
-+- compatible: shall be "onnn,mt9m001".
-+- clocks: reference to the master clock into sensor
-+
-+Optional Properties:
-+
-+- reset-gpios: GPIO handle which is connected to the reset pin of the chip.
-+  Active low.
-+- standby-gpios: GPIO handle which is connected to the standby pin of the chip.
-+  Active high.
-+
-+For further reading on port node refer to
-+Documentation/devicetree/bindings/media/video-interfaces.txt.
-+
-+Example:
-+
-+	&i2c1 {
-+		mt9m001@5d {
-+			compatible = "onnn,mt9m001";
-+			reg = <0x5d>;
-+			reset-gpios = <&gpio0 0 GPIO_ACTIVE_LOW>;
-+			standby-gpios = <&gpio0 1 GPIO_ACTIVE_HIGH>;
-+			clocks = <&camera_clk>;
-+			port {
-+				mt9m001_out: endpoint {
-+					remote-endpoint = <&vcap_in>;
-+				};
-+			};
-+		};
-+	};
+ static struct i2c_driver mt9m001_i2c_driver = {
+ 	.driver = {
+ 		.name = "mt9m001",
++		.of_match_table = mt9m001_of_match,
+ 	},
+ 	.probe		= mt9m001_probe,
+ 	.remove		= mt9m001_remove,
 -- 
 2.7.4
 
