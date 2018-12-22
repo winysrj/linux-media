@@ -2,978 +2,2540 @@ Return-Path: <SRS0=mDsK=O7=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.4 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_MUTT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.7 required=3.0 tests=DATE_IN_PAST_03_06,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 23170C43387
-	for <linux-media@archiver.kernel.org>; Sat, 22 Dec 2018 17:27:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 779CFC43444
+	for <linux-media@archiver.kernel.org>; Sat, 22 Dec 2018 17:33:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B2832219D6
-	for <linux-media@archiver.kernel.org>; Sat, 22 Dec 2018 17:27:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EF1D821A7E
+	for <linux-media@archiver.kernel.org>; Sat, 22 Dec 2018 17:33:07 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="fDR3ZsyM"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730918AbeLVR1R (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sat, 22 Dec 2018 12:27:17 -0500
-Received: from mga04.intel.com ([192.55.52.120]:58660 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728109AbeLVR1Q (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 22 Dec 2018 12:27:16 -0500
-X-Amp-Result: UNKNOWN
-X-Amp-Original-Verdict: FILE UNKNOWN
-X-Amp-File-Uploaded: False
-Received: from fmsmga006.fm.intel.com ([10.253.24.20])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 22 Dec 2018 02:05:22 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.56,383,1539673200"; 
-   d="gz'50?scan'50,208,50";a="304299859"
-Received: from lkp-server01.sh.intel.com (HELO lkp-server01) ([10.239.97.150])
-  by fmsmga006.fm.intel.com with ESMTP; 22 Dec 2018 02:05:20 -0800
-Received: from kbuild by lkp-server01 with local (Exim 4.89)
-        (envelope-from <lkp@intel.com>)
-        id 1gae9n-0002pa-VM; Sat, 22 Dec 2018 18:05:20 +0800
-Date:   Sat, 22 Dec 2018 18:04:52 +0800
-From:   kbuild test robot <lkp@intel.com>
-To:     Brad Love <brad@nextdimension.cc>
-Cc:     kbuild-all@01.org, linux-media@vger.kernel.org, mchehab@kernel.org,
-        Brad Love <brad@nextdimension.cc>
-Subject: Re: [PATCH v2 4/4] pvrusb2: Add Hauppauge HVR1955/1975 devices
-Message-ID: <201812221826.Eb9elrqL%fengguang.wu@intel.com>
-References: <1545421223-3577-5-git-send-email-brad@nextdimension.cc>
+        id S2391480AbeLVRc7 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sat, 22 Dec 2018 12:32:59 -0500
+Received: from mail-it1-f178.google.com ([209.85.166.178]:52622 "EHLO
+        mail-it1-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2391453AbeLVRc6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 22 Dec 2018 12:32:58 -0500
+Received: by mail-it1-f178.google.com with SMTP id g76so11371594itg.2;
+        Sat, 22 Dec 2018 09:32:55 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=Ei+MBG5YHz4MHxhjkJv3TihggiXIqJBlZvJy56GQz4U=;
+        b=fDR3ZsyMriVbWXWrfTx6ANVBvmZGa4lZXD9wPr0iljT7XL1WgRKUQdaX/QOnxMAR/Y
+         LBTzwDq9wDfmOqYmXRzeKB9Q0LsVfz8ffDY6e9iqVruqffrBSEJsTWJ1EbsCSD4iOLgV
+         gU0FzUgGECblnz6r+e5zuw0tRzcnDP0ItLHBN6SgxsDop9ftWzfw63Cfq0T/WQpg1UUg
+         DYnKGP73Icr8oATRH+DHhIn7i9rCpS2h+kVWd0to2awGY2U2i+q4n4tjQ1RQBpA2ZJ9h
+         8BgH/D99jMyQmpyRhKHewJb9kxRj2BcWok/mGYV+hKEWs2W60snU1rB9BElZiQNA4hNT
+         uWqw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=Ei+MBG5YHz4MHxhjkJv3TihggiXIqJBlZvJy56GQz4U=;
+        b=lEz5RanvrKk+ewt70ekoRE3yj62mN9kWSvjDZ/w4xMcxG+MMnLWs6oDhi72xui3qs5
+         p07C8GyOrGs3Uj2sIw554vWF7SscHKPN1z/LWCeIB5LGQ3vQXvmAmuoRZzlLrISefa7d
+         xfIIVc51BRwWlro5npbDPtKoBSPNUL8OtiQ3GpnCzM2qvBs5wJwIqXHIOG5YQopm5oHj
+         ZpgyWl42YEyqw0RHJZq0Q9jqI5IVo7MDB5YgQwmzYcZZuDNYOIz9La6OWIfnt8G29ztX
+         nx5Dk3yTqxoYisy9k1OZNvyymirrmA8Di7ILZB+27aYjEHOa25QhXEpr9VkFeXzotpQJ
+         0nNg==
+X-Gm-Message-State: AA+aEWarlx5tRg7DzwvMJyVk/XKfEoEOLGKqaibP7dtSmsf93or4g3td
+        Jf98AKh2/9H6FqaE7fmOdIz1WdMdIMET6m35ZI8zMCWl
+X-Google-Smtp-Source: AFSGD/XyrDBidMNEIs7Fy356SdMJBWJ8V1NJgWxgJxJmraRh17XCf4ookRL0D8IySkqpZG/k6WuNpqLzVt41CN7XfTQ=
+X-Received: by 2002:a24:630b:: with SMTP id j11mr4439012itc.28.1545484645043;
+ Sat, 22 Dec 2018 05:17:25 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="mYCpIKhGyMATD0i+"
-Content-Disposition: inline
-In-Reply-To: <1545421223-3577-5-git-send-email-brad@nextdimension.cc>
-User-Agent: Mutt/1.5.23 (2014-03-12)
+References: <20181221011752.25627-1-sre@kernel.org> <20181221011752.25627-15-sre@kernel.org>
+ <CAHCN7x+d5xSQF0U7XaAKUeH1iHtHsUNVPG6OeCHWWLKn_F2SEw@mail.gmail.com> <20181222030044.gftkwkirybrrzxu5@earth.universe>
+In-Reply-To: <20181222030044.gftkwkirybrrzxu5@earth.universe>
+From:   Adam Ford <aford173@gmail.com>
+Date:   Sat, 22 Dec 2018 07:17:15 -0600
+Message-ID: <CAHCN7x+w3rh91ihPc95wecATp1UoQmhC=z4R+FK9rJAkG+JWaw@mail.gmail.com>
+Subject: Re: [PATCH 14/14] misc: ti-st: Drop superseded driver
+To:     Sebastian Reichel <sre@kernel.org>
+Cc:     Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Marcel Holtmann <marcel@holtmann.org>,
+        Tony Lindgren <tony@atomide.com>,
+        Rob Herring <robh@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Pavel Machek <pavel@ucw.cz>,
+        "open list:BLUETOOTH DRIVERS" <linux-bluetooth@vger.kernel.org>,
+        linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
+On Fri, Dec 21, 2018 at 9:00 PM Sebastian Reichel <sre@kernel.org> wrote:
+>
+> Hi,
+>
+> On Fri, Dec 21, 2018 at 03:10:52PM -0600, Adam Ford wrote:
+> > On Fri, Dec 21, 2018 at 2:13 AM Sebastian Reichel <sre@kernel.org> wrote:
+> > >
+> > > From: Sebastian Reichel <sebastian.reichel@collabora.com>
+> > >
+> > > This driver has been superseded by the serdev based Bluetooth
+> > > hci_ll driver, which is initialized from DT. All mainline users
+> > > have been converted and this driver can be safely dropped.
+> >
+> > There seems to be an issue with my wl1283 because the
+> > logicod-torpedo-37xx-devkit doesn't work with the proposed device tree
+> > changes, but the older shared transport driver still works.
+> > I commented on the patch that modifies the board with details of the
+> > firmware timeout.
+> >
+> > Until this is resolved, I'd like to hold off on applying these changes.
+>
+> mh :/ I can't help with this, since I don't have this board (nor any
+> other wl1283 based one). Is the FM part usable on that device? If
+> its unusable the patchset could be splitted.
 
---mYCpIKhGyMATD0i+
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+I don't have functional FM (it's not wired), so i have no issues
+splitting the FM part.  I'm hoping to hear from some other 1283-st
+users to see if they have success.
 
-Hi Brad,
+>
+> > Also, there are references to this driver inside pdata-quirks that
+> > need to be removed as well once the loading and timeout issues have
+> > been resolved.
+>
+> I dropped the pdata-quirks for TI_ST in patch 3 of this series.
 
-Thank you for the patch! Yet something to improve:
+My bad, sorry I missed it that part.
+>
+> -- Sebastian
+>
 
-[auto build test ERROR on linuxtv-media/master]
-[also build test ERROR on v4.20-rc7 next-20181221]
-[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
-
-url:    https://github.com/0day-ci/linux/commits/Brad-Love/Add-Hauppauge-HVR1955-1975-devices/20181222-110834
-base:   git://linuxtv.org/media_tree.git master
-config: openrisc-allmodconfig (attached as .config)
-compiler: or1k-linux-gcc (GCC) 6.0.0 20160327 (experimental)
-reproduce:
-        wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
-        chmod +x ~/bin/make.cross
-        # save the attached .config to linux build tree
-        make.cross ARCH=openrisc 
-
-All errors (new ones prefixed by >>):
-
->> drivers/media/usb/pvrusb2/pvrusb2-devattr.c:541:21: error: 'pvr2_si2157_attach' undeclared here (not in a function)
-     .tuner_attach    = pvr2_si2157_attach,
-                        ^~~~~~~~~~~~~~~~~~
-   drivers/media/usb/pvrusb2/pvrusb2-devattr.c:548:12: warning: 'pvr2_si2157_attach' defined but not used [-Wunused-function]
-    static int pvr2_si2157_attach(struct pvr2_dvb_adapter *adap)
-               ^~~~~~~~~~~~~~~~~~
-
-vim +/pvr2_si2157_attach +541 drivers/media/usb/pvrusb2/pvrusb2-devattr.c
-
-   538	
-   539	static const struct pvr2_dvb_props pvr2_160000_dvb_props = {
-   540		.frontend_attach = pvr2_dual_fe_attach,
- > 541		.tuner_attach    = pvr2_si2157_attach,
-   542	};
-   543	static const struct pvr2_dvb_props pvr2_160111_dvb_props = {
-   544		.frontend_attach = pvr2_lgdt3306a_attach,
-   545		.tuner_attach    = pvr2_si2157_attach,
-   546	};
-   547	
-
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
-
---mYCpIKhGyMATD0i+
-Content-Type: application/gzip
-Content-Disposition: attachment; filename=".config.gz"
-Content-Transfer-Encoding: base64
-
-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
-
---mYCpIKhGyMATD0i+--
+adam
+> >
+> > adam
+> > >
+> > > Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
+> > > ---
+> > >  drivers/misc/Kconfig         |   1 -
+> > >  drivers/misc/Makefile        |   1 -
+> > >  drivers/misc/ti-st/Kconfig   |  18 -
+> > >  drivers/misc/ti-st/Makefile  |   6 -
+> > >  drivers/misc/ti-st/st_core.c | 922 -----------------------------------
+> > >  drivers/misc/ti-st/st_kim.c  | 868 ---------------------------------
+> > >  drivers/misc/ti-st/st_ll.c   | 169 -------
+> > >  include/linux/ti_wilink_st.h | 335 -------------
+> > >  8 files changed, 2320 deletions(-)
+> > >  delete mode 100644 drivers/misc/ti-st/Kconfig
+> > >  delete mode 100644 drivers/misc/ti-st/Makefile
+> > >  delete mode 100644 drivers/misc/ti-st/st_core.c
+> > >  delete mode 100644 drivers/misc/ti-st/st_kim.c
+> > >  delete mode 100644 drivers/misc/ti-st/st_ll.c
+> > >
+> > > diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
+> > > index 3726eacdf65d..a5cc07d33c74 100644
+> > > --- a/drivers/misc/Kconfig
+> > > +++ b/drivers/misc/Kconfig
+> > > @@ -516,7 +516,6 @@ config MISC_RTSX
+> > >  source "drivers/misc/c2port/Kconfig"
+> > >  source "drivers/misc/eeprom/Kconfig"
+> > >  source "drivers/misc/cb710/Kconfig"
+> > > -source "drivers/misc/ti-st/Kconfig"
+> > >  source "drivers/misc/lis3lv02d/Kconfig"
+> > >  source "drivers/misc/altera-stapl/Kconfig"
+> > >  source "drivers/misc/mei/Kconfig"
+> > > diff --git a/drivers/misc/Makefile b/drivers/misc/Makefile
+> > > index af22bbc3d00c..31c1e3eb4952 100644
+> > > --- a/drivers/misc/Makefile
+> > > +++ b/drivers/misc/Makefile
+> > > @@ -39,7 +39,6 @@ obj-y                         += cb710/
+> > >  obj-$(CONFIG_SPEAR13XX_PCIE_GADGET)    += spear13xx_pcie_gadget.o
+> > >  obj-$(CONFIG_VMWARE_BALLOON)   += vmw_balloon.o
+> > >  obj-$(CONFIG_PCH_PHUB)         += pch_phub.o
+> > > -obj-y                          += ti-st/
+> > >  obj-y                          += lis3lv02d/
+> > >  obj-$(CONFIG_USB_SWITCH_FSA9480) += fsa9480.o
+> > >  obj-$(CONFIG_ALTERA_STAPL)     +=altera-stapl/
+> > > diff --git a/drivers/misc/ti-st/Kconfig b/drivers/misc/ti-st/Kconfig
+> > > deleted file mode 100644
+> > > index 5bb92698bc80..000000000000
+> > > --- a/drivers/misc/ti-st/Kconfig
+> > > +++ /dev/null
+> > > @@ -1,18 +0,0 @@
+> > > -#
+> > > -# TI's shared transport line discipline and the protocol
+> > > -# drivers (BT, FM and GPS)
+> > > -#
+> > > -menu "Texas Instruments shared transport line discipline"
+> > > -config TI_ST
+> > > -       tristate "Shared transport core driver"
+> > > -       depends on NET && TTY
+> > > -       depends on GPIOLIB || COMPILE_TEST
+> > > -       select FW_LOADER
+> > > -       help
+> > > -         This enables the shared transport core driver for TI
+> > > -         BT / FM and GPS combo chips. This enables protocol drivers
+> > > -         to register themselves with core and send data, the responses
+> > > -         are returned to relevant protocol drivers based on their
+> > > -         packet types.
+> > > -
+> > > -endmenu
+> > > diff --git a/drivers/misc/ti-st/Makefile b/drivers/misc/ti-st/Makefile
+> > > deleted file mode 100644
+> > > index 78d7ebb14749..000000000000
+> > > --- a/drivers/misc/ti-st/Makefile
+> > > +++ /dev/null
+> > > @@ -1,6 +0,0 @@
+> > > -#
+> > > -# Makefile for TI's shared transport line discipline
+> > > -# and its protocol drivers (BT, FM, GPS)
+> > > -#
+> > > -obj-$(CONFIG_TI_ST)            += st_drv.o
+> > > -st_drv-objs                    := st_core.o st_kim.o st_ll.o
+> > > diff --git a/drivers/misc/ti-st/st_core.c b/drivers/misc/ti-st/st_core.c
+> > > deleted file mode 100644
+> > > index eda8d407be28..000000000000
+> > > --- a/drivers/misc/ti-st/st_core.c
+> > > +++ /dev/null
+> > > @@ -1,922 +0,0 @@
+> > > -/*
+> > > - *  Shared Transport Line discipline driver Core
+> > > - *     This hooks up ST KIM driver and ST LL driver
+> > > - *  Copyright (C) 2009-2010 Texas Instruments
+> > > - *  Author: Pavan Savoy <pavan_savoy@ti.com>
+> > > - *
+> > > - *  This program is free software; you can redistribute it and/or modify
+> > > - *  it under the terms of the GNU General Public License version 2 as
+> > > - *  published by the Free Software Foundation.
+> > > - *
+> > > - *  This program is distributed in the hope that it will be useful,
+> > > - *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+> > > - *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> > > - *  GNU General Public License for more details.
+> > > - *
+> > > - *  You should have received a copy of the GNU General Public License
+> > > - *  along with this program; if not, write to the Free Software
+> > > - *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+> > > - *
+> > > - */
+> > > -
+> > > -#define pr_fmt(fmt)    "(stc): " fmt
+> > > -#include <linux/module.h>
+> > > -#include <linux/kernel.h>
+> > > -#include <linux/tty.h>
+> > > -
+> > > -#include <linux/seq_file.h>
+> > > -#include <linux/skbuff.h>
+> > > -
+> > > -#include <linux/ti_wilink_st.h>
+> > > -
+> > > -extern void st_kim_recv(void *, const unsigned char *, long);
+> > > -void st_int_recv(void *, const unsigned char *, long);
+> > > -/* function pointer pointing to either,
+> > > - * st_kim_recv during registration to receive fw download responses
+> > > - * st_int_recv after registration to receive proto stack responses
+> > > - */
+> > > -static void (*st_recv) (void *, const unsigned char *, long);
+> > > -
+> > > -/********************************************************************/
+> > > -static void add_channel_to_table(struct st_data_s *st_gdata,
+> > > -               struct st_proto_s *new_proto)
+> > > -{
+> > > -       pr_info("%s: id %d\n", __func__, new_proto->chnl_id);
+> > > -       /* list now has the channel id as index itself */
+> > > -       st_gdata->list[new_proto->chnl_id] = new_proto;
+> > > -       st_gdata->is_registered[new_proto->chnl_id] = true;
+> > > -}
+> > > -
+> > > -static void remove_channel_from_table(struct st_data_s *st_gdata,
+> > > -               struct st_proto_s *proto)
+> > > -{
+> > > -       pr_info("%s: id %d\n", __func__, proto->chnl_id);
+> > > -/*     st_gdata->list[proto->chnl_id] = NULL; */
+> > > -       st_gdata->is_registered[proto->chnl_id] = false;
+> > > -}
+> > > -
+> > > -/*
+> > > - * called from KIM during firmware download.
+> > > - *
+> > > - * This is a wrapper function to tty->ops->write_room.
+> > > - * It returns number of free space available in
+> > > - * uart tx buffer.
+> > > - */
+> > > -int st_get_uart_wr_room(struct st_data_s *st_gdata)
+> > > -{
+> > > -       struct tty_struct *tty;
+> > > -       if (unlikely(st_gdata == NULL || st_gdata->tty == NULL)) {
+> > > -               pr_err("tty unavailable to perform write");
+> > > -               return -1;
+> > > -       }
+> > > -       tty = st_gdata->tty;
+> > > -       return tty->ops->write_room(tty);
+> > > -}
+> > > -
+> > > -/* can be called in from
+> > > - * -- KIM (during fw download)
+> > > - * -- ST Core (during st_write)
+> > > - *
+> > > - *  This is the internal write function - a wrapper
+> > > - *  to tty->ops->write
+> > > - */
+> > > -int st_int_write(struct st_data_s *st_gdata,
+> > > -       const unsigned char *data, int count)
+> > > -{
+> > > -       struct tty_struct *tty;
+> > > -       if (unlikely(st_gdata == NULL || st_gdata->tty == NULL)) {
+> > > -               pr_err("tty unavailable to perform write");
+> > > -               return -EINVAL;
+> > > -       }
+> > > -       tty = st_gdata->tty;
+> > > -#ifdef VERBOSE
+> > > -       print_hex_dump(KERN_DEBUG, "<out<", DUMP_PREFIX_NONE,
+> > > -               16, 1, data, count, 0);
+> > > -#endif
+> > > -       return tty->ops->write(tty, data, count);
+> > > -
+> > > -}
+> > > -
+> > > -/*
+> > > - * push the skb received to relevant
+> > > - * protocol stacks
+> > > - */
+> > > -static void st_send_frame(unsigned char chnl_id, struct st_data_s *st_gdata)
+> > > -{
+> > > -       pr_debug(" %s(prot:%d) ", __func__, chnl_id);
+> > > -
+> > > -       if (unlikely
+> > > -           (st_gdata == NULL || st_gdata->rx_skb == NULL
+> > > -            || st_gdata->is_registered[chnl_id] == false)) {
+> > > -               pr_err("chnl_id %d not registered, no data to send?",
+> > > -                          chnl_id);
+> > > -               kfree_skb(st_gdata->rx_skb);
+> > > -               return;
+> > > -       }
+> > > -       /* this cannot fail
+> > > -        * this shouldn't take long
+> > > -        * - should be just skb_queue_tail for the
+> > > -        *   protocol stack driver
+> > > -        */
+> > > -       if (likely(st_gdata->list[chnl_id]->recv != NULL)) {
+> > > -               if (unlikely
+> > > -                       (st_gdata->list[chnl_id]->recv
+> > > -                       (st_gdata->list[chnl_id]->priv_data, st_gdata->rx_skb)
+> > > -                            != 0)) {
+> > > -                       pr_err(" proto stack %d's ->recv failed", chnl_id);
+> > > -                       kfree_skb(st_gdata->rx_skb);
+> > > -                       return;
+> > > -               }
+> > > -       } else {
+> > > -               pr_err(" proto stack %d's ->recv null", chnl_id);
+> > > -               kfree_skb(st_gdata->rx_skb);
+> > > -       }
+> > > -       return;
+> > > -}
+> > > -
+> > > -/**
+> > > - * st_reg_complete -
+> > > - * to call registration complete callbacks
+> > > - * of all protocol stack drivers
+> > > - * This function is being called with spin lock held, protocol drivers are
+> > > - * only expected to complete their waits and do nothing more than that.
+> > > - */
+> > > -static void st_reg_complete(struct st_data_s *st_gdata, int err)
+> > > -{
+> > > -       unsigned char i = 0;
+> > > -       pr_info(" %s ", __func__);
+> > > -       for (i = 0; i < ST_MAX_CHANNELS; i++) {
+> > > -               if (likely(st_gdata != NULL &&
+> > > -                       st_gdata->is_registered[i] == true &&
+> > > -                               st_gdata->list[i]->reg_complete_cb != NULL)) {
+> > > -                       st_gdata->list[i]->reg_complete_cb
+> > > -                               (st_gdata->list[i]->priv_data, err);
+> > > -                       pr_info("protocol %d's cb sent %d\n", i, err);
+> > > -                       if (err) { /* cleanup registered protocol */
+> > > -                               st_gdata->is_registered[i] = false;
+> > > -                               if (st_gdata->protos_registered)
+> > > -                                       st_gdata->protos_registered--;
+> > > -                       }
+> > > -               }
+> > > -       }
+> > > -}
+> > > -
+> > > -static inline int st_check_data_len(struct st_data_s *st_gdata,
+> > > -       unsigned char chnl_id, int len)
+> > > -{
+> > > -       int room = skb_tailroom(st_gdata->rx_skb);
+> > > -
+> > > -       pr_debug("len %d room %d", len, room);
+> > > -
+> > > -       if (!len) {
+> > > -               /* Received packet has only packet header and
+> > > -                * has zero length payload. So, ask ST CORE to
+> > > -                * forward the packet to protocol driver (BT/FM/GPS)
+> > > -                */
+> > > -               st_send_frame(chnl_id, st_gdata);
+> > > -
+> > > -       } else if (len > room) {
+> > > -               /* Received packet's payload length is larger.
+> > > -                * We can't accommodate it in created skb.
+> > > -                */
+> > > -               pr_err("Data length is too large len %d room %d", len,
+> > > -                          room);
+> > > -               kfree_skb(st_gdata->rx_skb);
+> > > -       } else {
+> > > -               /* Packet header has non-zero payload length and
+> > > -                * we have enough space in created skb. Lets read
+> > > -                * payload data */
+> > > -               st_gdata->rx_state = ST_W4_DATA;
+> > > -               st_gdata->rx_count = len;
+> > > -               return len;
+> > > -       }
+> > > -
+> > > -       /* Change ST state to continue to process next
+> > > -        * packet */
+> > > -       st_gdata->rx_state = ST_W4_PACKET_TYPE;
+> > > -       st_gdata->rx_skb = NULL;
+> > > -       st_gdata->rx_count = 0;
+> > > -       st_gdata->rx_chnl = 0;
+> > > -
+> > > -       return 0;
+> > > -}
+> > > -
+> > > -/**
+> > > - * st_wakeup_ack - internal function for action when wake-up ack
+> > > - *     received
+> > > - */
+> > > -static inline void st_wakeup_ack(struct st_data_s *st_gdata,
+> > > -       unsigned char cmd)
+> > > -{
+> > > -       struct sk_buff *waiting_skb;
+> > > -       unsigned long flags = 0;
+> > > -
+> > > -       spin_lock_irqsave(&st_gdata->lock, flags);
+> > > -       /* de-Q from waitQ and Q in txQ now that the
+> > > -        * chip is awake
+> > > -        */
+> > > -       while ((waiting_skb = skb_dequeue(&st_gdata->tx_waitq)))
+> > > -               skb_queue_tail(&st_gdata->txq, waiting_skb);
+> > > -
+> > > -       /* state forwarded to ST LL */
+> > > -       st_ll_sleep_state(st_gdata, (unsigned long)cmd);
+> > > -       spin_unlock_irqrestore(&st_gdata->lock, flags);
+> > > -
+> > > -       /* wake up to send the recently copied skbs from waitQ */
+> > > -       st_tx_wakeup(st_gdata);
+> > > -}
+> > > -
+> > > -/**
+> > > - * st_int_recv - ST's internal receive function.
+> > > - *     Decodes received RAW data and forwards to corresponding
+> > > - *     client drivers (Bluetooth,FM,GPS..etc).
+> > > - *     This can receive various types of packets,
+> > > - *     HCI-Events, ACL, SCO, 4 types of HCI-LL PM packets
+> > > - *     CH-8 packets from FM, CH-9 packets from GPS cores.
+> > > - */
+> > > -void st_int_recv(void *disc_data,
+> > > -       const unsigned char *data, long count)
+> > > -{
+> > > -       char *ptr;
+> > > -       struct st_proto_s *proto;
+> > > -       unsigned short payload_len = 0;
+> > > -       int len = 0;
+> > > -       unsigned char type = 0;
+> > > -       unsigned char *plen;
+> > > -       struct st_data_s *st_gdata = (struct st_data_s *)disc_data;
+> > > -       unsigned long flags;
+> > > -
+> > > -       ptr = (char *)data;
+> > > -       /* tty_receive sent null ? */
+> > > -       if (unlikely(ptr == NULL) || (st_gdata == NULL)) {
+> > > -               pr_err(" received null from TTY ");
+> > > -               return;
+> > > -       }
+> > > -
+> > > -       pr_debug("count %ld rx_state %ld"
+> > > -                  "rx_count %ld", count, st_gdata->rx_state,
+> > > -                  st_gdata->rx_count);
+> > > -
+> > > -       spin_lock_irqsave(&st_gdata->lock, flags);
+> > > -       /* Decode received bytes here */
+> > > -       while (count) {
+> > > -               if (st_gdata->rx_count) {
+> > > -                       len = min_t(unsigned int, st_gdata->rx_count, count);
+> > > -                       skb_put_data(st_gdata->rx_skb, ptr, len);
+> > > -                       st_gdata->rx_count -= len;
+> > > -                       count -= len;
+> > > -                       ptr += len;
+> > > -
+> > > -                       if (st_gdata->rx_count)
+> > > -                               continue;
+> > > -
+> > > -                       /* Check ST RX state machine , where are we? */
+> > > -                       switch (st_gdata->rx_state) {
+> > > -                       /* Waiting for complete packet ? */
+> > > -                       case ST_W4_DATA:
+> > > -                               pr_debug("Complete pkt received");
+> > > -                               /* Ask ST CORE to forward
+> > > -                                * the packet to protocol driver */
+> > > -                               st_send_frame(st_gdata->rx_chnl, st_gdata);
+> > > -
+> > > -                               st_gdata->rx_state = ST_W4_PACKET_TYPE;
+> > > -                               st_gdata->rx_skb = NULL;
+> > > -                               continue;
+> > > -                       /* parse the header to know details */
+> > > -                       case ST_W4_HEADER:
+> > > -                               proto = st_gdata->list[st_gdata->rx_chnl];
+> > > -                               plen =
+> > > -                               &st_gdata->rx_skb->data
+> > > -                               [proto->offset_len_in_hdr];
+> > > -                               pr_debug("plen pointing to %x\n", *plen);
+> > > -                               if (proto->len_size == 1)/* 1 byte len field */
+> > > -                                       payload_len = *(unsigned char *)plen;
+> > > -                               else if (proto->len_size == 2)
+> > > -                                       payload_len =
+> > > -                                       __le16_to_cpu(*(unsigned short *)plen);
+> > > -                               else
+> > > -                                       pr_info("%s: invalid length "
+> > > -                                       "for id %d\n",
+> > > -                                       __func__, proto->chnl_id);
+> > > -                               st_check_data_len(st_gdata, proto->chnl_id,
+> > > -                                               payload_len);
+> > > -                               pr_debug("off %d, pay len %d\n",
+> > > -                                       proto->offset_len_in_hdr, payload_len);
+> > > -                               continue;
+> > > -                       }       /* end of switch rx_state */
+> > > -               }
+> > > -
+> > > -               /* end of if rx_count */
+> > > -               /* Check first byte of packet and identify module
+> > > -                * owner (BT/FM/GPS) */
+> > > -               switch (*ptr) {
+> > > -               case LL_SLEEP_IND:
+> > > -               case LL_SLEEP_ACK:
+> > > -               case LL_WAKE_UP_IND:
+> > > -                       pr_debug("PM packet");
+> > > -                       /* this takes appropriate action based on
+> > > -                        * sleep state received --
+> > > -                        */
+> > > -                       st_ll_sleep_state(st_gdata, *ptr);
+> > > -                       /* if WAKEUP_IND collides copy from waitq to txq
+> > > -                        * and assume chip awake
+> > > -                        */
+> > > -                       spin_unlock_irqrestore(&st_gdata->lock, flags);
+> > > -                       if (st_ll_getstate(st_gdata) == ST_LL_AWAKE)
+> > > -                               st_wakeup_ack(st_gdata, LL_WAKE_UP_ACK);
+> > > -                       spin_lock_irqsave(&st_gdata->lock, flags);
+> > > -
+> > > -                       ptr++;
+> > > -                       count--;
+> > > -                       continue;
+> > > -               case LL_WAKE_UP_ACK:
+> > > -                       pr_debug("PM packet");
+> > > -
+> > > -                       spin_unlock_irqrestore(&st_gdata->lock, flags);
+> > > -                       /* wake up ack received */
+> > > -                       st_wakeup_ack(st_gdata, *ptr);
+> > > -                       spin_lock_irqsave(&st_gdata->lock, flags);
+> > > -
+> > > -                       ptr++;
+> > > -                       count--;
+> > > -                       continue;
+> > > -                       /* Unknow packet? */
+> > > -               default:
+> > > -                       type = *ptr;
+> > > -
+> > > -                       /* Default case means non-HCILL packets,
+> > > -                        * possibilities are packets for:
+> > > -                        * (a) valid protocol -  Supported Protocols within
+> > > -                        *     the ST_MAX_CHANNELS.
+> > > -                        * (b) registered protocol - Checked by
+> > > -                        *     "st_gdata->list[type] == NULL)" are supported
+> > > -                        *     protocols only.
+> > > -                        *  Rules out any invalid protocol and
+> > > -                        *  unregistered protocols with channel ID < 16.
+> > > -                        */
+> > > -
+> > > -                       if ((type >= ST_MAX_CHANNELS) ||
+> > > -                                       (st_gdata->list[type] == NULL)) {
+> > > -                               pr_err("chip/interface misbehavior: "
+> > > -                                               "dropping frame starting "
+> > > -                                               "with 0x%02x\n", type);
+> > > -                               goto done;
+> > > -                       }
+> > > -
+> > > -                       st_gdata->rx_skb = alloc_skb(
+> > > -                                       st_gdata->list[type]->max_frame_size,
+> > > -                                       GFP_ATOMIC);
+> > > -                       if (st_gdata->rx_skb == NULL) {
+> > > -                               pr_err("out of memory: dropping\n");
+> > > -                               goto done;
+> > > -                       }
+> > > -
+> > > -                       skb_reserve(st_gdata->rx_skb,
+> > > -                                       st_gdata->list[type]->reserve);
+> > > -                       /* next 2 required for BT only */
+> > > -                       st_gdata->rx_skb->cb[0] = type; /*pkt_type*/
+> > > -                       st_gdata->rx_skb->cb[1] = 0; /*incoming*/
+> > > -                       st_gdata->rx_chnl = *ptr;
+> > > -                       st_gdata->rx_state = ST_W4_HEADER;
+> > > -                       st_gdata->rx_count = st_gdata->list[type]->hdr_len;
+> > > -                       pr_debug("rx_count %ld\n", st_gdata->rx_count);
+> > > -               };
+> > > -               ptr++;
+> > > -               count--;
+> > > -       }
+> > > -done:
+> > > -       spin_unlock_irqrestore(&st_gdata->lock, flags);
+> > > -       pr_debug("done %s", __func__);
+> > > -       return;
+> > > -}
+> > > -
+> > > -/**
+> > > - * st_int_dequeue - internal de-Q function.
+> > > - *     If the previous data set was not written
+> > > - *     completely, return that skb which has the pending data.
+> > > - *     In normal cases, return top of txq.
+> > > - */
+> > > -static struct sk_buff *st_int_dequeue(struct st_data_s *st_gdata)
+> > > -{
+> > > -       struct sk_buff *returning_skb;
+> > > -
+> > > -       pr_debug("%s", __func__);
+> > > -       if (st_gdata->tx_skb != NULL) {
+> > > -               returning_skb = st_gdata->tx_skb;
+> > > -               st_gdata->tx_skb = NULL;
+> > > -               return returning_skb;
+> > > -       }
+> > > -       return skb_dequeue(&st_gdata->txq);
+> > > -}
+> > > -
+> > > -/**
+> > > - * st_int_enqueue - internal Q-ing function.
+> > > - *     Will either Q the skb to txq or the tx_waitq
+> > > - *     depending on the ST LL state.
+> > > - *     If the chip is asleep, then Q it onto waitq and
+> > > - *     wakeup the chip.
+> > > - *     txq and waitq needs protection since the other contexts
+> > > - *     may be sending data, waking up chip.
+> > > - */
+> > > -static void st_int_enqueue(struct st_data_s *st_gdata, struct sk_buff *skb)
+> > > -{
+> > > -       unsigned long flags = 0;
+> > > -
+> > > -       pr_debug("%s", __func__);
+> > > -       spin_lock_irqsave(&st_gdata->lock, flags);
+> > > -
+> > > -       switch (st_ll_getstate(st_gdata)) {
+> > > -       case ST_LL_AWAKE:
+> > > -               pr_debug("ST LL is AWAKE, sending normally");
+> > > -               skb_queue_tail(&st_gdata->txq, skb);
+> > > -               break;
+> > > -       case ST_LL_ASLEEP_TO_AWAKE:
+> > > -               skb_queue_tail(&st_gdata->tx_waitq, skb);
+> > > -               break;
+> > > -       case ST_LL_AWAKE_TO_ASLEEP:
+> > > -               pr_err("ST LL is illegal state(%ld),"
+> > > -                          "purging received skb.", st_ll_getstate(st_gdata));
+> > > -               kfree_skb(skb);
+> > > -               break;
+> > > -       case ST_LL_ASLEEP:
+> > > -               skb_queue_tail(&st_gdata->tx_waitq, skb);
+> > > -               st_ll_wakeup(st_gdata);
+> > > -               break;
+> > > -       default:
+> > > -               pr_err("ST LL is illegal state(%ld),"
+> > > -                          "purging received skb.", st_ll_getstate(st_gdata));
+> > > -               kfree_skb(skb);
+> > > -               break;
+> > > -       }
+> > > -
+> > > -       spin_unlock_irqrestore(&st_gdata->lock, flags);
+> > > -       pr_debug("done %s", __func__);
+> > > -       return;
+> > > -}
+> > > -
+> > > -/*
+> > > - * internal wakeup function
+> > > - * called from either
+> > > - * - TTY layer when write's finished
+> > > - * - st_write (in context of the protocol stack)
+> > > - */
+> > > -static void work_fn_write_wakeup(struct work_struct *work)
+> > > -{
+> > > -       struct st_data_s *st_gdata = container_of(work, struct st_data_s,
+> > > -                       work_write_wakeup);
+> > > -
+> > > -       st_tx_wakeup((void *)st_gdata);
+> > > -}
+> > > -void st_tx_wakeup(struct st_data_s *st_data)
+> > > -{
+> > > -       struct sk_buff *skb;
+> > > -       unsigned long flags;    /* for irq save flags */
+> > > -       pr_debug("%s", __func__);
+> > > -       /* check for sending & set flag sending here */
+> > > -       if (test_and_set_bit(ST_TX_SENDING, &st_data->tx_state)) {
+> > > -               pr_debug("ST already sending");
+> > > -               /* keep sending */
+> > > -               set_bit(ST_TX_WAKEUP, &st_data->tx_state);
+> > > -               return;
+> > > -               /* TX_WAKEUP will be checked in another
+> > > -                * context
+> > > -                */
+> > > -       }
+> > > -       do {                    /* come back if st_tx_wakeup is set */
+> > > -               /* woke-up to write */
+> > > -               clear_bit(ST_TX_WAKEUP, &st_data->tx_state);
+> > > -               while ((skb = st_int_dequeue(st_data))) {
+> > > -                       int len;
+> > > -                       spin_lock_irqsave(&st_data->lock, flags);
+> > > -                       /* enable wake-up from TTY */
+> > > -                       set_bit(TTY_DO_WRITE_WAKEUP, &st_data->tty->flags);
+> > > -                       len = st_int_write(st_data, skb->data, skb->len);
+> > > -                       skb_pull(skb, len);
+> > > -                       /* if skb->len = len as expected, skb->len=0 */
+> > > -                       if (skb->len) {
+> > > -                               /* would be the next skb to be sent */
+> > > -                               st_data->tx_skb = skb;
+> > > -                               spin_unlock_irqrestore(&st_data->lock, flags);
+> > > -                               break;
+> > > -                       }
+> > > -                       kfree_skb(skb);
+> > > -                       spin_unlock_irqrestore(&st_data->lock, flags);
+> > > -               }
+> > > -               /* if wake-up is set in another context- restart sending */
+> > > -       } while (test_bit(ST_TX_WAKEUP, &st_data->tx_state));
+> > > -
+> > > -       /* clear flag sending */
+> > > -       clear_bit(ST_TX_SENDING, &st_data->tx_state);
+> > > -}
+> > > -
+> > > -/********************************************************************/
+> > > -/* functions called from ST KIM
+> > > -*/
+> > > -void kim_st_list_protocols(struct st_data_s *st_gdata, void *buf)
+> > > -{
+> > > -       seq_printf(buf, "[%d]\nBT=%c\nFM=%c\nGPS=%c\n",
+> > > -                       st_gdata->protos_registered,
+> > > -                       st_gdata->is_registered[0x04] == true ? 'R' : 'U',
+> > > -                       st_gdata->is_registered[0x08] == true ? 'R' : 'U',
+> > > -                       st_gdata->is_registered[0x09] == true ? 'R' : 'U');
+> > > -}
+> > > -
+> > > -/********************************************************************/
+> > > -/*
+> > > - * functions called from protocol stack drivers
+> > > - * to be EXPORT-ed
+> > > - */
+> > > -long st_register(struct st_proto_s *new_proto)
+> > > -{
+> > > -       struct st_data_s        *st_gdata;
+> > > -       long err = 0;
+> > > -       unsigned long flags = 0;
+> > > -
+> > > -       st_kim_ref(&st_gdata, 0);
+> > > -       if (st_gdata == NULL || new_proto == NULL || new_proto->recv == NULL
+> > > -           || new_proto->reg_complete_cb == NULL) {
+> > > -               pr_err("gdata/new_proto/recv or reg_complete_cb not ready");
+> > > -               return -EINVAL;
+> > > -       }
+> > > -
+> > > -       if (new_proto->chnl_id >= ST_MAX_CHANNELS) {
+> > > -               pr_err("chnl_id %d not supported", new_proto->chnl_id);
+> > > -               return -EPROTONOSUPPORT;
+> > > -       }
+> > > -
+> > > -       if (st_gdata->is_registered[new_proto->chnl_id] == true) {
+> > > -               pr_err("chnl_id %d already registered", new_proto->chnl_id);
+> > > -               return -EALREADY;
+> > > -       }
+> > > -
+> > > -       /* can be from process context only */
+> > > -       spin_lock_irqsave(&st_gdata->lock, flags);
+> > > -
+> > > -       if (test_bit(ST_REG_IN_PROGRESS, &st_gdata->st_state)) {
+> > > -               pr_info(" ST_REG_IN_PROGRESS:%d ", new_proto->chnl_id);
+> > > -               /* fw download in progress */
+> > > -
+> > > -               add_channel_to_table(st_gdata, new_proto);
+> > > -               st_gdata->protos_registered++;
+> > > -               new_proto->write = st_write;
+> > > -
+> > > -               set_bit(ST_REG_PENDING, &st_gdata->st_state);
+> > > -               spin_unlock_irqrestore(&st_gdata->lock, flags);
+> > > -               return -EINPROGRESS;
+> > > -       } else if (st_gdata->protos_registered == ST_EMPTY) {
+> > > -               pr_info(" chnl_id list empty :%d ", new_proto->chnl_id);
+> > > -               set_bit(ST_REG_IN_PROGRESS, &st_gdata->st_state);
+> > > -               st_recv = st_kim_recv;
+> > > -
+> > > -               /* enable the ST LL - to set default chip state */
+> > > -               st_ll_enable(st_gdata);
+> > > -
+> > > -               /* release lock previously held - re-locked below */
+> > > -               spin_unlock_irqrestore(&st_gdata->lock, flags);
+> > > -
+> > > -               /* this may take a while to complete
+> > > -                * since it involves BT fw download
+> > > -                */
+> > > -               err = st_kim_start(st_gdata->kim_data);
+> > > -               if (err != 0) {
+> > > -                       clear_bit(ST_REG_IN_PROGRESS, &st_gdata->st_state);
+> > > -                       if ((st_gdata->protos_registered != ST_EMPTY) &&
+> > > -                           (test_bit(ST_REG_PENDING, &st_gdata->st_state))) {
+> > > -                               pr_err(" KIM failure complete callback ");
+> > > -                               spin_lock_irqsave(&st_gdata->lock, flags);
+> > > -                               st_reg_complete(st_gdata, err);
+> > > -                               spin_unlock_irqrestore(&st_gdata->lock, flags);
+> > > -                               clear_bit(ST_REG_PENDING, &st_gdata->st_state);
+> > > -                       }
+> > > -                       return -EINVAL;
+> > > -               }
+> > > -
+> > > -               spin_lock_irqsave(&st_gdata->lock, flags);
+> > > -
+> > > -               clear_bit(ST_REG_IN_PROGRESS, &st_gdata->st_state);
+> > > -               st_recv = st_int_recv;
+> > > -
+> > > -               /* this is where all pending registration
+> > > -                * are signalled to be complete by calling callback functions
+> > > -                */
+> > > -               if ((st_gdata->protos_registered != ST_EMPTY) &&
+> > > -                   (test_bit(ST_REG_PENDING, &st_gdata->st_state))) {
+> > > -                       pr_debug(" call reg complete callback ");
+> > > -                       st_reg_complete(st_gdata, 0);
+> > > -               }
+> > > -               clear_bit(ST_REG_PENDING, &st_gdata->st_state);
+> > > -
+> > > -               /* check for already registered once more,
+> > > -                * since the above check is old
+> > > -                */
+> > > -               if (st_gdata->is_registered[new_proto->chnl_id] == true) {
+> > > -                       pr_err(" proto %d already registered ",
+> > > -                                  new_proto->chnl_id);
+> > > -                       spin_unlock_irqrestore(&st_gdata->lock, flags);
+> > > -                       return -EALREADY;
+> > > -               }
+> > > -
+> > > -               add_channel_to_table(st_gdata, new_proto);
+> > > -               st_gdata->protos_registered++;
+> > > -               new_proto->write = st_write;
+> > > -               spin_unlock_irqrestore(&st_gdata->lock, flags);
+> > > -               return err;
+> > > -       }
+> > > -       /* if fw is already downloaded & new stack registers protocol */
+> > > -       else {
+> > > -               add_channel_to_table(st_gdata, new_proto);
+> > > -               st_gdata->protos_registered++;
+> > > -               new_proto->write = st_write;
+> > > -
+> > > -               /* lock already held before entering else */
+> > > -               spin_unlock_irqrestore(&st_gdata->lock, flags);
+> > > -               return err;
+> > > -       }
+> > > -}
+> > > -EXPORT_SYMBOL_GPL(st_register);
+> > > -
+> > > -/* to unregister a protocol -
+> > > - * to be called from protocol stack driver
+> > > - */
+> > > -long st_unregister(struct st_proto_s *proto)
+> > > -{
+> > > -       long err = 0;
+> > > -       unsigned long flags = 0;
+> > > -       struct st_data_s        *st_gdata;
+> > > -
+> > > -       pr_debug("%s: %d ", __func__, proto->chnl_id);
+> > > -
+> > > -       st_kim_ref(&st_gdata, 0);
+> > > -       if (!st_gdata || proto->chnl_id >= ST_MAX_CHANNELS) {
+> > > -               pr_err(" chnl_id %d not supported", proto->chnl_id);
+> > > -               return -EPROTONOSUPPORT;
+> > > -       }
+> > > -
+> > > -       spin_lock_irqsave(&st_gdata->lock, flags);
+> > > -
+> > > -       if (st_gdata->is_registered[proto->chnl_id] == false) {
+> > > -               pr_err(" chnl_id %d not registered", proto->chnl_id);
+> > > -               spin_unlock_irqrestore(&st_gdata->lock, flags);
+> > > -               return -EPROTONOSUPPORT;
+> > > -       }
+> > > -
+> > > -       if (st_gdata->protos_registered)
+> > > -               st_gdata->protos_registered--;
+> > > -
+> > > -       remove_channel_from_table(st_gdata, proto);
+> > > -       spin_unlock_irqrestore(&st_gdata->lock, flags);
+> > > -
+> > > -       if ((st_gdata->protos_registered == ST_EMPTY) &&
+> > > -           (!test_bit(ST_REG_PENDING, &st_gdata->st_state))) {
+> > > -               pr_info(" all chnl_ids unregistered ");
+> > > -
+> > > -               /* stop traffic on tty */
+> > > -               if (st_gdata->tty) {
+> > > -                       tty_ldisc_flush(st_gdata->tty);
+> > > -                       stop_tty(st_gdata->tty);
+> > > -               }
+> > > -
+> > > -               /* all chnl_ids now unregistered */
+> > > -               st_kim_stop(st_gdata->kim_data);
+> > > -               /* disable ST LL */
+> > > -               st_ll_disable(st_gdata);
+> > > -       }
+> > > -       return err;
+> > > -}
+> > > -
+> > > -/*
+> > > - * called in protocol stack drivers
+> > > - * via the write function pointer
+> > > - */
+> > > -long st_write(struct sk_buff *skb)
+> > > -{
+> > > -       struct st_data_s *st_gdata;
+> > > -       long len;
+> > > -
+> > > -       st_kim_ref(&st_gdata, 0);
+> > > -       if (unlikely(skb == NULL || st_gdata == NULL
+> > > -               || st_gdata->tty == NULL)) {
+> > > -               pr_err("data/tty unavailable to perform write");
+> > > -               return -EINVAL;
+> > > -       }
+> > > -
+> > > -       pr_debug("%d to be written", skb->len);
+> > > -       len = skb->len;
+> > > -
+> > > -       /* st_ll to decide where to enqueue the skb */
+> > > -       st_int_enqueue(st_gdata, skb);
+> > > -       /* wake up */
+> > > -       st_tx_wakeup(st_gdata);
+> > > -
+> > > -       /* return number of bytes written */
+> > > -       return len;
+> > > -}
+> > > -
+> > > -/* for protocols making use of shared transport */
+> > > -EXPORT_SYMBOL_GPL(st_unregister);
+> > > -
+> > > -/********************************************************************/
+> > > -/*
+> > > - * functions called from TTY layer
+> > > - */
+> > > -static int st_tty_open(struct tty_struct *tty)
+> > > -{
+> > > -       int err = 0;
+> > > -       struct st_data_s *st_gdata;
+> > > -       pr_info("%s ", __func__);
+> > > -
+> > > -       st_kim_ref(&st_gdata, 0);
+> > > -       st_gdata->tty = tty;
+> > > -       tty->disc_data = st_gdata;
+> > > -
+> > > -       /* don't do an wakeup for now */
+> > > -       clear_bit(TTY_DO_WRITE_WAKEUP, &tty->flags);
+> > > -
+> > > -       /* mem already allocated
+> > > -        */
+> > > -       tty->receive_room = 65536;
+> > > -       /* Flush any pending characters in the driver and discipline. */
+> > > -       tty_ldisc_flush(tty);
+> > > -       tty_driver_flush_buffer(tty);
+> > > -       /*
+> > > -        * signal to UIM via KIM that -
+> > > -        * installation of N_TI_WL ldisc is complete
+> > > -        */
+> > > -       st_kim_complete(st_gdata->kim_data);
+> > > -       pr_debug("done %s", __func__);
+> > > -       return err;
+> > > -}
+> > > -
+> > > -static void st_tty_close(struct tty_struct *tty)
+> > > -{
+> > > -       unsigned char i = ST_MAX_CHANNELS;
+> > > -       unsigned long flags = 0;
+> > > -       struct  st_data_s *st_gdata = tty->disc_data;
+> > > -
+> > > -       pr_info("%s ", __func__);
+> > > -
+> > > -       /* TODO:
+> > > -        * if a protocol has been registered & line discipline
+> > > -        * un-installed for some reason - what should be done ?
+> > > -        */
+> > > -       spin_lock_irqsave(&st_gdata->lock, flags);
+> > > -       for (i = ST_BT; i < ST_MAX_CHANNELS; i++) {
+> > > -               if (st_gdata->is_registered[i] == true)
+> > > -                       pr_err("%d not un-registered", i);
+> > > -               st_gdata->list[i] = NULL;
+> > > -               st_gdata->is_registered[i] = false;
+> > > -       }
+> > > -       st_gdata->protos_registered = 0;
+> > > -       spin_unlock_irqrestore(&st_gdata->lock, flags);
+> > > -       /*
+> > > -        * signal to UIM via KIM that -
+> > > -        * N_TI_WL ldisc is un-installed
+> > > -        */
+> > > -       st_kim_complete(st_gdata->kim_data);
+> > > -       st_gdata->tty = NULL;
+> > > -       /* Flush any pending characters in the driver and discipline. */
+> > > -       tty_ldisc_flush(tty);
+> > > -       tty_driver_flush_buffer(tty);
+> > > -
+> > > -       spin_lock_irqsave(&st_gdata->lock, flags);
+> > > -       /* empty out txq and tx_waitq */
+> > > -       skb_queue_purge(&st_gdata->txq);
+> > > -       skb_queue_purge(&st_gdata->tx_waitq);
+> > > -       /* reset the TTY Rx states of ST */
+> > > -       st_gdata->rx_count = 0;
+> > > -       st_gdata->rx_state = ST_W4_PACKET_TYPE;
+> > > -       kfree_skb(st_gdata->rx_skb);
+> > > -       st_gdata->rx_skb = NULL;
+> > > -       spin_unlock_irqrestore(&st_gdata->lock, flags);
+> > > -
+> > > -       pr_debug("%s: done ", __func__);
+> > > -}
+> > > -
+> > > -static void st_tty_receive(struct tty_struct *tty, const unsigned char *data,
+> > > -                          char *tty_flags, int count)
+> > > -{
+> > > -#ifdef VERBOSE
+> > > -       print_hex_dump(KERN_DEBUG, ">in>", DUMP_PREFIX_NONE,
+> > > -               16, 1, data, count, 0);
+> > > -#endif
+> > > -
+> > > -       /*
+> > > -        * if fw download is in progress then route incoming data
+> > > -        * to KIM for validation
+> > > -        */
+> > > -       st_recv(tty->disc_data, data, count);
+> > > -       pr_debug("done %s", __func__);
+> > > -}
+> > > -
+> > > -/* wake-up function called in from the TTY layer
+> > > - * inside the internal wakeup function will be called
+> > > - */
+> > > -static void st_tty_wakeup(struct tty_struct *tty)
+> > > -{
+> > > -       struct  st_data_s *st_gdata = tty->disc_data;
+> > > -       pr_debug("%s ", __func__);
+> > > -       /* don't do an wakeup for now */
+> > > -       clear_bit(TTY_DO_WRITE_WAKEUP, &tty->flags);
+> > > -
+> > > -       /*
+> > > -        * schedule the internal wakeup instead of calling directly to
+> > > -        * avoid lockup (port->lock needed in tty->ops->write is
+> > > -        * already taken here
+> > > -        */
+> > > -       schedule_work(&st_gdata->work_write_wakeup);
+> > > -}
+> > > -
+> > > -static void st_tty_flush_buffer(struct tty_struct *tty)
+> > > -{
+> > > -       struct  st_data_s *st_gdata = tty->disc_data;
+> > > -       pr_debug("%s ", __func__);
+> > > -
+> > > -       kfree_skb(st_gdata->tx_skb);
+> > > -       st_gdata->tx_skb = NULL;
+> > > -
+> > > -       tty_driver_flush_buffer(tty);
+> > > -       return;
+> > > -}
+> > > -
+> > > -static struct tty_ldisc_ops st_ldisc_ops = {
+> > > -       .magic = TTY_LDISC_MAGIC,
+> > > -       .name = "n_st",
+> > > -       .open = st_tty_open,
+> > > -       .close = st_tty_close,
+> > > -       .receive_buf = st_tty_receive,
+> > > -       .write_wakeup = st_tty_wakeup,
+> > > -       .flush_buffer = st_tty_flush_buffer,
+> > > -       .owner = THIS_MODULE
+> > > -};
+> > > -
+> > > -/********************************************************************/
+> > > -int st_core_init(struct st_data_s **core_data)
+> > > -{
+> > > -       struct st_data_s *st_gdata;
+> > > -       long err;
+> > > -
+> > > -       err = tty_register_ldisc(N_TI_WL, &st_ldisc_ops);
+> > > -       if (err) {
+> > > -               pr_err("error registering %d line discipline %ld",
+> > > -                          N_TI_WL, err);
+> > > -               return err;
+> > > -       }
+> > > -       pr_debug("registered n_shared line discipline");
+> > > -
+> > > -       st_gdata = kzalloc(sizeof(struct st_data_s), GFP_KERNEL);
+> > > -       if (!st_gdata) {
+> > > -               pr_err("memory allocation failed");
+> > > -               err = tty_unregister_ldisc(N_TI_WL);
+> > > -               if (err)
+> > > -                       pr_err("unable to un-register ldisc %ld", err);
+> > > -               err = -ENOMEM;
+> > > -               return err;
+> > > -       }
+> > > -
+> > > -       /* Initialize ST TxQ and Tx waitQ queue head. All BT/FM/GPS module skb's
+> > > -        * will be pushed in this queue for actual transmission.
+> > > -        */
+> > > -       skb_queue_head_init(&st_gdata->txq);
+> > > -       skb_queue_head_init(&st_gdata->tx_waitq);
+> > > -
+> > > -       /* Locking used in st_int_enqueue() to avoid multiple execution */
+> > > -       spin_lock_init(&st_gdata->lock);
+> > > -
+> > > -       err = st_ll_init(st_gdata);
+> > > -       if (err) {
+> > > -               pr_err("error during st_ll initialization(%ld)", err);
+> > > -               kfree(st_gdata);
+> > > -               err = tty_unregister_ldisc(N_TI_WL);
+> > > -               if (err)
+> > > -                       pr_err("unable to un-register ldisc");
+> > > -               return err;
+> > > -       }
+> > > -
+> > > -       INIT_WORK(&st_gdata->work_write_wakeup, work_fn_write_wakeup);
+> > > -
+> > > -       *core_data = st_gdata;
+> > > -       return 0;
+> > > -}
+> > > -
+> > > -void st_core_exit(struct st_data_s *st_gdata)
+> > > -{
+> > > -       long err;
+> > > -       /* internal module cleanup */
+> > > -       err = st_ll_deinit(st_gdata);
+> > > -       if (err)
+> > > -               pr_err("error during deinit of ST LL %ld", err);
+> > > -
+> > > -       if (st_gdata != NULL) {
+> > > -               /* Free ST Tx Qs and skbs */
+> > > -               skb_queue_purge(&st_gdata->txq);
+> > > -               skb_queue_purge(&st_gdata->tx_waitq);
+> > > -               kfree_skb(st_gdata->rx_skb);
+> > > -               kfree_skb(st_gdata->tx_skb);
+> > > -               /* TTY ldisc cleanup */
+> > > -               err = tty_unregister_ldisc(N_TI_WL);
+> > > -               if (err)
+> > > -                       pr_err("unable to un-register ldisc %ld", err);
+> > > -               /* free the global data pointer */
+> > > -               kfree(st_gdata);
+> > > -       }
+> > > -}
+> > > diff --git a/drivers/misc/ti-st/st_kim.c b/drivers/misc/ti-st/st_kim.c
+> > > deleted file mode 100644
+> > > index 1874ac922166..000000000000
+> > > --- a/drivers/misc/ti-st/st_kim.c
+> > > +++ /dev/null
+> > > @@ -1,868 +0,0 @@
+> > > -/*
+> > > - *  Shared Transport Line discipline driver Core
+> > > - *     Init Manager module responsible for GPIO control
+> > > - *     and firmware download
+> > > - *  Copyright (C) 2009-2010 Texas Instruments
+> > > - *  Author: Pavan Savoy <pavan_savoy@ti.com>
+> > > - *
+> > > - *  This program is free software; you can redistribute it and/or modify
+> > > - *  it under the terms of the GNU General Public License version 2 as
+> > > - *  published by the Free Software Foundation.
+> > > - *
+> > > - *  This program is distributed in the hope that it will be useful,
+> > > - *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+> > > - *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> > > - *  GNU General Public License for more details.
+> > > - *
+> > > - *  You should have received a copy of the GNU General Public License
+> > > - *  along with this program; if not, write to the Free Software
+> > > - *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+> > > - *
+> > > - */
+> > > -
+> > > -#define pr_fmt(fmt) "(stk) :" fmt
+> > > -#include <linux/platform_device.h>
+> > > -#include <linux/jiffies.h>
+> > > -#include <linux/firmware.h>
+> > > -#include <linux/delay.h>
+> > > -#include <linux/wait.h>
+> > > -#include <linux/gpio.h>
+> > > -#include <linux/debugfs.h>
+> > > -#include <linux/seq_file.h>
+> > > -#include <linux/sched.h>
+> > > -#include <linux/sysfs.h>
+> > > -#include <linux/tty.h>
+> > > -
+> > > -#include <linux/skbuff.h>
+> > > -#include <linux/ti_wilink_st.h>
+> > > -#include <linux/module.h>
+> > > -
+> > > -#define MAX_ST_DEVICES 3       /* Imagine 1 on each UART for now */
+> > > -static struct platform_device *st_kim_devices[MAX_ST_DEVICES];
+> > > -
+> > > -/**********************************************************************/
+> > > -/* internal functions */
+> > > -
+> > > -/**
+> > > - * st_get_plat_device -
+> > > - *     function which returns the reference to the platform device
+> > > - *     requested by id. As of now only 1 such device exists (id=0)
+> > > - *     the context requesting for reference can get the id to be
+> > > - *     requested by a. The protocol driver which is registering or
+> > > - *     b. the tty device which is opened.
+> > > - */
+> > > -static struct platform_device *st_get_plat_device(int id)
+> > > -{
+> > > -       return st_kim_devices[id];
+> > > -}
+> > > -
+> > > -/**
+> > > - * validate_firmware_response -
+> > > - *     function to return whether the firmware response was proper
+> > > - *     in case of error don't complete so that waiting for proper
+> > > - *     response times out
+> > > - */
+> > > -static void validate_firmware_response(struct kim_data_s *kim_gdata)
+> > > -{
+> > > -       struct sk_buff *skb = kim_gdata->rx_skb;
+> > > -       if (!skb)
+> > > -               return;
+> > > -
+> > > -       /* these magic numbers are the position in the response buffer which
+> > > -        * allows us to distinguish whether the response is for the read
+> > > -        * version info. command
+> > > -        */
+> > > -       if (skb->data[2] == 0x01 && skb->data[3] == 0x01 &&
+> > > -                       skb->data[4] == 0x10 && skb->data[5] == 0x00) {
+> > > -               /* fw version response */
+> > > -               memcpy(kim_gdata->resp_buffer,
+> > > -                               kim_gdata->rx_skb->data,
+> > > -                               kim_gdata->rx_skb->len);
+> > > -               kim_gdata->rx_state = ST_W4_PACKET_TYPE;
+> > > -               kim_gdata->rx_skb = NULL;
+> > > -               kim_gdata->rx_count = 0;
+> > > -       } else if (unlikely(skb->data[5] != 0)) {
+> > > -               pr_err("no proper response during fw download");
+> > > -               pr_err("data6 %x", skb->data[5]);
+> > > -               kfree_skb(skb);
+> > > -               return;         /* keep waiting for the proper response */
+> > > -       }
+> > > -       /* becos of all the script being downloaded */
+> > > -       complete_all(&kim_gdata->kim_rcvd);
+> > > -       kfree_skb(skb);
+> > > -}
+> > > -
+> > > -/* check for data len received inside kim_int_recv
+> > > - * most often hit the last case to update state to waiting for data
+> > > - */
+> > > -static inline int kim_check_data_len(struct kim_data_s *kim_gdata, int len)
+> > > -{
+> > > -       register int room = skb_tailroom(kim_gdata->rx_skb);
+> > > -
+> > > -       pr_debug("len %d room %d", len, room);
+> > > -
+> > > -       if (!len) {
+> > > -               validate_firmware_response(kim_gdata);
+> > > -       } else if (len > room) {
+> > > -               /* Received packet's payload length is larger.
+> > > -                * We can't accommodate it in created skb.
+> > > -                */
+> > > -               pr_err("Data length is too large len %d room %d", len,
+> > > -                          room);
+> > > -               kfree_skb(kim_gdata->rx_skb);
+> > > -       } else {
+> > > -               /* Packet header has non-zero payload length and
+> > > -                * we have enough space in created skb. Lets read
+> > > -                * payload data */
+> > > -               kim_gdata->rx_state = ST_W4_DATA;
+> > > -               kim_gdata->rx_count = len;
+> > > -               return len;
+> > > -       }
+> > > -
+> > > -       /* Change ST LL state to continue to process next
+> > > -        * packet */
+> > > -       kim_gdata->rx_state = ST_W4_PACKET_TYPE;
+> > > -       kim_gdata->rx_skb = NULL;
+> > > -       kim_gdata->rx_count = 0;
+> > > -
+> > > -       return 0;
+> > > -}
+> > > -
+> > > -/**
+> > > - * kim_int_recv - receive function called during firmware download
+> > > - *     firmware download responses on different UART drivers
+> > > - *     have been observed to come in bursts of different
+> > > - *     tty_receive and hence the logic
+> > > - */
+> > > -static void kim_int_recv(struct kim_data_s *kim_gdata,
+> > > -       const unsigned char *data, long count)
+> > > -{
+> > > -       const unsigned char *ptr;
+> > > -       int len = 0;
+> > > -       unsigned char *plen;
+> > > -
+> > > -       pr_debug("%s", __func__);
+> > > -       /* Decode received bytes here */
+> > > -       ptr = data;
+> > > -       if (unlikely(ptr == NULL)) {
+> > > -               pr_err(" received null from TTY ");
+> > > -               return;
+> > > -       }
+> > > -
+> > > -       while (count) {
+> > > -               if (kim_gdata->rx_count) {
+> > > -                       len = min_t(unsigned int, kim_gdata->rx_count, count);
+> > > -                       skb_put_data(kim_gdata->rx_skb, ptr, len);
+> > > -                       kim_gdata->rx_count -= len;
+> > > -                       count -= len;
+> > > -                       ptr += len;
+> > > -
+> > > -                       if (kim_gdata->rx_count)
+> > > -                               continue;
+> > > -
+> > > -                       /* Check ST RX state machine , where are we? */
+> > > -                       switch (kim_gdata->rx_state) {
+> > > -                               /* Waiting for complete packet ? */
+> > > -                       case ST_W4_DATA:
+> > > -                               pr_debug("Complete pkt received");
+> > > -                               validate_firmware_response(kim_gdata);
+> > > -                               kim_gdata->rx_state = ST_W4_PACKET_TYPE;
+> > > -                               kim_gdata->rx_skb = NULL;
+> > > -                               continue;
+> > > -                               /* Waiting for Bluetooth event header ? */
+> > > -                       case ST_W4_HEADER:
+> > > -                               plen =
+> > > -                               (unsigned char *)&kim_gdata->rx_skb->data[1];
+> > > -                               pr_debug("event hdr: plen 0x%02x\n", *plen);
+> > > -                               kim_check_data_len(kim_gdata, *plen);
+> > > -                               continue;
+> > > -                       }       /* end of switch */
+> > > -               }               /* end of if rx_state */
+> > > -               switch (*ptr) {
+> > > -                       /* Bluetooth event packet? */
+> > > -               case 0x04:
+> > > -                       kim_gdata->rx_state = ST_W4_HEADER;
+> > > -                       kim_gdata->rx_count = 2;
+> > > -                       break;
+> > > -               default:
+> > > -                       pr_info("unknown packet");
+> > > -                       ptr++;
+> > > -                       count--;
+> > > -                       continue;
+> > > -               }
+> > > -               ptr++;
+> > > -               count--;
+> > > -               kim_gdata->rx_skb =
+> > > -                       alloc_skb(1024+8, GFP_ATOMIC);
+> > > -               if (!kim_gdata->rx_skb) {
+> > > -                       pr_err("can't allocate mem for new packet");
+> > > -                       kim_gdata->rx_state = ST_W4_PACKET_TYPE;
+> > > -                       kim_gdata->rx_count = 0;
+> > > -                       return;
+> > > -               }
+> > > -               skb_reserve(kim_gdata->rx_skb, 8);
+> > > -               kim_gdata->rx_skb->cb[0] = 4;
+> > > -               kim_gdata->rx_skb->cb[1] = 0;
+> > > -
+> > > -       }
+> > > -       return;
+> > > -}
+> > > -
+> > > -static long read_local_version(struct kim_data_s *kim_gdata, char *bts_scr_name)
+> > > -{
+> > > -       unsigned short version = 0, chip = 0, min_ver = 0, maj_ver = 0;
+> > > -       const char read_ver_cmd[] = { 0x01, 0x01, 0x10, 0x00 };
+> > > -       long timeout;
+> > > -
+> > > -       pr_debug("%s", __func__);
+> > > -
+> > > -       reinit_completion(&kim_gdata->kim_rcvd);
+> > > -       if (4 != st_int_write(kim_gdata->core_data, read_ver_cmd, 4)) {
+> > > -               pr_err("kim: couldn't write 4 bytes");
+> > > -               return -EIO;
+> > > -       }
+> > > -
+> > > -       timeout = wait_for_completion_interruptible_timeout(
+> > > -               &kim_gdata->kim_rcvd, msecs_to_jiffies(CMD_RESP_TIME));
+> > > -       if (timeout <= 0) {
+> > > -               pr_err(" waiting for ver info- timed out or received signal");
+> > > -               return timeout ? -ERESTARTSYS : -ETIMEDOUT;
+> > > -       }
+> > > -       reinit_completion(&kim_gdata->kim_rcvd);
+> > > -       /* the positions 12 & 13 in the response buffer provide with the
+> > > -        * chip, major & minor numbers
+> > > -        */
+> > > -
+> > > -       version =
+> > > -               MAKEWORD(kim_gdata->resp_buffer[12],
+> > > -                               kim_gdata->resp_buffer[13]);
+> > > -       chip = (version & 0x7C00) >> 10;
+> > > -       min_ver = (version & 0x007F);
+> > > -       maj_ver = (version & 0x0380) >> 7;
+> > > -
+> > > -       if (version & 0x8000)
+> > > -               maj_ver |= 0x0008;
+> > > -
+> > > -       sprintf(bts_scr_name, "ti-connectivity/TIInit_%d.%d.%d.bts",
+> > > -               chip, maj_ver, min_ver);
+> > > -
+> > > -       /* to be accessed later via sysfs entry */
+> > > -       kim_gdata->version.full = version;
+> > > -       kim_gdata->version.chip = chip;
+> > > -       kim_gdata->version.maj_ver = maj_ver;
+> > > -       kim_gdata->version.min_ver = min_ver;
+> > > -
+> > > -       pr_info("%s", bts_scr_name);
+> > > -       return 0;
+> > > -}
+> > > -
+> > > -static void skip_change_remote_baud(unsigned char **ptr, long *len)
+> > > -{
+> > > -       unsigned char *nxt_action, *cur_action;
+> > > -       cur_action = *ptr;
+> > > -
+> > > -       nxt_action = cur_action + sizeof(struct bts_action) +
+> > > -               ((struct bts_action *) cur_action)->size;
+> > > -
+> > > -       if (((struct bts_action *) nxt_action)->type != ACTION_WAIT_EVENT) {
+> > > -               pr_err("invalid action after change remote baud command");
+> > > -       } else {
+> > > -               *ptr = *ptr + sizeof(struct bts_action) +
+> > > -                       ((struct bts_action *)cur_action)->size;
+> > > -               *len = *len - (sizeof(struct bts_action) +
+> > > -                               ((struct bts_action *)cur_action)->size);
+> > > -               /* warn user on not commenting these in firmware */
+> > > -               pr_warn("skipping the wait event of change remote baud");
+> > > -       }
+> > > -}
+> > > -
+> > > -/**
+> > > - * download_firmware -
+> > > - *     internal function which parses through the .bts firmware
+> > > - *     script file intreprets SEND, DELAY actions only as of now
+> > > - */
+> > > -static long download_firmware(struct kim_data_s *kim_gdata)
+> > > -{
+> > > -       long err = 0;
+> > > -       long len = 0;
+> > > -       unsigned char *ptr = NULL;
+> > > -       unsigned char *action_ptr = NULL;
+> > > -       unsigned char bts_scr_name[40] = { 0 }; /* 40 char long bts scr name? */
+> > > -       int wr_room_space;
+> > > -       int cmd_size;
+> > > -       unsigned long timeout;
+> > > -
+> > > -       err = read_local_version(kim_gdata, bts_scr_name);
+> > > -       if (err != 0) {
+> > > -               pr_err("kim: failed to read local ver");
+> > > -               return err;
+> > > -       }
+> > > -       err =
+> > > -           request_firmware(&kim_gdata->fw_entry, bts_scr_name,
+> > > -                            &kim_gdata->kim_pdev->dev);
+> > > -       if (unlikely((err != 0) || (kim_gdata->fw_entry->data == NULL) ||
+> > > -                    (kim_gdata->fw_entry->size == 0))) {
+> > > -               pr_err(" request_firmware failed(errno %ld) for %s", err,
+> > > -                          bts_scr_name);
+> > > -               return -EINVAL;
+> > > -       }
+> > > -       ptr = (void *)kim_gdata->fw_entry->data;
+> > > -       len = kim_gdata->fw_entry->size;
+> > > -       /* bts_header to remove out magic number and
+> > > -        * version
+> > > -        */
+> > > -       ptr += sizeof(struct bts_header);
+> > > -       len -= sizeof(struct bts_header);
+> > > -
+> > > -       while (len > 0 && ptr) {
+> > > -               pr_debug(" action size %d, type %d ",
+> > > -                          ((struct bts_action *)ptr)->size,
+> > > -                          ((struct bts_action *)ptr)->type);
+> > > -
+> > > -               switch (((struct bts_action *)ptr)->type) {
+> > > -               case ACTION_SEND_COMMAND:       /* action send */
+> > > -                       pr_debug("S");
+> > > -                       action_ptr = &(((struct bts_action *)ptr)->data[0]);
+> > > -                       if (unlikely
+> > > -                           (((struct hci_command *)action_ptr)->opcode ==
+> > > -                            0xFF36)) {
+> > > -                               /* ignore remote change
+> > > -                                * baud rate HCI VS command */
+> > > -                               pr_warn("change remote baud"
+> > > -                                   " rate command in firmware");
+> > > -                               skip_change_remote_baud(&ptr, &len);
+> > > -                               break;
+> > > -                       }
+> > > -                       /*
+> > > -                        * Make sure we have enough free space in uart
+> > > -                        * tx buffer to write current firmware command
+> > > -                        */
+> > > -                       cmd_size = ((struct bts_action *)ptr)->size;
+> > > -                       timeout = jiffies + msecs_to_jiffies(CMD_WR_TIME);
+> > > -                       do {
+> > > -                               wr_room_space =
+> > > -                                       st_get_uart_wr_room(kim_gdata->core_data);
+> > > -                               if (wr_room_space < 0) {
+> > > -                                       pr_err("Unable to get free "
+> > > -                                                       "space info from uart tx buffer");
+> > > -                                       release_firmware(kim_gdata->fw_entry);
+> > > -                                       return wr_room_space;
+> > > -                               }
+> > > -                               mdelay(1); /* wait 1ms before checking room */
+> > > -                       } while ((wr_room_space < cmd_size) &&
+> > > -                                       time_before(jiffies, timeout));
+> > > -
+> > > -                       /* Timeout happened ? */
+> > > -                       if (time_after_eq(jiffies, timeout)) {
+> > > -                               pr_err("Timeout while waiting for free "
+> > > -                                               "free space in uart tx buffer");
+> > > -                               release_firmware(kim_gdata->fw_entry);
+> > > -                               return -ETIMEDOUT;
+> > > -                       }
+> > > -                       /* reinit completion before sending for the
+> > > -                        * relevant wait
+> > > -                        */
+> > > -                       reinit_completion(&kim_gdata->kim_rcvd);
+> > > -
+> > > -                       /*
+> > > -                        * Free space found in uart buffer, call st_int_write
+> > > -                        * to send current firmware command to the uart tx
+> > > -                        * buffer.
+> > > -                        */
+> > > -                       err = st_int_write(kim_gdata->core_data,
+> > > -                       ((struct bts_action_send *)action_ptr)->data,
+> > > -                                          ((struct bts_action *)ptr)->size);
+> > > -                       if (unlikely(err < 0)) {
+> > > -                               release_firmware(kim_gdata->fw_entry);
+> > > -                               return err;
+> > > -                       }
+> > > -                       /*
+> > > -                        * Check number of bytes written to the uart tx buffer
+> > > -                        * and requested command write size
+> > > -                        */
+> > > -                       if (err != cmd_size) {
+> > > -                               pr_err("Number of bytes written to uart "
+> > > -                                               "tx buffer are not matching with "
+> > > -                                               "requested cmd write size");
+> > > -                               release_firmware(kim_gdata->fw_entry);
+> > > -                               return -EIO;
+> > > -                       }
+> > > -                       break;
+> > > -               case ACTION_WAIT_EVENT:  /* wait */
+> > > -                       pr_debug("W");
+> > > -                       err = wait_for_completion_interruptible_timeout(
+> > > -                                       &kim_gdata->kim_rcvd,
+> > > -                                       msecs_to_jiffies(CMD_RESP_TIME));
+> > > -                       if (err <= 0) {
+> > > -                               pr_err("response timeout/signaled during fw download ");
+> > > -                               /* timed out */
+> > > -                               release_firmware(kim_gdata->fw_entry);
+> > > -                               return err ? -ERESTARTSYS : -ETIMEDOUT;
+> > > -                       }
+> > > -                       reinit_completion(&kim_gdata->kim_rcvd);
+> > > -                       break;
+> > > -               case ACTION_DELAY:      /* sleep */
+> > > -                       pr_info("sleep command in scr");
+> > > -                       action_ptr = &(((struct bts_action *)ptr)->data[0]);
+> > > -                       mdelay(((struct bts_action_delay *)action_ptr)->msec);
+> > > -                       break;
+> > > -               }
+> > > -               len =
+> > > -                   len - (sizeof(struct bts_action) +
+> > > -                          ((struct bts_action *)ptr)->size);
+> > > -               ptr =
+> > > -                   ptr + sizeof(struct bts_action) +
+> > > -                   ((struct bts_action *)ptr)->size;
+> > > -       }
+> > > -       /* fw download complete */
+> > > -       release_firmware(kim_gdata->fw_entry);
+> > > -       return 0;
+> > > -}
+> > > -
+> > > -/**********************************************************************/
+> > > -/* functions called from ST core */
+> > > -/* called from ST Core, when REG_IN_PROGRESS (registration in progress)
+> > > - * can be because of
+> > > - * 1. response to read local version
+> > > - * 2. during send/recv's of firmware download
+> > > - */
+> > > -void st_kim_recv(void *disc_data, const unsigned char *data, long count)
+> > > -{
+> > > -       struct st_data_s        *st_gdata = (struct st_data_s *)disc_data;
+> > > -       struct kim_data_s       *kim_gdata = st_gdata->kim_data;
+> > > -
+> > > -       /* proceed to gather all data and distinguish read fw version response
+> > > -        * from other fw responses when data gathering is complete
+> > > -        */
+> > > -       kim_int_recv(kim_gdata, data, count);
+> > > -       return;
+> > > -}
+> > > -
+> > > -/* to signal completion of line discipline installation
+> > > - * called from ST Core, upon tty_open
+> > > - */
+> > > -void st_kim_complete(void *kim_data)
+> > > -{
+> > > -       struct kim_data_s       *kim_gdata = (struct kim_data_s *)kim_data;
+> > > -       complete(&kim_gdata->ldisc_installed);
+> > > -}
+> > > -
+> > > -/**
+> > > - * st_kim_start - called from ST Core upon 1st registration
+> > > - *     This involves toggling the chip enable gpio, reading
+> > > - *     the firmware version from chip, forming the fw file name
+> > > - *     based on the chip version, requesting the fw, parsing it
+> > > - *     and perform download(send/recv).
+> > > - */
+> > > -long st_kim_start(void *kim_data)
+> > > -{
+> > > -       long err = 0;
+> > > -       long retry = POR_RETRY_COUNT;
+> > > -       struct ti_st_plat_data  *pdata;
+> > > -       struct kim_data_s       *kim_gdata = (struct kim_data_s *)kim_data;
+> > > -
+> > > -       pr_info(" %s", __func__);
+> > > -       pdata = kim_gdata->kim_pdev->dev.platform_data;
+> > > -
+> > > -       do {
+> > > -               /* platform specific enabling code here */
+> > > -               if (pdata->chip_enable)
+> > > -                       pdata->chip_enable(kim_gdata);
+> > > -
+> > > -               /* Configure BT nShutdown to HIGH state */
+> > > -               gpio_set_value_cansleep(kim_gdata->nshutdown, GPIO_LOW);
+> > > -               mdelay(5);      /* FIXME: a proper toggle */
+> > > -               gpio_set_value_cansleep(kim_gdata->nshutdown, GPIO_HIGH);
+> > > -               mdelay(100);
+> > > -               /* re-initialize the completion */
+> > > -               reinit_completion(&kim_gdata->ldisc_installed);
+> > > -               /* send notification to UIM */
+> > > -               kim_gdata->ldisc_install = 1;
+> > > -               pr_info("ldisc_install = 1");
+> > > -               sysfs_notify(&kim_gdata->kim_pdev->dev.kobj,
+> > > -                               NULL, "install");
+> > > -               /* wait for ldisc to be installed */
+> > > -               err = wait_for_completion_interruptible_timeout(
+> > > -                       &kim_gdata->ldisc_installed, msecs_to_jiffies(LDISC_TIME));
+> > > -               if (!err) {
+> > > -                       /* ldisc installation timeout,
+> > > -                        * flush uart, power cycle BT_EN */
+> > > -                       pr_err("ldisc installation timeout");
+> > > -                       err = st_kim_stop(kim_gdata);
+> > > -                       continue;
+> > > -               } else {
+> > > -                       /* ldisc installed now */
+> > > -                       pr_info("line discipline installed");
+> > > -                       err = download_firmware(kim_gdata);
+> > > -                       if (err != 0) {
+> > > -                               /* ldisc installed but fw download failed,
+> > > -                                * flush uart & power cycle BT_EN */
+> > > -                               pr_err("download firmware failed");
+> > > -                               err = st_kim_stop(kim_gdata);
+> > > -                               continue;
+> > > -                       } else {        /* on success don't retry */
+> > > -                               break;
+> > > -                       }
+> > > -               }
+> > > -       } while (retry--);
+> > > -       return err;
+> > > -}
+> > > -
+> > > -/**
+> > > - * st_kim_stop - stop communication with chip.
+> > > - *     This can be called from ST Core/KIM, on the-
+> > > - *     (a) last un-register when chip need not be powered there-after,
+> > > - *     (b) upon failure to either install ldisc or download firmware.
+> > > - *     The function is responsible to (a) notify UIM about un-installation,
+> > > - *     (b) flush UART if the ldisc was installed.
+> > > - *     (c) reset BT_EN - pull down nshutdown at the end.
+> > > - *     (d) invoke platform's chip disabling routine.
+> > > - */
+> > > -long st_kim_stop(void *kim_data)
+> > > -{
+> > > -       long err = 0;
+> > > -       struct kim_data_s       *kim_gdata = (struct kim_data_s *)kim_data;
+> > > -       struct ti_st_plat_data  *pdata =
+> > > -               kim_gdata->kim_pdev->dev.platform_data;
+> > > -       struct tty_struct       *tty = kim_gdata->core_data->tty;
+> > > -
+> > > -       reinit_completion(&kim_gdata->ldisc_installed);
+> > > -
+> > > -       if (tty) {      /* can be called before ldisc is installed */
+> > > -               /* Flush any pending characters in the driver and discipline. */
+> > > -               tty_ldisc_flush(tty);
+> > > -               tty_driver_flush_buffer(tty);
+> > > -       }
+> > > -
+> > > -       /* send uninstall notification to UIM */
+> > > -       pr_info("ldisc_install = 0");
+> > > -       kim_gdata->ldisc_install = 0;
+> > > -       sysfs_notify(&kim_gdata->kim_pdev->dev.kobj, NULL, "install");
+> > > -
+> > > -       /* wait for ldisc to be un-installed */
+> > > -       err = wait_for_completion_interruptible_timeout(
+> > > -               &kim_gdata->ldisc_installed, msecs_to_jiffies(LDISC_TIME));
+> > > -       if (!err) {             /* timeout */
+> > > -               pr_err(" timed out waiting for ldisc to be un-installed");
+> > > -               err = -ETIMEDOUT;
+> > > -       }
+> > > -
+> > > -       /* By default configure BT nShutdown to LOW state */
+> > > -       gpio_set_value_cansleep(kim_gdata->nshutdown, GPIO_LOW);
+> > > -       mdelay(1);
+> > > -       gpio_set_value_cansleep(kim_gdata->nshutdown, GPIO_HIGH);
+> > > -       mdelay(1);
+> > > -       gpio_set_value_cansleep(kim_gdata->nshutdown, GPIO_LOW);
+> > > -
+> > > -       /* platform specific disable */
+> > > -       if (pdata->chip_disable)
+> > > -               pdata->chip_disable(kim_gdata);
+> > > -       return err;
+> > > -}
+> > > -
+> > > -/**********************************************************************/
+> > > -/* functions called from subsystems */
+> > > -/* called when debugfs entry is read from */
+> > > -
+> > > -static int show_version(struct seq_file *s, void *unused)
+> > > -{
+> > > -       struct kim_data_s *kim_gdata = (struct kim_data_s *)s->private;
+> > > -       seq_printf(s, "%04X %d.%d.%d\n", kim_gdata->version.full,
+> > > -                       kim_gdata->version.chip, kim_gdata->version.maj_ver,
+> > > -                       kim_gdata->version.min_ver);
+> > > -       return 0;
+> > > -}
+> > > -
+> > > -static int show_list(struct seq_file *s, void *unused)
+> > > -{
+> > > -       struct kim_data_s *kim_gdata = (struct kim_data_s *)s->private;
+> > > -       kim_st_list_protocols(kim_gdata->core_data, s);
+> > > -       return 0;
+> > > -}
+> > > -
+> > > -static ssize_t show_install(struct device *dev,
+> > > -               struct device_attribute *attr, char *buf)
+> > > -{
+> > > -       struct kim_data_s *kim_data = dev_get_drvdata(dev);
+> > > -       return sprintf(buf, "%d\n", kim_data->ldisc_install);
+> > > -}
+> > > -
+> > > -#ifdef DEBUG
+> > > -static ssize_t store_dev_name(struct device *dev,
+> > > -               struct device_attribute *attr, const char *buf, size_t count)
+> > > -{
+> > > -       struct kim_data_s *kim_data = dev_get_drvdata(dev);
+> > > -       pr_debug("storing dev name >%s<", buf);
+> > > -       strncpy(kim_data->dev_name, buf, count);
+> > > -       pr_debug("stored dev name >%s<", kim_data->dev_name);
+> > > -       return count;
+> > > -}
+> > > -
+> > > -static ssize_t store_baud_rate(struct device *dev,
+> > > -               struct device_attribute *attr, const char *buf, size_t count)
+> > > -{
+> > > -       struct kim_data_s *kim_data = dev_get_drvdata(dev);
+> > > -       pr_debug("storing baud rate >%s<", buf);
+> > > -       sscanf(buf, "%ld", &kim_data->baud_rate);
+> > > -       pr_debug("stored baud rate >%ld<", kim_data->baud_rate);
+> > > -       return count;
+> > > -}
+> > > -#endif /* if DEBUG */
+> > > -
+> > > -static ssize_t show_dev_name(struct device *dev,
+> > > -               struct device_attribute *attr, char *buf)
+> > > -{
+> > > -       struct kim_data_s *kim_data = dev_get_drvdata(dev);
+> > > -       return sprintf(buf, "%s\n", kim_data->dev_name);
+> > > -}
+> > > -
+> > > -static ssize_t show_baud_rate(struct device *dev,
+> > > -               struct device_attribute *attr, char *buf)
+> > > -{
+> > > -       struct kim_data_s *kim_data = dev_get_drvdata(dev);
+> > > -       return sprintf(buf, "%d\n", kim_data->baud_rate);
+> > > -}
+> > > -
+> > > -static ssize_t show_flow_cntrl(struct device *dev,
+> > > -               struct device_attribute *attr, char *buf)
+> > > -{
+> > > -       struct kim_data_s *kim_data = dev_get_drvdata(dev);
+> > > -       return sprintf(buf, "%d\n", kim_data->flow_cntrl);
+> > > -}
+> > > -
+> > > -/* structures specific for sysfs entries */
+> > > -static struct kobj_attribute ldisc_install =
+> > > -__ATTR(install, 0444, (void *)show_install, NULL);
+> > > -
+> > > -static struct kobj_attribute uart_dev_name =
+> > > -#ifdef DEBUG   /* TODO: move this to debug-fs if possible */
+> > > -__ATTR(dev_name, 0644, (void *)show_dev_name, (void *)store_dev_name);
+> > > -#else
+> > > -__ATTR(dev_name, 0444, (void *)show_dev_name, NULL);
+> > > -#endif
+> > > -
+> > > -static struct kobj_attribute uart_baud_rate =
+> > > -#ifdef DEBUG   /* TODO: move to debugfs */
+> > > -__ATTR(baud_rate, 0644, (void *)show_baud_rate, (void *)store_baud_rate);
+> > > -#else
+> > > -__ATTR(baud_rate, 0444, (void *)show_baud_rate, NULL);
+> > > -#endif
+> > > -
+> > > -static struct kobj_attribute uart_flow_cntrl =
+> > > -__ATTR(flow_cntrl, 0444, (void *)show_flow_cntrl, NULL);
+> > > -
+> > > -static struct attribute *uim_attrs[] = {
+> > > -       &ldisc_install.attr,
+> > > -       &uart_dev_name.attr,
+> > > -       &uart_baud_rate.attr,
+> > > -       &uart_flow_cntrl.attr,
+> > > -       NULL,
+> > > -};
+> > > -
+> > > -static const struct attribute_group uim_attr_grp = {
+> > > -       .attrs = uim_attrs,
+> > > -};
+> > > -
+> > > -/**
+> > > - * st_kim_ref - reference the core's data
+> > > - *     This references the per-ST platform device in the arch/xx/
+> > > - *     board-xx.c file.
+> > > - *     This would enable multiple such platform devices to exist
+> > > - *     on a given platform
+> > > - */
+> > > -void st_kim_ref(struct st_data_s **core_data, int id)
+> > > -{
+> > > -       struct platform_device  *pdev;
+> > > -       struct kim_data_s       *kim_gdata;
+> > > -       /* get kim_gdata reference from platform device */
+> > > -       pdev = st_get_plat_device(id);
+> > > -       if (!pdev)
+> > > -               goto err;
+> > > -       kim_gdata = platform_get_drvdata(pdev);
+> > > -       if (!kim_gdata)
+> > > -               goto err;
+> > > -
+> > > -       *core_data = kim_gdata->core_data;
+> > > -       return;
+> > > -err:
+> > > -       *core_data = NULL;
+> > > -}
+> > > -
+> > > -static int kim_version_open(struct inode *i, struct file *f)
+> > > -{
+> > > -       return single_open(f, show_version, i->i_private);
+> > > -}
+> > > -
+> > > -static int kim_list_open(struct inode *i, struct file *f)
+> > > -{
+> > > -       return single_open(f, show_list, i->i_private);
+> > > -}
+> > > -
+> > > -static const struct file_operations version_debugfs_fops = {
+> > > -       /* version info */
+> > > -       .open = kim_version_open,
+> > > -       .read = seq_read,
+> > > -       .llseek = seq_lseek,
+> > > -       .release = single_release,
+> > > -};
+> > > -static const struct file_operations list_debugfs_fops = {
+> > > -       /* protocols info */
+> > > -       .open = kim_list_open,
+> > > -       .read = seq_read,
+> > > -       .llseek = seq_lseek,
+> > > -       .release = single_release,
+> > > -};
+> > > -
+> > > -/**********************************************************************/
+> > > -/* functions called from platform device driver subsystem
+> > > - * need to have a relevant platform device entry in the platform's
+> > > - * board-*.c file
+> > > - */
+> > > -
+> > > -static struct dentry *kim_debugfs_dir;
+> > > -static int kim_probe(struct platform_device *pdev)
+> > > -{
+> > > -       struct kim_data_s       *kim_gdata;
+> > > -       struct ti_st_plat_data  *pdata = pdev->dev.platform_data;
+> > > -       int err;
+> > > -
+> > > -       if ((pdev->id != -1) && (pdev->id < MAX_ST_DEVICES)) {
+> > > -               /* multiple devices could exist */
+> > > -               st_kim_devices[pdev->id] = pdev;
+> > > -       } else {
+> > > -               /* platform's sure about existence of 1 device */
+> > > -               st_kim_devices[0] = pdev;
+> > > -       }
+> > > -
+> > > -       kim_gdata = kzalloc(sizeof(struct kim_data_s), GFP_KERNEL);
+> > > -       if (!kim_gdata) {
+> > > -               pr_err("no mem to allocate");
+> > > -               return -ENOMEM;
+> > > -       }
+> > > -       platform_set_drvdata(pdev, kim_gdata);
+> > > -
+> > > -       err = st_core_init(&kim_gdata->core_data);
+> > > -       if (err != 0) {
+> > > -               pr_err(" ST core init failed");
+> > > -               err = -EIO;
+> > > -               goto err_core_init;
+> > > -       }
+> > > -       /* refer to itself */
+> > > -       kim_gdata->core_data->kim_data = kim_gdata;
+> > > -
+> > > -       /* Claim the chip enable nShutdown gpio from the system */
+> > > -       kim_gdata->nshutdown = pdata->nshutdown_gpio;
+> > > -       err = gpio_request(kim_gdata->nshutdown, "kim");
+> > > -       if (unlikely(err)) {
+> > > -               pr_err(" gpio %d request failed ", kim_gdata->nshutdown);
+> > > -               goto err_sysfs_group;
+> > > -       }
+> > > -
+> > > -       /* Configure nShutdown GPIO as output=0 */
+> > > -       err = gpio_direction_output(kim_gdata->nshutdown, 0);
+> > > -       if (unlikely(err)) {
+> > > -               pr_err(" unable to configure gpio %d", kim_gdata->nshutdown);
+> > > -               goto err_sysfs_group;
+> > > -       }
+> > > -       /* get reference of pdev for request_firmware
+> > > -        */
+> > > -       kim_gdata->kim_pdev = pdev;
+> > > -       init_completion(&kim_gdata->kim_rcvd);
+> > > -       init_completion(&kim_gdata->ldisc_installed);
+> > > -
+> > > -       err = sysfs_create_group(&pdev->dev.kobj, &uim_attr_grp);
+> > > -       if (err) {
+> > > -               pr_err("failed to create sysfs entries");
+> > > -               goto err_sysfs_group;
+> > > -       }
+> > > -
+> > > -       /* copying platform data */
+> > > -       strncpy(kim_gdata->dev_name, pdata->dev_name, UART_DEV_NAME_LEN);
+> > > -       kim_gdata->flow_cntrl = pdata->flow_cntrl;
+> > > -       kim_gdata->baud_rate = pdata->baud_rate;
+> > > -       pr_info("sysfs entries created\n");
+> > > -
+> > > -       kim_debugfs_dir = debugfs_create_dir("ti-st", NULL);
+> > > -       if (!kim_debugfs_dir) {
+> > > -               pr_err(" debugfs entries creation failed ");
+> > > -               return 0;
+> > > -       }
+> > > -
+> > > -       debugfs_create_file("version", S_IRUGO, kim_debugfs_dir,
+> > > -                               kim_gdata, &version_debugfs_fops);
+> > > -       debugfs_create_file("protocols", S_IRUGO, kim_debugfs_dir,
+> > > -                               kim_gdata, &list_debugfs_fops);
+> > > -       return 0;
+> > > -
+> > > -err_sysfs_group:
+> > > -       st_core_exit(kim_gdata->core_data);
+> > > -
+> > > -err_core_init:
+> > > -       kfree(kim_gdata);
+> > > -
+> > > -       return err;
+> > > -}
+> > > -
+> > > -static int kim_remove(struct platform_device *pdev)
+> > > -{
+> > > -       /* free the GPIOs requested */
+> > > -       struct ti_st_plat_data  *pdata = pdev->dev.platform_data;
+> > > -       struct kim_data_s       *kim_gdata;
+> > > -
+> > > -       kim_gdata = platform_get_drvdata(pdev);
+> > > -
+> > > -       /* Free the Bluetooth/FM/GPIO
+> > > -        * nShutdown gpio from the system
+> > > -        */
+> > > -       gpio_free(pdata->nshutdown_gpio);
+> > > -       pr_info("nshutdown GPIO Freed");
+> > > -
+> > > -       debugfs_remove_recursive(kim_debugfs_dir);
+> > > -       sysfs_remove_group(&pdev->dev.kobj, &uim_attr_grp);
+> > > -       pr_info("sysfs entries removed");
+> > > -
+> > > -       kim_gdata->kim_pdev = NULL;
+> > > -       st_core_exit(kim_gdata->core_data);
+> > > -
+> > > -       kfree(kim_gdata);
+> > > -       kim_gdata = NULL;
+> > > -       return 0;
+> > > -}
+> > > -
+> > > -static int kim_suspend(struct platform_device *pdev, pm_message_t state)
+> > > -{
+> > > -       struct ti_st_plat_data  *pdata = pdev->dev.platform_data;
+> > > -
+> > > -       if (pdata->suspend)
+> > > -               return pdata->suspend(pdev, state);
+> > > -
+> > > -       return 0;
+> > > -}
+> > > -
+> > > -static int kim_resume(struct platform_device *pdev)
+> > > -{
+> > > -       struct ti_st_plat_data  *pdata = pdev->dev.platform_data;
+> > > -
+> > > -       if (pdata->resume)
+> > > -               return pdata->resume(pdev);
+> > > -
+> > > -       return 0;
+> > > -}
+> > > -
+> > > -/**********************************************************************/
+> > > -/* entry point for ST KIM module, called in from ST Core */
+> > > -static struct platform_driver kim_platform_driver = {
+> > > -       .probe = kim_probe,
+> > > -       .remove = kim_remove,
+> > > -       .suspend = kim_suspend,
+> > > -       .resume = kim_resume,
+> > > -       .driver = {
+> > > -               .name = "kim",
+> > > -       },
+> > > -};
+> > > -
+> > > -module_platform_driver(kim_platform_driver);
+> > > -
+> > > -MODULE_AUTHOR("Pavan Savoy <pavan_savoy@ti.com>");
+> > > -MODULE_DESCRIPTION("Shared Transport Driver for TI BT/FM/GPS combo chips ");
+> > > -MODULE_LICENSE("GPL");
+> > > diff --git a/drivers/misc/ti-st/st_ll.c b/drivers/misc/ti-st/st_ll.c
+> > > deleted file mode 100644
+> > > index 93b4d67cc4a3..000000000000
+> > > --- a/drivers/misc/ti-st/st_ll.c
+> > > +++ /dev/null
+> > > @@ -1,169 +0,0 @@
+> > > -/*
+> > > - *  Shared Transport driver
+> > > - *     HCI-LL module responsible for TI proprietary HCI_LL protocol
+> > > - *  Copyright (C) 2009-2010 Texas Instruments
+> > > - *  Author: Pavan Savoy <pavan_savoy@ti.com>
+> > > - *
+> > > - *  This program is free software; you can redistribute it and/or modify
+> > > - *  it under the terms of the GNU General Public License version 2 as
+> > > - *  published by the Free Software Foundation.
+> > > - *
+> > > - *  This program is distributed in the hope that it will be useful,
+> > > - *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+> > > - *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> > > - *  GNU General Public License for more details.
+> > > - *
+> > > - *  You should have received a copy of the GNU General Public License
+> > > - *  along with this program; if not, write to the Free Software
+> > > - *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+> > > - *
+> > > - */
+> > > -
+> > > -#define pr_fmt(fmt) "(stll) :" fmt
+> > > -#include <linux/skbuff.h>
+> > > -#include <linux/module.h>
+> > > -#include <linux/platform_device.h>
+> > > -#include <linux/ti_wilink_st.h>
+> > > -
+> > > -/**********************************************************************/
+> > > -/* internal functions */
+> > > -static void send_ll_cmd(struct st_data_s *st_data,
+> > > -       unsigned char cmd)
+> > > -{
+> > > -
+> > > -       pr_debug("%s: writing %x", __func__, cmd);
+> > > -       st_int_write(st_data, &cmd, 1);
+> > > -       return;
+> > > -}
+> > > -
+> > > -static void ll_device_want_to_sleep(struct st_data_s *st_data)
+> > > -{
+> > > -       struct kim_data_s       *kim_data;
+> > > -       struct ti_st_plat_data  *pdata;
+> > > -
+> > > -       pr_debug("%s", __func__);
+> > > -       /* sanity check */
+> > > -       if (st_data->ll_state != ST_LL_AWAKE)
+> > > -               pr_err("ERR hcill: ST_LL_GO_TO_SLEEP_IND"
+> > > -                         "in state %ld", st_data->ll_state);
+> > > -
+> > > -       send_ll_cmd(st_data, LL_SLEEP_ACK);
+> > > -       /* update state */
+> > > -       st_data->ll_state = ST_LL_ASLEEP;
+> > > -
+> > > -       /* communicate to platform about chip asleep */
+> > > -       kim_data = st_data->kim_data;
+> > > -       pdata = kim_data->kim_pdev->dev.platform_data;
+> > > -       if (pdata->chip_asleep)
+> > > -               pdata->chip_asleep(NULL);
+> > > -}
+> > > -
+> > > -static void ll_device_want_to_wakeup(struct st_data_s *st_data)
+> > > -{
+> > > -       struct kim_data_s       *kim_data;
+> > > -       struct ti_st_plat_data  *pdata;
+> > > -
+> > > -       /* diff actions in diff states */
+> > > -       switch (st_data->ll_state) {
+> > > -       case ST_LL_ASLEEP:
+> > > -               send_ll_cmd(st_data, LL_WAKE_UP_ACK);   /* send wake_ack */
+> > > -               break;
+> > > -       case ST_LL_ASLEEP_TO_AWAKE:
+> > > -               /* duplicate wake_ind */
+> > > -               pr_err("duplicate wake_ind while waiting for Wake ack");
+> > > -               break;
+> > > -       case ST_LL_AWAKE:
+> > > -               /* duplicate wake_ind */
+> > > -               pr_err("duplicate wake_ind already AWAKE");
+> > > -               break;
+> > > -       case ST_LL_AWAKE_TO_ASLEEP:
+> > > -               /* duplicate wake_ind */
+> > > -               pr_err("duplicate wake_ind");
+> > > -               break;
+> > > -       }
+> > > -       /* update state */
+> > > -       st_data->ll_state = ST_LL_AWAKE;
+> > > -
+> > > -       /* communicate to platform about chip wakeup */
+> > > -       kim_data = st_data->kim_data;
+> > > -       pdata = kim_data->kim_pdev->dev.platform_data;
+> > > -       if (pdata->chip_awake)
+> > > -               pdata->chip_awake(NULL);
+> > > -}
+> > > -
+> > > -/**********************************************************************/
+> > > -/* functions invoked by ST Core */
+> > > -
+> > > -/* called when ST Core wants to
+> > > - * enable ST LL */
+> > > -void st_ll_enable(struct st_data_s *ll)
+> > > -{
+> > > -       ll->ll_state = ST_LL_AWAKE;
+> > > -}
+> > > -
+> > > -/* called when ST Core /local module wants to
+> > > - * disable ST LL */
+> > > -void st_ll_disable(struct st_data_s *ll)
+> > > -{
+> > > -       ll->ll_state = ST_LL_INVALID;
+> > > -}
+> > > -
+> > > -/* called when ST Core wants to update the state */
+> > > -void st_ll_wakeup(struct st_data_s *ll)
+> > > -{
+> > > -       if (likely(ll->ll_state != ST_LL_AWAKE)) {
+> > > -               send_ll_cmd(ll, LL_WAKE_UP_IND);        /* WAKE_IND */
+> > > -               ll->ll_state = ST_LL_ASLEEP_TO_AWAKE;
+> > > -       } else {
+> > > -               /* don't send the duplicate wake_indication */
+> > > -               pr_err(" Chip already AWAKE ");
+> > > -       }
+> > > -}
+> > > -
+> > > -/* called when ST Core wants the state */
+> > > -unsigned long st_ll_getstate(struct st_data_s *ll)
+> > > -{
+> > > -       pr_debug(" returning state %ld", ll->ll_state);
+> > > -       return ll->ll_state;
+> > > -}
+> > > -
+> > > -/* called from ST Core, when a PM related packet arrives */
+> > > -unsigned long st_ll_sleep_state(struct st_data_s *st_data,
+> > > -       unsigned char cmd)
+> > > -{
+> > > -       switch (cmd) {
+> > > -       case LL_SLEEP_IND:      /* sleep ind */
+> > > -               pr_debug("sleep indication recvd");
+> > > -               ll_device_want_to_sleep(st_data);
+> > > -               break;
+> > > -       case LL_SLEEP_ACK:      /* sleep ack */
+> > > -               pr_err("sleep ack rcvd: host shouldn't");
+> > > -               break;
+> > > -       case LL_WAKE_UP_IND:    /* wake ind */
+> > > -               pr_debug("wake indication recvd");
+> > > -               ll_device_want_to_wakeup(st_data);
+> > > -               break;
+> > > -       case LL_WAKE_UP_ACK:    /* wake ack */
+> > > -               pr_debug("wake ack rcvd");
+> > > -               st_data->ll_state = ST_LL_AWAKE;
+> > > -               break;
+> > > -       default:
+> > > -               pr_err(" unknown input/state ");
+> > > -               return -EINVAL;
+> > > -       }
+> > > -       return 0;
+> > > -}
+> > > -
+> > > -/* Called from ST CORE to initialize ST LL */
+> > > -long st_ll_init(struct st_data_s *ll)
+> > > -{
+> > > -       /* set state to invalid */
+> > > -       ll->ll_state = ST_LL_INVALID;
+> > > -       return 0;
+> > > -}
+> > > -
+> > > -/* Called from ST CORE to de-initialize ST LL */
+> > > -long st_ll_deinit(struct st_data_s *ll)
+> > > -{
+> > > -       return 0;
+> > > -}
+> > > diff --git a/include/linux/ti_wilink_st.h b/include/linux/ti_wilink_st.h
+> > > index a9de5654b0cd..76a372bdf540 100644
+> > > --- a/include/linux/ti_wilink_st.h
+> > > +++ b/include/linux/ti_wilink_st.h
+> > > @@ -27,268 +27,9 @@
+> > >
+> > >  #include <linux/skbuff.h>
+> > >
+> > > -/**
+> > > - * enum proto-type - The protocol on WiLink chips which share a
+> > > - *     common physical interface like UART.
+> > > - */
+> > > -enum proto_type {
+> > > -       ST_BT,
+> > > -       ST_FM,
+> > > -       ST_GPS,
+> > > -       ST_MAX_CHANNELS = 16,
+> > > -};
+> > > -
+> > > -/**
+> > > - * struct st_proto_s - Per Protocol structure from BT/FM/GPS to ST
+> > > - * @type: type of the protocol being registered among the
+> > > - *     available proto_type(BT, FM, GPS the protocol which share TTY).
+> > > - * @recv: the receiver callback pointing to a function in the
+> > > - *     protocol drivers called by the ST driver upon receiving
+> > > - *     relevant data.
+> > > - * @match_packet: reserved for future use, to make ST more generic
+> > > - * @reg_complete_cb: callback handler pointing to a function in protocol
+> > > - *     handler called by ST when the pending registrations are complete.
+> > > - *     The registrations are marked pending, in situations when fw
+> > > - *     download is in progress.
+> > > - * @write: pointer to function in ST provided to protocol drivers from ST,
+> > > - *     to be made use when protocol drivers have data to send to TTY.
+> > > - * @priv_data: privdate data holder for the protocol drivers, sent
+> > > - *     from the protocol drivers during registration, and sent back on
+> > > - *     reg_complete_cb and recv.
+> > > - * @chnl_id: channel id the protocol driver is interested in, the channel
+> > > - *     id is nothing but the 1st byte of the packet in UART frame.
+> > > - * @max_frame_size: size of the largest frame the protocol can receive.
+> > > - * @hdr_len: length of the header structure of the protocol.
+> > > - * @offset_len_in_hdr: this provides the offset of the length field in the
+> > > - *     header structure of the protocol header, to assist ST to know
+> > > - *     how much to receive, if the data is split across UART frames.
+> > > - * @len_size: whether the length field inside the header is 2 bytes
+> > > - *     or 1 byte.
+> > > - * @reserve: the number of bytes ST needs to reserve in the skb being
+> > > - *     prepared for the protocol driver.
+> > > - */
+> > > -struct st_proto_s {
+> > > -       enum proto_type type;
+> > > -       long (*recv) (void *, struct sk_buff *);
+> > > -       unsigned char (*match_packet) (const unsigned char *data);
+> > > -       void (*reg_complete_cb) (void *, int data);
+> > > -       long (*write) (struct sk_buff *skb);
+> > > -       void *priv_data;
+> > > -
+> > > -       unsigned char chnl_id;
+> > > -       unsigned short max_frame_size;
+> > > -       unsigned char hdr_len;
+> > > -       unsigned char offset_len_in_hdr;
+> > > -       unsigned char len_size;
+> > > -       unsigned char reserve;
+> > > -};
+> > > -
+> > > -extern long st_register(struct st_proto_s *);
+> > > -extern long st_unregister(struct st_proto_s *);
+> > > -
+> > >  void hci_ti_set_fm_handler(struct device *dev, void (*recv_handler) (void *, struct sk_buff *), void *drvdata);
+> > >  int hci_ti_fm_send(struct device *dev, struct sk_buff *skb);
+> > >
+> > > -/*
+> > > - * header information used by st_core.c
+> > > - */
+> > > -
+> > > -/* states of protocol list */
+> > > -#define ST_NOTEMPTY    1
+> > > -#define ST_EMPTY       0
+> > > -
+> > > -/*
+> > > - * possible st_states
+> > > - */
+> > > -#define ST_INITIALIZING                1
+> > > -#define ST_REG_IN_PROGRESS     2
+> > > -#define ST_REG_PENDING         3
+> > > -#define ST_WAITING_FOR_RESP    4
+> > > -
+> > > -/**
+> > > - * struct st_data_s - ST core internal structure
+> > > - * @st_state: different states of ST like initializing, registration
+> > > - *     in progress, this is mainly used to return relevant err codes
+> > > - *     when protocol drivers are registering. It is also used to track
+> > > - *     the recv function, as in during fw download only HCI events
+> > > - *     can occur , where as during other times other events CH8, CH9
+> > > - *     can occur.
+> > > - * @tty: tty provided by the TTY core for line disciplines.
+> > > - * @tx_skb: If for some reason the tty's write returns lesser bytes written
+> > > - *     then to maintain the rest of data to be written on next instance.
+> > > - *     This needs to be protected, hence the lock inside wakeup func.
+> > > - * @tx_state: if the data is being written onto the TTY and protocol driver
+> > > - *     wants to send more, queue up data and mark that there is
+> > > - *     more data to send.
+> > > - * @list: the list of protocols registered, only MAX can exist, one protocol
+> > > - *     can register only once.
+> > > - * @rx_state: states to be maintained inside st's tty receive
+> > > - * @rx_count: count to be maintained inside st's tty receieve
+> > > - * @rx_skb: the skb where all data for a protocol gets accumulated,
+> > > - *     since tty might not call receive when a complete event packet
+> > > - *     is received, the states, count and the skb needs to be maintained.
+> > > - * @rx_chnl: the channel ID for which the data is getting accumalated for.
+> > > - * @txq: the list of skbs which needs to be sent onto the TTY.
+> > > - * @tx_waitq: if the chip is not in AWAKE state, the skbs needs to be queued
+> > > - *     up in here, PM(WAKEUP_IND) data needs to be sent and then the skbs
+> > > - *     from waitq can be moved onto the txq.
+> > > - *     Needs locking too.
+> > > - * @lock: the lock to protect skbs, queues, and ST states.
+> > > - * @protos_registered: count of the protocols registered, also when 0 the
+> > > - *     chip enable gpio can be toggled, and when it changes to 1 the fw
+> > > - *     needs to be downloaded to initialize chip side ST.
+> > > - * @ll_state: the various PM states the chip can be, the states are notified
+> > > - *     to us, when the chip sends relevant PM packets(SLEEP_IND, WAKE_IND).
+> > > - * @kim_data: reference to the parent encapsulating structure.
+> > > - *
+> > > - */
+> > > -struct st_data_s {
+> > > -       unsigned long st_state;
+> > > -       struct sk_buff *tx_skb;
+> > > -#define ST_TX_SENDING  1
+> > > -#define ST_TX_WAKEUP   2
+> > > -       unsigned long tx_state;
+> > > -       struct st_proto_s *list[ST_MAX_CHANNELS];
+> > > -       bool is_registered[ST_MAX_CHANNELS];
+> > > -       unsigned long rx_state;
+> > > -       unsigned long rx_count;
+> > > -       struct sk_buff *rx_skb;
+> > > -       unsigned char rx_chnl;
+> > > -       struct sk_buff_head txq, tx_waitq;
+> > > -       spinlock_t lock;
+> > > -       unsigned char   protos_registered;
+> > > -       unsigned long ll_state;
+> > > -       void *kim_data;
+> > > -       struct tty_struct *tty;
+> > > -       struct work_struct work_write_wakeup;
+> > > -};
+> > > -
+> > > -/*
+> > > - * wrapper around tty->ops->write_room to check
+> > > - * availability during firmware download
+> > > - */
+> > > -int st_get_uart_wr_room(struct st_data_s *st_gdata);
+> > > -/**
+> > > - * st_int_write -
+> > > - * point this to tty->driver->write or tty->ops->write
+> > > - * depending upon the kernel version
+> > > - */
+> > > -int st_int_write(struct st_data_s*, const unsigned char*, int);
+> > > -
+> > > -/**
+> > > - * st_write -
+> > > - * internal write function, passed onto protocol drivers
+> > > - * via the write function ptr of protocol struct
+> > > - */
+> > > -long st_write(struct sk_buff *);
+> > > -
+> > > -/* function to be called from ST-LL */
+> > > -void st_ll_send_frame(enum proto_type, struct sk_buff *);
+> > > -
+> > > -/* internal wake up function */
+> > > -void st_tx_wakeup(struct st_data_s *st_data);
+> > > -
+> > > -/* init, exit entry funcs called from KIM */
+> > > -int st_core_init(struct st_data_s **);
+> > > -void st_core_exit(struct st_data_s *);
+> > > -
+> > > -/* ask for reference from KIM */
+> > > -void st_kim_ref(struct st_data_s **, int);
+> > > -
+> > > -#define GPS_STUB_TEST
+> > > -#ifdef GPS_STUB_TEST
+> > > -int gps_chrdrv_stub_write(const unsigned char*, int);
+> > > -void gps_chrdrv_stub_init(void);
+> > > -#endif
+> > > -
+> > > -/*
+> > > - * header information used by st_kim.c
+> > > - */
+> > > -
+> > > -/* time in msec to wait for
+> > > - * line discipline to be installed
+> > > - */
+> > > -#define LDISC_TIME     1000
+> > > -#define CMD_RESP_TIME  800
+> > > -#define CMD_WR_TIME    5000
+> > > -#define MAKEWORD(a, b)  ((unsigned short)(((unsigned char)(a)) \
+> > > -       | ((unsigned short)((unsigned char)(b))) << 8))
+> > > -
+> > > -#define GPIO_HIGH 1
+> > > -#define GPIO_LOW  0
+> > > -
+> > > -/* the Power-On-Reset logic, requires to attempt
+> > > - * to download firmware onto chip more than once
+> > > - * since the self-test for chip takes a while
+> > > - */
+> > > -#define POR_RETRY_COUNT 5
+> > > -
+> > > -/**
+> > > - * struct chip_version - save the chip version
+> > > - */
+> > > -struct chip_version {
+> > > -       unsigned short full;
+> > > -       unsigned short chip;
+> > > -       unsigned short min_ver;
+> > > -       unsigned short maj_ver;
+> > > -};
+> > > -
+> > > -#define UART_DEV_NAME_LEN 32
+> > > -/**
+> > > - * struct kim_data_s - the KIM internal data, embedded as the
+> > > - *     platform's drv data. One for each ST device in the system.
+> > > - * @uim_pid: KIM needs to communicate with UIM to request to install
+> > > - *     the ldisc by opening UART when protocol drivers register.
+> > > - * @kim_pdev: the platform device added in one of the board-XX.c file
+> > > - *     in arch/XX/ directory, 1 for each ST device.
+> > > - * @kim_rcvd: completion handler to notify when data was received,
+> > > - *     mainly used during fw download, which involves multiple send/wait
+> > > - *     for each of the HCI-VS commands.
+> > > - * @ldisc_installed: completion handler to notify that the UIM accepted
+> > > - *     the request to install ldisc, notify from tty_open which suggests
+> > > - *     the ldisc was properly installed.
+> > > - * @resp_buffer: data buffer for the .bts fw file name.
+> > > - * @fw_entry: firmware class struct to request/release the fw.
+> > > - * @rx_state: the rx state for kim's receive func during fw download.
+> > > - * @rx_count: the rx count for the kim's receive func during fw download.
+> > > - * @rx_skb: all of fw data might not come at once, and hence data storage for
+> > > - *     whole of the fw response, only HCI_EVENTs and hence diff from ST's
+> > > - *     response.
+> > > - * @core_data: ST core's data, which mainly is the tty's disc_data
+> > > - * @version: chip version available via a sysfs entry.
+> > > - *
+> > > - */
+> > > -struct kim_data_s {
+> > > -       long uim_pid;
+> > > -       struct platform_device *kim_pdev;
+> > > -       struct completion kim_rcvd, ldisc_installed;
+> > > -       char resp_buffer[30];
+> > > -       const struct firmware *fw_entry;
+> > > -       unsigned nshutdown;
+> > > -       unsigned long rx_state;
+> > > -       unsigned long rx_count;
+> > > -       struct sk_buff *rx_skb;
+> > > -       struct st_data_s *core_data;
+> > > -       struct chip_version version;
+> > > -       unsigned char ldisc_install;
+> > > -       unsigned char dev_name[UART_DEV_NAME_LEN + 1];
+> > > -       unsigned flow_cntrl;
+> > > -       unsigned baud_rate;
+> > > -};
+> > > -
+> > > -/**
+> > > - * functions called when 1 of the protocol drivers gets
+> > > - * registered, these need to communicate with UIM to request
+> > > - * ldisc installed, read chip_version, download relevant fw
+> > > - */
+> > > -long st_kim_start(void *);
+> > > -long st_kim_stop(void *);
+> > > -
+> > > -void st_kim_complete(void *);
+> > > -void kim_st_list_protocols(struct st_data_s *, void *);
+> > > -void st_kim_recv(void *, const unsigned char *, long);
+> > > -
+> > > -
+> > >  /*
+> > >   * BTS headers
+> > >   */
+> > > @@ -355,47 +96,6 @@ struct hci_command {
+> > >         u32 speed;
+> > >  } __attribute__ ((packed));
+> > >
+> > > -/*
+> > > - * header information used by st_ll.c
+> > > - */
+> > > -
+> > > -/* ST LL receiver states */
+> > > -#define ST_W4_PACKET_TYPE       0
+> > > -#define ST_W4_HEADER           1
+> > > -#define ST_W4_DATA             2
+> > > -
+> > > -/* ST LL state machines */
+> > > -#define ST_LL_ASLEEP               0
+> > > -#define ST_LL_ASLEEP_TO_AWAKE      1
+> > > -#define ST_LL_AWAKE                2
+> > > -#define ST_LL_AWAKE_TO_ASLEEP      3
+> > > -#define ST_LL_INVALID             4
+> > > -
+> > > -/* different PM notifications coming from chip */
+> > > -#define LL_SLEEP_IND   0x30
+> > > -#define LL_SLEEP_ACK   0x31
+> > > -#define LL_WAKE_UP_IND 0x32
+> > > -#define LL_WAKE_UP_ACK 0x33
+> > > -
+> > > -/* initialize and de-init ST LL */
+> > > -long st_ll_init(struct st_data_s *);
+> > > -long st_ll_deinit(struct st_data_s *);
+> > > -
+> > > -/**
+> > > - * enable/disable ST LL along with KIM start/stop
+> > > - * called by ST Core
+> > > - */
+> > > -void st_ll_enable(struct st_data_s *);
+> > > -void st_ll_disable(struct st_data_s *);
+> > > -
+> > > -/**
+> > > - * various funcs used by ST core to set/get the various PM states
+> > > - * of the chip.
+> > > - */
+> > > -unsigned long st_ll_getstate(struct st_data_s *);
+> > > -unsigned long st_ll_sleep_state(struct st_data_s *, unsigned char);
+> > > -void st_ll_wakeup(struct st_data_s *);
+> > > -
+> > >  /*
+> > >   * header information used by st_core.c for FM and GPS
+> > >   * packet parsing, the bluetooth headers are already available
+> > > @@ -416,39 +116,4 @@ struct gps_event_hdr {
+> > >         u16 plen;
+> > >  } __attribute__ ((packed));
+> > >
+> > > -/**
+> > > - * struct ti_st_plat_data - platform data shared between ST driver and
+> > > - *     platform specific board file which adds the ST device.
+> > > - * @nshutdown_gpio: Host's GPIO line to which chip's BT_EN is connected.
+> > > - * @dev_name: The UART/TTY name to which chip is interfaced. (eg: /dev/ttyS1)
+> > > - * @flow_cntrl: Should always be 1, since UART's CTS/RTS is used for PM
+> > > - *     purposes.
+> > > - * @baud_rate: The baud rate supported by the Host UART controller, this will
+> > > - *     be shared across with the chip via a HCI VS command from User-Space Init
+> > > - *     Mgr application.
+> > > - * @suspend:
+> > > - * @resume: legacy PM routines hooked to platform specific board file, so as
+> > > - *     to take chip-host interface specific action.
+> > > - * @chip_enable:
+> > > - * @chip_disable: Platform/Interface specific mux mode setting, GPIO
+> > > - *     configuring, Host side PM disabling etc.. can be done here.
+> > > - * @chip_asleep:
+> > > - * @chip_awake: Chip specific deep sleep states is communicated to Host
+> > > - *     specific board-xx.c to take actions such as cut UART clocks when chip
+> > > - *     asleep or run host faster when chip awake etc..
+> > > - *
+> > > - */
+> > > -struct ti_st_plat_data {
+> > > -       u32 nshutdown_gpio;
+> > > -       unsigned char dev_name[UART_DEV_NAME_LEN]; /* uart name */
+> > > -       u32 flow_cntrl; /* flow control flag */
+> > > -       u32 baud_rate;
+> > > -       int (*suspend)(struct platform_device *, pm_message_t);
+> > > -       int (*resume)(struct platform_device *);
+> > > -       int (*chip_enable) (struct kim_data_s *);
+> > > -       int (*chip_disable) (struct kim_data_s *);
+> > > -       int (*chip_asleep) (struct kim_data_s *);
+> > > -       int (*chip_awake) (struct kim_data_s *);
+> > > -};
+> > > -
+> > >  #endif /* TI_WILINK_ST_H */
+> >
+> > > --
+> > > 2.19.2
+> > >
