@@ -8,62 +8,62 @@ X-Spam-Status: No, score=-8.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E35BEC43387
-	for <linux-media@archiver.kernel.org>; Sat, 22 Dec 2018 17:13:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 641A4C43387
+	for <linux-media@archiver.kernel.org>; Sat, 22 Dec 2018 17:13:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B298921A48
-	for <linux-media@archiver.kernel.org>; Sat, 22 Dec 2018 17:13:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3524D21A4B
+	for <linux-media@archiver.kernel.org>; Sat, 22 Dec 2018 17:13:35 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="tfjIp9bY"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="LyyoujA+"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391082AbeLVRNb (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sat, 22 Dec 2018 12:13:31 -0500
-Received: from mail-pf1-f196.google.com ([209.85.210.196]:37616 "EHLO
+        id S2391084AbeLVRNe (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sat, 22 Dec 2018 12:13:34 -0500
+Received: from mail-pf1-f196.google.com ([209.85.210.196]:42168 "EHLO
         mail-pf1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725846AbeLVRNa (ORCPT
+        with ESMTP id S1725846AbeLVRNd (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 22 Dec 2018 12:13:30 -0500
-Received: by mail-pf1-f196.google.com with SMTP id y126so4052358pfb.4;
-        Sat, 22 Dec 2018 09:13:30 -0800 (PST)
+        Sat, 22 Dec 2018 12:13:33 -0500
+Received: by mail-pf1-f196.google.com with SMTP id 64so4044185pfr.9;
+        Sat, 22 Dec 2018 09:13:32 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=Gc3m1uDP8Wo5z1wzLJY3/rncC3r7LBdywkd5BimQRx0=;
-        b=tfjIp9bYdq3HZVhVXgGea51u7Q59g3bdzS22k84U3I/O3TU1QeO9qJWXWbzp1xZITP
-         FI361bf6ejyHf4hb4lrMfVZks6kFgbMCKUkfL2pBXcrdNe57hHiF71wj21u640kwASrH
-         f5wCLu/LohGryS5pV5Wv9oFiduxc4sC/6g5LeXlrLo9/XrlpkJcc3IXhxs4SgFe+B5jF
-         bCaEOwekLD8Wgri6XGpJ9jCzzAkZyh+ZL7sNVIl5B81S9Ysg5okCcFJ9Td1cJf+uvur8
-         aTPaM3r2nWJktiXeVOjAKv9VyureUWOGB+Vn/5Us0qzDZLw7psS0wshuCLBNP4b5rU48
-         ZBVQ==
+        bh=6TBqITmEv0kT2GhOzw5W1AUzDWZJgB6wkauSBHb8q0w=;
+        b=LyyoujA+KCC8HtAHPSi7A90sHgrxZDlJXzneAu2VKQRNF8PBxVbeEQyLbKb8IcsacG
+         GRmbqXLmMb8qcNLlO9phypDEdJQ+fy162I7LUl6Mv7tXdKNH5Ad75FKFIfh0Z2qK4H+E
+         ThU5BXcicde+zUPIHshBXUCf/LLsXUQgQLPkRj9wE0SmtQ1b0EsVhy8/MPTDWwa6PQhe
+         DckdZHTF6Q9XJnvLB6WQCMZ9QVla/rXJLtf5k3g9Nk85yGrj/O1B3DphQ4fjHucEd4Bs
+         LDHZLJ1pLiJoS2CV8iZ/FuurkV1Z0lqmoY2iBA2csHct/y4bSKuLx/BlXdzyeRM3kDQM
+         z59Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references;
-        bh=Gc3m1uDP8Wo5z1wzLJY3/rncC3r7LBdywkd5BimQRx0=;
-        b=tiX4ZE9RQfO5CZ7tkJCqWOzoJfn2KxTIbHtDsfaLRFfoHBBpNQUu5aAjjpRNlbdoC7
-         BjIhrbxmkvhpsMjtDBkAkGByregeFjjyV2zPvOkZq2d7mIPQ411Prdhuj0pdggI9+hy+
-         tjXHMYI57glD3QdwMm9WQpEpjozXH0DmcaCYKxWWRgcyvR9m72vTqNBEaUztdog7HCnZ
-         WoHq+bFzxVU2OgFwgQKYDqUadhJnZjtVtR0EtrS4fy+gh8LbE2OJfDhpiojZ0cX3LVFS
-         DVWwCDrVTeUW4Mss+XY+QT7xCpOuN68dyWOQbbEE13mxUS/UR599DY6dBvzSkz1oqt7R
-         Bv3Q==
-X-Gm-Message-State: AJcUukdgJF+DKu5nkbT+wsNUJkm3P/DlMeAM7j6/yZf2bkQTd/rzqofQ
-        qAK4yEOonAIZ67gWnblkcFIAR3R6yzw=
-X-Google-Smtp-Source: ALg8bN540j0IRYmE+vH+xS41YVfBHp5zK2etvez8YFjsiD1382KHoVhJ7Y4c+Zp9H2nJKuNvIHvcww==
-X-Received: by 2002:a63:5346:: with SMTP id t6mr6911125pgl.40.1545498809954;
-        Sat, 22 Dec 2018 09:13:29 -0800 (PST)
+        bh=6TBqITmEv0kT2GhOzw5W1AUzDWZJgB6wkauSBHb8q0w=;
+        b=Y2FDMjrIEbJ9uU+XI8ji9Wjt072aKn034OFCl4ikuqNaQKTAuVYWYUCNCUKYSAVdbv
+         OQ8p5gx94Egh34VrWqSv9vnjWDzIdjFq/hzNGf/fVc64m61sBp4JxAh4IRfy3i6cj9Vn
+         8zocYvdeL3Kmh8AwgBLDSWZKEDdLi6WgmsLtr2NW2DnA2t3dfKZqx/rouJTHZVXuxZ9b
+         saYdS/zbgzumASHD+jtsOw0Y1D0ZFeYhMZRFKAx7tnl5B9FXvuz0wds/rwIpW01pfv9W
+         qYDQmYwztL3OaZSRXye55dA12XuBG6A4a4yIEd8cEHWeTBSFqThpV0Bt8VlaH/27he/v
+         rN/Q==
+X-Gm-Message-State: AA+aEWaxIlyRMWJuvZds16WxDdmvkIg26dcRTM3RYPYdtGD4/SaP3BM1
+        Lf2BtKQseKWs0i7N2Nesy2frRQDPLDc=
+X-Google-Smtp-Source: AFSGD/UoWAmrkaySnrMqPOGmldbGRhmGwiVZhzg/EaCTUn0LgaaSWWuS9cAKzHfYAsOEe4L2m1GuTw==
+X-Received: by 2002:a62:5301:: with SMTP id h1mr7086009pfb.17.1545498812034;
+        Sat, 22 Dec 2018 09:13:32 -0800 (PST)
 Received: from localhost.localdomain ([240f:34:212d:1:966:8499:7122:52f6])
-        by smtp.gmail.com with ESMTPSA id w11sm33322025pgk.16.2018.12.22.09.13.28
+        by smtp.gmail.com with ESMTPSA id w11sm33322025pgk.16.2018.12.22.09.13.30
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
-        Sat, 22 Dec 2018 09:13:29 -0800 (PST)
+        Sat, 22 Dec 2018 09:13:31 -0800 (PST)
 From:   Akinobu Mita <akinobu.mita@gmail.com>
 To:     linux-media@vger.kernel.org, devicetree@vger.kernel.org
 Cc:     Akinobu Mita <akinobu.mita@gmail.com>,
         Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
         Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH 11/12] media: mt9m001: make VIDIOC_SUBDEV_G_FMT ioctl work with V4L2_SUBDEV_FORMAT_TRY
-Date:   Sun, 23 Dec 2018 02:12:53 +0900
-Message-Id: <1545498774-11754-12-git-send-email-akinobu.mita@gmail.com>
+Subject: [PATCH 12/12] media: mt9m001: set all mbus format field when G_FMT and S_FMT ioctls
+Date:   Sun, 23 Dec 2018 02:12:54 +0900
+Message-Id: <1545498774-11754-13-git-send-email-akinobu.mita@gmail.com>
 X-Mailer: git-send-email 2.7.4
 In-Reply-To: <1545498774-11754-1-git-send-email-akinobu.mita@gmail.com>
 References: <1545498774-11754-1-git-send-email-akinobu.mita@gmail.com>
@@ -72,70 +72,44 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-The VIDIOC_SUBDEV_G_FMT ioctl for this driver doesn't recognize
-V4L2_SUBDEV_FORMAT_TRY and always works as if V4L2_SUBDEV_FORMAT_ACTIVE
-is specified.
+This driver doesn't set all members of mbus format field when the
+VIDIOC_SUBDEV_{S,G}_FMT ioctls are called.
+
+This is detected by v4l2-compliance.
 
 Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
 Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 ---
- drivers/media/i2c/mt9m001.c | 27 +++++++++++++++++++++++++++
- 1 file changed, 27 insertions(+)
+ drivers/media/i2c/mt9m001.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
 diff --git a/drivers/media/i2c/mt9m001.c b/drivers/media/i2c/mt9m001.c
-index a5b94d7..f4afbc9 100644
+index f4afbc9..82b89d5 100644
 --- a/drivers/media/i2c/mt9m001.c
 +++ b/drivers/media/i2c/mt9m001.c
-@@ -331,6 +331,12 @@ static int mt9m001_get_fmt(struct v4l2_subdev *sd,
- 	if (format->pad)
- 		return -EINVAL;
- 
-+	if (format->which == V4L2_SUBDEV_FORMAT_TRY) {
-+		mf = v4l2_subdev_get_try_format(sd, cfg, 0);
-+		format->format = *mf;
-+		return 0;
-+	}
-+
- 	mf->width	= mt9m001->rect.width;
- 	mf->height	= mt9m001->rect.height;
+@@ -342,6 +342,9 @@ static int mt9m001_get_fmt(struct v4l2_subdev *sd,
  	mf->code	= mt9m001->fmt->code;
-@@ -638,6 +644,26 @@ static const struct v4l2_subdev_core_ops mt9m001_subdev_core_ops = {
- #endif
- };
+ 	mf->colorspace	= mt9m001->fmt->colorspace;
+ 	mf->field	= V4L2_FIELD_NONE;
++	mf->ycbcr_enc	= V4L2_YCBCR_ENC_DEFAULT;
++	mf->quantization = V4L2_QUANTIZATION_DEFAULT;
++	mf->xfer_func	= V4L2_XFER_FUNC_DEFAULT;
  
-+static int mt9m001_init_cfg(struct v4l2_subdev *sd,
-+			    struct v4l2_subdev_pad_config *cfg)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct mt9m001 *mt9m001 = to_mt9m001(client);
-+	struct v4l2_mbus_framefmt *try_fmt =
-+		v4l2_subdev_get_try_format(sd, cfg, 0);
-+
-+	try_fmt->width		= mt9m001->rect.width;
-+	try_fmt->height		= mt9m001->rect.height;
-+	try_fmt->code		= mt9m001->fmt->code;
-+	try_fmt->colorspace	= mt9m001->fmt->colorspace;
-+	try_fmt->field		= V4L2_FIELD_NONE;
-+	try_fmt->ycbcr_enc	= V4L2_YCBCR_ENC_DEFAULT;
-+	try_fmt->quantization	= V4L2_QUANTIZATION_DEFAULT;
-+	try_fmt->xfer_func	= V4L2_XFER_FUNC_DEFAULT;
-+
-+	return 0;
-+}
-+
- static int mt9m001_enum_mbus_code(struct v4l2_subdev *sd,
- 		struct v4l2_subdev_pad_config *cfg,
- 		struct v4l2_subdev_mbus_code_enum *code)
-@@ -674,6 +700,7 @@ static const struct v4l2_subdev_sensor_ops mt9m001_subdev_sensor_ops = {
- };
+ 	return 0;
+ }
+@@ -402,6 +405,10 @@ static int mt9m001_set_fmt(struct v4l2_subdev *sd,
+ 	}
  
- static const struct v4l2_subdev_pad_ops mt9m001_subdev_pad_ops = {
-+	.init_cfg	= mt9m001_init_cfg,
- 	.enum_mbus_code = mt9m001_enum_mbus_code,
- 	.get_selection	= mt9m001_get_selection,
- 	.set_selection	= mt9m001_set_selection,
+ 	mf->colorspace	= fmt->colorspace;
++	mf->field	= V4L2_FIELD_NONE;
++	mf->ycbcr_enc	= V4L2_YCBCR_ENC_DEFAULT;
++	mf->quantization = V4L2_QUANTIZATION_DEFAULT;
++	mf->xfer_func	= V4L2_XFER_FUNC_DEFAULT;
+ 
+ 	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
+ 		return mt9m001_s_fmt(sd, fmt, mf);
 -- 
 2.7.4
 
