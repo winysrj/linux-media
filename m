@@ -2,140 +2,70 @@ Return-Path: <SRS0=d3EJ=PA=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 47D16C43387
-	for <linux-media@archiver.kernel.org>; Sun, 23 Dec 2018 04:33:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7DE04C43444
+	for <linux-media@archiver.kernel.org>; Sun, 23 Dec 2018 15:48:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 14445218D9
-	for <linux-media@archiver.kernel.org>; Sun, 23 Dec 2018 04:33:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3CE0C21971
+	for <linux-media@archiver.kernel.org>; Sun, 23 Dec 2018 15:48:04 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="VzXaHO6U"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391533AbeLWEdm (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sat, 22 Dec 2018 23:33:42 -0500
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:59139 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S2389933AbeLWEdm (ORCPT
+        id S1729115AbeLWPsA (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sun, 23 Dec 2018 10:48:00 -0500
+Received: from mail-it1-f173.google.com ([209.85.166.173]:38313 "EHLO
+        mail-it1-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725880AbeLWPr7 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 22 Dec 2018 23:33:42 -0500
-Received: from localhost ([IPv6:2001:983:e9a7:1:15bf:231e:4f8e:5660])
-        by smtp-cloud7.xs4all.net with ESMTPA
-        id avSGgFjXddllcavSHgyKKC; Sun, 23 Dec 2018 05:33:40 +0100
-Message-ID: <eff015523ae56b266fddc74fbe1c499d@smtp-cloud7.xs4all.net>
-Date:   Sun, 23 Dec 2018 05:33:32 +0100
-From:   "Hans Verkuil" <hverkuil@xs4all.nl>
-To:     linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-X-CMAE-Envelope: MS4wfCy6vUoNxoXON09dDDaD34581N4yuJaQ+F7OACTTbdRJA2BkOFBTa8x+CyQ6lsOB2Ccu5dMs/yY4r7StzrYN5FP15iNeRcFR/0vMmFOREfzDW48IPnQH
- AUf/SiRp945AbiB+mvKatNdhLl6N3EyDPbqYkJvF3kXbnACOy1cDGiOAAiVOeA0UKbd3JI2Ei/+B6klr/xFzR/mOxAgLZamPrwPPPW3B8vyaiyEsysa9GV0l
+        Sun, 23 Dec 2018 10:47:59 -0500
+Received: by mail-it1-f173.google.com with SMTP id h65so12838619ith.3;
+        Sun, 23 Dec 2018 07:47:59 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=WASiI+LGr+j54QgtHqz/Mb0c0vmWaC6GIOI+FQCQgEU=;
+        b=VzXaHO6U2zp14nuaHDagoCCcNRnZwAmcuEtFewUNAlIZCwcVc8jYH4fa9ZZRr7T1Q5
+         TSsK8j1OLLwHl9qg2WlKXgZ5dXpW+OvCoVhHww1bv7VDtnHdCkIhSNMNyQYCNdqHvtiq
+         vATK3ByrLzvdILGQ+hfK5X7r5C3I+qJdXKP/n0nbxJ4PtVVENYYvggWuL/RBPgDFf84k
+         C9KD/H6UMZod5UjqjnEnQke+1lGIY0xoRABcRA9vBXlCp+BOvVYuwe/izq03dIqZZPnk
+         A99eTUpo4cIdOSiuMl3jQMmkcLEI+/8cq/FcVffrZd0n67/Hq5au4f2B9g1/J+p7ruT0
+         vg2A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=WASiI+LGr+j54QgtHqz/Mb0c0vmWaC6GIOI+FQCQgEU=;
+        b=HJ2seWbRB5ojd8OwkeJOa6Gbdwdzyg7hqpMDEi+fV6+CBg67j4+3BS1xBRgZMceCDs
+         PUwn2QANbsT9PRbfEW/96el8/tFNvRDkzLd8oAavOdNtbLNGWEAi8aPdiIECN7OIi/03
+         kLehUYGnT5id5YLgZICkUZ7g+wlJxmxhL5b/OG+gsykwq8rE6kJ3UzpL0DSQn4Lm6W0G
+         US2VJ3gk68R9XW44cU/dzBbhswq/EoNirLSwVPY/dimxcCvdTljMLd8+igcvpZTJRjkE
+         ozNEfkg9OMSez7gZIBZt7LFVTZGFGAJvWqQOPSLltCGMu4+t6qVCTu134GwKHu8QPCnY
+         OfTw==
+X-Gm-Message-State: AJcUukfK1E5JFW2Zgh/85wOxIxWeMWI2cAt4o2rMn/GbmVyNMvdlDWF0
+        3ySFAxArjvDRC0kWlhpKCNcXBXDyVaFzTxeh2FA=
+X-Google-Smtp-Source: ALg8bN5COHTz9nHPChtDgZBaW/+7vNSLiao2QCGLokeTTe7FlPDws/7nUNcH5yVlz0FN9S/Fk3wzly7L7C1YMVtuRBQ=
+X-Received: by 2002:a05:660c:250:: with SMTP id t16mr5138433itk.78.1545579534269;
+ Sun, 23 Dec 2018 07:38:54 -0800 (PST)
+MIME-Version: 1.0
+References: <20181130161101.3413-1-tiny.windzz@gmail.com>
+In-Reply-To: <20181130161101.3413-1-tiny.windzz@gmail.com>
+From:   Frank Lee <tiny.windzz@gmail.com>
+Date:   Sun, 23 Dec 2018 23:38:42 +0800
+Message-ID: <CAEExFWso3fQMzPOn6GbM8P7=F+p-DzHAtk7eqhm9B=r6L=eV8A@mail.gmail.com>
+Subject: Re: [PATCH] dma-buf: Change to use DEFINE_SHOW_ATTRIBUTE macro
+To:     Sumit Semwal <sumit.semwal@linaro.org>, gustavo@padovan.org
+Cc:     linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linaro-mm-sig@lists.linaro.org,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
-
-Results of the daily build of media_tree:
-
-date:			Sun Dec 23 05:00:11 CET 2018
-media-tree git hash:	4bd46aa0353e022c2401a258e93b107880a66533
-media_build git hash:	282066d93c925718ca9f49d4790fd044162694d6
-v4l-utils git hash:	56cd068e426c17d63457bbf772b7c8c475f254bc
-edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.18.0-3-amd64
-
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.123-i686: OK
-linux-3.18.123-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.159-i686: OK
-linux-4.4.159-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.131-i686: OK
-linux-4.9.131-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.74-i686: OK
-linux-4.14.74-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: OK
-linux-4.19.1-i686: OK
-linux-4.19.1-x86_64: OK
-linux-4.20-rc1-i686: OK
-linux-4.20-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+ping......
