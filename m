@@ -2,131 +2,182 @@ Return-Path: <SRS0=3Wpa=PB=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_MUTT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C5C85C43612
-	for <linux-media@archiver.kernel.org>; Mon, 24 Dec 2018 13:23:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 458EBC64E79
+	for <linux-media@archiver.kernel.org>; Mon, 24 Dec 2018 15:22:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 92C3C21850
-	for <linux-media@archiver.kernel.org>; Mon, 24 Dec 2018 13:23:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 08F732184A
+	for <linux-media@archiver.kernel.org>; Mon, 24 Dec 2018 15:22:32 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="OUe2UBaI"
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=armlinux.org.uk header.i=@armlinux.org.uk header.b="TATbDOi3"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725616AbeLXNXI (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 24 Dec 2018 08:23:08 -0500
-Received: from mail-pl1-f195.google.com ([209.85.214.195]:46481 "EHLO
-        mail-pl1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725385AbeLXNXH (ORCPT
+        id S1725797AbeLXPWV (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 24 Dec 2018 10:22:21 -0500
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:53106 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725769AbeLXPWV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 24 Dec 2018 08:23:07 -0500
-Received: by mail-pl1-f195.google.com with SMTP id t13so5582885ply.13;
-        Mon, 24 Dec 2018 05:23:06 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=date:from:to:cc:subject:message-id:mime-version:content-disposition
-         :user-agent;
-        bh=7Lxrxd/hSsekQvS5TNwgf4HJhjrgrc3uztzkOk3jJZI=;
-        b=OUe2UBaIajVgiHJLICEiDaRmhg9kLK9hiO8qJEaN4rrxoH7k50qgnl6Wl+XySZ6A83
-         K1F8jaG9lYHSpu0zG42YwEpn+3YVl83fnNiLu4sAHKartC0Io7zN3jOBUYys/J2s1DAZ
-         b0PemUtLvUPsZJ5WxS7a2Km1y+FbdYwd8Vqu1nOnq7zc0AYFm2cvML/bPUIVJE6z7kYI
-         AarkWAB0WEA5VKCBss7dFq5ZPZq2mCmrnovbMMEXL5zRYsntVdEdUqvwab2ix4w5+GaZ
-         lufgucxKqEtCZUxR5YLGIYS/gi5CtHr7q3PFICiRvdOSX2NGp352oE4H40jHM582Ec4m
-         GYGg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:mime-version
-         :content-disposition:user-agent;
-        bh=7Lxrxd/hSsekQvS5TNwgf4HJhjrgrc3uztzkOk3jJZI=;
-        b=PCucv21HikOWUUaRvnY/vdeZrPYEEbOwhYn3gPGq17Dp56cmLiMoCDt6VcpW//9YTB
-         pxyGlTp7FcvjmmvsbPP/68SF/nG2Hb4AGGky3UE6cCL2zGywwCTU7iXRBq8mNcfN1wLW
-         8WRWQw1bjXyTx/QAsASDiY4JsnMe4GDRQV7Ir0nmaCMz30f6Mq9s2KwUOr/+562g9ZEK
-         FpF+AKTCR9yWVsZ+Otz2LIATEHmaB6Lm5M5KwV0EMgkQb6dT+joUhYFUZ2nhzWAb5g1c
-         YHLlmrWPRtJunO3/tCBDPQaMXxRHtHTsIEwQ0UBawpN+bybYGoM65HS8J+/94HgN8AAc
-         CG1g==
-X-Gm-Message-State: AJcUukdr4lEFqaAN14kxDwrbIFf+sxXF9Xlqs1G9N6Z9ymTESXP16Bfk
-        AFf4gM2z8b/SUYO/VaMOgN0=
-X-Google-Smtp-Source: ALg8bN5kc/0nicwedA6pXaMV79OMWDwnVCptGPVVG8nZTTXxzJdQVTtTwoK88u8a5GB5BsbXczYDpg==
-X-Received: by 2002:a17:902:4401:: with SMTP id k1mr13003110pld.307.1545657786489;
-        Mon, 24 Dec 2018 05:23:06 -0800 (PST)
-Received: from jordon-HP-15-Notebook-PC ([106.51.18.181])
-        by smtp.gmail.com with ESMTPSA id x3sm101409071pgt.45.2018.12.24.05.23.05
-        (version=TLS1 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
-        Mon, 24 Dec 2018 05:23:05 -0800 (PST)
-Date:   Mon, 24 Dec 2018 18:56:58 +0530
-From:   Souptick Joarder <jrdr.linux@gmail.com>
-To:     akpm@linux-foundation.org, willy@infradead.org, mhocko@suse.com,
-        pawel@osciak.com, m.szyprowski@samsung.com,
-        kyungmin.park@samsung.com, mchehab@kernel.org,
-        linux@armlinux.org.uk, robin.murphy@arm.com
-Cc:     linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-mm@kvack.org
-Subject: [PATCH v5 7/9] videobuf2/videobuf2-dma-sg.c: Convert to use
- vm_insert_range
-Message-ID: <20181224132658.GA22166@jordon-HP-15-Notebook-PC>
+        Mon, 24 Dec 2018 10:22:21 -0500
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=armlinux.org.uk; s=pandora-2014; h=Sender:In-Reply-To:Content-Type:
+        MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description:Resent-Date:
+        Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:
+        List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+         bh=MnCBPLk/TWveJ/PPLBS7RWz+axnrCYxLUyWpWEjxPy4=; b=TATbDOi3szvOxUTavPt0X/r70
+        vsZj5TZTSx89zhAQEl7pS0fasAu9W4Uive0aLhYKym8rlMr0h3b5qwCBM6UIqLJdkpMS98GpUMDFU
+        bc0TulCo/Wa0vECNHHWmPTUklO2uv6AO21/tGIxV+oMKw13XOlxLGMTtHjIrkIyQj253g=;
+Received: from n2100.armlinux.org.uk ([2001:4d48:ad52:3201:214:fdff:fe10:4f86]:44267)
+        by pandora.armlinux.org.uk with esmtpsa (TLSv1.2:ECDHE-RSA-AES128-GCM-SHA256:128)
+        (Exim 4.90_1)
+        (envelope-from <linux@armlinux.org.uk>)
+        id 1gbS2Y-0007zj-3i; Mon, 24 Dec 2018 15:21:10 +0000
+Received: from linux by n2100.armlinux.org.uk with local (Exim 4.90_1)
+        (envelope-from <linux@n2100.armlinux.org.uk>)
+        id 1gbS2Q-00077T-Hm; Mon, 24 Dec 2018 15:21:02 +0000
+Date:   Mon, 24 Dec 2018 15:20:59 +0000
+From:   Russell King - ARM Linux <linux@armlinux.org.uk>
+To:     Souptick Joarder <jrdr.linux@gmail.com>
+Cc:     akpm@linux-foundation.org, willy@infradead.org, mhocko@suse.com,
+        kirill.shutemov@linux.intel.com, vbabka@suse.cz, riel@surriel.com,
+        sfr@canb.auug.org.au, rppt@linux.vnet.ibm.com,
+        peterz@infradead.org, robin.murphy@arm.com, iamjoonsoo.kim@lge.com,
+        treding@nvidia.com, keescook@chromium.org,
+        m.szyprowski@samsung.com, stefanr@s5r6.in-berlin.de,
+        hjc@rock-chips.com, heiko@sntech.de, airlied@linux.ie,
+        oleksandr_andrushchenko@epam.com, joro@8bytes.org,
+        pawel@osciak.com, kyungmin.park@samsung.com, mchehab@kernel.org,
+        boris.ostrovsky@oracle.com, jgross@suse.com,
+        linux-rockchip@lists.infradead.org, linux-kernel@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, xen-devel@lists.xen.org,
+        linux-mm@kvack.org, iommu@lists.linux-foundation.org,
+        linux1394-devel@lists.sourceforge.net,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH v5 0/9] Use vm_insert_range
+Message-ID: <20181224152059.GA26090@n2100.armlinux.org.uk>
+References: <20181224131841.GA22017@jordon-HP-15-Notebook-PC>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-User-Agent: Mutt/1.5.21 (2010-09-15)
+In-Reply-To: <20181224131841.GA22017@jordon-HP-15-Notebook-PC>
+User-Agent: Mutt/1.5.23 (2014-03-12)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Convert to use vm_insert_range to map range of kernel memory
-to user vma.
+Having discussed with Matthew offlist, I think we've come to the
+following conclusion - there's a number of drivers that buggily
+ignore vm_pgoff.
 
-Signed-off-by: Souptick Joarder <jrdr.linux@gmail.com>
-Reviewed-by: Matthew Wilcox <willy@infradead.org>
-Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Acked-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
----
- drivers/media/common/videobuf2/videobuf2-dma-sg.c | 23 +++++++----------------
- 1 file changed, 7 insertions(+), 16 deletions(-)
+So, what I proposed is:
 
-diff --git a/drivers/media/common/videobuf2/videobuf2-dma-sg.c b/drivers/media/common/videobuf2/videobuf2-dma-sg.c
-index 015e737..898adef 100644
---- a/drivers/media/common/videobuf2/videobuf2-dma-sg.c
-+++ b/drivers/media/common/videobuf2/videobuf2-dma-sg.c
-@@ -328,28 +328,19 @@ static unsigned int vb2_dma_sg_num_users(void *buf_priv)
- static int vb2_dma_sg_mmap(void *buf_priv, struct vm_area_struct *vma)
+static int __vm_insert_range(struct vm_struct *vma, struct page *pages,
+			     size_t num, unsigned long offset)
+{
+	unsigned long count = vma_pages(vma);
+	unsigned long uaddr = vma->vm_start;
+	int ret;
+
+	/* Fail if the user requested offset is beyond the end of the object */
+	if (offset > num)
+		return -ENXIO;
+
+	/* Fail if the user requested size exceeds available object size */
+	if (count > num - offset)
+		return -ENXIO;
+
+	/* Never exceed the number of pages that the user requested */
+	for (i = 0; i < count; i++) {
+		ret = vm_insert_page(vma, uaddr, pages[offset + i]);
+		if (ret < 0)
+			return ret;
+		uaddr += PAGE_SIZE;
+	}
+
+	return 0;
+}
+
+/*
+ * Maps an object consisting of `num' `pages', catering for the user's
+ * requested vm_pgoff
+ */
+int vm_insert_range(struct vm_struct *vma, struct page *pages, size_t num)
+{
+	return __vm_insert_range(vma, pages, num, vma->vm_pgoff);
+}
+
+/*
+ * Maps a set of pages, always starting at page[0]
+ */
+int vm_insert_range_buggy(struct vm_struct *vma, struct page *pages, size_t num)
+{
+	return __vm_insert_range(vma, pages, num, 0);
+}
+
+With this, drivers such as iommu/dma-iommu.c can be converted thusly:
+
+ int iommu_dma_mmap(struct page **pages, size_t size, struct vm_area_struct *vma+)
  {
- 	struct vb2_dma_sg_buf *buf = buf_priv;
 -	unsigned long uaddr = vma->vm_start;
--	unsigned long usize = vma->vm_end - vma->vm_start;
--	int i = 0;
-+	unsigned long page_count = vma_pages(vma);
-+	int err;
- 
- 	if (!buf) {
- 		printk(KERN_ERR "No memory to map\n");
- 		return -EINVAL;
- 	}
- 
--	do {
--		int ret;
+-	unsigned int i, count = PAGE_ALIGN(size) >> PAGE_SHIFT;
+-	int ret = -ENXIO;
 -
--		ret = vm_insert_page(vma, uaddr, buf->pages[i++]);
--		if (ret) {
--			printk(KERN_ERR "Remapping memory, error: %d\n", ret);
--			return ret;
--		}
+-	for (i = vma->vm_pgoff; i < count && uaddr < vma->vm_end; i++) {
+-		ret = vm_insert_page(vma, uaddr, pages[i]);
+-		if (ret)
+-			break;
+-		uaddr += PAGE_SIZE;
+-	}
+-	return ret;
++	return vm_insert_range(vma, pages, PAGE_ALIGN(size) >> PAGE_SHIFT);
+}
+
+and drivers such as firewire/core-iso.c:
+
+ int fw_iso_buffer_map_vma(struct fw_iso_buffer *buffer,
+ 			  struct vm_area_struct *vma)
+ {
+-	unsigned long uaddr;
+-	int i, err;
+-
+-	uaddr = vma->vm_start;
+-	for (i = 0; i < buffer->page_count; i++) {
+-		err = vm_insert_page(vma, uaddr, buffer->pages[i]);
+-		if (err)
+-			return err;
 -
 -		uaddr += PAGE_SIZE;
--		usize -= PAGE_SIZE;
--	} while (usize > 0);
+-	}
 -
-+	err = vm_insert_range(vma, vma->vm_start, buf->pages, page_count);
-+	if (err) {
-+		printk(KERN_ERR "Remapping memory, error: %d\n", err);
-+		return err;
-+	}
- 
- 	/*
- 	 * Use common vm_area operations to track buffer refcount.
--- 
-1.9.1
+-	return 0;
++	return vm_insert_range_buggy(vma, buffer->pages, buffer->page_count);
+}
 
+and this gives us something to grep for to find these buggy drivers.
+
+Now, this may not look exactly equivalent, but if you look at
+fw_device_op_mmap(), buffer->page_count is basically vma_pages(vma)
+at this point, which means this should be equivalent.
+
+We _could_ then at a later date "fix" these drivers to behave according
+to the normal vm_pgoff offsetting simply by removing the _buggy suffix
+on the function name... and if that causes regressions, it gives us an
+easy way to revert (as long as vm_insert_range_buggy() remains
+available.)
+
+In the case of firewire/core-iso.c, it currently ignores the mmap offset
+entirely, so making the above suggested change would be tantamount to
+causing it to return -ENXIO for any non-zero mmap offset.
+
+IMHO, this approach is way simpler, and easier to get it correct at
+each call site, rather than the current approach which seems to be
+error-prone.
+
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line in suburbia: sync at 12.1Mbps down 622kbps up
+According to speedtest.net: 11.9Mbps down 500kbps up
