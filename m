@@ -2,140 +2,85 @@ Return-Path: <SRS0=3Wpa=PB=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-8.3 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_MUTT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C38C1C43387
-	for <linux-media@archiver.kernel.org>; Mon, 24 Dec 2018 04:34:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CB423C43387
+	for <linux-media@archiver.kernel.org>; Mon, 24 Dec 2018 07:50:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9174521773
-	for <linux-media@archiver.kernel.org>; Mon, 24 Dec 2018 04:34:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 99A7D21773
+	for <linux-media@archiver.kernel.org>; Mon, 24 Dec 2018 07:49:59 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=logic.at header.i=@logic.at header.b="rGZX4n/W"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726630AbeLXEeF (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sun, 23 Dec 2018 23:34:05 -0500
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:45656 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726361AbeLXEeF (ORCPT
+        id S1726801AbeLXHt6 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 24 Dec 2018 02:49:58 -0500
+Received: from jake.logic.tuwien.ac.at ([128.130.175.117]:35190 "EHLO
+        jake.logic.tuwien.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726784AbeLXHt6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 23 Dec 2018 23:34:05 -0500
-Received: from localhost ([IPv6:2001:983:e9a7:1:445e:dd3e:7ebe:d3f6])
-        by smtp-cloud8.xs4all.net with ESMTPA
-        id bHwIgSrSZNah5bHwJgoCDy; Mon, 24 Dec 2018 05:34:03 +0100
-Message-ID: <685b828edd15f9ef6215a4e0add53242@smtp-cloud8.xs4all.net>
-Date:   Mon, 24 Dec 2018 05:34:02 +0100
-From:   "Hans Verkuil" <hverkuil@xs4all.nl>
+        Mon, 24 Dec 2018 02:49:58 -0500
+X-Greylist: delayed 302 seconds by postgrey-1.27 at vger.kernel.org; Mon, 24 Dec 2018 02:49:58 EST
+Received: from t450.aithon.duckdns.org (morty.logic.tuwien.ac.at [128.130.175.112])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by jake.logic.tuwien.ac.at (Postfix) with ESMTPSA id 7B124C03FA;
+        Mon, 24 Dec 2018 08:44:54 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=logic.at; s=dkim;
+        t=1545637494; bh=l/EG5roMoZ8HGvpwNSUzSjaD968G4gKyYfjU7O2HdL4=;
+        h=Date:From:To:Cc:Subject:From;
+        b=rGZX4n/WKl3dCCmoYWbo+LdIdBILrgFXFvTvsBc/STf5Dv6z8XpXJFbDffINJVU6r
+         6KVx+mjHNR9VFJydHL8+VQM9Pepemc8ohtnjqd9KawQDQWHSXWKdnnptZVVIPSFa6G
+         v0gEyU05m/c1TiA0a91LXdvxV9GzVn0QnWPHOS+Q=
+Received: from localhost (t450.aithon.duckdns.org [local])
+        by t450.aithon.duckdns.org (OpenSMTPD) with ESMTPA id 32eb8152;
+        Mon, 24 Dec 2018 08:44:51 +0100 (CET)
+Date:   Mon, 24 Dec 2018 08:44:51 +0100
+From:   Ingo Feinerer <feinerer@logic.at>
 To:     linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-X-CMAE-Envelope: MS4wfADvMnyA+jmclnuNKcFz50j4/RKmuY0rVf+ic01FAvlOxiW1A5ZWyNWmn7V/oOFpDkz+3l55ednpODbbpKbUf457frZ+3Qli8ZWbv0fOEFeFrogvTGwF
- +PCQ2L3Lln1qjoGpO7jxs5lNj9VTDRVVPy/pJa7V7bww1FIHEoQD06rn7OKHwcOO0L7R2KX5xipMrfYjUA3JiHZRnblWoN+/N+lqMMuEILbPlig4SgDD/sBZ
+Cc:     Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Conditional sys/sysmacros.h inclusion
+Message-ID: <20181224074451.GA295@t450.aithon.duckdns.org>
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="CLnd/WiHFrKtdXgv"
+Content-Disposition: inline
+User-Agent: Mutt/1.11.1 (2018-12-01)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
 
-Results of the daily build of media_tree:
+--CLnd/WiHFrKtdXgv
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-date:			Mon Dec 24 05:00:10 CET 2018
-media-tree git hash:	4bd46aa0353e022c2401a258e93b107880a66533
-media_build git hash:	282066d93c925718ca9f49d4790fd044162694d6
-v4l-utils git hash:	56cd068e426c17d63457bbf772b7c8c475f254bc
-edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.18.0-3-amd64
+Commit 380fe7d4548a99bfcfc1594b6f0b3dd2369978f1 broke the functionality on
+OpenBSD as it has no sys/sysmacros.h. So replicate commit
+08572e7db2120bc45db732d02409dfd3346b8e51 but use explicit OS checks instead of
+AC_HEADER_MAJOR.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.123-i686: OK
-linux-3.18.123-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.159-i686: OK
-linux-4.4.159-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.131-i686: OK
-linux-4.9.131-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.74-i686: OK
-linux-4.14.74-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: OK
-linux-4.19.1-i686: OK
-linux-4.19.1-x86_64: OK
-linux-4.20-rc1-i686: OK
-linux-4.20-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+Signed-off-by: Ingo Feinerer <feinerer@logic.at>
 
-Detailed results are available here:
+--CLnd/WiHFrKtdXgv
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="sysmacros.diff"
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
+diff --git a/lib/libv4lconvert/control/libv4lcontrol.c b/lib/libv4lconvert/control/libv4lcontrol.c
+index 59f28b137b..793e19f299 100644
+--- a/lib/libv4lconvert/control/libv4lcontrol.c
++++ b/lib/libv4lconvert/control/libv4lcontrol.c
+@@ -20,7 +20,9 @@
+  */
+ 
+ #include <sys/types.h>
++#ifndef __OpenBSD__
+ #include <sys/sysmacros.h>
++#endif
+ #include <sys/mman.h>
+ #include <fcntl.h>
+ #include <sys/stat.h>
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+--CLnd/WiHFrKtdXgv--
