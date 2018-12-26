@@ -2,95 +2,231 @@ Return-Path: <SRS0=4xye=PD=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,UNPARSEABLE_RELAY autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 94218C43387
-	for <linux-media@archiver.kernel.org>; Wed, 26 Dec 2018 10:38:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED964C43387
+	for <linux-media@archiver.kernel.org>; Wed, 26 Dec 2018 11:03:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 43D1621720
-	for <linux-media@archiver.kernel.org>; Wed, 26 Dec 2018 10:38:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AF1DE214C6
+	for <linux-media@archiver.kernel.org>; Wed, 26 Dec 2018 11:03:07 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="XnVQl8d5"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726709AbeLZKiY (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 26 Dec 2018 05:38:24 -0500
-Received: from out20-99.mail.aliyun.com ([115.124.20.99]:51684 "EHLO
-        out20-99.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726177AbeLZKiY (ORCPT
+        id S1726664AbeLZLDH (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 26 Dec 2018 06:03:07 -0500
+Received: from perceval.ideasonboard.com ([213.167.242.64]:39018 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726611AbeLZLDG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 26 Dec 2018 05:38:24 -0500
-X-Alimail-AntiSpam: AC=CONTINUE;BC=0.08374568|-1;CH=green;FP=0|0|0|0|0|-1|-1|-1;HT=e02c03294;MF=yong.deng@magewell.com;NM=1;PH=DS;RN=24;RT=24;SR=0;TI=SMTPD_---.DdCL9.._1545820694;
-Received: from John(mailfrom:yong.deng@magewell.com fp:SMTPD_---.DdCL9.._1545820694)
-          by smtp.aliyun-inc.com(10.147.42.22);
-          Wed, 26 Dec 2018 18:38:15 +0800
-Date:   Wed, 26 Dec 2018 18:38:15 +0800
-From:   Yong <yong.deng@magewell.com>
-To:     megous@megous.com
-Cc:     =?UTF-8?B?J09uZMWZZWo=?= Jirman' via linux-sunxi 
-        <linux-sunxi@googlegroups.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Wed, 26 Dec 2018 06:03:06 -0500
+Received: from avalon.localnet (unknown [91.182.109.47])
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id C9BA353D;
+        Wed, 26 Dec 2018 12:03:03 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
+        s=mail; t=1545822184;
+        bh=2JxdZVaMHhZSWCuOM6DokTd1pcXGq9kopDarojXbSgc=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=XnVQl8d5LjoaC4qj2H+Z+yhos/xmbHcHuP+lx6C7iM9cNkP5onjt+vsYk91FgXBbk
+         aeJqlWnvmZ/blDF9nQLZhWBsRASIoy23zQ6Jkz8cxYDWk4d17g6jJzPJROuy4V/ofC
+         o6j9g+jFHABqj+Gbtg8KmYa5e+CYtmLfC0AxDaa4=
+From:   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To:     Bingbu Cao <bingbu.cao@linux.intel.com>
+Cc:     "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        "Zhi, Yong" <yong.zhi@intel.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Arnd Bergmann <arnd@arndb.de>,
         Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Neil Armstrong <narmstrong@baylibre.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Todor Tomov <todor.tomov@linaro.org>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [linux-sunxi] [PATCH v12 0/2] Initial Allwinner V3s CSI Support
-Message-Id: <20181226183815.81443b67313823e4fd7788eb@magewell.com>
-In-Reply-To: <20181226102936.2xxu7lii4kcg7656@core.my.home>
-References: <1540886988-27696-1-git-send-email-yong.deng@magewell.com>
-        <20181226102936.2xxu7lii4kcg7656@core.my.home>
-X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.30; i686-pc-mingw32)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "Hu, Jerry W" <jerry.w.hu@intel.com>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
+        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
+        "Cao, Bingbu" <bingbu.cao@intel.com>
+Subject: Re: [PATCH v7 00/16] Intel IPU3 ImgU patchset
+Date:   Wed, 26 Dec 2018 13:03:59 +0200
+Message-ID: <4147983.Vfm2iTi9Nh@avalon>
+Organization: Ideas on Board Oy
+In-Reply-To: <b7380656-13bd-884d-366f-87d690090be8@linux.intel.com>
+References: <1540851790-1777-1-git-send-email-yong.zhi@intel.com> <1609628.n3aCoxV5Mp@avalon> <b7380656-13bd-884d-366f-87d690090be8@linux.intel.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi,
+Hello Bingbu,
 
-On Wed, 26 Dec 2018 11:29:36 +0100
-'Ondřej Jirman' via linux-sunxi <linux-sunxi@googlegroups.com> wrote:
-
-> Hello,
-> 
-> On Tue, Oct 30, 2018 at 04:09:48PM +0800, Yong Deng wrote:
-> > I can't make v4l2-compliance always happy.
-> > The V3s CSI support many pixformats. But they are not always available.
-> > It's dependent on the input bus format (MEDIA_BUS_FMT_*). 
-> > Example:
-> > V4L2_PIX_FMT_SBGGR8: MEDIA_BUS_FMT_SBGGR8_1X8
-> > V4L2_PIX_FMT_YUYV: MEDIA_BUS_FMT_YUYV8_2X8
-> > But I can't get the subdev's format code before starting stream as the
-> > subdev may change it. So I can't know which pixformats are available.
-> > So I exports all the pixformats supported by SoC.
-> > The result is the app (v4l2-compliance) is likely to fail on streamon.
+On Monday, 17 December 2018 05:14:44 EET Bingbu Cao wrote:
+> On 12/14/2018 06:24 AM, Laurent Pinchart wrote:
+> > On Wednesday, 12 December 2018 06:55:53 EET Bingbu Cao wrote:
+> >> On 12/11/2018 09:43 PM, Laurent Pinchart wrote:
+> >>> On Tuesday, 11 December 2018 15:34:49 EET Laurent Pinchart wrote:
+> >>>> On Wednesday, 5 December 2018 02:30:46 EET Mani, Rajmohan wrote:
+> >>>> 
+> >>>> [snip]
+> >>>> 
+> >>>>> I can see a couple of steps missing in the script below.
+> >>>>> (https://lists.libcamera.org/pipermail/libcamera-devel/2018-November/0
+> >>>>> 00040.html)
+> >>>>> 
+> >>>>>   From patch 02 of this v7 series "doc-rst: Add Intel IPU3
+> >>>>>   documentation", under section "Configuring ImgU V4L2 subdev for
+> >>>>>   image processing"...
+> >>>>> 
+> >>>>> 1. The pipe mode needs to be configured for the V4L2 subdev.
+> >>>>> 
+> >>>>> Also the pipe mode of the corresponding V4L2 subdev should be set as
+> >>>>> desired (e.g 0 for video mode or 1 for still mode) through the control
+> >>>>> id 0x009819a1 as below.
+> >>>>> 
+> >>>>> e.g v4l2n -d /dev/v4l-subdev7 --ctrl=0x009819A1=1
+> >>>> 
+> >>>> I assume the control takes a valid default value ? It's better to set
+> >>>> it explicitly anyway, so I'll do so.
+> >> 
+> >> The video mode is set by default. If you want to set to still mode or
+> >> change mode, you need set the subdev control.
+> >> 
+> >>>>> 2. ImgU pipeline needs to be configured for image processing as below.
+> >>>>> 
+> >>>>> RAW bayer frames go through the following ISP pipeline HW blocks to
+> >>>>> have the processed image output to the DDR memory.
+> >>>>> 
+> >>>>> RAW bayer frame -> Input Feeder -> Bayer Down Scaling (BDS) ->
+> >>>>> Geometric Distortion Correction (GDC) -> DDR
+> >>>>> 
+> >>>>> The ImgU V4L2 subdev has to be configured with the supported
+> >>>>> resolutions in all the above HW blocks, for a given input resolution.
+> >>>>> 
+> >>>>> For a given supported resolution for an input frame, the Input Feeder,
+> >>>>> Bayer Down Scaling and GDC blocks should be configured with the
+> >>>>> supported resolutions. This information can be obtained by looking at
+> >>>>> the following IPU3 ISP configuration table for ov5670 sensor.
+> >>>>> 
+> >>>>> https://chromium.googlesource.com/chromiumos/overlays/board-overlays/+
+> >>>>> /master/baseboard-poppy/media-libs/cros-camera-hal-configs-poppy/
+> >>>>> files/gcss/graph_settings_ov5670.xml
+> >>>>> 
+> >>>>> For the ov5670 example, for an input frame with a resolution of
+> >>>>> 2592x1944 (which is input to the ImgU subdev pad 0), the corresponding
+> >>>>> resolutions for input feeder, BDS and GDC are 2592x1944, 2592x1944 and
+> >>>>> 2560x1920 respectively.
+> >>>> 
+> >>>> How is the GDC output resolution computed from the input resolution ?
+> >>>> Does the GDC always consume 32 columns and 22 lines ?
+> >> 
+> >> All the intermediate resolutions in the pipeline are determined by the
+> >> actual use case, in other word determined by the IMGU input
+> >> resolution(sensor output) and the final output and viewfinder resolution.
+> >> BDS mainly do Bayer downscaling, it has limitation that the downscaling
+> >> factor must be a value a integer multiple of 1/32.
+> >> GDC output depends on the input and width should be x8 and height x4
+> >> alignment.
 > > 
-> > This patchset add initial support for Allwinner V3s CSI.
+> > Thank you for the information. This will need to be captured in the
+> > documentation, along with information related to how each block in the
+> > hardware pipeline interacts with the image size. It should be possible for
+> > a developer to compute the output and viewfinder resolutions based on the
+> > parameters of the image processing algorithms just with the information
+> > contained in the driver documentation.
+> > 
+> >>>>> The following steps prepare the ImgU ISP pipeline for the image
+> >>>>> processing.
+> >>>>> 
+> >>>>> 1. The ImgU V4L2 subdev data format should be set by using the
+> >>>>> VIDIOC_SUBDEV_S_FMT on pad 0, using the GDC width and height obtained
+> >>>>> above.
+> >>>> 
+> >>>> If I understand things correctly, the GDC resolution is the pipeline
+> >>>> output resolution. Why is it configured on pad 0 ?
+> >> 
+> >> We see the GDC output resolution as the input of output system, the sink
+> >> pad format is used for output and viewfinder resolutions.
+> > 
+> > The ImgU subdev is supposed to represent the ImgU. Pad 0 should thus be
+> > the ImgU input, the format configured there should correspond to the
+> > format on the connected video node, and should thus be the sensor format.
+> > You can then use the crop and compose rectangles on pad 0, along with the
+> > format, crop and compose rectangles on the output and viewfinder pads, to
+> > configure the device. This should be fixed in the driver, and the
+> > documentation should then be updated accordingly.
 > 
-> I've tested your patches on A83T and CSI works on that SoC too. I'll send
-> DTS patches later.
+> Hi, Laurent,
 > 
-> One thing I noticed is that, when you cat the regmap registers file in debugfs
-> while streaming, the kernel locks up hard. I was not able to extract any logs.
+> Thanks for your review.
+> 
+> I think it make sense for me that using Pad 0 as the ImgU input(IF).
+> However, I prefer using the 2 source pads for output and viewfinder.
+> It makes more sense because the output and viewfinder are independent
+> output.
+> 
+> The whole pipeline in ImgU looks like:
+> IF --> BDS --> GDC ---> OUTPUT
+>                  |
+>                  |-----> VF
+> 
+> The BDS is used to do Bayer downscaling and GDC can do cropping.
 
-May be some registers can't be read when streaming ? Like read-clear regs ?
-Or multi CPU core access regs at the same time may cause the bus lock up?
+Does this mean that the main output and the viewfinder output share the same 
+scaler, and that the only difference in size between the two outputs is solely 
+due to cropping ?
 
-Thanks,
-Yong
+> My understanding is that scaled size is configured on the CROP rectangle
+> by COMPOSE selection target, the order seems like not aligned with the
+> actual processing in ImgU if we set the crop/compose on sink pad.
+> 
+> Is there some rules for the order of the configuration in the subdev API?
+> Could I use crop selection based on the scaled size?
+
+Please see figure 4.6 in https://linuxtv.org/downloads/v4l-dvb-apis/uapi/v4l/
+dev-subdev.html. Scaling is configured on the sink pad through the crop and 
+compose rectangles, while the source crop rectangle is used to perform 
+cropping on the output. If you have a single scaler in the hardware pipeline 
+you can thus configure it on the sink pad, with output and viewfinder separate 
+cropping configure on the source pad.
+
+> >>>>> 2. The ImgU V4L2 subdev cropping should be set by using the
+> >>>>> VIDIOC_SUBDEV_S_SELECTION on pad 0, with V4L2_SEL_TGT_CROP as the
+> >>>>> target, using the input feeder height and width.
+> >>>>> 
+> >>>>> 3. The ImgU V4L2 subdev composing should be set by using the
+> >>>>> VIDIOC_SUBDEV_S_SELECTION on pad 0, with V4L2_SEL_TGT_COMPOSE as the
+> >>>>> target, using the BDS height and width.
+> >>>>> 
+> >>>>> Once these 2 steps are done, the raw bayer frames can be input to the
+> >>>>> ImgU V4L2 subdev for processing.
+> >>>> 
+> >>>> Do I need to capture from both the output and viewfinder nodes ? How
+> >>>> are they related to the IF -> BDS -> GDC pipeline, are they both fed
+> >>>> from the GDC output ? If so, how does the viewfinder scaler fit in that
+> >>>> picture ?
+> >> 
+> >> The output capture should be set, the viewfinder can be disabled.
+> >> The IF and BDS are seen as crop and compose of the imgu input video
+> >> device. The GDC is seen as the subdev sink pad and OUTPUT/VF are source
+> >> pads.
+> > 
+> > The GDC is the last block in the pipeline according to the information
+> > provided above. How can it be seen as the subdev sink pad ? That doesn't
+> > make sense to me. I'm not asking for the MC graph to expose all internal
+> > blocks of the ImgU, but if you want to retain a single subdev model, the
+> > format on the sink pad needs to correspond to what is provided to the
+> > ImgU. Please see figure 4.6 of
+> > https://linuxtv.org/downloads/v4l-dvb-apis/uapi/v4l/dev-subdev.html for
+> > more information regarding how you can use the sink crop, sink compose
+> > and source crop rectangles.
+
+[snip]
+
+-- 
+Regards,
+
+Laurent Pinchart
+
+
+
