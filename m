@@ -2,139 +2,99 @@ Return-Path: <SRS0=HJwa=PE=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=DKIM_ADSP_CUSTOM_MED,
+	DKIM_INVALID,DKIM_SIGNED,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 37FB3C43387
-	for <linux-media@archiver.kernel.org>; Thu, 27 Dec 2018 04:34:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DB6C1C43387
+	for <linux-media@archiver.kernel.org>; Thu, 27 Dec 2018 13:07:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 07658214AE
-	for <linux-media@archiver.kernel.org>; Thu, 27 Dec 2018 04:34:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A3F6521479
+	for <linux-media@archiver.kernel.org>; Thu, 27 Dec 2018 13:07:08 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="WTnNERQT"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728896AbeL0EeG (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 26 Dec 2018 23:34:06 -0500
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:35506 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727489AbeL0EeG (ORCPT
+        id S1727661AbeL0NHF (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 27 Dec 2018 08:07:05 -0500
+Received: from mail-wm1-f68.google.com ([209.85.128.68]:54541 "EHLO
+        mail-wm1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726761AbeL0NHE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 26 Dec 2018 23:34:06 -0500
-Received: from localhost ([IPv6:2001:983:e9a7:1:4c46:a9f3:3040:7dd7])
-        by smtp-cloud9.xs4all.net with ESMTPA
-        id cNMxgjBvgMlDTcNMygAgMJ; Thu, 27 Dec 2018 05:34:04 +0100
-Message-ID: <8647362929b15f653dcda8a9f9704401@smtp-cloud9.xs4all.net>
-Date:   Thu, 27 Dec 2018 05:34:03 +0100
-From:   "Hans Verkuil" <hverkuil@xs4all.nl>
-To:     linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-X-CMAE-Envelope: MS4wfDn9i2KaA/MeqE1lahHVCyMYtI7fFqL3loTYxEhj+wO+7qnart7ddEJSb3zmVnujTYUqU6Z4ylYfs1cYGhqqRh6iy2mOeUbZjvG8zQKA3n0uY1Ia1gUu
- ysyCu+Ycw1hX5oPSt12Rzu7uepAB7fiHF6lpC2E4pinA4NU6RH0uVchVu0vwoiBjjvKNG+sCLrHXVSsc2+u6JhglKa2SeJE8WbCR1x8T5smGjeuZl7QJULDD
+        Thu, 27 Dec 2018 08:07:04 -0500
+Received: by mail-wm1-f68.google.com with SMTP id a62so16723701wmh.4;
+        Thu, 27 Dec 2018 05:07:02 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=QUT4daLVJspLYfP3LmDn4Juz5nNjvcoscnR5gCLp6Dg=;
+        b=WTnNERQTY8eDS0K7gV4ldDsmQZ0nn4MeXnIa+d9WPluaEPdeo1333yDq7fNoKP8o7q
+         XB+/PwW2k+1OmNeYCWm/Sle1sT2YMnRW+4YveHmJIdoBhhHh0qbgbd4HT0pm5ienCDqE
+         RpcUXr3kbpALqZ748CQV7BBamtaoOTcFp5+MJwARjdratFuDKwvPDDkmBKVC+8zrV4HC
+         aj7dri3asYW6t5hkAPamxf5DzJZYqrzF07xy+6zBg3mM/0LYLRwnRkWsG2bBrKCtj8Wx
+         gFhRb7KGiwCteEWhceL/Q6QDpbCElNSkfJmugmGtQtllx7RPbyqQJs5UqeAoW3TL3QFf
+         BWxA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=QUT4daLVJspLYfP3LmDn4Juz5nNjvcoscnR5gCLp6Dg=;
+        b=QvBgyaW7hKMkaMZ2Uz0oNlNW/smv1DXLuYNnb9Ojej2eI1xso/plG7MMmq/ZcZsP76
+         wt0CuMTP9jDh82P/JZRvQW+iSCT0ePGtY1jr1sXMzok4yD+wyrOSCU9OpyzvWRKIxXYI
+         u+cccLMjhYdZVmIqysEXmZ2zavan2Crj7Rn2xynrdjB8OkOXrHqhzl8GOP3K8+9kGigN
+         d415boxeQK8uITw5O69eegGfHzCcccZh4ZwhV2Q7Fs9VYLC3IiVOJlJd3VwR2OF84rWt
+         gzRX+Bzj7hptM51ImEZPgYgqix7BUmRI6lOIhW8Z/5DXJH36mu3pPkZuZcFx8eLtejms
+         4aug==
+X-Gm-Message-State: AJcUukfp/U6k9iDFbw8sqnGY46zusqlZY0S3h9JP+Vu/8P7pZcJjPZRh
+        /MlWVp3bKjzraQf3ga2AxGc=
+X-Google-Smtp-Source: ALg8bN692iqIurVclzf1jgnxgQMNXl/F/CQ8A57Ixuoy7SZWPJ00idYI3xMVB8P2ryxFGDL2b7uCdA==
+X-Received: by 2002:a7b:c0c5:: with SMTP id s5mr22239867wmh.40.1545916021551;
+        Thu, 27 Dec 2018 05:07:01 -0800 (PST)
+Received: from localhost.localdomain (generic-nat1.unisi.it. [193.205.5.2])
+        by smtp.gmail.com with ESMTPSA id f18sm21696905wrs.92.2018.12.27.05.06.59
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 27 Dec 2018 05:07:00 -0800 (PST)
+From:   Ettore Chimenti <ek5.chimenti@gmail.com>
+Cc:     hverkuil@xs4all.nl, luca.pisani@udoo.org, jose.abreu@synopsys.com,
+        sean@mess.org, sakari.ailus@linux.intel.com,
+        Ettore Chimenti <ek5.chimenti@gmail.com>, jacopo@jmondi.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] media: secocec: fix ir address shift
+Date:   Thu, 27 Dec 2018 14:06:35 +0100
+Message-Id: <a6d0c6cf16c9a77b25d2747296b74d3344f81f0a.1545915989.git.ek5.chimenti@gmail.com>
+X-Mailer: git-send-email 2.20.1
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+To:     unlisted-recipients:; (no To-header on input)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+The actual value of the RC5 System Number (address) is stored in the
+IR_READ_DATA common register masked with 0x1F00 so it have to be shifted
+by 8 bits.
 
-Results of the daily build of media_tree:
+Signed-off-by: Ettore Chimenti <ek5.chimenti@gmail.com>
+---
+ drivers/media/platform/seco-cec/seco-cec.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-date:			Thu Dec 27 05:00:12 CET 2018
-media-tree git hash:	4bd46aa0353e022c2401a258e93b107880a66533
-media_build git hash:	282066d93c925718ca9f49d4790fd044162694d6
-v4l-utils git hash:	49cfdcff966f578aa831086332c5d1ef974459e2
-edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.18.0-3-amd64
+diff --git a/drivers/media/platform/seco-cec/seco-cec.h b/drivers/media/platform/seco-cec/seco-cec.h
+index e632c4a2a044..843de8c7dfd4 100644
+--- a/drivers/media/platform/seco-cec/seco-cec.h
++++ b/drivers/media/platform/seco-cec/seco-cec.h
+@@ -106,7 +106,7 @@
+ #define SECOCEC_IR_COMMAND_MASK		0x007F
+ #define SECOCEC_IR_COMMAND_SHL		0
+ #define SECOCEC_IR_ADDRESS_MASK		0x1F00
+-#define SECOCEC_IR_ADDRESS_SHL		7
++#define SECOCEC_IR_ADDRESS_SHL		8
+ #define SECOCEC_IR_TOGGLE_MASK		0x8000
+ #define SECOCEC_IR_TOGGLE_SHL		15
+ 
+-- 
+2.20.1
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.123-i686: OK
-linux-3.18.123-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.159-i686: OK
-linux-4.4.159-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.131-i686: OK
-linux-4.9.131-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.74-i686: OK
-linux-4.14.74-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: OK
-linux-4.19.1-i686: OK
-linux-4.19.1-x86_64: OK
-linux-4.20-rc1-i686: OK
-linux-4.20-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
