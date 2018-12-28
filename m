@@ -2,166 +2,126 @@ Return-Path: <SRS0=znln=PF=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EA40EC43444
-	for <linux-media@archiver.kernel.org>; Fri, 28 Dec 2018 16:59:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 22305C43387
+	for <linux-media@archiver.kernel.org>; Fri, 28 Dec 2018 18:37:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B4AF32148E
-	for <linux-media@archiver.kernel.org>; Fri, 28 Dec 2018 16:59:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E68FD20869
+	for <linux-media@archiver.kernel.org>; Fri, 28 Dec 2018 18:37:48 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=aampusa.onmicrosoft.com header.i=@aampusa.onmicrosoft.com header.b="TwKyiool"
+	dkim=pass (2048-bit key) header.d=umn.edu header.i=@umn.edu header.b="BROPuEVJ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729924AbeL1Q76 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 28 Dec 2018 11:59:58 -0500
-Received: from mail-eopbgr770132.outbound.protection.outlook.com ([40.107.77.132]:12467
-        "EHLO NAM02-SN1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1729404AbeL1Q76 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Dec 2018 11:59:58 -0500
+        id S1730416AbeL1Shq (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 28 Dec 2018 13:37:46 -0500
+Received: from mta-p5.oit.umn.edu ([134.84.196.205]:36712 "EHLO
+        mta-p5.oit.umn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727890AbeL1Shq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 28 Dec 2018 13:37:46 -0500
+Received: from localhost (unknown [127.0.0.1])
+        by mta-p5.oit.umn.edu (Postfix) with ESMTP id 85758CD4
+        for <linux-media@vger.kernel.org>; Fri, 28 Dec 2018 18:37:44 +0000 (UTC)
+X-Virus-Scanned: amavisd-new at umn.edu
+Received: from mta-p5.oit.umn.edu ([127.0.0.1])
+        by localhost (mta-p5.oit.umn.edu [127.0.0.1]) (amavisd-new, port 10024)
+        with ESMTP id sIXQDqSeHIfa for <linux-media@vger.kernel.org>;
+        Fri, 28 Dec 2018 12:37:44 -0600 (CST)
+Received: from mail-it1-f197.google.com (mail-it1-f197.google.com [209.85.166.197])
+        (using TLSv1.2 with cipher AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mta-p5.oit.umn.edu (Postfix) with ESMTPS id 5A1D3714
+        for <linux-media@vger.kernel.org>; Fri, 28 Dec 2018 12:37:44 -0600 (CST)
+Received: by mail-it1-f197.google.com with SMTP id w15so26162802ita.1
+        for <linux-media@vger.kernel.org>; Fri, 28 Dec 2018 10:37:44 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=aampusa.onmicrosoft.com; s=selector1-aampglobal-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=DbF4C35ZWDRk5vmNCJZ/tvMk9eTrXOuvSLqpGl4X59k=;
- b=TwKyioolSU5/OmJU0yWmJSSGfRWEnBRuAvLudoCxw1pg3t+F8DWMAyuU/gAf74PRo+TI8hxVb4kEtgUjazfLEH2jYNUMDiCQPhDkVS1eRh0yVPBmEHPEqGhhcP5cQEp9BIp10bg90/bVZfVZc9lYkq91tnWrDnQ/ZgYQDX1azwo=
-Received: from BL0PR07MB4115.namprd07.prod.outlook.com (52.132.10.149) by
- BL0PR07MB5025.namprd07.prod.outlook.com (10.167.180.30) with Microsoft SMTP
- Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.1446.26; Fri, 28 Dec 2018 16:59:51 +0000
-Received: from BL0PR07MB4115.namprd07.prod.outlook.com
- ([fe80::6051:85a:c31b:7606]) by BL0PR07MB4115.namprd07.prod.outlook.com
- ([fe80::6051:85a:c31b:7606%2]) with mapi id 15.20.1446.026; Fri, 28 Dec 2018
- 16:59:51 +0000
-From:   Ken Sloat <KSloat@aampglobal.com>
-To:     "eugen.hristev@microchip.com" <eugen.hristev@microchip.com>
-CC:     "mchehab@kernel.org" <mchehab@kernel.org>,
-        "nicolas.ferre@microchip.com" <nicolas.ferre@microchip.com>,
-        "alexandre.belloni@bootlin.com" <alexandre.belloni@bootlin.com>,
-        "ludovic.desroches@microchip.com" <ludovic.desroches@microchip.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: [PATCH v1 1/2] media: atmel-isc: Add support for BT656 with CRC
- decoding
-Thread-Topic: [PATCH v1 1/2] media: atmel-isc: Add support for BT656 with CRC
- decoding
-Thread-Index: AQHUns6/Mav1xniG5UimGV2/kOTXnQ==
-Date:   Fri, 28 Dec 2018 16:59:51 +0000
-Message-ID: <20181228165934.36393-1-ksloat@aampglobal.com>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-originating-ip: [100.3.71.115]
-x-clientproxiedby: BN8PR16CA0033.namprd16.prod.outlook.com
- (2603:10b6:408:4c::46) To BL0PR07MB4115.namprd07.prod.outlook.com
- (2603:10b6:207:4c::21)
-authentication-results: spf=none (sender IP is )
- smtp.mailfrom=KSloat@aampglobal.com; 
-x-ms-exchange-messagesentrepresentingtype: 1
-x-ms-publictraffictype: Email
-x-microsoft-exchange-diagnostics: 1;BL0PR07MB5025;6:To8ZgFJzaKIDH6gcyEXiAT6qcRmm9jcfO+v40J7ZHmRLYMUpOClysN5/k5znsEfTigevZS9eHgdA6SHwSKea7P4C3ilqJ4Vzus8ESyqzhP2sPu6aWdcjjVgmo02atXfd33sFuLSy6woiMv7oB1ajH6c3En3Vcula8xSe3Vn4BUpLWDKA3HkUJdMul5zk5n7L03ZdPo1q4hE92Bb3E7iMEYluf9NOokTkdyaqxvE3AL2iVV83Qz+mqnTWsr/T78Z5n+RyA47s84DTjEhAgSp2oqgaysyyrgCps0bT4KEHqY051HelCqlMIZmbosghCGs5Fg/ws1cMJAzr3InlgmzHZ3HIdK7y4/z4FOuLvTZsRmYyMxF/IZuwtPGgfDUIBwAg+dYms3A0XofFftbheZ0A57UnT4IPpPFrYf39BXJ7S2+6GUG79+lCPjAyn6zdswD2PdHzicYq7o0upHP49N8XwQ==;5:zy+2KJOjOlQ7YKavk9C0QY2uY/KoRAAmaB6XusVrH3yI8ztz3dqjjmpUWdV+UehfENCVrXrC0mR7J7vvwuF4pLzCEKxCp/5/HodF5Lb7t8SAZ35vAFo8AvUWxX47AYuBDhMd9GFZJQD5dKhaxznYWhbS/zl0YftF1pE0/IcEop8=;7:QUCY6V+7+bJp2n4l4Cv63ziLggqzJ9qmvXVj9AhoU6Auu4BUa7eW9pBIyUzmRiWep6cbdXAJWZWBAfzBEaDPtgsWVKLm7sNs2fDi+ivMkf7QcRT2LTDGaZM2Z/d3l2oIhRQp31nN3rZYMBZQRDcpqQ==
-x-ms-office365-filtering-correlation-id: 377300ed-71c3-454d-762f-08d66ce5e196
-x-microsoft-antispam: BCL:0;PCL:0;RULEID:(2390118)(7020095)(4652040)(8989299)(5600109)(711020)(4534185)(4627221)(201703031133081)(201702281549075)(8990200)(2017052603328)(7153060)(7193020);SRVR:BL0PR07MB5025;
-x-ms-traffictypediagnostic: BL0PR07MB5025:
-x-microsoft-antispam-prvs: <BL0PR07MB5025D313E287B2654972F766ADB70@BL0PR07MB5025.namprd07.prod.outlook.com>
-x-exchange-antispam-report-cfa-test: BCL:0;PCL:0;RULEID:(3230021)(908002)(999002)(5005026)(6040522)(8220051)(2401047)(8121501046)(3231475)(944501520)(52105112)(93006095)(93001095)(10201501046)(3002001)(6041310)(20161123558120)(20161123562045)(20161123560045)(20161123564045)(201703131423095)(201702281528075)(20161123555045)(201703061421075)(201703061406153)(201708071742011)(7699051)(76991095);SRVR:BL0PR07MB5025;BCL:0;PCL:0;RULEID:;SRVR:BL0PR07MB5025;
-x-forefront-prvs: 09007040D4
-x-forefront-antispam-report: SFV:NSPM;SFS:(10019020)(136003)(396003)(346002)(39850400004)(376002)(366004)(199004)(189003)(5640700003)(7736002)(54906003)(3846002)(72206003)(6116002)(316002)(478600001)(81156014)(305945005)(8676002)(25786009)(80792005)(8936002)(186003)(26005)(81166006)(2501003)(6506007)(99286004)(102836004)(6916009)(2906002)(386003)(2351001)(52116002)(36756003)(5660300001)(86362001)(71200400001)(66066001)(71190400001)(97736004)(2616005)(53936002)(14454004)(486006)(6486002)(6436002)(4326008)(105586002)(106356001)(68736007)(1076003)(476003)(6512007)(256004)(14444005);DIR:OUT;SFP:1102;SCL:1;SRVR:BL0PR07MB5025;H:BL0PR07MB4115.namprd07.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;A:1;MX:1;
-received-spf: None (protection.outlook.com: aampglobal.com does not designate
- permitted sender hosts)
-x-ms-exchange-senderadcheck: 1
-x-microsoft-antispam-message-info: DsoWj8zbu6UXr414d+v2l6XVwCjSE+6NxQ5GAqe34GAodfX1KuGHjDe9rvt9JGOCngcmBxlJQN12RB6S4G/tRVw6biYLWgS6Jrf4tJ1naO0o+UcdHkF+feJpLH2qMVdj3EqKWpUUtZ7S2x+S5bFNigq8ZNMLtogDvhjgO+37AMLEypmb+YfTf+YRiAjCGjrdlhBz5QFuOKXVqHmq8k/YguxP0TxstUaJzc1axn91fkjzxZ32LWA3X0oUuCNImA/mE2k0iKYhYxJG+shDBd+jeBsFI/lz5sEfjrCogIEI+WuGb4UiK8GKdUxkXlSK5yqe
-spamdiagnosticoutput: 1:99
-spamdiagnosticmetadata: NSPM
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-MIME-Version: 1.0
-X-OriginatorOrg: aampglobal.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 377300ed-71c3-454d-762f-08d66ce5e196
-X-MS-Exchange-CrossTenant-originalarrivaltime: 28 Dec 2018 16:59:51.0460
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: e20e3a66-8b9e-46e9-b859-cb654c1ec6ea
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BL0PR07MB5025
-X-MS-Exchange-CrossPremises-AuthAs: Internal
-X-MS-Exchange-CrossPremises-AuthMechanism: 06
-X-MS-Exchange-CrossPremises-AuthSource: BL0PR07MB4115.namprd07.prod.outlook.com
-X-MS-Exchange-CrossPremises-TransportTrafficType: Email
-X-MS-Exchange-CrossPremises-TransportTrafficSubType: 
-X-MS-Exchange-CrossPremises-SCL: 1
-X-MS-Exchange-CrossPremises-mapi-admin-submission: 
-X-MS-Exchange-CrossPremises-messagesource: StoreDriver
-X-MS-Exchange-CrossPremises-BCC: 
-X-MS-Exchange-CrossPremises-originalclientipaddress: 100.3.71.115
-X-MS-Exchange-CrossPremises-transporttraffictype: Email
-X-MS-Exchange-CrossPremises-transporttrafficsubtype: 
-X-MS-Exchange-CrossPremises-antispam-scancontext: DIR:Originating;SFV:NSPM;SKIP:0;
-X-MS-Exchange-CrossPremises-processed-by-journaling: Journal Agent
-X-OrganizationHeadersPreserved: BL0PR07MB5025.namprd07.prod.outlook.com
+        d=umn.edu; s=google;
+        h=from:to:cc:subject:date:message-id;
+        bh=eljkChJOJ7jxmeofuZOEFa4QAMQj6Qg64V1kBued0VE=;
+        b=BROPuEVJgmR71YxhX9PgObSMlPREc0BRf8fZjyztpSWC19jdPkwRQG4M+a1Tq6rE1W
+         wvEXuCnmsHpgdZ94iBuFafhJPP8NB+70RuU31T0heNZxjlQB+mQ06ryZCJ9WYJcFGNDM
+         UiVZ7kMjDh2Pabp4qYFgIdOahFnNO3MUXO8oRAm1GC5J1L9mlMl3FTu+G5GlD5ISQO03
+         Z3sCl8iLiUu1fApSQswuzh+KIpCN8w0FnM+qXD9WO70KfVhOkW3Ghbf7AzpkX8c24zOe
+         oHN3HjWCitcusGSLaQSBUgPfOYjkxlC5P1wq7ufI0jY65RqFBnH5OQRyrS7Oqlg/AsjU
+         vWaA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id;
+        bh=eljkChJOJ7jxmeofuZOEFa4QAMQj6Qg64V1kBued0VE=;
+        b=PwNnH0veN60IUg9GAI/kMMkQit+ZGN+f/cqi6UeiIqaQirCRNSgWcYVHdYIGDa17ti
+         4JNae9tgSmrgESTP6iNv6kWUDHGgDOHH3bENLmV4mPf/5Le1ux+gQKD8fqQPctU2o13q
+         o2teYdKfVRDtVvoB7tpBcRDQRE4WAAzdEQdtXDrT033xz3ZWYipZEWYLYniQvRPUjNmK
+         4q35JPmOqOB/zjOt+DcIvZhUiZAuODH1kTacyaP9J6ywkLXvmHoPBOpT1/PkLptshdJ/
+         7Kq8kcRQ15VwBre52UO889R7Tp5pksUht7mDgTtED7NCbgh/pxh/cbEzWH8wd1a4ioWS
+         139w==
+X-Gm-Message-State: AA+aEWaX99jxZQvWImNyk4sRKoIdVSEPjS848aZMkznKAD1XwnjXAZGN
+        AGMSYlnKTMUOLV65b0gCZ3bTeFSiZzvIKItCwMWKRlvZCy3s28EoJaD1/JA+JkcaeZvVaANnED1
+        r5XZcqxCL/5+/pHuHXYkpSUc+Vvw=
+X-Received: by 2002:a02:a397:: with SMTP id y23mr19483866jak.9.1546022263923;
+        Fri, 28 Dec 2018 10:37:43 -0800 (PST)
+X-Google-Smtp-Source: AFSGD/WODJYILaX3OjrQ1vjAibJchrlXa1lJk9Sk9XeJG9hc/d1a525kA1/fhaY+EEhq+KMm1UZYNA==
+X-Received: by 2002:a02:a397:: with SMTP id y23mr19483857jak.9.1546022263658;
+        Fri, 28 Dec 2018 10:37:43 -0800 (PST)
+Received: from cs-u-syssec1.cs.umn.edu (cs-u-syssec1.cs.umn.edu. [134.84.121.78])
+        by smtp.gmail.com with ESMTPSA id v202sm15788444ita.13.2018.12.28.10.37.42
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 28 Dec 2018 10:37:43 -0800 (PST)
+From:   Aditya Pakki <pakki001@umn.edu>
+To:     pakki001@umn.edu
+Cc:     kjlu@umn.edu, Erik Andren <erik.andren@gmail.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] media: gspca: Check the return value of write_bridge for timeout
+Date:   Fri, 28 Dec 2018 12:37:36 -0600
+Message-Id: <20181228183736.7823-1-pakki001@umn.edu>
+X-Mailer: git-send-email 2.17.1
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-From: Ken Sloat <ksloat@aampglobal.com>
+In po1030_probe(), m5602_write_bridge() can timeout and return an error
+value. The fix checks for the return value and propagates upstream
+consistent with other usb drivers.
 
-The ISC driver currently supports ITU-R 601 encoding which
-utilizes the external hysync and vsync signals. ITU-R 656
-format removes the need for these pins by embedding the
-sync pulses within the data packet.
-
-To support this feature, enable necessary register bits
-when this feature is enabled via device tree.
-
-Signed-off-by: Ken Sloat <ksloat@aampglobal.com>
+Signed-off-by: Aditya Pakki <pakki001@umn.edu>
 ---
- drivers/media/platform/atmel/atmel-isc-regs.h | 2 ++
- drivers/media/platform/atmel/atmel-isc.c      | 7 ++++++-
- 2 files changed, 8 insertions(+), 1 deletion(-)
+ drivers/media/usb/gspca/m5602/m5602_po1030.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/atmel/atmel-isc-regs.h b/drivers/media/=
-platform/atmel/atmel-isc-regs.h
-index 2aadc19235ea..8b6f4db15bdc 100644
---- a/drivers/media/platform/atmel/atmel-isc-regs.h
-+++ b/drivers/media/platform/atmel/atmel-isc-regs.h
-@@ -24,6 +24,8 @@
- #define ISC_PFE_CFG0_HPOL_LOW   BIT(0)
- #define ISC_PFE_CFG0_VPOL_LOW   BIT(1)
- #define ISC_PFE_CFG0_PPOL_LOW   BIT(2)
-+#define ISC_PFE_CFG0_CCIR656    BIT(9)
-+#define ISC_PFE_CFG0_CCIR_CRC   BIT(10)
-=20
- #define ISC_PFE_CFG0_MODE_PROGRESSIVE   (0x0 << 4)
- #define ISC_PFE_CFG0_MODE_MASK          GENMASK(6, 4)
-diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platf=
-orm/atmel/atmel-isc.c
-index 50178968b8a6..9a399aa7ca92 100644
---- a/drivers/media/platform/atmel/atmel-isc.c
-+++ b/drivers/media/platform/atmel/atmel-isc.c
-@@ -1095,7 +1095,8 @@ static int isc_configure(struct isc_device *isc)
- 	pfe_cfg0  |=3D subdev->pfe_cfg0 | ISC_PFE_CFG0_MODE_PROGRESSIVE;
- 	mask =3D ISC_PFE_CFG0_BPS_MASK | ISC_PFE_CFG0_HPOL_LOW |
- 	       ISC_PFE_CFG0_VPOL_LOW | ISC_PFE_CFG0_PPOL_LOW |
--	       ISC_PFE_CFG0_MODE_MASK;
-+	       ISC_PFE_CFG0_MODE_MASK | ISC_PFE_CFG0_CCIR_CRC |
-+		   ISC_PFE_CFG0_CCIR656;
-=20
- 	regmap_update_bits(regmap, ISC_PFE_CFG0, mask, pfe_cfg0);
-=20
-@@ -2084,6 +2085,10 @@ static int isc_parse_dt(struct device *dev, struct i=
-sc_device *isc)
- 		if (flags & V4L2_MBUS_PCLK_SAMPLE_FALLING)
- 			subdev_entity->pfe_cfg0 |=3D ISC_PFE_CFG0_PPOL_LOW;
-=20
-+		if (v4l2_epn.bus_type =3D=3D V4L2_MBUS_BT656)
-+			subdev_entity->pfe_cfg0 |=3D ISC_PFE_CFG0_CCIR_CRC |
-+					ISC_PFE_CFG0_CCIR656;
-+
- 		subdev_entity->asd->match_type =3D V4L2_ASYNC_MATCH_FWNODE;
- 		subdev_entity->asd->match.fwnode =3D
- 			of_fwnode_handle(rem);
---=20
+diff --git a/drivers/media/usb/gspca/m5602/m5602_po1030.c b/drivers/media/usb/gspca/m5602/m5602_po1030.c
+index 37d2891e5f5b..5e43b4782f02 100644
+--- a/drivers/media/usb/gspca/m5602/m5602_po1030.c
++++ b/drivers/media/usb/gspca/m5602/m5602_po1030.c
+@@ -158,6 +158,7 @@ static const struct v4l2_ctrl_config po1030_greenbal_cfg = {
+ 
+ int po1030_probe(struct sd *sd)
+ {
++	int rc = 0;
+ 	u8 dev_id_h = 0, i;
+ 	struct gspca_dev *gspca_dev = (struct gspca_dev *)sd;
+ 
+@@ -177,11 +178,14 @@ int po1030_probe(struct sd *sd)
+ 	for (i = 0; i < ARRAY_SIZE(preinit_po1030); i++) {
+ 		u8 data = preinit_po1030[i][2];
+ 		if (preinit_po1030[i][0] == SENSOR)
+-			m5602_write_sensor(sd,
++			rc |= m5602_write_sensor(sd,
+ 				preinit_po1030[i][1], &data, 1);
+ 		else
+-			m5602_write_bridge(sd, preinit_po1030[i][1], data);
++			rc |= m5602_write_bridge(sd, preinit_po1030[i][1],
++						data);
+ 	}
++	if (rc < 0)
++		return rc;
+ 
+ 	if (m5602_read_sensor(sd, PO1030_DEVID_H, &dev_id_h, 1))
+ 		return -ENODEV;
+-- 
 2.17.1
 
