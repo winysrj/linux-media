@@ -6,38 +6,37 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 53253C43387
-	for <linux-media@archiver.kernel.org>; Fri, 28 Dec 2018 07:59:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D5309C43387
+	for <linux-media@archiver.kernel.org>; Fri, 28 Dec 2018 09:24:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EEC4B208E4
-	for <linux-media@archiver.kernel.org>; Fri, 28 Dec 2018 07:59:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 91AFC2148E
+	for <linux-media@archiver.kernel.org>; Fri, 28 Dec 2018 09:24:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729900AbeL1H7H (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 28 Dec 2018 02:59:07 -0500
-Received: from alexa-out-blr-01.qualcomm.com ([103.229.18.197]:46723 "EHLO
+        id S1730900AbeL1JYh (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 28 Dec 2018 04:24:37 -0500
+Received: from alexa-out-blr-01.qualcomm.com ([103.229.18.197]:19092 "EHLO
         alexa-out-blr-01.qualcomm.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728377AbeL1H7G (ORCPT
+        by vger.kernel.org with ESMTP id S1730104AbeL1JYh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Dec 2018 02:59:06 -0500
-X-Greylist: delayed 403 seconds by postgrey-1.27 at vger.kernel.org; Fri, 28 Dec 2018 02:58:55 EST
+        Fri, 28 Dec 2018 04:24:37 -0500
 X-IronPort-AV: E=Sophos;i="5.56,408,1539628200"; 
-   d="scan'208";a="343245"
-Received: from ironmsg01-blr.qualcomm.com ([10.86.208.130])
-  by alexa-out-blr-01.qualcomm.com with ESMTP/TLS/AES256-SHA; 28 Dec 2018 13:22:10 +0530
-X-IronPort-AV: E=McAfee;i="5900,7806,9119"; a="6375881"
+   d="scan'208";a="343355"
+Received: from ironmsg03-blr.qualcomm.com ([10.86.208.132])
+  by alexa-out-blr-01.qualcomm.com with ESMTP/TLS/AES256-SHA; 28 Dec 2018 14:53:09 +0530
+X-IronPort-AV: E=McAfee;i="5900,7806,9119"; a="2582386"
 Received: from mgottam-linux.qualcomm.com ([10.204.65.20])
-  by ironmsg01-blr.qualcomm.com with ESMTP; 28 Dec 2018 13:22:09 +0530
+  by ironmsg03-blr.qualcomm.com with ESMTP; 28 Dec 2018 14:53:09 +0530
 Received: by mgottam-linux.qualcomm.com (Postfix, from userid 2305155)
-        id 002C33390; Fri, 28 Dec 2018 13:22:08 +0530 (IST)
+        id 220343391; Fri, 28 Dec 2018 14:53:08 +0530 (IST)
 From:   Malathi Gottam <mgottam@codeaurora.org>
 To:     stanimir.varbanov@linaro.org, hverkuil@xs4all.nl,
         mchehab@kernel.org
 Cc:     linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-arm-msm@vger.kernel.org, acourbot@chromium.org,
         vgarodia@codeaurora.org, mgottam@codeaurora.org
-Subject: [PATCH] media: venus: add debugfs support
-Date:   Fri, 28 Dec 2018 13:22:06 +0530
-Message-Id: <1545983526-3923-1-git-send-email-mgottam@codeaurora.org>
+Subject: [PATCH v2] media: venus: add debugfs support
+Date:   Fri, 28 Dec 2018 14:53:06 +0530
+Message-Id: <1545988986-26244-1-git-send-email-mgottam@codeaurora.org>
 X-Mailer: git-send-email 1.9.1
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
@@ -47,6 +46,7 @@ X-Mailing-List: linux-media@vger.kernel.org
 Enable logs in venus through debugfs to print
 debug information.
 
+Change-Id: I9b2a423829df9ee171f95f18bcb85646319086d0
 Signed-off-by: Malathi Gottam <mgottam@codeaurora.org>
 ---
  drivers/media/platform/qcom/venus/core.c       |  62 ++++++++-
@@ -63,7 +63,7 @@ Signed-off-by: Malathi Gottam <mgottam@codeaurora.org>
  11 files changed, 512 insertions(+), 110 deletions(-)
 
 diff --git a/drivers/media/platform/qcom/venus/core.c b/drivers/media/platform/qcom/venus/core.c
-index cb411eb..6531830 100644
+index cb411eb..abfc6c9 100644
 --- a/drivers/media/platform/qcom/venus/core.c
 +++ b/drivers/media/platform/qcom/venus/core.c
 @@ -13,6 +13,7 @@
@@ -99,7 +99,7 @@ index cb411eb..6531830 100644
 +		dir, __value);                                                \
 +	if (IS_ERR_OR_NULL(f)) {                                              \
 +		dprintk(ERR, "Failed creating debugfs file '%pd/%s'\n",  \
-+			dir, __name);                                         \
++			dir, __fname);                                         \
 +		f = NULL;                                                     \
 +	}                                                                     \
 +	f;                                                                    \
