@@ -1,227 +1,140 @@
-Return-Path: <SRS0=HJwa=PE=vger.kernel.org=linux-media-owner@kernel.org>
+Return-Path: <SRS0=znln=PF=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_MUTT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 43092C43612
-	for <linux-media@archiver.kernel.org>; Thu, 27 Dec 2018 20:39:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 19550C43387
+	for <linux-media@archiver.kernel.org>; Fri, 28 Dec 2018 04:34:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1BEB2218FE
-	for <linux-media@archiver.kernel.org>; Thu, 27 Dec 2018 20:39:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D78062146F
+	for <linux-media@archiver.kernel.org>; Fri, 28 Dec 2018 04:34:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729718AbeL0UjG (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 27 Dec 2018 15:39:06 -0500
-Received: from relay10.mail.gandi.net ([217.70.178.230]:47327 "EHLO
-        relay10.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727940AbeL0UjG (ORCPT
+        id S1731249AbeL1Ee0 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 27 Dec 2018 23:34:26 -0500
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:48432 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726832AbeL1EeZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Dec 2018 15:39:06 -0500
-Received: from uno.localdomain (2-224-242-101.ip172.fastwebnet.it [2.224.242.101])
-        (Authenticated sender: jacopo@jmondi.org)
-        by relay10.mail.gandi.net (Postfix) with ESMTPSA id 323F7240006;
-        Thu, 27 Dec 2018 20:39:01 +0000 (UTC)
-Date:   Thu, 27 Dec 2018 21:38:57 +0100
-From:   Jacopo Mondi <jacopo@jmondi.org>
-To:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc:     Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        niklas.soderlund+renesas@ragnatech.se,
-        kieran.bingham@ideasonboard.com, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH 5/5] media: adv748x: Implement link_setup callback
-Message-ID: <20181227203846.GA909@uno.localdomain>
-References: <1544541373-30044-1-git-send-email-jacopo+renesas@jmondi.org>
- <1544541373-30044-6-git-send-email-jacopo+renesas@jmondi.org>
- <2229088.MKf6aupnv1@avalon>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="jho1yZJdad60DJr+"
-Content-Disposition: inline
-In-Reply-To: <2229088.MKf6aupnv1@avalon>
-User-Agent: Mutt/1.11.1 (2018-12-01)
+        Thu, 27 Dec 2018 23:34:25 -0500
+Received: from localhost ([IPv6:2001:983:e9a7:1:e8fd:155e:dd4d:5b3])
+        by smtp-cloud7.xs4all.net with ESMTPA
+        id cjqigvVJIdllccjqjgGCxr; Fri, 28 Dec 2018 05:34:24 +0100
+Message-ID: <cf458de4d77e1c3e7ffdc0090c57e6d4@smtp-cloud7.xs4all.net>
+Date:   Fri, 28 Dec 2018 05:34:16 +0100
+From:   "Hans Verkuil" <hverkuil@xs4all.nl>
+To:     linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+X-CMAE-Envelope: MS4wfLN3wEHY7DIU3cllDW542z+Y+7J0O2pEmLVZpGjPQNT3+dRv/B5LkzNBy7VgXY6w5Cj5v2xr0b6sHTlCuoZStlgSUWqVQ/+aSeC4H/zNpAMgazAfKJ0m
+ /lIPSj2n5nZJ24gyYrl+nhGH9ZZ+/tf2m/ynFeTgy33P54mHucutVCpdlN3ceJJgcLL7S0anVFsrV8P7noMqZ2hgLMk8GD61+NknNLTxyTvUfUzY9KKdeOI7
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
---jho1yZJdad60DJr+
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+Results of the daily build of media_tree:
 
-Hi Laurent, Kieran,
-  thanks for the review
+date:			Fri Dec 28 05:00:16 CET 2018
+media-tree git hash:	4bd46aa0353e022c2401a258e93b107880a66533
+media_build git hash:	282066d93c925718ca9f49d4790fd044162694d6
+v4l-utils git hash:	49cfdcff966f578aa831086332c5d1ef974459e2
+edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
+gcc version:		i686-linux-gcc (GCC) 8.2.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.18.0-3-amd64
 
-On Thu, Dec 13, 2018 at 11:40:00AM +0200, Laurent Pinchart wrote:
-> Hi Jacopo,
->
-> Thank you for the patch.
->
-> On Tuesday, 11 December 2018 17:16:13 EET Jacopo Mondi wrote:
-> > When the adv748x driver is informed about a link being created from HDMI or
-> > AFE to a CSI-2 TX output, the 'link_setup()' callback is invoked. Make
-> > sure to implement proper routing management at link setup time, to route
-> > the selected video stream to the desired TX output.
-> >
-> > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> > ---
-> >  drivers/media/i2c/adv748x/adv748x-core.c | 63 ++++++++++++++++++++++++++++-
-> >  drivers/media/i2c/adv748x/adv748x.h      |  1 +
-> >  2 files changed, 63 insertions(+), 1 deletion(-)
-> >
-> > diff --git a/drivers/media/i2c/adv748x/adv748x-core.c
-> > b/drivers/media/i2c/adv748x/adv748x-core.c index f3aabbccdfb5..08dc0e89b053
-> > 100644
-> > --- a/drivers/media/i2c/adv748x/adv748x-core.c
-> > +++ b/drivers/media/i2c/adv748x/adv748x-core.c
-> > @@ -335,9 +335,70 @@ int adv748x_tx_power(struct adv748x_csi2 *tx, bool on)
-> >  /* ------------------------------------------------------------------------
-> >   * Media Operations
-> >   */
-> > +static int adv748x_link_setup(struct media_entity *entity,
-> > +			      const struct media_pad *local,
-> > +			      const struct media_pad *remote, u32 flags)
-> > +{
-> > +	struct v4l2_subdev *rsd = media_entity_to_v4l2_subdev(remote->entity);
-> > +	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
-> > +	struct adv748x_state *state = v4l2_get_subdevdata(sd);
-> > +	struct adv748x_csi2 *tx;
-> > +	struct media_link *link;
-> > +	u8 io10;
-> > +
-> > +	/*
-> > +	 * For each link setup from [HDMI|AFE] to TX we receive two
-> > +	 * notifications: "[HDMI|AFE]->TX" and "TX<-[HDMI|AFE]".
-> > +	 *
-> > +	 * Use the second notification form to make sure we're linking
-> > +	 * to a TX and find out from where, to set up routing properly.
-> > +	 */
->
-> Why don't you implement the link handler just for the TX entities then ?
->
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.57-i686: OK
+linux-3.16.57-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.123-i686: OK
+linux-3.18.123-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.52-i686: OK
+linux-4.1.52-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.159-i686: OK
+linux-4.4.159-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.131-i686: OK
+linux-4.9.131-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.74-i686: OK
+linux-4.14.74-x86_64: OK
+linux-4.15.18-i686: OK
+linux-4.15.18-x86_64: OK
+linux-4.16.18-i686: OK
+linux-4.16.18-x86_64: OK
+linux-4.17.19-i686: OK
+linux-4.17.19-x86_64: OK
+linux-4.18.12-i686: OK
+linux-4.18.12-x86_64: OK
+linux-4.19.1-i686: OK
+linux-4.19.1-x86_64: OK
+linux-4.20-rc1-i686: OK
+linux-4.20-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
-Done. Much better
+Detailed results are available here:
 
-> > +	if ((sd != &state->txa.sd && sd != &state->txb.sd) ||
-> > +	    !(flags & MEDIA_LNK_FL_ENABLED))
->
-> When disabling the link you should reset the ->source and ->tx pointers.
->
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
-right
+Full logs are available here:
 
-> > +		return 0;
-> > +	tx = adv748x_sd_to_csi2(sd);
-> > +
-> > +	/*
-> > +	 * Now that we're sure we're operating on one of the two TXs,
-> > +	 * make sure there are no enabled links ending there from
-> > +	 * either HDMI or AFE (this can only happens for TXA though).
-> > +	 */
-> > +	if (is_txa(tx))
-> > +		list_for_each_entry(link, &entity->links, list)
-> > +			if (link->sink->entity == entity &&
-> > +			    link->flags & MEDIA_LNK_FL_ENABLED)
-> > +				return -EINVAL;
->
-> You can simplify this by checking if tx->source == NULL (after resetting tx-
-> >source when disabling the link of course).
->
-> > +	/* Change video stream routing, according to the newly created link. */
-> > +	io10 = io_read(state, ADV748X_IO_10);
-> > +	if (rsd == &state->afe.sd) {
-> > +		state->afe.tx = tx;
-> > +
-> > +		/*
-> > +		 * If AFE is routed to TXA, make sure TXB is off;
-> > +		 * If AFE goes to TXB, we need TXA powered on.
-> > +		 */
-> > +		if (is_txa(tx)) {
-> > +			io10 |= ADV748X_IO_10_CSI4_IN_SEL_AFE;
-> > +			io10 &= ~ADV748X_IO_10_CSI1_EN;
-> > +		} else {
-> > +			io10 |= ADV748X_IO_10_CSI4_EN |
-> > +				ADV748X_IO_10_CSI1_EN;
-> > +		}
-> > +	} else {
-> > +		state->hdmi.tx = tx;
-> > +		io10 &= ~ADV748X_IO_10_CSI4_IN_SEL_AFE;
-> > +	}
-> > +	io_write(state, ADV748X_IO_10, io10);
->
-> Is it guaranteed that the chip will be powered on at this point ? How about
-> writing the register at stream on time instead ?
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
 
-You know, I struggle to find a better place where to do so...
-- Right now the register gets written at reset time only
-- s_stream: Each subdev (afe, hdmi, txa and txb) has its own s_stream
-  so it's hard to find a centralized place where to write this
-  register that impacts both TXes
-- afe/hdmi s_stream() ops call tx_power_up, but again this is per-TX
-- There doesn't seems to be much concern in the driver in
-  synchronizing register writes with power states already actually. Not
-  that's an excuse, but when I played around and tried to power off
-  the chip's PLLs for real I got into LP-11 state detection issues
-  (again :) I would leave it here if that's fine with you :)
+The Media Infrastructure API from this daily build is here:
 
-Thanks
-   j
-
->
-> > +	tx->rsd = rsd;
-> > +
-> > +	return 0;
-> > +}
-> >
-> >  static const struct media_entity_operations adv748x_media_ops = {
-> > -	.link_validate = v4l2_subdev_link_validate,
-> > +	.link_setup	= adv748x_link_setup,
-> > +	.link_validate	= v4l2_subdev_link_validate,
-> >  };
-> >
-> >  /* ------------------------------------------------------------------------
-> > -- diff --git a/drivers/media/i2c/adv748x/adv748x.h
-> > b/drivers/media/i2c/adv748x/adv748x.h index 0ee3b8d5c795..63a17c31c169
-> > 100644
-> > --- a/drivers/media/i2c/adv748x/adv748x.h
-> > +++ b/drivers/media/i2c/adv748x/adv748x.h
-> > @@ -220,6 +220,7 @@ struct adv748x_state {
-> >  #define ADV748X_IO_10_CSI4_EN		BIT(7)
-> >  #define ADV748X_IO_10_CSI1_EN		BIT(6)
-> >  #define ADV748X_IO_10_PIX_OUT_EN	BIT(5)
-> > +#define ADV748X_IO_10_CSI4_IN_SEL_AFE	0x08
-> >
-> >  #define ADV748X_IO_CHIP_REV_ID_1	0xdf
-> >  #define ADV748X_IO_CHIP_REV_ID_2	0xe0
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
->
->
-
---jho1yZJdad60DJr+
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEEtcQ9SICaIIqPWDjAcjQGjxahVjwFAlwlOGEACgkQcjQGjxah
-Vjx5nA//dExzkszHRikLIJJDmdvhddZsTsErDBTdePkM8vX2c3fRLPgPS0xZ0BPO
-Pm5LiomngUaBb6vPkrocb8Zfe5hLU0xX/6CCMYf8wCeBsvhAlrfSCzIOnAPZ3pCp
-63JSv+PV+mjcAW66Pm3qv8TFeNifC3rJ54i9RwKqb8sPLgd+f+gnHlucqix+sGX8
-Tskml3HxPlaS4TN1mjAQ3i5tV0Wg8Y1rpDqofGChEJo18WvZRkVz3GaDQxkoMgrb
-KKpYaw0NEtEB5DAtIMI7kZU8c9j/IgPZHQh5jzbNshIECsa8LUWXJ3W2KUF8laBS
-a7zwn881lNKqCF03A2OEpdvCiK1JWl26fllZRVOGEVyflJiK7ejssYkcANG6bAWp
-eyD+/3C+xdiqPNT3bah9qwBNKNU00B2hgPe+spXCpiUa8RAldFJcuGEs6efZTkzj
-GYDLzuS+pz2cog9FswYViFl8GS5eOzKITqPOmBTBwRT8/p73bPhKaqlYUS6P6xv4
-H0EkGVkXZ+o5914eaGLuoZQPp7Nz7XwGvJPQty81gEDUW1zN8csYpJ20Aqk3Urjd
-EfrB94J/FHBxdvMaSOnoSqs5XK+mXJGupbfb17pgwwtYl8tgCaWB0IqEAgRJr/jN
-OWQuAQXs80GoYWHLPM5nYxrHav0HIuUjsTcObQP4NqquzXdkTbs=
-=FHVC
------END PGP SIGNATURE-----
-
---jho1yZJdad60DJr+--
+http://www.xs4all.nl/~hverkuil/spec/index.html
