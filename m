@@ -2,140 +2,131 @@ Return-Path: <SRS0=IHcP=PI=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 10B0DC43387
-	for <linux-media@archiver.kernel.org>; Mon, 31 Dec 2018 04:33:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4AA38C43387
+	for <linux-media@archiver.kernel.org>; Mon, 31 Dec 2018 10:30:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D419B20828
-	for <linux-media@archiver.kernel.org>; Mon, 31 Dec 2018 04:33:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1859D21019
+	for <linux-media@archiver.kernel.org>; Mon, 31 Dec 2018 10:30:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726876AbeLaEdE (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sun, 30 Dec 2018 23:33:04 -0500
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:44495 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726131AbeLaEdD (ORCPT
+        id S1727172AbeLaKae (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 31 Dec 2018 05:30:34 -0500
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:55343 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727078AbeLaKae (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 30 Dec 2018 23:33:03 -0500
-Received: from localhost ([IPv6:2001:983:e9a7:1:d94c:77d3:20db:bd78])
-        by smtp-cloud8.xs4all.net with ESMTPA
-        id dpG8g8XSVNah5dpG9g2GFj; Mon, 31 Dec 2018 05:33:02 +0100
-Message-ID: <5182997febe00df629afad84861717da@smtp-cloud8.xs4all.net>
-Date:   Mon, 31 Dec 2018 05:33:00 +0100
-From:   "Hans Verkuil" <hverkuil@xs4all.nl>
-To:     linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-X-CMAE-Envelope: MS4wfKMnmQXlESg786aEzKuwjbBWI+kX2JssRhhC/s3LGJu3OdbIauK8x52AwQ+Y2PIutOGKc/ypOWq99P3/tUL5ERWCPPCGm5kK0HfFvuvKfgE/aU6R1z4B
- gdITIPZcUlZwC4gu8p7YYEDGpMdDFHWmYjD7eb/LS3nFhN1vbsbJHha7gHTKWijrL/fc8M/p2DG2BpvzvU/BQ/LAe2bMtHW/nrFeISxaIn8nq8dnDRQMzezJ
+        Mon, 31 Dec 2018 05:30:34 -0500
+Received: from pty.hi.pengutronix.de ([2001:67c:670:100:1d::c5])
+        by metis.ext.pengutronix.de with esmtps (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.89)
+        (envelope-from <mfe@pengutronix.de>)
+        id 1gduq7-00009P-Ti; Mon, 31 Dec 2018 11:30:31 +0100
+Received: from mfe by pty.hi.pengutronix.de with local (Exim 4.89)
+        (envelope-from <mfe@pengutronix.de>)
+        id 1gduq5-0001UZ-4z; Mon, 31 Dec 2018 11:30:29 +0100
+Date:   Mon, 31 Dec 2018 11:30:29 +0100
+From:   Marco Felsch <m.felsch@pengutronix.de>
+To:     Akinobu Mita <akinobu.mita@gmail.com>
+Cc:     linux-media@vger.kernel.org,
+        Enrico Scholz <enrico.scholz@sigma-chemnitz.de>,
+        Michael Grzeschik <m.grzeschik@pengutronix.de>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: Re: [PATCH 1/4] media: mt9m111: fix setting pixclk polarity
+Message-ID: <20181231103029.4qlr5fd2l3vwyeb7@pengutronix.de>
+References: <1546103258-29025-1-git-send-email-akinobu.mita@gmail.com>
+ <1546103258-29025-2-git-send-email-akinobu.mita@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1546103258-29025-2-git-send-email-akinobu.mita@gmail.com>
+X-Sent-From: Pengutronix Hildesheim
+X-URL:  http://www.pengutronix.de/
+X-IRC:  #ptxdist @freenode
+X-Accept-Language: de,en
+X-Accept-Content-Type: text/plain
+X-Uptime: 11:12:10 up 101 days, 22:26, 35 users,  load average: 0.19, 0.08,
+ 0.03
+User-Agent: NeoMutt/20170113 (1.7.2)
+X-SA-Exim-Connect-IP: 2001:67c:670:100:1d::c5
+X-SA-Exim-Mail-From: mfe@pengutronix.de
+X-SA-Exim-Scanned: No (on metis.ext.pengutronix.de); SAEximRunCond expanded to false
+X-PTX-Original-Recipient: linux-media@vger.kernel.org
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Akinobu,
 
-Results of the daily build of media_tree:
+On 18-12-30 02:07, Akinobu Mita wrote:
+> Since commit 98480d65c48c ("media: mt9m111: allow to setup pixclk
+> polarity"), the MT9M111_OUTFMT_INV_PIX_CLOCK bit in the output format
+> control 2 register has to be changed depending on the pclk-sample property
+> setting.
+> 
+> Without this change, the MT9M111_OUTFMT_INV_PIX_CLOCK bit is unchanged.
 
-date:			Mon Dec 31 05:00:10 CET 2018
-media-tree git hash:	4bd46aa0353e022c2401a258e93b107880a66533
-media_build git hash:	282066d93c925718ca9f49d4790fd044162694d6
-v4l-utils git hash:	1f6f0ffaaf10dc527c271b56b53ac6663035c516
-edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.18.0-3-amd64
+I don't know what you mean, it will get applied depending on the
+property.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.123-i686: OK
-linux-3.18.123-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.159-i686: OK
-linux-4.4.159-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.131-i686: OK
-linux-4.9.131-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.74-i686: OK
-linux-4.14.74-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: OK
-linux-4.19.1-i686: OK
-linux-4.19.1-x86_64: OK
-linux-4.20-rc1-i686: OK
-linux-4.20-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+8<------------------------------------------------------------------------
+static int mt9m111_set_pixfmt(struct mt9m111 *mt9m111,
+			      u32 code)
+{
 
-Detailed results are available here:
+	...
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
+	/* receiver samples on falling edge, chip-hw default is rising */
+	if (mt9m111->pclk_sample == 0)
+		mask_outfmt2 |= MT9M111_OUTFMT_INV_PIX_CLOCK;
 
-Full logs are available here:
+	...
+}
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+8<------------------------------------------------------------------------
 
-The Media Infrastructure API from this daily build is here:
+Isn't this right?
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Can you cc me the other patches too, so I can keep track of it easier?
+
+Regards,
+Marco
+
+> 
+> Fixes: 98480d65c48c ("media: mt9m111: allow to setup pixclk polarity")
+> Cc: Enrico Scholz <enrico.scholz@sigma-chemnitz.de>
+> Cc: Michael Grzeschik <m.grzeschik@pengutronix.de>
+> Cc: Marco Felsch <m.felsch@pengutronix.de>
+> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+> ---
+>  drivers/media/i2c/mt9m111.c | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/drivers/media/i2c/mt9m111.c b/drivers/media/i2c/mt9m111.c
+> index d639b9b..f0e47fd 100644
+> --- a/drivers/media/i2c/mt9m111.c
+> +++ b/drivers/media/i2c/mt9m111.c
+> @@ -542,6 +542,7 @@ static int mt9m111_set_pixfmt(struct mt9m111 *mt9m111,
+>  {
+>  	struct i2c_client *client = v4l2_get_subdevdata(&mt9m111->subdev);
+>  	u16 data_outfmt2, mask_outfmt2 = MT9M111_OUTFMT_PROCESSED_BAYER |
+> +		MT9M111_OUTFMT_INV_PIX_CLOCK |
+>  		MT9M111_OUTFMT_BYPASS_IFP | MT9M111_OUTFMT_RGB |
+>  		MT9M111_OUTFMT_RGB565 | MT9M111_OUTFMT_RGB555 |
+>  		MT9M111_OUTFMT_RGB444x | MT9M111_OUTFMT_RGBx444 |
+> -- 
+> 2.7.4
+> 
+> 
+
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
