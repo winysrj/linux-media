@@ -2,67 +2,66 @@ Return-Path: <SRS0=IHcP=PI=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 05CE8C43387
-	for <linux-media@archiver.kernel.org>; Mon, 31 Dec 2018 16:57:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D1C21C43387
+	for <linux-media@archiver.kernel.org>; Mon, 31 Dec 2018 17:07:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C3DC82133F
-	for <linux-media@archiver.kernel.org>; Mon, 31 Dec 2018 16:57:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9B23D20685
+	for <linux-media@archiver.kernel.org>; Mon, 31 Dec 2018 17:07:13 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KUXmrlrt"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="O+lmNKPt"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727556AbeLaQ51 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 31 Dec 2018 11:57:27 -0500
-Received: from mail-pf1-f194.google.com ([209.85.210.194]:45685 "EHLO
-        mail-pf1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727552AbeLaQ50 (ORCPT
+        id S1727347AbeLaRHM (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 31 Dec 2018 12:07:12 -0500
+Received: from mail-pg1-f195.google.com ([209.85.215.195]:34387 "EHLO
+        mail-pg1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726383AbeLaRHM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 31 Dec 2018 11:57:26 -0500
-Received: by mail-pf1-f194.google.com with SMTP id g62so13370427pfd.12
-        for <linux-media@vger.kernel.org>; Mon, 31 Dec 2018 08:57:25 -0800 (PST)
+        Mon, 31 Dec 2018 12:07:12 -0500
+Received: by mail-pg1-f195.google.com with SMTP id j10so12883123pga.1
+        for <linux-media@vger.kernel.org>; Mon, 31 Dec 2018 09:07:12 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc:content-transfer-encoding;
-        bh=gXJSJqJIMcHdlfa4Q8TZaXDye2Q8b+2q0218gWqeOkM=;
-        b=KUXmrlrtxHPnQ/GXz2nWB/y5NQq/LHB3nnzo8upKyWKnUI/JgBzAw3HpDuHOXuttXg
-         O1yGEW+qbLLWm/ECeDausjBANYO5G/zJxRXGIQZf7NSKv0niplhLu666rt+6Z/1LczJX
-         AurLAouMqMz+MpUyB/G1CILd7L3M2LAyn3QzcxG28DWSVdrt285LNnvRGCLbxzatx6eu
-         75Vb6mQa72IaZzskbSXdC02vYb3vbTrMZ7UZ5ZTAoAKUBwm3eA/0bw45mBRUQgXsb8hs
-         AGu5Twc03xWeBOEZl108vm+E0pzqBLVNzu8PyB2YVgpWAj/7xpisW7WD/m3GRa8cs6nl
-         vN/A==
+        bh=keFMhUshSY8y60CQxv22sSQ5oGZTkDAmFBY299Uc6LQ=;
+        b=O+lmNKPt1qcMWBRowgmXU1HlaHTL5mS31P6PqT/gFys8g3+rM0oBFqifstyxXWIpZS
+         aGL1NQ/Fw5iN2/IfuasFFRdUCISEUs57DmJBGDkNk1aZizI5wZUU9NjxAJV0ddvKDUKZ
+         PTvX2K3JCnnMgqbXszSDknYIOPiHlTzWpz9IbUrRbqIL0PJRltKNUvGDYNL+NHiKzM+v
+         CpBjw5yB1eNnEZ36nds8JjBup/1d9Lc5Sn09Sq6vgFYY3EUGbXF22hS8GAJvFAFUbEAQ
+         1cqz5m/hnJp/VwKmmhBCmqtCkIpOyDhqUxHUBh5dtt0+gQ/RP44eYSq89DgdiNFXKU/u
+         eoqw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc:content-transfer-encoding;
-        bh=gXJSJqJIMcHdlfa4Q8TZaXDye2Q8b+2q0218gWqeOkM=;
-        b=dR2KNJ735APFKbyxQpuxm+f+QNHIyrhWUgj0Rza8mNpGgAyRzmgheQ9RoCcLODSUOx
-         oprAta3vIszz0fhb7Jf/rkAXd4VincF70kboTisYq2Vt2Uo6OpuXDygsAQzk6QNhXfmh
-         KWo7yyAAHe+3N6lH2l0xWv0VDKms5naq5/InQn7xJaBHKSe6Rlsv+qT98ozezOO8WpdQ
-         O0s13F9GPm+a8D3pPRD4XpaMCRtEwUm12Y0/nr4w+xpdHuEjMH4V7RYFPikxTn4ihu0+
-         VQuYKMxiq81ZkB+h+c/2ptapHPP5x+fLzqEsHatTU3rNAYtZGLA9nK1w9RM/e4VVIwwr
-         jgAg==
-X-Gm-Message-State: AA+aEWZUgrCbdqSKwXi2f0drLQLt15ytCPZKQPyaEdZEA+naGdIwXIHC
-        u2PoX4DH1uBBzo8fx8mfS51+nKF0s2Btph7hvqc=
-X-Google-Smtp-Source: AFSGD/WegKQWiGx/rx0AFaXaiMx1KG7k3V1fUUdoJsIr+TRKEnQq5WTSV0OyT1LmvCdI2RqX7kd4bq/CihBWq90AgF0=
-X-Received: by 2002:a62:d701:: with SMTP id b1mr37816942pfh.34.1546275444816;
- Mon, 31 Dec 2018 08:57:24 -0800 (PST)
+        bh=keFMhUshSY8y60CQxv22sSQ5oGZTkDAmFBY299Uc6LQ=;
+        b=fohxOc9J4rD8+d/cCBElJxYTpyR2ajPfQKY9CH5CTQIKDJK2LhWNqBrRtEXJT1ufK3
+         i68XF/cqP7DigACGrbL+bmb2uxIzUgq8QwKX0d2bxCKMKm9/5BPD6UFLPpVSG5/zG9Rj
+         A36QU5HrOV1Qow3LJZUTFsC51HEf6+F7w5fR8RNMrpCIKfHAjWnysdoYUaA8N3vwDgU3
+         bV3UbcY0q1TgklAbGe9ByqLlkr5VvGm1Z9Zloe56h00VmPI15iFO0CyvAHwce0qw52Tw
+         NEVuXXZuwtDNcj2bqACZYa1/TdiEMVk9sI5vzT4Lq0nAMMdjkBzaosNVsHdR3M8y4jaY
+         4O0w==
+X-Gm-Message-State: AA+aEWZySPSbinDCWoEutMYWYJgohb+bl6BUZ46Hm9rpwA45zXOjlfZn
+        OJtrMatLBPUIQDkwSoEZjgo628xEf4RfqYKaGeM=
+X-Google-Smtp-Source: AFSGD/XNxEb90OZC8bcnhikO1WEZM19PGEWmh8To0Xl0t6UAdzGtHuVc8aGhHgLIJICR6ZJWszE++2tj2llX9+IpuX0=
+X-Received: by 2002:a62:d701:: with SMTP id b1mr37848530pfh.34.1546276031257;
+ Mon, 31 Dec 2018 09:07:11 -0800 (PST)
 MIME-Version: 1.0
 References: <1546103258-29025-1-git-send-email-akinobu.mita@gmail.com>
- <1546103258-29025-2-git-send-email-akinobu.mita@gmail.com> <20181231103029.4qlr5fd2l3vwyeb7@pengutronix.de>
-In-Reply-To: <20181231103029.4qlr5fd2l3vwyeb7@pengutronix.de>
+ <1546103258-29025-3-git-send-email-akinobu.mita@gmail.com> <20181231105418.nt4b6abe2tnvsge7@pengutronix.de>
+In-Reply-To: <20181231105418.nt4b6abe2tnvsge7@pengutronix.de>
 From:   Akinobu Mita <akinobu.mita@gmail.com>
-Date:   Tue, 1 Jan 2019 01:57:13 +0900
-Message-ID: <CAC5umyg7kdLp+t4-vpa1GbEXaxt17B+H8CObOOOzoQ_SETwXLQ@mail.gmail.com>
-Subject: Re: [PATCH 1/4] media: mt9m111: fix setting pixclk polarity
+Date:   Tue, 1 Jan 2019 02:07:00 +0900
+Message-ID: <CAC5umyiSoo46A7d-V1fRMny0HhV9=gbch4_vBhy-GN1O54CJjw@mail.gmail.com>
+Subject: Re: [PATCH 2/4] media: mt9m111: make VIDIOC_SUBDEV_G_FMT ioctl work
+ with V4L2_SUBDEV_FORMAT_TRY
 To:     Marco Felsch <m.felsch@pengutronix.de>
 Cc:     linux-media@vger.kernel.org,
-        Enrico Scholz <enrico.scholz@sigma-chemnitz.de>,
-        Michael Grzeschik <m.grzeschik@pengutronix.de>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>
 Content-Type: text/plain; charset="UTF-8"
@@ -72,49 +71,126 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-2018=E5=B9=B412=E6=9C=8831=E6=97=A5(=E6=9C=88) 19:30 Marco Felsch <m.felsch=
+2018=E5=B9=B412=E6=9C=8831=E6=97=A5(=E6=9C=88) 19:54 Marco Felsch <m.felsch=
 @pengutronix.de>:
 >
-> Hi Akinobu,
->
 > On 18-12-30 02:07, Akinobu Mita wrote:
-> > Since commit 98480d65c48c ("media: mt9m111: allow to setup pixclk
-> > polarity"), the MT9M111_OUTFMT_INV_PIX_CLOCK bit in the output format
-> > control 2 register has to be changed depending on the pclk-sample prope=
-rty
-> > setting.
+> > The VIDIOC_SUBDEV_G_FMT ioctl for this driver doesn't recognize
+> > V4L2_SUBDEV_FORMAT_TRY and always works as if V4L2_SUBDEV_FORMAT_ACTIVE
+> > is specified.
 > >
-> > Without this change, the MT9M111_OUTFMT_INV_PIX_CLOCK bit is unchanged.
+> > Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+> > Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+> > ---
+> >  drivers/media/i2c/mt9m111.c | 31 +++++++++++++++++++++++++++++++
+> >  1 file changed, 31 insertions(+)
+> >
+> > diff --git a/drivers/media/i2c/mt9m111.c b/drivers/media/i2c/mt9m111.c
+> > index f0e47fd..acb4dee 100644
+> > --- a/drivers/media/i2c/mt9m111.c
+> > +++ b/drivers/media/i2c/mt9m111.c
+> > @@ -528,6 +528,16 @@ static int mt9m111_get_fmt(struct v4l2_subdev *sd,
+> >       if (format->pad)
+> >               return -EINVAL;
+> >
+> > +     if (format->which =3D=3D V4L2_SUBDEV_FORMAT_TRY) {
+> > +#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
 >
-> I don't know what you mean, it will get applied depending on the
-> property.
->
-> 8<-----------------------------------------------------------------------=
--
-> static int mt9m111_set_pixfmt(struct mt9m111 *mt9m111,
->                               u32 code)
-> {
->
->         ...
->
->         /* receiver samples on falling edge, chip-hw default is rising */
->         if (mt9m111->pclk_sample =3D=3D 0)
->                 mask_outfmt2 |=3D MT9M111_OUTFMT_INV_PIX_CLOCK;
->
->         ...
-> }
->
-> 8<-----------------------------------------------------------------------=
--
->
-> Isn't this right?
+> This ifdef is made in the include/media/v4l2-subdev.h, so I would drop
+> it.
 
-You are right.  I misread and thought the commit sets the
-MT9M111_OUTFMT_INV_PIX_CLOCK bit in 'data_outfmt2' instead of
-'mask_outfmt2'.
+I sent similar fix for ov2640 driver and kerel test robot reported
+build test failure.  So I think this ifdef is necessary.
 
-This patch will be dropped from this series in the next version.
+v1: https://www.mail-archive.com/linux-media@vger.kernel.org/msg137098.html
+v2: https://www.mail-archive.com/linux-media@vger.kernel.org/msg141735.html
 
-> Can you cc me the other patches too, so I can keep track of it easier?
+> > +             mf =3D v4l2_subdev_get_try_format(sd, cfg, 0);
+>
+> I would use format->pad instead of the static 0.
 
-OK.  I'll do from v2.
+OK.
+
+> > +             format->format =3D *mf;
+>
+> Is this correct? I tought v4l2_subdev_get_try_format() will return the
+> try_pad which we need to fill.
+
+I think this is correct.  Other sensor drivers are doing the same thing in
+get_fmt() callback.
+
+> > +             return 0;
+> > +#else
+> > +             return -ENOTTY;
+>
+> Return this error is not specified in the API-Doc.
+
+I think this 'return -ENOTTY' is not reachable even if
+CONFIG_VIDEO_V4L2_SUBDEV_API is not set, and can be replaced with any
+return value.
+
+> > +#endif
+> > +     }
+> > +
+>
+> If I understood it right, your patch should look like:
+>
+> > +     if (format->which =3D=3D V4L2_SUBDEV_FORMAT_TRY)
+> > +             mf =3D v4l2_subdev_get_try_format(sd, cfg, format->pad);
+>
+> Sakari please correct me if it's wrong.
+>
+> >       mf->width       =3D mt9m111->width;
+> >       mf->height      =3D mt9m111->height;
+> >       mf->code        =3D mt9m111->fmt->code;
+> > @@ -1090,6 +1100,26 @@ static int mt9m111_s_stream(struct v4l2_subdev *=
+sd, int enable)
+> >       return 0;
+> >  }
+> >
+> > +static int mt9m111_init_cfg(struct v4l2_subdev *sd,
+> > +                         struct v4l2_subdev_pad_config *cfg)
+>
+> Is this related to the patch description? I would split this into a
+> seperate patch.
+
+The mt9m111_init_cfg() initializes the try format with default setting.
+So this is required in case get_fmt() with V4L2_SUBDEV_FORMAT_TRY is
+called before set_fmt() with V4L2_SUBDEV_FORMAT_TRY is called.
+
+> > +{
+> > +#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
+> > +     struct mt9m111 *mt9m111 =3D container_of(sd, struct mt9m111, subd=
+ev);
+> > +     struct v4l2_mbus_framefmt *format =3D
+> > +             v4l2_subdev_get_try_format(sd, cfg, 0);
+> > +
+> > +     format->width   =3D mt9m111->width;
+> > +     format->height  =3D mt9m111->height;
+> > +     format->code    =3D mt9m111->fmt->code;
+> > +     format->colorspace      =3D mt9m111->fmt->colorspace;
+> > +     format->field   =3D V4L2_FIELD_NONE;
+> > +     format->ycbcr_enc       =3D V4L2_YCBCR_ENC_DEFAULT;
+> > +     format->quantization    =3D V4L2_QUANTIZATION_DEFAULT;
+> > +     format->xfer_func       =3D V4L2_XFER_FUNC_DEFAULT;
+> > +#endif
+> > +     return 0;
+> > +}
+> > +
+> >  static int mt9m111_g_mbus_config(struct v4l2_subdev *sd,
+> >                               struct v4l2_mbus_config *cfg)
+> >  {
+> > @@ -1115,6 +1145,7 @@ static const struct v4l2_subdev_video_ops mt9m111=
+_subdev_video_ops =3D {
+> >  };
+> >
+> >  static const struct v4l2_subdev_pad_ops mt9m111_subdev_pad_ops =3D {
+> > +     .init_cfg       =3D mt9m111_init_cfg,
+> >       .enum_mbus_code =3D mt9m111_enum_mbus_code,
+> >       .get_selection  =3D mt9m111_get_selection,
+> >       .set_selection  =3D mt9m111_set_selection,
+> > --
+> > 2.7.4
+> >
+> >
