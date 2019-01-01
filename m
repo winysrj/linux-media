@@ -1,72 +1,141 @@
-Return-Path: <SRS0=IHcP=PI=vger.kernel.org=linux-media-owner@kernel.org>
+Return-Path: <SRS0=XZ9Z=PJ=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 01B03C43387
-	for <linux-media@archiver.kernel.org>; Mon, 31 Dec 2018 17:47:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 58B22C43387
+	for <linux-media@archiver.kernel.org>; Tue,  1 Jan 2019 04:33:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D26DA2080D
-	for <linux-media@archiver.kernel.org>; Mon, 31 Dec 2018 17:47:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 25EFC208E3
+	for <linux-media@archiver.kernel.org>; Tue,  1 Jan 2019 04:33:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727584AbeLaRrS (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 31 Dec 2018 12:47:18 -0500
-Received: from mga11.intel.com ([192.55.52.93]:20990 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726332AbeLaRrS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 31 Dec 2018 12:47:18 -0500
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 31 Dec 2018 09:47:17 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.56,423,1539673200"; 
-   d="scan'208";a="287887323"
-Received: from minminho-mobl.amr.corp.intel.com (HELO yzhi-desktop.amr.corp.intel.com) ([10.254.56.188])
-  by orsmga005.jf.intel.com with ESMTP; 31 Dec 2018 09:47:16 -0800
-From:   Yong Zhi <yong.zhi@intel.com>
-To:     linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
-Cc:     tfiga@chromium.org, rajmohan.mani@intel.com,
-        hans.verkuil@cisco.com, mchehab@kernel.org,
-        laurent.pinchart@ideasonboard.com, bingbu.cao@intel.com,
-        tian.shu.qiu@intel.com, Yong Zhi <yong.zhi@intel.com>
-Subject: [PATCH 1/1] media: staging/intel-ipu3: Fix Kconfig for unmet direct dependencies
-Date:   Mon, 31 Dec 2018 11:46:43 -0600
-Message-Id: <1546278403-8306-1-git-send-email-yong.zhi@intel.com>
-X-Mailer: git-send-email 2.7.4
+        id S1727417AbfAAEc7 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 31 Dec 2018 23:32:59 -0500
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:57293 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726740AbfAAEc7 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 31 Dec 2018 23:32:59 -0500
+Received: from localhost ([IPv6:2001:983:e9a7:1:f02e:48b2:e880:5e62])
+        by smtp-cloud9.xs4all.net with ESMTPA
+        id eBjcgtSLbGxYqeBjdg5C5a; Tue, 01 Jan 2019 05:32:57 +0100
+Message-ID: <1ea130aad6b306517a90bfadef7c57b4@smtp-cloud9.xs4all.net>
+Date:   Tue, 01 Jan 2019 05:32:56 +0100
+From:   "Hans Verkuil" <hverkuil@xs4all.nl>
+To:     linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+X-CMAE-Envelope: MS4wfGbiiHREyMhbYpSUnBu5hwSucmTrlRrCatz3nJp9nOvmgb1fMd17790QOry4ImfKoObOu3NcF2dfGnXxRdiLtRTdwA21PnBUGgjGpWJmSzUu1jb33aVS
+ XlwPvGxLioVq9cMvCpDCvhpsm4D4gN1ScjsbiI89Xcgv1hWdHCvTOALiiQdZJluD4URlGLp+gKhRlmk7JW/WUJ5pxDBLfS3dw12NQdLHeFboh98BBqU3QtIZ
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Fix link error for specific .config reported by lkp robot:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-drivers/staging/media/ipu3/ipu3-dmamap.o: In function `ipu3_dmamap_alloc':
-drivers/staging/media/ipu3/ipu3-dmamap.c:111: undefined reference to `alloc_iova'
+Results of the daily build of media_tree:
 
-Signed-off-by: Yong Zhi <yong.zhi@intel.com>
----
-Happy New Year!!
+date:			Tue Jan  1 05:00:11 CET 2019
+media-tree git hash:	4bd46aa0353e022c2401a258e93b107880a66533
+media_build git hash:	282066d93c925718ca9f49d4790fd044162694d6
+v4l-utils git hash:	1f6f0ffaaf10dc527c271b56b53ac6663035c516
+edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
+gcc version:		i686-linux-gcc (GCC) 8.2.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.18.0-3-amd64
 
- drivers/staging/media/ipu3/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.57-i686: OK
+linux-3.16.57-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.123-i686: OK
+linux-3.18.123-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.52-i686: OK
+linux-4.1.52-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.159-i686: OK
+linux-4.4.159-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.131-i686: OK
+linux-4.9.131-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.74-i686: OK
+linux-4.14.74-x86_64: OK
+linux-4.15.18-i686: OK
+linux-4.15.18-x86_64: OK
+linux-4.16.18-i686: OK
+linux-4.16.18-x86_64: OK
+linux-4.17.19-i686: OK
+linux-4.17.19-x86_64: OK
+linux-4.18.12-i686: OK
+linux-4.18.12-x86_64: OK
+linux-4.19.1-i686: OK
+linux-4.19.1-x86_64: OK
+linux-4.20-rc1-i686: OK
+linux-4.20-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
-diff --git a/drivers/staging/media/ipu3/Kconfig b/drivers/staging/media/ipu3/Kconfig
-index 75cd889f18f7..c486cbbe859a 100644
---- a/drivers/staging/media/ipu3/Kconfig
-+++ b/drivers/staging/media/ipu3/Kconfig
-@@ -3,7 +3,7 @@ config VIDEO_IPU3_IMGU
- 	depends on PCI && VIDEO_V4L2
- 	depends on MEDIA_CONTROLLER && VIDEO_V4L2_SUBDEV_API
- 	depends on X86
--	select IOMMU_IOVA
-+	select IOMMU_IOVA if IOMMU_SUPPORT
- 	select VIDEOBUF2_DMA_SG
- 	---help---
- 	  This is the Video4Linux2 driver for Intel IPU3 image processing unit,
--- 
-2.7.4
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
