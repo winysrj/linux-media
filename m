@@ -2,449 +2,833 @@ Return-Path: <SRS0=KeAI=PK=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 998F7C43612
-	for <linux-media@archiver.kernel.org>; Wed,  2 Jan 2019 08:38:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 31738C43387
+	for <linux-media@archiver.kernel.org>; Wed,  2 Jan 2019 10:22:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5FA23218AE
-	for <linux-media@archiver.kernel.org>; Wed,  2 Jan 2019 08:38:19 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="lQ1GRScQ"
+	by mail.kernel.org (Postfix) with ESMTP id D981A2075B
+	for <linux-media@archiver.kernel.org>; Wed,  2 Jan 2019 10:22:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728977AbfABIiS (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 2 Jan 2019 03:38:18 -0500
-Received: from mail-wm1-f68.google.com ([209.85.128.68]:55740 "EHLO
-        mail-wm1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726927AbfABIiS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 2 Jan 2019 03:38:18 -0500
-Received: by mail-wm1-f68.google.com with SMTP id y139so25883747wmc.5
-        for <linux-media@vger.kernel.org>; Wed, 02 Jan 2019 00:38:15 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id;
-        bh=9LCpMz9vC8LfpfVKjHnJMFTfYU/Y4EKcQvHpRlGsez8=;
-        b=lQ1GRScQycyZE/4tb7v3etXAuVLvYidDwpRSkcLMup1pHuEbWEm5f4+KVQrtVYQgxM
-         JwsN6NN+MD3fP0eEmXjIiGq3qfvOo+vGJdL/B6VgBjU6fWDpzGj4Qmo5dH0mLAIlSms+
-         QxTgtJhOcklLLXq8sM/hlGyYP1aBM6Yd3p8+OHt7zZE3iK5M3ZSMOMGedX1VKpSwFwUa
-         moGhnzM1Y86KKryaUipE0rB0WMgNBLpDOHB1UPHbkYTPZT+MrriWFHbIvEpWNRbao2tz
-         xateCWhdcRelZHC9SpNgG9SAOwK/QOXhCizOrrGIVAQzXWJuT7W7Y+VbMxvsDHBtIt0n
-         oKUA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id;
-        bh=9LCpMz9vC8LfpfVKjHnJMFTfYU/Y4EKcQvHpRlGsez8=;
-        b=VBOnPxrI2589haR7EkNcGe19QZWyAJW7sJb4JV7ARPBHEfrm0NfaUjVF2zoo97q5HU
-         H5WwNUoLbLcziEcGH/JiPisJFGUqKg1toh3Q735ZP0ftFrO4ywljUuoKZjl18l1bdJ8Z
-         VSOARz/wdIWGxtSPf7RxDI27Vdx81duVIBZ0AO4I75i7JPtDnS160rz25X4w1jj2L3R0
-         litaSgMU09nJ1VPjWTk7FGfJpYrpkr1x3j34JU0Z9MI7QK8xF/bmNmLYmzlx077nrP0s
-         EtK2T6BCvtiFKFNOXiHUY2+/zkjjeMkpfc9c3yIkFWAmr6UgLEVEdGd5WePrKEv4IE+f
-         rUNA==
-X-Gm-Message-State: AA+aEWayl3PO/27WlI0O6OwVHPi66Aen9jfZ2TdTqJlNxZTE9/LxjeaM
-        TOtaUgLnV6/cK/nHNTucFGuTFP63Seg=
-X-Google-Smtp-Source: AFSGD/VC3Jy1/MrbEuZv7seOCsAF13w0vC1BDeSz+HGhG7jZG+ryHNXyz0a3AYT/FlnbDV+BYOGo+w==
-X-Received: by 2002:a1c:864f:: with SMTP id i76mr34282238wmd.83.1546418294574;
-        Wed, 02 Jan 2019 00:38:14 -0800 (PST)
-Received: from localhost.localdomain ([87.70.109.240])
-        by smtp.gmail.com with ESMTPSA id o17sm96599509wmg.35.2019.01.02.00.38.12
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 02 Jan 2019 00:38:13 -0800 (PST)
-From:   Dafna Hirschfeld <dafna3@gmail.com>
-To:     linux-media@vger.kernel.org
-Cc:     hverkuil@xs4all.nl, helen.koike@collabora.com,
-        Dafna Hirschfeld <dafna3@gmail.com>
-Subject: [v4l-utils PATCH v2] v4l2-ctl: Add support for crop and compose selection in streaming
-Date:   Wed,  2 Jan 2019 00:37:56 -0800
-Message-Id: <20190102083756.11949-1-dafna3@gmail.com>
-X-Mailer: git-send-email 2.17.1
+        id S1729033AbfABKWu (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 2 Jan 2019 05:22:50 -0500
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:48194 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1728451AbfABKWt (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 2 Jan 2019 05:22:49 -0500
+Received: from [192.168.2.10] ([212.251.195.8])
+        by smtp-cloud9.xs4all.net with ESMTPA
+        id edfbgBkDJIx4WedfegX1Ij; Wed, 02 Jan 2019 11:22:43 +0100
+Subject: Re: [PATCH v5] media: vicodec: add support for CROP and COMPOSE
+ selection
+To:     Dafna Hirschfeld <dafna3@gmail.com>
+Cc:     Linux Media Mailing List <linux-media@vger.kernel.org>,
+        helen.koike@collabora.com
+References: <20181229152009.130656-1-dafna3@gmail.com>
+ <d7ea78de-136a-0a5b-d6dd-3ecc1b7ac1ad@xs4all.nl>
+ <CAJ1myNRbLDKTAZPq5f45p2uzWTg7qBVNYBZPfc3d1WYJNHCN2Q@mail.gmail.com>
+From:   Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <e814d5fe-ded2-8e3a-bd57-88cf266d14d9@xs4all.nl>
+Date:   Wed, 2 Jan 2019 11:22:39 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:52.0) Gecko/20100101
+ Thunderbird/52.2.1
+MIME-Version: 1.0
+In-Reply-To: <CAJ1myNRbLDKTAZPq5f45p2uzWTg7qBVNYBZPfc3d1WYJNHCN2Q@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-CMAE-Envelope: MS4wfCy25R45UPtE44swQTZa8L2ijrDmDt2iWbTg1UMg/o0qSIXq0XvcWMQqUn/Od9p+CPlANE5eQzC0fEwbkIeZRCvj3exF9vsm6KMcTvCp1mVHHrWt8hJ5
+ sFqrlAP69AkBjxa7/pth0Co12f4/WWStWvco8G321Qux/Qxp0zSWbs89qHVNj+tlggNM2yUozAg+QKA9ikBvx3/TszPO2y6Y9vkLIYKoWK7uWLnvOy2Y1TfM
+ 52Mh7e52Ms2by9RbkJmbqw==
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Support crop and compose selection.
-If the driver supports crop/compose then the raw frame is arranged
-inside a padded buffer.
+On 12/30/2018 02:48 PM, Dafna Hirschfeld wrote:
+> 
+> 
+> On Sun, Dec 30, 2018 at 2:22 PM Hans Verkuil <hverkuil@xs4all.nl <mailto:hverkuil@xs4all.nl>> wrote:
+> 
+>     On 12/29/2018 04:20 PM, Dafna Hirschfeld wrote:
+>     > Add support for the selection api for the crop and compose targets.
+>     > The driver rounds up the coded width and height such that
+>     > all planes dimensions are multiple of 8.
+>     >
+>     > Signed-off-by: Dafna Hirschfeld <dafna3@gmail.com <mailto:dafna3@gmail.com>>
+>     > ---
+>     > Main changes from v4:
+>     > In s/g_selection, check buffer type according to 'multiplanar' variable.
+>     > Spliting some lines longer than 80 chars.
+>     >
+>     >  drivers/media/platform/vicodec/codec-fwht.c   |  67 +++++---
+>     >  drivers/media/platform/vicodec/codec-fwht.h   |  17 +-
+>     >  .../media/platform/vicodec/codec-v4l2-fwht.c  |  36 ++--
+>     >  .../media/platform/vicodec/codec-v4l2-fwht.h  |   6 +-
+>     >  drivers/media/platform/vicodec/vicodec-core.c | 161 ++++++++++++++----
+>     >  5 files changed, 205 insertions(+), 82 deletions(-)
+>     >
+>     > diff --git a/drivers/media/platform/vicodec/codec-fwht.c b/drivers/media/platform/vicodec/codec-fwht.c
+>     > index a6fd0477633b..db2c62c4d9bd 100644
+>     > --- a/drivers/media/platform/vicodec/codec-fwht.c
+>     > +++ b/drivers/media/platform/vicodec/codec-fwht.c
+>     > @@ -10,6 +10,7 @@
+>     >   */
+>     > 
+>     >  #include <linux/string.h>
+>     > +#include <linux/kernel.h>
+>     >  #include "codec-fwht.h"
+>     > 
+>     >  /*
+>     > @@ -660,7 +661,7 @@ static void add_deltas(s16 *deltas, const u8 *ref, int stride)
+>     > 
+>     >  static u32 encode_plane(u8 *input, u8 *refp, __be16 **rlco, __be16 *rlco_max,
+>     >                       struct fwht_cframe *cf, u32 height, u32 width,
+>     > -                     unsigned int input_step,
+>     > +                     u32 coded_width, unsigned int input_step,
+> 
+>     coded_width? That should be 'stride'.
+> 
+>     You have added crop support for the encoder, but you are probably only testing with heights
+>     that are not a multiple of 8. When you can crop, then it is perfectly fine to crop e.g.
+>     640x480 from a 1920x1080 buffer. In that case you need the stride in encode_plane (i.e. 1920).
+> 
+>     Part of the confusion here might be due to a difference between encode_plane and decode_plane:
+>     encode_plane reads directly from the vb2 output buffer, decode_plane decodes to state->ref_frame,
+>     which is then copied by v4l2_fwht_decode() to the actual vb2 capture buffer.
+> 
+>     Basically whenever you need to know where the next line starts in the vb2 buffer, you are
+>     dealing with the stride, not with the visible or coded width.
+> 
+> 
+> From what I understand 'stride = coded_width * step'
+> If that is so then encode_plane already computes the stride from the coded_width and step variables. For example, for 1920x1080 buffer
+> with crop of  640x480, then width=640 and coded_width=1920. Then encode_plane calculates the stride from the coded_width and step.
+> For RGB for example the stride is 3*coded_width, for YUV420 it is 1*coded_width and so on.
 
-Signed-off-by: Dafna Hirschfeld <dafna3@gmail.com>
----
- utils/common/codec-fwht.patch         |   8 +-
- utils/common/v4l-stream.c             |  14 +--
- utils/common/v4l-stream.h             |   6 +-
- utils/qvidcap/capture.cpp             |   2 +
- utils/v4l2-ctl/v4l2-ctl-streaming.cpp | 137 ++++++++++++++++++++++++--
- 5 files changed, 146 insertions(+), 21 deletions(-)
+No, the stride is equal to the 'bytesperline' value in v4l2_pix_format.
 
-diff --git a/utils/common/codec-fwht.patch b/utils/common/codec-fwht.patch
-index 4d41225b..37ac4672 100644
---- a/utils/common/codec-fwht.patch
-+++ b/utils/common/codec-fwht.patch
-@@ -1,6 +1,6 @@
----- a/utils/common/codec-fwht.h.old	2018-11-23 13:43:52.713731559 +0100
--+++ b/utils/common/codec-fwht.h	2018-11-23 13:47:55.484198283 +0100
--@@ -8,8 +8,24 @@
-+--- a/utils/common/codec-fwht.h.old	2018-12-29 11:23:58.128328613 -0800
-++++ b/utils/common/codec-fwht.h	2018-12-29 11:24:16.099127560 -0800
-+@@ -8,8 +8,26 @@
-  #define CODEC_FWHT_H
-  
-  #include <linux/types.h>
-@@ -17,6 +17,8 @@
- +#define GENMASK(h, l) \
- +	(((~0UL) - (1UL << (l)) + 1) & (~0UL >> ((8 * sizeof(long)) - 1 - (h))))
- +#define pr_err(arg...)
-++#define __round_mask(x, y) ((__typeof__(x))((y)-1))
-++#define round_up(x, y) ((((x)-1) | __round_mask(x, y))+1)
- +
- +
- +typedef __u32 u32;
-diff --git a/utils/common/v4l-stream.c b/utils/common/v4l-stream.c
-index 9f842e21..a1cabadb 100644
---- a/utils/common/v4l-stream.c
-+++ b/utils/common/v4l-stream.c
-@@ -171,25 +171,28 @@ unsigned rle_compress(__u8 *b, unsigned size, unsigned bpl)
- 	return (__u8 *)dst - b;
- }
- 
--struct codec_ctx *fwht_alloc(unsigned pixfmt, unsigned w, unsigned h,
-+struct codec_ctx *fwht_alloc(unsigned pixfmt, unsigned visible_width, unsigned visible_height,
-+			     unsigned coded_width, unsigned coded_height,
- 			     unsigned field, unsigned colorspace, unsigned xfer_func,
- 			     unsigned ycbcr_enc, unsigned quantization)
- {
- 	struct codec_ctx *ctx;
- 	const struct v4l2_fwht_pixfmt_info *info = v4l2_fwht_find_pixfmt(pixfmt);
- 	unsigned int chroma_div;
--	unsigned int size = w * h;
-+	unsigned int size = coded_width * coded_height;
- 
- 	// fwht expects macroblock alignment, check can be dropped once that
- 	// restriction is lifted.
--	if (!info || w % 8 || h % 8)
-+	if (!info || coded_width % 8 || coded_height % 8)
- 		return NULL;
- 
- 	ctx = malloc(sizeof(*ctx));
- 	if (!ctx)
- 		return NULL;
--	ctx->state.width = w;
--	ctx->state.height = h;
-+	ctx->state.coded_width = coded_width;
-+	ctx->state.coded_height = coded_height;
-+	ctx->state.visible_width = visible_width;
-+	ctx->state.visible_height = visible_height;
- 	ctx->state.info = info;
- 	ctx->field = field;
- 	ctx->state.colorspace = colorspace;
-@@ -208,7 +211,6 @@ struct codec_ctx *fwht_alloc(unsigned pixfmt, unsigned w, unsigned h,
- 		free(ctx);
- 		return NULL;
- 	}
--	ctx->state.ref_frame.width = ctx->state.ref_frame.height = 0;
- 	ctx->state.ref_frame.cb = ctx->state.ref_frame.luma + size;
- 	ctx->state.ref_frame.cr = ctx->state.ref_frame.cb + size / chroma_div;
- 	ctx->state.ref_frame.alpha = ctx->state.ref_frame.cr + size / chroma_div;
-diff --git a/utils/common/v4l-stream.h b/utils/common/v4l-stream.h
-index c235150b..fe5dfe90 100644
---- a/utils/common/v4l-stream.h
-+++ b/utils/common/v4l-stream.h
-@@ -9,12 +9,13 @@
- #define _V4L_STREAM_H_
- 
- #include <linux/videodev2.h>
--#include <codec-v4l2-fwht.h>
- 
- #ifdef __cplusplus
- extern "C" {
- #endif /* __cplusplus */
- 
-+#include <codec-v4l2-fwht.h>
-+
- /* Default port */
- #define V4L_STREAM_PORT 8362
- 
-@@ -145,7 +146,8 @@ struct codec_ctx {
- 
- unsigned rle_compress(__u8 *buf, unsigned size, unsigned bytesperline);
- void rle_decompress(__u8 *buf, unsigned size, unsigned rle_size, unsigned bytesperline);
--struct codec_ctx *fwht_alloc(unsigned pixfmt, unsigned w, unsigned h, unsigned field,
-+struct codec_ctx *fwht_alloc(unsigned pixfmt, unsigned visible_width, unsigned visible_height,
-+			     unsigned coded_width, unsigned coded_height, unsigned field,
- 			     unsigned colorspace, unsigned xfer_func, unsigned ycbcr_enc,
- 			     unsigned quantization);
- void fwht_free(struct codec_ctx *ctx);
-diff --git a/utils/qvidcap/capture.cpp b/utils/qvidcap/capture.cpp
-index 8c11ac53..e04db6be 100644
---- a/utils/qvidcap/capture.cpp
-+++ b/utils/qvidcap/capture.cpp
-@@ -749,6 +749,7 @@ void CaptureWin::setModeSocket(int socket, int port)
- 	if (m_ctx)
- 		free(m_ctx);
- 	m_ctx = fwht_alloc(m_v4l_fmt.g_pixelformat(), m_v4l_fmt.g_width(), m_v4l_fmt.g_height(),
-+			   m_v4l_fmt.g_width(), m_v4l_fmt.g_height(),
- 			   m_v4l_fmt.g_field(), m_v4l_fmt.g_colorspace(), m_v4l_fmt.g_xfer_func(),
- 			   m_v4l_fmt.g_ycbcr_enc(), m_v4l_fmt.g_quantization());
- 
-@@ -1114,6 +1115,7 @@ void CaptureWin::listenForNewConnection()
- 	if (m_ctx)
- 		free(m_ctx);
- 	m_ctx = fwht_alloc(fmt.g_pixelformat(), fmt.g_width(), fmt.g_height(),
-+			   fmt.g_width(), fmt.g_height(),
- 			   fmt.g_field(), fmt.g_colorspace(), fmt.g_xfer_func(),
- 			   fmt.g_ycbcr_enc(), fmt.g_quantization());
- 	setPixelAspect(pixelaspect);
-diff --git a/utils/v4l2-ctl/v4l2-ctl-streaming.cpp b/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
-index 79e015ce..cc714008 100644
---- a/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
-+++ b/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
-@@ -20,7 +20,6 @@
- 
- #include "v4l2-ctl.h"
- #include "v4l-stream.h"
--#include "codec-fwht.h"
- 
- extern "C" {
- #include "v4l2-tpg.h"
-@@ -73,6 +72,13 @@ static unsigned bpl_out[VIDEO_MAX_PLANES];
- static bool last_buffer = false;
- static codec_ctx *ctx;
- 
-+static unsigned int cropped_width = 0;
-+static unsigned int cropped_height = 0;
-+static unsigned int composed_width = 0;
-+static unsigned int composed_height = 0;
-+static bool support_cap_compose = false;
-+static bool support_out_crop = false;
-+
- #define TS_WINDOW 241
- #define FILE_HDR_ID			v4l2_fourcc('V', 'h', 'd', 'r')
- 
-@@ -657,7 +663,57 @@ void streaming_cmd(int ch, char *optarg)
- 	}
- }
- 
--static bool fill_buffer_from_file(cv4l_queue &q, cv4l_buffer &b, FILE *fin)
-+static void read_write_padded_frame(cv4l_fmt &fmt, unsigned char* buf, FILE *fpointer,
-+				    unsigned &sz, unsigned &len, bool is_read)
-+{
-+	const struct v4l2_fwht_pixfmt_info *vic_fmt = v4l2_fwht_find_pixfmt(fmt.g_pixelformat());
-+	unsigned coded_width = fmt.g_width();
-+	unsigned coded_height = fmt.g_height();
-+	unsigned real_width;
-+	unsigned real_height;
-+	unsigned char *buf_p = buf;
-+
-+	if (is_read) {
-+		real_width  = cropped_width;
-+		real_height = cropped_height;
-+	}
-+	else {
-+		real_width  = composed_width;
-+		real_height = composed_height;
-+	}
-+
-+	sz = 0;
-+	len = real_width * real_height * vic_fmt->sizeimage_mult / vic_fmt->sizeimage_div;
-+
-+	for (unsigned plane_idx = 0; plane_idx < vic_fmt->planes_num; plane_idx++) {
-+		unsigned h_div = (plane_idx == 0 || plane_idx == 3) ? 1 : vic_fmt->height_div;
-+		unsigned w_div = (plane_idx == 0 || plane_idx == 3) ? 1 : vic_fmt->width_div;
-+		unsigned step  = (plane_idx == 0 || plane_idx == 3) ? vic_fmt->luma_alpha_step : vic_fmt->chroma_step;
-+
-+		for (unsigned i=0; i <  real_height/h_div; i++) {
-+			unsigned int wsz = 0;
-+			unsigned int consume_sz = step * real_width / w_div;
-+
-+			if (is_read)
-+				wsz = fread(buf_p, 1, consume_sz, fpointer);
-+			else
-+				wsz = fwrite(buf_p, 1, consume_sz, fpointer);
-+			if (wsz == 0 && i == 0 && plane_idx == 0)
-+				break;
-+			if (wsz != consume_sz) {
-+				fprintf(stderr, "padding: needed %u bytes, got %u\n",consume_sz, wsz);
-+				return;
-+			}
-+			sz += wsz;
-+			buf_p += step * coded_width / w_div;
-+		}
-+		buf_p += (step * coded_width / w_div) * (coded_height - real_height) / h_div;
-+		if(sz == 0)
-+			break;
-+	}
-+}
-+
-+static bool fill_buffer_from_file(cv4l_fd &fd, cv4l_queue &q, cv4l_buffer &b, FILE *fin)
- {
- 	static bool first = true;
- 	static bool is_fwht = false;
-@@ -776,6 +832,8 @@ restart:
- 		void *buf = q.g_dataptr(b.g_index(), j);
- 		unsigned len = q.g_length(j);
- 		unsigned sz;
-+		cv4l_fmt fmt;
-+		fd.g_fmt(fmt, q.g_type());
- 
- 		if (from_with_hdr) {
- 			len = read_u32(fin);
-@@ -785,7 +843,12 @@ restart:
- 				return false;
- 			}
- 		}
--		sz = fread(buf, 1, len, fin);
-+
-+		if (support_out_crop && v4l2_fwht_find_pixfmt(fmt.g_pixelformat()))
-+			read_write_padded_frame(fmt, (unsigned char*) buf, fin, sz, len, true);
-+		else
-+			sz = fread(buf, 1, len, fin);
-+
- 		if (first && sz != len) {
- 			fprintf(stderr, "Insufficient data\n");
- 			return false;
-@@ -908,7 +971,7 @@ static int do_setup_out_buffers(cv4l_fd &fd, cv4l_queue &q, FILE *fin, bool qbuf
- 					tpg_fillbuffer(&tpg, stream_out_std, j, (u8 *)q.g_dataptr(i, j));
- 			}
- 		}
--		if (fin && !fill_buffer_from_file(q, buf, fin))
-+		if (fin && !fill_buffer_from_file(fd, q, buf, fin))
- 			return -2;
- 
- 		if (qbuf) {
-@@ -926,7 +989,7 @@ static int do_setup_out_buffers(cv4l_fd &fd, cv4l_queue &q, FILE *fin, bool qbuf
- 	return 0;
- }
- 
--static void write_buffer_to_file(cv4l_queue &q, cv4l_buffer &buf, FILE *fout)
-+static void write_buffer_to_file(cv4l_fd &fd, cv4l_queue &q, cv4l_buffer &buf, FILE *fout)
- {
- #ifndef NO_STREAM_TO
- 	unsigned comp_size[VIDEO_MAX_PLANES];
-@@ -967,6 +1030,8 @@ static void write_buffer_to_file(cv4l_queue &q, cv4l_buffer &buf, FILE *fout)
- 		__u32 used = buf.g_bytesused();
- 		unsigned offset = buf.g_data_offset();
- 		unsigned sz;
-+		cv4l_fmt fmt;
-+		fd.g_fmt(fmt, q.g_type());
- 
- 		if (offset > used) {
- 			// Should never happen
-@@ -985,6 +1050,9 @@ static void write_buffer_to_file(cv4l_queue &q, cv4l_buffer &buf, FILE *fout)
- 		}
- 		if (host_fd_to >= 0)
- 			sz = fwrite(comp_ptr[j] + offset, 1, used, fout);
-+		else if (support_cap_compose && v4l2_fwht_find_pixfmt(fmt.g_pixelformat()))
-+			read_write_padded_frame(fmt, (u8 *)q.g_dataptr(buf.g_index(), j) + offset,
-+						fout, sz, used, false);
- 		else
- 			sz = fwrite((u8 *)q.g_dataptr(buf.g_index(), j) + offset, 1, used, fout);
- 
-@@ -1036,7 +1104,7 @@ static int do_handle_cap(cv4l_fd &fd, cv4l_queue &q, FILE *fout, int *index,
- 
- 	if (fout && (!stream_skip || ignore_count_skip) &&
- 	    buf.g_bytesused(0) && !(buf.g_flags() & V4L2_BUF_FLAG_ERROR))
--		write_buffer_to_file(q, buf, fout);
-+		write_buffer_to_file(fd, q, buf, fout);
- 
- 	if (buf.g_flags() & V4L2_BUF_FLAG_KEYFRAME)
- 		ch = 'K';
-@@ -1135,7 +1203,7 @@ static int do_handle_out(cv4l_fd &fd, cv4l_queue &q, FILE *fin, cv4l_buffer *cap
- 			output_field = V4L2_FIELD_TOP;
- 	}
- 
--	if (fin && !fill_buffer_from_file(q, buf, fin))
-+	if (fin && !fill_buffer_from_file(fd, q, buf, fin))
- 		return -2;
- 
- 	if (!fin && stream_out_refresh) {
-@@ -1333,10 +1401,15 @@ recover:
- 			write_u32(fout, cfmt.g_bytesperline(i));
- 			bpl_cap[i] = rle_calc_bpl(cfmt.g_bytesperline(i), cfmt.g_pixelformat());
- 		}
--		if (!host_lossless)
--			ctx = fwht_alloc(cfmt.g_pixelformat(), cfmt.g_width(), cfmt.g_height(),
-+		if (!host_lossless) {
-+			unsigned visible_width = support_cap_compose ? composed_width : cfmt.g_width();
-+			unsigned visible_height = support_cap_compose ? composed_height : cfmt.g_height();
-+
-+			ctx = fwht_alloc(cfmt.g_pixelformat(), visible_width, visible_height,
-+					 cfmt.g_width(), cfmt.g_height(),
- 					 cfmt.g_field(), cfmt.g_colorspace(), cfmt.g_xfer_func(),
- 					 cfmt.g_ycbcr_enc(), cfmt.g_quantization());
-+		}
- 		fflush(fout);
- 	}
- #endif
-@@ -1560,7 +1633,11 @@ static void streaming_set_out(cv4l_fd &fd)
- 		cfmt.s_quantization(read_u32(fin));
- 		cfmt.s_xfer_func(read_u32(fin));
- 		cfmt.s_flags(read_u32(fin));
--		ctx = fwht_alloc(cfmt.g_pixelformat(), cfmt.g_width(), cfmt.g_height(),
-+		unsigned visible_width = support_out_crop ? cropped_width : cfmt.g_width();
-+		unsigned visible_height = support_out_crop ? cropped_height : cfmt.g_height();
-+
-+		ctx = fwht_alloc(cfmt.g_pixelformat(), visible_width, visible_height,
-+				 cfmt.g_width(), cfmt.g_height(),
- 				 cfmt.g_field(), cfmt.g_colorspace(), cfmt.g_xfer_func(),
- 				 cfmt.g_ycbcr_enc(), cfmt.g_quantization());
- 
-@@ -2029,6 +2106,43 @@ done:
- 		fclose(file[OUT]);
- }
- 
-+static int is_support_compose_on_cap(cv4l_fd &fd) {
-+	v4l2_selection sel;
-+
-+	memset(&sel, 0, sizeof(sel));
-+	sel.type = vidcap_buftype;
-+	sel.target = V4L2_SEL_TGT_COMPOSE;
-+
-+	if (fd.g_selection(sel) == 0) {
-+		support_cap_compose = true;
-+		composed_width = sel.r.width;
-+		composed_height = sel.r.height;
-+		return 0;
-+	}
-+
-+	support_cap_compose = false;
-+	return 0;
-+}
-+
-+
-+static int is_support_crop_on_out(cv4l_fd &fd) {
-+	v4l2_selection sel;
-+
-+	memset(&sel, 0, sizeof(sel));
-+	sel.type = vidout_buftype;
-+	sel.target = V4L2_SEL_TGT_CROP;
-+
-+	if (fd.g_selection(sel) == 0) {
-+		support_out_crop = true;
-+		cropped_width = sel.r.width;
-+		cropped_height = sel.r.height;
-+		return 0;
-+	}
-+
-+	support_out_crop = false;
-+	return 0;
-+}
-+
- void streaming_set(cv4l_fd &fd, cv4l_fd &out_fd)
- {
- 	cv4l_disable_trace dt(fd);
-@@ -2036,6 +2150,9 @@ void streaming_set(cv4l_fd &fd, cv4l_fd &out_fd)
- 	int do_cap = options[OptStreamMmap] + options[OptStreamUser] + options[OptStreamDmaBuf];
- 	int do_out = options[OptStreamOutMmap] + options[OptStreamOutUser] + options[OptStreamOutDmaBuf];
- 
-+	is_support_crop_on_out(fd);
-+	is_support_compose_on_cap(fd);
-+
- 	if (out_fd.g_fd() < 0) {
- 		out_capabilities = capabilities;
- 		out_priv_magic = priv_magic;
--- 
-2.17.1
+Which currently happens to be equal to coded_width * step, but that is
+something that should change in the future for the vicodec driver.
+
+There are two reasons in general why bytesperline can be larger than the
+actual number of bytes needed for all the pixels of one line: either the
+hardware has some alignment requirements (e.g. each line must be a multiple
+of X bytes, where X is usually some power of 2), or the driver supports
+userspace setting bytesperline to a custom value. The latter is allowed
+by the API, although many drivers will ignore the userspace-provided value.
+
+A use-case of that is that userspace allocates a 3840x2160 buffer and decodes
+4 1080p streams, and each stream is composed to one quadrant of that larger
+buffer.
+
+Right now the vicodec driver ignores bytesperline, but it's something that
+should be added later, so it is good practice to prepare the driver for this
+and refer to 'stride' as the size of a single line in the buffer.
+
+> 
+> 
+>     >                       bool is_intra, bool next_is_intra)
+>     >  {
+>     >       u8 *input_start = input;
+>     > @@ -671,7 +672,11 @@ static u32 encode_plane(u8 *input, u8 *refp, __be16 **rlco, __be16 *rlco_max,
+>     >       unsigned int last_size = 0;
+>     >       unsigned int i, j;
+>     > 
+>     > +     width = round_up(width, 8);
+>     > +     height = round_up(height, 8);
+>     > +
+>     >       for (j = 0; j < height / 8; j++) {
+>     > +             input = input_start + j * 8 * coded_width * input_step;
+>     >               for (i = 0; i < width / 8; i++) {
+>     >                       /* intra code, first frame is always intra coded. */
+>     >                       int blocktype = IBLOCK;
+>     > @@ -679,9 +684,9 @@ static u32 encode_plane(u8 *input, u8 *refp, __be16 **rlco, __be16 *rlco_max,
+>     > 
+>     >                       if (!is_intra)
+>     >                               blocktype = decide_blocktype(input, refp,
+>     > -                                     deltablock, width, input_step);
+>     > +                                     deltablock, coded_width, input_step);
+>     >                       if (blocktype == IBLOCK) {
+>     > -                             fwht(input, cf->coeffs, width, input_step, 1);
+>     > +                             fwht(input, cf->coeffs, coded_width, input_step, 1);
+>     >                               quantize_intra(cf->coeffs, cf->de_coeffs,
+>     >                                              cf->i_frame_qp);
+>     >                       } else {
+>     > @@ -722,7 +727,6 @@ static u32 encode_plane(u8 *input, u8 *refp, __be16 **rlco, __be16 *rlco_max,
+>     >                       }
+>     >                       last_size = size;
+>     >               }
+>     > -             input += width * 7 * input_step;
+>     >       }
+>     > 
+>     >  exit_loop:
+>     > @@ -747,30 +751,32 @@ static u32 encode_plane(u8 *input, u8 *refp, __be16 **rlco, __be16 *rlco_max,
+>     >  u32 fwht_encode_frame(struct fwht_raw_frame *frm,
+>     >                     struct fwht_raw_frame *ref_frm,
+>     >                     struct fwht_cframe *cf,
+>     > -                   bool is_intra, bool next_is_intra)
+>     > +                   bool is_intra, bool next_is_intra,
+>     > +                   unsigned int width, unsigned int height)
+>     >  {
+>     > -     unsigned int size = frm->height * frm->width;
+>     > +     unsigned int size = height * width;
+>     >       __be16 *rlco = cf->rlc_data;
+>     >       __be16 *rlco_max;
+>     >       u32 encoding;
+>     > 
+>     >       rlco_max = rlco + size / 2 - 256;
+>     >       encoding = encode_plane(frm->luma, ref_frm->luma, &rlco, rlco_max, cf,
+>     > -                             frm->height, frm->width,
+>     > +                             height, width, frm->coded_width,
+> 
+>     Should be frm->stride.
+> 
+>     >                               frm->luma_alpha_step, is_intra, next_is_intra);
+>     >       if (encoding & FWHT_FRAME_UNENCODED)
+>     >               encoding |= FWHT_LUMA_UNENCODED;
+>     >       encoding &= ~FWHT_FRAME_UNENCODED;
+>     > 
+>     >       if (frm->components_num >= 3) {
+>     > -             u32 chroma_h = frm->height / frm->height_div;
+>     > -             u32 chroma_w = frm->width / frm->width_div;
+>     > +             u32 chroma_h = height / frm->height_div;
+>     > +             u32 chroma_w = width / frm->width_div;
+>     > +             u32 chroma_coded_width = frm->coded_width / frm->width_div;
+> 
+>     chroma_stride = frm->stride / frm->width_div;
+> 
+>     >               unsigned int chroma_size = chroma_h * chroma_w;
+>     > 
+>     >               rlco_max = rlco + chroma_size / 2 - 256;
+>     >               encoding |= encode_plane(frm->cb, ref_frm->cb, &rlco, rlco_max,
+>     >                                        cf, chroma_h, chroma_w,
+>     > -                                      frm->chroma_step,
+>     > +                                      chroma_coded_width, frm->chroma_step,
+>     >                                        is_intra, next_is_intra);
+>     >               if (encoding & FWHT_FRAME_UNENCODED)
+>     >                       encoding |= FWHT_CB_UNENCODED;
+>     > @@ -778,7 +784,7 @@ u32 fwht_encode_frame(struct fwht_raw_frame *frm,
+>     >               rlco_max = rlco + chroma_size / 2 - 256;
+>     >               encoding |= encode_plane(frm->cr, ref_frm->cr, &rlco, rlco_max,
+>     >                                        cf, chroma_h, chroma_w,
+>     > -                                      frm->chroma_step,
+>     > +                                      chroma_coded_width, frm->chroma_step,
+>     >                                        is_intra, next_is_intra);
+>     >               if (encoding & FWHT_FRAME_UNENCODED)
+>     >                       encoding |= FWHT_CR_UNENCODED;
+>     > @@ -788,8 +794,8 @@ u32 fwht_encode_frame(struct fwht_raw_frame *frm,
+>     >       if (frm->components_num == 4) {
+>     >               rlco_max = rlco + size / 2 - 256;
+>     >               encoding |= encode_plane(frm->alpha, ref_frm->alpha, &rlco,
+>     > -                                      rlco_max, cf, frm->height, frm->width,
+>     > -                                      frm->luma_alpha_step,
+>     > +                                      rlco_max, cf, height, width,
+>     > +                                      frm->coded_width, frm->luma_alpha_step,
+>     >                                        is_intra, next_is_intra);
+>     >               if (encoding & FWHT_FRAME_UNENCODED)
+>     >                       encoding |= FWHT_ALPHA_UNENCODED;
+>     > @@ -801,7 +807,7 @@ u32 fwht_encode_frame(struct fwht_raw_frame *frm,
+>     >  }
+>     > 
+>     >  static void decode_plane(struct fwht_cframe *cf, const __be16 **rlco, u8 *ref,
+>     > -                      u32 height, u32 width, bool uncompressed)
+>     > +                      u32 height, u32 width, u32 coded_width, bool uncompressed)
+> 
+>     coded_width is OK here since you are writing into 'ref' and not the vb2 capture buffer.
+> 
+>     >  {
+>     >       unsigned int copies = 0;
+>     >       s16 copy[8 * 8];
+>     > @@ -813,6 +819,8 @@ static void decode_plane(struct fwht_cframe *cf, const __be16 **rlco, u8 *ref,
+>     >               *rlco += width * height / 2;
+>     >               return;
+>     >       }
+>     > +     width = round_up(width, 8);
+>     > +     height = round_up(height, 8);
+>     > 
+>     >       /*
+>     >        * When decoding each macroblock the rlco pointer will be increased
+>     > @@ -822,13 +830,13 @@ static void decode_plane(struct fwht_cframe *cf, const __be16 **rlco, u8 *ref,
+>     >        */
+>     >       for (j = 0; j < height / 8; j++) {
+>     >               for (i = 0; i < width / 8; i++) {
+>     > -                     u8 *refp = ref + j * 8 * width + i * 8;
+>     > +                     u8 *refp = ref + j * 8 * coded_width + i * 8;
+>     > 
+>     >                       if (copies) {
+>     >                               memcpy(cf->de_fwht, copy, sizeof(copy));
+>     >                               if (stat & PFRAME_BIT)
+>     > -                                     add_deltas(cf->de_fwht, refp, width);
+>     > -                             fill_decoder_block(refp, cf->de_fwht, width);
+>     > +                                     add_deltas(cf->de_fwht, refp, coded_width);
+>     > +                             fill_decoder_block(refp, cf->de_fwht, coded_width);
+>     >                               copies--;
+>     >                               continue;
+>     >                       }
+>     > @@ -847,35 +855,40 @@ static void decode_plane(struct fwht_cframe *cf, const __be16 **rlco, u8 *ref,
+>     >                       if (copies)
+>     >                               memcpy(copy, cf->de_fwht, sizeof(copy));
+>     >                       if (stat & PFRAME_BIT)
+>     > -                             add_deltas(cf->de_fwht, refp, width);
+>     > -                     fill_decoder_block(refp, cf->de_fwht, width);
+>     > +                             add_deltas(cf->de_fwht, refp, coded_width);
+>     > +                     fill_decoder_block(refp, cf->de_fwht, coded_width);
+>     >               }
+>     >       }
+>     >  }
+>     > 
+>     >  void fwht_decode_frame(struct fwht_cframe *cf, struct fwht_raw_frame *ref,
+>     > -                    u32 hdr_flags, unsigned int components_num)
+>     > +                    u32 hdr_flags, unsigned int components_num,
+>     > +                    unsigned int width, unsigned int height,
+>     > +                    unsigned int coded_width)
+>     >  {
+>     >       const __be16 *rlco = cf->rlc_data;
+>     > 
+>     > -     decode_plane(cf, &rlco, ref->luma, cf->height, cf->width,
+>     > +     decode_plane(cf, &rlco, ref->luma, height, width, coded_width,
+>     >                    hdr_flags & FWHT_FL_LUMA_IS_UNCOMPRESSED);
+>     > 
+>     >       if (components_num >= 3) {
+>     > -             u32 h = cf->height;
+>     > -             u32 w = cf->width;
+>     > +             u32 h = height;
+>     > +             u32 w = width;
+>     > +             u32 c = coded_width;
+>     > 
+>     >               if (!(hdr_flags & FWHT_FL_CHROMA_FULL_HEIGHT))
+>     >                       h /= 2;
+>     > -             if (!(hdr_flags & FWHT_FL_CHROMA_FULL_WIDTH))
+>     > +             if (!(hdr_flags & FWHT_FL_CHROMA_FULL_WIDTH)) {
+>     >                       w /= 2;
+>     > -             decode_plane(cf, &rlco, ref->cb, h, w,
+>     > +                     c /= 2;
+>     > +             }
+>     > +             decode_plane(cf, &rlco, ref->cb, h, w, c,
+>     >                            hdr_flags & FWHT_FL_CB_IS_UNCOMPRESSED);
+>     > -             decode_plane(cf, &rlco, ref->cr, h, w,
+>     > +             decode_plane(cf, &rlco, ref->cr, h, w, c,
+>     >                            hdr_flags & FWHT_FL_CR_IS_UNCOMPRESSED);
+>     >       }
+>     > 
+>     >       if (components_num == 4)
+>     > -             decode_plane(cf, &rlco, ref->alpha, cf->height, cf->width,
+>     > +             decode_plane(cf, &rlco, ref->alpha, height, width, coded_width,
+>     >                            hdr_flags & FWHT_FL_ALPHA_IS_UNCOMPRESSED);
+>     >  }
+>     > diff --git a/drivers/media/platform/vicodec/codec-fwht.h b/drivers/media/platform/vicodec/codec-fwht.h
+>     > index 90ff8962fca7..d7e0d9b87c96 100644
+>     > --- a/drivers/media/platform/vicodec/codec-fwht.h
+>     > +++ b/drivers/media/platform/vicodec/codec-fwht.h
+>     > @@ -81,6 +81,13 @@
+>     >  #define FWHT_FL_COMPONENTS_NUM_MSK   GENMASK(17, 16)
+>     >  #define FWHT_FL_COMPONENTS_NUM_OFFSET        16
+>     > 
+>     > +/*
+>     > + * A macro to calculate the needed padding in order to make sure
+>     > + * both luma and chroma components resolutions are rounded up to
+>     > + * closest multiple of 8
+>     > + */
+>     > +#define vic_round_dim(dim, div) (round_up((dim) / (div), 8) * (div))
+>     > +
+>     >  struct fwht_cframe_hdr {
+>     >       u32 magic1;
+>     >       u32 magic2;
+>     > @@ -95,7 +102,6 @@ struct fwht_cframe_hdr {
+>     >  };
+>     > 
+>     >  struct fwht_cframe {
+>     > -     unsigned int width, height;
+>     >       u16 i_frame_qp;
+>     >       u16 p_frame_qp;
+>     >       __be16 *rlc_data;
+>     > @@ -106,12 +112,12 @@ struct fwht_cframe {
+>     >  };
+>     > 
+>     >  struct fwht_raw_frame {
+>     > -     unsigned int width, height;
+>     >       unsigned int width_div;
+>     >       unsigned int height_div;
+>     >       unsigned int luma_alpha_step;
+>     >       unsigned int chroma_step;
+>     >       unsigned int components_num;
+>     > +     unsigned int coded_width;
+> 
+>     Add the 'stride' field here as well. With crop/compose support stride is no
+>     longer equal to coded_width.
+> 
+>     >       u8 *luma, *cb, *cr, *alpha;
+>     >  };
+>     > 
+>     > @@ -125,8 +131,11 @@ struct fwht_raw_frame {
+>     >  u32 fwht_encode_frame(struct fwht_raw_frame *frm,
+>     >                     struct fwht_raw_frame *ref_frm,
+>     >                     struct fwht_cframe *cf,
+>     > -                   bool is_intra, bool next_is_intra);
+>     > +                   bool is_intra, bool next_is_intra,
+>     > +                   unsigned int width, unsigned int height);
+>     >  void fwht_decode_frame(struct fwht_cframe *cf, struct fwht_raw_frame *ref,
+>     > -                    u32 hdr_flags, unsigned int components_num);
+>     > +                    u32 hdr_flags, unsigned int components_num,
+>     > +                    unsigned int width, unsigned int height,
+>     > +                    unsigned int coded_width);
+>     > 
+>     >  #endif
+>     > diff --git a/drivers/media/platform/vicodec/codec-v4l2-fwht.c b/drivers/media/platform/vicodec/codec-v4l2-fwht.c
+>     > index 8cb0212df67f..19f9d65fc0a9 100644
+>     > --- a/drivers/media/platform/vicodec/codec-v4l2-fwht.c
+>     > +++ b/drivers/media/platform/vicodec/codec-v4l2-fwht.c
+>     > @@ -56,7 +56,7 @@ const struct v4l2_fwht_pixfmt_info *v4l2_fwht_get_pixfmt(u32 idx)
+>     > 
+>     >  int v4l2_fwht_encode(struct v4l2_fwht_state *state, u8 *p_in, u8 *p_out)
+>     >  {
+>     > -     unsigned int size = state->width * state->height;
+>     > +     unsigned int size = state->coded_width * state->coded_height;
+>     >       const struct v4l2_fwht_pixfmt_info *info = state->info;
+>     >       struct fwht_cframe_hdr *p_hdr;
+>     >       struct fwht_cframe cf;
+>     > @@ -66,8 +66,8 @@ int v4l2_fwht_encode(struct v4l2_fwht_state *state, u8 *p_in, u8 *p_out)
+>     > 
+>     >       if (!info)
+>     >               return -EINVAL;
+>     > -     rf.width = state->width;
+>     > -     rf.height = state->height;
+>     > +
+>     > +     rf.coded_width = state->coded_width;
+> 
+>     You need to set the stride value here as well.
+> 
+>     >       rf.luma = p_in;
+>     >       rf.width_div = info->width_div;
+>     >       rf.height_div = info->height_div;
+>     > @@ -163,15 +163,14 @@ int v4l2_fwht_encode(struct v4l2_fwht_state *state, u8 *p_in, u8 *p_out)
+>     >               return -EINVAL;
+>     >       }
+>     > 
+>     > -     cf.width = state->width;
+>     > -     cf.height = state->height;
+>     >       cf.i_frame_qp = state->i_frame_qp;
+>     >       cf.p_frame_qp = state->p_frame_qp;
+>     >       cf.rlc_data = (__be16 *)(p_out + sizeof(*p_hdr));
+>     > 
+>     >       encoding = fwht_encode_frame(&rf, &state->ref_frame, &cf,
+>     >                                    !state->gop_cnt,
+>     > -                                  state->gop_cnt == state->gop_size - 1);
+>     > +                                  state->gop_cnt == state->gop_size - 1,
+>     > +                                  state->visible_width, state->visible_height);
+>     >       if (!(encoding & FWHT_FRAME_PCODED))
+>     >               state->gop_cnt = 0;
+>     >       if (++state->gop_cnt >= state->gop_size)
+>     > @@ -181,8 +180,8 @@ int v4l2_fwht_encode(struct v4l2_fwht_state *state, u8 *p_in, u8 *p_out)
+>     >       p_hdr->magic1 = FWHT_MAGIC1;
+>     >       p_hdr->magic2 = FWHT_MAGIC2;
+>     >       p_hdr->version = htonl(FWHT_VERSION);
+>     > -     p_hdr->width = htonl(cf.width);
+>     > -     p_hdr->height = htonl(cf.height);
+>     > +     p_hdr->width = htonl(state->visible_width);
+>     > +     p_hdr->height = htonl(state->visible_height);
+>     >       flags |= (info->components_num - 1) << FWHT_FL_COMPONENTS_NUM_OFFSET;
+>     >       if (encoding & FWHT_LUMA_UNENCODED)
+>     >               flags |= FWHT_FL_LUMA_IS_UNCOMPRESSED;
+>     > @@ -202,15 +201,13 @@ int v4l2_fwht_encode(struct v4l2_fwht_state *state, u8 *p_in, u8 *p_out)
+>     >       p_hdr->ycbcr_enc = htonl(state->ycbcr_enc);
+>     >       p_hdr->quantization = htonl(state->quantization);
+>     >       p_hdr->size = htonl(cf.size);
+>     > -     state->ref_frame.width = cf.width;
+>     > -     state->ref_frame.height = cf.height;
+>     >       return cf.size + sizeof(*p_hdr);
+>     >  }
+>     > 
+>     >  int v4l2_fwht_decode(struct v4l2_fwht_state *state, u8 *p_in, u8 *p_out)
+>     >  {
+>     > -     unsigned int size = state->width * state->height;
+>     > -     unsigned int chroma_size = size;
+>     > +     unsigned int size;
+>     > +     unsigned int chroma_size;
+>     >       unsigned int i;
+>     >       u32 flags;
+>     >       struct fwht_cframe_hdr *p_hdr;
+>     > @@ -218,13 +215,15 @@ int v4l2_fwht_decode(struct v4l2_fwht_state *state, u8 *p_in, u8 *p_out)
+>     >       u8 *p;
+>     >       unsigned int components_num = 3;
+>     >       unsigned int version;
+>     > +     const struct v4l2_fwht_pixfmt_info *info;
+>     > 
+>     >       if (!state->info)
+>     >               return -EINVAL;
+>     > 
+>     > +     info = state->info;
+>     > +     size = state->coded_width * state->coded_height;
+>     > +     chroma_size = size;
+>     >       p_hdr = (struct fwht_cframe_hdr *)p_in;
+>     > -     cf.width = ntohl(p_hdr->width);
+>     > -     cf.height = ntohl(p_hdr->height);
+>     > 
+>     >       version = ntohl(p_hdr->version);
+>     >       if (!version || version > FWHT_VERSION) {
+>     > @@ -234,12 +233,12 @@ int v4l2_fwht_decode(struct v4l2_fwht_state *state, u8 *p_in, u8 *p_out)
+>     >       }
+>     > 
+>     >       if (p_hdr->magic1 != FWHT_MAGIC1 ||
+>     > -         p_hdr->magic2 != FWHT_MAGIC2 ||
+>     > -         (cf.width & 7) || (cf.height & 7))
+>     > +         p_hdr->magic2 != FWHT_MAGIC2)
+>     >               return -EINVAL;
+>     > 
+>     >       /* TODO: support resolution changes */
+>     > -     if (cf.width != state->width || cf.height != state->height)
+>     > +     if (ntohl(p_hdr->width)  != state->visible_width ||
+>     > +         ntohl(p_hdr->height) != state->visible_height)
+>     >               return -EINVAL;
+>     > 
+>     >       flags = ntohl(p_hdr->flags);
+>     > @@ -260,7 +259,8 @@ int v4l2_fwht_decode(struct v4l2_fwht_state *state, u8 *p_in, u8 *p_out)
+>     >       if (!(flags & FWHT_FL_CHROMA_FULL_HEIGHT))
+>     >               chroma_size /= 2;
+>     > 
+>     > -     fwht_decode_frame(&cf, &state->ref_frame, flags, components_num);
+>     > +     fwht_decode_frame(&cf, &state->ref_frame, flags, components_num,
+>     > +                       state->visible_width, state->visible_height, state->coded_width);
+>     > 
+>     >       /*
+>     >        * TODO - handle the case where the compressed stream encodes a
+> 
+>     When full composition support is added for the decoder, then we need to use the stride value
+>     and the code after the fwht_decode_frame() call has to be rewritten to a for loop going
+>     over each output line.
+> 
+>     > diff --git a/drivers/media/platform/vicodec/codec-v4l2-fwht.h b/drivers/media/platform/vicodec/codec-v4l2-fwht.h
+>     > index ed53e28d4f9c..2a09ad13ddd6 100644
+>     > --- a/drivers/media/platform/vicodec/codec-v4l2-fwht.h
+>     > +++ b/drivers/media/platform/vicodec/codec-v4l2-fwht.h
+>     > @@ -23,8 +23,10 @@ struct v4l2_fwht_pixfmt_info {
+>     > 
+>     >  struct v4l2_fwht_state {
+>     >       const struct v4l2_fwht_pixfmt_info *info;
+>     > -     unsigned int width;
+>     > -     unsigned int height;
+>     > +     unsigned int visible_width;
+>     > +     unsigned int visible_height;
+>     > +     unsigned int coded_width;
+>     > +     unsigned int coded_height;
+>     >       unsigned int gop_size;
+>     >       unsigned int gop_cnt;
+>     >       u16 i_frame_qp;
+>     > diff --git a/drivers/media/platform/vicodec/vicodec-core.c b/drivers/media/platform/vicodec/vicodec-core.c
+>     > index 0d7876f5acf0..bbcce826c440 100644
+>     > --- a/drivers/media/platform/vicodec/vicodec-core.c
+>     > +++ b/drivers/media/platform/vicodec/vicodec-core.c
+>     > @@ -75,8 +75,10 @@ static struct platform_device vicodec_pdev = {
+>     > 
+>     >  /* Per-queue, driver-specific private data */
+>     >  struct vicodec_q_data {
+>     > -     unsigned int            width;
+>     > -     unsigned int            height;
+>     > +     unsigned int            coded_width;
+>     > +     unsigned int            coded_height;
+>     > +     unsigned int            visible_width;
+>     > +     unsigned int            visible_height;
+>     >       unsigned int            sizeimage;
+>     >       unsigned int            sequence;
+>     >       const struct v4l2_fwht_pixfmt_info *info;
+>     > @@ -464,11 +466,11 @@ static int vidioc_g_fmt(struct vicodec_ctx *ctx, struct v4l2_format *f)
+>     >               if (multiplanar)
+>     >                       return -EINVAL;
+>     >               pix = &f->fmt.pix;
+>     > -             pix->width = q_data->width;
+>     > -             pix->height = q_data->height;
+>     > +             pix->width = q_data->coded_width;
+>     > +             pix->height = q_data->coded_height;
+>     >               pix->field = V4L2_FIELD_NONE;
+>     >               pix->pixelformat = info->id;
+>     > -             pix->bytesperline = q_data->width * info->bytesperline_mult;
+>     > +             pix->bytesperline = q_data->coded_width * info->bytesperline_mult;
+>     >               pix->sizeimage = q_data->sizeimage;
+>     >               pix->colorspace = ctx->state.colorspace;
+>     >               pix->xfer_func = ctx->state.xfer_func;
+>     > @@ -481,13 +483,13 @@ static int vidioc_g_fmt(struct vicodec_ctx *ctx, struct v4l2_format *f)
+>     >               if (!multiplanar)
+>     >                       return -EINVAL;
+>     >               pix_mp = &f->fmt.pix_mp;
+>     > -             pix_mp->width = q_data->width;
+>     > -             pix_mp->height = q_data->height;
+>     > +             pix_mp->width = q_data->coded_width;
+>     > +             pix_mp->height = q_data->coded_height;
+>     >               pix_mp->field = V4L2_FIELD_NONE;
+>     >               pix_mp->pixelformat = info->id;
+>     >               pix_mp->num_planes = 1;
+>     >               pix_mp->plane_fmt[0].bytesperline =
+>     > -                             q_data->width * info->bytesperline_mult;
+>     > +                             q_data->coded_width * info->bytesperline_mult;
+>     >               pix_mp->plane_fmt[0].sizeimage = q_data->sizeimage;
+>     >               pix_mp->colorspace = ctx->state.colorspace;
+>     >               pix_mp->xfer_func = ctx->state.xfer_func;
+>     > @@ -528,8 +530,8 @@ static int vidioc_try_fmt(struct vicodec_ctx *ctx, struct v4l2_format *f)
+>     >               pix = &f->fmt.pix;
+>     >               if (pix->pixelformat != V4L2_PIX_FMT_FWHT)
+>     >                       info = find_fmt(pix->pixelformat);
+>     > -             pix->width = clamp(pix->width, MIN_WIDTH, MAX_WIDTH) & ~7;
+>     > -             pix->height = clamp(pix->height, MIN_HEIGHT, MAX_HEIGHT) & ~7;
+>     > +             pix->width = vic_round_dim(clamp(pix->width, MIN_WIDTH, MAX_WIDTH), info->width_div);
+>     > +             pix->height = vic_round_dim(clamp(pix->height, MIN_HEIGHT, MAX_HEIGHT), info->height_div);
+>     >               pix->field = V4L2_FIELD_NONE;
+>     >               pix->bytesperline =
+>     >                       pix->width * info->bytesperline_mult;
+>     > @@ -545,9 +547,8 @@ static int vidioc_try_fmt(struct vicodec_ctx *ctx, struct v4l2_format *f)
+>     >               if (pix_mp->pixelformat != V4L2_PIX_FMT_FWHT)
+>     >                       info = find_fmt(pix_mp->pixelformat);
+>     >               pix_mp->num_planes = 1;
+>     > -             pix_mp->width = clamp(pix_mp->width, MIN_WIDTH, MAX_WIDTH) & ~7;
+>     > -             pix_mp->height =
+>     > -                     clamp(pix_mp->height, MIN_HEIGHT, MAX_HEIGHT) & ~7;
+>     > +             pix_mp->width = vic_round_dim(clamp(pix_mp->width, MIN_WIDTH, MAX_WIDTH), info->width_div);
+>     > +             pix_mp->height = vic_round_dim(clamp(pix->height, MIN_HEIGHT, MAX_HEIGHT), info->height_div);
+>     >               pix_mp->field = V4L2_FIELD_NONE;
+>     >               plane->bytesperline =
+>     >                       pix_mp->width * info->bytesperline_mult;
+>     > @@ -658,8 +659,8 @@ static int vidioc_s_fmt(struct vicodec_ctx *ctx, struct v4l2_format *f)
+>     >               if (ctx->is_enc && V4L2_TYPE_IS_OUTPUT(f->type))
+>     >                       fmt_changed =
+>     >                               q_data->info->id != pix->pixelformat ||
+>     > -                             q_data->width != pix->width ||
+>     > -                             q_data->height != pix->height;
+>     > +                             q_data->coded_width != pix->width ||
+>     > +                             q_data->coded_height != pix->height;
+>     > 
+>     >               if (vb2_is_busy(vq) && fmt_changed)
+>     >                       return -EBUSY;
+>     > @@ -668,8 +669,8 @@ static int vidioc_s_fmt(struct vicodec_ctx *ctx, struct v4l2_format *f)
+>     >                       q_data->info = &pixfmt_fwht;
+>     >               else
+>     >                       q_data->info = find_fmt(pix->pixelformat);
+>     > -             q_data->width = pix->width;
+>     > -             q_data->height = pix->height;
+>     > +             q_data->coded_width = pix->width;
+>     > +             q_data->coded_height = pix->height;
+>     >               q_data->sizeimage = pix->sizeimage;
+>     >               break;
+>     >       case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+>     > @@ -678,8 +679,8 @@ static int vidioc_s_fmt(struct vicodec_ctx *ctx, struct v4l2_format *f)
+>     >               if (ctx->is_enc && V4L2_TYPE_IS_OUTPUT(f->type))
+>     >                       fmt_changed =
+>     >                               q_data->info->id != pix_mp->pixelformat ||
+>     > -                             q_data->width != pix_mp->width ||
+>     > -                             q_data->height != pix_mp->height;
+>     > +                             q_data->coded_width != pix_mp->width ||
+>     > +                             q_data->coded_height != pix_mp->height;
+>     > 
+>     >               if (vb2_is_busy(vq) && fmt_changed)
+>     >                       return -EBUSY;
+>     > @@ -688,17 +689,24 @@ static int vidioc_s_fmt(struct vicodec_ctx *ctx, struct v4l2_format *f)
+>     >                       q_data->info = &pixfmt_fwht;
+>     >               else
+>     >                       q_data->info = find_fmt(pix_mp->pixelformat);
+>     > -             q_data->width = pix_mp->width;
+>     > -             q_data->height = pix_mp->height;
+>     > +             q_data->coded_width = pix_mp->width;
+>     > +             q_data->coded_height = pix_mp->height;
+>     >               q_data->sizeimage = pix_mp->plane_fmt[0].sizeimage;
+>     >               break;
+>     >       default:
+>     >               return -EINVAL;
+>     >       }
+>     > +     if (q_data->visible_width > q_data->coded_width)
+>     > +             q_data->visible_width = q_data->coded_width;
+>     > +     if (q_data->visible_height > q_data->coded_height)
+>     > +             q_data->visible_height = q_data->coded_height;
+>     > +
+>     > 
+>     >       dprintk(ctx->dev,
+>     > -             "Setting format for type %d, wxh: %dx%d, fourcc: %08x\n",
+>     > -             f->type, q_data->width, q_data->height, q_data->info->id);
+>     > +             "Setting format for type %d, coded wxh: %dx%d, visible wxh: %dx%d, fourcc: %08x\n",
+>     > +             f->type, q_data->coded_width, q_data->coded_height,
+>     > +             q_data->visible_width, q_data->visible_height,
+>     > +             q_data->info->id);
+>     > 
+>     >       return 0;
+>     >  }
+>     > @@ -753,6 +761,89 @@ static int vidioc_s_fmt_vid_out(struct file *file, void *priv,
+>     >       return ret;
+>     >  }
+>     > 
+>     > +static int vidioc_g_selection(struct file *file, void *priv,
+>     > +                           struct v4l2_selection *s)
+>     > +{
+>     > +     struct vicodec_ctx *ctx = file2ctx(file);
+>     > +     struct vicodec_q_data *q_data;
+>     > +     enum v4l2_buf_type valid_cap_type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+>     > +     enum v4l2_buf_type valid_out_type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+>     > +
+>     > +     if (multiplanar) {
+>     > +             valid_cap_type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
+>     > +             valid_out_type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
+>     > +     }
+>     > +
+>     > +     q_data = get_q_data(ctx, s->type);
+>     > +     if (!q_data)
+>     > +             return -EINVAL;
+>     > +     /*
+>     > +      * encoder supports only cropping on the OUTPUT buffer
+>     > +      * decoder supports only composing on the CAPTURE buffer
+>     > +      */
+>     > +     if ((ctx->is_enc && s->type == valid_out_type) ||
+>     > +         (!ctx->is_enc && s->type == valid_cap_type)) {
+>     > +             switch (s->target) {
+>     > +             case V4L2_SEL_TGT_COMPOSE:
+>     > +             case V4L2_SEL_TGT_CROP:
+>     > +                     s->r.left = 0;
+>     > +                     s->r.top = 0;
+>     > +                     s->r.width = q_data->visible_width;
+>     > +                     s->r.height = q_data->visible_height;
+>     > +                     return 0;
+>     > +             case V4L2_SEL_TGT_COMPOSE_DEFAULT:
+>     > +             case V4L2_SEL_TGT_COMPOSE_BOUNDS:
+>     > +             case V4L2_SEL_TGT_CROP_DEFAULT:
+>     > +             case V4L2_SEL_TGT_CROP_BOUNDS:
+>     > +                     s->r.left = 0;
+>     > +                     s->r.top = 0;
+>     > +                     s->r.width = q_data->coded_width;
+>     > +                     s->r.height = q_data->coded_height;
+>     > +                     return 0;
+>     > +             }
+>     > +     }
+>     > +     return -EINVAL;
+>     > +}
+>     > +
+>     > +static int vidioc_s_selection(struct file *file, void *priv,
+>     > +                           struct v4l2_selection *s)
+>     > +{
+>     > +     struct vicodec_ctx *ctx = file2ctx(file);
+>     > +     struct vicodec_q_data *q_data;
+>     > +     bool is_out_crop_on_enc;
+>     > +     bool is_cap_compose_on_dec;
+>     > +     enum v4l2_buf_type valid_cap_type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+>     > +     enum v4l2_buf_type valid_out_type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+>     > +
+>     > +     if (multiplanar) {
+>     > +             valid_cap_type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
+>     > +             valid_out_type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
+>     > +     }
+>     > +
+>     > +     q_data = get_q_data(ctx, s->type);
+>     > +     if (!q_data)
+>     > +             return -EINVAL;
+>     > +
+>     > +     is_out_crop_on_enc = ctx->is_enc &&
+>     > +                          s->type == valid_out_type &&
+>     > +                          s->target == V4L2_SEL_TGT_CROP;
+>     > +
+>     > +     is_cap_compose_on_dec = !ctx->is_enc &&
+>     > +                             s->type == valid_cap_type &&
+>     > +                             s->target == V4L2_SEL_TGT_COMPOSE;
+>     > +
+>     > +     if (!is_out_crop_on_enc && !is_cap_compose_on_dec)
+>     > +             return -EINVAL;
+>     > +
+>     > +     s->r.left = 0;
+>     > +     s->r.top = 0;
+>     > +     q_data->visible_width = clamp(s->r.width, MIN_WIDTH, q_data->coded_width);
+>     > +     s->r.width = q_data->visible_width;
+>     > +     q_data->visible_height = clamp(s->r.height, MIN_HEIGHT, q_data->coded_height);
+>     > +     s->r.height = q_data->visible_height;
+> 
+>     This is OK for the encoder, but for the decoder this doesn't work.
+> 
+>     The main reason is that this requires that, as mentioned above, the v4l2_fwht_decode()
+>     function can handle a stride. To implement that the code writing to the capture buffer
+>     needs to be rewritten to write line-by-line to the buffer, taking the stride into account.
+> 
+>     Test what happens when creating a capture buffer of 1920x1080, but decoding to a
+>     640x480 compose target inside that buffer (assuming you are decoding a 640x480 compressed
+>     stream, of course).
+> 
+> Not sure I understand, isn't the stride still available from by "coded_width * step" for each plane just like in the encoder case ?
+
+See my explanation above. Right now the two are equal, but they won't be in the future.
+
+Regards,
+
+	Hans
+
+> 
+>     > +     return 0;
+>     > +}
+>     > +
+>     >  static void vicodec_mark_last_buf(struct vicodec_ctx *ctx)
+>     >  {
+>     >       static const struct v4l2_event eos_event = {
+>     > @@ -895,6 +986,9 @@ static const struct v4l2_ioctl_ops vicodec_ioctl_ops = {
+>     >       .vidioc_streamon        = v4l2_m2m_ioctl_streamon,
+>     >       .vidioc_streamoff       = v4l2_m2m_ioctl_streamoff,
+>     > 
+>     > +     .vidioc_g_selection     = vidioc_g_selection,
+>     > +     .vidioc_s_selection     = vidioc_s_selection,
+>     > +
+>     >       .vidioc_try_encoder_cmd = vicodec_try_encoder_cmd,
+>     >       .vidioc_encoder_cmd     = vicodec_encoder_cmd,
+>     >       .vidioc_try_decoder_cmd = vicodec_try_decoder_cmd,
+>     > @@ -988,8 +1082,8 @@ static int vicodec_start_streaming(struct vb2_queue *q,
+>     >       struct vicodec_ctx *ctx = vb2_get_drv_priv(q);
+>     >       struct vicodec_q_data *q_data = get_q_data(ctx, q->type);
+>     >       struct v4l2_fwht_state *state = &ctx->state;
+>     > -     unsigned int size = q_data->width * q_data->height;
+>     >       const struct v4l2_fwht_pixfmt_info *info = q_data->info;
+>     > +     unsigned int size = q_data->coded_width * q_data->coded_height;
+>     >       unsigned int chroma_div = info->width_div * info->height_div;
+>     >       unsigned int total_planes_size;
+>     > 
+>     > @@ -1008,17 +1102,20 @@ static int vicodec_start_streaming(struct vb2_queue *q,
+>     > 
+>     >       if (!V4L2_TYPE_IS_OUTPUT(q->type)) {
+>     >               if (!ctx->is_enc) {
+>     > -                     state->width = q_data->width;
+>     > -                     state->height = q_data->height;
+>     > +                     state->visible_width = q_data->visible_width;
+>     > +                     state->visible_height = q_data->visible_height;
+>     > +                     state->coded_width = q_data->coded_width;
+>     > +                     state->coded_height = q_data->coded_height;
+>     >               }
+>     >               return 0;
+>     >       }
+>     > 
+>     >       if (ctx->is_enc) {
+>     > -             state->width = q_data->width;
+>     > -             state->height = q_data->height;
+>     > +             state->visible_width = q_data->visible_width;
+>     > +             state->visible_height = q_data->visible_height;
+>     > +             state->coded_width = q_data->coded_width;
+>     > +             state->coded_height = q_data->coded_height;
+>     >       }
+>     > -     state->ref_frame.width = state->ref_frame.height = 0;
+>     >       state->ref_frame.luma = kvmalloc(total_planes_size, GFP_KERNEL);
+>     >       ctx->comp_max_size = total_planes_size + sizeof(struct fwht_cframe_hdr);
+>     >       state->compressed_frame = kvmalloc(ctx->comp_max_size, GFP_KERNEL);
+>     > @@ -1204,8 +1301,10 @@ static int vicodec_open(struct file *file)
+>     > 
+>     >       ctx->q_data[V4L2_M2M_SRC].info =
+>     >               ctx->is_enc ? v4l2_fwht_get_pixfmt(0) : &pixfmt_fwht;
+>     > -     ctx->q_data[V4L2_M2M_SRC].width = 1280;
+>     > -     ctx->q_data[V4L2_M2M_SRC].height = 720;
+>     > +     ctx->q_data[V4L2_M2M_SRC].coded_width = 1280;
+>     > +     ctx->q_data[V4L2_M2M_SRC].coded_height = 720;
+>     > +     ctx->q_data[V4L2_M2M_SRC].visible_width = 1280;
+>     > +     ctx->q_data[V4L2_M2M_SRC].visible_height = 720;
+>     >       size = 1280 * 720 * ctx->q_data[V4L2_M2M_SRC].info->sizeimage_mult /
+>     >               ctx->q_data[V4L2_M2M_SRC].info->sizeimage_div;
+>     >       if (ctx->is_enc)
+>     >
+> 
+> Thanks,
+> Dafna
+>  
+> 
+>     Regards,
+> 
+>             Hans
+> 
 
