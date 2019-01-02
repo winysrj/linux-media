@@ -2,97 +2,133 @@ Return-Path: <SRS0=KeAI=PK=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D387C43387
-	for <linux-media@archiver.kernel.org>; Wed,  2 Jan 2019 21:17:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7EE21C43387
+	for <linux-media@archiver.kernel.org>; Wed,  2 Jan 2019 22:06:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 47086217D9
-	for <linux-media@archiver.kernel.org>; Wed,  2 Jan 2019 21:17:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5260E2171F
+	for <linux-media@archiver.kernel.org>; Wed,  2 Jan 2019 22:06:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728699AbfABVRu (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 2 Jan 2019 16:17:50 -0500
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54036 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726089AbfABVRu (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 2 Jan 2019 16:17:50 -0500
-Received: from vihersipuli.localdomain (vihersipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::84:2])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id 6371F634C84;
-        Wed,  2 Jan 2019 23:16:57 +0200 (EET)
-Received: from sailus by vihersipuli.localdomain with local (Exim 4.89)
-        (envelope-from <sakari.ailus@iki.fi>)
-        id 1gensn-0003RT-8l; Wed, 02 Jan 2019 23:16:57 +0200
-From:   Sakari Ailus <sakari.ailus@linux.intel.com>
-To:     Joerg Roedel <joro@8bytes.org>
-Cc:     yong.zhi@intel.com, iommu@lists.linux-foundation.org,
-        linux-media@vger.kernel.org, tfiga@chromium.org,
-        rajmohan.mani@intel.com, hans.verkuil@cisco.com,
-        mchehab@kernel.org, laurent.pinchart@ideasonboard.com,
-        bingbu.cao@intel.com, tian.shu.qiu@intel.com
-Subject: [PATCH 1/1] iova: Allow compiling the library without IOMMU support
-Date:   Wed,  2 Jan 2019 23:16:57 +0200
-Message-Id: <20190102211657.13192-1-sakari.ailus@linux.intel.com>
-X-Mailer: git-send-email 2.11.0
+        id S1726895AbfABWG0 convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 2 Jan 2019 17:06:26 -0500
+Received: from mga01.intel.com ([192.55.52.88]:58385 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726215AbfABWG0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 2 Jan 2019 17:06:26 -0500
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga004.jf.intel.com ([10.7.209.38])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 02 Jan 2019 14:06:26 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.56,432,1539673200"; 
+   d="scan'208";a="263952551"
+Received: from orsmsx106.amr.corp.intel.com ([10.22.225.133])
+  by orsmga004.jf.intel.com with ESMTP; 02 Jan 2019 14:06:25 -0800
+Received: from orsmsx115.amr.corp.intel.com (10.22.240.11) by
+ ORSMSX106.amr.corp.intel.com (10.22.225.133) with Microsoft SMTP Server (TLS)
+ id 14.3.408.0; Wed, 2 Jan 2019 14:06:25 -0800
+Received: from orsmsx106.amr.corp.intel.com ([169.254.1.152]) by
+ ORSMSX115.amr.corp.intel.com ([169.254.4.23]) with mapi id 14.03.0415.000;
+ Wed, 2 Jan 2019 14:06:25 -0800
+From:   "Zhi, Yong" <yong.zhi@intel.com>
+To:     Sakari Ailus <sakari.ailus@linux.intel.com>
+CC:     "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "tfiga@chromium.org" <tfiga@chromium.org>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        "hans.verkuil@cisco.com" <hans.verkuil@cisco.com>,
+        "mchehab@kernel.org" <mchehab@kernel.org>,
+        "laurent.pinchart@ideasonboard.com" 
+        <laurent.pinchart@ideasonboard.com>,
+        "Cao, Bingbu" <bingbu.cao@intel.com>,
+        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>
+Subject: RE: [PATCH 1/1] media: staging/intel-ipu3: Fix Kconfig for unmet
+ direct dependencies
+Thread-Topic: [PATCH 1/1] media: staging/intel-ipu3: Fix Kconfig for unmet
+ direct dependencies
+Thread-Index: AQHUoTDKq+OTbV0Gd0CM4Xz1+O56W6Wc8luA//+Z2IA=
+Date:   Wed, 2 Jan 2019 22:06:24 +0000
+Message-ID: <C193D76D23A22742993887E6D207B54D3DB46C9F@ORSMSX106.amr.corp.intel.com>
+References: <1546278403-8306-1-git-send-email-yong.zhi@intel.com>
+ <20190102201112.cuxy7y37mcophrvw@mara.localdomain>
+In-Reply-To: <20190102201112.cuxy7y37mcophrvw@mara.localdomain>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+dlp-product: dlpe-windows
+dlp-version: 11.0.400.15
+dlp-reaction: no-action
+x-ctpclassification: CTP_NT
+x-titus-metadata-40: eyJDYXRlZ29yeUxhYmVscyI6IiIsIk1ldGFkYXRhIjp7Im5zIjoiaHR0cDpcL1wvd3d3LnRpdHVzLmNvbVwvbnNcL0ludGVsMyIsImlkIjoiZWNlN2UwYWItMTVkOS00ZDMwLTk5OTktNWIzMzc1OTUzZTY4IiwicHJvcHMiOlt7Im4iOiJDVFBDbGFzc2lmaWNhdGlvbiIsInZhbHMiOlt7InZhbHVlIjoiQ1RQX05UIn1dfV19LCJTdWJqZWN0TGFiZWxzIjpbXSwiVE1DVmVyc2lvbiI6IjE3LjEwLjE4MDQuNDkiLCJUcnVzdGVkTGFiZWxIYXNoIjoiZ2tLNXA1MXNETDRveEhNMWdQb1pxU0dreWNBM2FqNFI3OG5YZzJVYnhQVFM2S2Y3dVFrTU9UcklYSVhKdW90UiJ9
+x-originating-ip: [10.22.254.139]
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Drivers such as the Intel IPU3 ImgU driver use the IOVA library to manage
-the device's own virtual address space while not implementing the IOMMU
-API. Currently the IOVA library is only compiled if the IOMMU support is
-enabled, resulting into a failure during linking due to missing symbols.
+Hi, Sakari,
 
-Fix this by defining IOVA library Kconfig bits independently of IOMMU
-support configuration, and descending to the iommu directory
-unconditionally during the build.
+> -----Original Message-----
+> From: Sakari Ailus [mailto:sakari.ailus@linux.intel.com]
+> Sent: Wednesday, January 2, 2019 2:11 PM
+> To: Zhi, Yong <yong.zhi@intel.com>
+> Cc: linux-media@vger.kernel.org; tfiga@chromium.org; Mani, Rajmohan
+> <rajmohan.mani@intel.com>; hans.verkuil@cisco.com;
+> mchehab@kernel.org; laurent.pinchart@ideasonboard.com; Cao, Bingbu
+> <bingbu.cao@intel.com>; Qiu, Tian Shu <tian.shu.qiu@intel.com>
+> Subject: Re: [PATCH 1/1] media: staging/intel-ipu3: Fix Kconfig for unmet
+> direct dependencies
+> 
+> Hi Yong,
+> 
+> On Mon, Dec 31, 2018 at 11:46:43AM -0600, Yong Zhi wrote:
+> > Fix link error for specific .config reported by lkp robot:
+> >
+> > drivers/staging/media/ipu3/ipu3-dmamap.o: In function
+> `ipu3_dmamap_alloc':
+> > drivers/staging/media/ipu3/ipu3-dmamap.c:111: undefined reference to
+> `alloc_iova'
+> >
+> > Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+> > ---
+> > Happy New Year!!
+> >
+> >  drivers/staging/media/ipu3/Kconfig | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> >
+> > diff --git a/drivers/staging/media/ipu3/Kconfig
+> > b/drivers/staging/media/ipu3/Kconfig
+> > index 75cd889f18f7..c486cbbe859a 100644
+> > --- a/drivers/staging/media/ipu3/Kconfig
+> > +++ b/drivers/staging/media/ipu3/Kconfig
+> > @@ -3,7 +3,7 @@ config VIDEO_IPU3_IMGU
+> >  	depends on PCI && VIDEO_V4L2
+> >  	depends on MEDIA_CONTROLLER && VIDEO_V4L2_SUBDEV_API
+> >  	depends on X86
+> > -	select IOMMU_IOVA
+> > +	select IOMMU_IOVA if IOMMU_SUPPORT
+> 
+> I don't think this really addresses the issue: the IOVA library is needed in any
+> case. I'll submit a patch...
+> 
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/Makefile      | 2 +-
- drivers/iommu/Kconfig | 7 ++++---
- 2 files changed, 5 insertions(+), 4 deletions(-)
+Sure, thanks!!
 
-diff --git a/drivers/Makefile b/drivers/Makefile
-index 578f469f72fb..d9c469983592 100644
---- a/drivers/Makefile
-+++ b/drivers/Makefile
-@@ -56,7 +56,7 @@ obj-y				+= tty/
- obj-y				+= char/
- 
- # iommu/ comes before gpu as gpu are using iommu controllers
--obj-$(CONFIG_IOMMU_SUPPORT)	+= iommu/
-+obj-y				+= iommu/
- 
- # gpu/ comes after char for AGP vs DRM startup and after iommu
- obj-y				+= gpu/
-diff --git a/drivers/iommu/Kconfig b/drivers/iommu/Kconfig
-index d9a25715650e..d2c83e62873d 100644
---- a/drivers/iommu/Kconfig
-+++ b/drivers/iommu/Kconfig
-@@ -1,3 +1,7 @@
-+# The IOVA library may also be used by non-IOMMU_API users
-+config IOMMU_IOVA
-+	tristate
-+
- # IOMMU_API always gets selected by whoever wants it.
- config IOMMU_API
- 	bool
-@@ -81,9 +85,6 @@ config IOMMU_DEFAULT_PASSTHROUGH
- 
- 	  If unsure, say N here.
- 
--config IOMMU_IOVA
--	tristate
--
- config OF_IOMMU
-        def_bool y
-        depends on OF && IOMMU_API
--- 
-2.11.0
-
+> >  	select VIDEOBUF2_DMA_SG
+> >  	---help---
+> >  	  This is the Video4Linux2 driver for Intel IPU3 image processing
+> > unit,
+> > --
+> > 2.7.4
+> >
+> 
+> --
+> Sakari Ailus
+> sakari.ailus@linux.intel.com
