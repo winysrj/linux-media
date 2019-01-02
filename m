@@ -2,121 +2,103 @@ Return-Path: <SRS0=KeAI=PK=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no
+X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B3140C43387
-	for <linux-media@archiver.kernel.org>; Wed,  2 Jan 2019 16:04:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 19AD2C43612
+	for <linux-media@archiver.kernel.org>; Wed,  2 Jan 2019 19:01:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8404C218A4
-	for <linux-media@archiver.kernel.org>; Wed,  2 Jan 2019 16:04:12 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="fv35KvAp"
+	by mail.kernel.org (Postfix) with ESMTP id EF2CD218DE
+	for <linux-media@archiver.kernel.org>; Wed,  2 Jan 2019 19:01:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730104AbfABQEM (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 2 Jan 2019 11:04:12 -0500
-Received: from mail-ed1-f65.google.com ([209.85.208.65]:38763 "EHLO
-        mail-ed1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729748AbfABQEL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 2 Jan 2019 11:04:11 -0500
-Received: by mail-ed1-f65.google.com with SMTP id h50so26605760ede.5
-        for <linux-media@vger.kernel.org>; Wed, 02 Jan 2019 08:04:10 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=pPjeukSh+TRKXoj/0X/oUWs3R6ZLikejzxWh67ky9XQ=;
-        b=fv35KvApSc/NMdrvdKawa+O98zI6cqZwi3cMlWIcFpzD91LWJfExbE90jnTp/Iqqqs
-         LaG9jO2uvdIHW9uoinpNt+icVvtrDFwPCNt+dd6/tTyL7A5OwIlvgSyAy09ADpax4FkK
-         NaQb/Gd5L7Ivon19BqFkPAEzxKPnWmDQe5mNbTGKTyArAY7MgGFPHuAAbdIDsLNTUnIg
-         ZwNsmMbSkhEoEvkCInIzHDLPKI/W4AEJtI3gkHhq8PFqSNqNVQySS5Vht5VEmv6A1yWn
-         ywve5688SCw6mJWu0j7WWlaycBUVrPgCs9FYpWrtS4Eyby8fgJfiONHkpzb38P6p2SI3
-         gQoA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=pPjeukSh+TRKXoj/0X/oUWs3R6ZLikejzxWh67ky9XQ=;
-        b=ovjWswaUdDCnce49A2B3Ymw7p5dWE/gf7V75weiEvYKuLF8vR1RMiNo+OyEperFAXC
-         wlqusKpE64qBJf+f0Sjz0jT4qb8OtBQ1AR9g0nAeXGHNfG0H8jjelPi/emorvINr+TZT
-         EGEAgkgC6uzmwbhaNP+OhVU9sVNKOTRfj053ZfAfHOtXn28JizkJACLHS26K70M6TnxO
-         SA4DU5UyTLxArtnYcKCSXEFlnbvlyOLVPohWSwicLJ5LAuvEnAWZyZCCgnZsFGMuD66a
-         WGSVIgqxcbL+NapaZPQn15H28vAvwNilaAjmsBT/MJ+CoAPSrz0DtSN1e1y/SP35ZxJ3
-         MaQg==
-X-Gm-Message-State: AJcUukdtz3LLvoeYJkD/Ew5rcKsOWtZlH2k6oSzhREyp13S1pdsETXB5
-        YcsdN1ChuWcO10JZBwnmBdwBZFZL
-X-Google-Smtp-Source: ALg8bN6E89V8tYGW1i//xr9P2C3gpWF7iNZV4UmqQvlEXjo/86Y0k8irqorrnxwJzUbTBitxoc+adA==
-X-Received: by 2002:a17:906:1189:: with SMTP id n9-v6mr3239306eja.2.1546445049413;
-        Wed, 02 Jan 2019 08:04:09 -0800 (PST)
-Received: from localhost.localdomain (195.145.107.92.dynamic.wline.res.cust.swisscom.ch. [92.107.145.195])
-        by smtp.gmail.com with ESMTPSA id l18sm21291593edq.87.2019.01.02.08.04.08
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 02 Jan 2019 08:04:08 -0800 (PST)
-From:   =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-To:     linux-media@vger.kernel.org
-Cc:     abassetta@tiscali.it,
-        =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-Subject: [PATCH 3/3] libdvbv5: fix array size in desc_logical_channel
-Date:   Wed,  2 Jan 2019 17:03:14 +0100
-Message-Id: <20190102160314.7451-3-neolynx@gmail.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20190102160314.7451-1-neolynx@gmail.com>
-References: <20190102160314.7451-1-neolynx@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        id S1728671AbfABTBQ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 2 Jan 2019 14:01:16 -0500
+Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:48688 "EHLO
+        shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1728395AbfABTBQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 2 Jan 2019 14:01:16 -0500
+Received: from office.codethink.co.uk ([148.252.241.226] helo=deadeye)
+        by shadbolt.decadent.org.uk with esmtps (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.89)
+        (envelope-from <ben@decadent.org.uk>)
+        id 1gellM-0002FH-Ko; Wed, 02 Jan 2019 19:01:08 +0000
+Received: from ben by deadeye with local (Exim 4.91)
+        (envelope-from <ben@decadent.org.uk>)
+        id 1gellM-0006bN-1k; Wed, 02 Jan 2019 19:01:08 +0000
+Message-ID: <ae0bc57fad9bf7db15b9b3943dd5bb093a9d386d.camel@decadent.org.uk>
+Subject: Re: [PATCH v3.16 2/2] v4l: event: Add subscription to list before
+ calling "add" operation
+From:   Ben Hutchings <ben@decadent.org.uk>
+To:     Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc:     Dave Stevenson <dave.stevenson@raspberrypi.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>, mchehab@kernel.org,
+        linux-media@vger.kernel.org,
+        "for 4.14 and up" <stable@vger.kernel.org>
+Date:   Wed, 02 Jan 2019 19:01:03 +0000
+In-Reply-To: <20181108120350.17266-3-sakari.ailus@linux.intel.com>
+References: <20181108120350.17266-1-sakari.ailus@linux.intel.com>
+         <20181108120350.17266-3-sakari.ailus@linux.intel.com>
+Content-Type: multipart/signed; micalg="pgp-sha512";
+        protocol="application/pgp-signature"; boundary="=-qHRfDUuyAE4UTEbXvWnX"
+User-Agent: Evolution 3.30.3-1 
+Mime-Version: 1.0
+X-SA-Exim-Connect-IP: 148.252.241.226
+X-SA-Exim-Mail-From: ben@decadent.org.uk
+X-SA-Exim-Scanned: No (on shadbolt.decadent.org.uk); SAEximRunCond expanded to false
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-This fixes the descriptor paring on 64bit systems.
-Thanks to abassetta@tiscali.it for finding and patching.
 
-Signed-off-by: André Roth <neolynx@gmail.com>
----
- lib/libdvbv5/descriptors/desc_logical_channel.c | 4 ++--
- lib/libdvbv5/dvb-file.c                         | 2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+--=-qHRfDUuyAE4UTEbXvWnX
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/lib/libdvbv5/descriptors/desc_logical_channel.c b/lib/libdvbv5/descriptors/desc_logical_channel.c
-index 7ae4d59a..1a8dc658 100644
---- a/lib/libdvbv5/descriptors/desc_logical_channel.c
-+++ b/lib/libdvbv5/descriptors/desc_logical_channel.c
-@@ -40,7 +40,7 @@ int dvb_desc_logical_channel_init(struct dvb_v5_fe_parms *parms,
- 
- 	memcpy(d->lcn, p, d->length);
- 
--	len = d->length / sizeof(d->lcn);
-+	len = d->length / 4;
- 
- 	for (i = 0; i < len; i++) {
- 		bswap16(d->lcn[i].service_id);
-@@ -55,7 +55,7 @@ void dvb_desc_logical_channel_print(struct dvb_v5_fe_parms *parms, const struct
- 	int i;
- 	size_t len;
- 
--	len = d->length / sizeof(d->lcn);
-+	len = d->length / 4;
- 
- 	for (i = 0; i < len; i++) {
- 		dvb_loginfo("|           service ID[%d]     %d", i, d->lcn[i].service_id);
-diff --git a/lib/libdvbv5/dvb-file.c b/lib/libdvbv5/dvb-file.c
-index ffdfe292..d077271a 100644
---- a/lib/libdvbv5/dvb-file.c
-+++ b/lib/libdvbv5/dvb-file.c
-@@ -987,7 +987,7 @@ static char *dvb_vchannel(struct dvb_v5_fe_parms_priv *parms,
- 		size_t len;
- 		int r;
- 
--		len = d->length / sizeof(d->lcn);
-+		len = d->length / 4;
- 		for (i = 0; i < len; i++) {
- 			if (service_id == d->lcn[i].service_id) {
- 				r = asprintf(&buf, "%d.%d",
--- 
-2.17.1
+On Thu, 2018-11-08 at 14:03 +0200, Sakari Ailus wrote:
+> [ upstream commit 92539d3eda2c090b382699bbb896d4b54e9bdece ]
+>=20
+> Patch ad608fbcf166 changed how events were subscribed to address an issue
+> elsewhere. As a side effect of that change, the "add" callback was called
+> before the event subscription was added to the list of subscribed events,
+> causing the first event queued by the add callback (and possibly other
+> events arriving soon afterwards) to be lost.
+>=20
+> Fix this by adding the subscription to the list before calling the "add"
+> callback, and clean up afterwards if that fails.
+[...]
 
+I've queued this up for the next update, thanks.
+
+Ben.
+
+--=20
+Ben Hutchings
+Absolutum obsoletum. (If it works, it's out of date.) - Stafford Beer
+
+
+
+--=-qHRfDUuyAE4UTEbXvWnX
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEErCspvTSmr92z9o8157/I7JWGEQkFAlwtCm8ACgkQ57/I7JWG
+EQm8lA/+MsQoeOOzqZnnRlBGacKSAdd7PaVxCQ1rwH7o/GVLmUmBCKe3CSAtgbvw
+ccvZXGjZoPmB3x0eKIfDXsJ00vDWxRFtmnxuhuZKLzinx0gRy8yb+23doc+vhxqZ
+D91bL0q6xlc/BdmDdn/cVc//UvDA1xi7Llkq2R3zRn5yPUxgFpbVe13PO9sB0Iw9
+Z6swsQadiyNZjgDiORB/KFzZYenvaTQU1SDE7HGdF7BTKEXA21Bf+aL5aCshSpeF
+UP0espUVqyjX3ajuakEOBjCzhl+remRyvfgmmBS8jp4fxT+69ca1UphIW4BE7oLP
+RuXpk88+hULfAe9kF1QqAdtW07+WWENy+GpnptTe05VA4d28Uap8uzickw5N1Zlr
+7K+YnhDvKC6T8G5yCwTJdLAu353pMLVLLI8yXwsr01QZcL5BZwbgcSo1fzW5vh96
+6T0ffwoR3kFB3KxLrJtp0SQC/UvDXXqcxdBUUkf1xmAvhQflHcI7ISvU54zAj4fS
+WKgf7zTmONVvjOSiYFSr1edorYEC3ZC70/tHLQUeAIdXlMrWqCjjUEs5wv0LoUg3
+953YTEXLFuE7nwO9ya87T/DRVzZzOiWNDjWpucld2eXMNcA5qLnCAMHgGaN6c3Qg
+QgNk8oQJCzG31cViyldK0WruTsZm4Mx3uxxdI0B6JLKWfIgzMGc=
+=8il0
+-----END PGP SIGNATURE-----
+
+--=-qHRfDUuyAE4UTEbXvWnX--
