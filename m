@@ -2,138 +2,97 @@ Return-Path: <SRS0=A18R=PL=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.0 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-4.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 395C4C43387
-	for <linux-media@archiver.kernel.org>; Thu,  3 Jan 2019 21:12:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CC92EC43387
+	for <linux-media@archiver.kernel.org>; Thu,  3 Jan 2019 21:44:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 02C8621479
-	for <linux-media@archiver.kernel.org>; Thu,  3 Jan 2019 21:12:44 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1546549964;
-	bh=zpSSXEU4N+UuuiSmtXsJT2XmAOUax1VL3DoDfYp7Gy4=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=Urvhu2q8ODUm+5sAY0VnQOLJV2scP9Ya8u20A99sZQhMnyHvGapBeJckNKwx59qAv
-	 UL9A/DrTPqDu5NGGZ6XGj41kJzpRBsAtFjOMGwIlNrjEvWcIeiAa2i+NlB+ZzIypNK
-	 1HWVh7hHBHRQKC0+L5ZfDdZ2ZHPwdt+rjdjjBURM=
+	by mail.kernel.org (Postfix) with ESMTP id 964F320815
+	for <linux-media@archiver.kernel.org>; Thu,  3 Jan 2019 21:44:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727137AbfACVMn (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 3 Jan 2019 16:12:43 -0500
-Received: from mail-it1-f194.google.com ([209.85.166.194]:50962 "EHLO
-        mail-it1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726041AbfACVMm (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 3 Jan 2019 16:12:42 -0500
-Received: by mail-it1-f194.google.com with SMTP id z7so47215655iti.0;
-        Thu, 03 Jan 2019 13:12:42 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=FlYOtSdRWsjwZ0TfHyYrYekOBNcruTlpGQY3K9bVPdo=;
-        b=blYGJacXqpppWl7Pfcs+31NbFiKW6WspwBGLBoyQT2iwACZOc19yKxhYSbO890zdPC
-         VE++Rg6iWlvlyNP5VIXb44j+8EVFmKOYTHXxLWs0K1GN6ZxW7JARnhVz0KGxv6/tkJdv
-         +Yx+9yZWDIgSU8LWc8ZSMPyI7T+8OuktEWsfSWLoVgDhfbD2jaTCXHaAqQfGzwUEkGB4
-         Z7ozn5XZyYKpkWpwUfx+c6F7CeorLuq64+fMoCwpGbNgcnYaXErVeo28CBzYWKBciIgi
-         1ahHdm5BpbiOFPixU7mkoWD9jaJrNR7XwweUv8Pn220ogIWeqyq4gKCOSez7zQt6wT5m
-         SYHw==
-X-Gm-Message-State: AJcUukcIk4daiRe1ZaAsQqYy/WJue1CyyHAIB9zb+UiOAPLtdFZu03si
-        lMVuIjzNz+ypbM/+IAovrA==
-X-Google-Smtp-Source: AFSGD/Vivky3VkQDkxvESvR08rVzaJCzNnSW5kSsAANLLMbjNWXkxwKcpbR6eNtZ460fu6nrOxQAJQ==
-X-Received: by 2002:a24:3752:: with SMTP id r79mr26563165itr.121.1546549961895;
-        Thu, 03 Jan 2019 13:12:41 -0800 (PST)
-Received: from localhost ([24.51.61.172])
-        by smtp.gmail.com with ESMTPSA id q76sm27016689iod.35.2019.01.03.13.12.40
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Thu, 03 Jan 2019 13:12:41 -0800 (PST)
-Date:   Thu, 3 Jan 2019 15:12:40 -0600
-From:   Rob Herring <robh@kernel.org>
-To:     Akinobu Mita <akinobu.mita@gmail.com>
-Cc:     linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: Re: [PATCH 02/12] media: i2c: mt9m001: dt: add binding for mt9m001
-Message-ID: <20190103211240.GA31467@bogus>
-References: <1545498774-11754-1-git-send-email-akinobu.mita@gmail.com>
- <1545498774-11754-3-git-send-email-akinobu.mita@gmail.com>
+        id S1728006AbfACVoL (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 3 Jan 2019 16:44:11 -0500
+Received: from xes-mad.com ([162.248.234.2]:26598 "EHLO mail.xes-mad.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727243AbfACVoL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 3 Jan 2019 16:44:11 -0500
+X-Greylist: delayed 649 seconds by postgrey-1.27 at vger.kernel.org; Thu, 03 Jan 2019 16:44:10 EST
+Received: from zimbra.xes-mad.com (zimbra.xes-mad.com [10.52.0.127])
+        by mail.xes-mad.com (Postfix) with ESMTP id 5421B201EC;
+        Thu,  3 Jan 2019 15:33:20 -0600 (CST)
+Date:   Thu, 3 Jan 2019 15:33:20 -0600 (CST)
+From:   Aaron Sierra <asierra@xes-inc.com>
+To:     Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc:     mchehab@kernel.org, iommu <iommu@lists.linux-foundation.org>,
+        hans verkuil <hans.verkuil@cisco.com>,
+        bingbu cao <bingbu.cao@intel.com>,
+        rajmohan mani <rajmohan.mani@intel.com>,
+        yong zhi <yong.zhi@intel.com>,
+        tian shu qiu <tian.shu.qiu@intel.com>,
+        linux-media@vger.kernel.org
+Message-ID: <1276926960.401168.1546551200268.JavaMail.zimbra@xes-inc.com>
+In-Reply-To: <20190103201126.zzqpn2eylm4m2zxn@mara.localdomain>
+References: <20190102211657.13192-1-sakari.ailus@linux.intel.com> <12009133.IFJkWA3Ofo@avalon> <20190103201126.zzqpn2eylm4m2zxn@mara.localdomain>
+Subject: Re: [PATCH 1/1] iova: Allow compiling the library without IOMMU
+        support
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1545498774-11754-3-git-send-email-akinobu.mita@gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.52.0.127]
+X-Mailer: Zimbra 8.7.5_GA_1764 (ZimbraWebClient - FF64 (Linux)/8.7.5_GA_1764)
+Thread-Topic: iova: Allow compiling the library without IOMMU support
+Thread-Index: CxgTQemcdkLrN3bN00VVx7sfIidDEA==
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Sun, Dec 23, 2018 at 02:12:44AM +0900, Akinobu Mita wrote:
-> Add device tree binding documentation for the MT9M001 CMOS image sensor.
+----- Original Message -----
+> From: "Sakari Ailus" <sakari.ailus@linux.intel.com>
+> Sent: Thursday, January 3, 2019 2:11:27 PM
+
+Hi Laurent and Sakari,
+
+I don't have much else to offer here, but wanted to second Sakari's
+use case below.
+
+> Hi Laurent,
 > 
-> Cc: Rob Herring <robh@kernel.org>
-> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-> ---
->  .../devicetree/bindings/media/i2c/mt9m001.txt      | 37 ++++++++++++++++++++++
->  1 file changed, 37 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/i2c/mt9m001.txt
+> On Thu, Jan 03, 2019 at 12:52:00AM +0200, Laurent Pinchart wrote:
+>> Hi Sakari,
+>> 
+>> Thank you for the patch.
+>> 
+>> On Wednesday, 2 January 2019 23:16:57 EET Sakari Ailus wrote:
+>> > Drivers such as the Intel IPU3 ImgU driver use the IOVA library to manage
+>> > the device's own virtual address space while not implementing the IOMMU
+>> > API.
+>> 
+>> Why is that ? Could the IPU3 IOMMU be implemented as an IOMMU driver ?
 > 
-> diff --git a/Documentation/devicetree/bindings/media/i2c/mt9m001.txt b/Documentation/devicetree/bindings/media/i2c/mt9m001.txt
-> new file mode 100644
-> index 0000000..794b787
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/i2c/mt9m001.txt
-> @@ -0,0 +1,37 @@
-> +MT9M001: 1/2-Inch Megapixel Digital Image Sensor
-> +
-> +The MT9M001 is an SXGA-format with a 1/2-inch CMOS active-pixel digital
-> +image sensor. It is programmable through a simple two-wire serial
-> +interface.
-
-I2C?
-
-> +
-> +Required Properties:
-> +
-> +- compatible: shall be "onnn,mt9m001".
-> +- clocks: reference to the master clock into sensor
-> +
-> +Optional Properties:
-> +
-> +- reset-gpios: GPIO handle which is connected to the reset pin of the chip.
-> +  Active low.
-> +- standby-gpios: GPIO handle which is connected to the standby pin of the chip.
-> +  Active high.
-> +
-> +For further reading on port node refer to
-> +Documentation/devicetree/bindings/media/video-interfaces.txt.
-
-You still need to state how many ports/endpoints and what they are.
-
-> +
-> +Example:
-> +
-> +	&i2c1 {
-> +		mt9m001@5d {
-
-camera-sensor@5d
-
-> +			compatible = "onnn,mt9m001";
-> +			reg = <0x5d>;
-> +			reset-gpios = <&gpio0 0 GPIO_ACTIVE_LOW>;
-> +			standby-gpios = <&gpio0 1 GPIO_ACTIVE_HIGH>;
-> +			clocks = <&camera_clk>;
-> +			port {
-> +				mt9m001_out: endpoint {
-> +					remote-endpoint = <&vcap_in>;
-> +				};
-> +			};
-> +		};
-> +	};
-> -- 
-> 2.7.4
+> You could do that, but:
 > 
+> - it's a single PCI device so there's no advantage in doing so and
+
+I also use the IOVA library for a PCI device (PCIe-VME bridge) that has
+IOMMU features, but isn't a general purpose IOMMU. I am eagerly following
+along.
+
+-Aaron
+
+> - doing that would render the device inoperable if an IOMMU is enabled in
+>  the system, as chaining IOMMUs is not supported in the IOMMU framework
+>  AFAIK.
+> 
+>> 
+>> > Currently the IOVA library is only compiled if the IOMMU support is
+>> > enabled, resulting into a failure during linking due to missing symbols.
+>> > 
+>> > Fix this by defining IOVA library Kconfig bits independently of IOMMU
+>> > support configuration, and descending to the iommu directory
+>> > unconditionally during the build.
+>> > 
+>> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
