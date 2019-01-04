@@ -2,459 +2,516 @@ Return-Path: <SRS0=+L2G=PM=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no
+X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B25EDC43387
-	for <linux-media@archiver.kernel.org>; Fri,  4 Jan 2019 20:21:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FDDBC43387
+	for <linux-media@archiver.kernel.org>; Fri,  4 Jan 2019 22:36:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5C06B218D8
-	for <linux-media@archiver.kernel.org>; Fri,  4 Jan 2019 20:21:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BED69218D8
+	for <linux-media@archiver.kernel.org>; Fri,  4 Jan 2019 22:36:49 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="MOmt93LN"
+	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="SASXcYiA"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726090AbfADUVK (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 4 Jan 2019 15:21:10 -0500
-Received: from mail-wr1-f65.google.com ([209.85.221.65]:41967 "EHLO
-        mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726021AbfADUVK (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 4 Jan 2019 15:21:10 -0500
-Received: by mail-wr1-f65.google.com with SMTP id x10so37596041wrs.8
-        for <linux-media@vger.kernel.org>; Fri, 04 Jan 2019 12:21:07 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id;
-        bh=WvxZIsr7BHOMKJXrZOkLZFEcjqbu5m9KhPXdc5Dx9As=;
-        b=MOmt93LNe1mkTwpx7Mw2VnjHDM871JCHg9OhMoinXW4YWKDbMcDj+itg+EEfqaRGyS
-         L1jr5kMlm3OqcG3DgCC5LaMD9GC1bvZ9ocf+SJeVcQIR1O774j8LVN+QpUJbFE78cQ5S
-         IZKa6UMzUlRV4wsBDYlCLsPTN9G1h00CIgU3yaU7+1ztYRQ/a4Pe1zH1yBnIEUrovhA/
-         wMSGJlfRXAiqXs+HpptAfdEvmLWPfyzRh8ACY9umlA9bEzuUyfk42iYZFVe/XMYP9218
-         deeBzIy4iG/HvgGQzDtcOoj+K7O1y1PDDv8skJtj/Ro/furFVi1wGRIoeuGrxMVXnQsK
-         p90Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id;
-        bh=WvxZIsr7BHOMKJXrZOkLZFEcjqbu5m9KhPXdc5Dx9As=;
-        b=K079U2fElBb/8AQ8kjeg0L9+u0NVc7eIa9Ba6jOBjkNKhObBTmpumf1QFZHYwkCz3u
-         O//XGUH6sBHbNrhDXvygCQEifwjvK8R5aMiYYEd3rVolW2aXpRsFno1kOvzICRQhYwwO
-         xPUOx2zlBBnMtazwpN27vauvJzYnetNsScZgNTe0sOArwqtipuav5gjUfnLgr6B3yjmg
-         Mu3W1x7vy/2qb5JQmv+CQtbpjK1z0PGo77fE1nxB85tXavDo5RqQqwGy/0aATa7IZhzC
-         bgGt1US3EExze3guv9fT2ShrZI4O1+5gdcn2VRg1n6XzYH6adUliV1zAcQlKFELghdvF
-         ZsNQ==
-X-Gm-Message-State: AJcUukeQzC0LhZtk+FJZmhnle0aeanGfro4s7tuuJ8uMc3iyAgOH2L/U
-        jjjOl8FjCYZcfPP4PLajQ2pLbxB0GNE=
-X-Google-Smtp-Source: ALg8bN6Xwjpgy/utPlcPa40+avTNoKEguBWrmD40eZJBw1N6jKd4e7EBn88FxcKW99xchwKrpp6dUg==
-X-Received: by 2002:adf:8421:: with SMTP id 30mr46880800wrf.153.1546633266545;
-        Fri, 04 Jan 2019 12:21:06 -0800 (PST)
-Received: from ubuntu.home ([77.124.106.231])
-        by smtp.gmail.com with ESMTPSA id y185sm1247296wmg.34.2019.01.04.12.21.03
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Fri, 04 Jan 2019 12:21:05 -0800 (PST)
-From:   Dafna Hirschfeld <dafna3@gmail.com>
-To:     linux-media@vger.kernel.org
-Cc:     hverkuil@xs4all.nl, helen.koike@collabora.com,
-        Dafna Hirschfeld <dafna3@gmail.com>
-Subject: [v4l-utils PATCH v3] v4l2-ctl: Add support for crop and compose selection in streaming
-Date:   Fri,  4 Jan 2019 12:20:50 -0800
-Message-Id: <20190104202050.26366-1-dafna3@gmail.com>
-X-Mailer: git-send-email 2.17.1
+        id S1726202AbfADWgn (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 4 Jan 2019 17:36:43 -0500
+Received: from mail-eopbgr50046.outbound.protection.outlook.com ([40.107.5.46]:2017
+        "EHLO EUR03-VE1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726105AbfADWgm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 4 Jan 2019 17:36:42 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Mellanox.com;
+ s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=hepfAqFn9qm1SvlLipTWqo1FDDITgPB/Dc0Xyx5U4Ok=;
+ b=SASXcYiA/NflEJyfWYFXrveZk6lyi85hZHVSr2F5i5lfPrDF9ps3wPFI4zI27Ep3QNoJaxS4SGFCflTTP37y6/YPmyiFJu/2xzgPYl0f6YAq93cz2yfiVbrkUTdFEIE9CX+XrfY4Q/n5TxnYNEDJoHwc/OB7VqW6azzwEEWdd20=
+Received: from AM4PR0501MB2179.eurprd05.prod.outlook.com (10.165.82.10) by
+ AM4PR0501MB2772.eurprd05.prod.outlook.com (10.172.216.16) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.1495.6; Fri, 4 Jan 2019 22:35:43 +0000
+Received: from AM4PR0501MB2179.eurprd05.prod.outlook.com
+ ([fe80::88a5:f979:5400:adf]) by AM4PR0501MB2179.eurprd05.prod.outlook.com
+ ([fe80::88a5:f979:5400:adf%5]) with mapi id 15.20.1495.005; Fri, 4 Jan 2019
+ 22:35:43 +0000
+From:   Jason Gunthorpe <jgg@mellanox.com>
+To:     "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Christoph Hellwig <hch@lst.de>
+CC:     Shiraz Saleem <shiraz.saleem@intel.com>,
+        Imre Deak <imre.deak@intel.com>,
+        Daniel Vetter <daniel.vetter@ffwll.ch>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Yong Zhi <yong.zhi@intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Bingbu Cao <bingbu.cao@intel.com>,
+        Tian Shu Qiu <tian.shu.qiu@intel.com>,
+        Jian Xu Zheng <jian.xu.zheng@intel.com>,
+        Sinclair Yeh <syeh@vmware.com>,
+        Thomas Hellstrom <thellstrom@vmware.com>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>
+Subject: [PATCH] lib/scatterlist: Provide a DMA page iterator
+Thread-Topic: [PATCH] lib/scatterlist: Provide a DMA page iterator
+Thread-Index: AQHUpH3T+Rn6hCeN4kq6RDaSbJgsYA==
+Date:   Fri, 4 Jan 2019 22:35:43 +0000
+Message-ID: <20190104223531.GA1705@ziepe.ca>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-clientproxiedby: CO2PR05CA0102.namprd05.prod.outlook.com
+ (2603:10b6:104:1::28) To AM4PR0501MB2179.eurprd05.prod.outlook.com
+ (2603:10a6:200:52::10)
+authentication-results: spf=none (sender IP is )
+ smtp.mailfrom=jgg@mellanox.com; 
+x-ms-exchange-messagesentrepresentingtype: 1
+x-originating-ip: [174.3.196.123]
+x-ms-publictraffictype: Email
+x-microsoft-exchange-diagnostics: 1;AM4PR0501MB2772;6:T+KWkjowF5jE7SSegfGmqnDwoFPyWSRS5Nn+2Ce9pDV5F71s4DkrdiWcK6IgCy0OR9M4shV43uMZy+dqXCVK2jBE91tPei0rvRbg1nxAS2Jidfo42C7G3b9Bnept+qSlhRIIfytskJb1Dhy3NXLoapp2/ApvtgwHszXM9xT8DO4SecnaFpIGNBChbU6AIEJjPO87znGE6CunSPltA/Kya5c3UKVTYN0zBzROI64LpaT9tBV0Eibyb4J3Kz9n5jTXWZBei7EF7uYi6+WMGeBSI+V70ggLlE35xyEQrR19XynbW6mjSbHDlLcdwHeCesijegqhQfmu9BfOnAM4RWZhnEjxrooJV0cTqSU3fEuePcGry4CybhZdVfalw5JSdWAhS9ZRyLwcUpPGi0i93HX1TmpTm8wRorx8XJqXCYR9LKQslWzpTFr0d0770sDiMUJ3IqD5i8fBvBNxjPd94RCtDw==;5:v6Mt9qhc7EsJ26DzaJK6t/gAToCQ3YwaHxA3TXFluQxAVa6/zvf4iz8xMGGYA1gWyFnMAEJ2KJwtLt9r5/OT4MvMbF9zFzDsO3gV7BE8YE6ZYYv1ZsEDNu0sCOBFUCklUhS+tsg1yflPtDc+Pk5AbvOxStxca5vcODyOAkNFf21RS3G0OMB/wkte7a77WT2uvIfx5JMX2P3FASUXRo5szQ==;7:rfGEqwzQN7tYH/XB118o6HhGMfGKFNrI28M44CKNQFszf6u46EvCJa0zFpUvxWeTzWib+QAiHXCz+n8BFJ0LyasRiBkG7w5RCTMR+ahgHgH2QKpmaLZEdMp2bpEcT2kDtnMnkZeGeRkYMC6VoIE2yQ==
+x-ms-office365-filtering-correlation-id: 7e9df72a-2771-4b6d-ec07-08d67294f603
+x-ms-office365-filtering-ht: Tenant
+x-microsoft-antispam: BCL:0;PCL:0;RULEID:(2390118)(7020095)(4652040)(8989299)(4534185)(4627221)(201703031133081)(201702281549075)(8990200)(5600109)(711020)(4618075)(2017052603328)(7153060)(7193020);SRVR:AM4PR0501MB2772;
+x-ms-traffictypediagnostic: AM4PR0501MB2772:
+x-microsoft-antispam-prvs: <AM4PR0501MB27727F02A694ABB09E747A8FCF8E0@AM4PR0501MB2772.eurprd05.prod.outlook.com>
+x-exchange-antispam-report-cfa-test: BCL:0;PCL:0;RULEID:(8211001083)(3230021)(908002)(999002)(5005026)(6040522)(8220060)(2401047)(8121501046)(10201501046)(93006095)(93001095)(3231475)(944501520)(52105112)(3002001)(6055026)(6041310)(20161123562045)(20161123564045)(201703131423095)(201702281528075)(20161123555045)(201703061421075)(201703061406153)(20161123560045)(20161123558120)(201708071742011)(7699051)(76991095);SRVR:AM4PR0501MB2772;BCL:0;PCL:0;RULEID:;SRVR:AM4PR0501MB2772;
+x-forefront-prvs: 0907F58A24
+x-forefront-antispam-report: SFV:NSPM;SFS:(10009020)(396003)(376002)(136003)(366004)(39860400002)(346002)(199004)(189003)(386003)(14454004)(256004)(36756003)(7416002)(1076003)(81166006)(81156014)(8676002)(8936002)(4744004)(33656002)(26005)(25786009)(186003)(6506007)(6436002)(99286004)(478600001)(102836004)(305945005)(33896004)(97736004)(105586002)(71190400001)(71200400001)(6116002)(3846002)(7736002)(2501003)(52116002)(476003)(106356001)(66066001)(86362001)(575784001)(486006)(68736007)(54906003)(316002)(6486002)(110136005)(2906002)(9686003)(6512007)(53936002)(5660300001)(4326008);DIR:OUT;SFP:1101;SCL:1;SRVR:AM4PR0501MB2772;H:AM4PR0501MB2179.eurprd05.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;A:1;MX:1;
+received-spf: None (protection.outlook.com: mellanox.com does not designate
+ permitted sender hosts)
+x-ms-exchange-senderadcheck: 1
+x-microsoft-antispam-message-info: 0xOb92iKbYDmJQgPeKAk9VfWiX+gbC6E13PFa+HiYnTMB0Z2PPW00Nk4zAM2jYuFxsDk8edrIRlbEtG9oN115QhWJNNsifUoDHjje9ePdF4toe73269XHD+owFlsNAK3bjqfFY3JTjJRmbxYRjcWE9dBdux5V858w+SLSVss14putwj/8yhpQJqW08sExCI6QqAskWyl5kdDfFkYzON8M9tMHfAIqqxrwJxxzHwB/NF9WXPrQfXbOEDtO/FEGy3G7nzdDctMjign8bYud2Ua5M28BYWbV7TU6zBSyj0JO9Sz2RPeK9m/nTnzf1qYBgbf
+spamdiagnosticoutput: 1:99
+spamdiagnosticmetadata: NSPM
+Content-Type: text/plain; charset="us-ascii"
+Content-ID: <F99263AB32E56543B99CB6F9EEB8B483@eurprd05.prod.outlook.com>
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+X-OriginatorOrg: Mellanox.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 7e9df72a-2771-4b6d-ec07-08d67294f603
+X-MS-Exchange-CrossTenant-originalarrivaltime: 04 Jan 2019 22:35:42.7682
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: a652971c-7d2e-4d9b-a6a4-d149256f461b
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM4PR0501MB2772
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Support crop and compose selection.
-If the driver supports crop/compose then the raw frame is arranged
-inside a padded buffer.
+Commit 2db76d7c3c6d ("lib/scatterlist: sg_page_iter: support sg lists w/o
+backing pages") introduced the sg_page_iter_dma_address() function without
+providing a way to use it in the general case. If the sg_dma_len is not
+equal to the dma_length callers cannot safely use the
+for_each_sg_page/sg_page_iter_dma_address combination.
 
-Signed-off-by: Dafna Hirschfeld <dafna3@gmail.com>
+Resolve this API mistake by providing a DMA specific iterator,
+for_each_sg_dma_page(), that uses the right length so
+sg_page_iter_dma_address() works as expected with all sglists. A new
+iterator type is introduced to provide compile-time safety against wrongly
+mixing accessors and iterators.
+
+Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 ---
-Chnages from v2:
-1. cleanups
-2. change the code of read_write_padded_frame to use bytesperline as
-a stride
+ drivers/gpu/drm/vmwgfx/vmwgfx_drv.h        | 26 ++++++++++--
+ drivers/gpu/drm/vmwgfx/vmwgfx_mob.c        | 26 +++++++-----
+ drivers/gpu/drm/vmwgfx/vmwgfx_ttm_buffer.c | 42 +++++++++++++------
+ drivers/media/pci/intel/ipu3/ipu3-cio2.c   |  4 +-
+ include/linux/scatterlist.h                | 49 ++++++++++++++++++----
+ lib/scatterlist.c                          | 26 ++++++++++++
+ 6 files changed, 134 insertions(+), 39 deletions(-)
 
- utils/common/codec-fwht.patch         |   8 +-
- utils/common/v4l-stream.c             |  14 +--
- utils/common/v4l-stream.h             |   6 +-
- utils/qvidcap/capture.cpp             |   2 +
- utils/v4l2-ctl/v4l2-ctl-streaming.cpp | 140 ++++++++++++++++++++++++--
- 5 files changed, 149 insertions(+), 21 deletions(-)
+I'd like to run this patch through the RDMA tree as we have another
+series in the works that wants to use the for_each_sg_dma_page() API.
 
-diff --git a/utils/common/codec-fwht.patch b/utils/common/codec-fwht.patch
-index 4d41225b..37ac4672 100644
---- a/utils/common/codec-fwht.patch
-+++ b/utils/common/codec-fwht.patch
-@@ -1,6 +1,6 @@
----- a/utils/common/codec-fwht.h.old	2018-11-23 13:43:52.713731559 +0100
--+++ b/utils/common/codec-fwht.h	2018-11-23 13:47:55.484198283 +0100
--@@ -8,8 +8,24 @@
-+--- a/utils/common/codec-fwht.h.old	2018-12-29 11:23:58.128328613 -0800
-++++ b/utils/common/codec-fwht.h	2018-12-29 11:24:16.099127560 -0800
-+@@ -8,8 +8,26 @@
-  #define CODEC_FWHT_H
-  
-  #include <linux/types.h>
-@@ -17,6 +17,8 @@
- +#define GENMASK(h, l) \
- +	(((~0UL) - (1UL << (l)) + 1) & (~0UL >> ((8 * sizeof(long)) - 1 - (h))))
- +#define pr_err(arg...)
-++#define __round_mask(x, y) ((__typeof__(x))((y)-1))
-++#define round_up(x, y) ((((x)-1) | __round_mask(x, y))+1)
- +
- +
- +typedef __u32 u32;
-diff --git a/utils/common/v4l-stream.c b/utils/common/v4l-stream.c
-index 9f842e21..a1cabadb 100644
---- a/utils/common/v4l-stream.c
-+++ b/utils/common/v4l-stream.c
-@@ -171,25 +171,28 @@ unsigned rle_compress(__u8 *b, unsigned size, unsigned bpl)
- 	return (__u8 *)dst - b;
- }
- 
--struct codec_ctx *fwht_alloc(unsigned pixfmt, unsigned w, unsigned h,
-+struct codec_ctx *fwht_alloc(unsigned pixfmt, unsigned visible_width, unsigned visible_height,
-+			     unsigned coded_width, unsigned coded_height,
- 			     unsigned field, unsigned colorspace, unsigned xfer_func,
- 			     unsigned ycbcr_enc, unsigned quantization)
- {
- 	struct codec_ctx *ctx;
- 	const struct v4l2_fwht_pixfmt_info *info = v4l2_fwht_find_pixfmt(pixfmt);
- 	unsigned int chroma_div;
--	unsigned int size = w * h;
-+	unsigned int size = coded_width * coded_height;
- 
- 	// fwht expects macroblock alignment, check can be dropped once that
- 	// restriction is lifted.
--	if (!info || w % 8 || h % 8)
-+	if (!info || coded_width % 8 || coded_height % 8)
- 		return NULL;
- 
- 	ctx = malloc(sizeof(*ctx));
- 	if (!ctx)
- 		return NULL;
--	ctx->state.width = w;
--	ctx->state.height = h;
-+	ctx->state.coded_width = coded_width;
-+	ctx->state.coded_height = coded_height;
-+	ctx->state.visible_width = visible_width;
-+	ctx->state.visible_height = visible_height;
- 	ctx->state.info = info;
- 	ctx->field = field;
- 	ctx->state.colorspace = colorspace;
-@@ -208,7 +211,6 @@ struct codec_ctx *fwht_alloc(unsigned pixfmt, unsigned w, unsigned h,
- 		free(ctx);
- 		return NULL;
- 	}
--	ctx->state.ref_frame.width = ctx->state.ref_frame.height = 0;
- 	ctx->state.ref_frame.cb = ctx->state.ref_frame.luma + size;
- 	ctx->state.ref_frame.cr = ctx->state.ref_frame.cb + size / chroma_div;
- 	ctx->state.ref_frame.alpha = ctx->state.ref_frame.cr + size / chroma_div;
-diff --git a/utils/common/v4l-stream.h b/utils/common/v4l-stream.h
-index c235150b..fe5dfe90 100644
---- a/utils/common/v4l-stream.h
-+++ b/utils/common/v4l-stream.h
-@@ -9,12 +9,13 @@
- #define _V4L_STREAM_H_
- 
- #include <linux/videodev2.h>
--#include <codec-v4l2-fwht.h>
- 
- #ifdef __cplusplus
- extern "C" {
- #endif /* __cplusplus */
- 
-+#include <codec-v4l2-fwht.h>
+The changes to vmwgfx make me nervous, it would be great if someone
+could test and ack them?
+
+Changes since the RFC:
+- Rework vmwgfx too [CH]
+- Use a distinct type for the DMA page iterator [CH]
+- Do not have a #ifdef [CH]
+
+Thanks,
+Jason
+
+diff --git a/drivers/gpu/drm/vmwgfx/vmwgfx_drv.h b/drivers/gpu/drm/vmwgfx/v=
+mwgfx_drv.h
+index 59f614225bcd72..3c6d71e13a9342 100644
+--- a/drivers/gpu/drm/vmwgfx/vmwgfx_drv.h
++++ b/drivers/gpu/drm/vmwgfx/vmwgfx_drv.h
+@@ -297,7 +297,10 @@ struct vmw_sg_table {
+ struct vmw_piter {
+ 	struct page **pages;
+ 	const dma_addr_t *addrs;
+-	struct sg_page_iter iter;
++	union {
++		struct sg_page_iter iter;
++		struct sg_dma_page_iter dma_iter;
++	};
+ 	unsigned long i;
+ 	unsigned long num_pages;
+ 	bool (*next)(struct vmw_piter *);
+@@ -869,9 +872,24 @@ extern int vmw_bo_map_dma(struct ttm_buffer_object *bo=
+);
+ extern void vmw_bo_unmap_dma(struct ttm_buffer_object *bo);
+ extern const struct vmw_sg_table *
+ vmw_bo_sg_table(struct ttm_buffer_object *bo);
+-extern void vmw_piter_start(struct vmw_piter *viter,
+-			    const struct vmw_sg_table *vsgt,
+-			    unsigned long p_offs);
++void _vmw_piter_start(struct vmw_piter *viter, const struct vmw_sg_table *=
+vsgt,
++		      unsigned long p_offs, bool for_dma);
 +
- /* Default port */
- #define V4L_STREAM_PORT 8362
- 
-@@ -145,7 +146,8 @@ struct codec_ctx {
- 
- unsigned rle_compress(__u8 *buf, unsigned size, unsigned bytesperline);
- void rle_decompress(__u8 *buf, unsigned size, unsigned rle_size, unsigned bytesperline);
--struct codec_ctx *fwht_alloc(unsigned pixfmt, unsigned w, unsigned h, unsigned field,
-+struct codec_ctx *fwht_alloc(unsigned pixfmt, unsigned visible_width, unsigned visible_height,
-+			     unsigned coded_width, unsigned coded_height, unsigned field,
- 			     unsigned colorspace, unsigned xfer_func, unsigned ycbcr_enc,
- 			     unsigned quantization);
- void fwht_free(struct codec_ctx *ctx);
-diff --git a/utils/qvidcap/capture.cpp b/utils/qvidcap/capture.cpp
-index 8c11ac53..e04db6be 100644
---- a/utils/qvidcap/capture.cpp
-+++ b/utils/qvidcap/capture.cpp
-@@ -749,6 +749,7 @@ void CaptureWin::setModeSocket(int socket, int port)
- 	if (m_ctx)
- 		free(m_ctx);
- 	m_ctx = fwht_alloc(m_v4l_fmt.g_pixelformat(), m_v4l_fmt.g_width(), m_v4l_fmt.g_height(),
-+			   m_v4l_fmt.g_width(), m_v4l_fmt.g_height(),
- 			   m_v4l_fmt.g_field(), m_v4l_fmt.g_colorspace(), m_v4l_fmt.g_xfer_func(),
- 			   m_v4l_fmt.g_ycbcr_enc(), m_v4l_fmt.g_quantization());
- 
-@@ -1114,6 +1115,7 @@ void CaptureWin::listenForNewConnection()
- 	if (m_ctx)
- 		free(m_ctx);
- 	m_ctx = fwht_alloc(fmt.g_pixelformat(), fmt.g_width(), fmt.g_height(),
-+			   fmt.g_width(), fmt.g_height(),
- 			   fmt.g_field(), fmt.g_colorspace(), fmt.g_xfer_func(),
- 			   fmt.g_ycbcr_enc(), fmt.g_quantization());
- 	setPixelAspect(pixelaspect);
-diff --git a/utils/v4l2-ctl/v4l2-ctl-streaming.cpp b/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
-index 79e015ce..651bf2ce 100644
---- a/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
-+++ b/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
-@@ -20,7 +20,6 @@
- 
- #include "v4l2-ctl.h"
- #include "v4l-stream.h"
--#include "codec-fwht.h"
- 
- extern "C" {
- #include "v4l2-tpg.h"
-@@ -73,6 +72,13 @@ static unsigned bpl_out[VIDEO_MAX_PLANES];
- static bool last_buffer = false;
- static codec_ctx *ctx;
- 
-+static unsigned int cropped_width;
-+static unsigned int cropped_height;
-+static unsigned int composed_width;
-+static unsigned int composed_height;
-+static bool support_cap_compose;
-+static bool support_out_crop;
-+
- #define TS_WINDOW 241
- #define FILE_HDR_ID			v4l2_fourcc('V', 'h', 'd', 'r')
- 
-@@ -657,7 +663,59 @@ void streaming_cmd(int ch, char *optarg)
- 	}
- }
- 
--static bool fill_buffer_from_file(cv4l_queue &q, cv4l_buffer &b, FILE *fin)
-+static void read_write_padded_frame(cv4l_fmt &fmt, unsigned char *buf,
-+				    FILE *fpointer, unsigned &sz,
-+				    unsigned &len, bool is_read)
++/* Create a piter that can call vmw_piter_dma_addr() */
++static inline void vmw_piter_start(struct vmw_piter *viter,
++				   const struct vmw_sg_table *vsgt,
++				   unsigned long p_offs)
 +{
-+	const struct v4l2_fwht_pixfmt_info *vic_fmt = v4l2_fwht_find_pixfmt(fmt.g_pixelformat());
-+	unsigned coded_height = fmt.g_height();
-+	unsigned real_width;
-+	unsigned real_height;
-+	unsigned char *plane_p = buf;
-+	unsigned char *row_p;
-+
-+	if (is_read) {
-+		real_width  = cropped_width;
-+		real_height = cropped_height;
-+	} else {
-+		real_width  = composed_width;
-+		real_height = composed_height;
-+	}
-+
-+	sz = 0;
-+	len = real_width * real_height * vic_fmt->sizeimage_mult / vic_fmt->sizeimage_div;
-+
-+	for (unsigned plane_idx = 0; plane_idx < vic_fmt->planes_num; plane_idx++) {
-+		unsigned h_div = (plane_idx == 0 || plane_idx == 3) ? 1 : vic_fmt->height_div;
-+		unsigned w_div = (plane_idx == 0 || plane_idx == 3) ? 1 : vic_fmt->width_div;
-+		unsigned step  = (plane_idx == 0 || plane_idx == 3) ? vic_fmt->luma_alpha_step : vic_fmt->chroma_step;
-+		unsigned stride_div = (vic_fmt->planes_num == 3 && plane_idx > 0) ? 2 : 1;
-+
-+		row_p = plane_p;
-+		for (unsigned i = 0; i < real_height / h_div; i++) {
-+			unsigned int wsz = 0;
-+			unsigned int consume_sz = step * real_width / w_div;
-+
-+			if (is_read)
-+				wsz = fread(row_p, 1, consume_sz, fpointer);
-+			else
-+				wsz = fwrite(row_p, 1, consume_sz, fpointer);
-+			if (wsz == 0 && i == 0 && plane_idx == 0)
-+				break;
-+			if (wsz != consume_sz) {
-+				fprintf(stderr, "padding: needed %u bytes, got %u\n", consume_sz, wsz);
-+				return;
-+			}
-+			sz += wsz;
-+			row_p += fmt.g_bytesperline() / stride_div;
-+		}
-+		plane_p += (fmt.g_bytesperline() / stride_div) * (coded_height / h_div);
-+		if (sz == 0)
-+			break;
-+	}
++	_vmw_piter_start(viter, vsgt, p_offs, true);
 +}
 +
-+static bool fill_buffer_from_file(cv4l_fd &fd, cv4l_queue &q, cv4l_buffer &b, FILE *fin)
++/* Create a piter that can call vmw_piter_page() */
++static inline void vmw_piter_cpu_start(struct vmw_piter *viter,
++				   const struct vmw_sg_table *vsgt,
++				   unsigned long p_offs)
++{
++	_vmw_piter_start(viter, vsgt, p_offs, false);
++}
+=20
+ /**
+  * vmw_piter_next - Advance the iterator one page.
+diff --git a/drivers/gpu/drm/vmwgfx/vmwgfx_mob.c b/drivers/gpu/drm/vmwgfx/v=
+mwgfx_mob.c
+index 7ed179d30ec51f..a13788017ad608 100644
+--- a/drivers/gpu/drm/vmwgfx/vmwgfx_mob.c
++++ b/drivers/gpu/drm/vmwgfx/vmwgfx_mob.c
+@@ -503,7 +503,8 @@ static void vmw_mob_assign_ppn(u32 **addr, dma_addr_t v=
+al)
+  */
+ static unsigned long vmw_mob_build_pt(struct vmw_piter *data_iter,
+ 				      unsigned long num_data_pages,
+-				      struct vmw_piter *pt_iter)
++				      struct vmw_piter *pt_iter_cpu,
++				      struct vmw_piter *pt_iter_dma)
  {
- 	static bool first = true;
- 	static bool is_fwht = false;
-@@ -776,7 +834,9 @@ restart:
- 		void *buf = q.g_dataptr(b.g_index(), j);
- 		unsigned len = q.g_length(j);
- 		unsigned sz;
-+		cv4l_fmt fmt;
- 
-+		fd.g_fmt(fmt, q.g_type());
- 		if (from_with_hdr) {
- 			len = read_u32(fin);
- 			if (len > q.g_length(j)) {
-@@ -785,7 +845,12 @@ restart:
- 				return false;
- 			}
+ 	unsigned long pt_size =3D num_data_pages * VMW_PPN_SIZE;
+ 	unsigned long num_pt_pages =3D DIV_ROUND_UP(pt_size, PAGE_SIZE);
+@@ -513,7 +514,7 @@ static unsigned long vmw_mob_build_pt(struct vmw_piter =
+*data_iter,
+ 	struct page *page;
+=20
+ 	for (pt_page =3D 0; pt_page < num_pt_pages; ++pt_page) {
+-		page =3D vmw_piter_page(pt_iter);
++		page =3D vmw_piter_page(pt_iter_cpu);
+=20
+ 		save_addr =3D addr =3D kmap_atomic(page);
+=20
+@@ -525,7 +526,8 @@ static unsigned long vmw_mob_build_pt(struct vmw_piter =
+*data_iter,
+ 			WARN_ON(!vmw_piter_next(data_iter));
  		}
--		sz = fread(buf, 1, len, fin);
+ 		kunmap_atomic(save_addr);
+-		vmw_piter_next(pt_iter);
++		vmw_piter_next(pt_iter_cpu);
++		vmw_piter_next(pt_iter_dma);
+ 	}
+=20
+ 	return num_pt_pages;
+@@ -547,29 +549,31 @@ static void vmw_mob_pt_setup(struct vmw_mob *mob,
+ {
+ 	unsigned long num_pt_pages =3D 0;
+ 	struct ttm_buffer_object *bo =3D mob->pt_bo;
+-	struct vmw_piter save_pt_iter;
+-	struct vmw_piter pt_iter;
++	struct vmw_piter pt_iter_cpu, pt_iter_dma;
+ 	const struct vmw_sg_table *vsgt;
++	dma_addr_t root_page =3D 0;
+ 	int ret;
+=20
+ 	ret =3D ttm_bo_reserve(bo, false, true, NULL);
+ 	BUG_ON(ret !=3D 0);
+=20
+ 	vsgt =3D vmw_bo_sg_table(bo);
+-	vmw_piter_start(&pt_iter, vsgt, 0);
+-	BUG_ON(!vmw_piter_next(&pt_iter));
++	vmw_piter_start(&pt_iter_dma, vsgt, 0);
++	vmw_piter_cpu_start(&pt_iter_cpu, vsgt, 0);
++	BUG_ON(!vmw_piter_next(&pt_iter_cpu));
++	BUG_ON(!vmw_piter_next(&pt_iter_dma));
+ 	mob->pt_level =3D 0;
+ 	while (likely(num_data_pages > 1)) {
+ 		++mob->pt_level;
+ 		BUG_ON(mob->pt_level > 2);
+-		save_pt_iter =3D pt_iter;
++		root_page =3D vmw_piter_dma_addr(&pt_iter_dma);
+ 		num_pt_pages =3D vmw_mob_build_pt(&data_iter, num_data_pages,
+-						&pt_iter);
+-		data_iter =3D save_pt_iter;
++						&pt_iter_cpu, &pt_iter_dma);
++		vmw_piter_start(&data_iter, vsgt, 0);
+ 		num_data_pages =3D num_pt_pages;
+ 	}
+=20
+-	mob->pt_root_page =3D vmw_piter_dma_addr(&save_pt_iter);
++	mob->pt_root_page =3D root_page;
+ 	ttm_bo_unreserve(bo);
+ }
+=20
+diff --git a/drivers/gpu/drm/vmwgfx/vmwgfx_ttm_buffer.c b/drivers/gpu/drm/v=
+mwgfx/vmwgfx_ttm_buffer.c
+index 31786b200afc47..db8f3e40a4facb 100644
+--- a/drivers/gpu/drm/vmwgfx/vmwgfx_ttm_buffer.c
++++ b/drivers/gpu/drm/vmwgfx/vmwgfx_ttm_buffer.c
+@@ -269,6 +269,11 @@ static bool __vmw_piter_sg_next(struct vmw_piter *vite=
+r)
+ 	return __sg_page_iter_next(&viter->iter);
+ }
+=20
++static bool __vmw_piter_sg_dma_next(struct vmw_piter *viter)
++{
++	return __sg_page_iter_dma_next(&viter->dma_iter);
++}
 +
-+		if (support_out_crop && v4l2_fwht_find_pixfmt(fmt.g_pixelformat()))
-+			read_write_padded_frame(fmt, (unsigned char *)buf, fin, sz, len, true);
+=20
+ /**
+  * Helper functions to return a pointer to the current page.
+@@ -309,9 +314,9 @@ static dma_addr_t __vmw_piter_dma_addr(struct vmw_piter=
+ *viter)
+ 	return viter->addrs[viter->i];
+ }
+=20
+-static dma_addr_t __vmw_piter_sg_addr(struct vmw_piter *viter)
++static dma_addr_t __vmw_piter_sg_dma_addr(struct vmw_piter *viter)
+ {
+-	return sg_page_iter_dma_address(&viter->iter);
++	return sg_page_iter_dma_address(&viter->dma_iter);
+ }
+=20
+=20
+@@ -325,32 +330,43 @@ static dma_addr_t __vmw_piter_sg_addr(struct vmw_pite=
+r *viter)
+  * the iterator doesn't point to a valid page after initialization; it has
+  * to be advanced one step first.
+  */
+-void vmw_piter_start(struct vmw_piter *viter, const struct vmw_sg_table *v=
+sgt,
+-		     unsigned long p_offset)
++void _vmw_piter_start(struct vmw_piter *viter, const struct vmw_sg_table *=
+vsgt,
++		      unsigned long p_offset, bool for_dma)
+ {
+ 	viter->i =3D p_offset - 1;
+ 	viter->num_pages =3D vsgt->num_pages;
+ 	switch (vsgt->mode) {
+ 	case vmw_dma_phys:
+ 		viter->next =3D &__vmw_piter_non_sg_next;
+-		viter->dma_address =3D &__vmw_piter_phys_addr;
+-		viter->page =3D &__vmw_piter_non_sg_page;
++		if (for_dma)
++			viter->dma_address =3D &__vmw_piter_phys_addr;
 +		else
-+			sz = fread(buf, 1, len, fin);
-+
- 		if (first && sz != len) {
- 			fprintf(stderr, "Insufficient data\n");
- 			return false;
-@@ -908,7 +973,7 @@ static int do_setup_out_buffers(cv4l_fd &fd, cv4l_queue &q, FILE *fin, bool qbuf
- 					tpg_fillbuffer(&tpg, stream_out_std, j, (u8 *)q.g_dataptr(i, j));
- 			}
- 		}
--		if (fin && !fill_buffer_from_file(q, buf, fin))
-+		if (fin && !fill_buffer_from_file(fd, q, buf, fin))
- 			return -2;
- 
- 		if (qbuf) {
-@@ -926,7 +991,7 @@ static int do_setup_out_buffers(cv4l_fd &fd, cv4l_queue &q, FILE *fin, bool qbuf
- 	return 0;
- }
- 
--static void write_buffer_to_file(cv4l_queue &q, cv4l_buffer &buf, FILE *fout)
-+static void write_buffer_to_file(cv4l_fd &fd, cv4l_queue &q, cv4l_buffer &buf, FILE *fout)
- {
- #ifndef NO_STREAM_TO
- 	unsigned comp_size[VIDEO_MAX_PLANES];
-@@ -967,7 +1032,9 @@ static void write_buffer_to_file(cv4l_queue &q, cv4l_buffer &buf, FILE *fout)
- 		__u32 used = buf.g_bytesused();
- 		unsigned offset = buf.g_data_offset();
- 		unsigned sz;
-+		cv4l_fmt fmt;
- 
-+		fd.g_fmt(fmt, q.g_type());
- 		if (offset > used) {
- 			// Should never happen
- 			fprintf(stderr, "offset %d > used %d!\n",
-@@ -985,6 +1052,9 @@ static void write_buffer_to_file(cv4l_queue &q, cv4l_buffer &buf, FILE *fout)
- 		}
- 		if (host_fd_to >= 0)
- 			sz = fwrite(comp_ptr[j] + offset, 1, used, fout);
-+		else if (support_cap_compose && v4l2_fwht_find_pixfmt(fmt.g_pixelformat()))
-+			read_write_padded_frame(fmt, (u8 *)q.g_dataptr(buf.g_index(), j) + offset,
-+						fout, sz, used, false);
- 		else
- 			sz = fwrite((u8 *)q.g_dataptr(buf.g_index(), j) + offset, 1, used, fout);
- 
-@@ -1036,7 +1106,7 @@ static int do_handle_cap(cv4l_fd &fd, cv4l_queue &q, FILE *fout, int *index,
- 
- 	if (fout && (!stream_skip || ignore_count_skip) &&
- 	    buf.g_bytesused(0) && !(buf.g_flags() & V4L2_BUF_FLAG_ERROR))
--		write_buffer_to_file(q, buf, fout);
-+		write_buffer_to_file(fd, q, buf, fout);
- 
- 	if (buf.g_flags() & V4L2_BUF_FLAG_KEYFRAME)
- 		ch = 'K';
-@@ -1135,7 +1205,7 @@ static int do_handle_out(cv4l_fd &fd, cv4l_queue &q, FILE *fin, cv4l_buffer *cap
- 			output_field = V4L2_FIELD_TOP;
- 	}
- 
--	if (fin && !fill_buffer_from_file(q, buf, fin))
-+	if (fin && !fill_buffer_from_file(fd, q, buf, fin))
- 		return -2;
- 
- 	if (!fin && stream_out_refresh) {
-@@ -1333,10 +1403,15 @@ recover:
- 			write_u32(fout, cfmt.g_bytesperline(i));
- 			bpl_cap[i] = rle_calc_bpl(cfmt.g_bytesperline(i), cfmt.g_pixelformat());
- 		}
--		if (!host_lossless)
--			ctx = fwht_alloc(cfmt.g_pixelformat(), cfmt.g_width(), cfmt.g_height(),
-+		if (!host_lossless) {
-+			unsigned visible_width = support_cap_compose ? composed_width : cfmt.g_width();
-+			unsigned visible_height = support_cap_compose ? composed_height : cfmt.g_height();
-+
-+			ctx = fwht_alloc(cfmt.g_pixelformat(), visible_width, visible_height,
-+					 cfmt.g_width(), cfmt.g_height(),
- 					 cfmt.g_field(), cfmt.g_colorspace(), cfmt.g_xfer_func(),
- 					 cfmt.g_ycbcr_enc(), cfmt.g_quantization());
++			viter->page =3D &__vmw_piter_non_sg_page;
+ 		viter->pages =3D vsgt->pages;
+ 		break;
+ 	case vmw_dma_alloc_coherent:
+ 		viter->next =3D &__vmw_piter_non_sg_next;
+-		viter->dma_address =3D &__vmw_piter_dma_addr;
+-		viter->page =3D &__vmw_piter_non_sg_page;
++		if (for_dma)
++			viter->dma_address =3D &__vmw_piter_dma_addr;
++		else
++			viter->page =3D &__vmw_piter_non_sg_page;
+ 		viter->addrs =3D vsgt->addrs;
+ 		viter->pages =3D vsgt->pages;
+ 		break;
+ 	case vmw_dma_map_populate:
+ 	case vmw_dma_map_bind:
+-		viter->next =3D &__vmw_piter_sg_next;
+-		viter->dma_address =3D &__vmw_piter_sg_addr;
+-		viter->page =3D &__vmw_piter_sg_page;
+-		__sg_page_iter_start(&viter->iter, vsgt->sgt->sgl,
+-				     vsgt->sgt->orig_nents, p_offset);
++		if (for_dma) {
++			viter->next =3D &__vmw_piter_sg_dma_next;
++			viter->dma_address =3D &__vmw_piter_sg_dma_addr;
++			__sg_page_iter_start(&viter->dma_iter.base,
++					     vsgt->sgt->sgl,
++					     vsgt->sgt->orig_nents, p_offset);
++		} else {
++			viter->next =3D &__vmw_piter_sg_next;
++			viter->page =3D &__vmw_piter_sg_page;
++			__sg_page_iter_start(&viter->iter, vsgt->sgt->sgl,
++					     vsgt->sgt->orig_nents, p_offset);
 +		}
- 		fflush(fout);
- 	}
- #endif
-@@ -1560,7 +1635,11 @@ static void streaming_set_out(cv4l_fd &fd)
- 		cfmt.s_quantization(read_u32(fin));
- 		cfmt.s_xfer_func(read_u32(fin));
- 		cfmt.s_flags(read_u32(fin));
--		ctx = fwht_alloc(cfmt.g_pixelformat(), cfmt.g_width(), cfmt.g_height(),
-+		unsigned visible_width = support_out_crop ? cropped_width : cfmt.g_width();
-+		unsigned visible_height = support_out_crop ? cropped_height : cfmt.g_height();
+ 		break;
+ 	default:
+ 		BUG();
+diff --git a/drivers/media/pci/intel/ipu3/ipu3-cio2.c b/drivers/media/pci/i=
+ntel/ipu3/ipu3-cio2.c
+index 447baaebca4486..32b6c6c217a46c 100644
+--- a/drivers/media/pci/intel/ipu3/ipu3-cio2.c
++++ b/drivers/media/pci/intel/ipu3/ipu3-cio2.c
+@@ -846,7 +846,7 @@ static int cio2_vb2_buf_init(struct vb2_buffer *vb)
+ 	unsigned int pages =3D DIV_ROUND_UP(vb->planes[0].length, CIO2_PAGE_SIZE)=
+;
+ 	unsigned int lops =3D DIV_ROUND_UP(pages + 1, entries_per_page);
+ 	struct sg_table *sg;
+-	struct sg_page_iter sg_iter;
++	struct sg_dma_page_iter sg_iter;
+ 	int i, j;
+=20
+ 	if (lops <=3D 0 || lops > CIO2_MAX_LOPS) {
+@@ -873,7 +873,7 @@ static int cio2_vb2_buf_init(struct vb2_buffer *vb)
+ 		b->offset =3D sg->sgl->offset;
+=20
+ 	i =3D j =3D 0;
+-	for_each_sg_page(sg->sgl, &sg_iter, sg->nents, 0) {
++	for_each_sg_dma_page(sg->sgl, &sg_iter, sg->nents, 0) {
+ 		if (!pages--)
+ 			break;
+ 		b->lop[i][j] =3D sg_page_iter_dma_address(&sg_iter) >> PAGE_SHIFT;
+diff --git a/include/linux/scatterlist.h b/include/linux/scatterlist.h
+index 093aa57120b0cf..c0592284e18b97 100644
+--- a/include/linux/scatterlist.h
++++ b/include/linux/scatterlist.h
+@@ -339,12 +339,12 @@ int sg_alloc_table_chained(struct sg_table *table, in=
+t nents,
+ /*
+  * sg page iterator
+  *
+- * Iterates over sg entries page-by-page.  On each successful iteration,
+- * you can call sg_page_iter_page(@piter) and sg_page_iter_dma_address(@pi=
+ter)
+- * to get the current page and its dma address. @piter->sg will point to t=
+he
+- * sg holding this page and @piter->sg_pgoffset to the page's page offset
+- * within the sg. The iteration will stop either when a maximum number of =
+sg
+- * entries was reached or a terminating sg (sg_last(sg) =3D=3D true) was r=
+eached.
++ * Iterates over sg entries page-by-page.  On each successful iteration, y=
+ou
++ * can call sg_page_iter_page(@piter) to get the current page and its dma
++ * address. @piter->sg will point to the sg holding this page and
++ * @piter->sg_pgoffset to the page's page offset within the sg. The iterat=
+ion
++ * will stop either when a maximum number of sg entries was reached or a
++ * terminating sg (sg_last(sg) =3D=3D true) was reached.
+  */
+ struct sg_page_iter {
+ 	struct scatterlist	*sg;		/* sg holding the page */
+@@ -356,7 +356,19 @@ struct sg_page_iter {
+ 						 * next step */
+ };
+=20
++/*
++ * sg page iterator for DMA addresses
++ *
++ * This is the same as sg_page_iter however you can call
++ * sg_page_iter_dma_address(@dma_iter) to get the page's DMA
++ * address. sg_page_iter_page() cannot be called on this iterator.
++ */
++struct sg_dma_page_iter {
++	struct sg_page_iter base;
++};
 +
-+		ctx = fwht_alloc(cfmt.g_pixelformat(), visible_width, visible_height,
-+				 cfmt.g_width(), cfmt.g_height(),
- 				 cfmt.g_field(), cfmt.g_colorspace(), cfmt.g_xfer_func(),
- 				 cfmt.g_ycbcr_enc(), cfmt.g_quantization());
- 
-@@ -2029,6 +2108,44 @@ done:
- 		fclose(file[OUT]);
- }
- 
-+static int get_cap_compose_rect(cv4l_fd &fd)
-+{
-+	v4l2_selection sel;
-+
-+	memset(&sel, 0, sizeof(sel));
-+	sel.type = vidcap_buftype;
-+	sel.target = V4L2_SEL_TGT_COMPOSE;
-+
-+	if (fd.g_selection(sel) == 0) {
-+		support_cap_compose = true;
-+		composed_width = sel.r.width;
-+		composed_height = sel.r.height;
-+		return 0;
-+	}
-+
-+	support_cap_compose = false;
-+	return 0;
-+}
-+
-+static int get_out_crop_rect(cv4l_fd &fd)
-+{
-+	v4l2_selection sel;
-+
-+	memset(&sel, 0, sizeof(sel));
-+	sel.type = vidout_buftype;
-+	sel.target = V4L2_SEL_TGT_CROP;
-+
-+	if (fd.g_selection(sel) == 0) {
-+		support_out_crop = true;
-+		cropped_width = sel.r.width;
-+		cropped_height = sel.r.height;
-+		return 0;
-+	}
-+
-+	support_out_crop = false;
-+	return 0;
-+}
-+
- void streaming_set(cv4l_fd &fd, cv4l_fd &out_fd)
+ bool __sg_page_iter_next(struct sg_page_iter *piter);
++bool __sg_page_iter_dma_next(struct sg_dma_page_iter *dma_iter);
+ void __sg_page_iter_start(struct sg_page_iter *piter,
+ 			  struct scatterlist *sglist, unsigned int nents,
+ 			  unsigned long pgoffset);
+@@ -372,11 +384,13 @@ static inline struct page *sg_page_iter_page(struct s=
+g_page_iter *piter)
+ /**
+  * sg_page_iter_dma_address - get the dma address of the current page held=
+ by
+  * the page iterator.
+- * @piter:	page iterator holding the page
++ * @dma_iter:	page iterator holding the page
+  */
+-static inline dma_addr_t sg_page_iter_dma_address(struct sg_page_iter *pit=
+er)
++static inline dma_addr_t
++sg_page_iter_dma_address(struct sg_dma_page_iter *dma_iter)
  {
- 	cv4l_disable_trace dt(fd);
-@@ -2036,6 +2153,9 @@ void streaming_set(cv4l_fd &fd, cv4l_fd &out_fd)
- 	int do_cap = options[OptStreamMmap] + options[OptStreamUser] + options[OptStreamDmaBuf];
- 	int do_out = options[OptStreamOutMmap] + options[OptStreamOutUser] + options[OptStreamOutDmaBuf];
- 
-+	get_cap_compose_rect(fd);
-+	get_out_crop_rect(fd);
+-	return sg_dma_address(piter->sg) + (piter->sg_pgoffset << PAGE_SHIFT);
++	return sg_dma_address(dma_iter->base.sg) +
++	       (dma_iter->base.sg_pgoffset << PAGE_SHIFT);
+ }
+=20
+ /**
+@@ -385,11 +399,28 @@ static inline dma_addr_t sg_page_iter_dma_address(str=
+uct sg_page_iter *piter)
+  * @piter:	page iterator to hold current page, sg, sg_pgoffset
+  * @nents:	maximum number of sg entries to iterate over
+  * @pgoffset:	starting page offset
++ *
++ * Callers may use sg_page_iter_page() to get each page pointer.
+  */
+ #define for_each_sg_page(sglist, piter, nents, pgoffset)		   \
+ 	for (__sg_page_iter_start((piter), (sglist), (nents), (pgoffset)); \
+ 	     __sg_page_iter_next(piter);)
+=20
++/**
++ * for_each_sg_dma_page - iterate over the pages of the given sg list
++ * @sglist:	sglist to iterate over
++ * @dma_iter:	page iterator to hold current page
++ * @dma_nents:	maximum number of sg entries to iterate over, this is the v=
+alue
++ *              returned from dma_map_sg
++ * @pgoffset:	starting page offset
++ *
++ * Callers may use sg_page_iter_dma_address() to get each page's DMA addre=
+ss.
++ */
++#define for_each_sg_dma_page(sglist, dma_iter, dma_nents, pgoffset)       =
+     \
++	for (__sg_page_iter_start(&(dma_iter)->base, sglist, dma_nents,        \
++				  pgoffset);                                   \
++	     __sg_page_iter_dma_next(dma_iter);)
 +
- 	if (out_fd.g_fd() < 0) {
- 		out_capabilities = capabilities;
- 		out_priv_magic = priv_magic;
--- 
-2.17.1
+ /*
+  * Mapping sg iterator
+  *
+diff --git a/lib/scatterlist.c b/lib/scatterlist.c
+index 7c6096a7170486..716a751be67357 100644
+--- a/lib/scatterlist.c
++++ b/lib/scatterlist.c
+@@ -625,6 +625,32 @@ bool __sg_page_iter_next(struct sg_page_iter *piter)
+ }
+ EXPORT_SYMBOL(__sg_page_iter_next);
+=20
++static int sg_dma_page_count(struct scatterlist *sg)
++{
++	return PAGE_ALIGN(sg->offset + sg_dma_len(sg)) >> PAGE_SHIFT;
++}
++
++bool __sg_page_iter_dma_next(struct sg_dma_page_iter *dma_iter)
++{
++	struct sg_page_iter *piter =3D &dma_iter->base;
++
++	if (!piter->__nents || !piter->sg)
++		return false;
++
++	piter->sg_pgoffset +=3D piter->__pg_advance;
++	piter->__pg_advance =3D 1;
++
++	while (piter->sg_pgoffset >=3D sg_dma_page_count(piter->sg)) {
++		piter->sg_pgoffset -=3D sg_dma_page_count(piter->sg);
++		piter->sg =3D sg_next(piter->sg);
++		if (!--piter->__nents || !piter->sg)
++			return false;
++	}
++
++	return true;
++}
++EXPORT_SYMBOL(__sg_page_iter_next);
++
+ /**
+  * sg_miter_start - start mapping iteration over a sg list
+  * @miter: sg mapping iter to be started
+--=20
+2.20.1
 
