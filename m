@@ -5,64 +5,63 @@ X-Spam-Level:
 X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+	SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 92A3BC43387
-	for <linux-media@archiver.kernel.org>; Sat,  5 Jan 2019 14:52:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D905C43387
+	for <linux-media@archiver.kernel.org>; Sat,  5 Jan 2019 15:09:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4DAE2206B6
-	for <linux-media@archiver.kernel.org>; Sat,  5 Jan 2019 14:52:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D35882085A
+	for <linux-media@archiver.kernel.org>; Sat,  5 Jan 2019 15:09:44 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="tUv9lzXE"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="uYGpwF8L"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726234AbfAEOw1 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sat, 5 Jan 2019 09:52:27 -0500
-Received: from mail-pg1-f195.google.com ([209.85.215.195]:35250 "EHLO
-        mail-pg1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726200AbfAEOw1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 5 Jan 2019 09:52:27 -0500
-Received: by mail-pg1-f195.google.com with SMTP id s198so18743188pgs.2
-        for <linux-media@vger.kernel.org>; Sat, 05 Jan 2019 06:52:26 -0800 (PST)
+        id S1726235AbfAEPJn (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sat, 5 Jan 2019 10:09:43 -0500
+Received: from mail-pf1-f193.google.com ([209.85.210.193]:46435 "EHLO
+        mail-pf1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726200AbfAEPJn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 5 Jan 2019 10:09:43 -0500
+Received: by mail-pf1-f193.google.com with SMTP id c73so19673775pfe.13;
+        Sat, 05 Jan 2019 07:09:42 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc:content-transfer-encoding;
-        bh=itm+XOUl+uXpUydA7dTG57hj9HbxtNhhGcbZNSqeHNg=;
-        b=tUv9lzXEpIMDpeNUtMaUOC/Dp90CdFX73JRO2KIl4sEIz9c3QyGrHd3SNj6bdgeF6g
-         B9IxL5AcLKd4DRmfCFirdW/i1VIPZAxKfCECA+/htCBHVclyk44bAhWNDDkOmUoelx8Q
-         kKGR5yQFur91HVQb5zgtZl8vodEsF6MHvKe7wSx/BY4kIrXWWyS7aWn14AnGxXtcbyc7
-         It95kWmsK67PCbsAuHuP8b5xM9N2JjHww4SWu00J2CLHsNdflBe9BCirJL/wcexnb106
-         Rw+69zrlTNAZLb8PtYT3rEISMwkmXkyP13tt1CJuR7gaRjGPbpwuRXiurM/qtiMx/YmZ
-         7vpQ==
+        bh=aDyU9vLBXKdK2v/2uqJ6XoS4sWAqaAzy5gcVfcR5DZo=;
+        b=uYGpwF8LrKHB6d0eLYNVblUrG2M6bkItztBiGoigXQu0QCqJDqP0Nwy4gg46XpzkV8
+         cQecn7+MRgm/Ta1f6z2JuihJ/QYLbXrBxeu/25E0hOhQ4UvFePRljL2siY5h9OQSlrpW
+         qXAbRV/fj6WmHdy/r/B9vPhmUc4k1MAuL5/pUHFWKi08LZ5h61uwPpNLghvKOx1OzhuZ
+         YHA/2OL3dLgzGsZPPN8TZ0wpyCkQN6NiklcU2BMML1NKdMVpxRGarvgIWj7K7CI/3wyE
+         9mHcU0w/L7ns4RU+CtWnRxmkraIJN+gZvVHlLDB+dhpjvyNXf+B5gKJxBwaJryu2He+x
+         xNJQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc:content-transfer-encoding;
-        bh=itm+XOUl+uXpUydA7dTG57hj9HbxtNhhGcbZNSqeHNg=;
-        b=fX4xOdjfdlhl0bsyZNcLimpQEYKgW1SijxzCm0yk217+kvZSP9+y7X0W8F3WSs7023
-         zwhRhJ8362uPdbLRVjJuYZy8ikmO1orBtela8SOgMFYfoiNO7lClzA0ZQKuM9h3cprHM
-         gDayUx4xF0MLrK0HzYRQrfsbvq3AVD1OVvrKG9n5gFk4lNre59XyU5sbYM7woqG6Cn3/
-         24Pa65ZkAzBDFXke8aT8yKpiQN7Id7KSA7tjuqpLqrDXpmD5hMWaDrsvcogCjlttww/K
-         UuY2BSSYFG0V4sIt6/czRIan6Y8fsxM1YNSlgOCT5wS5YswWs38MZ8OiOFbxKiXnxEJz
-         B1AQ==
-X-Gm-Message-State: AA+aEWa43wy5uASuYFQus28OaBRHG5tZYM+weUyiNtYOaJAMdCtWl7oQ
-        /WwZNx2bYVIOTzPMaArQxJbGrkW0afXUbvFAKeI=
-X-Google-Smtp-Source: AFSGD/UZxyvzzeT7SwCPCEbJ6L/bjnfViNCJI5hTm3S5NZn8wmMnAFvg+0Vy94TbvfRWqExR8Yrzgj1k3ug88b+Ao04=
-X-Received: by 2002:a62:3305:: with SMTP id z5mr57292240pfz.112.1546699946143;
- Sat, 05 Jan 2019 06:52:26 -0800 (PST)
+        bh=aDyU9vLBXKdK2v/2uqJ6XoS4sWAqaAzy5gcVfcR5DZo=;
+        b=ksqXQkZmyGjwA3bavNkmaul+oO77tzeWdpNAx1X0lskeqSF5ElhKynaGgj4qTD5ykN
+         2xX2+I9EUEEHZVebes9BlC2L1ss6RXq0qXYxnDVese8fhEnkyW2ceXNXqAd92V5d7YHZ
+         ymeoVXthzi+HJENU2fW19vXZs11D0j9qs9pOZVfbQnhj2fG9x2Ivx/5IVrRLZX7SgPHy
+         2luYfuWPmx54ioURblXQPSUQX+k8M8ZrPbmpdNc/wMEsCv0fJLCV3dTUG6R0993vnT4m
+         SzSX8mR//GruuxjlaP1BVV0mj1Qty16pQUzyVdtOd//7jd5W7pkl4BR6W0sOagX0R4o/
+         L91g==
+X-Gm-Message-State: AJcUukeNy5fMCIa7cMFob+sMep8/8nmgb0Ek3JyMkf73jN32peaYpmx7
+        aUPFMyllG4snnrbRvbd328qSD2spfZQ0mUrwrW0=
+X-Google-Smtp-Source: ALg8bN7pKDCubOgbl4G2EfY2aAvaMX7I1G1CQSgqnG1wS+WExAcN+F5o6yyjAf9mPUOle3210gXt2P1p91utvfijl3M=
+X-Received: by 2002:a63:2b01:: with SMTP id r1mr5060491pgr.432.1546700981947;
+ Sat, 05 Jan 2019 07:09:41 -0800 (PST)
 MIME-Version: 1.0
-References: <1546103258-29025-1-git-send-email-akinobu.mita@gmail.com>
- <1546103258-29025-3-git-send-email-akinobu.mita@gmail.com>
- <20181231105418.nt4b6abe2tnvsge7@pengutronix.de> <CAC5umyiSoo46A7d-V1fRMny0HhV9=gbch4_vBhy-GN1O54CJjw@mail.gmail.com>
- <20190103134704.3rabugqd3pqzrazb@pengutronix.de>
-In-Reply-To: <20190103134704.3rabugqd3pqzrazb@pengutronix.de>
+References: <1545498774-11754-1-git-send-email-akinobu.mita@gmail.com>
+ <1545498774-11754-3-git-send-email-akinobu.mita@gmail.com> <20190103211240.GA31467@bogus>
+In-Reply-To: <20190103211240.GA31467@bogus>
 From:   Akinobu Mita <akinobu.mita@gmail.com>
-Date:   Sat, 5 Jan 2019 23:52:14 +0900
-Message-ID: <CAC5umyjpCj6AaWyY=w-2NnO0v6MHz8JFA9R+oJrxxxHyXz=_8g@mail.gmail.com>
-Subject: Re: [PATCH 2/4] media: mt9m111: make VIDIOC_SUBDEV_G_FMT ioctl work
- with V4L2_SUBDEV_FORMAT_TRY
-To:     Marco Felsch <m.felsch@pengutronix.de>
+Date:   Sun, 6 Jan 2019 00:09:30 +0900
+Message-ID: <CAC5umyh69A2ugGKv1cvT1okgzdbLyoS05vj1gA84ganLPaq50Q@mail.gmail.com>
+Subject: Re: [PATCH 02/12] media: i2c: mt9m001: dt: add binding for mt9m001
+To:     Rob Herring <robh@kernel.org>
 Cc:     linux-media@vger.kernel.org,
+        "open list:OPEN FIRMWARE AND..." <devicetree@vger.kernel.org>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>
 Content-Type: text/plain; charset="UTF-8"
@@ -72,107 +71,94 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-2019=E5=B9=B41=E6=9C=883=E6=97=A5(=E6=9C=A8) 22:47 Marco Felsch <m.felsch@p=
-engutronix.de>:
+2019=E5=B9=B41=E6=9C=884=E6=97=A5(=E9=87=91) 6:12 Rob Herring <robh@kernel.=
+org>:
 >
-> On 19-01-01 02:07, Akinobu Mita wrote:
-> > 2018=E5=B9=B412=E6=9C=8831=E6=97=A5(=E6=9C=88) 19:54 Marco Felsch <m.fe=
-lsch@pengutronix.de>:
-> > >
-> > > On 18-12-30 02:07, Akinobu Mita wrote:
-> > > > The VIDIOC_SUBDEV_G_FMT ioctl for this driver doesn't recognize
-> > > > V4L2_SUBDEV_FORMAT_TRY and always works as if V4L2_SUBDEV_FORMAT_AC=
-TIVE
-> > > > is specified.
-> > > >
-> > > > Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > > > Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-> > > > Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-> > > > ---
-> > > >  drivers/media/i2c/mt9m111.c | 31 +++++++++++++++++++++++++++++++
-> > > >  1 file changed, 31 insertions(+)
-> > > >
-> > > > diff --git a/drivers/media/i2c/mt9m111.c b/drivers/media/i2c/mt9m11=
-1.c
-> > > > index f0e47fd..acb4dee 100644
-> > > > --- a/drivers/media/i2c/mt9m111.c
-> > > > +++ b/drivers/media/i2c/mt9m111.c
-> > > > @@ -528,6 +528,16 @@ static int mt9m111_get_fmt(struct v4l2_subdev =
-*sd,
-> > > >       if (format->pad)
-> > > >               return -EINVAL;
-> > > >
-> > > > +     if (format->which =3D=3D V4L2_SUBDEV_FORMAT_TRY) {
-> > > > +#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
-> > >
-> > > This ifdef is made in the include/media/v4l2-subdev.h, so I would dro=
-p
-> > > it.
+> On Sun, Dec 23, 2018 at 02:12:44AM +0900, Akinobu Mita wrote:
+> > Add device tree binding documentation for the MT9M001 CMOS image sensor=
+.
 > >
-> > I sent similar fix for ov2640 driver and kerel test robot reported
-> > build test failure.  So I think this ifdef is necessary.
+> > Cc: Rob Herring <robh@kernel.org>
+> > Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> > Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+> > ---
+> >  .../devicetree/bindings/media/i2c/mt9m001.txt      | 37 ++++++++++++++=
+++++++++
+> >  1 file changed, 37 insertions(+)
+> >  create mode 100644 Documentation/devicetree/bindings/media/i2c/mt9m001=
+.txt
 > >
-> > v1: https://www.mail-archive.com/linux-media@vger.kernel.org/msg137098.=
-html
-> > v2: https://www.mail-archive.com/linux-media@vger.kernel.org/msg141735.=
-html
+> > diff --git a/Documentation/devicetree/bindings/media/i2c/mt9m001.txt b/=
+Documentation/devicetree/bindings/media/i2c/mt9m001.txt
+> > new file mode 100644
+> > index 0000000..794b787
+> > --- /dev/null
+> > +++ b/Documentation/devicetree/bindings/media/i2c/mt9m001.txt
+> > @@ -0,0 +1,37 @@
+> > +MT9M001: 1/2-Inch Megapixel Digital Image Sensor
+> > +
+> > +The MT9M001 is an SXGA-format with a 1/2-inch CMOS active-pixel digita=
+l
+> > +image sensor. It is programmable through a simple two-wire serial
+> > +interface.
 >
-> You are absolutely true, sorry my mistake.. Unfortunately my patch [1] wa=
-sn't
-> applied which fixes it commonly. This patch will avoid the 2nd ifdef in
-> init_cfg() too.
->
-> [1] https://www.spinics.net/lists/linux-media/msg138940.html
->
-> >
-> > > > +             mf =3D v4l2_subdev_get_try_format(sd, cfg, 0);
-> > >
-> > > I would use format->pad instead of the static 0.
-> >
-> > OK.
-> >
-> > > > +             format->format =3D *mf;
-> > >
-> > > Is this correct? I tought v4l2_subdev_get_try_format() will return th=
-e
-> > > try_pad which we need to fill.
-> >
-> > I think this is correct.  Other sensor drivers are doing the same thing=
- in
-> > get_fmt() callback.
->
-> Yes, you're right.
->
-> > > > +             return 0;
-> > > > +#else
-> > > > +             return -ENOTTY;
-> > >
-> > > Return this error is not specified in the API-Doc.
-> >
-> > I think this 'return -ENOTTY' is not reachable even if
-> > CONFIG_VIDEO_V4L2_SUBDEV_API is not set, and can be replaced with any
-> > return value.
->
-> Sorry I didn't catched this. When it's not reachable why is it there and
-> why isn't it reachable? If the format->which =3D V4L2_SUBDEV_FORMAT_TRY
-> and we don't configure CONFIG_VIDEO_V4L2_SUBDEV_API, then this path will
-> be reached, or overlooked I something?
+> I2C?
 
-As far as I can see, when CONFIG_VIDEO_V4L2_SUBDEV_API is not defined,
-the get_fmt() callback is always called with
-'format->which =3D=3D V4L2_SUBDEV_FORMAT_ACTIVE'.
+Sounds good.
 
-There is only one call site that the get_fmt() is called with
-'format->which =3D=3D V4L2_SUBDEV_FORMAT_TRY' in
-drivers/media/v4l2-core/v4l2-subdev.c: subdev_do_ioctl().
-But the call site is enclosed by ifdef CONFIG_VIDEO_V4L2_SUBDEV_API.
+> > +
+> > +Required Properties:
+> > +
+> > +- compatible: shall be "onnn,mt9m001".
+> > +- clocks: reference to the master clock into sensor
+> > +
+> > +Optional Properties:
+> > +
+> > +- reset-gpios: GPIO handle which is connected to the reset pin of the =
+chip.
+> > +  Active low.
+> > +- standby-gpios: GPIO handle which is connected to the standby pin of =
+the chip.
+> > +  Active high.
+> > +
+> > +For further reading on port node refer to
+> > +Documentation/devicetree/bindings/media/video-interfaces.txt.
+>
+> You still need to state how many ports/endpoints and what they are.
 
-So the hunk of the patch can be changed to:
+I'll write the following description that is copied from
+Documentation/devicetree/bindings/media/i2c/mt9m111.txt.
 
-        if (format->which =3D=3D V4L2_SUBDEV_FORMAT_TRY) {
-#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
-                mf =3D v4l2_subdev_get_try_format(sd, cfg, format->pad);
-                format->format =3D *mf;
-                return 0;
-#endif
-        }
+"The device node must contain one 'port' child node with one 'endpoint' chi=
+ld
+sub-node for its digital output video port, in accordance with the video
+interface bindings defined in:
+Documentation/devicetree/bindings/media/video-interfaces.txt"
+
+> > +
+> > +Example:
+> > +
+> > +     &i2c1 {
+> > +             mt9m001@5d {
+>
+> camera-sensor@5d
+
+OK.
+
+> > +                     compatible =3D "onnn,mt9m001";
+> > +                     reg =3D <0x5d>;
+> > +                     reset-gpios =3D <&gpio0 0 GPIO_ACTIVE_LOW>;
+> > +                     standby-gpios =3D <&gpio0 1 GPIO_ACTIVE_HIGH>;
+> > +                     clocks =3D <&camera_clk>;
+> > +                     port {
+> > +                             mt9m001_out: endpoint {
+> > +                                     remote-endpoint =3D <&vcap_in>;
+> > +                             };
+> > +                     };
+> > +             };
+> > +     };
+> > --
+> > 2.7.4
+> >
