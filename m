@@ -2,146 +2,177 @@ Return-Path: <SRS0=yUb4=PN=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_PASS autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BCF49C43387
-	for <linux-media@archiver.kernel.org>; Sat,  5 Jan 2019 03:22:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 92A3BC43387
+	for <linux-media@archiver.kernel.org>; Sat,  5 Jan 2019 14:52:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 82B0C2173B
-	for <linux-media@archiver.kernel.org>; Sat,  5 Jan 2019 03:22:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4DAE2206B6
+	for <linux-media@archiver.kernel.org>; Sat,  5 Jan 2019 14:52:28 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="a1aCxV8m"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="tUv9lzXE"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726100AbfAEDV4 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 4 Jan 2019 22:21:56 -0500
-Received: from mail-eopbgr80053.outbound.protection.outlook.com ([40.107.8.53]:4287
-        "EHLO EUR04-VI1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726010AbfAEDV4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 4 Jan 2019 22:21:56 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Mellanox.com;
- s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=Mc1zOtt3Xoj4RQckz1skKj2syqFLtDjzGRTfLCULYc4=;
- b=a1aCxV8mVbr+N25VpAjwqsensr+qoZdnTNPoDg5X1cZDg8TO6S3HduVpmW3aeXl6HGJxLd/F8h92A7g2DXEDYCqTH0EQ0Ngmmw6oZFeGQggUXlF7rQhg/uhSQXntdo8TkDEIZovw21km2L6vxftFcsfGDNAq3yfs53PvKhpV2GE=
-Received: from AM4PR0501MB2179.eurprd05.prod.outlook.com (10.165.82.10) by
- AM4PR0501MB2644.eurprd05.prod.outlook.com (10.172.215.18) with Microsoft SMTP
- Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.1495.6; Sat, 5 Jan 2019 03:21:50 +0000
-Received: from AM4PR0501MB2179.eurprd05.prod.outlook.com
- ([fe80::88a5:f979:5400:adf]) by AM4PR0501MB2179.eurprd05.prod.outlook.com
- ([fe80::88a5:f979:5400:adf%5]) with mapi id 15.20.1495.005; Sat, 5 Jan 2019
- 03:21:50 +0000
-From:   Jason Gunthorpe <jgg@mellanox.com>
-To:     kbuild test robot <lkp@intel.com>
-CC:     "kbuild-all@01.org" <kbuild-all@01.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        Christoph Hellwig <hch@lst.de>,
-        Shiraz Saleem <shiraz.saleem@intel.com>,
-        Imre Deak <imre.deak@intel.com>,
-        Daniel Vetter <daniel.vetter@ffwll.ch>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Yong Zhi <yong.zhi@intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Bingbu Cao <bingbu.cao@intel.com>,
-        Tian Shu Qiu <tian.shu.qiu@intel.com>,
-        Jian Xu Zheng <jian.xu.zheng@intel.com>,
-        Sinclair Yeh <syeh@vmware.com>,
-        Thomas Hellstrom <thellstrom@vmware.com>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>
-Subject: Re: [PATCH] lib/scatterlist: Provide a DMA page iterator
-Thread-Topic: [PATCH] lib/scatterlist: Provide a DMA page iterator
-Thread-Index: AQHUpH3T+Rn6hCeN4kq6RDaSbJgsYKWf9imAgAAMaQA=
-Date:   Sat, 5 Jan 2019 03:21:50 +0000
-Message-ID: <20190105032142.GN28204@mellanox.com>
-References: <20190104223531.GA1705@ziepe.ca>
- <201901051046.ew7HAHfl%fengguang.wu@intel.com>
-In-Reply-To: <201901051046.ew7HAHfl%fengguang.wu@intel.com>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-clientproxiedby: MWHPR06CA0033.namprd06.prod.outlook.com
- (2603:10b6:301:39::46) To AM4PR0501MB2179.eurprd05.prod.outlook.com
- (2603:10a6:200:52::10)
-authentication-results: spf=none (sender IP is )
- smtp.mailfrom=jgg@mellanox.com; 
-x-ms-exchange-messagesentrepresentingtype: 1
-x-originating-ip: [174.3.196.123]
-x-ms-publictraffictype: Email
-x-microsoft-exchange-diagnostics: 1;AM4PR0501MB2644;6:j9nAggkHe5xCZLf4j/916Sp9Iswu7BDXObmTPJs/IG0+q/igObqKVFolO4HGFtL1oXKaxb+/f6GCh8FeGGNKiKgGEF7lrBpVPG1Aw3yJGUy7N0daJTndQxqleEt3E9lGHkUg4dBxC7rJskXbwaLK+fNdRnlV8n81YVz/sL0J0QmlIdFdqrDtExZRRbOpy7ceCr9w9rKHeJs+GwfwpE5DmjiNaZ3v1eqpJ3R9WyFfUQPtcuZTMINrl2RWwpANuQizeVwK8t/s6CDiFNMPjO/PL+cUli9hnsEaFOtF0C8AkaVSEqxft8YeyaeKO3XwODDH0AdDmSEOcFUPg5XKNeOM0Cyq/by0k/CQ+JFz6o35I+lpWAFN4TvKBnPysLtiZxDw9ObOf0Xpisr2hD8FnvVy0kQc0oTHYzOUhIQ+OL/yRg4EGTSKGQBzJYVlQlkH6vM659WhVIu4F8jAY5Gt7QNE4g==;5:jbShPwqR1vLqyNPSkhStOpVXgUCcUiXOHMnz5Nl8TXKxB809xoQ4XqEvg/ZmHTCXnnfA/J++nkt0w0/mLEmPdWRSCo41YqSkfbKPiIdZs20WAH4hq4yHhnaF4+u6bOrGn5siieE8XoCFck1uuVTvlsLqd6/BRPhCdj8qST2v1VgAn6IPQ1kAClo2Zf/iUxX1KetA90XlHJGAt5ceu+vQpg==;7:BrDVDmEq0dLJzpU2F9JhubGqsX6TnT0bSQabHeWgfqYgz72F/9Q1V/Q6HeZv0gH3gW8+oLagUwLbu1NcMm4ZcpH3IEhEziBEmV4c0BYgxePhQaUrGUhUCGLmkei2WgRyA8YGyDHt986nzbjN1uTOfQ==
-x-ms-office365-filtering-correlation-id: 23021c34-6e8b-47f8-cc4f-08d672bcee5b
-x-ms-office365-filtering-ht: Tenant
-x-microsoft-antispam: BCL:0;PCL:0;RULEID:(2390118)(7020095)(4652040)(8989299)(4534185)(4627221)(201703031133081)(201702281549075)(8990200)(5600109)(711020)(4618075)(2017052603328)(7153060)(7193020);SRVR:AM4PR0501MB2644;
-x-ms-traffictypediagnostic: AM4PR0501MB2644:
-x-microsoft-antispam-prvs: <AM4PR0501MB2644A7BA9D64FF0B48CB23B6CF8F0@AM4PR0501MB2644.eurprd05.prod.outlook.com>
-x-exchange-antispam-report-cfa-test: BCL:0;PCL:0;RULEID:(8211001083)(3230021)(908002)(999002)(5005026)(6040522)(8220060)(2401047)(8121501046)(10201501046)(3231475)(944501520)(52105112)(93006095)(93001095)(3002001)(6055026)(6041310)(20161123558120)(20161123564045)(201703131423095)(201702281528075)(20161123555045)(201703061421075)(201703061406153)(20161123560045)(20161123562045)(201708071742011)(7699051)(76991095);SRVR:AM4PR0501MB2644;BCL:0;PCL:0;RULEID:;SRVR:AM4PR0501MB2644;
-x-forefront-prvs: 09086FB5C5
-x-forefront-antispam-report: SFV:NSPM;SFS:(10009020)(346002)(136003)(366004)(396003)(39860400002)(376002)(189003)(199004)(25786009)(54906003)(14454004)(386003)(6116002)(4326008)(52116002)(76176011)(53936002)(1076003)(3846002)(305945005)(71190400001)(476003)(8936002)(86362001)(486006)(71200400001)(11346002)(256004)(6506007)(316002)(6306002)(229853002)(97736004)(5024004)(6246003)(36756003)(966005)(6512007)(446003)(7736002)(102836004)(7416002)(33656002)(5660300001)(478600001)(6486002)(6436002)(66066001)(2616005)(81166006)(106356001)(81156014)(8676002)(26005)(6916009)(99286004)(186003)(68736007)(105586002)(2906002);DIR:OUT;SFP:1101;SCL:1;SRVR:AM4PR0501MB2644;H:AM4PR0501MB2179.eurprd05.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;MX:1;A:1;
-received-spf: None (protection.outlook.com: mellanox.com does not designate
- permitted sender hosts)
-x-ms-exchange-senderadcheck: 1
-x-microsoft-antispam-message-info: rdN3Pa1IDFV1srMtu42dAc8n8minTyyOfLI6pI7qMrIn7ZnYVYdhG0UzHvueoDnLF5lntHOieGRjfWS7GJ7grQtpteQv3Ceq+cJAdBQ6Oxx1kEdB24cLjQn/M2KreBqCnb9oQ/E36T5yWb1HVEtnHgr2hpztS3C0i/SbRcwjwSmFz9cikzrxFmye0Xa4j/7pFqTf23tdHdAX5aeWkhNIxl7fRYgww7Xc1RHNQzyXaPN2n61MxMm6jrsxcaw63LM2fmwDVxjgOMjXapSRw/KsFHG9PneKxKcvTqSmj1gpkMK1r/m07fCH1GFrmjLRrGWX
-spamdiagnosticoutput: 1:99
-spamdiagnosticmetadata: NSPM
-Content-Type: text/plain; charset="us-ascii"
-Content-ID: <82C95609B764554287F500BCF927501B@eurprd05.prod.outlook.com>
-Content-Transfer-Encoding: quoted-printable
+        id S1726234AbfAEOw1 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sat, 5 Jan 2019 09:52:27 -0500
+Received: from mail-pg1-f195.google.com ([209.85.215.195]:35250 "EHLO
+        mail-pg1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726200AbfAEOw1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 5 Jan 2019 09:52:27 -0500
+Received: by mail-pg1-f195.google.com with SMTP id s198so18743188pgs.2
+        for <linux-media@vger.kernel.org>; Sat, 05 Jan 2019 06:52:26 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc:content-transfer-encoding;
+        bh=itm+XOUl+uXpUydA7dTG57hj9HbxtNhhGcbZNSqeHNg=;
+        b=tUv9lzXEpIMDpeNUtMaUOC/Dp90CdFX73JRO2KIl4sEIz9c3QyGrHd3SNj6bdgeF6g
+         B9IxL5AcLKd4DRmfCFirdW/i1VIPZAxKfCECA+/htCBHVclyk44bAhWNDDkOmUoelx8Q
+         kKGR5yQFur91HVQb5zgtZl8vodEsF6MHvKe7wSx/BY4kIrXWWyS7aWn14AnGxXtcbyc7
+         It95kWmsK67PCbsAuHuP8b5xM9N2JjHww4SWu00J2CLHsNdflBe9BCirJL/wcexnb106
+         Rw+69zrlTNAZLb8PtYT3rEISMwkmXkyP13tt1CJuR7gaRjGPbpwuRXiurM/qtiMx/YmZ
+         7vpQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=itm+XOUl+uXpUydA7dTG57hj9HbxtNhhGcbZNSqeHNg=;
+        b=fX4xOdjfdlhl0bsyZNcLimpQEYKgW1SijxzCm0yk217+kvZSP9+y7X0W8F3WSs7023
+         zwhRhJ8362uPdbLRVjJuYZy8ikmO1orBtela8SOgMFYfoiNO7lClzA0ZQKuM9h3cprHM
+         gDayUx4xF0MLrK0HzYRQrfsbvq3AVD1OVvrKG9n5gFk4lNre59XyU5sbYM7woqG6Cn3/
+         24Pa65ZkAzBDFXke8aT8yKpiQN7Id7KSA7tjuqpLqrDXpmD5hMWaDrsvcogCjlttww/K
+         UuY2BSSYFG0V4sIt6/czRIan6Y8fsxM1YNSlgOCT5wS5YswWs38MZ8OiOFbxKiXnxEJz
+         B1AQ==
+X-Gm-Message-State: AA+aEWa43wy5uASuYFQus28OaBRHG5tZYM+weUyiNtYOaJAMdCtWl7oQ
+        /WwZNx2bYVIOTzPMaArQxJbGrkW0afXUbvFAKeI=
+X-Google-Smtp-Source: AFSGD/UZxyvzzeT7SwCPCEbJ6L/bjnfViNCJI5hTm3S5NZn8wmMnAFvg+0Vy94TbvfRWqExR8Yrzgj1k3ug88b+Ao04=
+X-Received: by 2002:a62:3305:: with SMTP id z5mr57292240pfz.112.1546699946143;
+ Sat, 05 Jan 2019 06:52:26 -0800 (PST)
 MIME-Version: 1.0
-X-OriginatorOrg: Mellanox.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 23021c34-6e8b-47f8-cc4f-08d672bcee5b
-X-MS-Exchange-CrossTenant-originalarrivaltime: 05 Jan 2019 03:21:49.7915
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: a652971c-7d2e-4d9b-a6a4-d149256f461b
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM4PR0501MB2644
+References: <1546103258-29025-1-git-send-email-akinobu.mita@gmail.com>
+ <1546103258-29025-3-git-send-email-akinobu.mita@gmail.com>
+ <20181231105418.nt4b6abe2tnvsge7@pengutronix.de> <CAC5umyiSoo46A7d-V1fRMny0HhV9=gbch4_vBhy-GN1O54CJjw@mail.gmail.com>
+ <20190103134704.3rabugqd3pqzrazb@pengutronix.de>
+In-Reply-To: <20190103134704.3rabugqd3pqzrazb@pengutronix.de>
+From:   Akinobu Mita <akinobu.mita@gmail.com>
+Date:   Sat, 5 Jan 2019 23:52:14 +0900
+Message-ID: <CAC5umyjpCj6AaWyY=w-2NnO0v6MHz8JFA9R+oJrxxxHyXz=_8g@mail.gmail.com>
+Subject: Re: [PATCH 2/4] media: mt9m111: make VIDIOC_SUBDEV_G_FMT ioctl work
+ with V4L2_SUBDEV_FORMAT_TRY
+To:     Marco Felsch <m.felsch@pengutronix.de>
+Cc:     linux-media@vger.kernel.org,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Sat, Jan 05, 2019 at 10:37:17AM +0800, kbuild test robot wrote:
-> Hi Jason,
->=20
-> I love your patch! Yet something to improve:
->=20
-> [auto build test ERROR on linus/master]
-> [also build test ERROR on v4.20 next-20190103]
-> [if your patch is applied to the wrong git tree, please drop us a note to=
- help improve the system]
->=20
-> url:    https://github.com/0day-ci/linux/commits/Jason-Gunthorpe/lib-scat=
-terlist-Provide-a-DMA-page-iterator/20190105-081739
-> config: x86_64-randconfig-x017-201900 (attached as .config)
-> compiler: gcc-7 (Debian 7.3.0-1) 7.3.0
-> reproduce:
->         # save the attached .config to linux build tree
->         make ARCH=3Dx86_64=20
->=20
-> All error/warnings (new ones prefixed by >>):
->=20
->    In file included from lib/scatterlist.c:9:0:
-> >> include/linux/export.h:81:20: error: redefinition of '__kstrtab___sg_p=
-age_iter_next'
->      static const char __kstrtab_##sym[]    \
->                        ^
->    include/linux/export.h:120:25: note: in expansion of macro '___EXPORT_=
-SYMBOL'
->     #define __EXPORT_SYMBOL ___EXPORT_SYMBOL
->                             ^~~~~~~~~~~~~~~~
->    include/linux/export.h:124:2: note: in expansion of macro '__EXPORT_SY=
-MBOL'
->      __EXPORT_SYMBOL(sym, "")
->      ^~~~~~~~~~~~~~~
-> >> lib/scatterlist.c:652:1: note: in expansion of macro 'EXPORT_SYMBOL'
->     EXPORT_SYMBOL(__sg_page_iter_next);
->     ^~~~~~~~~~~~~
+2019=E5=B9=B41=E6=9C=883=E6=97=A5(=E6=9C=A8) 22:47 Marco Felsch <m.felsch@p=
+engutronix.de>:
+>
+> On 19-01-01 02:07, Akinobu Mita wrote:
+> > 2018=E5=B9=B412=E6=9C=8831=E6=97=A5(=E6=9C=88) 19:54 Marco Felsch <m.fe=
+lsch@pengutronix.de>:
+> > >
+> > > On 18-12-30 02:07, Akinobu Mita wrote:
+> > > > The VIDIOC_SUBDEV_G_FMT ioctl for this driver doesn't recognize
+> > > > V4L2_SUBDEV_FORMAT_TRY and always works as if V4L2_SUBDEV_FORMAT_AC=
+TIVE
+> > > > is specified.
+> > > >
+> > > > Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > > > Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+> > > > Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+> > > > ---
+> > > >  drivers/media/i2c/mt9m111.c | 31 +++++++++++++++++++++++++++++++
+> > > >  1 file changed, 31 insertions(+)
+> > > >
+> > > > diff --git a/drivers/media/i2c/mt9m111.c b/drivers/media/i2c/mt9m11=
+1.c
+> > > > index f0e47fd..acb4dee 100644
+> > > > --- a/drivers/media/i2c/mt9m111.c
+> > > > +++ b/drivers/media/i2c/mt9m111.c
+> > > > @@ -528,6 +528,16 @@ static int mt9m111_get_fmt(struct v4l2_subdev =
+*sd,
+> > > >       if (format->pad)
+> > > >               return -EINVAL;
+> > > >
+> > > > +     if (format->which =3D=3D V4L2_SUBDEV_FORMAT_TRY) {
+> > > > +#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
+> > >
+> > > This ifdef is made in the include/media/v4l2-subdev.h, so I would dro=
+p
+> > > it.
+> >
+> > I sent similar fix for ov2640 driver and kerel test robot reported
+> > build test failure.  So I think this ifdef is necessary.
+> >
+> > v1: https://www.mail-archive.com/linux-media@vger.kernel.org/msg137098.=
+html
+> > v2: https://www.mail-archive.com/linux-media@vger.kernel.org/msg141735.=
+html
+>
+> You are absolutely true, sorry my mistake.. Unfortunately my patch [1] wa=
+sn't
+> applied which fixes it commonly. This patch will avoid the 2nd ifdef in
+> init_cfg() too.
+>
+> [1] https://www.spinics.net/lists/linux-media/msg138940.html
+>
+> >
+> > > > +             mf =3D v4l2_subdev_get_try_format(sd, cfg, 0);
+> > >
+> > > I would use format->pad instead of the static 0.
+> >
+> > OK.
+> >
+> > > > +             format->format =3D *mf;
+> > >
+> > > Is this correct? I tought v4l2_subdev_get_try_format() will return th=
+e
+> > > try_pad which we need to fill.
+> >
+> > I think this is correct.  Other sensor drivers are doing the same thing=
+ in
+> > get_fmt() callback.
+>
+> Yes, you're right.
+>
+> > > > +             return 0;
+> > > > +#else
+> > > > +             return -ENOTTY;
+> > >
+> > > Return this error is not specified in the API-Doc.
+> >
+> > I think this 'return -ENOTTY' is not reachable even if
+> > CONFIG_VIDEO_V4L2_SUBDEV_API is not set, and can be replaced with any
+> > return value.
+>
+> Sorry I didn't catched this. When it's not reachable why is it there and
+> why isn't it reachable? If the format->which =3D V4L2_SUBDEV_FORMAT_TRY
+> and we don't configure CONFIG_VIDEO_V4L2_SUBDEV_API, then this path will
+> be reached, or overlooked I something?
 
-Woops, should be __sg_page_dma_iter_next.. Will resend after getting
-some feedback.
+As far as I can see, when CONFIG_VIDEO_V4L2_SUBDEV_API is not defined,
+the get_fmt() callback is always called with
+'format->which =3D=3D V4L2_SUBDEV_FORMAT_ACTIVE'.
 
-Jason
+There is only one call site that the get_fmt() is called with
+'format->which =3D=3D V4L2_SUBDEV_FORMAT_TRY' in
+drivers/media/v4l2-core/v4l2-subdev.c: subdev_do_ioctl().
+But the call site is enclosed by ifdef CONFIG_VIDEO_V4L2_SUBDEV_API.
+
+So the hunk of the patch can be changed to:
+
+        if (format->which =3D=3D V4L2_SUBDEV_FORMAT_TRY) {
+#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
+                mf =3D v4l2_subdev_get_try_format(sd, cfg, format->pad);
+                format->format =3D *mf;
+                return 0;
+#endif
+        }
