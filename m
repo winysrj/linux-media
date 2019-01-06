@@ -2,145 +2,145 @@ Return-Path: <SRS0=W9AE=PO=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 07AF1C43387
-	for <linux-media@archiver.kernel.org>; Sun,  6 Jan 2019 16:31:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B925C43387
+	for <linux-media@archiver.kernel.org>; Sun,  6 Jan 2019 17:21:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CB0312087F
-	for <linux-media@archiver.kernel.org>; Sun,  6 Jan 2019 16:31:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D059E2087F
+	for <linux-media@archiver.kernel.org>; Sun,  6 Jan 2019 17:21:56 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=amarulasolutions.com header.i=@amarulasolutions.com header.b="kafZP4HN"
+	dkim=pass (2048-bit key) header.d=vanguardiasur-com-ar.20150623.gappssmtp.com header.i=@vanguardiasur-com-ar.20150623.gappssmtp.com header.b="epezfUhg"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726424AbfAFQbJ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sun, 6 Jan 2019 11:31:09 -0500
-Received: from mail-it1-f193.google.com ([209.85.166.193]:54948 "EHLO
-        mail-it1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726418AbfAFQbJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 6 Jan 2019 11:31:09 -0500
-Received: by mail-it1-f193.google.com with SMTP id i145so7658081ita.4
-        for <linux-media@vger.kernel.org>; Sun, 06 Jan 2019 08:31:08 -0800 (PST)
+        id S1726041AbfAFRVu (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sun, 6 Jan 2019 12:21:50 -0500
+Received: from mail-vk1-f193.google.com ([209.85.221.193]:43709 "EHLO
+        mail-vk1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725931AbfAFRVu (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 6 Jan 2019 12:21:50 -0500
+Received: by mail-vk1-f193.google.com with SMTP id o130so8931426vke.10
+        for <linux-media@vger.kernel.org>; Sun, 06 Jan 2019 09:21:49 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=amarulasolutions.com; s=google;
+        d=vanguardiasur-com-ar.20150623.gappssmtp.com; s=20150623;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=RpNm2IaOF3siha2bkIDP1P0vfouRYq2qejSlkkMzJKo=;
-        b=kafZP4HNAEAQnx+wui8iHMPWYPay7xwNwbhhoR1///YTISjQRDlYNGiRDAxAdFp0fE
-         qNRrcKZ/Ct1QQ+ebCLVk4NZiQSfQb20+rukN5pgkKKKkxn4PoC1max4MsgCYvgXtlqA9
-         H29tuvlHAYzTkmMwMuuCi0+5Gdn4jT84Xnzgo=
+         :cc:content-transfer-encoding;
+        bh=HPSHnGDRj6mLQSUv4JPQnsIrTLEbeoPCS38cByUX/n4=;
+        b=epezfUhgmBqwhIhvIHE/lvh7L00rnGEJ3dPd8xdNuz6MwP341NTrbB+DPsfGgmTsR/
+         VXiTWmHhYpN0/yYaCWb1xewj/cT2WWIr6oJtKBTNa1vgkPBasYlBN46PhIDqcUzFL64x
+         CEKEShK9ndrbv2/AmjbV1LB5zEj9i8JsU3mjH8A6jq+cRkXcMN2p5hNEMoSJp6XMI8tl
+         CU2IzYWumhFdtxM5grQBBJdjycUcxYTlb7AbQ8bdsFzBtO7FaAnYuQAkJ4sN1h1lbP8S
+         4WoJKWHufP2Trg6Wp0+ZjFMZJGK7KSSRQRsRDr7Ko2bwSf2zO2q9TEeFhatfTIEgM03J
+         cSjw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=RpNm2IaOF3siha2bkIDP1P0vfouRYq2qejSlkkMzJKo=;
-        b=QJaBwN4U8FO2NUzJ34jAD3BcsTw2HLkvrqzXV60UcE7HrhDjHBE5XAinTNdoMw4L6B
-         sDsYQ+TDaTt3fj8KEfI2hVV0kZQfN8x7lsiKHg1XM4207G3Qb6SHBWx5ceN+t2PnajGT
-         EVO6dQ+bC3RbZJLAnixK5nqCaN+Dq8+M6ekUsKBAH5KfSc9kHyGRzzcY+V4iRTPaaEVC
-         CdP298wiQozjtqjJ5EaXkAVIusH2L20qsKqb9IZTGkTC+nvzDrokXh0sGame+iGWHkOJ
-         4ItsYt3sYUX9nGO1rb137HQCtsMJ7P8gQQHsjh5OhRSuMXKN4OuCPJMNdOqnEyJTMLpG
-         Sp/Q==
-X-Gm-Message-State: AA+aEWbOoHVVEOOb6XHteF9f6/BKVnlq3at6E9XXBLkZ3EROlGgDthBW
-        sBE3HU7TrP+fWk/dd/qeSuLq26sCN4a1lf9spU2NdQ==
-X-Google-Smtp-Source: AFSGD/VmUsm1CGUrMdpHtObGhn5j8zdXwFc8djaRxi4UBlCC4gL55AIaDKBzNkf/T+fDSKH7wLr98CfHH/FjMHkxqWk=
-X-Received: by 2002:a02:781e:: with SMTP id p30mr40814158jac.85.1546792268054;
- Sun, 06 Jan 2019 08:31:08 -0800 (PST)
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=HPSHnGDRj6mLQSUv4JPQnsIrTLEbeoPCS38cByUX/n4=;
+        b=GgMMwaFubFv7aA/ypmW3BHfhGPa7l+hMZeJXzBhaHyztB9k939YVKNi+Ci3hEtpHgN
+         NY6xTTe4B1Xn4KUsxeV5QqM8yhTMhVt4UtCsxOYgcZ106JT16oZrgEEt83GB0UYp25a+
+         CyLSfCXFJjMxdeR0Y6pbEL8dWyebb5CC15Im28MvA//vApWIL9ibkDDDnv9gli4oww1B
+         l14t/j/GCclugQiNRrS28gRMoT+REeflYxM9gNYjYIAWAy4xrPMQsVcqvuYuYdMyJIfo
+         d51Ql4qVsy2VP+g2yv7Gi+jiO3PtZzKB4e+criY1pQykZIk4h5vnNOw8wVKq+WJp9xaN
+         PMGA==
+X-Gm-Message-State: AJcUukdpgLdzQJXOHDPV/cUqqjq35icKNsR59BDueu4YACl5C0E+LQdt
+        2Sj9wm/59v/qoLU36ZJJyrFRg2eOwtZ7vTyOB1ZKcw==
+X-Google-Smtp-Source: ALg8bN6dWLKjXcz6owlu3QI98SxUgZf7RBVuQjj4QJmGYCoI4qPMYvwSsNCgMbYxnMnuZxXdM6+rlWPg+Ok6dZhwylE=
+X-Received: by 2002:a1f:85d3:: with SMTP id h202mr21550444vkd.69.1546795308953;
+ Sun, 06 Jan 2019 09:21:48 -0800 (PST)
 MIME-Version: 1.0
-References: <20181220125438.11700-1-jagan@amarulasolutions.com>
- <20181220125438.11700-3-jagan@amarulasolutions.com> <20181221130025.lbvw7yvy74brf3jn@flea>
- <CAMty3ZCG5cF3tP2mid5xyS=yhtxkY+TOcGkwRkv+vrZt1=0iQg@mail.gmail.com>
-In-Reply-To: <CAMty3ZCG5cF3tP2mid5xyS=yhtxkY+TOcGkwRkv+vrZt1=0iQg@mail.gmail.com>
-From:   Jagan Teki <jagan@amarulasolutions.com>
-Date:   Sun, 6 Jan 2019 22:00:56 +0530
-Message-ID: <CAMty3ZBeopJTm7kUzqarSfqYAJup7B5eqVWPg4aRpgFJOWP7XA@mail.gmail.com>
-Subject: Re: [PATCH v5 2/6] media: sun6i: Add mod_rate quirk
-To:     Maxime Ripard <maxime.ripard@bootlin.com>
-Cc:     Yong Deng <yong.deng@magewell.com>,
+References: <20190105183150.20266-1-ayaka@soulik.info> <20190105183150.20266-5-ayaka@soulik.info>
+ <50db3bc3faea97182b7fe18b4d9677f7e1563eaa.camel@collabora.com>
+ <CAC7DE03-A74C-4154-9443-BC91E6CED02E@soulik.info> <f3dcd25bb1c3f0544cb7eedd0b27633d923c0d27.camel@collabora.com>
+ <C53B5CFA-2F9C-41E1-BBA8-D63819D0AC3D@soulik.info>
+In-Reply-To: <C53B5CFA-2F9C-41E1-BBA8-D63819D0AC3D@soulik.info>
+From:   Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Date:   Sun, 6 Jan 2019 14:21:37 -0300
+Message-ID: <CAAEAJfCLxvJWrC1CNiSyLV9y=pOjzUBik5SUD0ZVUcnA-+HobQ@mail.gmail.com>
+Subject: Re: [PATCH 4/4] arm64: dts: rockchip: add video codec for rk3399
+To:     Ayaka <ayaka@soulik.info>
+Cc:     Ezequiel Garcia <ezequiel@collabora.com>,
+        "open list:ARM/Rockchip SoC..." <linux-rockchip@lists.infradead.org>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        myy@miouyouyou.fr,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
         linux-media <linux-media@vger.kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Heiko Stuebner <heiko@sntech.de>,
         linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        devicetree <devicetree@vger.kernel.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        linux-sunxi <linux-sunxi@googlegroups.com>,
-        linux-amarula@amarulasolutions.com,
-        Michael Trimarchi <michael@amarulasolutions.com>
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Mon, Dec 24, 2018 at 8:57 PM Jagan Teki <jagan@amarulasolutions.com> wrote:
+On Sun, 6 Jan 2019 at 13:16, Ayaka <ayaka@soulik.info> wrote:
 >
-> On Fri, Dec 21, 2018 at 6:30 PM Maxime Ripard <maxime.ripard@bootlin.com> wrote:
-> >
-> > On Thu, Dec 20, 2018 at 06:24:34PM +0530, Jagan Teki wrote:
-> > > Unfortunately default CSI_SCLK rate cannot work properly to
-> > > drive the connected sensor interface, particularly on few
-> > > Allwinner SoC's like A64.
-> > >
-> > > So, add mod_rate quirk via driver data so-that the respective
-> > > SoC's which require to alter the default mod clock rate can assign
-> > > the operating clock rate.
-> > >
-> > > Signed-off-by: Jagan Teki <jagan@amarulasolutions.com>
-> > > ---
-> > >  .../platform/sunxi/sun6i-csi/sun6i_csi.c      | 34 +++++++++++++++----
-> > >  1 file changed, 28 insertions(+), 6 deletions(-)
-> > >
-> > > diff --git a/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c b/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
-> > > index ee882b66a5ea..fe002beae09c 100644
-> > > --- a/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
-> > > +++ b/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
-> > > @@ -15,6 +15,7 @@
-> > >  #include <linux/ioctl.h>
-> > >  #include <linux/module.h>
-> > >  #include <linux/of.h>
-> > > +#include <linux/of_device.h>
-> > >  #include <linux/platform_device.h>
-> > >  #include <linux/pm_runtime.h>
-> > >  #include <linux/regmap.h>
-> > > @@ -28,8 +29,13 @@
-> > >
-> > >  #define MODULE_NAME  "sun6i-csi"
-> > >
-> > > +struct sun6i_csi_variant {
-> > > +     unsigned long                   mod_rate;
-> > > +};
-> > > +
-> > >  struct sun6i_csi_dev {
-> > >       struct sun6i_csi                csi;
-> > > +     const struct sun6i_csi_variant  *variant;
-> > >       struct device                   *dev;
-> > >
-> > >       struct regmap                   *regmap;
-> > > @@ -822,33 +828,43 @@ static int sun6i_csi_resource_request(struct sun6i_csi_dev *sdev,
-> > >               return PTR_ERR(sdev->clk_mod);
-> > >       }
-> > >
-> > > +     if (sdev->variant->mod_rate)
-> > > +             clk_set_rate_exclusive(sdev->clk_mod, sdev->variant->mod_rate);
-> > > +
-> >
-> > It still doesn't make any sense to do it in the probe function...
 >
-> I'm not sure we discussed about the context wrt probe, we discussed
-> about exclusive put clock. Since clocks were enabling in set_power and
-> clock rate can be set during probe in single time instead of setting
-> it in set_power for every power enablement. anything wrong with that.
 >
-> >
-> > We discussed this in the previous iteration already.
-> >
-> > What we didn't discuss is the variant function that you introduce,
-> > while the previous approach was enough.
+> Sent from my iPad
 >
-> We discussed about clk_rate_exclusive_put, and that even handle it in
-> .remove right? so I have variant to handle it in sun6i_csi_remove.
+> > On Jan 7, 2019, at 12:04 AM, Ezequiel Garcia <ezequiel@collabora.com> w=
+rote:
+> >
+> > On Sun, 2019-01-06 at 23:05 +0800, Ayaka wrote:
+> >>> On Jan 6, 2019, at 10:22 PM, Ezequiel Garcia <ezequiel@collabora.com>=
+ wrote:
+> >>>
+> >>> Hi Randy,
+> >>>
+> >>> Thanks a lot for this patches. They are really useful
+> >>> to provide more insight into the VPU hardware.
+> >>>
+> >>> This change will make the vpu encoder and vpu decoder
+> >>> completely independent, can they really work in parallel?
+> >> As I said it depends on the platform, but with this patch, the user sp=
+ace would think they can work at the same time.
+> >
+> >
+> > I think there is some confusion.
+> >
+> > The devicetree is one thing: it is a hardware representation,
+> > a way to describe the hardware, for the kernel/bootloader to
+> > parse.
+> >
+> > The userspace view will depend on the driver implementation.
+> >
+> > The current devicetree and driver (without your patches),
+> > model the VPU as a single piece of hardware, exposing a decoder
+> > and an encoder.
+> >
+> > The V4L driver will then create two video devices, i.e. /dev/videoX
+> > and /dev/videoY. So userspace sees an independent view of the
+> > devices.
+> >
+> I knew that, the problem is that the driver should not always create a de=
+coder and encoder pair, they may not exist at some platforms, even some pla=
+tforms doesn=E2=80=99t have a encoder. You may have a look on the rk3328 I =
+post on the first email as example.
 
-Any comments?
+That is correct. But that still doesn't tackle my question: is the
+hardware able to run a decoding and an encoding job in parallel?
+
+If not, then it's wrong to describe them as independent entities.
+
+> > However, they are internally connected, and thus we can
+> > easily avoid two jobs running in parallel.
+> >
+> That is what the mpp service did in my patches, handing the relationship =
+between each devices. And it is not a easy work, maybe a 4k decoder would b=
+e blocked by another high frame rate encoding work or another decoder sessi=
+on. The vendor kernel have more worry about this,  but not in this version.
+
+Right. That is one way to design it. Another way is having a single
+devicetree node for the VPU encoder/decoder "complex".
+
+Thanks for the input!
+--=20
+Ezequiel Garc=C3=ADa, VanguardiaSur
+www.vanguardiasur.com.ar
