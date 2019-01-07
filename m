@@ -2,291 +2,109 @@ Return-Path: <SRS0=8vfi=PP=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 856F4C43444
-	for <linux-media@archiver.kernel.org>; Mon,  7 Jan 2019 12:36:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5EB4DC43387
+	for <linux-media@archiver.kernel.org>; Mon,  7 Jan 2019 13:04:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 56CD021736
-	for <linux-media@archiver.kernel.org>; Mon,  7 Jan 2019 12:36:41 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="dR0STEZz"
+	by mail.kernel.org (Postfix) with ESMTP id 3777A2089F
+	for <linux-media@archiver.kernel.org>; Mon,  7 Jan 2019 13:04:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727710AbfAGMgf (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 7 Jan 2019 07:36:35 -0500
-Received: from perceval.ideasonboard.com ([213.167.242.64]:57196 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727707AbfAGMge (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 7 Jan 2019 07:36:34 -0500
-Received: from [192.168.0.21] (cpc89242-aztw30-2-0-cust488.18-1.cable.virginm.net [86.31.129.233])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id C9AE5E22;
-        Mon,  7 Jan 2019 13:36:31 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1546864592;
-        bh=ora5CTip6oIgnu8YaFKtkOtwI3y/sHy3QMy5l0ER1DM=;
-        h=Reply-To:Subject:To:Cc:References:From:Date:In-Reply-To:From;
-        b=dR0STEZz9WU/ksCV5zIgcwBGuvR5RCPhoteAmGZRngineky3vgCzaD2yQz9gP79z3
-         +fIpbBCTLOcy1t8Prv7ztxrHticeGXcI4Y4fU7JcgrZbyo7U/nTGXxGISDMKd8HSOu
-         M3rH80xFqUezMCy71WKrL/F0UtBcntKEJAlK9tFY=
-Reply-To: kieran.bingham@ideasonboard.com
-Subject: Re: [PATCH v2 6/6] media: adv748x: Implement TX link_setup callback
-To:     Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        laurent.pinchart@ideasonboard.com,
-        niklas.soderlund+renesas@ragnatech.se
-Cc:     linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-References: <20190106155413.30666-1-jacopo+renesas@jmondi.org>
- <20190106155413.30666-7-jacopo+renesas@jmondi.org>
-From:   Kieran Bingham <kieran.bingham@ideasonboard.com>
-Openpgp: preference=signencrypt
-Autocrypt: addr=kieran.bingham@ideasonboard.com; keydata=
- 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
- sbsRB8KNNvVXBOVNwko86rQqF9drZuw=
-Organization: Ideas on Board
-Message-ID: <9f156850-14b6-3ca2-47c1-e03e1bc2c0f8@ideasonboard.com>
-Date:   Mon, 7 Jan 2019 12:36:28 +0000
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.2.1
+        id S1731275AbfAGNEs (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 7 Jan 2019 08:04:48 -0500
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:46399 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1730833AbfAGNEn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 7 Jan 2019 08:04:43 -0500
+Received: from tschai.fritz.box ([212.251.195.8])
+        by smtp-cloud7.xs4all.net with ESMTPA
+        id gUa5gGVcvBDyIgUaAgNvHC; Mon, 07 Jan 2019 14:04:42 +0100
+From:   hverkuil-cisco@xs4all.nl
+To:     linux-media@vger.kernel.org
+Cc:     Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hverkuil-cisco@xs4all.nl>
+Subject: [PATCHv2 3/3] vivid: add buf_out_validate callback
+Date:   Mon,  7 Jan 2019 14:04:37 +0100
+Message-Id: <20190107130437.23732-4-hverkuil-cisco@xs4all.nl>
+X-Mailer: git-send-email 2.19.2
+In-Reply-To: <20190107130437.23732-1-hverkuil-cisco@xs4all.nl>
+References: <20190107130437.23732-1-hverkuil-cisco@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <20190106155413.30666-7-jacopo+renesas@jmondi.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
 Content-Transfer-Encoding: 8bit
+X-CMAE-Envelope: MS4wfMl+v30e46w9XJsUfwZQhdbdXI0rgfk1pP/u3gtl50KHGTrrbsiT38FD5FxBm7ARRLMTX64fyq2EbL19csasj3G9mUYELdj2EI9r/wepQPw11TDvUuXh
+ 1gZkKlFxErab4LtJT9Qt64pfnXPD0Qm9VwjoyoYDD4cDrBxo1I7tBiW+GTS4JBuSujdCKIu99VraLZnHeG9nvCmAWBhmM92uCjAeNSkg4D7ZeI0zwonwRLbG
+ D7FfS1C9tWo2SKvvgyo0kge60s1sl/h4FEcUo694CQY=
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Jacopo,
+From: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 
-On 06/01/2019 15:54, Jacopo Mondi wrote:
-> When the adv748x driver is informed about a link being created from HDMI or
-> AFE to a CSI-2 TX output, the 'link_setup()' callback is invoked. Make
-> sure to implement proper routing management at link setup time, to route
-> the selected video stream to the desired TX output.
+Split off the field validation from buf_prepare into a new
+buf_out_validate function. Field validation for output buffers should
+be done there since buf_prepare is not guaranteed to be called at
+QBUF time.
 
-Overall this looks like the right approach - but I feel like the
-handling of the io10 register might need some consideration, because
-it's value depends on the condition of both CSI2 transmitters, not just
-the currently parsed link.
+Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+---
+ drivers/media/platform/vivid/vivid-vid-out.c | 23 ++++++++++++++------
+ 1 file changed, 16 insertions(+), 7 deletions(-)
 
-I had a go at some pseudo - uncompiled/untested code inline as a suggestion.
-
-If you think it's better - feel free to rework it in ... or not as you
-see fit.
-
-Regards
-
-Kieran
-
-
-
-
-> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> ---
->  drivers/media/i2c/adv748x/adv748x-core.c | 57 +++++++++++++++++++++++-
->  drivers/media/i2c/adv748x/adv748x.h      |  2 +
->  2 files changed, 58 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/i2c/adv748x/adv748x-core.c b/drivers/media/i2c/adv748x/adv748x-core.c
-> index 200e00f93546..a586bf393558 100644
-> --- a/drivers/media/i2c/adv748x/adv748x-core.c
-> +++ b/drivers/media/i2c/adv748x/adv748x-core.c
-> @@ -335,6 +335,60 @@ int adv748x_tx_power(struct adv748x_csi2 *tx, bool on)
->  /* -----------------------------------------------------------------------------
->   * Media Operations
->   */
-> +static int adv748x_link_setup(struct media_entity *entity,
-> +			      const struct media_pad *local,
-> +			      const struct media_pad *remote, u32 flags)
-> +{
-> +	struct v4l2_subdev *rsd = media_entity_to_v4l2_subdev(remote->entity);
-> +	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
-> +	struct adv748x_state *state = v4l2_get_subdevdata(sd);
-> +	struct adv748x_csi2 *tx = adv748x_sd_to_csi2(sd);
-> +	bool enable = flags & MEDIA_LNK_FL_ENABLED;
-> +	u8 io10;
-> +
-> +	/* Refuse to enable multiple links to the same TX at the same time. */
-> +	if (enable && tx->src)
-> +		return -EINVAL;
-> +
-> +	/* Set or clear the source (HDMI or AFE) and the current TX. */
-> +	if (rsd == &state->afe.sd)
-> +		state->afe.tx = enable ? tx : NULL;
-> +	else
-> +		state->hdmi.tx = enable ? tx : NULL;
-> +
-> +	tx->src = enable ? rsd : NULL;
-> +
-> +	if (!enable)
-> +		return 0;
-
-Don't we potentially want to take any action on disable to power down
-links below ?
-
-> +
-> +	/* Change video stream routing, according to the newly enabled link. */
-> +	io10 = io_read(state, ADV748X_IO_10);
-> +	if (rsd == &state->afe.sd) {
-> +		/*
-> +		 * Set AFE->TXA routing and power off TXB if AFE goes to TXA.
-> +		 * if AFE goes to TXB, we need both TXA and TXB powered on.
-> +		 */
-> +		io10 &= ~ADV748X_IO_10_CSI1_EN;
-> +		io10 &= ~ADV748X_IO_10_CSI4_IN_SEL_AFE;
-> +		if (is_txa(tx))
-> +			io10 |= ADV748X_IO_10_CSI4_IN_SEL_AFE;
-
-Shouldn't the CSI4 be enabled here too? or are we assuming it's already
-(/always) enabled?
-		io10 |= ADV748X_IO_10_CSI4_EN;
-
-> +		else
-> +			io10 |= ADV748X_IO_10_CSI4_EN |
-> +				ADV748X_IO_10_CSI1_EN;
-> +	} else {
-> +		/* Clear AFE->TXA routing and power up TXA. */
-> +		io10 &= ~ADV748X_IO_10_CSI4_IN_SEL_AFE;
-> +		io10 |= ADV748X_IO_10_CSI4_EN;
-
-But if we assume it's already enabled ... do we need this?
-Perhaps it might be better to be explicit on this?
-
-> +	}
-> +	io_write(state, ADV748X_IO_10, io10);
-
-
-Would it be any cleaner to use io_clrset() here?
-
-Hrm ... also it feels like this register really should be set depending
-upon the complete state of ... &state->...
-
-So perhaps it deserves it's own function which should be called after
-csi_registered() callback and any link change.
-
-/me has a quick go at some psuedo codeishness...:
-
-int adv74x_io_10(struct adv748x_state *state);
-	u8 bits = 0;
-	u8 mask = ADV748X_IO_10_CSI1_EN
-		| ADV748X_IO_10_CSI4_EN
-		| ADV748X_IO_10_CSI4_IN_SEL_AFE;
-
-	if (state->afe.tx) {
-		/* AFE Requires TXA enabled, even when output to TXB */
-		bits |= ADV748X_IO_10_CSI4_EN;
-
-		if (is_txa(state->afe.tx))
-			bits |= ADV748X_IO_10_CSI4_IN_SEL_AFE
-		else
-			bits |= ADV748X_IO_10_CSI1_EN;
-	}
-
-	if (state->hdmi.tx) {
-		bits |= ADV748X_IO_10_CSI4_EN;
-	}
-
-	return io_clrset(state, ADV748X_IO_10, mask, bits);
-}
-
-How does that look ? (is it even correct first?)
-
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct media_entity_operations adv748x_tx_media_ops = {
-> +	.link_setup	= adv748x_link_setup,
-> +	.link_validate	= v4l2_subdev_link_validate,
-> +};
->  
->  static const struct media_entity_operations adv748x_media_ops = {
->  	.link_validate = v4l2_subdev_link_validate,
-> @@ -516,7 +570,8 @@ void adv748x_subdev_init(struct v4l2_subdev *sd, struct adv748x_state *state,
->  		state->client->addr, ident);
->  
->  	sd->entity.function = function;
-> -	sd->entity.ops = &adv748x_media_ops;
-> +	sd->entity.ops = is_tx(adv748x_sd_to_csi2(sd)) ?
-> +			 &adv748x_tx_media_ops : &adv748x_media_ops;
-
-Aha - yes that's a neat solution to ensure that only the TX links
-generate link_setup calls :)
-
-
-
->  }
->  
->  static int adv748x_parse_csi2_lanes(struct adv748x_state *state,
-> diff --git a/drivers/media/i2c/adv748x/adv748x.h b/drivers/media/i2c/adv748x/adv748x.h
-> index 6eb2e4a95eed..eb19c6cbbb4e 100644
-> --- a/drivers/media/i2c/adv748x/adv748x.h
-> +++ b/drivers/media/i2c/adv748x/adv748x.h
-> @@ -93,6 +93,7 @@ struct adv748x_csi2 {
->  
->  #define is_tx_enabled(_tx) ((_tx)->state->endpoints[(_tx)->port] != NULL)
->  #define __is_tx(_tx, _ab) ((_tx) == &(_tx)->state->tx##_ab)
-> +#define is_tx(_tx) (is_txa(_tx) || is_txb(_tx))
->  #define is_txa(_tx) __is_tx(_tx, a)
->  #define is_txb(_tx) __is_tx(_tx, b)
->  
-> @@ -224,6 +225,7 @@ struct adv748x_state {
->  #define ADV748X_IO_10_CSI4_EN		BIT(7)
->  #define ADV748X_IO_10_CSI1_EN		BIT(6)
->  #define ADV748X_IO_10_PIX_OUT_EN	BIT(5)
-> +#define ADV748X_IO_10_CSI4_IN_SEL_AFE	BIT(3)
-
-
-
->  
->  #define ADV748X_IO_CHIP_REV_ID_1	0xdf
->  #define ADV748X_IO_CHIP_REV_ID_2	0xe0
-> 
-
+diff --git a/drivers/media/platform/vivid/vivid-vid-out.c b/drivers/media/platform/vivid/vivid-vid-out.c
+index ea250aee2b2e..e45753a1adde 100644
+--- a/drivers/media/platform/vivid/vivid-vid-out.c
++++ b/drivers/media/platform/vivid/vivid-vid-out.c
+@@ -81,10 +81,24 @@ static int vid_out_queue_setup(struct vb2_queue *vq,
+ 	return 0;
+ }
+ 
+-static int vid_out_buf_prepare(struct vb2_buffer *vb)
++static int vid_out_buf_out_validate(struct vb2_buffer *vb)
+ {
+ 	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
+ 	struct vivid_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
++
++	dprintk(dev, 1, "%s\n", __func__);
++
++	if (dev->field_out != V4L2_FIELD_ALTERNATE)
++		vbuf->field = dev->field_out;
++	else if (vbuf->field != V4L2_FIELD_TOP &&
++		 vbuf->field != V4L2_FIELD_BOTTOM)
++		return -EINVAL;
++	return 0;
++}
++
++static int vid_out_buf_prepare(struct vb2_buffer *vb)
++{
++	struct vivid_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
+ 	unsigned long size;
+ 	unsigned planes;
+ 	unsigned p;
+@@ -105,12 +119,6 @@ static int vid_out_buf_prepare(struct vb2_buffer *vb)
+ 		return -EINVAL;
+ 	}
+ 
+-	if (dev->field_out != V4L2_FIELD_ALTERNATE)
+-		vbuf->field = dev->field_out;
+-	else if (vbuf->field != V4L2_FIELD_TOP &&
+-		 vbuf->field != V4L2_FIELD_BOTTOM)
+-		return -EINVAL;
+-
+ 	for (p = 0; p < planes; p++) {
+ 		size = dev->bytesperline_out[p] * dev->fmt_out_rect.height +
+ 			vb->planes[p].data_offset;
+@@ -188,6 +196,7 @@ static void vid_out_buf_request_complete(struct vb2_buffer *vb)
+ 
+ const struct vb2_ops vivid_vid_out_qops = {
+ 	.queue_setup		= vid_out_queue_setup,
++	.buf_out_validate		= vid_out_buf_out_validate,
+ 	.buf_prepare		= vid_out_buf_prepare,
+ 	.buf_queue		= vid_out_buf_queue,
+ 	.start_streaming	= vid_out_start_streaming,
 -- 
-Regards
---
-Kieran
+2.19.2
+
