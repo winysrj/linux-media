@@ -6,29 +6,29 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5EB4DC43387
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DE6EEC43444
 	for <linux-media@archiver.kernel.org>; Mon,  7 Jan 2019 13:04:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3777A2089F
+	by mail.kernel.org (Postfix) with ESMTP id AD4882089F
 	for <linux-media@archiver.kernel.org>; Mon,  7 Jan 2019 13:04:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731275AbfAGNEs (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        id S1730835AbfAGNEs (ORCPT <rfc822;linux-media@archiver.kernel.org>);
         Mon, 7 Jan 2019 08:04:48 -0500
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:46399 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1730833AbfAGNEn (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:35661 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1731274AbfAGNEn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Mon, 7 Jan 2019 08:04:43 -0500
 Received: from tschai.fritz.box ([212.251.195.8])
         by smtp-cloud7.xs4all.net with ESMTPA
-        id gUa5gGVcvBDyIgUaAgNvHC; Mon, 07 Jan 2019 14:04:42 +0100
+        id gUa5gGVcvBDyIgUa9gNvH5; Mon, 07 Jan 2019 14:04:42 +0100
 From:   hverkuil-cisco@xs4all.nl
 To:     linux-media@vger.kernel.org
 Cc:     Sakari Ailus <sakari.ailus@linux.intel.com>,
         Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Subject: [PATCHv2 3/3] vivid: add buf_out_validate callback
-Date:   Mon,  7 Jan 2019 14:04:37 +0100
-Message-Id: <20190107130437.23732-4-hverkuil-cisco@xs4all.nl>
+Subject: [PATCHv2 2/3] vim2m: add buf_out_validate callback
+Date:   Mon,  7 Jan 2019 14:04:36 +0100
+Message-Id: <20190107130437.23732-3-hverkuil-cisco@xs4all.nl>
 X-Mailer: git-send-email 2.19.2
 In-Reply-To: <20190107130437.23732-1-hverkuil-cisco@xs4all.nl>
 References: <20190107130437.23732-1-hverkuil-cisco@xs4all.nl>
@@ -51,60 +51,56 @@ QBUF time.
 
 Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 ---
- drivers/media/platform/vivid/vivid-vid-out.c | 23 ++++++++++++++------
- 1 file changed, 16 insertions(+), 7 deletions(-)
+ drivers/media/platform/vim2m.c | 16 +++++++++++++---
+ 1 file changed, 13 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/platform/vivid/vivid-vid-out.c b/drivers/media/platform/vivid/vivid-vid-out.c
-index ea250aee2b2e..e45753a1adde 100644
---- a/drivers/media/platform/vivid/vivid-vid-out.c
-+++ b/drivers/media/platform/vivid/vivid-vid-out.c
-@@ -81,10 +81,24 @@ static int vid_out_queue_setup(struct vb2_queue *vq,
+diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
+index d01821a6906a..4a16b7a6b69a 100644
+--- a/drivers/media/platform/vim2m.c
++++ b/drivers/media/platform/vim2m.c
+@@ -753,15 +753,13 @@ static int vim2m_queue_setup(struct vb2_queue *vq,
  	return 0;
  }
  
--static int vid_out_buf_prepare(struct vb2_buffer *vb)
-+static int vid_out_buf_out_validate(struct vb2_buffer *vb)
+-static int vim2m_buf_prepare(struct vb2_buffer *vb)
++static int vim2m_buf_out_validate(struct vb2_buffer *vb)
  {
  	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct vivid_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
-+
-+	dprintk(dev, 1, "%s\n", __func__);
-+
-+	if (dev->field_out != V4L2_FIELD_ALTERNATE)
-+		vbuf->field = dev->field_out;
-+	else if (vbuf->field != V4L2_FIELD_TOP &&
-+		 vbuf->field != V4L2_FIELD_BOTTOM)
-+		return -EINVAL;
+ 	struct vim2m_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
+-	struct vim2m_q_data *q_data;
+ 
+ 	dprintk(ctx->dev, "type: %d\n", vb->vb2_queue->type);
+ 
+-	q_data = get_q_data(ctx, vb->vb2_queue->type);
+ 	if (V4L2_TYPE_IS_OUTPUT(vb->vb2_queue->type)) {
+ 		if (vbuf->field == V4L2_FIELD_ANY)
+ 			vbuf->field = V4L2_FIELD_NONE;
+@@ -772,6 +770,17 @@ static int vim2m_buf_prepare(struct vb2_buffer *vb)
+ 		}
+ 	}
+ 
 +	return 0;
 +}
 +
-+static int vid_out_buf_prepare(struct vb2_buffer *vb)
++static int vim2m_buf_prepare(struct vb2_buffer *vb)
 +{
-+	struct vivid_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
- 	unsigned long size;
- 	unsigned planes;
- 	unsigned p;
-@@ -105,12 +119,6 @@ static int vid_out_buf_prepare(struct vb2_buffer *vb)
- 		return -EINVAL;
- 	}
++	struct vim2m_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
++	struct vim2m_q_data *q_data;
++
++	dprintk(ctx->dev, "type: %d\n", vb->vb2_queue->type);
++
++	q_data = get_q_data(ctx, vb->vb2_queue->type);
+ 	if (vb2_plane_size(vb, 0) < q_data->sizeimage) {
+ 		dprintk(ctx->dev, "%s data will not fit into plane (%lu < %lu)\n",
+ 				__func__, vb2_plane_size(vb, 0), (long)q_data->sizeimage);
+@@ -832,6 +841,7 @@ static void vim2m_buf_request_complete(struct vb2_buffer *vb)
  
--	if (dev->field_out != V4L2_FIELD_ALTERNATE)
--		vbuf->field = dev->field_out;
--	else if (vbuf->field != V4L2_FIELD_TOP &&
--		 vbuf->field != V4L2_FIELD_BOTTOM)
--		return -EINVAL;
--
- 	for (p = 0; p < planes; p++) {
- 		size = dev->bytesperline_out[p] * dev->fmt_out_rect.height +
- 			vb->planes[p].data_offset;
-@@ -188,6 +196,7 @@ static void vid_out_buf_request_complete(struct vb2_buffer *vb)
- 
- const struct vb2_ops vivid_vid_out_qops = {
- 	.queue_setup		= vid_out_queue_setup,
-+	.buf_out_validate		= vid_out_buf_out_validate,
- 	.buf_prepare		= vid_out_buf_prepare,
- 	.buf_queue		= vid_out_buf_queue,
- 	.start_streaming	= vid_out_start_streaming,
+ static const struct vb2_ops vim2m_qops = {
+ 	.queue_setup	 = vim2m_queue_setup,
++	.buf_out_validate	 = vim2m_buf_out_validate,
+ 	.buf_prepare	 = vim2m_buf_prepare,
+ 	.buf_queue	 = vim2m_buf_queue,
+ 	.start_streaming = vim2m_start_streaming,
 -- 
 2.19.2
 
