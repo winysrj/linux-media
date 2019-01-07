@@ -2,141 +2,233 @@ Return-Path: <SRS0=8vfi=PP=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-5.7 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C34A7C43387
-	for <linux-media@archiver.kernel.org>; Mon,  7 Jan 2019 17:47:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B536C43387
+	for <linux-media@archiver.kernel.org>; Mon,  7 Jan 2019 18:01:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9D19C206B7
-	for <linux-media@archiver.kernel.org>; Mon,  7 Jan 2019 17:47:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 456562085A
+	for <linux-media@archiver.kernel.org>; Mon,  7 Jan 2019 18:01:15 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1546884075;
+	bh=CGjTuc1WRrHCaQ8viuHevM3mQ71id3Xq+JALPBcyKeo=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
+	b=1tKhGuyw3lZxbVG3YNGZFw8BeuUeNBkLGIFAoIUOYC9+rDDA7oOphfYVA/6HiSsnc
+	 lOnY8wkpePcY1ie0g4CSxFIR1jiKaYOsny0htlx4YbfgjBGuDYGRpdpv4jFLbrJFKv
+	 OQFNF4VeLv8zxC/PRd9RUyJm2d/4BLawqGc1g5IE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728402AbfAGRrj convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 7 Jan 2019 12:47:39 -0500
-Received: from mga02.intel.com ([134.134.136.20]:62041 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726942AbfAGRrj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 7 Jan 2019 12:47:39 -0500
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from orsmga004.jf.intel.com ([10.7.209.38])
-  by orsmga101.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 07 Jan 2019 09:47:38 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.56,451,1539673200"; 
-   d="scan'208";a="265146294"
-Received: from orsmsx110.amr.corp.intel.com ([10.22.240.8])
-  by orsmga004.jf.intel.com with ESMTP; 07 Jan 2019 09:47:38 -0800
-Received: from orsmsx156.amr.corp.intel.com (10.22.240.22) by
- ORSMSX110.amr.corp.intel.com (10.22.240.8) with Microsoft SMTP Server (TLS)
- id 14.3.408.0; Mon, 7 Jan 2019 09:47:38 -0800
-Received: from orsmsx106.amr.corp.intel.com ([169.254.1.179]) by
- ORSMSX156.amr.corp.intel.com ([169.254.8.107]) with mapi id 14.03.0415.000;
- Mon, 7 Jan 2019 09:47:38 -0800
-From:   "Zhi, Yong" <yong.zhi@intel.com>
-To:     Dan Carpenter <dan.carpenter@oracle.com>
-CC:     "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
-        "Cao, Bingbu" <bingbu.cao@intel.com>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: RE: [bug report] media: staging/intel-ipu3: Add imgu top level pci
- device driver
-Thread-Topic: [bug report] media: staging/intel-ipu3: Add imgu top level pci
- device driver
-Thread-Index: AQHUpCkfBqjGmYYizUipCxcs7PVMG6WkFkGw
-Date:   Mon, 7 Jan 2019 17:47:38 +0000
-Message-ID: <C193D76D23A22742993887E6D207B54D3DB50587@ORSMSX106.amr.corp.intel.com>
-References: <20190104122856.GA1169@kadam>
-In-Reply-To: <20190104122856.GA1169@kadam>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-dlp-product: dlpe-windows
-dlp-version: 11.0.400.15
-dlp-reaction: no-action
-x-ctpclassification: CTP_NT
-x-titus-metadata-40: eyJDYXRlZ29yeUxhYmVscyI6IiIsIk1ldGFkYXRhIjp7Im5zIjoiaHR0cDpcL1wvd3d3LnRpdHVzLmNvbVwvbnNcL0ludGVsMyIsImlkIjoiOGFlMDVmOWYtYjk1MC00MjUzLWJjNGMtN2E2MjE3ODZjZTQxIiwicHJvcHMiOlt7Im4iOiJDVFBDbGFzc2lmaWNhdGlvbiIsInZhbHMiOlt7InZhbHVlIjoiQ1RQX05UIn1dfV19LCJTdWJqZWN0TGFiZWxzIjpbXSwiVE1DVmVyc2lvbiI6IjE3LjEwLjE4MDQuNDkiLCJUcnVzdGVkTGFiZWxIYXNoIjoiR3Z6WHlOQVh0a1RSelF4MUtYQ1wvckJvOFd5NnU2c1BZd3ZKK05BTittZW5nczBiXC84QUFwd2FIOE1zS29Bcmw3In0=
-x-originating-ip: [10.22.254.139]
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+        id S1727031AbfAGSBO (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 7 Jan 2019 13:01:14 -0500
+Received: from casper.infradead.org ([85.118.1.10]:44676 "EHLO
+        casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726589AbfAGSBO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 7 Jan 2019 13:01:14 -0500
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
+        MIME-Version:References:In-Reply-To:Message-ID:Subject:Cc:To:From:Date:Sender
+        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
+        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+        bh=27VEoTJBzjfIe1O2OmvK3UYcsJb08zlyGoqrpNhzCfQ=; b=aIYdcgbH3Aq7hlmBV1998pktSF
+        PWsKNAyH/5Y6ySf6WDoj5nxyqVdpO1ATfgdvORYCtkMJ98Mn8G53Uh8OMJ/jV+e4zN49jPzOPeuBA
+        TUzIiDOuuR4HSzxBoGfqvoEpzaZQJnFo6nHet0V5zalc8K+V4F35uSUmsCqqmN10LNX4IhielEJ6U
+        Mk0oJziRP+4jFgBhA22ruW0cwqWp1eB+BjvuToj9OjQYeSXa4qGQP9lN2D1ZhLUeyHDvE4849ghoi
+        GF3+e+L/AIkCuf0VvI96RoRSl9RE7w5ShAREMdv9JHGCTt/pdZpEX20kbArGpRCV4Evh8D8IQ+7dk
+        p0Dw84Bw==;
+Received: from 177.41.113.230.dynamic.adsl.gvt.net.br ([177.41.113.230] helo=coco.lan)
+        by casper.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
+        id 1ggZD6-0005Zv-2b; Mon, 07 Jan 2019 18:01:12 +0000
+Date:   Mon, 7 Jan 2019 16:01:07 -0200
+From:   Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To:     sakari.ailus@iki.fi
+Cc:     linux-media@vger.kernel.org,
+        Bingbu Cao <bingbu.cao@linux.intel.com>
+Subject: Re: [GIT PULL v4 for 4.21] META_OUTPUT buffer type and the ipu3
+ staging driver
+Message-ID: <20190107160107.7dd9af05@coco.lan>
+In-Reply-To: <20181213120340.2oakeelp2b5w7zzq@valkosipuli.retiisi.org.uk>
+References: <20181213120340.2oakeelp2b5w7zzq@valkosipuli.retiisi.org.uk>
+X-Mailer: Claws Mail 3.17.3 (GTK+ 2.24.32; x86_64-redhat-linux-gnu)
 MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Cc Tianshu and others.
+Hi Sakari/Bingbu,
 
-Hi, Dan,
+Em Thu, 13 Dec 2018 14:03:40 +0200
+sakari.ailus@iki.fi escreveu:
 
-Thanks a lot for the code review.
+> Hi Mauro,
+> 
+> Here's the ipu3 staging driver plus the META_OUTPUT buffer type needed to
+> pass the parameters for the device. If you think this there's still time to
+> get this to 4.21, then please pull. The non-staging patches have been
+> around for more than half a year and they're relatively simple.
 
-> -----Original Message-----
-> From: Dan Carpenter [mailto:dan.carpenter@oracle.com]
-> Sent: Friday, January 4, 2019 6:29 AM
-> To: Zhi, Yong <yong.zhi@intel.com>
-> Cc: linux-media@vger.kernel.org
-> Subject: [bug report] media: staging/intel-ipu3: Add imgu top level pci device
-> driver
-> 
-> Hello Yong Zhi,
-> 
-> The patch 7fc7af649ca7: "media: staging/intel-ipu3: Add imgu top level pci
-> device driver" from Dec 6, 2018, leads to the following static checker warning:
-> 
-> 	drivers/staging/media/ipu3/ipu3.c:493 imgu_isr_threaded()
-> 	warn: 'b' is an error pointer or valid
-> 
-> drivers/staging/media/ipu3/ipu3.c
->     472 static irqreturn_t imgu_isr_threaded(int irq, void *imgu_ptr)
->     473 {
->     474 	struct imgu_device *imgu = imgu_ptr;
->     475 	struct imgu_media_pipe *imgu_pipe;
->     476 	int p;
->     477
->     478 	/* Dequeue / queue buffers */
->     479 	do {
->     480 		u64 ns = ktime_get_ns();
->     481 		struct ipu3_css_buffer *b;
->     482 		struct imgu_buffer *buf = NULL;
->     483 		unsigned int node, pipe;
->     484 		bool dummy;
->     485
->     486 		do {
->     487 			mutex_lock(&imgu->lock);
->     488 			b = ipu3_css_buf_dequeue(&imgu->css);
->                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> ipu3_css_buf_dequeue() doesn't return NULL.
-> 
->     489 			mutex_unlock(&imgu->lock);
->     490 		} while (PTR_ERR(b) == -EAGAIN);
->     491
->     492 		if (IS_ERR_OR_NULL(b)) {
->                             ^^^^^^^^^^^^^^^^^
-> --> 493 			if (!b || PTR_ERR(b) == -EBUSY)	/* All done */
->                                     ^^
-> When a function returns both NULL and error pointers, then NULL is
-> considered a special case of success.  Like perhaps you request a feature, but
-> that feature isn't enabled in the config.  It's fine, because the user *chose* to
-> turn off the feature, so it's not an error but we also don't have a valid pointer
-> we can use.
-> 
-> It looks like you were probably trying to do something like that but you
-> missed part of the commit?  Otherwise we should delete the dead code.
-> 
+I'm now getting a lot of new warnings when building it:
 
-Ack, with recent code changes the NULL check becomes useless, thanks for catching this.
+drivers/staging/media/ipu3/ipu3-dmamap.c:drivers/staging/media/ipu3/ipu3-dmamap.c:97:6:  warning: symbol 'ipu3_dmamap_alloc' was not declared. Should it be static?
+drivers/staging/media/ipu3/ipu3-dmamap.c:drivers/staging/media/ipu3/ipu3-dmamap.c:166:6:  warning: symbol 'ipu3_dmamap_unmap' was not declared. Should it be static?
+drivers/staging/media/ipu3/ipu3-dmamap.c:drivers/staging/media/ipu3/ipu3-dmamap.c:184:6:  warning: symbol 'ipu3_dmamap_free' was not declared. Should it be static?
+drivers/staging/media/ipu3/ipu3-dmamap.c:drivers/staging/media/ipu3/ipu3-dmamap.c:204:5:  warning: symbol 'ipu3_dmamap_map_sg' was not declared. Should it be static?
+drivers/staging/media/ipu3/ipu3-dmamap.c:drivers/staging/media/ipu3/ipu3-dmamap.c:251:5:  warning: symbol 'ipu3_dmamap_init' was not declared. Should it be static?
+drivers/staging/media/ipu3/ipu3-dmamap.c:drivers/staging/media/ipu3/ipu3-dmamap.c:266:6:  warning: symbol 'ipu3_dmamap_exit' was not declared. Should it be static?
+In file included from drivers/staging/media/ipu3/ipu3-abi.h:7,
+                 from drivers/staging/media/ipu3/ipu3-css.h:10,
+                 from drivers/staging/media/ipu3/ipu3.h:14,
+                 from drivers/staging/media/ipu3/ipu3-css-pool.c:6:
+drivers/staging/media/ipu3/include/intel-ipu3.h:2481:35: warning: 'awb_fr' offset 36756 in 'struct ipu3_uapi_acc_param' isn't aligned to 32 [-Wpacked-not-aligned]
+  struct ipu3_uapi_awb_fr_config_s awb_fr;
+                                   ^~~~~~
+In file included from drivers/staging/media/ipu3/ipu3-css.h:10,
+                 from drivers/staging/media/ipu3/ipu3.h:14,
+                 from drivers/staging/media/ipu3/ipu3-css-pool.c:6:
+drivers/staging/media/ipu3/ipu3-abi.h:1250:1: warning: alignment 1 of 'struct imgu_abi_awb_fr_config' is less than 32 [-Wpacked-not-aligned]
+ } __packed;
+ ^
+drivers/staging/media/ipu3/ipu3-mmu.c:247: warning: Function parameter or member 'pgsize_bitmap' not described in 'ipu3_mmu_pgsize'
+drivers/staging/media/ipu3/ipu3-mmu.c:247: warning: Function parameter or member 'addr_merge' not described in 'ipu3_mmu_pgsize'
+drivers/staging/media/ipu3/ipu3-mmu.c:247: warning: Function parameter or member 'size' not described in 'ipu3_mmu_pgsize'
+drivers/staging/media/ipu3/ipu3-mmu.c:452: warning: Function parameter or member 'parent' not described in 'ipu3_mmu_init'
+drivers/staging/media/ipu3/ipu3-mmu.c:528: warning: Function parameter or member 'info' not described in 'ipu3_mmu_exit'
+drivers/staging/media/ipu3/ipu3-mmu.c:528: warning: Excess function parameter 'mmu' description in 'ipu3_mmu_exit'
+In file included from drivers/staging/media/ipu3/ipu3-abi.h:7,
+                 from drivers/staging/media/ipu3/ipu3-css.h:10,
+                 from drivers/staging/media/ipu3/ipu3-css-fw.c:9:
+drivers/staging/media/ipu3/include/intel-ipu3.h:2481:35: warning: 'awb_fr' offset 36756 in 'struct ipu3_uapi_acc_param' isn't aligned to 32 [-Wpacked-not-aligned]
+  struct ipu3_uapi_awb_fr_config_s awb_fr;
+                                   ^~~~~~
+In file included from drivers/staging/media/ipu3/ipu3-css.h:10,
+                 from drivers/staging/media/ipu3/ipu3-css-fw.c:9:
+drivers/staging/media/ipu3/ipu3-abi.h:1250:1: warning: alignment 1 of 'struct imgu_abi_awb_fr_config' is less than 32 [-Wpacked-not-aligned]
+ } __packed;
+ ^
+drivers/staging/media/ipu3/ipu3-css-fw.c: In function 'ipu3_css_fw_init':
+drivers/staging/media/ipu3/ipu3-css-fw.c:203:39: warning: comparison of unsigned expression < 0 is always false [-Wtype-limits]
+    if (bi->info.isp.output_formats[j] < 0 ||
+                                       ^
+drivers/staging/media/ipu3/ipu3-css-fw.c:208:35: warning: comparison of unsigned expression < 0 is always false [-Wtype-limits]
+    if (bi->info.isp.vf_formats[j] < 0 ||
+                                   ^
+drivers/staging/media/ipu3/ipu3-css.c: drivers/staging/media/ipu3/ipu3-css.c:1831 ipu3_css_fmt_try() warn: unsigned 'css->pipes[pipe].bindex' is never less than zero.
+In file included from drivers/staging/media/ipu3/ipu3-abi.h:7,
+                 from drivers/staging/media/ipu3/ipu3-css.h:10,
+                 from drivers/staging/media/ipu3/ipu3.h:14,
+                 from drivers/staging/media/ipu3/ipu3-dmamap.c:12:
+drivers/staging/media/ipu3/include/intel-ipu3.h:2481:35: warning: 'awb_fr' offset 36756 in 'struct ipu3_uapi_acc_param' isn't aligned to 32 [-Wpacked-not-aligned]
+  struct ipu3_uapi_awb_fr_config_s awb_fr;
+                                   ^~~~~~
+In file included from drivers/staging/media/ipu3/ipu3-css.h:10,
+                 from drivers/staging/media/ipu3/ipu3.h:14,
+                 from drivers/staging/media/ipu3/ipu3-dmamap.c:12:
+drivers/staging/media/ipu3/ipu3-abi.h:1250:1: warning: alignment 1 of 'struct imgu_abi_awb_fr_config' is less than 32 [-Wpacked-not-aligned]
+ } __packed;
+ ^
+drivers/staging/media/ipu3/ipu3-dmamap.c:97:7: warning: no previous prototype for 'ipu3_dmamap_alloc' [-Wmissing-prototypes]
+ void *ipu3_dmamap_alloc(struct imgu_device *imgu, struct ipu3_css_map *map,
+       ^~~~~~~~~~~~~~~~~
+drivers/staging/media/ipu3/ipu3-dmamap.c:166:6: warning: no previous prototype for 'ipu3_dmamap_unmap' [-Wmissing-prototypes]
+ void ipu3_dmamap_unmap(struct imgu_device *imgu, struct ipu3_css_map *map)
+      ^~~~~~~~~~~~~~~~~
+drivers/staging/media/ipu3/ipu3-dmamap.c:184:6: warning: no previous prototype for 'ipu3_dmamap_free' [-Wmissing-prototypes]
+ void ipu3_dmamap_free(struct imgu_device *imgu, struct ipu3_css_map *map)
+      ^~~~~~~~~~~~~~~~
+drivers/staging/media/ipu3/ipu3-dmamap.c:204:5: warning: no previous prototype for 'ipu3_dmamap_map_sg' [-Wmissing-prototypes]
+ int ipu3_dmamap_map_sg(struct imgu_device *imgu, struct scatterlist *sglist,
+     ^~~~~~~~~~~~~~~~~~
+drivers/staging/media/ipu3/ipu3-dmamap.c:251:5: warning: no previous prototype for 'ipu3_dmamap_init' [-Wmissing-prototypes]
+ int ipu3_dmamap_init(struct imgu_device *imgu)
+     ^~~~~~~~~~~~~~~~
+drivers/staging/media/ipu3/ipu3-dmamap.c:266:6: warning: no previous prototype for 'ipu3_dmamap_exit' [-Wmissing-prototypes]
+ void ipu3_dmamap_exit(struct imgu_device *imgu)
+      ^~~~~~~~~~~~~~~~
+In file included from drivers/staging/media/ipu3/ipu3-abi.h:7,
+                 from drivers/staging/media/ipu3/ipu3-css.h:10,
+                 from drivers/staging/media/ipu3/ipu3-css.c:7:
+drivers/staging/media/ipu3/include/intel-ipu3.h:2481:35: warning: 'awb_fr' offset 36756 in 'struct ipu3_uapi_acc_param' isn't aligned to 32 [-Wpacked-not-aligned]
+  struct ipu3_uapi_awb_fr_config_s awb_fr;
+                                   ^~~~~~
+In file included from drivers/staging/media/ipu3/ipu3-css.h:10,
+                 from drivers/staging/media/ipu3/ipu3-css.c:7:
+drivers/staging/media/ipu3/ipu3-abi.h:1250:1: warning: alignment 1 of 'struct imgu_abi_awb_fr_config' is less than 32 [-Wpacked-not-aligned]
+ } __packed;
+ ^
+drivers/staging/media/ipu3/ipu3-css.c: In function 'ipu3_css_fmt_try':
+drivers/staging/media/ipu3/ipu3-css.c:1831:30: warning: comparison of unsigned expression < 0 is always false [-Wtype-limits]
+  if (css->pipes[pipe].bindex < 0) {
+                              ^
+In file included from drivers/staging/media/ipu3/ipu3-abi.h:7,
+                 from drivers/staging/media/ipu3/ipu3-css.h:10,
+                 from drivers/staging/media/ipu3/ipu3.h:14,
+                 from drivers/staging/media/ipu3/ipu3.c:15:
+drivers/staging/media/ipu3/include/intel-ipu3.h:2481:35: warning: 'awb_fr' offset 36756 in 'struct ipu3_uapi_acc_param' isn't aligned to 32 [-Wpacked-not-aligned]
+  struct ipu3_uapi_awb_fr_config_s awb_fr;
+                                   ^~~~~~
+In file included from drivers/staging/media/ipu3/ipu3-css.h:10,
+                 from drivers/staging/media/ipu3/ipu3.h:14,
+                 from drivers/staging/media/ipu3/ipu3.c:15:
+drivers/staging/media/ipu3/ipu3-abi.h:1250:1: warning: alignment 1 of 'struct imgu_abi_awb_fr_config' is less than 32 [-Wpacked-not-aligned]
+ } __packed;
+ ^
+In file included from drivers/staging/media/ipu3/ipu3-abi.h:7,
+                 from drivers/staging/media/ipu3/ipu3-css.h:10,
+                 from drivers/staging/media/ipu3/ipu3.h:14,
+                 from drivers/staging/media/ipu3/ipu3-v4l2.c:10:
+drivers/staging/media/ipu3/include/intel-ipu3.h:2481:35: warning: 'awb_fr' offset 36756 in 'struct ipu3_uapi_acc_param' isn't aligned to 32 [-Wpacked-not-aligned]
+  struct ipu3_uapi_awb_fr_config_s awb_fr;
+                                   ^~~~~~
+In file included from drivers/staging/media/ipu3/ipu3-css.h:10,
+                 from drivers/staging/media/ipu3/ipu3.h:14,
+                 from drivers/staging/media/ipu3/ipu3-v4l2.c:10:
+drivers/staging/media/ipu3/ipu3-abi.h:1250:1: warning: alignment 1 of 'struct imgu_abi_awb_fr_config' is less than 32 [-Wpacked-not-aligned]
+ } __packed;
+ ^
+drivers/staging/media/ipu3/ipu3-css-params.c:drivers/staging/media/ipu3/ipu3-css-params.c:1947:5:  warning: symbol 'ipu3_css_cfg_acc' was not declared. Should it be static?
+drivers/staging/media/ipu3/ipu3-css-params.c:drivers/staging/media/ipu3/ipu3-css-params.c:2725:5:  warning: symbol 'ipu3_css_cfg_vmem0' was not declared. Should it be static?
+drivers/staging/media/ipu3/ipu3-css-params.c:drivers/staging/media/ipu3/ipu3-css-params.c:2804:5:  warning: symbol 'ipu3_css_cfg_dmem0' was not declared. Should it be static?
+drivers/staging/media/ipu3/ipu3-css-params.c:drivers/staging/media/ipu3/ipu3-css-params.c:2856:6:  warning: symbol 'ipu3_css_cfg_gdc_table' was not declared. Should it be static?
+In file included from drivers/staging/media/ipu3/ipu3-abi.h:7,
+                 from drivers/staging/media/ipu3/ipu3-css.h:10,
+                 from drivers/staging/media/ipu3/ipu3-css-params.c:6:
+drivers/staging/media/ipu3/include/intel-ipu3.h:2481:35: warning: 'awb_fr' offset 36756 in 'struct ipu3_uapi_acc_param' isn't aligned to 32 [-Wpacked-not-aligned]
+  struct ipu3_uapi_awb_fr_config_s awb_fr;
+                                   ^~~~~~
+In file included from drivers/staging/media/ipu3/ipu3-css.h:10,
+                 from drivers/staging/media/ipu3/ipu3-css-params.c:6:
+drivers/staging/media/ipu3/ipu3-abi.h:1250:1: warning: alignment 1 of 'struct imgu_abi_awb_fr_config' is less than 32 [-Wpacked-not-aligned]
+ } __packed;
+ ^
+drivers/staging/media/ipu3/ipu3-css-params.c:1947:5: warning: no previous prototype for 'ipu3_css_cfg_acc' [-Wmissing-prototypes]
+ int ipu3_css_cfg_acc(struct ipu3_css *css, unsigned int pipe,
+     ^~~~~~~~~~~~~~~~
+drivers/staging/media/ipu3/ipu3-css-params.c:2725:5: warning: no previous prototype for 'ipu3_css_cfg_vmem0' [-Wmissing-prototypes]
+ int ipu3_css_cfg_vmem0(struct ipu3_css *css, unsigned int pipe,
+     ^~~~~~~~~~~~~~~~~~
+drivers/staging/media/ipu3/ipu3-css-params.c:2804:5: warning: no previous prototype for 'ipu3_css_cfg_dmem0' [-Wmissing-prototypes]
+ int ipu3_css_cfg_dmem0(struct ipu3_css *css, unsigned int pipe,
+     ^~~~~~~~~~~~~~~~~~
+drivers/staging/media/ipu3/ipu3-css-params.c:2856:6: warning: no previous prototype for 'ipu3_css_cfg_gdc_table' [-Wmissing-prototypes]
+ void ipu3_css_cfg_gdc_table(struct imgu_abi_gdc_warp_param *gdc,
+      ^~~~~~~~~~~~~~~~~~~~~~
+In file included from drivers/staging/media/ipu3/ipu3-abi.h:7,
+                 from drivers/staging/media/ipu3/ipu3-tables.h:7,
+                 from drivers/staging/media/ipu3/ipu3-tables.c:4:
+drivers/staging/media/ipu3/include/intel-ipu3.h:2481:35: warning: 'awb_fr' offset 36756 in 'struct ipu3_uapi_acc_param' isn't aligned to 32 [-Wpacked-not-aligned]
+  struct ipu3_uapi_awb_fr_config_s awb_fr;
+                                   ^~~~~~
+In file included from drivers/staging/media/ipu3/ipu3-tables.h:7,
+                 from drivers/staging/media/ipu3/ipu3-tables.c:4:
+drivers/staging/media/ipu3/ipu3-abi.h:1250:1: warning: alignment 1 of 'struct imgu_abi_awb_fr_config' is less than 32 [-Wpacked-not-aligned]
+ } __packed;
+ ^
 
->     494 				break;
->     495 			dev_err(&imgu->pci_dev->dev,
->     496 				"failed to dequeue buffers (%ld)\n",
->     497 				PTR_ERR(b));
->     498 			break;
->     499 		}
->     500
-> 
-> regards,
-> dan carpenter
+Could you please send ASAP a patch series fixing them?
+
+Thanks,
+Mauro
