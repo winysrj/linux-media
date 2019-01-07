@@ -2,151 +2,140 @@ Return-Path: <SRS0=8vfi=PP=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.7 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4730AC43387
-	for <linux-media@archiver.kernel.org>; Mon,  7 Jan 2019 14:29:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9FB0DC43612
+	for <linux-media@archiver.kernel.org>; Mon,  7 Jan 2019 14:32:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0A0AC2183E
-	for <linux-media@archiver.kernel.org>; Mon,  7 Jan 2019 14:29:56 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="kVYJuClK"
+	by mail.kernel.org (Postfix) with ESMTP id 6EE6B2087F
+	for <linux-media@archiver.kernel.org>; Mon,  7 Jan 2019 14:32:30 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1546871550;
+	bh=D22wPfOfwlKjaaNYjpDl1y+2sBW1bjd/FjI6LADvXe8=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
+	b=CWSRZZBq3Pt4zg9xMmRGLIWfkz0YpDEc1St8IGA6/Se7qoy9lvetVhelVqwqYEpwF
+	 nMCURwEgp6g41oxps3hsUaZTJth5bjxI8i309n1Ra0LfYzVu5CI+m7INnH16YWPB00
+	 d1HUGQg9luryKI3h/Z1NMithepCMml0gBLpltdg4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727771AbfAGO3z (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 7 Jan 2019 09:29:55 -0500
-Received: from mail-lf1-f66.google.com ([209.85.167.66]:45891 "EHLO
-        mail-lf1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727341AbfAGO3z (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 7 Jan 2019 09:29:55 -0500
-Received: by mail-lf1-f66.google.com with SMTP id b20so388645lfa.12
-        for <linux-media@vger.kernel.org>; Mon, 07 Jan 2019 06:29:53 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=mKdxwusZFloEN/MbwbU6RCjHm6yGJ1yRCdfzIU3hXc8=;
-        b=kVYJuClKBPu65MUgDTCR8BXuRMSazaGSHXV/oxoFxusnE/wvu7Czv9XepLyCSjBSmP
-         rASXyzr+FQ7Vt/Kqu03IxibJZIprbe8IQeCPLof75GI+QwQRVimQAZLMtaEg+s7sbDa3
-         nWG3tNgFUO6IEieIWcDm6x4pK3EzZ2v7uR88rguym0QG13hgCHNPZXSohjjm3a10Dxgt
-         OH74ViJLkVF8pUg5MmSgVtQajMQvt3lbOcIivWoETBnxW2xvxxnOsv6ftpnc9Ot3U+wy
-         GksX4zlqWrpScN2lrutLvnI4/zzPyisyIuyFDKmpGq0Vr6AkO1LL4hNJA/ZqQR1drerB
-         fdOg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=mKdxwusZFloEN/MbwbU6RCjHm6yGJ1yRCdfzIU3hXc8=;
-        b=OW8+8lB8ltGD0y+TXfz9WaleN44t8SZn2/WflUuEJsR6/v0zq7Cn3Oipj5J8SAisK4
-         dYBmIX+XNGtDWJ7rTBQ36FnntSzMpYCHo+2RBqyND6LBLrlGCNf1ylWLyykp8uK4OHYZ
-         xw3v4H0O1RiJh4C3s5KuUoqjRfoEJMZkxbpTGOv8M6xn+uvh3DEC3qg6u1uZjyb7SsDI
-         7jjpOMO4il5ADFenxgrGwppeCS9c/4/dhxuBBLlF2eiKY+UBQq6TTvOO7P3I3c6uGBPY
-         F6K3qmCI6cD7lei/it/zGRsFA6e2koTjXxHQtxlpIh2mmDsHNuqNT/Q2p0sEMudUZH24
-         dHmw==
-X-Gm-Message-State: AA+aEWarmM5VKdqONLzZ6rPGwxRJ9CzZDfYh1BmhRgDIN45MEVT/QrFr
-        BGeGewTnbo34OSzsjBRhgXNKcWV7dxCkm9KGCg==
-X-Google-Smtp-Source: AFSGD/W0OGxtJ+i40tnxzmb+3SbYZrTZpN8xOAycL6kiTZDipiG/rvN8sNpUGrDKLR6U8yPTJeYnVZC8ibXtPx0+Jhk=
-X-Received: by 2002:a19:8096:: with SMTP id b144mr32737799lfd.8.1546871392385;
- Mon, 07 Jan 2019 06:29:52 -0800 (PST)
+        id S1728194AbfAGOc3 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 7 Jan 2019 09:32:29 -0500
+Received: from casper.infradead.org ([85.118.1.10]:56174 "EHLO
+        casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727034AbfAGOc3 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 7 Jan 2019 09:32:29 -0500
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
+        MIME-Version:References:In-Reply-To:Message-ID:Subject:Cc:To:From:Date:Sender
+        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
+        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+        bh=42F1Ky4TEOpUsUExuv+TlXWNU8EtEGQolArg9hANlHk=; b=lc8Psjstw1VOF0gn9zoqowmvnd
+        VImRXyhtAZjMZzEntJerfUrxE04u7J14EWqNBqP/QdLtVBl9SB82rQXcZLwauOeCnk9p7kf2FhFyO
+        8vqODBcu3vGBQns3xyrs+RuQoZAdTdmfDJ2p60lvAtBctYjuUawvFbFR/wPg3jwRKOcOfI8CFsg1U
+        llbV5FdPpbSWVDzQvh1RTyWarreQczmiuRQXAGzy+3XswGwWbLw25Fmah8+JuYAEwxIH2Foc7kuzF
+        dOQN4Mu93dfTCpnHHYdXS+4TQ9hU2MxpHCHC0A0cWoE032lRE+mYRweCmGkOmzfPhipYHCUABdnQM
+        Nn5s1Nlg==;
+Received: from [179.182.170.254] (helo=coco.lan)
+        by casper.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
+        id 1ggVx4-0005MI-Pq; Mon, 07 Jan 2019 14:32:27 +0000
+Date:   Mon, 7 Jan 2019 12:32:22 -0200
+From:   Mauro Carvalho Chehab <mchehab@kernel.org>
+To:     Dan Ziemba <zman0900@gmail.com>
+Cc:     Malcolm Priestley <tvboxspy@gmail.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Antti Palosaari <crope@iki.fi>, stable@vger.kernel.org
+Subject: Re: [PATCH v3] [bug/urgent] dvb-usb-v2: Fix incorrect use of
+ transfer_flags URB_FREE_BUFFER
+Message-ID: <20190107123222.50760c8a@coco.lan>
+In-Reply-To: <204ed67fafd1ecdc58158da9758a3b6b01ec5ada.camel@gmail.com>
+References: <7dd3e986-d838-1210-922c-4f8793eea2e9@gmail.com>
+        <204ed67fafd1ecdc58158da9758a3b6b01ec5ada.camel@gmail.com>
+X-Mailer: Claws Mail 3.17.3 (GTK+ 2.24.32; x86_64-redhat-linux-gnu)
 MIME-Version: 1.0
-References: <CADwFkYdCXY5my5DW=qGJcJBDpjtZpRHXN6h4H2geneekiOzCgg@mail.gmail.com>
- <3268a1a8-1712-52b2-e0e4-c6a98f003d75@xs4all.nl>
-In-Reply-To: <3268a1a8-1712-52b2-e0e4-c6a98f003d75@xs4all.nl>
-From:   Yi Qingliang <niqingliang2003@gmail.com>
-Date:   Mon, 7 Jan 2019 14:29:41 +0000
-Message-ID: <CADwFkYevGQKMkK6nQd3qp2qTLUo2=2zBR5d-0HAGLoMpsnz5ew@mail.gmail.com>
-Subject: Re: epoll and vb2_poll: can't wake_up
-To:     Hans Verkuil <hverkuil@xs4all.nl>
-Cc:     linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Thanks! It should work now.
-BTW, I don't know if we should think about the error case before
-calling poll_wait, just like not streamon.
-if poll return error, does epoll framework need and how to remove
-waiter for client?
-for epoll framework, does it have some requirements or some tutorial
-for the implementation of client's poll?
+Em Sat, 05 Jan 2019 20:49:00 -0500
+Dan Ziemba <zman0900@gmail.com> escreveu:
 
-and I think it's better to split the two operation: adding waiter and
-polling, not only for epoll framework, and also for all clients.
+> On Mon, 2018-11-26 at 20:18 +0000, Malcolm Priestley wrote:
+> > In commit 1a0c10ed7b media: dvb-usb-v2: stop using coherent memory
+> > for URBs
+> > incorrectly adds URB_FREE_BUFFER after every urb transfer.
+> > 
+> > It cannot use this flag because it reconfigures the URBs accordingly
+> > to suit connected devices. In doing a call to usb_free_urb is made
+> > and
+> > invertedly frees the buffers.
+> > 
+> > The stream buffer should remain constant while driver is up.
+> > 
+> > Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+> > CC: stable@vger.kernel.org # v4.18+
 
-Yi Qingliang
+The patch is already there at Kernel 5.0-rc1. Greg merged it today on
+his stable trees in order to be merged on Kernels 4.19 and 4.20.
 
-On Mon, Jan 7, 2019 at 1:45 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
->
-> On 12/29/2018 03:10 AM, Yi Qingliang wrote:
-> > Hello, I encountered a "can't wake_up" problem when use camera on imx6.
-> >
-> > if delay some time after 'streamon' the /dev/video0, then add fd
-> > through epoll_ctl, then the process can't be waken_up after some time.
-> >
-> > I checked both the epoll / vb2_poll(videobuf2_core.c) code.
-> >
-> > epoll will pass 'poll_table' structure to vb2_poll, but it only
-> > contain valid function pointer when inserting fd.
-> >
-> > in vb2_poll, if found new data in done list, it will not call 'poll_wait'.
-> > after that, every call to vb2_poll will not contain valid poll_table,
-> > which will result in all calling to poll_wait will not work.
-> >
-> > so if app can process frames quickly, and found frame data when
-> > inserting fd (i.e. poll_wait will not be called or not contain valid
-> > function pointer), it will not found valid frame in 'vb2_poll' finally
-> > at some time, then call 'poll_wait' to expect be waken up at following
-> > vb2_buffer_done, but no good luck.
-> >
-> > I also checked the 'videobuf-core.c', there is no this problem.
-> >
-> > of course, both epoll and vb2_poll are right by itself side, but the
-> > result is we can't get new frames.
-> >
-> > I think by epoll's implementation, the user should always call poll_wait.
-> >
-> > and it's better to split the two actions: 'wait' and 'poll' both for
-> > epoll framework and all epoll users, for example, v4l2.
-> >
-> > am I right?
-> >
-> > Yi Qingliang
-> >
->
-> Can you test this patch?
->
-> Looking at what other drivers/frameworks do it seems that calling
-> poll_wait() at the start of the poll function is the right approach.
->
-> Regards,
->
->         Hans
->
-> Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
-> ---
-> diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
-> index 70e8c3366f9c..b1809628475d 100644
-> --- a/drivers/media/common/videobuf2/videobuf2-core.c
-> +++ b/drivers/media/common/videobuf2/videobuf2-core.c
-> @@ -2273,6 +2273,8 @@ __poll_t vb2_core_poll(struct vb2_queue *q, struct file *file,
->         struct vb2_buffer *vb = NULL;
->         unsigned long flags;
->
-> +       poll_wait(file, &q->done_wq, wait);
-> +
->         if (!q->is_output && !(req_events & (EPOLLIN | EPOLLRDNORM)))
->                 return 0;
->         if (q->is_output && !(req_events & (EPOLLOUT | EPOLLWRNORM)))
-> @@ -2329,8 +2331,6 @@ __poll_t vb2_core_poll(struct vb2_queue *q, struct file *file,
->                  */
->                 if (q->last_buffer_dequeued)
->                         return EPOLLIN | EPOLLRDNORM;
-> -
-> -               poll_wait(file, &q->done_wq, wait);
->         }
->
->         /*
+> > ---
+> > v3 change commit message to the actual cause
+> > 
+> >  drivers/media/usb/dvb-usb-v2/usb_urb.c | 5 ++---
+> >  1 file changed, 2 insertions(+), 3 deletions(-)
+> > 
+> > diff --git a/drivers/media/usb/dvb-usb-v2/usb_urb.c
+> > b/drivers/media/usb/dvb-usb-v2/usb_urb.c
+> > index 024c751eb165..2ad2ddeaff51 100644
+> > --- a/drivers/media/usb/dvb-usb-v2/usb_urb.c
+> > +++ b/drivers/media/usb/dvb-usb-v2/usb_urb.c
+> > @@ -155,7 +155,6 @@ static int usb_urb_alloc_bulk_urbs(struct
+> > usb_data_stream *stream)
+> >  				stream->props.u.bulk.buffersize,
+> >  				usb_urb_complete, stream);
+> >  
+> > -		stream->urb_list[i]->transfer_flags = URB_FREE_BUFFER;
+> >  		stream->urbs_initialized++;
+> >  	}
+> >  	return 0;
+> > @@ -186,7 +185,7 @@ static int usb_urb_alloc_isoc_urbs(struct
+> > usb_data_stream *stream)
+> >  		urb->complete = usb_urb_complete;
+> >  		urb->pipe = usb_rcvisocpipe(stream->udev,
+> >  				stream->props.endpoint);
+> > -		urb->transfer_flags = URB_ISO_ASAP | URB_FREE_BUFFER;
+> > +		urb->transfer_flags = URB_ISO_ASAP;
+> >  		urb->interval = stream->props.u.isoc.interval;
+> >  		urb->number_of_packets = stream-
+> > >props.u.isoc.framesperurb;
+> >  		urb->transfer_buffer_length = stream-
+> > >props.u.isoc.framesize *
+> > @@ -210,7 +209,7 @@ static int usb_free_stream_buffers(struct
+> > usb_data_stream *stream)
+> >  	if (stream->state & USB_STATE_URB_BUF) {
+> >  		while (stream->buf_num) {
+> >  			stream->buf_num--;
+> > -			stream->buf_list[stream->buf_num] = NULL;
+> > +			kfree(stream->buf_list[stream->buf_num]);
+> >  		}
+> >  	}
+> >  
+> 
+> I have tested this against Arch Linux's kernel packages for both linux
+> 4.20 and linux-lts 4.19.13.  For both, the patch seems to fix the
+> crashes I reported here:
+> https://bugzilla.kernel.org/show_bug.cgi?id=201055
+> 
+> Thanks,
+> Dan Ziemba
+> 
+> 
+
+
+
+Thanks,
+Mauro
