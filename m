@@ -2,168 +2,113 @@ Return-Path: <SRS0=8vfi=PP=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_NEOMUTT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2EFD5C43387
-	for <linux-media@archiver.kernel.org>; Mon,  7 Jan 2019 13:29:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F10A6C43387
+	for <linux-media@archiver.kernel.org>; Mon,  7 Jan 2019 13:45:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 07430206B6
-	for <linux-media@archiver.kernel.org>; Mon,  7 Jan 2019 13:29:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C86C62147C
+	for <linux-media@archiver.kernel.org>; Mon,  7 Jan 2019 13:45:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727147AbfAGN3c (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 7 Jan 2019 08:29:32 -0500
-Received: from mail.bootlin.com ([62.4.15.54]:38998 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726886AbfAGN3c (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 7 Jan 2019 08:29:32 -0500
-Received: by mail.bootlin.com (Postfix, from userid 110)
-        id BBC0620746; Mon,  7 Jan 2019 14:29:29 +0100 (CET)
-Received: from localhost (aaubervilliers-681-1-29-148.w90-88.abo.wanadoo.fr [90.88.149.148])
-        by mail.bootlin.com (Postfix) with ESMTPSA id 8A1C420712;
-        Mon,  7 Jan 2019 14:29:29 +0100 (CET)
-Date:   Mon, 7 Jan 2019 14:29:29 +0100
-From:   Maxime Ripard <maxime.ripard@bootlin.com>
-To:     Jagan Teki <jagan@amarulasolutions.com>
-Cc:     Yong Deng <yong.deng@magewell.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        linux-media <linux-media@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        devicetree <devicetree@vger.kernel.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        linux-sunxi <linux-sunxi@googlegroups.com>,
-        linux-amarula@amarulasolutions.com,
-        Michael Trimarchi <michael@amarulasolutions.com>
-Subject: Re: [PATCH v5 2/6] media: sun6i: Add mod_rate quirk
-Message-ID: <20190107132929.ksyajmzn2gzr6oep@flea>
-References: <20181220125438.11700-1-jagan@amarulasolutions.com>
- <20181220125438.11700-3-jagan@amarulasolutions.com>
- <20181221130025.lbvw7yvy74brf3jn@flea>
- <CAMty3ZCG5cF3tP2mid5xyS=yhtxkY+TOcGkwRkv+vrZt1=0iQg@mail.gmail.com>
+        id S1728181AbfAGNpi (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 7 Jan 2019 08:45:38 -0500
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:49767 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727785AbfAGNpi (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 7 Jan 2019 08:45:38 -0500
+Received: from [192.168.2.10] ([212.251.195.8])
+        by smtp-cloud7.xs4all.net with ESMTPA
+        id gVDggGzktBDyIgVDkgO6eI; Mon, 07 Jan 2019 14:45:36 +0100
+Subject: Re: epoll and vb2_poll: can't wake_up
+To:     Yi Qingliang <niqingliang2003@gmail.com>,
+        linux-media@vger.kernel.org
+References: <CADwFkYdCXY5my5DW=qGJcJBDpjtZpRHXN6h4H2geneekiOzCgg@mail.gmail.com>
+From:   Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <3268a1a8-1712-52b2-e0e4-c6a98f003d75@xs4all.nl>
+Date:   Mon, 7 Jan 2019 14:45:32 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:52.0) Gecko/20100101
+ Thunderbird/52.2.1
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="5v667uexziqiuyca"
-Content-Disposition: inline
-In-Reply-To: <CAMty3ZCG5cF3tP2mid5xyS=yhtxkY+TOcGkwRkv+vrZt1=0iQg@mail.gmail.com>
-User-Agent: NeoMutt/20180716
+In-Reply-To: <CADwFkYdCXY5my5DW=qGJcJBDpjtZpRHXN6h4H2geneekiOzCgg@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-CMAE-Envelope: MS4wfC7fPB+iqZKTVF7t74WEPTks88TUrDlG3EPwEoSLu3vOVKjxZnZh/QCYVaAHbv4bpQ/f3wlEKWcPyHp3Wh1++5vPPjJfsrIHWpPEW5DugxqTg9Idxqy2
+ XhgdviK+BhiJg3Lu/9r2FAC4PA20MHQEkt27PINqrRo2/aTwwZ3yJjrt/R/X0NL7HoTiYfkklnAX/wd0qA0I7EOOOvbB8oN0Q91azOrlBRblmDr/H+qKeGTF
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
+On 12/29/2018 03:10 AM, Yi Qingliang wrote:
+> Hello, I encountered a "can't wake_up" problem when use camera on imx6.
+> 
+> if delay some time after 'streamon' the /dev/video0, then add fd
+> through epoll_ctl, then the process can't be waken_up after some time.
+> 
+> I checked both the epoll / vb2_poll(videobuf2_core.c) code.
+> 
+> epoll will pass 'poll_table' structure to vb2_poll, but it only
+> contain valid function pointer when inserting fd.
+> 
+> in vb2_poll, if found new data in done list, it will not call 'poll_wait'.
+> after that, every call to vb2_poll will not contain valid poll_table,
+> which will result in all calling to poll_wait will not work.
+> 
+> so if app can process frames quickly, and found frame data when
+> inserting fd (i.e. poll_wait will not be called or not contain valid
+> function pointer), it will not found valid frame in 'vb2_poll' finally
+> at some time, then call 'poll_wait' to expect be waken up at following
+> vb2_buffer_done, but no good luck.
+> 
+> I also checked the 'videobuf-core.c', there is no this problem.
+> 
+> of course, both epoll and vb2_poll are right by itself side, but the
+> result is we can't get new frames.
+> 
+> I think by epoll's implementation, the user should always call poll_wait.
+> 
+> and it's better to split the two actions: 'wait' and 'poll' both for
+> epoll framework and all epoll users, for example, v4l2.
+> 
+> am I right?
+> 
+> Yi Qingliang
+> 
 
---5v667uexziqiuyca
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Can you test this patch?
 
-On Mon, Dec 24, 2018 at 08:57:48PM +0530, Jagan Teki wrote:
-> On Fri, Dec 21, 2018 at 6:30 PM Maxime Ripard <maxime.ripard@bootlin.com>=
- wrote:
-> >
-> > On Thu, Dec 20, 2018 at 06:24:34PM +0530, Jagan Teki wrote:
-> > > Unfortunately default CSI_SCLK rate cannot work properly to
-> > > drive the connected sensor interface, particularly on few
-> > > Allwinner SoC's like A64.
-> > >
-> > > So, add mod_rate quirk via driver data so-that the respective
-> > > SoC's which require to alter the default mod clock rate can assign
-> > > the operating clock rate.
-> > >
-> > > Signed-off-by: Jagan Teki <jagan@amarulasolutions.com>
-> > > ---
-> > >  .../platform/sunxi/sun6i-csi/sun6i_csi.c      | 34 +++++++++++++++--=
---
-> > >  1 file changed, 28 insertions(+), 6 deletions(-)
-> > >
-> > > diff --git a/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c b/dri=
-vers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
-> > > index ee882b66a5ea..fe002beae09c 100644
-> > > --- a/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
-> > > +++ b/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
-> > > @@ -15,6 +15,7 @@
-> > >  #include <linux/ioctl.h>
-> > >  #include <linux/module.h>
-> > >  #include <linux/of.h>
-> > > +#include <linux/of_device.h>
-> > >  #include <linux/platform_device.h>
-> > >  #include <linux/pm_runtime.h>
-> > >  #include <linux/regmap.h>
-> > > @@ -28,8 +29,13 @@
-> > >
-> > >  #define MODULE_NAME  "sun6i-csi"
-> > >
-> > > +struct sun6i_csi_variant {
-> > > +     unsigned long                   mod_rate;
-> > > +};
-> > > +
-> > >  struct sun6i_csi_dev {
-> > >       struct sun6i_csi                csi;
-> > > +     const struct sun6i_csi_variant  *variant;
-> > >       struct device                   *dev;
-> > >
-> > >       struct regmap                   *regmap;
-> > > @@ -822,33 +828,43 @@ static int sun6i_csi_resource_request(struct su=
-n6i_csi_dev *sdev,
-> > >               return PTR_ERR(sdev->clk_mod);
-> > >       }
-> > >
-> > > +     if (sdev->variant->mod_rate)
-> > > +             clk_set_rate_exclusive(sdev->clk_mod, sdev->variant->mo=
-d_rate);
-> > > +
-> >
-> > It still doesn't make any sense to do it in the probe function...
->=20
-> I'm not sure we discussed about the context wrt probe, we discussed
-> about exclusive put clock.
+Looking at what other drivers/frameworks do it seems that calling
+poll_wait() at the start of the poll function is the right approach.
 
-https://lkml.org/lkml/2018/12/18/584
+Regards,
 
-"Doing it here is not really optimal either, since you'll put a
-constraint on the system (maintaining that clock at 300MHz), while
-it's not in use."
+	Hans
 
-> Since clocks were enabling in set_power and clock rate can be set
-> during probe in single time instead of setting it in set_power for
-> every power enablement. anything wrong with that.
+Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+---
+diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
+index 70e8c3366f9c..b1809628475d 100644
+--- a/drivers/media/common/videobuf2/videobuf2-core.c
++++ b/drivers/media/common/videobuf2/videobuf2-core.c
+@@ -2273,6 +2273,8 @@ __poll_t vb2_core_poll(struct vb2_queue *q, struct file *file,
+ 	struct vb2_buffer *vb = NULL;
+ 	unsigned long flags;
 
-See above.
++	poll_wait(file, &q->done_wq, wait);
++
+ 	if (!q->is_output && !(req_events & (EPOLLIN | EPOLLRDNORM)))
+ 		return 0;
+ 	if (q->is_output && !(req_events & (EPOLLOUT | EPOLLWRNORM)))
+@@ -2329,8 +2331,6 @@ __poll_t vb2_core_poll(struct vb2_queue *q, struct file *file,
+ 		 */
+ 		if (q->last_buffer_dequeued)
+ 			return EPOLLIN | EPOLLRDNORM;
+-
+-		poll_wait(file, &q->done_wq, wait);
+ 	}
 
-Plus, a clock running draws power. It doesn't really make sense to
-draw power for something that is unused.
-
-> > We discussed this in the previous iteration already.
-> >
-> > What we didn't discuss is the variant function that you introduce,
-> > while the previous approach was enough.
->=20
-> We discussed about clk_rate_exclusive_put, and that even handle it in
-> .remove right? so I have variant to handle it in sun6i_csi_remove.
-
-We indeed discussed the clk_rate_exclusive_put. However, you chose to
-implement it using a variant structure which really isn't needed.
-
-Maxime
-
---=20
-Maxime Ripard, Bootlin
-Embedded Linux and Kernel engineering
-https://bootlin.com
-
---5v667uexziqiuyca
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iHUEABYIAB0WIQRcEzekXsqa64kGDp7j7w1vZxhRxQUCXDNUOQAKCRDj7w1vZxhR
-xRZxAQD5/B5s/jOZrufS8W1yFw9lVX40DlhFzemEGBkDiUx8SQEAxgnPGYhbrw0Z
-uyF5vffAm1ff/2MAcEH/OPMiJIPxFQ8=
-=p7sH
------END PGP SIGNATURE-----
-
---5v667uexziqiuyca--
+ 	/*
