@@ -5,22 +5,21 @@ X-Spam-Level:
 X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 44837C43387
-	for <linux-media@archiver.kernel.org>; Mon,  7 Jan 2019 03:58:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 50683C43387
+	for <linux-media@archiver.kernel.org>; Mon,  7 Jan 2019 06:35:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 16BC420859
-	for <linux-media@archiver.kernel.org>; Mon,  7 Jan 2019 03:58:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1EAF42087F
+	for <linux-media@archiver.kernel.org>; Mon,  7 Jan 2019 06:35:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726280AbfAGD6F (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sun, 6 Jan 2019 22:58:05 -0500
-Received: from regular1.263xmail.com ([211.150.99.136]:44072 "EHLO
+        id S1726257AbfAGGe7 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 7 Jan 2019 01:34:59 -0500
+Received: from regular1.263xmail.com ([211.150.99.134]:43552 "EHLO
         regular1.263xmail.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726246AbfAGD6F (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 6 Jan 2019 22:58:05 -0500
-X-Greylist: delayed 496 seconds by postgrey-1.27 at vger.kernel.org; Sun, 06 Jan 2019 22:58:02 EST
-Received: from randy.li?rock-chips.com (unknown [192.168.165.135])
-        by regular1.263xmail.com (Postfix) with ESMTP id 77EC33A2;
-        Mon,  7 Jan 2019 11:49:34 +0800 (CST)
+        with ESMTP id S1725306AbfAGGe7 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 7 Jan 2019 01:34:59 -0500
+Received: from randy.li?rock-chips.com (unknown [192.168.167.32])
+        by regular1.263xmail.com (Postfix) with ESMTP id 16F4F3B7;
+        Mon,  7 Jan 2019 14:34:07 +0800 (CST)
 X-263anti-spam: KSV:0;BIG:0;
 X-MAIL-GRAY: 0
 X-MAIL-DELIVERY: 1
@@ -29,51 +28,35 @@ X-ADDR-CHECKED4: 1
 X-ABS-CHECKED: 1
 X-SKE-CHECKED: 1
 X-ANTISPAM-LEVEL: 2
-Received: from [192.168.10.130] (localhost [127.0.0.1])
-        by smtp.263.net (Postfix) with ESMTPA id 06089400;
-        Mon,  7 Jan 2019 11:49:30 +0800 (CST)
+Received: from [192.168.10.130] (unknown [58.22.7.114])
+        by smtp.263.net (postfix) whith ESMTP id P18002T140590266164992S1546842845141679_;
+        Mon, 07 Jan 2019 14:34:06 +0800 (CST)
 X-IP-DOMAINF: 1
+X-UNIQUE-TAG: <aec6759e222204c917c4dd74df3ef2ba>
 X-RL-SENDER: randy.li@rock-chips.com
-X-FST-TO: linux-rockchip@lists.infradead.org
-X-SENDER-IP: 103.29.142.67
-X-LOGIN-NAME: randy.li@rock-chips.com
-X-UNIQUE-TAG: <59498dd63bfc6f538d4f0346ef14fc0b>
-X-ATTACHMENT-NUM: 0
 X-SENDER: randy.li@rock-chips.com
+X-LOGIN-NAME: randy.li@rock-chips.com
+X-FST-TO: ayaka@soulik.info
+X-SENDER-IP: 58.22.7.114
+X-ATTACHMENT-NUM: 0
 X-DNS-TYPE: 0
-Received: from [192.168.10.130] (unknown [103.29.142.67])
-        by smtp.263.net (Postfix) whith ESMTP id 27737D1YHFF;
-        Mon, 07 Jan 2019 11:49:34 +0800 (CST)
-Subject: Re: [linux-sunxi] [PATCH v2 1/2] media: v4l: Add definitions for the
- HEVC slice format and controls
-To:     Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-Cc:     =?UTF-8?Q?Jernej_=c5=a0krabec?= <jernej.skrabec@gmail.com>,
-        linux-sunxi@googlegroups.com, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-arm-kernel@lists.infradead.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Randy Li <ayaka@soulik.info>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Ezequiel Garcia <ezequiel@collabora.com>,
-        Tomasz Figa <tfiga@chromium.org>,
+Subject: Re: [PATCHv4 00/10] As was discussed here (among other places):
+To:     hverkuil-cisco@xs4all.nl
+Cc:     linux-media@vger.kernel.org,
         Alexandre Courbot <acourbot@chromium.org>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Randy Li <ayaka@soulik.info>,
-        linux-rockchip@lists.infradead.org
-References: <20181123130209.11696-1-paul.kocialkowski@bootlin.com>
- <20181123130209.11696-2-paul.kocialkowski@bootlin.com>
- <5515174.7lFZcYkk85@jernej-laptop>
- <ffe9c81db34b599f675ca5bbf02de360bf0a1608.camel@bootlin.com>
+        maxime.ripard@bootlin.com, paul.kocialkowski@bootlin.com,
+        tfiga@chromium.org, nicolas@ndufresne.ca,
+        sakari.ailus@linux.intel.com, Randy Li <ayaka@soulik.info>
+References: <20181205102040.11741-1-hverkuil-cisco@xs4all.nl>
 From:   Randy Li <randy.li@rock-chips.com>
-Message-ID: <776e63c9-d4a5-342a-e0f7-200ef144ffc4@rock-chips.com>
-Date:   Mon, 7 Jan 2019 11:49:29 +0800
+Message-ID: <8dde36c0-105d-a7a9-8f7a-5227fca66bc8@rock-chips.com>
+Date:   Mon, 7 Jan 2019 14:34:05 +0800
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
  Thunderbird/60.2.1
 MIME-Version: 1.0
-In-Reply-To: <ffe9c81db34b599f675ca5bbf02de360bf0a1608.camel@bootlin.com>
+In-Reply-To: <20181205102040.11741-1-hverkuil-cisco@xs4all.nl>
 Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
@@ -81,108 +64,154 @@ List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
 
-On 12/12/18 8:51 PM, Paul Kocialkowski wrote:
-> Hi,
+On 12/5/18 6:20 PM, hverkuil-cisco@xs4all.nl wrote:
+> From: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 >
-> On Wed, 2018-12-05 at 21:59 +0100, Jernej Škrabec wrote:
+> https://lkml.org/lkml/2018/10/19/440
 >
->>> +
->>> +#define V4L2_HEVC_DPB_ENTRY_RPS_ST_CURR_BEFORE	0x01
->>> +#define V4L2_HEVC_DPB_ENTRY_RPS_ST_CURR_AFTER	0x02
->>> +#define V4L2_HEVC_DPB_ENTRY_RPS_LT_CURR		0x03
->>> +
->>> +#define V4L2_HEVC_DPB_ENTRIES_NUM_MAX		16
->>> +
->>> +struct v4l2_hevc_dpb_entry {
->>> +	__u32	buffer_tag;
->>> +	__u8	rps;
->>> +	__u8	field_pic;
->>> +	__u16	pic_order_cnt[2];
->>> +};
+> using capture queue buffer indices to refer to reference frames is
+> not a good idea. A better idea is to use a 'tag' where the
+> application can assign a u32 tag to an output buffer, which is then
+> copied to the capture buffer(s) derived from the output buffer.
 
-Please add a property for reference index, if that rps is not used for 
-this, some device would request that(not the rockchip one). And 
-Rockchip's VDPU1 and VDPU2 for AVC would request a similar property.
+I agree with the buffer tag. But coping from the OUPUT side to CAPTURE 
+side is a bad idea.
 
-Adding another buffer_tag for referring the memory of the motion vectors 
-for each frames. Or a better method is add a meta data to echo picture 
-buffer,  since the picture output is just the same as the original, 
-display won't care whether the motion vectors are written the button of 
-picture or somewhere else.
+I think we need a method to refer any buffers when they are allocated.
+
+When I push a slice with its parameters into the driver, its previous 
+picture in decoded order may not ready yet, using the buffer index, the 
+driver
+
+is still able to generate the registers table for it. Although you may 
+though it just an additional buffer assignment work before wrote it into 
+the device,
+
+a few times seeking a buffer in a list. But there is a mode in new 
+generation Rockchip device, called the link mode, you can put a 
+registers into a memory, device would process that register link. You 
+can't interrupt it. That is pretty useful for those codec converting.
 
 
->>> +
->>> +struct v4l2_hevc_pred_weight_table {
->>> +	__u8	luma_log2_weight_denom;
->>> +	__s8	delta_chroma_log2_weight_denom;
->>> +
->>> +	__s8	delta_luma_weight_l0[V4L2_HEVC_DPB_ENTRIES_NUM_MAX];
->>> +	__s8	luma_offset_l0[V4L2_HEVC_DPB_ENTRIES_NUM_MAX];
->>> +	__s8	delta_chroma_weight_l0[V4L2_HEVC_DPB_ENTRIES_NUM_MAX][2];
->>> +	__s8	chroma_offset_l0[V4L2_HEVC_DPB_ENTRIES_NUM_MAX][2];
->>> +
->>> +	__s8	delta_luma_weight_l1[V4L2_HEVC_DPB_ENTRIES_NUM_MAX];
->>> +	__s8	luma_offset_l1[V4L2_HEVC_DPB_ENTRIES_NUM_MAX];
->>> +	__s8	delta_chroma_weight_l1[V4L2_HEVC_DPB_ENTRIES_NUM_MAX][2];
->>> +	__s8	chroma_offset_l1[V4L2_HEVC_DPB_ENTRIES_NUM_MAX][2];
->>> +};
->>> +
-Those properties I think are not necessary are applying for the 
-Rockchip's device, may not work for the others.
->>> +struct v4l2_ctrl_hevc_slice_params {
->>> +	__u32	bit_size;
->>> +	__u32	data_bit_offset;
->>> +
->>> +	/* ISO/IEC 23008-2, ITU-T Rec. H.265: NAL unit header */
->>> +	__u8	nal_unit_type;
->>> +	__u8	nuh_temporal_id_plus1;
->>> +
->>> +	/* ISO/IEC 23008-2, ITU-T Rec. H.265: General slice segment header */
->>> +	__u8	slice_type;
->>> +	__u8	colour_plane_id;
-----------------------------------------------------------------------------
->>> +	__u16	slice_pic_order_cnt;
->>> +	__u8	slice_sao_luma_flag;
->>> +	__u8	slice_sao_chroma_flag;
->>> +	__u8	slice_temporal_mvp_enabled_flag;
->>> +	__u8	num_ref_idx_l0_active_minus1;
->>> +	__u8	num_ref_idx_l1_active_minus1;
-Rockchip's decoder doesn't use this part.
->>> +	__u8	mvd_l1_zero_flag;
->>> +	__u8	cabac_init_flag;
->>> +	__u8	collocated_from_l0_flag;
->>> +	__u8	collocated_ref_idx;
->>> +	__u8	five_minus_max_num_merge_cand;
->>> +	__u8	use_integer_mv_flag;
->>> +	__s8	slice_qp_delta;
->>> +	__s8	slice_cb_qp_offset;
->>> +	__s8	slice_cr_qp_offset;
->>> +	__s8	slice_act_y_qp_offset;
->>> +	__s8	slice_act_cb_qp_offset;
->>> +	__s8	slice_act_cr_qp_offset;
->>> +	__u8	slice_deblocking_filter_disabled_flag;
->>> +	__s8	slice_beta_offset_div2;
->>> +	__s8	slice_tc_offset_div2;
->>> +	__u8	slice_loop_filter_across_slices_enabled_flag;
->>> +
->>> +	/* ISO/IEC 23008-2, ITU-T Rec. H.265: Picture timing SEI message */
->>> +	__u8	pic_struct;
-I think the decoder doesn't care about this, it is used for display.
->>> +
->>> +	/* ISO/IEC 23008-2, ITU-T Rec. H.265: General slice segment header */
->>> +	struct v4l2_hevc_dpb_entry dpb[V4L2_HEVC_DPB_ENTRIES_NUM_MAX];
->>> +	__u8	num_active_dpb_entries;
->>> +	__u8	ref_idx_l0[V4L2_HEVC_DPB_ENTRIES_NUM_MAX];
->>> +	__u8	ref_idx_l1[V4L2_HEVC_DPB_ENTRIES_NUM_MAX];
->>> +
->>> +	__u8	num_rps_poc_st_curr_before;
->>> +	__u8	num_rps_poc_st_curr_after;
->>> +	__u8	num_rps_poc_lt_curr;
->>> +
->>> +	/* ISO/IEC 23008-2, ITU-T Rec. H.265: Weighted prediction parameter */
->>> +	struct v4l2_hevc_pred_weight_table pred_weight_table;
->>> +};
->>> +
->>>   #endif
->>
+Besides, I found it is little hard to refer a buffer with different 
+offsets at the same time, it would be used for multiple slices and 
+multiple CTU or filed picture which are not usual case nowadays.
+
+> It has been suggested that the timestamp can be used for this. But
+> there are a number of reasons why this is a bad idea:
+I wonder why using a timestamp in the decoder or encoder, if the stream 
+doesn't have a timestamp, we have to generate one.
+>
+> 1) the struct timeval is converted to a u64 in vb2. So there can be
+>     all sorts of unexpected conversion issues. In particular, the
+>     output of ns_to_timeval(timeval_to_ns(tv)) does not necessarily
+>     match the input.
+>
+> 2) it gets worse with the y2038 code where userspace either deals
+>     with a 32 bit tv_sec value or a 64 bit value.
+>
+> In other words, using timestamp for this is not a good idea.
+>
+> This implementation adds a new tag field in a union with the reserved2
+> field. The interpretation of that union depends on the flags field, so
+> it still can be used for other things as well. In addition, in the previous
+> patches the tag was in a union with the timecode field (again determined
+> by the flags field), so if we need to cram additional information in this
+> struct we can always put it in a union with the timecode field as well.
+> It worked for the tag, it should work for other things.
+>
+> But we really need to start looking at a struct v4l2_ext_buffer.
+>
+> The first three patches add core tag support, the next two patches document
+> the tag support, then a new helper function is added to v4l2-mem2mem.c
+> to easily copy data from a source to a destination buffer that drivers
+> can use.
+>
+> Next a new supports_tags vb2_queue flag is added to indicate that
+> the driver supports tags. Ideally this should not be necessary, but
+> that would require that all m2m drivers are converted to using the
+> new helper function introduced in the previous patch. That takes more
+> time then I have now.
+>
+> Finally the vim2m, vicodec and cedrus drivers are converted to support
+> tags.
+>
+> I also removed the 'pad' fields from the mpeg2 control structs (it
+> should never been added in the first place) and aligned the structs
+> to a u32 boundary.
+>
+> Note that this might change further (Paul suggested using bitfields).
+>
+> Also note that the cedrus code doesn't set the sequence counter, that's
+> something that should still be added before this driver can be moved
+> out of staging.
+>
+> Note: if no buffer is found for a certain tag, then the dma address
+> is just set to 0. That happened before as well with invalid buffer
+> indices. This should be checked in the driver!
+>
+> Regards,
+>
+>          Hans
+>
+> Changes since v3:
+>
+> - use reserved2 for the tag
+> - split the documentation in two: one documenting the tag, one
+>    cleaning up the timecode documentation.
+>
+> Changes since v2:
+>
+> - rebased
+> - added Reviewed-by tags
+> - fixed a few remaining references in the documentation to the old
+>    v4l2_buffer_tag struct that was used in early versions of this
+>    series.
+>
+> Changes since v1:
+>
+> - changed to a u32 tag. Using a 64 bit tag was overly complicated due
+>    to the bad layout of the v4l2_buffer struct, and there is no real
+>    need for it by applications.
+>
+> Main changes since the RFC:
+>
+> - Added new buffer capability flag
+> - Added m2m helper to copy data between buffers
+> - Added documentation
+> - Added tag logging in v4l2-ioctl.c
+>
+>
+> Hans Verkuil (10):
+>    videodev2.h: add tag support
+>    vb2: add tag support
+>    v4l2-ioctl.c: log v4l2_buffer tag
+>    buffer.rst: document the new buffer tag feature.
+>    buffer.rst: clean up timecode documentation
+>    v4l2-mem2mem: add v4l2_m2m_buf_copy_data helper function
+>    vb2: add new supports_tags queue flag
+>    vim2m: add tag support
+>    vicodec: add tag support
+>    cedrus: add tag support
+>
+>   Documentation/media/uapi/v4l/buffer.rst       | 28 +++++++++----
+>   .../media/uapi/v4l/vidioc-reqbufs.rst         |  4 ++
+>   .../media/common/videobuf2/videobuf2-v4l2.c   | 41 ++++++++++++++++---
+>   drivers/media/platform/vicodec/vicodec-core.c | 14 ++-----
+>   drivers/media/platform/vim2m.c                | 14 ++-----
+>   drivers/media/v4l2-core/v4l2-ctrls.c          |  9 ----
+>   drivers/media/v4l2-core/v4l2-ioctl.c          |  9 ++--
+>   drivers/media/v4l2-core/v4l2-mem2mem.c        | 23 +++++++++++
+>   drivers/staging/media/sunxi/cedrus/cedrus.h   |  9 ++--
+>   .../staging/media/sunxi/cedrus/cedrus_dec.c   |  2 +
+>   .../staging/media/sunxi/cedrus/cedrus_mpeg2.c | 21 ++++------
+>   .../staging/media/sunxi/cedrus/cedrus_video.c |  2 +
+>   include/media/v4l2-mem2mem.h                  | 21 ++++++++++
+>   include/media/videobuf2-core.h                |  2 +
+>   include/media/videobuf2-v4l2.h                | 21 +++++++++-
+>   include/uapi/linux/v4l2-controls.h            | 14 +++----
+>   include/uapi/linux/videodev2.h                |  9 +++-
+>   17 files changed, 168 insertions(+), 75 deletions(-)
+>
+
 
