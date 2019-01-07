@@ -2,219 +2,134 @@ Return-Path: <SRS0=8vfi=PP=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 43576C43387
-	for <linux-media@archiver.kernel.org>; Mon,  7 Jan 2019 11:17:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EC71CC43387
+	for <linux-media@archiver.kernel.org>; Mon,  7 Jan 2019 11:27:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id F3F0A2087F
-	for <linux-media@archiver.kernel.org>; Mon,  7 Jan 2019 11:17:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9DA1D2089F
+	for <linux-media@archiver.kernel.org>; Mon,  7 Jan 2019 11:27:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726974AbfAGLRj (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 7 Jan 2019 06:17:39 -0500
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:37847 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726798AbfAGLRj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 7 Jan 2019 06:17:39 -0500
-Received: from [192.168.2.10] ([212.251.195.8])
-        by smtp-cloud7.xs4all.net with ESMTPA
-        id gSuQgFEYaBDyIgSuUgNQ5M; Mon, 07 Jan 2019 12:17:36 +0100
-Subject: Re: [PATCHv5 6/8] vb2: add vb2_find_timestamp()
-To:     Tomasz Figa <tfiga@chromium.org>, jonas@kwiboo.se
-Cc:     Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        nicolas@ndufresne.ca, Jernej Skrabec <jernej.skrabec@gmail.com>
-References: <20181212123901.34109-1-hverkuil-cisco@xs4all.nl>
- <20181212123901.34109-7-hverkuil-cisco@xs4all.nl>
- <AM0PR03MB4676988BC60352DFDFAD0783ACA70@AM0PR03MB4676.eurprd03.prod.outlook.com>
- <985a4c64-f914-8405-2a78-422bcd8f2139@xs4all.nl>
- <CAAFQd5BKizq20x+kyeH1nE1RUs9S2O7coQEXkPu6bCw8EAhmHA@mail.gmail.com>
- <AM0PR03MB467606D6C482F06F4E401767ACBE0@AM0PR03MB4676.eurprd03.prod.outlook.com>
- <CAAFQd5AJ4NYfHyWSW7N+a8DtTfKKEkHOmaY8fNpwQrkjzrA7Ng@mail.gmail.com>
-From:   Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Message-ID: <c2b1a3ab-ac16-a926-6f22-d6d9a865f93c@xs4all.nl>
-Date:   Mon, 7 Jan 2019 12:17:30 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:52.0) Gecko/20100101
- Thunderbird/52.2.1
+        id S1726953AbfAGL1u (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 7 Jan 2019 06:27:50 -0500
+Received: from mga02.intel.com ([134.134.136.20]:27439 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726911AbfAGL1u (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 7 Jan 2019 06:27:50 -0500
+X-Amp-Result: UNSCANNABLE
+X-Amp-File-Uploaded: False
+Received: from fmsmga004.fm.intel.com ([10.253.24.48])
+  by orsmga101.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 07 Jan 2019 03:27:49 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.56,450,1539673200"; 
+   d="scan'208";a="133595002"
+Received: from bachmicx-mobl.ger.corp.intel.com (HELO kekkonen.fi.intel.com) ([10.252.57.24])
+  by fmsmga004.fm.intel.com with ESMTP; 07 Jan 2019 03:27:47 -0800
+Received: by kekkonen.fi.intel.com (Postfix, from userid 1000)
+        id 178A321D0B; Mon,  7 Jan 2019 13:27:43 +0200 (EET)
+Date:   Mon, 7 Jan 2019 13:27:42 +0200
+From:   Sakari Ailus <sakari.ailus@linux.intel.com>
+To:     Akinobu Mita <akinobu.mita@gmail.com>
+Cc:     linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: Re: [PATCH 09/12] media: mt9m001: register to V4L2 asynchronous
+ subdevice framework
+Message-ID: <20190107112742.grz2nvaqmcufoblk@kekkonen.localdomain>
+References: <1545498774-11754-1-git-send-email-akinobu.mita@gmail.com>
+ <1545498774-11754-10-git-send-email-akinobu.mita@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <CAAFQd5AJ4NYfHyWSW7N+a8DtTfKKEkHOmaY8fNpwQrkjzrA7Ng@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
-X-CMAE-Envelope: MS4wfLU4n8btj11nirDqex4m8Q+uU8kNKFCopcwhHwf1niQrgF0xV/vSgSznemyigfwniWKndhMI6ogiXCWBm2UCeWhzBTJVT0oBkwpDwzzC2k7tAk9poFeg
- U2z57s00pzY9uJr9x0jAt3g2cW7o1XBHu7A1dTt217Puj2sruNCusswQwX7ZhVeYFmeHx484NhGgmBO0UUf4zpvBhAK+EJmuPTUdgp3AHwvL/7nFUYn5f3wK
- hPExt8JwQop4SwqglJVjg16JPYY8Tix48xQWX7IY1/HcRb6KYo8ppA8e2UO6jei047Sa2q45NFCwwyEiGEpHCcIeHgPSU4+ZpzWcSXgVppqPSbywJkFz/6Xw
- K0L3LWb53h8sAlc1DF7iLCojnc3kcucGx5B/ygzDku8Vg0mYtzrqzWy55f3q2aZnZlZYMMgb5UcEh8L7am0VonPLqWGw0WxqofFz5A6XzLb362GyhN4=
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1545498774-11754-10-git-send-email-akinobu.mita@gmail.com>
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On 12/19/2018 08:16 AM, Tomasz Figa wrote:
-> On Wed, Dec 19, 2018 at 4:04 PM Jonas Karlman <jonas@kwiboo.se> wrote:
->>
->> On 2018-12-19 06:10, Tomasz Figa wrote:
->>> On Thu, Dec 13, 2018 at 9:28 PM Hans Verkuil <hverkuil-cisco@xs4all.nl> wrote:
->>>> On 12/12/18 7:28 PM, Jonas Karlman wrote:
->>>>> Hi Hans,
->>>>>
->>>>> Since this function only return DEQUEUED and DONE buffers,
->>>>> it cannot be used to find a capture buffer that is both used for
->>>>> frame output and is part of the frame reference list.
->>>>> E.g. a bottom field referencing a top field that is already
->>>>> part of the capture buffer being used for frame output.
->>>>> (top and bottom field is output in same buffer)
->>>>>
->>>>> Jernej Škrabec and me have worked around this issue in cedrus driver by
->>>>> first checking
->>>>> the tag/timestamp of the current buffer being used for output frame.
->>>>>
->>>>>
->>>>> // field pictures may reference current capture buffer and is not
->>>>> returned by vb2_find_tag
->>>>> if (v4l2_buf->tag == dpb->tag)
->>>>>     buf_idx = v4l2_buf->vb2_buf.index;
->>>>> else
->>>>>     buf_idx = vb2_find_tag(cap_q, dpb->tag, 0);
->>>>>
->>>>>
->>>>> What is the recommended way to handle such case?
->>>> That is the right approach for this. Interesting corner case, I hadn't
->>>> considered that.
->>>>
->>>>> Could vb2_find_timestamp be extended to allow QUEUED buffers to be returned?
->>>> No, because only the driver knows what the current buffer is.
->>>>
->>>> Buffers that are queued to the driver are in state ACTIVE. But there may be
->>>> multiple ACTIVE buffers and vb2 doesn't know which buffer is currently
->>>> being processed by the driver.
->>>>
->>>> So this will have to be checked by the driver itself.
->>> Hold on, it's a perfectly valid use case to have the buffer queued but
->>> still used as a reference for previously queued buffers, e.g.
->>>
->>> QBUF(O, 0)
->>> QBUF(C, 0)
->>> REF(ref0, out_timestamp(0))
->>> QBUF(O, 1)
->>> QBUF(C, 1)
->>> REF(ref0, out_timestamp(0))
->>> QBUF(O, 2)
->>> QBUF(C, 2)
->>> <- driver returns O(0) and C(0) here
->>> <- userspace also knows that any next frame will not reference C(0) anymore
->>> REF(ref0, out_timestamp(2))
->>> QBUF(O, 0)
->>> QBUF(C, 0)
->>> <- driver may pick O(1)+C(1) or O(2)+C(2) to decode here, but C(0)
->>> which is the reference for it is already QUEUED.
->>>
->>> It's a perfectly fine scenario and optimal from pipelining point of
->>> view, but if I'm not missing something, the current patch wouldn't
->>> allow it.
->>
->> This scenario should never happen with FFmpeg + v4l2request hwaccel +
->> Kodi userspace.
->> FFmpeg would only QBUF O(0)+C(0) again after it has been presented on
->> screen and Kodi have released the last reference to the AVFrame.
->>
+Hi Mita-san,
+
+On Sun, Dec 23, 2018 at 02:12:51AM +0900, Akinobu Mita wrote:
+> Register a sub-device to the asynchronous subdevice framework, and also
+> create subdevice device node.
 > 
-> I skipped the display in the example indeed, but we can easily add it:
+> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+> ---
+>  drivers/media/i2c/Kconfig   | 2 +-
+>  drivers/media/i2c/mt9m001.c | 9 ++++++++-
+>  2 files changed, 9 insertions(+), 2 deletions(-)
 > 
-> QBUF(O, 0)
-> QBUF(C, 0)
-> REF(ref0, out_timestamp(0))
-> QBUF(O, 1)
-> QBUF(C, 1)
-> <- driver returns O(0) and C(0) here
-> <- userspace displays C(0)
-> REF(ref0, out_timestamp(0))
-> QBUF(O, 2)
-> QBUF(C, 2)
-> REF(ref0, out_timestamp(0))
-> QBUF(O, 3)
-> QBUF(C, 3)
-> <- driver returns O(1) and C(1) here
-> <- userspace displays C(1) and reclaims C(0)
-> <- userspace also knows that any next frame will not reference C(0) anymore
-> REF(ref0, out_timestamp(3))
-> QBUF(O, 0)
-> QBUF(C, 0)
+> diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+> index 5e30ad3..a6d8416 100644
+> --- a/drivers/media/i2c/Kconfig
+> +++ b/drivers/media/i2c/Kconfig
+> @@ -845,7 +845,7 @@ config VIDEO_VS6624
+>  
+>  config VIDEO_MT9M001
+>  	tristate "mt9m001 support"
+> -	depends on I2C && VIDEO_V4L2
+> +	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
 
-When C(0) is queued its timestamp field is zeroed by vb2. So it can no
-longer be used as a reference.
+VIDEO_V4L2_SUBDEV_API depends on MEDIA_CONTROLLER, so MEDIA_CONTROLLER
+below can be removed.
 
-For now I want to keep the behavior like that (i.e. once you requeue a
-capture buffer it can no longer be used as a reference frame for the decoder).
+>  	depends on MEDIA_CAMERA_SUPPORT
+>  	depends on MEDIA_CONTROLLER
+>  	help
+> diff --git a/drivers/media/i2c/mt9m001.c b/drivers/media/i2c/mt9m001.c
+> index e31fb7d..b4deec3 100644
+> --- a/drivers/media/i2c/mt9m001.c
+> +++ b/drivers/media/i2c/mt9m001.c
+> @@ -716,6 +716,7 @@ static int mt9m001_probe(struct i2c_client *client,
+>  		return PTR_ERR(mt9m001->reset_gpio);
+>  
+>  	v4l2_i2c_subdev_init(&mt9m001->subdev, client, &mt9m001_subdev_ops);
+> +	mt9m001->subdev.flags = V4L2_SUBDEV_FL_HAS_DEVNODE;
 
-This limitation is something we might want to lift in the future, but
-this would require more work internally.
+|=
 
-Regards,
+Otherwise you lose flags set by v4l2_i2c_subdev_init().
 
-	Hans
+>  	v4l2_ctrl_handler_init(&mt9m001->hdl, 4);
+>  	v4l2_ctrl_new_std(&mt9m001->hdl, &mt9m001_ctrl_ops,
+>  			V4L2_CID_VFLIP, 0, 1, 1, 0);
+> @@ -765,10 +766,16 @@ static int mt9m001_probe(struct i2c_client *client,
+>  	if (ret)
+>  		goto error_power_off;
+>  
+> +	ret = v4l2_async_register_subdev(&mt9m001->subdev);
+> +	if (ret)
+> +		goto error_entity_cleanup;
+> +
+>  	pm_runtime_put_sync(&client->dev);
+>  
+>  	return 0;
+>  
+> +error_entity_cleanup:
+> +	media_entity_cleanup(&mt9m001->subdev.entity);
+>  error_power_off:
+>  	pm_runtime_disable(&client->dev);
+>  	pm_runtime_set_suspended(&client->dev);
+> @@ -785,9 +792,9 @@ static int mt9m001_remove(struct i2c_client *client)
+>  {
+>  	struct mt9m001 *mt9m001 = to_mt9m001(client);
+>  
+> -	v4l2_device_unregister_subdev(&mt9m001->subdev);
+>  	pm_runtime_get_sync(&client->dev);
+>  
+> +	v4l2_async_unregister_subdev(&mt9m001->subdev);
+>  	media_entity_cleanup(&mt9m001->subdev.entity);
+>  
+>  	pm_runtime_disable(&client->dev);
 
-> <- driver may pick O(3)+C(3) to decode here, but C(0)
-> which is the reference for it is already QUEUED.
-> 
-> Also the fact that FFmpeg wouldn't trigger such case doesn't mean that
-> it's an invalid one. If I remember correctly, Chromium would actually
-> trigger such, since we attempt to pipeline things as much as possible.
-> 
->> The v4l2request hwaccel will keep a AVFrame pool with preallocated
->> frames, AVFrame(x) is keeping userspace ref to O(x)+C(x).
->> An AVFrame will not be released back to the pool until FFmpeg have
->> removed it from DPB and Kodi have released it after it no longer is
->> being presented on screen.
->>
->> E.g. an IPBIPB sequense with display order 0 2 1 3 5 4
->>
->> FFmpeg: AVFrame(0)
->> QBUF: O(0)+C(0)
->> DQBUF: O(0)+C(0)
->> Kodi: AVFrame(0) returned from FFmpeg and presented on screen
->> FFmpeg: AVFrame(1) with ref to AVFrame(0)
->> QBUF: O(1)+C(1) with ref to timestamp(0)
->> DQBUF: O(1)+C(1)
->> FFmpeg: AVFrame(2) with ref to AVFrame(0)+AVFrame(1)
->> QBUF: O(2)+C(2) with ref to timestamp(0)+timestamp(1)
->> DQBUF: O(2)+C(2)
->> Kodi: AVFrame(2) returned from FFmpeg and presented on screen
->> Kodi: AVFrame(0) released (no longer presented)
->> FFmpeg: AVFrame(3)
->> QBUF: O(3)+C(3)
->> DQBUF: O(3)+C(3)
->> Kodi: AVFrame(1) returned from FFmpeg and presented on screen
->> Kodi: AVFrame(2) released (no longer presented)
->> FFmpeg: AVFrame(2) returned to pool
->> FFmpeg: AVFrame(2) with ref to AVFrame(3)
->> QBUF: O(2)+C(2) with ref to timestamp(3)
->> DQBUF: O(2)+C(2)
->> Kodi: AVFrame(3) returned from FFmpeg and presented on screen
->> Kodi: AVFrame(1) released (no longer presented)
->> FFmpeg: AVFrame(0)+AVFrame(1) returned to pool (no longer referenced)
->> FFmpeg: AVFrame(0) with ref to AVFrame(3)+AVFrame(2)
->> QBUF: O(0)+C(0) with ref to timestamp(3)+timestamp(2)
->> DQBUF: O(0)+C(0)
->> Kodi: AVFrame(0) returned from FFmpeg and presented on screen
->> Kodi: AVFrame(3) released (no longer presented)
->> and so on
->>
->> Here we can see that O(0)+C(0) will not be QBUF until after FFmpeg +
->> Kodi have released all userspace refs to AVFrame(0).
->> Above example was simplified, Kodi will normally keep a few decoded
->> frames in buffer before being presented and FFmpeg will CREATE_BUF
->> anytime the pool is empty and new O/C buffers is needed.
->>
->> Regards,
->> Jonas
->>
->>> Best regards,
->>> Tomasz
+-- 
+Kind regards,
 
+Sakari Ailus
+sakari.ailus@linux.intel.com
