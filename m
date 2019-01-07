@@ -2,121 +2,219 @@ Return-Path: <SRS0=8vfi=PP=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 09136C43387
-	for <linux-media@archiver.kernel.org>; Mon,  7 Jan 2019 11:10:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 43576C43387
+	for <linux-media@archiver.kernel.org>; Mon,  7 Jan 2019 11:17:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C26672147C
-	for <linux-media@archiver.kernel.org>; Mon,  7 Jan 2019 11:10:58 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=microchiptechnology.onmicrosoft.com header.i=@microchiptechnology.onmicrosoft.com header.b="qas1qMT5"
+	by mail.kernel.org (Postfix) with ESMTP id F3F0A2087F
+	for <linux-media@archiver.kernel.org>; Mon,  7 Jan 2019 11:17:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727023AbfAGLK6 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 7 Jan 2019 06:10:58 -0500
-Received: from esa5.microchip.iphmx.com ([216.71.150.166]:10105 "EHLO
-        esa5.microchip.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726798AbfAGLK6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 7 Jan 2019 06:10:58 -0500
-X-IronPort-AV: E=Sophos;i="5.56,450,1539673200"; 
-   d="scan'208";a="23071590"
-Received: from smtpout.microchip.com (HELO email.microchip.com) ([198.175.253.82])
-  by esa5.microchip.iphmx.com with ESMTP/TLS/DHE-RSA-AES256-SHA; 07 Jan 2019 04:10:58 -0700
-Received: from NAM04-CO1-obe.outbound.protection.outlook.com (10.10.215.89) by
- email.microchip.com (10.10.76.107) with Microsoft SMTP Server (TLS) id
- 14.3.352.0; Mon, 7 Jan 2019 04:11:33 -0700
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=microchiptechnology.onmicrosoft.com;
- s=selector1-microchiptechnology-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=pdHDG7J1szsTf/kl3KJd689gJ0JCoXaLRgdXwJ7yPpY=;
- b=qas1qMT5UDUG5mJV7s3udBPZX3A/n2PnC3azVEMDXuAnx1JV5ZjpNVEgAXKfkbUB7fyQVXE0wF4AWA+mFp6dCdJCNBgzD0tBc7mLI8cZ+n6dzIdG/YzQjeh/D1NTLhn0sXKhZanFtgkJRFtYWAGoQmdEZCSYlm3XBfbRuBLkOec=
-Received: from DM5PR11MB1242.namprd11.prod.outlook.com (10.168.108.8) by
- DM5PR11MB1932.namprd11.prod.outlook.com (10.175.88.9) with Microsoft SMTP
- Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.1495.9; Mon, 7 Jan 2019 11:10:55 +0000
-Received: from DM5PR11MB1242.namprd11.prod.outlook.com
- ([fe80::d41b:896d:ae28:5a57]) by DM5PR11MB1242.namprd11.prod.outlook.com
- ([fe80::d41b:896d:ae28:5a57%12]) with mapi id 15.20.1495.011; Mon, 7 Jan 2019
- 11:10:55 +0000
-From:   <Eugen.Hristev@microchip.com>
-To:     <KSloat@aampglobal.com>
-CC:     <mchehab@kernel.org>, <Nicolas.Ferre@microchip.com>,
-        <alexandre.belloni@bootlin.com>, <Ludovic.Desroches@microchip.com>,
-        <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v1 2/2] media: atmel-isc: Update device tree binding
- documentation
-Thread-Topic: [PATCH v1 2/2] media: atmel-isc: Update device tree binding
- documentation
-Thread-Index: AQHUns6/77kEGvPCikSLFo8p0P0NrKWjtIoA
-Date:   Mon, 7 Jan 2019 11:10:55 +0000
-Message-ID: <2fdfa5e9-7b59-0898-73d9-2ac75a8057d2@microchip.com>
-References: <20181228165934.36393-1-ksloat@aampglobal.com>
- <20181228165934.36393-2-ksloat@aampglobal.com>
-In-Reply-To: <20181228165934.36393-2-ksloat@aampglobal.com>
-Accept-Language: ro-RO, en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-clientproxiedby: VI1P190CA0013.EURP190.PROD.OUTLOOK.COM
- (2603:10a6:802:2b::26) To DM5PR11MB1242.namprd11.prod.outlook.com
- (2603:10b6:3:14::8)
-authentication-results: spf=none (sender IP is )
- smtp.mailfrom=Eugen.Hristev@microchip.com; 
-x-ms-exchange-messagesentrepresentingtype: 1
-x-originating-ip: [94.177.32.154]
-x-ms-publictraffictype: Email
-x-microsoft-exchange-diagnostics: 1;DM5PR11MB1932;6:QCrRWm1C+jdFO2RS663whv4SIvQ4aTxbxqPwGMCm6XKw0JFJel1LbDl1tOPOtZTjxwLn1fRsjfC1ihyfQKmeA7d7i315TUFVplol3bagJNFkTR6lPwAT9VaWExM/lZRRXg7X+04/GxYiEqLYqqS2OtZhgIBG2VTVoh6NB5omiTEFRYBw7WZcaT3ySQVUMG+EdrtrfFwuUlkRDtHGRJNRKLTrC1VWC3OUahPrrsKEYIP15MDkTc7NCugAoNNS+97+7c8VLU1AeybnOQDmPJdOiGtlZlYMqtSh/RN+XXW+pIV4SKvYEryojZVcfkn4vW1APo3JkH7/iiHo78i/oGfi2zMXhrF0bH2DVefbzXSx4f6db/9RMJO8b8pZvdVOcqp6yQ9PpYKzbY0lO2igSXEI9WV5WfSOgZu9xJjHHkOkexWCKp3lG2b0P7XglWHszKz+Y+tF5XljFow1Khuw4+Aw9g==;5:dlCk5wynei4zCC/uM2oB7e7dDocngZ9vyUcL0ERRcyj44mhMH3eq7ilBACw0996dwcrpl+hqqpLz0TYHGjtj2DiXLffngdbcC1I8UQGB5Rh9syYqXAUYry6Yn5u0gN8rInw6KpbVbZBt+MgQzlOS6SNKpdZ6TlVKt3WJeImVaRfc03zo5cW+RLkCCIhMjpmsFHmIOs/Su9o2lN8QOVqQRA==;7:JG0TnzZLse2pS0vAU0AZeJIDgmHH0cp3CSKY+ruhnK9yNOF6gR7HSSKKx6JI/P5aVhuwP70hDFUoL8SiBxGemBoF12ll1qCAKnYhOnbiZrVFh2hYnTkjCFOFEChv6lQcaUgHv9vKGy6OSm23bPNCJg==
-x-ms-office365-filtering-correlation-id: 46d26dff-0b2f-4d07-ef2b-08d67490cb10
-x-microsoft-antispam: BCL:0;PCL:0;RULEID:(2390118)(7020095)(4652040)(8989299)(5600109)(711020)(4534185)(4627221)(201703031133081)(201702281549075)(8990200)(2017052603328)(7153060)(7193020);SRVR:DM5PR11MB1932;
-x-ms-traffictypediagnostic: DM5PR11MB1932:
-x-microsoft-antispam-prvs: <DM5PR11MB193208804B4162C0D5CB3F01E8890@DM5PR11MB1932.namprd11.prod.outlook.com>
-x-exchange-antispam-report-cfa-test: BCL:0;PCL:0;RULEID:(3230021)(908002)(999002)(5005026)(6040522)(8220060)(2401047)(8121501046)(93006095)(93001095)(3231475)(944501520)(52105112)(3002001)(10201501046)(6041310)(201703131423095)(201702281528075)(20161123555045)(201703061421075)(201703061406153)(20161123558120)(20161123560045)(20161123562045)(20161123564045)(201708071742011)(7699051)(76991095);SRVR:DM5PR11MB1932;BCL:0;PCL:0;RULEID:;SRVR:DM5PR11MB1932;
-x-forefront-prvs: 0910AAF391
-x-forefront-antispam-report: SFV:NSPM;SFS:(10009020)(376002)(346002)(366004)(39860400002)(136003)(396003)(189003)(199004)(31696002)(86362001)(316002)(186003)(476003)(229853002)(2616005)(305945005)(575784001)(6506007)(6436002)(386003)(53546011)(102836004)(66066001)(11346002)(446003)(6246003)(256004)(14444005)(97736004)(486006)(6486002)(15650500001)(53936002)(36756003)(2906002)(31686004)(6916009)(105586002)(14454004)(106356001)(4326008)(72206003)(478600001)(8676002)(71200400001)(8936002)(81156014)(7736002)(99286004)(71190400001)(81166006)(6116002)(3846002)(25786009)(26005)(5660300001)(68736007)(54906003)(6512007)(76176011)(52116002);DIR:OUT;SFP:1101;SCL:1;SRVR:DM5PR11MB1932;H:DM5PR11MB1242.namprd11.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;MX:1;A:1;
-received-spf: None (protection.outlook.com: microchip.com does not designate
- permitted sender hosts)
-x-ms-exchange-senderadcheck: 1
-x-microsoft-antispam-message-info: G/JVIAyN6bRs9U9xBit9B8P2KJGb8S8dPuM4kCjuzTltpi/ZSGaLw+5DGFmDD02+5OHMp8m7faG9Jq+kKj/p28YEykodvLUo5dflH2gwwV4vou759gXYKH/QNrMgIFCiFAirFFILbOyG3khcG2yCKbeXIwtsAWvOt5/z2iejEshoGHvj04QHjfr42ZiBi7cNngl+82ZXjO85x+QSmQ4U+qrdX8yfvu5ePXCk7UWqZtQg6A196PXA8CDTnbHANrywJrxNuS/f2AeAOWDJr7s6LyWSmA43KMcr5ooi0n0MFqrYpXizZ43+F+MU+5dWd1qg
-spamdiagnosticoutput: 1:99
-spamdiagnosticmetadata: NSPM
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <3F303C647A495042A80F36A124C5452C@namprd11.prod.outlook.com>
-Content-Transfer-Encoding: base64
+        id S1726974AbfAGLRj (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 7 Jan 2019 06:17:39 -0500
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:37847 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726798AbfAGLRj (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 7 Jan 2019 06:17:39 -0500
+Received: from [192.168.2.10] ([212.251.195.8])
+        by smtp-cloud7.xs4all.net with ESMTPA
+        id gSuQgFEYaBDyIgSuUgNQ5M; Mon, 07 Jan 2019 12:17:36 +0100
+Subject: Re: [PATCHv5 6/8] vb2: add vb2_find_timestamp()
+To:     Tomasz Figa <tfiga@chromium.org>, jonas@kwiboo.se
+Cc:     Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        nicolas@ndufresne.ca, Jernej Skrabec <jernej.skrabec@gmail.com>
+References: <20181212123901.34109-1-hverkuil-cisco@xs4all.nl>
+ <20181212123901.34109-7-hverkuil-cisco@xs4all.nl>
+ <AM0PR03MB4676988BC60352DFDFAD0783ACA70@AM0PR03MB4676.eurprd03.prod.outlook.com>
+ <985a4c64-f914-8405-2a78-422bcd8f2139@xs4all.nl>
+ <CAAFQd5BKizq20x+kyeH1nE1RUs9S2O7coQEXkPu6bCw8EAhmHA@mail.gmail.com>
+ <AM0PR03MB467606D6C482F06F4E401767ACBE0@AM0PR03MB4676.eurprd03.prod.outlook.com>
+ <CAAFQd5AJ4NYfHyWSW7N+a8DtTfKKEkHOmaY8fNpwQrkjzrA7Ng@mail.gmail.com>
+From:   Hans Verkuil <hverkuil-cisco@xs4all.nl>
+Message-ID: <c2b1a3ab-ac16-a926-6f22-d6d9a865f93c@xs4all.nl>
+Date:   Mon, 7 Jan 2019 12:17:30 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:52.0) Gecko/20100101
+ Thunderbird/52.2.1
 MIME-Version: 1.0
-X-MS-Exchange-CrossTenant-Network-Message-Id: 46d26dff-0b2f-4d07-ef2b-08d67490cb10
-X-MS-Exchange-CrossTenant-originalarrivaltime: 07 Jan 2019 11:10:55.3073
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 3f4057f3-b418-4d4e-ba84-d55b4e897d88
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM5PR11MB1932
-X-OriginatorOrg: microchip.com
+In-Reply-To: <CAAFQd5AJ4NYfHyWSW7N+a8DtTfKKEkHOmaY8fNpwQrkjzrA7Ng@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
+X-CMAE-Envelope: MS4wfLU4n8btj11nirDqex4m8Q+uU8kNKFCopcwhHwf1niQrgF0xV/vSgSznemyigfwniWKndhMI6ogiXCWBm2UCeWhzBTJVT0oBkwpDwzzC2k7tAk9poFeg
+ U2z57s00pzY9uJr9x0jAt3g2cW7o1XBHu7A1dTt217Puj2sruNCusswQwX7ZhVeYFmeHx484NhGgmBO0UUf4zpvBhAK+EJmuPTUdgp3AHwvL/7nFUYn5f3wK
+ hPExt8JwQop4SwqglJVjg16JPYY8Tix48xQWX7IY1/HcRb6KYo8ppA8e2UO6jei047Sa2q45NFCwwyEiGEpHCcIeHgPSU4+ZpzWcSXgVppqPSbywJkFz/6Xw
+ K0L3LWb53h8sAlc1DF7iLCojnc3kcucGx5B/ygzDku8Vg0mYtzrqzWy55f3q2aZnZlZYMMgb5UcEh8L7am0VonPLqWGw0WxqofFz5A6XzLb362GyhN4=
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-DQoNCk9uIDI4LjEyLjIwMTggMTg6NTksIEtlbiBTbG9hdCB3cm90ZToNCj4gRnJvbTogS2VuIFNs
-b2F0IDxrc2xvYXRAYWFtcGdsb2JhbC5jb20+DQo+IA0KPiBVcGRhdGUgZGV2aWNlIHRyZWUgYmlu
-ZGluZyBkb2N1bWVudGF0aW9uIHNwZWNpZnlpbmcgaG93IHRvDQo+IGVuYWJsZSBCVDY1NiB3aXRo
-IENSQyBkZWNvZGluZy4NCj4gDQo+IFNpZ25lZC1vZmYtYnk6IEtlbiBTbG9hdCA8a3Nsb2F0QGFh
-bXBnbG9iYWwuY29tPg0KQWNrZWQtYnk6IEV1Z2VuIEhyaXN0ZXYgPGV1Z2VuLmhyaXN0ZXZAbWlj
-cm9jaGlwLmNvbT4NCg0KPiAtLS0NCj4gICBEb2N1bWVudGF0aW9uL2RldmljZXRyZWUvYmluZGlu
-Z3MvbWVkaWEvYXRtZWwtaXNjLnR4dCB8IDMgKysrDQo+ICAgMSBmaWxlIGNoYW5nZWQsIDMgaW5z
-ZXJ0aW9ucygrKQ0KPiANCj4gZGlmZiAtLWdpdCBhL0RvY3VtZW50YXRpb24vZGV2aWNldHJlZS9i
-aW5kaW5ncy9tZWRpYS9hdG1lbC1pc2MudHh0IGIvRG9jdW1lbnRhdGlvbi9kZXZpY2V0cmVlL2Jp
-bmRpbmdzL21lZGlhL2F0bWVsLWlzYy50eHQNCj4gaW5kZXggYmJlMGU4N2M2MTg4Li5lNzg3ZWRl
-ZWE3ZGEgMTAwNjQ0DQo+IC0tLSBhL0RvY3VtZW50YXRpb24vZGV2aWNldHJlZS9iaW5kaW5ncy9t
-ZWRpYS9hdG1lbC1pc2MudHh0DQo+ICsrKyBiL0RvY3VtZW50YXRpb24vZGV2aWNldHJlZS9iaW5k
-aW5ncy9tZWRpYS9hdG1lbC1pc2MudHh0DQo+IEBAIC0yNSw2ICsyNSw5IEBAIElTQyBzdXBwb3J0
-cyBhIHNpbmdsZSBwb3J0IG5vZGUgd2l0aCBwYXJhbGxlbCBidXMuIEl0IHNob3VsZCBjb250YWlu
-IG9uZQ0KPiAgICdwb3J0JyBjaGlsZCBub2RlIHdpdGggY2hpbGQgJ2VuZHBvaW50JyBub2RlLiBQ
-bGVhc2UgcmVmZXIgdG8gdGhlIGJpbmRpbmdzDQo+ICAgZGVmaW5lZCBpbiBEb2N1bWVudGF0aW9u
-L2RldmljZXRyZWUvYmluZGluZ3MvbWVkaWEvdmlkZW8taW50ZXJmYWNlcy50eHQuDQo+ICAgDQo+
-ICtJZiBhbGwgZW5kcG9pbnQgYnVzIGZsYWdzIChpLmUuIGhzeW5jLWFjdGl2ZSkgYXJlIG9taXR0
-ZWQsIHRoZW4gQ0NJUjY1Ng0KPiArZGVjb2RpbmcgKGVtYmVkZGVkIHN5bmMpIHdpdGggQ1JDIGRl
-Y29kaW5nIGlzIGVuYWJsZWQuDQo+ICsNCj4gICBFeGFtcGxlOg0KPiAgIGlzYzogaXNjQGYwMDA4
-MDAwIHsNCj4gICAJY29tcGF0aWJsZSA9ICJhdG1lbCxzYW1hNWQyLWlzYyI7DQo+IA0K
+On 12/19/2018 08:16 AM, Tomasz Figa wrote:
+> On Wed, Dec 19, 2018 at 4:04 PM Jonas Karlman <jonas@kwiboo.se> wrote:
+>>
+>> On 2018-12-19 06:10, Tomasz Figa wrote:
+>>> On Thu, Dec 13, 2018 at 9:28 PM Hans Verkuil <hverkuil-cisco@xs4all.nl> wrote:
+>>>> On 12/12/18 7:28 PM, Jonas Karlman wrote:
+>>>>> Hi Hans,
+>>>>>
+>>>>> Since this function only return DEQUEUED and DONE buffers,
+>>>>> it cannot be used to find a capture buffer that is both used for
+>>>>> frame output and is part of the frame reference list.
+>>>>> E.g. a bottom field referencing a top field that is already
+>>>>> part of the capture buffer being used for frame output.
+>>>>> (top and bottom field is output in same buffer)
+>>>>>
+>>>>> Jernej Škrabec and me have worked around this issue in cedrus driver by
+>>>>> first checking
+>>>>> the tag/timestamp of the current buffer being used for output frame.
+>>>>>
+>>>>>
+>>>>> // field pictures may reference current capture buffer and is not
+>>>>> returned by vb2_find_tag
+>>>>> if (v4l2_buf->tag == dpb->tag)
+>>>>>     buf_idx = v4l2_buf->vb2_buf.index;
+>>>>> else
+>>>>>     buf_idx = vb2_find_tag(cap_q, dpb->tag, 0);
+>>>>>
+>>>>>
+>>>>> What is the recommended way to handle such case?
+>>>> That is the right approach for this. Interesting corner case, I hadn't
+>>>> considered that.
+>>>>
+>>>>> Could vb2_find_timestamp be extended to allow QUEUED buffers to be returned?
+>>>> No, because only the driver knows what the current buffer is.
+>>>>
+>>>> Buffers that are queued to the driver are in state ACTIVE. But there may be
+>>>> multiple ACTIVE buffers and vb2 doesn't know which buffer is currently
+>>>> being processed by the driver.
+>>>>
+>>>> So this will have to be checked by the driver itself.
+>>> Hold on, it's a perfectly valid use case to have the buffer queued but
+>>> still used as a reference for previously queued buffers, e.g.
+>>>
+>>> QBUF(O, 0)
+>>> QBUF(C, 0)
+>>> REF(ref0, out_timestamp(0))
+>>> QBUF(O, 1)
+>>> QBUF(C, 1)
+>>> REF(ref0, out_timestamp(0))
+>>> QBUF(O, 2)
+>>> QBUF(C, 2)
+>>> <- driver returns O(0) and C(0) here
+>>> <- userspace also knows that any next frame will not reference C(0) anymore
+>>> REF(ref0, out_timestamp(2))
+>>> QBUF(O, 0)
+>>> QBUF(C, 0)
+>>> <- driver may pick O(1)+C(1) or O(2)+C(2) to decode here, but C(0)
+>>> which is the reference for it is already QUEUED.
+>>>
+>>> It's a perfectly fine scenario and optimal from pipelining point of
+>>> view, but if I'm not missing something, the current patch wouldn't
+>>> allow it.
+>>
+>> This scenario should never happen with FFmpeg + v4l2request hwaccel +
+>> Kodi userspace.
+>> FFmpeg would only QBUF O(0)+C(0) again after it has been presented on
+>> screen and Kodi have released the last reference to the AVFrame.
+>>
+> 
+> I skipped the display in the example indeed, but we can easily add it:
+> 
+> QBUF(O, 0)
+> QBUF(C, 0)
+> REF(ref0, out_timestamp(0))
+> QBUF(O, 1)
+> QBUF(C, 1)
+> <- driver returns O(0) and C(0) here
+> <- userspace displays C(0)
+> REF(ref0, out_timestamp(0))
+> QBUF(O, 2)
+> QBUF(C, 2)
+> REF(ref0, out_timestamp(0))
+> QBUF(O, 3)
+> QBUF(C, 3)
+> <- driver returns O(1) and C(1) here
+> <- userspace displays C(1) and reclaims C(0)
+> <- userspace also knows that any next frame will not reference C(0) anymore
+> REF(ref0, out_timestamp(3))
+> QBUF(O, 0)
+> QBUF(C, 0)
+
+When C(0) is queued its timestamp field is zeroed by vb2. So it can no
+longer be used as a reference.
+
+For now I want to keep the behavior like that (i.e. once you requeue a
+capture buffer it can no longer be used as a reference frame for the decoder).
+
+This limitation is something we might want to lift in the future, but
+this would require more work internally.
+
+Regards,
+
+	Hans
+
+> <- driver may pick O(3)+C(3) to decode here, but C(0)
+> which is the reference for it is already QUEUED.
+> 
+> Also the fact that FFmpeg wouldn't trigger such case doesn't mean that
+> it's an invalid one. If I remember correctly, Chromium would actually
+> trigger such, since we attempt to pipeline things as much as possible.
+> 
+>> The v4l2request hwaccel will keep a AVFrame pool with preallocated
+>> frames, AVFrame(x) is keeping userspace ref to O(x)+C(x).
+>> An AVFrame will not be released back to the pool until FFmpeg have
+>> removed it from DPB and Kodi have released it after it no longer is
+>> being presented on screen.
+>>
+>> E.g. an IPBIPB sequense with display order 0 2 1 3 5 4
+>>
+>> FFmpeg: AVFrame(0)
+>> QBUF: O(0)+C(0)
+>> DQBUF: O(0)+C(0)
+>> Kodi: AVFrame(0) returned from FFmpeg and presented on screen
+>> FFmpeg: AVFrame(1) with ref to AVFrame(0)
+>> QBUF: O(1)+C(1) with ref to timestamp(0)
+>> DQBUF: O(1)+C(1)
+>> FFmpeg: AVFrame(2) with ref to AVFrame(0)+AVFrame(1)
+>> QBUF: O(2)+C(2) with ref to timestamp(0)+timestamp(1)
+>> DQBUF: O(2)+C(2)
+>> Kodi: AVFrame(2) returned from FFmpeg and presented on screen
+>> Kodi: AVFrame(0) released (no longer presented)
+>> FFmpeg: AVFrame(3)
+>> QBUF: O(3)+C(3)
+>> DQBUF: O(3)+C(3)
+>> Kodi: AVFrame(1) returned from FFmpeg and presented on screen
+>> Kodi: AVFrame(2) released (no longer presented)
+>> FFmpeg: AVFrame(2) returned to pool
+>> FFmpeg: AVFrame(2) with ref to AVFrame(3)
+>> QBUF: O(2)+C(2) with ref to timestamp(3)
+>> DQBUF: O(2)+C(2)
+>> Kodi: AVFrame(3) returned from FFmpeg and presented on screen
+>> Kodi: AVFrame(1) released (no longer presented)
+>> FFmpeg: AVFrame(0)+AVFrame(1) returned to pool (no longer referenced)
+>> FFmpeg: AVFrame(0) with ref to AVFrame(3)+AVFrame(2)
+>> QBUF: O(0)+C(0) with ref to timestamp(3)+timestamp(2)
+>> DQBUF: O(0)+C(0)
+>> Kodi: AVFrame(0) returned from FFmpeg and presented on screen
+>> Kodi: AVFrame(3) released (no longer presented)
+>> and so on
+>>
+>> Here we can see that O(0)+C(0) will not be QBUF until after FFmpeg +
+>> Kodi have released all userspace refs to AVFrame(0).
+>> Above example was simplified, Kodi will normally keep a few decoded
+>> frames in buffer before being presented and FFmpeg will CREATE_BUF
+>> anytime the pool is empty and new O/C buffers is needed.
+>>
+>> Regards,
+>> Jonas
+>>
+>>> Best regards,
+>>> Tomasz
+
