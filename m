@@ -2,86 +2,215 @@ Return-Path: <SRS0=8vfi=PP=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A77EBC43387
-	for <linux-media@archiver.kernel.org>; Mon,  7 Jan 2019 10:22:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B9A7C43444
+	for <linux-media@archiver.kernel.org>; Mon,  7 Jan 2019 10:35:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 81C932087F
-	for <linux-media@archiver.kernel.org>; Mon,  7 Jan 2019 10:22:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4D8012147C
+	for <linux-media@archiver.kernel.org>; Mon,  7 Jan 2019 10:35:59 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="IdVG3KSb"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726861AbfAGKV7 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 7 Jan 2019 05:21:59 -0500
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:45387 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726574AbfAGKV6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 7 Jan 2019 05:21:58 -0500
-Received: from [192.168.2.10] ([212.251.195.8])
-        by smtp-cloud7.xs4all.net with ESMTPA
-        id gS2bgEVFyBDyIgS2fgN6cT; Mon, 07 Jan 2019 11:21:57 +0100
-Subject: Re: [RFC PATCH 0/5] v4l2-ctl: list controls values in a
- machine-readable format
-To:     Antonio Ospite <ao2@ao2.it>, linux-media@vger.kernel.org
-References: <20181124185256.74dc969bdb8f7ab79cf03d5d@ao2.it>
- <20190103180102.12282-1-ao2@ao2.it>
-From:   Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <27028bd5-c188-1afa-47bc-bd05ac8ecd59@xs4all.nl>
-Date:   Mon, 7 Jan 2019 11:21:53 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:52.0) Gecko/20100101
- Thunderbird/52.2.1
+        id S1726773AbfAGKf6 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 7 Jan 2019 05:35:58 -0500
+Received: from perceval.ideasonboard.com ([213.167.242.64]:54144 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726485AbfAGKf6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 7 Jan 2019 05:35:58 -0500
+Received: from [192.168.0.21] (cpc89242-aztw30-2-0-cust488.18-1.cable.virginm.net [86.31.129.233])
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 21B43530;
+        Mon,  7 Jan 2019 11:35:55 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
+        s=mail; t=1546857355;
+        bh=isYVv/GVQmGjlDjhXN3A2+lz6tm6vVyF6hiLYncZ1ig=;
+        h=Reply-To:Subject:To:Cc:References:From:Date:In-Reply-To:From;
+        b=IdVG3KSbAg4ChyAqM5PGP3y5BmbgH2smvhPpKfJzBQk3OWm3vfVEl1voI2eqg9xjC
+         osZArYotyxCOYzPJRPDupxxYzhvdzucuRL7LHlu+t+Ni6NVlkW4pxbn2PgAsHn6IAe
+         DepAEhAhgxW+BO2UagjdkN0qFHHfa9JTkzvEAPNk=
+Reply-To: kieran.bingham@ideasonboard.com
+Subject: Re: [PATCH v2 3/6] media: adv748x: csi2: Link AFE with TXA and TXB
+To:     Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        laurent.pinchart@ideasonboard.com,
+        niklas.soderlund+renesas@ragnatech.se
+Cc:     linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+References: <20190106155413.30666-1-jacopo+renesas@jmondi.org>
+ <20190106155413.30666-4-jacopo+renesas@jmondi.org>
+From:   Kieran Bingham <kieran.bingham@ideasonboard.com>
+Openpgp: preference=signencrypt
+Autocrypt: addr=kieran.bingham@ideasonboard.com; keydata=
+ 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
+ sbsRB8KNNvVXBOVNwko86rQqF9drZuw=
+Organization: Ideas on Board
+Message-ID: <1800f3fa-fb0d-f6b3-31bb-2de3e520c68a@ideasonboard.com>
+Date:   Mon, 7 Jan 2019 10:35:52 +0000
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.2.1
 MIME-Version: 1.0
-In-Reply-To: <20190103180102.12282-1-ao2@ao2.it>
+In-Reply-To: <20190106155413.30666-4-jacopo+renesas@jmondi.org>
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Content-Language: en-GB
 Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfDA5Egu/AoDnub/b7pyZvzmFOBT0/HDBHFykcUNEmrt9kLJPNV50KmQc180iYg6QYd+vhq2M/V0ZQpXrr1KHWDq1kmJPHkpymGT3+NMZvH8aDfo8u1Wj
- hjN7L0qdxWZI7B7H+fkKsEdP2nbDIYAnEjECkCbmoQqUwSgMZd5r3kzK7BtjcBAj3kFcubXtk7IuPU2y83iLxoWhS3UFRmA16rM=
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On 01/03/2019 07:00 PM, Antonio Ospite wrote:
-> Hi,
+Hi Jacopo,
+
+On 06/01/2019 15:54, Jacopo Mondi wrote:
+> The ADV748x chip supports routing AFE output to either TXA or TXB.
+> In order to support run-time configuration of video stream path, create an
+> additional (not enabled) "AFE:8->TXA:0" link, and remove the IMMUTABLE flag
+> from existing ones.
+
+Great - this looks good to me.
+Small nit below - but it's not a big deal.
+
+Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> ---
+>  drivers/media/i2c/adv748x/adv748x-csi2.c | 44 +++++++++++++-----------
+>  1 file changed, 23 insertions(+), 21 deletions(-)
 > 
-> here is an experiment about listing controls values with v4l2-ctl in
-> a way that makes it more easy to reload them, I would use something like
-> that for https://git.ao2.it/v4l2-persistent-settings.git/
+> diff --git a/drivers/media/i2c/adv748x/adv748x-csi2.c b/drivers/media/i2c/adv748x/adv748x-csi2.c
+> index b6b5d8c7ea7c..9d391d6f752e 100644
+> --- a/drivers/media/i2c/adv748x/adv748x-csi2.c
+> +++ b/drivers/media/i2c/adv748x/adv748x-csi2.c
+> @@ -27,6 +27,7 @@ static int adv748x_csi2_set_virtual_channel(struct adv748x_csi2 *tx,
+>   * @v4l2_dev: Video registration device
+>   * @src: Source subdevice to establish link
+>   * @src_pad: Pad number of source to link to this @tx
+> + * @enable: Link enabled flag
+>   *
+>   * Ensure that the subdevice is registered against the v4l2_device, and link the
+>   * source pad to the sink pad of the CSI2 bus entity.
+> @@ -34,17 +35,11 @@ static int adv748x_csi2_set_virtual_channel(struct adv748x_csi2 *tx,
+>  static int adv748x_csi2_register_link(struct adv748x_csi2 *tx,
+>  				      struct v4l2_device *v4l2_dev,
+>  				      struct v4l2_subdev *src,
+> -				      unsigned int src_pad)
+> +				      unsigned int src_pad,
+> +				      bool enable)
+>  {
+> -	int enabled = MEDIA_LNK_FL_ENABLED;
+>  	int ret;
+>  
+> -	/*
+> -	 * Dynamic linking of the AFE is not supported.
+> -	 * Register the links as immutable.
+> -	 */
+> -	enabled |= MEDIA_LNK_FL_IMMUTABLE;
+> -
+>  	if (!src->v4l2_dev) {
+>  		ret = v4l2_device_register_subdev(v4l2_dev, src);
+>  		if (ret)
+> @@ -53,7 +48,7 @@ static int adv748x_csi2_register_link(struct adv748x_csi2 *tx,
+>  
+>  	return media_create_pad_link(&src->entity, src_pad,
+>  				     &tx->sd.entity, ADV748X_CSI2_SINK,
+> -				     enabled);
+> +				     enable ? MEDIA_LNK_FL_ENABLED : 0);
+>  }
+>  
+>  /* -----------------------------------------------------------------------------
+> @@ -68,25 +63,32 @@ static int adv748x_csi2_registered(struct v4l2_subdev *sd)
+>  {
+>  	struct adv748x_csi2 *tx = adv748x_sd_to_csi2(sd);
+>  	struct adv748x_state *state = tx->state;
+> +	int ret;
+>  
+>  	adv_dbg(state, "Registered %s (%s)", is_txa(tx) ? "TXA":"TXB",
+>  			sd->name);
+>  
+>  	/*
+> -	 * The adv748x hardware allows the AFE to route through the TXA, however
+> -	 * this is not currently supported in this driver.
+> +	 * Link TXA to AFE and HDMI, and TXB to AFE only as TXB cannot output
+> +	 * HDMI.
+>  	 *
+> -	 * Link HDMI->TXA, and AFE->TXB directly.
+> +	 * The HDMI->TXA link is enabled by default, as the AFE->TXB is.
+
+I might have worded this "as is the AFE->TXB." but it's understandable.
+I can update this when applying if you wish.
+
+
+>  	 */
+> -	if (is_txa(tx) && is_hdmi_enabled(state))
+> -		return adv748x_csi2_register_link(tx, sd->v4l2_dev,
+> -						  &state->hdmi.sd,
+> -						  ADV748X_HDMI_SOURCE);
+> -	if (is_txb(tx) && is_afe_enabled(state))
+> -		return adv748x_csi2_register_link(tx, sd->v4l2_dev,
+> -						  &state->afe.sd,
+> -						  ADV748X_AFE_SOURCE);
+> -	return 0;
+> +	if (is_afe_enabled(state)) {
+> +		ret = adv748x_csi2_register_link(tx, sd->v4l2_dev,
+> +						 &state->afe.sd,
+> +						 ADV748X_AFE_SOURCE,
+> +						 is_txb(tx));
+> +		if (ret)
+> +			return ret;
+> +	}
+> +
+> +	/* Register link to HDMI for TXA only. */
+> +	if (is_txb(tx) || !is_hdmi_enabled(state))
+> +		return 0;
+> +
+> +	return adv748x_csi2_register_link(tx, sd->v4l2_dev, &state->hdmi.sd,
+> +					  ADV748X_HDMI_SOURCE, true);
+>  }
+>  
+>  static const struct v4l2_subdev_internal_ops adv748x_csi2_internal_ops = {
 > 
-> Patches 1 and 2 are just warm-up patches to get me familiar again with
-> the v4l2-ctrl codebase, patch 2 is a small preparatory cleanup, and
-> patches 4 and 5 showcase the idea.
-> 
-> Thanks,
->    Antonio
-> 
-> Antonio Ospite (5):
->   v4l2-ctl: list controls with menus when OptAll is specified
->   v4l2-ctl: list once when both OptListCtrls and OptListCtrlsMenus are
->     there
 
-I merged these first two patches.
-
->   v4l2-ctl: use a dedicated function to print the control class name
->   v4l2-ctl: abstract the mechanism used to print the list of controls
->   v4l2-ctl: add an option to list controls in a machine-readable format
-
-The others need more work, see my review of the last patch.
-
-Thanks for working on this!
-
-Regards,
-
-	Hans
-
-> 
->  utils/v4l2-ctl/v4l2-ctl-common.cpp | 95 +++++++++++++++++++++++++-----
->  utils/v4l2-ctl/v4l2-ctl.1.in       |  4 ++
->  utils/v4l2-ctl/v4l2-ctl.cpp        |  3 +-
->  utils/v4l2-ctl/v4l2-ctl.h          |  1 +
->  4 files changed, 88 insertions(+), 15 deletions(-)
-> 
-
+-- 
+Regards
+--
+Kieran
