@@ -2,125 +2,198 @@ Return-Path: <SRS0=8vfi=PP=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 49C05C43387
-	for <linux-media@archiver.kernel.org>; Mon,  7 Jan 2019 14:09:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 133D7C43387
+	for <linux-media@archiver.kernel.org>; Mon,  7 Jan 2019 14:10:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1A716217D4
-	for <linux-media@archiver.kernel.org>; Mon,  7 Jan 2019 14:09:45 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="EvfkU4cd"
+	by mail.kernel.org (Postfix) with ESMTP id E1E3B206C0
+	for <linux-media@archiver.kernel.org>; Mon,  7 Jan 2019 14:10:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728823AbfAGOJn (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 7 Jan 2019 09:09:43 -0500
-Received: from mail-pf1-f193.google.com ([209.85.210.193]:37577 "EHLO
-        mail-pf1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728076AbfAGOJm (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 7 Jan 2019 09:09:42 -0500
-Received: by mail-pf1-f193.google.com with SMTP id y126so223728pfb.4;
-        Mon, 07 Jan 2019 06:09:41 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=OYzw+MaHktdblA7V3UuEKc+6dk3yurU0nsmjzxJmuck=;
-        b=EvfkU4cd6aFYwaL7leZJiEc3KSMzBJPG4xw+laffeS82FtyqsKj7xitOjqV1K+C3lR
-         weZsxZ1z/0j7qYJJZGv2DHCnR42K85wSG4Goh8S8OWX+Sq6PEstC1BoWiOUOth1kFbom
-         94BHq+MIDqVBtXCPDGuE1NwR0uK86teuC5dRgZudWOvH9VfRvFTxKYjUbvLGXiFJ4MnG
-         CB3I6hxF5Gm+ofvH5yS2sLFo5OriKKHiXH5oNTMfZ+SwaxkLGhg81SMpIV8rQITc/bkq
-         mvg8APXL6NYva397FC/32SttocEal45Xl58Ijd+E5Mo9HBmY0LaGF86zKIOfmrVWURtf
-         mRAA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=OYzw+MaHktdblA7V3UuEKc+6dk3yurU0nsmjzxJmuck=;
-        b=tPF+h2hto5GGOAkNTIiFrwFelY5jJjMb9g0RwEFdS4Oakzfa/+QngAEcA7rSfoVaWm
-         au2z1LDES0Q5ppRhtQRqMYvWRzJ2DE9oMY1VRCDvZKLYheaDKRUJ1k0e+u5ZRHq1XH0h
-         Q7T4SAUQHqc45N/drGOcZ+1Z6QrINRnRJREhDfVKQMDqo5vIMWtL4drbJdmza7B1FKvT
-         SAmU4zunA5NjvV67zaoaAyY0tT3XGmtrz/xcpOptC5l7V56tomEx7FQrZiylyUAh72lm
-         Wsu+dP0hiXM62LJShLbJEV8l9Q/DyMj2cNYEF6G7wSCtV1tuQENwEaZXDjUYzr4hKOPd
-         ZOLw==
-X-Gm-Message-State: AJcUukcQM7E63cF8UITMRHN6DmYYnMMWMdXxrfARruNaVsN4zZUOj373
-        d6Rw4JW92iLMZbFTs5owL9D/vz+no05wq12QL9h2bA==
-X-Google-Smtp-Source: ALg8bN448OrMpeHPDgAQK5F2/EjgY2D76oX/n9jSqeNyaKCaKdSg/MbjpsiEL3pfgS7FGqNXiYcBWHqDBEUy7wll2LQ=
-X-Received: by 2002:a63:5207:: with SMTP id g7mr11154875pgb.253.1546870181271;
- Mon, 07 Jan 2019 06:09:41 -0800 (PST)
-MIME-Version: 1.0
-References: <1545498774-11754-1-git-send-email-akinobu.mita@gmail.com>
- <1545498774-11754-10-git-send-email-akinobu.mita@gmail.com> <20190107112742.grz2nvaqmcufoblk@kekkonen.localdomain>
-In-Reply-To: <20190107112742.grz2nvaqmcufoblk@kekkonen.localdomain>
-From:   Akinobu Mita <akinobu.mita@gmail.com>
-Date:   Mon, 7 Jan 2019 23:09:30 +0900
-Message-ID: <CAC5umyjoKLOMK_kYovzgkmrzVCwzCj2Yv28p65TTZjBmiE+TGw@mail.gmail.com>
-Subject: Re: [PATCH 09/12] media: mt9m001: register to V4L2 asynchronous
- subdevice framework
-To:     Sakari Ailus <sakari.ailus@linux.intel.com>
+        id S1728772AbfAGOKL (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 7 Jan 2019 09:10:11 -0500
+Received: from mga12.intel.com ([192.55.52.136]:27230 "EHLO mga12.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728364AbfAGOKK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 7 Jan 2019 09:10:10 -0500
+X-Amp-Result: UNKNOWN
+X-Amp-Original-Verdict: FILE UNKNOWN
+X-Amp-File-Uploaded: False
+Received: from fmsmga006.fm.intel.com ([10.253.24.20])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 07 Jan 2019 06:10:10 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.56,451,1539673200"; 
+   d="scan'208";a="308187285"
+Received: from bachmicx-mobl.ger.corp.intel.com (HELO kekkonen.fi.intel.com) ([10.252.57.24])
+  by fmsmga006.fm.intel.com with ESMTP; 07 Jan 2019 06:10:08 -0800
+Received: by kekkonen.fi.intel.com (Postfix, from userid 1000)
+        id 08D2B21D0B; Mon,  7 Jan 2019 16:10:03 +0200 (EET)
+Date:   Mon, 7 Jan 2019 16:10:03 +0200
+From:   Sakari Ailus <sakari.ailus@linux.intel.com>
+To:     Akinobu Mita <akinobu.mita@gmail.com>
 Cc:     linux-media@vger.kernel.org,
         "open list:OPEN FIRMWARE AND..." <devicetree@vger.kernel.org>,
         Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: Re: [PATCH 06/12] media: mt9m001: switch s_power callback to runtime
+ PM
+Message-ID: <20190107141003.li4x37co2s4jk5xm@kekkonen.localdomain>
+References: <1545498774-11754-1-git-send-email-akinobu.mita@gmail.com>
+ <1545498774-11754-7-git-send-email-akinobu.mita@gmail.com>
+ <20190107100034.po3jsnc3rdj37l4x@kekkonen.localdomain>
+ <CAC5umyg0=JO2d_TbmGWp4OaiZWCiQEdx6RBwpOTNEd6Ug8MqLg@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAC5umyg0=JO2d_TbmGWp4OaiZWCiQEdx6RBwpOTNEd6Ug8MqLg@mail.gmail.com>
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-2019=E5=B9=B41=E6=9C=887=E6=97=A5(=E6=9C=88) 20:27 Sakari Ailus <sakari.ail=
-us@linux.intel.com>:
->
-> Hi Mita-san,
->
-> On Sun, Dec 23, 2018 at 02:12:51AM +0900, Akinobu Mita wrote:
-> > Register a sub-device to the asynchronous subdevice framework, and also
-> > create subdevice device node.
-> >
-> > Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> > Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-> > ---
-> >  drivers/media/i2c/Kconfig   | 2 +-
-> >  drivers/media/i2c/mt9m001.c | 9 ++++++++-
-> >  2 files changed, 9 insertions(+), 2 deletions(-)
-> >
-> > diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-> > index 5e30ad3..a6d8416 100644
-> > --- a/drivers/media/i2c/Kconfig
-> > +++ b/drivers/media/i2c/Kconfig
-> > @@ -845,7 +845,7 @@ config VIDEO_VS6624
-> >
-> >  config VIDEO_MT9M001
-> >       tristate "mt9m001 support"
-> > -     depends on I2C && VIDEO_V4L2
-> > +     depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
->
-> VIDEO_V4L2_SUBDEV_API depends on MEDIA_CONTROLLER, so MEDIA_CONTROLLER
-> below can be removed.
+Hi Mita-san,
 
-OK.
-
-> >       depends on MEDIA_CAMERA_SUPPORT
-> >       depends on MEDIA_CONTROLLER
-> >       help
-> > diff --git a/drivers/media/i2c/mt9m001.c b/drivers/media/i2c/mt9m001.c
-> > index e31fb7d..b4deec3 100644
-> > --- a/drivers/media/i2c/mt9m001.c
-> > +++ b/drivers/media/i2c/mt9m001.c
-> > @@ -716,6 +716,7 @@ static int mt9m001_probe(struct i2c_client *client,
-> >               return PTR_ERR(mt9m001->reset_gpio);
+On Mon, Jan 07, 2019 at 11:07:18PM +0900, Akinobu Mita wrote:
+> 2019年1月7日(月) 19:00 Sakari Ailus <sakari.ailus@linux.intel.com>:
 > >
-> >       v4l2_i2c_subdev_init(&mt9m001->subdev, client, &mt9m001_subdev_op=
-s);
-> > +     mt9m001->subdev.flags =3D V4L2_SUBDEV_FL_HAS_DEVNODE;
->
-> |=3D
->
-> Otherwise you lose flags set by v4l2_i2c_subdev_init().
+> > Hi Mita-san,
+> >
+> > Thanks for the patchset.
+> >
+> > On Sun, Dec 23, 2018 at 02:12:48AM +0900, Akinobu Mita wrote:
+> > > Switch s_power() callback to runtime PM framework.  This also removes
+> > > soc_camera specific power management code and introduces reset and standby
+> > > gpios instead.
+> > >
+> > > Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > > Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > > Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> > > Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+> > > ---
+> > >  drivers/media/i2c/mt9m001.c | 242 ++++++++++++++++++++++++++++++++------------
+> > >  1 file changed, 178 insertions(+), 64 deletions(-)
+> > >
+> > > diff --git a/drivers/media/i2c/mt9m001.c b/drivers/media/i2c/mt9m001.c
+> > > index c0180fdc..f20188a 100644
+> > > --- a/drivers/media/i2c/mt9m001.c
+> > > +++ b/drivers/media/i2c/mt9m001.c
+> > > @@ -5,6 +5,10 @@
+> > >   * Copyright (C) 2008, Guennadi Liakhovetski <kernel@pengutronix.de>
+> > >   */
+> > >
+> > > +#include <linux/clk.h>
+> > > +#include <linux/delay.h>
+> > > +#include <linux/gpio/consumer.h>
+> > > +#include <linux/pm_runtime.h>
+> > >  #include <linux/videodev2.h>
+> > >  #include <linux/slab.h>
+> > >  #include <linux/i2c.h>
+> > > @@ -13,7 +17,6 @@
+> > >
+> > >  #include <media/soc_camera.h>
+> > >  #include <media/drv-intf/soc_mediabus.h>
+> > > -#include <media/v4l2-clk.h>
+> > >  #include <media/v4l2-subdev.h>
+> > >  #include <media/v4l2-ctrls.h>
+> > >
+> > > @@ -92,8 +95,12 @@ struct mt9m001 {
+> > >               struct v4l2_ctrl *autoexposure;
+> > >               struct v4l2_ctrl *exposure;
+> > >       };
+> > > +     bool streaming;
+> > > +     struct mutex mutex;
+> > >       struct v4l2_rect rect;  /* Sensor window */
+> > > -     struct v4l2_clk *clk;
+> > > +     struct clk *clk;
+> > > +     struct gpio_desc *standby_gpio;
+> > > +     struct gpio_desc *reset_gpio;
+> > >       const struct mt9m001_datafmt *fmt;
+> > >       const struct mt9m001_datafmt *fmts;
+> > >       int num_fmts;
+> > > @@ -177,8 +184,7 @@ static int mt9m001_init(struct i2c_client *client)
+> > >       return multi_reg_write(client, init_regs, ARRAY_SIZE(init_regs));
+> > >  }
+> > >
+> > > -static int mt9m001_apply_selection(struct v4l2_subdev *sd,
+> > > -                                 struct v4l2_rect *rect)
+> > > +static int mt9m001_apply_selection(struct v4l2_subdev *sd)
+> > >  {
+> > >       struct i2c_client *client = v4l2_get_subdevdata(sd);
+> > >       struct mt9m001 *mt9m001 = to_mt9m001(client);
+> > > @@ -190,11 +196,11 @@ static int mt9m001_apply_selection(struct v4l2_subdev *sd,
+> > >                * The caller provides a supported format, as verified per
+> > >                * call to .set_fmt(FORMAT_TRY).
+> > >                */
+> > > -             { MT9M001_COLUMN_START, rect->left },
+> > > -             { MT9M001_ROW_START, rect->top },
+> > > -             { MT9M001_WINDOW_WIDTH, rect->width - 1 },
+> > > +             { MT9M001_COLUMN_START, mt9m001->rect.left },
+> > > +             { MT9M001_ROW_START, mt9m001->rect.top },
+> > > +             { MT9M001_WINDOW_WIDTH, mt9m001->rect.width - 1 },
+> > >               { MT9M001_WINDOW_HEIGHT,
+> > > -                     rect->height + mt9m001->y_skip_top - 1 },
+> > > +                     mt9m001->rect.height + mt9m001->y_skip_top - 1 },
+> > >       };
+> > >
+> > >       return multi_reg_write(client, regs, ARRAY_SIZE(regs));
+> > > @@ -203,11 +209,50 @@ static int mt9m001_apply_selection(struct v4l2_subdev *sd,
+> > >  static int mt9m001_s_stream(struct v4l2_subdev *sd, int enable)
+> > >  {
+> > >       struct i2c_client *client = v4l2_get_subdevdata(sd);
+> > > +     struct mt9m001 *mt9m001 = to_mt9m001(client);
+> > > +     int ret = 0;
+> > >
+> > > -     /* Switch to master "normal" mode or stop sensor readout */
+> > > -     if (reg_write(client, MT9M001_OUTPUT_CONTROL, enable ? 2 : 0) < 0)
+> > > -             return -EIO;
+> > > -     return 0;
+> > > +     mutex_lock(&mt9m001->mutex);
+> > > +
+> > > +     if (mt9m001->streaming == enable)
+> > > +             goto done;
+> > > +
+> > > +     if (enable) {
+> > > +             ret = pm_runtime_get_sync(&client->dev);
+> > > +             if (ret < 0) {
+> > > +                     pm_runtime_put_noidle(&client->dev);
+> > > +                     goto done;
+> >
+> > How about adding another label for calling pm_runtime_put()? The error
+> > handling is the same in all cases. You can also use pm_runtime_put()
+> > instead of pm_runtime_put_noidle() here; there's no harm done.
+> 
+> There are two ways that I can think of.  Which one do you prefer?
+> 
+> (1)
+> done:
+>         mutex_unlock(&mt9m001->mutex);
+> 
+>         return 0;
+> 
+> enable_error:
+>         pm_runtime_put(&client->dev);
+>         mutex_unlock(&mt9m001->mutex);
+> 
+>         return ret;
+> }
+> 
+> (2)
+> done:
+>         if (ret && enable)
+>                pm_runtime_put(&client->dev);
+> 
+>         mutex_unlock(&mt9m001->mutex);
+> 
+>         return ret;
+> }
 
-Oops.  Thanks for spotting.
+I'd prefer the first; it's cleaner. I might call the new label e.g.
+put_unlock as that describes what it does.
+
+-- 
+Sakari Ailus
+sakari.ailus@linux.intel.com
