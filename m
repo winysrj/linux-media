@@ -2,57 +2,55 @@ Return-Path: <SRS0=gjtM=PQ=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 35365C43387
-	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 12:27:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F151C43387
+	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 12:52:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id F14E220685
-	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 12:27:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E53A520827
+	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 12:52:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1546950456;
-	bh=WldO2dPP7GY2rGr27/x5DPaU8RBi56GVXQvW1MaRndg=;
+	s=default; t=1546951940;
+	bh=L/17mOEm3yM1AsOO30OQ20wa1e7q3TW4bvZOkllBtKA=;
 	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
-	b=mwIKGyCURLoSw26KoxJxZSidT6AyXw/R3nTfaYIptobyLrKTTyQ78avCrrWppUMS0
-	 bms3XBO0LoKwzp2Ex745JIfHveMnyFUICVJI6bYKDu+2Xmidj9URH+C3baDhCyXoNO
-	 gkO3wytD6/ygIKdzgCLtykOPqB0N3+1LR39jyp6U=
+	b=CwQZq4u/lGy294W69bKW91q7a9L/K7t0VfDnLWlwJIMPBrGzajpB40eu4d+3NGGgw
+	 I86S1Qf2cVVYkwIJ2u4ZERuyx0cWTlXy+FI8yKYdSRO4xxB9lXG2muoG96UEYeuuIL
+	 T/0hDVm+ap0sttErYj5GChluAHmb8T1absbkcmPg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728791AbfAHM1f (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 8 Jan 2019 07:27:35 -0500
-Received: from casper.infradead.org ([85.118.1.10]:47960 "EHLO
+        id S1727473AbfAHMwT (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 8 Jan 2019 07:52:19 -0500
+Received: from casper.infradead.org ([85.118.1.10]:49176 "EHLO
         casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728709AbfAHM1f (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2019 07:27:35 -0500
+        with ESMTP id S1727236AbfAHMwT (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2019 07:52:19 -0500
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
         MIME-Version:References:In-Reply-To:Message-ID:Subject:Cc:To:From:Date:Sender
         :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
         Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
         List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=qBq/sICLozZR7FBTeqi9PfRRaZ/iwHgojQAeu+Oy7Xw=; b=EasR06/npd3qlb0//efh/dB1S9
-        XzIrmv/fykxO9/qhWZ/YJbT/OuxpGCdv/D9/7uO7WmuO89AHEWTX0REHdzjSvSksH7cUJTfYYPMLp
-        myGYxK4v9Lwd8dMcOxIEX7/Izh4jSWeZlWZEkYcH0In/8EnBPaxxkXs4vxm3CiprW3d+BMgadkwmN
-        JtefBYIqMRrAKtoknTNq1AykZLkJvkqw9SOgTMbFf/3EqUdfTSQM97yOzjzrjy9AhjDB2KI0W3eXT
-        KsfuSwLzOCZCpjCVsAZ+sD26tPD2VON3ds0kMq03o2Zq2NYLrXv7RrLfLM5zezeu6ydABMZ25cR4b
-        lZgk95pw==;
+        bh=YTni7WETVP+uG05wddR2ipJ5NSNXgC9DeXjwvVOMFaI=; b=L5REsIcjyWttWipbWhr50QLDZx
+        XSSuXTH/sZUUjzwUJ2EbKljf6/pJIoVuDcmh24aRoPpYziB2Uj3WkQT1cal9aw+8WfoboyTEASOZn
+        xKxl+Cys9DxJw5U4xyPgdF/xKbpIwxR+NXuCK55wSXW9KbaMU1VUYanVagTBoQOs2Hfr1+uuSu6iG
+        Une05kiy7+AmxVwKnSrvJOrfKpYHxY9PcDy/wfg6SyRGKIz0Z7dhYK/CitMRumcOs2wDzuWKBLi89
+        tpL6hjG6yp6B4kZeUD/IPq21dSpPDlm6xG67j5/8JHOLPyZro0pl3/jKbdM4l8LwPKP2Ugxg8m7YV
+        DrK2UlSg==;
 Received: from 177.41.113.230.dynamic.adsl.gvt.net.br ([177.41.113.230] helo=coco.lan)
         by casper.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
-        id 1ggqTj-0001h8-Lg; Tue, 08 Jan 2019 12:27:31 +0000
-Date:   Tue, 8 Jan 2019 10:27:26 -0200
-From:   Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To:     Sakari Ailus <sakari.ailus@iki.fi>
-Cc:     linux-media@vger.kernel.org,
-        Bingbu Cao <bingbu.cao@linux.intel.com>
-Subject: Re: [GIT PULL v4 for 4.21] META_OUTPUT buffer type and the ipu3
- staging driver
-Message-ID: <20190108102726.394a15d4@coco.lan>
-In-Reply-To: <20190107225125.6jizdimhzpilra6g@valkosipuli.retiisi.org.uk>
-References: <20181213120340.2oakeelp2b5w7zzq@valkosipuli.retiisi.org.uk>
-        <20190107160107.7dd9af05@coco.lan>
-        <20190107161134.1d0d9f73@coco.lan>
-        <20190107225125.6jizdimhzpilra6g@valkosipuli.retiisi.org.uk>
+        id 1ggqrg-0002b4-4K; Tue, 08 Jan 2019 12:52:16 +0000
+Date:   Tue, 8 Jan 2019 10:52:12 -0200
+From:   Mauro Carvalho Chehab <mchehab@kernel.org>
+To:     Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc:     linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com
+Subject: Re: [PATCH v2 1/3] videobuf2-core: Prevent size alignment wrapping
+ buffer size to 0
+Message-ID: <20190108105212.66837b9a@coco.lan>
+In-Reply-To: <20190108085836.9376-2-sakari.ailus@linux.intel.com>
+References: <20190108085836.9376-1-sakari.ailus@linux.intel.com>
+        <20190108085836.9376-2-sakari.ailus@linux.intel.com>
 X-Mailer: Claws Mail 3.17.3 (GTK+ 2.24.32; x86_64-redhat-linux-gnu)
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
@@ -62,70 +60,59 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Em Tue, 8 Jan 2019 00:51:25 +0200
-Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+Em Tue,  8 Jan 2019 10:58:34 +0200
+Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
 
-> Hi Mauro,
+> PAGE_ALIGN() may wrap the buffer size around to 0. Prevent this by
+> checking that the aligned value is not smaller than the unaligned one.
 > 
-> On Mon, Jan 07, 2019 at 04:11:34PM -0200, Mauro Carvalho Chehab wrote:
-> > Em Mon, 7 Jan 2019 16:01:07 -0200
-> > Mauro Carvalho Chehab <mchehab+samsung@kernel.org> escreveu:
-> >   
-> > > Hi Sakari/Bingbu,
-> > > 
-> > > Em Thu, 13 Dec 2018 14:03:40 +0200
-> > > sakari.ailus@iki.fi escreveu:
-> > >   
-> > > > Hi Mauro,
-> > > > 
-> > > > Here's the ipu3 staging driver plus the META_OUTPUT buffer type needed to
-> > > > pass the parameters for the device. If you think this there's still time to
-> > > > get this to 4.21, then please pull. The non-staging patches have been
-> > > > around for more than half a year and they're relatively simple.    
-> > > 
-> > > I'm now getting a lot of new warnings when building it:
-> > > 
-
-<snip>
-
-> > > Could you please send ASAP a patch series fixing them?
-> > > 
-> > > Thanks,
-> > > Mauro  
-> > 
-> > In time, I fixed a few really trivial warnings there, due to the
-> > lack of an #include directive.
-> > 
-> > As this patch is trivial enough, I'll go ahead and just apply it.
-> > I'll let the others for you to handle.  
+> Note on backporting to stable: the file used to be under
+> drivers/media/v4l2-core, it was moved to the current location after 4.14.
 > 
-> Interestingly enough, I haven't seen these warnings here. I presume you use
-> W=1 when compiling? 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Cc: stable@vger.kernel.org
+> Reviewed-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+> ---
+>  drivers/media/common/videobuf2/videobuf2-core.c | 4 ++++
+>  1 file changed, 4 insertions(+)
+> 
+> diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
+> index 0ca81d495bda..0234ddbfa4de 100644
+> --- a/drivers/media/common/videobuf2/videobuf2-core.c
+> +++ b/drivers/media/common/videobuf2/videobuf2-core.c
+> @@ -207,6 +207,10 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
+>  	for (plane = 0; plane < vb->num_planes; ++plane) {
+>  		unsigned long size = PAGE_ALIGN(vb->planes[plane].length);
+>  
+> +		/* Did it wrap around? */
+> +		if (size < vb->planes[plane].length)
+> +			goto free;
+> +
 
-Yes, that's the case. I always build here with:
+Sorry, but I can't see how this could ever happen (except for a very serious
+bug at the compiler or at the hardware).
 
-	W=1 CF=-D__CHECK_ENDIAN__ CONFIG_DEBUG_SECTION_MISMATCH=y
+See, the definition at PAGE_ALIGN is (from mm.h):
 
-Most of the time, I use ARCH=i386 on my builds, in order to get errors
-about div64() stuff (also, gcc warnings seem to work better on x86).
+	#define PAGE_ALIGN(addr) ALIGN(addr, PAGE_SIZE)
 
-Btw, are you compiling against 5.0-rc1 and using an updated gcc compiler?
+and the macro it uses come from kernel.h:
 
-Please notice that there were a patchset merged recently changing
-the enabled warning flags for W=0 and W=1. Those got merged (I think)
-on 5.0-rc1.
+	#define __ALIGN_KERNEL(x, a)		__ALIGN_KERNEL_MASK(x, (typeof(x))(a) - 1)
+	#define __ALIGN_KERNEL_MASK(x, mask)	(((x) + (mask)) & ~(mask))
+	..
+	#define ALIGN(x, a)		__ALIGN_KERNEL((x), (a))
 
-Here, As I use Fedora, with gets updated every 6 months, I'm usually
-not far behind gcc upstream. Right now (Fedora 29), I'm using gcc
-version 8.2.1:
+So, this:
+	size = PAGE_ALIGN(length);
 
-	gcc (GCC) 8.2.1 20181215 (Red Hat 8.2.1-6)
+(assuming PAGE_SIZE= 0x1000)
 
-> Some of these are worth more attention than just trying
-> to squash them by including the necessary headers. 
+becomes:
 
-Agreed. Several of them are not trivial to solve, yet seem relevant
-enough to be fixed.
+	size = (length + 0x0fff) & ~0xfff;
+
+so, size will *always* be >= length.
 
 Thanks,
 Mauro
