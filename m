@@ -6,54 +6,54 @@ X-Spam-Status: No, score=-11.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
 	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C5C77C43387
-	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 14:23:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E4FE8C43387
+	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 14:30:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8D8C820827
-	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 14:23:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B423020850
+	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 14:30:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1546957436;
-	bh=sFd/uezyTnavW3E/wKrq1QiTLQ+p6TDD/zRorRZ0KKA=;
+	s=default; t=1546957829;
+	bh=2LhCwyw+xafY/+4zNM91bBoSaI61PcTjFwRMw6zLmY4=;
 	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
-	b=dWFSQDEdbI5w+ExKOstzCWiiCSYOXbYBektqhnJsoGpc+OZB4r2p0l1hXMIpMM+oD
-	 vyUhbomRQAUNTZk59PkqrAP0BXebsYVWVyr9WP2bwuXL0/RXySgwOdPYVx7apGO2xY
-	 0JEIjkhw+5C8NNezWstg0ND7WXLPH/mtDbj0Jab4=
+	b=FYy/oufDSkjucOIXUu01n/8y38hTAfEFBP8or++4pnZZ86q9pWZyAkIawqEsa4Za9
+	 6mCwHxvykJ22Jq7hP2G/pcjP4url65x/Il86dB6qDIpaaX8ePW4I5PbqIdWJqY+0ZD
+	 UPRL4TJXpBk2MKhM1yanE4c14G9oyCYoB/QzlfKk=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728453AbfAHOXz (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 8 Jan 2019 09:23:55 -0500
-Received: from casper.infradead.org ([85.118.1.10]:57322 "EHLO
+        id S1728457AbfAHOa3 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 8 Jan 2019 09:30:29 -0500
+Received: from casper.infradead.org ([85.118.1.10]:58050 "EHLO
         casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727662AbfAHOXz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2019 09:23:55 -0500
+        with ESMTP id S1728573AbfAHOa2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2019 09:30:28 -0500
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
         MIME-Version:References:In-Reply-To:Message-ID:Subject:Cc:To:From:Date:Sender
         :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
         Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
         List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=4IO/SCJG9DyJm0/XOBECKwNKWIZHCaX7lwiDWRq9mxc=; b=XTW6oryFqRJrOkS6IitmSQlzDJ
-        2VNtiyUcoPjQQlWW36+Nw43FuktKPCYrwwIYZonGWqVECHAiR7AhuYiU0dvsad73QQk12ZJyRVX0a
-        72jLIk4SjF+P/Kkcn7a8MW2Ns+ClYdxKfwf9+7BbZ8Vc1vIgUlBz2dUUfGZo6vDdEJhlNrcywoYYJ
-        nfOBjIi1FtPob1hLOI2riWWpggsal1js0Aff5L2LPVuqTzzYpcvfC4CzBvOp1Qa5+o2EvszyJVILJ
-        ngQ/XUDmsamC7mMWKGT6iwCVNX6X7HW+LosW8yoBsfduR/vfXp1Bb/uHCqh5Kxg8chNIV1BPuMrkz
-        hPYM9vVw==;
+        bh=hSEwGDgrRDmhseesF9qeV03ITu9E4uV+fC7jY+Y0s7g=; b=K4nHXu0o6C3UsYZj3B/5bl4/al
+        wbuDC/Sr/CGwaf40R7HdSO97tfJCMvSFgSFWDvFxFTD1jASBoUmlfaanWst9+p+w+oRyt2CwckQZu
+        HVcSv2IQjwOcKGMRrAbWRXXpCwBKin7WOmjmqhUEKMo6j6c6wH7rL9thbLEX1QHe5hG2oQKg6rXyS
+        FoNhg3bszrAwtTiTGiPEnJrF6SGr5Xayde1k96lExsj5FnZRZNHbJcJNXwLg8UUyGQVyK9DlRRQXk
+        ZCJha5l7iTHMnKQtO7vGxAiEOYG491YtyGiWfVxsF+IPZPnv+q/m+pwhEVP1Qz8a/g7rQuVbu2VON
+        3TAK0/Hw==;
 Received: from 177.41.113.230.dynamic.adsl.gvt.net.br ([177.41.113.230] helo=coco.lan)
         by casper.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
-        id 1ggsIL-0006x4-Dy; Tue, 08 Jan 2019 14:23:53 +0000
-Date:   Tue, 8 Jan 2019 12:23:49 -0200
+        id 1ggsOg-0007SU-Kz; Tue, 08 Jan 2019 14:30:27 +0000
+Date:   Tue, 8 Jan 2019 12:30:22 -0200
 From:   Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 To:     Sakari Ailus <sakari.ailus@linux.intel.com>
 Cc:     linux-media@vger.kernel.org, hverkuil@xs4all.nl,
         laurent.pinchart@ideasonboard.com
 Subject: Re: [PATCH v2 1/3] videobuf2-core: Prevent size alignment wrapping
  buffer size to 0
-Message-ID: <20190108122349.15639460@coco.lan>
-In-Reply-To: <20190108133832.x23ypnl3zhzyrezi@paasikivi.fi.intel.com>
+Message-ID: <20190108123022.5dbead5b@coco.lan>
+In-Reply-To: <20190108134046.pxymxscc6cmlwyrq@paasikivi.fi.intel.com>
 References: <20190108085836.9376-1-sakari.ailus@linux.intel.com>
         <20190108085836.9376-2-sakari.ailus@linux.intel.com>
         <20190108105212.66837b9a@coco.lan>
         <20190108105955.68009949@coco.lan>
-        <20190108133832.x23ypnl3zhzyrezi@paasikivi.fi.intel.com>
+        <20190108134046.pxymxscc6cmlwyrq@paasikivi.fi.intel.com>
 X-Mailer: Claws Mail 3.17.3 (GTK+ 2.24.32; x86_64-redhat-linux-gnu)
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
@@ -63,13 +63,9 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Em Tue, 8 Jan 2019 15:38:32 +0200
+Em Tue, 8 Jan 2019 15:40:47 +0200
 Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
 
-> Hi Mauro,
-> 
-> Thanks for the review.
-> 
 > On Tue, Jan 08, 2019 at 10:59:55AM -0200, Mauro Carvalho Chehab wrote:
 > > Em Tue, 8 Jan 2019 10:52:12 -0200
 > > Mauro Carvalho Chehab <mchehab@kernel.org> escreveu:
@@ -133,59 +129,31 @@ Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
 > > If someone indeed uses length = INT_MAX, size will indeed be zero.
 > > 
 > > Please adjust the description accordingly, as it doesn't reflect
-> > that.
-> > 
-> > Btw, in this particular case, I would use a WARN_ON(), as this is
-> > something that indicates not only a driver bug (as the driver is
-> > letting someone to request a buffer a way too big), but probably  
+> > that.  
 > 
-> What's the maximum size a driver should allow? I guess this could be seen
-> be a failure from the driver's part to limit the size of the buffer, but
-> it's not trivial either to define that.
+> How about: 
 > 
-> Hardware typically has maximum dimensions it can support, but the user may
-> want to add padding at the end of the lines. Perhaps a helper macro could
-> be used for this purpose: most likely there's no need to be more padding
-> than there's image data per line. If that turns out to be too restrictive,
-> the macro could be changed. That's probably unlikely, admittedly.
-> 
-> For some hardware these numbers could still be more than a 32-bit unsigned
-> integer can hold, so the check is still needed.
+> PAGE_ALIGN() may wrap the buffer length around to 0 if the value to be
+> aligned is close to the top of the value range of the type. Prevent this by
+> checking that the aligned value is not smaller than the unaligned one.
 
-I guess that, by changing from "int" to "unsigned long", we ensure that the 
-number should be big enough to be able to represent the maximum allocation
-size.
+I would be a way more clear, as this is there to prevent a single
+special case: length == ULEN_MAX. Something like:
 
-On Linux, sizeof(long) is usually assumed to be sizeof(void *). Such
-assumption is used, for example, when we pass a structure pointer to
-ioctl's, instead of passing a long integer.
+	If one tried to allocate a buffer with sizeof(ULEN_MAX), this will cause
+	an overflow at PAGE_ALIGN(), making it return zero as the size of the
+	buffer, causing the code to fail.
 
-I mean, on a 64 bits system, long has 64 bits. AFAIKT, even the latest
-Xeon CPUs, the address space is lower than 64 bits. So, if one tries to
-allocate a memory with sizeof(ULONG_MAX), this will fail with ENOMEM.
+I would even let it clearer at the code itself. So, instead of the
+hunk you proposed, I would do:
 
-On any (true) 32 bits system, the physical address is to 32 bits.
-So, if one tries to allocate a memory with ULONG_MAX, this should
-also fail, as there won't be memory for anything else.
+	unsigned long size = vb->planes[plane].length;
 
-There are some special cases, like X86_PAE (and ARM_LPAE). There, the 
-physical address space is 64 bits, but instruction set is the 32 bits one.
-Yet, I'm almost sure that (at least on x86) a single memory block there 
-can't be bigger than 32 bits.
+	/* Prevent PAGE_ALIGN overflow */
+	if (WARN_ON(size == ULONG_MAX))
+		goto free;
 
-What I'm trying to say is that I strongly suspect that we won't have 
-any cases where someone using would need a buffer with more than 
-32 bits size on a non-64 architecture.
-
-> 
-> > also an attempt from a hacker to try to crack the system.  
-> 
-> This could be also v4l2-compliance setting the length field to -1. A
-> warning is worth it only if there's good chance there's e.g. a kernel bug
-> involved.
-> 
-
-
+	size = PAGE_ALIGN(vb->planes[plane].length);
 
 Thanks,
 Mauro
