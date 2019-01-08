@@ -2,145 +2,228 @@ Return-Path: <SRS0=gjtM=PQ=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 29483C43387
-	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 13:02:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D40EC43387
+	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 13:05:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E97B12087F
-	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 13:01:59 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1546952520;
-	bh=1GUtVawmR1rZ/xbQBj/ApQdCkLNOqKcJO4g+GCNXuCQ=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
-	b=tRr3gnQ/JvWC/SeEKc6nz23AO9YF4+Eaup5zndK9/SkfAkvpDhLbjqROu4aY+IA4v
-	 xbbiz2MPV1dg5HN2nAtLgxgD6XaVoeccXhB4F735PU1WZWhhqGUvak+IlhBf44Zlad
-	 xKXI65X7nUFd/uwZu4J7dRTEkvlHyifc839qZB3g=
+	by mail.kernel.org (Postfix) with ESMTP id CD7FD2087E
+	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 13:05:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727780AbfAHNB7 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 8 Jan 2019 08:01:59 -0500
-Received: from casper.infradead.org ([85.118.1.10]:49728 "EHLO
-        casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727558AbfAHNB7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2019 08:01:59 -0500
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
-        MIME-Version:References:In-Reply-To:Message-ID:Subject:Cc:To:From:Date:Sender
-        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
-        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=bVwU6K5HlEtnhIB7t0fPUsILlFg9pdVy5AAR5gFiRoo=; b=hybly7lq97XhAjAHnkOcpigjkQ
-        /2PkyTkMYKwWdVauZsAsxFcgR1lfSFGrt5iKnRJcOHxgKTRHeGWb/QLLS7I9+5jKCp0GWcM8UfbE7
-        Jlj0D6FchOxyMaayPIBFhVoEEe9hrVfT3hMFo6KrRw+WiA/uwJUQXmcCC9P2X6Tw3OzUbUWSSluSe
-        V8DBj+3qrwltEdRQDz756IhE4Wd06AOjfCoAmmIucFklqys8Vki2poWgl0JZr551T+uzYNm0lds1b
-        S163ed7BAm2op+N3Oh6V+WqsB06CZJ4TOMJ5XYqCkldQqz4Xl5Yxtb/bQN7JoT5rywU27FqCwIGFQ
-        5cT9fI7w==;
-Received: from 177.41.113.230.dynamic.adsl.gvt.net.br ([177.41.113.230] helo=coco.lan)
-        by casper.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
-        id 1ggr13-0002sD-2M; Tue, 08 Jan 2019 13:01:57 +0000
-Date:   Tue, 8 Jan 2019 11:01:53 -0200
-From:   Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To:     Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc:     linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH v2 1/3] videobuf2-core: Prevent size alignment wrapping
- buffer size to 0
-Message-ID: <20190108110153.7582a4a0@coco.lan>
-In-Reply-To: <20190108105955.68009949@coco.lan>
-References: <20190108085836.9376-1-sakari.ailus@linux.intel.com>
-        <20190108085836.9376-2-sakari.ailus@linux.intel.com>
-        <20190108105212.66837b9a@coco.lan>
-        <20190108105955.68009949@coco.lan>
-X-Mailer: Claws Mail 3.17.3 (GTK+ 2.24.32; x86_64-redhat-linux-gnu)
+        id S1727953AbfAHNFD (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 8 Jan 2019 08:05:03 -0500
+Received: from mga07.intel.com ([134.134.136.100]:31757 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727473AbfAHNFC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 8 Jan 2019 08:05:02 -0500
+X-Amp-Result: UNSCANNABLE
+X-Amp-File-Uploaded: False
+Received: from fmsmga002.fm.intel.com ([10.253.24.26])
+  by orsmga105.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 08 Jan 2019 05:05:02 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.56,454,1539673200"; 
+   d="scan'208";a="132646411"
+Received: from paasikivi.fi.intel.com ([10.237.72.42])
+  by fmsmga002.fm.intel.com with ESMTP; 08 Jan 2019 05:04:58 -0800
+Received: by paasikivi.fi.intel.com (Postfix, from userid 1000)
+        id C377F20948; Tue,  8 Jan 2019 15:04:57 +0200 (EET)
+Date:   Tue, 8 Jan 2019 15:04:57 +0200
+From:   Sakari Ailus <sakari.ailus@linux.intel.com>
+To:     Vishal Sagar <vishal.sagar@xilinx.com>
+Cc:     hyun.kwon@xilinx.com, laurent.pinchart@ideasonboard.com,
+        michal.simek@xilinx.com, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, hans.verkuil@cisco.com,
+        mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        dineshk@xilinx.com, linux-arm-kernel@lists.infradead.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 1/2] media: dt-bindings: media: xilinx: Add Xilinx MIPI
+ CSI-2 Rx Subsystem
+Message-ID: <20190108130457.syjuq7u7vep3km3h@paasikivi.fi.intel.com>
+References: <1527620084-94864-1-git-send-email-vishal.sagar@xilinx.com>
+ <1527620084-94864-2-git-send-email-vishal.sagar@xilinx.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1527620084-94864-2-git-send-email-vishal.sagar@xilinx.com>
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Em Tue, 8 Jan 2019 10:59:55 -0200
-Mauro Carvalho Chehab <mchehab+samsung@kernel.org> escreveu:
+Hi Vishal,
 
-> Em Tue, 8 Jan 2019 10:52:12 -0200
-> Mauro Carvalho Chehab <mchehab@kernel.org> escreveu:
-> 
-> > Em Tue,  8 Jan 2019 10:58:34 +0200
-> > Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
-> > 
-> > > PAGE_ALIGN() may wrap the buffer size around to 0. Prevent this by
-> > > checking that the aligned value is not smaller than the unaligned one.
-> > > 
-> > > Note on backporting to stable: the file used to be under
-> > > drivers/media/v4l2-core, it was moved to the current location after 4.14.
-> > > 
-> > > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > > Cc: stable@vger.kernel.org
-> > > Reviewed-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
-> > > ---
-> > >  drivers/media/common/videobuf2/videobuf2-core.c | 4 ++++
-> > >  1 file changed, 4 insertions(+)
-> > > 
-> > > diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
-> > > index 0ca81d495bda..0234ddbfa4de 100644
-> > > --- a/drivers/media/common/videobuf2/videobuf2-core.c
-> > > +++ b/drivers/media/common/videobuf2/videobuf2-core.c
-> > > @@ -207,6 +207,10 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
-> > >  	for (plane = 0; plane < vb->num_planes; ++plane) {
-> > >  		unsigned long size = PAGE_ALIGN(vb->planes[plane].length);
-> > >  
-> > > +		/* Did it wrap around? */
-> > > +		if (size < vb->planes[plane].length)
-> > > +			goto free;
-> > > +
-> > 
-> > Sorry, but I can't see how this could ever happen (except for a very serious
-> > bug at the compiler or at the hardware).
-> > 
-> > See, the definition at PAGE_ALIGN is (from mm.h):
-> > 
-> > 	#define PAGE_ALIGN(addr) ALIGN(addr, PAGE_SIZE)
-> > 
-> > and the macro it uses come from kernel.h:
-> > 
-> > 	#define __ALIGN_KERNEL(x, a)		__ALIGN_KERNEL_MASK(x, (typeof(x))(a) - 1)
-> > 	#define __ALIGN_KERNEL_MASK(x, mask)	(((x) + (mask)) & ~(mask))
-> > 	..
-> > 	#define ALIGN(x, a)		__ALIGN_KERNEL((x), (a))
-> > 
-> > So, this:
-> > 	size = PAGE_ALIGN(length);
-> > 
-> > (assuming PAGE_SIZE= 0x1000)
-> > 
-> > becomes:
-> > 
-> > 	size = (length + 0x0fff) & ~0xfff;
-> > 
-> > so, size will *always* be >= length.
-> 
-> Hmm... after looking at patch 2, now I understand what's your concern...
-> 
-> If someone indeed uses length = INT_MAX, size will indeed be zero.
+The patchset hard escaped me somehow earlier and your reply to Rob made me
+notice it again. Thanks. :-)
 
-In time, I meant to say UINT_MAX.
-
+On Wed, May 30, 2018 at 12:24:43AM +0530, Vishal Sagar wrote:
+> Add bindings documentation for Xilinx MIPI CSI-2 Rx Subsystem.
 > 
-> Please adjust the description accordingly, as it doesn't reflect
-> that.
+> The Xilinx MIPI CSI-2 Rx Subsystem consists of a DPHY, CSI-2 Rx, an
+> optional I2C controller and an optional Video Format Bridge (VFB). The
+> active lanes can be configured at run time if enabled in the IP. The
+> DPHY register interface may also be enabled.
 > 
-> Btw, in this particular case, I would use a WARN_ON(), as this is
-> something that indicates not only a driver bug (as the driver is
-> letting someone to request a buffer a way too big), but probably
-> also an attempt from a hacker to try to crack the system.
+> Signed-off-by: Vishal Sagar <vishal.sagar@xilinx.com>
+> ---
+>  .../bindings/media/xilinx/xlnx,csi2rxss.txt        | 117 +++++++++++++++++++++
+>  1 file changed, 117 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/xilinx/xlnx,csi2rxss.txt
 > 
-> Thanks,
-> Mauro
+> diff --git a/Documentation/devicetree/bindings/media/xilinx/xlnx,csi2rxss.txt b/Documentation/devicetree/bindings/media/xilinx/xlnx,csi2rxss.txt
+> new file mode 100644
+> index 0000000..31ed721
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/xilinx/xlnx,csi2rxss.txt
+> @@ -0,0 +1,117 @@
+> +
 
+Extra newline.
 
+> +Xilinx MIPI CSI2 Receiver Subsystem Device Tree Bindings
+> +--------------------------------------------------------
+> +
+> +The Xilinx MIPI CSI2 Receiver Subsystem is used to capture MIPI CSI2 traffic
+> +from compliant camera sensors and send the output as AXI4 Stream video data
+> +for image processing.
+> +
+> +The subsystem consists of a MIPI DPHY in slave mode which captures the
+> +data packets. This is passed along the MIPI CSI2 Rx IP which extracts the
+> +packet data. This data is taken in by the Video Format Bridge (VFB),
+> +if selected, and converted into AXI4 Stream video data at selected
+> +pixels per clock as per AXI4-Stream Video IP and System Design UG934.
+> +
+> +For more details, please refer to PG232 MIPI CSI-2 Receiver Subsystem.
+> +https://www.xilinx.com/support/documentation/ip_documentation/mipi_csi2_rx_subsystem/v3_0/pg232-mipi-csi2-rx.pdf
+> +
+> +Required properties:
+> +
+> +- compatible: Must contain "xlnx,mipi-csi2-rx-subsystem-2.0" or
+> +  "xlnx,mipi-csi2-rx-subsystem-3.0"
+> +
+> +- reg: Physical base address and length of the registers set for the device.
+> +
+> +- interrupt-parent: specifies the phandle to the parent interrupt controller
+> +
+> +- interrupts: Property with a value describing the interrupt number.
+> +
+> +- xlnx,max-lanes: Maximum active lanes in the design.
+> +
+> +- xlnx,vc: Virtual Channel, specifies virtual channel number to be filtered.
+> +  If this is 4 then all virtual channels are allowed.
 
-Thanks,
-Mauro
+This seems like something a driver should configure, based on the
+configuration of the connected device.
+
+> +
+> +- xlnx,csi-pxl-format: This denotes the CSI Data type selected in hw design.
+> +  Packets other than this data type (except for RAW8 and User defined data
+> +  types) will be filtered out. Possible values are RAW6, RAW7, RAW8, RAW10,
+> +  RAW12, RAW14, RGB444, RGB555, RGB565, RGB666, RGB888 and YUV4228bit.
+
+This should be configured at runtime instead through V4L2 sub-device
+interface; it's not a property of the hardware.
+
+> +
+> +- xlnx,axis-tdata-width: AXI Stream width, This denotes the AXI Stream width.
+> +  It depends on Data type chosen, Video Format Bridge enabled/disabled and
+> +  pixels per clock. If VFB is disabled then its value is either 0x20 (32 bit)
+> +  or 0x40(64 bit) width.
+> +
+> +- xlnx,video-format, xlnx,video-width: Video format and width, as defined in
+> +  video.txt.
+
+Ditto.
+
+> +
+> +- port: Video port, using the DT bindings defined in ../video-interfaces.txt.
+> +  The CSI 2 Rx Subsystem has a two ports, one input port for connecting to
+> +  camera sensor and other is output port.
+> +
+> +- data-lanes: The number of data lanes through which CSI2 Rx Subsystem is
+> +  connected to the camera sensor as per video-interfaces.txt
+
+This is somewhat different from the documentation in video-interfaces.txt.
+Could you align the two? I don't think there's a need to document standard
+properties in device binding files elaborately; rather just the hardware
+specific bits.
+
+> +
+> +Optional properties:
+> +
+> +- xlnx,en-active-lanes: Enable Active lanes configuration in Protocol
+> +  Configuration Register.
+> +
+> +- xlnx,dphy-present: This is equivalent to whether DPHY register interface is
+> +  enabled or not.
+> +
+> +- xlnx,iic-present: This shows whether subsystem's IIC is present or not. This
+> +  affects the base address of the DPHY.
+> +
+> +- xlnx,vfb: Video Format Bridge, Denotes if Video Format Bridge is selected
+> +  so that output is as per AXI stream documented in UG934.
+> +
+> +- xlnx,ppc: Pixels per clock, Number of pixels to be transferred per pixel
+> +  clock. This is valid only if xlnx,vfb property is present.
+> +
+> +Example:
+> +
+> +       csiss_1: csiss@a0020000 {
+> +               compatible = "xlnx,mipi-csi2-rx-subsystem-3.0";
+> +               reg = <0x0 0xa0020000 0x0 0x20000>;
+> +               interrupt-parent = <&gic>;
+> +               interrupts = <0 95 4>;
+> +
+> +               xlnx,max-lanes = <0x4>;
+> +               xlnx,en-active-lanes;
+> +               xlnx,dphy-present;
+> +               xlnx,iic-present;
+> +               xlnx,vc = <0x4>;
+> +               xlnx,csi-pxl-format = "RAW8";
+> +               xlnx,vfb;
+> +               xlnx,ppc = <0x4>;
+> +               xlnx,axis-tdata-width = <0x20>;
+> +
+> +               ports {
+> +                       #address-cells = <1>;
+> +                       #size-cells = <0>;
+> +
+> +                       port@0 {
+> +                               reg = <0>;
+> +
+> +                               xlnx,video-format = <XVIP_VF_YUV_422>;
+> +                               xlnx,video-width = <8>;
+> +                               csiss_out: endpoint {
+> +                                       remote-endpoint = <&vcap_csiss_in>;
+> +                               };
+> +                       };
+> +                       port@1 {
+> +                               reg = <1>;
+> +
+> +                               xlnx,video-format = <XVIP_VF_YUV_422>;
+> +                               xlnx,video-width = <8>;
+> +
+> +                               csiss_in: endpoint {
+> +                                       data-lanes = <1 2 3 4>;
+> +                                       /* MIPI CSI2 Camera handle */
+> +                                       remote-endpoint = <&vs2016_out>;
+> +                               };
+> +
+> +                       };
+> +
+> +               };
+> +       };
+> --
+> 2.7.4
+> 
+> This email and any attachments are intended for the sole use of the named recipient(s) and contain(s) confidential information that may be proprietary, privileged or copyrighted under applicable law. If you are not the intended recipient, do not read, copy, or forward this email message or any attachments. Delete this email message and any attachments immediately.
+
+Could you drop this from v2?
+
+-- 
+Regards,
+
+Sakari Ailus
+sakari.ailus@linux.intel.com
