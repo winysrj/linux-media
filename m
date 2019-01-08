@@ -2,199 +2,246 @@ Return-Path: <SRS0=gjtM=PQ=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A3C6C43387
-	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 23:08:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F0544C43387
+	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 23:32:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 60FE82084D
-	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 23:08:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A958F2146F
+	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 23:32:55 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=lucaceresoli.net header.i=@lucaceresoli.net header.b="0Kw1awNY"
+	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="qs/xxutk"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728832AbfAHXIY (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 8 Jan 2019 18:08:24 -0500
-Received: from hostingweb31-40.netsons.net ([89.40.174.40]:36561 "EHLO
-        hostingweb31-40.netsons.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728112AbfAHXIX (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 8 Jan 2019 18:08:23 -0500
-X-Greylist: delayed 1696 seconds by postgrey-1.27 at vger.kernel.org; Tue, 08 Jan 2019 18:08:20 EST
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=lucaceresoli.net; s=default; h=Message-Id:Date:Subject:Cc:To:From:Sender:
-        Reply-To:MIME-Version:Content-Type:Content-Transfer-Encoding:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:
-        List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=LzOJYvkH7S19FTmABeZy/jO0qJCnE/NMdSVp5BzhxHI=; b=0Kw1awNY3O+LPhqRD/Rn8tnj2T
-        79EHBic43vUvOfR3RAujQMyj5k4Eczfmr8uf+Vu/PwRh1IFAaxMb+tmPTe4DD0KqLDXqT45iCYYg3
-        gg4BdXcA1smO3j3f7EALJriY0qKSM/djRtdTwFMF0x0Ag70mXPwJXoE4g4+8zlgKdyO8=;
-Received: from [78.134.43.6] (port=50994 helo=melee.fritz.box)
-        by hostingweb31.netsons.net with esmtpa (Exim 4.91)
-        (envelope-from <luca@lucaceresoli.net>)
-        id 1gh02U-00FWab-6q; Tue, 08 Jan 2019 23:40:02 +0100
-From:   Luca Ceresoli <luca@lucaceresoli.net>
-To:     linux-media@vger.kernel.org
-Cc:     Luca Ceresoli <luca@lucaceresoli.net>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        jacopo mondi <jacopo@jmondi.org>,
-        Vladimir Zapolskiy <vz@mleia.com>,
-        Wolfram Sang <wsa@the-dreams.de>,
-        Peter Rosin <peda@axentia.se>,
+        id S1729473AbfAHXcy (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 8 Jan 2019 18:32:54 -0500
+Received: from perceval.ideasonboard.com ([213.167.242.64]:41466 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729331AbfAHXcy (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2019 18:32:54 -0500
+Received: from avalon.localnet (dfj612ybrt5fhg77mgycy-3.rev.dnainternet.fi [IPv6:2001:14ba:21f5:5b00:2e86:4862:ef6a:2804])
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 07136586;
+        Wed,  9 Jan 2019 00:32:50 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
+        s=mail; t=1546990371;
+        bh=+iy93gXIJtVkGy22KR9A7LYmpK5C3/oIUe9SCgEpYOU=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=qs/xxutkKYZmP7P6QFqC3wIlcmXhvnmxB6pAMg87YTwx2KbeowqoBUZG2aF65Pnbj
+         oyEPmcTQeYg0+YsLlOYC7cuoB9wcwSbeUDJalqIK2Ewtz/8iwLtzOGoVDW2t1w5glf
+         08FhAatlYXVsP3wVstraRDiYVbvPh25kioc2sZD4=
+From:   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To:     "Mani, Rajmohan" <rajmohan.mani@intel.com>
+Cc:     Tomasz Figa <tfiga@chromium.org>, "Zhi, Yong" <yong.zhi@intel.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-i2c@vger.kernel.org
-Subject: [RFC 0/4] TI camera serdes - I2C address translation draft
-Date:   Tue,  8 Jan 2019 23:39:49 +0100
-Message-Id: <20190108223953.9969-1-luca@lucaceresoli.net>
-X-Mailer: git-send-email 2.17.1
-X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
-X-AntiAbuse: Primary Hostname - hostingweb31.netsons.net
-X-AntiAbuse: Original Domain - vger.kernel.org
-X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
-X-AntiAbuse: Sender Address Domain - lucaceresoli.net
-X-Get-Message-Sender-Via: hostingweb31.netsons.net: authenticated_id: luca+lucaceresoli.net/only user confirmed/virtual account not confirmed
-X-Authenticated-Sender: hostingweb31.netsons.net: luca@lucaceresoli.net
-X-Source: 
-X-Source-Args: 
-X-Source-Dir: 
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        "'Zheng, Jian Xu'" <jian.xu.zheng@intel.com>,
+        "Hu, Jerry W" <jerry.w.hu@intel.com>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
+        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
+        "Cao, Bingbu" <bingbu.cao@intel.com>,
+        Jacopo Mondi <jacopo@jmondi.org>
+Subject: Re: [PATCH v7 00/16] Intel IPU3 ImgU patchset
+Date:   Wed, 09 Jan 2019 01:34:00 +0200
+Message-ID: <4929983.L9RZQDNQcv@avalon>
+Organization: Ideas on Board Oy
+In-Reply-To: <6F87890CF0F5204F892DEA1EF0D77A599B31FAF4@fmsmsx122.amr.corp.intel.com>
+References: <1540851790-1777-1-git-send-email-yong.zhi@intel.com> <1819843.KIqgResAvh@avalon> <6F87890CF0F5204F892DEA1EF0D77A599B31FAF4@fmsmsx122.amr.corp.intel.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi,
+Hi Raj,
 
-there has been some discussion on linux-media about video
-serializer/deserializer chipsets with remote I2C capabilities from TI
-[0] and Maxim [1]. I took part discussing how the remote I2C feature
-of such chips could be best implemented in Linux while I was
-implementing a driver for the Texas Instruments DS90UB954-Q1 video
-deserializer. My approach is different from both the one used by
-Vladimir Zapolskiy on other TI chips, which look similar to the
-DS90UB954 in their I2C management, and the one used by Kieran Bingham
-with Maxim chips, which have a different and simpler I2C management.
+(CC'ing Jacopo Mondi)
 
-After that I had to stop that work, so it is unfinished and I have no
-plan to continue it. Upon suggestion by some linux-media developers
-I'm sending my patches as RFC in the hope that they bring additional
-material for the discussion.
+On Saturday, 5 January 2019 04:26:16 EET Mani, Rajmohan wrote:
+> >> On Tuesday, 11 December 2018 15:43:53 EET Laurent Pinchart wrote:
+> >>> On Tuesday, 11 December 2018 15:34:49 EET Laurent Pinchart wrote:
+> >>>> On Wednesday, 5 December 2018 02:30:46 EET Mani, Rajmohan wrote:
+> >>>> 
+> >>>> [snip]
+> >>>> 
+> >>>>> I can see a couple of steps missing in the script below.
+> >>>>> (https://lists.libcamera.org/pipermail/libcamera-devel/2018-Nove
+> >>>>> mber/000040.html)
+> >>>>> 
+> >>>>> From patch 02 of this v7 series "doc-rst: Add Intel IPU3
+> >>>>> documentation", under section "Configuring ImgU V4L2 subdev for
+> >>>>> image processing"...
+> >>>>> 
+> >>>>> 1. The pipe mode needs to be configured for the V4L2 subdev.
+> >>>>> 
+> >>>>> Also the pipe mode of the corresponding V4L2 subdev should be
+> >>>>> set as desired (e.g 0 for video mode or 1 for still mode)
+> >>>>> through the control id 0x009819a1 as below.
+> >>>>> 
+> >>>>> e.g v4l2n -d /dev/v4l-subdev7 --ctrl=0x009819A1=1
+> >>>> 
+> >>>> I assume the control takes a valid default value ? It's better to
+> >>>> set it explicitly anyway, so I'll do so.
+> >>>> 
+> >>>>> 2. ImgU pipeline needs to be configured for image processing as
+> >>>>> below.
+> >>>>> 
+> >>>>> RAW bayer frames go through the following ISP pipeline HW blocks
+> >>>>> to have the processed image output to the DDR memory.
+> >>>>> 
+> >>>>> RAW bayer frame -> Input Feeder -> Bayer Down Scaling (BDS) ->
+> >>>>> Geometric Distortion Correction (GDC) -> DDR
+> >>>>> 
+> >>>>> The ImgU V4L2 subdev has to be configured with the supported
+> >>>>> resolutions in all the above HW blocks, for a given input
+> >>>>> resolution.
+> >>>>> 
+> >>>>> For a given supported resolution for an input frame, the Input
+> >>>>> Feeder, Bayer Down Scaling and GDC blocks should be configured
+> >>>>> with the supported resolutions. This information can be obtained
+> >>>>> by looking at the following IPU3 ISP configuration table for
+> >>>>> ov5670 sensor.
+> >>>>> 
+> >>>>> https://chromium.googlesource.com/chromiumos/overlays/board-over
+> >>>>> lays/+/master/baseboard-poppy/media-libs/cros-camera-hal-configs-
+> >>>>> poppy/files/gcss/graph_settings_ov5670.xml
+> >>>>> 
+> >>>>> For the ov5670 example, for an input frame with a resolution of
+> >>>>> 2592x1944 (which is input to the ImgU subdev pad 0), the
+> >>>>> corresponding resolutions for input feeder, BDS and GDC are
+> >>>>> 2592x1944, 2592x1944 and
+> >>>>> 2560x1920 respectively.
+> >>>> 
+> >>>> How is the GDC output resolution computed from the input
+> >>>> resolution ? Does the GDC always consume 32 columns and 22 lines ?
+> >>>> 
+> >>>>> The following steps prepare the ImgU ISP pipeline for the image
+> >>>>> processing.
+> >>>>> 
+> >>>>> 1. The ImgU V4L2 subdev data format should be set by using the
+> >>>>> VIDIOC_SUBDEV_S_FMT on pad 0, using the GDC width and height
+> >>>>> obtained above.
+> >>>> 
+> >>>> If I understand things correctly, the GDC resolution is the
+> >>>> pipeline output resolution. Why is it configured on pad 0 ?
+> >>>> 
+> >>>>> 2. The ImgU V4L2 subdev cropping should be set by using the
+> >>>>> VIDIOC_SUBDEV_S_SELECTION on pad 0, with V4L2_SEL_TGT_CROP as
+> >>>>> the target, using the input feeder height and width.
+> >>>>> 
+> >>>>> 3. The ImgU V4L2 subdev composing should be set by using the
+> >>>>> VIDIOC_SUBDEV_S_SELECTION on pad 0, with
+> >>>>> V4L2_SEL_TGT_COMPOSE as the target, using the BDS height and width.
+> >>>>> 
+> >>>>> Once these 2 steps are done, the raw bayer frames can be input
+> >>>>> to the ImgU V4L2 subdev for processing.
+> >>>> 
+> >>>> Do I need to capture from both the output and viewfinder nodes ?
+> >>>> How are they related to the IF -> BDS -> GDC pipeline, are they
+> >>>> both fed from the GDC output ? If so, how does the viewfinder
+> >>>> scaler fit in that picture ?
+> >>>> 
+> >>>> I have tried the above configuration with the IPU3 v8 driver, and
+> >>>> while the kernel doesn't crash, no images get processed. The
+> >>>> userspace processes wait forever for buffers to be ready. I then
+> >>>> configured pad 2 to 2560x1920 and pad 3 to 1920x1080, and managed
+> >>>> to capture images \o/
+> >>>> 
+> >>>> There's one problem though: during capture, or very soon after it,
+> >>>> the machine locks up completely. I suspect a memory corruption, as
+> >>>> when it doesn't log immediately commands such as dmesg will not
+> >>>> produce any output and just block, until the system freezes soon
+> >>>> after (especially when moving the mouse).
+> >>>> 
+> >>>> I would still call this an improvement to some extent, but there's
+> >>>> definitely room for more improvements :-)
+> >>>> 
+> >>>> To reproduce the issue, you can run the ipu3-process.sh script
+> >>>> (attached to this e-mail) with the following arguments:
+> >>>> 
+> >>>> $ ipu3-process.sh --out 2560x1920 frame-2592x1944.cio2
+> >> 
+> >> This should have read
+> >> 
+> >> $ ipu3-process.sh --out 2560x1920 --vf 1920x1080 frame-2592x1944.cio2
+> >> 
+> >> Without the --vf argument no images are processed.
+> >> 
+> >> It seems that the Intel mail server blocked the mail that contained the
+> >> script. You can find a copy at http://paste.debian.net/hidden/fd5bb8df/.
+> 
+> Here's what I have so far.
+> 
+> I made the following two changes to get image capture and processing
+> working with the above script. I can see the output and vf ppm files to come
+> out well.
+> 
+> 1. Remove the "# Set formats" inside the configure_pipeline() from the
+> above script and used a simple application (which I invoked from your
+> script) to set pad 0 of the "ipu3-imgu 0" V4L2 subdev with these 3 sub
+> steps.
+> 
+> a. Set the data format using VIDIOC_SUBDEV_S_FMT on pad 0
+> GDC width and height (2560x1920)
+> 
+> b. Set cropping using VIDIOC_SUBDEV_S_SELECTION on pad 0
+> with V4L2_SEL_TGT_CROP as target, using the input feeder width
+> and height (2592x1944)
+> 
+> c. Set composing using VIDIOC_SUBDEV_S_SELECTION on pad 0
+> with V4L2_SEL_TGT_COMPOSE as the target, using
+> BDS width and height (2592x1944)
 
-I2C management is quite complete in my patches, and it shows how I
-envisioned I2C management. For the rest the code is in large part
-incomplete. Don't consider the V4L2, GPIO and other sections as ready
-for any review.
+This is exactly what the first media-ctl -V call just below the "Set formats" 
+comment does.
 
-The whole idea is structured around a central node, called the ATR
-(Address Translator). It is similar to an I2C mux except it changes
-the I2C addresses of transactions with an "alias" address for each
-remote chip. Patch 2 has a detailed description of this process.
+> 2. Modify yavta app to ignore the error (on "3A stat" node) from
+> cap_get_buf_type(), so all 4 nodes can be running at the same time.
 
+I don't get that error with the latest yavta version.
 
-A typical setup looks like:
+> Can you advise why the " # Set formats" part of configure_pipeline()
+> in your script is not achieving the same results as the above 3 sub steps?
 
-                          Slave X @ 0x10
-                  .-----.   |
-      .-----.     |     |---+---- B
-      | CPU |--A--| ATR |
-      `-----'     |     |---+---- C
-                  `-----'   |
-                          Slave Y @ 0x10
+I tried removing the three media-ctl -V lines that configure format on pads 2, 
+3 and 4. The crash then didn't occur when running the script. However, after 
+rebooting the system and retrying the exact same sequence of operation, the 
+driver crashed again, and I haven't been able to process images without 
+crashing since then.
 
-  A = "local" bus
-  B = "remote" bus 0
-  C = "remote" bus 1
+The driver is clearly very sensitive to how formats and selection rectangles 
+are configured, and crashes when userspace doesn't operate exactly as 
+expected. This should all be fixed, likely by rewriting the format and 
+selection rectangle configuration code, especially given that it doesn't 
+comply with how V4L2 configures scaling on subdevs.
 
-In patch 2 I enriched the i2c-mux to also act as an ATR. However the
-implementation grew larger than I desired, so now I think it would
-make sense to leave i2c-mux as is, and add a new i2c-atr.c which has
-ATR features without much of the MUX code. However the implementation
-would not change too much, so you can look at i2c-mux to see how I
-implemented the ATR.
+We can discuss this issue with Sakari to decide on how the code should be 
+architectured. How long do you think it would then take to implement the 
+solution ?
 
-In the ATR (i2c-mux.c) I implemented the logic needed to remap slave
-addresses according to a table. Choosing appropriate aliases and
-filling that table is driver-specific, so in this case it is done by
-ds90ub954.c. The ATR driver needs to know when a new client appears on
-the remote bus to setup translation and when it gets disconnected to
-undo it. So I added a callback pair, attach_client and detach_client,
-from i2c-core to i2c-mux and from there to the ATR driver. When
-getting the callback the ATR driver chooses an alias to be used on the
-local bus for the new chip, configures the ATR (perhaps setting some
-registers) returns the alias back to the ATR which sill add the new
-chip-alias pair to its table. The ATR (i2c-mux) then will do the
-translation for each message, so that the alias will be used on the
-local bus and the physical chip address on the remote bus.
-
-The alias address for a new client is chosen from an alias pool that
-must be defined in device tree. It is the responsibility of the DT
-writer to fill the pool with addresses that are otherwise unused on
-the local bus. The pool could not be filled automatically because
-there might be conflicting chips on the local bus that are unknown to
-the software, or that are just connected later.
-
-The alias pool and the mapping done at runtime allow to model
-different camera modules [or display or other modules] similarly to
-beaglebone capes or rpi hats, up to a model where:
-
- 1. there can be different camera modules being designed over time
- 2. there can be different base boards being designed over time
- 3. there is a standard interconnection between them (mechanical,
-    electrical, communication bus)
- 4. camera modules and base boards are designed and sold independently
-    (thanks to point 3)
-
-The implementation is split in the following patches:
- * Patch 1 adds the attach_client() and detach_client() callbacks to
-   i2c-core
- * Patch 2 adds similar callbacks for the use of device drivers and,
-   most importantly, implements the ATR engine
- * Patch 3 adds a farily complete DT bindings document, including the
-   alias map
- * Patch 4 adds the DS90UB954-Q1 dual deserializer driver
-
-There is no serializer driver here. The one I have is just a skeleton
-setting a few registers, just enough to work on the deserializer
-driver.
-
-Each patch has an comprehensive list of open issues.
-
-[0] https://www.spinics.net/lists/linux-gpio/msg33291.html
-[1] https://www.spinics.net/lists/linux-media/msg142367.html
-
-Regards,
---
-Luca
-
-
-Luca Ceresoli (4):
-  i2c: core: let adapters be notified of client attach/detach
-  i2c: mux: notify client attach/detach, add ATR
-  media: dt-bindings: add DS90UB954-Q1 video deserializer
-  media: ds90ub954: new driver for TI DS90UB954-Q1 video deserializer
-
- .../bindings/media/ti,ds90ub954-q1.txt        |  151 ++
- drivers/i2c/i2c-core-base.c                   |   16 +
- drivers/i2c/i2c-mux.c                         |  218 ++-
- drivers/i2c/muxes/i2c-mux-pca954x.c           |    2 +-
- drivers/media/Kconfig                         |    1 +
- drivers/media/Makefile                        |    2 +-
- drivers/media/serdes/Kconfig                  |   13 +
- drivers/media/serdes/Makefile                 |    1 +
- drivers/media/serdes/ds90ub954.c              | 1335 +++++++++++++++++
- include/linux/i2c-mux.h                       |   20 +-
- include/linux/i2c.h                           |    9 +
- 11 files changed, 1760 insertions(+), 8 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/ti,ds90ub954-q1.txt
- create mode 100644 drivers/media/serdes/Kconfig
- create mode 100644 drivers/media/serdes/Makefile
- create mode 100644 drivers/media/serdes/ds90ub954.c
+> Per Bingbu, the driver might be lacking some implementation around this.
+> 
+> >>>>> 1. The ImgU V4L2 subdev data format should be set by using the
+> >>>>> VIDIOC_SUBDEV_S_FMT on pad 0, using the GDC width and height
+> >>>>> obtained above.
+> >>>>> 2. The ImgU V4L2 subdev cropping should be set by using the
+> >>>>> VIDIOC_SUBDEV_S_SELECTION on pad 0, with V4L2_SEL_TGT_CROP as
+> >>>>> the target, using the input feeder height and width.
+> >>>>> 3. The ImgU V4L2 subdev composing should be set by using the
+> >>>>> VIDIOC_SUBDEV_S_SELECTION on pad 0, with V4L2_SEL_TGT_COMPOSE
+> >>>>> as the target, using the BDS height and width.
+> > 
+> > Sorry for the delay. I got interrupted with some other work.
+> > I will have a look at this and get back soon.
 
 -- 
-2.17.1
+Regards,
+
+Laurent Pinchart
+
+
 
