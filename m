@@ -7,49 +7,49 @@ X-Spam-Status: No, score=-18.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 39EDCC43387
-	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 19:37:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 56506C43387
+	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 19:39:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 070A8205C9
-	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 19:37:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 272692063F
+	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 19:39:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1546976256;
-	bh=EFLKP2e2c8SXlFc0rCCbWnZNRG+2J58K4nGwMmynqBI=;
+	s=default; t=1546976367;
+	bh=O6WPsUUdmPAiKNJs5fr30n9PFybE3SdHauvmgV0VgZg=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=bi2TQVwvaKAiYzLdXi7o8hT6802Bw8pteP8rInI1fWB2seIFOVcikF478qL/nJ+gV
-	 4sLY0AK0rEGMqM0pTHz+KZkVQFT2Zg/I6SwGGXjSCXopiY30Nhgzu1MwbNzbe6Myhe
-	 TChHV2W94eXccBiSL/O/YcVI97lLVyott4WNfwhQ=
+	b=xTsDHlN2iAQRUAS85WdGuU0jLkb3Oq8qnVaCZeUOfyrpS8KQRLd23hRtBd5TS8drh
+	 TSSfRyO65BYfdjWKWGLeh71cwKwkB3UTFW3UwhWJZ2P2MoMeD+XIhAdHFwFCTTJ1pR
+	 SvvnnHOPcNN+xywmiaaLK1bKwk5TxK74e1MwgzAw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731904AbfAHTha (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 8 Jan 2019 14:37:30 -0500
-Received: from mail.kernel.org ([198.145.29.99]:44582 "EHLO mail.kernel.org"
+        id S1731514AbfAHTfF (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 8 Jan 2019 14:35:05 -0500
+Received: from mail.kernel.org ([198.145.29.99]:43882 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730069AbfAHTfn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 8 Jan 2019 14:35:43 -0500
+        id S1732144AbfAHTfE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 8 Jan 2019 14:35:04 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 0A57C20827;
-        Tue,  8 Jan 2019 19:35:40 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 1BB9320645;
+        Tue,  8 Jan 2019 19:35:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1546976141;
-        bh=EFLKP2e2c8SXlFc0rCCbWnZNRG+2J58K4nGwMmynqBI=;
+        s=default; t=1546976103;
+        bh=O6WPsUUdmPAiKNJs5fr30n9PFybE3SdHauvmgV0VgZg=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=r8cqjoPW1H6cxlxlovh+4q0VbIjnrdnt/Yl5hxsPNKb9SdcYzbBH2BsiatkZAitoq
-         VoFNZrqjCq8myKKTgdQzYNFMS7OmbEFp6A+vh6o1Oq08Vznt1HGvnvZ7Cl2fMujkk/
-         cm4g+P3N8TkjXsNgCY/cmcvCemrmyt31E4dmZgTc=
+        b=XCZ6PfGDLT12jVnxUgjdK6RvFZb87btPCpuFeb92VbEzzdrj8BvqAoNu5iuGBKTiD
+         /pSS3ZoUgcMKAVMzoHnAOcsF6nOwjJFow6Q2hWO7XkL1E9EscBS6E0b6IDyr268ugj
+         iYPFTCF8VDeYHNJzhkqb5dCjGX1sCkFvkciD4z6Y=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Nathan Chancellor <natechancellor@gmail.com>,
         Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
         Sasha Levin <sashal@kernel.org>, linux-media@vger.kernel.org,
         linux1394-devel@lists.sourceforge.net
-Subject: [PATCH AUTOSEL 3.18 06/19] media: firewire: Fix app_info parameter type in avc_ca{,_app}_info
-Date:   Tue,  8 Jan 2019 14:35:18 -0500
-Message-Id: <20190108193534.124555-6-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.4 11/28] media: firewire: Fix app_info parameter type in avc_ca{,_app}_info
+Date:   Tue,  8 Jan 2019 14:34:28 -0500
+Message-Id: <20190108193445.124251-11-sashal@kernel.org>
 X-Mailer: git-send-email 2.19.1
-In-Reply-To: <20190108193534.124555-1-sashal@kernel.org>
-References: <20190108193534.124555-1-sashal@kernel.org>
+In-Reply-To: <20190108193445.124251-1-sashal@kernel.org>
+References: <20190108193445.124251-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-Patchwork-Hint: Ignore
 Content-Transfer-Encoding: 8bit
@@ -125,7 +125,7 @@ index 251a556112a9..280b5ffea592 100644
  	struct avc_command_frame *c = (void *)fdtv->avc_data;
  	struct avc_response_frame *r = (void *)fdtv->avc_data;
 diff --git a/drivers/media/firewire/firedtv.h b/drivers/media/firewire/firedtv.h
-index c2ba085e0d20..54853159482e 100644
+index 345d1eda8c05..5b18a08c6285 100644
 --- a/drivers/media/firewire/firedtv.h
 +++ b/drivers/media/firewire/firedtv.h
 @@ -124,8 +124,10 @@ int avc_lnb_control(struct firedtv *fdtv, char voltage, char burst,
