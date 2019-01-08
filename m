@@ -2,120 +2,106 @@ Return-Path: <SRS0=gjtM=PQ=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.0 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DBF2FC43387
-	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 15:45:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A5CAC43387
+	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 15:54:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B27DE21019
-	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 15:45:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 16A3220827
+	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 15:54:28 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="WT6J6cUO"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728469AbfAHPpD (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 8 Jan 2019 10:45:03 -0500
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:44668 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728075AbfAHPpC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 8 Jan 2019 10:45:02 -0500
-Received: from [IPv6:2001:420:44c1:2579:e5a0:705e:8afb:6231] ([IPv6:2001:420:44c1:2579:e5a0:705e:8afb:6231])
-        by smtp-cloud9.xs4all.net with ESMTPA
-        id gtYmgGaO2MWvEgtYqgOvKJ; Tue, 08 Jan 2019 16:45:00 +0100
-To:     Linux Media Mailing List <linux-media@vger.kernel.org>
-From:   Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v5.1] Various fixes
-Message-ID: <42137155-e76e-8818-3ac3-3d15eec682f8@xs4all.nl>
-Date:   Tue, 8 Jan 2019 16:44:56 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:52.0) Gecko/20100101
- Thunderbird/52.2.1
+        id S1728790AbfAHPy1 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 8 Jan 2019 10:54:27 -0500
+Received: from perceval.ideasonboard.com ([213.167.242.64]:58728 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727840AbfAHPy1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2019 10:54:27 -0500
+Received: from avalon.localnet (dfj612ybrt5fhg77mgycy-3.rev.dnainternet.fi [IPv6:2001:14ba:21f5:5b00:2e86:4862:ef6a:2804])
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id EDABD586;
+        Tue,  8 Jan 2019 16:54:24 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
+        s=mail; t=1546962865;
+        bh=Zbuw8jbdrrdtIcrnGcvQEd9ncbg78aaqska0TQlRBTA=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=WT6J6cUOY27RXAp087PYTWotnV08Bchrsd7LKvHm2PfJCifgeS53sAU1B5D3Z/xqm
+         cKeRg/p/awaUDZmHD401UXZfidkh/DuNY9FYFhtNa0Aw/LW6vcRqPovuInyxOk04lq
+         KQ7kfKgnMzFvY9jyjmShT5X5cK5fK6ZTylPy3gPg=
+From:   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To:     Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc:     Mikhail Gavrilov <mikhail.v.gavrilov@gmail.com>,
+        linux-media@vger.kernel.org
+Subject: Re: Kernel error "Unknown pixelformat 0x00000000" occurs when I start capture video
+Date:   Tue, 08 Jan 2019 17:55:33 +0200
+Message-ID: <14736242.P0ZrnmSNTt@avalon>
+Organization: Ideas on Board Oy
+In-Reply-To: <20190108131621.59a825b7@coco.lan>
+References: <CABXGCsNxy8-PUPhSSZ3MwUhHixE_R0R-jCw8yGfN88fSu-CXLw@mail.gmail.com> <386743082.UsI2JZZ8BA@avalon> <20190108131621.59a825b7@coco.lan>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
-X-CMAE-Envelope: MS4wfIk4J1rDAmWEAVPzjDPAme0unYBDCs4v3qYcZ6aiMpvsgThRSW0o6NkWf21B1/s1rdlnqiDRgY5S/9wZI5DSEe3aUEc6+nTeB+SEooyeML/MF0K5sREd
- YN0v++tU2rsBcbkK0JuC2xTsiA76FYa50hXI7MDV3yw9BNX3MRyoZt8qHri2XpFo7JV81IdmKm7d1ywVxAS2nuYlkS/8hOtd7ruqOIJCM+gSTe2Bot+0OR1p
- SwUX3Rt8K/f+m9Be6i7l6N+/rip8J2snQavjKgYQ1tmQpgTzGzuBoPDancaIVCUe
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-The following changes since commit 1e0d0a5fd38192f23304ea2fc2b531fea7c74247:
+On Tuesday, 8 January 2019 17:16:21 EET Mauro Carvalho Chehab wrote:
+> Em Tue, 08 Jan 2019 16:54:41 +0200 Laurent Pinchart escreveu:
+> > On Tuesday, 8 January 2019 16:45:37 EET Mauro Carvalho Chehab wrote:
+> >> Em Sun, 6 Jan 2019 01:05:16 +0500 Mikhail Gavrilov escreveu:
+> >>> Hi folks!
+> >>> Every time when I start capture video from external capture card
+> >>> Avermedia Live Gamer ULTRA GC553
+> >>> (https://www.avermedia.com/gaming/product/game_capture/live_gamer_ultr
+> >>> a_gc553)
+> >>=20
+> >> What's the driver used by this device?
+> >>=20
+> >> A quick browsing at the Avermedia page you pointed, it indicates that
+> >> this should be using the UVC driver:
+> >>=20
+> >> 	"The LGU takes full advantage of UVC technology, which
+> >> 	 basically standardizes video drivers across Windows and Mac.
+> >> 	 In other words, all you need to do is plug your LGU to
+> >> 	 your PC or Mac and it=E2=80=99s ready to record and stream."
+> >>=20
+> >> So, I *suspect* that it uses the uvcvideo driver, but better to
+> >> double check.
+> >=20
+> > Given the full kernel log part of the original message,
+> >=20
+> > [    5.184850] uvcvideo: Unknown video format
+> > 30313050-0000-0010-8000-00aa00389b71
+>=20
+> Hmm... according with:
+> 	https://gix.github.io/media-types/
+>=20
+> It seems to be this one ('P010'):
+>=20
+> {30313050-0000-0010-8000-00AA00389B71} (MFVideoFormat_P010)MFMS
+> {30313050-0000-0010-8000-00AA00389B71} (MEDIASUBTYPE_P010)DSMS
+>=20
+> YUV planar 4:2:0 10 bits.
+>=20
+> If so, there's a description here:
+>=20
+> 	https://docs.microsoft.com/en-us/windows/desktop/medfound/10-bit-and-16-=
+bit
+> -yuv-video-formats
 
-  media: s5p-mfc: fix incorrect bus assignment in virtual child device (2019-01-07 14:39:36 -0500)
+That seems to match. The problem should then be easy to fix, but we need to=
+=20
+add a corresponding fourcc to the V4L2 API, and matching documentation. Any=
+=20
+volunteer ? :-)
 
-are available in the Git repository at:
+=2D-=20
+Regards,
 
-  git://linuxtv.org/hverkuil/media_tree.git tags/br-v5.1b2
+Laurent Pinchart
 
-for you to fetch changes up to aaa099e5efb834c55a8ddbeb7d9596208e4433c2:
 
-  rcar-vin: remove unneeded locking in async callbacks (2019-01-08 16:41:51 +0100)
 
-----------------------------------------------------------------
-Tag branch
-
-----------------------------------------------------------------
-Aditya Pakki (2):
-      media: gspca: Check the return value of write_bridge for timeout
-      media: gspca: mt9m111: Check write_bridge for timeout
-
-Akinobu Mita (1):
-      media: staging: bcm2835-camera: use V4L2_FRACT_COMPARE
-
-Alexey Khoroshilov (2):
-      media: tw9910: fix failure handling in tw9910_power_on()
-      media: tw9910: add helper function for setting gpiod value
-
-Andrzej Pietrasiewicz (2):
-      media: Change Andrzej Pietrasiewicz's e-mail address
-      MAINTAINERS: Change s5p-jpeg maintainer information.
-
-Dafna Hirschfeld (1):
-      media: vicodec: bugfix - replace '=' with '|='
-
-Hans Verkuil (1):
-      v4l2-ctrls.c/uvc: zero v4l2_event
-
-Jacopo Mondi (1):
-      media: rcar-csi2: Fix PHTW table values for E3/V3M
-
-Kangjie Lu (2):
-      usb: gspca: add a missed return-value check for do_command
-      usb: gspca: add a missed check for goto_low_power
-
-Kieran Bingham (1):
-      media: vsp1: Fix trivial documentation
-
-Niklas Söderlund (1):
-      rcar-vin: remove unneeded locking in async callbacks
-
-Ondrej Jirman (1):
-      media: sunxi: cedrus: Fix missing error message context
-
-Pawe? Chmiel (1):
-      media: s5p-jpeg: Check for fmt_ver_flag when doing fmt enumeration
-
- MAINTAINERS                                                   |  3 ++-
- drivers/media/common/videobuf2/videobuf2-dma-sg.c             |  2 +-
- drivers/media/i2c/tw9910.c                                    | 27 +++++++++++----------
- drivers/media/platform/rcar-vin/rcar-core.c                   | 14 -----------
- drivers/media/platform/rcar-vin/rcar-csi2.c                   | 62 +++++++++++++++++++++++------------------------
- drivers/media/platform/s5p-jpeg/jpeg-core.c                   | 23 ++++++++++--------
- drivers/media/platform/s5p-jpeg/jpeg-core.h                   |  2 +-
- drivers/media/platform/s5p-jpeg/jpeg-hw-s5p.c                 |  2 +-
- drivers/media/platform/s5p-jpeg/jpeg-hw-s5p.h                 |  2 +-
- drivers/media/platform/s5p-jpeg/jpeg-regs.h                   |  2 +-
- drivers/media/platform/vicodec/codec-fwht.c                   |  8 +++---
- drivers/media/platform/vsp1/vsp1_video.c                      |  2 +-
- drivers/media/usb/gspca/cpia1.c                               | 14 ++++++++---
- drivers/media/usb/gspca/m5602/m5602_mt9m111.c                 |  8 +++---
- drivers/media/usb/gspca/m5602/m5602_po1030.c                  |  8 ++++--
- drivers/media/usb/uvc/uvc_ctrl.c                              |  2 +-
- drivers/media/v4l2-core/v4l2-ctrls.c                          |  2 +-
- drivers/staging/media/sunxi/cedrus/cedrus_hw.c                | 28 ++++++++++-----------
- drivers/staging/vc04_services/bcm2835-camera/bcm2835-camera.c |  8 ++----
- include/media/videobuf2-dma-sg.h                              |  2 +-
- 20 files changed, 111 insertions(+), 110 deletions(-)
