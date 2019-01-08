@@ -8,62 +8,61 @@ X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C121C43387
-	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 14:52:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4EA3AC43387
+	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 14:52:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3BB7121019
-	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 14:52:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1C43720883
+	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 14:52:23 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ihI+QQ9l"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="d6K2WGm+"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728592AbfAHOwM (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 8 Jan 2019 09:52:12 -0500
-Received: from mail-pg1-f196.google.com ([209.85.215.196]:36393 "EHLO
+        id S1727885AbfAHOwW (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 8 Jan 2019 09:52:22 -0500
+Received: from mail-pg1-f196.google.com ([209.85.215.196]:36406 "EHLO
         mail-pg1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727656AbfAHOwL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2019 09:52:11 -0500
-Received: by mail-pg1-f196.google.com with SMTP id n2so1841306pgm.3;
-        Tue, 08 Jan 2019 06:52:10 -0800 (PST)
+        with ESMTP id S1727656AbfAHOwW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2019 09:52:22 -0500
+Received: by mail-pg1-f196.google.com with SMTP id n2so1841492pgm.3;
+        Tue, 08 Jan 2019 06:52:21 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=SC+GsdON4IcfFuhrnmezdwcQf7UD3b3+JMzwZyO+TCo=;
-        b=ihI+QQ9lsSgJygZva67JdIzSxhdMY1mqyagj5+HILFU04pjrOiAQteeAEb5x4PVitr
-         7qzaKj83cU+zBpH40YwpnOHsrkX84rSXo4dRe/r9jYLCsbSLmkCLY1xEZ5v35wd0GBiD
-         Efd0uRAnLg+taIGxEXMtXVuj0O+N9sw0zJlcbsHG6MOovXWwQFPZGfmWWfetLrYO0+4B
-         shOqDhl7sGUBR9sTW6rW74dxKIHb7rMs3miD9nhc8Odr3y+8iToNtEiBKPCutmTLD07/
-         HZRuyKW9Omrjuja25gvG+lDkEHP7Z6qTtl7oVKSMVvN5OMvKyXULOqIvZ+2SBfh+KCR4
-         79Fw==
+        bh=G061K61azQp3YXHiwwoCy96MrNzyxcy5eXMiGya7uSU=;
+        b=d6K2WGm+iNWMdslF/QluMIajyCJoT3+3kKlGUWwjRUQjT9ictuE0gUpFHtUK67X7B0
+         zvu6zCPgcX8EoevURDF9lrQxXuJxcG5bQpW9VJAMIc6Pg+Ibj/seu5/33dDRmw0XWFb2
+         DbbRx8mxLfhF/S5P/2omHIWi88+Fm7k+WGibyJjxrbE/Md9NEzk238hrDUC7LtGnQZoT
+         NxPXmSqMTvYB3zs2ZcFFbzolSynldEKBqsvwLB8SwqaRN8I2GL2h/NgLJCW4GU6ROjjG
+         y/DOqxI6uv1dtc2PS+S05q7UjCaCJ9e+8HovseJOHACPTvWU5/kLOmaTwM5++VCsFtJd
+         3fTQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references;
-        bh=SC+GsdON4IcfFuhrnmezdwcQf7UD3b3+JMzwZyO+TCo=;
-        b=FPMN4MTZ/S9b7wg8X85P/P6Hv16BxrivFmAYC7nxcV8B7sGSlyL05pPdKQDzfUymX9
-         UYxHXQPVJyhy8L5M3/YS5cU4h2yZTkKKmUrfDdPo61h6/S2RrY6ebc5kyEFqMpG7HKF8
-         Qaco9D6L5R4ckTZLKF7Oze/iPwUefbjgdfuvGFLsajuP0O+tVZRsHtiUSDfRb9FC+HlS
-         e5kZgmAhSJL+y867EPH9bm/FZzaGtWAl4rg54wK9E80qvfioNH/YJtKXllLlgXGSgLGS
-         JFBZpLXc2INqbO1JPwGNke8UmG71AWklZR3I/ZvBtWRuWp1B6iAxNTqX4jKczKUNY1K3
-         Y5kg==
-X-Gm-Message-State: AJcUukfLxv9kE0SW9YCmQkHdxGlUVQl8vi6Vg23jbFfgEnLE5yOpdLyj
-        wUy6lGkY8rj5sE6X+7MG9ayS8IT8
-X-Google-Smtp-Source: ALg8bN5xHzQ16RVI+1GXWyEzYr65IqKyFlloNKtEvmej8Ee8N9K3oAhVN2QcMZVNQ/3R+f9txYHRnQ==
-X-Received: by 2002:a65:4ccb:: with SMTP id n11mr1806356pgt.257.1546959129963;
-        Tue, 08 Jan 2019 06:52:09 -0800 (PST)
+        bh=G061K61azQp3YXHiwwoCy96MrNzyxcy5eXMiGya7uSU=;
+        b=rBEyPdxtV5JnZj93g9JSaxSbVyCD/xcRsZWVJwMF5DkuEOzI2LRBKarAcx9b3lvoZi
+         sgoARSCPsJpKHS7eIsSIeywaxJW4F2CGGE1Mv9Z446Vo7AU2ispRSXbKiyYqIykrx6wP
+         ughK8+T2OYZQz4Wo6fi89qa/PLQ2N3axnlChCZUk+cxQSoeKTQv2FLG6SIw23AqrxPt8
+         FGzbMGi9jPtle5jEdZrwY91lvKnXH5glM8iRAOaEl3BE0zwxd/R9vz+pK44dXHIZYNre
+         u33kPyCda59hX3unw+EVSScvCEGcX4lNGbgFyxETyCNf1YQvqUI2G/hhHqiO+jv69Hjp
+         oIXA==
+X-Gm-Message-State: AJcUukeXOL7N3Gsx4prlyMbhfetvUME1EskJ2WFn8+iULmfa9WdUcNkQ
+        abmiKwRVfz2TAg0aO9WBA0JDmBtY
+X-Google-Smtp-Source: ALg8bN6lFQwDNwYcD5oCf7oDD7m07ZgVhKQidlLs7pGk5S1vmtGxJZ4eMQHBxAwWoIc9nOnzNO4rPw==
+X-Received: by 2002:a63:fa06:: with SMTP id y6mr1780219pgh.177.1546959141421;
+        Tue, 08 Jan 2019 06:52:21 -0800 (PST)
 Received: from localhost.localdomain ([240f:34:212d:1:5cb2:2bb:ff67:c70d])
-        by smtp.gmail.com with ESMTPSA id n78sm53546990pfk.19.2019.01.08.06.52.07
+        by smtp.gmail.com with ESMTPSA id n78sm53546990pfk.19.2019.01.08.06.52.10
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
-        Tue, 08 Jan 2019 06:52:09 -0800 (PST)
+        Tue, 08 Jan 2019 06:52:20 -0800 (PST)
 From:   Akinobu Mita <akinobu.mita@gmail.com>
 To:     linux-media@vger.kernel.org, devicetree@vger.kernel.org
 Cc:     Akinobu Mita <akinobu.mita@gmail.com>,
-        Rob Herring <robh@kernel.org>,
         Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: [PATCH v2 02/13] media: i2c: mt9m001: dt: add binding for mt9m001
-Date:   Tue,  8 Jan 2019 23:51:39 +0900
-Message-Id: <1546959110-19445-3-git-send-email-akinobu.mita@gmail.com>
+Subject: [PATCH v2 03/13] media: mt9m001: convert to SPDX license identifer
+Date:   Tue,  8 Jan 2019 23:51:40 +0900
+Message-Id: <1546959110-19445-4-git-send-email-akinobu.mita@gmail.com>
 X-Mailer: git-send-email 2.7.4
 In-Reply-To: <1546959110-19445-1-git-send-email-akinobu.mita@gmail.com>
 References: <1546959110-19445-1-git-send-email-akinobu.mita@gmail.com>
@@ -72,65 +71,44 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Add device tree binding documentation for the MT9M001 CMOS image sensor.
+Replace GPL license statements with SPDX license identifiers (GPL-2.0).
 
-Cc: Rob Herring <robh@kernel.org>
+This also fixes MODULE_LICENSE() ident to match the actual license text.
+
 Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
 Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 ---
 * v2
-- Update binding doc suggested by Rob Herring.
+- Fix MODULE_LICENSE() masmatch.
 
- .../devicetree/bindings/media/i2c/mt9m001.txt      | 38 ++++++++++++++++++++++
- 1 file changed, 38 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/mt9m001.txt
+ drivers/media/i2c/mt9m001.c | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/mt9m001.txt b/Documentation/devicetree/bindings/media/i2c/mt9m001.txt
-new file mode 100644
-index 0000000..c920552
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/mt9m001.txt
-@@ -0,0 +1,38 @@
-+MT9M001: 1/2-Inch Megapixel Digital Image Sensor
-+
-+The MT9M001 is an SXGA-format with a 1/2-inch CMOS active-pixel digital
-+image sensor. It is programmable through I2C interface.
-+
-+Required Properties:
-+
-+- compatible: shall be "onnn,mt9m001".
-+- clocks: reference to the master clock into sensor
-+
-+Optional Properties:
-+
-+- reset-gpios: GPIO handle which is connected to the reset pin of the chip.
-+  Active low.
-+- standby-gpios: GPIO handle which is connected to the standby pin of the chip.
-+  Active high.
-+
-+The device node must contain one 'port' child node with one 'endpoint' child
-+sub-node for its digital output video port, in accordance with the video
-+interface bindings defined in:
-+Documentation/devicetree/bindings/media/video-interfaces.txt
-+
-+Example:
-+
-+	&i2c1 {
-+		camera-sensor@5d {
-+			compatible = "onnn,mt9m001";
-+			reg = <0x5d>;
-+			reset-gpios = <&gpio0 0 GPIO_ACTIVE_LOW>;
-+			standby-gpios = <&gpio0 1 GPIO_ACTIVE_HIGH>;
-+			clocks = <&camera_clk>;
-+			port {
-+				mt9m001_out: endpoint {
-+					remote-endpoint = <&vcap_in>;
-+				};
-+			};
-+		};
-+	};
+diff --git a/drivers/media/i2c/mt9m001.c b/drivers/media/i2c/mt9m001.c
+index a1a85ff..c0b6b0c 100644
+--- a/drivers/media/i2c/mt9m001.c
++++ b/drivers/media/i2c/mt9m001.c
+@@ -1,11 +1,8 @@
++// SPDX-License-Identifier: GPL-2.0
+ /*
+  * Driver for MT9M001 CMOS Image Sensor from Micron
+  *
+  * Copyright (C) 2008, Guennadi Liakhovetski <kernel@pengutronix.de>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+  */
+ 
+ #include <linux/videodev2.h>
+@@ -754,4 +751,4 @@ module_i2c_driver(mt9m001_i2c_driver);
+ 
+ MODULE_DESCRIPTION("Micron MT9M001 Camera driver");
+ MODULE_AUTHOR("Guennadi Liakhovetski <kernel@pengutronix.de>");
+-MODULE_LICENSE("GPL");
++MODULE_LICENSE("GPL v2");
 -- 
 2.7.4
 
