@@ -2,135 +2,133 @@ Return-Path: <SRS0=gjtM=PQ=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.4 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,
-	URIBL_BLOCKED,URIBL_SBL,URIBL_SBL_A autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-10.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_PASS,
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 136F3C43387
-	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 17:47:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5081FC43387
+	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 18:49:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D7F992070B
-	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 17:47:14 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ndufresne-ca.20150623.gappssmtp.com header.i=@ndufresne-ca.20150623.gappssmtp.com header.b="dUrKWD+z"
+	by mail.kernel.org (Postfix) with ESMTP id 245AC20827
+	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 18:49:26 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1546973366;
+	bh=AsQY+3gjCTqOumZxVzn0aXwjO9eCpQizUUzA7OF/B4M=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
+	b=P7Y7DxIgSV7iwwdzAw973I+o43bK3kghmnQGKj2vE6B/1Zx+sXYVIeE2fezut1H1B
+	 QrGjW68AlB2VfL9dbk2gwBnsEAj6SmMAdS4amap0IUtg1+DK1W9oNzUNHvQHH3022L
+	 9rYWPdDeH0t3dpOC1Kf9/RkBWbfYNC+8jmS8YDrY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728752AbfAHRrO (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 8 Jan 2019 12:47:14 -0500
-Received: from mail-qt1-f170.google.com ([209.85.160.170]:33812 "EHLO
-        mail-qt1-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728446AbfAHRrO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2019 12:47:14 -0500
-Received: by mail-qt1-f170.google.com with SMTP id r14so5333128qtp.1
-        for <linux-media@vger.kernel.org>; Tue, 08 Jan 2019 09:47:13 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ndufresne-ca.20150623.gappssmtp.com; s=20150623;
-        h=message-id:subject:from:to:cc:date:in-reply-to:references
-         :user-agent:mime-version:content-transfer-encoding;
-        bh=CP/8VMKtfwvOU0bGoljD8aJ+eVe9m+3KtCXOZ24rNj4=;
-        b=dUrKWD+zbwuCicRjgytDgTJbdpJVwEEH1jzxCOVs8q7WVS6NZH5cSA+BsfSsqWNgJF
-         LBJcfz3XKOE0SA431CrrPkHdzr2uMdqDsc9NRj3GcWax5oJivMwXcevLN/94x6z0QriM
-         8itMALz5SedJUDpPAhfw3pnYR0OnrcUaZxUbgl49YoOqXbVyOxWbzOzE7EhVYEnLoaVQ
-         Obb3Q9jRz7xq5uH50DA2sRHnJyLh5nFi5Wc2Ei87OJ+MttR7mtYh5hKUxcjCE1EZOXAv
-         io94Xafwc7bmsOd994lX2MhwUHSKttQsLIVoba5Iuc90BAIev7cbAbQ2QJTEaW9YU3xE
-         fopw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:message-id:subject:from:to:cc:date:in-reply-to
-         :references:user-agent:mime-version:content-transfer-encoding;
-        bh=CP/8VMKtfwvOU0bGoljD8aJ+eVe9m+3KtCXOZ24rNj4=;
-        b=D/QDBvPB9AehIzcN0ERVyWnZt/Xt9SCxor7KtqtFRFn6cEUCGwTnbJnR2lYl6Yj+tM
-         MyJN2J2akNhw5lhEPPVmouJk7cKICI7RN2vxsrZ9boYDUkYzVwqSe/YrjNlcEw3Cjh6V
-         kZMd/Sl1VICMLwG+sgCU+m4XzPzsmQCC5pIHBHyMUmPVurFFpsfmWI31c4bBlUdpafVL
-         KsBKadrvXsI7zUiFAkiv4e4wW7yziGCxCGyZPzQPfGq6C18yyQx2tq1qWjeu1/798814
-         k6BvEzdy0hOEW1oTMjy8AMe6fCNIBF4ckC3BVsGymSBl5rrmqRCOO5y6AFWMdk17s0P4
-         7YWQ==
-X-Gm-Message-State: AJcUukdQH9B4jCYW18SF8AGYqgRZm57avGMKF2PxSkNXeZ7qwJKOA03g
-        rTXdrvTEVsqtsya+Dt+ksHRMqQ==
-X-Google-Smtp-Source: ALg8bN6m1GUS7EuMrNPtpZ2ldx/FdrtPN33AUCgSMIJtQ6SyhHunv9dfadMK6jneqeDHsHlk9Q92ZA==
-X-Received: by 2002:ac8:254c:: with SMTP id 12mr2481869qtn.88.1546969632562;
-        Tue, 08 Jan 2019 09:47:12 -0800 (PST)
-Received: from skullcanyon ([192.222.193.21])
-        by smtp.gmail.com with ESMTPSA id p42sm36644050qte.8.2019.01.08.09.47.11
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Tue, 08 Jan 2019 09:47:11 -0800 (PST)
-Message-ID: <e93a6dc4c79f8fee458e3eaa61e32958aa0ee8c6.camel@ndufresne.ca>
-Subject: Re: [PATCH v5] media: imx: add mem2mem device
-From:   Nicolas Dufresne <nicolas@ndufresne.ca>
-To:     Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
-Cc:     Hans Verkuil <hans.verkuil@cisco.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>, kernel@pengutronix.de
-Date:   Tue, 08 Jan 2019 12:47:10 -0500
-In-Reply-To: <1546961428.5406.4.camel@pengutronix.de>
-References: <20181203114804.17078-1-p.zabel@pengutronix.de>
-         <4acdd5bd4af28f33ae60d4ac244292e71dd9780d.camel@ndufresne.ca>
-         <1546961428.5406.4.camel@pengutronix.de>
-Content-Type: text/plain; charset="UTF-8"
-User-Agent: Evolution 3.30.3 (3.30.3-1.fc29) 
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        id S1728138AbfAHStZ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 8 Jan 2019 13:49:25 -0500
+Received: from casper.infradead.org ([85.118.1.10]:55992 "EHLO
+        casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727829AbfAHStZ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2019 13:49:25 -0500
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
+        MIME-Version:References:In-Reply-To:Message-ID:Subject:Cc:To:From:Date:Sender
+        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
+        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+        bh=6lExWkuQjrMMKa/msQhHJQCpUBgjycvpg3BX+QN+CT0=; b=vQ9ChDQwC1mpDn14EWwHQRk5S8
+        x53NpvX6pwYi34ZnfOYlV1f/TFu7fyR8QwIHl/Ld/hwughCMkd9k3u0tknLH+B/F6xZGRyUDGYg5w
+        vT+vEDEE60hto12qy4pjtVTTfCMEO9n2ut76TeAT4R3VV+ustTJGbuD0K6QEhixJahoiDqssZ7ydx
+        z8Sf7/AXxQPCqdZG06lWavFgBrgdxPk5iIIy2/p/JKDcqUv2GmbRYIgUXRO2PvR2q39WUHh7a+qV6
+        X840yxo/VXq8JJ6VjNW2Yacn5GbXU69aH/CeaArUZ1eNECsKIk9RRcU2663L6TPW2lnTMhHvXk8t2
+        9Xdn/w2w==;
+Received: from 177.41.113.230.dynamic.adsl.gvt.net.br ([177.41.113.230] helo=coco.lan)
+        by casper.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
+        id 1ggwRG-000466-D3; Tue, 08 Jan 2019 18:49:22 +0000
+Date:   Tue, 8 Jan 2019 16:49:16 -0200
+From:   Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To:     Mikhail Gavrilov <mikhail.v.gavrilov@gmail.com>
+Cc:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org
+Subject: Re: Kernel error "Unknown pixelformat 0x00000000" occurs when I
+ start capture video
+Message-ID: <20190108164916.55aa9b93@coco.lan>
+In-Reply-To: <CABXGCsOMdyzXACZa9T1OdUmDhNPDK=cX+DfBCAnY2A4aozCFHA@mail.gmail.com>
+References: <CABXGCsNxy8-PUPhSSZ3MwUhHixE_R0R-jCw8yGfN88fSu-CXLw@mail.gmail.com>
+        <386743082.UsI2JZZ8BA@avalon>
+        <CABXGCsPfQY6HCJzN1+iX6qFBCnWpJzgT9bJttpD7z23B=qvOGg@mail.gmail.com>
+        <32231660.SI74LuYRbz@avalon>
+        <CABXGCsOMdyzXACZa9T1OdUmDhNPDK=cX+DfBCAnY2A4aozCFHA@mail.gmail.com>
+X-Mailer: Claws Mail 3.17.3 (GTK+ 2.24.32; x86_64-redhat-linux-gnu)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Le mardi 08 janvier 2019 à 16:30 +0100, Philipp Zabel a écrit :
-> Hi Nicolas,
-> 
-> On Mon, 2019-01-07 at 17:36 -0500, Nicolas Dufresne wrote:
-> > Le lundi 03 décembre 2018 à 12:48 +0100, Philipp Zabel a écrit :
-> > > Add a single imx-media mem2mem video device that uses the IPU IC PP
-> > > (image converter post processing) task for scaling and colorspace
-> > > conversion.
-> > > On i.MX6Q/DL SoCs with two IPUs currently only the first IPU is used.
-> > > 
-> > > The hardware only supports writing to destination buffers up to
-> > > 1024x1024 pixels in a single pass, arbitrary sizes can be achieved
-> > > by rendering multiple tiles per frame.
-> > 
-> > While testing this driver, I found that the color conversion from YUYV
-> > to BGR32 is broken.
-> 
-> Thank you for testing, do you mean V4L2_PIX_FMT_RGB32?
-> 
-> V4L2_PIX_FMT_BGR32 is still contained in the ipu_rgb_formats array in
-> imx-media-utils, but happens to be never returned by enum_fmt since that
-> already stops at the bayer formats.
-> 
-> >  Our test showed that the output of the m2m driver
-> > is in fact RGBX/8888, a format that does not yet exist in V4L2
-> > interface but that is supported by the imx-drm driver. This was tested
-> > with GStreamer (master of gst-plugins-good), though some changes to
-> > gst-plugins-bad is needed to add the missing format to kmssink. Let me
-> > know if you need this to produce or not.
-> > 
-> > # To demonstrate (with patched gst-plugins-bad https://paste.fedoraproject.org/paste/rs-CbEq7coL4XSKrnWpEDw)
-> > gst-launch-1.0 videotestsrc ! video/x-raw,format=YUY2 ! v4l2convert ! video/x-raw,format=xRGB ! kmssink
-> 
-> Is this with an old kernel? Since c525350f6ed0 ("media: imx: use well
-> defined 32-bit RGB pixel format") that command line should make this
-> select V4L2_PIX_FMT_XRGB32 ("BX24").
+Em Tue, 8 Jan 2019 21:11:41 +0500
+Mikhail Gavrilov <mikhail.v.gavrilov@gmail.com> escreveu:
 
-My testing is done with a slightly older kernel yes, but my colleagues
-do reproduce on something more up to date. I should be updating the
-test kernel soon, just need to find the time. As the pixel format
-produced does not exist in v4l2 headers, the problem should still be
-present for you on the most recent kernels.
-
-Ideally I should produce a manual test of all conversion combination
-(like I did for Exynos FIMC). This is fairly easy with GStreamer, I
-just need to find the time slot to do so. Though, I thought this was
-was rather important as the capture often produce YUYV and RGB can be
-useful.
-
+> On Tue, 8 Jan 2019 at 20:57, Laurent Pinchart
+> <laurent.pinchart@ideasonboard.com> wrote:
+> >
+> > Thank you.
+> >
+> > Your device exposes five formats: YUY2 (YUYV), YV12 (YVU420), NV12, P010 and
+> > BGR3 (BGR24). They are all supported by V4L2 and the uvcvideo driver except
+> > for the P010 format. This would be easy to fix in the uvcvideo driver if it
+> > wasn't for the fact that the P010 format isn't support by V4L2. Adding support
+> > for it isn't difficult, but I don't have time to do this myself at the moment.
+> > Would you consider volunteering if I guide you ? :-)
+> >  
 > 
-> > # Software fix for the color format produced
-> > gst-launch-1.0 videotestsrc ! video/x-raw,format=YUY2 ! v4l2convert ! video/x-raw,format=xRGB ! capssetter replace=0 caps="video/x-raw,format=RGBx" ! kmssink -v
-> > 
-> > Also, BGR32 is deprecated and should not be used, this is mapped by 
-> > imx_media_enum_format() which I believe is already upstream. If that
-> > is, this bug is just inherited from that helper.
-> 
-> regards
-> Philipp
+> Sure, I'd be happy to help. What is required of me?
 
+It shouldn't be hard. 
+
+First, you need to add the new format at include/uapi/linux/videodev2.h,
+like this one:
+
+	#define V4L2_PIX_FMT_YUV420M v4l2_fourcc('Y', 'M', '1', '2') /* 12  YUV420 planar */
+
+Please put it together with the other YUV formats.
+
+As the fourcc "P010" was not used on Linux yet, you could use it,
+e. g., something like:
+
+	#define V4L2_PIX_FMT_YUV_P10 v4l2_fourcc('P', '0', '1', '0') /* 10  YUV420 planar */
+
+You need then to document it. Each V4L2 format should have a description, 
+like this:
+
+	https://linuxtv.org/downloads/v4l-dvb-apis-new/uapi/v4l/pixfmt-yuv420m.html
+
+This is generated via a text file (using ReST syntax). On the above example,
+it is produced by this file:
+
+	https://git.linuxtv.org/media_tree.git/tree/Documentation/media/uapi/v4l/pixfmt-yuv420m.rst
+
+Writing it would take a little more time, but, provided that you don't 
+copy what's written from external docs, you could take a look at the
+Internet for the P010 descriptions, and use the pixfmt-yuy420m.rst file
+as the basis for a new pixfmt-p010.rst file.
+
+This will produce a patch similar to this one:
+
+	https://git.linuxtv.org/media_tree.git/commit/?id=5df082e2312c
+
+Finally, you need to teach the uvc driver that it should report P010
+format, instead of 0x00000000, by adding it at uvc_format_desc uvc_fmts,
+with the corresponding UVC GUID. We usually do this on a separate patch.
+Something like this:
+
+	https://git.linuxtv.org/media_tree.git/commit/?id=6ea0d588d35b
+
+Once you have the patches, submit it to the ML :-)
+
+You could take a look at the LinuxTV wiki page about how to submit,
+at the developer's section:
+
+	https://linuxtv.org/wiki/index.php/Developer_section
+
+In particular, take a look at "Submitting Your Work" section there.
+
+Thanks,
+Mauro
