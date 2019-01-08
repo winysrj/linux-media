@@ -2,239 +2,106 @@ Return-Path: <SRS0=gjtM=PQ=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-4.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 217F8C43387
-	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 10:00:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A8780C43612
+	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 10:04:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DB0C32087E
-	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 10:00:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 79CE12087F
+	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 10:04:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728214AbfAHKA0 convert rfc822-to-8bit (ORCPT
+        id S1728294AbfAHKE0 convert rfc822-to-8bit (ORCPT
         <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 8 Jan 2019 05:00:26 -0500
-Received: from kozue.soulik.info ([108.61.200.231]:41322 "EHLO
-        kozue.soulik.info" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727001AbfAHKA0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2019 05:00:26 -0500
-Received: from [192.168.10.231] (unknown [103.29.142.67])
-        by kozue.soulik.info (Postfix) with ESMTPSA id 58647100F71;
-        Tue,  8 Jan 2019 19:01:07 +0900 (JST)
-Content-Type: text/plain;
-        charset=utf-8
-Mime-Version: 1.0 (1.0)
-Subject: Re: [linux-sunxi] [PATCH v2 1/2] media: v4l: Add definitions for the HEVC slice format and controls
-From:   Ayaka <ayaka@soulik.info>
-X-Mailer: iPad Mail (16A404)
-In-Reply-To: <f982ef378a8ade075bc7077b93640e20ecebf9f4.camel@bootlin.com>
-Date:   Tue, 8 Jan 2019 18:00:21 +0800
-Cc:     Randy Li <randy.li@rock-chips.com>,
-        =?utf-8?Q?Jernej_=C5=A0krabec?= <jernej.skrabec@gmail.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-arm-kernel@lists.infradead.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Ezequiel Garcia <ezequiel@collabora.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        linux-rockchip@lists.infradead.org
+        Tue, 8 Jan 2019 05:04:26 -0500
+Received: from mail-vs1-f68.google.com ([209.85.217.68]:41349 "EHLO
+        mail-vs1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727367AbfAHKEZ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2019 05:04:25 -0500
+Received: by mail-vs1-f68.google.com with SMTP id t17so2095026vsc.8;
+        Tue, 08 Jan 2019 02:04:25 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=sNqiYlChw24KsWcz/kYr7xgCv0KKzbtApcgrPB8ujhw=;
+        b=W0B4Z4Hy652fpRINO45lrRb1U+BnIcDx5I3klUubqI2v8wZeU7VwbvSmcPTDJC9cHR
+         fbjmhhsVcT/xPyJu9kHQOQzcelTfKMUYQ71LFOjcg3E5Y696LBL5wU3fCns4N9kjnO9h
+         l13M853A5mHT08BrcUBqSioNqUaanU7FHs1qUwTrTkApc2ehpeMOuLUJ4vrQWLZH9Lc8
+         o20ONsK6MAVmgqIeOM+QSV+PRMDp9vlkBUod5YwmiZ6MG/W4gVTwqH5G3g9Y9bPIohv6
+         fBHx8fQP9SsMrX09wfW90b1a6b8cIVb+xI400bDMhclqFLpiR4CAM7Nj/U+CAoMUwHGk
+         fTNQ==
+X-Gm-Message-State: AJcUukdkqnMrauQCmy2zh2MBt6wXRxEmrGA433AjI3HGp45c1hjXwjcJ
+        4AOK8qGPk7jboN/W+cuFo1tjh1aqT1ccTVSwois=
+X-Google-Smtp-Source: ALg8bN7PdaK7rp2QKF0c6T+DesjQL4YJWSjCn4xUsqXr/VPQMMQnqACOt/MDS3vq0p9IEyQm/jQIIIT5jPR70jjAynw=
+X-Received: by 2002:a67:b60d:: with SMTP id d13mr466077vsm.152.1546941864577;
+ Tue, 08 Jan 2019 02:04:24 -0800 (PST)
+MIME-Version: 1.0
+References: <20181101233144.31507-1-niklas.soderlund+renesas@ragnatech.se> <20181101233144.31507-18-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20181101233144.31507-18-niklas.soderlund+renesas@ragnatech.se>
+From:   Geert Uytterhoeven <geert@linux-m68k.org>
+Date:   Tue, 8 Jan 2019 11:04:13 +0100
+Message-ID: <CAMuHMdVKzdGrh2dyafQb3ny2i=z9GqeTbn+8p+NN3nofCrc7ZQ@mail.gmail.com>
+Subject: Re: [PATCH v2 17/30] v4l: subdev: compat: Implement handling for VIDIOC_SUBDEV_[GS]_ROUTING
+To:     =?UTF-8?Q?Niklas_S=C3=B6derlund?= 
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Benoit Parrot <bparrot@ti.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8BIT
-Message-Id: <82FA0C3F-BC54-4D89-AECB-90D81B89B1CE@soulik.info>
-References: <20181123130209.11696-1-paul.kocialkowski@bootlin.com> <20181123130209.11696-2-paul.kocialkowski@bootlin.com> <5515174.7lFZcYkk85@jernej-laptop> <ffe9c81db34b599f675ca5bbf02de360bf0a1608.camel@bootlin.com> <776e63c9-d4a5-342a-e0f7-200ef144ffc4@rock-chips.com> <64c793e08d61181b78125b3956ec38623fa5d261.camel@bootlin.com> <D8005130-F7FD-4CBD-8396-1BB08BB08E81@soulik.info> <f982ef378a8ade075bc7077b93640e20ecebf9f4.camel@bootlin.com>
-To:     Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
+Hi Niklas, Sakari,
 
+On Fri, Nov 2, 2018 at 12:33 AM Niklas Söderlund
+<niklas.soderlund+renesas@ragnatech.se> wrote:
+> From: Sakari Ailus <sakari.ailus@linux.intel.com>
+>
+> Implement compat IOCTL handling for VIDIOC_SUBDEV_G_ROUTING and
+> VIDIOC_SUBDEV_S_ROUTING IOCTLs.
+>
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-Sent from my iPad
+> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> @@ -1045,6 +1045,66 @@ static int put_v4l2_event32(struct v4l2_event __user *p64,
+>         return 0;
+>  }
+>
+> +struct v4l2_subdev_routing32 {
+> +       compat_caddr_t routes;
+> +       __u32 num_routes;
+> +       __u32 reserved[5];
+> +};
+> +
+> +static int get_v4l2_subdev_routing(struct v4l2_subdev_routing __user *p64,
+> +                                  struct v4l2_subdev_routing32 __user *p32)
+> +{
+> +       struct v4l2_subdev_route __user *routes;
+> +       compat_caddr_t p;
+> +       u32 num_routes;
+> +
+> +       if (!access_ok(VERIFY_READ, p32, sizeof(*p32)) ||
 
-> On Jan 8, 2019, at 4:38 PM, Paul Kocialkowski <paul.kocialkowski@bootlin.com> wrote:
-> 
-> Hi,
-> 
->> On Tue, 2019-01-08 at 09:16 +0800, Ayaka wrote:
->> 
->> Sent from my iPad
->> 
->>> On Jan 7, 2019, at 5:57 PM, Paul Kocialkowski <paul.kocialkowski@bootlin.com> wrote:
->>> 
->>> Hi,
->>> 
->>>>> On Mon, 2019-01-07 at 11:49 +0800, Randy Li wrote:
->>>>> On 12/12/18 8:51 PM, Paul Kocialkowski wrote:
->>>>> Hi,
->>>>> 
->>>>> On Wed, 2018-12-05 at 21:59 +0100, Jernej Škrabec wrote:
->>>>> 
->>>>>>> +
->>>>>>> +#define V4L2_HEVC_DPB_ENTRY_RPS_ST_CURR_BEFORE    0x01
->>>>>>> +#define V4L2_HEVC_DPB_ENTRY_RPS_ST_CURR_AFTER    0x02
->>>>>>> +#define V4L2_HEVC_DPB_ENTRY_RPS_LT_CURR        0x03
->>>>>>> +
->>>>>>> +#define V4L2_HEVC_DPB_ENTRIES_NUM_MAX        16
->>>>>>> +
->>>>>>> +struct v4l2_hevc_dpb_entry {
->>>>>>> +    __u32    buffer_tag;
->>>>>>> +    __u8    rps;
->>>>>>> +    __u8    field_pic;
->>>>>>> +    __u16    pic_order_cnt[2];
->>>>>>> +};
->>>> 
->>>> Please add a property for reference index, if that rps is not used for 
->>>> this, some device would request that(not the rockchip one). And 
->>>> Rockchip's VDPU1 and VDPU2 for AVC would request a similar property.
->>> 
->>> What exactly is that reference index? Is it a bitstream element or
->>> something deduced from the bitstream?
->>> 
->> picture order count(POC) for HEVC and frame_num in AVC. I think it is
->> the number used in list0(P slice and B slice) and list1(B slice).
-> 
-> The picture order count is already the last field of the DPB entry
-> structure. There is one for each field picture.
-As we are not sure whether there is a field coded slice or CTU, I would hold this part and else about the field.
-> 
->>>> Adding another buffer_tag for referring the memory of the motion vectors 
->>>> for each frames. Or a better method is add a meta data to echo picture 
->>>> buffer,  since the picture output is just the same as the original, 
->>>> display won't care whether the motion vectors are written the button of 
->>>> picture or somewhere else.
->>> 
->>> The motion vectors are passed as part of the raw bitstream data, in the
->>> slices. Is there a case where the motion vectors are coded differently?
->> No, it is an additional cache for decoder, even FFmpeg having such
->> data, I think allwinner must output it into somewhere.
-> 
-> Ah yes I see what you mean! This is handled internally by our driver
-> and not exposed to userspace. I don't think it would be a good idea to
-> expose this cache or request that userspace allocates it like a video
-> buffer.
-> 
-No, usually the driver should allocate, as the user space have no idea on size of each devices.
-But for advantage user, application can fix a broken picture with a proper data or analysis a object motion from that.
-So I would suggest attaching this information to a picture buffer as a meta data. 
->>>>>>> +
->>>>>>> +struct v4l2_hevc_pred_weight_table {
->>>>>>> +    __u8    luma_log2_weight_denom;
->>>>>>> +    __s8    delta_chroma_log2_weight_denom;
->>>>>>> +
->>>>>>> +    __s8    delta_luma_weight_l0[V4L2_HEVC_DPB_ENTRIES_NUM_MAX];
->>>>>>> +    __s8    luma_offset_l0[V4L2_HEVC_DPB_ENTRIES_NUM_MAX];
->>>>>>> +    __s8    delta_chroma_weight_l0[V4L2_HEVC_DPB_ENTRIES_NUM_MAX][2];
->>>>>>> +    __s8    chroma_offset_l0[V4L2_HEVC_DPB_ENTRIES_NUM_MAX][2];
->>>>>>> +
->>>>>>> +    __s8    delta_luma_weight_l1[V4L2_HEVC_DPB_ENTRIES_NUM_MAX];
->>>>>>> +    __s8    luma_offset_l1[V4L2_HEVC_DPB_ENTRIES_NUM_MAX];
->>>>>>> +    __s8    delta_chroma_weight_l1[V4L2_HEVC_DPB_ENTRIES_NUM_MAX][2];
->>>>>>> +    __s8    chroma_offset_l1[V4L2_HEVC_DPB_ENTRIES_NUM_MAX][2];
->>>>>>> +};
->>>>>>> +
->>>> Those properties I think are not necessary are applying for the 
->>>> Rockchip's device, may not work for the others.
->>> 
->>> Yes, it's possible that some of the elements are not necessary for some
->>> decoders. What we want is to cover all the elements that might be
->>> required for a decoder.
->> I wonder whether allwinner need that, those sao flag usually ignored
->> by decoder in design. But more is better than less, it is hard to
->> extend a v4l2 structure  in the future, maybe a new HEVC profile
->> would bring a new property, it is still too early for HEVC.
-> 
-> Yes this is used by our decoder. The idea is to have all the basic
-> bitstream elements in the structures (even if some decoders don't use
-> them all) and add others for extension as separate controls later.
-> 
->>>>>>> +struct v4l2_ctrl_hevc_slice_params {
->>>>>>> +    __u32    bit_size;
->>>>>>> +    __u32    data_bit_offset;
->>>>>>> +
->>>>>>> +    /* ISO/IEC 23008-2, ITU-T Rec. H.265: NAL unit header */
->>>>>>> +    __u8    nal_unit_type;
->>>>>>> +    __u8    nuh_temporal_id_plus1;
->>>>>>> +
->>>>>>> +    /* ISO/IEC 23008-2, ITU-T Rec. H.265: General slice segment header */
->>>>>>> +    __u8    slice_type;
->>>>>>> +    __u8    colour_plane_id;
->>>> ----------------------------------------------------------------------------
->>>>>>> +    __u16    slice_pic_order_cnt;
->>>>>>> +    __u8    slice_sao_luma_flag;
->>>>>>> +    __u8    slice_sao_chroma_flag;
->>>>>>> +    __u8    slice_temporal_mvp_enabled_flag;
->>>>>>> +    __u8    num_ref_idx_l0_active_minus1;
->>>>>>> +    __u8    num_ref_idx_l1_active_minus1;
->>>> Rockchip's decoder doesn't use this part.
->>>>>>> +    __u8    mvd_l1_zero_flag;
->>>>>>> +    __u8    cabac_init_flag;
->>>>>>> +    __u8    collocated_from_l0_flag;
->>>>>>> +    __u8    collocated_ref_idx;
->>>>>>> +    __u8    five_minus_max_num_merge_cand;
->>>>>>> +    __u8    use_integer_mv_flag;
->>>>>>> +    __s8    slice_qp_delta;
->>>>>>> +    __s8    slice_cb_qp_offset;
->>>>>>> +    __s8    slice_cr_qp_offset;
->>>>>>> +    __s8    slice_act_y_qp_offset;
->>>>>>> +    __s8    slice_act_cb_qp_offset;
->>>>>>> +    __s8    slice_act_cr_qp_offset;
->>>>>>> +    __u8    slice_deblocking_filter_disabled_flag;
->>>>>>> +    __s8    slice_beta_offset_div2;
->>>>>>> +    __s8    slice_tc_offset_div2;
->>>>>>> +    __u8    slice_loop_filter_across_slices_enabled_flag;
->>>>>>> +
->>>>>>> +    /* ISO/IEC 23008-2, ITU-T Rec. H.265: Picture timing SEI message */
->>>>>>> +    __u8    pic_struct;
->>>> I think the decoder doesn't care about this, it is used for display.
->>> 
->>> The purpose of this field is to indicate whether the current picture is
->>> a progressive frame or an interlaced field picture, which is useful for
->>> decoding.
->>> 
->>> At least our decoder has a register field to indicate frame/top
->>> field/bottom field, so we certainly need to keep the info around.
->>> Looking at the spec and the ffmpeg implementation, it looks like this
->>> flag of the bitstream is the usual way to report field coding.
->> It depends whether the decoder cares about scan type or more, I
->> wonder prefer general_interlaced_source_flag for just scan type, it
->> would be better than reading another SEL.
-> 
-> Well we still need a way to indicate if the current data is top or
-> bottom field for interlaced. I don't think that knowing that the whole
-> video is interlaced would be precise enough.
-> 
-> Cheers,
-> 
-> Paul
-> 
->>>>>>> +
->>>>>>> +    /* ISO/IEC 23008-2, ITU-T Rec. H.265: General slice segment header */
->>>>>>> +    struct v4l2_hevc_dpb_entry dpb[V4L2_HEVC_DPB_ENTRIES_NUM_MAX];
->>>>>>> +    __u8    num_active_dpb_entries;
->>>>>>> +    __u8    ref_idx_l0[V4L2_HEVC_DPB_ENTRIES_NUM_MAX];
->>>>>>> +    __u8    ref_idx_l1[V4L2_HEVC_DPB_ENTRIES_NUM_MAX];
->>>>>>> +
->>>>>>> +    __u8    num_rps_poc_st_curr_before;
->>>>>>> +    __u8    num_rps_poc_st_curr_after;
->>>>>>> +    __u8    num_rps_poc_lt_curr;
->>>>>>> +
->>>>>>> +    /* ISO/IEC 23008-2, ITU-T Rec. H.265: Weighted prediction parameter */
->>>>>>> +    struct v4l2_hevc_pred_weight_table pred_weight_table;
->>>>>>> +};
->>>>>>> +
->>>>>>> #endif
->>> -- 
->>> Paul Kocialkowski, Bootlin (formerly Free Electrons)
->>> Embedded Linux and kernel engineering
->>> https://bootlin.com
->>> 
-> -- 
-> Paul Kocialkowski, Bootlin (formerly Free Electrons)
-> Embedded Linux and kernel engineering
-> https://bootlin.com
-> 
+Please drop the first parameter of all newly-added access_ok() calls, as
+it has been removed in commit 96d4f267e40f9509 ("Remove 'type' argument
+from access_ok() function").
 
+Gr{oetje,eeting}s,
+
+                        Geert
+
+-- 
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
