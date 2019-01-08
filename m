@@ -2,199 +2,239 @@ Return-Path: <SRS0=gjtM=PQ=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.0 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D94CC43387
-	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 09:59:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 217F8C43387
+	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 10:00:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4C75A2087F
-	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 09:59:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DB0C32087E
+	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 10:00:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727939AbfAHJ7m (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 8 Jan 2019 04:59:42 -0500
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:52583 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727001AbfAHJ7m (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 8 Jan 2019 04:59:42 -0500
-Received: from [IPv6:2001:420:44c1:2579:f814:526d:2d68:295f] ([IPv6:2001:420:44c1:2579:f814:526d:2d68:295f])
-        by smtp-cloud9.xs4all.net with ESMTPA
-        id goAXgD0F7MWvEgoAbgMt7v; Tue, 08 Jan 2019 10:59:39 +0100
-Subject: Re: [GIT PULL FOR v5.1] vb2/cedrus: use timestamps to identify
- buffers
-To:     =?UTF-8?B?5p2O5aSP5r2kIChSYW5keSBMaSk=?= <randy.li@rock-chips.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc:     Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        id S1728214AbfAHKA0 convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 8 Jan 2019 05:00:26 -0500
+Received: from kozue.soulik.info ([108.61.200.231]:41322 "EHLO
+        kozue.soulik.info" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727001AbfAHKA0 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2019 05:00:26 -0500
+Received: from [192.168.10.231] (unknown [103.29.142.67])
+        by kozue.soulik.info (Postfix) with ESMTPSA id 58647100F71;
+        Tue,  8 Jan 2019 19:01:07 +0900 (JST)
+Content-Type: text/plain;
+        charset=utf-8
+Mime-Version: 1.0 (1.0)
+Subject: Re: [linux-sunxi] [PATCH v2 1/2] media: v4l: Add definitions for the HEVC slice format and controls
+From:   Ayaka <ayaka@soulik.info>
+X-Mailer: iPad Mail (16A404)
+In-Reply-To: <f982ef378a8ade075bc7077b93640e20ecebf9f4.camel@bootlin.com>
+Date:   Tue, 8 Jan 2019 18:00:21 +0800
+Cc:     Randy Li <randy.li@rock-chips.com>,
+        =?utf-8?Q?Jernej_=C5=A0krabec?= <jernej.skrabec@gmail.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-arm-kernel@lists.infradead.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
         Maxime Ripard <maxime.ripard@bootlin.com>,
-        Tomasz Figa <tfiga@chromium.org>
-References: <b3bbcd9c-fcaf-4a13-2c46-7e2231e9e8e0@xs4all.nl>
- <4c7e839f-ae1b-35cd-df29-a7f6993f17d4@xs4all.nl>
- <1468691710.6518623.1546938541229.JavaMail.javamailuser@localhost>
-From:   Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <144ee69b-25cb-2943-a4c9-12ad35c7d877@xs4all.nl>
-Date:   Tue, 8 Jan 2019 10:59:33 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:52.0) Gecko/20100101
- Thunderbird/52.2.1
-MIME-Version: 1.0
-In-Reply-To: <1468691710.6518623.1546938541229.JavaMail.javamailuser@localhost>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
-X-CMAE-Envelope: MS4wfBMyvau6qLCDcnmUGyhLK9xoDdwaOoePAbcnikpooz1Vi86DukYQTApIkx8nmAhBPYbb2bZMXdb3/n2vKZJ4hZsK5GfAlx858zIrWJ/g9p3HqKtSDJqI
- NTpRJsI8E/Nca/aWa1Itsgj0fa8EkqTHw9b9mHYaGw4xB6DNITh7GM3s3dtCChLCqJUwo7Y2jpfNWpRs0jMhbsGcdRgPBxnUuN9BzcABWouprllHkQu5wnQM
- OrH9IUuhiMfb5yQg7dTrBYwF39p8cfawfGW9yfi8f9SMB3CkUfJZeEQ14Eh1W/xRXETQlbAkO0ksqs53Jb3QMtL3MG9Ch+kVtm+C6v6U1wLPh/apbjThojNR
- Z5QeAt8PcukKSXnKHd22lBVH+Vgs2MFBjduG8zkzFvwEJL40VsjQgvb6vVlm4rTDddBt/uMmypFjqyAOjbDuqdhbRikh3g==
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Ezequiel Garcia <ezequiel@collabora.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        linux-rockchip@lists.infradead.org
+Content-Transfer-Encoding: 8BIT
+Message-Id: <82FA0C3F-BC54-4D89-AECB-90D81B89B1CE@soulik.info>
+References: <20181123130209.11696-1-paul.kocialkowski@bootlin.com> <20181123130209.11696-2-paul.kocialkowski@bootlin.com> <5515174.7lFZcYkk85@jernej-laptop> <ffe9c81db34b599f675ca5bbf02de360bf0a1608.camel@bootlin.com> <776e63c9-d4a5-342a-e0f7-200ef144ffc4@rock-chips.com> <64c793e08d61181b78125b3956ec38623fa5d261.camel@bootlin.com> <D8005130-F7FD-4CBD-8396-1BB08BB08E81@soulik.info> <f982ef378a8ade075bc7077b93640e20ecebf9f4.camel@bootlin.com>
+To:     Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On 01/08/19 10:09, 李夏潤 (Randy Li) wrote:
-> I sent the other talking about the disadvantage of using buffer tag in
-> 
-> Re: [PATCHv4 00/10] As was discussed here (among other places)
-> 
-> 
-> I agree with the buffer tag. But coping from the OUTPUT side to CAPTURE side is a bad idea.
-> 
-> I think we need a method to refer any buffers when they are allocated.
-> 
-> When I push a slice with its parameters into the driver, its previous picture in decoded order may not ready yet, using the buffer index, the driver
-> 
-> is still able to generate the registers table for it. Although you may though it just an additional buffer assignment work before wrote it into the device,
-> 
-> a few times seeking a buffer in a list. But there is a mode in new generation Rockchip device, called the link mode, you can put a registers into a memory, device would process that register link. You can't interrupt it. That is pretty useful for those codec converting.
-> 
-> 
-> Besides, I found it is little hard to refer a buffer with different offsets at the same time, it would be used for multiple slices and multiple CTU or filed picture which are not usual case nowadays.
-> 
-> 
-> Please don't do that.
 
-To be honest, I don't understand what the problem is. Can you explain in more
-detail, perhaps with an example?
 
-Does anyone else understand this? Tomasz, I think you've worked with rockchip before, do
-you see what Randy is referring to?
+Sent from my iPad
 
-Regards,
-
-	Hans
-
+> On Jan 8, 2019, at 4:38 PM, Paul Kocialkowski <paul.kocialkowski@bootlin.com> wrote:
 > 
+> Hi,
 > 
-> Randy Li
+>> On Tue, 2019-01-08 at 09:16 +0800, Ayaka wrote:
+>> 
+>> Sent from my iPad
+>> 
+>>> On Jan 7, 2019, at 5:57 PM, Paul Kocialkowski <paul.kocialkowski@bootlin.com> wrote:
+>>> 
+>>> Hi,
+>>> 
+>>>>> On Mon, 2019-01-07 at 11:49 +0800, Randy Li wrote:
+>>>>> On 12/12/18 8:51 PM, Paul Kocialkowski wrote:
+>>>>> Hi,
+>>>>> 
+>>>>> On Wed, 2018-12-05 at 21:59 +0100, Jernej Škrabec wrote:
+>>>>> 
+>>>>>>> +
+>>>>>>> +#define V4L2_HEVC_DPB_ENTRY_RPS_ST_CURR_BEFORE    0x01
+>>>>>>> +#define V4L2_HEVC_DPB_ENTRY_RPS_ST_CURR_AFTER    0x02
+>>>>>>> +#define V4L2_HEVC_DPB_ENTRY_RPS_LT_CURR        0x03
+>>>>>>> +
+>>>>>>> +#define V4L2_HEVC_DPB_ENTRIES_NUM_MAX        16
+>>>>>>> +
+>>>>>>> +struct v4l2_hevc_dpb_entry {
+>>>>>>> +    __u32    buffer_tag;
+>>>>>>> +    __u8    rps;
+>>>>>>> +    __u8    field_pic;
+>>>>>>> +    __u16    pic_order_cnt[2];
+>>>>>>> +};
+>>>> 
+>>>> Please add a property for reference index, if that rps is not used for 
+>>>> this, some device would request that(not the rockchip one). And 
+>>>> Rockchip's VDPU1 and VDPU2 for AVC would request a similar property.
+>>> 
+>>> What exactly is that reference index? Is it a bitstream element or
+>>> something deduced from the bitstream?
+>>> 
+>> picture order count(POC) for HEVC and frame_num in AVC. I think it is
+>> the number used in list0(P slice and B slice) and list1(B slice).
 > 
-> *From:* "Hans Verkuil <hverkuil@xs4all.nl>"
+> The picture order count is already the last field of the DPB entry
+> structure. There is one for each field picture.
+As we are not sure whether there is a field coded slice or CTU, I would hold this part and else about the field.
 > 
-> *To:* "Linux Media Mailing List <linux-media@vger.kernel.org>"
+>>>> Adding another buffer_tag for referring the memory of the motion vectors 
+>>>> for each frames. Or a better method is add a meta data to echo picture 
+>>>> buffer,  since the picture output is just the same as the original, 
+>>>> display won't care whether the motion vectors are written the button of 
+>>>> picture or somewhere else.
+>>> 
+>>> The motion vectors are passed as part of the raw bitstream data, in the
+>>> slices. Is there a case where the motion vectors are coded differently?
+>> No, it is an additional cache for decoder, even FFmpeg having such
+>> data, I think allwinner must output it into somewhere.
 > 
-> *CC:* "Paul Kocialkowski <paul.kocialkowski@bootlin.com>","Maxime Ripard <maxime.ripard@bootlin.com>","Tomasz Figa <tfiga@chromium.org>"
+> Ah yes I see what you mean! This is handled internally by our driver
+> and not exposed to userspace. I don't think it would be a good idea to
+> expose this cache or request that userspace allocates it like a video
+> buffer.
 > 
-> *Sent:* 2019-01-07 19:36
+No, usually the driver should allocate, as the user space have no idea on size of each devices.
+But for advantage user, application can fix a broken picture with a proper data or analysis a object motion from that.
+So I would suggest attaching this information to a picture buffer as a meta data. 
+>>>>>>> +
+>>>>>>> +struct v4l2_hevc_pred_weight_table {
+>>>>>>> +    __u8    luma_log2_weight_denom;
+>>>>>>> +    __s8    delta_chroma_log2_weight_denom;
+>>>>>>> +
+>>>>>>> +    __s8    delta_luma_weight_l0[V4L2_HEVC_DPB_ENTRIES_NUM_MAX];
+>>>>>>> +    __s8    luma_offset_l0[V4L2_HEVC_DPB_ENTRIES_NUM_MAX];
+>>>>>>> +    __s8    delta_chroma_weight_l0[V4L2_HEVC_DPB_ENTRIES_NUM_MAX][2];
+>>>>>>> +    __s8    chroma_offset_l0[V4L2_HEVC_DPB_ENTRIES_NUM_MAX][2];
+>>>>>>> +
+>>>>>>> +    __s8    delta_luma_weight_l1[V4L2_HEVC_DPB_ENTRIES_NUM_MAX];
+>>>>>>> +    __s8    luma_offset_l1[V4L2_HEVC_DPB_ENTRIES_NUM_MAX];
+>>>>>>> +    __s8    delta_chroma_weight_l1[V4L2_HEVC_DPB_ENTRIES_NUM_MAX][2];
+>>>>>>> +    __s8    chroma_offset_l1[V4L2_HEVC_DPB_ENTRIES_NUM_MAX][2];
+>>>>>>> +};
+>>>>>>> +
+>>>> Those properties I think are not necessary are applying for the 
+>>>> Rockchip's device, may not work for the others.
+>>> 
+>>> Yes, it's possible that some of the elements are not necessary for some
+>>> decoders. What we want is to cover all the elements that might be
+>>> required for a decoder.
+>> I wonder whether allwinner need that, those sao flag usually ignored
+>> by decoder in design. But more is better than less, it is hard to
+>> extend a v4l2 structure  in the future, maybe a new HEVC profile
+>> would bring a new property, it is still too early for HEVC.
 > 
-> *Subject:* Re: [GIT PULL FOR v5.1] vb2/cedrus: use timestamps to identify buffers[Please note,mail behalf by linux-media-owner@vger.kernel.org]
+> Yes this is used by our decoder. The idea is to have all the basic
+> bitstream elements in the structures (even if some decoders don't use
+> them all) and add others for extension as separate controls later.
 > 
-> On 01/07/2019 12:30 PM, Hans Verkuil wrote:
->> As was discussed here (among other places):
->>
->>https://lkml.org/lkml/2018/10/19/440
->>
->> using capture queue buffer indices to refer to reference frames is
->> not a good idea.
->>
->> Instead, after a long irc discussion:
->>
->>https://linuxtv.org/irc/irclogger_log/v4l?date=2018-12-12,Wed
->>
->> it was decided to use the timestamp in v4l2_buffer for this.
->>
->> However, struct timeval cannot be used in a compound control since
->> the size of struct timeval differs between 32 and 64 bit architectures,
->> and there are also changes upcoming for y2038 support.
->>
->> But internally the kernel converts the timeval to a u64 (nsecs since
->> boot). So we provide a helper function in videodev2.h that converts
->> the timeval to a u64, and that u64 can be used inside compound controls.
->>
->> In the not too distant future we want to create a new struct v4l2_buffer,
->> and then we'll use u64 from the start, so in that case the helper function
->> would no longer be needed.
->>
->> The first three patches add a new m2m helper function to correctly copy
->> the relevant data from an output buffer to a capture buffer. This will
->> simplify m2m drivers (in fact, many m2m drivers do not do this quite
->> right, so a helper function was really needed).
->>
->> The fourth patch clears up messy timecode documentation that I came
->> across while working on this.
->>
->> Patch 5 adds the new v4l2_timeval_to_ns helper function to videodev2.h.
->> The next patch adds the vb2_find_timestamp() function to find buffers
->> with a specific u64 timestamp.
->>
->> Finally the cedrus driver and documentation are updated to use a
->> timestamp as buffer identifier.
->>
->> I also removed the 'pad' fields from the mpeg2 control structs (it
->> should never been added in the first place) and aligned the structs
->> to a u32 boundary.
+>>>>>>> +struct v4l2_ctrl_hevc_slice_params {
+>>>>>>> +    __u32    bit_size;
+>>>>>>> +    __u32    data_bit_offset;
+>>>>>>> +
+>>>>>>> +    /* ISO/IEC 23008-2, ITU-T Rec. H.265: NAL unit header */
+>>>>>>> +    __u8    nal_unit_type;
+>>>>>>> +    __u8    nuh_temporal_id_plus1;
+>>>>>>> +
+>>>>>>> +    /* ISO/IEC 23008-2, ITU-T Rec. H.265: General slice segment header */
+>>>>>>> +    __u8    slice_type;
+>>>>>>> +    __u8    colour_plane_id;
+>>>> ----------------------------------------------------------------------------
+>>>>>>> +    __u16    slice_pic_order_cnt;
+>>>>>>> +    __u8    slice_sao_luma_flag;
+>>>>>>> +    __u8    slice_sao_chroma_flag;
+>>>>>>> +    __u8    slice_temporal_mvp_enabled_flag;
+>>>>>>> +    __u8    num_ref_idx_l0_active_minus1;
+>>>>>>> +    __u8    num_ref_idx_l1_active_minus1;
+>>>> Rockchip's decoder doesn't use this part.
+>>>>>>> +    __u8    mvd_l1_zero_flag;
+>>>>>>> +    __u8    cabac_init_flag;
+>>>>>>> +    __u8    collocated_from_l0_flag;
+>>>>>>> +    __u8    collocated_ref_idx;
+>>>>>>> +    __u8    five_minus_max_num_merge_cand;
+>>>>>>> +    __u8    use_integer_mv_flag;
+>>>>>>> +    __s8    slice_qp_delta;
+>>>>>>> +    __s8    slice_cb_qp_offset;
+>>>>>>> +    __s8    slice_cr_qp_offset;
+>>>>>>> +    __s8    slice_act_y_qp_offset;
+>>>>>>> +    __s8    slice_act_cb_qp_offset;
+>>>>>>> +    __s8    slice_act_cr_qp_offset;
+>>>>>>> +    __u8    slice_deblocking_filter_disabled_flag;
+>>>>>>> +    __s8    slice_beta_offset_div2;
+>>>>>>> +    __s8    slice_tc_offset_div2;
+>>>>>>> +    __u8    slice_loop_filter_across_slices_enabled_flag;
+>>>>>>> +
+>>>>>>> +    /* ISO/IEC 23008-2, ITU-T Rec. H.265: Picture timing SEI message */
+>>>>>>> +    __u8    pic_struct;
+>>>> I think the decoder doesn't care about this, it is used for display.
+>>> 
+>>> The purpose of this field is to indicate whether the current picture is
+>>> a progressive frame or an interlaced field picture, which is useful for
+>>> decoding.
+>>> 
+>>> At least our decoder has a register field to indicate frame/top
+>>> field/bottom field, so we certainly need to keep the info around.
+>>> Looking at the spec and the ffmpeg implementation, it looks like this
+>>> flag of the bitstream is the usual way to report field coding.
+>> It depends whether the decoder cares about scan type or more, I
+>> wonder prefer general_interlaced_source_flag for just scan type, it
+>> would be better than reading another SEL.
 > 
-> Note that this pull request corresponds with the v6 patch series.
-> ("[PATCHv6 0/8] vb2/cedrus: use timestamps to identify buffers")
+> Well we still need a way to indicate if the current data is top or
+> bottom field for interlaced. I don't think that knowing that the whole
+> video is interlaced would be precise enough.
 > 
-> Regards,
-> Hans
+> Cheers,
 > 
->>
->> Regards,
->>
->>         Hans
->>
->> The following changes since commit 4bd46aa0353e022c2401a258e93b107880a66533:
->>
->>   media: cx23885: only reset DMA on problematic CPUs (2018-12-20 06:52:01 -0500)
->>
->> are available in the Git repository at:
->>
->>   git://linuxtv.org/hverkuil/media_tree.git tags/br-buftag
->>
->> for you to fetch changes up to 690da7b0ab96f6761e72bb0c5c861e1e13acb327:
->>
->>   extended-controls.rst: update the mpeg2 compound controls (2019-01-07 12:23:49 +0100)
->>
->> ----------------------------------------------------------------
->> Tag branch
->>
->> ----------------------------------------------------------------
->> Hans Verkuil (8):
->>       v4l2-mem2mem: add v4l2_m2m_buf_copy_data helper function
->>       vim2m: use v4l2_m2m_buf_copy_data
->>       vicodec: use v4l2_m2m_buf_copy_data
->>       buffer.rst: clean up timecode documentation
->>       videodev2.h: add v4l2_timeval_to_ns inline function
->>       vb2: add vb2_find_timestamp()
->>       cedrus: identify buffers by timestamp
->>       extended-controls.rst: update the mpeg2 compound controls
->>
->>  Documentation/media/uapi/v4l/buffer.rst            | 11 +++++------
->>  Documentation/media/uapi/v4l/extended-controls.rst | 28 +++++++++++++++++-----------
->>  drivers/media/common/videobuf2/videobuf2-v4l2.c    | 19 ++++++++++++++++++-
->>  drivers/media/platform/vicodec/vicodec-core.c      | 12 +-----------
->>  drivers/media/platform/vim2m.c                     | 12 +-----------
->>  drivers/media/v4l2-core/v4l2-ctrls.c               |  9 ---------
->>  drivers/media/v4l2-core/v4l2-mem2mem.c             | 20 ++++++++++++++++++++
->>  drivers/staging/media/sunxi/cedrus/cedrus.h        |  9 ++++++---
->>  drivers/staging/media/sunxi/cedrus/cedrus_dec.c    |  2 ++
->>  drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c  | 23 +++++++++++------------
->>  include/media/mpeg2-ctrls.h                        | 14 +++++---------
->>  include/media/v4l2-mem2mem.h                       | 20 ++++++++++++++++++++
->>  include/media/videobuf2-v4l2.h                     | 17 +++++++++++++++++
->>  include/uapi/linux/videodev2.h                     | 12 ++++++++++++
->>  14 files changed, 135 insertions(+), 73 deletions(-)
->>
+> Paul
+> 
+>>>>>>> +
+>>>>>>> +    /* ISO/IEC 23008-2, ITU-T Rec. H.265: General slice segment header */
+>>>>>>> +    struct v4l2_hevc_dpb_entry dpb[V4L2_HEVC_DPB_ENTRIES_NUM_MAX];
+>>>>>>> +    __u8    num_active_dpb_entries;
+>>>>>>> +    __u8    ref_idx_l0[V4L2_HEVC_DPB_ENTRIES_NUM_MAX];
+>>>>>>> +    __u8    ref_idx_l1[V4L2_HEVC_DPB_ENTRIES_NUM_MAX];
+>>>>>>> +
+>>>>>>> +    __u8    num_rps_poc_st_curr_before;
+>>>>>>> +    __u8    num_rps_poc_st_curr_after;
+>>>>>>> +    __u8    num_rps_poc_lt_curr;
+>>>>>>> +
+>>>>>>> +    /* ISO/IEC 23008-2, ITU-T Rec. H.265: Weighted prediction parameter */
+>>>>>>> +    struct v4l2_hevc_pred_weight_table pred_weight_table;
+>>>>>>> +};
+>>>>>>> +
+>>>>>>> #endif
+>>> -- 
+>>> Paul Kocialkowski, Bootlin (formerly Free Electrons)
+>>> Embedded Linux and kernel engineering
+>>> https://bootlin.com
+>>> 
+> -- 
+> Paul Kocialkowski, Bootlin (formerly Free Electrons)
+> Embedded Linux and kernel engineering
+> https://bootlin.com
 > 
 
