@@ -4,40 +4,40 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-8.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A65FFC43444
-	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 23:08:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2EC75C43387
+	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 23:08:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 719542084D
-	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 23:08:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ECB5E2084D
+	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 23:08:44 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=lucaceresoli.net header.i=@lucaceresoli.net header.b="yVU8Dnp1"
+	dkim=fail reason="key not found in DNS" (0-bit key) header.d=lucaceresoli.net header.i=@lucaceresoli.net header.b="q/1sY0um"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729333AbfAHXIb (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 8 Jan 2019 18:08:31 -0500
-Received: from hostingweb31-40.netsons.net ([89.40.174.40]:48418 "EHLO
+        id S1729467AbfAHXIk (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 8 Jan 2019 18:08:40 -0500
+Received: from hostingweb31-40.netsons.net ([89.40.174.40]:49002 "EHLO
         hostingweb31-40.netsons.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1729281AbfAHXIa (ORCPT
+        by vger.kernel.org with ESMTP id S1729428AbfAHXIj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 8 Jan 2019 18:08:30 -0500
+        Tue, 8 Jan 2019 18:08:39 -0500
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=lucaceresoli.net; s=default; h=References:In-Reply-To:Message-Id:Date:
         Subject:Cc:To:From:Sender:Reply-To:MIME-Version:Content-Type:
         Content-Transfer-Encoding:Content-ID:Content-Description:Resent-Date:
         Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:
         List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-         bh=YAvZ/pH6lMIksVLRvTR8eQqY0c+EoHMb/3U4kL6GjKs=; b=yVU8Dnp1mEt9WPCoepziK4bSP
-        oLQnYWbYPNJgWTVMC8rlZGXXg0eo+t1uzLeOcuJ2FJrLK5cZvbzMBjJWCvAnQXuDpRSvrN5hO4ou2
-        KKbzR/b0nppoJEfp1mlx73icrCKfiJR7HZ3cuVtls6hcxbiBeeIDmgMRMalq/CrajD/7Q=;
+         bh=zfYdVkidy/vlT1eq7QQpcaj0nAz1fir90pEsrfjtLi4=; b=q/1sY0umo0YjcjeEG14+7j7im
+        AbVSU+vydgq3I/S0AR1gK+S9S2/iMjAa0N2GntVv5lQSABvXI1uA9qJ8s2n1qLd2Z9KEaFrqvi1DC
+        XF8eFT1HJVv+cairipNKUM4hqKm4HclY7V7DmJaKXOPUTgS9pnl6qdQWrKCHRymXfsq9M=;
 Received: from [78.134.43.6] (port=50994 helo=melee.fritz.box)
         by hostingweb31.netsons.net with esmtpa (Exim 4.91)
         (envelope-from <luca@lucaceresoli.net>)
-        id 1gh02Y-00FWab-Eu; Tue, 08 Jan 2019 23:40:06 +0100
+        id 1gh02Z-00FWab-JF; Tue, 08 Jan 2019 23:40:07 +0100
 From:   Luca Ceresoli <luca@lucaceresoli.net>
 To:     linux-media@vger.kernel.org
-Cc:     Luca Ceresoli <luca.ceresoli@aim-sportline.com>,
+Cc:     Luca Ceresoli <luca@lucaceresoli.net>,
         Kieran Bingham <kieran.bingham@ideasonboard.com>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         jacopo mondi <jacopo@jmondi.org>,
@@ -48,10 +48,10 @@ Cc:     Luca Ceresoli <luca.ceresoli@aim-sportline.com>,
         Rob Herring <robh+dt@kernel.org>,
         Mark Rutland <mark.rutland@arm.com>,
         devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-i2c@vger.kernel.org, Luca Ceresoli <luca@lucaceresoli.net>
-Subject: [RFC 1/4] i2c: core: let adapters be notified of client attach/detach
-Date:   Tue,  8 Jan 2019 23:39:50 +0100
-Message-Id: <20190108223953.9969-2-luca@lucaceresoli.net>
+        linux-i2c@vger.kernel.org
+Subject: [RFC 3/4] media: dt-bindings: add DS90UB954-Q1 video deserializer
+Date:   Tue,  8 Jan 2019 23:39:52 +0100
+Message-Id: <20190108223953.9969-4-luca@lucaceresoli.net>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20190108223953.9969-1-luca@lucaceresoli.net>
 References: <20190108223953.9969-1-luca@lucaceresoli.net>
@@ -70,95 +70,176 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-From: Luca Ceresoli <luca.ceresoli@aim-sportline.com>
+This is a first, tentative DT layout to describe a 2-input video
+deserializer with I2C Address Translator and remote GPIOs.
 
-An adapter might need to know when a new device is about to be
-added. This will soon bee needed to implement an "I2C address
-translator" (ATR for short), a device that propagates I2C transactions
-with a different slave address (an "alias" address). An ATR driver
-needs to know when a slave is being added to find a suitable alias and
-program the device translation map.
-
-Add an attach/detach callback pair to allow adapter drivers to be
-notified of clients being added and removed.
+NOTES / TODO:
+ * This GPIOs representation is not realistic, it has been used only
+   to test that thing work. It shall be rewritten properly.
 
 Signed-off-by: Luca Ceresoli <luca@lucaceresoli.net>
 ---
- drivers/i2c/i2c-core-base.c | 16 ++++++++++++++++
- include/linux/i2c.h         |  9 +++++++++
- 2 files changed, 25 insertions(+)
+ .../bindings/media/ti,ds90ub954-q1.txt        | 151 ++++++++++++++++++
+ 1 file changed, 151 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/ti,ds90ub954-q1.txt
 
-diff --git a/drivers/i2c/i2c-core-base.c b/drivers/i2c/i2c-core-base.c
-index 28460f6a60cc..4f8776e065ce 100644
---- a/drivers/i2c/i2c-core-base.c
-+++ b/drivers/i2c/i2c-core-base.c
-@@ -778,6 +778,11 @@ i2c_new_device(struct i2c_adapter *adap, struct i2c_board_info const *info)
- 		}
- 	}
- 
-+	if (adap->attach_ops &&
-+	    adap->attach_ops->attach_client &&
-+	    adap->attach_ops->attach_client(adap, info, client) != 0)
-+		goto err_attach_client;
+diff --git a/Documentation/devicetree/bindings/media/ti,ds90ub954-q1.txt b/Documentation/devicetree/bindings/media/ti,ds90ub954-q1.txt
+new file mode 100644
+index 000000000000..3024ef2df100
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/ti,ds90ub954-q1.txt
+@@ -0,0 +1,151 @@
++Texas Instruments DS90UB954-Q1 dual video Deserializer
++======================================================
 +
- 	status = device_register(&client->dev);
- 	if (status)
- 		goto out_free_props;
-@@ -788,6 +793,9 @@ i2c_new_device(struct i2c_adapter *adap, struct i2c_board_info const *info)
- 	return client;
- 
- out_free_props:
-+	if (adap->attach_ops && adap->attach_ops->detach_client)
-+		adap->attach_ops->detach_client(adap, client);
-+err_attach_client:
- 	if (info->properties)
- 		device_remove_properties(&client->dev);
- out_err_put_of_node:
-@@ -810,9 +818,17 @@ EXPORT_SYMBOL_GPL(i2c_new_device);
-  */
- void i2c_unregister_device(struct i2c_client *client)
- {
-+	struct i2c_adapter *adap;
++Required properties:
 +
- 	if (!client)
- 		return;
- 
-+	adap = client->adapter;
++ - compatible: must be "ti,ds90ub954-q1"
++ - reg: I2C bus address of the chip (0x30..0xdd, based on strapping options)
++ - reset-gpios: chip reset GPIO, active low (connected to PDB pin of the chip)
++ - i2c-alias-pool: list of I2C addresses that are known to be available on the
++                   "local" (SoC-to-deser) I2C bus; they will be picked at
++		   runtime and used as aliases to reach remove I2C chips
 +
-+	if (adap->attach_ops &&
-+	    adap->attach_ops->detach_client)
-+		adap->attach_ops->detach_client(adap, client);
 +
- 	if (client->dev.of_node) {
- 		of_node_clear_flag(client->dev.of_node, OF_POPULATED);
- 		of_node_put(client->dev.of_node);
-diff --git a/include/linux/i2c.h b/include/linux/i2c.h
-index 65b4eaed1d96..600d136b1056 100644
---- a/include/linux/i2c.h
-+++ b/include/linux/i2c.h
-@@ -551,6 +551,14 @@ struct i2c_lock_operations {
- 	void (*unlock_bus)(struct i2c_adapter *, unsigned int flags);
- };
- 
-+struct i2c_attach_operations {
-+	int  (*attach_client)(struct i2c_adapter *,
-+			      const struct i2c_board_info *,
-+			      struct i2c_client *);
-+	void (*detach_client)(struct i2c_adapter *,
-+			      struct i2c_client *);
++Required subnodes:
++ - ports: A ports node with one port child node per device input and output
++          port, in accordance with the video interface bindings defined in
++          Documentation/devicetree/bindings/media/video-interfaces.txt. The
++          port nodes are numbered as follows:
++
++          Port Description
++          -----------------------------
++          0    Input from FPD-Link 3 RX port 0
++          1    Input from FPD-Link 3 RX port 1
++          2    CSI-2 output
++ - gpios: *** this is a temporary test implementation, ignore it
++ - i2c-mux: contains one child per RX port, each generates an I2C adapter
++            representing the I2C bus on the remote side
++ - rxports: contains one child per RX port, each describes one FPD-Link 3 port
++            with these fields:
++	    - reg: the RX port index
++	    - ser-i2c-alias: the alias to access the remore serializer from
++	      the local bus
++	    - bc-gpio-map: maps backchannel GPIO numbers to local GPIO inputs
++	                   with pairs <fpd_gpio_number gpio_node>
++			   (TODO change when reimplementing the gpios subnode)
++
++
++Device node example
++-------------------
++
++&i2c0 {
++	deser@3d {
++		reg = <0x3d>;
++		compatible = "ti,ds90ub954-q1";
++		reset-gpios = <&gpio1 2 0>;
++
++		i2c-alias-pool = /bits/ 16 <0x20 0x21 0x22 0x23 0x24 0x25>;
++
++		ports {
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			port@0 {
++				reg = <0>;
++				ds90ub954_fpd3_in0: endpoint {
++					remote-endpoint = <&remote_sensor_0_out>;
++				};
++			};
++
++			// TODO enable both ports (and s/1/2/g in th MIPI port below)
++			// port@1 {
++			// 	reg = <1>;
++			// 	ds90ub954_fpd3_in1: endpoint {
++			// 		remote-endpoint = <&remote_sensor_1_out>;
++			// 	};
++			// };
++
++			port@1 {
++				reg = <1>;
++				ds90ub954_mipi_out0: endpoint {
++					data-lanes = <1 2 3 4>;
++					remote-endpoint = <&csirx_0_in>;
++				};
++			};
++		};
++
++		gpios {
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			// From sensor to CPU
++			gpio@0 {
++				reg = <0>;
++				output;
++				source = <0>; // RX port 0
++				function = <0>;
++			};
++
++			// CPU to sensor reset, active low
++			remote_sensor1_reset: gpio@1 {
++				reg = <1>;
++				input;
++			};
++		};
++
++		i2c-mux {
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			remote_i2c0: i2c@0 {
++				reg = <0>;
++				#address-cells = <1>;
++				#size-cells = <0>;
++				clock-frequency = <400000>;
++			};
++
++			remote_i2c1: i2c@1 {
++				reg = <1>;
++				#address-cells = <1>;
++				#size-cells = <0>;
++				clock-frequency = <400000>;
++			};
++		};
++
++		rxports {
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			rxport@0 {
++				reg = <0>;
++				ser-i2c-alias = <0x3e>;
++
++				/* Map BC GPIO numbers to local GPIO inputs */
++				bc-gpio-map = <1 &remote_sensor1_reset>;
++			};
++
++			rxport@1 {
++				reg = <1>;
++				ser-i2c-alias = <0x3f>;
++			};
++		};
++	};
 +};
 +
- /**
-  * struct i2c_timings - I2C timing information
-  * @bus_freq_hz: the bus frequency in Hz
-@@ -674,6 +682,7 @@ struct i2c_adapter {
- 
- 	/* data fields that are valid for all devices	*/
- 	const struct i2c_lock_operations *lock_ops;
-+	const struct i2c_attach_operations *attach_ops;
- 	struct rt_mutex bus_lock;
- 	struct rt_mutex mux_lock;
- 
++&remote_i2c0 {
++	remote_sensor0@1a {
++		reg = <0x1a>;
++		compatible = "sony,imx274";
++
++		#address-cells = <1>;
++		#size-cells = <0>;
++		reset-gpios = <&gpio1 4 0>;
++
++		port@0 {
++			reg = <0>;
++			remote_sensor_0_out: endpoint {
++				remote-endpoint = <&ds90ub954_fpd3_in0>;
++			};
++		};
++	};
++};
 -- 
 2.17.1
 
