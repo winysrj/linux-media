@@ -2,51 +2,51 @@ Return-Path: <SRS0=gjtM=PQ=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B0255C43387
-	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 20:06:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 45A4FC43387
+	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 20:07:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7E90E20660
-	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 20:06:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0A81520660
+	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 20:07:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1546978019;
-	bh=/Sqx/ZTSQ9CoKEiCpenwJT5WCUBN4mY1we4wX1dxiTA=;
+	s=default; t=1546978030;
+	bh=XUxiVeOZDM6uhBtX/vgb1svOnm7nDIu09V4UUXtei8E=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=ctOM0AXVBtbgwZIaqLjEfV773kl7TYtn13BQei0Pxrno2O/D6ZFWV4rZ55sR+DfTZ
-	 UiKAOXVHjjCBU2O0oCHniZIAOc9LKnkITTFby6G4DuV74oIGNp6Qt3duJZFKxmDoYp
-	 t3/8b7WZzDJc06fIGe9VzRCiLv6FzJhj6LKVeX2E=
+	b=oFZbBFh9FNV7x9CcAM9d34LrwSu0qQ1ktj0MOl6uI3/2o6I0TVlXglv/KurNJAyim
+	 HkhGJsEyBOjOudpU1NXoK+Ab913Y6WhLI7dqXVw3VwS3yhZQZtCjdV86vKm6ei1Mfg
+	 gGyJj4qrIzLuQTKHr/my9adk/9c/+iEx3Z1k9tbY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730068AbfAHUGx (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 8 Jan 2019 15:06:53 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34640 "EHLO mail.kernel.org"
+        id S1732880AbfAHUHJ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 8 Jan 2019 15:07:09 -0500
+Received: from mail.kernel.org ([198.145.29.99]:34458 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729842AbfAHT2C (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 8 Jan 2019 14:28:02 -0500
+        id S1729832AbfAHT1z (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 8 Jan 2019 14:27:55 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 9EF122070B;
-        Tue,  8 Jan 2019 19:28:00 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 2FBDF2070B;
+        Tue,  8 Jan 2019 19:27:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1546975681;
-        bh=/Sqx/ZTSQ9CoKEiCpenwJT5WCUBN4mY1we4wX1dxiTA=;
+        s=default; t=1546975674;
+        bh=XUxiVeOZDM6uhBtX/vgb1svOnm7nDIu09V4UUXtei8E=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=azI4GV1YyOe8twd7iPBS6US4VFU1dLpH4cVprKUpgXFry2Pc+Dke5TEbkstJHGRzI
-         FilWNaB3fG7e1QcgJQLNwajE1FKJ4CMlkk4otVD8IH4gxZc+MyKU/mtdzIFVdXKUwu
-         vpe7GhIPaR8FhbVW9HEvTXA2W4mGhuPWXkFv7U2A=
+        b=BhtYJrZKA7Dy3aSv8RT9aSicdNlSIFS38nZMrNnlaxCM2quezi0NWGaeP4SjND8A4
+         Hem+Pv++SmlasrfjnRjJ84X3h+Jjms1lX/GWjHWXX8fHk+IaKkrM+/FDZqFKsQsqGk
+         BU00OBT2mZbMKD4jO28A6FoeV3uM4C3z9423hLQ4=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Nathan Chancellor <natechancellor@gmail.com>,
+Cc:     Daniel Axtens <dja@axtens.net>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Sasha Levin <sashal@kernel.org>, linux-media@vger.kernel.org,
-        linux1394-devel@lists.sourceforge.net
-Subject: [PATCH AUTOSEL 4.20 050/117] media: firewire: Fix app_info parameter type in avc_ca{,_app}_info
-Date:   Tue,  8 Jan 2019 14:25:18 -0500
-Message-Id: <20190108192628.121270-50-sashal@kernel.org>
+        Sasha Levin <sashal@kernel.org>, linux-media@vger.kernel.org
+Subject: [PATCH AUTOSEL 4.20 046/117] media: uvcvideo: Refactor teardown of uvc on USB disconnect
+Date:   Tue,  8 Jan 2019 14:25:14 -0500
+Message-Id: <20190108192628.121270-46-sashal@kernel.org>
 X-Mailer: git-send-email 2.19.1
 In-Reply-To: <20190108192628.121270-1-sashal@kernel.org>
 References: <20190108192628.121270-1-sashal@kernel.org>
@@ -58,89 +58,185 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-From: Nathan Chancellor <natechancellor@gmail.com>
+From: Daniel Axtens <dja@axtens.net>
 
-[ Upstream commit b2e9a4eda11fd2cb1e6714e9ad3f455c402568ff ]
+[ Upstream commit 10e1fdb95809ed21406f53b5b4f064673a1b9ceb ]
 
-Clang warns:
+Currently, disconnecting a USB webcam while it is in use prints out a
+number of warnings, such as:
 
-drivers/media/firewire/firedtv-avc.c:999:45: warning: implicit
-conversion from 'int' to 'char' changes value from 159 to -97
-[-Wconstant-conversion]
-        app_info[0] = (EN50221_TAG_APP_INFO >> 16) & 0xff;
-                    ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~
-drivers/media/firewire/firedtv-avc.c:1000:45: warning: implicit
-conversion from 'int' to 'char' changes value from 128 to -128
-[-Wconstant-conversion]
-        app_info[1] = (EN50221_TAG_APP_INFO >>  8) & 0xff;
-                    ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~
-drivers/media/firewire/firedtv-avc.c:1040:44: warning: implicit
-conversion from 'int' to 'char' changes value from 159 to -97
-[-Wconstant-conversion]
-        app_info[0] = (EN50221_TAG_CA_INFO >> 16) & 0xff;
-                    ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~
-drivers/media/firewire/firedtv-avc.c:1041:44: warning: implicit
-conversion from 'int' to 'char' changes value from 128 to -128
-[-Wconstant-conversion]
-        app_info[1] = (EN50221_TAG_CA_INFO >>  8) & 0xff;
-                    ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~
-4 warnings generated.
+WARNING: CPU: 2 PID: 3118 at /build/linux-ezBi1T/linux-4.8.0/fs/sysfs/group.c:237 sysfs_remove_group+0x8b/0x90
+sysfs group ffffffffa7cd0780 not found for kobject 'event13'
 
-Change app_info's type to unsigned char to match the type of the
-member msg in struct ca_msg, which is the only thing passed into the
-app_info parameter in this function.
+This has been noticed before. [0]
 
-Link: https://github.com/ClangBuiltLinux/linux/issues/105
+This is because of the order in which things are torn down.
 
-Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
+If there are no streams active during a USB disconnect:
+
+ - uvc_disconnect() is invoked via device_del() through the bus
+   notifier mechanism.
+
+ - this calls uvc_unregister_video().
+
+ - uvc_unregister_video() unregisters the video device for each
+   stream,
+
+ - because there are no streams open, it calls uvc_delete()
+
+ - uvc_delete() calls uvc_status_cleanup(), which cleans up the status
+   input device.
+
+ - uvc_delete() calls media_device_unregister(), which cleans up the
+   media device
+
+ - uvc_delete(), uvc_unregister_video() and uvc_disconnect() all
+   return, and we end up back in device_del().
+
+ - device_del() then cleans up the sysfs folder for the camera with
+   dpm_sysfs_remove(). Because uvc_status_cleanup() and
+   media_device_unregister() have already been called, this all works
+   nicely.
+
+If, on the other hand, there *are* streams active during a USB disconnect:
+
+ - uvc_disconnect() is invoked
+
+ - this calls uvc_unregister_video()
+
+ - uvc_unregister_video() unregisters the video device for each
+   stream,
+
+ - uvc_unregister_video() and uvc_disconnect() return, and we end up
+   back in device_del().
+
+ - device_del() then cleans up the sysfs folder for the camera with
+   dpm_sysfs_remove(). Because the status input device and the media
+   device are children of the USB device, this also deletes their
+   sysfs folders.
+
+ - Sometime later, the final stream is closed, invoking uvc_release().
+
+ - uvc_release() calls uvc_delete()
+
+ - uvc_delete() calls uvc_status_cleanup(), which cleans up the status
+   input device. Because the sysfs directory has already been removed,
+   this causes a WARNing.
+
+ - uvc_delete() calls media_device_unregister(), which cleans up the
+   media device. Because the sysfs directory has already been removed,
+   this causes another WARNing.
+
+To fix this, we need to make sure the devices are always unregistered
+before the end of uvc_disconnect(). To this, move the unregistration
+into the disconnect path:
+
+ - split uvc_status_cleanup() into two parts, one on disconnect that
+   unregisters and one on delete that frees.
+
+ - move v4l2_device_unregister() and media_device_unregister() into
+   the disconnect path.
+
+[0]: https://lkml.org/lkml/2016/12/8/657
+
+[Renamed uvc_input_cleanup() to uvc_input_unregister()]
+
+Signed-off-by: Daniel Axtens <dja@axtens.net>
+Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/media/firewire/firedtv-avc.c | 6 ++++--
- drivers/media/firewire/firedtv.h     | 6 ++++--
- 2 files changed, 8 insertions(+), 4 deletions(-)
+ drivers/media/usb/uvc/uvc_driver.c | 13 +++++++++----
+ drivers/media/usb/uvc/uvc_status.c | 12 ++++++++----
+ drivers/media/usb/uvc/uvcvideo.h   |  1 +
+ 3 files changed, 18 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/firewire/firedtv-avc.c b/drivers/media/firewire/firedtv-avc.c
-index 1c933b2cf760..3ef5df1648d7 100644
---- a/drivers/media/firewire/firedtv-avc.c
-+++ b/drivers/media/firewire/firedtv-avc.c
-@@ -968,7 +968,8 @@ static int get_ca_object_length(struct avc_response_frame *r)
- 	return r->operand[7];
+diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+index bc369a0934a3..76dc3ee8ca21 100644
+--- a/drivers/media/usb/uvc/uvc_driver.c
++++ b/drivers/media/usb/uvc/uvc_driver.c
+@@ -1824,11 +1824,7 @@ static void uvc_delete(struct kref *kref)
+ 	usb_put_intf(dev->intf);
+ 	usb_put_dev(dev->udev);
+ 
+-	if (dev->vdev.dev)
+-		v4l2_device_unregister(&dev->vdev);
+ #ifdef CONFIG_MEDIA_CONTROLLER
+-	if (media_devnode_is_registered(dev->mdev.devnode))
+-		media_device_unregister(&dev->mdev);
+ 	media_device_cleanup(&dev->mdev);
+ #endif
+ 
+@@ -1885,6 +1881,15 @@ static void uvc_unregister_video(struct uvc_device *dev)
+ 
+ 		uvc_debugfs_cleanup_stream(stream);
+ 	}
++
++	uvc_status_unregister(dev);
++
++	if (dev->vdev.dev)
++		v4l2_device_unregister(&dev->vdev);
++#ifdef CONFIG_MEDIA_CONTROLLER
++	if (media_devnode_is_registered(dev->mdev.devnode))
++		media_device_unregister(&dev->mdev);
++#endif
  }
  
--int avc_ca_app_info(struct firedtv *fdtv, char *app_info, unsigned int *len)
-+int avc_ca_app_info(struct firedtv *fdtv, unsigned char *app_info,
-+		    unsigned int *len)
- {
- 	struct avc_command_frame *c = (void *)fdtv->avc_data;
- 	struct avc_response_frame *r = (void *)fdtv->avc_data;
-@@ -1009,7 +1010,8 @@ int avc_ca_app_info(struct firedtv *fdtv, char *app_info, unsigned int *len)
+ int uvc_register_video_device(struct uvc_device *dev,
+diff --git a/drivers/media/usb/uvc/uvc_status.c b/drivers/media/usb/uvc/uvc_status.c
+index 0722dc684378..883e4cab45e7 100644
+--- a/drivers/media/usb/uvc/uvc_status.c
++++ b/drivers/media/usb/uvc/uvc_status.c
+@@ -54,7 +54,7 @@ static int uvc_input_init(struct uvc_device *dev)
  	return ret;
  }
  
--int avc_ca_info(struct firedtv *fdtv, char *app_info, unsigned int *len)
-+int avc_ca_info(struct firedtv *fdtv, unsigned char *app_info,
-+		unsigned int *len)
+-static void uvc_input_cleanup(struct uvc_device *dev)
++static void uvc_input_unregister(struct uvc_device *dev)
  {
- 	struct avc_command_frame *c = (void *)fdtv->avc_data;
- 	struct avc_response_frame *r = (void *)fdtv->avc_data;
-diff --git a/drivers/media/firewire/firedtv.h b/drivers/media/firewire/firedtv.h
-index 876cdec8329b..009905a19947 100644
---- a/drivers/media/firewire/firedtv.h
-+++ b/drivers/media/firewire/firedtv.h
-@@ -124,8 +124,10 @@ int avc_lnb_control(struct firedtv *fdtv, char voltage, char burst,
- 		    struct dvb_diseqc_master_cmd *diseqcmd);
- void avc_remote_ctrl_work(struct work_struct *work);
- int avc_register_remote_control(struct firedtv *fdtv);
--int avc_ca_app_info(struct firedtv *fdtv, char *app_info, unsigned int *len);
--int avc_ca_info(struct firedtv *fdtv, char *app_info, unsigned int *len);
-+int avc_ca_app_info(struct firedtv *fdtv, unsigned char *app_info,
-+		    unsigned int *len);
-+int avc_ca_info(struct firedtv *fdtv, unsigned char *app_info,
-+		unsigned int *len);
- int avc_ca_reset(struct firedtv *fdtv);
- int avc_ca_pmt(struct firedtv *fdtv, char *app_info, int length);
- int avc_ca_get_time_date(struct firedtv *fdtv, int *interval);
+ 	if (dev->input)
+ 		input_unregister_device(dev->input);
+@@ -71,7 +71,7 @@ static void uvc_input_report_key(struct uvc_device *dev, unsigned int code,
+ 
+ #else
+ #define uvc_input_init(dev)
+-#define uvc_input_cleanup(dev)
++#define uvc_input_unregister(dev)
+ #define uvc_input_report_key(dev, code, value)
+ #endif /* CONFIG_USB_VIDEO_CLASS_INPUT_EVDEV */
+ 
+@@ -292,12 +292,16 @@ int uvc_status_init(struct uvc_device *dev)
+ 	return 0;
+ }
+ 
+-void uvc_status_cleanup(struct uvc_device *dev)
++void uvc_status_unregister(struct uvc_device *dev)
+ {
+ 	usb_kill_urb(dev->int_urb);
++	uvc_input_unregister(dev);
++}
++
++void uvc_status_cleanup(struct uvc_device *dev)
++{
+ 	usb_free_urb(dev->int_urb);
+ 	kfree(dev->status);
+-	uvc_input_cleanup(dev);
+ }
+ 
+ int uvc_status_start(struct uvc_device *dev, gfp_t flags)
+diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
+index c0cbd833d0a4..1db6634b2455 100644
+--- a/drivers/media/usb/uvc/uvcvideo.h
++++ b/drivers/media/usb/uvc/uvcvideo.h
+@@ -757,6 +757,7 @@ int uvc_register_video_device(struct uvc_device *dev,
+ 
+ /* Status */
+ int uvc_status_init(struct uvc_device *dev);
++void uvc_status_unregister(struct uvc_device *dev);
+ void uvc_status_cleanup(struct uvc_device *dev);
+ int uvc_status_start(struct uvc_device *dev, gfp_t flags);
+ void uvc_status_stop(struct uvc_device *dev);
 -- 
 2.19.1
 
