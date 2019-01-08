@@ -6,99 +6,72 @@ X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,
 	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A5CAC43387
-	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 15:54:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 19F2EC43387
+	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 15:57:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 16A3220827
-	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 15:54:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DA8E320685
+	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 15:57:48 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="WT6J6cUO"
+	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="cHmFNrjt"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728790AbfAHPy1 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 8 Jan 2019 10:54:27 -0500
-Received: from perceval.ideasonboard.com ([213.167.242.64]:58728 "EHLO
+        id S1728629AbfAHP5s (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 8 Jan 2019 10:57:48 -0500
+Received: from perceval.ideasonboard.com ([213.167.242.64]:58758 "EHLO
         perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727840AbfAHPy1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2019 10:54:27 -0500
+        with ESMTP id S1728123AbfAHP5r (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2019 10:57:47 -0500
 Received: from avalon.localnet (dfj612ybrt5fhg77mgycy-3.rev.dnainternet.fi [IPv6:2001:14ba:21f5:5b00:2e86:4862:ef6a:2804])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id EDABD586;
-        Tue,  8 Jan 2019 16:54:24 +0100 (CET)
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id E61E6586;
+        Tue,  8 Jan 2019 16:57:45 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1546962865;
-        bh=Zbuw8jbdrrdtIcrnGcvQEd9ncbg78aaqska0TQlRBTA=;
+        s=mail; t=1546963066;
+        bh=ce29x9J9occub7Z5m1K88/nS0zLDK7ak4oGJ++JKwp8=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=WT6J6cUOY27RXAp087PYTWotnV08Bchrsd7LKvHm2PfJCifgeS53sAU1B5D3Z/xqm
-         cKeRg/p/awaUDZmHD401UXZfidkh/DuNY9FYFhtNa0Aw/LW6vcRqPovuInyxOk04lq
-         KQ7kfKgnMzFvY9jyjmShT5X5cK5fK6ZTylPy3gPg=
+        b=cHmFNrjt7FVo1Th884K//Cab98ynNScB0R1FAjpKrjj4JD/W2/16qluzksZbkq/Su
+         W7nPvG6oM7vRH5FUDAB2sMmKLkV9XFAkwC/FBhwL2K8v6yPg9GOxM8UK3UH+qom3/I
+         GjOUL38vdN3KomrWJjin4kL0CHurOcfrwNzObrGc=
 From:   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To:     Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc:     Mikhail Gavrilov <mikhail.v.gavrilov@gmail.com>,
+To:     Mikhail Gavrilov <mikhail.v.gavrilov@gmail.com>
+Cc:     Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
         linux-media@vger.kernel.org
 Subject: Re: Kernel error "Unknown pixelformat 0x00000000" occurs when I start capture video
-Date:   Tue, 08 Jan 2019 17:55:33 +0200
-Message-ID: <14736242.P0ZrnmSNTt@avalon>
+Date:   Tue, 08 Jan 2019 17:58:54 +0200
+Message-ID: <32231660.SI74LuYRbz@avalon>
 Organization: Ideas on Board Oy
-In-Reply-To: <20190108131621.59a825b7@coco.lan>
-References: <CABXGCsNxy8-PUPhSSZ3MwUhHixE_R0R-jCw8yGfN88fSu-CXLw@mail.gmail.com> <386743082.UsI2JZZ8BA@avalon> <20190108131621.59a825b7@coco.lan>
+In-Reply-To: <CABXGCsPfQY6HCJzN1+iX6qFBCnWpJzgT9bJttpD7z23B=qvOGg@mail.gmail.com>
+References: <CABXGCsNxy8-PUPhSSZ3MwUhHixE_R0R-jCw8yGfN88fSu-CXLw@mail.gmail.com> <386743082.UsI2JZZ8BA@avalon> <CABXGCsPfQY6HCJzN1+iX6qFBCnWpJzgT9bJttpD7z23B=qvOGg@mail.gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Tuesday, 8 January 2019 17:16:21 EET Mauro Carvalho Chehab wrote:
-> Em Tue, 08 Jan 2019 16:54:41 +0200 Laurent Pinchart escreveu:
-> > On Tuesday, 8 January 2019 16:45:37 EET Mauro Carvalho Chehab wrote:
-> >> Em Sun, 6 Jan 2019 01:05:16 +0500 Mikhail Gavrilov escreveu:
-> >>> Hi folks!
-> >>> Every time when I start capture video from external capture card
-> >>> Avermedia Live Gamer ULTRA GC553
-> >>> (https://www.avermedia.com/gaming/product/game_capture/live_gamer_ultr
-> >>> a_gc553)
-> >>=20
-> >> What's the driver used by this device?
-> >>=20
-> >> A quick browsing at the Avermedia page you pointed, it indicates that
-> >> this should be using the UVC driver:
-> >>=20
-> >> 	"The LGU takes full advantage of UVC technology, which
-> >> 	 basically standardizes video drivers across Windows and Mac.
-> >> 	 In other words, all you need to do is plug your LGU to
-> >> 	 your PC or Mac and it=E2=80=99s ready to record and stream."
-> >>=20
-> >> So, I *suspect* that it uses the uvcvideo driver, but better to
-> >> double check.
-> >=20
-> > Given the full kernel log part of the original message,
-> >=20
-> > [    5.184850] uvcvideo: Unknown video format
-> > 30313050-0000-0010-8000-00aa00389b71
->=20
-> Hmm... according with:
-> 	https://gix.github.io/media-types/
->=20
-> It seems to be this one ('P010'):
->=20
-> {30313050-0000-0010-8000-00AA00389B71} (MFVideoFormat_P010)MFMS
-> {30313050-0000-0010-8000-00AA00389B71} (MEDIASUBTYPE_P010)DSMS
->=20
-> YUV planar 4:2:0 10 bits.
->=20
-> If so, there's a description here:
->=20
-> 	https://docs.microsoft.com/en-us/windows/desktop/medfound/10-bit-and-16-=
-bit
-> -yuv-video-formats
+Hi Mikhail,
 
-That seems to match. The problem should then be easy to fix, but we need to=
-=20
-add a corresponding fourcc to the V4L2 API, and matching documentation. Any=
-=20
-volunteer ? :-)
+On Tuesday, 8 January 2019 17:18:15 EET Mikhail Gavrilov wrote:
+> On Tue, 8 Jan 2019 at 19:53, Laurent Pinchart
+> 
+> <laurent.pinchart@ideasonboard.com> wrote:
+> > Mikhail, could you please post the output of
+> > 
+> > lsusb -v -d 07ca:0553
+> > 
+> > if possible running as root ?
+> 
+> yes, attached here.
 
-=2D-=20
+Thank you.
+
+Your device exposes five formats: YUY2 (YUYV), YV12 (YVU420), NV12, P010 and 
+BGR3 (BGR24). They are all supported by V4L2 and the uvcvideo driver except 
+for the P010 format. This would be easy to fix in the uvcvideo driver if it 
+wasn't for the fact that the P010 format isn't support by V4L2. Adding support 
+for it isn't difficult, but I don't have time to do this myself at the moment. 
+Would you consider volunteering if I guide you ? :-)
+
+-- 
 Regards,
 
 Laurent Pinchart
