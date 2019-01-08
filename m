@@ -7,49 +7,48 @@ X-Spam-Status: No, score=-13.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B770C43387
-	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 19:53:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 94D53C43612
+	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 20:06:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6172E20827
-	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 19:53:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 64CB720660
+	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 20:06:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1546977230;
-	bh=gAdcduL4w429neXlretvKrzx2dABdkMYjOD3WuuevdA=;
+	s=default; t=1546977981;
+	bh=g2lipeqmxBLVZO2Od5R3b/UbIc2gUb0QSaP0sqUkxSQ=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=m5ozqYNtN5r3PyX+8qgc7pHvAQEu46jSrM1h+Ptkr/WqxlmqOiP+s/9Gp1PpZqtph
-	 ickb3MHs4TTtYRrY8Hf/xKIfpE3JWjXWdwJukCJ0MPAZXsSSBwbUyNNyKXWl+huDsa
-	 AIsvBJnudGfdyJ2V1K/S+16/CTWhEmo+5T2YnzF8=
+	b=Txq0OU3VwOT6CrPco0QZXJ9UUM+bbNsCYX6SMP5KPHir/rFeZnzhJxqWRAqhdPrlO
+	 ePzCwX9gr5YinFvhbjP7aqtx3TmanQ16D+m8iSZTxxGMLlPDn06fswelkTGq3qPbdo
+	 Xn6jjs02qnYAPY2x6V7hudst15i+M9JXDtrrwpa0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730902AbfAHTax (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 8 Jan 2019 14:30:53 -0500
-Received: from mail.kernel.org ([198.145.29.99]:38714 "EHLO mail.kernel.org"
+        id S1730211AbfAHUGO (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 8 Jan 2019 15:06:14 -0500
+Received: from mail.kernel.org ([198.145.29.99]:35008 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729891AbfAHTav (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 8 Jan 2019 14:30:51 -0500
+        id S1729921AbfAHT2K (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 8 Jan 2019 14:28:10 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B73A42070B;
-        Tue,  8 Jan 2019 19:30:49 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 9CE4720645;
+        Tue,  8 Jan 2019 19:28:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1546975850;
-        bh=gAdcduL4w429neXlretvKrzx2dABdkMYjOD3WuuevdA=;
+        s=default; t=1546975689;
+        bh=g2lipeqmxBLVZO2Od5R3b/UbIc2gUb0QSaP0sqUkxSQ=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=DQMj2TjiaKbTpwSODUqmjZvf8FW2bN+qbwjuvSfilmZv4FBf+RGN0WaeGVG8L5dbA
-         WKLzH1kBGKJu5etSMf7IHVbjb7yUUfANL0MCpymw4pNNoEcIYvBheyqah6ZtlgCTOH
-         LIVcdKmd+YAVjLFogdLDFxDkcDNNb2GIfyNnI99M=
+        b=jmelBLiNxGFRnXC+9A58xu/flH1jr1WQKgzN9NaPcMdoRrlYj0yiy86Ewwz1Sp1/R
+         LQTBb1Y7ywkndmXs/dhfkyZGUi2NahkUnwoHjmmbHPy51nlAxGkEN9AbIBVMq1f6kj
+         jQWk2wVJfr9kexFa+cTvtnwVLLWbGLGBkTipJ2Ds=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Daniel Axtens <dja@axtens.net>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Sasha Levin <sashal@kernel.org>, linux-media@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 36/97] media: uvcvideo: Refactor teardown of uvc on USB disconnect
-Date:   Tue,  8 Jan 2019 14:28:45 -0500
-Message-Id: <20190108192949.122407-36-sashal@kernel.org>
+Cc:     Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        Sasha Levin <sashal@kernel.org>, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org
+Subject: [PATCH AUTOSEL 4.20 056/117] media: cedrus: don't initialize pointers with zero
+Date:   Tue,  8 Jan 2019 14:25:24 -0500
+Message-Id: <20190108192628.121270-56-sashal@kernel.org>
 X-Mailer: git-send-email 2.19.1
-In-Reply-To: <20190108192949.122407-1-sashal@kernel.org>
-References: <20190108192949.122407-1-sashal@kernel.org>
+In-Reply-To: <20190108192628.121270-1-sashal@kernel.org>
+References: <20190108192628.121270-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-Patchwork-Hint: Ignore
 Content-Transfer-Encoding: 8bit
@@ -58,185 +57,94 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-From: Daniel Axtens <dja@axtens.net>
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 
-[ Upstream commit 10e1fdb95809ed21406f53b5b4f064673a1b9ceb ]
+[ Upstream commit e4d7b113fdccde1acf8638c5879f2a450d492303 ]
 
-Currently, disconnecting a USB webcam while it is in use prints out a
-number of warnings, such as:
+A common mistake is to assume that initializing a var with:
+	struct foo f = { 0 };
 
-WARNING: CPU: 2 PID: 3118 at /build/linux-ezBi1T/linux-4.8.0/fs/sysfs/group.c:237 sysfs_remove_group+0x8b/0x90
-sysfs group ffffffffa7cd0780 not found for kobject 'event13'
+Would initialize a zeroed struct. Actually, what this does is
+to initialize the first element of the struct to zero.
 
-This has been noticed before. [0]
+According to C99 Standard 6.7.8.21:
 
-This is because of the order in which things are torn down.
+    "If there are fewer initializers in a brace-enclosed
+     list than there are elements or members of an aggregate,
+     or fewer characters in a string literal used to initialize
+     an array of known size than there are elements in the array,
+     the remainder of the aggregate shall be initialized implicitly
+     the same as objects that have static storage duration."
 
-If there are no streams active during a USB disconnect:
+So, in practice, it could zero the entire struct, but, if the
+first element is not an integer, it will produce warnings:
 
- - uvc_disconnect() is invoked via device_del() through the bus
-   notifier mechanism.
+	drivers/staging/media/sunxi/cedrus/cedrus.c:drivers/staging/media/sunxi/cedrus/cedrus.c:78:49:  warning: Using plain integer as NULL pointer
+	drivers/staging/media/sunxi/cedrus/cedrus_dec.c:drivers/staging/media/sunxi/cedrus/cedrus_dec.c:29:35:  warning: Using plain integer as NULL pointer
 
- - this calls uvc_unregister_video().
+As the right initialization would be, instead:
 
- - uvc_unregister_video() unregisters the video device for each
-   stream,
+	struct foo f = { NULL };
 
- - because there are no streams open, it calls uvc_delete()
+Another way to initialize it with gcc is to use:
 
- - uvc_delete() calls uvc_status_cleanup(), which cleans up the status
-   input device.
+	struct foo f = {};
 
- - uvc_delete() calls media_device_unregister(), which cleans up the
-   media device
+That seems to be a gcc extension, but clang also does the right thing,
+and that's a clean way for doing it.
 
- - uvc_delete(), uvc_unregister_video() and uvc_disconnect() all
-   return, and we end up back in device_del().
+Anyway, I decided to check upstream what's the most commonly pattern.
+The "= {}" pattern has about 2000 entries:
 
- - device_del() then cleans up the sysfs folder for the camera with
-   dpm_sysfs_remove(). Because uvc_status_cleanup() and
-   media_device_unregister() have already been called, this all works
-   nicely.
+	$ git grep -E "=\s*\{\s*\}"|wc -l
+	1951
 
-If, on the other hand, there *are* streams active during a USB disconnect:
+The standard-C compliant pattern has about 2500 entries:
 
- - uvc_disconnect() is invoked
+	$ git grep -E "=\s*\{\s*NULL\s*\}"|wc -l
+	137
+	$ git grep -E "=\s*\{\s*0\s*\}"|wc -l
+	2323
 
- - this calls uvc_unregister_video()
+Meaning that developers have split options on that.
 
- - uvc_unregister_video() unregisters the video device for each
-   stream,
+So, let's opt to the simpler form.
 
- - uvc_unregister_video() and uvc_disconnect() return, and we end up
-   back in device_del().
-
- - device_del() then cleans up the sysfs folder for the camera with
-   dpm_sysfs_remove(). Because the status input device and the media
-   device are children of the USB device, this also deletes their
-   sysfs folders.
-
- - Sometime later, the final stream is closed, invoking uvc_release().
-
- - uvc_release() calls uvc_delete()
-
- - uvc_delete() calls uvc_status_cleanup(), which cleans up the status
-   input device. Because the sysfs directory has already been removed,
-   this causes a WARNing.
-
- - uvc_delete() calls media_device_unregister(), which cleans up the
-   media device. Because the sysfs directory has already been removed,
-   this causes another WARNing.
-
-To fix this, we need to make sure the devices are always unregistered
-before the end of uvc_disconnect(). To this, move the unregistration
-into the disconnect path:
-
- - split uvc_status_cleanup() into two parts, one on disconnect that
-   unregisters and one on delete that frees.
-
- - move v4l2_device_unregister() and media_device_unregister() into
-   the disconnect path.
-
-[0]: https://lkml.org/lkml/2016/12/8/657
-
-[Renamed uvc_input_cleanup() to uvc_input_unregister()]
-
-Signed-off-by: Daniel Axtens <dja@axtens.net>
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Acked-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/media/usb/uvc/uvc_driver.c | 13 +++++++++----
- drivers/media/usb/uvc/uvc_status.c | 12 ++++++++----
- drivers/media/usb/uvc/uvcvideo.h   |  1 +
- 3 files changed, 18 insertions(+), 8 deletions(-)
+ drivers/staging/media/sunxi/cedrus/cedrus.c     | 2 +-
+ drivers/staging/media/sunxi/cedrus/cedrus_dec.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
-index d46dc432456c..361abbc00486 100644
---- a/drivers/media/usb/uvc/uvc_driver.c
-+++ b/drivers/media/usb/uvc/uvc_driver.c
-@@ -1824,11 +1824,7 @@ static void uvc_delete(struct kref *kref)
- 	usb_put_intf(dev->intf);
- 	usb_put_dev(dev->udev);
+diff --git a/drivers/staging/media/sunxi/cedrus/cedrus.c b/drivers/staging/media/sunxi/cedrus/cedrus.c
+index c912c70b3ef7..f18077e8810a 100644
+--- a/drivers/staging/media/sunxi/cedrus/cedrus.c
++++ b/drivers/staging/media/sunxi/cedrus/cedrus.c
+@@ -75,7 +75,7 @@ static int cedrus_init_ctrls(struct cedrus_dev *dev, struct cedrus_ctx *ctx)
+ 	memset(ctx->ctrls, 0, ctrl_size);
  
--	if (dev->vdev.dev)
--		v4l2_device_unregister(&dev->vdev);
- #ifdef CONFIG_MEDIA_CONTROLLER
--	if (media_devnode_is_registered(dev->mdev.devnode))
--		media_device_unregister(&dev->mdev);
- 	media_device_cleanup(&dev->mdev);
- #endif
+ 	for (i = 0; i < CEDRUS_CONTROLS_COUNT; i++) {
+-		struct v4l2_ctrl_config cfg = { 0 };
++		struct v4l2_ctrl_config cfg = {};
  
-@@ -1885,6 +1881,15 @@ static void uvc_unregister_video(struct uvc_device *dev)
- 
- 		uvc_debugfs_cleanup_stream(stream);
- 	}
-+
-+	uvc_status_unregister(dev);
-+
-+	if (dev->vdev.dev)
-+		v4l2_device_unregister(&dev->vdev);
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	if (media_devnode_is_registered(dev->mdev.devnode))
-+		media_device_unregister(&dev->mdev);
-+#endif
- }
- 
- int uvc_register_video_device(struct uvc_device *dev,
-diff --git a/drivers/media/usb/uvc/uvc_status.c b/drivers/media/usb/uvc/uvc_status.c
-index 0722dc684378..883e4cab45e7 100644
---- a/drivers/media/usb/uvc/uvc_status.c
-+++ b/drivers/media/usb/uvc/uvc_status.c
-@@ -54,7 +54,7 @@ static int uvc_input_init(struct uvc_device *dev)
- 	return ret;
- }
- 
--static void uvc_input_cleanup(struct uvc_device *dev)
-+static void uvc_input_unregister(struct uvc_device *dev)
+ 		cfg.elem_size = cedrus_controls[i].elem_size;
+ 		cfg.id = cedrus_controls[i].id;
+diff --git a/drivers/staging/media/sunxi/cedrus/cedrus_dec.c b/drivers/staging/media/sunxi/cedrus/cedrus_dec.c
+index e40180a33951..f10c25f5460e 100644
+--- a/drivers/staging/media/sunxi/cedrus/cedrus_dec.c
++++ b/drivers/staging/media/sunxi/cedrus/cedrus_dec.c
+@@ -26,7 +26,7 @@ void cedrus_device_run(void *priv)
  {
- 	if (dev->input)
- 		input_unregister_device(dev->input);
-@@ -71,7 +71,7 @@ static void uvc_input_report_key(struct uvc_device *dev, unsigned int code,
+ 	struct cedrus_ctx *ctx = priv;
+ 	struct cedrus_dev *dev = ctx->dev;
+-	struct cedrus_run run = { 0 };
++	struct cedrus_run run = {};
+ 	struct media_request *src_req;
+ 	unsigned long flags;
  
- #else
- #define uvc_input_init(dev)
--#define uvc_input_cleanup(dev)
-+#define uvc_input_unregister(dev)
- #define uvc_input_report_key(dev, code, value)
- #endif /* CONFIG_USB_VIDEO_CLASS_INPUT_EVDEV */
- 
-@@ -292,12 +292,16 @@ int uvc_status_init(struct uvc_device *dev)
- 	return 0;
- }
- 
--void uvc_status_cleanup(struct uvc_device *dev)
-+void uvc_status_unregister(struct uvc_device *dev)
- {
- 	usb_kill_urb(dev->int_urb);
-+	uvc_input_unregister(dev);
-+}
-+
-+void uvc_status_cleanup(struct uvc_device *dev)
-+{
- 	usb_free_urb(dev->int_urb);
- 	kfree(dev->status);
--	uvc_input_cleanup(dev);
- }
- 
- int uvc_status_start(struct uvc_device *dev, gfp_t flags)
-diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
-index e5f5d84f1d1d..a738486fd9d6 100644
---- a/drivers/media/usb/uvc/uvcvideo.h
-+++ b/drivers/media/usb/uvc/uvcvideo.h
-@@ -750,6 +750,7 @@ int uvc_register_video_device(struct uvc_device *dev,
- 
- /* Status */
- int uvc_status_init(struct uvc_device *dev);
-+void uvc_status_unregister(struct uvc_device *dev);
- void uvc_status_cleanup(struct uvc_device *dev);
- int uvc_status_start(struct uvc_device *dev, gfp_t flags);
- void uvc_status_stop(struct uvc_device *dev);
 -- 
 2.19.1
 
