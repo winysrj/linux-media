@@ -2,241 +2,112 @@ Return-Path: <SRS0=gjtM=PQ=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 45A4FC43387
-	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 20:07:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DD3FAC43387
+	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 20:42:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0A81520660
-	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 20:07:10 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1546978030;
-	bh=XUxiVeOZDM6uhBtX/vgb1svOnm7nDIu09V4UUXtei8E=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=oFZbBFh9FNV7x9CcAM9d34LrwSu0qQ1ktj0MOl6uI3/2o6I0TVlXglv/KurNJAyim
-	 HkhGJsEyBOjOudpU1NXoK+Ab913Y6WhLI7dqXVw3VwS3yhZQZtCjdV86vKm6ei1Mfg
-	 gGyJj4qrIzLuQTKHr/my9adk/9c/+iEx3Z1k9tbY=
+	by mail.kernel.org (Postfix) with ESMTP id A2F9920660
+	for <linux-media@archiver.kernel.org>; Tue,  8 Jan 2019 20:42:06 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="GsuQvNu4"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732880AbfAHUHJ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 8 Jan 2019 15:07:09 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34458 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729832AbfAHT1z (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 8 Jan 2019 14:27:55 -0500
-Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 2FBDF2070B;
-        Tue,  8 Jan 2019 19:27:54 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1546975674;
-        bh=XUxiVeOZDM6uhBtX/vgb1svOnm7nDIu09V4UUXtei8E=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=BhtYJrZKA7Dy3aSv8RT9aSicdNlSIFS38nZMrNnlaxCM2quezi0NWGaeP4SjND8A4
-         Hem+Pv++SmlasrfjnRjJ84X3h+Jjms1lX/GWjHWXX8fHk+IaKkrM+/FDZqFKsQsqGk
-         BU00OBT2mZbMKD4jO28A6FoeV3uM4C3z9423hLQ4=
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Daniel Axtens <dja@axtens.net>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Sasha Levin <sashal@kernel.org>, linux-media@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.20 046/117] media: uvcvideo: Refactor teardown of uvc on USB disconnect
-Date:   Tue,  8 Jan 2019 14:25:14 -0500
-Message-Id: <20190108192628.121270-46-sashal@kernel.org>
-X-Mailer: git-send-email 2.19.1
-In-Reply-To: <20190108192628.121270-1-sashal@kernel.org>
-References: <20190108192628.121270-1-sashal@kernel.org>
+        id S1728945AbfAHUmG (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 8 Jan 2019 15:42:06 -0500
+Received: from mail-lf1-f46.google.com ([209.85.167.46]:33985 "EHLO
+        mail-lf1-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728723AbfAHUmF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2019 15:42:05 -0500
+Received: by mail-lf1-f46.google.com with SMTP id p6so3990647lfc.1
+        for <linux-media@vger.kernel.org>; Tue, 08 Jan 2019 12:42:03 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:from:date:message-id:subject:to;
+        bh=EmsnYTCIq2LJooWhzEUoTy26QvTgqeuy+mvDgRjmJ7Y=;
+        b=GsuQvNu4kHztxbWkJP05GoXnyKQ6QZ/FuuK5a4FD0LhOiOGcc9ujcgaoYM6jsRc7bM
+         RSks/RoBjb0GoZqmkhPQSU98F7QvYfw+mvVK5hgb0W0eACdJoyXaDWxvLRu2sx/cxZ6D
+         t/b3yAtRaywFCJvX/Bd/Zfx68X7Y42yq+hEmY7PH2iNP2QMmWYsdxdOCRS394aBvYD8/
+         BXs3eB8njyH+NvULXuQ8zKUXfDyUzwHmPLC+vChocY8n4q8yZwTrxPFWSwePl1fBUiy+
+         tr/90cf6rNQxI/2BezCekEjjtmyOJ5TsgQDHPjHQdb8tmx1d49nGhweECeSwp+5HTBKb
+         cp3Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:from:date:message-id:subject:to;
+        bh=EmsnYTCIq2LJooWhzEUoTy26QvTgqeuy+mvDgRjmJ7Y=;
+        b=oUMWtIOh9+nZaE9xX00kviDMnOuPTnOGjQc3BuBECJOYBN4eQj4hoDmg/q9NttG4pq
+         XP8eBHtPoQQOwlL5mONDQvauBiW7iLc9pPUPyRESNooU6so2h6DdfmnHMG9v4SHCgxZE
+         N/KDxKpwOiWr30HUrTyd/PLvGFn+ApTId7Tozl2DH0sUSMM3fQc4hW1bPmhrjD2+5/Xr
+         xpw7UXxhVFjmpTY1tM/QdJS+UxxqjB8hbhpqB1t8lwWqohE4hwAhXCYuoKAhe21XXhuR
+         N4MKQTy2oW9BdvvEroqSDBiel4YDUZJCenRBW8V/3pTZpK/YegfzYEcY45PXH6hgbrPi
+         WHvg==
+X-Gm-Message-State: AJcUukdWhCdCiYYLz8dKWx8t/l3uFRdV8/Tp7q/1Yook5DKi66eOcGG0
+        n8Ho/+kyQNiw5eFPWosI6LCg21P5oNF9Hpxg4eHoQQfo
+X-Google-Smtp-Source: ALg8bN6Rmml7Yf4Uij6psrANbE0rIYlYmzrvriinagvDCduGLTXYXGmvgvutoXdl4vTQTj417uAfq+TirDyouQMmBe8=
+X-Received: by 2002:a19:4849:: with SMTP id v70mr1852526lfa.62.1546980122311;
+ Tue, 08 Jan 2019 12:42:02 -0800 (PST)
 MIME-Version: 1.0
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+From:   CIJOML CIJOMLovic <cijoml@gmail.com>
+Date:   Tue, 8 Jan 2019 21:41:50 +0100
+Message-ID: <CAB0z4NqDaf37GHyRX3sVVzLrBJGJpkgEG0FNd1ahX-Ww4AkOYg@mail.gmail.com>
+Subject: Astrometa swap frontend0 and frontend1
+To:     linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-From: Daniel Axtens <dja@axtens.net>
+Hello,
 
-[ Upstream commit 10e1fdb95809ed21406f53b5b4f064673a1b9ceb ]
+I have an Astrometa DVB-T2 dual USB card:
 
-Currently, disconnecting a USB webcam while it is in use prints out a
-number of warnings, such as:
+[41802.362830] usb 3-3: new high-speed USB device number 4 using xhci_hcd
+[41802.520747] usb 3-3: New USB device found, idVendor=15f4,
+idProduct=0131, bcdDevice= 1.00
+[41802.520751] usb 3-3: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+[41802.520753] usb 3-3: Product: dvbt2
+[41802.520755] usb 3-3: Manufacturer: astrometadvbt2
+[41802.527992] usb 3-3: dvb_usb_v2: found a 'Astrometa DVB-T2' in warm state
+[41802.597901] usb 3-3: dvb_usb_v2: will pass the complete MPEG2
+transport stream to the software demuxer
+[41802.597907] dvbdev: DVB: registering new adapter (Astrometa DVB-T2)
+[41802.625041] i2c i2c-10: Added multiplexed i2c bus 11
+[41802.625045] rtl2832 10-0010: Realtek RTL2832 successfully attached
+[41802.631564] mn88473 10-0018: Panasonic MN88473 successfully identified
+[41802.631612] usb 3-3: DVB: registering adapter 0 frontend 0 (Realtek
+RTL2832 (DVB-T))...
+[41802.631755] usb 3-3: DVB: registering adapter 0 frontend 1
+(Panasonic MN88473)...
+[41802.631947] r820t 11-003a: creating new instance
+[41802.638797] r820t 11-003a: Rafael Micro r820t successfully identified
+[41802.638863] r820t 11-003a: attaching existing instance
+[41802.643622] r820t 11-003a: Rafael Micro r820t successfully identified
+[41802.646497] rtl2832_sdr rtl2832_sdr.1.auto: Registered as swradio0
+[41802.646499] rtl2832_sdr rtl2832_sdr.1.auto: Realtek RTL2832 SDR attached
+[41802.646501] rtl2832_sdr rtl2832_sdr.1.auto: SDR API is still
+slightly experimental and functionality changes may follow
+[41802.653040] Registered IR keymap rc-empty
+[41802.653107] rc rc0: Astrometa DVB-T2 as
+/devices/pci0000:00/0000:00:14.0/usb3/3-3/rc/rc0
+[41802.653250] input: Astrometa DVB-T2 as
+/devices/pci0000:00/0000:00:14.0/usb3/3-3/rc/rc0/input29
+[41802.653762] rc rc0: lirc_dev: driver dvb_usb_rtl28xxu registered at
+minor = 0, raw IR receiver, no transmitter
+[41802.653858] usb 3-3: dvb_usb_v2: schedule remote query interval to 200 msecs
+[41802.665572] usb 3-3: dvb_usb_v2: 'Astrometa DVB-T2' successfully
+initialized and connected
 
-WARNING: CPU: 2 PID: 3118 at /build/linux-ezBi1T/linux-4.8.0/fs/sysfs/group.c:237 sysfs_remove_group+0x8b/0x90
-sysfs group ffffffffa7cd0780 not found for kobject 'event13'
+I would like swap frontend0 and frontend1 with UDEV. Would anybody
+help me? The frontend0 is DVB-T tuner, but this terrestrial norm is to
+be switch off. So I would like use DVB-T2 tuner which is currently
+frontend1. I have to use manual intervention since I was not able to
+teach udev to do it for me (kaffeine works only with frontend0)
 
-This has been noticed before. [0]
+Any clue please?
 
-This is because of the order in which things are torn down.
+Thank you
 
-If there are no streams active during a USB disconnect:
-
- - uvc_disconnect() is invoked via device_del() through the bus
-   notifier mechanism.
-
- - this calls uvc_unregister_video().
-
- - uvc_unregister_video() unregisters the video device for each
-   stream,
-
- - because there are no streams open, it calls uvc_delete()
-
- - uvc_delete() calls uvc_status_cleanup(), which cleans up the status
-   input device.
-
- - uvc_delete() calls media_device_unregister(), which cleans up the
-   media device
-
- - uvc_delete(), uvc_unregister_video() and uvc_disconnect() all
-   return, and we end up back in device_del().
-
- - device_del() then cleans up the sysfs folder for the camera with
-   dpm_sysfs_remove(). Because uvc_status_cleanup() and
-   media_device_unregister() have already been called, this all works
-   nicely.
-
-If, on the other hand, there *are* streams active during a USB disconnect:
-
- - uvc_disconnect() is invoked
-
- - this calls uvc_unregister_video()
-
- - uvc_unregister_video() unregisters the video device for each
-   stream,
-
- - uvc_unregister_video() and uvc_disconnect() return, and we end up
-   back in device_del().
-
- - device_del() then cleans up the sysfs folder for the camera with
-   dpm_sysfs_remove(). Because the status input device and the media
-   device are children of the USB device, this also deletes their
-   sysfs folders.
-
- - Sometime later, the final stream is closed, invoking uvc_release().
-
- - uvc_release() calls uvc_delete()
-
- - uvc_delete() calls uvc_status_cleanup(), which cleans up the status
-   input device. Because the sysfs directory has already been removed,
-   this causes a WARNing.
-
- - uvc_delete() calls media_device_unregister(), which cleans up the
-   media device. Because the sysfs directory has already been removed,
-   this causes another WARNing.
-
-To fix this, we need to make sure the devices are always unregistered
-before the end of uvc_disconnect(). To this, move the unregistration
-into the disconnect path:
-
- - split uvc_status_cleanup() into two parts, one on disconnect that
-   unregisters and one on delete that frees.
-
- - move v4l2_device_unregister() and media_device_unregister() into
-   the disconnect path.
-
-[0]: https://lkml.org/lkml/2016/12/8/657
-
-[Renamed uvc_input_cleanup() to uvc_input_unregister()]
-
-Signed-off-by: Daniel Axtens <dja@axtens.net>
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/media/usb/uvc/uvc_driver.c | 13 +++++++++----
- drivers/media/usb/uvc/uvc_status.c | 12 ++++++++----
- drivers/media/usb/uvc/uvcvideo.h   |  1 +
- 3 files changed, 18 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
-index bc369a0934a3..76dc3ee8ca21 100644
---- a/drivers/media/usb/uvc/uvc_driver.c
-+++ b/drivers/media/usb/uvc/uvc_driver.c
-@@ -1824,11 +1824,7 @@ static void uvc_delete(struct kref *kref)
- 	usb_put_intf(dev->intf);
- 	usb_put_dev(dev->udev);
- 
--	if (dev->vdev.dev)
--		v4l2_device_unregister(&dev->vdev);
- #ifdef CONFIG_MEDIA_CONTROLLER
--	if (media_devnode_is_registered(dev->mdev.devnode))
--		media_device_unregister(&dev->mdev);
- 	media_device_cleanup(&dev->mdev);
- #endif
- 
-@@ -1885,6 +1881,15 @@ static void uvc_unregister_video(struct uvc_device *dev)
- 
- 		uvc_debugfs_cleanup_stream(stream);
- 	}
-+
-+	uvc_status_unregister(dev);
-+
-+	if (dev->vdev.dev)
-+		v4l2_device_unregister(&dev->vdev);
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	if (media_devnode_is_registered(dev->mdev.devnode))
-+		media_device_unregister(&dev->mdev);
-+#endif
- }
- 
- int uvc_register_video_device(struct uvc_device *dev,
-diff --git a/drivers/media/usb/uvc/uvc_status.c b/drivers/media/usb/uvc/uvc_status.c
-index 0722dc684378..883e4cab45e7 100644
---- a/drivers/media/usb/uvc/uvc_status.c
-+++ b/drivers/media/usb/uvc/uvc_status.c
-@@ -54,7 +54,7 @@ static int uvc_input_init(struct uvc_device *dev)
- 	return ret;
- }
- 
--static void uvc_input_cleanup(struct uvc_device *dev)
-+static void uvc_input_unregister(struct uvc_device *dev)
- {
- 	if (dev->input)
- 		input_unregister_device(dev->input);
-@@ -71,7 +71,7 @@ static void uvc_input_report_key(struct uvc_device *dev, unsigned int code,
- 
- #else
- #define uvc_input_init(dev)
--#define uvc_input_cleanup(dev)
-+#define uvc_input_unregister(dev)
- #define uvc_input_report_key(dev, code, value)
- #endif /* CONFIG_USB_VIDEO_CLASS_INPUT_EVDEV */
- 
-@@ -292,12 +292,16 @@ int uvc_status_init(struct uvc_device *dev)
- 	return 0;
- }
- 
--void uvc_status_cleanup(struct uvc_device *dev)
-+void uvc_status_unregister(struct uvc_device *dev)
- {
- 	usb_kill_urb(dev->int_urb);
-+	uvc_input_unregister(dev);
-+}
-+
-+void uvc_status_cleanup(struct uvc_device *dev)
-+{
- 	usb_free_urb(dev->int_urb);
- 	kfree(dev->status);
--	uvc_input_cleanup(dev);
- }
- 
- int uvc_status_start(struct uvc_device *dev, gfp_t flags)
-diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
-index c0cbd833d0a4..1db6634b2455 100644
---- a/drivers/media/usb/uvc/uvcvideo.h
-+++ b/drivers/media/usb/uvc/uvcvideo.h
-@@ -757,6 +757,7 @@ int uvc_register_video_device(struct uvc_device *dev,
- 
- /* Status */
- int uvc_status_init(struct uvc_device *dev);
-+void uvc_status_unregister(struct uvc_device *dev);
- void uvc_status_cleanup(struct uvc_device *dev);
- int uvc_status_start(struct uvc_device *dev, gfp_t flags);
- void uvc_status_stop(struct uvc_device *dev);
--- 
-2.19.1
-
+Michal
