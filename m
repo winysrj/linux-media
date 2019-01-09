@@ -3,116 +3,192 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C731C43387
-	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 20:50:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E4B0C43387
+	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 21:15:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D8F692075C
-	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 20:50:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B6D0B206B6
+	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 21:15:12 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ZaEuS2h6"
+	dkim=pass (2048-bit key) header.d=ao2.it header.i=@ao2.it header.b="hSP4lEVV"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727132AbfAIUuw (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 9 Jan 2019 15:50:52 -0500
-Received: from mail-lf1-f68.google.com ([209.85.167.68]:41584 "EHLO
-        mail-lf1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727113AbfAIUuw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Jan 2019 15:50:52 -0500
-Received: by mail-lf1-f68.google.com with SMTP id c16so6678507lfj.8;
-        Wed, 09 Jan 2019 12:50:50 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=subject:to:cc:references:from:message-id:date:user-agent
-         :mime-version:in-reply-to:content-language:content-transfer-encoding;
-        bh=B42gs8Y3HgVHs+5T0aoIuishxfjjrxk1B5kiRgNNK0A=;
-        b=ZaEuS2h6aAzWZUhyZGtuHYMxWM2IR/3aPP/mXJgGz9Mof5VOWdbmdu4ooWc7lpieqi
-         GP79IUQjXd4I48tXilbh32g+03ufwIoscYAv+3GyD/fLnvoNfcWkwoREJSDxzDvvpxO7
-         YJ1RN6NQLhPRIttZ091xuKCPWZ65gYVRwP5Aet6uePpXCEuhyWMQZFYLd8LbNY4UyDD9
-         IUwfdaN1/7eeXsehtqPoWloKCT1D2TEhTtktl2irNaS/uZvSEkuCunbZdgxba8+JBEsi
-         5meg3K5AjwMv2AJQXI9WwFr1y2/TgZY6cZLdVuAOUA+tzBUU0JwdU4J5HLlUsRN0tYGs
-         U17g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=B42gs8Y3HgVHs+5T0aoIuishxfjjrxk1B5kiRgNNK0A=;
-        b=SWnZ5qn3NsZObp+Z9RFqxpha7pzmAy/HdYhwUJf2z4IfFaDMdUHQXndmLFUUwfL7bm
-         k5lg3L+SvLa+cexTPlaC5vjrdbQoc7QjarXPDLUUfnRUK4vQ5mFWpBblXW2L56aCOIpz
-         9y3QBrpoHSh+4gQfRJmDONwqGgUt7pXF/h136SPGEebgJRarsWWYAVyvMQxJJj0kIZ95
-         azdTo+/6Sa+KiIRe+lx+tp8JDbOHptaR5BJhc3brGDDAN7iWQIqXChNC72y15gA401XN
-         wmxSIOY5qGIFpyvHMRMr068GU89rUE0SzjDpd0svy2KYYhnPT9Dcy1EJpZuYjP93icJS
-         ooYQ==
-X-Gm-Message-State: AJcUukdSjiTjO2XztNPOS0n8XOrjNdQbwuW/ykhCs/zFSP+YgZV8Cetb
-        gJKBURDcyoKbNHFWOvEK253BBJV9
-X-Google-Smtp-Source: ALg8bN4jWDbiVaQ6UqbalhDJl1H+6XAAhUcEYZ3FZ3nQCka3PW5vTUwBHXPvuJ1oO20kQNMfHDC3fg==
-X-Received: by 2002:a19:1994:: with SMTP id 142mr4590396lfz.134.1547067049570;
-        Wed, 09 Jan 2019 12:50:49 -0800 (PST)
-Received: from [192.168.1.18] (chc231.neoplus.adsl.tpnet.pl. [83.31.0.231])
-        by smtp.gmail.com with ESMTPSA id t18sm13710341lft.93.2019.01.09.12.50.47
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 09 Jan 2019 12:50:48 -0800 (PST)
-Subject: Re: [PATCH] media: s5p-jpeg: Correct step and max values for
- V4L2_CID_JPEG_RESTART_INTERVAL
-To:     =?UTF-8?Q?Pawe=c5=82_Chmiel?= <pawel.mikolaj.chmiel@gmail.com>,
-        andrzej.p@samsung.com
-Cc:     mchehab@kernel.org, s.nawrocki@samsung.com,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-References: <20190109180041.31052-1-pawel.mikolaj.chmiel@gmail.com>
-From:   Jacek Anaszewski <jacek.anaszewski@gmail.com>
-Message-ID: <843c632a-0804-8a30-0002-a87b85de1ed3@gmail.com>
-Date:   Wed, 9 Jan 2019 21:50:45 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.4.0
-MIME-Version: 1.0
-In-Reply-To: <20190109180041.31052-1-pawel.mikolaj.chmiel@gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+        id S1726332AbfAIVPM (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 9 Jan 2019 16:15:12 -0500
+Received: from mail.ao2.it ([92.243.12.208]:38398 "EHLO ao2.it"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726286AbfAIVPL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 9 Jan 2019 16:15:11 -0500
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=ao2.it; s=20180927;
+        h=Content-Transfer-Encoding:Content-Type:Mime-Version:References:In-Reply-To:Message-Id:Subject:Cc:To:From:Date; bh=UWiDO+ZOvm1Ekot8PNG5Uh5KMl4SYJLC0hMDy0ghoGw=;
+        b=hSP4lEVVTdmPVxS9KdXA2ZfdntqnGRCr45pWU+QCE1m9iV2CmZ65xe1oaeXF4pVqoOdlaxI18Ve3IaA/D35lqAlSlY/OEEijHVLNGrOUyarvmqNtqYFC/zYmoOvPMrKvYIzSTTv/WM7dhepVvhoHlTK6KeMYu6gqYR5cb4catVvDHkAfXs7bwwfLEQ4dRMNwRr3y/qhFHMLdwzZ3myTzt6s77DFd2hbJfnTXKC5UBdJDGEwGCz5jM8AF+Znv07Z9tHtDgcZkci1USZ7F6hJLAJUe50WDDGsbio2zD6MEJCMAn8iteLngHYlUqDYaPDHyU9anDpVpwHADqS44UlqFLg==;
+Received: from localhost ([::1] helo=jcn.localdomain)
+        by ao2.it with esmtps (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.84_2)
+        (envelope-from <ao2@ao2.it>)
+        id 1ghLAq-0002P8-LD; Wed, 09 Jan 2019 22:14:04 +0100
+Date:   Wed, 9 Jan 2019 22:15:08 +0100
+From:   Antonio Ospite <ao2@ao2.it>
+To:     Hans Verkuil <hverkuil@xs4all.nl>
+Cc:     linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH 5/5] v4l2-ctl: add an option to list controls in a
+ machine-readable format
+Message-Id: <20190109221508.eaa19c66df252a1f9802cd9a@ao2.it>
+In-Reply-To: <3f081956-7733-069b-da24-0d04831b8ed1@xs4all.nl>
+References: <20181124185256.74dc969bdb8f7ab79cf03d5d@ao2.it>
+        <20190103180102.12282-1-ao2@ao2.it>
+        <20190103180102.12282-6-ao2@ao2.it>
+        <3f081956-7733-069b-da24-0d04831b8ed1@xs4all.nl>
+X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.32; x86_64-unknown-linux-gnu)
+X-Face: z*RaLf`X<@C75u6Ig9}{oW$H;1_\2t5)({*|jhM<pyWR#k60!#=#>/Vb;]yA5<GWI5`6u&+
+ ;6b'@y|8w"wB;4/e!7wYYrcqdJFY,~%Gk_4]cq$Ei/7<j&N3ah(m`ku?pX.&+~:_/wC~dwn^)MizBG !pE^+iDQQ1yC6^,)YDKkxDd!T>\I~93>J<_`<4)A{':UrE
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Paweł,
+On Mon, 7 Jan 2019 11:18:58 +0100
+Hans Verkuil <hverkuil@xs4all.nl> wrote:
 
-Thank you for the patch.
+> On 01/03/2019 07:01 PM, Antonio Ospite wrote:
+> > Add a new option --list-ctrls-values to list the values of controls in
+> > a format which can be passed again to --set-ctrl.
+> > 
+> > This can be useful to save and restore device settings:
+> > 
+> >   $ v4l2-ctl --list-ctrls-values >settings.txt 2>/dev/null
+> >   $ v4l2-ctl --set-ctrl "$(cat settings.txt)"
+> > 
+> > The new option has been tested with the vivid driver and it works well
+> > enough to be useful with a real driver as well.
+> > 
+> > String controls are not supported for now, as they may not be parsed
+> > correctly by --set-ctrl if they contain a comma or a single quote.
+> > 
+> > Signed-off-by: Antonio Ospite <ao2@ao2.it>
+> > ---
+> >  utils/v4l2-ctl/v4l2-ctl-common.cpp | 72 ++++++++++++++++++++++++++----
+> >  utils/v4l2-ctl/v4l2-ctl.1.in       |  4 ++
+> >  utils/v4l2-ctl/v4l2-ctl.cpp        |  1 +
+> >  utils/v4l2-ctl/v4l2-ctl.h          |  1 +
+> >  4 files changed, 69 insertions(+), 9 deletions(-)
+> > 
+> > diff --git a/utils/v4l2-ctl/v4l2-ctl-common.cpp b/utils/v4l2-ctl/v4l2-ctl-common.cpp
+> > index 7777b45c..b4124608 100644
+> > --- a/utils/v4l2-ctl/v4l2-ctl-common.cpp
+> > +++ b/utils/v4l2-ctl/v4l2-ctl-common.cpp
+[...]
+> > @@ -1102,13 +1146,23 @@ void common_get(cv4l_fd &_fd)
+> >  
+> >  void common_list(cv4l_fd &fd)
+> >  {
+> > -	if (options[OptListCtrls] || options[OptListCtrlsMenus]) {
+> > -		struct print_format classic_format = {
+> > -			.print_class_name = print_class_name,
+> > -			.print_qctrl = print_qctrl,
+> > -			.show_menus = options[OptListCtrlsMenus],
+> > -		};
+> > -
+> > -		list_controls(fd.g_fd(), &classic_format);
+> > +	if (options[OptListCtrls] || options[OptListCtrlsMenus] || options[OptListCtrlsValues]) {
+> > +		if (options[OptListCtrlsValues]) {
+> > +			struct print_format machine_format = {
+> > +				.print_class_name = NULL,
+> > +				.print_qctrl = print_qctrl_values,
+> > +				.show_menus = 0,
+> > +			};
+> > +
+> > +			list_controls(fd.g_fd(), &machine_format);
+> > +		} else {
+> > +			struct print_format classic_format = {
+> > +				.print_class_name = print_class_name,
+> > +				.print_qctrl = print_qctrl,
+> > +				.show_menus = options[OptListCtrlsMenus],
+> > +			};
+> > +
+> > +			list_controls(fd.g_fd(), &classic_format);
+> > +		}
+> 
+> I don't like this struct print_format.
+>
 
-On 1/9/19 7:00 PM, Paweł Chmiel wrote:
-> This commit corrects max and step values for v4l2 control for
-> V4L2_CID_JPEG_RESTART_INTERVAL. Max should be 0xffff and step should be 1.
-> It was found by using v4l2-compliance tool and checking result of
-> VIDIOC_QUERY_EXT_CTRL/QUERYMENU test.
-> Previously it was complaining that step was bigger than difference
-> between max and min.
-> 
-> Fixes: 15f4bc3b1f42 ("[media] s5p-jpeg: Add JPEG controls support")
-> Signed-off-by: Paweł Chmiel <pawel.mikolaj.chmiel@gmail.com>
-> ---
->   drivers/media/platform/s5p-jpeg/jpeg-core.c | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-> index 3f9000b70385..33e9927db9a0 100644
-> --- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-> +++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-> @@ -2002,7 +2002,7 @@ static int s5p_jpeg_controls_create(struct s5p_jpeg_ctx *ctx)
->   
->   		v4l2_ctrl_new_std(&ctx->ctrl_handler, &s5p_jpeg_ctrl_ops,
->   				  V4L2_CID_JPEG_RESTART_INTERVAL,
-> -				  0, 3, 0xffff, 0);
-> +				  0, 0xffff, 1, 0);
->   		if (ctx->jpeg->variant->version == SJPEG_S5P)
->   			mask = ~0x06; /* 422, 420 */
->   	}
-> 
+Hi Hans,
 
-Reviewed-by: Jacek Anaszewski <jacek.anaszewski@gmail.com>
+the idea was based on two considerations:
+  1. decide the format once and for all, avoiding to check each time a
+     control is printed.
+  2. have at least some partial infrastructure in case some
+     other export formats were to be added.
+
+But yeah, as 2. seems quite unlikely I can go with a more essential
+approach for now, no problem.
+
+> I would prefer something like this:
+> 
+> Rename print_qctrl to print_qctrl_readable() and create a new print_qctrl:
+> 
+> static void print_qctrl(int fd, struct v4l2_query_ext_ctrl *queryctrl,
+>                 struct v4l2_ext_control *ctrl, int show_menus)
+> {
+> 	if (options[OptListCtrlsValues])
+> 		print_qctrl_values(fd, queryctrl, ctrl, show_menus);
+> 	else
+> 		print_qctrl_readable(fd, queryctrl, ctrl, show_menus);
+> }
+>
+
+Since "readable" here means "human readable", while "values" is meant
+for a "machine readable" output, I'd "avoid" the word "readable" at
+all and go with "details" or "description":
+
+	if (options[OptListCtrlsValues])
+		print_qctrl_values(fd, queryctrl, ctrl, show_menus);
+	else
+		print_qctrl_details(fd, queryctrl, ctrl, show_menus);
+
+> And in print_control you can just skip printing the class name if
+> options[OptListCtrlsValues] is set.
+>
+
+OK.
+
+> I would like to see string controls being supported. I would recommend
+> to just write the string as a hexdump. It avoids having to escape characters.
+> 
+> The same can be done for compound/array controls. In fact, you could write
+> all controls that way. It would simplify things a lot.
+>
+
+But then --set-ctrl would need to be extended to parse the hexdump,
+wouldn't it? Do you already have a syntax in mind?
+
+TBH, I kept things simple hoping to re-use --set-ctrl without too much
+work.
+
+> Also, when options[OptListCtrlsValues] is set you should skip all WRITE_ONLY
+> controls, all BUTTON controls, and all volatile controls. They are not
+> relevant if you are just interested in controls that can be set.
+>
+
+That I will do in any case, thank you.
+
+> Regards,
+> 
+> 	Hans
+
+Thank you,
+   Antonio
 
 -- 
-Best regards,
-Jacek Anaszewski
+Antonio Ospite
+https://ao2.it
+https://twitter.com/ao2it
+
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
