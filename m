@@ -2,180 +2,300 @@ Return-Path: <SRS0=iic/=PR=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D1454C43387
-	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 14:42:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CA139C43387
+	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 15:08:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A1575206BA
-	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 14:42:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8395720859
+	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 15:08:13 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="e4yukcu4"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731672AbfAIOmm (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 9 Jan 2019 09:42:42 -0500
-Received: from mail.bootlin.com ([62.4.15.54]:45595 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731479AbfAIOmm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 9 Jan 2019 09:42:42 -0500
-Received: by mail.bootlin.com (Postfix, from userid 110)
-        id 2057D2078E; Wed,  9 Jan 2019 15:42:40 +0100 (CET)
-Received: from aptenodytes (aaubervilliers-681-1-45-241.w90-88.abo.wanadoo.fr [90.88.163.241])
-        by mail.bootlin.com (Postfix) with ESMTPSA id ACCA1206A7;
-        Wed,  9 Jan 2019 15:42:29 +0100 (CET)
-Message-ID: <9b8098a9fde4f7645ffe2da263cee038dd823e69.camel@bootlin.com>
-Subject: Re: [PATCH 2/2] media: cedrus: Allow using the current dst buffer
- as reference
-From:   Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-To:     Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-arm-kernel@lists.infradead.org,
-        linux-kernel@vger.kernel.org, linux-sunxi@googlegroups.com
-Cc:     Maxime Ripard <maxime.ripard@bootlin.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Chen-Yu Tsai <wens@csie.org>, Randy Li <ayaka@soulik.info>,
-        Ezequiel Garcia <ezequiel@collabora.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Alexandre Courbot <acourbot@chromium.org>,
+        id S1732002AbfAIPIM (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 9 Jan 2019 10:08:12 -0500
+Received: from mail-pg1-f193.google.com ([209.85.215.193]:46380 "EHLO
+        mail-pg1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1731794AbfAIPIM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Jan 2019 10:08:12 -0500
+Received: by mail-pg1-f193.google.com with SMTP id w7so3411072pgp.13;
+        Wed, 09 Jan 2019 07:08:10 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:in-reply-to:references;
+        bh=/+BwpC39FKyHyV/0shRm/IrCtqHY1+6Ud9fG6qOZCpg=;
+        b=e4yukcu4sXfZD+xo0uL07ClcORb9/hqIBX10f9Q2mu2ulJgS1Cmt+SFtarWPXyqPtP
+         E/UO0mheXV5Jt6clTXLnryoajE6jN7q2S1cy8m2+J5Pl3996I091aJC7l8xnRnSlWTFJ
+         WRRQCT2k6QlKizegAr4fbfsjbcSsvvtvANiTg0GPsa70GqYpWjK+KrvnPNcN71mzcTCd
+         WSBErIXSPPUerdygSTB+u0LrmvnJbeSAssituP+EmKbTgrc+5TdcThvly+tOQG3H34L+
+         17PKmkPc/Xgz41/+jQ0XPveHjrpBKJQ59CEWmhHxU5rbcth+NyXshDV/Z/zWCiSK2W5T
+         AVJw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references;
+        bh=/+BwpC39FKyHyV/0shRm/IrCtqHY1+6Ud9fG6qOZCpg=;
+        b=O+00xb2zWBFyt2V4CvVOOqyN1epWm8b8tcM8S1wwJMhSfng5JQm6RoJEzntajiNTVk
+         sDdpiv6FU1Tgn3semIEydb+BQpKZYSeqBqEo2ZJ0w5b81Ch4g/B43VhRx8lmETz+PB86
+         t1D79gM7caw3L7B1aMmH3ysCR78z6l/t86krdpRijcvudhckee1mbpLMsyOvx98LC3W5
+         z/bSoNZ3OiZx245KWvo95lZu/nqxjDN6Q4UDCRbK2swt0xP0qDtCTTSP0zYcBJbryr/M
+         LB4ZzjviCNdzF9kWZX/Mr6SAzKq2HpqwM1vsC9jBQfM42JOGdHm6jxSYED2xqbHtU4/q
+         yDeA==
+X-Gm-Message-State: AJcUuke1PmKsnchThP0XGUIG6QyAq9JUlWMc/MuIhcD3cMIAOs1ZUxxy
+        UnGQMg7PyYfhHBAl2roS/d2Ha1Qy
+X-Google-Smtp-Source: ALg8bN6g7w+MKg5PL5C+yO5vhmVOe3JN8otIWS8U374rNGbF4J5ZNILjv9/cQG3pzXzaP4dZhIF/BA==
+X-Received: by 2002:a62:2b8b:: with SMTP id r133mr6302335pfr.246.1547046490416;
+        Wed, 09 Jan 2019 07:08:10 -0800 (PST)
+Received: from localhost.localdomain ([240f:34:212d:1:7c87:403b:613b:b399])
+        by smtp.gmail.com with ESMTPSA id 22sm95081135pgd.85.2019.01.09.07.08.07
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
+        Wed, 09 Jan 2019 07:08:09 -0800 (PST)
+From:   Akinobu Mita <akinobu.mita@gmail.com>
+To:     linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Cc:     Akinobu Mita <akinobu.mita@gmail.com>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>
-Date:   Wed, 09 Jan 2019 15:42:29 +0100
-In-Reply-To: <9a624f6a-0c38-f2c9-3f2d-2758f9a19299@xs4all.nl>
-References: <20190109141920.12677-1-paul.kocialkowski@bootlin.com>
-         <20190109141920.12677-2-paul.kocialkowski@bootlin.com>
-         <9a624f6a-0c38-f2c9-3f2d-2758f9a19299@xs4all.nl>
-Organization: Bootlin
-Content-Type: text/plain; charset="UTF-8"
-User-Agent: Evolution 3.30.3 
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: [PATCH v2.1 08/13] media: mt9m001: remove remaining soc_camera specific code
+Date:   Thu, 10 Jan 2019 00:07:46 +0900
+Message-Id: <1547046466-12765-1-git-send-email-akinobu.mita@gmail.com>
+X-Mailer: git-send-email 2.7.4
+In-Reply-To: <20190109140024.jnubog5m2ekquaqo@paasikivi.fi.intel.com>
+References: <20190109140024.jnubog5m2ekquaqo@paasikivi.fi.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi,
+Remove remaining soc_camera specific code and drop soc_camera dependency
+from this driver.
 
-On Wed, 2019-01-09 at 15:29 +0100, Hans Verkuil wrote:
-> On 01/09/19 15:19, Paul Kocialkowski wrote:
-> > It was reported that some cases of interleaved video decoding require
-> > using the current destination buffer as a reference. However, this is
-> > no longer possible after the move to vb2_find_timestamp because only
-> > dequeued and done buffers are considered.
-> > 
-> > Add a helper in our driver that also considers the current destination
-> > buffer before resorting to vb2_find_timestamp and use it in MPEG-2.
-> 
-> This patch looks good, but can you also add checks to handle the case
-> when no buffer with the given timestamp was found? Probably should be done
-> in a third patch.
-> 
-> I suspect the driver will crash if an unknown timestamp is passed on to the
-> driver. I would really like to see that corner case fixed.
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+---
+* v2.1
+- Fix misconversion while opencoding soc_camera_limit_side().
 
-You're totally right and I think that more generarlly, the current code
-flow is rather fragile whenever something wrong happens in our setup()
-codec op. I think we should at least have that op return an error code
-and properly deal with it when that occurs.
+ drivers/media/i2c/Kconfig   |  2 +-
+ drivers/media/i2c/mt9m001.c | 84 ++++++++-------------------------------------
+ 2 files changed, 15 insertions(+), 71 deletions(-)
 
-I am planning on making a cleanup series to fix that.
-
-Before using timestamps, reference buffer index validation was done in
-std_validate and now it's fully up to the driver. I wonder if it would
-be feasible to bring something back in there since all stateless
-drivers will face the same issue. The conditions set in
-cedrus_reference_index_find seem generic enough for that, but we should
-check that std_validate is not called too early, when the queue is in a
-different state (and the buffer might not be dequeud or done yet).
-
-What do you think?
-
-Cheers,
-
-Paul
-
-> > Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-> > ---
-> >  drivers/staging/media/sunxi/cedrus/cedrus_dec.c   | 13 +++++++++++++
-> >  drivers/staging/media/sunxi/cedrus/cedrus_dec.h   |  2 ++
-> >  drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c | 10 ++++++----
-> >  3 files changed, 21 insertions(+), 4 deletions(-)
-> > 
-> > diff --git a/drivers/staging/media/sunxi/cedrus/cedrus_dec.c b/drivers/staging/media/sunxi/cedrus/cedrus_dec.c
-> > index 443fb037e1cf..2c295286766c 100644
-> > --- a/drivers/staging/media/sunxi/cedrus/cedrus_dec.c
-> > +++ b/drivers/staging/media/sunxi/cedrus/cedrus_dec.c
-> > @@ -22,6 +22,19 @@
-> >  #include "cedrus_dec.h"
-> >  #include "cedrus_hw.h"
-> >  
-> > +int cedrus_reference_index_find(struct vb2_queue *queue,
-> > +				struct vb2_buffer *vb2_buf, u64 timestamp)
-> > +{
-> > +	/*
-> > +	 * Allow using the current capture buffer as reference, which can occur
-> > +	 * for field-coded pictures.
-> > +	 */
-> > +	if (vb2_buf->timestamp == timestamp)
-> > +		return vb2_buf->index;
-> > +	else
-> > +		return vb2_find_timestamp(queue, timestamp, 0);
-> > +}
-> > +
-> >  void cedrus_device_run(void *priv)
-> >  {
-> >  	struct cedrus_ctx *ctx = priv;
-> > diff --git a/drivers/staging/media/sunxi/cedrus/cedrus_dec.h b/drivers/staging/media/sunxi/cedrus/cedrus_dec.h
-> > index d1ae7903677b..8d0fc248220f 100644
-> > --- a/drivers/staging/media/sunxi/cedrus/cedrus_dec.h
-> > +++ b/drivers/staging/media/sunxi/cedrus/cedrus_dec.h
-> > @@ -16,6 +16,8 @@
-> >  #ifndef _CEDRUS_DEC_H_
-> >  #define _CEDRUS_DEC_H_
-> >  
-> > +int cedrus_reference_index_find(struct vb2_queue *queue,
-> > +				struct vb2_buffer *vb2_buf, u64 timestamp);
-> >  void cedrus_device_run(void *priv);
-> >  
-> >  #endif
-> > diff --git a/drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c b/drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c
-> > index cb45fda9aaeb..81c66a8aa1ac 100644
-> > --- a/drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c
-> > +++ b/drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c
-> > @@ -10,6 +10,7 @@
-> >  #include <media/videobuf2-dma-contig.h>
-> >  
-> >  #include "cedrus.h"
-> > +#include "cedrus_dec.h"
-> >  #include "cedrus_hw.h"
-> >  #include "cedrus_regs.h"
-> >  
-> > @@ -159,8 +160,8 @@ static void cedrus_mpeg2_setup(struct cedrus_ctx *ctx, struct cedrus_run *run)
-> >  	cedrus_write(dev, VE_DEC_MPEG_PICBOUNDSIZE, reg);
-> >  
-> >  	/* Forward and backward prediction reference buffers. */
-> > -	forward_idx = vb2_find_timestamp(cap_q,
-> > -					 slice_params->forward_ref_ts, 0);
-> > +	forward_idx = cedrus_reference_index_find(cap_q, &run->dst->vb2_buf,
-> > +						  slice_params->forward_ref_ts);
-> >  
-> >  	fwd_luma_addr = cedrus_dst_buf_addr(ctx, forward_idx, 0);
-> >  	fwd_chroma_addr = cedrus_dst_buf_addr(ctx, forward_idx, 1);
-> > @@ -168,8 +169,9 @@ static void cedrus_mpeg2_setup(struct cedrus_ctx *ctx, struct cedrus_run *run)
-> >  	cedrus_write(dev, VE_DEC_MPEG_FWD_REF_LUMA_ADDR, fwd_luma_addr);
-> >  	cedrus_write(dev, VE_DEC_MPEG_FWD_REF_CHROMA_ADDR, fwd_chroma_addr);
-> >  
-> > -	backward_idx = vb2_find_timestamp(cap_q,
-> > -					  slice_params->backward_ref_ts, 0);
-> > +	backward_idx = cedrus_reference_index_find(cap_q, &run->dst->vb2_buf,
-> > +						   slice_params->backward_ref_ts);
-> > +
-> >  	bwd_luma_addr = cedrus_dst_buf_addr(ctx, backward_idx, 0);
-> >  	bwd_chroma_addr = cedrus_dst_buf_addr(ctx, backward_idx, 1);
-> >  
-> > 
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index ee3ef1b..bc248d9 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -859,7 +859,7 @@ config VIDEO_VS6624
+ 
+ config VIDEO_MT9M001
+ 	tristate "mt9m001 support"
+-	depends on SOC_CAMERA && I2C
++	depends on I2C && VIDEO_V4L2
+ 	help
+ 	  This driver supports MT9M001 cameras from Micron, monochrome
+ 	  and colour models.
+diff --git a/drivers/media/i2c/mt9m001.c b/drivers/media/i2c/mt9m001.c
+index 1619c8c..5a3b612 100644
+--- a/drivers/media/i2c/mt9m001.c
++++ b/drivers/media/i2c/mt9m001.c
+@@ -15,15 +15,12 @@
+ #include <linux/slab.h>
+ #include <linux/videodev2.h>
+ 
+-#include <media/drv-intf/soc_mediabus.h>
+-#include <media/soc_camera.h>
+ #include <media/v4l2-ctrls.h>
++#include <media/v4l2-device.h>
+ #include <media/v4l2-subdev.h>
+ 
+ /*
+  * mt9m001 i2c address 0x5d
+- * The platform has to define struct i2c_board_info objects and link to them
+- * from struct soc_camera_host_desc
+  */
+ 
+ /* mt9m001 selected register addresses */
+@@ -276,11 +273,15 @@ static int mt9m001_set_selection(struct v4l2_subdev *sd,
+ 	rect.width = ALIGN(rect.width, 2);
+ 	rect.left = ALIGN(rect.left, 2);
+ 
+-	soc_camera_limit_side(&rect.left, &rect.width,
+-		     MT9M001_COLUMN_SKIP, MT9M001_MIN_WIDTH, MT9M001_MAX_WIDTH);
++	rect.width = clamp_t(u32, rect.width, MT9M001_MIN_WIDTH,
++			MT9M001_MAX_WIDTH);
++	rect.left = clamp_t(u32, rect.left, MT9M001_COLUMN_SKIP,
++			MT9M001_COLUMN_SKIP + MT9M001_MAX_WIDTH - rect.width);
+ 
+-	soc_camera_limit_side(&rect.top, &rect.height,
+-		     MT9M001_ROW_SKIP, MT9M001_MIN_HEIGHT, MT9M001_MAX_HEIGHT);
++	rect.height = clamp_t(u32, rect.height, MT9M001_MIN_HEIGHT,
++			MT9M001_MAX_HEIGHT);
++	rect.top = clamp_t(u32, rect.top, MT9M001_ROW_SKIP,
++			MT9M001_ROW_SKIP + MT9M001_MAX_HEIGHT - rect.height);
+ 
+ 	mt9m001->total_h = rect.height + mt9m001->y_skip_top +
+ 			   MT9M001_DEFAULT_VBLANK;
+@@ -565,12 +566,10 @@ static int mt9m001_s_ctrl(struct v4l2_ctrl *ctrl)
+  * Interface active, can use i2c. If it fails, it can indeed mean, that
+  * this wasn't our capture interface, so, we wait for the right one
+  */
+-static int mt9m001_video_probe(struct soc_camera_subdev_desc *ssdd,
+-			       struct i2c_client *client)
++static int mt9m001_video_probe(struct i2c_client *client)
+ {
+ 	struct mt9m001 *mt9m001 = to_mt9m001(client);
+ 	s32 data;
+-	unsigned long flags;
+ 	int ret;
+ 
+ 	/* Enable the chip */
+@@ -585,9 +584,11 @@ static int mt9m001_video_probe(struct soc_camera_subdev_desc *ssdd,
+ 	case 0x8411:
+ 	case 0x8421:
+ 		mt9m001->fmts = mt9m001_colour_fmts;
++		mt9m001->num_fmts = ARRAY_SIZE(mt9m001_colour_fmts);
+ 		break;
+ 	case 0x8431:
+ 		mt9m001->fmts = mt9m001_monochrome_fmts;
++		mt9m001->num_fmts = ARRAY_SIZE(mt9m001_monochrome_fmts);
+ 		break;
+ 	default:
+ 		dev_err(&client->dev,
+@@ -596,26 +597,6 @@ static int mt9m001_video_probe(struct soc_camera_subdev_desc *ssdd,
+ 		goto done;
+ 	}
+ 
+-	mt9m001->num_fmts = 0;
+-
+-	/*
+-	 * This is a 10bit sensor, so by default we only allow 10bit.
+-	 * The platform may support different bus widths due to
+-	 * different routing of the data lines.
+-	 */
+-	if (ssdd->query_bus_param)
+-		flags = ssdd->query_bus_param(ssdd);
+-	else
+-		flags = SOCAM_DATAWIDTH_10;
+-
+-	if (flags & SOCAM_DATAWIDTH_10)
+-		mt9m001->num_fmts++;
+-	else
+-		mt9m001->fmts++;
+-
+-	if (flags & SOCAM_DATAWIDTH_8)
+-		mt9m001->num_fmts++;
+-
+ 	mt9m001->fmt = &mt9m001->fmts[0];
+ 
+ 	dev_info(&client->dev, "Detected a MT9M001 chip ID %x (%s)\n", data,
+@@ -634,12 +615,6 @@ static int mt9m001_video_probe(struct soc_camera_subdev_desc *ssdd,
+ 	return ret;
+ }
+ 
+-static void mt9m001_video_remove(struct soc_camera_subdev_desc *ssdd)
+-{
+-	if (ssdd->free_bus)
+-		ssdd->free_bus(ssdd);
+-}
+-
+ static int mt9m001_g_skip_top_lines(struct v4l2_subdev *sd, u32 *lines)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+@@ -679,41 +654,18 @@ static int mt9m001_enum_mbus_code(struct v4l2_subdev *sd,
+ static int mt9m001_g_mbus_config(struct v4l2_subdev *sd,
+ 				struct v4l2_mbus_config *cfg)
+ {
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
+-
+ 	/* MT9M001 has all capture_format parameters fixed */
+ 	cfg->flags = V4L2_MBUS_PCLK_SAMPLE_FALLING |
+ 		V4L2_MBUS_HSYNC_ACTIVE_HIGH | V4L2_MBUS_VSYNC_ACTIVE_HIGH |
+ 		V4L2_MBUS_DATA_ACTIVE_HIGH | V4L2_MBUS_MASTER;
+ 	cfg->type = V4L2_MBUS_PARALLEL;
+-	cfg->flags = soc_camera_apply_board_flags(ssdd, cfg);
+ 
+ 	return 0;
+ }
+ 
+-static int mt9m001_s_mbus_config(struct v4l2_subdev *sd,
+-				const struct v4l2_mbus_config *cfg)
+-{
+-	const struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
+-	struct mt9m001 *mt9m001 = to_mt9m001(client);
+-	unsigned int bps = soc_mbus_get_fmtdesc(mt9m001->fmt->code)->bits_per_sample;
+-
+-	if (ssdd->set_bus_param)
+-		return ssdd->set_bus_param(ssdd, 1 << (bps - 1));
+-
+-	/*
+-	 * Without board specific bus width settings we only support the
+-	 * sensors native bus width
+-	 */
+-	return bps == 10 ? 0 : -EINVAL;
+-}
+-
+ static const struct v4l2_subdev_video_ops mt9m001_subdev_video_ops = {
+ 	.s_stream	= mt9m001_s_stream,
+ 	.g_mbus_config	= mt9m001_g_mbus_config,
+-	.s_mbus_config	= mt9m001_s_mbus_config,
+ };
+ 
+ static const struct v4l2_subdev_sensor_ops mt9m001_subdev_sensor_ops = {
+@@ -740,21 +692,15 @@ static int mt9m001_probe(struct i2c_client *client,
+ {
+ 	struct mt9m001 *mt9m001;
+ 	struct i2c_adapter *adapter = to_i2c_adapter(client->dev.parent);
+-	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
+ 	int ret;
+ 
+-	if (!ssdd) {
+-		dev_err(&client->dev, "MT9M001 driver needs platform data\n");
+-		return -EINVAL;
+-	}
+-
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_WORD_DATA)) {
+ 		dev_warn(&adapter->dev,
+ 			 "I2C-Adapter doesn't support I2C_FUNC_SMBUS_WORD\n");
+ 		return -EIO;
+ 	}
+ 
+-	mt9m001 = devm_kzalloc(&client->dev, sizeof(struct mt9m001), GFP_KERNEL);
++	mt9m001 = devm_kzalloc(&client->dev, sizeof(*mt9m001), GFP_KERNEL);
+ 	if (!mt9m001)
+ 		return -ENOMEM;
+ 
+@@ -811,7 +757,7 @@ static int mt9m001_probe(struct i2c_client *client,
+ 	pm_runtime_set_active(&client->dev);
+ 	pm_runtime_enable(&client->dev);
+ 
+-	ret = mt9m001_video_probe(ssdd, client);
++	ret = mt9m001_video_probe(client);
+ 	if (ret)
+ 		goto error_power_off;
+ 
+@@ -834,7 +780,6 @@ static int mt9m001_probe(struct i2c_client *client,
+ static int mt9m001_remove(struct i2c_client *client)
+ {
+ 	struct mt9m001 *mt9m001 = to_mt9m001(client);
+-	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
+ 
+ 	v4l2_device_unregister_subdev(&mt9m001->subdev);
+ 	pm_runtime_get_sync(&client->dev);
+@@ -845,7 +790,6 @@ static int mt9m001_remove(struct i2c_client *client)
+ 	mt9m001_power_off(&client->dev);
+ 
+ 	v4l2_ctrl_handler_free(&mt9m001->hdl);
+-	mt9m001_video_remove(ssdd);
+ 	mutex_destroy(&mt9m001->mutex);
+ 
+ 	return 0;
 -- 
-Paul Kocialkowski, Bootlin
-Embedded Linux and kernel engineering
-https://bootlin.com
+2.7.4
 
