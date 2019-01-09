@@ -2,46 +2,44 @@ Return-Path: <SRS0=iic/=PR=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
-	version=3.4.0
+	SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3FC1DC43612
-	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 14:15:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D457AC43444
+	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 14:17:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 10B972075C
-	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 14:15:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A2B35206BB
+	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 14:17:15 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="rnvRbbn/"
+	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="lND13toB"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731398AbfAIOPk (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 9 Jan 2019 09:15:40 -0500
-Received: from perceval.ideasonboard.com ([213.167.242.64]:56554 "EHLO
+        id S1731280AbfAIORP (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 9 Jan 2019 09:17:15 -0500
+Received: from perceval.ideasonboard.com ([213.167.242.64]:56588 "EHLO
         perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731169AbfAIOPj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Jan 2019 09:15:39 -0500
+        with ESMTP id S1731169AbfAIORO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Jan 2019 09:17:14 -0500
 Received: from [192.168.0.21] (cpc89242-aztw30-2-0-cust488.18-1.cable.virginm.net [86.31.129.233])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 3DA1D56D;
-        Wed,  9 Jan 2019 15:15:36 +0100 (CET)
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 7D70F56D;
+        Wed,  9 Jan 2019 15:17:12 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1547043336;
-        bh=gJR2AVSnPXXNTb1m5+nPUjM6D4oYn9FH8/UODwb/Zlg=;
-        h=Reply-To:Subject:To:Cc:References:From:Date:In-Reply-To:From;
-        b=rnvRbbn/m8X6fd2zsTBxBfs9oPlUR+IEQyjkTha1RbUx+2aMeGWBW9R4W/zChjbJf
-         o5e90TCtQX9OW+s0+GHXCbHZTjXFpTIPNpwBTc875KN8s/TpT5WfC6duwtuwNab8TV
-         06ckDWfRd5weGjRtsG7jlQ8H1hZZIPSfHN0MeIyw=
+        s=mail; t=1547043432;
+        bh=cobIEMcBujl5imWVimZO0JciZDHVgH5rK4SWKFDwGIE=;
+        h=Reply-To:Subject:From:To:Cc:References:Date:In-Reply-To:From;
+        b=lND13toBf03WERDRu4ORuUcSUNDlOL5nb0IPX2Cd9EIXiUZ497ZNdNHQFZrZVj/U6
+         i3bRDV48BP3FgzIL6sYRyufqAf1ia1HJEhRY+PH/4RyGa5Ag0dYPAfE/CYx43bVzgN
+         eR7Y3n8yf7TMLIp4oHbcVIUXGzRT7YRNqNQ4ML7w=
 Reply-To: kieran.bingham@ideasonboard.com
 Subject: Re: [PATCH v2 6/6] media: adv748x: Implement TX link_setup callback
-To:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc:     Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        niklas.soderlund+renesas@ragnatech.se, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
+From:   Kieran Bingham <kieran.bingham@ideasonboard.com>
+To:     Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        laurent.pinchart@ideasonboard.com,
+        niklas.soderlund+renesas@ragnatech.se
+Cc:     linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
 References: <20190106155413.30666-1-jacopo+renesas@jmondi.org>
  <20190106155413.30666-7-jacopo+renesas@jmondi.org>
  <9f156850-14b6-3ca2-47c1-e03e1bc2c0f8@ideasonboard.com>
- <1722143.vWDHCLa8RZ@avalon>
-From:   Kieran Bingham <kieran.bingham@ideasonboard.com>
 Openpgp: preference=signencrypt
 Autocrypt: addr=kieran.bingham@ideasonboard.com; keydata=
  mQINBFYE/WYBEACs1PwjMD9rgCu1hlIiUA1AXR4rv2v+BCLUq//vrX5S5bjzxKAryRf0uHat
@@ -87,199 +85,64 @@ Autocrypt: addr=kieran.bingham@ideasonboard.com; keydata=
  JxB1gWThL4kOTbsqqXj9GLcyOImkW0lJGGR3o/fV91Zh63S5TKnf2YGGGzxki+ADdxVQAm+Q
  sbsRB8KNNvVXBOVNwko86rQqF9drZuw=
 Organization: Ideas on Board
-Message-ID: <221dd6e0-bf90-5215-eaad-004eac59838d@ideasonboard.com>
-Date:   Wed, 9 Jan 2019 14:15:33 +0000
+Message-ID: <92e07880-e662-3e83-15cd-9b09cd2ac867@ideasonboard.com>
+Date:   Wed, 9 Jan 2019 14:17:10 +0000
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
  Thunderbird/60.2.1
 MIME-Version: 1.0
-In-Reply-To: <1722143.vWDHCLa8RZ@avalon>
+In-Reply-To: <9f156850-14b6-3ca2-47c1-e03e1bc2c0f8@ideasonboard.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On 09/01/2019 00:15, Laurent Pinchart wrote:
-> Hello,
+Hi Jacopo,
+
+One more comment below:
+
+On 07/01/2019 12:36, Kieran Bingham wrote:
+> Hi Jacopo,
 > 
-> On Monday, 7 January 2019 14:36:28 EET Kieran Bingham wrote:
->> On 06/01/2019 15:54, Jacopo Mondi wrote:
->>> When the adv748x driver is informed about a link being created from HDMI
->>> or AFE to a CSI-2 TX output, the 'link_setup()' callback is invoked. Make
->>> sure to implement proper routing management at link setup time, to route
->>> the selected video stream to the desired TX output.
->>
->> Overall this looks like the right approach - but I feel like the
->> handling of the io10 register might need some consideration, because
->> it's value depends on the condition of both CSI2 transmitters, not just
->> the currently parsed link.
->>
->> I had a go at some pseudo - uncompiled/untested code inline as a suggestion.
->>
->> If you think it's better - feel free to rework it in ... or not as you
->> see fit.
->>
->>> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
->>> ---
->>>
->>>  drivers/media/i2c/adv748x/adv748x-core.c | 57 +++++++++++++++++++++++-
->>>  drivers/media/i2c/adv748x/adv748x.h      |  2 +
->>>  2 files changed, 58 insertions(+), 1 deletion(-)
->>>
->>> diff --git a/drivers/media/i2c/adv748x/adv748x-core.c
->>> b/drivers/media/i2c/adv748x/adv748x-core.c index
->>> 200e00f93546..a586bf393558 100644
->>> --- a/drivers/media/i2c/adv748x/adv748x-core.c
->>> +++ b/drivers/media/i2c/adv748x/adv748x-core.c
->>> @@ -335,6 +335,60 @@ int adv748x_tx_power(struct adv748x_csi2 *tx, bool
->>> on)
->>>  /* ----------------------------------------------------------------------
->>>   * Media Operations
->>>   */
->>> +static int adv748x_link_setup(struct media_entity *entity,
->>> +			      const struct media_pad *local,
->>> +			      const struct media_pad *remote, u32 flags)
->>> +{
->>> +	struct v4l2_subdev *rsd = media_entity_to_v4l2_subdev(remote->entity);
->>> +	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
->>> +	struct adv748x_state *state = v4l2_get_subdevdata(sd);
->>> +	struct adv748x_csi2 *tx = adv748x_sd_to_csi2(sd);
->>> +	bool enable = flags & MEDIA_LNK_FL_ENABLED;
->>> +	u8 io10;
->>> +
->>> +	/* Refuse to enable multiple links to the same TX at the same time. */
->>> +	if (enable && tx->src)
->>> +		return -EINVAL;
->>> +
->>> +	/* Set or clear the source (HDMI or AFE) and the current TX. */
->>> +	if (rsd == &state->afe.sd)
->>> +		state->afe.tx = enable ? tx : NULL;
->>> +	else
->>> +		state->hdmi.tx = enable ? tx : NULL;
->>> +
->>> +	tx->src = enable ? rsd : NULL;
->>> +
->>> +	if (!enable)
->>> +		return 0;
->>
->> Don't we potentially want to take any action on disable to power down
->> links below ?
->>
->>> +
->>> +	/* Change video stream routing, according to the newly enabled link. */
->>> +	io10 = io_read(state, ADV748X_IO_10);
->>> +	if (rsd == &state->afe.sd) {
->>> +		/*
->>> +		 * Set AFE->TXA routing and power off TXB if AFE goes to TXA.
->>> +		 * if AFE goes to TXB, we need both TXA and TXB powered on.
->>> +		 */
->>> +		io10 &= ~ADV748X_IO_10_CSI1_EN;
->>> +		io10 &= ~ADV748X_IO_10_CSI4_IN_SEL_AFE;
->>> +		if (is_txa(tx))
->>> +			io10 |= ADV748X_IO_10_CSI4_IN_SEL_AFE;
->>
->> Shouldn't the CSI4 be enabled here too? or are we assuming it's already
->> (/always) enabled?
->> 		io10 |= ADV748X_IO_10_CSI4_EN;
->>
->>> +		else
->>> +			io10 |= ADV748X_IO_10_CSI4_EN |
->>> +				ADV748X_IO_10_CSI1_EN;
->>> +	} else {
->>> +		/* Clear AFE->TXA routing and power up TXA. */
->>> +		io10 &= ~ADV748X_IO_10_CSI4_IN_SEL_AFE;
->>> +		io10 |= ADV748X_IO_10_CSI4_EN;
->>
->> But if we assume it's already enabled ... do we need this?
->> Perhaps it might be better to be explicit on this?
->>
->>> +	}
->>> +	io_write(state, ADV748X_IO_10, io10);
->>
->> Would it be any cleaner to use io_clrset() here?
->>
->> Hrm ... also it feels like this register really should be set depending
->> upon the complete state of ... &state->...
->>
->> So perhaps it deserves it's own function which should be called after
->> csi_registered() callback and any link change.
->>
->> /me has a quick go at some psuedo codeishness...:
->>
->> int adv74x_io_10(struct adv748x_state *state);
->> 	u8 bits = 0;
->> 	u8 mask = ADV748X_IO_10_CSI1_EN
->>
->> 		| ADV748X_IO_10_CSI4_EN
->> 		| ADV748X_IO_10_CSI4_IN_SEL_AFE;
->>
->> 	if (state->afe.tx) {
->> 		/* AFE Requires TXA enabled, even when output to TXB */
->> 		bits |= ADV748X_IO_10_CSI4_EN;
->>
->> 		if (is_txa(state->afe.tx))
->> 			bits |= ADV748X_IO_10_CSI4_IN_SEL_AFE
->> 		else
->> 			bits |= ADV748X_IO_10_CSI1_EN;
->> 	}
->>
->> 	if (state->hdmi.tx) {
->> 		bits |= ADV748X_IO_10_CSI4_EN;
->> 	}
->>
->> 	return io_clrset(state, ADV748X_IO_10, mask, bits);
->> }
->>
->> How does that look ? (is it even correct first?)
->>
->>> +
->>> +	return 0;
->>> +}
->>> +
->>> +static const struct media_entity_operations adv748x_tx_media_ops = {
->>> +	.link_setup	= adv748x_link_setup,
->>> +	.link_validate	= v4l2_subdev_link_validate,
->>> +};
->>>
->>>  static const struct media_entity_operations adv748x_media_ops = {
->>>  	.link_validate = v4l2_subdev_link_validate,
->>> @@ -516,7 +570,8 @@ void adv748x_subdev_init(struct v4l2_subdev *sd,
->>> struct adv748x_state *state,
->>>  		state->client->addr, ident);
->>>  	
->>>  	sd->entity.function = function;
->>> -	sd->entity.ops = &adv748x_media_ops;
->>> +	sd->entity.ops = is_tx(adv748x_sd_to_csi2(sd)) ?
->>> +			 &adv748x_tx_media_ops : &adv748x_media_ops;
->>
->> Aha - yes that's a neat solution to ensure that only the TX links
->> generate link_setup calls :)
-> 
-> Another option would be to bail out from adv748x_link_setup() if the entity is 
-> not a TX*.
-> 
+> On 06/01/2019 15:54, Jacopo Mondi wrote:
+>> When the adv748x driver is informed about a link being created from HDMI or
+>> AFE to a CSI-2 TX output, the 'link_setup()' callback is invoked. Make
+>> sure to implement proper routing management at link setup time, to route
+>> the selected video stream to the desired TX output.>
 
-I suggested this in v1 - but Jacopo objected with the following:
+<snip>
 
-> Checking for is_txa() and is_txb() would require to call
-> 'adv_sd_to_csi2(sd)' before having made sure the 'sd' actually
-> represent a csi2_tx. I would keep it as it is.
+>>  static int adv748x_parse_csi2_lanes(struct adv748x_state *state,
+>> diff --git a/drivers/media/i2c/adv748x/adv748x.h b/drivers/media/i2c/adv748x/adv748x.h
+>> index 6eb2e4a95eed..eb19c6cbbb4e 100644
+>> --- a/drivers/media/i2c/adv748x/adv748x.h
+>> +++ b/drivers/media/i2c/adv748x/adv748x.h
+>> @@ -93,6 +93,7 @@ struct adv748x_csi2 {
+>>  
+>>  #define is_tx_enabled(_tx) ((_tx)->state->endpoints[(_tx)->port] != NULL)
+>>  #define __is_tx(_tx, _ab) ((_tx) == &(_tx)->state->tx##_ab)
+>> +#define is_tx(_tx) (is_txa(_tx) || is_txb(_tx))
 
-Now I look at the implementation here, I see this is precisely what it
-is doing anyway .... still converting through adv748x_sd_to_csi2(sd) on
-an unknown pointer type
- (which I still believe is a valid thing to do in this instance)
-
-So yes, I think this would be simpler having the check at the top of the
-adv748x_link_setup() call, and thus then there is no need to add a
-second adv_media_ops structure.
+I'd put this /after/ is_txa/is_txb so that the use is after the
+declarations.
+--
+KB
 
 
->>>  }
-> 
-> [snip]
+>>  #define is_txa(_tx) __is_tx(_tx, a)
+>>  #define is_txb(_tx) __is_tx(_tx, b)
+>>  
+>> @@ -224,6 +225,7 @@ struct adv748x_state {
+>>  #define ADV748X_IO_10_CSI4_EN		BIT(7)
+>>  #define ADV748X_IO_10_CSI1_EN		BIT(6)
+>>  #define ADV748X_IO_10_PIX_OUT_EN	BIT(5)
+>> +#define ADV748X_IO_10_CSI4_IN_SEL_AFE	BIT(3)
+>>  
+>>  #define ADV748X_IO_CHIP_REV_ID_1	0xdf
+>>  #define ADV748X_IO_CHIP_REV_ID_2	0xe0
+>>
 > 
 
 -- 
