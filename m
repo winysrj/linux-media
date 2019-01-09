@@ -2,138 +2,233 @@ Return-Path: <SRS0=iic/=PR=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,
-	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D90F9C43387
-	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 18:20:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CDD42C43387
+	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 18:27:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A90A120859
-	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 18:20:03 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ndufresne-ca.20150623.gappssmtp.com header.i=@ndufresne-ca.20150623.gappssmtp.com header.b="TABw4HzO"
+	by mail.kernel.org (Postfix) with ESMTP id 9C914214C6
+	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 18:27:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726584AbfAISUD (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 9 Jan 2019 13:20:03 -0500
-Received: from mail-qt1-f178.google.com ([209.85.160.178]:41303 "EHLO
-        mail-qt1-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726412AbfAISUC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Jan 2019 13:20:02 -0500
-Received: by mail-qt1-f178.google.com with SMTP id l12so9349582qtf.8
-        for <linux-media@vger.kernel.org>; Wed, 09 Jan 2019 10:20:02 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ndufresne-ca.20150623.gappssmtp.com; s=20150623;
-        h=message-id:subject:from:to:cc:date:in-reply-to:references
-         :user-agent:mime-version:content-transfer-encoding;
-        bh=zERPScNY2UNq8zUcj98BMMka62IzCMtUZS9sYJaFaqE=;
-        b=TABw4HzOxUhDeNCTtpNQP5ZArARcaLzf2ZFTcD+fEmv1EY3U3pOxjgn2Y/GwEZrJWu
-         KdNCsz5WQBIZpza4eHLymQABeixxldurFJYcMMP66d/G1shCb/rlM4zcgAy/NpvPesBE
-         iFIgKlHTwXBOWOftmA9mkvoRbpPJ9SLDtk58wHSWa3jnN4F4gssVUsxdxEFzRsk8rPRW
-         ljZ3NAbwQcxrAk0O1Nc4I6FLdBaPYRo3ws0gKd8itoAW55DsQr2wsFbSby0hyI2jRIKE
-         x5rauNEMqUiebh7qbvtqQ8Dume1SoZvCWXHopF+Ql8ENDt1GBpKe6R070UcW4lFq4Nw+
-         EMeA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:message-id:subject:from:to:cc:date:in-reply-to
-         :references:user-agent:mime-version:content-transfer-encoding;
-        bh=zERPScNY2UNq8zUcj98BMMka62IzCMtUZS9sYJaFaqE=;
-        b=VCcmVCdpk0t6oVJtlEVtllMzlp/pM6ptKue2/C6tMSij2nyKbwIoYdz1FOkE3LepnD
-         sKo8QiUukdbinP2as9nbT/h9SmS98r4b7qvNN8a2Y1RjqgeeJxWtwW0kOJK4ZXaiNstR
-         v8Hg3nNJNv4mP/Tbteog014kdf6W9NSjINKOSk1qM3UiZb+VhzC4py1XXddkQumIEMQr
-         aqkcFCR939GEFU91nXPbm2UYJ+HleR+k4oXfF3MsN1/Akg+RgKnYvV1m4P7dss/VwkXK
-         o9ve0jCS1oODkWZEdALzCR/mmsForVqdXV6zA+Yr7UA4TkWOJSoBVb7b47E9v5Z2LKgj
-         Ye5w==
-X-Gm-Message-State: AJcUukct928bUW+sQRmbi86h+UTA3lHTeV8drFtFPLC8C10lGnZbXmct
-        GknfP+mDRFqkpEX+7e4JK3JQmg==
-X-Google-Smtp-Source: ALg8bN4BUkbXEO6aLUypq4Z9V3BZ40LXgCneEuKgcbFx1lwyuAFkJRa14HEI428x7/NK3U93iBtixA==
-X-Received: by 2002:ac8:7153:: with SMTP id h19mr6391270qtp.92.1547058001919;
-        Wed, 09 Jan 2019 10:20:01 -0800 (PST)
-Received: from skullcanyon ([192.222.193.21])
-        by smtp.gmail.com with ESMTPSA id i73sm30957913qke.80.2019.01.09.10.20.00
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Wed, 09 Jan 2019 10:20:01 -0800 (PST)
-Message-ID: <e5ee7e611ff861b4e8dbc4fbf48dd2bf48e074a4.camel@ndufresne.ca>
-Subject: Re: P010 fourcc format support - Was: Re: Kernel error "Unknown
- pixelformat 0x00000000" occurs when I start capture video
-From:   Nicolas Dufresne <nicolas@ndufresne.ca>
-To:     Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc:     Ayaka <ayaka@soulik.info>, Sakari Ailus <sakari.ailus@iki.fi>,
-        Mikhail Gavrilov <mikhail.v.gavrilov@gmail.com>,
+        id S1726822AbfAIS1U (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 9 Jan 2019 13:27:20 -0500
+Received: from mslow2.mail.gandi.net ([217.70.178.242]:35372 "EHLO
+        mslow2.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726754AbfAIS1U (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Jan 2019 13:27:20 -0500
+Received: from relay9-d.mail.gandi.net (unknown [217.70.183.199])
+        by mslow2.mail.gandi.net (Postfix) with ESMTP id 0E06A3A4E26
+        for <linux-media@vger.kernel.org>; Wed,  9 Jan 2019 19:20:25 +0100 (CET)
+X-Originating-IP: 2.224.242.101
+Received: from uno.localdomain (2-224-242-101.ip172.fastwebnet.it [2.224.242.101])
+        (Authenticated sender: jacopo@jmondi.org)
+        by relay9-d.mail.gandi.net (Postfix) with ESMTPSA id B9E86FF808;
+        Wed,  9 Jan 2019 18:20:21 +0000 (UTC)
+Date:   Wed, 9 Jan 2019 19:20:28 +0100
+From:   Jacopo Mondi <jacopo@jmondi.org>
+To:     "Mani, Rajmohan" <rajmohan.mani@intel.com>
+Cc:     Tomasz Figa <tfiga@chromium.org>, "Zhi, Yong" <yong.zhi@intel.com>,
+        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
+        "Cao, Bingbu" <bingbu.cao@intel.com>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org
-Date:   Wed, 09 Jan 2019 13:20:00 -0500
-In-Reply-To: <20190109152808.5ce020ca@coco.lan>
-References: <CABXGCsNxy8-PUPhSSZ3MwUhHixE_R0R-jCw8yGfN88fSu-CXLw@mail.gmail.com>
-         <386743082.UsI2JZZ8BA@avalon>
-         <CABXGCsPfQY6HCJzN1+iX6qFBCnWpJzgT9bJttpD7z23B=qvOGg@mail.gmail.com>
-         <32231660.SI74LuYRbz@avalon>
-         <CABXGCsOMdyzXACZa9T1OdUmDhNPDK=cX+DfBCAnY2A4aozCFHA@mail.gmail.com>
-         <20190108164916.55aa9b93@coco.lan>
-         <20190109121900.hbrpttmxz3gaotwx@valkosipuli.retiisi.org.uk>
-         <20190109110155.39a185de@coco.lan>
-         <0F13FA85-843C-43A6-ADFA-03C789D60120@soulik.info>
-         <d4b982820d870f20908e129afce635ea7c9dea5d.camel@ndufresne.ca>
-         <20190109152808.5ce020ca@coco.lan>
-Content-Type: text/plain; charset="UTF-8"
-User-Agent: Evolution 3.30.3 (3.30.3-1.fc29) 
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        "Hu, Jerry W" <jerry.w.hu@intel.com>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>
+Subject: Re: [PATCH v7 00/16] Intel IPU3 ImgU patchset
+Message-ID: <20190109182028.l6dopz5k75w3u3t4@uno.localdomain>
+References: <1540851790-1777-1-git-send-email-yong.zhi@intel.com>
+ <1819843.KIqgResAvh@avalon>
+ <2135468.G1bK1392oW@avalon>
+ <3475971.piroVKfGO7@avalon>
+ <CAAFQd5CN3dhTviSnFbzSOjkMTQqUyOajYv+CVxSLLAih522CgQ@mail.gmail.com>
+ <CAAFQd5AWLi=UD+LtuiQdc5QD8v5B1WX0Jcoe6=QUy+392FSeng@mail.gmail.com>
+ <20190109164037.yvtluixvua7cm2tl@uno.localdomain>
+ <6F87890CF0F5204F892DEA1EF0D77A599B321599@fmsmsx122.amr.corp.intel.com>
+ <20190109172553.lrnwxuy3x4drk6af@uno.localdomain>
+ <6F87890CF0F5204F892DEA1EF0D77A599B3215DA@fmsmsx122.amr.corp.intel.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="27ihjddkqb567ax6"
+Content-Disposition: inline
+In-Reply-To: <6F87890CF0F5204F892DEA1EF0D77A599B3215DA@fmsmsx122.amr.corp.intel.com>
+User-Agent: NeoMutt/20180716
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Le mercredi 09 janvier 2019 à 15:28 -0200, Mauro Carvalho Chehab a
-écrit :
-> Em Wed, 09 Jan 2019 11:52:45 -0500
-> Nicolas Dufresne <nicolas@ndufresne.ca> escreveu:
-> 
-> > Le jeudi 10 janvier 2019 à 00:42 +0800, Ayaka a écrit :
-> > > > There is a UVC media device that supports P010 device. We're discussing
-> > > > about adding support for it on media. The full thread is at:
-> > > > 
-> > > > https://lore.kernel.org/linux-media/20190109121900.hbrpttmxz3gaotwx@valkosipuli.retiisi.org.uk/T/#m8c395156ca0e898e4c8b1e2c6309d912bc414804
-> > > > 
-> > > > We've seen that you tried to submit a patch series for DRM adding
-> > > > support for it at the rockship driver. What's the status of such
-> > > > series?  
-> > > Rockchip would use another 10bit variant of NV12, which is merged as NV12LE40 at Gstreamer and I sent another patch for it, but I didn’t receive any feedback from that.  
-> 
-> Hmm... We have already NV12 format at media subsystem side:
-> Documentation/media/uapi/v4l/pixfmt-nv12.rst
-> 
-> Did we miss some patch from you?
 
-NV12 is by definition 8bit per pixel. Rockchip uses a 10bit variant,
-for which each pixels is packed over 40 bits so that it's bandwidth
-efficient. It's probably quite complex to handle HW wise. Xilinx also
-got a variant they are upstream, which is packed over 32 bits, with 2
-bits padding.
+--27ihjddkqb567ax6
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-> 
-> > For extra detail, the Rockchip variant is fully packed, with no padding
-> > bits, while the Microsoft variant uses 16bits per pixels, with 6bits
-> > padding. It was a mistake to use P010 initially for the Rockchip
-> > format.
-> 
-> Yeah, P010 format seems to be a waste of bandwidth. Yet, as we're
-> now having devices using it (via uvcdriver), it would make sense to
-> merge the single plane format for it. I would merge the P016 too, as
-> P010 seems to be just a degradation of it.
+Hi Raj,
 
-It's meant for fast CPU indexing, which makes it odd as a streaming
-format.
+On Wed, Jan 09, 2019 at 06:01:39PM +0000, Mani, Rajmohan wrote:
+> Hi Jacopo,
+>
+> > Subject: Re: [PATCH v7 00/16] Intel IPU3 ImgU patchset
+> >
+> > Hello Raj,
+> >
+> > On Wed, Jan 09, 2019 at 05:00:21PM +0000, Mani, Rajmohan wrote:
+> > > Hi Laurent, Tomasz, Jacopo,
+> > >
+> > > > Subject: Re: [PATCH v7 00/16] Intel IPU3 ImgU patchset
+> > > >
+> > > > Hello,
+> > > >
+> > > > On Tue, Jan 08, 2019 at 03:54:34PM +0900, Tomasz Figa wrote:
+> > > > > Hi Raj, Yong, Bingbu, Tianshu,
+> > > > >
+> > > > > On Fri, Dec 21, 2018 at 12:04 PM Tomasz Figa <tfiga@chromium.org>
+> > wrote:
+> > > > > >
+> > > > > > On Fri, Dec 21, 2018 at 7:24 AM Laurent Pinchart
+> > > > > > <laurent.pinchart@ideasonboard.com> wrote:
+> > > > > > >
+> > > > > > > Hellon
+> > > > > > >
+> > > > > > > On Sunday, 16 December 2018 09:26:18 EET Laurent Pinchart wrote:
+> > > > > > > > Hello Yong,
+> > > > > > > >
+> > > > > > > > Could you please have a look at the crash reported below ?
+> > > > > > >
+> > > > > > > A bit more information to help you debugging this. I've
+> > > > > > > enabled KASAN in the kernel configuration, and get the
+> > > > > > > following use-after-free
+> > > > reports.
+> > > >
+> > > > I tested as well using the ipu-process.sh script shared by Laurent,
+> > > > with the following command line:
+> > > > ./ipu3-process.sh --out 2560x1920 --vf 1920x1080
+> > > > frame-2592x1944.cio2
+> > > >
+> > > > and I got a very similar trace available at:
+> > > > https://paste.debian.net/hidden/5855e15a/
+> > > >
+> > > > Please note I have been able to process a set of images (with KASAN
+> > > > enabled the machine does not freeze) but the kernel log gets flooded
+> > > > and it is not possible to process any other frame after this.
+> > > >
+> > > > The issue is currently quite annoying and it's a blocker for
+> > > > libcamera development on IPU3. Please let me know if I can support with
+> > more testing.
+> > > >
+> > > > Thanks
+> > > >    j
+> > > >
+> > > > > > >
+> > > > > > > [  166.332920]
+> > > > > > >
+> > > >
+> > ================================================================
+> > > > ==
+> > > > > > > [  166.332937] BUG: KASAN: use-after-free in
+> > > > > > > __cached_rbnode_delete_update+0x36/0x202
+> > > > > > > [  166.332944] Read of size 8 at addr ffff888133823718 by task
+> > > > > > > yavta/1305
+> > > > > > >
+> > > > > > > [  166.332955] CPU: 3 PID: 1305 Comm: yavta Tainted: G         C
+> > 4.20.0-
+> > > > rc6+ #3
+> > > > > > > [  166.332958] Hardware name: HP Soraka/Soraka, BIOS
+> > > > > > > 08/30/2018 [ 166.332959] Call Trace:
+> > > > > > > [  166.332967]  dump_stack+0x5b/0x81 [  166.332974]
+> > > > > > > print_address_description+0x65/0x227
+> > > > > > > [  166.332979]  ? __cached_rbnode_delete_update+0x36/0x202
+> > > > > > > [  166.332983]  kasan_report+0x247/0x285 [  166.332989]
+> > > > > > > __cached_rbnode_delete_update+0x36/0x202
+> > > > > > > [  166.332995]  private_free_iova+0x57/0x6d [  166.332999]
+> > > > > > > __free_iova+0x23/0x31 [  166.333011]
+> > > > > > > ipu3_dmamap_free+0x118/0x1d6 [ipu3_imgu]
+> > > > > >
+> > > > > > Thanks Laurent, I think this is a very good hint. It looks like
+> > > > > > we're basically freeing and already freed IOVA and corrupting
+> > > > > > some allocator state?
+> > > > >
+> > > > > Did you have any luck in reproducing and fixing this double free issue?
+> > > > >
+> > >
+> > > This issue is either hard to reproduce or comes with different
+> > > signatures with the updated yavta (that now supports meta output) with
+> > > the 4.4 kernel that I have been using.
+> > > I am switching to 4.20-rc6 for better reproducibility.
+> > > Enabling KASAN also results in storage space issues on my Chrome device.
+> > > Will enable this just for ImgU to get ahead and get back with more updates.
+> > >
+> >
+> > Thanks for testing this.
+> >
+> > For your informations I'm using the following branch, from Sakari's
+> > tree: git://linuxtv.org/sailus/media_tree.git ipu3
+> >
+> > Although it appears that the media tree master branch has everything that is
+> > there, with a few additional patches on top. I should move to use media tree
+> > master as well...
+> >
+> > I have here attached 2 configuration files for v4.20-rc5 I am using on Soraka, in
+> > case they might help you. One has KASAN enabled with an increased kernel
+> > log size, the other one is the one we use for daily development.
+>
+> I think I am missing a trick here to override the default chrome os kernel
+> config with the one that you supplied.
+>
+> In particular I am looking for steps to build the upstream kernel within chrome os
+> build environment using your config, so I can update my Soraka device.
 
-> 
-> Ayaka,
-> 
-> Would it be possible for you to re-send the P010/P016 documentation
-> for single plane, fixing the typo (simliar -> similar)?
-> 
-> Let's not merge the dual plane formats, as we don't need them
-> yet at the Kernel.
-> 
-> Thanks,
-> Mauro
+I'm sorry I can not help much building 'withing chrome os build
+environment'. Care to explain what you mean?
 
+What I usually do, provided you're running a debian-based Linux distro
+on your Soraka device, is compile the kernel on host with 'make bindeb-pkg'
+and then upload and install the resulting .deb package on the
+Soraka chromebook.
+
+If that might work for you, we can share more details on how to do so
+(tomorrow maybe :p )
+
+Thanks
+   j
+
+>
+> >
+> > Also, please make sure to use (the most) recent media-ctl and yavta utilities, as
+> > the ones provided by most distros are usually not recent enough to work with
+> > IPU3, but I'm sure you know that already ;)
+>
+> Ack
+>
+> >
+> > Thanks
+> >   j
+> >
+>
+> [snip]
+
+--27ihjddkqb567ax6
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEEtcQ9SICaIIqPWDjAcjQGjxahVjwFAlw2O2wACgkQcjQGjxah
+Vjy00hAAsBod2gtxIg9pA5pSHSXmYYt+FL9fETyxugPdhDk164XrtK5lxwrH0krg
+kf40HWIlSWJlHZdM2tNkMFWN9MfwC3kE0nrAxzK41c7NToe3ZF4xaxuYVfMX+h/v
++PF4JO0S1tJur1HsyiNvp0oKqpyzg3I1jqOvTIu5/HDrfa1Fd+BBwsvalkBLSKQ4
+e2/iH6h3XRNtGta/wTKuNqBGm/QwPGh5ntbQpzvI6lthsXse3p2eSBBWvET+aJlj
+gaVqtFabyM8ptzGxy+Ro+eTY9ZILgb2z/au4CNbukPv/SOP2gMHdI3B3UgDkiFqy
+R6u2GIaw8kBNwS9GvU7BLStfEu6xLCpqkdXTHxpW2Y+jju/tlOQuhSgPtJ+BFzHq
+nrQjhB/RkYwet7kFWRqVahWJaTVnNrYP+8G4KfBwMbGCVsi9sivmcuYt5f4zIHVo
+KE1Pjl9R/axvYIDbGYOIsE8mmBi+5sXICGbQ/6okheRz9u9g5x7KDVaR4OUuX1OO
+71ujqg+iKicKY0CbgITe8qja7qz3B7JzM7VYPykAk4aESCwi4M2w6EHf9bM3FSJN
+Us/Hg62EKxkMFyWx7wNT8v1LIpnUocz2vZY8lAcvaY7Zjd0di2VuZ4k425zKf+Wf
+Tqgi+nGNC31m0A8wVH7Gkb7wgF6yhiIyAQpVnVZBa4P1Ljt10gg=
+=Gly1
+-----END PGP SIGNATURE-----
+
+--27ihjddkqb567ax6--
