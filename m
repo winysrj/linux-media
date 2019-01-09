@@ -2,134 +2,166 @@ Return-Path: <SRS0=iic/=PR=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.4 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,LOCALPART_IN_SUBJECT,
-	MAILING_LIST_MULTI,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B09CC43387
-	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 00:35:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A13AC43387
+	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 01:30:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1D8CD20661
-	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 00:35:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D4E6E20821
+	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 01:30:23 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="DhM8xGe3"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="fY98/lb4"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728403AbfAIAf6 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 8 Jan 2019 19:35:58 -0500
-Received: from hqemgate15.nvidia.com ([216.228.121.64]:16745 "EHLO
-        hqemgate15.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727829AbfAIAf6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2019 19:35:58 -0500
-Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by hqemgate15.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-        id <B5c3541db0000>; Tue, 08 Jan 2019 16:35:39 -0800
-Received: from hqmail.nvidia.com ([172.20.161.6])
-  by hqpgpgate101.nvidia.com (PGP Universal service);
-  Tue, 08 Jan 2019 16:35:56 -0800
-X-PGP-Universal: processed;
-        by hqpgpgate101.nvidia.com on Tue, 08 Jan 2019 16:35:56 -0800
-Received: from HQMAIL109.nvidia.com (172.20.187.15) by HQMAIL107.nvidia.com
- (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1395.4; Wed, 9 Jan
- 2019 00:35:55 +0000
-Received: from NAM04-SN1-obe.outbound.protection.outlook.com (104.47.44.57) by
- HQMAIL109.nvidia.com (172.20.187.15) with Microsoft SMTP Server (TLS) id
- 15.0.1395.4 via Frontend Transport; Wed, 9 Jan 2019 00:35:55 +0000
-Received: from SN6PR12MB2813.namprd12.prod.outlook.com (52.135.100.27) by
- SN6PR12MB2781.namprd12.prod.outlook.com (52.135.107.144) with Microsoft SMTP
- Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.1495.6; Wed, 9 Jan 2019 00:35:54 +0000
-Received: from SN6PR12MB2813.namprd12.prod.outlook.com
- ([fe80::3c0b:d7cf:db30:5ff5]) by SN6PR12MB2813.namprd12.prod.outlook.com
- ([fe80::3c0b:d7cf:db30:5ff5%2]) with mapi id 15.20.1495.011; Wed, 9 Jan 2019
- 00:35:54 +0000
-From:   Bhanu Murthy V <bmurthyv@nvidia.com>
-To:     "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: RE: unsubscribe linux-media
-Thread-Topic: unsubscribe linux-media
-Thread-Index: AdSnsw4G84j/bjgkSuuW0k3dl8+7RQAACfZA
-Date:   Wed, 9 Jan 2019 00:35:54 +0000
-Message-ID: <SN6PR12MB2813CB952B0F063DBC057528B38B0@SN6PR12MB2813.namprd12.prod.outlook.com>
-References: <SN6PR12MB28138BF9EDDB2256E2889B68B38B0@SN6PR12MB2813.namprd12.prod.outlook.com>
-In-Reply-To: <SN6PR12MB28138BF9EDDB2256E2889B68B38B0@SN6PR12MB2813.namprd12.prod.outlook.com>
-Accept-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-msip_labels: MSIP_Label_6b558183-044c-4105-8d9c-cea02a2a3d86_Enabled=True;
- MSIP_Label_6b558183-044c-4105-8d9c-cea02a2a3d86_SiteId=43083d15-7273-40c1-b7db-39efd9ccc17a;
- MSIP_Label_6b558183-044c-4105-8d9c-cea02a2a3d86_Owner=bmurthyv@nvidia.com;
- MSIP_Label_6b558183-044c-4105-8d9c-cea02a2a3d86_SetDate=2019-01-09T00:34:22.3180838Z;
- MSIP_Label_6b558183-044c-4105-8d9c-cea02a2a3d86_Name=Unrestricted;
- MSIP_Label_6b558183-044c-4105-8d9c-cea02a2a3d86_Application=Microsoft Azure
- Information Protection;
- MSIP_Label_6b558183-044c-4105-8d9c-cea02a2a3d86_Extended_MSFT_Method=Automatic;
- Sensitivity=Unrestricted
-authentication-results: spf=none (sender IP is )
- smtp.mailfrom=bmurthyv@nvidia.com; 
-x-originating-ip: [216.228.112.22]
-x-ms-publictraffictype: Email
-x-microsoft-exchange-diagnostics: 1;SN6PR12MB2781;6:mACbG5+wPwPQIl8pX1FvdJ6M88kGHosugmW76d9/vKGvXorFQxoh/PI8Shv57PbgDnJ+YQhchKmhmDx/5oLDj52+fWh9C31gjHvs782wxJKKDHvFikkSSq7ryJ47Y6QUT36KgCrgFthM2BEdXk6wsOhVVK7QV29ayR+A6SjBS0QnwL0xC2vcU5p0uwOofqMcfwFVnV+jL0lwtEZdIlSfYqvnwrpWUXYYdKk7cVokG9prDDLGw/nqa35SWJdtKsk4jGGfRyW1Q5EqIDXUZbpc6zRYVf+PUe+QF8y38OOfKTYvxJCkwlq0JEvW7BQt2peOkFA/+umeFnX+zyIba0Z6fWyqmaJPkhHhUToS1W3jJlnAkNibICKxkKvL9AOCkQYCZcOBu4v8J5hM1kVSs6nLgkVQNkPwpOEzE3uCzvEwtoQwZViQFChieg5zZgB04MJlL1zMm4o0En2KqH0CG3PfIA==;5:LnLzTQoQ9W+7ROK5P0oss7N0iBa4txot7XADgG2iL7E8La9h+ThEfUhdjvM994QkRsC+YQFD2evY6hsoF6iOTeWXzER9Gw41jeEw21U3Kvo1i01DrkSmfcwkPFTqZHQVFJaRbZsTPy/kxr5rOFiMezSfyeAeg5ndhwR4QYfCgTpFbL1uAODEVAA2xKfhT0+OQRL/iYC6660fq8Vq8uI5pQ==;7:sE29O8mLnfFoUQwpZrUcQMTzMfRFNB6eWvdEZktBs5QwXwusMsChJei22eYKN5AW6uE9iESuO2ODFBi8vY5Grxj1O4vfZk/xthhR/Wmf1laTTON21AGAkEdGEDTFVaEgJ+95ppPXwa8iY0gGWYq5zw==
-x-ms-exchange-antispam-srfa-diagnostics: SOS;
-x-ms-office365-filtering-correlation-id: a3a7a812-33fc-425f-151e-08d675ca6a61
-x-microsoft-antispam: BCL:0;PCL:0;RULEID:(2390118)(7020095)(4652040)(8989299)(5600109)(711020)(4534185)(4627221)(201703031133081)(201702281549075)(8990200)(2017052603328)(7153060)(7193020);SRVR:SN6PR12MB2781;
-x-ms-traffictypediagnostic: SN6PR12MB2781:
-x-microsoft-antispam-prvs: <SN6PR12MB278142159E4FA09337E89DEDB38B0@SN6PR12MB2781.namprd12.prod.outlook.com>
-x-forefront-prvs: 0912297777
-x-forefront-antispam-report: SFV:NSPM;SFS:(10009020)(346002)(396003)(136003)(39860400002)(366004)(376002)(189003)(199004)(102836004)(186003)(6506007)(53936002)(26005)(2351001)(7736002)(305945005)(476003)(66066001)(11346002)(446003)(9686003)(19618925003)(8936002)(2906002)(55016002)(6246003)(6916009)(68736007)(74316002)(6116002)(3846002)(25786009)(5660300001)(99286004)(105586002)(106356001)(8676002)(4270600006)(7696005)(316002)(97736004)(558084003)(76176011)(256004)(6436002)(229853002)(5640700003)(2940100002)(86362001)(14454004)(486006)(3480700005)(93156006)(81156014)(71190400001)(71200400001)(81166006)(33656002)(2501003)(478600001);DIR:OUT;SFP:1101;SCL:1;SRVR:SN6PR12MB2781;H:SN6PR12MB2813.namprd12.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;MX:1;A:1;
-received-spf: None (protection.outlook.com: nvidia.com does not designate
- permitted sender hosts)
-x-ms-exchange-senderadcheck: 1
-x-microsoft-antispam-message-info: ggwZok3cKqxfmo7ugkcr6efU7UR1R9hAUqLawaHkp06PC5+Mosvpq06ma91t+4t69PoCNP+v/T/b3O0YDVEY8D3nRdzfbuj/eiVPXbb7N0z1uagT9e3YIcE8IznmIer1fS+2O6WZVrWdWdwDUGBIJmAlrmUHHX2fktUnGe830X5MBIY6ZoRtzS77N9oShtwLHlxp5RZk5FkFqM2lHvMwnn+IaC7oXCoDxEpbtEKdsRb1pXg73f3aNmBWhJS2gV7N9QsIM+bo8XT36YJNsNyjCOyJlBCgF/c/XD4Xh4uMlmgzmH/TzCnayQjCBZEjw82U
-spamdiagnosticoutput: 1:99
-spamdiagnosticmetadata: NSPM
+        id S1729624AbfAIBaX (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 8 Jan 2019 20:30:23 -0500
+Received: from mail-lj1-f193.google.com ([209.85.208.193]:35247 "EHLO
+        mail-lj1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729137AbfAIBaX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2019 20:30:23 -0500
+Received: by mail-lj1-f193.google.com with SMTP id x85-v6so5097376ljb.2
+        for <linux-media@vger.kernel.org>; Tue, 08 Jan 2019 17:30:21 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=L8yhIYjLqXs6LOxWn+8M8ybu8WxeKskZUxyHuGsNUJY=;
+        b=fY98/lb4TGY2BFtPccqrF1xbMYAlymE4noKMrFEaAcafexXRQLuHh4NJulcdobO38U
+         JUKNBwBnCUVUNIzJkWeO2DtrnYw4duiYXhFEkpVTArs6Z+xtVZLsYQsobafP0RAHLDUR
+         phRIc+dz3TNUT9svTm0rcLgiWQE9SuOEXNpPAGCQKe3ZMiSAyFRzxEJBolaPoVT9b8JK
+         IUbC0h6lh/LSvBy1sjYrol2EnFEuT0h1WUiSnOt4fgh1KuB5ZNaGMKo4n4LRHhpNUvBN
+         S/pkoReTeClXjL6Ze26bO94AHaRrPar4HrmgbNHdOd9fKqkFrdaif1/91sZvkRdW6KgF
+         QjDQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=L8yhIYjLqXs6LOxWn+8M8ybu8WxeKskZUxyHuGsNUJY=;
+        b=YmGjvaTjBB+3aXUBSrY2xJZbRlEX+PHwYG+FpgslXonlljd9bSMK6c4UKbJluog1nG
+         A3jSC8hFTlm+x5m7ZqN+GVsn6TRidjtO+jz428ktJFHS+6MSVrqWt7sV44nH4fdvUF2P
+         RtU3m3iaFBtJ5HOqiAJTBfZtAs3AbWhbDWDSPzVw3kcMDaHNAdo53S7ZJjxI9si+HbPl
+         Q1wbhpWBD0Ja9X0mycfXq2aVJLh8UOJW9kR5oWNsP1otQnAkGl2Te1yoJB3thqFbZSlL
+         6TXOlVN3rniICgx/nKH9NPvACO/J3bPslbMehUFe5Mf4PdzaQK8ZScxqaYHp2VuJzj1l
+         W1yQ==
+X-Gm-Message-State: AJcUuke0F60212OTJdveq/wHruSWhjpjcpnsBitF1QOuc0RSCofgm/2Y
+        dxjN3Cjn8PR9MAIZeg39e92/1Dha3DzbY7TtlA==
+X-Google-Smtp-Source: ALg8bN6cGJYiJdK9EOpfzOLwSZv9Y57sQNgunsBfmWPwWnjM7Xu38odGPdL9SgKzuzbZOlKhnCwKHkyeIgVZrLxLLJw=
+X-Received: by 2002:a2e:b04f:: with SMTP id d15-v6mr2471762ljl.3.1546997420750;
+ Tue, 08 Jan 2019 17:30:20 -0800 (PST)
 MIME-Version: 1.0
-X-MS-Exchange-CrossTenant-Network-Message-Id: a3a7a812-33fc-425f-151e-08d675ca6a61
-X-MS-Exchange-CrossTenant-originalarrivaltime: 09 Jan 2019 00:35:54.7204
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SN6PR12MB2781
-X-OriginatorOrg: Nvidia.com
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-        t=1546994139; bh=BxY0z5eWGPPWISLhEWCbiUD9lLTqSKmOBuQ6BQHsIzM=;
-        h=X-PGP-Universal:From:To:Subject:Thread-Topic:Thread-Index:Date:
-         Message-ID:References:In-Reply-To:Accept-Language:X-MS-Has-Attach:
-         X-MS-TNEF-Correlator:msip_labels:authentication-results:
-         x-originating-ip:x-ms-publictraffictype:
-         x-microsoft-exchange-diagnostics:
-         x-ms-exchange-antispam-srfa-diagnostics:
-         x-ms-office365-filtering-correlation-id:x-microsoft-antispam:
-         x-ms-traffictypediagnostic:x-microsoft-antispam-prvs:
-         x-forefront-prvs:x-forefront-antispam-report:received-spf:
-         x-ms-exchange-senderadcheck:x-microsoft-antispam-message-info:
-         spamdiagnosticoutput:spamdiagnosticmetadata:MIME-Version:
-         X-MS-Exchange-CrossTenant-Network-Message-Id:
-         X-MS-Exchange-CrossTenant-originalarrivaltime:
-         X-MS-Exchange-CrossTenant-fromentityheader:
-         X-MS-Exchange-CrossTenant-id:
-         X-MS-Exchange-Transport-CrossTenantHeadersStamped:X-OriginatorOrg:
-         Content-Language:Content-Type:Content-Transfer-Encoding;
-        b=DhM8xGe38HhCQdD5RQPgw3GhFyUmFHbMukyF7qfJpH+VhPWMgQK6OLmwDIKwkyn3P
-         rtzm1w7UwDrz+vnz83TG+0iRJE0v2GoRS8bfpL0V2J9Uf9yTYoI3W59ydJsiOR/ADC
-         hJgEfnHTYpd7rpoUDdMcdwr+0j66S0O0EMxgJ9GCufhlQLuex5fMSVOjSDHWZRiiCU
-         XzqPOlJcyX2TwkWt9c7eTAK+GPlJVIZYlPP0o/XEUgYZAMtZn3r6hAHb0x+uM3r30E
-         lBlvCS1KhtCoLRNeRT4q6lZ4Lhu/Cfy4EEU1Y0jH+w3+HrkKbKWBnJIBZ2iiZU4Ug/
-         b9RwdCdqiLAFg==
+References: <CADwFkYdCXY5my5DW=qGJcJBDpjtZpRHXN6h4H2geneekiOzCgg@mail.gmail.com>
+ <3268a1a8-1712-52b2-e0e4-c6a98f003d75@xs4all.nl> <CADwFkYevGQKMkK6nQd3qp2qTLUo2=2zBR5d-0HAGLoMpsnz5ew@mail.gmail.com>
+In-Reply-To: <CADwFkYevGQKMkK6nQd3qp2qTLUo2=2zBR5d-0HAGLoMpsnz5ew@mail.gmail.com>
+From:   Yi Qingliang <niqingliang2003@gmail.com>
+Date:   Wed, 9 Jan 2019 09:30:09 +0800
+Message-ID: <CADwFkYdpCqno=V4YRS7C_cngKuoBMc_E5nkDs8vQEwZp8kcqqw@mail.gmail.com>
+Subject: Re: epoll and vb2_poll: can't wake_up
+To:     Hans Verkuil <hverkuil@xs4all.nl>
+Cc:     linux-media@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-unsubscribe linux-media
--------------------------------------------------------------------------=
-----------
-This email message is for the sole use of the intended recipient(s) and m=
-ay contain
-confidential information.  Any unauthorized review, use, disclosure or di=
-stribution
-is prohibited.  If you are not the intended recipient, please contact the=
-=20sender by
-reply email and destroy all copies of the original message.
--------------------------------------------------------------------------=
-----------
+the first patch can work on freescale's 4.1.2 kernel ! My case maybe
+can't cover other changes.
+
+in file drivers/media/v4l2-core/videobuf-core.c, the function
+'videobuf_poll_stream' may return POLLERR without calling 'poll_wait',
+it looks like different with 'vb2_poll''s process, maybe need further
+check.
+
+Thanks!
+
+Yi Qingliang
+
+
+On Mon, Jan 7, 2019 at 2:29 PM Yi Qingliang <niqingliang2003@gmail.com> wrote:
+>
+> Thanks! It should work now.
+> BTW, I don't know if we should think about the error case before
+> calling poll_wait, just like not streamon.
+> if poll return error, does epoll framework need and how to remove
+> waiter for client?
+> for epoll framework, does it have some requirements or some tutorial
+> for the implementation of client's poll?
+>
+> and I think it's better to split the two operation: adding waiter and
+> polling, not only for epoll framework, and also for all clients.
+>
+> Yi Qingliang
+>
+> On Mon, Jan 7, 2019 at 1:45 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> >
+> > On 12/29/2018 03:10 AM, Yi Qingliang wrote:
+> > > Hello, I encountered a "can't wake_up" problem when use camera on imx6.
+> > >
+> > > if delay some time after 'streamon' the /dev/video0, then add fd
+> > > through epoll_ctl, then the process can't be waken_up after some time.
+> > >
+> > > I checked both the epoll / vb2_poll(videobuf2_core.c) code.
+> > >
+> > > epoll will pass 'poll_table' structure to vb2_poll, but it only
+> > > contain valid function pointer when inserting fd.
+> > >
+> > > in vb2_poll, if found new data in done list, it will not call 'poll_wait'.
+> > > after that, every call to vb2_poll will not contain valid poll_table,
+> > > which will result in all calling to poll_wait will not work.
+> > >
+> > > so if app can process frames quickly, and found frame data when
+> > > inserting fd (i.e. poll_wait will not be called or not contain valid
+> > > function pointer), it will not found valid frame in 'vb2_poll' finally
+> > > at some time, then call 'poll_wait' to expect be waken up at following
+> > > vb2_buffer_done, but no good luck.
+> > >
+> > > I also checked the 'videobuf-core.c', there is no this problem.
+> > >
+> > > of course, both epoll and vb2_poll are right by itself side, but the
+> > > result is we can't get new frames.
+> > >
+> > > I think by epoll's implementation, the user should always call poll_wait.
+> > >
+> > > and it's better to split the two actions: 'wait' and 'poll' both for
+> > > epoll framework and all epoll users, for example, v4l2.
+> > >
+> > > am I right?
+> > >
+> > > Yi Qingliang
+> > >
+> >
+> > Can you test this patch?
+> >
+> > Looking at what other drivers/frameworks do it seems that calling
+> > poll_wait() at the start of the poll function is the right approach.
+> >
+> > Regards,
+> >
+> >         Hans
+> >
+> > Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+> > ---
+> > diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
+> > index 70e8c3366f9c..b1809628475d 100644
+> > --- a/drivers/media/common/videobuf2/videobuf2-core.c
+> > +++ b/drivers/media/common/videobuf2/videobuf2-core.c
+> > @@ -2273,6 +2273,8 @@ __poll_t vb2_core_poll(struct vb2_queue *q, struct file *file,
+> >         struct vb2_buffer *vb = NULL;
+> >         unsigned long flags;
+> >
+> > +       poll_wait(file, &q->done_wq, wait);
+> > +
+> >         if (!q->is_output && !(req_events & (EPOLLIN | EPOLLRDNORM)))
+> >                 return 0;
+> >         if (q->is_output && !(req_events & (EPOLLOUT | EPOLLWRNORM)))
+> > @@ -2329,8 +2331,6 @@ __poll_t vb2_core_poll(struct vb2_queue *q, struct file *file,
+> >                  */
+> >                 if (q->last_buffer_dequeued)
+> >                         return EPOLLIN | EPOLLRDNORM;
+> > -
+> > -               poll_wait(file, &q->done_wq, wait);
+> >         }
+> >
+> >         /*
