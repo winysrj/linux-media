@@ -2,45 +2,61 @@ Return-Path: <SRS0=iic/=PR=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=0.1 required=3.0 tests=DATE_IN_PAST_06_12,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS autolearn=no
+X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 399D5C43387
-	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 19:50:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F48CC43387
+	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 19:57:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 091DC21773
-	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 19:50:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 543172177B
+	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 19:57:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728747AbfAITu0 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 9 Jan 2019 14:50:26 -0500
-Received: from destinchamber.com ([185.244.39.84]:56435 "EHLO catchco.com"
-        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1728745AbfAITu0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 9 Jan 2019 14:50:26 -0500
-To:     linux-media@vger.kernel.org
-Subject: Path your photos?
-Message-ID: <833e1f597b4b86888658d5f5044067a2@annthegran.com>
-Date:   Wed, 09 Jan 2019 09:59:29 +0100
-From:   "Jane" <jeffopreinteerpearnlop@verizon.net>
-Reply-To: sunchekam@sina.com
+        id S1728539AbfAIT5W (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 9 Jan 2019 14:57:22 -0500
+Received: from kozue.soulik.info ([108.61.200.231]:41632 "EHLO
+        kozue.soulik.info" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727123AbfAIT5W (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Jan 2019 14:57:22 -0500
+Received: from misaki.sumomo.pri (unknown [IPv6:2001:470:b30d:2:c604:15ff:0:401])
+        by kozue.soulik.info (Postfix) with ESMTPA id 8A7C0100C2B;
+        Thu, 10 Jan 2019 04:58:02 +0900 (JST)
+From:   Randy Li <ayaka@soulik.info>
+To:     dri-devel@lists.freedesktop.org
+Cc:     mchehab+samsung@kernel.org, mikhail.v.gavrilov@gmail.com,
+        laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
+        sakari.ailus@iki.fi, daniel@fooishbar.org, mchehab@kernel.org,
+        linux-kernel@vger.kernel.org, maarten.lankhorst@linux.intel.com,
+        maxime.ripard@bootlin.com, sean@poorly.run, airlied@linux.ie,
+        daniel@ffwll.ch, Randy Li <ayaka@soulik.info>
+Subject: [PATCH v10 0/2] Add pixel format for 10 bits YUV video
+Date:   Thu, 10 Jan 2019 03:57:08 +0800
+Message-Id: <20190109195710.28501-1-ayaka@soulik.info>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-Content-Type: text/plain; format=flowed; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Do you have photos for editing? We asked this because we see your photos on
-your website.
+As the requirement from:
+P010 fourcc format support - Was: Re: Kernel error "Unknown pixelformat
+0x00000000" occurs when I start capture video
 
-We mainly supply service for photos cut out , clipping path, and
-retouching.
+I don't know which device would support the P010, P012, P016 video pixel
+format, but Rockchip would support that NV12_10LE40 and a patch for that
+driver is sent before.
 
-You may just send us a photo, we can provide you test editing to check
-quality.
+Randy Li (2):
+  drm/fourcc: Add new P010, P016 video format
+  drm/fourcc: add a 10bits fully packed variant of NV12
 
-Thanks,
-Jane
+ drivers/gpu/drm/drm_fourcc.c  | 13 +++++++++++++
+ include/uapi/drm/drm_fourcc.h | 29 +++++++++++++++++++++++++++++
+ 2 files changed, 42 insertions(+)
+
+-- 
+2.20.1
 
