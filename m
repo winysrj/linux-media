@@ -2,220 +2,153 @@ Return-Path: <SRS0=iic/=PR=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-3.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 53F4EC43612
-	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 00:13:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DD12EC43387
+	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 00:16:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2093720883
-	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 00:13:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 991512146F
+	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 00:16:01 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="qeWwZJ4S"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="uaBrSV6c"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729100AbfAIAN6 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 8 Jan 2019 19:13:58 -0500
-Received: from perceval.ideasonboard.com ([213.167.242.64]:41670 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727917AbfAIAN6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2019 19:13:58 -0500
-Received: from avalon.localnet (dfj612ybrt5fhg77mgycy-3.rev.dnainternet.fi [IPv6:2001:14ba:21f5:5b00:2e86:4862:ef6a:2804])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 5EDDA586;
-        Wed,  9 Jan 2019 01:13:55 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1546992835;
-        bh=AkbaQOxZMi9tm3sFg5IQOR9ZFyELl2xqpYQHngZEugM=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=qeWwZJ4Sbo4rROc5VWCNZZ7KENPvaRbpOEqDuV0a5Zx6ZlkcaLCXUkeLDyq8mQ+Hn
-         XHfoxNy5O2F8MxgsOzoBTBqSzderoi2qKqomr60fGRsaFial41h74HVfdphcvZXpaC
-         HmChPIyF3/YS8gNI8CUzutWqK4PTjqY3l2zU3QIw=
-From:   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To:     kieran.bingham@ideasonboard.com
-Cc:     Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        niklas.soderlund+renesas@ragnatech.se, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH v2 6/6] media: adv748x: Implement TX link_setup callback
-Date:   Wed, 09 Jan 2019 02:15:04 +0200
-Message-ID: <1722143.vWDHCLa8RZ@avalon>
-Organization: Ideas on Board Oy
-In-Reply-To: <9f156850-14b6-3ca2-47c1-e03e1bc2c0f8@ideasonboard.com>
-References: <20190106155413.30666-1-jacopo+renesas@jmondi.org> <20190106155413.30666-7-jacopo+renesas@jmondi.org> <9f156850-14b6-3ca2-47c1-e03e1bc2c0f8@ideasonboard.com>
+        id S1729049AbfAIAQB (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 8 Jan 2019 19:16:01 -0500
+Received: from mail-pg1-f195.google.com ([209.85.215.195]:39506 "EHLO
+        mail-pg1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727917AbfAIAQB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2019 19:16:01 -0500
+Received: by mail-pg1-f195.google.com with SMTP id w6so2466095pgl.6
+        for <linux-media@vger.kernel.org>; Tue, 08 Jan 2019 16:16:00 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=bMNUpxRj4/pBRSVHw3woE1Ev0ED6tCM8PUguzRVtR94=;
+        b=uaBrSV6cjGbE5/onGRsZJhjx0NiIbkGY0e9hq+A1Nf2zLaW7v9TSMQjaHARU0Z0RBt
+         J+/ZsVcYwcL/NUS88NHC2k0UvkedgoGsJOJbdvc9QqSoC3agF4Mnp6vF4FWSl2EYwVX1
+         H8h6D3qjhTg6liR5Sgen3ZyN02gvvAi934F7hZ32pOBIKlbN7P/9M8E4lb8v71lC69aa
+         9WlXi/pbNMrkMhyhiAoDN67ZNRDEy8U4yyjfD7hP4eopDMPXH8pZUpdDMOEzhDcht4Dy
+         R1moD+f+tb1+XGv8mf+cJbnklwk/sQJXM1Ww3dFhH81ldRII0HE7rlEXbBqiGmqdToUc
+         nqXQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=bMNUpxRj4/pBRSVHw3woE1Ev0ED6tCM8PUguzRVtR94=;
+        b=uQV012vtdxlnnFjz6ZKfWuj9Hx6MNzPOanuA4i5qn1DFNYGz9MDAZ9FxcwO0uSrMEh
+         yRYs/TDYcMFkM2cGh635KWunAiFiqf/xERHM2YrsDYJlD/fshZinN2kcyTQY7+TI56yn
+         ra6u6Ngx28nckSAFf1mx40wALqjz5GHLlVaszCKWNRbzoL0Mds+e/Kj85G1eKfdDRlpd
+         JRLmd4rF2hsIEQxJ6UG1cy8ocCGjmualv1E68us2mYXju4FstxrUCi5LkD77OLwbKtQ5
+         PIJNKLYFjKXwi8BrXGFGOLaXLqHGVHxU6HM54PjTKwIR4BHk2Vzc3KecAakclePz5vrg
+         N4sA==
+X-Gm-Message-State: AJcUukejlbf/lvEHxn0lWGfRSkW5uoNO8LV3hz8FNx9Qgpnot9ZnlW3V
+        uDf+jFOxT5MqJLgnjQUbKyD18S+o
+X-Google-Smtp-Source: ALg8bN6Cz8OH4J0ywX4TyHe4tf5wFEnwK+5rtqhr3TsTLOZDy1SLGeZOeWSdaJa9rKGZNzdqYOa2Mw==
+X-Received: by 2002:a62:3241:: with SMTP id y62mr3798553pfy.178.1546992959207;
+        Tue, 08 Jan 2019 16:15:59 -0800 (PST)
+Received: from majic.sklembedded.com (c-98-210-181-167.hsd1.ca.comcast.net. [98.210.181.167])
+        by smtp.googlemail.com with ESMTPSA id 134sm83978490pgb.78.2019.01.08.16.15.57
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Tue, 08 Jan 2019 16:15:58 -0800 (PST)
+From:   Steve Longerbeam <slongerbeam@gmail.com>
+To:     linux-media@vger.kernel.org
+Cc:     Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v6 00/12] imx-media: Fixes for interlaced capture
+Date:   Tue,  8 Jan 2019 16:15:39 -0800
+Message-Id: <20190109001551.16113-1-slongerbeam@gmail.com>
+X-Mailer: git-send-email 2.17.1
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hello,
+From: Steve Longerbeam <steve_longerbeam@mentor.com>
 
-On Monday, 7 January 2019 14:36:28 EET Kieran Bingham wrote:
-> On 06/01/2019 15:54, Jacopo Mondi wrote:
-> > When the adv748x driver is informed about a link being created from HDMI
-> > or AFE to a CSI-2 TX output, the 'link_setup()' callback is invoked. Make
-> > sure to implement proper routing management at link setup time, to route
-> > the selected video stream to the desired TX output.
-> 
-> Overall this looks like the right approach - but I feel like the
-> handling of the io10 register might need some consideration, because
-> it's value depends on the condition of both CSI2 transmitters, not just
-> the currently parsed link.
-> 
-> I had a go at some pseudo - uncompiled/untested code inline as a suggestion.
-> 
-> If you think it's better - feel free to rework it in ... or not as you
-> see fit.
-> 
-> > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> > ---
-> > 
-> >  drivers/media/i2c/adv748x/adv748x-core.c | 57 +++++++++++++++++++++++-
-> >  drivers/media/i2c/adv748x/adv748x.h      |  2 +
-> >  2 files changed, 58 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/media/i2c/adv748x/adv748x-core.c
-> > b/drivers/media/i2c/adv748x/adv748x-core.c index
-> > 200e00f93546..a586bf393558 100644
-> > --- a/drivers/media/i2c/adv748x/adv748x-core.c
-> > +++ b/drivers/media/i2c/adv748x/adv748x-core.c
-> > @@ -335,6 +335,60 @@ int adv748x_tx_power(struct adv748x_csi2 *tx, bool
-> > on)
-> >  /* ----------------------------------------------------------------------
-> >   * Media Operations
-> >   */
-> > +static int adv748x_link_setup(struct media_entity *entity,
-> > +			      const struct media_pad *local,
-> > +			      const struct media_pad *remote, u32 flags)
-> > +{
-> > +	struct v4l2_subdev *rsd = media_entity_to_v4l2_subdev(remote->entity);
-> > +	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
-> > +	struct adv748x_state *state = v4l2_get_subdevdata(sd);
-> > +	struct adv748x_csi2 *tx = adv748x_sd_to_csi2(sd);
-> > +	bool enable = flags & MEDIA_LNK_FL_ENABLED;
-> > +	u8 io10;
-> > +
-> > +	/* Refuse to enable multiple links to the same TX at the same time. */
-> > +	if (enable && tx->src)
-> > +		return -EINVAL;
-> > +
-> > +	/* Set or clear the source (HDMI or AFE) and the current TX. */
-> > +	if (rsd == &state->afe.sd)
-> > +		state->afe.tx = enable ? tx : NULL;
-> > +	else
-> > +		state->hdmi.tx = enable ? tx : NULL;
-> > +
-> > +	tx->src = enable ? rsd : NULL;
-> > +
-> > +	if (!enable)
-> > +		return 0;
-> 
-> Don't we potentially want to take any action on disable to power down
-> links below ?
-> 
-> > +
-> > +	/* Change video stream routing, according to the newly enabled link. */
-> > +	io10 = io_read(state, ADV748X_IO_10);
-> > +	if (rsd == &state->afe.sd) {
-> > +		/*
-> > +		 * Set AFE->TXA routing and power off TXB if AFE goes to TXA.
-> > +		 * if AFE goes to TXB, we need both TXA and TXB powered on.
-> > +		 */
-> > +		io10 &= ~ADV748X_IO_10_CSI1_EN;
-> > +		io10 &= ~ADV748X_IO_10_CSI4_IN_SEL_AFE;
-> > +		if (is_txa(tx))
-> > +			io10 |= ADV748X_IO_10_CSI4_IN_SEL_AFE;
-> 
-> Shouldn't the CSI4 be enabled here too? or are we assuming it's already
-> (/always) enabled?
-> 		io10 |= ADV748X_IO_10_CSI4_EN;
-> 
-> > +		else
-> > +			io10 |= ADV748X_IO_10_CSI4_EN |
-> > +				ADV748X_IO_10_CSI1_EN;
-> > +	} else {
-> > +		/* Clear AFE->TXA routing and power up TXA. */
-> > +		io10 &= ~ADV748X_IO_10_CSI4_IN_SEL_AFE;
-> > +		io10 |= ADV748X_IO_10_CSI4_EN;
-> 
-> But if we assume it's already enabled ... do we need this?
-> Perhaps it might be better to be explicit on this?
-> 
-> > +	}
-> > +	io_write(state, ADV748X_IO_10, io10);
-> 
-> Would it be any cleaner to use io_clrset() here?
-> 
-> Hrm ... also it feels like this register really should be set depending
-> upon the complete state of ... &state->...
-> 
-> So perhaps it deserves it's own function which should be called after
-> csi_registered() callback and any link change.
-> 
-> /me has a quick go at some psuedo codeishness...:
-> 
-> int adv74x_io_10(struct adv748x_state *state);
-> 	u8 bits = 0;
-> 	u8 mask = ADV748X_IO_10_CSI1_EN
-> 
-> 		| ADV748X_IO_10_CSI4_EN
-> 		| ADV748X_IO_10_CSI4_IN_SEL_AFE;
-> 
-> 	if (state->afe.tx) {
-> 		/* AFE Requires TXA enabled, even when output to TXB */
-> 		bits |= ADV748X_IO_10_CSI4_EN;
-> 
-> 		if (is_txa(state->afe.tx))
-> 			bits |= ADV748X_IO_10_CSI4_IN_SEL_AFE
-> 		else
-> 			bits |= ADV748X_IO_10_CSI1_EN;
-> 	}
-> 
-> 	if (state->hdmi.tx) {
-> 		bits |= ADV748X_IO_10_CSI4_EN;
-> 	}
-> 
-> 	return io_clrset(state, ADV748X_IO_10, mask, bits);
-> }
-> 
-> How does that look ? (is it even correct first?)
-> 
-> > +
-> > +	return 0;
-> > +}
-> > +
-> > +static const struct media_entity_operations adv748x_tx_media_ops = {
-> > +	.link_setup	= adv748x_link_setup,
-> > +	.link_validate	= v4l2_subdev_link_validate,
-> > +};
-> > 
-> >  static const struct media_entity_operations adv748x_media_ops = {
-> >  	.link_validate = v4l2_subdev_link_validate,
-> > @@ -516,7 +570,8 @@ void adv748x_subdev_init(struct v4l2_subdev *sd,
-> > struct adv748x_state *state,
-> >  		state->client->addr, ident);
-> >  	
-> >  	sd->entity.function = function;
-> > -	sd->entity.ops = &adv748x_media_ops;
-> > +	sd->entity.ops = is_tx(adv748x_sd_to_csi2(sd)) ?
-> > +			 &adv748x_tx_media_ops : &adv748x_media_ops;
-> 
-> Aha - yes that's a neat solution to ensure that only the TX links
-> generate link_setup calls :)
+A set of patches that fixes some bugs with capturing from an
+interlaced source, and incompatibilites between IDMAC interlace
+interweaving and 4:2:0 data write reduction.
 
-Another option would be to bail out from adv748x_link_setup() if the entity is 
-not a TX*.
+History:
+v6:
+- Changes to patch "gpu: ipu-csi: Swap fields according to input/output
+  field types" suggested by Philipp Zabel.
 
-> >  }
+v5:
+- Added a regression fix to allow empty endpoints to CSI (fix for imx6q
+  SabreAuto).
+- Cleaned up some convoluted code in ipu_csi_init_interface(), suggested
+  by Philipp Zabel.
+- Fixed a regression in csi_setup(), caught by Philipp.
+- Removed interweave_offset and replace with boolean interweave_swap,
+  suggested by Philipp.
+- Make clear that it is IDMAC channel that does pixel reordering and
+  interweave, not the CSI, in the imx.rst doc, caught by Philipp.
 
-[snip]
+v4:
+- rebased to latest media-tree master branch.
+- Make patch author and SoB email addresses the same.
+
+v3:
+- add support for/fix interweaved scan with YUV planar output.
+- fix bug in 4:2:0 U/V offset macros.
+- add patch that generalizes behavior of field swap in
+  ipu_csi_init_interface().
+- add support for interweaved scan with field order swap.
+  Suggested by Philipp Zabel.
+- in v2, inteweave scan was determined using field types of
+  CSI (and PRPENCVF) at the sink and source pads. In v3, this
+  has been moved one hop downstream: interweave is now determined
+  using field type at source pad, and field type selected at
+  capture interface. Suggested by Philipp.
+- make sure to double CSI crop target height when input field
+  type in alternate.
+- more updates to media driver doc to reflect above.
+
+v2:
+- update media driver doc.
+- enable idmac interweave only if input field is sequential/alternate,
+  and output field is 'interlaced*'.
+- move field try logic out of *try_fmt and into separate function.
+- fix bug with resetting crop/compose rectangles.
+- add a patch that fixes a field order bug in VDIC indirect mode.
+- remove alternate field type from V4L2_FIELD_IS_SEQUENTIAL() macro
+  Suggested-by: Nicolas Dufresne <nicolas@ndufresne.ca>.
+- add macro V4L2_FIELD_IS_INTERLACED().
+
+
+Steve Longerbeam (12):
+  media: videodev2.h: Add more field helper macros
+  gpu: ipu-csi: Swap fields according to input/output field types
+  gpu: ipu-v3: Add planar support to interlaced scan
+  media: imx: Fix field negotiation
+  media: imx-csi: Input connections to CSI should be optional
+  media: imx-csi: Double crop height for alternate fields at sink
+  media: imx: interweave and odd-chroma-row skip are incompatible
+  media: imx-csi: Allow skipping odd chroma rows for YVU420
+  media: imx: vdic: rely on VDIC for correct field order
+  media: imx-csi: Move crop/compose reset after filling default mbus
+    fields
+  media: imx: Allow interweave with top/bottom lines swapped
+  media: imx.rst: Update doc to reflect fixes to interlaced capture
+
+ Documentation/media/v4l-drivers/imx.rst       | 103 ++++++++----
+ drivers/gpu/ipu-v3/ipu-cpmem.c                |  26 ++-
+ drivers/gpu/ipu-v3/ipu-csi.c                  | 126 +++++++++-----
+ drivers/staging/media/imx/imx-ic-prpencvf.c   |  46 +++--
+ drivers/staging/media/imx/imx-media-capture.c |  14 ++
+ drivers/staging/media/imx/imx-media-csi.c     | 158 +++++++++++++-----
+ drivers/staging/media/imx/imx-media-vdic.c    |  12 +-
+ include/uapi/linux/videodev2.h                |   7 +
+ include/video/imx-ipu-v3.h                    |   8 +-
+ 9 files changed, 355 insertions(+), 145 deletions(-)
 
 -- 
-Regards,
-
-Laurent Pinchart
-
-
+2.17.1
 
