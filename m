@@ -2,150 +2,142 @@ Return-Path: <SRS0=iic/=PR=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D457AC43444
-	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 14:17:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E6A58C43387
+	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 14:20:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A2B35206BB
-	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 14:17:15 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="lND13toB"
+	by mail.kernel.org (Postfix) with ESMTP id BEEAA2075C
+	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 14:20:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731280AbfAIORP (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 9 Jan 2019 09:17:15 -0500
-Received: from perceval.ideasonboard.com ([213.167.242.64]:56588 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731169AbfAIORO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Jan 2019 09:17:14 -0500
-Received: from [192.168.0.21] (cpc89242-aztw30-2-0-cust488.18-1.cable.virginm.net [86.31.129.233])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 7D70F56D;
-        Wed,  9 Jan 2019 15:17:12 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1547043432;
-        bh=cobIEMcBujl5imWVimZO0JciZDHVgH5rK4SWKFDwGIE=;
-        h=Reply-To:Subject:From:To:Cc:References:Date:In-Reply-To:From;
-        b=lND13toBf03WERDRu4ORuUcSUNDlOL5nb0IPX2Cd9EIXiUZ497ZNdNHQFZrZVj/U6
-         i3bRDV48BP3FgzIL6sYRyufqAf1ia1HJEhRY+PH/4RyGa5Ag0dYPAfE/CYx43bVzgN
-         eR7Y3n8yf7TMLIp4oHbcVIUXGzRT7YRNqNQ4ML7w=
-Reply-To: kieran.bingham@ideasonboard.com
-Subject: Re: [PATCH v2 6/6] media: adv748x: Implement TX link_setup callback
-From:   Kieran Bingham <kieran.bingham@ideasonboard.com>
-To:     Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        laurent.pinchart@ideasonboard.com,
-        niklas.soderlund+renesas@ragnatech.se
-Cc:     linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-References: <20190106155413.30666-1-jacopo+renesas@jmondi.org>
- <20190106155413.30666-7-jacopo+renesas@jmondi.org>
- <9f156850-14b6-3ca2-47c1-e03e1bc2c0f8@ideasonboard.com>
-Openpgp: preference=signencrypt
-Autocrypt: addr=kieran.bingham@ideasonboard.com; keydata=
- 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
- sbsRB8KNNvVXBOVNwko86rQqF9drZuw=
-Organization: Ideas on Board
-Message-ID: <92e07880-e662-3e83-15cd-9b09cd2ac867@ideasonboard.com>
-Date:   Wed, 9 Jan 2019 14:17:10 +0000
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.2.1
+        id S1731296AbfAIOUc (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 9 Jan 2019 09:20:32 -0500
+Received: from mail.bootlin.com ([62.4.15.54]:44930 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1730415AbfAIOUb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 9 Jan 2019 09:20:31 -0500
+Received: by mail.bootlin.com (Postfix, from userid 110)
+        id E9EEC20A11; Wed,  9 Jan 2019 15:20:28 +0100 (CET)
+Received: from localhost.localdomain (aaubervilliers-681-1-45-241.w90-88.abo.wanadoo.fr [90.88.163.241])
+        by mail.bootlin.com (Postfix) with ESMTPSA id 4BA65209C2;
+        Wed,  9 Jan 2019 15:20:18 +0100 (CET)
+From:   Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+To:     linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com
+Cc:     Maxime Ripard <maxime.ripard@bootlin.com>,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Chen-Yu Tsai <wens@csie.org>, Randy Li <ayaka@soulik.info>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Ezequiel Garcia <ezequiel@collabora.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>
+Subject: [PATCH 2/2] media: cedrus: Allow using the current dst buffer as reference
+Date:   Wed,  9 Jan 2019 15:19:20 +0100
+Message-Id: <20190109141920.12677-2-paul.kocialkowski@bootlin.com>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20190109141920.12677-1-paul.kocialkowski@bootlin.com>
+References: <20190109141920.12677-1-paul.kocialkowski@bootlin.com>
 MIME-Version: 1.0
-In-Reply-To: <9f156850-14b6-3ca2-47c1-e03e1bc2c0f8@ideasonboard.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Jacopo,
+It was reported that some cases of interleaved video decoding require
+using the current destination buffer as a reference. However, this is
+no longer possible after the move to vb2_find_timestamp because only
+dequeued and done buffers are considered.
 
-One more comment below:
+Add a helper in our driver that also considers the current destination
+buffer before resorting to vb2_find_timestamp and use it in MPEG-2.
 
-On 07/01/2019 12:36, Kieran Bingham wrote:
-> Hi Jacopo,
-> 
-> On 06/01/2019 15:54, Jacopo Mondi wrote:
->> When the adv748x driver is informed about a link being created from HDMI or
->> AFE to a CSI-2 TX output, the 'link_setup()' callback is invoked. Make
->> sure to implement proper routing management at link setup time, to route
->> the selected video stream to the desired TX output.>
+Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+---
+ drivers/staging/media/sunxi/cedrus/cedrus_dec.c   | 13 +++++++++++++
+ drivers/staging/media/sunxi/cedrus/cedrus_dec.h   |  2 ++
+ drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c | 10 ++++++----
+ 3 files changed, 21 insertions(+), 4 deletions(-)
 
-<snip>
-
->>  static int adv748x_parse_csi2_lanes(struct adv748x_state *state,
->> diff --git a/drivers/media/i2c/adv748x/adv748x.h b/drivers/media/i2c/adv748x/adv748x.h
->> index 6eb2e4a95eed..eb19c6cbbb4e 100644
->> --- a/drivers/media/i2c/adv748x/adv748x.h
->> +++ b/drivers/media/i2c/adv748x/adv748x.h
->> @@ -93,6 +93,7 @@ struct adv748x_csi2 {
->>  
->>  #define is_tx_enabled(_tx) ((_tx)->state->endpoints[(_tx)->port] != NULL)
->>  #define __is_tx(_tx, _ab) ((_tx) == &(_tx)->state->tx##_ab)
->> +#define is_tx(_tx) (is_txa(_tx) || is_txb(_tx))
-
-I'd put this /after/ is_txa/is_txb so that the use is after the
-declarations.
---
-KB
-
-
->>  #define is_txa(_tx) __is_tx(_tx, a)
->>  #define is_txb(_tx) __is_tx(_tx, b)
->>  
->> @@ -224,6 +225,7 @@ struct adv748x_state {
->>  #define ADV748X_IO_10_CSI4_EN		BIT(7)
->>  #define ADV748X_IO_10_CSI1_EN		BIT(6)
->>  #define ADV748X_IO_10_PIX_OUT_EN	BIT(5)
->> +#define ADV748X_IO_10_CSI4_IN_SEL_AFE	BIT(3)
->>  
->>  #define ADV748X_IO_CHIP_REV_ID_1	0xdf
->>  #define ADV748X_IO_CHIP_REV_ID_2	0xe0
->>
-> 
-
+diff --git a/drivers/staging/media/sunxi/cedrus/cedrus_dec.c b/drivers/staging/media/sunxi/cedrus/cedrus_dec.c
+index 443fb037e1cf..2c295286766c 100644
+--- a/drivers/staging/media/sunxi/cedrus/cedrus_dec.c
++++ b/drivers/staging/media/sunxi/cedrus/cedrus_dec.c
+@@ -22,6 +22,19 @@
+ #include "cedrus_dec.h"
+ #include "cedrus_hw.h"
+ 
++int cedrus_reference_index_find(struct vb2_queue *queue,
++				struct vb2_buffer *vb2_buf, u64 timestamp)
++{
++	/*
++	 * Allow using the current capture buffer as reference, which can occur
++	 * for field-coded pictures.
++	 */
++	if (vb2_buf->timestamp == timestamp)
++		return vb2_buf->index;
++	else
++		return vb2_find_timestamp(queue, timestamp, 0);
++}
++
+ void cedrus_device_run(void *priv)
+ {
+ 	struct cedrus_ctx *ctx = priv;
+diff --git a/drivers/staging/media/sunxi/cedrus/cedrus_dec.h b/drivers/staging/media/sunxi/cedrus/cedrus_dec.h
+index d1ae7903677b..8d0fc248220f 100644
+--- a/drivers/staging/media/sunxi/cedrus/cedrus_dec.h
++++ b/drivers/staging/media/sunxi/cedrus/cedrus_dec.h
+@@ -16,6 +16,8 @@
+ #ifndef _CEDRUS_DEC_H_
+ #define _CEDRUS_DEC_H_
+ 
++int cedrus_reference_index_find(struct vb2_queue *queue,
++				struct vb2_buffer *vb2_buf, u64 timestamp);
+ void cedrus_device_run(void *priv);
+ 
+ #endif
+diff --git a/drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c b/drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c
+index cb45fda9aaeb..81c66a8aa1ac 100644
+--- a/drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c
++++ b/drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c
+@@ -10,6 +10,7 @@
+ #include <media/videobuf2-dma-contig.h>
+ 
+ #include "cedrus.h"
++#include "cedrus_dec.h"
+ #include "cedrus_hw.h"
+ #include "cedrus_regs.h"
+ 
+@@ -159,8 +160,8 @@ static void cedrus_mpeg2_setup(struct cedrus_ctx *ctx, struct cedrus_run *run)
+ 	cedrus_write(dev, VE_DEC_MPEG_PICBOUNDSIZE, reg);
+ 
+ 	/* Forward and backward prediction reference buffers. */
+-	forward_idx = vb2_find_timestamp(cap_q,
+-					 slice_params->forward_ref_ts, 0);
++	forward_idx = cedrus_reference_index_find(cap_q, &run->dst->vb2_buf,
++						  slice_params->forward_ref_ts);
+ 
+ 	fwd_luma_addr = cedrus_dst_buf_addr(ctx, forward_idx, 0);
+ 	fwd_chroma_addr = cedrus_dst_buf_addr(ctx, forward_idx, 1);
+@@ -168,8 +169,9 @@ static void cedrus_mpeg2_setup(struct cedrus_ctx *ctx, struct cedrus_run *run)
+ 	cedrus_write(dev, VE_DEC_MPEG_FWD_REF_LUMA_ADDR, fwd_luma_addr);
+ 	cedrus_write(dev, VE_DEC_MPEG_FWD_REF_CHROMA_ADDR, fwd_chroma_addr);
+ 
+-	backward_idx = vb2_find_timestamp(cap_q,
+-					  slice_params->backward_ref_ts, 0);
++	backward_idx = cedrus_reference_index_find(cap_q, &run->dst->vb2_buf,
++						   slice_params->backward_ref_ts);
++
+ 	bwd_luma_addr = cedrus_dst_buf_addr(ctx, backward_idx, 0);
+ 	bwd_chroma_addr = cedrus_dst_buf_addr(ctx, backward_idx, 1);
+ 
 -- 
-Regards
---
-Kieran
+2.20.1
+
