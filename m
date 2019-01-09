@@ -5,54 +5,55 @@ X-Spam-Level:
 X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B127C43387
-	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 18:17:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A9B18C43387
+	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 18:17:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 25F5C20859
-	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 18:17:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7C74720859
+	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 18:17:50 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="mmPB6zPH"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="P2FSjtA/"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727701AbfAISQ7 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 9 Jan 2019 13:16:59 -0500
-Received: from mail-pg1-f196.google.com ([209.85.215.196]:33335 "EHLO
-        mail-pg1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727685AbfAISQ6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Jan 2019 13:16:58 -0500
-Received: by mail-pg1-f196.google.com with SMTP id z11so3664877pgu.0;
-        Wed, 09 Jan 2019 10:16:57 -0800 (PST)
+        id S1727386AbfAISRo (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 9 Jan 2019 13:17:44 -0500
+Received: from mail-pl1-f196.google.com ([209.85.214.196]:41250 "EHLO
+        mail-pl1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726503AbfAISQ7 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Jan 2019 13:16:59 -0500
+Received: by mail-pl1-f196.google.com with SMTP id u6so3936127plm.8;
+        Wed, 09 Jan 2019 10:16:58 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=4LfVC7K9jhQHp0MEPczGn12glxH+9AGZnYjQefJqoZo=;
-        b=mmPB6zPH1biY+MT6p3y5gjzTFeYJd8PMRYrMvyxKGDm8/7siqgOxidldjTNtPbFMv3
-         Wd8dKQnR/J6BQiOQsgwR3oJygeJNWzXCsGW+eXBjD+Qs0EcOIZ00N15fB9YM6enDg7pV
-         ib70KFndUei2B1ILrA0GY8So5QQdujl50GZOnd2lV4+iD2aNZF4hFaCnxzZTARvn3zO/
-         dZYqvJrycQC5hsVjnuoffdxmwKcPUpjcoPfFkxC8v1Koz3g4kEAY/960TEXLmJpvefMh
-         783N7kSAgw14EIdce34J8dj9XNvYk7Xh0U8SGay3b9+rXkNAZ2M0Bqu76jZvtHruhW7V
-         GDdg==
+        bh=SvPBX07XjgOGjqAl4kODKrCpf2pdSaymIbWsAOXzlto=;
+        b=P2FSjtA/AFIUJ0B7E2bHY8ZlHE06kJgOgbNdMaudi2t93LLFehOHn6hGIQ1TKVqMrZ
+         6hk+Y3MPEJsFj3fID1Bykg0MjyUF9QCfMlLsRBMnrssULuFv8TkobyA2DTaczoXjTvIq
+         u612sq2vDON6162mxNN5WBTgMwJ5uqCj43nkkXRvdy0Co5Yah5eBGtbUVv8CfPr8CZ74
+         NJSvaIMP92D+vwTBQRhdZr3xDmS49miEy/HjF67Z1VglHpPXFIGoAsNI55dEI2/M3dGV
+         xo9GPYpFuTYXEk/KzDoeqc+LIfx7TXM9XhYiVSfyzXGF/RWozTNPN30yr7NPOEEe18G+
+         YKIA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references;
-        bh=4LfVC7K9jhQHp0MEPczGn12glxH+9AGZnYjQefJqoZo=;
-        b=oL4rzM7ELu/xnDjhPo0bIdZ0QcjHYgV4d+qBTvPtlgzyoaOHNe1uy6qvzgxzRB+TWC
-         +deJmoFxTeVozDfVNeVolsh7tX2LzPfGIbz+ftwqU0Zv8H5f4KXqwLqkYphJMZRO8MYT
-         vcmv4kJGTg6dM1Rnk11zreBCwLaEu9m5ftE9k3HqVpXi2dmYBZoyUa1zy8rozSiMdbOo
-         wHKUDI22+lwArt6XzqpH3hBSSlIth2Pql6+CIIMaswdJOmcIYHm2wqMnsdZB62uSkl6j
-         S7be/wyKtEWzWUsHTOsA8vO5HfdNOUCMyoj+6AwAMfUp3UwrYTaXlHIfGb9ZAlCO155N
-         RYOg==
-X-Gm-Message-State: AJcUukfYpVtbaqw232Scsxy0aeLhSYOS9j11pBcc+58ZGO1vW1Fkdq9h
-        SOFMjwtf80xLBV/sIOaB4vgX+Lhx
-X-Google-Smtp-Source: ALg8bN4sg61tdB3EOEztTod7T4vQUvCux3n4GNiuFwSEnq5WmUVMlOwHOX0uaRzpwnzGKU4j+hnOrg==
-X-Received: by 2002:a63:2f07:: with SMTP id v7mr5980713pgv.368.1547057816055;
-        Wed, 09 Jan 2019 10:16:56 -0800 (PST)
+        bh=SvPBX07XjgOGjqAl4kODKrCpf2pdSaymIbWsAOXzlto=;
+        b=HD9Ow16CuaVFDGP30ozuqiDPGjGlMrKL6oz15ibs8y8miwIvcKkZKjmQBATspt6IFs
+         PTHCEodY09qIBC4hNkYfwtEmax+D0iJeO8cyvKppdIC5TkdbvedoyWCC+PxMJEdY3pmc
+         JsChdxnmYqopg1ur4nJfGFjnMH9gHZ7AfJpPo1JYhW0WWXpUlhta7vVEoW7mdhS/2gd9
+         W+k/QqhKuqmlzpdqrPR8fupmxaWW8hpN2UDFuHT8GXvjvRO0UkP9/NJIqRtDtTl5XjDE
+         Cb/g8eEkfZ3Z4JVWC1lm7ZKXIUvZ15GlLt0b1E0bwrIn2n2x+7nPR4Ue/h2ET/1RdHwX
+         yCdA==
+X-Gm-Message-State: AJcUukffcMS2+Yk4JWq9MsLKYsgmpK63qS5ouYQlBBGAacdKZtBQNKJ2
+        u6nUtg4en26WA0es9I3I1pNMhHGa
+X-Google-Smtp-Source: ALg8bN5RpekqRXGkMC78h9iYu2I/BwvLr7u6xQvL8c5whTr0h/chvEiQaDFPi374W/bA4g77awVTmg==
+X-Received: by 2002:a17:902:8d95:: with SMTP id v21mr7082951plo.162.1547057817818;
+        Wed, 09 Jan 2019 10:16:57 -0800 (PST)
 Received: from majic.sklembedded.com (c-98-210-181-167.hsd1.ca.comcast.net. [98.210.181.167])
-        by smtp.googlemail.com with ESMTPSA id h19sm97030004pfn.114.2019.01.09.10.16.54
+        by smtp.googlemail.com with ESMTPSA id h19sm97030004pfn.114.2019.01.09.10.16.56
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 09 Jan 2019 10:16:55 -0800 (PST)
+        Wed, 09 Jan 2019 10:16:56 -0800 (PST)
 From:   Steve Longerbeam <slongerbeam@gmail.com>
 To:     linux-media@vger.kernel.org
 Cc:     Steve Longerbeam <slongerbeam@gmail.com>,
@@ -61,9 +62,9 @@ Cc:     Steve Longerbeam <slongerbeam@gmail.com>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         devel@driverdev.osuosl.org (open list:STAGING SUBSYSTEM),
         linux-kernel@vger.kernel.org (open list)
-Subject: [PATCH v7 04/11] media: imx: Fix field negotiation
-Date:   Wed,  9 Jan 2019 10:16:34 -0800
-Message-Id: <20190109181642.19378-5-slongerbeam@gmail.com>
+Subject: [PATCH v7 05/11] media: imx-csi: Double crop height for alternate fields at sink
+Date:   Wed,  9 Jan 2019 10:16:35 -0800
+Message-Id: <20190109181642.19378-6-slongerbeam@gmail.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20190109181642.19378-1-slongerbeam@gmail.com>
 References: <20190109181642.19378-1-slongerbeam@gmail.com>
@@ -72,271 +73,77 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-IDMAC interlaced scan, a.k.a. interweave, should be enabled in the
-IDMAC output channels only if the IDMAC output pad field type is
-'seq-bt' or 'seq-tb', and field type at the capture interface is
-'interlaced*'.
-
-V4L2_FIELD_HAS_BOTH() macro should not be used on the input to determine
-enabling interlaced/interweave scan. That macro includes the 'interlaced'
-field types, and in those cases the data is already interweaved with
-top/bottom field lines.
-
-The CSI will capture whole frames when the source specifies alternate
-field mode. So the CSI also enables interweave for alternate input
-field type and the field type at capture interface is interlaced.
-
-Fix the logic for setting field type in try_fmt in CSI entity.
-The behavior should be:
-
-- No restrictions on field type at sink pad.
-
-- At the output pads, allow sequential fields in TB order, if the sink pad
-  field type is sequential or alternate. Otherwise passthrough the field
-  type from sink to source pad.
-
-Move this logic to new function csi_try_field().
-
-These changes result in the following allowed field transformations
-from CSI sink -> source pads (all other field types at sink are passed
-through to source):
-
-seq-tb -> seq-tb
-seq-bt -> seq-tb
-alternate -> seq-tb
-
-In a future patch, the CSI sink -> source will allow:
-
-seq-tb -> seq-bt
-seq-bt -> seq-bt
-alternate -> seq-bt
-
-This will require supporting interweave with top/bottom line swapping.
-Until then seq-bt is not allowed at the CSI source pad because there is
-no way to swap top/bottom lines when interweaving to INTERLACED_BT --
-note that despite the name, INTERLACED_BT is top-bottom order in memory.
-The BT in this case refers to field dominance: the bottom lines are
-older in time than the top lines.
-
-The capture interface device allows selecting IDMAC interweave by
-choosing INTERLACED_TB if the CSI/PRPENCVF source pad is seq-tb and
-INTERLACED_BT if the source pad is seq-bt (for future support of seq-bt).
+If the incoming sink field type is alternate, the reset crop height
+and crop height bounds must be set to twice the incoming height,
+because in alternate field mode, upstream will report only the
+lines for a single field, and the CSI captures the whole frame.
 
 Signed-off-by: Steve Longerbeam <slongerbeam@gmail.com>
 Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/staging/media/imx/imx-ic-prpencvf.c   | 21 ++++--
- drivers/staging/media/imx/imx-media-capture.c | 14 ++++
- drivers/staging/media/imx/imx-media-csi.c     | 64 ++++++++++++++-----
- 3 files changed, 76 insertions(+), 23 deletions(-)
+ drivers/staging/media/imx/imx-media-csi.c | 20 +++++++++++++++-----
+ 1 file changed, 15 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/staging/media/imx/imx-ic-prpencvf.c b/drivers/staging/media/imx/imx-ic-prpencvf.c
-index af7224846bd5..1a03d4c9d7b8 100644
---- a/drivers/staging/media/imx/imx-ic-prpencvf.c
-+++ b/drivers/staging/media/imx/imx-ic-prpencvf.c
-@@ -354,12 +354,13 @@ static int prp_setup_channel(struct prp_priv *priv,
- {
- 	struct imx_media_video_dev *vdev = priv->vdev;
- 	const struct imx_media_pixfmt *outcc;
--	struct v4l2_mbus_framefmt *infmt;
-+	struct v4l2_mbus_framefmt *outfmt;
- 	unsigned int burst_size;
- 	struct ipu_image image;
-+	bool interweave;
- 	int ret;
- 
--	infmt = &priv->format_mbus[PRPENCVF_SINK_PAD];
-+	outfmt = &priv->format_mbus[PRPENCVF_SRC_PAD];
- 	outcc = vdev->cc;
- 
- 	ipu_cpmem_zero(channel);
-@@ -369,6 +370,15 @@ static int prp_setup_channel(struct prp_priv *priv,
- 	image.rect.width = image.pix.width;
- 	image.rect.height = image.pix.height;
- 
-+	/*
-+	 * If the field type at capture interface is interlaced, and
-+	 * the output IDMAC pad is sequential, enable interweave at
-+	 * the IDMAC output channel.
-+	 */
-+	interweave = V4L2_FIELD_IS_INTERLACED(image.pix.field) &&
-+		V4L2_FIELD_IS_SEQUENTIAL(outfmt->field) &&
-+		channel == priv->out_ch;
-+
- 	if (rot_swap_width_height) {
- 		swap(image.pix.width, image.pix.height);
- 		swap(image.rect.width, image.rect.height);
-@@ -409,9 +419,7 @@ static int prp_setup_channel(struct prp_priv *priv,
- 	if (rot_mode)
- 		ipu_cpmem_set_rotation(channel, rot_mode);
- 
--	if (image.pix.field == V4L2_FIELD_NONE &&
--	    V4L2_FIELD_HAS_BOTH(infmt->field) &&
--	    channel == priv->out_ch)
-+	if (interweave)
- 		ipu_cpmem_interlaced_scan(channel, image.pix.bytesperline,
- 					  image.pix.pixelformat);
- 
-@@ -839,8 +847,7 @@ static void prp_try_fmt(struct prp_priv *priv,
- 	infmt = __prp_get_fmt(priv, cfg, PRPENCVF_SINK_PAD, sdformat->which);
- 
- 	if (sdformat->pad == PRPENCVF_SRC_PAD) {
--		if (sdformat->format.field != V4L2_FIELD_NONE)
--			sdformat->format.field = infmt->field;
-+		sdformat->format.field = infmt->field;
- 
- 		prp_bound_align_output(&sdformat->format, infmt,
- 				       priv->rot_mode);
-diff --git a/drivers/staging/media/imx/imx-media-capture.c b/drivers/staging/media/imx/imx-media-capture.c
-index b37e1186eb2f..01ec9443de55 100644
---- a/drivers/staging/media/imx/imx-media-capture.c
-+++ b/drivers/staging/media/imx/imx-media-capture.c
-@@ -239,6 +239,20 @@ static int capture_try_fmt_vid_cap(struct file *file, void *fh,
- 		cc = cc_src;
- 	}
- 
-+	/* allow IDMAC interweave but enforce field order from source */
-+	if (V4L2_FIELD_IS_INTERLACED(f->fmt.pix.field)) {
-+		switch (fmt_src.format.field) {
-+		case V4L2_FIELD_SEQ_TB:
-+			fmt_src.format.field = V4L2_FIELD_INTERLACED_TB;
-+			break;
-+		case V4L2_FIELD_SEQ_BT:
-+			fmt_src.format.field = V4L2_FIELD_INTERLACED_BT;
-+			break;
-+		default:
-+			break;
-+		}
-+	}
-+
- 	imx_media_mbus_fmt_to_pix_fmt(&f->fmt.pix, &fmt_src.format, cc);
- 
- 	return 0;
 diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-index da4808348845..e3a4f39dbf73 100644
+index e3a4f39dbf73..10945cbdbd71 100644
 --- a/drivers/staging/media/imx/imx-media-csi.c
 +++ b/drivers/staging/media/imx/imx-media-csi.c
-@@ -398,16 +398,18 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
- 	struct imx_media_video_dev *vdev = priv->vdev;
- 	const struct imx_media_pixfmt *incc;
- 	struct v4l2_mbus_framefmt *infmt;
-+	struct v4l2_mbus_framefmt *outfmt;
-+	bool passthrough, interweave;
- 	struct ipu_image image;
- 	u32 passthrough_bits;
- 	u32 passthrough_cycles;
- 	dma_addr_t phys[2];
--	bool passthrough;
- 	u32 burst_size;
- 	int ret;
- 
- 	infmt = &priv->format_mbus[CSI_SINK_PAD];
- 	incc = priv->cc[CSI_SINK_PAD];
-+	outfmt = &priv->format_mbus[CSI_SRC_PAD_IDMAC];
- 
- 	ipu_cpmem_zero(priv->idmac_ch);
- 
-@@ -424,6 +426,14 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
- 	passthrough = requires_passthrough(&priv->upstream_ep, infmt, incc);
- 	passthrough_cycles = 1;
- 
-+	/*
-+	 * If the field type at capture interface is interlaced, and
-+	 * the output IDMAC pad is sequential, enable interweave at
-+	 * the IDMAC output channel.
-+	 */
-+	interweave = V4L2_FIELD_IS_INTERLACED(image.pix.field) &&
-+		V4L2_FIELD_IS_SEQUENTIAL(outfmt->field);
+@@ -1142,6 +1142,8 @@ static void csi_try_crop(struct csi_priv *priv,
+ 			 struct v4l2_mbus_framefmt *infmt,
+ 			 struct v4l2_fwnode_endpoint *upstream_ep)
+ {
++	u32 in_height;
 +
- 	switch (image.pix.pixelformat) {
- 	case V4L2_PIX_FMT_SBGGR8:
- 	case V4L2_PIX_FMT_SGBRG8:
-@@ -509,8 +519,7 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
+ 	crop->width = min_t(__u32, infmt->width, crop->width);
+ 	if (crop->left + crop->width > infmt->width)
+ 		crop->left = infmt->width - crop->width;
+@@ -1149,6 +1151,10 @@ static void csi_try_crop(struct csi_priv *priv,
+ 	crop->left &= ~0x3;
+ 	crop->width &= ~0x7;
  
- 	ipu_smfc_set_burstsize(priv->smfc, burst_size);
- 
--	if (image.pix.field == V4L2_FIELD_NONE &&
--	    V4L2_FIELD_HAS_BOTH(infmt->field))
-+	if (interweave)
- 		ipu_cpmem_interlaced_scan(priv->idmac_ch,
- 					  image.pix.bytesperline,
- 					  image.pix.pixelformat);
-@@ -1304,6 +1313,38 @@ static int csi_get_fmt(struct v4l2_subdev *sd,
- 	return ret;
++	in_height = infmt->height;
++	if (infmt->field == V4L2_FIELD_ALTERNATE)
++		in_height *= 2;
++
+ 	/*
+ 	 * FIXME: not sure why yet, but on interlaced bt.656,
+ 	 * changing the vertical cropping causes loss of vertical
+@@ -1158,12 +1164,12 @@ static void csi_try_crop(struct csi_priv *priv,
+ 	if (upstream_ep->bus_type == V4L2_MBUS_BT656 &&
+ 	    (V4L2_FIELD_HAS_BOTH(infmt->field) ||
+ 	     infmt->field == V4L2_FIELD_ALTERNATE)) {
+-		crop->height = infmt->height;
+-		crop->top = (infmt->height == 480) ? 2 : 0;
++		crop->height = in_height;
++		crop->top = (in_height == 480) ? 2 : 0;
+ 	} else {
+-		crop->height = min_t(__u32, infmt->height, crop->height);
+-		if (crop->top + crop->height > infmt->height)
+-			crop->top = infmt->height - crop->height;
++		crop->height = min_t(__u32, in_height, crop->height);
++		if (crop->top + crop->height > in_height)
++			crop->top = in_height - crop->height;
+ 	}
  }
  
-+static void csi_try_field(struct csi_priv *priv,
-+			  struct v4l2_subdev_pad_config *cfg,
-+			  struct v4l2_subdev_format *sdformat)
-+{
-+	struct v4l2_mbus_framefmt *infmt =
-+		__csi_get_fmt(priv, cfg, CSI_SINK_PAD, sdformat->which);
-+
-+	/* no restrictions on sink pad field type */
-+	if (sdformat->pad == CSI_SINK_PAD)
-+		return;
-+
-+	switch (infmt->field) {
-+	case V4L2_FIELD_SEQ_TB:
-+	case V4L2_FIELD_SEQ_BT:
-+	case V4L2_FIELD_ALTERNATE:
-+		/*
-+		 * If the sink is sequential or alternating fields,
-+		 * allow only SEQ_TB at the source.
-+		 *
-+		 * This driver does not support alternate field mode, and
-+		 * the CSI captures a whole frame, so the CSI never presents
-+		 * alternate mode at its source pads.
-+		 */
-+		sdformat->format.field = V4L2_FIELD_SEQ_TB;
-+		break;
-+	default:
-+		/* Passthrough for all other input field types */
-+		sdformat->format.field = infmt->field;
-+		break;
-+	}
-+}
-+
- static void csi_try_fmt(struct csi_priv *priv,
- 			struct v4l2_fwnode_endpoint *upstream_ep,
- 			struct v4l2_subdev_pad_config *cfg,
-@@ -1343,25 +1384,14 @@ static void csi_try_fmt(struct csi_priv *priv,
- 			}
- 		}
- 
--		if (sdformat->pad == CSI_SRC_PAD_DIRECT ||
--		    sdformat->format.field != V4L2_FIELD_NONE)
--			sdformat->format.field = infmt->field;
--
--		/*
--		 * translate V4L2_FIELD_ALTERNATE to SEQ_TB or SEQ_BT
--		 * depending on input height (assume NTSC top-bottom
--		 * order if 480 lines, otherwise PAL bottom-top order).
--		 */
--		if (sdformat->format.field == V4L2_FIELD_ALTERNATE) {
--			sdformat->format.field =  (infmt->height == 480) ?
--				V4L2_FIELD_SEQ_TB : V4L2_FIELD_SEQ_BT;
--		}
-+		csi_try_field(priv, cfg, sdformat);
- 
- 		/* propagate colorimetry from sink */
- 		sdformat->format.colorspace = infmt->colorspace;
- 		sdformat->format.xfer_func = infmt->xfer_func;
- 		sdformat->format.quantization = infmt->quantization;
- 		sdformat->format.ycbcr_enc = infmt->ycbcr_enc;
-+
+@@ -1403,6 +1409,8 @@ static void csi_try_fmt(struct csi_priv *priv,
+ 		crop->top = 0;
+ 		crop->width = sdformat->format.width;
+ 		crop->height = sdformat->format.height;
++		if (sdformat->format.field == V4L2_FIELD_ALTERNATE)
++			crop->height *= 2;
+ 		csi_try_crop(priv, crop, cfg, &sdformat->format, upstream_ep);
+ 		compose->left = 0;
+ 		compose->top = 0;
+@@ -1530,6 +1538,8 @@ static int csi_get_selection(struct v4l2_subdev *sd,
+ 		sel->r.top = 0;
+ 		sel->r.width = infmt->width;
+ 		sel->r.height = infmt->height;
++		if (infmt->field == V4L2_FIELD_ALTERNATE)
++			sel->r.height *= 2;
  		break;
- 	case CSI_SINK_PAD:
- 		v4l_bound_align_image(&sdformat->format.width, MIN_W, MAX_W,
-@@ -1389,6 +1419,8 @@ static void csi_try_fmt(struct csi_priv *priv,
- 			sdformat->format.code = (*cc)->codes[0];
- 		}
- 
-+		csi_try_field(priv, cfg, sdformat);
-+
- 		imx_media_fill_default_mbus_fields(
- 			&sdformat->format, infmt,
- 			priv->active_output_pad == CSI_SRC_PAD_DIRECT);
+ 	case V4L2_SEL_TGT_CROP:
+ 		sel->r = *crop;
 -- 
 2.17.1
 
