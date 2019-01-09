@@ -2,144 +2,187 @@ Return-Path: <SRS0=iic/=PR=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.7 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_NEOMUTT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 282F1C43387
-	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 18:18:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 800A0C43387
+	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 18:18:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id ECCFF206B6
-	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 18:18:00 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1547057881;
-	bh=313J75pRSdWBx+s0b8l0AI9icPNGOqqYuBfcA0aYkkE=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
-	b=wYDXgTzQV1tXz6/znssFK5+jvZKhWgbx8zUXMK+GKipBVpHLphPesgD/952NCTIvS
-	 jYL6tnTboDDs6rKJ/P9go/yVvfuKw7xK3HRL2QB7DJGf9QgNqTjwRnsX9ZXTwdiMW9
-	 s5U7U28zLiXdUlj9q5O8B3AClvuYtCzkaaLRGAZw=
+	by mail.kernel.org (Postfix) with ESMTP id 4C4D9206B6
+	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 18:18:04 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Lyahv7FK"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726721AbfAISRz (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 9 Jan 2019 13:17:55 -0500
-Received: from mail.kernel.org ([198.145.29.99]:53828 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726282AbfAISRy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 9 Jan 2019 13:17:54 -0500
-Received: from earth.universe (dyndsl-095-033-009-186.ewe-ip-backbone.de [95.33.9.186])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C50FD20859;
-        Wed,  9 Jan 2019 18:17:52 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1547057872;
-        bh=313J75pRSdWBx+s0b8l0AI9icPNGOqqYuBfcA0aYkkE=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=IxD1sY1xWGN1Xj1uhaGkjogiFUVrTr+rTdaZlCkVb+QmL2oWJW9xMEbAn2WBmxQKh
-         JXjKYCvdoQ102NFbso0wQl/MRQFbMF0dqaMNCNXLSq+1lsLDDcsai50afnehBrRtUS
-         TcMwM8XaxxBuEDGjFWyrYtXmGtODKfb4jxYnc95o=
-Received: by earth.universe (Postfix, from userid 1000)
-        id F18763C08E2; Wed,  9 Jan 2019 19:17:50 +0100 (CET)
-Date:   Wed, 9 Jan 2019 19:17:50 +0100
-From:   Sebastian Reichel <sre@kernel.org>
-To:     Pavel Machek <pavel@ucw.cz>
-Cc:     Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Marcel Holtmann <marcel@holtmann.org>,
-        Tony Lindgren <tony@atomide.com>,
-        Rob Herring <robh@kernel.org>,
+        id S1727665AbfAISQ4 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 9 Jan 2019 13:16:56 -0500
+Received: from mail-pg1-f196.google.com ([209.85.215.196]:35435 "EHLO
+        mail-pg1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727649AbfAISQ4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Jan 2019 13:16:56 -0500
+Received: by mail-pg1-f196.google.com with SMTP id s198so3663373pgs.2;
+        Wed, 09 Jan 2019 10:16:55 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:in-reply-to:references;
+        bh=4N7ojczW0kjHmDJMWNYmDjBpUir6wWRrzDKNFy4GszY=;
+        b=Lyahv7FKoDdYwh7bib8JjifyGKFgDxWBbx7CE8z0sZ9ebOziV1IV3pFqDAjrUw01Ci
+         aWj0uRrf5RaA7TPKkeBpSgzv4uoKF3zqt8DALAUej3uwC5qK6pwkVEHWmZpGafZk9i/p
+         qnlCU0OMBKPXBosfJfIBfhjYVZUanhimNYWdepF8/b6VinuZUKj4p6JD9qC3QkVwZ0m9
+         5lqywR0PVJlI+skU1Q0JAO616YV2BuIg35PFT+nXPcH5q1ll3Yjg8fQqqzX8S7t54oPV
+         K2TRJRUvBz4UApnWqZeY1KvHqvd2a7oONXdZL0Mio53mmJfWQDQ8Tac7CUA0kGzCy24N
+         7wOA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references;
+        bh=4N7ojczW0kjHmDJMWNYmDjBpUir6wWRrzDKNFy4GszY=;
+        b=TiXQ8AwpxWihcZ39mS/zIvxUZk023fWyF9n6uxP4/G91BRjLqAAzG3JbU0c9vCaiQ5
+         t/OuJr+B3UcpR4TxXXQDxivAPtmBSdPiWfQwreG3PEgmbNmPqcyhhMtqUqWp8SDkUQBv
+         TsrHGWG1l2dsoWjnWnmj0n/gD+eAMzDDDsf39Wg+JrcIy/WoFyv0ExowWa4iWL21THkG
+         CEa2pHWKh91Emovf8b00np0Yqwx9hdOQtt9HptvU5tJ0CYBr/j6tDAdZ71ab/3q0pBrP
+         DTInGR8WEXxXKgMqJCibPkH8voEVyZjMYo6CF2UeBPlgDVTM5LX+nuylvOzx4mF2YNg/
+         lSTA==
+X-Gm-Message-State: AJcUukd/xybmj46B4lXkwiXUrA9QlDp9LNuaqr+UjZOaajGBRt/yJ6hM
+        5c5xZp+7qwPej+ZFT6PHDczewhJf
+X-Google-Smtp-Source: ALg8bN4zyfPen9WA9SHmkQaDZApgW9wCC+VdYU6dNO+I+cSKQYnXS8k5Ng8f6lt1lyR5JOljrRBgWQ==
+X-Received: by 2002:a63:1408:: with SMTP id u8mr6402757pgl.271.1547057814345;
+        Wed, 09 Jan 2019 10:16:54 -0800 (PST)
+Received: from majic.sklembedded.com (c-98-210-181-167.hsd1.ca.comcast.net. [98.210.181.167])
+        by smtp.googlemail.com with ESMTPSA id h19sm97030004pfn.114.2019.01.09.10.16.52
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 09 Jan 2019 10:16:53 -0800 (PST)
+From:   Steve Longerbeam <slongerbeam@gmail.com>
+To:     linux-media@vger.kernel.org
+Cc:     Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-bluetooth@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 10/14] media: wl128x-radio: simplify
- fmc_prepare/fmc_release
-Message-ID: <20190109181750.lqcm2bhg4wubuavu@earth.universe>
-References: <20181221011752.25627-1-sre@kernel.org>
- <20181221011752.25627-11-sre@kernel.org>
- <20181222192934.GA15237@amd>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="a7a3feumpr3jovsz"
-Content-Disposition: inline
-In-Reply-To: <20181222192934.GA15237@amd>
-User-Agent: NeoMutt/20180716
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        dri-devel@lists.freedesktop.org (open list:DRM DRIVERS FOR FREESCALE
+        IMX), linux-kernel@vger.kernel.org (open list),
+        devel@driverdev.osuosl.org (open list:STAGING SUBSYSTEM),
+        linux-fbdev@vger.kernel.org (open list:FRAMEBUFFER LAYER)
+Subject: [PATCH v7 03/11] gpu: ipu-v3: Add planar support to interlaced scan
+Date:   Wed,  9 Jan 2019 10:16:33 -0800
+Message-Id: <20190109181642.19378-4-slongerbeam@gmail.com>
+X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20190109181642.19378-1-slongerbeam@gmail.com>
+References: <20190109181642.19378-1-slongerbeam@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
+To support interlaced scan with planar formats, cpmem SLUV must
+be programmed with the correct chroma line stride. For full and
+partial planar 4:2:2 (YUV422P, NV16), chroma line stride must
+be doubled. For full and partial planar 4:2:0 (YUV420, YVU420, NV12),
+chroma line stride must _not_ be doubled, since a single chroma line
+is shared by two luma lines.
 
---a7a3feumpr3jovsz
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Steve Longerbeam <slongerbeam@gmail.com>
+Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
+Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/gpu/ipu-v3/ipu-cpmem.c              | 26 +++++++++++++++++++--
+ drivers/staging/media/imx/imx-ic-prpencvf.c |  3 ++-
+ drivers/staging/media/imx/imx-media-csi.c   |  3 ++-
+ include/video/imx-ipu-v3.h                  |  3 ++-
+ 4 files changed, 30 insertions(+), 5 deletions(-)
 
-Hi Pavel,
+diff --git a/drivers/gpu/ipu-v3/ipu-cpmem.c b/drivers/gpu/ipu-v3/ipu-cpmem.c
+index 163fadb8a33a..d047a6867c59 100644
+--- a/drivers/gpu/ipu-v3/ipu-cpmem.c
++++ b/drivers/gpu/ipu-v3/ipu-cpmem.c
+@@ -277,9 +277,10 @@ void ipu_cpmem_set_uv_offset(struct ipuv3_channel *ch, u32 u_off, u32 v_off)
+ }
+ EXPORT_SYMBOL_GPL(ipu_cpmem_set_uv_offset);
+ 
+-void ipu_cpmem_interlaced_scan(struct ipuv3_channel *ch, int stride)
++void ipu_cpmem_interlaced_scan(struct ipuv3_channel *ch, int stride,
++			       u32 pixelformat)
+ {
+-	u32 ilo, sly;
++	u32 ilo, sly, sluv;
+ 
+ 	if (stride < 0) {
+ 		stride = -stride;
+@@ -290,9 +291,30 @@ void ipu_cpmem_interlaced_scan(struct ipuv3_channel *ch, int stride)
+ 
+ 	sly = (stride * 2) - 1;
+ 
++	switch (pixelformat) {
++	case V4L2_PIX_FMT_YUV420:
++	case V4L2_PIX_FMT_YVU420:
++		sluv = stride / 2 - 1;
++		break;
++	case V4L2_PIX_FMT_NV12:
++		sluv = stride - 1;
++		break;
++	case V4L2_PIX_FMT_YUV422P:
++		sluv = stride - 1;
++		break;
++	case V4L2_PIX_FMT_NV16:
++		sluv = stride * 2 - 1;
++		break;
++	default:
++		sluv = 0;
++		break;
++	}
++
+ 	ipu_ch_param_write_field(ch, IPU_FIELD_SO, 1);
+ 	ipu_ch_param_write_field(ch, IPU_FIELD_ILO, ilo);
+ 	ipu_ch_param_write_field(ch, IPU_FIELD_SLY, sly);
++	if (sluv)
++		ipu_ch_param_write_field(ch, IPU_FIELD_SLUV, sluv);
+ };
+ EXPORT_SYMBOL_GPL(ipu_cpmem_interlaced_scan);
+ 
+diff --git a/drivers/staging/media/imx/imx-ic-prpencvf.c b/drivers/staging/media/imx/imx-ic-prpencvf.c
+index 28f41caba05d..af7224846bd5 100644
+--- a/drivers/staging/media/imx/imx-ic-prpencvf.c
++++ b/drivers/staging/media/imx/imx-ic-prpencvf.c
+@@ -412,7 +412,8 @@ static int prp_setup_channel(struct prp_priv *priv,
+ 	if (image.pix.field == V4L2_FIELD_NONE &&
+ 	    V4L2_FIELD_HAS_BOTH(infmt->field) &&
+ 	    channel == priv->out_ch)
+-		ipu_cpmem_interlaced_scan(channel, image.pix.bytesperline);
++		ipu_cpmem_interlaced_scan(channel, image.pix.bytesperline,
++					  image.pix.pixelformat);
+ 
+ 	ret = ipu_ic_task_idma_init(priv->ic, channel,
+ 				    image.pix.width, image.pix.height,
+diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+index c2a8d9cd31b7..da4808348845 100644
+--- a/drivers/staging/media/imx/imx-media-csi.c
++++ b/drivers/staging/media/imx/imx-media-csi.c
+@@ -512,7 +512,8 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
+ 	if (image.pix.field == V4L2_FIELD_NONE &&
+ 	    V4L2_FIELD_HAS_BOTH(infmt->field))
+ 		ipu_cpmem_interlaced_scan(priv->idmac_ch,
+-					  image.pix.bytesperline);
++					  image.pix.bytesperline,
++					  image.pix.pixelformat);
+ 
+ 	ipu_idmac_set_double_buffer(priv->idmac_ch, true);
+ 
+diff --git a/include/video/imx-ipu-v3.h b/include/video/imx-ipu-v3.h
+index bbc8481f567d..c887f4bee5f8 100644
+--- a/include/video/imx-ipu-v3.h
++++ b/include/video/imx-ipu-v3.h
+@@ -258,7 +258,8 @@ void ipu_cpmem_set_stride(struct ipuv3_channel *ch, int stride);
+ void ipu_cpmem_set_high_priority(struct ipuv3_channel *ch);
+ void ipu_cpmem_set_buffer(struct ipuv3_channel *ch, int bufnum, dma_addr_t buf);
+ void ipu_cpmem_set_uv_offset(struct ipuv3_channel *ch, u32 u_off, u32 v_off);
+-void ipu_cpmem_interlaced_scan(struct ipuv3_channel *ch, int stride);
++void ipu_cpmem_interlaced_scan(struct ipuv3_channel *ch, int stride,
++			       u32 pixelformat);
+ void ipu_cpmem_set_axi_id(struct ipuv3_channel *ch, u32 id);
+ int ipu_cpmem_get_burstsize(struct ipuv3_channel *ch);
+ void ipu_cpmem_set_burstsize(struct ipuv3_channel *ch, int burstsize);
+-- 
+2.17.1
 
-On Sat, Dec 22, 2018 at 08:29:34PM +0100, Pavel Machek wrote:
-> On Fri 2018-12-21 02:17:48, Sebastian Reichel wrote:
-> > From: Sebastian Reichel <sebastian.reichel@collabora.com>
-> >=20
-> > Remove unused return code from fmc_prepare() and fmc_release() to
-> > simplify the code a bit.
->=20
->=20
-> >  /*
-> >   * This function will be called from FM V4L2 release function.
-> >   * Unregister from ST driver.
-> >   */
-> > -int fmc_release(struct fmdev *fmdev)
-> > +void fmc_release(struct fmdev *fmdev)
-> >  {
-> >  	static struct st_proto_s fm_st_proto;
-> >  	int ret;
-> > =20
-> >  	if (!test_bit(FM_CORE_READY, &fmdev->flag)) {
-> >  		fmdbg("FM Core is already down\n");
-> > -		return 0;
-> > +		return;
-> >  	}
-> >  	/* Service pending read */
-> >  	wake_up_interruptible(&fmdev->rx.rds.read_queue);
-> > @@ -1611,7 +1606,6 @@ int fmc_release(struct fmdev *fmdev)
-> >  		fmdbg("Successfully unregistered from ST\n");
-> > =20
-> >  	clear_bit(FM_CORE_READY, &fmdev->flag);
-> > -	return ret;
-> >  }
->=20
->=20
-> You probably leave unused variable (ret) here. I guess that's okay as
-> you remove it later in the series...?
-
-It's still being used after this patch (but indeed removed in a
-later patch).
-
-> Also... I'd kind of expect _prepare routine to return int. Even if it
-> currently does not do anything that could return error, I'd kind of
-> expect allocations being done there...
-
-well the driver is basically feature complete and all allocations
-happen in probe :)
-
--- Sebastian
-
---a7a3feumpr3jovsz
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlw2Os4ACgkQ2O7X88g7
-+pqZzg//bTzS3nZUi6Vb7quyzAZCP2Af55tTDRC/h7KzMPLcFFYdQi6m6lg3rUir
-gKRmQ7u+2a6CjclVTLAHfYUZ5au2MzUkhkoxcUPqVp6WJJDxCvnFHfyHBGoCVUXf
-5TGCOOF89GtohkSGoONEIYQZXIy+MAOTGpvmCIHkbIKWQ37BT1mxqsoAYGEQ51wb
-8qgQ0/hfhudtEqiP5qFQyxHJT3G3IXPuBQoBL/T/MZzkGP+XdL0KusXE4FNKUkgS
-Ex8cvUsu88t1VKxQyLmi8UDPpLS4kG8dybC2lX9NZUcvupZgD8/YXK7XtrmKAQbB
-NLFpAuIqvU5vsYRAuEGqMY5UxoLvdfVpNX4WhXk775bwuDJgwCWjusEyG7eBOx3A
-1+Pv/K0ABOHe9bvc9uGpVjXQM5mmlLrBDxYfSGr14MW6ydc7MKqsY+M7aQl1yz2H
-dYWAXVOaQY/vcFib8x6Ef2rPEbGTh1y8AaOm2rOTYP5NtWW/Z2b7UY8Egwbg/c7p
-rcmlYTgEW1M+suekjnJlHk9LErLmN2mv/GnI9tdp1r0LTe09SuYRFh1wPVNrdX//
-eVH7T900J2XHgvZDpDapwiuE0/rWgCeeWcIe4QIgIotWiygq8g1MLqbtkaL5SXyX
-WzLSTuoTxhA70QnT7C2LS57UADMDhXjjDqryLhnZSmdxhu0g+LQ=
-=/dmx
------END PGP SIGNATURE-----
-
---a7a3feumpr3jovsz--
