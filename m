@@ -2,209 +2,213 @@ Return-Path: <SRS0=iic/=PR=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7FBE1C43387
-	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 19:21:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3FBF7C43612
+	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 19:24:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3C788206BA
-	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 19:21:17 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="FH9Uo33w"
+	by mail.kernel.org (Postfix) with ESMTP id 0EAC720663
+	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 19:24:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728328AbfAITVQ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 9 Jan 2019 14:21:16 -0500
-Received: from mail-wm1-f66.google.com ([209.85.128.66]:33288 "EHLO
-        mail-wm1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728327AbfAITVP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Jan 2019 14:21:15 -0500
-Received: by mail-wm1-f66.google.com with SMTP id r24so11655787wmh.0
-        for <linux-media@vger.kernel.org>; Wed, 09 Jan 2019 11:21:13 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=subject:to:cc:references:from:message-id:date:user-agent
-         :mime-version:in-reply-to:content-transfer-encoding:content-language;
-        bh=TpeB+ej2pJwjnx5oCCgWYHo4nV9ZeyEjbrFcXLux9/0=;
-        b=FH9Uo33whmHTyUP9W+eG+1oi7GDquUMx8IpnwiFr+FnWdq3xtcIPEwWZe4rIWv4FhS
-         Vph+xAicbu7WT7QTw/FSIjsxHFvN8MfUkUU6JIsX28ntVf4wbJ7ZdkRsv00D+JT7ksSE
-         SpaMJ8oRxVTVsrMXVwLbQXn5pBeqKhmcSD7y4RZMDza6UdZM0AJbKUl4VerEDfTdh+ea
-         SUPk+KG9Dbh/ZV8LPNabLmWlKlOQsKwTyZROJE4otJyKs00Dv6ITBhBMj+fuMO8FtRvL
-         M+amoYNHxO0eyIdjVVbSCWGL5K7q3b8PqQl/b2uQGslhc6M60SiWrPmLB6xsbzjtJx16
-         BMmA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-transfer-encoding
-         :content-language;
-        bh=TpeB+ej2pJwjnx5oCCgWYHo4nV9ZeyEjbrFcXLux9/0=;
-        b=Z/6tB2moS44u6uCEbj8ffJwmjGOCyrA0bzASruxfpqWgtmswVc6hThfp0+fldF9IwP
-         1mfM4I2hT430I6bwNxkMrUiskC31UpGgBNwv3j1chyxQjdNTk1WSzadSsi9BTd7yklm2
-         dj1FvdC4L+LT/y4f04gUnsgxYREpYsJUjyh+KtrZGuPZb6PwHqlAsX8ptvIWcyHZu3QZ
-         uZBL8Qp1X3Y7kkWjS4ZBx1pZCDQr47BBYoWo+/Qt2GmjTgA3rk0W/j/21YU8yAbKl9To
-         4KZgyc+sqohNTs6iPNp+m4FtefD6j30Alj+C/o2wMxuqfkmn7LIrDl7X/vv8YYtKmqnc
-         //wQ==
-X-Gm-Message-State: AJcUukdkczOurH/qDZhTDjGlLmfbgAoqDDC/MAmRNvhLrGcrpih8Wms6
-        GxZHR1ayWr/UKIM9Pzon3WaTQtaJ
-X-Google-Smtp-Source: ALg8bN6sX0dvl+SNraNv/G5CCT1obLEzQn3D0jOATQ9FN1TbKUdmAJK+Cu5UWdQ5eh1QiRtdnMjmzw==
-X-Received: by 2002:a1c:f319:: with SMTP id q25mr6888705wmq.151.1547061672447;
-        Wed, 09 Jan 2019 11:21:12 -0800 (PST)
-Received: from [172.30.90.141] (sjewanfw1-nat.mentorg.com. [139.181.7.34])
-        by smtp.gmail.com with ESMTPSA id x10sm65718690wrn.29.2019.01.09.11.21.10
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 09 Jan 2019 11:21:11 -0800 (PST)
-Subject: Re: [PATCH v2 3/3] media: imx: lift CSI and PRP ENC/VF width
- alignment restriction
-To:     Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
-Cc:     Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>, kernel@pengutronix.de
-References: <20190109110831.23395-1-p.zabel@pengutronix.de>
- <20190109110831.23395-3-p.zabel@pengutronix.de>
-From:   Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <fe63e40b-08ae-5ff1-c222-f5a624b83569@gmail.com>
-Date:   Wed, 9 Jan 2019 11:21:07 -0800
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.2.1
-MIME-Version: 1.0
-In-Reply-To: <20190109110831.23395-3-p.zabel@pengutronix.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+        id S1728261AbfAITYt convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 9 Jan 2019 14:24:49 -0500
+Received: from coyote.holtmann.net ([212.227.132.17]:35076 "EHLO
+        mail.holtmann.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728182AbfAITYt (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Jan 2019 14:24:49 -0500
+Received: from marcel-macpro.fritz.box (p4FF9FD60.dip0.t-ipconnect.de [79.249.253.96])
+        by mail.holtmann.org (Postfix) with ESMTPSA id 78C94CF357;
+        Wed,  9 Jan 2019 20:32:31 +0100 (CET)
+Content-Type: text/plain;
+        charset=utf-8
+Mime-Version: 1.0 (Mac OS X Mail 12.2 \(3445.102.3\))
+Subject: Re: [PATCH 12/14] media: wl128x-radio: move from TI_ST to hci_ll
+ driver
+From:   Marcel Holtmann <marcel@holtmann.org>
+In-Reply-To: <20190109181156.yamhult6bpwkhx74@earth.universe>
+Date:   Wed, 9 Jan 2019 20:24:46 +0100
+Cc:     Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Tony Lindgren <tony@atomide.com>,
+        Rob Herring <robh@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Pavel Machek <pavel@ucw.cz>, linux-bluetooth@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Content-Transfer-Encoding: 8BIT
+Message-Id: <0C9AD246-B511-4E59-888F-47EAB034D4BF@holtmann.org>
+References: <20181221011752.25627-1-sre@kernel.org>
+ <20181221011752.25627-13-sre@kernel.org>
+ <C85D80C9-2B00-4161-B934-9D70E2B173D0@holtmann.org>
+ <20190109181156.yamhult6bpwkhx74@earth.universe>
+To:     Sebastian Reichel <sre@kernel.org>
+X-Mailer: Apple Mail (2.3445.102.3)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
+Hi Sebastian,
 
+>>> +static int ll_register_fm(struct ll_device *lldev)
+>>> +{
+>>> +	struct device *dev = &lldev->serdev->dev;
+>>> +	int err;
+>>> +
+>>> +	if (!of_device_is_compatible(dev->of_node, "ti,wl1281-st") &&
+>>> +	    !of_device_is_compatible(dev->of_node, "ti,wl1283-st") &&
+>>> +	    !of_device_is_compatible(dev->of_node, "ti,wl1285-st"))
+>>> +		return -ENODEV;
+>> 
+>> do we really want to hardcode this here? Isn't there some HCI
+>> vendor command or some better DT description that we can use to
+>> decide when to register this platform device.
+> 
+> I don't know if there is some way to identify the availability
+> based on some HCI vendor command. The public documentation from
+> the WiLink chips is pretty bad.
 
-On 1/9/19 3:08 AM, Philipp Zabel wrote:
-> The CSI, PRP ENC, and PRP VF subdevices shouldn't have to care about
-> IDMAC line start address alignment. With compose rectangle support in
-> the capture driver, they don't have to anymore.
-> If the direct CSI -> IC path is enabled, the CSI output width must
-> still be aligned to 8 pixels (IC burst length).
->
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> ---
-> Changes since v1:
->   - Relax PRP ENC and PRP VF source pad width alignment as well
->   - Relax CSI crop width alignment to 2 pixels if direct CSI -> IC path
->     is not enabled
-> ---
->   drivers/staging/media/imx/imx-ic-prpencvf.c |  2 +-
->   drivers/staging/media/imx/imx-media-csi.c   | 21 +++++++++++++++++++--
->   drivers/staging/media/imx/imx-media-utils.c | 15 ++++++++++++---
->   3 files changed, 32 insertions(+), 6 deletions(-)
->
-> diff --git a/drivers/staging/media/imx/imx-ic-prpencvf.c b/drivers/staging/media/imx/imx-ic-prpencvf.c
-> index fe5a77baa592..7bb754cb703e 100644
-> --- a/drivers/staging/media/imx/imx-ic-prpencvf.c
-> +++ b/drivers/staging/media/imx/imx-ic-prpencvf.c
-> @@ -48,7 +48,7 @@
->   
->   #define MAX_W_SRC  1024
->   #define MAX_H_SRC  1024
-> -#define W_ALIGN_SRC   4 /* multiple of 16 pixels */
-> +#define W_ALIGN_SRC   1 /* multiple of 2 pixels */
->   #define H_ALIGN_SRC   1 /* multiple of 2 lines */
->   
->   #define S_ALIGN       1 /* multiple of 2 */
-> diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-> index c4523afe7b48..1b4962b8b192 100644
-> --- a/drivers/staging/media/imx/imx-media-csi.c
-> +++ b/drivers/staging/media/imx/imx-media-csi.c
-> @@ -41,7 +41,7 @@
->   #define MIN_H       144
->   #define MAX_W      4096
->   #define MAX_H      4096
-> -#define W_ALIGN    4 /* multiple of 16 pixels */
-> +#define W_ALIGN    1 /* multiple of 2 pixels */
->   #define H_ALIGN    1 /* multiple of 2 lines */
->   #define S_ALIGN    1 /* multiple of 2 */
->   
-> @@ -1130,6 +1130,20 @@ __csi_get_compose(struct csi_priv *priv, struct v4l2_subdev_pad_config *cfg,
->   		return &priv->compose;
->   }
->   
-> +static bool csi_src_pad_enabled(struct media_pad *pad)
-> +{
-> +	struct media_link *link;
-> +
-> +	list_for_each_entry(link, &pad->entity->links, list) {
-> +		if (link->source->entity == pad->entity &&
-> +		    link->source->index == pad->index &&
-> +		    link->flags & MEDIA_LNK_FL_ENABLED)
-> +			return true;
-> +	}
-> +
-> +	return false;
-> +}
+can we have some boolean property in the DT file then instead of hardcoding this in the driver.
 
-I don't think this function is needed, first it is basically equivalent to
-media_entity_remote_pad(), but also...
+> 
+>>> +	lldev->fmdev = platform_device_register_data(dev, "wl128x-fm",
+>>> +		PLATFORM_DEVID_AUTO, NULL, 0);
+>> 
+>> Fix the indentation please to following networking coding style.
+> 
+> Ok.
+> 
+> [...]
+> 
+>>> +static int ll_recv_radio(struct hci_dev *hdev, struct sk_buff *skb)
+>>> +{
+>>> +	struct hci_uart *hu = hci_get_drvdata(hdev);
+>>> +	struct serdev_device *serdev = hu->serdev;
+>>> +	struct ll_device *lldev = serdev_device_get_drvdata(serdev);
+>>> +
+>>> +	if (!lldev->fm_handler) {
+>>> +		kfree_skb(skb);
+>>> +		return -EINVAL;
+>>> +	}
+>>> +
+>>> +	/* Prepend skb with frame type */
+>>> +	memcpy(skb_push(skb, 1), &hci_skb_pkt_type(skb), 1);
+>>> +
+>>> +	lldev->fm_handler(lldev->fm_drvdata, skb);
+>> 
+>> So I have no idea why we bother adding the frame type here. What
+>> is the purpose. I think this is useless and we better fix the
+>> radio driver if that is what is expected.
+> 
+> That should be possible. I will change this before sending another
+> revision.
+> 
+>>> +	return 0;
+>>> +}
+> 
+> [...]
+> 
+>>> +int hci_ti_fm_send(struct device *dev, struct sk_buff *skb)
+>>> +{
+>>> +	struct serdev_device *serdev = to_serdev_device(dev);
+>>> +	struct ll_device *lldev = serdev_device_get_drvdata(serdev);
+>>> +	struct hci_uart *hu = &lldev->hu;
+>>> +	int ret;
+>>> +
+>>> +	hci_skb_pkt_type(skb) = HCILL_FM_RADIO;
+>>> +	ret = ll_enqueue_prefixed(hu, skb);
+>> 
+>> This is the same as above, lets have the radio driver not add this
+>> H:4 protocol type in the first place. It is really pointless that
+>> this driver tries to hack around it.
+> 
+> Yes, obviously both paths should follow the same logic.
+> 
+> [...]
+> 
+>>> diff --git a/include/linux/ti_wilink_st.h b/include/linux/ti_wilink_st.h
+>>> index f2293028ab9d..a9de5654b0cd 100644
+>>> --- a/include/linux/ti_wilink_st.h
+>>> +++ b/include/linux/ti_wilink_st.h
+>>> @@ -86,6 +86,8 @@ struct st_proto_s {
+>>> extern long st_register(struct st_proto_s *);
+>>> extern long st_unregister(struct st_proto_s *);
+>>> 
+>>> +void hci_ti_set_fm_handler(struct device *dev, void (*recv_handler) (void *, struct sk_buff *), void *drvdata);
+>>> +int hci_ti_fm_send(struct device *dev, struct sk_buff *skb);
+>> 
+>> This really needs to be put somewhere else if we are removing the
+>> TI Wilink driver. This header file has to be removed as well.
+> 
+> That header is already being used by the hci_ll driver (before this
+> patch) for some packet structures. I removed all WiLink specific
+> things in the patch removing the TI WiLink driver and kept it
+> otherwise.
 
-> +
->   static void csi_try_crop(struct csi_priv *priv,
->   			 struct v4l2_rect *crop,
->   			 struct v4l2_subdev_pad_config *cfg,
-> @@ -1141,7 +1155,10 @@ static void csi_try_crop(struct csi_priv *priv,
->   		crop->left = infmt->width - crop->width;
->   	/* adjust crop left/width to h/w alignment restrictions */
->   	crop->left &= ~0x3;
-> -	crop->width &= ~0x7;
-> +	if (csi_src_pad_enabled(&priv->pad[CSI_SRC_PAD_DIRECT]))
+We need to move everything from ti_wilink_st.h that is used in hci_ll.c into that file.
 
-why not just use "if (priv->active_output_pad == CSI_SRC_PAD_DIRECT) ..." ?
+> 
+>> I wonder really if we are not better having the Bluetooth HCI core
+>> provide an abstraction for a vendor channel. So that the HCI
+>> packets actually can flow through HCI monitor and be recorded via
+>> btmon. This would also mean that the driver could do something
+>> like hci_vnd_chan_add() and hci_vnd_chan_del() and use a struct
+>> hci_vnd_chan for callback handler hci_vnd_chan_send() functions.
+> 
+> Was this question directed to me? I trust your decision how this
+> should be implemented. I'm missing the big picture from other BT
+> devices ;)
+> 
+> If I understood you correctly the suggestion is, that the TI BT
+> driver uses hci_recv_frame() for packet type 0x08 (LL_RECV_FM_RADIO).
+> Then the FM driver can call hci_vnd_chan_add() in its probe function
+> and hci_vnd_chan_del() in its remove function to register the receive
+> hook? Also the dump_tx_skb_data()/dump_rx_skb_data() could be
+> removed, since btmon can be used to see the packets? Sounds very
+> nice to me.
+> 
+>> On a side note, what is the protocol the TI FM radio is using
+>> anyway? Is that anywhere documented except the driver itself? Are
+>> they using HCI commands as well?
+> 
+> AFAIK there is no public documentation for the TI WiLink chips. At
+> least my only information source are the existing drivers. The
+> driver protocol can be seen in drivers/media/radio/wl128x/fmdrv_common.h:
+> 
+> struct fm_cmd_msg_hdr {
+> 	__u8 hdr;		/* Logical Channel-8 */
+> 	__u8 len;		/* Number of bytes follows */
+> 	__u8 op;		/* FM Opcode */
+> 	__u8 rd_wr;		/* Read/Write command */
+> 	__u8 dlen;		/* Length of payload */
+> } __attribute__ ((packed));
+> 
+> struct fm_event_msg_hdr {
+> 	__u8 header;		/* Logical Channel-8 */
+> 	__u8 len;		/* Number of bytes follows */
+> 	__u8 status;		/* Event status */
+> 	__u8 num_fm_hci_cmds;	/* Number of pkts the host allowed to send */
+> 	__u8 op;		/* FM Opcode */
+> 	__u8 rd_wr;		/* Read/Write command */
+> 	__u8 dlen;		/* Length of payload */
+> } __attribute__ ((packed));
 
-Steve
+This is really a custom protocol (even if it kinda modeled after HCI commands/events) and it be really better the core allows to register skb_pkt_type() vendor channels so it just feeds this back into the driver. We need a bit of btmon mapping for this, but that shouldn’t be that hard.
 
-> +		crop->width &= ~0x7; /* multiple of 8 pixels (IC burst) */
-> +	else
-> +		crop->width &= ~0x1; /* multiple of 2 pixels */
->   
->   	/*
->   	 * FIXME: not sure why yet, but on interlaced bt.656,
-> diff --git a/drivers/staging/media/imx/imx-media-utils.c b/drivers/staging/media/imx/imx-media-utils.c
-> index 0eaa353d5cb3..5f110d90a4ef 100644
-> --- a/drivers/staging/media/imx/imx-media-utils.c
-> +++ b/drivers/staging/media/imx/imx-media-utils.c
-> @@ -580,6 +580,7 @@ int imx_media_mbus_fmt_to_pix_fmt(struct v4l2_pix_format *pix,
->   				  struct v4l2_mbus_framefmt *mbus,
->   				  const struct imx_media_pixfmt *cc)
->   {
-> +	u32 width;
->   	u32 stride;
->   
->   	if (!cc) {
-> @@ -602,9 +603,16 @@ int imx_media_mbus_fmt_to_pix_fmt(struct v4l2_pix_format *pix,
->   		cc = imx_media_find_mbus_format(code, CS_SEL_YUV, false);
->   	}
->   
-> -	stride = cc->planar ? mbus->width : (mbus->width * cc->bpp) >> 3;
-> +	/* Round up width for minimum burst size */
-> +	width = round_up(mbus->width, 8);
->   
-> -	pix->width = mbus->width;
-> +	/* Round up stride for IDMAC line start address alignment */
-> +	if (cc->planar)
-> +		stride = round_up(width, 16);
-> +	else
-> +		stride = round_up((width * cc->bpp) >> 3, 8);
-> +
-> +	pix->width = width;
->   	pix->height = mbus->height;
->   	pix->pixelformat = cc->fourcc;
->   	pix->colorspace = mbus->colorspace;
-> @@ -613,7 +621,8 @@ int imx_media_mbus_fmt_to_pix_fmt(struct v4l2_pix_format *pix,
->   	pix->quantization = mbus->quantization;
->   	pix->field = mbus->field;
->   	pix->bytesperline = stride;
-> -	pix->sizeimage = (pix->width * pix->height * cc->bpp) >> 3;
-> +	pix->sizeimage = cc->planar ? ((stride * pix->height * cc->bpp) >> 3) :
-> +			 stride * pix->height;
->   
->   	return 0;
->   }
+> Apart from the Bluetooth and FM part, the chips also support GPS
+> (packet type 0x9). The GPS feature is not used on Droid 4 stock
+> rom and seems to carry some TI specific protocol instead of NMEA.
+> Here is an old submission for this driver:
+> http://lkml.iu.edu/hypermail/linux/kernel/1005.0/00918.html
+> 
+> (I don't plan to work on the GPS part, but it provides some more
+> details about the WiLink chips protocol)
+
+We do have a GNSS subsystem now and could just as easily hook this up.
+
+Regards
+
+Marcel
 
