@@ -2,157 +2,116 @@ Return-Path: <SRS0=iic/=PR=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F3EC3C43387
-	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 18:30:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 46B39C43387
+	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 18:30:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BBDC220665
-	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 18:30:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F2DB221738
+	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 18:30:29 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="fs+hrtL8"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ONehKLSb"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726558AbfAISa2 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 9 Jan 2019 13:30:28 -0500
-Received: from mail-pl1-f193.google.com ([209.85.214.193]:46704 "EHLO
-        mail-pl1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726465AbfAISa1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Jan 2019 13:30:27 -0500
-Received: by mail-pl1-f193.google.com with SMTP id t13so3945009ply.13
-        for <linux-media@vger.kernel.org>; Wed, 09 Jan 2019 10:30:27 -0800 (PST)
+        id S1726881AbfAISa3 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 9 Jan 2019 13:30:29 -0500
+Received: from mail-pl1-f195.google.com ([209.85.214.195]:38041 "EHLO
+        mail-pl1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726465AbfAISa3 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Jan 2019 13:30:29 -0500
+Received: by mail-pl1-f195.google.com with SMTP id e5so3956767plb.5;
+        Wed, 09 Jan 2019 10:30:28 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=r1k/PYn3+gws0bcviq8o+0K/ZLeumOsPJFHXhCgxgYw=;
-        b=fs+hrtL8c2xDxG52uPfqiH2bAezTK7TTaonmhy6wZqGJ8OPP9qWeqZwLrd+cRFY+hj
-         z5o8RHiUFzf1jQpjMrN6csl89xFGINrcPmrwmzkpvRsZt8nhqltVXasqHgvE6lBl7RHQ
-         F+MoDOT91gUjFsU9cQFDTiYT3qu+tNvFsTj3K8NWltIeo1Igmys/VL9wCz8TLGi9bFIq
-         aWjqPmGnhrtTE2xpTZblDMu/XlN3j3ftWLAbqdLBNthSgnzAX7MOmEP4cVZAKNjsY2iU
-         FUw8RV902kWqUCbIqwEFrNvHiYaI0/aZ2i2YiRYjZ3tdd7vxeNTC3H/xx9cntm8y2v3i
-         wuuQ==
+        h=from:to:cc:subject:date:message-id:in-reply-to:references;
+        bh=RmobXmdh5KaomT8TdFIr2+dJd6/NCDTEAkU6A7sJjko=;
+        b=ONehKLSbVq+0fPChek5XsBf9lexIOo5/LOzDcjlbNrGC5gKyGIb5nSQc7Ka11PapqJ
+         Ho5Bv3s4MAa+NrPNJHt0v6qsUvkpnHY1E55E68kyAbkJcZMB4r6PTRuKwNCNWns2Xt8g
+         4vKEDv0tlfHDnYDSEO8WioYkfpJFwcH6ywgdiKeFHsLMJYBA73JQ3W11CRHLW1dpwWe9
+         mS0kC2ABs9Ug+V+TgSgYwWg9p8ktYI5J+qWEjQTiR/+8LCcbceXoYqAFXDH0rgp7vCCk
+         hpGiPBVz/0r3uZcy5SwEsiAlDB4Vsd+jOoSTGx2VLhw5MU9QufbrsfkCJeITGIaT4C3T
+         p/2Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=r1k/PYn3+gws0bcviq8o+0K/ZLeumOsPJFHXhCgxgYw=;
-        b=EzMgKN+Ydqa+9AyAeZcgy2K6RoekCh808Pq3HhX7+OetKOXlE1quCd6TEo9I0ZeJDD
-         MGQXksR7kpAik2EPo1yaY8AiyCJXSGU45ThoHt5Mr+tI61Fb/xbRPWR1ICeFN90g1c5K
-         Q6RodDkCIX1p7RRMhfYibB1CFXMmeneqa6SDDKhq5gGYEPbMPtfTRbPoXSl2NB0Tv2uL
-         EKh84laj+BBPV5woEYjdKRf90kvcVwTk50XfGjk6XNQ2Rzt3kOQK2gyAf4q9zJgrBIgR
-         zSepMXb05WZdfki85GDflBuqx8Sz/k+PoJgWCr/RP8EVBkLC+dC7FOkpfCf5sm8M78In
-         iWaA==
-X-Gm-Message-State: AJcUukdP6c/fl5/57e9ms9PBzzrArjoyNZ5ehAtfkGu9wz7txsLNaF9D
-        xEsdkAwlMHRnIYY7c9Fy5EN+XFd/
-X-Google-Smtp-Source: ALg8bN5sk7oKYYFPkXlfdEJmJ6a7UKGaCq8AzXmfh103LyKzPeuDfk20qWHFICtzlMlW41RM+VBguQ==
-X-Received: by 2002:a17:902:a5c3:: with SMTP id t3mr7009315plq.117.1547058626492;
-        Wed, 09 Jan 2019 10:30:26 -0800 (PST)
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references;
+        bh=RmobXmdh5KaomT8TdFIr2+dJd6/NCDTEAkU6A7sJjko=;
+        b=UZujKcAN0BFYMJMJgnK4rbW3ge3HQ9stmoRuedeFveVBbfbwIyJi/Ep8m/oNxrHBE4
+         UEy7ieM9cv0z7Hd75+nirs4f0F5smOXbQAbNqV4nFFilHpxcJj2aflGXkWntb+EjG2Kb
+         TQIVUM6KNgp04apfBL9coz2yP6t5AhIZvCaZxrTRfyl3PS75Wq1ClYJ1Eupk693xg6zd
+         2luWPv7XdcMXCvA7QF1tg7WfN2DSYZSVeS43nRTnZFkG+1kuhR3Erz6RTfyzEs/GSKtn
+         4X9oabcRmiITUEBmm9c5IMbqLtDfl2rpBHRpZbFqkCrnONkRDhwh7IYM3dYCWj9scLUw
+         R/Ng==
+X-Gm-Message-State: AJcUukeWT+ZbXMmPkukWoKT01+X4EC5alcs9dgjuRhmoRV0nVPkeRI9R
+        rOIQZscYGkNEnKDkfR2PUzQI4swV
+X-Google-Smtp-Source: ALg8bN42d5PKBPw20PX6QXXbXuHl4fFs5OOdA9gKZ9Y3c18/A0E87cL/c1t5VdAMY58IOUOM5+zhVA==
+X-Received: by 2002:a17:902:e18d:: with SMTP id cd13mr7157567plb.262.1547058627810;
+        Wed, 09 Jan 2019 10:30:27 -0800 (PST)
 Received: from majic.sklembedded.com (c-98-210-181-167.hsd1.ca.comcast.net. [98.210.181.167])
-        by smtp.googlemail.com with ESMTPSA id v191sm157551056pgb.77.2019.01.09.10.30.25
+        by smtp.googlemail.com with ESMTPSA id v191sm157551056pgb.77.2019.01.09.10.30.26
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 09 Jan 2019 10:30:25 -0800 (PST)
+        Wed, 09 Jan 2019 10:30:27 -0800 (PST)
 From:   Steve Longerbeam <slongerbeam@gmail.com>
 To:     linux-media@vger.kernel.org
-Cc:     Steve Longerbeam <slongerbeam@gmail.com>
-Subject: [PATCH v8 00/11] imx-media: Fixes for interlaced capture
-Date:   Wed,  9 Jan 2019 10:30:03 -0800
-Message-Id: <20190109183014.20466-1-slongerbeam@gmail.com>
+Cc:     Steve Longerbeam <slongerbeam@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-kernel@vger.kernel.org (open list)
+Subject: [PATCH v8 01/11] media: videodev2.h: Add more field helper macros
+Date:   Wed,  9 Jan 2019 10:30:04 -0800
+Message-Id: <20190109183014.20466-2-slongerbeam@gmail.com>
 X-Mailer: git-send-email 2.17.1
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20190109183014.20466-1-slongerbeam@gmail.com>
+References: <20190109183014.20466-1-slongerbeam@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-A set of patches that fixes some bugs with capturing from an
-interlaced source, and incompatibilites between IDMAC interlace
-interweaving and 4:2:0 data write reduction.
+Adds two helper macros:
 
-History:
-v8:
-- Add some missing sign-offs. No functional changes.
+V4L2_FIELD_IS_SEQUENTIAL: returns true if the given field type is
+'sequential', that is a full frame is transmitted, or exists in
+memory, as all top field lines followed by all bottom field lines,
+or vice-versa.
 
-v7:
-- Remove regression-fix patch "media: imx-csi: Input connections to CSI
-  should be optional" which will be submitted separately.
+V4L2_FIELD_IS_INTERLACED: returns true if the given field type is
+'interlaced', that is a full frame is transmitted, or exists in
+memory, as top field lines interlaced with bottom field lines.
 
-v6:
-- Changes to patch "gpu: ipu-csi: Swap fields according to input/output
-  field types" suggested by Philipp Zabel.
+Signed-off-by: Steve Longerbeam <slongerbeam@gmail.com>
+---
+Changes since v3:
+- none
+Changes since v2:
+- none
+Changes since v1:
+- add the complement macro V4L2_FIELD_IS_INTERLACED
+- remove V4L2_FIELD_ALTERNATE from V4L2_FIELD_IS_SEQUENTIAL macro.
+- moved new macros past end of existing V4L2_FIELD_HAS_* macros.
+---
+ include/uapi/linux/videodev2.h | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-v5:
-- Added a regression fix to allow empty endpoints to CSI (fix for imx6q
-  SabreAuto).
-- Cleaned up some convoluted code in ipu_csi_init_interface(), suggested
-  by Philipp Zabel.
-- Fixed a regression in csi_setup(), caught by Philipp.
-- Removed interweave_offset and replace with boolean interweave_swap,
-  suggested by Philipp.
-- Make clear that it is IDMAC channel that does pixel reordering and
-  interweave, not the CSI, in the imx.rst doc, caught by Philipp.
-
-v4:
-- rebased to latest media-tree master branch.
-- Make patch author and SoB email addresses the same.
-
-v3:
-- add support for/fix interweaved scan with YUV planar output.
-- fix bug in 4:2:0 U/V offset macros.
-- add patch that generalizes behavior of field swap in
-  ipu_csi_init_interface().
-- add support for interweaved scan with field order swap.
-  Suggested by Philipp Zabel.
-- in v2, inteweave scan was determined using field types of
-  CSI (and PRPENCVF) at the sink and source pads. In v3, this
-  has been moved one hop downstream: interweave is now determined
-  using field type at source pad, and field type selected at
-  capture interface. Suggested by Philipp.
-- make sure to double CSI crop target height when input field
-  type in alternate.
-- more updates to media driver doc to reflect above.
-
-v2:
-- update media driver doc.
-- enable idmac interweave only if input field is sequential/alternate,
-  and output field is 'interlaced*'.
-- move field try logic out of *try_fmt and into separate function.
-- fix bug with resetting crop/compose rectangles.
-- add a patch that fixes a field order bug in VDIC indirect mode.
-- remove alternate field type from V4L2_FIELD_IS_SEQUENTIAL() macro
-  Suggested-by: Nicolas Dufresne <nicolas@ndufresne.ca>.
-- add macro V4L2_FIELD_IS_INTERLACED().
-
-
-Steve Longerbeam (11):
-  media: videodev2.h: Add more field helper macros
-  gpu: ipu-csi: Swap fields according to input/output field types
-  gpu: ipu-v3: Add planar support to interlaced scan
-  media: imx: Fix field negotiation
-  media: imx-csi: Double crop height for alternate fields at sink
-  media: imx: interweave and odd-chroma-row skip are incompatible
-  media: imx-csi: Allow skipping odd chroma rows for YVU420
-  media: imx: vdic: rely on VDIC for correct field order
-  media: imx-csi: Move crop/compose reset after filling default mbus
-    fields
-  media: imx: Allow interweave with top/bottom lines swapped
-  media: imx.rst: Update doc to reflect fixes to interlaced capture
-
- Documentation/media/v4l-drivers/imx.rst       | 103 +++++++-----
- drivers/gpu/ipu-v3/ipu-cpmem.c                |  26 ++-
- drivers/gpu/ipu-v3/ipu-csi.c                  | 126 +++++++++-----
- drivers/staging/media/imx/imx-ic-prpencvf.c   |  46 ++++--
- drivers/staging/media/imx/imx-media-capture.c |  14 ++
- drivers/staging/media/imx/imx-media-csi.c     | 156 +++++++++++++-----
- drivers/staging/media/imx/imx-media-vdic.c    |  12 +-
- include/uapi/linux/videodev2.h                |   7 +
- include/video/imx-ipu-v3.h                    |   8 +-
- 9 files changed, 354 insertions(+), 144 deletions(-)
-
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index d6eed479c3a6..bca07d35ea09 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -130,6 +130,13 @@ enum v4l2_field {
+ 	((field) == V4L2_FIELD_BOTTOM ||\
+ 	 (field) == V4L2_FIELD_TOP ||\
+ 	 (field) == V4L2_FIELD_ALTERNATE)
++#define V4L2_FIELD_IS_INTERLACED(field) \
++	((field) == V4L2_FIELD_INTERLACED ||\
++	 (field) == V4L2_FIELD_INTERLACED_TB ||\
++	 (field) == V4L2_FIELD_INTERLACED_BT)
++#define V4L2_FIELD_IS_SEQUENTIAL(field) \
++	((field) == V4L2_FIELD_SEQ_TB ||\
++	 (field) == V4L2_FIELD_SEQ_BT)
+ 
+ enum v4l2_buf_type {
+ 	V4L2_BUF_TYPE_VIDEO_CAPTURE        = 1,
 -- 
 2.17.1
 
