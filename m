@@ -2,148 +2,144 @@ Return-Path: <SRS0=iic/=PR=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.7 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_NEOMUTT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A9B18C43387
-	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 18:17:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 282F1C43387
+	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 18:18:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7C74720859
-	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 18:17:50 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="P2FSjtA/"
+	by mail.kernel.org (Postfix) with ESMTP id ECCFF206B6
+	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 18:18:00 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1547057881;
+	bh=313J75pRSdWBx+s0b8l0AI9icPNGOqqYuBfcA0aYkkE=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:List-ID:From;
+	b=wYDXgTzQV1tXz6/znssFK5+jvZKhWgbx8zUXMK+GKipBVpHLphPesgD/952NCTIvS
+	 jYL6tnTboDDs6rKJ/P9go/yVvfuKw7xK3HRL2QB7DJGf9QgNqTjwRnsX9ZXTwdiMW9
+	 s5U7U28zLiXdUlj9q5O8B3AClvuYtCzkaaLRGAZw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727386AbfAISRo (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 9 Jan 2019 13:17:44 -0500
-Received: from mail-pl1-f196.google.com ([209.85.214.196]:41250 "EHLO
-        mail-pl1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726503AbfAISQ7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Jan 2019 13:16:59 -0500
-Received: by mail-pl1-f196.google.com with SMTP id u6so3936127plm.8;
-        Wed, 09 Jan 2019 10:16:58 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=SvPBX07XjgOGjqAl4kODKrCpf2pdSaymIbWsAOXzlto=;
-        b=P2FSjtA/AFIUJ0B7E2bHY8ZlHE06kJgOgbNdMaudi2t93LLFehOHn6hGIQ1TKVqMrZ
-         6hk+Y3MPEJsFj3fID1Bykg0MjyUF9QCfMlLsRBMnrssULuFv8TkobyA2DTaczoXjTvIq
-         u612sq2vDON6162mxNN5WBTgMwJ5uqCj43nkkXRvdy0Co5Yah5eBGtbUVv8CfPr8CZ74
-         NJSvaIMP92D+vwTBQRhdZr3xDmS49miEy/HjF67Z1VglHpPXFIGoAsNI55dEI2/M3dGV
-         xo9GPYpFuTYXEk/KzDoeqc+LIfx7TXM9XhYiVSfyzXGF/RWozTNPN30yr7NPOEEe18G+
-         YKIA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references;
-        bh=SvPBX07XjgOGjqAl4kODKrCpf2pdSaymIbWsAOXzlto=;
-        b=HD9Ow16CuaVFDGP30ozuqiDPGjGlMrKL6oz15ibs8y8miwIvcKkZKjmQBATspt6IFs
-         PTHCEodY09qIBC4hNkYfwtEmax+D0iJeO8cyvKppdIC5TkdbvedoyWCC+PxMJEdY3pmc
-         JsChdxnmYqopg1ur4nJfGFjnMH9gHZ7AfJpPo1JYhW0WWXpUlhta7vVEoW7mdhS/2gd9
-         W+k/QqhKuqmlzpdqrPR8fupmxaWW8hpN2UDFuHT8GXvjvRO0UkP9/NJIqRtDtTl5XjDE
-         Cb/g8eEkfZ3Z4JVWC1lm7ZKXIUvZ15GlLt0b1E0bwrIn2n2x+7nPR4Ue/h2ET/1RdHwX
-         yCdA==
-X-Gm-Message-State: AJcUukffcMS2+Yk4JWq9MsLKYsgmpK63qS5ouYQlBBGAacdKZtBQNKJ2
-        u6nUtg4en26WA0es9I3I1pNMhHGa
-X-Google-Smtp-Source: ALg8bN5RpekqRXGkMC78h9iYu2I/BwvLr7u6xQvL8c5whTr0h/chvEiQaDFPi374W/bA4g77awVTmg==
-X-Received: by 2002:a17:902:8d95:: with SMTP id v21mr7082951plo.162.1547057817818;
-        Wed, 09 Jan 2019 10:16:57 -0800 (PST)
-Received: from majic.sklembedded.com (c-98-210-181-167.hsd1.ca.comcast.net. [98.210.181.167])
-        by smtp.googlemail.com with ESMTPSA id h19sm97030004pfn.114.2019.01.09.10.16.56
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 09 Jan 2019 10:16:56 -0800 (PST)
-From:   Steve Longerbeam <slongerbeam@gmail.com>
-To:     linux-media@vger.kernel.org
-Cc:     Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        id S1726721AbfAISRz (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 9 Jan 2019 13:17:55 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53828 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726282AbfAISRy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 9 Jan 2019 13:17:54 -0500
+Received: from earth.universe (dyndsl-095-033-009-186.ewe-ip-backbone.de [95.33.9.186])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id C50FD20859;
+        Wed,  9 Jan 2019 18:17:52 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1547057872;
+        bh=313J75pRSdWBx+s0b8l0AI9icPNGOqqYuBfcA0aYkkE=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=IxD1sY1xWGN1Xj1uhaGkjogiFUVrTr+rTdaZlCkVb+QmL2oWJW9xMEbAn2WBmxQKh
+         JXjKYCvdoQ102NFbso0wQl/MRQFbMF0dqaMNCNXLSq+1lsLDDcsai50afnehBrRtUS
+         TcMwM8XaxxBuEDGjFWyrYtXmGtODKfb4jxYnc95o=
+Received: by earth.universe (Postfix, from userid 1000)
+        id F18763C08E2; Wed,  9 Jan 2019 19:17:50 +0100 (CET)
+Date:   Wed, 9 Jan 2019 19:17:50 +0100
+From:   Sebastian Reichel <sre@kernel.org>
+To:     Pavel Machek <pavel@ucw.cz>
+Cc:     Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Marcel Holtmann <marcel@holtmann.org>,
+        Tony Lindgren <tony@atomide.com>,
+        Rob Herring <robh@kernel.org>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        devel@driverdev.osuosl.org (open list:STAGING SUBSYSTEM),
-        linux-kernel@vger.kernel.org (open list)
-Subject: [PATCH v7 05/11] media: imx-csi: Double crop height for alternate fields at sink
-Date:   Wed,  9 Jan 2019 10:16:35 -0800
-Message-Id: <20190109181642.19378-6-slongerbeam@gmail.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20190109181642.19378-1-slongerbeam@gmail.com>
-References: <20190109181642.19378-1-slongerbeam@gmail.com>
+        linux-bluetooth@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 10/14] media: wl128x-radio: simplify
+ fmc_prepare/fmc_release
+Message-ID: <20190109181750.lqcm2bhg4wubuavu@earth.universe>
+References: <20181221011752.25627-1-sre@kernel.org>
+ <20181221011752.25627-11-sre@kernel.org>
+ <20181222192934.GA15237@amd>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="a7a3feumpr3jovsz"
+Content-Disposition: inline
+In-Reply-To: <20181222192934.GA15237@amd>
+User-Agent: NeoMutt/20180716
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-If the incoming sink field type is alternate, the reset crop height
-and crop height bounds must be set to twice the incoming height,
-because in alternate field mode, upstream will report only the
-lines for a single field, and the CSI captures the whole frame.
 
-Signed-off-by: Steve Longerbeam <slongerbeam@gmail.com>
-Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/staging/media/imx/imx-media-csi.c | 20 +++++++++++++++-----
- 1 file changed, 15 insertions(+), 5 deletions(-)
+--a7a3feumpr3jovsz
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-index e3a4f39dbf73..10945cbdbd71 100644
---- a/drivers/staging/media/imx/imx-media-csi.c
-+++ b/drivers/staging/media/imx/imx-media-csi.c
-@@ -1142,6 +1142,8 @@ static void csi_try_crop(struct csi_priv *priv,
- 			 struct v4l2_mbus_framefmt *infmt,
- 			 struct v4l2_fwnode_endpoint *upstream_ep)
- {
-+	u32 in_height;
-+
- 	crop->width = min_t(__u32, infmt->width, crop->width);
- 	if (crop->left + crop->width > infmt->width)
- 		crop->left = infmt->width - crop->width;
-@@ -1149,6 +1151,10 @@ static void csi_try_crop(struct csi_priv *priv,
- 	crop->left &= ~0x3;
- 	crop->width &= ~0x7;
- 
-+	in_height = infmt->height;
-+	if (infmt->field == V4L2_FIELD_ALTERNATE)
-+		in_height *= 2;
-+
- 	/*
- 	 * FIXME: not sure why yet, but on interlaced bt.656,
- 	 * changing the vertical cropping causes loss of vertical
-@@ -1158,12 +1164,12 @@ static void csi_try_crop(struct csi_priv *priv,
- 	if (upstream_ep->bus_type == V4L2_MBUS_BT656 &&
- 	    (V4L2_FIELD_HAS_BOTH(infmt->field) ||
- 	     infmt->field == V4L2_FIELD_ALTERNATE)) {
--		crop->height = infmt->height;
--		crop->top = (infmt->height == 480) ? 2 : 0;
-+		crop->height = in_height;
-+		crop->top = (in_height == 480) ? 2 : 0;
- 	} else {
--		crop->height = min_t(__u32, infmt->height, crop->height);
--		if (crop->top + crop->height > infmt->height)
--			crop->top = infmt->height - crop->height;
-+		crop->height = min_t(__u32, in_height, crop->height);
-+		if (crop->top + crop->height > in_height)
-+			crop->top = in_height - crop->height;
- 	}
- }
- 
-@@ -1403,6 +1409,8 @@ static void csi_try_fmt(struct csi_priv *priv,
- 		crop->top = 0;
- 		crop->width = sdformat->format.width;
- 		crop->height = sdformat->format.height;
-+		if (sdformat->format.field == V4L2_FIELD_ALTERNATE)
-+			crop->height *= 2;
- 		csi_try_crop(priv, crop, cfg, &sdformat->format, upstream_ep);
- 		compose->left = 0;
- 		compose->top = 0;
-@@ -1530,6 +1538,8 @@ static int csi_get_selection(struct v4l2_subdev *sd,
- 		sel->r.top = 0;
- 		sel->r.width = infmt->width;
- 		sel->r.height = infmt->height;
-+		if (infmt->field == V4L2_FIELD_ALTERNATE)
-+			sel->r.height *= 2;
- 		break;
- 	case V4L2_SEL_TGT_CROP:
- 		sel->r = *crop;
--- 
-2.17.1
+Hi Pavel,
 
+On Sat, Dec 22, 2018 at 08:29:34PM +0100, Pavel Machek wrote:
+> On Fri 2018-12-21 02:17:48, Sebastian Reichel wrote:
+> > From: Sebastian Reichel <sebastian.reichel@collabora.com>
+> >=20
+> > Remove unused return code from fmc_prepare() and fmc_release() to
+> > simplify the code a bit.
+>=20
+>=20
+> >  /*
+> >   * This function will be called from FM V4L2 release function.
+> >   * Unregister from ST driver.
+> >   */
+> > -int fmc_release(struct fmdev *fmdev)
+> > +void fmc_release(struct fmdev *fmdev)
+> >  {
+> >  	static struct st_proto_s fm_st_proto;
+> >  	int ret;
+> > =20
+> >  	if (!test_bit(FM_CORE_READY, &fmdev->flag)) {
+> >  		fmdbg("FM Core is already down\n");
+> > -		return 0;
+> > +		return;
+> >  	}
+> >  	/* Service pending read */
+> >  	wake_up_interruptible(&fmdev->rx.rds.read_queue);
+> > @@ -1611,7 +1606,6 @@ int fmc_release(struct fmdev *fmdev)
+> >  		fmdbg("Successfully unregistered from ST\n");
+> > =20
+> >  	clear_bit(FM_CORE_READY, &fmdev->flag);
+> > -	return ret;
+> >  }
+>=20
+>=20
+> You probably leave unused variable (ret) here. I guess that's okay as
+> you remove it later in the series...?
+
+It's still being used after this patch (but indeed removed in a
+later patch).
+
+> Also... I'd kind of expect _prepare routine to return int. Even if it
+> currently does not do anything that could return error, I'd kind of
+> expect allocations being done there...
+
+well the driver is basically feature complete and all allocations
+happen in probe :)
+
+-- Sebastian
+
+--a7a3feumpr3jovsz
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlw2Os4ACgkQ2O7X88g7
++pqZzg//bTzS3nZUi6Vb7quyzAZCP2Af55tTDRC/h7KzMPLcFFYdQi6m6lg3rUir
+gKRmQ7u+2a6CjclVTLAHfYUZ5au2MzUkhkoxcUPqVp6WJJDxCvnFHfyHBGoCVUXf
+5TGCOOF89GtohkSGoONEIYQZXIy+MAOTGpvmCIHkbIKWQ37BT1mxqsoAYGEQ51wb
+8qgQ0/hfhudtEqiP5qFQyxHJT3G3IXPuBQoBL/T/MZzkGP+XdL0KusXE4FNKUkgS
+Ex8cvUsu88t1VKxQyLmi8UDPpLS4kG8dybC2lX9NZUcvupZgD8/YXK7XtrmKAQbB
+NLFpAuIqvU5vsYRAuEGqMY5UxoLvdfVpNX4WhXk775bwuDJgwCWjusEyG7eBOx3A
+1+Pv/K0ABOHe9bvc9uGpVjXQM5mmlLrBDxYfSGr14MW6ydc7MKqsY+M7aQl1yz2H
+dYWAXVOaQY/vcFib8x6Ef2rPEbGTh1y8AaOm2rOTYP5NtWW/Z2b7UY8Egwbg/c7p
+rcmlYTgEW1M+suekjnJlHk9LErLmN2mv/GnI9tdp1r0LTe09SuYRFh1wPVNrdX//
+eVH7T900J2XHgvZDpDapwiuE0/rWgCeeWcIe4QIgIotWiygq8g1MLqbtkaL5SXyX
+WzLSTuoTxhA70QnT7C2LS57UADMDhXjjDqryLhnZSmdxhu0g+LQ=
+=/dmx
+-----END PGP SIGNATURE-----
+
+--a7a3feumpr3jovsz--
