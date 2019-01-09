@@ -2,193 +2,153 @@ Return-Path: <SRS0=iic/=PR=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E4B0C43387
-	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 21:15:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 77A78C43387
+	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 22:40:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B6D0B206B6
-	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 21:15:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 452FE206B7
+	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 22:40:49 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ao2.it header.i=@ao2.it header.b="hSP4lEVV"
+	dkim=pass (2048-bit key) header.d=ragnatech-se.20150623.gappssmtp.com header.i=@ragnatech-se.20150623.gappssmtp.com header.b="B3/mYbeC"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726332AbfAIVPM (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 9 Jan 2019 16:15:12 -0500
-Received: from mail.ao2.it ([92.243.12.208]:38398 "EHLO ao2.it"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726286AbfAIVPL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 9 Jan 2019 16:15:11 -0500
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=ao2.it; s=20180927;
-        h=Content-Transfer-Encoding:Content-Type:Mime-Version:References:In-Reply-To:Message-Id:Subject:Cc:To:From:Date; bh=UWiDO+ZOvm1Ekot8PNG5Uh5KMl4SYJLC0hMDy0ghoGw=;
-        b=hSP4lEVVTdmPVxS9KdXA2ZfdntqnGRCr45pWU+QCE1m9iV2CmZ65xe1oaeXF4pVqoOdlaxI18Ve3IaA/D35lqAlSlY/OEEijHVLNGrOUyarvmqNtqYFC/zYmoOvPMrKvYIzSTTv/WM7dhepVvhoHlTK6KeMYu6gqYR5cb4catVvDHkAfXs7bwwfLEQ4dRMNwRr3y/qhFHMLdwzZ3myTzt6s77DFd2hbJfnTXKC5UBdJDGEwGCz5jM8AF+Znv07Z9tHtDgcZkci1USZ7F6hJLAJUe50WDDGsbio2zD6MEJCMAn8iteLngHYlUqDYaPDHyU9anDpVpwHADqS44UlqFLg==;
-Received: from localhost ([::1] helo=jcn.localdomain)
-        by ao2.it with esmtps (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
-        (Exim 4.84_2)
-        (envelope-from <ao2@ao2.it>)
-        id 1ghLAq-0002P8-LD; Wed, 09 Jan 2019 22:14:04 +0100
-Date:   Wed, 9 Jan 2019 22:15:08 +0100
-From:   Antonio Ospite <ao2@ao2.it>
-To:     Hans Verkuil <hverkuil@xs4all.nl>
-Cc:     linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH 5/5] v4l2-ctl: add an option to list controls in a
- machine-readable format
-Message-Id: <20190109221508.eaa19c66df252a1f9802cd9a@ao2.it>
-In-Reply-To: <3f081956-7733-069b-da24-0d04831b8ed1@xs4all.nl>
-References: <20181124185256.74dc969bdb8f7ab79cf03d5d@ao2.it>
-        <20190103180102.12282-1-ao2@ao2.it>
-        <20190103180102.12282-6-ao2@ao2.it>
-        <3f081956-7733-069b-da24-0d04831b8ed1@xs4all.nl>
-X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.32; x86_64-unknown-linux-gnu)
-X-Face: z*RaLf`X<@C75u6Ig9}{oW$H;1_\2t5)({*|jhM<pyWR#k60!#=#>/Vb;]yA5<GWI5`6u&+
- ;6b'@y|8w"wB;4/e!7wYYrcqdJFY,~%Gk_4]cq$Ei/7<j&N3ah(m`ku?pX.&+~:_/wC~dwn^)MizBG !pE^+iDQQ1yC6^,)YDKkxDd!T>\I~93>J<_`<4)A{':UrE
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        id S1726254AbfAIWkn (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 9 Jan 2019 17:40:43 -0500
+Received: from mail-lf1-f67.google.com ([209.85.167.67]:42651 "EHLO
+        mail-lf1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726146AbfAIWkn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Jan 2019 17:40:43 -0500
+Received: by mail-lf1-f67.google.com with SMTP id l10so6864494lfh.9
+        for <linux-media@vger.kernel.org>; Wed, 09 Jan 2019 14:40:41 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ragnatech-se.20150623.gappssmtp.com; s=20150623;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:content-transfer-encoding:in-reply-to
+         :user-agent;
+        bh=im22EfXQHQJ4U3xWKaC+1Sotpdbrj20LNzueZ0EQoBQ=;
+        b=B3/mYbeC4Fjc/cEkVJD5slS0K76BgdsGoL67DTsWuvswKPQgkV2tHaCeQ3i+k6Urou
+         TH7pjiDEs4lV8/+omI9CWK/KuPRv1QY0DupJFzGPDwcA7WvWSLGwF/CEvw+j63YI1i2y
+         MJQXx7AzgBtcfArABZ/fwBbd5J5yLgbTSkHaXwRFg9eGeOQjqXTX9swaPLFbLAEohLUi
+         hFxUmrjdLcGtzcsBH87D6Vd9SPpN2zJVA+t2WzPqrzk4L0B68oZa5D/QFRcZMwcyHgaU
+         L1rEm7+NSe5hLV0Tva+funQyc6HYV7d6zwK986/PnftfQTzgDECKwMITyV0c69AurvuA
+         PM2Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:content-transfer-encoding
+         :in-reply-to:user-agent;
+        bh=im22EfXQHQJ4U3xWKaC+1Sotpdbrj20LNzueZ0EQoBQ=;
+        b=um88NFvFhEWTVbiI5Xvr20d/4f7O+hR2yoH7Dxno0BRqQmxazenlmXaVMmXjZdN6wu
+         i7K/kOLMXCBC6V8KUZTul0mbJ13ZOgRnMIWaJJmqnDYAH86JojjeVIFIT/AQkYATOko9
+         uKHVZhqjuS1Ke5VFVyymO6IvGsPmTnf6sZMLc6rRkMInb2BnfMGI8s8rXrSOzSDt91lK
+         7lWnAVTzeiOmYovIldMQhe6s2MYhF3JI9OZH+ef4zmDZeTRoE/Xu/Cs6+39neS2sQz+y
+         K8P6H6YRsFzpTLgvBvTLNJD1QIgYmSCeK30S+F9nAb0VikWbrukGJgK6TrcvPl3+rrN+
+         DrLQ==
+X-Gm-Message-State: AJcUuke/vak9pps65hYJVTP6fErB7dEvQ6gGpVZec855DV8ggCe/wzKE
+        ymwSew78kr+GBYlaNdwYtCyECA==
+X-Google-Smtp-Source: ALg8bN6fCIdZpA9nuTIBF5dLvhu64xntX+o3jFs8alYz/n5rZS/wDjLlH79odYyMsi4TRX/482HVtg==
+X-Received: by 2002:a19:4bc9:: with SMTP id y192mr4351811lfa.49.1547073640822;
+        Wed, 09 Jan 2019 14:40:40 -0800 (PST)
+Received: from localhost (89-233-230-99.cust.bredband2.com. [89.233.230.99])
+        by smtp.gmail.com with ESMTPSA id s127sm14126874lfe.8.2019.01.09.14.40.39
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Wed, 09 Jan 2019 14:40:39 -0800 (PST)
+Date:   Wed, 9 Jan 2019 23:40:39 +0100
+From:   Niklas =?iso-8859-1?Q?S=F6derlund?= 
+        <niklas.soderlund@ragnatech.se>
+To:     Steve Longerbeam <slongerbeam@gmail.com>
+Cc:     linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        "open list:MEDIA DRIVERS FOR RENESAS - VIN" 
+        <linux-renesas-soc@vger.kernel.org>,
+        open list <linux-kernel@vger.kernel.org>
+Subject: Re: [RFC PATCH v2] media: rcar-vin: Allow independent VIN link
+ enablement
+Message-ID: <20190109224039.GD24252@bigcity.dyn.berto.se>
+References: <20190106212018.16519-1-slongerbeam@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20190106212018.16519-1-slongerbeam@gmail.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Mon, 7 Jan 2019 11:18:58 +0100
-Hans Verkuil <hverkuil@xs4all.nl> wrote:
+Hi Steve,
 
-> On 01/03/2019 07:01 PM, Antonio Ospite wrote:
-> > Add a new option --list-ctrls-values to list the values of controls in
-> > a format which can be passed again to --set-ctrl.
-> > 
-> > This can be useful to save and restore device settings:
-> > 
-> >   $ v4l2-ctl --list-ctrls-values >settings.txt 2>/dev/null
-> >   $ v4l2-ctl --set-ctrl "$(cat settings.txt)"
-> > 
-> > The new option has been tested with the vivid driver and it works well
-> > enough to be useful with a real driver as well.
-> > 
-> > String controls are not supported for now, as they may not be parsed
-> > correctly by --set-ctrl if they contain a comma or a single quote.
-> > 
-> > Signed-off-by: Antonio Ospite <ao2@ao2.it>
-> > ---
-> >  utils/v4l2-ctl/v4l2-ctl-common.cpp | 72 ++++++++++++++++++++++++++----
-> >  utils/v4l2-ctl/v4l2-ctl.1.in       |  4 ++
-> >  utils/v4l2-ctl/v4l2-ctl.cpp        |  1 +
-> >  utils/v4l2-ctl/v4l2-ctl.h          |  1 +
-> >  4 files changed, 69 insertions(+), 9 deletions(-)
-> > 
-> > diff --git a/utils/v4l2-ctl/v4l2-ctl-common.cpp b/utils/v4l2-ctl/v4l2-ctl-common.cpp
-> > index 7777b45c..b4124608 100644
-> > --- a/utils/v4l2-ctl/v4l2-ctl-common.cpp
-> > +++ b/utils/v4l2-ctl/v4l2-ctl-common.cpp
-[...]
-> > @@ -1102,13 +1146,23 @@ void common_get(cv4l_fd &_fd)
-> >  
-> >  void common_list(cv4l_fd &fd)
-> >  {
-> > -	if (options[OptListCtrls] || options[OptListCtrlsMenus]) {
-> > -		struct print_format classic_format = {
-> > -			.print_class_name = print_class_name,
-> > -			.print_qctrl = print_qctrl,
-> > -			.show_menus = options[OptListCtrlsMenus],
-> > -		};
-> > -
-> > -		list_controls(fd.g_fd(), &classic_format);
-> > +	if (options[OptListCtrls] || options[OptListCtrlsMenus] || options[OptListCtrlsValues]) {
-> > +		if (options[OptListCtrlsValues]) {
-> > +			struct print_format machine_format = {
-> > +				.print_class_name = NULL,
-> > +				.print_qctrl = print_qctrl_values,
-> > +				.show_menus = 0,
-> > +			};
-> > +
-> > +			list_controls(fd.g_fd(), &machine_format);
-> > +		} else {
-> > +			struct print_format classic_format = {
-> > +				.print_class_name = print_class_name,
-> > +				.print_qctrl = print_qctrl,
-> > +				.show_menus = options[OptListCtrlsMenus],
-> > +			};
-> > +
-> > +			list_controls(fd.g_fd(), &classic_format);
-> > +		}
+Thanks for your patch, I think it looks good.
+
+On 2019-01-06 13:20:18 -0800, Steve Longerbeam wrote:
+> There is a block of code in rvin_group_link_notify() that loops through
+> all entities in the media graph, and prevents enabling a link to a VIN
+> node if any entity is in use. This prevents enabling a VIN link even if
+> there is an in-use entity somewhere in the graph that is independent of
+> the link's pipeline.
 > 
-> I don't like this struct print_format.
->
-
-Hi Hans,
-
-the idea was based on two considerations:
-  1. decide the format once and for all, avoiding to check each time a
-     control is printed.
-  2. have at least some partial infrastructure in case some
-     other export formats were to be added.
-
-But yeah, as 2. seems quite unlikely I can go with a more essential
-approach for now, no problem.
-
-> I would prefer something like this:
+> For example, the code will prevent enabling a link from the first
+> rcar-csi2 receiver to a VIN node even if there is an enabled link
+> somewhere far upstream on the second independent rcar-csi2 receiver
+> pipeline.
 > 
-> Rename print_qctrl to print_qctrl_readable() and create a new print_qctrl:
+> If this code is meant to prevent modifying a link if any entity in the
+> graph is actively involved in streaming (because modifying the CHSEL
+> register fields can disrupt any/all running streams), then the entities
+> stream counts should be checked rather than the use counts.
 > 
-> static void print_qctrl(int fd, struct v4l2_query_ext_ctrl *queryctrl,
->                 struct v4l2_ext_control *ctrl, int show_menus)
-> {
-> 	if (options[OptListCtrlsValues])
-> 		print_qctrl_values(fd, queryctrl, ctrl, show_menus);
-> 	else
-> 		print_qctrl_readable(fd, queryctrl, ctrl, show_menus);
-> }
->
-
-Since "readable" here means "human readable", while "values" is meant
-for a "machine readable" output, I'd "avoid" the word "readable" at
-all and go with "details" or "description":
-
-	if (options[OptListCtrlsValues])
-		print_qctrl_values(fd, queryctrl, ctrl, show_menus);
-	else
-		print_qctrl_details(fd, queryctrl, ctrl, show_menus);
-
-> And in print_control you can just skip printing the class name if
-> options[OptListCtrlsValues] is set.
->
-
-OK.
-
-> I would like to see string controls being supported. I would recommend
-> to just write the string as a hexdump. It avoids having to escape characters.
+> (There is already such a check in __media_entity_setup_link() that verifies
+> the stream_count of the link's source and sink entities are both zero,
+> but that is insufficient, since there should be no running streams in
+> the entire graph).
 > 
-> The same can be done for compound/array controls. In fact, you could write
-> all controls that way. It would simplify things a lot.
->
-
-But then --set-ctrl would need to be extended to parse the hexdump,
-wouldn't it? Do you already have a syntax in mind?
-
-TBH, I kept things simple hoping to re-use --set-ctrl without too much
-work.
-
-> Also, when options[OptListCtrlsValues] is set you should skip all WRITE_ONLY
-> controls, all BUTTON controls, and all volatile controls. They are not
-> relevant if you are just interested in controls that can be set.
->
-
-That I will do in any case, thank you.
-
-> Regards,
+> Modify the media_device_for_each_entity() loop to check the entity
+> stream_count instead of the use_count, and elaborate on the comment.
+> VIN node links can now be enabled even if there are other independent
+> in-use entities that are not streaming.
 > 
-> 	Hans
+> Fixes: c0cc5aef31 ("media: rcar-vin: add link notify for Gen3")
+> 
+> Signed-off-by: Steve Longerbeam <slongerbeam@gmail.com>
 
-Thank you,
-   Antonio
+Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+
+> ---
+> Changes in v2:
+> - bring back the media_device_for_each_entity() loop but check the
+>   stream_count not the use_count.
+> ---
+>  drivers/media/platform/rcar-vin/rcar-core.c | 8 ++++++--
+>  1 file changed, 6 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+> index f0719ce24b97..6dd6b11c1b2b 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-core.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
+> @@ -131,9 +131,13 @@ static int rvin_group_link_notify(struct media_link *link, u32 flags,
+>  	    !is_media_entity_v4l2_video_device(link->sink->entity))
+>  		return 0;
+>  
+> -	/* If any entity is in use don't allow link changes. */
+> +	/*
+> +	 * Don't allow link changes if any entity in the graph is
+> +	 * streaming, because modifying the CHSEL register fields
+> +	 * can disrupt running streams.
+> +	 */
+>  	media_device_for_each_entity(entity, &group->mdev)
+> -		if (entity->use_count)
+> +		if (entity->stream_count)
+>  			return -EBUSY;
+>  
+>  	mutex_lock(&group->lock);
+> -- 
+> 2.17.1
+> 
 
 -- 
-Antonio Ospite
-https://ao2.it
-https://twitter.com/ao2it
-
-A: Because it messes up the order in which people normally read text.
-   See http://en.wikipedia.org/wiki/Posting_style
-Q: Why is top-posting such a bad thing?
+Regards,
+Niklas Söderlund
