@@ -5,54 +5,55 @@ X-Spam-Level:
 X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A17D2C43387
-	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 00:16:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5BF0EC43387
+	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 00:16:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7078A20883
-	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 00:16:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2051820883
+	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 00:16:19 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="VZdkybwD"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="qYPv0yCD"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729580AbfAIAQO (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 8 Jan 2019 19:16:14 -0500
-Received: from mail-pg1-f196.google.com ([209.85.215.196]:40076 "EHLO
-        mail-pg1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729569AbfAIAQO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2019 19:16:14 -0500
-Received: by mail-pg1-f196.google.com with SMTP id z10so2464236pgp.7;
-        Tue, 08 Jan 2019 16:16:13 -0800 (PST)
+        id S1729614AbfAIAQS (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 8 Jan 2019 19:16:18 -0500
+Received: from mail-pg1-f193.google.com ([209.85.215.193]:38157 "EHLO
+        mail-pg1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729598AbfAIAQR (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2019 19:16:17 -0500
+Received: by mail-pg1-f193.google.com with SMTP id g189so2469016pgc.5;
+        Tue, 08 Jan 2019 16:16:16 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=BwIrt/QiZthUXo9qim2CsYJxYbNHfbi5cRl8NpsI+xE=;
-        b=VZdkybwDcsoYv6tBaahD7DhnejAFNuVHNbUPxmPosRqTpdOboE6kDcLWdUngTZJpsF
-         p9DFQox+Mk9qrOpPTkUaJy+OWjHnajMbw4qkLKgRGNOdPH+5C9vMritsT8z2dHclAp9Z
-         m9cG++/ev0g1uNVf6F0mkzzqPfGKD+YQQWHH9MnfqzJmM6vMfRdNeSKJB2DRc9bVQH5q
-         Om5Lqq2Ff9DDGOBHluaJpwrhM0wAaSnws3SuOdNcgWZUZEAqlTtBzgGCcHb4x2knQEFi
-         5NM4iQwFLxemJOCOlFVSBgjE67ONd0PTIKXU9VbC/vxOGBcscRMx9WxgHcEJmhZnY3BO
-         4khQ==
+        bh=Km299AvR4tQLoDZ0obtFdrib4kM4kxdyU5xVwGMaoOE=;
+        b=qYPv0yCDKQs3FHK4cn1YHoaHanfdedLQ2OjwOIWTbDnirdKJEokvLSkknDRzEXPG8f
+         7UBOpSxhD1oVsB2oYDctBSRdSvVa8mZdCOSA8HPg80ZUG3NXKDYh5R8yXmYMejwcyC2j
+         9EIBVCpvarZERncVDOztrS1sChS0c5S3o4YsIfgAyPfQOBucboaW9FG59FuXlPPUgFWp
+         suaces8LzY6OBqRirwGl9JlXGzy0FW2jswhyoEwRW2/O/FpWF5JEfxk6xAL3khmC0Glj
+         AXvbGO+AdTK2NpazovTjbKm9S5++O6FKrxq3OPsLjB4DbBR6RlRLga+HwdYnKnmdfbZV
+         XUNQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references;
-        bh=BwIrt/QiZthUXo9qim2CsYJxYbNHfbi5cRl8NpsI+xE=;
-        b=nFSVetBadnayU38w1LblfssgPlpaasz/5kI+wU5Ve1NjNn7Hadq3bfNSZSWG6X8V7I
-         2rDHExbmtwRP9++Cob03TEV6fRU4MAyzOIm5C0afM3UANOcQ65YVPdo9NmwVB0QQGOr5
-         9scJNWQblJzLibhhFxdkGfILi+YZt3MwrRY2IRjhHLu5mIujaT6s+4tR5TAWsoYpY83C
-         k9O65rFU+GPQzhuO6p9ag35BsCTO3fREZdwdDEsjdis6n4MWt1usk0GsY2TQSq57P0S7
-         srXcX6YnkKAOh/hLZh7nfR6HKUDLjwkGLpzfEEo5avQMdgpxn8apArQtwdoHnGXWzHnI
-         nAIw==
-X-Gm-Message-State: AJcUukfxfH1yoKAHo5ssk+1QiC7I2t9Bk4CWrk7WswxrjbZgLsfJguqW
-        qiWybFeYaad+lmZCBxZkoRNS7oHG
-X-Google-Smtp-Source: ALg8bN6IUk6ABHMKRC+26yGEcy07ZOdK/4rDY6FmyXzrXb3Y+R5hxciJ8UNTvQX5FXi48pACmm19Lg==
-X-Received: by 2002:a63:5d20:: with SMTP id r32mr3429357pgb.329.1546992972806;
-        Tue, 08 Jan 2019 16:16:12 -0800 (PST)
+        bh=Km299AvR4tQLoDZ0obtFdrib4kM4kxdyU5xVwGMaoOE=;
+        b=tZNhN+V//sJRK5MZLNbT/NO/OscFeLBgRdJCqJBu7QNahkaP1eWxH6Rkue4KaQaUks
+         aKkHJ7sBSUsMy/xHIiSlQHvrd6GvWl4ARFCKArHa7KW9LpBpFhgpRcltNvxwhOSavo4o
+         KtrE1mTi4ZTlkXWss6gxuwLFNNyUZ+hb6p+jIzDIPRU+mQS3DlIaPhcwP+dWzpeNRfQP
+         UhGIOYP6SUHFihSiI1vqjliPyjhqiF8eRha+oYV/53bf5PUnidExhKyo2m8dcBFJUCaq
+         bbcnbEzc2EEaB8Cv7xW+erHltEanFixf7f3dBQ/Xe9awIGFH7APw+HHoVu9vtdYj3U+J
+         eh/w==
+X-Gm-Message-State: AJcUukeqHhQCv6H7D/n0DRbMBhVnAczO+IWnNLsEMgLwaLennST704Ys
+        dE1QmObniWPZLtksEB3gTqA55Xuc
+X-Google-Smtp-Source: ALg8bN6mEqmh59Nb92hMUxTlVB6CKsOLKKjtp80Zebas2jQl2xAtc/vQiaBegCeVE/oCRFWbbWS46Q==
+X-Received: by 2002:a63:2c0e:: with SMTP id s14mr3493762pgs.132.1546992975585;
+        Tue, 08 Jan 2019 16:16:15 -0800 (PST)
 Received: from majic.sklembedded.com (c-98-210-181-167.hsd1.ca.comcast.net. [98.210.181.167])
-        by smtp.googlemail.com with ESMTPSA id 134sm83978490pgb.78.2019.01.08.16.16.11
+        by smtp.googlemail.com with ESMTPSA id 134sm83978490pgb.78.2019.01.08.16.16.14
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 08 Jan 2019 16:16:12 -0800 (PST)
+        Tue, 08 Jan 2019 16:16:14 -0800 (PST)
 From:   Steve Longerbeam <slongerbeam@gmail.com>
 To:     linux-media@vger.kernel.org
 Cc:     Steve Longerbeam <slongerbeam@gmail.com>,
@@ -61,9 +62,9 @@ Cc:     Steve Longerbeam <slongerbeam@gmail.com>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         devel@driverdev.osuosl.org (open list:STAGING SUBSYSTEM),
         linux-kernel@vger.kernel.org (open list)
-Subject: [PATCH v6 09/12] media: imx: vdic: rely on VDIC for correct field order
-Date:   Tue,  8 Jan 2019 16:15:48 -0800
-Message-Id: <20190109001551.16113-10-slongerbeam@gmail.com>
+Subject: [PATCH v6 11/12] media: imx: Allow interweave with top/bottom lines swapped
+Date:   Tue,  8 Jan 2019 16:15:50 -0800
+Message-Id: <20190109001551.16113-12-slongerbeam@gmail.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20190109001551.16113-1-slongerbeam@gmail.com>
 References: <20190109001551.16113-1-slongerbeam@gmail.com>
@@ -72,53 +73,205 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-prepare_vdi_in_buffers() was setting up the dma pointers as if the
-VDIC is always programmed to receive the fields in bottom-top order,
-i.e. as if ipu_vdi_set_field_order() only programs BT order in the VDIC.
-But that's not true, ipu_vdi_set_field_order() is working correctly.
+Allow sequential->interlaced interweaving but with top/bottom
+lines swapped to the output buffer.
 
-So fix prepare_vdi_in_buffers() to give the VDIC the fields in whatever
-order they were received by the video source, and rely on the VDIC to
-sort out which is top and which is bottom.
+This can be accomplished by adding one line length to IDMAC output
+channel address, with a negative line length for the interlace offset.
 
+This is to allow the seq-bt -> interlaced-bt transformation, where
+bottom lines are still dominant (older in time) but with top lines
+first in the interweaved output buffer.
+
+With this support, the CSI can now allow seq-bt at its source pads,
+e.g. the following transformations are allowed in CSI from sink to
+source:
+
+seq-tb -> seq-bt
+seq-bt -> seq-bt
+alternate -> seq-bt
+
+Suggested-by: Philipp Zabel <p.zabel@pengutronix.de>
 Signed-off-by: Steve Longerbeam <slongerbeam@gmail.com>
+Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/staging/media/imx/imx-media-vdic.c | 12 ++----------
- 1 file changed, 2 insertions(+), 10 deletions(-)
+Changes since v4:
+- Removed interweave_offset and replace with boolean interweave_swap,
+  suggested by Philipp Zabel.
+---
+ drivers/staging/media/imx/imx-ic-prpencvf.c | 25 +++++++++----
+ drivers/staging/media/imx/imx-media-csi.c   | 40 ++++++++++++++++++---
+ 2 files changed, 54 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/staging/media/imx/imx-media-vdic.c b/drivers/staging/media/imx/imx-media-vdic.c
-index 482250d47e7c..4a890714193e 100644
---- a/drivers/staging/media/imx/imx-media-vdic.c
-+++ b/drivers/staging/media/imx/imx-media-vdic.c
-@@ -219,26 +219,18 @@ static void __maybe_unused prepare_vdi_in_buffers(struct vdic_priv *priv,
+diff --git a/drivers/staging/media/imx/imx-ic-prpencvf.c b/drivers/staging/media/imx/imx-ic-prpencvf.c
+index cf76b0432371..33ada6612fee 100644
+--- a/drivers/staging/media/imx/imx-ic-prpencvf.c
++++ b/drivers/staging/media/imx/imx-ic-prpencvf.c
+@@ -106,6 +106,7 @@ struct prp_priv {
+ 	u32 frame_sequence; /* frame sequence counter */
+ 	bool last_eof;  /* waiting for last EOF at stream off */
+ 	bool nfb4eof;    /* NFB4EOF encountered during streaming */
++	bool interweave_swap; /* swap top/bottom lines when interweaving */
+ 	struct completion last_eof_comp;
+ };
  
- 	switch (priv->fieldtype) {
- 	case V4L2_FIELD_SEQ_TB:
--		prev_phys = vb2_dma_contig_plane_dma_addr(prev_vb, 0);
--		curr_phys = vb2_dma_contig_plane_dma_addr(curr_vb, 0) + fs;
--		next_phys = vb2_dma_contig_plane_dma_addr(curr_vb, 0);
--		break;
- 	case V4L2_FIELD_SEQ_BT:
- 		prev_phys = vb2_dma_contig_plane_dma_addr(prev_vb, 0) + fs;
- 		curr_phys = vb2_dma_contig_plane_dma_addr(curr_vb, 0);
- 		next_phys = vb2_dma_contig_plane_dma_addr(curr_vb, 0) + fs;
- 		break;
-+	case V4L2_FIELD_INTERLACED_TB:
- 	case V4L2_FIELD_INTERLACED_BT:
-+	case V4L2_FIELD_INTERLACED:
- 		prev_phys = vb2_dma_contig_plane_dma_addr(prev_vb, 0) + is;
- 		curr_phys = vb2_dma_contig_plane_dma_addr(curr_vb, 0);
- 		next_phys = vb2_dma_contig_plane_dma_addr(curr_vb, 0) + is;
- 		break;
--	default:
--		/* assume V4L2_FIELD_INTERLACED_TB */
--		prev_phys = vb2_dma_contig_plane_dma_addr(prev_vb, 0);
--		curr_phys = vb2_dma_contig_plane_dma_addr(curr_vb, 0) + is;
--		next_phys = vb2_dma_contig_plane_dma_addr(curr_vb, 0);
--		break;
+@@ -235,6 +236,9 @@ static void prp_vb2_buf_done(struct prp_priv *priv, struct ipuv3_channel *ch)
+ 	if (ipu_idmac_buffer_is_ready(ch, priv->ipu_buf_num))
+ 		ipu_idmac_clear_buffer(ch, priv->ipu_buf_num);
+ 
++	if (priv->interweave_swap && ch == priv->out_ch)
++		phys += vdev->fmt.fmt.pix.bytesperline;
++
+ 	ipu_cpmem_set_buffer(ch, priv->ipu_buf_num, phys);
+ }
+ 
+@@ -376,8 +380,9 @@ static int prp_setup_channel(struct prp_priv *priv,
+ 	 * the IDMAC output channel.
+ 	 */
+ 	interweave = V4L2_FIELD_IS_INTERLACED(image.pix.field) &&
+-		V4L2_FIELD_IS_SEQUENTIAL(outfmt->field) &&
+-		channel == priv->out_ch;
++		V4L2_FIELD_IS_SEQUENTIAL(outfmt->field);
++	priv->interweave_swap = interweave &&
++		image.pix.field == V4L2_FIELD_INTERLACED_BT;
+ 
+ 	if (rot_swap_width_height) {
+ 		swap(image.pix.width, image.pix.height);
+@@ -388,6 +393,11 @@ static int prp_setup_channel(struct prp_priv *priv,
+ 			(image.pix.width * outcc->bpp) >> 3;
  	}
  
- 	ipu_cpmem_set_buffer(priv->vdi_in_ch_p, 0, prev_phys);
++	if (priv->interweave_swap && channel == priv->out_ch) {
++		/* start interweave scan at 1st top line (2nd line) */
++		image.rect.top = 1;
++	}
++
+ 	image.phys0 = addr0;
+ 	image.phys1 = addr1;
+ 
+@@ -396,8 +406,8 @@ static int prp_setup_channel(struct prp_priv *priv,
+ 	 * channels for planar 4:2:0 (but not when enabling IDMAC
+ 	 * interweaving, they are incompatible).
+ 	 */
+-	if (!interweave && (channel == priv->out_ch ||
+-			    channel == priv->rot_out_ch)) {
++	if ((channel == priv->out_ch && !interweave) ||
++	    channel == priv->rot_out_ch) {
+ 		switch (image.pix.pixelformat) {
+ 		case V4L2_PIX_FMT_YUV420:
+ 		case V4L2_PIX_FMT_YVU420:
+@@ -424,8 +434,11 @@ static int prp_setup_channel(struct prp_priv *priv,
+ 	if (rot_mode)
+ 		ipu_cpmem_set_rotation(channel, rot_mode);
+ 
+-	if (interweave)
+-		ipu_cpmem_interlaced_scan(channel, image.pix.bytesperline,
++	if (interweave && channel == priv->out_ch)
++		ipu_cpmem_interlaced_scan(channel,
++					  priv->interweave_swap ?
++					  -image.pix.bytesperline :
++					  image.pix.bytesperline,
+ 					  image.pix.pixelformat);
+ 
+ 	ret = ipu_ic_task_idma_init(priv->ic, channel,
+diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+index 7afb7e367d76..e18f58f56dfb 100644
+--- a/drivers/staging/media/imx/imx-media-csi.c
++++ b/drivers/staging/media/imx/imx-media-csi.c
+@@ -114,6 +114,7 @@ struct csi_priv {
+ 	u32 frame_sequence; /* frame sequence counter */
+ 	bool last_eof;   /* waiting for last EOF at stream off */
+ 	bool nfb4eof;    /* NFB4EOF encountered during streaming */
++	bool interweave_swap; /* swap top/bottom lines when interweaving */
+ 	struct completion last_eof_comp;
+ };
+ 
+@@ -286,6 +287,9 @@ static void csi_vb2_buf_done(struct csi_priv *priv)
+ 	if (ipu_idmac_buffer_is_ready(priv->idmac_ch, priv->ipu_buf_num))
+ 		ipu_idmac_clear_buffer(priv->idmac_ch, priv->ipu_buf_num);
+ 
++	if (priv->interweave_swap)
++		phys += vdev->fmt.fmt.pix.bytesperline;
++
+ 	ipu_cpmem_set_buffer(priv->idmac_ch, priv->ipu_buf_num, phys);
+ }
+ 
+@@ -433,6 +437,8 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
+ 	 */
+ 	interweave = V4L2_FIELD_IS_INTERLACED(image.pix.field) &&
+ 		V4L2_FIELD_IS_SEQUENTIAL(outfmt->field);
++	priv->interweave_swap = interweave &&
++		image.pix.field == V4L2_FIELD_INTERLACED_BT;
+ 
+ 	switch (image.pix.pixelformat) {
+ 	case V4L2_PIX_FMT_SBGGR8:
+@@ -486,6 +492,12 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
+ 	}
+ 
+ 	if (passthrough) {
++		if (priv->interweave_swap) {
++			/* start interweave scan at 1st top line (2nd line) */
++			image.phys0 += image.pix.bytesperline;
++			image.phys1 += image.pix.bytesperline;
++		}
++
+ 		ipu_cpmem_set_resolution(priv->idmac_ch,
+ 					 image.rect.width * passthrough_cycles,
+ 					 image.rect.height);
+@@ -495,6 +507,11 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
+ 		ipu_cpmem_set_format_passthrough(priv->idmac_ch,
+ 						 passthrough_bits);
+ 	} else {
++		if (priv->interweave_swap) {
++			/* start interweave scan at 1st top line (2nd line) */
++			image.rect.top = 1;
++		}
++
+ 		ret = ipu_cpmem_set_image(priv->idmac_ch, &image);
+ 		if (ret)
+ 			goto unsetup_vb2;
+@@ -526,6 +543,8 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
+ 
+ 	if (interweave)
+ 		ipu_cpmem_interlaced_scan(priv->idmac_ch,
++					  priv->interweave_swap ?
++					  -image.pix.bytesperline :
+ 					  image.pix.bytesperline,
+ 					  image.pix.pixelformat);
+ 
+@@ -1338,16 +1357,27 @@ static void csi_try_field(struct csi_priv *priv,
+ 	switch (infmt->field) {
+ 	case V4L2_FIELD_SEQ_TB:
+ 	case V4L2_FIELD_SEQ_BT:
++		/*
++		 * If the user requests sequential at the source pad,
++		 * allow it (along with possibly inverting field order).
++		 * Otherwise passthrough the field type.
++		 */
++		if (!V4L2_FIELD_IS_SEQUENTIAL(sdformat->format.field))
++			sdformat->format.field = infmt->field;
++		break;
+ 	case V4L2_FIELD_ALTERNATE:
+ 		/*
+-		 * If the sink is sequential or alternating fields,
+-		 * allow only SEQ_TB at the source.
+-		 *
+ 		 * This driver does not support alternate field mode, and
+ 		 * the CSI captures a whole frame, so the CSI never presents
+-		 * alternate mode at its source pads.
++		 * alternate mode at its source pads. If user has not
++		 * already requested sequential, translate ALTERNATE at
++		 * sink pad to SEQ_TB or SEQ_BT at the source pad depending
++		 * on input height (assume NTSC BT order if 480 total active
++		 * frame lines, otherwise PAL TB order).
+ 		 */
+-		sdformat->format.field = V4L2_FIELD_SEQ_TB;
++		if (!V4L2_FIELD_IS_SEQUENTIAL(sdformat->format.field))
++			sdformat->format.field = (infmt->height == 480 / 2) ?
++				V4L2_FIELD_SEQ_BT : V4L2_FIELD_SEQ_TB;
+ 		break;
+ 	default:
+ 		/* Passthrough for all other input field types */
 -- 
 2.17.1
 
