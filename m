@@ -2,44 +2,40 @@ Return-Path: <SRS0=iic/=PR=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=ham
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A60D3C43387
-	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 11:11:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 80B53C43387
+	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 11:13:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 73A6E21738
-	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 11:11:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5B38621738
+	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 11:13:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730711AbfAILLu (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 9 Jan 2019 06:11:50 -0500
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:48311 "EHLO
+        id S1730742AbfAILNi (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 9 Jan 2019 06:13:38 -0500
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:38207 "EHLO
         metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730569AbfAILLt (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Jan 2019 06:11:49 -0500
+        with ESMTP id S1730569AbfAILNi (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Jan 2019 06:13:38 -0500
 Received: from lupine.hi.pengutronix.de ([2001:67c:670:100:3ad5:47ff:feaf:1a17] helo=lupine)
         by metis.ext.pengutronix.de with esmtp (Exim 4.89)
         (envelope-from <p.zabel@pengutronix.de>)
-        id 1ghBm0-00032G-H6; Wed, 09 Jan 2019 12:11:48 +0100
-Message-ID: <1547032306.4160.0.camel@pengutronix.de>
-Subject: Re: [PATCH v6 02/12] gpu: ipu-csi: Swap fields according to
- input/output field types
+        id 1ghBnl-00038v-3R; Wed, 09 Jan 2019 12:13:37 +0100
+Message-ID: <1547032417.4160.2.camel@pengutronix.de>
+Subject: Re: [PATCH v6 05/12] media: imx-csi: Input connections to CSI
+ should be optional
 From:   Philipp Zabel <p.zabel@pengutronix.de>
 To:     Steve Longerbeam <slongerbeam@gmail.com>,
         linux-media@vger.kernel.org
 Cc:     Mauro Carvalho Chehab <mchehab@kernel.org>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        "open list:DRM DRIVERS FOR FREESCALE IMX" 
-        <dri-devel@lists.freedesktop.org>,
-        open list <linux-kernel@vger.kernel.org>,
         "open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>,
-        "open list:FRAMEBUFFER LAYER" <linux-fbdev@vger.kernel.org>
-Date:   Wed, 09 Jan 2019 12:11:46 +0100
-In-Reply-To: <20190109001551.16113-3-slongerbeam@gmail.com>
+        open list <linux-kernel@vger.kernel.org>
+Date:   Wed, 09 Jan 2019 12:13:37 +0100
+In-Reply-To: <20190109001551.16113-6-slongerbeam@gmail.com>
 References: <20190109001551.16113-1-slongerbeam@gmail.com>
-         <20190109001551.16113-3-slongerbeam@gmail.com>
+         <20190109001551.16113-6-slongerbeam@gmail.com>
 Content-Type: text/plain; charset="UTF-8"
 X-Mailer: Evolution 3.22.6-1+deb9u1 
 Mime-Version: 1.0
@@ -54,31 +50,35 @@ List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
 On Tue, 2019-01-08 at 16:15 -0800, Steve Longerbeam wrote:
-> The function ipu_csi_init_interface() was inverting the F-bit for
-> NTSC case, in the CCIR_CODE_1/2 registers. The result being that
-> for NTSC bottom-top field order, the CSI would swap fields and
-> capture in top-bottom order.
+> Some imx platforms do not have fwnode connections to all CSI input
+> ports, and should not be treated as an error. This includes the
+> imx6q SabreAuto, which has no connections to ipu1_csi1 and ipu2_csi0.
+> Return -ENOTCONN in imx_csi_parse_endpoint() so that v4l2-fwnode
+> endpoint parsing will not treat an unconnected endpoint as an error.
 > 
-> Instead, base field swap on the field order of the input to the CSI,
-> and the field order of the requested output. If the input/output
-> fields are sequential but different, swap fields, otherwise do
-> not swap. This requires passing both the input and output mbus
-> frame formats to ipu_csi_init_interface().
-> 
-> Move this code to a new private function ipu_csi_set_bt_interlaced_codes()
-> that programs the CCIR_CODE_1/2 registers for interlaced BT.656 (and
-> possibly interlaced BT.1120 in the future).
-> 
-> When detecting input video standard from the input frame width/height,
-> make sure to double height if input field type is alternate, since
-> in that case input height only includes lines for one field.
+> Fixes: c893500a16baf ("media: imx: csi: Register a subdev notifier")
 > 
 > Signed-off-by: Steve Longerbeam <slongerbeam@gmail.com>
-> Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
+> ---
+>  drivers/staging/media/imx/imx-media-csi.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+> index e3a4f39dbf73..b276672cae1d 100644
+> --- a/drivers/staging/media/imx/imx-media-csi.c
+> +++ b/drivers/staging/media/imx/imx-media-csi.c
+> @@ -1815,7 +1815,7 @@ static int imx_csi_parse_endpoint(struct device *dev,
+>  				  struct v4l2_fwnode_endpoint *vep,
+>  				  struct v4l2_async_subdev *asd)
+>  {
+> -	return fwnode_device_is_available(asd->match.fwnode) ? 0 : -EINVAL;
+> +	return fwnode_device_is_available(asd->match.fwnode) ? 0 : -ENOTCONN;
+>  }
+>  
+>  static int imx_csi_async_register(struct csi_priv *priv)
 
-Also
-Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
-to be merged via the media tree
+Is this something that should be applied as a fix, separately from this
+series?
 
 regards
 Philipp
