@@ -8,61 +8,63 @@ X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 308D0C43387
-	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 18:30:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A49B4C43387
+	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 18:31:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DF74D20665
-	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 18:30:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 58C4920665
+	for <linux-media@archiver.kernel.org>; Wed,  9 Jan 2019 18:31:03 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="B46kbOL9"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="vNYGpn8A"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727631AbfAISap (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 9 Jan 2019 13:30:45 -0500
-Received: from mail-pg1-f193.google.com ([209.85.215.193]:38734 "EHLO
-        mail-pg1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727608AbfAISao (ORCPT
+        id S1727608AbfAISa5 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 9 Jan 2019 13:30:57 -0500
+Received: from mail-pg1-f195.google.com ([209.85.215.195]:39344 "EHLO
+        mail-pg1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727597AbfAISao (ORCPT
         <rfc822;linux-media@vger.kernel.org>); Wed, 9 Jan 2019 13:30:44 -0500
-Received: by mail-pg1-f193.google.com with SMTP id g189so3668124pgc.5;
-        Wed, 09 Jan 2019 10:30:44 -0800 (PST)
+Received: by mail-pg1-f195.google.com with SMTP id w6so3667003pgl.6;
+        Wed, 09 Jan 2019 10:30:42 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=NiubgfHwtmHyldU4HehS7kmldJEMB2GDEFzDkJLxVyQ=;
-        b=B46kbOL9KxzYMm9ECra0EtZCubL540/naMDKXrYxsyU5stYgfyvuFZN7vzKIn3x0M0
-         FwyLoRiX19/+AynIdcXUIWYLhz2/ysBLnDbuhfIyAp8hn26JU84kW40vnE0YA5PNyQfu
-         CKHDwUciH/Vrl1E767Uyq9Lnmw9liP3CgFfiwzXG9YugoDxXtuQj9cJvYUI3l0Vd8lw3
-         73YD/VAtX2uhvyqXzGXu+Irr77BJriJ2cnqL7HJR1zF2geOc3Yqi+9aemNxf7S9nseVt
-         cLBRGG7za9s1fyuJhENtCHk9CmkRttpmabADvg4/ywBihuBKDaRbGxbAaNHgo+ImNT5J
-         87Cw==
+        bh=MgVGGz7c/1eQCk6GVcYZNBejHDRAkH26qTrPS59NoKo=;
+        b=vNYGpn8AzWSs036n2IvtThpIHlhRLGQEp3gIeDKHTMXEuBLevUwa2fJRIGI8Qs0alR
+         Q5mnO2fQml6hHeotwmIs6P4ggrCI9FkLwNEqMUh59OMqZSJFUusp9Q6ywpObZGXFyLY6
+         N8Dk3B4xsCOh2H0KQlunHm/QJtonNoL1XUA6HM229Ldk951rO9hW55ddXlokObud2Wyc
+         AlPMAGGE+C5F4QQ9rsy8Epu37W7pq2IHjLn0cLXSh4dBDjBXsdxxixFA6qKtFynYvbVJ
+         dUaHhI9Ezhf0VRFtg+0JccYwQj2GWctqwE3WP4wg1lLxLN9kmlUAcTcnIj8wMhaMKMoj
+         mdkQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references;
-        bh=NiubgfHwtmHyldU4HehS7kmldJEMB2GDEFzDkJLxVyQ=;
-        b=s9mEt+MMbeRiGBy7o8LnkfOgxxkhjJUxmbi7GUacccj1f19uJYIwIjv+UajCCTht0s
-         3iARG7IhuKiDdsr2IhTDgyDKGKpFHa1IY8KJ1aM2AuF5jnCTH58nB7y4Bu8iHkMahaO2
-         Q1yvBGF/VCggjK8oYtPrEyGuQ2sVBu7cq0Lpxe7KhfdxxodEKjqBUMaeKRgZtJLWJXKz
-         DKjfNXlnM7j0uVppqlabrKSrcMOD5+waJskotptW599Z5gUEq6sAKWaTny0ShyJRZpS+
-         EYKEaUWgAsuwH8ydRCpe50o6en+fNJBRBRzLb6qGvGIubCMbbUyUMaakIKXgJ/wW0U6u
-         Dzhg==
-X-Gm-Message-State: AJcUukf/UX0a4ex4r35hZn9QYgF/DH5lE3vFiqO7Z0x1OLDQlsUDOUqH
-        NXYwiEj+pOXN4efnSR9wyccYmeoY
-X-Google-Smtp-Source: ALg8bN6vNMTad8ncJXrXQ5EmmfzBRa3yRXYMCgvM7t80M5LidphJpzsB/hLjUxqso42K72lIUQQAFg==
-X-Received: by 2002:a65:41c2:: with SMTP id b2mr6388921pgq.67.1547058643366;
-        Wed, 09 Jan 2019 10:30:43 -0800 (PST)
+        bh=MgVGGz7c/1eQCk6GVcYZNBejHDRAkH26qTrPS59NoKo=;
+        b=gcWWcFQSLk+reb/ufCNydMwP/ckz5Ty7sSRARjkkcaiBYV4iaGbYdUhhZZh02JMR76
+         +4xSDZrKFD9fq+1of94aclAce1nrXPItsDFE9j8+lhxk2bITRsi8pkIaML2vXz7JLi1o
+         JwpiALIuQ32HGmf240aZcC2ppajJttapE+QjcxGInsr6W+UuAJL3Zt6hOjNFhCrt2aB9
+         tC58M1vSnffuDHCcd2K40736KRLKXmZA2RRHxwbNe0NnOmtBDKR9RPS1br3813NGQjMF
+         43z2QBLxJ/V8RF82Yw4SbbqSmtatADFtKnwbh3yQs8ZV/oeOLfrY0MjGzjy0Oilk3wd+
+         QP9g==
+X-Gm-Message-State: AJcUukdv44xEuUES4/XGJc1M4M/KL1DEriSECizi/fRO/O2c0Hb7OUhG
+        zkl06A73ME23uNcUPE472TI8W5Kc
+X-Google-Smtp-Source: ALg8bN7o6wa+0ti7Qie0POvIUFSKUiWUTfDKygaVMy2qQn8LE9ud/TFPHFyjTC5mS8gWtuoQPa/53Q==
+X-Received: by 2002:a62:dbc2:: with SMTP id f185mr6962243pfg.235.1547058641578;
+        Wed, 09 Jan 2019 10:30:41 -0800 (PST)
 Received: from majic.sklembedded.com (c-98-210-181-167.hsd1.ca.comcast.net. [98.210.181.167])
-        by smtp.googlemail.com with ESMTPSA id v191sm157551056pgb.77.2019.01.09.10.30.41
+        by smtp.googlemail.com with ESMTPSA id v191sm157551056pgb.77.2019.01.09.10.30.40
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 09 Jan 2019 10:30:42 -0800 (PST)
+        Wed, 09 Jan 2019 10:30:40 -0800 (PST)
 From:   Steve Longerbeam <slongerbeam@gmail.com>
 To:     linux-media@vger.kernel.org
 Cc:     Steve Longerbeam <slongerbeam@gmail.com>,
         Philipp Zabel <p.zabel@pengutronix.de>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        devel@driverdev.osuosl.org (open list:STAGING SUBSYSTEM),
         linux-kernel@vger.kernel.org (open list)
-Subject: [PATCH v8 11/11] media: imx.rst: Update doc to reflect fixes to interlaced capture
-Date:   Wed,  9 Jan 2019 10:30:14 -0800
-Message-Id: <20190109183014.20466-12-slongerbeam@gmail.com>
+Subject: [PATCH v8 10/11] media: imx: Allow interweave with top/bottom lines swapped
+Date:   Wed,  9 Jan 2019 10:30:13 -0800
+Message-Id: <20190109183014.20466-11-slongerbeam@gmail.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20190109183014.20466-1-slongerbeam@gmail.com>
 References: <20190109183014.20466-1-slongerbeam@gmail.com>
@@ -71,198 +73,205 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Also add an example pipeline for unconverted capture with interweave
-on SabreAuto.
+Allow sequential->interlaced interweaving but with top/bottom
+lines swapped to the output buffer.
 
-Cleanup some language in various places in the process.
+This can be accomplished by adding one line length to IDMAC output
+channel address, with a negative line length for the interlace offset.
 
+This is to allow the seq-bt -> interlaced-bt transformation, where
+bottom lines are still dominant (older in time) but with top lines
+first in the interweaved output buffer.
+
+With this support, the CSI can now allow seq-bt at its source pads,
+e.g. the following transformations are allowed in CSI from sink to
+source:
+
+seq-tb -> seq-bt
+seq-bt -> seq-bt
+alternate -> seq-bt
+
+Suggested-by: Philipp Zabel <p.zabel@pengutronix.de>
 Signed-off-by: Steve Longerbeam <slongerbeam@gmail.com>
 Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
 Changes since v4:
-- Make clear that it is IDMAC channel that does pixel reordering and
-  interweave, not the CSI. Caught by Philipp Zabel.
-Changes since v3:
-- none.
-Changes since v2:
-- expand on idmac interweave behavior in CSI subdev.
-- switch second SabreAuto pipeline example to PAL to give
-  both NTSC and PAL examples.
-- Cleanup some language in various places.
+- Removed interweave_offset and replace with boolean interweave_swap,
+  suggested by Philipp Zabel.
 ---
- Documentation/media/v4l-drivers/imx.rst | 103 +++++++++++++++---------
- 1 file changed, 66 insertions(+), 37 deletions(-)
+ drivers/staging/media/imx/imx-ic-prpencvf.c | 25 +++++++++----
+ drivers/staging/media/imx/imx-media-csi.c   | 40 ++++++++++++++++++---
+ 2 files changed, 54 insertions(+), 11 deletions(-)
 
-diff --git a/Documentation/media/v4l-drivers/imx.rst b/Documentation/media/v4l-drivers/imx.rst
-index 6922dde4a82b..9314af00d067 100644
---- a/Documentation/media/v4l-drivers/imx.rst
-+++ b/Documentation/media/v4l-drivers/imx.rst
-@@ -24,8 +24,8 @@ memory. Various dedicated DMA channels exist for both video capture and
- display paths. During transfer, the IDMAC is also capable of vertical
- image flip, 8x8 block transfer (see IRT description), pixel component
- re-ordering (for example UYVY to YUYV) within the same colorspace, and
--even packed <--> planar conversion. It can also perform a simple
--de-interlacing by interleaving even and odd lines during transfer
-+packed <--> planar conversion. The IDMAC can also perform a simple
-+de-interlacing by interweaving even and odd lines during transfer
- (without motion compensation which requires the VDIC).
+diff --git a/drivers/staging/media/imx/imx-ic-prpencvf.c b/drivers/staging/media/imx/imx-ic-prpencvf.c
+index cf76b0432371..33ada6612fee 100644
+--- a/drivers/staging/media/imx/imx-ic-prpencvf.c
++++ b/drivers/staging/media/imx/imx-ic-prpencvf.c
+@@ -106,6 +106,7 @@ struct prp_priv {
+ 	u32 frame_sequence; /* frame sequence counter */
+ 	bool last_eof;  /* waiting for last EOF at stream off */
+ 	bool nfb4eof;    /* NFB4EOF encountered during streaming */
++	bool interweave_swap; /* swap top/bottom lines when interweaving */
+ 	struct completion last_eof_comp;
+ };
  
- The CSI is the backend capture unit that interfaces directly with
-@@ -175,15 +175,21 @@ via the SMFC and an IDMAC channel, bypassing IC pre-processing. This
- source pad is routed to a capture device node, with a node name of the
- format "ipuX_csiY capture".
+@@ -235,6 +236,9 @@ static void prp_vb2_buf_done(struct prp_priv *priv, struct ipuv3_channel *ch)
+ 	if (ipu_idmac_buffer_is_ready(ch, priv->ipu_buf_num))
+ 		ipu_idmac_clear_buffer(ch, priv->ipu_buf_num);
  
--Note that since the IDMAC source pad makes use of an IDMAC channel, it
--can do pixel reordering within the same colorspace. For example, the
--sink pad can take UYVY2X8, but the IDMAC source pad can output YUYV2X8.
--If the sink pad is receiving YUV, the output at the capture device can
--also be converted to a planar YUV format such as YUV420.
--
--It will also perform simple de-interlace without motion compensation,
--which is activated if the sink pad's field type is an interlaced type,
--and the IDMAC source pad field type is set to none.
-+Note that since the IDMAC source pad makes use of an IDMAC channel,
-+pixel reordering within the same colorspace can be carried out by the
-+IDMAC channel. For example, if the CSI sink pad is receiving in UYVY
-+order, the capture device linked to the IDMAC source pad can capture
-+in YUYV order. Also, if the CSI sink pad is receiving a packed YUV
-+format, the capture device can capture a planar YUV format such as
-+YUV420.
++	if (priv->interweave_swap && ch == priv->out_ch)
++		phys += vdev->fmt.fmt.pix.bytesperline;
 +
-+The IDMAC channel at the IDMAC source pad also supports simple
-+interweave without motion compensation, which is activated if the source
-+pad's field type is sequential top-bottom or bottom-top, and the
-+requested capture interface field type is set to interlaced (t-b, b-t,
-+or unqualified interlaced). The capture interface will enforce the same
-+field order as the source pad field order (interlaced-bt if source pad
-+is seq-bt, interlaced-tb if source pad is seq-tb).
+ 	ipu_cpmem_set_buffer(ch, priv->ipu_buf_num, phys);
+ }
  
- This subdev can generate the following event when enabling the second
- IDMAC source pad:
-@@ -325,14 +331,14 @@ ipuX_vdic
+@@ -376,8 +380,9 @@ static int prp_setup_channel(struct prp_priv *priv,
+ 	 * the IDMAC output channel.
+ 	 */
+ 	interweave = V4L2_FIELD_IS_INTERLACED(image.pix.field) &&
+-		V4L2_FIELD_IS_SEQUENTIAL(outfmt->field) &&
+-		channel == priv->out_ch;
++		V4L2_FIELD_IS_SEQUENTIAL(outfmt->field);
++	priv->interweave_swap = interweave &&
++		image.pix.field == V4L2_FIELD_INTERLACED_BT;
  
- The VDIC carries out motion compensated de-interlacing, with three
- motion compensation modes: low, medium, and high motion. The mode is
--specified with the menu control V4L2_CID_DEINTERLACING_MODE. It has
--two sink pads and a single source pad.
-+specified with the menu control V4L2_CID_DEINTERLACING_MODE. The VDIC
-+has two sink pads and a single source pad.
+ 	if (rot_swap_width_height) {
+ 		swap(image.pix.width, image.pix.height);
+@@ -388,6 +393,11 @@ static int prp_setup_channel(struct prp_priv *priv,
+ 			(image.pix.width * outcc->bpp) >> 3;
+ 	}
  
- The direct sink pad receives from an ipuX_csiY direct pad. With this
- link the VDIC can only operate in high motion mode.
- 
- When the IDMAC sink pad is activated, it receives from an output
--or mem2mem device node. With this pipeline, it can also operate
-+or mem2mem device node. With this pipeline, the VDIC can also operate
- in low and medium modes, because these modes require receiving
- frames from memory buffers. Note that an output or mem2mem device
- is not implemented yet, so this sink pad currently has no links.
-@@ -345,8 +351,8 @@ ipuX_ic_prp
- This is the IC pre-processing entity. It acts as a router, routing
- data from its sink pad to one or both of its source pads.
- 
--It has a single sink pad. The sink pad can receive from the ipuX_csiY
--direct pad, or from ipuX_vdic.
-+This entity has a single sink pad. The sink pad can receive from the
-+ipuX_csiY direct pad, or from ipuX_vdic.
- 
- This entity has two source pads. One source pad routes to the
- pre-process encode task entity (ipuX_ic_prpenc), the other to the
-@@ -369,8 +375,8 @@ color-space conversion, resizing (downscaling and upscaling),
- horizontal and vertical flip, and 90/270 degree rotation. Flip
- and rotation are provided via standard V4L2 controls.
- 
--Like the ipuX_csiY IDMAC source, it can also perform simple de-interlace
--without motion compensation, and pixel reordering.
-+Like the ipuX_csiY IDMAC source, this entity also supports simple
-+de-interlace without motion compensation, and pixel reordering.
- 
- ipuX_ic_prpvf
- -------------
-@@ -380,18 +386,18 @@ pad from ipuX_ic_prp, and a single source pad. The source pad is routed
- to a capture device node, with a node name of the format
- "ipuX_ic_prpvf capture".
- 
--It is identical in operation to ipuX_ic_prpenc, with the same resizing
--and CSC operations and flip/rotation controls. It will receive and
--process de-interlaced frames from the ipuX_vdic if ipuX_ic_prp is
-+This entity is identical in operation to ipuX_ic_prpenc, with the same
-+resizing and CSC operations and flip/rotation controls. It will receive
-+and process de-interlaced frames from the ipuX_vdic if ipuX_ic_prp is
- receiving from ipuX_vdic.
- 
--Like the ipuX_csiY IDMAC source, it can perform simple de-interlace
--without motion compensation. However, note that if the ipuX_vdic is
--included in the pipeline (ipuX_ic_prp is receiving from ipuX_vdic),
--it's not possible to use simple de-interlace in ipuX_ic_prpvf, since
--the ipuX_vdic has already carried out de-interlacing (with motion
--compensation) and therefore the field type output from ipuX_ic_prp can
--only be none.
-+Like the ipuX_csiY IDMAC source, this entity supports simple
-+interweaving without motion compensation. However, note that if the
-+ipuX_vdic is included in the pipeline (ipuX_ic_prp is receiving from
-+ipuX_vdic), it's not possible to use interweave in ipuX_ic_prpvf,
-+since the ipuX_vdic has already carried out de-interlacing (with
-+motion compensation) and therefore the field type output from
-+ipuX_vdic can only be none (progressive).
- 
- Capture Pipelines
- -----------------
-@@ -516,10 +522,33 @@ On the SabreAuto, an on-board ADV7180 SD decoder is connected to the
- parallel bus input on the internal video mux to IPU1 CSI0.
- 
- The following example configures a pipeline to capture from the ADV7180
--video decoder, assuming NTSC 720x480 input signals, with Motion
--Compensated de-interlacing. Pad field types assume the adv7180 outputs
--"interlaced". $outputfmt can be any format supported by the ipu1_ic_prpvf
--entity at its output pad:
-+video decoder, assuming NTSC 720x480 input signals, using simple
-+interweave (unconverted and without motion compensation). The adv7180
-+must output sequential or alternating fields (field type 'seq-bt' for
-+NTSC, or 'alternate'):
++	if (priv->interweave_swap && channel == priv->out_ch) {
++		/* start interweave scan at 1st top line (2nd line) */
++		image.rect.top = 1;
++	}
 +
-+.. code-block:: none
-+
-+   # Setup links
-+   media-ctl -l "'adv7180 3-0021':0 -> 'ipu1_csi0_mux':1[1]"
-+   media-ctl -l "'ipu1_csi0_mux':2 -> 'ipu1_csi0':0[1]"
-+   media-ctl -l "'ipu1_csi0':2 -> 'ipu1_csi0 capture':0[1]"
-+   # Configure pads
-+   media-ctl -V "'adv7180 3-0021':0 [fmt:UYVY2X8/720x480 field:seq-bt]"
-+   media-ctl -V "'ipu1_csi0_mux':2 [fmt:UYVY2X8/720x480]"
-+   media-ctl -V "'ipu1_csi0':2 [fmt:AYUV32/720x480]"
-+   # Configure "ipu1_csi0 capture" interface (assumed at /dev/video4)
-+   v4l2-ctl -d4 --set-fmt-video=field=interlaced_bt
-+
-+Streaming can then begin on /dev/video4. The v4l2-ctl tool can also be
-+used to select any supported YUV pixelformat on /dev/video4.
-+
-+This example configures a pipeline to capture from the ADV7180
-+video decoder, assuming PAL 720x576 input signals, with Motion
-+Compensated de-interlacing. The adv7180 must output sequential or
-+alternating fields (field type 'seq-tb' for PAL, or 'alternate').
-+$outputfmt can be any format supported by the ipu1_ic_prpvf entity
-+at its output pad:
+ 	image.phys0 = addr0;
+ 	image.phys1 = addr1;
  
- .. code-block:: none
+@@ -396,8 +406,8 @@ static int prp_setup_channel(struct prp_priv *priv,
+ 	 * channels for planar 4:2:0 (but not when enabling IDMAC
+ 	 * interweaving, they are incompatible).
+ 	 */
+-	if (!interweave && (channel == priv->out_ch ||
+-			    channel == priv->rot_out_ch)) {
++	if ((channel == priv->out_ch && !interweave) ||
++	    channel == priv->rot_out_ch) {
+ 		switch (image.pix.pixelformat) {
+ 		case V4L2_PIX_FMT_YUV420:
+ 		case V4L2_PIX_FMT_YVU420:
+@@ -424,8 +434,11 @@ static int prp_setup_channel(struct prp_priv *priv,
+ 	if (rot_mode)
+ 		ipu_cpmem_set_rotation(channel, rot_mode);
  
-@@ -531,11 +560,11 @@ entity at its output pad:
-    media-ctl -l "'ipu1_ic_prp':2 -> 'ipu1_ic_prpvf':0[1]"
-    media-ctl -l "'ipu1_ic_prpvf':1 -> 'ipu1_ic_prpvf capture':0[1]"
-    # Configure pads
--   media-ctl -V "'adv7180 3-0021':0 [fmt:UYVY2X8/720x480]"
--   media-ctl -V "'ipu1_csi0_mux':2 [fmt:UYVY2X8/720x480 field:interlaced]"
--   media-ctl -V "'ipu1_csi0':1 [fmt:AYUV32/720x480 field:interlaced]"
--   media-ctl -V "'ipu1_vdic':2 [fmt:AYUV32/720x480 field:none]"
--   media-ctl -V "'ipu1_ic_prp':2 [fmt:AYUV32/720x480 field:none]"
-+   media-ctl -V "'adv7180 3-0021':0 [fmt:UYVY2X8/720x576 field:seq-tb]"
-+   media-ctl -V "'ipu1_csi0_mux':2 [fmt:UYVY2X8/720x576]"
-+   media-ctl -V "'ipu1_csi0':1 [fmt:AYUV32/720x576]"
-+   media-ctl -V "'ipu1_vdic':2 [fmt:AYUV32/720x576 field:none]"
-+   media-ctl -V "'ipu1_ic_prp':2 [fmt:AYUV32/720x576 field:none]"
-    media-ctl -V "'ipu1_ic_prpvf':1 [fmt:$outputfmt field:none]"
+-	if (interweave)
+-		ipu_cpmem_interlaced_scan(channel, image.pix.bytesperline,
++	if (interweave && channel == priv->out_ch)
++		ipu_cpmem_interlaced_scan(channel,
++					  priv->interweave_swap ?
++					  -image.pix.bytesperline :
++					  image.pix.bytesperline,
+ 					  image.pix.pixelformat);
  
- Streaming can then begin on the capture device node at
+ 	ret = ipu_ic_task_idma_init(priv->ic, channel,
+diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+index 8537ecb7dd17..555aa45e02e3 100644
+--- a/drivers/staging/media/imx/imx-media-csi.c
++++ b/drivers/staging/media/imx/imx-media-csi.c
+@@ -114,6 +114,7 @@ struct csi_priv {
+ 	u32 frame_sequence; /* frame sequence counter */
+ 	bool last_eof;   /* waiting for last EOF at stream off */
+ 	bool nfb4eof;    /* NFB4EOF encountered during streaming */
++	bool interweave_swap; /* swap top/bottom lines when interweaving */
+ 	struct completion last_eof_comp;
+ };
+ 
+@@ -286,6 +287,9 @@ static void csi_vb2_buf_done(struct csi_priv *priv)
+ 	if (ipu_idmac_buffer_is_ready(priv->idmac_ch, priv->ipu_buf_num))
+ 		ipu_idmac_clear_buffer(priv->idmac_ch, priv->ipu_buf_num);
+ 
++	if (priv->interweave_swap)
++		phys += vdev->fmt.fmt.pix.bytesperline;
++
+ 	ipu_cpmem_set_buffer(priv->idmac_ch, priv->ipu_buf_num, phys);
+ }
+ 
+@@ -433,6 +437,8 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
+ 	 */
+ 	interweave = V4L2_FIELD_IS_INTERLACED(image.pix.field) &&
+ 		V4L2_FIELD_IS_SEQUENTIAL(outfmt->field);
++	priv->interweave_swap = interweave &&
++		image.pix.field == V4L2_FIELD_INTERLACED_BT;
+ 
+ 	switch (image.pix.pixelformat) {
+ 	case V4L2_PIX_FMT_SBGGR8:
+@@ -486,6 +492,12 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
+ 	}
+ 
+ 	if (passthrough) {
++		if (priv->interweave_swap) {
++			/* start interweave scan at 1st top line (2nd line) */
++			image.phys0 += image.pix.bytesperline;
++			image.phys1 += image.pix.bytesperline;
++		}
++
+ 		ipu_cpmem_set_resolution(priv->idmac_ch,
+ 					 image.rect.width * passthrough_cycles,
+ 					 image.rect.height);
+@@ -495,6 +507,11 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
+ 		ipu_cpmem_set_format_passthrough(priv->idmac_ch,
+ 						 passthrough_bits);
+ 	} else {
++		if (priv->interweave_swap) {
++			/* start interweave scan at 1st top line (2nd line) */
++			image.rect.top = 1;
++		}
++
+ 		ret = ipu_cpmem_set_image(priv->idmac_ch, &image);
+ 		if (ret)
+ 			goto unsetup_vb2;
+@@ -526,6 +543,8 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
+ 
+ 	if (interweave)
+ 		ipu_cpmem_interlaced_scan(priv->idmac_ch,
++					  priv->interweave_swap ?
++					  -image.pix.bytesperline :
+ 					  image.pix.bytesperline,
+ 					  image.pix.pixelformat);
+ 
+@@ -1338,16 +1357,27 @@ static void csi_try_field(struct csi_priv *priv,
+ 	switch (infmt->field) {
+ 	case V4L2_FIELD_SEQ_TB:
+ 	case V4L2_FIELD_SEQ_BT:
++		/*
++		 * If the user requests sequential at the source pad,
++		 * allow it (along with possibly inverting field order).
++		 * Otherwise passthrough the field type.
++		 */
++		if (!V4L2_FIELD_IS_SEQUENTIAL(sdformat->format.field))
++			sdformat->format.field = infmt->field;
++		break;
+ 	case V4L2_FIELD_ALTERNATE:
+ 		/*
+-		 * If the sink is sequential or alternating fields,
+-		 * allow only SEQ_TB at the source.
+-		 *
+ 		 * This driver does not support alternate field mode, and
+ 		 * the CSI captures a whole frame, so the CSI never presents
+-		 * alternate mode at its source pads.
++		 * alternate mode at its source pads. If user has not
++		 * already requested sequential, translate ALTERNATE at
++		 * sink pad to SEQ_TB or SEQ_BT at the source pad depending
++		 * on input height (assume NTSC BT order if 480 total active
++		 * frame lines, otherwise PAL TB order).
+ 		 */
+-		sdformat->format.field = V4L2_FIELD_SEQ_TB;
++		if (!V4L2_FIELD_IS_SEQUENTIAL(sdformat->format.field))
++			sdformat->format.field = (infmt->height == 480 / 2) ?
++				V4L2_FIELD_SEQ_BT : V4L2_FIELD_SEQ_TB;
+ 		break;
+ 	default:
+ 		/* Passthrough for all other input field types */
 -- 
 2.17.1
 
