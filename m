@@ -2,84 +2,82 @@ Return-Path: <SRS0=KIs1=PS=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.0 required=3.0
+	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 03280C43387
-	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 10:54:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F8BBC43387
+	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 11:18:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C3DDF21773
-	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 10:54:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 41BB0214C6
+	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 11:18:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727916AbfAJKyx (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 10 Jan 2019 05:54:53 -0500
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:43693 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726925AbfAJKyx (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 Jan 2019 05:54:53 -0500
-Received: from lupine.hi.pengutronix.de ([2001:67c:670:100:3ad5:47ff:feaf:1a17] helo=lupine)
-        by metis.ext.pengutronix.de with esmtp (Exim 4.89)
-        (envelope-from <p.zabel@pengutronix.de>)
-        id 1ghXz9-0007s4-6G; Thu, 10 Jan 2019 11:54:51 +0100
-Message-ID: <1547117689.8943.4.camel@pengutronix.de>
-Subject: Re: [PATCH] media: imx-csi: Input connections to CSI should be
- optional
-From:   Philipp Zabel <p.zabel@pengutronix.de>
-To:     Steve Longerbeam <slongerbeam@gmail.com>,
-        linux-media@vger.kernel.org
-Cc:     Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>,
-        open list <linux-kernel@vger.kernel.org>
-Date:   Thu, 10 Jan 2019 11:54:49 +0100
-In-Reply-To: <20190109183448.20923-1-slongerbeam@gmail.com>
-References: <20190109183448.20923-1-slongerbeam@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-X-Mailer: Evolution 3.22.6-1+deb9u1 
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-X-SA-Exim-Connect-IP: 2001:67c:670:100:3ad5:47ff:feaf:1a17
-X-SA-Exim-Mail-From: p.zabel@pengutronix.de
-X-SA-Exim-Scanned: No (on metis.ext.pengutronix.de); SAEximRunCond expanded to false
-X-PTX-Original-Recipient: linux-media@vger.kernel.org
+        id S1727938AbfAJLSx (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 10 Jan 2019 06:18:53 -0500
+Received: from gofer.mess.org ([88.97.38.141]:36985 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727806AbfAJLSx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 10 Jan 2019 06:18:53 -0500
+Received: by gofer.mess.org (Postfix, from userid 1000)
+        id F31F4600E8; Thu, 10 Jan 2019 11:18:51 +0000 (GMT)
+Date:   Thu, 10 Jan 2019 11:18:51 +0000
+From:   Sean Young <sean@mess.org>
+To:     linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v5.1] Various fixes
+Message-ID: <20190110111851.7ncrfzuayab5mqig@gofer.mess.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Wed, 2019-01-09 at 10:34 -0800, Steve Longerbeam wrote:
-> Some imx platforms do not have fwnode connections to all CSI input
-> ports, and should not be treated as an error. This includes the
-> imx6q SabreAuto, which has no connections to ipu1_csi1 and ipu2_csi0.
-> Return -ENOTCONN in imx_csi_parse_endpoint() so that v4l2-fwnode
-> endpoint parsing will not treat an unconnected CSI input port as
-> an error.
-> 
-> Fixes: c893500a16baf ("media: imx: csi: Register a subdev notifier")
-> 
-> Signed-off-by: Steve Longerbeam <slongerbeam@gmail.com>
+Hi Mauro,
 
-Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
+Here are some of the dvb fixes and the rc fixes for 5.1. Please pull.
 
-regards
-Philipp
+Thanks,
 
-> ---
->  drivers/staging/media/imx/imx-media-csi.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-> index 4223f8d418ae..30b1717982ae 100644
-> --- a/drivers/staging/media/imx/imx-media-csi.c
-> +++ b/drivers/staging/media/imx/imx-media-csi.c
-> @@ -1787,7 +1787,7 @@ static int imx_csi_parse_endpoint(struct device *dev,
->  				  struct v4l2_fwnode_endpoint *vep,
->  				  struct v4l2_async_subdev *asd)
->  {
-> -	return fwnode_device_is_available(asd->match.fwnode) ? 0 : -EINVAL;
-> +	return fwnode_device_is_available(asd->match.fwnode) ? 0 : -ENOTCONN;
->  }
->  
->  static int imx_csi_async_register(struct csi_priv *priv)
+Sean
+
+The following changes since commit 1e0d0a5fd38192f23304ea2fc2b531fea7c74247:
+
+  media: s5p-mfc: fix incorrect bus assignment in virtual child device (2019-01-07 14:39:36 -0500)
+
+are available in the Git repository at:
+
+  git://linuxtv.org/syoung/media_tree.git for-v5.1a
+
+for you to fetch changes up to 959614504ebff677711d271792f7c1ffee818e86:
+
+  media: dvb: Add check on sp8870_readreg (2019-01-10 11:11:13 +0000)
+
+----------------------------------------------------------------
+Aditya Pakki (2):
+      media: dvb: add return value check on Write16
+      media: dvb: Add check on sp8870_readreg
+
+Arnd Bergmann (1):
+      media: seco-cec: fix RC_CORE dependency
+
+Colin Ian King (1):
+      media: cxd2880-spi: fix two memory leaks of dvb_spi
+
+Ettore Chimenti (1):
+      media: secocec: fix ir address shift
+
+Kangjie Lu (2):
+      media: lgdt3306a: fix a missing check of return value
+      media: mt312: fix a missing check of mt312 reset
+
+ drivers/media/dvb-frontends/drxd_hard.c    | 30 +++++++++++++++++++-----------
+ drivers/media/dvb-frontends/lgdt3306a.c    |  5 ++++-
+ drivers/media/dvb-frontends/mt312.c        |  4 +++-
+ drivers/media/dvb-frontends/sp8870.c       |  4 +++-
+ drivers/media/platform/Kconfig             |  2 +-
+ drivers/media/platform/seco-cec/seco-cec.h |  2 +-
+ drivers/media/spi/cxd2880-spi.c            |  8 +++++---
+ 7 files changed, 36 insertions(+), 19 deletions(-)
