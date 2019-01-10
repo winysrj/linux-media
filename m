@@ -2,57 +2,51 @@ Return-Path: <SRS0=KIs1=PS=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C678C43387
-	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 13:32:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 33DA3C43387
+	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 13:33:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 63D522173B
-	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 13:32:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0418F214C6
+	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 13:33:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728969AbfAJNcr (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 10 Jan 2019 08:32:47 -0500
-Received: from kozue.soulik.info ([108.61.200.231]:42484 "EHLO
+        id S1728982AbfAJNdL (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 10 Jan 2019 08:33:11 -0500
+Received: from kozue.soulik.info ([108.61.200.231]:42500 "EHLO
         kozue.soulik.info" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728733AbfAJNcr (ORCPT
+        with ESMTP id S1728733AbfAJNdK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 Jan 2019 08:32:47 -0500
+        Thu, 10 Jan 2019 08:33:10 -0500
 Received: from [IPv6:2001:470:b30d:2:c604:15ff:0:401] (unknown [IPv6:2001:470:b30d:2:c604:15ff:0:401])
-        by kozue.soulik.info (Postfix) with ESMTPSA id A91DD1012A9;
-        Thu, 10 Jan 2019 22:33:24 +0900 (JST)
-Subject: Re: [linux-sunxi] [PATCH v2 1/2] media: v4l: Add definitions for the
- HEVC slice format and controls
+        by kozue.soulik.info (Postfix) with ESMTPSA id F12261012A9;
+        Thu, 10 Jan 2019 22:33:49 +0900 (JST)
+Subject: Re: [PATCH v2 1/2] media: uapi: Add H264 low-level decoder API
+ compound controls.
 From:   ayaka <ayaka@soulik.info>
-To:     Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-Cc:     Randy Li <randy.li@rock-chips.com>,
-        =?UTF-8?Q?Jernej_=c5=a0krabec?= <jernej.skrabec@gmail.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-arm-kernel@lists.infradead.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Ezequiel Garcia <ezequiel@collabora.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Alexandre Courbot <acourbot@chromium.org>,
+To:     Maxime Ripard <maxime.ripard@bootlin.com>
+Cc:     hans.verkuil@cisco.com, acourbot@chromium.org,
+        sakari.ailus@linux.intel.com,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        jenskuske@gmail.com, linux-sunxi@googlegroups.com,
+        linux-kernel@vger.kernel.org, tfiga@chromium.org,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Chen-Yu Tsai <wens@csie.org>, posciak@chromium.org,
         Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        linux-rockchip@lists.infradead.org
-References: <20181123130209.11696-1-paul.kocialkowski@bootlin.com>
- <20181123130209.11696-2-paul.kocialkowski@bootlin.com>
- <5515174.7lFZcYkk85@jernej-laptop>
- <ffe9c81db34b599f675ca5bbf02de360bf0a1608.camel@bootlin.com>
- <776e63c9-d4a5-342a-e0f7-200ef144ffc4@rock-chips.com>
- <64c793e08d61181b78125b3956ec38623fa5d261.camel@bootlin.com>
- <D8005130-F7FD-4CBD-8396-1BB08BB08E81@soulik.info>
- <f982ef378a8ade075bc7077b93640e20ecebf9f4.camel@bootlin.com>
- <82FA0C3F-BC54-4D89-AECB-90D81B89B1CE@soulik.info>
-Message-ID: <c3619a00-17e7-fb92-a427-a7478b96f356@soulik.info>
-Date:   Thu, 10 Jan 2019 21:32:35 +0800
+        Guenter Roeck <groeck@chromium.org>,
+        nicolas.dufresne@collabora.com,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+References: <20181115145650.9827-1-maxime.ripard@bootlin.com>
+ <20181115145650.9827-2-maxime.ripard@bootlin.com>
+ <20190108095228.GA5161@misaki.sumomo.pri>
+ <2149617a-6a36-4c0b-26c9-7fdfee9da9c9@soulik.info>
+Message-ID: <2e734dd6-d459-9990-61fe-27301df35ff7@soulik.info>
+Date:   Thu, 10 Jan 2019 21:33:01 +0800
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
  Thunderbird/60.4.0
 MIME-Version: 1.0
-In-Reply-To: <82FA0C3F-BC54-4D89-AECB-90D81B89B1CE@soulik.info>
+In-Reply-To: <2149617a-6a36-4c0b-26c9-7fdfee9da9c9@soulik.info>
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 8bit
 Content-Language: en-US
@@ -71,179 +65,134 @@ the decoder know the offset from the bitstream bufer, I would suggest to
 add three properties(with sps) for them. But I think we need a method to 
 mark a OUTPUT side buffer for those aux data.
 
-On 1/8/19 6:00 PM, Ayaka wrote:
+On 1/9/19 1:01 AM, ayaka wrote:
 >
-> Sent from my iPad
+> On 1/8/19 5:52 PM, Randy 'ayaka' Li wrote:
+>> On Thu, Nov 15, 2018 at 03:56:49PM +0100, Maxime Ripard wrote:
+>>> From: Pawel Osciak <posciak@chromium.org>
+>>>
+>>> Stateless video codecs will require both the H264 metadata and 
+>>> slices in
+>>> order to be able to decode frames.
+>>>
+>>> This introduces the definitions for a new pixel format for H264 
+>>> slices that
+>>> have been parsed, as well as the structures used to pass the 
+>>> metadata from
+>>> the userspace to the kernel.
+>>>
+>>> Co-Developed-by: Maxime Ripard <maxime.ripard@bootlin.com>
+>>> Signed-off-by: Pawel Osciak <posciak@chromium.org>
+>>> Signed-off-by: Guenter Roeck <groeck@chromium.org>
+>>> Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
+>>> ---
+>>>   Documentation/media/uapi/v4l/biblio.rst       |   9 +
+>>>   .../media/uapi/v4l/extended-controls.rst      | 364 
+>>> ++++++++++++++++++
+>>>   .../media/uapi/v4l/pixfmt-compressed.rst      |  20 +
+>>>   .../media/uapi/v4l/vidioc-queryctrl.rst       |  30 ++
+>>>   .../media/videodev2.h.rst.exceptions          |   5 +
+>>>   drivers/media/v4l2-core/v4l2-ctrls.c          |  42 ++
+>>>   drivers/media/v4l2-core/v4l2-ioctl.c          |   1 +
+>>>   include/media/v4l2-ctrls.h                    |  10 +
+>>>   include/uapi/linux/v4l2-controls.h            | 166 ++++++++
+>>>   include/uapi/linux/videodev2.h                |  11 +
+>>>   10 files changed, 658 insertions(+)
+>>> +#define V4L2_H264_DPB_ENTRY_FLAG_VALID        0x01
+>>> +#define V4L2_H264_DPB_ENTRY_FLAG_ACTIVE        0x02
+>>> +#define V4L2_H264_DPB_ENTRY_FLAG_LONG_TERM    0x04
+>>> +
+>>> +struct v4l2_h264_dpb_entry {
+>>> +    __u32 tag;
+>>> +    __u16 frame_num;
+>>> +    __u16 pic_num;
+>> Although the long term reference would use picture order count
+>> and short term for frame num, but only one of them is used
+>> for a entry of a dpb.
+>>
+>> Besides, for a frame picture frame_num = pic_num * 2,
+>> and frame_num = pic_num * 2 + 1 for a filed.
 >
->> On Jan 8, 2019, at 4:38 PM, Paul Kocialkowski <paul.kocialkowski@bootlin.com> wrote:
->>
->> Hi,
->>
->>> On Tue, 2019-01-08 at 09:16 +0800, Ayaka wrote:
->>>
->>> Sent from my iPad
->>>
->>>> On Jan 7, 2019, at 5:57 PM, Paul Kocialkowski <paul.kocialkowski@bootlin.com> wrote:
->>>>
->>>> Hi,
->>>>
->>>>>> On Mon, 2019-01-07 at 11:49 +0800, Randy Li wrote:
->>>>>> On 12/12/18 8:51 PM, Paul Kocialkowski wrote:
->>>>>> Hi,
->>>>>>
->>>>>> On Wed, 2018-12-05 at 21:59 +0100, Jernej Škrabec wrote:
->>>>>>
->>>>>>>> +
->>>>>>>> +#define V4L2_HEVC_DPB_ENTRY_RPS_ST_CURR_BEFORE    0x01
->>>>>>>> +#define V4L2_HEVC_DPB_ENTRY_RPS_ST_CURR_AFTER    0x02
->>>>>>>> +#define V4L2_HEVC_DPB_ENTRY_RPS_LT_CURR        0x03
->>>>>>>> +
->>>>>>>> +#define V4L2_HEVC_DPB_ENTRIES_NUM_MAX        16
->>>>>>>> +
->>>>>>>> +struct v4l2_hevc_dpb_entry {
->>>>>>>> +    __u32    buffer_tag;
->>>>>>>> +    __u8    rps;
->>>>>>>> +    __u8    field_pic;
->>>>>>>> +    __u16    pic_order_cnt[2];
->>>>>>>> +};
->>>>> Please add a property for reference index, if that rps is not used for
->>>>> this, some device would request that(not the rockchip one). And
->>>>> Rockchip's VDPU1 and VDPU2 for AVC would request a similar property.
->>>> What exactly is that reference index? Is it a bitstream element or
->>>> something deduced from the bitstream?
->>>>
->>> picture order count(POC) for HEVC and frame_num in AVC. I think it is
->>> the number used in list0(P slice and B slice) and list1(B slice).
->> The picture order count is already the last field of the DPB entry
->> structure. There is one for each field picture.
-> As we are not sure whether there is a field coded slice or CTU, I would hold this part and else about the field.
->>>>> Adding another buffer_tag for referring the memory of the motion vectors
->>>>> for each frames. Or a better method is add a meta data to echo picture
->>>>> buffer,  since the picture output is just the same as the original,
->>>>> display won't care whether the motion vectors are written the button of
->>>>> picture or somewhere else.
->>>> The motion vectors are passed as part of the raw bitstream data, in the
->>>> slices. Is there a case where the motion vectors are coded differently?
->>> No, it is an additional cache for decoder, even FFmpeg having such
->>> data, I think allwinner must output it into somewhere.
->> Ah yes I see what you mean! This is handled internally by our driver
->> and not exposed to userspace. I don't think it would be a good idea to
->> expose this cache or request that userspace allocates it like a video
->> buffer.
->>
-> No, usually the driver should allocate, as the user space have no idea on size of each devices.
-> But for advantage user, application can fix a broken picture with a proper data or analysis a object motion from that.
-> So I would suggest attaching this information to a picture buffer as a meta data.
->>>>>>>> +
->>>>>>>> +struct v4l2_hevc_pred_weight_table {
->>>>>>>> +    __u8    luma_log2_weight_denom;
->>>>>>>> +    __s8    delta_chroma_log2_weight_denom;
->>>>>>>> +
->>>>>>>> +    __s8    delta_luma_weight_l0[V4L2_HEVC_DPB_ENTRIES_NUM_MAX];
->>>>>>>> +    __s8    luma_offset_l0[V4L2_HEVC_DPB_ENTRIES_NUM_MAX];
->>>>>>>> +    __s8    delta_chroma_weight_l0[V4L2_HEVC_DPB_ENTRIES_NUM_MAX][2];
->>>>>>>> +    __s8    chroma_offset_l0[V4L2_HEVC_DPB_ENTRIES_NUM_MAX][2];
->>>>>>>> +
->>>>>>>> +    __s8    delta_luma_weight_l1[V4L2_HEVC_DPB_ENTRIES_NUM_MAX];
->>>>>>>> +    __s8    luma_offset_l1[V4L2_HEVC_DPB_ENTRIES_NUM_MAX];
->>>>>>>> +    __s8    delta_chroma_weight_l1[V4L2_HEVC_DPB_ENTRIES_NUM_MAX][2];
->>>>>>>> +    __s8    chroma_offset_l1[V4L2_HEVC_DPB_ENTRIES_NUM_MAX][2];
->>>>>>>> +};
->>>>>>>> +
->>>>> Those properties I think are not necessary are applying for the
->>>>> Rockchip's device, may not work for the others.
->>>> Yes, it's possible that some of the elements are not necessary for some
->>>> decoders. What we want is to cover all the elements that might be
->>>> required for a decoder.
->>> I wonder whether allwinner need that, those sao flag usually ignored
->>> by decoder in design. But more is better than less, it is hard to
->>> extend a v4l2 structure  in the future, maybe a new HEVC profile
->>> would bring a new property, it is still too early for HEVC.
->> Yes this is used by our decoder. The idea is to have all the basic
->> bitstream elements in the structures (even if some decoders don't use
->> them all) and add others for extension as separate controls later.
->>
->>>>>>>> +struct v4l2_ctrl_hevc_slice_params {
->>>>>>>> +    __u32    bit_size;
->>>>>>>> +    __u32    data_bit_offset;
->>>>>>>> +
->>>>>>>> +    /* ISO/IEC 23008-2, ITU-T Rec. H.265: NAL unit header */
->>>>>>>> +    __u8    nal_unit_type;
->>>>>>>> +    __u8    nuh_temporal_id_plus1;
->>>>>>>> +
->>>>>>>> +    /* ISO/IEC 23008-2, ITU-T Rec. H.265: General slice segment header */
->>>>>>>> +    __u8    slice_type;
->>>>>>>> +    __u8    colour_plane_id;
->>>>> ----------------------------------------------------------------------------
->>>>>>>> +    __u16    slice_pic_order_cnt;
->>>>>>>> +    __u8    slice_sao_luma_flag;
->>>>>>>> +    __u8    slice_sao_chroma_flag;
->>>>>>>> +    __u8    slice_temporal_mvp_enabled_flag;
->>>>>>>> +    __u8    num_ref_idx_l0_active_minus1;
->>>>>>>> +    __u8    num_ref_idx_l1_active_minus1;
->>>>> Rockchip's decoder doesn't use this part.
->>>>>>>> +    __u8    mvd_l1_zero_flag;
->>>>>>>> +    __u8    cabac_init_flag;
->>>>>>>> +    __u8    collocated_from_l0_flag;
->>>>>>>> +    __u8    collocated_ref_idx;
->>>>>>>> +    __u8    five_minus_max_num_merge_cand;
->>>>>>>> +    __u8    use_integer_mv_flag;
->>>>>>>> +    __s8    slice_qp_delta;
->>>>>>>> +    __s8    slice_cb_qp_offset;
->>>>>>>> +    __s8    slice_cr_qp_offset;
->>>>>>>> +    __s8    slice_act_y_qp_offset;
->>>>>>>> +    __s8    slice_act_cb_qp_offset;
->>>>>>>> +    __s8    slice_act_cr_qp_offset;
->>>>>>>> +    __u8    slice_deblocking_filter_disabled_flag;
->>>>>>>> +    __s8    slice_beta_offset_div2;
->>>>>>>> +    __s8    slice_tc_offset_div2;
->>>>>>>> +    __u8    slice_loop_filter_across_slices_enabled_flag;
->>>>>>>> +
->>>>>>>> +    /* ISO/IEC 23008-2, ITU-T Rec. H.265: Picture timing SEI message */
->>>>>>>> +    __u8    pic_struct;
->>>>> I think the decoder doesn't care about this, it is used for display.
->>>> The purpose of this field is to indicate whether the current picture is
->>>> a progressive frame or an interlaced field picture, which is useful for
->>>> decoding.
->>>>
->>>> At least our decoder has a register field to indicate frame/top
->>>> field/bottom field, so we certainly need to keep the info around.
->>>> Looking at the spec and the ffmpeg implementation, it looks like this
->>>> flag of the bitstream is the usual way to report field coding.
->>> It depends whether the decoder cares about scan type or more, I
->>> wonder prefer general_interlaced_source_flag for just scan type, it
->>> would be better than reading another SEL.
->> Well we still need a way to indicate if the current data is top or
->> bottom field for interlaced. I don't think that knowing that the whole
->> video is interlaced would be precise enough.
->>
->> Cheers,
->>
->> Paul
->>
->>>>>>>> +
->>>>>>>> +    /* ISO/IEC 23008-2, ITU-T Rec. H.265: General slice segment header */
->>>>>>>> +    struct v4l2_hevc_dpb_entry dpb[V4L2_HEVC_DPB_ENTRIES_NUM_MAX];
->>>>>>>> +    __u8    num_active_dpb_entries;
->>>>>>>> +    __u8    ref_idx_l0[V4L2_HEVC_DPB_ENTRIES_NUM_MAX];
->>>>>>>> +    __u8    ref_idx_l1[V4L2_HEVC_DPB_ENTRIES_NUM_MAX];
->>>>>>>> +
->>>>>>>> +    __u8    num_rps_poc_st_curr_before;
->>>>>>>> +    __u8    num_rps_poc_st_curr_after;
->>>>>>>> +    __u8    num_rps_poc_lt_curr;
->>>>>>>> +
->>>>>>>> +    /* ISO/IEC 23008-2, ITU-T Rec. H.265: Weighted prediction parameter */
->>>>>>>> +    struct v4l2_hevc_pred_weight_table pred_weight_table;
->>>>>>>> +};
->>>>>>>> +
->>>>>>>> #endif
->>>> -- 
->>>> Paul Kocialkowski, Bootlin (formerly Free Electrons)
->>>> Embedded Linux and kernel engineering
->>>> https://bootlin.com
->>>>
->> -- 
->> Paul Kocialkowski, Bootlin (formerly Free Electrons)
->> Embedded Linux and kernel engineering
->> https://bootlin.com
->>
+> I mistook something before and something Herman told me is wrong, I 
+> read the book explaining the ITU standard.
+>
+> The index of a short term reference picture would be frame_num or POC 
+> and LongTermPicNum for long term.
+>
+> But stateless hardware decoder usually don't care about whether it is 
+> long term or short term, as the real dpb updating or management work 
+> are not done by the the driver or device and decoding job would only 
+> use the two list(or one list for slice P) for reference pictures. So 
+> those flag for long term or status can be removed as well.
+>
+> Stateless decoder would care about just reference index of this 
+> picture and maybe some extra property for the filed coded below. 
+> Keeping a property here for the index of a picture is enough.
+>
+>>> +    /* Note that field is indicated by v4l2_buffer.field */
+>>> +    __s32 top_field_order_cnt;
+>>> +    __s32 bottom_field_order_cnt;
+>>> +    __u8 flags; /* V4L2_H264_DPB_ENTRY_FLAG_* */
+>>> +};
+>>> +
+>>> +struct v4l2_ctrl_h264_decode_param {
+>>> +    __u32 num_slices;
+>>> +    __u8 idr_pic_flag;
+>>> +    __u8 nal_ref_idc;
+>>> +    __s32 top_field_order_cnt;
+>>> +    __s32 bottom_field_order_cnt;
+>>> +    __u8 ref_pic_list_p0[32];
+>>> +    __u8 ref_pic_list_b0[32];
+>>> +    __u8 ref_pic_list_b1[32];
+>> I would prefer to keep only two list, list0 and list 1.
+>> Anyway P slice just use the list0 and B would use the both.
+>>> +    struct v4l2_h264_dpb_entry dpb[16];
+>>> +};
+>>> +
+>>>   #endif
+>>> diff --git a/include/uapi/linux/videodev2.h 
+>>> b/include/uapi/linux/videodev2.h
+>>> index 173a94d2cbef..dd028e0bf306 100644
+>>> --- a/include/uapi/linux/videodev2.h
+>>> +++ b/include/uapi/linux/videodev2.h
+>>> @@ -643,6 +643,7 @@ struct v4l2_pix_format {
+>>>   #define V4L2_PIX_FMT_H264     v4l2_fourcc('H', '2', '6', '4') /* 
+>>> H264 with start codes */
+>>>   #define V4L2_PIX_FMT_H264_NO_SC v4l2_fourcc('A', 'V', 'C', '1') /* 
+>>> H264 without start codes */
+>>>   #define V4L2_PIX_FMT_H264_MVC v4l2_fourcc('M', '2', '6', '4') /* 
+>>> H264 MVC */
+>>> +#define V4L2_PIX_FMT_H264_SLICE v4l2_fourcc('S', '2', '6', '4') /* 
+>>> H264 parsed slices */
+>>>   #define V4L2_PIX_FMT_H263     v4l2_fourcc('H', '2', '6', '3') /* 
+>>> H263          */
+>>>   #define V4L2_PIX_FMT_MPEG1    v4l2_fourcc('M', 'P', 'G', '1') /* 
+>>> MPEG-1 ES     */
+>>>   #define V4L2_PIX_FMT_MPEG2    v4l2_fourcc('M', 'P', 'G', '2') /* 
+>>> MPEG-2 ES     */
+>>> @@ -1631,6 +1632,11 @@ struct v4l2_ext_control {
+>>>           __u32 __user *p_u32;
+>>>           struct v4l2_ctrl_mpeg2_slice_params __user 
+>>> *p_mpeg2_slice_params;
+>>>           struct v4l2_ctrl_mpeg2_quantization __user 
+>>> *p_mpeg2_quantization;
+>>> +        struct v4l2_ctrl_h264_sps __user *p_h264_sps;
+>>> +        struct v4l2_ctrl_h264_pps __user *p_h264_pps;
+>>> +        struct v4l2_ctrl_h264_scaling_matrix __user *p_h264_scal_mtrx;
+>>> +        struct v4l2_ctrl_h264_slice_param __user *p_h264_slice_param;
+>>> +        struct v4l2_ctrl_h264_decode_param __user 
+>>> *p_h264_decode_param;
+>>>           void __user *ptr;
+>>>       };
+>>>   } __attribute__ ((packed));
+>>> @@ -1678,6 +1684,11 @@ enum v4l2_ctrl_type {
+>>>       V4L2_CTRL_TYPE_U32         = 0x0102,
+>>>       V4L2_CTRL_TYPE_MPEG2_SLICE_PARAMS = 0x0103,
+>>>       V4L2_CTRL_TYPE_MPEG2_QUANTIZATION = 0x0104,
+>>> +    V4L2_CTRL_TYPE_H264_SPS      = 0x0105,
+>>> +    V4L2_CTRL_TYPE_H264_PPS      = 0x0106,
+>>> +    V4L2_CTRL_TYPE_H264_SCALING_MATRIX = 0x0107,
+>>> +    V4L2_CTRL_TYPE_H264_SLICE_PARAMS = 0x0108,
+>>> +    V4L2_CTRL_TYPE_H264_DECODE_PARAMS = 0x0109,
+>>>   };
+>>>     /*  Used in the VIDIOC_QUERYCTRL ioctl for querying controls */
