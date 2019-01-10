@@ -2,199 +2,116 @@ Return-Path: <SRS0=KIs1=PS=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 878A6C43387
-	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 12:05:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D9AFC43387
+	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 12:08:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5EAC5214C6
-	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 12:05:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3FE1A214C6
+	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 12:08:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728213AbfAJMFW (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 10 Jan 2019 07:05:22 -0500
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:32873 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728088AbfAJMFV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 Jan 2019 07:05:21 -0500
-Received: from [IPv6:2001:420:44c1:2579:595e:33cd:95d8:785f] ([IPv6:2001:420:44c1:2579:595e:33cd:95d8:785f])
-        by smtp-cloud9.xs4all.net with ESMTPA
-        id hZ5HgauAcMWvEhZ5LgX5CC; Thu, 10 Jan 2019 13:05:19 +0100
-Subject: Re: [RFC PATCH 5/5] v4l2-ctl: add an option to list controls in a
- machine-readable format
-To:     Antonio Ospite <ao2@ao2.it>
-Cc:     linux-media@vger.kernel.org
-References: <20181124185256.74dc969bdb8f7ab79cf03d5d@ao2.it>
- <20190103180102.12282-1-ao2@ao2.it> <20190103180102.12282-6-ao2@ao2.it>
- <3f081956-7733-069b-da24-0d04831b8ed1@xs4all.nl>
- <20190109221508.eaa19c66df252a1f9802cd9a@ao2.it>
-From:   Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <c0242c60-849e-b393-0e67-ca54d6d2e18d@xs4all.nl>
-Date:   Thu, 10 Jan 2019 13:05:15 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:52.0) Gecko/20100101
- Thunderbird/52.2.1
+        id S1727958AbfAJMIN (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 10 Jan 2019 07:08:13 -0500
+Received: from mga09.intel.com ([134.134.136.24]:37639 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727391AbfAJMIN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 10 Jan 2019 07:08:13 -0500
+X-Amp-Result: UNSCANNABLE
+X-Amp-File-Uploaded: False
+Received: from orsmga007.jf.intel.com ([10.7.209.58])
+  by orsmga102.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 10 Jan 2019 04:08:13 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.56,461,1539673200"; 
+   d="scan'208";a="105550322"
+Received: from paasikivi.fi.intel.com ([10.237.72.42])
+  by orsmga007.jf.intel.com with ESMTP; 10 Jan 2019 04:08:11 -0800
+Received: by paasikivi.fi.intel.com (Postfix, from userid 1000)
+        id 7A031209AC; Thu, 10 Jan 2019 14:08:10 +0200 (EET)
+Date:   Thu, 10 Jan 2019 14:08:10 +0200
+From:   Sakari Ailus <sakari.ailus@linux.intel.com>
+To:     Thierry Reding <thierry.reding@gmail.com>
+Cc:     Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        Hans Verkuil <hverkuil-cisco@xs4all.nl>,
+        Ezequiel Garcia <ezequiel@collabora.com>,
+        Tomasz Figa <tfiga@chromium.org>, linux-media@vger.kernel.org
+Subject: Re: [PATCH] media: v4l2-ioctl: Clear only per-plane reserved fields
+Message-ID: <20190110120809.56yubs7k4wxvdzmn@paasikivi.fi.intel.com>
+References: <20190110104839.31822-1-thierry.reding@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20190109221508.eaa19c66df252a1f9802cd9a@ao2.it>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfN1ktg597voEbVSbQZpE3d4oJLqMEtKdl1dKKpLbTVOK+FeesSvyzFExyzggZQvEHv1+DNT2qe1NVdGSv8gTPoN+oIyB8d7m8vgsLY6cDRT2UesZxun/
- k+cqF3J2z6fHRVrAjHQPv/0Oq+DsnAuH0Efu6eLTBtjwOnCOjTnLCK1FmbMuMEmaRdFFEnO4A63tvitgCQIdCaZsDMpTyKtadV6URSoIkkhF4w0iLZ1OOsd6
- nro0J0Zex7SIaU27rbXkO9L9O3Th9nQh/P/NdthQTYZPFJ908md0gTfszLVHQ1veWTjBNuQl8L9AR9V2Q1tPnA==
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190110104839.31822-1-thierry.reding@gmail.com>
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On 01/09/19 22:15, Antonio Ospite wrote:
-> On Mon, 7 Jan 2019 11:18:58 +0100
-> Hans Verkuil <hverkuil@xs4all.nl> wrote:
+On Thu, Jan 10, 2019 at 11:48:39AM +0100, Thierry Reding wrote:
+> From: Thierry Reding <treding@nvidia.com>
 > 
->> On 01/03/2019 07:01 PM, Antonio Ospite wrote:
->>> Add a new option --list-ctrls-values to list the values of controls in
->>> a format which can be passed again to --set-ctrl.
->>>
->>> This can be useful to save and restore device settings:
->>>
->>>   $ v4l2-ctl --list-ctrls-values >settings.txt 2>/dev/null
->>>   $ v4l2-ctl --set-ctrl "$(cat settings.txt)"
->>>
->>> The new option has been tested with the vivid driver and it works well
->>> enough to be useful with a real driver as well.
->>>
->>> String controls are not supported for now, as they may not be parsed
->>> correctly by --set-ctrl if they contain a comma or a single quote.
->>>
->>> Signed-off-by: Antonio Ospite <ao2@ao2.it>
->>> ---
->>>  utils/v4l2-ctl/v4l2-ctl-common.cpp | 72 ++++++++++++++++++++++++++----
->>>  utils/v4l2-ctl/v4l2-ctl.1.in       |  4 ++
->>>  utils/v4l2-ctl/v4l2-ctl.cpp        |  1 +
->>>  utils/v4l2-ctl/v4l2-ctl.h          |  1 +
->>>  4 files changed, 69 insertions(+), 9 deletions(-)
->>>
->>> diff --git a/utils/v4l2-ctl/v4l2-ctl-common.cpp b/utils/v4l2-ctl/v4l2-ctl-common.cpp
->>> index 7777b45c..b4124608 100644
->>> --- a/utils/v4l2-ctl/v4l2-ctl-common.cpp
->>> +++ b/utils/v4l2-ctl/v4l2-ctl-common.cpp
-> [...]
->>> @@ -1102,13 +1146,23 @@ void common_get(cv4l_fd &_fd)
->>>  
->>>  void common_list(cv4l_fd &fd)
->>>  {
->>> -	if (options[OptListCtrls] || options[OptListCtrlsMenus]) {
->>> -		struct print_format classic_format = {
->>> -			.print_class_name = print_class_name,
->>> -			.print_qctrl = print_qctrl,
->>> -			.show_menus = options[OptListCtrlsMenus],
->>> -		};
->>> -
->>> -		list_controls(fd.g_fd(), &classic_format);
->>> +	if (options[OptListCtrls] || options[OptListCtrlsMenus] || options[OptListCtrlsValues]) {
->>> +		if (options[OptListCtrlsValues]) {
->>> +			struct print_format machine_format = {
->>> +				.print_class_name = NULL,
->>> +				.print_qctrl = print_qctrl_values,
->>> +				.show_menus = 0,
->>> +			};
->>> +
->>> +			list_controls(fd.g_fd(), &machine_format);
->>> +		} else {
->>> +			struct print_format classic_format = {
->>> +				.print_class_name = print_class_name,
->>> +				.print_qctrl = print_qctrl,
->>> +				.show_menus = options[OptListCtrlsMenus],
->>> +			};
->>> +
->>> +			list_controls(fd.g_fd(), &classic_format);
->>> +		}
->>
->> I don't like this struct print_format.
->>
+> Currently the IOCTL code clears everything after the per-plane
+> bytesperline field in struct v4l2_format. The intent was to only clear
+> the per-plane reserved fields since there is data in struct v4l2_format
+> after the per-plane format data that userspace may have filled in.
 > 
-> Hi Hans,
-> 
-> the idea was based on two considerations:
->   1. decide the format once and for all, avoiding to check each time a
->      control is printed.
->   2. have at least some partial infrastructure in case some
->      other export formats were to be added.
-> 
-> But yeah, as 2. seems quite unlikely I can go with a more essential
-> approach for now, no problem.
-> 
->> I would prefer something like this:
->>
->> Rename print_qctrl to print_qctrl_readable() and create a new print_qctrl:
->>
->> static void print_qctrl(int fd, struct v4l2_query_ext_ctrl *queryctrl,
->>                 struct v4l2_ext_control *ctrl, int show_menus)
->> {
->> 	if (options[OptListCtrlsValues])
->> 		print_qctrl_values(fd, queryctrl, ctrl, show_menus);
->> 	else
->> 		print_qctrl_readable(fd, queryctrl, ctrl, show_menus);
->> }
->>
-> 
-> Since "readable" here means "human readable", while "values" is meant
-> for a "machine readable" output, I'd "avoid" the word "readable" at
-> all and go with "details" or "description":
-> 
-> 	if (options[OptListCtrlsValues])
-> 		print_qctrl_values(fd, queryctrl, ctrl, show_menus);
-> 	else
-> 		print_qctrl_details(fd, queryctrl, ctrl, show_menus);
+> Fixes: 4e1e0eb0e074 ("media: v4l2-ioctl: Zero v4l2_plane_pix_format reserved fields")
+> Signed-off-by: Thierry Reding <treding@nvidia.com>
 
-Hmm. Perhaps we should just be explicit:
+Good catch!
 
-	print_qctrl_machine_readable
-	print_qctrl_human_readable
+Reviewed-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-I think that's best.
-
+> ---
+>  drivers/media/v4l2-core/v4l2-ioctl.c | 8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
 > 
->> And in print_control you can just skip printing the class name if
->> options[OptListCtrlsValues] is set.
->>
-> 
-> OK.
-> 
->> I would like to see string controls being supported. I would recommend
->> to just write the string as a hexdump. It avoids having to escape characters.
->>
->> The same can be done for compound/array controls. In fact, you could write
->> all controls that way. It would simplify things a lot.
->>
-> 
-> But then --set-ctrl would need to be extended to parse the hexdump,
-> wouldn't it? Do you already have a syntax in mind?
-
-I would add a new --set-ctrl-value option that takes a hexdump.
-Basically the inverse of --list-ctrls-values.
-
-Regards,
-
-	Hans
-
-> 
-> TBH, I kept things simple hoping to re-use --set-ctrl without too much
-> work.
-> 
->> Also, when options[OptListCtrlsValues] is set you should skip all WRITE_ONLY
->> controls, all BUTTON controls, and all volatile controls. They are not
->> relevant if you are just interested in controls that can be set.
->>
-> 
-> That I will do in any case, thank you.
-> 
->> Regards,
->>
->> 	Hans
-> 
-> Thank you,
->    Antonio
+> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+> index df4259802756..e00aa2fe3e8f 100644
+> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
+> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+> @@ -1553,7 +1553,7 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
+>  			break;
+>  		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
+>  		for (i = 0; i < p->fmt.pix_mp.num_planes; i++)
+> -			CLEAR_AFTER_FIELD(p, fmt.pix_mp.plane_fmt[i].bytesperline);
+> +			CLEAR_AFTER_FIELD(&p->fmt.pix_mp.plane_fmt[i], bytesperline);
+>  		return ops->vidioc_s_fmt_vid_cap_mplane(file, fh, arg);
+>  	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
+>  		if (unlikely(!ops->vidioc_s_fmt_vid_overlay))
+> @@ -1583,7 +1583,7 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
+>  			break;
+>  		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
+>  		for (i = 0; i < p->fmt.pix_mp.num_planes; i++)
+> -			CLEAR_AFTER_FIELD(p, fmt.pix_mp.plane_fmt[i].bytesperline);
+> +			CLEAR_AFTER_FIELD(&p->fmt.pix_mp.plane_fmt[i], bytesperline);
+>  		return ops->vidioc_s_fmt_vid_out_mplane(file, fh, arg);
+>  	case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
+>  		if (unlikely(!ops->vidioc_s_fmt_vid_out_overlay))
+> @@ -1650,7 +1650,7 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
+>  			break;
+>  		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
+>  		for (i = 0; i < p->fmt.pix_mp.num_planes; i++)
+> -			CLEAR_AFTER_FIELD(p, fmt.pix_mp.plane_fmt[i].bytesperline);
+> +			CLEAR_AFTER_FIELD(&p->fmt.pix_mp.plane_fmt[i], bytesperline);
+>  		return ops->vidioc_try_fmt_vid_cap_mplane(file, fh, arg);
+>  	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
+>  		if (unlikely(!ops->vidioc_try_fmt_vid_overlay))
+> @@ -1680,7 +1680,7 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
+>  			break;
+>  		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
+>  		for (i = 0; i < p->fmt.pix_mp.num_planes; i++)
+> -			CLEAR_AFTER_FIELD(p, fmt.pix_mp.plane_fmt[i].bytesperline);
+> +			CLEAR_AFTER_FIELD(&p->fmt.pix_mp.plane_fmt[i], bytesperline);
+>  		return ops->vidioc_try_fmt_vid_out_mplane(file, fh, arg);
+>  	case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
+>  		if (unlikely(!ops->vidioc_try_fmt_vid_out_overlay))
+> -- 
+> 2.19.1
 > 
 
+-- 
+Sakari Ailus
+sakari.ailus@linux.intel.com
