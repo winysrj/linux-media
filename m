@@ -2,163 +2,105 @@ Return-Path: <SRS0=KIs1=PS=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+X-Spam-Status: No, score=-7.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E864CC43387
-	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 06:02:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 385D3C43387
+	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 07:55:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id AF44F214DA
-	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 06:02:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 09B2320685
+	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 07:55:37 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=kemnade.info header.i=@kemnade.info header.b="B98ApLHW"
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="Vl4CO/gV"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727137AbfAJGCl (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 10 Jan 2019 01:02:41 -0500
-Received: from mail.andi.de1.cc ([85.214.239.24]:36634 "EHLO
-        h2641619.stratoserver.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725536AbfAJGCk (ORCPT
+        id S1727328AbfAJHzg (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 10 Jan 2019 02:55:36 -0500
+Received: from out1-smtp.messagingengine.com ([66.111.4.25]:40203 "EHLO
+        out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726137AbfAJHzg (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 Jan 2019 01:02:40 -0500
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=kemnade.info; s=20180802; h=Message-Id:Date:Subject:Cc:To:From:Sender:
-        Reply-To:MIME-Version:Content-Type:Content-Transfer-Encoding:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:
-        List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=ELnuXEy+ZyRvfofCf0p0AbrqJf7RUAii+SnFu9UC6bs=; b=B98ApLHWImDhvZ6TSyjudCZmXj
-        PcyMMCq8csk6e2+CRvRz4NjqJ/buIeI9O7q7pxV5qvBt+O4QPeZ6PZAR53bHEOBmdE0bJD+F4exWr
-        sgm9E1v/Wzf/AybQr178vXxpEcIxK6Om+ZDQ5pRNgjNE+vOBPLksQ6YLhr8uRH5OecdE=;
-Received: from hsvpn29.hotsplots.net ([185.46.137.7] helo=localhost)
-        by h2641619.stratoserver.net with esmtpsa (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
-        (Exim 4.89)
-        (envelope-from <andreas@kemnade.info>)
-        id 1ghTQH-0002Hv-Ew; Thu, 10 Jan 2019 07:02:33 +0100
-Received: from andi by localhost with local (Exim 4.89)
-        (envelope-from <andreas@kemnade.info>)
-        id 1ghTQE-0004PQ-PL; Thu, 10 Jan 2019 07:02:31 +0100
-From:   Andreas Kemnade <andreas@kemnade.info>
-To:     laurent.pinchart@ideasonboard.com, mchehab@kernel.org,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-omap <linux-omap@vger.kernel.org>,
-        Discussions about the Letux Kernel 
-        <letux-kernel@openphoenux.org>
-Cc:     Andreas Kemnade <andreas@kemnade.info>
-Subject: [PATCH RFC] media: omap3isp: Fix high idle current
-Date:   Thu, 10 Jan 2019 07:01:36 +0100
-Message-Id: <20190110060136.16896-1-andreas@kemnade.info>
-X-Mailer: git-send-email 2.11.0
+        Thu, 10 Jan 2019 02:55:36 -0500
+Received: from compute4.internal (compute4.nyi.internal [10.202.2.44])
+        by mailout.nyi.internal (Postfix) with ESMTP id AF3FF22709
+        for <linux-media@vger.kernel.org>; Thu, 10 Jan 2019 02:55:32 -0500 (EST)
+Received: from mailfrontend1 ([10.202.2.162])
+  by compute4.internal (MEProxy); Thu, 10 Jan 2019 02:55:32 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        messagingengine.com; h=content-transfer-encoding:content-type
+        :date:from:message-id:mime-version:subject:to:x-me-proxy
+        :x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=fm1; bh=333s9O
+        fNrwWgG77HR6/kjgBHh195x43WYGNwidMQzr4=; b=Vl4CO/gVSHMlKLDFoe1KmR
+        yfc9u1L2tcWy17lxGVsBfmtweAjTIkCavLtOUIPusbaV5R0muzd0ndVCjNQaUMAp
+        +bOOULzx4in9fMUV44LliJuZ87fwmqI2AqFWAcw2sB6RC3UT/C6H9PghWSfJI8c0
+        7HVFTNGkE8qP/vXKI1E2gNk2wsBBHggM0xYvd3/wfitaSTN6rnz5m7h4XPuBsLsA
+        8azKFOKIMp3QQBpAi2t6S122BhtCT+t4+ljs/Qdqabo0yLXfXpaY0QWJLakP0u4M
+        ky4QF5W/gxjIcYoztrKOAYJCfARGGNOfBESUGwBlZScuDr6n/Ij4JgDdX9L+Wslw
+        ==
+X-ME-Sender: <xms:dPo2XKgYffC2n0s_ovDQkXXYPo0K3hh3KcptUSZ33kbS8nnImnCCig>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedtledrfedvgdduudegucetufdoteggodetrfdotf
+    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfquhhtnecuuegrihhlohhuthemucef
+    tddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefvhffukffffg
+    ggtgfgsehtjeertddtfeejnecuhfhrohhmpefgughgrghrucfvhhhivghruceoihhnfhho
+    segvughgrghrthhhihgvrhdrnhgvtheqnecukfhppeefuddrvddtledrleehrddvgedvne
+    curfgrrhgrmhepmhgrihhlfhhrohhmpehinhhfohesvggughgrrhhthhhivghrrdhnvght
+    necuvehluhhsthgvrhfuihiivgeptd
+X-ME-Proxy: <xmx:dPo2XGe94IKWau4ps7YBlt4hZ1uS4QbyfykLKaKsFpRdXZg8VLIzYA>
+    <xmx:dPo2XFlCuhjeqarvqJk2Zo7ls7iApe3yDVyGzXr5BTZ7JP7LBmzuSA>
+    <xmx:dPo2XHscI1IFr7h9lLFhDkjC2-AOEDdbIxL4HVWqsRGX58M71mFooA>
+    <xmx:dPo2XBGHdGpSdnz7L0yJLJD7pLgxw1ak_grkZGKDeYv4XL1piGU99w>
+Received: from [192.168.0.111] (unknown [31.209.95.242])
+        by mail.messagingengine.com (Postfix) with ESMTPA id 16D4AE41AC
+        for <linux-media@vger.kernel.org>; Thu, 10 Jan 2019 02:55:31 -0500 (EST)
+To:     Linux Media Mailing List <linux-media@vger.kernel.org>
+From:   Edgar Thier <info@edgarthier.net>
+Subject: [Patch v2] uvcvideo: Add simple packed bayer 12-bit formats
+Message-ID: <b9dc4c99-5aaa-db43-f6cb-f829da9fd654@edgarthier.net>
+Date:   Thu, 10 Jan 2019 08:55:31 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.3.1
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On the GTA04, current consumption rose by about 30mA when the omap3_isp
-module was loaded and the v4l device was not accessed and even no
-camera attached.
-Module removal fixed it again. Slowing down the removal process reveals
-that calling isp_detach_iommu() is required to have low
-current. So isp_attach/detach_iommu() to moved to the get()/put()
-functions.
-This all has strange side effects. The hwmod seems to be accessible
-using /dev/mem if the iommu calls in their original place. With
-the modified placement it is not.
-In a very old setup with a 3.7 kernel which
-has the iommu calls at the same place as our current kernel,
-the memory is not accessible.
-Note: isp_get()/put() calls seem to be balanced.
 
-But at the current wonky gta04 setup (with a not upstreamed
-image sensor driver)which also has other problems, CAM
-reports address holes. So I have no clear idea whether this patch
-is right or not.
+These formats are compressed 12-bit raw bayer formats with four different
+pixel orders. They are similar to 10-bit bayer formats 'IPU3'.
 
-Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+Signed-off-by: Edgar Thier <info@edgarthier.net>
 ---
- drivers/media/platform/omap3isp/isp.c | 28 +++++++++++++++-------------
- 1 file changed, 15 insertions(+), 13 deletions(-)
+drivers/media/usb/uvc/uvcvideo.h | 14 +++++++++++++-
+1 file changed, 13 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index 13f2828d880d..b837ca5604ad 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -88,6 +88,10 @@ static void isp_save_ctx(struct isp_device *isp);
- 
- static void isp_restore_ctx(struct isp_device *isp);
- 
-+static int isp_attach_iommu(struct isp_device *isp);
-+
-+static void isp_detach_iommu(struct isp_device *isp);
-+
- static const struct isp_res_mapping isp_res_maps[] = {
- 	{
- 		.isp_rev = ISP_REVISION_2_0,
-@@ -1407,6 +1411,14 @@ static struct isp_device *__omap3isp_get(struct isp_device *isp, bool irq)
- 		__isp = NULL;
- 		goto out;
- 	}
-+	/* IOMMU */
-+	if (isp_attach_iommu(isp) < 0) {
-+		dev_err(isp->dev, "unable to attach to IOMMU\n");
-+		isp_disable_clocks(isp);
-+		__isp = NULL;
-+		goto out;
-+	}
-+
- 
- 	/* We don't want to restore context before saving it! */
- 	if (isp->has_context)
-@@ -1453,6 +1465,7 @@ static void __omap3isp_put(struct isp_device *isp, bool save_ctx)
- 		if (!media_entity_enum_empty(&isp->crashed) ||
- 		    isp->stop_failure)
- 			isp_reset(isp);
-+		isp_detach_iommu(isp);
- 		isp_disable_clocks(isp);
- 	}
- 	mutex_unlock(&isp->isp_mutex);
-@@ -1999,10 +2012,6 @@ static int isp_remove(struct platform_device *pdev)
- 	isp_cleanup_modules(isp);
- 	isp_xclk_cleanup(isp);
- 
--	__omap3isp_get(isp, false);
--	isp_detach_iommu(isp);
--	__omap3isp_put(isp, false);
--
- 	media_entity_enum_cleanup(&isp->crashed);
- 	v4l2_async_notifier_cleanup(&isp->notifier);
- 
-@@ -2313,19 +2322,12 @@ static int isp_probe(struct platform_device *pdev)
- 	isp->mmio_hist_base_phys =
- 		mem->start + isp_res_maps[m].offset[OMAP3_ISP_IOMEM_HIST];
- 
--	/* IOMMU */
--	ret = isp_attach_iommu(isp);
--	if (ret < 0) {
--		dev_err(&pdev->dev, "unable to attach to IOMMU\n");
--		goto error_isp;
--	}
--
- 	/* Interrupt */
- 	ret = platform_get_irq(pdev, 0);
- 	if (ret <= 0) {
- 		dev_err(isp->dev, "No IRQ resource\n");
- 		ret = -ENODEV;
--		goto error_iommu;
-+		goto error_isp;
- 	}
- 	isp->irq_num = ret;
- 
-@@ -2339,7 +2341,7 @@ static int isp_probe(struct platform_device *pdev)
- 	/* Entities */
- 	ret = isp_initialize_modules(isp);
- 	if (ret < 0)
--		goto error_iommu;
-+		goto error_isp;
- 
- 	ret = isp_register_entities(isp);
- 	if (ret < 0)
--- 
-2.11.0
-
+diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
+index e5f5d84f1d1d..3cf4a6d17dc1 100644
+--- a/drivers/media/usb/uvc/uvcvideo.h
++++ b/drivers/media/usb/uvc/uvcvideo.h
+@@ -108,7 +108,19 @@
+#define UVC_GUID_FORMAT_RGGB \
+{ 'R',  'G',  'G',  'B', 0x00, 0x00, 0x10, 0x00, \
+0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
+-#define UVC_GUID_FORMAT_BG16 \
++#define UVC_GUID_FORMAT_BG12SP \
++	{ 'B',  'G',  'C',  'p', 0x00, 0x00, 0x10, 0x00, \
++	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
++#define UVC_GUID_FORMAT_GB12SP \
++	{ 'G',  'B',  'C',  'p', 0x00, 0x00, 0x10, 0x00, \
++	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
++#define UVC_GUID_FORMAT_RG12SP \
++	{ 'R',  'G',  'C',  'p', 0x00, 0x00, 0x10, 0x00, \
++	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
++#define UVC_GUID_FORMAT_GR12SP \
++	{ 'G',  'R',  'C',  'p', 0x00, 0x00, 0x10, 0x00, \
++	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
++#define UVC_GUID_FORMAT_BG16                         \
+{ 'B',  'G',  '1',  '6', 0x00, 0x00, 0x10, 0x00, \
+0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
+#define UVC_GUID_FORMAT_GB16 \
+--
+2.20.1
