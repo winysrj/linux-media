@@ -6,76 +6,66 @@ X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
 	SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C5ABC43387
-	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 16:11:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 327A5C43387
+	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 16:18:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1B2F821783
-	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 16:11:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E8F0C20685
+	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 16:18:50 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=synopsys.com header.i=@synopsys.com header.b="ZMnfRO2E"
+	dkim=pass (2048-bit key) header.d=synopsys.com header.i=@synopsys.com header.b="M2pK/8FU"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727831AbfAJQL1 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 10 Jan 2019 11:11:27 -0500
-Received: from us01smtprelay-2.synopsys.com ([198.182.47.9]:41148 "EHLO
+        id S1728163AbfAJQSp (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 10 Jan 2019 11:18:45 -0500
+Received: from us01smtprelay-2.synopsys.com ([198.182.47.9]:41458 "EHLO
         smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727710AbfAJQL1 (ORCPT
+        with ESMTP id S1727788AbfAJQSo (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 Jan 2019 11:11:27 -0500
+        Thu, 10 Jan 2019 11:18:44 -0500
 Received: from mailhost.synopsys.com (mailhost2.synopsys.com [10.13.184.66])
-        by smtprelay.synopsys.com (Postfix) with ESMTP id 9F6EB24E1242;
-        Thu, 10 Jan 2019 08:11:24 -0800 (PST)
+        by smtprelay.synopsys.com (Postfix) with ESMTP id 0A59924E1190;
+        Thu, 10 Jan 2019 08:18:44 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=synopsys.com; s=mail;
-        t=1547136686; bh=V1dk82MJv0Cqk7QD27S8dVm82/bTFkKWV2QTx2TOXEY=;
+        t=1547137124; bh=e36giWoucqJ1mkLZysgssgXf4Q045PYv6EaiUSHhT5k=;
         h=Subject:To:CC:References:From:Date:In-Reply-To:From;
-        b=ZMnfRO2EitCtklyok15An7enh7eB8frYyZXoIGTRYvP+ulQE9SvruUTrw/vK31nOe
-         q1L/pOewzT2ZFXVrrDBE2EUuFs2DUoHixr6chXuxUSM5F4nZhHXmfIPWWCQlpWgCup
-         +MwCJ17AixE0p9iJLCMwbjDaA+4AU/dLQbMihfh+eMcE3HOlKQW7gtB92+G+bF0Tb1
-         F/ifeZ3WmHkIR7jyV2y8FNb4PTXCPaLk072tt5wbbn4tvIb+adoEeBszutOaGRPdU/
-         Cbxlf4QAZ7XeJG0tw+yeMMBeJSwWsKL9IVF7wel3IppVllzIp0DIbj3NMdeKvlj2Hi
-         Us3q22rZG+dlw==
+        b=M2pK/8FUvc4OMMR2IdgmbgfCrnYvWlEdMUpJwB2YYm3bxx3DmTafaCikaqNDLUKEf
+         NmPKrPjUYJTFCKMXf7xU9mYNMRzrCCXG5U3tQOSrZyzb+eHXTbfesSVNPCHdfeMuXY
+         ZYcsaFEKSv0wvTmOLAJIPDvEOjOqHZxJ9j3cK48uwmItVinLEgKH/Qji/N8Dd2rbYi
+         UD9EuejkY/eVdiITQ56cmI7rEi98wSZwwPPWShlWSgNZY0LczLvqvX4dDHXnZuzjuo
+         NSwFibHlZilHM1+pqUVaPtl1hCLpSZxJFF2gO3gOskWeLmnim0eBCkphdSYa+5WHNT
+         /zppvy/1hDC5A==
 Received: from US01WEHTC2.internal.synopsys.com (us01wehtc2.internal.synopsys.com [10.12.239.237])
-        by mailhost.synopsys.com (Postfix) with ESMTP id 4EE3933BA;
-        Thu, 10 Jan 2019 08:11:23 -0800 (PST)
+        by mailhost.synopsys.com (Postfix) with ESMTP id BD7EA31BF;
+        Thu, 10 Jan 2019 08:18:43 -0800 (PST)
 Received: from DE02WEHTCA.internal.synopsys.com (10.225.19.92) by
  US01WEHTC2.internal.synopsys.com (10.12.239.237) with Microsoft SMTP Server
- (TLS) id 14.3.408.0; Thu, 10 Jan 2019 08:11:23 -0800
+ (TLS) id 14.3.408.0; Thu, 10 Jan 2019 08:18:43 -0800
 Received: from DE02WEHTCB.internal.synopsys.com (10.225.19.94) by
  DE02WEHTCA.internal.synopsys.com (10.225.19.92) with Microsoft SMTP Server
- (TLS) id 14.3.408.0; Thu, 10 Jan 2019 17:11:20 +0100
+ (TLS) id 14.3.408.0; Thu, 10 Jan 2019 17:18:41 +0100
 Received: from [10.107.19.13] (10.107.19.13) by
  DE02WEHTCB.internal.synopsys.com (10.225.19.80) with Microsoft SMTP Server
- (TLS) id 14.3.408.0; Thu, 10 Jan 2019 17:11:20 +0100
+ (TLS) id 14.3.408.0; Thu, 10 Jan 2019 17:18:41 +0100
 Subject: Re: [V3, 4/4] media: platform: dwc: Add MIPI CSI-2 controller driver
-To:     "Eugen.Hristev@microchip.com" <Eugen.Hristev@microchip.com>,
-        "luis.oliveira@synopsys.com" <luis.oliveira@synopsys.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-CC:     "joao.pinto@synopsys.com" <joao.pinto@synopsys.com>,
-        "festevam@gmail.com" <festevam@gmail.com>,
-        "mchehab@kernel.org" <mchehab@kernel.org>,
-        "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>,
-        "davem@davemloft.net" <davem@davemloft.net>,
-        "akpm@linux-foundation.org" <akpm@linux-foundation.org>,
-        "arnd@arndb.de" <arnd@arndb.de>,
-        "hans.verkuil@cisco.com" <hans.verkuil@cisco.com>,
-        "laurent.pinchart@ideasonboard.com" 
-        <laurent.pinchart@ideasonboard.com>,
-        "geert@linux-m68k.org" <geert@linux-m68k.org>,
-        "narmstrong@baylibre.com" <narmstrong@baylibre.com>,
-        "p.zabel@pengutronix.de" <p.zabel@pengutronix.de>,
-        "treding@nvidia.com" <treding@nvidia.com>,
-        "maxime.ripard@bootlin.com" <maxime.ripard@bootlin.com>,
-        "todor.tomov@linaro.org" <todor.tomov@linaro.org>
+To:     <Eugen.Hristev@microchip.com>, <luis.oliveira@synopsys.com>,
+        <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>
+CC:     <joao.pinto@synopsys.com>, <festevam@gmail.com>,
+        <mchehab@kernel.org>, <gregkh@linuxfoundation.org>,
+        <davem@davemloft.net>, <akpm@linux-foundation.org>,
+        <arnd@arndb.de>, <hans.verkuil@cisco.com>,
+        <laurent.pinchart@ideasonboard.com>, <geert@linux-m68k.org>,
+        <narmstrong@baylibre.com>, <p.zabel@pengutronix.de>,
+        <treding@nvidia.com>, <maxime.ripard@bootlin.com>,
+        <todor.tomov@linaro.org>
 References: <1539953556-35762-1-git-send-email-lolivei@synopsys.com>
  <1539953556-35762-5-git-send-email-lolivei@synopsys.com>
- <ea589e15-a39d-84c0-f0ee-0f434273027b@microchip.com>
+ <4db76eb2-460f-c644-6dbd-370b07b2def8@microchip.com>
 From:   Luis de Oliveira <luis.oliveira@synopsys.com>
-Message-ID: <a40eac78-ab1a-9694-0f83-dd0ca64d96df@synopsys.com>
-Date:   Thu, 10 Jan 2019 16:11:18 +0000
+Message-ID: <2407a3ca-1a83-5685-c26c-a922251b2943@synopsys.com>
+Date:   Thu, 10 Jan 2019 16:18:38 +0000
 User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
  Thunderbird/60.4.0
 MIME-Version: 1.0
-In-Reply-To: <ea589e15-a39d-84c0-f0ee-0f434273027b@microchip.com>
+In-Reply-To: <4db76eb2-460f-c644-6dbd-370b07b2def8@microchip.com>
 Content-Type: text/plain; charset="utf-8"
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
@@ -87,7 +77,7 @@ X-Mailing-List: linux-media@vger.kernel.org
 
 
 
-On 10-Dec-18 12:39, Eugen.Hristev@microchip.com wrote:
+On 09-Jan-19 13:07, Eugen.Hristev@microchip.com wrote:
 > 
 > 
 > On 19.10.2018 15:52, Luis Oliveira wrote:
@@ -102,62 +92,128 @@ On 10-Dec-18 12:39, Eugen.Hristev@microchip.com wrote:
 >> v2-V3
 >> - exposed IPI settings to userspace
 >> - fixed headers
-> [...]
+>>
+>>   MAINTAINERS                              |  11 +
+>>   drivers/media/platform/dwc/Kconfig       |  30 +-
+>>   drivers/media/platform/dwc/Makefile      |   2 +
+>>   drivers/media/platform/dwc/dw-csi-plat.c | 699 +++++++++++++++++++++++++++++++
+>>   drivers/media/platform/dwc/dw-csi-plat.h |  77 ++++
+>>   drivers/media/platform/dwc/dw-mipi-csi.c | 494 ++++++++++++++++++++++
+>>   drivers/media/platform/dwc/dw-mipi-csi.h | 202 +++++++++
+>>   include/media/dwc/dw-mipi-csi-pltfrm.h   | 102 +++++
+>>   8 files changed, 1616 insertions(+), 1 deletion(-)
+>>   create mode 100644 drivers/media/platform/dwc/dw-csi-plat.c
+>>   create mode 100644 drivers/media/platform/dwc/dw-csi-plat.h
+>>   create mode 100644 drivers/media/platform/dwc/dw-mipi-csi.c
+>>   create mode 100644 drivers/media/platform/dwc/dw-mipi-csi.h
+>>   create mode 100644 include/media/dwc/dw-mipi-csi-pltfrm.h
+>>
 > 
-> snip
+> [snip]
 > 
+>> +/* Video formats supported by the MIPI CSI-2 */
+>> +const struct mipi_fmt dw_mipi_csi_formats[] = {
+>> +	{
+>> +		/* RAW 8 */
+>> +		.code = MEDIA_BUS_FMT_SBGGR8_1X8,
+>> +		.depth = 8,
+>> +	},
+>> +	{
+>> +		/* RAW 10 */
+>> +		.code = MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_BE,
+>> +		.depth = 10,
+>> +	},
 > 
->> +
->> +static int
->> +dw_mipi_csi_parse_dt(struct platform_device *pdev, struct mipi_csi_dev *dev)
->> +{
->> +	struct device_node *node = pdev->dev.of_node;
->> +	struct v4l2_fwnode_endpoint endpoint;
+> Hi Luis,
 > 
-> Hello Luis,
+> Any reason why RAW12 format is not handled here ?
 > 
-> I believe you have to initialize "endpoint" here correctly, otherwise 
-> the parsing mechanism (fwnode_endpoint_parse) will consider you have a 
-> specific mbus type and fail to probe the endpoint: bail out with debug 
-> message "expecting bus type not found "
-> 
-> (namely, initialize to zero which is the UNKNOWN mbus type, or , to a 
-> specific mbus (from DT or whatever source))
-> 
-> Eugen
+> Here, namely MEDIA_BUS_FMT_SBGGR12_1X12 etc.
 > 
 Hi Eugen,
 
-Sorry for my late reply, I was on Christmas break.
-You are right, I will add that fix.
+My Hw testing setup currently does not support it, so I didn't add it.
+
+>> +	{
+>> +		/* RGB 565 */
+>> +		.code = MEDIA_BUS_FMT_RGB565_2X8_BE,
+>> +		.depth = 16,
+>> +	},
+>> +	{
+>> +		/* BGR 565 */
+>> +		.code = MEDIA_BUS_FMT_RGB565_2X8_LE,
+>> +		.depth = 16,
+>> +	},
+>> +	{
+>> +		/* RGB 888 */
+>> +		.code = MEDIA_BUS_FMT_RGB888_2X12_LE,
+>> +		.depth = 24,
+>> +	},
+>> +	{
+>> +		/* BGR 888 */
+>> +		.code = MEDIA_BUS_FMT_RGB888_2X12_BE,
+>> +		.depth = 24,
+>> +	},
+>> +};
+> 
+> [snip]
+> 
+>> +
+>> +void dw_mipi_csi_set_ipi_fmt(struct mipi_csi_dev *csi_dev)
+>> +{
+>> +	struct device *dev = csi_dev->dev;
+>> +
+>> +	if (csi_dev->ipi_dt)
+>> +		dw_mipi_csi_write(csi_dev, reg.IPI_DATA_TYPE, csi_dev->ipi_dt);
+>> +	else {
+>> +		switch (csi_dev->fmt->code) {
+>> +		case MEDIA_BUS_FMT_RGB565_2X8_BE:
+>> +		case MEDIA_BUS_FMT_RGB565_2X8_LE:
+>> +			dw_mipi_csi_write(csi_dev,
+>> +					reg.IPI_DATA_TYPE, CSI_2_RGB565);
+>> +			dev_dbg(dev, "DT: RGB 565");
+>> +			break;
+>> +
+>> +		case MEDIA_BUS_FMT_RGB888_2X12_LE:
+>> +		case MEDIA_BUS_FMT_RGB888_2X12_BE:
+>> +			dw_mipi_csi_write(csi_dev,
+>> +					reg.IPI_DATA_TYPE, CSI_2_RGB888);
+>> +			dev_dbg(dev, "DT: RGB 888");
+>> +			break;
+>> +		case MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_BE:
+>> +			dw_mipi_csi_write(csi_dev,
+>> +					reg.IPI_DATA_TYPE, CSI_2_RAW10);
+>> +			dev_dbg(dev, "DT: RAW 10");
+>> +			break;
+>> +		case MEDIA_BUS_FMT_SBGGR8_1X8:
+>> +			dw_mipi_csi_write(csi_dev,
+>> +					reg.IPI_DATA_TYPE, CSI_2_RAW8);
+>> +			dev_dbg(dev, "DT: RAW 8");
+>> +			break;
+> 
+> Same here, in CSI_2_RAW12 case it will default to a RGB565 case.
+> 
+> Thanks,
+> 
+> Eugen
+> 
+> 
+I will try to add the support for this data type in my next patchset if not I
+will flag it as unsupported for now in the commit message and code.
+
+Thanks for your review,
+Luis
 
 > 
->> +	int ret;
->> +
->> +	node = of_graph_get_next_endpoint(node, NULL);
->> +	if (!node) {
->> +		dev_err(&pdev->dev, "No port node at %s\n",
->> +				pdev->dev.of_node->full_name);
->> +		return -EINVAL;
+>> +		default:
+>> +			dw_mipi_csi_write(csi_dev,
+>> +					reg.IPI_DATA_TYPE, CSI_2_RGB565);
+>> +			dev_dbg(dev, "Error");
+>> +			break;
+>> +		}
 >> +	}
->> +
->> +	ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(node), &endpoint);
->> +	if (ret)
->> +		goto err;
->> +
->> +	dev->index = endpoint.base.port - 1;
->> +	if (dev->index >= CSI_MAX_ENTITIES) {
->> +		ret = -ENXIO;
->> +		goto err;
->> +	}
->> +	dev->hw.num_lanes = endpoint.bus.mipi_csi2.num_data_lanes;
->> +
->> +err:
->> +	of_node_put(node);
->> +	return ret;
 >> +}
 >> +
 > 
-> snip
+> [snip]
 > 
-Thank you.
