@@ -2,272 +2,269 @@ Return-Path: <SRS0=KIs1=PS=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.5 required=3.0 tests=FAKE_REPLY_C,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_PASS,UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_MUTT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=FREEMAIL_FORGED_FROMDOMAIN,
+	FREEMAIL_FROM,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 110E0C43387
-	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 19:49:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 35442C43387
+	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 20:45:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C83BB20879
-	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 19:49:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E869220665
+	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 20:45:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728950AbfAJTtt (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 10 Jan 2019 14:49:49 -0500
-Received: from aserp2130.oracle.com ([141.146.126.79]:53242 "EHLO
-        aserp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728073AbfAJTtt (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 Jan 2019 14:49:49 -0500
-Received: from pps.filterd (aserp2130.oracle.com [127.0.0.1])
-        by aserp2130.oracle.com (8.16.0.22/8.16.0.22) with SMTP id x0AJnS1D125430;
-        Thu, 10 Jan 2019 19:49:33 GMT
-Received: from aserv0021.oracle.com (aserv0021.oracle.com [141.146.126.233])
-        by aserp2130.oracle.com with ESMTP id 2ptj3e9fjs-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Thu, 10 Jan 2019 19:49:33 +0000
-Received: from aserv0121.oracle.com (aserv0121.oracle.com [141.146.126.235])
-        by aserv0021.oracle.com (8.14.4/8.14.4) with ESMTP id x0AJnX3V003120
-        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Thu, 10 Jan 2019 19:49:33 GMT
-Received: from abhmp0017.oracle.com (abhmp0017.oracle.com [141.146.116.23])
-        by aserv0121.oracle.com (8.14.4/8.13.8) with ESMTP id x0AJnXSC007073;
-        Thu, 10 Jan 2019 19:49:33 GMT
-Received: from kadam (/41.202.241.51)
-        by default (Oracle Beehive Gateway v4.0)
-        with ESMTP ; Thu, 10 Jan 2019 11:49:31 -0800
-Date:   Thu, 10 Jan 2019 22:49:25 +0300
-From:   kbuild test robot <lkp@intel.com>
-To:     kbuild@01.org, Michael Tretter <m.tretter@pengutronix.de>
-Cc:     Dan Carpenter <dan.carpenter@oracle.com>, kbuild-all@01.org,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        kernel@pengutronix.de, robh+dt@kernel.org, mchehab@kernel.org,
-        tfiga@chromium.org, Michael Tretter <m.tretter@pengutronix.de>
-Subject: Re: [PATCH 2/3] [media] allegro: add Allegro DVT video IP core driver
-Message-ID: <20190110194925.GI1718@kadam>
+        id S1730429AbfAJUpF (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 10 Jan 2019 15:45:05 -0500
+Received: from mout2.freenet.de ([195.4.92.92]:46002 "EHLO mout2.freenet.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1729533AbfAJUpF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 10 Jan 2019 15:45:05 -0500
+Received: from [195.4.92.165] (helo=mjail2.freenet.de)
+        by mout2.freenet.de with esmtpa (ID moeses@freenet.de) (port 25) (Exim 4.90_1 #2)
+        id 1ghhCI-0005Un-Gh
+        for linux-media@vger.kernel.org; Thu, 10 Jan 2019 21:45:02 +0100
+Received: from [::1] (port=35758 helo=mjail2.freenet.de)
+        by mjail2.freenet.de with esmtpa (ID moeses@freenet.de) (Exim 4.90_1 #2)
+        id 1ghhCI-0000Ag-Fx
+        for linux-media@vger.kernel.org; Thu, 10 Jan 2019 21:45:02 +0100
+Received: from sub3.freenet.de ([195.4.92.122]:58658)
+        by mjail2.freenet.de with esmtpa (ID moeses@freenet.de) (Exim 4.90_1 #2)
+        id 1ghh9o-0007CK-6y
+        for linux-media@vger.kernel.org; Thu, 10 Jan 2019 21:42:28 +0100
+Received: from ip5b426acc.dynamic.kabel-deutschland.de ([91.66.106.204]:57296 helo=[192.168.120.100])
+        by sub3.freenet.de with esmtpsa (ID moeses@freenet.de) (TLSv1.2:ECDHE-RSA-CHACHA20-POLY1305:256) (port 465) (Exim 4.90_1 #2)
+        id 1ghh9o-0001D6-3v
+        for linux-media@vger.kernel.org; Thu, 10 Jan 2019 21:42:28 +0100
+To:     linux-media@vger.kernel.org
+From:   "F.M." <moeses@freenet.de>
+Subject: "dmxdev: DVB (dvb_dmxdev_filter_start): could not set feed" with two
+ DVB sticks
+Message-ID: <2108c9fd-8d03-db50-a258-cea08e49867e@freenet.de>
+Date:   Thu, 10 Jan 2019 21:42:27 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.3.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190109113037.28430-3-m.tretter@pengutronix.de>
-User-Agent: Mutt/1.9.4 (2018-02-28)
-X-Proofpoint-Virus-Version: vendor=nai engine=5900 definitions=9132 signatures=668680
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=0 malwarescore=0
- phishscore=0 bulkscore=0 spamscore=0 mlxscore=0 mlxlogscore=999
- adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.0.1-1810050000 definitions=main-1901100153
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: de-DE
+X-Originated-At: 91.66.106.204!57296
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Michael,
+Hi folks,
 
-url:    https://github.com/0day-ci/linux/commits/Michael-Tretter/Add-ZynqMP-VCU-Allegro-DVT-H-264-encoder-driver/20190110-020930
-base:   git://linuxtv.org/media_tree.git master
+I’m trying to set up two DVB-adapters, one receiving a cable and the 
+other a terrestrial signal. In the tests involved are the following 
+adapters:
 
-smatch warnings:
-drivers/staging/media/allegro-dvt/allegro-core.c:616 allegro_mbox_write() error: uninitialized symbol 'err'.
-drivers/staging/media/allegro-dvt/allegro-core.c:743 v4l2_profile_to_mcu_profile() warn: signedness bug returning '(-22)'
-drivers/staging/media/allegro-dvt/allegro-core.c:753 v4l2_level_to_mcu_level() warn: signedness bug returning '(-22)'
-drivers/staging/media/allegro-dvt/allegro-core.c:1162 allegro_receive_message() warn: struct type mismatch 'mcu_msg_header vs mcu_msg_encode_one_frm_response'
+1.    TechnoTrend TVStick CT2-4400 (bus ID 0b48:3014)
+2.    Hauppauge WinTV SoloHD (bus ID 2040:8268)
 
-# https://github.com/0day-ci/linux/commit/573e9a62ef9a92c1f26f120a89aba1514b97b2b2
-git remote add linux-review https://github.com/0day-ci/linux
-git remote update linux-review
-git checkout 573e9a62ef9a92c1f26f120a89aba1514b97b2b2
-vim +/err +616 drivers/staging/media/allegro-dvt/allegro-core.c
+The system runs Debian buster with kernel 4.19.
 
-573e9a62 Michael Tretter 2019-01-09  568  
-573e9a62 Michael Tretter 2019-01-09  569  static int allegro_mbox_write(struct allegro_dev *dev,
-573e9a62 Michael Tretter 2019-01-09  570  			      struct allegro_mbox *mbox, void *src, size_t size)
-573e9a62 Michael Tretter 2019-01-09  571  {
-573e9a62 Michael Tretter 2019-01-09  572  	struct mcu_msg_header *header = src;
-573e9a62 Michael Tretter 2019-01-09  573  	unsigned int tail;
-573e9a62 Michael Tretter 2019-01-09  574  	size_t size_no_wrap;
-573e9a62 Michael Tretter 2019-01-09  575  	int err;
-573e9a62 Michael Tretter 2019-01-09  576  
-573e9a62 Michael Tretter 2019-01-09  577  	if (!src)
-573e9a62 Michael Tretter 2019-01-09  578  		return -EINVAL;
-573e9a62 Michael Tretter 2019-01-09  579  
-573e9a62 Michael Tretter 2019-01-09  580  	if (size > mbox->size) {
-573e9a62 Michael Tretter 2019-01-09  581  		v4l2_err(&dev->v4l2_dev,
-573e9a62 Michael Tretter 2019-01-09  582  			 "message (%lu bytes) to large for mailbox (%lu bytes)\n",
-573e9a62 Michael Tretter 2019-01-09  583  			 size, mbox->size);
-573e9a62 Michael Tretter 2019-01-09  584  		return -EINVAL;
-573e9a62 Michael Tretter 2019-01-09  585  	}
-573e9a62 Michael Tretter 2019-01-09  586  
-573e9a62 Michael Tretter 2019-01-09  587  	if (header->length != size - sizeof(*header)) {
-573e9a62 Michael Tretter 2019-01-09  588  		v4l2_err(&dev->v4l2_dev,
-573e9a62 Michael Tretter 2019-01-09  589  			 "invalid message length: %u bytes (expected %lu bytes)\n",
-573e9a62 Michael Tretter 2019-01-09  590  			 header->length, size - sizeof(*header));
-573e9a62 Michael Tretter 2019-01-09  591  		return -EINVAL;
-573e9a62 Michael Tretter 2019-01-09  592  	}
-573e9a62 Michael Tretter 2019-01-09  593  
-573e9a62 Michael Tretter 2019-01-09  594  	v4l2_dbg(2, debug, &dev->v4l2_dev,
-573e9a62 Michael Tretter 2019-01-09  595  		"write command message: type %s, body length %d\n",
-573e9a62 Michael Tretter 2019-01-09  596  		msg_type_name(header->type), header->length);
-573e9a62 Michael Tretter 2019-01-09  597  
-573e9a62 Michael Tretter 2019-01-09  598  	mutex_lock(&mbox->lock);
-573e9a62 Michael Tretter 2019-01-09  599  	regmap_read(dev->sram, mbox->tail, &tail);
-573e9a62 Michael Tretter 2019-01-09  600  	if (tail > mbox->size) {
-573e9a62 Michael Tretter 2019-01-09  601  		v4l2_err(&dev->v4l2_dev,
-573e9a62 Michael Tretter 2019-01-09  602  			 "invalid tail (0x%x): must be smaller than mailbox size (0x%lx)\n",
-573e9a62 Michael Tretter 2019-01-09  603  			 tail, mbox->size);
-573e9a62 Michael Tretter 2019-01-09  604  		err = -EIO;
-573e9a62 Michael Tretter 2019-01-09  605  		goto out;
-573e9a62 Michael Tretter 2019-01-09  606  	}
-573e9a62 Michael Tretter 2019-01-09  607  	size_no_wrap = min(size, mbox->size - (size_t)tail);
-573e9a62 Michael Tretter 2019-01-09  608  	regmap_bulk_write(dev->sram, mbox->data + tail, src, size_no_wrap / 4);
-573e9a62 Michael Tretter 2019-01-09  609  	regmap_bulk_write(dev->sram, mbox->data,
-573e9a62 Michael Tretter 2019-01-09  610  			  src + size_no_wrap, (size - size_no_wrap) / 4);
-573e9a62 Michael Tretter 2019-01-09  611  	regmap_write(dev->sram, mbox->tail, (tail + size) % mbox->size);
-573e9a62 Michael Tretter 2019-01-09  612  
-573e9a62 Michael Tretter 2019-01-09  613  out:
-573e9a62 Michael Tretter 2019-01-09  614  	mutex_unlock(&mbox->lock);
-573e9a62 Michael Tretter 2019-01-09  615  
-573e9a62 Michael Tretter 2019-01-09 @616  	return err;
-573e9a62 Michael Tretter 2019-01-09  617  }
-573e9a62 Michael Tretter 2019-01-09  618  
-573e9a62 Michael Tretter 2019-01-09  619  static ssize_t allegro_mbox_read(struct allegro_dev *dev,
-573e9a62 Michael Tretter 2019-01-09  620  				 struct allegro_mbox *mbox,
-573e9a62 Michael Tretter 2019-01-09  621  				 void *dst, size_t nbyte)
-573e9a62 Michael Tretter 2019-01-09  622  {
-573e9a62 Michael Tretter 2019-01-09  623  	struct mcu_msg_header *header;
-573e9a62 Michael Tretter 2019-01-09  624  	unsigned int head;
-573e9a62 Michael Tretter 2019-01-09  625  	ssize_t size;
-573e9a62 Michael Tretter 2019-01-09  626  	size_t body_no_wrap;
-573e9a62 Michael Tretter 2019-01-09  627  
-573e9a62 Michael Tretter 2019-01-09  628  	regmap_read(dev->sram, mbox->head, &head);
-573e9a62 Michael Tretter 2019-01-09  629  	if (head > mbox->size) {
-573e9a62 Michael Tretter 2019-01-09  630  		v4l2_err(&dev->v4l2_dev,
-573e9a62 Michael Tretter 2019-01-09  631  			 "invalid head (0x%x): must be smaller than mailbox size (0x%lx)\n",
-573e9a62 Michael Tretter 2019-01-09  632  			 head, mbox->size);
-573e9a62 Michael Tretter 2019-01-09  633  		return -EIO;
-573e9a62 Michael Tretter 2019-01-09  634  	}
-573e9a62 Michael Tretter 2019-01-09  635  
-573e9a62 Michael Tretter 2019-01-09  636  	/* Assume that the header does not wrap. */
-573e9a62 Michael Tretter 2019-01-09  637  	regmap_bulk_read(dev->sram, mbox->data + head,
-573e9a62 Michael Tretter 2019-01-09  638  			 dst, sizeof(*header) / 4);
-573e9a62 Michael Tretter 2019-01-09  639  	header = dst;
-573e9a62 Michael Tretter 2019-01-09  640  	size = header->length + sizeof(*header);
-573e9a62 Michael Tretter 2019-01-09  641  	if (size > mbox->size || size & 0x3) {
-573e9a62 Michael Tretter 2019-01-09  642  		v4l2_err(&dev->v4l2_dev,
-573e9a62 Michael Tretter 2019-01-09  643  			 "invalid message length: %lu bytes (maximum %lu bytes)\n",
-573e9a62 Michael Tretter 2019-01-09  644  			 header->length + sizeof(*header), mbox->size);
-573e9a62 Michael Tretter 2019-01-09  645  		return -EIO;
-573e9a62 Michael Tretter 2019-01-09  646  	}
-573e9a62 Michael Tretter 2019-01-09  647  	if (size > nbyte) {
-573e9a62 Michael Tretter 2019-01-09  648  		v4l2_err(&dev->v4l2_dev,
-573e9a62 Michael Tretter 2019-01-09  649  			 "destination buffer too small: %lu bytes (need %lu bytes)\n",
-573e9a62 Michael Tretter 2019-01-09  650  			 nbyte, size);
-573e9a62 Michael Tretter 2019-01-09  651  		return -EINVAL;
-573e9a62 Michael Tretter 2019-01-09  652  	}
-573e9a62 Michael Tretter 2019-01-09  653  
-573e9a62 Michael Tretter 2019-01-09  654  	/*
-573e9a62 Michael Tretter 2019-01-09  655  	 * The message might wrap within the mailbox. If the message does not
-573e9a62 Michael Tretter 2019-01-09  656  	 * wrap, the first read will read the entire message, otherwise the
-573e9a62 Michael Tretter 2019-01-09  657  	 * first read will read message until the end of the mailbox and the
-573e9a62 Michael Tretter 2019-01-09  658  	 * second read will read the remaining bytes from the beginning of the
-573e9a62 Michael Tretter 2019-01-09  659  	 * mailbox.
-573e9a62 Michael Tretter 2019-01-09  660  	 *
-573e9a62 Michael Tretter 2019-01-09  661  	 * Skip the header, as was already read to get the size of the body.
-573e9a62 Michael Tretter 2019-01-09  662  	 */
-573e9a62 Michael Tretter 2019-01-09  663  	body_no_wrap = min((size_t)header->length,
-573e9a62 Michael Tretter 2019-01-09  664  			   (mbox->size - (head + sizeof(*header))));
-573e9a62 Michael Tretter 2019-01-09  665  	regmap_bulk_read(dev->sram, mbox->data + head + sizeof(*header),
-573e9a62 Michael Tretter 2019-01-09  666  			 dst + sizeof(*header), body_no_wrap / 4);
-573e9a62 Michael Tretter 2019-01-09  667  	regmap_bulk_read(dev->sram, mbox->data,
-573e9a62 Michael Tretter 2019-01-09  668  			 dst + sizeof(*header) + body_no_wrap,
-573e9a62 Michael Tretter 2019-01-09  669  			 (header->length - body_no_wrap) / 4);
-573e9a62 Michael Tretter 2019-01-09  670  
-573e9a62 Michael Tretter 2019-01-09  671  	regmap_write(dev->sram, mbox->head, (head + size) % mbox->size);
-573e9a62 Michael Tretter 2019-01-09  672  
-573e9a62 Michael Tretter 2019-01-09  673  	v4l2_dbg(2, debug, &dev->v4l2_dev,
-573e9a62 Michael Tretter 2019-01-09  674  		"read status message: type %s, body length %d\n",
-573e9a62 Michael Tretter 2019-01-09  675  		msg_type_name(header->type), header->length);
-573e9a62 Michael Tretter 2019-01-09  676  
-573e9a62 Michael Tretter 2019-01-09  677  	return size;
-573e9a62 Michael Tretter 2019-01-09  678  }
-573e9a62 Michael Tretter 2019-01-09  679  
-573e9a62 Michael Tretter 2019-01-09  680  static void allegro_mcu_interrupt(struct allegro_dev *dev)
-573e9a62 Michael Tretter 2019-01-09  681  {
-573e9a62 Michael Tretter 2019-01-09  682  	regmap_write(dev->regmap, AL5_MCU_INTERRUPT, BIT(0));
-573e9a62 Michael Tretter 2019-01-09  683  }
-573e9a62 Michael Tretter 2019-01-09  684  
-573e9a62 Michael Tretter 2019-01-09  685  static void allegro_mcu_send_init(struct allegro_dev *dev,
-573e9a62 Michael Tretter 2019-01-09  686  				  dma_addr_t suballoc_dma, size_t suballoc_size)
-573e9a62 Michael Tretter 2019-01-09  687  {
-573e9a62 Michael Tretter 2019-01-09  688  	struct mcu_msg_init_request msg;
-573e9a62 Michael Tretter 2019-01-09  689  
-573e9a62 Michael Tretter 2019-01-09  690  	msg.header.type = MCU_MSG_TYPE_INIT;
-573e9a62 Michael Tretter 2019-01-09  691  	msg.header.length = sizeof(msg) - sizeof(msg.header);
-573e9a62 Michael Tretter 2019-01-09  692  	msg.reserved0 = 0;
-573e9a62 Michael Tretter 2019-01-09  693  	msg.suballoc_dma = lower_32_bits(suballoc_dma) | MCU_CACHE_OFFSET;
-573e9a62 Michael Tretter 2019-01-09  694  	msg.suballoc_size = suballoc_size;
-573e9a62 Michael Tretter 2019-01-09  695  
-573e9a62 Michael Tretter 2019-01-09  696  	/* TODO Add L2 cache support. */
-573e9a62 Michael Tretter 2019-01-09  697  	msg.l2_cache[0] = -1;
-573e9a62 Michael Tretter 2019-01-09  698  	msg.l2_cache[1] = -1;
-573e9a62 Michael Tretter 2019-01-09  699  	msg.l2_cache[2] = -1;
-573e9a62 Michael Tretter 2019-01-09  700  
-573e9a62 Michael Tretter 2019-01-09  701  	allegro_mbox_write(dev, &dev->mbox_command, &msg, sizeof(msg));
-573e9a62 Michael Tretter 2019-01-09  702  	allegro_mcu_interrupt(dev);
-573e9a62 Michael Tretter 2019-01-09  703  }
-573e9a62 Michael Tretter 2019-01-09  704  
-573e9a62 Michael Tretter 2019-01-09  705  static u32 v4l2_pixelformat_to_mcu_format(u32 pixelformat)
-573e9a62 Michael Tretter 2019-01-09  706  {
-573e9a62 Michael Tretter 2019-01-09  707  	switch (pixelformat) {
-573e9a62 Michael Tretter 2019-01-09  708  	case V4L2_PIX_FMT_NV12:
-573e9a62 Michael Tretter 2019-01-09  709  		/* AL_420_8BITS: 0x100 -> NV12, 0x88 -> 8 bit */
-573e9a62 Michael Tretter 2019-01-09  710  		return 0x100 | 0x88;
-573e9a62 Michael Tretter 2019-01-09  711  	default:
-573e9a62 Michael Tretter 2019-01-09  712  		return -EINVAL;
-573e9a62 Michael Tretter 2019-01-09  713  	}
-573e9a62 Michael Tretter 2019-01-09  714  }
-573e9a62 Michael Tretter 2019-01-09  715  
-573e9a62 Michael Tretter 2019-01-09  716  static u32 v4l2_colorspace_to_mcu_colorspace(enum v4l2_colorspace colorspace)
-573e9a62 Michael Tretter 2019-01-09  717  {
-573e9a62 Michael Tretter 2019-01-09  718  	switch (colorspace) {
-573e9a62 Michael Tretter 2019-01-09  719  	case V4L2_COLORSPACE_DEFAULT:
-573e9a62 Michael Tretter 2019-01-09  720  		/* fallthrough */
-573e9a62 Michael Tretter 2019-01-09  721  	default:
-573e9a62 Michael Tretter 2019-01-09  722  		/* e_ColorSpace.UNKNOWN */
-573e9a62 Michael Tretter 2019-01-09  723  		return 0;
-573e9a62 Michael Tretter 2019-01-09  724  	}
-573e9a62 Michael Tretter 2019-01-09  725  }
-573e9a62 Michael Tretter 2019-01-09  726  
-573e9a62 Michael Tretter 2019-01-09  727  static s8 v4l2_pixelformat_to_mcu_codec(u32 pixelformat)
-573e9a62 Michael Tretter 2019-01-09  728  {
-573e9a62 Michael Tretter 2019-01-09  729  	switch (pixelformat) {
-573e9a62 Michael Tretter 2019-01-09  730  	case V4L2_PIX_FMT_H264:
-573e9a62 Michael Tretter 2019-01-09  731  		return 1;
-573e9a62 Michael Tretter 2019-01-09  732  	default:
-573e9a62 Michael Tretter 2019-01-09  733  		return -EINVAL;
-573e9a62 Michael Tretter 2019-01-09  734  	}
-573e9a62 Michael Tretter 2019-01-09  735  }
-573e9a62 Michael Tretter 2019-01-09  736  
-573e9a62 Michael Tretter 2019-01-09  737  static u8 v4l2_profile_to_mcu_profile(enum v4l2_mpeg_video_h264_profile profile)
-573e9a62 Michael Tretter 2019-01-09  738  {
-573e9a62 Michael Tretter 2019-01-09  739  	switch (profile) {
-573e9a62 Michael Tretter 2019-01-09  740  	case V4L2_MPEG_VIDEO_H264_PROFILE_BASELINE:
-573e9a62 Michael Tretter 2019-01-09  741  		return 66;
-573e9a62 Michael Tretter 2019-01-09  742  	default:
-573e9a62 Michael Tretter 2019-01-09 @743  		return -EINVAL;
-573e9a62 Michael Tretter 2019-01-09  744  	}
-573e9a62 Michael Tretter 2019-01-09  745  }
-573e9a62 Michael Tretter 2019-01-09  746  
-573e9a62 Michael Tretter 2019-01-09  747  static u16 v4l2_level_to_mcu_level(enum v4l2_mpeg_video_h264_level level)
-573e9a62 Michael Tretter 2019-01-09  748  {
-573e9a62 Michael Tretter 2019-01-09  749  	switch (level) {
-573e9a62 Michael Tretter 2019-01-09  750  	case V4L2_MPEG_VIDEO_H264_LEVEL_2_0:
-573e9a62 Michael Tretter 2019-01-09  751  		return 20;
-573e9a62 Michael Tretter 2019-01-09  752  	default:
-573e9a62 Michael Tretter 2019-01-09 @753  		return -EINVAL;
-573e9a62 Michael Tretter 2019-01-09  754  	}
-573e9a62 Michael Tretter 2019-01-09  755  }
-573e9a62 Michael Tretter 2019-01-09  756  
+dmesg output:
+[Di Jan  8 12:45:41 2019] em28xx 1-4:1.0: New device HCW soloHD @ 480 
+Mbps (2040:8268, interface 0, class 0)
+[Di Jan  8 12:45:41 2019] em28xx 1-4:1.0: DVB interface 0 found: bulk
+[Di Jan  8 12:45:41 2019] em28xx 1-4:1.0: chip ID is em28178
+[Di Jan  8 12:45:41 2019] usb 1-3: dvb_usb_v2: found a 'TechnoTrend 
+TVStick CT2-4400' in warm state
+[Di Jan  8 12:45:41 2019] usb 1-3: dvb_usb_v2: will pass the complete 
+MPEG2 transport stream to the software demuxer
+[Di Jan  8 12:45:41 2019] dvbdev: DVB: registering new adapter 
+(TechnoTrend TVStick CT2-4400)
+[Di Jan  8 12:45:41 2019] usb 1-3: dvb_usb_v2: MAC address: 
+bc:ea:2b:44:0f:89
+[Di Jan  8 12:45:41 2019] i2c i2c-6: Added multiplexed i2c bus 7
+[Di Jan  8 12:45:41 2019] si2168 6-0064: Silicon Labs Si2168-B40 
+successfully identified
+[Di Jan  8 12:45:41 2019] si2168 6-0064: firmware version: B 4.0.2
+[Di Jan  8 12:45:41 2019] si2157 7-0060: Silicon Labs 
+Si2147/2148/2157/2158 successfully attached
+[Di Jan  8 12:45:41 2019] usb 1-3: DVB: registering adapter 0 frontend 0 
+(Silicon Labs Si2168)...
+[Di Jan  8 12:45:41 2019] usb 1-3: dvb_usb_v2: 'TechnoTrend TVStick 
+CT2-4400' successfully initialized and connected
+[Di Jan  8 12:45:41 2019] usbcore: registered new interface driver 
+dvb_usb_dvbsky
+[Di Jan  8 12:45:43 2019] em28xx 1-4:1.0: EEPROM ID = 26 00 01 00, 
+EEPROM hash = 0xccc2c180
+[Di Jan  8 12:45:43 2019] em28xx 1-4:1.0: EEPROM info:
+[Di Jan  8 12:45:43 2019] em28xx 1-4:1.0:    microcode start address = 
+0x0004, boot configuration = 0x01
+[Di Jan  8 12:45:43 2019] em28xx 1-4:1.0:    AC97 audio (5 sample rates)
+[Di Jan  8 12:45:43 2019] em28xx 1-4:1.0:    500mA max power
+[Di Jan  8 12:45:43 2019] em28xx 1-4:1.0:    Table at offset 0x27, 
+strings=0x0e6a, 0x1888, 0x087e
+[Di Jan  8 12:45:43 2019] em28xx 1-4:1.0: Identified as PCTV tripleStick 
+(292e) (card=94)
+[Di Jan  8 12:45:43 2019] em28xx 1-4:1.0: dvb set to bulk mode.
+[Di Jan  8 12:45:43 2019] usbcore: registered new interface driver em28xx
+[Di Jan  8 12:45:43 2019] em28xx 1-4:1.0: Binding DVB extension
+[Di Jan  8 12:45:43 2019] i2c i2c-9: Added multiplexed i2c bus 10
+[Di Jan  8 12:45:43 2019] si2168 9-0064: Silicon Labs Si2168-B40 
+successfully identified
+[Di Jan  8 12:45:43 2019] si2168 9-0064: firmware version: B 4.0.2
+[Di Jan  8 12:45:43 2019] si2157 10-0060: Silicon Labs 
+Si2147/2148/2157/2158 successfully attached
+[Di Jan  8 12:45:43 2019] dvbdev: DVB: registering new adapter (1-4:1.0)
+[Di Jan  8 12:45:43 2019] em28xx 1-4:1.0: DVB: registering adapter 1 
+frontend 0 (Silicon Labs Si2168)...
+[Di Jan  8 12:45:43 2019] em28xx 1-4:1.0: DVB extension successfully 
+initialized
+[Di Jan  8 12:45:43 2019] em28xx: Registered (Em28xx dvb Extension) 
+extension
+[Di Jan  8 12:45:45 2019] e1000e: enp0s25 NIC Link is Up 1000 Mbps Full 
+Duplex, Flow Control: Rx/Tx
+[Di Jan  8 12:45:45 2019] IPv6: ADDRCONF(NETDEV_CHANGE): enp0s25: link 
+becomes ready
+[Di Jan  8 12:45:45 2019] si2168 6-0064: firmware: direct-loading 
+firmware dvb-demod-si2168-b40-01.fw
+[Di Jan  8 12:45:45 2019] si2168 6-0064: downloading firmware from file 
+'dvb-demod-si2168-b40-01.fw'
+[Di Jan  8 12:45:46 2019] si2168 6-0064: firmware version: B 4.0.11
+[Di Jan  8 12:45:46 2019] si2157 7-0060: found a 'Silicon Labs Si2157-A30'
+[Di Jan  8 12:45:46 2019] si2157 7-0060: firmware version: 3.0.5
+[Di Jan  8 12:45:46 2019] si2168 9-0064: firmware: direct-loading 
+firmware dvb-demod-si2168-b40-01.fw
+[Di Jan  8 12:45:46 2019] si2168 9-0064: downloading firmware from file 
+'dvb-demod-si2168-b40-01.fw'
+[Di Jan  8 12:45:46 2019] si2168 9-0064: firmware version: B 4.0.11
+[Di Jan  8 12:45:46 2019] si2157 10-0060: found a 'Silicon Labs Si2157-A30'
+[Di Jan  8 12:45:46 2019] si2157 10-0060: firmware version: 3.0.5
+[Di Jan  8 12:46:46 2019] dmxdev: DVB (dvb_dmxdev_filter_start): could 
+not set feed
+[Di Jan  8 12:46:46 2019] dvb_demux: dvb_demux_feed_del: feed not in 
+list (type=1 state=0 pid=ffff)
 
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+Both adapters work fine individually but together the two last lines 
+occur and VDR only receives a signal on one of them while the other 
+gives "no data" message. When i.e. I add the first tuner later I get 
+such messages in the journal:
+
+Jan 08 12:36:08 mypc kernel:  device_create_groups_vargs+0xd1/0xf0
+Jan 08 12:36:08 mypc kernel:  device_create+0x49/0x60
+Jan 08 12:36:08 mypc kernel:  ? _cond_resched+0x15/0x30
+Jan 08 12:36:08 mypc kernel:  ? kmem_cache_alloc_trace+0x155/0x1d0
+Jan 08 12:36:08 mypc kernel:  dvb_register_device+0x229/0x2c0 [dvb_core]
+Jan 08 12:36:08 mypc kernel:  dvb_usbv2_probe+0x54d/0x10d0 [dvb_usb_v2]
+Jan 08 12:36:08 mypc kernel:  ? __pm_runtime_set_status+0x247/0x260
+Jan 08 12:36:08 mypc kernel:  usb_probe_interface+0xe4/0x2f0 [usbcore]
+Jan 08 12:36:08 mypc kernel:  really_probe+0x235/0x3a0
+Jan 08 12:36:08 mypc kernel:  driver_probe_device+0xb3/0xf0
+Jan 08 12:36:08 mypc kernel:  __driver_attach+0xdd/0x110
+Jan 08 12:36:08 mypc kernel:  ? driver_probe_device+0xf0/0xf0
+Jan 08 12:36:08 mypc kernel:  bus_for_each_dev+0x76/0xc0
+Jan 08 12:36:08 mypc kernel:  ? klist_add_tail+0x3b/0x70
+Jan 08 12:36:08 mypc kernel:  bus_add_driver+0x152/0x230
+Jan 08 12:36:08 mypc kernel:  driver_register+0x6b/0xb0
+Jan 08 12:36:08 mypc kernel:  usb_register_driver+0x7a/0x130 [usbcore]
+Jan 08 12:36:08 mypc kernel:  ? 0xffffffffc09e5000
+Jan 08 12:36:08 mypc kernel:  do_one_initcall+0x46/0x1c3
+Jan 08 12:36:08 mypc kernel:  ? free_unref_page_commit+0x91/0x100
+Jan 08 12:36:08 mypc kernel:  ? _cond_resched+0x15/0x30
+Jan 08 12:36:08 mypc kernel:  ? kmem_cache_alloc_trace+0x155/0x1d0
+Jan 08 12:36:08 mypc kernel:  do_init_module+0x5a/0x210
+Jan 08 12:36:08 mypc kernel:  load_module+0x215c/0x2380
+Jan 08 12:36:08 mypc kernel:  ? __do_sys_finit_module+0xad/0x110
+Jan 08 12:36:08 mypc kernel:  __do_sys_finit_module+0xad/0x110
+Jan 08 12:36:08 mypc kernel:  do_syscall_64+0x53/0x100
+Jan 08 12:36:08 mypc kernel: entry_SYSCALL_64_after_hwframe+0x44/0xa9
+Jan 08 12:36:08 mypc kernel: RIP: 0033:0x7f3029f62309
+Jan 08 12:36:08 mypc kernel: Code: 00 c3 66 2e 0f 1f 84 00 00 00 00 00 
+0f 1f 44 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 
+8b 4c 24 08 0f 05 <48> 3d 01 f0 ff
+Jan 08 12:36:08 mypc kernel: RSP: 002b:00007ffefc69b4c8 EFLAGS: 00000246 
+ORIG_RAX: 0000000000000139
+Jan 08 12:36:08 mypc kernel: RAX: ffffffffffffffda RBX: 0000555d0528bde0 
+RCX: 00007f3029f62309
+Jan 08 12:36:08 mypc kernel: RDX: 0000000000000000 RSI: 0000555d0528ebd0 
+RDI: 0000000000000006
+Jan 08 12:36:08 mypc kernel: RBP: 0000555d0528ebd0 R08: 0000000000000000 
+R09: 0000000000000000
+Jan 08 12:36:08 mypc kernel: R10: 0000000000000006 R11: 0000000000000246 
+R12: 0000000000000000
+Jan 08 12:36:08 mypc kernel: R13: 0000555d0528be60 R14: 0000000000040000 
+R15: 0000555d0528bde0
+Jan 08 12:36:08 mypc kernel: kobject_add_internal failed for dvb with 
+-EEXIST, don't try to register things with the same name in the same 
+directory.
+Jan 08 12:36:08 mypc kernel: dvbdev: dvb_register_device: failed to 
+create device dvb0.net0 (-17)
+Jan 08 12:36:08 mypc kernel: usb 1-3: dvb_usb_v2: dvb_net_init() failed=-17
+Jan 08 12:36:08 mypc kernel: dvb_usb_dvbsky: probe of 1-3:1.0 failed 
+with error -17
+
+As I thought that the different modules (dvb_usb_dvbsky and em28xx) are 
+the cause I ordered a new device which use the same chips:
+
+3. DVBSky T330 (bus ID 0572:0320).
+
+The error messages still show up:
+
+[Mi Jan  9 21:59:48 2019] usb 1-3: dvb_usb_v2: found a 'DVBSky T330' in 
+warm state
+[Mi Jan  9 21:59:48 2019] usb 1-3: dvb_usb_v2: will pass the complete 
+MPEG2 transport stream to the software demuxer
+[Mi Jan  9 21:59:48 2019] dvbdev: DVB: registering new adapter (DVBSky T330)
+[Mi Jan  9 21:59:48 2019] usb 1-3: dvb_usb_v2: MAC address: 
+00:cc:10:a5:33:0c
+[Mi Jan  9 21:59:48 2019] i2c i2c-6: Added multiplexed i2c bus 7
+[Mi Jan  9 21:59:48 2019] si2168 6-0064: Silicon Labs Si2168-B40 
+successfully identified
+[Mi Jan  9 21:59:48 2019] si2168 6-0064: firmware version: B 4.0.2
+[Mi Jan  9 21:59:48 2019] media: Linux media interface: v0.10
+[Mi Jan  9 21:59:48 2019] si2157 7-0060: Silicon Labs 
+Si2147/2148/2157/2158 successfully attached
+[Mi Jan  9 21:59:48 2019] usb 1-3: DVB: registering adapter 0 frontend 0 
+(Silicon Labs Si2168)...
+[Mi Jan  9 21:59:48 2019] usb 1-3: dvb_usb_v2: 'DVBSky T330' 
+successfully initialized and connected
+[Mi Jan  9 21:59:48 2019] usb 1-4: dvb_usb_v2: found a 'TechnoTrend 
+TVStick CT2-4400' in warm state
+[Mi Jan  9 21:59:48 2019] usb 1-4: dvb_usb_v2: will pass the complete 
+MPEG2 transport stream to the software demuxer
+[Mi Jan  9 21:59:48 2019] dvbdev: DVB: registering new adapter 
+(TechnoTrend TVStick CT2-4400)
+[Mi Jan  9 21:59:48 2019] usb 1-4: dvb_usb_v2: MAC address: 
+bc:ea:2b:44:0f:89
+[Mi Jan  9 21:59:48 2019] i2c i2c-8: Added multiplexed i2c bus 9
+[Mi Jan  9 21:59:48 2019] si2168 8-0064: Silicon Labs Si2168-B40 
+successfully identified
+[Mi Jan  9 21:59:48 2019] si2168 8-0064: firmware version: B 4.0.2
+[Mi Jan  9 21:59:48 2019] si2157 9-0060: Silicon Labs 
+Si2147/2148/2157/2158 successfully attached
+[Mi Jan  9 21:59:48 2019] usb 1-4: DVB: registering adapter 1 frontend 0 
+(Silicon Labs Si2168)...
+[Mi Jan  9 21:59:48 2019] usb 1-4: dvb_usb_v2: 'TechnoTrend TVStick 
+CT2-4400' successfully initialized and connected
+[Mi Jan  9 21:59:48 2019] usbcore: registered new interface driver 
+dvb_usb_dvbsky
+[Mi Jan  9 22:00:03 2019] si2168 6-0064: firmware: direct-loading 
+firmware dvb-demod-si2168-b40-01.fw
+[Mi Jan  9 22:00:03 2019] si2168 6-0064: downloading firmware from file 
+'dvb-demod-si2168-b40-01.fw'
+[Mi Jan  9 22:00:03 2019] si2168 6-0064: firmware version: B 4.0.11
+[Mi Jan  9 22:00:03 2019] si2157 7-0060: found a 'Silicon Labs Si2157-A30'
+[Mi Jan  9 22:00:04 2019] si2157 7-0060: firmware version: 3.0.5
+[Mi Jan  9 22:00:04 2019] si2168 8-0064: firmware: direct-loading 
+firmware dvb-demod-si2168-b40-01.fw
+[Mi Jan  9 22:00:04 2019] si2168 8-0064: downloading firmware from file 
+'dvb-demod-si2168-b40-01.fw'
+[Mi Jan  9 22:00:04 2019] si2168 8-0064: firmware version: B 4.0.11
+[Mi Jan  9 22:00:04 2019] si2157 9-0060: found a 'Silicon Labs Si2157-A30'
+[Mi Jan  9 22:00:04 2019] si2157 9-0060: firmware version: 3.0.5
+[Mi Jan  9 22:00:04 2019] fuse init (API version 7.28)
+[Mi Jan  9 22:01:01 2019] dmxdev: DVB (dvb_dmxdev_filter_start): could 
+not set feed
+[Mi Jan  9 22:01:01 2019] dvb_demux: dvb_demux_feed_del: feed not in 
+list (type=1 state=0 pid=ffff)
+
+Now I'd like to know if this is an driver limitation or is there 
+anything I could set up differently in order to make it work (except for 
+disabling the remotes I didn't set any parameters than standard).
+
+Regards, Frank
+
+
