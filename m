@@ -6,31 +6,31 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F3B5C43444
-	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 16:56:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 127D4C43387
+	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 16:56:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6A322217F9
-	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 16:56:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E162D214C6
+	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 16:56:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728918AbfAJQ4X (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 10 Jan 2019 11:56:23 -0500
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:56895 "EHLO
+        id S1728954AbfAJQ4Z (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 10 Jan 2019 11:56:25 -0500
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:51987 "EHLO
         metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728599AbfAJQ4W (ORCPT
+        with ESMTP id S1727344AbfAJQ4X (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 Jan 2019 11:56:22 -0500
+        Thu, 10 Jan 2019 11:56:23 -0500
 Received: from dude02.hi.pengutronix.de ([2001:67c:670:100:1d::28] helo=dude02.pengutronix.de.)
         by metis.ext.pengutronix.de with esmtp (Exim 4.89)
         (envelope-from <p.zabel@pengutronix.de>)
-        id 1ghdcy-0008B5-Rc; Thu, 10 Jan 2019 17:56:20 +0100
+        id 1ghdcz-0008B5-PY; Thu, 10 Jan 2019 17:56:21 +0100
 From:   Philipp Zabel <p.zabel@pengutronix.de>
 To:     linux-media@vger.kernel.org
 Cc:     Hans Verkuil <hans.verkuil@cisco.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
         Ian Arkver <ian.arkver.dev@gmail.com>, kernel@pengutronix.de
-Subject: [PATCH v2 2/4] media: v4l2-ctrl: Add control for h.264 chroma qp offset
-Date:   Thu, 10 Jan 2019 17:56:10 +0100
-Message-Id: <20190110165612.19347-2-p.zabel@pengutronix.de>
+Subject: [PATCH v2 4/4] media: coda: Add control for h.264 chroma qp index offset
+Date:   Thu, 10 Jan 2019 17:56:12 +0100
+Message-Id: <20190110165612.19347-4-p.zabel@pengutronix.de>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190110165612.19347-1-p.zabel@pengutronix.de>
 References: <20190110165612.19347-1-p.zabel@pengutronix.de>
@@ -45,58 +45,66 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Allow to add fixed quantization parameter offset between luma and
-chroma quantization parameters. This control directly corresponds
-to the chroma_qp_index_offset field of the h.264 picture parameter
-set.
+Allow to set a fixed quantization parameter offset between luma and
+chroma in the h.264 encoder.
 
 Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- Documentation/media/uapi/v4l/extended-controls.rst | 5 +++++
- drivers/media/v4l2-core/v4l2-ctrls.c               | 1 +
- include/uapi/linux/v4l2-controls.h                 | 1 +
- 3 files changed, 7 insertions(+)
+ drivers/media/platform/coda/coda-bit.c    | 4 +++-
+ drivers/media/platform/coda/coda-common.c | 5 +++++
+ drivers/media/platform/coda/coda.h        | 1 +
+ 3 files changed, 9 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/media/uapi/v4l/extended-controls.rst b/Documentation/media/uapi/v4l/extended-controls.rst
-index 235d0c293983..00934efdc9e4 100644
---- a/Documentation/media/uapi/v4l/extended-controls.rst
-+++ b/Documentation/media/uapi/v4l/extended-controls.rst
-@@ -1158,6 +1158,11 @@ enum v4l2_mpeg_video_h264_entropy_mode -
-     Enable constrained intra prediction for H264. Applicable to the H264
-     encoder.
- 
-+``V4L2_CID_MPEG_VIDEO_H264_CHROMA_QP_INDEX_OFFSET (integer)``
-+    Specify the offset that should be added to the luma quantization
-+    parameter to determine the chroma quantization parameter. Applicable
-+    to the H264 encoder.
-+
- ``V4L2_CID_MPEG_VIDEO_CYCLIC_INTRA_REFRESH_MB (integer)``
-     Cyclic intra macroblock refresh. This is the number of continuous
-     macroblocks refreshed every frame. Each frame a successive set of
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index e1cf782cf0f1..7831a47297da 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -827,6 +827,7 @@ const char *v4l2_ctrl_get_name(u32 id)
- 								return "H264 Set QP Value for HC Layers";
+diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
+index 2998c869f79f..88065b07149c 100644
+--- a/drivers/media/platform/coda/coda-bit.c
++++ b/drivers/media/platform/coda/coda-bit.c
+@@ -1012,7 +1012,9 @@ static int coda_start_encoding(struct coda_ctx *ctx)
+ 			  CODA_264PARAM_DEBLKFILTEROFFSETBETA_MASK) <<
+ 			 CODA_264PARAM_DEBLKFILTEROFFSETBETA_OFFSET) |
+ 			(ctx->params.h264_constrained_intra_pred_flag <<
+-			 CODA_264PARAM_CONSTRAINEDINTRAPREDFLAG_OFFSET);
++			 CODA_264PARAM_CONSTRAINEDINTRAPREDFLAG_OFFSET) |
++			(ctx->params.h264_chroma_qp_index_offset &
++			 CODA_264PARAM_CHROMAQPOFFSET_MASK);
+ 		coda_write(dev, value, CODA_CMD_ENC_SEQ_264_PARA);
+ 		break;
+ 	case V4L2_PIX_FMT_JPEG:
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index f6c9273805bb..390d1ce6ab32 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -1842,6 +1842,9 @@ static int coda_s_ctrl(struct v4l2_ctrl *ctrl)
  	case V4L2_CID_MPEG_VIDEO_H264_CONSTRAINED_INTRA_PREDICTION:
- 								return "H264 Constrained Intra Pred";
-+	case V4L2_CID_MPEG_VIDEO_H264_CHROMA_QP_INDEX_OFFSET:	return "H264 Chroma QP Index Offset";
- 	case V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP:		return "MPEG4 I-Frame QP Value";
- 	case V4L2_CID_MPEG_VIDEO_MPEG4_P_FRAME_QP:		return "MPEG4 P-Frame QP Value";
- 	case V4L2_CID_MPEG_VIDEO_MPEG4_B_FRAME_QP:		return "MPEG4 B-Frame QP Value";
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index fd65c710b144..06479f2fb3ae 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -534,6 +534,7 @@ enum v4l2_mpeg_video_h264_hierarchical_coding_type {
- #define V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER	(V4L2_CID_MPEG_BASE+381)
- #define V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER_QP	(V4L2_CID_MPEG_BASE+382)
- #define V4L2_CID_MPEG_VIDEO_H264_CONSTRAINED_INTRA_PREDICTION	(V4L2_CID_MPEG_BASE+383)
-+#define V4L2_CID_MPEG_VIDEO_H264_CHROMA_QP_INDEX_OFFSET		(V4L2_CID_MPEG_BASE+384)
- #define V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP	(V4L2_CID_MPEG_BASE+400)
- #define V4L2_CID_MPEG_VIDEO_MPEG4_P_FRAME_QP	(V4L2_CID_MPEG_BASE+401)
- #define V4L2_CID_MPEG_VIDEO_MPEG4_B_FRAME_QP	(V4L2_CID_MPEG_BASE+402)
+ 		ctx->params.h264_constrained_intra_pred_flag = ctrl->val;
+ 		break;
++	case V4L2_CID_MPEG_VIDEO_H264_CHROMA_QP_INDEX_OFFSET:
++		ctx->params.h264_chroma_qp_index_offset = ctrl->val;
++		break;
+ 	case V4L2_CID_MPEG_VIDEO_H264_PROFILE:
+ 		/* TODO: switch between baseline and constrained baseline */
+ 		if (ctx->inst_type == CODA_INST_ENCODER)
+@@ -1931,6 +1934,8 @@ static void coda_encode_ctrls(struct coda_ctx *ctx)
+ 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
+ 		V4L2_CID_MPEG_VIDEO_H264_CONSTRAINED_INTRA_PREDICTION, 0, 1, 1,
+ 		0);
++	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
++		V4L2_CID_MPEG_VIDEO_H264_CHROMA_QP_INDEX_OFFSET, -12, 12, 1, 0);
+ 	v4l2_ctrl_new_std_menu(&ctx->ctrls, &coda_ctrl_ops,
+ 		V4L2_CID_MPEG_VIDEO_H264_PROFILE,
+ 		V4L2_MPEG_VIDEO_H264_PROFILE_BASELINE, 0x0,
+diff --git a/drivers/media/platform/coda/coda.h b/drivers/media/platform/coda/coda.h
+index f3d0cff4ef3a..31c80bda2c0b 100644
+--- a/drivers/media/platform/coda/coda.h
++++ b/drivers/media/platform/coda/coda.h
+@@ -119,6 +119,7 @@ struct coda_params {
+ 	s8			h264_slice_alpha_c0_offset_div2;
+ 	s8			h264_slice_beta_offset_div2;
+ 	bool			h264_constrained_intra_pred_flag;
++	s8			h264_chroma_qp_index_offset;
+ 	u8			h264_profile_idc;
+ 	u8			h264_level_idc;
+ 	u8			mpeg4_intra_qp;
 -- 
 2.20.1
 
