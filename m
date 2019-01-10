@@ -2,269 +2,186 @@ Return-Path: <SRS0=KIs1=PS=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=FREEMAIL_FORGED_FROMDOMAIN,
-	FREEMAIL_FROM,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_MUTT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 35442C43387
-	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 20:45:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AB407C43387
+	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 20:57:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E869220665
-	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 20:45:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7A641208E3
+	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 20:57:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730429AbfAJUpF (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 10 Jan 2019 15:45:05 -0500
-Received: from mout2.freenet.de ([195.4.92.92]:46002 "EHLO mout2.freenet.de"
+        id S1730838AbfAJU52 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 10 Jan 2019 15:57:28 -0500
+Received: from mga18.intel.com ([134.134.136.126]:23358 "EHLO mga18.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729533AbfAJUpF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 Jan 2019 15:45:05 -0500
-Received: from [195.4.92.165] (helo=mjail2.freenet.de)
-        by mout2.freenet.de with esmtpa (ID moeses@freenet.de) (port 25) (Exim 4.90_1 #2)
-        id 1ghhCI-0005Un-Gh
-        for linux-media@vger.kernel.org; Thu, 10 Jan 2019 21:45:02 +0100
-Received: from [::1] (port=35758 helo=mjail2.freenet.de)
-        by mjail2.freenet.de with esmtpa (ID moeses@freenet.de) (Exim 4.90_1 #2)
-        id 1ghhCI-0000Ag-Fx
-        for linux-media@vger.kernel.org; Thu, 10 Jan 2019 21:45:02 +0100
-Received: from sub3.freenet.de ([195.4.92.122]:58658)
-        by mjail2.freenet.de with esmtpa (ID moeses@freenet.de) (Exim 4.90_1 #2)
-        id 1ghh9o-0007CK-6y
-        for linux-media@vger.kernel.org; Thu, 10 Jan 2019 21:42:28 +0100
-Received: from ip5b426acc.dynamic.kabel-deutschland.de ([91.66.106.204]:57296 helo=[192.168.120.100])
-        by sub3.freenet.de with esmtpsa (ID moeses@freenet.de) (TLSv1.2:ECDHE-RSA-CHACHA20-POLY1305:256) (port 465) (Exim 4.90_1 #2)
-        id 1ghh9o-0001D6-3v
-        for linux-media@vger.kernel.org; Thu, 10 Jan 2019 21:42:28 +0100
-To:     linux-media@vger.kernel.org
-From:   "F.M." <moeses@freenet.de>
-Subject: "dmxdev: DVB (dvb_dmxdev_filter_start): could not set feed" with two
- DVB sticks
-Message-ID: <2108c9fd-8d03-db50-a258-cea08e49867e@freenet.de>
-Date:   Thu, 10 Jan 2019 21:42:27 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.3.1
+        id S1730777AbfAJU52 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 10 Jan 2019 15:57:28 -0500
+X-Amp-Result: UNSCANNABLE
+X-Amp-File-Uploaded: False
+Received: from orsmga002.jf.intel.com ([10.7.209.21])
+  by orsmga106.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 10 Jan 2019 12:57:27 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.56,462,1539673200"; 
+   d="scan'208";a="125086379"
+Received: from lkp-server01.sh.intel.com (HELO lkp-server01) ([10.239.97.150])
+  by orsmga002.jf.intel.com with ESMTP; 10 Jan 2019 12:57:25 -0800
+Received: from kbuild by lkp-server01 with local (Exim 4.89)
+        (envelope-from <lkp@intel.com>)
+        id 1ghhOH-00011B-9k; Fri, 11 Jan 2019 04:57:25 +0800
+Date:   Fri, 11 Jan 2019 04:56:28 +0800
+From:   kbuild test robot <lkp@intel.com>
+To:     Michael Tretter <m.tretter@pengutronix.de>
+Cc:     kbuild-all@01.org, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, kernel@pengutronix.de,
+        robh+dt@kernel.org, mchehab@kernel.org, tfiga@chromium.org,
+        Michael Tretter <m.tretter@pengutronix.de>
+Subject: Re: [PATCH 3/3] [media] allegro: add SPS/PPS nal unit writer
+Message-ID: <201901110444.GvAmr7Mv%fengguang.wu@intel.com>
+References: <20190109113037.28430-4-m.tretter@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: de-DE
-X-Originated-At: 91.66.106.204!57296
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190109113037.28430-4-m.tretter@pengutronix.de>
+User-Agent: Mutt/1.5.23 (2014-03-12)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi folks,
+Hi Michael,
 
-I’m trying to set up two DVB-adapters, one receiving a cable and the 
-other a terrestrial signal. In the tests involved are the following 
-adapters:
+I love your patch! Perhaps something to improve:
 
-1.    TechnoTrend TVStick CT2-4400 (bus ID 0b48:3014)
-2.    Hauppauge WinTV SoloHD (bus ID 2040:8268)
+[auto build test WARNING on linuxtv-media/master]
+[also build test WARNING on v5.0-rc1 next-20190110]
+[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
 
-The system runs Debian buster with kernel 4.19.
+url:    https://github.com/0day-ci/linux/commits/Michael-Tretter/Add-ZynqMP-VCU-Allegro-DVT-H-264-encoder-driver/20190110-020930
+base:   git://linuxtv.org/media_tree.git master
 
-dmesg output:
-[Di Jan  8 12:45:41 2019] em28xx 1-4:1.0: New device HCW soloHD @ 480 
-Mbps (2040:8268, interface 0, class 0)
-[Di Jan  8 12:45:41 2019] em28xx 1-4:1.0: DVB interface 0 found: bulk
-[Di Jan  8 12:45:41 2019] em28xx 1-4:1.0: chip ID is em28178
-[Di Jan  8 12:45:41 2019] usb 1-3: dvb_usb_v2: found a 'TechnoTrend 
-TVStick CT2-4400' in warm state
-[Di Jan  8 12:45:41 2019] usb 1-3: dvb_usb_v2: will pass the complete 
-MPEG2 transport stream to the software demuxer
-[Di Jan  8 12:45:41 2019] dvbdev: DVB: registering new adapter 
-(TechnoTrend TVStick CT2-4400)
-[Di Jan  8 12:45:41 2019] usb 1-3: dvb_usb_v2: MAC address: 
-bc:ea:2b:44:0f:89
-[Di Jan  8 12:45:41 2019] i2c i2c-6: Added multiplexed i2c bus 7
-[Di Jan  8 12:45:41 2019] si2168 6-0064: Silicon Labs Si2168-B40 
-successfully identified
-[Di Jan  8 12:45:41 2019] si2168 6-0064: firmware version: B 4.0.2
-[Di Jan  8 12:45:41 2019] si2157 7-0060: Silicon Labs 
-Si2147/2148/2157/2158 successfully attached
-[Di Jan  8 12:45:41 2019] usb 1-3: DVB: registering adapter 0 frontend 0 
-(Silicon Labs Si2168)...
-[Di Jan  8 12:45:41 2019] usb 1-3: dvb_usb_v2: 'TechnoTrend TVStick 
-CT2-4400' successfully initialized and connected
-[Di Jan  8 12:45:41 2019] usbcore: registered new interface driver 
-dvb_usb_dvbsky
-[Di Jan  8 12:45:43 2019] em28xx 1-4:1.0: EEPROM ID = 26 00 01 00, 
-EEPROM hash = 0xccc2c180
-[Di Jan  8 12:45:43 2019] em28xx 1-4:1.0: EEPROM info:
-[Di Jan  8 12:45:43 2019] em28xx 1-4:1.0:    microcode start address = 
-0x0004, boot configuration = 0x01
-[Di Jan  8 12:45:43 2019] em28xx 1-4:1.0:    AC97 audio (5 sample rates)
-[Di Jan  8 12:45:43 2019] em28xx 1-4:1.0:    500mA max power
-[Di Jan  8 12:45:43 2019] em28xx 1-4:1.0:    Table at offset 0x27, 
-strings=0x0e6a, 0x1888, 0x087e
-[Di Jan  8 12:45:43 2019] em28xx 1-4:1.0: Identified as PCTV tripleStick 
-(292e) (card=94)
-[Di Jan  8 12:45:43 2019] em28xx 1-4:1.0: dvb set to bulk mode.
-[Di Jan  8 12:45:43 2019] usbcore: registered new interface driver em28xx
-[Di Jan  8 12:45:43 2019] em28xx 1-4:1.0: Binding DVB extension
-[Di Jan  8 12:45:43 2019] i2c i2c-9: Added multiplexed i2c bus 10
-[Di Jan  8 12:45:43 2019] si2168 9-0064: Silicon Labs Si2168-B40 
-successfully identified
-[Di Jan  8 12:45:43 2019] si2168 9-0064: firmware version: B 4.0.2
-[Di Jan  8 12:45:43 2019] si2157 10-0060: Silicon Labs 
-Si2147/2148/2157/2158 successfully attached
-[Di Jan  8 12:45:43 2019] dvbdev: DVB: registering new adapter (1-4:1.0)
-[Di Jan  8 12:45:43 2019] em28xx 1-4:1.0: DVB: registering adapter 1 
-frontend 0 (Silicon Labs Si2168)...
-[Di Jan  8 12:45:43 2019] em28xx 1-4:1.0: DVB extension successfully 
-initialized
-[Di Jan  8 12:45:43 2019] em28xx: Registered (Em28xx dvb Extension) 
-extension
-[Di Jan  8 12:45:45 2019] e1000e: enp0s25 NIC Link is Up 1000 Mbps Full 
-Duplex, Flow Control: Rx/Tx
-[Di Jan  8 12:45:45 2019] IPv6: ADDRCONF(NETDEV_CHANGE): enp0s25: link 
-becomes ready
-[Di Jan  8 12:45:45 2019] si2168 6-0064: firmware: direct-loading 
-firmware dvb-demod-si2168-b40-01.fw
-[Di Jan  8 12:45:45 2019] si2168 6-0064: downloading firmware from file 
-'dvb-demod-si2168-b40-01.fw'
-[Di Jan  8 12:45:46 2019] si2168 6-0064: firmware version: B 4.0.11
-[Di Jan  8 12:45:46 2019] si2157 7-0060: found a 'Silicon Labs Si2157-A30'
-[Di Jan  8 12:45:46 2019] si2157 7-0060: firmware version: 3.0.5
-[Di Jan  8 12:45:46 2019] si2168 9-0064: firmware: direct-loading 
-firmware dvb-demod-si2168-b40-01.fw
-[Di Jan  8 12:45:46 2019] si2168 9-0064: downloading firmware from file 
-'dvb-demod-si2168-b40-01.fw'
-[Di Jan  8 12:45:46 2019] si2168 9-0064: firmware version: B 4.0.11
-[Di Jan  8 12:45:46 2019] si2157 10-0060: found a 'Silicon Labs Si2157-A30'
-[Di Jan  8 12:45:46 2019] si2157 10-0060: firmware version: 3.0.5
-[Di Jan  8 12:46:46 2019] dmxdev: DVB (dvb_dmxdev_filter_start): could 
-not set feed
-[Di Jan  8 12:46:46 2019] dvb_demux: dvb_demux_feed_del: feed not in 
-list (type=1 state=0 pid=ffff)
+New smatch warnings:
+drivers/staging/media/allegro-dvt/allegro-core.c:1090 allegro_h264_write_sps() error: potential null dereference 'sps'.  (kzalloc returns null)
+drivers/staging/media/allegro-dvt/allegro-core.c:1159 allegro_h264_write_pps() error: potential null dereference 'pps'.  (kzalloc returns null)
+drivers/staging/media/allegro-dvt/nal-h264.c:1251 nal_h264_read_filler() warn: impossible condition '(p[i] == 255) => ((-128)-127 == 255)'
+drivers/staging/media/allegro-dvt/nal-h264.c:1251 nal_h264_read_filler() warn: impossible condition '(p[i] == 255) => ((-128)-127 == 255)'
+drivers/staging/media/allegro-dvt/nal-h264.c:1254 nal_h264_read_filler() warn: always true condition '(p[i] != 128) => ((-128)-127 != 128)'
 
-Both adapters work fine individually but together the two last lines 
-occur and VDR only receives a signal on one of them while the other 
-gives "no data" message. When i.e. I add the first tuner later I get 
-such messages in the journal:
+Old smatch warnings:
+drivers/staging/media/allegro-dvt/allegro-core.c:625 allegro_mbox_write() error: uninitialized symbol 'err'.
+drivers/staging/media/allegro-dvt/allegro-core.c:752 v4l2_profile_to_mcu_profile() warn: signedness bug returning '(-22)'
+drivers/staging/media/allegro-dvt/allegro-core.c:762 v4l2_level_to_mcu_level() warn: signedness bug returning '(-22)'
+drivers/staging/media/allegro-dvt/allegro-core.c:1320 allegro_receive_message() warn: struct type mismatch 'mcu_msg_header vs mcu_msg_encode_one_frm_response'
 
-Jan 08 12:36:08 mypc kernel:  device_create_groups_vargs+0xd1/0xf0
-Jan 08 12:36:08 mypc kernel:  device_create+0x49/0x60
-Jan 08 12:36:08 mypc kernel:  ? _cond_resched+0x15/0x30
-Jan 08 12:36:08 mypc kernel:  ? kmem_cache_alloc_trace+0x155/0x1d0
-Jan 08 12:36:08 mypc kernel:  dvb_register_device+0x229/0x2c0 [dvb_core]
-Jan 08 12:36:08 mypc kernel:  dvb_usbv2_probe+0x54d/0x10d0 [dvb_usb_v2]
-Jan 08 12:36:08 mypc kernel:  ? __pm_runtime_set_status+0x247/0x260
-Jan 08 12:36:08 mypc kernel:  usb_probe_interface+0xe4/0x2f0 [usbcore]
-Jan 08 12:36:08 mypc kernel:  really_probe+0x235/0x3a0
-Jan 08 12:36:08 mypc kernel:  driver_probe_device+0xb3/0xf0
-Jan 08 12:36:08 mypc kernel:  __driver_attach+0xdd/0x110
-Jan 08 12:36:08 mypc kernel:  ? driver_probe_device+0xf0/0xf0
-Jan 08 12:36:08 mypc kernel:  bus_for_each_dev+0x76/0xc0
-Jan 08 12:36:08 mypc kernel:  ? klist_add_tail+0x3b/0x70
-Jan 08 12:36:08 mypc kernel:  bus_add_driver+0x152/0x230
-Jan 08 12:36:08 mypc kernel:  driver_register+0x6b/0xb0
-Jan 08 12:36:08 mypc kernel:  usb_register_driver+0x7a/0x130 [usbcore]
-Jan 08 12:36:08 mypc kernel:  ? 0xffffffffc09e5000
-Jan 08 12:36:08 mypc kernel:  do_one_initcall+0x46/0x1c3
-Jan 08 12:36:08 mypc kernel:  ? free_unref_page_commit+0x91/0x100
-Jan 08 12:36:08 mypc kernel:  ? _cond_resched+0x15/0x30
-Jan 08 12:36:08 mypc kernel:  ? kmem_cache_alloc_trace+0x155/0x1d0
-Jan 08 12:36:08 mypc kernel:  do_init_module+0x5a/0x210
-Jan 08 12:36:08 mypc kernel:  load_module+0x215c/0x2380
-Jan 08 12:36:08 mypc kernel:  ? __do_sys_finit_module+0xad/0x110
-Jan 08 12:36:08 mypc kernel:  __do_sys_finit_module+0xad/0x110
-Jan 08 12:36:08 mypc kernel:  do_syscall_64+0x53/0x100
-Jan 08 12:36:08 mypc kernel: entry_SYSCALL_64_after_hwframe+0x44/0xa9
-Jan 08 12:36:08 mypc kernel: RIP: 0033:0x7f3029f62309
-Jan 08 12:36:08 mypc kernel: Code: 00 c3 66 2e 0f 1f 84 00 00 00 00 00 
-0f 1f 44 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 
-8b 4c 24 08 0f 05 <48> 3d 01 f0 ff
-Jan 08 12:36:08 mypc kernel: RSP: 002b:00007ffefc69b4c8 EFLAGS: 00000246 
-ORIG_RAX: 0000000000000139
-Jan 08 12:36:08 mypc kernel: RAX: ffffffffffffffda RBX: 0000555d0528bde0 
-RCX: 00007f3029f62309
-Jan 08 12:36:08 mypc kernel: RDX: 0000000000000000 RSI: 0000555d0528ebd0 
-RDI: 0000000000000006
-Jan 08 12:36:08 mypc kernel: RBP: 0000555d0528ebd0 R08: 0000000000000000 
-R09: 0000000000000000
-Jan 08 12:36:08 mypc kernel: R10: 0000000000000006 R11: 0000000000000246 
-R12: 0000000000000000
-Jan 08 12:36:08 mypc kernel: R13: 0000555d0528be60 R14: 0000000000040000 
-R15: 0000555d0528bde0
-Jan 08 12:36:08 mypc kernel: kobject_add_internal failed for dvb with 
--EEXIST, don't try to register things with the same name in the same 
-directory.
-Jan 08 12:36:08 mypc kernel: dvbdev: dvb_register_device: failed to 
-create device dvb0.net0 (-17)
-Jan 08 12:36:08 mypc kernel: usb 1-3: dvb_usb_v2: dvb_net_init() failed=-17
-Jan 08 12:36:08 mypc kernel: dvb_usb_dvbsky: probe of 1-3:1.0 failed 
-with error -17
+vim +/sps +1090 drivers/staging/media/allegro-dvt/allegro-core.c
 
-As I thought that the different modules (dvb_usb_dvbsky and em28xx) are 
-the cause I ordered a new device which use the same chips:
+  1080	
+  1081	static ssize_t allegro_h264_write_sps(struct allegro_channel *channel,
+  1082					      void *dest, size_t n)
+  1083	{
+  1084		struct allegro_dev *dev = channel->dev;
+  1085		struct nal_h264_sps *sps = kzalloc(sizeof(*sps), GFP_KERNEL);
+  1086		ssize_t size;
+  1087	
+  1088		v4l2_dbg(1, debug, &dev->v4l2_dev, "write sps nal unit\n");
+  1089	
+> 1090		sps->profile_idc = nal_h264_profile_from_v4l2(channel->profile);
+  1091		sps->constraint_set0_flag = 0;
+  1092		sps->constraint_set1_flag = 1;
+  1093		sps->constraint_set2_flag = 0;
+  1094		sps->constraint_set3_flag = 0;
+  1095		sps->constraint_set4_flag = 0;
+  1096		sps->constraint_set5_flag = 0;
+  1097		sps->level_idc = nal_h264_level_from_v4l2(channel->level);
+  1098		sps->seq_parameter_set_id = 0;
+  1099		sps->log2_max_frame_num_minus4 = 0;
+  1100		sps->pic_order_cnt_type = 0;
+  1101		sps->log2_max_pic_order_cnt_lsb_minus4 = 6;
+  1102		sps->max_num_ref_frames = 3;
+  1103		sps->gaps_in_frame_num_value_allowed_flag = 0;
+  1104		sps->pic_width_in_mbs_minus1 = 8;
+  1105		sps->pic_height_in_map_units_minus1 = 8;
+  1106		sps->frame_mbs_only_flag = 1;
+  1107		sps->mb_adaptive_frame_field_flag = 0;
+  1108		sps->direct_8x8_inference_flag = 1;
+  1109		sps->frame_cropping_flag = 0;
+  1110		sps->vui_parameters_present_flag = 1;
+  1111		sps->vui.aspect_ratio_info_present_flag = 0;
+  1112		sps->vui.overscan_info_present_flag = 0;
+  1113		sps->vui.video_signal_type_present_flag = 1;
+  1114		sps->vui.video_format = 1;
+  1115		sps->vui.video_full_range_flag = 0;
+  1116		sps->vui.colour_description_present_flag = 1;
+  1117		sps->vui.colour_primaries = 5;
+  1118		sps->vui.transfer_characteristics = 5;
+  1119		sps->vui.matrix_coefficients = 5;
+  1120		sps->vui.chroma_loc_info_present_flag = 1;
+  1121		sps->vui.chroma_sample_loc_type_top_field = 0;
+  1122		sps->vui.chroma_sample_loc_type_bottom_field = 0;
+  1123		sps->vui.timing_info_present_flag = 1;
+  1124		sps->vui.num_units_in_tick = 1;
+  1125		sps->vui.time_scale = 50;
+  1126		sps->vui.fixed_frame_rate_flag = 1;
+  1127		sps->vui.nal_hrd_parameters_present_flag = 0;
+  1128		sps->vui.vcl_hrd_parameters_present_flag = 1;
+  1129		sps->vui.vcl_hrd_parameters.cpb_cnt_minus1 = 0;
+  1130		sps->vui.vcl_hrd_parameters.bit_rate_scale = 0;
+  1131		sps->vui.vcl_hrd_parameters.cpb_size_scale = 1;
+  1132		sps->vui.vcl_hrd_parameters.bit_rate_value_minus1[0] = 10936;
+  1133		sps->vui.vcl_hrd_parameters.cpb_size_value_minus1[0] = 21874;
+  1134		sps->vui.vcl_hrd_parameters.cbr_flag[0] = 1;
+  1135		sps->vui.vcl_hrd_parameters.initial_cpb_removal_delay_length_minus1 = 31;
+  1136		sps->vui.vcl_hrd_parameters.cpb_removal_delay_length_minus1 = 31;
+  1137		sps->vui.vcl_hrd_parameters.dpb_output_delay_length_minus1 = 31;
+  1138		sps->vui.vcl_hrd_parameters.time_offset_length = 0;
+  1139		sps->vui.low_delay_hrd_flag = 0;
+  1140		sps->vui.pic_struct_present_flag = 1;
+  1141		sps->vui.bitstream_restriction_flag = 0;
+  1142	
+  1143		size = nal_h264_write_sps(&dev->plat_dev->dev, dest, n, sps);
+  1144	
+  1145		kfree(sps);
+  1146	
+  1147		return size;
+  1148	}
+  1149	
+  1150	static ssize_t allegro_h264_write_pps(struct allegro_channel *channel,
+  1151					      void *dest, size_t n)
+  1152	{
+  1153		struct allegro_dev *dev = channel->dev;
+  1154		struct nal_h264_pps *pps = kzalloc(sizeof(*pps), GFP_KERNEL);
+  1155		ssize_t size;
+  1156	
+  1157		v4l2_dbg(1, debug, &dev->v4l2_dev, "write pps nal unit\n");
+  1158	
+> 1159		pps->pic_parameter_set_id = 0;
+  1160		pps->seq_parameter_set_id = 0;
+  1161		pps->entropy_coding_mode_flag = 0;
+  1162		pps->bottom_field_pic_order_in_frame_present_flag = 0;
+  1163		pps->num_slice_groups_minus1 = 0;
+  1164		pps->num_ref_idx_l0_default_active_minus1 = 2;
+  1165		pps->num_ref_idx_l1_default_active_minus1 = 2;
+  1166		pps->weighted_pred_flag = 0;
+  1167		pps->weighted_bipred_idc = 0;
+  1168		pps->pic_init_qp_minus26 = 0;
+  1169		pps->pic_init_qs_minus26 = 0;
+  1170		pps->chroma_qp_index_offset = 0;
+  1171		pps->deblocking_filter_control_present_flag = 1;
+  1172		pps->constrained_intra_pred_flag = 0;
+  1173		pps->redundant_pic_cnt_present_flag = 0;
+  1174		pps->transform_8x8_mode_flag = 0;
+  1175		pps->pic_scaling_matrix_present_flag = 0;
+  1176		pps->second_chroma_qp_index_offset = 0;
+  1177	
+  1178		size = nal_h264_write_pps(&dev->plat_dev->dev, dest, n, pps);
+  1179	
+  1180		kfree(pps);
+  1181	
+  1182		return size;
+  1183	}
+  1184	
 
-3. DVBSky T330 (bus ID 0572:0320).
-
-The error messages still show up:
-
-[Mi Jan  9 21:59:48 2019] usb 1-3: dvb_usb_v2: found a 'DVBSky T330' in 
-warm state
-[Mi Jan  9 21:59:48 2019] usb 1-3: dvb_usb_v2: will pass the complete 
-MPEG2 transport stream to the software demuxer
-[Mi Jan  9 21:59:48 2019] dvbdev: DVB: registering new adapter (DVBSky T330)
-[Mi Jan  9 21:59:48 2019] usb 1-3: dvb_usb_v2: MAC address: 
-00:cc:10:a5:33:0c
-[Mi Jan  9 21:59:48 2019] i2c i2c-6: Added multiplexed i2c bus 7
-[Mi Jan  9 21:59:48 2019] si2168 6-0064: Silicon Labs Si2168-B40 
-successfully identified
-[Mi Jan  9 21:59:48 2019] si2168 6-0064: firmware version: B 4.0.2
-[Mi Jan  9 21:59:48 2019] media: Linux media interface: v0.10
-[Mi Jan  9 21:59:48 2019] si2157 7-0060: Silicon Labs 
-Si2147/2148/2157/2158 successfully attached
-[Mi Jan  9 21:59:48 2019] usb 1-3: DVB: registering adapter 0 frontend 0 
-(Silicon Labs Si2168)...
-[Mi Jan  9 21:59:48 2019] usb 1-3: dvb_usb_v2: 'DVBSky T330' 
-successfully initialized and connected
-[Mi Jan  9 21:59:48 2019] usb 1-4: dvb_usb_v2: found a 'TechnoTrend 
-TVStick CT2-4400' in warm state
-[Mi Jan  9 21:59:48 2019] usb 1-4: dvb_usb_v2: will pass the complete 
-MPEG2 transport stream to the software demuxer
-[Mi Jan  9 21:59:48 2019] dvbdev: DVB: registering new adapter 
-(TechnoTrend TVStick CT2-4400)
-[Mi Jan  9 21:59:48 2019] usb 1-4: dvb_usb_v2: MAC address: 
-bc:ea:2b:44:0f:89
-[Mi Jan  9 21:59:48 2019] i2c i2c-8: Added multiplexed i2c bus 9
-[Mi Jan  9 21:59:48 2019] si2168 8-0064: Silicon Labs Si2168-B40 
-successfully identified
-[Mi Jan  9 21:59:48 2019] si2168 8-0064: firmware version: B 4.0.2
-[Mi Jan  9 21:59:48 2019] si2157 9-0060: Silicon Labs 
-Si2147/2148/2157/2158 successfully attached
-[Mi Jan  9 21:59:48 2019] usb 1-4: DVB: registering adapter 1 frontend 0 
-(Silicon Labs Si2168)...
-[Mi Jan  9 21:59:48 2019] usb 1-4: dvb_usb_v2: 'TechnoTrend TVStick 
-CT2-4400' successfully initialized and connected
-[Mi Jan  9 21:59:48 2019] usbcore: registered new interface driver 
-dvb_usb_dvbsky
-[Mi Jan  9 22:00:03 2019] si2168 6-0064: firmware: direct-loading 
-firmware dvb-demod-si2168-b40-01.fw
-[Mi Jan  9 22:00:03 2019] si2168 6-0064: downloading firmware from file 
-'dvb-demod-si2168-b40-01.fw'
-[Mi Jan  9 22:00:03 2019] si2168 6-0064: firmware version: B 4.0.11
-[Mi Jan  9 22:00:03 2019] si2157 7-0060: found a 'Silicon Labs Si2157-A30'
-[Mi Jan  9 22:00:04 2019] si2157 7-0060: firmware version: 3.0.5
-[Mi Jan  9 22:00:04 2019] si2168 8-0064: firmware: direct-loading 
-firmware dvb-demod-si2168-b40-01.fw
-[Mi Jan  9 22:00:04 2019] si2168 8-0064: downloading firmware from file 
-'dvb-demod-si2168-b40-01.fw'
-[Mi Jan  9 22:00:04 2019] si2168 8-0064: firmware version: B 4.0.11
-[Mi Jan  9 22:00:04 2019] si2157 9-0060: found a 'Silicon Labs Si2157-A30'
-[Mi Jan  9 22:00:04 2019] si2157 9-0060: firmware version: 3.0.5
-[Mi Jan  9 22:00:04 2019] fuse init (API version 7.28)
-[Mi Jan  9 22:01:01 2019] dmxdev: DVB (dvb_dmxdev_filter_start): could 
-not set feed
-[Mi Jan  9 22:01:01 2019] dvb_demux: dvb_demux_feed_del: feed not in 
-list (type=1 state=0 pid=ffff)
-
-Now I'd like to know if this is an driver limitation or is there 
-anything I could set up differently in order to make it work (except for 
-disabling the remotes I didn't set any parameters than standard).
-
-Regards, Frank
-
-
+---
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
