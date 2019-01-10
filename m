@@ -2,218 +2,217 @@ Return-Path: <SRS0=KIs1=PS=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_NEOMUTT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 327A5C43387
-	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 16:18:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 33E5DC43387
+	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 16:21:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E8F0C20685
-	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 16:18:50 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=synopsys.com header.i=@synopsys.com header.b="M2pK/8FU"
+	by mail.kernel.org (Postfix) with ESMTP id 022E420685
+	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 16:21:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728163AbfAJQSp (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 10 Jan 2019 11:18:45 -0500
-Received: from us01smtprelay-2.synopsys.com ([198.182.47.9]:41458 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727788AbfAJQSo (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 Jan 2019 11:18:44 -0500
-Received: from mailhost.synopsys.com (mailhost2.synopsys.com [10.13.184.66])
-        by smtprelay.synopsys.com (Postfix) with ESMTP id 0A59924E1190;
-        Thu, 10 Jan 2019 08:18:44 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=synopsys.com; s=mail;
-        t=1547137124; bh=e36giWoucqJ1mkLZysgssgXf4Q045PYv6EaiUSHhT5k=;
-        h=Subject:To:CC:References:From:Date:In-Reply-To:From;
-        b=M2pK/8FUvc4OMMR2IdgmbgfCrnYvWlEdMUpJwB2YYm3bxx3DmTafaCikaqNDLUKEf
-         NmPKrPjUYJTFCKMXf7xU9mYNMRzrCCXG5U3tQOSrZyzb+eHXTbfesSVNPCHdfeMuXY
-         ZYcsaFEKSv0wvTmOLAJIPDvEOjOqHZxJ9j3cK48uwmItVinLEgKH/Qji/N8Dd2rbYi
-         UD9EuejkY/eVdiITQ56cmI7rEi98wSZwwPPWShlWSgNZY0LczLvqvX4dDHXnZuzjuo
-         NSwFibHlZilHM1+pqUVaPtl1hCLpSZxJFF2gO3gOskWeLmnim0eBCkphdSYa+5WHNT
-         /zppvy/1hDC5A==
-Received: from US01WEHTC2.internal.synopsys.com (us01wehtc2.internal.synopsys.com [10.12.239.237])
-        by mailhost.synopsys.com (Postfix) with ESMTP id BD7EA31BF;
-        Thu, 10 Jan 2019 08:18:43 -0800 (PST)
-Received: from DE02WEHTCA.internal.synopsys.com (10.225.19.92) by
- US01WEHTC2.internal.synopsys.com (10.12.239.237) with Microsoft SMTP Server
- (TLS) id 14.3.408.0; Thu, 10 Jan 2019 08:18:43 -0800
-Received: from DE02WEHTCB.internal.synopsys.com (10.225.19.94) by
- DE02WEHTCA.internal.synopsys.com (10.225.19.92) with Microsoft SMTP Server
- (TLS) id 14.3.408.0; Thu, 10 Jan 2019 17:18:41 +0100
-Received: from [10.107.19.13] (10.107.19.13) by
- DE02WEHTCB.internal.synopsys.com (10.225.19.80) with Microsoft SMTP Server
- (TLS) id 14.3.408.0; Thu, 10 Jan 2019 17:18:41 +0100
-Subject: Re: [V3, 4/4] media: platform: dwc: Add MIPI CSI-2 controller driver
-To:     <Eugen.Hristev@microchip.com>, <luis.oliveira@synopsys.com>,
-        <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-CC:     <joao.pinto@synopsys.com>, <festevam@gmail.com>,
-        <mchehab@kernel.org>, <gregkh@linuxfoundation.org>,
-        <davem@davemloft.net>, <akpm@linux-foundation.org>,
-        <arnd@arndb.de>, <hans.verkuil@cisco.com>,
-        <laurent.pinchart@ideasonboard.com>, <geert@linux-m68k.org>,
-        <narmstrong@baylibre.com>, <p.zabel@pengutronix.de>,
-        <treding@nvidia.com>, <maxime.ripard@bootlin.com>,
-        <todor.tomov@linaro.org>
-References: <1539953556-35762-1-git-send-email-lolivei@synopsys.com>
- <1539953556-35762-5-git-send-email-lolivei@synopsys.com>
- <4db76eb2-460f-c644-6dbd-370b07b2def8@microchip.com>
-From:   Luis de Oliveira <luis.oliveira@synopsys.com>
-Message-ID: <2407a3ca-1a83-5685-c26c-a922251b2943@synopsys.com>
-Date:   Thu, 10 Jan 2019 16:18:38 +0000
-User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
- Thunderbird/60.4.0
+        id S1728606AbfAJQVu (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 10 Jan 2019 11:21:50 -0500
+Received: from mga01.intel.com ([192.55.52.88]:18350 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727771AbfAJQVu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 10 Jan 2019 11:21:50 -0500
+X-Amp-Result: UNKNOWN
+X-Amp-Original-Verdict: FILE UNKNOWN
+X-Amp-File-Uploaded: False
+Received: from orsmga006.jf.intel.com ([10.7.209.51])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 10 Jan 2019 08:17:47 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.56,462,1539673200"; 
+   d="scan'208";a="107242978"
+Received: from paasikivi.fi.intel.com ([10.237.72.42])
+  by orsmga006.jf.intel.com with ESMTP; 10 Jan 2019 08:17:44 -0800
+Received: by paasikivi.fi.intel.com (Postfix, from userid 1000)
+        id 46E752050A; Thu, 10 Jan 2019 18:17:43 +0200 (EET)
+Date:   Thu, 10 Jan 2019 18:17:43 +0200
+From:   Sakari Ailus <sakari.ailus@linux.intel.com>
+To:     Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc:     linux-media@vger.kernel.org, bingbu.cao@intel.com
+Subject: Re: [PATCH v2 1/1] media: Use common test pattern menu entries
+Message-ID: <20190110161742.oyyby5g4fo6peg2f@paasikivi.fi.intel.com>
+References: <20181204134042.21027-1-sakari.ailus@linux.intel.com>
+ <20181204124142.1d3a8543@coco.lan>
 MIME-Version: 1.0
-In-Reply-To: <4db76eb2-460f-c644-6dbd-370b07b2def8@microchip.com>
-Content-Type: text/plain; charset="utf-8"
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.107.19.13]
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20181204124142.1d3a8543@coco.lan>
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
+Hi Mauro,
 
+On Tue, Dec 04, 2018 at 12:41:42PM -0200, Mauro Carvalho Chehab wrote:
+> Em Tue,  4 Dec 2018 15:40:42 +0200
+> Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+> 
+> > While the test pattern menu itself is not standardised, many devices
+> > support the same test patterns. Aligning the menu entries helps the user
+> > space to use the interface, and adding macros for the menu entry strings
+> > helps to keep them aligned.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > ---
+> > since v1:
+> > 
+> > - Fix indentation of menu strings
+> > - Remove "8" from the macro names
+> > 
+> >  drivers/media/i2c/imx258.c             | 10 +++++-----
+> >  drivers/media/i2c/imx319.c             | 10 +++++-----
+> >  drivers/media/i2c/imx355.c             | 10 +++++-----
+> >  drivers/media/i2c/ov2640.c             |  4 ++--
+> >  drivers/media/i2c/smiapp/smiapp-core.c | 10 +++++-----
+> >  include/uapi/linux/v4l2-controls.h     |  5 +++++
+> >  6 files changed, 27 insertions(+), 22 deletions(-)
+> > 
+> > diff --git a/drivers/media/i2c/imx258.c b/drivers/media/i2c/imx258.c
+> > index f86ae18bc104..df5f016cebd9 100644
+> > --- a/drivers/media/i2c/imx258.c
+> > +++ b/drivers/media/i2c/imx258.c
+> > @@ -498,11 +498,11 @@ static const struct imx258_reg mode_1048_780_regs[] = {
+> >  };
+> >  
+> >  static const char * const imx258_test_pattern_menu[] = {
+> > -	"Disabled",
+> > -	"Solid Colour",
+> > -	"Eight Vertical Colour Bars",
+> > -	"Colour Bars With Fade to Grey",
+> > -	"Pseudorandom Sequence (PN9)",
+> > +	V4L2_TEST_PATTERN_DISABLED,
+> > +	V4L2_TEST_PATTERN_SOLID_COLOUR,
+> > +	V4L2_TEST_PATTERN_VERT_COLOUR_BARS,
+> > +	V4L2_TEST_PATTERN_VERT_COLOUR_BARS_FADE_TO_GREY,
+> > +	V4L2_TEST_PATTERN_PN9,
+> >  };
+> >  
+> >  /* Configurations for supported link frequencies */
+> > diff --git a/drivers/media/i2c/imx319.c b/drivers/media/i2c/imx319.c
+> > index 17c2e4b41221..d9d4176b9d37 100644
+> > --- a/drivers/media/i2c/imx319.c
+> > +++ b/drivers/media/i2c/imx319.c
+> > @@ -1647,11 +1647,11 @@ static const struct imx319_reg mode_1280x720_regs[] = {
+> >  };
+> >  
+> >  static const char * const imx319_test_pattern_menu[] = {
+> > -	"Disabled",
+> > -	"Solid Colour",
+> > -	"Eight Vertical Colour Bars",
+> > -	"Colour Bars With Fade to Grey",
+> > -	"Pseudorandom Sequence (PN9)",
+> > +	V4L2_TEST_PATTERN_DISABLED,
+> > +	V4L2_TEST_PATTERN_SOLID_COLOUR,
+> > +	V4L2_TEST_PATTERN_VERT_COLOUR_BARS,
+> > +	V4L2_TEST_PATTERN_VERT_COLOUR_BARS_FADE_TO_GREY,
+> > +	V4L2_TEST_PATTERN_PN9,
+> >  };
+> >  
+> >  /* supported link frequencies */
+> > diff --git a/drivers/media/i2c/imx355.c b/drivers/media/i2c/imx355.c
+> > index bed293b60e50..99138a291cb8 100644
+> > --- a/drivers/media/i2c/imx355.c
+> > +++ b/drivers/media/i2c/imx355.c
+> > @@ -875,11 +875,11 @@ static const struct imx355_reg mode_820x616_regs[] = {
+> >  };
+> >  
+> >  static const char * const imx355_test_pattern_menu[] = {
+> > -	"Disabled",
+> > -	"Solid Colour",
+> > -	"Eight Vertical Colour Bars",
+> > -	"Colour Bars With Fade to Grey",
+> > -	"Pseudorandom Sequence (PN9)",
+> > +	V4L2_TEST_PATTERN_DISABLED,
+> > +	V4L2_TEST_PATTERN_SOLID_COLOUR,
+> > +	V4L2_TEST_PATTERN_VERT_COLOUR_BARS,
+> > +	V4L2_TEST_PATTERN_VERT_COLOUR_BARS_FADE_TO_GREY,
+> > +	V4L2_TEST_PATTERN_PN9,
+> >  };
+> >  
+> >  /* supported link frequencies */
+> > diff --git a/drivers/media/i2c/ov2640.c b/drivers/media/i2c/ov2640.c
+> > index 5d2d6735cc78..65058d9a5d51 100644
+> > --- a/drivers/media/i2c/ov2640.c
+> > +++ b/drivers/media/i2c/ov2640.c
+> > @@ -707,8 +707,8 @@ static int ov2640_reset(struct i2c_client *client)
+> >  }
+> >  
+> >  static const char * const ov2640_test_pattern_menu[] = {
+> > -	"Disabled",
+> > -	"Eight Vertical Colour Bars",
+> > +	V4L2_TEST_PATTERN_DISABLED,
+> > +	V4L2_TEST_PATTERN_VERT_COLOUR_BARS,
+> >  };
+> >  
+> >  /*
+> > diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+> > index 58a45c353e27..5c9bcc9438ec 100644
+> > --- a/drivers/media/i2c/smiapp/smiapp-core.c
+> > +++ b/drivers/media/i2c/smiapp/smiapp-core.c
+> > @@ -409,11 +409,11 @@ static void smiapp_update_mbus_formats(struct smiapp_sensor *sensor)
+> >  }
+> >  
+> >  static const char * const smiapp_test_patterns[] = {
+> > -	"Disabled",
+> > -	"Solid Colour",
+> > -	"Eight Vertical Colour Bars",
+> > -	"Colour Bars With Fade to Grey",
+> > -	"Pseudorandom Sequence (PN9)",
+> > +	V4L2_TEST_PATTERN_DISABLED,
+> > +	V4L2_TEST_PATTERN_SOLID_COLOUR,
+> > +	V4L2_TEST_PATTERN_VERT_COLOUR_BARS,
+> > +	V4L2_TEST_PATTERN_VERT_COLOUR_BARS_FADE_TO_GREY,
+> > +	V4L2_TEST_PATTERN_PN9,
+> >  };
+> >  
+> >  static int smiapp_set_ctrl(struct v4l2_ctrl *ctrl)
+> > diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+> > index 998983a6e6b7..acb2a57fa5d6 100644
+> > --- a/include/uapi/linux/v4l2-controls.h
+> > +++ b/include/uapi/linux/v4l2-controls.h
+> > @@ -1014,6 +1014,11 @@ enum v4l2_jpeg_chroma_subsampling {
+> >  #define V4L2_CID_LINK_FREQ			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 1)
+> >  #define V4L2_CID_PIXEL_RATE			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 2)
+> >  #define V4L2_CID_TEST_PATTERN			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 3)
+> 
+> > +#define V4L2_TEST_PATTERN_DISABLED		"Disabled"
+> > +#define V4L2_TEST_PATTERN_SOLID_COLOUR		"Solid Colour"
+> > +#define V4L2_TEST_PATTERN_VERT_COLOUR_BARS	"Eight Vertical Colour Bars"
+> > +#define V4L2_TEST_PATTERN_VERT_COLOUR_BARS_FADE_TO_GREY "Colour Bars With Fade to Grey"
+> > +#define V4L2_TEST_PATTERN_PN9			"Pseudorandom Sequence (PN9)"
+> 
+> I like the idea of using defines for those, but I wouldn't put them
+> at the uAPI.
+> 
+> See, once we put anything there, it is set into a stone, and we will
+> be bound forever to whatever name we place on it.
+> 
+> It would be a way better to have them at include/media/v4l2-ctrls.h.
 
-On 09-Jan-19 13:07, Eugen.Hristev@microchip.com wrote:
-> 
-> 
-> On 19.10.2018 15:52, Luis Oliveira wrote:
->> Add the Synopsys MIPI CSI-2 controller driver. This
->> controller driver is divided in platform dependent functions
->> and core functions. It also includes a platform for future
->> DesignWare drivers.
->>
->> Signed-off-by: Luis Oliveira <lolivei@synopsys.com>
->> ---
->> Changelog
->> v2-V3
->> - exposed IPI settings to userspace
->> - fixed headers
->>
->>   MAINTAINERS                              |  11 +
->>   drivers/media/platform/dwc/Kconfig       |  30 +-
->>   drivers/media/platform/dwc/Makefile      |   2 +
->>   drivers/media/platform/dwc/dw-csi-plat.c | 699 +++++++++++++++++++++++++++++++
->>   drivers/media/platform/dwc/dw-csi-plat.h |  77 ++++
->>   drivers/media/platform/dwc/dw-mipi-csi.c | 494 ++++++++++++++++++++++
->>   drivers/media/platform/dwc/dw-mipi-csi.h | 202 +++++++++
->>   include/media/dwc/dw-mipi-csi-pltfrm.h   | 102 +++++
->>   8 files changed, 1616 insertions(+), 1 deletion(-)
->>   create mode 100644 drivers/media/platform/dwc/dw-csi-plat.c
->>   create mode 100644 drivers/media/platform/dwc/dw-csi-plat.h
->>   create mode 100644 drivers/media/platform/dwc/dw-mipi-csi.c
->>   create mode 100644 drivers/media/platform/dwc/dw-mipi-csi.h
->>   create mode 100644 include/media/dwc/dw-mipi-csi-pltfrm.h
->>
-> 
-> [snip]
-> 
->> +/* Video formats supported by the MIPI CSI-2 */
->> +const struct mipi_fmt dw_mipi_csi_formats[] = {
->> +	{
->> +		/* RAW 8 */
->> +		.code = MEDIA_BUS_FMT_SBGGR8_1X8,
->> +		.depth = 8,
->> +	},
->> +	{
->> +		/* RAW 10 */
->> +		.code = MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_BE,
->> +		.depth = 10,
->> +	},
-> 
-> Hi Luis,
-> 
-> Any reason why RAW12 format is not handled here ?
-> 
-> Here, namely MEDIA_BUS_FMT_SBGGR12_1X12 etc.
-> 
-Hi Eugen,
+The intent was to let the user space use these as well. As the menu
+positions are not standardised (items are device specific), this would
+still allow the user space to make an informed choice of what to select in
+the menu: the functionality can still be the same for some entries.
 
-My Hw testing setup currently does not support it, so I didn't add it.
+In this case, especially the test patterns originating from the SMIA
+specification are supported by many sensors, even if not otherwise SMIA
+compliant.
 
->> +	{
->> +		/* RGB 565 */
->> +		.code = MEDIA_BUS_FMT_RGB565_2X8_BE,
->> +		.depth = 16,
->> +	},
->> +	{
->> +		/* BGR 565 */
->> +		.code = MEDIA_BUS_FMT_RGB565_2X8_LE,
->> +		.depth = 16,
->> +	},
->> +	{
->> +		/* RGB 888 */
->> +		.code = MEDIA_BUS_FMT_RGB888_2X12_LE,
->> +		.depth = 24,
->> +	},
->> +	{
->> +		/* BGR 888 */
->> +		.code = MEDIA_BUS_FMT_RGB888_2X12_BE,
->> +		.depth = 24,
->> +	},
->> +};
 > 
-> [snip]
-> 
->> +
->> +void dw_mipi_csi_set_ipi_fmt(struct mipi_csi_dev *csi_dev)
->> +{
->> +	struct device *dev = csi_dev->dev;
->> +
->> +	if (csi_dev->ipi_dt)
->> +		dw_mipi_csi_write(csi_dev, reg.IPI_DATA_TYPE, csi_dev->ipi_dt);
->> +	else {
->> +		switch (csi_dev->fmt->code) {
->> +		case MEDIA_BUS_FMT_RGB565_2X8_BE:
->> +		case MEDIA_BUS_FMT_RGB565_2X8_LE:
->> +			dw_mipi_csi_write(csi_dev,
->> +					reg.IPI_DATA_TYPE, CSI_2_RGB565);
->> +			dev_dbg(dev, "DT: RGB 565");
->> +			break;
->> +
->> +		case MEDIA_BUS_FMT_RGB888_2X12_LE:
->> +		case MEDIA_BUS_FMT_RGB888_2X12_BE:
->> +			dw_mipi_csi_write(csi_dev,
->> +					reg.IPI_DATA_TYPE, CSI_2_RGB888);
->> +			dev_dbg(dev, "DT: RGB 888");
->> +			break;
->> +		case MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_BE:
->> +			dw_mipi_csi_write(csi_dev,
->> +					reg.IPI_DATA_TYPE, CSI_2_RAW10);
->> +			dev_dbg(dev, "DT: RAW 10");
->> +			break;
->> +		case MEDIA_BUS_FMT_SBGGR8_1X8:
->> +			dw_mipi_csi_write(csi_dev,
->> +					reg.IPI_DATA_TYPE, CSI_2_RAW8);
->> +			dev_dbg(dev, "DT: RAW 8");
->> +			break;
-> 
-> Same here, in CSI_2_RAW12 case it will default to a RGB565 case.
+> >  #define V4L2_CID_DEINTERLACING_MODE		(V4L2_CID_IMAGE_PROC_CLASS_BASE + 4)
+> >  #define V4L2_CID_DIGITAL_GAIN			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 5)
+> >  
 > 
 > Thanks,
-> 
-> Eugen
-> 
-> 
-I will try to add the support for this data type in my next patchset if not I
-will flag it as unsupported for now in the commit message and code.
+> Mauro
 
-Thanks for your review,
-Luis
-
-> 
->> +		default:
->> +			dw_mipi_csi_write(csi_dev,
->> +					reg.IPI_DATA_TYPE, CSI_2_RGB565);
->> +			dev_dbg(dev, "Error");
->> +			break;
->> +		}
->> +	}
->> +}
->> +
-> 
-> [snip]
-> 
+-- 
+Sakari Ailus
+sakari.ailus@linux.intel.com
