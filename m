@@ -2,111 +2,131 @@ Return-Path: <SRS0=KIs1=PS=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 80C5DC43387
-	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 10:37:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 723BFC43387
+	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 10:48:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5AF7E214C6
-	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 10:37:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 451F621773
+	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 10:48:44 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="THAXlg2C"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728071AbfAJKho (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 10 Jan 2019 05:37:44 -0500
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:51912 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726255AbfAJKho (ORCPT
+        id S1726962AbfAJKsn (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 10 Jan 2019 05:48:43 -0500
+Received: from mail-wm1-f68.google.com ([209.85.128.68]:51095 "EHLO
+        mail-wm1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726560AbfAJKsn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 Jan 2019 05:37:44 -0500
-Received: from [IPv6:2001:420:44c1:2579:595e:33cd:95d8:785f] ([IPv6:2001:420:44c1:2579:595e:33cd:95d8:785f])
-        by smtp-cloud8.xs4all.net with ESMTPA
-        id hXiUgkdLQNR5yhXiYg61kx; Thu, 10 Jan 2019 11:37:42 +0100
-Subject: Re: [PATCH 1/4] media: v4l2-ctrl: Add control to enable h.264
- constrained intra prediction
-To:     Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
-Cc:     Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <20190108171313.1750-1-p.zabel@pengutronix.de>
-From:   Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <5bb5c9b8-703e-75df-6bf9-5d1845cedec0@xs4all.nl>
-Date:   Thu, 10 Jan 2019 11:37:38 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:52.0) Gecko/20100101
- Thunderbird/52.2.1
+        Thu, 10 Jan 2019 05:48:43 -0500
+Received: by mail-wm1-f68.google.com with SMTP id n190so10773459wmd.0
+        for <linux-media@vger.kernel.org>; Thu, 10 Jan 2019 02:48:42 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=SEqzYj0HB5CCYj1hAeZ1b/ZtOohJt6dXgaMmXseqrMw=;
+        b=THAXlg2CucIYlPCCDv74+Ayp82cvD4zyKgP/P4FYISvsC8lHXN7c8S9r1vZjHeqUeg
+         cdVZ5Ev+3N1GsWJMKDe8rCX48cL0mIEWHVM3upFssbiO88vXQAzNNmN7W5OEDHc+kWpM
+         fk7L7TROCeLm4KJhPax+jMxjRJI7YlfjvzqcKEEyhHEm77+SNWYYan76EDHluzpauExm
+         9wwKMphuk7i7+tkjSINbtsw/eAR+ot08AS3QQvQ8XRau+rYXCY2/Wy3aLb25k+/xspea
+         oen7B8FhoKdNQ+Xh1uhzEhEYj3xDu3GzbrEOKiRfg1En41d+36YMPM0Mn38Dif8YmAMX
+         +8jg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=SEqzYj0HB5CCYj1hAeZ1b/ZtOohJt6dXgaMmXseqrMw=;
+        b=dyZSrrUeynYhe6AH6o4yNq3CmH8W7ZI7CHCm3WBd8R0BAW6CFmj8q9Wgj+CjJtPCPW
+         O5ZnwTZ8GK/Tey1JFDa6rWBhyxQauRKvXOy5jPy9o9+opkEFmQRun6TUk3EGSSnfKUrR
+         BrBYjdMzalaE2hKhDVwWjnRxZmEJIwW8y6PapRQrttW/1HAmIrvtnbL0u79aMhq5HSmp
+         bF9kfWR2wPU3twSX7xY04YMPQWcV9CKgN+enwnRswbaoL09AkBlYXmYT9nVL8rz7MwgX
+         NzYBUdUt6vnZ3lDDBBiRXm5YW3AEsS+PVE0NU+2cxgrIbSLiknl1j5CnKYbN/Y9ze9G2
+         /66Q==
+X-Gm-Message-State: AJcUukfCK2lz52fhKI8vaLkdx24bShTx+qD5EyhL6iXPXvx10G7RE+pM
+        OWrggRUSC/1CD2ztMiOnhU0=
+X-Google-Smtp-Source: ALg8bN7nvGYhLKrs5y+jLVyNL7INR8aY1k7qvKiQYzQhojcF/OhRdv5NKRohRJGfX82Nv+o1NSRqTw==
+X-Received: by 2002:a1c:43:: with SMTP id 64mr9886378wma.72.1547117321662;
+        Thu, 10 Jan 2019 02:48:41 -0800 (PST)
+Received: from localhost (pD9E51040.dip0.t-ipconnect.de. [217.229.16.64])
+        by smtp.gmail.com with ESMTPSA id c13sm62887415wrb.38.2019.01.10.02.48.40
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Thu, 10 Jan 2019 02:48:41 -0800 (PST)
+From:   Thierry Reding <thierry.reding@gmail.com>
+To:     Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        Hans Verkuil <hverkuil-cisco@xs4all.nl>
+Cc:     Ezequiel Garcia <ezequiel@collabora.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+Subject: [PATCH] media: v4l2-ioctl: Clear only per-plane reserved fields
+Date:   Thu, 10 Jan 2019 11:48:39 +0100
+Message-Id: <20190110104839.31822-1-thierry.reding@gmail.com>
+X-Mailer: git-send-email 2.19.1
 MIME-Version: 1.0
-In-Reply-To: <20190108171313.1750-1-p.zabel@pengutronix.de>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfI2dZh7QS4iBLFtibcqBu1TUcXooXO9RjsNqttVuhShlTvgpQSd8qCD3rsRAniJDRHKlI+pmCIr50y2cDeNQeHAQ91A9Mo+jDtYDfAVOSMBtcrYGWTTO
- mmpzr4Gk7+7ucitTIVo6cBkXCfe9Gts+liN0+tdRLZdt8UfKvvwWqqKqAaKZGXL23bPW/niOL980DOBXCzrctR5jYK24V+ieaBUK9eI1IFuhE4KV8U+4wy8s
- 7hdJ0/XRl6n5r/D+9YDF4sZRnSDbfBxj2ebub9GsbXLirmXohQbpqLPcKUmBe6UrPISc5keZgSI0r66fvFAUVoOwj03tcvquHCDLjIcHfZ5zOkxkPZSRlJfu
- hYlNeJp9ftasZws3OiXLUI6eu6o3DhqfchLSC+NU3FqSGhYmZ+I=
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On 01/08/19 18:13, Philipp Zabel wrote:
-> Allow to enable h.264 constrained intra prediction (macroblocks using
-> intra prediction modes are not allowed to use residual data and decoded
-> samples of neighboring macroblocks coded using inter prediction modes).
-> This control directly corresponds to the constrained_intra_pred_flag
-> field in the h.264 picture parameter set.
-> 
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> ---
->  Documentation/media/uapi/v4l/extended-controls.rst | 4 ++++
->  drivers/media/v4l2-core/v4l2-ctrls.c               | 2 ++
->  include/uapi/linux/v4l2-controls.h                 | 1 +
->  3 files changed, 7 insertions(+)
-> 
-> diff --git a/Documentation/media/uapi/v4l/extended-controls.rst b/Documentation/media/uapi/v4l/extended-controls.rst
-> index af4273aa5e85..235d0c293983 100644
-> --- a/Documentation/media/uapi/v4l/extended-controls.rst
-> +++ b/Documentation/media/uapi/v4l/extended-controls.rst
-> @@ -1154,6 +1154,10 @@ enum v4l2_mpeg_video_h264_entropy_mode -
->  ``V4L2_CID_MPEG_VIDEO_H264_8X8_TRANSFORM (boolean)``
->      Enable 8X8 transform for H264. Applicable to the H264 encoder.
->  
-> +``V4L2_CID_MPEG_VIDEO_H264_CONSTRAINED_INTRA_PREDICTION (boolean)``
-> +    Enable constrained intra prediction for H264. Applicable to the H264
-> +    encoder.
-> +
->  ``V4L2_CID_MPEG_VIDEO_CYCLIC_INTRA_REFRESH_MB (integer)``
->      Cyclic intra macroblock refresh. This is the number of continuous
->      macroblocks refreshed every frame. Each frame a successive set of
-> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-> index e3bd441fa29a..1f2fd279f37d 100644
-> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
-> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-> @@ -825,6 +825,8 @@ const char *v4l2_ctrl_get_name(u32 id)
->  	case V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER:return "H264 Number of HC Layers";
->  	case V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER_QP:
->  								return "H264 Set QP Value for HC Layers";
-> +	case V4L2_CID_MPEG_VIDEO_H264_CONSTRAINED_INTRA_PREDICTION:
-> +								return "H264 Constrained Intra Prediction";
+From: Thierry Reding <treding@nvidia.com>
 
-This string is too long. The one above it ("H264 Set QP Value for HC Layers") has exactly 31
-characters, which is the maximum. Perhaps abbreviating "Prediction" by "Pred" will work.
+Currently the IOCTL code clears everything after the per-plane
+bytesperline field in struct v4l2_format. The intent was to only clear
+the per-plane reserved fields since there is data in struct v4l2_format
+after the per-plane format data that userspace may have filled in.
 
->  	case V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP:		return "MPEG4 I-Frame QP Value";
->  	case V4L2_CID_MPEG_VIDEO_MPEG4_P_FRAME_QP:		return "MPEG4 P-Frame QP Value";
->  	case V4L2_CID_MPEG_VIDEO_MPEG4_B_FRAME_QP:		return "MPEG4 B-Frame QP Value";
-> diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-> index 3dcfc6148f99..fd65c710b144 100644
-> --- a/include/uapi/linux/v4l2-controls.h
-> +++ b/include/uapi/linux/v4l2-controls.h
-> @@ -533,6 +533,7 @@ enum v4l2_mpeg_video_h264_hierarchical_coding_type {
->  };
->  #define V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER	(V4L2_CID_MPEG_BASE+381)
->  #define V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER_QP	(V4L2_CID_MPEG_BASE+382)
-> +#define V4L2_CID_MPEG_VIDEO_H264_CONSTRAINED_INTRA_PREDICTION	(V4L2_CID_MPEG_BASE+383)
->  #define V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP	(V4L2_CID_MPEG_BASE+400)
->  #define V4L2_CID_MPEG_VIDEO_MPEG4_P_FRAME_QP	(V4L2_CID_MPEG_BASE+401)
->  #define V4L2_CID_MPEG_VIDEO_MPEG4_B_FRAME_QP	(V4L2_CID_MPEG_BASE+402)
-> 
+Fixes: 4e1e0eb0e074 ("media: v4l2-ioctl: Zero v4l2_plane_pix_format reserved fields")
+Signed-off-by: Thierry Reding <treding@nvidia.com>
+---
+ drivers/media/v4l2-core/v4l2-ioctl.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-Regards,
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index df4259802756..e00aa2fe3e8f 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1553,7 +1553,7 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
+ 			break;
+ 		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
+ 		for (i = 0; i < p->fmt.pix_mp.num_planes; i++)
+-			CLEAR_AFTER_FIELD(p, fmt.pix_mp.plane_fmt[i].bytesperline);
++			CLEAR_AFTER_FIELD(&p->fmt.pix_mp.plane_fmt[i], bytesperline);
+ 		return ops->vidioc_s_fmt_vid_cap_mplane(file, fh, arg);
+ 	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
+ 		if (unlikely(!ops->vidioc_s_fmt_vid_overlay))
+@@ -1583,7 +1583,7 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
+ 			break;
+ 		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
+ 		for (i = 0; i < p->fmt.pix_mp.num_planes; i++)
+-			CLEAR_AFTER_FIELD(p, fmt.pix_mp.plane_fmt[i].bytesperline);
++			CLEAR_AFTER_FIELD(&p->fmt.pix_mp.plane_fmt[i], bytesperline);
+ 		return ops->vidioc_s_fmt_vid_out_mplane(file, fh, arg);
+ 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
+ 		if (unlikely(!ops->vidioc_s_fmt_vid_out_overlay))
+@@ -1650,7 +1650,7 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
+ 			break;
+ 		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
+ 		for (i = 0; i < p->fmt.pix_mp.num_planes; i++)
+-			CLEAR_AFTER_FIELD(p, fmt.pix_mp.plane_fmt[i].bytesperline);
++			CLEAR_AFTER_FIELD(&p->fmt.pix_mp.plane_fmt[i], bytesperline);
+ 		return ops->vidioc_try_fmt_vid_cap_mplane(file, fh, arg);
+ 	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
+ 		if (unlikely(!ops->vidioc_try_fmt_vid_overlay))
+@@ -1680,7 +1680,7 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
+ 			break;
+ 		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
+ 		for (i = 0; i < p->fmt.pix_mp.num_planes; i++)
+-			CLEAR_AFTER_FIELD(p, fmt.pix_mp.plane_fmt[i].bytesperline);
++			CLEAR_AFTER_FIELD(&p->fmt.pix_mp.plane_fmt[i], bytesperline);
+ 		return ops->vidioc_try_fmt_vid_out_mplane(file, fh, arg);
+ 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
+ 		if (unlikely(!ops->vidioc_try_fmt_vid_out_overlay))
+-- 
+2.19.1
 
-	Hans
