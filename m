@@ -2,127 +2,94 @@ Return-Path: <SRS0=KIs1=PS=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A46A0C43387
-	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 14:37:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 420EDC43387
+	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 15:28:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 78953214C6
-	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 14:37:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0E06420685
+	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 15:28:49 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="F3Ut7zUE"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728383AbfAJOhP (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 10 Jan 2019 09:37:15 -0500
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60764 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1728120AbfAJOhO (ORCPT
+        id S1728521AbfAJP2s (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 10 Jan 2019 10:28:48 -0500
+Received: from mail-pl1-f195.google.com ([209.85.214.195]:34171 "EHLO
+        mail-pl1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727793AbfAJP2s (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 Jan 2019 09:37:14 -0500
-Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id 78B82634C7E
-        for <linux-media@vger.kernel.org>; Thu, 10 Jan 2019 16:35:51 +0200 (EET)
-Received: from sailus by valkosipuli.localdomain with local (Exim 4.89)
-        (envelope-from <sakari.ailus@retiisi.org.uk>)
-        id 1ghbR0-0002gA-Sd
-        for linux-media@vger.kernel.org; Thu, 10 Jan 2019 16:35:50 +0200
-Date:   Thu, 10 Jan 2019 16:35:50 +0200
-From:   Sakari Ailus <sakari.ailus@iki.fi>
+        Thu, 10 Jan 2019 10:28:48 -0500
+Received: by mail-pl1-f195.google.com with SMTP id w4so5334893plz.1
+        for <linux-media@vger.kernel.org>; Thu, 10 Jan 2019 07:28:47 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id;
+        bh=yV0VwaMpOhDGV8jNSl4zo0yDjjhzaD5Gc3yEhCwq2ss=;
+        b=F3Ut7zUEbUrTJNriWkviN7s/SVl526Slt7kZeSeO+Uur7oD6DdIwTfvNHkIjdisXg8
+         cpQcJUuRi2k/prFBWpAKT5pCZlyBf8ndkoHiCvIxnofqhgdPNJ6ONpbJr0qiU1+sPmHj
+         hRmKZ6gUPhKNKprirEAa06FDLZERsYgUxY3Nn3g/ATnSnPAbJMG+fftmI/8E09SvuF9c
+         Zg2eJPQgELrsem+kQ55ryV60Sl59/MpzOILdL47XZ97vaBzD1vLpzooOBwRVPDgsgHXm
+         0hR5EPBPTIaFqNVEeZRj+dxBIfoaqkHVQnWJHl+AllvTtZYIBnbV0YKgiHW0slN4qhEU
+         EmBg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id;
+        bh=yV0VwaMpOhDGV8jNSl4zo0yDjjhzaD5Gc3yEhCwq2ss=;
+        b=mXy1kPRS2BDxRniaP7xEzBixAsRM7Q0Fbcjd4oLrCuLIbvvuTYNwkNs1P3lZZbgL2t
+         S+CUHvPMAS47GjAmPxkBwQtNNPHbGRq2hLpYlP4dMPtMGrzQ3zNDXJhtl9nFHJT8J7Yg
+         DMokheD5J8DMagvgp49xvw+nP/tyVKGxd7SuxyEoBFcADOPbBnO0byhmc05V+bhP4Cf2
+         k6aetQ+MO7QMUfdSUNxPo3bpsmiKZZW8vhgGsa9YH4p2xAn1Bsddcao+fIRScKQkhBl6
+         d3qTKgEuckvR3fhjBrFJER/YnfT7vfEhsT1YYiPLp/bL87+zgpugEQPIckmj/j1jD4tf
+         ufDg==
+X-Gm-Message-State: AJcUukdHW2yvoAKCNjCwJzNFAVBqbPRrsIxOCT9Cv+r32ycb9hspPWFj
+        uSmKvZttCks09W8y1bB5SbrkU/2w
+X-Google-Smtp-Source: ALg8bN5aT/yLSJtPft+BKqMQ0p4A/EV4aey3qUgYy9nGWu3AeHA354wi/7BctIDJOzifQtYOrUFekQ==
+X-Received: by 2002:a17:902:aa0a:: with SMTP id be10mr10602911plb.266.1547134127373;
+        Thu, 10 Jan 2019 07:28:47 -0800 (PST)
+Received: from localhost.localdomain ([240f:34:212d:1:25a3:d6ca:ee6b:e202])
+        by smtp.gmail.com with ESMTPSA id y1sm105916116pfe.9.2019.01.10.07.28.44
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
+        Thu, 10 Jan 2019 07:28:46 -0800 (PST)
+From:   Akinobu Mita <akinobu.mita@gmail.com>
 To:     linux-media@vger.kernel.org
-Subject: [GIT PULL for 5.1] Sensor driver patches
-Message-ID: <20190110143550.q5jpdyqugzjf6ohn@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-User-Agent: NeoMutt/20170113 (1.7.2)
+Cc:     Akinobu Mita <akinobu.mita@gmail.com>,
+        Enrico Scholz <enrico.scholz@sigma-chemnitz.de>,
+        Michael Grzeschik <m.grzeschik@pengutronix.de>,
+        Marco Felsch <m.felsch@pengutronix.de>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: [PATCH v2 0/3] media: bugfixes for mt9m111 driver
+Date:   Fri, 11 Jan 2019 00:28:26 +0900
+Message-Id: <1547134109-21449-1-git-send-email-akinobu.mita@gmail.com>
+X-Mailer: git-send-email 2.7.4
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Mauro,
+This patch series contains four bugfixes for mt9m111 driver.
 
-Here's the usual set of sensor driver patches for 5.1. Most notably,
-there's a driver for ov9640 (originally using SoC camera framework) as well
-as fixes for a number of other drivers.
+* v2
+- Drop patch 1/4 in v1 ("fix setting pixclk polarit") since it was wrong.
+- Use format->pad for the argument of v4l2_subdev_get_try_format().
 
-Please pull.
-
-
-The following changes since commit 1e0d0a5fd38192f23304ea2fc2b531fea7c74247:
-
-  media: s5p-mfc: fix incorrect bus assignment in virtual child device (2019-01-07 14:39:36 -0500)
-
-are available in the git repository at:
-
-  ssh://linuxtv.org/git/sailus/media_tree.git tags/for-5.1-1-sign
-
-for you to fetch changes up to 5008af8f2733a998819f2143caa9be9556bb3d06:
-
-  ipu3-cio2, dw9714: Remove Jian Xu's e-mail (2019-01-10 00:25:56 +0200)
-
-----------------------------------------------------------------
-sensor driver stuff for 5.1
-
-----------------------------------------------------------------
 Akinobu Mita (3):
-      media: ov2640: set default window and format code at probe time
-      media: ov2640: make VIDIOC_SUBDEV_G_FMT ioctl work with V4L2_SUBDEV_FORMAT_TRY
-      media: ov2640: set all mbus format field when G_FMT and S_FMT ioctls
+  media: mt9m111: make VIDIOC_SUBDEV_G_FMT ioctl work with
+    V4L2_SUBDEV_FORMAT_TRY
+  media: mt9m111: set all mbus format field when G_FMT and S_FMT ioctls
+  media: mt9m111: set initial frame size other than 0x0
 
-Chen-Yu Tsai (2):
-      media: dt-bindings: media: sun6i: Separate H3 compatible from A31
-      media: sun6i: Add H3 compatible
+ drivers/media/i2c/mt9m111.c | 40 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 40 insertions(+)
 
-Jacopo Mondi (1):
-      v4l2: i2c: ov7670: Fix PLL bypass register values
-
-Loic Poulain (1):
-      media: ov5640: Add RAW bayer format support
-
-Luca Ceresoli (1):
-      media: imx274: fix wrong order in test pattern menus
-
-Manivannan Sadhasivam (2):
-      dt-bindings: media: i2c: Fix external clock frequency for OV5645
-      dt-bindings: media: i2c: Fix i2c address for OV5645 camera sensor
-
-Petr Cvek (8):
-      media: soc_camera: ov9640: move ov9640 out of soc_camera
-      media: i2c: ov9640: drop soc_camera code and switch to v4l2_async
-      MAINTAINERS: add Petr Cvek as a maintainer for the ov9640 driver
-      media: i2c: ov9640: add missing SPDX identifiers
-      media: i2c: ov9640: change array index or length variables to unsigned
-      media: i2c: ov9640: add space before return for better clarity
-      media: i2c: ov9640: make array of supported formats constant
-      media: i2c: ov9640: fix missing error handling in probe
-
-Sakari Ailus (4):
-      ipu3-cio2: Allow probe to succeed if there are no sensors connected
-      ov9640: Wrap long and unwrap short lines, align wrapped lines correctly
-      MAINTAINERS: Update reviewers for ipu3-cio2
-      ipu3-cio2, dw9714: Remove Jian Xu's e-mail
-
- .../devicetree/bindings/media/i2c/ov5645.txt       |   6 +-
- .../devicetree/bindings/media/sun6i-csi.txt        |   2 +-
- MAINTAINERS                                        |   7 +-
- drivers/media/i2c/Kconfig                          |   7 +
- drivers/media/i2c/Makefile                         |   1 +
- drivers/media/i2c/dw9714.c                         |   2 +-
- drivers/media/i2c/imx274.c                         |   2 +-
- drivers/media/i2c/ov2640.c                         |  45 +-
- drivers/media/i2c/ov5640.c                         |  58 +-
- drivers/media/i2c/ov7670.c                         |  16 +-
- drivers/media/i2c/ov9640.c                         | 777 +++++++++++++++++++++
- drivers/media/i2c/ov9640.h                         | 207 ++++++
- drivers/media/i2c/soc_camera/Kconfig               |   6 +-
- drivers/media/pci/intel/ipu3/ipu3-cio2.c           |   5 +-
- drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c |   1 +
- 15 files changed, 1103 insertions(+), 39 deletions(-)
- create mode 100644 drivers/media/i2c/ov9640.c
- create mode 100644 drivers/media/i2c/ov9640.h
-
+Cc: Enrico Scholz <enrico.scholz@sigma-chemnitz.de>
+Cc: Michael Grzeschik <m.grzeschik@pengutronix.de>
+Cc: Marco Felsch <m.felsch@pengutronix.de>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
 -- 
-Sakari Ailus
+2.7.4
+
