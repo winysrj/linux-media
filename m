@@ -2,82 +2,116 @@ Return-Path: <SRS0=KIs1=PS=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.0 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F8BBC43387
-	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 11:18:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 69E0DC43387
+	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 11:47:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 41BB0214C6
-	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 11:18:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 43887214DA
+	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 11:47:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727938AbfAJLSx (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 10 Jan 2019 06:18:53 -0500
-Received: from gofer.mess.org ([88.97.38.141]:36985 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727806AbfAJLSx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 Jan 2019 06:18:53 -0500
-Received: by gofer.mess.org (Postfix, from userid 1000)
-        id F31F4600E8; Thu, 10 Jan 2019 11:18:51 +0000 (GMT)
-Date:   Thu, 10 Jan 2019 11:18:51 +0000
-From:   Sean Young <sean@mess.org>
-To:     linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v5.1] Various fixes
-Message-ID: <20190110111851.7ncrfzuayab5mqig@gofer.mess.org>
+        id S1728563AbfAJLrv (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 10 Jan 2019 06:47:51 -0500
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:34187 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1728484AbfAJLrv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 10 Jan 2019 06:47:51 -0500
+Received: from [IPv6:2001:420:44c1:2579:595e:33cd:95d8:785f] ([IPv6:2001:420:44c1:2579:595e:33cd:95d8:785f])
+        by smtp-cloud9.xs4all.net with ESMTPA
+        id hYoLgajKDMWvEhYoOgWzWA; Thu, 10 Jan 2019 12:47:49 +0100
+Subject: Re: [PATCH] media: v4l2-ioctl: Clear only per-plane reserved fields
+To:     Thierry Reding <thierry.reding@gmail.com>,
+        Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc:     Ezequiel Garcia <ezequiel@collabora.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+References: <20190110104839.31822-1-thierry.reding@gmail.com>
+From:   Hans Verkuil <hverkuil-cisco@xs4all.nl>
+Message-ID: <b5246e43-ccf2-a507-9d89-325f3570783f@xs4all.nl>
+Date:   Thu, 10 Jan 2019 12:47:45 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:52.0) Gecko/20100101
+ Thunderbird/52.2.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-User-Agent: NeoMutt/20170113 (1.7.2)
+In-Reply-To: <20190110104839.31822-1-thierry.reding@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-CMAE-Envelope: MS4wfMGtVPLZ58ecyYVaP2B0p2UY8khUBU8X6gRRWLgHgbSlghXBcyMaH9onQMQ5BMKS+UW2Os+W/b2Ofzw2u77c5CecAkfZYRBB65fS/xtwblIEnKzi37RT
+ kXqMpVZ5dYW6YQG5yAlAB/3sA6I78v/NC9OOXRPqxrOXg3ZicVyhzZWKbeprtjspOs2RSY0cuUWZcc2ezT4YHMhk9GnB7xailUuUDbJLuuUGzkBzo+7q+dhl
+ Lw+qKynW9foFUw+KVUON2zC/7lpvkIkOA8vBFYkQpiJ8mx6Tr/GtjrvfgMlci0oJ2M1Z+K4iGQoPwqvWr6UhzELN8hAu9FtWKdvL8XmVWZbUt+guPTp+urnv
+ zTW7lW1EUxqqMWyH483ak4P2A51W4yKr8ZzV4thMEYpihGo6aB4lvNgMCthlJMT4LagFVjtxAuc7whFllEtYnimmm9zdhFjQgZjQP4BqrLy0XertEiaCgk8o
+ iHGRyMGhroG3bAdj
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Mauro,
+On 01/10/19 11:48, Thierry Reding wrote:
+> From: Thierry Reding <treding@nvidia.com>
+> 
+> Currently the IOCTL code clears everything after the per-plane
+> bytesperline field in struct v4l2_format. The intent was to only clear
+> the per-plane reserved fields since there is data in struct v4l2_format
+> after the per-plane format data that userspace may have filled in.
+> 
+> Fixes: 4e1e0eb0e074 ("media: v4l2-ioctl: Zero v4l2_plane_pix_format reserved fields")
+> Signed-off-by: Thierry Reding <treding@nvidia.com>
 
-Here are some of the dvb fixes and the rc fixes for 5.1. Please pull.
+Erm, oops! I should have seen that when reviewing that patch.
 
-Thanks,
+I'll make a pull request for 5.0 asap.
 
-Sean
+Thank you,
 
-The following changes since commit 1e0d0a5fd38192f23304ea2fc2b531fea7c74247:
+	Hans
 
-  media: s5p-mfc: fix incorrect bus assignment in virtual child device (2019-01-07 14:39:36 -0500)
+> ---
+>  drivers/media/v4l2-core/v4l2-ioctl.c | 8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+> index df4259802756..e00aa2fe3e8f 100644
+> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
+> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+> @@ -1553,7 +1553,7 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
+>  			break;
+>  		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
+>  		for (i = 0; i < p->fmt.pix_mp.num_planes; i++)
+> -			CLEAR_AFTER_FIELD(p, fmt.pix_mp.plane_fmt[i].bytesperline);
+> +			CLEAR_AFTER_FIELD(&p->fmt.pix_mp.plane_fmt[i], bytesperline);
+>  		return ops->vidioc_s_fmt_vid_cap_mplane(file, fh, arg);
+>  	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
+>  		if (unlikely(!ops->vidioc_s_fmt_vid_overlay))
+> @@ -1583,7 +1583,7 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
+>  			break;
+>  		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
+>  		for (i = 0; i < p->fmt.pix_mp.num_planes; i++)
+> -			CLEAR_AFTER_FIELD(p, fmt.pix_mp.plane_fmt[i].bytesperline);
+> +			CLEAR_AFTER_FIELD(&p->fmt.pix_mp.plane_fmt[i], bytesperline);
+>  		return ops->vidioc_s_fmt_vid_out_mplane(file, fh, arg);
+>  	case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
+>  		if (unlikely(!ops->vidioc_s_fmt_vid_out_overlay))
+> @@ -1650,7 +1650,7 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
+>  			break;
+>  		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
+>  		for (i = 0; i < p->fmt.pix_mp.num_planes; i++)
+> -			CLEAR_AFTER_FIELD(p, fmt.pix_mp.plane_fmt[i].bytesperline);
+> +			CLEAR_AFTER_FIELD(&p->fmt.pix_mp.plane_fmt[i], bytesperline);
+>  		return ops->vidioc_try_fmt_vid_cap_mplane(file, fh, arg);
+>  	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
+>  		if (unlikely(!ops->vidioc_try_fmt_vid_overlay))
+> @@ -1680,7 +1680,7 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
+>  			break;
+>  		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
+>  		for (i = 0; i < p->fmt.pix_mp.num_planes; i++)
+> -			CLEAR_AFTER_FIELD(p, fmt.pix_mp.plane_fmt[i].bytesperline);
+> +			CLEAR_AFTER_FIELD(&p->fmt.pix_mp.plane_fmt[i], bytesperline);
+>  		return ops->vidioc_try_fmt_vid_out_mplane(file, fh, arg);
+>  	case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
+>  		if (unlikely(!ops->vidioc_try_fmt_vid_out_overlay))
+> 
 
-are available in the Git repository at:
-
-  git://linuxtv.org/syoung/media_tree.git for-v5.1a
-
-for you to fetch changes up to 959614504ebff677711d271792f7c1ffee818e86:
-
-  media: dvb: Add check on sp8870_readreg (2019-01-10 11:11:13 +0000)
-
-----------------------------------------------------------------
-Aditya Pakki (2):
-      media: dvb: add return value check on Write16
-      media: dvb: Add check on sp8870_readreg
-
-Arnd Bergmann (1):
-      media: seco-cec: fix RC_CORE dependency
-
-Colin Ian King (1):
-      media: cxd2880-spi: fix two memory leaks of dvb_spi
-
-Ettore Chimenti (1):
-      media: secocec: fix ir address shift
-
-Kangjie Lu (2):
-      media: lgdt3306a: fix a missing check of return value
-      media: mt312: fix a missing check of mt312 reset
-
- drivers/media/dvb-frontends/drxd_hard.c    | 30 +++++++++++++++++++-----------
- drivers/media/dvb-frontends/lgdt3306a.c    |  5 ++++-
- drivers/media/dvb-frontends/mt312.c        |  4 +++-
- drivers/media/dvb-frontends/sp8870.c       |  4 +++-
- drivers/media/platform/Kconfig             |  2 +-
- drivers/media/platform/seco-cec/seco-cec.h |  2 +-
- drivers/media/spi/cxd2880-spi.c            |  8 +++++---
- 7 files changed, 36 insertions(+), 19 deletions(-)
