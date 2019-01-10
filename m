@@ -2,534 +2,272 @@ Return-Path: <SRS0=KIs1=PS=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.5 required=3.0 tests=FAKE_REPLY_C,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_PASS,UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_MUTT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F2997C43387
-	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 18:35:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 110E0C43387
+	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 19:49:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B49A420874
-	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 18:35:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C83BB20879
+	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 19:49:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727821AbfAJSfO convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 10 Jan 2019 13:35:14 -0500
-Received: from mga05.intel.com ([192.55.52.43]:32007 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727733AbfAJSfN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 Jan 2019 13:35:13 -0500
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga007.fm.intel.com ([10.253.24.52])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 10 Jan 2019 10:35:13 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.56,462,1539673200"; 
-   d="scan'208";a="113748464"
-Received: from orsmsx105.amr.corp.intel.com ([10.22.225.132])
-  by fmsmga007.fm.intel.com with ESMTP; 10 Jan 2019 10:35:11 -0800
-Received: from orsmsx161.amr.corp.intel.com (10.22.240.84) by
- ORSMSX105.amr.corp.intel.com (10.22.225.132) with Microsoft SMTP Server (TLS)
- id 14.3.408.0; Thu, 10 Jan 2019 10:35:12 -0800
-Received: from orsmsx106.amr.corp.intel.com ([169.254.1.179]) by
- ORSMSX161.amr.corp.intel.com ([169.254.4.192]) with mapi id 14.03.0415.000;
- Thu, 10 Jan 2019 10:35:12 -0800
-From:   "Zhi, Yong" <yong.zhi@intel.com>
-To:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC:     "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
-        "tfiga@chromium.org" <tfiga@chromium.org>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
-        "Hu, Jerry W" <jerry.w.hu@intel.com>,
-        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
-        "hans.verkuil@cisco.com" <hans.verkuil@cisco.com>,
-        "mchehab@kernel.org" <mchehab@kernel.org>,
-        "Cao, Bingbu" <bingbu.cao@intel.com>
-Subject: RE: [PATCH v8 15/17] media: v4l: Add Intel IPU3 meta buffer formats
-Thread-Topic: [PATCH v8 15/17] media: v4l: Add Intel IPU3 meta buffer formats
-Thread-Index: AQHUjcjiu26CCKyCXUOnsfGXsr8nLaV6DRAAgC72FVA=
-Date:   Thu, 10 Jan 2019 18:35:11 +0000
-Message-ID: <C193D76D23A22742993887E6D207B54D3DB52FDB@ORSMSX106.amr.corp.intel.com>
-References: <1544144622-29791-1-git-send-email-yong.zhi@intel.com>
- <1544144622-29791-16-git-send-email-yong.zhi@intel.com>
- <2743727.5LazzqFdDF@avalon>
-In-Reply-To: <2743727.5LazzqFdDF@avalon>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-dlp-product: dlpe-windows
-dlp-version: 11.0.400.15
-dlp-reaction: no-action
-x-ctpclassification: CTP_NT
-x-titus-metadata-40: eyJDYXRlZ29yeUxhYmVscyI6IiIsIk1ldGFkYXRhIjp7Im5zIjoiaHR0cDpcL1wvd3d3LnRpdHVzLmNvbVwvbnNcL0ludGVsMyIsImlkIjoiNWZkZmI3YjktMzhmYS00YTgyLTk3NjItYTAzN2FlZjE3NjdiIiwicHJvcHMiOlt7Im4iOiJDVFBDbGFzc2lmaWNhdGlvbiIsInZhbHMiOlt7InZhbHVlIjoiQ1RQX05UIn1dfV19LCJTdWJqZWN0TGFiZWxzIjpbXSwiVE1DVmVyc2lvbiI6IjE3LjEwLjE4MDQuNDkiLCJUcnVzdGVkTGFiZWxIYXNoIjoia3F4RVwvQWFsdDd2MGdTbDBRaGtjYXJjQmtBXC82RG1lMUtWVXdEWUJnN0ZLMnpTaWpHdlBzZFwvY1N0UzRRUkh1ciJ9
-x-originating-ip: [10.22.254.138]
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+        id S1728950AbfAJTtt (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 10 Jan 2019 14:49:49 -0500
+Received: from aserp2130.oracle.com ([141.146.126.79]:53242 "EHLO
+        aserp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728073AbfAJTtt (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 10 Jan 2019 14:49:49 -0500
+Received: from pps.filterd (aserp2130.oracle.com [127.0.0.1])
+        by aserp2130.oracle.com (8.16.0.22/8.16.0.22) with SMTP id x0AJnS1D125430;
+        Thu, 10 Jan 2019 19:49:33 GMT
+Received: from aserv0021.oracle.com (aserv0021.oracle.com [141.146.126.233])
+        by aserp2130.oracle.com with ESMTP id 2ptj3e9fjs-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Thu, 10 Jan 2019 19:49:33 +0000
+Received: from aserv0121.oracle.com (aserv0121.oracle.com [141.146.126.235])
+        by aserv0021.oracle.com (8.14.4/8.14.4) with ESMTP id x0AJnX3V003120
+        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Thu, 10 Jan 2019 19:49:33 GMT
+Received: from abhmp0017.oracle.com (abhmp0017.oracle.com [141.146.116.23])
+        by aserv0121.oracle.com (8.14.4/8.13.8) with ESMTP id x0AJnXSC007073;
+        Thu, 10 Jan 2019 19:49:33 GMT
+Received: from kadam (/41.202.241.51)
+        by default (Oracle Beehive Gateway v4.0)
+        with ESMTP ; Thu, 10 Jan 2019 11:49:31 -0800
+Date:   Thu, 10 Jan 2019 22:49:25 +0300
+From:   kbuild test robot <lkp@intel.com>
+To:     kbuild@01.org, Michael Tretter <m.tretter@pengutronix.de>
+Cc:     Dan Carpenter <dan.carpenter@oracle.com>, kbuild-all@01.org,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        kernel@pengutronix.de, robh+dt@kernel.org, mchehab@kernel.org,
+        tfiga@chromium.org, Michael Tretter <m.tretter@pengutronix.de>
+Subject: Re: [PATCH 2/3] [media] allegro: add Allegro DVT video IP core driver
+Message-ID: <20190110194925.GI1718@kadam>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190109113037.28430-3-m.tretter@pengutronix.de>
+User-Agent: Mutt/1.9.4 (2018-02-28)
+X-Proofpoint-Virus-Version: vendor=nai engine=5900 definitions=9132 signatures=668680
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=0 malwarescore=0
+ phishscore=0 bulkscore=0 spamscore=0 mlxscore=0 mlxlogscore=999
+ adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.0.1-1810050000 definitions=main-1901100153
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi, Laurent,
+Hi Michael,
 
-Thanks for the review.
+url:    https://github.com/0day-ci/linux/commits/Michael-Tretter/Add-ZynqMP-VCU-Allegro-DVT-H-264-encoder-driver/20190110-020930
+base:   git://linuxtv.org/media_tree.git master
 
-> -----Original Message-----
-> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
-> Sent: Tuesday, December 11, 2018 6:59 AM
-> To: Zhi, Yong <yong.zhi@intel.com>
-> Cc: linux-media@vger.kernel.org; sakari.ailus@linux.intel.com;
-> tfiga@chromium.org; Mani, Rajmohan <rajmohan.mani@intel.com>;
-> Toivonen, Tuukka <tuukka.toivonen@intel.com>; Hu, Jerry W
-> <jerry.w.hu@intel.com>; Qiu, Tian Shu <tian.shu.qiu@intel.com>;
-> hans.verkuil@cisco.com; mchehab@kernel.org; Cao, Bingbu
-> <bingbu.cao@intel.com>; Zheng, Jian Xu <jian.xu.zheng@intel.com>
-> Subject: Re: [PATCH v8 15/17] media: v4l: Add Intel IPU3 meta buffer formats
-> 
-> Hello Yong,
-> 
-> Thank you for the patch.
-> 
-> On Friday, 7 December 2018 03:03:40 EET Yong Zhi wrote:
-> > Add IPU3-specific meta formats for processing parameters and 3A
-> > statistics.
-> >
-> >   V4L2_META_FMT_IPU3_PARAMS
-> >   V4L2_META_FMT_IPU3_STAT_3A
-> >
-> > Signed-off-by: Yong Zhi <yong.zhi@intel.com>
-> > Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> 
-> My Reviewed-by tag was related to the format part only (v4l2-ioctl.c and
-> videodev2.h) :-) Please see below for more comments about the
-> documentation.
-> 
-> > ---
-> >  Documentation/media/uapi/v4l/meta-formats.rst      |   1 +
-> >  .../media/uapi/v4l/pixfmt-meta-intel-ipu3.rst      | 178
-> ++++++++++++++++++
-> >  drivers/media/v4l2-core/v4l2-ioctl.c               |   2 +
-> >  include/uapi/linux/videodev2.h                     |   4 +
-> >  4 files changed, 185 insertions(+)
-> >  create mode 100644
-> > Documentation/media/uapi/v4l/pixfmt-meta-intel-ipu3.rst
-> >
-> > diff --git a/Documentation/media/uapi/v4l/meta-formats.rst
-> > b/Documentation/media/uapi/v4l/meta-formats.rst index
-> > 438bd244bd2f..5f956fa784b7 100644
-> > --- a/Documentation/media/uapi/v4l/meta-formats.rst
-> > +++ b/Documentation/media/uapi/v4l/meta-formats.rst
-> > @@ -19,6 +19,7 @@ These formats are used for the :ref:`metadata`
-> > interface only.
-> >  .. toctree::
-> >      :maxdepth: 1
-> >
-> > +    pixfmt-meta-intel-ipu3
-> >      pixfmt-meta-d4xx
-> >      pixfmt-meta-uvc
-> >      pixfmt-meta-vsp1-hgo
-> 
-> Please keep this list alphabetically sorted.
-> 
+smatch warnings:
+drivers/staging/media/allegro-dvt/allegro-core.c:616 allegro_mbox_write() error: uninitialized symbol 'err'.
+drivers/staging/media/allegro-dvt/allegro-core.c:743 v4l2_profile_to_mcu_profile() warn: signedness bug returning '(-22)'
+drivers/staging/media/allegro-dvt/allegro-core.c:753 v4l2_level_to_mcu_level() warn: signedness bug returning '(-22)'
+drivers/staging/media/allegro-dvt/allegro-core.c:1162 allegro_receive_message() warn: struct type mismatch 'mcu_msg_header vs mcu_msg_encode_one_frm_response'
 
-Ack.
+# https://github.com/0day-ci/linux/commit/573e9a62ef9a92c1f26f120a89aba1514b97b2b2
+git remote add linux-review https://github.com/0day-ci/linux
+git remote update linux-review
+git checkout 573e9a62ef9a92c1f26f120a89aba1514b97b2b2
+vim +/err +616 drivers/staging/media/allegro-dvt/allegro-core.c
 
-> > diff --git a/Documentation/media/uapi/v4l/pixfmt-meta-intel-ipu3.rst
-> > b/Documentation/media/uapi/v4l/pixfmt-meta-intel-ipu3.rst new file
-> > mode
-> > 100644
-> > index 000000000000..8cd30ffbf8b8
-> > --- /dev/null
-> > +++ b/Documentation/media/uapi/v4l/pixfmt-meta-intel-ipu3.rst
-> > @@ -0,0 +1,178 @@
-> > +.. -*- coding: utf-8; mode: rst -*-
-> > +
-> > +.. _v4l2-meta-fmt-params:
-> > +.. _v4l2-meta-fmt-stat-3a:
-> > +
-> >
-> +***************************************************************
-> ***
-> > +V4L2_META_FMT_IPU3_PARAMS ('ip3p'), V4L2_META_FMT_IPU3_3A
-> ('ip3s')
-> >
-> +***************************************************************
-> ***
-> > +
-> > +.. c:type:: ipu3_uapi_stats_3a
-> 
-> No need for c:type:: here, the structure is already properly defined in
-> drivers/staging/media/ipu3/include/intel-ipu3.h
-> 
+573e9a62 Michael Tretter 2019-01-09  568  
+573e9a62 Michael Tretter 2019-01-09  569  static int allegro_mbox_write(struct allegro_dev *dev,
+573e9a62 Michael Tretter 2019-01-09  570  			      struct allegro_mbox *mbox, void *src, size_t size)
+573e9a62 Michael Tretter 2019-01-09  571  {
+573e9a62 Michael Tretter 2019-01-09  572  	struct mcu_msg_header *header = src;
+573e9a62 Michael Tretter 2019-01-09  573  	unsigned int tail;
+573e9a62 Michael Tretter 2019-01-09  574  	size_t size_no_wrap;
+573e9a62 Michael Tretter 2019-01-09  575  	int err;
+573e9a62 Michael Tretter 2019-01-09  576  
+573e9a62 Michael Tretter 2019-01-09  577  	if (!src)
+573e9a62 Michael Tretter 2019-01-09  578  		return -EINVAL;
+573e9a62 Michael Tretter 2019-01-09  579  
+573e9a62 Michael Tretter 2019-01-09  580  	if (size > mbox->size) {
+573e9a62 Michael Tretter 2019-01-09  581  		v4l2_err(&dev->v4l2_dev,
+573e9a62 Michael Tretter 2019-01-09  582  			 "message (%lu bytes) to large for mailbox (%lu bytes)\n",
+573e9a62 Michael Tretter 2019-01-09  583  			 size, mbox->size);
+573e9a62 Michael Tretter 2019-01-09  584  		return -EINVAL;
+573e9a62 Michael Tretter 2019-01-09  585  	}
+573e9a62 Michael Tretter 2019-01-09  586  
+573e9a62 Michael Tretter 2019-01-09  587  	if (header->length != size - sizeof(*header)) {
+573e9a62 Michael Tretter 2019-01-09  588  		v4l2_err(&dev->v4l2_dev,
+573e9a62 Michael Tretter 2019-01-09  589  			 "invalid message length: %u bytes (expected %lu bytes)\n",
+573e9a62 Michael Tretter 2019-01-09  590  			 header->length, size - sizeof(*header));
+573e9a62 Michael Tretter 2019-01-09  591  		return -EINVAL;
+573e9a62 Michael Tretter 2019-01-09  592  	}
+573e9a62 Michael Tretter 2019-01-09  593  
+573e9a62 Michael Tretter 2019-01-09  594  	v4l2_dbg(2, debug, &dev->v4l2_dev,
+573e9a62 Michael Tretter 2019-01-09  595  		"write command message: type %s, body length %d\n",
+573e9a62 Michael Tretter 2019-01-09  596  		msg_type_name(header->type), header->length);
+573e9a62 Michael Tretter 2019-01-09  597  
+573e9a62 Michael Tretter 2019-01-09  598  	mutex_lock(&mbox->lock);
+573e9a62 Michael Tretter 2019-01-09  599  	regmap_read(dev->sram, mbox->tail, &tail);
+573e9a62 Michael Tretter 2019-01-09  600  	if (tail > mbox->size) {
+573e9a62 Michael Tretter 2019-01-09  601  		v4l2_err(&dev->v4l2_dev,
+573e9a62 Michael Tretter 2019-01-09  602  			 "invalid tail (0x%x): must be smaller than mailbox size (0x%lx)\n",
+573e9a62 Michael Tretter 2019-01-09  603  			 tail, mbox->size);
+573e9a62 Michael Tretter 2019-01-09  604  		err = -EIO;
+573e9a62 Michael Tretter 2019-01-09  605  		goto out;
+573e9a62 Michael Tretter 2019-01-09  606  	}
+573e9a62 Michael Tretter 2019-01-09  607  	size_no_wrap = min(size, mbox->size - (size_t)tail);
+573e9a62 Michael Tretter 2019-01-09  608  	regmap_bulk_write(dev->sram, mbox->data + tail, src, size_no_wrap / 4);
+573e9a62 Michael Tretter 2019-01-09  609  	regmap_bulk_write(dev->sram, mbox->data,
+573e9a62 Michael Tretter 2019-01-09  610  			  src + size_no_wrap, (size - size_no_wrap) / 4);
+573e9a62 Michael Tretter 2019-01-09  611  	regmap_write(dev->sram, mbox->tail, (tail + size) % mbox->size);
+573e9a62 Michael Tretter 2019-01-09  612  
+573e9a62 Michael Tretter 2019-01-09  613  out:
+573e9a62 Michael Tretter 2019-01-09  614  	mutex_unlock(&mbox->lock);
+573e9a62 Michael Tretter 2019-01-09  615  
+573e9a62 Michael Tretter 2019-01-09 @616  	return err;
+573e9a62 Michael Tretter 2019-01-09  617  }
+573e9a62 Michael Tretter 2019-01-09  618  
+573e9a62 Michael Tretter 2019-01-09  619  static ssize_t allegro_mbox_read(struct allegro_dev *dev,
+573e9a62 Michael Tretter 2019-01-09  620  				 struct allegro_mbox *mbox,
+573e9a62 Michael Tretter 2019-01-09  621  				 void *dst, size_t nbyte)
+573e9a62 Michael Tretter 2019-01-09  622  {
+573e9a62 Michael Tretter 2019-01-09  623  	struct mcu_msg_header *header;
+573e9a62 Michael Tretter 2019-01-09  624  	unsigned int head;
+573e9a62 Michael Tretter 2019-01-09  625  	ssize_t size;
+573e9a62 Michael Tretter 2019-01-09  626  	size_t body_no_wrap;
+573e9a62 Michael Tretter 2019-01-09  627  
+573e9a62 Michael Tretter 2019-01-09  628  	regmap_read(dev->sram, mbox->head, &head);
+573e9a62 Michael Tretter 2019-01-09  629  	if (head > mbox->size) {
+573e9a62 Michael Tretter 2019-01-09  630  		v4l2_err(&dev->v4l2_dev,
+573e9a62 Michael Tretter 2019-01-09  631  			 "invalid head (0x%x): must be smaller than mailbox size (0x%lx)\n",
+573e9a62 Michael Tretter 2019-01-09  632  			 head, mbox->size);
+573e9a62 Michael Tretter 2019-01-09  633  		return -EIO;
+573e9a62 Michael Tretter 2019-01-09  634  	}
+573e9a62 Michael Tretter 2019-01-09  635  
+573e9a62 Michael Tretter 2019-01-09  636  	/* Assume that the header does not wrap. */
+573e9a62 Michael Tretter 2019-01-09  637  	regmap_bulk_read(dev->sram, mbox->data + head,
+573e9a62 Michael Tretter 2019-01-09  638  			 dst, sizeof(*header) / 4);
+573e9a62 Michael Tretter 2019-01-09  639  	header = dst;
+573e9a62 Michael Tretter 2019-01-09  640  	size = header->length + sizeof(*header);
+573e9a62 Michael Tretter 2019-01-09  641  	if (size > mbox->size || size & 0x3) {
+573e9a62 Michael Tretter 2019-01-09  642  		v4l2_err(&dev->v4l2_dev,
+573e9a62 Michael Tretter 2019-01-09  643  			 "invalid message length: %lu bytes (maximum %lu bytes)\n",
+573e9a62 Michael Tretter 2019-01-09  644  			 header->length + sizeof(*header), mbox->size);
+573e9a62 Michael Tretter 2019-01-09  645  		return -EIO;
+573e9a62 Michael Tretter 2019-01-09  646  	}
+573e9a62 Michael Tretter 2019-01-09  647  	if (size > nbyte) {
+573e9a62 Michael Tretter 2019-01-09  648  		v4l2_err(&dev->v4l2_dev,
+573e9a62 Michael Tretter 2019-01-09  649  			 "destination buffer too small: %lu bytes (need %lu bytes)\n",
+573e9a62 Michael Tretter 2019-01-09  650  			 nbyte, size);
+573e9a62 Michael Tretter 2019-01-09  651  		return -EINVAL;
+573e9a62 Michael Tretter 2019-01-09  652  	}
+573e9a62 Michael Tretter 2019-01-09  653  
+573e9a62 Michael Tretter 2019-01-09  654  	/*
+573e9a62 Michael Tretter 2019-01-09  655  	 * The message might wrap within the mailbox. If the message does not
+573e9a62 Michael Tretter 2019-01-09  656  	 * wrap, the first read will read the entire message, otherwise the
+573e9a62 Michael Tretter 2019-01-09  657  	 * first read will read message until the end of the mailbox and the
+573e9a62 Michael Tretter 2019-01-09  658  	 * second read will read the remaining bytes from the beginning of the
+573e9a62 Michael Tretter 2019-01-09  659  	 * mailbox.
+573e9a62 Michael Tretter 2019-01-09  660  	 *
+573e9a62 Michael Tretter 2019-01-09  661  	 * Skip the header, as was already read to get the size of the body.
+573e9a62 Michael Tretter 2019-01-09  662  	 */
+573e9a62 Michael Tretter 2019-01-09  663  	body_no_wrap = min((size_t)header->length,
+573e9a62 Michael Tretter 2019-01-09  664  			   (mbox->size - (head + sizeof(*header))));
+573e9a62 Michael Tretter 2019-01-09  665  	regmap_bulk_read(dev->sram, mbox->data + head + sizeof(*header),
+573e9a62 Michael Tretter 2019-01-09  666  			 dst + sizeof(*header), body_no_wrap / 4);
+573e9a62 Michael Tretter 2019-01-09  667  	regmap_bulk_read(dev->sram, mbox->data,
+573e9a62 Michael Tretter 2019-01-09  668  			 dst + sizeof(*header) + body_no_wrap,
+573e9a62 Michael Tretter 2019-01-09  669  			 (header->length - body_no_wrap) / 4);
+573e9a62 Michael Tretter 2019-01-09  670  
+573e9a62 Michael Tretter 2019-01-09  671  	regmap_write(dev->sram, mbox->head, (head + size) % mbox->size);
+573e9a62 Michael Tretter 2019-01-09  672  
+573e9a62 Michael Tretter 2019-01-09  673  	v4l2_dbg(2, debug, &dev->v4l2_dev,
+573e9a62 Michael Tretter 2019-01-09  674  		"read status message: type %s, body length %d\n",
+573e9a62 Michael Tretter 2019-01-09  675  		msg_type_name(header->type), header->length);
+573e9a62 Michael Tretter 2019-01-09  676  
+573e9a62 Michael Tretter 2019-01-09  677  	return size;
+573e9a62 Michael Tretter 2019-01-09  678  }
+573e9a62 Michael Tretter 2019-01-09  679  
+573e9a62 Michael Tretter 2019-01-09  680  static void allegro_mcu_interrupt(struct allegro_dev *dev)
+573e9a62 Michael Tretter 2019-01-09  681  {
+573e9a62 Michael Tretter 2019-01-09  682  	regmap_write(dev->regmap, AL5_MCU_INTERRUPT, BIT(0));
+573e9a62 Michael Tretter 2019-01-09  683  }
+573e9a62 Michael Tretter 2019-01-09  684  
+573e9a62 Michael Tretter 2019-01-09  685  static void allegro_mcu_send_init(struct allegro_dev *dev,
+573e9a62 Michael Tretter 2019-01-09  686  				  dma_addr_t suballoc_dma, size_t suballoc_size)
+573e9a62 Michael Tretter 2019-01-09  687  {
+573e9a62 Michael Tretter 2019-01-09  688  	struct mcu_msg_init_request msg;
+573e9a62 Michael Tretter 2019-01-09  689  
+573e9a62 Michael Tretter 2019-01-09  690  	msg.header.type = MCU_MSG_TYPE_INIT;
+573e9a62 Michael Tretter 2019-01-09  691  	msg.header.length = sizeof(msg) - sizeof(msg.header);
+573e9a62 Michael Tretter 2019-01-09  692  	msg.reserved0 = 0;
+573e9a62 Michael Tretter 2019-01-09  693  	msg.suballoc_dma = lower_32_bits(suballoc_dma) | MCU_CACHE_OFFSET;
+573e9a62 Michael Tretter 2019-01-09  694  	msg.suballoc_size = suballoc_size;
+573e9a62 Michael Tretter 2019-01-09  695  
+573e9a62 Michael Tretter 2019-01-09  696  	/* TODO Add L2 cache support. */
+573e9a62 Michael Tretter 2019-01-09  697  	msg.l2_cache[0] = -1;
+573e9a62 Michael Tretter 2019-01-09  698  	msg.l2_cache[1] = -1;
+573e9a62 Michael Tretter 2019-01-09  699  	msg.l2_cache[2] = -1;
+573e9a62 Michael Tretter 2019-01-09  700  
+573e9a62 Michael Tretter 2019-01-09  701  	allegro_mbox_write(dev, &dev->mbox_command, &msg, sizeof(msg));
+573e9a62 Michael Tretter 2019-01-09  702  	allegro_mcu_interrupt(dev);
+573e9a62 Michael Tretter 2019-01-09  703  }
+573e9a62 Michael Tretter 2019-01-09  704  
+573e9a62 Michael Tretter 2019-01-09  705  static u32 v4l2_pixelformat_to_mcu_format(u32 pixelformat)
+573e9a62 Michael Tretter 2019-01-09  706  {
+573e9a62 Michael Tretter 2019-01-09  707  	switch (pixelformat) {
+573e9a62 Michael Tretter 2019-01-09  708  	case V4L2_PIX_FMT_NV12:
+573e9a62 Michael Tretter 2019-01-09  709  		/* AL_420_8BITS: 0x100 -> NV12, 0x88 -> 8 bit */
+573e9a62 Michael Tretter 2019-01-09  710  		return 0x100 | 0x88;
+573e9a62 Michael Tretter 2019-01-09  711  	default:
+573e9a62 Michael Tretter 2019-01-09  712  		return -EINVAL;
+573e9a62 Michael Tretter 2019-01-09  713  	}
+573e9a62 Michael Tretter 2019-01-09  714  }
+573e9a62 Michael Tretter 2019-01-09  715  
+573e9a62 Michael Tretter 2019-01-09  716  static u32 v4l2_colorspace_to_mcu_colorspace(enum v4l2_colorspace colorspace)
+573e9a62 Michael Tretter 2019-01-09  717  {
+573e9a62 Michael Tretter 2019-01-09  718  	switch (colorspace) {
+573e9a62 Michael Tretter 2019-01-09  719  	case V4L2_COLORSPACE_DEFAULT:
+573e9a62 Michael Tretter 2019-01-09  720  		/* fallthrough */
+573e9a62 Michael Tretter 2019-01-09  721  	default:
+573e9a62 Michael Tretter 2019-01-09  722  		/* e_ColorSpace.UNKNOWN */
+573e9a62 Michael Tretter 2019-01-09  723  		return 0;
+573e9a62 Michael Tretter 2019-01-09  724  	}
+573e9a62 Michael Tretter 2019-01-09  725  }
+573e9a62 Michael Tretter 2019-01-09  726  
+573e9a62 Michael Tretter 2019-01-09  727  static s8 v4l2_pixelformat_to_mcu_codec(u32 pixelformat)
+573e9a62 Michael Tretter 2019-01-09  728  {
+573e9a62 Michael Tretter 2019-01-09  729  	switch (pixelformat) {
+573e9a62 Michael Tretter 2019-01-09  730  	case V4L2_PIX_FMT_H264:
+573e9a62 Michael Tretter 2019-01-09  731  		return 1;
+573e9a62 Michael Tretter 2019-01-09  732  	default:
+573e9a62 Michael Tretter 2019-01-09  733  		return -EINVAL;
+573e9a62 Michael Tretter 2019-01-09  734  	}
+573e9a62 Michael Tretter 2019-01-09  735  }
+573e9a62 Michael Tretter 2019-01-09  736  
+573e9a62 Michael Tretter 2019-01-09  737  static u8 v4l2_profile_to_mcu_profile(enum v4l2_mpeg_video_h264_profile profile)
+573e9a62 Michael Tretter 2019-01-09  738  {
+573e9a62 Michael Tretter 2019-01-09  739  	switch (profile) {
+573e9a62 Michael Tretter 2019-01-09  740  	case V4L2_MPEG_VIDEO_H264_PROFILE_BASELINE:
+573e9a62 Michael Tretter 2019-01-09  741  		return 66;
+573e9a62 Michael Tretter 2019-01-09  742  	default:
+573e9a62 Michael Tretter 2019-01-09 @743  		return -EINVAL;
+573e9a62 Michael Tretter 2019-01-09  744  	}
+573e9a62 Michael Tretter 2019-01-09  745  }
+573e9a62 Michael Tretter 2019-01-09  746  
+573e9a62 Michael Tretter 2019-01-09  747  static u16 v4l2_level_to_mcu_level(enum v4l2_mpeg_video_h264_level level)
+573e9a62 Michael Tretter 2019-01-09  748  {
+573e9a62 Michael Tretter 2019-01-09  749  	switch (level) {
+573e9a62 Michael Tretter 2019-01-09  750  	case V4L2_MPEG_VIDEO_H264_LEVEL_2_0:
+573e9a62 Michael Tretter 2019-01-09  751  		return 20;
+573e9a62 Michael Tretter 2019-01-09  752  	default:
+573e9a62 Michael Tretter 2019-01-09 @753  		return -EINVAL;
+573e9a62 Michael Tretter 2019-01-09  754  	}
+573e9a62 Michael Tretter 2019-01-09  755  }
+573e9a62 Michael Tretter 2019-01-09  756  
 
-Ack.
-
-> > +3A statistics
-> > +=============
-> > +
-> > +For IPU3 ImgU, the 3A statistics accelerators collect different
-> > +statistics
-> 
-> I'd write "The IPU3 ImgU 3A statistics accelerators collect" or "The IPU3 ImgU
-> includes 3A statistics accelerators that collect"
-> 
-> > over +an input bayer frame. Those statistics, defined in data struct
-> 
-> bayer should be spelled Bayer (here and below).
-> 
-> > :c:type:`ipu3_uapi_stats_3a`, +are obtained from "ipu3-imgu 3a stat"
-> > metadata capture video node, which are then +passed to user space for
-> > statistics analysis using :c:type:`v4l2_meta_format` interface.
-> 
-> How about simply
-> 
-> "Those statistics are obtained from the "ipu3-imgu [01] 3a stat" metadata
-> capture video nodes, using the :c:type:`v4l2_meta_format` interface. They
-> are formatted as described by the :c:type:`ipu3_uapi_stats_3a` structure."
-> 
-
-Thanks for refining and improving the text :)
-
-> > +
-> > +The statistics collected are AWB (Auto-white balance) RGBS (Red,
-> > +Green,
-> > Blue and +Saturation measure) cells, AWB filter response, AF
-> > (Auto-focus) filter response, +and AE (Auto-exposure) histogram.
-> 
-> Could you please wrap lines at the 80 columns boundary ?
-> 
-
-Ack.
-
-> > +struct :c:type:`ipu3_uapi_4a_config` saves configurable parameters
-> > +for all
-> > above.
-> 
-> I would write it as "The
-> 
-> By the way why "4a" when the documentation talks about 3A ? Shouldn't the
-> structure be called ipu3_uapi_3a_config ?
-> 
-
-The 4th "a" refers to the AWB filter response config.
-
-> > +
-> > +.. code-block:: c
-> > +
-> > +	struct ipu3_uapi_stats_3a {
-> > +		struct ipu3_uapi_awb_raw_buffer awb_raw_buffer;
-> > +		struct ipu3_uapi_ae_raw_buffer_aligned
-> > ae_raw_buffer[IPU3_UAPI_MAX_STRIPES];
-> > +		struct ipu3_uapi_af_raw_buffer
-> > af_raw_buffer;
-> > +		struct ipu3_uapi_awb_fr_raw_buffer awb_fr_raw_buffer;
-> > +		struct ipu3_uapi_4a_config stats_4a_config;
-> > +		__u32 ae_join_buffers;
-> > +		__u8 padding[28];
-> > +		struct ipu3_uapi_stats_3a_bubble_info_per_stripe
-> > stats_3a_bubble_per_stripe;
-> > +		struct ipu3_uapi_ff_status stats_3a_status;
-> > +	};
-> >
-> > +.. c:type:: ipu3_uapi_params
-> 
-> No need for c:type:: here either.
-> 
-
-Ack.
-
-> > +Pipeline parameters
-> > +===================
-> > +
-> > +IPU3 pipeline has a number of image processing stages, each of which
-> > +takes
-> 
-> s/IPU3/The IPU3/
-> 
-> > a +set of parameters as input. The major stages of pipelines are shown
-> > here:
-> > +
-> > +Raw pixels -> Bayer Downscaling -> Optical Black Correction ->
-> > +
-> > +Linearization -> Lens Shading Correction -> White Balance / Exposure
-> > +/
-> > +
-> > +Focus Apply -> Bayer Noise Reduction -> ANR -> Demosaicing -> Color
-> > +
-> > +Correction Matrix -> Gamma correction -> Color Space Conversion ->
-> > +
-> > +Chroma Down Scaling -> Chromatic Noise Reduction -> Total Color
-> > +
-> > +Correction -> XNR3 -> TNR -> DDR
-> 
-> You can replace this list with
-> 
-> .. kernel-render:: DOT
->    :alt: IPU3 ImgU Pipeline
->    :caption: IPU3 ImgU Pipeline Diagram
-> 
->    digraph "IPU3 ImgU" {
->        node [shape=box]
->        splines="ortho"
->        rankdir="LR"
-> 
->        a [label="Raw pixels"]
->        b [label="Bayer Downscaling"]
->        c [label="Optical Black Correction"]
->        d [label="Linearization"]
->        e [label="Lens Shading Correction"]
->        f [label="White Balance / Exposure / Focus Apply"]
->        g [label="Bayer Noise Reduction"]
->        h [label="ANR"]
->        i [label="Demosaicing"]
->        j [label="Color Correction Matrix"]
->        k [label="Gamma correction"]
->        l [label="Color Space Conversion"]
->        m [label="Chroma Down Scaling"]
->        n [label="Chromatic Noise Reduction"]
->        o [label="Total Color Correction"]
->        p [label="XNR3"]
->        q [label="TNR"]
->        r [label="DDR"]
-> 
->        { rank=same; a -> b -> c -> d -> e -> f }
->        { rank=same; g -> h -> i -> j -> k -> l }
->        { rank=same; m -> n -> o -> p -> q -> r }
-> 
->        a -> g -> m [style=invis, weight=10]
-> 
->        f -> g
->        l -> m
->    }
-> 
-> to get a nicer diagram.
-> 
-
-The generated block diagram looks better indeed, thanks for sharing!!
-
-> > +The table below presents a description of the above algorithms.
-> > +
-> > +========================
-> > =======================================================
-> > +Name			Description
-> > +========================
-> > =======================================================
-> > +Optical Black
-> > Correction Optical Black Correction block subtracts a pre-defined +
-> 
-> > value from the respective pixel values to obtain better
-> > +			 image quality.
-> > +			 Defined in :c:type:`ipu3_uapi_obgrid_param`.
-> > +Linearization		 This algo block uses linearization parameters
-> to
-> > +			 address non-linearity sensor effects. The Lookup
-> table
-> > +			 table is defined in
-> > +			 :c:type:`ipu3_uapi_isp_lin_vmem_params`.
-> > +SHD			 Lens shading correction is used to correct spatial
-> > +			 non-uniformity of the pixel response due to optical
-> > +			 lens shading. This is done by applying a different
-> gain
-> > +			 for each pixel. The gain, black level etc are
-> > +			 configured in :c:type:`ipu3_uapi_shd_config_static`.
-> > +BNR			 Bayer noise reduction block removes image noise by
-> > +			 applying a bilateral filter.
-> > +			 See :c:type:`ipu3_uapi_bnr_static_config` for details.
-> > +ANR			 Advanced Noise Reduction is a block based algorithm
-> > +			 that performs noise reduction in the Bayer domain.
-> The
-> > +			 convolution matrix etc can be found in
-> > +			 :c:type:`ipu3_uapi_anr_config`.
-> > +Demosaicing		 Demosaicing converts raw sensor data in
-> Bayer format
-> > +			 into RGB (Red, Green, Blue) presentation. Then add
-> > +			 outputs of estimation of Y channel for following
-> stream
-> > +			 processing by Firmware. The struct is defined as
-> > +			 :c:type:`ipu3_uapi_dm_config`. (TODO)
-> > +Color Correction	 Color Correction algo transforms sensor specific
-> color
-> > +			 space to the standard "sRGB" color space. This is
-> done
-> > +			 by applying 3x3 matrix defined in
-> > +			 :c:type:`ipu3_uapi_ccm_mat_config`.
-> > +Gamma correction	 Gamma
-> correction :c:type:`ipu3_uapi_gamma_config` is a
-> > +			 basic non-linear tone mapping correction that is
-> > +			 applied per pixel for each pixel component.
-> > +CSC			 Color space conversion transforms each pixel from
-> the
-> > +			 RGB primary presentation to YUV (Y: brightness,
-> > +			 UV: Luminance) presentation. This is done by
-> applying
-> > +			 a 3x3 matrix defined in
-> > +			 :c:type:`ipu3_uapi_csc_mat_config`
-> > +CDS			 Chroma down sampling
-> > +			 After the CSC is performed, the Chroma Down
-> Sampling
-> > +			 is applied for a UV plane down sampling by a factor
-> > +			 of 2 in each direction for YUV 4:2:0 using a 4x2
-> > +			 configurable filter :c:type:`ipu3_uapi_cds_params`.
-> > +CHNR			 Chroma noise reduction
-> > +			 This block processes only the chrominance pixels
-> and
-> > +			 performs noise reduction by cleaning the high
-> > +			 frequency noise.
-> > +			 See struct :c:type:`ipu3_uapi_yuvp1_chnr_config`.
-> > +TCC			 Total color correction as defined in struct
-> > +			 :c:type:`ipu3_uapi_yuvp2_tcc_static_config`.
-> > +XNR3			 eXtreme Noise Reduction V3 is the third
-> revision of
-> > +			 noise reduction algorithm used to improve image
-> > +			 quality. This removes the low frequency noise in the
-> > +			 captured image. Two related structs are  being
-> defined,
-> > +			 :c:type:`ipu3_uapi_isp_xnr3_params` for ISP data
-> memory
-> > +			 and :c:type:`ipu3_uapi_isp_xnr3_vmem_params` for
-> vector
-> > +			 memory.
-> > +TNR			 Temporal Noise Reduction block compares
-> successive
-> > +			 frames in time to remove anomalies / noise in pixel
-> > +			 values. :c:type:`ipu3_uapi_isp_tnr3_vmem_params`
-> and
-> > +			 :c:type:`ipu3_uapi_isp_tnr3_params` are defined for
-> ISP
-> > +			 vector and data memory respectively.
-> > +========================
-> > =======================================================
-> > +
-> > +A few stages of the pipeline will be executed by firmware running on
-> > +the
-> > ISP +processor, while many others will use a set of fixed hardware
-> > blocks also +called accelerator cluster (ACC) to crunch pixel data and
-> > produce statistics.
-> > +
-> > +ACC parameters of individual algorithms, as defined by
-> > +:c:type:`ipu3_uapi_acc_param`, can be chosen to be applied by the
-> > +user space through struct :c:type:`ipu3_uapi_flags` embedded in
-> > +:c:type:`ipu3_uapi_params` structure. For parameters that are
-> > +configured as not enabled by the user space, the corresponding
-> > +structs are ignored by
-> > the +driver, in which case the existing configuration of the algorithm
-> > will be +preserved.
-> > +
-> > +Both 3A statistics and pipeline parameters described here are closely
-> > +tied
-> > to +the underlying camera sub-system (CSS) APIs. They are usually
-> > consumed and +produced by dedicated user space libraries that comprise
-> > the important tuning +tools, thus freeing the developers from being
-> > bothered with the low level +hardware and algorithm details.
-> > +
-> > +It should be noted that IPU3 DMA operations require the addresses of
-> > +all
-> > data +structures (that includes both input and output) to be aligned
-> > on 32 byte +boundaries.
-> 
-> I think most of the above (from the diagram to here) belongs to
-> Documentation/ media/v4l-drivers/ipu3.rst. It can be referenced here, but
-> this file should focus on the description of the metadata formats, not on the
-> description of the IPU3 ImgU internals.
-> 
-
-Ack, will move block diagram to /media/v4l-drivers/ipu3.rst as suggested. I prefer to leave the above short description here though.
-
-> > +The meta data :c:type:`ipu3_uapi_params` will be sent to "ipu3-imgu
-> > parameters" +video node in ``V4L2_BUF_TYPE_META_CAPTURE`` format.
-> 
-> To be consistent with the statistics documentation, how about the following ?
-> 
-> "The pipeline parameters are passed to the "ipu3-imgu [01] parameters"
-> metadata output video nodes, using the :c:type:`v4l2_meta_format` interface.
-> They are formatted as described by the :c:type:`ipu3_uapi_params`
-> structure."
-> 
-
-Sure, thanks!
-
-> > +.. code-block:: c
-> > +
-> > +	struct ipu3_uapi_params {
-> > +		/* Flags which of the settings below are to be applied */
-> > +		struct ipu3_uapi_flags use;
-> > +
-> > +		/* Accelerator cluster parameters */
-> > +		struct ipu3_uapi_acc_param acc_param;
-> > +
-> > +		/* ISP vector address space parameters */
-> > +		struct ipu3_uapi_isp_lin_vmem_params lin_vmem_params;
-> > +		struct ipu3_uapi_isp_tnr3_vmem_params
-> tnr3_vmem_params;
-> > +		struct ipu3_uapi_isp_xnr3_vmem_params
-> xnr3_vmem_params;
-> > +
-> > +		/* ISP data memory (DMEM) parameters */
-> > +		struct ipu3_uapi_isp_tnr3_params tnr3_dmem_params;
-> > +		struct ipu3_uapi_isp_xnr3_params xnr3_dmem_params;
-> > +
-> > +		/* Optical black level compensation */
-> > +		struct ipu3_uapi_obgrid_param obgrid_param;
-> > +	};
-> > +
-> > +Intel IPU3 ImgU uAPI data types
-> > +===============================
-> > +
-> > +.. kernel-doc:: include/uapi/linux/intel-ipu3.h
-> 
-> This file has moved to drivers/staging/media/ipu3/include/intel-ipu3.h.
-> 
-
-Ack, Sakari has already taken care of this one.
-
-> > diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c
-> > b/drivers/media/v4l2-core/v4l2-ioctl.c index
-> > a1806d3a1c41..0701cb8a03ef
-> > 100644
-> > --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> > +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> > @@ -1300,6 +1300,8 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc
-> *fmt)
-> > case V4L2_META_FMT_VSP1_HGO:	descr = "R-Car VSP1 1-D Histogram";
-> break;
-> > case V4L2_META_FMT_VSP1_HGT:	descr = "R-Car VSP1 2-D Histogram";
-> break;
-> > case V4L2_META_FMT_UVC:		descr = "UVC payload header
-> metadata"; break;
-> > +	case V4L2_META_FMT_IPU3_PARAMS:	descr = "IPU3 processing
-> parameters";
-> > break; +	case V4L2_META_FMT_IPU3_STAT_3A:	descr = "IPU3 3A
-> statistics";
-> > break;
-> >
-> >  	default:
-> >  		/* Compressed formats */
-> > diff --git a/include/uapi/linux/videodev2.h
-> > b/include/uapi/linux/videodev2.h index a9d47b1b9437..f2b973b36e29
-> > 100644
-> > --- a/include/uapi/linux/videodev2.h
-> > +++ b/include/uapi/linux/videodev2.h
-> > @@ -721,6 +721,10 @@ struct v4l2_pix_format {
-> >  #define V4L2_META_FMT_UVC         v4l2_fourcc('U', 'V', 'C', 'H') /* UVC
-> > Payload Header metadata */ #define V4L2_META_FMT_D4XX
-> > v4l2_fourcc('D', '4', 'X', 'X') /* D4XX Payload Header metadata */
-> >
-> > +/* Vendor specific - used for IPU3 camera sub-system */
-> > +#define V4L2_META_FMT_IPU3_PARAMS	v4l2_fourcc('i', 'p', '3', 'p') /*
-> IPU3
-> > processing parameters */ +#define
-> > V4L2_META_FMT_IPU3_STAT_3A	v4l2_fourcc('i', 'p', '3', 's') /* IPU3 3A
-> > statistics */ +
-> >  /* priv field value to indicates that subsequent fields are valid. */
-> >  #define V4L2_PIX_FMT_PRIV_MAGIC		0xfeedcafe
-> 
-> --
-> Regards,
-> 
-> Laurent Pinchart
-> 
-> 
-
+---
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
