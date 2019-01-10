@@ -4,26 +4,26 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 04048C43613
-	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 14:02:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 70D6CC43444
+	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 14:02:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D3FB120660
-	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 14:02:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 34B2A20660
+	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 14:02:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728901AbfAJOCY (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 10 Jan 2019 09:02:24 -0500
-Received: from relay3-d.mail.gandi.net ([217.70.183.195]:39281 "EHLO
+        id S1728913AbfAJOCZ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 10 Jan 2019 09:02:25 -0500
+Received: from relay3-d.mail.gandi.net ([217.70.183.195]:34587 "EHLO
         relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728134AbfAJOCX (ORCPT
+        with ESMTP id S1728137AbfAJOCY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 Jan 2019 09:02:23 -0500
+        Thu, 10 Jan 2019 09:02:24 -0500
 X-Originating-IP: 2.224.242.101
 Received: from uno.lan (2-224-242-101.ip172.fastwebnet.it [2.224.242.101])
         (Authenticated sender: jacopo@jmondi.org)
-        by relay3-d.mail.gandi.net (Postfix) with ESMTPSA id 0D5EB60016;
-        Thu, 10 Jan 2019 14:02:20 +0000 (UTC)
+        by relay3-d.mail.gandi.net (Postfix) with ESMTPSA id 62F6D60007;
+        Thu, 10 Jan 2019 14:02:22 +0000 (UTC)
 From:   Jacopo Mondi <jacopo+renesas@jmondi.org>
 To:     laurent.pinchart@ideasonboard.com,
         niklas.soderlund+renesas@ragnatech.se,
@@ -31,9 +31,9 @@ To:     laurent.pinchart@ideasonboard.com,
 Cc:     Jacopo Mondi <jacopo+renesas@jmondi.org>,
         linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
         Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v3 4/6] media: adv748x: Store the source subdevice in TX
-Date:   Thu, 10 Jan 2019 15:02:11 +0100
-Message-Id: <20190110140213.5198-5-jacopo+renesas@jmondi.org>
+Subject: [PATCH v3 5/6] media: adv748x: Store the TX sink in HDMI/AFE
+Date:   Thu, 10 Jan 2019 15:02:12 +0100
+Message-Id: <20190110140213.5198-6-jacopo+renesas@jmondi.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190110140213.5198-1-jacopo+renesas@jmondi.org>
 References: <20190110140213.5198-1-jacopo+renesas@jmondi.org>
@@ -44,74 +44,107 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-The power_up_tx() procedure needs to set a few registers conditionally to
-the selected video source, but it currently checks for the provided tx to
-be either TXA or TXB.
+Both the AFE and HDMI s_stream routines (adv748x_afe_s_stream() and
+adv748x_hdmi_s_stream()) have to enable the CSI-2 TX they are streaming video
+data to.
 
 With the introduction of dynamic routing between HDMI and AFE entities to
-TXA, checking which TX the function is operating on is not meaningful anymore.
+TXA, the video stream sink needs to be set at run time, and not statically
+selected as the s_stream functions are currently doing.
 
-To fix this, store the subdevice of the source providing video data to the
-CSI-2 TX in the 'struct adv748x_csi2' representing the TX and check on it.
+To fix this, store a reference to the active CSI-2 TX sink for both HDMI and
+AFE sources, and operate on it when starting/stopping the stream.
 
 Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
 ---
- drivers/media/i2c/adv748x/adv748x-core.c |  2 +-
- drivers/media/i2c/adv748x/adv748x-csi2.c | 13 ++++++++++---
- drivers/media/i2c/adv748x/adv748x.h      |  1 +
- 3 files changed, 12 insertions(+), 4 deletions(-)
+ drivers/media/i2c/adv748x/adv748x-afe.c  |  2 +-
+ drivers/media/i2c/adv748x/adv748x-csi2.c | 15 +++++++++++++--
+ drivers/media/i2c/adv748x/adv748x-hdmi.c |  2 +-
+ drivers/media/i2c/adv748x/adv748x.h      |  4 ++++
+ 4 files changed, 19 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/i2c/adv748x/adv748x-core.c b/drivers/media/i2c/adv748x/adv748x-core.c
-index ad4e6424753a..200e00f93546 100644
---- a/drivers/media/i2c/adv748x/adv748x-core.c
-+++ b/drivers/media/i2c/adv748x/adv748x-core.c
-@@ -254,7 +254,7 @@ static int adv748x_power_up_tx(struct adv748x_csi2 *tx)
- 	adv748x_write_check(state, page, 0x00, 0xa0 | tx->num_lanes, &ret);
- 
- 	/* ADI Required Write */
--	if (is_txa(tx)) {
-+	if (tx->src == &state->hdmi.sd) {
- 		adv748x_write_check(state, page, 0xdb, 0x10, &ret);
- 		adv748x_write_check(state, page, 0xd6, 0x07, &ret);
- 	} else {
-diff --git a/drivers/media/i2c/adv748x/adv748x-csi2.c b/drivers/media/i2c/adv748x/adv748x-csi2.c
-index 8c3714495e11..353b6b9bf6a7 100644
---- a/drivers/media/i2c/adv748x/adv748x-csi2.c
-+++ b/drivers/media/i2c/adv748x/adv748x-csi2.c
-@@ -46,9 +46,16 @@ static int adv748x_csi2_register_link(struct adv748x_csi2 *tx,
- 			return ret;
+diff --git a/drivers/media/i2c/adv748x/adv748x-afe.c b/drivers/media/i2c/adv748x/adv748x-afe.c
+index 71714634efb0..dbbb1e4d6363 100644
+--- a/drivers/media/i2c/adv748x/adv748x-afe.c
++++ b/drivers/media/i2c/adv748x/adv748x-afe.c
+@@ -282,7 +282,7 @@ static int adv748x_afe_s_stream(struct v4l2_subdev *sd, int enable)
+ 			goto unlock;
  	}
  
--	return media_create_pad_link(&src->entity, src_pad,
--				     &tx->sd.entity, ADV748X_CSI2_SINK,
--				     enable ? MEDIA_LNK_FL_ENABLED : 0);
-+	ret = media_create_pad_link(&src->entity, src_pad,
-+				    &tx->sd.entity, ADV748X_CSI2_SINK,
-+				    enable ? MEDIA_LNK_FL_ENABLED : 0);
+-	ret = adv748x_tx_power(&state->txb, enable);
++	ret = adv748x_tx_power(afe->tx, enable);
+ 	if (ret)
+ 		goto unlock;
+ 
+diff --git a/drivers/media/i2c/adv748x/adv748x-csi2.c b/drivers/media/i2c/adv748x/adv748x-csi2.c
+index 353b6b9bf6a7..2091cda50935 100644
+--- a/drivers/media/i2c/adv748x/adv748x-csi2.c
++++ b/drivers/media/i2c/adv748x/adv748x-csi2.c
+@@ -88,14 +88,25 @@ static int adv748x_csi2_registered(struct v4l2_subdev *sd)
+ 						 is_txb(tx));
+ 		if (ret)
+ 			return ret;
++
++		/* TXB can output AFE signals only. */
++		if (is_txb(tx))
++			state->afe.tx = tx;
+ 	}
+ 
+ 	/* Register link to HDMI for TXA only. */
+ 	if (is_txb(tx) || !is_hdmi_enabled(state))
+ 		return 0;
+ 
+-	return adv748x_csi2_register_link(tx, sd->v4l2_dev, &state->hdmi.sd,
+-					  ADV748X_HDMI_SOURCE, true);
++	ret = adv748x_csi2_register_link(tx, sd->v4l2_dev, &state->hdmi.sd,
++					 ADV748X_HDMI_SOURCE, true);
 +	if (ret)
 +		return ret;
 +
-+	if (enable)
-+		tx->src = src;
++	/* The default HDMI output is TXA. */
++	state->hdmi.tx = tx;
 +
 +	return 0;
  }
  
- /* -----------------------------------------------------------------------------
+ static const struct v4l2_subdev_internal_ops adv748x_csi2_internal_ops = {
+diff --git a/drivers/media/i2c/adv748x/adv748x-hdmi.c b/drivers/media/i2c/adv748x/adv748x-hdmi.c
+index 35d027941482..c557f8fdf11a 100644
+--- a/drivers/media/i2c/adv748x/adv748x-hdmi.c
++++ b/drivers/media/i2c/adv748x/adv748x-hdmi.c
+@@ -358,7 +358,7 @@ static int adv748x_hdmi_s_stream(struct v4l2_subdev *sd, int enable)
+ 
+ 	mutex_lock(&state->mutex);
+ 
+-	ret = adv748x_tx_power(&state->txa, enable);
++	ret = adv748x_tx_power(hdmi->tx, enable);
+ 	if (ret)
+ 		goto done;
+ 
 diff --git a/drivers/media/i2c/adv748x/adv748x.h b/drivers/media/i2c/adv748x/adv748x.h
-index ab0c84adbea9..d22270f5e2c1 100644
+index d22270f5e2c1..934a9d9a75c8 100644
 --- a/drivers/media/i2c/adv748x/adv748x.h
 +++ b/drivers/media/i2c/adv748x/adv748x.h
-@@ -84,6 +84,7 @@ struct adv748x_csi2 {
- 	struct media_pad pads[ADV748X_CSI2_NR_PADS];
- 	struct v4l2_ctrl_handler ctrl_hdl;
- 	struct v4l2_ctrl *pixel_rate;
-+	struct v4l2_subdev *src;
- 	struct v4l2_subdev sd;
- };
+@@ -121,6 +121,8 @@ struct adv748x_hdmi {
+ 	struct v4l2_dv_timings timings;
+ 	struct v4l2_fract aspect_ratio;
  
++	struct adv748x_csi2 *tx;
++
+ 	struct {
+ 		u8 edid[512];
+ 		u32 present;
+@@ -151,6 +153,8 @@ struct adv748x_afe {
+ 	struct v4l2_subdev sd;
+ 	struct v4l2_mbus_framefmt format;
+ 
++	struct adv748x_csi2 *tx;
++
+ 	bool streaming;
+ 	v4l2_std_id curr_norm;
+ 	unsigned int input;
 -- 
 2.20.1
 
