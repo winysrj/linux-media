@@ -2,279 +2,238 @@ Return-Path: <SRS0=KIs1=PS=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F018C43387
-	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 08:03:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F3F4C43387
+	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 08:19:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 116D4206B7
-	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 08:03:17 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="c61UhPQ0"
+	by mail.kernel.org (Postfix) with ESMTP id 1F3EA20657
+	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 08:19:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727716AbfAJIDQ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 10 Jan 2019 03:03:16 -0500
-Received: from out1-smtp.messagingengine.com ([66.111.4.25]:60293 "EHLO
-        out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727401AbfAJIDQ (ORCPT
+        id S1727566AbfAJITy (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 10 Jan 2019 03:19:54 -0500
+Received: from relay6-d.mail.gandi.net ([217.70.183.198]:53203 "EHLO
+        relay6-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727556AbfAJITy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 Jan 2019 03:03:16 -0500
-Received: from compute4.internal (compute4.nyi.internal [10.202.2.44])
-        by mailout.nyi.internal (Postfix) with ESMTP id C3A7A22EFE
-        for <linux-media@vger.kernel.org>; Thu, 10 Jan 2019 03:03:14 -0500 (EST)
-Received: from mailfrontend1 ([10.202.2.162])
-  by compute4.internal (MEProxy); Thu, 10 Jan 2019 03:03:14 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=content-transfer-encoding:content-type
-        :date:from:in-reply-to:message-id:mime-version:references
-        :subject:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
-        :x-sasl-enc; s=fm1; bh=/Va/PXI4nFFdgYKPqaYkFzNPg/37IxzAZsfGI/VpE
-        LE=; b=c61UhPQ0Au9alKdRqGn4cR2s/RLh1VctA8EP9y9QVc7cL2yT4nEO2INBB
-        x+bujpU4utRZFpaBjpgDZv1eioUAxOZ5qCNzgxt+ALFRS/KBxmvkGLgKzb6cSkYk
-        tgBAz60TbxkoVB//LUYarjnX7sHtw2nnx0JudOUdJKV8HOuAxJL0gHpc5cAdJOOe
-        kCen31S7PXDFaZ+65q4b7Cm0Nv2dDEfNVlYmFBlMDjbvbFvihPfhyaraXcsLHu1v
-        cQ0+FMi2i7mwlQ2WAclzMLuYHKOIhZGZeLW66s8LFcQLAzNarhXE4TpnxnlPOFD+
-        21GnKu4xRgSYe9F+Z0z007Q0ah7gg==
-X-ME-Sender: <xms:Qvw2XEv-DMMDSCG3PT5JS3-Ta7m3snzWANaoer9ozH-sNejW2cbAfg>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedtledrfedvgdduudehucetufdoteggodetrfdotf
-    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfquhhtnecuuegrihhlohhuthemucef
-    tddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefuhffvfhfkff
-    gfgggjtgfgsehtjeertddtfeejnecuhfhrohhmpefgughgrghrucfvhhhivghruceoihhn
-    fhhosegvughgrghrthhhihgvrhdrnhgvtheqnecuffhomhgrihhnpehvihhsihhonhhonh
-    hlihhnvgdrohhrghenucfkphepfedurddvtdelrdelhedrvdegvdenucfrrghrrghmpehm
-    rghilhhfrhhomhepihhnfhhosegvughgrghrthhhihgvrhdrnhgvthenucevlhhushhtvg
-    hrufhiiigvpedt
-X-ME-Proxy: <xmx:Qvw2XFudSNEpp1RfjxEHpvVJg1g9kH28l70U9G1wbwhueEYyOs897g>
-    <xmx:Qvw2XKyu2RQ6ivWOaH45x3sJWSOCDdE-qrw29LYH4ZSAkVhQHLMdfg>
-    <xmx:Qvw2XLjwLLHn_BmvF1hdrAY8hwYFMQXpimG8wEU1dYzhB_V_jrCMEQ>
-    <xmx:Qvw2XDaMxCmWkvIKlJ4zvTlr36rlj7Gn0Jxe5qTibiB3g7WTymoWAQ>
-Received: from [192.168.0.111] (unknown [31.209.95.242])
-        by mail.messagingengine.com (Postfix) with ESMTPA id 18D7AE435E
-        for <linux-media@vger.kernel.org>; Thu, 10 Jan 2019 03:03:14 -0500 (EST)
-Subject: [Patch v2] v4l: Add simple packed bayer 12-bit formats
-From:   Edgar Thier <info@edgarthier.net>
-To:     Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <b9dc4c99-5aaa-db43-f6cb-f829da9fd654@edgarthier.net>
-Message-ID: <462cc8c4-b288-9834-302c-02fd0d1a5d62@edgarthier.net>
-Date:   Thu, 10 Jan 2019 09:03:13 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.3.1
+        Thu, 10 Jan 2019 03:19:54 -0500
+X-Originating-IP: 2.224.242.101
+Received: from uno.localdomain (2-224-242-101.ip172.fastwebnet.it [2.224.242.101])
+        (Authenticated sender: jacopo@jmondi.org)
+        by relay6-d.mail.gandi.net (Postfix) with ESMTPSA id 05236C0004;
+        Thu, 10 Jan 2019 08:19:48 +0000 (UTC)
+Date:   Thu, 10 Jan 2019 09:19:55 +0100
+From:   Jacopo Mondi <jacopo@jmondi.org>
+To:     "Mani, Rajmohan" <rajmohan.mani@intel.com>
+Cc:     Tomasz Figa <tfiga@chromium.org>, "Zhi, Yong" <yong.zhi@intel.com>,
+        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
+        "Cao, Bingbu" <bingbu.cao@intel.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        "Hu, Jerry W" <jerry.w.hu@intel.com>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>
+Subject: Re: [PATCH v7 00/16] Intel IPU3 ImgU patchset
+Message-ID: <20190110081955.uuevbwgdlo7xr6gi@uno.localdomain>
+References: <2135468.G1bK1392oW@avalon>
+ <3475971.piroVKfGO7@avalon>
+ <CAAFQd5CN3dhTviSnFbzSOjkMTQqUyOajYv+CVxSLLAih522CgQ@mail.gmail.com>
+ <CAAFQd5AWLi=UD+LtuiQdc5QD8v5B1WX0Jcoe6=QUy+392FSeng@mail.gmail.com>
+ <20190109164037.yvtluixvua7cm2tl@uno.localdomain>
+ <6F87890CF0F5204F892DEA1EF0D77A599B321599@fmsmsx122.amr.corp.intel.com>
+ <20190109172553.lrnwxuy3x4drk6af@uno.localdomain>
+ <6F87890CF0F5204F892DEA1EF0D77A599B3215DA@fmsmsx122.amr.corp.intel.com>
+ <20190109182028.l6dopz5k75w3u3t4@uno.localdomain>
+ <6F87890CF0F5204F892DEA1EF0D77A599B321627@fmsmsx122.amr.corp.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <b9dc4c99-5aaa-db43-f6cb-f829da9fd654@edgarthier.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="sxmjs6z7vsobca4q"
+Content-Disposition: inline
+In-Reply-To: <6F87890CF0F5204F892DEA1EF0D77A599B321627@fmsmsx122.amr.corp.intel.com>
+User-Agent: NeoMutt/20180716
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
 
-These formats are compressed 12-bit raw bayer formats with four different
-pixel orders. They are similar to 10-bit bayer formats 'IPU3'.
+--sxmjs6z7vsobca4q
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-Signed-off-by: Edgar Thier <info@edgarthier.net>
----
-Documentation/media/uapi/v4l/pixfmt-rgb.rst   |   1 +
-.../media/uapi/v4l/pixfmt-srggb12sp.rst       | 123 ++++++++++++++++++
-drivers/media/usb/uvc/uvc_driver.c            |  20 +++
-include/uapi/linux/videodev2.h                |   7 +
-4 files changed, 151 insertions(+)
-create mode 100644 Documentation/media/uapi/v4l/pixfmt-srggb12sp.rst
+Hi Raj,
 
-diff --git a/Documentation/media/uapi/v4l/pixfmt-rgb.rst b/Documentation/media/uapi/v4l/pixfmt-rgb.rst
-index 1f9a7e3a07c9..5da00bd085f1 100644
---- a/Documentation/media/uapi/v4l/pixfmt-rgb.rst
-+++ b/Documentation/media/uapi/v4l/pixfmt-rgb.rst
-@@ -19,5 +19,6 @@ RGB Formats
-	pixfmt-srggb10-ipu3
-	pixfmt-srggb12
-	pixfmt-srggb12p
-+	pixfmt-srggb12sp
-	pixfmt-srggb14p
-	pixfmt-srggb16
-diff --git a/Documentation/media/uapi/v4l/pixfmt-srggb12sp.rst
-b/Documentation/media/uapi/v4l/pixfmt-srggb12sp.rst
-new file mode 100644
-index 000000000000..829f6aef34bc
---- /dev/null
-+++ b/Documentation/media/uapi/v4l/pixfmt-srggb12sp.rst
-@@ -0,0 +1,123 @@
-+.. -*- coding: utf-8; mode: rst -*-
-+
-+.. _v4l2-pix-fmt-sbggr12sp:
-+.. _v4l2-pix-fmt-sgbrg12sp:
-+.. _v4l2-pix-fmt-sgrbg12sp:
-+.. _v4l2-pix-fmt-srggb12sp:
-+
-+******************************************************************************************************************************************************
-+V4L2_PIX_FMT_SBGGR12SP ('SRGGB12SP'), V4L2_PIX_FMT_SGBRG12SP ('SGBRG12SP'),
-V4L2_PIX_FMT_SGRBG12SP('SGRBG12SP'), V4L2_PIX_FMT_SRGGB12SP ('SRGGB12SP')
-+******************************************************************************************************************************************************
-+
-+12-bit Bayer formats
-+
-+Description
-+===========
-+
-+These four pixel formats are used by industrial cameras, often in conjunction with UsbVision (see
-https://www.visiononline.org/userAssets/aiaUploads/file/USB3_Vision_Specification_v1-0-1.pdf).
-+
-+They are raw sRGB / Bayer formats with 12 bits per sample with 6 bytes for every 4 pixels.
-+The format is little endian.
-+
-+In other respects this format is similar to :ref:`v4l2-pix-fmt-ipu3-sbggr10`.
-+Below is an example of a small image in V4L2_PIX_FMT_SBGGR12SP format.
-+
-+**Byte Order.**
-+Each cell is one byte.
-+
-+.. tabularcolumns:: |p{0.8cm}|p{4.0cm}|p{4.0cm}|p{4.0cm}|p{4.0cm}|
-+
-+.. flat-table::
-+
-+    * - start + 0:
-+      - B\ :sub:`0000low`
-+      - G\ :sub:`0001low`\ (bits 7--4)
-+
-+        B\ :sub:`0000high`\ (bits 0--3)
-+
-+      - G\ :sub:`0001high`\
-+      - B\ :sub:`0002low`
-+
-+    * - start + 4:
-+      - G\ :sub:`0003low`\ (bits 7--4)
-+
-+        B\ :sub:`0002high`\ (bits 0--3)
-+      - G\ :sub:`0003high`
-+      - B\ :sub:`0004low`
-+      - G\ :sub:`0005low`\ (bits 7--2)
-+
-+        B\ :sub:`0004high`\ (bits 1--0)
-+
-+    * - start + 8:
-+      - G\ :sub:`0005high`
-+      - B\ :sub:`0006low`
-+      - G\ :sub:`0007low`\ (bits 7--4)
-+        B\ :sub:`0006high`\ (bits 3--0)
-+      - G\ :sub:`0007high`
-+
-+    * - start + 12:
-+      - G\ :sub:`0008low`
-+      - R\ :sub:`0009low`\ (bits 7--4)
-+
-+        G\ :sub:`0008high`\ (bits 3--0)
-+      - R\ :sub:`0009high`
-+      - G\ :sub:`0010low`
-+
-+    * - start + 16:
-+      - R\ :sub:`0011low`\ (bits 7--4)
-+        G\ :sub:`00010high`\ (bits 3--0)
-+      - R\ :sub:`0011high`
-+      - G\ :sub:`0012low`
-+      - R\ :sub:`0013low`\ (bits 7--4)
-+        G\ :sub:`0012high`\ (bits 3--0)
-+
-+    * - start + 20
-+      - R\ :sub:`0013high`
-+      - G\ :sub:`0014low`
-+      - R\ :sub:`0015low`\ (bits 7--4)
-+        G\ :sub:`0014high`\ (bits 3--0)
-+      - R\ :sub:`0015high`
-+
-+    * - start + 24:
-+      - B\ :sub:`0016low`
-+      - G\ :sub:`0017low`\ (bits 7--4)
-+        B\ :sub:`0016high`\ (bits 0--3)
-+      - G\ :sub:`0017high`\
-+      - B\ :sub:`0018low`
-+
-+    * - start + 28:
-+      - G\ :sub:`0019low`\ (bits 7--4)
-+        B\ :sub:`00018high`\ (bits 0--3)
-+      - G\ :sub:`0019high`
-+      - B\ :sub:`0020low`
-+      - G\ :sub:`0021low`\ (bits 7--2)
-+        B\ :sub:`0020high`\ (bits 1--0)
-+
-+    * - start + 32:
-+      - G\ :sub:`0021high`
-+      - B\ :sub:`0022low`
-+      - G\ :sub:`0023low`\ (bits 7--4)
-+        B\ :sub:`0022high`\ (bits 3--0)
-+      - G\ :sub:`0024high`
-+
-+    * - start + 36:
-+      - G\ :sub:`0025low`
-+      - R\ :sub:`0026low`\ (bits 7--4)
-+        G\ :sub:`0025high`\ (bits 3--0)
-+      - R\ :sub:`0026high`
-+      - G\ :sub:`0027low`
-+
-+    * - start + 40:
-+      - R\ :sub:`0028low`\ (bits 7--4)
-+        G\ :sub:`00027high`\ (bits 3--0)
-+      - R\ :sub:`0028high`
-+      - G\ :sub:`0029low`
-+      - R\ :sub:`0030low`\ (bits 7--4)
-+        G\ :sub:`0029high`\ (bits 3--0)
-+
-+    * - start + 44:
-+      - R\ :sub:`0030high`
-+      - G\ :sub:`0031low`
-+      - R\ :sub:`0033low`\ (bits 7--4)
-+        G\ :sub:`0032high`\ (bits 3--0)
-+      - R\ :sub:`0033high`
-diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
-index d46dc432456c..3125ed5de3b4 100644
---- a/drivers/media/usb/uvc/uvc_driver.c
-+++ b/drivers/media/usb/uvc/uvc_driver.c
-@@ -179,6 +179,26 @@ static struct uvc_format_desc uvc_fmts[] = {
-		.guid		= UVC_GUID_FORMAT_RW10,
-		.fcc		= V4L2_PIX_FMT_SRGGB10P,
-	},
-+	{
-+		.name		= "Bayer 12-bit simple packed (SBGGR12SP)",
-+		.guid		= UVC_GUID_FORMAT_BG12SP,
-+		.fcc		= V4L2_PIX_FMT_SBGGR12SP,
-+	},
-+	{
-+		.name		= "Bayer 12-bit simple packed (SGBRG12SP)",
-+		.guid		= UVC_GUID_FORMAT_GB12SP,
-+		.fcc		= V4L2_PIX_FMT_SGBRG12SP,
-+	},
-+	{
-+		.name		= "Bayer 12-bit simple packed (SRGGB12SP)",
-+		.guid		= UVC_GUID_FORMAT_RG12SP,
-+		.fcc		= V4L2_PIX_FMT_SRGGB12SP,
-+	},
-+	{
-+		.name		= "Bayer 12-bit simple packed (SGRBG12SP)",
-+		.guid		= UVC_GUID_FORMAT_GR12SP,
-+		.fcc		= V4L2_PIX_FMT_SGRBG12SP,
-+	},
-	{
-		.name		= "Bayer 16-bit (SBGGR16)",
-		.guid		= UVC_GUID_FORMAT_BG16,
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 5d1a3685bea9..573acd99ed09 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -605,6 +605,13 @@ struct v4l2_pix_format {
-#define V4L2_PIX_FMT_SGBRG12 v4l2_fourcc('G', 'B', '1', '2') /* 12  GBGB.. RGRG.. */
-#define V4L2_PIX_FMT_SGRBG12 v4l2_fourcc('B', 'A', '1', '2') /* 12  GRGR.. BGBG.. */
-#define V4L2_PIX_FMT_SRGGB12 v4l2_fourcc('R', 'G', '1', '2') /* 12  RGRG.. GBGB.. */
-++
-+/* 12bit raw bayer simple packed, 6 bytes for every 4 pixels */
-+#define V4L2_PIX_FMT_SBGGR12SP v4l2_fourcc('B', 'G', 'C', 'p')
-+#define V4L2_PIX_FMT_SGBRG12SP v4l2_fourcc('G', 'B', 'C', 'p')
-+#define V4L2_PIX_FMT_SGRBG12SP v4l2_fourcc('G', 'R', 'C', 'p')
-+#define V4L2_PIX_FMT_SRGGB12SP v4l2_fourcc('R', 'G', 'C', 'p')
-+
-/* 12bit raw bayer packed, 6 bytes for every 4 pixels */
-#define V4L2_PIX_FMT_SBGGR12P v4l2_fourcc('p', 'B', 'C', 'C')
-#define V4L2_PIX_FMT_SGBRG12P v4l2_fourcc('p', 'G', 'C', 'C')
---
-2.20.1
+On Wed, Jan 09, 2019 at 06:36:02PM +0000, Mani, Rajmohan wrote:
+> Hi Jacopo,
+>
+> > Subject: Re: [PATCH v7 00/16] Intel IPU3 ImgU patchset
+> >
+> > Hi Raj,
+> >
+> > On Wed, Jan 09, 2019 at 06:01:39PM +0000, Mani, Rajmohan wrote:
+> > > Hi Jacopo,
+> > >
+> > > > Subject: Re: [PATCH v7 00/16] Intel IPU3 ImgU patchset
+> > > >
+> > > > Hello Raj,
+> > > >
+> > > > On Wed, Jan 09, 2019 at 05:00:21PM +0000, Mani, Rajmohan wrote:
+> > > > > Hi Laurent, Tomasz, Jacopo,
+> > > > >
+> > > > > > Subject: Re: [PATCH v7 00/16] Intel IPU3 ImgU patchset
+> > > > > >
+> > > > > > Hello,
+> > > > > >
+> > > > > > On Tue, Jan 08, 2019 at 03:54:34PM +0900, Tomasz Figa wrote:
+> > > > > > > Hi Raj, Yong, Bingbu, Tianshu,
+> > > > > > >
+> > > > > > > On Fri, Dec 21, 2018 at 12:04 PM Tomasz Figa
+> > > > > > > <tfiga@chromium.org>
+> > > > wrote:
+> > > > > > > >
+> > > > > > > > On Fri, Dec 21, 2018 at 7:24 AM Laurent Pinchart
+> > > > > > > > <laurent.pinchart@ideasonboard.com> wrote:
+> > > > > > > > >
+> > > > > > > > > Hellon
+> > > > > > > > >
+> > > > > > > > > On Sunday, 16 December 2018 09:26:18 EET Laurent Pinchart
+> > wrote:
+> > > > > > > > > > Hello Yong,
+> > > > > > > > > >
+> > > > > > > > > > Could you please have a look at the crash reported below ?
+> > > > > > > > >
+> > > > > > > > > A bit more information to help you debugging this. I've
+> > > > > > > > > enabled KASAN in the kernel configuration, and get the
+> > > > > > > > > following use-after-free
+> > > > > > reports.
+> > > > > >
+> > > > > > I tested as well using the ipu-process.sh script shared by
+> > > > > > Laurent, with the following command line:
+> > > > > > ./ipu3-process.sh --out 2560x1920 --vf 1920x1080
+> > > > > > frame-2592x1944.cio2
+> > > > > >
+> > > > > > and I got a very similar trace available at:
+> > > > > > https://paste.debian.net/hidden/5855e15a/
+> > > > > >
+> > > > > > Please note I have been able to process a set of images (with
+> > > > > > KASAN enabled the machine does not freeze) but the kernel log
+> > > > > > gets flooded and it is not possible to process any other frame after this.
+> > > > > >
+> > > > > > The issue is currently quite annoying and it's a blocker for
+> > > > > > libcamera development on IPU3. Please let me know if I can
+> > > > > > support with
+> > > > more testing.
+> > > > > >
+> > > > > > Thanks
+> > > > > >    j
+> > > > > >
+> > > > > > > > >
+> > > > > > > > > [  166.332920]
+> > > > > > > > >
+> > > > > >
+> > > >
+> > ================================================================
+> > > > > > ==
+> > > > > > > > > [  166.332937] BUG: KASAN: use-after-free in
+> > > > > > > > > __cached_rbnode_delete_update+0x36/0x202
+> > > > > > > > > [  166.332944] Read of size 8 at addr ffff888133823718 by
+> > > > > > > > > task
+> > > > > > > > > yavta/1305
+> > > > > > > > >
+> > > > > > > > > [  166.332955] CPU: 3 PID: 1305 Comm: yavta Tainted: G         C
+> > > > 4.20.0-
+> > > > > > rc6+ #3
+> > > > > > > > > [  166.332958] Hardware name: HP Soraka/Soraka, BIOS
+> > > > > > > > > 08/30/2018 [ 166.332959] Call Trace:
+> > > > > > > > > [  166.332967]  dump_stack+0x5b/0x81 [  166.332974]
+> > > > > > > > > print_address_description+0x65/0x227
+> > > > > > > > > [  166.332979]  ? __cached_rbnode_delete_update+0x36/0x202
+> > > > > > > > > [  166.332983]  kasan_report+0x247/0x285 [  166.332989]
+> > > > > > > > > __cached_rbnode_delete_update+0x36/0x202
+> > > > > > > > > [  166.332995]  private_free_iova+0x57/0x6d [  166.332999]
+> > > > > > > > > __free_iova+0x23/0x31 [  166.333011]
+> > > > > > > > > ipu3_dmamap_free+0x118/0x1d6 [ipu3_imgu]
+> > > > > > > >
+> > > > > > > > Thanks Laurent, I think this is a very good hint. It looks
+> > > > > > > > like we're basically freeing and already freed IOVA and
+> > > > > > > > corrupting some allocator state?
+> > > > > > >
+> > > > > > > Did you have any luck in reproducing and fixing this double free
+> > issue?
+> > > > > > >
+> > > > >
+> > > > > This issue is either hard to reproduce or comes with different
+> > > > > signatures with the updated yavta (that now supports meta output)
+> > > > > with the 4.4 kernel that I have been using.
+> > > > > I am switching to 4.20-rc6 for better reproducibility.
+> > > > > Enabling KASAN also results in storage space issues on my Chrome
+> > device.
+> > > > > Will enable this just for ImgU to get ahead and get back with more
+> > updates.
+> > > > >
+> > > >
+> > > > Thanks for testing this.
+> > > >
+> > > > For your informations I'm using the following branch, from Sakari's
+> > > > tree: git://linuxtv.org/sailus/media_tree.git ipu3
+> > > >
+> > > > Although it appears that the media tree master branch has everything
+> > > > that is there, with a few additional patches on top. I should move
+> > > > to use media tree master as well...
+> > > >
+> > > > I have here attached 2 configuration files for v4.20-rc5 I am using
+> > > > on Soraka, in case they might help you. One has KASAN enabled with
+> > > > an increased kernel log size, the other one is the one we use for daily
+> > development.
+> > >
+> > > I think I am missing a trick here to override the default chrome os
+> > > kernel config with the one that you supplied.
+> > >
+> > > In particular I am looking for steps to build the upstream kernel
+> > > within chrome os build environment using your config, so I can update my
+> > Soraka device.
+> >
+> > I'm sorry I can not help much building 'withing chrome os build environment'.
+> > Care to explain what you mean?
+> >
+>
+> This is part of the Chromium OS build environment and development workflow.
+> https://chromium.googlesource.com/chromiumos/docs/+/master/kernel_faq.md
+>
+> No worries.
+> I will sync up with Tomasz, as he managed to get this working with 4.20 kernel.
+>
+
+I'm sorry I can't help much here. I suggest to work with mainline (or
+better, media master) and install a GNU/Linux distro on the chromebook so
+you can easily update your kernel.
+
+I personally used https://chrx.org/ that makes installing gallium (or
+else) very easy. Once you get that running, I find easy enough to
+update the kernel installing a .deb package.
+
+--sxmjs6z7vsobca4q
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEEtcQ9SICaIIqPWDjAcjQGjxahVjwFAlw3ACsACgkQcjQGjxah
+VjzXSQ/+Mj4GL9I9asyA50pgy6DTrEhIzva7fufmUah7nQgxSFcYoOs/Fc3NfE6b
+FvYj+1rQCv27OKlg/nApvUIcG+SDWPQXPq/gwkx9i8/ybdJmHM4S/YG7BhkCOtF1
+ure7jlVtqo9ud6soH6o7MZ6sOwD9yALZqcx7aXj0u0T1N4ElFL7NjB/oHdiI69sN
+WCuDq/sSLaoebtrXWv8ThgM9NnyKVK/RX+2Yygt+cb1cY1Yi4uQlik2WeQTK3UuO
+OCq8SjFzuQHrspzpRiicjccODN3kAOZG5JnMmMqHMecSj2FFN/17SdAIqtVBz+4w
+afTWZIBTQOsn7GTgrxWeYyYShSRiGCyggpsUKckK+e+hlxT2tR9pnFMFkA4kO3iD
+PWLuI7WbpOhRWKk5QnTNzUU5r5o73kYH0mkts4XL4kwDu16pS8+oWvRl8zJpki+0
+SgH/drwOzV6P/Mlh9Kn+8ufBwyUQ3DC41EG6CUCgS5KRzVWN8tDix2HsrgYSnf1M
+mmqf5RTq7KFwjX2qUfrDGDtZ2wFcFF7B1fDkkJ3cW5CvCxSJb7AVaN5/ZG8WxMnO
+2MtJCtv1bfr2kbkvMjISqkCsP1NlPj3o+FTLunvKI0hLYWEJUjqOMDcxLx8ObL2V
+Ijr/GPLFc+2ENvVEcveKQQ3asEZy4MdRyZqOppLi7NRxoKPnBps=
+=rkgF
+-----END PGP SIGNATURE-----
+
+--sxmjs6z7vsobca4q--
