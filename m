@@ -2,119 +2,96 @@ Return-Path: <SRS0=KIs1=PS=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_PASS
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E347C43387
-	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 21:06:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 85CE1C43387
+	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 21:14:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 116F2208E3
-	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 21:06:03 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Du1ks/mb"
+	by mail.kernel.org (Postfix) with ESMTP id 5C64120657
+	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 21:14:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728748AbfAJVGC (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 10 Jan 2019 16:06:02 -0500
-Received: from mail-wm1-f68.google.com ([209.85.128.68]:34787 "EHLO
-        mail-wm1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727846AbfAJVGC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 Jan 2019 16:06:02 -0500
-Received: by mail-wm1-f68.google.com with SMTP id y185so557961wmd.1
-        for <linux-media@vger.kernel.org>; Thu, 10 Jan 2019 13:06:00 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=subject:to:cc:references:from:message-id:date:user-agent
-         :mime-version:in-reply-to:content-transfer-encoding:content-language;
-        bh=CLRHygBVCs6aOHVFkGYZ8t276oPzFy7Aze3GAyXtbq0=;
-        b=Du1ks/mbV2rl70mbKreZCdvIlC5w2m2CFMmyTYT3veJkLEpnJxo96TScTjJfjv1NgC
-         25L7lQhQHNihp6tu3jjLe/UEkI5lQ8zxvhot+ynhYv/Q1w8pdxHP8fCFGPOUnyYNOjqF
-         6t5FsnAfL6SxiBg6xan06c5HGEXouYLwYAUJel6bZQmfq9cn9kVXG7Qm0WzU2WrR1ppQ
-         CNqay1uT3Okr8+OpRZrLUBZc2YTuqNPFqECUPJdmxo+oLUeBfdSQ9t6selY2ybSoJpbN
-         s3L0FDDdMAuakQQKY6vwl3tP84Iq1vALaq37OoHUTyjUGgIoU4Gy9KXS9ywBFCXHrhbn
-         beFQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-transfer-encoding
-         :content-language;
-        bh=CLRHygBVCs6aOHVFkGYZ8t276oPzFy7Aze3GAyXtbq0=;
-        b=U0iWiok6eC4g5O9cwDlFneqip6kqSjydMOAkeOBDfOCu6sUYFH47mvte9ofIy7S6/r
-         ydxvyKtvuGH9FQcEt4HtlVGNcXuzIN8pOfvwRWO01ztMfynYZeyk0QJsMq0ZBuPyWqjd
-         n4sRkL1edOQ91/SFB6FRw36M5H4TNFMCDd2BlNIRqvc1ydmngorkxmNsKKSjzRcjtD5F
-         ZPUrKxpGCYNMi2g/y0/E7PnqAx2HF3xuxd0BtXdStctGDrsJBq6/ul9B8vvOMcFn8w+e
-         8zE/8GMwKFoeSHThcUPJZwQCdCfK0qkVu33ZBAoLYMv/sgW8AhrfJ2QsI4tfz/ZOc64j
-         Ecjg==
-X-Gm-Message-State: AJcUukc6SpTOKvdQQ5MpRLFQijRr13Utz8VqC2nam8MrLIydlj0sWiin
-        gpsTt6zpenKRcg8MowUrLho=
-X-Google-Smtp-Source: ALg8bN73pY/MGwkltoUmfsid1M/Dp5xRLRSkffYESUNCvmaidMcXlXNbycj5MSyhplW7EBJwFyMN7w==
-X-Received: by 2002:a1c:2d42:: with SMTP id t63mr347611wmt.9.1547154359430;
-        Thu, 10 Jan 2019 13:05:59 -0800 (PST)
-Received: from [172.30.90.4] (sjewanfw1-nat.mentorg.com. [139.181.7.34])
-        by smtp.gmail.com with ESMTPSA id x81sm18150476wmg.17.2019.01.10.13.05.57
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 10 Jan 2019 13:05:58 -0800 (PST)
-Subject: Re: [PATCH v2 3/3] media: imx: lift CSI and PRP ENC/VF width
- alignment restriction
-To:     Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
-Cc:     Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>, kernel@pengutronix.de
-References: <20190109110831.23395-1-p.zabel@pengutronix.de>
- <20190109110831.23395-3-p.zabel@pengutronix.de>
- <fe63e40b-08ae-5ff1-c222-f5a624b83569@gmail.com>
- <1547117681.8943.3.camel@pengutronix.de>
-From:   Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <1b5c7e7b-bfb0-6d4d-8707-a40850f90acd@gmail.com>
-Date:   Thu, 10 Jan 2019 13:05:54 -0800
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.2.1
+        id S1728091AbfAJVOw (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 10 Jan 2019 16:14:52 -0500
+Received: from mga12.intel.com ([192.55.52.136]:8350 "EHLO mga12.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727401AbfAJVOw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 10 Jan 2019 16:14:52 -0500
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from fmsmga003.fm.intel.com ([10.253.24.29])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 10 Jan 2019 13:14:51 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.56,462,1539673200"; 
+   d="scan'208";a="124974467"
+Received: from stinkbox.fi.intel.com (HELO stinkbox) ([10.237.72.174])
+  by FMSMGA003.fm.intel.com with SMTP; 10 Jan 2019 13:14:49 -0800
+Received: by stinkbox (sSMTP sendmail emulation); Thu, 10 Jan 2019 23:14:48 +0200
+From:   Ville Syrjala <ville.syrjala@linux.intel.com>
+To:     intel-gfx@lists.freedesktop.org
+Cc:     Thierry Reding <thierry.reding@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        linux-media@vger.kernel.org
+Subject: [PATCH v2 01/10] video/hdmi: Add an enum for HDMI packet types
+Date:   Thu, 10 Jan 2019 23:14:36 +0200
+Message-Id: <20190110211445.24177-2-ville.syrjala@linux.intel.com>
+X-Mailer: git-send-email 2.19.2
+In-Reply-To: <20190110211445.24177-1-ville.syrjala@linux.intel.com>
+References: <20190110211445.24177-1-ville.syrjala@linux.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <1547117681.8943.3.camel@pengutronix.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
+From: Ville Syrjälä <ville.syrjala@linux.intel.com>
 
+We'll be wanting to send more than just infoframes over HDMI. So add an
+enum for other packet types.
 
-On 1/10/19 2:54 AM, Philipp Zabel wrote:
-> On Wed, 2019-01-09 at 11:21 -0800, Steve Longerbeam wrote:
->> <snip>
->>
->> why not just use "if (priv->active_output_pad == CSI_SRC_PAD_DIRECT) ..." ?
-> While both source pad links are disabled, whether or not IC burst
-> alignment is applied would depend on hidden state. This should be
-> consistent, regardless of previously enabled source pad links.
+TODO: Maybe just include the infoframe types in the packet type enum
+      and get rid of the infoframe type enum?
 
-Yes good point.
+v2: s/AUDIO_CP/ACP/ (Shashank)
 
->
-> We could achieve that with your suggested change if csi_link_setup()
-> would always set active_output_pad = CSI_SRC_PAD_IDMAC when disabling
-> source pad links:
->
-> ----------8<----------
-> diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-> index dd911313fca2..e593fd7774ff 100644
-> --- a/drivers/staging/media/imx/imx-media-csi.c
-> +++ b/drivers/staging/media/imx/imx-media-csi.c
-> @@ -1000,6 +1000,8 @@ static int csi_link_setup(struct media_entity *entity,
->   		v4l2_ctrl_handler_free(&priv->ctrl_hdlr);
->   		v4l2_ctrl_handler_init(&priv->ctrl_hdlr, 0);
->   		priv->sink = NULL;
-> +		/* do not apply IC burst alignment in csi_try_crop */
-> +		priv->active_output_pad = CSI_SRC_PAD_IDMAC;
+Cc: Thierry Reding <thierry.reding@gmail.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: linux-media@vger.kernel.org
+Reviewed-by: Shashank Sharma <shashank.sharma@intel.com>
+Signed-off-by: Ville Syrjälä <ville.syrjala@linux.intel.com>
+---
+ include/linux/hdmi.h | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-Yes that will work. But I also notice priv->active_output_pad is not 
-even being initialized. Do you mind including that as well, e.g 
-initialize to CSI_SRC_PAD_IDMAC in imx_csi_probe().
-
-Thanks Philipp.
-
-Steve
+diff --git a/include/linux/hdmi.h b/include/linux/hdmi.h
+index d2bacf502429..927ad6451105 100644
+--- a/include/linux/hdmi.h
++++ b/include/linux/hdmi.h
+@@ -27,6 +27,21 @@
+ #include <linux/types.h>
+ #include <linux/device.h>
+ 
++enum hdmi_packet_type {
++	HDMI_PACKET_TYPE_NULL = 0x00,
++	HDMI_PACKET_TYPE_AUDIO_CLOCK_REGEN = 0x01,
++	HDMI_PACKET_TYPE_AUDIO_SAMPLE = 0x02,
++	HDMI_PACKET_TYPE_GENERAL_CONTROL = 0x03,
++	HDMI_PACKET_TYPE_ACP = 0x04,
++	HDMI_PACKET_TYPE_ISRC1 = 0x05,
++	HDMI_PACKET_TYPE_ISRC2 = 0x06,
++	HDMI_PACKET_TYPE_ONE_BIT_AUDIO_SAMPLE = 0x07,
++	HDMI_PACKET_TYPE_DST_AUDIO = 0x08,
++	HDMI_PACKET_TYPE_HBR_AUDIO_STREAM = 0x09,
++	HDMI_PACKET_TYPE_GAMUT_METADATA = 0x0a,
++	/* + enum hdmi_infoframe_type */
++};
++
+ enum hdmi_infoframe_type {
+ 	HDMI_INFOFRAME_TYPE_VENDOR = 0x81,
+ 	HDMI_INFOFRAME_TYPE_AVI = 0x82,
+-- 
+2.19.2
 
