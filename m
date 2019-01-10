@@ -2,144 +2,148 @@ Return-Path: <SRS0=KIs1=PS=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19E77C43387
-	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 14:02:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 023E4C43387
+	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 14:11:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E92C120660
-	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 14:02:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D132620660
+	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 14:11:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728917AbfAJOC0 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 10 Jan 2019 09:02:26 -0500
-Received: from relay3-d.mail.gandi.net ([217.70.183.195]:43593 "EHLO
-        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728911AbfAJOC0 (ORCPT
+        id S1729072AbfAJOLm (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 10 Jan 2019 09:11:42 -0500
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:50100 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1728181AbfAJOLm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 Jan 2019 09:02:26 -0500
-X-Originating-IP: 2.224.242.101
-Received: from uno.lan (2-224-242-101.ip172.fastwebnet.it [2.224.242.101])
-        (Authenticated sender: jacopo@jmondi.org)
-        by relay3-d.mail.gandi.net (Postfix) with ESMTPSA id B035360005;
-        Thu, 10 Jan 2019 14:02:23 +0000 (UTC)
-From:   Jacopo Mondi <jacopo+renesas@jmondi.org>
-To:     laurent.pinchart@ideasonboard.com,
-        niklas.soderlund+renesas@ragnatech.se,
-        kieran.bingham@ideasonboard.com
-Cc:     Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: [PATCH v3 6/6] media: adv748x: Implement TX link_setup callback
-Date:   Thu, 10 Jan 2019 15:02:13 +0100
-Message-Id: <20190110140213.5198-7-jacopo+renesas@jmondi.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190110140213.5198-1-jacopo+renesas@jmondi.org>
-References: <20190110140213.5198-1-jacopo+renesas@jmondi.org>
+        Thu, 10 Jan 2019 09:11:42 -0500
+Received: from [IPv6:2001:420:44c1:2579:c8e7:b878:74ba:240a] ([IPv6:2001:420:44c1:2579:c8e7:b878:74ba:240a])
+        by smtp-cloud7.xs4all.net with ESMTPA
+        id hb3YgyQmTBDyIhb3bgbwap; Thu, 10 Jan 2019 15:11:40 +0100
+Subject: Re: [PATCH 1/1] v4l: ioctl: Validate num_planes before using it
+To:     Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc:     linux-media@vger.kernel.org, Thierry Reding <treding@nvidia.com>,
+        Ezequiel Garcia <ezequiel@collabora.com>
+References: <20190110124319.22230-1-sakari.ailus@linux.intel.com>
+ <b2dde2b4-65c7-2dc7-c66a-62a93d36be23@xs4all.nl>
+ <20190110134139.zfnjzlgh2u6ab6s2@paasikivi.fi.intel.com>
+From:   Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <da827442-80cb-2a18-fcb4-0b4c88f8a0cb@xs4all.nl>
+Date:   Thu, 10 Jan 2019 15:11:35 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:52.0) Gecko/20100101
+ Thunderbird/52.2.1
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20190110134139.zfnjzlgh2u6ab6s2@paasikivi.fi.intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-CMAE-Envelope: MS4wfFfdQRHxhW5FbV7tGaRbJ0rCBn/KXC4wEVZRe5UaU+S04upwG0ELP6TJXHHW2DOe+T7KsqgDcocI8mUU0cRcTH1kIHjt9+4Jc0aivYpW+j9izf3xfZSO
+ KfS3pa5MtC3k5kip1wbIdhTXVtp7GDWz5L2aat1S7rjlTXzcpcWj0ukBCjWatLwUFHcRRlH8JXo/+yRpg6MjcV4nUXGfVgMSL9jAchGnLv6h53UCIxSEoMZP
+ KuSJY3dgveWZNazZBp2rtUO8yzZN6V836/+OpCae7o32Cs3wQoIozqvnSFwUtqPvTXyNgnC+cecHWXF+a+ODZxeYYB4ggkmdYee7a7ipq4A+ESp3lUTjPAoK
+ s4BOOZSQnZxMv1SEBBb7ywdSYu19pwNxbq+v426o3FhA1nwV594=
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-When the adv748x driver is informed about a link being created from HDMI or
-AFE to a CSI-2 TX output, the 'link_setup()' callback is invoked. Make
-sure to implement proper routing management at link setup time, to route
-the selected video stream to the desired TX output.
+On 01/10/19 14:41, Sakari Ailus wrote:
+> On Thu, Jan 10, 2019 at 02:02:14PM +0100, Hans Verkuil wrote:
+>> On 01/10/19 13:43, Sakari Ailus wrote:
+>>> The for loop to reset the memory of the plane reserved fields runs over
+>>> num_planes provided by the user without validating it. Ensure num_planes
+>>> is no more than VIDEO_MAX_PLANES before the loop.
+>>>
+>>> Fixes: 4e1e0eb0e074 ("media: v4l2-ioctl: Zero v4l2_plane_pix_format reserved fields")
+>>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+>>> ---
+>>> Hi folks,
+>>>
+>>> This patch goes on top of Thierry's patch "media: v4l2-ioctl: Clear only
+>>> per-plane reserved fields".
+>>>
+>>>  drivers/media/v4l2-core/v4l2-ioctl.c | 8 ++++++++
+>>>  1 file changed, 8 insertions(+)
+>>>
+>>> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+>>> index 392f1228af7b5..9e68a608ac6d3 100644
+>>> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
+>>> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+>>> @@ -1551,6 +1551,8 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
+>>>  		if (unlikely(!ops->vidioc_s_fmt_vid_cap_mplane))
+>>>  			break;
+>>>  		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
+>>> +		if (p->fmt.pix_mp.num_planes > VIDEO_MAX_PLANES)
+>>> +			break;
+>>
+>> I would check this not here but in check_fmt: all *_FMT ioctls call that function
+>> first, so it makes sense to do the check there.
+> 
+> Even G_FMT? I'm not saying no though. There's just a slight chance of
+> breaking something as it hasn't been a problem to call G_FMT with incorrect
+> number of planes in the mplane format; the number would be overwritten
+> anyway.
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
----
- drivers/media/i2c/adv748x/adv748x-core.c | 48 +++++++++++++++++++++++-
- drivers/media/i2c/adv748x/adv748x.h      |  2 +
- 2 files changed, 49 insertions(+), 1 deletion(-)
+Not G_FMT since everything after the type field is zeroed.
 
-diff --git a/drivers/media/i2c/adv748x/adv748x-core.c b/drivers/media/i2c/adv748x/adv748x-core.c
-index 200e00f93546..ea7e5ca48f1a 100644
---- a/drivers/media/i2c/adv748x/adv748x-core.c
-+++ b/drivers/media/i2c/adv748x/adv748x-core.c
-@@ -335,6 +335,51 @@ int adv748x_tx_power(struct adv748x_csi2 *tx, bool on)
- /* -----------------------------------------------------------------------------
-  * Media Operations
-  */
-+static int adv748x_link_setup(struct media_entity *entity,
-+			      const struct media_pad *local,
-+			      const struct media_pad *remote, u32 flags)
-+{
-+	struct v4l2_subdev *rsd = media_entity_to_v4l2_subdev(remote->entity);
-+	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
-+	struct adv748x_state *state = v4l2_get_subdevdata(sd);
-+	struct adv748x_csi2 *tx = adv748x_sd_to_csi2(sd);
-+	bool enable = flags & MEDIA_LNK_FL_ENABLED;
-+	u8 io10_mask = ADV748X_IO_10_CSI1_EN |
-+		       ADV748X_IO_10_CSI4_EN |
-+		       ADV748X_IO_10_CSI4_IN_SEL_AFE;
-+	u8 io10 = 0;
-+
-+	/* Refuse to enable multiple links to the same TX at the same time. */
-+	if (enable && tx->src)
-+		return -EINVAL;
-+
-+	/* Set or clear the source (HDMI or AFE) and the current TX. */
-+	if (rsd == &state->afe.sd)
-+		state->afe.tx = enable ? tx : NULL;
-+	else
-+		state->hdmi.tx = enable ? tx : NULL;
-+
-+	tx->src = enable ? rsd : NULL;
-+
-+	if (state->afe.tx) {
-+		/* AFE Requires TXA enabled, even when output to TXB */
-+		io10 |= ADV748X_IO_10_CSI4_EN;
-+		if (is_txa(tx))
-+			io10 |= ADV748X_IO_10_CSI4_IN_SEL_AFE;
-+		else
-+			io10 |= ADV748X_IO_10_CSI1_EN;
-+	}
-+
-+	if (state->hdmi.tx)
-+		io10 |= ADV748X_IO_10_CSI4_EN;
-+
-+	return io_clrset(state, ADV748X_IO_10, io10_mask, io10);
-+}
-+
-+static const struct media_entity_operations adv748x_tx_media_ops = {
-+	.link_setup	= adv748x_link_setup,
-+	.link_validate	= v4l2_subdev_link_validate,
-+};
- 
- static const struct media_entity_operations adv748x_media_ops = {
- 	.link_validate = v4l2_subdev_link_validate,
-@@ -516,7 +561,8 @@ void adv748x_subdev_init(struct v4l2_subdev *sd, struct adv748x_state *state,
- 		state->client->addr, ident);
- 
- 	sd->entity.function = function;
--	sd->entity.ops = &adv748x_media_ops;
-+	sd->entity.ops = is_tx(adv748x_sd_to_csi2(sd)) ?
-+			 &adv748x_tx_media_ops : &adv748x_media_ops;
- }
- 
- static int adv748x_parse_csi2_lanes(struct adv748x_state *state,
-diff --git a/drivers/media/i2c/adv748x/adv748x.h b/drivers/media/i2c/adv748x/adv748x.h
-index 934a9d9a75c8..b00c1995efb0 100644
---- a/drivers/media/i2c/adv748x/adv748x.h
-+++ b/drivers/media/i2c/adv748x/adv748x.h
-@@ -94,6 +94,7 @@ struct adv748x_csi2 {
- #define is_tx_enabled(_tx) ((_tx)->state->endpoints[(_tx)->port] != NULL)
- #define is_txa(_tx) ((_tx) == &(_tx)->state->txa)
- #define is_txb(_tx) ((_tx) == &(_tx)->state->txb)
-+#define is_tx(_tx) (is_txa(_tx) || is_txb(_tx))
- 
- #define is_afe_enabled(_state)					\
- 	((_state)->endpoints[ADV748X_PORT_AIN0] != NULL ||	\
-@@ -223,6 +224,7 @@ struct adv748x_state {
- #define ADV748X_IO_10_CSI4_EN		BIT(7)
- #define ADV748X_IO_10_CSI1_EN		BIT(6)
- #define ADV748X_IO_10_PIX_OUT_EN	BIT(5)
-+#define ADV748X_IO_10_CSI4_IN_SEL_AFE	BIT(3)
- 
- #define ADV748X_IO_CHIP_REV_ID_1	0xdf
- #define ADV748X_IO_CHIP_REV_ID_2	0xe0
--- 
-2.20.1
+> Apart from that, this leaves just the four locations --- putting this to a
+> separate function will reduce the calls to that function to just two.
+
+I was a bit too quick with my comment about check_fmt. Your original patch
+is fine.
+
+I'll Ack your patch.
+
+Regards,
+
+	Hans
+
+> 
+>>
+>> v4l_print_format should also be adjusted (take the minimum of num_planes and
+>> VIDEO_MAX_PLANES), since it can still be called even if check_fmt returns an
+>> error if num_planes is too large.
+>>
+>> In fact, the change to v4l_print_format should be a separate patch since that
+>> should be backported. It can leak memory in the kernel log if num_planes is
+>> too large.
+>>
+>> Regards,
+>>
+>> 	Hans
+>>
+>>>  		for (i = 0; i < p->fmt.pix_mp.num_planes; i++)
+>>>  			CLEAR_AFTER_FIELD(&p->fmt.pix_mp.plane_fmt[i], bytesperline);
+>>>  		return ops->vidioc_s_fmt_vid_cap_mplane(file, fh, arg);
+>>> @@ -1581,6 +1583,8 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
+>>>  		if (unlikely(!ops->vidioc_s_fmt_vid_out_mplane))
+>>>  			break;
+>>>  		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
+>>> +		if (p->fmt.pix_mp.num_planes > VIDEO_MAX_PLANES)
+>>> +			break;
+>>>  		for (i = 0; i < p->fmt.pix_mp.num_planes; i++)
+>>>  			CLEAR_AFTER_FIELD(&p->fmt.pix_mp.plane_fmt[i], bytesperline);
+>>>  		return ops->vidioc_s_fmt_vid_out_mplane(file, fh, arg);
+>>> @@ -1648,6 +1652,8 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
+>>>  		if (unlikely(!ops->vidioc_try_fmt_vid_cap_mplane))
+>>>  			break;
+>>>  		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
+>>> +		if (p->fmt.pix_mp.num_planes > VIDEO_MAX_PLANES)
+>>> +			break;
+>>>  		for (i = 0; i < p->fmt.pix_mp.num_planes; i++)
+>>>  			CLEAR_AFTER_FIELD(&p->fmt.pix_mp.plane_fmt[i], bytesperline);
+>>>  		return ops->vidioc_try_fmt_vid_cap_mplane(file, fh, arg);
+>>> @@ -1678,6 +1684,8 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
+>>>  		if (unlikely(!ops->vidioc_try_fmt_vid_out_mplane))
+>>>  			break;
+>>>  		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
+>>> +		if (p->fmt.pix_mp.num_planes > VIDEO_MAX_PLANES)
+>>> +			break;
+>>>  		for (i = 0; i < p->fmt.pix_mp.num_planes; i++)
+>>>  			CLEAR_AFTER_FIELD(&p->fmt.pix_mp.plane_fmt[i], bytesperline);
+>>>  		return ops->vidioc_try_fmt_vid_out_mplane(file, fh, arg);
+>>>
+>>
+> 
 
