@@ -2,58 +2,46 @@ Return-Path: <SRS0=KIs1=PS=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_NEOMUTT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F3F4C43387
-	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 08:19:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BC245C43612
+	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 08:50:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1F3EA20657
-	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 08:19:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 93E042173B
+	for <linux-media@archiver.kernel.org>; Thu, 10 Jan 2019 08:50:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727566AbfAJITy (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 10 Jan 2019 03:19:54 -0500
-Received: from relay6-d.mail.gandi.net ([217.70.183.198]:53203 "EHLO
-        relay6-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727556AbfAJITy (ORCPT
+        id S1727535AbfAJIu5 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 10 Jan 2019 03:50:57 -0500
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:52495 "EHLO
+        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727391AbfAJIu4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 Jan 2019 03:19:54 -0500
+        Thu, 10 Jan 2019 03:50:56 -0500
 X-Originating-IP: 2.224.242.101
 Received: from uno.localdomain (2-224-242-101.ip172.fastwebnet.it [2.224.242.101])
         (Authenticated sender: jacopo@jmondi.org)
-        by relay6-d.mail.gandi.net (Postfix) with ESMTPSA id 05236C0004;
-        Thu, 10 Jan 2019 08:19:48 +0000 (UTC)
-Date:   Thu, 10 Jan 2019 09:19:55 +0100
+        by relay4-d.mail.gandi.net (Postfix) with ESMTPSA id 97288E0008;
+        Thu, 10 Jan 2019 08:50:53 +0000 (UTC)
+Date:   Thu, 10 Jan 2019 09:51:00 +0100
 From:   Jacopo Mondi <jacopo@jmondi.org>
-To:     "Mani, Rajmohan" <rajmohan.mani@intel.com>
-Cc:     Tomasz Figa <tfiga@chromium.org>, "Zhi, Yong" <yong.zhi@intel.com>,
-        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
-        "Cao, Bingbu" <bingbu.cao@intel.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        "Hu, Jerry W" <jerry.w.hu@intel.com>,
-        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>
-Subject: Re: [PATCH v7 00/16] Intel IPU3 ImgU patchset
-Message-ID: <20190110081955.uuevbwgdlo7xr6gi@uno.localdomain>
-References: <2135468.G1bK1392oW@avalon>
- <3475971.piroVKfGO7@avalon>
- <CAAFQd5CN3dhTviSnFbzSOjkMTQqUyOajYv+CVxSLLAih522CgQ@mail.gmail.com>
- <CAAFQd5AWLi=UD+LtuiQdc5QD8v5B1WX0Jcoe6=QUy+392FSeng@mail.gmail.com>
- <20190109164037.yvtluixvua7cm2tl@uno.localdomain>
- <6F87890CF0F5204F892DEA1EF0D77A599B321599@fmsmsx122.amr.corp.intel.com>
- <20190109172553.lrnwxuy3x4drk6af@uno.localdomain>
- <6F87890CF0F5204F892DEA1EF0D77A599B3215DA@fmsmsx122.amr.corp.intel.com>
- <20190109182028.l6dopz5k75w3u3t4@uno.localdomain>
- <6F87890CF0F5204F892DEA1EF0D77A599B321627@fmsmsx122.amr.corp.intel.com>
+To:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc:     kieran.bingham@ideasonboard.com,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        niklas.soderlund+renesas@ragnatech.se, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH v2 6/6] media: adv748x: Implement TX link_setup callback
+Message-ID: <20190110085100.l4dwjxdkx23jfhfg@uno.localdomain>
+References: <20190106155413.30666-1-jacopo+renesas@jmondi.org>
+ <20190106155413.30666-7-jacopo+renesas@jmondi.org>
+ <9f156850-14b6-3ca2-47c1-e03e1bc2c0f8@ideasonboard.com>
+ <1722143.vWDHCLa8RZ@avalon>
 MIME-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="sxmjs6z7vsobca4q"
+        protocol="application/pgp-signature"; boundary="yfdohzsps4vq5rh7"
 Content-Disposition: inline
-In-Reply-To: <6F87890CF0F5204F892DEA1EF0D77A599B321627@fmsmsx122.amr.corp.intel.com>
+In-Reply-To: <1722143.vWDHCLa8RZ@avalon>
 User-Agent: NeoMutt/20180716
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
@@ -61,179 +49,209 @@ List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
 
---sxmjs6z7vsobca4q
+--yfdohzsps4vq5rh7
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 
-Hi Raj,
+Hi Laurent,
 
-On Wed, Jan 09, 2019 at 06:36:02PM +0000, Mani, Rajmohan wrote:
-> Hi Jacopo,
+On Wed, Jan 09, 2019 at 02:15:04AM +0200, Laurent Pinchart wrote:
+> Hello,
 >
-> > Subject: Re: [PATCH v7 00/16] Intel IPU3 ImgU patchset
+> On Monday, 7 January 2019 14:36:28 EET Kieran Bingham wrote:
+> > On 06/01/2019 15:54, Jacopo Mondi wrote:
+> > > When the adv748x driver is informed about a link being created from HDMI
+> > > or AFE to a CSI-2 TX output, the 'link_setup()' callback is invoked. Make
+> > > sure to implement proper routing management at link setup time, to route
+> > > the selected video stream to the desired TX output.
 > >
-> > Hi Raj,
+> > Overall this looks like the right approach - but I feel like the
+> > handling of the io10 register might need some consideration, because
+> > it's value depends on the condition of both CSI2 transmitters, not just
+> > the currently parsed link.
 > >
-> > On Wed, Jan 09, 2019 at 06:01:39PM +0000, Mani, Rajmohan wrote:
-> > > Hi Jacopo,
+> > I had a go at some pseudo - uncompiled/untested code inline as a suggestion.
+> >
+> > If you think it's better - feel free to rework it in ... or not as you
+> > see fit.
+> >
+> > > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> > > ---
 > > >
-> > > > Subject: Re: [PATCH v7 00/16] Intel IPU3 ImgU patchset
-> > > >
-> > > > Hello Raj,
-> > > >
-> > > > On Wed, Jan 09, 2019 at 05:00:21PM +0000, Mani, Rajmohan wrote:
-> > > > > Hi Laurent, Tomasz, Jacopo,
-> > > > >
-> > > > > > Subject: Re: [PATCH v7 00/16] Intel IPU3 ImgU patchset
-> > > > > >
-> > > > > > Hello,
-> > > > > >
-> > > > > > On Tue, Jan 08, 2019 at 03:54:34PM +0900, Tomasz Figa wrote:
-> > > > > > > Hi Raj, Yong, Bingbu, Tianshu,
-> > > > > > >
-> > > > > > > On Fri, Dec 21, 2018 at 12:04 PM Tomasz Figa
-> > > > > > > <tfiga@chromium.org>
-> > > > wrote:
-> > > > > > > >
-> > > > > > > > On Fri, Dec 21, 2018 at 7:24 AM Laurent Pinchart
-> > > > > > > > <laurent.pinchart@ideasonboard.com> wrote:
-> > > > > > > > >
-> > > > > > > > > Hellon
-> > > > > > > > >
-> > > > > > > > > On Sunday, 16 December 2018 09:26:18 EET Laurent Pinchart
-> > wrote:
-> > > > > > > > > > Hello Yong,
-> > > > > > > > > >
-> > > > > > > > > > Could you please have a look at the crash reported below ?
-> > > > > > > > >
-> > > > > > > > > A bit more information to help you debugging this. I've
-> > > > > > > > > enabled KASAN in the kernel configuration, and get the
-> > > > > > > > > following use-after-free
-> > > > > > reports.
-> > > > > >
-> > > > > > I tested as well using the ipu-process.sh script shared by
-> > > > > > Laurent, with the following command line:
-> > > > > > ./ipu3-process.sh --out 2560x1920 --vf 1920x1080
-> > > > > > frame-2592x1944.cio2
-> > > > > >
-> > > > > > and I got a very similar trace available at:
-> > > > > > https://paste.debian.net/hidden/5855e15a/
-> > > > > >
-> > > > > > Please note I have been able to process a set of images (with
-> > > > > > KASAN enabled the machine does not freeze) but the kernel log
-> > > > > > gets flooded and it is not possible to process any other frame after this.
-> > > > > >
-> > > > > > The issue is currently quite annoying and it's a blocker for
-> > > > > > libcamera development on IPU3. Please let me know if I can
-> > > > > > support with
-> > > > more testing.
-> > > > > >
-> > > > > > Thanks
-> > > > > >    j
-> > > > > >
-> > > > > > > > >
-> > > > > > > > > [  166.332920]
-> > > > > > > > >
-> > > > > >
-> > > >
-> > ================================================================
-> > > > > > ==
-> > > > > > > > > [  166.332937] BUG: KASAN: use-after-free in
-> > > > > > > > > __cached_rbnode_delete_update+0x36/0x202
-> > > > > > > > > [  166.332944] Read of size 8 at addr ffff888133823718 by
-> > > > > > > > > task
-> > > > > > > > > yavta/1305
-> > > > > > > > >
-> > > > > > > > > [  166.332955] CPU: 3 PID: 1305 Comm: yavta Tainted: G         C
-> > > > 4.20.0-
-> > > > > > rc6+ #3
-> > > > > > > > > [  166.332958] Hardware name: HP Soraka/Soraka, BIOS
-> > > > > > > > > 08/30/2018 [ 166.332959] Call Trace:
-> > > > > > > > > [  166.332967]  dump_stack+0x5b/0x81 [  166.332974]
-> > > > > > > > > print_address_description+0x65/0x227
-> > > > > > > > > [  166.332979]  ? __cached_rbnode_delete_update+0x36/0x202
-> > > > > > > > > [  166.332983]  kasan_report+0x247/0x285 [  166.332989]
-> > > > > > > > > __cached_rbnode_delete_update+0x36/0x202
-> > > > > > > > > [  166.332995]  private_free_iova+0x57/0x6d [  166.332999]
-> > > > > > > > > __free_iova+0x23/0x31 [  166.333011]
-> > > > > > > > > ipu3_dmamap_free+0x118/0x1d6 [ipu3_imgu]
-> > > > > > > >
-> > > > > > > > Thanks Laurent, I think this is a very good hint. It looks
-> > > > > > > > like we're basically freeing and already freed IOVA and
-> > > > > > > > corrupting some allocator state?
-> > > > > > >
-> > > > > > > Did you have any luck in reproducing and fixing this double free
-> > issue?
-> > > > > > >
-> > > > >
-> > > > > This issue is either hard to reproduce or comes with different
-> > > > > signatures with the updated yavta (that now supports meta output)
-> > > > > with the 4.4 kernel that I have been using.
-> > > > > I am switching to 4.20-rc6 for better reproducibility.
-> > > > > Enabling KASAN also results in storage space issues on my Chrome
-> > device.
-> > > > > Will enable this just for ImgU to get ahead and get back with more
-> > updates.
-> > > > >
-> > > >
-> > > > Thanks for testing this.
-> > > >
-> > > > For your informations I'm using the following branch, from Sakari's
-> > > > tree: git://linuxtv.org/sailus/media_tree.git ipu3
-> > > >
-> > > > Although it appears that the media tree master branch has everything
-> > > > that is there, with a few additional patches on top. I should move
-> > > > to use media tree master as well...
-> > > >
-> > > > I have here attached 2 configuration files for v4.20-rc5 I am using
-> > > > on Soraka, in case they might help you. One has KASAN enabled with
-> > > > an increased kernel log size, the other one is the one we use for daily
-> > development.
+> > >  drivers/media/i2c/adv748x/adv748x-core.c | 57 +++++++++++++++++++++++-
+> > >  drivers/media/i2c/adv748x/adv748x.h      |  2 +
+> > >  2 files changed, 58 insertions(+), 1 deletion(-)
 > > >
-> > > I think I am missing a trick here to override the default chrome os
-> > > kernel config with the one that you supplied.
+> > > diff --git a/drivers/media/i2c/adv748x/adv748x-core.c
+> > > b/drivers/media/i2c/adv748x/adv748x-core.c index
+> > > 200e00f93546..a586bf393558 100644
+> > > --- a/drivers/media/i2c/adv748x/adv748x-core.c
+> > > +++ b/drivers/media/i2c/adv748x/adv748x-core.c
+> > > @@ -335,6 +335,60 @@ int adv748x_tx_power(struct adv748x_csi2 *tx, bool
+> > > on)
+> > >  /* ----------------------------------------------------------------------
+> > >   * Media Operations
+> > >   */
+> > > +static int adv748x_link_setup(struct media_entity *entity,
+> > > +			      const struct media_pad *local,
+> > > +			      const struct media_pad *remote, u32 flags)
+> > > +{
+> > > +	struct v4l2_subdev *rsd = media_entity_to_v4l2_subdev(remote->entity);
+> > > +	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
+> > > +	struct adv748x_state *state = v4l2_get_subdevdata(sd);
+> > > +	struct adv748x_csi2 *tx = adv748x_sd_to_csi2(sd);
+> > > +	bool enable = flags & MEDIA_LNK_FL_ENABLED;
+> > > +	u8 io10;
+> > > +
+> > > +	/* Refuse to enable multiple links to the same TX at the same time. */
+> > > +	if (enable && tx->src)
+> > > +		return -EINVAL;
+> > > +
+> > > +	/* Set or clear the source (HDMI or AFE) and the current TX. */
+> > > +	if (rsd == &state->afe.sd)
+> > > +		state->afe.tx = enable ? tx : NULL;
+> > > +	else
+> > > +		state->hdmi.tx = enable ? tx : NULL;
+> > > +
+> > > +	tx->src = enable ? rsd : NULL;
+> > > +
+> > > +	if (!enable)
+> > > +		return 0;
+> >
+> > Don't we potentially want to take any action on disable to power down
+> > links below ?
+> >
+> > > +
+> > > +	/* Change video stream routing, according to the newly enabled link. */
+> > > +	io10 = io_read(state, ADV748X_IO_10);
+> > > +	if (rsd == &state->afe.sd) {
+> > > +		/*
+> > > +		 * Set AFE->TXA routing and power off TXB if AFE goes to TXA.
+> > > +		 * if AFE goes to TXB, we need both TXA and TXB powered on.
+> > > +		 */
+> > > +		io10 &= ~ADV748X_IO_10_CSI1_EN;
+> > > +		io10 &= ~ADV748X_IO_10_CSI4_IN_SEL_AFE;
+> > > +		if (is_txa(tx))
+> > > +			io10 |= ADV748X_IO_10_CSI4_IN_SEL_AFE;
+> >
+> > Shouldn't the CSI4 be enabled here too? or are we assuming it's already
+> > (/always) enabled?
+> > 		io10 |= ADV748X_IO_10_CSI4_EN;
+> >
+> > > +		else
+> > > +			io10 |= ADV748X_IO_10_CSI4_EN |
+> > > +				ADV748X_IO_10_CSI1_EN;
+> > > +	} else {
+> > > +		/* Clear AFE->TXA routing and power up TXA. */
+> > > +		io10 &= ~ADV748X_IO_10_CSI4_IN_SEL_AFE;
+> > > +		io10 |= ADV748X_IO_10_CSI4_EN;
+> >
+> > But if we assume it's already enabled ... do we need this?
+> > Perhaps it might be better to be explicit on this?
+> >
+> > > +	}
+> > > +	io_write(state, ADV748X_IO_10, io10);
+> >
+> > Would it be any cleaner to use io_clrset() here?
+> >
+> > Hrm ... also it feels like this register really should be set depending
+> > upon the complete state of ... &state->...
+> >
+> > So perhaps it deserves it's own function which should be called after
+> > csi_registered() callback and any link change.
+> >
+> > /me has a quick go at some psuedo codeishness...:
+> >
+> > int adv74x_io_10(struct adv748x_state *state);
+> > 	u8 bits = 0;
+> > 	u8 mask = ADV748X_IO_10_CSI1_EN
+> >
+> > 		| ADV748X_IO_10_CSI4_EN
+> > 		| ADV748X_IO_10_CSI4_IN_SEL_AFE;
+> >
+> > 	if (state->afe.tx) {
+> > 		/* AFE Requires TXA enabled, even when output to TXB */
+> > 		bits |= ADV748X_IO_10_CSI4_EN;
+> >
+> > 		if (is_txa(state->afe.tx))
+> > 			bits |= ADV748X_IO_10_CSI4_IN_SEL_AFE
+> > 		else
+> > 			bits |= ADV748X_IO_10_CSI1_EN;
+> > 	}
+> >
+> > 	if (state->hdmi.tx) {
+> > 		bits |= ADV748X_IO_10_CSI4_EN;
+> > 	}
+> >
+> > 	return io_clrset(state, ADV748X_IO_10, mask, bits);
+> > }
+> >
+> > How does that look ? (is it even correct first?)
+> >
+> > > +
+> > > +	return 0;
+> > > +}
+> > > +
+> > > +static const struct media_entity_operations adv748x_tx_media_ops = {
+> > > +	.link_setup	= adv748x_link_setup,
+> > > +	.link_validate	= v4l2_subdev_link_validate,
+> > > +};
 > > >
-> > > In particular I am looking for steps to build the upstream kernel
-> > > within chrome os build environment using your config, so I can update my
-> > Soraka device.
+> > >  static const struct media_entity_operations adv748x_media_ops = {
+> > >  	.link_validate = v4l2_subdev_link_validate,
+> > > @@ -516,7 +570,8 @@ void adv748x_subdev_init(struct v4l2_subdev *sd,
+> > > struct adv748x_state *state,
+> > >  		state->client->addr, ident);
+> > >
+> > >  	sd->entity.function = function;
+> > > -	sd->entity.ops = &adv748x_media_ops;
+> > > +	sd->entity.ops = is_tx(adv748x_sd_to_csi2(sd)) ?
+> > > +			 &adv748x_tx_media_ops : &adv748x_media_ops;
 > >
-> > I'm sorry I can not help much building 'withing chrome os build environment'.
-> > Care to explain what you mean?
-> >
+> > Aha - yes that's a neat solution to ensure that only the TX links
+> > generate link_setup calls :)
 >
-> This is part of the Chromium OS build environment and development workflow.
-> https://chromium.googlesource.com/chromiumos/docs/+/master/kernel_faq.md
->
-> No worries.
-> I will sync up with Tomasz, as he managed to get this working with 4.20 kernel.
+> Another option would be to bail out from adv748x_link_setup() if the entity is
+> not a TX*.
 >
 
-I'm sorry I can't help much here. I suggest to work with mainline (or
-better, media master) and install a GNU/Linux distro on the chromebook so
-you can easily update your kernel.
+If I'm not wrong you suggested me to register a set of operations with
+the .link_setup callback only for TX entities, and I agree it is much
+better, so I'm leaning to leave it as it is in this series.
 
-I personally used https://chrx.org/ that makes installing gallium (or
-else) very easy. Once you get that running, I find easy enough to
-update the kernel installing a .deb package.
+Thanks
+  j
 
---sxmjs6z7vsobca4q
+> > >  }
+>
+> [snip]
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
+>
+>
+
+--yfdohzsps4vq5rh7
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCAAdFiEEtcQ9SICaIIqPWDjAcjQGjxahVjwFAlw3ACsACgkQcjQGjxah
-VjzXSQ/+Mj4GL9I9asyA50pgy6DTrEhIzva7fufmUah7nQgxSFcYoOs/Fc3NfE6b
-FvYj+1rQCv27OKlg/nApvUIcG+SDWPQXPq/gwkx9i8/ybdJmHM4S/YG7BhkCOtF1
-ure7jlVtqo9ud6soH6o7MZ6sOwD9yALZqcx7aXj0u0T1N4ElFL7NjB/oHdiI69sN
-WCuDq/sSLaoebtrXWv8ThgM9NnyKVK/RX+2Yygt+cb1cY1Yi4uQlik2WeQTK3UuO
-OCq8SjFzuQHrspzpRiicjccODN3kAOZG5JnMmMqHMecSj2FFN/17SdAIqtVBz+4w
-afTWZIBTQOsn7GTgrxWeYyYShSRiGCyggpsUKckK+e+hlxT2tR9pnFMFkA4kO3iD
-PWLuI7WbpOhRWKk5QnTNzUU5r5o73kYH0mkts4XL4kwDu16pS8+oWvRl8zJpki+0
-SgH/drwOzV6P/Mlh9Kn+8ufBwyUQ3DC41EG6CUCgS5KRzVWN8tDix2HsrgYSnf1M
-mmqf5RTq7KFwjX2qUfrDGDtZ2wFcFF7B1fDkkJ3cW5CvCxSJb7AVaN5/ZG8WxMnO
-2MtJCtv1bfr2kbkvMjISqkCsP1NlPj3o+FTLunvKI0hLYWEJUjqOMDcxLx8ObL2V
-Ijr/GPLFc+2ENvVEcveKQQ3asEZy4MdRyZqOppLi7NRxoKPnBps=
-=rkgF
+iQIzBAABCAAdFiEEtcQ9SICaIIqPWDjAcjQGjxahVjwFAlw3B3QACgkQcjQGjxah
+VjwGYQ//R2Czox++jVHky3E3eBn9ct7Z/PeY2pXin3G8beBfLjetP9kbOPF/yhTl
+ttUh65kWkonhhxA5ljGE+nACrs0fEHdkW+/xL+3fFSsJva1xh39oklXRVNx+p8FJ
+36vGts/NNlyP7pXmHwyLAndAyX8cCi5tAydN9ZP55DD13hzLTw68DAAB93lLDPzX
+hsvv+d+FQEVcCgtM73hYUnMJLapqkQRUpfkg+oMtkQ0NeZGXDMKKhRmMT0q2Hpv9
+0zYwPvT7NESTpz+EqsUHt2tZeI2EjgALHzlDjxDpfwKALjogejMUEjB2J5T0DnNe
+meyMG+YIEdwenhgGCWZIB4qLJhcISWMoF/oUsw3of7xHqJg14sCyQapQR84juLYB
+vvJPL2QW9ViYR6jFMVN12VjFCUvOuRynt+oaQfvVmSIHaYkw+EJlLboMcgEXF4Bu
+O5GFSzRT3VUGcoz8CsfuiBTgMDPR/0ifu2qTfk35glJdUcdJUx2xTVqDwSVFmVl+
+9Yw7CtBwiyrBj+ns5gfXYR3JCD2QGL4Vv9G15II3WZ1Y/VfhiFMkWrpCMJnyg9Vw
++1GaPcpceTZ1D+TcU8/8WDUURBEDkjmywo96h3P7BNe+kir/aM/B8LvdYdBT/1BC
+d7l19/CnTPRCK1Mf4SIpzx7NPxVa3mjTlUifx+p+gIZHjTcRWFk=
+=ehpP
 -----END PGP SIGNATURE-----
 
---sxmjs6z7vsobca4q--
+--yfdohzsps4vq5rh7--
