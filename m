@@ -7,41 +7,41 @@ X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C568C43612
-	for <linux-media@archiver.kernel.org>; Fri, 11 Jan 2019 12:50:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CB58C43612
+	for <linux-media@archiver.kernel.org>; Fri, 11 Jan 2019 12:51:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 40FFC2133F
-	for <linux-media@archiver.kernel.org>; Fri, 11 Jan 2019 12:50:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2478720874
+	for <linux-media@archiver.kernel.org>; Fri, 11 Jan 2019 12:51:56 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="fRwc7rHB"
+	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="OoJKekkD"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731341AbfAKMuy (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 11 Jan 2019 07:50:54 -0500
-Received: from perceval.ideasonboard.com ([213.167.242.64]:54702 "EHLO
+        id S1732481AbfAKMvz (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 11 Jan 2019 07:51:55 -0500
+Received: from perceval.ideasonboard.com ([213.167.242.64]:54712 "EHLO
         perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730166AbfAKMuy (ORCPT
+        with ESMTP id S1731404AbfAKMvz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 11 Jan 2019 07:50:54 -0500
+        Fri, 11 Jan 2019 07:51:55 -0500
 Received: from [192.168.0.21] (cpc89242-aztw30-2-0-cust488.18-1.cable.virginm.net [86.31.129.233])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 27847513;
-        Fri, 11 Jan 2019 13:50:51 +0100 (CET)
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 71730513;
+        Fri, 11 Jan 2019 13:51:51 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1547211051;
-        bh=jp28aC2OekCr7h4erfF6eTu0yPYzJhnWHrF48ghyfWA=;
+        s=mail; t=1547211111;
+        bh=I1KVxI/pNf3p3u8tn03qGTM4O8qtsdSkTZqzESVrik4=;
         h=Reply-To:Subject:To:Cc:References:From:Date:In-Reply-To:From;
-        b=fRwc7rHBrEitWkj36KRZiUcw/NESbHevRJAbYldrBCUi0dBeIKY7worfFSeYyLozn
-         OmmoMe3MvaGoKRLaCK6VdIAF0wfR3BpxxDYJMl4mH6Mbc3dAl40aqbQC7DHqPSU9V7
-         PQl9WajTwZtP1bX4Z3InzuiqrgJcNsE/YvQ41aik=
+        b=OoJKekkDJ+/5QfA2M4i4FqdHsBdU+eYq1EdV6I1c56EX1BxwZponbGYK4UGwnasTY
+         I2ka06/VCsTNyk8Ni/VJ2bDHFEf7f4ThusP7jQyTozBHSdKwwhKIAlO8MzflkrmAuI
+         Qt3MSm959dcIHFwPm1H1+zYMg7KdgGWc92nIzC7E=
 Reply-To: kieran.bingham@ideasonboard.com
-Subject: Re: [PATCH v4 3/4] i2c: adv748x: store number of CSI-2 lanes
- described in device tree
+Subject: Re: [PATCH v4 4/4] i2c: adv748x: configure number of lanes used for
+ TXA CSI-2 transmitter
 To:     =?UTF-8?Q?Niklas_S=c3=b6derlund?= 
         <niklas.soderlund+renesas@ragnatech.se>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Jacopo Mondi <jacopo@jmondi.org>, linux-media@vger.kernel.org
 Cc:     linux-renesas-soc@vger.kernel.org
 References: <20181129020147.22115-1-niklas.soderlund+renesas@ragnatech.se>
- <20181129020147.22115-4-niklas.soderlund+renesas@ragnatech.se>
+ <20181129020147.22115-5-niklas.soderlund+renesas@ragnatech.se>
 From:   Kieran Bingham <kieran.bingham@ideasonboard.com>
 Openpgp: preference=signencrypt
 Autocrypt: addr=kieran.bingham@ideasonboard.com; keydata=
@@ -88,12 +88,12 @@ Autocrypt: addr=kieran.bingham@ideasonboard.com; keydata=
  JxB1gWThL4kOTbsqqXj9GLcyOImkW0lJGGR3o/fV91Zh63S5TKnf2YGGGzxki+ADdxVQAm+Q
  sbsRB8KNNvVXBOVNwko86rQqF9drZuw=
 Organization: Ideas on Board
-Message-ID: <ac405527-18fc-eb9b-f581-ec89b62d724d@ideasonboard.com>
-Date:   Fri, 11 Jan 2019 12:50:48 +0000
+Message-ID: <0e22368f-2736-3a34-f50c-1b57b5c2bf15@ideasonboard.com>
+Date:   Fri, 11 Jan 2019 12:51:48 +0000
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
  Thunderbird/60.2.1
 MIME-Version: 1.0
-In-Reply-To: <20181129020147.22115-4-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20181129020147.22115-5-niklas.soderlund+renesas@ragnatech.se>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-GB
 Content-Transfer-Encoding: 8bit
@@ -105,12 +105,15 @@ X-Mailing-List: linux-media@vger.kernel.org
 Hi Niklas,
 
 On 29/11/2018 02:01, Niklas Söderlund wrote:
-> The adv748x CSI-2 transmitters TXA and TXB can use different number of
-> lanes to transmit data. In order to be able to configure the device
-> correctly this information need to be parsed from device tree and stored
-> in each TX private data structure.
+> The driver fixed the TXA CSI-2 transmitter in 4-lane mode while it could
+> operate using 1-, 2- and 4-lanes. Update the driver to support all
+> available modes.
 > 
-> TXA supports 1, 2 and 4 lanes while TXB supports 1 lane.
+> The driver makes use of large tables of static register/value writes
+> when powering up/down the TXA and TXB transmitters which include the
+> write to the NUM_LANES register. By converting the tables into functions
+> and using parameters the power up/down functions for TXA and TXB power
+> up/down can be merged and used for both transmitters.
 > 
 
 Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
@@ -119,114 +122,210 @@ Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 > Reviewed-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
 > Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 > Tested-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-
 > 
 > ---
+> * Changes since v3
+> - Fix spelling in commit message, thanks Laurent!
 > * Changes since v2
-> - Rebase to latest media-tree requires the bus_type filed in struct
->   v4l2_fwnode_endpoint to be initialized, set it to V4L2_MBUS_CSI2_DPHY.
+> - Fix typos in comments.
+> - Remove unneeded boiler plait code in adv748x_tx_power() as suggested
+>   by Jacopo and Laurent.
+> - Take into account the two different register used when powering up TXA
+>   and TXB due to an earlier patch in this series aligns the power
+>   sequence with the manual.
 > 
 > * Changes since v1
-> - Use %u instead of %d to print unsigned int.
-> - Fix spelling in commit message, thanks Laurent.
+> - Convert tables of register/value writes into functions instead of
+>   intercepting and modifying the writes to the NUM_LANES register.
 > ---
->  drivers/media/i2c/adv748x/adv748x-core.c | 50 ++++++++++++++++++++++++
->  drivers/media/i2c/adv748x/adv748x.h      |  1 +
->  2 files changed, 51 insertions(+)
+>  drivers/media/i2c/adv748x/adv748x-core.c | 157 ++++++++++++-----------
+>  1 file changed, 79 insertions(+), 78 deletions(-)
 > 
 > diff --git a/drivers/media/i2c/adv748x/adv748x-core.c b/drivers/media/i2c/adv748x/adv748x-core.c
-> index 2384f50dacb0ccff..9d80d7f3062b16bc 100644
+> index 9d80d7f3062b16bc..d94c63cb6a2efdba 100644
 > --- a/drivers/media/i2c/adv748x/adv748x-core.c
 > +++ b/drivers/media/i2c/adv748x/adv748x-core.c
-> @@ -23,6 +23,7 @@
->  #include <media/v4l2-ctrls.h>
->  #include <media/v4l2-device.h>
->  #include <media/v4l2-dv-timings.h>
-> +#include <media/v4l2-fwnode.h>
->  #include <media/v4l2-ioctl.h>
->  
->  #include "adv748x.h"
-> @@ -521,12 +522,56 @@ void adv748x_subdev_init(struct v4l2_subdev *sd, struct adv748x_state *state,
->  	sd->entity.ops = &adv748x_media_ops;
+> @@ -125,6 +125,16 @@ int adv748x_write(struct adv748x_state *state, u8 page, u8 reg, u8 value)
+>  	return regmap_write(state->regmap[page], reg, value);
 >  }
 >  
-> +static int adv748x_parse_csi2_lanes(struct adv748x_state *state,
-> +				    unsigned int port,
-> +				    struct device_node *ep)
+> +static int adv748x_write_check(struct adv748x_state *state, u8 page, u8 reg,
+> +			       u8 value, int *error)
 > +{
-> +	struct v4l2_fwnode_endpoint vep;
-> +	unsigned int num_lanes;
-> +	int ret;
+> +	if (*error)
+> +		return *error;
 > +
-> +	if (port != ADV748X_PORT_TXA && port != ADV748X_PORT_TXB)
-> +		return 0;
-> +
-> +	vep.bus_type = V4L2_MBUS_CSI2_DPHY;
-> +	ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(ep), &vep);
-> +	if (ret)
-> +		return ret;
-> +
-> +	num_lanes = vep.bus.mipi_csi2.num_data_lanes;
-> +
-> +	if (vep.base.port == ADV748X_PORT_TXA) {
-> +		if (num_lanes != 1 && num_lanes != 2 && num_lanes != 4) {
-> +			adv_err(state, "TXA: Invalid number (%u) of lanes\n",
-> +				num_lanes);
-> +			return -EINVAL;
-> +		}
-> +
-> +		state->txa.num_lanes = num_lanes;
-> +		adv_dbg(state, "TXA: using %u lanes\n", state->txa.num_lanes);
-> +	}
-> +
-> +	if (vep.base.port == ADV748X_PORT_TXB) {
-> +		if (num_lanes != 1) {
-> +			adv_err(state, "TXB: Invalid number (%u) of lanes\n",
-> +				num_lanes);
-> +			return -EINVAL;
-> +		}
-> +
-> +		state->txb.num_lanes = num_lanes;
-> +		adv_dbg(state, "TXB: using %u lanes\n", state->txb.num_lanes);
-> +	}
-> +
-> +	return 0;
+> +	*error = adv748x_write(state, page, reg, value);
+> +	return *error;
 > +}
 > +
->  static int adv748x_parse_dt(struct adv748x_state *state)
->  {
->  	struct device_node *ep_np = NULL;
->  	struct of_endpoint ep;
->  	bool out_found = false;
->  	bool in_found = false;
-> +	int ret;
+>  /* adv748x_write_block(): Write raw data with a maximum of I2C_SMBUS_BLOCK_MAX
+>   * size to one or more registers.
+>   *
+> @@ -231,79 +241,77 @@ static int adv748x_write_regs(struct adv748x_state *state,
+>   * TXA and TXB
+>   */
 >  
->  	for_each_endpoint_of_node(state->dev->of_node, ep_np) {
->  		of_graph_parse_endpoint(ep_np, &ep);
-> @@ -557,6 +602,11 @@ static int adv748x_parse_dt(struct adv748x_state *state)
->  			in_found = true;
->  		else
->  			out_found = true;
+> -static const struct adv748x_reg_value adv748x_power_up_txa_4lane[] = {
+> -
+> -	{ADV748X_PAGE_TXA, 0x00, 0x84},	/* Enable 4-lane MIPI */
+> -	{ADV748X_PAGE_TXA, 0x00, 0xa4},	/* Set Auto DPHY Timing */
+> -	{ADV748X_PAGE_TXA, 0xdb, 0x10},	/* ADI Required Write */
+> -	{ADV748X_PAGE_TXA, 0xd6, 0x07},	/* ADI Required Write */
+> -	{ADV748X_PAGE_TXA, 0xc4, 0x0a},	/* ADI Required Write */
+> -	{ADV748X_PAGE_TXA, 0x71, 0x33},	/* ADI Required Write */
+> -	{ADV748X_PAGE_TXA, 0x72, 0x11},	/* ADI Required Write */
+> -	{ADV748X_PAGE_TXA, 0xf0, 0x00},	/* i2c_dphy_pwdn - 1'b0 */
+> -
+> -	{ADV748X_PAGE_TXA, 0x31, 0x82},	/* ADI Required Write */
+> -	{ADV748X_PAGE_TXA, 0x1e, 0x40},	/* ADI Required Write */
+> -	{ADV748X_PAGE_TXA, 0xda, 0x01},	/* i2c_mipi_pll_en - 1'b1 */
+> -	{ADV748X_PAGE_WAIT, 0x00, 0x02},/* delay 2 */
+> -	{ADV748X_PAGE_TXA, 0x00, 0x24 },/* Power-up CSI-TX */
+> -	{ADV748X_PAGE_WAIT, 0x00, 0x01},/* delay 1 */
+> -	{ADV748X_PAGE_TXA, 0xc1, 0x2b},	/* ADI Required Write */
+> -	{ADV748X_PAGE_WAIT, 0x00, 0x01},/* delay 1 */
+> -	{ADV748X_PAGE_TXA, 0x31, 0x80},	/* ADI Required Write */
+> -
+> -	{ADV748X_PAGE_EOR, 0xff, 0xff}	/* End of register table */
+> -};
+> -
+> -static const struct adv748x_reg_value adv748x_power_down_txa_4lane[] = {
+> -
+> -	{ADV748X_PAGE_TXA, 0x31, 0x82},	/* ADI Required Write */
+> -	{ADV748X_PAGE_TXA, 0x1e, 0x00},	/* ADI Required Write */
+> -	{ADV748X_PAGE_TXA, 0x00, 0x84},	/* Enable 4-lane MIPI */
+> -	{ADV748X_PAGE_TXA, 0xda, 0x01},	/* i2c_mipi_pll_en - 1'b1 */
+> -	{ADV748X_PAGE_TXA, 0xc1, 0x3b},	/* ADI Required Write */
+> -
+> -	{ADV748X_PAGE_EOR, 0xff, 0xff}	/* End of register table */
+> -};
+> -
+> -static const struct adv748x_reg_value adv748x_power_up_txb_1lane[] = {
+> -
+> -	{ADV748X_PAGE_TXB, 0x00, 0x81},	/* Enable 1-lane MIPI */
+> -	{ADV748X_PAGE_TXB, 0x00, 0xa1},	/* Set Auto DPHY Timing */
+> -	{ADV748X_PAGE_TXB, 0xd2, 0x40},	/* ADI Required Write */
+> -	{ADV748X_PAGE_TXB, 0xc4, 0x0a},	/* ADI Required Write */
+> -	{ADV748X_PAGE_TXB, 0x71, 0x33},	/* ADI Required Write */
+> -	{ADV748X_PAGE_TXB, 0x72, 0x11},	/* ADI Required Write */
+> -	{ADV748X_PAGE_TXB, 0xf0, 0x00},	/* i2c_dphy_pwdn - 1'b0 */
+> -
+> -	{ADV748X_PAGE_TXB, 0x31, 0x82},	/* ADI Required Write */
+> -	{ADV748X_PAGE_TXB, 0x1e, 0x40},	/* ADI Required Write */
+> -	{ADV748X_PAGE_TXB, 0xda, 0x01},	/* i2c_mipi_pll_en - 1'b1 */
+> -	{ADV748X_PAGE_WAIT, 0x00, 0x02},/* delay 2 */
+> -	{ADV748X_PAGE_TXB, 0x00, 0x21 },/* Power-up CSI-TX */
+> -	{ADV748X_PAGE_WAIT, 0x00, 0x01},/* delay 1 */
+> -	{ADV748X_PAGE_TXB, 0xc1, 0x2b},	/* ADI Required Write */
+> -	{ADV748X_PAGE_WAIT, 0x00, 0x01},/* delay 1 */
+> -	{ADV748X_PAGE_TXB, 0x31, 0x80},	/* ADI Required Write */
+> -
+> -	{ADV748X_PAGE_EOR, 0xff, 0xff}	/* End of register table */
+> -};
+> -
+> -static const struct adv748x_reg_value adv748x_power_down_txb_1lane[] = {
+> -
+> -	{ADV748X_PAGE_TXB, 0x31, 0x82},	/* ADI Required Write */
+> -	{ADV748X_PAGE_TXB, 0x1e, 0x00},	/* ADI Required Write */
+> -	{ADV748X_PAGE_TXB, 0x00, 0x81},	/* Enable 1-lane MIPI */
+> -	{ADV748X_PAGE_TXB, 0xda, 0x01},	/* i2c_mipi_pll_en - 1'b1 */
+> -	{ADV748X_PAGE_TXB, 0xc1, 0x3b},	/* ADI Required Write */
+> -
+> -	{ADV748X_PAGE_EOR, 0xff, 0xff}	/* End of register table */
+> -};
+> +static int adv748x_power_up_tx(struct adv748x_csi2 *tx)
+> +{
+> +	struct adv748x_state *state = tx->state;
+> +	u8 page = is_txa(tx) ? ADV748X_PAGE_TXA : ADV748X_PAGE_TXB;
+> +	int ret = 0;
 > +
-> +		/* Store number of CSI-2 lanes used for TXA and TXB. */
-> +		ret = adv748x_parse_csi2_lanes(state, ep.port, ep_np);
-> +		if (ret)
-> +			return ret;
->  	}
+> +	/* Enable n-lane MIPI */
+> +	adv748x_write_check(state, page, 0x00, 0x80 | tx->num_lanes, &ret);
+> +
+> +	/* Set Auto DPHY Timing */
+> +	adv748x_write_check(state, page, 0x00, 0xa0 | tx->num_lanes, &ret);
+> +
+> +	/* ADI Required Write */
+> +	if (is_txa(tx)) {
+> +		adv748x_write_check(state, page, 0xdb, 0x10, &ret);
+> +		adv748x_write_check(state, page, 0xd6, 0x07, &ret);
+> +	} else {
+> +		adv748x_write_check(state, page, 0xd2, 0x40, &ret);
+> +	}
+> +
+> +	adv748x_write_check(state, page, 0xc4, 0x0a, &ret);
+> +	adv748x_write_check(state, page, 0x71, 0x33, &ret);
+> +	adv748x_write_check(state, page, 0x72, 0x11, &ret);
+> +
+> +	/* i2c_dphy_pwdn - 1'b0 */
+> +	adv748x_write_check(state, page, 0xf0, 0x00, &ret);
+> +
+> +	/* ADI Required Writes*/
+> +	adv748x_write_check(state, page, 0x31, 0x82, &ret);
+> +	adv748x_write_check(state, page, 0x1e, 0x40, &ret);
+> +
+> +	/* i2c_mipi_pll_en - 1'b1 */
+> +	adv748x_write_check(state, page, 0xda, 0x01, &ret);
+> +	usleep_range(2000, 2500);
+> +
+> +	/* Power-up CSI-TX */
+> +	adv748x_write_check(state, page, 0x00, 0x20 | tx->num_lanes, &ret);
+> +	usleep_range(1000, 1500);
+> +
+> +	/* ADI Required Writes */
+> +	adv748x_write_check(state, page, 0xc1, 0x2b, &ret);
+> +	usleep_range(1000, 1500);
+> +	adv748x_write_check(state, page, 0x31, 0x80, &ret);
+> +
+> +	return ret;
+> +}
+> +
+> +static int adv748x_power_down_tx(struct adv748x_csi2 *tx)
+> +{
+> +	struct adv748x_state *state = tx->state;
+> +	u8 page = is_txa(tx) ? ADV748X_PAGE_TXA : ADV748X_PAGE_TXB;
+> +	int ret = 0;
+> +
+> +	/* ADI Required Writes */
+> +	adv748x_write_check(state, page, 0x31, 0x82, &ret);
+> +	adv748x_write_check(state, page, 0x1e, 0x00, &ret);
+> +
+> +	/* Enable n-lane MIPI */
+> +	adv748x_write_check(state, page, 0x00, 0x80 | tx->num_lanes, &ret);
+> +
+> +	/* i2c_mipi_pll_en - 1'b1 */
+> +	adv748x_write_check(state, page, 0xda, 0x01, &ret);
+> +
+> +	/* ADI Required Write */
+> +	adv748x_write_check(state, page, 0xc1, 0x3b, &ret);
+> +
+> +	return ret;
+> +}
 >  
->  	return in_found && out_found ? 0 : -ENODEV;
-> diff --git a/drivers/media/i2c/adv748x/adv748x.h b/drivers/media/i2c/adv748x/adv748x.h
-> index 39c2fdc3b41667d8..b482c7fe6957eb85 100644
-> --- a/drivers/media/i2c/adv748x/adv748x.h
-> +++ b/drivers/media/i2c/adv748x/adv748x.h
-> @@ -79,6 +79,7 @@ struct adv748x_csi2 {
->  	struct v4l2_mbus_framefmt format;
->  	unsigned int page;
->  	unsigned int port;
-> +	unsigned int num_lanes;
+>  int adv748x_tx_power(struct adv748x_csi2 *tx, bool on)
+>  {
+> -	struct adv748x_state *state = tx->state;
+> -	const struct adv748x_reg_value *reglist;
+>  	int val;
 >  
->  	struct media_pad pads[ADV748X_CSI2_NR_PADS];
->  	struct v4l2_ctrl_handler ctrl_hdl;
+>  	if (!is_tx_enabled(tx))
+> @@ -321,14 +329,7 @@ int adv748x_tx_power(struct adv748x_csi2 *tx, bool on)
+>  	WARN_ONCE((on && val & ADV748X_CSI_FS_AS_LS_UNKNOWN),
+>  			"Enabling with unknown bit set");
+>  
+> -	if (on)
+> -		reglist = is_txa(tx) ? adv748x_power_up_txa_4lane :
+> -				       adv748x_power_up_txb_1lane;
+> -	else
+> -		reglist = is_txa(tx) ? adv748x_power_down_txa_4lane :
+> -				       adv748x_power_down_txb_1lane;
+> -
+> -	return adv748x_write_regs(state, reglist);
+> +	return on ? adv748x_power_up_tx(tx) : adv748x_power_down_tx(tx);
+>  }
+>  
+>  /* -----------------------------------------------------------------------------
 > 
 
 -- 
