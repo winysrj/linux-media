@@ -3,62 +3,69 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A73C5C43387
-	for <linux-media@archiver.kernel.org>; Fri, 11 Jan 2019 11:43:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E5CCC43387
+	for <linux-media@archiver.kernel.org>; Fri, 11 Jan 2019 12:07:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 78D3D20578
-	for <linux-media@archiver.kernel.org>; Fri, 11 Jan 2019 11:43:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E4C662146F
+	for <linux-media@archiver.kernel.org>; Fri, 11 Jan 2019 12:07:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730279AbfAKLnO (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 11 Jan 2019 06:43:14 -0500
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:54286 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1729295AbfAKLnO (ORCPT
+        id S1731244AbfAKMH2 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 11 Jan 2019 07:07:28 -0500
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:50706 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726201AbfAKMH2 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 11 Jan 2019 06:43:14 -0500
+        Fri, 11 Jan 2019 07:07:28 -0500
 Received: from [IPv6:2001:983:e9a7:1:b51b:802b:6c83:309a] ([IPv6:2001:983:e9a7:1:b51b:802b:6c83:309a])
         by smtp-cloud8.xs4all.net with ESMTPA
-        id hvDUgsRHrNR5yhvDVg9zHg; Fri, 11 Jan 2019 12:43:13 +0100
-To:     Linux Media Mailing List <linux-media@vger.kernel.org>
+        id hvavgsdE7NR5yhvawgA7NC; Fri, 11 Jan 2019 13:07:26 +0100
 From:   Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] vim2m: the v4l2_m2m_buf_copy_data args were swapped
-Message-ID: <a56725d6-c072-3cc5-5cd3-2a1de4021566@xs4all.nl>
-Date:   Fri, 11 Jan 2019 12:43:12 +0100
+Subject: [PATCH for v5.0] vim2m: only cancel work if it is for right context
+To:     Linux Media Mailing List <linux-media@vger.kernel.org>
+Message-ID: <c4f132b1-4f27-562c-8189-573bbff904fd@xs4all.nl>
+Date:   Fri, 11 Jan 2019 13:07:25 +0100
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
  Thunderbird/60.3.1
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfFurFdDder2d3F5RWKgS+ghf/quchv1hZ/9Ea6oayMTWAGHi9Oi73TxbwDML19bUKJxzvIAgxickcx8eZ8m0kWgaesF9ACX58un/ld5ddpsS95Uq4O+h
- 0NHEDSqrtAAIxIPxWXLxYxvH66UMB5xtwyDGYGh9QvgYa8B4jyZ5MAT6wB76s+a2DoR82CTwqPHF9fEWHRHGjIzQ5Hw4h9ZFxrPVRrRMan1bmX1Evfhf9IBH
- i8qdOyo9FOSUQxrVg//QuUI9W5EW75EmhVZ0CaXYgTE=
+X-CMAE-Envelope: MS4wfCOQEY+y4ykq49Y3PRykPjEuy3xZTsjz11ZeCh6fjZ10g5t+HgHQXApNabIgNZ3UW7E0IordbMAklE7dmRfZqCRL+kZ6cfPw/Opj7btO2w8HQ86gkjV8
+ UOgTPkJX54n9rOoUeHpQ9wihdtFmdSPLtFQHxCYA/+oiONybVO/aqbqEjqxaasK3pbW8f7h9QGRnzEYblAyzJV+z5urwbQYoazjk/m6QBfc9C/wRqbYN9B5X
+ pyBpAGGwtRQ27n+uOsvYfWkeFZSfRHt0hyrL5TmW04Y=
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-The buffer arguments to v4l2_m2m_buf_copy_data args were swapped.
+cancel_delayed_work_sync() was called for any queue, but it should only
+be called for the queue that is associated with the currently running job.
 
-The reason is confusing naming conventions in vim2m. It certainly
-could be improved.
+Otherwise, if two filehandles are streaming at the same time, then closing the
+first will cancel the work which might still be running for a job from the
+second filehandle. As a result the second filehandle will never be able to
+finish the job and an attempt to stop streaming on that second filehandle will
+stall.
 
-Fixes: 7aca565ee3d0 ("media: vim2m: use v4l2_m2m_buf_copy_data")
+Fixes: 52117be68b82 ("media: vim2m: use cancel_delayed_work_sync instead of flush_schedule_work")
 Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+Cc: <stable@vger.kernel.org>      # for v4.20 and up
 ---
 diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
-index 33397d4a1402..a7a152fb3075 100644
+index 33397d4a1402..2d066a3567d4 100644
 --- a/drivers/media/platform/vim2m.c
 +++ b/drivers/media/platform/vim2m.c
-@@ -241,7 +241,7 @@ static int device_process(struct vim2m_ctx *ctx,
- 	out_vb->sequence =
- 		get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE)->sequence++;
- 	in_vb->sequence = q_data->sequence++;
--	v4l2_m2m_buf_copy_data(out_vb, in_vb, true);
-+	v4l2_m2m_buf_copy_data(in_vb, out_vb, true);
+@@ -797,7 +797,9 @@ static void vim2m_stop_streaming(struct vb2_queue *q)
+ 	struct vb2_v4l2_buffer *vbuf;
+ 	unsigned long flags;
 
- 	switch (ctx->mode) {
- 	case MEM2MEM_HFLIP | MEM2MEM_VFLIP:
+-	cancel_delayed_work_sync(&dev->work_run);
++	if (v4l2_m2m_get_curr_priv(dev->m2m_dev) == ctx)
++		cancel_delayed_work_sync(&dev->work_run);
++
+ 	for (;;) {
+ 		if (V4L2_TYPE_IS_OUTPUT(q->type))
+ 			vbuf = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
