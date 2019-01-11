@@ -2,39 +2,36 @@ Return-Path: <SRS0=SCQz=PT=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
-	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B1CEEC43387
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D5D8DC43612
 	for <linux-media@archiver.kernel.org>; Fri, 11 Jan 2019 11:11:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8BF6020663
+	by mail.kernel.org (Postfix) with ESMTP id AFF8E217F9
 	for <linux-media@archiver.kernel.org>; Fri, 11 Jan 2019 11:11:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729330AbfAKLL1 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        id S1729423AbfAKLL1 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
         Fri, 11 Jan 2019 06:11:27 -0500
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:33779 "EHLO
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:45767 "EHLO
         metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726503AbfAKLL1 (ORCPT
+        with ESMTP id S1725801AbfAKLL1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Fri, 11 Jan 2019 06:11:27 -0500
 Received: from dude02.hi.pengutronix.de ([2001:67c:670:100:1d::28] helo=dude02.pengutronix.de.)
         by metis.ext.pengutronix.de with esmtp (Exim 4.89)
         (envelope-from <p.zabel@pengutronix.de>)
-        id 1ghuik-0008Kt-3w; Fri, 11 Jan 2019 12:11:26 +0100
+        id 1ghuij-0008Kt-GC; Fri, 11 Jan 2019 12:11:25 +0100
 From:   Philipp Zabel <p.zabel@pengutronix.de>
 To:     linux-media@vger.kernel.org
 Cc:     Hans Verkuil <hans.verkuil@cisco.com>,
         Steve Longerbeam <slongerbeam@gmail.com>,
         Sakari Ailus <sakari.ailus@iki.fi>, kernel@pengutronix.de
-Subject: [PATCH v3 2/3] media: imx: set compose rectangle to mbus format
-Date:   Fri, 11 Jan 2019 12:10:52 +0100
-Message-Id: <20190111111053.12551-2-p.zabel@pengutronix.de>
+Subject: [PATCH v3 1/3] media: imx: add capture compose rectangle
+Date:   Fri, 11 Jan 2019 12:10:51 +0100
+Message-Id: <20190111111053.12551-1-p.zabel@pengutronix.de>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190111111053.12551-1-p.zabel@pengutronix.de>
-References: <20190111111053.12551-1-p.zabel@pengutronix.de>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-SA-Exim-Connect-IP: 2001:67c:670:100:1d::28
@@ -46,130 +43,147 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Prepare for mbus format being smaller than the written rectangle
-due to burst size.
+Allowing to compose captured images into larger memory buffers
+will let us lift alignment restrictions on CSI crop width.
 
 Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 Reviewed-by: Steve Longerbeam <slongerbeam@gmail.com>
 ---
- drivers/staging/media/imx/imx-media-capture.c | 56 +++++++++++++------
- 1 file changed, 38 insertions(+), 18 deletions(-)
+ drivers/staging/media/imx/imx-ic-prpencvf.c   |  3 +-
+ drivers/staging/media/imx/imx-media-capture.c | 37 +++++++++++++++++++
+ drivers/staging/media/imx/imx-media-csi.c     |  3 +-
+ drivers/staging/media/imx/imx-media-vdic.c    |  4 +-
+ drivers/staging/media/imx/imx-media.h         |  2 +
+ 5 files changed, 43 insertions(+), 6 deletions(-)
 
+diff --git a/drivers/staging/media/imx/imx-ic-prpencvf.c b/drivers/staging/media/imx/imx-ic-prpencvf.c
+index 28f41caba05d..fe5a77baa592 100644
+--- a/drivers/staging/media/imx/imx-ic-prpencvf.c
++++ b/drivers/staging/media/imx/imx-ic-prpencvf.c
+@@ -366,8 +366,7 @@ static int prp_setup_channel(struct prp_priv *priv,
+ 
+ 	memset(&image, 0, sizeof(image));
+ 	image.pix = vdev->fmt.fmt.pix;
+-	image.rect.width = image.pix.width;
+-	image.rect.height = image.pix.height;
++	image.rect = vdev->compose;
+ 
+ 	if (rot_swap_width_height) {
+ 		swap(image.pix.width, image.pix.height);
 diff --git a/drivers/staging/media/imx/imx-media-capture.c b/drivers/staging/media/imx/imx-media-capture.c
-index fb985e68f9ab..614e335fb61c 100644
+index b37e1186eb2f..fb985e68f9ab 100644
 --- a/drivers/staging/media/imx/imx-media-capture.c
 +++ b/drivers/staging/media/imx/imx-media-capture.c
-@@ -203,21 +203,13 @@ static int capture_g_fmt_vid_cap(struct file *file, void *fh,
- 	return 0;
- }
- 
--static int capture_try_fmt_vid_cap(struct file *file, void *fh,
--				   struct v4l2_format *f)
-+static int __capture_try_fmt_vid_cap(struct capture_priv *priv,
-+				     struct v4l2_subdev_format *fmt_src,
-+				     struct v4l2_format *f)
- {
--	struct capture_priv *priv = video_drvdata(file);
--	struct v4l2_subdev_format fmt_src;
- 	const struct imx_media_pixfmt *cc, *cc_src;
--	int ret;
- 
--	fmt_src.pad = priv->src_sd_pad;
--	fmt_src.which = V4L2_SUBDEV_FORMAT_ACTIVE;
--	ret = v4l2_subdev_call(priv->src_sd, pad, get_fmt, NULL, &fmt_src);
--	if (ret)
--		return ret;
--
--	cc_src = imx_media_find_ipu_format(fmt_src.format.code, CS_SEL_ANY);
-+	cc_src = imx_media_find_ipu_format(fmt_src->format.code, CS_SEL_ANY);
- 	if (cc_src) {
- 		u32 fourcc, cs_sel;
- 
-@@ -231,7 +223,7 @@ static int capture_try_fmt_vid_cap(struct file *file, void *fh,
- 			cc = imx_media_find_format(fourcc, cs_sel, false);
- 		}
- 	} else {
--		cc_src = imx_media_find_mbus_format(fmt_src.format.code,
-+		cc_src = imx_media_find_mbus_format(fmt_src->format.code,
- 						    CS_SEL_ANY, true);
- 		if (WARN_ON(!cc_src))
- 			return -EINVAL;
-@@ -239,15 +231,32 @@ static int capture_try_fmt_vid_cap(struct file *file, void *fh,
- 		cc = cc_src;
- 	}
- 
--	imx_media_mbus_fmt_to_pix_fmt(&f->fmt.pix, &fmt_src.format, cc);
-+	imx_media_mbus_fmt_to_pix_fmt(&f->fmt.pix, &fmt_src->format, cc);
+@@ -262,6 +262,10 @@ static int capture_s_fmt_vid_cap(struct file *file, void *fh,
+ 	priv->vdev.fmt.fmt.pix = f->fmt.pix;
+ 	priv->vdev.cc = imx_media_find_format(f->fmt.pix.pixelformat,
+ 					      CS_SEL_ANY, true);
++	priv->vdev.compose.left = 0;
++	priv->vdev.compose.top = 0;
++	priv->vdev.compose.width = f->fmt.pix.width;
++	priv->vdev.compose.height = f->fmt.pix.height;
  
  	return 0;
  }
+@@ -290,6 +294,34 @@ static int capture_s_std(struct file *file, void *fh, v4l2_std_id std)
+ 	return v4l2_subdev_call(priv->src_sd, video, s_std, std);
+ }
  
-+static int capture_try_fmt_vid_cap(struct file *file, void *fh,
-+				   struct v4l2_format *f)
++static int capture_g_selection(struct file *file, void *fh,
++			       struct v4l2_selection *s)
 +{
 +	struct capture_priv *priv = video_drvdata(file);
-+	struct v4l2_subdev_format fmt_src;
-+	int ret;
 +
-+	fmt_src.pad = priv->src_sd_pad;
-+	fmt_src.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-+	ret = v4l2_subdev_call(priv->src_sd, pad, get_fmt, NULL, &fmt_src);
-+	if (ret)
-+		return ret;
++	switch (s->target) {
++	case V4L2_SEL_TGT_CROP:
++	case V4L2_SEL_TGT_CROP_DEFAULT:
++	case V4L2_SEL_TGT_CROP_BOUNDS:
++	case V4L2_SEL_TGT_COMPOSE:
++	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
++	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
++	case V4L2_SEL_TGT_COMPOSE_PADDED:
++		s->r = priv->vdev.compose;
++		break;
++	default:
++		return -EINVAL;
++	}
 +
-+	return __capture_try_fmt_vid_cap(priv, &fmt_src, f);
++	return 0;
 +}
 +
- static int capture_s_fmt_vid_cap(struct file *file, void *fh,
- 				 struct v4l2_format *f)
- {
- 	struct capture_priv *priv = video_drvdata(file);
-+	struct v4l2_subdev_format fmt_src;
- 	int ret;
- 
- 	if (vb2_is_busy(&priv->q)) {
-@@ -255,7 +264,13 @@ static int capture_s_fmt_vid_cap(struct file *file, void *fh,
- 		return -EBUSY;
- 	}
- 
--	ret = capture_try_fmt_vid_cap(file, priv, f);
-+	fmt_src.pad = priv->src_sd_pad;
-+	fmt_src.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-+	ret = v4l2_subdev_call(priv->src_sd, pad, get_fmt, NULL, &fmt_src);
-+	if (ret)
-+		return ret;
++static int capture_s_selection(struct file *file, void *fh,
++			       struct v4l2_selection *s)
++{
++	return capture_g_selection(file, fh, s);
++}
 +
-+	ret = __capture_try_fmt_vid_cap(priv, &fmt_src, f);
- 	if (ret)
- 		return ret;
+ static int capture_g_parm(struct file *file, void *fh,
+ 			  struct v4l2_streamparm *a)
+ {
+@@ -350,6 +382,9 @@ static const struct v4l2_ioctl_ops capture_ioctl_ops = {
+ 	.vidioc_g_std           = capture_g_std,
+ 	.vidioc_s_std           = capture_s_std,
  
-@@ -264,8 +279,8 @@ static int capture_s_fmt_vid_cap(struct file *file, void *fh,
- 					      CS_SEL_ANY, true);
- 	priv->vdev.compose.left = 0;
- 	priv->vdev.compose.top = 0;
--	priv->vdev.compose.width = f->fmt.pix.width;
--	priv->vdev.compose.height = f->fmt.pix.height;
-+	priv->vdev.compose.width = fmt_src.format.width;
-+	priv->vdev.compose.height = fmt_src.format.height;
++	.vidioc_g_selection	= capture_g_selection,
++	.vidioc_s_selection	= capture_s_selection,
++
+ 	.vidioc_g_parm          = capture_g_parm,
+ 	.vidioc_s_parm          = capture_s_parm,
  
- 	return 0;
- }
-@@ -306,9 +321,14 @@ static int capture_g_selection(struct file *file, void *fh,
- 	case V4L2_SEL_TGT_COMPOSE:
- 	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
- 	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
--	case V4L2_SEL_TGT_COMPOSE_PADDED:
- 		s->r = priv->vdev.compose;
- 		break;
-+	case V4L2_SEL_TGT_COMPOSE_PADDED:
-+		s->r.left = 0;
-+		s->r.top = 0;
-+		s->r.width = priv->vdev.fmt.fmt.pix.width;
-+		s->r.height = priv->vdev.fmt.fmt.pix.height;
-+		break;
- 	default:
- 		return -EINVAL;
- 	}
+@@ -687,6 +722,8 @@ int imx_media_capture_device_register(struct imx_media_video_dev *vdev)
+ 	vdev->fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+ 	imx_media_mbus_fmt_to_pix_fmt(&vdev->fmt.fmt.pix,
+ 				      &fmt_src.format, NULL);
++	vdev->compose.width = fmt_src.format.width;
++	vdev->compose.height = fmt_src.format.height;
+ 	vdev->cc = imx_media_find_format(vdev->fmt.fmt.pix.pixelformat,
+ 					 CS_SEL_ANY, false);
+ 
+diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+index 4223f8d418ae..c4523afe7b48 100644
+--- a/drivers/staging/media/imx/imx-media-csi.c
++++ b/drivers/staging/media/imx/imx-media-csi.c
+@@ -413,8 +413,7 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
+ 
+ 	memset(&image, 0, sizeof(image));
+ 	image.pix = vdev->fmt.fmt.pix;
+-	image.rect.width = image.pix.width;
+-	image.rect.height = image.pix.height;
++	image.rect = vdev->compose;
+ 
+ 	csi_idmac_setup_vb2_buf(priv, phys);
+ 
+diff --git a/drivers/staging/media/imx/imx-media-vdic.c b/drivers/staging/media/imx/imx-media-vdic.c
+index 482250d47e7c..e08d296cf4eb 100644
+--- a/drivers/staging/media/imx/imx-media-vdic.c
++++ b/drivers/staging/media/imx/imx-media-vdic.c
+@@ -263,10 +263,10 @@ static int setup_vdi_channel(struct vdic_priv *priv,
+ 
+ 	memset(&image, 0, sizeof(image));
+ 	image.pix = vdev->fmt.fmt.pix;
++	image.rect = vdev->compose;
+ 	/* one field to VDIC channels */
+ 	image.pix.height /= 2;
+-	image.rect.width = image.pix.width;
+-	image.rect.height = image.pix.height;
++	image.rect.height /= 2;
+ 	image.phys0 = phys0;
+ 	image.phys1 = phys1;
+ 
+diff --git a/drivers/staging/media/imx/imx-media.h b/drivers/staging/media/imx/imx-media.h
+index bc7feb81937c..7a0e658753f0 100644
+--- a/drivers/staging/media/imx/imx-media.h
++++ b/drivers/staging/media/imx/imx-media.h
+@@ -80,6 +80,8 @@ struct imx_media_video_dev {
+ 
+ 	/* the user format */
+ 	struct v4l2_format fmt;
++	/* the compose rectangle */
++	struct v4l2_rect compose;
+ 	const struct imx_media_pixfmt *cc;
+ 
+ 	/* links this vdev to master list */
 -- 
 2.20.1
 
