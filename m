@@ -2,100 +2,185 @@ Return-Path: <SRS0=SCQz=PT=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
 	SIGNED_OFF_BY,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 468B8C43387
-	for <linux-media@archiver.kernel.org>; Fri, 11 Jan 2019 20:13:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A4D4C43387
+	for <linux-media@archiver.kernel.org>; Fri, 11 Jan 2019 20:14:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1CC102177B
-	for <linux-media@archiver.kernel.org>; Fri, 11 Jan 2019 20:13:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 643FA2084C
+	for <linux-media@archiver.kernel.org>; Fri, 11 Jan 2019 20:14:08 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ndufresne-ca.20150623.gappssmtp.com header.i=@ndufresne-ca.20150623.gappssmtp.com header.b="F2gukzoI"
+	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="FT3lOaW0"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389268AbfAKUNu (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 11 Jan 2019 15:13:50 -0500
-Received: from mail-qt1-f196.google.com ([209.85.160.196]:33389 "EHLO
-        mail-qt1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2387951AbfAKUNu (ORCPT
+        id S2390724AbfAKUOH (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 11 Jan 2019 15:14:07 -0500
+Received: from perceval.ideasonboard.com ([213.167.242.64]:38322 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2387951AbfAKUOG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 11 Jan 2019 15:13:50 -0500
-Received: by mail-qt1-f196.google.com with SMTP id l11so20257422qtp.0
-        for <linux-media@vger.kernel.org>; Fri, 11 Jan 2019 12:13:49 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ndufresne-ca.20150623.gappssmtp.com; s=20150623;
-        h=message-id:subject:from:to:date:in-reply-to:references:user-agent
-         :mime-version:content-transfer-encoding;
-        bh=mVadURPdmQXC45QOiIuo+BZzmYj3CJIU6mXYM2cQfWA=;
-        b=F2gukzoIU3AM/y01fi/lZX6WXtwYN3SkziCEkOH2CZbwHqACxRGeonDu5RvPgdgyqI
-         byMDURfcZkQiT9xgtwaJHXJoHkkpAWxBbkD1vzTEZQPpWCzRQ8pj7oCS1wqhIrkbh2GK
-         n+CgRWrreB6tuyRckpdWd1o9ffTAwc7PDsHFxwz2blbOjj52t6pMMXiSf3diuxD45+k7
-         MfI7O00izW7op4/a2XUVm6DwIypFYddoxp6Ns/DMxdzR0hjhv8Owk7Ol42eUKw0cLYm7
-         2LwDLoavMJIGQdjI2TB2+I0AeDWNbnbKuQKn4rdsm40wM6gDUtie1q79IR15NeAryfhW
-         UyEA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:message-id:subject:from:to:date:in-reply-to
-         :references:user-agent:mime-version:content-transfer-encoding;
-        bh=mVadURPdmQXC45QOiIuo+BZzmYj3CJIU6mXYM2cQfWA=;
-        b=qphjkLKrGKqad5LJSyw/F6KaYRGo8jHU8tHR4vzOeaZyY1EXoT1FqeGyrPkZ+XG24h
-         yB+kNZGmRCgR3Dc/ccX1/uKvTknpwZMD4jRoiaHZPIEL642wGd5VUCpEDfX1qS1b3yHc
-         VjPKEUSy3l4R/qhxE6YI8YewK3kThiMGJXieLQiYIUoUwoxzYUmwNs3Wcn4ofybqRqS2
-         fxadLP5C3Iq2hOdJA1VxFgCzAEuzVrugt+aIGdwPvTkeoyBt7/vbCQ8MtRL7vCQki5SG
-         pTBnsozgNCiddjA/kC4dwzRAXaI9Szj969Z4/py5cK4euTAM5Ij4lJO2PjoJiouVH3CE
-         Qc0g==
-X-Gm-Message-State: AJcUukdVwsQ/mu8nsx/p5OE6msc+cyGL1nDe5BJLsAh1vPYz+Yoxalig
-        pXRPwOejwoQnG/bTluJd1WOyIA==
-X-Google-Smtp-Source: ALg8bN6+R3mtTeN5jmmnLPgSrUT0yIdImtsoRBSHRvZB56HAuUGITN8+G+/qT6dJxO0W/jCU8lc6dA==
-X-Received: by 2002:ac8:65c7:: with SMTP id t7mr14913028qto.143.1547237629209;
-        Fri, 11 Jan 2019 12:13:49 -0800 (PST)
-Received: from skullcanyon ([192.222.193.21])
-        by smtp.gmail.com with ESMTPSA id j38sm51298470qtj.72.2019.01.11.12.13.47
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Fri, 11 Jan 2019 12:13:47 -0800 (PST)
-Message-ID: <e51b9648691804cc97868a79d56e713df8e938c5.camel@ndufresne.ca>
-Subject: Re: [PATCH] vivid: do not implement VIDIOC_S_PARM for output streams
-From:   Nicolas Dufresne <nicolas@ndufresne.ca>
-To:     Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Date:   Fri, 11 Jan 2019 15:13:46 -0500
-In-Reply-To: <fc0e18f4-b499-60b4-d750-12beb06f98ce@xs4all.nl>
-References: <fc0e18f4-b499-60b4-d750-12beb06f98ce@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-User-Agent: Evolution 3.30.3 (3.30.3-1.fc29) 
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        Fri, 11 Jan 2019 15:14:06 -0500
+Received: from avalon.localnet (dfj612ybrt5fhg77mgycy-3.rev.dnainternet.fi [IPv6:2001:14ba:21f5:5b00:2e86:4862:ef6a:2804])
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id A213A53E;
+        Fri, 11 Jan 2019 21:14:03 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
+        s=mail; t=1547237644;
+        bh=z5Njocq2c9cpbi/ZSOTsoqbnJFhT1X5KJAjJvx+9MJ4=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=FT3lOaW0PBqCzS/1QlI1Rkyz8kjl0nbTNOeFjD2qeIUUVpNKw9LxV01J8O7ArBbKN
+         wqT/svfUgO6IjQF2Peb08nw68f4fCd6/KbClqOJEcCDX50FYRsVh3tprquq9eFf2KK
+         u6wreA/KashI7uNkE0o6XwF2uok+Qau3rRyiEwW4=
+From:   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To:     Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Cc:     Koji Matsuoka <koji.matsuoka.xm@renesas.com>,
+        Jacopo Mondi <jacopo@jmondi.org>,
+        Niklas =?ISO-8859-1?Q?S=F6derlund?= 
+        <niklas.soderlund@ragnatech.se>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/2] media: i2c: adv748x: Convert SW reset routine to function
+Date:   Fri, 11 Jan 2019 22:15:15 +0200
+Message-ID: <3798999.WAIpuUamas@avalon>
+Organization: Ideas on Board Oy
+In-Reply-To: <20190111174141.12594-2-kieran.bingham+renesas@ideasonboard.com>
+References: <20190111174141.12594-1-kieran.bingham+renesas@ideasonboard.com> <20190111174141.12594-2-kieran.bingham+renesas@ideasonboard.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Le vendredi 11 janvier 2019 à 12:37 +0100, Hans Verkuil a écrit :
-> v4l2_compliance gave a warning for the S_PARM test for output streams:
-> 
-> warn: v4l2-test-formats.cpp(1235): S_PARM is supported for buftype 2, but not for ENUM_FRAMEINTERVALS
-> 
-> The reason is that vivid mapped s_parm for output streams to g_parm. But if
-> S_PARM doesn't actually change anything, then it shouldn't be enabled at all.
+Hi Kieran,
 
-Though now, a vivid output reflect even less an output HW, for which I
-would expect S_PARM to be used to configure the HW transmission clock.
+Thank you for the patch.
 
+On Friday, 11 January 2019 19:41:40 EET Kieran Bingham wrote:
+> The ADV748x is currently reset by writting a small table of registers to
+> the device.
 > 
-> Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+> The table lacks documentation and contains magic values to perform the
+> actions, including using a fake register address to introduce a delay
+> loop.
+> 
+> Remove the table, and convert to code, documenting the purpose of the
+> specific writes along the way.
+> 
+> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 > ---
-> diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
-> index c931f007e5b0..7da5720b47a2 100644
-> --- a/drivers/media/platform/vivid/vivid-core.c
-> +++ b/drivers/media/platform/vivid/vivid-core.c
-> @@ -371,7 +371,7 @@ static int vidioc_s_parm(struct file *file, void *fh,
+>  drivers/media/i2c/adv748x/adv748x-core.c | 32 ++++++++++++++++--------
+>  drivers/media/i2c/adv748x/adv748x.h      | 16 ++++++++++++
+>  2 files changed, 38 insertions(+), 10 deletions(-)
 > 
->  	if (vdev->vfl_dir == VFL_DIR_RX)
->  		return vivid_vid_cap_s_parm(file, fh, parm);
-> -	return vivid_vid_out_g_parm(file, fh, parm);
-> +	return -ENOTTY;
->  }
+> diff --git a/drivers/media/i2c/adv748x/adv748x-core.c
+> b/drivers/media/i2c/adv748x/adv748x-core.c index 02f9c440301c..252bdb28b18b
+> 100644
+> --- a/drivers/media/i2c/adv748x/adv748x-core.c
+> +++ b/drivers/media/i2c/adv748x/adv748x-core.c
+> @@ -389,15 +389,6 @@ static const struct media_entity_operations
+> adv748x_media_ops = { * HW setup
+>   */
 > 
->  static int vidioc_log_status(struct file *file, void *fh)
+> -static const struct adv748x_reg_value adv748x_sw_reset[] = {
+> -
+> -	{ADV748X_PAGE_IO, 0xff, 0xff},	/* SW reset */
+> -	{ADV748X_PAGE_WAIT, 0x00, 0x05},/* delay 5 */
+> -	{ADV748X_PAGE_IO, 0x01, 0x76},	/* ADI Required Write */
+> -	{ADV748X_PAGE_IO, 0xf2, 0x01},	/* Enable I2C Read Auto-Increment */
+> -	{ADV748X_PAGE_EOR, 0xff, 0xff}	/* End of register table */
+> -};
+> -
+>  /* Initialize CP Core with RGB888 format. */
+>  static const struct adv748x_reg_value adv748x_init_hdmi[] = {
+>  	/* Disable chip powerdown & Enable HDMI Rx block */
+> @@ -474,12 +465,33 @@ static const struct adv748x_reg_value
+> adv748x_init_afe[] = { {ADV748X_PAGE_EOR, 0xff, 0xff}	/* End of register
+> table */
+>  };
+> 
+> +static int adv748x_sw_reset(struct adv748x_state *state)
+> +{
+> +	int ret;
+> +
+> +	ret = io_write(state, ADV748X_IO_REG_FF, ADV748X_IO_REG_FF_MAIN_RESET);
+> +	if (ret)
+> +		return ret;
+> +
+> +	usleep_range(5000, 6000);
+> +
+> +	/* Disable CEC Wakeup from power-down mode */
+> +	ret = io_clrset(state, ADV748X_IO_REG_01, ADV748X_IO_REG_01_PWRDN_MASK,
+> +			ADV748X_IO_REG_01_PWRDNB);
+
+What's the reason for io_clrset() instead of io_write() ?
+
+Apart from this,
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> +	if (ret)
+> +		return ret;
+> +
+> +	/* Enable I2C Read Auto-Increment for consecutive reads */
+> +	return io_write(state, ADV748X_IO_REG_F2,
+> +			ADV748X_IO_REG_F2_READ_AUTO_INC);
+> +}
+> +
+>  static int adv748x_reset(struct adv748x_state *state)
+>  {
+>  	int ret;
+>  	u8 regval = 0;
+> 
+> -	ret = adv748x_write_regs(state, adv748x_sw_reset);
+> +	ret = adv748x_sw_reset(state);
+>  	if (ret < 0)
+>  		return ret;
+> 
+> diff --git a/drivers/media/i2c/adv748x/adv748x.h
+> b/drivers/media/i2c/adv748x/adv748x.h index b00c1995efb0..2f8d751cfbb0
+> 100644
+> --- a/drivers/media/i2c/adv748x/adv748x.h
+> +++ b/drivers/media/i2c/adv748x/adv748x.h
+> @@ -211,6 +211,11 @@ struct adv748x_state {
+>  #define ADV748X_IO_PD			0x00	/* power down controls */
+>  #define ADV748X_IO_PD_RX_EN		BIT(6)
+> 
+> +#define ADV748X_IO_REG_01		0x01	/* pwrdn{2}b, prog_xtal_freq */
+> +#define ADV748X_IO_REG_01_PWRDN_MASK	(BIT(7) | BIT(6))
+> +#define ADV748X_IO_REG_01_PWRDN2B	BIT(7)	/* CEC Wakeup Support */
+> +#define ADV748X_IO_REG_01_PWRDNB	BIT(6)	/* CEC Wakeup Support */
+> +
+>  #define ADV748X_IO_REG_04		0x04
+>  #define ADV748X_IO_REG_04_FORCE_FR	BIT(0)	/* Force CP free-run */
+> 
+> @@ -229,8 +234,19 @@ struct adv748x_state {
+>  #define ADV748X_IO_CHIP_REV_ID_1	0xdf
+>  #define ADV748X_IO_CHIP_REV_ID_2	0xe0
+> 
+> +#define ADV748X_IO_REG_F2		0xf2
+> +#define ADV748X_IO_REG_F2_READ_AUTO_INC	BIT(0)
+> +
+> +/* For PAGE slave address offsets */
+>  #define ADV748X_IO_SLAVE_ADDR_BASE	0xf2
+> 
+> +/*
+> + * The ADV748x_Recommended_Settings_PrA_2014-08-20.pdf details both 0x80
+> and + * 0xff as examples for performing a software reset.
+> + */
+> +#define ADV748X_IO_REG_FF		0xff
+> +#define ADV748X_IO_REG_FF_MAIN_RESET	0xff
+> +
+>  /* HDMI RX Map */
+>  #define ADV748X_HDMI_LW1		0x07	/* line width_1 */
+>  #define ADV748X_HDMI_LW1_VERT_FILTER	BIT(7)
+
+
+-- 
+Regards,
+
+Laurent Pinchart
+
+
 
