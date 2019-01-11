@@ -7,42 +7,41 @@ X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B8B3C43612
-	for <linux-media@archiver.kernel.org>; Fri, 11 Jan 2019 12:47:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D4316C43612
+	for <linux-media@archiver.kernel.org>; Fri, 11 Jan 2019 12:48:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 662D920872
-	for <linux-media@archiver.kernel.org>; Fri, 11 Jan 2019 12:47:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A43762146F
+	for <linux-media@archiver.kernel.org>; Fri, 11 Jan 2019 12:48:12 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="isVxM0LA"
+	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="YYIQeuUn"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731615AbfAKMrS (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 11 Jan 2019 07:47:18 -0500
-Received: from perceval.ideasonboard.com ([213.167.242.64]:54634 "EHLO
+        id S1732471AbfAKMsM (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 11 Jan 2019 07:48:12 -0500
+Received: from perceval.ideasonboard.com ([213.167.242.64]:54664 "EHLO
         perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728122AbfAKMrS (ORCPT
+        with ESMTP id S1728122AbfAKMsL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 11 Jan 2019 07:47:18 -0500
+        Fri, 11 Jan 2019 07:48:11 -0500
 Received: from [192.168.0.21] (cpc89242-aztw30-2-0-cust488.18-1.cable.virginm.net [86.31.129.233])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 7FFFE513;
-        Fri, 11 Jan 2019 13:47:14 +0100 (CET)
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id AC7CC513;
+        Fri, 11 Jan 2019 13:48:08 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1547210834;
-        bh=rep05dS62++hb+z8m0qZ/iJa0WZoRIa2116z6pqkRSA=;
+        s=mail; t=1547210888;
+        bh=BZAoJxy2Lr/IJhtkZkbhxPS+48cUUPxZ1oOyn455JGE=;
         h=Reply-To:Subject:To:Cc:References:From:Date:In-Reply-To:From;
-        b=isVxM0LAHBLrUmORIo3TIT+dc5hd/TILIZ9TuzYgEHBiIzMFVTm0em7qNOxuw1xdK
-         u+v9KY3o1K27aga0KV0U10cky9qPB2UFg88VTTSl2cw7Q0NPAKtqIuoWdK6wwwP73O
-         w6SuIWAmZODtDrXi9CcE55mtntds9JGF1CHy+KvU=
+        b=YYIQeuUnSUnnkDbevNmJpq1WFEMzr492moUbAD5IdbVFhAv04eYK+L5IAdOFq0Yh1
+         U21OeBXXpSKfwDnxl8JhUW4H21bt/xiiKqlIlcZQqFCJTNXgedEqSo6tzNN/hKMe5q
+         QRn2WhanWVKWjEBT3bNzrC+kdpplHoJHVt8kw8cs=
 Reply-To: kieran.bingham@ideasonboard.com
-Subject: Re: [PATCH v4 1/4] dt-bindings: adv748x: make data-lanes property
- mandatory for CSI-2 endpoints
+Subject: Re: [PATCH v4 2/4] i2c: adv748x: reuse power up sequence when
+ initializing CSI-2
 To:     =?UTF-8?Q?Niklas_S=c3=b6derlund?= 
         <niklas.soderlund+renesas@ragnatech.se>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Jacopo Mondi <jacopo@jmondi.org>, linux-media@vger.kernel.org
-Cc:     linux-renesas-soc@vger.kernel.org,
-        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
+Cc:     linux-renesas-soc@vger.kernel.org
 References: <20181129020147.22115-1-niklas.soderlund+renesas@ragnatech.se>
- <20181129020147.22115-2-niklas.soderlund+renesas@ragnatech.se>
+ <20181129020147.22115-3-niklas.soderlund+renesas@ragnatech.se>
 From:   Kieran Bingham <kieran.bingham@ideasonboard.com>
 Openpgp: preference=signencrypt
 Autocrypt: addr=kieran.bingham@ideasonboard.com; keydata=
@@ -89,12 +88,12 @@ Autocrypt: addr=kieran.bingham@ideasonboard.com; keydata=
  JxB1gWThL4kOTbsqqXj9GLcyOImkW0lJGGR3o/fV91Zh63S5TKnf2YGGGzxki+ADdxVQAm+Q
  sbsRB8KNNvVXBOVNwko86rQqF9drZuw=
 Organization: Ideas on Board
-Message-ID: <b4d05109-a382-ebc6-6230-943978ca7352@ideasonboard.com>
-Date:   Fri, 11 Jan 2019 12:47:12 +0000
+Message-ID: <32263391-2b1c-1a46-1f12-daeaa9993856@ideasonboard.com>
+Date:   Fri, 11 Jan 2019 12:48:07 +0000
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
  Thunderbird/60.2.1
 MIME-Version: 1.0
-In-Reply-To: <20181129020147.22115-2-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20181129020147.22115-3-niklas.soderlund+renesas@ragnatech.se>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-GB
 Content-Transfer-Encoding: 8bit
@@ -105,51 +104,125 @@ X-Mailing-List: linux-media@vger.kernel.org
 
 Hi Niklas,
 
-Thank you for this series.
-
 On 29/11/2018 02:01, Niklas Söderlund wrote:
-> The CSI-2 transmitters can use a different number of lanes to transmit
-> data. Make the data-lanes mandatory for the endpoints that describe the
-> transmitters as no good default can be set to fallback on.
+> Extend the MIPI CSI-2 power up sequence to match the power up sequence
+> in the hardware manual chapter "9.5.1 Power Up Sequence". This change
+> allows the power up functions to be reused when initializing the
+> hardware reducing code duplicating as well aligning with the
+> documentation.
 > 
 > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Tested-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
 
 Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
 > 
 > ---
-> * Changes since v3
-> - Add paragraph to describe the accepted values for the source endpoint
->   data-lane property. Thanks Jacopo for pointing this out and sorry for
->   missing this in v2.
 > * Changes since v2
-> - Update paragraph according to Laurents comments.
+> - Bring in the undocumented registers in the power on sequence from the
+>   initialization sequence after confirming in the hardware manual that
+>   this is the correct behavior.
 > ---
->  .../devicetree/bindings/media/i2c/adv748x.txt         | 11 ++++++++++-
->  1 file changed, 10 insertions(+), 1 deletion(-)
+>  drivers/media/i2c/adv748x/adv748x-core.c | 50 ++++++------------------
+>  1 file changed, 13 insertions(+), 37 deletions(-)
 > 
-> diff --git a/Documentation/devicetree/bindings/media/i2c/adv748x.txt b/Documentation/devicetree/bindings/media/i2c/adv748x.txt
-> index 5dddc95f9cc46084..4f91686e54a6b939 100644
-> --- a/Documentation/devicetree/bindings/media/i2c/adv748x.txt
-> +++ b/Documentation/devicetree/bindings/media/i2c/adv748x.txt
-> @@ -48,7 +48,16 @@ are numbered as follows.
->  	  TXA		source		10
->  	  TXB		source		11
+> diff --git a/drivers/media/i2c/adv748x/adv748x-core.c b/drivers/media/i2c/adv748x/adv748x-core.c
+> index 6854d898fdd1f192..2384f50dacb0ccff 100644
+> --- a/drivers/media/i2c/adv748x/adv748x-core.c
+> +++ b/drivers/media/i2c/adv748x/adv748x-core.c
+> @@ -234,6 +234,12 @@ static const struct adv748x_reg_value adv748x_power_up_txa_4lane[] = {
 >  
-> -The digital output port nodes must contain at least one endpoint.
-> +The digital output port nodes, when present, shall contain at least one
-> +endpoint. Each of those endpoints shall contain the data-lanes property as
-> +described in video-interfaces.txt.
-> +
-> +Required source endpoint properties:
-> +  - data-lanes: an array of physical data lane indexes
-> +    The accepted value(s) for this property depends on which of the two
-> +    sources are described. For TXA 1, 2 or 4 data lanes can be described
-> +    while for TXB only 1 data lane is valid. See video-interfaces.txt
-> +    for detailed description.
+>  	{ADV748X_PAGE_TXA, 0x00, 0x84},	/* Enable 4-lane MIPI */
+>  	{ADV748X_PAGE_TXA, 0x00, 0xa4},	/* Set Auto DPHY Timing */
+> +	{ADV748X_PAGE_TXA, 0xdb, 0x10},	/* ADI Required Write */
+> +	{ADV748X_PAGE_TXA, 0xd6, 0x07},	/* ADI Required Write */
+> +	{ADV748X_PAGE_TXA, 0xc4, 0x0a},	/* ADI Required Write */
+> +	{ADV748X_PAGE_TXA, 0x71, 0x33},	/* ADI Required Write */
+> +	{ADV748X_PAGE_TXA, 0x72, 0x11},	/* ADI Required Write */
+> +	{ADV748X_PAGE_TXA, 0xf0, 0x00},	/* i2c_dphy_pwdn - 1'b0 */
 >  
->  Ports are optional if they are not connected to anything at the hardware level.
+>  	{ADV748X_PAGE_TXA, 0x31, 0x82},	/* ADI Required Write */
+>  	{ADV748X_PAGE_TXA, 0x1e, 0x40},	/* ADI Required Write */
+> @@ -263,6 +269,11 @@ static const struct adv748x_reg_value adv748x_power_up_txb_1lane[] = {
 >  
+>  	{ADV748X_PAGE_TXB, 0x00, 0x81},	/* Enable 1-lane MIPI */
+>  	{ADV748X_PAGE_TXB, 0x00, 0xa1},	/* Set Auto DPHY Timing */
+> +	{ADV748X_PAGE_TXB, 0xd2, 0x40},	/* ADI Required Write */
+> +	{ADV748X_PAGE_TXB, 0xc4, 0x0a},	/* ADI Required Write */
+> +	{ADV748X_PAGE_TXB, 0x71, 0x33},	/* ADI Required Write */
+> +	{ADV748X_PAGE_TXB, 0x72, 0x11},	/* ADI Required Write */
+> +	{ADV748X_PAGE_TXB, 0xf0, 0x00},	/* i2c_dphy_pwdn - 1'b0 */
+>  
+>  	{ADV748X_PAGE_TXB, 0x31, 0x82},	/* ADI Required Write */
+>  	{ADV748X_PAGE_TXB, 0x1e, 0x40},	/* ADI Required Write */
+> @@ -383,25 +394,6 @@ static const struct adv748x_reg_value adv748x_init_txa_4lane[] = {
+>  	{ADV748X_PAGE_IO, 0x0c, 0xe0},	/* Enable LLC_DLL & Double LLC Timing */
+>  	{ADV748X_PAGE_IO, 0x0e, 0xdd},	/* LLC/PIX/SPI PINS TRISTATED AUD */
+>  
+> -	{ADV748X_PAGE_TXA, 0x00, 0x84},	/* Enable 4-lane MIPI */
+> -	{ADV748X_PAGE_TXA, 0x00, 0xa4},	/* Set Auto DPHY Timing */
+> -	{ADV748X_PAGE_TXA, 0xdb, 0x10},	/* ADI Required Write */
+> -	{ADV748X_PAGE_TXA, 0xd6, 0x07},	/* ADI Required Write */
+> -	{ADV748X_PAGE_TXA, 0xc4, 0x0a},	/* ADI Required Write */
+> -	{ADV748X_PAGE_TXA, 0x71, 0x33},	/* ADI Required Write */
+> -	{ADV748X_PAGE_TXA, 0x72, 0x11},	/* ADI Required Write */
+> -	{ADV748X_PAGE_TXA, 0xf0, 0x00},	/* i2c_dphy_pwdn - 1'b0 */
+> -
+> -	{ADV748X_PAGE_TXA, 0x31, 0x82},	/* ADI Required Write */
+> -	{ADV748X_PAGE_TXA, 0x1e, 0x40},	/* ADI Required Write */
+> -	{ADV748X_PAGE_TXA, 0xda, 0x01},	/* i2c_mipi_pll_en - 1'b1 */
+> -	{ADV748X_PAGE_WAIT, 0x00, 0x02},/* delay 2 */
+> -	{ADV748X_PAGE_TXA, 0x00, 0x24 },/* Power-up CSI-TX */
+> -	{ADV748X_PAGE_WAIT, 0x00, 0x01},/* delay 1 */
+> -	{ADV748X_PAGE_TXA, 0xc1, 0x2b},	/* ADI Required Write */
+> -	{ADV748X_PAGE_WAIT, 0x00, 0x01},/* delay 1 */
+> -	{ADV748X_PAGE_TXA, 0x31, 0x80},	/* ADI Required Write */
+> -
+>  	{ADV748X_PAGE_EOR, 0xff, 0xff}	/* End of register table */
+>  };
+>  
+> @@ -435,24 +427,6 @@ static const struct adv748x_reg_value adv748x_init_txb_1lane[] = {
+>  	{ADV748X_PAGE_SDP, 0x31, 0x12},	/* ADI Required Write */
+>  	{ADV748X_PAGE_SDP, 0xe6, 0x4f},  /* V bit end pos manually in NTSC */
+>  
+> -	{ADV748X_PAGE_TXB, 0x00, 0x81},	/* Enable 1-lane MIPI */
+> -	{ADV748X_PAGE_TXB, 0x00, 0xa1},	/* Set Auto DPHY Timing */
+> -	{ADV748X_PAGE_TXB, 0xd2, 0x40},	/* ADI Required Write */
+> -	{ADV748X_PAGE_TXB, 0xc4, 0x0a},	/* ADI Required Write */
+> -	{ADV748X_PAGE_TXB, 0x71, 0x33},	/* ADI Required Write */
+> -	{ADV748X_PAGE_TXB, 0x72, 0x11},	/* ADI Required Write */
+> -	{ADV748X_PAGE_TXB, 0xf0, 0x00},	/* i2c_dphy_pwdn - 1'b0 */
+> -	{ADV748X_PAGE_TXB, 0x31, 0x82},	/* ADI Required Write */
+> -	{ADV748X_PAGE_TXB, 0x1e, 0x40},	/* ADI Required Write */
+> -	{ADV748X_PAGE_TXB, 0xda, 0x01},	/* i2c_mipi_pll_en - 1'b1 */
+> -
+> -	{ADV748X_PAGE_WAIT, 0x00, 0x02},/* delay 2 */
+> -	{ADV748X_PAGE_TXB, 0x00, 0x21 },/* Power-up CSI-TX */
+> -	{ADV748X_PAGE_WAIT, 0x00, 0x01},/* delay 1 */
+> -	{ADV748X_PAGE_TXB, 0xc1, 0x2b},	/* ADI Required Write */
+> -	{ADV748X_PAGE_WAIT, 0x00, 0x01},/* delay 1 */
+> -	{ADV748X_PAGE_TXB, 0x31, 0x80},	/* ADI Required Write */
+> -
+>  	{ADV748X_PAGE_EOR, 0xff, 0xff}	/* End of register table */
+>  };
+>  
+> @@ -474,6 +448,7 @@ static int adv748x_reset(struct adv748x_state *state)
+>  	if (ret)
+>  		return ret;
+>  
+> +	adv748x_tx_power(&state->txa, 1);
+>  	adv748x_tx_power(&state->txa, 0);
+>  
+>  	/* Init and power down TXB */
+> @@ -481,6 +456,7 @@ static int adv748x_reset(struct adv748x_state *state)
+>  	if (ret)
+>  		return ret;
+>  
+> +	adv748x_tx_power(&state->txb, 1);
+>  	adv748x_tx_power(&state->txb, 0);
+>  
+>  	/* Disable chip powerdown & Enable HDMI Rx block */
 > 
 
 -- 
