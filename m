@@ -2,104 +2,69 @@ Return-Path: <SRS0=SCQz=PT=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 77352C43387
-	for <linux-media@archiver.kernel.org>; Fri, 11 Jan 2019 17:38:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E90FC43612
+	for <linux-media@archiver.kernel.org>; Fri, 11 Jan 2019 17:41:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4F2BD20870
-	for <linux-media@archiver.kernel.org>; Fri, 11 Jan 2019 17:38:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1823120870
+	for <linux-media@archiver.kernel.org>; Fri, 11 Jan 2019 17:41:49 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="SkvNAmXy"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731749AbfAKRiU (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 11 Jan 2019 12:38:20 -0500
-Received: from mailoutvs16.siol.net ([185.57.226.207]:42108 "EHLO
-        mail.siol.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1731459AbfAKRiT (ORCPT
+        id S1731459AbfAKRls (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 11 Jan 2019 12:41:48 -0500
+Received: from perceval.ideasonboard.com ([213.167.242.64]:33714 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730100AbfAKRls (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 11 Jan 2019 12:38:19 -0500
-X-Greylist: delayed 466 seconds by postgrey-1.27 at vger.kernel.org; Fri, 11 Jan 2019 12:38:17 EST
-Received: from localhost (localhost [127.0.0.1])
-        by mail.siol.net (Zimbra) with ESMTP id 098245225F3;
-        Fri, 11 Jan 2019 18:30:34 +0100 (CET)
-X-Virus-Scanned: amavisd-new at psrvmta12.zcs-production.pri
-Received: from mail.siol.net ([127.0.0.1])
-        by localhost (psrvmta12.zcs-production.pri [127.0.0.1]) (amavisd-new, port 10032)
-        with ESMTP id TCTNcfon3BNM; Fri, 11 Jan 2019 18:30:33 +0100 (CET)
-Received: from mail.siol.net (localhost [127.0.0.1])
-        by mail.siol.net (Zimbra) with ESMTPS id B8808522B33;
-        Fri, 11 Jan 2019 18:30:33 +0100 (CET)
-Received: from localhost.localdomain (cpe1-8-82.cable.triera.net [213.161.8.82])
-        (Authenticated sender: 031275009)
-        by mail.siol.net (Zimbra) with ESMTPSA id 43E53522B21;
-        Fri, 11 Jan 2019 18:30:31 +0100 (CET)
-From:   Jernej Skrabec <jernej.skrabec@siol.net>
-To:     maxime.ripard@bootlin.com, wens@csie.org
-Cc:     robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com, Igors Makejevs <git_bb@bwzone.com>
-Subject: [PATCH 2/3] arm64: dts: allwinner: a64: Add IR node
-Date:   Fri, 11 Jan 2019 18:30:14 +0100
-Message-Id: <20190111173015.12119-3-jernej.skrabec@siol.net>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190111173015.12119-1-jernej.skrabec@siol.net>
-References: <20190111173015.12119-1-jernej.skrabec@siol.net>
-MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
+        Fri, 11 Jan 2019 12:41:48 -0500
+Received: from localhost.localdomain (cpc89242-aztw30-2-0-cust488.18-1.cable.virginm.net [86.31.129.233])
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id DA6F753E;
+        Fri, 11 Jan 2019 18:41:45 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
+        s=mail; t=1547228506;
+        bh=mF0IgxJu9knnf20ipHtY8kls114XAOdfh5tm+YBaADc=;
+        h=From:To:Cc:Subject:Date:From;
+        b=SkvNAmXypf8MeEXl/MatJ1IFUCHG77OT3f3+wcPqTy8jjagbl1d+GRqIicRCCw5Sb
+         yVhZ4NLP9pKP9M+/vOCp/MI67Ktod7ZAuiEJi0xeOVto9yQ6zXxbmsaAiWmQAmBj6t
+         tOf+qXo+s+jIF8PZjVMDGazZAlkiMJ2/pKBRdUtA=
+From:   Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To:     Koji Matsuoka <koji.matsuoka.xm@renesas.com>,
+        Jacopo Mondi <jacopo@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Cc:     linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH 0/2] media: i2c: adv748x: Refactor sw_reset handling
+Date:   Fri, 11 Jan 2019 17:41:39 +0000
+Message-Id: <20190111174141.12594-1-kieran.bingham+renesas@ideasonboard.com>
+X-Mailer: git-send-email 2.17.1
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-From: Igors Makejevs <git_bb@bwzone.com>
+The sw_reset functionality was implemented through a poorly documented
+set of 'required writes' from a table.
 
-IR is similar to that in A13 and can use same driver.
+This also included an delay in the table which required a 'hack' in the
+adv748x_write() routines.
 
-Signed-off-by: Igors Makejevs <git_bb@bwzone.com>
-Signed-off-by: Jernej Skrabec <jernej.skrabec@siol.net>
----
- arch/arm64/boot/dts/allwinner/sun50i-a64.dtsi | 18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+These patches rework the reset handling to a function and remove the
+delay workaround.
 
-diff --git a/arch/arm64/boot/dts/allwinner/sun50i-a64.dtsi b/arch/arm64/b=
-oot/dts/allwinner/sun50i-a64.dtsi
-index 839b2ae88583..00827072376a 100644
---- a/arch/arm64/boot/dts/allwinner/sun50i-a64.dtsi
-+++ b/arch/arm64/boot/dts/allwinner/sun50i-a64.dtsi
-@@ -1004,6 +1004,19 @@
- 			status =3D "disabled";
- 		};
-=20
-+		r_ir: ir@1f02000 {
-+			compatible =3D "allwinner,sun50i-a64-ir",
-+				     "allwinner,sun5i-a13-ir";
-+			reg =3D <0x01f02000 0x400>;
-+			clocks =3D <&r_ccu CLK_APB0_IR>, <&r_ccu CLK_IR>;
-+			clock-names =3D "apb", "ir";
-+			resets =3D <&r_ccu RST_APB0_IR>;
-+			interrupts =3D <GIC_SPI 37 IRQ_TYPE_LEVEL_HIGH>;
-+			pinctrl-names =3D "default";
-+			pinctrl-0 =3D <&r_ir_pin>;
-+			status =3D "disabled";
-+		};
-+
- 		r_i2c: i2c@1f02400 {
- 			compatible =3D "allwinner,sun50i-a64-i2c",
- 				     "allwinner,sun6i-a31-i2c";
-@@ -1043,6 +1056,11 @@
- 				function =3D "s_i2c";
- 			};
-=20
-+			r_ir_pin: ir {
-+				pins =3D "PL11";
-+				function =3D "s_cir_rx";
-+			};
-+
- 			r_pwm_pin: pwm {
- 				pins =3D "PL10";
- 				function =3D "s_pwm";
---=20
-2.20.1
+Kieran Bingham (2):
+  media: i2c: adv748x: Convert SW reset routine to function
+  media: i2c: adv748x: Remove PAGE_WAIT
+
+ drivers/media/i2c/adv748x/adv748x-core.c | 49 ++++++++++++++----------
+ drivers/media/i2c/adv748x/adv748x.h      | 17 +++++++-
+ 2 files changed, 44 insertions(+), 22 deletions(-)
+
+-- 
+2.17.1
 
