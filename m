@@ -2,132 +2,141 @@ Return-Path: <SRS0=SCQz=PT=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
-	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,USER_AGENT_MUTT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B8F42C43444
-	for <linux-media@archiver.kernel.org>; Fri, 11 Jan 2019 15:04:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 239D4C43387
+	for <linux-media@archiver.kernel.org>; Fri, 11 Jan 2019 15:08:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8E21C20874
-	for <linux-media@archiver.kernel.org>; Fri, 11 Jan 2019 15:04:04 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1547219044;
-	bh=lt1LKxrft1AXHVhZMFl0oGizfBeEONclnjG3cZSzY2I=;
-	h=Subject:To:Cc:References:From:Date:In-Reply-To:List-ID:From;
-	b=LYXw/23Z1qtmnM2O26wNZBhjx0elQIZ8WQXq0+TpUTsgJZBbo9EhOKl8ztaVtdat7
-	 WohRsm5ZlUEIxBc9HgVm4C8ACK/s7nCKggjyAVIb0zP2VCLu5z28Ttw8MLqetwvI95
-	 83yBEvjZB/pI7RiXouE4ALqGEeC8aPjirlSiYVmw=
+	by mail.kernel.org (Postfix) with ESMTP id E7DCD2084C
+	for <linux-media@archiver.kernel.org>; Fri, 11 Jan 2019 15:08:00 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ukuye4IL"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2389419AbfAKPED (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 11 Jan 2019 10:04:03 -0500
-Received: from mail.kernel.org ([198.145.29.99]:49798 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2389252AbfAKPEC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 11 Jan 2019 10:04:02 -0500
-Received: from [192.168.1.112] (c-24-9-64-241.hsd1.co.comcast.net [24.9.64.241])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 55F422184A;
-        Fri, 11 Jan 2019 15:04:01 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1547219041;
-        bh=lt1LKxrft1AXHVhZMFl0oGizfBeEONclnjG3cZSzY2I=;
-        h=Subject:To:Cc:References:From:Date:In-Reply-To:From;
-        b=E5VLaNg/TO01/WbBUhe9NVdBmRly3PAhh2d5OczH4KSHoUbfMHYETkiNWKXMVcZzs
-         kSGol47HmYjGG6vNK3NQjs/VEj0NOXlEFer810u4zVcYbozoLbGHCKU0gksh89tIMf
-         yOC8+zqdTe2dGZGBmQpJTg1NSzexCYgx4sXu2164=
-Subject: Re: [alsa-devel] [PATCH v9 4/4] sound/usb: Use Media Controller API
- to share media resources
-To:     Hans Verkuil <hverkuil@xs4all.nl>, mchehab@kernel.org
-Cc:     Takashi Iwai <tiwai@suse.de>, perex@perex.cz, tiwai@suse.com,
-        alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org, shuah <shuah@kernel.org>
-References: <cover.1545154777.git.shuah@kernel.org>
- <2fb40852e4035b2a58010ce7416448918f12804f.1545154778.git.shuah@kernel.org>
- <s5hefadbp5m.wl-tiwai@suse.de>
- <5f9588b5-657a-78ee-9614-ed0ef1fc5839@kernel.org>
- <f13637a7-5c15-ba43-9929-78fef09e54fb@xs4all.nl>
-From:   shuah <shuah@kernel.org>
-Message-ID: <bdc38535-624f-4208-6f34-a021145a4938@kernel.org>
-Date:   Fri, 11 Jan 2019 08:04:00 -0700
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.2.1
+        id S2391965AbfAKPHz (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 11 Jan 2019 10:07:55 -0500
+Received: from mail-pg1-f193.google.com ([209.85.215.193]:43077 "EHLO
+        mail-pg1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730013AbfAKPHy (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 11 Jan 2019 10:07:54 -0500
+Received: by mail-pg1-f193.google.com with SMTP id v28so6415498pgk.10;
+        Fri, 11 Jan 2019 07:07:53 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=date:from:to:cc:subject:message-id:mime-version:content-disposition
+         :user-agent;
+        bh=xmLU2VoxBI1AblI7e4+GVmT5PEuDGrr9Ez3gDZemTlo=;
+        b=ukuye4ILBghvl/ea98/Ja45KGMhw2LJ9JaPBDDpqgt2y9VBAhCkwXx/XCC1BJBLszm
+         j/RFMHQI1vnQZm2S/durahGZ3fABpMUNvQNZKd2mWCd1b0seaQ1HdjW0BjizObBP/e+S
+         7mMLpf4vsXaJ9HXyxFoviwshTVxHZpfMU6FgoF1sktEarBm8ClO7PCkxUkcJ/BwNxnZL
+         yBl4z8N8OTasKmGS9Usrz+JXD5rBahLAWvbEMuQYtCd2+Q9qOk9vKmSlfa499/WHZ/oa
+         C9rO4vYI+xLVeQMZgqOYNUmpDt6leBfFn8bwAdgRC1xdcK18dvi1UirqW/G0uJ8Y+Kpe
+         4A1w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:mime-version
+         :content-disposition:user-agent;
+        bh=xmLU2VoxBI1AblI7e4+GVmT5PEuDGrr9Ez3gDZemTlo=;
+        b=TFAP3oRa2FPyVVN8gthZa/yQchM3o/blWpILdGZGnicvrIsnlAbwZDDPRqDDdvHd9m
+         J4ApUIkAe6S94NJz6IhBs1EhLqmbltzrXZhLAcFzbX0efc31+8ZROEufI2CO1NvDw+hS
+         n8ORIfSAQSx/7Yrd5QMrsFUSu2Hdsr+HgCTShLB9TXYEcHNY8cvpepCLx/KBH8x2sIwN
+         hIhM1f9I33bzGwhS6DGv/rw8BCmsQN6+/CVskdBrLlt8+SenvEIhzctR4fbjBaX73PGp
+         qwK5skGhAaDQy/yMZxXgP1TfYk7mQ09x66ec1wBTAMR+hjTmYBhVwss+FBcOEzjcPHzT
+         egCQ==
+X-Gm-Message-State: AJcUukdPW2a979VDfrwkbHRDoUEN14D57Drl/edKL1KNd2oYCyC3iukc
+        +XnRKv+sCgNzvB1TZ0FWF8k=
+X-Google-Smtp-Source: ALg8bN78QYDL7o7tAWys1x+bFJlndFbFXr9PHUkCoW3OrmZHFdsg9IHHrJ+vfOFuzdNqNQM2dbbwhg==
+X-Received: by 2002:a62:5486:: with SMTP id i128mr14545894pfb.215.1547219273447;
+        Fri, 11 Jan 2019 07:07:53 -0800 (PST)
+Received: from jordon-HP-15-Notebook-PC ([49.207.52.190])
+        by smtp.gmail.com with ESMTPSA id m3sm137912153pff.173.2019.01.11.07.07.51
+        (version=TLS1 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
+        Fri, 11 Jan 2019 07:07:52 -0800 (PST)
+Date:   Fri, 11 Jan 2019 20:41:54 +0530
+From:   Souptick Joarder <jrdr.linux@gmail.com>
+To:     akpm@linux-foundation.org, willy@infradead.org, mhocko@suse.com,
+        pawel@osciak.com, m.szyprowski@samsung.com,
+        kyungmin.park@samsung.com, mchehab@kernel.org,
+        linux@armlinux.org.uk, robin.murphy@arm.com
+Cc:     linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-mm@kvack.org
+Subject: [PATCH 7/9] videobuf2/videobuf2-dma-sg.c: Convert to use
+ vm_insert_range_buggy
+Message-ID: <20190111151154.GA2819@jordon-HP-15-Notebook-PC>
 MIME-Version: 1.0
-In-Reply-To: <f13637a7-5c15-ba43-9929-78fef09e54fb@xs4all.nl>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+User-Agent: Mutt/1.5.21 (2010-09-15)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On 1/11/19 7:59 AM, Hans Verkuil wrote:
-> On 1/11/19 3:57 PM, shuah wrote:
->> On 12/19/18 6:51 AM, Takashi Iwai wrote:
->>> On Tue, 18 Dec 2018 18:59:39 +0100,
->>> shuah@kernel.org wrote:
->>>>
->>>> From: Shuah Khan <shuah@kernel.org>
->>>>
->>>> Media Device Allocator API to allows multiple drivers share a media device.
->>>> This API solves a very common use-case for media devices where one physical
->>>> device (an USB stick) provides both audio and video. When such media device
->>>> exposes a standard USB Audio class, a proprietary Video class, two or more
->>>> independent drivers will share a single physical USB bridge. In such cases,
->>>> it is necessary to coordinate access to the shared resource.
->>>>
->>>> Using this API, drivers can allocate a media device with the shared struct
->>>> device as the key. Once the media device is allocated by a driver, other
->>>> drivers can get a reference to it. The media device is released when all
->>>> the references are released.
->>>>
->>>> Change the ALSA driver to use the Media Controller API to share media
->>>> resources with DVB, and V4L2 drivers on a AU0828 media device.
->>>>
->>>> The Media Controller specific initialization is done after sound card is
->>>> registered. ALSA creates Media interface and entity function graph nodes
->>>> for Control, Mixer, PCM Playback, and PCM Capture devices.
->>>>
->>>> snd_usb_hw_params() will call Media Controller enable source handler
->>>> interface to request the media resource. If resource request is granted,
->>>> it will release it from snd_usb_hw_free(). If resource is busy, -EBUSY is
->>>> returned.
->>>>
->>>> Media specific cleanup is done in usb_audio_disconnect().
->>>>
->>>> Signed-off-by: Shuah Khan <shuah@kernel.org>
->>>
->>> Feel free to take my ack regarding the sound stuff:
->>>     Reviewed-by: Takashi Iwai <tiwai@suse.de>
->>>
->>>
->>> Thanks!
->>>
->>> Takashi
->>>
->>
->> Hi Mauro,
->>
->> Any update on this patch series?
-> 
-> I'm planning to process this series for 5.1. Haven't gotten around to it yet,
-> but I expect to do this next week.
-> 
-> Still going through all the pending patches after the Christmas period :-)
-> 
-> Regards,
-> 
-> 	Hans
-> 
+Convert to use vm_insert_range_buggy to map range of kernel memory
+to user vma.
 
-Hans,
+This driver has ignored vm_pgoff. We could later "fix" these drivers
+to behave according to the normal vm_pgoff offsetting simply by
+removing the _buggy suffix on the function name and if that causes
+regressions, it gives us an easy way to revert.
 
-Thanks for a quick reply. No worries. I am recovering from the Christmas
-and vacation myself. :)
+There is an existing bug inside gem_mmap_obj(), where user passed
+length is not checked against buf->num_pages. For any value of
+length > buf->num_pages it will end up overrun buf->pages[i],
+which could lead to a potential bug.
 
-thanks,
--- Shuah
+This has been addressed by passing buf->num_pages as input to
+vm_insert_range_buggy() and inside this API error condition is
+checked which will avoid overrun the page boundary.
 
+Signed-off-by: Souptick Joarder <jrdr.linux@gmail.com>
+---
+ drivers/media/common/videobuf2/videobuf2-dma-sg.c | 22 ++++++----------------
+ 1 file changed, 6 insertions(+), 16 deletions(-)
+
+diff --git a/drivers/media/common/videobuf2/videobuf2-dma-sg.c b/drivers/media/common/videobuf2/videobuf2-dma-sg.c
+index 015e737..ef046b4 100644
+--- a/drivers/media/common/videobuf2/videobuf2-dma-sg.c
++++ b/drivers/media/common/videobuf2/videobuf2-dma-sg.c
+@@ -328,28 +328,18 @@ static unsigned int vb2_dma_sg_num_users(void *buf_priv)
+ static int vb2_dma_sg_mmap(void *buf_priv, struct vm_area_struct *vma)
+ {
+ 	struct vb2_dma_sg_buf *buf = buf_priv;
+-	unsigned long uaddr = vma->vm_start;
+-	unsigned long usize = vma->vm_end - vma->vm_start;
+-	int i = 0;
++	int err;
+ 
+ 	if (!buf) {
+ 		printk(KERN_ERR "No memory to map\n");
+ 		return -EINVAL;
+ 	}
+ 
+-	do {
+-		int ret;
+-
+-		ret = vm_insert_page(vma, uaddr, buf->pages[i++]);
+-		if (ret) {
+-			printk(KERN_ERR "Remapping memory, error: %d\n", ret);
+-			return ret;
+-		}
+-
+-		uaddr += PAGE_SIZE;
+-		usize -= PAGE_SIZE;
+-	} while (usize > 0);
+-
++	err = vm_insert_range_buggy(vma, buf->pages, buf->num_pages);
++	if (err) {
++		printk(KERN_ERR "Remapping memory, error: %d\n", err);
++		return err;
++	}
+ 
+ 	/*
+ 	 * Use common vm_area operations to track buffer refcount.
+-- 
+1.9.1
 
