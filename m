@@ -2,141 +2,157 @@ Return-Path: <SRS0=SCQz=PT=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,USER_AGENT_MUTT autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 239D4C43387
-	for <linux-media@archiver.kernel.org>; Fri, 11 Jan 2019 15:08:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A0010C43387
+	for <linux-media@archiver.kernel.org>; Fri, 11 Jan 2019 15:25:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E7DCD2084C
-	for <linux-media@archiver.kernel.org>; Fri, 11 Jan 2019 15:08:00 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ukuye4IL"
+	by mail.kernel.org (Postfix) with ESMTP id 79FEB20675
+	for <linux-media@archiver.kernel.org>; Fri, 11 Jan 2019 15:25:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391965AbfAKPHz (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 11 Jan 2019 10:07:55 -0500
-Received: from mail-pg1-f193.google.com ([209.85.215.193]:43077 "EHLO
-        mail-pg1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730013AbfAKPHy (ORCPT
+        id S1729520AbfAKPZm (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 11 Jan 2019 10:25:42 -0500
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:48427 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1728958AbfAKPZm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 11 Jan 2019 10:07:54 -0500
-Received: by mail-pg1-f193.google.com with SMTP id v28so6415498pgk.10;
-        Fri, 11 Jan 2019 07:07:53 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=date:from:to:cc:subject:message-id:mime-version:content-disposition
-         :user-agent;
-        bh=xmLU2VoxBI1AblI7e4+GVmT5PEuDGrr9Ez3gDZemTlo=;
-        b=ukuye4ILBghvl/ea98/Ja45KGMhw2LJ9JaPBDDpqgt2y9VBAhCkwXx/XCC1BJBLszm
-         j/RFMHQI1vnQZm2S/durahGZ3fABpMUNvQNZKd2mWCd1b0seaQ1HdjW0BjizObBP/e+S
-         7mMLpf4vsXaJ9HXyxFoviwshTVxHZpfMU6FgoF1sktEarBm8ClO7PCkxUkcJ/BwNxnZL
-         yBl4z8N8OTasKmGS9Usrz+JXD5rBahLAWvbEMuQYtCd2+Q9qOk9vKmSlfa499/WHZ/oa
-         C9rO4vYI+xLVeQMZgqOYNUmpDt6leBfFn8bwAdgRC1xdcK18dvi1UirqW/G0uJ8Y+Kpe
-         4A1w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:mime-version
-         :content-disposition:user-agent;
-        bh=xmLU2VoxBI1AblI7e4+GVmT5PEuDGrr9Ez3gDZemTlo=;
-        b=TFAP3oRa2FPyVVN8gthZa/yQchM3o/blWpILdGZGnicvrIsnlAbwZDDPRqDDdvHd9m
-         J4ApUIkAe6S94NJz6IhBs1EhLqmbltzrXZhLAcFzbX0efc31+8ZROEufI2CO1NvDw+hS
-         n8ORIfSAQSx/7Yrd5QMrsFUSu2Hdsr+HgCTShLB9TXYEcHNY8cvpepCLx/KBH8x2sIwN
-         hIhM1f9I33bzGwhS6DGv/rw8BCmsQN6+/CVskdBrLlt8+SenvEIhzctR4fbjBaX73PGp
-         qwK5skGhAaDQy/yMZxXgP1TfYk7mQ09x66ec1wBTAMR+hjTmYBhVwss+FBcOEzjcPHzT
-         egCQ==
-X-Gm-Message-State: AJcUukdPW2a979VDfrwkbHRDoUEN14D57Drl/edKL1KNd2oYCyC3iukc
-        +XnRKv+sCgNzvB1TZ0FWF8k=
-X-Google-Smtp-Source: ALg8bN78QYDL7o7tAWys1x+bFJlndFbFXr9PHUkCoW3OrmZHFdsg9IHHrJ+vfOFuzdNqNQM2dbbwhg==
-X-Received: by 2002:a62:5486:: with SMTP id i128mr14545894pfb.215.1547219273447;
-        Fri, 11 Jan 2019 07:07:53 -0800 (PST)
-Received: from jordon-HP-15-Notebook-PC ([49.207.52.190])
-        by smtp.gmail.com with ESMTPSA id m3sm137912153pff.173.2019.01.11.07.07.51
-        (version=TLS1 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
-        Fri, 11 Jan 2019 07:07:52 -0800 (PST)
-Date:   Fri, 11 Jan 2019 20:41:54 +0530
-From:   Souptick Joarder <jrdr.linux@gmail.com>
-To:     akpm@linux-foundation.org, willy@infradead.org, mhocko@suse.com,
-        pawel@osciak.com, m.szyprowski@samsung.com,
-        kyungmin.park@samsung.com, mchehab@kernel.org,
-        linux@armlinux.org.uk, robin.murphy@arm.com
-Cc:     linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-mm@kvack.org
-Subject: [PATCH 7/9] videobuf2/videobuf2-dma-sg.c: Convert to use
- vm_insert_range_buggy
-Message-ID: <20190111151154.GA2819@jordon-HP-15-Notebook-PC>
+        Fri, 11 Jan 2019 10:25:42 -0500
+Received: from [IPv6:2001:983:e9a7:1:b51b:802b:6c83:309a] ([IPv6:2001:983:e9a7:1:b51b:802b:6c83:309a])
+        by smtp-cloud9.xs4all.net with ESMTPA
+        id hyglgnj2UMWvEhygmgcdiv; Fri, 11 Jan 2019 16:25:40 +0100
+To:     Helen Koike <helen.koike@collabora.com>
+Cc:     Linux Media Mailing List <linux-media@vger.kernel.org>
+From:   Hans Verkuil <hverkuil@xs4all.nl>
+Subject: vimc kernel warning and kernel oops
+Message-ID: <3a4770e4-851c-78fd-73c3-a919bd190347@xs4all.nl>
+Date:   Fri, 11 Jan 2019 16:25:39 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.3.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-User-Agent: Mutt/1.5.21 (2010-09-15)
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-CMAE-Envelope: MS4wfD7jqXOVvCHOM1pDrlw3JZ8OxMNxN7kT8ov5m3JRR4ogVnkE0pOYisY6V40tNzq459solHzPNWpt75Ws8BPNAiQwujvOQsSEoCQaNLoVTot0OBLPdYhr
+ FPHaYRWvtwu++9vBlm8rY3UhvGrzUZHl2kBH+IG5C5KrErXAg+S4rbBSvQUWK76SOYq4M4vLy61ESmuVSu7Paq1vm2dtFn8aMklsPu5LV5Z/L1xnNSL+r4bl
+ rO+p9PPnC+bFdEJaA2XE96Sldug+enJFK9UkcKxue8N1jbBv8xjAgw6D5pLUNZ40HOw4BmWRbvcrfwqvojDmjQ==
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Convert to use vm_insert_range_buggy to map range of kernel memory
-to user vma.
+Hi Helen,
 
-This driver has ignored vm_pgoff. We could later "fix" these drivers
-to behave according to the normal vm_pgoff offsetting simply by
-removing the _buggy suffix on the function name and if that causes
-regressions, it gives us an easy way to revert.
+I've started work to fix the last compliance failures with vimc so that
+vimc can be used in regression tests.
 
-There is an existing bug inside gem_mmap_obj(), where user passed
-length is not checked against buf->num_pages. For any value of
-length > buf->num_pages it will end up overrun buf->pages[i],
-which could lead to a potential bug.
+But I found a kernel warning and a kernel oops using vimc from our master tree.
 
-This has been addressed by passing buf->num_pages as input to
-vm_insert_range_buggy() and inside this API error condition is
-checked which will avoid overrun the page boundary.
+To test, load vimc, then run:
 
-Signed-off-by: Souptick Joarder <jrdr.linux@gmail.com>
----
- drivers/media/common/videobuf2/videobuf2-dma-sg.c | 22 ++++++----------------
- 1 file changed, 6 insertions(+), 16 deletions(-)
+v4l2-ctl -d2 -v width=1920,height=1440
+v4l2-ctl -d2 --stream-mmap
 
-diff --git a/drivers/media/common/videobuf2/videobuf2-dma-sg.c b/drivers/media/common/videobuf2/videobuf2-dma-sg.c
-index 015e737..ef046b4 100644
---- a/drivers/media/common/videobuf2/videobuf2-dma-sg.c
-+++ b/drivers/media/common/videobuf2/videobuf2-dma-sg.c
-@@ -328,28 +328,18 @@ static unsigned int vb2_dma_sg_num_users(void *buf_priv)
- static int vb2_dma_sg_mmap(void *buf_priv, struct vm_area_struct *vma)
- {
- 	struct vb2_dma_sg_buf *buf = buf_priv;
--	unsigned long uaddr = vma->vm_start;
--	unsigned long usize = vma->vm_end - vma->vm_start;
--	int i = 0;
-+	int err;
- 
- 	if (!buf) {
- 		printk(KERN_ERR "No memory to map\n");
- 		return -EINVAL;
- 	}
- 
--	do {
--		int ret;
--
--		ret = vm_insert_page(vma, uaddr, buf->pages[i++]);
--		if (ret) {
--			printk(KERN_ERR "Remapping memory, error: %d\n", ret);
--			return ret;
--		}
--
--		uaddr += PAGE_SIZE;
--		usize -= PAGE_SIZE;
--	} while (usize > 0);
--
-+	err = vm_insert_range_buggy(vma, buf->pages, buf->num_pages);
-+	if (err) {
-+		printk(KERN_ERR "Remapping memory, error: %d\n", err);
-+		return err;
-+	}
- 
- 	/*
- 	 * Use common vm_area operations to track buffer refcount.
--- 
-1.9.1
+This is the first kernel warning:
 
+[  671.799450] ------------[ cut here ]------------
+[  671.799471] do not call blocking ops when !TASK_RUNNING; state=2 set at [<0000000050c41bbb>] vimc_sen_tpg_thread+0x0/0x110 [vimc_sensor]
+[  671.799487] WARNING: CPU: 5 PID: 31428 at kernel/sched/core.c:6099 __might_sleep+0x63/0x70
+[  671.799492] Modules linked in: vimc_scaler vimc_sensor v4l2_tpg vimc_capture videobuf2_vmalloc videobuf2_memops videobuf2_v4l2 vimc_debayer videobuf2_common vimc_common vimc videodev media
+vmw_vsock_vmci_transport vmw_balloon vmwgfx ttm vmw_vmci button [last unloaded: media]
+[  671.799515] CPU: 5 PID: 31428 Comm: vimc vimc.0-sen Not tainted 5.0.0-rc1-test-nl #23
+[  671.799518] Hardware name: VMware, Inc. VMware Virtual Platform/440BX Desktop Reference Platform, BIOS 6.00 04/13/2018
+[  671.799522] RIP: 0010:__might_sleep+0x63/0x70
+[  671.799526] Code: 5b 5d 41 5c e9 3e ff ff ff 48 8b 90 f0 20 00 00 48 8b 70 10 48 c7 c7 98 79 30 82 c6 05 91 fb 5b 01 01 48 89 d1 e8 14 91 fd ff <0f> 0b eb ca 66 0f 1f 84 00 00 00 00 00 55 53 48 83
+ec 08 65 48 8b
+[  671.799529] RSP: 0018:ffffc90016457ec8 EFLAGS: 00010282
+[  671.799532] RAX: 0000000000000000 RBX: ffffffffa00ec398 RCX: 0000000000000000
+[  671.799535] RDX: 0000000000000007 RSI: ffffffff8232b345 RDI: 00000000ffffffff
+[  671.799537] RBP: 0000000000000039 R08: 0000000000000000 R09: 0000000000000000
+[  671.799540] R10: 000000007e7cfc77 R11: ffffc90016457d70 R12: 0000000000000000
+[  671.799542] R13: ffff88842afc4168 R14: ffff88842afc4000 R15: ffffffffa00eb0e0
+[  671.799545] FS:  0000000000000000(0000) GS:ffff88842ed40000(0000) knlGS:0000000000000000
+[  671.799585] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[  671.799587] CR2: 000056027a051cc0 CR3: 00000004136ec000 CR4: 00000000003406e0
+[  671.799615] Call Trace:
+[  671.799624]  vimc_sen_tpg_thread+0x72/0x110 [vimc_sensor]
+[  671.799632]  kthread+0x113/0x130
+[  671.799637]  ? kthread_create_on_node+0x60/0x60
+[  671.799645]  ret_from_fork+0x22/0x40
+[  671.799653] ---[ end trace 9048b36dd38333b9 ]---
+
+The cause is that set_current_state(TASK_UNINTERRUPTIBLE); is called too early,
+it should be called just before the schedule_timeout().
+
+The kernel oops follows the warning:
+
+[  671.800597] BUG: unable to handle kernel NULL pointer dereference at 0000000000000004
+[  671.800600] #PF error: [normal kernel read fault]
+[  671.800602] PGD 0 P4D 0
+[  671.800606] Oops: 0000 [#1] PREEMPT SMP
+[  671.800609] CPU: 5 PID: 31428 Comm: vimc vimc.0-sen Tainted: G        W         5.0.0-rc1-test-nl #23
+[  671.800610] Hardware name: VMware, Inc. VMware Virtual Platform/440BX Desktop Reference Platform, BIOS 6.00 04/13/2018
+[  671.800615] RIP: 0010:vimc_deb_process_frame+0x14b/0x2b0 [vimc_debayer]
+[  671.800617] Code: 4c 24 08 41 89 f0 48 8d 1c 12 8d 4e ff 45 0f af c4 48 89 5c 24 10 48 89 4c 24 18 48 8b 4c 24 08 89 fa 83 e2 01 48 03 54 24 10 <44> 8b 4c 91 04 44 89 c1 4a 8d 6c 8c 38 44 8b 55 00
+85 f6 74 32 48
+[  671.800619] RSP: 0018:ffffc90016457e38 EFLAGS: 00010246
+[  671.800622] RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000000
+[  671.800623] RDX: 0000000000000000 RSI: 0000000000000003 RDI: 0000000000000000
+[  671.800625] RBP: ffff888422331b40 R08: 0000000000000000 R09: 0000000000000001
+[  671.800628] R10: 00000000000001df R11: 0000000000000001 R12: 0000000000000000
+[  671.800630] R13: 0000000000000000 R14: 0000000000000280 R15: ffff88842a465800
+[  671.800632] FS:  0000000000000000(0000) GS:ffff88842ed40000(0000) knlGS:0000000000000000
+[  671.800635] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[  671.800637] CR2: 0000000000000004 CR3: 00000004136ec000 CR4: 00000000003406e0
+[  671.800641] Call Trace:
+[  671.800647]  ? vimc_sen_enum_mbus_code+0x30/0x30 [vimc_sensor]
+[  671.800651]  vimc_propagate_frame+0x8f/0xa0 [vimc_common]
+[  671.800655]  vimc_sen_tpg_thread+0xcb/0x110 [vimc_sensor]
+[  671.800660]  kthread+0x113/0x130
+[  671.800663]  ? kthread_create_on_node+0x60/0x60
+[  671.800667]  ret_from_fork+0x22/0x40
+[  671.800671] Modules linked in: vimc_scaler vimc_sensor v4l2_tpg vimc_capture videobuf2_vmalloc videobuf2_memops videobuf2_v4l2 vimc_debayer videobuf2_common vimc_common vimc videodev media
+vmw_vsock_vmci_transport vmw_balloon vmwgfx ttm vmw_vmci button [last unloaded: media]
+[  671.800681] CR2: 0000000000000004
+[  671.800685] ---[ end trace 9048b36dd38333ba ]---
+
+The reason for this is that in vimc_deb_s_stream() this call:
+
+vdeb->sink_pix_map = vimc_deb_pix_map_by_code(vdeb->sink_fmt.code);
+
+sets vdeb->sink_pix_map to NULL since vdeb->sink_fmt.code isn't a Bayer code, but
+s_stream just continues without returning an error.
+
+The core problem is that sink_fmt.code is initialized with a code that isn't legal
+for the debayer subdev:
+
+$ v4l2-ctl -d /dev/v4l-subdev2 --get-subdev-fmt --list-subdev-mbus-codes 0
+ioctl: VIDIOC_SUBDEV_G_FMT (pad=0)
+        Width/Height      : 640/480
+        Mediabus Code     : 0x100a (MEDIA_BUS_FMT_RGB888_1X24)
+        Field             : None
+        Colorspace        : Default
+        Transfer Function : Default (maps to Rec. 709)
+        YCbCr/HSV Encoding: Default (maps to ITU-R 601)
+        Quantization      : Default (maps to Full Range)
+ioctl: VIDIOC_SUBDEV_ENUM_MBUS_CODE (pad=0)
+        0x3001: MEDIA_BUS_FMT_SBGGR8_1X8
+        0x3013: MEDIA_BUS_FMT_SGBRG8_1X8
+        0x3002: MEDIA_BUS_FMT_SGRBG8_1X8
+        0x3014: MEDIA_BUS_FMT_SRGGB8_1X8
+        0x3007: MEDIA_BUS_FMT_SBGGR10_1X10
+        0x300e: MEDIA_BUS_FMT_SGBRG10_1X10
+        0x300a: MEDIA_BUS_FMT_SGRBG10_1X10
+        0x300f: MEDIA_BUS_FMT_SRGGB10_1X10
+        0x3008: MEDIA_BUS_FMT_SBGGR12_1X12
+        0x3010: MEDIA_BUS_FMT_SGBRG12_1X12
+        0x3011: MEDIA_BUS_FMT_SGRBG12_1X12
+        0x3012: MEDIA_BUS_FMT_SRGGB12_1X12
+
+That's obviously not right.
+
+Can you take a look at these issues?
+
+Thanks!
+
+	Hans
