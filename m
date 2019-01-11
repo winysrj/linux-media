@@ -2,160 +2,100 @@ Return-Path: <SRS0=SCQz=PT=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.6 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0177CC43387
-	for <linux-media@archiver.kernel.org>; Fri, 11 Jan 2019 19:54:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 468B8C43387
+	for <linux-media@archiver.kernel.org>; Fri, 11 Jan 2019 20:13:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CB86820836
-	for <linux-media@archiver.kernel.org>; Fri, 11 Jan 2019 19:54:52 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1547236492;
-	bh=1oDG6m5Dn/Y28gbkdiNqhtU244k/so4n4E4WKoi0A0s=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
-	b=yN8nGvhdRS76T9u0C2sKk57iEY2TGcZy+Ini9EP6nmDnej8tJOvpvF9gbZ1btTrzv
-	 dzREjnCURRHwU2qg58riIbKI0r8SFFaSy4JQjhvOLVfIQlFnRS91TRfDGYpwXQgRuk
-	 ZxAXmdD74fkDW9uf6b3StNiY+Si3mV0SGxvmw+uA=
+	by mail.kernel.org (Postfix) with ESMTP id 1CC102177B
+	for <linux-media@archiver.kernel.org>; Fri, 11 Jan 2019 20:13:51 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=ndufresne-ca.20150623.gappssmtp.com header.i=@ndufresne-ca.20150623.gappssmtp.com header.b="F2gukzoI"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388859AbfAKTyq (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 11 Jan 2019 14:54:46 -0500
-Received: from casper.infradead.org ([85.118.1.10]:57678 "EHLO
-        casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388712AbfAKTyq (ORCPT
+        id S2389268AbfAKUNu (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 11 Jan 2019 15:13:50 -0500
+Received: from mail-qt1-f196.google.com ([209.85.160.196]:33389 "EHLO
+        mail-qt1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2387951AbfAKUNu (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 11 Jan 2019 14:54:46 -0500
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
-        MIME-Version:References:In-Reply-To:Message-ID:Subject:Cc:To:From:Date:Sender
-        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
-        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=fMcNvquDgQQYlKE4Y7lNw6Nx1C1EhjU6J5BGveGlj+4=; b=mbohqD2QpEMefQWwUsKCJJR0wu
-        XLxAF7/7GnD3lzQsYsgzRvoy1zuL7Ej70GIMeFRCcP6OoqrQ5zEbi3ymwpEXuE8uU+YWZg1Gp5EQ/
-        4otHAYmsRlUMimv7+sUOhH7xlI537dTWBlz21EilYEsoRClF7Mc76ZM5aJlB5CO9fzeeNiq95PRcv
-        tU1bQ5OdGrT9SQgptnDn1p/CqPKxQJW/h9+Bmc6E0J675O13PXHHI8iN7g+v+ZnA5MjEoLdWoyrVa
-        oLvXi+/a8wZ3SkoSbTiyARozxYoYa3ppl0LF0X5BNi1DgOEj2LhBA7evi/bgAhBuyyDGHmrPx6s9Q
-        MIxVgPSA==;
-Received: from 177.17.174.42.dynamic.adsl.gvt.net.br ([177.17.174.42] helo=coco.lan)
-        by casper.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
-        id 1gi2sp-0000fE-UV; Fri, 11 Jan 2019 19:54:24 +0000
-Date:   Fri, 11 Jan 2019 17:54:16 -0200
-From:   Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To:     Christoph Hellwig <hch@lst.de>
-Cc:     Pawel Osciak <pawel@osciak.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Niklas =?UTF-8?B?U8O2ZGVybHVuZA==?= 
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Russell King <linux@armlinux.org.uk>,
-        iommu@lists.linux-foundation.org,
-        linux-arm-kernel@lists.infradead.org,
-        linuxppc-dev@lists.ozlabs.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 3/3] videobuf2: replace a layering violation with
- dma_map_resource
-Message-ID: <20190111175416.7d291e25@coco.lan>
-In-Reply-To: <20190111181731.11782-4-hch@lst.de>
-References: <20190111181731.11782-1-hch@lst.de>
-        <20190111181731.11782-4-hch@lst.de>
-X-Mailer: Claws Mail 3.17.3 (GTK+ 2.24.32; x86_64-redhat-linux-gnu)
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Fri, 11 Jan 2019 15:13:50 -0500
+Received: by mail-qt1-f196.google.com with SMTP id l11so20257422qtp.0
+        for <linux-media@vger.kernel.org>; Fri, 11 Jan 2019 12:13:49 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ndufresne-ca.20150623.gappssmtp.com; s=20150623;
+        h=message-id:subject:from:to:date:in-reply-to:references:user-agent
+         :mime-version:content-transfer-encoding;
+        bh=mVadURPdmQXC45QOiIuo+BZzmYj3CJIU6mXYM2cQfWA=;
+        b=F2gukzoIU3AM/y01fi/lZX6WXtwYN3SkziCEkOH2CZbwHqACxRGeonDu5RvPgdgyqI
+         byMDURfcZkQiT9xgtwaJHXJoHkkpAWxBbkD1vzTEZQPpWCzRQ8pj7oCS1wqhIrkbh2GK
+         n+CgRWrreB6tuyRckpdWd1o9ffTAwc7PDsHFxwz2blbOjj52t6pMMXiSf3diuxD45+k7
+         MfI7O00izW7op4/a2XUVm6DwIypFYddoxp6Ns/DMxdzR0hjhv8Owk7Ol42eUKw0cLYm7
+         2LwDLoavMJIGQdjI2TB2+I0AeDWNbnbKuQKn4rdsm40wM6gDUtie1q79IR15NeAryfhW
+         UyEA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:message-id:subject:from:to:date:in-reply-to
+         :references:user-agent:mime-version:content-transfer-encoding;
+        bh=mVadURPdmQXC45QOiIuo+BZzmYj3CJIU6mXYM2cQfWA=;
+        b=qphjkLKrGKqad5LJSyw/F6KaYRGo8jHU8tHR4vzOeaZyY1EXoT1FqeGyrPkZ+XG24h
+         yB+kNZGmRCgR3Dc/ccX1/uKvTknpwZMD4jRoiaHZPIEL642wGd5VUCpEDfX1qS1b3yHc
+         VjPKEUSy3l4R/qhxE6YI8YewK3kThiMGJXieLQiYIUoUwoxzYUmwNs3Wcn4ofybqRqS2
+         fxadLP5C3Iq2hOdJA1VxFgCzAEuzVrugt+aIGdwPvTkeoyBt7/vbCQ8MtRL7vCQki5SG
+         pTBnsozgNCiddjA/kC4dwzRAXaI9Szj969Z4/py5cK4euTAM5Ij4lJO2PjoJiouVH3CE
+         Qc0g==
+X-Gm-Message-State: AJcUukdVwsQ/mu8nsx/p5OE6msc+cyGL1nDe5BJLsAh1vPYz+Yoxalig
+        pXRPwOejwoQnG/bTluJd1WOyIA==
+X-Google-Smtp-Source: ALg8bN6+R3mtTeN5jmmnLPgSrUT0yIdImtsoRBSHRvZB56HAuUGITN8+G+/qT6dJxO0W/jCU8lc6dA==
+X-Received: by 2002:ac8:65c7:: with SMTP id t7mr14913028qto.143.1547237629209;
+        Fri, 11 Jan 2019 12:13:49 -0800 (PST)
+Received: from skullcanyon ([192.222.193.21])
+        by smtp.gmail.com with ESMTPSA id j38sm51298470qtj.72.2019.01.11.12.13.47
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Fri, 11 Jan 2019 12:13:47 -0800 (PST)
+Message-ID: <e51b9648691804cc97868a79d56e713df8e938c5.camel@ndufresne.ca>
+Subject: Re: [PATCH] vivid: do not implement VIDIOC_S_PARM for output streams
+From:   Nicolas Dufresne <nicolas@ndufresne.ca>
+To:     Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Date:   Fri, 11 Jan 2019 15:13:46 -0500
+In-Reply-To: <fc0e18f4-b499-60b4-d750-12beb06f98ce@xs4all.nl>
+References: <fc0e18f4-b499-60b4-d750-12beb06f98ce@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+User-Agent: Evolution 3.30.3 (3.30.3-1.fc29) 
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Em Fri, 11 Jan 2019 19:17:31 +0100
-Christoph Hellwig <hch@lst.de> escreveu:
+Le vendredi 11 janvier 2019 à 12:37 +0100, Hans Verkuil a écrit :
+> v4l2_compliance gave a warning for the S_PARM test for output streams:
+> 
+> warn: v4l2-test-formats.cpp(1235): S_PARM is supported for buftype 2, but not for ENUM_FRAMEINTERVALS
+> 
+> The reason is that vivid mapped s_parm for output streams to g_parm. But if
+> S_PARM doesn't actually change anything, then it shouldn't be enabled at all.
 
-> vb2_dc_get_userptr pokes into arm direct mapping details to get the
-> resemblance of a dma address for a a physical address that does is
-> not backed by a page struct.  Not only is this not portable to other
-> architectures with dma direct mapping offsets, but also not to uses
-> of IOMMUs of any kind.  Switch to the proper dma_map_resource /
-> dma_unmap_resource interface instead.
-
-Makes sense to me. I'm assuming that you'll be pushing it together
-with other mm patches, so:
-
-Acked-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Though now, a vivid output reflect even less an output HW, for which I
+would expect S_PARM to be used to configure the HW transmission clock.
 
 > 
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
+> Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 > ---
->  .../common/videobuf2/videobuf2-dma-contig.c   | 41 ++++---------------
->  1 file changed, 9 insertions(+), 32 deletions(-)
+> diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
+> index c931f007e5b0..7da5720b47a2 100644
+> --- a/drivers/media/platform/vivid/vivid-core.c
+> +++ b/drivers/media/platform/vivid/vivid-core.c
+> @@ -371,7 +371,7 @@ static int vidioc_s_parm(struct file *file, void *fh,
 > 
-> diff --git a/drivers/media/common/videobuf2/videobuf2-dma-contig.c b/drivers/media/common/videobuf2/videobuf2-dma-contig.c
-> index aff0ab7bf83d..82389aead6ed 100644
-> --- a/drivers/media/common/videobuf2/videobuf2-dma-contig.c
-> +++ b/drivers/media/common/videobuf2/videobuf2-dma-contig.c
-> @@ -439,42 +439,14 @@ static void vb2_dc_put_userptr(void *buf_priv)
->  				set_page_dirty_lock(pages[i]);
->  		sg_free_table(sgt);
->  		kfree(sgt);
-> +	} else {
-> +		dma_unmap_resource(buf->dev, buf->dma_addr, buf->size,
-> +				   buf->dma_dir, 0);
->  	}
->  	vb2_destroy_framevec(buf->vec);
->  	kfree(buf);
+>  	if (vdev->vfl_dir == VFL_DIR_RX)
+>  		return vivid_vid_cap_s_parm(file, fh, parm);
+> -	return vivid_vid_out_g_parm(file, fh, parm);
+> +	return -ENOTTY;
 >  }
->  
-> -/*
-> - * For some kind of reserved memory there might be no struct page available,
-> - * so all that can be done to support such 'pages' is to try to convert
-> - * pfn to dma address or at the last resort just assume that
-> - * dma address == physical address (like it has been assumed in earlier version
-> - * of videobuf2-dma-contig
-> - */
-> -
-> -#ifdef __arch_pfn_to_dma
-> -static inline dma_addr_t vb2_dc_pfn_to_dma(struct device *dev, unsigned long pfn)
-> -{
-> -	return (dma_addr_t)__arch_pfn_to_dma(dev, pfn);
-> -}
-> -#elif defined(__pfn_to_bus)
-> -static inline dma_addr_t vb2_dc_pfn_to_dma(struct device *dev, unsigned long pfn)
-> -{
-> -	return (dma_addr_t)__pfn_to_bus(pfn);
-> -}
-> -#elif defined(__pfn_to_phys)
-> -static inline dma_addr_t vb2_dc_pfn_to_dma(struct device *dev, unsigned long pfn)
-> -{
-> -	return (dma_addr_t)__pfn_to_phys(pfn);
-> -}
-> -#else
-> -static inline dma_addr_t vb2_dc_pfn_to_dma(struct device *dev, unsigned long pfn)
-> -{
-> -	/* really, we cannot do anything better at this point */
-> -	return (dma_addr_t)(pfn) << PAGE_SHIFT;
-> -}
-> -#endif
-> -
->  static void *vb2_dc_get_userptr(struct device *dev, unsigned long vaddr,
->  	unsigned long size, enum dma_data_direction dma_dir)
->  {
-> @@ -528,7 +500,12 @@ static void *vb2_dc_get_userptr(struct device *dev, unsigned long vaddr,
->  		for (i = 1; i < n_pages; i++)
->  			if (nums[i-1] + 1 != nums[i])
->  				goto fail_pfnvec;
-> -		buf->dma_addr = vb2_dc_pfn_to_dma(buf->dev, nums[0]);
-> +		buf->dma_addr = dma_map_resource(buf->dev,
-> +				__pfn_to_phys(nums[0]), size, buf->dma_dir, 0);
-> +		if (dma_mapping_error(buf->dev, buf->dma_addr)) {
-> +			ret = -ENOMEM;
-> +			goto fail_pfnvec;
-> +		}
->  		goto out;
->  	}
->  
+> 
+>  static int vidioc_log_status(struct file *file, void *fh)
 
-
-
-Thanks,
-Mauro
