@@ -7,71 +7,84 @@ X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B2333C43612
-	for <linux-media@archiver.kernel.org>; Fri, 11 Jan 2019 15:44:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D0D13C43387
+	for <linux-media@archiver.kernel.org>; Fri, 11 Jan 2019 15:44:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 76E522183F
-	for <linux-media@archiver.kernel.org>; Fri, 11 Jan 2019 15:44:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9798E20700
+	for <linux-media@archiver.kernel.org>; Fri, 11 Jan 2019 15:44:35 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="HOie09fr"
+	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="whyKA9Wu"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732105AbfAKPod (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 11 Jan 2019 10:44:33 -0500
-Received: from perceval.ideasonboard.com ([213.167.242.64]:59984 "EHLO
+        id S1732120AbfAKPoe (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 11 Jan 2019 10:44:34 -0500
+Received: from perceval.ideasonboard.com ([213.167.242.64]:59998 "EHLO
         perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730291AbfAKPod (ORCPT
+        with ESMTP id S1730891AbfAKPoe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 11 Jan 2019 10:44:33 -0500
+        Fri, 11 Jan 2019 10:44:34 -0500
 Received: from localhost.localdomain (cpc89242-aztw30-2-0-cust488.18-1.cable.virginm.net [86.31.129.233])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 832C553E;
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id EAFC3547;
         Fri, 11 Jan 2019 16:44:31 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1547221471;
-        bh=4s+Ws+SAkl0QGeTpZNiLBCVce3enPIAmdzkV3LkC86Q=;
+        s=mail; t=1547221472;
+        bh=VdSpkWvBGePH7GodXkaYOKi1FH9cMGsH7ZJ1VvznOV0=;
         h=From:To:Cc:Subject:Date:From;
-        b=HOie09frxRd5hCkaUTd3XXsl0l7V08wd6ev7Wf5pnMCEIQBQ724ex5kvA/Ov4KR8h
-         W2xppSoTqWnd7eJsAAJOjoPfcoy8UiK9i+1lGHew/JeKiOd+xKJJh6Yzf8BRMIzeY5
-         8EKP62BxMfpfZPRoGC+0Fr1cP8XsrJb1j5MTTeBg=
+        b=whyKA9WukzjNULT7oDAkwF8jubUGDMHNPxg0RjLyaBoDuoo3WW9StWai8rkEuW+PR
+         Kk4GtN/wfAtzen0SoT53aPG9Mqei0h/p7bpQ05jgO4GYHLIJlnl6GzWvL2lxwt81M7
+         RdBoONRQAdxPkV4fE9cBqGILUamPlqsC4luQHTig=
 From:   Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 To:     linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
         Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Cc:     Koji Matsuoka <koji.matsuoka.xm@renesas.com>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH 1/2] media: i2c: adv7482: Fix wait procedure usleep_range from msleep
-Date:   Fri, 11 Jan 2019 15:43:44 +0000
-Message-Id: <20190111154345.29145-1-kieran.bingham+renesas@ideasonboard.com>
+Cc:     Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 2/2] media: i2c: adv748x: Use devm to allocate the device struct
+Date:   Fri, 11 Jan 2019 15:43:45 +0000
+Message-Id: <20190111154345.29145-2-kieran.bingham+renesas@ideasonboard.com>
 X-Mailer: git-send-email 2.17.1
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+From: Steve Longerbeam <steve_longerbeam@mentor.com>
 
-By Documentation/timers/timers-howto.txt, when waiting 20ms from 10us,
-it is correct to use usleep_range. this patch corrects it.
+Switch to devm_kzalloc() when allocating the adv748x device struct.
 
-Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
-(cherry picked from horms/renesas-bsp commit af0cdba377bc8a784cdae6a77fb7a822cebc7083)
 Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/media/i2c/adv748x/adv748x-core.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/media/i2c/adv748x/adv748x-core.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/media/i2c/adv748x/adv748x-core.c b/drivers/media/i2c/adv748x/adv748x-core.c
-index 64eb1bfda581..097e5c3a8e7e 100644
+index 097e5c3a8e7e..4af2ae8fcc0a 100644
 --- a/drivers/media/i2c/adv748x/adv748x-core.c
 +++ b/drivers/media/i2c/adv748x/adv748x-core.c
-@@ -273,7 +273,8 @@ static int adv748x_write_regs(struct adv748x_state *state,
+@@ -774,7 +774,8 @@ static int adv748x_probe(struct i2c_client *client,
+ 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+ 		return -EIO;
  
- 	while (regs->page != ADV748X_PAGE_EOR) {
- 		if (regs->page == ADV748X_PAGE_WAIT) {
--			msleep(regs->value);
-+			usleep_range(regs->value * 1000,
-+				     (regs->value * 1000) + 1000);
- 		} else {
- 			ret = adv748x_write(state, regs->page, regs->reg,
- 				      regs->value);
+-	state = kzalloc(sizeof(struct adv748x_state), GFP_KERNEL);
++	state = devm_kzalloc(&client->dev, sizeof(struct adv748x_state),
++			     GFP_KERNEL);
+ 	if (!state)
+ 		return -ENOMEM;
+ 
+@@ -861,7 +862,6 @@ static int adv748x_probe(struct i2c_client *client,
+ 	adv748x_dt_cleanup(state);
+ err_free_mutex:
+ 	mutex_destroy(&state->mutex);
+-	kfree(state);
+ 
+ 	return ret;
+ }
+@@ -880,8 +880,6 @@ static int adv748x_remove(struct i2c_client *client)
+ 	adv748x_dt_cleanup(state);
+ 	mutex_destroy(&state->mutex);
+ 
+-	kfree(state);
+-
+ 	return 0;
+ }
+ 
 -- 
 2.19.2
 
