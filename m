@@ -7,55 +7,55 @@ X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C2F42C43444
-	for <linux-media@archiver.kernel.org>; Fri, 11 Jan 2019 06:05:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 27E05C43387
+	for <linux-media@archiver.kernel.org>; Fri, 11 Jan 2019 06:24:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 93CB620675
-	for <linux-media@archiver.kernel.org>; Fri, 11 Jan 2019 06:05:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E94DE2146F
+	for <linux-media@archiver.kernel.org>; Fri, 11 Jan 2019 06:24:32 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=amarulasolutions.com header.i=@amarulasolutions.com header.b="YJ26QTTr"
+	dkim=pass (1024-bit key) header.d=amarulasolutions.com header.i=@amarulasolutions.com header.b="Ynn9Dkfc"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729072AbfAKGFm (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 11 Jan 2019 01:05:42 -0500
-Received: from mail-io1-f68.google.com ([209.85.166.68]:37944 "EHLO
-        mail-io1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728789AbfAKGFm (ORCPT
+        id S1728788AbfAKGY0 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 11 Jan 2019 01:24:26 -0500
+Received: from mail-it1-f194.google.com ([209.85.166.194]:36436 "EHLO
+        mail-it1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727943AbfAKGYZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 11 Jan 2019 01:05:42 -0500
-Received: by mail-io1-f68.google.com with SMTP id l14so11343572ioj.5
-        for <linux-media@vger.kernel.org>; Thu, 10 Jan 2019 22:05:41 -0800 (PST)
+        Fri, 11 Jan 2019 01:24:25 -0500
+Received: by mail-it1-f194.google.com with SMTP id c9so1626998itj.1
+        for <linux-media@vger.kernel.org>; Thu, 10 Jan 2019 22:24:25 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=amarulasolutions.com; s=google;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=GMfxBDBj51g4/LgB4KANuC0aezrsIPcZoBlXSsXh8CY=;
-        b=YJ26QTTrBb0XvooQeIN7ACUccZBi5iSSXiBEWBE6w/1c+c7Kfw2zXAR2R0AYFUUZ/j
-         rXSn1uDg650mfCe8G7UbFvqgB3ooOrJwr6041JGre2T8GU//qmicq8drCEr+GCMGGl2t
-         Jd11J7FX6IC+cl0LP6zcYlQTx0Fi+nhVfrwg8=
+        bh=gJBTxb4v6aNsxm5hBskEPEm+rc32O9+aL3CbfwpxPEU=;
+        b=Ynn9DkfcKAi8Zk5VfFMybuwlQmrFGBLiBwJQnaH8J5aiMdsFKfm7e+S46C94vNsySy
+         LyY90xkAts/ksoisAqfIqgo3EsngC5aBLXwyzSTKjDuiyoZ49hZEj0G61KhjlxQhCVnI
+         KK5n5jXZyyz4eIRJzcuvm5pM+PRbXGOXfEdTU=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=GMfxBDBj51g4/LgB4KANuC0aezrsIPcZoBlXSsXh8CY=;
-        b=Zsx+UILIJIlMzkRm0socan5rHr/Z7XBb+ulQu1QIyDc0QAeLkETdZOsowY2ZiOn+SE
-         olWLwGQNdTFkIsqLJQYTCK3pz3QH0Pk6lty3u0lwRVwREDTsiE7gLJ5F8jlFSYC2QfLr
-         +SjAEHJz4SYbAqIuVxhxXg8JTVEV6ny4lFQA3HtWpUZvlfCzikR0R2iVaFTVIzJWaKBZ
-         cSXMzigsf9CL9Cujp2+aTPMuF8NSKJ/i1KdgueB0byy9D/d45BsJWYpvvcPtrfVyvtl5
-         HbUZiHq5eyWsyiT5fYbjifmwKqotfD3QB4rKCLPRZ/2AUX3eC9EBtM0rfkq1+x+/WG0k
-         bwxQ==
-X-Gm-Message-State: AJcUukfAyvUeKgrj+sMrtG8N0oVmLTHo8gfoGWCmxlGq2r/AzkqxufQH
-        boemvfzuqnlL/CI+wb6P5eTTSTST50l9MdhvN1hVjQ==
-X-Google-Smtp-Source: ALg8bN7Z/2+9dpkuuf4RYz9izMExwXaxmaDc2H9xzT2OKgtyn1+UI1D3i4h7W2C6fe3xa/svc/uNAdobR67kWb7/9tg=
-X-Received: by 2002:a6b:7a0a:: with SMTP id h10mr8233118iom.114.1547186741145;
- Thu, 10 Jan 2019 22:05:41 -0800 (PST)
+        bh=gJBTxb4v6aNsxm5hBskEPEm+rc32O9+aL3CbfwpxPEU=;
+        b=QyQYd60hZkr8mSpdqrKzBjfMkvuQT3b9W4+pDoHAyFHfiKcoLoZYpscB9HFQ8wEqeF
+         F0DACKo/IWjz/b2iDUUJ3Gel346nMB5XmAIrSMyDtnHVTGUaRxrXvCYQmqPK0xqZ+DVh
+         J8B3/UIKR295D2wrYBcLYl6uz3T037LZho/ooPfLpVQ5z5Uxor2rIh5GSkn1naM9OZg0
+         XINoOkUhcTgSRpB9YKQx7Em+ZBXfe8il+ojD1pkqSmz2PJ+1hp1SVLiMBI02kex6+fZf
+         JN0x+x/6G0sp78CqHpI/EzSDrnY8pw7HUJ3q4Ak6rsfRKWZiZqkVTA30RLIUq+fbMhwG
+         xCxQ==
+X-Gm-Message-State: AJcUukeEK9vAaNE5s9cWKppoqRqftGg9AWGoAV1H3RrRRu+5Ebj1BJJY
+        MVPe79LRiT1UUZ54YGkb2/8cTvXWD8ZsEzmvZVP9VA==
+X-Google-Smtp-Source: ALg8bN4xGvW9WuaqHL4jsgC5EUJFgb4qMdSt2yA+7Mtwx18Hn6iFh4Gh7ASkgVR6Kzng1KlAWJ8uVZcLkQWiPDXWJRA=
+X-Received: by 2002:a24:5411:: with SMTP id t17mr373581ita.32.1547187864692;
+ Thu, 10 Jan 2019 22:24:24 -0800 (PST)
 MIME-Version: 1.0
 References: <20181220125438.11700-1-jagan@amarulasolutions.com>
  <20181220125438.11700-3-jagan@amarulasolutions.com> <20181221130025.lbvw7yvy74brf3jn@flea>
  <CAMty3ZCG5cF3tP2mid5xyS=yhtxkY+TOcGkwRkv+vrZt1=0iQg@mail.gmail.com> <20190107132929.ksyajmzn2gzr6oep@flea>
 In-Reply-To: <20190107132929.ksyajmzn2gzr6oep@flea>
 From:   Jagan Teki <jagan@amarulasolutions.com>
-Date:   Fri, 11 Jan 2019 11:35:29 +0530
-Message-ID: <CAMty3ZAAa0VEOt50prvEApdNi9tkPe_vFC4oKone0z6pVd_Ziw@mail.gmail.com>
+Date:   Fri, 11 Jan 2019 11:54:12 +0530
+Message-ID: <CAMty3ZAx9MthB0M-eFmsZv9CxF3Z1BkFTU6Hw=ZT5wu6aJwjGQ@mail.gmail.com>
 Subject: Re: [PATCH v5 2/6] media: sun6i: Add mod_rate quirk
 To:     Maxime Ripard <maxime.ripard@bootlin.com>
 Cc:     Yong Deng <yong.deng@magewell.com>,
@@ -139,6 +139,10 @@ On Mon, Jan 7, 2019 at 6:59 PM Maxime Ripard <maxime.ripard@bootlin.com> wrote:
 > "Doing it here is not really optimal either, since you'll put a
 > constraint on the system (maintaining that clock at 300MHz), while
 > it's not in use."
+
+But this constraint is only set, for SoC's who need mod_rate change
+not for whole SoCs.
+
 >
 > > Since clocks were enabling in set_power and clock rate can be set
 > > during probe in single time instead of setting it in set_power for
@@ -151,3 +155,20 @@ On Mon, Jan 7, 2019 at 6:59 PM Maxime Ripard <maxime.ripard@bootlin.com> wrote:
 
 True, but clock is enabled only on sun6i_csi_set_power so setting
 clock frequency in probe will draw power?
+(sorry same message sent accidentally)
+
+>
+> > > We discussed this in the previous iteration already.
+> > >
+> > > What we didn't discuss is the variant function that you introduce,
+> > > while the previous approach was enough.
+> >
+> > We discussed about clk_rate_exclusive_put, and that even handle it in
+> > .remove right? so I have variant to handle it in sun6i_csi_remove.
+>
+> We indeed discussed the clk_rate_exclusive_put. However, you chose to
+> implement it using a variant structure which really isn't needed.
+
+Because clk_rate_exclusive_put will also do it .remove so adding
+driver variant with mod_rate can do this job easily. do you have any
+suggestion?
