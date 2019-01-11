@@ -2,56 +2,64 @@ Return-Path: <SRS0=SCQz=PT=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_NEOMUTT autolearn=ham
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 93DDEC43387
-	for <linux-media@archiver.kernel.org>; Fri, 11 Jan 2019 11:27:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BEAC5C43387
+	for <linux-media@archiver.kernel.org>; Fri, 11 Jan 2019 11:37:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6A9E520872
-	for <linux-media@archiver.kernel.org>; Fri, 11 Jan 2019 11:27:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 922502146F
+	for <linux-media@archiver.kernel.org>; Fri, 11 Jan 2019 11:37:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731026AbfAKL1J (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 11 Jan 2019 06:27:09 -0500
-Received: from 8bytes.org ([81.169.241.247]:56880 "EHLO theia.8bytes.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730977AbfAKL1J (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 11 Jan 2019 06:27:09 -0500
-Received: by theia.8bytes.org (Postfix, from userid 1000)
-        id B6068434; Fri, 11 Jan 2019 12:27:07 +0100 (CET)
-Date:   Fri, 11 Jan 2019 12:27:06 +0100
-From:   Joerg Roedel <joro@8bytes.org>
-To:     Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc:     yong.zhi@intel.com, iommu@lists.linux-foundation.org,
-        linux-media@vger.kernel.org, tfiga@chromium.org,
-        rajmohan.mani@intel.com, hans.verkuil@cisco.com,
-        mchehab@kernel.org, laurent.pinchart@ideasonboard.com,
-        bingbu.cao@intel.com, tian.shu.qiu@intel.com
-Subject: Re: [PATCH 1/1] iova: Allow compiling the library without IOMMU
- support
-Message-ID: <20190111112706.cdjjw3jbkz3mg3ia@8bytes.org>
-References: <20190102211657.13192-1-sakari.ailus@linux.intel.com>
+        id S1729977AbfAKLhG (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 11 Jan 2019 06:37:06 -0500
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:35250 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1728595AbfAKLhG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 11 Jan 2019 06:37:06 -0500
+Received: from [IPv6:2001:983:e9a7:1:b51b:802b:6c83:309a] ([IPv6:2001:983:e9a7:1:b51b:802b:6c83:309a])
+        by smtp-cloud8.xs4all.net with ESMTPA
+        id hv7XgsOhNNR5yhv7Yg9xl8; Fri, 11 Jan 2019 12:37:05 +0100
+To:     Linux Media Mailing List <linux-media@vger.kernel.org>
+From:   Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] vivid: do not implement VIDIOC_S_PARM for output streams
+Message-ID: <fc0e18f4-b499-60b4-d750-12beb06f98ce@xs4all.nl>
+Date:   Fri, 11 Jan 2019 12:37:03 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.3.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190102211657.13192-1-sakari.ailus@linux.intel.com>
-User-Agent: NeoMutt/20170421 (1.8.2)
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-CMAE-Envelope: MS4wfJueUG/y39UWMKpHnr61dvHfMiI6VWKk3g8T1paG6I48R03J9mk9mZ2egOD/2dXZV9ORfS6Z/2+qYnlqL1cDosqkbxseDYdZilCzm6N63ETpmb2/zUq3
+ 7nke5cWIY4ISK0k+76g8YU6Jfj3wNKZe9aApnSJYaBxX3z4bS2kjTuFkjDindWLmqPxpLAmowRwgjEyN48pq2bv9oGtGwQmoUCNARdCEziumn1lch1oRtS1N
+ KDeKDTrM6qh9PKdOXg7ldknJyX0cDcOme2snxwzD1Cc=
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Wed, Jan 02, 2019 at 11:16:57PM +0200, Sakari Ailus wrote:
-> Drivers such as the Intel IPU3 ImgU driver use the IOVA library to manage
-> the device's own virtual address space while not implementing the IOMMU
-> API. Currently the IOVA library is only compiled if the IOMMU support is
-> enabled, resulting into a failure during linking due to missing symbols.
-> 
-> Fix this by defining IOVA library Kconfig bits independently of IOMMU
-> support configuration, and descending to the iommu directory
-> unconditionally during the build.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+v4l2_compliance gave a warning for the S_PARM test for output streams:
 
-Applied, thanks.
+warn: v4l2-test-formats.cpp(1235): S_PARM is supported for buftype 2, but not for ENUM_FRAMEINTERVALS
+
+The reason is that vivid mapped s_parm for output streams to g_parm. But if
+S_PARM doesn't actually change anything, then it shouldn't be enabled at all.
+
+Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+---
+diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
+index c931f007e5b0..7da5720b47a2 100644
+--- a/drivers/media/platform/vivid/vivid-core.c
++++ b/drivers/media/platform/vivid/vivid-core.c
+@@ -371,7 +371,7 @@ static int vidioc_s_parm(struct file *file, void *fh,
+
+ 	if (vdev->vfl_dir == VFL_DIR_RX)
+ 		return vivid_vid_cap_s_parm(file, fh, parm);
+-	return vivid_vid_out_g_parm(file, fh, parm);
++	return -ENOTTY;
+ }
+
+ static int vidioc_log_status(struct file *file, void *fh)
