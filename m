@@ -2,139 +2,91 @@ Return-Path: <SRS0=PrKG=PU=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_MUTT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2FD00C43612
-	for <linux-media@archiver.kernel.org>; Sat, 12 Jan 2019 16:51:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E532CC43387
+	for <linux-media@archiver.kernel.org>; Sat, 12 Jan 2019 18:27:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 009D120870
-	for <linux-media@archiver.kernel.org>; Sat, 12 Jan 2019 16:51:27 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="cmkFBLhP"
+	by mail.kernel.org (Postfix) with ESMTP id C282E2084C
+	for <linux-media@archiver.kernel.org>; Sat, 12 Jan 2019 18:27:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726436AbfALQv1 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sat, 12 Jan 2019 11:51:27 -0500
-Received: from perceval.ideasonboard.com ([213.167.242.64]:37436 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725853AbfALQv1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 12 Jan 2019 11:51:27 -0500
-Received: from [192.168.0.21] (cpc89242-aztw30-2-0-cust488.18-1.cable.virginm.net [86.31.129.233])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 1D1E2513;
-        Sat, 12 Jan 2019 17:51:25 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1547311885;
-        bh=nwInfb6NPAJbdJ8RJrflTRX9RwLvJptwayrnP32sKVc=;
-        h=Reply-To:Subject:To:Cc:References:From:Date:In-Reply-To:From;
-        b=cmkFBLhPj51ung6XWGINPCJiemN6/95gdWA+vyb64JAojh/gvNvFeFMVZuU0pYeJV
-         V2enUv/HfQFa5y8kpE4uZhjnYO9SPwqhb3iUh6mdcCbKXx3yXuJk/8z6U0W+S+p0/3
-         3nIBpB5iQYx16vHpRLI20Sw7BLUCsDL4YY+zbFWY=
-Reply-To: kieran.bingham+renesas@ideasonboard.com
-Subject: Re: [PATCH 2/2] media: i2c: adv748x: Remove PAGE_WAIT
-To:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc:     Koji Matsuoka <koji.matsuoka.xm@renesas.com>,
-        Jacopo Mondi <jacopo@jmondi.org>,
-        =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
-References: <20190111174141.12594-1-kieran.bingham+renesas@ideasonboard.com>
- <20190111174141.12594-3-kieran.bingham+renesas@ideasonboard.com>
- <38687704.IXnQZ8UTlm@avalon>
-From:   Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Organization: Ideas on Board
-Message-ID: <3ff66246-d536-3d38-1e77-ce2379b967d7@ideasonboard.com>
-Date:   Sat, 12 Jan 2019 16:51:23 +0000
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.2.1
+        id S1726387AbfALS1N (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sat, 12 Jan 2019 13:27:13 -0500
+Received: from mga17.intel.com ([192.55.52.151]:63518 "EHLO mga17.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725847AbfALS1M (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 12 Jan 2019 13:27:12 -0500
+X-Amp-Result: UNKNOWN
+X-Amp-Original-Verdict: FILE UNKNOWN
+X-Amp-File-Uploaded: False
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 12 Jan 2019 10:27:12 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.56,470,1539673200"; 
+   d="scan'208";a="137709199"
+Received: from ssaleem-mobl4.amr.corp.intel.com (HELO ssaleem-mobl1) ([10.254.44.111])
+  by fmsmga001.fm.intel.com with SMTP; 12 Jan 2019 10:27:10 -0800
+Received: by ssaleem-mobl1 (sSMTP sendmail emulation); Sat, 12 Jan 2019 12:27:06 -0600
+Date:   Sat, 12 Jan 2019 12:27:05 -0600
+From:   Shiraz Saleem <shiraz.saleem@intel.com>
+To:     Jason Gunthorpe <jgg@mellanox.com>
+Cc:     "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Christoph Hellwig <hch@lst.de>,
+        Imre Deak <imre.deak@intel.com>,
+        Daniel Vetter <daniel.vetter@ffwll.ch>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Yong Zhi <yong.zhi@intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Bingbu Cao <bingbu.cao@intel.com>,
+        Tian Shu Qiu <tian.shu.qiu@intel.com>,
+        Jian Xu Zheng <jian.xu.zheng@intel.com>,
+        Sinclair Yeh <syeh@vmware.com>,
+        Thomas Hellstrom <thellstrom@vmware.com>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>
+Subject: Re: [PATCH] lib/scatterlist: Provide a DMA page iterator
+Message-ID: <20190112182704.GA15320@ssaleem-MOBL4.amr.corp.intel.com>
+References: <20190104223531.GA1705@ziepe.ca>
 MIME-Version: 1.0
-In-Reply-To: <38687704.IXnQZ8UTlm@avalon>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190104223531.GA1705@ziepe.ca>
+User-Agent: Mutt/1.7.2 (2016-11-26)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Laurent,
+On Fri, Jan 04, 2019 at 10:35:43PM +0000, Jason Gunthorpe wrote:
+> Commit 2db76d7c3c6d ("lib/scatterlist: sg_page_iter: support sg lists w/o
+> backing pages") introduced the sg_page_iter_dma_address() function without
+> providing a way to use it in the general case. If the sg_dma_len is not
+> equal to the dma_length callers cannot safely use the
+> for_each_sg_page/sg_page_iter_dma_address combination.
+> 
+> Resolve this API mistake by providing a DMA specific iterator,
+> for_each_sg_dma_page(), that uses the right length so
+> sg_page_iter_dma_address() works as expected with all sglists. A new
+> iterator type is introduced to provide compile-time safety against wrongly
+> mixing accessors and iterators.
+[..]
 
-On 11/01/2019 20:23, Laurent Pinchart wrote:
-> Hi Kieran,
-> 
-> Thank you for the patch.
-> 
-> On Friday, 11 January 2019 19:41:41 EET Kieran Bingham wrote:
->> The ADV748X_PAGE_WAIT is a fake page to insert arbitrary delays in the
->> register tables.
->>
->> Its only usage was removed, so we can remove the handling and simplify
->> the code.
->>
->> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
->> ---
->>  drivers/media/i2c/adv748x/adv748x-core.c | 17 ++++++-----------
->>  drivers/media/i2c/adv748x/adv748x.h      |  1 -
->>  2 files changed, 6 insertions(+), 12 deletions(-)
->>
->> diff --git a/drivers/media/i2c/adv748x/adv748x-core.c
->> b/drivers/media/i2c/adv748x/adv748x-core.c index 252bdb28b18b..8199e0b20790
->> 100644
->> --- a/drivers/media/i2c/adv748x/adv748x-core.c
->> +++ b/drivers/media/i2c/adv748x/adv748x-core.c
->> @@ -219,18 +219,13 @@ static int adv748x_write_regs(struct adv748x_state
->> *state, int ret;
->>
->>  	while (regs->page != ADV748X_PAGE_EOR) {
-> 
-> While at it you could write this as
-> 
-> 	for (; regs->page != ADV748X_PAGE_EOR; ++regs)
-> 
-> and remove the regs++ below.
+>  
+> +/*
+> + * sg page iterator for DMA addresses
+> + *
+> + * This is the same as sg_page_iter however you can call
+> + * sg_page_iter_dma_address(@dma_iter) to get the page's DMA
+> + * address. sg_page_iter_page() cannot be called on this iterator.
+> + */
+Does it make sense to have a variant of sg_page_iter_page() to get the
+page descriptor with this dma_iter? This can be used when walking DMA-mapped
+SG lists with for_each_sg_dma_page.
 
-ah yes - good idea. I'll update this.
-
---
-Kieran
-
-
+> +struct sg_dma_page_iter {
+> +	struct sg_page_iter base;
+> +};
+> +
 > 
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> 
->> -		if (regs->page == ADV748X_PAGE_WAIT) {
->> -			msleep(regs->value);
->> -		} else {
->> -			ret = adv748x_write(state, regs->page, regs->reg,
->> -				      regs->value);
->> -			if (ret < 0) {
->> -				adv_err(state,
->> -					"Error regs page: 0x%02x reg: 0x%02x\n",
->> -					regs->page, regs->reg);
->> -				return ret;
->> -			}
->> +		ret = adv748x_write(state, regs->page, regs->reg, regs->value);
->> +		if (ret < 0) {
->> +			adv_err(state, "Error regs page: 0x%02x reg: 0x%02x\n",
->> +				regs->page, regs->reg);
->> +			return ret;
->>  		}
->> +
->>  		regs++;
->>  	}
->>
->> diff --git a/drivers/media/i2c/adv748x/adv748x.h
->> b/drivers/media/i2c/adv748x/adv748x.h index 2f8d751cfbb0..5042f9e94aee
->> 100644
->> --- a/drivers/media/i2c/adv748x/adv748x.h
->> +++ b/drivers/media/i2c/adv748x/adv748x.h
->> @@ -39,7 +39,6 @@ enum adv748x_page {
->>  	ADV748X_PAGE_MAX,
->>
->>  	/* Fake pages for register sequences */
->> -	ADV748X_PAGE_WAIT,		/* Wait x msec */
->>  	ADV748X_PAGE_EOR,		/* End Mark */
->>  };
-> 
-
