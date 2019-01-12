@@ -6,25 +6,25 @@ X-Spam-Status: No, score=-0.2 required=3.0 tests=DATE_IN_PAST_12_24,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ED03DC43387
-	for <linux-media@archiver.kernel.org>; Sun, 13 Jan 2019 03:10:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 42EE9C43444
+	for <linux-media@archiver.kernel.org>; Sun, 13 Jan 2019 03:17:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C626320870
-	for <linux-media@archiver.kernel.org>; Sun, 13 Jan 2019 03:10:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 18C1C20872
+	for <linux-media@archiver.kernel.org>; Sun, 13 Jan 2019 03:17:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726710AbfAMDKN (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sat, 12 Jan 2019 22:10:13 -0500
-Received: from typhoonoptics.com ([185.202.172.61]:33473 "EHLO
+        id S1726617AbfAMDRc (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sat, 12 Jan 2019 22:17:32 -0500
+Received: from typhoonoptics.com ([185.202.172.61]:43047 "EHLO
         dentmagictools.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726687AbfAMDKN (ORCPT
+        with ESMTP id S1726474AbfAMDRc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 12 Jan 2019 22:10:13 -0500
-X-Greylist: delayed 8531 seconds by postgrey-1.27 at vger.kernel.org; Sat, 12 Jan 2019 22:10:12 EST
+        Sat, 12 Jan 2019 22:17:32 -0500
+X-Greylist: delayed 8297 seconds by postgrey-1.27 at vger.kernel.org; Sat, 12 Jan 2019 22:17:32 EST
 To:     linux-media@vger.kernel.org
-Subject: Do you need to retouch your photos?
-Message-ID: <74df973c4985609c01d30d1af4a66c7b@modcloth.com>
-Date:   Sat, 12 Jan 2019 14:13:21 +0100
-From:   "Ruby" <loupaminteserpafnlop@verizon.net>
+Subject: Do you need to edit your photos?
+Message-ID: <d0e305b9b33492d60ca0441f0340259f@modcloth.com>
+Date:   Sat, 12 Jan 2019 13:32:49 +0100
+From:   "Ruby" <loupaminteeqrpawnlop@verizon.net>
 Reply-To: desaiten@aliyun.com
 MIME-Version: 1.0
 Content-Type: text/plain; format=flowed; charset="UTF-8"
