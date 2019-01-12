@@ -3,28 +3,28 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-0.2 required=3.0 tests=DATE_IN_PAST_12_24,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 42EE9C43444
-	for <linux-media@archiver.kernel.org>; Sun, 13 Jan 2019 03:17:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A8A2AC43387
+	for <linux-media@archiver.kernel.org>; Sun, 13 Jan 2019 04:32:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 18C1C20872
-	for <linux-media@archiver.kernel.org>; Sun, 13 Jan 2019 03:17:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7BDE42086C
+	for <linux-media@archiver.kernel.org>; Sun, 13 Jan 2019 04:32:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726617AbfAMDRc (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sat, 12 Jan 2019 22:17:32 -0500
-Received: from typhoonoptics.com ([185.202.172.61]:43047 "EHLO
+        id S1726858AbfAMEcL (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sat, 12 Jan 2019 23:32:11 -0500
+Received: from typhoonoptics.com ([185.202.172.61]:57313 "EHLO
         dentmagictools.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726474AbfAMDRc (ORCPT
+        with ESMTP id S1726838AbfAMEcK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 12 Jan 2019 22:17:32 -0500
-X-Greylist: delayed 8297 seconds by postgrey-1.27 at vger.kernel.org; Sat, 12 Jan 2019 22:17:32 EST
+        Sat, 12 Jan 2019 23:32:10 -0500
+X-Greylist: delayed 7662 seconds by postgrey-1.27 at vger.kernel.org; Sat, 12 Jan 2019 23:32:09 EST
 To:     linux-media@vger.kernel.org
-Subject: Do you need to edit your photos?
-Message-ID: <d0e305b9b33492d60ca0441f0340259f@modcloth.com>
-Date:   Sat, 12 Jan 2019 13:32:49 +0100
-From:   "Ruby" <loupaminteeqrpawnlop@verizon.net>
+Subject: Do you need to enhance your photos?
+Message-ID: <8dc060f4b2e3a02f2e20c0fcb4fcc040@omnilexica.com>
+Date:   Sat, 12 Jan 2019 14:37:40 +0100
+From:   "Ruby" <loupaminteeerparnlop@verizon.net>
 Reply-To: desaiten@aliyun.com
 MIME-Version: 1.0
 Content-Type: text/plain; format=flowed; charset="UTF-8"
