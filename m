@@ -2,136 +2,138 @@ Return-Path: <SRS0=PrKG=PU=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-6.9 required=3.0 tests=FROM_EXCESS_BASE64,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7FBA8C43387
-	for <linux-media@archiver.kernel.org>; Sat, 12 Jan 2019 04:38:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 54584C43387
+	for <linux-media@archiver.kernel.org>; Sat, 12 Jan 2019 08:08:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5150B20870
-	for <linux-media@archiver.kernel.org>; Sat, 12 Jan 2019 04:38:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2E4892133F
+	for <linux-media@archiver.kernel.org>; Sat, 12 Jan 2019 08:08:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726409AbfALEiK (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 11 Jan 2019 23:38:10 -0500
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:37951 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726376AbfALEiK (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 11 Jan 2019 23:38:10 -0500
-Received: from localhost ([IPv6:2001:983:e9a7:1:e8cf:8a82:99b1:1cd8])
-        by smtp-cloud7.xs4all.net with ESMTPA
-        id iB3fgM33MBDyIiB3ggkPnd; Sat, 12 Jan 2019 05:38:08 +0100
-Message-ID: <7b2fad561a3695cede5c46ef122da4d8@smtp-cloud7.xs4all.net>
-Date:   Sat, 12 Jan 2019 05:38:07 +0100
-From:   "Hans Verkuil" <hverkuil@xs4all.nl>
-To:     linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-X-CMAE-Envelope: MS4wfAfvQUbzc2XJMWKocYKaWR70M33Xql8q4mVUWhbOqAg/BuSU9NOsxFWDS+4F/QR+zht0U68jbLIZt+7mhMQ/AlVXhNPpXF4obuHHEaJjSwgqQoddShWT
- Fj5b8WtHDE5S1PxpAMdwcefET2YI7S+7GlIJpDf+2wlhzhWfQks3TuGi+XIxMbOV/2pBFBlf3yqTGdDDOKk0UJrwCiHknEpWweHRdsdz/sB2uR2qF4FM++iD
+        id S1725885AbfALIIN (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sat, 12 Jan 2019 03:08:13 -0500
+Received: from mailoutvs4.siol.net ([185.57.226.195]:57214 "EHLO mail.siol.net"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1725791AbfALIIN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 12 Jan 2019 03:08:13 -0500
+Received: from localhost (localhost [127.0.0.1])
+        by mail.siol.net (Postfix) with ESMTP id 0B13A520991;
+        Sat, 12 Jan 2019 09:08:10 +0100 (CET)
+X-Virus-Scanned: amavisd-new at psrvmta11.zcs-production.pri
+Received: from mail.siol.net ([127.0.0.1])
+        by localhost (psrvmta11.zcs-production.pri [127.0.0.1]) (amavisd-new, port 10032)
+        with ESMTP id wtYuQKiFF0G7; Sat, 12 Jan 2019 09:08:09 +0100 (CET)
+Received: from mail.siol.net (localhost [127.0.0.1])
+        by mail.siol.net (Postfix) with ESMTPS id 94B43520AF5;
+        Sat, 12 Jan 2019 09:08:09 +0100 (CET)
+Received: from jernej-laptop.localnet (cpe1-8-82.cable.triera.net [213.161.8.82])
+        (Authenticated sender: 031275009)
+        by mail.siol.net (Postfix) with ESMTPA id 05832520991;
+        Sat, 12 Jan 2019 09:08:08 +0100 (CET)
+From:   Jernej =?utf-8?B?xaBrcmFiZWM=?= <jernej.skrabec@siol.net>
+To:     Chen-Yu Tsai <wens@csie.org>
+Cc:     Maxime Ripard <maxime.ripard@bootlin.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        devicetree <devicetree@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        linux-sunxi <linux-sunxi@googlegroups.com>
+Subject: Re: [PATCH 1/3] media: dt: bindings: sunxi-ir: Add A64 compatible
+Date:   Sat, 12 Jan 2019 09:08:08 +0100
+Message-ID: <4866484.1b519qCrCi@jernej-laptop>
+In-Reply-To: <CAGb2v66DiqK9sL-hQev4Wy08d9T7f1Yc2DFWJ0gYOnqChJyBRw@mail.gmail.com>
+References: <20190111173015.12119-1-jernej.skrabec@siol.net> <20190111173015.12119-2-jernej.skrabec@siol.net> <CAGb2v66DiqK9sL-hQev4Wy08d9T7f1Yc2DFWJ0gYOnqChJyBRw@mail.gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Dne sobota, 12. januar 2019 ob 02:56:11 CET je Chen-Yu Tsai napisal(a):
+> On Sat, Jan 12, 2019 at 1:30 AM Jernej Skrabec <jernej.skrabec@siol.net> 
+wrote:
+> > A64 IR is compatible with A13, so add A64 compatible with A13 as a
+> > fallback.
+> 
+> We ask people to add the SoC-specific compatible as a contigency,
+> in case things turn out to be not so "compatible".
+> 
+> To be consistent with all the other SoCs and other peripherals,
+> unless you already spotted a "compatible" difference in the
+> hardware, i.e. the hardware isn't completely the same, this
+> patch isn't needed. On the other hand, if you did, please mention
+> the differences in the commit log.
 
-Results of the daily build of media_tree:
+When comparing registers descriptions between A13 and A64, I noticed few minor 
+differences:
 
-date:			Sat Jan 12 05:00:50 CET 2019
-media-tree git hash:	1e0d0a5fd38192f23304ea2fc2b531fea7c74247
-media_build git hash:	8851c6e626dac550d6798e162c6b4f5a41bc13ec
-v4l-utils git hash:	a4f1a58d1138f26b5e2cc294687598ba323eeeca
-edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.19.0-1-amd64
+A13: RXINT: 11:6 RAL
+A64: RXINT: 13:8 RAL
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.123-i686: OK
-linux-3.18.123-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.159-i686: OK
-linux-4.4.159-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.131-i686: OK
-linux-4.9.131-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.74-i686: OK
-linux-4.14.74-x86_64: ERRORS
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: ERRORS
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: ERRORS
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: ERRORS
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: ERRORS
-linux-4.19.1-i686: OK
-linux-4.19.1-x86_64: ERRORS
-linux-4.20.1-i686: OK
-linux-4.20.1-x86_64: ERRORS
-linux-5.0-rc1-i686: OK
-linux-5.0-rc1-x86_64: ERRORS
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+A13: IR_RXSTA: 12:6 RAC
+A64: IR_RXSTA: 14:8 RAC, 7 STAT (missing on A13)
 
-Logs weren't copied as they are too large (3364 kB)
+What is strange that  RAL and RAC field have offset defined as 8 in driver. I'm 
+not sure if that is a typo in A13 manual or driver issue. I assume the former, 
+otherwise it wouldn't work. I couldn't found original BSP driver source to 
+confirm, though.
 
-The Media Infrastructure API from this daily build is here:
+STAT bit is really not that important. It just tells if IR unit is busy or 
+not.
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+The biggest difference is in 0x34 register. A64 has one more clock option 
+(without postdivider), although register values are backward compatible. A64 
+also has Active threshold setting (duration of CIR going from idle to active 
+state).
+
+If we dismiss RAC and RAL differences as manual error and don't care for new 
+clock option and active threshold, then having new compatible maybe really 
+doesn't make sense.
+
+Best regards,
+Jernej
+
+> 
+> ChenYu
+> 
+> > Signed-off-by: Jernej Skrabec <jernej.skrabec@siol.net>
+> > ---
+> > 
+> >  Documentation/devicetree/bindings/media/sunxi-ir.txt | 5 ++++-
+> >  1 file changed, 4 insertions(+), 1 deletion(-)
+> > 
+> > diff --git a/Documentation/devicetree/bindings/media/sunxi-ir.txt
+> > b/Documentation/devicetree/bindings/media/sunxi-ir.txt index
+> > 278098987edb..ecac6964b69b 100644
+> > --- a/Documentation/devicetree/bindings/media/sunxi-ir.txt
+> > +++ b/Documentation/devicetree/bindings/media/sunxi-ir.txt
+> > @@ -1,7 +1,10 @@
+> > 
+> >  Device-Tree bindings for SUNXI IR controller found in sunXi SoC family
+> > 
+> >  Required properties:
+> > -- compatible       : "allwinner,sun4i-a10-ir" or "allwinner,sun5i-a13-ir"
+> > +- compatible       : value must be one of:
+> > +  * "allwinner,sun4i-a10-ir"
+> > +  * "allwinner,sun5i-a13-ir"
+> > +  * "allwinner,sun50i-a64-ir", "allwinner,sun5i-a13-ir"
+> > 
+> >  - clocks           : list of clock specifiers, corresponding to
+> >  
+> >                       entries in clock-names property;
+> >  
+> >  - clock-names      : should contain "apb" and "ir" entries;
+> > 
+> > --
+> > 2.20.1
+
+
+
+
