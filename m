@@ -2,119 +2,212 @@ Return-Path: <SRS0=PrKG=PU=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E9AF1C43387
-	for <linux-media@archiver.kernel.org>; Sat, 12 Jan 2019 15:09:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6FD68C43612
+	for <linux-media@archiver.kernel.org>; Sat, 12 Jan 2019 16:50:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B18792084E
-	for <linux-media@archiver.kernel.org>; Sat, 12 Jan 2019 15:09:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4081C2086C
+	for <linux-media@archiver.kernel.org>; Sat, 12 Jan 2019 16:50:39 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="AU51X6yh"
+	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="n3XzyfEe"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725843AbfALPJF (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sat, 12 Jan 2019 10:09:05 -0500
-Received: from perceval.ideasonboard.com ([213.167.242.64]:46354 "EHLO
+        id S1725920AbfALQui (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sat, 12 Jan 2019 11:50:38 -0500
+Received: from perceval.ideasonboard.com ([213.167.242.64]:37276 "EHLO
         perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725841AbfALPJE (ORCPT
+        with ESMTP id S1725841AbfALQui (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 12 Jan 2019 10:09:04 -0500
-Received: from avalon.localnet (dfj612ybrt5fhg77mgycy-3.rev.dnainternet.fi [IPv6:2001:14ba:21f5:5b00:2e86:4862:ef6a:2804])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id A43B2513;
-        Sat, 12 Jan 2019 16:09:01 +0100 (CET)
+        Sat, 12 Jan 2019 11:50:38 -0500
+Received: from [192.168.0.21] (cpc89242-aztw30-2-0-cust488.18-1.cable.virginm.net [86.31.129.233])
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id D3010513;
+        Sat, 12 Jan 2019 17:50:34 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1547305742;
-        bh=PKagmk4kTEGTfwTIdaavjPc31ySoi+Y5OD43Fovmu9U=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=AU51X6yhlpLc3mG7Mms+nsYCZSgghcIerZUxjrfxja9ATnqyrk1zWakMTb1OzbFQt
-         r7LUV6AxYXV+J/00+AuN6fLFnaBj2l/8HT8JK1e9bviu33rDoIJ7bXPnyNI8fCYOA1
-         l/6RWKe/gdZLe5mc0t6Sh3ZOqybVA9lt/KgeWtI0=
-From:   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To:     "Mani, Rajmohan" <rajmohan.mani@intel.com>
-Cc:     Jacopo Mondi <jacopo@jmondi.org>, Tomasz Figa <tfiga@chromium.org>,
-        "Zhi, Yong" <yong.zhi@intel.com>,
-        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
-        "Cao, Bingbu" <bingbu.cao@intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        "Hu, Jerry W" <jerry.w.hu@intel.com>,
-        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>
-Subject: Re: [PATCH v7 00/16] Intel IPU3 ImgU patchset
-Date:   Sat, 12 Jan 2019 17:10:14 +0200
-Message-ID: <2718150.slhGTuRzHq@avalon>
-Organization: Ideas on Board Oy
-In-Reply-To: <6F87890CF0F5204F892DEA1EF0D77A599B322D80@fmsmsx122.amr.corp.intel.com>
-References: <1540851790-1777-1-git-send-email-yong.zhi@intel.com> <20190109182028.l6dopz5k75w3u3t4@uno.localdomain> <6F87890CF0F5204F892DEA1EF0D77A599B322D80@fmsmsx122.amr.corp.intel.com>
+        s=mail; t=1547311835;
+        bh=Jdej9Tppa0gwhNEa/5sZYSbvfGDCqjrAFFCX+PIa1YQ=;
+        h=Reply-To:Subject:To:Cc:References:From:Date:In-Reply-To:From;
+        b=n3XzyfEelzrvEEBfEg/XVmgLcugn/vuphI/FzZXrf5XGF3EQBHVMwh64dh4HQWTPU
+         MYn0N3En7VwEiWtTe/XfR18gGri1pdl/5I4PH3wVolkFtWNQtm+V8hTdGtJykEFLHT
+         76QvatL6EdKUjuGS8Hu8gAMX/JwJc4/DyHbjQjq0=
+Reply-To: kieran.bingham+renesas@ideasonboard.com
+Subject: Re: [PATCH 1/2] media: i2c: adv748x: Convert SW reset routine to
+ function
+To:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc:     Koji Matsuoka <koji.matsuoka.xm@renesas.com>,
+        Jacopo Mondi <jacopo@jmondi.org>,
+        =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
+References: <20190111174141.12594-1-kieran.bingham+renesas@ideasonboard.com>
+ <20190111174141.12594-2-kieran.bingham+renesas@ideasonboard.com>
+ <3798999.WAIpuUamas@avalon>
+From:   Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Organization: Ideas on Board
+Message-ID: <45f7e234-e79d-05b0-5bd4-54438db869b3@ideasonboard.com>
+Date:   Sat, 12 Jan 2019 16:50:32 +0000
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.2.1
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <3798999.WAIpuUamas@avalon>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hello Raj,
+Hi Laurent,
 
-On Saturday, 12 January 2019 04:30:49 EET Mani, Rajmohan wrote:
+Thanks for the review,
 
-[snip]
-
-> I finally managed to reproduce the issue with 4.20-rc6, with KASAN enabled
-> and with CONFIG_SLUB_DEBUG_ON with SLAB_STORE_USER.
-
-Nice ! Thank you for your work.
-
-> The following line indicates the crash happens when yavta PID 10289 tries to
-> free the memory.
+On 11/01/2019 20:15, Laurent Pinchart wrote:
+> Hi Kieran,
 > 
-> [  452.437844] BUG: KASAN: use-after-free in ipu3_dmamap_free+0x50/0x9c
-> [ipu3_imgu]
-> [  452.446123] Read of size 8 at addr ffff8881503481a0 by task yavta/10289 
+> Thank you for the patch.
 > 
-> The above looks to be normal, since it's the same task that allocated this
-> memory.
-> [  452.685731] Allocated by task 10289:
+> On Friday, 11 January 2019 19:41:40 EET Kieran Bingham wrote:
+>> The ADV748x is currently reset by writting a small table of registers to
+>> the device.
+>>
+>> The table lacks documentation and contains magic values to perform the
+>> actions, including using a fake register address to introduce a delay
+>> loop.
+>>
+>> Remove the table, and convert to code, documenting the purpose of the
+>> specific writes along the way.
+>>
+>> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+>> ---
+>>  drivers/media/i2c/adv748x/adv748x-core.c | 32 ++++++++++++++++--------
+>>  drivers/media/i2c/adv748x/adv748x.h      | 16 ++++++++++++
+>>  2 files changed, 38 insertions(+), 10 deletions(-)
+>>
+>> diff --git a/drivers/media/i2c/adv748x/adv748x-core.c
+>> b/drivers/media/i2c/adv748x/adv748x-core.c index 02f9c440301c..252bdb28b18b
+>> 100644
+>> --- a/drivers/media/i2c/adv748x/adv748x-core.c
+>> +++ b/drivers/media/i2c/adv748x/adv748x-core.c
+>> @@ -389,15 +389,6 @@ static const struct media_entity_operations
+>> adv748x_media_ops = { * HW setup
+>>   */
+>>
+>> -static const struct adv748x_reg_value adv748x_sw_reset[] = {
+>> -
+>> -	{ADV748X_PAGE_IO, 0xff, 0xff},	/* SW reset */
+>> -	{ADV748X_PAGE_WAIT, 0x00, 0x05},/* delay 5 */
+>> -	{ADV748X_PAGE_IO, 0x01, 0x76},	/* ADI Required Write */
+>> -	{ADV748X_PAGE_IO, 0xf2, 0x01},	/* Enable I2C Read Auto-Increment */
+>> -	{ADV748X_PAGE_EOR, 0xff, 0xff}	/* End of register table */
+>> -};
+>> -
+>>  /* Initialize CP Core with RGB888 format. */
+>>  static const struct adv748x_reg_value adv748x_init_hdmi[] = {
+>>  	/* Disable chip powerdown & Enable HDMI Rx block */
+>> @@ -474,12 +465,33 @@ static const struct adv748x_reg_value
+>> adv748x_init_afe[] = { {ADV748X_PAGE_EOR, 0xff, 0xff}	/* End of register
+>> table */
+>>  };
+>>
+>> +static int adv748x_sw_reset(struct adv748x_state *state)
+>> +{
+>> +	int ret;
+>> +
+>> +	ret = io_write(state, ADV748X_IO_REG_FF, ADV748X_IO_REG_FF_MAIN_RESET);
+>> +	if (ret)
+>> +		return ret;
+>> +
+>> +	usleep_range(5000, 6000);
+>> +
+>> +	/* Disable CEC Wakeup from power-down mode */
+>> +	ret = io_clrset(state, ADV748X_IO_REG_01, ADV748X_IO_REG_01_PWRDN_MASK,
+>> +			ADV748X_IO_REG_01_PWRDNB);
 > 
-> Before the above happened, yavta/10187 came in and freed this memory per
-> KASAN.
-> [  452.787656] Freed by task 10187:
+> What's the reason for io_clrset() instead of io_write() ?
 > 
-> Is this (one instance of yavta freeing the memory allocated by another
-> instance of yavta) expected? Or does it indicate that mmap giving the same
-> address across these 2 instances of yavta? I need to debug / confirm the
-> latter case.
 
-KASAN prints the task name (and process ID) to help you debugging the problem, 
-but this doesn't mean that yavta is freeing the memory. yavta exercises the 
-V4L2 API exposed by the driver, and internally, down the call stack, 
-ipu3_dmamap_free() is called by the driver. According to the backtraces you 
-posted, this is in response to a VIDIOC_STREAMOFF call from yavta. I would 
-expect VIDIOC_STREAMOFF to free DMA mappings created for the buffers on the 
-corresponding video nodes, and thus allocated by the same task. The fact that 
-memory is allocated in one task and freed in another seems weird to me in this 
-case.
+The register is multi-purpose, and controls CEC Wakeup and *part* of the
+prog_xtal_freq clock parameters.
 
-My guess is that when using multiple instances of yavta the calls to 
-VIDIOC_STREAMOFF on the different video nodes are asynchronous and happen in a 
-way that the driver does not expect. Regardless of how the API is exercised by 
-applications, in a good or bad way, the IPU3 driver must not crash. It needs 
-to be prepared for all V4L2 ioctls to be called at any time, and an 
-application could call VIDIOC_STREAMOFF on any video node while the IPU3 is 
-busy processing images.
+The original table writes the default value of the clock parameter - but
+that itself is split over two registers I think - so I didn't want to be
+'half setting' some parameter, which should already be at its default
+anyway.
 
-> With the help of local application that operates these pipes in a serial
-> fashion, I do not see this issue.
-
-[snip]
-
--- 
-Regards,
-
-Laurent Pinchart
+I felt it was cleaner to be precise and make this code perform only the
+actual *change* that was required (which is the adjustment of the cec
+powerdown mode control, as described by the comment).
 
 
+
+> Apart from this,
+> 
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+Thanks
+
+--
+Kieran
+
+
+> 
+>> +	if (ret)
+>> +		return ret;
+>> +
+>> +	/* Enable I2C Read Auto-Increment for consecutive reads */
+>> +	return io_write(state, ADV748X_IO_REG_F2,
+>> +			ADV748X_IO_REG_F2_READ_AUTO_INC);
+>> +}
+>> +
+>>  static int adv748x_reset(struct adv748x_state *state)
+>>  {
+>>  	int ret;
+>>  	u8 regval = 0;
+>>
+>> -	ret = adv748x_write_regs(state, adv748x_sw_reset);
+>> +	ret = adv748x_sw_reset(state);
+>>  	if (ret < 0)
+>>  		return ret;
+>>
+>> diff --git a/drivers/media/i2c/adv748x/adv748x.h
+>> b/drivers/media/i2c/adv748x/adv748x.h index b00c1995efb0..2f8d751cfbb0
+>> 100644
+>> --- a/drivers/media/i2c/adv748x/adv748x.h
+>> +++ b/drivers/media/i2c/adv748x/adv748x.h
+>> @@ -211,6 +211,11 @@ struct adv748x_state {
+>>  #define ADV748X_IO_PD			0x00	/* power down controls */
+>>  #define ADV748X_IO_PD_RX_EN		BIT(6)
+>>
+>> +#define ADV748X_IO_REG_01		0x01	/* pwrdn{2}b, prog_xtal_freq */
+>> +#define ADV748X_IO_REG_01_PWRDN_MASK	(BIT(7) | BIT(6))
+>> +#define ADV748X_IO_REG_01_PWRDN2B	BIT(7)	/* CEC Wakeup Support */
+>> +#define ADV748X_IO_REG_01_PWRDNB	BIT(6)	/* CEC Wakeup Support */
+>> +
+>>  #define ADV748X_IO_REG_04		0x04
+>>  #define ADV748X_IO_REG_04_FORCE_FR	BIT(0)	/* Force CP free-run */
+>>
+>> @@ -229,8 +234,19 @@ struct adv748x_state {
+>>  #define ADV748X_IO_CHIP_REV_ID_1	0xdf
+>>  #define ADV748X_IO_CHIP_REV_ID_2	0xe0
+>>
+>> +#define ADV748X_IO_REG_F2		0xf2
+>> +#define ADV748X_IO_REG_F2_READ_AUTO_INC	BIT(0)
+>> +
+>> +/* For PAGE slave address offsets */
+>>  #define ADV748X_IO_SLAVE_ADDR_BASE	0xf2
+>>
+>> +/*
+>> + * The ADV748x_Recommended_Settings_PrA_2014-08-20.pdf details both 0x80
+>> and + * 0xff as examples for performing a software reset.
+>> + */
+>> +#define ADV748X_IO_REG_FF		0xff
+>> +#define ADV748X_IO_REG_FF_MAIN_RESET	0xff
+>> +
+>>  /* HDMI RX Map */
+>>  #define ADV748X_HDMI_LW1		0x07	/* line width_1 */
+>>  #define ADV748X_HDMI_LW1_VERT_FILTER	BIT(7)
+> 
+> 
 
