@@ -2,122 +2,156 @@ Return-Path: <SRS0=qapk=PV=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 44D03C43387
-	for <linux-media@archiver.kernel.org>; Sun, 13 Jan 2019 16:39:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 357AEC43387
+	for <linux-media@archiver.kernel.org>; Sun, 13 Jan 2019 21:14:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1E045206B6
-	for <linux-media@archiver.kernel.org>; Sun, 13 Jan 2019 16:39:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EE9FC20842
+	for <linux-media@archiver.kernel.org>; Sun, 13 Jan 2019 21:14:01 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=googlemail.com header.i=@googlemail.com header.b="s5rgelWO"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726657AbfAMQjF (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sun, 13 Jan 2019 11:39:05 -0500
-Received: from shell.v3.sk ([90.176.6.54]:43015 "EHLO shell.v3.sk"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726254AbfAMQjF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 13 Jan 2019 11:39:05 -0500
-Received: from localhost (localhost [127.0.0.1])
-        by zimbra.v3.sk (Postfix) with ESMTP id 9825342050;
-        Sun, 13 Jan 2019 17:39:00 +0100 (CET)
-Received: from shell.v3.sk ([127.0.0.1])
-        by localhost (zimbra.v3.sk [127.0.0.1]) (amavisd-new, port 10032)
-        with ESMTP id ynyLaERhYmOi; Sun, 13 Jan 2019 17:38:57 +0100 (CET)
-Received: from localhost (localhost [127.0.0.1])
-        by zimbra.v3.sk (Postfix) with ESMTP id 92BB1427FF;
-        Sun, 13 Jan 2019 17:38:57 +0100 (CET)
-X-Virus-Scanned: amavisd-new at zimbra.v3.sk
-Received: from shell.v3.sk ([127.0.0.1])
-        by localhost (zimbra.v3.sk [127.0.0.1]) (amavisd-new, port 10026)
-        with ESMTP id vlvH9nR9M4pw; Sun, 13 Jan 2019 17:38:57 +0100 (CET)
-Received: from nedofet.lan (ip-89-102-31-34.net.upcbroadband.cz [89.102.31.34])
-        by zimbra.v3.sk (Postfix) with ESMTPSA id 7E0D542050;
-        Sun, 13 Jan 2019 17:38:56 +0100 (CET)
-Message-ID: <0f9b127c407cebb390ca0a4f5d923e7aef1359c9.camel@v3.sk>
-Subject: Re: [PATCH v3 03/14] media: ov7670: hook s_power onto v4l2 core
-From:   Lubomir Rintel <lkundrak@v3.sk>
-To:     Sakari Ailus <sakari.ailus@iki.fi>
-Cc:     Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>, linux-media@vger.kernel.org,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        James Cameron <quozl@laptop.org>, Pavel Machek <pavel@ucw.cz>,
-        Libin Yang <lbyang@marvell.com>,
-        Albert Wang <twang13@marvell.com>
-Date:   Sun, 13 Jan 2019 17:38:55 +0100
-In-Reply-To: <20190110165903.gcedksczp5tmkl5t@valkosipuli.retiisi.org.uk>
-References: <20181120100318.367987-1-lkundrak@v3.sk>
-         <20181120100318.367987-4-lkundrak@v3.sk>
-         <20181122122146.a6wydozsg676i3w7@valkosipuli.retiisi.org.uk>
-         <868bd721260bc8948835fe2a697a047ae2277cd0.camel@v3.sk>
-         <20190110165903.gcedksczp5tmkl5t@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset="UTF-8"
-User-Agent: Evolution 3.30.3 (3.30.3-1.fc29) 
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        id S1726564AbfAMVOB (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sun, 13 Jan 2019 16:14:01 -0500
+Received: from mail-wm1-f68.google.com ([209.85.128.68]:54511 "EHLO
+        mail-wm1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726481AbfAMVOB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 13 Jan 2019 16:14:01 -0500
+Received: by mail-wm1-f68.google.com with SMTP id a62so7031466wmh.4
+        for <linux-media@vger.kernel.org>; Sun, 13 Jan 2019 13:13:59 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=googlemail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id;
+        bh=V7TaU2bmoQLh4sdZQPatWH9OmhaIog7r6ZxN7CMhSVk=;
+        b=s5rgelWORpp3ubQ4Ev4dG/RGFcfdpRvGt0eth120cuHazLeVJXSWasmYkdNImGd7vf
+         RiBsryT96CNQ3iFdXYQgZKxYsPg8qf47b2QpDsDOZqcIz4T5CKeunjNMYbh7dwoYvu8s
+         l26b519+CQ53MlgOcQSstiMXyy4XXZx3qngUrGJuq+xwZopvNHaSIEnt9WgHk8lgFmC/
+         YccBHfEaYXf1eSUKtkFqKF1nVALnQDdomI3PBGT7nxqaHlYgS8nj6WENkvyaitv6Hrgz
+         u1ie0JDvGpaGaj0Qbfkl5y7vXQt2K4GduaWNifz8dfWoEIQBY/3jR/egbZDYjcANRlO5
+         ke6Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id;
+        bh=V7TaU2bmoQLh4sdZQPatWH9OmhaIog7r6ZxN7CMhSVk=;
+        b=SCzb+lLwTBUSFfCzJndQcB6q6EN1YhKG4pX1ewy5h5joDq26zUsJjQbaWFBm3Kwb3W
+         3PJo44JpFqeLaLsbQ1NdleK+wHcSdFa8rtWma0lsgQivvbjzpbIEJ8+29USsQ4FDsrkQ
+         g170P5CUqHkty/6PjbUGp/huB2+LaFCiZu3tRqiydgIy/XhauU2uN+979qwAve6TFLxf
+         LYrQYvsJohcr8eU0dcTN/R+JLFcekEGljEsJ8VN4Q1l0s9htqdmn5jLXOcNnHkHm/ooe
+         8fTxo2ySuQJkv9gbPhGI6K0yUrtfDHUAPWUQ3YxoF/8TCQwqzUqLCfh/gueRC1HUNkVU
+         lafQ==
+X-Gm-Message-State: AJcUuke7wBHyvdU1eby6ctewMnUY+wQjqsPFxAAi8+apwUmo2vw4Rtx3
+        t7OD+SiE2vNZ+fAn5hAado6/IA2Vmwk=
+X-Google-Smtp-Source: ALg8bN4pqF16l2wdH/tp9LNnx4HO9pubSaQw2+hNi4DY3k5/qJuhy6EsqZqhar1t8sVUait9sAWu7A==
+X-Received: by 2002:a1c:85d2:: with SMTP id h201mr8937474wmd.151.1547414038146;
+        Sun, 13 Jan 2019 13:13:58 -0800 (PST)
+Received: from localhost.localdomain ([194.99.106.150])
+        by smtp.gmail.com with ESMTPSA id n20sm17995132wmi.11.2019.01.13.13.13.56
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
+        Sun, 13 Jan 2019 13:13:57 -0800 (PST)
+From:   James Hutchinson <jahutchinson99@googlemail.com>
+To:     linux-media@vger.kernel.org
+Cc:     James Hutchinson <jahutchinson99@googlemail.com>
+Subject: [PATCH] media: m88ds3103: serialize reset messages in m88ds3103_set_frontend
+Date:   Sun, 13 Jan 2019 21:13:47 +0000
+Message-Id: <1547414027-31928-1-git-send-email-jahutchinson99@googlemail.com>
+X-Mailer: git-send-email 2.7.4
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Thu, 2019-01-10 at 18:59 +0200, Sakari Ailus wrote:
-> Hi Lubomir,
-> 
-> On Wed, Nov 28, 2018 at 12:29:33PM +0100, Lubomir Rintel wrote:
-> > On Thu, 2018-11-22 at 14:21 +0200, Sakari Ailus wrote:
-> > > Hi Lubomir,
-> > > 
-> > > On Tue, Nov 20, 2018 at 11:03:08AM +0100, Lubomir Rintel wrote:
-> > > > The commit 71862f63f351 ("media: ov7670: Add the ov7670_s_power function")
-> > > > added a power control routing. However, it was not good enough to use as
-> > > > a s_power() callback: it merely flipped on the power GPIOs without
-> > > > restoring the register settings.
-> > > > 
-> > > > Fix this now and register an actual power callback.
-> > > > 
-> > > > Signed-off-by: Lubomir Rintel <lkundrak@v3.sk>
-> > > > 
-> > > > ---
-> > > > Changes since v2:
-> > > > - Restore the controls, format and frame rate on power on
-> > > > 
-> > > >  drivers/media/i2c/ov7670.c | 50 +++++++++++++++++++++++++++++++++-----
-> > > >  1 file changed, 44 insertions(+), 6 deletions(-)
-> > > > 
-> > > > diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
-> > > > index ead0c360df33..cbaab60aaaac 100644
-> > > > --- a/drivers/media/i2c/ov7670.c
-> > > > +++ b/drivers/media/i2c/ov7670.c
-> ...
-> > > > @@ -1945,7 +1983,7 @@ static int ov7670_remove(struct i2c_client *client)
-> > > >  	v4l2_ctrl_handler_free(&info->hdl);
-> > > >  	clk_disable_unprepare(info->clk);
-> > > >  	media_entity_cleanup(&info->sd.entity);
-> > > > -	ov7670_s_power(sd, 0);
-> > > > +	ov7670_power_off(sd);
-> > > >  	return 0;
-> > > >  }
-> > > >  
-> > > 
-> > > Could you consider instead switching to runtime PM? A few drivers such as
-> > > the ov2685 driver does that already.
-> > 
-> > Yes, I'll take a look. Thanks for the suggestion. I didn't know such
-> > thing exists, so it may take some time for me to grasp it though.
-> 
-> I'm be tempted to merge the ov7670 patches as they significantly improve
-> the driver, even if we're at the moment missing the runtime PM conversion.
-> It could be done later on as well.
-> 
-> Would that be ok for you?
+Ref: https://bugzilla.kernel.org/show_bug.cgi?id=199323
 
-Yes, I'm fine with it. In fact, I'm happy about it.
+Users are experiencing problems with the DVBSky S960/S960C USB devices
+since the following commit:
 
-I'd eventually like to implement the runtime PM, but it's not going to
-happen before 5.1 merge window.
+9d659ae: ("locking/mutex: Add lock handoff to avoid starvation")
 
-Cheers
-Lubo
+The device malfunctions after running for an indeterminable period of
+time, and the problem can only be cleared by rebooting the machine.
+
+It is possible to encourage the problem to surface by blocking the
+signal to the LNB.
+
+Further debugging revealed the cause of the problem.
+
+In the following capture:
+- thread #1325 is running m88ds3103_set_frontend
+- thread #42 is running ts2020_stat_work
+
+a> [1325] usb 1-1: dvb_usb_v2_generic_io: >>> 08 68 02 07 80
+   [1325] usb 1-1: dvb_usb_v2_generic_io: <<< 08
+   [42] usb 1-1: dvb_usb_v2_generic_io: >>> 09 01 01 68 3f
+   [42] usb 1-1: dvb_usb_v2_generic_io: <<< 08 ff
+   [42] usb 1-1: dvb_usb_v2_generic_io: >>> 08 68 02 03 11
+   [42] usb 1-1: dvb_usb_v2_generic_io: <<< 07
+   [42] usb 1-1: dvb_usb_v2_generic_io: >>> 09 01 01 60 3d
+   [42] usb 1-1: dvb_usb_v2_generic_io: <<< 07 ff
+b> [1325] usb 1-1: dvb_usb_v2_generic_io: >>> 08 68 02 07 00
+   [1325] usb 1-1: dvb_usb_v2_generic_io: <<< 07
+   [42] usb 1-1: dvb_usb_v2_generic_io: >>> 08 68 02 03 11
+   [42] usb 1-1: dvb_usb_v2_generic_io: <<< 07
+   [42] usb 1-1: dvb_usb_v2_generic_io: >>> 09 01 01 60 21
+   [42] usb 1-1: dvb_usb_v2_generic_io: <<< 07 ff
+   [42] usb 1-1: dvb_usb_v2_generic_io: >>> 08 68 02 03 11
+   [42] usb 1-1: dvb_usb_v2_generic_io: <<< 07
+   [42] usb 1-1: dvb_usb_v2_generic_io: >>> 09 01 01 60 66
+   [42] usb 1-1: dvb_usb_v2_generic_io: <<< 07 ff
+   [1325] usb 1-1: dvb_usb_v2_generic_io: >>> 08 68 02 03 11
+   [1325] usb 1-1: dvb_usb_v2_generic_io: <<< 07
+   [1325] usb 1-1: dvb_usb_v2_generic_io: >>> 08 60 02 10 0b
+   [1325] usb 1-1: dvb_usb_v2_generic_io: <<< 07
+
+Two i2c messages are sent to perform a reset in m88ds3103_set_frontend:
+
+  a. 0x07, 0x80
+  b. 0x07, 0x00
+
+However, as shown in the capture, the regmap mutex is being handed over
+to another thread (ts2020_stat_work) in between these two messages.
+
+From here, the device responds to every i2c message with an 07 message,
+and will only return to normal operation following a power cycle.
+
+Use regmap_multi_reg_write to group the two reset messages, ensuring
+both are processed before the regmap mutex is unlocked.
+
+Signed-off-by: James Hutchinson <jahutchinson99@googlemail.com>
+---
+ drivers/media/dvb-frontends/m88ds3103.c | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/media/dvb-frontends/m88ds3103.c b/drivers/media/dvb-frontends/m88ds3103.c
+index 123f2a3..77fe3dc 100644
+--- a/drivers/media/dvb-frontends/m88ds3103.c
++++ b/drivers/media/dvb-frontends/m88ds3103.c
+@@ -309,6 +309,7 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
+ 	u16 u16tmp;
+ 	u32 tuner_frequency_khz, target_mclk;
+ 	s32 s32tmp;
++	static const struct reg_sequence reset_buf[] = {{0x07, 0x80}, {0x07, 0x00}};
+ 
+ 	dev_dbg(&client->dev,
+ 		"delivery_system=%d modulation=%d frequency=%u symbol_rate=%d inversion=%d pilot=%d rolloff=%d\n",
+@@ -321,11 +322,7 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
+ 	}
+ 
+ 	/* reset */
+-	ret = regmap_write(dev->regmap, 0x07, 0x80);
+-	if (ret)
+-		goto err;
+-
+-	ret = regmap_write(dev->regmap, 0x07, 0x00);
++	ret = regmap_multi_reg_write(dev->regmap, reset_buf, 2);
+ 	if (ret)
+ 		goto err;
+ 
+-- 
+2.7.4
 
