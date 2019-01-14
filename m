@@ -2,141 +2,97 @@ Return-Path: <SRS0=CLae=PW=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A2908C43387
-	for <linux-media@archiver.kernel.org>; Mon, 14 Jan 2019 04:38:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2DAA5C43387
+	for <linux-media@archiver.kernel.org>; Mon, 14 Jan 2019 05:16:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7C079206B7
-	for <linux-media@archiver.kernel.org>; Mon, 14 Jan 2019 04:38:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E2F6F2086D
+	for <linux-media@archiver.kernel.org>; Mon, 14 Jan 2019 05:16:54 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="V7Q/IxSA"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726519AbfANEiS (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sun, 13 Jan 2019 23:38:18 -0500
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:48117 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725837AbfANEiS (ORCPT
+        id S1726064AbfANFQy (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 14 Jan 2019 00:16:54 -0500
+Received: from out2-smtp.messagingengine.com ([66.111.4.26]:38937 "EHLO
+        out2-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725837AbfANFQx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 13 Jan 2019 23:38:18 -0500
-Received: from localhost ([IPv6:2001:983:e9a7:1:688f:f53a:651c:97b4])
-        by smtp-cloud7.xs4all.net with ESMTPA
-        id iu0tgkYpxBDyIiu0ugpmhr; Mon, 14 Jan 2019 05:38:16 +0100
-Message-ID: <0674413fdb7f956d7316765f507593f0@smtp-cloud7.xs4all.net>
-Date:   Mon, 14 Jan 2019 05:38:15 +0100
-From:   "Hans Verkuil" <hverkuil@xs4all.nl>
+        Mon, 14 Jan 2019 00:16:53 -0500
+X-Greylist: delayed 386 seconds by postgrey-1.27 at vger.kernel.org; Mon, 14 Jan 2019 00:16:53 EST
+Received: from compute6.internal (compute6.nyi.internal [10.202.2.46])
+        by mailout.nyi.internal (Postfix) with ESMTP id A86292893C
+        for <linux-media@vger.kernel.org>; Mon, 14 Jan 2019 00:10:26 -0500 (EST)
+Received: from web3 ([10.202.2.213])
+  by compute6.internal (MEProxy); Mon, 14 Jan 2019 00:10:26 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        messagingengine.com; h=content-transfer-encoding:content-type
+        :date:from:message-id:mime-version:subject:to:x-me-proxy
+        :x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=fm1; bh=PwZuFV
+        O4MMhvpzRFuZq31yHcXKYYD/IucgXCQzvltcI=; b=V7Q/IxSACgcg8ZnAqdAxpb
+        vdSMx0nEhA190VG1alpphkzoj0oJQEBXfSk4ybmThlV7FE38JqtIMGK+SYikfj2i
+        RwqwAbiA9M8H8XkeoQViYoobEBdcW++TX5HGFS1ezZ3+Hd5f3h1AnlUAxn6Os/A7
+        lktMmCiKH1NChwjn4S5thgs/GvCaaBvIzCsusinYDQeT8IpEZUbBHaox/vNE6glb
+        WAUOTNvUuMOc0su3lHkqLvseceoEqYhaXwwIvCyL3/aVV2OR+QjtqmXEejZ1FrLA
+        DQrsf6nqaZGF2i5457caMlBw68qLufuxr81633g1f3Iesi0M9XL7WbMcOHDkgLZQ
+        ==
+X-ME-Sender: <xms:wRk8XIq1y2kPSwicsrLeKjNYLhm_aqdtkVmzvNGXzI-HtptVGycXRg>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedtledrgedtgdekvdcutefuodetggdotefrodftvf
+    curfhrohhfihhlvgemucfhrghsthforghilhdpqfhuthenuceurghilhhouhhtmecufedt
+    tdenucgoteefjeefqddtgeculdehtddmnecujfgurhepkffhvfgggfgtofffufesthejre
+    dtredtjeenucfhrhhomhepmfgrihcujfgvnhgurhihuceohhgvnhgurhihsehikhhirdhf
+    iheqnecuffhomhgrihhnpehnrghtrghlihgrnhdrohhrghenucfrrghrrghmpehmrghilh
+    hfrhhomhephhgvnhgurhihsehikhhirdhfihenucevlhhushhtvghrufhiiigvpedt
+X-ME-Proxy: <xmx:wRk8XP6748NsqNgpxYYkfpXAilA7jFAFm_9gF8czJINiQFh_JdT8Lg>
+    <xmx:wRk8XKScFzCMfuFrM2sXep1L5_5AxGNaBZM9s-avPRAoKhVdQZOmgQ>
+    <xmx:wRk8XC4MHSNPMrT4qYtXn3FL-cRNKrDfVUJuKi6d3NCaAtj1eiRX1Q>
+    <xmx:whk8XCL7wF-qW44LL_PisU6RgO5pwYiSYVp9Gs3gR55LV4Q-DJq7Vw>
+Received: by mailuser.nyi.internal (Postfix, from userid 99)
+        id B65C39E564; Mon, 14 Jan 2019 00:10:25 -0500 (EST)
+Message-Id: <1547442625.3056462.1633755704.1BCFEEC2@webmail.messagingengine.com>
+From:   Kai Hendry <hendry@iki.fi>
 To:     linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-X-CMAE-Envelope: MS4wfBEGt0IWlVqO+gRM0hgRMOVgzaqWgrEzp4JMdpO0LK6Yml2tmpJz6ulFaif0+7zabtJuYqmB1H5ane/HGyFrMGPj1B2HzSrcpSC82UpQhQMyI+xr2TVu
- UZVzDyusA1IhhtQR3Vy0dKC8B6urs2UgDVjbICeDZ5vk0cSKJDFOIBFskfvXtkGYq07zoD33Fyeabb2K+Kz/G818B1w3yG2eCWKY6D5hiYLGvRXLNxYz6q+m
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+X-Mailer: MessagingEngine.com Webmail Interface - ajax-36e4bfd3
+Date:   Mon, 14 Jan 2019 13:10:25 +0800
+Subject: Magewell Gen 2935:0001 USB annoyances
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Archlinux user here. It doesn't matter whether I'm running LTS kernel 4.19.14-1-lts or 4.20.1.arch1-1, I get these very annoying USB issues with my Magewell XI100DUSB-HDMI. Most of the time it doesn't work. I seemingly have better chances of getting it working after a reboot.
 
-Results of the daily build of media_tree:
+I don't know if this is a UVC issue or a USB issue on my Gen8 Thinkpad T480s. All I can say for a fact is that plugging this device into my Macbook Pro running MacOS via a USB-C dongle, is more reliable. I've had the same "plug in" issues admittedly on previous Thinkpad hardware and kernel versions.
 
-date:			Mon Jan 14 05:00:12 CET 2019
-media-tree git hash:	1e0d0a5fd38192f23304ea2fc2b531fea7c74247
-media_build git hash:	8851c6e626dac550d6798e162c6b4f5a41bc13ec
-v4l-utils git hash:	e9e2a16d082dcdfe0ef697c131ec358a140b3d5f
-edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.19.0-1-amd64
+Another annoying aspect, is that it also seems to drop USB speeds when hot plugging. I need USB 3 else it won't be able to get 60fps at 1080p.
+https://s.natalian.org/2019-01-14/1547438681_2548x1398.png
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.123-i686: OK
-linux-3.18.123-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.159-i686: OK
-linux-4.4.159-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.131-i686: OK
-linux-4.9.131-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.74-i686: OK
-linux-4.14.74-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: OK
-linux-4.19.1-i686: OK
-linux-4.19.1-x86_64: OK
-linux-4.20.1-i686: OK
-linux-4.20.1-x86_64: OK
-linux-5.0-rc1-i686: OK
-linux-5.0-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+It's a crazy ritual with accompanying dance when I get USB3 and my /dev/video2 actually working.
 
-Detailed results are available here:
+This is what dmesg looks like when it's flailing.
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
+[   71.896534] usb 2-2: Disable of device-initiated U1 failed.
+[   71.900554] usb 2-2: Disable of device-initiated U2 failed.
+[   71.909474] usb 2-2: Set SEL for device-initiated U1 failed.
+[   72.691371] usb 2-2: USB disconnect, device number 6
+[   73.041273] usb 1-2: new high-speed USB device number 10 using xhci_hcd
+[   73.620177] usb 1-2: New USB device found, idVendor=2935, idProduct=0001, bcdDevice= 0.00
+[   73.620180] usb 1-2: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[   73.620182] usb 1-2: Product: XI100DUSB-HDMI
+[   73.620183] usb 1-2: Manufacturer: Magewell
+[   73.620185] usb 1-2: SerialNumber: C021150326019
+[   76.920993] usb 2-2: Set SEL for device-initiated U2 failed.
+[   76.923341] uvcvideo: Found UVC 1.00 device XI100DUSB-HDMI (2935:0001)
+[   76.925324] uvcvideo 1-2:1.0: Entity type for entity Processing 2 was not initialized!
+[   76.925327] uvcvideo 1-2:1.0: Entity type for entity Camera 1 was not initialized!
+[   76.925413] input: XI100DUSB-HDMI: XI100DUSB-HDMI  as /devices/pci0000:00/0000:00:14.0/usb1/1-2/1-2:1.0/input/input25
+[   76.928710] usbhid 1-2:1.4: couldn't find an input interrupt endpoint
+[   91.516482] usb 1-2: USB disconnect, device number 10
 
-Full logs are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Is there any workarounds or ideas to make my capture device less annoying? Thank you in advance,
