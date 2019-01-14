@@ -4,75 +4,75 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-8.5 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
 	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_PASS,USER_AGENT_MUTT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B4B9C43444
-	for <linux-media@archiver.kernel.org>; Mon, 14 Jan 2019 14:49:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E7B78C43387
+	for <linux-media@archiver.kernel.org>; Mon, 14 Jan 2019 14:55:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 032F720657
-	for <linux-media@archiver.kernel.org>; Mon, 14 Jan 2019 14:49:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B670B20989
+	for <linux-media@archiver.kernel.org>; Mon, 14 Jan 2019 14:55:38 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ragnatech-se.20150623.gappssmtp.com header.i=@ragnatech-se.20150623.gappssmtp.com header.b="tk1KVXlf"
+	dkim=pass (2048-bit key) header.d=ragnatech-se.20150623.gappssmtp.com header.i=@ragnatech-se.20150623.gappssmtp.com header.b="Wmu+VQgb"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726641AbfANOtP (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 14 Jan 2019 09:49:15 -0500
-Received: from mail-lj1-f193.google.com ([209.85.208.193]:40461 "EHLO
-        mail-lj1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726595AbfANOtP (ORCPT
+        id S1726811AbfANOzi (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 14 Jan 2019 09:55:38 -0500
+Received: from mail-lj1-f195.google.com ([209.85.208.195]:35207 "EHLO
+        mail-lj1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726579AbfANOzi (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 Jan 2019 09:49:15 -0500
-Received: by mail-lj1-f193.google.com with SMTP id n18-v6so19245670lji.7
-        for <linux-media@vger.kernel.org>; Mon, 14 Jan 2019 06:49:13 -0800 (PST)
+        Mon, 14 Jan 2019 09:55:38 -0500
+Received: by mail-lj1-f195.google.com with SMTP id x85-v6so19285522ljb.2
+        for <linux-media@vger.kernel.org>; Mon, 14 Jan 2019 06:55:36 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ragnatech-se.20150623.gappssmtp.com; s=20150623;
         h=from:date:to:cc:subject:message-id:references:mime-version
          :content-disposition:content-transfer-encoding:in-reply-to
          :user-agent;
-        bh=ViVuMjiaIKMQDQWtXKSWQSYTHONNBY4H8mC+Mt+mldg=;
-        b=tk1KVXlfTAq1qRAWH7DSPFFlVpBvhsqOE8mWQNtKXXBTHMsxdiuE1sIyO1N5vjUisF
-         eMgmylt7i37NNzMH2azjKvxBj+AExPq8r8jEck9UaS0utDh48kpIXmFmFpElWRWRgYE6
-         D06iIqYnXMDRgKFN1MInHgqf6gkCpPhLDfe28ysFG+HlxjpR8qx2Xc1EagSP46HMpt/U
-         s7UhAxKWcTQrK7efX6r8V4D0TlZ3lnx7scXy2rGvVbit8eYer2qUelkfp5Nu/kPyBkVF
-         8c9Mf41HPDH668L4jwusCP4i66rnh7v/K9pgC5nO6ZuQvMNJ4w8EwrbDFVUsr0ALU13e
-         ZtRA==
+        bh=1K3ayw5pDuGJR6lTXauQ/G9YGQFmfgQ36n0bJmNgtmI=;
+        b=Wmu+VQgby7gaUrUjTcbaFQNYvKT/RlpjPChvTvidf43NxLVyeLSySJ3cUenwOWHz5D
+         LYD57813u6xwPqxKvo5LXUwSLUGzLfPbeE7D7DmV3yyfLZT8kQSbSj368W+kfrDn+scr
+         U6bvg1e+TvT1WwovWSGfYpOEGvMhm5QxA86SL6TRRAzZwD5gy0z348g4QPKOgxQpWSAu
+         STLP7vNG+rZo8Z3+TXVoOa+4zClDO63GDlfOwP2wADnvlpeP1vjy/4M0ggnW8zVZZW2D
+         uNDNWSnvgjsAtrodtwypDBT4tym1/LBeQ9KJ/HiePOuxuc/s/DpJyFvdGKDvEaVNfobl
+         NAoQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:date:to:cc:subject:message-id:references
          :mime-version:content-disposition:content-transfer-encoding
          :in-reply-to:user-agent;
-        bh=ViVuMjiaIKMQDQWtXKSWQSYTHONNBY4H8mC+Mt+mldg=;
-        b=Fyfc93qXMOXvzmmuGw/mYl/526vSFqbxojRILae3XC9AVdUxUh3fcGOfcldocFNj86
-         xZGNlXv6McSn07aS7nR6Rrenb2EjLc2u7Rt9gVfrvSYhz/F25asiLdJQokMKOIBMGh26
-         pQ8MEKaUeWgYovgCvcBcqkbnwzH1wTkIuWR55PnHqEKvtqqgztMjpHP+eqNxfPVPfrQT
-         EIFqyiwCDoCBh2USVZ4SoSxbx5pWydZwzoACjiz7dh2qIMlPgnE3K4mGilDkYNJPM9Bd
-         dPmxYkMNHtkIBr4m6JqNRm8p0mlOvXfcu/p8GiBVnV/z1cxpSKtJdWlYvW56SEF6Brww
-         oskw==
-X-Gm-Message-State: AJcUukcWlGT24FN6VPV2wuZJW1z79h6WQ3z9EHpuFIxbRG2P3DqHYKPV
-        cc8gXRpwKxedPq+XsK7vHiKIoQ==
-X-Google-Smtp-Source: ALg8bN4WNprLkOb9bFZ4L34k5hB2G2yg7OE6i+GmXDYzox5Wz7p2IJlHeU6od21BK4x9jznvfrNGqw==
-X-Received: by 2002:a2e:9c7:: with SMTP id 190-v6mr13041523ljj.120.1547477352580;
-        Mon, 14 Jan 2019 06:49:12 -0800 (PST)
+        bh=1K3ayw5pDuGJR6lTXauQ/G9YGQFmfgQ36n0bJmNgtmI=;
+        b=mfwNxgq2AifMQOnezErbRhXByW7oLpf4N7SAKJ/rlV+KOvQZZxWZw7cXeSLxZ5Iqbo
+         vJKgmWoWU90l/nsNUxOfAOZt9vjaVpXtlJJBLkwSqGTxDt4ufBKDZ+aFEDMnaYlh2Kaf
+         ILFkIQJAZMutqSRyKFQWbFR8qXK/uu5+CZcWqetcmYNmh3PYeqYXDNL33fj6c6YDF7/s
+         xGqmsPgcSiP2p4XToz6DSDk76AUXjm7aHBF74GpaqnPdkGwmnigjmlevTo4KYoMIhJxW
+         XyjTbxF4MsuZVQ+Z8F+jwORnwSpbb27MUJSYtAVK2vvEnD4ti1jXpiTLc+lj42W2sCj/
+         v3BQ==
+X-Gm-Message-State: AJcUukdw1n6+nPgxtZ9/f+KVxjpifIkzxa1Zf1r+Pb+NNU48KCQiXEbF
+        N9zCLlzkLn2sQbtVKPNopMu+oLSS3iA=
+X-Google-Smtp-Source: ALg8bN64csbCl0c57afpkQOwUnrJ2qf34ZiXvhqaZPmI3NSwRa4xe/ZQbS3AxgUzINBVFuulPAsV2g==
+X-Received: by 2002:a2e:8546:: with SMTP id u6-v6mr14580249ljj.95.1547477735122;
+        Mon, 14 Jan 2019 06:55:35 -0800 (PST)
 Received: from localhost (89-233-230-99.cust.bredband2.com. [89.233.230.99])
-        by smtp.gmail.com with ESMTPSA id h12-v6sm103837ljb.80.2019.01.14.06.49.11
+        by smtp.gmail.com with ESMTPSA id g70-v6sm110063ljg.92.2019.01.14.06.55.34
         (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Mon, 14 Jan 2019 06:49:11 -0800 (PST)
+        Mon, 14 Jan 2019 06:55:34 -0800 (PST)
 From:   "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
 X-Google-Original-From: Niklas =?iso-8859-1?Q?S=F6derlund?= <niklas.soderlund+renesas@ragnatech.se>
-Date:   Mon, 14 Jan 2019 15:49:11 +0100
+Date:   Mon, 14 Jan 2019 15:55:33 +0100
 To:     Jacopo Mondi <jacopo+renesas@jmondi.org>
 Cc:     laurent.pinchart@ideasonboard.com, kieran.bingham@ideasonboard.com,
         linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
         Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: Re: [PATCH v3 2/6] media: adv748x: Rename reset procedures
-Message-ID: <20190114144911.GJ30160@bigcity.dyn.berto.se>
+Subject: Re: [PATCH v3 3/6] media: adv748x: csi2: Link AFE with TXA and TXB
+Message-ID: <20190114145533.GK30160@bigcity.dyn.berto.se>
 References: <20190110140213.5198-1-jacopo+renesas@jmondi.org>
- <20190110140213.5198-3-jacopo+renesas@jmondi.org>
+ <20190110140213.5198-4-jacopo+renesas@jmondi.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20190110140213.5198-3-jacopo+renesas@jmondi.org>
+In-Reply-To: <20190110140213.5198-4-jacopo+renesas@jmondi.org>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
@@ -81,77 +81,112 @@ X-Mailing-List: linux-media@vger.kernel.org
 
 Hi Jacopo,
 
-Thanks for your work.
+Thanks for your patch.
 
-On 2019-01-10 15:02:09 +0100, Jacopo Mondi wrote:
-> Rename the chip reset procedure as they configure the CP (HDMI) and SD
-> (AFE) cores.
+On 2019-01-10 15:02:10 +0100, Jacopo Mondi wrote:
+> The ADV748x chip supports routing AFE output to either TXA or TXB.
+> In order to support run-time configuration of video stream path, create an
+> additional (not enabled) "AFE:8->TXA:0" link, and remove the IMMUTABLE flag
+> from existing ones.
 > 
 > Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> ---
+>  drivers/media/i2c/adv748x/adv748x-csi2.c | 44 +++++++++++++-----------
+>  1 file changed, 23 insertions(+), 21 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/adv748x/adv748x-csi2.c b/drivers/media/i2c/adv748x/adv748x-csi2.c
+> index b6b5d8c7ea7c..8c3714495e11 100644
+> --- a/drivers/media/i2c/adv748x/adv748x-csi2.c
+> +++ b/drivers/media/i2c/adv748x/adv748x-csi2.c
+> @@ -27,6 +27,7 @@ static int adv748x_csi2_set_virtual_channel(struct adv748x_csi2 *tx,
+>   * @v4l2_dev: Video registration device
+>   * @src: Source subdevice to establish link
+>   * @src_pad: Pad number of source to link to this @tx
+> + * @enable: Link enabled flag
+>   *
+>   * Ensure that the subdevice is registered against the v4l2_device, and link the
+>   * source pad to the sink pad of the CSI2 bus entity.
+> @@ -34,17 +35,11 @@ static int adv748x_csi2_set_virtual_channel(struct adv748x_csi2 *tx,
+>  static int adv748x_csi2_register_link(struct adv748x_csi2 *tx,
+>  				      struct v4l2_device *v4l2_dev,
+>  				      struct v4l2_subdev *src,
+> -				      unsigned int src_pad)
+> +				      unsigned int src_pad,
+> +				      bool enable)
+>  {
+> -	int enabled = MEDIA_LNK_FL_ENABLED;
+>  	int ret;
+>  
+> -	/*
+> -	 * Dynamic linking of the AFE is not supported.
+> -	 * Register the links as immutable.
+> -	 */
+> -	enabled |= MEDIA_LNK_FL_IMMUTABLE;
+> -
+>  	if (!src->v4l2_dev) {
+>  		ret = v4l2_device_register_subdev(v4l2_dev, src);
+>  		if (ret)
+> @@ -53,7 +48,7 @@ static int adv748x_csi2_register_link(struct adv748x_csi2 *tx,
+>  
+>  	return media_create_pad_link(&src->entity, src_pad,
+>  				     &tx->sd.entity, ADV748X_CSI2_SINK,
+> -				     enabled);
+> +				     enable ? MEDIA_LNK_FL_ENABLED : 0);
+>  }
+>  
+>  /* -----------------------------------------------------------------------------
+> @@ -68,25 +63,32 @@ static int adv748x_csi2_registered(struct v4l2_subdev *sd)
+>  {
+>  	struct adv748x_csi2 *tx = adv748x_sd_to_csi2(sd);
+>  	struct adv748x_state *state = tx->state;
+> +	int ret;
+>  
+>  	adv_dbg(state, "Registered %s (%s)", is_txa(tx) ? "TXA":"TXB",
+>  			sd->name);
+>  
+>  	/*
+> -	 * The adv748x hardware allows the AFE to route through the TXA, however
+> -	 * this is not currently supported in this driver.
+> +	 * Link TXA to AFE and HDMI, and TXB to AFE only as TXB cannot output
+> +	 * HDMI.
+>  	 *
+> -	 * Link HDMI->TXA, and AFE->TXB directly.
+> +	 * The HDMI->TXA link is enabled by default, as is the AFE->TXB one.
+>  	 */
+> -	if (is_txa(tx) && is_hdmi_enabled(state))
+> -		return adv748x_csi2_register_link(tx, sd->v4l2_dev,
+> -						  &state->hdmi.sd,
+> -						  ADV748X_HDMI_SOURCE);
+> -	if (is_txb(tx) && is_afe_enabled(state))
+> -		return adv748x_csi2_register_link(tx, sd->v4l2_dev,
+> -						  &state->afe.sd,
+> -						  ADV748X_AFE_SOURCE);
+> -	return 0;
+> +	if (is_afe_enabled(state)) {
+> +		ret = adv748x_csi2_register_link(tx, sd->v4l2_dev,
+> +						 &state->afe.sd,
+> +						 ADV748X_AFE_SOURCE,
+> +						 is_txb(tx));
+> +		if (ret)
+> +			return ret;
+> +	}
+> +
+> +	/* Register link to HDMI for TXA only. */
+> +	if (is_txb(tx) || !is_hdmi_enabled(state))
+
+Small nit, I would s/is_txb(tx)/!is_txa(tx)/ here as to me it becomes 
+easier to read. With or without this change,
 
 Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-> ---
->  drivers/media/i2c/adv748x/adv748x-core.c | 24 ++++++++++--------------
->  1 file changed, 10 insertions(+), 14 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/adv748x/adv748x-core.c b/drivers/media/i2c/adv748x/adv748x-core.c
-> index d94c63cb6a2e..ad4e6424753a 100644
-> --- a/drivers/media/i2c/adv748x/adv748x-core.c
-> +++ b/drivers/media/i2c/adv748x/adv748x-core.c
-> @@ -353,9 +353,8 @@ static const struct adv748x_reg_value adv748x_sw_reset[] = {
->  	{ADV748X_PAGE_EOR, 0xff, 0xff}	/* End of register table */
->  };
+> +		return 0;
+> +
+> +	return adv748x_csi2_register_link(tx, sd->v4l2_dev, &state->hdmi.sd,
+> +					  ADV748X_HDMI_SOURCE, true);
+>  }
 >  
-> -/* Supported Formats For Script Below */
-> -/* - 01-29 HDMI to MIPI TxA CSI 4-Lane - RGB888: */
-> -static const struct adv748x_reg_value adv748x_init_txa_4lane[] = {
-> +/* Initialize CP Core with RGB888 format. */
-> +static const struct adv748x_reg_value adv748x_init_hdmi[] = {
->  	/* Disable chip powerdown & Enable HDMI Rx block */
->  	{ADV748X_PAGE_IO, 0x00, 0x40},
->  
-> @@ -399,10 +398,8 @@ static const struct adv748x_reg_value adv748x_init_txa_4lane[] = {
->  	{ADV748X_PAGE_EOR, 0xff, 0xff}	/* End of register table */
->  };
->  
-> -/* 02-01 Analog CVBS to MIPI TX-B CSI 1-Lane - */
-> -/* Autodetect CVBS Single Ended In Ain 1 - MIPI Out */
-> -static const struct adv748x_reg_value adv748x_init_txb_1lane[] = {
-> -
-> +/* Initialize AFE core with YUV8 format. */
-> +static const struct adv748x_reg_value adv748x_init_afe[] = {
->  	{ADV748X_PAGE_IO, 0x00, 0x30},	/* Disable chip powerdown Rx */
->  	{ADV748X_PAGE_IO, 0xf2, 0x01},	/* Enable I2C Read Auto-Increment */
->  
-> @@ -445,19 +442,18 @@ static int adv748x_reset(struct adv748x_state *state)
->  	if (ret < 0)
->  		return ret;
->  
-> -	/* Init and power down TXA */
-> -	ret = adv748x_write_regs(state, adv748x_init_txa_4lane);
-> +	/* Initialize CP and AFE cores. */
-> +	ret = adv748x_write_regs(state, adv748x_init_hdmi);
->  	if (ret)
->  		return ret;
->  
-> -	adv748x_tx_power(&state->txa, 1);
-> -	adv748x_tx_power(&state->txa, 0);
-> -
-> -	/* Init and power down TXB */
-> -	ret = adv748x_write_regs(state, adv748x_init_txb_1lane);
-> +	ret = adv748x_write_regs(state, adv748x_init_afe);
->  	if (ret)
->  		return ret;
->  
-> +	/* Reset TXA and TXB */
-> +	adv748x_tx_power(&state->txa, 1);
-> +	adv748x_tx_power(&state->txa, 0);
->  	adv748x_tx_power(&state->txb, 1);
->  	adv748x_tx_power(&state->txb, 0);
->  
+>  static const struct v4l2_subdev_internal_ops adv748x_csi2_internal_ops = {
 > -- 
 > 2.20.1
 > 
