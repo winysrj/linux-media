@@ -2,118 +2,87 @@ Return-Path: <SRS0=CLae=PW=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CA59BC43387
-	for <linux-media@archiver.kernel.org>; Mon, 14 Jan 2019 12:26:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9FE94C43387
+	for <linux-media@archiver.kernel.org>; Mon, 14 Jan 2019 12:27:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9661320659
-	for <linux-media@archiver.kernel.org>; Mon, 14 Jan 2019 12:26:56 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="kagNoMk7"
+	by mail.kernel.org (Postfix) with ESMTP id 7ADBC20659
+	for <linux-media@archiver.kernel.org>; Mon, 14 Jan 2019 12:27:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726515AbfANM04 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 14 Jan 2019 07:26:56 -0500
-Received: from mail-wr1-f65.google.com ([209.85.221.65]:34568 "EHLO
-        mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726467AbfANM0z (ORCPT
+        id S1726563AbfANM1s (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 14 Jan 2019 07:27:48 -0500
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:53635 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726542AbfANM1s (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 Jan 2019 07:26:55 -0500
-Received: by mail-wr1-f65.google.com with SMTP id j2so22697626wrw.1
-        for <linux-media@vger.kernel.org>; Mon, 14 Jan 2019 04:26:54 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=x9F9OyZLLvNNqFzUAyo845pZ0CgKgi7q+uyvu/lyLWE=;
-        b=kagNoMk75FoQOravwXcJK054AUZg3Cu9UH2f6Ucpl6RvxuOEGl34zfz8qro7ezYu8y
-         /6CgEjChc/wknDGHB57AYJIRweNQVNPxRVHcasYfbh3zkLyNuXE/uj9NfjBVI/H7AU3y
-         Qz16707UaSDaHoCWD+q51M++yGOafu6hgTIaGgK12zf9G3tXMv+O3fJdabuGbmK/yKQO
-         Foz3IdsGq3rOaXCA/0HuZJzqDJJP/M+m+TeiCgr3YtPuNeswfsWTaE1TFkdhZIeXaNzL
-         ioI7yefvPeitr7hAcmJnd0J98038k47Zvfz32SDJOHwjHnkSeVZPv8rkgdf0u5hx+UP8
-         OqIw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=x9F9OyZLLvNNqFzUAyo845pZ0CgKgi7q+uyvu/lyLWE=;
-        b=FWIvSD3hN7uG1XKoqTLgmlkockbpBdByy4uTUC29MMTpoGo0tlL9WLzlhSlKkm2gDv
-         peklcNndIbBD0VN8AfcOu6go0sIQaD7aap9fUU51KMO+QlUpdOcZP+GDayGdqcwtJ6I8
-         ayjfxgHlYzYTeikpqJacCK6P7Qg6cFwiKsx9au+l4FEAO3plu/VrKI1f789mTRkVGXJ4
-         YdX8HhTm6OA2dqLEGZovjYogkbOmR1V69gQObN9FPBZfAIuXADS6AUNcwC6Yt1A8ktbR
-         ORsiPFsUN1CELfg2eQ4efXxOsuZ+09skFpDmgMvVZTTxKViYzcy+/hiecWtBGGd+UDbm
-         60QQ==
-X-Gm-Message-State: AJcUukfhSn1Jv1KMmnmOvfgGMJcEmetR4aDm/u8N6aJpaOfwAcRCTUzO
-        RrLiOWjXpoCJnsKuSE4XEDwEtMPxvl0stGUWP5TCnA==
-X-Google-Smtp-Source: ALg8bN79pJ8B1C8j+hX6RmnI+rPmLgbvW4mz5NotASTTQ1OHKNgh7eWR/s00VuKMQwXKc2I4wV81afyB91fAwSwmUwY=
-X-Received: by 2002:a5d:6808:: with SMTP id w8mr1560280wru.270.1547468813854;
- Mon, 14 Jan 2019 04:26:53 -0800 (PST)
+        Mon, 14 Jan 2019 07:27:48 -0500
+Received: from [IPv6:2001:983:e9a7:1:688f:f53a:651c:97b4] ([IPv6:2001:983:e9a7:1:688f:f53a:651c:97b4])
+        by smtp-cloud8.xs4all.net with ESMTPA
+        id j1LFgBVH2NR5yj1LGgHsXp; Mon, 14 Jan 2019 13:27:46 +0100
+To:     Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc:     Helen Koike <helen.koike@collabora.com>
+From:   Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] vimc: fill in correct driver name in querycap
+Message-ID: <d599ea28-58b2-5c9f-d980-0213060fb27e@xs4all.nl>
+Date:   Mon, 14 Jan 2019 13:27:45 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.3.1
 MIME-Version: 1.0
-References: <1547422709-7111-1-git-send-email-james.hilliard1@gmail.com> <20190114090002.1453c12a@coco.lan>
-In-Reply-To: <20190114090002.1453c12a@coco.lan>
-From:   James Hilliard <james.hilliard1@gmail.com>
-Date:   Mon, 14 Jan 2019 05:26:42 -0700
-Message-ID: <CADvTj4rHkTtpZLtuFtBR8GRpfZd28jL9b9ZPVd8V-eZvEQgmuw@mail.gmail.com>
-Subject: Re: [PATCH zbar 1/5] Fix autoreconf by reducing the warning/error checking
-To:     Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc:     linux-media@vger.kernel.org,
-        Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-CMAE-Envelope: MS4wfGE1T5IIbCXR7H464V/+jC+z42aOJRZHG/ZYq8lR96aIpjg8SESA+eCrvvCJAX2UFTR20nrdejP64oum84dAmMmJ2VNjjFT6nY8u9iOP0/bON8/gENeF
+ kv5RarVqIcE44PqUES8EdBxVl4bZy301Pnxc5SoBLmnyTu1hNs85Hv4m0rXtcv2RD8UfHK5YtSY7NVv04gb+lqxCllhkg5cEJOq0eBgy2yycp5MP8r/a+v53
+ rfiLpyDdOzq980OBaWCZ2A9Hzyq4A/V8ncMrDbkLsj4p6xMMPWYjXWGt01wj0BnrK+lKKxYwBVqrqQWknNGbPw==
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Mon, Jan 14, 2019 at 4:00 AM Mauro Carvalho Chehab
-<mchehab+samsung@kernel.org> wrote:
->
-> Hi James,
->
-> Em Mon, 14 Jan 2019 07:38:25 +0800
-> james.hilliard1@gmail.com escreveu:
->
-> > From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-> >
->
-> Please add description to the patches. It helps reviewing them, and,
-> if we need to revert it for whatever reason in the future, the git log
-> will help to take into account the rationale about why the change was
-> needed in the first place.
->
-> > Signed-off-by: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-> > Signed-off-by: James Hilliard <james.hilliard1@gmail.com>
-> > ---
-> >  configure.ac | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> >
-> > diff --git a/configure.ac b/configure.ac
-> > index a03d10e..6476a20 100644
-> > --- a/configure.ac
-> > +++ b/configure.ac
-> > @@ -5,7 +5,7 @@ m4_ifndef([AC_LANG_DEFINES_PROVIDED],
-> >            [m4_define([AC_LANG_DEFINES_PROVIDED])])
-> >  AC_CONFIG_AUX_DIR(config)
-> >  AC_CONFIG_MACRO_DIR(config)
-> > -AM_INIT_AUTOMAKE([1.13 -Werror foreign subdir-objects std-options dist-bzip2])
-> > +AM_INIT_AUTOMAKE([1.13 foreign subdir-objects std-options dist-bzip2])
-> >  m4_pattern_allow([AM_PROG_AR])
-> >  AC_CONFIG_HEADERS([include/config.h])
-> >  AC_CONFIG_SRCDIR(zbar/scanner.c)
->
-> I applied patches 2 to 5 of this series, but I would prefer to keep the
-> -Werror here, as it helps to identify and fix potential issues.
->
-> Here (Fedora 29), everything builds fine, but I haven't test on other
-> distros that could have newer packages.
->
-> Why is this patch needed?
-It was part of buildroot's zbar patches, not sure if it's needed though anymore.
->
-> Regards,
-> Mauro
->
-> Thanks,
-> Mauro
+The driver name as returned in v4l2_capabilities must be vimc, not vimc_capture.
+
+Fix this.
+
+Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+---
+diff --git a/drivers/media/platform/vimc/vimc-capture.c b/drivers/media/platform/vimc/vimc-capture.c
+index 3f7e9ed56633..aaeddf24b042 100644
+--- a/drivers/media/platform/vimc/vimc-capture.c
++++ b/drivers/media/platform/vimc/vimc-capture.c
+@@ -71,7 +71,7 @@ static int vimc_cap_querycap(struct file *file, void *priv,
+ {
+ 	struct vimc_cap_device *vcap = video_drvdata(file);
+
+-	strscpy(cap->driver, KBUILD_MODNAME, sizeof(cap->driver));
++	strscpy(cap->driver, VIMC_PDEV_NAME, sizeof(cap->driver));
+ 	strscpy(cap->card, KBUILD_MODNAME, sizeof(cap->card));
+ 	snprintf(cap->bus_info, sizeof(cap->bus_info),
+ 		 "platform:%s", vcap->vdev.v4l2_dev->name);
+diff --git a/drivers/media/platform/vimc/vimc-common.h b/drivers/media/platform/vimc/vimc-common.h
+index 2e9981b18166..f491c33c7c14 100644
+--- a/drivers/media/platform/vimc/vimc-common.h
++++ b/drivers/media/platform/vimc/vimc-common.h
+@@ -22,6 +22,8 @@
+ #include <media/media-device.h>
+ #include <media/v4l2-device.h>
+
++#define VIMC_PDEV_NAME "vimc"
++
+ /* VIMC-specific controls */
+ #define VIMC_CID_VIMC_BASE		(0x00f00000 | 0xf000)
+ #define VIMC_CID_VIMC_CLASS		(0x00f00000 | 1)
+diff --git a/drivers/media/platform/vimc/vimc-core.c b/drivers/media/platform/vimc/vimc-core.c
+index ce809d2e3d53..bf19f1f9795e 100644
+--- a/drivers/media/platform/vimc/vimc-core.c
++++ b/drivers/media/platform/vimc/vimc-core.c
+@@ -24,7 +24,6 @@
+
+ #include "vimc-common.h"
+
+-#define VIMC_PDEV_NAME "vimc"
+ #define VIMC_MDEV_MODEL_NAME "VIMC MDEV"
+
+ #define VIMC_ENT_LINK(src, srcpad, sink, sinkpad, link_flags) {	\
