@@ -2,133 +2,153 @@ Return-Path: <SRS0=CLae=PW=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BA2EC43612
-	for <linux-media@archiver.kernel.org>; Mon, 14 Jan 2019 13:15:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FF89C43387
+	for <linux-media@archiver.kernel.org>; Mon, 14 Jan 2019 13:39:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id F1DD420659
-	for <linux-media@archiver.kernel.org>; Mon, 14 Jan 2019 13:15:16 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="bXVSTOg7"
+	by mail.kernel.org (Postfix) with ESMTP id 6417F20896
+	for <linux-media@archiver.kernel.org>; Mon, 14 Jan 2019 13:39:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726545AbfANNPQ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 14 Jan 2019 08:15:16 -0500
-Received: from perceval.ideasonboard.com ([213.167.242.64]:47456 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726482AbfANNPQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 Jan 2019 08:15:16 -0500
-Received: from [192.168.0.21] (cpc89242-aztw30-2-0-cust488.18-1.cable.virginm.net [86.31.129.233])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id B116C530;
-        Mon, 14 Jan 2019 14:15:13 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1547471713;
-        bh=pgi9ij8xnZCwMfvIFh6rTKOnKGqUAXc+PevDbWNqQ+I=;
-        h=Reply-To:Subject:To:Cc:References:From:Date:In-Reply-To:From;
-        b=bXVSTOg74PcuKt6QDgjrVoGMJzVN0J4+F2bL9YmVw99aot0yVXKdUEpYtbrBj5He0
-         X/u/hCfenlTNshcoEKHmoF7JkyCOxua33pSDs9psD+pFG68+qCkz0wJBdkrLLg7NaV
-         Sp+a6x57ir3jcTdtqKXqopdIZ7DEffViq9cmNZiY=
-Reply-To: kieran.bingham+renesas@ideasonboard.com
-Subject: Re: [PATCH v2] media: i2c: adv748x: Use devm to allocate the device
- struct
-To:     =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>
-Cc:     linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-References: <20190111161703.7972-1-kieran.bingham+renesas@ideasonboard.com>
- <20190114130622.GE30160@bigcity.dyn.berto.se>
-From:   Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Organization: Ideas on Board
-Message-ID: <061caa6f-6a8f-8f1c-fe19-c9b778fcabb1@ideasonboard.com>
-Date:   Mon, 14 Jan 2019 13:15:10 +0000
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.2.1
+        id S1726559AbfANNjD (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 14 Jan 2019 08:39:03 -0500
+Received: from mail.bootlin.com ([62.4.15.54]:51445 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726515AbfANNjD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 14 Jan 2019 08:39:03 -0500
+Received: by mail.bootlin.com (Postfix, from userid 110)
+        id E27AA20955; Mon, 14 Jan 2019 14:39:00 +0100 (CET)
+Received: from localhost.localdomain (aaubervilliers-681-1-45-241.w90-88.abo.wanadoo.fr [90.88.163.241])
+        by mail.bootlin.com (Postfix) with ESMTPSA id 6D91620728;
+        Mon, 14 Jan 2019 14:39:00 +0100 (CET)
+From:   Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+To:     linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-arm-kernel@lists.infradead.org,
+        linux-sunxi@googlegroups.com
+Cc:     Pawel Osciak <pawel@osciak.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Randy Li <ayaka@soulik.info>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Ezequiel Garcia <ezequiel@collabora.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>
+Subject: [PATCH RFC 1/4] media: vb2: Add helpers to access unselected buffers
+Date:   Mon, 14 Jan 2019 14:38:36 +0100
+Message-Id: <20190114133839.29967-2-paul.kocialkowski@bootlin.com>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20190114133839.29967-1-paul.kocialkowski@bootlin.com>
+References: <20190114133839.29967-1-paul.kocialkowski@bootlin.com>
 MIME-Version: 1.0
-In-Reply-To: <20190114130622.GE30160@bigcity.dyn.berto.se>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Niklas,
+Introduce helpers to request and release access to buffers that are
+not currently selected as current output or capture buffers.
 
-On 14/01/2019 13:06, Niklas Söderlund wrote:
-> Hi Kieran,
-> 
-> Thanks for your work.
-> 
-> On 2019-01-11 16:17:03 +0000, Kieran Bingham wrote:
->> From: Steve Longerbeam <steve_longerbeam@mentor.com>
->>
->> Switch to devm_kzalloc() when allocating the adv748x device struct.
->>
->> The sizeof() is updated to determine the correct allocation size from
->> the dereferenced pointer type rather than hardcoding the struct type.
-> 
-> I would put this under a changes since v1 section and not for inclusion 
-> on the commit message upstream. Apart from that
+This is useful to ensure proper access to buffers imported via dma-buf
+that are used as reference and thus require associated map/unmap calls
+before access.
 
-I considered that, but this is an actual change as well as the
-s/kzalloc/devm_kzalloc/ on top of the existing code - so I felt it was
-worthy of keeping in the changelog.
+Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+---
+ .../media/common/videobuf2/videobuf2-core.c   | 46 +++++++++++++++++++
+ include/media/videobuf2-core.h                | 15 ++++++
+ 2 files changed, 61 insertions(+)
 
-(The original code uses sizeof(struct...) instead of sizeof(*s))
-
-> Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-
-Thanks
-
-Kieran
-
-
-> 
->>
->> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
->> Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
->> [Kieran: Change sizeof() to dereference the pointer type]
->> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
->> ---
->>  drivers/media/i2c/adv748x/adv748x-core.c | 5 +----
->>  1 file changed, 1 insertion(+), 4 deletions(-)
->>
->> diff --git a/drivers/media/i2c/adv748x/adv748x-core.c b/drivers/media/i2c/adv748x/adv748x-core.c
->> index 060d0c5b4989..1e5c7bbcf6b2 100644
->> --- a/drivers/media/i2c/adv748x/adv748x-core.c
->> +++ b/drivers/media/i2c/adv748x/adv748x-core.c
->> @@ -674,7 +674,7 @@ static int adv748x_probe(struct i2c_client *client,
->>  	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
->>  		return -EIO;
->>  
->> -	state = kzalloc(sizeof(struct adv748x_state), GFP_KERNEL);
->> +	state = devm_kzalloc(&client->dev, sizeof(*state), GFP_KERNEL);
->>  	if (!state)
->>  		return -ENOMEM;
->>  
->> @@ -772,7 +772,6 @@ static int adv748x_probe(struct i2c_client *client,
->>  	adv748x_dt_cleanup(state);
->>  err_free_mutex:
->>  	mutex_destroy(&state->mutex);
->> -	kfree(state);
->>  
->>  	return ret;
->>  }
->> @@ -791,8 +790,6 @@ static int adv748x_remove(struct i2c_client *client)
->>  	adv748x_dt_cleanup(state);
->>  	mutex_destroy(&state->mutex);
->>  
->> -	kfree(state);
->> -
->>  	return 0;
->>  }
->>  
->> -- 
->> 2.17.1
->>
-> 
+diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
+index 70e8c3366f9c..2a0c5de4d683 100644
+--- a/drivers/media/common/videobuf2/videobuf2-core.c
++++ b/drivers/media/common/videobuf2/videobuf2-core.c
+@@ -986,6 +986,52 @@ void vb2_discard_done(struct vb2_queue *q)
+ }
+ EXPORT_SYMBOL_GPL(vb2_discard_done);
+ 
++int vb2_buffer_access_request(struct vb2_buffer *vb)
++{
++	struct vb2_queue *q = vb->vb2_queue;
++	unsigned int plane;
++	int ret;
++
++	/* Only dmabuf-imported buffers need to be mapped before access. */
++	if (q->memory != VB2_MEMORY_DMABUF)
++		return -EINVAL;
++
++	for (plane = 0; plane < vb->num_planes; ++plane) {
++		if (vb->planes[plane].dbuf_mapped)
++			continue;
++
++		ret = call_memop(vb, map_dmabuf, vb->planes[plane].mem_priv);
++		if (ret) {
++			dprintk(1, "failed to map dmabuf for plane %d\n",
++				plane);
++			return ret;
++		}
++		vb->planes[plane].dbuf_mapped = 1;
++	}
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(vb2_buffer_access_request);
++
++void vb2_buffer_access_release(struct vb2_buffer *vb)
++{
++	struct vb2_queue *q = vb->vb2_queue;
++	unsigned int plane;
++
++	/* Only dmabuf-imported buffers need to be unmapped after access. */
++	if (q->memory != VB2_MEMORY_DMABUF)
++		return;
++
++	for (plane = 0; plane < vb->num_planes; ++plane) {
++		if (!vb->planes[plane].dbuf_mapped)
++			continue;
++
++		call_void_memop(vb, unmap_dmabuf, vb->planes[plane].mem_priv);
++		vb->planes[plane].dbuf_mapped = 0;
++	}
++}
++EXPORT_SYMBOL_GPL(vb2_buffer_access_release);
++
+ /*
+  * __prepare_mmap() - prepare an MMAP buffer
+  */
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 4a737b2c610b..bf378c1e718b 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -1199,4 +1199,19 @@ bool vb2_request_object_is_buffer(struct media_request_object *obj);
+  */
+ unsigned int vb2_request_buffer_cnt(struct media_request *req);
+ 
++/**
++ * vb2_buffer_access_request() - request out-of-band data access to a buffer
++ *
++ * @vb:		buffer to request data access for
++ */
++int vb2_buffer_access_request(struct vb2_buffer *vb);
++
++
++/**
++ * vb2_buffer_access_release() - release out-of-band data access to a buffer
++ *
++ * @vb:		buffer to release data access for
++ */
++void vb2_buffer_access_release(struct vb2_buffer *vb);
++
+ #endif /* _MEDIA_VIDEOBUF2_CORE_H */
+-- 
+2.20.1
 
