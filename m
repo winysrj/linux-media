@@ -2,87 +2,217 @@ Return-Path: <SRS0=CLae=PW=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9FE94C43387
-	for <linux-media@archiver.kernel.org>; Mon, 14 Jan 2019 12:27:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5AFC7C43444
+	for <linux-media@archiver.kernel.org>; Mon, 14 Jan 2019 12:42:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7ADBC20659
-	for <linux-media@archiver.kernel.org>; Mon, 14 Jan 2019 12:27:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2D8F820873
+	for <linux-media@archiver.kernel.org>; Mon, 14 Jan 2019 12:42:34 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="WxB/wrsj"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726563AbfANM1s (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 14 Jan 2019 07:27:48 -0500
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:53635 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726542AbfANM1s (ORCPT
+        id S1726563AbfANMm3 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 14 Jan 2019 07:42:29 -0500
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:52464 "EHLO
+        mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726559AbfANMm3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 Jan 2019 07:27:48 -0500
-Received: from [IPv6:2001:983:e9a7:1:688f:f53a:651c:97b4] ([IPv6:2001:983:e9a7:1:688f:f53a:651c:97b4])
-        by smtp-cloud8.xs4all.net with ESMTPA
-        id j1LFgBVH2NR5yj1LGgHsXp; Mon, 14 Jan 2019 13:27:46 +0100
-To:     Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc:     Helen Koike <helen.koike@collabora.com>
-From:   Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] vimc: fill in correct driver name in querycap
-Message-ID: <d599ea28-58b2-5c9f-d980-0213060fb27e@xs4all.nl>
-Date:   Mon, 14 Jan 2019 13:27:45 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.3.1
+        Mon, 14 Jan 2019 07:42:29 -0500
+Received: from eucas1p1.samsung.com (unknown [182.198.249.206])
+        by mailout2.w1.samsung.com (KnoxPortal) with ESMTP id 20190114124227euoutp0247736420ce42efdce8f9f9bd1ec38d2f~5t4lnsLgy3112031120euoutp02w
+        for <linux-media@vger.kernel.org>; Mon, 14 Jan 2019 12:42:27 +0000 (GMT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 mailout2.w1.samsung.com 20190114124227euoutp0247736420ce42efdce8f9f9bd1ec38d2f~5t4lnsLgy3112031120euoutp02w
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
+        s=mail20170921; t=1547469747;
+        bh=JkEUB/1etH5HwCAXK5XQVE51QY576xSQ+oOLRoEdTo4=;
+        h=Subject:To:Cc:From:Date:In-Reply-To:References:From;
+        b=WxB/wrsjzNm/oPYCYyWojDl04dJdH/qcSBe0q5NXZ+fhCzZkQAjhODUe0E2+5EKEU
+         5ecllJTmSrTr6I8faFf2kUn6aPVEREmFbf3Y57KCpE1m9Vpyy8kDRpH7dZzoop83Tn
+         PGDyvDmz0X4LR5Ma/jqkemIISb1dfvcB3kfeXmhw=
+Received: from eusmges3new.samsung.com (unknown [203.254.199.245]) by
+        eucas1p1.samsung.com (KnoxPortal) with ESMTP id
+        20190114124226eucas1p18c02e40c1d8f2e16dc9b8301b473a9bb~5t4k4zJlz2526725267eucas1p10;
+        Mon, 14 Jan 2019 12:42:26 +0000 (GMT)
+Received: from eucas1p2.samsung.com ( [182.198.249.207]) by
+        eusmges3new.samsung.com (EUCPMTA) with SMTP id E3.96.04806.2B38C3C5; Mon, 14
+        Jan 2019 12:42:26 +0000 (GMT)
+Received: from eusmtrp2.samsung.com (unknown [182.198.249.139]) by
+        eucas1p1.samsung.com (KnoxPortal) with ESMTPA id
+        20190114124225eucas1p1b6a3be0a59408c78ce17ff2e27665f99~5t4jrTm-12526825268eucas1p1z;
+        Mon, 14 Jan 2019 12:42:25 +0000 (GMT)
+Received: from eusmgms2.samsung.com (unknown [182.198.249.180]) by
+        eusmtrp2.samsung.com (KnoxPortal) with ESMTP id
+        20190114124225eusmtrp2d17053cb57772f09b8c7dcd061959277~5t4jcf_cZ0469204692eusmtrp2O;
+        Mon, 14 Jan 2019 12:42:25 +0000 (GMT)
+X-AuditID: cbfec7f5-367ff700000012c6-f1-5c3c83b28e63
+Received: from eusmtip2.samsung.com ( [203.254.199.222]) by
+        eusmgms2.samsung.com (EUCPMTA) with SMTP id C8.0D.04128.1B38C3C5; Mon, 14
+        Jan 2019 12:42:25 +0000 (GMT)
+Received: from [106.116.147.30] (unknown [106.116.147.30]) by
+        eusmtip2.samsung.com (KnoxPortal) with ESMTPA id
+        20190114124224eusmtip2baec9451d28ae77dfcf4ef3317c0caf8~5t4i0jU620772007720eusmtip2J;
+        Mon, 14 Jan 2019 12:42:24 +0000 (GMT)
+Subject: Re: [PATCH 3/3] videobuf2: replace a layering violation with
+ dma_map_resource
+To:     Christoph Hellwig <hch@lst.de>, Pawel Osciak <pawel@osciak.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        =?UTF-8?Q?Niklas_S=c3=b6derlund?= 
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc:     Russell King <linux@armlinux.org.uk>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        iommu@lists.linux-foundation.org,
+        linux-arm-kernel@lists.infradead.org,
+        linuxppc-dev@lists.ozlabs.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+From:   Marek Szyprowski <m.szyprowski@samsung.com>
+Message-ID: <6f8892ac-c2aa-10df-c74f-ba032bf75160@samsung.com>
+Date:   Mon, 14 Jan 2019 13:42:26 +0100
+User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:60.0) Gecko/20100101
+        Thunderbird/60.4.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+In-Reply-To: <20190111181731.11782-4-hch@lst.de>
 Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfGE1T5IIbCXR7H464V/+jC+z42aOJRZHG/ZYq8lR96aIpjg8SESA+eCrvvCJAX2UFTR20nrdejP64oum84dAmMmJ2VNjjFT6nY8u9iOP0/bON8/gENeF
- kv5RarVqIcE44PqUES8EdBxVl4bZy301Pnxc5SoBLmnyTu1hNs85Hv4m0rXtcv2RD8UfHK5YtSY7NVv04gb+lqxCllhkg5cEJOq0eBgy2yycp5MP8r/a+v53
- rfiLpyDdOzq980OBaWCZ2A9Hzyq4A/V8ncMrDbkLsj4p6xMMPWYjXWGt01wj0BnrK+lKKxYwBVqrqQWknNGbPw==
+Content-Language: en-US
+X-Brightmail-Tracker: H4sIAAAAAAAAA01Sa0hTYRju29nOjkdnX1PzRaVkXcBuGvrjhCJ2o4MQBCFYrXLl8VI6ZZsu
+        NcwLqYlYdKFaywwyy+i2vMecTnKIt8qalkQXTSszS7M0l+U8Wv57nud7n/d5XvgoQmoVeVCx
+        Sg2nUiriZCQtrGya6FhryA6S+zVU+zA3bz0SMMWmQKYt67OYMfRaRUxnrZ5kCu5ViBjzOSNi
+        Jn9OiZjrBpuAedW8hjk7NCEOcWQ7rU8I1lB2gmQfXDvGnukuRWzHhauIffgig2R7f30k2YHO
+        nyRbWF6G2FHDkh30bjookouLTeZUvsERdExe+TkiMcvzyP2SfkEGGnHLRw4U4ADoudwiykc0
+        JcU3ENRNtiOefEcw3jop5MkogvrWL2jOkm38PWspRfCm0kTyZBhBWa5+2kJRLjgcxvq32XVX
+        bETQnnNyxkFgGwJLUdvMKhKvh/yhfNKOJTgYupvqZ3QhXgFVL20zi9ywHI530vzIImi+2Ce0
+        YwfsB8b3zwV2TOClUDWkJ3jsDi/7rgjsWYDHxGC1nZ+tvWW66aCQxy7wyVIu5rEX/KmZM2Qj
+        yL2gE/OkAEGFvprkpwKh0fJEZG9EYB+4W+vLyxvhQ2EpYZcBO0P30CK+hDOcrjw/K0sgL0fK
+        T68EneXOv9iGx0+JU0imm3eabt45unnn6P7nFiNhGXLnktTx0ZzaX8lp16kV8eokZfS6gwnx
+        BjT921qmLGPVqM52wIwwhWROErgUKJeKFMnqlHgzAoqQuUqSNwXJpZJIRUoqp0rYr0qK49Rm
+        5EkJZe6StAVv9khxtELDHea4RE419yqgHDwy0Ab3XSMLnF9rvMMoL9fxfaOtobethyA0Ki5s
+        kNDS2H/5ri4iJtySec/W80A+bEqLGq5olNZouj3Ss5Rfn30L6TIlKMXlRzM35/gHLI5VlqaK
+        8oZXE7FZb53afPv1EXuB3lqiCQLTzgQn74Uj2vSigRvL9m3Rbm//4Ug3vZPXyITqGMX6VYRK
+        rfgLloMPVWkDAAA=
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFnrJIsWRmVeSWpSXmKPExsVy+t/xe7obm21iDB7eEbNYufook8WC/dYW
+        Z5vesFtsenyN1eLyrjlsFj0btrJaHJq6l9Hi9/d/rBbLNv1hsrh7Usdiytuf7A7cHpevXWT2
+        2LSqk81j85J6j8k3ljN6nJ+xkNFj980GNo/Hv16yeTy//J3No2/LKkaPz5vkArii9GyK8ktL
+        UhUy8otLbJWiDS2M9AwtLfSMTCz1DI3NY62MTJX07WxSUnMyy1KL9O0S9DI6tkxlLmiSrti4
+        9BlTA+Mn0S5GTg4JAROJ5r1/WbsYuTiEBJYySix9upEVIiEjcXJaA5QtLPHnWhcbRNFbRok9
+        234ydzFycAgLREh8feYOEhcR2Msocf/0XbAiZoF/jBLze3cwQnSsZJR48r8JbBSbgKFE11uQ
+        UZwcvAJ2EjeOHWAEsVkEVCW23/rDAmKLCsRIzHrSxw5RIyhxcuYTsDingIHE3qdXmUBsZgF1
+        iT/zLjFD2PIS29/OgbLFJW49mc80gVFoFpL2WUhaZiFpmYWkZQEjyypGkdTS4tz03GIjveLE
+        3OLSvHS95PzcTYzAaN527OcWoIfeBR9iFOBgVOLhlZhtHSPEmlhWXJl7iFGCg1lJhLfMySZG
+        iDclsbIqtSg/vqg0J7X4EKMp0HMTmaVEk/OBiSavJN7Q1NDcwtLQ3Njc2MxCSZz3vEFllJBA
+        emJJanZqakFqEUwfEwenVAOjzW6udM6jHy4tWq/LuP22+OQF8zKdmJyCnpdcOPCsZK3U3JLy
+        /l9Viqff6RQqrchZ/bD7kQHrtlwb8X9r1I879nPWvj57yiFt0c6961ZGzf756wfHDC1ujx9q
+        ku/X1uzbYLzNNGyP2ZdP8zoyz67cMeOT6vfIyyKLmHIOCv++v8nVkWEJ7+ciSSWW4oxEQy3m
+        ouJEACyoswL8AgAA
+X-CMS-MailID: 20190114124225eucas1p1b6a3be0a59408c78ce17ff2e27665f99
+X-Msg-Generator: CA
+Content-Type: text/plain; charset="utf-8"
+X-RootMTR: 20190111181812epcas2p1eeb68a16701631513eaf297073f7299f
+X-EPHeader: CA
+CMS-TYPE: 201P
+X-CMS-RootMailID: 20190111181812epcas2p1eeb68a16701631513eaf297073f7299f
+References: <20190111181731.11782-1-hch@lst.de>
+        <CGME20190111181812epcas2p1eeb68a16701631513eaf297073f7299f@epcas2p1.samsung.com>
+        <20190111181731.11782-4-hch@lst.de>
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-The driver name as returned in v4l2_capabilities must be vimc, not vimc_capture.
+Hi Christoph,
 
-Fix this.
+On 2019-01-11 19:17, Christoph Hellwig wrote:
+> vb2_dc_get_userptr pokes into arm direct mapping details to get the
+> resemblance of a dma address for a a physical address that does is
+> not backed by a page struct.  Not only is this not portable to other
+> architectures with dma direct mapping offsets, but also not to uses
+> of IOMMUs of any kind.  Switch to the proper dma_map_resource /
+> dma_unmap_resource interface instead.
+>
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
 
-Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
----
-diff --git a/drivers/media/platform/vimc/vimc-capture.c b/drivers/media/platform/vimc/vimc-capture.c
-index 3f7e9ed56633..aaeddf24b042 100644
---- a/drivers/media/platform/vimc/vimc-capture.c
-+++ b/drivers/media/platform/vimc/vimc-capture.c
-@@ -71,7 +71,7 @@ static int vimc_cap_querycap(struct file *file, void *priv,
- {
- 	struct vimc_cap_device *vcap = video_drvdata(file);
+There are checks for IOMMU presence in other places in vb2-dma-contig,
+so it was used only when no IOMMU is available, but I agree that the
+hacky code should be replaced by a generic code if possible.
 
--	strscpy(cap->driver, KBUILD_MODNAME, sizeof(cap->driver));
-+	strscpy(cap->driver, VIMC_PDEV_NAME, sizeof(cap->driver));
- 	strscpy(cap->card, KBUILD_MODNAME, sizeof(cap->card));
- 	snprintf(cap->bus_info, sizeof(cap->bus_info),
- 		 "platform:%s", vcap->vdev.v4l2_dev->name);
-diff --git a/drivers/media/platform/vimc/vimc-common.h b/drivers/media/platform/vimc/vimc-common.h
-index 2e9981b18166..f491c33c7c14 100644
---- a/drivers/media/platform/vimc/vimc-common.h
-+++ b/drivers/media/platform/vimc/vimc-common.h
-@@ -22,6 +22,8 @@
- #include <media/media-device.h>
- #include <media/v4l2-device.h>
+Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
 
-+#define VIMC_PDEV_NAME "vimc"
-+
- /* VIMC-specific controls */
- #define VIMC_CID_VIMC_BASE		(0x00f00000 | 0xf000)
- #define VIMC_CID_VIMC_CLASS		(0x00f00000 | 1)
-diff --git a/drivers/media/platform/vimc/vimc-core.c b/drivers/media/platform/vimc/vimc-core.c
-index ce809d2e3d53..bf19f1f9795e 100644
---- a/drivers/media/platform/vimc/vimc-core.c
-+++ b/drivers/media/platform/vimc/vimc-core.c
-@@ -24,7 +24,6 @@
+V4L2 pipeline works fine on older Exynos-based boards with CMA and IOMMU
+disabled.
 
- #include "vimc-common.h"
+> ---
+>  .../common/videobuf2/videobuf2-dma-contig.c   | 41 ++++---------------
+>  1 file changed, 9 insertions(+), 32 deletions(-)
+>
+> diff --git a/drivers/media/common/videobuf2/videobuf2-dma-contig.c b/drivers/media/common/videobuf2/videobuf2-dma-contig.c
+> index aff0ab7bf83d..82389aead6ed 100644
+> --- a/drivers/media/common/videobuf2/videobuf2-dma-contig.c
+> +++ b/drivers/media/common/videobuf2/videobuf2-dma-contig.c
+> @@ -439,42 +439,14 @@ static void vb2_dc_put_userptr(void *buf_priv)
+>  				set_page_dirty_lock(pages[i]);
+>  		sg_free_table(sgt);
+>  		kfree(sgt);
+> +	} else {
+> +		dma_unmap_resource(buf->dev, buf->dma_addr, buf->size,
+> +				   buf->dma_dir, 0);
+>  	}
+>  	vb2_destroy_framevec(buf->vec);
+>  	kfree(buf);
+>  }
+>  
+> -/*
+> - * For some kind of reserved memory there might be no struct page available,
+> - * so all that can be done to support such 'pages' is to try to convert
+> - * pfn to dma address or at the last resort just assume that
+> - * dma address == physical address (like it has been assumed in earlier version
+> - * of videobuf2-dma-contig
+> - */
+> -
+> -#ifdef __arch_pfn_to_dma
+> -static inline dma_addr_t vb2_dc_pfn_to_dma(struct device *dev, unsigned long pfn)
+> -{
+> -	return (dma_addr_t)__arch_pfn_to_dma(dev, pfn);
+> -}
+> -#elif defined(__pfn_to_bus)
+> -static inline dma_addr_t vb2_dc_pfn_to_dma(struct device *dev, unsigned long pfn)
+> -{
+> -	return (dma_addr_t)__pfn_to_bus(pfn);
+> -}
+> -#elif defined(__pfn_to_phys)
+> -static inline dma_addr_t vb2_dc_pfn_to_dma(struct device *dev, unsigned long pfn)
+> -{
+> -	return (dma_addr_t)__pfn_to_phys(pfn);
+> -}
+> -#else
+> -static inline dma_addr_t vb2_dc_pfn_to_dma(struct device *dev, unsigned long pfn)
+> -{
+> -	/* really, we cannot do anything better at this point */
+> -	return (dma_addr_t)(pfn) << PAGE_SHIFT;
+> -}
+> -#endif
+> -
+>  static void *vb2_dc_get_userptr(struct device *dev, unsigned long vaddr,
+>  	unsigned long size, enum dma_data_direction dma_dir)
+>  {
+> @@ -528,7 +500,12 @@ static void *vb2_dc_get_userptr(struct device *dev, unsigned long vaddr,
+>  		for (i = 1; i < n_pages; i++)
+>  			if (nums[i-1] + 1 != nums[i])
+>  				goto fail_pfnvec;
+> -		buf->dma_addr = vb2_dc_pfn_to_dma(buf->dev, nums[0]);
+> +		buf->dma_addr = dma_map_resource(buf->dev,
+> +				__pfn_to_phys(nums[0]), size, buf->dma_dir, 0);
+> +		if (dma_mapping_error(buf->dev, buf->dma_addr)) {
+> +			ret = -ENOMEM;
+> +			goto fail_pfnvec;
+> +		}
+>  		goto out;
+>  	}
+>  
 
--#define VIMC_PDEV_NAME "vimc"
- #define VIMC_MDEV_MODEL_NAME "VIMC MDEV"
+Best regards
+-- 
+Marek Szyprowski, PhD
+Samsung R&D Institute Poland
 
- #define VIMC_ENT_LINK(src, srcpad, sink, sinkpad, link_flags) {	\
