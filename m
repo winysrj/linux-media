@@ -2,195 +2,60 @@ Return-Path: <SRS0=CLae=PW=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.5 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,USER_AGENT_MUTT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E7B78C43387
-	for <linux-media@archiver.kernel.org>; Mon, 14 Jan 2019 14:55:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A477DC43387
+	for <linux-media@archiver.kernel.org>; Mon, 14 Jan 2019 14:58:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B670B20989
-	for <linux-media@archiver.kernel.org>; Mon, 14 Jan 2019 14:55:38 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ragnatech-se.20150623.gappssmtp.com header.i=@ragnatech-se.20150623.gappssmtp.com header.b="Wmu+VQgb"
+	by mail.kernel.org (Postfix) with ESMTP id 7E1D1208E4
+	for <linux-media@archiver.kernel.org>; Mon, 14 Jan 2019 14:58:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726811AbfANOzi (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 14 Jan 2019 09:55:38 -0500
-Received: from mail-lj1-f195.google.com ([209.85.208.195]:35207 "EHLO
-        mail-lj1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726579AbfANOzi (ORCPT
+        id S1726653AbfANO63 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 14 Jan 2019 09:58:29 -0500
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:41339 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726623AbfANO62 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 Jan 2019 09:55:38 -0500
-Received: by mail-lj1-f195.google.com with SMTP id x85-v6so19285522ljb.2
-        for <linux-media@vger.kernel.org>; Mon, 14 Jan 2019 06:55:36 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ragnatech-se.20150623.gappssmtp.com; s=20150623;
-        h=from:date:to:cc:subject:message-id:references:mime-version
-         :content-disposition:content-transfer-encoding:in-reply-to
-         :user-agent;
-        bh=1K3ayw5pDuGJR6lTXauQ/G9YGQFmfgQ36n0bJmNgtmI=;
-        b=Wmu+VQgby7gaUrUjTcbaFQNYvKT/RlpjPChvTvidf43NxLVyeLSySJ3cUenwOWHz5D
-         LYD57813u6xwPqxKvo5LXUwSLUGzLfPbeE7D7DmV3yyfLZT8kQSbSj368W+kfrDn+scr
-         U6bvg1e+TvT1WwovWSGfYpOEGvMhm5QxA86SL6TRRAzZwD5gy0z348g4QPKOgxQpWSAu
-         STLP7vNG+rZo8Z3+TXVoOa+4zClDO63GDlfOwP2wADnvlpeP1vjy/4M0ggnW8zVZZW2D
-         uNDNWSnvgjsAtrodtwypDBT4tym1/LBeQ9KJ/HiePOuxuc/s/DpJyFvdGKDvEaVNfobl
-         NAoQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:date:to:cc:subject:message-id:references
-         :mime-version:content-disposition:content-transfer-encoding
-         :in-reply-to:user-agent;
-        bh=1K3ayw5pDuGJR6lTXauQ/G9YGQFmfgQ36n0bJmNgtmI=;
-        b=mfwNxgq2AifMQOnezErbRhXByW7oLpf4N7SAKJ/rlV+KOvQZZxWZw7cXeSLxZ5Iqbo
-         vJKgmWoWU90l/nsNUxOfAOZt9vjaVpXtlJJBLkwSqGTxDt4ufBKDZ+aFEDMnaYlh2Kaf
-         ILFkIQJAZMutqSRyKFQWbFR8qXK/uu5+CZcWqetcmYNmh3PYeqYXDNL33fj6c6YDF7/s
-         xGqmsPgcSiP2p4XToz6DSDk76AUXjm7aHBF74GpaqnPdkGwmnigjmlevTo4KYoMIhJxW
-         XyjTbxF4MsuZVQ+Z8F+jwORnwSpbb27MUJSYtAVK2vvEnD4ti1jXpiTLc+lj42W2sCj/
-         v3BQ==
-X-Gm-Message-State: AJcUukdw1n6+nPgxtZ9/f+KVxjpifIkzxa1Zf1r+Pb+NNU48KCQiXEbF
-        N9zCLlzkLn2sQbtVKPNopMu+oLSS3iA=
-X-Google-Smtp-Source: ALg8bN64csbCl0c57afpkQOwUnrJ2qf34ZiXvhqaZPmI3NSwRa4xe/ZQbS3AxgUzINBVFuulPAsV2g==
-X-Received: by 2002:a2e:8546:: with SMTP id u6-v6mr14580249ljj.95.1547477735122;
-        Mon, 14 Jan 2019 06:55:35 -0800 (PST)
-Received: from localhost (89-233-230-99.cust.bredband2.com. [89.233.230.99])
-        by smtp.gmail.com with ESMTPSA id g70-v6sm110063ljg.92.2019.01.14.06.55.34
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Mon, 14 Jan 2019 06:55:34 -0800 (PST)
-From:   "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
-X-Google-Original-From: Niklas =?iso-8859-1?Q?S=F6derlund?= <niklas.soderlund+renesas@ragnatech.se>
-Date:   Mon, 14 Jan 2019 15:55:33 +0100
-To:     Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc:     laurent.pinchart@ideasonboard.com, kieran.bingham@ideasonboard.com,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: Re: [PATCH v3 3/6] media: adv748x: csi2: Link AFE with TXA and TXB
-Message-ID: <20190114145533.GK30160@bigcity.dyn.berto.se>
-References: <20190110140213.5198-1-jacopo+renesas@jmondi.org>
- <20190110140213.5198-4-jacopo+renesas@jmondi.org>
+        Mon, 14 Jan 2019 09:58:28 -0500
+Received: from [IPv6:2001:983:e9a7:1:688f:f53a:651c:97b4] ([IPv6:2001:983:e9a7:1:688f:f53a:651c:97b4])
+        by smtp-cloud8.xs4all.net with ESMTPA
+        id j3h4gCzkKNR5yj3h5gIg96; Mon, 14 Jan 2019 15:58:27 +0100
+To:     Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc:     Helen Koike <helen.koike@collabora.com>
+From:   Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] vimc: add USERPTR support
+Message-ID: <3f07695e-b441-343d-900f-fce397484915@xs4all.nl>
+Date:   Mon, 14 Jan 2019 15:58:26 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.3.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20190110140213.5198-4-jacopo+renesas@jmondi.org>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-CMAE-Envelope: MS4wfLe/XnxKXuTk/yTo9qkhpQPTVV+KRwZZ0llMSvhZDlqSHkM92fneq30aavUufuqAYjTaOD49DkCe2aUBrC4pYw6/zDVBF9Gi0j2WXrQltKbT+HitTWgi
+ LPOtMpS4+7+UIDmdXMbnS5dliH8w5Bg9QKpxRZMVAz7GZfqiEf2AFEU6YNgYsaAEquhApMcIT4gZ2bG+p7mkNalercIHv4+GtNdjKkFpyq9uGlx+W/jXXYZB
+ eWjNtQp+FYYuSEvQ5MrA0Pw4dvDR7WumR2IgeycSwkdULHw4QkvHgo5LrBMa9VKuQzbGRXeJyBfdraGwonJ4LQ==
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Jacopo,
+Add VB2_USERPTR to the vimc capture device.
 
-Thanks for your patch.
-
-On 2019-01-10 15:02:10 +0100, Jacopo Mondi wrote:
-> The ADV748x chip supports routing AFE output to either TXA or TXB.
-> In order to support run-time configuration of video stream path, create an
-> additional (not enabled) "AFE:8->TXA:0" link, and remove the IMMUTABLE flag
-> from existing ones.
-> 
-> Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> ---
->  drivers/media/i2c/adv748x/adv748x-csi2.c | 44 +++++++++++++-----------
->  1 file changed, 23 insertions(+), 21 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/adv748x/adv748x-csi2.c b/drivers/media/i2c/adv748x/adv748x-csi2.c
-> index b6b5d8c7ea7c..8c3714495e11 100644
-> --- a/drivers/media/i2c/adv748x/adv748x-csi2.c
-> +++ b/drivers/media/i2c/adv748x/adv748x-csi2.c
-> @@ -27,6 +27,7 @@ static int adv748x_csi2_set_virtual_channel(struct adv748x_csi2 *tx,
->   * @v4l2_dev: Video registration device
->   * @src: Source subdevice to establish link
->   * @src_pad: Pad number of source to link to this @tx
-> + * @enable: Link enabled flag
->   *
->   * Ensure that the subdevice is registered against the v4l2_device, and link the
->   * source pad to the sink pad of the CSI2 bus entity.
-> @@ -34,17 +35,11 @@ static int adv748x_csi2_set_virtual_channel(struct adv748x_csi2 *tx,
->  static int adv748x_csi2_register_link(struct adv748x_csi2 *tx,
->  				      struct v4l2_device *v4l2_dev,
->  				      struct v4l2_subdev *src,
-> -				      unsigned int src_pad)
-> +				      unsigned int src_pad,
-> +				      bool enable)
->  {
-> -	int enabled = MEDIA_LNK_FL_ENABLED;
->  	int ret;
->  
-> -	/*
-> -	 * Dynamic linking of the AFE is not supported.
-> -	 * Register the links as immutable.
-> -	 */
-> -	enabled |= MEDIA_LNK_FL_IMMUTABLE;
-> -
->  	if (!src->v4l2_dev) {
->  		ret = v4l2_device_register_subdev(v4l2_dev, src);
->  		if (ret)
-> @@ -53,7 +48,7 @@ static int adv748x_csi2_register_link(struct adv748x_csi2 *tx,
->  
->  	return media_create_pad_link(&src->entity, src_pad,
->  				     &tx->sd.entity, ADV748X_CSI2_SINK,
-> -				     enabled);
-> +				     enable ? MEDIA_LNK_FL_ENABLED : 0);
->  }
->  
->  /* -----------------------------------------------------------------------------
-> @@ -68,25 +63,32 @@ static int adv748x_csi2_registered(struct v4l2_subdev *sd)
->  {
->  	struct adv748x_csi2 *tx = adv748x_sd_to_csi2(sd);
->  	struct adv748x_state *state = tx->state;
-> +	int ret;
->  
->  	adv_dbg(state, "Registered %s (%s)", is_txa(tx) ? "TXA":"TXB",
->  			sd->name);
->  
->  	/*
-> -	 * The adv748x hardware allows the AFE to route through the TXA, however
-> -	 * this is not currently supported in this driver.
-> +	 * Link TXA to AFE and HDMI, and TXB to AFE only as TXB cannot output
-> +	 * HDMI.
->  	 *
-> -	 * Link HDMI->TXA, and AFE->TXB directly.
-> +	 * The HDMI->TXA link is enabled by default, as is the AFE->TXB one.
->  	 */
-> -	if (is_txa(tx) && is_hdmi_enabled(state))
-> -		return adv748x_csi2_register_link(tx, sd->v4l2_dev,
-> -						  &state->hdmi.sd,
-> -						  ADV748X_HDMI_SOURCE);
-> -	if (is_txb(tx) && is_afe_enabled(state))
-> -		return adv748x_csi2_register_link(tx, sd->v4l2_dev,
-> -						  &state->afe.sd,
-> -						  ADV748X_AFE_SOURCE);
-> -	return 0;
-> +	if (is_afe_enabled(state)) {
-> +		ret = adv748x_csi2_register_link(tx, sd->v4l2_dev,
-> +						 &state->afe.sd,
-> +						 ADV748X_AFE_SOURCE,
-> +						 is_txb(tx));
-> +		if (ret)
-> +			return ret;
-> +	}
-> +
-> +	/* Register link to HDMI for TXA only. */
-> +	if (is_txb(tx) || !is_hdmi_enabled(state))
-
-Small nit, I would s/is_txb(tx)/!is_txa(tx)/ here as to me it becomes 
-easier to read. With or without this change,
-
-Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-
-> +		return 0;
-> +
-> +	return adv748x_csi2_register_link(tx, sd->v4l2_dev, &state->hdmi.sd,
-> +					  ADV748X_HDMI_SOURCE, true);
->  }
->  
->  static const struct v4l2_subdev_internal_ops adv748x_csi2_internal_ops = {
-> -- 
-> 2.20.1
-> 
-
--- 
-Regards,
-Niklas Söderlund
+Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+---
+diff --git a/drivers/media/platform/vimc/vimc-capture.c b/drivers/media/platform/vimc/vimc-capture.c
+index 3f7e9ed56633..35c730f484a7 100644
+--- a/drivers/media/platform/vimc/vimc-capture.c
++++ b/drivers/media/platform/vimc/vimc-capture.c
+@@ -431,7 +431,7 @@ static int vimc_cap_comp_bind(struct device *comp, struct device *master,
+ 	/* Initialize the vb2 queue */
+ 	q = &vcap->queue;
+ 	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+-	q->io_modes = VB2_MMAP | VB2_DMABUF;
++	q->io_modes = VB2_MMAP | VB2_DMABUF | VB2_USERPTR;
+ 	q->drv_priv = vcap;
+ 	q->buf_struct_size = sizeof(struct vimc_cap_buffer);
+ 	q->ops = &vimc_cap_qops;
