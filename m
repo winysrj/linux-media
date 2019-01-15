@@ -2,105 +2,179 @@ Return-Path: <SRS0=Ztfs=PX=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
-	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CAF41C43387
-	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 17:23:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 58F23C43387
+	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 17:29:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 980E420657
-	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 17:23:21 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1547573001;
-	bh=mnIGL5NMEyUrY0+Y0qlIEX4g8QnEdyAuThKhVwGh59c=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:List-ID:From;
-	b=EljfMOMs5pAJvQSwefHbTKckyCa5WsMQS0ebJClb9xPrHD18bih0Dx3ljvBa9zJtb
-	 Bm3rMzzg/QUbK5ycHKTZYcJLa8F+b0x84SHxD1qdRMv/tjVsITJkowdg/svhXJCZLj
-	 9WH8tcIN2cbL+piU/fOy2C+2Snq+WBWycjVsyGlM=
+	by mail.kernel.org (Postfix) with ESMTP id 143D720656
+	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 17:29:01 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=nextdimension.cc header.i=@nextdimension.cc header.b="tycn9cPn"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729923AbfAORXQ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 15 Jan 2019 12:23:16 -0500
-Received: from casper.infradead.org ([85.118.1.10]:56610 "EHLO
-        casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729434AbfAORXP (ORCPT
+        id S1728624AbfAOR3A (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 15 Jan 2019 12:29:00 -0500
+Received: from palegreen.birch.relay.mailchannels.net ([23.83.209.140]:64693
+        "EHLO palegreen.birch.relay.mailchannels.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1728118AbfAOR3A (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 Jan 2019 12:23:15 -0500
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
-        MIME-Version:References:In-Reply-To:Message-ID:Subject:Cc:To:From:Date:Sender
-        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
-        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=mnIGL5NMEyUrY0+Y0qlIEX4g8QnEdyAuThKhVwGh59c=; b=NzTsGaqgrgL61zze3lZTWhCMO4
-        gqZTRAjFc7sVYkgdauIaQ909RSmzwxN3j9VjR1v70MUln/BjiknWsUXEol25ZyGoOTC9CkJP1b1CS
-        8UV8l2PNU04JGEhnAzliFzGEwkYD10P+tPztWNckjeqWs+9JVrFum36PXijQOUM4EqFZXnCp1ZBsx
-        qbDAFqb3TIMgUItNRFSy83JjMaHqMU68Ej5ivKDuuPp54jH8xo3WwFZOU3+Ianpk1pzurTGvf6jlh
-        ZxCaZxszvD4E6yvttwvewz7SJFk0X7d8ohUUGpivO+q92+BWeAEjyS+N+p4prFv8D++0rPYcQcZP8
-        VeqMTD4w==;
-Received: from [186.213.247.186] (helo=coco.lan)
-        by casper.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
-        id 1gjSQf-0007Mq-PR; Tue, 15 Jan 2019 17:23:10 +0000
-Date:   Tue, 15 Jan 2019 15:23:05 -0200
-From:   Mauro Carvalho Chehab <mchehab@kernel.org>
-To:     Antti Palosaari <crope@iki.fi>
-Cc:     Brad Love <brad@nextdimension.cc>, linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/4] si2157: add detection of si2177 tuner
-Message-ID: <20190115152305.036117d3@coco.lan>
-In-Reply-To: <6fd7ef13-ef56-db58-73f2-e0b9921b70ed@nextdimension.cc>
-References: <1545343031-20935-1-git-send-email-brad@nextdimension.cc>
-        <1545343031-20935-2-git-send-email-brad@nextdimension.cc>
-        <7e3c07bd-b9be-d9fc-8d52-577825bbc315@iki.fi>
-        <6fd7ef13-ef56-db58-73f2-e0b9921b70ed@nextdimension.cc>
-X-Mailer: Claws Mail 3.17.3 (GTK+ 2.24.32; x86_64-redhat-linux-gnu)
+        Tue, 15 Jan 2019 12:29:00 -0500
+X-Sender-Id: dreamhost|x-authsender|brad@b-rad.cc
+Received: from relay.mailchannels.net (localhost [127.0.0.1])
+        by relay.mailchannels.net (Postfix) with ESMTP id 6190B5024CE;
+        Tue, 15 Jan 2019 17:28:56 +0000 (UTC)
+Received: from pdx1-sub0-mail-a35.g.dreamhost.com (unknown [100.96.29.126])
+        (Authenticated sender: dreamhost)
+        by relay.mailchannels.net (Postfix) with ESMTPA id C8F1E50259C;
+        Tue, 15 Jan 2019 17:28:55 +0000 (UTC)
+X-Sender-Id: dreamhost|x-authsender|brad@b-rad.cc
+Received: from pdx1-sub0-mail-a35.g.dreamhost.com (pop.dreamhost.com
+ [64.90.62.162])
+        (using TLSv1.2 with cipher DHE-RSA-AES256-GCM-SHA384)
+        by 0.0.0.0:2500 (trex/5.16.2);
+        Tue, 15 Jan 2019 17:28:56 +0000
+X-MC-Relay: Neutral
+X-MailChannels-SenderId: dreamhost|x-authsender|brad@b-rad.cc
+X-MailChannels-Auth-Id: dreamhost
+X-Dime-Shelf: 11f35db01631c8b1_1547573336183_2577910326
+X-MC-Loop-Signature: 1547573336183:484058980
+X-MC-Ingress-Time: 1547573336183
+Received: from pdx1-sub0-mail-a35.g.dreamhost.com (localhost [127.0.0.1])
+        by pdx1-sub0-mail-a35.g.dreamhost.com (Postfix) with ESMTP id 69257811B7;
+        Tue, 15 Jan 2019 09:28:55 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed; d=nextdimension.cc; h=
+        subject:to:references:from:message-id:date:mime-version
+        :in-reply-to:content-type:content-transfer-encoding; s=
+        nextdimension.cc; bh=kV1XFfLf14Nz60t18HDh2pv5Vfo=; b=tycn9cPnDnN
+        eUCl4UWrN/hnSRfvvxpKBGiB6GZWiqMqhH8xBxFWHGb8glipgSQ8l6tjnLLnL4lY
+        iye8V31k5lP0hEDbSEkEP63VTZAuXYYnxsRXt145VHxN4HzPJYeU7mmlSlaRYlLG
+        zbYuspQXIeIawh4fMut4bTwy4FeYhqQ8=
+Received: from [192.168.0.21] (66-90-189-166.dyn.grandenetworks.net [66.90.189.166])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        (Authenticated sender: brad@b-rad.cc)
+        by pdx1-sub0-mail-a35.g.dreamhost.com (Postfix) with ESMTPSA id F34477F5CC;
+        Tue, 15 Jan 2019 09:28:52 -0800 (PST)
+Subject: Re: [PATCH 02/13] si2157: Check error status bit on cmd execute
+To:     Antti Palosaari <crope@iki.fi>, Brad Love <brad@nextdimension.cc>,
+        linux-media@vger.kernel.org, mchehab@kernel.org
+References: <1546105882-15693-1-git-send-email-brad@nextdimension.cc>
+ <1546105882-15693-3-git-send-email-brad@nextdimension.cc>
+ <6828d081-1f4a-16bd-07cb-292021450197@iki.fi>
+X-DH-BACKEND: pdx1-sub0-mail-a35
+From:   Brad Love <brad@nextdimension.cc>
+Openpgp: preference=signencrypt
+Autocrypt: addr=brad@nextdimension.cc; prefer-encrypt=mutual; keydata=
+ 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
+Message-ID: <c7dfadf8-f8d6-82f4-5b55-9da2d20263f7@nextdimension.cc>
+Date:   Tue, 15 Jan 2019 11:28:51 -0600
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.2.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <6828d081-1f4a-16bd-07cb-292021450197@iki.fi>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: base64
+Content-Language: en-GB
+X-VR-OUT-STATUS: OK
+X-VR-OUT-SCORE: 30
+X-VR-OUT-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedtledrgeefgddutddtucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecuggftfghnshhusghstghrihgsvgdpffftgfetoffjqffuvfenuceurghilhhouhhtmecufedttdenucgfrhhlucfvnfffucdlfedtmdenucfjughrpefuvfhfhffkffgfgggjtgfgsehtsgertddtfeejnecuhfhrohhmpeeurhgrugcunfhovhgvuceosghrrggusehnvgigthguihhmvghnshhiohhnrdgttgeqnecukfhppeeiiedrledtrddukeelrdduieeinecurfgrrhgrmhepmhhouggvpehsmhhtphdphhgvlhhopegludelvddrudeikedrtddrvddungdpihhnvghtpeeiiedrledtrddukeelrdduieeipdhrvghtuhhrnhdqphgrthhhpeeurhgrugcunfhovhgvuceosghrrggusehnvgigthguihhmvghnshhiohhnrdgttgeqpdhmrghilhhfrhhomhepsghrrggusehnvgigthguihhmvghnshhiohhnrdgttgdpnhhrtghpthhtoheptghrohhpvgesihhkihdrfhhinecuvehluhhsthgvrhfuihiivgeptd
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Em Tue, 15 Jan 2019 10:32:01 -0600
-Brad Love <brad@nextdimension.cc> escreveu:
-
-> Hi Antti,
->=20
->=20
-> On 09/01/2019 11.36, Antti Palosaari wrote:
-> > On 12/20/18 11:57 PM, Brad Love wrote: =20
-> >> Works in ATSC and QAM as is, DVB is completely untested.
-> >>
-> >> Firmware required.
-> >>
-> >> Signed-off-by: Brad Love <brad@nextdimension.cc>
-> >> ---
-> >> =C2=A0 drivers/media/tuners/si2157.c=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 | 6=
- ++++++
-> >> =C2=A0 drivers/media/tuners/si2157_priv.h | 3 ++- =20
-> >
-> > =20
-> >> =C2=A0 #define SI2158_A20_FIRMWARE "dvb-tuner-si2158-a20-01.fw"
-> >> =C2=A0 #define SI2141_A10_FIRMWARE "dvb-tuner-si2141-a10-01.fw"
-> >> -
-> >> +#define SI2157_A30_FIRMWARE "dvb-tuner-si2157-a30-05.fw" =20
-> >
-> > Why you added 05 to that file name? I added that spare number for
-> > cases you have to replace firmware to another for some reason thus by
-> > default case it should be 01.
-> > =20
->=20
-> Barring any explanation of the naming convention, I made it look similar
-> to the previous two, while reflecting the firmware version. This is
-> firmware 3.0.5. I have no problem "starting from 1", but reflecting the
-> firmware version seemed like the sane idea. I'll resubmit if desired.
-
-Hi Antti,
-
-Whatever firmware name convention policy you decide works for me, but
-it would be really cool if you could send a patch ading a comment just
-before the firmware naming macros documenting it, as it would avoid=20
-further discussions and patch resubmissions ;-)
-
-Thanks,
-Mauro
+SGkgQW50dGksCgoKT24gMDkvMDEvMjAxOSAxMi4wMSwgQW50dGkgUGFsb3NhYXJpIHdyb3Rl
+Ogo+IE9uIDEyLzI5LzE4IDc6NTEgUE0sIEJyYWQgTG92ZSB3cm90ZToKPj4gQ2hlY2sgZXJy
+b3Igc3RhdHVzIGJpdCBvbiBjb21tYW5kIGV4ZWN1dGUsIGlmIGVycm9yIGJpdCBpcwo+PiBz
+ZXQgcmV0dXJuIC1FQUdBSU4uIElnbm9yZSAtRUFHQUlOIGluIHByb2JlIGR1cmluZyBkZXZp
+Y2UgY2hlY2suCj4+Cj4+IFNpZ25lZC1vZmYtYnk6IEJyYWQgTG92ZSA8YnJhZEBuZXh0ZGlt
+ZW5zaW9uLmNjPgo+PiAtLS0KPj4gwqAgZHJpdmVycy9tZWRpYS90dW5lcnMvc2kyMTU3LmMg
+fCAxMiArKysrKysrKystLS0KPj4gwqAgMSBmaWxlIGNoYW5nZWQsIDkgaW5zZXJ0aW9ucygr
+KSwgMyBkZWxldGlvbnMoLSkKPj4KPj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvdHVu
+ZXJzL3NpMjE1Ny5jCj4+IGIvZHJpdmVycy9tZWRpYS90dW5lcnMvc2kyMTU3LmMKPj4gaW5k
+ZXggNDg1NTQ0OC4uMzkyNGM0MiAxMDA2NDQKPj4gLS0tIGEvZHJpdmVycy9tZWRpYS90dW5l
+cnMvc2kyMTU3LmMKPj4gKysrIGIvZHJpdmVycy9tZWRpYS90dW5lcnMvc2kyMTU3LmMKPj4g
+QEAgLTU2LDE0ICs1NiwyMCBAQCBzdGF0aWMgaW50IHNpMjE1N19jbWRfZXhlY3V0ZShzdHJ1
+Y3QgaTJjX2NsaWVudAo+PiAqY2xpZW50LCBzdHJ1Y3Qgc2kyMTU3X2NtZCAqY21kKQo+PiDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIGJyZWFrOwo+PiDCoMKgwqDCoMKg
+wqDCoMKgwqAgfQo+PiDCoCAtwqDCoMKgwqDCoMKgwqAgZGV2X2RiZygmY2xpZW50LT5kZXYs
+ICJjbWQgZXhlY3V0aW9uIHRvb2sgJWQgbXNcbiIsCj4+ICvCoMKgwqDCoMKgwqDCoCBkZXZf
+ZGJnKCZjbGllbnQtPmRldiwgImNtZCBleGVjdXRpb24gdG9vayAlZCBtcywgc3RhdHVzPSV4
+XG4iLAo+PiDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIGppZmZpZXNfdG9f
+bXNlY3MoamlmZmllcykgLQo+PiAtwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIChq
+aWZmaWVzX3RvX21zZWNzKHRpbWVvdXQpIC0gVElNRU9VVCkpOwo+PiArwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgIChqaWZmaWVzX3RvX21zZWNzKHRpbWVvdXQpIC0gVElNRU9V
+VCksCj4+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgY21kLT5hcmdzWzBdKTsK
+Pj4gwqAgwqDCoMKgwqDCoMKgwqDCoMKgIGlmICghKChjbWQtPmFyZ3NbMF0gPj4gNykgJiAw
+eDAxKSkgewo+PiDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCByZXQgPSAtRVRJTUVET1VU
+Owo+PiDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBnb3RvIGVycl9tdXRleF91bmxvY2s7
+Cj4+IMKgwqDCoMKgwqDCoMKgwqDCoCB9Cj4+ICvCoMKgwqDCoMKgwqDCoCAvKiBjaGVjayBl
+cnJvciBzdGF0dXMgYml0ICovCj4+ICvCoMKgwqDCoMKgwqDCoCBpZiAoY21kLT5hcmdzWzBd
+ICYgMHg0MCkgewo+PiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCByZXQgPSAtRUFHQUlOOwo+
+PiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBnb3RvIGVycl9tdXRleF91bmxvY2s7Cj4+ICvC
+oMKgwqDCoMKgwqDCoCB9Cj4+IMKgwqDCoMKgwqAgfQo+PiDCoCDCoMKgwqDCoMKgIG11dGV4
+X3VubG9jaygmZGV2LT5pMmNfbXV0ZXgpOwo+PiBAQCAtNDc3LDcgKzQ4Myw3IEBAIHN0YXRp
+YyBpbnQgc2kyMTU3X3Byb2JlKHN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQsCj4+IMKgwqDC
+oMKgwqAgY21kLndsZW4gPSAwOwo+PiDCoMKgwqDCoMKgIGNtZC5ybGVuID0gMTsKPj4gwqDC
+oMKgwqDCoCByZXQgPSBzaTIxNTdfY21kX2V4ZWN1dGUoY2xpZW50LCAmY21kKTsKPj4gLcKg
+wqDCoCBpZiAocmV0KQo+PiArwqDCoMKgIGlmIChyZXQgJiYgKHJldCAhPSAtRUFHQUlOKSkK
+Pj4gwqDCoMKgwqDCoMKgwqDCoMKgIGdvdG8gZXJyX2tmcmVlOwo+PiDCoCDCoMKgwqDCoMKg
+IG1lbWNweSgmZmUtPm9wcy50dW5lcl9vcHMsICZzaTIxNTdfb3BzLCBzaXplb2Yoc3RydWN0
+Cj4+IGR2Yl90dW5lcl9vcHMpKTsKPj4KPgo+IFNvIHlvdSBhZGRlZCBjaGVjayBpZiBmaXJt
+d2FyZSByZXR1cm5zIGVycm9yIGR1cmluZyBjb21tYW5kIGV4ZWN1dGlvbiwKPiBidXQgdGhh
+dCBlcnJvciBpcyBzdGlsbCBza2lwcGVkIGR1cmluZyBwcm9iZSwgd2hpY2ggZG9lcyBub3Qg
+ZmVlbAo+IGNvcnJlY3QuIENoaXAgc2hvdWxkIHdvcmsgZHVyaW5nIHByb2JlIGFuZCBpZGVh
+bGx5IGRyaXZlciBzaG91bGQKPiBlbnN1cmUgaXQgaXMgY29ycmVjdCBjaGlwLiBBdCBsZWFz
+dCB5b3Ugc2hvdWxkIHJlYWQgc29tZSBwcm9wZXJ0eQo+IHZhbHVlIG9yIGV4ZWN1dGUgc29t
+ZSBvdGhlciBjb21tYW5kIHdpdGhvdXQgZmFpbHVyZS4KPgoKVGhlIGVycm9yIHN0YXR1cyBm
+bGFncyBoYXZlIG5vdCBiZWVuIGVuYWJsZWQgeWV0LiBUaGUgYml0cyB3aWxsIGJlIHNldAph
+bmQgdGhlIGNtZF9leGVjdXRlIHdpbGwgcmV0dXJuIC1FQUdBSU4gZXZlbiBpZiB0aGUgY2hp
+cCBpcyB0aGVyZSwgdW50aWwKdGhlIHN0YXR1cyBmbGFncyBhcmUgb24uIFByb2JlIGN1cnJl
+bnRseSBvbmx5IGNvbnRhaW5zIGEgc2FuaXR5IGNoZWNrLgpUaGUgY2hpcCBpZGVudGlmaWNh
+dGlvbiBoYXBwZW5zIGluIHNpMjE1N19pbml0LCBzb21lIGNvZGUgY291bGQgKGFuZCBJCnRo
+aW5rIHNob3VsZCkgYmUgbW92ZWQgZnJvbSBpbml0IGludG8gcHJvYmUsIGJ1dCB0aGF0IGlz
+IHJlb3JnYW5pemF0aW9uCnVucmVsYXRlZCB0byB0aGlzIHNlcmllcy4gSSdsbCB0aGluayBh
+Ym91dCB0aGF0IGFuZCBwcm9iYWJseSBzdWJtaXQgYQpwYXRjaCB0byBhZGRyZXNzIGl0LgoK
+UmVnYXJkcywKCkJyYWQKCgo+IHJlZ2FyZHMKPiBBbnR0aQo+Cg==
