@@ -2,125 +2,147 @@ Return-Path: <SRS0=Ztfs=PX=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.9 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 788CEC43387
-	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 14:17:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0959BC43387
+	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 14:25:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3DD1A20656
-	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 14:17:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B9CA52086D
+	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 14:25:11 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=vmware.com header.i=@vmware.com header.b="cti6tKzZ"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="b7QHJ5M8"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730195AbfAOORf (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 15 Jan 2019 09:17:35 -0500
-Received: from mail-eopbgr790049.outbound.protection.outlook.com ([40.107.79.49]:18496
-        "EHLO NAM03-CO1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1728612AbfAOORf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 Jan 2019 09:17:35 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=vmware.com;
- s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=1CUaT47bnOoULEJoU1cPIE7MVvEymUw2Ui+OJ4Kw4Eg=;
- b=cti6tKzZdo73XMBhZ28g4IlyaHQtY2VsGx95kWqCk0v/SDDwN0jSxpCttTpJmkCrL9anDOsxDTgOCPN87D4MfL+FFOc5gSK9wucFkY/SEJhAWP//QtJaXU/bEInlVaFzUGBZxbLGKyw1iQbDxbsaIjbhhAHG5q9i/9fFdd5BnKc=
-Received: from BYAPR05MB5592.namprd05.prod.outlook.com (20.177.186.153) by
- BYAPR05MB5096.namprd05.prod.outlook.com (20.177.231.14) with Microsoft SMTP
- Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.1537.10; Tue, 15 Jan 2019 14:17:26 +0000
-Received: from BYAPR05MB5592.namprd05.prod.outlook.com
- ([fe80::4a1:2561:2487:5919]) by BYAPR05MB5592.namprd05.prod.outlook.com
- ([fe80::4a1:2561:2487:5919%4]) with mapi id 15.20.1537.018; Tue, 15 Jan 2019
- 14:17:26 +0000
-From:   Thomas Hellstrom <thellstrom@vmware.com>
-To:     "hch@lst.de" <hch@lst.de>, "jgg@ziepe.ca" <jgg@ziepe.ca>
-CC:     "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "yong.zhi@intel.com" <yong.zhi@intel.com>,
-        "daniel.vetter@ffwll.ch" <daniel.vetter@ffwll.ch>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "syeh@vmware.com" <syeh@vmware.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "bingbu.cao@intel.com" <bingbu.cao@intel.com>,
-        "imre.deak@intel.com" <imre.deak@intel.com>,
-        "tian.shu.qiu@intel.com" <tian.shu.qiu@intel.com>,
-        "jian.xu.zheng@intel.com" <jian.xu.zheng@intel.com>,
-        "shiraz.saleem@intel.com" <shiraz.saleem@intel.com>,
-        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>
+        id S1729086AbfAOOZA (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 15 Jan 2019 09:25:00 -0500
+Received: from mail-wm1-f65.google.com ([209.85.128.65]:56145 "EHLO
+        mail-wm1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727574AbfAOOZA (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 15 Jan 2019 09:25:00 -0500
+Received: by mail-wm1-f65.google.com with SMTP id y139so3438292wmc.5;
+        Tue, 15 Jan 2019 06:24:58 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=reply-to:subject:to:cc:references:from:message-id:date:user-agent
+         :mime-version:in-reply-to:content-transfer-encoding:content-language;
+        bh=9nRDzFSapnRlPx9vKPqKnJm9H9JN9M+LXx5Bq0Oi5mw=;
+        b=b7QHJ5M8joEwFDoYEweN4y2EA0WwzBVMf77tVHvPPOW48hnB10iO8zebDiGxysNmev
+         e60GtnLt7sRMs7siFQiXkk9HProEIpHvRFWd7kIRKQF3MiJIHXPsq7mJFBSeHuXL1Zf2
+         YvlTlRVw5CDJ6A5dM94kkxR9l9kUOIW9b7phvIjOdfZ/gCKSuV0zq3q8NIoLWqnUKMZP
+         U3PU+4rehpQJmv5s+wgtne2DD4u92UE4VE9beXWly1ux0JCc97uyf8ZPS0zQX/QaGXVR
+         QZZNmqBU/MIO/o03IDACm7fc5GpSxjY0kj1hz34UGJtYZoeuBOlGg5LOOw04kPZvegxo
+         Kxcw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:reply-to:subject:to:cc:references:from
+         :message-id:date:user-agent:mime-version:in-reply-to
+         :content-transfer-encoding:content-language;
+        bh=9nRDzFSapnRlPx9vKPqKnJm9H9JN9M+LXx5Bq0Oi5mw=;
+        b=Ga9C6YB/vY4PIYXjjd6w6zupyHhLYhRrYaCvsSeq0LMfFb8HOrC2Rzv1WQNk/PQhLe
+         BDdDfbF66xNM4+TpDoOVmoRz+VNWBumbU9LmDsqq7XGM2VfugwXajfpuBJmVYos57RuK
+         WlxMBRuPF5woGLdM7ozybE1hcp85PF34R09VJmztHPoF+MioXhmElxthU6Xn290V1v/l
+         UXJZwrIzRJsZsZ9+HRzGXeugz9kxFBBcBfoCEBKORJNFJUJWdEnqKL0vN19Tr3m9tUNW
+         DtOXW62T3XOsXbT2w5ZsN5pMQcCYRtwPObvZXbEfuioiF57iyjU3T86gogNBErFjSUvV
+         nq3g==
+X-Gm-Message-State: AJcUukdBLrZaFe+CG0y48A5/TFe0CJyzADXO4CGx3LIo5YJCAZHxFwvJ
+        kE+/WhRWlSsbmplmg4zsMx/HNqrC
+X-Google-Smtp-Source: ALg8bN70JELqFEDHY6HO+QxUUzA1eWTIBUdWWTjWle0acAUKCoU5zRlzUH+/FJxUTseId58ceLJd7Q==
+X-Received: by 2002:a1c:2408:: with SMTP id k8mr3468340wmk.110.1547562297666;
+        Tue, 15 Jan 2019 06:24:57 -0800 (PST)
+Received: from ?IPv6:2a02:908:1252:fb60:be8a:bd56:1f94:86e7? ([2a02:908:1252:fb60:be8a:bd56:1f94:86e7])
+        by smtp.gmail.com with ESMTPSA id j124sm22300980wmb.48.2019.01.15.06.24.56
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Tue, 15 Jan 2019 06:24:57 -0800 (PST)
+Reply-To: christian.koenig@amd.com
 Subject: Re: [PATCH] lib/scatterlist: Provide a DMA page iterator
-Thread-Topic: [PATCH] lib/scatterlist: Provide a DMA page iterator
-Thread-Index: AQHUpH3T+Rn6hCeN4kq6RDaSbJgsYKWpM0MAgAVgfACAAd1XAA==
-Date:   Tue, 15 Jan 2019 14:17:26 +0000
-Message-ID: <1fb20ab4b171b281e9994b6c55734c120958530b.camel@vmware.com>
-References: <20190104223531.GA1705@ziepe.ca>     <20190110234218.GM6890@ziepe.ca>
+To:     Thomas Hellstrom <thellstrom@vmware.com>,
+        "hch@lst.de" <hch@lst.de>, "jgg@ziepe.ca" <jgg@ziepe.ca>
+Cc:     "syeh@vmware.com" <syeh@vmware.com>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "daniel.vetter@ffwll.ch" <daniel.vetter@ffwll.ch>,
+        "jian.xu.zheng@intel.com" <jian.xu.zheng@intel.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
+        "bingbu.cao@intel.com" <bingbu.cao@intel.com>,
+        "yong.zhi@intel.com" <yong.zhi@intel.com>,
+        "shiraz.saleem@intel.com" <shiraz.saleem@intel.com>,
+        "tian.shu.qiu@intel.com" <tian.shu.qiu@intel.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <20190104223531.GA1705@ziepe.ca> <20190110234218.GM6890@ziepe.ca>
  <20190114094856.GB29604@lst.de>
-In-Reply-To: <20190114094856.GB29604@lst.de>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-authentication-results: spf=none (sender IP is )
- smtp.mailfrom=thellstrom@vmware.com; 
-x-originating-ip: [155.4.205.56]
-x-ms-publictraffictype: Email
-x-microsoft-exchange-diagnostics: 1;BYAPR05MB5096;20:NWnxJSDwZV1mkqHXnNAm+oWQQkCxdAMkvIgI6QnKkbhizU/nHF4qPQegT/0aBFeN9DksQQNF7WXXSkPjo711k5HroXM6BpJAWmwm5jiDBEQEjF8Y+Sl9C3IDG8LxUkxwm7sJ6JQz2m+fCLF60kUkOQiouYeELoQhtKJ0EYQg048=
-x-ms-exchange-antispam-srfa-diagnostics: SOS;
-x-ms-office365-filtering-correlation-id: aa387cac-9dd3-4549-1659-08d67af42cfb
-x-microsoft-antispam: BCL:0;PCL:0;RULEID:(2390118)(7020095)(4652040)(8989299)(4534185)(4627221)(201703031133081)(201702281549075)(8990200)(5600109)(711020)(2017052603328)(7153060)(7193020);SRVR:BYAPR05MB5096;
-x-ms-traffictypediagnostic: BYAPR05MB5096:
-x-microsoft-antispam-prvs: <BYAPR05MB5096E3DE48558416C4EB57E5A1810@BYAPR05MB5096.namprd05.prod.outlook.com>
-x-forefront-prvs: 0918748D70
-x-forefront-antispam-report: SFV:NSPM;SFS:(10009020)(366004)(396003)(39860400002)(136003)(346002)(376002)(189003)(199004)(68736007)(229853002)(6436002)(2501003)(256004)(76176011)(66066001)(7736002)(14454004)(305945005)(478600001)(486006)(86362001)(106356001)(97736004)(2906002)(71200400001)(71190400001)(6486002)(186003)(26005)(6506007)(476003)(102836004)(105586002)(2616005)(99286004)(81166006)(81156014)(11346002)(36756003)(6246003)(6512007)(316002)(8676002)(110136005)(54906003)(5660300001)(53936002)(7416002)(25786009)(4326008)(8936002)(3846002)(6116002)(118296001)(446003)(21314003);DIR:OUT;SFP:1101;SCL:1;SRVR:BYAPR05MB5096;H:BYAPR05MB5592.namprd05.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;MX:1;A:1;
-received-spf: None (protection.outlook.com: vmware.com does not designate
- permitted sender hosts)
-x-ms-exchange-senderadcheck: 1
-x-microsoft-antispam-message-info: 8UT48eH2b7ODuvXjatJyUBEAqgDHTAlEFLzOHiwZ3VIk4SiLqfL0bLb4UCD8ahO8crw+FBaZ3pvMFRcnqXBmJ5cS39aoZd0GBN53bAtow3Y4u6rZdJAdUlaKmE4CFgktQj9c7Vk6TJkeeT5EfiJHst2uGGZ1rfc0tpNdoC22Ms3I5mAhmd6m+2n9yk2ptNqQrjmTT2VqTbzfdcJckmidCyARIda8I95gn128Jauhw3Auwybxj1xkYD6pwAznBixdPMDu81CzS4Y0nFr2ryrZOYMdTeHbIVoFOVz5EwTGrOhu0CMcohf29mcfGGOxasRyIOQVfPiZNfNepSx92YIGfy9ANTXwLqIQSvhRkNLOsad6+d/8rcttwAWWNu14+7L0/K/h/iFNMjgGAF8XM7qRVP21a1IbyOCHI/AOv82Y0Vw=
-spamdiagnosticoutput: 1:99
-spamdiagnosticmetadata: NSPM
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <08354190753F9248B70A9EE8CA12BF44@namprd05.prod.outlook.com>
-Content-Transfer-Encoding: base64
+ <1fb20ab4b171b281e9994b6c55734c120958530b.camel@vmware.com>
+From:   =?UTF-8?Q?Christian_K=c3=b6nig?= <ckoenig.leichtzumerken@gmail.com>
+Message-ID: <2b440a3b-ed2f-8fd6-a21e-97ca0b2f5db9@gmail.com>
+Date:   Tue, 15 Jan 2019 15:24:55 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.2.1
 MIME-Version: 1.0
-X-OriginatorOrg: vmware.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: aa387cac-9dd3-4549-1659-08d67af42cfb
-X-MS-Exchange-CrossTenant-originalarrivaltime: 15 Jan 2019 14:17:26.3784
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: b39138ca-3cee-4b4a-a4d6-cd83d9dd62f0
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BYAPR05MB5096
+In-Reply-To: <1fb20ab4b171b281e9994b6c55734c120958530b.camel@vmware.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-SGksIENocmlzdG9waCwNCg0KT24gTW9uLCAyMDE5LTAxLTE0IGF0IDEwOjQ4ICswMTAwLCBDaHJp
-c3RvcGggSGVsbHdpZyB3cm90ZToNCj4gT24gVGh1LCBKYW4gMTAsIDIwMTkgYXQgMDQ6NDI6MThQ
-TSAtMDcwMCwgSmFzb24gR3VudGhvcnBlIHdyb3RlOg0KPiA+ID4gQ2hhbmdlcyBzaW5jZSB0aGUg
-UkZDOg0KPiA+ID4gLSBSZXdvcmsgdm13Z2Z4IHRvbyBbQ0hdDQo+ID4gPiAtIFVzZSBhIGRpc3Rp
-bmN0IHR5cGUgZm9yIHRoZSBETUEgcGFnZSBpdGVyYXRvciBbQ0hdDQo+ID4gPiAtIERvIG5vdCBo
-YXZlIGEgI2lmZGVmIFtDSF0NCj4gPiANCj4gPiBDaHJpc3RvcGhIOiBXaWxsIHlvdSBhY2s/DQo+
-IA0KPiBUaGlzIGxvb2tzIGdlbmVyYWxseSBmaW5lLg0KPiANCj4gPiBBcmUgeW91IHN0aWxsIE9L
-IHdpdGggdGhlIHZtd2dmeCByZXdvcmtpbmcsIG9yIHNob3VsZCB3ZSBnbyBiYWNrIHRvDQo+ID4g
-dGhlIG9yaWdpbmFsIHZlcnNpb24gdGhhdCBkaWRuJ3QgaGF2ZSB0aGUgdHlwZSBzYWZldHkgc28g
-dGhpcw0KPiA+IGRyaXZlcg0KPiA+IGNhbiBiZSBsZWZ0IGJyb2tlbj8NCj4gDQo+IEkgdGhpbmsg
-dGhlIG1hcCBtZXRob2QgaW4gdm1nZnggdGhhdCBqdXN0IGRvZXMgdmlydF90b19waHlzIGlzDQo+
-IHByZXR0eSBicm9rZW4uICBUaG9tYXMsIGNhbiB5b3UgY2hlY2sgaWYgeW91IHNlZSBhbnkgcGVy
-Zm9ybWFuY2UNCj4gZGlmZmVyZW5jZSB3aXRoIGp1c3QgZG9pbmcgdGhlIHByb3BlciBkbWEgbWFw
-cGluZywgYXMgdGhhdCBnZXRzIHRoZQ0KPiBkcml2ZXIgb3V0IG9mIGludGVyZmFjZSBhYnVzZSBs
-YW5kPw0KDQpUaGUgcGVyZm9ybWFuY2UgZGlmZmVyZW5jZSBpcyBub3QgcmVhbGx5IHRoZSBtYWlu
-IHByb2JsZW0gaGVyZS4gVGhlDQpwcm9ibGVtIGlzIHRoYXQgZXZlbiB0aG91Z2ggd2UgdXRpbGl6
-ZSB0aGUgc3RyZWFtaW5nIERNQSBpbnRlcmZhY2UsIHdlDQp1c2UgaXQgb25seSBzaW5jZSB3ZSBo
-YXZlIHRvIGZvciBETUEtUmVtYXBwaW5nIGFuZCBhc3N1bWUgdGhhdCB0aGUNCm1lbW9yeSBpcyBj
-b2hlcmVudC4gVG8gYmUgYWJsZSB0byBiZSBhcyBjb21wbGlhbnQgYXMgcG9zc2libGUgYW5kIGRp
-dGNoDQp0aGUgdmlydC10by1waHlzIG1vZGUsIHdlICpuZWVkKiBhIERNQSBpbnRlcmZhY2UgZmxh
-ZyB0aGF0IHRlbGxzIHVzDQp3aGVuIHRoZSBkbWFfc3luY19mb3JfeHh4IGFyZSBuby1vcHMuIElm
-IHRoZXkgYXJlbid0IHdlJ2xsIHJlZnVzZSB0bw0KbG9hZCBmb3Igbm93LiBJJ20gbm90IHN1cmUs
-IGJ1dCBJIHRoaW5rIGFsc28gbm91dmVhdSBhbmQgcmFkZW9uIHN1ZmZlcg0KZnJvbSB0aGUgc2Ft
-ZSBpc3N1ZS4NCg0KPiANCj4gV2hpbGUgd2UncmUgYXQgaXQgSSB0aGluayB3ZSBuZWVkIHRvIG1l
-cmdlIG15IHNlcmllcyBpbiB0aGlzIGFyZWENCj4gZm9yIDUuMCwgYmVjYXVzZSB3aXRob3V0IHRo
-YXQgdGhlIGRyaXZlciBpcyBhbHJlYWR5IGJyb2tlbi4gIFdoZXJlDQo+IHNob3VsZCB3ZSBtZXJn
-ZSBpdD8NCg0KSSBjYW4gbWVyZ2UgaXQgdGhyb3VnaCB2bXdnZngvZHJtLWZpeGVzLiBUaGVyZSBp
-cyBhbiBvdXRzdGFuZGluZyBpc3N1ZQ0Kd2l0aCBwYXRjaCAzLiBEbyB5b3Ugd2FudCBtZSB0byBm
-aXggdGhhdCB1cD8NCg0KVGhhbmtzLA0KVGhvbWFzDQoNCg0K
+Am 15.01.19 um 15:17 schrieb Thomas Hellstrom:
+> Hi, Christoph,
+>
+> On Mon, 2019-01-14 at 10:48 +0100, Christoph Hellwig wrote:
+>> On Thu, Jan 10, 2019 at 04:42:18PM -0700, Jason Gunthorpe wrote:
+>>>> Changes since the RFC:
+>>>> - Rework vmwgfx too [CH]
+>>>> - Use a distinct type for the DMA page iterator [CH]
+>>>> - Do not have a #ifdef [CH]
+>>> ChristophH: Will you ack?
+>> This looks generally fine.
+>>
+>>> Are you still OK with the vmwgfx reworking, or should we go back to
+>>> the original version that didn't have the type safety so this
+>>> driver
+>>> can be left broken?
+>> I think the map method in vmgfx that just does virt_to_phys is
+>> pretty broken.  Thomas, can you check if you see any performance
+>> difference with just doing the proper dma mapping, as that gets the
+>> driver out of interface abuse land?
+> The performance difference is not really the main problem here. The
+> problem is that even though we utilize the streaming DMA interface, we
+> use it only since we have to for DMA-Remapping and assume that the
+> memory is coherent. To be able to be as compliant as possible and ditch
+> the virt-to-phys mode, we *need* a DMA interface flag that tells us
+> when the dma_sync_for_xxx are no-ops. If they aren't we'll refuse to
+> load for now. I'm not sure, but I think also nouveau and radeon suffer
+> from the same issue.
+
+Yeah, indeed. Bounce buffers are an absolute no-go for GPUs.
+
+If the DMA API finds that a piece of memory is not directly accessible 
+by the GPU we need to return an error and not try to use bounce buffers 
+behind the surface.
+
+That is something which always annoyed me with the DMA API, which is 
+otherwise rather cleanly defined.
+
+Christian.
+
+>
+>> While we're at it I think we need to merge my series in this area
+>> for 5.0, because without that the driver is already broken.  Where
+>> should we merge it?
+> I can merge it through vmwgfx/drm-fixes. There is an outstanding issue
+> with patch 3. Do you want me to fix that up?
+>
+> Thanks,
+> Thomas
+>
+>
+> _______________________________________________
+> dri-devel mailing list
+> dri-devel@lists.freedesktop.org
+> https://lists.freedesktop.org/mailman/listinfo/dri-devel
+
