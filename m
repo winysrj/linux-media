@@ -2,79 +2,49 @@ Return-Path: <SRS0=Ztfs=PX=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 66CA8C43387
-	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 05:38:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A3C2C43387
+	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 07:59:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3827D20651
-	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 05:38:17 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="F4gx781D"
+	by mail.kernel.org (Postfix) with ESMTP id 27AD020656
+	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 07:59:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728150AbfAOFiQ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 15 Jan 2019 00:38:16 -0500
-Received: from mail-ot1-f67.google.com ([209.85.210.67]:42326 "EHLO
-        mail-ot1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727877AbfAOFiQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 Jan 2019 00:38:16 -0500
-Received: by mail-ot1-f67.google.com with SMTP id v23so1420764otk.9
-        for <linux-media@vger.kernel.org>; Mon, 14 Jan 2019 21:38:15 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=HEJJ/FUBoVOlyWjiJWle5JFcO+QW0w8wllteFrlniQg=;
-        b=F4gx781DvJCPp1yyrjtHzhtMlZEXIQ1/2Hicn4QvTRvR/ZscuqxC2sBGIgcmpNNaQS
-         1kvwUyTSoU8j8nCkaDfOsMBw3jmxCSWQT44e9Sw0u2T4N+qVI0A6ZIeBVFQY5haBqf84
-         CevWhZkWiyMn91zwR4t08/OiOA1mAVIz+kXsc=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=HEJJ/FUBoVOlyWjiJWle5JFcO+QW0w8wllteFrlniQg=;
-        b=tBho831sBA3sWM3h2qYKjxzlEDLlnaG29XJDkgiBgKTJrlJDqh80tEulzlgbl3Epgw
-         t4+lWj+dONbwcqGS5yNtGfHvceDvW/2A5mAmSW6VQuKM68/PLV6Zij//vn9seMyWxR8W
-         /hqraTMtqhebtnkf0hrfOzXZJs0Kff+SOgS00Z5luNH5dtr2PGehlvTBTNeEMAcIvD4J
-         xacXNIYlHRagul2UG/w6w38mN09gDce/Pa/njHMfmXeEiKrAS7lbPxE8L17dTY110tLy
-         kBxYuSUKzKv3VBtVDOXumM9P29noBnAZATNCTv/AZweiawv8+OvzWML50GowpNJWfUXP
-         wDJQ==
-X-Gm-Message-State: AJcUukc6879cMIGx+KKupzpNN3v06kx0uYcBWFBmYy1Dci2cpJkK4Pka
-        NKPioPkI0pu+jZch9U5arOWdSKcQKDc=
-X-Google-Smtp-Source: ALg8bN5nkXgv44nykgc+ozvO0CDxfuZx0IS6CxJtPG07Cg1tgfVhK4UavYF6ldnJJshM6uqSV8O/SA==
-X-Received: by 2002:a9d:5d2:: with SMTP id 76mr1305723otd.78.1547530694733;
-        Mon, 14 Jan 2019 21:38:14 -0800 (PST)
-Received: from mail-ot1-f51.google.com (mail-ot1-f51.google.com. [209.85.210.51])
-        by smtp.gmail.com with ESMTPSA id i22sm1107500otl.20.2019.01.14.21.38.13
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 14 Jan 2019 21:38:13 -0800 (PST)
-Received: by mail-ot1-f51.google.com with SMTP id s13so1451711otq.4
-        for <linux-media@vger.kernel.org>; Mon, 14 Jan 2019 21:38:13 -0800 (PST)
-X-Received: by 2002:a05:6830:1193:: with SMTP id u19mr1353344otq.152.1547530693196;
- Mon, 14 Jan 2019 21:38:13 -0800 (PST)
-MIME-Version: 1.0
-References: <1547523465-27807-1-git-send-email-yong.zhi@intel.com> <1547523465-27807-2-git-send-email-yong.zhi@intel.com>
-In-Reply-To: <1547523465-27807-2-git-send-email-yong.zhi@intel.com>
-From:   Tomasz Figa <tfiga@chromium.org>
-Date:   Tue, 15 Jan 2019 14:38:01 +0900
-X-Gmail-Original-Message-ID: <CAAFQd5BZc33TkX_u5-vO_n13+73Ga5Pn+ERcFzTe4=HbPWRKXA@mail.gmail.com>
-Message-ID: <CAAFQd5BZc33TkX_u5-vO_n13+73Ga5Pn+ERcFzTe4=HbPWRKXA@mail.gmail.com>
-Subject: Re: [PATCH 2/2] media: ipu3-imgu: Remove dead code for NULL check
+        id S1727427AbfAOH7e (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 15 Jan 2019 02:59:34 -0500
+Received: from mga01.intel.com ([192.55.52.88]:25813 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726788AbfAOH7d (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 15 Jan 2019 02:59:33 -0500
+X-Amp-Result: UNKNOWN
+X-Amp-Original-Verdict: FILE UNKNOWN
+X-Amp-File-Uploaded: False
+Received: from orsmga005.jf.intel.com ([10.7.209.41])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 14 Jan 2019 23:59:33 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.56,481,1539673200"; 
+   d="scan'208";a="291634420"
+Received: from paasikivi.fi.intel.com ([10.237.72.42])
+  by orsmga005.jf.intel.com with ESMTP; 14 Jan 2019 23:59:30 -0800
+Received: by paasikivi.fi.intel.com (Postfix, from userid 1000)
+        id 957792050A; Tue, 15 Jan 2019 09:59:29 +0200 (EET)
+Date:   Tue, 15 Jan 2019 09:59:29 +0200
+From:   Sakari Ailus <sakari.ailus@linux.intel.com>
 To:     Yong Zhi <yong.zhi@intel.com>
-Cc:     Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Cao Bing Bu <bingbu.cao@intel.com>, dan.carpenter@oracle.com
-Content-Type: text/plain; charset="UTF-8"
+Cc:     linux-media@vger.kernel.org, tfiga@chromium.org,
+        rajmohan.mani@intel.com, tian.shu.qiu@intel.com,
+        laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
+        mchehab@kernel.org, bingbu.cao@intel.com, dan.carpenter@oracle.com
+Subject: Re: [PATCH 1/2] media: ipu3-imgu: Use MENU type for mode control
+Message-ID: <20190115075929.vzzb2ppx6hzw6kqc@paasikivi.fi.intel.com>
+References: <1547523465-27807-1-git-send-email-yong.zhi@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1547523465-27807-1-git-send-email-yong.zhi@intel.com>
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
@@ -82,58 +52,34 @@ X-Mailing-List: linux-media@vger.kernel.org
 
 Hi Yong,
 
-On Tue, Jan 15, 2019 at 12:38 PM Yong Zhi <yong.zhi@intel.com> wrote:
->
-> Since ipu3_css_buf_dequeue() never returns NULL, remove the
-> dead code to fix static checker warning:
->
-> drivers/staging/media/ipu3/ipu3.c:493 imgu_isr_threaded()
-> warn: 'b' is an error pointer or valid
->
+On Mon, Jan 14, 2019 at 09:37:44PM -0600, Yong Zhi wrote:
+> This addresses the below TODO item.
+> - Use V4L2_CTRL_TYPE_MENU for dual-pipe mode control. (Sakari)
+> 
 > Signed-off-by: Yong Zhi <yong.zhi@intel.com>
 > ---
-> Link to Dan's bug report:
-> https://www.spinics.net/lists/linux-media/msg145043.html
+>  drivers/staging/media/ipu3/TODO                 |  2 --
+>  drivers/staging/media/ipu3/include/intel-ipu3.h |  6 ------
+>  drivers/staging/media/ipu3/ipu3-v4l2.c          | 18 +++++++++++++-----
+>  3 files changed, 13 insertions(+), 13 deletions(-)
+> 
+> diff --git a/drivers/staging/media/ipu3/TODO b/drivers/staging/media/ipu3/TODO
+> index 905bbb190217..0dc9a2e79978 100644
+> --- a/drivers/staging/media/ipu3/TODO
+> +++ b/drivers/staging/media/ipu3/TODO
+> @@ -11,8 +11,6 @@ staging directory.
+>  - Prefix imgu for all public APIs, i.e. change ipu3_v4l2_register() to
+>    imgu_v4l2_register(). (Sakari)
+>  
+> -- Use V4L2_CTRL_TYPE_MENU for dual-pipe mode control. (Sakari)
+> -
 
-You can add Dan's Reported-by above your Signed-off-by to properly
-credit him. I'd also add a comment below that Reported-by, e.g.
+It's good to see TODO entries being addressed. :-)
 
-[Bug report: https://www.spinics.net/lists/linux-media/msg145043.html]
+With Tomasz's comments addressed, this is good to go in IMO.
 
-so that it doesn't get removed when applying the patch, as it would
-get now, because any text right in this area is ignored by git.
+-- 
+Regards,
 
-With that fixes, feel free to add my Reviewed-by.
-
-Best regards,
-Tomasz
-
->
->  drivers/staging/media/ipu3/ipu3.c | 11 +++++------
->  1 file changed, 5 insertions(+), 6 deletions(-)
->
-> diff --git a/drivers/staging/media/ipu3/ipu3.c b/drivers/staging/media/ipu3/ipu3.c
-> index d521b3afb8b1..839d9398f8e9 100644
-> --- a/drivers/staging/media/ipu3/ipu3.c
-> +++ b/drivers/staging/media/ipu3/ipu3.c
-> @@ -489,12 +489,11 @@ static irqreturn_t imgu_isr_threaded(int irq, void *imgu_ptr)
->                         mutex_unlock(&imgu->lock);
->                 } while (PTR_ERR(b) == -EAGAIN);
->
-> -               if (IS_ERR_OR_NULL(b)) {
-> -                       if (!b || PTR_ERR(b) == -EBUSY) /* All done */
-> -                               break;
-> -                       dev_err(&imgu->pci_dev->dev,
-> -                               "failed to dequeue buffers (%ld)\n",
-> -                               PTR_ERR(b));
-> +               if (IS_ERR(b)) {
-> +                       if (PTR_ERR(b) != -EBUSY)       /* All done */
-> +                               dev_err(&imgu->pci_dev->dev,
-> +                                       "failed to dequeue buffers (%ld)\n",
-> +                                       PTR_ERR(b));
->                         break;
->                 }
->
-> --
-> 2.7.4
->
+Sakari Ailus
+sakari.ailus@linux.intel.com
