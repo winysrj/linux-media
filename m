@@ -6,41 +6,42 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F9D4C43387
-	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 08:55:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C53DC43387
+	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 08:55:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 194D62085A
-	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 08:55:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 106C820656
+	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 08:55:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728540AbfAOIzK (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 15 Jan 2019 03:55:10 -0500
-Received: from shell.v3.sk ([90.176.6.54]:51325 "EHLO shell.v3.sk"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728027AbfAOIzJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        id S1728491AbfAOIzJ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
         Tue, 15 Jan 2019 03:55:09 -0500
+Received: from shell.v3.sk ([90.176.6.54]:51321 "EHLO shell.v3.sk"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728025AbfAOIzI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 15 Jan 2019 03:55:08 -0500
 Received: from localhost (localhost [127.0.0.1])
-        by zimbra.v3.sk (Postfix) with ESMTP id 90CE14CBD8;
-        Tue, 15 Jan 2019 09:55:06 +0100 (CET)
+        by zimbra.v3.sk (Postfix) with ESMTP id 04A7F4CC79;
+        Tue, 15 Jan 2019 09:55:05 +0100 (CET)
 Received: from shell.v3.sk ([127.0.0.1])
         by localhost (zimbra.v3.sk [127.0.0.1]) (amavisd-new, port 10032)
-        with ESMTP id xGVEljyiuti4; Tue, 15 Jan 2019 09:54:56 +0100 (CET)
+        with ESMTP id pUa6pf8zgCmH; Tue, 15 Jan 2019 09:54:55 +0100 (CET)
 Received: from localhost (localhost [127.0.0.1])
-        by zimbra.v3.sk (Postfix) with ESMTP id D82EC4C9F0;
+        by zimbra.v3.sk (Postfix) with ESMTP id 5A9B04B474;
         Tue, 15 Jan 2019 09:54:55 +0100 (CET)
 X-Virus-Scanned: amavisd-new at zimbra.v3.sk
 Received: from shell.v3.sk ([127.0.0.1])
         by localhost (zimbra.v3.sk [127.0.0.1]) (amavisd-new, port 10026)
-        with ESMTP id eV9xLOG7BPLE; Tue, 15 Jan 2019 09:54:53 +0100 (CET)
+        with ESMTP id NiRCJD-8NAhI; Tue, 15 Jan 2019 09:54:53 +0100 (CET)
 Received: from belphegor.brq.redhat.com (nat-pool-brq-t.redhat.com [213.175.37.10])
-        by zimbra.v3.sk (Postfix) with ESMTPSA id 738024CBD8;
+        by zimbra.v3.sk (Postfix) with ESMTPSA id 4627C4CBA5;
         Tue, 15 Jan 2019 09:54:53 +0100 (CET)
 From:   Lubomir Rintel <lkundrak@v3.sk>
 To:     Sakari Ailus <sakari.ailus@iki.fi>
 Cc:     linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Lubomir Rintel <lkundrak@v3.sk>
-Subject: [PATCH v4 4/5] media: ov7670: split register setting from set_fmt() logic
-Date:   Tue, 15 Jan 2019 09:54:47 +0100
-Message-Id: <20190115085448.1400135-5-lkundrak@v3.sk>
+        Lubomir Rintel <lkundrak@v3.sk>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH v4 3/5] media: ov7670: control clock along with power
+Date:   Tue, 15 Jan 2019 09:54:46 +0100
+Message-Id: <20190115085448.1400135-4-lkundrak@v3.sk>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190115085448.1400135-1-lkundrak@v3.sk>
 References: <20190115085448.1400135-1-lkundrak@v3.sk>
@@ -51,154 +52,116 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-This will allow us to restore the last set format after the device return=
-s
-from a power off.
+This provides more power saving when the sensor is off.
+
+While at that, do the delay on power/clock enable even if the sensor driv=
+er
+itself doesn't control the GPIOs. This is required for the OLPC XO-1
+platform, that lacks the proper power/reset properties in its DT, but
+needs the delay after the sensor is clocked up.
 
 Signed-off-by: Lubomir Rintel <lkundrak@v3.sk>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/i2c/ov7670.c | 80 ++++++++++++++++++++++----------------
- 1 file changed, 46 insertions(+), 34 deletions(-)
+ drivers/media/i2c/ov7670.c | 30 ++++++++++++++----------------
+ 1 file changed, 14 insertions(+), 16 deletions(-)
 
 diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
-index 93c055502bb9..d0f40d5f6ca0 100644
+index 4679aa9dc430..93c055502bb9 100644
 --- a/drivers/media/i2c/ov7670.c
 +++ b/drivers/media/i2c/ov7670.c
-@@ -241,6 +241,7 @@ struct ov7670_info {
- 	};
- 	struct v4l2_mbus_framefmt format;
- 	struct ov7670_format_struct *fmt;  /* Current format */
-+	struct ov7670_win_size *wsize;
- 	struct clk *clk;
- 	int on;
- 	struct gpio_desc *resetb_gpio;
-@@ -1001,48 +1002,20 @@ static int ov7670_try_fmt_internal(struct v4l2_su=
-bdev *sd,
- 	return 0;
+@@ -1611,14 +1611,17 @@ static void ov7670_power_on(struct v4l2_subdev *s=
+d)
+ 	if (info->on)
+ 		return;
+=20
++	clk_prepare_enable(info->clk);
++
+ 	if (info->pwdn_gpio)
+ 		gpiod_set_value(info->pwdn_gpio, 0);
+ 	if (info->resetb_gpio) {
+ 		gpiod_set_value(info->resetb_gpio, 1);
+ 		usleep_range(500, 1000);
+ 		gpiod_set_value(info->resetb_gpio, 0);
+-		usleep_range(3000, 5000);
+ 	}
++	if (info->pwdn_gpio || info->resetb_gpio || info->clk)
++		usleep_range(3000, 5000);
+=20
+ 	info->on =3D true;
  }
+@@ -1630,6 +1633,8 @@ static void ov7670_power_off(struct v4l2_subdev *sd=
+)
+ 	if (!info->on)
+ 		return;
 =20
--/*
-- * Set a format.
-- */
--static int ov7670_set_fmt(struct v4l2_subdev *sd,
--		struct v4l2_subdev_pad_config *cfg,
--		struct v4l2_subdev_format *format)
-+static int ov7670_apply_fmt(struct v4l2_subdev *sd)
- {
--	struct ov7670_format_struct *ovfmt;
--	struct ov7670_win_size *wsize;
- 	struct ov7670_info *info =3D to_state(sd);
--#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
--	struct v4l2_mbus_framefmt *mbus_fmt;
--#endif
-+	struct ov7670_win_size *wsize =3D info->wsize;
- 	unsigned char com7, com10 =3D 0;
- 	int ret;
++	clk_disable_unprepare(info->clk);
++
+ 	if (info->pwdn_gpio)
+ 		gpiod_set_value(info->pwdn_gpio, 1);
 =20
--	if (format->pad)
--		return -EINVAL;
--
--	if (format->which =3D=3D V4L2_SUBDEV_FORMAT_TRY) {
--		ret =3D ov7670_try_fmt_internal(sd, &format->format, NULL, NULL);
--		if (ret)
--			return ret;
--#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
--		mbus_fmt =3D v4l2_subdev_get_try_format(sd, cfg, format->pad);
--		*mbus_fmt =3D format->format;
--		return 0;
--#else
--		return -ENOTTY;
--#endif
--	}
--
--	ret =3D ov7670_try_fmt_internal(sd, &format->format, &ovfmt, &wsize);
--	if (ret)
--		return ret;
- 	/*
- 	 * COM7 is a pain in the ass, it doesn't like to be read then
- 	 * quickly written afterward.  But we have everything we need
- 	 * to set it absolutely here, as long as the format-specific
- 	 * register sets list it first.
- 	 */
--	com7 =3D ovfmt->regs[0].value;
-+	com7 =3D info->fmt->regs[0].value;
- 	com7 |=3D wsize->com7_bit;
- 	ret =3D ov7670_write(sd, REG_COM7, com7);
- 	if (ret)
-@@ -1064,7 +1037,7 @@ static int ov7670_set_fmt(struct v4l2_subdev *sd,
- 	/*
- 	 * Now write the rest of the array.  Also store start/stops
- 	 */
--	ret =3D ov7670_write_array(sd, ovfmt->regs + 1);
-+	ret =3D ov7670_write_array(sd, info->fmt->regs + 1);
- 	if (ret)
- 		return ret;
-=20
-@@ -1079,8 +1052,6 @@ static int ov7670_set_fmt(struct v4l2_subdev *sd,
+@@ -1850,24 +1855,20 @@ static int ov7670_probe(struct i2c_client *client=
+,
  			return ret;
  	}
 =20
--	info->fmt =3D ovfmt;
+-	if (info->clk) {
+-		ret =3D clk_prepare_enable(info->clk);
+-		if (ret)
+-			return ret;
++	ret =3D ov7670_init_gpio(client, info);
++	if (ret)
++		return ret;
+=20
++	ov7670_power_on(sd);
++
++	if (info->clk) {
+ 		info->clock_speed =3D clk_get_rate(info->clk) / 1000000;
+ 		if (info->clock_speed < 10 || info->clock_speed > 48) {
+ 			ret =3D -EINVAL;
+-			goto clk_disable;
++			goto power_off;
+ 		}
+ 	}
+=20
+-	ret =3D ov7670_init_gpio(client, info);
+-	if (ret)
+-		goto clk_disable;
 -
- 	/*
- 	 * If we're running RGB565, we must rewrite clkrc after setting
- 	 * the other parameters or the image looks poor.  If we're *not*
-@@ -1098,6 +1069,46 @@ static int ov7670_set_fmt(struct v4l2_subdev *sd,
+-	ov7670_power_on(sd);
+-
+ 	/* Make sure it's an ov7670 */
+ 	ret =3D ov7670_detect(sd);
+ 	if (ret) {
+@@ -1946,6 +1947,7 @@ static int ov7670_probe(struct i2c_client *client,
+ 	if (ret < 0)
+ 		goto entity_cleanup;
+=20
++	ov7670_power_off(sd);
  	return 0;
+=20
+ entity_cleanup:
+@@ -1954,12 +1956,9 @@ static int ov7670_probe(struct i2c_client *client,
+ 	v4l2_ctrl_handler_free(&info->hdl);
+ power_off:
+ 	ov7670_power_off(sd);
+-clk_disable:
+-	clk_disable_unprepare(info->clk);
+ 	return ret;
  }
 =20
-+/*
-+ * Set a format.
-+ */
-+static int ov7670_set_fmt(struct v4l2_subdev *sd,
-+		struct v4l2_subdev_pad_config *cfg,
-+		struct v4l2_subdev_format *format)
-+{
-+	struct ov7670_info *info =3D to_state(sd);
-+#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
-+	struct v4l2_mbus_framefmt *mbus_fmt;
-+#endif
-+	int ret;
-+
-+	if (format->pad)
-+		return -EINVAL;
-+
-+	if (format->which =3D=3D V4L2_SUBDEV_FORMAT_TRY) {
-+		ret =3D ov7670_try_fmt_internal(sd, &format->format, NULL, NULL);
-+		if (ret)
-+			return ret;
-+#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
-+		mbus_fmt =3D v4l2_subdev_get_try_format(sd, cfg, format->pad);
-+		*mbus_fmt =3D format->format;
-+		return 0;
-+#else
-+		return -ENOTTY;
-+#endif
-+	}
-+
-+	ret =3D ov7670_try_fmt_internal(sd, &format->format, &info->fmt, &info-=
->wsize);
-+	if (ret)
-+		return ret;
-+
-+	ret =3D ov7670_apply_fmt(sd);
-+	if (ret)
-+		return ret;
-+
-+	return 0;
-+}
-+
- static int ov7670_get_fmt(struct v4l2_subdev *sd,
- 			  struct v4l2_subdev_pad_config *cfg,
- 			  struct v4l2_subdev_format *format)
-@@ -1882,6 +1893,7 @@ static int ov7670_probe(struct i2c_client *client,
+-
+ static int ov7670_remove(struct i2c_client *client)
+ {
+ 	struct v4l2_subdev *sd =3D i2c_get_clientdata(client);
+@@ -1967,7 +1966,6 @@ static int ov7670_remove(struct i2c_client *client)
 =20
- 	info->devtype =3D &ov7670_devdata[id->driver_data];
- 	info->fmt =3D &ov7670_formats[0];
-+	info->wsize =3D &info->devtype->win_sizes[0];
-=20
- 	ov7670_get_default_format(sd, &info->format);
-=20
+ 	v4l2_async_unregister_subdev(sd);
+ 	v4l2_ctrl_handler_free(&info->hdl);
+-	clk_disable_unprepare(info->clk);
+ 	media_entity_cleanup(&info->sd.entity);
+ 	ov7670_power_off(sd);
+ 	return 0;
 --=20
 2.20.1
 
