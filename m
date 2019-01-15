@@ -2,94 +2,121 @@ Return-Path: <SRS0=Ztfs=PX=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C1C0FC43387
-	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 01:56:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 80B57C43387
+	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 03:23:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 87FD42063F
-	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 01:56:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4D02F20645
+	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 03:23:07 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="ohBpz33k"
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="BTTeGePb"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727307AbfAOB42 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 14 Jan 2019 20:56:28 -0500
-Received: from out3-smtp.messagingengine.com ([66.111.4.27]:59317 "EHLO
-        out3-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727169AbfAOB41 (ORCPT
+        id S1727910AbfAODXG (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 14 Jan 2019 22:23:06 -0500
+Received: from mail-ot1-f65.google.com ([209.85.210.65]:42622 "EHLO
+        mail-ot1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727169AbfAODXG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 Jan 2019 20:56:27 -0500
-Received: from compute6.internal (compute6.nyi.internal [10.202.2.46])
-        by mailout.nyi.internal (Postfix) with ESMTP id E4EE22904F;
-        Mon, 14 Jan 2019 20:56:26 -0500 (EST)
-Received: from web3 ([10.202.2.213])
-  by compute6.internal (MEProxy); Mon, 14 Jan 2019 20:56:26 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:content-transfer-encoding:content-type
-        :date:from:in-reply-to:message-id:mime-version:references
-        :subject:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
-        :x-sasl-enc; s=fm1; bh=aDPD+j7N8+MQFmqmpBSOasf7oaYbaowIZVzf/a8s2
-        wc=; b=ohBpz33krjDn5SQ9NG00N5s7JvQjiOmex6OPf3GO8ujczklYAIS4AmiUW
-        PLwSoQiJTkRhAOJD5DsOmBycmZ9dUFwhqKp2a6fISlSUuG+EGIfuZFsRoX0auowR
-        sXxjuhAWkEYXMeHmSCdNzAqf40VT+W75bD0mY1v3u3jJ7M5Nn61nMq4IXK0Li1zt
-        l1DlX1NuFneoLgDs4CA5POC3OzmeFIOhgnjIVzt1w5NhvF30StnYf3lRDH7XQXxY
-        Dz+6X5//mu8kqaKckosRWQNicRHlUviqiqLwu6fb89YofAq8w6M3yfhNtgeuq5EF
-        btvdSvXKCjCvJUcBe+2arHMe+IdtA==
-X-ME-Sender: <xms:yj09XE-Ts7wI57rRMizI_mKUBS9ZR-gYnOm9RHP1RXqXZDOtrlMbZg>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedtledrgedvgdefkecutefuodetggdotefrodftvf
-    curfhrohhfihhlvgemucfhrghsthforghilhdpqfhuthenuceurghilhhouhhtmecufedt
-    tdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhepkffhvfgggfgtof
-    ffjghfufesthejredtredtjeenucfhrhhomhepmfgrihcujfgvnhgurhihuceohhgvnhgu
-    rhihsehikhhirdhfiheqnecuffhomhgrihhnpehnrghtrghlihgrnhdrohhrghenucfrrg
-    hrrghmpehmrghilhhfrhhomhephhgvnhgurhihsehikhhirdhfihenucevlhhushhtvghr
-    ufhiiigvpedt
-X-ME-Proxy: <xmx:yj09XGaVL9u96T_ZpT9IcR2gb2QGrRX6bWYGSCCJl-fTT7OBq-Sfog>
-    <xmx:yj09XJWB5UBiSgdZF8nDYUCNIt79MchczKocnQp9EG4V62gTOwd_EA>
-    <xmx:yj09XMgogY_3Awa4ey9YVxy1exLA18OBq-iJ-1Vcz90LHGUDO8aC1w>
-    <xmx:yj09XEvFbxQyZDjXbdSO5kdLaZM7Pq2d9tGSCew22xg2WlSNSdnEqQ>
-Received: by mailuser.nyi.internal (Postfix, from userid 99)
-        id 12C509E5A7; Mon, 14 Jan 2019 20:56:26 -0500 (EST)
-Message-Id: <1547517386.513774.1634722944.3BD7EE05@webmail.messagingengine.com>
-From:   Kai Hendry <hendry@iki.fi>
-To:     Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc:     linux-media@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-usb@vger.kernel.org
+        Mon, 14 Jan 2019 22:23:06 -0500
+Received: by mail-ot1-f65.google.com with SMTP id v23so1214664otk.9
+        for <linux-media@vger.kernel.org>; Mon, 14 Jan 2019 19:23:06 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=srtLab/5/oksBt3T1uFQDnpuaZ2VDkbyu9U/xf0gVE0=;
+        b=BTTeGePbsGkYjbE5knz0VEWEaoA3MgYrtu87J0gqj1N2q2EjcI5FN5iXzQ5S+AVm+I
+         WGLzYX82CMpS1IKl7SfLVkmbNWbp7s20iQm4sgz/JvN05Uyr/74D+ysxncyWJbgd7NXW
+         sXTzfHr+/ZQOFRPV+vf80GslEOfpJQF/YfbKc=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=srtLab/5/oksBt3T1uFQDnpuaZ2VDkbyu9U/xf0gVE0=;
+        b=Z5doZXIudol4oeWEsh8sAoeixw7nAqRa3IV0/pwYRJTMXP5q6KVH8VyKbaEmZhZkHs
+         Iv81CCh9FLDrYCmdcEU4kUzcvND2RCo2lvL6YGZEVYYZJfv99gnFMKw11Gd1n7wqTVcW
+         fiUtHkcf+yv8iRkxqZcmhtj7kjfLIzoa53+BviOUzJjkHJGiIeccOTbluBmIUX1Ej5Qe
+         6JTDAUwBlRR2QAt3b0jShEslfOllgjexgWA9s3+CTOZaFLgAUVD1iB9M/qQ0bkyAZDZW
+         djQshByhMs09nGPUyqCsmvRxBUzhaX8d4ItwXs/+Z2HbF3RlLI2DML+J78TOGf4ZzXY2
+         gkCA==
+X-Gm-Message-State: AJcUukfASPnkUhXr5sy54K34Eqkd/G5CXn97Oh6Lltuf2BiNMpTXPePO
+        z8dFdJc6VufsvkMpgWyH9lOGkBN03+Y=
+X-Google-Smtp-Source: ALg8bN7q9aNxjeOqR0dF12TnlY6AdROtdXTemOC7Pbbc9bPGvkTWznm/5j9osJ2tN86iE9qqnODdUg==
+X-Received: by 2002:a9d:6552:: with SMTP id q18mr1064955otl.128.1547522585208;
+        Mon, 14 Jan 2019 19:23:05 -0800 (PST)
+Received: from mail-ot1-f49.google.com (mail-ot1-f49.google.com. [209.85.210.49])
+        by smtp.gmail.com with ESMTPSA id d66sm1101733oia.29.2019.01.14.19.23.04
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 14 Jan 2019 19:23:04 -0800 (PST)
+Received: by mail-ot1-f49.google.com with SMTP id v23so1214574otk.9
+        for <linux-media@vger.kernel.org>; Mon, 14 Jan 2019 19:23:04 -0800 (PST)
+X-Received: by 2002:a9d:1b67:: with SMTP id l94mr965605otl.147.1547522583856;
+ Mon, 14 Jan 2019 19:23:03 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="utf-8"
-X-Mailer: MessagingEngine.com Webmail Interface - ajax-36e4bfd3
-Date:   Tue, 15 Jan 2019 09:56:26 +0800
-In-Reply-To: <20190114093029.6bb2ff00@coco.lan>
-References: <1547442625.3056462.1633755704.1BCFEEC2@webmail.messagingengine.com>
- <20190114093029.6bb2ff00@coco.lan>
-Subject: Re: Magewell Gen 2935:0001 USB annoyances
+References: <1547176516-18074-1-git-send-email-ben.kao@intel.com>
+In-Reply-To: <1547176516-18074-1-git-send-email-ben.kao@intel.com>
+From:   Tomasz Figa <tfiga@chromium.org>
+Date:   Tue, 15 Jan 2019 12:22:52 +0900
+X-Gmail-Original-Message-ID: <CAAFQd5B1nkEDou9Jj78sMnB-pc+qx-76i8hk0mdb-sjj6TkCfw@mail.gmail.com>
+Message-ID: <CAAFQd5B1nkEDou9Jj78sMnB-pc+qx-76i8hk0mdb-sjj6TkCfw@mail.gmail.com>
+Subject: Re: [PATCH v2] media: ov8856: Add support for OV8856 sensor
+To:     Ben Kao <ben.kao@intel.com>
+Cc:     Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        "Yeh, Andy" <andy.yeh@intel.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Thanks for getting back to me Mauro.
+Hi Ben,
 
-So it works on MacOS.... via a hootoo USB-C dongle https://s.natalian.org/2019-01-15/hootoo.jpeg
+On Fri, Jan 11, 2019 at 12:12 PM Ben Kao <ben.kao@intel.com> wrote:
+>
+> This patch adds driver for Omnivision's ov8856 sensor,
+> the driver supports following features:
+[snip]
+> +static int ov8856_write_reg(struct ov8856 *ov8856, u16 reg, u16 len, u32 __val)
+> +{
+> +       struct i2c_client *client = v4l2_get_subdevdata(&ov8856->sd);
+> +       unsigned int buf_i, val_i;
+> +       u8 buf[6];
+> +       u8 *val_p;
+> +       __be32 val;
+> +
+> +       if (len > 4)
+> +               return -EINVAL;
+> +
+> +       buf[0] = reg >> 8;
+> +       buf[1] = reg & 0xff;
 
-So since my T480s has two USB-C ports, I tried using the same dongle on my Thinkpad. It works!
+The two lines above can be simplified into one put_unaligned_be16(reg, buf);
 
-I discovered that I can reliably get the device working by using another USB-C adaptor. https://s.natalian.org/2019-01-15/ss.jpeg
+> +
+> +       val = cpu_to_be32(__val);
+> +       val_p = (u8 *)&val;
+> +       buf_i = 2;
+> +       val_i = 4 - len;
+> +
+> +       while (val_i < 4)
+> +               buf[buf_i++] = val_p[val_i++];
 
-This to my astonishment reliably works.
+All the code above can be simplified into:
 
-[hendry@t480s ~]$ lsusb -vvv 2>/dev/null | grep -A5 2935:0001
-Bus 004 Device 002: ID 2935:0001
-Device Descriptor:
-  bLength                18
-  bDescriptorType         1
-  bcdUSB               3.00
-  bDeviceClass          239 Miscellaneous Device
+val <<= 8 * (4 - len);
+put_unaligned_be32(val, buf + 2);
 
+> +
+> +       if (i2c_master_send(client, buf, len + 2) != len + 2)
+> +               return -EIO;
+> +
+> +       return 0;
+> +}
 
-Maybe it's some USB bus power supply issue on my other Thinkpad ports. No idea.
-
-Thanks for sounding me out.
+Best regards,
+Tomasz
