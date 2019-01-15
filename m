@@ -2,115 +2,102 @@ Return-Path: <SRS0=Ztfs=PX=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.0 required=3.0
+	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E92C7C43612
-	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 14:25:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DC1CC43387
+	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 14:26:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B269520868
-	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 14:25:15 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="TRcJIzgJ"
+	by mail.kernel.org (Postfix) with ESMTP id 5D95B20656
+	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 14:26:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730345AbfAOOZP (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 15 Jan 2019 09:25:15 -0500
-Received: from perceval.ideasonboard.com ([213.167.242.64]:42042 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727574AbfAOOZO (ORCPT
+        id S1730071AbfAOO0X (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 15 Jan 2019 09:26:23 -0500
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:44248 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726863AbfAOO0X (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 Jan 2019 09:25:14 -0500
-Received: from localhost.localdomain (cpc89242-aztw30-2-0-cust488.18-1.cable.virginm.net [86.31.129.233])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 9C7854F8;
-        Tue, 15 Jan 2019 15:25:12 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1547562312;
-        bh=nIZf0tWuPTdlxqa4jw93FwMmDk6xecS4QbGLEz3vaBQ=;
-        h=From:To:Cc:Subject:Date:From;
-        b=TRcJIzgJcLYvvw4vw8WGSL1sBncZ6rJzEj657Bci0IOp+KDTr4oDVShvcnA7vkVsU
-         c1DlTTg/osClu5FSZCCkX+Dort9NDCQKBT3Dx9Ue3dlBmCxCJVUzBi6kaQW2qEOJVY
-         P5h0KP5b+hVnn6OwD5jKXOojRBgYgG8Rf9QrlcaY=
-From:   Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To:     linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Cc:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
-        Jacopo Mondi <jacopo@jmondi.org>
-Subject: [PATCH v2] media: i2c: adv748x: Remove PAGE_WAIT
-Date:   Tue, 15 Jan 2019 14:25:09 +0000
-Message-Id: <20190115142509.26048-1-kieran.bingham+renesas@ideasonboard.com>
-X-Mailer: git-send-email 2.17.1
+        Tue, 15 Jan 2019 09:26:23 -0500
+Received: from [IPv6:2001:983:e9a7:1:415f:b492:6ed4:23a7] ([IPv6:2001:983:e9a7:1:415f:b492:6ed4:23a7])
+        by smtp-cloud7.xs4all.net with ESMTPA
+        id jPfYg87YmBDyIjPfagxib6; Tue, 15 Jan 2019 15:26:22 +0100
+Subject: Re: [GIT PULL FOR v5.1] add buf_out_validate callback to vb2 + two
+ fixes
+From:   Hans Verkuil <hverkuil@xs4all.nl>
+To:     Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <b8c73d3c-5fbb-4c60-9637-6655fc3f2e79@xs4all.nl>
+Message-ID: <bb57e899-ac8d-3e05-006b-2b5aca2d89d3@xs4all.nl>
+Date:   Tue, 15 Jan 2019 15:26:20 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.3.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <b8c73d3c-5fbb-4c60-9637-6655fc3f2e79@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-CMAE-Envelope: MS4wfEHseTpGRVrGl7WtFP8wuz2UbS14Bn+UaeFwy9CxXSpHcoyassemrL5Ue7Nrf1wBY9l7ElOfcgVi/2sFEwoXtN+dXV0Wm4UDbZYw6FTsTDXmgv1MyyTr
+ bA0qkfdwE+5egxsby0ZXqPYW9SPmoE3xJdqHwsrsgAhj001kG9WdaRHXPZILTaXUx3PYRxfyoFUN5UzBB+FuiVXoqspzokBe6xXB8vflyoMYP644TbZ2SqEo
+ Pa1XrYKz0WGTR3gxmvRTTvFat8IFEQ3To0hJ3QaOZ+E=
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-The ADV748X_PAGE_WAIT is a fake page to insert arbitrary delays in the
-register tables.
+On 1/11/19 2:32 PM, Hans Verkuil wrote:
+> The first three patches add the buf_out_validate callback to vb2 so video
+> output devices can validate the v4l2_buffer struct (specifically, validating
+> the field).
+> 
+> This fixes a v4l2-compliance failure.
+> 
+> The last two patches fix a vim2m bug and fix a vivid compliance bug.
+> 
+> With this pull request all v4l2-compliance tests succeed for vivid and vim2m.
 
-Its only usage was removed, so we can remove the handling and simplify
-the code.
+I'm dropping this pull request for now. After additional testing I realized that
+the first buf_out_validate patch isn't quite right. I need to work on that a bit
+more.
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+I'll post a new pull request for the remaining two patches.
 
----
-v2:
- - Use for loop with regs incrementer
+Regards,
 
- drivers/media/i2c/adv748x/adv748x-core.c | 19 ++++++-------------
- drivers/media/i2c/adv748x/adv748x.h      |  1 -
- 2 files changed, 6 insertions(+), 14 deletions(-)
+	Hans
 
-diff --git a/drivers/media/i2c/adv748x/adv748x-core.c b/drivers/media/i2c/adv748x/adv748x-core.c
-index 252bdb28b18b..f57cd77a32fa 100644
---- a/drivers/media/i2c/adv748x/adv748x-core.c
-+++ b/drivers/media/i2c/adv748x/adv748x-core.c
-@@ -218,20 +218,13 @@ static int adv748x_write_regs(struct adv748x_state *state,
- {
- 	int ret;
- 
--	while (regs->page != ADV748X_PAGE_EOR) {
--		if (regs->page == ADV748X_PAGE_WAIT) {
--			msleep(regs->value);
--		} else {
--			ret = adv748x_write(state, regs->page, regs->reg,
--				      regs->value);
--			if (ret < 0) {
--				adv_err(state,
--					"Error regs page: 0x%02x reg: 0x%02x\n",
--					regs->page, regs->reg);
--				return ret;
--			}
-+	for (; regs->page != ADV748X_PAGE_EOR; regs++) {
-+		ret = adv748x_write(state, regs->page, regs->reg, regs->value);
-+		if (ret < 0) {
-+			adv_err(state, "Error regs page: 0x%02x reg: 0x%02x\n",
-+				regs->page, regs->reg);
-+			return ret;
- 		}
--		regs++;
- 	}
- 
- 	return 0;
-diff --git a/drivers/media/i2c/adv748x/adv748x.h b/drivers/media/i2c/adv748x/adv748x.h
-index 2f8d751cfbb0..5042f9e94aee 100644
---- a/drivers/media/i2c/adv748x/adv748x.h
-+++ b/drivers/media/i2c/adv748x/adv748x.h
-@@ -39,7 +39,6 @@ enum adv748x_page {
- 	ADV748X_PAGE_MAX,
- 
- 	/* Fake pages for register sequences */
--	ADV748X_PAGE_WAIT,		/* Wait x msec */
- 	ADV748X_PAGE_EOR,		/* End Mark */
- };
- 
--- 
-2.17.1
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> The following changes since commit 1e0d0a5fd38192f23304ea2fc2b531fea7c74247:
+> 
+>   media: s5p-mfc: fix incorrect bus assignment in virtual child device (2019-01-07 14:39:36 -0500)
+> 
+> are available in the Git repository at:
+> 
+>   git://linuxtv.org/hverkuil/media_tree.git tags/br-buf_val
+> 
+> for you to fetch changes up to 1e89980a8651f6cddbe20f4e02c958dbf2f33d08:
+> 
+>   vivid: do not implement VIDIOC_S_PARM for output streams (2019-01-11 13:25:47 +0100)
+> 
+> ----------------------------------------------------------------
+> Tag branch
+> 
+> ----------------------------------------------------------------
+> Hans Verkuil (5):
+>       vb2: add buf_out_validate callback
+>       vim2m: add buf_out_validate callback
+>       vivid: add buf_out_validate callback
+>       vim2m: the v4l2_m2m_buf_copy_data args were swapped
+>       vivid: do not implement VIDIOC_S_PARM for output streams
+> 
+>  drivers/media/common/videobuf2/videobuf2-core.c | 14 +++++++++++---
+>  drivers/media/platform/vim2m.c                  | 29 +++++++++++++++++------------
+>  drivers/media/platform/vivid/vivid-core.c       |  2 +-
+>  drivers/media/platform/vivid/vivid-vid-out.c    | 23 ++++++++++++++++-------
+>  include/media/videobuf2-core.h                  |  5 +++++
+>  5 files changed, 50 insertions(+), 23 deletions(-)
+> 
 
