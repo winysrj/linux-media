@@ -6,138 +6,98 @@ X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E316CC43387
-	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 04:35:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E9D7FC43387
+	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 05:18:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BA6F020859
-	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 04:35:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B982620859
+	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 05:18:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727451AbfAOEfb (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 14 Jan 2019 23:35:31 -0500
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:42749 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727221AbfAOEfb (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 Jan 2019 23:35:31 -0500
-Received: from localhost ([IPv6:2001:983:e9a7:1:415f:b492:6ed4:23a7])
-        by smtp-cloud9.xs4all.net with ESMTPA
-        id jGRkgDoBQaxzfjGRlgcYq4; Tue, 15 Jan 2019 05:35:29 +0100
-Message-ID: <498f826182e12f15e0de2695b635d3e7@smtp-cloud9.xs4all.net>
-Date:   Tue, 15 Jan 2019 05:35:27 +0100
-From:   "Hans Verkuil" <hverkuil@xs4all.nl>
-To:     linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-X-CMAE-Envelope: MS4wfIeHh4WWleGHw06rHx+1jEQzYzAkUc1FaRC9Fo5ZBQygzSIKem5537fTfIobk/Ir3FxFwjEE4v3Xf9mDATc7RiBbdFDiNeFaWVxOPPQn4XTGuUBk/gkl
- GXiIjDlEqDt3aNdMVWdaybGPsp/X3SV1Uk8NwmJdIabIDdfaPd+OHxq0cCFe9XbzWv+HUum7pPWDRyCxXgh9htITKlvwFwvhjDkvK3k8d3G/9PYeQwo/sUuo
+        id S1726788AbfAOFST (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 15 Jan 2019 00:18:19 -0500
+Received: from mga07.intel.com ([134.134.136.100]:27880 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725929AbfAOFST (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 15 Jan 2019 00:18:19 -0500
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from fmsmga008.fm.intel.com ([10.253.24.58])
+  by orsmga105.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 14 Jan 2019 21:18:18 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.56,480,1539673200"; 
+   d="scan'208";a="116813160"
+Received: from pgsmsx113.gar.corp.intel.com ([10.108.55.202])
+  by fmsmga008.fm.intel.com with ESMTP; 14 Jan 2019 21:18:17 -0800
+Received: from pgsmsx111.gar.corp.intel.com ([169.254.2.23]) by
+ pgsmsx113.gar.corp.intel.com ([169.254.6.94]) with mapi id 14.03.0415.000;
+ Tue, 15 Jan 2019 13:18:16 +0800
+From:   "Yeh, Andy" <andy.yeh@intel.com>
+To:     "Kao, Ben" <ben.kao@intel.com>, "Tu, ShawnX" <shawnx.tu@intel.com>
+CC:     Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Tomasz Figa <tfiga@chromium.org>
+Subject: RE: [PATCH v2] media: ov8856: Add support for OV8856 sensor
+Thread-Topic: [PATCH v2] media: ov8856: Add support for OV8856 sensor
+Thread-Index: AQHUqVt4PvdFDufmy0OcvM0Aqycv/KWvKl4AgAClVQA=
+Date:   Tue, 15 Jan 2019 05:18:15 +0000
+Deferred-Delivery: Tue, 15 Jan 2019 05:17:28 +0000
+Message-ID: <8E0971CCB6EA9D41AF58191A2D3978B61D883FA5@PGSMSX111.gar.corp.intel.com>
+References: <1547176516-18074-1-git-send-email-ben.kao@intel.com>
+ <CAAFQd5B1nkEDou9Jj78sMnB-pc+qx-76i8hk0mdb-sjj6TkCfw@mail.gmail.com>
+In-Reply-To: <CAAFQd5B1nkEDou9Jj78sMnB-pc+qx-76i8hk0mdb-sjj6TkCfw@mail.gmail.com>
+Accept-Language: zh-TW, en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+dlp-product: dlpe-windows
+dlp-version: 11.0.400.15
+dlp-reaction: no-action
+x-titus-metadata-40: eyJDYXRlZ29yeUxhYmVscyI6IiIsIk1ldGFkYXRhIjp7Im5zIjoiaHR0cDpcL1wvd3d3LnRpdHVzLmNvbVwvbnNcL0ludGVsMyIsImlkIjoiMzk4OGZkMjktNGIzNy00ZjQ1LThmNzgtMjYwODRjNTI0NjUxIiwicHJvcHMiOlt7Im4iOiJDVFBDbGFzc2lmaWNhdGlvbiIsInZhbHMiOlt7InZhbHVlIjoiQ1RQX05UIn1dfV19LCJTdWJqZWN0TGFiZWxzIjpbXSwiVE1DVmVyc2lvbiI6IjE3LjEwLjE4MDQuNDkiLCJUcnVzdGVkTGFiZWxIYXNoIjoicFV6Rjl4TlZKRmdyQ2hyTGdNdVZQVFwvSFM0VHI3aHYrWHVLWVh6a05lVDdZTWxiVjR6azJmVUk2RTJUOWdSeTUifQ==
+x-ctpclassification: CTP_NT
+x-originating-ip: [172.30.20.205]
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
-
-Results of the daily build of media_tree:
-
-date:			Tue Jan 15 05:00:13 CET 2019
-media-tree git hash:	1e0d0a5fd38192f23304ea2fc2b531fea7c74247
-media_build git hash:	8851c6e626dac550d6798e162c6b4f5a41bc13ec
-v4l-utils git hash:	b184e8385af90e31cfa97a77a4a1f5cf7ad05af0
-edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.19.0-1-amd64
-
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.123-i686: OK
-linux-3.18.123-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.159-i686: OK
-linux-4.4.159-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.131-i686: OK
-linux-4.9.131-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.74-i686: OK
-linux-4.14.74-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: OK
-linux-4.19.1-i686: OK
-linux-4.19.1-x86_64: OK
-linux-4.20.1-i686: OK
-linux-4.20.1-x86_64: OK
-linux-5.0-rc1-i686: OK
-linux-5.0-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+SGkgQmVuLA0KDQpZb3UgYXJlIHJlZmVycmluZyB0byBvbGRlciB0eXBlIG9mIHNlbnNvciBpMmMg
+Y29udHJvbC4gWW91IGNhbiByZWZlciB0byBJTVgyNTggZHJpdmVyLiAgDQpkcml2ZXJzL21lZGlh
+L2kyYy9pbXgyNTguYw0KDQovKiBXcml0ZSByZWdpc3RlcnMgdXAgdG8gMiBhdCBhIHRpbWUgKi8N
+CnN0YXRpYyBpbnQgaW14MjU4X3dyaXRlX3JlZyhzdHJ1Y3QgaW14MjU4ICppbXgyNTgsIHUxNiBy
+ZWcsIHUzMiBsZW4sIHUzMiB2YWwpDQp7DQogICAgICAgIHN0cnVjdCBpMmNfY2xpZW50ICpjbGll
+bnQgPSB2NGwyX2dldF9zdWJkZXZkYXRhKCZpbXgyNTgtPnNkKTsNCiAgICAgICAgdTggYnVmWzZd
+Ow0KDQogICAgICAgIGlmIChsZW4gPiA0KQ0KICAgICAgICAgICAgICAgIHJldHVybiAtRUlOVkFM
+Ow0KDQogICAgICAgIHB1dF91bmFsaWduZWRfYmUxNihyZWcsIGJ1Zik7DQogICAgICAgIHB1dF91
+bmFsaWduZWRfYmUzMih2YWwgPDwgKDggKiAoNCAtIGxlbikpLCBidWYgKyAyKTsNCiAgICAgICAg
+aWYgKGkyY19tYXN0ZXJfc2VuZChjbGllbnQsIGJ1ZiwgbGVuICsgMikgIT0gbGVuICsgMikNCiAg
+ICAgICAgICAgICAgICByZXR1cm4gLUVJTzsNCg0KICAgICAgICByZXR1cm4gMDsNCn0NCg0KUmVn
+YXJkcywgQW5keQ0KDQo+LS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj5Gcm9tOiBUb21hc3og
+RmlnYSBbbWFpbHRvOnRmaWdhQGNocm9taXVtLm9yZ10NCj5TZW50OiBUdWVzZGF5LCBKYW51YXJ5
+IDE1LCAyMDE5IDExOjIzIEFNDQo+VG86IEthbywgQmVuIDxiZW4ua2FvQGludGVsLmNvbT4NCj5D
+YzogTGludXggTWVkaWEgTWFpbGluZyBMaXN0IDxsaW51eC1tZWRpYUB2Z2VyLmtlcm5lbC5vcmc+
+OyBTYWthcmkgQWlsdXMNCj48c2FrYXJpLmFpbHVzQGxpbnV4LmludGVsLmNvbT47IFllaCwgQW5k
+eSA8YW5keS55ZWhAaW50ZWwuY29tPg0KPlN1YmplY3Q6IFJlOiBbUEFUQ0ggdjJdIG1lZGlhOiBv
+djg4NTY6IEFkZCBzdXBwb3J0IGZvciBPVjg4NTYgc2Vuc29yDQo+DQo+SGkgQmVuLA0KPg0KPk9u
+IEZyaSwgSmFuIDExLCAyMDE5IGF0IDEyOjEyIFBNIEJlbiBLYW8gPGJlbi5rYW9AaW50ZWwuY29t
+PiB3cm90ZToNCj4+DQo+PiBUaGlzIHBhdGNoIGFkZHMgZHJpdmVyIGZvciBPbW5pdmlzaW9uJ3Mg
+b3Y4ODU2IHNlbnNvciwgdGhlIGRyaXZlcg0KPj4gc3VwcG9ydHMgZm9sbG93aW5nIGZlYXR1cmVz
+Og0KPltzbmlwXQ0KPj4gK3N0YXRpYyBpbnQgb3Y4ODU2X3dyaXRlX3JlZyhzdHJ1Y3Qgb3Y4ODU2
+ICpvdjg4NTYsIHUxNiByZWcsIHUxNiBsZW4sDQo+PiArdTMyIF9fdmFsKSB7DQo+PiArICAgICAg
+IHN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQgPSB2NGwyX2dldF9zdWJkZXZkYXRhKCZvdjg4NTYt
+PnNkKTsNCj4+ICsgICAgICAgdW5zaWduZWQgaW50IGJ1Zl9pLCB2YWxfaTsNCj4+ICsgICAgICAg
+dTggYnVmWzZdOw0KPj4gKyAgICAgICB1OCAqdmFsX3A7DQo+PiArICAgICAgIF9fYmUzMiB2YWw7
+DQo+PiArDQo+PiArICAgICAgIGlmIChsZW4gPiA0KQ0KPj4gKyAgICAgICAgICAgICAgIHJldHVy
+biAtRUlOVkFMOw0KPj4gKw0KPj4gKyAgICAgICBidWZbMF0gPSByZWcgPj4gODsNCj4+ICsgICAg
+ICAgYnVmWzFdID0gcmVnICYgMHhmZjsNCj4NCj5UaGUgdHdvIGxpbmVzIGFib3ZlIGNhbiBiZSBz
+aW1wbGlmaWVkIGludG8gb25lIHB1dF91bmFsaWduZWRfYmUxNihyZWcsIGJ1Zik7DQo+DQo+PiAr
+DQo+PiArICAgICAgIHZhbCA9IGNwdV90b19iZTMyKF9fdmFsKTsNCj4+ICsgICAgICAgdmFsX3Ag
+PSAodTggKikmdmFsOw0KPj4gKyAgICAgICBidWZfaSA9IDI7DQo+PiArICAgICAgIHZhbF9pID0g
+NCAtIGxlbjsNCj4+ICsNCj4+ICsgICAgICAgd2hpbGUgKHZhbF9pIDwgNCkNCj4+ICsgICAgICAg
+ICAgICAgICBidWZbYnVmX2krK10gPSB2YWxfcFt2YWxfaSsrXTsNCj4NCj5BbGwgdGhlIGNvZGUg
+YWJvdmUgY2FuIGJlIHNpbXBsaWZpZWQgaW50bzoNCj4NCj52YWwgPDw9IDggKiAoNCAtIGxlbik7
+DQo+cHV0X3VuYWxpZ25lZF9iZTMyKHZhbCwgYnVmICsgMik7DQo+DQo+PiArDQo+PiArICAgICAg
+IGlmIChpMmNfbWFzdGVyX3NlbmQoY2xpZW50LCBidWYsIGxlbiArIDIpICE9IGxlbiArIDIpDQo+
+PiArICAgICAgICAgICAgICAgcmV0dXJuIC1FSU87DQo+PiArDQo+PiArICAgICAgIHJldHVybiAw
+Ow0KPj4gK30NCj4NCj5CZXN0IHJlZ2FyZHMsDQo+VG9tYXN6DQo=
