@@ -2,449 +2,164 @@ Return-Path: <SRS0=Ztfs=PX=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=FREEMAIL_FORGED_FROMDOMAIN,
-	FREEMAIL_FROM,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D448C43387
-	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 12:10:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B088BC43387
+	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 13:39:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BE9E220657
-	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 12:10:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7D58E20656
+	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 13:39:16 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="t1V0FTDO"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728887AbfAOMKI (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 15 Jan 2019 07:10:08 -0500
-Received: from lns-bzn-25-82-254-177-192.adsl.proxad.net ([82.254.177.192]:38799
-        "EHLO maze.fork.zz" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1727410AbfAOMKI (ORCPT
+        id S1729795AbfAONjQ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 15 Jan 2019 08:39:16 -0500
+Received: from mail-wm1-f52.google.com ([209.85.128.52]:35004 "EHLO
+        mail-wm1-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729294AbfAONjP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 Jan 2019 07:10:08 -0500
-Received: from blok.fork.zz (blok.fork.zz [192.168.0.7])
-        by maze.fork.zz (8.15.2/8.15.2) with ESMTPS id x0FCA2ws021230
-        (version=TLSv1.2 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Tue, 15 Jan 2019 13:10:03 +0100
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-        by blok.fork.zz (8.15.2/8.15.2) with ESMTP id x0FCA2AE006708;
-        Tue, 15 Jan 2019 13:10:02 +0100
-Subject: Re: [PATCH v5 1/1] media: rc: rcmm decoder
-To:     Sean Young <sean@mess.org>
-Cc:     linux-media@vger.kernel.org
-References: <c44581638d2525bc383a75413259f708@free.fr>
- <cover.1544231670.git.patrick9876@free.fr>
- <20181205002933.20870-1-patrick9876@free.fr>
- <20181205002933.20870-2-patrick9876@free.fr>
- <3a057647b40d9246aca4f64ee771594c32922974.1544175403.git.patrick9876@free.fr>
- <20181207101231.of7c3j67pcz7cetp@gofer.mess.org>
- <28f4bc366ebdb585a5b74a25dd1ee8a525e99884.1544231670.git.patrick9876@free.fr>
- <20190109112503.bnvbu4zz67y7xvdp@gofer.mess.org>
-From:   Patrick Lerda <patrick9876@free.fr>
-Message-ID: <cd633915-8882-cc61-9770-b8ce898098c2@free.fr>
-Date:   Tue, 15 Jan 2019 13:10:02 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:52.0) Gecko/20100101
- Firefox/52.0 SeaMonkey/2.49.4
+        Tue, 15 Jan 2019 08:39:15 -0500
+Received: by mail-wm1-f52.google.com with SMTP id t200so3271744wmt.0
+        for <linux-media@vger.kernel.org>; Tue, 15 Jan 2019 05:39:13 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc:content-transfer-encoding;
+        bh=i1Dz1DUNwUDcLO+KZY/1Cj05d5UcZeYtD0nxmdaxtlk=;
+        b=t1V0FTDOdCjhvx4FwbHndzUvVaLZXUYZmESFx4FvU11lOg93J/t3QPNfB5qLIZDEIc
+         Xmr0SI8RRABHFXTM5suCjkOv/U2PdNq9c/v6WBTZrK1uwBXs7czwNOG2qapESnCQCeNh
+         +ZLs+VOeTmVCoNLWTHSFWmMXuzPcOW/C8N8JMoC19yk97PQv5JNlUpp96jcPytxkGOyG
+         NjbUeL5SS5xQm1nvlLVGuPctCALklFFt2y012yN++9Vic06zGe3Pl89j9uZKSYADdowm
+         zj/Xh0SSX6J2sntqHj9AIYo6RedAnwX5VV/whyhvfbNKWSrtwdBw/uUWrbn5ZEYLn5KM
+         yRAw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=i1Dz1DUNwUDcLO+KZY/1Cj05d5UcZeYtD0nxmdaxtlk=;
+        b=GM+NWA2IADjEgtH8+W20K14syCW/HfQ3RvlzR4xAw/S84Ck56mt7PlFja6dhbWcC0T
+         BVtWN4rzVpPCdJrZQjq36vyzCifPFEL53yovc+RAZYgygXYOfKcajfm8o1tBVTgoL9QL
+         nHS30hukgVNYwePOdXwYQ48AMrefiIsd8gKuER1arQqYWcQ2yKlMfT1QayjrYh7ey3fE
+         ZuU/UUnZoBHI1l6NWdAbJyxOD8U6L38ecDLvBQrjd3X1rp6GqOQ4jqXyea2p1XMtM/NK
+         BcekGDW32LnTFC+lqYMbW/1b0yPtDs0NEhSuZrxhuubY5RZ5URa09y2028s6JIlC3UT8
+         G5JA==
+X-Gm-Message-State: AJcUukdFTImn26BCdHEtW0t8aC2CerKuT4U97g9lNMS2BTsGIj1kZRLW
+        VWrYYgjSAetjSQqhDnujZO54ri5rp6Of10EkuoM=
+X-Google-Smtp-Source: ALg8bN5FLDhenXBwVI86/31J+VnJDQcysFRqrYuVjn1ogT9+m1+dSP6DPmkMF2rWE1bTa5eO8e6YgKkSI6Fqmgp0JKg=
+X-Received: by 2002:a7b:c04e:: with SMTP id u14mr3502833wmc.113.1547559552855;
+ Tue, 15 Jan 2019 05:39:12 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <20190109112503.bnvbu4zz67y7xvdp@gofer.mess.org>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 8bit
+References: <CAL8zT=j79yQ2=RfE2zVhM0o4Cck1xKTo9oUG73kiAExDvQkt7w@mail.gmail.com>
+ <9e09aea4-79c7-dd6e-3f5b-60a410308280@gmail.com>
+In-Reply-To: <9e09aea4-79c7-dd6e-3f5b-60a410308280@gmail.com>
+From:   Jean-Michel Hautbois <jhautbois@gmail.com>
+Date:   Tue, 15 Jan 2019 14:39:01 +0100
+Message-ID: <CAL8zT=h6LLGUhJ391U6L4uSTEz0Ohij4uJP5bQbGAqTLtN3H_g@mail.gmail.com>
+Subject: Re: i.MX6 RAW8 format
+To:     Steve Longerbeam <slongerbeam@gmail.com>
+Cc:     Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Hans Verkuil <hans.verkuil@cisco.com>, sakari.ailus@iki.fi
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Sean,
+Hi Steve !
 
-     I have a new release adding all the features, but not really 
-tested. I will update the mailing list soon. Finding some time is not so 
-easy.
+Thanks for answering !
 
-Best Regards,
-Patrick Lerda.
+Le mar. 15 janv. 2019 =C3=A0 01:54, Steve Longerbeam
+<slongerbeam@gmail.com> a =C3=A9crit :
+>
+> Hi JM,
+>
+> On 1/14/19 1:52 AM, Jean-Michel Hautbois wrote:
+> > Hi,
+> >
+> > I am currently using an upstream kernel on a i.MX6 Quad board, and I
+> > have a strange issue.
+> > The device I am using is able to produce RGB888 MIPI data, or RAW8/RAW1=
+0.
+> > The MIPI data types are respectively 0x24, 0x2A and 0x2B.
+> > When I configure the device to produce RGB888 data, everything is
+> > fine, but when I configure it to produce RAW8 data, then the pattern
+> > is weird.
+> >
+> > I am sending the following pattern :
+> > 0x11 0x22 0x33 0x44 0x55 0x66 0x77 0x88 0x99 0xAA 0xBB 0xCC 0xDD 0xEE
+> > 0x11 0x22 0x33 0x44 0x55 0x66...
+> > And I get in a raw file :
+> > 0x11 0x22 0x33 0x44 0x55 0x66 0x77 0x88 0x33 0x44 0x55 0x66 0x77 0x88 0=
+x99 ...
+> > The resulting raw file has the correct size (ie. 1280x720 bytes).
+> >
+> > I could get a logic analyzer able to decode MIPI-CSI2 protocol, and on
+> > this side, the pattern is complete, no data is lost, and the Datatype
+> > is 0x2A.
+> > It really looks like an issue on the i.MX6 side.
+> >
+> > So, looking at it, I would say than for each 8 bytes captured, a jump
+> > of 8 bytes is done ?
+>
+> Sure looks that way.
+>
+> > The media-ctl is configured like this :
+> > media-ctl -l "'ds90ub954 2-0034':0 -> 'imx6-mipi-csi2':0[1]" -v
+> > media-ctl -l "'imx6-mipi-csi2':1 -> 'ipu1_csi0_mux':0[1]" -v
+> > media-ctl -l "'ipu1_csi0_mux':2 -> 'ipu1_csi0':0[1]" -v
+> > media-ctl -l "'ipu1_csi0':2 -> 'ipu1_csi0 capture':0[1]"
+> > media-ctl -V "'ds90ub954 2-0034':0 [fmt:SBGGR8_1X8/1280x720 field:none]=
+"
+> > media-ctl -V "'imx6-mipi-csi2':1 [fmt:SBGGR8_1X8/1280x720 field:none]"
+> > media-ctl -V "'ipu1_csi0_mux':2 [fmt:SBGGR8_1X8/1280x720 field:none]"
+> > media-ctl -V "'ipu1_csi0':2 [fmt:SBGGR8_1X8/1280x720 field:none]"
+> >
+> > The ds90ub954 driver I wrote is very dump and just used to give I=C2=B2=
+C
+> > access and configure the deserializer to produce the pattern.
+> > I also tried to use a camera, which produces RAW8 data, but the result
+> > is the same, I don't get all my bytes, at least, not in the correct
+> > order.
+> >
+> > And the command used to capture a file is :
+> > v4l2-ctl -d4 --set-fmt-video=3Dwidth=3D1280,height=3D720,pixelformat=3D=
+BA81
+> > --stream-mmap --stream-count=3D1 --stream-to=3D/root/cam.raw
+> >
+> > I can send the raw file if it is needed.
+> > I tried several configurations, changing the number of lanes, the
+> > frequency, etc. but I have the same behaviour.
+> >
+> > So, I am right now stuck with this, as I can't see anything which
+> > could explain this. IC burst ? Something else ?
+>
+> The problem couldn't be IC burst size as the IC isn't involved in this
+> pipeline.
 
-Sean Young wrote:
-> Hi Patrick,
->
-> On Sat, Dec 08, 2018 at 02:18:05AM +0100, Patrick Lerda wrote:
->> media: add support for RCMM infrared remote controls.
->>
->> Signed-off-by: Patrick Lerda <patrick9876@free.fr>
-> Sorry about the delay in getting this reviewed. December was a very
-> busy month for me.
->
->> ---
->>   MAINTAINERS                        |   5 +
->>   drivers/media/rc/Kconfig           |   7 ++
->>   drivers/media/rc/Makefile          |   1 +
->>   drivers/media/rc/ir-rcmm-decoder.c | 164 +++++++++++++++++++++++++++++
->>   drivers/media/rc/rc-core-priv.h    |   5 +
->>   drivers/media/rc/rc-main.c         |   3 +
->>   include/media/rc-map.h             |   6 +-
->>   include/uapi/linux/lirc.h          |   2 +
->>   tools/include/uapi/linux/lirc.h    |   2 +
->>   9 files changed, 193 insertions(+), 2 deletions(-)
->>   create mode 100644 drivers/media/rc/ir-rcmm-decoder.c
->>
->> diff --git a/MAINTAINERS b/MAINTAINERS
->> index 3e9f1710ed13..80426d1faaba 100644
->> --- a/MAINTAINERS
->> +++ b/MAINTAINERS
->> @@ -16277,6 +16277,11 @@ M:	David Härdeman <david@hardeman.nu>
->>   S:	Maintained
->>   F:	drivers/media/rc/winbond-cir.c
->>   
->> +RCMM REMOTE CONTROLS DECODER
->> +M:	Patrick Lerda <patrick9876@free.fr>
->> +S:	Maintained
->> +F:	drivers/media/rc/ir-rcmm-decoder.c
->> +
->>   WINSYSTEMS EBC-C384 WATCHDOG DRIVER
->>   M:	William Breathitt Gray <vilhelm.gray@gmail.com>
->>   L:	linux-watchdog@vger.kernel.org
->> diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
->> index 8a216068a35a..43775ac74268 100644
->> --- a/drivers/media/rc/Kconfig
->> +++ b/drivers/media/rc/Kconfig
->> @@ -133,6 +133,13 @@ config IR_IMON_DECODER
->>   	   remote control and you would like to use it with a raw IR
->>   	   receiver, or if you wish to use an encoder to transmit this IR.
->>   
->> +config IR_RCMM_DECODER
->> +	tristate "Enable IR raw decoder for the RC-MM protocol"
->> +	depends on RC_CORE
->> +	help
->> +	   Enable this option if you have IR with RC-MM protocol, and
->> +	   if the IR is decoded in software
-> checkpatch.pl --strict complains it wants a longer explanation here.
->
->> +
->>   endif #RC_DECODERS
->>   
->>   menuconfig RC_DEVICES
->> diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
->> index 92c163816849..48d23433b3c0 100644
->> --- a/drivers/media/rc/Makefile
->> +++ b/drivers/media/rc/Makefile
->> @@ -16,6 +16,7 @@ obj-$(CONFIG_IR_SHARP_DECODER) += ir-sharp-decoder.o
->>   obj-$(CONFIG_IR_MCE_KBD_DECODER) += ir-mce_kbd-decoder.o
->>   obj-$(CONFIG_IR_XMP_DECODER) += ir-xmp-decoder.o
->>   obj-$(CONFIG_IR_IMON_DECODER) += ir-imon-decoder.o
->> +obj-$(CONFIG_IR_RCMM_DECODER) += ir-rcmm-decoder.o
->>   
->>   # stand-alone IR receivers/transmitters
->>   obj-$(CONFIG_RC_ATI_REMOTE) += ati_remote.o
->> diff --git a/drivers/media/rc/ir-rcmm-decoder.c b/drivers/media/rc/ir-rcmm-decoder.c
->> new file mode 100644
->> index 000000000000..a3c09885da5f
->> --- /dev/null
->> +++ b/drivers/media/rc/ir-rcmm-decoder.c
->> @@ -0,0 +1,164 @@
->> +// SPDX-License-Identifier: GPL-2.0+
->> +// ir-rcmm-decoder.c - A decoder for the RCMM IR protocol
->> +//
->> +// Copyright (C) 2018 by Patrick Lerda <patrick9876@free.fr>
->> +
->> +#include "rc-core-priv.h"
->> +#include <linux/module.h>
->> +#include <linux/version.h>
->> +
->> +#define RCMM_UNIT		166667	/* nanosecs */
->> +#define RCMM_PREFIX_PULSE	416666  /* 166666.666666666*2.5 */
->> +#define RCMM_PULSE_0            277777  /* 166666.666666666*(1+2/3) */
->> +#define RCMM_PULSE_1            444444  /* 166666.666666666*(2+2/3) */
->> +#define RCMM_PULSE_2            611111  /* 166666.666666666*(3+2/3) */
->> +#define RCMM_PULSE_3            777778  /* 166666.666666666*(4+2/3) */
->> +
->> +enum rcmm_state {
->> +	STATE_INACTIVE,
->> +	STATE_LOW,
->> +	STATE_BUMP,
->> +	STATE_VALUE,
->> +	STATE_FINISHED,
->> +};
->> +
->> +static bool rcmm_mode(struct rcmm_dec *data)
->> +{
->> +	return !((0x000c0000 & data->bits) == 0x000c0000);
->> +}
->> +
->> +/**
->> + * ir_rcmm_decode() - Decode one RCMM pulse or space
->> + * @dev:	the struct rc_dev descriptor of the device
->> + * @ev:		the struct ir_raw_event descriptor of the pulse/space
->> + *
->> + * This function returns -EINVAL if the pulse violates the state machine
->> + */
->> +static int ir_rcmm_decode(struct rc_dev *dev, struct ir_raw_event ev)
->> +{
->> +	struct rcmm_dec *data = &dev->raw->rcmm;
->> +	u32 scancode;
->> +	u8 toggle;
->> +	int value;
->> +
->> +	if (!(dev->enabled_protocols & RC_PROTO_BIT_RCMM))
->> +		return 0;
->> +
->> +	if (!is_timing_event(ev)) {
->> +		if (ev.reset)
->> +			data->state = STATE_INACTIVE;
->> +		return 0;
->> +	}
->> +
->> +	if (ev.duration > RCMM_PULSE_3 + RCMM_UNIT)
->> +		goto out;
->> +
->> +	switch (data->state) {
->> +	case STATE_INACTIVE:
->> +		if (!ev.pulse)
->> +			break;
->> +
->> +		if (!eq_margin(ev.duration, RCMM_PREFIX_PULSE, RCMM_UNIT / 2))
->> +			break;
->> +
->> +		data->state = STATE_LOW;
->> +		data->count = 0;
->> +		data->bits  = 0;
->> +		return 0;
->> +
->> +	case STATE_LOW:
->> +		if (ev.pulse)
->> +			break;
->> +
->> +		if (!eq_margin(ev.duration, RCMM_PULSE_0, RCMM_UNIT / 2))
->> +			break;
->> +
->> +		data->state = STATE_BUMP;
->> +		return 0;
->> +
->> +	case STATE_BUMP:
->> +		if (!ev.pulse)
->> +			break;
->> +
->> +		if (!eq_margin(ev.duration, RCMM_UNIT, RCMM_UNIT / 2))
->> +			break;
->> +
->> +		data->state = STATE_VALUE;
->> +		return 0;
->> +
->> +	case STATE_VALUE:
->> +		if (ev.pulse)
->> +			break;
->> +
->> +		if (eq_margin(ev.duration, RCMM_PULSE_0, RCMM_UNIT / 2))
->> +			value = 0;
->> +		else if (eq_margin(ev.duration, RCMM_PULSE_1, RCMM_UNIT / 2))
->> +			value = 1;
->> +		else if (eq_margin(ev.duration, RCMM_PULSE_2, RCMM_UNIT / 2))
->> +			value = 2;
->> +		else if (eq_margin(ev.duration, RCMM_PULSE_3, RCMM_UNIT / 2))
->> +			value = 3;
->> +		else
->> +			break;
->> +
->> +		data->bits <<= 2;
->> +		data->bits |= value;
->> +
->> +		data->count += 2;
->> +
->> +		if (data->count < 32)
->> +			data->state = STATE_BUMP;
->> +		else
->> +			data->state = STATE_FINISHED;
-> Your rcmm implementation only supports the 32 bits variant. There are
-> other bit lengths; lirc supports 12 bits for example:
->
-> http://lirc.sourceforge.net/remotes/philips/KW-1009-01
->
-> 24 bits also possible according to:
->
-> https://www.sbprojects.net/knowledge/ir/rcmm.php
->
-> Now there is nothing wrong with just supporting 32 bits, but I think
-> the name should make that clear, so that if we ever need to add order
-> bit length variants, we can do so without it ending up messy.
->
-> So we should call it rcmm-32, I think.
->
->> +
->> +		return 0;
->> +
->> +	case STATE_FINISHED:
->> +		if (!ev.pulse)
->> +			break;
->> +
->> +		if (!eq_margin(ev.duration, RCMM_UNIT, RCMM_UNIT / 2))
->> +			break;
->> +
->> +		if (rcmm_mode(data)) {
->> +			toggle = !!(0x8000 & data->bits);
->> +			scancode = data->bits & ~0x8000;
->> +		} else {
->> +			toggle = 0;
->> +			scancode = data->bits;
->> +		}
->> +
->> +		rc_keydown(dev, RC_PROTO_RCMM, scancode, toggle);
->> +		data->state = STATE_INACTIVE;
->> +		return 0;
->> +	}
->> +
->> +out:
->> +	data->state = STATE_INACTIVE;
->> +	return -EINVAL;
->> +}
->> +
->> +static struct ir_raw_handler rcmm_handler = {
->> +	.protocols	= RC_PROTO_BIT_RCMM,
->> +	.decode		= ir_rcmm_decode,
-> Again an encoder would be great. This is not only useful for transmission
-> but also for self-testing. We now have a self-test in the kernel tree
-> for this. Just nice to have of course.
->
->> +};
->> +
->> +static int __init ir_rcmm_decode_init(void)
->> +{
->> +	ir_raw_handler_register(&rcmm_handler);
->> +
->> +	pr_info("IR RCMM protocol handler initialized\n");
->> +	return 0;
->> +}
->> +
->> +static void __exit ir_rcmm_decode_exit(void)
->> +{
->> +	ir_raw_handler_unregister(&rcmm_handler);
->> +}
->> +
->> +module_init(ir_rcmm_decode_init);
->> +module_exit(ir_rcmm_decode_exit);
->> +
->> +MODULE_LICENSE("GPL");
->> +MODULE_AUTHOR("Patrick Lerda");
->> +MODULE_DESCRIPTION("RCMM IR protocol decoder");
->> diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
->> index c2cbe7f6266c..2266f61f887f 100644
->> --- a/drivers/media/rc/rc-core-priv.h
->> +++ b/drivers/media/rc/rc-core-priv.h
->> @@ -131,6 +131,11 @@ struct ir_raw_event_ctrl {
->>   		unsigned int bits;
->>   		bool stick_keyboard;
->>   	} imon;
->> +	struct rcmm_dec {
->> +		int state;
->> +		unsigned int count;
->> +		u64 bits;
-> bits can be u32.
->
->> +	} rcmm;
->>   };
->>   
->>   /* Mutex for locking raw IR processing and handler change */
->> diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
->> index 66a174979b3c..7df40578dac0 100644
->> --- a/drivers/media/rc/rc-main.c
->> +++ b/drivers/media/rc/rc-main.c
->> @@ -70,6 +70,8 @@ static const struct {
->>   	[RC_PROTO_CEC] = { .name = "cec", .repeat_period = 0 },
->>   	[RC_PROTO_IMON] = { .name = "imon",
->>   		.scancode_bits = 0x7fffffff, .repeat_period = 114 },
->> +	[RC_PROTO_RCMM] = { .name = "rcmm",
->> +		.scancode_bits = 0xffffffff, .repeat_period = 114 },
-> So I think this should be:
->
-> 	[RC_PROTO_RCMM_32] = { .name = "rcmm-32",
->
->>   };
->>   
->>   /* Used to keep track of known keymaps */
->> @@ -1006,6 +1008,7 @@ static const struct {
->>   	{ RC_PROTO_BIT_XMP,	"xmp",		"ir-xmp-decoder"	},
->>   	{ RC_PROTO_BIT_CEC,	"cec",		NULL			},
->>   	{ RC_PROTO_BIT_IMON,	"imon",		"ir-imon-decoder"	},
->> +	{ RC_PROTO_BIT_RCMM,	"rcmm",		"ir-rcmm-decoder"	},
-> Same here.
->
->>   };
->>   
->>   /**
->> diff --git a/include/media/rc-map.h b/include/media/rc-map.h
->> index d621acadfbf3..ff5e3b002f91 100644
->> --- a/include/media/rc-map.h
->> +++ b/include/media/rc-map.h
->> @@ -37,6 +37,7 @@
->>   #define RC_PROTO_BIT_XMP		BIT_ULL(RC_PROTO_XMP)
->>   #define RC_PROTO_BIT_CEC		BIT_ULL(RC_PROTO_CEC)
->>   #define RC_PROTO_BIT_IMON		BIT_ULL(RC_PROTO_IMON)
->> +#define RC_PROTO_BIT_RCMM		BIT_ULL(RC_PROTO_RCMM)
->>   
->>   #define RC_PROTO_BIT_ALL \
->>   			(RC_PROTO_BIT_UNKNOWN | RC_PROTO_BIT_OTHER | \
->> @@ -51,7 +52,7 @@
->>   			 RC_PROTO_BIT_RC6_6A_24 | RC_PROTO_BIT_RC6_6A_32 | \
->>   			 RC_PROTO_BIT_RC6_MCE | RC_PROTO_BIT_SHARP | \
->>   			 RC_PROTO_BIT_XMP | RC_PROTO_BIT_CEC | \
->> -			 RC_PROTO_BIT_IMON)
->> +			 RC_PROTO_BIT_IMON | RC_PROTO_BIT_RCMM)
->>   /* All rc protocols for which we have decoders */
->>   #define RC_PROTO_BIT_ALL_IR_DECODER \
->>   			(RC_PROTO_BIT_RC5 | RC_PROTO_BIT_RC5X_20 | \
->> @@ -64,7 +65,8 @@
->>   			 RC_PROTO_BIT_RC6_0 | RC_PROTO_BIT_RC6_6A_20 | \
->>   			 RC_PROTO_BIT_RC6_6A_24 |  RC_PROTO_BIT_RC6_6A_32 | \
->>   			 RC_PROTO_BIT_RC6_MCE | RC_PROTO_BIT_SHARP | \
->> -			 RC_PROTO_BIT_XMP | RC_PROTO_BIT_IMON)
->> +			 RC_PROTO_BIT_XMP | RC_PROTO_BIT_IMON | \
->> +			 RC_PROTO_BIT_RCMM)
->>   
->>   #define RC_PROTO_BIT_ALL_IR_ENCODER \
->>   			(RC_PROTO_BIT_RC5 | RC_PROTO_BIT_RC5X_20 | \
->> diff --git a/include/uapi/linux/lirc.h b/include/uapi/linux/lirc.h
->> index 6b319581882f..56106ccea2cb 100644
->> --- a/include/uapi/linux/lirc.h
->> +++ b/include/uapi/linux/lirc.h
->> @@ -192,6 +192,7 @@ struct lirc_scancode {
->>    * @RC_PROTO_XMP: XMP protocol
->>    * @RC_PROTO_CEC: CEC protocol
->>    * @RC_PROTO_IMON: iMon Pad protocol
->> + * @RC_PROTO_RCMM: RC-MM protocol
->>    */
->>   enum rc_proto {
->>   	RC_PROTO_UNKNOWN	= 0,
->> @@ -218,6 +219,7 @@ enum rc_proto {
->>   	RC_PROTO_XMP		= 21,
->>   	RC_PROTO_CEC		= 22,
->>   	RC_PROTO_IMON		= 23,
->> +	RC_PROTO_RCMM		= 24,
->>   };
->>   
->>   #endif
->> diff --git a/tools/include/uapi/linux/lirc.h b/tools/include/uapi/linux/lirc.h
->> index f189931042a7..c1e5850c56e1 100644
->> --- a/tools/include/uapi/linux/lirc.h
->> +++ b/tools/include/uapi/linux/lirc.h
->> @@ -186,6 +186,7 @@ struct lirc_scancode {
->>    * @RC_PROTO_XMP: XMP protocol
->>    * @RC_PROTO_CEC: CEC protocol
->>    * @RC_PROTO_IMON: iMon Pad protocol
->> + * @RC_PROTO_RCMM: RC-MM protocol
->>    */
->>   enum rc_proto {
->>   	RC_PROTO_UNKNOWN	= 0,
->> @@ -212,6 +213,7 @@ enum rc_proto {
->>   	RC_PROTO_XMP		= 21,
->>   	RC_PROTO_CEC		= 22,
->>   	RC_PROTO_IMON		= 23,
->> +	RC_PROTO_RCMM		= 24,
->>   };
->>   
->>   #endif
->> -- 
->> 2.19.2
-> Again sorry for getting a timely review done. Unfortunately we had
-> already missed the 4.21/5.0 deadline so was not going to make it to
-> that release.
->
-> Thanks,
->
-> Sean
->
+You are right, and in fact I was thinking of IDMAC while writing :s
 
+> One way I see this happening is that the IDMA channel burst writes 16
+> bytes to memory (so that the channel's read pointer advances by 16
+> bytes), but somehow the channel's write pointer has only advanced by 8
+> bytes.
+>
+> I don't know how that could happen, but you might try reverting
+>
+> 37ea9830139b3 ("media: imx-csi: fix burst size")
+
+It is the correct issue, but what I didn't mention is that I was on a
+4.14, and not the most recent, and burst_size is set to 8.
+The commit 37ea9830139b3 has been introduced later, and so I didn't have it=
+...
+
+The commit is not explicit though, as it mentions IMX219 and not i.MX6.
+But it works with 16 ;).
+
+Thanks,
+JM
