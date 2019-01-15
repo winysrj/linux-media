@@ -2,186 +2,251 @@ Return-Path: <SRS0=Ztfs=PX=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.0 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 65EEDC43387
-	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 21:58:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 18E56C43612
+	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 22:03:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2641220866
-	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 21:58:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D360120866
+	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 22:03:16 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gateworks-com.20150623.gappssmtp.com header.i=@gateworks-com.20150623.gappssmtp.com header.b="xPdDuYwJ"
+	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="gh2KUgQq"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1733284AbfAOV6d (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 15 Jan 2019 16:58:33 -0500
-Received: from mail-wr1-f68.google.com ([209.85.221.68]:34988 "EHLO
-        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730622AbfAOV6c (ORCPT
+        id S1733161AbfAOWDQ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 15 Jan 2019 17:03:16 -0500
+Received: from perceval.ideasonboard.com ([213.167.242.64]:48648 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729068AbfAOWDP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 Jan 2019 16:58:32 -0500
-Received: by mail-wr1-f68.google.com with SMTP id 96so4748738wrb.2
-        for <linux-media@vger.kernel.org>; Tue, 15 Jan 2019 13:58:31 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gateworks-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=0zQGRhHmuQ24eZyF94rspF5Sd1MCXdctQKXRkMo0+80=;
-        b=xPdDuYwJ4Z0FE3P8gDiR8Y1Lyw9aUsJXSDXAGlT8CdbUWBNRcuJg3Ee1d3i/CvXfk9
-         byoqLaBV5HDtebbAbCT+7unmByVHJgCyDg7OjmB06LpugPuMtpUmNGSV2hHtf+abqRd1
-         ef9PJgG32lSvpaA9hfnXnVGwTA1/9jZMiEWi6MQzQtQnwagRPrPlk7CXoPiRmVisTAIm
-         7jsAiypuVPBW1bV48HU1smwLiULqcYNSbwAF8IqudJgnhD8yVdUZd6naREGYz0ApaG3p
-         wjgX6tOr1fOuH5SWqm/i1p4b/6qjToKUZ8eJbE66SujoVioZGBEBm7IKTlnW2/ZNBRRv
-         0U4Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=0zQGRhHmuQ24eZyF94rspF5Sd1MCXdctQKXRkMo0+80=;
-        b=kFccZe0mtZv523NoK0EJkRx0ep4dS/kZ5q2xM3i/TKQ7/6tWNbt0927ZrZukJzAo5q
-         KRQX6yMhbEBfM3/ZMlZJDflZMO9+WiDRowokkuIeyNQdOfVSsinkXyE5DvbNwhxMi0Vo
-         t6jAuHr6DsfZLeVfymWixvhYcwE54F5hDYo4bexhE4V4mBtSFG1xFiICj2YGe7lhKRJF
-         Fo6I9wa6by2EnQ3q0rkiW+tEFCS+p7UyXkz/QDzi3eRbDpH8urhrc+yVPjxdAUgXb98Y
-         +NwqE7DGpcohQRP/znMjREv9wGcvmmZgfF2mBPiZBKOoQZVZh9U9+IAbr0A7XiUJiidr
-         Jp4w==
-X-Gm-Message-State: AJcUukeEWaEcdqeaiG2QvAGbMJTx1dSw3ErtaSDBPni0zXsSxNieZWaN
-        pVqZm9MqqjL/Jjm2uUNEMPIkVrcbKewbygZaPluHWg==
-X-Google-Smtp-Source: ALg8bN7izRK1RAwjh3wHK604mMpAbyMWJWyPtNT8NZ5P7S7nZZhQxZk/tFnbv4AdnXOkMBF1HABlhHScaGHpE5EDIaE=
-X-Received: by 2002:a05:6000:108d:: with SMTP id y13mr4653891wrw.135.1547589510093;
- Tue, 15 Jan 2019 13:58:30 -0800 (PST)
+        Tue, 15 Jan 2019 17:03:15 -0500
+Received: from pendragon.ideasonboard.com (dfj612yhrgyx302h3jwwy-3.rev.dnainternet.fi [IPv6:2001:14ba:21f5:5b00:ce28:277f:58d7:3ca4])
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id F28FF530;
+        Tue, 15 Jan 2019 23:03:12 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
+        s=mail; t=1547589793;
+        bh=opU4mOxvqAyjSJ2NFoPpRDxzzlmyBs/9lruQk+UbQAI=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=gh2KUgQqTajVccmN7+UFL9FufjcO20dmeFsuiszEz/AkOYdbTMgWpjKT5GI7B0B47
+         nMtvktr6MZ0LBpT/rEe3iO7+l5pR2qJl4aQIFKWTcgTYEbJbD9pV6JaeqvOfFo/Vb9
+         ktIjjOHzPf8DblFB0Qiw+IqotJr5eqy+S7n5A1fo=
+Date:   Wed, 16 Jan 2019 00:03:13 +0200
+From:   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To:     Niklas =?iso-8859-1?Q?S=F6derlund?= 
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc:     Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Benoit Parrot <bparrot@ti.com>, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH v2 02/30] media: entity: Use pads instead of entities in
+ the media graph walk stack
+Message-ID: <20190115220313.GB28397@pendragon.ideasonboard.com>
+References: <20181101233144.31507-1-niklas.soderlund+renesas@ragnatech.se>
+ <20181101233144.31507-3-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-References: <20190109183014.20466-1-slongerbeam@gmail.com> <20190109183014.20466-12-slongerbeam@gmail.com>
-In-Reply-To: <20190109183014.20466-12-slongerbeam@gmail.com>
-From:   Tim Harvey <tharvey@gateworks.com>
-Date:   Tue, 15 Jan 2019 13:58:19 -0800
-Message-ID: <CAJ+vNU1r86n1=9gKDw-bTO0sWJL7NMjZcdKMQO23a+WOR1H9tw@mail.gmail.com>
-Subject: Re: [PATCH v8 11/11] media: imx.rst: Update doc to reflect fixes to
- interlaced capture
-To:     Steve Longerbeam <slongerbeam@gmail.com>
-Cc:     linux-media <linux-media@vger.kernel.org>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        open list <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20181101233144.31507-3-niklas.soderlund+renesas@ragnatech.se>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Wed, Jan 9, 2019 at 10:30 AM Steve Longerbeam <slongerbeam@gmail.com> wrote:
->
-> Also add an example pipeline for unconverted capture with interweave
-> on SabreAuto.
->
-> Cleanup some language in various places in the process.
->
-> Signed-off-by: Steve Longerbeam <slongerbeam@gmail.com>
-> Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
+Hi Niklas,
+
+Thank you for the patch.
+
+On Fri, Nov 02, 2018 at 12:31:16AM +0100, Niklas Söderlund wrote:
+> From: Sakari Ailus <sakari.ailus@linux.intel.com>
+> 
+> Change the media graph walk stack structure to use media pads instead of
+> using media entities. In addition to the entity, the pad contains the
+> information which pad in the entity are being dealt with.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 > ---
-> Changes since v4:
-> - Make clear that it is IDMAC channel that does pixel reordering and
->   interweave, not the CSI. Caught by Philipp Zabel.
-> Changes since v3:
-> - none.
-> Changes since v2:
-> - expand on idmac interweave behavior in CSI subdev.
-> - switch second SabreAuto pipeline example to PAL to give
->   both NTSC and PAL examples.
-> - Cleanup some language in various places.
-> ---
->  Documentation/media/v4l-drivers/imx.rst | 103 +++++++++++++++---------
->  1 file changed, 66 insertions(+), 37 deletions(-)
->
-<snip>
->  Capture Pipelines
->  -----------------
-> @@ -516,10 +522,33 @@ On the SabreAuto, an on-board ADV7180 SD decoder is connected to the
->  parallel bus input on the internal video mux to IPU1 CSI0.
->
->  The following example configures a pipeline to capture from the ADV7180
-> -video decoder, assuming NTSC 720x480 input signals, with Motion
-> -Compensated de-interlacing. Pad field types assume the adv7180 outputs
-> -"interlaced". $outputfmt can be any format supported by the ipu1_ic_prpvf
-> -entity at its output pad:
-> +video decoder, assuming NTSC 720x480 input signals, using simple
-> +interweave (unconverted and without motion compensation). The adv7180
-> +must output sequential or alternating fields (field type 'seq-bt' for
-> +NTSC, or 'alternate'):
-> +
-> +.. code-block:: none
-> +
-> +   # Setup links
-> +   media-ctl -l "'adv7180 3-0021':0 -> 'ipu1_csi0_mux':1[1]"
-> +   media-ctl -l "'ipu1_csi0_mux':2 -> 'ipu1_csi0':0[1]"
-> +   media-ctl -l "'ipu1_csi0':2 -> 'ipu1_csi0 capture':0[1]"
-> +   # Configure pads
-> +   media-ctl -V "'adv7180 3-0021':0 [fmt:UYVY2X8/720x480 field:seq-bt]"
-> +   media-ctl -V "'ipu1_csi0_mux':2 [fmt:UYVY2X8/720x480]"
-> +   media-ctl -V "'ipu1_csi0':2 [fmt:AYUV32/720x480]"
-> +   # Configure "ipu1_csi0 capture" interface (assumed at /dev/video4)
-> +   v4l2-ctl -d4 --set-fmt-video=field=interlaced_bt
-> +
-> +Streaming can then begin on /dev/video4. The v4l2-ctl tool can also be
-> +used to select any supported YUV pixelformat on /dev/video4.
-> +
+>  drivers/media/media-entity.c | 53 ++++++++++++++++++------------------
+>  include/media/media-entity.h |  6 ++--
+>  2 files changed, 29 insertions(+), 30 deletions(-)
+> 
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index 2bbc07de71aa5e6d..892e64a0a9d8ec42 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -237,40 +237,39 @@ EXPORT_SYMBOL_GPL(media_entity_pads_init);
+>   * Graph traversal
+>   */
+>  
+> -static struct media_entity *
+> -media_entity_other(struct media_entity *entity, struct media_link *link)
+> +static struct media_pad *
+> +media_entity_other(struct media_pad *pad, struct media_link *link)
+>  {
+> -	if (link->source->entity == entity)
+> -		return link->sink->entity;
+> +	if (link->source == pad)
+> +		return link->sink;
+>  	else
+> -		return link->source->entity;
+> +		return link->source;
+>  }
+>  
+>  /* push an entity to traversal stack */
+> -static void stack_push(struct media_graph *graph,
+> -		       struct media_entity *entity)
+> +static void stack_push(struct media_graph *graph, struct media_pad *pad)
+>  {
+>  	if (graph->top == MEDIA_ENTITY_ENUM_MAX_DEPTH - 1) {
+>  		WARN_ON(1);
+>  		return;
+>  	}
+>  	graph->top++;
+> -	graph->stack[graph->top].link = entity->links.next;
+> -	graph->stack[graph->top].entity = entity;
+> +	graph->stack[graph->top].link = pad->entity->links.next;
+> +	graph->stack[graph->top].pad = pad;
+>  }
+>  
+> -static struct media_entity *stack_pop(struct media_graph *graph)
+> +static struct media_pad *stack_pop(struct media_graph *graph)
+>  {
+> -	struct media_entity *entity;
+> +	struct media_pad *pad;
+>  
+> -	entity = graph->stack[graph->top].entity;
+> +	pad = graph->stack[graph->top].pad;
+>  	graph->top--;
+>  
+> -	return entity;
+> +	return pad;
+>  }
+>  
+>  #define link_top(en)	((en)->stack[(en)->top].link)
+> -#define stack_top(en)	((en)->stack[(en)->top].entity)
+> +#define stack_top(en)	((en)->stack[(en)->top].pad)
+>  
+>  /**
+>   * media_graph_walk_init - Allocate resources for graph walk
+> @@ -306,8 +305,8 @@ void media_graph_walk_start(struct media_graph *graph, struct media_pad *pad)
+>  	media_entity_enum_set(&graph->ent_enum, pad->entity);
+>  
+>  	graph->top = 0;
+> -	graph->stack[graph->top].entity = NULL;
+> -	stack_push(graph, pad->entity);
+> +	graph->stack[graph->top].pad = NULL;
+> +	stack_push(graph, pad);
+>  	dev_dbg(pad->graph_obj.mdev->dev,
+>  		"begin graph walk at '%s':%u\n", pad->entity->name, pad->index);
+>  }
+> @@ -315,16 +314,16 @@ EXPORT_SYMBOL_GPL(media_graph_walk_start);
+>  
+>  static void media_graph_walk_iter(struct media_graph *graph)
+>  {
+> -	struct media_entity *entity = stack_top(graph);
+> +	struct media_pad *pad = stack_top(graph);
+>  	struct media_link *link;
+> -	struct media_entity *next;
+> +	struct media_pad *next;
+>  
+>  	link = list_entry(link_top(graph), typeof(*link), list);
+>  
+>  	/* The link is not enabled so we do not follow. */
+>  	if (!(link->flags & MEDIA_LNK_FL_ENABLED)) {
+>  		link_top(graph) = link_top(graph)->next;
+> -		dev_dbg(entity->graph_obj.mdev->dev,
+> +		dev_dbg(pad->graph_obj.mdev->dev,
+>  			"walk: skipping disabled link '%s':%u -> '%s':%u\n",
+>  			link->source->entity->name, link->source->index,
+>  			link->sink->entity->name, link->sink->index);
+> @@ -332,22 +331,22 @@ static void media_graph_walk_iter(struct media_graph *graph)
+>  	}
+>  
+>  	/* Get the entity in the other end of the link . */
 
-Hi Steve,
+s/entity/pad/
 
-I'm testing 4.20 with this patchset on top.
+> -	next = media_entity_other(entity, link);
+> +	next = media_entity_other(pad, link);
+>  
+>  	/* Has the entity already been visited? */
 
-I'm on a GW5104 which has an IMX6Q with the adv7180 on ipu1_csi0 like
-the SabeAuto example above I can't get the simple interveave example
-to work:
+s/entity/pad's entity/
 
-media-ctl -r # reset all links
-# Setup links (ADV7180 IPU1_CSI0)
-media-ctl -l '"adv7180 2-0020":0 -> "ipu1_csi0_mux":1[1]'
-media-ctl -l '"ipu1_csi0_mux":2 -> "ipu1_csi0":0[1]'
-media-ctl -l '"ipu1_csi0":2 -> "ipu1_csi0 capture":0[1]' # /dev/video4
-# Configure pads
-media-ctl -V "'adv7180 2-0020':0 [fmt:UYVY2X8/720x480 field:seq-bt]"
-media-ctl -V "'ipu1_csi0_mux':2 [fmt:UYVY2X8/720x480]"
-media-ctl -V "'ipu1_csi0':0 [fmt:AYUV32/720x480]"
-# Configure 'ipu1_csi0 capture' interface (/dev/video4)
-v4l2-ctl -d4 --set-fmt-video=field=interlaced_bt
-# streaming can now begin on the raw capture device node at /dev/video4
-v4l2-ctl -d4 --stream-mmap --stream-to=/x.raw --stream-count=1 # capture 1 frame
-[ 5547.354460] ipu1_csi0: pipeline start failed with -32
-VIDIOC_STREAMON: failed: Broken pipe
+> -	if (media_entity_enum_test_and_set(&graph->ent_enum, next)) {
+> +	if (media_entity_enum_test_and_set(&graph->ent_enum, next->entity)) {
+>  		link_top(graph) = link_top(graph)->next;
+> -		dev_dbg(entity->graph_obj.mdev->dev,
+> +		dev_dbg(pad->graph_obj.mdev->dev,
+>  			"walk: skipping entity '%s' (already seen)\n",
+> -			next->name);
+> +			next->entity->name);
+>  		return;
+>  	}
+>  
+>  	/* Push the new entity to stack and start over. */
 
-Any ideas what is causing this pipeline failure.
+s/entity/pad/
 
-> +This example configures a pipeline to capture from the ADV7180
-> +video decoder, assuming PAL 720x576 input signals, with Motion
-> +Compensated de-interlacing. The adv7180 must output sequential or
-> +alternating fields (field type 'seq-tb' for PAL, or 'alternate').
-> +$outputfmt can be any format supported by the ipu1_ic_prpvf entity
-> +at its output pad:
->
->  .. code-block:: none
->
-> @@ -531,11 +560,11 @@ entity at its output pad:
->     media-ctl -l "'ipu1_ic_prp':2 -> 'ipu1_ic_prpvf':0[1]"
->     media-ctl -l "'ipu1_ic_prpvf':1 -> 'ipu1_ic_prpvf capture':0[1]"
->     # Configure pads
-> -   media-ctl -V "'adv7180 3-0021':0 [fmt:UYVY2X8/720x480]"
-> -   media-ctl -V "'ipu1_csi0_mux':2 [fmt:UYVY2X8/720x480 field:interlaced]"
-> -   media-ctl -V "'ipu1_csi0':1 [fmt:AYUV32/720x480 field:interlaced]"
-> -   media-ctl -V "'ipu1_vdic':2 [fmt:AYUV32/720x480 field:none]"
-> -   media-ctl -V "'ipu1_ic_prp':2 [fmt:AYUV32/720x480 field:none]"
-> +   media-ctl -V "'adv7180 3-0021':0 [fmt:UYVY2X8/720x576 field:seq-tb]"
-> +   media-ctl -V "'ipu1_csi0_mux':2 [fmt:UYVY2X8/720x576]"
-> +   media-ctl -V "'ipu1_csi0':1 [fmt:AYUV32/720x576]"
-> +   media-ctl -V "'ipu1_vdic':2 [fmt:AYUV32/720x576 field:none]"
-> +   media-ctl -V "'ipu1_ic_prp':2 [fmt:AYUV32/720x576 field:none]"
->     media-ctl -V "'ipu1_ic_prpvf':1 [fmt:$outputfmt field:none]"
->
->  Streaming can then begin on the capture device node at
+>  	link_top(graph) = link_top(graph)->next;
+>  	stack_push(graph, next);
+> -	dev_dbg(entity->graph_obj.mdev->dev, "walk: pushing '%s' on stack\n",
+> -		next->name);
+> +	dev_dbg(next->graph_obj.mdev->dev, "walk: pushing '%s':%u on stack\n",
+> +		next->entity->name, next->index);
+>  }
+>  
+>  struct media_entity *media_graph_walk_next(struct media_graph *graph)
+> @@ -362,10 +361,10 @@ struct media_entity *media_graph_walk_next(struct media_graph *graph)
+>  	 * top of the stack until no more entities on the level can be
+>  	 * found.
+>  	 */
+> -	while (link_top(graph) != &stack_top(graph)->links)
+> +	while (link_top(graph) != &stack_top(graph)->entity->links)
+>  		media_graph_walk_iter(graph);
+>  
+> -	entity = stack_pop(graph);
+> +	entity = stack_pop(graph)->entity;
+>  	dev_dbg(entity->graph_obj.mdev->dev,
+>  		"walk: returning entity '%s'\n", entity->name);
+>  
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> index 07ab141e739ef5ff..99c7606f01317741 100644
+> --- a/include/media/media-entity.h
+> +++ b/include/media/media-entity.h
+> @@ -86,16 +86,16 @@ struct media_entity_enum {
+>   * struct media_graph - Media graph traversal state
+>   *
+>   * @stack:		Graph traversal stack; the stack contains information
+> - *			on the path the media entities to be walked and the
+> + *			on the path the media pads to be walked and the
 
-The above motion-compensation example pipeline does now work with this
-patch series - thanks for addressing this!
+This sentence doesn't make too much sense to me, are we missing
+something ?
 
+The rest looks OK to me, so with this fixed,
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+>   *			links through which they were reached.
+> - * @stack.entity:	pointer to &struct media_entity at the graph.
+> + * @stack.pad:		pointer to &struct media_pad at the graph.
+>   * @stack.link:		pointer to &struct list_head.
+>   * @ent_enum:		Visited entities
+>   * @top:		The top of the stack
+>   */
+>  struct media_graph {
+>  	struct {
+> -		struct media_entity *entity;
+> +		struct media_pad *pad;
+>  		struct list_head *link;
+>  	} stack[MEDIA_ENTITY_ENUM_MAX_DEPTH];
+>  
+
+-- 
 Regards,
 
-Tim
+Laurent Pinchart
