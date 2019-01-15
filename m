@@ -4,50 +4,51 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,USER_AGENT_MUTT autolearn=unavailable
+	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2584CC43612
-	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 22:21:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7FCF5C43612
+	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 22:24:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E865C20866
-	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 22:21:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 504802086D
+	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 22:24:34 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="SLzf2zz3"
+	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="XBErkM1h"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387627AbfAOWVj (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 15 Jan 2019 17:21:39 -0500
-Received: from perceval.ideasonboard.com ([213.167.242.64]:48806 "EHLO
+        id S2387886AbfAOWYd (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 15 Jan 2019 17:24:33 -0500
+Received: from perceval.ideasonboard.com ([213.167.242.64]:48852 "EHLO
         perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1733219AbfAOWVj (ORCPT
+        with ESMTP id S1733238AbfAOWYd (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 Jan 2019 17:21:39 -0500
+        Tue, 15 Jan 2019 17:24:33 -0500
 Received: from pendragon.ideasonboard.com (dfj612yhrgyx302h3jwwy-3.rev.dnainternet.fi [IPv6:2001:14ba:21f5:5b00:ce28:277f:58d7:3ca4])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id E6615530;
-        Tue, 15 Jan 2019 23:21:35 +0100 (CET)
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 20419530;
+        Tue, 15 Jan 2019 23:24:31 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1547590896;
-        bh=Ib8awBh36qeWVng+6COr9F6de3hH8CbHzb2Hwa/22pk=;
+        s=mail; t=1547591071;
+        bh=k3ScVRD609Wuq1gMQvFIawQkAeg/+Shz5VzQDKh7Cng=;
         h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=SLzf2zz3QAmXLkmP6FwXN52JnnvXlXHrxcBLbBAjDIH67PK5Rz0pMnGyBIBVC3wVS
-         L53xWMKjF5qK1gMXcsP3NvQiwjOPbOjNufqz9JAGRwRpKSgieqJh5BcUKgsvhvfYOv
-         ASpOuj1nUCyFFIxMYy7NWW6uwBdFfA0t/dEodTZo=
-Date:   Wed, 16 Jan 2019 00:21:36 +0200
+        b=XBErkM1h7KxUAhxWKNIO5/PpSwkyMGnfM7IvFa772Ojr6FXu+zVD+IRxHZ9e71hHD
+         3TM4Mk6sdLGbTVUiL7pn5IOjK5zZA3Bvyvh+JlQddvSpfVnLz8k8ne26a6aGlZYtll
+         XLO2tK3phqAtAHQs9FvHIfpzob5Usr6RdO1hJ9xA=
+Date:   Wed, 16 Jan 2019 00:24:32 +0200
 From:   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To:     Niklas =?iso-8859-1?Q?S=F6derlund?= 
         <niklas.soderlund+renesas@ragnatech.se>
 Cc:     Sakari Ailus <sakari.ailus@linux.intel.com>,
         Benoit Parrot <bparrot@ti.com>, linux-media@vger.kernel.org,
         linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH v2 03/30] media: entity: Walk the graph based on pads
-Message-ID: <20190115222136.GD28397@pendragon.ideasonboard.com>
+Subject: Re: [PATCH v2 04/30] v4l: mc: Start walk from a specific pad in use
+ count calculation
+Message-ID: <20190115222432.GE28397@pendragon.ideasonboard.com>
 References: <20181101233144.31507-1-niklas.soderlund+renesas@ragnatech.se>
- <20181101233144.31507-4-niklas.soderlund+renesas@ragnatech.se>
+ <20181101233144.31507-5-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20181101233144.31507-4-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20181101233144.31507-5-niklas.soderlund+renesas@ragnatech.se>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
@@ -58,184 +59,116 @@ Hi Niklas,
 
 Thank you for the patch.
 
-On Fri, Nov 02, 2018 at 12:31:17AM +0100, Niklas Söderlund wrote:
+On Fri, Nov 02, 2018 at 12:31:18AM +0100, Niklas Söderlund wrote:
 > From: Sakari Ailus <sakari.ailus@linux.intel.com>
 > 
-> Instead of iterating over graph entities during the walk, iterate the pads
-> through which the entity was first reached. This is required in order to
-> make the entity pipeline pad-based rather than entity based.
+> With the addition of the recent has_route() media entity op, the pads of a
+> media entity are no longer all interconnected. This has to be taken into
+> account in power management.
+> 
+> Prepare for the addition of a helper function supporting S_ROUTING.
 > 
 > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 > Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 > ---
->  Documentation/media/kapi/mc-core.rst          |  7 ++-
->  drivers/media/media-entity.c                  | 46 ++++++++++--------
->  drivers/media/platform/exynos4-is/media-dev.c | 20 ++++----
->  drivers/media/platform/omap3isp/ispvideo.c    | 17 +++----
->  drivers/media/platform/vsp1/vsp1_video.c      | 12 ++---
->  drivers/media/platform/xilinx/xilinx-dma.c    | 12 ++---
->  drivers/media/v4l2-core/v4l2-mc.c             | 25 +++++-----
->  .../staging/media/davinci_vpfe/vpfe_video.c   | 47 ++++++++++---------
->  drivers/staging/media/omap4iss/iss_video.c    | 34 +++++++-------
->  include/media/media-entity.h                  |  7 +--
->  10 files changed, 122 insertions(+), 105 deletions(-)
-
-[snip]
-
-> diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
-> index 51d2a571c06db6a3..5813639c63b56a2c 100644
-> --- a/drivers/media/platform/exynos4-is/media-dev.c
-> +++ b/drivers/media/platform/exynos4-is/media-dev.c
-> @@ -1135,7 +1135,7 @@ static int __fimc_md_modify_pipeline(struct media_entity *entity, bool enable)
->  static int __fimc_md_modify_pipelines(struct media_entity *entity, bool enable,
->  				      struct media_graph *graph)
->  {
-> -	struct media_entity *entity_err = entity;
-> +	struct media_pad *pad, *pad_err = entity->pads;
->  	int ret;
->  
->  	/*
-> @@ -1144,13 +1144,13 @@ static int __fimc_md_modify_pipelines(struct media_entity *entity, bool enable,
->  	 * through active links. This is needed as we cannot power on/off the
->  	 * subdevs in random order.
->  	 */
-> -	media_graph_walk_start(graph, entity->pads);
-> +	media_graph_walk_start(graph, pad_err);
-
-I would keep entity->pads here as we're not dealing with an error path.
-
->  
-> -	while ((entity = media_graph_walk_next(graph))) {
-> -		if (!is_media_entity_v4l2_video_device(entity))
-> +	while ((pad = media_graph_walk_next(graph))) {
-> +		if (!is_media_entity_v4l2_video_device(pad->entity))
->  			continue;
->  
-> -		ret  = __fimc_md_modify_pipeline(entity, enable);
-> +		ret  = __fimc_md_modify_pipeline(pad->entity, enable);
->  
->  		if (ret < 0)
->  			goto err;
-> @@ -1159,15 +1159,15 @@ static int __fimc_md_modify_pipelines(struct media_entity *entity, bool enable,
->  	return 0;
->  
->  err:
-> -	media_graph_walk_start(graph, entity_err->pads);
-> +	media_graph_walk_start(graph, pad_err);
->  
-> -	while ((entity_err = media_graph_walk_next(graph))) {
-> -		if (!is_media_entity_v4l2_video_device(entity_err))
-> +	while ((pad_err = media_graph_walk_next(graph))) {
-> +		if (!is_media_entity_v4l2_video_device(pad_err->entity))
->  			continue;
->  
-> -		__fimc_md_modify_pipeline(entity_err, !enable);
-> +		__fimc_md_modify_pipeline(pad_err->entity, !enable);
->  
-> -		if (entity_err == entity)
-> +		if (pad_err == pad)
->  			break;
->  	}
->  
-
-[snip]
-
+>  drivers/media/v4l2-core/v4l2-mc.c | 25 ++++++++++++-------------
+>  1 file changed, 12 insertions(+), 13 deletions(-)
+> 
 > diff --git a/drivers/media/v4l2-core/v4l2-mc.c b/drivers/media/v4l2-core/v4l2-mc.c
-> index 9ed480fe5b6e4762..98edd47b2f0ae747 100644
+> index 98edd47b2f0ae747..208cd91ce57ff211 100644
 > --- a/drivers/media/v4l2-core/v4l2-mc.c
 > +++ b/drivers/media/v4l2-core/v4l2-mc.c
-> @@ -339,13 +339,14 @@ EXPORT_SYMBOL_GPL(v4l_vb2q_enable_media_source);
->  static int pipeline_pm_use_count(struct media_entity *entity,
->  	struct media_graph *graph)
+> @@ -332,17 +332,16 @@ EXPORT_SYMBOL_GPL(v4l_vb2q_enable_media_source);
+>  
+>  /*
+>   * pipeline_pm_use_count - Count the number of users of a pipeline
+> - * @entity: The entity
+> + * @pad: The pad
+
+That's not very descriptive (I know it wasn't to start with either). How
+about "Any pad part of the pipeline" ?
+
+>   *
+>   * Return the total number of users of all video device nodes in the pipeline.
+>   */
+> -static int pipeline_pm_use_count(struct media_entity *entity,
+> -	struct media_graph *graph)
+> +static int pipeline_pm_use_count(struct media_pad *pad,
+> +				 struct media_graph *graph)
 >  {
-> +	struct media_pad *pad;
+> -	struct media_pad *pad;
 >  	int use = 0;
 >  
->  	media_graph_walk_start(graph, entity->pads);
+> -	media_graph_walk_start(graph, entity->pads);
+> +	media_graph_walk_start(graph, pad);
 >  
-> -	while ((entity = media_graph_walk_next(graph))) {
-> -		if (is_media_entity_v4l2_video_device(entity))
-> -			use += entity->use_count;
-> +	while ((pad = media_graph_walk_next(graph))) {
-> +		if (is_media_entity_v4l2_video_device(pad->entity))
-> +			use += pad->entity->use_count;
->  	}
+>  	while ((pad = media_graph_walk_next(graph))) {
+>  		if (is_media_entity_v4l2_video_device(pad->entity))
+> @@ -388,7 +387,7 @@ static int pipeline_pm_power_one(struct media_entity *entity, int change)
 >  
->  	return use;
-> @@ -398,7 +399,7 @@ static int pipeline_pm_power_one(struct media_entity *entity, int change)
->  static int pipeline_pm_power(struct media_entity *entity, int change,
->  	struct media_graph *graph)
->  {
-> -	struct media_entity *first = entity;
-> +	struct media_pad *tmp_pad, *pad;
+>  /*
+>   * pipeline_pm_power - Apply power change to all entities in a pipeline
+> - * @entity: The entity
+> + * @pad: The pad
 
-How about pad_err instead of tmp_pad, like in the exynos driver ? Or
-possible first_pad to retain the "first" name ?
+Same here.
 
->  	int ret = 0;
->  
->  	if (!change)
-> @@ -406,19 +407,19 @@ static int pipeline_pm_power(struct media_entity *entity, int change,
->  
->  	media_graph_walk_start(graph, entity->pads);
->  
-> -	while (!ret && (entity = media_graph_walk_next(graph)))
-> -		if (is_media_entity_v4l2_subdev(entity))
-> -			ret = pipeline_pm_power_one(entity, change);
-> +	while (!ret && (pad = media_graph_walk_next(graph)))
-> +		if (is_media_entity_v4l2_subdev(pad->entity))
-> +			ret = pipeline_pm_power_one(pad->entity, change);
->  
->  	if (!ret)
->  		return ret;
->  
-> -	media_graph_walk_start(graph, first->pads);
-> +	media_graph_walk_start(graph, entity->pads);
->  
-> -	while ((first = media_graph_walk_next(graph))
-> -	       && first != entity)
-> -		if (is_media_entity_v4l2_subdev(first))
-> -			pipeline_pm_power_one(first, -change);
-> +	while ((tmp_pad = media_graph_walk_next(graph))
-> +	       && tmp_pad != pad)
-> +		if (is_media_entity_v4l2_subdev(tmp_pad->entity))
-> +			pipeline_pm_power_one(tmp_pad->entity, -change);
->  
->  	return ret;
->  }
-
-[snip]
-
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index 99c7606f01317741..cde6350d752bb0ae 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -952,10 +952,11 @@ void media_graph_walk_start(struct media_graph *graph, struct media_pad *pad);
->   * The graph structure must have been previously initialized with a call to
->   * media_graph_walk_start().
->   *
-> - * Return: returns the next entity in the graph or %NULL if the whole graph
-> - * have been traversed.
-> + * Return: returns the next pad in the graph or %NULL if the whole
-> + * graph have been traversed. The pad which is returned is the pad
-
-s/have been/has/been/
-s/The pad which is returned/The returned pad/
-
-> + * through which a new entity is reached when parsing the graph.
-
-through which the entity was reached when walking the graph.
-
-With these addressed,
+With this fixed,
 
 Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
+>   * @change: Use count change
+>   *
+>   * Walk the pipeline to update the use count and the power state of all non-node
+> @@ -396,16 +395,16 @@ static int pipeline_pm_power_one(struct media_entity *entity, int change)
+>   *
+>   * Return 0 on success or a negative error code on failure.
 >   */
-> -struct media_entity *media_graph_walk_next(struct media_graph *graph);
-> +struct media_pad *media_graph_walk_next(struct media_graph *graph);
+> -static int pipeline_pm_power(struct media_entity *entity, int change,
+> +static int pipeline_pm_power(struct media_pad *pad, int change,
+>  	struct media_graph *graph)
+>  {
+> -	struct media_pad *tmp_pad, *pad;
+> +	struct media_pad *tmp_pad, *first = pad;
+>  	int ret = 0;
 >  
->  /**
->   * media_pipeline_start - Mark a pipeline as streaming
+>  	if (!change)
+>  		return 0;
+>  
+> -	media_graph_walk_start(graph, entity->pads);
+> +	media_graph_walk_start(graph, pad);
+>  
+>  	while (!ret && (pad = media_graph_walk_next(graph)))
+>  		if (is_media_entity_v4l2_subdev(pad->entity))
+> @@ -414,7 +413,7 @@ static int pipeline_pm_power(struct media_entity *entity, int change,
+>  	if (!ret)
+>  		return ret;
+>  
+> -	media_graph_walk_start(graph, entity->pads);
+> +	media_graph_walk_start(graph, first);
+>  
+>  	while ((tmp_pad = media_graph_walk_next(graph))
+>  	       && tmp_pad != pad)
+> @@ -437,7 +436,7 @@ int v4l2_pipeline_pm_use(struct media_entity *entity, int use)
+>  	WARN_ON(entity->use_count < 0);
+>  
+>  	/* Apply power change to connected non-nodes. */
+> -	ret = pipeline_pm_power(entity, change, &mdev->pm_count_walk);
+> +	ret = pipeline_pm_power(entity->pads, change, &mdev->pm_count_walk);
+>  	if (ret < 0)
+>  		entity->use_count -= change;
+>  
+> @@ -451,8 +450,8 @@ int v4l2_pipeline_link_notify(struct media_link *link, u32 flags,
+>  			      unsigned int notification)
+>  {
+>  	struct media_graph *graph = &link->graph_obj.mdev->pm_count_walk;
+> -	struct media_entity *source = link->source->entity;
+> -	struct media_entity *sink = link->sink->entity;
+> +	struct media_pad *source = link->source;
+> +	struct media_pad *sink = link->sink;
+>  	int source_use;
+>  	int sink_use;
+>  	int ret = 0;
 
 -- 
 Regards,
