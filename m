@@ -2,123 +2,94 @@ Return-Path: <SRS0=Ztfs=PX=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A4D36C43387
-	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 01:24:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C1C0FC43387
+	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 01:56:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 72AF9206BA
-	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 01:24:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 87FD42063F
+	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 01:56:28 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=nextdimension.cc header.i=@nextdimension.cc header.b="IGXJaeG2"
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="ohBpz33k"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727370AbfAOBYW (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 14 Jan 2019 20:24:22 -0500
-Received: from ostrich.birch.relay.mailchannels.net ([23.83.209.138]:31627
-        "EHLO ostrich.birch.relay.mailchannels.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727314AbfAOBYV (ORCPT
+        id S1727307AbfAOB42 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 14 Jan 2019 20:56:28 -0500
+Received: from out3-smtp.messagingengine.com ([66.111.4.27]:59317 "EHLO
+        out3-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727169AbfAOB41 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 Jan 2019 20:24:21 -0500
-X-Sender-Id: dreamhost|x-authsender|brad@nextdimension.ws
-Received: from relay.mailchannels.net (localhost [127.0.0.1])
-        by relay.mailchannels.net (Postfix) with ESMTP id 6456A124551;
-        Tue, 15 Jan 2019 01:24:19 +0000 (UTC)
-Received: from pdx1-sub0-mail-a35.g.dreamhost.com (unknown [100.96.36.160])
-        (Authenticated sender: dreamhost)
-        by relay.mailchannels.net (Postfix) with ESMTPA id 10F23124480;
-        Tue, 15 Jan 2019 01:24:19 +0000 (UTC)
-X-Sender-Id: dreamhost|x-authsender|brad@nextdimension.ws
-Received: from pdx1-sub0-mail-a35.g.dreamhost.com (pop.dreamhost.com
- [64.90.62.162])
-        (using TLSv1.2 with cipher DHE-RSA-AES256-GCM-SHA384)
-        by 0.0.0.0:2500 (trex/5.16.2);
-        Tue, 15 Jan 2019 01:24:19 +0000
-X-MC-Relay: Neutral
-X-MailChannels-SenderId: dreamhost|x-authsender|brad@nextdimension.ws
-X-MailChannels-Auth-Id: dreamhost
-X-Hysterical-Cure: 0d16b2f62a181248_1547515459235_278189803
-X-MC-Loop-Signature: 1547515459235:2983056355
-X-MC-Ingress-Time: 1547515459235
-Received: from pdx1-sub0-mail-a35.g.dreamhost.com (localhost [127.0.0.1])
-        by pdx1-sub0-mail-a35.g.dreamhost.com (Postfix) with ESMTP id C90FD811B8;
-        Mon, 14 Jan 2019 17:24:18 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed; d=nextdimension.cc; h=from
-        :to:cc:subject:date:message-id:in-reply-to:references; s=
-        nextdimension.cc; bh=hK3sl4gZ/eLI45IU65eEnZWn924=; b=IGXJaeG2b44
-        ZFM9VUB1L+kjspOvBpVl2qJAS4k1oj8qoOmmL6TQ6n5q7s+2K3ne7+tRnCYOHmMa
-        sMEV+yg50WwFqZF5laiKXVyh584g0YSk+/Ypj+jIZXMGm97CVLo6JhLb5F282Dk6
-        0mWg1TnGr2jGpQ4cyOMyiA4ynUArFQvk=
-Received: from localhost.localdomain (66-90-189-166.dyn.grandenetworks.net [66.90.189.166])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-SHA256 (128/128 bits))
-        (No client certificate requested)
-        (Authenticated sender: brad@nextdimension.ws)
-        by pdx1-sub0-mail-a35.g.dreamhost.com (Postfix) with ESMTPSA id 4CF96811B6;
-        Mon, 14 Jan 2019 17:24:18 -0800 (PST)
-X-DH-BACKEND: pdx1-sub0-mail-a35
-From:   Brad Love <brad@nextdimension.cc>
-To:     linux-media@vger.kernel.org, mchehab@kernel.org
-Cc:     Brad Love <brad@nextdimension.cc>
-Subject: [PATCH 2/2] cx25840-core: Set media controller taint for pads
-Date:   Mon, 14 Jan 2019 19:24:08 -0600
-Message-Id: <1547515448-15258-3-git-send-email-brad@nextdimension.cc>
-X-Mailer: git-send-email 2.7.4
-In-Reply-To: <1547515448-15258-1-git-send-email-brad@nextdimension.cc>
-References: <1547515448-15258-1-git-send-email-brad@nextdimension.cc>
-X-VR-OUT-STATUS: OK
-X-VR-OUT-SCORE: 30
-X-VR-OUT-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedtledrgedvgdefvdcutefuodetggdotefrodftvfcurfhrohhfihhlvgemucggtfgfnhhsuhgsshgtrhhisggvpdfftffgtefojffquffvnecuuegrihhlohhuthemuceftddtnecufghrlhcuvffnffculdeftddmnecujfgurhephffvufffkffojghfsedttdertdertddtnecuhfhrohhmpeeurhgrugcunfhovhgvuceosghrrggusehnvgigthguihhmvghnshhiohhnrdgttgeqnecukfhppeeiiedrledtrddukeelrdduieeinecurfgrrhgrmhepmhhouggvpehsmhhtphdphhgvlhhopehlohgtrghlhhhoshhtrdhlohgtrghlughomhgrihhnpdhinhgvthepieeirdeltddrudekledrudeiiedprhgvthhurhhnqdhprghthhepuehrrgguucfnohhvvgcuoegsrhgrugesnhgvgihtughimhgvnhhsihhonhdrtggtqedpmhgrihhlfhhrohhmpegsrhgrugesnhgvgihtughimhgvnhhsihhonhdrtggtpdhnrhgtphhtthhopegsrhgrugesnhgvgihtughimhgvnhhsihhonhdrtggtnecuvehluhhsthgvrhfuihiivgeptd
+        Mon, 14 Jan 2019 20:56:27 -0500
+Received: from compute6.internal (compute6.nyi.internal [10.202.2.46])
+        by mailout.nyi.internal (Postfix) with ESMTP id E4EE22904F;
+        Mon, 14 Jan 2019 20:56:26 -0500 (EST)
+Received: from web3 ([10.202.2.213])
+  by compute6.internal (MEProxy); Mon, 14 Jan 2019 20:56:26 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        messagingengine.com; h=cc:content-transfer-encoding:content-type
+        :date:from:in-reply-to:message-id:mime-version:references
+        :subject:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
+        :x-sasl-enc; s=fm1; bh=aDPD+j7N8+MQFmqmpBSOasf7oaYbaowIZVzf/a8s2
+        wc=; b=ohBpz33krjDn5SQ9NG00N5s7JvQjiOmex6OPf3GO8ujczklYAIS4AmiUW
+        PLwSoQiJTkRhAOJD5DsOmBycmZ9dUFwhqKp2a6fISlSUuG+EGIfuZFsRoX0auowR
+        sXxjuhAWkEYXMeHmSCdNzAqf40VT+W75bD0mY1v3u3jJ7M5Nn61nMq4IXK0Li1zt
+        l1DlX1NuFneoLgDs4CA5POC3OzmeFIOhgnjIVzt1w5NhvF30StnYf3lRDH7XQXxY
+        Dz+6X5//mu8kqaKckosRWQNicRHlUviqiqLwu6fb89YofAq8w6M3yfhNtgeuq5EF
+        btvdSvXKCjCvJUcBe+2arHMe+IdtA==
+X-ME-Sender: <xms:yj09XE-Ts7wI57rRMizI_mKUBS9ZR-gYnOm9RHP1RXqXZDOtrlMbZg>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedtledrgedvgdefkecutefuodetggdotefrodftvf
+    curfhrohhfihhlvgemucfhrghsthforghilhdpqfhuthenuceurghilhhouhhtmecufedt
+    tdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhepkffhvfgggfgtof
+    ffjghfufesthejredtredtjeenucfhrhhomhepmfgrihcujfgvnhgurhihuceohhgvnhgu
+    rhihsehikhhirdhfiheqnecuffhomhgrihhnpehnrghtrghlihgrnhdrohhrghenucfrrg
+    hrrghmpehmrghilhhfrhhomhephhgvnhgurhihsehikhhirdhfihenucevlhhushhtvghr
+    ufhiiigvpedt
+X-ME-Proxy: <xmx:yj09XGaVL9u96T_ZpT9IcR2gb2QGrRX6bWYGSCCJl-fTT7OBq-Sfog>
+    <xmx:yj09XJWB5UBiSgdZF8nDYUCNIt79MchczKocnQp9EG4V62gTOwd_EA>
+    <xmx:yj09XMgogY_3Awa4ey9YVxy1exLA18OBq-iJ-1Vcz90LHGUDO8aC1w>
+    <xmx:yj09XEvFbxQyZDjXbdSO5kdLaZM7Pq2d9tGSCew22xg2WlSNSdnEqQ>
+Received: by mailuser.nyi.internal (Postfix, from userid 99)
+        id 12C509E5A7; Mon, 14 Jan 2019 20:56:26 -0500 (EST)
+Message-Id: <1547517386.513774.1634722944.3BD7EE05@webmail.messagingengine.com>
+From:   Kai Hendry <hendry@iki.fi>
+To:     Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc:     linux-media@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-usb@vger.kernel.org
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+X-Mailer: MessagingEngine.com Webmail Interface - ajax-36e4bfd3
+Date:   Tue, 15 Jan 2019 09:56:26 +0800
+In-Reply-To: <20190114093029.6bb2ff00@coco.lan>
+References: <1547442625.3056462.1633755704.1BCFEEC2@webmail.messagingengine.com>
+ <20190114093029.6bb2ff00@coco.lan>
+Subject: Re: Magewell Gen 2935:0001 USB annoyances
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Fixes: 9d6d20e652 ("v4l2-mc: switch it to use the new approach to setup pipelines")
+Thanks for getting back to me Mauro.
 
-Without "taint" set for signal type, devices
-with analog capture fail during probe:
+So it works on MacOS.... via a hootoo USB-C dongle https://s.natalian.org/2019-01-15/hootoo.jpeg
 
-[    5.821715] cx231xx 3-2:1.1: v4l2 driver version 0.0.3
-[    5.955721] cx231xx 3-2:1.1: Registered video device video0 [v4l2]
-[    5.955797] cx231xx 3-2:1.1: Registered VBI device vbi0
-[    5.955802] cx231xx 3-2:1.1: video EndPoint Addr 0x84, Alternate settings: 5
-[    5.955805] cx231xx 3-2:1.1: VBI EndPoint Addr 0x85, Alternate settings: 2
-[    5.955807] cx231xx 3-2:1.1: sliced CC EndPoint Addr 0x86, Alternate settings: 2
-[    5.955834] cx231xx 3-2:1.1: V4L2 device vbi0 deregistered
-[    5.955889] cx231xx 3-2:1.1: V4L2 device video0 deregistered
-[    5.959131] cx231xx: probe of 3-2:1.1 failed with error -22
-[    5.959190] usbcore: registered new interface driver cx231xx
+So since my T480s has two USB-C ports, I tried using the same dongle on my Thinkpad. It works!
 
+I discovered that I can reliably get the device working by using another USB-C adaptor. https://s.natalian.org/2019-01-15/ss.jpeg
 
-This sets the taint as follows:
-- sink pads to PAD_SIGNAL_ANALOG
-- source pads to PAD_SIGNAL_DV
+This to my astonishment reliably works.
+
+[hendry@t480s ~]$ lsusb -vvv 2>/dev/null | grep -A5 2935:0001
+Bus 004 Device 002: ID 2935:0001
+Device Descriptor:
+  bLength                18
+  bDescriptorType         1
+  bcdUSB               3.00
+  bDeviceClass          239 Miscellaneous Device
 
 
-Signed-off-by: Brad Love <brad@nextdimension.cc>
----
- drivers/media/i2c/cx25840/cx25840-core.c | 4 ++++
- 1 file changed, 4 insertions(+)
+Maybe it's some USB bus power supply issue on my other Thinkpad ports. No idea.
 
-diff --git a/drivers/media/i2c/cx25840/cx25840-core.c b/drivers/media/i2c/cx25840/cx25840-core.c
-index b23d8e4..0c94be5 100644
---- a/drivers/media/i2c/cx25840/cx25840-core.c
-+++ b/drivers/media/i2c/cx25840/cx25840-core.c
-@@ -5225,8 +5225,12 @@ static int cx25840_probe(struct i2c_client *client,
- 	 * those extra inputs. So, let's add it only when needed.
- 	 */
- 	state->pads[CX25840_PAD_INPUT].flags = MEDIA_PAD_FL_SINK;
-+	state->pads[CX25840_PAD_INPUT].sig_type = PAD_SIGNAL_ANALOG;
- 	state->pads[CX25840_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
-+	state->pads[CX25840_PAD_VID_OUT].sig_type = PAD_SIGNAL_DV;
- 	state->pads[CX25840_PAD_VBI_OUT].flags = MEDIA_PAD_FL_SOURCE;
-+	state->pads[CX25840_PAD_VBI_OUT].sig_type = PAD_SIGNAL_DV;
-+
- 	sd->entity.function = MEDIA_ENT_F_ATV_DECODER;
- 
- 	ret = media_entity_pads_init(&sd->entity, ARRAY_SIZE(state->pads),
--- 
-2.7.4
-
+Thanks for sounding me out.
