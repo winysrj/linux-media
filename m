@@ -2,504 +2,287 @@ Return-Path: <SRS0=Ztfs=PX=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_NEOMUTT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A661EC43612
-	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 22:48:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 457D1C43612
+	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 22:54:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6CBC5214DA
-	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 22:48:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 048D0208E4
+	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 22:54:24 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="tY8tqQlB"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387736AbfAOWs6 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 15 Jan 2019 17:48:58 -0500
-Received: from mga09.intel.com ([134.134.136.24]:39587 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387714AbfAOWs6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 Jan 2019 17:48:58 -0500
-X-Amp-Result: UNSCANNABLE
-X-Amp-File-Uploaded: False
-Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by orsmga102.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 15 Jan 2019 14:48:57 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.56,483,1539673200"; 
-   d="scan'208";a="117023882"
-Received: from markusac-mobl.ger.corp.intel.com (HELO kekkonen.fi.intel.com) ([10.252.58.202])
-  by fmsmga008.fm.intel.com with ESMTP; 15 Jan 2019 14:48:55 -0800
-Received: by kekkonen.fi.intel.com (Postfix, from userid 1000)
-        id C67F021E54; Wed, 16 Jan 2019 00:48:52 +0200 (EET)
-Date:   Wed, 16 Jan 2019 00:48:52 +0200
-From:   Sakari Ailus <sakari.ailus@linux.intel.com>
-To:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc:     Niklas =?iso-8859-1?Q?S=F6derlund?= 
-        <niklas.soderlund+renesas@ragnatech.se>,
+        id S2387572AbfAOWyX (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 15 Jan 2019 17:54:23 -0500
+Received: from perceval.ideasonboard.com ([213.167.242.64]:49026 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728652AbfAOWyX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 15 Jan 2019 17:54:23 -0500
+Received: from pendragon.ideasonboard.com (dfj612yhrgyx302h3jwwy-3.rev.dnainternet.fi [IPv6:2001:14ba:21f5:5b00:ce28:277f:58d7:3ca4])
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 4E683530;
+        Tue, 15 Jan 2019 23:54:19 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
+        s=mail; t=1547592859;
+        bh=e+jZwPD/8l4OLHFWwVyb8FrNzOvQw/qNRo5ma2hY0Yo=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=tY8tqQlB08Q4+PiuTD75LJi+5obGAhb5UPDbnfamqfWn+bp2HCvwgt1KHy+rpohx+
+         NNxOdjbij/RQwyzsWk7bC01POLeXX5MZy+jSac2ODv2UDuY9YLBao8wplJVoiCSUE6
+         H+U2fF9oSoOAy+1AGCfTWZFTfOSNNzZmbFpCnw58=
+Date:   Wed, 16 Jan 2019 00:54:20 +0200
+From:   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To:     Niklas =?iso-8859-1?Q?S=F6derlund?= 
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc:     Sakari Ailus <sakari.ailus@linux.intel.com>,
         Benoit Parrot <bparrot@ti.com>, linux-media@vger.kernel.org,
         linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH v2 05/30] media: entity: Move the pipeline from entity to
- pads
-Message-ID: <20190115224851.6jqyxszr6xg3w6p5@kekkonen.localdomain>
+Subject: Re: [PATCH v2 06/30] media: entity: Use pad as the starting point
+ for a pipeline
+Message-ID: <20190115225420.GG28397@pendragon.ideasonboard.com>
 References: <20181101233144.31507-1-niklas.soderlund+renesas@ragnatech.se>
- <20181101233144.31507-6-niklas.soderlund+renesas@ragnatech.se>
- <20190115223842.GF28397@pendragon.ideasonboard.com>
+ <20181101233144.31507-7-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20190115223842.GF28397@pendragon.ideasonboard.com>
-User-Agent: NeoMutt/20170113 (1.7.2)
+In-Reply-To: <20181101233144.31507-7-niklas.soderlund+renesas@ragnatech.se>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Wed, Jan 16, 2019 at 12:38:42AM +0200, Laurent Pinchart wrote:
-> Hi Niklas,
-> 
-> Thanks you for the patch.
-> 
-> On Fri, Nov 02, 2018 at 12:31:19AM +0100, Niklas Söderlund wrote:
-> > From: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > 
-> > This moves the pipe and stream_count fields from struct media_entity to
-> > struct media_pad. Effectively streams become pad-specific rather than
-> > being stream specific, allowing several independent streams to traverse a
-> 
-> Should this be "entity-specific" instead of "stream specific" ?
+Hi Niklas,
 
-Yes.
+Thank you for the patch.
 
+On Fri, Nov 02, 2018 at 12:31:20AM +0100, Niklas Söderlund wrote:
+> From: Sakari Ailus <sakari.ailus@linux.intel.com>
 > 
-> > single entity.
-> 
-> "and the entity to be part of multiple pipelines" ?
+> The pipeline will be moved from the entity to the pads; reflect this in
+> the media pipeline function API.
 
-Sounds good.
+Will be moved, or has been moved ?
 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> ---
+>  Documentation/media/kapi/mc-core.rst          |  6 ++--
+>  drivers/media/media-entity.c                  | 25 +++++++-------
+>  drivers/media/pci/intel/ipu3/ipu3-cio2.c      |  6 ++--
+>  .../media/platform/exynos4-is/fimc-capture.c  |  8 ++---
+>  .../platform/exynos4-is/fimc-isp-video.c      |  8 ++---
+>  drivers/media/platform/exynos4-is/fimc-lite.c |  8 ++---
+>  drivers/media/platform/omap3isp/ispvideo.c    |  6 ++--
+>  .../media/platform/qcom/camss/camss-video.c   |  6 ++--
+>  drivers/media/platform/rcar-vin/rcar-dma.c    |  6 ++--
+>  .../media/platform/s3c-camif/camif-capture.c  |  6 ++--
+>  drivers/media/platform/vimc/vimc-capture.c    |  6 ++--
+>  drivers/media/platform/vsp1/vsp1_video.c      |  6 ++--
+>  drivers/media/platform/xilinx/xilinx-dma.c    |  6 ++--
+>  drivers/media/usb/au0828/au0828-core.c        |  4 +--
+>  drivers/staging/media/imx/imx-media-utils.c   |  6 ++--
+>  drivers/staging/media/omap4iss/iss_video.c    |  6 ++--
+>  include/media/media-entity.h                  | 33 ++++++++++---------
+>  17 files changed, 76 insertions(+), 76 deletions(-)
 > 
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> > ---
-> >  drivers/media/media-entity.c                  | 61 ++++++++++++-------
-> >  drivers/media/platform/exynos4-is/fimc-isp.c  |  2 +-
-> >  drivers/media/platform/exynos4-is/fimc-lite.c |  2 +-
-> >  drivers/media/platform/omap3isp/isp.c         |  2 +-
-> >  drivers/media/platform/omap3isp/ispvideo.c    |  2 +-
-> >  drivers/media/platform/omap3isp/ispvideo.h    |  2 +-
-> >  drivers/media/platform/rcar-vin/rcar-dma.c    |  2 +-
-> >  drivers/media/platform/xilinx/xilinx-dma.c    |  2 +-
-> >  drivers/media/platform/xilinx/xilinx-dma.h    |  2 +-
-> >  drivers/staging/media/imx/imx-media-utils.c   |  2 +-
-> >  drivers/staging/media/omap4iss/iss.c          |  2 +-
-> >  drivers/staging/media/omap4iss/iss_video.c    |  2 +-
-> >  drivers/staging/media/omap4iss/iss_video.h    |  2 +-
-> >  include/media/media-entity.h                  | 17 ++++--
-> >  14 files changed, 61 insertions(+), 41 deletions(-)
-> > 
-> > diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> > index 70db03fa33a21db1..13260149c4dfc90c 100644
-> > --- a/drivers/media/media-entity.c
-> > +++ b/drivers/media/media-entity.c
-> > @@ -419,7 +419,7 @@ __must_check int __media_pipeline_start(struct media_entity *entity,
-> >  	struct media_pad *pad = entity->pads;
-> >  	struct media_pad *pad_err = pad;
-> >  	struct media_link *link;
-> > -	int ret;
-> > +	int ret = 0;
-> 
-> Is this needed ?
-> 
-> >  
-> >  	if (!pipe->streaming_count++) {
-> >  		ret = media_graph_walk_init(&pipe->graph, mdev);
-> > @@ -431,21 +431,27 @@ __must_check int __media_pipeline_start(struct media_entity *entity,
-> >  
-> >  	while ((pad = media_graph_walk_next(graph))) {
-> >  		struct media_entity *entity = pad->entity;
-> > +		unsigned int i;
-> > +		bool skip_validation = pad->pipe;
-> >  
-> >  		DECLARE_BITMAP(active, MEDIA_ENTITY_MAX_PADS);
-> >  		DECLARE_BITMAP(has_no_links, MEDIA_ENTITY_MAX_PADS);
-> >  
-> > -		entity->stream_count++;
-> > +		for (i = 0; i < entity->num_pads; i++) {
-> > +			struct media_pad *iter = &entity->pads[i];
-> 
-> Unrelated to this patch, a for_each_pad() would be nice.
-> 
-> >  
-> > -		if (WARN_ON(entity->pipe && entity->pipe != pipe)) {
-> > -			ret = -EBUSY;
-> > -			goto error;
-> > +			if (iter->pipe && WARN_ON(iter->pipe != pipe))
-> > +				ret = -EBUSY;
-> > +			else
-> > +				iter->pipe = pipe;
-> > +			iter->stream_count++;
-> 
-> How about keeping a similar construct as currently exists ?
+> diff --git a/Documentation/media/kapi/mc-core.rst b/Documentation/media/kapi/mc-core.rst
+> index 849b87439b7a9772..ede7e946f6a82ac0 100644
+> --- a/Documentation/media/kapi/mc-core.rst
+> +++ b/Documentation/media/kapi/mc-core.rst
+> @@ -211,11 +211,11 @@ When starting streaming, drivers must notify all entities in the pipeline to
+>  prevent link states from being modified during streaming by calling
+>  :c:func:`media_pipeline_start()`.
+>  
+> -The function will mark all entities connected to the given entity through
+> -enabled links, either directly or indirectly, as streaming.
+> +The function will mark all entities connected to the given pad through
+> +enabled routes and links, either directly or indirectly, as streaming.
 
-That would complicate the error handling there. Now it's enough to figure
-out on which entity the failure happened, not the pad.
+That's not really correct, it doesn't mark entities, but pads. I think
+this section of the documentation needs to be rewritten based on the new
+model of an entity being part of multiple pipelines. s/entity/pad/ isn't
+enough, there's a whole new semantics.
 
-> 
-> 		iter->stream_count++;
-> 		if (WARN_ON(iter->pipe && iter->pipe != pipe) {
-> 			ret = -EBUSY;
-> 			goto error;
-> 		}
-> 
-> 		iter->pipe = pipe;
-> 
-> >  		}
-> >  
-> > -		entity->pipe = pipe;
-> > +		if (ret)
-> > +			goto error;
-> >  
-> >  		/* Already streaming --- no need to check. */
-> 
-> Maybe "Already part of the pipeline" to match the condition ?
+>  The struct :c:type:`media_pipeline` instance pointed to by
+> -the pipe argument will be stored in every entity in the pipeline.
+> +the pipe argument will be stored in every pad in the pipeline.
+>  Drivers should embed the struct :c:type:`media_pipeline`
+>  in higher-level pipeline structures and can then access the
+>  pipeline through the struct :c:type:`media_entity`
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index 13260149c4dfc90c..f2fa0b7826dbc2f3 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -411,12 +411,11 @@ EXPORT_SYMBOL_GPL(media_entity_get_fwnode_pad);
+>   * Pipeline management
+>   */
+>  
+> -__must_check int __media_pipeline_start(struct media_entity *entity,
+> +__must_check int __media_pipeline_start(struct media_pad *pad,
+>  					struct media_pipeline *pipe)
+>  {
+> -	struct media_device *mdev = entity->graph_obj.mdev;
+> +	struct media_device *mdev = pad->graph_obj.mdev;
+>  	struct media_graph *graph = &pipe->graph;
+> -	struct media_pad *pad = entity->pads;
+>  	struct media_pad *pad_err = pad;
+>  	struct media_link *link;
+>  	int ret = 0;
+> @@ -549,24 +548,23 @@ __must_check int __media_pipeline_start(struct media_entity *entity,
+>  }
+>  EXPORT_SYMBOL_GPL(__media_pipeline_start);
+>  
+> -__must_check int media_pipeline_start(struct media_entity *entity,
+> +__must_check int media_pipeline_start(struct media_pad *pad,
+>  				      struct media_pipeline *pipe)
+>  {
+> -	struct media_device *mdev = entity->graph_obj.mdev;
+> +	struct media_device *mdev = pad->graph_obj.mdev;
+>  	int ret;
+>  
+>  	mutex_lock(&mdev->graph_mutex);
+> -	ret = __media_pipeline_start(entity, pipe);
+> +	ret = __media_pipeline_start(pad, pipe);
+>  	mutex_unlock(&mdev->graph_mutex);
+>  	return ret;
+>  }
+>  EXPORT_SYMBOL_GPL(media_pipeline_start);
+>  
+> -void __media_pipeline_stop(struct media_entity *entity)
+> +void __media_pipeline_stop(struct media_pad *pad)
+>  {
+> -	struct media_pipeline *pipe = entity->pads->pipe;
+> +	struct media_pipeline *pipe = pad->pipe;
+>  	struct media_graph *graph = &pipe->graph;
+> -	struct media_pad *pad;
+>  
+>  	/*
+>  	 * If the following check fails, the driver has performed an
+> @@ -575,9 +573,10 @@ void __media_pipeline_stop(struct media_entity *entity)
+>  	if (WARN_ON(!pipe))
+>  		return;
+>  
+> -	media_graph_walk_start(graph, entity->pads);
+> +	media_graph_walk_start(graph, pad);
+>  
+>  	while ((pad = media_graph_walk_next(graph))) {
+> +		struct media_entity *entity = pad->entity;
 
-Fine with me.
+It looks like this line is a bug fix for a previous patch in the series.
 
-> 
-> > -		if (entity->stream_count > 1)
-> > +		if (skip_validation)
-> >  			continue;
-> >  
-> >  		if (!entity->ops || !entity->ops->link_validate)
-> > @@ -514,19 +520,24 @@ __must_check int __media_pipeline_start(struct media_entity *entity,
-> >  
-> >  	while ((pad_err = media_graph_walk_next(graph))) {
-> >  		struct media_entity *entity_err = pad_err->entity;
-> > +		unsigned int i;
-> > +
-> > +		for (i = 0; i < entity_err->num_pads; i++) {
-> > +			struct media_pad *iter = &entity_err->pads[i];
-> >  
-> > -		/* Sanity check for negative stream_count */
-> > -		if (!WARN_ON_ONCE(entity_err->stream_count <= 0)) {
-> > -			entity_err->stream_count--;
-> > -			if (entity_err->stream_count == 0)
-> > -				entity_err->pipe = NULL;
-> > +			/* Sanity check for negative stream_count */
-> > +			if (!WARN_ON_ONCE(iter->stream_count <= 0)) {
-> > +				--iter->stream_count;
-> > +				if (iter->stream_count == 0)
-> > +					iter->pipe = NULL;
-> > +			}
-> >  		}
-> >  
-> >  		/*
-> >  		 * We haven't increased stream_count further than this
-> >  		 * so we quit here.
-> >  		 */
-> > -		if (pad_err == pad)
-> > +		if (pad_err->entity == pad->entity)
-> 
-> Is this needed ?
+>  		unsigned int i;
+>  
+>  		for (i = 0; i < entity->num_pads; i++) {
+> @@ -598,12 +597,12 @@ void __media_pipeline_stop(struct media_entity *entity)
+>  }
+>  EXPORT_SYMBOL_GPL(__media_pipeline_stop);
+>  
+> -void media_pipeline_stop(struct media_entity *entity)
+> +void media_pipeline_stop(struct media_pad *pad)
+>  {
+> -	struct media_device *mdev = entity->graph_obj.mdev;
+> +	struct media_device *mdev = pad->graph_obj.mdev;
+>  
+>  	mutex_lock(&mdev->graph_mutex);
+> -	__media_pipeline_stop(entity);
+> +	__media_pipeline_stop(pad);
+>  	mutex_unlock(&mdev->graph_mutex);
+>  }
+>  EXPORT_SYMBOL_GPL(media_pipeline_stop);
 
-See above².
+[snip]
 
-> 
-> >  			break;
-> >  	}
-> >  
-> > @@ -553,7 +564,7 @@ EXPORT_SYMBOL_GPL(media_pipeline_start);
-> >  
-> >  void __media_pipeline_stop(struct media_entity *entity)
-> >  {
-> > -	struct media_pipeline *pipe = entity->pipe;
-> > +	struct media_pipeline *pipe = entity->pads->pipe;
-> >  	struct media_graph *graph = &pipe->graph;
-> >  	struct media_pad *pad;
-> >  
-> > @@ -567,13 +578,17 @@ void __media_pipeline_stop(struct media_entity *entity)
-> >  	media_graph_walk_start(graph, entity->pads);
-> >  
-> >  	while ((pad = media_graph_walk_next(graph))) {
-> > -		struct media_entity *entity = pad->entity;
-> > +		unsigned int i;
-> >  
-> > -		/* Sanity check for negative stream_count */
-> > -		if (!WARN_ON_ONCE(entity->stream_count <= 0)) {
-> > -			entity->stream_count--;
-> > -			if (entity->stream_count == 0)
-> > -				entity->pipe = NULL;
-> > +		for (i = 0; i < entity->num_pads; i++) {
-> > +			struct media_pad *iter = &entity->pads[i];
-> > +
-> > +			/* Sanity check for negative stream_count */
-> > +			if (!WARN_ON_ONCE(iter->stream_count <= 0)) {
-> > +				iter->stream_count--;
-> > +				if (iter->stream_count == 0)
-> > +					iter->pipe = NULL;
-> > +			}
-> >  		}
-> >  	}
-> >  
-> > @@ -865,7 +880,7 @@ int __media_entity_setup_link(struct media_link *link, u32 flags)
-> >  {
-> >  	const u32 mask = MEDIA_LNK_FL_ENABLED;
-> >  	struct media_device *mdev;
-> > -	struct media_entity *source, *sink;
-> > +	struct media_pad *source, *sink;
-> >  	int ret = -EBUSY;
-> >  
-> >  	if (link == NULL)
-> > @@ -881,8 +896,8 @@ int __media_entity_setup_link(struct media_link *link, u32 flags)
-> >  	if (link->flags == flags)
-> >  		return 0;
-> >  
-> > -	source = link->source->entity;
-> > -	sink = link->sink->entity;
-> > +	source = link->source;
-> > +	sink = link->sink;
-> >  
-> >  	if (!(link->flags & MEDIA_LNK_FL_DYNAMIC) &&
-> >  	    (source->stream_count || sink->stream_count))
-> > diff --git a/drivers/media/platform/exynos4-is/fimc-isp.c b/drivers/media/platform/exynos4-is/fimc-isp.c
-> > index 9a48c0f69320ba35..79d128a57e87fd58 100644
-> > --- a/drivers/media/platform/exynos4-is/fimc-isp.c
-> > +++ b/drivers/media/platform/exynos4-is/fimc-isp.c
-> > @@ -229,7 +229,7 @@ static int fimc_isp_subdev_set_fmt(struct v4l2_subdev *sd,
-> >  			}
-> >  		}
-> >  	} else {
-> > -		if (sd->entity.stream_count == 0) {
-> > +		if (sd->entity.pads->stream_count == 0) {
-> >  			if (fmt->pad == FIMC_ISP_SD_PAD_SINK) {
-> >  				struct v4l2_subdev_format format = *fmt;
-> >  
-> > diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
-> > index 96f0a8a0dcae591f..dbadcba6739a286b 100644
-> > --- a/drivers/media/platform/exynos4-is/fimc-lite.c
-> > +++ b/drivers/media/platform/exynos4-is/fimc-lite.c
-> > @@ -1096,7 +1096,7 @@ static int fimc_lite_subdev_set_fmt(struct v4l2_subdev *sd,
-> >  	mutex_lock(&fimc->lock);
-> >  
-> >  	if ((atomic_read(&fimc->out_path) == FIMC_IO_ISP &&
-> > -	    sd->entity.stream_count > 0) ||
-> > +	    sd->entity.pads->stream_count > 0) ||
-> >  	    (atomic_read(&fimc->out_path) == FIMC_IO_DMA &&
-> >  	    vb2_is_busy(&fimc->vb_queue))) {
-> >  		mutex_unlock(&fimc->lock);
-> > diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-> > index 77fb7987b42f33cd..3663dfd00cadc2f0 100644
-> > --- a/drivers/media/platform/omap3isp/isp.c
-> > +++ b/drivers/media/platform/omap3isp/isp.c
-> > @@ -927,7 +927,7 @@ static int isp_pipeline_is_last(struct media_entity *me)
-> >  	struct isp_pipeline *pipe;
-> >  	struct media_pad *pad;
-> >  
-> > -	if (!me->pipe)
-> > +	if (!me->pads->pipe)
-> >  		return 0;
-> >  	pipe = to_isp_pipeline(me);
-> >  	if (pipe->stream_state == ISP_PIPELINE_STREAM_STOPPED)
-> > diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
-> > index dc11b732dc05b00b..f354cd7ceb8ffce5 100644
-> > --- a/drivers/media/platform/omap3isp/ispvideo.c
-> > +++ b/drivers/media/platform/omap3isp/ispvideo.c
-> > @@ -1102,7 +1102,7 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
-> >  	/* Start streaming on the pipeline. No link touching an entity in the
-> >  	 * pipeline can be activated or deactivated once streaming is started.
-> >  	 */
-> > -	pipe = video->video.entity.pipe
-> > +	pipe = video->video.entity.pads->pipe
-> >  	     ? to_isp_pipeline(&video->video.entity) : &video->pipe;
-> >  
-> >  	ret = media_entity_enum_init(&pipe->ent_enum, &video->isp->media_dev);
-> > diff --git a/drivers/media/platform/omap3isp/ispvideo.h b/drivers/media/platform/omap3isp/ispvideo.h
-> > index f6a2082b4a0a7708..8f4146c25a1b1293 100644
-> > --- a/drivers/media/platform/omap3isp/ispvideo.h
-> > +++ b/drivers/media/platform/omap3isp/ispvideo.h
-> > @@ -103,7 +103,7 @@ struct isp_pipeline {
-> >  };
-> >  
-> >  #define to_isp_pipeline(__e) \
-> > -	container_of((__e)->pipe, struct isp_pipeline, pipe)
-> > +	container_of((__e)->pads->pipe, struct isp_pipeline, pipe)
-> >  
-> >  static inline int isp_pipeline_ready(struct isp_pipeline *pipe)
-> >  {
-> > diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-> > index 92323310f7352147..e749096926f34d4a 100644
-> > --- a/drivers/media/platform/rcar-vin/rcar-dma.c
-> > +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-> > @@ -1128,7 +1128,7 @@ static int rvin_set_stream(struct rvin_dev *vin, int on)
-> >  	 */
-> >  	mdev = vin->vdev.entity.graph_obj.mdev;
-> >  	mutex_lock(&mdev->graph_mutex);
-> > -	pipe = sd->entity.pipe ? sd->entity.pipe : &vin->vdev.pipe;
-> > +	pipe = sd->entity.pads->pipe ? sd->entity.pads->pipe : &vin->vdev.pipe;
-> >  	ret = __media_pipeline_start(&vin->vdev.entity, pipe);
-> >  	mutex_unlock(&mdev->graph_mutex);
-> >  	if (ret)
-> > diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/platform/xilinx/xilinx-dma.c
-> > index a2a329336243bdc7..f27a7be5f5d0f0b5 100644
-> > --- a/drivers/media/platform/xilinx/xilinx-dma.c
-> > +++ b/drivers/media/platform/xilinx/xilinx-dma.c
-> > @@ -406,7 +406,7 @@ static int xvip_dma_start_streaming(struct vb2_queue *vq, unsigned int count)
-> >  	 * Use the pipeline object embedded in the first DMA object that starts
-> >  	 * streaming.
-> >  	 */
-> > -	pipe = dma->video.entity.pipe
-> > +	pipe = dma->video.entity.pads->pipe
-> >  	     ? to_xvip_pipeline(&dma->video.entity) : &dma->pipe;
-> >  
-> >  	ret = media_pipeline_start(&dma->video.entity, &pipe->pipe);
-> > diff --git a/drivers/media/platform/xilinx/xilinx-dma.h b/drivers/media/platform/xilinx/xilinx-dma.h
-> > index e95d136c153a8f5f..c12e053ff41eed1c 100644
-> > --- a/drivers/media/platform/xilinx/xilinx-dma.h
-> > +++ b/drivers/media/platform/xilinx/xilinx-dma.h
-> > @@ -50,7 +50,7 @@ struct xvip_pipeline {
-> >  
-> >  static inline struct xvip_pipeline *to_xvip_pipeline(struct media_entity *e)
-> >  {
-> > -	return container_of(e->pipe, struct xvip_pipeline, pipe);
-> > +	return container_of(e->pads->pipe, struct xvip_pipeline, pipe);
-> >  }
-> >  
-> >  /**
-> > diff --git a/drivers/staging/media/imx/imx-media-utils.c b/drivers/staging/media/imx/imx-media-utils.c
-> > index 0eaa353d5cb39768..ba9d9a8337cb159e 100644
-> > --- a/drivers/staging/media/imx/imx-media-utils.c
-> > +++ b/drivers/staging/media/imx/imx-media-utils.c
-> > @@ -917,7 +917,7 @@ int imx_media_pipeline_set_stream(struct imx_media_dev *imxmd,
-> >  			__media_pipeline_stop(entity);
-> >  	} else {
-> >  		v4l2_subdev_call(sd, video, s_stream, 0);
-> > -		if (entity->pipe)
-> > +		if (entity->pads->pipe)
-> >  			__media_pipeline_stop(entity);
-> >  	}
-> >  
-> > diff --git a/drivers/staging/media/omap4iss/iss.c b/drivers/staging/media/omap4iss/iss.c
-> > index c8be1db532ab2555..030808b222cf3ae5 100644
-> > --- a/drivers/staging/media/omap4iss/iss.c
-> > +++ b/drivers/staging/media/omap4iss/iss.c
-> > @@ -543,7 +543,7 @@ static int iss_pipeline_is_last(struct media_entity *me)
-> >  	struct iss_pipeline *pipe;
-> >  	struct media_pad *pad;
-> >  
-> > -	if (!me->pipe)
-> > +	if (!me->pads->pipe)
-> >  		return 0;
-> >  	pipe = to_iss_pipeline(me);
-> >  	if (pipe->stream_state == ISS_PIPELINE_STREAM_STOPPED)
-> > diff --git a/drivers/staging/media/omap4iss/iss_video.c b/drivers/staging/media/omap4iss/iss_video.c
-> > index 1271bbacf9e7bdeb..65f1e358271b3743 100644
-> > --- a/drivers/staging/media/omap4iss/iss_video.c
-> > +++ b/drivers/staging/media/omap4iss/iss_video.c
-> > @@ -877,7 +877,7 @@ iss_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
-> >  	 * Start streaming on the pipeline. No link touching an entity in the
-> >  	 * pipeline can be activated or deactivated once streaming is started.
-> >  	 */
-> > -	pipe = pad->entity->pipe
-> > +	pipe = pad->pipe
-> >  	     ? to_iss_pipeline(pad->entity) : &video->pipe;
-> >  	pipe->external = NULL;
-> >  	pipe->external_rate = 0;
-> > diff --git a/drivers/staging/media/omap4iss/iss_video.h b/drivers/staging/media/omap4iss/iss_video.h
-> > index f22489edb5624af2..cdea8543b3f93ecf 100644
-> > --- a/drivers/staging/media/omap4iss/iss_video.h
-> > +++ b/drivers/staging/media/omap4iss/iss_video.h
-> > @@ -94,7 +94,7 @@ struct iss_pipeline {
-> >  };
-> >  
-> >  #define to_iss_pipeline(__e) \
-> > -	container_of((__e)->pipe, struct iss_pipeline, pipe)
-> > +	container_of((__e)->pads->pipe, struct iss_pipeline, pipe)
-> >  
-> >  static inline int iss_pipeline_ready(struct iss_pipeline *pipe)
-> >  {
-> > diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> > index cde6350d752bb0ae..ca0b79288ea7fd11 100644
-> > --- a/include/media/media-entity.h
-> > +++ b/include/media/media-entity.h
-> > @@ -188,15 +188,25 @@ enum media_pad_signal_type {
-> >   *
-> >   * @graph_obj:	Embedded structure containing the media object common data
-> >   * @entity:	Entity this pad belongs to
-> > + * @pipe:	Pipeline this entity belongs to.
-> 
-> s/entity/pad/
-> 
-> > + * @stream_count: Stream count for the entity.
-> 
-> Ditto.
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> index ca0b79288ea7fd11..8378f700389635ea 100644
+> --- a/include/media/media-entity.h
+> +++ b/include/media/media-entity.h
+> @@ -965,53 +965,54 @@ struct media_pad *media_graph_walk_next(struct media_graph *graph);
+>  
+>  /**
+>   * media_pipeline_start - Mark a pipeline as streaming
+> - * @entity: Starting entity
+> - * @pipe: Media pipeline to be assigned to all entities in the pipeline.
+> + * @pad: Starting pad
+> + * @pipe: Media pipeline to be assigned to all pads in the pipeline.
+>   *
+> - * Mark all entities connected to a given entity through enabled links, either
+> - * directly or indirectly, as streaming. The given pipeline object is assigned
+> - * to every entity in the pipeline and stored in the media_entity pipe field.
+> + * Mark all pads connected to a given pad through enabled
+> + * routes or links, either directly or indirectly, as streaming. The
+> + * given pipeline object is assigned to every pad in the pipeline
+> + * and stored in the media_pad pipe field.
 
-Agreed.
+Reflowing text to the 80 columns limit ?
 
-> 
-> >   * @index:	Pad index in the entity pads array, numbered from 0 to n
-> >   * @sig_type:	Type of the signal inside a media pad
-> >   * @flags:	Pad flags, as defined in
-> >   *		:ref:`include/uapi/linux/media.h <media_header>`
-> >   *		(seek for ``MEDIA_PAD_FL_*``)
-> > + * .. note::
-> > + *
-> > + *    @stream_count reference counts must never be negative, but are
-> > + *    signed integers on purpose: a simple ``WARN_ON(<0)`` check can
-> > + *    be used to detect reference count bugs that would make them
-> > + *    negative.
-> >   */
-> >  struct media_pad {
-> >  	struct media_gobj graph_obj;	/* must be first field in struct */
-> >  	struct media_entity *entity;
-> > +	struct media_pipeline *pipe;
-> > +	int stream_count;
-> >  	u16 index;
-> >  	enum media_pad_signal_type sig_type;
-> >  	unsigned long flags;
-> > @@ -274,9 +284,7 @@ enum media_entity_type {
-> >   * @pads:	Pads array with the size defined by @num_pads.
-> >   * @links:	List of data links.
-> >   * @ops:	Entity operations.
-> > - * @stream_count: Stream count for the entity.
-> >   * @use_count:	Use count for the entity.
-> > - * @pipe:	Pipeline this entity belongs to.
-> >   * @info:	Union with devnode information.  Kept just for backward
-> >   *		compatibility.
-> >   * @info.dev:	Contains device major and minor info.
-> > @@ -289,7 +297,7 @@ enum media_entity_type {
-> >   *
-> >   * .. note::
-> >   *
-> > - *    @stream_count and @use_count reference counts must never be
-> > + *    @use_count reference counts must never be
-> >   *    negative, but are signed integers on purpose: a simple ``WARN_ON(<0)``
-> >   *    check can be used to detect reference count bugs that would make them
-> 
-> I would rewrap the text.
-> 
-> With the above comments addressed,
-> 
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> 
-> >   *    negative.
-> > @@ -311,11 +319,8 @@ struct media_entity {
-> >  
-> >  	const struct media_entity_operations *ops;
-> >  
-> > -	int stream_count;
-> >  	int use_count;
-> >  
-> > -	struct media_pipeline *pipe;
-> > -
-> >  	union {
-> >  		struct {
-> >  			u32 major;
-> 
-> -- 
-> Regards,
-> 
-> Laurent Pinchart
+>   *
+>   * Calls to this function can be nested, in which case the same number of
+>   * media_pipeline_stop() calls will be required to stop streaming. The
+>   * pipeline pointer must be identical for all nested calls to
+>   * media_pipeline_start().
+>   */
+> -__must_check int media_pipeline_start(struct media_entity *entity,
+> +__must_check int media_pipeline_start(struct media_pad *pad,
+>  				      struct media_pipeline *pipe);
+>  /**
+>   * __media_pipeline_start - Mark a pipeline as streaming
+>   *
+> - * @entity: Starting entity
+> - * @pipe: Media pipeline to be assigned to all entities in the pipeline.
+> + * @pad: Starting pad
+> + * @pipe: Media pipeline to be assigned to all pads in the pipeline.
+>   *
+>   * ..note:: This is the non-locking version of media_pipeline_start()
+>   */
+> -__must_check int __media_pipeline_start(struct media_entity *entity,
+> +__must_check int __media_pipeline_start(struct media_pad *pad,
+>  					struct media_pipeline *pipe);
+>  
+>  /**
+>   * media_pipeline_stop - Mark a pipeline as not streaming
+> - * @entity: Starting entity
+> + * @pad: Starting pad
+>   *
+> - * Mark all entities connected to a given entity through enabled links, either
+> - * directly or indirectly, as not streaming. The media_entity pipe field is
+> - * reset to %NULL.
+> + * Mark all pads connected to a given pad through enabled routes or
+> + * links, either directly or indirectly, as not streaming. The
+> + * media_pad pipe field is reset to %NULL.
+
+Ditto.
+
+With the above fixed,
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+>   *
+>   * If multiple calls to media_pipeline_start() have been made, the same
+>   * number of calls to this function are required to mark the pipeline as not
+>   * streaming.
+>   */
+> -void media_pipeline_stop(struct media_entity *entity);
+> +void media_pipeline_stop(struct media_pad *pad);
+>  
+>  /**
+>   * __media_pipeline_stop - Mark a pipeline as not streaming
+>   *
+> - * @entity: Starting entity
+> + * @pad: Starting pad
+>   *
+>   * .. note:: This is the non-locking version of media_pipeline_stop()
+>   */
+> -void __media_pipeline_stop(struct media_entity *entity);
+> +void __media_pipeline_stop(struct media_pad *pad);
+>  
+>  /**
+>   * media_devnode_create() - creates and initializes a device node interface
 
 -- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+Regards,
+
+Laurent Pinchart
