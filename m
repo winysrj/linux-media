@@ -2,68 +2,69 @@ Return-Path: <SRS0=Ztfs=PX=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A861AC43387
-	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 05:34:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 66CA8C43387
+	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 05:38:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6994F20651
-	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 05:34:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3827D20651
+	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 05:38:17 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="SWEV51yR"
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="F4gx781D"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727986AbfAOFeK (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 15 Jan 2019 00:34:10 -0500
-Received: from mail-oi1-f193.google.com ([209.85.167.193]:45084 "EHLO
-        mail-oi1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725929AbfAOFeK (ORCPT
+        id S1728150AbfAOFiQ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 15 Jan 2019 00:38:16 -0500
+Received: from mail-ot1-f67.google.com ([209.85.210.67]:42326 "EHLO
+        mail-ot1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727877AbfAOFiQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 Jan 2019 00:34:10 -0500
-Received: by mail-oi1-f193.google.com with SMTP id y1so1183279oie.12
-        for <linux-media@vger.kernel.org>; Mon, 14 Jan 2019 21:34:09 -0800 (PST)
+        Tue, 15 Jan 2019 00:38:16 -0500
+Received: by mail-ot1-f67.google.com with SMTP id v23so1420764otk.9
+        for <linux-media@vger.kernel.org>; Mon, 14 Jan 2019 21:38:15 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=chromium.org; s=google;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=c3uk7JKIkM/xxVfoOp30bQcsnhQq1UF3hhVO6cI0KT4=;
-        b=SWEV51yRmBRa6dEcpQWQLwDTJ5jRdL416eUl0K1BGRa9Lcs6vbo2IcoDZztYGLmeVK
-         lPfR6O/tlsnVO1suIdZKL325uNkkrpyOUV0U8H+AxeZXzOADumQDugFchL/gJACuoik4
-         BBp2dTQySWfPQ2wIFL4Obu9h8XfmIhal3x+4s=
+        bh=HEJJ/FUBoVOlyWjiJWle5JFcO+QW0w8wllteFrlniQg=;
+        b=F4gx781DvJCPp1yyrjtHzhtMlZEXIQ1/2Hicn4QvTRvR/ZscuqxC2sBGIgcmpNNaQS
+         1kvwUyTSoU8j8nCkaDfOsMBw3jmxCSWQT44e9Sw0u2T4N+qVI0A6ZIeBVFQY5haBqf84
+         CevWhZkWiyMn91zwR4t08/OiOA1mAVIz+kXsc=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=c3uk7JKIkM/xxVfoOp30bQcsnhQq1UF3hhVO6cI0KT4=;
-        b=e5LKyLyLXHfsoUWumws561rnMMI/CD7oj/7VbUB89qhIe+D0846Vq0aDzxG8H/JCEN
-         s3nEhIoLxKfqoD/Q7GuUOrowYL7bX0rCt8YHbygVy+qiDVc0+thrZD8dgErZAogg1dbp
-         X2s32NuYlJDVDLkbcCHjUKBwhV2uEtictdAcE4CKkkEo7Apkt6HOYbvIBm/AjZU51NwF
-         PNOFTCbMHfgH7uK+nP1fTH+dBZ+0KQjobrCxsc/06BaqbDjRsReGr2Q8OzT62pnh3iBy
-         6HakyqsQIQk1ErIjftq1ba93ca9msviYwUc5gceraxKjtcT2BsIzAWeFYG0iN9FYo/+I
-         a2cw==
-X-Gm-Message-State: AJcUukcL62TwgCHXg+A+JYyHLVCgCGacc1TsG0ejbx9aHrhb3yW/bs42
-        vrmsdaT88V9w0Alo8lOjlQZ/nhT+8QI=
-X-Google-Smtp-Source: ALg8bN6x1B9t2FOhLsriw2B45uFFb52QDMJuNwxozLTDPxj1q2xSW8RyQ56zMvrasGS2tR2Uxtes1g==
-X-Received: by 2002:aca:ea57:: with SMTP id i84mr1105917oih.346.1547530449164;
-        Mon, 14 Jan 2019 21:34:09 -0800 (PST)
-Received: from mail-oi1-f179.google.com (mail-oi1-f179.google.com. [209.85.167.179])
-        by smtp.gmail.com with ESMTPSA id q10sm1103205otl.15.2019.01.14.21.34.08
+        bh=HEJJ/FUBoVOlyWjiJWle5JFcO+QW0w8wllteFrlniQg=;
+        b=tBho831sBA3sWM3h2qYKjxzlEDLlnaG29XJDkgiBgKTJrlJDqh80tEulzlgbl3Epgw
+         t4+lWj+dONbwcqGS5yNtGfHvceDvW/2A5mAmSW6VQuKM68/PLV6Zij//vn9seMyWxR8W
+         /hqraTMtqhebtnkf0hrfOzXZJs0Kff+SOgS00Z5luNH5dtr2PGehlvTBTNeEMAcIvD4J
+         xacXNIYlHRagul2UG/w6w38mN09gDce/Pa/njHMfmXeEiKrAS7lbPxE8L17dTY110tLy
+         kBxYuSUKzKv3VBtVDOXumM9P29noBnAZATNCTv/AZweiawv8+OvzWML50GowpNJWfUXP
+         wDJQ==
+X-Gm-Message-State: AJcUukc6879cMIGx+KKupzpNN3v06kx0uYcBWFBmYy1Dci2cpJkK4Pka
+        NKPioPkI0pu+jZch9U5arOWdSKcQKDc=
+X-Google-Smtp-Source: ALg8bN5nkXgv44nykgc+ozvO0CDxfuZx0IS6CxJtPG07Cg1tgfVhK4UavYF6ldnJJshM6uqSV8O/SA==
+X-Received: by 2002:a9d:5d2:: with SMTP id 76mr1305723otd.78.1547530694733;
+        Mon, 14 Jan 2019 21:38:14 -0800 (PST)
+Received: from mail-ot1-f51.google.com (mail-ot1-f51.google.com. [209.85.210.51])
+        by smtp.gmail.com with ESMTPSA id i22sm1107500otl.20.2019.01.14.21.38.13
         for <linux-media@vger.kernel.org>
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 14 Jan 2019 21:34:08 -0800 (PST)
-Received: by mail-oi1-f179.google.com with SMTP id a77so1217840oii.5
-        for <linux-media@vger.kernel.org>; Mon, 14 Jan 2019 21:34:08 -0800 (PST)
-X-Received: by 2002:aca:c312:: with SMTP id t18mr1158321oif.92.1547530447792;
- Mon, 14 Jan 2019 21:34:07 -0800 (PST)
+        Mon, 14 Jan 2019 21:38:13 -0800 (PST)
+Received: by mail-ot1-f51.google.com with SMTP id s13so1451711otq.4
+        for <linux-media@vger.kernel.org>; Mon, 14 Jan 2019 21:38:13 -0800 (PST)
+X-Received: by 2002:a05:6830:1193:: with SMTP id u19mr1353344otq.152.1547530693196;
+ Mon, 14 Jan 2019 21:38:13 -0800 (PST)
 MIME-Version: 1.0
-References: <1547523465-27807-1-git-send-email-yong.zhi@intel.com>
-In-Reply-To: <1547523465-27807-1-git-send-email-yong.zhi@intel.com>
+References: <1547523465-27807-1-git-send-email-yong.zhi@intel.com> <1547523465-27807-2-git-send-email-yong.zhi@intel.com>
+In-Reply-To: <1547523465-27807-2-git-send-email-yong.zhi@intel.com>
 From:   Tomasz Figa <tfiga@chromium.org>
-Date:   Tue, 15 Jan 2019 14:33:56 +0900
-X-Gmail-Original-Message-ID: <CAAFQd5BwDixHRwr5LxFX4PLyaaU8R1u1mzds=tdtffjF9pS6_A@mail.gmail.com>
-Message-ID: <CAAFQd5BwDixHRwr5LxFX4PLyaaU8R1u1mzds=tdtffjF9pS6_A@mail.gmail.com>
-Subject: Re: [PATCH 1/2] media: ipu3-imgu: Use MENU type for mode control
+Date:   Tue, 15 Jan 2019 14:38:01 +0900
+X-Gmail-Original-Message-ID: <CAAFQd5BZc33TkX_u5-vO_n13+73Ga5Pn+ERcFzTe4=HbPWRKXA@mail.gmail.com>
+Message-ID: <CAAFQd5BZc33TkX_u5-vO_n13+73Ga5Pn+ERcFzTe4=HbPWRKXA@mail.gmail.com>
+Subject: Re: [PATCH 2/2] media: ipu3-imgu: Remove dead code for NULL check
 To:     Yong Zhi <yong.zhi@intel.com>
 Cc:     Linux Media Mailing List <linux-media@vger.kernel.org>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
@@ -83,101 +84,56 @@ Hi Yong,
 
 On Tue, Jan 15, 2019 at 12:38 PM Yong Zhi <yong.zhi@intel.com> wrote:
 >
-> This addresses the below TODO item.
-> - Use V4L2_CTRL_TYPE_MENU for dual-pipe mode control. (Sakari)
+> Since ipu3_css_buf_dequeue() never returns NULL, remove the
+> dead code to fix static checker warning:
+>
+> drivers/staging/media/ipu3/ipu3.c:493 imgu_isr_threaded()
+> warn: 'b' is an error pointer or valid
 >
 > Signed-off-by: Yong Zhi <yong.zhi@intel.com>
 > ---
->  drivers/staging/media/ipu3/TODO                 |  2 --
->  drivers/staging/media/ipu3/include/intel-ipu3.h |  6 ------
->  drivers/staging/media/ipu3/ipu3-v4l2.c          | 18 +++++++++++++-----
->  3 files changed, 13 insertions(+), 13 deletions(-)
->
+> Link to Dan's bug report:
+> https://www.spinics.net/lists/linux-media/msg145043.html
 
-Thanks for the patch. Please see my comments inline.
+You can add Dan's Reported-by above your Signed-off-by to properly
+credit him. I'd also add a comment below that Reported-by, e.g.
 
-> diff --git a/drivers/staging/media/ipu3/TODO b/drivers/staging/media/ipu3/TODO
-> index 905bbb190217..0dc9a2e79978 100644
-> --- a/drivers/staging/media/ipu3/TODO
-> +++ b/drivers/staging/media/ipu3/TODO
-> @@ -11,8 +11,6 @@ staging directory.
->  - Prefix imgu for all public APIs, i.e. change ipu3_v4l2_register() to
->    imgu_v4l2_register(). (Sakari)
->
-> -- Use V4L2_CTRL_TYPE_MENU for dual-pipe mode control. (Sakari)
-> -
->  - IPU3 driver documentation (Laurent)
->    Add diagram in driver rst to describe output capability.
->    Comments on configuring v4l2 subdevs for CIO2 and ImgU.
-> diff --git a/drivers/staging/media/ipu3/include/intel-ipu3.h b/drivers/staging/media/ipu3/include/intel-ipu3.h
-> index ec0b74829351..eb6f52aca992 100644
-> --- a/drivers/staging/media/ipu3/include/intel-ipu3.h
-> +++ b/drivers/staging/media/ipu3/include/intel-ipu3.h
-> @@ -16,12 +16,6 @@
->  #define V4L2_CID_INTEL_IPU3_BASE       (V4L2_CID_USER_BASE + 0x10c0)
->  #define V4L2_CID_INTEL_IPU3_MODE       (V4L2_CID_INTEL_IPU3_BASE + 1)
->
-> -/* custom ctrl to set pipe mode */
-> -enum ipu3_running_mode {
-> -       IPU3_RUNNING_MODE_VIDEO = 0,
-> -       IPU3_RUNNING_MODE_STILL = 1,
-> -};
-> -
->  /******************* ipu3_uapi_stats_3a *******************/
->
->  #define IPU3_UAPI_MAX_STRIPES                          2
-> diff --git a/drivers/staging/media/ipu3/ipu3-v4l2.c b/drivers/staging/media/ipu3/ipu3-v4l2.c
-> index c7936032beb9..d2a0b62d5688 100644
-> --- a/drivers/staging/media/ipu3/ipu3-v4l2.c
-> +++ b/drivers/staging/media/ipu3/ipu3-v4l2.c
-> @@ -12,6 +12,9 @@
->
->  /******************** v4l2_subdev_ops ********************/
->
-> +#define        IPU3_RUNNING_MODE_VIDEO         0
-> +#define        IPU3_RUNNING_MODE_STILL         1
+[Bug report: https://www.spinics.net/lists/linux-media/msg145043.html]
 
-Just a single space after "#define" please.
+so that it doesn't get removed when applying the patch, as it would
+get now, because any text right in this area is ignored by git.
 
-> +
->  static int ipu3_subdev_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
->  {
->         struct imgu_v4l2_subdev *imgu_sd = container_of(sd,
-> @@ -1035,15 +1038,20 @@ static const struct v4l2_ctrl_ops ipu3_subdev_ctrl_ops = {
->         .s_ctrl = ipu3_sd_s_ctrl,
->  };
->
-> +static const char * const ipu3_ctrl_mode_strings[] = {
-> +       "Video mode",
-> +       "Still mode",
-> +       NULL,
-
-Do you need this NULL entry? I don't see it in other drivers.
-
-> +};
-> +
->  static const struct v4l2_ctrl_config ipu3_subdev_ctrl_mode = {
->         .ops = &ipu3_subdev_ctrl_ops,
->         .id = V4L2_CID_INTEL_IPU3_MODE,
->         .name = "IPU3 Pipe Mode",
-> -       .type = V4L2_CTRL_TYPE_INTEGER,
-> -       .min = IPU3_RUNNING_MODE_VIDEO,
-> -       .max = IPU3_RUNNING_MODE_STILL,
-> -       .step = 1,
-> -       .def = IPU3_RUNNING_MODE_VIDEO,
-> +       .type = V4L2_CTRL_TYPE_MENU,
-> +       .max = ARRAY_SIZE(ipu3_ctrl_mode_strings) - 2,
-> +       .def = 0,
-
-IPU3_RUNNING_MODE_VIDEO?
-
-> +       .qmenu = ipu3_ctrl_mode_strings,
->  };
->
->  /******************** Framework registration ********************/
-> --
-> 2.7.4
->
+With that fixes, feel free to add my Reviewed-by.
 
 Best regards,
 Tomasz
+
+>
+>  drivers/staging/media/ipu3/ipu3.c | 11 +++++------
+>  1 file changed, 5 insertions(+), 6 deletions(-)
+>
+> diff --git a/drivers/staging/media/ipu3/ipu3.c b/drivers/staging/media/ipu3/ipu3.c
+> index d521b3afb8b1..839d9398f8e9 100644
+> --- a/drivers/staging/media/ipu3/ipu3.c
+> +++ b/drivers/staging/media/ipu3/ipu3.c
+> @@ -489,12 +489,11 @@ static irqreturn_t imgu_isr_threaded(int irq, void *imgu_ptr)
+>                         mutex_unlock(&imgu->lock);
+>                 } while (PTR_ERR(b) == -EAGAIN);
+>
+> -               if (IS_ERR_OR_NULL(b)) {
+> -                       if (!b || PTR_ERR(b) == -EBUSY) /* All done */
+> -                               break;
+> -                       dev_err(&imgu->pci_dev->dev,
+> -                               "failed to dequeue buffers (%ld)\n",
+> -                               PTR_ERR(b));
+> +               if (IS_ERR(b)) {
+> +                       if (PTR_ERR(b) != -EBUSY)       /* All done */
+> +                               dev_err(&imgu->pci_dev->dev,
+> +                                       "failed to dequeue buffers (%ld)\n",
+> +                                       PTR_ERR(b));
+>                         break;
+>                 }
+>
+> --
+> 2.7.4
+>
