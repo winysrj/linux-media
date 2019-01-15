@@ -2,135 +2,338 @@ Return-Path: <SRS0=Ztfs=PX=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,
-	USER_AGENT_MUTT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_PASS,USER_AGENT_MUTT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F315C43387
-	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 21:25:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0726FC43612
+	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 21:43:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 55D7520868
-	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 21:25:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C6CBE20866
+	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 21:43:20 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="L9ePam4m"
+	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="OhMtG5Cz"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732869AbfAOVZD (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 15 Jan 2019 16:25:03 -0500
-Received: from mail-pl1-f196.google.com ([209.85.214.196]:39782 "EHLO
-        mail-pl1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728028AbfAOVZD (ORCPT
+        id S2390634AbfAOVnU (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 15 Jan 2019 16:43:20 -0500
+Received: from perceval.ideasonboard.com ([213.167.242.64]:48554 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729432AbfAOVnU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 Jan 2019 16:25:03 -0500
-Received: by mail-pl1-f196.google.com with SMTP id 101so1884515pld.6
-        for <linux-media@vger.kernel.org>; Tue, 15 Jan 2019 13:25:03 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to:user-agent;
-        bh=3Apz0Fm4k3jNkvwhfslGVbEdm48qHu74yHM2ejhg0UU=;
-        b=L9ePam4mEmvvQdk3e8UDCNPG1H5jfY5B7qHd8H+CeXpyuA8Din/vpLRt4+KggbG+sJ
-         RQCN1HvVJEPE5STMCtuX1bbMdgvV5fB36UEB5fm6FTJEBo6sSHOrV78cGLnU5OpOo9cu
-         /6nRD+CqxzNEx4tCjUCFjCObkYPAIrJhSJeLh/a2AWOUE5rI9WVqHwWjcy+BqH2ZsVWD
-         KwJfex6pRmHVj/hLQ9L7k1oq7UaDkFhrerAjPP39fr9i+mYV/lrMaihsYM/1NxeZAT68
-         A3fWJWbpU7rXjzOq332azBFpK6/gL16m6exgdbhxJ/B7vqIziPYXdVrkz6akcQAqwUjq
-         F5GA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=3Apz0Fm4k3jNkvwhfslGVbEdm48qHu74yHM2ejhg0UU=;
-        b=rbxppqtRXCGxN4mD+dsdFFfbft0xtB0ynEHKO/5P4AGMuVd0qMmblThDpcWjLU+cqF
-         xBBwsGu5oJzqYKCwcbaQXAL0uBMt6PjQlA0funLUP9pkBohF9G42IlzuF8UgE4BUwLre
-         xS0kPEisGlnbKbE8yO1MGFyO6dlhNUds/JmTf5/EUvKU5HjH8si8vAhekYAWqqCmh50Y
-         Q3FpmorkjWW+E5Ja44ObPWVU5szk0vJAyVyix3OFvJ7b+og17F8V//izoqjjORjKt7TR
-         AP7r8o6MP7w+uj9GGNOqlfys61y2Gb35p1iJ5evV+APdz5onZh6J+vIwdFHqj5ZH9B0T
-         DRcQ==
-X-Gm-Message-State: AJcUukfRMcD/zeyvFCVOPEBdcuZjLX5dKrHAnNd0nFR7Y3JhmNEUrdji
-        jeR2hmKZLJHQAp6dUpRCmFhPiw==
-X-Google-Smtp-Source: ALg8bN7TU76438vgxz0irhnnKqoUjtyPpSuqVoQxQOeuWsoTz1seUV0AKQG66Lsjpt55SiCfNpTgCw==
-X-Received: by 2002:a17:902:4225:: with SMTP id g34mr6349957pld.152.1547587502782;
-        Tue, 15 Jan 2019 13:25:02 -0800 (PST)
-Received: from ziepe.ca (S010614cc2056d97f.ed.shawcable.net. [174.3.196.123])
-        by smtp.gmail.com with ESMTPSA id r76sm6893358pfb.69.2019.01.15.13.25.01
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Tue, 15 Jan 2019 13:25:01 -0800 (PST)
-Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
-        (envelope-from <jgg@ziepe.ca>)
-        id 1gjWCj-00015B-4g; Tue, 15 Jan 2019 14:25:01 -0700
-Date:   Tue, 15 Jan 2019 14:25:01 -0700
-From:   Jason Gunthorpe <jgg@ziepe.ca>
-To:     Thomas Hellstrom <thellstrom@vmware.com>
-Cc:     "hch@lst.de" <hch@lst.de>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "yong.zhi@intel.com" <yong.zhi@intel.com>,
-        "daniel.vetter@ffwll.ch" <daniel.vetter@ffwll.ch>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "syeh@vmware.com" <syeh@vmware.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "bingbu.cao@intel.com" <bingbu.cao@intel.com>,
-        "imre.deak@intel.com" <imre.deak@intel.com>,
-        "tian.shu.qiu@intel.com" <tian.shu.qiu@intel.com>,
-        "jian.xu.zheng@intel.com" <jian.xu.zheng@intel.com>,
-        "shiraz.saleem@intel.com" <shiraz.saleem@intel.com>,
-        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>
-Subject: Re: [PATCH] lib/scatterlist: Provide a DMA page iterator
-Message-ID: <20190115212501.GE22045@ziepe.ca>
-References: <20190104223531.GA1705@ziepe.ca>
- <20190110234218.GM6890@ziepe.ca>
- <20190114094856.GB29604@lst.de>
- <1fb20ab4b171b281e9994b6c55734c120958530b.camel@vmware.com>
+        Tue, 15 Jan 2019 16:43:20 -0500
+Received: from pendragon.ideasonboard.com (dfj612yhrgyx302h3jwwy-3.rev.dnainternet.fi [IPv6:2001:14ba:21f5:5b00:ce28:277f:58d7:3ca4])
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 5A609530;
+        Tue, 15 Jan 2019 22:43:16 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
+        s=mail; t=1547588596;
+        bh=si1YooDQEIiSGiBnz1e5VhuJ5P1rVerOU8Q4kutUolc=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=OhMtG5Czw543SG8XRV1mzd05668QqqoiQQmm8S0U5VBjeSLSxFQWlL8Li5FrQz2C6
+         Ie0jG1T2bqmYuL9Jgn3UZVOMcUp7nXgD4crUwHoOyLQQ6xUthx6CDh0AjsBToH03jJ
+         PS1LHWk49af3jP8PLZigK7Ku6Ftla4amKKLbd4QI=
+Date:   Tue, 15 Jan 2019 23:43:17 +0200
+From:   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To:     Niklas =?iso-8859-1?Q?S=F6derlund?= 
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc:     Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Benoit Parrot <bparrot@ti.com>, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH v2 01/30] media: entity: Use pad as a starting point for
+ graph walk
+Message-ID: <20190115214317.GA28397@pendragon.ideasonboard.com>
+References: <20181101233144.31507-1-niklas.soderlund+renesas@ragnatech.se>
+ <20181101233144.31507-2-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <1fb20ab4b171b281e9994b6c55734c120958530b.camel@vmware.com>
-User-Agent: Mutt/1.9.4 (2018-02-28)
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20181101233144.31507-2-niklas.soderlund+renesas@ragnatech.se>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Tue, Jan 15, 2019 at 02:17:26PM +0000, Thomas Hellstrom wrote:
-> Hi, Christoph,
+Hello Niklas,
+
+Thank you for the patch.
+
+On Fri, Nov 02, 2018 at 12:31:15AM +0100, Niklas Söderlund wrote:
+> From: Sakari Ailus <sakari.ailus@linux.intel.com>
 > 
-> On Mon, 2019-01-14 at 10:48 +0100, Christoph Hellwig wrote:
-> > On Thu, Jan 10, 2019 at 04:42:18PM -0700, Jason Gunthorpe wrote:
-> > > > Changes since the RFC:
-> > > > - Rework vmwgfx too [CH]
-> > > > - Use a distinct type for the DMA page iterator [CH]
-> > > > - Do not have a #ifdef [CH]
-> > > 
-> > > ChristophH: Will you ack?
-> > 
-> > This looks generally fine.
-> > 
-> > > Are you still OK with the vmwgfx reworking, or should we go back to
-> > > the original version that didn't have the type safety so this
-> > > driver
-> > > can be left broken?
-> > 
-> > I think the map method in vmgfx that just does virt_to_phys is
-> > pretty broken.  Thomas, can you check if you see any performance
-> > difference with just doing the proper dma mapping, as that gets the
-> > driver out of interface abuse land?
+> With the upcoming use of the recently added has_route() media entity op, all
+> the pads in an entity will no longer be considered interconnected. This has
+> an effect where the media graph is traversed: the starting pad does make a
+> difference.
 > 
-> The performance difference is not really the main problem here. The
-> problem is that even though we utilize the streaming DMA interface, we
-> use it only since we have to for DMA-Remapping and assume that the
-> memory is coherent. To be able to be as compliant as possible and ditch
-> the virt-to-phys mode, we *need* a DMA interface flag that tells us
-> when the dma_sync_for_xxx are no-ops. If they aren't we'll refuse to
-> load for now. I'm not sure, but I think also nouveau and radeon suffer
-> from the same issue.
+> Prepare for this change by using pad instead of the entity as an argument
+> for the graph walk operations. The actual graph traversal algorithm change
+> is in further patches.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-RDMA needs something similar as well, in this case drivers take a
-struct page * from get_user_pages() and need to have the DMA map fail
-if the platform can't DMA map in a way that does not require any
-additional DMA API calls to ensure coherence. (think Userspace RDMA
-MR's)
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Today we just do the normal DMA map and when it randomly doesn't work
-and corrupts data tell those people their platforms don't support RDMA
-- it would be nice to have a safer API base solution..
+> ---
+>  Documentation/media/kapi/mc-core.rst            |  2 +-
+>  drivers/media/media-entity.c                    | 17 ++++++++---------
+>  drivers/media/platform/exynos4-is/media-dev.c   |  4 ++--
+>  drivers/media/platform/omap3isp/ispvideo.c      |  2 +-
+>  drivers/media/platform/vsp1/vsp1_video.c        |  2 +-
+>  drivers/media/platform/xilinx/xilinx-dma.c      |  2 +-
+>  drivers/media/v4l2-core/v4l2-mc.c               |  6 +++---
+>  drivers/staging/media/davinci_vpfe/vpfe_video.c |  6 +++---
+>  drivers/staging/media/omap4iss/iss_video.c      |  4 ++--
+>  include/media/media-entity.h                    | 10 ++++------
+>  10 files changed, 26 insertions(+), 29 deletions(-)
+> 
+> diff --git a/Documentation/media/kapi/mc-core.rst b/Documentation/media/kapi/mc-core.rst
+> index 0c05503eaf1fa6c7..27aefb9a778b2ad6 100644
+> --- a/Documentation/media/kapi/mc-core.rst
+> +++ b/Documentation/media/kapi/mc-core.rst
+> @@ -165,7 +165,7 @@ Drivers initiate a graph traversal by calling
+>  :c:func:`media_graph_walk_start()`
+>  
+>  The graph structure, provided by the caller, is initialized to start graph
+> -traversal at the given entity.
+> +traversal at the given pad in an entity.
+>  
+>  Drivers can then retrieve the next entity by calling
+>  :c:func:`media_graph_walk_next()`
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index 0b1cb3559140a1fe..2bbc07de71aa5e6d 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -300,17 +300,16 @@ void media_graph_walk_cleanup(struct media_graph *graph)
+>  }
+>  EXPORT_SYMBOL_GPL(media_graph_walk_cleanup);
+>  
+> -void media_graph_walk_start(struct media_graph *graph,
+> -			    struct media_entity *entity)
+> +void media_graph_walk_start(struct media_graph *graph, struct media_pad *pad)
+>  {
+>  	media_entity_enum_zero(&graph->ent_enum);
+> -	media_entity_enum_set(&graph->ent_enum, entity);
+> +	media_entity_enum_set(&graph->ent_enum, pad->entity);
+>  
+>  	graph->top = 0;
+>  	graph->stack[graph->top].entity = NULL;
+> -	stack_push(graph, entity);
+> -	dev_dbg(entity->graph_obj.mdev->dev,
+> -		"begin graph walk at '%s'\n", entity->name);
+> +	stack_push(graph, pad->entity);
+> +	dev_dbg(pad->graph_obj.mdev->dev,
+> +		"begin graph walk at '%s':%u\n", pad->entity->name, pad->index);
+>  }
+>  EXPORT_SYMBOL_GPL(media_graph_walk_start);
+>  
+> @@ -428,7 +427,7 @@ __must_check int __media_pipeline_start(struct media_entity *entity,
+>  			goto error_graph_walk_start;
+>  	}
+>  
+> -	media_graph_walk_start(&pipe->graph, entity);
+> +	media_graph_walk_start(&pipe->graph, entity->pads);
+>  
+>  	while ((entity = media_graph_walk_next(graph))) {
+>  		DECLARE_BITMAP(active, MEDIA_ENTITY_MAX_PADS);
+> @@ -509,7 +508,7 @@ __must_check int __media_pipeline_start(struct media_entity *entity,
+>  	 * Link validation on graph failed. We revert what we did and
+>  	 * return the error.
+>  	 */
+> -	media_graph_walk_start(graph, entity_err);
+> +	media_graph_walk_start(graph, entity_err->pads);
+>  
+>  	while ((entity_err = media_graph_walk_next(graph))) {
+>  		/* Sanity check for negative stream_count */
+> @@ -560,7 +559,7 @@ void __media_pipeline_stop(struct media_entity *entity)
+>  	if (WARN_ON(!pipe))
+>  		return;
+>  
+> -	media_graph_walk_start(graph, entity);
+> +	media_graph_walk_start(graph, entity->pads);
+>  
+>  	while ((entity = media_graph_walk_next(graph))) {
+>  		/* Sanity check for negative stream_count */
+> diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
+> index 870501b0f351addb..51d2a571c06db6a3 100644
+> --- a/drivers/media/platform/exynos4-is/media-dev.c
+> +++ b/drivers/media/platform/exynos4-is/media-dev.c
+> @@ -1144,7 +1144,7 @@ static int __fimc_md_modify_pipelines(struct media_entity *entity, bool enable,
+>  	 * through active links. This is needed as we cannot power on/off the
+>  	 * subdevs in random order.
+>  	 */
+> -	media_graph_walk_start(graph, entity);
+> +	media_graph_walk_start(graph, entity->pads);
+>  
+>  	while ((entity = media_graph_walk_next(graph))) {
+>  		if (!is_media_entity_v4l2_video_device(entity))
+> @@ -1159,7 +1159,7 @@ static int __fimc_md_modify_pipelines(struct media_entity *entity, bool enable,
+>  	return 0;
+>  
+>  err:
+> -	media_graph_walk_start(graph, entity_err);
+> +	media_graph_walk_start(graph, entity_err->pads);
+>  
+>  	while ((entity_err = media_graph_walk_next(graph))) {
+>  		if (!is_media_entity_v4l2_video_device(entity_err))
+> diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
+> index 5658f6a326f77f66..50ad35bc644eae29 100644
+> --- a/drivers/media/platform/omap3isp/ispvideo.c
+> +++ b/drivers/media/platform/omap3isp/ispvideo.c
+> @@ -238,7 +238,7 @@ static int isp_video_get_graph_data(struct isp_video *video,
+>  		return ret;
+>  	}
+>  
+> -	media_graph_walk_start(&graph, entity);
+> +	media_graph_walk_start(&graph, entity->pads);
+>  
+>  	while ((entity = media_graph_walk_next(&graph))) {
+>  		struct isp_video *__video;
+> diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+> index 771dfe1f7c20e526..e35b2e2340b82f00 100644
+> --- a/drivers/media/platform/vsp1/vsp1_video.c
+> +++ b/drivers/media/platform/vsp1/vsp1_video.c
+> @@ -580,7 +580,7 @@ static int vsp1_video_pipeline_build(struct vsp1_pipeline *pipe,
+>  	if (ret)
+>  		return ret;
+>  
+> -	media_graph_walk_start(&graph, entity);
+> +	media_graph_walk_start(&graph, entity->pads);
+>  
+>  	while ((entity = media_graph_walk_next(&graph))) {
+>  		struct v4l2_subdev *subdev;
+> diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/platform/xilinx/xilinx-dma.c
+> index 4ae9d38c94332fa4..566c2d0fb97dc162 100644
+> --- a/drivers/media/platform/xilinx/xilinx-dma.c
+> +++ b/drivers/media/platform/xilinx/xilinx-dma.c
+> @@ -193,7 +193,7 @@ static int xvip_pipeline_validate(struct xvip_pipeline *pipe,
+>  		return ret;
+>  	}
+>  
+> -	media_graph_walk_start(&graph, entity);
+> +	media_graph_walk_start(&graph, entity->pads);
+>  
+>  	while ((entity = media_graph_walk_next(&graph))) {
+>  		struct xvip_dma *dma;
+> diff --git a/drivers/media/v4l2-core/v4l2-mc.c b/drivers/media/v4l2-core/v4l2-mc.c
+> index 014a2a97cadd8706..9ed480fe5b6e4762 100644
+> --- a/drivers/media/v4l2-core/v4l2-mc.c
+> +++ b/drivers/media/v4l2-core/v4l2-mc.c
+> @@ -341,7 +341,7 @@ static int pipeline_pm_use_count(struct media_entity *entity,
+>  {
+>  	int use = 0;
+>  
+> -	media_graph_walk_start(graph, entity);
+> +	media_graph_walk_start(graph, entity->pads);
+>  
+>  	while ((entity = media_graph_walk_next(graph))) {
+>  		if (is_media_entity_v4l2_video_device(entity))
+> @@ -404,7 +404,7 @@ static int pipeline_pm_power(struct media_entity *entity, int change,
+>  	if (!change)
+>  		return 0;
+>  
+> -	media_graph_walk_start(graph, entity);
+> +	media_graph_walk_start(graph, entity->pads);
+>  
+>  	while (!ret && (entity = media_graph_walk_next(graph)))
+>  		if (is_media_entity_v4l2_subdev(entity))
+> @@ -413,7 +413,7 @@ static int pipeline_pm_power(struct media_entity *entity, int change,
+>  	if (!ret)
+>  		return ret;
+>  
+> -	media_graph_walk_start(graph, first);
+> +	media_graph_walk_start(graph, first->pads);
+>  
+>  	while ((first = media_graph_walk_next(graph))
+>  	       && first != entity)
+> diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+> index 5e42490331b7620f..912d93fc7a483cd4 100644
+> --- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
+> +++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+> @@ -150,7 +150,7 @@ static int vpfe_prepare_pipeline(struct vpfe_video_device *video)
+>  		mutex_unlock(&mdev->graph_mutex);
+>  		return -ENOMEM;
+>  	}
+> -	media_graph_walk_start(&graph, entity);
+> +	media_graph_walk_start(&graph, entity->pads);
+>  	while ((entity = media_graph_walk_next(&graph))) {
+>  		if (entity == &video->video_dev.entity)
+>  			continue;
+> @@ -303,7 +303,7 @@ static int vpfe_pipeline_enable(struct vpfe_pipeline *pipe)
+>  	ret = media_graph_walk_init(&pipe->graph, mdev);
+>  	if (ret)
+>  		goto out;
+> -	media_graph_walk_start(&pipe->graph, entity);
+> +	media_graph_walk_start(&pipe->graph, entity->pads);
+>  	while ((entity = media_graph_walk_next(&pipe->graph))) {
+>  
+>  		if (!is_media_entity_v4l2_subdev(entity))
+> @@ -345,7 +345,7 @@ static int vpfe_pipeline_disable(struct vpfe_pipeline *pipe)
+>  
+>  	mdev = entity->graph_obj.mdev;
+>  	mutex_lock(&mdev->graph_mutex);
+> -	media_graph_walk_start(&pipe->graph, entity);
+> +	media_graph_walk_start(&pipe->graph, entity->pads);
+>  
+>  	while ((entity = media_graph_walk_next(&pipe->graph))) {
+>  
+> diff --git a/drivers/staging/media/omap4iss/iss_video.c b/drivers/staging/media/omap4iss/iss_video.c
+> index c1322aeaf01eb951..6f72c02c8054f496 100644
+> --- a/drivers/staging/media/omap4iss/iss_video.c
+> +++ b/drivers/staging/media/omap4iss/iss_video.c
+> @@ -217,7 +217,7 @@ iss_video_far_end(struct iss_video *video)
+>  		return NULL;
+>  	}
+>  
+> -	media_graph_walk_start(&graph, entity);
+> +	media_graph_walk_start(&graph, entity->pads);
+>  
+>  	while ((entity = media_graph_walk_next(&graph))) {
+>  		if (entity == &video->video.entity)
+> @@ -897,7 +897,7 @@ iss_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+>  	if (ret < 0)
+>  		goto err_media_pipeline_start;
+>  
+> -	media_graph_walk_start(&graph, entity);
+> +	media_graph_walk_start(&graph, entity->pads);
+>  	while ((entity = media_graph_walk_next(&graph)))
+>  		media_entity_enum_set(&pipe->ent_enum, entity);
+>  
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> index e5f6960d92f6cdd4..07ab141e739ef5ff 100644
+> --- a/include/media/media-entity.h
+> +++ b/include/media/media-entity.h
+> @@ -928,22 +928,20 @@ void media_graph_walk_cleanup(struct media_graph *graph);
+>  void media_entity_put(struct media_entity *entity);
+>  
+>  /**
+> - * media_graph_walk_start - Start walking the media graph at a
+> - *	given entity
+> + * media_graph_walk_start - Start walking the media graph at a given pad
+>   *
+>   * @graph: Media graph structure that will be used to walk the graph
+> - * @entity: Starting entity
+> + * @pad: Starting pad
+>   *
+>   * Before using this function, media_graph_walk_init() must be
+>   * used to allocate resources used for walking the graph. This
+>   * function initializes the graph traversal structure to walk the
+> - * entities graph starting at the given entity. The traversal
+> + * entities graph starting at the given pad. The traversal
+>   * structure must not be modified by the caller during graph
+>   * traversal. After the graph walk, the resources must be released
+>   * using media_graph_walk_cleanup().
+>   */
+> -void media_graph_walk_start(struct media_graph *graph,
+> -			    struct media_entity *entity);
+> +void media_graph_walk_start(struct media_graph *graph, struct media_pad *pad);
+>  
+>  /**
+>   * media_graph_walk_next - Get the next entity in the graph
 
-Jason
+-- 
+Regards,
+
+Laurent Pinchart
