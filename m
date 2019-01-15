@@ -7,125 +7,252 @@ X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 22F89C43612
-	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 23:24:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CE341C43612
+	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 23:28:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E831320896
-	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 23:24:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9D79120883
+	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 23:28:24 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="jnsgllBf"
+	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="vcuJEkU/"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391428AbfAOXYH (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 15 Jan 2019 18:24:07 -0500
-Received: from perceval.ideasonboard.com ([213.167.242.64]:49200 "EHLO
+        id S2387934AbfAOX2Y (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 15 Jan 2019 18:28:24 -0500
+Received: from perceval.ideasonboard.com ([213.167.242.64]:49266 "EHLO
         perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727036AbfAOXYH (ORCPT
+        with ESMTP id S1728841AbfAOX2X (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 Jan 2019 18:24:07 -0500
+        Tue, 15 Jan 2019 18:28:23 -0500
 Received: from pendragon.ideasonboard.com (dfj612yhrgyx302h3jwwy-3.rev.dnainternet.fi [IPv6:2001:14ba:21f5:5b00:ce28:277f:58d7:3ca4])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 92335530;
-        Wed, 16 Jan 2019 00:24:04 +0100 (CET)
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 28810530;
+        Wed, 16 Jan 2019 00:28:21 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1547594644;
-        bh=sDkKmaBujt27jMk8+S1qnYZfRIPYi7y9/6kUReHJO8I=;
+        s=mail; t=1547594901;
+        bh=4RyWI+MAjiW3IDC01gh12sS54cZ0FGB8c35N/dM+5sA=;
         h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=jnsgllBfCNlTlnfBYFYKwDKW06yb4Wk/Vmqt3N50E9uI1ToG4PzgsPil6x1kiXrGX
-         Ye1e5XN1+fGNQs4KEi1LqNTtcVbhhX3RS2PzdkLVWcp77EbCPO9fSrrNffMd2wDbUq
-         Em5eOL5aC9KaKdBUHXldu8Im/837IirdC+ENaiS4=
-Date:   Wed, 16 Jan 2019 01:24:05 +0200
+        b=vcuJEkU/fMZcMJiTFeVTGZfmRbTuYHxLcnMjBUs4dhllXC85mOfQXNBdB6ZRFtW4S
+         pV8aCHVZEGc6eFUVVpTR8UWkZ7XJYkPozU9IvO6Sx4tyzi39E1jbbuzgZeDb6LYkwR
+         Snlpb4hJBh09QP83ft7UhUDu0/QHvCd6w0L0QZLg=
+Date:   Wed, 16 Jan 2019 01:28:22 +0200
 From:   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To:     Niklas =?iso-8859-1?Q?S=F6derlund?= 
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc:     Sakari Ailus <sakari.ailus@linux.intel.com>,
+To:     Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc:     Niklas =?iso-8859-1?Q?S=F6derlund?= 
+        <niklas.soderlund+renesas@ragnatech.se>,
         Benoit Parrot <bparrot@ti.com>, linux-media@vger.kernel.org,
         linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH v2 12/30] media: entity: Add an iterator helper for
- connected pads
-Message-ID: <20190115232405.GA31088@pendragon.ideasonboard.com>
+Subject: Re: [PATCH v2 03/30] media: entity: Walk the graph based on pads
+Message-ID: <20190115232822.GB31088@pendragon.ideasonboard.com>
 References: <20181101233144.31507-1-niklas.soderlund+renesas@ragnatech.se>
- <20181101233144.31507-13-niklas.soderlund+renesas@ragnatech.se>
+ <20181101233144.31507-4-niklas.soderlund+renesas@ragnatech.se>
+ <20190115222136.GD28397@pendragon.ideasonboard.com>
+ <20190115223406.mxgzl36cp54gb7nv@kekkonen.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20181101233144.31507-13-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20190115223406.mxgzl36cp54gb7nv@kekkonen.localdomain>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Niklas,
+Hi Sakari,
 
-Thank you for the patch.
-
-On Fri, Nov 02, 2018 at 12:31:26AM +0100, Niklas Söderlund wrote:
-> From: Sakari Ailus <sakari.ailus@linux.intel.com>
+On Wed, Jan 16, 2019 at 12:34:07AM +0200, Sakari Ailus wrote:
+> On Wed, Jan 16, 2019 at 12:21:36AM +0200, Laurent Pinchart wrote:
+> > On Fri, Nov 02, 2018 at 12:31:17AM +0100, Niklas Söderlund wrote:
+> >> From: Sakari Ailus <sakari.ailus@linux.intel.com>
+> >> 
+> >> Instead of iterating over graph entities during the walk, iterate the pads
+> >> through which the entity was first reached. This is required in order to
+> >> make the entity pipeline pad-based rather than entity based.
+> >> 
+> >> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> >> Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> >> ---
+> >>  Documentation/media/kapi/mc-core.rst          |  7 ++-
+> >>  drivers/media/media-entity.c                  | 46 ++++++++++--------
+> >>  drivers/media/platform/exynos4-is/media-dev.c | 20 ++++----
+> >>  drivers/media/platform/omap3isp/ispvideo.c    | 17 +++----
+> >>  drivers/media/platform/vsp1/vsp1_video.c      | 12 ++---
+> >>  drivers/media/platform/xilinx/xilinx-dma.c    | 12 ++---
+> >>  drivers/media/v4l2-core/v4l2-mc.c             | 25 +++++-----
+> >>  .../staging/media/davinci_vpfe/vpfe_video.c   | 47 ++++++++++---------
+> >>  drivers/staging/media/omap4iss/iss_video.c    | 34 +++++++-------
+> >>  include/media/media-entity.h                  |  7 +--
+> >>  10 files changed, 122 insertions(+), 105 deletions(-)
+> > 
+> > [snip]
+> > 
+> >> diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
+> >> index 51d2a571c06db6a3..5813639c63b56a2c 100644
+> >> --- a/drivers/media/platform/exynos4-is/media-dev.c
+> >> +++ b/drivers/media/platform/exynos4-is/media-dev.c
+> >> @@ -1135,7 +1135,7 @@ static int __fimc_md_modify_pipeline(struct media_entity *entity, bool enable)
+> >>  static int __fimc_md_modify_pipelines(struct media_entity *entity, bool enable,
+> >>  				      struct media_graph *graph)
+> >>  {
+> >> -	struct media_entity *entity_err = entity;
+> >> +	struct media_pad *pad, *pad_err = entity->pads;
+> >>  	int ret;
+> >>  
+> >>  	/*
+> >> @@ -1144,13 +1144,13 @@ static int __fimc_md_modify_pipelines(struct media_entity *entity, bool enable,
+> >>  	 * through active links. This is needed as we cannot power on/off the
+> >>  	 * subdevs in random order.
+> >>  	 */
+> >> -	media_graph_walk_start(graph, entity->pads);
+> >> +	media_graph_walk_start(graph, pad_err);
+> > 
+> > I would keep entity->pads here as we're not dealing with an error path.
+> > 
+> >>  
+> >> -	while ((entity = media_graph_walk_next(graph))) {
+> >> -		if (!is_media_entity_v4l2_video_device(entity))
+> >> +	while ((pad = media_graph_walk_next(graph))) {
+> >> +		if (!is_media_entity_v4l2_video_device(pad->entity))
+> >>  			continue;
+> >>  
+> >> -		ret  = __fimc_md_modify_pipeline(entity, enable);
+> >> +		ret  = __fimc_md_modify_pipeline(pad->entity, enable);
+> >>  
+> >>  		if (ret < 0)
+> >>  			goto err;
+> >> @@ -1159,15 +1159,15 @@ static int __fimc_md_modify_pipelines(struct media_entity *entity, bool enable,
+> >>  	return 0;
+> >>  
+> >>  err:
+> >> -	media_graph_walk_start(graph, entity_err->pads);
+> >> +	media_graph_walk_start(graph, pad_err);
+> >>  
+> >> -	while ((entity_err = media_graph_walk_next(graph))) {
+> >> -		if (!is_media_entity_v4l2_video_device(entity_err))
+> >> +	while ((pad_err = media_graph_walk_next(graph))) {
+> >> +		if (!is_media_entity_v4l2_video_device(pad_err->entity))
+> >>  			continue;
+> >>  
+> >> -		__fimc_md_modify_pipeline(entity_err, !enable);
+> >> +		__fimc_md_modify_pipeline(pad_err->entity, !enable);
+> >>  
+> >> -		if (entity_err == entity)
+> >> +		if (pad_err == pad)
+> >>  			break;
+> >>  	}
+> >>  
+> > 
+> > [snip]
+> > 
+> >> diff --git a/drivers/media/v4l2-core/v4l2-mc.c b/drivers/media/v4l2-core/v4l2-mc.c
+> >> index 9ed480fe5b6e4762..98edd47b2f0ae747 100644
+> >> --- a/drivers/media/v4l2-core/v4l2-mc.c
+> >> +++ b/drivers/media/v4l2-core/v4l2-mc.c
+> >> @@ -339,13 +339,14 @@ EXPORT_SYMBOL_GPL(v4l_vb2q_enable_media_source);
+> >>  static int pipeline_pm_use_count(struct media_entity *entity,
+> >>  	struct media_graph *graph)
+> >>  {
+> >> +	struct media_pad *pad;
+> >>  	int use = 0;
+> >>  
+> >>  	media_graph_walk_start(graph, entity->pads);
+> >>  
+> >> -	while ((entity = media_graph_walk_next(graph))) {
+> >> -		if (is_media_entity_v4l2_video_device(entity))
+> >> -			use += entity->use_count;
+> >> +	while ((pad = media_graph_walk_next(graph))) {
+> >> +		if (is_media_entity_v4l2_video_device(pad->entity))
+> >> +			use += pad->entity->use_count;
+> >>  	}
+> >>  
+> >>  	return use;
+> >> @@ -398,7 +399,7 @@ static int pipeline_pm_power_one(struct media_entity *entity, int change)
+> >>  static int pipeline_pm_power(struct media_entity *entity, int change,
+> >>  	struct media_graph *graph)
+> >>  {
+> >> -	struct media_entity *first = entity;
+> >> +	struct media_pad *tmp_pad, *pad;
+> > 
+> > How about pad_err instead of tmp_pad, like in the exynos driver ? Or
+> > possible first_pad to retain the "first" name ?
 > 
-> Add a helper macro for iterating over pads that are connected through
-> enabled routes. This can be used to find all the connected pads within an
-> entity, for instance starting from the pad which has been obtained during
-> the graph walk.
+> Why? This is just a pad. It's an iterator. first_pad or pad_err are
+> misleading as such. If you don't like tmp_pad, how about "pad2"? The "pad"
+> variable is still used for a similar purpose.
+
+The variable is a pad iterator used in the error path, which can't use
+the pad pointer as we need to stop iterating when we reach it. first_pad
+is a bad idea, but pad_err would convey the meaning.
+
+> > 
+> >>  	int ret = 0;
+> >>  
+> >>  	if (!change)
+> >> @@ -406,19 +407,19 @@ static int pipeline_pm_power(struct media_entity *entity, int change,
+> >>  
+> >>  	media_graph_walk_start(graph, entity->pads);
+> >>  
+> >> -	while (!ret && (entity = media_graph_walk_next(graph)))
+> >> -		if (is_media_entity_v4l2_subdev(entity))
+> >> -			ret = pipeline_pm_power_one(entity, change);
+> >> +	while (!ret && (pad = media_graph_walk_next(graph)))
+> >> +		if (is_media_entity_v4l2_subdev(pad->entity))
+> >> +			ret = pipeline_pm_power_one(pad->entity, change);
+> >>  
+> >>  	if (!ret)
+> >>  		return ret;
+> >>  
+> >> -	media_graph_walk_start(graph, first->pads);
+> >> +	media_graph_walk_start(graph, entity->pads);
+> >>  
+> >> -	while ((first = media_graph_walk_next(graph))
+> >> -	       && first != entity)
+> >> -		if (is_media_entity_v4l2_subdev(first))
+> >> -			pipeline_pm_power_one(first, -change);
+> >> +	while ((tmp_pad = media_graph_walk_next(graph))
+> >> +	       && tmp_pad != pad)
+> >> +		if (is_media_entity_v4l2_subdev(tmp_pad->entity))
+> >> +			pipeline_pm_power_one(tmp_pad->entity, -change);
+> >>  
+> >>  	return ret;
+> >>  }
+> > 
+> > [snip]
+> > 
+> >> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> >> index 99c7606f01317741..cde6350d752bb0ae 100644
+> >> --- a/include/media/media-entity.h
+> >> +++ b/include/media/media-entity.h
+> >> @@ -952,10 +952,11 @@ void media_graph_walk_start(struct media_graph *graph, struct media_pad *pad);
+> >>   * The graph structure must have been previously initialized with a call to
+> >>   * media_graph_walk_start().
+> >>   *
+> >> - * Return: returns the next entity in the graph or %NULL if the whole graph
+> >> - * have been traversed.
+> >> + * Return: returns the next pad in the graph or %NULL if the whole
+> >> + * graph have been traversed. The pad which is returned is the pad
+> > 
+> > s/have been/has/been/
+> > s/The pad which is returned/The returned pad/
+> > 
+> >> + * through which a new entity is reached when parsing the graph.
+> > 
+> > through which the entity was reached when walking the graph.
 > 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> ---
->  include/media/media-entity.h | 27 +++++++++++++++++++++++++++
->  1 file changed, 27 insertions(+)
-> 
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index 9540d2af80f19805..4bb1b568e1ac4795 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -936,6 +936,33 @@ __must_check int media_graph_walk_init(
->  bool media_entity_has_route(struct media_entity *entity, unsigned int pad0,
->  			    unsigned int pad1);
->  
-> +static inline struct media_pad *__media_entity_for_routed_pads_next(
-> +	struct media_pad *start, struct media_pad *iter)
-> +{
-> +	struct media_entity *entity = start->entity;
-> +
-> +	while (iter < &entity->pads[entity->num_pads] &&
-> +	       !media_entity_has_route(entity, start->index, iter->index))
-> +		iter++;
-> +
-> +	return iter;
+> I'd keep "new", as the intent is to underline that it's a new entity not
+> yet reached while walking the graph.
 
-Returning a pointer past the end of the array is asking for trouble. I
-think we should return NULL in that case, and adapt the check in
-media_entity_for_routed_pads() accordingly.
+"through which the new entity was reached when walking the graph" then ?
 
-> +}
-> +
-> +/**
-> + * media_entity_for_routed_pads - Iterate over entity pads connected by routes
-> + *
-> + * @start: The stating pad
-
-s/stating/starting/
-
-> + * @iter: The iterator pad
-> + *
-> + * Iterate over all pads connected through routes from a given pad
-> + * within an entity. The iteration will include the starting pad itself.
-> + */
-> +#define media_entity_for_routed_pads(start, iter)			\
-
-Maybe media_entity_for_each_routed_pad() ? Or just
-for_each_entity_routed_pad() ?
-
-> +	for (iter = __media_entity_for_routed_pads_next(		\
-
-And how about __media_entity_next_routed_pad() ?
-
-> +		     start, (start)->entity->pads);			\
-> +	     iter < &(start)->entity->pads[(start)->entity->num_pads];	\
-> +	     iter = __media_entity_for_routed_pads_next(start, iter + 1))
-> +
->  /**
->   * media_graph_walk_cleanup - Release resources used by graph walk.
->   *
+> > 
+> > With these addressed,
+> > 
+> > Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > 
+> >>   */
+> >> -struct media_entity *media_graph_walk_next(struct media_graph *graph);
+> >> +struct media_pad *media_graph_walk_next(struct media_graph *graph);
+> >>  
+> >>  /**
+> >>   * media_pipeline_start - Mark a pipeline as streaming
 
 -- 
 Regards,
