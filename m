@@ -2,142 +2,111 @@ Return-Path: <SRS0=Ztfs=PX=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BEBA2C43444
-	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 01:10:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D4617C43387
+	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 01:24:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 87FCA205C9
-	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 01:10:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 948D1206BA
+	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 01:24:21 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="UfRPiKU0"
+	dkim=pass (1024-bit key) header.d=nextdimension.cc header.i=@nextdimension.cc header.b="0FvtaCpp"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727198AbfAOBKh (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 14 Jan 2019 20:10:37 -0500
-Received: from mail-pl1-f196.google.com ([209.85.214.196]:33610 "EHLO
-        mail-pl1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727122AbfAOBKg (ORCPT
+        id S1727342AbfAOBYV (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 14 Jan 2019 20:24:21 -0500
+Received: from quail.birch.relay.mailchannels.net ([23.83.209.151]:12961 "EHLO
+        quail.birch.relay.mailchannels.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727195AbfAOBYV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 Jan 2019 20:10:36 -0500
-Received: by mail-pl1-f196.google.com with SMTP id z23so471313plo.0;
-        Mon, 14 Jan 2019 17:10:36 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=eP6uF8slG5iT5YdRTwXRwNSjOO8UngFqPnVkGwD3rns=;
-        b=UfRPiKU0tGb5XEtUhZRPSR3p6IqNNrXsbz+n6K/PlZi991s2/uSDMvXxLwTG9Laot3
-         mgWkPOwI0OL0ugf6I0S3/le8hcncixq4LkqnjHUue2AVUn7t1DRg5TFgQOaelR4KfT/N
-         iAkCICURgRbh4ehcmCXa8P+W/IoBmehPU25QAkY42BxnOMYHmn2zfd99ZcvSyIgSRCYH
-         JwJO0ZfzMkZkGPYVw/a8/8hts76kss7d4ggdZbftzmf7XS1Ci6hgoYnCcLoROvhnwaSU
-         A6yxNWcs4x6lY0TJoHKSGBqPznWqTdyzbyrbrC1/FE+uPQh7zN6kdH/My7vUSbRdocya
-         Y2lg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=eP6uF8slG5iT5YdRTwXRwNSjOO8UngFqPnVkGwD3rns=;
-        b=lwrcn8U04v6vXpxwhUcZ8JwpPqxT09GwbkMq1cYBDwnnYMmo8Td/ivPFGfxW/GOQDb
-         X52OLx3b5t0X7X9BrVMgHmBvDk1dNoeTvk1rt1PFMqmSAV06c8e7z/7FSIEjfvXwNJJZ
-         QSPQeJsncUfoNsnqqT3KgadVuVEECSsq1VwjrF/116keCvCwnz4Xrhxs/J7GnJN3JNXf
-         FVRCWKNBSl+OFO8Btufw+VM62WVoNdSoGBgRX5nCeHed33wu60iAjo0cUf26lQfN+x8A
-         T/qqWHd7i0JbSZVzbSRWiXmw3iMhQUz5d1LnAxuedHzhTtUAeuDXXvaQT/kRWpHLVNZq
-         6LhQ==
-X-Gm-Message-State: AJcUukfZWzLA6l/EX+l87PQLMPFTrRSfCtLyAKg+TdtzmTdxfRVn0Knt
-        otMgUb8VeVQM+OchvIiP2apxAhs6wRc=
-X-Google-Smtp-Source: ALg8bN7x/hdo0wnKkMX3KYX9kZAKgCYiyPf35Oz6tL3LBf1FumYBg6aSUU/J+WBZ4prWvhYqZXyVcQ==
-X-Received: by 2002:a17:902:724a:: with SMTP id c10mr1379391pll.51.1547514635489;
-        Mon, 14 Jan 2019 17:10:35 -0800 (PST)
-Received: from majic.sklembedded.com (c-73-202-231-77.hsd1.ca.comcast.net. [73.202.231.77])
-        by smtp.googlemail.com with ESMTPSA id y71sm2488523pfi.123.2019.01.14.17.10.33
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 14 Jan 2019 17:10:34 -0800 (PST)
-From:   Steve Longerbeam <slongerbeam@gmail.com>
-X-Google-Original-From: Steve Longerbeam <steve_longerbeam@mentor.com>
-To:     linux-media@vger.kernel.org
-Cc:     Steve Longerbeam <slongerbeam@gmail.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-renesas-soc@vger.kernel.org (open list:MEDIA DRIVERS FOR RENESAS
-        - VIN), linux-kernel@vger.kernel.org (open list)
-Subject: [PATCH v3] media: rcar-vin: Allow independent VIN link enablement
-Date:   Mon, 14 Jan 2019 17:10:19 -0800
-Message-Id: <20190115011019.20025-1-steve_longerbeam@mentor.com>
-X-Mailer: git-send-email 2.17.1
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Mon, 14 Jan 2019 20:24:21 -0500
+X-Sender-Id: dreamhost|x-authsender|brad@nextdimension.ws
+Received: from relay.mailchannels.net (localhost [127.0.0.1])
+        by relay.mailchannels.net (Postfix) with ESMTP id 17C765C43CA;
+        Tue, 15 Jan 2019 01:24:18 +0000 (UTC)
+Received: from pdx1-sub0-mail-a35.g.dreamhost.com (unknown [100.96.33.121])
+        (Authenticated sender: dreamhost)
+        by relay.mailchannels.net (Postfix) with ESMTPA id C78305C4407;
+        Tue, 15 Jan 2019 01:24:17 +0000 (UTC)
+X-Sender-Id: dreamhost|x-authsender|brad@nextdimension.ws
+Received: from pdx1-sub0-mail-a35.g.dreamhost.com (pop.dreamhost.com
+ [64.90.62.162])
+        (using TLSv1.2 with cipher DHE-RSA-AES256-GCM-SHA384)
+        by 0.0.0.0:2500 (trex/5.16.2);
+        Tue, 15 Jan 2019 01:24:18 +0000
+X-MC-Relay: Neutral
+X-MailChannels-SenderId: dreamhost|x-authsender|brad@nextdimension.ws
+X-MailChannels-Auth-Id: dreamhost
+X-Left-Bored: 40d250875a2d1403_1547515457929_625262536
+X-MC-Loop-Signature: 1547515457929:4011671161
+X-MC-Ingress-Time: 1547515457929
+Received: from pdx1-sub0-mail-a35.g.dreamhost.com (localhost [127.0.0.1])
+        by pdx1-sub0-mail-a35.g.dreamhost.com (Postfix) with ESMTP id 7F4C67ED32;
+        Mon, 14 Jan 2019 17:24:17 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed; d=nextdimension.cc; h=from
+        :to:cc:subject:date:message-id; s=nextdimension.cc; bh=8kDoeiy1K
+        ewwHjKjSDCq+elBIpw=; b=0FvtaCppRTjvf5EKe7LhID+rjD7qpJIYSMdSo/P2x
+        kmBQ4m/eg59uHFKAZiPEzQd+ylXZOGEyYYxfY+hEMgWAmK28bvZJ+ada9HBU/7xN
+        24E7b1Eos7PS1YgDmYYLTPdSOnuedulBAfLfYKuduXkwHi7atC0NMRTlvUW8Wn1Q
+        0A=
+Received: from localhost.localdomain (66-90-189-166.dyn.grandenetworks.net [66.90.189.166])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-SHA256 (128/128 bits))
+        (No client certificate requested)
+        (Authenticated sender: brad@nextdimension.ws)
+        by pdx1-sub0-mail-a35.g.dreamhost.com (Postfix) with ESMTPSA id E5211811B6;
+        Mon, 14 Jan 2019 17:24:16 -0800 (PST)
+X-DH-BACKEND: pdx1-sub0-mail-a35
+From:   Brad Love <brad@nextdimension.cc>
+To:     linux-media@vger.kernel.org, mchehab@kernel.org
+Cc:     Brad Love <brad@nextdimension.cc>
+Subject: [PATCH 0/2] Media Controller "taint" fixes
+Date:   Mon, 14 Jan 2019 19:24:06 -0600
+Message-Id: <1547515448-15258-1-git-send-email-brad@nextdimension.cc>
+X-Mailer: git-send-email 2.7.4
+X-VR-OUT-STATUS: OK
+X-VR-OUT-SCORE: 30
+X-VR-OUT-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedtledrgedvgdefvdcutefuodetggdotefrodftvfcurfhrohhfihhlvgemucggtfgfnhhsuhgsshgtrhhisggvpdfftffgtefojffquffvnecuuegrihhlohhuthemuceftddtnecufghrlhcuvffnffculdeftddmnecujfgurhephffvufffkffosedttdertdertddtnecuhfhrohhmpeeurhgrugcunfhovhgvuceosghrrggusehnvgigthguihhmvghnshhiohhnrdgttgeqnecukfhppeeiiedrledtrddukeelrdduieeinecurfgrrhgrmhepmhhouggvpehsmhhtphdphhgvlhhopehlohgtrghlhhhoshhtrdhlohgtrghlughomhgrihhnpdhinhgvthepieeirdeltddrudekledrudeiiedprhgvthhurhhnqdhprghthhepuehrrgguucfnohhvvgcuoegsrhgrugesnhgvgihtughimhgvnhhsihhonhdrtggtqedpmhgrihhlfhhrohhmpegsrhgrugesnhgvgihtughimhgvnhhsihhonhdrtggtpdhnrhgtphhtthhopegsrhgrugesnhgvgihtughimhgvnhhsihhonhdrtggtnecuvehluhhsthgvrhfuihiivgeptd
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-From: Steve Longerbeam <slongerbeam@gmail.com>
+Hauppauge USBLive2 was reported broken. A change in media controller
+logic appears to be the culprit.
 
-There is a block of code in rvin_group_link_notify() that prevents
-enabling a link to a VIN node if any entity in the media graph is
-in use. This prevents enabling a VIN link even if there is an in-use
-entity somewhere in the graph that is independent of the link's
-pipeline.
+Fixes: 9d6d20e652 ("v4l2-mc: switch it to use the new approach to setup pipelines")
 
-For example, the code block will prevent enabling a link from
-the first rcar-csi2 receiver to a VIN node even if there is an
-enabled link somewhere far upstream on the second independent
-rcar-csi2 receiver pipeline.
+Without "taint" set for signal type, devices
+with analog capture fail during probe:
 
-If this code block is meant to prevent modifying a link if any entity
-in the graph is actively involved in streaming (because modifying
-the CHSEL register fields can disrupt any/all running streams), then
-the entities stream counts should be checked rather than the use counts.
+[    5.821715] cx231xx 3-2:1.1: v4l2 driver version 0.0.3
+[    5.955721] cx231xx 3-2:1.1: Registered video device video0 [v4l2]
+[    5.955797] cx231xx 3-2:1.1: Registered VBI device vbi0
+[    5.955802] cx231xx 3-2:1.1: video EndPoint Addr 0x84, Alternate settings: 5
+[    5.955805] cx231xx 3-2:1.1: VBI EndPoint Addr 0x85, Alternate settings: 2
+[    5.955807] cx231xx 3-2:1.1: sliced CC EndPoint Addr 0x86, Alternate settings: 2
+[    5.955834] cx231xx 3-2:1.1: V4L2 device vbi0 deregistered
+[    5.955889] cx231xx 3-2:1.1: V4L2 device video0 deregistered
+[    5.959131] cx231xx: probe of 3-2:1.1 failed with error -22
+[    5.959190] usbcore: registered new interface driver cx231xx
 
-(There is already such a check in __media_entity_setup_link() that verifies
-the stream_count of the link's source and sink entities are both zero,
-but that is insufficient, since there should be no running streams in
-the entire graph).
 
-Modify the code block to check the entity stream_count instead of the
-use_count (and elaborate on the comment). VIN node links can now be
-enabled even if there are other independent in-use entities that are
-not streaming.
+This series sets the taint as follows:
+- source pads from the bridge to PAD_SIGNAL_ANALOG
+- sink pads on the decoder to PAD_SIGNAL_ANALOG
+- source pads on the decoder to PAD_SIGNAL_DV
 
-Fixes: c0cc5aef31 ("media: rcar-vin: add link notify for Gen3")
 
-Signed-off-by: Steve Longerbeam <slongerbeam@gmail.com>
-Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
-Changes in v3:
-- Removed RFC from subject and added Niklas' Reviewed-by.
-  No functional changes.
-Changes in v2:
-- bring back the media_device_for_each_entity() loop but check the
-  stream_count not the use_count.
----
- drivers/media/platform/rcar-vin/rcar-core.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index f0719ce24b97..aef8d8dab6ab 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -131,9 +131,13 @@ static int rvin_group_link_notify(struct media_link *link, u32 flags,
- 	    !is_media_entity_v4l2_video_device(link->sink->entity))
- 		return 0;
- 
--	/* If any entity is in use don't allow link changes. */
-+	/*
-+	 * Don't allow link changes if any entity in the graph is
-+	 * streaming, modifying the CHSEL register fields can disrupt
-+	 * running streams.
-+	 */
- 	media_device_for_each_entity(entity, &group->mdev)
--		if (entity->use_count)
-+		if (entity->stream_count)
- 			return -EBUSY;
- 
- 	mutex_lock(&group->lock);
+Brad Love (2):
+  cx231xx-video: Set media controller taint for analog outputs
+  cx25840-core: Set media controller taint for pads
+
+ drivers/media/i2c/cx25840/cx25840-core.c  | 6 ++++++
+ drivers/media/usb/cx231xx/cx231xx-video.c | 1 +
+ 2 files changed, 7 insertions(+)
+
 -- 
-2.17.1
+2.7.4
 
