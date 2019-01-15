@@ -2,84 +2,80 @@ Return-Path: <SRS0=Ztfs=PX=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.0 required=3.0
+	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A3C2C43387
-	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 07:59:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 26CEBC43387
+	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 08:16:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 27AD020656
-	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 07:59:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E5BF120859
+	for <linux-media@archiver.kernel.org>; Tue, 15 Jan 2019 08:16:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727427AbfAOH7e (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 15 Jan 2019 02:59:34 -0500
-Received: from mga01.intel.com ([192.55.52.88]:25813 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726788AbfAOH7d (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 Jan 2019 02:59:33 -0500
-X-Amp-Result: UNKNOWN
-X-Amp-Original-Verdict: FILE UNKNOWN
-X-Amp-File-Uploaded: False
-Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 14 Jan 2019 23:59:33 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.56,481,1539673200"; 
-   d="scan'208";a="291634420"
-Received: from paasikivi.fi.intel.com ([10.237.72.42])
-  by orsmga005.jf.intel.com with ESMTP; 14 Jan 2019 23:59:30 -0800
-Received: by paasikivi.fi.intel.com (Postfix, from userid 1000)
-        id 957792050A; Tue, 15 Jan 2019 09:59:29 +0200 (EET)
-Date:   Tue, 15 Jan 2019 09:59:29 +0200
-From:   Sakari Ailus <sakari.ailus@linux.intel.com>
-To:     Yong Zhi <yong.zhi@intel.com>
-Cc:     linux-media@vger.kernel.org, tfiga@chromium.org,
-        rajmohan.mani@intel.com, tian.shu.qiu@intel.com,
-        laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
-        mchehab@kernel.org, bingbu.cao@intel.com, dan.carpenter@oracle.com
-Subject: Re: [PATCH 1/2] media: ipu3-imgu: Use MENU type for mode control
-Message-ID: <20190115075929.vzzb2ppx6hzw6kqc@paasikivi.fi.intel.com>
-References: <1547523465-27807-1-git-send-email-yong.zhi@intel.com>
+        id S1728248AbfAOIQH (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 15 Jan 2019 03:16:07 -0500
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:54496 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726022AbfAOIQH (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 15 Jan 2019 03:16:07 -0500
+Received: from [IPv6:2001:983:e9a7:1:415f:b492:6ed4:23a7] ([IPv6:2001:983:e9a7:1:415f:b492:6ed4:23a7])
+        by smtp-cloud8.xs4all.net with ESMTPA
+        id jJtEgIkmqNR5yjJtFgKVJX; Tue, 15 Jan 2019 09:16:05 +0100
+To:     Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc:     Sakari Ailus <sakari.ailus@linux.intel.com>
+From:   Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v5.1] Various fixes
+Message-ID: <0251b6cf-9084-2bf9-d61b-17926e1d718b@xs4all.nl>
+Date:   Tue, 15 Jan 2019 09:16:04 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.3.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1547523465-27807-1-git-send-email-yong.zhi@intel.com>
-User-Agent: NeoMutt/20170113 (1.7.2)
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-CMAE-Envelope: MS4wfB+KtW6y7pzAzDljoapqMiWVweI2GCE0rpUMbHT8DmRHBZMQ5NuaGphJI7QFb75m6OCSuHPnJ2nuSlrHE/qaKimiOK2tjeyR1UQTah2pAwwMRzjTSeOd
+ J0KqpKRtHzL7wEvmk+DceWJiWxuvFeruaTBaLsqIWgusIWNaMUoQG4hUQbZ0XlVFv8ek9e+DTW9PzPRZTAbtJsF9KtX3nSavchIgKd3kFaf3LOaE7jLQPlsB
+ M4HnW/lXGCp2oMxwIKE9oxPJ2pleSr4FdDBn0kLuld4/MiYD5oWQk1x9B0uPec1HCKxjVd/70McM6AqQRg4teg==
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Yong,
+Most notably Sakari's patch which adds V4L2_BUF_TYPE_META_OUTPUT to the
+V4L2_TYPE_IS_OUTPUT define.
 
-On Mon, Jan 14, 2019 at 09:37:44PM -0600, Yong Zhi wrote:
-> This addresses the below TODO item.
-> - Use V4L2_CTRL_TYPE_MENU for dual-pipe mode control. (Sakari)
-> 
-> Signed-off-by: Yong Zhi <yong.zhi@intel.com>
-> ---
->  drivers/staging/media/ipu3/TODO                 |  2 --
->  drivers/staging/media/ipu3/include/intel-ipu3.h |  6 ------
->  drivers/staging/media/ipu3/ipu3-v4l2.c          | 18 +++++++++++++-----
->  3 files changed, 13 insertions(+), 13 deletions(-)
-> 
-> diff --git a/drivers/staging/media/ipu3/TODO b/drivers/staging/media/ipu3/TODO
-> index 905bbb190217..0dc9a2e79978 100644
-> --- a/drivers/staging/media/ipu3/TODO
-> +++ b/drivers/staging/media/ipu3/TODO
-> @@ -11,8 +11,6 @@ staging directory.
->  - Prefix imgu for all public APIs, i.e. change ipu3_v4l2_register() to
->    imgu_v4l2_register(). (Sakari)
->  
-> -- Use V4L2_CTRL_TYPE_MENU for dual-pipe mode control. (Sakari)
-> -
+The other two are vivid fixes to make it pass the media regression test
+I'm working on.
 
-It's good to see TODO entries being addressed. :-)
-
-With Tomasz's comments addressed, this is good to go in IMO.
-
--- 
 Regards,
 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+	Hans
+
+The following changes since commit 1e0d0a5fd38192f23304ea2fc2b531fea7c74247:
+
+  media: s5p-mfc: fix incorrect bus assignment in virtual child device (2019-01-07 14:39:36 -0500)
+
+are available in the Git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git tags/br-v5.1d
+
+for you to fetch changes up to 635891d4e3afdf9447f5cd6fd77735dca8e24850:
+
+  vivid: take data_offset into account for video output (2019-01-15 09:12:56 +0100)
+
+----------------------------------------------------------------
+Tag branch
+
+----------------------------------------------------------------
+Hans Verkuil (2):
+      vivid: disable VB2_USERPTR if dma_contig was configured
+      vivid: take data_offset into account for video output
+
+Sakari Ailus (1):
+      v4l: uAPI: V4L2_BUF_TYPE_META_OUTPUT is an output buffer type
+
+ drivers/media/platform/vivid/vivid-core.c    | 20 +++++++++++++++-----
+ drivers/media/platform/vivid/vivid-vid-out.c | 16 ++++++++++------
+ include/uapi/linux/videodev2.h               |  3 ++-
+ 3 files changed, 27 insertions(+), 12 deletions(-)
