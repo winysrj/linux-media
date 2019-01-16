@@ -2,114 +2,159 @@ Return-Path: <SRS0=IHIA=PY=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+X-Spam-Status: No, score=-7.9 required=3.0 tests=DATE_IN_PAST_06_12,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,USER_AGENT_MUTT autolearn=ham autolearn_force=no version=3.4.0
+	SPF_PASS,USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0533BC43387
-	for <linux-media@archiver.kernel.org>; Wed, 16 Jan 2019 18:45:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B11CC43387
+	for <linux-media@archiver.kernel.org>; Wed, 16 Jan 2019 19:18:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CABCD2086D
-	for <linux-media@archiver.kernel.org>; Wed, 16 Jan 2019 18:45:31 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="NjmdDGh2"
+	by mail.kernel.org (Postfix) with ESMTP id 55F0320866
+	for <linux-media@archiver.kernel.org>; Wed, 16 Jan 2019 19:18:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729276AbfAPSpb (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 16 Jan 2019 13:45:31 -0500
-Received: from mail-pg1-f195.google.com ([209.85.215.195]:44320 "EHLO
-        mail-pg1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729022AbfAPSpb (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 Jan 2019 13:45:31 -0500
-Received: by mail-pg1-f195.google.com with SMTP id t13so3192702pgr.11;
-        Wed, 16 Jan 2019 10:45:30 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=date:from:to:cc:subject:message-id:mime-version:content-disposition
-         :user-agent;
-        bh=GIqHD+5i6aiV0G0NAFyRGh7lKTGvUOXmhbisqg7OY0s=;
-        b=NjmdDGh2z+MzXKdZ3H9zrBrVll7rNDty+vIJojCc0Ryc/MtCnQtQJfSVYScvEr43fB
-         1ZzmEKTWQ8QHblcYSjvdzJrY7reBauMVyHGx1HBwKAYW6Tnl41JwsmkbjB4G/GDoyjTt
-         NmUnasfImDQcadV0ACE27a4i64wcYDzLokIaqG0IYRL996/9lvdWtt5X3n0L30acqt39
-         n8OjZdzTtAXWGbaDjYSVZ1CJt0iRgG6b9U1MxO5a+iUp5fqOOKE1NasXrkrNKnvWlbaq
-         uOeyS3qV+ijPFSseKUoAvbAU5812CX+nHf4sQIr/akQfznSmNR9vtISmGMzqk/Dc+SFn
-         cIDQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:mime-version
-         :content-disposition:user-agent;
-        bh=GIqHD+5i6aiV0G0NAFyRGh7lKTGvUOXmhbisqg7OY0s=;
-        b=TmR6uZqPtfXNWFhjvvcChB12RgM+pXczkriAwLp607CKTkEUpGZ8mp1hleh3OE/5gh
-         9kslpMvT7fKBsmFgSK+LLVuSFLsiGmWlXFROsV515gdbrsdCp6ZhMdcnYYq7DmddW0/s
-         LNTadBySI1ZHCYnb2xGGpI6h9VWgb5B2cD5xvrfGm4VGkmU6RwQbWOoa7DDGWLGAuBCN
-         90sg/4zfsFQOr1OnsGSiHx0Z5gW4FOV03qrhHMRsP2BxCpRSLQp9UIwrnLkGWL21ORQq
-         kxsFsr+qo0siUEpTi7V+uGd9hQ2GncsVJtEcL6mZtf1cAU/5KICG/z675bDeLU/T2nWE
-         IZPQ==
-X-Gm-Message-State: AJcUukf2X3wqFZuSmZUC9pFWollRgCpZY2mvolhSH9ot5cGpq6e4/o7y
-        BGWg+DpvqDJGKcb6iG6iEeAwiwd2
-X-Google-Smtp-Source: ALg8bN71Qywd/z2X1CjMuc2KeN6KYpOos041iwSY0XNpoXt/edguqMPNQ/iJL2hQO3M4u+SLTaHPbg==
-X-Received: by 2002:a63:e20a:: with SMTP id q10mr9913430pgh.206.1547664330200;
-        Wed, 16 Jan 2019 10:45:30 -0800 (PST)
-Received: from jordon-HP-15-Notebook-PC ([49.207.55.114])
-        by smtp.gmail.com with ESMTPSA id g3sm13351073pfe.37.2019.01.16.10.45.27
-        (version=TLS1 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
-        Wed, 16 Jan 2019 10:45:28 -0800 (PST)
-Date:   Thu, 17 Jan 2019 00:19:33 +0530
-From:   Souptick Joarder <jrdr.linux@gmail.com>
-To:     mchehab@kernel.org, brian.warner@samsung.com
-Cc:     linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        brajeswar.linux@gmail.com, sabyasachi.linux@gmail.com
-Subject: [PATCH] media/v4l2-core/videobuf-vmalloc.c: Remove dead code
-Message-ID: <20190116184933.GA4562@jordon-HP-15-Notebook-PC>
+        id S1730648AbfAPTSM (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 16 Jan 2019 14:18:12 -0500
+Received: from mail.bootlin.com ([62.4.15.54]:43668 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1730600AbfAPTSL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 16 Jan 2019 14:18:11 -0500
+Received: by mail.bootlin.com (Postfix, from userid 110)
+        id 69B98209BC; Wed, 16 Jan 2019 20:18:08 +0100 (CET)
+Received: from localhost (unknown [212.81.177.10])
+        by mail.bootlin.com (Postfix) with ESMTPSA id 072E6207B0;
+        Wed, 16 Jan 2019 20:17:57 +0100 (CET)
+Date:   Wed, 16 Jan 2019 12:11:09 +0100
+From:   Maxime Ripard <maxime.ripard@bootlin.com>
+To:     Jagan Teki <jagan@amarulasolutions.com>
+Cc:     Yong Deng <yong.deng@magewell.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        linux-media <linux-media@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        devicetree <devicetree@vger.kernel.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        linux-sunxi <linux-sunxi@googlegroups.com>,
+        linux-amarula@amarulasolutions.com,
+        Michael Trimarchi <michael@amarulasolutions.com>
+Subject: Re: [PATCH v5 2/6] media: sun6i: Add mod_rate quirk
+Message-ID: <20190116111109.dkc4zgsz6lcjlzs5@flea>
+References: <20181220125438.11700-1-jagan@amarulasolutions.com>
+ <20181220125438.11700-3-jagan@amarulasolutions.com>
+ <20181221130025.lbvw7yvy74brf3jn@flea>
+ <CAMty3ZCG5cF3tP2mid5xyS=yhtxkY+TOcGkwRkv+vrZt1=0iQg@mail.gmail.com>
+ <20190107132929.ksyajmzn2gzr6oep@flea>
+ <CAMty3ZAx9MthB0M-eFmsZv9CxF3Z1BkFTU6Hw=ZT5wu6aJwjGQ@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="tme5liorzp5mnfdf"
 Content-Disposition: inline
-User-Agent: Mutt/1.5.21 (2010-09-15)
+In-Reply-To: <CAMty3ZAx9MthB0M-eFmsZv9CxF3Z1BkFTU6Hw=ZT5wu6aJwjGQ@mail.gmail.com>
+User-Agent: NeoMutt/20180716
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-This code is commented since version 3.7. If there is no plan to
-use it in future, we can remove this dead code.
 
-Signed-off-by: Souptick Joarder <jrdr.linux@gmail.com>
----
- drivers/media/v4l2-core/videobuf-vmalloc.c | 20 --------------------
- 1 file changed, 20 deletions(-)
+--tme5liorzp5mnfdf
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/media/v4l2-core/videobuf-vmalloc.c b/drivers/media/v4l2-core/videobuf-vmalloc.c
-index 45fe781..293213a 100644
---- a/drivers/media/v4l2-core/videobuf-vmalloc.c
-+++ b/drivers/media/v4l2-core/videobuf-vmalloc.c
-@@ -196,26 +196,6 @@ static int __videobuf_iolock(struct videobuf_queue *q,
- 		}
- 		dprintk(1, "vmalloc is at addr %p (%d pages)\n",
- 			mem->vaddr, pages);
--
--#if 0
--		int rc;
--		/* Kernel userptr is used also by read() method. In this case,
--		   there's no need to remap, since data will be copied to user
--		 */
--		if (!vb->baddr)
--			return 0;
--
--		/* FIXME: to properly support USERPTR, remap should occur.
--		   The code below won't work, since mem->vma = NULL
--		 */
--		/* Try to remap memory */
--		rc = remap_vmalloc_range(mem->vma, (void *)vb->baddr, 0);
--		if (rc < 0) {
--			printk(KERN_ERR "mmap: remap failed with error %d", rc);
--			return -ENOMEM;
--		}
--#endif
--
- 		break;
- 	case V4L2_MEMORY_OVERLAY:
- 	default:
--- 
-1.9.1
+On Fri, Jan 11, 2019 at 11:54:12AM +0530, Jagan Teki wrote:
+> On Mon, Jan 7, 2019 at 6:59 PM Maxime Ripard <maxime.ripard@bootlin.com> =
+wrote:
+> > On Mon, Dec 24, 2018 at 08:57:48PM +0530, Jagan Teki wrote:
+> > > On Fri, Dec 21, 2018 at 6:30 PM Maxime Ripard <maxime.ripard@bootlin.=
+com> wrote:
+> > > >
+> > > > On Thu, Dec 20, 2018 at 06:24:34PM +0530, Jagan Teki wrote:
+> > > > > Unfortunately default CSI_SCLK rate cannot work properly to
+> > > > > drive the connected sensor interface, particularly on few
+> > > > > Allwinner SoC's like A64.
+> > > > >
+> > > > > So, add mod_rate quirk via driver data so-that the respective
+> > > > > SoC's which require to alter the default mod clock rate can assign
+> > > > > the operating clock rate.
+> > > > >
+> > > > > Signed-off-by: Jagan Teki <jagan@amarulasolutions.com>
+> > > > > ---
+> > > > >  .../platform/sunxi/sun6i-csi/sun6i_csi.c      | 34 +++++++++++++=
+++----
+> > > > >  1 file changed, 28 insertions(+), 6 deletions(-)
+> > > > >
+> > > > > diff --git a/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c b=
+/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
+> > > > > index ee882b66a5ea..fe002beae09c 100644
+> > > > > --- a/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
+> > > > > +++ b/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
+> > > > > @@ -15,6 +15,7 @@
+> > > > >  #include <linux/ioctl.h>
+> > > > >  #include <linux/module.h>
+> > > > >  #include <linux/of.h>
+> > > > > +#include <linux/of_device.h>
+> > > > >  #include <linux/platform_device.h>
+> > > > >  #include <linux/pm_runtime.h>
+> > > > >  #include <linux/regmap.h>
+> > > > > @@ -28,8 +29,13 @@
+> > > > >
+> > > > >  #define MODULE_NAME  "sun6i-csi"
+> > > > >
+> > > > > +struct sun6i_csi_variant {
+> > > > > +     unsigned long                   mod_rate;
+> > > > > +};
+> > > > > +
+> > > > >  struct sun6i_csi_dev {
+> > > > >       struct sun6i_csi                csi;
+> > > > > +     const struct sun6i_csi_variant  *variant;
+> > > > >       struct device                   *dev;
+> > > > >
+> > > > >       struct regmap                   *regmap;
+> > > > > @@ -822,33 +828,43 @@ static int sun6i_csi_resource_request(struc=
+t sun6i_csi_dev *sdev,
+> > > > >               return PTR_ERR(sdev->clk_mod);
+> > > > >       }
+> > > > >
+> > > > > +     if (sdev->variant->mod_rate)
+> > > > > +             clk_set_rate_exclusive(sdev->clk_mod, sdev->variant=
+->mod_rate);
+> > > > > +
+> > > >
+> > > > It still doesn't make any sense to do it in the probe function...
+> > >
+> > > I'm not sure we discussed about the context wrt probe, we discussed
+> > > about exclusive put clock.
+> >
+> > https://lkml.org/lkml/2018/12/18/584
+> >
+> > "Doing it here is not really optimal either, since you'll put a
+> > constraint on the system (maintaining that clock at 300MHz), while
+> > it's not in use."
+>=20
+> But this constraint is only set, for SoC's who need mod_rate change
+> not for whole SoCs.
 
+Still, that constraint is there for the whole system on affected
+SoCs. Whether it applies to one SoC or not is not really relevant.
+
+Maxime
+
+--=20
+Maxime Ripard, Bootlin
+Embedded Linux and Kernel engineering
+https://bootlin.com
+
+--tme5liorzp5mnfdf
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iHUEABYIAB0WIQRcEzekXsqa64kGDp7j7w1vZxhRxQUCXD8RTQAKCRDj7w1vZxhR
+xT6tAP9ZNf6d/5D7t2bcICJ3jps6qwA+vv4bM33AM2BI06aZLAD+KZ2PMgd+ZQfT
+8/d8btb5HBoo3QhQK+Rj9Zp4LlU5fQc=
+=xBGo
+-----END PGP SIGNATURE-----
+
+--tme5liorzp5mnfdf--
