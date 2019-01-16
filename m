@@ -2,191 +2,105 @@ Return-Path: <SRS0=IHIA=PY=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.5 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT autolearn=unavailable
+X-Spam-Status: No, score=-6.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D41EC43387
-	for <linux-media@archiver.kernel.org>; Wed, 16 Jan 2019 13:46:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3AA06C43387
+	for <linux-media@archiver.kernel.org>; Wed, 16 Jan 2019 13:59:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 37FF82082F
-	for <linux-media@archiver.kernel.org>; Wed, 16 Jan 2019 13:46:40 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ragnatech-se.20150623.gappssmtp.com header.i=@ragnatech-se.20150623.gappssmtp.com header.b="kZjTLeWR"
+	by mail.kernel.org (Postfix) with ESMTP id 0FDAA2082F
+	for <linux-media@archiver.kernel.org>; Wed, 16 Jan 2019 13:59:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390831AbfAPNqi (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 16 Jan 2019 08:46:38 -0500
-Received: from mail-lj1-f194.google.com ([209.85.208.194]:35249 "EHLO
-        mail-lj1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2393457AbfAPNqh (ORCPT
+        id S2387730AbfAPN7s (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 16 Jan 2019 08:59:48 -0500
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:56429 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727935AbfAPN7s (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 Jan 2019 08:46:37 -0500
-Received: by mail-lj1-f194.google.com with SMTP id x85-v6so5505019ljb.2
-        for <linux-media@vger.kernel.org>; Wed, 16 Jan 2019 05:46:35 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ragnatech-se.20150623.gappssmtp.com; s=20150623;
-        h=from:date:to:cc:subject:message-id:references:mime-version
-         :content-disposition:content-transfer-encoding:in-reply-to
-         :user-agent;
-        bh=SQOC3bLsNi6F9SrazSWdS2PkTfEaTrUZ3xABYY3scu0=;
-        b=kZjTLeWREwoJ+KwkgDzQrn65N1iqmYVlrRW6RCtGcf+AL62CZ8yja5tHbtKNqJQlcD
-         /dGtjdhsCS75anxTSR+T0KzynkQA0p9/Z+uodjv07Ed1ZWxwiCOrF6EKMIKZvyLikz9s
-         BYvnpjvJMAU50SA+qDIgl342Sj3OGjOBbZTBOMqekZEPHlazI4d46Z8b+58B02fDYjye
-         HuMgkj09eR4/yyCxorGODVPgbPi9V3tsSr/KtdhjxUThL0XU7hgd2emt9c5lpqrId47I
-         Z5cYl6nMymBTxVbWsqnleXLj9EloGBsIxfC7ZdSrcpqjYTbJPCKSvq1/cPFN6WC2wSJh
-         /t7Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:date:to:cc:subject:message-id:references
-         :mime-version:content-disposition:content-transfer-encoding
-         :in-reply-to:user-agent;
-        bh=SQOC3bLsNi6F9SrazSWdS2PkTfEaTrUZ3xABYY3scu0=;
-        b=mqAUfiuIXxWEU96VLvIAVIV+Agqn5YIvlRGQkHQQiReQBkUSdLNw1xgwOIG9qC9DAK
-         Sn+pzesWIm+Maf13MoTSJa9HmOA0Kch0U2TBVV3/ZCMPNw4qyPjOq+CNt3z79we/SIxo
-         hOhqyFaBTKAD+fQdB4ZQhh7AJc6Y526YFJAJqIf++842EK4qFqak2DGGLzPl+8TuyqKz
-         I58v/zFJBDgbUkxM2beAMrYjJf7hldGWqzt7PzgWVedl5rZlrKqOSVcJ7q2cPUbSDN0l
-         mD4ztEJyLW0Mts/jSB7B+yICCarFmuxprf1g22MAWgMckfXPUr3o7NavVkX0/vwMwRJr
-         HAGw==
-X-Gm-Message-State: AJcUukenu/Xn7aNtXcqybov88YbgiqoKTajjC8gfC5+MDffk9wLcsW3x
-        JX3dGOvUw21UYyoA8NU7w1Z5Mw==
-X-Google-Smtp-Source: ALg8bN5wxxPci4ACxaYRiHk3HBySmud57ZwvNBROp2cegu06uvtzWur2XLPGN2R6ubvkE8NKTuyXHQ==
-X-Received: by 2002:a2e:8605:: with SMTP id a5-v6mr6514414lji.145.1547646394749;
-        Wed, 16 Jan 2019 05:46:34 -0800 (PST)
-Received: from localhost (89-233-230-99.cust.bredband2.com. [89.233.230.99])
-        by smtp.gmail.com with ESMTPSA id q128-v6sm1059395ljq.14.2019.01.16.05.46.33
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Wed, 16 Jan 2019 05:46:33 -0800 (PST)
-From:   "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
-X-Google-Original-From: Niklas =?iso-8859-1?Q?S=F6derlund?= <niklas.soderlund+renesas@ragnatech.se>
-Date:   Wed, 16 Jan 2019 14:46:33 +0100
-To:     Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc:     laurent.pinchart@ideasonboard.com, kieran.bingham@ideasonboard.com,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH v3 6/6] media: adv748x: Implement TX link_setup callback
-Message-ID: <20190116134633.GR7393@bigcity.dyn.berto.se>
-References: <20190110140213.5198-1-jacopo+renesas@jmondi.org>
- <20190110140213.5198-7-jacopo+renesas@jmondi.org>
+        Wed, 16 Jan 2019 08:59:48 -0500
+Received: from [IPv6:2001:983:e9a7:1:74b9:e8d0:a90b:6427] ([IPv6:2001:983:e9a7:1:74b9:e8d0:a90b:6427])
+        by smtp-cloud8.xs4all.net with ESMTPA
+        id jljMgU9YHNR5yjljNgPafU; Wed, 16 Jan 2019 14:59:45 +0100
+Subject: Re: [PATCH 1/1] v4l: ioctl: Validate num_planes for debug messages
+To:     Sasha Levin <sashal@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+Cc:     Thierry Reding <treding@nvidia.com>, stable@vger.kernel.org
+References: <20190110142426.1124-1-sakari.ailus@linux.intel.com>
+ <20190116133554.E22672086D@mail.kernel.org>
+From:   Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <a90f66d7-01e8-9269-2f85-d4d159340910@xs4all.nl>
+Date:   Wed, 16 Jan 2019 14:59:44 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.3.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20190110140213.5198-7-jacopo+renesas@jmondi.org>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <20190116133554.E22672086D@mail.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-CMAE-Envelope: MS4wfNTNe+gVd56ey4Rbqbb5v1PhrfPHJwx9qX/Ibj7KY9NpOQ4Qxmp0/VBy/dTjCTbXo4Lli3yJKEWxGkx+FzpDLRUCJLfGQodcvqUxzpU0P1IRZDl82Swj
+ 8JXs5dFDAUSFIoJ90viTizg/Tmfz9LjSPiaiN8JpsqX2ANMVGN5SicMVsiYAJpSrOpH7l/T7nIB4pXEa0w4na0rwQXECk6mR60+EiCmLXXVPE36PM1YgS2/h
+ cQAjKdCTQxIwqd0K0IcXCNkFJRCbU8+u/vdC/5XplCmVWVeXPSVMuAeWsYr07I+alLcg5UEVMq5VNNCjBoU5e8MMYdVTto0RQDtFesNM8crOsDWGN0M28keV
+ 2TS/qWLjmRZcbHNPs4idqQrXKbw6QZOXd8fd5YbsNME37W+R27s0G8iOXizzWcjjGQqlgfGR
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Jacopo,
-
-Thanks for your effort.
-
-On 2019-01-10 15:02:13 +0100, Jacopo Mondi wrote:
-> When the adv748x driver is informed about a link being created from HDMI or
-> AFE to a CSI-2 TX output, the 'link_setup()' callback is invoked. Make
-> sure to implement proper routing management at link setup time, to route
-> the selected video stream to the desired TX output.
+On 1/16/19 2:35 PM, Sasha Levin wrote:
+> Hi,
 > 
-> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-
-Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-
-> ---
->  drivers/media/i2c/adv748x/adv748x-core.c | 48 +++++++++++++++++++++++-
->  drivers/media/i2c/adv748x/adv748x.h      |  2 +
->  2 files changed, 49 insertions(+), 1 deletion(-)
+> [This is an automated email]
 > 
-> diff --git a/drivers/media/i2c/adv748x/adv748x-core.c b/drivers/media/i2c/adv748x/adv748x-core.c
-> index 200e00f93546..ea7e5ca48f1a 100644
-> --- a/drivers/media/i2c/adv748x/adv748x-core.c
-> +++ b/drivers/media/i2c/adv748x/adv748x-core.c
-> @@ -335,6 +335,51 @@ int adv748x_tx_power(struct adv748x_csi2 *tx, bool on)
->  /* -----------------------------------------------------------------------------
->   * Media Operations
->   */
-> +static int adv748x_link_setup(struct media_entity *entity,
-> +			      const struct media_pad *local,
-> +			      const struct media_pad *remote, u32 flags)
-> +{
-> +	struct v4l2_subdev *rsd = media_entity_to_v4l2_subdev(remote->entity);
-> +	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
-> +	struct adv748x_state *state = v4l2_get_subdevdata(sd);
-> +	struct adv748x_csi2 *tx = adv748x_sd_to_csi2(sd);
-> +	bool enable = flags & MEDIA_LNK_FL_ENABLED;
-> +	u8 io10_mask = ADV748X_IO_10_CSI1_EN |
-> +		       ADV748X_IO_10_CSI4_EN |
-> +		       ADV748X_IO_10_CSI4_IN_SEL_AFE;
-> +	u8 io10 = 0;
-> +
-> +	/* Refuse to enable multiple links to the same TX at the same time. */
-> +	if (enable && tx->src)
-> +		return -EINVAL;
-> +
-> +	/* Set or clear the source (HDMI or AFE) and the current TX. */
-> +	if (rsd == &state->afe.sd)
-> +		state->afe.tx = enable ? tx : NULL;
-> +	else
-> +		state->hdmi.tx = enable ? tx : NULL;
-> +
-> +	tx->src = enable ? rsd : NULL;
-> +
-> +	if (state->afe.tx) {
-> +		/* AFE Requires TXA enabled, even when output to TXB */
-> +		io10 |= ADV748X_IO_10_CSI4_EN;
-> +		if (is_txa(tx))
-> +			io10 |= ADV748X_IO_10_CSI4_IN_SEL_AFE;
-> +		else
-> +			io10 |= ADV748X_IO_10_CSI1_EN;
-> +	}
-> +
-> +	if (state->hdmi.tx)
-> +		io10 |= ADV748X_IO_10_CSI4_EN;
-> +
-> +	return io_clrset(state, ADV748X_IO_10, io10_mask, io10);
-> +}
-> +
-> +static const struct media_entity_operations adv748x_tx_media_ops = {
-> +	.link_setup	= adv748x_link_setup,
-> +	.link_validate	= v4l2_subdev_link_validate,
-> +};
->  
->  static const struct media_entity_operations adv748x_media_ops = {
->  	.link_validate = v4l2_subdev_link_validate,
-> @@ -516,7 +561,8 @@ void adv748x_subdev_init(struct v4l2_subdev *sd, struct adv748x_state *state,
->  		state->client->addr, ident);
->  
->  	sd->entity.function = function;
-> -	sd->entity.ops = &adv748x_media_ops;
-> +	sd->entity.ops = is_tx(adv748x_sd_to_csi2(sd)) ?
-> +			 &adv748x_tx_media_ops : &adv748x_media_ops;
->  }
->  
->  static int adv748x_parse_csi2_lanes(struct adv748x_state *state,
-> diff --git a/drivers/media/i2c/adv748x/adv748x.h b/drivers/media/i2c/adv748x/adv748x.h
-> index 934a9d9a75c8..b00c1995efb0 100644
-> --- a/drivers/media/i2c/adv748x/adv748x.h
-> +++ b/drivers/media/i2c/adv748x/adv748x.h
-> @@ -94,6 +94,7 @@ struct adv748x_csi2 {
->  #define is_tx_enabled(_tx) ((_tx)->state->endpoints[(_tx)->port] != NULL)
->  #define is_txa(_tx) ((_tx) == &(_tx)->state->txa)
->  #define is_txb(_tx) ((_tx) == &(_tx)->state->txb)
-> +#define is_tx(_tx) (is_txa(_tx) || is_txb(_tx))
->  
->  #define is_afe_enabled(_state)					\
->  	((_state)->endpoints[ADV748X_PORT_AIN0] != NULL ||	\
-> @@ -223,6 +224,7 @@ struct adv748x_state {
->  #define ADV748X_IO_10_CSI4_EN		BIT(7)
->  #define ADV748X_IO_10_CSI1_EN		BIT(6)
->  #define ADV748X_IO_10_PIX_OUT_EN	BIT(5)
-> +#define ADV748X_IO_10_CSI4_IN_SEL_AFE	BIT(3)
->  
->  #define ADV748X_IO_CHIP_REV_ID_1	0xdf
->  #define ADV748X_IO_CHIP_REV_ID_2	0xe0
-> -- 
-> 2.20.1
+> This commit has been processed because it contains a -stable tag.
+> The stable tag indicates that it's relevant for the following trees: all
 > 
+> The bot has tested the following trees: v4.20.2, v4.19.15, v4.14.93, v4.9.150, v4.4.170, v3.18.132.
+> 
+> v4.20.2: Build OK!
+> v4.19.15: Build OK!
+> v4.14.93: Build OK!
+> v4.9.150: Failed to apply! Possible dependencies:
+>     fb9ffa6a7f7e ("[media] v4l: Add metadata buffer type and format")
+> 
+> v4.4.170: Failed to apply! Possible dependencies:
+>     0579e6e3a326 ("doc-rst: linux_tv: remove whitespaces")
+>     17defc282fe6 ("Documentation: add meta-documentation for Sphinx and kernel-doc")
+>     22cba31bae9d ("Documentation/sphinx: add basic working Sphinx configuration and build")
+>     234d549662a7 ("doc-rst: video: use reference for VIDIOC_ENUMINPUT")
+>     5377d91f3e88 ("doc-rst: linux_tv DocBook to reST migration (docs-next)")
+>     7347081e8a52 ("doc-rst: linux_tv: simplify references")
+>     789818845202 ("doc-rst: audio: Fix some cross references")
+>     94fff0dc5333 ("doc-rst: dmx_fcalls: improve man-like format")
+>     9e00ffca8cc7 ("doc-rst: querycap: fix troubles on some references")
+>     af4a4d0db8ab ("doc-rst: linux_tv: Replace reference names to match ioctls")
+>     c2b66cafdf02 ("[media] v4l: doc: Remove row numbers from tables")
+>     e6702ee18e24 ("doc-rst: app-pri: Fix a bad reference")
+>     fb9ffa6a7f7e ("[media] v4l: Add metadata buffer type and format")
+> 
+> v3.18.132: Failed to apply! Possible dependencies:
+>     0579e6e3a326 ("doc-rst: linux_tv: remove whitespaces")
+>     17defc282fe6 ("Documentation: add meta-documentation for Sphinx and kernel-doc")
+>     22cba31bae9d ("Documentation/sphinx: add basic working Sphinx configuration and build")
+>     5377d91f3e88 ("doc-rst: linux_tv DocBook to reST migration (docs-next)")
+>     5699f871d2d5 ("scripts/kernel-doc: Adding cross-reference links to html documentation.")
+>     7347081e8a52 ("doc-rst: linux_tv: simplify references")
+>     af4a4d0db8ab ("doc-rst: linux_tv: Replace reference names to match ioctls")
+>     b479bfd00e46 ("DocBook: Use a fixed encoding for output")
+>     c2b66cafdf02 ("[media] v4l: doc: Remove row numbers from tables")
+>     e6702ee18e24 ("doc-rst: app-pri: Fix a bad reference")
+>     fb9ffa6a7f7e ("[media] v4l: Add metadata buffer type and format")
+> 
+> 
+> How should we proceed with this patch?
 
--- 
+The Cc to stable of this patch in the pending pull request has a 'for v4.12 and up':
+
+https://git.linuxtv.org/hverkuil/media_tree.git/commit/?h=for-v5.0a&id=8015f0ce4a3c533acfbb3a71f0d6659fa4120778
+
+So no need to patch pre-4.12 kernels.
+
 Regards,
-Niklas Söderlund
+
+	Hans
