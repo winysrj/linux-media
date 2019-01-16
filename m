@@ -2,124 +2,212 @@ Return-Path: <SRS0=IHIA=PY=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_MUTT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D8F91C43387
-	for <linux-media@archiver.kernel.org>; Wed, 16 Jan 2019 09:44:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 56D8CC43387
+	for <linux-media@archiver.kernel.org>; Wed, 16 Jan 2019 10:14:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id AAC5120859
-	for <linux-media@archiver.kernel.org>; Wed, 16 Jan 2019 09:44:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1CAA720840
+	for <linux-media@archiver.kernel.org>; Wed, 16 Jan 2019 10:14:52 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linaro.org header.i=@linaro.org header.b="fm49D9LI"
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=ffwll.ch header.i=@ffwll.ch header.b="VxRliN+b"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391828AbfAPJoM (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 16 Jan 2019 04:44:12 -0500
-Received: from mail-wr1-f66.google.com ([209.85.221.66]:37925 "EHLO
-        mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2391825AbfAPJoL (ORCPT
+        id S2389401AbfAPKOq (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 16 Jan 2019 05:14:46 -0500
+Received: from mail-ed1-f67.google.com ([209.85.208.67]:46375 "EHLO
+        mail-ed1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2389393AbfAPKOq (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 Jan 2019 04:44:11 -0500
-Received: by mail-wr1-f66.google.com with SMTP id v13so6128099wrw.5
-        for <linux-media@vger.kernel.org>; Wed, 16 Jan 2019 01:44:10 -0800 (PST)
+        Wed, 16 Jan 2019 05:14:46 -0500
+Received: by mail-ed1-f67.google.com with SMTP id o10so4914005edt.13
+        for <linux-media@vger.kernel.org>; Wed, 16 Jan 2019 02:14:44 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=subject:to:cc:references:from:message-id:date:user-agent
-         :mime-version:in-reply-to:content-language:content-transfer-encoding;
-        bh=i4COrJ3f04YVkKKA3jV+p3HM78S7a3zx0+u6D2A+RF0=;
-        b=fm49D9LIzzrUZ+tHAk2GkcaMLfVnw+cpNEYmIfcqntyU7PeIGmepc6/ASwcsrZbIX6
-         olT84NYGG+A3JweN1tKW+/oSjNrRozBPUHVuJZ0xYRJ+tVdI0cafh9zwZIJHoJu7/DjQ
-         1L1DWjijS5ALJdUTbtzwtzFFkPBD2FAQPPelw=
+        d=ffwll.ch; s=google;
+        h=sender:date:from:to:cc:subject:message-id:mail-followup-to
+         :references:mime-version:content-disposition:in-reply-to:user-agent;
+        bh=Xm7lOdagTUXWoApQjAoLmUIdhJ9/+q+p1K8q4ZJihQ8=;
+        b=VxRliN+b9E3BT9RqERr2ukFR4ZI4YtP/vqqB84wtUBbRdAYQuFBrf+e9UVWZt/Q+o4
+         0N0uG+K69dmgWuDpw3zDcN+K+1cjVMbSyplP0GTurO3HATg9MBoHOus8zTE/zqPvvjah
+         +1zmiujDtCOtM01TqtJbkw3+CJiAZxjf6UkQU=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=i4COrJ3f04YVkKKA3jV+p3HM78S7a3zx0+u6D2A+RF0=;
-        b=FY2l/UB3c37YqC6gp0JI73VxzlkJG3dLC0Y1p78c3H4AYRf1RmZ+SSxHgMck6zZ8y/
-         evVfuAwfNMBwe2A/UKIJbg2fC/4+Mubi2KBVUvwLqZk5QjYsH+PsiEB2QT71SflUT0TK
-         zj1/tqnTfDinp3PuZw7m+uHKhVeSY7yGIYawcTrMltCBRzfLkH0ix2MtBtoBTryz1WTB
-         PKAkacb59k6lwZoQO76+fS5SA0fuIXhjvW6HjmmTHo5Z98TCffT1ZtXNespYV18mBE9i
-         N5bkgIcTgZrdIPwbAOvU46WjHznWm7aQuHEpEe6ynHgXStZWVRGCPle2fiJu9ny0G+4R
-         XCSQ==
-X-Gm-Message-State: AJcUukeaZCRdEft5EAC0RUGDa5eOB+5R3yoLoxWdbn6TQOWk2oEZzvC2
-        xmceAJaWkyMSgq4UGpW4QGVfJQ==
-X-Google-Smtp-Source: ALg8bN4nUIvHd+3hrTmx3bjmF4W2SNJYPM2iMyH8wyuB4jjJALZPuuXMgz7FR5pMa1sZBeGKJrJeOg==
-X-Received: by 2002:a5d:6889:: with SMTP id h9mr6658214wru.222.1547631849800;
-        Wed, 16 Jan 2019 01:44:09 -0800 (PST)
-Received: from [192.168.27.209] ([37.157.136.206])
-        by smtp.googlemail.com with ESMTPSA id y8sm32185921wmg.13.2019.01.16.01.44.08
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 16 Jan 2019 01:44:08 -0800 (PST)
-Subject: Re: [PATCH] arm64: dts: sdm845: add video nodes
-To:     Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        mgottam@codeaurora.org
-Cc:     Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        linux-arm-msm@vger.kernel.org, vgarodia@codeaurora.org
-References: <1542708506-12680-1-git-send-email-mgottam@codeaurora.org>
- <CAPBb6MVzmxfRstUrTOtkJdCDaZEZO=UeP_u3btGKrsKasBijRg@mail.gmail.com>
- <7e306c60-8603-a8c4-cbb3-526f8a63ee39@linaro.org>
-From:   Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <238eaf7a-4785-76ca-b146-c4eb8abcfef7@linaro.org>
-Date:   Wed, 16 Jan 2019 11:44:07 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.2.1
+        h=x-gm-message-state:sender:date:from:to:cc:subject:message-id
+         :mail-followup-to:references:mime-version:content-disposition
+         :in-reply-to:user-agent;
+        bh=Xm7lOdagTUXWoApQjAoLmUIdhJ9/+q+p1K8q4ZJihQ8=;
+        b=kWhZ6J3TWd8wSxqNTobR+tDjaRyEKFpQFOApG2+ngNryHJvTkVUd6tTs6RlxI6As/f
+         XFQp6V1DK3HvjtbhbTRtSCl5etV5Y1W+RERVVPdZ73Jo+cE3MLDOmwVYp9JJb38+NIKR
+         RScwMji5VC1ZmJsQ2koS1vr6jY0s1iW4hy3p0ZYgCcm8GfvJJlsHYlWaaiTVV0QkIp4a
+         ZPYgnMLrBxoYsUad3K/4SRi75SQ0IzZeFR8NDiyD9+6oWphXgDuRIcrmmWLT7PbxQM/9
+         cTY3lIN+LZDf4K7kehP0fiptnz4wqKeHgIQ55cVN74hvw6Mo7vS+Umt1zKsG4mvkLRYF
+         EXtA==
+X-Gm-Message-State: AJcUukdQHBbKvSWQ/LPRBd9xDR8PWHxNZIm1xxGIEPHj5rnOt2+Jy/5s
+        O3KPNUYz4g24XviIjFupW3GxOQ==
+X-Google-Smtp-Source: ALg8bN4itZZdI9JsmXYz9fwzYgNBC4Lbicat1rbUn2pDz0dBEv28JL1BZF7TRQuVyU2Ntj1cUzWjIg==
+X-Received: by 2002:a17:906:3712:: with SMTP id d18-v6mr6445225ejc.126.1547633683976;
+        Wed, 16 Jan 2019 02:14:43 -0800 (PST)
+Received: from phenom.ffwll.local ([2a02:168:569e:0:3106:d637:d723:e855])
+        by smtp.gmail.com with ESMTPSA id v11sm5356616edy.49.2019.01.16.02.14.42
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Wed, 16 Jan 2019 02:14:42 -0800 (PST)
+Date:   Wed, 16 Jan 2019 11:14:40 +0100
+From:   Daniel Vetter <daniel@ffwll.ch>
+To:     "Koenig, Christian" <Christian.Koenig@amd.com>
+Cc:     Thomas Hellstrom <thellstrom@vmware.com>,
+        "hch@lst.de" <hch@lst.de>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "yong.zhi@intel.com" <yong.zhi@intel.com>,
+        "daniel.vetter@ffwll.ch" <daniel.vetter@ffwll.ch>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "bingbu.cao@intel.com" <bingbu.cao@intel.com>,
+        "jian.xu.zheng@intel.com" <jian.xu.zheng@intel.com>,
+        "tian.shu.qiu@intel.com" <tian.shu.qiu@intel.com>,
+        "shiraz.saleem@intel.com" <shiraz.saleem@intel.com>,
+        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        "jgg@ziepe.ca" <jgg@ziepe.ca>
+Subject: Re: [PATCH] lib/scatterlist: Provide a DMA page iterator
+Message-ID: <20190116101440.GR10517@phenom.ffwll.local>
+Mail-Followup-To: "Koenig, Christian" <Christian.Koenig@amd.com>,
+        Thomas Hellstrom <thellstrom@vmware.com>, "hch@lst.de" <hch@lst.de>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "yong.zhi@intel.com" <yong.zhi@intel.com>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "bingbu.cao@intel.com" <bingbu.cao@intel.com>,
+        "jian.xu.zheng@intel.com" <jian.xu.zheng@intel.com>,
+        "tian.shu.qiu@intel.com" <tian.shu.qiu@intel.com>,
+        "shiraz.saleem@intel.com" <shiraz.saleem@intel.com>,
+        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        "jgg@ziepe.ca" <jgg@ziepe.ca>
+References: <20190114094856.GB29604@lst.de>
+ <1fb20ab4b171b281e9994b6c55734c120958530b.camel@vmware.com>
+ <2b440a3b-ed2f-8fd6-a21e-97ca0b2f5db9@gmail.com>
+ <20190115152029.GB2325@lst.de>
+ <41d0616e95fb48942404fb54d82249f5700affb1.camel@vmware.com>
+ <20190115183133.GA12350@lst.de>
+ <c82076aa-a6ee-5ba2-a8d8-935fdbb7d5ca@amd.com>
+ <20190115205801.GA15432@lst.de>
+ <01e5522bf88549bfdaea1430fece23cb3d1a1a55.camel@vmware.com>
+ <8aadac80-da9b-b52a-a4bf-066406127117@amd.com>
 MIME-Version: 1.0
-In-Reply-To: <7e306c60-8603-a8c4-cbb3-526f8a63ee39@linaro.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <8aadac80-da9b-b52a-a4bf-066406127117@amd.com>
+X-Operating-System: Linux phenom 4.19.0-1-amd64 
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Alex,
-
-On 11/27/18 10:24 AM, Stanimir Varbanov wrote:
-> Hi Alex,
+On Wed, Jan 16, 2019 at 07:28:13AM +0000, Koenig, Christian wrote:
+> Am 16.01.19 um 08:09 schrieb Thomas Hellstrom:
+> > On Tue, 2019-01-15 at 21:58 +0100, hch@lst.de wrote:
+> >> On Tue, Jan 15, 2019 at 07:13:11PM +0000, Koenig, Christian wrote:
+> >>> Thomas is correct that the interface you propose here doesn't work
+> >>> at
+> >>> all for GPUs.
+> >>>
+> >>> The kernel driver is not informed of flush/sync, but rather just
+> >>> setups
+> >>> coherent mappings between system memory and devices.
+> >>>
+> >>> In other words you have an array of struct pages and need to map
+> >>> that to
+> >>> a specific device and so create dma_addresses for the mappings.
+> >> If you want a coherent mapping you need to use dma_alloc_coherent
+> >> and dma_mmap_coherent and you are done, that is not the problem.
+> >> That actually is one of the vmgfx modes, so I don't understand what
+> >> problem we are trying to solve if you don't actually want a non-
+> >> coherent mapping.
+> > For vmwgfx, not making dma_alloc_coherent default has a couple of
+> > reasons:
+> > 1) Memory is associated with a struct device. It has not been clear
+> > that it is exportable to other devices.
+> > 2) There seems to be restrictions in the system pages allowable. GPUs
+> > generally prefer highmem pages but dma_alloc_coherent returns a virtual
+> > address implying GFP_KERNEL? While not used by vmwgfx, TTM typically
+> > prefers HIGHMEM pages to facilitate caching mode switching without
+> > having to touch the kernel map.
+> > 3) Historically we had APIs to allow coherent access to user-space
+> > defined pages. That has gone away not but the infrastructure was built
+> > around it.
+> >
+> > dma_mmap_coherent isn't use because as the data moves between system
+> > memory, swap and VRAM, PTEs of user-space mappings are adjusted
+> > accordingly, meaning user-space doesn't have to unmap when an operation
+> > is initiated that might mean the data is moved.
 > 
-> On 11/27/18 9:31 AM, Alexandre Courbot wrote:
->> On Tue, Nov 20, 2018 at 7:08 PM Malathi Gottam <mgottam@codeaurora.org> wrote:
->>>
->>> This adds video nodes to sdm845 based on the examples
->>> in the bindings.
->>>
->>> Signed-off-by: Malathi Gottam <mgottam@codeaurora.org>
->>> ---
->>>  arch/arm64/boot/dts/qcom/sdm845.dtsi | 34 ++++++++++++++++++++++++++++++++++
->>>  1 file changed, 34 insertions(+)
->>>
->>> diff --git a/arch/arm64/boot/dts/qcom/sdm845.dtsi b/arch/arm64/boot/dts/qcom/sdm845.dtsi
->>> index 0c9a2aa..d82487d 100644
->>> --- a/arch/arm64/boot/dts/qcom/sdm845.dtsi
->>> +++ b/arch/arm64/boot/dts/qcom/sdm845.dtsi
->>> @@ -84,6 +84,10 @@
->>>                         reg = <0 0x86200000 0 0x2d00000>;
->>>                         no-map;
->>>                 };
->>> +               venus_region: venus@95800000 {
->>> +                       reg = <0x0 0x95800000 0x0 0x500000>;
->>
->> Note that the driver expects a size of 0x600000 here and will fail to
->> probe if this is smaller.
->>
+> To summarize once more: We have an array of struct pages and want to 
+> coherently map that to a device.
 > 
-> I have to send a patch to fix that size mismatch as we discussed that it
-> the other mail thread.
->
+> If that is not possible because of whatever reason we want to get an 
+> error code or even not load the driver from the beginning.
 
-I sent the size mismatch patch here:
+I guess to make this work we'd also need information about how we're
+allowed to mmap this on the cpu side, both from the kernel (kmap or vmap)
+and for userspace. At least for i915 we use all kinds of combinations,
+e.g. cpu mmap ptes as cached w/ coherent device transactions, or
+cached+clflush on the cpu side, and non-coherent device transactions (the
+no-snoop thing), or wc mode in the cpu ptes and non-coherent device
+transactions-
 
-https://patchwork.kernel.org/patch/10753645/
+Plus some debug mode so we catch abuse, because reality is that most of
+the gpu driver work happens on x86, where all of this just works. Even if
+you do some really serious layering violations (which is why this isn't
+that high a priority for gpu folks).
+-Daniel
 
+> 
+> >
+> >
+> >> Although last time I had that discussion with Daniel Vetter
+> >> I was under the impressions that GPUs really wanted non-coherent
+> >> mappings.
+> > Intel historically has done things a bit differently. And it's also
+> > possible that embedded platforms and ARM prefer this mode of operation,
+> > but I haven't caught up on that discussion.
+> >
+> >> But if you want a coherent mapping you can't go to a struct page,
+> >> because on many systems you can't just map arbitrary memory as
+> >> uncachable.  It might either come from very special limited pools,
+> >> or might need other magic applied to it so that it is not visible
+> >> in the normal direct mapping, or at least not access through it.
+> >
+> > The TTM subsystem has been relied on to provide coherent memory with
+> > the option to switch caching mode of pages. But only on selected and
+> > well tested platforms. On other platforms we simply do not load, and
+> > that's fine for now.
+> >
+> > But as mentioned multiple times, to make GPU drivers more compliant,
+> > we'd really want that
+> >
+> > bool dma_streaming_is_coherent(const struct device *)
+> >
+> > API to help us decide when to load or not.
+> 
+> Yes, please.
+> 
+> Christian.
+> 
+> >
+> > Thanks,
+> > Thomas
+> >
+> >
+> >
+> >
+> >
+> >
+> >
+> 
 
 -- 
-regards,
-Stan
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
