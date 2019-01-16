@@ -2,141 +2,108 @@ Return-Path: <SRS0=IHIA=PY=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CF1E4C43387
-	for <linux-media@archiver.kernel.org>; Wed, 16 Jan 2019 04:35:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 036EDC43387
+	for <linux-media@archiver.kernel.org>; Wed, 16 Jan 2019 05:23:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A5AF020675
-	for <linux-media@archiver.kernel.org>; Wed, 16 Jan 2019 04:35:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BFC9020859
+	for <linux-media@archiver.kernel.org>; Wed, 16 Jan 2019 05:23:30 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="aefGEI3w"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732086AbfAPEfh (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 15 Jan 2019 23:35:37 -0500
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:59309 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728227AbfAPEfh (ORCPT
+        id S1726091AbfAPFXa (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 16 Jan 2019 00:23:30 -0500
+Received: from mail-io1-f66.google.com ([209.85.166.66]:46702 "EHLO
+        mail-io1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725882AbfAPFX3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 Jan 2019 23:35:37 -0500
-Received: from localhost ([IPv6:2001:983:e9a7:1:74b9:e8d0:a90b:6427])
-        by smtp-cloud9.xs4all.net with ESMTPA
-        id jcvOgLbUxaxzfjcvPggPdC; Wed, 16 Jan 2019 05:35:35 +0100
-Message-ID: <52936321790174a3f27743e64bd91615@smtp-cloud9.xs4all.net>
-Date:   Wed, 16 Jan 2019 05:35:34 +0100
-From:   "Hans Verkuil" <hverkuil@xs4all.nl>
-To:     linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-X-CMAE-Envelope: MS4wfN08kCLUNlbqA7vfVguKy5GiJnxIMBdbYdVoW50jQPa3m/6g/i+Pbs19JXuuqqacx0saHL+ObudawOY1gdS48JESCndO5WmhPeNfAHJkvYPV33MJPfZ1
- MXRr4hCk6k8MTDpuwSpM89T3qNgZlVmn6rQUSN43+YiWPXzyre/8I2dNFs6AfotH5LvbV07DTVRgZhb9qRSwQjZk/qVNN5RRSya9aMmdjx06lhD6zjhD7m6r
+        Wed, 16 Jan 2019 00:23:29 -0500
+Received: by mail-io1-f66.google.com with SMTP id v10so3933379ios.13
+        for <linux-media@vger.kernel.org>; Tue, 15 Jan 2019 21:23:29 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id;
+        bh=/BSD0M36uKF/j4SOu/uX7OU0kugnbjYTxx4pe7PDAJc=;
+        b=aefGEI3wYMkQXSUOQvvSKXqPYCMfiw1+5USmFlTPOJgiWZsIr1PcqvdTQ51RfjVjK6
+         8eY0Z+IHqOebPVRUQf3cBUcuDSl/fpUtIoGEx/G2upMvCTu2QXd4HJHPwveL+miYvJgp
+         V3aH+8wV6NbPQwkSETDOjmBEqPBYwWl90Ad7Mebl2hWx3lqaVP2hy5+XoMxO9fl8UTGk
+         LuirdRoupcLAkyC9vfLw+N4yPXTlHgl20opYKv+AyaCSJFJYeH3eGR2L1IlFbQLZRXt8
+         1bLxG4mx4OU/Emi4Tx3usxgoUykMp2T4I95rDiPmgCx0fSOGffmDcZRQ4oX/6QC9W6BH
+         7GmA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id;
+        bh=/BSD0M36uKF/j4SOu/uX7OU0kugnbjYTxx4pe7PDAJc=;
+        b=tYzlr2BLdaydvqxcg89qCQPCFzZXSiCMMpJkod37Yufe+XzRXn5EmiXGtxtXkpz9Qd
+         w5rzaVuZCvNnrSsdZPuFO2XQu+NfTjTn+K5SYgl+pzsf9r++neSS94t4JPi8Tlpa2A4O
+         8JzQz4A+zpVPsj4SyCkc1VXFqynM7SgK53f00GO0WKD+J1axJVoYA/jG5puKi2WuEZxf
+         DuotMD4tXc/+BFebbzlfJJqI6w+itQBF1jydSbLiouNYLJFJiDU9UDQVBCdzc6U2jG0r
+         6nHCmYfj3jtltpkNqRlR8NUm5Ocvzq7Xy5evjLU4+3bYq1HClJblcZFMor40jyGTspJq
+         wgeA==
+X-Gm-Message-State: AJcUukdANoNAaPLsogg1ekPGXjGToAvPfj3v9/mRS49lxkVnpSntaAaH
+        OakG9RNWSiWHbi0GG2fE5qs=
+X-Google-Smtp-Source: ALg8bN6qSTxoqDl1g5QUQP3RZsSluRo7z/vg2Et16633mlFvvqQsrQqVzUOo3Zp8WJ9Le83MsrGnjA==
+X-Received: by 2002:a6b:9188:: with SMTP id t130mr3819211iod.261.1547616208623;
+        Tue, 15 Jan 2019 21:23:28 -0800 (PST)
+Received: from dragon.Home (71-218-4-112.hlrn.qwest.net. [71.218.4.112])
+        by smtp.gmail.com with ESMTPSA id t17sm2156347iog.34.2019.01.15.21.23.26
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
+        Tue, 15 Jan 2019 21:23:27 -0800 (PST)
+From:   james.hilliard1@gmail.com
+To:     mchehab+samsung@kernel.org
+Cc:     linux-media@vger.kernel.org,
+        James Hilliard <james.hilliard1@gmail.com>
+Subject: [PATCH zbar 1/1] v4l2: add fallback for systems without V4L2_CTRL_WHICH_CUR_VAL
+Date:   Wed, 16 Jan 2019 13:23:10 +0800
+Message-Id: <1547616190-24085-1-git-send-email-james.hilliard1@gmail.com>
+X-Mailer: git-send-email 2.7.4
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: James Hilliard <james.hilliard1@gmail.com>
 
-Results of the daily build of media_tree:
+Some older systems don't seem to have V4L2_CTRL_WHICH_CUR_VAL so add a
+fallback.
 
-date:			Wed Jan 16 05:00:13 CET 2019
-media-tree git hash:	1e0d0a5fd38192f23304ea2fc2b531fea7c74247
-media_build git hash:	8851c6e626dac550d6798e162c6b4f5a41bc13ec
-v4l-utils git hash:	dc1cb5985752bbdc1e0258f2f93db5582abfb08f
-edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.19.0-1-amd64
+Signed-off-by: James Hilliard <james.hilliard1@gmail.com>
+---
+ zbar/video/v4l2.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.123-i686: OK
-linux-3.18.123-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.159-i686: OK
-linux-4.4.159-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.131-i686: OK
-linux-4.9.131-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.74-i686: OK
-linux-4.14.74-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: OK
-linux-4.19.1-i686: OK
-linux-4.19.1-x86_64: OK
-linux-4.20.1-i686: OK
-linux-4.20.1-x86_64: OK
-linux-5.0-rc1-i686: OK
-linux-5.0-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+diff --git a/zbar/video/v4l2.c b/zbar/video/v4l2.c
+index 0147cb1..b883ecc 100644
+--- a/zbar/video/v4l2.c
++++ b/zbar/video/v4l2.c
+@@ -866,7 +866,11 @@ static int v4l2_s_control(zbar_video_t *vdo,
+ 
+     memset(&ctrls, 0, sizeof(ctrls));
+     ctrls.count = 1;
++#ifdef V4L2_CTRL_WHICH_CUR_VAL
+     ctrls.which = V4L2_CTRL_WHICH_CUR_VAL;
++#else
++    ctrls.ctrl_class = V4L2_CTRL_CLASS_USER;
++#endif
+     ctrls.controls = &c;
+ 
+     memset(&c, 0, sizeof(c));
+@@ -914,7 +918,11 @@ static int v4l2_g_control(zbar_video_t *vdo,
+ 
+     memset(&ctrls, 0, sizeof(ctrls));
+     ctrls.count = 1;
++#ifdef V4L2_CTRL_WHICH_CUR_VAL
+     ctrls.which = V4L2_CTRL_WHICH_CUR_VAL;
++#else
++    ctrls.ctrl_class = V4L2_CTRL_CLASS_USER;
++#endif
+     ctrls.controls = &c;
+ 
+     memset(&c, 0, sizeof(c));
+-- 
+2.7.4
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
