@@ -2,144 +2,114 @@ Return-Path: <SRS0=IHIA=PY=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,
-	USER_AGENT_MUTT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,USER_AGENT_MUTT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06813C43387
-	for <linux-media@archiver.kernel.org>; Wed, 16 Jan 2019 17:24:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0533BC43387
+	for <linux-media@archiver.kernel.org>; Wed, 16 Jan 2019 18:45:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B9E9820578
-	for <linux-media@archiver.kernel.org>; Wed, 16 Jan 2019 17:24:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CABCD2086D
+	for <linux-media@archiver.kernel.org>; Wed, 16 Jan 2019 18:45:31 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="pYcm+5gD"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="NjmdDGh2"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2391300AbfAPRYj (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 16 Jan 2019 12:24:39 -0500
-Received: from mail-pf1-f196.google.com ([209.85.210.196]:44384 "EHLO
-        mail-pf1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728828AbfAPRYj (ORCPT
+        id S1729276AbfAPSpb (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 16 Jan 2019 13:45:31 -0500
+Received: from mail-pg1-f195.google.com ([209.85.215.195]:44320 "EHLO
+        mail-pg1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729022AbfAPSpb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 Jan 2019 12:24:39 -0500
-Received: by mail-pf1-f196.google.com with SMTP id u6so3360952pfh.11
-        for <linux-media@vger.kernel.org>; Wed, 16 Jan 2019 09:24:38 -0800 (PST)
+        Wed, 16 Jan 2019 13:45:31 -0500
+Received: by mail-pg1-f195.google.com with SMTP id t13so3192702pgr.11;
+        Wed, 16 Jan 2019 10:45:30 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to:user-agent;
-        bh=53gplsLprQpA+D4at2sEDjQat4FsTNpx+lEgkZg6Hko=;
-        b=pYcm+5gDO//dME8UYshYttaRSQbppOmTnxOtK3irYkbYq4HF6N30GVBGvACX8uQzm3
-         RRCF9H+Ix0roK7DxoD+3LgYpWl2+9L1IWt65bd1SkiWZcVKWXh3OL7O2EndEq5i/REmn
-         h2/QZ/jQDFgafaNFt24hb7+X5JxAuiE0EQl0fn9VvS3zSNtnVytUUGxlq/JXYejZNsgf
-         1hVjv7D2CdU6NMoKss7DdBP5iHevRZpzl36NrPC5H8mKwNcsgbz+GK6y2fGMZMpch9Dd
-         KL8jBL8auVJQR4Ome4TP/NB810uOMkM4K9SnOO5BKhK5ChjivI3rWhg80733Xf31tcQO
-         5dnQ==
+        d=gmail.com; s=20161025;
+        h=date:from:to:cc:subject:message-id:mime-version:content-disposition
+         :user-agent;
+        bh=GIqHD+5i6aiV0G0NAFyRGh7lKTGvUOXmhbisqg7OY0s=;
+        b=NjmdDGh2z+MzXKdZ3H9zrBrVll7rNDty+vIJojCc0Ryc/MtCnQtQJfSVYScvEr43fB
+         1ZzmEKTWQ8QHblcYSjvdzJrY7reBauMVyHGx1HBwKAYW6Tnl41JwsmkbjB4G/GDoyjTt
+         NmUnasfImDQcadV0ACE27a4i64wcYDzLokIaqG0IYRL996/9lvdWtt5X3n0L30acqt39
+         n8OjZdzTtAXWGbaDjYSVZ1CJt0iRgG6b9U1MxO5a+iUp5fqOOKE1NasXrkrNKnvWlbaq
+         uOeyS3qV+ijPFSseKUoAvbAU5812CX+nHf4sQIr/akQfznSmNR9vtISmGMzqk/Dc+SFn
+         cIDQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=53gplsLprQpA+D4at2sEDjQat4FsTNpx+lEgkZg6Hko=;
-        b=MLxrvcR51f+J4yxLVTVr7DADhrdMc8mdtHyrFBC5VYjjOsKH2W1U4gOFzie+IY69wa
-         1/Kg2+voxxt+zeL+ZDmrPHE0eCLwkStBGlcalzDiufUAg9BNJt3Jz3+iIzHK8c13QFXM
-         070Zd+W/o5WGgKjIu8TjupoddB8Yzryre7cKRQuhYRztaPMUrUYgUF4Qdu0mnfYJH1jX
-         HeFUmJcK9/Iva0Dv3Rzyb95+WH9sbAnMVCiD8pV4JhM2w7MoMRyA8VLTLfHmqSmN6kK9
-         x6/NOtJ0y6oNNKO6At9UH5bO+feORYQYXGvF6ST8O6nkympdQ2o3s+BVWEpjmJzcAY7v
-         C6VQ==
-X-Gm-Message-State: AJcUukfJLRGop316R2HLIW+N0Y8ToMxO17JveF6dhR6W5QzNtiF8HRah
-        9lNoLlrNVXDh7ZKZIAr8Kr3Ehw==
-X-Google-Smtp-Source: ALg8bN7FMHzRduq1WQKGloDGGfpV0q+BO/y29rrincS29v3s3lJCeS4w3qV23j3XpJbe01pcWPcZ4w==
-X-Received: by 2002:a62:1b50:: with SMTP id b77mr10920234pfb.36.1547659477846;
-        Wed, 16 Jan 2019 09:24:37 -0800 (PST)
-Received: from ziepe.ca (S010614cc2056d97f.ed.shawcable.net. [174.3.196.123])
-        by smtp.gmail.com with ESMTPSA id e23sm9459511pfh.68.2019.01.16.09.24.36
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Wed, 16 Jan 2019 09:24:36 -0800 (PST)
-Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
-        (envelope-from <jgg@ziepe.ca>)
-        id 1gjovc-0001KE-2A; Wed, 16 Jan 2019 10:24:36 -0700
-Date:   Wed, 16 Jan 2019 10:24:36 -0700
-From:   Jason Gunthorpe <jgg@ziepe.ca>
-To:     "hch@lst.de" <hch@lst.de>
-Cc:     Thomas Hellstrom <thellstrom@vmware.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "yong.zhi@intel.com" <yong.zhi@intel.com>,
-        "daniel.vetter@ffwll.ch" <daniel.vetter@ffwll.ch>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "syeh@vmware.com" <syeh@vmware.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "bingbu.cao@intel.com" <bingbu.cao@intel.com>,
-        "imre.deak@intel.com" <imre.deak@intel.com>,
-        "tian.shu.qiu@intel.com" <tian.shu.qiu@intel.com>,
-        "jian.xu.zheng@intel.com" <jian.xu.zheng@intel.com>,
-        "shiraz.saleem@intel.com" <shiraz.saleem@intel.com>,
-        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>
-Subject: Re: [PATCH] lib/scatterlist: Provide a DMA page iterator
-Message-ID: <20190116172436.GM22045@ziepe.ca>
-References: <20190104223531.GA1705@ziepe.ca>
- <20190110234218.GM6890@ziepe.ca>
- <20190114094856.GB29604@lst.de>
- <1fb20ab4b171b281e9994b6c55734c120958530b.camel@vmware.com>
- <20190115212501.GE22045@ziepe.ca>
- <20190116161134.GA29041@lst.de>
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:mime-version
+         :content-disposition:user-agent;
+        bh=GIqHD+5i6aiV0G0NAFyRGh7lKTGvUOXmhbisqg7OY0s=;
+        b=TmR6uZqPtfXNWFhjvvcChB12RgM+pXczkriAwLp607CKTkEUpGZ8mp1hleh3OE/5gh
+         9kslpMvT7fKBsmFgSK+LLVuSFLsiGmWlXFROsV515gdbrsdCp6ZhMdcnYYq7DmddW0/s
+         LNTadBySI1ZHCYnb2xGGpI6h9VWgb5B2cD5xvrfGm4VGkmU6RwQbWOoa7DDGWLGAuBCN
+         90sg/4zfsFQOr1OnsGSiHx0Z5gW4FOV03qrhHMRsP2BxCpRSLQp9UIwrnLkGWL21ORQq
+         kxsFsr+qo0siUEpTi7V+uGd9hQ2GncsVJtEcL6mZtf1cAU/5KICG/z675bDeLU/T2nWE
+         IZPQ==
+X-Gm-Message-State: AJcUukf2X3wqFZuSmZUC9pFWollRgCpZY2mvolhSH9ot5cGpq6e4/o7y
+        BGWg+DpvqDJGKcb6iG6iEeAwiwd2
+X-Google-Smtp-Source: ALg8bN71Qywd/z2X1CjMuc2KeN6KYpOos041iwSY0XNpoXt/edguqMPNQ/iJL2hQO3M4u+SLTaHPbg==
+X-Received: by 2002:a63:e20a:: with SMTP id q10mr9913430pgh.206.1547664330200;
+        Wed, 16 Jan 2019 10:45:30 -0800 (PST)
+Received: from jordon-HP-15-Notebook-PC ([49.207.55.114])
+        by smtp.gmail.com with ESMTPSA id g3sm13351073pfe.37.2019.01.16.10.45.27
+        (version=TLS1 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
+        Wed, 16 Jan 2019 10:45:28 -0800 (PST)
+Date:   Thu, 17 Jan 2019 00:19:33 +0530
+From:   Souptick Joarder <jrdr.linux@gmail.com>
+To:     mchehab@kernel.org, brian.warner@samsung.com
+Cc:     linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        brajeswar.linux@gmail.com, sabyasachi.linux@gmail.com
+Subject: [PATCH] media/v4l2-core/videobuf-vmalloc.c: Remove dead code
+Message-ID: <20190116184933.GA4562@jordon-HP-15-Notebook-PC>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20190116161134.GA29041@lst.de>
-User-Agent: Mutt/1.9.4 (2018-02-28)
+User-Agent: Mutt/1.5.21 (2010-09-15)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Wed, Jan 16, 2019 at 05:11:34PM +0100, hch@lst.de wrote:
-> On Tue, Jan 15, 2019 at 02:25:01PM -0700, Jason Gunthorpe wrote:
-> > RDMA needs something similar as well, in this case drivers take a
-> > struct page * from get_user_pages() and need to have the DMA map fail
-> > if the platform can't DMA map in a way that does not require any
-> > additional DMA API calls to ensure coherence. (think Userspace RDMA
-> > MR's)
-> 
-> Any time you dma map pages you need to do further DMA API calls to
-> ensure coherent, that is the way it is implemented.  These calls
-> just happen to be no-ops sometimes.
-> 
-> > Today we just do the normal DMA map and when it randomly doesn't work
-> > and corrupts data tell those people their platforms don't support RDMA
-> > - it would be nice to have a safer API base solution..
-> 
-> Now that all these drivers are consolidated in rdma-core you can fix
-> the code to actually do the right thing.  It isn't that userspace DMA
-> coherent is any harder than in-kernel DMA coherenence.  It just is
-> that no one bothered to do it properly.
+This code is commented since version 3.7. If there is no plan to
+use it in future, we can remove this dead code.
 
-If I recall we actually can't.. libverbs presents an API to the user
-that does not consider this possibility. 
+Signed-off-by: Souptick Joarder <jrdr.linux@gmail.com>
+---
+ drivers/media/v4l2-core/videobuf-vmalloc.c | 20 --------------------
+ 1 file changed, 20 deletions(-)
 
-ie consider post_recv - the driver has no idea what user buffers
-received data and can't possibly flush them transparently. The user
-would have to call some special DMA syncing API, which we don't have.
+diff --git a/drivers/media/v4l2-core/videobuf-vmalloc.c b/drivers/media/v4l2-core/videobuf-vmalloc.c
+index 45fe781..293213a 100644
+--- a/drivers/media/v4l2-core/videobuf-vmalloc.c
++++ b/drivers/media/v4l2-core/videobuf-vmalloc.c
+@@ -196,26 +196,6 @@ static int __videobuf_iolock(struct videobuf_queue *q,
+ 		}
+ 		dprintk(1, "vmalloc is at addr %p (%d pages)\n",
+ 			mem->vaddr, pages);
+-
+-#if 0
+-		int rc;
+-		/* Kernel userptr is used also by read() method. In this case,
+-		   there's no need to remap, since data will be copied to user
+-		 */
+-		if (!vb->baddr)
+-			return 0;
+-
+-		/* FIXME: to properly support USERPTR, remap should occur.
+-		   The code below won't work, since mem->vma = NULL
+-		 */
+-		/* Try to remap memory */
+-		rc = remap_vmalloc_range(mem->vma, (void *)vb->baddr, 0);
+-		if (rc < 0) {
+-			printk(KERN_ERR "mmap: remap failed with error %d", rc);
+-			return -ENOMEM;
+-		}
+-#endif
+-
+ 		break;
+ 	case V4L2_MEMORY_OVERLAY:
+ 	default:
+-- 
+1.9.1
 
-It is the same reason the kernel API makes the ULP handle dma sync,
-not the driver.
-
-The fact is there is 0 industry interest in using RDMA on platforms
-that can't do HW DMA cache coherency - the kernel syscalls required to
-do the cache flushing on the IO path would just destroy performance to
-the point of making RDMA pointless. Better to use netdev on those
-platforms.
-
-VFIO is in a similar boat. Their user API can't handle cache syncing
-either, so they would use the same API too.
-
-.. and the GPU-compute systems (ie OpenCL/CUDA) are like verbs, they
-were never designed with incoherent DMA in mind, and don't have the
-API design to support it.
-
-The reality is that *all* the subsytems doing DMA kernel bypass are
-ignoring the DMA mapping rules, I think we should support this better,
-and just accept that user space DMA will not be using syncing. Block
-access in cases when this is required, otherwise let it work as is
-today.
-
-Jason
