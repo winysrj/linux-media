@@ -2,211 +2,286 @@ Return-Path: <SRS0=I7H+=PZ=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 90FADC43387
-	for <linux-media@archiver.kernel.org>; Thu, 17 Jan 2019 13:01:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E8DBC43387
+	for <linux-media@archiver.kernel.org>; Thu, 17 Jan 2019 13:33:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6125220657
-	for <linux-media@archiver.kernel.org>; Thu, 17 Jan 2019 13:01:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 30FFB20855
+	for <linux-media@archiver.kernel.org>; Thu, 17 Jan 2019 13:33:42 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=poorly.run header.i=@poorly.run header.b="EblUqcEo"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727638AbfAQNBu (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 17 Jan 2019 08:01:50 -0500
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:44743 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726066AbfAQNBt (ORCPT
+        id S1726794AbfAQNdl (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 17 Jan 2019 08:33:41 -0500
+Received: from mail-yb1-f196.google.com ([209.85.219.196]:33171 "EHLO
+        mail-yb1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726185AbfAQNdl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 17 Jan 2019 08:01:49 -0500
-Received: from lupine.hi.pengutronix.de ([2001:67c:670:100:3ad5:47ff:feaf:1a17] helo=lupine)
-        by metis.ext.pengutronix.de with esmtp (Exim 4.89)
-        (envelope-from <p.zabel@pengutronix.de>)
-        id 1gk7Ip-0006Xz-Iq; Thu, 17 Jan 2019 14:01:47 +0100
-Message-ID: <1547730107.4009.5.camel@pengutronix.de>
-Subject: Re: [PATCH v3 2/3] media: imx: set compose rectangle to mbus format
-From:   Philipp Zabel <p.zabel@pengutronix.de>
-To:     Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc:     Sakari Ailus <sakari.ailus@iki.fi>,
-        Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
-        Steve Longerbeam <slongerbeam@gmail.com>
-Date:   Thu, 17 Jan 2019 14:01:47 +0100
-In-Reply-To: <25cf4f54-8e2d-1f73-9a6c-2cbdeee94ceb@xs4all.nl>
-References: <20190111111053.12551-1-p.zabel@pengutronix.de>
-         <20190111111053.12551-2-p.zabel@pengutronix.de>
-         <25cf4f54-8e2d-1f73-9a6c-2cbdeee94ceb@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-X-Mailer: Evolution 3.22.6-1+deb9u1 
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-X-SA-Exim-Connect-IP: 2001:67c:670:100:3ad5:47ff:feaf:1a17
-X-SA-Exim-Mail-From: p.zabel@pengutronix.de
-X-SA-Exim-Scanned: No (on metis.ext.pengutronix.de); SAEximRunCond expanded to false
-X-PTX-Original-Recipient: linux-media@vger.kernel.org
+        Thu, 17 Jan 2019 08:33:41 -0500
+Received: by mail-yb1-f196.google.com with SMTP id o73so3009001ybc.0
+        for <linux-media@vger.kernel.org>; Thu, 17 Jan 2019 05:33:40 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=poorly.run; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=ZRARg234UQKVSq41AjrEKQ+5c7yzrHeZ4hw/irAy5ws=;
+        b=EblUqcEo9Li6sgfPoEh51lq1Jqin+oA5kUE4ILCnsCbpILc4POXuGzeu30FhnSWnbf
+         z152M8Gzb7N0KujOIMTmtk7vfgWlQw4fubXLZVTO54jymDytkpKAsV3v3EElByiriGRK
+         MnwYZmoVXORtw6t55zhdD6jI9MJG4IEGe69TPujKF1Xk3VZdRrEwa8jMUCX0rpg2qG9l
+         fYUVcu4GODzWIGjKUYb8zihTvNbwrbuE1oNYiX1ZMTEkt07xG6yLSZ4YajqTpfJvbw//
+         WSP7RxXwUEqTsw0CyJNkWmB9LaGk6rEScM5ghsJaP4Vs+Y8+Ujp9PCAe2PgTF/lfcMSJ
+         X5GQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=ZRARg234UQKVSq41AjrEKQ+5c7yzrHeZ4hw/irAy5ws=;
+        b=DYEvN03I8u7St8z22b4SDvaXH5R+SLaUOxH3xgtmkecBHzomt0TG2zQvMS3pmVEhAx
+         rV0bM+RpZPhU/534YCD8r4gGM7ABvX/4Qn9KATmgj8GHHKb21Oz34yrgtz1EVOjvzqz+
+         YVwbwFAe64Wz+54s71pBmqIVewkJhL5ovIoF0nvAswS9o9QKQTsdblkVie9fJ1RP+Aa9
+         eKW8x0VhegayIuPoxKfw3jO2s4rI0FqCCN5yEgGgQawIQSWicyuV1Dm18phdTVbe20KQ
+         wYCqdyknmvixDe2Z50kQMa/E2cBIyCoL4EiQ3cKSNOulQy0z6oCaSVYAxNLA8bymANg7
+         9yaQ==
+X-Gm-Message-State: AJcUukfGYR3INgnO00P8J22GemusuihSzdSf8/ORmFI1Emwku8FzgPg/
+        oR76NnF6UNiPWIzFTOI14/3h3w==
+X-Google-Smtp-Source: ALg8bN596NMzviejCC9J+HUnvsbq2QQ3OqR5yiZfa9Y/HY6VdbT0dLYoeqosR52sBeAmv1/J4kgnsg==
+X-Received: by 2002:a25:4cc4:: with SMTP id z187mr9886470yba.121.1547732020037;
+        Thu, 17 Jan 2019 05:33:40 -0800 (PST)
+Received: from localhost ([2620:0:1013:11:89c6:2139:5435:371d])
+        by smtp.gmail.com with ESMTPSA id k64sm656400ywc.56.2019.01.17.05.33.39
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Thu, 17 Jan 2019 05:33:39 -0800 (PST)
+Date:   Thu, 17 Jan 2019 08:33:38 -0500
+From:   Sean Paul <sean@poorly.run>
+To:     Maxime Ripard <maxime.ripard@bootlin.com>
+Cc:     Kishon Vijay Abraham I <kishon@ti.com>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org,
+        Archit Taneja <architt@codeaurora.org>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Chen-Yu Tsai <wens@csie.org>, linux-kernel@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        linux-arm-kernel@lists.infradead.org,
+        Krzysztof Witos <kwitos@cadence.com>,
+        Rafal Ciepiela <rafalc@cadence.com>
+Subject: Re: [PATCH v4 6/9] drm/bridge: cdns: Separate DSI and D-PHY
+ configuration
+Message-ID: <20190117133338.GA114153@art_vandelay>
+References: <cover.5d91ef683e3f432342f536e0f2fe239dbcebcb3e.1547026369.git-series.maxime.ripard@bootlin.com>
+ <df619f059617d85c00efa146884e295240a07ae7.1547026369.git-series.maxime.ripard@bootlin.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <df619f059617d85c00efa146884e295240a07ae7.1547026369.git-series.maxime.ripard@bootlin.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Wed, 2019-01-16 at 16:28 +0100, Hans Verkuil wrote:
-> On 1/11/19 12:10 PM, Philipp Zabel wrote:
-> > Prepare for mbus format being smaller than the written rectangle
-> > due to burst size.
-> > 
-> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> > Reviewed-by: Steve Longerbeam <slongerbeam@gmail.com>
-> > ---
-> >  drivers/staging/media/imx/imx-media-capture.c | 56 +++++++++++++------
-> >  1 file changed, 38 insertions(+), 18 deletions(-)
-> > 
-> > diff --git a/drivers/staging/media/imx/imx-media-capture.c b/drivers/staging/media/imx/imx-media-capture.c
-> > index fb985e68f9ab..614e335fb61c 100644
-> > --- a/drivers/staging/media/imx/imx-media-capture.c
-> > +++ b/drivers/staging/media/imx/imx-media-capture.c
-> > @@ -203,21 +203,13 @@ static int capture_g_fmt_vid_cap(struct file *file, void *fh,
-> >  	return 0;
-> >  }
-> >  
-> > -static int capture_try_fmt_vid_cap(struct file *file, void *fh,
-> > -				   struct v4l2_format *f)
-> > +static int __capture_try_fmt_vid_cap(struct capture_priv *priv,
-> > +				     struct v4l2_subdev_format *fmt_src,
-> > +				     struct v4l2_format *f)
-> >  {
-> > -	struct capture_priv *priv = video_drvdata(file);
-> > -	struct v4l2_subdev_format fmt_src;
-> >  	const struct imx_media_pixfmt *cc, *cc_src;
-> > -	int ret;
-> >  
-> > -	fmt_src.pad = priv->src_sd_pad;
-> > -	fmt_src.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-> > -	ret = v4l2_subdev_call(priv->src_sd, pad, get_fmt, NULL, &fmt_src);
-> > -	if (ret)
-> > -		return ret;
-> > -
-> > -	cc_src = imx_media_find_ipu_format(fmt_src.format.code, CS_SEL_ANY);
-> > +	cc_src = imx_media_find_ipu_format(fmt_src->format.code, CS_SEL_ANY);
-> >  	if (cc_src) {
-> >  		u32 fourcc, cs_sel;
-> >  
-> > @@ -231,7 +223,7 @@ static int capture_try_fmt_vid_cap(struct file *file, void *fh,
-> >  			cc = imx_media_find_format(fourcc, cs_sel, false);
-> >  		}
-> >  	} else {
-> > -		cc_src = imx_media_find_mbus_format(fmt_src.format.code,
-> > +		cc_src = imx_media_find_mbus_format(fmt_src->format.code,
-> >  						    CS_SEL_ANY, true);
-> >  		if (WARN_ON(!cc_src))
-> >  			return -EINVAL;
-> > @@ -239,15 +231,32 @@ static int capture_try_fmt_vid_cap(struct file *file, void *fh,
-> >  		cc = cc_src;
-> >  	}
-> >  
-> > -	imx_media_mbus_fmt_to_pix_fmt(&f->fmt.pix, &fmt_src.format, cc);
-> > +	imx_media_mbus_fmt_to_pix_fmt(&f->fmt.pix, &fmt_src->format, cc);
-> >  
-> >  	return 0;
-> >  }
-> >  
-> > +static int capture_try_fmt_vid_cap(struct file *file, void *fh,
-> > +				   struct v4l2_format *f)
-> > +{
-> > +	struct capture_priv *priv = video_drvdata(file);
-> > +	struct v4l2_subdev_format fmt_src;
-> > +	int ret;
-> > +
-> > +	fmt_src.pad = priv->src_sd_pad;
-> > +	fmt_src.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-> > +	ret = v4l2_subdev_call(priv->src_sd, pad, get_fmt, NULL, &fmt_src);
-> > +	if (ret)
-> > +		return ret;
-> > +
-> > +	return __capture_try_fmt_vid_cap(priv, &fmt_src, f);
-> > +}
-> > +
-> >  static int capture_s_fmt_vid_cap(struct file *file, void *fh,
-> >  				 struct v4l2_format *f)
-> >  {
-> >  	struct capture_priv *priv = video_drvdata(file);
-> > +	struct v4l2_subdev_format fmt_src;
-> >  	int ret;
-> >  
-> >  	if (vb2_is_busy(&priv->q)) {
-> > @@ -255,7 +264,13 @@ static int capture_s_fmt_vid_cap(struct file *file, void *fh,
-> >  		return -EBUSY;
-> >  	}
-> >  
-> > -	ret = capture_try_fmt_vid_cap(file, priv, f);
-> > +	fmt_src.pad = priv->src_sd_pad;
-> > +	fmt_src.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-> > +	ret = v4l2_subdev_call(priv->src_sd, pad, get_fmt, NULL, &fmt_src);
-> > +	if (ret)
-> > +		return ret;
-> > +
-> > +	ret = __capture_try_fmt_vid_cap(priv, &fmt_src, f);
-> >  	if (ret)
-> >  		return ret;
-> >  
-> > @@ -264,8 +279,8 @@ static int capture_s_fmt_vid_cap(struct file *file, void *fh,
-> >  					      CS_SEL_ANY, true);
-> >  	priv->vdev.compose.left = 0;
-> >  	priv->vdev.compose.top = 0;
-> > -	priv->vdev.compose.width = f->fmt.pix.width;
-> > -	priv->vdev.compose.height = f->fmt.pix.height;
-> > +	priv->vdev.compose.width = fmt_src.format.width;
-> > +	priv->vdev.compose.height = fmt_src.format.height;
-> >  
-> >  	return 0;
-> >  }
-> > @@ -306,9 +321,14 @@ static int capture_g_selection(struct file *file, void *fh,
-> >  	case V4L2_SEL_TGT_COMPOSE:
-> >  	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
-> >  	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
-> > -	case V4L2_SEL_TGT_COMPOSE_PADDED:
-> >  		s->r = priv->vdev.compose;
-> >  		break;
-> > +	case V4L2_SEL_TGT_COMPOSE_PADDED:
+On Wed, Jan 09, 2019 at 10:33:23AM +0100, Maxime Ripard wrote:
+> The current configuration of the DSI bridge and its associated D-PHY is
+> intertwined. In order to ease the future conversion to the phy framework
+> for the D-PHY part, let's split the configuration in two.
 > 
-> Shouldn't this be for COMPOSE_BOUNDS as well?
-
-COMPOSE_BOUNDS specifies the bounds in which COMPOSE can be set. Since
-we don't allow changing COMPOSE at all, COMPOSE/BOUNDS/DEFAULT should
-all be the same.
-COMPOSE_PADDED is larger than the fixed COMPOSE rectangle on the right
-side to align to DMA burst size.
-
-> Do you need _PADDED at all? That only makes sense if the DMA writes beyond
-> the COMPOSE rectangle due to padding requirements. I'm not aware that that's
-> the case for imx.
-> I may be wrong, this would be correct if the DMA indeed
-> writes the full buffer, even if the actual image is smaller.
-
-That's exactly what happens, the hardware writes with a fixed burst size
-and doesn't support partial bursts as far as I am aware.
-If the video input signal width is not a multiple of DMA burst size, the
-last written burst of each line does contain some invalid padding pixels
-at the end.
-
-> > +		s->r.left = 0;
-> > +		s->r.top = 0;
-> > +		s->r.width = priv->vdev.fmt.fmt.pix.width;
-> > +		s->r.height = priv->vdev.fmt.fmt.pix.height;
-> > +		break;
-> >  	default:
-> >  		return -EINVAL;
-> >  	}
-> > 
+> Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
+> ---
+>  drivers/gpu/drm/bridge/cdns-dsi.c | 96 ++++++++++++++++++++++----------
+>  1 file changed, 68 insertions(+), 28 deletions(-)
 > 
-> I see that the image is always DMAed to the top-left corner of the buffer.
-> 
-> Is there a need to implement s_selection so you can change the top-left
-> corner of the compose rectangle within the buffer?
+> diff --git a/drivers/gpu/drm/bridge/cdns-dsi.c b/drivers/gpu/drm/bridge/cdns-dsi.c
+> index ce9496d13986..3ac6dd524b6d 100644
+> --- a/drivers/gpu/drm/bridge/cdns-dsi.c
+> +++ b/drivers/gpu/drm/bridge/cdns-dsi.c
+> @@ -545,6 +545,11 @@ bridge_to_cdns_dsi_input(struct drm_bridge *bridge)
+>  	return container_of(bridge, struct cdns_dsi_input, bridge);
+>  }
+>  
+> +static unsigned int mode_to_dpi_hfp(const struct drm_display_mode *mode)
+> +{
+> +	return mode->crtc_hsync_start - mode->crtc_hdisplay;
+> +}
+> +
+>  static int cdns_dsi_get_dphy_pll_cfg(struct cdns_dphy *dphy,
+>  				     struct cdns_dphy_cfg *cfg,
+>  				     unsigned int dpi_htotal,
+> @@ -731,14 +736,12 @@ static unsigned int dpi_to_dsi_timing(unsigned int dpi_timing,
+>  static int cdns_dsi_mode2cfg(struct cdns_dsi *dsi,
+>  			     const struct drm_display_mode *mode,
+>  			     struct cdns_dsi_cfg *dsi_cfg,
+> -			     struct cdns_dphy_cfg *dphy_cfg,
+>  			     bool mode_valid_check)
+>  {
+> -	unsigned long dsi_htotal = 0, dsi_hss_hsa_hse_hbp = 0;
+>  	struct cdns_dsi_output *output = &dsi->output;
+> -	unsigned int dsi_hfp_ext = 0, dpi_hfp, tmp;
+> +	unsigned int tmp;
+>  	bool sync_pulse = false;
+> -	int bpp, nlanes, ret;
+> +	int bpp, nlanes;
+>  
+>  	memset(dsi_cfg, 0, sizeof(*dsi_cfg));
+>  
+> @@ -757,8 +760,6 @@ static int cdns_dsi_mode2cfg(struct cdns_dsi *dsi,
+>  		       mode->crtc_hsync_end : mode->crtc_hsync_start);
+>  
+>  	dsi_cfg->hbp = dpi_to_dsi_timing(tmp, bpp, DSI_HBP_FRAME_OVERHEAD);
+> -	dsi_htotal += dsi_cfg->hbp + DSI_HBP_FRAME_OVERHEAD;
+> -	dsi_hss_hsa_hse_hbp += dsi_cfg->hbp + DSI_HBP_FRAME_OVERHEAD;
+>  
+>  	if (sync_pulse) {
+>  		if (mode_valid_check)
+> @@ -768,49 +769,90 @@ static int cdns_dsi_mode2cfg(struct cdns_dsi *dsi,
+>  
+>  		dsi_cfg->hsa = dpi_to_dsi_timing(tmp, bpp,
+>  						 DSI_HSA_FRAME_OVERHEAD);
+> -		dsi_htotal += dsi_cfg->hsa + DSI_HSA_FRAME_OVERHEAD;
+> -		dsi_hss_hsa_hse_hbp += dsi_cfg->hsa + DSI_HSA_FRAME_OVERHEAD;
+>  	}
+>  
+>  	dsi_cfg->hact = dpi_to_dsi_timing(mode_valid_check ?
+>  					  mode->hdisplay : mode->crtc_hdisplay,
+>  					  bpp, 0);
+> -	dsi_htotal += dsi_cfg->hact;
+> +	dsi_cfg->hfp = dpi_to_dsi_timing(mode_to_dpi_hfp(mode), bpp,
+> +					 DSI_HFP_FRAME_OVERHEAD);
 
-I haven't seen a use case for this, but I'm curious how that is supposed
-to work. Currently we are limiting buffer width/height in S_FMT to the
-connected subdevice's mbus format width / height.
-After this we'd have to allow any width / height larger than mbus format
-and limit compose rectangle width/height to the mbus format?
+We're throwing away the mode_valid_check switch here to flip between crtc_h*
+value and h* value. Is that intentional? We're using it above for hdisplay, so
+it's a bit confusing.
 
-regards
-Philipp
+>  
+> -	if (mode_valid_check)
+> -		dpi_hfp = mode->hsync_start - mode->hdisplay;
+> -	else
+> -		dpi_hfp = mode->crtc_hsync_start - mode->crtc_hdisplay;
+> +	return 0;
+> +}
+> +
+> +static int cdns_dphy_validate(struct cdns_dsi *dsi,
+> +			      struct cdns_dsi_cfg *dsi_cfg,
+> +			      struct cdns_dphy_cfg *dphy_cfg,
+> +			      const struct drm_display_mode *mode,
+> +			      bool mode_valid_check)
+> +{
+> +	struct cdns_dsi_output *output = &dsi->output;
+> +	unsigned long dsi_htotal;
+> +	unsigned int dsi_hfp_ext = 0;
+> +
+> +	int ret;
+>  
+> -	dsi_cfg->hfp = dpi_to_dsi_timing(dpi_hfp, bpp, DSI_HFP_FRAME_OVERHEAD);
+> +	dsi_htotal = dsi_cfg->hbp + DSI_HBP_FRAME_OVERHEAD;
+> +	if (output->dev->mode_flags & MIPI_DSI_MODE_VIDEO_SYNC_PULSE)
+> +		dsi_htotal += dsi_cfg->hsa + DSI_HSA_FRAME_OVERHEAD;
+> +
+> +	dsi_htotal += dsi_cfg->hact;
+>  	dsi_htotal += dsi_cfg->hfp + DSI_HFP_FRAME_OVERHEAD;
+>  
+>  	if (mode_valid_check)
+>  		ret = cdns_dsi_get_dphy_pll_cfg(dsi->dphy, dphy_cfg,
+> -						mode->htotal, bpp,
+> +						mode->htotal,
+>  						mode->clock * 1000,
+> -						dsi_htotal, nlanes,
+> +						mipi_dsi_pixel_format_to_bpp(output->dev->format),
+> +						dsi_htotal,
+> +						output->dev->lanes,
+>  						&dsi_hfp_ext);
+>  	else
+>  		ret = cdns_dsi_get_dphy_pll_cfg(dsi->dphy, dphy_cfg,
+> -						mode->crtc_htotal, bpp,
+> +						mode->crtc_htotal,
+> +						mipi_dsi_pixel_format_to_bpp(output->dev->format),
+>  						mode->crtc_clock * 1000,
+> -						dsi_htotal, nlanes,
+> +						dsi_htotal,
+> +						output->dev->lanes,
+>  						&dsi_hfp_ext);
+> -
+>  	if (ret)
+>  		return ret;
+>  
+>  	dsi_cfg->hfp += dsi_hfp_ext;
+> -	dsi_htotal += dsi_hfp_ext;
+> -	dsi_cfg->htotal = dsi_htotal;
+> +	dsi_cfg->htotal = dsi_htotal + dsi_hfp_ext;
+> +
+> +	return 0;
+> +}
+> +
+> +static int cdns_dsi_check_conf(struct cdns_dsi *dsi,
+> +			       const struct drm_display_mode *mode,
+> +			       struct cdns_dsi_cfg *dsi_cfg,
+> +			       struct cdns_dphy_cfg *dphy_cfg,
+> +			       bool mode_valid_check)
+> +{
+> +	struct cdns_dsi_output *output = &dsi->output;
+> +	unsigned long dsi_hss_hsa_hse_hbp;
+> +	unsigned int nlanes = output->dev->lanes;
+> +	int ret;
+> +
+> +	ret = cdns_dsi_mode2cfg(dsi, mode, dsi_cfg, mode_valid_check);
+> +	if (ret)
+> +		return ret;
+> +
+> +	ret = cdns_dphy_validate(dsi, dsi_cfg, dphy_cfg, mode, mode_valid_check);
+> +	if (ret)
+> +		return ret;
+> +
+> +	dsi_hss_hsa_hse_hbp = dsi_cfg->hbp + DSI_HBP_FRAME_OVERHEAD;
+> +	if (output->dev->mode_flags & MIPI_DSI_MODE_VIDEO_SYNC_PULSE)
+> +		dsi_hss_hsa_hse_hbp += dsi_cfg->hsa + DSI_HSA_FRAME_OVERHEAD;
+>  
+>  	/*
+>  	 * Make sure DPI(HFP) > DSI(HSS+HSA+HSE+HBP) to guarantee that the FIFO
+>  	 * is empty before we start a receiving a new line on the DPI
+>  	 * interface.
+>  	 */
+> -	if ((u64)dphy_cfg->lane_bps * dpi_hfp * nlanes <
+> +	if ((u64)dphy_cfg->lane_bps * mode_to_dpi_hfp(mode) * nlanes <
+>  	    (u64)dsi_hss_hsa_hse_hbp *
+>  	    (mode_valid_check ? mode->clock : mode->crtc_clock) * 1000)
+>  		return -EINVAL;
+> @@ -842,7 +884,7 @@ cdns_dsi_bridge_mode_valid(struct drm_bridge *bridge,
+>  	struct cdns_dsi_output *output = &dsi->output;
+>  	struct cdns_dphy_cfg dphy_cfg;
+>  	struct cdns_dsi_cfg dsi_cfg;
+> -	int bpp, nlanes, ret;
+> +	int bpp, ret;
+>  
+>  	/*
+>  	 * VFP_DSI should be less than VFP_DPI and VFP_DSI should be at
+> @@ -860,11 +902,9 @@ cdns_dsi_bridge_mode_valid(struct drm_bridge *bridge,
+>  	if ((mode->hdisplay * bpp) % 32)
+>  		return MODE_H_ILLEGAL;
+>  
+> -	nlanes = output->dev->lanes;
+> -
+> -	ret = cdns_dsi_mode2cfg(dsi, mode, &dsi_cfg, &dphy_cfg, true);
+> +	ret = cdns_dsi_check_conf(dsi, mode, &dsi_cfg, &dphy_cfg, true);
+>  	if (ret)
+> -		return MODE_CLOCK_RANGE;
+> +		return MODE_BAD;
+>  
+>  	return MODE_OK;
+>  }
+> @@ -990,7 +1030,7 @@ static void cdns_dsi_bridge_enable(struct drm_bridge *bridge)
+>  	bpp = mipi_dsi_pixel_format_to_bpp(output->dev->format);
+>  	nlanes = output->dev->lanes;
+>  
+> -	WARN_ON_ONCE(cdns_dsi_mode2cfg(dsi, mode, &dsi_cfg, &dphy_cfg, false));
+> +	WARN_ON_ONCE(cdns_dsi_check_conf(dsi, mode, &dsi_cfg, &dphy_cfg, false));
+>  
+>  	cdns_dsi_hs_init(dsi, &dphy_cfg);
+>  	cdns_dsi_init_link(dsi);
+> -- 
+> git-series 0.9.1
+
+-- 
+Sean Paul, Software Engineer, Google / Chromium OS
