@@ -6,24 +6,24 @@ X-Spam-Status: No, score=2.7 required=3.0 tests=DATE_IN_PAST_03_06,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,PHOTO_EDITING_FREEM,SPF_PASS
 	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 625B2C43387
-	for <linux-media@archiver.kernel.org>; Thu, 17 Jan 2019 15:38:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3ECC8C43387
+	for <linux-media@archiver.kernel.org>; Thu, 17 Jan 2019 15:38:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3E28320652
-	for <linux-media@archiver.kernel.org>; Thu, 17 Jan 2019 15:38:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 176DA20652
+	for <linux-media@archiver.kernel.org>; Thu, 17 Jan 2019 15:38:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727336AbfAQPiX (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 17 Jan 2019 10:38:23 -0500
-Received: from blitzresults.com ([185.244.39.76]:58456 "EHLO primodoors.com"
+        id S1728197AbfAQPiv (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 17 Jan 2019 10:38:51 -0500
+Received: from blitzresults.com ([185.244.39.76]:54672 "EHLO primodoors.com"
         rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726162AbfAQPiX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 17 Jan 2019 10:38:23 -0500
-X-Greylist: delayed 10291 seconds by postgrey-1.27 at vger.kernel.org; Thu, 17 Jan 2019 10:38:22 EST
+        id S1728004AbfAQPiv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 17 Jan 2019 10:38:51 -0500
+X-Greylist: delayed 10293 seconds by postgrey-1.27 at vger.kernel.org; Thu, 17 Jan 2019 10:38:50 EST
 To:     linux-media@vger.kernel.org
 Subject: Photos shooting and retouching
-Message-ID: <ef90bd05c3567367925eb8d628e826b3@richeytreeservice.com>
-Date:   Thu, 17 Jan 2019 11:24:21 +0100
-From:   "Lena" <kasantdeeisnwsuiter@mail.fr>
+Message-ID: <a12b42667fda4a919a0ebdf8f738ed10@richeytreeservice.com>
+Date:   Thu, 17 Jan 2019 11:48:05 +0100
+From:   "Lena" <kasantdeifsnssuiter@mail.fr>
 Reply-To: ganmanten@sina.com
 MIME-Version: 1.0
 Content-Type: text/plain; format=flowed; charset="UTF-8"
