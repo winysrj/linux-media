@@ -6,30 +6,30 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 935B6C43387
-	for <linux-media@archiver.kernel.org>; Thu, 17 Jan 2019 16:18:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 520B9C43612
+	for <linux-media@archiver.kernel.org>; Thu, 17 Jan 2019 16:18:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 427D520652
+	by mail.kernel.org (Postfix) with ESMTP id F160320652
 	for <linux-media@archiver.kernel.org>; Thu, 17 Jan 2019 16:18:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729014AbfAQQSJ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 17 Jan 2019 11:18:09 -0500
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:48549 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728819AbfAQQSI (ORCPT
+        id S1729046AbfAQQSK (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 17 Jan 2019 11:18:10 -0500
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:46028 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1728798AbfAQQSJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 17 Jan 2019 11:18:08 -0500
+        Thu, 17 Jan 2019 11:18:09 -0500
 Received: from marune.fritz.box ([IPv6:2001:983:e9a7:1:3849:86c5:b8c2:266c])
         by smtp-cloud8.xs4all.net with ESMTPA
-        id kAMkgeAhPNR5ykAMmgTv0q; Thu, 17 Jan 2019 17:18:04 +0100
+        id kAMkgeAhPNR5ykAMmgTv0v; Thu, 17 Jan 2019 17:18:04 +0100
 From:   hverkuil-cisco@xs4all.nl
 To:     linux-media@vger.kernel.org
 Cc:     Jacopo Mondi <jacopo+renesas@jmondi.org>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
         Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Subject: [PATCH 2/8] soc_mt9t112: remove obsolete sensor driver
-Date:   Thu, 17 Jan 2019 17:17:56 +0100
-Message-Id: <20190117161802.5740-3-hverkuil-cisco@xs4all.nl>
+Subject: [PATCH 3/8] soc_ov772x: remove obsolete sensor driver
+Date:   Thu, 17 Jan 2019 17:17:57 +0100
+Message-Id: <20190117161802.5740-4-hverkuil-cisco@xs4all.nl>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190117161802.5740-1-hverkuil-cisco@xs4all.nl>
 References: <20190117161802.5740-1-hverkuil-cisco@xs4all.nl>
@@ -47,62 +47,61 @@ X-Mailing-List: linux-media@vger.kernel.org
 From: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 
 This driver got converted to not depend on soc_camera in commit
-6a26f141bf62 ("media: i2c: mt9t112: Remove soc_camera dependencies").
+762c28121d7c ("media: i2c: ov772x: Remove soc_camera dependencies").
 
 There's no sense in keeping the old version there.
 
 Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 ---
- drivers/media/i2c/soc_camera/Kconfig       |    6 -
- drivers/media/i2c/soc_camera/Makefile      |    1 -
- drivers/media/i2c/soc_camera/soc_mt9t112.c | 1157 --------------------
- 3 files changed, 1164 deletions(-)
- delete mode 100644 drivers/media/i2c/soc_camera/soc_mt9t112.c
+ drivers/media/i2c/soc_camera/Kconfig      |    6 -
+ drivers/media/i2c/soc_camera/Makefile     |    1 -
+ drivers/media/i2c/soc_camera/soc_ov772x.c | 1123 ---------------------
+ 3 files changed, 1130 deletions(-)
+ delete mode 100644 drivers/media/i2c/soc_camera/soc_ov772x.c
 
 diff --git a/drivers/media/i2c/soc_camera/Kconfig b/drivers/media/i2c/soc_camera/Kconfig
-index f67499187bda..773d067c44a3 100644
+index 773d067c44a3..62a6562f4f0c 100644
 --- a/drivers/media/i2c/soc_camera/Kconfig
 +++ b/drivers/media/i2c/soc_camera/Kconfig
-@@ -17,12 +17,6 @@ config SOC_CAMERA_MT9M111
- 	  This is the legacy configuration which shouldn't be used anymore,
- 	  while VIDEO_MT9M111 should be used instead.
+@@ -29,12 +29,6 @@ config SOC_CAMERA_OV5642
+ 	help
+ 	  This is a V4L2 camera driver for the OmniVision OV5642 sensor
  
--config SOC_CAMERA_MT9T112
--	tristate "mt9t112 support"
+-config SOC_CAMERA_OV772X
+-	tristate "ov772x camera support"
 -	depends on SOC_CAMERA && I2C
 -	help
--	  This driver supports MT9T112 cameras from Aptina.
+-	  This is a ov772x camera driver
 -
- config SOC_CAMERA_MT9V022
- 	tristate "mt9v022 and mt9v024 support"
+ config SOC_CAMERA_OV9740
+ 	tristate "ov9740 camera support"
  	depends on SOC_CAMERA && I2C
 diff --git a/drivers/media/i2c/soc_camera/Makefile b/drivers/media/i2c/soc_camera/Makefile
-index 0d15864cfda8..ea8da4074a01 100644
+index ea8da4074a01..1e82912c5b05 100644
 --- a/drivers/media/i2c/soc_camera/Makefile
 +++ b/drivers/media/i2c/soc_camera/Makefile
-@@ -1,6 +1,5 @@
- # SPDX-License-Identifier: GPL-2.0
+@@ -2,7 +2,6 @@
  obj-$(CONFIG_SOC_CAMERA_MT9M001)	+= soc_mt9m001.o
--obj-$(CONFIG_SOC_CAMERA_MT9T112)	+= soc_mt9t112.o
  obj-$(CONFIG_SOC_CAMERA_MT9V022)	+= soc_mt9v022.o
  obj-$(CONFIG_SOC_CAMERA_OV5642)		+= soc_ov5642.o
- obj-$(CONFIG_SOC_CAMERA_OV772X)		+= soc_ov772x.o
-diff --git a/drivers/media/i2c/soc_camera/soc_mt9t112.c b/drivers/media/i2c/soc_camera/soc_mt9t112.c
+-obj-$(CONFIG_SOC_CAMERA_OV772X)		+= soc_ov772x.o
+ obj-$(CONFIG_SOC_CAMERA_OV9740)		+= soc_ov9740.o
+ obj-$(CONFIG_SOC_CAMERA_RJ54N1)		+= soc_rj54n1cb0c.o
+ obj-$(CONFIG_SOC_CAMERA_TW9910)		+= soc_tw9910.o
+diff --git a/drivers/media/i2c/soc_camera/soc_ov772x.c b/drivers/media/i2c/soc_camera/soc_ov772x.c
 deleted file mode 100644
-index ea1ff270bc2d..000000000000
---- a/drivers/media/i2c/soc_camera/soc_mt9t112.c
+index fafd372527b2..000000000000
+--- a/drivers/media/i2c/soc_camera/soc_ov772x.c
 +++ /dev/null
-@@ -1,1157 +0,0 @@
+@@ -1,1123 +0,0 @@
 -/*
-- * mt9t112 Camera Driver
+- * ov772x Camera Driver
 - *
-- * Copyright (C) 2009 Renesas Solutions Corp.
+- * Copyright (C) 2008 Renesas Solutions Corp.
 - * Kuninori Morimoto <morimoto.kuninori@renesas.com>
 - *
-- * Based on ov772x driver, mt9m111 driver,
+- * Based on ov7670 and soc_camera_platform driver,
 - *
-- * Copyright (C) 2008 Kuninori Morimoto <morimoto.kuninori@renesas.com>
-- * Copyright (C) 2008, Robert Jarzmik <robert.jarzmik@free.fr>
 - * Copyright 2006-7 Jonathan Corbet <corbet@lwn.net>
 - * Copyright (C) 2008 Magnus Damm
 - * Copyright (C) 2008, Guennadi Liakhovetski <kernel@pengutronix.de>
@@ -112,1092 +111,1044 @@ index ea1ff270bc2d..000000000000
 - * published by the Free Software Foundation.
 - */
 -
--#include <linux/delay.h>
--#include <linux/i2c.h>
 -#include <linux/init.h>
+-#include <linux/kernel.h>
 -#include <linux/module.h>
+-#include <linux/i2c.h>
 -#include <linux/slab.h>
+-#include <linux/delay.h>
 -#include <linux/v4l2-mediabus.h>
 -#include <linux/videodev2.h>
 -
--#include <media/i2c/mt9t112.h>
+-#include <media/i2c/ov772x.h>
 -#include <media/soc_camera.h>
 -#include <media/v4l2-clk.h>
--#include <media/v4l2-common.h>
+-#include <media/v4l2-ctrls.h>
+-#include <media/v4l2-subdev.h>
 -#include <media/v4l2-image-sizes.h>
 -
--/* you can check PLL/clock info */
--/* #define EXT_CLOCK 24000000 */
--
--/************************************************************************
--			macro
--************************************************************************/
 -/*
-- * frame size
+- * register offset
 - */
--#define MAX_WIDTH   2048
--#define MAX_HEIGHT  1536
+-#define GAIN        0x00 /* AGC - Gain control gain setting */
+-#define BLUE        0x01 /* AWB - Blue channel gain setting */
+-#define RED         0x02 /* AWB - Red   channel gain setting */
+-#define GREEN       0x03 /* AWB - Green channel gain setting */
+-#define COM1        0x04 /* Common control 1 */
+-#define BAVG        0x05 /* U/B Average Level */
+-#define GAVG        0x06 /* Y/Gb Average Level */
+-#define RAVG        0x07 /* V/R Average Level */
+-#define AECH        0x08 /* Exposure Value - AEC MSBs */
+-#define COM2        0x09 /* Common control 2 */
+-#define PID         0x0A /* Product ID Number MSB */
+-#define VER         0x0B /* Product ID Number LSB */
+-#define COM3        0x0C /* Common control 3 */
+-#define COM4        0x0D /* Common control 4 */
+-#define COM5        0x0E /* Common control 5 */
+-#define COM6        0x0F /* Common control 6 */
+-#define AEC         0x10 /* Exposure Value */
+-#define CLKRC       0x11 /* Internal clock */
+-#define COM7        0x12 /* Common control 7 */
+-#define COM8        0x13 /* Common control 8 */
+-#define COM9        0x14 /* Common control 9 */
+-#define COM10       0x15 /* Common control 10 */
+-#define REG16       0x16 /* Register 16 */
+-#define HSTART      0x17 /* Horizontal sensor size */
+-#define HSIZE       0x18 /* Horizontal frame (HREF column) end high 8-bit */
+-#define VSTART      0x19 /* Vertical frame (row) start high 8-bit */
+-#define VSIZE       0x1A /* Vertical sensor size */
+-#define PSHFT       0x1B /* Data format - pixel delay select */
+-#define MIDH        0x1C /* Manufacturer ID byte - high */
+-#define MIDL        0x1D /* Manufacturer ID byte - low  */
+-#define LAEC        0x1F /* Fine AEC value */
+-#define COM11       0x20 /* Common control 11 */
+-#define BDBASE      0x22 /* Banding filter Minimum AEC value */
+-#define DBSTEP      0x23 /* Banding filter Maximum Setp */
+-#define AEW         0x24 /* AGC/AEC - Stable operating region (upper limit) */
+-#define AEB         0x25 /* AGC/AEC - Stable operating region (lower limit) */
+-#define VPT         0x26 /* AGC/AEC Fast mode operating region */
+-#define REG28       0x28 /* Register 28 */
+-#define HOUTSIZE    0x29 /* Horizontal data output size MSBs */
+-#define EXHCH       0x2A /* Dummy pixel insert MSB */
+-#define EXHCL       0x2B /* Dummy pixel insert LSB */
+-#define VOUTSIZE    0x2C /* Vertical data output size MSBs */
+-#define ADVFL       0x2D /* LSB of insert dummy lines in Vertical direction */
+-#define ADVFH       0x2E /* MSG of insert dummy lines in Vertical direction */
+-#define YAVE        0x2F /* Y/G Channel Average value */
+-#define LUMHTH      0x30 /* Histogram AEC/AGC Luminance high level threshold */
+-#define LUMLTH      0x31 /* Histogram AEC/AGC Luminance low  level threshold */
+-#define HREF        0x32 /* Image start and size control */
+-#define DM_LNL      0x33 /* Dummy line low  8 bits */
+-#define DM_LNH      0x34 /* Dummy line high 8 bits */
+-#define ADOFF_B     0x35 /* AD offset compensation value for B  channel */
+-#define ADOFF_R     0x36 /* AD offset compensation value for R  channel */
+-#define ADOFF_GB    0x37 /* AD offset compensation value for Gb channel */
+-#define ADOFF_GR    0x38 /* AD offset compensation value for Gr channel */
+-#define OFF_B       0x39 /* Analog process B  channel offset value */
+-#define OFF_R       0x3A /* Analog process R  channel offset value */
+-#define OFF_GB      0x3B /* Analog process Gb channel offset value */
+-#define OFF_GR      0x3C /* Analog process Gr channel offset value */
+-#define COM12       0x3D /* Common control 12 */
+-#define COM13       0x3E /* Common control 13 */
+-#define COM14       0x3F /* Common control 14 */
+-#define COM15       0x40 /* Common control 15*/
+-#define COM16       0x41 /* Common control 16 */
+-#define TGT_B       0x42 /* BLC blue channel target value */
+-#define TGT_R       0x43 /* BLC red  channel target value */
+-#define TGT_GB      0x44 /* BLC Gb   channel target value */
+-#define TGT_GR      0x45 /* BLC Gr   channel target value */
+-/* for ov7720 */
+-#define LCC0        0x46 /* Lens correction control 0 */
+-#define LCC1        0x47 /* Lens correction option 1 - X coordinate */
+-#define LCC2        0x48 /* Lens correction option 2 - Y coordinate */
+-#define LCC3        0x49 /* Lens correction option 3 */
+-#define LCC4        0x4A /* Lens correction option 4 - radius of the circular */
+-#define LCC5        0x4B /* Lens correction option 5 */
+-#define LCC6        0x4C /* Lens correction option 6 */
+-/* for ov7725 */
+-#define LC_CTR      0x46 /* Lens correction control */
+-#define LC_XC       0x47 /* X coordinate of lens correction center relative */
+-#define LC_YC       0x48 /* Y coordinate of lens correction center relative */
+-#define LC_COEF     0x49 /* Lens correction coefficient */
+-#define LC_RADI     0x4A /* Lens correction radius */
+-#define LC_COEFB    0x4B /* Lens B channel compensation coefficient */
+-#define LC_COEFR    0x4C /* Lens R channel compensation coefficient */
+-
+-#define FIXGAIN     0x4D /* Analog fix gain amplifer */
+-#define AREF0       0x4E /* Sensor reference control */
+-#define AREF1       0x4F /* Sensor reference current control */
+-#define AREF2       0x50 /* Analog reference control */
+-#define AREF3       0x51 /* ADC    reference control */
+-#define AREF4       0x52 /* ADC    reference control */
+-#define AREF5       0x53 /* ADC    reference control */
+-#define AREF6       0x54 /* Analog reference control */
+-#define AREF7       0x55 /* Analog reference control */
+-#define UFIX        0x60 /* U channel fixed value output */
+-#define VFIX        0x61 /* V channel fixed value output */
+-#define AWBB_BLK    0x62 /* AWB option for advanced AWB */
+-#define AWB_CTRL0   0x63 /* AWB control byte 0 */
+-#define DSP_CTRL1   0x64 /* DSP control byte 1 */
+-#define DSP_CTRL2   0x65 /* DSP control byte 2 */
+-#define DSP_CTRL3   0x66 /* DSP control byte 3 */
+-#define DSP_CTRL4   0x67 /* DSP control byte 4 */
+-#define AWB_BIAS    0x68 /* AWB BLC level clip */
+-#define AWB_CTRL1   0x69 /* AWB control  1 */
+-#define AWB_CTRL2   0x6A /* AWB control  2 */
+-#define AWB_CTRL3   0x6B /* AWB control  3 */
+-#define AWB_CTRL4   0x6C /* AWB control  4 */
+-#define AWB_CTRL5   0x6D /* AWB control  5 */
+-#define AWB_CTRL6   0x6E /* AWB control  6 */
+-#define AWB_CTRL7   0x6F /* AWB control  7 */
+-#define AWB_CTRL8   0x70 /* AWB control  8 */
+-#define AWB_CTRL9   0x71 /* AWB control  9 */
+-#define AWB_CTRL10  0x72 /* AWB control 10 */
+-#define AWB_CTRL11  0x73 /* AWB control 11 */
+-#define AWB_CTRL12  0x74 /* AWB control 12 */
+-#define AWB_CTRL13  0x75 /* AWB control 13 */
+-#define AWB_CTRL14  0x76 /* AWB control 14 */
+-#define AWB_CTRL15  0x77 /* AWB control 15 */
+-#define AWB_CTRL16  0x78 /* AWB control 16 */
+-#define AWB_CTRL17  0x79 /* AWB control 17 */
+-#define AWB_CTRL18  0x7A /* AWB control 18 */
+-#define AWB_CTRL19  0x7B /* AWB control 19 */
+-#define AWB_CTRL20  0x7C /* AWB control 20 */
+-#define AWB_CTRL21  0x7D /* AWB control 21 */
+-#define GAM1        0x7E /* Gamma Curve  1st segment input end point */
+-#define GAM2        0x7F /* Gamma Curve  2nd segment input end point */
+-#define GAM3        0x80 /* Gamma Curve  3rd segment input end point */
+-#define GAM4        0x81 /* Gamma Curve  4th segment input end point */
+-#define GAM5        0x82 /* Gamma Curve  5th segment input end point */
+-#define GAM6        0x83 /* Gamma Curve  6th segment input end point */
+-#define GAM7        0x84 /* Gamma Curve  7th segment input end point */
+-#define GAM8        0x85 /* Gamma Curve  8th segment input end point */
+-#define GAM9        0x86 /* Gamma Curve  9th segment input end point */
+-#define GAM10       0x87 /* Gamma Curve 10th segment input end point */
+-#define GAM11       0x88 /* Gamma Curve 11th segment input end point */
+-#define GAM12       0x89 /* Gamma Curve 12th segment input end point */
+-#define GAM13       0x8A /* Gamma Curve 13th segment input end point */
+-#define GAM14       0x8B /* Gamma Curve 14th segment input end point */
+-#define GAM15       0x8C /* Gamma Curve 15th segment input end point */
+-#define SLOP        0x8D /* Gamma curve highest segment slope */
+-#define DNSTH       0x8E /* De-noise threshold */
+-#define EDGE_STRNGT 0x8F /* Edge strength  control when manual mode */
+-#define EDGE_TRSHLD 0x90 /* Edge threshold control when manual mode */
+-#define DNSOFF      0x91 /* Auto De-noise threshold control */
+-#define EDGE_UPPER  0x92 /* Edge strength upper limit when Auto mode */
+-#define EDGE_LOWER  0x93 /* Edge strength lower limit when Auto mode */
+-#define MTX1        0x94 /* Matrix coefficient 1 */
+-#define MTX2        0x95 /* Matrix coefficient 2 */
+-#define MTX3        0x96 /* Matrix coefficient 3 */
+-#define MTX4        0x97 /* Matrix coefficient 4 */
+-#define MTX5        0x98 /* Matrix coefficient 5 */
+-#define MTX6        0x99 /* Matrix coefficient 6 */
+-#define MTX_CTRL    0x9A /* Matrix control */
+-#define BRIGHT      0x9B /* Brightness control */
+-#define CNTRST      0x9C /* Contrast contrast */
+-#define CNTRST_CTRL 0x9D /* Contrast contrast center */
+-#define UVAD_J0     0x9E /* Auto UV adjust contrast 0 */
+-#define UVAD_J1     0x9F /* Auto UV adjust contrast 1 */
+-#define SCAL0       0xA0 /* Scaling control 0 */
+-#define SCAL1       0xA1 /* Scaling control 1 */
+-#define SCAL2       0xA2 /* Scaling control 2 */
+-#define FIFODLYM    0xA3 /* FIFO manual mode delay control */
+-#define FIFODLYA    0xA4 /* FIFO auto   mode delay control */
+-#define SDE         0xA6 /* Special digital effect control */
+-#define USAT        0xA7 /* U component saturation control */
+-#define VSAT        0xA8 /* V component saturation control */
+-/* for ov7720 */
+-#define HUE0        0xA9 /* Hue control 0 */
+-#define HUE1        0xAA /* Hue control 1 */
+-/* for ov7725 */
+-#define HUECOS      0xA9 /* Cosine value */
+-#define HUESIN      0xAA /* Sine value */
+-
+-#define SIGN        0xAB /* Sign bit for Hue and contrast */
+-#define DSPAUTO     0xAC /* DSP auto function ON/OFF control */
 -
 -/*
-- * macro of read/write
+- * register detail
 - */
--#define ECHECKER(ret, x)		\
--	do {				\
--		(ret) = (x);		\
--		if ((ret) < 0)		\
--			return (ret);	\
--	} while (0)
 -
--#define mt9t112_reg_write(ret, client, a, b) \
--	ECHECKER(ret, __mt9t112_reg_write(client, a, b))
--#define mt9t112_mcu_write(ret, client, a, b) \
--	ECHECKER(ret, __mt9t112_mcu_write(client, a, b))
+-/* COM2 */
+-#define SOFT_SLEEP_MODE 0x10	/* Soft sleep mode */
+-				/* Output drive capability */
+-#define OCAP_1x         0x00	/* 1x */
+-#define OCAP_2x         0x01	/* 2x */
+-#define OCAP_3x         0x02	/* 3x */
+-#define OCAP_4x         0x03	/* 4x */
 -
--#define mt9t112_reg_mask_set(ret, client, a, b, c) \
--	ECHECKER(ret, __mt9t112_reg_mask_set(client, a, b, c))
--#define mt9t112_mcu_mask_set(ret, client, a, b, c) \
--	ECHECKER(ret, __mt9t112_mcu_mask_set(client, a, b, c))
+-/* COM3 */
+-#define SWAP_MASK       (SWAP_RGB | SWAP_YUV | SWAP_ML)
+-#define IMG_MASK        (VFLIP_IMG | HFLIP_IMG)
 -
--#define mt9t112_reg_read(ret, client, a) \
--	ECHECKER(ret, __mt9t112_reg_read(client, a))
+-#define VFLIP_IMG       0x80	/* Vertical flip image ON/OFF selection */
+-#define HFLIP_IMG       0x40	/* Horizontal mirror image ON/OFF selection */
+-#define SWAP_RGB        0x20	/* Swap B/R  output sequence in RGB mode */
+-#define SWAP_YUV        0x10	/* Swap Y/UV output sequence in YUV mode */
+-#define SWAP_ML         0x08	/* Swap output MSB/LSB */
+-				/* Tri-state option for output clock */
+-#define NOTRI_CLOCK     0x04	/*   0: Tri-state    at this period */
+-				/*   1: No tri-state at this period */
+-				/* Tri-state option for output data */
+-#define NOTRI_DATA      0x02	/*   0: Tri-state    at this period */
+-				/*   1: No tri-state at this period */
+-#define SCOLOR_TEST     0x01	/* Sensor color bar test pattern */
+-
+-/* COM4 */
+-				/* PLL frequency control */
+-#define PLL_BYPASS      0x00	/*  00: Bypass PLL */
+-#define PLL_4x          0x40	/*  01: PLL 4x */
+-#define PLL_6x          0x80	/*  10: PLL 6x */
+-#define PLL_8x          0xc0	/*  11: PLL 8x */
+-				/* AEC evaluate window */
+-#define AEC_FULL        0x00	/*  00: Full window */
+-#define AEC_1p2         0x10	/*  01: 1/2  window */
+-#define AEC_1p4         0x20	/*  10: 1/4  window */
+-#define AEC_2p3         0x30	/*  11: Low 2/3 window */
+-
+-/* COM5 */
+-#define AFR_ON_OFF      0x80	/* Auto frame rate control ON/OFF selection */
+-#define AFR_SPPED       0x40	/* Auto frame rate control speed selection */
+-				/* Auto frame rate max rate control */
+-#define AFR_NO_RATE     0x00	/*     No  reduction of frame rate */
+-#define AFR_1p2         0x10	/*     Max reduction to 1/2 frame rate */
+-#define AFR_1p4         0x20	/*     Max reduction to 1/4 frame rate */
+-#define AFR_1p8         0x30	/* Max reduction to 1/8 frame rate */
+-				/* Auto frame rate active point control */
+-#define AF_2x           0x00	/*     Add frame when AGC reaches  2x gain */
+-#define AF_4x           0x04	/*     Add frame when AGC reaches  4x gain */
+-#define AF_8x           0x08	/*     Add frame when AGC reaches  8x gain */
+-#define AF_16x          0x0c	/* Add frame when AGC reaches 16x gain */
+-				/* AEC max step control */
+-#define AEC_NO_LIMIT    0x01	/*   0 : AEC incease step has limit */
+-				/*   1 : No limit to AEC increase step */
+-
+-/* COM7 */
+-				/* SCCB Register Reset */
+-#define SCCB_RESET      0x80	/*   0 : No change */
+-				/*   1 : Resets all registers to default */
+-				/* Resolution selection */
+-#define SLCT_MASK       0x40	/*   Mask of VGA or QVGA */
+-#define SLCT_VGA        0x00	/*   0 : VGA */
+-#define SLCT_QVGA       0x40	/*   1 : QVGA */
+-#define ITU656_ON_OFF   0x20	/* ITU656 protocol ON/OFF selection */
+-#define SENSOR_RAW	0x10	/* Sensor RAW */
+-				/* RGB output format control */
+-#define FMT_MASK        0x0c	/*      Mask of color format */
+-#define FMT_GBR422      0x00	/*      00 : GBR 4:2:2 */
+-#define FMT_RGB565      0x04	/*      01 : RGB 565 */
+-#define FMT_RGB555      0x08	/*      10 : RGB 555 */
+-#define FMT_RGB444      0x0c	/* 11 : RGB 444 */
+-				/* Output format control */
+-#define OFMT_MASK       0x03    /*      Mask of output format */
+-#define OFMT_YUV        0x00	/*      00 : YUV */
+-#define OFMT_P_BRAW     0x01	/*      01 : Processed Bayer RAW */
+-#define OFMT_RGB        0x02	/*      10 : RGB */
+-#define OFMT_BRAW       0x03	/* 11 : Bayer RAW */
+-
+-/* COM8 */
+-#define FAST_ALGO       0x80	/* Enable fast AGC/AEC algorithm */
+-				/* AEC Setp size limit */
+-#define UNLMT_STEP      0x40	/*   0 : Step size is limited */
+-				/*   1 : Unlimited step size */
+-#define BNDF_ON_OFF     0x20	/* Banding filter ON/OFF */
+-#define AEC_BND         0x10	/* Enable AEC below banding value */
+-#define AEC_ON_OFF      0x08	/* Fine AEC ON/OFF control */
+-#define AGC_ON          0x04	/* AGC Enable */
+-#define AWB_ON          0x02	/* AWB Enable */
+-#define AEC_ON          0x01	/* AEC Enable */
+-
+-/* COM9 */
+-#define BASE_AECAGC     0x80	/* Histogram or average based AEC/AGC */
+-				/* Automatic gain ceiling - maximum AGC value */
+-#define GAIN_2x         0x00	/*    000 :   2x */
+-#define GAIN_4x         0x10	/*    001 :   4x */
+-#define GAIN_8x         0x20	/*    010 :   8x */
+-#define GAIN_16x        0x30	/*    011 :  16x */
+-#define GAIN_32x        0x40	/*    100 :  32x */
+-#define GAIN_64x        0x50	/* 101 :  64x */
+-#define GAIN_128x       0x60	/* 110 : 128x */
+-#define DROP_VSYNC      0x04	/* Drop VSYNC output of corrupt frame */
+-#define DROP_HREF       0x02	/* Drop HREF  output of corrupt frame */
+-
+-/* COM11 */
+-#define SGLF_ON_OFF     0x02	/* Single frame ON/OFF selection */
+-#define SGLF_TRIG       0x01	/* Single frame transfer trigger */
+-
+-/* HREF */
+-#define HREF_VSTART_SHIFT	6	/* VSTART LSB */
+-#define HREF_HSTART_SHIFT	4	/* HSTART 2 LSBs */
+-#define HREF_VSIZE_SHIFT	2	/* VSIZE LSB */
+-#define HREF_HSIZE_SHIFT	0	/* HSIZE 2 LSBs */
+-
+-/* EXHCH */
+-#define EXHCH_VSIZE_SHIFT	2	/* VOUTSIZE LSB */
+-#define EXHCH_HSIZE_SHIFT	0	/* HOUTSIZE 2 LSBs */
+-
+-/* DSP_CTRL1 */
+-#define FIFO_ON         0x80	/* FIFO enable/disable selection */
+-#define UV_ON_OFF       0x40	/* UV adjust function ON/OFF selection */
+-#define YUV444_2_422    0x20	/* YUV444 to 422 UV channel option selection */
+-#define CLR_MTRX_ON_OFF 0x10	/* Color matrix ON/OFF selection */
+-#define INTPLT_ON_OFF   0x08	/* Interpolation ON/OFF selection */
+-#define GMM_ON_OFF      0x04	/* Gamma function ON/OFF selection */
+-#define AUTO_BLK_ON_OFF 0x02	/* Black defect auto correction ON/OFF */
+-#define AUTO_WHT_ON_OFF 0x01	/* White define auto correction ON/OFF */
+-
+-/* DSP_CTRL3 */
+-#define UV_MASK         0x80	/* UV output sequence option */
+-#define UV_ON           0x80	/*   ON */
+-#define UV_OFF          0x00	/*   OFF */
+-#define CBAR_MASK       0x20	/* DSP Color bar mask */
+-#define CBAR_ON         0x20	/*   ON */
+-#define CBAR_OFF        0x00	/*   OFF */
+-
+-/* DSP_CTRL4 */
+-#define DSP_OFMT_YUV	0x00
+-#define DSP_OFMT_RGB	0x00
+-#define DSP_OFMT_RAW8	0x02
+-#define DSP_OFMT_RAW10	0x03
+-
+-/* DSPAUTO (DSP Auto Function ON/OFF Control) */
+-#define AWB_ACTRL       0x80 /* AWB auto threshold control */
+-#define DENOISE_ACTRL   0x40 /* De-noise auto threshold control */
+-#define EDGE_ACTRL      0x20 /* Edge enhancement auto strength control */
+-#define UV_ACTRL        0x10 /* UV adjust auto slope control */
+-#define SCAL0_ACTRL     0x08 /* Auto scaling factor control */
+-#define SCAL1_2_ACTRL   0x04 /* Auto scaling factor control */
+-
+-#define OV772X_MAX_WIDTH	VGA_WIDTH
+-#define OV772X_MAX_HEIGHT	VGA_HEIGHT
 -
 -/*
-- * Logical address
+- * ID
 - */
--#define _VAR(id, offset, base)	(base | (id & 0x1f) << 10 | (offset & 0x3ff))
--#define VAR(id, offset)  _VAR(id, offset, 0x0000)
--#define VAR8(id, offset) _VAR(id, offset, 0x8000)
+-#define OV7720  0x7720
+-#define OV7725  0x7721
+-#define VERSION(pid, ver) ((pid<<8)|(ver&0xFF))
 -
--/************************************************************************
--			struct
--************************************************************************/
--struct mt9t112_format {
+-/*
+- * struct
+- */
+-
+-struct ov772x_color_format {
 -	u32 code;
 -	enum v4l2_colorspace colorspace;
--	u16 fmt;
--	u16 order;
+-	u8 dsp3;
+-	u8 dsp4;
+-	u8 com3;
+-	u8 com7;
 -};
 -
--struct mt9t112_priv {
--	struct v4l2_subdev		 subdev;
--	struct mt9t112_platform_data	*info;
--	struct i2c_client		*client;
--	struct v4l2_rect		 frame;
--	struct v4l2_clk			*clk;
--	const struct mt9t112_format	*format;
--	int				 num_formats;
--	u32				 flags;
--/* for flags */
--#define INIT_DONE	(1 << 0)
--#define PCLK_RISING	(1 << 1)
+-struct ov772x_win_size {
+-	char                     *name;
+-	unsigned char             com7_bit;
+-	struct v4l2_rect	  rect;
 -};
 -
--/************************************************************************
--			supported format
--************************************************************************/
+-struct ov772x_priv {
+-	struct v4l2_subdev                subdev;
+-	struct v4l2_ctrl_handler	  hdl;
+-	struct v4l2_clk			 *clk;
+-	struct ov772x_camera_info        *info;
+-	const struct ov772x_color_format *cfmt;
+-	const struct ov772x_win_size     *win;
+-	unsigned short                    flag_vflip:1;
+-	unsigned short                    flag_hflip:1;
+-	/* band_filter = COM8[5] ? 256 - BDBASE : 0 */
+-	unsigned short                    band_filter;
+-};
 -
--static const struct mt9t112_format mt9t112_cfmts[] = {
+-/*
+- * supported color format list
+- */
+-static const struct ov772x_color_format ov772x_cfmts[] = {
+-	{
+-		.code		= MEDIA_BUS_FMT_YUYV8_2X8,
+-		.colorspace	= V4L2_COLORSPACE_JPEG,
+-		.dsp3		= 0x0,
+-		.dsp4		= DSP_OFMT_YUV,
+-		.com3		= SWAP_YUV,
+-		.com7		= OFMT_YUV,
+-	},
+-	{
+-		.code		= MEDIA_BUS_FMT_YVYU8_2X8,
+-		.colorspace	= V4L2_COLORSPACE_JPEG,
+-		.dsp3		= UV_ON,
+-		.dsp4		= DSP_OFMT_YUV,
+-		.com3		= SWAP_YUV,
+-		.com7		= OFMT_YUV,
+-	},
 -	{
 -		.code		= MEDIA_BUS_FMT_UYVY8_2X8,
--		.colorspace	= V4L2_COLORSPACE_SRGB,
--		.fmt		= 1,
--		.order		= 0,
--	}, {
--		.code		= MEDIA_BUS_FMT_VYUY8_2X8,
--		.colorspace	= V4L2_COLORSPACE_SRGB,
--		.fmt		= 1,
--		.order		= 1,
--	}, {
--		.code		= MEDIA_BUS_FMT_YUYV8_2X8,
--		.colorspace	= V4L2_COLORSPACE_SRGB,
--		.fmt		= 1,
--		.order		= 2,
--	}, {
--		.code		= MEDIA_BUS_FMT_YVYU8_2X8,
--		.colorspace	= V4L2_COLORSPACE_SRGB,
--		.fmt		= 1,
--		.order		= 3,
--	}, {
+-		.colorspace	= V4L2_COLORSPACE_JPEG,
+-		.dsp3		= 0x0,
+-		.dsp4		= DSP_OFMT_YUV,
+-		.com3		= 0x0,
+-		.com7		= OFMT_YUV,
+-	},
+-	{
 -		.code		= MEDIA_BUS_FMT_RGB555_2X8_PADHI_LE,
 -		.colorspace	= V4L2_COLORSPACE_SRGB,
--		.fmt		= 8,
--		.order		= 2,
--	}, {
+-		.dsp3		= 0x0,
+-		.dsp4		= DSP_OFMT_YUV,
+-		.com3		= SWAP_RGB,
+-		.com7		= FMT_RGB555 | OFMT_RGB,
+-	},
+-	{
+-		.code		= MEDIA_BUS_FMT_RGB555_2X8_PADHI_BE,
+-		.colorspace	= V4L2_COLORSPACE_SRGB,
+-		.dsp3		= 0x0,
+-		.dsp4		= DSP_OFMT_YUV,
+-		.com3		= 0x0,
+-		.com7		= FMT_RGB555 | OFMT_RGB,
+-	},
+-	{
 -		.code		= MEDIA_BUS_FMT_RGB565_2X8_LE,
 -		.colorspace	= V4L2_COLORSPACE_SRGB,
--		.fmt		= 4,
--		.order		= 2,
+-		.dsp3		= 0x0,
+-		.dsp4		= DSP_OFMT_YUV,
+-		.com3		= SWAP_RGB,
+-		.com7		= FMT_RGB565 | OFMT_RGB,
+-	},
+-	{
+-		.code		= MEDIA_BUS_FMT_RGB565_2X8_BE,
+-		.colorspace	= V4L2_COLORSPACE_SRGB,
+-		.dsp3		= 0x0,
+-		.dsp4		= DSP_OFMT_YUV,
+-		.com3		= 0x0,
+-		.com7		= FMT_RGB565 | OFMT_RGB,
+-	},
+-	{
+-		/* Setting DSP4 to DSP_OFMT_RAW8 still gives 10-bit output,
+-		 * regardless of the COM7 value. We can thus only support 10-bit
+-		 * Bayer until someone figures it out.
+-		 */
+-		.code		= MEDIA_BUS_FMT_SBGGR10_1X10,
+-		.colorspace	= V4L2_COLORSPACE_SRGB,
+-		.dsp3		= 0x0,
+-		.dsp4		= DSP_OFMT_RAW10,
+-		.com3		= 0x0,
+-		.com7		= SENSOR_RAW | OFMT_BRAW,
 -	},
 -};
 -
--/************************************************************************
--			general function
--************************************************************************/
--static struct mt9t112_priv *to_mt9t112(const struct i2c_client *client)
+-
+-/*
+- * window size list
+- */
+-
+-static const struct ov772x_win_size ov772x_win_sizes[] = {
+-	{
+-		.name     = "VGA",
+-		.com7_bit = SLCT_VGA,
+-		.rect = {
+-			.left = 140,
+-			.top = 14,
+-			.width = VGA_WIDTH,
+-			.height = VGA_HEIGHT,
+-		},
+-	}, {
+-		.name     = "QVGA",
+-		.com7_bit = SLCT_QVGA,
+-		.rect = {
+-			.left = 252,
+-			.top = 6,
+-			.width = QVGA_WIDTH,
+-			.height = QVGA_HEIGHT,
+-		},
+-	},
+-};
+-
+-/*
+- * general function
+- */
+-
+-static struct ov772x_priv *to_ov772x(struct v4l2_subdev *sd)
 -{
--	return container_of(i2c_get_clientdata(client),
--			    struct mt9t112_priv,
--			    subdev);
+-	return container_of(sd, struct ov772x_priv, subdev);
 -}
 -
--static int __mt9t112_reg_read(const struct i2c_client *client, u16 command)
+-static inline int ov772x_read(struct i2c_client *client, u8 addr)
 -{
--	struct i2c_msg msg[2];
--	u8 buf[2];
--	int ret;
--
--	command = swab16(command);
--
--	msg[0].addr  = client->addr;
--	msg[0].flags = 0;
--	msg[0].len   = 2;
--	msg[0].buf   = (u8 *)&command;
--
--	msg[1].addr  = client->addr;
--	msg[1].flags = I2C_M_RD;
--	msg[1].len   = 2;
--	msg[1].buf   = buf;
--
--	/*
--	 * if return value of this function is < 0,
--	 * it mean error.
--	 * else, under 16bit is valid data.
--	 */
--	ret = i2c_transfer(client->adapter, msg, 2);
--	if (ret < 0)
--		return ret;
--
--	memcpy(&ret, buf, 2);
--	return swab16(ret);
+-	return i2c_smbus_read_byte_data(client, addr);
 -}
 -
--static int __mt9t112_reg_write(const struct i2c_client *client,
--			       u16 command, u16 data)
+-static inline int ov772x_write(struct i2c_client *client, u8 addr, u8 value)
 -{
--	struct i2c_msg msg;
--	u8 buf[4];
--	int ret;
--
--	command = swab16(command);
--	data = swab16(data);
--
--	memcpy(buf + 0, &command, 2);
--	memcpy(buf + 2, &data,    2);
--
--	msg.addr  = client->addr;
--	msg.flags = 0;
--	msg.len   = 4;
--	msg.buf   = buf;
--
--	/*
--	 * i2c_transfer return message length,
--	 * but this function should return 0 if correct case
--	 */
--	ret = i2c_transfer(client->adapter, &msg, 1);
--	if (ret >= 0)
--		ret = 0;
--
--	return ret;
+-	return i2c_smbus_write_byte_data(client, addr, value);
 -}
 -
--static int __mt9t112_reg_mask_set(const struct i2c_client *client,
--				  u16  command,
--				  u16  mask,
--				  u16  set)
+-static int ov772x_mask_set(struct i2c_client *client, u8  command, u8  mask,
+-			   u8  set)
 -{
--	int val = __mt9t112_reg_read(client, command);
+-	s32 val = ov772x_read(client, command);
 -	if (val < 0)
 -		return val;
 -
 -	val &= ~mask;
 -	val |= set & mask;
 -
--	return __mt9t112_reg_write(client, command, val);
+-	return ov772x_write(client, command, val);
 -}
 -
--/* mcu access */
--static int __mt9t112_mcu_read(const struct i2c_client *client, u16 command)
+-static int ov772x_reset(struct i2c_client *client)
 -{
 -	int ret;
 -
--	ret = __mt9t112_reg_write(client, 0x098E, command);
+-	ret = ov772x_write(client, COM7, SCCB_RESET);
 -	if (ret < 0)
 -		return ret;
 -
--	return __mt9t112_reg_read(client, 0x0990);
--}
--
--static int __mt9t112_mcu_write(const struct i2c_client *client,
--			       u16 command, u16 data)
--{
--	int ret;
--
--	ret = __mt9t112_reg_write(client, 0x098E, command);
--	if (ret < 0)
--		return ret;
--
--	return __mt9t112_reg_write(client, 0x0990, data);
--}
--
--static int __mt9t112_mcu_mask_set(const struct i2c_client *client,
--				  u16  command,
--				  u16  mask,
--				  u16  set)
--{
--	int val = __mt9t112_mcu_read(client, command);
--	if (val < 0)
--		return val;
--
--	val &= ~mask;
--	val |= set & mask;
--
--	return __mt9t112_mcu_write(client, command, val);
--}
--
--static int mt9t112_reset(const struct i2c_client *client)
--{
--	int ret;
--
--	mt9t112_reg_mask_set(ret, client, 0x001a, 0x0001, 0x0001);
 -	msleep(1);
--	mt9t112_reg_mask_set(ret, client, 0x001a, 0x0001, 0x0000);
 -
--	return ret;
+-	return ov772x_mask_set(client, COM2, SOFT_SLEEP_MODE, SOFT_SLEEP_MODE);
 -}
 -
--#ifndef EXT_CLOCK
--#define CLOCK_INFO(a, b)
--#else
--#define CLOCK_INFO(a, b) mt9t112_clock_info(a, b)
--static int mt9t112_clock_info(const struct i2c_client *client, u32 ext)
+-/*
+- * soc_camera_ops function
+- */
+-
+-static int ov772x_s_stream(struct v4l2_subdev *sd, int enable)
 -{
--	int m, n, p1, p2, p3, p4, p5, p6, p7;
--	u32 vco, clk;
--	char *enable;
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	struct ov772x_priv *priv = to_ov772x(sd);
 -
--	ext /= 1000; /* kbyte order */
+-	if (!enable) {
+-		ov772x_mask_set(client, COM2, SOFT_SLEEP_MODE, SOFT_SLEEP_MODE);
+-		return 0;
+-	}
 -
--	mt9t112_reg_read(n, client, 0x0012);
--	p1 = n & 0x000f;
--	n = n >> 4;
--	p2 = n & 0x000f;
--	n = n >> 4;
--	p3 = n & 0x000f;
+-	ov772x_mask_set(client, COM2, SOFT_SLEEP_MODE, 0);
 -
--	mt9t112_reg_read(n, client, 0x002a);
--	p4 = n & 0x000f;
--	n = n >> 4;
--	p5 = n & 0x000f;
--	n = n >> 4;
--	p6 = n & 0x000f;
--
--	mt9t112_reg_read(n, client, 0x002c);
--	p7 = n & 0x000f;
--
--	mt9t112_reg_read(n, client, 0x0010);
--	m = n & 0x00ff;
--	n = (n >> 8) & 0x003f;
--
--	enable = ((6000 > ext) || (54000 < ext)) ? "X" : "";
--	dev_dbg(&client->dev, "EXTCLK          : %10u K %s\n", ext, enable);
--
--	vco = 2 * m * ext / (n+1);
--	enable = ((384000 > vco) || (768000 < vco)) ? "X" : "";
--	dev_dbg(&client->dev, "VCO             : %10u K %s\n", vco, enable);
--
--	clk = vco / (p1+1) / (p2+1);
--	enable = (96000 < clk) ? "X" : "";
--	dev_dbg(&client->dev, "PIXCLK          : %10u K %s\n", clk, enable);
--
--	clk = vco / (p3+1);
--	enable = (768000 < clk) ? "X" : "";
--	dev_dbg(&client->dev, "MIPICLK         : %10u K %s\n", clk, enable);
--
--	clk = vco / (p6+1);
--	enable = (96000 < clk) ? "X" : "";
--	dev_dbg(&client->dev, "MCU CLK         : %10u K %s\n", clk, enable);
--
--	clk = vco / (p5+1);
--	enable = (54000 < clk) ? "X" : "";
--	dev_dbg(&client->dev, "SOC CLK         : %10u K %s\n", clk, enable);
--
--	clk = vco / (p4+1);
--	enable = (70000 < clk) ? "X" : "";
--	dev_dbg(&client->dev, "Sensor CLK      : %10u K %s\n", clk, enable);
--
--	clk = vco / (p7+1);
--	dev_dbg(&client->dev, "External sensor : %10u K\n", clk);
--
--	clk = ext / (n+1);
--	enable = ((2000 > clk) || (24000 < clk)) ? "X" : "";
--	dev_dbg(&client->dev, "PFD             : %10u K %s\n", clk, enable);
+-	dev_dbg(&client->dev, "format %d, win %s\n",
+-		priv->cfmt->code, priv->win->name);
 -
 -	return 0;
 -}
--#endif
 -
--static void mt9t112_frame_check(u32 *width, u32 *height, u32 *left, u32 *top)
+-static int ov772x_s_ctrl(struct v4l2_ctrl *ctrl)
 -{
--	soc_camera_limit_side(left, width, 0, 0, MAX_WIDTH);
--	soc_camera_limit_side(top, height, 0, 0, MAX_HEIGHT);
--}
+-	struct ov772x_priv *priv = container_of(ctrl->handler,
+-						struct ov772x_priv, hdl);
+-	struct v4l2_subdev *sd = &priv->subdev;
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	int ret = 0;
+-	u8 val;
 -
--static int mt9t112_set_a_frame_size(const struct i2c_client *client,
--				   u16 width,
--				   u16 height)
--{
--	int ret;
--	u16 wstart = (MAX_WIDTH - width) / 2;
--	u16 hstart = (MAX_HEIGHT - height) / 2;
--
--	/* (Context A) Image Width/Height */
--	mt9t112_mcu_write(ret, client, VAR(26, 0), width);
--	mt9t112_mcu_write(ret, client, VAR(26, 2), height);
--
--	/* (Context A) Output Width/Height */
--	mt9t112_mcu_write(ret, client, VAR(18, 43), 8 + width);
--	mt9t112_mcu_write(ret, client, VAR(18, 45), 8 + height);
--
--	/* (Context A) Start Row/Column */
--	mt9t112_mcu_write(ret, client, VAR(18, 2), 4 + hstart);
--	mt9t112_mcu_write(ret, client, VAR(18, 4), 4 + wstart);
--
--	/* (Context A) End Row/Column */
--	mt9t112_mcu_write(ret, client, VAR(18, 6), 11 + height + hstart);
--	mt9t112_mcu_write(ret, client, VAR(18, 8), 11 + width  + wstart);
--
--	mt9t112_mcu_write(ret, client, VAR8(1, 0), 0x06);
--
--	return ret;
--}
--
--static int mt9t112_set_pll_dividers(const struct i2c_client *client,
--				    u8 m, u8 n,
--				    u8 p1, u8 p2, u8 p3,
--				    u8 p4, u8 p5, u8 p6,
--				    u8 p7)
--{
--	int ret;
--	u16 val;
--
--	/* N/M */
--	val = (n << 8) |
--	      (m << 0);
--	mt9t112_reg_mask_set(ret, client, 0x0010, 0x3fff, val);
--
--	/* P1/P2/P3 */
--	val = ((p3 & 0x0F) << 8) |
--	      ((p2 & 0x0F) << 4) |
--	      ((p1 & 0x0F) << 0);
--	mt9t112_reg_mask_set(ret, client, 0x0012, 0x0fff, val);
--
--	/* P4/P5/P6 */
--	val = (0x7         << 12) |
--	      ((p6 & 0x0F) <<  8) |
--	      ((p5 & 0x0F) <<  4) |
--	      ((p4 & 0x0F) <<  0);
--	mt9t112_reg_mask_set(ret, client, 0x002A, 0x7fff, val);
--
--	/* P7 */
--	val = (0x1         << 12) |
--	      ((p7 & 0x0F) <<  0);
--	mt9t112_reg_mask_set(ret, client, 0x002C, 0x100f, val);
--
--	return ret;
--}
--
--static int mt9t112_init_pll(const struct i2c_client *client)
--{
--	struct mt9t112_priv *priv = to_mt9t112(client);
--	int data, i, ret;
--
--	mt9t112_reg_mask_set(ret, client, 0x0014, 0x003, 0x0001);
--
--	/* PLL control: BYPASS PLL = 8517 */
--	mt9t112_reg_write(ret, client, 0x0014, 0x2145);
--
--	/* Replace these registers when new timing parameters are generated */
--	mt9t112_set_pll_dividers(client,
--				 priv->info->divider.m,
--				 priv->info->divider.n,
--				 priv->info->divider.p1,
--				 priv->info->divider.p2,
--				 priv->info->divider.p3,
--				 priv->info->divider.p4,
--				 priv->info->divider.p5,
--				 priv->info->divider.p6,
--				 priv->info->divider.p7);
--
--	/*
--	 * TEST_BYPASS  on
--	 * PLL_ENABLE   on
--	 * SEL_LOCK_DET on
--	 * TEST_BYPASS  off
--	 */
--	mt9t112_reg_write(ret, client, 0x0014, 0x2525);
--	mt9t112_reg_write(ret, client, 0x0014, 0x2527);
--	mt9t112_reg_write(ret, client, 0x0014, 0x3427);
--	mt9t112_reg_write(ret, client, 0x0014, 0x3027);
--
--	mdelay(10);
--
--	/*
--	 * PLL_BYPASS off
--	 * Reference clock count
--	 * I2C Master Clock Divider
--	 */
--	mt9t112_reg_write(ret, client, 0x0014, 0x3046);
--	mt9t112_reg_write(ret, client, 0x0016, 0x0400); /* JPEG initialization workaround */
--	mt9t112_reg_write(ret, client, 0x0022, 0x0190);
--	mt9t112_reg_write(ret, client, 0x3B84, 0x0212);
--
--	/* External sensor clock is PLL bypass */
--	mt9t112_reg_write(ret, client, 0x002E, 0x0500);
--
--	mt9t112_reg_mask_set(ret, client, 0x0018, 0x0002, 0x0002);
--	mt9t112_reg_mask_set(ret, client, 0x3B82, 0x0004, 0x0004);
--
--	/* MCU disabled */
--	mt9t112_reg_mask_set(ret, client, 0x0018, 0x0004, 0x0004);
--
--	/* out of standby */
--	mt9t112_reg_mask_set(ret, client, 0x0018, 0x0001, 0);
--
--	mdelay(50);
--
--	/*
--	 * Standby Workaround
--	 * Disable Secondary I2C Pads
--	 */
--	mt9t112_reg_write(ret, client, 0x0614, 0x0001);
--	mdelay(1);
--	mt9t112_reg_write(ret, client, 0x0614, 0x0001);
--	mdelay(1);
--	mt9t112_reg_write(ret, client, 0x0614, 0x0001);
--	mdelay(1);
--	mt9t112_reg_write(ret, client, 0x0614, 0x0001);
--	mdelay(1);
--	mt9t112_reg_write(ret, client, 0x0614, 0x0001);
--	mdelay(1);
--	mt9t112_reg_write(ret, client, 0x0614, 0x0001);
--	mdelay(1);
--
--	/* poll to verify out of standby. Must Poll this bit */
--	for (i = 0; i < 100; i++) {
--		mt9t112_reg_read(data, client, 0x0018);
--		if (!(0x4000 & data))
--			break;
--
--		mdelay(10);
+-	switch (ctrl->id) {
+-	case V4L2_CID_VFLIP:
+-		val = ctrl->val ? VFLIP_IMG : 0x00;
+-		priv->flag_vflip = ctrl->val;
+-		if (priv->info->flags & OV772X_FLAG_VFLIP)
+-			val ^= VFLIP_IMG;
+-		return ov772x_mask_set(client, COM3, VFLIP_IMG, val);
+-	case V4L2_CID_HFLIP:
+-		val = ctrl->val ? HFLIP_IMG : 0x00;
+-		priv->flag_hflip = ctrl->val;
+-		if (priv->info->flags & OV772X_FLAG_HFLIP)
+-			val ^= HFLIP_IMG;
+-		return ov772x_mask_set(client, COM3, HFLIP_IMG, val);
+-	case V4L2_CID_BAND_STOP_FILTER:
+-		if (!ctrl->val) {
+-			/* Switch the filter off, it is on now */
+-			ret = ov772x_mask_set(client, BDBASE, 0xff, 0xff);
+-			if (!ret)
+-				ret = ov772x_mask_set(client, COM8,
+-						      BNDF_ON_OFF, 0);
+-		} else {
+-			/* Switch the filter on, set AEC low limit */
+-			val = 256 - ctrl->val;
+-			ret = ov772x_mask_set(client, COM8,
+-					      BNDF_ON_OFF, BNDF_ON_OFF);
+-			if (!ret)
+-				ret = ov772x_mask_set(client, BDBASE,
+-						      0xff, val);
+-		}
+-		if (!ret)
+-			priv->band_filter = ctrl->val;
+-		return ret;
 -	}
 -
--	return ret;
+-	return -EINVAL;
 -}
--
--static int mt9t112_init_setting(const struct i2c_client *client)
--{
--
--	int ret;
--
--	/* Adaptive Output Clock (A) */
--	mt9t112_mcu_mask_set(ret, client, VAR(26, 160), 0x0040, 0x0000);
--
--	/* Read Mode (A) */
--	mt9t112_mcu_write(ret, client, VAR(18, 12), 0x0024);
--
--	/* Fine Correction (A) */
--	mt9t112_mcu_write(ret, client, VAR(18, 15), 0x00CC);
--
--	/* Fine IT Min (A) */
--	mt9t112_mcu_write(ret, client, VAR(18, 17), 0x01f1);
--
--	/* Fine IT Max Margin (A) */
--	mt9t112_mcu_write(ret, client, VAR(18, 19), 0x00fF);
--
--	/* Base Frame Lines (A) */
--	mt9t112_mcu_write(ret, client, VAR(18, 29), 0x032D);
--
--	/* Min Line Length (A) */
--	mt9t112_mcu_write(ret, client, VAR(18, 31), 0x073a);
--
--	/* Line Length (A) */
--	mt9t112_mcu_write(ret, client, VAR(18, 37), 0x07d0);
--
--	/* Adaptive Output Clock (B) */
--	mt9t112_mcu_mask_set(ret, client, VAR(27, 160), 0x0040, 0x0000);
--
--	/* Row Start (B) */
--	mt9t112_mcu_write(ret, client, VAR(18, 74), 0x004);
--
--	/* Column Start (B) */
--	mt9t112_mcu_write(ret, client, VAR(18, 76), 0x004);
--
--	/* Row End (B) */
--	mt9t112_mcu_write(ret, client, VAR(18, 78), 0x60B);
--
--	/* Column End (B) */
--	mt9t112_mcu_write(ret, client, VAR(18, 80), 0x80B);
--
--	/* Fine Correction (B) */
--	mt9t112_mcu_write(ret, client, VAR(18, 87), 0x008C);
--
--	/* Fine IT Min (B) */
--	mt9t112_mcu_write(ret, client, VAR(18, 89), 0x01F1);
--
--	/* Fine IT Max Margin (B) */
--	mt9t112_mcu_write(ret, client, VAR(18, 91), 0x00FF);
--
--	/* Base Frame Lines (B) */
--	mt9t112_mcu_write(ret, client, VAR(18, 101), 0x0668);
--
--	/* Min Line Length (B) */
--	mt9t112_mcu_write(ret, client, VAR(18, 103), 0x0AF0);
--
--	/* Line Length (B) */
--	mt9t112_mcu_write(ret, client, VAR(18, 109), 0x0AF0);
--
--	/*
--	 * Flicker Dectection registers
--	 * This section should be replaced whenever new Timing file is generated
--	 * All the following registers need to be replaced
--	 * Following registers are generated from Register Wizard but user can
--	 * modify them. For detail see auto flicker detection tuning
--	 */
--
--	/* FD_FDPERIOD_SELECT */
--	mt9t112_mcu_write(ret, client, VAR8(8, 5), 0x01);
--
--	/* PRI_B_CONFIG_FD_ALGO_RUN */
--	mt9t112_mcu_write(ret, client, VAR(27, 17), 0x0003);
--
--	/* PRI_A_CONFIG_FD_ALGO_RUN */
--	mt9t112_mcu_write(ret, client, VAR(26, 17), 0x0003);
--
--	/*
--	 * AFD range detection tuning registers
--	 */
--
--	/* search_f1_50 */
--	mt9t112_mcu_write(ret, client, VAR8(18, 165), 0x25);
--
--	/* search_f2_50 */
--	mt9t112_mcu_write(ret, client, VAR8(18, 166), 0x28);
--
--	/* search_f1_60 */
--	mt9t112_mcu_write(ret, client, VAR8(18, 167), 0x2C);
--
--	/* search_f2_60 */
--	mt9t112_mcu_write(ret, client, VAR8(18, 168), 0x2F);
--
--	/* period_50Hz (A) */
--	mt9t112_mcu_write(ret, client, VAR8(18, 68), 0xBA);
--
--	/* secret register by aptina */
--	/* period_50Hz (A MSB) */
--	mt9t112_mcu_write(ret, client, VAR8(18, 303), 0x00);
--
--	/* period_60Hz (A) */
--	mt9t112_mcu_write(ret, client, VAR8(18, 69), 0x9B);
--
--	/* secret register by aptina */
--	/* period_60Hz (A MSB) */
--	mt9t112_mcu_write(ret, client, VAR8(18, 301), 0x00);
--
--	/* period_50Hz (B) */
--	mt9t112_mcu_write(ret, client, VAR8(18, 140), 0x82);
--
--	/* secret register by aptina */
--	/* period_50Hz (B) MSB */
--	mt9t112_mcu_write(ret, client, VAR8(18, 304), 0x00);
--
--	/* period_60Hz (B) */
--	mt9t112_mcu_write(ret, client, VAR8(18, 141), 0x6D);
--
--	/* secret register by aptina */
--	/* period_60Hz (B) MSB */
--	mt9t112_mcu_write(ret, client, VAR8(18, 302), 0x00);
--
--	/* FD Mode */
--	mt9t112_mcu_write(ret, client, VAR8(8, 2), 0x10);
--
--	/* Stat_min */
--	mt9t112_mcu_write(ret, client, VAR8(8, 9), 0x02);
--
--	/* Stat_max */
--	mt9t112_mcu_write(ret, client, VAR8(8, 10), 0x03);
--
--	/* Min_amplitude */
--	mt9t112_mcu_write(ret, client, VAR8(8, 12), 0x0A);
--
--	/* RX FIFO Watermark (A) */
--	mt9t112_mcu_write(ret, client, VAR(18, 70), 0x0014);
--
--	/* RX FIFO Watermark (B) */
--	mt9t112_mcu_write(ret, client, VAR(18, 142), 0x0014);
--
--	/* MCLK: 16MHz
--	 * PCLK: 73MHz
--	 * CorePixCLK: 36.5 MHz
--	 */
--	mt9t112_mcu_write(ret, client, VAR8(18, 0x0044), 133);
--	mt9t112_mcu_write(ret, client, VAR8(18, 0x0045), 110);
--	mt9t112_mcu_write(ret, client, VAR8(18, 0x008c), 130);
--	mt9t112_mcu_write(ret, client, VAR8(18, 0x008d), 108);
--
--	mt9t112_mcu_write(ret, client, VAR8(18, 0x00A5), 27);
--	mt9t112_mcu_write(ret, client, VAR8(18, 0x00a6), 30);
--	mt9t112_mcu_write(ret, client, VAR8(18, 0x00a7), 32);
--	mt9t112_mcu_write(ret, client, VAR8(18, 0x00a8), 35);
--
--	return ret;
--}
--
--static int mt9t112_auto_focus_setting(const struct i2c_client *client)
--{
--	int ret;
--
--	mt9t112_mcu_write(ret, client, VAR(12, 13),	0x000F);
--	mt9t112_mcu_write(ret, client, VAR(12, 23),	0x0F0F);
--	mt9t112_mcu_write(ret, client, VAR8(1, 0),	0x06);
--
--	mt9t112_reg_write(ret, client, 0x0614, 0x0000);
--
--	mt9t112_mcu_write(ret, client, VAR8(1, 0),	0x05);
--	mt9t112_mcu_write(ret, client, VAR8(12, 2),	0x02);
--	mt9t112_mcu_write(ret, client, VAR(12, 3),	0x0002);
--	mt9t112_mcu_write(ret, client, VAR(17, 3),	0x8001);
--	mt9t112_mcu_write(ret, client, VAR(17, 11),	0x0025);
--	mt9t112_mcu_write(ret, client, VAR(17, 13),	0x0193);
--	mt9t112_mcu_write(ret, client, VAR8(17, 33),	0x18);
--	mt9t112_mcu_write(ret, client, VAR8(1, 0),	0x05);
--
--	return ret;
--}
--
--static int mt9t112_auto_focus_trigger(const struct i2c_client *client)
--{
--	int ret;
--
--	mt9t112_mcu_write(ret, client, VAR8(12, 25), 0x01);
--
--	return ret;
--}
--
--static int mt9t112_init_camera(const struct i2c_client *client)
--{
--	int ret;
--
--	ECHECKER(ret, mt9t112_reset(client));
--
--	ECHECKER(ret, mt9t112_init_pll(client));
--
--	ECHECKER(ret, mt9t112_init_setting(client));
--
--	ECHECKER(ret, mt9t112_auto_focus_setting(client));
--
--	mt9t112_reg_mask_set(ret, client, 0x0018, 0x0004, 0);
--
--	/* Analog setting B */
--	mt9t112_reg_write(ret, client, 0x3084, 0x2409);
--	mt9t112_reg_write(ret, client, 0x3092, 0x0A49);
--	mt9t112_reg_write(ret, client, 0x3094, 0x4949);
--	mt9t112_reg_write(ret, client, 0x3096, 0x4950);
--
--	/*
--	 * Disable adaptive clock
--	 * PRI_A_CONFIG_JPEG_OB_TX_CONTROL_VAR
--	 * PRI_B_CONFIG_JPEG_OB_TX_CONTROL_VAR
--	 */
--	mt9t112_mcu_write(ret, client, VAR(26, 160), 0x0A2E);
--	mt9t112_mcu_write(ret, client, VAR(27, 160), 0x0A2E);
--
--	/* Configure STatus in Status_before_length Format and enable header */
--	/* PRI_B_CONFIG_JPEG_OB_TX_CONTROL_VAR */
--	mt9t112_mcu_write(ret, client, VAR(27, 144), 0x0CB4);
--
--	/* Enable JPEG in context B */
--	/* PRI_B_CONFIG_JPEG_OB_TX_CONTROL_VAR */
--	mt9t112_mcu_write(ret, client, VAR8(27, 142), 0x01);
--
--	/* Disable Dac_TXLO */
--	mt9t112_reg_write(ret, client, 0x316C, 0x350F);
--
--	/* Set max slew rates */
--	mt9t112_reg_write(ret, client, 0x1E, 0x777);
--
--	return ret;
--}
--
--/************************************************************************
--			v4l2_subdev_core_ops
--************************************************************************/
 -
 -#ifdef CONFIG_VIDEO_ADV_DEBUG
--static int mt9t112_g_register(struct v4l2_subdev *sd,
--			      struct v4l2_dbg_register *reg)
+-static int ov772x_g_register(struct v4l2_subdev *sd,
+-			     struct v4l2_dbg_register *reg)
 -{
 -	struct i2c_client *client = v4l2_get_subdevdata(sd);
--	int                ret;
+-	int ret;
 -
--	reg->size = 2;
--	mt9t112_reg_read(ret, client, reg->reg);
+-	reg->size = 1;
+-	if (reg->reg > 0xff)
+-		return -EINVAL;
+-
+-	ret = ov772x_read(client, reg->reg);
+-	if (ret < 0)
+-		return ret;
 -
 -	reg->val = (__u64)ret;
 -
 -	return 0;
 -}
 -
--static int mt9t112_s_register(struct v4l2_subdev *sd,
--			      const struct v4l2_dbg_register *reg)
+-static int ov772x_s_register(struct v4l2_subdev *sd,
+-			     const struct v4l2_dbg_register *reg)
 -{
 -	struct i2c_client *client = v4l2_get_subdevdata(sd);
--	int ret;
 -
--	mt9t112_reg_write(ret, client, reg->reg, reg->val);
+-	if (reg->reg > 0xff ||
+-	    reg->val > 0xff)
+-		return -EINVAL;
 -
--	return ret;
+-	return ov772x_write(client, reg->reg, reg->val);
 -}
 -#endif
 -
--static int mt9t112_s_power(struct v4l2_subdev *sd, int on)
+-static int ov772x_s_power(struct v4l2_subdev *sd, int on)
 -{
 -	struct i2c_client *client = v4l2_get_subdevdata(sd);
 -	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
--	struct mt9t112_priv *priv = to_mt9t112(client);
+-	struct ov772x_priv *priv = to_ov772x(sd);
 -
 -	return soc_camera_set_power(&client->dev, ssdd, priv->clk, on);
 -}
 -
--static const struct v4l2_subdev_core_ops mt9t112_subdev_core_ops = {
--#ifdef CONFIG_VIDEO_ADV_DEBUG
--	.g_register	= mt9t112_g_register,
--	.s_register	= mt9t112_s_register,
--#endif
--	.s_power	= mt9t112_s_power,
--};
--
--
--/************************************************************************
--			v4l2_subdev_video_ops
--************************************************************************/
--static int mt9t112_s_stream(struct v4l2_subdev *sd, int enable)
+-static const struct ov772x_win_size *ov772x_select_win(u32 width, u32 height)
 -{
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
--	struct mt9t112_priv *priv = to_mt9t112(client);
--	int ret = 0;
+-	const struct ov772x_win_size *win = &ov772x_win_sizes[0];
+-	u32 best_diff = UINT_MAX;
+-	unsigned int i;
 -
--	if (!enable) {
--		/* FIXME
+-	for (i = 0; i < ARRAY_SIZE(ov772x_win_sizes); ++i) {
+-		u32 diff = abs(width - ov772x_win_sizes[i].rect.width)
+-			 + abs(height - ov772x_win_sizes[i].rect.height);
+-		if (diff < best_diff) {
+-			best_diff = diff;
+-			win = &ov772x_win_sizes[i];
+-		}
+-	}
+-
+-	return win;
+-}
+-
+-static void ov772x_select_params(const struct v4l2_mbus_framefmt *mf,
+-				 const struct ov772x_color_format **cfmt,
+-				 const struct ov772x_win_size **win)
+-{
+-	unsigned int i;
+-
+-	/* Select a format. */
+-	*cfmt = &ov772x_cfmts[0];
+-
+-	for (i = 0; i < ARRAY_SIZE(ov772x_cfmts); i++) {
+-		if (mf->code == ov772x_cfmts[i].code) {
+-			*cfmt = &ov772x_cfmts[i];
+-			break;
+-		}
+-	}
+-
+-	/* Select a window size. */
+-	*win = ov772x_select_win(mf->width, mf->height);
+-}
+-
+-static int ov772x_set_params(struct ov772x_priv *priv,
+-			     const struct ov772x_color_format *cfmt,
+-			     const struct ov772x_win_size *win)
+-{
+-	struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
+-	int ret;
+-	u8  val;
+-
+-	/*
+-	 * reset hardware
+-	 */
+-	ov772x_reset(client);
+-
+-	/*
+-	 * Edge Ctrl
+-	 */
+-	if (priv->info->edgectrl.strength & OV772X_MANUAL_EDGE_CTRL) {
+-
+-		/*
+-		 * Manual Edge Control Mode
 -		 *
--		 * If user selected large output size,
--		 * and used it long time,
--		 * mt9t112 camera will be very warm.
--		 *
--		 * But current driver can not stop mt9t112 camera.
--		 * So, set small size here to solve this problem.
+-		 * Edge auto strength bit is set by default.
+-		 * Remove it when manual mode.
 -		 */
--		mt9t112_set_a_frame_size(client, VGA_WIDTH, VGA_HEIGHT);
--		return ret;
+-
+-		ret = ov772x_mask_set(client, DSPAUTO, EDGE_ACTRL, 0x00);
+-		if (ret < 0)
+-			goto ov772x_set_fmt_error;
+-
+-		ret = ov772x_mask_set(client,
+-				      EDGE_TRSHLD, OV772X_EDGE_THRESHOLD_MASK,
+-				      priv->info->edgectrl.threshold);
+-		if (ret < 0)
+-			goto ov772x_set_fmt_error;
+-
+-		ret = ov772x_mask_set(client,
+-				      EDGE_STRNGT, OV772X_EDGE_STRENGTH_MASK,
+-				      priv->info->edgectrl.strength);
+-		if (ret < 0)
+-			goto ov772x_set_fmt_error;
+-
+-	} else if (priv->info->edgectrl.upper > priv->info->edgectrl.lower) {
+-		/*
+-		 * Auto Edge Control Mode
+-		 *
+-		 * set upper and lower limit
+-		 */
+-		ret = ov772x_mask_set(client,
+-				      EDGE_UPPER, OV772X_EDGE_UPPER_MASK,
+-				      priv->info->edgectrl.upper);
+-		if (ret < 0)
+-			goto ov772x_set_fmt_error;
+-
+-		ret = ov772x_mask_set(client,
+-				      EDGE_LOWER, OV772X_EDGE_LOWER_MASK,
+-				      priv->info->edgectrl.lower);
+-		if (ret < 0)
+-			goto ov772x_set_fmt_error;
 -	}
 -
--	if (!(priv->flags & INIT_DONE)) {
--		u16 param = PCLK_RISING & priv->flags ? 0x0001 : 0x0000;
+-	/* Format and window size */
+-	ret = ov772x_write(client, HSTART, win->rect.left >> 2);
+-	if (ret < 0)
+-		goto ov772x_set_fmt_error;
+-	ret = ov772x_write(client, HSIZE, win->rect.width >> 2);
+-	if (ret < 0)
+-		goto ov772x_set_fmt_error;
+-	ret = ov772x_write(client, VSTART, win->rect.top >> 1);
+-	if (ret < 0)
+-		goto ov772x_set_fmt_error;
+-	ret = ov772x_write(client, VSIZE, win->rect.height >> 1);
+-	if (ret < 0)
+-		goto ov772x_set_fmt_error;
+-	ret = ov772x_write(client, HOUTSIZE, win->rect.width >> 2);
+-	if (ret < 0)
+-		goto ov772x_set_fmt_error;
+-	ret = ov772x_write(client, VOUTSIZE, win->rect.height >> 1);
+-	if (ret < 0)
+-		goto ov772x_set_fmt_error;
+-	ret = ov772x_write(client, HREF,
+-			   ((win->rect.top & 1) << HREF_VSTART_SHIFT) |
+-			   ((win->rect.left & 3) << HREF_HSTART_SHIFT) |
+-			   ((win->rect.height & 1) << HREF_VSIZE_SHIFT) |
+-			   ((win->rect.width & 3) << HREF_HSIZE_SHIFT));
+-	if (ret < 0)
+-		goto ov772x_set_fmt_error;
+-	ret = ov772x_write(client, EXHCH,
+-			   ((win->rect.height & 1) << EXHCH_VSIZE_SHIFT) |
+-			   ((win->rect.width & 3) << EXHCH_HSIZE_SHIFT));
+-	if (ret < 0)
+-		goto ov772x_set_fmt_error;
 -
--		ECHECKER(ret, mt9t112_init_camera(client));
--
--		/* Invert PCLK (Data sampled on falling edge of pixclk) */
--		mt9t112_reg_write(ret, client, 0x3C20, param);
--
--		mdelay(5);
--
--		priv->flags |= INIT_DONE;
+-	/*
+-	 * set DSP_CTRL3
+-	 */
+-	val = cfmt->dsp3;
+-	if (val) {
+-		ret = ov772x_mask_set(client,
+-				      DSP_CTRL3, UV_MASK, val);
+-		if (ret < 0)
+-			goto ov772x_set_fmt_error;
 -	}
 -
--	mt9t112_mcu_write(ret, client, VAR(26, 7), priv->format->fmt);
--	mt9t112_mcu_write(ret, client, VAR(26, 9), priv->format->order);
--	mt9t112_mcu_write(ret, client, VAR8(1, 0), 0x06);
+-	/* DSP_CTRL4: AEC reference point and DSP output format. */
+-	if (cfmt->dsp4) {
+-		ret = ov772x_write(client, DSP_CTRL4, cfmt->dsp4);
+-		if (ret < 0)
+-			goto ov772x_set_fmt_error;
+-	}
 -
--	mt9t112_set_a_frame_size(client,
--				 priv->frame.width,
--				 priv->frame.height);
+-	/*
+-	 * set COM3
+-	 */
+-	val = cfmt->com3;
+-	if (priv->info->flags & OV772X_FLAG_VFLIP)
+-		val |= VFLIP_IMG;
+-	if (priv->info->flags & OV772X_FLAG_HFLIP)
+-		val |= HFLIP_IMG;
+-	if (priv->flag_vflip)
+-		val ^= VFLIP_IMG;
+-	if (priv->flag_hflip)
+-		val ^= HFLIP_IMG;
 -
--	ECHECKER(ret, mt9t112_auto_focus_trigger(client));
+-	ret = ov772x_mask_set(client,
+-			      COM3, SWAP_MASK | IMG_MASK, val);
+-	if (ret < 0)
+-		goto ov772x_set_fmt_error;
 -
--	dev_dbg(&client->dev, "format : %d\n", priv->format->code);
--	dev_dbg(&client->dev, "size   : %d x %d\n",
--		priv->frame.width,
--		priv->frame.height);
+-	/* COM7: Sensor resolution and output format control. */
+-	ret = ov772x_write(client, COM7, win->com7_bit | cfmt->com7);
+-	if (ret < 0)
+-		goto ov772x_set_fmt_error;
 -
--	CLOCK_INFO(client, EXT_CLOCK);
+-	/*
+-	 * set COM8
+-	 */
+-	if (priv->band_filter) {
+-		ret = ov772x_mask_set(client, COM8, BNDF_ON_OFF, BNDF_ON_OFF);
+-		if (!ret)
+-			ret = ov772x_mask_set(client, BDBASE,
+-					      0xff, 256 - priv->band_filter);
+-		if (ret < 0)
+-			goto ov772x_set_fmt_error;
+-	}
+-
+-	return ret;
+-
+-ov772x_set_fmt_error:
+-
+-	ov772x_reset(client);
 -
 -	return ret;
 -}
 -
--static int mt9t112_set_params(struct mt9t112_priv *priv,
--			      const struct v4l2_rect *rect,
--			      u32 code)
--{
--	int i;
--
--	/*
--	 * get color format
--	 */
--	for (i = 0; i < priv->num_formats; i++)
--		if (mt9t112_cfmts[i].code == code)
--			break;
--
--	if (i == priv->num_formats)
--		return -EINVAL;
--
--	priv->frame  = *rect;
--
--	/*
--	 * frame size check
--	 */
--	mt9t112_frame_check(&priv->frame.width, &priv->frame.height,
--			    &priv->frame.left, &priv->frame.top);
--
--	priv->format = mt9t112_cfmts + i;
--
--	return 0;
--}
--
--static int mt9t112_get_selection(struct v4l2_subdev *sd,
+-static int ov772x_get_selection(struct v4l2_subdev *sd,
 -		struct v4l2_subdev_pad_config *cfg,
 -		struct v4l2_subdev_selection *sel)
 -{
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
--	struct mt9t112_priv *priv = to_mt9t112(client);
--
 -	if (sel->which != V4L2_SUBDEV_FORMAT_ACTIVE)
 -		return -EINVAL;
 -
+-	sel->r.left = 0;
+-	sel->r.top = 0;
 -	switch (sel->target) {
 -	case V4L2_SEL_TGT_CROP_BOUNDS:
--		sel->r.left = 0;
--		sel->r.top = 0;
--		sel->r.width = MAX_WIDTH;
--		sel->r.height = MAX_HEIGHT;
+-		sel->r.width = OV772X_MAX_WIDTH;
+-		sel->r.height = OV772X_MAX_HEIGHT;
 -		return 0;
 -	case V4L2_SEL_TGT_CROP:
--		sel->r = priv->frame;
+-		sel->r.width = VGA_WIDTH;
+-		sel->r.height = VGA_HEIGHT;
 -		return 0;
 -	default:
 -		return -EINVAL;
 -	}
 -}
 -
--static int mt9t112_set_selection(struct v4l2_subdev *sd,
--		struct v4l2_subdev_pad_config *cfg,
--		struct v4l2_subdev_selection *sel)
--{
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
--	struct mt9t112_priv *priv = to_mt9t112(client);
--	const struct v4l2_rect *rect = &sel->r;
--
--	if (sel->which != V4L2_SUBDEV_FORMAT_ACTIVE ||
--	    sel->target != V4L2_SEL_TGT_CROP)
--		return -EINVAL;
--
--	return mt9t112_set_params(priv, rect, priv->format->code);
--}
--
--static int mt9t112_get_fmt(struct v4l2_subdev *sd,
+-static int ov772x_get_fmt(struct v4l2_subdev *sd,
 -		struct v4l2_subdev_pad_config *cfg,
 -		struct v4l2_subdev_format *format)
 -{
 -	struct v4l2_mbus_framefmt *mf = &format->format;
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
--	struct mt9t112_priv *priv = to_mt9t112(client);
+-	struct ov772x_priv *priv = to_ov772x(sd);
 -
 -	if (format->pad)
 -		return -EINVAL;
 -
--	mf->width	= priv->frame.width;
--	mf->height	= priv->frame.height;
--	mf->colorspace	= priv->format->colorspace;
--	mf->code	= priv->format->code;
+-	mf->width	= priv->win->rect.width;
+-	mf->height	= priv->win->rect.height;
+-	mf->code	= priv->cfmt->code;
+-	mf->colorspace	= priv->cfmt->colorspace;
 -	mf->field	= V4L2_FIELD_NONE;
 -
 -	return 0;
 -}
 -
--static int mt9t112_s_fmt(struct v4l2_subdev *sd,
--			 struct v4l2_mbus_framefmt *mf)
--{
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
--	struct mt9t112_priv *priv = to_mt9t112(client);
--	struct v4l2_rect rect = {
--		.width = mf->width,
--		.height = mf->height,
--		.left = priv->frame.left,
--		.top = priv->frame.top,
--	};
--	int ret;
--
--	ret = mt9t112_set_params(priv, &rect, mf->code);
--
--	if (!ret)
--		mf->colorspace = priv->format->colorspace;
--
--	return ret;
--}
--
--static int mt9t112_set_fmt(struct v4l2_subdev *sd,
+-static int ov772x_set_fmt(struct v4l2_subdev *sd,
 -		struct v4l2_subdev_pad_config *cfg,
 -		struct v4l2_subdev_format *format)
 -{
+-	struct ov772x_priv *priv = to_ov772x(sd);
 -	struct v4l2_mbus_framefmt *mf = &format->format;
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
--	struct mt9t112_priv *priv = to_mt9t112(client);
--	unsigned int top, left;
--	int i;
+-	const struct ov772x_color_format *cfmt;
+-	const struct ov772x_win_size *win;
+-	int ret;
 -
 -	if (format->pad)
 -		return -EINVAL;
 -
--	for (i = 0; i < priv->num_formats; i++)
--		if (mt9t112_cfmts[i].code == mf->code)
--			break;
+-	ov772x_select_params(mf, &cfmt, &win);
 -
--	if (i == priv->num_formats) {
--		mf->code = MEDIA_BUS_FMT_UYVY8_2X8;
--		mf->colorspace = V4L2_COLORSPACE_JPEG;
--	} else {
--		mf->colorspace	= mt9t112_cfmts[i].colorspace;
+-	mf->code = cfmt->code;
+-	mf->width = win->rect.width;
+-	mf->height = win->rect.height;
+-	mf->field = V4L2_FIELD_NONE;
+-	mf->colorspace = cfmt->colorspace;
+-
+-	if (format->which == V4L2_SUBDEV_FORMAT_TRY) {
+-		cfg->try_fmt = *mf;
+-		return 0;
 -	}
 -
--	mt9t112_frame_check(&mf->width, &mf->height, &left, &top);
+-	ret = ov772x_set_params(priv, cfmt, win);
+-	if (ret < 0)
+-		return ret;
 -
--	mf->field = V4L2_FIELD_NONE;
--
--	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
--		return mt9t112_s_fmt(sd, mf);
--	cfg->try_fmt = *mf;
+-	priv->win = win;
+-	priv->cfmt = cfmt;
 -	return 0;
 -}
 -
--static int mt9t112_enum_mbus_code(struct v4l2_subdev *sd,
+-static int ov772x_video_probe(struct ov772x_priv *priv)
+-{
+-	struct i2c_client  *client = v4l2_get_subdevdata(&priv->subdev);
+-	u8                  pid, ver;
+-	const char         *devname;
+-	int		    ret;
+-
+-	ret = ov772x_s_power(&priv->subdev, 1);
+-	if (ret < 0)
+-		return ret;
+-
+-	/*
+-	 * check and show product ID and manufacturer ID
+-	 */
+-	pid = ov772x_read(client, PID);
+-	ver = ov772x_read(client, VER);
+-
+-	switch (VERSION(pid, ver)) {
+-	case OV7720:
+-		devname     = "ov7720";
+-		break;
+-	case OV7725:
+-		devname     = "ov7725";
+-		break;
+-	default:
+-		dev_err(&client->dev,
+-			"Product ID error %x:%x\n", pid, ver);
+-		ret = -ENODEV;
+-		goto done;
+-	}
+-
+-	dev_info(&client->dev,
+-		 "%s Product ID %0x:%0x Manufacturer ID %x:%x\n",
+-		 devname,
+-		 pid,
+-		 ver,
+-		 ov772x_read(client, MIDH),
+-		 ov772x_read(client, MIDL));
+-	ret = v4l2_ctrl_handler_setup(&priv->hdl);
+-
+-done:
+-	ov772x_s_power(&priv->subdev, 0);
+-	return ret;
+-}
+-
+-static const struct v4l2_ctrl_ops ov772x_ctrl_ops = {
+-	.s_ctrl = ov772x_s_ctrl,
+-};
+-
+-static const struct v4l2_subdev_core_ops ov772x_subdev_core_ops = {
+-#ifdef CONFIG_VIDEO_ADV_DEBUG
+-	.g_register	= ov772x_g_register,
+-	.s_register	= ov772x_s_register,
+-#endif
+-	.s_power	= ov772x_s_power,
+-};
+-
+-static int ov772x_enum_mbus_code(struct v4l2_subdev *sd,
 -		struct v4l2_subdev_pad_config *cfg,
 -		struct v4l2_subdev_mbus_code_enum *code)
 -{
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
--	struct mt9t112_priv *priv = to_mt9t112(client);
--
--	if (code->pad || code->index >= priv->num_formats)
+-	if (code->pad || code->index >= ARRAY_SIZE(ov772x_cfmts))
 -		return -EINVAL;
 -
--	code->code = mt9t112_cfmts[code->index].code;
--
+-	code->code = ov772x_cfmts[code->index].code;
 -	return 0;
 -}
 -
--static int mt9t112_g_mbus_config(struct v4l2_subdev *sd,
--				 struct v4l2_mbus_config *cfg)
+-static int ov772x_g_mbus_config(struct v4l2_subdev *sd,
+-				struct v4l2_mbus_config *cfg)
 -{
 -	struct i2c_client *client = v4l2_get_subdevdata(sd);
 -	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
 -
--	cfg->flags = V4L2_MBUS_MASTER | V4L2_MBUS_VSYNC_ACTIVE_HIGH |
--		V4L2_MBUS_HSYNC_ACTIVE_HIGH | V4L2_MBUS_DATA_ACTIVE_HIGH |
--		V4L2_MBUS_PCLK_SAMPLE_RISING | V4L2_MBUS_PCLK_SAMPLE_FALLING;
+-	cfg->flags = V4L2_MBUS_PCLK_SAMPLE_RISING | V4L2_MBUS_MASTER |
+-		V4L2_MBUS_VSYNC_ACTIVE_HIGH | V4L2_MBUS_HSYNC_ACTIVE_HIGH |
+-		V4L2_MBUS_DATA_ACTIVE_HIGH;
 -	cfg->type = V4L2_MBUS_PARALLEL;
 -	cfg->flags = soc_camera_apply_board_flags(ssdd, cfg);
 -
 -	return 0;
 -}
 -
--static int mt9t112_s_mbus_config(struct v4l2_subdev *sd,
--				 const struct v4l2_mbus_config *cfg)
+-static const struct v4l2_subdev_video_ops ov772x_subdev_video_ops = {
+-	.s_stream	= ov772x_s_stream,
+-	.g_mbus_config	= ov772x_g_mbus_config,
+-};
+-
+-static const struct v4l2_subdev_pad_ops ov772x_subdev_pad_ops = {
+-	.enum_mbus_code = ov772x_enum_mbus_code,
+-	.get_selection	= ov772x_get_selection,
+-	.get_fmt	= ov772x_get_fmt,
+-	.set_fmt	= ov772x_set_fmt,
+-};
+-
+-static const struct v4l2_subdev_ops ov772x_subdev_ops = {
+-	.core	= &ov772x_subdev_core_ops,
+-	.video	= &ov772x_subdev_video_ops,
+-	.pad	= &ov772x_subdev_pad_ops,
+-};
+-
+-/*
+- * i2c_driver function
+- */
+-
+-static int ov772x_probe(struct i2c_client *client,
+-			const struct i2c_device_id *did)
 -{
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	struct ov772x_priv	*priv;
 -	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
--	struct mt9t112_priv *priv = to_mt9t112(client);
--
--	if (soc_camera_apply_board_flags(ssdd, cfg) & V4L2_MBUS_PCLK_SAMPLE_RISING)
--		priv->flags |= PCLK_RISING;
--
--	return 0;
--}
--
--static const struct v4l2_subdev_video_ops mt9t112_subdev_video_ops = {
--	.s_stream	= mt9t112_s_stream,
--	.g_mbus_config	= mt9t112_g_mbus_config,
--	.s_mbus_config	= mt9t112_s_mbus_config,
--};
--
--static const struct v4l2_subdev_pad_ops mt9t112_subdev_pad_ops = {
--	.enum_mbus_code = mt9t112_enum_mbus_code,
--	.get_selection	= mt9t112_get_selection,
--	.set_selection	= mt9t112_set_selection,
--	.get_fmt	= mt9t112_get_fmt,
--	.set_fmt	= mt9t112_set_fmt,
--};
--
--/************************************************************************
--			i2c driver
--************************************************************************/
--static const struct v4l2_subdev_ops mt9t112_subdev_ops = {
--	.core	= &mt9t112_subdev_core_ops,
--	.video	= &mt9t112_subdev_video_ops,
--	.pad	= &mt9t112_subdev_pad_ops,
--};
--
--static int mt9t112_camera_probe(struct i2c_client *client)
--{
--	struct mt9t112_priv *priv = to_mt9t112(client);
--	const char          *devname;
--	int                  chipid;
--	int		     ret;
--
--	ret = mt9t112_s_power(&priv->subdev, 1);
--	if (ret < 0)
--		return ret;
--
--	/*
--	 * check and show chip ID
--	 */
--	mt9t112_reg_read(chipid, client, 0x0000);
--
--	switch (chipid) {
--	case 0x2680:
--		devname = "mt9t111";
--		priv->num_formats = 1;
--		break;
--	case 0x2682:
--		devname = "mt9t112";
--		priv->num_formats = ARRAY_SIZE(mt9t112_cfmts);
--		break;
--	default:
--		dev_err(&client->dev, "Product ID error %04x\n", chipid);
--		ret = -ENODEV;
--		goto done;
--	}
--
--	dev_info(&client->dev, "%s chip ID %04x\n", devname, chipid);
--
--done:
--	mt9t112_s_power(&priv->subdev, 0);
--	return ret;
--}
--
--static int mt9t112_probe(struct i2c_client *client,
--			 const struct i2c_device_id *did)
--{
--	struct mt9t112_priv *priv;
--	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
--	struct v4l2_rect rect = {
--		.width = VGA_WIDTH,
--		.height = VGA_HEIGHT,
--		.left = (MAX_WIDTH - VGA_WIDTH) / 2,
--		.top = (MAX_HEIGHT - VGA_HEIGHT) / 2,
--	};
--	int ret;
+-	struct i2c_adapter	*adapter = to_i2c_adapter(client->dev.parent);
+-	int			ret;
 -
 -	if (!ssdd || !ssdd->drv_priv) {
--		dev_err(&client->dev, "mt9t112: missing platform data!\n");
+-		dev_err(&client->dev, "OV772X: missing platform data!\n");
 -		return -EINVAL;
 -	}
+-
+-	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA |
+-					      I2C_FUNC_PROTOCOL_MANGLING)) {
+-		dev_err(&adapter->dev,
+-			"I2C-Adapter doesn't support SMBUS_BYTE_DATA or PROTOCOL_MANGLING\n");
+-		return -EIO;
+-	}
+-	client->flags |= I2C_CLIENT_SCCB;
 -
 -	priv = devm_kzalloc(&client->dev, sizeof(*priv), GFP_KERNEL);
 -	if (!priv)
@@ -1205,49 +1156,65 @@ index ea1ff270bc2d..000000000000
 -
 -	priv->info = ssdd->drv_priv;
 -
--	v4l2_i2c_subdev_init(&priv->subdev, client, &mt9t112_subdev_ops);
+-	v4l2_i2c_subdev_init(&priv->subdev, client, &ov772x_subdev_ops);
+-	v4l2_ctrl_handler_init(&priv->hdl, 3);
+-	v4l2_ctrl_new_std(&priv->hdl, &ov772x_ctrl_ops,
+-			V4L2_CID_VFLIP, 0, 1, 1, 0);
+-	v4l2_ctrl_new_std(&priv->hdl, &ov772x_ctrl_ops,
+-			V4L2_CID_HFLIP, 0, 1, 1, 0);
+-	v4l2_ctrl_new_std(&priv->hdl, &ov772x_ctrl_ops,
+-			V4L2_CID_BAND_STOP_FILTER, 0, 256, 1, 0);
+-	priv->subdev.ctrl_handler = &priv->hdl;
+-	if (priv->hdl.error)
+-		return priv->hdl.error;
 -
 -	priv->clk = v4l2_clk_get(&client->dev, "mclk");
--	if (IS_ERR(priv->clk))
--		return PTR_ERR(priv->clk);
+-	if (IS_ERR(priv->clk)) {
+-		ret = PTR_ERR(priv->clk);
+-		goto eclkget;
+-	}
 -
--	ret = mt9t112_camera_probe(client);
--
--	/* Cannot fail: using the default supported pixel code */
--	if (!ret)
--		mt9t112_set_params(priv, &rect, MEDIA_BUS_FMT_UYVY8_2X8);
--	else
+-	ret = ov772x_video_probe(priv);
+-	if (ret < 0) {
 -		v4l2_clk_put(priv->clk);
+-eclkget:
+-		v4l2_ctrl_handler_free(&priv->hdl);
+-	} else {
+-		priv->cfmt = &ov772x_cfmts[0];
+-		priv->win = &ov772x_win_sizes[0];
+-	}
 -
 -	return ret;
 -}
 -
--static int mt9t112_remove(struct i2c_client *client)
+-static int ov772x_remove(struct i2c_client *client)
 -{
--	struct mt9t112_priv *priv = to_mt9t112(client);
+-	struct ov772x_priv *priv = to_ov772x(i2c_get_clientdata(client));
 -
 -	v4l2_clk_put(priv->clk);
+-	v4l2_device_unregister_subdev(&priv->subdev);
+-	v4l2_ctrl_handler_free(&priv->hdl);
 -	return 0;
 -}
 -
--static const struct i2c_device_id mt9t112_id[] = {
--	{ "mt9t112", 0 },
+-static const struct i2c_device_id ov772x_id[] = {
+-	{ "ov772x", 0 },
 -	{ }
 -};
--MODULE_DEVICE_TABLE(i2c, mt9t112_id);
+-MODULE_DEVICE_TABLE(i2c, ov772x_id);
 -
--static struct i2c_driver mt9t112_i2c_driver = {
+-static struct i2c_driver ov772x_i2c_driver = {
 -	.driver = {
--		.name = "mt9t112",
+-		.name = "ov772x",
 -	},
--	.probe    = mt9t112_probe,
--	.remove   = mt9t112_remove,
--	.id_table = mt9t112_id,
+-	.probe    = ov772x_probe,
+-	.remove   = ov772x_remove,
+-	.id_table = ov772x_id,
 -};
 -
--module_i2c_driver(mt9t112_i2c_driver);
+-module_i2c_driver(ov772x_i2c_driver);
 -
--MODULE_DESCRIPTION("SoC Camera driver for mt9t112");
+-MODULE_DESCRIPTION("SoC Camera driver for ov772x");
 -MODULE_AUTHOR("Kuninori Morimoto");
 -MODULE_LICENSE("GPL v2");
 -- 
