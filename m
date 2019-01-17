@@ -2,136 +2,130 @@ Return-Path: <SRS0=I7H+=PZ=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0EC61C43444
-	for <linux-media@archiver.kernel.org>; Thu, 17 Jan 2019 20:49:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F2A3C43387
+	for <linux-media@archiver.kernel.org>; Thu, 17 Jan 2019 20:53:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D15B320851
-	for <linux-media@archiver.kernel.org>; Thu, 17 Jan 2019 20:49:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4E47320859
+	for <linux-media@archiver.kernel.org>; Thu, 17 Jan 2019 20:53:20 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="fpxH99Mi"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="r6Brm40w"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727524AbfAQUtc (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 17 Jan 2019 15:49:32 -0500
-Received: from mail-pf1-f195.google.com ([209.85.210.195]:46891 "EHLO
-        mail-pf1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726905AbfAQUtc (ORCPT
+        id S1728741AbfAQUxM (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 17 Jan 2019 15:53:12 -0500
+Received: from mail-wr1-f68.google.com ([209.85.221.68]:33461 "EHLO
+        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727300AbfAQUxM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 17 Jan 2019 15:49:32 -0500
-Received: by mail-pf1-f195.google.com with SMTP id c73so5379511pfe.13;
-        Thu, 17 Jan 2019 12:49:32 -0800 (PST)
+        Thu, 17 Jan 2019 15:53:12 -0500
+Received: by mail-wr1-f68.google.com with SMTP id c14so12631218wrr.0;
+        Thu, 17 Jan 2019 12:53:11 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=UE+B2YfptHacugBOCw2gEIV1Rz9SUGZy1HzhzKDbTTE=;
-        b=fpxH99MiE2fPDYlKz9VG+tdABZCK5dM9pYWw+jpiZBNIL8NN3wQ5q7fUcK0zXZXTHT
-         cftrrBoVFusWi9yVGkp8IqC8eEzKS8qBIAbfgS1+buN5c4gXMHg4mSdOZjbaBirwbm2e
-         V9+9jKy0rJNl2D3lEPSzozuQSx8DAL3mAU2XxOFATXfT5711/b6xE0+PxSaTD5WbO47P
-         9y+7xBvJL/+sGa80V+VQ39BlrpbENV9SaXLIPu9WEUeg2He7thRcSr0TRQwhDXo523Ik
-         rE0sbLFScYl6guV+zgUBVyZScGdcafNqF2kIuHd8lla+fj5rhpPrf/F8AVAZToKL2eAV
-         gP+Q==
+        h=subject:to:cc:references:from:message-id:date:user-agent
+         :mime-version:in-reply-to:content-transfer-encoding:content-language;
+        bh=f33YIsZV5aBLStuZXuOwiQYSbzeswEllPaxDJaLidLQ=;
+        b=r6Brm40wQJkfkucd0Ig3gzeMToZxzQiwX/97ukO0WgnE9HVZ5lglu281OAZy5VpVWF
+         Bew9ProIEfy2BJkK6rhFWB+4tvV4f/vOYD7wWPKv8GSzlm61K1EAEZUAuJlYCnuhwzt+
+         6W75j/4BKk1Q1NP6SbyKegl9vxh/O4HE5aQdnxChflWhbPTlCLpzNK6Md0Ul4QZebdZt
+         rOiVBYSZXtulDUkrlGcxl1Gkon9/CnUlV/Q/jP5PK/VsL28HtnI8Fuy6X+lgLBrEdwX6
+         6LNqfc6bzY5v0Fz9PUcWI9JFG67IaBTM6UxCdSi6JOHEa3rh0AeC8KoaMeeBeba5mXMG
+         2oNg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=UE+B2YfptHacugBOCw2gEIV1Rz9SUGZy1HzhzKDbTTE=;
-        b=PRrlkR3why2htzGAw75PbVYFGsQTEBGf0uj/myG3ya7a1yzjMUNrjUMHdsbCcbhNgi
-         GHAX5700VBiY/j5iJT90w12vSXshkH33i8PeBP+zzuEwAOGcRryeKSPZTg7NTWUhuRIo
-         EZlHVIxNtNLca9ydH73yXs79BxN22HUEvfK21Bll31ozBBbmD9QnODFXOrEc07/3lhRc
-         CnilDFaKY26RPWkrXQHU52Knyhss7LIgPaMYfaVTCKOFF5WldXdh5XQF+WZQS1AprRNA
-         ZoqqNFyxMneZb/nB+mq/n5CdZk5rCT2pCUGWzYlfLwVnFDgTV4D9eRL/xeGAvKw6U19n
-         mXEg==
-X-Gm-Message-State: AJcUukcg9hxRu63XUQBYxSUFp4jm9jj/TalBEoLhdaUxFQtt6/491Su/
-        fK1FOTp/Rtd+ZtVXsQEGNUl547JcDHQ=
-X-Google-Smtp-Source: ALg8bN4JtdtYKtrV73hHI6h6Ef2qVOtZL6B6IGMRjarlKvFI8JgagDM6HAfST53wyScES2PrhaOV8g==
-X-Received: by 2002:a62:6dc7:: with SMTP id i190mr16468375pfc.166.1547758171430;
-        Thu, 17 Jan 2019 12:49:31 -0800 (PST)
-Received: from majic.sklembedded.com (c-73-202-231-77.hsd1.ca.comcast.net. [73.202.231.77])
-        by smtp.googlemail.com with ESMTPSA id b68sm4007481pfg.160.2019.01.17.12.49.29
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-transfer-encoding
+         :content-language;
+        bh=f33YIsZV5aBLStuZXuOwiQYSbzeswEllPaxDJaLidLQ=;
+        b=N4qUwFKXWa4/OSdTCJy0aNwfjbRse8S7S7m7/T7sQEj5FXOm8jPnL936p8mrGtJ7Dd
+         oAcRbvMX7aBcXpwsk0Dpcds+75JCIq3NpinOKjpVPMKqrOwpUB707T6yj1P7MII55My0
+         m3kNAhkbEQLrFHSRp5FkmE9bX4/s7kNvOpYnheMzOERTeV9dTXl9q5UvjSVB09VtybGc
+         J4Me2DIehy7W6t3In5alO+Ge1xSlztswU1yyErqcssF5zF0isQvDGMixDjrw82Tr+dTU
+         Njv5KLXl74J+tMbfbMkwG83wCDveuR/cJo233tZiJdgUhDbz70uAOp4SGJy58cewsaQH
+         XJ/Q==
+X-Gm-Message-State: AJcUukcRWPyQp9FyKyJ5KIt7DV6NWcaMaQv+Vh3fcN8jbkhfLOodJilT
+        nzl/uZqpVbYvX9dYmZjgyAcZerFe
+X-Google-Smtp-Source: ALg8bN7u9B4XFGHHzHKh0FN9MdfeRmeWxfKamcb7R7ccsPl6vy10FCt/yeQpden3bXGQr8mDNd9aIg==
+X-Received: by 2002:a05:6000:104b:: with SMTP id c11mr13798549wrx.303.1547758390138;
+        Thu, 17 Jan 2019 12:53:10 -0800 (PST)
+Received: from [172.30.90.213] (sjewanfw1-nat.mentorg.com. [139.181.7.34])
+        by smtp.gmail.com with ESMTPSA id y145sm30663297wmd.30.2019.01.17.12.53.08
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 17 Jan 2019 12:49:30 -0800 (PST)
-From:   Steve Longerbeam <slongerbeam@gmail.com>
-To:     linux-media@vger.kernel.org
-Cc:     Steve Longerbeam <slongerbeam@gmail.com>, stable@vger.kernel.org,
+        Thu, 17 Jan 2019 12:53:09 -0800 (PST)
+Subject: Re: [PATCH] media: imx-csi: Input connections to CSI should be
+ optional
+To:     Tim Harvey <tharvey@gateworks.com>
+Cc:     linux-media <linux-media@vger.kernel.org>,
         Philipp Zabel <p.zabel@pengutronix.de>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        devel@driverdev.osuosl.org (open list:STAGING SUBSYSTEM),
-        linux-kernel@vger.kernel.org (open list)
-Subject: [PATCH v2 1/2] media: imx: csi: Disable CSI immediately after last EOF
-Date:   Thu, 17 Jan 2019 12:49:11 -0800
-Message-Id: <20190117204912.28456-2-slongerbeam@gmail.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20190117204912.28456-1-slongerbeam@gmail.com>
-References: <20190117204912.28456-1-slongerbeam@gmail.com>
+        "open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>,
+        open list <linux-kernel@vger.kernel.org>
+References: <20190109183448.20923-1-slongerbeam@gmail.com>
+ <CAJ+vNU1dByOE8QM4Y0R0z9sSgvb6_73_xTyRiOZL4LXb9BgR3w@mail.gmail.com>
+From:   Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <be53ba69-9ad3-80c1-d7f7-d2ff40c48e2b@gmail.com>
+Date:   Thu, 17 Jan 2019 12:53:06 -0800
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.2.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAJ+vNU1dByOE8QM4Y0R0z9sSgvb6_73_xTyRiOZL4LXb9BgR3w@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Disable the CSI immediately after receiving the last EOF before stream
-off (and thus before disabling the IDMA channel).
+Hi Tim,
 
-This fixes a complete system hard lockup on the SabreAuto when streaming
-from the ADV7180, by repeatedly sending a stream off immediately followed
-by stream on:
+On 1/15/19 8:42 AM, Tim Harvey wrote:
+> On Wed, Jan 9, 2019 at 10:34 AM Steve Longerbeam <slongerbeam@gmail.com> wrote:
+>> Some imx platforms do not have fwnode connections to all CSI input
+>> ports, and should not be treated as an error. This includes the
+>> imx6q SabreAuto, which has no connections to ipu1_csi1 and ipu2_csi0.
+>> Return -ENOTCONN in imx_csi_parse_endpoint() so that v4l2-fwnode
+>> endpoint parsing will not treat an unconnected CSI input port as
+>> an error.
+>>
+>> Fixes: c893500a16baf ("media: imx: csi: Register a subdev notifier")
+>>
+>> Signed-off-by: Steve Longerbeam <slongerbeam@gmail.com>
+>> ---
+>>   drivers/staging/media/imx/imx-media-csi.c | 2 +-
+>>   1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+>> index 4223f8d418ae..30b1717982ae 100644
+>> --- a/drivers/staging/media/imx/imx-media-csi.c
+>> +++ b/drivers/staging/media/imx/imx-media-csi.c
+>> @@ -1787,7 +1787,7 @@ static int imx_csi_parse_endpoint(struct device *dev,
+>>                                    struct v4l2_fwnode_endpoint *vep,
+>>                                    struct v4l2_async_subdev *asd)
+>>   {
+>> -       return fwnode_device_is_available(asd->match.fwnode) ? 0 : -EINVAL;
+>> +       return fwnode_device_is_available(asd->match.fwnode) ? 0 : -ENOTCONN;
+>>   }
+>>
+>>   static int imx_csi_async_register(struct csi_priv *priv)
+>> --
+>> 2.17.1
+>>
+> Steve,
+>
+> Thanks, this fixes adv7180 the capture regression on the Gateworks
+> Ventana boards as well. This should go to stable to fix 4.20 so please
+> add a 'Cc: stable@vger.kernel.org' if you re-submit (else we can send
+> it to stable@vger.kernel.org later).
+>
+> Acked-by: Tim Harvey <tharvey@gateworks.com>
 
-while true; do v4l2-ctl  -d4 --stream-mmap --stream-count=3; done
+I will resubmit a non-functional v2 that adds the Cc: stable and your ack.
 
-Eventually this either causes the system lockup or EOF timeouts at all
-subsequent stream on, until a system reset.
-
-The lockup occurs when disabling the IDMA channel at stream off. Disabling
-the CSI before disabling the IDMA channel appears to be a reliable fix for
-the hard lockup.
-
-Fixes: 4a34ec8e470cb ("[media] media: imx: Add CSI subdev driver")
-
-Reported-by: Gaël PORTAY <gael.portay@collabora.com>
-Signed-off-by: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: stable@vger.kernel.org
----
-Changes in v2:
-- restore an empty line
-- Add Fixes: and Cc: stable
----
- drivers/staging/media/imx/imx-media-csi.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-index e18f58f56dfb..e0f6f88e2e70 100644
---- a/drivers/staging/media/imx/imx-media-csi.c
-+++ b/drivers/staging/media/imx/imx-media-csi.c
-@@ -681,6 +681,8 @@ static void csi_idmac_stop(struct csi_priv *priv)
- 	if (ret == 0)
- 		v4l2_warn(&priv->sd, "wait last EOF timeout\n");
- 
-+	ipu_csi_disable(priv->csi);
-+
- 	devm_free_irq(priv->dev, priv->eof_irq, priv);
- 	devm_free_irq(priv->dev, priv->nfb4eof_irq, priv);
- 
-@@ -793,9 +795,9 @@ static void csi_stop(struct csi_priv *priv)
- 		/* stop the frame interval monitor */
- 		if (priv->fim)
- 			imx_media_fim_set_stream(priv->fim, NULL, false);
-+	} else {
-+		ipu_csi_disable(priv->csi);
- 	}
--
--	ipu_csi_disable(priv->csi);
- }
- 
- static const struct csi_skip_desc csi_skip[12] = {
--- 
-2.17.1
+Steve
 
