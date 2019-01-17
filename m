@@ -6,30 +6,30 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A1E93C43614
-	for <linux-media@archiver.kernel.org>; Thu, 17 Jan 2019 16:18:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E3E85C43444
+	for <linux-media@archiver.kernel.org>; Thu, 17 Jan 2019 16:18:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7052E20855
-	for <linux-media@archiver.kernel.org>; Thu, 17 Jan 2019 16:18:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B0ABC20868
+	for <linux-media@archiver.kernel.org>; Thu, 17 Jan 2019 16:18:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729026AbfAQQSJ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 17 Jan 2019 11:18:09 -0500
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:50250 "EHLO
+        id S1729057AbfAQQSK (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 17 Jan 2019 11:18:10 -0500
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:43162 "EHLO
         lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728829AbfAQQSI (ORCPT
+        by vger.kernel.org with ESMTP id S1728824AbfAQQSJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 17 Jan 2019 11:18:08 -0500
+        Thu, 17 Jan 2019 11:18:09 -0500
 Received: from marune.fritz.box ([IPv6:2001:983:e9a7:1:3849:86c5:b8c2:266c])
         by smtp-cloud8.xs4all.net with ESMTPA
-        id kAMkgeAhPNR5ykAMngTv1R; Thu, 17 Jan 2019 17:18:05 +0100
+        id kAMkgeAhPNR5ykAMngTv17; Thu, 17 Jan 2019 17:18:05 +0100
 From:   hverkuil-cisco@xs4all.nl
 To:     linux-media@vger.kernel.org
 Cc:     Jacopo Mondi <jacopo+renesas@jmondi.org>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
         Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Subject: [PATCH 8/8] soc_camera_platform: remove obsolete soc_camera test driver
-Date:   Thu, 17 Jan 2019 17:18:02 +0100
-Message-Id: <20190117161802.5740-9-hverkuil-cisco@xs4all.nl>
+Subject: [PATCH 5/8] soc_tw9910: remove obsolete sensor driver
+Date:   Thu, 17 Jan 2019 17:17:59 +0100
+Message-Id: <20190117161802.5740-6-hverkuil-cisco@xs4all.nl>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190117161802.5740-1-hverkuil-cisco@xs4all.nl>
 References: <20190117161802.5740-1-hverkuil-cisco@xs4all.nl>
@@ -46,327 +46,1047 @@ X-Mailing-List: linux-media@vger.kernel.org
 
 From: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 
-This is a test stub driver for soc_camera. Since soc_camera is
-being deprecated (and in fact, nobody is using it anymore)
-there's no sense in keeping this test driver.
+This driver got converted to not depend on soc_camera in commit
+7b20f325a566 ("media: i2c: tw9910: Remove soc_camera dependencies").
+
+There's no sense in keeping the old version there.
 
 Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 ---
- drivers/media/platform/soc_camera/Kconfig     |   6 -
- drivers/media/platform/soc_camera/Makefile    |   4 -
- .../platform/soc_camera/soc_camera_platform.c | 188 ------------------
- .../platform_data/media/soc_camera_platform.h |  83 --------
- 4 files changed, 281 deletions(-)
- delete mode 100644 drivers/media/platform/soc_camera/soc_camera_platform.c
- delete mode 100644 include/linux/platform_data/media/soc_camera_platform.h
+ drivers/media/i2c/soc_camera/Kconfig      |   6 -
+ drivers/media/i2c/soc_camera/Makefile     |   1 -
+ drivers/media/i2c/soc_camera/soc_tw9910.c | 999 ----------------------
+ 3 files changed, 1006 deletions(-)
+ delete mode 100644 drivers/media/i2c/soc_camera/soc_tw9910.c
 
-diff --git a/drivers/media/platform/soc_camera/Kconfig b/drivers/media/platform/soc_camera/Kconfig
-index d471d34b884c..8f9b3bac5450 100644
---- a/drivers/media/platform/soc_camera/Kconfig
-+++ b/drivers/media/platform/soc_camera/Kconfig
-@@ -6,9 +6,3 @@ config SOC_CAMERA
- 	  SoC Camera is a common API to several cameras, not connecting
- 	  over a bus like PCI or USB. For example some i2c camera connected
- 	  directly to the data bus of an SoC.
+diff --git a/drivers/media/i2c/soc_camera/Kconfig b/drivers/media/i2c/soc_camera/Kconfig
+index 62a6562f4f0c..dea66ef1394d 100644
+--- a/drivers/media/i2c/soc_camera/Kconfig
++++ b/drivers/media/i2c/soc_camera/Kconfig
+@@ -40,9 +40,3 @@ config SOC_CAMERA_RJ54N1
+ 	depends on SOC_CAMERA && I2C
+ 	help
+ 	  This is a rj54n1cb0c video driver
 -
--config SOC_CAMERA_PLATFORM
--	tristate "platform camera support"
--	depends on SOC_CAMERA
+-config SOC_CAMERA_TW9910
+-	tristate "tw9910 support"
+-	depends on SOC_CAMERA && I2C
 -	help
--	  This is a generic SoC camera platform driver, useful for testing
-diff --git a/drivers/media/platform/soc_camera/Makefile b/drivers/media/platform/soc_camera/Makefile
-index 2cb7022e073b..85d5e74f3b2b 100644
---- a/drivers/media/platform/soc_camera/Makefile
-+++ b/drivers/media/platform/soc_camera/Makefile
-@@ -1,5 +1 @@
- obj-$(CONFIG_SOC_CAMERA)		+= soc_camera.o soc_mediabus.o
--
--# a platform subdevice driver stub, allowing to support cameras by adding a
--# couple of callback functions to the board code
--obj-$(CONFIG_SOC_CAMERA_PLATFORM)	+= soc_camera_platform.o
-diff --git a/drivers/media/platform/soc_camera/soc_camera_platform.c b/drivers/media/platform/soc_camera/soc_camera_platform.c
+-	  This is a tw9910 video driver
+diff --git a/drivers/media/i2c/soc_camera/Makefile b/drivers/media/i2c/soc_camera/Makefile
+index 1e82912c5b05..94659f7aa195 100644
+--- a/drivers/media/i2c/soc_camera/Makefile
++++ b/drivers/media/i2c/soc_camera/Makefile
+@@ -4,4 +4,3 @@ obj-$(CONFIG_SOC_CAMERA_MT9V022)	+= soc_mt9v022.o
+ obj-$(CONFIG_SOC_CAMERA_OV5642)		+= soc_ov5642.o
+ obj-$(CONFIG_SOC_CAMERA_OV9740)		+= soc_ov9740.o
+ obj-$(CONFIG_SOC_CAMERA_RJ54N1)		+= soc_rj54n1cb0c.o
+-obj-$(CONFIG_SOC_CAMERA_TW9910)		+= soc_tw9910.o
+diff --git a/drivers/media/i2c/soc_camera/soc_tw9910.c b/drivers/media/i2c/soc_camera/soc_tw9910.c
 deleted file mode 100644
-index 79fbe1fea95f..000000000000
---- a/drivers/media/platform/soc_camera/soc_camera_platform.c
+index bdb5e0a431e9..000000000000
+--- a/drivers/media/i2c/soc_camera/soc_tw9910.c
 +++ /dev/null
-@@ -1,188 +0,0 @@
--// SPDX-License-Identifier: GPL-2.0
+@@ -1,999 +0,0 @@
 -/*
-- * Generic Platform Camera Driver
+- * tw9910 Video Driver
 - *
+- * Copyright (C) 2008 Renesas Solutions Corp.
+- * Kuninori Morimoto <morimoto.kuninori@renesas.com>
+- *
+- * Based on ov772x driver,
+- *
+- * Copyright (C) 2008 Kuninori Morimoto <morimoto.kuninori@renesas.com>
+- * Copyright 2006-7 Jonathan Corbet <corbet@lwn.net>
 - * Copyright (C) 2008 Magnus Damm
-- * Based on mt9m001 driver,
 - * Copyright (C) 2008, Guennadi Liakhovetski <kernel@pengutronix.de>
-- */
--
--#include <linux/init.h>
--#include <linux/module.h>
--#include <linux/slab.h>
--#include <linux/delay.h>
--#include <linux/platform_device.h>
--#include <linux/videodev2.h>
--#include <media/v4l2-subdev.h>
--#include <media/soc_camera.h>
--#include <linux/platform_data/media/soc_camera_platform.h>
--
--struct soc_camera_platform_priv {
--	struct v4l2_subdev subdev;
--};
--
--static struct soc_camera_platform_priv *get_priv(struct platform_device *pdev)
--{
--	struct v4l2_subdev *subdev = platform_get_drvdata(pdev);
--	return container_of(subdev, struct soc_camera_platform_priv, subdev);
--}
--
--static int soc_camera_platform_s_stream(struct v4l2_subdev *sd, int enable)
--{
--	struct soc_camera_platform_info *p = v4l2_get_subdevdata(sd);
--	return p->set_capture(p, enable);
--}
--
--static int soc_camera_platform_fill_fmt(struct v4l2_subdev *sd,
--		struct v4l2_subdev_pad_config *cfg,
--		struct v4l2_subdev_format *format)
--{
--	struct soc_camera_platform_info *p = v4l2_get_subdevdata(sd);
--	struct v4l2_mbus_framefmt *mf = &format->format;
--
--	mf->width	= p->format.width;
--	mf->height	= p->format.height;
--	mf->code	= p->format.code;
--	mf->colorspace	= p->format.colorspace;
--	mf->field	= p->format.field;
--
--	return 0;
--}
--
--static int soc_camera_platform_s_power(struct v4l2_subdev *sd, int on)
--{
--	struct soc_camera_platform_info *p = v4l2_get_subdevdata(sd);
--
--	return soc_camera_set_power(p->icd->control, &p->icd->sdesc->subdev_desc, NULL, on);
--}
--
--static const struct v4l2_subdev_core_ops platform_subdev_core_ops = {
--	.s_power = soc_camera_platform_s_power,
--};
--
--static int soc_camera_platform_enum_mbus_code(struct v4l2_subdev *sd,
--		struct v4l2_subdev_pad_config *cfg,
--		struct v4l2_subdev_mbus_code_enum *code)
--{
--	struct soc_camera_platform_info *p = v4l2_get_subdevdata(sd);
--
--	if (code->pad || code->index)
--		return -EINVAL;
--
--	code->code = p->format.code;
--	return 0;
--}
--
--static int soc_camera_platform_get_selection(struct v4l2_subdev *sd,
--		struct v4l2_subdev_pad_config *cfg,
--		struct v4l2_subdev_selection *sel)
--{
--	struct soc_camera_platform_info *p = v4l2_get_subdevdata(sd);
--
--	if (sel->which != V4L2_SUBDEV_FORMAT_ACTIVE)
--		return -EINVAL;
--
--	switch (sel->target) {
--	case V4L2_SEL_TGT_CROP_BOUNDS:
--	case V4L2_SEL_TGT_CROP_DEFAULT:
--	case V4L2_SEL_TGT_CROP:
--		sel->r.left = 0;
--		sel->r.top = 0;
--		sel->r.width = p->format.width;
--		sel->r.height = p->format.height;
--		return 0;
--	default:
--		return -EINVAL;
--	}
--}
--
--static int soc_camera_platform_g_mbus_config(struct v4l2_subdev *sd,
--					     struct v4l2_mbus_config *cfg)
--{
--	struct soc_camera_platform_info *p = v4l2_get_subdevdata(sd);
--
--	cfg->flags = p->mbus_param;
--	cfg->type = p->mbus_type;
--
--	return 0;
--}
--
--static const struct v4l2_subdev_video_ops platform_subdev_video_ops = {
--	.s_stream	= soc_camera_platform_s_stream,
--	.g_mbus_config	= soc_camera_platform_g_mbus_config,
--};
--
--static const struct v4l2_subdev_pad_ops platform_subdev_pad_ops = {
--	.enum_mbus_code = soc_camera_platform_enum_mbus_code,
--	.get_selection	= soc_camera_platform_get_selection,
--	.get_fmt	= soc_camera_platform_fill_fmt,
--	.set_fmt	= soc_camera_platform_fill_fmt,
--};
--
--static const struct v4l2_subdev_ops platform_subdev_ops = {
--	.core	= &platform_subdev_core_ops,
--	.video	= &platform_subdev_video_ops,
--	.pad	= &platform_subdev_pad_ops,
--};
--
--static int soc_camera_platform_probe(struct platform_device *pdev)
--{
--	struct soc_camera_host *ici;
--	struct soc_camera_platform_priv *priv;
--	struct soc_camera_platform_info *p = pdev->dev.platform_data;
--	struct soc_camera_device *icd;
--
--	if (!p)
--		return -EINVAL;
--
--	if (!p->icd) {
--		dev_err(&pdev->dev,
--			"Platform has not set soc_camera_device pointer!\n");
--		return -EINVAL;
--	}
--
--	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
--	if (!priv)
--		return -ENOMEM;
--
--	icd = p->icd;
--
--	/* soc-camera convention: control's drvdata points to the subdev */
--	platform_set_drvdata(pdev, &priv->subdev);
--	/* Set the control device reference */
--	icd->control = &pdev->dev;
--
--	ici = to_soc_camera_host(icd->parent);
--
--	v4l2_subdev_init(&priv->subdev, &platform_subdev_ops);
--	v4l2_set_subdevdata(&priv->subdev, p);
--	strscpy(priv->subdev.name, dev_name(&pdev->dev),
--		sizeof(priv->subdev.name));
--
--	return v4l2_device_register_subdev(&ici->v4l2_dev, &priv->subdev);
--}
--
--static int soc_camera_platform_remove(struct platform_device *pdev)
--{
--	struct soc_camera_platform_priv *priv = get_priv(pdev);
--	struct soc_camera_platform_info *p = v4l2_get_subdevdata(&priv->subdev);
--
--	p->icd->control = NULL;
--	v4l2_device_unregister_subdev(&priv->subdev);
--	return 0;
--}
--
--static struct platform_driver soc_camera_platform_driver = {
--	.driver		= {
--		.name	= "soc_camera_platform",
--	},
--	.probe		= soc_camera_platform_probe,
--	.remove		= soc_camera_platform_remove,
--};
--
--module_platform_driver(soc_camera_platform_driver);
--
--MODULE_DESCRIPTION("SoC Camera Platform driver");
--MODULE_AUTHOR("Magnus Damm");
--MODULE_LICENSE("GPL v2");
--MODULE_ALIAS("platform:soc_camera_platform");
-diff --git a/include/linux/platform_data/media/soc_camera_platform.h b/include/linux/platform_data/media/soc_camera_platform.h
-deleted file mode 100644
-index 1e5065dab430..000000000000
---- a/include/linux/platform_data/media/soc_camera_platform.h
-+++ /dev/null
-@@ -1,83 +0,0 @@
--/*
-- * Generic Platform Camera Driver Header
-- *
-- * Copyright (C) 2008 Magnus Damm
 - *
 - * This program is free software; you can redistribute it and/or modify
 - * it under the terms of the GNU General Public License version 2 as
 - * published by the Free Software Foundation.
 - */
 -
--#ifndef __SOC_CAMERA_H__
--#define __SOC_CAMERA_H__
--
+-#include <linux/init.h>
+-#include <linux/module.h>
+-#include <linux/i2c.h>
+-#include <linux/slab.h>
+-#include <linux/kernel.h>
+-#include <linux/delay.h>
+-#include <linux/v4l2-mediabus.h>
 -#include <linux/videodev2.h>
+-
 -#include <media/soc_camera.h>
--#include <media/v4l2-mediabus.h>
+-#include <media/i2c/tw9910.h>
+-#include <media/v4l2-clk.h>
+-#include <media/v4l2-subdev.h>
 -
--struct device;
+-#define GET_ID(val)  ((val & 0xF8) >> 3)
+-#define GET_REV(val) (val & 0x07)
 -
--struct soc_camera_platform_info {
--	const char *format_name;
--	unsigned long format_depth;
--	struct v4l2_mbus_framefmt format;
--	unsigned long mbus_param;
--	enum v4l2_mbus_type mbus_type;
--	struct soc_camera_device *icd;
--	int (*set_capture)(struct soc_camera_platform_info *info, int enable);
+-/*
+- * register offset
+- */
+-#define ID		0x00 /* Product ID Code Register */
+-#define STATUS1		0x01 /* Chip Status Register I */
+-#define INFORM		0x02 /* Input Format */
+-#define OPFORM		0x03 /* Output Format Control Register */
+-#define DLYCTR		0x04 /* Hysteresis and HSYNC Delay Control */
+-#define OUTCTR1		0x05 /* Output Control I */
+-#define ACNTL1		0x06 /* Analog Control Register 1 */
+-#define CROP_HI		0x07 /* Cropping Register, High */
+-#define VDELAY_LO	0x08 /* Vertical Delay Register, Low */
+-#define VACTIVE_LO	0x09 /* Vertical Active Register, Low */
+-#define HDELAY_LO	0x0A /* Horizontal Delay Register, Low */
+-#define HACTIVE_LO	0x0B /* Horizontal Active Register, Low */
+-#define CNTRL1		0x0C /* Control Register I */
+-#define VSCALE_LO	0x0D /* Vertical Scaling Register, Low */
+-#define SCALE_HI	0x0E /* Scaling Register, High */
+-#define HSCALE_LO	0x0F /* Horizontal Scaling Register, Low */
+-#define BRIGHT		0x10 /* BRIGHTNESS Control Register */
+-#define CONTRAST	0x11 /* CONTRAST Control Register */
+-#define SHARPNESS	0x12 /* SHARPNESS Control Register I */
+-#define SAT_U		0x13 /* Chroma (U) Gain Register */
+-#define SAT_V		0x14 /* Chroma (V) Gain Register */
+-#define HUE		0x15 /* Hue Control Register */
+-#define CORING1		0x17
+-#define CORING2		0x18 /* Coring and IF compensation */
+-#define VBICNTL		0x19 /* VBI Control Register */
+-#define ACNTL2		0x1A /* Analog Control 2 */
+-#define OUTCTR2		0x1B /* Output Control 2 */
+-#define SDT		0x1C /* Standard Selection */
+-#define SDTR		0x1D /* Standard Recognition */
+-#define TEST		0x1F /* Test Control Register */
+-#define CLMPG		0x20 /* Clamping Gain */
+-#define IAGC		0x21 /* Individual AGC Gain */
+-#define AGCGAIN		0x22 /* AGC Gain */
+-#define PEAKWT		0x23 /* White Peak Threshold */
+-#define CLMPL		0x24 /* Clamp level */
+-#define SYNCT		0x25 /* Sync Amplitude */
+-#define MISSCNT		0x26 /* Sync Miss Count Register */
+-#define PCLAMP		0x27 /* Clamp Position Register */
+-#define VCNTL1		0x28 /* Vertical Control I */
+-#define VCNTL2		0x29 /* Vertical Control II */
+-#define CKILL		0x2A /* Color Killer Level Control */
+-#define COMB		0x2B /* Comb Filter Control */
+-#define LDLY		0x2C /* Luma Delay and H Filter Control */
+-#define MISC1		0x2D /* Miscellaneous Control I */
+-#define LOOP		0x2E /* LOOP Control Register */
+-#define MISC2		0x2F /* Miscellaneous Control II */
+-#define MVSN		0x30 /* Macrovision Detection */
+-#define STATUS2		0x31 /* Chip STATUS II */
+-#define HFREF		0x32 /* H monitor */
+-#define CLMD		0x33 /* CLAMP MODE */
+-#define IDCNTL		0x34 /* ID Detection Control */
+-#define CLCNTL1		0x35 /* Clamp Control I */
+-#define ANAPLLCTL	0x4C
+-#define VBIMIN		0x4D
+-#define HSLOWCTL	0x4E
+-#define WSS3		0x4F
+-#define FILLDATA	0x50
+-#define SDID		0x51
+-#define DID		0x52
+-#define WSS1		0x53
+-#define WSS2		0x54
+-#define VVBI		0x55
+-#define LCTL6		0x56
+-#define LCTL7		0x57
+-#define LCTL8		0x58
+-#define LCTL9		0x59
+-#define LCTL10		0x5A
+-#define LCTL11		0x5B
+-#define LCTL12		0x5C
+-#define LCTL13		0x5D
+-#define LCTL14		0x5E
+-#define LCTL15		0x5F
+-#define LCTL16		0x60
+-#define LCTL17		0x61
+-#define LCTL18		0x62
+-#define LCTL19		0x63
+-#define LCTL20		0x64
+-#define LCTL21		0x65
+-#define LCTL22		0x66
+-#define LCTL23		0x67
+-#define LCTL24		0x68
+-#define LCTL25		0x69
+-#define LCTL26		0x6A
+-#define HSBEGIN		0x6B
+-#define HSEND		0x6C
+-#define OVSDLY		0x6D
+-#define OVSEND		0x6E
+-#define VBIDELAY	0x6F
+-
+-/*
+- * register detail
+- */
+-
+-/* INFORM */
+-#define FC27_ON     0x40 /* 1 : Input crystal clock frequency is 27MHz */
+-#define FC27_FF     0x00 /* 0 : Square pixel mode. */
+-			 /*     Must use 24.54MHz for 60Hz field rate */
+-			 /*     source or 29.5MHz for 50Hz field rate */
+-#define IFSEL_S     0x10 /* 01 : S-video decoding */
+-#define IFSEL_C     0x00 /* 00 : Composite video decoding */
+-			 /* Y input video selection */
+-#define YSEL_M0     0x00 /*  00 : Mux0 selected */
+-#define YSEL_M1     0x04 /*  01 : Mux1 selected */
+-#define YSEL_M2     0x08 /*  10 : Mux2 selected */
+-#define YSEL_M3     0x10 /*  11 : Mux3 selected */
+-
+-/* OPFORM */
+-#define MODE        0x80 /* 0 : CCIR601 compatible YCrCb 4:2:2 format */
+-			 /* 1 : ITU-R-656 compatible data sequence format */
+-#define LEN         0x40 /* 0 : 8-bit YCrCb 4:2:2 output format */
+-			 /* 1 : 16-bit YCrCb 4:2:2 output format.*/
+-#define LLCMODE     0x20 /* 1 : LLC output mode. */
+-			 /* 0 : free-run output mode */
+-#define AINC        0x10 /* Serial interface auto-indexing control */
+-			 /* 0 : auto-increment */
+-			 /* 1 : non-auto */
+-#define VSCTL       0x08 /* 1 : Vertical out ctrl by DVALID */
+-			 /* 0 : Vertical out ctrl by HACTIVE and DVALID */
+-#define OEN_TRI_SEL_MASK	0x07
+-#define OEN_TRI_SEL_ALL_ON	0x00 /* Enable output for Rev0/Rev1 */
+-#define OEN_TRI_SEL_ALL_OFF_r0	0x06 /* All tri-stated for Rev0 */
+-#define OEN_TRI_SEL_ALL_OFF_r1	0x07 /* All tri-stated for Rev1 */
+-
+-/* OUTCTR1 */
+-#define VSP_LO      0x00 /* 0 : VS pin output polarity is active low */
+-#define VSP_HI      0x80 /* 1 : VS pin output polarity is active high. */
+-			 /* VS pin output control */
+-#define VSSL_VSYNC  0x00 /*   0 : VSYNC  */
+-#define VSSL_VACT   0x10 /*   1 : VACT   */
+-#define VSSL_FIELD  0x20 /*   2 : FIELD  */
+-#define VSSL_VVALID 0x30 /*   3 : VVALID */
+-#define VSSL_ZERO   0x70 /*   7 : 0      */
+-#define HSP_LOW     0x00 /* 0 : HS pin output polarity is active low */
+-#define HSP_HI      0x08 /* 1 : HS pin output polarity is active high.*/
+-			 /* HS pin output control */
+-#define HSSL_HACT   0x00 /*   0 : HACT   */
+-#define HSSL_HSYNC  0x01 /*   1 : HSYNC  */
+-#define HSSL_DVALID 0x02 /*   2 : DVALID */
+-#define HSSL_HLOCK  0x03 /*   3 : HLOCK  */
+-#define HSSL_ASYNCW 0x04 /*   4 : ASYNCW */
+-#define HSSL_ZERO   0x07 /*   7 : 0      */
+-
+-/* ACNTL1 */
+-#define SRESET      0x80 /* resets the device to its default state
+-			  * but all register content remain unchanged.
+-			  * This bit is self-resetting.
+-			  */
+-#define ACNTL1_PDN_MASK	0x0e
+-#define CLK_PDN		0x08 /* system clock power down */
+-#define Y_PDN		0x04 /* Luma ADC power down */
+-#define C_PDN		0x02 /* Chroma ADC power down */
+-
+-/* ACNTL2 */
+-#define ACNTL2_PDN_MASK	0x40
+-#define PLL_PDN		0x40 /* PLL power down */
+-
+-/* VBICNTL */
+-
+-/* RTSEL : control the real time signal output from the MPOUT pin */
+-#define RTSEL_MASK  0x07
+-#define RTSEL_VLOSS 0x00 /* 0000 = Video loss */
+-#define RTSEL_HLOCK 0x01 /* 0001 = H-lock */
+-#define RTSEL_SLOCK 0x02 /* 0010 = S-lock */
+-#define RTSEL_VLOCK 0x03 /* 0011 = V-lock */
+-#define RTSEL_MONO  0x04 /* 0100 = MONO */
+-#define RTSEL_DET50 0x05 /* 0101 = DET50 */
+-#define RTSEL_FIELD 0x06 /* 0110 = FIELD */
+-#define RTSEL_RTCO  0x07 /* 0111 = RTCO ( Real Time Control ) */
+-
+-/* HSYNC start and end are constant for now */
+-#define HSYNC_START	0x0260
+-#define HSYNC_END	0x0300
+-
+-/*
+- * structure
+- */
+-
+-struct regval_list {
+-	unsigned char reg_num;
+-	unsigned char value;
 -};
 -
--static inline void soc_camera_platform_release(struct platform_device **pdev)
+-struct tw9910_scale_ctrl {
+-	char           *name;
+-	unsigned short  width;
+-	unsigned short  height;
+-	u16             hscale;
+-	u16             vscale;
+-};
+-
+-struct tw9910_priv {
+-	struct v4l2_subdev		subdev;
+-	struct v4l2_clk			*clk;
+-	struct tw9910_video_info	*info;
+-	const struct tw9910_scale_ctrl	*scale;
+-	v4l2_std_id			norm;
+-	u32				revision;
+-};
+-
+-static const struct tw9910_scale_ctrl tw9910_ntsc_scales[] = {
+-	{
+-		.name   = "NTSC SQ",
+-		.width  = 640,
+-		.height = 480,
+-		.hscale = 0x0100,
+-		.vscale = 0x0100,
+-	},
+-	{
+-		.name   = "NTSC CCIR601",
+-		.width  = 720,
+-		.height = 480,
+-		.hscale = 0x0100,
+-		.vscale = 0x0100,
+-	},
+-	{
+-		.name   = "NTSC SQ (CIF)",
+-		.width  = 320,
+-		.height = 240,
+-		.hscale = 0x0200,
+-		.vscale = 0x0200,
+-	},
+-	{
+-		.name   = "NTSC CCIR601 (CIF)",
+-		.width  = 360,
+-		.height = 240,
+-		.hscale = 0x0200,
+-		.vscale = 0x0200,
+-	},
+-	{
+-		.name   = "NTSC SQ (QCIF)",
+-		.width  = 160,
+-		.height = 120,
+-		.hscale = 0x0400,
+-		.vscale = 0x0400,
+-	},
+-	{
+-		.name   = "NTSC CCIR601 (QCIF)",
+-		.width  = 180,
+-		.height = 120,
+-		.hscale = 0x0400,
+-		.vscale = 0x0400,
+-	},
+-};
+-
+-static const struct tw9910_scale_ctrl tw9910_pal_scales[] = {
+-	{
+-		.name   = "PAL SQ",
+-		.width  = 768,
+-		.height = 576,
+-		.hscale = 0x0100,
+-		.vscale = 0x0100,
+-	},
+-	{
+-		.name   = "PAL CCIR601",
+-		.width  = 720,
+-		.height = 576,
+-		.hscale = 0x0100,
+-		.vscale = 0x0100,
+-	},
+-	{
+-		.name   = "PAL SQ (CIF)",
+-		.width  = 384,
+-		.height = 288,
+-		.hscale = 0x0200,
+-		.vscale = 0x0200,
+-	},
+-	{
+-		.name   = "PAL CCIR601 (CIF)",
+-		.width  = 360,
+-		.height = 288,
+-		.hscale = 0x0200,
+-		.vscale = 0x0200,
+-	},
+-	{
+-		.name   = "PAL SQ (QCIF)",
+-		.width  = 192,
+-		.height = 144,
+-		.hscale = 0x0400,
+-		.vscale = 0x0400,
+-	},
+-	{
+-		.name   = "PAL CCIR601 (QCIF)",
+-		.width  = 180,
+-		.height = 144,
+-		.hscale = 0x0400,
+-		.vscale = 0x0400,
+-	},
+-};
+-
+-/*
+- * general function
+- */
+-static struct tw9910_priv *to_tw9910(const struct i2c_client *client)
 -{
--	*pdev = NULL;
+-	return container_of(i2c_get_clientdata(client), struct tw9910_priv,
+-			    subdev);
 -}
 -
--static inline int soc_camera_platform_add(struct soc_camera_device *icd,
--					  struct platform_device **pdev,
--					  struct soc_camera_link *plink,
--					  void (*release)(struct device *dev),
--					  int id)
+-static int tw9910_mask_set(struct i2c_client *client, u8 command,
+-			   u8 mask, u8 set)
 -{
--	struct soc_camera_subdev_desc *ssdd =
--		(struct soc_camera_subdev_desc *)plink;
--	struct soc_camera_platform_info *info = ssdd->drv_priv;
+-	s32 val = i2c_smbus_read_byte_data(client, command);
+-	if (val < 0)
+-		return val;
+-
+-	val &= ~mask;
+-	val |= set & mask;
+-
+-	return i2c_smbus_write_byte_data(client, command, val);
+-}
+-
+-static int tw9910_set_scale(struct i2c_client *client,
+-			    const struct tw9910_scale_ctrl *scale)
+-{
 -	int ret;
 -
--	if (&icd->sdesc->subdev_desc != ssdd)
--		return -ENODEV;
+-	ret = i2c_smbus_write_byte_data(client, SCALE_HI,
+-					(scale->vscale & 0x0F00) >> 4 |
+-					(scale->hscale & 0x0F00) >> 8);
+-	if (ret < 0)
+-		return ret;
 -
--	if (*pdev)
--		return -EBUSY;
+-	ret = i2c_smbus_write_byte_data(client, HSCALE_LO,
+-					scale->hscale & 0x00FF);
+-	if (ret < 0)
+-		return ret;
 -
--	*pdev = platform_device_alloc("soc_camera_platform", id);
--	if (!*pdev)
--		return -ENOMEM;
+-	ret = i2c_smbus_write_byte_data(client, VSCALE_LO,
+-					scale->vscale & 0x00FF);
 -
--	info->icd = icd;
+-	return ret;
+-}
 -
--	(*pdev)->dev.platform_data = info;
--	(*pdev)->dev.release = release;
+-static int tw9910_set_hsync(struct i2c_client *client)
+-{
+-	struct tw9910_priv *priv = to_tw9910(client);
+-	int ret;
 -
--	ret = platform_device_add(*pdev);
--	if (ret < 0) {
--		platform_device_put(*pdev);
--		*pdev = NULL;
--		info->icd = NULL;
+-	/* bit 10 - 3 */
+-	ret = i2c_smbus_write_byte_data(client, HSBEGIN,
+-					(HSYNC_START & 0x07F8) >> 3);
+-	if (ret < 0)
+-		return ret;
+-
+-	/* bit 10 - 3 */
+-	ret = i2c_smbus_write_byte_data(client, HSEND,
+-					(HSYNC_END & 0x07F8) >> 3);
+-	if (ret < 0)
+-		return ret;
+-
+-	/* So far only revisions 0 and 1 have been seen */
+-	/* bit 2 - 0 */
+-	if (1 == priv->revision)
+-		ret = tw9910_mask_set(client, HSLOWCTL, 0x77,
+-				      (HSYNC_START & 0x0007) << 4 |
+-				      (HSYNC_END   & 0x0007));
+-
+-	return ret;
+-}
+-
+-static void tw9910_reset(struct i2c_client *client)
+-{
+-	tw9910_mask_set(client, ACNTL1, SRESET, SRESET);
+-	msleep(1);
+-}
+-
+-static int tw9910_power(struct i2c_client *client, int enable)
+-{
+-	int ret;
+-	u8 acntl1;
+-	u8 acntl2;
+-
+-	if (enable) {
+-		acntl1 = 0;
+-		acntl2 = 0;
+-	} else {
+-		acntl1 = CLK_PDN | Y_PDN | C_PDN;
+-		acntl2 = PLL_PDN;
+-	}
+-
+-	ret = tw9910_mask_set(client, ACNTL1, ACNTL1_PDN_MASK, acntl1);
+-	if (ret < 0)
+-		return ret;
+-
+-	return tw9910_mask_set(client, ACNTL2, ACNTL2_PDN_MASK, acntl2);
+-}
+-
+-static const struct tw9910_scale_ctrl *tw9910_select_norm(v4l2_std_id norm,
+-							  u32 width, u32 height)
+-{
+-	const struct tw9910_scale_ctrl *scale;
+-	const struct tw9910_scale_ctrl *ret = NULL;
+-	__u32 diff = 0xffffffff, tmp;
+-	int size, i;
+-
+-	if (norm & V4L2_STD_NTSC) {
+-		scale = tw9910_ntsc_scales;
+-		size = ARRAY_SIZE(tw9910_ntsc_scales);
+-	} else if (norm & V4L2_STD_PAL) {
+-		scale = tw9910_pal_scales;
+-		size = ARRAY_SIZE(tw9910_pal_scales);
+-	} else {
+-		return NULL;
+-	}
+-
+-	for (i = 0; i < size; i++) {
+-		tmp = abs(width - scale[i].width) +
+-			abs(height - scale[i].height);
+-		if (tmp < diff) {
+-			diff = tmp;
+-			ret = scale + i;
+-		}
 -	}
 -
 -	return ret;
 -}
 -
--static inline void soc_camera_platform_del(const struct soc_camera_device *icd,
--					   struct platform_device *pdev,
--					   const struct soc_camera_link *plink)
+-/*
+- * subdevice operations
+- */
+-static int tw9910_s_stream(struct v4l2_subdev *sd, int enable)
 -{
--	const struct soc_camera_subdev_desc *ssdd =
--		(const struct soc_camera_subdev_desc *)plink;
--	if (&icd->sdesc->subdev_desc != ssdd || !pdev)
--		return;
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	struct tw9910_priv *priv = to_tw9910(client);
+-	u8 val;
+-	int ret;
 -
--	platform_device_unregister(pdev);
+-	if (!enable) {
+-		switch (priv->revision) {
+-		case 0:
+-			val = OEN_TRI_SEL_ALL_OFF_r0;
+-			break;
+-		case 1:
+-			val = OEN_TRI_SEL_ALL_OFF_r1;
+-			break;
+-		default:
+-			dev_err(&client->dev, "un-supported revision\n");
+-			return -EINVAL;
+-		}
+-	} else {
+-		val = OEN_TRI_SEL_ALL_ON;
+-
+-		if (!priv->scale) {
+-			dev_err(&client->dev, "norm select error\n");
+-			return -EPERM;
+-		}
+-
+-		dev_dbg(&client->dev, "%s %dx%d\n",
+-			priv->scale->name,
+-			priv->scale->width,
+-			priv->scale->height);
+-	}
+-
+-	ret = tw9910_mask_set(client, OPFORM, OEN_TRI_SEL_MASK, val);
+-	if (ret < 0)
+-		return ret;
+-
+-	return tw9910_power(client, enable);
 -}
 -
--#endif /* __SOC_CAMERA_H__ */
+-static int tw9910_g_std(struct v4l2_subdev *sd, v4l2_std_id *norm)
+-{
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	struct tw9910_priv *priv = to_tw9910(client);
+-
+-	*norm = priv->norm;
+-
+-	return 0;
+-}
+-
+-static int tw9910_s_std(struct v4l2_subdev *sd, v4l2_std_id norm)
+-{
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	struct tw9910_priv *priv = to_tw9910(client);
+-	const unsigned hact = 720;
+-	const unsigned hdelay = 15;
+-	unsigned vact;
+-	unsigned vdelay;
+-	int ret;
+-
+-	if (!(norm & (V4L2_STD_NTSC | V4L2_STD_PAL)))
+-		return -EINVAL;
+-
+-	priv->norm = norm;
+-	if (norm & V4L2_STD_525_60) {
+-		vact = 240;
+-		vdelay = 18;
+-		ret = tw9910_mask_set(client, VVBI, 0x10, 0x10);
+-	} else {
+-		vact = 288;
+-		vdelay = 24;
+-		ret = tw9910_mask_set(client, VVBI, 0x10, 0x00);
+-	}
+-	if (!ret)
+-		ret = i2c_smbus_write_byte_data(client, CROP_HI,
+-			((vdelay >> 2) & 0xc0) |
+-			((vact >> 4) & 0x30) |
+-			((hdelay >> 6) & 0x0c) |
+-			((hact >> 8) & 0x03));
+-	if (!ret)
+-		ret = i2c_smbus_write_byte_data(client, VDELAY_LO,
+-			vdelay & 0xff);
+-	if (!ret)
+-		ret = i2c_smbus_write_byte_data(client, VACTIVE_LO,
+-			vact & 0xff);
+-
+-	return ret;
+-}
+-
+-#ifdef CONFIG_VIDEO_ADV_DEBUG
+-static int tw9910_g_register(struct v4l2_subdev *sd,
+-			     struct v4l2_dbg_register *reg)
+-{
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	int ret;
+-
+-	if (reg->reg > 0xff)
+-		return -EINVAL;
+-
+-	reg->size = 1;
+-	ret = i2c_smbus_read_byte_data(client, reg->reg);
+-	if (ret < 0)
+-		return ret;
+-
+-	/*
+-	 * ret      = int
+-	 * reg->val = __u64
+-	 */
+-	reg->val = (__u64)ret;
+-
+-	return 0;
+-}
+-
+-static int tw9910_s_register(struct v4l2_subdev *sd,
+-			     const struct v4l2_dbg_register *reg)
+-{
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-
+-	if (reg->reg > 0xff ||
+-	    reg->val > 0xff)
+-		return -EINVAL;
+-
+-	return i2c_smbus_write_byte_data(client, reg->reg, reg->val);
+-}
+-#endif
+-
+-static int tw9910_s_power(struct v4l2_subdev *sd, int on)
+-{
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
+-	struct tw9910_priv *priv = to_tw9910(client);
+-
+-	return soc_camera_set_power(&client->dev, ssdd, priv->clk, on);
+-}
+-
+-static int tw9910_set_frame(struct v4l2_subdev *sd, u32 *width, u32 *height)
+-{
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	struct tw9910_priv *priv = to_tw9910(client);
+-	int ret = -EINVAL;
+-	u8 val;
+-
+-	/*
+-	 * select suitable norm
+-	 */
+-	priv->scale = tw9910_select_norm(priv->norm, *width, *height);
+-	if (!priv->scale)
+-		goto tw9910_set_fmt_error;
+-
+-	/*
+-	 * reset hardware
+-	 */
+-	tw9910_reset(client);
+-
+-	/*
+-	 * set bus width
+-	 */
+-	val = 0x00;
+-	if (SOCAM_DATAWIDTH_16 == priv->info->buswidth)
+-		val = LEN;
+-
+-	ret = tw9910_mask_set(client, OPFORM, LEN, val);
+-	if (ret < 0)
+-		goto tw9910_set_fmt_error;
+-
+-	/*
+-	 * select MPOUT behavior
+-	 */
+-	switch (priv->info->mpout) {
+-	case TW9910_MPO_VLOSS:
+-		val = RTSEL_VLOSS; break;
+-	case TW9910_MPO_HLOCK:
+-		val = RTSEL_HLOCK; break;
+-	case TW9910_MPO_SLOCK:
+-		val = RTSEL_SLOCK; break;
+-	case TW9910_MPO_VLOCK:
+-		val = RTSEL_VLOCK; break;
+-	case TW9910_MPO_MONO:
+-		val = RTSEL_MONO;  break;
+-	case TW9910_MPO_DET50:
+-		val = RTSEL_DET50; break;
+-	case TW9910_MPO_FIELD:
+-		val = RTSEL_FIELD; break;
+-	case TW9910_MPO_RTCO:
+-		val = RTSEL_RTCO;  break;
+-	default:
+-		val = 0;
+-	}
+-
+-	ret = tw9910_mask_set(client, VBICNTL, RTSEL_MASK, val);
+-	if (ret < 0)
+-		goto tw9910_set_fmt_error;
+-
+-	/*
+-	 * set scale
+-	 */
+-	ret = tw9910_set_scale(client, priv->scale);
+-	if (ret < 0)
+-		goto tw9910_set_fmt_error;
+-
+-	/*
+-	 * set hsync
+-	 */
+-	ret = tw9910_set_hsync(client);
+-	if (ret < 0)
+-		goto tw9910_set_fmt_error;
+-
+-	*width = priv->scale->width;
+-	*height = priv->scale->height;
+-
+-	return ret;
+-
+-tw9910_set_fmt_error:
+-
+-	tw9910_reset(client);
+-	priv->scale = NULL;
+-
+-	return ret;
+-}
+-
+-static int tw9910_get_selection(struct v4l2_subdev *sd,
+-		struct v4l2_subdev_pad_config *cfg,
+-		struct v4l2_subdev_selection *sel)
+-{
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	struct tw9910_priv *priv = to_tw9910(client);
+-
+-	if (sel->which != V4L2_SUBDEV_FORMAT_ACTIVE)
+-		return -EINVAL;
+-	/* Only CROP, CROP_DEFAULT and CROP_BOUNDS are supported */
+-	if (sel->target > V4L2_SEL_TGT_CROP_BOUNDS)
+-		return -EINVAL;
+-
+-	sel->r.left	= 0;
+-	sel->r.top	= 0;
+-	if (priv->norm & V4L2_STD_NTSC) {
+-		sel->r.width	= 640;
+-		sel->r.height	= 480;
+-	} else {
+-		sel->r.width	= 768;
+-		sel->r.height	= 576;
+-	}
+-	return 0;
+-}
+-
+-static int tw9910_get_fmt(struct v4l2_subdev *sd,
+-		struct v4l2_subdev_pad_config *cfg,
+-		struct v4l2_subdev_format *format)
+-{
+-	struct v4l2_mbus_framefmt *mf = &format->format;
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	struct tw9910_priv *priv = to_tw9910(client);
+-
+-	if (format->pad)
+-		return -EINVAL;
+-
+-	if (!priv->scale) {
+-		priv->scale = tw9910_select_norm(priv->norm, 640, 480);
+-		if (!priv->scale)
+-			return -EINVAL;
+-	}
+-
+-	mf->width	= priv->scale->width;
+-	mf->height	= priv->scale->height;
+-	mf->code	= MEDIA_BUS_FMT_UYVY8_2X8;
+-	mf->colorspace	= V4L2_COLORSPACE_SMPTE170M;
+-	mf->field	= V4L2_FIELD_INTERLACED_BT;
+-
+-	return 0;
+-}
+-
+-static int tw9910_s_fmt(struct v4l2_subdev *sd,
+-			struct v4l2_mbus_framefmt *mf)
+-{
+-	u32 width = mf->width, height = mf->height;
+-	int ret;
+-
+-	WARN_ON(mf->field != V4L2_FIELD_ANY &&
+-		mf->field != V4L2_FIELD_INTERLACED_BT);
+-
+-	/*
+-	 * check color format
+-	 */
+-	if (mf->code != MEDIA_BUS_FMT_UYVY8_2X8)
+-		return -EINVAL;
+-
+-	mf->colorspace = V4L2_COLORSPACE_SMPTE170M;
+-
+-	ret = tw9910_set_frame(sd, &width, &height);
+-	if (!ret) {
+-		mf->width	= width;
+-		mf->height	= height;
+-	}
+-	return ret;
+-}
+-
+-static int tw9910_set_fmt(struct v4l2_subdev *sd,
+-		struct v4l2_subdev_pad_config *cfg,
+-		struct v4l2_subdev_format *format)
+-{
+-	struct v4l2_mbus_framefmt *mf = &format->format;
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	struct tw9910_priv *priv = to_tw9910(client);
+-	const struct tw9910_scale_ctrl *scale;
+-
+-	if (format->pad)
+-		return -EINVAL;
+-
+-	if (V4L2_FIELD_ANY == mf->field) {
+-		mf->field = V4L2_FIELD_INTERLACED_BT;
+-	} else if (V4L2_FIELD_INTERLACED_BT != mf->field) {
+-		dev_err(&client->dev, "Field type %d invalid.\n", mf->field);
+-		return -EINVAL;
+-	}
+-
+-	mf->code = MEDIA_BUS_FMT_UYVY8_2X8;
+-	mf->colorspace = V4L2_COLORSPACE_SMPTE170M;
+-
+-	/*
+-	 * select suitable norm
+-	 */
+-	scale = tw9910_select_norm(priv->norm, mf->width, mf->height);
+-	if (!scale)
+-		return -EINVAL;
+-
+-	mf->width	= scale->width;
+-	mf->height	= scale->height;
+-
+-	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
+-		return tw9910_s_fmt(sd, mf);
+-	cfg->try_fmt = *mf;
+-	return 0;
+-}
+-
+-static int tw9910_video_probe(struct i2c_client *client)
+-{
+-	struct tw9910_priv *priv = to_tw9910(client);
+-	s32 id;
+-	int ret;
+-
+-	/*
+-	 * tw9910 only use 8 or 16 bit bus width
+-	 */
+-	if (SOCAM_DATAWIDTH_16 != priv->info->buswidth &&
+-	    SOCAM_DATAWIDTH_8  != priv->info->buswidth) {
+-		dev_err(&client->dev, "bus width error\n");
+-		return -ENODEV;
+-	}
+-
+-	ret = tw9910_s_power(&priv->subdev, 1);
+-	if (ret < 0)
+-		return ret;
+-
+-	/*
+-	 * check and show Product ID
+-	 * So far only revisions 0 and 1 have been seen
+-	 */
+-	id = i2c_smbus_read_byte_data(client, ID);
+-	priv->revision = GET_REV(id);
+-	id = GET_ID(id);
+-
+-	if (0x0B != id ||
+-	    0x01 < priv->revision) {
+-		dev_err(&client->dev,
+-			"Product ID error %x:%x\n",
+-			id, priv->revision);
+-		ret = -ENODEV;
+-		goto done;
+-	}
+-
+-	dev_info(&client->dev,
+-		 "tw9910 Product ID %0x:%0x\n", id, priv->revision);
+-
+-	priv->norm = V4L2_STD_NTSC;
+-	priv->scale = &tw9910_ntsc_scales[0];
+-
+-done:
+-	tw9910_s_power(&priv->subdev, 0);
+-	return ret;
+-}
+-
+-static const struct v4l2_subdev_core_ops tw9910_subdev_core_ops = {
+-#ifdef CONFIG_VIDEO_ADV_DEBUG
+-	.g_register	= tw9910_g_register,
+-	.s_register	= tw9910_s_register,
+-#endif
+-	.s_power	= tw9910_s_power,
+-};
+-
+-static int tw9910_enum_mbus_code(struct v4l2_subdev *sd,
+-		struct v4l2_subdev_pad_config *cfg,
+-		struct v4l2_subdev_mbus_code_enum *code)
+-{
+-	if (code->pad || code->index)
+-		return -EINVAL;
+-
+-	code->code = MEDIA_BUS_FMT_UYVY8_2X8;
+-	return 0;
+-}
+-
+-static int tw9910_g_mbus_config(struct v4l2_subdev *sd,
+-				struct v4l2_mbus_config *cfg)
+-{
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
+-
+-	cfg->flags = V4L2_MBUS_PCLK_SAMPLE_RISING | V4L2_MBUS_MASTER |
+-		V4L2_MBUS_VSYNC_ACTIVE_HIGH | V4L2_MBUS_VSYNC_ACTIVE_LOW |
+-		V4L2_MBUS_HSYNC_ACTIVE_HIGH | V4L2_MBUS_HSYNC_ACTIVE_LOW |
+-		V4L2_MBUS_DATA_ACTIVE_HIGH;
+-	cfg->type = V4L2_MBUS_PARALLEL;
+-	cfg->flags = soc_camera_apply_board_flags(ssdd, cfg);
+-
+-	return 0;
+-}
+-
+-static int tw9910_s_mbus_config(struct v4l2_subdev *sd,
+-				const struct v4l2_mbus_config *cfg)
+-{
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
+-	u8 val = VSSL_VVALID | HSSL_DVALID;
+-	unsigned long flags = soc_camera_apply_board_flags(ssdd, cfg);
+-
+-	/*
+-	 * set OUTCTR1
+-	 *
+-	 * We use VVALID and DVALID signals to control VSYNC and HSYNC
+-	 * outputs, in this mode their polarity is inverted.
+-	 */
+-	if (flags & V4L2_MBUS_HSYNC_ACTIVE_LOW)
+-		val |= HSP_HI;
+-
+-	if (flags & V4L2_MBUS_VSYNC_ACTIVE_LOW)
+-		val |= VSP_HI;
+-
+-	return i2c_smbus_write_byte_data(client, OUTCTR1, val);
+-}
+-
+-static int tw9910_g_tvnorms(struct v4l2_subdev *sd, v4l2_std_id *norm)
+-{
+-	*norm = V4L2_STD_NTSC | V4L2_STD_PAL;
+-	return 0;
+-}
+-
+-static const struct v4l2_subdev_video_ops tw9910_subdev_video_ops = {
+-	.s_std		= tw9910_s_std,
+-	.g_std		= tw9910_g_std,
+-	.s_stream	= tw9910_s_stream,
+-	.g_mbus_config	= tw9910_g_mbus_config,
+-	.s_mbus_config	= tw9910_s_mbus_config,
+-	.g_tvnorms	= tw9910_g_tvnorms,
+-};
+-
+-static const struct v4l2_subdev_pad_ops tw9910_subdev_pad_ops = {
+-	.enum_mbus_code = tw9910_enum_mbus_code,
+-	.get_selection	= tw9910_get_selection,
+-	.get_fmt	= tw9910_get_fmt,
+-	.set_fmt	= tw9910_set_fmt,
+-};
+-
+-static const struct v4l2_subdev_ops tw9910_subdev_ops = {
+-	.core	= &tw9910_subdev_core_ops,
+-	.video	= &tw9910_subdev_video_ops,
+-	.pad	= &tw9910_subdev_pad_ops,
+-};
+-
+-/*
+- * i2c_driver function
+- */
+-
+-static int tw9910_probe(struct i2c_client *client,
+-			const struct i2c_device_id *did)
+-
+-{
+-	struct tw9910_priv		*priv;
+-	struct tw9910_video_info	*info;
+-	struct i2c_adapter		*adapter =
+-		to_i2c_adapter(client->dev.parent);
+-	struct soc_camera_subdev_desc	*ssdd = soc_camera_i2c_to_desc(client);
+-	int ret;
+-
+-	if (!ssdd || !ssdd->drv_priv) {
+-		dev_err(&client->dev, "TW9910: missing platform data!\n");
+-		return -EINVAL;
+-	}
+-
+-	info = ssdd->drv_priv;
+-
+-	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA)) {
+-		dev_err(&client->dev,
+-			"I2C-Adapter doesn't support I2C_FUNC_SMBUS_BYTE_DATA\n");
+-		return -EIO;
+-	}
+-
+-	priv = devm_kzalloc(&client->dev, sizeof(*priv), GFP_KERNEL);
+-	if (!priv)
+-		return -ENOMEM;
+-
+-	priv->info   = info;
+-
+-	v4l2_i2c_subdev_init(&priv->subdev, client, &tw9910_subdev_ops);
+-
+-	priv->clk = v4l2_clk_get(&client->dev, "mclk");
+-	if (IS_ERR(priv->clk))
+-		return PTR_ERR(priv->clk);
+-
+-	ret = tw9910_video_probe(client);
+-	if (ret < 0)
+-		v4l2_clk_put(priv->clk);
+-
+-	return ret;
+-}
+-
+-static int tw9910_remove(struct i2c_client *client)
+-{
+-	struct tw9910_priv *priv = to_tw9910(client);
+-	v4l2_clk_put(priv->clk);
+-	return 0;
+-}
+-
+-static const struct i2c_device_id tw9910_id[] = {
+-	{ "tw9910", 0 },
+-	{ }
+-};
+-MODULE_DEVICE_TABLE(i2c, tw9910_id);
+-
+-static struct i2c_driver tw9910_i2c_driver = {
+-	.driver = {
+-		.name = "tw9910",
+-	},
+-	.probe    = tw9910_probe,
+-	.remove   = tw9910_remove,
+-	.id_table = tw9910_id,
+-};
+-
+-module_i2c_driver(tw9910_i2c_driver);
+-
+-MODULE_DESCRIPTION("SoC Camera driver for tw9910");
+-MODULE_AUTHOR("Kuninori Morimoto");
+-MODULE_LICENSE("GPL v2");
 -- 
 2.20.1
 
