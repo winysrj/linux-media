@@ -2,42 +2,43 @@ Return-Path: <SRS0=I7H+=PZ=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=FREEMAIL_FORGED_FROMDOMAIN,
+	FREEMAIL_FROM,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 53D70C43387
-	for <linux-media@archiver.kernel.org>; Thu, 17 Jan 2019 08:58:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CDA34C43387
+	for <linux-media@archiver.kernel.org>; Thu, 17 Jan 2019 09:07:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1279020855
-	for <linux-media@archiver.kernel.org>; Thu, 17 Jan 2019 08:58:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8EE8420856
+	for <linux-media@archiver.kernel.org>; Thu, 17 Jan 2019 09:07:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727215AbfAQI6a (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 17 Jan 2019 03:58:30 -0500
-Received: from lns-bzn-25-82-254-177-192.adsl.proxad.net ([82.254.177.192]:52657
+        id S1727938AbfAQJH7 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 17 Jan 2019 04:07:59 -0500
+Received: from lns-bzn-25-82-254-177-192.adsl.proxad.net ([82.254.177.192]:50871
         "EHLO maze.fork.zz" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1727021AbfAQI6a (ORCPT
+        with ESMTP id S1727504AbfAQJH6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 17 Jan 2019 03:58:30 -0500
-X-Greylist: delayed 476 seconds by postgrey-1.27 at vger.kernel.org; Thu, 17 Jan 2019 03:58:28 EST
+        Thu, 17 Jan 2019 04:07:58 -0500
 Received: from over.fork.zz (over.fork.zz [192.168.0.155])
-        by maze.fork.zz (8.15.2/8.15.2) with ESMTPS id x0H8oQAu017997
+        by maze.fork.zz (8.15.2/8.15.2) with ESMTPS id x0H97sko018075
         (version=TLSv1.2 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Thu, 17 Jan 2019 09:50:28 +0100
+        Thu, 17 Jan 2019 10:07:55 +0100
 Received: from over.fork.zz (localhost [127.0.0.1])
-        by over.fork.zz (8.15.2/8.15.2) with ESMTPS id x0H8oPUQ008243
+        by over.fork.zz (8.15.2/8.15.2) with ESMTPS id x0H97sn9008426
         (version=TLSv1.2 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=NO);
-        Thu, 17 Jan 2019 09:50:25 +0100
+        Thu, 17 Jan 2019 10:07:54 +0100
 Received: (from patrick@localhost)
-        by over.fork.zz (8.15.2/8.15.2/Submit) id x0H8oOrf008242;
-        Thu, 17 Jan 2019 09:50:24 +0100
-From:   repojohnray <repojohnray@github.github.io>
+        by over.fork.zz (8.15.2/8.15.2/Submit) id x0H97sn8008425;
+        Thu, 17 Jan 2019 10:07:54 +0100
+From:   Patrick Lerda <patrick9876@free.fr>
 To:     linux-media@vger.kernel.org
 Cc:     Patrick Lerda <patrick9876@free.fr>, sean@mess.org,
         linux-media-owner@vger.kernel.org
 Subject: [PATCH v6] media: rc: rcmm decoder
-Date:   Thu, 17 Jan 2019 09:50:13 +0100
-Message-Id: <a64d59e42d0ec99340e98791aa25c20cc5ec8e49.1547714764.git.patrick9876@free.fr>
+Date:   Thu, 17 Jan 2019 10:07:53 +0100
+Message-Id:
+ <a64d59e42d0ec99340e98791aa25c20cc5ec8e49.1547714764.git.patrick9876@free.fr>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190109112503.bnvbu4zz67y7xvdp@gofer.mess.org>
 References: <c44581638d2525bc383a75413259f708@free.fr> <cover.1544231670.git.patrick9876@free.fr> <20181205002933.20870-1-patrick9876@free.fr> <20181205002933.20870-2-patrick9876@free.fr> <3a057647b40d9246aca4f64ee771594c32922974.1544175403.git.patrick9876@free.fr> <20181207101231.of7c3j67pcz7cetp@gofer.mess.org> <28f4bc366ebdb585a5b74a25dd1ee8a525e99884.1544231670.git.patrick9876@free.fr> <20190109112503.bnvbu4zz67y7xvdp@gofer.mess.org>
@@ -48,8 +49,7 @@ Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
-
-From: Patrick Lerda <patrick9876@free.fr>
+Message-ID: <20190117090753.alEkNXzkZ0Y0kABjSN_SRk4cnspMMvj6dKEQuJKeQDs@z>
 
 media: add support for RCMM infrared remote controls.
 
