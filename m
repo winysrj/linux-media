@@ -2,201 +2,117 @@ Return-Path: <SRS0=I7H+=PZ=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
-	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,
+	USER_AGENT_MUTT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FB09C43387
-	for <linux-media@archiver.kernel.org>; Thu, 17 Jan 2019 15:52:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 23873C43387
+	for <linux-media@archiver.kernel.org>; Thu, 17 Jan 2019 15:54:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D695B20851
-	for <linux-media@archiver.kernel.org>; Thu, 17 Jan 2019 15:51:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E052920851
+	for <linux-media@archiver.kernel.org>; Thu, 17 Jan 2019 15:54:25 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="I7MydC1P"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728423AbfAQPv6 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 17 Jan 2019 10:51:58 -0500
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:51719 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727632AbfAQPv6 (ORCPT
+        id S1728197AbfAQPyU (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 17 Jan 2019 10:54:20 -0500
+Received: from mail-pf1-f195.google.com ([209.85.210.195]:44167 "EHLO
+        mail-pf1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726854AbfAQPyU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 17 Jan 2019 10:51:58 -0500
-Received: from dude02.hi.pengutronix.de ([2001:67c:670:100:1d::28] helo=dude02.pengutronix.de.)
-        by metis.ext.pengutronix.de with esmtp (Exim 4.89)
-        (envelope-from <p.zabel@pengutronix.de>)
-        id 1gk9xU-0008FN-6S; Thu, 17 Jan 2019 16:51:56 +0100
-From:   Philipp Zabel <p.zabel@pengutronix.de>
-To:     linux-media@vger.kernel.org
-Cc:     Hans Verkuil <hans.verkuil@cisco.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>, kernel@pengutronix.de
-Subject: [PATCH v4 2/3] media: imx: set compose rectangle to mbus format
-Date:   Thu, 17 Jan 2019 16:51:53 +0100
-Message-Id: <20190117155154.6964-2-p.zabel@pengutronix.de>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190117155154.6964-1-p.zabel@pengutronix.de>
-References: <20190117155154.6964-1-p.zabel@pengutronix.de>
+        Thu, 17 Jan 2019 10:54:20 -0500
+Received: by mail-pf1-f195.google.com with SMTP id u6so5006953pfh.11
+        for <linux-media@vger.kernel.org>; Thu, 17 Jan 2019 07:54:19 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=XoyTkci7Xp8nMCsWzbFM4wtrRh6DnJmyxh+OjoiL0IM=;
+        b=I7MydC1P7i1ju7q1CMrbpHev2RNE0RTiJhi4H1jlVNeEOCHKMoZEWSb0urKeWSLRZc
+         10Bcp9jbY+u0n5lqq/lzgXhSUpoWLtU6VzLpYpCauoJH+M6Em7HE454XQ9ST9eifWoHz
+         JXE8afWHg9h7szhHiOxdNsYnuLE58AhoOmnYTp5yYE7ZnniEYPrw4SSEoK0kACVQSKtC
+         ywp7tV18XrsvUJtubKtgz7FplJgrZraxgPfv9R7OozrIGFPsmob+p0WHbYxsWYcHl6P3
+         K2rrYisDx216Ii5AcbhkkupWq23bb446jIBaKaxskuYsFHQ674O2FTRdQpztvVgLz8XC
+         Op2g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=XoyTkci7Xp8nMCsWzbFM4wtrRh6DnJmyxh+OjoiL0IM=;
+        b=pGSIZ8txlzfn0PVfxbuEor1JtclcTqXs8S+Ve2rjjv0/zl/eRiV7zEGgdF2qNdmV+S
+         gS6VIekzYHaZTmCslp4hP0WDtzvArCqp6U76FhZ8gjtCit+EwCZ9AMdV9liNS95ULK8v
+         O1ItF9jHj3CStjPmcU7TYgPMuqbdLJPEX+Re/k+yZ3tmWLDEW+MVUS6J0YqcD1aJI/Cf
+         g5pvAp7oiY1csZWMEmGsK3XaezJ5iBnCSGX3n4aFrW/FJ7nbpT0cp6Jwrm8p8LKiezAL
+         WyEJL5tkb2sFUC7VQf6mtfU8fGQLBCC3QToe0u2KpCcD5Moo+0xZiAjQ58docsgeN1Mz
+         tKHA==
+X-Gm-Message-State: AJcUuketABkdVwGylFKWPeEM1Hj/jpkuXT8qme0jvowRRbFrtyhvJMqx
+        gA8gAOGdE9659z/nmrCtD6BahQ==
+X-Google-Smtp-Source: ALg8bN7i4AEcXrvgf2w5lkLDM59sbNtHu1LAnlsxU5Ir5bbeI1rNtUTupfIyXf5Xa76CZvPDMT+8ug==
+X-Received: by 2002:a62:8c11:: with SMTP id m17mr15472054pfd.224.1547740459205;
+        Thu, 17 Jan 2019 07:54:19 -0800 (PST)
+Received: from ziepe.ca (S010614cc2056d97f.ed.shawcable.net. [174.3.196.123])
+        by smtp.gmail.com with ESMTPSA id u6sm1926006pgr.79.2019.01.17.07.54.17
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Thu, 17 Jan 2019 07:54:18 -0800 (PST)
+Received: from jgg by mlx.ziepe.ca with local (Exim 4.90_1)
+        (envelope-from <jgg@ziepe.ca>)
+        id 1gk9zl-0002uC-9u; Thu, 17 Jan 2019 08:54:17 -0700
+Date:   Thu, 17 Jan 2019 08:54:17 -0700
+From:   Jason Gunthorpe <jgg@ziepe.ca>
+To:     "hch@lst.de" <hch@lst.de>
+Cc:     Thomas Hellstrom <thellstrom@vmware.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "yong.zhi@intel.com" <yong.zhi@intel.com>,
+        "daniel.vetter@ffwll.ch" <daniel.vetter@ffwll.ch>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "syeh@vmware.com" <syeh@vmware.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "bingbu.cao@intel.com" <bingbu.cao@intel.com>,
+        "imre.deak@intel.com" <imre.deak@intel.com>,
+        "tian.shu.qiu@intel.com" <tian.shu.qiu@intel.com>,
+        "jian.xu.zheng@intel.com" <jian.xu.zheng@intel.com>,
+        "shiraz.saleem@intel.com" <shiraz.saleem@intel.com>,
+        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>
+Subject: Re: [PATCH] lib/scatterlist: Provide a DMA page iterator
+Message-ID: <20190117155417.GA9629@ziepe.ca>
+References: <20190104223531.GA1705@ziepe.ca>
+ <20190110234218.GM6890@ziepe.ca>
+ <20190114094856.GB29604@lst.de>
+ <1fb20ab4b171b281e9994b6c55734c120958530b.camel@vmware.com>
+ <20190115212501.GE22045@ziepe.ca>
+ <20190116161134.GA29041@lst.de>
+ <20190116172436.GM22045@ziepe.ca>
+ <20190117093001.GB31303@lst.de>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 2001:67c:670:100:1d::28
-X-SA-Exim-Mail-From: p.zabel@pengutronix.de
-X-SA-Exim-Scanned: No (on metis.ext.pengutronix.de); SAEximRunCond expanded to false
-X-PTX-Original-Recipient: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190117093001.GB31303@lst.de>
+User-Agent: Mutt/1.9.4 (2018-02-28)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Prepare for mbus format being smaller than the written rectangle
-due to burst size.
+On Thu, Jan 17, 2019 at 10:30:01AM +0100, hch@lst.de wrote:
+> On Wed, Jan 16, 2019 at 10:24:36AM -0700, Jason Gunthorpe wrote:
+> > The fact is there is 0 industry interest in using RDMA on platforms
+> > that can't do HW DMA cache coherency - the kernel syscalls required to
+> > do the cache flushing on the IO path would just destroy performance to
+> > the point of making RDMA pointless. Better to use netdev on those
+> > platforms.
+> 
+> In general there is no syscall required for doing cache flushing, you
+> just issue the proper instructions directly from userspace. 
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-Reviewed-by: Steve Longerbeam <slongerbeam@gmail.com>
----
-Changes since v3 [1]:
- - Rebased onto d969291d8479 ("media: imx: Fix field negotiation")
- - Comment on the horizontal padding due to DMA burst size in
-   vidioc_g_selection.
+At least on the ARM/MIPS systems I've worked with like this the cache
+manipulation instructions are privileged and cannot be executed by
+userspace. So the general case requires a syscall.
 
-[1] https://patchwork.linuxtv.org/patch/53860/
----
- drivers/staging/media/imx/imx-media-capture.c | 68 +++++++++++++------
- 1 file changed, 47 insertions(+), 21 deletions(-)
+> In that case we just need to block userspace DMA access entirely.
+> Which given the amount of problems it creates sounds like a pretty
+> good idea anyway.
 
-diff --git a/drivers/staging/media/imx/imx-media-capture.c b/drivers/staging/media/imx/imx-media-capture.c
-index 8b8ef4a11774..a93bd7f388ef 100644
---- a/drivers/staging/media/imx/imx-media-capture.c
-+++ b/drivers/staging/media/imx/imx-media-capture.c
-@@ -203,21 +203,13 @@ static int capture_g_fmt_vid_cap(struct file *file, void *fh,
- 	return 0;
- }
- 
--static int capture_try_fmt_vid_cap(struct file *file, void *fh,
--				   struct v4l2_format *f)
-+static int __capture_try_fmt_vid_cap(struct capture_priv *priv,
-+				     struct v4l2_subdev_format *fmt_src,
-+				     struct v4l2_format *f)
- {
--	struct capture_priv *priv = video_drvdata(file);
--	struct v4l2_subdev_format fmt_src;
- 	const struct imx_media_pixfmt *cc, *cc_src;
--	int ret;
- 
--	fmt_src.pad = priv->src_sd_pad;
--	fmt_src.which = V4L2_SUBDEV_FORMAT_ACTIVE;
--	ret = v4l2_subdev_call(priv->src_sd, pad, get_fmt, NULL, &fmt_src);
--	if (ret)
--		return ret;
--
--	cc_src = imx_media_find_ipu_format(fmt_src.format.code, CS_SEL_ANY);
-+	cc_src = imx_media_find_ipu_format(fmt_src->format.code, CS_SEL_ANY);
- 	if (cc_src) {
- 		u32 fourcc, cs_sel;
- 
-@@ -231,7 +223,7 @@ static int capture_try_fmt_vid_cap(struct file *file, void *fh,
- 			cc = imx_media_find_format(fourcc, cs_sel, false);
- 		}
- 	} else {
--		cc_src = imx_media_find_mbus_format(fmt_src.format.code,
-+		cc_src = imx_media_find_mbus_format(fmt_src->format.code,
- 						    CS_SEL_ANY, true);
- 		if (WARN_ON(!cc_src))
- 			return -EINVAL;
-@@ -241,27 +233,44 @@ static int capture_try_fmt_vid_cap(struct file *file, void *fh,
- 
- 	/* allow IDMAC interweave but enforce field order from source */
- 	if (V4L2_FIELD_IS_INTERLACED(f->fmt.pix.field)) {
--		switch (fmt_src.format.field) {
-+		switch (fmt_src->format.field) {
- 		case V4L2_FIELD_SEQ_TB:
--			fmt_src.format.field = V4L2_FIELD_INTERLACED_TB;
-+			fmt_src->format.field = V4L2_FIELD_INTERLACED_TB;
- 			break;
- 		case V4L2_FIELD_SEQ_BT:
--			fmt_src.format.field = V4L2_FIELD_INTERLACED_BT;
-+			fmt_src->format.field = V4L2_FIELD_INTERLACED_BT;
- 			break;
- 		default:
- 			break;
- 		}
- 	}
- 
--	imx_media_mbus_fmt_to_pix_fmt(&f->fmt.pix, &fmt_src.format, cc);
-+	imx_media_mbus_fmt_to_pix_fmt(&f->fmt.pix, &fmt_src->format, cc);
- 
- 	return 0;
- }
- 
-+static int capture_try_fmt_vid_cap(struct file *file, void *fh,
-+				   struct v4l2_format *f)
-+{
-+	struct capture_priv *priv = video_drvdata(file);
-+	struct v4l2_subdev_format fmt_src;
-+	int ret;
-+
-+	fmt_src.pad = priv->src_sd_pad;
-+	fmt_src.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-+	ret = v4l2_subdev_call(priv->src_sd, pad, get_fmt, NULL, &fmt_src);
-+	if (ret)
-+		return ret;
-+
-+	return __capture_try_fmt_vid_cap(priv, &fmt_src, f);
-+}
-+
- static int capture_s_fmt_vid_cap(struct file *file, void *fh,
- 				 struct v4l2_format *f)
- {
- 	struct capture_priv *priv = video_drvdata(file);
-+	struct v4l2_subdev_format fmt_src;
- 	int ret;
- 
- 	if (vb2_is_busy(&priv->q)) {
-@@ -269,7 +278,13 @@ static int capture_s_fmt_vid_cap(struct file *file, void *fh,
- 		return -EBUSY;
- 	}
- 
--	ret = capture_try_fmt_vid_cap(file, priv, f);
-+	fmt_src.pad = priv->src_sd_pad;
-+	fmt_src.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-+	ret = v4l2_subdev_call(priv->src_sd, pad, get_fmt, NULL, &fmt_src);
-+	if (ret)
-+		return ret;
-+
-+	ret = __capture_try_fmt_vid_cap(priv, &fmt_src, f);
- 	if (ret)
- 		return ret;
- 
-@@ -278,8 +293,8 @@ static int capture_s_fmt_vid_cap(struct file *file, void *fh,
- 					      CS_SEL_ANY, true);
- 	priv->vdev.compose.left = 0;
- 	priv->vdev.compose.top = 0;
--	priv->vdev.compose.width = f->fmt.pix.width;
--	priv->vdev.compose.height = f->fmt.pix.height;
-+	priv->vdev.compose.width = fmt_src.format.width;
-+	priv->vdev.compose.height = fmt_src.format.height;
- 
- 	return 0;
- }
-@@ -317,9 +332,20 @@ static int capture_g_selection(struct file *file, void *fh,
- 	case V4L2_SEL_TGT_COMPOSE:
- 	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
- 	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
--	case V4L2_SEL_TGT_COMPOSE_PADDED:
-+		/* The compose rectangle is fixed to the source format. */
- 		s->r = priv->vdev.compose;
- 		break;
-+	case V4L2_SEL_TGT_COMPOSE_PADDED:
-+		/*
-+		 * The hardware writes with a configurable but fixed DMA burst
-+		 * size. If the source format width is not burst size aligned,
-+		 * the written frame contains padding to the right.
-+		 */
-+		s->r.left = 0;
-+		s->r.top = 0;
-+		s->r.width = priv->vdev.fmt.fmt.pix.width;
-+		s->r.height = priv->vdev.fmt.fmt.pix.height;
-+		break;
- 	default:
- 		return -EINVAL;
- 	}
--- 
-2.20.1
+I doubt there is any support for that idea...
 
+Jason
