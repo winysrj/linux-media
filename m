@@ -2,105 +2,142 @@ Return-Path: <SRS0=I7H+=PZ=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 81ED6C43387
-	for <linux-media@archiver.kernel.org>; Thu, 17 Jan 2019 02:45:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 91E38C43387
+	for <linux-media@archiver.kernel.org>; Thu, 17 Jan 2019 04:28:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5A4A2205C9
-	for <linux-media@archiver.kernel.org>; Thu, 17 Jan 2019 02:45:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6313720657
+	for <linux-media@archiver.kernel.org>; Thu, 17 Jan 2019 04:28:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727146AbfAQCpZ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 16 Jan 2019 21:45:25 -0500
-Received: from mail-ed1-f54.google.com ([209.85.208.54]:38196 "EHLO
-        mail-ed1-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725385AbfAQCpZ (ORCPT
+        id S1728793AbfAQE2V (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 16 Jan 2019 23:28:21 -0500
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:49095 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1728789AbfAQE2V (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 Jan 2019 21:45:25 -0500
-Received: by mail-ed1-f54.google.com with SMTP id h50so7148958ede.5
-        for <linux-media@vger.kernel.org>; Wed, 16 Jan 2019 18:45:24 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=4DHlPugfzhluIjEt9W++YzJGyNr4JmVSXvNCgQh/5c8=;
-        b=QQhmGv8nmgjfLfh4edaIqq9WLHi/cs1EZW6paywClDPONT0vd/hPgkFOw3owyI0VDU
-         1IuiLHQTGe2WKMXNrLgGpSRh71lANVKxfIt5XphTBz8H4y57pjHNegTBeQxhrV0RvFgP
-         v7xMuMCACIZA7+n+AMxrVqVIPYh1nbhr1eWMGpWi8Qc2vVwE+bqo6PnNXzs4F4aA7xdL
-         Ah+uttp7iZShbaSy58gn8R/JbRDgs/LgsndnPJnqQdTU7zN1AmugGqn+bXvjJ0BvkicY
-         UKT5GRkU4ErrZQBcZkLuncI4KqQKgeitAh3vgmE8B3r1L0MxXUz+YCAYUaardWhFjP5u
-         QOxA==
-X-Gm-Message-State: AJcUukdQjyF7/CXO0CMIutpFeljBL7DPfJ+a75IYlB7NXqT3P4amPuvc
-        DkbgZkXe6qc5gzo743oSlYNbvtj2300=
-X-Google-Smtp-Source: ALg8bN75fQZRBlzk9+1jrKGR0jMPXIwCIXp22bvN9vXzGPBeDk4+rcSdzMX0+8HhVov3/eN3HqdkCw==
-X-Received: by 2002:a17:906:138d:: with SMTP id f13-v6mr8964155ejc.176.1547693123175;
-        Wed, 16 Jan 2019 18:45:23 -0800 (PST)
-Received: from mail-wr1-f51.google.com (mail-wr1-f51.google.com. [209.85.221.51])
-        by smtp.gmail.com with ESMTPSA id x47sm6047404eda.91.2019.01.16.18.45.22
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 16 Jan 2019 18:45:23 -0800 (PST)
-Received: by mail-wr1-f51.google.com with SMTP id t6so9207568wrr.12
-        for <linux-media@vger.kernel.org>; Wed, 16 Jan 2019 18:45:22 -0800 (PST)
-X-Received: by 2002:adf:891a:: with SMTP id s26mr9802232wrs.44.1547693122490;
- Wed, 16 Jan 2019 18:45:22 -0800 (PST)
-MIME-Version: 1.0
-References: <E1gjq1q-0002RQ-B4@www.linuxtv.org>
-In-Reply-To: <E1gjq1q-0002RQ-B4@www.linuxtv.org>
-From:   Chen-Yu Tsai <wens@csie.org>
-Date:   Thu, 17 Jan 2019 10:45:11 +0800
-X-Gmail-Original-Message-ID: <CAGb2v64nWOZ4ycEYZxUzZUXub9QLvdjdaojGdPeqjuO9hxih5Q@mail.gmail.com>
-Message-ID: <CAGb2v64nWOZ4ycEYZxUzZUXub9QLvdjdaojGdPeqjuO9hxih5Q@mail.gmail.com>
-Subject: Re: [git:media_tree/master] media: dt-bindings: media: sun6i:
- Separate H3 compatible from A31
-To:     Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Maxime Ripard <maxime.ripard@bootlin.com>
-Cc:     Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jagan Teki <jagan@amarulasolutions.com>,
-        Rob Herring <robh@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset="UTF-8"
+        Wed, 16 Jan 2019 23:28:21 -0500
+Received: from localhost ([IPv6:2001:983:e9a7:1:89e8:8b49:35c9:423f])
+        by smtp-cloud8.xs4all.net with ESMTPA
+        id jzHugZ5HaNR5yjzHvgRSqK; Thu, 17 Jan 2019 05:28:19 +0100
+Message-ID: <e40ff555db663780a00d8894b698adbd@smtp-cloud8.xs4all.net>
+Date:   Thu, 17 Jan 2019 05:28:18 +0100
+From:   "Hans Verkuil" <hverkuil@xs4all.nl>
+To:     linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+X-CMAE-Envelope: MS4wfC3pKhV4jfLYRAgdUbulJ6Z2u6D5Gm4QLucLnrbgmINizy5dCRiJtY17lezNu/N5eXF8k6iRwgNUmrzeNLctq6XKvyi63q8fuQRpRmsbl9jWbJmPvtov
+ 3/Ozhrq1tTBlMAG0IMMpzZnt8ZyujQn+7dmlTS9Jle7YRRUIYdhEP6LDxFWp2th7ci7TKU8Ygw8N/fF/ZwwKHmPY2xQlhXbtienct4vCEMuGU3IvERhJBtj2
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On Thu, Jan 17, 2019 at 2:35 AM Mauro Carvalho Chehab
-<mchehab+samsung@kernel.org> wrote:
->
-> This is an automatic generated email to let you know that the following patch were queued:
->
-> Subject: media: dt-bindings: media: sun6i: Separate H3 compatible from A31
-> Author:  Chen-Yu Tsai <wens@csie.org>
-> Date:    Fri Nov 30 02:58:44 2018 -0500
->
-> The CSI controller found on the H3 (and H5) is a reduced version of the
-> one found on the A31. It only has 1 channel, instead of 4 channels for
-> time-multiplexed BT.656. Since the H3 is a reduced version, it cannot
-> "fallback" to a compatible that implements more features than it
-> supports.
->
-> Split out the H3 compatible as a separate entry, with no fallback.
->
-> Fixes: b7eadaa3a02a ("media: dt-bindings: media: sun6i: Add A31 and H3 compatibles")
->
-> Signed-off-by: Chen-Yu Tsai <wens@csie.org>
-> Reviewed-by: Jagan Teki <jagan@amarulasolutions.com>
-> Reviewed-by: Rob Herring <robh@kernel.org>
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Results of the daily build of media_tree:
 
-I see this is applied to the master branch, which I assume is -next material.
+date:			Thu Jan 17 05:00:11 CET 2019
+media-tree git hash:	eed2235876ef5b0a04cd4716c5b2bb7bf68a56ca
+media_build git hash:	8851c6e626dac550d6798e162c6b4f5a41bc13ec
+v4l-utils git hash:	a32ce0a34563d12bbbc4eeee9179eb949fa5da72
+edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
+gcc version:		i686-linux-gcc (GCC) 8.2.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.19.0-1-amd64
 
-We'd prefer if this patch, and "media: sun6i: Add H3 compatible", were applied
-as fixes for 5.0-rc. That way the bindings and drivers are fixed up in the same
-release as they were introduced in, and we wouldn't be carrying an incorrect
-binding, even if it were only for just one release.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-3.10.108-i686: ERRORS
+linux-3.10.108-x86_64: ERRORS
+linux-3.11.10-i686: ERRORS
+linux-3.11.10-x86_64: ERRORS
+linux-3.12.74-i686: ERRORS
+linux-3.12.74-x86_64: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.79-i686: ERRORS
+linux-3.14.79-x86_64: ERRORS
+linux-3.15.10-i686: ERRORS
+linux-3.15.10-x86_64: ERRORS
+linux-3.16.57-i686: ERRORS
+linux-3.16.57-x86_64: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.123-i686: ERRORS
+linux-3.18.123-x86_64: ERRORS
+linux-3.19.8-i686: ERRORS
+linux-3.19.8-x86_64: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.52-i686: ERRORS
+linux-4.1.52-x86_64: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.159-i686: ERRORS
+linux-4.4.159-x86_64: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.10-i686: ERRORS
+linux-4.7.10-x86_64: ERRORS
+linux-4.8.17-i686: ERRORS
+linux-4.8.17-x86_64: ERRORS
+linux-4.9.131-i686: ERRORS
+linux-4.9.131-x86_64: ERRORS
+linux-4.10.17-i686: ERRORS
+linux-4.10.17-x86_64: ERRORS
+linux-4.11.12-i686: ERRORS
+linux-4.11.12-x86_64: ERRORS
+linux-4.12.14-i686: ERRORS
+linux-4.12.14-x86_64: ERRORS
+linux-4.13.16-i686: ERRORS
+linux-4.13.16-x86_64: ERRORS
+linux-4.14.74-i686: ERRORS
+linux-4.14.74-x86_64: ERRORS
+linux-4.15.18-i686: ERRORS
+linux-4.15.18-x86_64: ERRORS
+linux-4.16.18-i686: ERRORS
+linux-4.16.18-x86_64: ERRORS
+linux-4.17.19-i686: ERRORS
+linux-4.17.19-x86_64: ERRORS
+linux-4.18.12-i686: ERRORS
+linux-4.18.12-x86_64: ERRORS
+linux-4.19.1-i686: ERRORS
+linux-4.19.1-x86_64: ERRORS
+linux-4.20.1-i686: ERRORS
+linux-4.20.1-x86_64: ERRORS
+linux-5.0-rc1-i686: ERRORS
+linux-5.0-rc1-x86_64: ERRORS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
+Detailed results are available here:
 
-Thanks
-ChenYu
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
