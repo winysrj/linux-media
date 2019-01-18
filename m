@@ -3,150 +3,130 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+	MAILING_LIST_MULTI,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C003C43387
-	for <linux-media@archiver.kernel.org>; Fri, 18 Jan 2019 13:45:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 75B77C43387
+	for <linux-media@archiver.kernel.org>; Fri, 18 Jan 2019 14:11:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 05D4E2086D
-	for <linux-media@archiver.kernel.org>; Fri, 18 Jan 2019 13:45:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4E9EE20883
+	for <linux-media@archiver.kernel.org>; Fri, 18 Jan 2019 14:11:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727592AbfARNpH (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 18 Jan 2019 08:45:07 -0500
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:59738 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727434AbfARNpH (ORCPT
+        id S1727529AbfAROLg (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 18 Jan 2019 09:11:36 -0500
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:52775 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726881AbfAROLg (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 Jan 2019 08:45:07 -0500
+        Fri, 18 Jan 2019 09:11:36 -0500
 Received: from [IPv6:2001:983:e9a7:1:3849:86c5:b8c2:266c] ([IPv6:2001:983:e9a7:1:3849:86c5:b8c2:266c])
         by smtp-cloud8.xs4all.net with ESMTPA
-        id kUSFglORrNR5ykUSHgWhys; Fri, 18 Jan 2019 14:45:05 +0100
-Subject: Re: [PATCH v7] media: imx: add mem2mem device
-To:     Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
-Cc:     Steve Longerbeam <slongerbeam@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de
-References: <20190117155032.3317-1-p.zabel@pengutronix.de>
- <e68a4de5-a499-ea02-20e7-79e4d175708c@xs4all.nl>
- <1547810284.3375.6.camel@pengutronix.de>
- <377d7120-14b5-274d-d4d8-c6d21fba9f3b@xs4all.nl>
- <1547818928.3375.10.camel@pengutronix.de>
+        id kUrtgld0ANR5ykUrugWpNp; Fri, 18 Jan 2019 15:11:34 +0100
+Subject: Re: [PATCH v2 0/3] Add ZynqMP VCU/Allegro DVT H.264 encoder driver
+To:     Michael Tretter <m.tretter@pengutronix.de>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Cc:     kernel@pengutronix.de, robh+dt@kernel.org, mchehab@kernel.org,
+        tfiga@chromium.org
+References: <20190118133716.29288-1-m.tretter@pengutronix.de>
 From:   Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <2437b3a1-acac-22b8-0493-7b5123a40246@xs4all.nl>
-Date:   Fri, 18 Jan 2019 14:45:03 +0100
+Message-ID: <38660b5f-bce3-8ffb-8804-1fb145ed6703@xs4all.nl>
+Date:   Fri, 18 Jan 2019 15:11:32 +0100
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
  Thunderbird/60.3.1
 MIME-Version: 1.0
-In-Reply-To: <1547818928.3375.10.camel@pengutronix.de>
+In-Reply-To: <20190118133716.29288-1-m.tretter@pengutronix.de>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
-Content-Transfer-Encoding: 8bit
-X-CMAE-Envelope: MS4wfNkd67lnefslvSvEelcZQK2ykrSzHiG8DxbjtsQPvgvIJOh7123rNVO30ddwqYcksqpO+qSfXVQjAJzufMRBdikp9cFf58aG9C2GFCe7tsTjoiLrBFP4
- JESABFNKXjEsptGCezmRKQdfiep3G46sKIWlaWn6fiPuVAmmOpjhmQJgm+852GqhM5MOUFAATW1+oDdEpNxkeFufwR9to+Tugg+iN0HXJbfq3YcpHbYIFLG/
- OvpkBWaUs/DA8EG45Sh1aur5nFKmXxhI8eGqjDqCoInCrmxUEuWHen+gny9Go1IpBoKNUfBuA1LT+aysim9pnqbGhXqbuzJQaMdELrUZ7/DPHND7fHBsPSuU
- WONWGddMmB0b7A6HNB7Dyyai+a/hYlVQbhL3j1p1sYNSDwpmP3VOjvF5z0qOQmJdIbgJyEck
+Content-Transfer-Encoding: 7bit
+X-CMAE-Envelope: MS4wfFjermQ2pRlo/+92BkCvEm4vQRk0guGXbIpEhR0xJ/BJE4EUKy5HA8+QlIZ0yZdwITv/R/0big0ep8qm3SysEIfXpH8FAsi9E7d4w5AjwGdX2FPNOpYk
+ YpVyYnmBiB5wlxqhPMYO87Yt4QRKmByo1VSIPLjHvddRw0xd/LlggNp34ncuM+FRlz6vZdPqCBXpYvcPf357rdjqnu9XOIxlRlEa1wo301PFaBvomyRBB9gV
+ QZKGMALqGFqc/15I7P5fSsTpZYnJgIyRBMf6aB4g47T222+NVTsyr+Aqv7v/oY7cCn99DKthmwCHfPvF8p/ilhnbxfIxVlDR/FZTJxlEqvEiKxWceDKavtcu
+ TgoQ6Bvb88278CPA8ca0GayEKFnz3cyUrVgdsIsxv+Ds/DUj1Iq2qfvzvOWv3WZYZIY5RJs8SHesQQbzbRS0QXRKLh9NluSx+Xy+cxXbEZxMKIShoG9esK55
+ y68N4VbtPxrDzjmm
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On 1/18/19 2:42 PM, Philipp Zabel wrote:
-> On Fri, 2019-01-18 at 13:41 +0100, Hans Verkuil wrote:
-> [...]
->>> I can do that, but what would be the purpose of it showing up in the
->>> media controller?
->>> There is nothing to be configured, no interaction with the rest of the
->>> graph, and the processing subdevice wouldn't even correspond to an
->>> actual hardware unit. I assumed this would clutter the media controller
->>> for no good reason.
->>
->> Just because you can't change routing doesn't mean you can't expose it in the
->> media controller topology. It makes sense to show in the topology that you
->> have this block.
->>
->> That said, I can't decide whether or not to add this. For a standalone m2m
->> device I would not require it, but in this case you already have a media
->> device.
->>
->> I guess it is easy enough to add later, so leave this for now.
-> 
-> Ok.
-> 
-> [...]
->>>> How did you test the rotate control?
-> 
-> Just FTR, I used GStreamer for most of my testing, something like
-> (simplified):
-> 
-> gst-launch-1.0 videotestsrc ! v4l2video14convert extra-controls=cid,rotate=90 ! autovideosink
-> 
->>>> I'm asking because I would expect to see code
->>>> that checks this control in the *_fmt ioctls:
-> 
-> In a way this does happen, since _try_fmt calls ipu_image_convert_adjust
-> with a ctx->rot_mode parameter. It only has an influence on the
-> alignment though.
-> 
-> [...]
->>> The V4L2_CID_ROTATE documentation [1] states:
->>>
->>>     Rotates the image by specified angle. Common angles are 90, 270 and
->>>     180. Rotating the image to 90 and 270 will reverse the height and
->>>     width of the display window. It is necessary to set the new height
->>>     and width of the picture using the VIDIOC_S_FMT ioctl according to
->>>     the rotation angle selected.
->>>
->>> [1] https://linuxtv.org/downloads/v4l-dvb-apis-new/uapi/v4l/control.html#control-ids
->>>
->>> I didn't understand what the "display window" is in the context of a
->>> mem2mem scaler/rotator/CSC converter. Is this intended to mean that
->>> aspect ratio should be kept as intact as possible, and that every time
->>> V4L2_CID_ROTATE changes between 0/180 and 90/270, an automatic S_FMT
->>> should be issued on the capture queue with width and height switched
->>> compared to the currently set value? This might still slightly modify
->>> width and height due to alignment restrictions.
->>
->> Most drivers that implement rotate do not have a scaler, so rotating a
->> 640x480 image would result in a 480x640 result. Hence for an m2m device
->> the output queue would have format 640x480 and the capture queue 480x640.
->>
->> So the question becomes: what if you can both rotate and scale, what
->> do you do when you change the rotate control?
->>
->> I would expect as a user of this API that if I first scale 640x480 to
->> 320x240, then rotate 90 degrees, that the capture format is now 240x320.
->>
->> In other words, rotating comes after scaling.
-> 
-> Ok, that makes sense. I had always thought of the rotation property
-> being set first.
-> 
->> But even if you keep the current behavior I suspect you still need to
->> update the format due to alignment restriction. Either due to 4:2:2
->> formats or due to the 'resizer cannot downsize more than 4:1' limitation.
->>
->> E.g. in the latter case it is fine to downscale 640x480 to 640x120,
->> but if you now rotate 90 degrees, then you can no longer downscale
->> 480x640 to 640x120 (640 / 120 > 4).
->>
->> At least, if I understand the code correctly.
-> 
-> Oh. Worse, the output queue's width alignment restrictions also depend
-> on the rotation mode.
-> 
-> Are we allowed to change the output queue format to meet alignment
-> restrictions when changing the ROTATE property? The same is true
-> for HFLIP.
+Hi Michael,
 
-Certainly. Unless vb2_is_busy() is true, of course, since no format changes
-are allowed once buffers are allocated. So s_ctrl would return -EBUSY in
-that case.
+On 1/18/19 2:37 PM, Michael Tretter wrote:
+> This is v2 of the series to add support for the Allegro DVT H.264 encoder
+> found in the EV family of the Xilinx ZynqMP platform.
+> 
+> See v1 [0] of the patch series for a description of the hardware.
+> 
+> I fixed the handling of frames with various sizes and driver is now able to
+> encode H.264 video in the baseline profile up to 1920x1080 pixels. I also
+> addressed the issues reported by the kbuild robot for the previous series,
+> implemented a few extended controls and changed the interface to the mcu to
+> follow the register documentation rather than the downstream driver
+> implementation.
+> 
+> I would especially appreciate feedback to the device tree bindings and the
+> overall architecture of the driver.
 
-Does HFLIP change the format size? Or just the order? E.g. YUYV becomes VYUY?
+I'll try to review this next week. Ping me if you didn't see a review by the
+end of next week.
 
-In the latter case I would expect that you can compensate for that in the
-driver.
+BTW, can you post the output of 'v4l2-compliance -s'? (make sure you use the
+very latest version of v4l2-compliance!)
 
 Regards,
 
 	Hans
+
+> 
+> The driver still only works with the vcu-firmware release 2018.2. I am not yet
+> sure how to address the different firmware versions, because in addition to
+> the mailbox sizes, there are also changes within the messages themselves.
+> 
+> I also did not address the integration with the xlnx-vcu driver, yet.
+> 
+> Michael
+> 
+> [0] https://lore.kernel.org/linux-media/20190109113037.28430-1-m.tretter@pengutronix.de/
+> 
+> Changes since v1:
+> - clean up debug log levels
+> - fix unused variable in allegro_mbox_init
+> - fix uninitialized variable in allegro_mbox_write
+> - fix global module parameters
+> - fix Kconfig dependencies
+> - return h264 as default codec for mcu
+> - implement device reset as documented
+> - document why irq does not wait for clear
+> - rename ENCODE_ONE_FRM to ENCODE_FRAME
+> - allow error codes for mcu_channel_id
+> - move control handler to channel
+> - add fw version check
+> - add support for colorspaces
+> - enable configuration of H.264 levels
+> - enable configuration of frame size
+> - enable configuration of bit rate and CPB size
+> - enable configuration of GOP size
+> - rework response handling
+> - fix missing error handling in allegro_h264_write_sps
+> 
+> Michael Tretter (3):
+>   media: dt-bindings: media: document allegro-dvt bindings
+>   [media] allegro: add Allegro DVT video IP core driver
+>   [media] allegro: add SPS/PPS nal unit writer
+> 
+>  .../devicetree/bindings/media/allegro.txt     |   35 +
+>  MAINTAINERS                                   |    6 +
+>  drivers/staging/media/Kconfig                 |    2 +
+>  drivers/staging/media/Makefile                |    1 +
+>  drivers/staging/media/allegro-dvt/Kconfig     |   16 +
+>  drivers/staging/media/allegro-dvt/Makefile    |    6 +
+>  .../staging/media/allegro-dvt/allegro-core.c  | 2828 +++++++++++++++++
+>  drivers/staging/media/allegro-dvt/nal-h264.c  | 1278 ++++++++
+>  drivers/staging/media/allegro-dvt/nal-h264.h  |  188 ++
+>  9 files changed, 4360 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/allegro.txt
+>  create mode 100644 drivers/staging/media/allegro-dvt/Kconfig
+>  create mode 100644 drivers/staging/media/allegro-dvt/Makefile
+>  create mode 100644 drivers/staging/media/allegro-dvt/allegro-core.c
+>  create mode 100644 drivers/staging/media/allegro-dvt/nal-h264.c
+>  create mode 100644 drivers/staging/media/allegro-dvt/nal-h264.h
+> 
+
