@@ -7,40 +7,49 @@ X-Spam-Status: No, score=-11.0 required=3.0
 	MENTIONS_GIT_HOSTING,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A4D6C43387
-	for <linux-media@archiver.kernel.org>; Fri, 18 Jan 2019 12:52:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 526C7C43387
+	for <linux-media@archiver.kernel.org>; Fri, 18 Jan 2019 13:00:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5459A20896
-	for <linux-media@archiver.kernel.org>; Fri, 18 Jan 2019 12:52:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1B56B20823
+	for <linux-media@archiver.kernel.org>; Fri, 18 Jan 2019 13:00:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727304AbfARMw3 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 18 Jan 2019 07:52:29 -0500
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:55603 "EHLO
+        id S1727101AbfARNAQ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 18 Jan 2019 08:00:16 -0500
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:60183 "EHLO
         lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726062AbfARMw3 (ORCPT
+        by vger.kernel.org with ESMTP id S1726062AbfARNAQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 Jan 2019 07:52:29 -0500
+        Fri, 18 Jan 2019 08:00:16 -0500
 Received: from [IPv6:2001:983:e9a7:1:3849:86c5:b8c2:266c] ([IPv6:2001:983:e9a7:1:3849:86c5:b8c2:266c])
         by smtp-cloud8.xs4all.net with ESMTPA
-        id kTdKgkzLeNR5ykTdLgWVbl; Fri, 18 Jan 2019 13:52:27 +0100
-From:   Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v5.1] Various fixes/enhancements
+        id kTksgl339NR5ykTktgWXQo; Fri, 18 Jan 2019 14:00:15 +0100
 To:     Linux Media Mailing List <linux-media@vger.kernel.org>
-Message-ID: <72a6f860-c01a-1606-5eb1-10b6e74afac5@xs4all.nl>
-Date:   Fri, 18 Jan 2019 13:52:26 +0100
+Cc:     Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+From:   Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT FIXES FOR v5.0] imx: Disable CSI immediately after last EOF
+Message-ID: <6194066e-b3fd-0df8-74ac-807f3d655c5f@xs4all.nl>
+Date:   Fri, 18 Jan 2019 14:00:13 +0100
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
  Thunderbird/60.3.1
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
-Content-Transfer-Encoding: 8bit
-X-CMAE-Envelope: MS4wfEUcmcK05aoTzw/m8Dyt9h8W4/Cp+nqVljFbEKyyCzkFU7BM1VPzh/FUQIycp0hZuJiouIYDI16FBw42F6W9+AYWJOG5BKxPpwo+fUj6BlSgjy5BBMYG
- ygYI9Xhe3geJe6z1xcSENzJt+GbGsFPi9MKG96eD8bOIZ+yb2PWrMgHN416NGAMSDbxAc2kuOSUEuqfLs8JSCfmj89K6WnXYRhi0GFNvmezrQAVbNmza/jw0
- sTe5DhXLcq0Vy6L74i/JnBd/dK1Jjw2ZjqdAAiR1EYA=
+Content-Transfer-Encoding: 7bit
+X-CMAE-Envelope: MS4wfOWcNpfadR30Q91PTbt4ZTRSGUxYPAKGzEagtYm+zzF4EfFEZtyiqZfHiiXhtL7Z0eyx9s3NS/POglhd39ZrnK+qqMMfYybHMzwsxSvieKXDq66L7uDt
+ kdrRIO8zIkMb6sxQJ3HZtiOyalU5w8+7VN+o+sTJmR1OF1UuPoMpOR+Hs7HRnP3sMd/o9fOgEOp3mE+uAzpaLPMxdLTYlFPlX61ca1vuCQUyVAJqYUerjtqw
+ nw4ci7vITcdIpuAJzTqETimQfPp88J+/B6TTA302P6PwIb4fhiHNAItDN+PcKZPF2ndkqannH8oAzcFQLYJpt5eSBKR1PVhHbLNejKDmy607uJTixkD7M5cL
+ +zhvFoVs
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
+
+Two related fixes for the imx driver for 5.0 and stable for 4.13 and up.
+
+Regards,
+
+	Hans
 
 The following changes since commit e8f9b16d72631870e30a3d8e4ee9f1c097bc7ba0:
 
@@ -48,90 +57,20 @@ The following changes since commit e8f9b16d72631870e30a3d8e4ee9f1c097bc7ba0:
 
 are available in the Git repository at:
 
-  git://linuxtv.org/hverkuil/media_tree.git tags/br-v5.1g
+  git://linuxtv.org/hverkuil/media_tree.git tags/br-v5.0c
 
-for you to fetch changes up to 3a881781fe1ebd9f924aaabf89b6a39284120245:
+for you to fetch changes up to 3faf506050bb2ff6134f2cd9aa328518986da267:
 
-  media: imx-csi: Input connections to CSI should be optional (2019-01-18 13:09:22 +0100)
+  media: imx: prpencvf: Disable CSI immediately after last EOF (2019-01-18 13:55:13 +0100)
 
 ----------------------------------------------------------------
 Tag branch
 
 ----------------------------------------------------------------
-French, Nicholas A (1):
-      media: ivtv: add parameter to enable ivtvfb on x86 PAT systems
+Steve Longerbeam (2):
+      media: imx: csi: Disable CSI immediately after last EOF
+      media: imx: prpencvf: Disable CSI immediately after last EOF
 
-Hans Verkuil (2):
-      vimc: fill in correct driver name in querycap
-      vidioc-prepare-buf.rst: drop reference to NO_CACHE flags
-
-Matt Ranostay (2):
-      media: dt-bindings: media: video-i2c: add melexis mlx90640 documentation
-      media: video-i2c: add Melexis MLX90640 thermal camera
-
-Niklas Söderlund (1):
-      rcar-vin: fix wrong return value in rvin_set_channel_routing()
-
-Paul Kocialkowski (2):
-      media: cedrus: Cleanup duplicate declarations from cedrus_dec header
-      media: cedrus: Allow using the current dst buffer as reference
-
-Pawe? Chmiel (4):
-      si470x-i2c: Add device tree support
-      si470x-i2c: Use managed resource helpers
-      si470x-i2c: Add optional reset-gpio support
-      media: dt-bindings: Add binding for si470x radio
-
-Philipp Zabel (5):
-      media: coda: use macroblock tiling on CODA960 only
-      media: coda: fix decoder capture buffer payload
-      media: imx: add capture compose rectangle
-      media: imx: set compose rectangle to mbus format
-      media: imx: lift CSI and PRP ENC/VF width alignment restriction
-
-Souptick Joarder (1):
-      media/v4l2-core/videobuf-vmalloc.c: Remove dead code
-
-Steve Longerbeam (4):
-      media: i2c: adv748x: Use devm to allocate the device struct
-      media: imx: queue subdev events to reachable video devices
-      media: imx: capture: Allow event subscribe/unsubscribe
-      media: imx-csi: Input connections to CSI should be optional
-
-Yangtao Li (2):
-      media: exynos4-is: convert to DEFINE_SHOW_ATTRIBUTE
-      media: platform: sti: remove bdisp_dbg_declare() and hva_dbg_declare()
-
- Documentation/devicetree/bindings/media/i2c/melexis,mlx90640.txt |  20 +++++++
- Documentation/devicetree/bindings/media/si470x.txt               |  26 +++++++++
- Documentation/media/uapi/v4l/vidioc-prepare-buf.rst              |   5 +-
- drivers/media/i2c/Kconfig                                        |   1 +
- drivers/media/i2c/adv748x/adv748x-core.c                         |   5 +-
- drivers/media/i2c/video-i2c.c                                    | 110 +++++++++++++++++++++++++++++++++++++-
- drivers/media/pci/ivtv/Kconfig                                   |  23 ++++++--
- drivers/media/pci/ivtv/ivtvfb.c                                  |  16 +++++-
- drivers/media/platform/coda/coda-bit.c                           |  18 +------
- drivers/media/platform/coda/coda-common.c                        |   2 +-
- drivers/media/platform/exynos4-is/fimc-is.c                      |  16 ++----
- drivers/media/platform/rcar-vin/rcar-dma.c                       |   2 +-
- drivers/media/platform/sti/bdisp/bdisp-debug.c                   |  34 ++++--------
- drivers/media/platform/sti/hva/hva-debugfs.c                     |  36 +++++--------
- drivers/media/platform/vimc/vimc-capture.c                       |   2 +-
- drivers/media/platform/vimc/vimc-common.h                        |   2 +
- drivers/media/platform/vimc/vimc-core.c                          |   1 -
- drivers/media/radio/si470x/radio-si470x-i2c.c                    |  52 +++++++++++-------
- drivers/media/radio/si470x/radio-si470x.h                        |   1 +
- drivers/media/v4l2-core/videobuf-vmalloc.c                       |  20 -------
- drivers/staging/media/imx/imx-ic-prpencvf.c                      |   5 +-
- drivers/staging/media/imx/imx-media-capture.c                    | 107 +++++++++++++++++++++++++++++-------
- drivers/staging/media/imx/imx-media-csi.c                        |  16 ++++--
- drivers/staging/media/imx/imx-media-dev.c                        |  24 +++++++++
- drivers/staging/media/imx/imx-media-utils.c                      |  15 ++++--
- drivers/staging/media/imx/imx-media-vdic.c                       |   4 +-
- drivers/staging/media/imx/imx-media.h                            |   2 +
- drivers/staging/media/sunxi/cedrus/cedrus_dec.c                  |  13 +++++
- drivers/staging/media/sunxi/cedrus/cedrus_dec.h                  |   8 +--
- drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c                |  10 ++--
- 30 files changed, 423 insertions(+), 173 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/melexis,mlx90640.txt
- create mode 100644 Documentation/devicetree/bindings/media/si470x.txt
+ drivers/staging/media/imx/imx-ic-prpencvf.c | 26 +++++++++++++++++---------
+ drivers/staging/media/imx/imx-media-csi.c   |  6 ++++--
+ 2 files changed, 21 insertions(+), 11 deletions(-)
