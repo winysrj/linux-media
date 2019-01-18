@@ -2,90 +2,174 @@ Return-Path: <SRS0=Cp5C=P2=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 388D8C43387
-	for <linux-media@archiver.kernel.org>; Fri, 18 Jan 2019 11:38:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 64D7DC43387
+	for <linux-media@archiver.kernel.org>; Fri, 18 Jan 2019 12:09:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EC51920652
-	for <linux-media@archiver.kernel.org>; Fri, 18 Jan 2019 11:38:09 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="WDPzRC2c"
+	by mail.kernel.org (Postfix) with ESMTP id 3D48520883
+	for <linux-media@archiver.kernel.org>; Fri, 18 Jan 2019 12:09:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727271AbfARLhr (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 18 Jan 2019 06:37:47 -0500
-Received: from bombadil.infradead.org ([198.137.202.133]:56702 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727194AbfARLhr (ORCPT
+        id S1727357AbfARMJE (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 18 Jan 2019 07:09:04 -0500
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:51427 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727343AbfARMJE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 Jan 2019 06:37:47 -0500
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=bombadil.20170209; h=Content-Transfer-Encoding:
-        MIME-Version:References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender
-        :Reply-To:Content-Type:Content-ID:Content-Description:Resent-Date:Resent-From
-        :Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
-        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=2aYhig1QlsGQZwSKaFkXby/qGv5OFiUqnUWT7ckjNi4=; b=WDPzRC2c1XDGytb70JraRr5OsV
-        DpAzvWFxenhXg9gpim14Cg32iOOHOrOqZXEtHtxbZhXtduiIiHT/lGTQicR5Q5WUuryH7OPs9QHfd
-        FgdQKkHdhsoU9jywFlznVm+9wtwSE1Xvge7Wyt1hCJwWg+w8g6J4kzsFJ7y2cldlBd4ebWYHgpWJ9
-        PG4hWEW28A/JO/td5s9H+NcPWLwIKNihqoXdLSSXr4ZEII73gfyiF5Cmye+pHGI8e+7knNsuoatN8
-        c8Lwq0kgbpvR6gW+LaRd92slOKp3AXlLrUgSo9BhdfW7h2pDpibNU9aR46f7oM7cRUgV9RliOEBaR
-        zU09Ir1g==;
-Received: from 089144210168.atnat0019.highway.a1.net ([89.144.210.168] helo=localhost)
-        by bombadil.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
-        id 1gkSSu-0005Oo-BK; Fri, 18 Jan 2019 11:37:36 +0000
-From:   Christoph Hellwig <hch@lst.de>
-To:     Pawel Osciak <pawel@osciak.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?= 
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc:     Russell King <linux@armlinux.org.uk>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        iommu@lists.linux-foundation.org,
-        linux-arm-kernel@lists.infradead.org,
-        linuxppc-dev@lists.ozlabs.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Robin Murphy <robin.murphy@arm.com>
-Subject: [PATCH 2/3] dma-mapping: don't BUG when calling dma_map_resource on RAM
-Date:   Fri, 18 Jan 2019 12:37:26 +0100
-Message-Id: <20190118113727.3270-3-hch@lst.de>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190118113727.3270-1-hch@lst.de>
-References: <20190118113727.3270-1-hch@lst.de>
+        Fri, 18 Jan 2019 07:09:04 -0500
+Received: from [IPv6:2001:983:e9a7:1:3849:86c5:b8c2:266c] ([IPv6:2001:983:e9a7:1:3849:86c5:b8c2:266c])
+        by smtp-cloud8.xs4all.net with ESMTPA
+        id kSxIgkeYgNR5ykSxJgWKvX; Fri, 18 Jan 2019 13:09:02 +0100
+Subject: Re: [PATCH 1/2] media: i2c: adv748x: Convert SW reset routine to
+ function
+To:     Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Koji Matsuoka <koji.matsuoka.xm@renesas.com>,
+        Jacopo Mondi <jacopo@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Cc:     linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
+References: <20190111174141.12594-1-kieran.bingham+renesas@ideasonboard.com>
+ <20190111174141.12594-2-kieran.bingham+renesas@ideasonboard.com>
+From:   Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <9d32186f-1024-d014-0123-d8e6a944ee12@xs4all.nl>
+Date:   Fri, 18 Jan 2019 13:09:00 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.3.1
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
+In-Reply-To: <20190111174141.12594-2-kieran.bingham+renesas@ideasonboard.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-CMAE-Envelope: MS4wfNSD6YazJc5O88HVnHXbdvnV0senHvu7dHaupa0uaMRT20LJAFcYfyCokx5CJdlBWgmnoQmVq6aZAUsnZIPsgYsb0QPGka2SNXCB+W5j59Jw3hBp3S7y
+ fDECmsMauBvkjsQj85DrjqoH1O+og5riWjz8bwwN542YWryABQjQvZO5UlK/0+dimPwQhQiJ+tuoBRDb0Xr2Ywt49IE6aO3MQByyQgxUO+E2XiBZys5gzple
+ cZbvlFQfNdKDEPFbELjM9FtGI3tBsJs3WgKSmadDtw8uYj8N5MkDV095ZpbQYvbYFDPflorGRBV73ezbOVTZvubu1k6G3EqwxxXtsAq5iwUC56oEIRb/AzUu
+ /vjXxkwmV7FLlyz5ydoSBU/g5WrEvoE0ftAuiON1lIDMh1Qd0mDrvGk3/Hh30Jc+hxn3XD6wqA/aMefEWieytRy19V2HZ76utm+eGXpT1MbhDsHIPEwMvItz
+ 5zIGppFnKaz1VrjEv92zzfabwveVBXwBJbPubLlvc93wLmIuXOTNcDOSRChvmOvh5u1qmz+SX7itsqyKmoCCPW+8BJtzKGPbWoGzxmZyMwvpSuEyr9QojeB+
+ nqk=
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Use WARN_ON_ONCE to print a stack trace and return a proper error
-code instead.
+On 1/11/19 6:41 PM, Kieran Bingham wrote:
+> The ADV748x is currently reset by writting a small table of registers to
+> the device.
+> 
+> The table lacks documentation and contains magic values to perform the
+> actions, including using a fake register address to introduce a delay
+> loop.
+> 
+> Remove the table, and convert to code, documenting the purpose of the
+> specific writes along the way.
+> 
+> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Robin Murphy <robin.murphy@arm.com>
----
- include/linux/dma-mapping.h | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+Hmm, this patch doesn't apply to the master branch.
 
-diff --git a/include/linux/dma-mapping.h b/include/linux/dma-mapping.h
-index 9842085e6774..b904d55247ab 100644
---- a/include/linux/dma-mapping.h
-+++ b/include/linux/dma-mapping.h
-@@ -353,7 +353,8 @@ static inline dma_addr_t dma_map_resource(struct device *dev,
- 	BUG_ON(!valid_dma_direction(dir));
- 
- 	/* Don't allow RAM to be mapped */
--	BUG_ON(pfn_valid(PHYS_PFN(phys_addr)));
-+	if (WARN_ON_ONCE(pfn_valid(PHYS_PFN(phys_addr))))
-+		return DMA_MAPPING_ERROR;
- 
- 	if (dma_is_direct(ops))
- 		addr = dma_direct_map_resource(dev, phys_addr, size, dir, attrs);
--- 
-2.20.1
+Does it depend on other patches being merged first, or it is just out-of-date?
+
+Regards,
+
+	Hans
+
+> ---
+>  drivers/media/i2c/adv748x/adv748x-core.c | 32 ++++++++++++++++--------
+>  drivers/media/i2c/adv748x/adv748x.h      | 16 ++++++++++++
+>  2 files changed, 38 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/adv748x/adv748x-core.c b/drivers/media/i2c/adv748x/adv748x-core.c
+> index 02f9c440301c..252bdb28b18b 100644
+> --- a/drivers/media/i2c/adv748x/adv748x-core.c
+> +++ b/drivers/media/i2c/adv748x/adv748x-core.c
+> @@ -389,15 +389,6 @@ static const struct media_entity_operations adv748x_media_ops = {
+>   * HW setup
+>   */
+>  
+> -static const struct adv748x_reg_value adv748x_sw_reset[] = {
+> -
+> -	{ADV748X_PAGE_IO, 0xff, 0xff},	/* SW reset */
+> -	{ADV748X_PAGE_WAIT, 0x00, 0x05},/* delay 5 */
+> -	{ADV748X_PAGE_IO, 0x01, 0x76},	/* ADI Required Write */
+> -	{ADV748X_PAGE_IO, 0xf2, 0x01},	/* Enable I2C Read Auto-Increment */
+> -	{ADV748X_PAGE_EOR, 0xff, 0xff}	/* End of register table */
+> -};
+> -
+>  /* Initialize CP Core with RGB888 format. */
+>  static const struct adv748x_reg_value adv748x_init_hdmi[] = {
+>  	/* Disable chip powerdown & Enable HDMI Rx block */
+> @@ -474,12 +465,33 @@ static const struct adv748x_reg_value adv748x_init_afe[] = {
+>  	{ADV748X_PAGE_EOR, 0xff, 0xff}	/* End of register table */
+>  };
+>  
+> +static int adv748x_sw_reset(struct adv748x_state *state)
+> +{
+> +	int ret;
+> +
+> +	ret = io_write(state, ADV748X_IO_REG_FF, ADV748X_IO_REG_FF_MAIN_RESET);
+> +	if (ret)
+> +		return ret;
+> +
+> +	usleep_range(5000, 6000);
+> +
+> +	/* Disable CEC Wakeup from power-down mode */
+> +	ret = io_clrset(state, ADV748X_IO_REG_01, ADV748X_IO_REG_01_PWRDN_MASK,
+> +			ADV748X_IO_REG_01_PWRDNB);
+> +	if (ret)
+> +		return ret;
+> +
+> +	/* Enable I2C Read Auto-Increment for consecutive reads */
+> +	return io_write(state, ADV748X_IO_REG_F2,
+> +			ADV748X_IO_REG_F2_READ_AUTO_INC);
+> +}
+> +
+>  static int adv748x_reset(struct adv748x_state *state)
+>  {
+>  	int ret;
+>  	u8 regval = 0;
+>  
+> -	ret = adv748x_write_regs(state, adv748x_sw_reset);
+> +	ret = adv748x_sw_reset(state);
+>  	if (ret < 0)
+>  		return ret;
+>  
+> diff --git a/drivers/media/i2c/adv748x/adv748x.h b/drivers/media/i2c/adv748x/adv748x.h
+> index b00c1995efb0..2f8d751cfbb0 100644
+> --- a/drivers/media/i2c/adv748x/adv748x.h
+> +++ b/drivers/media/i2c/adv748x/adv748x.h
+> @@ -211,6 +211,11 @@ struct adv748x_state {
+>  #define ADV748X_IO_PD			0x00	/* power down controls */
+>  #define ADV748X_IO_PD_RX_EN		BIT(6)
+>  
+> +#define ADV748X_IO_REG_01		0x01	/* pwrdn{2}b, prog_xtal_freq */
+> +#define ADV748X_IO_REG_01_PWRDN_MASK	(BIT(7) | BIT(6))
+> +#define ADV748X_IO_REG_01_PWRDN2B	BIT(7)	/* CEC Wakeup Support */
+> +#define ADV748X_IO_REG_01_PWRDNB	BIT(6)	/* CEC Wakeup Support */
+> +
+>  #define ADV748X_IO_REG_04		0x04
+>  #define ADV748X_IO_REG_04_FORCE_FR	BIT(0)	/* Force CP free-run */
+>  
+> @@ -229,8 +234,19 @@ struct adv748x_state {
+>  #define ADV748X_IO_CHIP_REV_ID_1	0xdf
+>  #define ADV748X_IO_CHIP_REV_ID_2	0xe0
+>  
+> +#define ADV748X_IO_REG_F2		0xf2
+> +#define ADV748X_IO_REG_F2_READ_AUTO_INC	BIT(0)
+> +
+> +/* For PAGE slave address offsets */
+>  #define ADV748X_IO_SLAVE_ADDR_BASE	0xf2
+>  
+> +/*
+> + * The ADV748x_Recommended_Settings_PrA_2014-08-20.pdf details both 0x80 and
+> + * 0xff as examples for performing a software reset.
+> + */
+> +#define ADV748X_IO_REG_FF		0xff
+> +#define ADV748X_IO_REG_FF_MAIN_RESET	0xff
+> +
+>  /* HDMI RX Map */
+>  #define ADV748X_HDMI_LW1		0x07	/* line width_1 */
+>  #define ADV748X_HDMI_LW1_VERT_FILTER	BIT(7)
+> 
 
