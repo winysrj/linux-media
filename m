@@ -6,20 +6,20 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 47778C43387
-	for <linux-media@archiver.kernel.org>; Fri, 18 Jan 2019 08:52:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3855AC43387
+	for <linux-media@archiver.kernel.org>; Fri, 18 Jan 2019 08:52:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1FCDE2087E
-	for <linux-media@archiver.kernel.org>; Fri, 18 Jan 2019 08:52:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 081D02087E
+	for <linux-media@archiver.kernel.org>; Fri, 18 Jan 2019 08:52:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727610AbfARIwN (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 18 Jan 2019 03:52:13 -0500
-Received: from mirror2.csie.ntu.edu.tw ([140.112.30.76]:58344 "EHLO
+        id S1727768AbfARIwo (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 18 Jan 2019 03:52:44 -0500
+Received: from mirror2.csie.ntu.edu.tw ([140.112.30.76]:58328 "EHLO
         wens.csie.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727357AbfARIwM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        id S1727205AbfARIwM (ORCPT <rfc822;linux-media@vger.kernel.org>);
         Fri, 18 Jan 2019 03:52:12 -0500
 Received: by wens.csie.org (Postfix, from userid 1000)
-        id 754FE5FD4A; Fri, 18 Jan 2019 16:52:09 +0800 (CST)
+        id 6BA435F848; Fri, 18 Jan 2019 16:52:09 +0800 (CST)
 From:   Chen-Yu Tsai <wens@csie.org>
 To:     Steve Longerbeam <slongerbeam@gmail.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
@@ -27,9 +27,9 @@ To:     Steve Longerbeam <slongerbeam@gmail.com>,
 Cc:     Chen-Yu Tsai <wens@csie.org>, linux-media@vger.kernel.org,
         linux-kernel@vger.kernel.org,
         Maxime Ripard <maxime.ripard@bootlin.com>
-Subject: [PATCH 3/6] media: ov5640: Disable transparent feature for test pattern
-Date:   Fri, 18 Jan 2019 16:52:03 +0800
-Message-Id: <20190118085206.2598-4-wens@csie.org>
+Subject: [PATCH 1/6] media: ov5640: Move test_pattern_menu before ov5640_set_ctrl_test_pattern
+Date:   Fri, 18 Jan 2019 16:52:01 +0800
+Message-Id: <20190118085206.2598-2-wens@csie.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190118085206.2598-1-wens@csie.org>
 References: <20190118085206.2598-1-wens@csie.org>
@@ -40,32 +40,48 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-The transparent feature for test patterns blends the test pattern with
-an actual captured image. This makes the result non-static, subject to
-changes in the sensor's field of view.
+The OV5640 has many options for generating test patterns. Unfortunately
+there is only one V4L2 control for it. Thus the driver would need to
+list some or all combinations.
 
-Test patterns should be predictable and deterministic, even if they are
-dynamic patterns. Disable the transparent feature of the test pattern.
+Move the test_pattern_menu list before the ov5640_set_ctrl_test_pattern
+function that programs the hardware. This would allow us to add a
+matching list of values to program into the hardware, while keeping the
+two lists together for ease of maintenance.
 
 Signed-off-by: Chen-Yu Tsai <wens@csie.org>
 ---
- drivers/media/i2c/ov5640.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/media/i2c/ov5640.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-index 22d07b3cc8a2..a1fd69a21df1 100644
+index 5a909abd0a2d..8e4e8fa3685f 100644
 --- a/drivers/media/i2c/ov5640.c
 +++ b/drivers/media/i2c/ov5640.c
-@@ -2461,8 +2461,7 @@ static const char * const test_pattern_menu[] = {
+@@ -2441,6 +2441,11 @@ static int ov5640_set_ctrl_gain(struct ov5640_dev *sensor, bool auto_gain)
+ 	return ret;
+ }
  
- static const u8 test_pattern_val[] = {
- 	0,
--	OV5640_TEST_ENABLE | OV5640_TEST_TRANSPARENT |
--		OV5640_TEST_BAR_VERT_CHANGE_1 |
-+	OV5640_TEST_ENABLE | OV5640_TEST_BAR_VERT_CHANGE_1 |
- 		OV5640_TEST_BAR,
++static const char * const test_pattern_menu[] = {
++	"Disabled",
++	"Color bars",
++};
++
+ static int ov5640_set_ctrl_test_pattern(struct ov5640_dev *sensor, int value)
+ {
+ 	return ov5640_mod_reg(sensor, OV5640_REG_PRE_ISP_TEST_SET1,
+@@ -2585,11 +2590,6 @@ static const struct v4l2_ctrl_ops ov5640_ctrl_ops = {
+ 	.s_ctrl = ov5640_s_ctrl,
  };
  
+-static const char * const test_pattern_menu[] = {
+-	"Disabled",
+-	"Color bars",
+-};
+-
+ static int ov5640_init_controls(struct ov5640_dev *sensor)
+ {
+ 	const struct v4l2_ctrl_ops *ops = &ov5640_ctrl_ops;
 -- 
 2.20.1
 
