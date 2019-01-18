@@ -2,97 +2,82 @@ Return-Path: <SRS0=Cp5C=P2=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.0 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 84819C43387
-	for <linux-media@archiver.kernel.org>; Fri, 18 Jan 2019 09:06:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E0A7EC43387
+	for <linux-media@archiver.kernel.org>; Fri, 18 Jan 2019 09:07:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5E8092087E
-	for <linux-media@archiver.kernel.org>; Fri, 18 Jan 2019 09:06:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B170E2087E
+	for <linux-media@archiver.kernel.org>; Fri, 18 Jan 2019 09:07:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726838AbfARJGo (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 18 Jan 2019 04:06:44 -0500
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:50055 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725856AbfARJGo (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 Jan 2019 04:06:44 -0500
-Received: from [IPv6:2001:983:e9a7:1:3849:86c5:b8c2:266c] ([IPv6:2001:983:e9a7:1:3849:86c5:b8c2:266c])
-        by smtp-cloud9.xs4all.net with ESMTPA
-        id kQ6rgc1L3axzfkQ6sgofbI; Fri, 18 Jan 2019 10:06:42 +0100
-To:     Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc:     Sakari Ailus <sakari.ailus@linux.intel.com>
-From:   Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v5.1] Remove obsolete soc_camera drivers
-Message-ID: <c825872f-1261-fadd-843c-27d7e461d5e8@xs4all.nl>
-Date:   Fri, 18 Jan 2019 10:06:41 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.3.1
+        id S1727080AbfARJHH (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 18 Jan 2019 04:07:07 -0500
+Received: from mga07.intel.com ([134.134.136.100]:35840 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727003AbfARJHC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 18 Jan 2019 04:07:02 -0500
+X-Amp-Result: UNSCANNABLE
+X-Amp-File-Uploaded: False
+Received: from fmsmga007.fm.intel.com ([10.253.24.52])
+  by orsmga105.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 18 Jan 2019 01:07:01 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.56,489,1539673200"; 
+   d="scan'208";a="115640778"
+Received: from rfrenzel-mobl.ger.corp.intel.com (HELO kekkonen.fi.intel.com) ([10.252.59.237])
+  by fmsmga007.fm.intel.com with ESMTP; 18 Jan 2019 01:07:00 -0800
+Received: by kekkonen.fi.intel.com (Postfix, from userid 1000)
+        id E0A4B21E54; Fri, 18 Jan 2019 11:06:57 +0200 (EET)
+Date:   Fri, 18 Jan 2019 11:06:57 +0200
+From:   Sakari Ailus <sakari.ailus@linux.intel.com>
+To:     Hans Verkuil <hverkuil-cisco@xs4all.nl>
+Cc:     linux-media@vger.kernel.org,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>
+Subject: Re: [PATCH 0/8] Remove obsolete soc_camera drivers
+Message-ID: <20190118090656.rdsx7jrfnvmtp3o4@kekkonen.localdomain>
+References: <20190117161802.5740-1-hverkuil-cisco@xs4all.nl>
+ <20190118085624.z64orgt62ekyyni6@kekkonen.localdomain>
+ <738da2a6-e8a3-c09b-d9b8-4489eeb4f46a@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfNyZ5tNl6pQDpNuYeyYQzkzmPbNTzLRT7E6p118l9sG82e2OjymacQryNv43ioELjE3vo70zz4DQIhadD9OKA6OJAa45EmMU331n23r/NKoO8y5wv6ib
- ukmOBTwgrIYCqL1L2EmLIXIkvulPdlW81PtrmIZTOgwnv+ZkvXa5aj0M5PFtEnerNSemqNpuni3R3K6X5hqwl9Qjs2/ZwPpz4xgNLt9+XHnnqmQu1jXFIwdv
- Ct+gF9qfG0RbnFjU82dUkmXr4VH0Mcfy+RKJCPbyWHUrL47rsQ0yLrv9xpA6LBvTGr32lwRw8nffb9PcmZdSzA==
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <738da2a6-e8a3-c09b-d9b8-4489eeb4f46a@xs4all.nl>
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-The following changes since commit e8f9b16d72631870e30a3d8e4ee9f1c097bc7ba0:
+On Fri, Jan 18, 2019 at 09:58:43AM +0100, Hans Verkuil wrote:
+> On 1/18/19 9:56 AM, Sakari Ailus wrote:
+> > On Thu, Jan 17, 2019 at 05:17:54PM +0100, hverkuil-cisco@xs4all.nl wrote:
+> >> From: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+> >>
+> >> The soc_mt9t112, soc_ov772x and soc_tw9910 drivers now have
+> >> non-soc-camera replacements, so those three drivers can be
+> >> removed.
+> >>
+> >> The soc_camera sh_mobile_ceu_camera platform driver also has
+> >> a non-soc-camera replacement, so remove this driver as well.
+> >>
+> >> This driver was also the last driver that used soc_scale_crop,
+> >> so remove that too. Finally remove the test soc_camera_platform
+> >> driver. There will be no more soc_camera platform drivers, so this
+> >> platform template driver serves no purpose anymore.
+> > 
+> > For the set:
+> > 
+> > Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > 
+> > Are you planning to move the rest of the drivers to staging and depend on
+> > BROKEN, or should I do that?
+> > 
+> 
+> Can you do that?
 
-  media: remove soc_camera ov9640 (2019-01-17 09:01:11 -0500)
+Certainly. I just want to make sure we don't both do it. :-)
 
-are available in the Git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git tags/br-rmsensors3
-
-for you to fetch changes up to 8ae3463355f534129814cbefb8bde3a0a3302dd9:
-
-  soc_camera_platform: remove obsolete soc_camera test driver (2019-01-18 10:04:45 +0100)
-
-----------------------------------------------------------------
-Tag branch
-
-----------------------------------------------------------------
-Hans Verkuil (7):
-      soc_mt9t112: remove obsolete sensor driver
-      soc_ov772x: remove obsolete sensor driver
-      tw9910.h: remove obsolete soc_camera.h include.
-      soc_tw9910: remove obsolete sensor driver
-      sh_mobile_ceu_camera: remove obsolete soc_camera driver
-      soc_camera/soc_scale_crop: drop this unused code
-      soc_camera_platform: remove obsolete soc_camera test driver
-
-Jacopo Mondi (1):
-      media: tw9910: Unregister subdevice with v4l2-async
-
- drivers/media/i2c/soc_camera/Kconfig                     |   18 -
- drivers/media/i2c/soc_camera/Makefile                    |    3 -
- drivers/media/i2c/soc_camera/soc_mt9t112.c               | 1157 -----------------------------
- drivers/media/i2c/soc_camera/soc_ov772x.c                | 1123 ----------------------------
- drivers/media/i2c/soc_camera/soc_tw9910.c                |  999 -------------------------
- drivers/media/i2c/tw9910.c                               |    2 +-
- drivers/media/platform/soc_camera/Kconfig                |   18 -
- drivers/media/platform/soc_camera/Makefile               |    8 -
- drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c | 1810 ---------------------------------------------
- drivers/media/platform/soc_camera/soc_camera_platform.c  |  188 -----
- drivers/media/platform/soc_camera/soc_scale_crop.c       |  426 -----------
- drivers/media/platform/soc_camera/soc_scale_crop.h       |   47 --
- include/linux/platform_data/media/soc_camera_platform.h  |   83 ---
- include/media/drv-intf/sh_mobile_ceu.h                   |   29 -
- include/media/i2c/tw9910.h                               |    2 -
- 15 files changed, 1 insertion(+), 5912 deletions(-)
- delete mode 100644 drivers/media/i2c/soc_camera/soc_mt9t112.c
- delete mode 100644 drivers/media/i2c/soc_camera/soc_ov772x.c
- delete mode 100644 drivers/media/i2c/soc_camera/soc_tw9910.c
- delete mode 100644 drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
- delete mode 100644 drivers/media/platform/soc_camera/soc_camera_platform.c
- delete mode 100644 drivers/media/platform/soc_camera/soc_scale_crop.c
- delete mode 100644 drivers/media/platform/soc_camera/soc_scale_crop.h
- delete mode 100644 include/linux/platform_data/media/soc_camera_platform.h
- delete mode 100644 include/media/drv-intf/sh_mobile_ceu.h
+-- 
+Sakari Ailus
+sakari.ailus@linux.intel.com
