@@ -2,104 +2,105 @@ Return-Path: <SRS0=Cp5C=P2=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.0 required=3.0 tests=FREEMAIL_FORGED_FROMDOMAIN,
-	FREEMAIL_FROM,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.2 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_PASS autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 63C27C43387
-	for <linux-media@archiver.kernel.org>; Fri, 18 Jan 2019 17:03:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2DBB6C07EBF
+	for <linux-media@archiver.kernel.org>; Fri, 18 Jan 2019 17:41:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3838D2086D
-	for <linux-media@archiver.kernel.org>; Fri, 18 Jan 2019 17:03:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EDB1620883
+	for <linux-media@archiver.kernel.org>; Fri, 18 Jan 2019 17:41:12 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1547833273;
+	bh=EneCs9KTwSjiBYmTIPk0sZ/bWAPfYpTjLgRgW/oX4lM=;
+	h=Date:From:To:Cc:Subject:List-ID:From;
+	b=d9RBjbP0lV3xvuEDdvNvRZrHpH8kT0T0TXMzXe5cjV6YifxX7VtIx9CPABaWIjCvV
+	 8Y5aXL7p+Mtk4krNiRJmFTtlo+KnKjiuy17WWhunF83p8VnV3wUscyMXgC7MS2KgNO
+	 LOgkDO33orwGZRV6ReEf5Ye7spWj79DNuwlIcTJc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728370AbfARRDX (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 18 Jan 2019 12:03:23 -0500
-Received: from mout.gmx.net ([212.227.17.21]:43395 "EHLO mout.gmx.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727823AbfARRDX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 Jan 2019 12:03:23 -0500
-Received: from localhost ([188.110.163.212]) by mail.gmx.com (mrgmx103
- [212.227.17.168]) with ESMTPSA (Nemesis) id 0MFctN-1gzA8y3ETF-00Edpa; Fri, 18
- Jan 2019 18:03:21 +0100
-Date:   Fri, 18 Jan 2019 18:03:21 +0100
-From:   Peter Seiderer <ps.report@gmx.net>
-To:     Steve Longerbeam <slongerbeam@gmail.com>
-Cc:     linux-media@vger.kernel.org
-Subject: Re: [v2,1/2] media: imx: csi: Disable CSI immediately after last
- EOF
-Message-ID: <20190118180321.2789f7a2@gmx.net>
-X-Mailer: Claws Mail 3.17.3 (GTK+ 2.24.32; x86_64-suse-linux-gnu)
+        id S1728551AbfARRlH (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 18 Jan 2019 12:41:07 -0500
+Received: from casper.infradead.org ([85.118.1.10]:53844 "EHLO
+        casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728000AbfARRlH (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 18 Jan 2019 12:41:07 -0500
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
+        MIME-Version:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:
+        List-Subscribe:List-Post:List-Owner:List-Archive;
+        bh=Ck+8stJAPuL59pFfoIZ5YFiXrfWVwKJM8M57fNVuv1g=; b=esrUyl2QOJl+vRYqlODGkjsclk
+        vgISMLeMYS0eSTqT5bXCebM+hq7Q8zk4E6gpjc/Ovp7jOXOlItysuNjGFGSrTtwa37TR6e649QFUE
+        WpIq1v/HYr5bpzWm3oYYb8+YosZzhiUvC0w6SsddE9XUoKhoEGDTbF6JYntPZyAlAy04eYy6B+J9c
+        RiEPunxGxTHbu7Tnxw1wjGF6frXACfFa5bOE0OrBYqUps2Su5/Tj1saoVeZD7Ywf9X8Y6viy7QIAT
+        r6G2ppBzxONJo/uMssWyDKKGk6ZGhuZ+aPLqz4ph9p0bLBMqlOLbvput3r/4lziC78sSF0MtHvEh1
+        FxGbuV2Q==;
+Received: from 189.27.24.74.dynamic.adsl.gvt.net.br ([189.27.24.74] helo=coco.lan)
+        by casper.infradead.org with esmtpsa (Exim 4.90_1 #2 (Red Hat Linux))
+        id 1gkY8e-0007iB-HB; Fri, 18 Jan 2019 17:41:05 +0000
+Date:   Fri, 18 Jan 2019 15:40:58 -0200
+From:   Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: [GIT PULL for v5.0-rc3] media fixes
+Message-ID: <20190118154058.12fda86a@coco.lan>
+X-Mailer: Claws Mail 3.17.3 (GTK+ 2.24.32; x86_64-redhat-linux-gnu)
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-X-Provags-ID: V03:K1:DFcp9V8qfthfrglVjaH7YXXMavQY1TLv++qzPrAi9XqZw3KoV7W
- 1DDv1sgK2ufQY4E5jus5/sI64s/7MeQ+1nINcwqY17WxyLptHCADMD4RcFYljreuwneJxg6
- ZUMNFynEfxEfZ0tmz3D0G/+8WYOiAPiQz7w1rDIF7n90gywufJN7SBg1kF6WO13Ds3vlNTE
- 3wVIz6ZKjwa288+Qs/APg==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:FWpkEc9ZMZY=:WzsS3tUJQxLqBxkD27sUGN
- ZyKBFc94x5vUTMa0E7C00zO5KnPhSYGb6Cb/FEJKgGXXvwx/V2OQJ8pqb/yM9GLhMNkw0u84H
- oW0Ma64vpucNHy9/7PmM51o6cXhGl+18Oi8kDTCeOpKWlHH6hJjUGnAfwoqU4gYh5Y8g3f5E9
- ZPYxnAcTpCIFC1UPjIMkYaFofII7vRDSBLVd2uPVwuYVz4DxJg5H6uqZy0p00siEK4DqjN0+w
- /pS8OFVTEWdO40Bc8YWf+8CBgJEWvuUANMoAdaj+YOO6Br7ZDBwRo4nRAktBnlQsLjImXBI1g
- VAZOsmTimDpWpFrIhj7AWkR4DOICrIMaUGynfaPTrVp2Q69jiGKdBZmZyFRjYt5DToVPwM56V
- ru7bZBuhukpdS7QdSF01+mIRneOwEJHYh8lSVt2ZfSKpWBJ90TrlTrx2Wt0qm125q1ggxgiOx
- rPc8PknZ0kdxvLKWNwRgWFbZb1Wt7p3gc23RVVCGTYspZuuK7RreHrdV6pw2PuvDfC8qaynlK
- ecF/lcqFw3XwR7P6Gzq2fL3pbrUmssWlRtHaYjMiUFlcuE+EFu4NV6gW13fAeGDn2lMV0rt92
- HtgjeAE6g0vJOx5Q8frjAq2Tq2rAkXvxuFtY1A61cjNQjMMSs+h0zIUZ4mEkgy+QcqHsyLBA4
- JCYk6lB61brjnTBza9XgaHN/t2ONbGjmnojisJ2FtJvAuOACMTd3CZWVVg1+Dytq/PlruKYWa
- eAIoT/Rwv518W0QGompjADuC4kd3tXgLuXsYvzlkDw1Az/gLGOJrkwVF2HsYm6RXGoA4iSCs+
- XQEJkm/JGbLZASxEmxWFvBx6EZfz95xMLkP3j/VdCZPjDnIzHLFYNdYLvXaCRNnjhXO6YU7m6
- rqUDf2lRLvo0O6uNaXU5E2XSiGStE2G7/zA8t5vcLbc/yRQguj0M+QCp5REEWfIvlmp+7noza
- 5mD64m9tsxQ==
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hello Steve,
+Hi Linus,
 
-On Thu, Jan 17, 2019 at 6:15 PM Steve Longerbeam <slongerbeam@gmail.com> wrote:
->
-> Disable the CSI immediately after receiving the last EOF before stream
-> off (and thus before disabling the IDMA channel).
->
-> This fixes a complete system hard lockup on the SabreAuto when streaming
-> from the ADV7180, by repeatedly sending a stream off immediately followed
-> by stream on:
-> 
-> while true; do v4l2-ctl  -d4 --stream-mmap --stream-count=3; done
-> 
-> Eventually this either causes the system lockup or EOF timeouts at all
-> subsequent stream on, until a system reset.
-> 
-> The lockup occurs when disabling the IDMA channel at stream off. Disabling
-> the CSI before disabling the IDMA channel appears to be a reliable fix for
-> the hard lockup.
-> 
-> Fixes: 4a34ec8e470cb ("[media] media: imx: Add CSI subdev driver")
-[...]
+Please pull from:
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/v5.0-1
 
-Similar lockup observed on a custom i.mx6 board, fixed locally by the following
-patch/workaround:
+for:
 
-diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-index 555aa45e02e3..f04d1695f7a4 100644
---- a/drivers/staging/media/imx/imx-media-csi.c
-+++ b/drivers/staging/media/imx/imx-media-csi.c
-@@ -560,8 +560,8 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
- static void csi_idmac_unsetup(struct csi_priv *priv,
-                              enum vb2_buffer_state state)
- {
--       ipu_idmac_disable_channel(priv->idmac_ch);
-        ipu_smfc_disable(priv->smfc);
-+       ipu_idmac_disable_channel(priv->idmac_ch);
+- A regression fix at v4l2 core, with affects multi-plane streams;
+- a fix at vim2m driver.
 
-        csi_idmac_unsetup_vb2_buf(priv, state);
- }
+Thanks!
+Mauro
 
-Will test your patch the next days...
 
-Regards,
-Peter
+The following changes since commit 1c7fc5cbc33980acd13d668f1c8f0313d6ae9fd8:
 
-[Sorry for missing some of the CC and Message-Id, not fully subscribed to linux-media]
+  Linux 5.0-rc2 (2019-01-14 10:41:12 +1200)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/v5.0-1
+
+for you to fetch changes up to 240809ef6630a4ce57c273c2d79ffb657cd361eb:
+
+  media: vim2m: only cancel work if it is for right context (2019-01-16 11:13:25 -0500)
+
+----------------------------------------------------------------
+media fixes for v5.0-rc3
+
+----------------------------------------------------------------
+Hans Verkuil (1):
+      media: vim2m: only cancel work if it is for right context
+
+Sakari Ailus (2):
+      media: v4l: ioctl: Validate num_planes before using it
+      media: v4l: ioctl: Validate num_planes for debug messages
+
+Thierry Reding (1):
+      media: v4l2-ioctl: Clear only per-plane reserved fields
+
+ drivers/media/platform/vim2m.c       |  4 +++-
+ drivers/media/v4l2-core/v4l2-ioctl.c | 24 +++++++++++++++++++-----
+ 2 files changed, 22 insertions(+), 6 deletions(-)
+
