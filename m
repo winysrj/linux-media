@@ -4,154 +4,115 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 04A09C43387
-	for <linux-media@archiver.kernel.org>; Fri, 18 Jan 2019 10:08:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 73224C43387
+	for <linux-media@archiver.kernel.org>; Fri, 18 Jan 2019 10:24:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CCFFA2087E
-	for <linux-media@archiver.kernel.org>; Fri, 18 Jan 2019 10:08:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4421820823
+	for <linux-media@archiver.kernel.org>; Fri, 18 Jan 2019 10:24:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727091AbfARKH7 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 18 Jan 2019 05:07:59 -0500
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:47431 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726309AbfARKH7 (ORCPT
+        id S1726309AbfARKYH (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 18 Jan 2019 05:24:07 -0500
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:56195 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725982AbfARKYH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 Jan 2019 05:07:59 -0500
-Received: from [IPv6:2001:983:e9a7:1:3849:86c5:b8c2:266c] ([IPv6:2001:983:e9a7:1:3849:86c5:b8c2:266c])
-        by smtp-cloud9.xs4all.net with ESMTPA
-        id kR42gcVMZaxzfkR43gp1Th; Fri, 18 Jan 2019 11:07:57 +0100
-Subject: Re: [PATCH] media: fsl-viu: Use proper check for presence of
- {out,in}_be32()
-To:     Geert Uytterhoeven <geert@linux-m68k.org>,
-        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-        Paul Mackerras <paulus@samba.org>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc:     Arnd Bergmann <arnd@arndb.de>, linuxppc-dev@lists.ozlabs.org,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <1528451328-21316-1-git-send-email-geert@linux-m68k.org>
- <5948eb0d-410d-5bc6-a0f3-ffcaa4b3f975@xs4all.nl>
-From:   Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <d30d5bcd-8719-ac59-adf5-08c9576be759@xs4all.nl>
-Date:   Fri, 18 Jan 2019 11:07:50 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.3.1
-MIME-Version: 1.0
-In-Reply-To: <5948eb0d-410d-5bc6-a0f3-ffcaa4b3f975@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfJBvqnim0n3FiepnZVYwwrxC+M3BQzdtCudOApnWUjDDxJHXRO6ocF531m8WbV7oAY+a9B3lvJc1eh03fcE/X2Oid16NbmqAM/zASprMRO71/5FUA0At
- jrVePY8qwNTe19vrznBTOCWa5R1Jscq/lNsTrkBL7nDfdJ+brQ7gbpmhn5yqqOLtoU8TKyPdQTSAvB54HT8D4unFXaZMlUg4DelmxUMbD5kRWRAmAPbcPxqo
- bJh5FomLJdagmQu7y+R9SWw7IDPyumNMnX8sFPrWRA4AZFF2CyizL3zGSU4mFOrPubimBIa/KAgS6pseyquHvrFsNQGtG695JF00Z8NCE8ZkZAORAEXcQnPY
- PJGtGiY52ejVRUJQN9JkFPNLcK1oaNt/x37fZP9otTTCl7q6kRkfgE37sVtGX8x8f2rFqF9rUcLXCCoJtzUHH9j7txzxq6oyKxF2gKAFBAwwOFY30/YY9WAl
- EtuRMmTqwv2CimFlpCxy6Nc409fs8IwdxaBSo4G2PZBTDO60F8Ko8p4+aTLRGKUJA/hLkHpc9IiOr65I
+        Fri, 18 Jan 2019 05:24:07 -0500
+Received: from lupine.hi.pengutronix.de ([2001:67c:670:100:3ad5:47ff:feaf:1a17] helo=lupine)
+        by metis.ext.pengutronix.de with esmtp (Exim 4.89)
+        (envelope-from <p.zabel@pengutronix.de>)
+        id 1gkRJl-00021k-Nj; Fri, 18 Jan 2019 11:24:05 +0100
+Message-ID: <1547807043.3375.3.camel@pengutronix.de>
+Subject: Re: [PATCH v2 1/2] media: imx: csi: Disable CSI immediately after
+ last EOF
+From:   Philipp Zabel <p.zabel@pengutronix.de>
+To:     Steve Longerbeam <slongerbeam@gmail.com>,
+        linux-media@vger.kernel.org
+Cc:     stable@vger.kernel.org, Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>,
+        open list <linux-kernel@vger.kernel.org>
+Date:   Fri, 18 Jan 2019 11:24:03 +0100
+In-Reply-To: <20190117204912.28456-2-slongerbeam@gmail.com>
+References: <20190117204912.28456-1-slongerbeam@gmail.com>
+         <20190117204912.28456-2-slongerbeam@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+X-Mailer: Evolution 3.22.6-1+deb9u1 
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 2001:67c:670:100:3ad5:47ff:feaf:1a17
+X-SA-Exim-Mail-From: p.zabel@pengutronix.de
+X-SA-Exim-Scanned: No (on metis.ext.pengutronix.de); SAEximRunCond expanded to false
+X-PTX-Original-Recipient: linux-media@vger.kernel.org
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Geert,
-
-This patch is still in my patchwork todo list, and I wonder who will pick this up,
-especially the change to arch/powerpc/include/asm/io.h.
-
-Wouldn't it be easier to just fix this in fsl-viu.c only by doing this:
-
-#ifndef CONFIG_PPC
-#ifndef out_be32
-#define out_be32(v, a)  iowrite32be(a, (void __iomem *)v)
-#endif
-#ifndef in_be32
-#define in_be32(a)      ioread32be((void __iomem *)a)
-#endif
-#endif
-
-Basically just your patch, but without removing #ifndef CONFIG_PPC.
-
-That way there is no need to touch arch/powerpc/include/asm/io.h.
-
-Regards,
-
-	Hans
-
-On 6/15/18 10:10 AM, Hans Verkuil wrote:
-> On 08/06/18 11:48, Geert Uytterhoeven wrote:
->> When compile-testing on m68k or microblaze:
->>
->>     drivers/media/platform/fsl-viu.c:41:1: warning: "out_be32" redefined
->>     drivers/media/platform/fsl-viu.c:42:1: warning: "in_be32" redefined
->>
->> Fix this by replacing the check for PowerPC by checks for the presence
->> of {out,in}_be32().
->>
->> As PowerPC implements the be32 accessors using inline functions instead
->> of macros, identity definions are added for all accessors to make the
->> above checks work.
->>
->> Fixes: 29d750686331a1a9 ("media: fsl-viu: allow building it with COMPILE_TEST")
->> Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+On Thu, 2019-01-17 at 12:49 -0800, Steve Longerbeam wrote:
+> Disable the CSI immediately after receiving the last EOF before stream
+> off (and thus before disabling the IDMA channel).
 > 
-> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+> This fixes a complete system hard lockup on the SabreAuto when streaming
+> from the ADV7180, by repeatedly sending a stream off immediately followed
+> by stream on:
 > 
-> Should this go through the media tree or powerpc tree? Either way works for me.
+> while true; do v4l2-ctl  -d4 --stream-mmap --stream-count=3; done
 > 
-> Regards,
+> Eventually this either causes the system lockup or EOF timeouts at all
+> subsequent stream on, until a system reset.
 > 
-> 	Hans
+> The lockup occurs when disabling the IDMA channel at stream off. Disabling
+> the CSI before disabling the IDMA channel appears to be a reliable fix for
+> the hard lockup.
+>
+> Fixes: 4a34ec8e470cb ("[media] media: imx: Add CSI subdev driver")
 > 
->> ---
->> Compile-tested on m68k, microblaze, and powerpc.
->> Assembler output before/after compared for powerpc.
->> ---
->>  arch/powerpc/include/asm/io.h    | 14 ++++++++++++++
->>  drivers/media/platform/fsl-viu.c |  4 +++-
->>  2 files changed, 17 insertions(+), 1 deletion(-)
->>
->> diff --git a/arch/powerpc/include/asm/io.h b/arch/powerpc/include/asm/io.h
->> index e0331e7545685c5f..3741183ae09349f1 100644
->> --- a/arch/powerpc/include/asm/io.h
->> +++ b/arch/powerpc/include/asm/io.h
->> @@ -222,6 +222,20 @@ static inline void out_be64(volatile u64 __iomem *addr, u64 val)
->>  #endif
->>  #endif /* __powerpc64__ */
->>  
->> +#define in_be16 in_be16
->> +#define in_be32 in_be32
->> +#define in_be64 in_be64
->> +#define in_le16 in_le16
->> +#define in_le32 in_le32
->> +#define in_le64 in_le64
->> +
->> +#define out_be16 out_be16
->> +#define out_be32 out_be32
->> +#define out_be64 out_be64
->> +#define out_le16 out_le16
->> +#define out_le32 out_le32
->> +#define out_le64 out_le64
->> +
->>  /*
->>   * Low level IO stream instructions are defined out of line for now
->>   */
->> diff --git a/drivers/media/platform/fsl-viu.c b/drivers/media/platform/fsl-viu.c
->> index e41510ce69a40815..5d5e030c9c980647 100644
->> --- a/drivers/media/platform/fsl-viu.c
->> +++ b/drivers/media/platform/fsl-viu.c
->> @@ -37,8 +37,10 @@
->>  #define VIU_VERSION		"0.5.1"
->>  
->>  /* Allow building this driver with COMPILE_TEST */
->> -#ifndef CONFIG_PPC
->> +#ifndef out_be32
->>  #define out_be32(v, a)	iowrite32be(a, (void __iomem *)v)
->> +#endif
->> +#ifndef in_be32
->>  #define in_be32(a)	ioread32be((void __iomem *)a)
->>  #endif
->>  
->>
+> Reported-by: Gaël PORTAY <gael.portay@collabora.com>
+> Signed-off-by: Steve Longerbeam <slongerbeam@gmail.com>
+> Cc: stable@vger.kernel.org
+> ---
+> Changes in v2:
+> - restore an empty line
+> - Add Fixes: and Cc: stable
+> ---
+>  drivers/staging/media/imx/imx-media-csi.c | 6 ++++--
+>  1 file changed, 4 insertions(+), 2 deletions(-)
 > 
-> 
+> diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+> index e18f58f56dfb..e0f6f88e2e70 100644
+> --- a/drivers/staging/media/imx/imx-media-csi.c
+> +++ b/drivers/staging/media/imx/imx-media-csi.c
+> @@ -681,6 +681,8 @@ static void csi_idmac_stop(struct csi_priv *priv)
+>  	if (ret == 0)
+>  		v4l2_warn(&priv->sd, "wait last EOF timeout\n");
+>  
+> +	ipu_csi_disable(priv->csi);
+> +
 
+Can you add a short comment why this call is here? Since now
+csi_idmac_stop is kind of a misnomer and symmetry with csi(_idmac)_start
+is broken, I think this is a bit un-obvious.
+
+Also note that now the error path of csi_start() will now call
+ipu_csi_disable() while the CSI is disabled. This happens to work
+because that just calls ipu_module_disable(), which is not refcounted.
+
+>  	devm_free_irq(priv->dev, priv->eof_irq, priv);
+>  	devm_free_irq(priv->dev, priv->nfb4eof_irq, priv);
+>  
+> @@ -793,9 +795,9 @@ static void csi_stop(struct csi_priv *priv)
+>  		/* stop the frame interval monitor */
+>  		if (priv->fim)
+>  			imx_media_fim_set_stream(priv->fim, NULL, false);
+> +	} else {
+> +		ipu_csi_disable(priv->csi);
+>  	}
+> -
+> -	ipu_csi_disable(priv->csi);
+
+Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
+
+regards
+Philipp
