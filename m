@@ -6,24 +6,24 @@ X-Spam-Status: No, score=2.8 required=3.0 tests=DATE_IN_PAST_12_24,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,PHOTO_EDITING_FREEM,SPF_PASS
 	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C23CC5AE5E
-	for <linux-media@archiver.kernel.org>; Sat, 19 Jan 2019 01:15:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F8E8C5AE5E
+	for <linux-media@archiver.kernel.org>; Sat, 19 Jan 2019 01:29:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 629E42084C
-	for <linux-media@archiver.kernel.org>; Sat, 19 Jan 2019 01:15:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 76A782086D
+	for <linux-media@archiver.kernel.org>; Sat, 19 Jan 2019 01:29:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730288AbfASBPL (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 18 Jan 2019 20:15:11 -0500
-Received: from nordstromrack.com ([185.244.39.222]:42965 "EHLO prolighting.com"
+        id S1730251AbfASB3v (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 18 Jan 2019 20:29:51 -0500
+Received: from nordstromrack.com ([185.244.39.222]:52358 "EHLO prolighting.com"
         rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1727189AbfASBPL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 Jan 2019 20:15:11 -0500
-X-Greylist: delayed 35400 seconds by postgrey-1.27 at vger.kernel.org; Fri, 18 Jan 2019 20:15:10 EST
+        id S1729408AbfASB3u (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 18 Jan 2019 20:29:50 -0500
+X-Greylist: delayed 3636 seconds by postgrey-1.27 at vger.kernel.org; Fri, 18 Jan 2019 20:29:49 EST
 To:     linux-media@vger.kernel.org
 Subject: Shooting and Retouching
-Message-ID: <833a9273461bfd7219e11c003801c603@seadek.com>
-Date:   Fri, 18 Jan 2019 10:56:53 +0100
-From:   "Jenna" <jennalkiwnteerpanrqlop@verizon.net>
+Message-ID: <72cf45c91ccb6ecb509cfc15628833f2@collinslake.com>
+Date:   Fri, 18 Jan 2019 10:06:56 +0100
+From:   "Jenna" <jennalkinteerdpafnlop@verizon.net>
 Reply-To: peibaolan@aliyun.com
 MIME-Version: 1.0
 Content-Type: text/plain; format=flowed; charset="UTF-8"
