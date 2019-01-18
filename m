@@ -2,73 +2,77 @@ Return-Path: <SRS0=Cp5C=P2=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 179B7C43387
-	for <linux-media@archiver.kernel.org>; Fri, 18 Jan 2019 08:56:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 246DBC43387
+	for <linux-media@archiver.kernel.org>; Fri, 18 Jan 2019 08:58:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E581A20855
-	for <linux-media@archiver.kernel.org>; Fri, 18 Jan 2019 08:56:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E28CE2086D
+	for <linux-media@archiver.kernel.org>; Fri, 18 Jan 2019 08:58:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726147AbfARI4a (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 18 Jan 2019 03:56:30 -0500
-Received: from mga06.intel.com ([134.134.136.31]:37428 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725784AbfARI4a (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 Jan 2019 03:56:30 -0500
-X-Amp-Result: UNSCANNABLE
-X-Amp-File-Uploaded: False
-Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by orsmga104.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 18 Jan 2019 00:56:29 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.56,489,1539673200"; 
-   d="scan'208";a="126815312"
-Received: from rfrenzel-mobl.ger.corp.intel.com (HELO kekkonen.fi.intel.com) ([10.252.59.237])
-  by FMSMGA003.fm.intel.com with ESMTP; 18 Jan 2019 00:56:28 -0800
-Received: by kekkonen.fi.intel.com (Postfix, from userid 1000)
-        id D78E021E54; Fri, 18 Jan 2019 10:56:25 +0200 (EET)
-Date:   Fri, 18 Jan 2019 10:56:25 +0200
-From:   Sakari Ailus <sakari.ailus@linux.intel.com>
-To:     hverkuil-cisco@xs4all.nl
+        id S1726197AbfARI6q (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 18 Jan 2019 03:58:46 -0500
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:50989 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726031AbfARI6q (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 18 Jan 2019 03:58:46 -0500
+Received: from [IPv6:2001:983:e9a7:1:3849:86c5:b8c2:266c] ([IPv6:2001:983:e9a7:1:3849:86c5:b8c2:266c])
+        by smtp-cloud9.xs4all.net with ESMTPA
+        id kPz9gbxhZaxzfkPzAgodUf; Fri, 18 Jan 2019 09:58:45 +0100
+Subject: Re: [PATCH 0/8] Remove obsolete soc_camera drivers
+To:     Sakari Ailus <sakari.ailus@linux.intel.com>
 Cc:     linux-media@vger.kernel.org,
         Jacopo Mondi <jacopo+renesas@jmondi.org>
-Subject: Re: [PATCH 0/8] Remove obsolete soc_camera drivers
-Message-ID: <20190118085624.z64orgt62ekyyni6@kekkonen.localdomain>
 References: <20190117161802.5740-1-hverkuil-cisco@xs4all.nl>
+ <20190118085624.z64orgt62ekyyni6@kekkonen.localdomain>
+From:   Hans Verkuil <hverkuil-cisco@xs4all.nl>
+Message-ID: <738da2a6-e8a3-c09b-d9b8-4489eeb4f46a@xs4all.nl>
+Date:   Fri, 18 Jan 2019 09:58:43 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.3.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190117161802.5740-1-hverkuil-cisco@xs4all.nl>
-User-Agent: NeoMutt/20170113 (1.7.2)
+In-Reply-To: <20190118085624.z64orgt62ekyyni6@kekkonen.localdomain>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-CMAE-Envelope: MS4wfK25MNlN+lO0vpr2IZZc4nUGv0UKoQZIDSvmQNAJcFIVOCq1n7dqMp6YaL7QcWD6oFHbVbmk1uxcwS+ZcGnLMNT67/BNhswchUgukuumhKKnQFgT0PNw
+ CUPE3bzFqkPNrY3e/PXJ4G5cqNSmqlx9q1BnMcfBA6SQYw13zco3TtWj3mK1jjj9YyRcV2guZgjCUKWg45slDESjfDr2IawFZHPXhOvDHQjN9opMJtCZLgk2
+ 1QX1ODooKs5kb+vh6EoUQj3OIbqQ13YePZ0nH6JfasWd/K002Vczuzl3xXsQzF5J/XQ7SCYbCj8SCtWsnyg2Q9y/kcpspk4a9ev99db9IbHAZFX1+fwlCgUw
+ jYuj2mDZobhYaEGjKtdSNCpWTpqMxA==
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Thu, Jan 17, 2019 at 05:17:54PM +0100, hverkuil-cisco@xs4all.nl wrote:
-> From: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+On 1/18/19 9:56 AM, Sakari Ailus wrote:
+> On Thu, Jan 17, 2019 at 05:17:54PM +0100, hverkuil-cisco@xs4all.nl wrote:
+>> From: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+>>
+>> The soc_mt9t112, soc_ov772x and soc_tw9910 drivers now have
+>> non-soc-camera replacements, so those three drivers can be
+>> removed.
+>>
+>> The soc_camera sh_mobile_ceu_camera platform driver also has
+>> a non-soc-camera replacement, so remove this driver as well.
+>>
+>> This driver was also the last driver that used soc_scale_crop,
+>> so remove that too. Finally remove the test soc_camera_platform
+>> driver. There will be no more soc_camera platform drivers, so this
+>> platform template driver serves no purpose anymore.
 > 
-> The soc_mt9t112, soc_ov772x and soc_tw9910 drivers now have
-> non-soc-camera replacements, so those three drivers can be
-> removed.
+> For the set:
 > 
-> The soc_camera sh_mobile_ceu_camera platform driver also has
-> a non-soc-camera replacement, so remove this driver as well.
+> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 > 
-> This driver was also the last driver that used soc_scale_crop,
-> so remove that too. Finally remove the test soc_camera_platform
-> driver. There will be no more soc_camera platform drivers, so this
-> platform template driver serves no purpose anymore.
+> Are you planning to move the rest of the drivers to staging and depend on
+> BROKEN, or should I do that?
+> 
 
-For the set:
+Can you do that?
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Thanks,
 
-Are you planning to move the rest of the drivers to staging and depend on
-BROKEN, or should I do that?
-
--- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+	Hans
