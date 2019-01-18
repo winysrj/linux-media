@@ -2,148 +2,109 @@ Return-Path: <SRS0=Cp5C=P2=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 76E2CC1B0F7
-	for <linux-media@archiver.kernel.org>; Fri, 18 Jan 2019 21:55:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 652F3C61CE3
+	for <linux-media@archiver.kernel.org>; Fri, 18 Jan 2019 23:31:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3940F20896
-	for <linux-media@archiver.kernel.org>; Fri, 18 Jan 2019 21:55:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1547848518;
-	bh=KW4nJttlQvjFovpXnajCoUfbQ0aJyQwYaIIZ5EofVpM=;
-	h=Subject:To:Cc:References:From:Date:In-Reply-To:List-ID:From;
-	b=a+30S1SsJad849i1METYJnysXQGEoFJhzLseWCm2uQGRNV61d0qQz6H/tjv1d7+ei
-	 3F+UB1kJHyDwGk3RmukRVVPw1o/bS91wd/qF4lH32WrRpG5Wyai3ZTi2mfp2Ce7KDN
-	 Ptj5wu65Ox45djw9dHBmUlQ9oQEJfsTn6L5nEKRY=
+	by mail.kernel.org (Postfix) with ESMTP id 3518D20823
+	for <linux-media@archiver.kernel.org>; Fri, 18 Jan 2019 23:31:16 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="QHpMgtM+"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729789AbfARVzR (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 18 Jan 2019 16:55:17 -0500
-Received: from mail.kernel.org ([198.145.29.99]:40008 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729768AbfARVzR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 Jan 2019 16:55:17 -0500
-Received: from [192.168.1.112] (c-24-9-64-241.hsd1.co.comcast.net [24.9.64.241])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 10D492054F;
-        Fri, 18 Jan 2019 21:55:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1547848516;
-        bh=KW4nJttlQvjFovpXnajCoUfbQ0aJyQwYaIIZ5EofVpM=;
-        h=Subject:To:Cc:References:From:Date:In-Reply-To:From;
-        b=CnFl+/1xoJIjEnMFAY5RM7E/N++KrhxQ0yI0qZMPqkhL3f4eHfmIG/ct9htJ8j9i3
-         dz+kKEGHCiXcVi3yaX0ng/swq1m2YIYxJ7cYYcvKJ5PBKOScgSEzyxs2LjerasEUk8
-         yZgrKzP6N7So2vjQl1RM7VgP0GAt9qknfevkiajU=
-Subject: Re: [PATCH v9 4/4] sound/usb: Use Media Controller API to share media
- resources
-To:     Hans Verkuil <hverkuil@xs4all.nl>, mchehab@kernel.org,
-        perex@perex.cz, tiwai@suse.com
-Cc:     linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        alsa-devel@alsa-project.org, shuah <shuah@kernel.org>
-References: <cover.1545154777.git.shuah@kernel.org>
- <2fb40852e4035b2a58010ce7416448918f12804f.1545154778.git.shuah@kernel.org>
- <b2fddc47-94c6-b7b3-8304-55905a3e278d@xs4all.nl>
-From:   shuah <shuah@kernel.org>
-Message-ID: <ee9b4161-eeb8-340f-7b39-93d0bc5fe1bd@kernel.org>
-Date:   Fri, 18 Jan 2019 14:54:18 -0700
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.2.1
+        id S1730280AbfARXbP (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 18 Jan 2019 18:31:15 -0500
+Received: from mail-pl1-f196.google.com ([209.85.214.196]:45609 "EHLO
+        mail-pl1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730115AbfARXam (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 18 Jan 2019 18:30:42 -0500
+Received: by mail-pl1-f196.google.com with SMTP id a14so6972890plm.12;
+        Fri, 18 Jan 2019 15:30:42 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=tILAUjKy4+5QmA7cKr1Y9UyKRlK9bcmdZJH0+ju/KnI=;
+        b=QHpMgtM+oz03m9EzvSgVU6jBMUPCSMve87QxryhQuBBrRf1k1LCLsfcrtUPbZ9WdSq
+         +qerKqWG2bOJ7vU96ybpRcyMA8hr6KJLRijEZn2yaeiTaxWk5LgoqhRu8rqfDdeZu33p
+         xQCM2fDzHuy5T8iqI/+ON+ay/Bi7iVXznEkDNZWfz07Rxkw3tSyFWd3o6P5ZtxhkWsTx
+         Hsj5f4Q+QBtdVru2CPk0unG3POJZVrnhLpbAcVUagjlvO/e7BUGSrlDPzEeIGex7zZvt
+         VOKYsivBf0VNfXUCuC9jqZKtqeKyI7x43cn7tboZzBvTcPZh6n3YoD04qWt2/UUs50F0
+         5WXg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=tILAUjKy4+5QmA7cKr1Y9UyKRlK9bcmdZJH0+ju/KnI=;
+        b=DPXK8/3yW2Xvquw2QOz3VLkCxmPNYeJDbR9y+MMlNtlBbfSzVyucxBrKQyeuSSRAVC
+         hXQ2mLFXfMENuvUhJW7B6f9PaVwed4bnpUL8g1TsvWRV6sYPpojyuu5Z6SOuE6a3rWZ1
+         /eRg8nlkFAVbViioyNcs8l5/zxYnhDi++DdSdSg4DBDJtGK5JP5qaUNplyn7vEEeZdLy
+         fHjE4vOV68tNmXcgFhu2wQm6LxK/Eu/T0iJnY5xTeUdKbWL5rIOgbw4dhAjAIC2YFOdF
+         6xmI1OqgCA7lWXywSK1/gNjx3X1hXoljCXKliHtrCrfYWRnHcvq4qAbdl/0Jx2tPZDN/
+         BMfQ==
+X-Gm-Message-State: AJcUukdBA09sD2wBNWQV8BSjNMCvH+nag2Frm0pPS+gfVNcX8rILO9Gg
+        bE5/KlcpnWMDXKGp0t+6ID/OlSdp
+X-Google-Smtp-Source: ALg8bN5VEagiDKQwIiUcPeGMlaX1SaKu/WMXQmrfjl2jZRezLaDOo2KEESA4A42gtb2/joNGblHi+w==
+X-Received: by 2002:a17:902:7005:: with SMTP id y5mr21062746plk.7.1547854241595;
+        Fri, 18 Jan 2019 15:30:41 -0800 (PST)
+Received: from dtor-ws.mtv.corp.google.com ([2620:15c:202:201:3adc:b08c:7acc:b325])
+        by smtp.gmail.com with ESMTPSA id f6sm11857163pfg.188.2019.01.18.15.30.40
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 18 Jan 2019 15:30:41 -0800 (PST)
+From:   Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To:     Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc:     Jiri Kosina <jikos@kernel.org>,
+        Benjamin Tissoires <benjamin.tissoires@redhat.com>,
+        linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org
+Subject: [PATCH 2/7] [media] doc-rst: switch to new names for Full Screen/Aspect keys
+Date:   Fri, 18 Jan 2019 15:30:32 -0800
+Message-Id: <20190118233037.87318-2-dmitry.torokhov@gmail.com>
+X-Mailer: git-send-email 2.20.1.321.g9e740568ce-goog
+In-Reply-To: <20190118233037.87318-1-dmitry.torokhov@gmail.com>
+References: <20190118233037.87318-1-dmitry.torokhov@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <b2fddc47-94c6-b7b3-8304-55905a3e278d@xs4all.nl>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On 1/18/19 1:36 AM, Hans Verkuil wrote:
-> On 12/18/18 6:59 PM, shuah@kernel.org wrote:
->> From: Shuah Khan <shuah@kernel.org>
->>
->> Media Device Allocator API to allows multiple drivers share a media device.
->> This API solves a very common use-case for media devices where one physical
->> device (an USB stick) provides both audio and video. When such media device
->> exposes a standard USB Audio class, a proprietary Video class, two or more
->> independent drivers will share a single physical USB bridge. In such cases,
->> it is necessary to coordinate access to the shared resource.
->>
->> Using this API, drivers can allocate a media device with the shared struct
->> device as the key. Once the media device is allocated by a driver, other
->> drivers can get a reference to it. The media device is released when all
->> the references are released.
->>
->> Change the ALSA driver to use the Media Controller API to share media
->> resources with DVB, and V4L2 drivers on a AU0828 media device.
->>
->> The Media Controller specific initialization is done after sound card is
->> registered. ALSA creates Media interface and entity function graph nodes
->> for Control, Mixer, PCM Playback, and PCM Capture devices.
->>
->> snd_usb_hw_params() will call Media Controller enable source handler
->> interface to request the media resource. If resource request is granted,
->> it will release it from snd_usb_hw_free(). If resource is busy, -EBUSY is
->> returned.
->>
->> Media specific cleanup is done in usb_audio_disconnect().
->>
->> Signed-off-by: Shuah Khan <shuah@kernel.org>
->> ---
->>   sound/usb/Kconfig        |   4 +
->>   sound/usb/Makefile       |   2 +
->>   sound/usb/card.c         |  14 ++
->>   sound/usb/card.h         |   3 +
->>   sound/usb/media.c        | 321 +++++++++++++++++++++++++++++++++++++++
->>   sound/usb/media.h        |  74 +++++++++
->>   sound/usb/mixer.h        |   3 +
->>   sound/usb/pcm.c          |  29 +++-
->>   sound/usb/quirks-table.h |   1 +
->>   sound/usb/stream.c       |   2 +
->>   sound/usb/usbaudio.h     |   6 +
->>   11 files changed, 455 insertions(+), 4 deletions(-)
->>   create mode 100644 sound/usb/media.c
->>   create mode 100644 sound/usb/media.h
->>
-> 
-> <snip>
-> 
->> +int snd_media_device_create(struct snd_usb_audio *chip,
->> +			struct usb_interface *iface)
->> +{
->> +	struct media_device *mdev;
->> +	struct usb_device *usbdev = interface_to_usbdev(iface);
->> +	int ret;
->> +
->> +	/* usb-audio driver is probed for each usb interface, and
->> +	 * there are multiple interfaces per device. Avoid calling
->> +	 * media_device_usb_allocate() each time usb_audio_probe()
->> +	 * is called. Do it only once.
->> +	 */
->> +	if (chip->media_dev)
->> +		goto snd_mixer_init;
->> +
->> +	mdev = media_device_usb_allocate(usbdev, KBUILD_MODNAME);
->> +	if (!mdev)
->> +		return -ENOMEM;
->> +
->> +	if (!media_devnode_is_registered(mdev->devnode)) {
-> 
-> It looks like you missed my comment for v8:
-> 
-> "You should first configure the media device before registering it."
-> 
-> In other words, first create the media entities, and only then do you
-> register the media device. Otherwise it will come up without any alsa
-> entities, which are then added. So an application that immediately
-> opens the media device upon creation will see a topology that is still
-> in flux.
+We defined better names for keys to activate full screen mode or
+change aspect ratio (while keeping the existing keycodes to avoid
+breaking userspace), so let's use them in the document.
 
-Yes. You are right. I saw your comment and thought I got it addressed.
-I will fix it. I have the logic correct in au0828, but not here.
+Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+---
+ Documentation/media/uapi/rc/rc-tables.rst | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Thanks,
--- Shuah
+diff --git a/Documentation/media/uapi/rc/rc-tables.rst b/Documentation/media/uapi/rc/rc-tables.rst
+index c8ae9479f842..57797e56f45e 100644
+--- a/Documentation/media/uapi/rc/rc-tables.rst
++++ b/Documentation/media/uapi/rc/rc-tables.rst
+@@ -616,7 +616,7 @@ the remote via /dev/input/event devices.
+ 
+     -  .. row 78
+ 
+-       -  ``KEY_SCREEN``
++       -  ``KEY_ASPECT_RATIO``
+ 
+        -  Select screen aspect ratio
+ 
+@@ -624,7 +624,7 @@ the remote via /dev/input/event devices.
+ 
+     -  .. row 79
+ 
+-       -  ``KEY_ZOOM``
++       -  ``KEY_FULL_SCREEN``
+ 
+        -  Put device into zoom/full screen mode
+ 
+-- 
+2.20.1.321.g9e740568ce-goog
+
