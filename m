@@ -2,135 +2,160 @@ Return-Path: <SRS0=Cp5C=P2=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,
-	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C399C07EBF
-	for <linux-media@archiver.kernel.org>; Fri, 18 Jan 2019 18:28:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 73CAEC5ACD3
+	for <linux-media@archiver.kernel.org>; Fri, 18 Jan 2019 19:01:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 60F6220896
-	for <linux-media@archiver.kernel.org>; Fri, 18 Jan 2019 18:28:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 44EF820883
+	for <linux-media@archiver.kernel.org>; Fri, 18 Jan 2019 19:01:50 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linaro.org header.i=@linaro.org header.b="hKNtyIeX"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="tXGZ3AD1"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728822AbfARS2q (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 18 Jan 2019 13:28:46 -0500
-Received: from mail-wm1-f66.google.com ([209.85.128.66]:35390 "EHLO
+        id S1729296AbfARTBo (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 18 Jan 2019 14:01:44 -0500
+Received: from mail-wm1-f66.google.com ([209.85.128.66]:33029 "EHLO
         mail-wm1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728704AbfARS2q (ORCPT
+        with ESMTP id S1728583AbfARTBn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 Jan 2019 13:28:46 -0500
-Received: by mail-wm1-f66.google.com with SMTP id t200so5447504wmt.0
-        for <linux-media@vger.kernel.org>; Fri, 18 Jan 2019 10:28:44 -0800 (PST)
+        Fri, 18 Jan 2019 14:01:43 -0500
+Received: by mail-wm1-f66.google.com with SMTP id r24so1628643wmh.0;
+        Fri, 18 Jan 2019 11:01:41 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=references:user-agent:from:to:cc:subject:in-reply-to:date
-         :message-id:mime-version;
-        bh=/Z+of8cw4kSSx9c4Idfga/LjwFXImT0GSXN0UcDCyZY=;
-        b=hKNtyIeXxgwH9jO5gHR1zAX4w4x3zJnyTIZd+6S0sp7AuqTPmpNysjRQLqYrVeuBTf
-         nt/DGAXiaQo2WCW4pIdwMJsL4DhPYEtMlBFky3hiHkjnC/etFe9ipfloT0T9t0ixglMa
-         si5o98wQCPasLyTxxjZmcGCyRQKfyqKI1p6GQ=
+        d=gmail.com; s=20161025;
+        h=subject:to:cc:references:from:message-id:date:user-agent
+         :mime-version:in-reply-to:content-transfer-encoding:content-language;
+        bh=o2aBihmd7kCS/IVyvwHcJEqsYBV/JMJi5NSNOXEgv4A=;
+        b=tXGZ3AD1uewX/gkWlTNNLm2/qjJk40/HlKu7T3b5hToJ3gndB6XlsgDvcU0EVv/Wfc
+         c6KP9BFVovCKcxm1yXXnqRtP3TS4DCMi47r2Agnkj1OZKebaI/2N8+OR/DuLpqN7tUUw
+         EXxCE9wwz2GXxsM6UnK6uOGWYlw56iR9qFYC0cwK4n2ex3afnTnHfnDAglwJaS9NYsro
+         OGas3G9kIDDfnDwhTaoVwzyTTg98NvdTLtMc7GriibzccJ0r8VAuT03aIHoKnBeD3fGU
+         FH4Pf7CBBPCPLnXbdH7RbxsU36xdAC/VYJgKXWFKyPySxPe09cE83bTnqabBMKMQnivi
+         YLQQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:references:user-agent:from:to:cc:subject
-         :in-reply-to:date:message-id:mime-version;
-        bh=/Z+of8cw4kSSx9c4Idfga/LjwFXImT0GSXN0UcDCyZY=;
-        b=g9soQIJkDSkpSUk3vPwx1QDyWUfPQTEzW0G3vjhfb8CCrn74tqLKArHnfBXftgGta4
-         zo13q2atuTNIBNRweytaY2hBJio/lsMM+shVZUMzpS4a4VlcTUUEJsYkDvLIztjW+jGH
-         mVBeIARAaxJFZ3W984M20zV/GiFDRqBNOurbPspqJC6h8D+2DNcL1pVL30/BJ0e/q+zo
-         ljgkBya5VWqGha4BMnm0jNLHSy+5Wbsm4VKhgFqo5FMd5JhIgTgoeYl9+MwQnd5NgJ7Y
-         urKOb9+095ii59Es5zNb6DAIQGuTbgtxhx/4coJuTo1UU17Pke8SsLGQmVGYPhk5O6cT
-         qrYQ==
-X-Gm-Message-State: AJcUukdPNlGqlToVtyWZZFAC4bb2tiZHljMkn4ob3t46FjNOTeQVsWMd
-        J27DKpKK5Qxs+ezBzPtmxOjeeSvvSj8=
-X-Google-Smtp-Source: ALg8bN5hvJSryRf5xGQVssaXmq2zXCDy5GaJEskNQoE8ITW/+uQoQ8jNKvgW+Ko1rWh9VKrbWdYtQA==
-X-Received: by 2002:a1c:4d12:: with SMTP id o18mr17165445wmh.92.1547836123491;
-        Fri, 18 Jan 2019 10:28:43 -0800 (PST)
-Received: from arch-late (a109-49-46-234.cpe.netcabo.pt. [109.49.46.234])
-        by smtp.gmail.com with ESMTPSA id l14sm171019365wrp.55.2019.01.18.10.28.41
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Fri, 18 Jan 2019 10:28:42 -0800 (PST)
-References: <20181122151834.6194-1-rui.silva@linaro.org> <757f8c52-7c23-7cf7-32ee-75ddba767ff8@xs4all.nl> <CAOMZO5BCPAmcE=fU0fA9hgwZ89JMEtO5hOb15b7VwtD6i1LwSg@mail.gmail.com>
-User-agent: mu4e 1.0; emacs 27.0.50
-From:   Rui Miguel Silva <rui.silva@linaro.org>
-To:     Fabio Estevam <festevam@gmail.com>
-Cc:     Hans Verkuil <hverkuil@xs4all.nl>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        "open list\:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>,
-        "open list\:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS" 
-        <devicetree@vger.kernel.org>,
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-transfer-encoding
+         :content-language;
+        bh=o2aBihmd7kCS/IVyvwHcJEqsYBV/JMJi5NSNOXEgv4A=;
+        b=VXjow91VBEpFgJ3f7UhhKGw2jDWo4yAKKp36WYjvrFwyfXZuDLhLnpjfQdCLIargQ0
+         VHH/OYTm5mKmBp6lDHgia/rQhLU0/EMSRaDT4W7eH5T2vtwsuasRmm8oa2fYtN15tgL5
+         wmra2s+Ycyantml09TUIiBvlmHZobYhsJaBb8fjXODLBTsm85HqXZj1FU1j/ijidqik/
+         KCYBXPbufpDP3EgL3HV3AK81ml66IMkknGbgw2qL9CIEDpIZrDcbLMp4dyrWl2PpFwcK
+         PA7iJydY5uTGnkeAE5I7KvjJcwkvIklEKh9N7natCF1rMGRAR06XoYgAgp0JIO/UVGyv
+         pdSQ==
+X-Gm-Message-State: AJcUukdpbku/EcG38/9HTESLjzBDrDOeGjCp4NY+uY/3FA2RIBHlMpXN
+        uHd1J7dtayZzVGY0Yb2wAUwjhIBN
+X-Google-Smtp-Source: ALg8bN56wZ5fgNVJwFuW9dR2p//ZaZ9K/zujqfjUGMJmJTZgU+X1tgP0EFVv0vikyPlOPU05Nx0UDw==
+X-Received: by 2002:a1c:e345:: with SMTP id a66mr16368663wmh.12.1547838100050;
+        Fri, 18 Jan 2019 11:01:40 -0800 (PST)
+Received: from [172.30.88.68] (sjewanfw1-nat.mentorg.com. [139.181.7.34])
+        by smtp.gmail.com with ESMTPSA id o9sm27557988wmh.3.2019.01.18.11.01.37
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 18 Jan 2019 11:01:39 -0800 (PST)
+Subject: Re: [PATCH v2 1/2] media: imx: csi: Disable CSI immediately after
+ last EOF
+To:     Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
+Cc:     stable@vger.kernel.org, Mauro Carvalho Chehab <mchehab@kernel.org>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v9 00/13] media: staging/imx7: add i.MX7 media driver
-In-reply-to: <CAOMZO5BCPAmcE=fU0fA9hgwZ89JMEtO5hOb15b7VwtD6i1LwSg@mail.gmail.com>
-Date:   Fri, 18 Jan 2019 18:28:41 +0000
-Message-ID: <m3bm4dg6qu.fsf@linaro.org>
+        "open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>,
+        open list <linux-kernel@vger.kernel.org>
+References: <20190117204912.28456-1-slongerbeam@gmail.com>
+ <20190117204912.28456-2-slongerbeam@gmail.com>
+ <1547807043.3375.3.camel@pengutronix.de>
+From:   Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <56b43909-136b-fce0-e743-26cd6afd0eea@gmail.com>
+Date:   Fri, 18 Jan 2019 11:01:35 -0800
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.2.1
 MIME-Version: 1.0
-Content-Type: text/plain; format=flowed
+In-Reply-To: <1547807043.3375.3.camel@pengutronix.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Oi Fabio,
-On Fri 18 Jan 2019 at 16:49, Fabio Estevam wrote:
-> Hi Rui,
->
-> On Fri, Dec 7, 2018 at 10:44 AM Hans Verkuil 
-> <hverkuil@xs4all.nl> wrote:
->
->> I got a few checkpatch warnings about coding style:
->>
->> CHECK: Alignment should match open parenthesis
->> #953: FILE: drivers/staging/media/imx/imx7-media-csi.c:911:
->> +static struct v4l2_mbus_framefmt *imx7_csi_get_format(struct 
->> imx7_csi *csi,
->> +                                       struct 
->> v4l2_subdev_pad_config *cfg,
->>
->> CHECK: Alignment should match open parenthesis
->> #1341: FILE: drivers/staging/media/imx/imx7-media-csi.c:1299:
->> +       ret = v4l2_async_register_fwnode_subdev(&csi->sd,
->> +                                       sizeof(struct 
->> v4l2_async_subdev),
->>
->> CHECK: Lines should not end with a '('
->> #684: FILE: drivers/staging/media/imx/imx7-mipi-csis.c:669:
->> +static struct csis_pix_format const *mipi_csis_try_format(
->>
->> CHECK: Alignment should match open parenthesis
->> #708: FILE: drivers/staging/media/imx/imx7-mipi-csis.c:693:
->> +static struct v4l2_mbus_framefmt *mipi_csis_get_format(struct 
->> csi_state *state,
->> +                                       struct 
->> v4l2_subdev_pad_config *cfg,
->>
->> CHECK: Alignment should match open parenthesis
->> #936: FILE: drivers/staging/media/imx/imx7-mipi-csis.c:921:
->> +       ret = v4l2_async_register_fwnode_subdev(mipi_sd,
->> +                               sizeof(struct 
->> v4l2_async_subdev), &sink_port, 1,
->>
->> Apparently the latest coding style is that alignment is more 
->> important than
->> line length, although I personally do not agree. But since you 
->> need to
->> respin in any case due to the wrong SPDX identifier you used 
->> you might as
->> well take this into account.
->>
->> I was really hoping I could merge this, but the SPDX license 
->> issue killed it.
->
-> Do you plan to submit a new version?
 
-Yeah, I will try to send one next week. I think have all this
-addressed in a branch, I will need to rebase again.
 
----
-Cheers,
-	Rui
+On 1/18/19 2:24 AM, Philipp Zabel wrote:
+> On Thu, 2019-01-17 at 12:49 -0800, Steve Longerbeam wrote:
+>> Disable the CSI immediately after receiving the last EOF before stream
+>> off (and thus before disabling the IDMA channel).
+>>
+>> This fixes a complete system hard lockup on the SabreAuto when streaming
+>> from the ADV7180, by repeatedly sending a stream off immediately followed
+>> by stream on:
+>>
+>> while true; do v4l2-ctl  -d4 --stream-mmap --stream-count=3; done
+>>
+>> Eventually this either causes the system lockup or EOF timeouts at all
+>> subsequent stream on, until a system reset.
+>>
+>> The lockup occurs when disabling the IDMA channel at stream off. Disabling
+>> the CSI before disabling the IDMA channel appears to be a reliable fix for
+>> the hard lockup.
+>>
+>> Fixes: 4a34ec8e470cb ("[media] media: imx: Add CSI subdev driver")
+>>
+>> Reported-by: Gaël PORTAY <gael.portay@collabora.com>
+>> Signed-off-by: Steve Longerbeam <slongerbeam@gmail.com>
+>> Cc: stable@vger.kernel.org
+>> ---
+>> Changes in v2:
+>> - restore an empty line
+>> - Add Fixes: and Cc: stable
+>> ---
+>>   drivers/staging/media/imx/imx-media-csi.c | 6 ++++--
+>>   1 file changed, 4 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+>> index e18f58f56dfb..e0f6f88e2e70 100644
+>> --- a/drivers/staging/media/imx/imx-media-csi.c
+>> +++ b/drivers/staging/media/imx/imx-media-csi.c
+>> @@ -681,6 +681,8 @@ static void csi_idmac_stop(struct csi_priv *priv)
+>>   	if (ret == 0)
+>>   		v4l2_warn(&priv->sd, "wait last EOF timeout\n");
+>>   
+>> +	ipu_csi_disable(priv->csi);
+>> +
+> Can you add a short comment why this call is here? Since now
+> csi_idmac_stop is kind of a misnomer and symmetry with csi(_idmac)_start
+> is broken, I think this is a bit un-obvious.
+
+Yeah. I think a cleaner, more symmetric solution would be to split up 
+csi_idmac_stop.
+
+>
+> Also note that now the error path of csi_start() will now call
+> ipu_csi_disable() while the CSI is disabled. This happens to work
+> because that just calls ipu_module_disable(), which is not refcounted.
+
+Thanks for catching. Splitting up csi_idmac_stop will fix this. Working 
+on that.
+
+Steve
+
+>
+>>   	devm_free_irq(priv->dev, priv->eof_irq, priv);
+>>   	devm_free_irq(priv->dev, priv->nfb4eof_irq, priv);
+>>   
+>> @@ -793,9 +795,9 @@ static void csi_stop(struct csi_priv *priv)
+>>   		/* stop the frame interval monitor */
+>>   		if (priv->fim)
+>>   			imx_media_fim_set_stream(priv->fim, NULL, false);
+>> +	} else {
+>> +		ipu_csi_disable(priv->csi);
+>>   	}
+>> -
+>> -	ipu_csi_disable(priv->csi);
+> Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
+>
+> regards
+> Philipp
 
