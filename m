@@ -7,60 +7,60 @@ X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
 	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B02FC6369F
-	for <linux-media@archiver.kernel.org>; Sat, 19 Jan 2019 12:02:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5DF4EC61CE8
+	for <linux-media@archiver.kernel.org>; Sat, 19 Jan 2019 12:02:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 02B7A2087E
-	for <linux-media@archiver.kernel.org>; Sat, 19 Jan 2019 12:02:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 25E012086A
+	for <linux-media@archiver.kernel.org>; Sat, 19 Jan 2019 12:02:16 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="XGL4Wj64"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="OddZyFwq"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727999AbfASMCO (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sat, 19 Jan 2019 07:02:14 -0500
-Received: from mail-wr1-f65.google.com ([209.85.221.65]:37901 "EHLO
-        mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727900AbfASMCN (ORCPT
+        id S1728018AbfASMCP (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sat, 19 Jan 2019 07:02:15 -0500
+Received: from mail-wr1-f68.google.com ([209.85.221.68]:44383 "EHLO
+        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727924AbfASMCO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 19 Jan 2019 07:02:13 -0500
-Received: by mail-wr1-f65.google.com with SMTP id v13so18140815wrw.5
-        for <linux-media@vger.kernel.org>; Sat, 19 Jan 2019 04:02:11 -0800 (PST)
+        Sat, 19 Jan 2019 07:02:14 -0500
+Received: by mail-wr1-f68.google.com with SMTP id z5so18083066wrt.11
+        for <linux-media@vger.kernel.org>; Sat, 19 Jan 2019 04:02:12 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=JCBzjnhHMp3Tv9zQEtU5ny1hIBcV+fZRao2ynwxj9T0=;
-        b=XGL4Wj64ns1TRKudyCK9DD9dddKge83UZeL93AGBAMPIlrXEyDLiCopXih0USwuVzH
-         ECm1KMEBLse2fpI9MjA9ncxjUQc1jh+8Szz5Y9VaP9NTcC1PCpOm3hJ1EptcJbQpMDHf
-         bGneoCtcMn7jT+C5RGcTwOJ4nYLDakV82EY9l9ZBoQ/Orqbjj/grec8Pu3ABuVBFPWKE
-         fUgYOMMwQ7IXCQSaVvlc8UZO6jUKlpoVGHkL2DcD19GDZDI5SzvQEI0Cr6jt9YXsauME
-         eLPjvTRitTuqWaNwQFqBLoeoP9uhErkIBEDUQ+VTA4iOHjIMW4abW3LL0oXk3xczppmM
-         wDtQ==
+        bh=hHk6Mn7AVDX5K90YWvRw9iajXIirn+qxXkH5+LFsRA8=;
+        b=OddZyFwqNkC3q0+ND8k/TD8DpUFO2nLUV0VkR5x8wrzPL8EC3S6fYJNfugQQESfAxs
+         k7cmsDWH8ZFe3SB5QDTmtqmMotw7YXRGAQ1fC7Mz+b31tMv/g8zmDdfJaJM/4Y6DkJ/M
+         gtGxdcZpJUEdBvz8CAJfrIIIDwP4vgTA+5EHQtMTa1piPtZia6dpLFmtkJG2WFtOKAS2
+         MzMBjOQieGavssTuEjcE0xTRKFvLK1Pq6gSookshRyu/HewmGnWMnlT5C7flGDAhd8Fz
+         6JqLlwYieywp4ti6MKOeRFjT34uRxMR91/H2EujEIeWLpz0l6jVQNrS3W89xFIEjzzUv
+         SJVg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references;
-        bh=JCBzjnhHMp3Tv9zQEtU5ny1hIBcV+fZRao2ynwxj9T0=;
-        b=p3JzLSgyL0GcdVIjTB5wryPMSO4G4JSDDNhcdC1TgYMtuc1tVsy3GlkDVkQECQUvml
-         VkNilBF+2LX8N3XtzI44lZu/hZHtqH0TAI++jqISD3OMDunhWmy7AjGN+DMmUe5o25o1
-         XBW43csax1rrISx3c2FElBUX8LUmWN2DhKYm4P8x8N5QNDrIeenGxx7BCDABHMk0juhI
-         SiXRBhnfDJNqpeU41HSYtTmsQoUXNh1HKKED/IVMd4Kz5qi5e53RzmCDfTjeJCPXagWd
-         OLQ6QgdpXDuWyz2A6kLBHQP4v9ZJJkawzCKy3V8i+I08L079tOvOAxf07GcNIRWIYgCb
-         COGQ==
-X-Gm-Message-State: AJcUukdI6pkM0PQI8UVyRjtp4XEVZUjdMLxTKSIC7naXkYATHYtrR2SA
-        4R2xAMdiSXa3Nxw4DbpYE5P2yG3Cfgc=
-X-Google-Smtp-Source: ALg8bN5K+wCAb6L+yFwjWeGLmjQ0gtG3TpLO5HWe4qvtx9QFV57IIV0OziaNyQQHnNX+5lZaSs5ZCQ==
-X-Received: by 2002:adf:bb44:: with SMTP id x4mr21178608wrg.24.1547899330314;
-        Sat, 19 Jan 2019 04:02:10 -0800 (PST)
+        bh=hHk6Mn7AVDX5K90YWvRw9iajXIirn+qxXkH5+LFsRA8=;
+        b=M/wux3+bWtHaK1yHWymWRyfOigKxbUKBAXDD7pWGJd6tbshBY+UpsKsWG2lsiz9pbn
+         zaMtRGXumJLvlKY+D8uT12CZV6Ezis60wVKD4Hro1V7+3Xk92XMIONOXYju+EPqq6qEi
+         cGWDAOjyV225K9Vm/BD5MGe34/pFENxE9+DJDPhExWBwrCBG2fPZ+JbzUryz0KQxuNwU
+         r7zTLxjS8gEZtsWoVYnH8zXYIJgX4lf1XZmwPpFf6V+RPrSD2tb8ke8DMoKUwhaJjWFR
+         6wN0I3QqA80GR2l1xQqaH/mWBdSp+EjESI/kI7CUBoXln0ykBaCFoXCBHKOfM9Vr+LbN
+         Ni9w==
+X-Gm-Message-State: AJcUukezWTZWBc/Xv/SIulZbIhagURoyB32vZ7FndzCP8tj5p1P/6PcA
+        bMpvY3AmbgHbU867TP5jtlf35fJeeyo=
+X-Google-Smtp-Source: ALg8bN5/ZB+C4LG9XzCaiXJZtjBkrbEeqLuFf2G5oUtEUbYQPRHC5MOTiBsXf86fGHIzS5cuDXhlzg==
+X-Received: by 2002:adf:a211:: with SMTP id p17mr20435510wra.179.1547899331811;
+        Sat, 19 Jan 2019 04:02:11 -0800 (PST)
 Received: from localhost.localdomain ([87.71.51.33])
-        by smtp.gmail.com with ESMTPSA id e27sm95011131wra.67.2019.01.19.04.02.09
+        by smtp.gmail.com with ESMTPSA id e27sm95011131wra.67.2019.01.19.04.02.10
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Sat, 19 Jan 2019 04:02:09 -0800 (PST)
+        Sat, 19 Jan 2019 04:02:11 -0800 (PST)
 From:   Dafna Hirschfeld <dafna3@gmail.com>
 To:     linux-media@vger.kernel.org
 Cc:     hverkuil@xs4all.nl, helen.koike@collabora.com,
         Dafna Hirschfeld <dafna3@gmail.com>
-Subject: [PATCH v4 4/6] media: vicodec: Add pixel encoding flags to fwht header
-Date:   Sat, 19 Jan 2019 04:01:54 -0800
-Message-Id: <20190119120156.15851-5-dafna3@gmail.com>
+Subject: [PATCH v4 5/6] media: vicodec: Separate fwht header from the frame data
+Date:   Sat, 19 Jan 2019 04:01:55 -0800
+Message-Id: <20190119120156.15851-6-dafna3@gmail.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20190119120156.15851-1-dafna3@gmail.com>
 References: <20190119120156.15851-1-dafna3@gmail.com>
@@ -69,218 +69,248 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Add flags indicating the pixel encoding - yuv/rgb/hsv to
-fwht header and to the pixel info. Use it to enumerate
-the supported pixel formats.
+Keep the fwht header in separated field from the data.
+Refactor job_ready to use a new function 'get_next_header'
 
 Signed-off-by: Dafna Hirschfeld <dafna3@gmail.com>
 ---
- drivers/media/platform/vicodec/codec-fwht.h   |  6 ++
- .../media/platform/vicodec/codec-v4l2-fwht.c  | 76 +++++++++++++------
- .../media/platform/vicodec/codec-v4l2-fwht.h  |  6 ++
- drivers/media/platform/vicodec/vicodec-core.c | 19 +++--
- 4 files changed, 76 insertions(+), 31 deletions(-)
+ .../media/platform/vicodec/codec-v4l2-fwht.c  |  24 ++--
+ .../media/platform/vicodec/codec-v4l2-fwht.h  |   1 +
+ drivers/media/platform/vicodec/vicodec-core.c | 109 ++++++++++--------
+ 3 files changed, 76 insertions(+), 58 deletions(-)
 
-diff --git a/drivers/media/platform/vicodec/codec-fwht.h b/drivers/media/platform/vicodec/codec-fwht.h
-index 2984dc772515..ad8cfc60a152 100644
---- a/drivers/media/platform/vicodec/codec-fwht.h
-+++ b/drivers/media/platform/vicodec/codec-fwht.h
-@@ -81,6 +81,12 @@
- #define FWHT_FL_COMPONENTS_NUM_MSK	GENMASK(18, 16)
- #define FWHT_FL_COMPONENTS_NUM_OFFSET	16
- 
-+#define FWHT_FL_PIXENC_MSK	GENMASK(20, 19)
-+#define FWHT_FL_PIXENC_OFFSET	19
-+#define FWHT_FL_PIXENC_YUV	(1 << FWHT_FL_PIXENC_OFFSET)
-+#define FWHT_FL_PIXENC_RGB	(2 << FWHT_FL_PIXENC_OFFSET)
-+#define FWHT_FL_PIXENC_HSV	(3 << FWHT_FL_PIXENC_OFFSET)
-+
- /*
-  * A macro to calculate the needed padding in order to make sure
-  * both luma and chroma components resolutions are rounded up to
 diff --git a/drivers/media/platform/vicodec/codec-v4l2-fwht.c b/drivers/media/platform/vicodec/codec-v4l2-fwht.c
-index 143af8c587b3..63b7e1525dbc 100644
+index 63b7e1525dbc..4b7133725ea8 100644
 --- a/drivers/media/platform/vicodec/codec-v4l2-fwht.c
 +++ b/drivers/media/platform/vicodec/codec-v4l2-fwht.c
-@@ -11,32 +11,52 @@
- #include "codec-v4l2-fwht.h"
- 
- static const struct v4l2_fwht_pixfmt_info v4l2_fwht_pixfmts[] = {
--	{ V4L2_PIX_FMT_YUV420,  1, 3, 2, 1, 1, 2, 2, 3, 3},
--	{ V4L2_PIX_FMT_YVU420,  1, 3, 2, 1, 1, 2, 2, 3, 3},
--	{ V4L2_PIX_FMT_YUV422P, 1, 2, 1, 1, 1, 2, 1, 3, 3},
--	{ V4L2_PIX_FMT_NV12,    1, 3, 2, 1, 2, 2, 2, 3, 2},
--	{ V4L2_PIX_FMT_NV21,    1, 3, 2, 1, 2, 2, 2, 3, 2},
--	{ V4L2_PIX_FMT_NV16,    1, 2, 1, 1, 2, 2, 1, 3, 2},
--	{ V4L2_PIX_FMT_NV61,    1, 2, 1, 1, 2, 2, 1, 3, 2},
--	{ V4L2_PIX_FMT_NV24,    1, 3, 1, 1, 2, 1, 1, 3, 2},
--	{ V4L2_PIX_FMT_NV42,    1, 3, 1, 1, 2, 1, 1, 3, 2},
--	{ V4L2_PIX_FMT_YUYV,    2, 2, 1, 2, 4, 2, 1, 3, 1},
--	{ V4L2_PIX_FMT_YVYU,    2, 2, 1, 2, 4, 2, 1, 3, 1},
--	{ V4L2_PIX_FMT_UYVY,    2, 2, 1, 2, 4, 2, 1, 3, 1},
--	{ V4L2_PIX_FMT_VYUY,    2, 2, 1, 2, 4, 2, 1, 3, 1},
--	{ V4L2_PIX_FMT_BGR24,   3, 3, 1, 3, 3, 1, 1, 3, 1},
--	{ V4L2_PIX_FMT_RGB24,   3, 3, 1, 3, 3, 1, 1, 3, 1},
--	{ V4L2_PIX_FMT_HSV24,   3, 3, 1, 3, 3, 1, 1, 3, 1},
--	{ V4L2_PIX_FMT_BGR32,   4, 4, 1, 4, 4, 1, 1, 3, 1},
--	{ V4L2_PIX_FMT_XBGR32,  4, 4, 1, 4, 4, 1, 1, 3, 1},
--	{ V4L2_PIX_FMT_RGB32,   4, 4, 1, 4, 4, 1, 1, 3, 1},
--	{ V4L2_PIX_FMT_XRGB32,  4, 4, 1, 4, 4, 1, 1, 3, 1},
--	{ V4L2_PIX_FMT_HSV32,   4, 4, 1, 4, 4, 1, 1, 3, 1},
--	{ V4L2_PIX_FMT_ARGB32,  4, 4, 1, 4, 4, 1, 1, 4, 1},
--	{ V4L2_PIX_FMT_ABGR32,  4, 4, 1, 4, 4, 1, 1, 4, 1},
--	{ V4L2_PIX_FMT_GREY,    1, 1, 1, 1, 0, 1, 1, 1, 1},
-+	{ V4L2_PIX_FMT_YUV420,  1, 3, 2, 1, 1, 2, 2, 3, 3, FWHT_FL_PIXENC_YUV},
-+	{ V4L2_PIX_FMT_YVU420,  1, 3, 2, 1, 1, 2, 2, 3, 3, FWHT_FL_PIXENC_YUV},
-+	{ V4L2_PIX_FMT_YUV422P, 1, 2, 1, 1, 1, 2, 1, 3, 3, FWHT_FL_PIXENC_YUV},
-+	{ V4L2_PIX_FMT_NV12,    1, 3, 2, 1, 2, 2, 2, 3, 2, FWHT_FL_PIXENC_YUV},
-+	{ V4L2_PIX_FMT_NV21,    1, 3, 2, 1, 2, 2, 2, 3, 2, FWHT_FL_PIXENC_YUV},
-+	{ V4L2_PIX_FMT_NV16,    1, 2, 1, 1, 2, 2, 1, 3, 2, FWHT_FL_PIXENC_YUV},
-+	{ V4L2_PIX_FMT_NV61,    1, 2, 1, 1, 2, 2, 1, 3, 2, FWHT_FL_PIXENC_YUV},
-+	{ V4L2_PIX_FMT_NV24,    1, 3, 1, 1, 2, 1, 1, 3, 2, FWHT_FL_PIXENC_YUV},
-+	{ V4L2_PIX_FMT_NV42,    1, 3, 1, 1, 2, 1, 1, 3, 2, FWHT_FL_PIXENC_YUV},
-+	{ V4L2_PIX_FMT_YUYV,    2, 2, 1, 2, 4, 2, 1, 3, 1, FWHT_FL_PIXENC_YUV},
-+	{ V4L2_PIX_FMT_YVYU,    2, 2, 1, 2, 4, 2, 1, 3, 1, FWHT_FL_PIXENC_YUV},
-+	{ V4L2_PIX_FMT_UYVY,    2, 2, 1, 2, 4, 2, 1, 3, 1, FWHT_FL_PIXENC_YUV},
-+	{ V4L2_PIX_FMT_VYUY,    2, 2, 1, 2, 4, 2, 1, 3, 1, FWHT_FL_PIXENC_YUV},
-+	{ V4L2_PIX_FMT_BGR24,   3, 3, 1, 3, 3, 1, 1, 3, 1, FWHT_FL_PIXENC_RGB},
-+	{ V4L2_PIX_FMT_RGB24,   3, 3, 1, 3, 3, 1, 1, 3, 1, FWHT_FL_PIXENC_RGB},
-+	{ V4L2_PIX_FMT_HSV24,   3, 3, 1, 3, 3, 1, 1, 3, 1, FWHT_FL_PIXENC_HSV},
-+	{ V4L2_PIX_FMT_BGR32,   4, 4, 1, 4, 4, 1, 1, 3, 1, FWHT_FL_PIXENC_RGB},
-+	{ V4L2_PIX_FMT_XBGR32,  4, 4, 1, 4, 4, 1, 1, 3, 1, FWHT_FL_PIXENC_RGB},
-+	{ V4L2_PIX_FMT_RGB32,   4, 4, 1, 4, 4, 1, 1, 3, 1, FWHT_FL_PIXENC_RGB},
-+	{ V4L2_PIX_FMT_XRGB32,  4, 4, 1, 4, 4, 1, 1, 3, 1, FWHT_FL_PIXENC_RGB},
-+	{ V4L2_PIX_FMT_HSV32,   4, 4, 1, 4, 4, 1, 1, 3, 1, FWHT_FL_PIXENC_HSV},
-+	{ V4L2_PIX_FMT_ARGB32,  4, 4, 1, 4, 4, 1, 1, 4, 1, FWHT_FL_PIXENC_RGB},
-+	{ V4L2_PIX_FMT_ABGR32,  4, 4, 1, 4, 4, 1, 1, 4, 1, FWHT_FL_PIXENC_RGB},
-+	{ V4L2_PIX_FMT_GREY,    1, 1, 1, 1, 0, 1, 1, 1, 1, FWHT_FL_PIXENC_RGB},
- };
- 
-+const struct v4l2_fwht_pixfmt_info *v4l2_fwht_default_fmt(u32 width_div, u32 height_div,
-+							  u32 components_num,
-+							  u32 pixenc,
-+							  unsigned int start_idx)
-+{
-+	unsigned int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(v4l2_fwht_pixfmts); i++) {
-+		if (v4l2_fwht_pixfmts[i].width_div == width_div &&
-+		    v4l2_fwht_pixfmts[i].height_div == height_div &&
-+		    (!pixenc || v4l2_fwht_pixfmts[i].pixenc == pixenc) &&
-+		    v4l2_fwht_pixfmts[i].components_num == components_num) {
-+			if (start_idx == 0)
-+				return v4l2_fwht_pixfmts + i;
-+			start_idx--;
-+		}
-+	}
-+	return NULL;
-+}
-+
- const struct v4l2_fwht_pixfmt_info *v4l2_fwht_find_pixfmt(u32 pixelformat)
+@@ -233,7 +233,6 @@ int v4l2_fwht_decode(struct v4l2_fwht_state *state, u8 *p_in, u8 *p_out)
  {
- 	unsigned int i;
-@@ -187,6 +207,7 @@ int v4l2_fwht_encode(struct v4l2_fwht_state *state, u8 *p_in, u8 *p_out)
- 	p_hdr->width = htonl(state->visible_width);
- 	p_hdr->height = htonl(state->visible_height);
- 	flags |= (info->components_num - 1) << FWHT_FL_COMPONENTS_NUM_OFFSET;
-+	flags |= info->pixenc;
- 	if (encoding & FWHT_LUMA_UNENCODED)
- 		flags |= FWHT_FL_LUMA_IS_UNCOMPRESSED;
- 	if (encoding & FWHT_CB_UNENCODED)
-@@ -245,10 +266,15 @@ int v4l2_fwht_decode(struct v4l2_fwht_state *state, u8 *p_in, u8 *p_out)
- 	flags = ntohl(p_hdr->flags);
+ 	unsigned int i, j, k;
+ 	u32 flags;
+-	struct fwht_cframe_hdr *p_hdr;
+ 	struct fwht_cframe cf;
+ 	u8 *p, *ref_p;
+ 	unsigned int components_num = 3;
+@@ -245,25 +244,24 @@ int v4l2_fwht_decode(struct v4l2_fwht_state *state, u8 *p_in, u8 *p_out)
+ 		return -EINVAL;
  
- 	if (version == FWHT_VERSION) {
-+		if ((flags & FWHT_FL_PIXENC_MSK) != info->pixenc)
-+			return -EINVAL;
- 		components_num = 1 + ((flags & FWHT_FL_COMPONENTS_NUM_MSK) >>
--			FWHT_FL_COMPONENTS_NUM_OFFSET);
-+				FWHT_FL_COMPONENTS_NUM_OFFSET);
+ 	info = state->info;
+-	p_hdr = (struct fwht_cframe_hdr *)p_in;
+ 
+-	version = ntohl(p_hdr->version);
++	version = ntohl(state->header.version);
+ 	if (!version || version > FWHT_VERSION) {
+ 		pr_err("version %d is not supported, current version is %d\n",
+ 		       version, FWHT_VERSION);
+ 		return -EINVAL;
  	}
  
-+	if (components_num != info->components_num)
-+		return -EINVAL;
-+
- 	state->colorspace = ntohl(p_hdr->colorspace);
- 	state->xfer_func = ntohl(p_hdr->xfer_func);
- 	state->ycbcr_enc = ntohl(p_hdr->ycbcr_enc);
+-	if (p_hdr->magic1 != FWHT_MAGIC1 ||
+-	    p_hdr->magic2 != FWHT_MAGIC2)
++	if (state->header.magic1 != FWHT_MAGIC1 ||
++	    state->header.magic2 != FWHT_MAGIC2)
+ 		return -EINVAL;
+ 
+ 	/* TODO: support resolution changes */
+-	if (ntohl(p_hdr->width)  != state->visible_width ||
+-	    ntohl(p_hdr->height) != state->visible_height)
++	if (ntohl(state->header.width)  != state->visible_width ||
++	    ntohl(state->header.height) != state->visible_height)
+ 		return -EINVAL;
+ 
+-	flags = ntohl(p_hdr->flags);
++	flags = ntohl(state->header.flags);
+ 
+ 	if (version == FWHT_VERSION) {
+ 		if ((flags & FWHT_FL_PIXENC_MSK) != info->pixenc)
+@@ -275,11 +273,11 @@ int v4l2_fwht_decode(struct v4l2_fwht_state *state, u8 *p_in, u8 *p_out)
+ 	if (components_num != info->components_num)
+ 		return -EINVAL;
+ 
+-	state->colorspace = ntohl(p_hdr->colorspace);
+-	state->xfer_func = ntohl(p_hdr->xfer_func);
+-	state->ycbcr_enc = ntohl(p_hdr->ycbcr_enc);
+-	state->quantization = ntohl(p_hdr->quantization);
+-	cf.rlc_data = (__be16 *)(p_in + sizeof(*p_hdr));
++	state->colorspace = ntohl(state->header.colorspace);
++	state->xfer_func = ntohl(state->header.xfer_func);
++	state->ycbcr_enc = ntohl(state->header.ycbcr_enc);
++	state->quantization = ntohl(state->header.quantization);
++	cf.rlc_data = (__be16 *)p_in;
+ 
+ 	hdr_width_div = (flags & FWHT_FL_CHROMA_FULL_WIDTH) ? 1 : 2;
+ 	hdr_height_div = (flags & FWHT_FL_CHROMA_FULL_HEIGHT) ? 1 : 2;
 diff --git a/drivers/media/platform/vicodec/codec-v4l2-fwht.h b/drivers/media/platform/vicodec/codec-v4l2-fwht.h
-index 203c45d98905..18ac25978829 100644
+index 18ac25978829..aa6fa90a48be 100644
 --- a/drivers/media/platform/vicodec/codec-v4l2-fwht.h
 +++ b/drivers/media/platform/vicodec/codec-v4l2-fwht.h
-@@ -20,6 +20,7 @@ struct v4l2_fwht_pixfmt_info {
- 	unsigned int height_div;
- 	unsigned int components_num;
- 	unsigned int planes_num;
-+	unsigned int pixenc;
+@@ -41,6 +41,7 @@ struct v4l2_fwht_state {
+ 	enum v4l2_quantization quantization;
+ 
+ 	struct fwht_raw_frame ref_frame;
++	struct fwht_cframe_hdr header;
+ 	u8 *compressed_frame;
  };
  
- struct v4l2_fwht_state {
-@@ -45,6 +46,11 @@ struct v4l2_fwht_state {
- 
- const struct v4l2_fwht_pixfmt_info *v4l2_fwht_find_pixfmt(u32 pixelformat);
- const struct v4l2_fwht_pixfmt_info *v4l2_fwht_get_pixfmt(u32 idx);
-+const struct v4l2_fwht_pixfmt_info *v4l2_fwht_default_fmt(u32 width_div,
-+							  u32 height_div,
-+							  u32 components_num,
-+							  u32 pixenc,
-+							  unsigned int start_idx);
- 
- int v4l2_fwht_encode(struct v4l2_fwht_state *state, u8 *p_in, u8 *p_out);
- int v4l2_fwht_decode(struct v4l2_fwht_state *state, u8 *p_in, u8 *p_out);
 diff --git a/drivers/media/platform/vicodec/vicodec-core.c b/drivers/media/platform/vicodec/vicodec-core.c
-index 3fab1050855e..ef7ee75106b5 100644
+index ef7ee75106b5..2a95eca3cae6 100644
 --- a/drivers/media/platform/vicodec/vicodec-core.c
 +++ b/drivers/media/platform/vicodec/vicodec-core.c
-@@ -395,9 +395,9 @@ static int vidioc_querycap(struct file *file, void *priv,
- 	return 0;
- }
+@@ -124,6 +124,7 @@ struct vicodec_ctx {
+ 	u32			cur_buf_offset;
+ 	u32			comp_max_size;
+ 	u32			comp_size;
++	u32			header_size;
+ 	u32			comp_magic_cnt;
+ 	u32			comp_frame_size;
+ 	bool			comp_has_frame;
+@@ -201,6 +202,61 @@ static int device_process(struct vicodec_ctx *ctx,
+ /*
+  * mem2mem callbacks
+  */
++enum vb2_buffer_state get_next_header(struct vicodec_ctx *ctx, u8 **pp, u32 sz)
++{
++	static const u8 magic[] = {
++		0x4f, 0x4f, 0x4f, 0x4f, 0xff, 0xff, 0xff, 0xff
++	};
++	u8 *p = *pp;
++	u32 state;
++	u8 *header = (u8 *)&ctx->state.header;
++
++	state = VB2_BUF_STATE_DONE;
++
++	if (!ctx->header_size) {
++		state = VB2_BUF_STATE_ERROR;
++		for (; p < *pp + sz; p++) {
++			u32 copy;
++
++			p = memchr(p, magic[ctx->comp_magic_cnt],
++				   *pp + sz - p);
++			if (!p) {
++				ctx->comp_magic_cnt = 0;
++				break;
++			}
++			copy = sizeof(magic) - ctx->comp_magic_cnt;
++			if (*pp + sz - p < copy)
++				copy = *pp + sz - p;
++
++			memcpy(header + ctx->comp_magic_cnt, p, copy);
++			ctx->comp_magic_cnt += copy;
++			if (!memcmp(header, magic, ctx->comp_magic_cnt)) {
++				p += copy;
++				state = VB2_BUF_STATE_DONE;
++				break;
++			}
++			ctx->comp_magic_cnt = 0;
++		}
++		if (ctx->comp_magic_cnt < sizeof(magic)) {
++			*pp = p;
++			return state;
++		}
++		ctx->header_size = sizeof(magic);
++	}
++
++	if (ctx->header_size < sizeof(struct fwht_cframe_hdr)) {
++		u32 copy = sizeof(struct fwht_cframe_hdr) - ctx->header_size;
++
++		if (*pp + sz - p < copy)
++			copy = *pp + sz - p;
++
++		memcpy(header + ctx->header_size, p, copy);
++		p += copy;
++		ctx->header_size += copy;
++	}
++	*pp = p;
++	return state;
++}
  
--static int enum_fmt(struct v4l2_fmtdesc *f, bool is_enc, bool is_out)
-+static int enum_fmt(struct v4l2_fmtdesc *f, struct vicodec_ctx *ctx, bool is_out)
- {
--	bool is_uncomp = (is_enc && is_out) || (!is_enc && !is_out);
-+	bool is_uncomp = (ctx->is_enc && is_out) || (!ctx->is_enc && !is_out);
+ /* device_run() - prepares and starts the device */
+ static void device_run(void *priv)
+@@ -241,6 +297,7 @@ static void device_run(void *priv)
+ 	}
+ 	v4l2_m2m_buf_done(dst_buf, state);
+ 	ctx->comp_size = 0;
++	ctx->header_size = 0;
+ 	ctx->comp_magic_cnt = 0;
+ 	ctx->comp_has_frame = false;
+ 	spin_unlock(ctx->lock);
+@@ -291,54 +348,15 @@ static int job_ready(void *priv)
  
- 	if (V4L2_TYPE_IS_MULTIPLANAR(f->type) && !multiplanar)
- 		return -EINVAL;
-@@ -405,9 +405,16 @@ static int enum_fmt(struct v4l2_fmtdesc *f, bool is_enc, bool is_out)
- 		return -EINVAL;
+ 	state = VB2_BUF_STATE_DONE;
  
- 	if (is_uncomp) {
--		const struct v4l2_fwht_pixfmt_info *info =
--			v4l2_fwht_get_pixfmt(f->index);
-+		const struct v4l2_fwht_pixfmt_info *info = get_q_data(ctx, f->type)->info;
+-	if (!ctx->comp_size) {
+-		state = VB2_BUF_STATE_ERROR;
+-		for (; p < p_src + sz; p++) {
+-			u32 copy;
+-
+-			p = memchr(p, magic[ctx->comp_magic_cnt],
+-				   p_src + sz - p);
+-			if (!p) {
+-				ctx->comp_magic_cnt = 0;
+-				break;
+-			}
+-			copy = sizeof(magic) - ctx->comp_magic_cnt;
+-			if (p_src + sz - p < copy)
+-				copy = p_src + sz - p;
+-
+-			memcpy(ctx->state.compressed_frame + ctx->comp_magic_cnt,
+-			       p, copy);
+-			ctx->comp_magic_cnt += copy;
+-			if (!memcmp(ctx->state.compressed_frame, magic,
+-				    ctx->comp_magic_cnt)) {
+-				p += copy;
+-				state = VB2_BUF_STATE_DONE;
+-				break;
+-			}
+-			ctx->comp_magic_cnt = 0;
+-		}
+-		if (ctx->comp_magic_cnt < sizeof(magic)) {
++	if (ctx->header_size < sizeof(struct fwht_cframe_hdr)) {
++		state = get_next_header(ctx, &p, p_src + sz - p);
++		if (ctx->header_size < sizeof(struct fwht_cframe_hdr)) {
+ 			job_remove_src_buf(ctx, state);
+ 			goto restart;
+ 		}
+-		ctx->comp_size = sizeof(magic);
+-	}
+-	if (ctx->comp_size < sizeof(struct fwht_cframe_hdr)) {
+-		struct fwht_cframe_hdr *p_hdr =
+-			(struct fwht_cframe_hdr *)ctx->state.compressed_frame;
+-		u32 copy = sizeof(struct fwht_cframe_hdr) - ctx->comp_size;
  
-+		if (ctx->is_enc)
-+			info = v4l2_fwht_get_pixfmt(f->index);
-+		else
-+			info = v4l2_fwht_default_fmt(info->width_div,
-+						     info->height_div,
-+						     info->components_num,
-+						     info->pixenc,
-+						     f->index);
- 		if (!info)
- 			return -EINVAL;
- 		f->pixelformat = info->id;
-@@ -424,7 +431,7 @@ static int vidioc_enum_fmt_vid_cap(struct file *file, void *priv,
- {
- 	struct vicodec_ctx *ctx = file2ctx(file);
+-		if (copy > p_src + sz - p)
+-			copy = p_src + sz - p;
+-		memcpy(ctx->state.compressed_frame + ctx->comp_size,
+-		       p, copy);
+-		p += copy;
+-		ctx->comp_size += copy;
+-		if (ctx->comp_size < sizeof(struct fwht_cframe_hdr)) {
+-			job_remove_src_buf(ctx, state);
+-			goto restart;
+-		}
+-		ctx->comp_frame_size = ntohl(p_hdr->size) + sizeof(*p_hdr);
++		ctx->comp_frame_size = ntohl(ctx->state.header.size);
++
+ 		if (ctx->comp_frame_size > ctx->comp_max_size)
+ 			ctx->comp_frame_size = ctx->comp_max_size;
+ 	}
+@@ -1103,7 +1121,7 @@ static int vicodec_start_streaming(struct vb2_queue *q,
+ 		state->stride = q_data->coded_width * info->bytesperline_mult;
+ 	}
+ 	state->ref_frame.luma = kvmalloc(total_planes_size, GFP_KERNEL);
+-	ctx->comp_max_size = total_planes_size + sizeof(struct fwht_cframe_hdr);
++	ctx->comp_max_size = total_planes_size;
+ 	state->compressed_frame = kvmalloc(ctx->comp_max_size, GFP_KERNEL);
+ 	if (!state->ref_frame.luma || !state->compressed_frame) {
+ 		kvfree(state->ref_frame.luma);
+@@ -1130,6 +1148,7 @@ static int vicodec_start_streaming(struct vb2_queue *q,
+ 	state->gop_cnt = 0;
+ 	ctx->cur_buf_offset = 0;
+ 	ctx->comp_size = 0;
++	ctx->header_size = 0;
+ 	ctx->comp_magic_cnt = 0;
+ 	ctx->comp_has_frame = false;
  
--	return enum_fmt(f, ctx->is_enc, false);
-+	return enum_fmt(f, ctx, false);
- }
- 
- static int vidioc_enum_fmt_vid_out(struct file *file, void *priv,
-@@ -432,7 +439,7 @@ static int vidioc_enum_fmt_vid_out(struct file *file, void *priv,
- {
- 	struct vicodec_ctx *ctx = file2ctx(file);
- 
--	return enum_fmt(f, ctx->is_enc, true);
-+	return enum_fmt(f, ctx, true);
- }
- 
- static int vidioc_g_fmt(struct vicodec_ctx *ctx, struct v4l2_format *f)
 -- 
 2.17.1
 
