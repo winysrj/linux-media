@@ -2,141 +2,214 @@ Return-Path: <SRS0=jH9h=P3=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_MUTT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DC169C61CE4
-	for <linux-media@archiver.kernel.org>; Sat, 19 Jan 2019 04:44:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C1AD3C61CE4
+	for <linux-media@archiver.kernel.org>; Sat, 19 Jan 2019 08:52:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A7B1B2084F
-	for <linux-media@archiver.kernel.org>; Sat, 19 Jan 2019 04:44:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 86A7C2084C
+	for <linux-media@archiver.kernel.org>; Sat, 19 Jan 2019 08:52:58 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="GjB9SEIP"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727343AbfASEox (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 18 Jan 2019 23:44:53 -0500
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:45896 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727223AbfASEow (ORCPT
+        id S1727679AbfASIw5 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sat, 19 Jan 2019 03:52:57 -0500
+Received: from mail-pf1-f195.google.com ([209.85.210.195]:38567 "EHLO
+        mail-pf1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727648AbfASIw5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 Jan 2019 23:44:52 -0500
-Received: from localhost ([IPv6:2001:983:e9a7:1:e8bf:b740:1fb9:4040])
-        by smtp-cloud7.xs4all.net with ESMTPA
-        id kiUzg1F6gBDyIkiV0gFZWU; Sat, 19 Jan 2019 05:44:51 +0100
-Message-ID: <f607bb67821a605b161960c827d54b34@smtp-cloud7.xs4all.net>
-Date:   Sat, 19 Jan 2019 05:44:49 +0100
-From:   "Hans Verkuil" <hverkuil@xs4all.nl>
-To:     linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-X-CMAE-Envelope: MS4wfGWdQr24lNhsP1idH/WKSBMTnOOWi2TiWdyeRaYk8+Bw83RjiAAYNEBxvkFlDaHmNotCqS5ZScat3CvATiuNR5sSwfQ4LT+HR6R3Gycxx6VDzqcQ7QjE
- yX1PyC/rkI29tASFSy6/Gyt3AfX+SkSWoijZESTabTaD+mar8VbCAtoFPTih+1hXAEBOva0LP3QvdPk6xABjc3zpQjASKT/O3mvFVAQQV4TKVtyZmIzXEddQ
+        Sat, 19 Jan 2019 03:52:57 -0500
+Received: by mail-pf1-f195.google.com with SMTP id q1so7780211pfi.5;
+        Sat, 19 Jan 2019 00:52:56 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=BIeYaElCnc1mA9dMrR5CHyggpTLGgSjEPN1G3URQqmE=;
+        b=GjB9SEIPh/FB2tjco/GkFdGfnmty5CR/2HQ8bh0pxApMSHgB+TMLvfSZn1MWNM6EzS
+         LQd6/t9b6hOOn5UtCDsUQNMIr+Enq6wgbfbvMte5Ytnjfc6QD0hG2ujMd1G5ASpDlitA
+         LWyFSq7W5brvC44t3rBMHHfrYGp8tJ26kPavaSzuUrlIk/8pJO1qB8r+xKux1RZmDhDI
+         iOhNWXT7VAP50Jv9qACHZEsSBO+FE+QF6DdDIc+TRFdutK4fM8E8t44lr/RuLerSQ7Q8
+         94CHbYJqQhGU3yW8nVYrSeZcLmQeDxPqtnhU7xzkPzf9c57t0TlqksV8eeLAUBPh68Cs
+         rY/A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=BIeYaElCnc1mA9dMrR5CHyggpTLGgSjEPN1G3URQqmE=;
+        b=JAiSJVKcgaDT6snu+bBMOqOcZrsqjvSLmNZHe2p2+y1GYRWfKPY8P84MNdvx+0gI9j
+         y6J+2SRmXIo05qgNW/YONa2wqimncpFunbzl6zV39QpTBBT9qx3+2pLONqHAnIm42neR
+         Hy4JeMlbhy8tIyEWwtam7DPSZlRlkOnDOZcUSK07ye5gj4lnCP49ZaCQX12HX2xRIpsN
+         ewuhWLZG+18tGHjQbTn7NRmbCqWgJ3i78Qqa3S64sDA4oIgeFZIPwBjcDa/BxfuJOUZw
+         gdWvF5SBfig/ItVMveqA2TnKmqCN9QOI3vJImA7SjDnGGUY+Hh7I/L2WNKEH8JIBfF73
+         TsRA==
+X-Gm-Message-State: AJcUukcHPeBLojMfybEseVzIDmfMse7bVGWoKiZyEIvtiBKxmPPNixa0
+        7AELiD2A1sbDS7h8nfVk6TQ=
+X-Google-Smtp-Source: ALg8bN59fLg1bcWILzB3cYLue1THv/UmXFWtGcZQxIC2XQL86vrm1ntfxiWPhTuDwPxFbR8IgSdnhA==
+X-Received: by 2002:a63:e915:: with SMTP id i21mr20542671pgh.409.1547887975337;
+        Sat, 19 Jan 2019 00:52:55 -0800 (PST)
+Received: from dtor-ws ([2620:15c:202:201:3adc:b08c:7acc:b325])
+        by smtp.gmail.com with ESMTPSA id l85sm9942355pfg.161.2019.01.19.00.52.54
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Sat, 19 Jan 2019 00:52:54 -0800 (PST)
+Date:   Sat, 19 Jan 2019 00:52:52 -0800
+From:   Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To:     VDR User <user.vdr@gmail.com>
+Cc:     hadess@hadess.net, linux-input@vger.kernel.org,
+        Sean Young <sean@mess.org>, mchehab+samsung@kernel.org,
+        "mailing list: linux-media" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v2] Input: Add missing event codes for common IR remote
+ buttons
+Message-ID: <20190119085252.GA187380@dtor-ws>
+References: <20181103145532.9323-1-user.vdr@gmail.com>
+ <766230a305f54a37e9d881779a0d81ec439f8bd8.camel@hadess.net>
+ <CAA7C2qhCmaJJ1F8D6zz0-9Sp+OspPE2h=KYRYO7seMUrs2q=sA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAA7C2qhCmaJJ1F8D6zz0-9Sp+OspPE2h=KYRYO7seMUrs2q=sA@mail.gmail.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Derek,
 
-Results of the daily build of media_tree:
+On Tue, Nov 13, 2018 at 08:20:22AM -0800, VDR User wrote:
+> > On Sat, 2018-11-03 at 07:55 -0700, Derek Kelly wrote:
+> > > The following patch adds event codes for common buttons found on
+> > > various
+> > > provider and universal remote controls. They represent functions not
+> > > covered by existing event codes. Once added, rc_keymaps can be
+> > > updated
+> > > accordingly where applicable.
+> >
+> > Would be great to have more than "those are used", such as knowing how
+> > they are labeled, both with text and/or icons, and an explanation as to
+> > why a particular existing key isn't usable.
+> 
+> Hi Bastien,
+> 
+> Text & icons may vary from remote to remote but the purpose/function
+> of those buttons is basically the same. As explained, the defines in
+> this patch represent functions not already addressed by other defines.
+> See below for more detail. The one thing I will add that I probably
+> should've mentioned is that these defines focus on media/htpc/stb. If
+> you're not aware, Linux has become a common choice for these types of
+> systems thanks to the popularity of software like Plex, Kodi, Mythtv,
+> VDR, etc. Lastly, all these represent *common* functions in this area.
+> Please keep this in mind as you read further.
+> 
+> > > +/* Remote control buttons found across provider & universal remotes */
+> > > +#define KEY_LIVE_TV                  0x2e8   /* Jump to live tv viewing */
+> >
+> > KEY_TV?
+> 
+> KEY_TV selects TV as a *input source* the same as KEY_VCR, KEY_SAT,
+> KEY_CD, etc. whereas KEY_LIVE_TV jumps directly to live tv as opposed
+> to local/networked media playback, dvr playback, etc.
 
-date:			Sat Jan 19 05:00:12 CET 2019
-media-tree git hash:	e8f9b16d72631870e30a3d8e4ee9f1c097bc7ba0
-media_build git hash:	a0be39e21b895d8cc47e0e1be6ddc8e336168d1d
-v4l-utils git hash:	e07d1b90190f2b98fe4f5be20406b49ecbe5b3e7
-edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.19.0-1-amd64
+I do not quite grasp the distinction. KEY_TV to select and play
+broadcast TV, KEY_TV2 to switch TV input to cable.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.123-i686: OK
-linux-3.18.123-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.159-i686: OK
-linux-4.4.159-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.131-i686: OK
-linux-4.9.131-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.74-i686: OK
-linux-4.14.74-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: OK
-linux-4.19.1-i686: OK
-linux-4.19.1-x86_64: OK
-linux-4.20.1-i686: OK
-linux-4.20.1-x86_64: OK
-linux-5.0-rc1-i686: OK
-linux-5.0-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+> 
+> > > +#define KEY_OPTIONS                  0x2e9   /* Jump to options */
+> >
+> > KEY_OPTION?
+> 
+> Software vs. media playback options.
 
-Detailed results are available here:
+This seems application control key. Do you really need both KEY_OPTION
+and KEY_OPTIONS? What is the difference?
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+> 
+> > > +#define KEY_INTERACTIVE                      0x2ea   /* Jump to interactive system/menu/item */
 
-Full logs are available here:
+How is this different from KEY_MENU?
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+> > > +#define KEY_MIC_INPUT                        0x2eb   /* Trigger MIC input/listen mode */
+> >
+> > KEY_MICMUTE?
+> 
+> This button doesn't mute the mic, in fact it does the opposite. The
+> mic is off until you press this button, thus triggering MIC
+> input/listen mode and allowing the user to speak his commands. It
+> automatically shuts off after X seconds of silence.
 
-The Media Infrastructure API from this daily build is here:
+KEY_VOICECOMMAND then.
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+> 
+> > > +#define KEY_SCREEN_INPUT             0x2ec   /* Open on-screen input system */
+> >
+> > KEY_SWITCHVIDEOMODE?
+> 
+> KEY_SWITCHVIDEOMODE is used for "Cycle between available video outputs
+> (Monitor/LCD/TV-out/etc) ". This is poorly labeled in my opinion and
+> should've been called KEY_SWITCHVIDEOOUTPUT or something similar.
+> "Video mode" typically refers to something entirely different - how
+> video is presented on the display, not what physical display you're
+> using.
+
+It normally controls not only what devices are used for output, but
+switches between mirror/extend display modes.
+
+> KEY_SCREEN_INPUT is used to bring up things like an on-screen
+> keyboard or other on-onscreen user input method.
+
+We already have KEY_ONSCREEN_KEYBOARD.
+
+> 
+> > > +#define KEY_SYSTEM_MENU                      0x2ed   /* Open systems menu/display */
+> >
+> > KEY_MENU?
+> 
+> Systems menus as pertains to DVB. KEY_MENU is generic and having only
+> one `menu` option is problematic when you have different types of
+> menus which aren't accessible from each other.
+
+We have KEY_MENU/KEY_CONTEXT_MENU/KEY_ROOT_MENU/KEY_MEDIA_TOP_MENU.
+Are you sure we need another one?
+
+> 
+> > > +#define KEY_SERVICES                 0x2ee   /* Access services */
+> > > +#define KEY_DISPLAY_FORMAT           0x2ef   /* Cycle display formats */
+> >
+> > KEY_CONTEXT_MENU?
+> 
+> KEY_DISPLAY_FORMAT doesn't open any menus and is used to cycle through
+> how video is displayed on-screen to the user; full, zoomed,
+> letterboxed, stretched, etc. KEY_CONTEXT_MENU would be for something
+> like bringing up a playback menu where you'd set things like
+> upscaling, deinterlacing, audio mixdown/mixup, etc.
+
+KEY_ASPECT_RATIO (formerly KEY_SCREEN).
+
+> 
+> > > +#define KEY_PIP                              0x2f0   /* Toggle Picture-in-Picture on/off */
+> > > +#define KEY_PIP_SWAP                 0x2f1   /* Swap contents between main view and PIP window */
+> > > +#define KEY_PIP_POSITION             0x2f2   /* Cycle PIP window position */
+> > > +
+> > >  /* We avoid low common keys in module aliases so they don't get huge. */
+> > >  #define KEY_MIN_INTERESTING  KEY_MUTE
+> > >  #define KEY_MAX                      0x2ff
+> >
+> 
+> Hopefully that makes things more clear. This patch helps users map
+> common (media/htpc/stb) remote control buttons directly to their real
+> functions as opposed to mapping them to some random unrelated & unused
+> event, which can be both confusing and problematic on systems where
+> both remote controls and say bluetooth keyboards are used.
+
+It would be great if you provided references to HID Usage Tables for the
+new keycodes you are adding, which should help further clarify the
+meaning of keycode. For example, even with the comment, it is not clear
+what "Access services" means.
+
+Thanks.
+
+-- 
+Dmitry
