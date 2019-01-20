@@ -2,146 +2,164 @@ Return-Path: <SRS0=HRs9=P4=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D0F1EC26640
-	for <linux-media@archiver.kernel.org>; Sun, 20 Jan 2019 19:09:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 248E6C2666E
+	for <linux-media@archiver.kernel.org>; Sun, 20 Jan 2019 19:13:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 91EB120880
-	for <linux-media@archiver.kernel.org>; Sun, 20 Jan 2019 19:09:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DA3FC2084F
+	for <linux-media@archiver.kernel.org>; Sun, 20 Jan 2019 19:13:44 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=kapsi.fi header.i=@kapsi.fi header.b="Cwbg9Dex"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="eXxgAXt5"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727587AbfATTJt (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sun, 20 Jan 2019 14:09:49 -0500
-Received: from mail.kapsi.fi ([91.232.154.25]:44211 "EHLO mail.kapsi.fi"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727440AbfATTJt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 20 Jan 2019 14:09:49 -0500
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=kapsi.fi;
-         s=20161220; h=Content-Transfer-Encoding:Content-Type:In-Reply-To:
-        MIME-Version:Date:Message-ID:From:References:To:Subject:Sender:Reply-To:Cc:
-        Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
-        Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:
-        List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=pzw1uk1EIzKdw1Ie2lxsXsuUThkuI8uLHe+0hj0Yqbk=; b=Cwbg9DexUyyalRmy8Bgnc9Rkjp
-        AYBLl1NDZ/x9z1nMevQVIE1zi7dqicn/i4yYJffqPQ8MSCfMhCrEWYnHvs3hFqT4n5iHYktTOH/Mp
-        ZedN1kmbaBIZwAd4jJZy6/tdHVl5sq4kJan/c4WU7XxoChcCSsHyHOHdi2C2PH7fjZh2yeufmO5Mu
-        w5u2T7/YGVHTMtUyB27rSuiPsyhB7t6mSZs8LW3FzRgiLQDlrgiXzgUsK/r4JJ2zB95OeTe7JmAqA
-        VH3cl8jUo2Y0fK/dEBDEeLO+Cr23Z5yRvoKrPd9GEqa33qmx42Rw/Ux1thvoE8lXEj/oWUwBqrNXz
-        f0/Gdrlg==;
-Received: from 87-92-92-105.bb.dnainternet.fi ([87.92.92.105] helo=localhost.localdomain)
-        by mail.kapsi.fi with esmtpsa (TLS1.2:ECDHE_RSA_AES_128_GCM_SHA256:128)
-        (Exim 4.89)
-        (envelope-from <crope@iki.fi>)
-        id 1glITa-0002Xu-So; Sun, 20 Jan 2019 21:09:46 +0200
-Subject: Re: [PATCH 12/13] si2157: add on-demand rf strength func
-To:     Brad Love <brad@nextdimension.cc>, linux-media@vger.kernel.org,
-        mchehab@kernel.org
-References: <1546105882-15693-1-git-send-email-brad@nextdimension.cc>
- <1546105882-15693-13-git-send-email-brad@nextdimension.cc>
-From:   Antti Palosaari <crope@iki.fi>
-Message-ID: <64dd23af-a84c-0bf0-0877-fb71fc005bb5@iki.fi>
-Date:   Sun, 20 Jan 2019 21:09:46 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.4.0
-MIME-Version: 1.0
-In-Reply-To: <1546105882-15693-13-git-send-email-brad@nextdimension.cc>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-SA-Exim-Connect-IP: 87.92.92.105
-X-SA-Exim-Mail-From: crope@iki.fi
-X-SA-Exim-Scanned: No (on mail.kapsi.fi); SAEximRunCond expanded to false
+        id S1727586AbfATTNj (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sun, 20 Jan 2019 14:13:39 -0500
+Received: from mail-pl1-f196.google.com ([209.85.214.196]:37357 "EHLO
+        mail-pl1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727415AbfATTNj (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 20 Jan 2019 14:13:39 -0500
+Received: by mail-pl1-f196.google.com with SMTP id b5so8696945plr.4;
+        Sun, 20 Jan 2019 11:13:39 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id;
+        bh=e2HOUbGNN/v/dW8bjHRJUsT8BYGPYXxk3FU2EXZ7FCI=;
+        b=eXxgAXt5nD5btFz97FB/AxCg4gs8Esl3yRHuNB/O9LdnyEYTTLi8nogkUOYLKT/tSv
+         gQyIQ7wns3ULiF41O4WQxAfJ9ysK5LeFygq9oBxLYFyPlnGXde8+9M+7RB9cAvgHSJgk
+         YJn4HCuOTrlNk3f3kAJW9Ixc3KhKNsRwucoQfg+rb7GNfQPDGzMKRjByj9cNE/yY1vs6
+         jii23yaD/M7lnTSXPQRJEN9NA+VwodQajJzrUrf4szOMwwNcq4zOeyxwPBXdwLBnPsR0
+         /juZssM+8fUCrnR46E4Mc/jE/8wGGMGCy/sYxBGcvx9Rgf5zKWPz+1RVUXQ8nxOIKit8
+         j9Fw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id;
+        bh=e2HOUbGNN/v/dW8bjHRJUsT8BYGPYXxk3FU2EXZ7FCI=;
+        b=JLXZZPO2gH2x2AvnJs+VHRanv3ft6vEuZgwvLhkZAmHRchtyVt3j7xY7WjjyaiqhH+
+         Mjmqy7IV0b86AXgHA3NT43yx2/tMJ9QPFMZyG7j7Lkyamc4Ds2Xt/SmLaISWCe3QWuQ3
+         XneBKfg7CDZzFf/iKXiqnr1Fma/MbxSsHSvtQibLtnQl5Y3VSQWvTTSaxGc0Y0bTmMDz
+         AQIEMgnhWAW1RJeSKSU3FEiNOMYE1hLr9PiJMW8EXHAgP+Let1FCA/UcOKv3zaRO2GDH
+         z9SrHyRxdUS6zW7tAWQDNni020SQW4DxJxJbYy9PJullDToYtJrtDhK5I8J2aKv5kxNY
+         gbpQ==
+X-Gm-Message-State: AJcUukey9GWJe/LMklPgmzacl184J9W41fZU+vuzCI3P7/o7g8Kxr6kB
+        Q0NndGAj1QdwbQKesTGSyV5INHuiHDM=
+X-Google-Smtp-Source: ALg8bN4NJN+IFYPvsoIIYZtEvTJEXEpC8jY1WAEwJsnsZlc8XchRHDxgmWUo86HJNh4IkNlBTNkH2w==
+X-Received: by 2002:a17:902:ac1:: with SMTP id 59mr26980010plp.36.1548011618112;
+        Sun, 20 Jan 2019 11:13:38 -0800 (PST)
+Received: from majic.sklembedded.com (c-73-202-231-77.hsd1.ca.comcast.net. [73.202.231.77])
+        by smtp.googlemail.com with ESMTPSA id 125sm14173055pfd.124.2019.01.20.11.13.36
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Sun, 20 Jan 2019 11:13:37 -0800 (PST)
+From:   Steve Longerbeam <slongerbeam@gmail.com>
+To:     linux-media@vger.kernel.org
+Cc:     Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        devel@driverdev.osuosl.org (open list:STAGING SUBSYSTEM),
+        linux-kernel@vger.kernel.org (open list)
+Subject: [PATCH] media: imx: Validate frame intervals before setting
+Date:   Sun, 20 Jan 2019 11:13:31 -0800
+Message-Id: <20190120191331.9723-1-slongerbeam@gmail.com>
+X-Mailer: git-send-email 2.17.1
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On 12/29/18 7:51 PM, Brad Love wrote:
-> Add get_rf_strength callback to get RSSI from the tuner. DVBv5
-> stat cache is updated.
-> 
-> Signed-off-by: Brad Love <brad@nextdimension.cc>
+In the .s_frame_interval() subdev op, don't accept or set a
+frame interval with a zero numerator or denominator. This fixes
+a v4l2-compliance failure:
 
+fail: v4l2-test-formats.cpp(1146):
+cap->timeperframe.numerator == 0 || cap->timeperframe.denominator == 0
+test VIDIOC_G/S_PARM: FAIL
 
-> ---
->   drivers/media/tuners/si2157.c | 38 +++++++++++++++++++++++++++++++++++++-
->   1 file changed, 37 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
-> index 1737007..f28bf7f 100644
-> --- a/drivers/media/tuners/si2157.c
-> +++ b/drivers/media/tuners/si2157.c
-> @@ -752,6 +752,40 @@ static int si2157_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
->   	return 0;
->   }
->   
-> +static int si2157_get_rf_strength(struct dvb_frontend *fe, u16 *rssi)
-> +{
-> +	struct i2c_client *client = fe->tuner_priv;
-> +	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-> +	struct si2157_cmd cmd;
-> +	int ret;
-> +	int strength;
-> +
-> +	dev_dbg(&client->dev, "\n");
-> +
-> +	memcpy(cmd.args, "\x42\x00", 2);
-> +	cmd.wlen = 2;
-> +	cmd.rlen = 12;
-> +	ret = si2157_cmd_execute(client, &cmd);
-> +	if (ret)
-> +		goto err;
-> +
-> +	c->strength.stat[0].scale = FE_SCALE_DECIBEL;
-> +	c->strength.stat[0].svalue = (s8) cmd.args[3] * 1000;
-> +
-> +	strength = (s8)cmd.args[3];
-> +	strength = (strength > -80) ? (u16)(strength + 100) : 0;
-> +	strength = strength > 80 ? 100 : strength;
-> +
-> +	*rssi = (u16)(strength * 0xffff / 100);
-> +	dev_dbg(&client->dev, "%s: strength=%d rssi=%u\n",
-> +		__func__, (s8)cmd.args[3], *rssi);
-> +
-> +	return 0;
-> +err:
-> +	dev_dbg(&client->dev, "failed=%d\n", ret);
-> +	return ret;
-> +}
-> +
->   static const struct dvb_tuner_ops si2157_ops = {
->   	.info = {
->   		.name             = "Silicon Labs Si2141/Si2146/2147/2148/2157/2158",
-> @@ -765,7 +799,9 @@ static const struct dvb_tuner_ops si2157_ops = {
->   	.set_analog_params = si2157_set_analog_params,
->   	.get_frequency     = si2157_get_frequency,
->   	.get_bandwidth     = si2157_get_bandwidth,
-> -	.get_if_frequency = si2157_get_if_frequency,
-> +	.get_if_frequency  = si2157_get_if_frequency,
-> +
-> +	.get_rf_strength   = si2157_get_rf_strength,
->   };
->   
->   static void si2157_stat_work(struct work_struct *work)
-> 
+Signed-off-by: Steve Longerbeam <slongerbeam@gmail.com>
+---
+ drivers/staging/media/imx/imx-ic-prp.c      | 9 +++++++--
+ drivers/staging/media/imx/imx-ic-prpencvf.c | 9 +++++++--
+ drivers/staging/media/imx/imx-media-csi.c   | 5 ++++-
+ drivers/staging/media/imx/imx-media-vdic.c  | 5 ++++-
+ 4 files changed, 22 insertions(+), 6 deletions(-)
 
-Where that is called from?
-
-It is also hard to read how you convert dBm RSSI value to some other 
-scale. There is various clamp() macros for limiting value to desired range.
-
-__func__ should not be passed to dev_ macros, check some manual how to use.
-
-Driver already polls rssi for digital tv, but I assume that is somehow 
-related to analog.
-
-
-regards
-Antti
-
+diff --git a/drivers/staging/media/imx/imx-ic-prp.c b/drivers/staging/media/imx/imx-ic-prp.c
+index 98923fc844ce..a2bb5c702d74 100644
+--- a/drivers/staging/media/imx/imx-ic-prp.c
++++ b/drivers/staging/media/imx/imx-ic-prp.c
+@@ -422,9 +422,14 @@ static int prp_s_frame_interval(struct v4l2_subdev *sd,
+ 	if (fi->pad >= PRP_NUM_PADS)
+ 		return -EINVAL;
+ 
+-	/* No limits on frame interval */
+ 	mutex_lock(&priv->lock);
+-	priv->frame_interval = fi->interval;
++
++	/* No limits on valid frame intervals */
++	if (fi->interval.numerator == 0 || fi->interval.denominator == 0)
++		fi->interval = priv->frame_interval;
++	else
++		priv->frame_interval = fi->interval;
++
+ 	mutex_unlock(&priv->lock);
+ 
+ 	return 0;
+diff --git a/drivers/staging/media/imx/imx-ic-prpencvf.c b/drivers/staging/media/imx/imx-ic-prpencvf.c
+index 33ada6612fee..d35591e9933b 100644
+--- a/drivers/staging/media/imx/imx-ic-prpencvf.c
++++ b/drivers/staging/media/imx/imx-ic-prpencvf.c
+@@ -1215,9 +1215,14 @@ static int prp_s_frame_interval(struct v4l2_subdev *sd,
+ 	if (fi->pad >= PRPENCVF_NUM_PADS)
+ 		return -EINVAL;
+ 
+-	/* No limits on frame interval */
+ 	mutex_lock(&priv->lock);
+-	priv->frame_interval = fi->interval;
++
++	/* No limits on valid frame intervals */
++	if (fi->interval.numerator == 0 || fi->interval.denominator == 0)
++		fi->interval = priv->frame_interval;
++	else
++		priv->frame_interval = fi->interval;
++
+ 	mutex_unlock(&priv->lock);
+ 
+ 	return 0;
+diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+index 555aa45e02e3..81f78a928048 100644
+--- a/drivers/staging/media/imx/imx-media-csi.c
++++ b/drivers/staging/media/imx/imx-media-csi.c
+@@ -905,7 +905,10 @@ static int csi_s_frame_interval(struct v4l2_subdev *sd,
+ 
+ 	switch (fi->pad) {
+ 	case CSI_SINK_PAD:
+-		/* No limits on input frame interval */
++		/* No limits on valid input frame intervals */
++		if (fi->interval.numerator == 0 ||
++		    fi->interval.denominator == 0)
++			fi->interval = *input_fi;
+ 		/* Reset output intervals and frame skipping ratio to 1:1 */
+ 		priv->frame_interval[CSI_SRC_PAD_IDMAC] = fi->interval;
+ 		priv->frame_interval[CSI_SRC_PAD_DIRECT] = fi->interval;
+diff --git a/drivers/staging/media/imx/imx-media-vdic.c b/drivers/staging/media/imx/imx-media-vdic.c
+index 4a890714193e..62e09a53d171 100644
+--- a/drivers/staging/media/imx/imx-media-vdic.c
++++ b/drivers/staging/media/imx/imx-media-vdic.c
+@@ -818,7 +818,10 @@ static int vdic_s_frame_interval(struct v4l2_subdev *sd,
+ 	switch (fi->pad) {
+ 	case VDIC_SINK_PAD_DIRECT:
+ 	case VDIC_SINK_PAD_IDMAC:
+-		/* No limits on input frame interval */
++		/* No limits on valid input frame intervals */
++		if (fi->interval.numerator == 0 ||
++		    fi->interval.denominator == 0)
++			fi->interval = priv->frame_interval[fi->pad];
+ 		/* Reset output interval */
+ 		*output_fi = fi->interval;
+ 		if (priv->csi_direct)
 -- 
-http://palosaari.fi/
+2.17.1
+
