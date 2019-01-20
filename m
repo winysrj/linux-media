@@ -6,23 +6,23 @@ X-Spam-Status: No, score=0.1 required=3.0 tests=DATE_IN_PAST_06_12,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 13396C61CE4
-	for <linux-media@archiver.kernel.org>; Sun, 20 Jan 2019 09:45:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 769FCC61CE4
+	for <linux-media@archiver.kernel.org>; Sun, 20 Jan 2019 10:44:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D6C6A2085B
-	for <linux-media@archiver.kernel.org>; Sun, 20 Jan 2019 09:45:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 472462084C
+	for <linux-media@archiver.kernel.org>; Sun, 20 Jan 2019 10:44:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730486AbfATJpM (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sun, 20 Jan 2019 04:45:12 -0500
-Received: from gatorz.com ([74.63.245.254]:50420 "EHLO primaleisure.com"
+        id S1728939AbfATKo0 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sun, 20 Jan 2019 05:44:26 -0500
+Received: from gatorz.com ([74.63.245.254]:36302 "EHLO primaleisure.com"
         rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1730481AbfATJpL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 20 Jan 2019 04:45:11 -0500
+        id S1728629AbfATKo0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 20 Jan 2019 05:44:26 -0500
 To:     linux-media@vger.kernel.org
 Subject: Just start it
-Message-ID: <1bea5c5b918c93e7facf8b6930bd7856@voltaicsystems.com>
-Date:   Sun, 20 Jan 2019 03:27:04 +0100
-From:   "Sara" <tereasainteqerpaqnlop@mail.fr>
+Message-ID: <a30ae06f491bd2bd679fdc8734bad205@voltaicsystems.com>
+Date:   Sun, 20 Jan 2019 03:55:43 +0100
+From:   "Sara" <tereasainteevrpasnlop@mail.fr>
 Reply-To: gaotanien@sina.com
 MIME-Version: 1.0
 Content-Type: text/plain; format=flowed; charset="UTF-8"
