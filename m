@@ -7,60 +7,60 @@ X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
 	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 74BFBC61CE4
-	for <linux-media@archiver.kernel.org>; Sun, 20 Jan 2019 11:15:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D6344C61CE4
+	for <linux-media@archiver.kernel.org>; Sun, 20 Jan 2019 11:15:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 385A42087E
-	for <linux-media@archiver.kernel.org>; Sun, 20 Jan 2019 11:15:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9C5372087E
+	for <linux-media@archiver.kernel.org>; Sun, 20 Jan 2019 11:15:40 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="P6HmigCl"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="VMa6rXNJ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730508AbfATLPi (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sun, 20 Jan 2019 06:15:38 -0500
-Received: from mail-wm1-f66.google.com ([209.85.128.66]:37199 "EHLO
+        id S1730473AbfATLPk (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sun, 20 Jan 2019 06:15:40 -0500
+Received: from mail-wm1-f66.google.com ([209.85.128.66]:52084 "EHLO
         mail-wm1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730458AbfATLPi (ORCPT
+        with ESMTP id S1730485AbfATLPj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 20 Jan 2019 06:15:38 -0500
-Received: by mail-wm1-f66.google.com with SMTP id g67so8242351wmd.2
-        for <linux-media@vger.kernel.org>; Sun, 20 Jan 2019 03:15:36 -0800 (PST)
+        Sun, 20 Jan 2019 06:15:39 -0500
+Received: by mail-wm1-f66.google.com with SMTP id b11so8294240wmj.1
+        for <linux-media@vger.kernel.org>; Sun, 20 Jan 2019 03:15:37 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=EtonKIt+3G0rODzQaQI97BdBzvKU5a7Lt9SBpSYGRuw=;
-        b=P6HmigClfBnzqVVRja4PEYHcWJ5x17ZhaINZfapm8JFNMCSk8EGw8q0S+rKBfdud+L
-         L0AVpyOa9QaB+L/J+TU96X6vBAasBaa1RPu/Tfp0VPXC3elsWquF6bSCdbxXWPVHeNBC
-         P/jv1Ib7E85zRydYZ4knEWQDtw+3K3TA6bylYjlExiVxsWyT1pI1OtSKnU7OLA5RSroX
-         SmOz4LZwLXMrzxniNdVyXJy7v32J8XFTkphbo+WzkCPXngzCPkuE9PT09/6DEBdVd7Xa
-         suKMCnjyxYZDwgto5zQkdb/k8QgGT069Cwlwqq5BwGJDMpk4AR3H/ObVdHeAGSy73uoX
-         9MeA==
+        bh=x4XFwEO8zi394fzsOH/mreWQHo+TLvhMV9apS6XZqTc=;
+        b=VMa6rXNJ1/oWbCg2XxgVkEeMp8x11Biju4iZpBlnI1Q0H/SVY0hzA67WtWOj9Z2ZL6
+         O0Z36wLbNk4TiaALPaV7Mr6DGulNvqYHQIQ7mWspcqM0K2vZpv8V6gHuJZF4ElU1TW5o
+         FtAOamFpeWkVQZ3KODlhmKUSU7EHBYObuPZ4Gt6e8lRAveZ16GayBXoHv4P2AncO/Jio
+         ML215BtAbOxxJYV+C3yWdyH+p9CdgnLf0+G6hcSV1XAk+NMUScDm8Oku/PHAKZs0PGKY
+         egDjN9V/UduwzMUhR+5wrKJe55ZkSTnJ5itfZFO27yTb2HMYwJ/KNYQOwwrJGJjgc3+q
+         Pg7g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references;
-        bh=EtonKIt+3G0rODzQaQI97BdBzvKU5a7Lt9SBpSYGRuw=;
-        b=qyoICF1XdrKVIOeftJ06I1hFZJzCTJq6rwc148YOPKA8mp5sBLfNFW2geA/IaOM0PL
-         a2sLLlbeZVCdCEiLzNQn+f7L+pSFgGlaV1wcjLsKVhfr3Y07XZpTYmfDJO2+rCsZLWJT
-         Ec6ilbbIIC9ToYbzqGeDpWq7d2Z+K+UkiQQFADDvrYZYP69EUAk3Ood+hra70f03OhLt
-         Lv+lXmrzjec3ZFLTQeY1Lymd3PUgRHzITgYEKPMF8AJt/yL5Y5l8pt62TV9LJngIQX/+
-         WKljUBvdF3L1VeArtqMXo/3SXcelCmVYVmXieytyESoVjN9bKqcJKqtWZYw+OFMKTFxN
-         HvqA==
-X-Gm-Message-State: AJcUuke3ggboWXdBQE9LD5U4GvTlnapsQs2evmOC1iHPAsm6ByHfUYRu
-        B+par/QLTiIu6dcx2ECb7DYVrEeZWmY=
-X-Google-Smtp-Source: ALg8bN4WVQm0PRyaD8XWf8dkZDSxchj4kSebbhpXBpYrQwnhb8OTia0mOCWtqjUbGWZAcWB2B5AHPw==
-X-Received: by 2002:a1c:bc82:: with SMTP id m124mr20904936wmf.77.1547982935550;
-        Sun, 20 Jan 2019 03:15:35 -0800 (PST)
+        bh=x4XFwEO8zi394fzsOH/mreWQHo+TLvhMV9apS6XZqTc=;
+        b=ORX5T7qCLxGKj7HmEhuuTjx4bSFZbVRyNw7OGpU5S8+xOpbL6j7uhCKLN6sZ+g81BX
+         xn3Ik/RXGYuvHMwD3j1lqACuZ4M4+0E9U8HQSPPHQswxrv4c1SBj1W4JvAjNuYzU263O
+         4OzW1nUF7xhb+5RZ1M4hDc2chjL/1QuIOxK0fJAI+NLR/nDNdNwF8FRdROTvfeKPoT/G
+         qcgzgJV/7RwPW0/rgxnLaLyzsSMXBnQSzdHLd4RxorHy+2PPA7VAdaThBjH90QZrdb4S
+         TECdQenIbeu6UIzgZ1sajnyYrRoIgx2kErpHy6S6sI+KjusVYkfsRE7OM3ZrfHO9YIkq
+         1vEg==
+X-Gm-Message-State: AJcUukfmtg6bNvdg3fyJfcsEX0yufLarr7+Q/EurRJyYc1e49h8YyDkr
+        e1um7UVdwL/Dghk7AjRFXTclJnVEVrk=
+X-Google-Smtp-Source: ALg8bN73vT4yOC9Hpt0GQqHlco6zkkBNZxEaQNNDnrvsfa664uPAOiLro49cpRw6coVPmKm4672SKA==
+X-Received: by 2002:a1c:1d8e:: with SMTP id d136mr11688101wmd.98.1547982936881;
+        Sun, 20 Jan 2019 03:15:36 -0800 (PST)
 Received: from localhost.localdomain ([87.70.46.65])
-        by smtp.gmail.com with ESMTPSA id n11sm28281796wrw.60.2019.01.20.03.15.34
+        by smtp.gmail.com with ESMTPSA id n11sm28281796wrw.60.2019.01.20.03.15.35
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Sun, 20 Jan 2019 03:15:35 -0800 (PST)
+        Sun, 20 Jan 2019 03:15:36 -0800 (PST)
 From:   Dafna Hirschfeld <dafna3@gmail.com>
 To:     linux-media@vger.kernel.org
 Cc:     hverkuil@xs4all.nl, helen.koike@collabora.com,
         Dafna Hirschfeld <dafna3@gmail.com>
-Subject: [v4l-utils PATCH 5/6] v4l2-ctl: Add support for source change event for m2m decoder
-Date:   Sun, 20 Jan 2019 03:15:19 -0800
-Message-Id: <20190120111520.114305-6-dafna3@gmail.com>
+Subject: [v4l-utils PATCH 6/6] v4l2-ctl: Add --stream-pixformat option
+Date:   Sun, 20 Jan 2019 03:15:20 -0800
+Message-Id: <20190120111520.114305-7-dafna3@gmail.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20190120111520.114305-1-dafna3@gmail.com>
 References: <20190120111520.114305-1-dafna3@gmail.com>
@@ -69,179 +69,181 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Subscribe to source change event.
-The capture setup sequence is executed only due to a
-change event.
+This option sets the capture pixelformat in the
+capture setup sequence.
+If the format is not supported decoding will stop.
+If the option is not given then the default is to set
+the first supported format.
 
 Signed-off-by: Dafna Hirschfeld <dafna3@gmail.com>
 ---
- utils/v4l2-ctl/v4l2-ctl-streaming.cpp | 90 ++++++++++++++++++++++-----
- 1 file changed, 76 insertions(+), 14 deletions(-)
+ utils/v4l2-ctl/v4l2-ctl-streaming.cpp | 29 +++++++++++++++++++-
+ utils/v4l2-ctl/v4l2-ctl.cpp           | 39 ++++++++++++++++++---------
+ utils/v4l2-ctl/v4l2-ctl.h             |  2 ++
+ 3 files changed, 56 insertions(+), 14 deletions(-)
 
 diff --git a/utils/v4l2-ctl/v4l2-ctl-streaming.cpp b/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
-index cd20dec7..61dd84db 100644
+index 61dd84db..7ee472b1 100644
 --- a/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
 +++ b/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
 @@ -78,6 +78,7 @@ static unsigned int composed_width;
  static unsigned int composed_height;
  static bool support_cap_compose;
  static bool support_out_crop;
-+static bool in_source_change_event;
++static unsigned int cap_pixelformat;
+ static bool in_source_change_event;
  
  #define TS_WINDOW 241
- #define FILE_HDR_ID			v4l2_fourcc('V', 'h', 'd', 'r')
-@@ -755,8 +756,11 @@ static void read_write_padded_frame(cv4l_fmt &fmt, unsigned char *buf,
- 				    FILE *fpointer, unsigned &sz,
- 				    unsigned &len, bool is_read)
+@@ -272,6 +273,10 @@ void streaming_usage(void)
+ 	       "  --stream-from <file>\n"
+ 	       "                     stream from this file. The default is to generate a pattern.\n"
+ 	       "                     If <file> is '-', then the data is read from stdin.\n"
++	       "  --stream-pixformat <pixformat>\n"
++	       "                     set the video pixelformat."
++	       "                     <pixelformat> is either the format index as reported by\n"
++	       "                     --list-formats-out, or the fourcc value as a string.\n"
+ 	       "  --stream-from-hdr <file> stream from this file. Same as --stream-from, but each\n"
+ 	       "                     frame is prefixed by a header. Use for compressed data.\n"
+ 	       "  --stream-from-host <hostname[:port]>\n"
+@@ -609,8 +614,16 @@ void streaming_cmd(int ch, char *optarg)
  {
--	const struct v4l2_fwht_pixfmt_info *vic_fmt = v4l2_fwht_find_pixfmt(fmt.g_pixelformat());
--	unsigned coded_height = fmt.g_height();
-+	const struct v4l2_fwht_pixfmt_info *vic_fmt;
-+	const static struct v4l2_fwht_pixfmt_info *old_info =
-+		v4l2_fwht_find_pixfmt(fmt.g_pixelformat());
-+	static cv4l_fmt old_fmt = fmt;
-+	unsigned coded_height;
- 	unsigned real_width;
- 	unsigned real_height;
- 	unsigned char *plane_p = buf;
-@@ -770,6 +774,21 @@ static void read_write_padded_frame(cv4l_fmt &fmt, unsigned char *buf,
- 		real_height = composed_height;
+ 	unsigned i;
+ 	int speed;
++	int r;
+ 
+ 	switch (ch) {
++	case OptStreamPixformat:
++		r = parse_pixelfmt(optarg, cap_pixelformat);
++		if (r) {
++			streaming_usage();
++			exit(1);
++		}
++		break;
+ 	case OptStreamCount:
+ 		stream_count = strtoul(optarg, 0L, 0);
+ 		break;
+@@ -1869,6 +1882,7 @@ static int capture_setup(cv4l_fd &fd, cv4l_queue &in)
+ {
+ 	struct v4l2_fmtdesc fmt_desc;
+ 	cv4l_fmt fmt;
++	unsigned int chosen_pixformat;
+ 
+ 	if (fd.streamoff(in.g_type())) {
+ 		fprintf(stderr, "%s: fd.streamoff error\n", __func__);
+@@ -1887,8 +1901,21 @@ static int capture_setup(cv4l_fd &fd, cv4l_queue &in)
+ 		return -1;
  	}
  
-+	/*
-+	 * if the source change event was dequeued but the stream was not yet
-+	 * restarted then the current buffers still fit the old resolution so
-+	 * we need to save it
-+	 */
-+	if (in_source_change_event) {
-+		vic_fmt = old_info;
-+		fmt = old_fmt;
-+	} else {
-+		vic_fmt = v4l2_fwht_find_pixfmt(fmt.g_pixelformat());
-+		old_info = vic_fmt;
-+		old_fmt = fmt;
-+	}
++	if (cap_pixelformat) {
++		do {
++			if (cap_pixelformat == fmt_desc.pixelformat)
++				break;
++		} while (!fd.enum_fmt(fmt_desc));
 +
-+	coded_height = fmt.g_height();
- 	sz = 0;
- 	len = real_width * real_height * vic_fmt->sizeimage_mult / vic_fmt->sizeimage_div;
- 
-@@ -1208,8 +1227,18 @@ static int do_handle_cap(cv4l_fd &fd, cv4l_queue &q, FILE *fout, int *index,
- 				     host_fd_to >= 0 ? 100 - comp_perc / comp_perc_count : -1);
- 		comp_perc_count = comp_perc = 0;
- 	}
--	if (!last_buffer && index == NULL && fd.qbuf(buf))
--		return -1;
-+	if (!last_buffer && index == NULL) {
-+		/*
-+		 * EINVAL in qbuf can happen if this is the last buffer before
-+		 * a dynamic resolution change sequence. In this case the buffer
-+		 * has the size that fits the old resolution and might not
-+		 * fit to the new one.
-+		 */
-+		if (fd.qbuf(buf) && errno != EINVAL) {
-+			fprintf(stderr, "%s: qbuf error\n", __func__);
++		if (cap_pixelformat != fmt_desc.pixelformat) {
++			fprintf(stderr, "%s: format from user not supported\n", __func__);
 +			return -1;
 +		}
 +	}
- 	if (index)
- 		*index = buf.g_index();
- 
-@@ -1890,6 +1919,7 @@ static void streaming_set_m2m(cv4l_fd &fd)
- 	fd_set *rd_fds = &fds[0]; /* for capture */
- 	fd_set *ex_fds = &fds[1]; /* for capture */
- 	fd_set *wr_fds = &fds[2]; /* for output */
-+	bool cap_streaming = false;
- 
- 	if (!fd.has_vid_m2m()) {
- 		fprintf(stderr, "unsupported m2m stream type\n");
-@@ -1920,6 +1950,11 @@ static void streaming_set_m2m(cv4l_fd &fd)
- 		is_encoder = !fmt.g_bytesperline();
- 	}
- 
-+	memset(&sub, 0, sizeof(sub));
-+	sub.type = V4L2_EVENT_SOURCE_CHANGE;
-+	if (fd.subscribe_event(sub))
-+		goto done;
 +
- 	if (file_to) {
- 		if (!strcmp(file_to, "-"))
- 			file[CAP] = stdout;
-@@ -1941,6 +1976,10 @@ static void streaming_set_m2m(cv4l_fd &fd)
- 			return;
- 		}
- 	}
-+	enum codec_type codec_type;
++	chosen_pixformat = fmt_desc.pixelformat;
+ 	fd.g_fmt(fmt, in.g_type());
+-	fmt.s_pixelformat(fmt_desc.pixelformat);
++	fmt.s_pixelformat(chosen_pixformat);
+ 	fd.s_fmt(fmt, in.g_type());
+ 
+ 	if (in.reqbufs(&fd, reqbufs_count_cap)) {
+diff --git a/utils/v4l2-ctl/v4l2-ctl.cpp b/utils/v4l2-ctl/v4l2-ctl.cpp
+index 1783979d..2cbf519e 100644
+--- a/utils/v4l2-ctl/v4l2-ctl.cpp
++++ b/utils/v4l2-ctl/v4l2-ctl.cpp
+@@ -238,6 +238,7 @@ static struct option long_options[] = {
+ 	{"list-buffers-sdr", no_argument, 0, OptListBuffersSdr},
+ 	{"list-buffers-sdr-out", no_argument, 0, OptListBuffersSdrOut},
+ 	{"list-buffers-meta", no_argument, 0, OptListBuffersMeta},
++	{"stream-pixformat", required_argument, 0, OptStreamPixformat},
+ 	{"stream-count", required_argument, 0, OptStreamCount},
+ 	{"stream-skip", required_argument, 0, OptStreamSkip},
+ 	{"stream-loop", no_argument, 0, OptStreamLoop},
+@@ -722,6 +723,30 @@ __u32 parse_quantization(const char *s)
+ 	return V4L2_QUANTIZATION_DEFAULT;
+ }
+ 
++int parse_pixelfmt(char *value,  __u32 &pixelformat)
++{
++	int fmts = 0;
++	bool be_pixfmt;
 +
-+	if (get_codec_type(fd, codec_type))
-+		goto done;
- 
- 	if (out.reqbufs(&fd, reqbufs_count_out))
- 		goto done;
-@@ -1951,8 +1990,9 @@ static void streaming_set_m2m(cv4l_fd &fd)
- 	if (fd.streamon(out.g_type()))
- 		goto done;
- 
--	if (capture_setup(fd, in))
--		goto done;
-+	if (codec_type != DECODER)
-+		if (capture_setup(fd, in))
-+			goto done;
- 
- 	fps_ts[CAP].determine_field(fd.g_fd(), in.g_type());
- 	fps_ts[OUT].determine_field(fd.g_fd(), out.g_type());
-@@ -1999,12 +2039,25 @@ static void streaming_set_m2m(cv4l_fd &fd)
- 			struct v4l2_event ev;
- 
- 			while (!fd.dqevent(ev)) {
--				if (ev.type != V4L2_EVENT_EOS)
--					continue;
--				wr_fds = NULL;
--				fprintf(stderr, "EOS");
--				fflush(stderr);
--				break;
-+				if (ev.type == V4L2_EVENT_EOS) {
-+					wr_fds = NULL;
-+					fprintf(stderr, "EOS");
-+					fflush(stderr);
-+				} else if (ev.type == V4L2_EVENT_SOURCE_CHANGE) {
-+					fprintf(stderr, "SOURCE CHANGE\n");
++	if(!value)
++		return -EINVAL;
 +
-+					/*
-+					 * if capture is already streaming,
-+					 * wait to the a capture buffer with
-+					 * LAST_BUFFER flag
-+					 */
-+					if (cap_streaming) {
-+						in_source_change_event = true;
-+						continue;
-+					}
-+					if (capture_setup(fd, in))
-+						goto done;
-+				}
- 			}
- 		}
++	be_pixfmt = strlen(value) == 7 && !memcmp(value + 4, "-BE", 3);
++	if (be_pixfmt)
++		value[4] = 0;
++	if (strlen(value) == 4) {
++		pixelformat =
++			v4l2_fourcc(value[0], value[1],
++					value[2], value[3]);
++		if (be_pixfmt)
++			pixelformat |= 1 << 31;
++	} else {
++		pixelformat = strtol(value, 0L, 0);
++	}
++	fmts |= FmtPixelFormat;
++	return 0;
++}
++
+ int parse_fmt(char *optarg, __u32 &width, __u32 &height, __u32 &pixelformat,
+ 	      __u32 &field, __u32 &colorspace, __u32 &xfer_func, __u32 &ycbcr,
+ 	      __u32 &quantization, __u32 &flags, __u32 *bytesperline)
+@@ -729,7 +754,6 @@ int parse_fmt(char *optarg, __u32 &width, __u32 &height, __u32 &pixelformat,
+ 	char *value, *subs;
+ 	int fmts = 0;
+ 	unsigned bpl_index = 0;
+-	bool be_pixfmt;
  
-@@ -2018,8 +2071,17 @@ static void streaming_set_m2m(cv4l_fd &fd)
- 					break;
- 				}
- 			}
--			if (last_buffer)
--				break;
-+			if (last_buffer) {
-+				if (in_source_change_event) {
-+					in_source_change_event = false;
-+					last_buffer = false;
-+					if (capture_setup(fd, in))
-+						goto done;
-+					cap_streaming = true;
-+				} else {
-+					break;
-+				}
-+			}
- 		}
- 
- 		if (wr_fds && FD_ISSET(fd.g_fd(), wr_fds)) {
+ 	field = V4L2_FIELD_ANY;
+ 	flags = 0;
+@@ -760,18 +784,7 @@ int parse_fmt(char *optarg, __u32 &width, __u32 &height, __u32 &pixelformat,
+ 			fmts |= FmtHeight;
+ 			break;
+ 		case 2:
+-			be_pixfmt = strlen(value) == 7 && !memcmp(value + 4, "-BE", 3);
+-			if (be_pixfmt)
+-				value[4] = 0;
+-			if (strlen(value) == 4) {
+-				pixelformat =
+-					v4l2_fourcc(value[0], value[1],
+-							value[2], value[3]);
+-				if (be_pixfmt)
+-					pixelformat |= 1 << 31;
+-			} else {
+-				pixelformat = strtol(value, 0L, 0);
+-			}
++			parse_pixelfmt(value, pixelformat);
+ 			fmts |= FmtPixelFormat;
+ 			break;
+ 		case 3:
+diff --git a/utils/v4l2-ctl/v4l2-ctl.h b/utils/v4l2-ctl/v4l2-ctl.h
+index 5a52a0a4..8eee5351 100644
+--- a/utils/v4l2-ctl/v4l2-ctl.h
++++ b/utils/v4l2-ctl/v4l2-ctl.h
+@@ -205,6 +205,7 @@ enum Option {
+ 	OptListBuffersSdr,
+ 	OptListBuffersSdrOut,
+ 	OptListBuffersMeta,
++	OptStreamPixformat,
+ 	OptStreamCount,
+ 	OptStreamSkip,
+ 	OptStreamLoop,
+@@ -299,6 +300,7 @@ __u32 parse_xfer_func(const char *s);
+ __u32 parse_ycbcr(const char *s);
+ __u32 parse_hsv(const char *s);
+ __u32 parse_quantization(const char *s);
++int parse_pixelfmt(char *value,  __u32 &pixelformat);
+ int parse_fmt(char *optarg, __u32 &width, __u32 &height, __u32 &pixelformat,
+ 	      __u32 &field, __u32 &colorspace, __u32 &xfer, __u32 &ycbcr,
+ 	      __u32 &quantization, __u32 &flags, __u32 *bytesperline);
 -- 
 2.17.1
 
