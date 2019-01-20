@@ -2,164 +2,181 @@ Return-Path: <SRS0=HRs9=P4=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 248E6C2666E
-	for <linux-media@archiver.kernel.org>; Sun, 20 Jan 2019 19:13:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D202C26641
+	for <linux-media@archiver.kernel.org>; Sun, 20 Jan 2019 19:32:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DA3FC2084F
-	for <linux-media@archiver.kernel.org>; Sun, 20 Jan 2019 19:13:44 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="eXxgAXt5"
+	by mail.kernel.org (Postfix) with ESMTP id D5E9B20861
+	for <linux-media@archiver.kernel.org>; Sun, 20 Jan 2019 19:32:52 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1548012773;
+	bh=nQwCkG5S3HR3N+XfEj/sCac0GzqLSCgETUGQfjbxiBk=;
+	h=Subject:To:Cc:References:From:Date:In-Reply-To:List-ID:From;
+	b=n9BgmMp/hzZrwSnDgiUKIn1Xgy0hrvlbAROmMsuQL9tGUpOxjxi2syRznHdZLYSOf
+	 EZrxgbeLrVejHHOWOsSLC+ZZ0fGCdUzZq1Uu50WIK3+vHnRG9YtOTlFHSn2zThjBvQ
+	 WM/2bASxZxeTHMb7ieg55J/SWfeW8zOQFtohODyw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727586AbfATTNj (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sun, 20 Jan 2019 14:13:39 -0500
-Received: from mail-pl1-f196.google.com ([209.85.214.196]:37357 "EHLO
-        mail-pl1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727415AbfATTNj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 20 Jan 2019 14:13:39 -0500
-Received: by mail-pl1-f196.google.com with SMTP id b5so8696945plr.4;
-        Sun, 20 Jan 2019 11:13:39 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id;
-        bh=e2HOUbGNN/v/dW8bjHRJUsT8BYGPYXxk3FU2EXZ7FCI=;
-        b=eXxgAXt5nD5btFz97FB/AxCg4gs8Esl3yRHuNB/O9LdnyEYTTLi8nogkUOYLKT/tSv
-         gQyIQ7wns3ULiF41O4WQxAfJ9ysK5LeFygq9oBxLYFyPlnGXde8+9M+7RB9cAvgHSJgk
-         YJn4HCuOTrlNk3f3kAJW9Ixc3KhKNsRwucoQfg+rb7GNfQPDGzMKRjByj9cNE/yY1vs6
-         jii23yaD/M7lnTSXPQRJEN9NA+VwodQajJzrUrf4szOMwwNcq4zOeyxwPBXdwLBnPsR0
-         /juZssM+8fUCrnR46E4Mc/jE/8wGGMGCy/sYxBGcvx9Rgf5zKWPz+1RVUXQ8nxOIKit8
-         j9Fw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id;
-        bh=e2HOUbGNN/v/dW8bjHRJUsT8BYGPYXxk3FU2EXZ7FCI=;
-        b=JLXZZPO2gH2x2AvnJs+VHRanv3ft6vEuZgwvLhkZAmHRchtyVt3j7xY7WjjyaiqhH+
-         Mjmqy7IV0b86AXgHA3NT43yx2/tMJ9QPFMZyG7j7Lkyamc4Ds2Xt/SmLaISWCe3QWuQ3
-         XneBKfg7CDZzFf/iKXiqnr1Fma/MbxSsHSvtQibLtnQl5Y3VSQWvTTSaxGc0Y0bTmMDz
-         AQIEMgnhWAW1RJeSKSU3FEiNOMYE1hLr9PiJMW8EXHAgP+Let1FCA/UcOKv3zaRO2GDH
-         z9SrHyRxdUS6zW7tAWQDNni020SQW4DxJxJbYy9PJullDToYtJrtDhK5I8J2aKv5kxNY
-         gbpQ==
-X-Gm-Message-State: AJcUukey9GWJe/LMklPgmzacl184J9W41fZU+vuzCI3P7/o7g8Kxr6kB
-        Q0NndGAj1QdwbQKesTGSyV5INHuiHDM=
-X-Google-Smtp-Source: ALg8bN4NJN+IFYPvsoIIYZtEvTJEXEpC8jY1WAEwJsnsZlc8XchRHDxgmWUo86HJNh4IkNlBTNkH2w==
-X-Received: by 2002:a17:902:ac1:: with SMTP id 59mr26980010plp.36.1548011618112;
-        Sun, 20 Jan 2019 11:13:38 -0800 (PST)
-Received: from majic.sklembedded.com (c-73-202-231-77.hsd1.ca.comcast.net. [73.202.231.77])
-        by smtp.googlemail.com with ESMTPSA id 125sm14173055pfd.124.2019.01.20.11.13.36
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Sun, 20 Jan 2019 11:13:37 -0800 (PST)
-From:   Steve Longerbeam <slongerbeam@gmail.com>
-To:     linux-media@vger.kernel.org
-Cc:     Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        devel@driverdev.osuosl.org (open list:STAGING SUBSYSTEM),
-        linux-kernel@vger.kernel.org (open list)
-Subject: [PATCH] media: imx: Validate frame intervals before setting
-Date:   Sun, 20 Jan 2019 11:13:31 -0800
-Message-Id: <20190120191331.9723-1-slongerbeam@gmail.com>
-X-Mailer: git-send-email 2.17.1
+        id S1727633AbfATTcr (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sun, 20 Jan 2019 14:32:47 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59200 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727208AbfATTcq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 20 Jan 2019 14:32:46 -0500
+Received: from [192.168.1.112] (c-24-9-64-241.hsd1.co.comcast.net [24.9.64.241])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id EDE9620861;
+        Sun, 20 Jan 2019 19:32:44 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1548012765;
+        bh=nQwCkG5S3HR3N+XfEj/sCac0GzqLSCgETUGQfjbxiBk=;
+        h=Subject:To:Cc:References:From:Date:In-Reply-To:From;
+        b=lDTLcYOVporlLih6/lqDljTarhaIPaqwjubX1W7/nOznv59nyfBkK/kmSiquTNm9n
+         gqnIepsUoK537L1wzWZk2/dRjy1OZVaDWb1eKbqZE2QrbrOn+TfSNRjR0KSVTjnhgZ
+         S0HgOieh6V7wI2fHCgc5LJzEcQ22gmF5TtgYy//Q=
+Subject: Re: [PATCH v9 4/4] sound/usb: Use Media Controller API to share media
+ resources
+To:     Hans Verkuil <hverkuil@xs4all.nl>, mchehab@kernel.org,
+        perex@perex.cz, tiwai@suse.com
+Cc:     linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        alsa-devel@alsa-project.org, shuah <shuah@kernel.org>
+References: <cover.1545154777.git.shuah@kernel.org>
+ <2fb40852e4035b2a58010ce7416448918f12804f.1545154778.git.shuah@kernel.org>
+ <b2fddc47-94c6-b7b3-8304-55905a3e278d@xs4all.nl>
+ <ee9b4161-eeb8-340f-7b39-93d0bc5fe1bd@kernel.org>
+ <8593299c-b80f-d1d3-9a03-d56fb1573f60@kernel.org>
+ <7719a35c-c65e-977e-88b8-693d55e88723@xs4all.nl>
+From:   shuah <shuah@kernel.org>
+Message-ID: <b28a5db5-c172-f8bf-5877-7041f39a9a38@kernel.org>
+Date:   Sun, 20 Jan 2019 12:32:44 -0700
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.2.1
+MIME-Version: 1.0
+In-Reply-To: <7719a35c-c65e-977e-88b8-693d55e88723@xs4all.nl>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-In the .s_frame_interval() subdev op, don't accept or set a
-frame interval with a zero numerator or denominator. This fixes
-a v4l2-compliance failure:
+On 1/19/19 3:30 AM, Hans Verkuil wrote:
+> On 01/19/2019 02:03 AM, shuah wrote:
+>> On 1/18/19 2:54 PM, shuah wrote:
+>>> On 1/18/19 1:36 AM, Hans Verkuil wrote:
+>>>> On 12/18/18 6:59 PM, shuah@kernel.org wrote:
+>>>>> From: Shuah Khan <shuah@kernel.org>
+>>>>>
+>>>>> Media Device Allocator API to allows multiple drivers share a media
+>>>>> device.
+>>>>> This API solves a very common use-case for media devices where one
+>>>>> physical
+>>>>> device (an USB stick) provides both audio and video. When such media
+>>>>> device
+>>>>> exposes a standard USB Audio class, a proprietary Video class, two or
+>>>>> more
+>>>>> independent drivers will share a single physical USB bridge. In such
+>>>>> cases,
+>>>>> it is necessary to coordinate access to the shared resource.
+>>>>>
+>>>>> Using this API, drivers can allocate a media device with the shared
+>>>>> struct
+>>>>> device as the key. Once the media device is allocated by a driver, other
+>>>>> drivers can get a reference to it. The media device is released when all
+>>>>> the references are released.
+>>>>>
+>>>>> Change the ALSA driver to use the Media Controller API to share media
+>>>>> resources with DVB, and V4L2 drivers on a AU0828 media device.
+>>>>>
+>>>>> The Media Controller specific initialization is done after sound card is
+>>>>> registered. ALSA creates Media interface and entity function graph nodes
+>>>>> for Control, Mixer, PCM Playback, and PCM Capture devices.
+>>>>>
+>>>>> snd_usb_hw_params() will call Media Controller enable source handler
+>>>>> interface to request the media resource. If resource request is granted,
+>>>>> it will release it from snd_usb_hw_free(). If resource is busy,
+>>>>> -EBUSY is
+>>>>> returned.
+>>>>>
+>>>>> Media specific cleanup is done in usb_audio_disconnect().
+>>>>>
+>>>>> Signed-off-by: Shuah Khan <shuah@kernel.org>
+>>>>> ---
+>>>>>    sound/usb/Kconfig        |   4 +
+>>>>>    sound/usb/Makefile       |   2 +
+>>>>>    sound/usb/card.c         |  14 ++
+>>>>>    sound/usb/card.h         |   3 +
+>>>>>    sound/usb/media.c        | 321 +++++++++++++++++++++++++++++++++++++++
+>>>>>    sound/usb/media.h        |  74 +++++++++
+>>>>>    sound/usb/mixer.h        |   3 +
+>>>>>    sound/usb/pcm.c          |  29 +++-
+>>>>>    sound/usb/quirks-table.h |   1 +
+>>>>>    sound/usb/stream.c       |   2 +
+>>>>>    sound/usb/usbaudio.h     |   6 +
+>>>>>    11 files changed, 455 insertions(+), 4 deletions(-)
+>>>>>    create mode 100644 sound/usb/media.c
+>>>>>    create mode 100644 sound/usb/media.h
+>>>>>
+>>>>
+>>>> <snip>
+>>>>
+>>>>> +int snd_media_device_create(struct snd_usb_audio *chip,
+>>>>> +            struct usb_interface *iface)
+>>>>> +{
+>>>>> +    struct media_device *mdev;
+>>>>> +    struct usb_device *usbdev = interface_to_usbdev(iface);
+>>>>> +    int ret;
+>>>>> +
+>>>>> +    /* usb-audio driver is probed for each usb interface, and
+>>>>> +     * there are multiple interfaces per device. Avoid calling
+>>>>> +     * media_device_usb_allocate() each time usb_audio_probe()
+>>>>> +     * is called. Do it only once.
+>>>>> +     */
+>>>>> +    if (chip->media_dev)
+>>>>> +        goto snd_mixer_init;
+>>>>> +
+>>>>> +    mdev = media_device_usb_allocate(usbdev, KBUILD_MODNAME);
+>>>>> +    if (!mdev)
+>>>>> +        return -ENOMEM;
+>>>>> +
+>>>>> +    if (!media_devnode_is_registered(mdev->devnode)) {
+>>>>
+>>>> It looks like you missed my comment for v8:
+>>>>
+>>>> "You should first configure the media device before registering it."
+>>>>
+>>>> In other words, first create the media entities, and only then do you
+>>>> register the media device. Otherwise it will come up without any alsa
+>>>> entities, which are then added. So an application that immediately
+>>>> opens the media device upon creation will see a topology that is still
+>>>> in flux.
+>>>
+>>> Yes. You are right. I saw your comment and thought I got it addressed.
+>>> I will fix it. I have the logic correct in au0828, but not here.
+>>>
+>>
+>> One thing to mention here is some ALSA entities get created dynamically
+>> during PCM open when stream is initialized. This happens after media
+>> device is registered. These get deleted when pcm close happens. There is
+>> no way to avoid creating entities after media device register.
+> 
+> That's OK. We're missing some infrastructure (media events) to inform the
+> application about topology changes.
+> 
+> But when registering the media device for the first time it is good practice
+> to do that after creating all the entities that you can.
+> 
 
-fail: v4l2-test-formats.cpp(1146):
-cap->timeperframe.numerator == 0 || cap->timeperframe.denominator == 0
-test VIDIOC_G/S_PARM: FAIL
+Great. We have the same understanding. I think at least one mixer
+controller entries can be created prior to registering the media
+device. I am working on v10 to do that. Sorry I misread init sequence
+in this patch the flow the first time around for v9.
 
-Signed-off-by: Steve Longerbeam <slongerbeam@gmail.com>
----
- drivers/staging/media/imx/imx-ic-prp.c      | 9 +++++++--
- drivers/staging/media/imx/imx-ic-prpencvf.c | 9 +++++++--
- drivers/staging/media/imx/imx-media-csi.c   | 5 ++++-
- drivers/staging/media/imx/imx-media-vdic.c  | 5 ++++-
- 4 files changed, 22 insertions(+), 6 deletions(-)
+thanks,
+-- Shuah
 
-diff --git a/drivers/staging/media/imx/imx-ic-prp.c b/drivers/staging/media/imx/imx-ic-prp.c
-index 98923fc844ce..a2bb5c702d74 100644
---- a/drivers/staging/media/imx/imx-ic-prp.c
-+++ b/drivers/staging/media/imx/imx-ic-prp.c
-@@ -422,9 +422,14 @@ static int prp_s_frame_interval(struct v4l2_subdev *sd,
- 	if (fi->pad >= PRP_NUM_PADS)
- 		return -EINVAL;
- 
--	/* No limits on frame interval */
- 	mutex_lock(&priv->lock);
--	priv->frame_interval = fi->interval;
-+
-+	/* No limits on valid frame intervals */
-+	if (fi->interval.numerator == 0 || fi->interval.denominator == 0)
-+		fi->interval = priv->frame_interval;
-+	else
-+		priv->frame_interval = fi->interval;
-+
- 	mutex_unlock(&priv->lock);
- 
- 	return 0;
-diff --git a/drivers/staging/media/imx/imx-ic-prpencvf.c b/drivers/staging/media/imx/imx-ic-prpencvf.c
-index 33ada6612fee..d35591e9933b 100644
---- a/drivers/staging/media/imx/imx-ic-prpencvf.c
-+++ b/drivers/staging/media/imx/imx-ic-prpencvf.c
-@@ -1215,9 +1215,14 @@ static int prp_s_frame_interval(struct v4l2_subdev *sd,
- 	if (fi->pad >= PRPENCVF_NUM_PADS)
- 		return -EINVAL;
- 
--	/* No limits on frame interval */
- 	mutex_lock(&priv->lock);
--	priv->frame_interval = fi->interval;
-+
-+	/* No limits on valid frame intervals */
-+	if (fi->interval.numerator == 0 || fi->interval.denominator == 0)
-+		fi->interval = priv->frame_interval;
-+	else
-+		priv->frame_interval = fi->interval;
-+
- 	mutex_unlock(&priv->lock);
- 
- 	return 0;
-diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-index 555aa45e02e3..81f78a928048 100644
---- a/drivers/staging/media/imx/imx-media-csi.c
-+++ b/drivers/staging/media/imx/imx-media-csi.c
-@@ -905,7 +905,10 @@ static int csi_s_frame_interval(struct v4l2_subdev *sd,
- 
- 	switch (fi->pad) {
- 	case CSI_SINK_PAD:
--		/* No limits on input frame interval */
-+		/* No limits on valid input frame intervals */
-+		if (fi->interval.numerator == 0 ||
-+		    fi->interval.denominator == 0)
-+			fi->interval = *input_fi;
- 		/* Reset output intervals and frame skipping ratio to 1:1 */
- 		priv->frame_interval[CSI_SRC_PAD_IDMAC] = fi->interval;
- 		priv->frame_interval[CSI_SRC_PAD_DIRECT] = fi->interval;
-diff --git a/drivers/staging/media/imx/imx-media-vdic.c b/drivers/staging/media/imx/imx-media-vdic.c
-index 4a890714193e..62e09a53d171 100644
---- a/drivers/staging/media/imx/imx-media-vdic.c
-+++ b/drivers/staging/media/imx/imx-media-vdic.c
-@@ -818,7 +818,10 @@ static int vdic_s_frame_interval(struct v4l2_subdev *sd,
- 	switch (fi->pad) {
- 	case VDIC_SINK_PAD_DIRECT:
- 	case VDIC_SINK_PAD_IDMAC:
--		/* No limits on input frame interval */
-+		/* No limits on valid input frame intervals */
-+		if (fi->interval.numerator == 0 ||
-+		    fi->interval.denominator == 0)
-+			fi->interval = priv->frame_interval[fi->pad];
- 		/* Reset output interval */
- 		*output_fi = fi->interval;
- 		if (priv->csi_direct)
--- 
-2.17.1
 
