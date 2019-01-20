@@ -1,137 +1,192 @@
-Return-Path: <SRS0=jH9h=P3=vger.kernel.org=linux-media-owner@kernel.org>
+Return-Path: <SRS0=HRs9=P4=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D6DD8C61CE8
-	for <linux-media@archiver.kernel.org>; Sat, 19 Jan 2019 21:46:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E96B4C6369F
+	for <linux-media@archiver.kernel.org>; Sun, 20 Jan 2019 01:41:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 980AB2084C
-	for <linux-media@archiver.kernel.org>; Sat, 19 Jan 2019 21:46:40 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="YtdhT8Rb"
+	by mail.kernel.org (Postfix) with ESMTP id BEE1D20896
+	for <linux-media@archiver.kernel.org>; Sun, 20 Jan 2019 01:41:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729701AbfASVqO (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sat, 19 Jan 2019 16:46:14 -0500
-Received: from mail-wm1-f65.google.com ([209.85.128.65]:50244 "EHLO
-        mail-wm1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729056AbfASVqO (ORCPT
+        id S1729922AbfATBl1 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sat, 19 Jan 2019 20:41:27 -0500
+Received: from mail-out-3.itc.rwth-aachen.de ([134.130.5.48]:30888 "EHLO
+        mail-out-3.itc.rwth-aachen.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1728596AbfATBl1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 19 Jan 2019 16:46:14 -0500
-Received: by mail-wm1-f65.google.com with SMTP id n190so7586669wmd.0;
-        Sat, 19 Jan 2019 13:46:12 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=w4pDpNNiZVftYGZN/ZfjMBwdA+nK0DkXdKOIzQhsz4k=;
-        b=YtdhT8RbsdmQsBpQBYCWX0f1PY7Jefd/07yOzlZTUBuyPkZ4DvkM2+8YNO2a9NT0dQ
-         08rh+SjbGnEGSm9TQvg4hzXhScXLsp5C48NaVELrWom2pt8GT9JwKpHlhz2aGFW9h2TN
-         R83DNFAg7IGT4tV9SHZiEaa5ioBYjNrS9vn95hmYtKt8/GG4XCMo7tjo546RYMYObkwb
-         e49RTIwV8bbE/7/IFqSw78xu7th9v+zrtV6zleKD4MJ03j9ltclWeHTP7F/Bd3mm7Kmt
-         /QGfKuMbpMwWU6zv7zo4iEvrM7G9AzduduUVsXVbCFUC4h7iveihPQlrpgdARcn9O/wm
-         gYGg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references;
-        bh=w4pDpNNiZVftYGZN/ZfjMBwdA+nK0DkXdKOIzQhsz4k=;
-        b=i56oWNQxcWfBoe6RH8QIVD7RBtyevA17nH3JZ7HyIOazbk+uq1YjxqS7LLM9oomX27
-         M4cD8MIDpVtoIHPjXiWaEG2VJr/qTPoHYSJElv7WxRBWbbK3Y35A691KSiDhuVTVg0HT
-         GUPEWsSmSADGJyHg0UCHy5jzdgy8PN9Mmm3IyqSoPlOLEYUAEcP1+/lv8pec3MpqYi2z
-         oQE5VyjaEsbS2I6hnHRSWsmbaztBj2BC5Zz/ZQMMat6IJziuAAyO6D2uNkD+E2XJXEiG
-         UCRryBAXL3HH9UqAvvYBzbJTxBgqqWBlbMB+RHhRVCekUcZbV7V5ka9AjPgWVUe42mmt
-         YwQQ==
-X-Gm-Message-State: AJcUukeIPeVFfe/rKpT/t5yneLRx6jnyM+A/UFv1MnUGFZ0fKfFI1yyi
-        xgw0KkjK4p1OPJlyLXbYr0Xyn9dZ
-X-Google-Smtp-Source: ALg8bN7a4uh70hBn2UPLgTkTDPaqo7nkqhTBtUiBkvqgfA7W3WOlb+EDMZFDlaRl3J2WchsgPBadeA==
-X-Received: by 2002:a1c:2b01:: with SMTP id r1mr19430582wmr.7.1547934371081;
-        Sat, 19 Jan 2019 13:46:11 -0800 (PST)
-Received: from mappy.world.mentorg.com (sjewanfw1-nat.mentorg.com. [139.181.7.34])
-        by smtp.gmail.com with ESMTPSA id o5sm26432048wrw.46.2019.01.19.13.46.08
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Sat, 19 Jan 2019 13:46:10 -0800 (PST)
-From:   Steve Longerbeam <slongerbeam@gmail.com>
-To:     linux-media@vger.kernel.org
-Cc:     Steve Longerbeam <slongerbeam@gmail.com>, stable@vger.kernel.org,
-        Philipp Zabel <p.zabel@pengutronix.de>,
+        Sat, 19 Jan 2019 20:41:27 -0500
+X-Greylist: delayed 587 seconds by postgrey-1.27 at vger.kernel.org; Sat, 19 Jan 2019 20:41:26 EST
+X-IronPort-Anti-Spam-Filtered: true
+X-IronPort-Anti-Spam-Result: =?us-ascii?q?A2BXAAAIz0Nc/54agoZjHAEBAQQBAQcEA?=
+ =?us-ascii?q?QGBUwUBAQsBggNmgSkKg3eUAYFomCaBewwBGAsJhECCXiI2Bw0BAwEBAgEBAm0?=
+ =?us-ascii?q?cDIVNBSIECwFGNQImAio1DgWDIgGCAQQLqyx8M4kVgQgFCQGBAYZ1hEGCFoERJ?=
+ =?us-ascii?q?wyFfQOEaYJXAolBmF8HAoEZiWKCd4QjHoohh3IBmnYCAgICCQIUgU0MJYFWcYM?=
+ =?us-ascii?q?7gicXiCSFez8yAXoMIYdPAYEeAQE?=
+X-IPAS-Result: =?us-ascii?q?A2BXAAAIz0Nc/54agoZjHAEBAQQBAQcEAQGBUwUBAQsBggN?=
+ =?us-ascii?q?mgSkKg3eUAYFomCaBewwBGAsJhECCXiI2Bw0BAwEBAgEBAm0cDIVNBSIECwFGN?=
+ =?us-ascii?q?QImAio1DgWDIgGCAQQLqyx8M4kVgQgFCQGBAYZ1hEGCFoERJwyFfQOEaYJXAol?=
+ =?us-ascii?q?BmF8HAoEZiWKCd4QjHoohh3IBmnYCAgICCQIUgU0MJYFWcYM7gicXiCSFez8yA?=
+ =?us-ascii?q?XoMIYdPAYEeAQE?=
+X-IronPort-AV: E=Sophos;i="5.56,497,1539640800"; 
+   d="scan'208";a="29765256"
+Received: from rwthex-w2-a.rwth-ad.de ([134.130.26.158])
+  by mail-in-3.itc.rwth-aachen.de with ESMTP; 20 Jan 2019 02:31:38 +0100
+Received: from pebbles.fritz.box (93.131.73.199) by rwthex-w2-a.rwth-ad.de
+ (2a00:8a60:1:e500::26:158) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.1531.3; Sun, 20
+ Jan 2019 02:31:37 +0100
+From:   =?UTF-8?q?Stefan=20Br=C3=BCns?= <stefan.bruens@rwth-aachen.de>
+To:     <linux-kernel@vger.kernel.org>
+CC:     <linux-media@vger.kernel.org>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        devel@driverdev.osuosl.org (open list:STAGING SUBSYSTEM),
-        linux-kernel@vger.kernel.org (open list)
-Subject: [PATCH 1/4] media: imx: csi: Allow unknown nearest upstream entities
-Date:   Sat, 19 Jan 2019 13:45:57 -0800
-Message-Id: <20190119214600.30897-2-slongerbeam@gmail.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20190119214600.30897-1-slongerbeam@gmail.com>
-References: <20190119214600.30897-1-slongerbeam@gmail.com>
+        =?UTF-8?q?Stefan=20Br=C3=BCns?= <stefan.bruens@rwth-aachen.de>
+Subject: [PATCH] media: dvbsky: Avoid leaking dvb frontend
+Date:   Sun, 20 Jan 2019 02:30:04 +0100
+X-Mailer: git-send-email 2.20.1
+MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+X-Originating-IP: [93.131.73.199]
+X-ClientProxiedBy: rwthex-w2-b.rwth-ad.de (2a00:8a60:1:e500::26:159) To
+ rwthex-w2-a.rwth-ad.de (2a00:8a60:1:e500::26:158)
+Message-ID: <caf0c144-4704-435e-aa17-42de54ce5c2d@rwthex-w2-a.rwth-ad.de>
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On i.MX6, the nearest upstream entity to the CSI can only be the
-CSI video muxes or the Synopsys DW MIPI CSI-2 receiver.
+Commit 14f4eaeddabc ("media: dvbsky: fix driver unregister logic") fixed
+a use-after-free by removing the reference to the frontend after deleting
+the backing i2c device.
 
-However the i.MX53 has no CSI video muxes or a MIPI CSI-2 receiver.
-So allow for the nearest upstream entity to the CSI to be something
-other than those.
+This has the unfortunate side effect the frontend device is never freed
+in the dvb core leaving a dangling device, leading to errors when the
+dvb core tries to register the frontend after e.g. a replug as reported
+here: https://www.spinics.net/lists/linux-media/msg138181.html
 
-Fixes: bf3cfaa712e5c ("media: staging/imx: get CSI bus type from nearest
-upstream entity")
+media: dvbsky: issues with DVBSky T680CI
+===
+[  561.119145] sp2 8-0040: CIMaX SP2 successfully attached
+[  561.119161] usb 2-3: DVB: registering adapter 0 frontend 0 (Silicon Labs
+Si2168)...
+[  561.119174] sysfs: cannot create duplicate filename '/class/dvb/
+dvb0.frontend0'
+===
 
-Signed-off-by: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: stable@vger.kernel.org
+The use after free happened as dvb_usbv2_disconnect calls in this order:
+- dvb_usb_device::props->exit(...)
+- dvb_usbv2_adapter_frontend_exit(...)
+  + if (fe) dvb_unregister_frontend(fe)
+  + dvb_usb_device::props->frontend_detach(...)
+
+Moving the release of the i2c device from exit() to frontend_detach()
+avoids the dangling pointer access and allows the core to unregister
+the frontend.
+
+This was originally reported for a DVBSky T680CI, but it also affects
+the MyGica T230C. As all supported devices structure the registration/
+unregistration identically, apply the change for all device types.
+
+Signed-off-by: Stefan Brüns <stefan.bruens@rwth-aachen.de>
 ---
- drivers/staging/media/imx/imx-media-csi.c | 18 ++++++++++++++----
- 1 file changed, 14 insertions(+), 4 deletions(-)
+ drivers/media/usb/dvb-usb-v2/dvbsky.c | 18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-index 555aa45e02e3..b9af7d3d4974 100644
---- a/drivers/staging/media/imx/imx-media-csi.c
-+++ b/drivers/staging/media/imx/imx-media-csi.c
-@@ -154,9 +154,10 @@ static inline bool requires_passthrough(struct v4l2_fwnode_endpoint *ep,
- /*
-  * Parses the fwnode endpoint from the source pad of the entity
-  * connected to this CSI. This will either be the entity directly
-- * upstream from the CSI-2 receiver, or directly upstream from the
-- * video mux. The endpoint is needed to determine the bus type and
-- * bus config coming into the CSI.
-+ * upstream from the CSI-2 receiver, directly upstream from the
-+ * video mux, or directly upstream from the CSI itself. The endpoint
-+ * is needed to determine the bus type and bus config coming into
-+ * the CSI.
-  */
- static int csi_get_upstream_endpoint(struct csi_priv *priv,
- 				     struct v4l2_fwnode_endpoint *ep)
-@@ -172,7 +173,8 @@ static int csi_get_upstream_endpoint(struct csi_priv *priv,
- 	if (!priv->src_sd)
- 		return -EPIPE;
+diff --git a/drivers/media/usb/dvb-usb-v2/dvbsky.c b/drivers/media/usb/dvb-usb-v2/dvbsky.c
+index dffcadd8c834..3ff9833597e5 100644
+--- a/drivers/media/usb/dvb-usb-v2/dvbsky.c
++++ b/drivers/media/usb/dvb-usb-v2/dvbsky.c
+@@ -604,16 +604,18 @@ static int dvbsky_init(struct dvb_usb_device *d)
+ 	return 0;
+ }
  
--	src = &priv->src_sd->entity;
-+	sd = priv->src_sd;
-+	src = &sd->entity;
- 
- 	if (src->function == MEDIA_ENT_F_VID_MUX) {
- 		/*
-@@ -186,6 +188,14 @@ static int csi_get_upstream_endpoint(struct csi_priv *priv,
- 			src = &sd->entity;
- 	}
- 
-+	/*
-+	 * If the source is neither the video mux nor the CSI-2 receiver,
-+	 * get the source pad directly upstream from CSI itself.
-+	 */
-+	if (src->function != MEDIA_ENT_F_VID_MUX &&
-+	    sd->grp_id != IMX_MEDIA_GRP_ID_CSI2)
-+		src = &priv->sd.entity;
+-static void dvbsky_exit(struct dvb_usb_device *d)
++static int dvbsky_frontend_detach(struct dvb_usb_adapter *adap)
+ {
++	struct dvb_usb_device *d = adap_to_d(adap);
+ 	struct dvbsky_state *state = d_to_priv(d);
+-	struct dvb_usb_adapter *adap = &d->adapter[0];
 +
- 	/* get source pad of entity directly upstream from src */
- 	pad = imx_media_find_upstream_pad(priv->md, src, 0);
- 	if (IS_ERR(pad))
++	dev_dbg(&d->udev->dev, "%s: adap=%d\n", __func__, adap->id);
+ 
+ 	dvb_module_release(state->i2c_client_tuner);
+ 	dvb_module_release(state->i2c_client_demod);
+ 	dvb_module_release(state->i2c_client_ci);
+ 
+-	adap->fe[0] = NULL;
++	return 0;
+ }
+ 
+ /* DVB USB Driver stuff */
+@@ -629,11 +631,11 @@ static struct dvb_usb_device_properties dvbsky_s960_props = {
+ 
+ 	.i2c_algo         = &dvbsky_i2c_algo,
+ 	.frontend_attach  = dvbsky_s960_attach,
++	.frontend_detach  = dvbsky_frontend_detach,
+ 	.init             = dvbsky_init,
+ 	.get_rc_config    = dvbsky_get_rc_config,
+ 	.streaming_ctrl   = dvbsky_streaming_ctrl,
+ 	.identify_state	  = dvbsky_identify_state,
+-	.exit             = dvbsky_exit,
+ 	.read_mac_address = dvbsky_read_mac_addr,
+ 
+ 	.num_adapters = 1,
+@@ -656,11 +658,11 @@ static struct dvb_usb_device_properties dvbsky_s960c_props = {
+ 
+ 	.i2c_algo         = &dvbsky_i2c_algo,
+ 	.frontend_attach  = dvbsky_s960c_attach,
++	.frontend_detach  = dvbsky_frontend_detach,
+ 	.init             = dvbsky_init,
+ 	.get_rc_config    = dvbsky_get_rc_config,
+ 	.streaming_ctrl   = dvbsky_streaming_ctrl,
+ 	.identify_state	  = dvbsky_identify_state,
+-	.exit             = dvbsky_exit,
+ 	.read_mac_address = dvbsky_read_mac_addr,
+ 
+ 	.num_adapters = 1,
+@@ -683,11 +685,11 @@ static struct dvb_usb_device_properties dvbsky_t680c_props = {
+ 
+ 	.i2c_algo         = &dvbsky_i2c_algo,
+ 	.frontend_attach  = dvbsky_t680c_attach,
++	.frontend_detach  = dvbsky_frontend_detach,
+ 	.init             = dvbsky_init,
+ 	.get_rc_config    = dvbsky_get_rc_config,
+ 	.streaming_ctrl   = dvbsky_streaming_ctrl,
+ 	.identify_state	  = dvbsky_identify_state,
+-	.exit             = dvbsky_exit,
+ 	.read_mac_address = dvbsky_read_mac_addr,
+ 
+ 	.num_adapters = 1,
+@@ -710,11 +712,11 @@ static struct dvb_usb_device_properties dvbsky_t330_props = {
+ 
+ 	.i2c_algo         = &dvbsky_i2c_algo,
+ 	.frontend_attach  = dvbsky_t330_attach,
++	.frontend_detach  = dvbsky_frontend_detach,
+ 	.init             = dvbsky_init,
+ 	.get_rc_config    = dvbsky_get_rc_config,
+ 	.streaming_ctrl   = dvbsky_streaming_ctrl,
+ 	.identify_state	  = dvbsky_identify_state,
+-	.exit             = dvbsky_exit,
+ 	.read_mac_address = dvbsky_read_mac_addr,
+ 
+ 	.num_adapters = 1,
+@@ -737,11 +739,11 @@ static struct dvb_usb_device_properties mygica_t230c_props = {
+ 
+ 	.i2c_algo         = &dvbsky_i2c_algo,
+ 	.frontend_attach  = dvbsky_mygica_t230c_attach,
++	.frontend_detach  = dvbsky_frontend_detach,
+ 	.init             = dvbsky_init,
+ 	.get_rc_config    = dvbsky_get_rc_config,
+ 	.streaming_ctrl   = dvbsky_streaming_ctrl,
+ 	.identify_state	  = dvbsky_identify_state,
+-	.exit             = dvbsky_exit,
+ 
+ 	.num_adapters = 1,
+ 	.adapter = {
 -- 
-2.17.1
+2.20.1
 
