@@ -2,83 +2,142 @@ Return-Path: <SRS0=HRs9=P4=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5BF4C61CE3
-	for <linux-media@archiver.kernel.org>; Sun, 20 Jan 2019 03:56:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5001EC61CE3
+	for <linux-media@archiver.kernel.org>; Sun, 20 Jan 2019 04:36:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8DBA32087B
-	for <linux-media@archiver.kernel.org>; Sun, 20 Jan 2019 03:56:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1C98F2084A
+	for <linux-media@archiver.kernel.org>; Sun, 20 Jan 2019 04:36:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730105AbfATD4p (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sat, 19 Jan 2019 22:56:45 -0500
-Received: from www.osadl.org ([62.245.132.105]:54512 "EHLO www.osadl.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730065AbfATD4p (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 19 Jan 2019 22:56:45 -0500
-Received: from debian01.hofrr.at (178.115.242.59.static.drei.at [178.115.242.59])
-        by www.osadl.org (8.13.8/8.13.8/OSADL-2007092901) with ESMTP id x0K3uIS5027500;
-        Sun, 20 Jan 2019 04:56:18 +0100
-From:   Nicholas Mc Guire <hofrat@osadl.org>
-To:     Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc:     Brad Love <brad@nextdimension.cc>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Kees Cook <keescook@chromium.org>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Nicholas Mc Guire <hofrat@osadl.org>
-Subject: [PATCH] media: cx23885: check allocation return
-Date:   Sun, 20 Jan 2019 04:52:23 +0100
-Message-Id: <1547956343-11166-1-git-send-email-hofrat@osadl.org>
-X-Mailer: git-send-email 2.1.4
+        id S1730164AbfATEgr (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sat, 19 Jan 2019 23:36:47 -0500
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:46370 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1728020AbfATEgr (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 19 Jan 2019 23:36:47 -0500
+Received: from localhost ([IPv6:2001:983:e9a7:1:8d06:840d:fdbc:2777])
+        by smtp-cloud8.xs4all.net with ESMTPA
+        id l4qigwiTrNR5yl4qjgZvsW; Sun, 20 Jan 2019 05:36:45 +0100
+Message-ID: <75e819884d110e3736bc25d24ed0e33f@smtp-cloud8.xs4all.net>
+Date:   Sun, 20 Jan 2019 05:36:44 +0100
+From:   "Hans Verkuil" <hverkuil@xs4all.nl>
+To:     linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+X-CMAE-Envelope: MS4wfIjvODhOyBRAFsjO7e9REo2TYxv1DdJ3VedSdMPEEtt1uVFgBnWzTJosBvNqXGuOl5TSdgHKJmB4WAm0xmmhYDCEPaDm3P7cY8je4s5+FLqVAXDnSHTN
+ pu5Ft2trtMuUSgHnayiOsLSV5+oe9Akrt+UQEu3PgQ8v/rKmrXR4Sp5Wvznt7R3byMFXolh4CBaLRD9AxoVULOVRVqFoYfrsxHD7YGDC/+ypfuAO5Z8K/POJ
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Checking of kmalloc() seems to have been committed - as
-cx23885_dvb_register() is checking for != 0 return, returning
--ENOMEM should be fine here.  While at it address the coccicheck
-suggestion to move to kmemdup rather than using kmalloc+memcpy.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Nicholas Mc Guire <hofrat@osadl.org>
-Fixes: 46b21bbaa8a8 ("[media] Add support for DViCO FusionHDTV DVB-T Dual Express2")
----
-Problem located with an experimental coccinelle script
+Results of the daily build of media_tree:
 
-Patch was compile tested with: x86_64_defconfig + MEDIA_SUPPORT=y
-MEDIA_PCI_SUPPORT=y, MEDIA_DIGITAL_TV_SUPPORT=y,
-MEDIA_ANALOG_TV_SUPPORT=y (for VIDEO_DEV), RC_CORE=y
-VIDEO_CX23885=y
+date:			Sun Jan 20 05:00:10 CET 2019
+media-tree git hash:	e8f9b16d72631870e30a3d8e4ee9f1c097bc7ba0
+media_build git hash:	a0be39e21b895d8cc47e0e1be6ddc8e336168d1d
+v4l-utils git hash:	e07d1b90190f2b98fe4f5be20406b49ecbe5b3e7
+edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
+gcc version:		i686-linux-gcc (GCC) 8.2.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.19.0-1-amd64
 
-The coccicheck on the initial fix for kmalloc only reported:
-drivers/media/pci/cx23885//cx23885-dvb.c:1477:33-40: WARNING opportunity for kmemdup
-so that was merged into this patch - the return value still needs to
-be checked.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.57-i686: OK
+linux-3.16.57-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.123-i686: OK
+linux-3.18.123-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.52-i686: OK
+linux-4.1.52-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.159-i686: OK
+linux-4.4.159-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.131-i686: OK
+linux-4.9.131-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.74-i686: OK
+linux-4.14.74-x86_64: OK
+linux-4.15.18-i686: OK
+linux-4.15.18-x86_64: OK
+linux-4.16.18-i686: OK
+linux-4.16.18-x86_64: OK
+linux-4.17.19-i686: OK
+linux-4.17.19-x86_64: OK
+linux-4.18.12-i686: OK
+linux-4.18.12-x86_64: OK
+linux-4.19.1-i686: OK
+linux-4.19.1-x86_64: OK
+linux-4.20.1-i686: OK
+linux-4.20.1-x86_64: OK
+linux-5.0-rc1-i686: OK
+linux-5.0-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
-Patch is against 5.0-rc2 (localversion-next is next-20190118)
+Detailed results are available here:
 
- drivers/media/pci/cx23885/cx23885-dvb.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
-index 0d0929c..225cdfe 100644
---- a/drivers/media/pci/cx23885/cx23885-dvb.c
-+++ b/drivers/media/pci/cx23885/cx23885-dvb.c
-@@ -1474,8 +1474,11 @@ static int dvb_register(struct cx23885_tsport *port)
- 		if (fe0->dvb.frontend != NULL) {
- 			struct i2c_adapter *tun_i2c;
- 
--			fe0->dvb.frontend->sec_priv = kmalloc(sizeof(dib7000p_ops), GFP_KERNEL);
--			memcpy(fe0->dvb.frontend->sec_priv, &dib7000p_ops, sizeof(dib7000p_ops));
-+			fe0->dvb.frontend->sec_priv = kmemdup(&dib7000p_ops,
-+							sizeof(dib7000p_ops),
-+							GFP_KERNEL);
-+			if (!fe0->dvb.frontend->sec_priv)
-+				return -ENOMEM;
- 			tun_i2c = dib7000p_ops.get_i2c_master(fe0->dvb.frontend, DIBX000_I2C_INTERFACE_TUNER, 1);
- 			if (!dvb_attach(dib0070_attach, fe0->dvb.frontend, tun_i2c, &dib7070p_dib0070_config))
- 				return -ENODEV;
--- 
-2.1.4
+Full logs are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
