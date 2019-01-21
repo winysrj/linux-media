@@ -6,214 +6,113 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B805C282DB
-	for <linux-media@archiver.kernel.org>; Mon, 21 Jan 2019 09:24:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B561C282F6
+	for <linux-media@archiver.kernel.org>; Mon, 21 Jan 2019 09:34:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 05257214DA
-	for <linux-media@archiver.kernel.org>; Mon, 21 Jan 2019 09:24:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CDBC921738
+	for <linux-media@archiver.kernel.org>; Mon, 21 Jan 2019 09:34:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727718AbfAUJYt (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 21 Jan 2019 04:24:49 -0500
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:34535 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726775AbfAUJYt (ORCPT
+        id S1726231AbfAUJer (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 21 Jan 2019 04:34:47 -0500
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:35301 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726133AbfAUJer (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 Jan 2019 04:24:49 -0500
+        Mon, 21 Jan 2019 04:34:47 -0500
 Received: from [192.168.2.10] ([212.251.195.8])
         by smtp-cloud7.xs4all.net with ESMTPA
-        id lVowgVuvWBDyIlVp0gNmdc; Mon, 21 Jan 2019 10:24:47 +0100
-Subject: Re: [v4l-utils PATCH 2/6] v4l2-ctl: Add function get_codec_type
+        id lVybgW4UbBDyIlVyfgNrks; Mon, 21 Jan 2019 10:34:45 +0100
+Subject: Re: [v4l-utils PATCH 3/6] v4l2-ctl: test the excpetion fds first in
+ streaming_set_m2m
 To:     Dafna Hirschfeld <dafna3@gmail.com>, linux-media@vger.kernel.org
 Cc:     helen.koike@collabora.com
 References: <20190120111520.114305-1-dafna3@gmail.com>
- <20190120111520.114305-3-dafna3@gmail.com>
+ <20190120111520.114305-4-dafna3@gmail.com>
 From:   Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <da9558f1-1b53-e0a2-671a-b74b07d118ec@xs4all.nl>
-Date:   Mon, 21 Jan 2019 10:24:42 +0100
+Message-ID: <bacda443-6cd9-5729-6b85-9302b61437b3@xs4all.nl>
+Date:   Mon, 21 Jan 2019 10:34:41 +0100
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:52.0) Gecko/20100101
  Thunderbird/52.2.1
 MIME-Version: 1.0
-In-Reply-To: <20190120111520.114305-3-dafna3@gmail.com>
+In-Reply-To: <20190120111520.114305-4-dafna3@gmail.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfBBTtGSR3DdKyj2eDmgxBkMNS2sI3CngoFkPJ6bVxYsjcLPD5bJONSXx9+MnJOLRMnxbOsadmlhwJc/g88sH/Yq8KP7efaZTKqIB9JebT2sXPYdEc9Xc
- VwPsd6SpO8159uTwYMvK83ILnhEhOztWV75tE1nj7NrkAV7YOBTcjn/0U8leFQ2Jg/u4vzGXJa7xe/ROS2XcvDVv1o0HZJFfXqh6IbegOaHR5A5+wgnEilK3
- rvegcKAQ+bqF8kMV72q6Iw==
+X-CMAE-Envelope: MS4wfMnKHNeOHGWcNVf6/A11tc/0u4xcToykzYUIXbVuN3XMTP23VoAYJjeEVZuENUMtDengio4D897sg/fG1c7dg3bNAS43GHj6G8Hoa2WxiiqPhx0ybQUy
+ OMmv1vQPoHcn9UAm+NnmaE9hF1NXtcPgXI/lXSNRPGS2L6nBQGDLqK+r6ffTRAJ/0Xl3SMjZH/mysjDtawJIE9wX6gAXOC+cjVwHi4vbXPJofC4g5nB0HyqK
+ 8xrT7oxwTDVcdjBcLo837Q==
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
 On 01/20/2019 12:15 PM, Dafna Hirschfeld wrote:
-> Add function get_codec_type that returns the type
-> of codec NOT_CODEC/ENCODER/DEOCDER.
-> Move the functions get_cap_compose/crop_rect
-> to the start of the file.
-> 
-> Signed-off-by: Dafna Hirschfeld <dafna3@gmail.com>
-> ---
->  utils/v4l2-ctl/v4l2-ctl-streaming.cpp | 126 ++++++++++++++++++--------
->  1 file changed, 88 insertions(+), 38 deletions(-)
-> 
-> diff --git a/utils/v4l2-ctl/v4l2-ctl-streaming.cpp b/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
-> index 8a98b6bd..3e81fdfc 100644
-> --- a/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
-> +++ b/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
-> @@ -82,6 +82,12 @@ static bool support_out_crop;
->  #define TS_WINDOW 241
->  #define FILE_HDR_ID			v4l2_fourcc('V', 'h', 'd', 'r')
->  
-> +enum codec_type {
-> +	NOT_CODEC,
-> +	ENCODER,
-> +	DECODER
-> +};
-> +
->  class fps_timestamps {
->  private:
->  	unsigned idx;
-> @@ -334,6 +340,88 @@ void streaming_usage(void)
->  	       	V4L_STREAM_PORT);
->  }
->  
-> +static int get_codec_type(cv4l_fd &fd, enum codec_type &codec_type)
+> test the excpetion fds first in the select loop
 
-Just have this function return enum codec_type, no need for it to return -1.
-If it encounters any errors then it is not a codec.
+excpetion -> exception
+
+> in streaming_set_m2m. This is needed in the next patch
+> in order to dequeue a source change event before its
+> coresponding last buffer.
+
+coresponding -> corresponding
+
+But besides those typos, I don't think this patch is needed at
+all. See my comments for patch 5/6 for more info.
 
 Regards,
 
 	Hans
 
-> +{
-> +	struct v4l2_fmtdesc fmt_desc;
-> +	int num_cap_fmts = 0;
-> +	int num_compressed_cap_fmts = 0;
-> +	int num_out_fmts = 0;
-> +	int num_compressed_out_fmts = 0;
-> +
-> +	codec_type = NOT_CODEC;
-> +	if (!fd.has_vid_m2m())
-> +		return 0;
-> +
-> +	if (fd.enum_fmt(fmt_desc, true, 0, V4L2_BUF_TYPE_VIDEO_CAPTURE))
-> +		return -1;
-> +
-> +	do {
-> +		if (fmt_desc.flags & V4L2_FMT_FLAG_COMPRESSED)
-> +			num_compressed_cap_fmts++;
-> +		num_cap_fmts++;
-> +	} while (!fd.enum_fmt(fmt_desc));
-> +
-> +
-> +	if (fd.enum_fmt(fmt_desc, true, 0, V4L2_BUF_TYPE_VIDEO_OUTPUT))
-> +		return -1;
-> +
-> +	do {
-> +		if (fmt_desc.flags & V4L2_FMT_FLAG_COMPRESSED)
-> +			num_compressed_out_fmts++;
-> +		num_out_fmts++;
-> +	} while (!fd.enum_fmt(fmt_desc));
-> +
-> +	if (num_compressed_out_fmts == 0 && num_compressed_cap_fmts == num_cap_fmts) {
-> +		codec_type = ENCODER;
-> +		return 0;
-> +	}
-> +
-> +	if (num_compressed_cap_fmts == 0 && num_compressed_out_fmts == num_out_fmts) {
-> +		codec_type = DECODER;
-> +		return 0;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int get_cap_compose_rect(cv4l_fd &fd)
-> +{
-> +	v4l2_selection sel;
-> +
-> +	memset(&sel, 0, sizeof(sel));
-> +	sel.type = vidcap_buftype;
-> +	sel.target = V4L2_SEL_TGT_COMPOSE;
-> +
-> +	if (fd.g_selection(sel) == 0) {
-> +		support_cap_compose = true;
-> +		composed_width = sel.r.width;
-> +		composed_height = sel.r.height;
-> +		return 0;
-> +	}
-> +
-> +	support_cap_compose = false;
-> +	return 0;
-> +}
-> +
-> +static int get_out_crop_rect(cv4l_fd &fd)
-> +{
-> +	v4l2_selection sel;
-> +
-> +	memset(&sel, 0, sizeof(sel));
-> +	sel.type = vidout_buftype;
-> +	sel.target = V4L2_SEL_TGT_CROP;
-> +
-> +	if (fd.g_selection(sel) == 0) {
-> +		support_out_crop = true;
-> +		cropped_width = sel.r.width;
-> +		cropped_height = sel.r.height;
-> +		return 0;
-> +	}
-> +
-> +	support_out_crop = false;
-> +	return 0;
-> +}
-> +
->  static void set_time_stamp(cv4l_buffer &buf)
->  {
->  	if ((buf.g_flags() & V4L2_BUF_FLAG_TIMESTAMP_MASK) != V4L2_BUF_FLAG_TIMESTAMP_COPY)
-> @@ -2109,44 +2197,6 @@ done:
->  		fclose(file[OUT]);
->  }
+> 
+> Signed-off-by: Dafna Hirschfeld <dafna3@gmail.com>
+> ---
+>  utils/v4l2-ctl/v4l2-ctl-streaming.cpp | 26 +++++++++++++-------------
+>  1 file changed, 13 insertions(+), 13 deletions(-)
+> 
+> diff --git a/utils/v4l2-ctl/v4l2-ctl-streaming.cpp b/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
+> index 3e81fdfc..fc204304 100644
+> --- a/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
+> +++ b/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
+> @@ -1953,6 +1953,19 @@ static void streaming_set_m2m(cv4l_fd &fd)
+>  			goto done;
+>  		}
 >  
-> -static int get_cap_compose_rect(cv4l_fd &fd)
-> -{
-> -	v4l2_selection sel;
+> +		if (ex_fds && FD_ISSET(fd.g_fd(), ex_fds)) {
+> +			struct v4l2_event ev;
+> +
+> +			while (!fd.dqevent(ev)) {
+> +				if (ev.type != V4L2_EVENT_EOS)
+> +					continue;
+> +				wr_fds = NULL;
+> +				fprintf(stderr, "EOS");
+> +				fflush(stderr);
+> +				break;
+> +			}
+> +		}
+> +
+>  		if (rd_fds && FD_ISSET(fd.g_fd(), rd_fds)) {
+>  			r = do_handle_cap(fd, in, file[CAP], NULL,
+>  					  count[CAP], fps_ts[CAP]);
+> @@ -1990,19 +2003,6 @@ static void streaming_set_m2m(cv4l_fd &fd)
+>  				}
+>  			}
+>  		}
 > -
-> -	memset(&sel, 0, sizeof(sel));
-> -	sel.type = vidcap_buftype;
-> -	sel.target = V4L2_SEL_TGT_COMPOSE;
+> -		if (ex_fds && FD_ISSET(fd.g_fd(), ex_fds)) {
+> -			struct v4l2_event ev;
 > -
-> -	if (fd.g_selection(sel) == 0) {
-> -		support_cap_compose = true;
-> -		composed_width = sel.r.width;
-> -		composed_height = sel.r.height;
-> -		return 0;
-> -	}
-> -
-> -	support_cap_compose = false;
-> -	return 0;
-> -}
-> -
-> -static int get_out_crop_rect(cv4l_fd &fd)
-> -{
-> -	v4l2_selection sel;
-> -
-> -	memset(&sel, 0, sizeof(sel));
-> -	sel.type = vidout_buftype;
-> -	sel.target = V4L2_SEL_TGT_CROP;
-> -
-> -	if (fd.g_selection(sel) == 0) {
-> -		support_out_crop = true;
-> -		cropped_width = sel.r.width;
-> -		cropped_height = sel.r.height;
-> -		return 0;
-> -	}
-> -
-> -	support_out_crop = false;
-> -	return 0;
-> -}
-> -
->  void streaming_set(cv4l_fd &fd, cv4l_fd &out_fd)
->  {
->  	cv4l_disable_trace dt(fd);
+> -			while (!fd.dqevent(ev)) {
+> -				if (ev.type != V4L2_EVENT_EOS)
+> -					continue;
+> -				wr_fds = NULL;
+> -				fprintf(stderr, "EOS");
+> -				fflush(stderr);
+> -				break;
+> -			}
+> -		}
+>  	}
+>  
+>  	fcntl(fd.g_fd(), F_SETFL, fd_flags);
 > 
 
