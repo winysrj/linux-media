@@ -5,62 +5,63 @@ X-Spam-Level:
 X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E2AF1C7112F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 699F5C7113B
 	for <linux-media@archiver.kernel.org>; Mon, 21 Jan 2019 11:46:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B2ED32085A
+	by mail.kernel.org (Postfix) with ESMTP id 1848020870
 	for <linux-media@archiver.kernel.org>; Mon, 21 Jan 2019 11:46:44 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="LzqYttmH"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="laqMEkYv"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728150AbfAULqn (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        id S1728147AbfAULqn (ORCPT <rfc822;linux-media@archiver.kernel.org>);
         Mon, 21 Jan 2019 06:46:43 -0500
-Received: from mail-wr1-f68.google.com ([209.85.221.68]:34869 "EHLO
-        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728012AbfAULqm (ORCPT
+Received: from mail-wm1-f65.google.com ([209.85.128.65]:50359 "EHLO
+        mail-wm1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727882AbfAULqm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Mon, 21 Jan 2019 06:46:42 -0500
-Received: by mail-wr1-f68.google.com with SMTP id 96so22999583wrb.2
-        for <linux-media@vger.kernel.org>; Mon, 21 Jan 2019 03:46:41 -0800 (PST)
+Received: by mail-wm1-f65.google.com with SMTP id n190so10497589wmd.0
+        for <linux-media@vger.kernel.org>; Mon, 21 Jan 2019 03:46:38 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=K1Kyqab3YvbRH5uvx35iJ8N9RRfg0oy3OBoMo8rR94I=;
-        b=LzqYttmHFYflx+Sm8ZJQCFdJYC1KeDKz6MsbLRP2omG5y3ahvBcz46QBv+7QPQKRxx
-         vG6boGb/N1XeL7mhLmSxQ1ZF3WAgyLDKx/no0NuZZ5Huq7qCJm6ugltt4ILVY96C2APt
-         waVBzMjw0s8SMD4Abf6V8J/+IOjCVf7XJCIuJ5m1u/5+HR1ljNv4PRLYz6qUDQ3Na68m
-         fVxpSUPRwy9t1XI2xcuElQMK/lwuQqyDLkMBQ2WwT95q7uTLz/vtxqz1X9d1p3iULpdo
-         TmO9U4a27T3HU4YmY/nZXLiBfndRKOdqgI/1+jxu4vSO2EJ0Y8OaJhIcKHHJSGRmeDFM
-         xwIQ==
+        bh=OE3woBv4s5g24zFm/b088METbeEoY6YGUWM7TQAlRE0=;
+        b=laqMEkYv41pYabLMewqbNzHd6BO7Pgzr/EVTbEShfeEVMRhUzSI6MpRkEL8TP3pKtB
+         IJ8k40QSvYxXEiBe8n9oVv7ZvOt6z9aza8LaRKkjA9eNLvAhUYi4uPPm6Pyfjl0Zsbgo
+         Qev0b+ddW+VwXZitFiXTfE3Km5X8LnKIlsLkMhXUBwSoYnfLtPuM75wipZdCG6zGSFo+
+         yh4IF2yHF+M+H/4ld+q0X6I5JK/tQw2pXNpfEHEEKo/75iWuRIqwDuoJRN6EvTf3Nvny
+         xhb79k/sQbgFB3WsBAJTv7Nvy7XJVtJKsH+2Wv4S83JOrZHguhgjS3LBAd8xFrFTejBo
+         XPtA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references;
-        bh=K1Kyqab3YvbRH5uvx35iJ8N9RRfg0oy3OBoMo8rR94I=;
-        b=kjf4LFruSYQDaibBjABjRzskrwHmS7aSppOhzk7UlvJuwoHFx/nQZlTYBazhkRj0Yt
-         33KlxJCEEcfmYEkVtCtQ3j0EkUxLiRQ/tou5j+MJJv5BAhzFHPz107UHUqt120ofD4cd
-         7g4mSa9534QAkqz84CYrxgCmbPSODaIUQDH95cf9gsegHU6ioR2ZlVnY/LsqggdNNPcI
-         qE963tCSSmtzgkEuRwM7b3SPIxzXFLLUfWQKi5RRdrrvVj1srlqhGUjGPXI/JOKFtj8o
-         810qI4n9PFPWi3kyHAxnDPRM7s83WmrqK7OhfRLbC1qiv0xUV25YxXsUIrdO33qDfh5T
-         0waQ==
-X-Gm-Message-State: AJcUukcX6Frw2RwYSjRAQtSv1t7CPovnEo30ipcAja0yErrdFmOfVMLX
-        Lx/eCAu+yLqwogqj5cehdpo7ibs6woI=
-X-Google-Smtp-Source: ALg8bN7SsAyP/Oi8I0kCIh/HFAmBm2nx0rapmXjvDtUGVdJeB+u9/ZBl85cYWmJbtVF5mrbKPXdlkA==
-X-Received: by 2002:a5d:6647:: with SMTP id f7mr27620434wrw.225.1548071200294;
-        Mon, 21 Jan 2019 03:46:40 -0800 (PST)
+        bh=OE3woBv4s5g24zFm/b088METbeEoY6YGUWM7TQAlRE0=;
+        b=S4UNhzUAlnuRCT70vi25gIbbMjSDj20aebp5tzibWZTXZnytr+s28RaX+1L3/xyH7w
+         ZUvE4xl+VN/q5sbj6l9FsZEDb/4LcwuIPmM4qcWsqUglncavTfATLPIzb4krkQEvccMc
+         zS5LyXBEx2aPxO8rcz1NOEdZrLDJBTYbknC+0sDJfSFvqhi+YZDm8gtdG6x11JX2vYMC
+         vCShBOym7+2Xh2W7H7ufnhIQOCHQ0qdQ5a+hU+kIDqZ+HlE+oWZA0OP+ZegHA+hHvM2h
+         fDES3wk1pcM/9CD3dg1+aAQYkqstINPCUWQodjiJiZji4lEcU0gYofeIWrZs7Kz4GgJ4
+         vpYQ==
+X-Gm-Message-State: AJcUukfefLcD2IayQgytJVC9/blXDGGRjohrZu4+BZL9pSWKRidEvb+g
+        eDnpeVIpc7qaz62uv0sCE8ilYMDERa4=
+X-Google-Smtp-Source: ALg8bN5o/l8VS2AcsJ6rpe6UsXpkU3925Zwi+E7jEvnFgW2zvLEFP3CmWk4xzAi2YX5qEt9hAHAS6A==
+X-Received: by 2002:a1c:a8d2:: with SMTP id r201mr23750861wme.81.1548071196242;
+        Mon, 21 Jan 2019 03:46:36 -0800 (PST)
 Received: from localhost.localdomain ([87.70.46.65])
-        by smtp.gmail.com with ESMTPSA id z7sm83189584wrw.22.2019.01.21.03.46.39
+        by smtp.gmail.com with ESMTPSA id z7sm83189584wrw.22.2019.01.21.03.46.34
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 21 Jan 2019 03:46:39 -0800 (PST)
+        Mon, 21 Jan 2019 03:46:35 -0800 (PST)
 From:   Dafna Hirschfeld <dafna3@gmail.com>
 To:     linux-media@vger.kernel.org
 Cc:     hverkuil@xs4all.nl, helen.koike@collabora.com,
         Dafna Hirschfeld <dafna3@gmail.com>
-Subject: [PATCH v6 4/5] media: vicodec: Separate fwht header from the frame data
-Date:   Mon, 21 Jan 2019 03:46:17 -0800
-Message-Id: <20190121114618.115282-5-dafna3@gmail.com>
+Subject: [PATCH v6 1/5] media: vicodec: add support for CROP and COMPOSE selection
+Date:   Mon, 21 Jan 2019 03:46:14 -0800
+Message-Id: <20190121114618.115282-2-dafna3@gmail.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20190121114618.115282-1-dafna3@gmail.com>
 References: <20190121114618.115282-1-dafna3@gmail.com>
@@ -69,249 +70,1054 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Keep the fwht header in separated field from the data.
-Refactor job_ready to use a new function 'get_next_header'
+Add support for the selection api for the crop and compose targets.
+The driver rounds up the coded width and height such that
+all planes dimensions are multiple of 8.
 
 Signed-off-by: Dafna Hirschfeld <dafna3@gmail.com>
 ---
- .../media/platform/vicodec/codec-v4l2-fwht.c  |  24 ++--
- .../media/platform/vicodec/codec-v4l2-fwht.h  |   1 +
- drivers/media/platform/vicodec/vicodec-core.c | 110 +++++++++++-------
- 3 files changed, 77 insertions(+), 58 deletions(-)
+ drivers/media/platform/vicodec/codec-fwht.c   |  83 +++--
+ drivers/media/platform/vicodec/codec-fwht.h   |  17 +-
+ .../media/platform/vicodec/codec-v4l2-fwht.c  | 293 ++++++++++++------
+ .../media/platform/vicodec/codec-v4l2-fwht.h  |   7 +-
+ drivers/media/platform/vicodec/vicodec-core.c | 166 ++++++++--
+ 5 files changed, 404 insertions(+), 162 deletions(-)
 
+diff --git a/drivers/media/platform/vicodec/codec-fwht.c b/drivers/media/platform/vicodec/codec-fwht.c
+index a6fd0477633b..e5e0a80c2f73 100644
+--- a/drivers/media/platform/vicodec/codec-fwht.c
++++ b/drivers/media/platform/vicodec/codec-fwht.c
+@@ -10,6 +10,7 @@
+  */
+ 
+ #include <linux/string.h>
++#include <linux/kernel.h>
+ #include "codec-fwht.h"
+ 
+ /*
+@@ -237,8 +238,6 @@ static void fwht(const u8 *block, s16 *output_block, unsigned int stride,
+ 	unsigned int i;
+ 
+ 	/* stage 1 */
+-	stride *= input_step;
+-
+ 	for (i = 0; i < 8; i++, tmp += stride, out += 8) {
+ 		switch (input_step) {
+ 		case 1:
+@@ -562,7 +561,7 @@ static void fill_encoder_block(const u8 *input, s16 *dst,
+ 	for (i = 0; i < 8; i++) {
+ 		for (j = 0; j < 8; j++, input += input_step)
+ 			*dst++ = *input;
+-		input += (stride - 8) * input_step;
++		input += stride - 8 * input_step;
+ 	}
+ }
+ 
+@@ -660,7 +659,7 @@ static void add_deltas(s16 *deltas, const u8 *ref, int stride)
+ 
+ static u32 encode_plane(u8 *input, u8 *refp, __be16 **rlco, __be16 *rlco_max,
+ 			struct fwht_cframe *cf, u32 height, u32 width,
+-			unsigned int input_step,
++			u32 stride, unsigned int input_step,
+ 			bool is_intra, bool next_is_intra)
+ {
+ 	u8 *input_start = input;
+@@ -671,7 +670,11 @@ static u32 encode_plane(u8 *input, u8 *refp, __be16 **rlco, __be16 *rlco_max,
+ 	unsigned int last_size = 0;
+ 	unsigned int i, j;
+ 
++	width = round_up(width, 8);
++	height = round_up(height, 8);
++
+ 	for (j = 0; j < height / 8; j++) {
++		input = input_start + j * 8 * stride;
+ 		for (i = 0; i < width / 8; i++) {
+ 			/* intra code, first frame is always intra coded. */
+ 			int blocktype = IBLOCK;
+@@ -679,9 +682,9 @@ static u32 encode_plane(u8 *input, u8 *refp, __be16 **rlco, __be16 *rlco_max,
+ 
+ 			if (!is_intra)
+ 				blocktype = decide_blocktype(input, refp,
+-					deltablock, width, input_step);
++					deltablock, stride, input_step);
+ 			if (blocktype == IBLOCK) {
+-				fwht(input, cf->coeffs, width, input_step, 1);
++				fwht(input, cf->coeffs, stride, input_step, 1);
+ 				quantize_intra(cf->coeffs, cf->de_coeffs,
+ 					       cf->i_frame_qp);
+ 			} else {
+@@ -722,12 +725,12 @@ static u32 encode_plane(u8 *input, u8 *refp, __be16 **rlco, __be16 *rlco_max,
+ 			}
+ 			last_size = size;
+ 		}
+-		input += width * 7 * input_step;
+ 	}
+ 
+ exit_loop:
+ 	if (encoding & FWHT_FRAME_UNENCODED) {
+ 		u8 *out = (u8 *)rlco_start;
++		u8 *p;
+ 
+ 		input = input_start;
+ 		/*
+@@ -736,8 +739,11 @@ static u32 encode_plane(u8 *input, u8 *refp, __be16 **rlco, __be16 *rlco_max,
+ 		 * by 0xfe. Since YUV is limited range such values
+ 		 * shouldn't appear anyway.
+ 		 */
+-		for (i = 0; i < height * width; i++, input += input_step)
+-			*out++ = (*input == 0xff) ? 0xfe : *input;
++		for (j = 0; j < height; j++) {
++			for (i = 0, p = input; i < width; i++, p += input_step)
++				*out++ = (*p == 0xff) ? 0xfe : *p;
++			input += stride;
++		}
+ 		*rlco = (__be16 *)out;
+ 		encoding &= ~FWHT_FRAME_PCODED;
+ 	}
+@@ -747,30 +753,32 @@ static u32 encode_plane(u8 *input, u8 *refp, __be16 **rlco, __be16 *rlco_max,
+ u32 fwht_encode_frame(struct fwht_raw_frame *frm,
+ 		      struct fwht_raw_frame *ref_frm,
+ 		      struct fwht_cframe *cf,
+-		      bool is_intra, bool next_is_intra)
++		      bool is_intra, bool next_is_intra,
++		      unsigned int width, unsigned int height,
++		      unsigned int stride, unsigned int chroma_stride)
+ {
+-	unsigned int size = frm->height * frm->width;
++	unsigned int size = height * width;
+ 	__be16 *rlco = cf->rlc_data;
+ 	__be16 *rlco_max;
+ 	u32 encoding;
+ 
+ 	rlco_max = rlco + size / 2 - 256;
+ 	encoding = encode_plane(frm->luma, ref_frm->luma, &rlco, rlco_max, cf,
+-				frm->height, frm->width,
++				height, width, stride,
+ 				frm->luma_alpha_step, is_intra, next_is_intra);
+ 	if (encoding & FWHT_FRAME_UNENCODED)
+ 		encoding |= FWHT_LUMA_UNENCODED;
+ 	encoding &= ~FWHT_FRAME_UNENCODED;
+ 
+ 	if (frm->components_num >= 3) {
+-		u32 chroma_h = frm->height / frm->height_div;
+-		u32 chroma_w = frm->width / frm->width_div;
++		u32 chroma_h = height / frm->height_div;
++		u32 chroma_w = width / frm->width_div;
+ 		unsigned int chroma_size = chroma_h * chroma_w;
+ 
+ 		rlco_max = rlco + chroma_size / 2 - 256;
+ 		encoding |= encode_plane(frm->cb, ref_frm->cb, &rlco, rlco_max,
+ 					 cf, chroma_h, chroma_w,
+-					 frm->chroma_step,
++					 chroma_stride, frm->chroma_step,
+ 					 is_intra, next_is_intra);
+ 		if (encoding & FWHT_FRAME_UNENCODED)
+ 			encoding |= FWHT_CB_UNENCODED;
+@@ -778,7 +786,7 @@ u32 fwht_encode_frame(struct fwht_raw_frame *frm,
+ 		rlco_max = rlco + chroma_size / 2 - 256;
+ 		encoding |= encode_plane(frm->cr, ref_frm->cr, &rlco, rlco_max,
+ 					 cf, chroma_h, chroma_w,
+-					 frm->chroma_step,
++					 chroma_stride, frm->chroma_step,
+ 					 is_intra, next_is_intra);
+ 		if (encoding & FWHT_FRAME_UNENCODED)
+ 			encoding |= FWHT_CR_UNENCODED;
+@@ -788,8 +796,8 @@ u32 fwht_encode_frame(struct fwht_raw_frame *frm,
+ 	if (frm->components_num == 4) {
+ 		rlco_max = rlco + size / 2 - 256;
+ 		encoding |= encode_plane(frm->alpha, ref_frm->alpha, &rlco,
+-					 rlco_max, cf, frm->height, frm->width,
+-					 frm->luma_alpha_step,
++					 rlco_max, cf, height, width,
++					 stride, frm->luma_alpha_step,
+ 					 is_intra, next_is_intra);
+ 		if (encoding & FWHT_FRAME_UNENCODED)
+ 			encoding |= FWHT_ALPHA_UNENCODED;
+@@ -801,13 +809,17 @@ u32 fwht_encode_frame(struct fwht_raw_frame *frm,
+ }
+ 
+ static void decode_plane(struct fwht_cframe *cf, const __be16 **rlco, u8 *ref,
+-			 u32 height, u32 width, bool uncompressed)
++			 u32 height, u32 width, u32 coded_width,
++			 bool uncompressed)
+ {
+ 	unsigned int copies = 0;
+ 	s16 copy[8 * 8];
+ 	s16 stat;
+ 	unsigned int i, j;
+ 
++	width = round_up(width, 8);
++	height = round_up(height, 8);
++
+ 	if (uncompressed) {
+ 		memcpy(ref, *rlco, width * height);
+ 		*rlco += width * height / 2;
+@@ -822,13 +834,15 @@ static void decode_plane(struct fwht_cframe *cf, const __be16 **rlco, u8 *ref,
+ 	 */
+ 	for (j = 0; j < height / 8; j++) {
+ 		for (i = 0; i < width / 8; i++) {
+-			u8 *refp = ref + j * 8 * width + i * 8;
++			u8 *refp = ref + j * 8 * coded_width + i * 8;
+ 
+ 			if (copies) {
+ 				memcpy(cf->de_fwht, copy, sizeof(copy));
+ 				if (stat & PFRAME_BIT)
+-					add_deltas(cf->de_fwht, refp, width);
+-				fill_decoder_block(refp, cf->de_fwht, width);
++					add_deltas(cf->de_fwht, refp,
++						   coded_width);
++				fill_decoder_block(refp, cf->de_fwht,
++						   coded_width);
+ 				copies--;
+ 				continue;
+ 			}
+@@ -847,35 +861,40 @@ static void decode_plane(struct fwht_cframe *cf, const __be16 **rlco, u8 *ref,
+ 			if (copies)
+ 				memcpy(copy, cf->de_fwht, sizeof(copy));
+ 			if (stat & PFRAME_BIT)
+-				add_deltas(cf->de_fwht, refp, width);
+-			fill_decoder_block(refp, cf->de_fwht, width);
++				add_deltas(cf->de_fwht, refp, coded_width);
++			fill_decoder_block(refp, cf->de_fwht, coded_width);
+ 		}
+ 	}
+ }
+ 
+ void fwht_decode_frame(struct fwht_cframe *cf, struct fwht_raw_frame *ref,
+-		       u32 hdr_flags, unsigned int components_num)
++		       u32 hdr_flags, unsigned int components_num,
++		       unsigned int width, unsigned int height,
++		       unsigned int coded_width)
+ {
+ 	const __be16 *rlco = cf->rlc_data;
+ 
+-	decode_plane(cf, &rlco, ref->luma, cf->height, cf->width,
++	decode_plane(cf, &rlco, ref->luma, height, width, coded_width,
+ 		     hdr_flags & FWHT_FL_LUMA_IS_UNCOMPRESSED);
+ 
+ 	if (components_num >= 3) {
+-		u32 h = cf->height;
+-		u32 w = cf->width;
++		u32 h = height;
++		u32 w = width;
++		u32 c = coded_width;
+ 
+ 		if (!(hdr_flags & FWHT_FL_CHROMA_FULL_HEIGHT))
+ 			h /= 2;
+-		if (!(hdr_flags & FWHT_FL_CHROMA_FULL_WIDTH))
++		if (!(hdr_flags & FWHT_FL_CHROMA_FULL_WIDTH)) {
+ 			w /= 2;
+-		decode_plane(cf, &rlco, ref->cb, h, w,
++			c /= 2;
++		}
++		decode_plane(cf, &rlco, ref->cb, h, w, c,
+ 			     hdr_flags & FWHT_FL_CB_IS_UNCOMPRESSED);
+-		decode_plane(cf, &rlco, ref->cr, h, w,
++		decode_plane(cf, &rlco, ref->cr, h, w, c,
+ 			     hdr_flags & FWHT_FL_CR_IS_UNCOMPRESSED);
+ 	}
+ 
+ 	if (components_num == 4)
+-		decode_plane(cf, &rlco, ref->alpha, cf->height, cf->width,
++		decode_plane(cf, &rlco, ref->alpha, height, width, coded_width,
+ 			     hdr_flags & FWHT_FL_ALPHA_IS_UNCOMPRESSED);
+ }
+diff --git a/drivers/media/platform/vicodec/codec-fwht.h b/drivers/media/platform/vicodec/codec-fwht.h
+index 90ff8962fca7..6d230f5e9d60 100644
+--- a/drivers/media/platform/vicodec/codec-fwht.h
++++ b/drivers/media/platform/vicodec/codec-fwht.h
+@@ -81,6 +81,13 @@
+ #define FWHT_FL_COMPONENTS_NUM_MSK	GENMASK(17, 16)
+ #define FWHT_FL_COMPONENTS_NUM_OFFSET	16
+ 
++/*
++ * A macro to calculate the needed padding in order to make sure
++ * both luma and chroma components resolutions are rounded up to
++ * a multiple of 8
++ */
++#define vic_round_dim(dim, div) (round_up((dim) / (div), 8) * (div))
++
+ struct fwht_cframe_hdr {
+ 	u32 magic1;
+ 	u32 magic2;
+@@ -95,7 +102,6 @@ struct fwht_cframe_hdr {
+ };
+ 
+ struct fwht_cframe {
+-	unsigned int width, height;
+ 	u16 i_frame_qp;
+ 	u16 p_frame_qp;
+ 	__be16 *rlc_data;
+@@ -106,7 +112,6 @@ struct fwht_cframe {
+ };
+ 
+ struct fwht_raw_frame {
+-	unsigned int width, height;
+ 	unsigned int width_div;
+ 	unsigned int height_div;
+ 	unsigned int luma_alpha_step;
+@@ -125,8 +130,12 @@ struct fwht_raw_frame {
+ u32 fwht_encode_frame(struct fwht_raw_frame *frm,
+ 		      struct fwht_raw_frame *ref_frm,
+ 		      struct fwht_cframe *cf,
+-		      bool is_intra, bool next_is_intra);
++		      bool is_intra, bool next_is_intra,
++		      unsigned int width, unsigned int height,
++		      unsigned int stride, unsigned int chroma_stride);
+ void fwht_decode_frame(struct fwht_cframe *cf, struct fwht_raw_frame *ref,
+-		       u32 hdr_flags, unsigned int components_num);
++		       u32 hdr_flags, unsigned int components_num,
++		       unsigned int width, unsigned int height,
++		       unsigned int coded_width);
+ 
+ #endif
 diff --git a/drivers/media/platform/vicodec/codec-v4l2-fwht.c b/drivers/media/platform/vicodec/codec-v4l2-fwht.c
-index 71ae19062b15..ee6903b8896c 100644
+index 5e9040f6c902..e9c522d209ab 100644
 --- a/drivers/media/platform/vicodec/codec-v4l2-fwht.c
 +++ b/drivers/media/platform/vicodec/codec-v4l2-fwht.c
-@@ -235,7 +235,6 @@ int v4l2_fwht_decode(struct v4l2_fwht_state *state, u8 *p_in, u8 *p_out)
+@@ -56,7 +56,8 @@ const struct v4l2_fwht_pixfmt_info *v4l2_fwht_get_pixfmt(u32 idx)
+ 
+ int v4l2_fwht_encode(struct v4l2_fwht_state *state, u8 *p_in, u8 *p_out)
  {
- 	unsigned int i, j, k;
- 	u32 flags;
--	struct fwht_cframe_hdr *p_hdr;
+-	unsigned int size = state->width * state->height;
++	unsigned int size = state->stride * state->coded_height;
++	unsigned int chroma_stride = state->stride;
+ 	const struct v4l2_fwht_pixfmt_info *info = state->info;
+ 	struct fwht_cframe_hdr *p_hdr;
  	struct fwht_cframe cf;
- 	u8 *p, *ref_p;
- 	unsigned int components_num = 3;
-@@ -247,25 +246,24 @@ int v4l2_fwht_decode(struct v4l2_fwht_state *state, u8 *p_in, u8 *p_out)
+@@ -66,8 +67,7 @@ int v4l2_fwht_encode(struct v4l2_fwht_state *state, u8 *p_in, u8 *p_out)
+ 
+ 	if (!info)
  		return -EINVAL;
- 
- 	info = state->info;
--	p_hdr = (struct fwht_cframe_hdr *)p_in;
- 
--	version = ntohl(p_hdr->version);
-+	version = ntohl(state->header.version);
- 	if (!version || version > FWHT_VERSION) {
- 		pr_err("version %d is not supported, current version is %d\n",
- 		       version, FWHT_VERSION);
+-	rf.width = state->width;
+-	rf.height = state->height;
++
+ 	rf.luma = p_in;
+ 	rf.width_div = info->width_div;
+ 	rf.height_div = info->height_div;
+@@ -84,14 +84,17 @@ int v4l2_fwht_encode(struct v4l2_fwht_state *state, u8 *p_in, u8 *p_out)
+ 	case V4L2_PIX_FMT_YUV420:
+ 		rf.cb = rf.luma + size;
+ 		rf.cr = rf.cb + size / 4;
++		chroma_stride /= 2;
+ 		break;
+ 	case V4L2_PIX_FMT_YVU420:
+ 		rf.cr = rf.luma + size;
+ 		rf.cb = rf.cr + size / 4;
++		chroma_stride /= 2;
+ 		break;
+ 	case V4L2_PIX_FMT_YUV422P:
+ 		rf.cb = rf.luma + size;
+ 		rf.cr = rf.cb + size / 2;
++		chroma_stride /= 2;
+ 		break;
+ 	case V4L2_PIX_FMT_NV12:
+ 	case V4L2_PIX_FMT_NV16:
+@@ -163,15 +166,16 @@ int v4l2_fwht_encode(struct v4l2_fwht_state *state, u8 *p_in, u8 *p_out)
  		return -EINVAL;
  	}
  
--	if (p_hdr->magic1 != FWHT_MAGIC1 ||
--	    p_hdr->magic2 != FWHT_MAGIC2)
-+	if (state->header.magic1 != FWHT_MAGIC1 ||
-+	    state->header.magic2 != FWHT_MAGIC2)
+-	cf.width = state->width;
+-	cf.height = state->height;
+ 	cf.i_frame_qp = state->i_frame_qp;
+ 	cf.p_frame_qp = state->p_frame_qp;
+ 	cf.rlc_data = (__be16 *)(p_out + sizeof(*p_hdr));
+ 
+ 	encoding = fwht_encode_frame(&rf, &state->ref_frame, &cf,
+ 				     !state->gop_cnt,
+-				     state->gop_cnt == state->gop_size - 1);
++				     state->gop_cnt == state->gop_size - 1,
++				     state->visible_width,
++				     state->visible_height,
++				     state->stride, chroma_stride);
+ 	if (!(encoding & FWHT_FRAME_PCODED))
+ 		state->gop_cnt = 0;
+ 	if (++state->gop_cnt >= state->gop_size)
+@@ -181,8 +185,8 @@ int v4l2_fwht_encode(struct v4l2_fwht_state *state, u8 *p_in, u8 *p_out)
+ 	p_hdr->magic1 = FWHT_MAGIC1;
+ 	p_hdr->magic2 = FWHT_MAGIC2;
+ 	p_hdr->version = htonl(FWHT_VERSION);
+-	p_hdr->width = htonl(cf.width);
+-	p_hdr->height = htonl(cf.height);
++	p_hdr->width = htonl(state->visible_width);
++	p_hdr->height = htonl(state->visible_height);
+ 	flags |= (info->components_num - 1) << FWHT_FL_COMPONENTS_NUM_OFFSET;
+ 	if (encoding & FWHT_LUMA_UNENCODED)
+ 		flags |= FWHT_FL_LUMA_IS_UNCOMPRESSED;
+@@ -202,29 +206,26 @@ int v4l2_fwht_encode(struct v4l2_fwht_state *state, u8 *p_in, u8 *p_out)
+ 	p_hdr->ycbcr_enc = htonl(state->ycbcr_enc);
+ 	p_hdr->quantization = htonl(state->quantization);
+ 	p_hdr->size = htonl(cf.size);
+-	state->ref_frame.width = cf.width;
+-	state->ref_frame.height = cf.height;
+ 	return cf.size + sizeof(*p_hdr);
+ }
+ 
+ int v4l2_fwht_decode(struct v4l2_fwht_state *state, u8 *p_in, u8 *p_out)
+ {
+-	unsigned int size = state->width * state->height;
+-	unsigned int chroma_size = size;
+-	unsigned int i;
++	unsigned int i, j, k;
+ 	u32 flags;
+ 	struct fwht_cframe_hdr *p_hdr;
+ 	struct fwht_cframe cf;
+-	u8 *p;
++	u8 *p, *ref_p;
+ 	unsigned int components_num = 3;
+ 	unsigned int version;
++	const struct v4l2_fwht_pixfmt_info *info;
++	unsigned int hdr_width_div, hdr_height_div;
+ 
+ 	if (!state->info)
+ 		return -EINVAL;
+ 
++	info = state->info;
+ 	p_hdr = (struct fwht_cframe_hdr *)p_in;
+-	cf.width = ntohl(p_hdr->width);
+-	cf.height = ntohl(p_hdr->height);
+ 
+ 	version = ntohl(p_hdr->version);
+ 	if (!version || version > FWHT_VERSION) {
+@@ -234,12 +235,12 @@ int v4l2_fwht_decode(struct v4l2_fwht_state *state, u8 *p_in, u8 *p_out)
+ 	}
+ 
+ 	if (p_hdr->magic1 != FWHT_MAGIC1 ||
+-	    p_hdr->magic2 != FWHT_MAGIC2 ||
+-	    (cf.width & 7) || (cf.height & 7))
++	    p_hdr->magic2 != FWHT_MAGIC2)
  		return -EINVAL;
  
  	/* TODO: support resolution changes */
--	if (ntohl(p_hdr->width)  != state->visible_width ||
--	    ntohl(p_hdr->height) != state->visible_height)
-+	if (ntohl(state->header.width)  != state->visible_width ||
-+	    ntohl(state->header.height) != state->visible_height)
+-	if (cf.width != state->width || cf.height != state->height)
++	if (ntohl(p_hdr->width)  != state->visible_width ||
++	    ntohl(p_hdr->height) != state->visible_height)
  		return -EINVAL;
  
--	flags = ntohl(p_hdr->flags);
-+	flags = ntohl(state->header.flags);
+ 	flags = ntohl(p_hdr->flags);
+@@ -255,12 +256,15 @@ int v4l2_fwht_decode(struct v4l2_fwht_state *state, u8 *p_in, u8 *p_out)
+ 	state->quantization = ntohl(p_hdr->quantization);
+ 	cf.rlc_data = (__be16 *)(p_in + sizeof(*p_hdr));
  
- 	if (version == FWHT_VERSION) {
- 		if ((flags & FWHT_FL_PIXENC_MSK) != info->pixenc)
-@@ -277,11 +275,11 @@ int v4l2_fwht_decode(struct v4l2_fwht_state *state, u8 *p_in, u8 *p_out)
- 	if (components_num != info->components_num)
- 		return -EINVAL;
+-	if (!(flags & FWHT_FL_CHROMA_FULL_WIDTH))
+-		chroma_size /= 2;
+-	if (!(flags & FWHT_FL_CHROMA_FULL_HEIGHT))
+-		chroma_size /= 2;
++	hdr_width_div = (flags & FWHT_FL_CHROMA_FULL_WIDTH) ? 1 : 2;
++	hdr_height_div = (flags & FWHT_FL_CHROMA_FULL_HEIGHT) ? 1 : 2;
++	if (hdr_width_div != info->width_div ||
++	    hdr_height_div != info->height_div)
++		return -EINVAL;
  
--	state->colorspace = ntohl(p_hdr->colorspace);
--	state->xfer_func = ntohl(p_hdr->xfer_func);
--	state->ycbcr_enc = ntohl(p_hdr->ycbcr_enc);
--	state->quantization = ntohl(p_hdr->quantization);
--	cf.rlc_data = (__be16 *)(p_in + sizeof(*p_hdr));
-+	state->colorspace = ntohl(state->header.colorspace);
-+	state->xfer_func = ntohl(state->header.xfer_func);
-+	state->ycbcr_enc = ntohl(state->header.ycbcr_enc);
-+	state->quantization = ntohl(state->header.quantization);
-+	cf.rlc_data = (__be16 *)p_in;
+-	fwht_decode_frame(&cf, &state->ref_frame, flags, components_num);
++	fwht_decode_frame(&cf, &state->ref_frame, flags, components_num,
++			  state->visible_width, state->visible_height,
++			  state->coded_width);
  
- 	hdr_width_div = (flags & FWHT_FL_CHROMA_FULL_WIDTH) ? 1 : 2;
- 	hdr_height_div = (flags & FWHT_FL_CHROMA_FULL_HEIGHT) ? 1 : 2;
+ 	/*
+ 	 * TODO - handle the case where the compressed stream encodes a
+@@ -268,123 +272,226 @@ int v4l2_fwht_decode(struct v4l2_fwht_state *state, u8 *p_in, u8 *p_out)
+ 	 */
+ 	switch (state->info->id) {
+ 	case V4L2_PIX_FMT_GREY:
+-		memcpy(p_out, state->ref_frame.luma, size);
++		ref_p = state->ref_frame.luma;
++		for (i = 0; i < state->coded_height; i++)  {
++			memcpy(p_out, ref_p, state->visible_width);
++			p_out += state->stride;
++			ref_p += state->coded_width;
++		}
+ 		break;
+ 	case V4L2_PIX_FMT_YUV420:
+ 	case V4L2_PIX_FMT_YUV422P:
+-		memcpy(p_out, state->ref_frame.luma, size);
+-		p_out += size;
+-		memcpy(p_out, state->ref_frame.cb, chroma_size);
+-		p_out += chroma_size;
+-		memcpy(p_out, state->ref_frame.cr, chroma_size);
++		ref_p = state->ref_frame.luma;
++		for (i = 0; i < state->coded_height; i++)  {
++			memcpy(p_out, ref_p, state->visible_width);
++			p_out += state->stride;
++			ref_p += state->coded_width;
++		}
++
++		ref_p = state->ref_frame.cb;
++		for (i = 0; i < state->coded_height / 2; i++)  {
++			memcpy(p_out, ref_p, state->visible_width / 2);
++			p_out += state->stride / 2;
++			ref_p += state->coded_width / 2;
++		}
++		ref_p = state->ref_frame.cr;
++		for (i = 0; i < state->coded_height / 2; i++)  {
++			memcpy(p_out, ref_p, state->visible_width / 2);
++			p_out += state->stride / 2;
++			ref_p += state->coded_width / 2;
++		}
+ 		break;
+ 	case V4L2_PIX_FMT_YVU420:
+-		memcpy(p_out, state->ref_frame.luma, size);
+-		p_out += size;
+-		memcpy(p_out, state->ref_frame.cr, chroma_size);
+-		p_out += chroma_size;
+-		memcpy(p_out, state->ref_frame.cb, chroma_size);
++		ref_p = state->ref_frame.luma;
++		for (i = 0; i < state->coded_height; i++)  {
++			memcpy(p_out, ref_p, state->visible_width);
++			p_out += state->stride;
++			ref_p += state->coded_width;
++		}
++
++		ref_p = state->ref_frame.cr;
++		for (i = 0; i < state->coded_height / 2; i++)  {
++			memcpy(p_out, ref_p, state->visible_width / 2);
++			p_out += state->stride / 2;
++			ref_p += state->coded_width / 2;
++		}
++		ref_p = state->ref_frame.cb;
++		for (i = 0; i < state->coded_height / 2; i++)  {
++			memcpy(p_out, ref_p, state->visible_width / 2);
++			p_out += state->stride / 2;
++			ref_p += state->coded_width / 2;
++		}
+ 		break;
+ 	case V4L2_PIX_FMT_NV12:
+ 	case V4L2_PIX_FMT_NV16:
+ 	case V4L2_PIX_FMT_NV24:
+-		memcpy(p_out, state->ref_frame.luma, size);
+-		p_out += size;
+-		for (i = 0, p = p_out; i < chroma_size; i++) {
+-			*p++ = state->ref_frame.cb[i];
+-			*p++ = state->ref_frame.cr[i];
++		ref_p = state->ref_frame.luma;
++		for (i = 0; i < state->coded_height; i++)  {
++			memcpy(p_out, ref_p, state->visible_width);
++			p_out += state->stride;
++			ref_p += state->coded_width;
++		}
++
++		k = 0;
++		for (i = 0; i < state->coded_height / 2; i++) {
++			for (j = 0, p = p_out; j < state->coded_width / 2; j++) {
++				*p++ = state->ref_frame.cb[k];
++				*p++ = state->ref_frame.cr[k];
++				k++;
++			}
++			p_out += state->stride;
+ 		}
+ 		break;
+ 	case V4L2_PIX_FMT_NV21:
+ 	case V4L2_PIX_FMT_NV61:
+ 	case V4L2_PIX_FMT_NV42:
+-		memcpy(p_out, state->ref_frame.luma, size);
+-		p_out += size;
+-		for (i = 0, p = p_out; i < chroma_size; i++) {
+-			*p++ = state->ref_frame.cr[i];
+-			*p++ = state->ref_frame.cb[i];
++		ref_p = state->ref_frame.luma;
++		for (i = 0; i < state->coded_height; i++)  {
++			memcpy(p_out, ref_p, state->visible_width);
++			p_out += state->stride;
++			ref_p += state->coded_width;
++		}
++
++		k = 0;
++		for (i = 0; i < state->coded_height / 2; i++) {
++			for (j = 0, p = p_out; j < state->coded_width / 2; j++) {
++				*p++ = state->ref_frame.cr[k];
++				*p++ = state->ref_frame.cb[k];
++				k++;
++			}
++			p_out += state->stride;
+ 		}
+ 		break;
+ 	case V4L2_PIX_FMT_YUYV:
+-		for (i = 0, p = p_out; i < size; i += 2) {
+-			*p++ = state->ref_frame.luma[i];
+-			*p++ = state->ref_frame.cb[i / 2];
+-			*p++ = state->ref_frame.luma[i + 1];
+-			*p++ = state->ref_frame.cr[i / 2];
++		k = 0;
++		for (i = 0; i < state->coded_height; i++) {
++			for (j = 0, p = p_out; j < state->coded_width / 2; j++) {
++				*p++ = state->ref_frame.luma[k];
++				*p++ = state->ref_frame.cb[k / 2];
++				*p++ = state->ref_frame.luma[k + 1];
++				*p++ = state->ref_frame.cr[k / 2];
++				k += 2;
++			}
++			p_out += state->stride;
+ 		}
+ 		break;
+ 	case V4L2_PIX_FMT_YVYU:
+-		for (i = 0, p = p_out; i < size; i += 2) {
+-			*p++ = state->ref_frame.luma[i];
+-			*p++ = state->ref_frame.cr[i / 2];
+-			*p++ = state->ref_frame.luma[i + 1];
+-			*p++ = state->ref_frame.cb[i / 2];
++		k = 0;
++		for (i = 0; i < state->coded_height; i++) {
++			for (j = 0, p = p_out; j < state->coded_width / 2; j++) {
++				*p++ = state->ref_frame.luma[k];
++				*p++ = state->ref_frame.cr[k / 2];
++				*p++ = state->ref_frame.luma[k + 1];
++				*p++ = state->ref_frame.cb[k / 2];
++				k += 2;
++			}
++			p_out += state->stride;
+ 		}
+ 		break;
+ 	case V4L2_PIX_FMT_UYVY:
+-		for (i = 0, p = p_out; i < size; i += 2) {
+-			*p++ = state->ref_frame.cb[i / 2];
+-			*p++ = state->ref_frame.luma[i];
+-			*p++ = state->ref_frame.cr[i / 2];
+-			*p++ = state->ref_frame.luma[i + 1];
++		k = 0;
++		for (i = 0; i < state->coded_height; i++) {
++			for (j = 0, p = p_out; j < state->coded_width / 2; j++) {
++				*p++ = state->ref_frame.cb[k / 2];
++				*p++ = state->ref_frame.luma[k];
++				*p++ = state->ref_frame.cr[k / 2];
++				*p++ = state->ref_frame.luma[k + 1];
++				k += 2;
++			}
++			p_out += state->stride;
+ 		}
+ 		break;
+ 	case V4L2_PIX_FMT_VYUY:
+-		for (i = 0, p = p_out; i < size; i += 2) {
+-			*p++ = state->ref_frame.cr[i / 2];
+-			*p++ = state->ref_frame.luma[i];
+-			*p++ = state->ref_frame.cb[i / 2];
+-			*p++ = state->ref_frame.luma[i + 1];
++		k = 0;
++		for (i = 0; i < state->coded_height; i++) {
++			for (j = 0, p = p_out; j < state->coded_width / 2; j++) {
++				*p++ = state->ref_frame.cr[k / 2];
++				*p++ = state->ref_frame.luma[k];
++				*p++ = state->ref_frame.cb[k / 2];
++				*p++ = state->ref_frame.luma[k + 1];
++				k += 2;
++			}
++			p_out += state->stride;
+ 		}
+ 		break;
+ 	case V4L2_PIX_FMT_RGB24:
+ 	case V4L2_PIX_FMT_HSV24:
+-		for (i = 0, p = p_out; i < size; i++) {
+-			*p++ = state->ref_frame.cr[i];
+-			*p++ = state->ref_frame.luma[i];
+-			*p++ = state->ref_frame.cb[i];
++		k = 0;
++		for (i = 0; i < state->coded_height; i++) {
++			for (j = 0, p = p_out; j < state->coded_width; j++) {
++				*p++ = state->ref_frame.cr[k];
++				*p++ = state->ref_frame.luma[k];
++				*p++ = state->ref_frame.cb[k];
++				k++;
++			}
++			p_out += state->stride;
+ 		}
+ 		break;
+ 	case V4L2_PIX_FMT_BGR24:
+-		for (i = 0, p = p_out; i < size; i++) {
+-			*p++ = state->ref_frame.cb[i];
+-			*p++ = state->ref_frame.luma[i];
+-			*p++ = state->ref_frame.cr[i];
++		k = 0;
++		for (i = 0; i < state->coded_height; i++) {
++			for (j = 0, p = p_out; j < state->coded_width; j++) {
++				*p++ = state->ref_frame.cb[k];
++				*p++ = state->ref_frame.luma[k];
++				*p++ = state->ref_frame.cr[k];
++				k++;
++			}
++			p_out += state->stride;
+ 		}
+ 		break;
+ 	case V4L2_PIX_FMT_RGB32:
+ 	case V4L2_PIX_FMT_XRGB32:
+ 	case V4L2_PIX_FMT_HSV32:
+-		for (i = 0, p = p_out; i < size; i++) {
+-			*p++ = 0;
+-			*p++ = state->ref_frame.cr[i];
+-			*p++ = state->ref_frame.luma[i];
+-			*p++ = state->ref_frame.cb[i];
++		k = 0;
++		for (i = 0; i < state->coded_height; i++) {
++			for (j = 0, p = p_out; j < state->coded_width; j++) {
++				*p++ = 0;
++				*p++ = state->ref_frame.cr[k];
++				*p++ = state->ref_frame.luma[k];
++				*p++ = state->ref_frame.cb[k];
++				k++;
++			}
++			p_out += state->stride;
+ 		}
+ 		break;
+ 	case V4L2_PIX_FMT_BGR32:
+ 	case V4L2_PIX_FMT_XBGR32:
+-		for (i = 0, p = p_out; i < size; i++) {
+-			*p++ = state->ref_frame.cb[i];
+-			*p++ = state->ref_frame.luma[i];
+-			*p++ = state->ref_frame.cr[i];
+-			*p++ = 0;
++		k = 0;
++		for (i = 0; i < state->coded_height; i++) {
++			for (j = 0, p = p_out; j < state->coded_width; j++) {
++				*p++ = state->ref_frame.cb[k];
++				*p++ = state->ref_frame.luma[k];
++				*p++ = state->ref_frame.cr[k];
++				*p++ = 0;
++				k++;
++			}
++			p_out += state->stride;
+ 		}
+ 		break;
+ 	case V4L2_PIX_FMT_ARGB32:
+-		for (i = 0, p = p_out; i < size; i++) {
+-			*p++ = state->ref_frame.alpha[i];
+-			*p++ = state->ref_frame.cr[i];
+-			*p++ = state->ref_frame.luma[i];
+-			*p++ = state->ref_frame.cb[i];
++		k = 0;
++		for (i = 0; i < state->coded_height; i++) {
++			for (j = 0, p = p_out; j < state->coded_width; j++) {
++				*p++ = state->ref_frame.alpha[k];
++				*p++ = state->ref_frame.cr[k];
++				*p++ = state->ref_frame.luma[k];
++				*p++ = state->ref_frame.cb[k];
++				k++;
++			}
++			p_out += state->stride;
+ 		}
+ 		break;
+ 	case V4L2_PIX_FMT_ABGR32:
+-		for (i = 0, p = p_out; i < size; i++) {
+-			*p++ = state->ref_frame.cb[i];
+-			*p++ = state->ref_frame.luma[i];
+-			*p++ = state->ref_frame.cr[i];
+-			*p++ = state->ref_frame.alpha[i];
++		k = 0;
++		for (i = 0; i < state->coded_height; i++) {
++			for (j = 0, p = p_out; j < state->coded_width; j++) {
++				*p++ = state->ref_frame.cb[k];
++				*p++ = state->ref_frame.luma[k];
++				*p++ = state->ref_frame.cr[k];
++				*p++ = state->ref_frame.alpha[k];
++				k++;
++			}
++			p_out += state->stride;
+ 		}
+ 		break;
+ 	default:
 diff --git a/drivers/media/platform/vicodec/codec-v4l2-fwht.h b/drivers/media/platform/vicodec/codec-v4l2-fwht.h
-index 18ac25978829..aa6fa90a48be 100644
+index 685b665590c1..203c45d98905 100644
 --- a/drivers/media/platform/vicodec/codec-v4l2-fwht.h
 +++ b/drivers/media/platform/vicodec/codec-v4l2-fwht.h
-@@ -41,6 +41,7 @@ struct v4l2_fwht_state {
- 	enum v4l2_quantization quantization;
+@@ -24,8 +24,11 @@ struct v4l2_fwht_pixfmt_info {
  
- 	struct fwht_raw_frame ref_frame;
-+	struct fwht_cframe_hdr header;
- 	u8 *compressed_frame;
- };
- 
+ struct v4l2_fwht_state {
+ 	const struct v4l2_fwht_pixfmt_info *info;
+-	unsigned int width;
+-	unsigned int height;
++	unsigned int visible_width;
++	unsigned int visible_height;
++	unsigned int coded_width;
++	unsigned int coded_height;
++	unsigned int stride;
+ 	unsigned int gop_size;
+ 	unsigned int gop_cnt;
+ 	u16 i_frame_qp;
 diff --git a/drivers/media/platform/vicodec/vicodec-core.c b/drivers/media/platform/vicodec/vicodec-core.c
-index 413b6bca91e5..7c68959aae34 100644
+index 6a7643bceb92..840e78c2cbe8 100644
 --- a/drivers/media/platform/vicodec/vicodec-core.c
 +++ b/drivers/media/platform/vicodec/vicodec-core.c
-@@ -124,6 +124,7 @@ struct vicodec_ctx {
- 	u32			cur_buf_offset;
- 	u32			comp_max_size;
- 	u32			comp_size;
-+	u32			header_size;
- 	u32			comp_magic_cnt;
- 	u32			comp_frame_size;
- 	bool			comp_has_frame;
-@@ -201,6 +202,62 @@ static int device_process(struct vicodec_ctx *ctx,
- /*
-  * mem2mem callbacks
-  */
-+enum vb2_buffer_state get_next_header(struct vicodec_ctx *ctx, u8 **pp, u32 sz)
+@@ -75,8 +75,10 @@ static struct platform_device vicodec_pdev = {
+ 
+ /* Per-queue, driver-specific private data */
+ struct vicodec_q_data {
+-	unsigned int		width;
+-	unsigned int		height;
++	unsigned int		coded_width;
++	unsigned int		coded_height;
++	unsigned int		visible_width;
++	unsigned int		visible_height;
+ 	unsigned int		sizeimage;
+ 	unsigned int		sequence;
+ 	const struct v4l2_fwht_pixfmt_info *info;
+@@ -454,11 +456,12 @@ static int vidioc_g_fmt(struct vicodec_ctx *ctx, struct v4l2_format *f)
+ 		if (multiplanar)
+ 			return -EINVAL;
+ 		pix = &f->fmt.pix;
+-		pix->width = q_data->width;
+-		pix->height = q_data->height;
++		pix->width = q_data->coded_width;
++		pix->height = q_data->coded_height;
+ 		pix->field = V4L2_FIELD_NONE;
+ 		pix->pixelformat = info->id;
+-		pix->bytesperline = q_data->width * info->bytesperline_mult;
++		pix->bytesperline = q_data->coded_width *
++					info->bytesperline_mult;
+ 		pix->sizeimage = q_data->sizeimage;
+ 		pix->colorspace = ctx->state.colorspace;
+ 		pix->xfer_func = ctx->state.xfer_func;
+@@ -471,13 +474,13 @@ static int vidioc_g_fmt(struct vicodec_ctx *ctx, struct v4l2_format *f)
+ 		if (!multiplanar)
+ 			return -EINVAL;
+ 		pix_mp = &f->fmt.pix_mp;
+-		pix_mp->width = q_data->width;
+-		pix_mp->height = q_data->height;
++		pix_mp->width = q_data->coded_width;
++		pix_mp->height = q_data->coded_height;
+ 		pix_mp->field = V4L2_FIELD_NONE;
+ 		pix_mp->pixelformat = info->id;
+ 		pix_mp->num_planes = 1;
+ 		pix_mp->plane_fmt[0].bytesperline =
+-				q_data->width * info->bytesperline_mult;
++				q_data->coded_width * info->bytesperline_mult;
+ 		pix_mp->plane_fmt[0].sizeimage = q_data->sizeimage;
+ 		pix_mp->colorspace = ctx->state.colorspace;
+ 		pix_mp->xfer_func = ctx->state.xfer_func;
+@@ -518,8 +521,13 @@ static int vidioc_try_fmt(struct vicodec_ctx *ctx, struct v4l2_format *f)
+ 		pix = &f->fmt.pix;
+ 		if (pix->pixelformat != V4L2_PIX_FMT_FWHT)
+ 			info = find_fmt(pix->pixelformat);
+-		pix->width = clamp(pix->width, MIN_WIDTH, MAX_WIDTH) & ~7;
+-		pix->height = clamp(pix->height, MIN_HEIGHT, MAX_HEIGHT) & ~7;
++
++		pix->width = clamp(pix->width, MIN_WIDTH, MAX_WIDTH);
++		pix->width = vic_round_dim(pix->width, info->width_div);
++
++		pix->height = clamp(pix->height, MIN_HEIGHT, MAX_HEIGHT);
++		pix->height = vic_round_dim(pix->height, info->height_div);
++
+ 		pix->field = V4L2_FIELD_NONE;
+ 		pix->bytesperline =
+ 			pix->width * info->bytesperline_mult;
+@@ -535,9 +543,14 @@ static int vidioc_try_fmt(struct vicodec_ctx *ctx, struct v4l2_format *f)
+ 		if (pix_mp->pixelformat != V4L2_PIX_FMT_FWHT)
+ 			info = find_fmt(pix_mp->pixelformat);
+ 		pix_mp->num_planes = 1;
+-		pix_mp->width = clamp(pix_mp->width, MIN_WIDTH, MAX_WIDTH) & ~7;
+-		pix_mp->height =
+-			clamp(pix_mp->height, MIN_HEIGHT, MAX_HEIGHT) & ~7;
++
++		pix_mp->width = clamp(pix_mp->width, MIN_WIDTH, MAX_WIDTH);
++		pix_mp->width = vic_round_dim(pix_mp->width, info->width_div);
++
++		pix_mp->height = clamp(pix_mp->height, MIN_HEIGHT, MAX_HEIGHT);
++		pix_mp->height = vic_round_dim(pix_mp->height,
++					       info->height_div);
++
+ 		pix_mp->field = V4L2_FIELD_NONE;
+ 		plane->bytesperline =
+ 			pix_mp->width * info->bytesperline_mult;
+@@ -648,8 +661,8 @@ static int vidioc_s_fmt(struct vicodec_ctx *ctx, struct v4l2_format *f)
+ 		if (ctx->is_enc && V4L2_TYPE_IS_OUTPUT(f->type))
+ 			fmt_changed =
+ 				q_data->info->id != pix->pixelformat ||
+-				q_data->width != pix->width ||
+-				q_data->height != pix->height;
++				q_data->coded_width != pix->width ||
++				q_data->coded_height != pix->height;
+ 
+ 		if (vb2_is_busy(vq) && fmt_changed)
+ 			return -EBUSY;
+@@ -658,8 +671,8 @@ static int vidioc_s_fmt(struct vicodec_ctx *ctx, struct v4l2_format *f)
+ 			q_data->info = &pixfmt_fwht;
+ 		else
+ 			q_data->info = find_fmt(pix->pixelformat);
+-		q_data->width = pix->width;
+-		q_data->height = pix->height;
++		q_data->coded_width = pix->width;
++		q_data->coded_height = pix->height;
+ 		q_data->sizeimage = pix->sizeimage;
+ 		break;
+ 	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+@@ -668,8 +681,8 @@ static int vidioc_s_fmt(struct vicodec_ctx *ctx, struct v4l2_format *f)
+ 		if (ctx->is_enc && V4L2_TYPE_IS_OUTPUT(f->type))
+ 			fmt_changed =
+ 				q_data->info->id != pix_mp->pixelformat ||
+-				q_data->width != pix_mp->width ||
+-				q_data->height != pix_mp->height;
++				q_data->coded_width != pix_mp->width ||
++				q_data->coded_height != pix_mp->height;
+ 
+ 		if (vb2_is_busy(vq) && fmt_changed)
+ 			return -EBUSY;
+@@ -678,17 +691,24 @@ static int vidioc_s_fmt(struct vicodec_ctx *ctx, struct v4l2_format *f)
+ 			q_data->info = &pixfmt_fwht;
+ 		else
+ 			q_data->info = find_fmt(pix_mp->pixelformat);
+-		q_data->width = pix_mp->width;
+-		q_data->height = pix_mp->height;
++		q_data->coded_width = pix_mp->width;
++		q_data->coded_height = pix_mp->height;
+ 		q_data->sizeimage = pix_mp->plane_fmt[0].sizeimage;
+ 		break;
+ 	default:
+ 		return -EINVAL;
+ 	}
++	if (q_data->visible_width > q_data->coded_width)
++		q_data->visible_width = q_data->coded_width;
++	if (q_data->visible_height > q_data->coded_height)
++		q_data->visible_height = q_data->coded_height;
++
+ 
+ 	dprintk(ctx->dev,
+-		"Setting format for type %d, wxh: %dx%d, fourcc: %08x\n",
+-		f->type, q_data->width, q_data->height, q_data->info->id);
++		"Setting format for type %d, coded wxh: %dx%d, visible wxh: %dx%d, fourcc: %08x\n",
++		f->type, q_data->coded_width, q_data->coded_height,
++		q_data->visible_width, q_data->visible_height,
++		q_data->info->id);
+ 
+ 	return 0;
+ }
+@@ -743,6 +763,79 @@ static int vidioc_s_fmt_vid_out(struct file *file, void *priv,
+ 	return ret;
+ }
+ 
++static int vidioc_g_selection(struct file *file, void *priv,
++			      struct v4l2_selection *s)
 +{
-+	static const u8 magic[] = {
-+		0x4f, 0x4f, 0x4f, 0x4f, 0xff, 0xff, 0xff, 0xff
-+	};
-+	u8 *p = *pp;
-+	u32 state;
-+	u8 *header = (u8 *)&ctx->state.header;
++	struct vicodec_ctx *ctx = file2ctx(file);
++	struct vicodec_q_data *q_data;
++	enum v4l2_buf_type valid_cap_type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++	enum v4l2_buf_type valid_out_type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
 +
-+	state = VB2_BUF_STATE_DONE;
-+
-+	if (!ctx->header_size) {
-+		state = VB2_BUF_STATE_ERROR;
-+		for (; p < *pp + sz; p++) {
-+			u32 copy;
-+
-+			p = memchr(p, magic[ctx->comp_magic_cnt],
-+				   *pp + sz - p);
-+			if (!p) {
-+				ctx->comp_magic_cnt = 0;
-+				p = *pp + sz;
-+				break;
-+			}
-+			copy = sizeof(magic) - ctx->comp_magic_cnt;
-+			if (*pp + sz - p < copy)
-+				copy = *pp + sz - p;
-+
-+			memcpy(header + ctx->comp_magic_cnt, p, copy);
-+			ctx->comp_magic_cnt += copy;
-+			if (!memcmp(header, magic, ctx->comp_magic_cnt)) {
-+				p += copy;
-+				state = VB2_BUF_STATE_DONE;
-+				break;
-+			}
-+			ctx->comp_magic_cnt = 0;
-+		}
-+		if (ctx->comp_magic_cnt < sizeof(magic)) {
-+			*pp = p;
-+			return state;
-+		}
-+		ctx->header_size = sizeof(magic);
++	if (multiplanar) {
++		valid_cap_type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
++		valid_out_type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
 +	}
 +
-+	if (ctx->header_size < sizeof(struct fwht_cframe_hdr)) {
-+		u32 copy = sizeof(struct fwht_cframe_hdr) - ctx->header_size;
-+
-+		if (*pp + sz - p < copy)
-+			copy = *pp + sz - p;
-+
-+		memcpy(header + ctx->header_size, p, copy);
-+		p += copy;
-+		ctx->header_size += copy;
++	q_data = get_q_data(ctx, s->type);
++	if (!q_data)
++		return -EINVAL;
++	/*
++	 * encoder supports only cropping on the OUTPUT buffer
++	 * decoder supports only composing on the CAPTURE buffer
++	 */
++	if ((ctx->is_enc && s->type == valid_out_type) ||
++	    (!ctx->is_enc && s->type == valid_cap_type)) {
++		switch (s->target) {
++		case V4L2_SEL_TGT_COMPOSE:
++		case V4L2_SEL_TGT_CROP:
++			s->r.left = 0;
++			s->r.top = 0;
++			s->r.width = q_data->visible_width;
++			s->r.height = q_data->visible_height;
++			return 0;
++		case V4L2_SEL_TGT_COMPOSE_DEFAULT:
++		case V4L2_SEL_TGT_COMPOSE_BOUNDS:
++		case V4L2_SEL_TGT_CROP_DEFAULT:
++		case V4L2_SEL_TGT_CROP_BOUNDS:
++			s->r.left = 0;
++			s->r.top = 0;
++			s->r.width = q_data->coded_width;
++			s->r.height = q_data->coded_height;
++			return 0;
++		}
 +	}
-+	*pp = p;
-+	return state;
++	return -EINVAL;
 +}
- 
- /* device_run() - prepares and starts the device */
- static void device_run(void *priv)
-@@ -241,6 +298,7 @@ static void device_run(void *priv)
- 	}
- 	v4l2_m2m_buf_done(dst_buf, state);
- 	ctx->comp_size = 0;
-+	ctx->header_size = 0;
- 	ctx->comp_magic_cnt = 0;
- 	ctx->comp_has_frame = false;
- 	spin_unlock(ctx->lock);
-@@ -291,54 +349,15 @@ static int job_ready(void *priv)
- 
- 	state = VB2_BUF_STATE_DONE;
- 
--	if (!ctx->comp_size) {
--		state = VB2_BUF_STATE_ERROR;
--		for (; p < p_src + sz; p++) {
--			u32 copy;
--
--			p = memchr(p, magic[ctx->comp_magic_cnt],
--				   p_src + sz - p);
--			if (!p) {
--				ctx->comp_magic_cnt = 0;
--				break;
--			}
--			copy = sizeof(magic) - ctx->comp_magic_cnt;
--			if (p_src + sz - p < copy)
--				copy = p_src + sz - p;
--
--			memcpy(ctx->state.compressed_frame + ctx->comp_magic_cnt,
--			       p, copy);
--			ctx->comp_magic_cnt += copy;
--			if (!memcmp(ctx->state.compressed_frame, magic,
--				    ctx->comp_magic_cnt)) {
--				p += copy;
--				state = VB2_BUF_STATE_DONE;
--				break;
--			}
--			ctx->comp_magic_cnt = 0;
--		}
--		if (ctx->comp_magic_cnt < sizeof(magic)) {
-+	if (ctx->header_size < sizeof(struct fwht_cframe_hdr)) {
-+		state = get_next_header(ctx, &p, p_src + sz - p);
-+		if (ctx->header_size < sizeof(struct fwht_cframe_hdr)) {
- 			job_remove_src_buf(ctx, state);
- 			goto restart;
- 		}
--		ctx->comp_size = sizeof(magic);
--	}
--	if (ctx->comp_size < sizeof(struct fwht_cframe_hdr)) {
--		struct fwht_cframe_hdr *p_hdr =
--			(struct fwht_cframe_hdr *)ctx->state.compressed_frame;
--		u32 copy = sizeof(struct fwht_cframe_hdr) - ctx->comp_size;
- 
--		if (copy > p_src + sz - p)
--			copy = p_src + sz - p;
--		memcpy(ctx->state.compressed_frame + ctx->comp_size,
--		       p, copy);
--		p += copy;
--		ctx->comp_size += copy;
--		if (ctx->comp_size < sizeof(struct fwht_cframe_hdr)) {
--			job_remove_src_buf(ctx, state);
--			goto restart;
--		}
--		ctx->comp_frame_size = ntohl(p_hdr->size) + sizeof(*p_hdr);
-+		ctx->comp_frame_size = ntohl(ctx->state.header.size);
 +
- 		if (ctx->comp_frame_size > ctx->comp_max_size)
- 			ctx->comp_frame_size = ctx->comp_max_size;
- 	}
-@@ -1121,7 +1140,7 @@ static int vicodec_start_streaming(struct vb2_queue *q,
- 		state->stride = q_data->coded_width * info->bytesperline_mult;
- 	}
- 	state->ref_frame.luma = kvmalloc(total_planes_size, GFP_KERNEL);
--	ctx->comp_max_size = total_planes_size + sizeof(struct fwht_cframe_hdr);
-+	ctx->comp_max_size = total_planes_size;
- 	state->compressed_frame = kvmalloc(ctx->comp_max_size, GFP_KERNEL);
- 	if (!state->ref_frame.luma || !state->compressed_frame) {
- 		kvfree(state->ref_frame.luma);
-@@ -1148,6 +1167,7 @@ static int vicodec_start_streaming(struct vb2_queue *q,
- 	state->gop_cnt = 0;
- 	ctx->cur_buf_offset = 0;
- 	ctx->comp_size = 0;
-+	ctx->header_size = 0;
- 	ctx->comp_magic_cnt = 0;
- 	ctx->comp_has_frame = false;
++static int vidioc_s_selection(struct file *file, void *priv,
++			      struct v4l2_selection *s)
++{
++	struct vicodec_ctx *ctx = file2ctx(file);
++	struct vicodec_q_data *q_data;
++	enum v4l2_buf_type out_type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
++
++	if (multiplanar)
++		out_type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
++
++	q_data = get_q_data(ctx, s->type);
++	if (!q_data)
++		return -EINVAL;
++
++	if (!ctx->is_enc || s->type != out_type ||
++	    s->target != V4L2_SEL_TGT_CROP)
++		return -EINVAL;
++
++	s->r.left = 0;
++	s->r.top = 0;
++	q_data->visible_width = clamp(s->r.width, MIN_WIDTH,
++				      q_data->coded_width);
++	s->r.width = q_data->visible_width;
++	q_data->visible_height = clamp(s->r.height, MIN_HEIGHT,
++				       q_data->coded_height);
++	s->r.height = q_data->visible_height;
++	return 0;
++}
++
+ static void vicodec_mark_last_buf(struct vicodec_ctx *ctx)
+ {
+ 	static const struct v4l2_event eos_event = {
+@@ -885,6 +978,9 @@ static const struct v4l2_ioctl_ops vicodec_ioctl_ops = {
+ 	.vidioc_streamon	= v4l2_m2m_ioctl_streamon,
+ 	.vidioc_streamoff	= v4l2_m2m_ioctl_streamoff,
  
++	.vidioc_g_selection	= vidioc_g_selection,
++	.vidioc_s_selection	= vidioc_s_selection,
++
+ 	.vidioc_try_encoder_cmd	= vicodec_try_encoder_cmd,
+ 	.vidioc_encoder_cmd	= vicodec_encoder_cmd,
+ 	.vidioc_try_decoder_cmd	= vicodec_try_decoder_cmd,
+@@ -978,8 +1074,8 @@ static int vicodec_start_streaming(struct vb2_queue *q,
+ 	struct vicodec_ctx *ctx = vb2_get_drv_priv(q);
+ 	struct vicodec_q_data *q_data = get_q_data(ctx, q->type);
+ 	struct v4l2_fwht_state *state = &ctx->state;
+-	unsigned int size = q_data->width * q_data->height;
+ 	const struct v4l2_fwht_pixfmt_info *info = q_data->info;
++	unsigned int size = q_data->coded_width * q_data->coded_height;
+ 	unsigned int chroma_div = info->width_div * info->height_div;
+ 	unsigned int total_planes_size;
+ 
+@@ -998,17 +1094,23 @@ static int vicodec_start_streaming(struct vb2_queue *q,
+ 
+ 	if (!V4L2_TYPE_IS_OUTPUT(q->type)) {
+ 		if (!ctx->is_enc) {
+-			state->width = q_data->width;
+-			state->height = q_data->height;
++			state->visible_width = q_data->visible_width;
++			state->visible_height = q_data->visible_height;
++			state->coded_width = q_data->coded_width;
++			state->coded_height = q_data->coded_height;
++			state->stride = q_data->coded_width *
++					info->bytesperline_mult;
+ 		}
+ 		return 0;
+ 	}
+ 
+ 	if (ctx->is_enc) {
+-		state->width = q_data->width;
+-		state->height = q_data->height;
++		state->visible_width = q_data->visible_width;
++		state->visible_height = q_data->visible_height;
++		state->coded_width = q_data->coded_width;
++		state->coded_height = q_data->coded_height;
++		state->stride = q_data->coded_width * info->bytesperline_mult;
+ 	}
+-	state->ref_frame.width = state->ref_frame.height = 0;
+ 	state->ref_frame.luma = kvmalloc(total_planes_size, GFP_KERNEL);
+ 	ctx->comp_max_size = total_planes_size + sizeof(struct fwht_cframe_hdr);
+ 	state->compressed_frame = kvmalloc(ctx->comp_max_size, GFP_KERNEL);
+@@ -1194,8 +1296,10 @@ static int vicodec_open(struct file *file)
+ 
+ 	ctx->q_data[V4L2_M2M_SRC].info =
+ 		ctx->is_enc ? v4l2_fwht_get_pixfmt(0) : &pixfmt_fwht;
+-	ctx->q_data[V4L2_M2M_SRC].width = 1280;
+-	ctx->q_data[V4L2_M2M_SRC].height = 720;
++	ctx->q_data[V4L2_M2M_SRC].coded_width = 1280;
++	ctx->q_data[V4L2_M2M_SRC].coded_height = 720;
++	ctx->q_data[V4L2_M2M_SRC].visible_width = 1280;
++	ctx->q_data[V4L2_M2M_SRC].visible_height = 720;
+ 	size = 1280 * 720 * ctx->q_data[V4L2_M2M_SRC].info->sizeimage_mult /
+ 		ctx->q_data[V4L2_M2M_SRC].info->sizeimage_div;
+ 	if (ctx->is_enc)
 -- 
 2.17.1
 
