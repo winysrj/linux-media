@@ -2,88 +2,105 @@ Return-Path: <SRS0=kVnX=P5=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.9 required=3.0 tests=FROM_EXCESS_BASE64,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
-	UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_NEOMUTT autolearn=unavailable
+X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_NEOMUTT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C03CC2F421
-	for <linux-media@archiver.kernel.org>; Mon, 21 Jan 2019 15:21:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 629E8C2F43D
+	for <linux-media@archiver.kernel.org>; Mon, 21 Jan 2019 15:43:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4C09E20823
-	for <linux-media@archiver.kernel.org>; Mon, 21 Jan 2019 15:21:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3B5BC20870
+	for <linux-media@archiver.kernel.org>; Mon, 21 Jan 2019 15:43:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729776AbfAUPVF (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 21 Jan 2019 10:21:05 -0500
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:55450 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729732AbfAUPVF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 Jan 2019 10:21:05 -0500
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-        (Authenticated sender: gportay)
-        with ESMTPSA id 5BF5E2639D0
-Date:   Mon, 21 Jan 2019 10:21:08 -0500
-From:   =?utf-8?B?R2HDq2w=?= PORTAY <gael.portay@collabora.com>
-To:     Philipp Zabel <p.zabel@pengutronix.de>
-Cc:     Steve Longerbeam <slongerbeam@gmail.com>,
-        linux-media@vger.kernel.org, Peter Seiderer <ps.report@gmx.net>,
-        stable@vger.kernel.org, Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>,
-        open list <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v3 1/2] media: imx: csi: Disable SMFC before disabling
- IDMA channel
-Message-ID: <20190121152107.gruavvgkabwokvnz@archlinux.localdomain>
-References: <20190119010457.2623-1-slongerbeam@gmail.com>
- <20190119010457.2623-2-slongerbeam@gmail.com>
- <1548071350.3287.3.camel@pengutronix.de>
+        id S1730189AbfAUPnm (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 21 Jan 2019 10:43:42 -0500
+Received: from mail.bootlin.com ([62.4.15.54]:60742 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1729195AbfAUPnl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 21 Jan 2019 10:43:41 -0500
+Received: by mail.bootlin.com (Postfix, from userid 110)
+        id 37DD320BA8; Mon, 21 Jan 2019 16:43:38 +0100 (CET)
+Received: from localhost (unknown [185.94.189.187])
+        by mail.bootlin.com (Postfix) with ESMTPSA id E945620A7D;
+        Mon, 21 Jan 2019 16:43:27 +0100 (CET)
+Date:   Mon, 21 Jan 2019 16:43:28 +0100
+From:   Maxime Ripard <maxime.ripard@bootlin.com>
+To:     Sean Paul <sean@poorly.run>
+Cc:     Kishon Vijay Abraham I <kishon@ti.com>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org,
+        Archit Taneja <architt@codeaurora.org>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Chen-Yu Tsai <wens@csie.org>, linux-kernel@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        linux-arm-kernel@lists.infradead.org,
+        Krzysztof Witos <kwitos@cadence.com>,
+        Rafal Ciepiela <rafalc@cadence.com>
+Subject: Re: [PATCH v4 6/9] drm/bridge: cdns: Separate DSI and D-PHY
+ configuration
+Message-ID: <20190121154328.ydvz4fr5l77do3eh@flea>
+References: <cover.5d91ef683e3f432342f536e0f2fe239dbcebcb3e.1547026369.git-series.maxime.ripard@bootlin.com>
+ <df619f059617d85c00efa146884e295240a07ae7.1547026369.git-series.maxime.ripard@bootlin.com>
+ <20190117133338.GA114153@art_vandelay>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="l6imrxbzhtg7biw4"
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1548071350.3287.3.camel@pengutronix.de>
+In-Reply-To: <20190117133338.GA114153@art_vandelay>
 User-Agent: NeoMutt/20180716
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Philipp,
 
-On Mon, Jan 21, 2019 at 12:49:10PM +0100, Philipp Zabel wrote:
-> Hi,
-> 
-> On Fri, 2019-01-18 at 17:04 -0800, Steve Longerbeam wrote:
-> > Disable the SMFC before disabling the IDMA channel, instead of after,
-> > in csi_idmac_unsetup().
-> > 
-> > This fixes a complete system hard lockup on the SabreAuto when streaming
-> > from the ADV7180, by repeatedly sending a stream off immediately followed
-> > by stream on:
-> > 
-> > while true; do v4l2-ctl  -d4 --stream-mmap --stream-count=3; done
-> > 
-> > Eventually this either causes the system lockup or EOF timeouts at all
-> > subsequent stream on, until a system reset.
-> > 
-> > The lockup occurs when disabling the IDMA channel at stream off. Stopping
-> > the video data stream entering the IDMA channel before disabling the
-> > channel itself appears to be a reliable fix for the hard lockup. That can
-> > be done either by disabling the SMFC or the CSI before disabling the
-> > channel. Disabling the SMFC before the channel is the easiest solution,
-> > so do that.
-> > 
-> > Fixes: 4a34ec8e470cb ("[media] media: imx: Add CSI subdev driver")
-> > 
-> > Suggested-by: Peter Seiderer <ps.report@gmx.net>
-> > Reported-by: Gaël PORTAY <gael.portay@collabora.com>
-> > Signed-off-by: Steve Longerbeam <slongerbeam@gmail.com>
-> 
-> Gaël, could we get a Tested-by: for this as well?
->
+--l6imrxbzhtg7biw4
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I have not tested the v3 yet. I have planned to do it later this day for
-a all night testing and report the result then.
+On Thu, Jan 17, 2019 at 08:33:38AM -0500, Sean Paul wrote:
+> > @@ -768,49 +769,90 @@ static int cdns_dsi_mode2cfg(struct cdns_dsi *dsi,
+> > =20
+> >  		dsi_cfg->hsa =3D dpi_to_dsi_timing(tmp, bpp,
+> >  						 DSI_HSA_FRAME_OVERHEAD);
+> > -		dsi_htotal +=3D dsi_cfg->hsa + DSI_HSA_FRAME_OVERHEAD;
+> > -		dsi_hss_hsa_hse_hbp +=3D dsi_cfg->hsa + DSI_HSA_FRAME_OVERHEAD;
+> >  	}
+> > =20
+> >  	dsi_cfg->hact =3D dpi_to_dsi_timing(mode_valid_check ?
+> >  					  mode->hdisplay : mode->crtc_hdisplay,
+> >  					  bpp, 0);
+> > -	dsi_htotal +=3D dsi_cfg->hact;
+> > +	dsi_cfg->hfp =3D dpi_to_dsi_timing(mode_to_dpi_hfp(mode), bpp,
+> > +					 DSI_HFP_FRAME_OVERHEAD);
+>=20
+> We're throwing away the mode_valid_check switch here to flip between crtc=
+_h*
+> value and h* value. Is that intentional? We're using it above for hdispla=
+y, so
+> it's a bit confusing.
 
-Gael
+ah, right, thanks for spotting this.
+
+I'll resend a version with those changes, thanks!
+Maxime
+
+--=20
+Maxime Ripard, Bootlin
+Embedded Linux and Kernel engineering
+https://bootlin.com
+
+--l6imrxbzhtg7biw4
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iHUEABYIAB0WIQRcEzekXsqa64kGDp7j7w1vZxhRxQUCXEXooAAKCRDj7w1vZxhR
+xZvQAP9c5WpWI5x2NUr+cpn0bnmw6vFHt4EsPXnMArrGqiPwFgEAlu2Dw7n4C1H9
+K0jkBgL1lQj7MoT8wU2DNLJ2gXtN1AQ=
+=fa+Q
+-----END PGP SIGNATURE-----
+
+--l6imrxbzhtg7biw4--
