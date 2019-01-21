@@ -6,28 +6,28 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A7E9C2F3BE
-	for <linux-media@archiver.kernel.org>; Mon, 21 Jan 2019 13:32:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 578FDC2F3A0
+	for <linux-media@archiver.kernel.org>; Mon, 21 Jan 2019 13:32:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2473120870
-	for <linux-media@archiver.kernel.org>; Mon, 21 Jan 2019 13:32:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2E06420870
+	for <linux-media@archiver.kernel.org>; Mon, 21 Jan 2019 13:32:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728918AbfAUNci (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 21 Jan 2019 08:32:38 -0500
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:46464 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728696AbfAUNcg (ORCPT
+        id S1728928AbfAUNck (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 21 Jan 2019 08:32:40 -0500
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:36095 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1728810AbfAUNcg (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Mon, 21 Jan 2019 08:32:36 -0500
 Received: from tschai.fritz.box ([212.251.195.8])
         by smtp-cloud7.xs4all.net with ESMTPA
-        id lZgjgZ95MBDyIlZgpgPCKK; Mon, 21 Jan 2019 14:32:35 +0100
+        id lZgjgZ95MBDyIlZgogPCKA; Mon, 21 Jan 2019 14:32:35 +0100
 From:   hverkuil-cisco@xs4all.nl
 To:     linux-media@vger.kernel.org
 Cc:     Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Subject: [PATCH 7/8] zoran: use u64 for the timestamp internally
-Date:   Mon, 21 Jan 2019 14:32:28 +0100
-Message-Id: <20190121133229.33893-8-hverkuil-cisco@xs4all.nl>
+Subject: [PATCH 5/8] stkwebcam: use u64 for the timestamp internally
+Date:   Mon, 21 Jan 2019 14:32:26 +0100
+Message-Id: <20190121133229.33893-6-hverkuil-cisco@xs4all.nl>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190121133229.33893-1-hverkuil-cisco@xs4all.nl>
 References: <20190121133229.33893-1-hverkuil-cisco@xs4all.nl>
@@ -48,68 +48,22 @@ userspace.
 
 Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 ---
- drivers/staging/media/zoran/zoran.h        | 2 +-
- drivers/staging/media/zoran/zoran_device.c | 4 ++--
- drivers/staging/media/zoran/zoran_driver.c | 4 ++--
- 3 files changed, 5 insertions(+), 5 deletions(-)
+ drivers/media/usb/stkwebcam/stk-webcam.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/staging/media/zoran/zoran.h b/drivers/staging/media/zoran/zoran.h
-index 9bb3c21aa275..e84fb604a689 100644
---- a/drivers/staging/media/zoran/zoran.h
-+++ b/drivers/staging/media/zoran/zoran.h
-@@ -35,7 +35,7 @@ struct zoran_sync {
- 	unsigned long frame;	/* number of buffer that has been free'd */
- 	unsigned long length;	/* number of code bytes in buffer (capture only) */
- 	unsigned long seq;	/* frame sequence number */
--	struct timeval timestamp;	/* timestamp */
-+	u64 ts;			/* timestamp */
- };
+diff --git a/drivers/media/usb/stkwebcam/stk-webcam.c b/drivers/media/usb/stkwebcam/stk-webcam.c
+index b8ec74d98e8d..03f5e12b13a5 100644
+--- a/drivers/media/usb/stkwebcam/stk-webcam.c
++++ b/drivers/media/usb/stkwebcam/stk-webcam.c
+@@ -1144,7 +1144,7 @@ static int stk_vidioc_dqbuf(struct file *filp,
+ 	sbuf->v4lbuf.flags &= ~V4L2_BUF_FLAG_QUEUED;
+ 	sbuf->v4lbuf.flags |= V4L2_BUF_FLAG_DONE;
+ 	sbuf->v4lbuf.sequence = ++dev->sequence;
+-	v4l2_get_timestamp(&sbuf->v4lbuf.timestamp);
++	sbuf->v4lbuf.timestamp = ns_to_timeval(ktime_get_ns());
  
- 
-diff --git a/drivers/staging/media/zoran/zoran_device.c b/drivers/staging/media/zoran/zoran_device.c
-index 40adceebca7e..d393e7b8aeda 100644
---- a/drivers/staging/media/zoran/zoran_device.c
-+++ b/drivers/staging/media/zoran/zoran_device.c
-@@ -1151,7 +1151,7 @@ zoran_reap_stat_com (struct zoran *zr)
- 		}
- 		frame = zr->jpg_pend[zr->jpg_dma_tail & BUZ_MASK_FRAME];
- 		buffer = &zr->jpg_buffers.buffer[frame];
--		v4l2_get_timestamp(&buffer->bs.timestamp);
-+		buffer->bs.ts = ktime_get_ns();
- 
- 		if (zr->codec_mode == BUZ_MODE_MOTION_COMPRESS) {
- 			buffer->bs.length = (stat_com & 0x7fffff) >> 1;
-@@ -1389,7 +1389,7 @@ zoran_irq (int             irq,
- 
- 						zr->v4l_buffers.buffer[zr->v4l_grab_frame].state = BUZ_STATE_DONE;
- 						zr->v4l_buffers.buffer[zr->v4l_grab_frame].bs.seq = zr->v4l_grab_seq;
--						v4l2_get_timestamp(&zr->v4l_buffers.buffer[zr->v4l_grab_frame].bs.timestamp);
-+						zr->v4l_buffers.buffer[zr->v4l_grab_frame].bs.ts = ktime_get_ns();
- 						zr->v4l_grab_frame = NO_GRAB_ACTIVE;
- 						zr->v4l_pend_tail++;
- 					}
-diff --git a/drivers/staging/media/zoran/zoran_driver.c b/drivers/staging/media/zoran/zoran_driver.c
-index 27c76e2eeb41..04f88f9d6bb4 100644
---- a/drivers/staging/media/zoran/zoran_driver.c
-+++ b/drivers/staging/media/zoran/zoran_driver.c
-@@ -1354,7 +1354,7 @@ static int zoran_v4l2_buffer_status(struct zoran_fh *fh,
- 		    fh->buffers.buffer[num].state == BUZ_STATE_USER) {
- 			buf->sequence = fh->buffers.buffer[num].bs.seq;
- 			buf->flags |= V4L2_BUF_FLAG_DONE;
--			buf->timestamp = fh->buffers.buffer[num].bs.timestamp;
-+			buf->timestamp = ns_to_timeval(fh->buffers.buffer[num].bs.ts);
- 		} else {
- 			buf->flags |= V4L2_BUF_FLAG_QUEUED;
- 		}
-@@ -1388,7 +1388,7 @@ static int zoran_v4l2_buffer_status(struct zoran_fh *fh,
- 		if (fh->buffers.buffer[num].state == BUZ_STATE_DONE ||
- 		    fh->buffers.buffer[num].state == BUZ_STATE_USER) {
- 			buf->sequence = fh->buffers.buffer[num].bs.seq;
--			buf->timestamp = fh->buffers.buffer[num].bs.timestamp;
-+			buf->timestamp = ns_to_timeval(fh->buffers.buffer[num].bs.ts);
- 			buf->bytesused = fh->buffers.buffer[num].bs.length;
- 			buf->flags |= V4L2_BUF_FLAG_DONE;
- 		} else {
+ 	*buf = sbuf->v4lbuf;
+ 	return 0;
 -- 
 2.20.1
 
