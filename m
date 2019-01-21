@@ -2,95 +2,90 @@ Return-Path: <SRS0=kVnX=P5=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB6E5C2F3A6
-	for <linux-media@archiver.kernel.org>; Mon, 21 Jan 2019 13:32:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 491EDC2F3C0
+	for <linux-media@archiver.kernel.org>; Mon, 21 Jan 2019 13:39:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B78402085A
-	for <linux-media@archiver.kernel.org>; Mon, 21 Jan 2019 13:32:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1ADBE20861
+	for <linux-media@archiver.kernel.org>; Mon, 21 Jan 2019 13:39:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728926AbfAUNck (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 21 Jan 2019 08:32:40 -0500
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:46931 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728797AbfAUNch (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 Jan 2019 08:32:37 -0500
-Received: from tschai.fritz.box ([212.251.195.8])
-        by smtp-cloud7.xs4all.net with ESMTPA
-        id lZgjgZ95MBDyIlZgpgPCKO; Mon, 21 Jan 2019 14:32:35 +0100
-From:   hverkuil-cisco@xs4all.nl
-To:     linux-media@vger.kernel.org
-Cc:     Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Subject: [PATCH 8/8] v4l2-common: drop v4l2_get_timestamp
-Date:   Mon, 21 Jan 2019 14:32:29 +0100
-Message-Id: <20190121133229.33893-9-hverkuil-cisco@xs4all.nl>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190121133229.33893-1-hverkuil-cisco@xs4all.nl>
-References: <20190121133229.33893-1-hverkuil-cisco@xs4all.nl>
+        id S1728948AbfAUNjh (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 21 Jan 2019 08:39:37 -0500
+Received: from mail.bootlin.com ([62.4.15.54]:54236 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728817AbfAUNjh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 21 Jan 2019 08:39:37 -0500
+Received: by mail.bootlin.com (Postfix, from userid 110)
+        id BECDC207B2; Mon, 21 Jan 2019 14:39:34 +0100 (CET)
+Received: from localhost (unknown [185.94.189.187])
+        by mail.bootlin.com (Postfix) with ESMTPSA id 848C5206A7;
+        Mon, 21 Jan 2019 14:39:34 +0100 (CET)
+Date:   Mon, 21 Jan 2019 14:39:34 +0100
+From:   Maxime Ripard <maxime.ripard@bootlin.com>
+To:     Sean Paul <sean@poorly.run>
+Cc:     Kishon Vijay Abraham I <kishon@ti.com>,
+        Rafal Ciepiela <rafalc@cadence.com>,
+        Krzysztof Witos <kwitos@cadence.com>,
+        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        Chen-Yu Tsai <wens@csie.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH v4 8/9] phy: Add Cadence D-PHY support
+Message-ID: <20190121133934.5e3uwk5x6vzno36w@flea>
+References: <cover.5d91ef683e3f432342f536e0f2fe239dbcebcb3e.1547026369.git-series.maxime.ripard@bootlin.com>
+ <a089ce6aaefe6d2ddf6b17f5558ec7eb0ebf3774.1547026369.git-series.maxime.ripard@bootlin.com>
+ <20190117135322.GB114153@art_vandelay>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CMAE-Envelope: MS4wfHJdqdM1aTPcvwsYFeS1YIfWDZyUwcw8+6+3C10VZjMgiB1NYCQaaZdB3EM5Vks01ujzzVO1btt2s3w23lmHEvZiXmmR4ur0yUk1nVo0blSobiou3XUK
- 4X86fdHlekNmBTfVQF/VZBqrKNguy8PocBz33ChDpjj9ULDfE6Kh0WSbK+LUFV+JnmoN0mqYOAajJQvsr13D6zS8BxF+nbUVUQWfps7v8JFqCl1rYGZGIEzL
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="hzi2fvtnjykoiksc"
+Content-Disposition: inline
+In-Reply-To: <20190117135322.GB114153@art_vandelay>
+User-Agent: NeoMutt/20180716
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-From: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 
-This function is no longer used, so drop it.
+--hzi2fvtnjykoiksc
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
----
- drivers/media/v4l2-core/v4l2-common.c | 10 ----------
- include/media/v4l2-common.h           |  9 ---------
- 2 files changed, 19 deletions(-)
+Hi Sean,
 
-diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
-index 50763fb42a1b..663730f088cd 100644
---- a/drivers/media/v4l2-core/v4l2-common.c
-+++ b/drivers/media/v4l2-core/v4l2-common.c
-@@ -398,16 +398,6 @@ __v4l2_find_nearest_size(const void *array, size_t array_size,
- }
- EXPORT_SYMBOL_GPL(__v4l2_find_nearest_size);
- 
--void v4l2_get_timestamp(struct timeval *tv)
--{
--	struct timespec ts;
--
--	ktime_get_ts(&ts);
--	tv->tv_sec = ts.tv_sec;
--	tv->tv_usec = ts.tv_nsec / NSEC_PER_USEC;
--}
--EXPORT_SYMBOL_GPL(v4l2_get_timestamp);
--
- int v4l2_g_parm_cap(struct video_device *vdev,
- 		    struct v4l2_subdev *sd, struct v4l2_streamparm *a)
- {
-diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
-index 0c511ed8ffb0..2b93cb281fa5 100644
---- a/include/media/v4l2-common.h
-+++ b/include/media/v4l2-common.h
-@@ -361,15 +361,6 @@ __v4l2_find_nearest_size(const void *array, size_t array_size,
- 			 size_t entry_size, size_t width_offset,
- 			 size_t height_offset, s32 width, s32 height);
- 
--/**
-- * v4l2_get_timestamp - helper routine to get a timestamp to be used when
-- *	filling streaming metadata. Internally, it uses ktime_get_ts(),
-- *	which is the recommended way to get it.
-- *
-- * @tv: pointer to &struct timeval to be filled.
-- */
--void v4l2_get_timestamp(struct timeval *tv);
--
- /**
-  * v4l2_g_parm_cap - helper routine for vidioc_g_parm to fill this in by
-  *      calling the g_frame_interval op of the given subdev. It only works
--- 
-2.20.1
+On Thu, Jan 17, 2019 at 08:53:22AM -0500, Sean Paul wrote:
+> On Wed, Jan 09, 2019 at 10:33:25AM +0100, Maxime Ripard wrote:
+> > +	opts->wakeup =3D cdns_dphy_get_wakeup_time_ns(dphy) * 1000;
+>=20
+> This should be "/ 1000" since the units of wakeup is us now (thanks to pa=
+tch 2).
+> You've made this change in patch 9, so I think it's just a misplaced fixu=
+p.
 
+Good catch, this was fixed in patch 9, but it definitely belongs there.
+
+Thanks!
+Maxime
+
+--=20
+Maxime Ripard, Bootlin
+Embedded Linux and Kernel engineering
+https://bootlin.com
+
+--hzi2fvtnjykoiksc
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iHUEABYIAB0WIQRcEzekXsqa64kGDp7j7w1vZxhRxQUCXEXLlgAKCRDj7w1vZxhR
+xW+LAP4zEe1z/qdpFjO7LKfIjMbOAWFDH1HPxrfSrGKjD/8GtwEAztE37tEckDJq
+RYu3qFgjy6BMgbB4/6tjGMfKoB2b0AI=
+=rG2u
+-----END PGP SIGNATURE-----
+
+--hzi2fvtnjykoiksc--
