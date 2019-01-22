@@ -2,79 +2,145 @@ Return-Path: <SRS0=JQ9q=P6=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BEF4FC282C3
-	for <linux-media@archiver.kernel.org>; Tue, 22 Jan 2019 10:21:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B23BAC282C4
+	for <linux-media@archiver.kernel.org>; Tue, 22 Jan 2019 10:53:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8D0182084A
-	for <linux-media@archiver.kernel.org>; Tue, 22 Jan 2019 10:21:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8179F20844
+	for <linux-media@archiver.kernel.org>; Tue, 22 Jan 2019 10:53:44 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=linaro.org header.i=@linaro.org header.b="Ui1d49Ds"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727591AbfAVKVd (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 22 Jan 2019 05:21:33 -0500
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:44836 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726857AbfAVKVc (ORCPT
+        id S1727639AbfAVKxi (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 22 Jan 2019 05:53:38 -0500
+Received: from mail-wm1-f67.google.com ([209.85.128.67]:34647 "EHLO
+        mail-wm1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727505AbfAVKxi (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 Jan 2019 05:21:32 -0500
-Received: from [IPv6:2001:420:44c1:2579:b98b:fd77:97a1:d7fe] ([IPv6:2001:420:44c1:2579:b98b:fd77:97a1:d7fe])
-        by smtp-cloud9.xs4all.net with ESMTPA
-        id ltBPg7mGHRO5ZltBSg0eNq; Tue, 22 Jan 2019 11:21:31 +0100
-Subject: Re: [v4l-utils PATCH 4/4] v4l2-ctl: Add support for META_OUTPUT
- buffer type
-To:     Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc:     linux-media@vger.kernel.org, rajmohan.mani@intel.com,
-        yong.zhi@intel.com
-References: <20190114141308.29329-1-sakari.ailus@linux.intel.com>
- <20190114141308.29329-5-sakari.ailus@linux.intel.com>
- <4bb84871-1871-74a0-1093-8e460db46634@xs4all.nl>
- <20190122094750.aak6fl2xskxsio2r@paasikivi.fi.intel.com>
-From:   Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <dd6b3447-80a5-43f1-7718-cbe61607e965@xs4all.nl>
-Date:   Tue, 22 Jan 2019 11:21:27 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:52.0) Gecko/20100101
- Thunderbird/52.2.1
-MIME-Version: 1.0
-In-Reply-To: <20190122094750.aak6fl2xskxsio2r@paasikivi.fi.intel.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfPPHA8NNLD60huX2mZmcJOp8w1ZE6ZqjwyLiHvjJuHCgLmzwvnAhyisK+HKqOUENYtfYFzIaK6+B73oM/ackqGMDUUj1NluRp7oqhgOqzn48OvbFKh/z
- z7d5VT+FB/eKHD8cDfVn+7KkTa5SAekFVuQ/t7YUI06o6fhM9WYz67mUEzG4q4PNJpOaKOAI+L0SMPeBk82OIPKlL32fe3rHdvn7Wd6lvn+1vf37DTKBjsH7
- HbarBZxp6YjI6zywJBuat3kn8WblKNIq/tb7M61rPq3VpMmRHLWfx2Xektos9jCjC0xw9xffec3veSmnWmDrKZ0Wg1Tkb4x5hX8BzLwkHdpjhImSGP0iCwxJ
- zfmjEDzF+gJBZh0zGiyO18j6pf/BGhWWGe+mzCdP9d1FfLxWvNk=
+        Tue, 22 Jan 2019 05:53:38 -0500
+Received: by mail-wm1-f67.google.com with SMTP id y185so8262378wmd.1
+        for <linux-media@vger.kernel.org>; Tue, 22 Jan 2019 02:53:37 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=from:to:cc:subject:date:message-id;
+        bh=NnQIyDGoOvvLQyT3SOkwKzSCHWkztHfCr+VWK1pMgUM=;
+        b=Ui1d49Dsvt6j1/x9JbmxE7/pRmDOuhot9VgNrZ6fTCdIrwi3Bvl8TU7fZjMTl0fVob
+         LkqqoivCQ/kUk5U7t3z1urLA5twFbzmbMgJ1PKrRNfezCr4SgBPNXb043xTsFU5tPSKe
+         8z0NcKhGlnclhzTJXNhhsC4IDTOv2NXUj8M80=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id;
+        bh=NnQIyDGoOvvLQyT3SOkwKzSCHWkztHfCr+VWK1pMgUM=;
+        b=EZG3SHrir7jc+C5Y4JqbfTXOu+jKaNdjE87z+gVDdjqvR9db8wcH/dODUT2rs4FVbv
+         NF7hEjO7Dvm5lnGJojkCKRDVOYWlkrqtPc0PRUGI+AQMHimU1Ac57QaVuOia/oY7kyw+
+         QymuFW2iKap3b1LJ63bp0VJcmnq9OTY/3VvjL3HW+IYKSCzESjk0fqwZdN84hrew3PKa
+         3Ljbv1Gai7DzLjFF4V46urOm7hwsF3Mh4lS31Iwmw3RhUg/H1NLhguGtkAMG3EcKV0lI
+         UUo3AtrNP1aK4yjQKhiZndmjVKGFmxHB+Fpo3uyoR0CyDgtH9WmVr5zaXfhbUgjzFaSx
+         BpdQ==
+X-Gm-Message-State: AJcUukcBcugUOQuwWaVx633AnYnbbSwSYkqfATLBZ1dBWR9qtFrRhBNf
+        0Tw7v3v7HB4tR9ssjYd2Ipf1qxMsgOE=
+X-Google-Smtp-Source: ALg8bN7dvonm0PH7Vc4asoeSvp0QkrgFfxJUnADkO8FK56Hf7mS+vAPIYdmZPLZehzS0CGLDZZjlOw==
+X-Received: by 2002:a1c:1a8a:: with SMTP id a132mr3273922wma.109.1548154416363;
+        Tue, 22 Jan 2019 02:53:36 -0800 (PST)
+Received: from localhost.localdomain ([37.157.136.206])
+        by smtp.gmail.com with ESMTPSA id b18sm74256820wrr.43.2019.01.22.02.53.35
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Tue, 22 Jan 2019 02:53:35 -0800 (PST)
+From:   Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To:     linux-media@vger.kernel.org
+Cc:     Hans Verkuil <hverkuil@xs4all.nl>, linux-arm-msm@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        Nicolas Dufresne <nicolas@ndufresne.ca>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH v2] venus: enc: fix enum_frameintervals
+Date:   Tue, 22 Jan 2019 12:53:22 +0200
+Message-Id: <20190122105322.22096-1-stanimir.varbanov@linaro.org>
+X-Mailer: git-send-email 2.17.1
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On 01/22/19 10:47, Sakari Ailus wrote:
-> Hi Hans,
-> 
-> On Tue, Jan 22, 2019 at 09:19:42AM +0100, Hans Verkuil wrote:
->> Hi Sakari,
->>
->> Can you check if this patch is needed at all? The latest v4l2-ctl should work
->> for both meta capture and output, i.e. all meta options (v4l2-ctl --help-meta)
->> just look up the buffer type of the video device and use that to list/set/get/try
->> the formats.
-> 
-> That'd be one option. I guess we don't have that elsewhere, do we? In
-> practice it could work, but it'd prevent having the two queue types in the
-> same video node. It seems an improbable combination though.
-> 
-> I'd prefer keeping the options separate to maintain v4l2-ctl's ability to
-> access all aspects of the API, even if unlikely.
+This ixes an issue when setting the encoder framerate because of
+missing precision. Now the frameinterval type is changed to
+TYPE_CONTINUOUS and step = 1. Also the math is changed when
+framerate property is called - the firmware side expects that
+the framerate one is 1 << 16 units.
 
-Well, you can add -out options for consistency, but the code remains the
-same :-)
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+---
+v2: replace DIV_ROUND_UP with do_div and make roundup manually
 
-> But the help option should probably be unified, like it is for SDR.
-> 
+ drivers/media/platform/qcom/venus/venc.c | 19 ++++++++++++++-----
+ 1 file changed, 14 insertions(+), 5 deletions(-)
 
-Definitely.
+diff --git a/drivers/media/platform/qcom/venus/venc.c b/drivers/media/platform/qcom/venus/venc.c
+index 32cff294582f..99c94b155b46 100644
+--- a/drivers/media/platform/qcom/venus/venc.c
++++ b/drivers/media/platform/qcom/venus/venc.c
+@@ -31,6 +31,7 @@
+ #include "venc.h"
+ 
+ #define NUM_B_FRAMES_MAX	4
++#define FRAMERATE_FACTOR	(1 << 16)
+ 
+ /*
+  * Three resons to keep MPLANE formats (despite that the number of planes
+@@ -581,7 +582,7 @@ static int venc_enum_frameintervals(struct file *file, void *fh,
+ 	struct venus_inst *inst = to_inst(file);
+ 	const struct venus_format *fmt;
+ 
+-	fival->type = V4L2_FRMIVAL_TYPE_STEPWISE;
++	fival->type = V4L2_FRMIVAL_TYPE_CONTINUOUS;
+ 
+ 	fmt = find_format(inst, fival->pixel_format,
+ 			  V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE);
+@@ -604,12 +605,12 @@ static int venc_enum_frameintervals(struct file *file, void *fh,
+ 	    fival->height < frame_height_min(inst))
+ 		return -EINVAL;
+ 
+-	fival->stepwise.min.numerator = 1;
++	fival->stepwise.min.numerator = FRAMERATE_FACTOR;
+ 	fival->stepwise.min.denominator = frate_max(inst);
+-	fival->stepwise.max.numerator = 1;
++	fival->stepwise.max.numerator = FRAMERATE_FACTOR;
+ 	fival->stepwise.max.denominator = frate_min(inst);
+ 	fival->stepwise.step.numerator = 1;
+-	fival->stepwise.step.denominator = frate_max(inst);
++	fival->stepwise.step.denominator = 1;
+ 
+ 	return 0;
+ }
+@@ -654,6 +655,7 @@ static int venc_set_properties(struct venus_inst *inst)
+ 	struct hfi_quantization quant;
+ 	struct hfi_quantization_range quant_range;
+ 	u32 ptype, rate_control, bitrate, profile = 0, level = 0;
++	u64 framerate;
+ 	int ret;
+ 
+ 	ret = venus_helper_set_work_mode(inst, VIDC_WORK_MODE_2);
+@@ -664,9 +666,16 @@ static int venc_set_properties(struct venus_inst *inst)
+ 	if (ret)
+ 		return ret;
+ 
++	framerate = inst->timeperframe.denominator * FRAMERATE_FACTOR;
++	/* next line is to round up */
++	framerate += inst->timeperframe.numerator - 1;
++	do_div(framerate, inst->timeperframe.numerator);
++
+ 	ptype = HFI_PROPERTY_CONFIG_FRAME_RATE;
+ 	frate.buffer_type = HFI_BUFFER_OUTPUT;
+-	frate.framerate = inst->fps * (1 << 16);
++	frate.framerate = framerate;
++	if (frate.framerate > frate_max(inst))
++		frate.framerate = frate_max(inst);
+ 
+ 	ret = hfi_session_set_property(inst, ptype, &frate);
+ 	if (ret)
+-- 
+2.17.1
 
-Regards,
-
-	Hans
