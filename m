@@ -6,25 +6,25 @@ X-Spam-Status: No, score=0.1 required=3.0 tests=DATE_IN_PAST_06_12,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 10AB3C282C4
-	for <linux-media@archiver.kernel.org>; Tue, 22 Jan 2019 16:35:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 428B1C282C3
+	for <linux-media@archiver.kernel.org>; Tue, 22 Jan 2019 16:36:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CC5ED2085A
-	for <linux-media@archiver.kernel.org>; Tue, 22 Jan 2019 16:35:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1838B2085A
+	for <linux-media@archiver.kernel.org>; Tue, 22 Jan 2019 16:36:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729263AbfAVQfZ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 22 Jan 2019 11:35:25 -0500
-Received: from unassigned.psychz.net ([107.160.7.5]:52825 "EHLO
+        id S1729433AbfAVQg2 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 22 Jan 2019 11:36:28 -0500
+Received: from unassigned.psychz.net ([107.160.7.5]:51525 "EHLO
         boardhousewood.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1729239AbfAVQfY (ORCPT
+        with ESMTP id S1729188AbfAVQg2 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 Jan 2019 11:35:24 -0500
-X-Greylist: delayed 3626 seconds by postgrey-1.27 at vger.kernel.org; Tue, 22 Jan 2019 11:35:23 EST
+        Tue, 22 Jan 2019 11:36:28 -0500
+X-Greylist: delayed 22806 seconds by postgrey-1.27 at vger.kernel.org; Tue, 22 Jan 2019 11:36:27 EST
 To:     linux-media@vger.kernel.org
 Subject: Just working
-Message-ID: <b8eb4fd44438918ed125946da99c5073@arizonaiceman.com>
-Date:   Tue, 22 Jan 2019 11:11:38 +0100
-From:   "Laura" <rotrainteaerpandlohanon@verizon.net>
+Message-ID: <85ff6e51b61be37e2883d3f6f495a6d8@arizonaiceman.com>
+Date:   Tue, 22 Jan 2019 10:35:15 +0100
+From:   "Laura" <rotraianttrapfanlohanon@verizon.net>
 Reply-To: selfarive@sina.com
 MIME-Version: 1.0
 Content-Type: text/plain; format=flowed; charset="UTF-8"
