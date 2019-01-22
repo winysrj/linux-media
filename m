@@ -6,287 +6,312 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_NEOMUTT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CC943C282C4
-	for <linux-media@archiver.kernel.org>; Tue, 22 Jan 2019 16:15:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F794C41518
+	for <linux-media@archiver.kernel.org>; Tue, 22 Jan 2019 16:16:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 971E320870
-	for <linux-media@archiver.kernel.org>; Tue, 22 Jan 2019 16:15:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 459BC217D4
+	for <linux-media@archiver.kernel.org>; Tue, 22 Jan 2019 16:16:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728835AbfAVQPB (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 22 Jan 2019 11:15:01 -0500
-Received: from mga07.intel.com ([134.134.136.100]:32754 "EHLO mga07.intel.com"
+        id S1729096AbfAVQQt (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 22 Jan 2019 11:16:49 -0500
+Received: from mga01.intel.com ([192.55.52.88]:16996 "EHLO mga01.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728669AbfAVQPB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 Jan 2019 11:15:01 -0500
-X-Amp-Result: UNSCANNABLE
+        id S1729049AbfAVQQt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 22 Jan 2019 11:16:49 -0500
+X-Amp-Result: UNKNOWN
+X-Amp-Original-Verdict: FILE UNKNOWN
 X-Amp-File-Uploaded: False
-Received: from orsmga007.jf.intel.com ([10.7.209.58])
-  by orsmga105.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 22 Jan 2019 08:15:00 -0800
+Received: from orsmga002.jf.intel.com ([10.7.209.21])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 22 Jan 2019 08:16:46 -0800
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.56,507,1539673200"; 
-   d="scan'208";a="108858443"
+   d="scan'208";a="127969890"
 Received: from paasikivi.fi.intel.com ([10.237.72.42])
-  by orsmga007.jf.intel.com with ESMTP; 22 Jan 2019 08:14:58 -0800
+  by orsmga002.jf.intel.com with ESMTP; 22 Jan 2019 08:16:44 -0800
 Received: by paasikivi.fi.intel.com (Postfix, from userid 1000)
-        id D84C1205C8; Tue, 22 Jan 2019 18:14:57 +0200 (EET)
-Date:   Tue, 22 Jan 2019 18:14:57 +0200
+        id 2E50F205C8; Tue, 22 Jan 2019 18:16:43 +0200 (EET)
+Date:   Tue, 22 Jan 2019 18:16:43 +0200
 From:   Sakari Ailus <sakari.ailus@linux.intel.com>
 To:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Cc:     Niklas =?iso-8859-1?Q?S=F6derlund?= 
         <niklas.soderlund+renesas@ragnatech.se>,
         Benoit Parrot <bparrot@ti.com>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org,
-        Michal Simek <michal.simek@xilinx.com>
-Subject: Re: [PATCH v2 16/30] v4l: subdev: Add [GS]_ROUTING subdev ioctls and
- operations
-Message-ID: <20190122161457.gzkngziyixsef7qo@paasikivi.fi.intel.com>
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH v2 06/30] media: entity: Use pad as the starting point
+ for a pipeline
+Message-ID: <20190122161642.ocpuuqp4cwq46wf2@paasikivi.fi.intel.com>
 References: <20181101233144.31507-1-niklas.soderlund+renesas@ragnatech.se>
- <20181101233144.31507-17-niklas.soderlund+renesas@ragnatech.se>
- <20190115235145.GF31088@pendragon.ideasonboard.com>
+ <20181101233144.31507-7-niklas.soderlund+renesas@ragnatech.se>
+ <20190115225420.GG28397@pendragon.ideasonboard.com>
+ <20190122153134.qmjqxgrptuvmhhhz@paasikivi.fi.intel.com>
+ <20190122153715.GC11461@pendragon.ideasonboard.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20190115235145.GF31088@pendragon.ideasonboard.com>
+In-Reply-To: <20190122153715.GC11461@pendragon.ideasonboard.com>
 User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Wed, Jan 16, 2019 at 01:51:45AM +0200, Laurent Pinchart wrote:
-> Hi Niklas,
+On Tue, Jan 22, 2019 at 05:37:15PM +0200, Laurent Pinchart wrote:
+> Hi Sakari,
 > 
-> Thank you for the patch.
-> 
-> On Fri, Nov 02, 2018 at 12:31:30AM +0100, Niklas Söderlund wrote:
-> > From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> On Tue, Jan 22, 2019 at 05:31:34PM +0200, Sakari Ailus wrote:
+> > On Wed, Jan 16, 2019 at 12:54:20AM +0200, Laurent Pinchart wrote:
+> > > On Fri, Nov 02, 2018 at 12:31:20AM +0100, Niklas Söderlund wrote:
+> > >> From: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > >> 
+> > >> The pipeline will be moved from the entity to the pads; reflect this in
+> > >> the media pipeline function API.
+> > > 
+> > > Will be moved, or has been moved ?
 > > 
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > Signed-off-by: Michal Simek <michal.simek@xilinx.com>
+> > Will be, as it's not yet in this patch.
+> 
+> [PATCH v2 05/30] media: entity: Move the pipeline from entity to pads
+
+Oh, I thought it was the other way. Well, "has been" then? :-)
+
+> 
+> > >> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > >> Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> > >> ---
+> > >>  Documentation/media/kapi/mc-core.rst          |  6 ++--
+> > >>  drivers/media/media-entity.c                  | 25 +++++++-------
+> > >>  drivers/media/pci/intel/ipu3/ipu3-cio2.c      |  6 ++--
+> > >>  .../media/platform/exynos4-is/fimc-capture.c  |  8 ++---
+> > >>  .../platform/exynos4-is/fimc-isp-video.c      |  8 ++---
+> > >>  drivers/media/platform/exynos4-is/fimc-lite.c |  8 ++---
+> > >>  drivers/media/platform/omap3isp/ispvideo.c    |  6 ++--
+> > >>  .../media/platform/qcom/camss/camss-video.c   |  6 ++--
+> > >>  drivers/media/platform/rcar-vin/rcar-dma.c    |  6 ++--
+> > >>  .../media/platform/s3c-camif/camif-capture.c  |  6 ++--
+> > >>  drivers/media/platform/vimc/vimc-capture.c    |  6 ++--
+> > >>  drivers/media/platform/vsp1/vsp1_video.c      |  6 ++--
+> > >>  drivers/media/platform/xilinx/xilinx-dma.c    |  6 ++--
+> > >>  drivers/media/usb/au0828/au0828-core.c        |  4 +--
+> > >>  drivers/staging/media/imx/imx-media-utils.c   |  6 ++--
+> > >>  drivers/staging/media/omap4iss/iss_video.c    |  6 ++--
+> > >>  include/media/media-entity.h                  | 33 ++++++++++---------
+> > >>  17 files changed, 76 insertions(+), 76 deletions(-)
+> > >> 
+> > >> diff --git a/Documentation/media/kapi/mc-core.rst b/Documentation/media/kapi/mc-core.rst
+> > >> index 849b87439b7a9772..ede7e946f6a82ac0 100644
+> > >> --- a/Documentation/media/kapi/mc-core.rst
+> > >> +++ b/Documentation/media/kapi/mc-core.rst
+> > >> @@ -211,11 +211,11 @@ When starting streaming, drivers must notify all entities in the pipeline to
+> > >>  prevent link states from being modified during streaming by calling
+> > >>  :c:func:`media_pipeline_start()`.
+> > >>  
+> > >> -The function will mark all entities connected to the given entity through
+> > >> -enabled links, either directly or indirectly, as streaming.
+> > >> +The function will mark all entities connected to the given pad through
+> > >> +enabled routes and links, either directly or indirectly, as streaming.
+> > > 
+> > > That's not really correct, it doesn't mark entities, but pads. I think
+> > > this section of the documentation needs to be rewritten based on the new
+> > > model of an entity being part of multiple pipelines. s/entity/pad/ isn't
+> > > enough, there's a whole new semantics.
 > > 
-> > - Add sink and source streams for multiplexed links
-> > - Copy the argument back in case of an error. This is needed to let the
-> >   caller know the number of routes.
+> > I'd say it's correct. Note that this function just beings the walk from a
+> > given pad, it doesn't make other changes --- there are further patches
+> > thought that do.
+> 
+> OK, it might be a change in progress, but the documentation still has to
+> be rewritten to explain the new model. We need at least one or two new
+> paragraphs in addition to the s/entity/pad/.
+
+There are several patches that would need to change the documentation "a
+little". I wonder if it'd be better to just have one patch in the end
+updating the documentation.
+
+> 
+> > >>  The struct :c:type:`media_pipeline` instance pointed to by
+> > >> -the pipe argument will be stored in every entity in the pipeline.
+> > >> +the pipe argument will be stored in every pad in the pipeline.
+> > >>  Drivers should embed the struct :c:type:`media_pipeline`
+> > >>  in higher-level pipeline structures and can then access the
+> > >>  pipeline through the struct :c:type:`media_entity`
+> > >> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> > >> index 13260149c4dfc90c..f2fa0b7826dbc2f3 100644
+> > >> --- a/drivers/media/media-entity.c
+> > >> +++ b/drivers/media/media-entity.c
+> > >> @@ -411,12 +411,11 @@ EXPORT_SYMBOL_GPL(media_entity_get_fwnode_pad);
+> > >>   * Pipeline management
+> > >>   */
+> > >>  
+> > >> -__must_check int __media_pipeline_start(struct media_entity *entity,
+> > >> +__must_check int __media_pipeline_start(struct media_pad *pad,
+> > >>  					struct media_pipeline *pipe)
+> > >>  {
+> > >> -	struct media_device *mdev = entity->graph_obj.mdev;
+> > >> +	struct media_device *mdev = pad->graph_obj.mdev;
+> > >>  	struct media_graph *graph = &pipe->graph;
+> > >> -	struct media_pad *pad = entity->pads;
+> > >>  	struct media_pad *pad_err = pad;
+> > >>  	struct media_link *link;
+> > >>  	int ret = 0;
+> > >> @@ -549,24 +548,23 @@ __must_check int __media_pipeline_start(struct media_entity *entity,
+> > >>  }
+> > >>  EXPORT_SYMBOL_GPL(__media_pipeline_start);
+> > >>  
+> > >> -__must_check int media_pipeline_start(struct media_entity *entity,
+> > >> +__must_check int media_pipeline_start(struct media_pad *pad,
+> > >>  				      struct media_pipeline *pipe)
+> > >>  {
+> > >> -	struct media_device *mdev = entity->graph_obj.mdev;
+> > >> +	struct media_device *mdev = pad->graph_obj.mdev;
+> > >>  	int ret;
+> > >>  
+> > >>  	mutex_lock(&mdev->graph_mutex);
+> > >> -	ret = __media_pipeline_start(entity, pipe);
+> > >> +	ret = __media_pipeline_start(pad, pipe);
+> > >>  	mutex_unlock(&mdev->graph_mutex);
+> > >>  	return ret;
+> > >>  }
+> > >>  EXPORT_SYMBOL_GPL(media_pipeline_start);
+> > >>  
+> > >> -void __media_pipeline_stop(struct media_entity *entity)
+> > >> +void __media_pipeline_stop(struct media_pad *pad)
+> > >>  {
+> > >> -	struct media_pipeline *pipe = entity->pads->pipe;
+> > >> +	struct media_pipeline *pipe = pad->pipe;
+> > >>  	struct media_graph *graph = &pipe->graph;
+> > >> -	struct media_pad *pad;
+> > >>  
+> > >>  	/*
+> > >>  	 * If the following check fails, the driver has performed an
+> > >> @@ -575,9 +573,10 @@ void __media_pipeline_stop(struct media_entity *entity)
+> > >>  	if (WARN_ON(!pipe))
+> > >>  		return;
+> > >>  
+> > >> -	media_graph_walk_start(graph, entity->pads);
+> > >> +	media_graph_walk_start(graph, pad);
+> > >>  
+> > >>  	while ((pad = media_graph_walk_next(graph))) {
+> > >> +		struct media_entity *entity = pad->entity;
+> > > 
+> > > It looks like this line is a bug fix for a previous patch in the series.
 > > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> > ---
-> >  drivers/media/v4l2-core/v4l2-ioctl.c  | 20 +++++++++++++-
-> >  drivers/media/v4l2-core/v4l2-subdev.c | 28 +++++++++++++++++++
-> >  include/media/v4l2-subdev.h           |  7 +++++
-> >  include/uapi/linux/v4l2-subdev.h      | 40 +++++++++++++++++++++++++++
-> 
-> Missing documentation :-(
-> 
-> >  4 files changed, 94 insertions(+), 1 deletion(-)
+> > Yes, so it seems to be. The previous patch appears to remove it.
 > > 
-> > diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-> > index 7de041bae84fb2f2..40406acb51ec0906 100644
-> > --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> > +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> > @@ -19,6 +19,7 @@
-> >  #include <linux/kernel.h>
-> >  #include <linux/version.h>
-> >  
-> > +#include <linux/v4l2-subdev.h>
-> >  #include <linux/videodev2.h>
-> >  
-> >  #include <media/v4l2-common.h>
-> > @@ -2924,6 +2925,23 @@ static int check_array_args(unsigned int cmd, void *parg, size_t *array_size,
-> >  		}
-> >  		break;
-> >  	}
-> > +
-> > +	case VIDIOC_SUBDEV_G_ROUTING:
-> > +	case VIDIOC_SUBDEV_S_ROUTING: {
-> > +		struct v4l2_subdev_routing *route = parg;
-> > +
-> > +		if (route->num_routes > 0) {
-> > +			if (route->num_routes > 256)
-> > +				return -EINVAL;
-> > +
-> > +			*user_ptr = (void __user *)route->routes;
-> > +			*kernel_ptr = (void *)&route->routes;
-> > +			*array_size = sizeof(struct v4l2_subdev_route)
-> > +				    * route->num_routes;
-> > +			ret = 1;
-> > +		}
-> > +		break;
-> > +	}
-> >  	}
-> >  
-> >  	return ret;
-> > @@ -3033,7 +3051,7 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
-> >  	 * Some ioctls can return an error, but still have valid
-> >  	 * results that must be returned.
-> >  	 */
-> > -	if (err < 0 && !always_copy)
-> > +	if (err < 0 && !always_copy && cmd != VIDIOC_SUBDEV_G_ROUTING)
+> > >>  		unsigned int i;
+> > >>  
+> > >>  		for (i = 0; i < entity->num_pads; i++) {
+> > >> @@ -598,12 +597,12 @@ void __media_pipeline_stop(struct media_entity *entity)
+> > >>  }
+> > >>  EXPORT_SYMBOL_GPL(__media_pipeline_stop);
+> > >>  
+> > >> -void media_pipeline_stop(struct media_entity *entity)
+> > >> +void media_pipeline_stop(struct media_pad *pad)
+> > >>  {
+> > >> -	struct media_device *mdev = entity->graph_obj.mdev;
+> > >> +	struct media_device *mdev = pad->graph_obj.mdev;
+> > >>  
+> > >>  	mutex_lock(&mdev->graph_mutex);
+> > >> -	__media_pipeline_stop(entity);
+> > >> +	__media_pipeline_stop(pad);
+> > >>  	mutex_unlock(&mdev->graph_mutex);
+> > >>  }
+> > >>  EXPORT_SYMBOL_GPL(media_pipeline_stop);
+> > > 
+> > > [snip]
+> > > 
+> > >> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> > >> index ca0b79288ea7fd11..8378f700389635ea 100644
+> > >> --- a/include/media/media-entity.h
+> > >> +++ b/include/media/media-entity.h
+> > >> @@ -965,53 +965,54 @@ struct media_pad *media_graph_walk_next(struct media_graph *graph);
+> > >>  
+> > >>  /**
+> > >>   * media_pipeline_start - Mark a pipeline as streaming
+> > >> - * @entity: Starting entity
+> > >> - * @pipe: Media pipeline to be assigned to all entities in the pipeline.
+> > >> + * @pad: Starting pad
+> > >> + * @pipe: Media pipeline to be assigned to all pads in the pipeline.
+> > >>   *
+> > >> - * Mark all entities connected to a given entity through enabled links, either
+> > >> - * directly or indirectly, as streaming. The given pipeline object is assigned
+> > >> - * to every entity in the pipeline and stored in the media_entity pipe field.
+> > >> + * Mark all pads connected to a given pad through enabled
+> > >> + * routes or links, either directly or indirectly, as streaming. The
+> > >> + * given pipeline object is assigned to every pad in the pipeline
+> > >> + * and stored in the media_pad pipe field.
+> > > 
+> > > Reflowing text to the 80 columns limit ?
+> > 
+> > Agreed.
+> > 
+> > >>   *
+> > >>   * Calls to this function can be nested, in which case the same number of
+> > >>   * media_pipeline_stop() calls will be required to stop streaming. The
+> > >>   * pipeline pointer must be identical for all nested calls to
+> > >>   * media_pipeline_start().
+> > >>   */
+> > >> -__must_check int media_pipeline_start(struct media_entity *entity,
+> > >> +__must_check int media_pipeline_start(struct media_pad *pad,
+> > >>  				      struct media_pipeline *pipe);
+> > >>  /**
+> > >>   * __media_pipeline_start - Mark a pipeline as streaming
+> > >>   *
+> > >> - * @entity: Starting entity
+> > >> - * @pipe: Media pipeline to be assigned to all entities in the pipeline.
+> > >> + * @pad: Starting pad
+> > >> + * @pipe: Media pipeline to be assigned to all pads in the pipeline.
+> > >>   *
+> > >>   * ..note:: This is the non-locking version of media_pipeline_start()
+> > >>   */
+> > >> -__must_check int __media_pipeline_start(struct media_entity *entity,
+> > >> +__must_check int __media_pipeline_start(struct media_pad *pad,
+> > >>  					struct media_pipeline *pipe);
+> > >>  
+> > >>  /**
+> > >>   * media_pipeline_stop - Mark a pipeline as not streaming
+> > >> - * @entity: Starting entity
+> > >> + * @pad: Starting pad
+> > >>   *
+> > >> - * Mark all entities connected to a given entity through enabled links, either
+> > >> - * directly or indirectly, as not streaming. The media_entity pipe field is
+> > >> - * reset to %NULL.
+> > >> + * Mark all pads connected to a given pad through enabled routes or
+> > >> + * links, either directly or indirectly, as not streaming. The
+> > >> + * media_pad pipe field is reset to %NULL.
+> > > 
+> > > Ditto.
+> > > 
+> > > With the above fixed,
+> > > 
+> > > Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > > 
+> > >>   *
+> > >>   * If multiple calls to media_pipeline_start() have been made, the same
+> > >>   * number of calls to this function are required to mark the pipeline as not
+> > >>   * streaming.
+> > >>   */
+> > >> -void media_pipeline_stop(struct media_entity *entity);
+> > >> +void media_pipeline_stop(struct media_pad *pad);
+> > >>  
+> > >>  /**
+> > >>   * __media_pipeline_stop - Mark a pipeline as not streaming
+> > >>   *
+> > >> - * @entity: Starting entity
+> > >> + * @pad: Starting pad
+> > >>   *
+> > >>   * .. note:: This is the non-locking version of media_pipeline_stop()
+> > >>   */
+> > >> -void __media_pipeline_stop(struct media_entity *entity);
+> > >> +void __media_pipeline_stop(struct media_pad *pad);
+> > >>  
+> > >>  /**
+> > >>   * media_devnode_create() - creates and initializes a device node interface
 > 
-> This seems like a hack. Shouldn't VIDIOC_SUBDEV_G_ROUTING set
-> always_copy instead ?
-
-Sub-device IOCTLs are partially handled in v4l2-subdev.c, not here. In
-particular, __video_do_ioctl() that digs that information from v4l2_ioctls
-array is not in the call path for sub-device IOCTLs. So, it'd take a
-refactoring of IOCTL handling to change this, which I think should be a
-different patchset --- we're already at 30 patches here.
-
+> -- 
+> Regards,
 > 
-> >  		goto out;
-> >  
-> >  out_array_args:
-> > diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-> > index 792f41dffe2329b9..1d3b37cf548fa533 100644
-> > --- a/drivers/media/v4l2-core/v4l2-subdev.c
-> > +++ b/drivers/media/v4l2-core/v4l2-subdev.c
-> > @@ -516,7 +516,35 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
-> >  
-> >  	case VIDIOC_SUBDEV_QUERYSTD:
-> >  		return v4l2_subdev_call(sd, video, querystd, arg);
-> > +
-> > +	case VIDIOC_SUBDEV_G_ROUTING:
-> > +		return v4l2_subdev_call(sd, pad, get_routing, arg);
-> > +
-> > +	case VIDIOC_SUBDEV_S_ROUTING: {
-> > +		struct v4l2_subdev_routing *route = arg;
-> > +		unsigned int i;
-> > +
-> > +		if (route->num_routes > sd->entity.num_pads)
-> > +			return -EINVAL;
-> > +
-> > +		for (i = 0; i < route->num_routes; ++i) {
-> > +			unsigned int sink = route->routes[i].sink_pad;
-> > +			unsigned int source = route->routes[i].source_pad;
-> > +			struct media_pad *pads = sd->entity.pads;
-> > +
-> > +			if (sink >= sd->entity.num_pads ||
-> > +			    source >= sd->entity.num_pads)
-> > +				return -EINVAL;
-> > +
-> > +			if (!(pads[sink].flags & MEDIA_PAD_FL_SINK) ||
-> > +			    !(pads[source].flags & MEDIA_PAD_FL_SOURCE))
-> > +				return -EINVAL;
-> > +		}
-> > +
-> > +		return v4l2_subdev_call(sd, pad, set_routing, route);
-> > +	}
-> >  #endif
-> > +
-> >  	default:
-> >  		return v4l2_subdev_call(sd, core, ioctl, cmd, arg);
-> >  	}
-> > diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> > index 9102d6ca566e01f2..5acaeeb9b3cacefa 100644
-> > --- a/include/media/v4l2-subdev.h
-> > +++ b/include/media/v4l2-subdev.h
-> > @@ -679,6 +679,9 @@ struct v4l2_subdev_pad_config {
-> >   *
-> >   * @set_frame_desc: set the low level media bus frame parameters, @fd array
-> >   *                  may be adjusted by the subdev driver to device capabilities.
-> > + *
-> > + * @get_routing: callback for VIDIOC_SUBDEV_G_ROUTING IOCTL handler.
-> > + * @set_routing: callback for VIDIOC_SUBDEV_S_ROUTING IOCTL handler.
-> 
-> Please define the purpose of those operations instead of just pointing
-> to the userspace API.
-> 
-> >   */
-> >  struct v4l2_subdev_pad_ops {
-> >  	int (*init_cfg)(struct v4l2_subdev *sd,
-> > @@ -719,6 +722,10 @@ struct v4l2_subdev_pad_ops {
-> >  			      struct v4l2_mbus_frame_desc *fd);
-> >  	int (*set_frame_desc)(struct v4l2_subdev *sd, unsigned int pad,
-> >  			      struct v4l2_mbus_frame_desc *fd);
-> > +	int (*get_routing)(struct v4l2_subdev *sd,
-> > +			   struct v4l2_subdev_routing *route);
-> > +	int (*set_routing)(struct v4l2_subdev *sd,
-> > +			   struct v4l2_subdev_routing *route);
-> >  };
-> >  
-> >  /**
-> > diff --git a/include/uapi/linux/v4l2-subdev.h b/include/uapi/linux/v4l2-subdev.h
-> > index 03970ce3074193e6..af069bfb10ca23a5 100644
-> > --- a/include/uapi/linux/v4l2-subdev.h
-> > +++ b/include/uapi/linux/v4l2-subdev.h
-> > @@ -155,6 +155,44 @@ struct v4l2_subdev_selection {
-> >  	__u32 reserved[8];
-> >  };
-> >  
-> > +#define V4L2_SUBDEV_ROUTE_FL_ACTIVE	(1 << 0)
-> > +#define V4L2_SUBDEV_ROUTE_FL_IMMUTABLE	(1 << 1)
-> > +
-> > +/**
-> > + * struct v4l2_subdev_route - A signal route inside a subdev
-> > + * @sink_pad: the sink pad
-> > + * @sink_stream: the sink stream
-> > + * @source_pad: the source pad
-> > + * @source_stream: the source stream
-> 
-> At this point in the series there's no concept of multiplexed streams,
-> so the two fields don't make sense. You may want to reorder patches, or
-> split this in two.
-
-I think it would make sense to reorder, as adding an IOCTL and then
-changing the argument struct would be something to avoid if possible.
-
-> 
-> > + * @flags: route flags:
-> > + *
-> > + *	V4L2_SUBDEV_ROUTE_FL_ACTIVE: Is the stream in use or not? An
-> > + *	active stream will start when streaming is enabled on a video
-> > + *	node. Set by the user.
-> 
-> This is very confusing as "stream" isn't defined. The documentation
-> needs a rewrite with more details.
-
-Yes, we need a little more documentation on this.
-
-> 
-> > + *
-> > + *	V4L2_SUBDEV_ROUTE_FL_IMMUTABLE: Is the stream immutable, i.e.
-> > + *	can it be activated and inactivated? Set by the driver.
-> > + */
-> > +struct v4l2_subdev_route {
-> > +	__u32 sink_pad;
-> > +	__u32 sink_stream;
-> > +	__u32 source_pad;
-> > +	__u32 source_stream;
-> > +	__u32 flags;
-> > +	__u32 reserved[5];
-> > +};
-> > +
-> > +/**
-> > + * struct v4l2_subdev_routing - Routing information
-> > + * @routes: the routes array
-> > + * @num_routes: the total number of routes in the routes array
-> > + */
-> > +struct v4l2_subdev_routing {
-> > +	struct v4l2_subdev_route *routes;
-> 
-> Missing __user ?
-
-We actually don't have any IOCTLs using __u64 pointer values in V4L2. I
-wonder what Hans thinks, too. I guess it's the way to go. Compat code is so
-awful. :-I
-
-> 
-> > +	__u32 num_routes;
-> > +	__u32 reserved[5];
-> > +};
-> > +
-> >  /* Backwards compatibility define --- to be removed */
-> >  #define v4l2_subdev_edid v4l2_edid
-> >  
-> > @@ -181,5 +219,7 @@ struct v4l2_subdev_selection {
-> >  #define VIDIOC_SUBDEV_ENUM_DV_TIMINGS		_IOWR('V', 98, struct v4l2_enum_dv_timings)
-> >  #define VIDIOC_SUBDEV_QUERY_DV_TIMINGS		_IOR('V', 99, struct v4l2_dv_timings)
-> >  #define VIDIOC_SUBDEV_DV_TIMINGS_CAP		_IOWR('V', 100, struct v4l2_dv_timings_cap)
-> > +#define VIDIOC_SUBDEV_G_ROUTING			_IOWR('V', 38, struct v4l2_subdev_routing)
-> > +#define VIDIOC_SUBDEV_S_ROUTING			_IOWR('V', 39, struct v4l2_subdev_routing)
-> >  
-> >  #endif
+> Laurent Pinchart
 
 -- 
 Sakari Ailus
