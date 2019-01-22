@@ -2,295 +2,203 @@ Return-Path: <SRS0=JQ9q=P6=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,USER_AGENT_MUTT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BEC6DC282C5
-	for <linux-media@archiver.kernel.org>; Tue, 22 Jan 2019 17:00:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D75EC282C3
+	for <linux-media@archiver.kernel.org>; Tue, 22 Jan 2019 17:10:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 834CF20870
-	for <linux-media@archiver.kernel.org>; Tue, 22 Jan 2019 17:00:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C0F1120879
+	for <linux-media@archiver.kernel.org>; Tue, 22 Jan 2019 17:10:22 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="ASRYhWDZ"
+	dkim=pass (1024-bit key) header.d=nextdimension.cc header.i=@nextdimension.cc header.b="Y13S6Ifc"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729352AbfAVRAT (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 22 Jan 2019 12:00:19 -0500
-Received: from perceval.ideasonboard.com ([213.167.242.64]:51724 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729316AbfAVRAT (ORCPT
+        id S1729380AbfAVRKW (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 22 Jan 2019 12:10:22 -0500
+Received: from common.maple.relay.mailchannels.net ([23.83.214.38]:32102 "EHLO
+        common.maple.relay.mailchannels.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1729357AbfAVRKV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 Jan 2019 12:00:19 -0500
-Received: from pendragon.ideasonboard.com (dfj612yhrgyx302h3jwwy-3.rev.dnainternet.fi [IPv6:2001:14ba:21f5:5b00:ce28:277f:58d7:3ca4])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id B2034575;
-        Tue, 22 Jan 2019 18:00:16 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1548176416;
-        bh=fSmX/O6nJE2WxRsQ3jqJKSEoUoA8r4WuvKWr/5LmxyA=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=ASRYhWDZbz3yP1q/3h/l+7SAUD5T8naw/4XZ2zKDWI/kdUKUijTda4YSooBjgawQe
-         5qb3FMx9u/WZ6+npXfA05mvCrKoVzmFJsjTFkvlrKo5x4axj5lNRZWJzAbWDmzWgJR
-         KpwkrxryrH1K7lnYcgiCiXXc04QQ3npZ2F+hfFyM=
-Date:   Tue, 22 Jan 2019 19:00:16 +0200
-From:   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To:     Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc:     Niklas =?utf-8?Q?S=C3=B6derlund?= 
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Benoit Parrot <bparrot@ti.com>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org,
-        Michal Simek <michal.simek@xilinx.com>
-Subject: Re: [PATCH v2 16/30] v4l: subdev: Add [GS]_ROUTING subdev ioctls and
- operations
-Message-ID: <20190122170016.GA26166@pendragon.ideasonboard.com>
-References: <20181101233144.31507-1-niklas.soderlund+renesas@ragnatech.se>
- <20181101233144.31507-17-niklas.soderlund+renesas@ragnatech.se>
- <20190115235145.GF31088@pendragon.ideasonboard.com>
- <20190122161457.gzkngziyixsef7qo@paasikivi.fi.intel.com>
+        Tue, 22 Jan 2019 12:10:21 -0500
+X-Sender-Id: dreamhost|x-authsender|brad@b-rad.cc
+Received: from relay.mailchannels.net (localhost [127.0.0.1])
+        by relay.mailchannels.net (Postfix) with ESMTP id 7C9BD5C4D86;
+        Tue, 22 Jan 2019 17:10:16 +0000 (UTC)
+Received: from pdx1-sub0-mail-a52.g.dreamhost.com (unknown [100.96.36.160])
+        (Authenticated sender: dreamhost)
+        by relay.mailchannels.net (Postfix) with ESMTPA id 055FA5C4DF9;
+        Tue, 22 Jan 2019 17:10:15 +0000 (UTC)
+X-Sender-Id: dreamhost|x-authsender|brad@b-rad.cc
+Received: from pdx1-sub0-mail-a52.g.dreamhost.com (pop.dreamhost.com
+ [64.90.62.162])
+        (using TLSv1.2 with cipher DHE-RSA-AES256-GCM-SHA384)
+        by 0.0.0.0:2500 (trex/5.16.2);
+        Tue, 22 Jan 2019 17:10:16 +0000
+X-MC-Relay: Neutral
+X-MailChannels-SenderId: dreamhost|x-authsender|brad@b-rad.cc
+X-MailChannels-Auth-Id: dreamhost
+X-Daffy-Towering: 00cb0216407f01d9_1548177016296_2577437249
+X-MC-Loop-Signature: 1548177016296:3285515257
+X-MC-Ingress-Time: 1548177016296
+Received: from pdx1-sub0-mail-a52.g.dreamhost.com (localhost [127.0.0.1])
+        by pdx1-sub0-mail-a52.g.dreamhost.com (Postfix) with ESMTP id 898497FED7;
+        Tue, 22 Jan 2019 09:10:15 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed; d=nextdimension.cc; h=
+        subject:to:references:from:message-id:date:mime-version
+        :in-reply-to:content-type:content-transfer-encoding; s=
+        nextdimension.cc; bh=+0tXWv5XprHTGkIO8cSIXO8THJk=; b=Y13S6IfcU4Q
+        HrhWxhUWQfVHB1nTvZ+2HgXlEJ1kZJP/PQaPPSkM0yeAFcFa6N2YMoPAZ67VPQQa
+        8Wb177JnTgHjlADZYgJ8+il+w+4LHPv/zItI+Ig9TSc76n78Dizgi+YeOxTeWc8u
+        7DZJArNv5hAJmdGUR2FJxgBx7aO9SDME=
+Received: from [192.168.0.21] (66-90-189-166.dyn.grandenetworks.net [66.90.189.166])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        (Authenticated sender: brad@b-rad.cc)
+        by pdx1-sub0-mail-a52.g.dreamhost.com (Postfix) with ESMTPSA id 7BE997FEBE;
+        Tue, 22 Jan 2019 09:10:11 -0800 (PST)
+Subject: Re: [PATCH 04/13] si2157: Add clock and pin setup for si2141
+To:     Antti Palosaari <crope@iki.fi>, Brad Love <brad@nextdimension.cc>,
+        linux-media@vger.kernel.org, mchehab@kernel.org
+References: <1546105882-15693-1-git-send-email-brad@nextdimension.cc>
+ <1546105882-15693-5-git-send-email-brad@nextdimension.cc>
+ <a0798756-26a2-ad91-9d29-ec314bbb50b9@iki.fi>
+X-DH-BACKEND: pdx1-sub0-mail-a52
+From:   Brad Love <brad@nextdimension.cc>
+Openpgp: preference=signencrypt
+Autocrypt: addr=brad@nextdimension.cc; prefer-encrypt=mutual; keydata=
+ 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
+Message-ID: <ab8adbd6-7472-8cd6-2a89-751311a011a6@nextdimension.cc>
+Date:   Tue, 22 Jan 2019 11:10:09 -0600
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.2.1
 MIME-Version: 1.0
+In-Reply-To: <a0798756-26a2-ad91-9d29-ec314bbb50b9@iki.fi>
 Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20190122161457.gzkngziyixsef7qo@paasikivi.fi.intel.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Language: en-GB
+X-VR-OUT-STATUS: OK
+X-VR-OUT-SCORE: 30
+X-VR-OUT-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedtledrheekgdeljecutefuodetggdotefrodftvfcurfhrohhfihhlvgemucggtfgfnhhsuhgsshgtrhhisggvpdfftffgtefojffquffvnecuuegrihhlohhuthemuceftddtnecufghrlhcuvffnffculdeftddmnecujfgurhepuffvfhfhkffffgggjggtgfesthekredttdefjeenucfhrhhomhepuehrrgguucfnohhvvgcuoegsrhgrugesnhgvgihtughimhgvnhhsihhonhdrtggtqeenucfkphepieeirdeltddrudekledrudeiieenucfrrghrrghmpehmohguvgepshhmthhppdhhvghloheplgduledvrdduieekrddtrddvudgnpdhinhgvthepieeirdeltddrudekledrudeiiedprhgvthhurhhnqdhprghthhepuehrrgguucfnohhvvgcuoegsrhgrugesnhgvgihtughimhgvnhhsihhonhdrtggtqedpmhgrihhlfhhrohhmpegsrhgrugesnhgvgihtughimhgvnhhsihhonhdrtggtpdhnrhgtphhtthhopegtrhhophgvsehikhhirdhfihenucevlhhushhtvghrufhiiigvpedt
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Sakari,
+Hi Antti,
 
-On Tue, Jan 22, 2019 at 06:14:57PM +0200, Sakari Ailus wrote:
-> On Wed, Jan 16, 2019 at 01:51:45AM +0200, Laurent Pinchart wrote:
-> > On Fri, Nov 02, 2018 at 12:31:30AM +0100, Niklas Söderlund wrote:
-> >> From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> >> 
-> >> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> >> Signed-off-by: Michal Simek <michal.simek@xilinx.com>
-> >> 
-> >> - Add sink and source streams for multiplexed links
-> >> - Copy the argument back in case of an error. This is needed to let the
-> >>   caller know the number of routes.
-> >> 
-> >> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> >> Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> >> ---
-> >>  drivers/media/v4l2-core/v4l2-ioctl.c  | 20 +++++++++++++-
-> >>  drivers/media/v4l2-core/v4l2-subdev.c | 28 +++++++++++++++++++
-> >>  include/media/v4l2-subdev.h           |  7 +++++
-> >>  include/uapi/linux/v4l2-subdev.h      | 40 +++++++++++++++++++++++++++
-> > 
-> > Missing documentation :-(
-> > 
-> >>  4 files changed, 94 insertions(+), 1 deletion(-)
-> >> 
-> >> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-> >> index 7de041bae84fb2f2..40406acb51ec0906 100644
-> >> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> >> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> >> @@ -19,6 +19,7 @@
-> >>  #include <linux/kernel.h>
-> >>  #include <linux/version.h>
-> >>  
-> >> +#include <linux/v4l2-subdev.h>
-> >>  #include <linux/videodev2.h>
-> >>  
-> >>  #include <media/v4l2-common.h>
-> >> @@ -2924,6 +2925,23 @@ static int check_array_args(unsigned int cmd, void *parg, size_t *array_size,
-> >>  		}
-> >>  		break;
-> >>  	}
-> >> +
-> >> +	case VIDIOC_SUBDEV_G_ROUTING:
-> >> +	case VIDIOC_SUBDEV_S_ROUTING: {
-> >> +		struct v4l2_subdev_routing *route = parg;
-> >> +
-> >> +		if (route->num_routes > 0) {
-> >> +			if (route->num_routes > 256)
-> >> +				return -EINVAL;
-> >> +
-> >> +			*user_ptr = (void __user *)route->routes;
-> >> +			*kernel_ptr = (void *)&route->routes;
-> >> +			*array_size = sizeof(struct v4l2_subdev_route)
-> >> +				    * route->num_routes;
-> >> +			ret = 1;
-> >> +		}
-> >> +		break;
-> >> +	}
-> >>  	}
-> >>  
-> >>  	return ret;
-> >> @@ -3033,7 +3051,7 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
-> >>  	 * Some ioctls can return an error, but still have valid
-> >>  	 * results that must be returned.
-> >>  	 */
-> >> -	if (err < 0 && !always_copy)
-> >> +	if (err < 0 && !always_copy && cmd != VIDIOC_SUBDEV_G_ROUTING)
-> > 
-> > This seems like a hack. Shouldn't VIDIOC_SUBDEV_G_ROUTING set
-> > always_copy instead ?
-> 
-> Sub-device IOCTLs are partially handled in v4l2-subdev.c, not here. In
-> particular, __video_do_ioctl() that digs that information from v4l2_ioctls
-> array is not in the call path for sub-device IOCTLs. So, it'd take a
-> refactoring of IOCTL handling to change this, which I think should be a
-> different patchset --- we're already at 30 patches here.
 
-I'm OK with that. Could we add a FIXME comment ?
+On 20/01/2019 11.17, Antti Palosaari wrote:
+>
+> On 12/29/18 7:51 PM, Brad Love wrote:
+>> Include some missing setup for si2141
+>>
+>> Signed-off-by: Brad Love <brad@nextdimension.cc>
+>> ---
+>> =C2=A0 drivers/media/tuners/si2157.c | 17 +++++++++++++++++
+>> =C2=A0 1 file changed, 17 insertions(+)
+>>
+>> diff --git a/drivers/media/tuners/si2157.c
+>> b/drivers/media/tuners/si2157.c
+>> index f3a60a1..1ad2d42 100644
+>> --- a/drivers/media/tuners/si2157.c
+>> +++ b/drivers/media/tuners/si2157.c
+>> @@ -236,6 +236,23 @@ static int si2157_init(struct dvb_frontend *fe)
+>> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 dev_info(&client->dev, "firmware versio=
+n: %c.%c.%d\n",
+>> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0 cmd.args[6], cmd.args[7], cmd.args[8]);
+>> =C2=A0 +=C2=A0=C2=A0=C2=A0 if (dev->chiptype =3D=3D SI2157_CHIPTYPE_SI=
+2141) {
+>> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 /* set clock */
+>> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 memcpy(cmd.args, "\xc0\x00=
+\x0d", 3);
+>> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 cmd.wlen =3D 3;
+>> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 cmd.rlen =3D 1;
+>> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 ret =3D si2157_cmd_execute=
+(client, &cmd);
+>> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 if (ret)
+>> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 go=
+to err;
+>> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 /* setup PIN */
+>> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 memcpy(cmd.args, "\x12\x80=
+\x80\x85\x00\x81\x00", 7);
+>> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 cmd.wlen =3D 7;
+>> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 cmd.rlen =3D 7;
+>> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 ret =3D si2157_cmd_execute=
+(client, &cmd);
+>> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 if (ret)
+>> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 go=
+to err;
+>> +=C2=A0=C2=A0=C2=A0 }
+>> +
+>> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 /* enable tuner status flags */
+>> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 memcpy(cmd.args, "\x14\x00\x01\x05\x01\=
+x00", 6);
+>> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 cmd.wlen =3D 6;
+>>
+>
+> Si2141 is working in my understanding, why these are required?
+>
 
-> >>  		goto out;
-> >>  
-> >>  out_array_args:
-> >> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-> >> index 792f41dffe2329b9..1d3b37cf548fa533 100644
-> >> --- a/drivers/media/v4l2-core/v4l2-subdev.c
-> >> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
-> >> @@ -516,7 +516,35 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
-> >>  
-> >>  	case VIDIOC_SUBDEV_QUERYSTD:
-> >>  		return v4l2_subdev_call(sd, video, querystd, arg);
-> >> +
-> >> +	case VIDIOC_SUBDEV_G_ROUTING:
-> >> +		return v4l2_subdev_call(sd, pad, get_routing, arg);
-> >> +
-> >> +	case VIDIOC_SUBDEV_S_ROUTING: {
-> >> +		struct v4l2_subdev_routing *route = arg;
-> >> +		unsigned int i;
-> >> +
-> >> +		if (route->num_routes > sd->entity.num_pads)
-> >> +			return -EINVAL;
-> >> +
-> >> +		for (i = 0; i < route->num_routes; ++i) {
-> >> +			unsigned int sink = route->routes[i].sink_pad;
-> >> +			unsigned int source = route->routes[i].source_pad;
-> >> +			struct media_pad *pads = sd->entity.pads;
-> >> +
-> >> +			if (sink >= sd->entity.num_pads ||
-> >> +			    source >= sd->entity.num_pads)
-> >> +				return -EINVAL;
-> >> +
-> >> +			if (!(pads[sink].flags & MEDIA_PAD_FL_SINK) ||
-> >> +			    !(pads[source].flags & MEDIA_PAD_FL_SOURCE))
-> >> +				return -EINVAL;
-> >> +		}
-> >> +
-> >> +		return v4l2_subdev_call(sd, pad, set_routing, route);
-> >> +	}
-> >>  #endif
-> >> +
-> >>  	default:
-> >>  		return v4l2_subdev_call(sd, core, ioctl, cmd, arg);
-> >>  	}
-> >> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> >> index 9102d6ca566e01f2..5acaeeb9b3cacefa 100644
-> >> --- a/include/media/v4l2-subdev.h
-> >> +++ b/include/media/v4l2-subdev.h
-> >> @@ -679,6 +679,9 @@ struct v4l2_subdev_pad_config {
-> >>   *
-> >>   * @set_frame_desc: set the low level media bus frame parameters, @fd array
-> >>   *                  may be adjusted by the subdev driver to device capabilities.
-> >> + *
-> >> + * @get_routing: callback for VIDIOC_SUBDEV_G_ROUTING IOCTL handler.
-> >> + * @set_routing: callback for VIDIOC_SUBDEV_S_ROUTING IOCTL handler.
-> > 
-> > Please define the purpose of those operations instead of just pointing
-> > to the userspace API.
-> > 
-> >>   */
-> >>  struct v4l2_subdev_pad_ops {
-> >>  	int (*init_cfg)(struct v4l2_subdev *sd,
-> >> @@ -719,6 +722,10 @@ struct v4l2_subdev_pad_ops {
-> >>  			      struct v4l2_mbus_frame_desc *fd);
-> >>  	int (*set_frame_desc)(struct v4l2_subdev *sd, unsigned int pad,
-> >>  			      struct v4l2_mbus_frame_desc *fd);
-> >> +	int (*get_routing)(struct v4l2_subdev *sd,
-> >> +			   struct v4l2_subdev_routing *route);
-> >> +	int (*set_routing)(struct v4l2_subdev *sd,
-> >> +			   struct v4l2_subdev_routing *route);
-> >>  };
-> >>  
-> >>  /**
-> >> diff --git a/include/uapi/linux/v4l2-subdev.h b/include/uapi/linux/v4l2-subdev.h
-> >> index 03970ce3074193e6..af069bfb10ca23a5 100644
-> >> --- a/include/uapi/linux/v4l2-subdev.h
-> >> +++ b/include/uapi/linux/v4l2-subdev.h
-> >> @@ -155,6 +155,44 @@ struct v4l2_subdev_selection {
-> >>  	__u32 reserved[8];
-> >>  };
-> >>  
-> >> +#define V4L2_SUBDEV_ROUTE_FL_ACTIVE	(1 << 0)
-> >> +#define V4L2_SUBDEV_ROUTE_FL_IMMUTABLE	(1 << 1)
-> >> +
-> >> +/**
-> >> + * struct v4l2_subdev_route - A signal route inside a subdev
-> >> + * @sink_pad: the sink pad
-> >> + * @sink_stream: the sink stream
-> >> + * @source_pad: the source pad
-> >> + * @source_stream: the source stream
-> > 
-> > At this point in the series there's no concept of multiplexed streams,
-> > so the two fields don't make sense. You may want to reorder patches, or
-> > split this in two.
-> 
-> I think it would make sense to reorder, as adding an IOCTL and then
-> changing the argument struct would be something to avoid if possible.
-> 
-> >> + * @flags: route flags:
-> >> + *
-> >> + *	V4L2_SUBDEV_ROUTE_FL_ACTIVE: Is the stream in use or not? An
-> >> + *	active stream will start when streaming is enabled on a video
-> >> + *	node. Set by the user.
-> > 
-> > This is very confusing as "stream" isn't defined. The documentation
-> > needs a rewrite with more details.
-> 
-> Yes, we need a little more documentation on this.
-> 
-> >> + *
-> >> + *	V4L2_SUBDEV_ROUTE_FL_IMMUTABLE: Is the stream immutable, i.e.
-> >> + *	can it be activated and inactivated? Set by the driver.
-> >> + */
-> >> +struct v4l2_subdev_route {
-> >> +	__u32 sink_pad;
-> >> +	__u32 sink_stream;
-> >> +	__u32 source_pad;
-> >> +	__u32 source_stream;
-> >> +	__u32 flags;
-> >> +	__u32 reserved[5];
-> >> +};
-> >> +
-> >> +/**
-> >> + * struct v4l2_subdev_routing - Routing information
-> >> + * @routes: the routes array
-> >> + * @num_routes: the total number of routes in the routes array
-> >> + */
-> >> +struct v4l2_subdev_routing {
-> >> +	struct v4l2_subdev_route *routes;
-> > 
-> > Missing __user ?
-> 
-> We actually don't have any IOCTLs using __u64 pointer values in V4L2. I
-> wonder what Hans thinks, too. I guess it's the way to go. Compat code is so
-> awful. :-I
-> 
-> > 
-> >> +	__u32 num_routes;
-> >> +	__u32 reserved[5];
-> >> +};
-> >> +
-> >>  /* Backwards compatibility define --- to be removed */
-> >>  #define v4l2_subdev_edid v4l2_edid
-> >>  
-> >> @@ -181,5 +219,7 @@ struct v4l2_subdev_selection {
-> >>  #define VIDIOC_SUBDEV_ENUM_DV_TIMINGS		_IOWR('V', 98, struct v4l2_enum_dv_timings)
-> >>  #define VIDIOC_SUBDEV_QUERY_DV_TIMINGS		_IOR('V', 99, struct v4l2_dv_timings)
-> >>  #define VIDIOC_SUBDEV_DV_TIMINGS_CAP		_IOWR('V', 100, struct v4l2_dv_timings_cap)
-> >> +#define VIDIOC_SUBDEV_G_ROUTING			_IOWR('V', 38, struct v4l2_subdev_routing)
-> >> +#define VIDIOC_SUBDEV_S_ROUTING			_IOWR('V', 39, struct v4l2_subdev_routing)
-> >>  
-> >>  #endif
+Apologies, this setting was necessary on a "dvbsky device" that
+hauppauge was considering supporting. It never reached production in the
+end, but this artifact stayed around anyways. I will drop this patch
+from a v2 series.
 
--- 
 Regards,
 
-Laurent Pinchart
+Brad
+
+
+
+
+
+
+>
+> regards
+> Antti
+>
+>
+>
