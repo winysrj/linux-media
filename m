@@ -2,129 +2,142 @@ Return-Path: <SRS0=JQ9q=P6=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 08297C282C0
-	for <linux-media@archiver.kernel.org>; Tue, 22 Jan 2019 02:52:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D7AAC282C8
+	for <linux-media@archiver.kernel.org>; Tue, 22 Jan 2019 04:32:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BFD6C20861
-	for <linux-media@archiver.kernel.org>; Tue, 22 Jan 2019 02:52:56 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jehLDYUk"
+	by mail.kernel.org (Postfix) with ESMTP id 5B18920870
+	for <linux-media@archiver.kernel.org>; Tue, 22 Jan 2019 04:32:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726750AbfAVCw4 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 21 Jan 2019 21:52:56 -0500
-Received: from mail-pl1-f175.google.com ([209.85.214.175]:40064 "EHLO
-        mail-pl1-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725901AbfAVCw4 (ORCPT
+        id S1726880AbfAVEcK (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 21 Jan 2019 23:32:10 -0500
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:54390 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726853AbfAVEcK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 Jan 2019 21:52:56 -0500
-Received: by mail-pl1-f175.google.com with SMTP id u18so10701597plq.7
-        for <linux-media@vger.kernel.org>; Mon, 21 Jan 2019 18:52:55 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:subject:date:message-id;
-        bh=fFjaQ4lfZ0KfvqbNkLeb9FsYI6FYE7+WpnvlD//m7bk=;
-        b=jehLDYUkcMHfTK0kNBAcofPBYeK4vwMhK5yp3kNETZoclG1fbBietxQGU9/5Nyq26R
-         1zqvULgYUOGsTZIVeX9oBjvcShYpzmJ6nBy2PxUXFTz+6GLVHXH3+20OdP1XMj/hZi/z
-         vhx+i5G1bb4bJ+uQsFDht7DE/odIyNOdMClhwutxISqWqJ2y03vRIN+8SGqHIKh8AON5
-         ScOr0OS4RXQ5jtZl+MdH0hxWNcv3eNnXhCYYLeSMqFJiOXMRhLdOMIP/sv6a4TwONO8U
-         DnseO/TYchpU32ffjM0AR9lD0Z1FW5DRX2fdK5H+sObeqljKfnNtgluZir2U3BVn6+vz
-         5aOg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:subject:date:message-id;
-        bh=fFjaQ4lfZ0KfvqbNkLeb9FsYI6FYE7+WpnvlD//m7bk=;
-        b=gHGtpoBNomg4lVf9/Hx/og/r82FbNEMnulRn9qtbd7rPilathRx7ndCYbvb/0zV+3X
-         fcDNx1sA3wuJ3kLrhRr1gUMtfJ9CmCc36sdfctjpxCjTFmLCcS7BQcQPSvWd9NxnFzxF
-         b0G24gi14/H8YZV5DCEz4tbxn9Pvb5OkDgVCVsbUu7G/0qUAaBfvKZAQf4KZ3AqqyYE0
-         ZCl4u6PIdL3kZa8zxfz0FDqSDYoqTTbucSgWtmsM5hlerLNh0OwFjFa7I9pc0hbRrr8N
-         ucDzfUmObCeoPCcokB+gTJevOtPEFS4Ytw+yRwwJn4kp4ZkuUGdyxoNz6ywb6ot9asLm
-         4PFg==
-X-Gm-Message-State: AJcUukfak53nqTT64H1tOkWPWYk7b5VzcYb/RZ38ZTEy1wOui1hyHhC2
-        AeAd0dgZx0YZTNKouOSPVBKxI+VAvOo=
-X-Google-Smtp-Source: ALg8bN5CqxsNVZOPRA6cfZlsnaTeJrCONtulijUPXeyZc2eAjbvcTYAM4X67KdU2U5qZLt2IAqm/Fg==
-X-Received: by 2002:a17:902:27e6:: with SMTP id i35mr31779816plg.222.1548125574974;
-        Mon, 21 Jan 2019 18:52:54 -0800 (PST)
-Received: from mangix-pc.lan (astound-69-42-16-32.ca.astound.net. [69.42.16.32])
-        by smtp.gmail.com with ESMTPSA id c67sm25537440pfg.170.2019.01.21.18.52.53
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 21 Jan 2019 18:52:53 -0800 (PST)
-From:   Rosen Penev <rosenp@gmail.com>
+        Mon, 21 Jan 2019 23:32:10 -0500
+Received: from localhost ([IPv6:2001:983:e9a7:1:69a3:68cd:8f2b:a74a])
+        by smtp-cloud9.xs4all.net with ESMTPA
+        id lnjLg5rp5RO5ZlnjMgzZIA; Tue, 22 Jan 2019 05:32:08 +0100
+Message-ID: <96f2326cf06bef8017f3bf1d44fee24e@smtp-cloud9.xs4all.net>
+Date:   Tue, 22 Jan 2019 05:32:07 +0100
+From:   "Hans Verkuil" <hverkuil@xs4all.nl>
 To:     linux-media@vger.kernel.org
-Subject: [v4l-utils] treewide: Fix compilation with uClibc++
-Date:   Mon, 21 Jan 2019 18:52:52 -0800
-Message-Id: <20190122025252.10125-1-rosenp@gmail.com>
-X-Mailer: git-send-email 2.17.1
+Subject: cron job: media_tree daily build: ERRORS
+X-CMAE-Envelope: MS4wfHoHeSOPp5TEg4JRlaVCn8d+x/E3AzZ/cFsviBmjAAPNzFwM+QUeVPaAD5ja6Ywu9+02gKdOSQnG++J5C/J0etXmznvjm1D7XiQEa7V8PvwDL2O5UbVE
+ IVIUc806CLydZNN96+SnfO6SoCz0xlO18Ld4s3LMfISfhzVMM1ek6VV+7Ak4jFL65dPmMkyoQlpQtWHdFjG/au2xRNNkz8PZLwGz0NsB9Oc/JZUBMDgAvUwr
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Several headers are missing.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Rosen Penev <rosenp@gmail.com>
----
- utils/cec-ctl/cec-ctl.cpp         | 1 +
- utils/cec-follower/cec-follower.h | 1 +
- utils/common/media-info.cpp       | 2 +-
- utils/rds-ctl/rds-ctl.cpp         | 2 ++
- 4 files changed, 5 insertions(+), 1 deletion(-)
+Results of the daily build of media_tree:
 
-diff --git a/utils/cec-ctl/cec-ctl.cpp b/utils/cec-ctl/cec-ctl.cpp
-index 76ce615e..bca1cc49 100644
---- a/utils/cec-ctl/cec-ctl.cpp
-+++ b/utils/cec-ctl/cec-ctl.cpp
-@@ -18,6 +18,7 @@
- #include <errno.h>
- #include <sys/ioctl.h>
- #include <stdarg.h>
-+#include <ctime>
- #include <cerrno>
- #include <string>
- #include <vector>
-diff --git a/utils/cec-follower/cec-follower.h b/utils/cec-follower/cec-follower.h
-index b39293d1..36496fdc 100644
---- a/utils/cec-follower/cec-follower.h
-+++ b/utils/cec-follower/cec-follower.h
-@@ -9,6 +9,7 @@
- #define _CEC_FOLLOWER_H_
- 
- #include <stdarg.h>
-+#include <ctime>
- #include <cerrno>
- #include <string>
- #include <linux/cec-funcs.h>
-diff --git a/utils/common/media-info.cpp b/utils/common/media-info.cpp
-index 033821ed..3474100e 100644
---- a/utils/common/media-info.cpp
-+++ b/utils/common/media-info.cpp
-@@ -20,7 +20,7 @@
- 
- #include <linux/media.h>
- 
--#include <fstream>
-+#include <iostream>
- #include <media-info.h>
- 
- static std::string num2s(unsigned num, bool is_hex = true)
-diff --git a/utils/rds-ctl/rds-ctl.cpp b/utils/rds-ctl/rds-ctl.cpp
-index 3e68abeb..06b6344e 100644
---- a/utils/rds-ctl/rds-ctl.cpp
-+++ b/utils/rds-ctl/rds-ctl.cpp
-@@ -27,6 +27,8 @@
- #include <linux/videodev2.h>
- #include <libv4l2rds.h>
- 
-+#include <cctype>
-+#include <ctime>
- #include <list>
- #include <vector>
- #include <map>
--- 
-2.17.1
+date:			Tue Jan 22 05:00:10 CET 2019
+media-tree git hash:	337e90ed028643c7acdfd0d31e3224d05ca03d66
+media_build git hash:	a0be39e21b895d8cc47e0e1be6ddc8e336168d1d
+v4l-utils git hash:	1a6c8fe9a65c26e78ba34bd4aa2df28ede7d00cb
+edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
+gcc version:		i686-linux-gcc (GCC) 8.2.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.19.0-1-amd64
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-3.10.108-i686: ERRORS
+linux-3.10.108-x86_64: ERRORS
+linux-3.11.10-i686: ERRORS
+linux-3.11.10-x86_64: ERRORS
+linux-3.12.74-i686: ERRORS
+linux-3.12.74-x86_64: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.79-i686: ERRORS
+linux-3.14.79-x86_64: ERRORS
+linux-3.15.10-i686: ERRORS
+linux-3.15.10-x86_64: ERRORS
+linux-3.16.57-i686: ERRORS
+linux-3.16.57-x86_64: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.123-i686: ERRORS
+linux-3.18.123-x86_64: ERRORS
+linux-3.19.8-i686: ERRORS
+linux-3.19.8-x86_64: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.52-i686: ERRORS
+linux-4.1.52-x86_64: ERRORS
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.159-i686: OK
+linux-4.4.159-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.131-i686: OK
+linux-4.9.131-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.74-i686: OK
+linux-4.14.74-x86_64: OK
+linux-4.15.18-i686: OK
+linux-4.15.18-x86_64: OK
+linux-4.16.18-i686: ERRORS
+linux-4.16.18-x86_64: ERRORS
+linux-4.17.19-i686: OK
+linux-4.17.19-x86_64: OK
+linux-4.18.12-i686: OK
+linux-4.18.12-x86_64: OK
+linux-4.19.1-i686: OK
+linux-4.19.1-x86_64: OK
+linux-4.20.1-i686: OK
+linux-4.20.1-x86_64: OK
+linux-5.0-rc1-i686: OK
+linux-5.0-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
