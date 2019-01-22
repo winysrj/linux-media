@@ -6,30 +6,30 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C0D2C282C3
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F3D60C282C5
 	for <linux-media@archiver.kernel.org>; Tue, 22 Jan 2019 11:27:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3310E21019
+	by mail.kernel.org (Postfix) with ESMTP id D005A20879
 	for <linux-media@archiver.kernel.org>; Tue, 22 Jan 2019 11:27:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727983AbfAVL1g (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        id S1727946AbfAVL1g (ORCPT <rfc822;linux-media@archiver.kernel.org>);
         Tue, 22 Jan 2019 06:27:36 -0500
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:53268 "EHLO
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:45740 "EHLO
         lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727883AbfAVL1f (ORCPT
+        by vger.kernel.org with ESMTP id S1727919AbfAVL1f (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Tue, 22 Jan 2019 06:27:35 -0500
 Received: from cobaltpc1.rd.cisco.com ([IPv6:2001:420:44c1:2579:b98b:fd77:97a1:d7fe])
         by smtp-cloud8.xs4all.net with ESMTPA
-        id luDHgEkLRNR5yluDMggn5Q; Tue, 22 Jan 2019 12:27:33 +0100
+        id luDHgEkLRNR5yluDNggn5W; Tue, 22 Jan 2019 12:27:33 +0100
 From:   hverkuil-cisco@xs4all.nl
 To:     linux-media@vger.kernel.org
 Cc:     Tomasz Figa <tfiga@chromium.org>,
         Alexandre Courbot <acourbot@chromium.org>,
         Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Subject: [PATCH 2/3] dev-teletext.rst: remove obsolete teletext interface
-Date:   Tue, 22 Jan 2019 12:27:26 +0100
-Message-Id: <20190122112727.12662-3-hverkuil-cisco@xs4all.nl>
+Subject: [PATCH 3/3] Documentation/media: rename "Codec Interface"
+Date:   Tue, 22 Jan 2019 12:27:27 +0100
+Message-Id: <20190122112727.12662-4-hverkuil-cisco@xs4all.nl>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190122112727.12662-1-hverkuil-cisco@xs4all.nl>
 References: <20190122112727.12662-1-hverkuil-cisco@xs4all.nl>
@@ -46,75 +46,128 @@ X-Mailing-List: linux-media@vger.kernel.org
 
 From: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 
-The teletext interface has been dead for years now, just
-remove it.
+The "Codec Interface" chapter is poorly named since codecs are just one
+use-case of the Memory-to-Memory Interface. Rename it and clean up the
+text a bit.
 
 Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 ---
- Documentation/media/uapi/v4l/dev-teletext.rst | 41 -------------------
- Documentation/media/uapi/v4l/devices.rst      |  1 -
- 2 files changed, 42 deletions(-)
- delete mode 100644 Documentation/media/uapi/v4l/dev-teletext.rst
+ .../media/uapi/mediactl/request-api.rst       |  4 ++--
+ .../v4l/{dev-codec.rst => dev-mem2mem.rst}    | 21 +++++++------------
+ Documentation/media/uapi/v4l/devices.rst      |  2 +-
+ .../media/uapi/v4l/pixfmt-compressed.rst      |  2 +-
+ Documentation/media/uapi/v4l/vidioc-qbuf.rst  |  2 +-
+ 5 files changed, 13 insertions(+), 18 deletions(-)
+ rename Documentation/media/uapi/v4l/{dev-codec.rst => dev-mem2mem.rst} (79%)
 
-diff --git a/Documentation/media/uapi/v4l/dev-teletext.rst b/Documentation/media/uapi/v4l/dev-teletext.rst
-deleted file mode 100644
-index 35e8c4b35458..000000000000
---- a/Documentation/media/uapi/v4l/dev-teletext.rst
-+++ /dev/null
-@@ -1,41 +0,0 @@
--.. Permission is granted to copy, distribute and/or modify this
--.. document under the terms of the GNU Free Documentation License,
--.. Version 1.1 or any later version published by the Free Software
--.. Foundation, with no Invariant Sections, no Front-Cover Texts
--.. and no Back-Cover Texts. A copy of the license is included at
--.. Documentation/media/uapi/fdl-appendix.rst.
--..
--.. TODO: replace it to GFDL-1.1-or-later WITH no-invariant-sections
+diff --git a/Documentation/media/uapi/mediactl/request-api.rst b/Documentation/media/uapi/mediactl/request-api.rst
+index 4b25ad03f45a..1ad631e549fe 100644
+--- a/Documentation/media/uapi/mediactl/request-api.rst
++++ b/Documentation/media/uapi/mediactl/request-api.rst
+@@ -91,7 +91,7 @@ A request must contain at least one buffer, otherwise ``ENOENT`` is returned.
+ A queued request cannot be modified anymore.
+ 
+ .. caution::
+-   For :ref:`memory-to-memory devices <codec>` you can use requests only for
++   For :ref:`memory-to-memory devices <mem2mem>` you can use requests only for
+    output buffers, not for capture buffers. Attempting to add a capture buffer
+    to a request will result in an ``EACCES`` error.
+ 
+@@ -152,7 +152,7 @@ if it had just been allocated.
+ Example for a Codec Device
+ --------------------------
+ 
+-For use-cases such as :ref:`codecs <codec>`, the request API can be used
++For use-cases such as :ref:`codecs <mem2mem>`, the request API can be used
+ to associate specific controls to
+ be applied by the driver for the OUTPUT buffer, allowing user-space
+ to queue many such buffers in advance. It can also take advantage of requests'
+diff --git a/Documentation/media/uapi/v4l/dev-codec.rst b/Documentation/media/uapi/v4l/dev-mem2mem.rst
+similarity index 79%
+rename from Documentation/media/uapi/v4l/dev-codec.rst
+rename to Documentation/media/uapi/v4l/dev-mem2mem.rst
+index b5e017c17834..69efcc747588 100644
+--- a/Documentation/media/uapi/v4l/dev-codec.rst
++++ b/Documentation/media/uapi/v4l/dev-mem2mem.rst
+@@ -7,11 +7,11 @@
+ ..
+ .. TODO: replace it to GFDL-1.1-or-later WITH no-invariant-sections
+ 
+-.. _codec:
++.. _mem2mem:
+ 
+-***************
+-Codec Interface
+-***************
++********************************
++Video Memory To Memory Interface
++********************************
+ 
+ A V4L2 codec can compress, decompress, transform, or otherwise convert
+ video data from one format into another format, in memory. Typically
+@@ -25,19 +25,14 @@ memory) stream I/O. An application will have to setup the stream I/O for
+ both sides and finally call :ref:`VIDIOC_STREAMON <VIDIOC_STREAMON>`
+ for both capture and output to start the codec.
+ 
+-Video compression codecs use the MPEG controls to setup their codec
+-parameters
 -
--.. _ttx:
+-.. note::
 -
--******************
--Teletext Interface
--******************
--
--This interface was aimed at devices receiving and demodulating Teletext
--data [:ref:`ets300706`, :ref:`itu653`], evaluating the Teletext
--packages and storing formatted pages in cache memory. Such devices are
--usually implemented as microcontrollers with serial interface
--(I\ :sup:`2`\ C) and could be found on old TV cards, dedicated Teletext
--decoding cards and home-brew devices connected to the PC parallel port.
--
--The Teletext API was designed by Martin Buck. It was defined in the
--kernel header file ``linux/videotext.h``, the specification is available
--from
--`ftp://ftp.gwdg.de/pub/linux/misc/videotext/ <ftp://ftp.gwdg.de/pub/linux/misc/videotext/>`__.
--(Videotext is the name of the German public television Teletext
--service.)
--
--Eventually the Teletext API was integrated into the V4L API with
--character device file names ``/dev/vtx0`` to ``/dev/vtx31``, device
--major number 81, minor numbers 192 to 223.
--
--However, teletext decoders were quickly replaced by more generic VBI
--demodulators and those dedicated teletext decoders no longer exist. For
--many years the vtx devices were still around, even though nobody used
--them. So the decision was made to finally remove support for the
--Teletext API in kernel 2.6.37.
--
--Modern devices all use the :ref:`raw <raw-vbi>` or
--:ref:`sliced` VBI API.
+-   The MPEG controls actually support many more codecs than
+-   just MPEG. See :ref:`mpeg-controls`.
++Video compression codecs use codec controls to setup their codec parameters.
++See :ref:`mpeg-controls`.
+ 
+ Memory-to-memory devices function as a shared resource: you can
+ open the video node multiple times, each application setting up their
+-own codec properties that are local to the file handle, and each can use
++own properties that are local to the file handle, and each can use
+ it independently from the others. The driver will arbitrate access to
+-the codec and reprogram it whenever another file handler gets access.
++the hardware and reprogram it whenever another file handler gets access.
+ This is different from the usual video node behavior where the video
+ properties are global to the device (i.e. changing something through one
+ file handle is visible through another file handle).
 diff --git a/Documentation/media/uapi/v4l/devices.rst b/Documentation/media/uapi/v4l/devices.rst
-index c959c0443c2f..d6fcf3db5909 100644
+index d6fcf3db5909..07f8d047662b 100644
 --- a/Documentation/media/uapi/v4l/devices.rst
 +++ b/Documentation/media/uapi/v4l/devices.rst
-@@ -24,7 +24,6 @@ Interfaces
-     dev-codec
+@@ -21,7 +21,7 @@ Interfaces
+     dev-overlay
+     dev-output
+     dev-osd
+-    dev-codec
++    dev-mem2mem
      dev-raw-vbi
      dev-sliced-vbi
--    dev-teletext
      dev-radio
-     dev-rds
-     dev-sdr
+diff --git a/Documentation/media/uapi/v4l/pixfmt-compressed.rst b/Documentation/media/uapi/v4l/pixfmt-compressed.rst
+index e4c5e456df59..2675bef3eefe 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-compressed.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-compressed.rst
+@@ -73,7 +73,7 @@ Compressed Formats
+       - 'MG2S'
+       - MPEG-2 parsed slice data, as extracted from the MPEG-2 bitstream.
+ 	This format is adapted for stateless video decoders that implement a
+-	MPEG-2 pipeline (using the :ref:`codec` and :ref:`media-request-api`).
++	MPEG-2 pipeline (using the :ref:`mem2mem` and :ref:`media-request-api`).
+ 	Metadata associated with the frame to decode is required to be passed
+ 	through the ``V4L2_CID_MPEG_VIDEO_MPEG2_SLICE_PARAMS`` control and
+ 	quantization matrices can optionally be specified through the
+diff --git a/Documentation/media/uapi/v4l/vidioc-qbuf.rst b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
+index 3259168a7358..c138d149faea 100644
+--- a/Documentation/media/uapi/v4l/vidioc-qbuf.rst
++++ b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
+@@ -123,7 +123,7 @@ then ``EINVAL`` will be returned.
+    :ref:`VIDIOC_STREAMOFF <VIDIOC_STREAMON>` or calling :ref:`VIDIOC_REQBUFS`
+    the check for this will be reset.
+ 
+-   For :ref:`memory-to-memory devices <codec>` you can specify the
++   For :ref:`memory-to-memory devices <mem2mem>` you can specify the
+    ``request_fd`` only for output buffers, not for capture buffers. Attempting
+    to specify this for a capture buffer will result in an ``EACCES`` error.
+ 
 -- 
 2.20.1
 
