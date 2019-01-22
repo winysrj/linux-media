@@ -2,126 +2,139 @@ Return-Path: <SRS0=JQ9q=P6=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS autolearn=ham
+X-Spam-Status: No, score=-2.2 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_PASS autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0EEEFC282C4
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F3925C282C3
 	for <linux-media@archiver.kernel.org>; Tue, 22 Jan 2019 13:38:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DB95221721
-	for <linux-media@archiver.kernel.org>; Tue, 22 Jan 2019 13:38:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C2526217D8
+	for <linux-media@archiver.kernel.org>; Tue, 22 Jan 2019 13:38:12 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1548164292;
+	bh=jodr6i6s3jvg2nhf0kijRpn+bTr+EGnPky61yayyNdU=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:List-ID:From;
+	b=AT8kLwq9nPzu5uda1GTQEDDP4C33A/aJE0UeEpjk6zS/c4Ppxo+SUZsy0EzMgnMa9
+	 hTXySUSfgkAqbu1e4+Mz6BlMezZDvmFzQLcnInT75puiprqUyb0VsFfkl1gehxrbLu
+	 6MGx7AUOZVyn15TAqWzwiNPT7m16Nky8TZ8zmQaI=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728567AbfAVNiL (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 22 Jan 2019 08:38:11 -0500
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:52301 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728564AbfAVNiK (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 Jan 2019 08:38:10 -0500
-Received: from litschi.hi.pengutronix.de ([2001:67c:670:100:feaa:14ff:fe6a:8db5])
-        by metis.ext.pengutronix.de with esmtps (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
-        (Exim 4.89)
-        (envelope-from <m.tretter@pengutronix.de>)
-        id 1glwFk-0006bs-0Z; Tue, 22 Jan 2019 14:38:08 +0100
-Date:   Tue, 22 Jan 2019 14:38:06 +0100
-From:   Michael Tretter <m.tretter@pengutronix.de>
-To:     Rob Herring <robh@kernel.org>
-Cc:     linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        kernel@pengutronix.de, mchehab@kernel.org, tfiga@chromium.org
-Subject: Re: [PATCH v2 1/3] media: dt-bindings: media: document allegro-dvt
- bindings
-Message-ID: <20190122143806.1c93e613@litschi.hi.pengutronix.de>
-In-Reply-To: <20190121171348.GA4532@bogus>
-References: <20190118133716.29288-1-m.tretter@pengutronix.de>
-        <20190118133716.29288-2-m.tretter@pengutronix.de>
-        <20190121171348.GA4532@bogus>
-Organization: Pengutronix
-X-Mailer: Claws Mail 3.14.1 (GTK+ 2.24.31; x86_64-pc-linux-gnu)
+        id S1728534AbfAVNiG (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 22 Jan 2019 08:38:06 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60356 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728305AbfAVNiF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 22 Jan 2019 08:38:05 -0500
+Received: from mail-qt1-f180.google.com (mail-qt1-f180.google.com [209.85.160.180])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id ED269217F9;
+        Tue, 22 Jan 2019 13:38:03 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1548164284;
+        bh=jodr6i6s3jvg2nhf0kijRpn+bTr+EGnPky61yayyNdU=;
+        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+        b=p6P9jCixubpZqW9mQ9FjNqhZFrMnRzLp5ynzREMTh8/uSUtAePuOsv8uKy5l+Sgo/
+         LELpzJWUSSF5w6N2yFOUyfUkzVDkL/zWL9sP/vSlMZap+3XllIO+aUhtYB2hmyrl12
+         etYfCwZuEHYfaVsJfqQ11c1/w//DdrHkW3AiyT10=
+Received: by mail-qt1-f180.google.com with SMTP id l11so27627609qtp.0;
+        Tue, 22 Jan 2019 05:38:03 -0800 (PST)
+X-Gm-Message-State: AJcUukcmVoFoUTvwPlbcjmNbuaAEL93QjflSQjIXStWBRFGqICUx9GxM
+        v/5QuE4JaxVYfVbgC9HlcZEUXSt5+e5M0WN1oQ==
+X-Google-Smtp-Source: ALg8bN4etqq10Dl4Ve0aHvgW7iUFq/uRu0ytKakxodDc1gBLnyubvCHhqLHe7MWZZ23Nm1vbcopo7UiQdvK1GbtoFO8=
+X-Received: by 2002:ac8:1712:: with SMTP id w18mr30740377qtj.76.1548164283123;
+ Tue, 22 Jan 2019 05:38:03 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-X-SA-Exim-Connect-IP: 2001:67c:670:100:feaa:14ff:fe6a:8db5
-X-SA-Exim-Mail-From: m.tretter@pengutronix.de
-X-SA-Exim-Scanned: No (on metis.ext.pengutronix.de); SAEximRunCond expanded to false
-X-PTX-Original-Recipient: linux-media@vger.kernel.org
+References: <20190111173015.12119-1-jernej.skrabec@siol.net>
+ <20190111173015.12119-2-jernej.skrabec@siol.net> <CAGb2v66DiqK9sL-hQev4Wy08d9T7f1Yc2DFWJ0gYOnqChJyBRw@mail.gmail.com>
+ <20190121095014.b6iq5dubfi7x2pi4@flea> <CAGb2v66d0wM8Yt2uS4MMhU6PP02h8CKwKjinasO6jtZ4ue1CAQ@mail.gmail.com>
+ <20190122001917.GA31407@bogus> <CAGb2v67YsevDvjvTSh67wJNSJSUBuZ613hQWyorEiSzCUqjjkQ@mail.gmail.com>
+In-Reply-To: <CAGb2v67YsevDvjvTSh67wJNSJSUBuZ613hQWyorEiSzCUqjjkQ@mail.gmail.com>
+From:   Rob Herring <robh@kernel.org>
+Date:   Tue, 22 Jan 2019 07:37:51 -0600
+X-Gmail-Original-Message-ID: <CAL_Jsq+u2PdLK3YaYMERHndNpN_PprksPF9gVF+V76c343yrMg@mail.gmail.com>
+Message-ID: <CAL_Jsq+u2PdLK3YaYMERHndNpN_PprksPF9gVF+V76c343yrMg@mail.gmail.com>
+Subject: Re: [PATCH 1/3] media: dt: bindings: sunxi-ir: Add A64 compatible
+To:     Chen-Yu Tsai <wens@csie.org>
+Cc:     Maxime Ripard <maxime.ripard@bootlin.com>,
+        Jernej Skrabec <jernej.skrabec@siol.net>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        devicetree <devicetree@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        linux-sunxi <linux-sunxi@googlegroups.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Mon, 21 Jan 2019 11:13:48 -0600, Rob Herring wrote:
-> On Fri, Jan 18, 2019 at 02:37:14PM +0100, Michael Tretter wrote:
-> > Add device-tree bindings for the Allegro DVT video IP core found on the
-> > Xilinx ZynqMP EV family.
-> > 
-> > Signed-off-by: Michael Tretter <m.tretter@pengutronix.de>
-> > ---
-> > Changes since v1:
-> > none
-> > 
-> > ---
-> >  .../devicetree/bindings/media/allegro.txt     | 35 +++++++++++++++++++
-> >  1 file changed, 35 insertions(+)
-> >  create mode 100644 Documentation/devicetree/bindings/media/allegro.txt
-> > 
-> > diff --git a/Documentation/devicetree/bindings/media/allegro.txt b/Documentation/devicetree/bindings/media/allegro.txt
-> > new file mode 100644
-> > index 000000000000..765f4b0c1a57
-> > --- /dev/null
-> > +++ b/Documentation/devicetree/bindings/media/allegro.txt
-> > @@ -0,0 +1,35 @@
-> > +Device-tree bindings for the Allegro DVT video IP codecs present in the Xilinx
-> > +ZynqMP SoC. The IP core may either be a H.264/H.265 encoder or H.264/H.265
-> > +decoder ip core.
-> > +
-> > +Each actual codec engines is controlled by a microcontroller (MCU). Host
-> > +software uses a provided mailbox interface to communicate with the MCU. The
-> > +MCU share an interrupt.
-> > +
-> > +Required properties:
-> > +  - compatible: value should be one of the following
-> > +    "allegro,al5e-1.1", "allegro,al5e": encoder IP core
-> > +    "allegro,al5d-1.1", "allegro,al5d": decoder IP core
-> > +  - reg: base and length of the memory mapped register region and base and
-> > +    length of the memory mapped sram
-> > +  - reg-names: must include "regs" and "sram"
-> > +  - interrupts: shared interrupt from the MCUs to the processing system
-> > +  - interrupt-names: "vcu_host_interrupt"  
-> 
-> No point in having *-names when there is only one entry.
-> 
-> > +
-> > +Example:
-> > +	al5e: al5e@a0009000 {  
-> 
-> video-codec as suggested.
-> 
-> > +		compatible = "allegro,al5e";  
-> 
-> Doesn't match the documentation above.
+On Mon, Jan 21, 2019 at 8:16 PM Chen-Yu Tsai <wens@csie.org> wrote:
+>
+> On Tue, Jan 22, 2019 at 8:19 AM Rob Herring <robh@kernel.org> wrote:
+> >
+> > On Mon, Jan 21, 2019 at 05:57:57PM +0800, Chen-Yu Tsai wrote:
+> > > On Mon, Jan 21, 2019 at 5:50 PM Maxime Ripard <maxime.ripard@bootlin.com> wrote:
+> > > >
+> > > > Hi,
+> > > >
+> > > > I'm a bit late to the party, sorry for that.
+> > > >
+> > > > On Sat, Jan 12, 2019 at 09:56:11AM +0800, Chen-Yu Tsai wrote:
+> > > > > On Sat, Jan 12, 2019 at 1:30 AM Jernej Skrabec <jernej.skrabec@siol.net> wrote:
+> > > > > >
+> > > > > > A64 IR is compatible with A13, so add A64 compatible with A13 as a
+> > > > > > fallback.
+> > > > >
+> > > > > We ask people to add the SoC-specific compatible as a contigency,
+> > > > > in case things turn out to be not so "compatible".
+> > > > >
+> > > > > To be consistent with all the other SoCs and other peripherals,
+> > > > > unless you already spotted a "compatible" difference in the
+> > > > > hardware, i.e. the hardware isn't completely the same, this
+> > > > > patch isn't needed. On the other hand, if you did, please mention
+> > > > > the differences in the commit log.
+> > > >
+> > > > Even if we don't spot things, since we have the stable DT now, if we
+> > > > ever had that compatible in the DT from day 1, it's much easier to
+> > > > deal with.
+> > > >
+> > > > I'd really like to have that pattern for all the IPs even if we didn't
+> > > > spot any issue, since we can't really say that the datasheet are
+> > > > complete, and one can always make a mistake and overlook something.
+> > > >
+> > > > I'm fine with this version, and can apply it as is if we all agree.
+> > >
+> > > I'm OK with having the fallback compatible. I'm just pointing out
+> > > that there are and will be a whole bunch of them, and we don't need
+> > > to document all of them unless we are actually doing something to
+> > > support them.
+> >
+> > Yes, you do. Otherwise, how will we validate what is and isn't a valid
+> > set of compatible strings? It's not required yet, but bindings are
+> > moving to json-schema.
+>
+> Ideally, if we knew which IP blocks in each SoC were compatible with
+> each other, we wouldn't need "per-SoC" compatible strings for each
+> block. However in reality this doesn't happen, due to a combination
+> of lack of time, lack of / uncertainty of documentation, and lack of
+> hardware for testing by the contributors.
+>
+> The per-SoC compatible we ask people to add are a contigency plan,
+> for when things don't actually work, and we need some way to support
+> that specific piece of hardware on old DTs.
 
-Where is the mismatch? "allegro,al5e" is one of the allowed compatible
-strings that are specified above.
+You are right up to here.
 
-Michael
+> At which point we will
+> add that SoC-specific compatible as a new compatible string to the
+> bindings. But not before.
 
-> 
-> > +		reg = <0 0xa0009000 0 0x1000>,
-> > +		      <0 0xa0000000 0 0x8000>;
-> > +		reg-names = "regs", "sram";
-> > +		interrupt-names = "vcu_host_interrupt";
-> > +		interrupts = <0 96 4>;
-> > +	};
-> > +	al5d: al5d@a0029000 {
-> > +		compatible = "allegro,al5d";
-> > +		reg = <0 0xa0029000 0 0x1000>,
-> > +		      <0 0xa0020000 0 0x8000>;
-> > +		reg-names = "regs", "sram";
-> > +		interrupt-names = "vcu_host_interrupt";
-> > +		interrupts = <0 96 4>;
-> > +	};
-> > -- 
-> > 2.20.1
-> >   
-> 
+No, the point SoC-specific compatibles is they are already present in
+the DT and you only have to update the OS to fix issues. The SoC
+specific compatible has to be documented when first used in dts files,
+not when the OS uses them. That is the rule.
+
+Rob
