@@ -6,307 +6,149 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_NEOMUTT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F794C41518
-	for <linux-media@archiver.kernel.org>; Tue, 22 Jan 2019 16:16:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C856C282C5
+	for <linux-media@archiver.kernel.org>; Tue, 22 Jan 2019 16:21:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 459BC217D4
-	for <linux-media@archiver.kernel.org>; Tue, 22 Jan 2019 16:16:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D745C20870
+	for <linux-media@archiver.kernel.org>; Tue, 22 Jan 2019 16:21:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729096AbfAVQQt (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 22 Jan 2019 11:16:49 -0500
-Received: from mga01.intel.com ([192.55.52.88]:16996 "EHLO mga01.intel.com"
+        id S1729116AbfAVQVd (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 22 Jan 2019 11:21:33 -0500
+Received: from mga12.intel.com ([192.55.52.136]:45419 "EHLO mga12.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729049AbfAVQQt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 Jan 2019 11:16:49 -0500
+        id S1728669AbfAVQVc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 22 Jan 2019 11:21:32 -0500
 X-Amp-Result: UNKNOWN
 X-Amp-Original-Verdict: FILE UNKNOWN
 X-Amp-File-Uploaded: False
-Received: from orsmga002.jf.intel.com ([10.7.209.21])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 22 Jan 2019 08:16:46 -0800
+Received: from fmsmga007.fm.intel.com ([10.253.24.52])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 22 Jan 2019 08:21:31 -0800
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.56,507,1539673200"; 
-   d="scan'208";a="127969890"
+   d="scan'208";a="116520629"
 Received: from paasikivi.fi.intel.com ([10.237.72.42])
-  by orsmga002.jf.intel.com with ESMTP; 22 Jan 2019 08:16:44 -0800
+  by fmsmga007.fm.intel.com with ESMTP; 22 Jan 2019 08:21:30 -0800
 Received: by paasikivi.fi.intel.com (Postfix, from userid 1000)
-        id 2E50F205C8; Tue, 22 Jan 2019 18:16:43 +0200 (EET)
-Date:   Tue, 22 Jan 2019 18:16:43 +0200
+        id 87F07205C8; Tue, 22 Jan 2019 18:21:29 +0200 (EET)
+Date:   Tue, 22 Jan 2019 18:21:29 +0200
 From:   Sakari Ailus <sakari.ailus@linux.intel.com>
 To:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Cc:     Niklas =?iso-8859-1?Q?S=F6derlund?= 
         <niklas.soderlund+renesas@ragnatech.se>,
         Benoit Parrot <bparrot@ti.com>, linux-media@vger.kernel.org,
         linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH v2 06/30] media: entity: Use pad as the starting point
- for a pipeline
-Message-ID: <20190122161642.ocpuuqp4cwq46wf2@paasikivi.fi.intel.com>
+Subject: Re: [PATCH v2 12/30] media: entity: Add an iterator helper for
+ connected pads
+Message-ID: <20190122162129.abwrqk3eho5d3une@paasikivi.fi.intel.com>
 References: <20181101233144.31507-1-niklas.soderlund+renesas@ragnatech.se>
- <20181101233144.31507-7-niklas.soderlund+renesas@ragnatech.se>
- <20190115225420.GG28397@pendragon.ideasonboard.com>
- <20190122153134.qmjqxgrptuvmhhhz@paasikivi.fi.intel.com>
- <20190122153715.GC11461@pendragon.ideasonboard.com>
+ <20181101233144.31507-13-niklas.soderlund+renesas@ragnatech.se>
+ <20190115232405.GA31088@pendragon.ideasonboard.com>
+ <20190122153655.q3p3k2zpxtoug4qe@paasikivi.fi.intel.com>
+ <20190122153848.GD11461@pendragon.ideasonboard.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20190122153715.GC11461@pendragon.ideasonboard.com>
+In-Reply-To: <20190122153848.GD11461@pendragon.ideasonboard.com>
 User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Tue, Jan 22, 2019 at 05:37:15PM +0200, Laurent Pinchart wrote:
+On Tue, Jan 22, 2019 at 05:38:48PM +0200, Laurent Pinchart wrote:
 > Hi Sakari,
 > 
-> On Tue, Jan 22, 2019 at 05:31:34PM +0200, Sakari Ailus wrote:
-> > On Wed, Jan 16, 2019 at 12:54:20AM +0200, Laurent Pinchart wrote:
-> > > On Fri, Nov 02, 2018 at 12:31:20AM +0100, Niklas Söderlund wrote:
+> On Tue, Jan 22, 2019 at 05:36:55PM +0200, Sakari Ailus wrote:
+> > On Wed, Jan 16, 2019 at 01:24:05AM +0200, Laurent Pinchart wrote:
+> > > On Fri, Nov 02, 2018 at 12:31:26AM +0100, Niklas Söderlund wrote:
 > > >> From: Sakari Ailus <sakari.ailus@linux.intel.com>
 > > >> 
-> > >> The pipeline will be moved from the entity to the pads; reflect this in
-> > >> the media pipeline function API.
-> > > 
-> > > Will be moved, or has been moved ?
-> > 
-> > Will be, as it's not yet in this patch.
-> 
-> [PATCH v2 05/30] media: entity: Move the pipeline from entity to pads
-
-Oh, I thought it was the other way. Well, "has been" then? :-)
-
-> 
+> > >> Add a helper macro for iterating over pads that are connected through
+> > >> enabled routes. This can be used to find all the connected pads within an
+> > >> entity, for instance starting from the pad which has been obtained during
+> > >> the graph walk.
+> > >> 
 > > >> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 > > >> Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 > > >> ---
-> > >>  Documentation/media/kapi/mc-core.rst          |  6 ++--
-> > >>  drivers/media/media-entity.c                  | 25 +++++++-------
-> > >>  drivers/media/pci/intel/ipu3/ipu3-cio2.c      |  6 ++--
-> > >>  .../media/platform/exynos4-is/fimc-capture.c  |  8 ++---
-> > >>  .../platform/exynos4-is/fimc-isp-video.c      |  8 ++---
-> > >>  drivers/media/platform/exynos4-is/fimc-lite.c |  8 ++---
-> > >>  drivers/media/platform/omap3isp/ispvideo.c    |  6 ++--
-> > >>  .../media/platform/qcom/camss/camss-video.c   |  6 ++--
-> > >>  drivers/media/platform/rcar-vin/rcar-dma.c    |  6 ++--
-> > >>  .../media/platform/s3c-camif/camif-capture.c  |  6 ++--
-> > >>  drivers/media/platform/vimc/vimc-capture.c    |  6 ++--
-> > >>  drivers/media/platform/vsp1/vsp1_video.c      |  6 ++--
-> > >>  drivers/media/platform/xilinx/xilinx-dma.c    |  6 ++--
-> > >>  drivers/media/usb/au0828/au0828-core.c        |  4 +--
-> > >>  drivers/staging/media/imx/imx-media-utils.c   |  6 ++--
-> > >>  drivers/staging/media/omap4iss/iss_video.c    |  6 ++--
-> > >>  include/media/media-entity.h                  | 33 ++++++++++---------
-> > >>  17 files changed, 76 insertions(+), 76 deletions(-)
+> > >>  include/media/media-entity.h | 27 +++++++++++++++++++++++++++
+> > >>  1 file changed, 27 insertions(+)
 > > >> 
-> > >> diff --git a/Documentation/media/kapi/mc-core.rst b/Documentation/media/kapi/mc-core.rst
-> > >> index 849b87439b7a9772..ede7e946f6a82ac0 100644
-> > >> --- a/Documentation/media/kapi/mc-core.rst
-> > >> +++ b/Documentation/media/kapi/mc-core.rst
-> > >> @@ -211,11 +211,11 @@ When starting streaming, drivers must notify all entities in the pipeline to
-> > >>  prevent link states from being modified during streaming by calling
-> > >>  :c:func:`media_pipeline_start()`.
-> > >>  
-> > >> -The function will mark all entities connected to the given entity through
-> > >> -enabled links, either directly or indirectly, as streaming.
-> > >> +The function will mark all entities connected to the given pad through
-> > >> +enabled routes and links, either directly or indirectly, as streaming.
-> > > 
-> > > That's not really correct, it doesn't mark entities, but pads. I think
-> > > this section of the documentation needs to be rewritten based on the new
-> > > model of an entity being part of multiple pipelines. s/entity/pad/ isn't
-> > > enough, there's a whole new semantics.
-> > 
-> > I'd say it's correct. Note that this function just beings the walk from a
-> > given pad, it doesn't make other changes --- there are further patches
-> > thought that do.
-> 
-> OK, it might be a change in progress, but the documentation still has to
-> be rewritten to explain the new model. We need at least one or two new
-> paragraphs in addition to the s/entity/pad/.
-
-There are several patches that would need to change the documentation "a
-little". I wonder if it'd be better to just have one patch in the end
-updating the documentation.
-
-> 
-> > >>  The struct :c:type:`media_pipeline` instance pointed to by
-> > >> -the pipe argument will be stored in every entity in the pipeline.
-> > >> +the pipe argument will be stored in every pad in the pipeline.
-> > >>  Drivers should embed the struct :c:type:`media_pipeline`
-> > >>  in higher-level pipeline structures and can then access the
-> > >>  pipeline through the struct :c:type:`media_entity`
-> > >> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> > >> index 13260149c4dfc90c..f2fa0b7826dbc2f3 100644
-> > >> --- a/drivers/media/media-entity.c
-> > >> +++ b/drivers/media/media-entity.c
-> > >> @@ -411,12 +411,11 @@ EXPORT_SYMBOL_GPL(media_entity_get_fwnode_pad);
-> > >>   * Pipeline management
-> > >>   */
-> > >>  
-> > >> -__must_check int __media_pipeline_start(struct media_entity *entity,
-> > >> +__must_check int __media_pipeline_start(struct media_pad *pad,
-> > >>  					struct media_pipeline *pipe)
-> > >>  {
-> > >> -	struct media_device *mdev = entity->graph_obj.mdev;
-> > >> +	struct media_device *mdev = pad->graph_obj.mdev;
-> > >>  	struct media_graph *graph = &pipe->graph;
-> > >> -	struct media_pad *pad = entity->pads;
-> > >>  	struct media_pad *pad_err = pad;
-> > >>  	struct media_link *link;
-> > >>  	int ret = 0;
-> > >> @@ -549,24 +548,23 @@ __must_check int __media_pipeline_start(struct media_entity *entity,
-> > >>  }
-> > >>  EXPORT_SYMBOL_GPL(__media_pipeline_start);
-> > >>  
-> > >> -__must_check int media_pipeline_start(struct media_entity *entity,
-> > >> +__must_check int media_pipeline_start(struct media_pad *pad,
-> > >>  				      struct media_pipeline *pipe)
-> > >>  {
-> > >> -	struct media_device *mdev = entity->graph_obj.mdev;
-> > >> +	struct media_device *mdev = pad->graph_obj.mdev;
-> > >>  	int ret;
-> > >>  
-> > >>  	mutex_lock(&mdev->graph_mutex);
-> > >> -	ret = __media_pipeline_start(entity, pipe);
-> > >> +	ret = __media_pipeline_start(pad, pipe);
-> > >>  	mutex_unlock(&mdev->graph_mutex);
-> > >>  	return ret;
-> > >>  }
-> > >>  EXPORT_SYMBOL_GPL(media_pipeline_start);
-> > >>  
-> > >> -void __media_pipeline_stop(struct media_entity *entity)
-> > >> +void __media_pipeline_stop(struct media_pad *pad)
-> > >>  {
-> > >> -	struct media_pipeline *pipe = entity->pads->pipe;
-> > >> +	struct media_pipeline *pipe = pad->pipe;
-> > >>  	struct media_graph *graph = &pipe->graph;
-> > >> -	struct media_pad *pad;
-> > >>  
-> > >>  	/*
-> > >>  	 * If the following check fails, the driver has performed an
-> > >> @@ -575,9 +573,10 @@ void __media_pipeline_stop(struct media_entity *entity)
-> > >>  	if (WARN_ON(!pipe))
-> > >>  		return;
-> > >>  
-> > >> -	media_graph_walk_start(graph, entity->pads);
-> > >> +	media_graph_walk_start(graph, pad);
-> > >>  
-> > >>  	while ((pad = media_graph_walk_next(graph))) {
-> > >> +		struct media_entity *entity = pad->entity;
-> > > 
-> > > It looks like this line is a bug fix for a previous patch in the series.
-> > 
-> > Yes, so it seems to be. The previous patch appears to remove it.
-> > 
-> > >>  		unsigned int i;
-> > >>  
-> > >>  		for (i = 0; i < entity->num_pads; i++) {
-> > >> @@ -598,12 +597,12 @@ void __media_pipeline_stop(struct media_entity *entity)
-> > >>  }
-> > >>  EXPORT_SYMBOL_GPL(__media_pipeline_stop);
-> > >>  
-> > >> -void media_pipeline_stop(struct media_entity *entity)
-> > >> +void media_pipeline_stop(struct media_pad *pad)
-> > >>  {
-> > >> -	struct media_device *mdev = entity->graph_obj.mdev;
-> > >> +	struct media_device *mdev = pad->graph_obj.mdev;
-> > >>  
-> > >>  	mutex_lock(&mdev->graph_mutex);
-> > >> -	__media_pipeline_stop(entity);
-> > >> +	__media_pipeline_stop(pad);
-> > >>  	mutex_unlock(&mdev->graph_mutex);
-> > >>  }
-> > >>  EXPORT_SYMBOL_GPL(media_pipeline_stop);
-> > > 
-> > > [snip]
-> > > 
 > > >> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> > >> index ca0b79288ea7fd11..8378f700389635ea 100644
+> > >> index 9540d2af80f19805..4bb1b568e1ac4795 100644
 > > >> --- a/include/media/media-entity.h
 > > >> +++ b/include/media/media-entity.h
-> > >> @@ -965,53 +965,54 @@ struct media_pad *media_graph_walk_next(struct media_graph *graph);
+> > >> @@ -936,6 +936,33 @@ __must_check int media_graph_walk_init(
+> > >>  bool media_entity_has_route(struct media_entity *entity, unsigned int pad0,
+> > >>  			    unsigned int pad1);
 > > >>  
-> > >>  /**
-> > >>   * media_pipeline_start - Mark a pipeline as streaming
-> > >> - * @entity: Starting entity
-> > >> - * @pipe: Media pipeline to be assigned to all entities in the pipeline.
-> > >> + * @pad: Starting pad
-> > >> + * @pipe: Media pipeline to be assigned to all pads in the pipeline.
-> > >>   *
-> > >> - * Mark all entities connected to a given entity through enabled links, either
-> > >> - * directly or indirectly, as streaming. The given pipeline object is assigned
-> > >> - * to every entity in the pipeline and stored in the media_entity pipe field.
-> > >> + * Mark all pads connected to a given pad through enabled
-> > >> + * routes or links, either directly or indirectly, as streaming. The
-> > >> + * given pipeline object is assigned to every pad in the pipeline
-> > >> + * and stored in the media_pad pipe field.
+> > >> +static inline struct media_pad *__media_entity_for_routed_pads_next(
+> > >> +	struct media_pad *start, struct media_pad *iter)
+> > >> +{
+> > >> +	struct media_entity *entity = start->entity;
+> > >> +
+> > >> +	while (iter < &entity->pads[entity->num_pads] &&
+> > >> +	       !media_entity_has_route(entity, start->index, iter->index))
+> > >> +		iter++;
+> > >> +
+> > >> +	return iter;
 > > > 
-> > > Reflowing text to the 80 columns limit ?
+> > > Returning a pointer past the end of the array is asking for trouble. I
+> > > think we should return NULL in that case, and adapt the check in
+> > > media_entity_for_routed_pads() accordingly.
 > > 
-> > Agreed.
+> > Well, that pointer never gets used, in a similar manner than simply looping
+> > over an array. I wouldn't change that --- this function is also integrally
+> > a part of media_entity_for_each_routed_pad() implementation below.
+> 
+> I know it doesn't get used, but it's still asking for trouble, it will
+> be easy to use it by mistake. Returning NULL would be clearer.
+
+Hmph. Well, that's a fair point, too... The caller must be also changed to
+cope with NULL then. It'd be nice to see the end result of that for it's
+already fairly complex.
+
+> 
+> > >> +}
+> > >> +
+> > >> +/**
+> > >> + * media_entity_for_routed_pads - Iterate over entity pads connected by routes
+> > >> + *
+> > >> + * @start: The stating pad
+> > > 
+> > > s/stating/starting/
+> > > 
+> > >> + * @iter: The iterator pad
+> > >> + *
+> > >> + * Iterate over all pads connected through routes from a given pad
+> > >> + * within an entity. The iteration will include the starting pad itself.
+> > >> + */
+> > >> +#define media_entity_for_routed_pads(start, iter)			\
+> > > 
+> > > Maybe media_entity_for_each_routed_pad() ? Or just
 > > 
-> > >>   *
-> > >>   * Calls to this function can be nested, in which case the same number of
-> > >>   * media_pipeline_stop() calls will be required to stop streaming. The
-> > >>   * pipeline pointer must be identical for all nested calls to
-> > >>   * media_pipeline_start().
-> > >>   */
-> > >> -__must_check int media_pipeline_start(struct media_entity *entity,
-> > >> +__must_check int media_pipeline_start(struct media_pad *pad,
-> > >>  				      struct media_pipeline *pipe);
-> > >>  /**
-> > >>   * __media_pipeline_start - Mark a pipeline as streaming
-> > >>   *
-> > >> - * @entity: Starting entity
-> > >> - * @pipe: Media pipeline to be assigned to all entities in the pipeline.
-> > >> + * @pad: Starting pad
-> > >> + * @pipe: Media pipeline to be assigned to all pads in the pipeline.
-> > >>   *
-> > >>   * ..note:: This is the non-locking version of media_pipeline_start()
-> > >>   */
-> > >> -__must_check int __media_pipeline_start(struct media_entity *entity,
-> > >> +__must_check int __media_pipeline_start(struct media_pad *pad,
-> > >>  					struct media_pipeline *pipe);
-> > >>  
-> > >>  /**
-> > >>   * media_pipeline_stop - Mark a pipeline as not streaming
-> > >> - * @entity: Starting entity
-> > >> + * @pad: Starting pad
-> > >>   *
-> > >> - * Mark all entities connected to a given entity through enabled links, either
-> > >> - * directly or indirectly, as not streaming. The media_entity pipe field is
-> > >> - * reset to %NULL.
-> > >> + * Mark all pads connected to a given pad through enabled routes or
-> > >> + * links, either directly or indirectly, as not streaming. The
-> > >> + * media_pad pipe field is reset to %NULL.
+> > I'd prefer this one: we have media_entity_ prefix for pretty much
+> > everything that handles entities.
+> 
+> It's a bit long, but OK.
+> 
+> > > for_each_entity_routed_pad() ?
 > > > 
-> > > Ditto.
+> > >> +	for (iter = __media_entity_for_routed_pads_next(		\
 > > > 
-> > > With the above fixed,
+> > > And how about __media_entity_next_routed_pad() ?
+> > 
+> > Yes.
+> > 
 > > > 
-> > > Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > > 
-> > >>   *
-> > >>   * If multiple calls to media_pipeline_start() have been made, the same
-> > >>   * number of calls to this function are required to mark the pipeline as not
-> > >>   * streaming.
-> > >>   */
-> > >> -void media_pipeline_stop(struct media_entity *entity);
-> > >> +void media_pipeline_stop(struct media_pad *pad);
-> > >>  
+> > >> +		     start, (start)->entity->pads);			\
+> > >> +	     iter < &(start)->entity->pads[(start)->entity->num_pads];	\
+> > >> +	     iter = __media_entity_for_routed_pads_next(start, iter + 1))
+> > >> +
 > > >>  /**
-> > >>   * __media_pipeline_stop - Mark a pipeline as not streaming
+> > >>   * media_graph_walk_cleanup - Release resources used by graph walk.
 > > >>   *
-> > >> - * @entity: Starting entity
-> > >> + * @pad: Starting pad
-> > >>   *
-> > >>   * .. note:: This is the non-locking version of media_pipeline_stop()
-> > >>   */
-> > >> -void __media_pipeline_stop(struct media_entity *entity);
-> > >> +void __media_pipeline_stop(struct media_pad *pad);
-> > >>  
-> > >>  /**
-> > >>   * media_devnode_create() - creates and initializes a device node interface
 > 
 > -- 
 > Regards,
