@@ -2,129 +2,438 @@ Return-Path: <SRS0=JQ9q=P6=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F00A5C282C4
-	for <linux-media@archiver.kernel.org>; Tue, 22 Jan 2019 08:19:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 99506C282C4
+	for <linux-media@archiver.kernel.org>; Tue, 22 Jan 2019 08:19:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B318020861
-	for <linux-media@archiver.kernel.org>; Tue, 22 Jan 2019 08:19:46 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="PngEKGY9"
+	by mail.kernel.org (Postfix) with ESMTP id 6682B20861
+	for <linux-media@archiver.kernel.org>; Tue, 22 Jan 2019 08:19:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727281AbfAVITp (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 22 Jan 2019 03:19:45 -0500
-Received: from mail-oi1-f171.google.com ([209.85.167.171]:44466 "EHLO
-        mail-oi1-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727253AbfAVITm (ORCPT
+        id S1727342AbfAVITt (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 22 Jan 2019 03:19:49 -0500
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:52181 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727253AbfAVITs (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 Jan 2019 03:19:42 -0500
-Received: by mail-oi1-f171.google.com with SMTP id m6so16686197oig.11
-        for <linux-media@vger.kernel.org>; Tue, 22 Jan 2019 00:19:41 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=flLZvB78DwXtSH1+mFWCoN/M9S4PPYEMAJHVIXh4lZw=;
-        b=PngEKGY9Fuc8eQS1fo9NdT1JWYZQX1VeUnkUe839bJLiXi+BUQSt2CTvjLxvRdSm5K
-         3wumfKoTamjm4XHYna0D/V3LfcKuxo5jafCc9mC7aX3TQoKz55BI1fY1LBdAPW7+viHl
-         c0beAc0BUTdRwR7ConsXITbZD6mJJBvNwwqLs=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=flLZvB78DwXtSH1+mFWCoN/M9S4PPYEMAJHVIXh4lZw=;
-        b=rl+dVUxhPZmVw58lUW4uP6gA14ag/iD/6goCnYgG4FkXl7VmWbKZOtxfDnYTc7xjxI
-         lSZ8F8Cxch6g+tfZBvnz6UnYg13oyRnP+1QHtD8GGqeAANA6GPYCN6oGE6xdSnAkzkK7
-         fogpE4JRS1n1z7M+vqxR2IXxAHjXxOdf70+fopA/NE3+Ixnss2QD+nwGcVFGcI6F5B0x
-         RHOVhIQbm9gy8mLMWJeM3cIeXlVBayhDN6AUR/tFHa06bKAlbk4ZLBYnxgqt//EqXxRO
-         weKYUeXDpqgAxMbssiP5kbfE29lrWV18wt7YJGIcxQorg5jR564OI6WA7J1foWqMD09d
-         GNRA==
-X-Gm-Message-State: AJcUukcklbnWH7Aa9eFqc/nFaLz7Ap3BgRPicBBALo4iwk674erS2elz
-        MGEscO4lraGe9vSMaSPnUqGCanfkPnQ1hA==
-X-Google-Smtp-Source: ALg8bN4RIA/+K933VXf6yZHWD+setTD552jz/Vri9ETMwV5Ppvj7dX4I+ID+wucoKWAthHClmpIdlQ==
-X-Received: by 2002:aca:5b88:: with SMTP id p130mr7348264oib.96.1548145181184;
-        Tue, 22 Jan 2019 00:19:41 -0800 (PST)
-Received: from mail-oi1-f169.google.com (mail-oi1-f169.google.com. [209.85.167.169])
-        by smtp.gmail.com with ESMTPSA id a15sm6669700otd.66.2019.01.22.00.19.40
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 22 Jan 2019 00:19:40 -0800 (PST)
-Received: by mail-oi1-f169.google.com with SMTP id m6so16686158oig.11
-        for <linux-media@vger.kernel.org>; Tue, 22 Jan 2019 00:19:40 -0800 (PST)
-X-Received: by 2002:a54:4486:: with SMTP id v6mr7923636oiv.233.1548145180322;
- Tue, 22 Jan 2019 00:19:40 -0800 (PST)
+        Tue, 22 Jan 2019 03:19:48 -0500
+Received: from [192.168.2.10] ([212.251.195.8])
+        by smtp-cloud7.xs4all.net with ESMTPA
+        id lrHagkoYIBDyIlrHegSql5; Tue, 22 Jan 2019 09:19:46 +0100
+Subject: Re: [v4l-utils PATCH 4/4] v4l2-ctl: Add support for META_OUTPUT
+ buffer type
+To:     Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+Cc:     rajmohan.mani@intel.com, yong.zhi@intel.com
+References: <20190114141308.29329-1-sakari.ailus@linux.intel.com>
+ <20190114141308.29329-5-sakari.ailus@linux.intel.com>
+From:   Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <4bb84871-1871-74a0-1093-8e460db46634@xs4all.nl>
+Date:   Tue, 22 Jan 2019 09:19:42 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:52.0) Gecko/20100101
+ Thunderbird/52.2.1
 MIME-Version: 1.0
-References: <20190122062616.164838-1-acourbot@chromium.org> <9c6ceddc-62c4-e4e7-9e27-b8213d8adb42@xs4all.nl>
-In-Reply-To: <9c6ceddc-62c4-e4e7-9e27-b8213d8adb42@xs4all.nl>
-From:   Alexandre Courbot <acourbot@chromium.org>
-Date:   Tue, 22 Jan 2019 17:19:28 +0900
-X-Gmail-Original-Message-ID: <CAPBb6MVSJ1jfGXknJMFFkYjCy1z_mJ_MLOKB=kW1tYg33cppmg@mail.gmail.com>
-Message-ID: <CAPBb6MVSJ1jfGXknJMFFkYjCy1z_mJ_MLOKB=kW1tYg33cppmg@mail.gmail.com>
-Subject: Re: [PATCH v2] media: docs-rst: Document m2m stateless video decoder interface
-To:     Hans Verkuil <hverkuil@xs4all.nl>
-Cc:     Tomasz Figa <tfiga@chromium.org>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Pawel Osciak <posciak@chromium.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <20190114141308.29329-5-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-CMAE-Envelope: MS4wfEPN8sVWAUG0U3CSnerJnvH4+1uXqVa3ZwXbX+7TrkM3X6naQQDkVUvozJWY3zv/P0874eICQMLLPo40WRTtL1EpF1vmMN5t5vt1EfMMpM9TZ/f1YYLs
+ 72fesnoad7yDePrGtDxWSRCqT/Q/ydR5FzJXUdcobfX8scWyc7z+mInuz0Q++JBvvnYSZywJmjKR34xtyPbW6tB2tW553iTT0AkOSs/sRgr38AlDM7bewZ7G
+ mfxdEoHg/2FQl1x7BKumItkcIX4/e9i+wLvbYeBe/wr1OyNGTBNDFIbDtM5TV1Eh
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Tue, Jan 22, 2019 at 5:06 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
->
-> On 01/22/2019 07:26 AM, Alexandre Courbot wrote:
-> > Documents the protocol that user-space should follow when
-> > communicating with stateless video decoders.
-> >
-> > The stateless video decoding API makes use of the new request and tags
-> > APIs. While it has been implemented with the Cedrus driver so far, it
-> > should probably still be considered staging for a short while.
-> >
-> > Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
-> > ---
-> > Changes since v1:
-> >
-> > * Use timestamps instead of tags to reference frames,
-> > * Applied Paul's suggestions to not require one frame worth of data per OUTPUT
-> >   buffer
-> >
-> > One of the effects of requiring sub-frame units to be submitted per request is
-> > that the stateless decoders are not exactly "stateless" anymore: if a frame is
-> > made of several slices, then the decoder must keep track of the buffer in which
-> > the current frame is being decoded between requests, and all the slices for the
-> > current frame must be submitted before we can consider decoding the next one.
-> >
-> > Also if we decide to force clients to submit one slice per request, then doesn't
-> > some of the H.264 controls need to change? For instance, in the current v2
-> > there is still a v4l2_ctrl_h264_decode_param::num_slices member. It is used in
-> > Chromium to specify the number of slices given to the
-> > V4L2_CID_MPEG_VIDEO_H264_SLICE_PARAMS control, but is apparently ignored by the
-> > Cedrus driver. Maxime, can you comment on this?
-> >
-> >  Documentation/media/uapi/v4l/dev-codec.rst    |   5 +
-> >  .../media/uapi/v4l/dev-stateless-decoder.rst  | 378 ++++++++++++++++++
-> >  2 files changed, 383 insertions(+)
-> >  create mode 100644 Documentation/media/uapi/v4l/dev-stateless-decoder.rst
-> >
->
-> Thank you! I have uploaded a version of the V4L2 spec with this and the two older
-> stateful codec patches applied:
->
-> https://hverkuil.home.xs4all.nl/codec-api/uapi/v4l/dev-codec.html
+Hi Sakari,
 
-Thanks! A v3 will likely be necessary (and I'll likely be more
-reactive producing it) because of that one-slice-per-request
-requirement. After discussing with Tomasz we think it would be
-safer/simpler to require one frame per request in a first time, as we
-initially agreed.
+Can you check if this patch is needed at all? The latest v4l2-ctl should work
+for both meta capture and output, i.e. all meta options (v4l2-ctl --help-meta)
+just look up the buffer type of the video device and use that to list/set/get/try
+the formats.
 
-Anyway, we can discuss the details once Tomasz chimes in.
+Regards,
+
+	Hans
+
+On 01/14/2019 03:13 PM, Sakari Ailus wrote:
+> Add support for META_OUTPUT buffer type to v4l2-ctl.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  utils/v4l2-ctl/Makefile.am           |   3 +-
+>  utils/v4l2-ctl/v4l2-ctl-common.cpp   |   3 +-
+>  utils/v4l2-ctl/v4l2-ctl-meta-out.cpp | 106 +++++++++++++++++++++++++++++++++++
+>  utils/v4l2-ctl/v4l2-ctl-meta.cpp     |  19 ++++---
+>  utils/v4l2-ctl/v4l2-ctl.cpp          |  16 ++++++
+>  utils/v4l2-ctl/v4l2-ctl.h            |  13 +++++
+>  6 files changed, 150 insertions(+), 10 deletions(-)
+>  create mode 100644 utils/v4l2-ctl/v4l2-ctl-meta-out.cpp
+> 
+> diff --git a/utils/v4l2-ctl/Makefile.am b/utils/v4l2-ctl/Makefile.am
+> index f612e0eee4..2b99a95e41 100644
+> --- a/utils/v4l2-ctl/Makefile.am
+> +++ b/utils/v4l2-ctl/Makefile.am
+> @@ -7,7 +7,8 @@ v4l2_ctl_SOURCES = v4l2-ctl.cpp v4l2-ctl.h v4l2-ctl-common.cpp v4l2-ctl-tuner.cp
+>  	v4l2-ctl-overlay.cpp v4l2-ctl-vbi.cpp v4l2-ctl-selection.cpp v4l2-ctl-misc.cpp \
+>  	v4l2-ctl-streaming.cpp v4l2-ctl-sdr.cpp v4l2-ctl-edid.cpp v4l2-ctl-modes.cpp \
+>  	v4l2-ctl-subdev.cpp v4l2-tpg-colors.c v4l2-tpg-core.c v4l-stream.c v4l2-ctl-meta.cpp \
+> -	media-info.cpp v4l2-info.cpp codec-fwht.c codec-v4l2-fwht.c
+> +	v4l2-ctl-meta-out.cpp media-info.cpp v4l2-info.cpp codec-fwht.c \
+> +	codec-v4l2-fwht.c
+>  v4l2_ctl_CPPFLAGS = -I$(top_srcdir)/utils/common
+>  
+>  media-bus-format-names.h: ../../include/linux/media-bus-format.h
+> diff --git a/utils/v4l2-ctl/v4l2-ctl-common.cpp b/utils/v4l2-ctl/v4l2-ctl-common.cpp
+> index e2710335ec..ffe4627498 100644
+> --- a/utils/v4l2-ctl/v4l2-ctl-common.cpp
+> +++ b/utils/v4l2-ctl/v4l2-ctl-common.cpp
+> @@ -70,7 +70,8 @@ void common_usage(void)
+>  	       "  -h, --help         display this help message\n"
+>  	       "  --help-all         all options\n"
+>  	       "  --help-io          input/output options\n"
+> -	       "  --help-meta        metadata format options\n"
+> +	       "  --help-meta        metadata capture format options\n"
+> +	       "  --help-meta-out    metadata output format options\n"
+>  	       "  --help-misc        miscellaneous options\n"
+>  	       "  --help-overlay     overlay format options\n"
+>  	       "  --help-sdr         SDR format options\n"
+> diff --git a/utils/v4l2-ctl/v4l2-ctl-meta-out.cpp b/utils/v4l2-ctl/v4l2-ctl-meta-out.cpp
+> new file mode 100644
+> index 0000000000..3ffeee0ee5
+> --- /dev/null
+> +++ b/utils/v4l2-ctl/v4l2-ctl-meta-out.cpp
+> @@ -0,0 +1,106 @@
+> +// SPDX-License-Identifier: GPL-2.0-only
+> +
+> +#include <unistd.h>
+> +#include <stdlib.h>
+> +#include <stdio.h>
+> +#include <string.h>
+> +#include <inttypes.h>
+> +#include <getopt.h>
+> +#include <sys/types.h>
+> +#include <sys/stat.h>
+> +#include <fcntl.h>
+> +#include <ctype.h>
+> +#include <errno.h>
+> +#include <sys/ioctl.h>
+> +#include <sys/time.h>
+> +#include <dirent.h>
+> +#include <math.h>
+> +
+> +#include "v4l2-ctl.h"
+> +
+> +static struct v4l2_format vfmt;	/* set_format/get_format */
+> +
+> +void meta_out_usage(void)
+> +{
+> +	printf("\nMetadata Output Formats options:\n"
+> +	       "  --list-formats-meta-out display supported metadata output formats [VIDIOC_ENUM_FMT]\n"
+> +	       "  --get-fmt-meta-out      query the metadata output format [VIDIOC_G_FMT]\n"
+> +	       "  --set-fmt-meta-out <f>  set the metadata output format [VIDIOC_S_FMT]\n"
+> +	       "                          parameter is either the format index as reported by\n"
+> +	       "                          --list-formats-meta-out, or the fourcc value as a string\n"
+> +	       "  --try-fmt-meta-out <f>  try the metadata output format [VIDIOC_TRY_FMT]\n"
+> +	       "                          parameter is either the format index as reported by\n"
+> +	       "                          --list-formats-meta-out, or the fourcc value as a string\n"
+> +	       );
+> +}
+> +
+> +void meta_out_cmd(int ch, char *optarg)
+> +{
+> +	switch (ch) {
+> +	case OptSetMetaOutFormat:
+> +	case OptTryMetaOutFormat:
+> +		if (strlen(optarg) == 0) {
+> +			meta_out_usage();
+> +			exit(1);
+> +		} else if (strlen(optarg) == 4) {
+> +			vfmt.fmt.meta.dataformat = v4l2_fourcc(optarg[0],
+> +					optarg[1], optarg[2], optarg[3]);
+> +		} else {
+> +			vfmt.fmt.meta.dataformat = strtol(optarg, 0L, 0);
+> +		}
+> +		break;
+> +	}
+> +}
+> +
+> +void meta_out_set(cv4l_fd &_fd)
+> +{
+> +	int fd = _fd.g_fd();
+> +	int ret;
+> +
+> +	if ((options[OptSetMetaOutFormat] || options[OptTryMetaOutFormat]) &&
+> +	    v4l_type_is_meta(_fd.g_type()) &&
+> +	    v4l_type_is_output(_fd.g_type())) {
+> +		struct v4l2_format in_vfmt;
+> +
+> +		in_vfmt.type = _fd.g_type();
+> +		in_vfmt.fmt.meta.dataformat = vfmt.fmt.meta.dataformat;
+> +
+> +		if (in_vfmt.fmt.meta.dataformat < 256) {
+> +			struct v4l2_fmtdesc fmt;
+> +
+> +			fmt.index = in_vfmt.fmt.meta.dataformat;
+> +			fmt.type = in_vfmt.type;
+> +
+> +			if (doioctl(fd, VIDIOC_ENUM_FMT, &fmt))
+> +				fmt.pixelformat = 0;
+> +
+> +			in_vfmt.fmt.meta.dataformat = fmt.pixelformat;
+> +		}
+> +
+> +		if (options[OptSetMetaFormat])
+> +			ret = doioctl(fd, VIDIOC_S_FMT, &in_vfmt);
+> +		else
+> +			ret = doioctl(fd, VIDIOC_TRY_FMT, &in_vfmt);
+> +		if (ret == 0 && (verbose || options[OptTryMetaFormat]))
+> +			printfmt(fd, in_vfmt);
+> +	}
+> +}
+> +
+> +void meta_out_get(cv4l_fd &fd)
+> +{
+> +	if (options[OptGetMetaOutFormat] && v4l_type_is_meta(fd.g_type()) &&
+> +	    v4l_type_is_output(fd.g_type())) {
+> +		vfmt.type = fd.g_type();
+> +		if (doioctl(fd.g_fd(), VIDIOC_G_FMT, &vfmt) == 0)
+> +			printfmt(fd.g_fd(), vfmt);
+> +	}
+> +}
+> +
+> +void meta_out_list(cv4l_fd &fd)
+> +{
+> +	if (options[OptListMetaOutFormats] && v4l_type_is_meta(fd.g_type()) &&
+> +	    v4l_type_is_output(fd.g_type())) {
+> +		printf("ioctl: VIDIOC_ENUM_FMT\n");
+> +		print_video_formats(fd, fd.g_type());
+> +	}
+> +}
+> diff --git a/utils/v4l2-ctl/v4l2-ctl-meta.cpp b/utils/v4l2-ctl/v4l2-ctl-meta.cpp
+> index 37c91940a8..32060832f0 100644
+> --- a/utils/v4l2-ctl/v4l2-ctl-meta.cpp
+> +++ b/utils/v4l2-ctl/v4l2-ctl-meta.cpp
+> @@ -20,13 +20,13 @@ static struct v4l2_format vfmt;	/* set_format/get_format */
+>  
+>  void meta_usage(void)
+>  {
+> -	printf("\nMetadata Formats options:\n"
+> -	       "  --list-formats-meta display supported metadata formats [VIDIOC_ENUM_FMT]\n"
+> -	       "  --get-fmt-meta      query the metadata format [VIDIOC_G_FMT]\n"
+> -	       "  --set-fmt-meta <f>  set the metadata format [VIDIOC_S_FMT]\n"
+> +	printf("\nMetadata Capture Formats options:\n"
+> +	       "  --list-formats-meta display supported metadata capture formats [VIDIOC_ENUM_FMT]\n"
+> +	       "  --get-fmt-meta      query the metadata capture format [VIDIOC_G_FMT]\n"
+> +	       "  --set-fmt-meta <f>  set the metadata capture format [VIDIOC_S_FMT]\n"
+>  	       "                     parameter is either the format index as reported by\n"
+>  	       "                     --list-formats-meta, or the fourcc value as a string\n"
+> -	       "  --try-fmt-meta <f>  try the metadata format [VIDIOC_TRY_FMT]\n"
+> +	       "  --try-fmt-meta <f>  try the metadata capture format [VIDIOC_TRY_FMT]\n"
+>  	       "                     parameter is either the format index as reported by\n"
+>  	       "                     --list-formats-meta, or the fourcc value as a string\n"
+>  	       );
+> @@ -56,7 +56,8 @@ void meta_set(cv4l_fd &_fd)
+>  	int ret;
+>  
+>  	if ((options[OptSetMetaFormat] || options[OptTryMetaFormat]) &&
+> -	    v4l_type_is_meta(_fd.g_type())) {
+> +	    v4l_type_is_meta(_fd.g_type()) &&
+> +	    v4l_type_is_capture(_fd.g_type())) {
+>  		struct v4l2_format in_vfmt;
+>  
+>  		in_vfmt.type = _fd.g_type();
+> @@ -85,7 +86,8 @@ void meta_set(cv4l_fd &_fd)
+>  
+>  void meta_get(cv4l_fd &fd)
+>  {
+> -	if (options[OptGetMetaFormat] && v4l_type_is_meta(fd.g_type())) {
+> +	if (options[OptGetMetaFormat] && v4l_type_is_meta(fd.g_type()) &&
+> +	    v4l_type_is_capture(fd.g_type())) {
+>  		vfmt.type = fd.g_type();
+>  		if (doioctl(fd.g_fd(), VIDIOC_G_FMT, &vfmt) == 0)
+>  			printfmt(fd.g_fd(), vfmt);
+> @@ -94,7 +96,8 @@ void meta_get(cv4l_fd &fd)
+>  
+>  void meta_list(cv4l_fd &fd)
+>  {
+> -	if (options[OptListMetaFormats] && v4l_type_is_meta(fd.g_type())) {
+> +	if (options[OptListMetaFormats] && v4l_type_is_meta(fd.g_type()) &&
+> +	    v4l_type_is_capture(fd.g_type())) {
+>  		printf("ioctl: VIDIOC_ENUM_FMT\n");
+>  		print_video_formats(fd, fd.g_type());
+>  	}
+> diff --git a/utils/v4l2-ctl/v4l2-ctl.cpp b/utils/v4l2-ctl/v4l2-ctl.cpp
+> index 1783979d76..81a66938b6 100644
+> --- a/utils/v4l2-ctl/v4l2-ctl.cpp
+> +++ b/utils/v4l2-ctl/v4l2-ctl.cpp
+> @@ -88,6 +88,7 @@ static struct option long_options[] = {
+>  	{"help-vbi", no_argument, 0, OptHelpVbi},
+>  	{"help-sdr", no_argument, 0, OptHelpSdr},
+>  	{"help-meta", no_argument, 0, OptHelpMeta},
+> +	{"help-meta-out", no_argument, 0, OptHelpMetaOut},
+>  	{"help-subdev", no_argument, 0, OptHelpSubDev},
+>  	{"help-selection", no_argument, 0, OptHelpSelection},
+>  	{"help-misc", no_argument, 0, OptHelpMisc},
+> @@ -122,6 +123,7 @@ static struct option long_options[] = {
+>  	{"list-formats-out", no_argument, 0, OptListOutFormats},
+>  	{"list-formats-out-ext", no_argument, 0, OptListOutFormatsExt},
+>  	{"list-formats-meta", no_argument, 0, OptListMetaFormats},
+> +	{"list-formats-meta-out", no_argument, 0, OptListMetaOutFormats},
+>  	{"list-subdev-mbus-codes", optional_argument, 0, OptListSubDevMBusCodes},
+>  	{"list-subdev-framesizes", required_argument, 0, OptListSubDevFrameSizes},
+>  	{"list-subdev-frameintervals", required_argument, 0, OptListSubDevFrameIntervals},
+> @@ -174,6 +176,9 @@ static struct option long_options[] = {
+>  	{"get-fmt-meta", no_argument, 0, OptGetMetaFormat},
+>  	{"set-fmt-meta", required_argument, 0, OptSetMetaFormat},
+>  	{"try-fmt-meta", required_argument, 0, OptTryMetaFormat},
+> +	{"get-fmt-meta-out", no_argument, 0, OptGetMetaOutFormat},
+> +	{"set-fmt-meta-out", required_argument, 0, OptSetMetaOutFormat},
+> +	{"try-fmt-meta-out", required_argument, 0, OptTryMetaOutFormat},
+>  	{"get-subdev-fmt", optional_argument, 0, OptGetSubDevFormat},
+>  	{"set-subdev-fmt", required_argument, 0, OptSetSubDevFormat},
+>  	{"try-subdev-fmt", required_argument, 0, OptTrySubDevFormat},
+> @@ -238,6 +243,7 @@ static struct option long_options[] = {
+>  	{"list-buffers-sdr", no_argument, 0, OptListBuffersSdr},
+>  	{"list-buffers-sdr-out", no_argument, 0, OptListBuffersSdrOut},
+>  	{"list-buffers-meta", no_argument, 0, OptListBuffersMeta},
+> +	{"list-buffers-meta-out", no_argument, 0, OptListBuffersMetaOut},
+>  	{"stream-count", required_argument, 0, OptStreamCount},
+>  	{"stream-skip", required_argument, 0, OptStreamSkip},
+>  	{"stream-loop", no_argument, 0, OptStreamLoop},
+> @@ -290,6 +296,7 @@ static void usage_all(void)
+>         vbi_usage();
+>         sdr_usage();
+>         meta_usage();
+> +       meta_out_usage();
+>         selection_usage();
+>         misc_usage();
+>         streaming_usage();
+> @@ -507,6 +514,7 @@ void printfmt(int fd, const struct v4l2_format &vfmt)
+>  		printf("\tBuffer Size     : %u\n", vfmt.fmt.sdr.buffersize);
+>  		break;
+>  	case V4L2_BUF_TYPE_META_CAPTURE:
+> +	case V4L2_BUF_TYPE_META_OUTPUT:
+>  		printf("\tSample Format   : '%s'%s\n", fcc2s(vfmt.fmt.meta.dataformat).c_str(),
+>  		       printfmtname(fd, vfmt.type, vfmt.fmt.meta.dataformat).c_str());
+>  		printf("\tBuffer Size     : %u\n", vfmt.fmt.meta.buffersize);
+> @@ -1039,6 +1047,9 @@ int main(int argc, char **argv)
+>  		case OptHelpMeta:
+>  			meta_usage();
+>  			return 0;
+> +		case OptHelpMetaOut:
+> +			meta_out_usage();
+> +			return 0;
+>  		case OptHelpSubDev:
+>  			subdev_usage();
+>  			return 0;
+> @@ -1109,6 +1120,7 @@ int main(int argc, char **argv)
+>  			vbi_cmd(ch, optarg);
+>  			sdr_cmd(ch, optarg);
+>  			meta_cmd(ch, optarg);
+> +			meta_out_cmd(ch, optarg);
+>  			subdev_cmd(ch, optarg);
+>  			selection_cmd(ch, optarg);
+>  			misc_cmd(ch, optarg);
+> @@ -1247,6 +1259,7 @@ int main(int argc, char **argv)
+>  		options[OptGetSdrFormat] = 1;
+>  		options[OptGetSdrOutFormat] = 1;
+>  		options[OptGetMetaFormat] = 1;
+> +		options[OptGetMetaOutFormat] = 1;
+>  		options[OptGetFBuf] = 1;
+>  		options[OptGetCropCap] = 1;
+>  		options[OptGetOutputCropCap] = 1;
+> @@ -1282,6 +1295,7 @@ int main(int argc, char **argv)
+>  	vbi_set(c_fd);
+>  	sdr_set(c_fd);
+>  	meta_set(c_fd);
+> +	meta_out_set(c_fd);
+>  	subdev_set(c_fd);
+>  	selection_set(c_fd);
+>  	misc_set(c_fd);
+> @@ -1299,6 +1313,7 @@ int main(int argc, char **argv)
+>  	vbi_get(c_fd);
+>  	sdr_get(c_fd);
+>  	meta_get(c_fd);
+> +	meta_out_get(c_fd);
+>  	subdev_get(c_fd);
+>  	selection_get(c_fd);
+>  	misc_get(c_fd);
+> @@ -1315,6 +1330,7 @@ int main(int argc, char **argv)
+>  	vbi_list(c_fd);
+>  	sdr_list(c_fd);
+>  	meta_list(c_fd);
+> +	meta_out_list(c_fd);
+>  	subdev_list(c_fd);
+>  	streaming_list(c_fd, c_out_fd);
+>  
+> diff --git a/utils/v4l2-ctl/v4l2-ctl.h b/utils/v4l2-ctl/v4l2-ctl.h
+> index 5a52a0a48f..da9615392e 100644
+> --- a/utils/v4l2-ctl/v4l2-ctl.h
+> +++ b/utils/v4l2-ctl/v4l2-ctl.h
+> @@ -89,6 +89,7 @@ enum Option {
+>  	OptGetSdrFormat,
+>  	OptGetSdrOutFormat,
+>  	OptGetMetaFormat,
+> +	OptGetMetaOutFormat,
+>  	OptGetSubDevFormat,
+>  	OptSetSlicedVbiOutFormat,
+>  	OptSetOverlayFormat,
+> @@ -97,6 +98,7 @@ enum Option {
+>  	OptSetSdrFormat,
+>  	OptSetSdrOutFormat,
+>  	OptSetMetaFormat,
+> +	OptSetMetaOutFormat,
+>  	OptSetSubDevFormat,
+>  	OptTryVideoOutFormat,
+>  	OptTrySlicedVbiOutFormat,
+> @@ -108,6 +110,7 @@ enum Option {
+>  	OptTrySdrFormat,
+>  	OptTrySdrOutFormat,
+>  	OptTryMetaFormat,
+> +	OptTryMetaOutFormat,
+>  	OptTrySubDevFormat,
+>  	OptAll,
+>  	OptListStandards,
+> @@ -122,6 +125,7 @@ enum Option {
+>  	OptListOutFormats,
+>  	OptListOutFormatsExt,
+>  	OptListMetaFormats,
+> +	OptListMetaOutFormats,
+>  	OptListSubDevMBusCodes,
+>  	OptListSubDevFrameSizes,
+>  	OptListSubDevFrameIntervals,
+> @@ -205,6 +209,7 @@ enum Option {
+>  	OptListBuffersSdr,
+>  	OptListBuffersSdrOut,
+>  	OptListBuffersMeta,
+> +	OptListBuffersMetaOut,
+>  	OptStreamCount,
+>  	OptStreamSkip,
+>  	OptStreamLoop,
+> @@ -249,6 +254,7 @@ enum Option {
+>  	OptHelpVbi,
+>  	OptHelpSdr,
+>  	OptHelpMeta,
+> +	OptHelpMetaOut,
+>  	OptHelpSubDev,
+>  	OptHelpSelection,
+>  	OptHelpMisc,
+> @@ -386,6 +392,13 @@ void meta_set(cv4l_fd &fd);
+>  void meta_get(cv4l_fd &fd);
+>  void meta_list(cv4l_fd &fd);
+>  
+> +// v4l2-ctl-meta-out.cpp
+> +void meta_out_usage(void);
+> +void meta_out_cmd(int ch, char *optarg);
+> +void meta_out_set(cv4l_fd &fd);
+> +void meta_out_get(cv4l_fd &fd);
+> +void meta_out_list(cv4l_fd &fd);
+> +
+>  // v4l2-ctl-subdev.cpp
+>  void subdev_usage(void);
+>  void subdev_cmd(int ch, char *optarg);
+> 
+
