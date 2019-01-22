@@ -3,171 +3,272 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F3D60C282C5
-	for <linux-media@archiver.kernel.org>; Tue, 22 Jan 2019 11:27:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C532C282C4
+	for <linux-media@archiver.kernel.org>; Tue, 22 Jan 2019 12:12:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D005A20879
-	for <linux-media@archiver.kernel.org>; Tue, 22 Jan 2019 11:27:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F0BF120879
+	for <linux-media@archiver.kernel.org>; Tue, 22 Jan 2019 12:12:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727946AbfAVL1g (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 22 Jan 2019 06:27:36 -0500
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:45740 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727919AbfAVL1f (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 Jan 2019 06:27:35 -0500
-Received: from cobaltpc1.rd.cisco.com ([IPv6:2001:420:44c1:2579:b98b:fd77:97a1:d7fe])
-        by smtp-cloud8.xs4all.net with ESMTPA
-        id luDHgEkLRNR5yluDNggn5W; Tue, 22 Jan 2019 12:27:33 +0100
-From:   hverkuil-cisco@xs4all.nl
+        id S1728233AbfAVMMI (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 22 Jan 2019 07:12:08 -0500
+Received: from mga18.intel.com ([134.134.136.126]:19369 "EHLO mga18.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728165AbfAVMMH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 22 Jan 2019 07:12:07 -0500
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga002.jf.intel.com ([10.7.209.21])
+  by orsmga106.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 22 Jan 2019 04:06:04 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.56,506,1539673200"; 
+   d="scan'208";a="127898297"
+Received: from paasikivi.fi.intel.com ([10.237.72.42])
+  by orsmga002.jf.intel.com with ESMTP; 22 Jan 2019 04:06:03 -0800
+Received: from punajuuri.localdomain (punajuuri.localdomain [192.168.240.130])
+        by paasikivi.fi.intel.com (Postfix) with ESMTPS id 20FFD2042C;
+        Tue, 22 Jan 2019 14:06:02 +0200 (EET)
+Received: from sailus by punajuuri.localdomain with local (Exim 4.89)
+        (envelope-from <sakari.ailus@linux.intel.com>)
+        id 1gluo2-0008Md-OO; Tue, 22 Jan 2019 14:05:26 +0200
+From:   Sakari Ailus <sakari.ailus@linux.intel.com>
 To:     linux-media@vger.kernel.org
-Cc:     Tomasz Figa <tfiga@chromium.org>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Subject: [PATCH 3/3] Documentation/media: rename "Codec Interface"
-Date:   Tue, 22 Jan 2019 12:27:27 +0100
-Message-Id: <20190122112727.12662-4-hverkuil-cisco@xs4all.nl>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190122112727.12662-1-hverkuil-cisco@xs4all.nl>
-References: <20190122112727.12662-1-hverkuil-cisco@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CMAE-Envelope: MS4wfG5q6KP95KxXngEDXX5VMAl59mpvVfTx5XWQPoXPmeCM9sdfED7+4qWRlqMyaXdzK9RK6144e6ZolMGDNrX3Y+HpgSsk5asQF3unHrzFLlVqbculImga
- 3SpYzyQe1FEMScdz7cZl6wBGxd7WKD0HLnPasXwOOhZGVo7DmTBeXkU5QCSUi5s5a18xALT2jTqUSPb1ANfAvnh7uEpDndUFEmROP/GHs07zPKpSfg0ROyne
- gJU3gwdlUxNQgfTpOSfbROiYsH3eNi0CGHapViCFaQYksClsi6KryvAoHViyUoEPAPW8re9RwlVK7OIZre+wN55YNQMRJiAXKGbOevD5FTbDvzVz5t8AkOGO
- 8qmejmQ6DLvT9bm277gASxD+ERgVfg==
+Cc:     rajmohan.mani@intel.com, yong.zhi@intel.com, hverkuil@xs4all.nl
+Subject: [yavta PATCH v2 1/1] v4l2-ctl: Add support for META_OUTPUT buffer type
+Date:   Tue, 22 Jan 2019 14:05:26 +0200
+Message-Id: <20190122120526.32112-1-sakari.ailus@linux.intel.com>
+X-Mailer: git-send-email 2.11.0
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-From: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+Add support for META_OUTPUT buffer type to v4l2-ctl.
 
-The "Codec Interface" chapter is poorly named since codecs are just one
-use-case of the Memory-to-Memory Interface. Rename it and clean up the
-text a bit.
-
-Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- .../media/uapi/mediactl/request-api.rst       |  4 ++--
- .../v4l/{dev-codec.rst => dev-mem2mem.rst}    | 21 +++++++------------
- Documentation/media/uapi/v4l/devices.rst      |  2 +-
- .../media/uapi/v4l/pixfmt-compressed.rst      |  2 +-
- Documentation/media/uapi/v4l/vidioc-qbuf.rst  |  2 +-
- 5 files changed, 13 insertions(+), 18 deletions(-)
- rename Documentation/media/uapi/v4l/{dev-codec.rst => dev-mem2mem.rst} (79%)
+Hi Hans,
 
-diff --git a/Documentation/media/uapi/mediactl/request-api.rst b/Documentation/media/uapi/mediactl/request-api.rst
-index 4b25ad03f45a..1ad631e549fe 100644
---- a/Documentation/media/uapi/mediactl/request-api.rst
-+++ b/Documentation/media/uapi/mediactl/request-api.rst
-@@ -91,7 +91,7 @@ A request must contain at least one buffer, otherwise ``ENOENT`` is returned.
- A queued request cannot be modified anymore.
+Here's an update for the meta output buffer type in v4l2-ctl.
+
+Since v1:
+
+- Merge help text for meta and meta out buffer types
+
+- Unify implementation for meta format handling
+
+ utils/v4l2-ctl/v4l2-ctl-meta.cpp | 71 ++++++++++++++++++++++++++++++++++++----
+ utils/v4l2-ctl/v4l2-ctl.cpp      |  7 ++++
+ utils/v4l2-ctl/v4l2-ctl.h        |  5 +++
+ 3 files changed, 76 insertions(+), 7 deletions(-)
+
+diff --git a/utils/v4l2-ctl/v4l2-ctl-meta.cpp b/utils/v4l2-ctl/v4l2-ctl-meta.cpp
+index 37c91940a8..f4aa434937 100644
+--- a/utils/v4l2-ctl/v4l2-ctl-meta.cpp
++++ b/utils/v4l2-ctl/v4l2-ctl-meta.cpp
+@@ -21,14 +21,22 @@ static struct v4l2_format vfmt;	/* set_format/get_format */
+ void meta_usage(void)
+ {
+ 	printf("\nMetadata Formats options:\n"
+-	       "  --list-formats-meta display supported metadata formats [VIDIOC_ENUM_FMT]\n"
+-	       "  --get-fmt-meta      query the metadata format [VIDIOC_G_FMT]\n"
+-	       "  --set-fmt-meta <f>  set the metadata format [VIDIOC_S_FMT]\n"
++	       "  --list-formats-meta display supported metadata capture formats [VIDIOC_ENUM_FMT]\n"
++	       "  --get-fmt-meta      query the metadata capture format [VIDIOC_G_FMT]\n"
++	       "  --set-fmt-meta <f>  set the metadata capture format [VIDIOC_S_FMT]\n"
+ 	       "                     parameter is either the format index as reported by\n"
+ 	       "                     --list-formats-meta, or the fourcc value as a string\n"
+-	       "  --try-fmt-meta <f>  try the metadata format [VIDIOC_TRY_FMT]\n"
++	       "  --try-fmt-meta <f>  try the metadata capture format [VIDIOC_TRY_FMT]\n"
+ 	       "                     parameter is either the format index as reported by\n"
+ 	       "                     --list-formats-meta, or the fourcc value as a string\n"
++	       "  --list-formats-meta-out display supported metadata output formats [VIDIOC_ENUM_FMT]\n"
++	       "  --get-fmt-meta-out      query the metadata output format [VIDIOC_G_FMT]\n"
++	       "  --set-fmt-meta-out <f>  set the metadata output format [VIDIOC_S_FMT]\n"
++	       "                          parameter is either the format index as reported by\n"
++	       "                          --list-formats-meta-out, or the fourcc value as a string\n"
++	       "  --try-fmt-meta-out <f>  try the metadata output format [VIDIOC_TRY_FMT]\n"
++	       "                          parameter is either the format index as reported by\n"
++	       "                          --list-formats-meta-out, or the fourcc value as a string\n"
+ 	       );
+ }
  
- .. caution::
--   For :ref:`memory-to-memory devices <codec>` you can use requests only for
-+   For :ref:`memory-to-memory devices <mem2mem>` you can use requests only for
-    output buffers, not for capture buffers. Attempting to add a capture buffer
-    to a request will result in an ``EACCES`` error.
+@@ -37,6 +45,8 @@ void meta_cmd(int ch, char *optarg)
+ 	switch (ch) {
+ 	case OptSetMetaFormat:
+ 	case OptTryMetaFormat:
++	case OptSetMetaOutFormat:
++	case OptTryMetaOutFormat:
+ 		if (strlen(optarg) == 0) {
+ 			meta_usage();
+ 			exit(1);
+@@ -55,8 +65,38 @@ void meta_set(cv4l_fd &_fd)
+ 	int fd = _fd.g_fd();
+ 	int ret;
  
-@@ -152,7 +152,7 @@ if it had just been allocated.
- Example for a Codec Device
- --------------------------
++	if (!v4l_type_is_meta(_fd.g_type()))
++		return;
++
+ 	if ((options[OptSetMetaFormat] || options[OptTryMetaFormat]) &&
+-	    v4l_type_is_meta(_fd.g_type())) {
++	    v4l_type_is_capture(_fd.g_type())) {
++		struct v4l2_format in_vfmt;
++
++		in_vfmt.type = _fd.g_type();
++		in_vfmt.fmt.meta.dataformat = vfmt.fmt.meta.dataformat;
++
++		if (in_vfmt.fmt.meta.dataformat < 256) {
++			struct v4l2_fmtdesc fmt;
++
++			fmt.index = in_vfmt.fmt.meta.dataformat;
++			fmt.type = in_vfmt.type;
++
++			if (doioctl(fd, VIDIOC_ENUM_FMT, &fmt))
++				fmt.pixelformat = 0;
++
++			in_vfmt.fmt.meta.dataformat = fmt.pixelformat;
++		}
++
++		if (options[OptSetMetaFormat])
++			ret = doioctl(fd, VIDIOC_S_FMT, &in_vfmt);
++		else
++			ret = doioctl(fd, VIDIOC_TRY_FMT, &in_vfmt);
++		if (ret == 0 && (verbose || options[OptTryMetaFormat]))
++			printfmt(fd, in_vfmt);
++	}
++
++	if ((options[OptSetMetaOutFormat] || options[OptTryMetaOutFormat]) &&
++	    v4l_type_is_output(_fd.g_type())) {
+ 		struct v4l2_format in_vfmt;
  
--For use-cases such as :ref:`codecs <codec>`, the request API can be used
-+For use-cases such as :ref:`codecs <mem2mem>`, the request API can be used
- to associate specific controls to
- be applied by the driver for the OUTPUT buffer, allowing user-space
- to queue many such buffers in advance. It can also take advantage of requests'
-diff --git a/Documentation/media/uapi/v4l/dev-codec.rst b/Documentation/media/uapi/v4l/dev-mem2mem.rst
-similarity index 79%
-rename from Documentation/media/uapi/v4l/dev-codec.rst
-rename to Documentation/media/uapi/v4l/dev-mem2mem.rst
-index b5e017c17834..69efcc747588 100644
---- a/Documentation/media/uapi/v4l/dev-codec.rst
-+++ b/Documentation/media/uapi/v4l/dev-mem2mem.rst
-@@ -7,11 +7,11 @@
- ..
- .. TODO: replace it to GFDL-1.1-or-later WITH no-invariant-sections
+ 		in_vfmt.type = _fd.g_type();
+@@ -85,7 +125,16 @@ void meta_set(cv4l_fd &_fd)
  
--.. _codec:
-+.. _mem2mem:
+ void meta_get(cv4l_fd &fd)
+ {
+-	if (options[OptGetMetaFormat] && v4l_type_is_meta(fd.g_type())) {
++	if (!v4l_type_is_meta(fd.g_type()))
++		return;
++
++	if (options[OptGetMetaFormat] && v4l_type_is_capture(fd.g_type())) {
++		vfmt.type = fd.g_type();
++		if (doioctl(fd.g_fd(), VIDIOC_G_FMT, &vfmt) == 0)
++			printfmt(fd.g_fd(), vfmt);
++	}
++
++	if (options[OptGetMetaOutFormat] && v4l_type_is_output(fd.g_type())) {
+ 		vfmt.type = fd.g_type();
+ 		if (doioctl(fd.g_fd(), VIDIOC_G_FMT, &vfmt) == 0)
+ 			printfmt(fd.g_fd(), vfmt);
+@@ -94,7 +143,15 @@ void meta_get(cv4l_fd &fd)
  
--***************
--Codec Interface
--***************
-+********************************
-+Video Memory To Memory Interface
-+********************************
- 
- A V4L2 codec can compress, decompress, transform, or otherwise convert
- video data from one format into another format, in memory. Typically
-@@ -25,19 +25,14 @@ memory) stream I/O. An application will have to setup the stream I/O for
- both sides and finally call :ref:`VIDIOC_STREAMON <VIDIOC_STREAMON>`
- for both capture and output to start the codec.
- 
--Video compression codecs use the MPEG controls to setup their codec
--parameters
--
--.. note::
--
--   The MPEG controls actually support many more codecs than
--   just MPEG. See :ref:`mpeg-controls`.
-+Video compression codecs use codec controls to setup their codec parameters.
-+See :ref:`mpeg-controls`.
- 
- Memory-to-memory devices function as a shared resource: you can
- open the video node multiple times, each application setting up their
--own codec properties that are local to the file handle, and each can use
-+own properties that are local to the file handle, and each can use
- it independently from the others. The driver will arbitrate access to
--the codec and reprogram it whenever another file handler gets access.
-+the hardware and reprogram it whenever another file handler gets access.
- This is different from the usual video node behavior where the video
- properties are global to the device (i.e. changing something through one
- file handle is visible through another file handle).
-diff --git a/Documentation/media/uapi/v4l/devices.rst b/Documentation/media/uapi/v4l/devices.rst
-index d6fcf3db5909..07f8d047662b 100644
---- a/Documentation/media/uapi/v4l/devices.rst
-+++ b/Documentation/media/uapi/v4l/devices.rst
-@@ -21,7 +21,7 @@ Interfaces
-     dev-overlay
-     dev-output
-     dev-osd
--    dev-codec
-+    dev-mem2mem
-     dev-raw-vbi
-     dev-sliced-vbi
-     dev-radio
-diff --git a/Documentation/media/uapi/v4l/pixfmt-compressed.rst b/Documentation/media/uapi/v4l/pixfmt-compressed.rst
-index e4c5e456df59..2675bef3eefe 100644
---- a/Documentation/media/uapi/v4l/pixfmt-compressed.rst
-+++ b/Documentation/media/uapi/v4l/pixfmt-compressed.rst
-@@ -73,7 +73,7 @@ Compressed Formats
-       - 'MG2S'
-       - MPEG-2 parsed slice data, as extracted from the MPEG-2 bitstream.
- 	This format is adapted for stateless video decoders that implement a
--	MPEG-2 pipeline (using the :ref:`codec` and :ref:`media-request-api`).
-+	MPEG-2 pipeline (using the :ref:`mem2mem` and :ref:`media-request-api`).
- 	Metadata associated with the frame to decode is required to be passed
- 	through the ``V4L2_CID_MPEG_VIDEO_MPEG2_SLICE_PARAMS`` control and
- 	quantization matrices can optionally be specified through the
-diff --git a/Documentation/media/uapi/v4l/vidioc-qbuf.rst b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
-index 3259168a7358..c138d149faea 100644
---- a/Documentation/media/uapi/v4l/vidioc-qbuf.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
-@@ -123,7 +123,7 @@ then ``EINVAL`` will be returned.
-    :ref:`VIDIOC_STREAMOFF <VIDIOC_STREAMON>` or calling :ref:`VIDIOC_REQBUFS`
-    the check for this will be reset.
- 
--   For :ref:`memory-to-memory devices <codec>` you can specify the
-+   For :ref:`memory-to-memory devices <mem2mem>` you can specify the
-    ``request_fd`` only for output buffers, not for capture buffers. Attempting
-    to specify this for a capture buffer will result in an ``EACCES`` error.
- 
+ void meta_list(cv4l_fd &fd)
+ {
+-	if (options[OptListMetaFormats] && v4l_type_is_meta(fd.g_type())) {
++	if (!v4l_type_is_meta(fd.g_type()))
++		return;
++
++	if (options[OptListMetaFormats] && v4l_type_is_capture(fd.g_type())) {
++		printf("ioctl: VIDIOC_ENUM_FMT\n");
++		print_video_formats(fd, fd.g_type());
++	}
++
++	if (options[OptListMetaOutFormats] && v4l_type_is_output(fd.g_type())) {
+ 		printf("ioctl: VIDIOC_ENUM_FMT\n");
+ 		print_video_formats(fd, fd.g_type());
+ 	}
+diff --git a/utils/v4l2-ctl/v4l2-ctl.cpp b/utils/v4l2-ctl/v4l2-ctl.cpp
+index 1783979d76..ffac8716d0 100644
+--- a/utils/v4l2-ctl/v4l2-ctl.cpp
++++ b/utils/v4l2-ctl/v4l2-ctl.cpp
+@@ -122,6 +122,7 @@ static struct option long_options[] = {
+ 	{"list-formats-out", no_argument, 0, OptListOutFormats},
+ 	{"list-formats-out-ext", no_argument, 0, OptListOutFormatsExt},
+ 	{"list-formats-meta", no_argument, 0, OptListMetaFormats},
++	{"list-formats-meta-out", no_argument, 0, OptListMetaOutFormats},
+ 	{"list-subdev-mbus-codes", optional_argument, 0, OptListSubDevMBusCodes},
+ 	{"list-subdev-framesizes", required_argument, 0, OptListSubDevFrameSizes},
+ 	{"list-subdev-frameintervals", required_argument, 0, OptListSubDevFrameIntervals},
+@@ -174,6 +175,9 @@ static struct option long_options[] = {
+ 	{"get-fmt-meta", no_argument, 0, OptGetMetaFormat},
+ 	{"set-fmt-meta", required_argument, 0, OptSetMetaFormat},
+ 	{"try-fmt-meta", required_argument, 0, OptTryMetaFormat},
++	{"get-fmt-meta-out", no_argument, 0, OptGetMetaOutFormat},
++	{"set-fmt-meta-out", required_argument, 0, OptSetMetaOutFormat},
++	{"try-fmt-meta-out", required_argument, 0, OptTryMetaOutFormat},
+ 	{"get-subdev-fmt", optional_argument, 0, OptGetSubDevFormat},
+ 	{"set-subdev-fmt", required_argument, 0, OptSetSubDevFormat},
+ 	{"try-subdev-fmt", required_argument, 0, OptTrySubDevFormat},
+@@ -238,6 +242,7 @@ static struct option long_options[] = {
+ 	{"list-buffers-sdr", no_argument, 0, OptListBuffersSdr},
+ 	{"list-buffers-sdr-out", no_argument, 0, OptListBuffersSdrOut},
+ 	{"list-buffers-meta", no_argument, 0, OptListBuffersMeta},
++	{"list-buffers-meta-out", no_argument, 0, OptListBuffersMetaOut},
+ 	{"stream-count", required_argument, 0, OptStreamCount},
+ 	{"stream-skip", required_argument, 0, OptStreamSkip},
+ 	{"stream-loop", no_argument, 0, OptStreamLoop},
+@@ -507,6 +512,7 @@ void printfmt(int fd, const struct v4l2_format &vfmt)
+ 		printf("\tBuffer Size     : %u\n", vfmt.fmt.sdr.buffersize);
+ 		break;
+ 	case V4L2_BUF_TYPE_META_CAPTURE:
++	case V4L2_BUF_TYPE_META_OUTPUT:
+ 		printf("\tSample Format   : '%s'%s\n", fcc2s(vfmt.fmt.meta.dataformat).c_str(),
+ 		       printfmtname(fd, vfmt.type, vfmt.fmt.meta.dataformat).c_str());
+ 		printf("\tBuffer Size     : %u\n", vfmt.fmt.meta.buffersize);
+@@ -1247,6 +1253,7 @@ int main(int argc, char **argv)
+ 		options[OptGetSdrFormat] = 1;
+ 		options[OptGetSdrOutFormat] = 1;
+ 		options[OptGetMetaFormat] = 1;
++		options[OptGetMetaOutFormat] = 1;
+ 		options[OptGetFBuf] = 1;
+ 		options[OptGetCropCap] = 1;
+ 		options[OptGetOutputCropCap] = 1;
+diff --git a/utils/v4l2-ctl/v4l2-ctl.h b/utils/v4l2-ctl/v4l2-ctl.h
+index 5a52a0a48f..fc51cd1b97 100644
+--- a/utils/v4l2-ctl/v4l2-ctl.h
++++ b/utils/v4l2-ctl/v4l2-ctl.h
+@@ -89,6 +89,7 @@ enum Option {
+ 	OptGetSdrFormat,
+ 	OptGetSdrOutFormat,
+ 	OptGetMetaFormat,
++	OptGetMetaOutFormat,
+ 	OptGetSubDevFormat,
+ 	OptSetSlicedVbiOutFormat,
+ 	OptSetOverlayFormat,
+@@ -97,6 +98,7 @@ enum Option {
+ 	OptSetSdrFormat,
+ 	OptSetSdrOutFormat,
+ 	OptSetMetaFormat,
++	OptSetMetaOutFormat,
+ 	OptSetSubDevFormat,
+ 	OptTryVideoOutFormat,
+ 	OptTrySlicedVbiOutFormat,
+@@ -108,6 +110,7 @@ enum Option {
+ 	OptTrySdrFormat,
+ 	OptTrySdrOutFormat,
+ 	OptTryMetaFormat,
++	OptTryMetaOutFormat,
+ 	OptTrySubDevFormat,
+ 	OptAll,
+ 	OptListStandards,
+@@ -122,6 +125,7 @@ enum Option {
+ 	OptListOutFormats,
+ 	OptListOutFormatsExt,
+ 	OptListMetaFormats,
++	OptListMetaOutFormats,
+ 	OptListSubDevMBusCodes,
+ 	OptListSubDevFrameSizes,
+ 	OptListSubDevFrameIntervals,
+@@ -205,6 +209,7 @@ enum Option {
+ 	OptListBuffersSdr,
+ 	OptListBuffersSdrOut,
+ 	OptListBuffersMeta,
++	OptListBuffersMetaOut,
+ 	OptStreamCount,
+ 	OptStreamSkip,
+ 	OptStreamLoop,
 -- 
-2.20.1
+2.11.0
 
