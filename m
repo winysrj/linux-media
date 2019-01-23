@@ -2,156 +2,93 @@ Return-Path: <SRS0=FDnu=P7=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D050C282C0
-	for <linux-media@archiver.kernel.org>; Wed, 23 Jan 2019 15:17:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 77837C282C2
+	for <linux-media@archiver.kernel.org>; Wed, 23 Jan 2019 15:44:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3B749217D4
-	for <linux-media@archiver.kernel.org>; Wed, 23 Jan 2019 15:17:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 51336218A2
+	for <linux-media@archiver.kernel.org>; Wed, 23 Jan 2019 15:44:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726130AbfAWPRx (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 23 Jan 2019 10:17:53 -0500
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:51049 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725930AbfAWPRx (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 23 Jan 2019 10:17:53 -0500
-Received: from pty.hi.pengutronix.de ([2001:67c:670:100:1d::c5])
-        by metis.ext.pengutronix.de with esmtps (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
-        (Exim 4.89)
-        (envelope-from <mfe@pengutronix.de>)
-        id 1gmKHo-0005Rq-5u; Wed, 23 Jan 2019 16:17:52 +0100
-Received: from mfe by pty.hi.pengutronix.de with local (Exim 4.89)
-        (envelope-from <mfe@pengutronix.de>)
-        id 1gmKHm-0008Ds-Iv; Wed, 23 Jan 2019 16:17:50 +0100
-Date:   Wed, 23 Jan 2019 16:17:50 +0100
-From:   Marco Felsch <m.felsch@pengutronix.de>
-To:     Akinobu Mita <akinobu.mita@gmail.com>
-Cc:     linux-media@vger.kernel.org,
-        Enrico Scholz <enrico.scholz@sigma-chemnitz.de>,
-        Michael Grzeschik <m.grzeschik@pengutronix.de>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: Re: [PATCH v3 1/3] media: mt9m111: make VIDIOC_SUBDEV_G_FMT ioctl
- work with V4L2_SUBDEV_FORMAT_TRY
-Message-ID: <20190123151750.5s5efpear43pq2uj@pengutronix.de>
-References: <1547561141-13504-1-git-send-email-akinobu.mita@gmail.com>
- <1547561141-13504-2-git-send-email-akinobu.mita@gmail.com>
+        id S1726337AbfAWPok (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 23 Jan 2019 10:44:40 -0500
+Received: from mail.bootlin.com ([62.4.15.54]:41488 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726307AbfAWPok (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 23 Jan 2019 10:44:40 -0500
+Received: by mail.bootlin.com (Postfix, from userid 110)
+        id 65FC2207AC; Wed, 23 Jan 2019 16:44:37 +0100 (CET)
+Received: from localhost (unknown [185.94.189.187])
+        by mail.bootlin.com (Postfix) with ESMTPSA id 28D672077B;
+        Wed, 23 Jan 2019 16:44:37 +0100 (CET)
+Date:   Wed, 23 Jan 2019 16:44:37 +0100
+From:   Maxime Ripard <maxime.ripard@bootlin.com>
+To:     Jagan Teki <jagan@amarulasolutions.com>
+Cc:     Yong Deng <yong.deng@magewell.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Chen-Yu Tsai <wens@csie.org>, linux-media@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        linux-sunxi <linux-sunxi@googlegroups.com>,
+        linux-amarula@amarulasolutions.com,
+        Michael Trimarchi <michael@amarulasolutions.com>
+Subject: Re: [PATCH v6 2/6] media: sun6i: Add mod_rate quirk
+Message-ID: <20190123154437.zjrpzzsenoioi43e@flea>
+References: <20190118163158.21418-1-jagan@amarulasolutions.com>
+ <20190118163158.21418-3-jagan@amarulasolutions.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="yz2zv5rwxvomehn4"
 Content-Disposition: inline
-In-Reply-To: <1547561141-13504-2-git-send-email-akinobu.mita@gmail.com>
-X-Sent-From: Pengutronix Hildesheim
-X-URL:  http://www.pengutronix.de/
-X-IRC:  #ptxdist @freenode
-X-Accept-Language: de,en
-X-Accept-Content-Type: text/plain
-X-Uptime: 16:07:47 up 4 days, 19:49, 20 users,  load average: 0.00, 0.01, 0.00
-User-Agent: NeoMutt/20170113 (1.7.2)
-X-SA-Exim-Connect-IP: 2001:67c:670:100:1d::c5
-X-SA-Exim-Mail-From: mfe@pengutronix.de
-X-SA-Exim-Scanned: No (on metis.ext.pengutronix.de); SAEximRunCond expanded to false
-X-PTX-Original-Recipient: linux-media@vger.kernel.org
+In-Reply-To: <20190118163158.21418-3-jagan@amarulasolutions.com>
+User-Agent: NeoMutt/20180716
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Akinobu,
 
-sorry for the delayed response.
+--yz2zv5rwxvomehn4
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On 19-01-15 23:05, Akinobu Mita wrote:
-> The VIDIOC_SUBDEV_G_FMT ioctl for this driver doesn't recognize
-> V4L2_SUBDEV_FORMAT_TRY and always works as if V4L2_SUBDEV_FORMAT_ACTIVE
-> is specified.
-> 
-> Cc: Enrico Scholz <enrico.scholz@sigma-chemnitz.de>
-> Cc: Michael Grzeschik <m.grzeschik@pengutronix.de>
-> Cc: Marco Felsch <m.felsch@pengutronix.de>
-> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-> ---
-> * v3
-> - Set initial try format with default configuration instead of
->   current one.
-> 
->  drivers/media/i2c/mt9m111.c | 30 ++++++++++++++++++++++++++++++
->  1 file changed, 30 insertions(+)
-> 
-> diff --git a/drivers/media/i2c/mt9m111.c b/drivers/media/i2c/mt9m111.c
-> index d639b9b..63a5253 100644
-> --- a/drivers/media/i2c/mt9m111.c
-> +++ b/drivers/media/i2c/mt9m111.c
-> @@ -528,6 +528,16 @@ static int mt9m111_get_fmt(struct v4l2_subdev *sd,
->  	if (format->pad)
->  		return -EINVAL;
->  
-> +	if (format->which == V4L2_SUBDEV_FORMAT_TRY) {
-> +#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
-> +		mf = v4l2_subdev_get_try_format(sd, cfg, format->pad);
-> +		format->format = *mf;
-> +		return 0;
-> +#else
-> +		return -ENOTTY;
-> +#endif
+On Fri, Jan 18, 2019 at 10:01:54PM +0530, Jagan Teki wrote:
+> Unfortunately default CSI_SCLK rate cannot work properly to
+> drive the connected sensor interface, particularly on few
+> Allwinner SoC's like A64.
+>=20
+> So, add mod_rate quirk via driver data so-that the respective
+> SoC's which require to alter the default mod clock rate can assign
+> the operating clock rate.
+>=20
+> Signed-off-by: Jagan Teki <jagan@amarulasolutions.com>
 
-If've checked this again and found the ov* devices do this too. IMO it's
-not good for other developers to check the upper layer if the '#else'
-path is reachable. There are also some code analyzer tools which will
-report this as issue/warning.
+You still don't need the variant stuff. If the sole difference is that
+we need that clock rate to be fixed, then the following patch is enough.
 
-As I said, I checked the v4l2_subdev_get_try_format() usage again and
-found the solution made by the mt9v111.c better. Why do you don't add a
-dependency in the Kconfig, so we can drop this ifdef?
+http://code.bulix.org/9au998-562745?raw
 
-Regards,
-Marco
+Maxime
 
-> +	}
-> +
->  	mf->width	= mt9m111->width;
->  	mf->height	= mt9m111->height;
->  	mf->code	= mt9m111->fmt->code;
-> @@ -1089,6 +1099,25 @@ static int mt9m111_s_stream(struct v4l2_subdev *sd, int enable)
->  	return 0;
->  }
->  
-> +static int mt9m111_init_cfg(struct v4l2_subdev *sd,
-> +			    struct v4l2_subdev_pad_config *cfg)
-> +{
-> +#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
-> +	struct v4l2_mbus_framefmt *format =
-> +		v4l2_subdev_get_try_format(sd, cfg, 0);
-> +
-> +	format->width	= MT9M111_MAX_WIDTH;
-> +	format->height	= MT9M111_MAX_HEIGHT;
-> +	format->code	= mt9m111_colour_fmts[0].code;
-> +	format->colorspace	= mt9m111_colour_fmts[0].colorspace;
-> +	format->field	= V4L2_FIELD_NONE;
-> +	format->ycbcr_enc	= V4L2_YCBCR_ENC_DEFAULT;
-> +	format->quantization	= V4L2_QUANTIZATION_DEFAULT;
-> +	format->xfer_func	= V4L2_XFER_FUNC_DEFAULT;
-> +#endif
-> +	return 0;
-> +}
-> +
->  static int mt9m111_g_mbus_config(struct v4l2_subdev *sd,
->  				struct v4l2_mbus_config *cfg)
->  {
-> @@ -1114,6 +1143,7 @@ static const struct v4l2_subdev_video_ops mt9m111_subdev_video_ops = {
->  };
->  
->  static const struct v4l2_subdev_pad_ops mt9m111_subdev_pad_ops = {
-> +	.init_cfg	= mt9m111_init_cfg,
->  	.enum_mbus_code = mt9m111_enum_mbus_code,
->  	.get_selection	= mt9m111_get_selection,
->  	.set_selection	= mt9m111_set_selection,
-> -- 
-> 2.7.4
-> 
-> 
+--=20
+Maxime Ripard, Bootlin
+Embedded Linux and Kernel engineering
+https://bootlin.com
+
+--yz2zv5rwxvomehn4
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iHUEABYIAB0WIQRcEzekXsqa64kGDp7j7w1vZxhRxQUCXEiL5QAKCRDj7w1vZxhR
+xW+OAP9I14o2aqaDvi2Zkm7tBUQNgMKU5/cRvH0+/vPUZBw7tQEAi4AHCxrJMB7W
+dAeL9m2LXQ6M4nDrZE51/vBKoTOpQgM=
+=UHSo
+-----END PGP SIGNATURE-----
+
+--yz2zv5rwxvomehn4--
