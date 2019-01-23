@@ -2,53 +2,55 @@ Return-Path: <SRS0=FDnu=P7=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D4063C282C0
-	for <linux-media@archiver.kernel.org>; Wed, 23 Jan 2019 10:40:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F0A8CC282C2
+	for <linux-media@archiver.kernel.org>; Wed, 23 Jan 2019 10:40:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9435E20861
-	for <linux-media@archiver.kernel.org>; Wed, 23 Jan 2019 10:40:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BF84A21019
+	for <linux-media@archiver.kernel.org>; Wed, 23 Jan 2019 10:40:30 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linaro.org header.i=@linaro.org header.b="Goc/hFU8"
+	dkim=pass (1024-bit key) header.d=linaro.org header.i=@linaro.org header.b="AP0Ic7Dw"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726772AbfAWKkR (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 23 Jan 2019 05:40:17 -0500
-Received: from mail-wm1-f68.google.com ([209.85.128.68]:55548 "EHLO
-        mail-wm1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727105AbfAWKkR (ORCPT
+        id S1727483AbfAWKk3 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 23 Jan 2019 05:40:29 -0500
+Received: from mail-wm1-f65.google.com ([209.85.128.65]:37835 "EHLO
+        mail-wm1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727464AbfAWKk3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 23 Jan 2019 05:40:17 -0500
-Received: by mail-wm1-f68.google.com with SMTP id y139so1450398wmc.5
-        for <linux-media@vger.kernel.org>; Wed, 23 Jan 2019 02:40:16 -0800 (PST)
+        Wed, 23 Jan 2019 05:40:29 -0500
+Received: by mail-wm1-f65.google.com with SMTP id g67so1451186wmd.2
+        for <linux-media@vger.kernel.org>; Wed, 23 Jan 2019 02:40:27 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linaro.org; s=google;
-        h=from:to:cc:subject:date:message-id;
-        bh=2WopGAHC3vhDTNXuOGSdAGTac9qZGaqwKjIqjMvQSeU=;
-        b=Goc/hFU8+Zu9MH+v7UBE/S5u1Z2Jte0UYY+VTlLvPg64dEwuuPcHZS3HA+32f1KdxN
-         BwHHPJ1v4+S750m/kHv27OBl9rKzpFHcIWzOCtDarge5h93g9Ba3FBqPb8LmVHrqymVB
-         UwXelunkfwho0lKOcyGUevsi2roFYQ7V7Lvv8=
+        h=from:to:cc:subject:date:message-id:in-reply-to:references;
+        bh=naLY3DB0fFEF8+rWJZdD/W2PWV9f5z/z6JViBOnJMqA=;
+        b=AP0Ic7Dw6nbX4EKdi7eU2eD9LCpW+dpTatSpIiS2Q1A3NR7W3Q8/URmgmw0IHd2yeR
+         C0qVa7293afRu1eo7qa0ibm4KzFdLuOUc8BMYSAkV26oC9duPuh9kGOni1aKensDY/RC
+         XYhFo5GCXynz5jByS374zHWrLWMpNGtrYL4aU=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id;
-        bh=2WopGAHC3vhDTNXuOGSdAGTac9qZGaqwKjIqjMvQSeU=;
-        b=pBWR+4hyBJnQ/btEI0nDwGsQvMPCeZwOI6YenmkG+nM8xZxK7W+ieRUpF2bcDLU536
-         ELWPbocLNS5F4jqonnPpi7wzBaVDwXLvZGe+R+cGTKtg7TGWcawLakd6gI4N9Yr8ISPA
-         yLQxscRK0XWHvhb+QsHL26VkMxcbiAkZqVqFeRCdXKdGekc39VKJHlWLjUOugHVZ5CLD
-         2s7uwOzP/Bvp8KXgr+8GNo8z+62UrxZT3bIm0LyKe06i24jhR57OTGkvSnqtsP3war9v
-         jPGVDBrcm2VNfYPvRPwHymNSE4zO6LWQ00UpKQ7CEtgKDfG5DKIX1Co8hF3KmKwrzCf3
-         Y42w==
-X-Gm-Message-State: AJcUukcOSE7WxIN9EJtaqx7VOPJXL0gUhG26lMZvyUAZbt8hqmac39tc
-        oiRpaH06ZoETXKBVd1Eh5m3bbV5VutU=
-X-Google-Smtp-Source: ALg8bN5pgQqWc7dhDG5TLFgMGWYpXN57+xczsOV5sA2pCnNTv/90L1SnwGOirjslxJZgRk5Pq1pnnA==
-X-Received: by 2002:a1c:cc19:: with SMTP id h25mr2161893wmb.80.1548240015469;
-        Wed, 23 Jan 2019 02:40:15 -0800 (PST)
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references;
+        bh=naLY3DB0fFEF8+rWJZdD/W2PWV9f5z/z6JViBOnJMqA=;
+        b=ru4Q9D4pSDxLzXhJvrmO7sEp3gckhLRl0cftXwJ/W4q4PiUKzzoPe3AaJ5EZ2rhB7h
+         i6KWXDjeBK85RSAA+Sx7GRV+93fky/Kl0udw8JzNEgLxMgnl2TF8Ocanh4TA8rcmhBlB
+         lhDBNAF+uUn8K3l7ND7nFpb5n2rTVc4mnCmli7W8VhJx7G80XXsBINpEKCtUwAmDRaRa
+         6SyQysrqI806e7xZQbjKGxt4txCN1Gp/7/62vS4nx7E3nrMCPN6LmnO1Chyen+XFvN8r
+         UztnMuvbsSQdzf2zgC8m+c6k/GezhrkjXenAv+nsLDWl50m50AAtMAsyk400xvfM5jVW
+         1tkQ==
+X-Gm-Message-State: AJcUukedtb/H/F+PMxC6kIcC2W3hIfTiVawUMHReTdZf+8GnMPXSwZUZ
+        8GpfVhd2trrvt9nS5XyB7Ngbqlq/5ys=
+X-Google-Smtp-Source: ALg8bN6Eu+1iHB3IH61SXRZhLMWr+urYzCcDTEH7aZ3k0QveqDjZcd49XYdOjBMBZ062rIrndu99tw==
+X-Received: by 2002:a1c:5604:: with SMTP id k4mr2098756wmb.107.1548240026882;
+        Wed, 23 Jan 2019 02:40:26 -0800 (PST)
 Received: from localhost.localdomain ([37.157.136.206])
-        by smtp.gmail.com with ESMTPSA id b18sm84525211wrw.83.2019.01.23.02.40.14
+        by smtp.gmail.com with ESMTPSA id b18sm84525211wrw.83.2019.01.23.02.40.26
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 23 Jan 2019 02:40:14 -0800 (PST)
+        Wed, 23 Jan 2019 02:40:26 -0800 (PST)
 From:   Stanimir Varbanov <stanimir.varbanov@linaro.org>
 To:     linux-media@vger.kernel.org
 Cc:     Mauro Carvalho Chehab <mchehab@kernel.org>,
@@ -59,37 +61,41 @@ Cc:     Mauro Carvalho Chehab <mchehab@kernel.org>,
         Alexandre Courbot <acourbot@chromium.org>,
         Malathi Gottam <mgottam@codeaurora.org>,
         Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH v2 0/4] Venus various fixes
-Date:   Wed, 23 Jan 2019 12:39:45 +0200
-Message-Id: <20190123103949.13496-1-stanimir.varbanov@linaro.org>
+Subject: [PATCH v2 4/4] venus: helpers: drop setting of timestamp invalid flag
+Date:   Wed, 23 Jan 2019 12:39:49 +0200
+Message-Id: <20190123103949.13496-5-stanimir.varbanov@linaro.org>
 X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20190123103949.13496-1-stanimir.varbanov@linaro.org>
+References: <20190123103949.13496-1-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hello,
+The zero timestamp is really valid so fix that mistake by
+dropping the code which checks for zero timestamp.
 
-Changes in v2:
- * in 1/4 make 'mapped' const - Alex
- * fixed typos in 2/4 and 4/4 - Alex
- * added Reviewed-by and Tested-by tags
+Reviewed-by: Alexandre Courbot <acourbot@chromium.org>
+Tested-by: Alexandre Courbot <acourbot@chromium.org>
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+---
+ drivers/media/platform/qcom/venus/helpers.c | 3 ---
+ 1 file changed, 3 deletions(-)
 
-regards,
-Stan
-
-Stanimir Varbanov (4):
-  venus: firmware: check fw size against DT memory region size
-  venus: core: correct maximum hardware load for sdm845
-  venus: core: correct frequency table for sdm845
-  venus: helpers: drop setting of timestamp invalid flag
-
- drivers/media/platform/qcom/venus/core.c     | 12 +++--
- drivers/media/platform/qcom/venus/core.h     |  1 +
- drivers/media/platform/qcom/venus/firmware.c | 53 +++++++++++---------
- drivers/media/platform/qcom/venus/helpers.c  |  3 --
- 4 files changed, 38 insertions(+), 31 deletions(-)
-
+diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
+index e436385bc5ab..5cad601d4c57 100644
+--- a/drivers/media/platform/qcom/venus/helpers.c
++++ b/drivers/media/platform/qcom/venus/helpers.c
+@@ -439,9 +439,6 @@ session_process_buf(struct venus_inst *inst, struct vb2_v4l2_buffer *vbuf)
+ 	fdata.flags = 0;
+ 	fdata.clnt_data = vbuf->vb2_buf.index;
+ 
+-	if (!fdata.timestamp)
+-		fdata.flags |= HFI_BUFFERFLAG_TIMESTAMPINVALID;
+-
+ 	if (type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+ 		fdata.buffer_type = HFI_BUFFER_INPUT;
+ 		fdata.filled_len = vb2_get_plane_payload(vb, 0);
 -- 
 2.17.1
 
