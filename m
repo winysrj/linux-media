@@ -1,141 +1,232 @@
-Return-Path: <SRS0=JQ9q=P6=vger.kernel.org=linux-media-owner@kernel.org>
+Return-Path: <SRS0=FDnu=P7=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
+	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D585AC282C3
-	for <linux-media@archiver.kernel.org>; Tue, 22 Jan 2019 21:46:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 73538C282C3
+	for <linux-media@archiver.kernel.org>; Wed, 23 Jan 2019 00:10:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9F22320866
-	for <linux-media@archiver.kernel.org>; Tue, 22 Jan 2019 21:46:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 31E3421726
+	for <linux-media@archiver.kernel.org>; Wed, 23 Jan 2019 00:10:28 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="tB9LDtDy"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726719AbfAVVqm (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 22 Jan 2019 16:46:42 -0500
-Received: from mga05.intel.com ([192.55.52.43]:41765 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726423AbfAVVqm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 Jan 2019 16:46:42 -0500
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 22 Jan 2019 13:46:42 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.56,508,1539673200"; 
-   d="scan'208";a="127757861"
-Received: from orsmsx105.amr.corp.intel.com ([10.22.225.132])
-  by FMSMGA003.fm.intel.com with ESMTP; 22 Jan 2019 13:46:42 -0800
-Received: from orsmsx112.amr.corp.intel.com (10.22.240.13) by
- ORSMSX105.amr.corp.intel.com (10.22.225.132) with Microsoft SMTP Server (TLS)
- id 14.3.408.0; Tue, 22 Jan 2019 13:46:41 -0800
-Received: from orsmsx106.amr.corp.intel.com ([169.254.1.54]) by
- ORSMSX112.amr.corp.intel.com ([169.254.3.62]) with mapi id 14.03.0415.000;
- Tue, 22 Jan 2019 13:46:41 -0800
-From:   "Zhi, Yong" <yong.zhi@intel.com>
-To:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC:     "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
-        "tfiga@chromium.org" <tfiga@chromium.org>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
-        "Hu, Jerry W" <jerry.w.hu@intel.com>,
-        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
-        "hans.verkuil@cisco.com" <hans.verkuil@cisco.com>,
-        "mchehab@kernel.org" <mchehab@kernel.org>,
-        "Cao, Bingbu" <bingbu.cao@intel.com>
-Subject: RE: [PATCH v8 15/17] media: v4l: Add Intel IPU3 meta buffer formats
-Thread-Topic: [PATCH v8 15/17] media: v4l: Add Intel IPU3 meta buffer formats
-Thread-Index: AQHUjcjiu26CCKyCXUOnsfGXsr8nLaV6DRAAgC72FVCAE5iMAP//fZYQ
-Date:   Tue, 22 Jan 2019 21:46:40 +0000
-Message-ID: <C193D76D23A22742993887E6D207B54D3DB5489B@ORSMSX106.amr.corp.intel.com>
-References: <1544144622-29791-1-git-send-email-yong.zhi@intel.com>
- <1544144622-29791-16-git-send-email-yong.zhi@intel.com>
- <2743727.5LazzqFdDF@avalon>
- <C193D76D23A22742993887E6D207B54D3DB52FDB@ORSMSX106.amr.corp.intel.com>
- <20190122212228.GM3264@pendragon.ideasonboard.com>
-In-Reply-To: <20190122212228.GM3264@pendragon.ideasonboard.com>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-dlp-product: dlpe-windows
-dlp-version: 11.0.400.15
-dlp-reaction: no-action
-x-ctpclassification: CTP_NT
-x-titus-metadata-40: eyJDYXRlZ29yeUxhYmVscyI6IiIsIk1ldGFkYXRhIjp7Im5zIjoiaHR0cDpcL1wvd3d3LnRpdHVzLmNvbVwvbnNcL0ludGVsMyIsImlkIjoiNjM4ZDI4ZWYtMmI4YS00NmM0LTkzYWMtZmFkOTBmODZlZmEwIiwicHJvcHMiOlt7Im4iOiJDVFBDbGFzc2lmaWNhdGlvbiIsInZhbHMiOlt7InZhbHVlIjoiQ1RQX05UIn1dfV19LCJTdWJqZWN0TGFiZWxzIjpbXSwiVE1DVmVyc2lvbiI6IjE3LjEwLjE4MDQuNDkiLCJUcnVzdGVkTGFiZWxIYXNoIjoicTd4ME42VmpJdXA4dWlMY3VSYWtnQ3ZqUUE1aUlPYWNkdjdmSFlXbDhmd1NKeGI5NU15VVA2bEZQSXlEWk9qMCJ9
-x-originating-ip: [10.22.254.140]
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+        id S1726861AbfAWAKX (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 22 Jan 2019 19:10:23 -0500
+Received: from mail-wr1-f65.google.com ([209.85.221.65]:40282 "EHLO
+        mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725985AbfAWAKW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 22 Jan 2019 19:10:22 -0500
+Received: by mail-wr1-f65.google.com with SMTP id p4so371450wrt.7;
+        Tue, 22 Jan 2019 16:10:20 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=subject:to:cc:references:from:message-id:date:user-agent
+         :mime-version:in-reply-to:content-transfer-encoding:content-language;
+        bh=ZxDb0vYd3PO4jWllQVwieKYYm2BFu1ttqZZCmMjmCDA=;
+        b=tB9LDtDyzeSIrMeXEmfK40M5+bjBEbFRwo3UwAKsFb5Kgd9a2Nl5NlN6rKlcOIN5fR
+         mHzJ5VsJ5/tbNr6SvcsgpQA2prQgTlCy+9aOx/fXerLrOiLCW716ZFVTB7WIQulKaY4K
+         K4sXzJDM4y+qfMhO9wWu5BEuv63SeDZfTG2cVnJphWoo8HFV6OIW/Qe2JUWqF5h/rNE9
+         uFWHJ727hQVfcj1a6OAbtibsoMhoPK5vy5ZdSSs57AqJTIacFqtL+sZxDLmTi4stOwzw
+         7b6TFRHH3KkW4xyGNVnCET5l6SQNhX3+7Eit/DvMp86bpOFxEjfl/0A28BnrQwRQ8IjF
+         w1RQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-transfer-encoding
+         :content-language;
+        bh=ZxDb0vYd3PO4jWllQVwieKYYm2BFu1ttqZZCmMjmCDA=;
+        b=Lhqu+qe0bf3tIkEbfNNzfvUM6gsJUMM0PtAqViff5y3Quvqwl+B/m5butp2nTwhvkP
+         U+izA6XcybaypMyucJ5uY/2Z37tpatqYrrGghizIJlEeHv70nzhYJx2Gd73Sa46mSPCd
+         hb9UjptSwlDiva4wJWINBBYLCBUYqwilCrQ5ZLqi7dPzeokVq/URPLmV3xX1QhFxyLZq
+         tgbhWVDOZoUSxnSvJ2L813LQ0c/wSgjkAbWOPql8CMg+nDF7W9K3eLPNm+Q/VeqUz8Nv
+         GscuGQjPcoh1DEUW6FKQruUh5OhhcLSu5BaNQqpMpJREq8A4eV0axikWVbZTdZiGp+2E
+         ogIg==
+X-Gm-Message-State: AJcUukeE4bVLCuId0OHni7bq0aOo+xGqO1KIKFHYYlP2+S/3AUZLbI1z
+        YRMzKXP3AwYORSHbfpaWTptOYVJK
+X-Google-Smtp-Source: ALg8bN7mkX3lz7jsBxC2qC+jVEovCfHoaRFPTVfjjrHqY4WztjKW3bcOhts6gIKWX2+1UBCcrC9/gg==
+X-Received: by 2002:a05:6000:51:: with SMTP id k17mr15302wrx.259.1548202219742;
+        Tue, 22 Jan 2019 16:10:19 -0800 (PST)
+Received: from [172.30.88.84] (sjewanfw1-nat.mentorg.com. [139.181.7.34])
+        by smtp.gmail.com with ESMTPSA id q12sm87947890wrx.31.2019.01.22.16.10.17
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Tue, 22 Jan 2019 16:10:18 -0800 (PST)
+Subject: Re: [PATCH v8 11/11] media: imx.rst: Update doc to reflect fixes to
+ interlaced capture
+To:     Tim Harvey <tharvey@gateworks.com>
+Cc:     linux-media <linux-media@vger.kernel.org>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        open list <linux-kernel@vger.kernel.org>
+References: <20190109183014.20466-1-slongerbeam@gmail.com>
+ <20190109183014.20466-12-slongerbeam@gmail.com>
+ <CAJ+vNU1r86n1=9gKDw-bTO0sWJL7NMjZcdKMQO23a+WOR1H9tw@mail.gmail.com>
+ <6b4c3fb1-929b-8894-e2f9-aca2f392f0e5@gmail.com>
+ <CAJ+vNU2827H8C3PN=v++XRjd0LP6Uf1KzMAs0bFTgbX93v7atg@mail.gmail.com>
+From:   Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <aca68d5d-25ef-daef-c396-d32e4099c28f@gmail.com>
+Date:   Tue, 22 Jan 2019 16:08:03 -0800
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.2.1
 MIME-Version: 1.0
+In-Reply-To: <CAJ+vNU2827H8C3PN=v++XRjd0LP6Uf1KzMAs0bFTgbX93v7atg@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-SGksIExhdXJlbnQsDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogTGF1
-cmVudCBQaW5jaGFydCBbbWFpbHRvOmxhdXJlbnQucGluY2hhcnRAaWRlYXNvbmJvYXJkLmNvbV0N
-Cj4gU2VudDogVHVlc2RheSwgSmFudWFyeSAyMiwgMjAxOSAxOjIyIFBNDQo+IFRvOiBaaGksIFlv
-bmcgPHlvbmcuemhpQGludGVsLmNvbT4NCj4gQ2M6IGxpbnV4LW1lZGlhQHZnZXIua2VybmVsLm9y
-Zzsgc2FrYXJpLmFpbHVzQGxpbnV4LmludGVsLmNvbTsNCj4gdGZpZ2FAY2hyb21pdW0ub3JnOyBN
-YW5pLCBSYWptb2hhbiA8cmFqbW9oYW4ubWFuaUBpbnRlbC5jb20+Ow0KPiBUb2l2b25lbiwgVHV1
-a2thIDx0dXVra2EudG9pdm9uZW5AaW50ZWwuY29tPjsgSHUsIEplcnJ5IFcNCj4gPGplcnJ5Lncu
-aHVAaW50ZWwuY29tPjsgUWl1LCBUaWFuIFNodSA8dGlhbi5zaHUucWl1QGludGVsLmNvbT47DQo+
-IGhhbnMudmVya3VpbEBjaXNjby5jb207IG1jaGVoYWJAa2VybmVsLm9yZzsgQ2FvLCBCaW5nYnUN
-Cj4gPGJpbmdidS5jYW9AaW50ZWwuY29tPg0KPiBTdWJqZWN0OiBSZTogW1BBVENIIHY4IDE1LzE3
-XSBtZWRpYTogdjRsOiBBZGQgSW50ZWwgSVBVMyBtZXRhIGJ1ZmZlciBmb3JtYXRzDQo+IA0KPiBI
-aSBZb25nLA0KPiANCj4gT24gVGh1LCBKYW4gMTAsIDIwMTkgYXQgMDY6MzU6MTFQTSArMDAwMCwg
-WmhpLCBZb25nIHdyb3RlOg0KPiA+IE9uIFR1ZXNkYXksIERlY2VtYmVyIDExLCAyMDE4IDY6NTkg
-QU0sIExhdXJlbnQgUGluY2hhcnQgd3JvdGU6DQo+ID4gPiBPbiBGcmlkYXksIDcgRGVjZW1iZXIg
-MjAxOCAwMzowMzo0MCBFRVQgWW9uZyBaaGkgd3JvdGU6DQo+ID4gPj4gQWRkIElQVTMtc3BlY2lm
-aWMgbWV0YSBmb3JtYXRzIGZvciBwcm9jZXNzaW5nIHBhcmFtZXRlcnMgYW5kIDNBDQo+ID4gPj4g
-c3RhdGlzdGljcy4NCj4gPiA+Pg0KPiA+ID4+ICAgVjRMMl9NRVRBX0ZNVF9JUFUzX1BBUkFNUw0K
-PiA+ID4+ICAgVjRMMl9NRVRBX0ZNVF9JUFUzX1NUQVRfM0ENCj4gPiA+Pg0KPiA+ID4+IFNpZ25l
-ZC1vZmYtYnk6IFlvbmcgWmhpIDx5b25nLnpoaUBpbnRlbC5jb20+DQo+ID4gPj4gUmV2aWV3ZWQt
-Ynk6IExhdXJlbnQgUGluY2hhcnQgPGxhdXJlbnQucGluY2hhcnRAaWRlYXNvbmJvYXJkLmNvbT4N
-Cj4gPiA+DQo+ID4gPiBNeSBSZXZpZXdlZC1ieSB0YWcgd2FzIHJlbGF0ZWQgdG8gdGhlIGZvcm1h
-dCBwYXJ0IG9ubHkgKHY0bDItaW9jdGwuYw0KPiA+ID4gYW5kDQo+ID4gPiB2aWRlb2RldjIuaCkg
-Oi0pIFBsZWFzZSBzZWUgYmVsb3cgZm9yIG1vcmUgY29tbWVudHMgYWJvdXQgdGhlDQo+ID4gPiBk
-b2N1bWVudGF0aW9uLg0KPiA+ID4NCj4gPiA+PiAtLS0NCj4gPiA+PiAgRG9jdW1lbnRhdGlvbi9t
-ZWRpYS91YXBpL3Y0bC9tZXRhLWZvcm1hdHMucnN0ICAgICAgfCAgIDEgKw0KPiA+ID4+ICAuLi4v
-bWVkaWEvdWFwaS92NGwvcGl4Zm10LW1ldGEtaW50ZWwtaXB1My5yc3QgICAgICB8IDE3OA0KPiAr
-KysrKysrKysrKysrKysrKysNCj4gPiA+PiAgZHJpdmVycy9tZWRpYS92NGwyLWNvcmUvdjRsMi1p
-b2N0bC5jICAgICAgICAgICAgICAgfCAgIDIgKw0KPiA+ID4+ICBpbmNsdWRlL3VhcGkvbGludXgv
-dmlkZW9kZXYyLmggICAgICAgICAgICAgICAgICAgICB8ICAgNCArDQo+ID4gPj4gIDQgZmlsZXMg
-Y2hhbmdlZCwgMTg1IGluc2VydGlvbnMoKykgIGNyZWF0ZSBtb2RlIDEwMDY0NA0KPiA+ID4+IERv
-Y3VtZW50YXRpb24vbWVkaWEvdWFwaS92NGwvcGl4Zm10LW1ldGEtaW50ZWwtaXB1My5yc3QNCj4g
-DQo+IFtzbmlwXQ0KPiANCj4gPiA+PiBkaWZmIC0tZ2l0DQo+ID4gPj4gYS9Eb2N1bWVudGF0aW9u
-L21lZGlhL3VhcGkvdjRsL3BpeGZtdC1tZXRhLWludGVsLWlwdTMucnN0DQo+ID4gPj4gYi9Eb2N1
-bWVudGF0aW9uL21lZGlhL3VhcGkvdjRsL3BpeGZtdC1tZXRhLWludGVsLWlwdTMucnN0IG5ldyBm
-aWxlDQo+ID4gPj4gbW9kZQ0KPiA+ID4+IDEwMDY0NA0KPiA+ID4+IGluZGV4IDAwMDAwMDAwMDAw
-MC4uOGNkMzBmZmJmOGI4DQo+ID4gPj4gLS0tIC9kZXYvbnVsbA0KPiA+ID4+ICsrKyBiL0RvY3Vt
-ZW50YXRpb24vbWVkaWEvdWFwaS92NGwvcGl4Zm10LW1ldGEtaW50ZWwtaXB1My5yc3QNCj4gDQo+
-IFtzbmlwXQ0KPiANCj4gPiA+PiArc3RydWN0IDpjOnR5cGU6YGlwdTNfdWFwaV80YV9jb25maWdg
-IHNhdmVzIGNvbmZpZ3VyYWJsZSBwYXJhbWV0ZXJzDQo+ID4gPj4gK2ZvciBhbGwNCj4gPiA+PiBh
-Ym92ZS4NCj4gPiA+DQo+ID4gPiBJIHdvdWxkIHdyaXRlIGl0IGFzICJUaGUNCj4gPiA+DQo+ID4g
-PiBCeSB0aGUgd2F5IHdoeSAiNGEiIHdoZW4gdGhlIGRvY3VtZW50YXRpb24gdGFsa3MgYWJvdXQg
-M0EgPw0KPiA+ID4gU2hvdWxkbid0IHRoZSBzdHJ1Y3R1cmUgYmUgY2FsbGVkIGlwdTNfdWFwaV8z
-YV9jb25maWcgPw0KPiA+ID4NCj4gPg0KPiA+IFRoZSA0dGggImEiIHJlZmVycyB0byB0aGUgQVdC
-IGZpbHRlciByZXNwb25zZSBjb25maWcuDQo+IA0KPiBCdXQgdGhlIGF1dG9tYXRpYyBhbGdvcml0
-aG1zIGFyZSBzdGlsbCBhdXRvbWF0aWMgd2hpdGUgYmFsYW5jZSwgYXV0b21hdGljDQo+IGV4cG9z
-dXJlIGFuZCBhdXRvbWF0aWMgZm9jdXMsIHJpZ2h0LCB3aXRoIGlwdTNfdWFwaV9hd2JfZnJfcmF3
-X2J1ZmZlcg0KPiBiZWluZyBwYXJ0IG9mIEFXQiwgcmlnaHQgPw0KPiANCg0KVGhhdCdzIHJpZ2h0
-LCB3ZSBzdGlsbCBjYWxsIGl0IGlwdTNfdWFwaV9zdGF0c18zYSBpbnN0ZWFkIG9mIGlwdTNfdWFw
-aV9zdGF0c180YS4NCkkgaGF2ZSBubyBwcm9ibGVtIHRvIHJlbmFtZSBpcHUzX3VhcGlfNGFfY29u
-ZmlnIHRvIGlwdTNfdWFwaV8zYV9jb25maWcuDQoNCkkgY2FuIHJlc2VuZCB0aGUgcGF0Y2ggd2l0
-aCB0aGlzIHVwZGF0ZSBpZiBubyBvbmUgb3Bwb3NlcywgdGhhbmtzISENCg0KPiA+ID4+ICsNCj4g
-PiA+PiArLi4gY29kZS1ibG9jazo6IGMNCj4gPiA+PiArDQo+ID4gPj4gKwlzdHJ1Y3QgaXB1M191
-YXBpX3N0YXRzXzNhIHsNCj4gPiA+PiArCQlzdHJ1Y3QgaXB1M191YXBpX2F3Yl9yYXdfYnVmZmVy
-IGF3Yl9yYXdfYnVmZmVyOw0KPiA+ID4+ICsJCXN0cnVjdCBpcHUzX3VhcGlfYWVfcmF3X2J1ZmZl
-cl9hbGlnbmVkDQo+ID4gPj4gYWVfcmF3X2J1ZmZlcltJUFUzX1VBUElfTUFYX1NUUklQRVNdOw0K
-PiA+ID4+ICsJCXN0cnVjdCBpcHUzX3VhcGlfYWZfcmF3X2J1ZmZlcg0KPiA+ID4+IGFmX3Jhd19i
-dWZmZXI7DQo+ID4gPj4gKwkJc3RydWN0IGlwdTNfdWFwaV9hd2JfZnJfcmF3X2J1ZmZlciBhd2Jf
-ZnJfcmF3X2J1ZmZlcjsNCj4gPiA+PiArCQlzdHJ1Y3QgaXB1M191YXBpXzRhX2NvbmZpZyBzdGF0
-c180YV9jb25maWc7DQo+ID4gPj4gKwkJX191MzIgYWVfam9pbl9idWZmZXJzOw0KPiA+ID4+ICsJ
-CV9fdTggcGFkZGluZ1syOF07DQo+ID4gPj4gKwkJc3RydWN0IGlwdTNfdWFwaV9zdGF0c18zYV9i
-dWJibGVfaW5mb19wZXJfc3RyaXBlDQo+ID4gPj4gc3RhdHNfM2FfYnViYmxlX3Blcl9zdHJpcGU7
-DQo+ID4gPj4gKwkJc3RydWN0IGlwdTNfdWFwaV9mZl9zdGF0dXMgc3RhdHNfM2Ffc3RhdHVzOw0K
-PiA+ID4+ICsJfTsNCj4gPiA+Pg0KPiA+ID4+ICsuLiBjOnR5cGU6OiBpcHUzX3VhcGlfcGFyYW1z
-DQo+IA0KPiBbc25pcF0NCj4gDQo+IC0tDQo+IFJlZ2FyZHMsDQo+IA0KPiBMYXVyZW50IFBpbmNo
-YXJ0DQo=
+
+
+On 1/21/19 12:24 PM, Tim Harvey wrote:
+> On Tue, Jan 15, 2019 at 3:54 PM Steve Longerbeam <slongerbeam@gmail.com> wrote:
+>> Hi Tim,
+>>
+>> On 1/15/19 1:58 PM, Tim Harvey wrote:
+>>> On Wed, Jan 9, 2019 at 10:30 AM Steve Longerbeam <slongerbeam@gmail.com> wrote:
+>>>> Also add an example pipeline for unconverted capture with interweave
+>>>> on SabreAuto.
+>>>>
+>>>> Cleanup some language in various places in the process.
+>>>>
+>>>> Signed-off-by: Steve Longerbeam <slongerbeam@gmail.com>
+>>>> Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
+>>>> ---
+>>>> Changes since v4:
+>>>> - Make clear that it is IDMAC channel that does pixel reordering and
+>>>>     interweave, not the CSI. Caught by Philipp Zabel.
+>>>> Changes since v3:
+>>>> - none.
+>>>> Changes since v2:
+>>>> - expand on idmac interweave behavior in CSI subdev.
+>>>> - switch second SabreAuto pipeline example to PAL to give
+>>>>     both NTSC and PAL examples.
+>>>> - Cleanup some language in various places.
+>>>> ---
+>>>>    Documentation/media/v4l-drivers/imx.rst | 103 +++++++++++++++---------
+>>>>    1 file changed, 66 insertions(+), 37 deletions(-)
+>>>>
+>>> <snip>
+>>>>    Capture Pipelines
+>>>>    -----------------
+>>>> @@ -516,10 +522,33 @@ On the SabreAuto, an on-board ADV7180 SD decoder is connected to the
+>>>>    parallel bus input on the internal video mux to IPU1 CSI0.
+>>>>
+>>>>    The following example configures a pipeline to capture from the ADV7180
+>>>> -video decoder, assuming NTSC 720x480 input signals, with Motion
+>>>> -Compensated de-interlacing. Pad field types assume the adv7180 outputs
+>>>> -"interlaced". $outputfmt can be any format supported by the ipu1_ic_prpvf
+>>>> -entity at its output pad:
+>>>> +video decoder, assuming NTSC 720x480 input signals, using simple
+>>>> +interweave (unconverted and without motion compensation). The adv7180
+>>>> +must output sequential or alternating fields (field type 'seq-bt' for
+>>>> +NTSC, or 'alternate'):
+>>>> +
+>>>> +.. code-block:: none
+>>>> +
+>>>> +   # Setup links
+>>>> +   media-ctl -l "'adv7180 3-0021':0 -> 'ipu1_csi0_mux':1[1]"
+>>>> +   media-ctl -l "'ipu1_csi0_mux':2 -> 'ipu1_csi0':0[1]"
+>>>> +   media-ctl -l "'ipu1_csi0':2 -> 'ipu1_csi0 capture':0[1]"
+>>>> +   # Configure pads
+>>>> +   media-ctl -V "'adv7180 3-0021':0 [fmt:UYVY2X8/720x480 field:seq-bt]"
+>>>> +   media-ctl -V "'ipu1_csi0_mux':2 [fmt:UYVY2X8/720x480]"
+>>>> +   media-ctl -V "'ipu1_csi0':2 [fmt:AYUV32/720x480]"
+>>>> +   # Configure "ipu1_csi0 capture" interface (assumed at /dev/video4)
+>>>> +   v4l2-ctl -d4 --set-fmt-video=field=interlaced_bt
+>>>> +
+>>>> +Streaming can then begin on /dev/video4. The v4l2-ctl tool can also be
+>>>> +used to select any supported YUV pixelformat on /dev/video4.
+>>>> +
+>>> Hi Steve,
+>>>
+>>> I'm testing 4.20 with this patchset on top.
+>>>
+>>> I'm on a GW5104 which has an IMX6Q with the adv7180 on ipu1_csi0 like
+>>> the SabeAuto example above I can't get the simple interveave example
+>>> to work:
+>>>
+>>> media-ctl -r # reset all links
+>>> # Setup links (ADV7180 IPU1_CSI0)
+>>> media-ctl -l '"adv7180 2-0020":0 -> "ipu1_csi0_mux":1[1]'
+>>> media-ctl -l '"ipu1_csi0_mux":2 -> "ipu1_csi0":0[1]'
+>>> media-ctl -l '"ipu1_csi0":2 -> "ipu1_csi0 capture":0[1]' # /dev/video4
+>>> # Configure pads
+>>> media-ctl -V "'adv7180 2-0020':0 [fmt:UYVY2X8/720x480 field:seq-bt]"
+>>> media-ctl -V "'ipu1_csi0_mux':2 [fmt:UYVY2X8/720x480]"
+>>> media-ctl -V "'ipu1_csi0':0 [fmt:AYUV32/720x480]"
+>> This is the reason. The adv7180 is only allowing to configure alternate
+>> field mode, and thus it reports the field height on the mbus, not the
+>> full frame height. Imx deals with alternate field mode by capturing a
+>> full frame, so the CSI entity sets the output pad height to double the
+>> height.
+>>
+>> So the CSI input pad needs to be configured with the field height:
+>>
+>> media-ctl -V "'ipu1_csi0':0 [fmt:AYUV32/720x240]"
+>>
+>> It should work for you after doing that. And better yet, don't bother
+>> configuring the input pad, because media-ctl will propagate formats from
+>> source to sink pads for you, so it's better to rely on the propagation,
+>> and set the CSI output pad format instead (full frame height at output pad):
+>>
+>> media-ctl -V "'ipu1_csi0':2 [fmt:AYUV32/720x480]"
+>>
+> Steve,
+>
+> Thanks - that makes sense.
+>
+> I also noticed that if I setup one of the vdic pipelines first then
+> went back after a 'media-ctl -r' and setup the example that failed it
+> no longer failed. I'm thinking that this is because 'media-ctl -r'
+> make reset all the links but does not reset all the V4L2 formats on
+> pads?
+>
+>> Final note: the imx.rst doc is technically correct even though it is
+>> showing full frame heights being configured at the pads, because it is
+>> expecting the adv7180 has accepted 'seq-bt'. But even the example given
+>> in that doc works for alternate field mode, because the pad heights are
+>> forced to the correct field height for alternate mode.
+>>
+> hmmm... I don't quite follow this statement. It sounds like the
+> example would only be correct if you were setting 'field:alternate'
+> but the example sets 'field:seq-bt' instead.
+
+The example is consistent for a sensor that sends seq-bt. Here is the 
+example config from the imx.rst doc again, a (ntsc) height of 480 lines 
+is correct for a seq-bt source:
+
+    # Setup links
+    media-ctl -l "'adv7180 3-0021':0 -> 'ipu1_csi0_mux':1[1]"
+    media-ctl -l "'ipu1_csi0_mux':2 -> 'ipu1_csi0':0[1]"
+    media-ctl -l "'ipu1_csi0':2 -> 'ipu1_csi0 capture':0[1]"
+    # Configure pads
+    media-ctl -V "'adv7180 3-0021':0 [fmt:UYVY2X8/720x480 field:seq-bt]"
+    media-ctl -V "'ipu1_csi0_mux':2 [fmt:UYVY2X8/720x480]"
+    media-ctl -V "'ipu1_csi0':2 [fmt:AYUV32/720x480]"
+    # Configure "ipu1_csi0 capture" interface (assumed at /dev/video4)
+    v4l2-ctl -d4 --set-fmt-video=field=interlaced_bt
+
+> I wonder if you should add some verbiage explaining the difference in
+> format (resolution specifically) between the input and output pads
+> and/or change the example to set the output pad format so people don't
+> run into what I did trying to follow the example.
+>
+
+Well, the example *is* setting the output pad format (media-ctl -V 
+"ipu1_csi0:2 ...").
+
+But I suppose wording could be added such as "this example assumes the 
+sensor (adv7180) supports seq-bt".
+
+Steve
+
+
+
