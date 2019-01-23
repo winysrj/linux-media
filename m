@@ -7,51 +7,51 @@ X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 080BCC282C0
-	for <linux-media@archiver.kernel.org>; Wed, 23 Jan 2019 10:53:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C26ECC282C0
+	for <linux-media@archiver.kernel.org>; Wed, 23 Jan 2019 10:53:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CD90720870
-	for <linux-media@archiver.kernel.org>; Wed, 23 Jan 2019 10:53:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8E08620861
+	for <linux-media@archiver.kernel.org>; Wed, 23 Jan 2019 10:53:08 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linaro.org header.i=@linaro.org header.b="k10wElIq"
+	dkim=pass (1024-bit key) header.d=linaro.org header.i=@linaro.org header.b="bLeGcaeS"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727510AbfAWKxF (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 23 Jan 2019 05:53:05 -0500
-Received: from mail-wr1-f67.google.com ([209.85.221.67]:43760 "EHLO
-        mail-wr1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727468AbfAWKxF (ORCPT
+        id S1727496AbfAWKxH (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 23 Jan 2019 05:53:07 -0500
+Received: from mail-wr1-f66.google.com ([209.85.221.66]:33011 "EHLO
+        mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727520AbfAWKxG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 23 Jan 2019 05:53:05 -0500
-Received: by mail-wr1-f67.google.com with SMTP id r10so1831601wrs.10
-        for <linux-media@vger.kernel.org>; Wed, 23 Jan 2019 02:53:03 -0800 (PST)
+        Wed, 23 Jan 2019 05:53:06 -0500
+Received: by mail-wr1-f66.google.com with SMTP id p7so1891707wru.0
+        for <linux-media@vger.kernel.org>; Wed, 23 Jan 2019 02:53:05 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linaro.org; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=l1CtKO6V+4HtmzEfS2pTeqx8xeoh5M0LOaS1U2hjAuU=;
-        b=k10wElIqWICuY2nAEaUeSfKfsMZLhdbT5iVGqNiLQih15IbFJ4qxE1DF5jEIrIKq17
-         OpyNXawTWfGdEtrdFfgXoDCL+mlQmqI4E/A++//Jpeb74ki0a84RnZCzs+HIcPgIrV2V
-         9QmHt3T1bQlLEhkmtJVBlQYBhgv78aD92iThM=
+        bh=ohoegLfKZSxjvRFUtoqBy2pbuyibvlUW+N0NidjtxBs=;
+        b=bLeGcaeSvywC9yZI8sxQzP31RpgovAORn9ODss/K15LJKogXZ5uMPqP4LbrUZoagMh
+         QIzJud2wR1EjnvK533FBngv7Dk8pnOqNVcAVxOy+YHEygBNwOxFhl5FepFSWX8b0Anqn
+         KalgoRHsCjCUvGDLSSzF5sAE64I7pwdM2vv28=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=l1CtKO6V+4HtmzEfS2pTeqx8xeoh5M0LOaS1U2hjAuU=;
-        b=rOTSAtqDYCBH7HnBIvOMI6NoZ0Kat1tLdRLQh1fm4VtMUiMOAe9ydOIJowGxmpI4XD
-         +ieKwEYKBInyFNaO40msiQhvePsp8SN+QsZjfkLzGFyYv0cHzxU3TsKZTsrNYffZU9IS
-         to7imYMe9rkjxB3zErZaiSynxFiTtxBxmgfEhcokAvUzRkUbpoRF/px2al6fyaGy/QOv
-         LuDrim4TMSCSPSwIlUjQYDKtQt3VzO4zRfsqnJd58Xk+VFOaAJOgkKSU9qufHhhFuzof
-         ENP1rsdO36NnQA7RElxXZrsh2atEju0g7zypxPVopEnKzTbf3Q6Igun0TWnhncLl+EJ6
-         ii+g==
-X-Gm-Message-State: AJcUukcBphN3nRns1L51sD+P1bYy2ur+xdFT2AIDcXBYUW2X4hLkO7XR
-        /L5jedR+vL5dcHgGjaJYYNf8xg==
-X-Google-Smtp-Source: ALg8bN5V1QhLcw+EC344fQ/04cUbf+rGT5XE/6vPFjmoJLPcoz4bs1rz/GakSD2cBcurnbGwqxAyhw==
-X-Received: by 2002:adf:8068:: with SMTP id 95mr2190614wrk.181.1548240782939;
-        Wed, 23 Jan 2019 02:53:02 -0800 (PST)
+        bh=ohoegLfKZSxjvRFUtoqBy2pbuyibvlUW+N0NidjtxBs=;
+        b=CvZ5tn1JHZ2ekUXmcz1/KAG1Mb8rcc9CjA8si/NnWXAMX5QEoaRqNpaYVanPAae5g9
+         opDycnh5pys0fGxOmmHAPbqXSA7g8o4mhGn5/NuRvcJ/OLK6RefOeL/LHLOnTyhxFQHu
+         +DrnvuwGg+4Y9jKmrN3qVCsO59yOmMSZZHYR4zW0AzNw8SrC3rT8bGVJ+6fSFOFDyib1
+         dQ5j87QeM/CEnH+SD0uN99D3n65+LLlsY+kPqSJhjf4zdKrh62j1/Uhs4hdmM9FlN7yh
+         Dg/0mO5rOoxzFfg+FfXVSR/6qdpbpIWx48YMyO4Z+Rcj2TzITY0kdYm8R65Vh79YnSzH
+         MP8Q==
+X-Gm-Message-State: AJcUukfwBj+yX3aHujyivzrjWzRSWRKYOtLXPewyGoHhfxkLKuIN/cpm
+        T+VHUhBu0bEOc1DddN1A290lfg==
+X-Google-Smtp-Source: ALg8bN7HX35YMUICBCle2QaIUVHP3RH2CXFnejzewxOXcI0mNMv8GIDCFzcs1LPu/FAHznXIbsrj0g==
+X-Received: by 2002:adf:f984:: with SMTP id f4mr2158477wrr.234.1548240785113;
+        Wed, 23 Jan 2019 02:53:05 -0800 (PST)
 Received: from arch-late.local (a109-49-46-234.cpe.netcabo.pt. [109.49.46.234])
-        by smtp.gmail.com with ESMTPSA id 143sm120717646wml.14.2019.01.23.02.53.01
+        by smtp.gmail.com with ESMTPSA id 143sm120717646wml.14.2019.01.23.02.53.04
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 23 Jan 2019 02:53:02 -0800 (PST)
+        Wed, 23 Jan 2019 02:53:04 -0800 (PST)
 From:   Rui Miguel Silva <rui.silva@linaro.org>
 To:     sakari.ailus@linux.intel.com,
         Steve Longerbeam <slongerbeam@gmail.com>,
@@ -61,9 +61,9 @@ Cc:     linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
         devicetree@vger.kernel.org,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Rui Miguel Silva <rui.silva@linaro.org>
-Subject: [PATCH v10 08/13] ARM: dts: imx7: Add video mux, csi and mipi_csi and connections
-Date:   Wed, 23 Jan 2019 10:52:17 +0000
-Message-Id: <20190123105222.2378-9-rui.silva@linaro.org>
+Subject: [PATCH v10 09/13] ARM: dts: imx7s-warp: add ov2680 sensor node
+Date:   Wed, 23 Jan 2019 10:52:18 +0000
+Message-Id: <20190123105222.2378-10-rui.silva@linaro.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190123105222.2378-1-rui.silva@linaro.org>
 References: <20190123105222.2378-1-rui.silva@linaro.org>
@@ -74,130 +74,92 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-This patch adds the device tree nodes for csi, video multiplexer and
-mipi-csi besides the graph connecting the necessary endpoints to make
-the media capture entities to work in imx7 Warp board.
+Warp7 comes with a Omnivision OV2680 sensor, add the node here to make
+complete the camera data path for this system. Add the needed regulator
+to the analog voltage supply, the port and endpoints in mipi_csi node
+and the pinctrl for the reset gpio.
 
 Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
 ---
- arch/arm/boot/dts/imx7s-warp.dts | 51 ++++++++++++++++++++++++++++++++
- arch/arm/boot/dts/imx7s.dtsi     | 27 +++++++++++++++++
- 2 files changed, 78 insertions(+)
+ arch/arm/boot/dts/imx7s-warp.dts | 44 ++++++++++++++++++++++++++++++++
+ 1 file changed, 44 insertions(+)
 
 diff --git a/arch/arm/boot/dts/imx7s-warp.dts b/arch/arm/boot/dts/imx7s-warp.dts
-index 23431faecaf4..358bcae7ebaf 100644
+index 358bcae7ebaf..58d1a89ee3e3 100644
 --- a/arch/arm/boot/dts/imx7s-warp.dts
 +++ b/arch/arm/boot/dts/imx7s-warp.dts
-@@ -277,6 +277,57 @@
+@@ -55,6 +55,14 @@
+ 		regulator-always-on;
+ 	};
+ 
++	reg_peri_3p15v: regulator-peri-3p15v {
++		compatible = "regulator-fixed";
++		regulator-name = "peri_3p15v_reg";
++		regulator-min-microvolt = <3150000>;
++		regulator-max-microvolt = <3150000>;
++		regulator-always-on;
++	};
++
+ 	sound {
+ 		compatible = "simple-audio-card";
+ 		simple-audio-card,name = "imx7-sgtl5000";
+@@ -178,6 +186,27 @@
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_i2c2>;
  	status = "okay";
++
++	ov2680: camera@36 {
++		compatible = "ovti,ov2680";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_ov2680>;
++		reg = <0x36>;
++		clocks = <&osc>;
++		clock-names = "xvclk";
++		reset-gpios = <&gpio1 3 GPIO_ACTIVE_LOW>;
++		DOVDD-supply = <&sw2_reg>;
++		DVDD-supply = <&sw2_reg>;
++		AVDD-supply = <&reg_peri_3p15v>;
++
++		port {
++			ov2680_to_mipi: endpoint {
++				remote-endpoint = <&mipi_from_sensor>;
++				clock-lanes = <0>;
++				data-lanes = <1>;
++			};
++		};
++	};
  };
  
-+&gpr {
-+	csi_mux {
-+		compatible = "video-mux";
-+		mux-controls = <&mux 0>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
+ &i2c3 {
+@@ -319,6 +348,15 @@
+ 	#size-cells = <0>;
+ 	fsl,csis-hs-settle = <3>;
+ 
++	port@0 {
++		reg = <0>;
 +
-+		port@1 {
-+			reg = <1>;
-+
-+			csi_mux_from_mipi_vc0: endpoint {
-+				remote-endpoint = <&mipi_vc0_to_csi_mux>;
-+			};
-+		};
-+
-+		port@2 {
-+			reg = <2>;
-+
-+			csi_mux_to_csi: endpoint {
-+				remote-endpoint = <&csi_from_csi_mux>;
-+			};
++		mipi_from_sensor: endpoint {
++			remote-endpoint = <&ov2680_to_mipi>;
++			data-lanes = <1>;
 +		};
 +	};
-+};
 +
-+&csi {
-+	status = "okay";
-+
-+	port {
-+		csi_from_csi_mux: endpoint {
-+			remote-endpoint = <&csi_mux_to_csi>;
-+		};
+ 	port@1 {
+ 		reg = <1>;
+ 
+@@ -382,6 +420,12 @@
+ 		>;
+ 	};
+ 
++	pinctrl_ov2680: ov2660grp {
++		fsl,pins = <
++			MX7D_PAD_LPSR_GPIO1_IO03__GPIO1_IO3	0x14
++		>;
 +	};
-+};
 +
-+&mipi_csi {
-+	clock-frequency = <166000000>;
-+	status = "okay";
-+	#address-cells = <1>;
-+	#size-cells = <0>;
-+	fsl,csis-hs-settle = <3>;
-+
-+	port@1 {
-+		reg = <1>;
-+
-+		mipi_vc0_to_csi_mux: endpoint {
-+			remote-endpoint = <&csi_mux_from_mipi_vc0>;
-+		};
-+	};
-+};
-+
- &wdog1 {
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&pinctrl_wdog>;
-diff --git a/arch/arm/boot/dts/imx7s.dtsi b/arch/arm/boot/dts/imx7s.dtsi
-index 792efcd2caa1..01962f85cab6 100644
---- a/arch/arm/boot/dts/imx7s.dtsi
-+++ b/arch/arm/boot/dts/imx7s.dtsi
-@@ -8,6 +8,7 @@
- #include <dt-bindings/gpio/gpio.h>
- #include <dt-bindings/input/input.h>
- #include <dt-bindings/interrupt-controller/arm-gic.h>
-+#include <dt-bindings/reset/imx7-reset.h>
- #include "imx7d-pinfunc.h"
- 
- / {
-@@ -709,6 +710,17 @@
- 				status = "disabled";
- 			};
- 
-+			csi: csi@30710000 {
-+				compatible = "fsl,imx7-csi";
-+				reg = <0x30710000 0x10000>;
-+				interrupts = <GIC_SPI 7 IRQ_TYPE_LEVEL_HIGH>;
-+				clocks = <&clks IMX7D_CLK_DUMMY>,
-+						<&clks IMX7D_CSI_MCLK_ROOT_CLK>,
-+						<&clks IMX7D_CLK_DUMMY>;
-+				clock-names = "axi", "mclk", "dcic";
-+				status = "disabled";
-+			};
-+
- 			lcdif: lcdif@30730000 {
- 				compatible = "fsl,imx7d-lcdif", "fsl,imx28-lcdif";
- 				reg = <0x30730000 0x10000>;
-@@ -718,6 +730,21 @@
- 				clock-names = "pix", "axi";
- 				status = "disabled";
- 			};
-+
-+			mipi_csi: mipi-csi@30750000 {
-+				compatible = "fsl,imx7-mipi-csi2";
-+				reg = <0x30750000 0x10000>;
-+				interrupts = <GIC_SPI 25 IRQ_TYPE_LEVEL_HIGH>;
-+				clocks = <&clks IMX7D_IPG_ROOT_CLK>,
-+					<&clks IMX7D_MIPI_CSI_ROOT_CLK>,
-+					<&clks IMX7D_MIPI_DPHY_ROOT_CLK>;
-+				clock-names = "pclk", "wrap", "phy";
-+				power-domains = <&pgc_mipi_phy>;
-+				phy-supply = <&reg_1p0d>;
-+				resets = <&src IMX7_RESET_MIPI_PHY_MRST>;
-+				reset-names = "mrst";
-+				status = "disabled";
-+			};
- 		};
- 
- 		aips3: aips-bus@30800000 {
+ 	pinctrl_sai1: sai1grp {
+ 		fsl,pins = <
+ 			MX7D_PAD_SAI1_RX_DATA__SAI1_RX_DATA0	0x1f
 -- 
 2.20.1
 
