@@ -2,134 +2,131 @@ Return-Path: <SRS0=FDnu=P7=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EAB8FC282C0
-	for <linux-media@archiver.kernel.org>; Wed, 23 Jan 2019 09:57:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EC462C282C0
+	for <linux-media@archiver.kernel.org>; Wed, 23 Jan 2019 10:02:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C033D20870
-	for <linux-media@archiver.kernel.org>; Wed, 23 Jan 2019 09:57:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BAA50217F5
+	for <linux-media@archiver.kernel.org>; Wed, 23 Jan 2019 10:02:34 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="G/Jj4jtn"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727462AbfAWJ5X (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 23 Jan 2019 04:57:23 -0500
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:41360 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727090AbfAWJ5X (ORCPT
+        id S1727148AbfAWKCe (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 23 Jan 2019 05:02:34 -0500
+Received: from mail-ot1-f65.google.com ([209.85.210.65]:37059 "EHLO
+        mail-ot1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727090AbfAWKCe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 23 Jan 2019 04:57:23 -0500
-Received: from [IPv6:2001:420:44c1:2579:d8f:48e2:1dc9:37b8] ([IPv6:2001:420:44c1:2579:d8f:48e2:1dc9:37b8])
-        by smtp-cloud7.xs4all.net with ESMTPA
-        id mFHZg1vzHBDyImFHdgYKqS; Wed, 23 Jan 2019 10:57:21 +0100
-Subject: Re: [PATCH] vb2: vb2_find_timestamp: drop restriction on buffer state
-To:     Alexandre Courbot <acourbot@chromium.org>
-Cc:     Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Tomasz Figa <tfiga@chromium.org>
-References: <c29a6f08-a450-73aa-c79d-93cdcbf416ae@xs4all.nl>
- <CAPBb6MUHJpuOGAR+v7dfaBDMT7F=hiTkKM_eZSFozOP_+gD7QQ@mail.gmail.com>
-From:   Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <57eb4ae8-c633-8e30-b65f-8c2d50bf1f17@xs4all.nl>
-Date:   Wed, 23 Jan 2019 10:57:17 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:52.0) Gecko/20100101
- Thunderbird/52.2.1
+        Wed, 23 Jan 2019 05:02:34 -0500
+Received: by mail-ot1-f65.google.com with SMTP id s13so1405418otq.4
+        for <linux-media@vger.kernel.org>; Wed, 23 Jan 2019 02:02:33 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc:content-transfer-encoding;
+        bh=IHRz0QY5CZdQdoIc8komNLLlrqiTiPWXxllEMlAtARM=;
+        b=G/Jj4jtnKEpWTpEANW8y1CoH2U7MVFQE4/JJokkOHiGo4RSdztEqc6Yfgozx4nGkCC
+         e28o9RqZJhkPGmowb1WxKMgHlFPIlumm4KFp7ct9QR56npU3mTR1FNzSBz6AcTGbKcs6
+         lbh45MItOkxJS7teB2fmWDpKVD5WpThu2wlqI=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=IHRz0QY5CZdQdoIc8komNLLlrqiTiPWXxllEMlAtARM=;
+        b=h8grbGip7S5oVyLTHkpPg+jLZTYWOf1JUiasFZzwUTSi2yRrgPak967bnXHmTmhbdP
+         tdEn8JdUXet2RekNZcNCaxd3u8sXEbJGFTvcTKFKGqC+5tS1W2u+nzVhHjiKJwHCF3nF
+         0/kpR5EXUePDYu5B8WvD8r3Y4OjqVQhkyQFBX1YBME+YcBiVIOCdsorion/8Q6096IVv
+         NgBlqP4Gs414uStWKYJu0V7iiFUbGIC6FCELOKsVeetWWQpR2wAuTrNCmOXDjbR6q1GY
+         +T1eyDBxNf9V523jTtXmps5rNkSGNyRWouxkrV5j9hgOSeQP3DJxi8z4A8n3R7BgNGiY
+         ixVg==
+X-Gm-Message-State: AJcUukcBt0hZpkHusX+p/XSKio17aTqj85ZDINA5wYToncqnk/q9Gqis
+        iRHi7ztR+CbY6+AMS2IfW2BCq82aWdA=
+X-Google-Smtp-Source: ALg8bN51Gp47G7kMu2hn5l5iQBZS+qFRBbeybFfKmntDr2LQXtSBFxweXD0dikbNT8QCEX70pvCAVQ==
+X-Received: by 2002:a9d:2184:: with SMTP id s4mr1112240otb.46.1548237752985;
+        Wed, 23 Jan 2019 02:02:32 -0800 (PST)
+Received: from mail-oi1-f182.google.com (mail-oi1-f182.google.com. [209.85.167.182])
+        by smtp.gmail.com with ESMTPSA id b23sm7493110otq.5.2019.01.23.02.02.32
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 23 Jan 2019 02:02:32 -0800 (PST)
+Received: by mail-oi1-f182.google.com with SMTP id j21so1298334oii.8
+        for <linux-media@vger.kernel.org>; Wed, 23 Jan 2019 02:02:32 -0800 (PST)
+X-Received: by 2002:aca:5a88:: with SMTP id o130mr1024574oib.275.1548237752296;
+ Wed, 23 Jan 2019 02:02:32 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <CAPBb6MUHJpuOGAR+v7dfaBDMT7F=hiTkKM_eZSFozOP_+gD7QQ@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfGqlSylDtrrre413rq8dOajYjLHfbCmObf53QIclxkqpU6H/WlQ02lOGxFlyGppHpc/1x72njJnHHNp/Zkl1Q67b+Ci0Z1I6XoDjTY6e0O1P7jhNB9fW
- iEbRdhUspqaCidFDV4A52ORo2e2Sy+uGc8rmA9qWuhHkvdgTD5CieEeWueGubtJQ0RMTzr4m8ozfKuq2nQ3SGa+F7TpvbihHpXz+Vu0yQhKiez+9z0JRgr3s
- cKpYKIXu7WqWmy8Rw+CbEGLx1SU5mK70MHpASJASnFpSLLfJRg2c4QwJQ+4Iodhr6gt/KyOw5vyEjROYYIPB9Yi0EhapEeK9eEDn6DfPczgBxwCBX5YlFMSo
- gnAgat2utrVqy02UCXu5zvsaRI4WGDTduAR4+Sn8MahcMmtFNdA=
+References: <20181022144901.113852-1-tfiga@chromium.org> <20181022144901.113852-3-tfiga@chromium.org>
+ <4cd223f0-b09c-da07-f26c-3b3f7a8868d7@xs4all.nl> <5fb0f2db44ba7aa3788b61f2aa9a30d4f4984de5.camel@ndufresne.ca>
+ <d853eb91-c05d-fb10-f154-bc24e4ebb89d@xs4all.nl> <dae0211b3bc01423f1e9de63e9b4ef0aee44c086.camel@ndufresne.ca>
+In-Reply-To: <dae0211b3bc01423f1e9de63e9b4ef0aee44c086.camel@ndufresne.ca>
+From:   Tomasz Figa <tfiga@chromium.org>
+Date:   Wed, 23 Jan 2019 19:02:21 +0900
+X-Gmail-Original-Message-ID: <CAAFQd5B5EhdK78uzDE=t-ZHYDVYrrUo9t2_HQH+bKjRp6HfSOw@mail.gmail.com>
+Message-ID: <CAAFQd5B5EhdK78uzDE=t-ZHYDVYrrUo9t2_HQH+bKjRp6HfSOw@mail.gmail.com>
+Subject: Re: [PATCH v2 2/2] media: docs-rst: Document memory-to-memory video
+ encoder interface
+To:     Nicolas Dufresne <nicolas@ndufresne.ca>
+Cc:     Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        =?UTF-8?B?UGF3ZcWCIE/Fm2NpYWs=?= <posciak@chromium.org>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Kamil Debski <kamil@wypas.org>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Jeongtae Park <jtp.park@samsung.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Tiffany Lin <tiffany.lin@mediatek.com>,
+        Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Todor Tomov <todor.tomov@linaro.org>,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        dave.stevenson@raspberrypi.org,
+        Ezequiel Garcia <ezequiel@collabora.com>,
+        Maxime Jourdan <maxi.jourdan@wanadoo.fr>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On 01/23/19 10:48, Alexandre Courbot wrote:
-> On Wed, Jan 23, 2019 at 5:30 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>
->> There really is no reason why vb2_find_timestamp can't just find
->> buffers in any state. Drop that part of the test.
->>
->> This also means that vb->timestamp should only be set to 0 when a
->> capture buffer is queued AND when the driver doesn't copy timestamps.
->>
->> This change allows for more efficient pipelining (i.e. you can use
->> a buffer for a reference frame even when it is queued).
-> 
-> So I suppose the means the stateless codec API needs to be updated to
-> reflect this? I cannot find any case where that would be a problem,
-> but just out of curiosity, what triggered this change?
+On Sun, Nov 18, 2018 at 10:34 AM Nicolas Dufresne <nicolas@ndufresne.ca> wr=
+ote:
+>
+> Le samedi 17 novembre 2018 =C3=A0 12:37 +0100, Hans Verkuil a =C3=A9crit =
+:
+> > > > Does V4L2_CID_MIN_BUFFERS_FOR_CAPTURE make any sense for encoders?
+> > >
+> > > We do account for it in GStreamer (the capture/output handling is
+> > > generic), but I don't know if it's being used anywhere.
+> >
+> > Do you use this value directly for REQBUFS, or do you use it as the min=
+imum
+> > value but in practice use more buffers?
+>
+> We add more buffers to that value. We assume this value is what will be
+> held by the driver, hence without adding some buffers, the driver would
+> go idle as soon as one is dequeued. We also need to allocate for the
+> importing driver.
+>
+> In general, if we have a pipeline with Driver A sending to Driver B,
+> both driver will require a certain amount of buffers to operate. E.g.
+> with DRM display, the driver will hold on 1 buffer (the scannout
+> buffer).
+>
+> In GStreamer, it's implemented generically, so we do:
+>
+>   MIN_BUFFERS_FOR + remote_min + 1
+>
+> If only MIN_BUFFERS_FOR was allocated, ignoring remote driver
+> requirement, the streaming will likely get stuck.
 
-Two reasons, really: one was the discussion about decoding an interlaced
-stream where the second field had to refer to the buffer for the first field,
-requiring special code in the cedrus driver. With this change you no longer
-need to do anything special.
+What happens if the driver doesn't report it?
 
-The second was a discussion where it was pointed out that in the current
-situation you cannot queue a capture buffer containing a reference frame
-that is referred to by a queued, but not yet processed, output buffer.
-
-This means you need to allocate more buffers than is strictly necessary.
-
-The main limitation here was that the timestamp of a capture buffer was
-set to 0, so you couldn't find these buffers anymore.
-
-It's easy enough to fix in vb2 and I see no downsides to this change.
-
-Regards,
-
-	Hans
-
-> 
->>
->> Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
->> ---
->> diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
->> index 75ea90e795d8..2a093bff0bf5 100644
->> --- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
->> +++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
->> @@ -567,7 +567,7 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb, struct vb2_plane *planes)
->>         struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
->>         unsigned int plane;
->>
->> -       if (!vb->vb2_queue->is_output || !vb->vb2_queue->copy_timestamp)
->> +       if (!vb->vb2_queue->is_output && !vb->vb2_queue->copy_timestamp)
->>                 vb->timestamp = 0;
->>
->>         for (plane = 0; plane < vb->num_planes; ++plane) {
->> @@ -594,14 +594,9 @@ int vb2_find_timestamp(const struct vb2_queue *q, u64 timestamp,
->>  {
->>         unsigned int i;
->>
->> -       for (i = start_idx; i < q->num_buffers; i++) {
->> -               struct vb2_buffer *vb = q->bufs[i];
->> -
->> -               if ((vb->state == VB2_BUF_STATE_DEQUEUED ||
->> -                    vb->state == VB2_BUF_STATE_DONE) &&
->> -                   vb->timestamp == timestamp)
->> +       for (i = start_idx; i < q->num_buffers; i++)
->> +               if (q->bufs[i]->timestamp == timestamp)
->>                         return i;
->> -       }
->>         return -1;
->>  }
->>  EXPORT_SYMBOL_GPL(vb2_find_timestamp);
->> diff --git a/include/media/videobuf2-v4l2.h b/include/media/videobuf2-v4l2.h
->> index a9961bc776dc..8a10889dc2fd 100644
->> --- a/include/media/videobuf2-v4l2.h
->> +++ b/include/media/videobuf2-v4l2.h
->> @@ -59,8 +59,7 @@ struct vb2_v4l2_buffer {
->>   * vb2_find_timestamp() - Find buffer with given timestamp in the queue
->>   *
->>   * @q:         pointer to &struct vb2_queue with videobuf2 queue.
->> - * @timestamp: the timestamp to find. Only buffers in state DEQUEUED or DONE
->> - *             are considered.
->> + * @timestamp: the timestamp to find.
->>   * @start_idx: the start index (usually 0) in the buffer array to start
->>   *             searching from. Note that there may be multiple buffers
->>   *             with the same timestamp value, so you can restart the search
-
+Best regards,
+Tomasz
