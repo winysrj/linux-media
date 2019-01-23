@@ -2,108 +2,145 @@ Return-Path: <SRS0=FDnu=P7=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 239FCC282C0
-	for <linux-media@archiver.kernel.org>; Wed, 23 Jan 2019 10:53:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 07328C282C2
+	for <linux-media@archiver.kernel.org>; Wed, 23 Jan 2019 11:29:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E71C121019
-	for <linux-media@archiver.kernel.org>; Wed, 23 Jan 2019 10:53:16 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linaro.org header.i=@linaro.org header.b="fZMTkykL"
+	by mail.kernel.org (Postfix) with ESMTP id D348820861
+	for <linux-media@archiver.kernel.org>; Wed, 23 Jan 2019 11:29:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727520AbfAWKxQ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 23 Jan 2019 05:53:16 -0500
-Received: from mail-wr1-f66.google.com ([209.85.221.66]:46238 "EHLO
-        mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727531AbfAWKxP (ORCPT
+        id S1727095AbfAWL3B (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 23 Jan 2019 06:29:01 -0500
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:47841 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726322AbfAWL3B (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 23 Jan 2019 05:53:15 -0500
-Received: by mail-wr1-f66.google.com with SMTP id l9so1820926wrt.13
-        for <linux-media@vger.kernel.org>; Wed, 23 Jan 2019 02:53:14 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=8IBIrFG6qOQny2BFb8zfG+j0ULZivadQuD97Xx/Nde4=;
-        b=fZMTkykLlypxqA8+69RC0Je6H+H+ZbN45CWChnIfsuGIN5uA3IqlbutJut4pUMPOhZ
-         EBYVieOZpkUKTJHk8PAo7vuZQcKFQbod8av0nB9PVUv3+UBhCGndiO52jY/OH8XfAOpg
-         pjvPvIZ9YiLUcRlaNS3OSL9BzWGEvM/2K1G4M=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=8IBIrFG6qOQny2BFb8zfG+j0ULZivadQuD97Xx/Nde4=;
-        b=aecmwQAEkKeo2HYkufbXgKz/whTRXlqk1R1tzIB40zzCGxNnCT6ay1Ggu/B97tJa/u
-         77faDEYuSPSoZhHdhrCELbRSeMhKgKmGADogSKltfsBGAC8FwO7rTzqQNm4/V/sSaRtK
-         ucCl7sE1+YrGgzUnhZ0/ulBEed4/9TMc+2VqJEPgWpBDQ8yHegLtVbc8yThmLQx+PL+E
-         /w0cHjjsc3SLpT6pDoGKlpCAzJc1KOc6p1JGTWgOhM1VEgaQSla/kACckrfBLmrHS4Yj
-         +CGZ0XhkeDfwnaCukEJ8dHGSkGOvhqR6cMbSO1cjWSVIOJS322gAMGEHKFT55m82Hx20
-         zarQ==
-X-Gm-Message-State: AJcUukcrcQO5zKAkj4LVHLzUHY5Xzsrqjny5KhC9bouydQqtyG4LdlEp
-        +W3Irm618T9sZAozg/62YZGyIA==
-X-Google-Smtp-Source: ALg8bN4dQpT/XBioisyNtgcxWawI1FzRsNIbtmvB80+3GVGuECL8sd9bf1fnLogk1Z6cstVjvIzGBg==
-X-Received: by 2002:adf:f691:: with SMTP id v17mr2069763wrp.114.1548240793784;
-        Wed, 23 Jan 2019 02:53:13 -0800 (PST)
-Received: from arch-late.local (a109-49-46-234.cpe.netcabo.pt. [109.49.46.234])
-        by smtp.gmail.com with ESMTPSA id 143sm120717646wml.14.2019.01.23.02.53.12
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 23 Jan 2019 02:53:13 -0800 (PST)
-From:   Rui Miguel Silva <rui.silva@linaro.org>
-To:     sakari.ailus@linux.intel.com,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Philipp Zabel <p.zabel@pengutronix.de>
-Cc:     linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        devicetree@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Rui Miguel Silva <rui.silva@linaro.org>
-Subject: [PATCH v10 13/13] media: MAINTAINERS: add entry for Freescale i.MX7 media driver
-Date:   Wed, 23 Jan 2019 10:52:22 +0000
-Message-Id: <20190123105222.2378-14-rui.silva@linaro.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190123105222.2378-1-rui.silva@linaro.org>
-References: <20190123105222.2378-1-rui.silva@linaro.org>
+        Wed, 23 Jan 2019 06:29:01 -0500
+Received: from [IPv6:2001:420:44c1:2579:d8f:48e2:1dc9:37b8] ([IPv6:2001:420:44c1:2579:d8f:48e2:1dc9:37b8])
+        by smtp-cloud7.xs4all.net with ESMTPA
+        id mGiEg34AJBDyImGiIgYmt0; Wed, 23 Jan 2019 12:28:59 +0100
+Subject: Re: [PATCH v2 2/2] media: docs-rst: Document memory-to-memory video
+ encoder interface
+To:     Tomasz Figa <tfiga@chromium.org>
+Cc:     Nicolas Dufresne <nicolas@ndufresne.ca>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        =?UTF-8?B?UGF3ZcWCIE/Fm2NpYWs=?= <posciak@chromium.org>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Kamil Debski <kamil@wypas.org>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Jeongtae Park <jtp.park@samsung.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Tiffany Lin <tiffany.lin@mediatek.com>,
+        Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Todor Tomov <todor.tomov@linaro.org>,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        dave.stevenson@raspberrypi.org,
+        Ezequiel Garcia <ezequiel@collabora.com>,
+        Maxime Jourdan <maxi.jourdan@wanadoo.fr>
+References: <20181022144901.113852-1-tfiga@chromium.org>
+ <20181022144901.113852-3-tfiga@chromium.org>
+ <4cd223f0-b09c-da07-f26c-3b3f7a8868d7@xs4all.nl>
+ <5fb0f2db44ba7aa3788b61f2aa9a30d4f4984de5.camel@ndufresne.ca>
+ <d853eb91-c05d-fb10-f154-bc24e4ebb89d@xs4all.nl>
+ <CAAFQd5COddN-YosKyfBJ7n=qt40ONP=YEjBo5HQBOPGhs19h+g@mail.gmail.com>
+From:   Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <fcad4ca0-cfdd-d0fb-4b18-808426584755@xs4all.nl>
+Date:   Wed, 23 Jan 2019 12:28:54 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:52.0) Gecko/20100101
+ Thunderbird/52.2.1
 MIME-Version: 1.0
+In-Reply-To: <CAAFQd5COddN-YosKyfBJ7n=qt40ONP=YEjBo5HQBOPGhs19h+g@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 8bit
+X-CMAE-Envelope: MS4wfL2j4m31apzUYdjHRm+SScb8WykhcU3HpTLwvySOy3ifquyxp+4aMORogLafMw1FD2q7kmZtrq9w3CeaEjxaNrda09AoNkvvmqNzLPZUh/7+14bSIKSd
+ 8CPWeHxrK/1d5Xc6HEWyH4PZkpLqC52YsMqSK3wpS7ywWKLt/clABDPDFfcB5rhm4h9cu7sGqPShhw5VoOGzzxbeyOeBjixYQjCjgXKqtj2wClxNk9AYrstl
+ UW12NMnWHE5OSrdYYBvzenDy4kGWdkYcIJTRqduK0M6Oh+s4VdowWhhi6HHdb+q2p31ou2sWmyLnAHjHKsIrUFWgsUEF0Ri2jdACnO7paLOhmDBrg1R7356r
+ 7yuGfy32dQBfba+c725H4CTIDU9FyenHVxoRkxWroXvmfpdU81uadGBb/2AM6gDiR+m9u1NGifaeIwlICMHZJKwx2rKjYOHJmy+bPTOhrAc03f/ae+0CHGFb
+ wAweC1zn2/KbWIc4qYNshRXR+4imiUtmKe4zpkrLH/VkTAwHSVG5/VFRwMxPlYAspuPyn5DuV7eyfRt/tB/sqH7tCWXmqLXc6WFmCOAUB/+fkMRiQ8bNZIny
+ ks0o+S8vrkWEPYoMPDllQhOPdLLJ2scurSNKeDVfPpx4nveV8JhFf6W8daAL/NUwTclcS8fAIbY2p9MGJdvsI3XgV6WzTzXmQUy+PyRYOd+KxxzVcxbLPrja
+ UHDji5trrni8cTmTQMRVoznn1eFnNSQxvayFnn6ymVyPYpeCzQ1oJn1NYqqpVDfn4fDSFNJlID2LcKnXG1Dzdkaxgh8/Yu+T5KiKSX183hX50GyNFWDOcPDA
+ RSbMzzyTBp9rA0ysi80U/l2IUqiFUYTM4NCx5jFZhVqnKK7s0W+ZR9AwS3n/HWnFMhGrfhP5xmp4EcEqGbsuubTsMfFc7VmBP1X4rOOh+s1z3adeKXfO6QKd
+ XNylrEdiJ4yLzFsXutevKDZFF/f7SyS1Y6Fgw3cbpAre/1/h5+JuTbLlTAWKk/h4DqTs/g==
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Add maintainer entry for the imx7 media csi, mipi csis driver,
-dt-bindings and documentation.
+On 01/23/19 11:00, Tomasz Figa wrote:
+> On Sat, Nov 17, 2018 at 8:37 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>
+>> On 11/17/2018 05:18 AM, Nicolas Dufresne wrote:
+>>> Le lundi 12 novembre 2018 à 14:23 +0100, Hans Verkuil a écrit :
+>>>> On 10/22/2018 04:49 PM, Tomasz Figa wrote:
+> [snip]
+>>>>> +      rely on it. The ``V4L2_BUF_FLAG_LAST`` buffer flag should be used
+>>>>> +      instead.
+>>>>
+>>>> Question: should new codec drivers still implement the EOS event?
+>>>
+>>> I'm been asking around, but I think here is a good place. Do we really
+>>> need the FLAG_LAST in userspace ? Userspace can also wait for the first
+>>> EPIPE return from DQBUF.
+>>
+>> I'm interested in hearing Tomasz' opinion. This flag is used already, so there
+>> definitely is a backwards compatibility issue here.
+>>
+> 
+> FWIW, it would add the overhead of 1 more system call, although I
+> don't think it's of our concern.
+> 
+> My personal feeling is that using error codes for signaling normal
+> conditions isn't very elegant, though.
 
-Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
----
- MAINTAINERS | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+I agree. Let's keep this flag.
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 51029a425dbe..ad267b3dd18b 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -9350,6 +9350,17 @@ T:	git git://linuxtv.org/media_tree.git
- S:	Maintained
- F:	drivers/media/platform/imx-pxp.[ch]
- 
-+MEDIA DRIVERS FOR FREESCALE IMX7
-+M:	Rui Miguel Silva <rmfrfs@gmail.com>
-+L:	linux-media@vger.kernel.org
-+T:	git git://linuxtv.org/media_tree.git
-+S:	Maintained
-+F:	Documentation/devicetree/bindings/media/imx7-csi.txt
-+F:	Documentation/devicetree/bindings/media/imx7-mipi-csi2.txt
-+F:	Documentation/media/v4l-drivers/imx7.rst
-+F:	drivers/staging/media/imx/imx7-media-csi.c
-+F:	drivers/staging/media/imx/imx7-mipi-csis.c
-+
- MEDIA DRIVERS FOR HELENE
- M:	Abylay Ospan <aospan@netup.ru>
- L:	linux-media@vger.kernel.org
--- 
-2.20.1
+Regards,
+
+	Hans
+
+> 
+>>>
+>>>>
+>>>>> +
+>>>>> +3. Once all ``OUTPUT`` buffers queued before the ``V4L2_ENC_CMD_STOP`` call and
+>>>>> +   the last ``CAPTURE`` buffer are dequeued, the encoder is stopped and it will
+>>>>> +   accept, but not process any newly queued ``OUTPUT`` buffers until the client
+>>>>> +   issues any of the following operations:
+>>>>> +
+>>>>> +   * ``V4L2_ENC_CMD_START`` - the encoder will resume operation normally,
+>>>>
+>>>> Perhaps mention that this does not reset the encoder? It's not immediately clear
+>>>> when reading this.
+>>>
+>>> Which drivers supports this ? I believe I tried with Exynos in the
+>>> past, and that didn't work. How do we know if a driver supports this or
+>>> not. Do we make it mandatory ? When it's not supported, it basically
+>>> mean userspace need to cache and resend the header in userspace, and
+>>> also need to skip to some sync point.
+>>
+>> Once we agree on the spec, then the next step will be to add good compliance
+>> checks and update drivers that fail the tests.
+>>
+>> To check if the driver support this ioctl you can call VIDIOC_TRY_ENCODER_CMD
+>> to see if the functionality is supported.
+> 
+> There is nothing here for the hardware to support. It's an entirely
+> driver thing, since it just needs to wait for the encoder to complete
+> all the pending frames and stop enqueuing more frames to the decoder
+> until V4L2_ENC_CMD_START is called. Any driver that can't do it must
+> be fixed, since otherwise you have no way to ensure that you got all
+> the encoded output.
+> 
+> Best regards,
+> Tomasz
+> 
 
