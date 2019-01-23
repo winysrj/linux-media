@@ -7,51 +7,51 @@ X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C26ECC282C0
-	for <linux-media@archiver.kernel.org>; Wed, 23 Jan 2019 10:53:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CFAAAC282C0
+	for <linux-media@archiver.kernel.org>; Wed, 23 Jan 2019 10:53:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8E08620861
-	for <linux-media@archiver.kernel.org>; Wed, 23 Jan 2019 10:53:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 97FFA20870
+	for <linux-media@archiver.kernel.org>; Wed, 23 Jan 2019 10:53:11 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linaro.org header.i=@linaro.org header.b="bLeGcaeS"
+	dkim=pass (1024-bit key) header.d=linaro.org header.i=@linaro.org header.b="iijaSYTi"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727496AbfAWKxH (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 23 Jan 2019 05:53:07 -0500
-Received: from mail-wr1-f66.google.com ([209.85.221.66]:33011 "EHLO
-        mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727520AbfAWKxG (ORCPT
+        id S1727233AbfAWKxL (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 23 Jan 2019 05:53:11 -0500
+Received: from mail-wr1-f68.google.com ([209.85.221.68]:43768 "EHLO
+        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727502AbfAWKxK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 23 Jan 2019 05:53:06 -0500
-Received: by mail-wr1-f66.google.com with SMTP id p7so1891707wru.0
-        for <linux-media@vger.kernel.org>; Wed, 23 Jan 2019 02:53:05 -0800 (PST)
+        Wed, 23 Jan 2019 05:53:10 -0500
+Received: by mail-wr1-f68.google.com with SMTP id r10so1831891wrs.10
+        for <linux-media@vger.kernel.org>; Wed, 23 Jan 2019 02:53:07 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linaro.org; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=ohoegLfKZSxjvRFUtoqBy2pbuyibvlUW+N0NidjtxBs=;
-        b=bLeGcaeSvywC9yZI8sxQzP31RpgovAORn9ODss/K15LJKogXZ5uMPqP4LbrUZoagMh
-         QIzJud2wR1EjnvK533FBngv7Dk8pnOqNVcAVxOy+YHEygBNwOxFhl5FepFSWX8b0Anqn
-         KalgoRHsCjCUvGDLSSzF5sAE64I7pwdM2vv28=
+        bh=DnJ2RqgpJhj0Ztv6nP4DGS7MdxcLdu5DEO0+wqKlVlo=;
+        b=iijaSYTiBmjtciZicPW9E42vEce6JTSvkH4uj6TNgxACPlky3mTZ2AKENw0vUSMVe6
+         BT5UaKavdJYl2DGqGqKmBkF2aDLagoaYrN8f6thGneCrcm6gf6yRqXHSyZJAivYS+R8B
+         gfijGLtAwDLNZ+9W/83C0pFa/2HtpCCMk//8c=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=ohoegLfKZSxjvRFUtoqBy2pbuyibvlUW+N0NidjtxBs=;
-        b=CvZ5tn1JHZ2ekUXmcz1/KAG1Mb8rcc9CjA8si/NnWXAMX5QEoaRqNpaYVanPAae5g9
-         opDycnh5pys0fGxOmmHAPbqXSA7g8o4mhGn5/NuRvcJ/OLK6RefOeL/LHLOnTyhxFQHu
-         +DrnvuwGg+4Y9jKmrN3qVCsO59yOmMSZZHYR4zW0AzNw8SrC3rT8bGVJ+6fSFOFDyib1
-         dQ5j87QeM/CEnH+SD0uN99D3n65+LLlsY+kPqSJhjf4zdKrh62j1/Uhs4hdmM9FlN7yh
-         Dg/0mO5rOoxzFfg+FfXVSR/6qdpbpIWx48YMyO4Z+Rcj2TzITY0kdYm8R65Vh79YnSzH
-         MP8Q==
-X-Gm-Message-State: AJcUukfwBj+yX3aHujyivzrjWzRSWRKYOtLXPewyGoHhfxkLKuIN/cpm
-        T+VHUhBu0bEOc1DddN1A290lfg==
-X-Google-Smtp-Source: ALg8bN7HX35YMUICBCle2QaIUVHP3RH2CXFnejzewxOXcI0mNMv8GIDCFzcs1LPu/FAHznXIbsrj0g==
-X-Received: by 2002:adf:f984:: with SMTP id f4mr2158477wrr.234.1548240785113;
-        Wed, 23 Jan 2019 02:53:05 -0800 (PST)
+        bh=DnJ2RqgpJhj0Ztv6nP4DGS7MdxcLdu5DEO0+wqKlVlo=;
+        b=SBcLYVhoncK2RaWOKoc814y3PrnA6KoVkkB+lg7zrXyLJdV+R9IzZLYEBb5i4ogzCp
+         trLHLixy4v8wsREk/hI9acJY5w9TBybAZt2zCYvHQcwC0YnQS6rKmlIqYTZYHQKAgocS
+         JHJjVnZ8V4QABS2YKBkT3/RaRF0UCrKf6lyqhXXRzTX1ZB+AYabYAVKo1ANEPp+u/qvE
+         yGQPM/poV8zb+ThAbdfVhMl0FP+rTc5SYhrfqkpTbiTd1pcWNYfurcPdt7RiCrveJHHF
+         W4TDJVqf5l0xD4ykCWE/YVqT3C9LoZ6H5Qog5xLI9yrL8ZhW2ozV2SY8nE2v4IaZzoo5
+         eUPw==
+X-Gm-Message-State: AJcUukdM8vBwCdRUVM6lDuhMLGBj7t7diCnjcBQ/M9cH/BOiChWO4VLK
+        415daaqq5xWfrX0xLDDvqaa3KA==
+X-Google-Smtp-Source: ALg8bN6ign1/fOPio7hnNsoNSlSvftJ8Cmf/8wJv3lxpPF0/dNG0eFF01waD5rdjolKyjscBgig2rw==
+X-Received: by 2002:a5d:4046:: with SMTP id w6mr2238029wrp.92.1548240787169;
+        Wed, 23 Jan 2019 02:53:07 -0800 (PST)
 Received: from arch-late.local (a109-49-46-234.cpe.netcabo.pt. [109.49.46.234])
-        by smtp.gmail.com with ESMTPSA id 143sm120717646wml.14.2019.01.23.02.53.04
+        by smtp.gmail.com with ESMTPSA id 143sm120717646wml.14.2019.01.23.02.53.06
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 23 Jan 2019 02:53:04 -0800 (PST)
+        Wed, 23 Jan 2019 02:53:06 -0800 (PST)
 From:   Rui Miguel Silva <rui.silva@linaro.org>
 To:     sakari.ailus@linux.intel.com,
         Steve Longerbeam <slongerbeam@gmail.com>,
@@ -61,9 +61,9 @@ Cc:     linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
         devicetree@vger.kernel.org,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Rui Miguel Silva <rui.silva@linaro.org>
-Subject: [PATCH v10 09/13] ARM: dts: imx7s-warp: add ov2680 sensor node
-Date:   Wed, 23 Jan 2019 10:52:18 +0000
-Message-Id: <20190123105222.2378-10-rui.silva@linaro.org>
+Subject: [PATCH v10 10/13] media: imx7.rst: add documentation for i.MX7 media driver
+Date:   Wed, 23 Jan 2019 10:52:19 +0000
+Message-Id: <20190123105222.2378-11-rui.silva@linaro.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190123105222.2378-1-rui.silva@linaro.org>
 References: <20190123105222.2378-1-rui.silva@linaro.org>
@@ -74,92 +74,191 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Warp7 comes with a Omnivision OV2680 sensor, add the node here to make
-complete the camera data path for this system. Add the needed regulator
-to the analog voltage supply, the port and endpoints in mipi_csi node
-and the pinctrl for the reset gpio.
+Add rst document to describe the i.MX7 media driver and also a working
+example from the Warp7 board usage with a OV2680 sensor.
 
 Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
 ---
- arch/arm/boot/dts/imx7s-warp.dts | 44 ++++++++++++++++++++++++++++++++
- 1 file changed, 44 insertions(+)
+ Documentation/media/v4l-drivers/imx7.rst  | 157 ++++++++++++++++++++++
+ Documentation/media/v4l-drivers/index.rst |   1 +
+ 2 files changed, 158 insertions(+)
+ create mode 100644 Documentation/media/v4l-drivers/imx7.rst
 
-diff --git a/arch/arm/boot/dts/imx7s-warp.dts b/arch/arm/boot/dts/imx7s-warp.dts
-index 358bcae7ebaf..58d1a89ee3e3 100644
---- a/arch/arm/boot/dts/imx7s-warp.dts
-+++ b/arch/arm/boot/dts/imx7s-warp.dts
-@@ -55,6 +55,14 @@
- 		regulator-always-on;
- 	};
- 
-+	reg_peri_3p15v: regulator-peri-3p15v {
-+		compatible = "regulator-fixed";
-+		regulator-name = "peri_3p15v_reg";
-+		regulator-min-microvolt = <3150000>;
-+		regulator-max-microvolt = <3150000>;
-+		regulator-always-on;
-+	};
+diff --git a/Documentation/media/v4l-drivers/imx7.rst b/Documentation/media/v4l-drivers/imx7.rst
+new file mode 100644
+index 000000000000..cd1195d391c5
+--- /dev/null
++++ b/Documentation/media/v4l-drivers/imx7.rst
+@@ -0,0 +1,157 @@
++i.MX7 Video Capture Driver
++==========================
 +
- 	sound {
- 		compatible = "simple-audio-card";
- 		simple-audio-card,name = "imx7-sgtl5000";
-@@ -178,6 +186,27 @@
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&pinctrl_i2c2>;
- 	status = "okay";
++Introduction
++------------
 +
-+	ov2680: camera@36 {
-+		compatible = "ovti,ov2680";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&pinctrl_ov2680>;
-+		reg = <0x36>;
-+		clocks = <&osc>;
-+		clock-names = "xvclk";
-+		reset-gpios = <&gpio1 3 GPIO_ACTIVE_LOW>;
-+		DOVDD-supply = <&sw2_reg>;
-+		DVDD-supply = <&sw2_reg>;
-+		AVDD-supply = <&reg_peri_3p15v>;
++The i.MX7 contrary to the i.MX5/6 family does not contain an Image Processing
++Unit (IPU); because of that the capabilities to perform operations or
++manipulation of the capture frames are less feature rich.
 +
-+		port {
-+			ov2680_to_mipi: endpoint {
-+				remote-endpoint = <&mipi_from_sensor>;
-+				clock-lanes = <0>;
-+				data-lanes = <1>;
-+			};
-+		};
-+	};
- };
- 
- &i2c3 {
-@@ -319,6 +348,15 @@
- 	#size-cells = <0>;
- 	fsl,csis-hs-settle = <3>;
- 
-+	port@0 {
-+		reg = <0>;
++For image capture the i.MX7 has three units:
++- CMOS Sensor Interface (CSI)
++- Video Multiplexer
++- MIPI CSI-2 Receiver
 +
-+		mipi_from_sensor: endpoint {
-+			remote-endpoint = <&ov2680_to_mipi>;
-+			data-lanes = <1>;
-+		};
-+	};
++::
++                                           |\
++   MIPI Camera Input ---> MIPI CSI-2 --- > | \
++                                           |  \
++                                           | M |
++                                           | U | ------>  CSI ---> Capture
++                                           | X |
++                                           |  /
++   Parallel Camera Input ----------------> | /
++                                           |/
 +
- 	port@1 {
- 		reg = <1>;
- 
-@@ -382,6 +420,12 @@
- 		>;
- 	};
- 
-+	pinctrl_ov2680: ov2660grp {
-+		fsl,pins = <
-+			MX7D_PAD_LPSR_GPIO1_IO03__GPIO1_IO3	0x14
-+		>;
-+	};
++For additional information, please refer to the latest versions of the i.MX7
++reference manual [#f1]_.
 +
- 	pinctrl_sai1: sai1grp {
- 		fsl,pins = <
- 			MX7D_PAD_SAI1_RX_DATA__SAI1_RX_DATA0	0x1f
++Entities
++--------
++
++imx7-mipi-csi2
++--------------
++
++This is the MIPI CSI-2 receiver entity. It has one sink pad to receive the pixel
++data from MIPI CSI-2 camera sensor. It has one source pad, corresponding to the
++virtual channel 0. This module is compliant to previous version of Samsung
++D-phy, and supports two D-PHY Rx Data lanes.
++
++csi_mux
++-------
++
++This is the video multiplexer. It has two sink pads to select from either camera
++sensor with a parallel interface or from MIPI CSI-2 virtual channel 0.  It has
++a single source pad that routes to the CSI.
++
++csi
++---
++
++The CSI enables the chip to connect directly to external CMOS image sensor. CSI
++can interface directly with Parallel and MIPI CSI-2 buses. It has 256 x 64 FIFO
++to store received image pixel data and embedded DMA controllers to transfer data
++from the FIFO through AHB bus.
++
++This entity has one sink pad that receives from the csi_mux entity and a single
++source pad that routes video frames directly to memory buffers. This pad is
++routed to a capture device node.
++
++Usage Notes
++-----------
++
++To aid in configuration and for backward compatibility with V4L2 applications
++that access controls only from video device nodes, the capture device interfaces
++inherit controls from the active entities in the current pipeline, so controls
++can be accessed either directly from the subdev or from the active capture
++device interface. For example, the sensor controls are available either from the
++sensor subdevs or from the active capture device.
++
++Warp7 with OV2680
++-----------------
++
++On this platform an OV2680 MIPI CSI-2 module is connected to the internal MIPI
++CSI-2 receiver. The following example configures a video capture pipeline with
++an output of 800x600, and BGGR 10 bit bayer format:
++
++.. code-block:: none
++   # Setup links
++   media-ctl -l "'ov2680 1-0036':0 -> 'imx7-mipi-csis.0':0[1]"
++   media-ctl -l "'imx7-mipi-csis.0':1 -> 'csi_mux':1[1]"
++   media-ctl -l "'csi_mux':2 -> 'csi':0[1]"
++   media-ctl -l "'csi':1 -> 'csi capture':0[1]"
++
++   # Configure pads for pipeline
++   media-ctl -V "'ov2680 1-0036':0 [fmt:SBGGR10_1X10/800x600 field:none]"
++   media-ctl -V "'csi_mux':1 [fmt:SBGGR10_1X10/800x600 field:none]"
++   media-ctl -V "'csi_mux':2 [fmt:SBGGR10_1X10/800x600 field:none]"
++   media-ctl -V "'imx7-mipi-csis.0':0 [fmt:SBGGR10_1X10/800x600 field:none]"
++   media-ctl -V "'csi':0 [fmt:SBGGR10_1X10/800x600 field:none]"
++
++After this streaming can start. The v4l2-ctl tool can be used to select any of
++the resolutions supported by the sensor.
++
++.. code-block:: none
++    root@imx7s-warp:~# media-ctl -p
++    Media controller API version 4.17.0
++
++    Media device information
++    ------------------------
++    driver          imx-media
++    model           imx-media
++    serial
++    bus info
++    hw revision     0x0
++    driver version  4.17.0
++
++    Device topology
++    - entity 1: csi (2 pads, 2 links)
++		type V4L2 subdev subtype Unknown flags 0
++		device node name /dev/v4l-subdev0
++	    pad0: Sink
++		    [fmt:SBGGR10_1X10/800x600 field:none]
++		    <- "csi_mux":2 [ENABLED]
++	    pad1: Source
++		    [fmt:SBGGR10_1X10/800x600 field:none]
++		    -> "csi capture":0 [ENABLED]
++
++    - entity 4: csi capture (1 pad, 1 link)
++		type Node subtype V4L flags 0
++		device node name /dev/video0
++	    pad0: Sink
++		    <- "csi":1 [ENABLED]
++
++    - entity 10: csi_mux (3 pads, 2 links)
++		type V4L2 subdev subtype Unknown flags 0
++		device node name /dev/v4l-subdev1
++	    pad0: Sink
++		    [fmt:unknown/0x0]
++	    pad1: Sink
++		    [fmt:unknown/800x600 field:none]
++		    <- "imx7-mipi-csis.0":1 [ENABLED]
++	    pad2: Source
++		    [fmt:unknown/800x600 field:none]
++		    -> "csi":0 [ENABLED]
++
++    - entity 14: imx7-mipi-csis.0 (2 pads, 2 links)
++		type V4L2 subdev subtype Unknown flags 0
++		device node name /dev/v4l-subdev2
++	    pad0: Sink
++		    [fmt:SBGGR10_1X10/800x600 field:none]
++		    <- "ov2680 1-0036":0 [ENABLED]
++	    pad1: Source
++		    [fmt:SBGGR10_1X10/800x600 field:none]
++		    -> "csi_mux":1 [ENABLED]
++
++    - entity 17: ov2680 1-0036 (1 pad, 1 link)
++		type V4L2 subdev subtype Sensor flags 0
++		device node name /dev/v4l-subdev3
++	    pad0: Source
++		    [fmt:SBGGR10_1X10/800x600 field:none]
++		    -> "imx7-mipi-csis.0":0 [ENABLED]
++
++
++References
++----------
++
++.. [#f1] https://www.nxp.com/docs/en/reference-manual/IMX7SRM.pdf
+diff --git a/Documentation/media/v4l-drivers/index.rst b/Documentation/media/v4l-drivers/index.rst
+index f28570ec9e42..dfd4b205937c 100644
+--- a/Documentation/media/v4l-drivers/index.rst
++++ b/Documentation/media/v4l-drivers/index.rst
+@@ -44,6 +44,7 @@ For more details see the file COPYING in the source distribution of Linux.
+ 	davinci-vpbe
+ 	fimc
+ 	imx
++	imx7
+ 	ipu3
+ 	ivtv
+ 	max2175
 -- 
 2.20.1
 
