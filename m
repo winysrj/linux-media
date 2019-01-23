@@ -2,165 +2,125 @@ Return-Path: <SRS0=FDnu=P7=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 75A2FC282C0
-	for <linux-media@archiver.kernel.org>; Wed, 23 Jan 2019 10:08:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CC895C282C0
+	for <linux-media@archiver.kernel.org>; Wed, 23 Jan 2019 10:18:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3944F20870
-	for <linux-media@archiver.kernel.org>; Wed, 23 Jan 2019 10:08:37 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="g0mxfGP0"
+	by mail.kernel.org (Postfix) with ESMTP id A69E421019
+	for <linux-media@archiver.kernel.org>; Wed, 23 Jan 2019 10:18:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727338AbfAWKIg (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 23 Jan 2019 05:08:36 -0500
-Received: from mail-oi1-f170.google.com ([209.85.167.170]:42777 "EHLO
-        mail-oi1-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727264AbfAWKIg (ORCPT
+        id S1727090AbfAWKSW (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 23 Jan 2019 05:18:22 -0500
+Received: from relay10.mail.gandi.net ([217.70.178.230]:35921 "EHLO
+        relay10.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726322AbfAWKSW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 23 Jan 2019 05:08:36 -0500
-Received: by mail-oi1-f170.google.com with SMTP id w13so1301960oiw.9
-        for <linux-media@vger.kernel.org>; Wed, 23 Jan 2019 02:08:35 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=77ZCzo2w78BSCMOdjec45OEgqSB0KV/7zPbxJ74wWS8=;
-        b=g0mxfGP0Vyphud4v6VrkINWLF1dLCn4/LZtTU+dsUzEP2cSzjgt4/6ZvvuYoiujKUK
-         HPiaBBBcahzq1Yt2laxH4z165FV1CjP+qdeDJWMw7ezntFW44H3QZca53qVKYiVQ3qlY
-         z9/4IqO50PuRfHVnKYWDtqAtPea5rj3kkd0ZA=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=77ZCzo2w78BSCMOdjec45OEgqSB0KV/7zPbxJ74wWS8=;
-        b=cRxRJygzs77FzNdbIbt9nyrl6X7CmglK9G4A3sYUk93hMKzu6OQyK+nASGeOUZsT3z
-         K/ZVA79j4flzOl4V5tWgppDZbOzqke76UFs1yLdsYj4g6s7qBL0P6sZ5j/q4SPWhUqI8
-         zJH/uQpIvFghXFDsV4LbWgAtzxN6VN47wHSHe67G0GMlDCc4Gp3K3ncEs+uYWeD8PLRM
-         MFY6x3XhFLdAS1gdbXJJ3a3j7WiZyyk97Hw2Xts8pD7C5T8T9K2NWu0DKu/VO62RE/Ua
-         TrRSqGdPy3C0/c7HyS+NzbF/ABmN5QsXvTWcXyhtjxVtEIIPCI+VkqFDfB4+I3XzITyW
-         7jVQ==
-X-Gm-Message-State: AJcUukdEKku4u8SC7rqrnHPAGn/ASsoGmHktP1r6dqmVNmEzNIHty6+r
-        76GA8WhbGAFD7ALyqUT7oXdzdaeL8AM=
-X-Google-Smtp-Source: ALg8bN64QniFI2ub6MwrLIEjvJ0vUpug3bV6uZqUTr6h2pjjokAY0Cvya2HtU6wlbjkluHZ/z8bxiA==
-X-Received: by 2002:aca:fc43:: with SMTP id a64mr1033396oii.288.1548238115006;
-        Wed, 23 Jan 2019 02:08:35 -0800 (PST)
-Received: from mail-ot1-f42.google.com (mail-ot1-f42.google.com. [209.85.210.42])
-        by smtp.gmail.com with ESMTPSA id l5sm8244408oil.15.2019.01.23.02.08.34
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 23 Jan 2019 02:08:34 -0800 (PST)
-Received: by mail-ot1-f42.google.com with SMTP id n8so1409803otl.6
-        for <linux-media@vger.kernel.org>; Wed, 23 Jan 2019 02:08:34 -0800 (PST)
-X-Received: by 2002:a9d:4687:: with SMTP id z7mr1080754ote.350.1548237665228;
- Wed, 23 Jan 2019 02:01:05 -0800 (PST)
-MIME-Version: 1.0
-References: <20181022144901.113852-1-tfiga@chromium.org> <20181022144901.113852-3-tfiga@chromium.org>
- <4cd223f0-b09c-da07-f26c-3b3f7a8868d7@xs4all.nl> <5fb0f2db44ba7aa3788b61f2aa9a30d4f4984de5.camel@ndufresne.ca>
- <d853eb91-c05d-fb10-f154-bc24e4ebb89d@xs4all.nl>
-In-Reply-To: <d853eb91-c05d-fb10-f154-bc24e4ebb89d@xs4all.nl>
-From:   Tomasz Figa <tfiga@chromium.org>
-Date:   Wed, 23 Jan 2019 19:00:54 +0900
-X-Gmail-Original-Message-ID: <CAAFQd5COddN-YosKyfBJ7n=qt40ONP=YEjBo5HQBOPGhs19h+g@mail.gmail.com>
-Message-ID: <CAAFQd5COddN-YosKyfBJ7n=qt40ONP=YEjBo5HQBOPGhs19h+g@mail.gmail.com>
-Subject: Re: [PATCH v2 2/2] media: docs-rst: Document memory-to-memory video
- encoder interface
-To:     Hans Verkuil <hverkuil@xs4all.nl>
-Cc:     Nicolas Dufresne <nicolas@ndufresne.ca>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        =?UTF-8?B?UGF3ZcWCIE/Fm2NpYWs=?= <posciak@chromium.org>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Kamil Debski <kamil@wypas.org>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Jeongtae Park <jtp.park@samsung.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Tiffany Lin <tiffany.lin@mediatek.com>,
-        Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Todor Tomov <todor.tomov@linaro.org>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        dave.stevenson@raspberrypi.org,
-        Ezequiel Garcia <ezequiel@collabora.com>,
-        Maxime Jourdan <maxi.jourdan@wanadoo.fr>
+        Wed, 23 Jan 2019 05:18:22 -0500
+Received: from classic (mon69-7-83-155-44-161.fbx.proxad.net [83.155.44.161])
+        (Authenticated sender: hadess@hadess.net)
+        by relay10.mail.gandi.net (Postfix) with ESMTPSA id 96B6C240015;
+        Wed, 23 Jan 2019 10:18:18 +0000 (UTC)
+Message-ID: <9e3eccabfafe830f7d30249a18e9d076e1868e4c.camel@hadess.net>
+Subject: Re: [PATCH v2] Input: Add missing event codes for common IR remote
+ buttons
+From:   Bastien Nocera <hadess@hadess.net>
+To:     VDR User <user.vdr@gmail.com>,
+        Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc:     linux-input@vger.kernel.org, Sean Young <sean@mess.org>,
+        mchehab+samsung@kernel.org,
+        "mailing list: linux-media" <linux-media@vger.kernel.org>
+Date:   Wed, 23 Jan 2019 11:18:17 +0100
+In-Reply-To: <CAA7C2qiKOTKSWgmK_9ZyPC-JaBp+vW0nhoJMPJzHCmV_wsg8_A@mail.gmail.com>
+References: <20181103145532.9323-1-user.vdr@gmail.com>
+         <766230a305f54a37e9d881779a0d81ec439f8bd8.camel@hadess.net>
+         <CAA7C2qhCmaJJ1F8D6zz0-9Sp+OspPE2h=KYRYO7seMUrs2q=sA@mail.gmail.com>
+         <20190119085252.GA187380@dtor-ws>
+         <CAA7C2qiKOTKSWgmK_9ZyPC-JaBp+vW0nhoJMPJzHCmV_wsg8_A@mail.gmail.com>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.30.4 (3.30.4-1.fc29) 
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Sat, Nov 17, 2018 at 8:37 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
->
-> On 11/17/2018 05:18 AM, Nicolas Dufresne wrote:
-> > Le lundi 12 novembre 2018 =C3=A0 14:23 +0100, Hans Verkuil a =C3=A9crit=
- :
-> >> On 10/22/2018 04:49 PM, Tomasz Figa wrote:
-[snip]
-> >>> +      rely on it. The ``V4L2_BUF_FLAG_LAST`` buffer flag should be u=
-sed
-> >>> +      instead.
-> >>
-> >> Question: should new codec drivers still implement the EOS event?
-> >
-> > I'm been asking around, but I think here is a good place. Do we really
-> > need the FLAG_LAST in userspace ? Userspace can also wait for the first
-> > EPIPE return from DQBUF.
->
-> I'm interested in hearing Tomasz' opinion. This flag is used already, so =
-there
-> definitely is a backwards compatibility issue here.
->
+On Tue, 2019-01-22 at 23:50 -0800, VDR User wrote:
+> > > KEY_SCREEN_INPUT is used to bring up things like an on-screen
+> > > keyboard or other on-onscreen user input method.
+> > 
+> > We already have KEY_ONSCREEN_KEYBOARD.
+> > 
+> > > > > +#define KEY_SYSTEM_MENU                      0x2ed   /* Open
+> > > > > systems menu/display */
+> > > > 
+> > > > KEY_MENU?
+> > > 
+> > > Systems menus as pertains to DVB. KEY_MENU is generic and having
+> > > only
+> > > one `menu` option is problematic when you have different types of
+> > > menus which aren't accessible from each other.
+> > 
+> > We have KEY_MENU/KEY_CONTEXT_MENU/KEY_ROOT_MENU/KEY_MEDIA_TOP_MENU.
+> > Are you sure we need another one?
+> 
+> There are multiple MENU keys I assume for clarity purposes and to
+> give
+> some kind of relation between the key definition and the action/event
+> that occurs when you use it. I would say it's more a matter of
+> convenience rather that need, similar to KEY_ROOT_MENU &
+> KEY_MEDIA_TOP_MENU; It's not a necessity that these two exist, but
+> they do out of convenience. You could still make things work if one
+> of
+> them vanished.
 
-FWIW, it would add the overhead of 1 more system call, although I
-don't think it's of our concern.
+Those 2 keys were added because they were present on DVD player remotes
+nearly 20 years ago ("Root menu" vs. "Top Menu"), and do different
+things.
 
-My personal feeling is that using error codes for signaling normal
-conditions isn't very elegant, though.
+Dmitry, the difference between:
+#define KEY_MENU                139     /* Menu (show menu) */
+and:
+#define KEY_CONTEXT_MENU        0x1b6   /* GenDesc - system context
+menu */
+isn't super clear to me. The first one is used for contextual menu on
+keyboards (the menu key added since Windows 95), does KEY_CONTEXT_MENU
+do the same thing?
 
-> >
-> >>
-> >>> +
-> >>> +3. Once all ``OUTPUT`` buffers queued before the ``V4L2_ENC_CMD_STOP=
-`` call and
-> >>> +   the last ``CAPTURE`` buffer are dequeued, the encoder is stopped =
-and it will
-> >>> +   accept, but not process any newly queued ``OUTPUT`` buffers until=
- the client
-> >>> +   issues any of the following operations:
-> >>> +
-> >>> +   * ``V4L2_ENC_CMD_START`` - the encoder will resume operation norm=
-ally,
-> >>
-> >> Perhaps mention that this does not reset the encoder? It's not immedia=
-tely clear
-> >> when reading this.
-> >
-> > Which drivers supports this ? I believe I tried with Exynos in the
-> > past, and that didn't work. How do we know if a driver supports this or
-> > not. Do we make it mandatory ? When it's not supported, it basically
-> > mean userspace need to cache and resend the header in userspace, and
-> > also need to skip to some sync point.
->
-> Once we agree on the spec, then the next step will be to add good complia=
-nce
-> checks and update drivers that fail the tests.
->
-> To check if the driver support this ioctl you can call VIDIOC_TRY_ENCODER=
-_CMD
-> to see if the functionality is supported.
+> > > > > +#define KEY_SERVICES                 0x2ee   /* Access
+> > > > > services */
+> > > > > +#define KEY_DISPLAY_FORMAT           0x2ef   /* Cycle
+> > > > > display formats */
+> > > > 
+> > > > KEY_CONTEXT_MENU?
+> > > 
+> > > KEY_DISPLAY_FORMAT doesn't open any menus and is used to cycle
+> > > through
+> > > how video is displayed on-screen to the user; full, zoomed,
+> > > letterboxed, stretched, etc. KEY_CONTEXT_MENU would be for
+> > > something
+> > > like bringing up a playback menu where you'd set things like
+> > > upscaling, deinterlacing, audio mixdown/mixup, etc.
+> > 
+> > KEY_ASPECT_RATIO (formerly KEY_SCREEN).
+> 
+> Physical displays have a single set aspect ratio (W/H). Images have
+> their own aspect ratios. When the AR of the video to be display and
+> the display itself are mismatched, you have to do something
+> (letterbox, pillarbox, windowbox) to the video to maintain the
+> correct
+> video aspect ratio. You can't change the displays AR, and you aren't
+> changing the videos AR so using KEY_ASPECT_RATIO makes no sense. AR
+> isn't being touched/altered/manipulated, but how the video is being
+> displayed is. Stretching and filling to match the display AR alters
+> the video AR so there is makes sense, but then zooming may not. So,
+> since "aspect ratio" kind of makes sense in a couple cases, and makes
+> no sense in the rest, the more suitable KEY_DISPLAY_FORMAT is my
+> suggestion.
 
-There is nothing here for the hardware to support. It's an entirely
-driver thing, since it just needs to wait for the encoder to complete
-all the pending frames and stop enqueuing more frames to the decoder
-until V4L2_ENC_CMD_START is called. Any driver that can't do it must
-be fixed, since otherwise you have no way to ensure that you got all
-the encoded output.
+The "Aspect Ratio" or "Ratio" key on loads of remotes have been doing
+this exact thing since the days of the first 16:9/cinema displays. I
+really don't think you need a new key here.
 
-Best regards,
-Tomasz
