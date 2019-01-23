@@ -2,125 +2,94 @@ Return-Path: <SRS0=FDnu=P7=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CC895C282C0
-	for <linux-media@archiver.kernel.org>; Wed, 23 Jan 2019 10:18:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D4063C282C0
+	for <linux-media@archiver.kernel.org>; Wed, 23 Jan 2019 10:40:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A69E421019
-	for <linux-media@archiver.kernel.org>; Wed, 23 Jan 2019 10:18:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9435E20861
+	for <linux-media@archiver.kernel.org>; Wed, 23 Jan 2019 10:40:22 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=linaro.org header.i=@linaro.org header.b="Goc/hFU8"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727090AbfAWKSW (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 23 Jan 2019 05:18:22 -0500
-Received: from relay10.mail.gandi.net ([217.70.178.230]:35921 "EHLO
-        relay10.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726322AbfAWKSW (ORCPT
+        id S1726772AbfAWKkR (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 23 Jan 2019 05:40:17 -0500
+Received: from mail-wm1-f68.google.com ([209.85.128.68]:55548 "EHLO
+        mail-wm1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727105AbfAWKkR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 23 Jan 2019 05:18:22 -0500
-Received: from classic (mon69-7-83-155-44-161.fbx.proxad.net [83.155.44.161])
-        (Authenticated sender: hadess@hadess.net)
-        by relay10.mail.gandi.net (Postfix) with ESMTPSA id 96B6C240015;
-        Wed, 23 Jan 2019 10:18:18 +0000 (UTC)
-Message-ID: <9e3eccabfafe830f7d30249a18e9d076e1868e4c.camel@hadess.net>
-Subject: Re: [PATCH v2] Input: Add missing event codes for common IR remote
- buttons
-From:   Bastien Nocera <hadess@hadess.net>
-To:     VDR User <user.vdr@gmail.com>,
-        Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc:     linux-input@vger.kernel.org, Sean Young <sean@mess.org>,
-        mchehab+samsung@kernel.org,
-        "mailing list: linux-media" <linux-media@vger.kernel.org>
-Date:   Wed, 23 Jan 2019 11:18:17 +0100
-In-Reply-To: <CAA7C2qiKOTKSWgmK_9ZyPC-JaBp+vW0nhoJMPJzHCmV_wsg8_A@mail.gmail.com>
-References: <20181103145532.9323-1-user.vdr@gmail.com>
-         <766230a305f54a37e9d881779a0d81ec439f8bd8.camel@hadess.net>
-         <CAA7C2qhCmaJJ1F8D6zz0-9Sp+OspPE2h=KYRYO7seMUrs2q=sA@mail.gmail.com>
-         <20190119085252.GA187380@dtor-ws>
-         <CAA7C2qiKOTKSWgmK_9ZyPC-JaBp+vW0nhoJMPJzHCmV_wsg8_A@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-User-Agent: Evolution 3.30.4 (3.30.4-1.fc29) 
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        Wed, 23 Jan 2019 05:40:17 -0500
+Received: by mail-wm1-f68.google.com with SMTP id y139so1450398wmc.5
+        for <linux-media@vger.kernel.org>; Wed, 23 Jan 2019 02:40:16 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=from:to:cc:subject:date:message-id;
+        bh=2WopGAHC3vhDTNXuOGSdAGTac9qZGaqwKjIqjMvQSeU=;
+        b=Goc/hFU8+Zu9MH+v7UBE/S5u1Z2Jte0UYY+VTlLvPg64dEwuuPcHZS3HA+32f1KdxN
+         BwHHPJ1v4+S750m/kHv27OBl9rKzpFHcIWzOCtDarge5h93g9Ba3FBqPb8LmVHrqymVB
+         UwXelunkfwho0lKOcyGUevsi2roFYQ7V7Lvv8=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id;
+        bh=2WopGAHC3vhDTNXuOGSdAGTac9qZGaqwKjIqjMvQSeU=;
+        b=pBWR+4hyBJnQ/btEI0nDwGsQvMPCeZwOI6YenmkG+nM8xZxK7W+ieRUpF2bcDLU536
+         ELWPbocLNS5F4jqonnPpi7wzBaVDwXLvZGe+R+cGTKtg7TGWcawLakd6gI4N9Yr8ISPA
+         yLQxscRK0XWHvhb+QsHL26VkMxcbiAkZqVqFeRCdXKdGekc39VKJHlWLjUOugHVZ5CLD
+         2s7uwOzP/Bvp8KXgr+8GNo8z+62UrxZT3bIm0LyKe06i24jhR57OTGkvSnqtsP3war9v
+         jPGVDBrcm2VNfYPvRPwHymNSE4zO6LWQ00UpKQ7CEtgKDfG5DKIX1Co8hF3KmKwrzCf3
+         Y42w==
+X-Gm-Message-State: AJcUukcOSE7WxIN9EJtaqx7VOPJXL0gUhG26lMZvyUAZbt8hqmac39tc
+        oiRpaH06ZoETXKBVd1Eh5m3bbV5VutU=
+X-Google-Smtp-Source: ALg8bN5pgQqWc7dhDG5TLFgMGWYpXN57+xczsOV5sA2pCnNTv/90L1SnwGOirjslxJZgRk5Pq1pnnA==
+X-Received: by 2002:a1c:cc19:: with SMTP id h25mr2161893wmb.80.1548240015469;
+        Wed, 23 Jan 2019 02:40:15 -0800 (PST)
+Received: from localhost.localdomain ([37.157.136.206])
+        by smtp.gmail.com with ESMTPSA id b18sm84525211wrw.83.2019.01.23.02.40.14
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 23 Jan 2019 02:40:14 -0800 (PST)
+From:   Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To:     linux-media@vger.kernel.org
+Cc:     Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org,
+        Vikash Garodia <vgarodia@codeaurora.org>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Malathi Gottam <mgottam@codeaurora.org>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH v2 0/4] Venus various fixes
+Date:   Wed, 23 Jan 2019 12:39:45 +0200
+Message-Id: <20190123103949.13496-1-stanimir.varbanov@linaro.org>
+X-Mailer: git-send-email 2.17.1
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Tue, 2019-01-22 at 23:50 -0800, VDR User wrote:
-> > > KEY_SCREEN_INPUT is used to bring up things like an on-screen
-> > > keyboard or other on-onscreen user input method.
-> > 
-> > We already have KEY_ONSCREEN_KEYBOARD.
-> > 
-> > > > > +#define KEY_SYSTEM_MENU                      0x2ed   /* Open
-> > > > > systems menu/display */
-> > > > 
-> > > > KEY_MENU?
-> > > 
-> > > Systems menus as pertains to DVB. KEY_MENU is generic and having
-> > > only
-> > > one `menu` option is problematic when you have different types of
-> > > menus which aren't accessible from each other.
-> > 
-> > We have KEY_MENU/KEY_CONTEXT_MENU/KEY_ROOT_MENU/KEY_MEDIA_TOP_MENU.
-> > Are you sure we need another one?
-> 
-> There are multiple MENU keys I assume for clarity purposes and to
-> give
-> some kind of relation between the key definition and the action/event
-> that occurs when you use it. I would say it's more a matter of
-> convenience rather that need, similar to KEY_ROOT_MENU &
-> KEY_MEDIA_TOP_MENU; It's not a necessity that these two exist, but
-> they do out of convenience. You could still make things work if one
-> of
-> them vanished.
+Hello,
 
-Those 2 keys were added because they were present on DVD player remotes
-nearly 20 years ago ("Root menu" vs. "Top Menu"), and do different
-things.
+Changes in v2:
+ * in 1/4 make 'mapped' const - Alex
+ * fixed typos in 2/4 and 4/4 - Alex
+ * added Reviewed-by and Tested-by tags
 
-Dmitry, the difference between:
-#define KEY_MENU                139     /* Menu (show menu) */
-and:
-#define KEY_CONTEXT_MENU        0x1b6   /* GenDesc - system context
-menu */
-isn't super clear to me. The first one is used for contextual menu on
-keyboards (the menu key added since Windows 95), does KEY_CONTEXT_MENU
-do the same thing?
+regards,
+Stan
 
-> > > > > +#define KEY_SERVICES                 0x2ee   /* Access
-> > > > > services */
-> > > > > +#define KEY_DISPLAY_FORMAT           0x2ef   /* Cycle
-> > > > > display formats */
-> > > > 
-> > > > KEY_CONTEXT_MENU?
-> > > 
-> > > KEY_DISPLAY_FORMAT doesn't open any menus and is used to cycle
-> > > through
-> > > how video is displayed on-screen to the user; full, zoomed,
-> > > letterboxed, stretched, etc. KEY_CONTEXT_MENU would be for
-> > > something
-> > > like bringing up a playback menu where you'd set things like
-> > > upscaling, deinterlacing, audio mixdown/mixup, etc.
-> > 
-> > KEY_ASPECT_RATIO (formerly KEY_SCREEN).
-> 
-> Physical displays have a single set aspect ratio (W/H). Images have
-> their own aspect ratios. When the AR of the video to be display and
-> the display itself are mismatched, you have to do something
-> (letterbox, pillarbox, windowbox) to the video to maintain the
-> correct
-> video aspect ratio. You can't change the displays AR, and you aren't
-> changing the videos AR so using KEY_ASPECT_RATIO makes no sense. AR
-> isn't being touched/altered/manipulated, but how the video is being
-> displayed is. Stretching and filling to match the display AR alters
-> the video AR so there is makes sense, but then zooming may not. So,
-> since "aspect ratio" kind of makes sense in a couple cases, and makes
-> no sense in the rest, the more suitable KEY_DISPLAY_FORMAT is my
-> suggestion.
+Stanimir Varbanov (4):
+  venus: firmware: check fw size against DT memory region size
+  venus: core: correct maximum hardware load for sdm845
+  venus: core: correct frequency table for sdm845
+  venus: helpers: drop setting of timestamp invalid flag
 
-The "Aspect Ratio" or "Ratio" key on loads of remotes have been doing
-this exact thing since the days of the first 16:9/cinema displays. I
-really don't think you need a new key here.
+ drivers/media/platform/qcom/venus/core.c     | 12 +++--
+ drivers/media/platform/qcom/venus/core.h     |  1 +
+ drivers/media/platform/qcom/venus/firmware.c | 53 +++++++++++---------
+ drivers/media/platform/qcom/venus/helpers.c  |  3 --
+ 4 files changed, 38 insertions(+), 31 deletions(-)
+
+-- 
+2.17.1
 
