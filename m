@@ -2,93 +2,154 @@ Return-Path: <SRS0=FDnu=P7=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 77837C282C2
-	for <linux-media@archiver.kernel.org>; Wed, 23 Jan 2019 15:44:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A2A61C282C0
+	for <linux-media@archiver.kernel.org>; Wed, 23 Jan 2019 16:08:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 51336218A2
-	for <linux-media@archiver.kernel.org>; Wed, 23 Jan 2019 15:44:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 707A921855
+	for <linux-media@archiver.kernel.org>; Wed, 23 Jan 2019 16:08:16 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="edYGiGQl"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726337AbfAWPok (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 23 Jan 2019 10:44:40 -0500
-Received: from mail.bootlin.com ([62.4.15.54]:41488 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726307AbfAWPok (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 23 Jan 2019 10:44:40 -0500
-Received: by mail.bootlin.com (Postfix, from userid 110)
-        id 65FC2207AC; Wed, 23 Jan 2019 16:44:37 +0100 (CET)
-Received: from localhost (unknown [185.94.189.187])
-        by mail.bootlin.com (Postfix) with ESMTPSA id 28D672077B;
-        Wed, 23 Jan 2019 16:44:37 +0100 (CET)
-Date:   Wed, 23 Jan 2019 16:44:37 +0100
-From:   Maxime Ripard <maxime.ripard@bootlin.com>
-To:     Jagan Teki <jagan@amarulasolutions.com>
-Cc:     Yong Deng <yong.deng@magewell.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>, linux-media@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        linux-sunxi <linux-sunxi@googlegroups.com>,
-        linux-amarula@amarulasolutions.com,
-        Michael Trimarchi <michael@amarulasolutions.com>
-Subject: Re: [PATCH v6 2/6] media: sun6i: Add mod_rate quirk
-Message-ID: <20190123154437.zjrpzzsenoioi43e@flea>
-References: <20190118163158.21418-1-jagan@amarulasolutions.com>
- <20190118163158.21418-3-jagan@amarulasolutions.com>
+        id S1726140AbfAWQIP (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 23 Jan 2019 11:08:15 -0500
+Received: from mail-lf1-f68.google.com ([209.85.167.68]:44675 "EHLO
+        mail-lf1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726009AbfAWQIP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 23 Jan 2019 11:08:15 -0500
+Received: by mail-lf1-f68.google.com with SMTP id z13so1955431lfe.11;
+        Wed, 23 Jan 2019 08:08:13 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=Vd1MKcPy0BDvFNxVNSx9BU8GHDAYo18C3C0eAMYtnCg=;
+        b=edYGiGQlP9zEbfPRLqwCbHh0QJS0T80No0ZAK/4494Hy8+s8U+cDqx2kCMklxiJrFP
+         oXOK/ojP5yCr3rVVCcI6/fej4znK68WT8hoLnCMTNPprgLkxfXamdMgriIclmtvl3u0K
+         1ow7AG96ypHTug7FKjklDqhG0/gutEQEU57n13w2TXVxVPZ1UcGTpLvgV1PBrM2w/2N/
+         2RaUpLMBGm/qOIZYO9VbCtJdUhArpF8sJtYk+e7tMCJwoeChF5rEXe1cNSj+vDOX1g3h
+         fR52OSvBOZV25rHiYc7si+72UAC8iZJI7xF2Y5cCl4Xn3FIWjfZSHOuj080++h/3xZoK
+         fGMQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=Vd1MKcPy0BDvFNxVNSx9BU8GHDAYo18C3C0eAMYtnCg=;
+        b=qwfHRVlAO3JhwxDhyv2gxHbUKgU+5ZnJSE91Stw9gPP2Abu9rRwkNw0QFjY1kwQF8O
+         TFJgR5P93cZlElUwkJZnydYokzPLCAW9n64wrASVT+f6ezGmuqh11/E1reL+aobCyQzY
+         4maBBo02BeQ7HxTgHzcFWsSzqsbxAvvIRh4xrougjmzcnfauX3c6PYFpe7nr/8zVs4fJ
+         u1LEt4vRB92dxmQOftpyzD+c9Z3EXQczeZ/EAIf+VfJwo96CFtSDv/gjvRHFPPVm8s+v
+         kYTB9SsFU6xJRQVlkcmcf2y7peIYTPLOumuozr7TNAyXZ7UUoYFm8rasYE4v3HOYbAcr
+         LEJw==
+X-Gm-Message-State: AJcUukcgXZhvB13IsVZtvdKna0z+ySU/tOExxzngQ8I1et2/syR3UJ5o
+        8lPb/zBqtBQvHXwtxzDPoRy7Z2cwga3QPX2AJAg=
+X-Google-Smtp-Source: ALg8bN5BblVOcG4MjhYckYd+4iewjE5bSXOHCHVnJedoW3tFAe3TnfFE99KldI0v1zaA3LjkjKQZvszru8+je5lgbv8=
+X-Received: by 2002:ac2:53b1:: with SMTP id j17mr2258927lfh.167.1548259692148;
+ Wed, 23 Jan 2019 08:08:12 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="yz2zv5rwxvomehn4"
-Content-Disposition: inline
-In-Reply-To: <20190118163158.21418-3-jagan@amarulasolutions.com>
-User-Agent: NeoMutt/20180716
+References: <20181103145532.9323-1-user.vdr@gmail.com> <766230a305f54a37e9d881779a0d81ec439f8bd8.camel@hadess.net>
+ <CAA7C2qhCmaJJ1F8D6zz0-9Sp+OspPE2h=KYRYO7seMUrs2q=sA@mail.gmail.com>
+ <20190119085252.GA187380@dtor-ws> <CAA7C2qiKOTKSWgmK_9ZyPC-JaBp+vW0nhoJMPJzHCmV_wsg8_A@mail.gmail.com>
+ <9e3eccabfafe830f7d30249a18e9d076e1868e4c.camel@hadess.net>
+In-Reply-To: <9e3eccabfafe830f7d30249a18e9d076e1868e4c.camel@hadess.net>
+From:   VDR User <user.vdr@gmail.com>
+Date:   Wed, 23 Jan 2019 08:07:56 -0800
+Message-ID: <CAA7C2qiwNuFqjamv4m5KdQ+J_vH8wAvzkF8G9853An7+rc=TUg@mail.gmail.com>
+Subject: Re: [PATCH v2] Input: Add missing event codes for common IR remote buttons
+To:     Bastien Nocera <hadess@hadess.net>
+Cc:     Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+        linux-input@vger.kernel.org, Sean Young <sean@mess.org>,
+        mchehab+samsung@kernel.org,
+        "mailing list: linux-media" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
+Hi Bastian,
 
---yz2zv5rwxvomehn4
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> > There are multiple MENU keys I assume for clarity purposes and to
+> > give
+> > some kind of relation between the key definition and the action/event
+> > that occurs when you use it. I would say it's more a matter of
+> > convenience rather that need, similar to KEY_ROOT_MENU &
+> > KEY_MEDIA_TOP_MENU; It's not a necessity that these two exist, but
+> > they do out of convenience. You could still make things work if one
+> > of
+> > them vanished.
+>
+> Those 2 keys were added because they were present on DVD player remotes
+> nearly 20 years ago ("Root menu" vs. "Top Menu"), and do different
+> things.
 
-On Fri, Jan 18, 2019 at 10:01:54PM +0530, Jagan Teki wrote:
-> Unfortunately default CSI_SCLK rate cannot work properly to
-> drive the connected sensor interface, particularly on few
-> Allwinner SoC's like A64.
->=20
-> So, add mod_rate quirk via driver data so-that the respective
-> SoC's which require to alter the default mod clock rate can assign
-> the operating clock rate.
->=20
-> Signed-off-by: Jagan Teki <jagan@amarulasolutions.com>
+That's true as it pertains to DVD players, but usage has changed over
+time. These days it's common to have pc-based alternatives to
+standalone players. Beyond that, pc-based setups that replace multiple
+standalone devices. I personally use `root menu` to jump to the root
+dir of my lan in file browsing mode and `top menu` to jump out to the
+top-most menu of the playback menus. I mentioned neither of these _has
+to_ exist but do for the sake of convenience. That's because the end
+result in both cases could be achieved by pressing `back` X number of
+times. But that's slow & inconvenient.
 
-You still don't need the variant stuff. If the sole difference is that
-we need that clock rate to be fixed, then the following patch is enough.
+> > > > KEY_DISPLAY_FORMAT doesn't open any menus and is used to cycle
+> > > > through
+> > > > how video is displayed on-screen to the user; full, zoomed,
+> > > > letterboxed, stretched, etc. KEY_CONTEXT_MENU would be for
+> > > > something
+> > > > like bringing up a playback menu where you'd set things like
+> > > > upscaling, deinterlacing, audio mixdown/mixup, etc.
+> > >
+> > > KEY_ASPECT_RATIO (formerly KEY_SCREEN).
+> >
+> > Physical displays have a single set aspect ratio (W/H). Images have
+> > their own aspect ratios. When the AR of the video to be display and
+> > the display itself are mismatched, you have to do something
+> > (letterbox, pillarbox, windowbox) to the video to maintain the
+> > correct
+> > video aspect ratio. You can't change the displays AR, and you aren't
+> > changing the videos AR so using KEY_ASPECT_RATIO makes no sense. AR
+> > isn't being touched/altered/manipulated, but how the video is being
+> > displayed is. Stretching and filling to match the display AR alters
+> > the video AR so there is makes sense, but then zooming may not. So,
+> > since "aspect ratio" kind of makes sense in a couple cases, and makes
+> > no sense in the rest, the more suitable KEY_DISPLAY_FORMAT is my
+> > suggestion.
+>
+> The "Aspect Ratio" or "Ratio" key on loads of remotes have been doing
+> this exact thing since the days of the first 16:9/cinema displays. I
+> really don't think you need a new key here.
 
-http://code.bulix.org/9au998-562745?raw
+You can throw "Display" buttons and buttons with simply an icon
+implying display manipulation in there as well. I've explained why
+KEY_ASPECT_RATIO simply doesn't apply, and why KEY_DISPLAY_FORMAT
+does. If people are against adding KEY_DISPLAY_FORMAT, then
+KEY_ASPECT_RATIO should be renamed again & as such to properly reflect
+the intended action. I suspect whomever started labeling this as
+"aspect" or "aspect ratio" on remotes was some hardware designer that
+didn't know how to accurately explain what the button does and took
+his best (poor) guess.
 
-Maxime
+Generally speaking, I think it's important to keep key definitions
+close to what the intended action/result is. When it comes to pc-based
+solutions, they are taking on more simultaneous roles and have to
+cover a wider range of stuff. It's common these days to find people
+using small boxes which perform local media functions & playback,
+recording, streaming, interactive tv, web browsing access, etc. The
+whole reason I made these suggestions was because I found I was
+assigning keys which either didn't properly describe the event, or
+were completely unrelated to it, and then having to change the
+definition in software to match the actual use. Picture-In-Picture is
+a great example of this. There's no defines that cover any of the PIP
+stuff so you're forced to use something totally unrelated
+(KEY_WHATEVER) and then alter software so when you press KEY_WHATEVER,
+what you really mean is <some PIP function here>.
 
---=20
-Maxime Ripard, Bootlin
-Embedded Linux and Kernel engineering
-https://bootlin.com
-
---yz2zv5rwxvomehn4
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iHUEABYIAB0WIQRcEzekXsqa64kGDp7j7w1vZxhRxQUCXEiL5QAKCRDj7w1vZxhR
-xW+OAP9I14o2aqaDvi2Zkm7tBUQNgMKU5/cRvH0+/vPUZBw7tQEAi4AHCxrJMB7W
-dAeL9m2LXQ6M4nDrZE51/vBKoTOpQgM=
-=UHSo
------END PGP SIGNATURE-----
-
---yz2zv5rwxvomehn4--
+Best regards,
+Derek
