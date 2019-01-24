@@ -4,67 +4,67 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-8.2 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B83FC282C5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BED2BC282C3
 	for <linux-media@archiver.kernel.org>; Thu, 24 Jan 2019 08:43:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 323AD218A4
+	by mail.kernel.org (Postfix) with ESMTP id 8FD97218A2
 	for <linux-media@archiver.kernel.org>; Thu, 24 Jan 2019 08:43:43 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="LxXc2tJ+"
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="aZexlr0g"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727577AbfAXIni (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 24 Jan 2019 03:43:38 -0500
-Received: from mail-oi1-f193.google.com ([209.85.167.193]:34786 "EHLO
-        mail-oi1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727281AbfAXInd (ORCPT
+        id S1727601AbfAXInm (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 24 Jan 2019 03:43:42 -0500
+Received: from mail-ot1-f66.google.com ([209.85.210.66]:40949 "EHLO
+        mail-ot1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727590AbfAXInm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 Jan 2019 03:43:33 -0500
-Received: by mail-oi1-f193.google.com with SMTP id r62so4237226oie.1
-        for <linux-media@vger.kernel.org>; Thu, 24 Jan 2019 00:43:32 -0800 (PST)
+        Thu, 24 Jan 2019 03:43:42 -0500
+Received: by mail-ot1-f66.google.com with SMTP id s5so4542945oth.7
+        for <linux-media@vger.kernel.org>; Thu, 24 Jan 2019 00:43:40 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=chromium.org; s=google;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=hVDl9dIUoiCG6PuhpYJsDmUi5clSLHBybMHGEZVmHMg=;
-        b=LxXc2tJ+71bGWx9FuaNFu9pEswntN6fcNpmCDaP7n2vbjHQ3PVe+kVVjjDv+C5FKLK
-         8QNoOqQ5sM+MjS4Z95G2QxanUaZqHTwyk9AyoHCoRn2Z8zq5Vt8NUBeUs0XmgIUIyPnS
-         xxqWNL6kgpwjTJ925LM3rf7zmpdnO+Ok5pb2M=
+        bh=ubufKBDUBrGmg37+ox2VVswr1sZmB/KKaxi8VgKVCLg=;
+        b=aZexlr0gKprhmeni93G0ze+OooktnLIlR8ePBrlhkEOlsqRgcQbqm8ZES2bxOWCfs9
+         FUAa1rFOVwEhJ4vuqOi44nGU4TP4SEbVbuR4BhvGMTFhLqLZA/JdY3QsImyCFXIO823N
+         l/xMO2140vBA83/npx384f5ztcK9a/gziuswU=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=hVDl9dIUoiCG6PuhpYJsDmUi5clSLHBybMHGEZVmHMg=;
-        b=jcD6xN6fpr5VPPm0w8CQONDx5mwJRiJvaLpILY5PTYhxTBXiVMzBp58PM6KgJWJsjU
-         x3aByA1/iaZjauLOPmwztAehjRpXgAz0xQBdyvI1XVj0DRf2UCH8xeMQuHfdoW6lGjko
-         tOXhUkbL/RywUO5uUPdX0Zf+7JADB/pbk5+l8JXj9ruXXmykT3IQbC8LTeGNGf2Td+/R
-         VNhEI3DfODvSfvkSwwinf1p7NU5loNok9qBsUF0kFa94YLcB0IRXGNHT5oMx1o/bJINS
-         9YINBIwxSjttPaE+BCb7xMRx9gNfcyTf0skwUE8NnhYk28MXBMkvKBwUcRMLj3l4Zqje
-         kspA==
-X-Gm-Message-State: AHQUAub4cFeOmRNPFRD6tMmODFZ+ApddFkA+Q/rWLme+GkG+D9e4yFL/
-        iR13oHJxkOFf5J2E/qm/1Dd43GILha4=
-X-Google-Smtp-Source: ALg8bN4UhRoTsZduXCsxG3MDikbEDBnWHWWpiWHV6ROKGwkC2TxLPSJaMpfu0dp/EeI7j1lpWqjjhQ==
-X-Received: by 2002:aca:720a:: with SMTP id p10mr515598oic.169.1548319412284;
-        Thu, 24 Jan 2019 00:43:32 -0800 (PST)
-Received: from mail-oi1-f180.google.com (mail-oi1-f180.google.com. [209.85.167.180])
-        by smtp.gmail.com with ESMTPSA id l108sm8987461otc.23.2019.01.24.00.43.31
+        bh=ubufKBDUBrGmg37+ox2VVswr1sZmB/KKaxi8VgKVCLg=;
+        b=HGoM4nWoOJnti1eA2hOWFaaPf3BaLcBejUB13f+1MkIjK01WMWq0V+2O55X9H96Mp/
+         D0sRsUEuglBnmoT88TjmXMzNkOTjq4MAjjXqQ6h6QIaFNQF3ZFh2jUdkEShtBHGm+IsF
+         7TJ7ZgJNucaOyjyPRZfMMcoC3/BDYayG5v+lXxipb2Fdm3JAKm5LlxTOBNJIMNH2t48J
+         +AphiKenBVJmIKeoy7j3lE2UAzxrMY7E/4/fhU0PHeWfJ5UBJS7gmD45GCjfAtoUwroo
+         Y9qGhy4aHFrb9oNZQGX6DcgZj9SJNJLBT5agI/QyCVtdSjx6ZvyXAg6c3o4ZO31p44eI
+         bXGw==
+X-Gm-Message-State: AJcUukda2rTCuB9YRjfLOKu6Ll7M+KV4R79LmRYKcLIh6pQMm468+/4E
+        Wk925d1tV5yK8TiY7QTdvEQN4o2W3Xw=
+X-Google-Smtp-Source: ALg8bN5/Y3hiuKn0SUfVVitj3EP5m01scKd8CYNSURF+BWFRqNtUsBnqYZxX8hFWZR4OKsz/4RvnLw==
+X-Received: by 2002:a9d:7dd2:: with SMTP id k18mr856546otn.232.1548319420273;
+        Thu, 24 Jan 2019 00:43:40 -0800 (PST)
+Received: from mail-oi1-f176.google.com (mail-oi1-f176.google.com. [209.85.167.176])
+        by smtp.gmail.com with ESMTPSA id q10sm9037308otl.15.2019.01.24.00.43.39
         for <linux-media@vger.kernel.org>
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 24 Jan 2019 00:43:31 -0800 (PST)
-Received: by mail-oi1-f180.google.com with SMTP id r62so4237175oie.1
-        for <linux-media@vger.kernel.org>; Thu, 24 Jan 2019 00:43:31 -0800 (PST)
-X-Received: by 2002:aca:f103:: with SMTP id p3mr535530oih.94.1548319410841;
- Thu, 24 Jan 2019 00:43:30 -0800 (PST)
+        Thu, 24 Jan 2019 00:43:39 -0800 (PST)
+Received: by mail-oi1-f176.google.com with SMTP id j21so4194524oii.8
+        for <linux-media@vger.kernel.org>; Thu, 24 Jan 2019 00:43:39 -0800 (PST)
+X-Received: by 2002:aca:ad14:: with SMTP id w20mr532308oie.3.1548319419319;
+ Thu, 24 Jan 2019 00:43:39 -0800 (PST)
 MIME-Version: 1.0
-References: <20190117162008.25217-1-stanimir.varbanov@linaro.org> <20190117162008.25217-4-stanimir.varbanov@linaro.org>
-In-Reply-To: <20190117162008.25217-4-stanimir.varbanov@linaro.org>
+References: <20190117162008.25217-1-stanimir.varbanov@linaro.org> <20190117162008.25217-9-stanimir.varbanov@linaro.org>
+In-Reply-To: <20190117162008.25217-9-stanimir.varbanov@linaro.org>
 From:   Alexandre Courbot <acourbot@chromium.org>
-Date:   Thu, 24 Jan 2019 17:43:19 +0900
-X-Gmail-Original-Message-ID: <CAPBb6MX=-uftivuSEMM9ZaV2rBO_rtr5T1xaF2hjsefnCtcRkw@mail.gmail.com>
-Message-ID: <CAPBb6MX=-uftivuSEMM9ZaV2rBO_rtr5T1xaF2hjsefnCtcRkw@mail.gmail.com>
-Subject: Re: [PATCH 03/10] venus: helpers: export few helper functions
+Date:   Thu, 24 Jan 2019 17:43:28 +0900
+X-Gmail-Original-Message-ID: <CAPBb6MWJXWLcGh3dbejiYzyqT6OB1_FN6zrcZFO5DbxqXSAWjQ@mail.gmail.com>
+Message-ID: <CAPBb6MWJXWLcGh3dbejiYzyqT6OB1_FN6zrcZFO5DbxqXSAWjQ@mail.gmail.com>
+Subject: Re: [PATCH 08/10] venus: vdec_ctrls: get real minimum buffers for capture
 To:     Stanimir Varbanov <stanimir.varbanov@linaro.org>
 Cc:     Linux Media Mailing List <linux-media@vger.kernel.org>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
@@ -83,173 +83,55 @@ X-Mailing-List: linux-media@vger.kernel.org
 On Fri, Jan 18, 2019 at 1:21 AM Stanimir Varbanov
 <stanimir.varbanov@linaro.org> wrote:
 >
-> Here we export few helper function to use them from decoder to
-> implement more granular control needed for stateful Codec API
-> compliance.
+> Until now we returned num_output_bufs set during reqbuf but
+> that could be wrong when we implement stateful Codec API. So
+> get the minimum buffers for capture from HFI. This is supposed
+> to be called after stream header parsing, i.e. after dequeue
+> v4l2 event for change resolution.
 >
 > Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 > ---
->  drivers/media/platform/qcom/venus/helpers.c | 29 ++++++++++++---------
->  drivers/media/platform/qcom/venus/helpers.h |  7 +++++
->  2 files changed, 24 insertions(+), 12 deletions(-)
+>  drivers/media/platform/qcom/venus/vdec_ctrls.c | 7 ++++++-
+>  1 file changed, 6 insertions(+), 1 deletion(-)
 >
-> diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
-> index 86105de81af2..f33bbfea3576 100644
-> --- a/drivers/media/platform/qcom/venus/helpers.c
-> +++ b/drivers/media/platform/qcom/venus/helpers.c
-> @@ -88,7 +88,7 @@ bool venus_helper_check_codec(struct venus_inst *inst, u32 v4l2_pixfmt)
->  }
->  EXPORT_SYMBOL_GPL(venus_helper_check_codec);
+> diff --git a/drivers/media/platform/qcom/venus/vdec_ctrls.c b/drivers/media/platform/qcom/venus/vdec_ctrls.c
+> index f4604b0cd57e..e1da87bf52bc 100644
+> --- a/drivers/media/platform/qcom/venus/vdec_ctrls.c
+> +++ b/drivers/media/platform/qcom/venus/vdec_ctrls.c
+> @@ -16,6 +16,7 @@
+>  #include <media/v4l2-ctrls.h>
 >
-> -static int venus_helper_queue_dpb_bufs(struct venus_inst *inst)
-> +int venus_helper_queue_dpb_bufs(struct venus_inst *inst)
+>  #include "core.h"
+> +#include "helpers.h"
+>  #include "vdec.h"
+>
+>  static int vdec_op_s_ctrl(struct v4l2_ctrl *ctrl)
+> @@ -47,7 +48,9 @@ static int vdec_op_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
 >  {
->         struct intbuf *buf;
->         int ret = 0;
-> @@ -109,6 +109,7 @@ static int venus_helper_queue_dpb_bufs(struct venus_inst *inst)
->  fail:
->         return ret;
->  }
-> +EXPORT_SYMBOL_GPL(venus_helper_queue_dpb_bufs);
->
->  int venus_helper_free_dpb_bufs(struct venus_inst *inst)
->  {
-> @@ -287,7 +288,7 @@ static const unsigned int intbuf_types_4xx[] = {
->         HFI_BUFFER_INTERNAL_PERSIST_1,
->  };
->
-> -static int intbufs_alloc(struct venus_inst *inst)
-> +int venus_helper_intbufs_alloc(struct venus_inst *inst)
->  {
->         const unsigned int *intbuf;
->         size_t arr_sz, i;
-> @@ -313,11 +314,13 @@ static int intbufs_alloc(struct venus_inst *inst)
->         intbufs_unset_buffers(inst);
->         return ret;
->  }
-> +EXPORT_SYMBOL_GPL(venus_helper_intbufs_alloc);
->
-> -static int intbufs_free(struct venus_inst *inst)
-> +int venus_helper_intbufs_free(struct venus_inst *inst)
->  {
->         return intbufs_unset_buffers(inst);
->  }
-> +EXPORT_SYMBOL_GPL(venus_helper_intbufs_free);
->
->  static u32 load_per_instance(struct venus_inst *inst)
->  {
-> @@ -348,7 +351,7 @@ static u32 load_per_type(struct venus_core *core, u32 session_type)
->         return mbs_per_sec;
->  }
->
-> -static int load_scale_clocks(struct venus_core *core)
-> +int venus_helper_load_scale_clocks(struct venus_core *core)
->  {
->         const struct freq_tbl *table = core->res->freq_tbl;
->         unsigned int num_rows = core->res->freq_tbl_size;
-> @@ -397,6 +400,7 @@ static int load_scale_clocks(struct venus_core *core)
->         dev_err(dev, "failed to set clock rate %lu (%d)\n", freq, ret);
->         return ret;
->  }
-> +EXPORT_SYMBOL_GPL(venus_helper_load_scale_clocks);
->
->  static void fill_buffer_desc(const struct venus_buffer *buf,
->                              struct hfi_buffer_desc *bd, bool response)
-> @@ -481,7 +485,7 @@ static bool is_dynamic_bufmode(struct venus_inst *inst)
->         return caps->cap_bufs_mode_dynamic;
->  }
->
-> -static int session_unregister_bufs(struct venus_inst *inst)
-> +int venus_helper_unregister_bufs(struct venus_inst *inst)
->  {
->         struct venus_buffer *buf, *n;
->         struct hfi_buffer_desc bd;
-> @@ -498,6 +502,7 @@ static int session_unregister_bufs(struct venus_inst *inst)
->
->         return ret;
->  }
-> +EXPORT_SYMBOL_GPL(venus_helper_unregister_bufs);
->
->  static int session_register_bufs(struct venus_inst *inst)
->  {
-> @@ -1018,8 +1023,8 @@ void venus_helper_vb2_stop_streaming(struct vb2_queue *q)
->         if (inst->streamon_out & inst->streamon_cap) {
->                 ret = hfi_session_stop(inst);
->                 ret |= hfi_session_unload_res(inst);
-> -               ret |= session_unregister_bufs(inst);
-> -               ret |= intbufs_free(inst);
-> +               ret |= venus_helper_unregister_bufs(inst);
-> +               ret |= venus_helper_intbufs_free(inst);
->                 ret |= hfi_session_deinit(inst);
->
->                 if (inst->session_error || core->sys_error)
-> @@ -1030,7 +1035,7 @@ void venus_helper_vb2_stop_streaming(struct vb2_queue *q)
->
->                 venus_helper_free_dpb_bufs(inst);
->
-> -               load_scale_clocks(core);
-> +               venus_helper_load_scale_clocks(core);
->                 INIT_LIST_HEAD(&inst->registeredbufs);
->         }
->
-> @@ -1050,7 +1055,7 @@ int venus_helper_vb2_start_streaming(struct venus_inst *inst)
->         struct venus_core *core = inst->core;
+>         struct venus_inst *inst = ctrl_to_inst(ctrl);
+>         struct vdec_controls *ctr = &inst->controls.dec;
+> +       struct hfi_buffer_requirements bufreq;
+>         union hfi_get_property hprop;
+> +       enum hfi_version ver = inst->core->res->hfi_version;
+>         u32 ptype = HFI_PROPERTY_PARAM_PROFILE_LEVEL_CURRENT;
 >         int ret;
 >
-> -       ret = intbufs_alloc(inst);
-> +       ret = venus_helper_intbufs_alloc(inst);
->         if (ret)
->                 return ret;
->
-> @@ -1058,7 +1063,7 @@ int venus_helper_vb2_start_streaming(struct venus_inst *inst)
->         if (ret)
->                 goto err_bufs_free;
->
-> -       load_scale_clocks(core);
-> +       venus_helper_load_scale_clocks(core);
->
->         ret = hfi_session_load_res(inst);
->         if (ret)
-> @@ -1079,9 +1084,9 @@ int venus_helper_vb2_start_streaming(struct venus_inst *inst)
->  err_unload_res:
->         hfi_session_unload_res(inst);
->  err_unreg_bufs:
-> -       session_unregister_bufs(inst);
-> +       venus_helper_unregister_bufs(inst);
->  err_bufs_free:
-> -       intbufs_free(inst);
-> +       venus_helper_intbufs_free(inst);
->         return ret;
->  }
->  EXPORT_SYMBOL_GPL(venus_helper_vb2_start_streaming);
-> diff --git a/drivers/media/platform/qcom/venus/helpers.h b/drivers/media/platform/qcom/venus/helpers.h
-> index 2475f284f396..24faae5abd93 100644
-> --- a/drivers/media/platform/qcom/venus/helpers.h
-> +++ b/drivers/media/platform/qcom/venus/helpers.h
-> @@ -18,6 +18,7 @@
->  #include <media/videobuf2-v4l2.h>
->
->  struct venus_inst;
-> +struct venus_core;
->
->  bool venus_helper_check_codec(struct venus_inst *inst, u32 v4l2_pixfmt);
->  struct vb2_v4l2_buffer *venus_helper_find_buf(struct venus_inst *inst,
-> @@ -62,4 +63,10 @@ int venus_helper_alloc_dpb_bufs(struct venus_inst *inst);
->  int venus_helper_free_dpb_bufs(struct venus_inst *inst);
->  int venus_helper_power_enable(struct venus_core *core, u32 session_type,
->                               bool enable);
-> +int venus_helper_intbufs_alloc(struct venus_inst *inst);
-> +int venus_helper_intbufs_free(struct venus_inst *inst);
-> +int venus_helper_intbufs_realloc(struct venus_inst *inst);
+> @@ -71,7 +74,9 @@ static int vdec_op_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
+>                 ctrl->val = ctr->post_loop_deb_mode;
+>                 break;
+>         case V4L2_CID_MIN_BUFFERS_FOR_CAPTURE:
+> -               ctrl->val = inst->num_output_bufs;
+> +               ret = venus_helper_get_bufreq(inst, HFI_BUFFER_OUTPUT, &bufreq);
+> +               if (!ret)
+> +                       ctrl->val = HFI_BUFREQ_COUNT_MIN(&bufreq, ver);
 
-I think this function is only declared in patch 7?
+What happens if venus_helper_get_bufreq() returns an error? It seems
+that we just happily continue with whatever the previous value of
+ctrl->val was. It seems like we do the same with other controls as
+well.
 
-
-
-> +int venus_helper_queue_dpb_bufs(struct venus_inst *inst);
-> +int venus_helper_unregister_bufs(struct venus_inst *inst);
-> +int venus_helper_load_scale_clocks(struct venus_core *core);
->  #endif
-> --
-> 2.17.1
->
+I think you can fix this globally by initializing ret to 0 at the
+beginning of the function, and then returning ret instead of 0 at the
+end. That way all errors would be propagated. Of course please check
+that this is relevant for other controls following this scheme before
+doing so. :)
