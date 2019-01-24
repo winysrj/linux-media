@@ -2,264 +2,299 @@ Return-Path: <SRS0=42/h=QA=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_PASS,UNPARSEABLE_RELAY,
-	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 30E55C282C3
-	for <linux-media@archiver.kernel.org>; Thu, 24 Jan 2019 09:33:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 336EAC282C3
+	for <linux-media@archiver.kernel.org>; Thu, 24 Jan 2019 09:51:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id F37C321872
-	for <linux-media@archiver.kernel.org>; Thu, 24 Jan 2019 09:33:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E6E292085A
+	for <linux-media@archiver.kernel.org>; Thu, 24 Jan 2019 09:51:21 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="O2U6wAEk"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726060AbfAXJdy (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 24 Jan 2019 04:33:54 -0500
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:39158 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726050AbfAXJdy (ORCPT
+        id S1726074AbfAXJvV (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 24 Jan 2019 04:51:21 -0500
+Received: from mail-wr1-f67.google.com ([209.85.221.67]:41669 "EHLO
+        mail-wr1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725287AbfAXJvV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 Jan 2019 04:33:54 -0500
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-        (Authenticated sender: gtucker)
-        with ESMTPSA id 4D2E02608AC
-Subject: Re: Test results (v4l2) for media/master -
- v4.20-rc5-281-gd2b4387f3bdf
-To:     Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        ezequiel@collabora.com
-Cc:     linux-media@vger.kernel.org, kernel@collabora.com
-References: <5c1912cb.1c69fb81.6be62.391b@mx.google.com>
- <20181218155231.3b3b6d8b@coco.lan>
-From:   Guillaume Tucker <guillaume.tucker@collabora.com>
-Message-ID: <7c16e639-2535-b5c9-6948-ffce616f6c69@collabora.com>
-Date:   Thu, 24 Jan 2019 09:33:50 +0000
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.4.0
-MIME-Version: 1.0
-In-Reply-To: <20181218155231.3b3b6d8b@coco.lan>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Thu, 24 Jan 2019 04:51:21 -0500
+Received: by mail-wr1-f67.google.com with SMTP id x10so5710016wrs.8
+        for <linux-media@vger.kernel.org>; Thu, 24 Jan 2019 01:51:19 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id;
+        bh=Zjk147PwEpjD8wAstSUXSp23mTBb3JcPkd70pWoApI8=;
+        b=O2U6wAEkGL37gUZ1oFce5P4ho7bviHup65V7yLUgURJbyzN2Pfgf5xK1CiT8TTP6Mx
+         KChD3FykfJLajiuKXz9iaCb62Uv5ZxG4a2PbJkm0c3TtEfprF62kjYOR0gaQcf0a2+T/
+         JAiXuV6v6biR2HzcB9j9f42341c1y2DG5F3nlCM/qUfURYtlu8v/rEEYDZOt5vXR6ivg
+         RXG5FMijG1HZdRZtZ3e+nQKDLQh/e2Hvv6Rij7KOx9UmEarvps5/AA9PPCAXjLa1khuq
+         qOl7xnAHgSqEisEEBmIAOXmD7OlU/DBYMEQ3imKzeT4TihXLD5OJH+cmL7JaeJl4Wcpe
+         UMnA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id;
+        bh=Zjk147PwEpjD8wAstSUXSp23mTBb3JcPkd70pWoApI8=;
+        b=ORgCKuPNeypZTj2Bqs5nXrB2akmR1e5btGLFCluO6R2tTaYR02UbcMJ4kxMhhbuI3Q
+         9Z71OFvMyIThe8V2vwdV+yFeyxDtrwESpQ2oLnwWxvBFn7veFwthjkq/7JXYl2tldSLB
+         2MpyZ+1RsIISxPXNwdGv/MJPnKRtRQDF4rWli6xOPOcyhsNXMvVVFuwo7PS9nfVEdfjp
+         wtnomt517dp6UC2R7ZCbR+Y7aBBB+KsHyKQsUIrTXkLZalf53JkR00cx8GKux8fIFhtY
+         yCc1oX2krDVR+7utqTqg/uDOy4ed6THjBN0QB6wbJf4J5wGISakkFzLXWGdQm+kNCMlU
+         DbKw==
+X-Gm-Message-State: AJcUukebVHGQ1zgXvkTEYrm0PV0sHIdgGtX7iJNeHKc9LNiGTx/sM6Fh
+        DCydjHs6Y6w2qo59X2+J6n5KM64VIeA=
+X-Google-Smtp-Source: ALg8bN7fzA/11TqK71hhSywdgOfUNxkpjJd0+i4P/N13RDQhHA7XZkEp9by6winpX+400xsWSgEzMg==
+X-Received: by 2002:adf:f848:: with SMTP id d8mr6790794wrq.178.1548323478284;
+        Thu, 24 Jan 2019 01:51:18 -0800 (PST)
+Received: from localhost.localdomain (62-90-76-19.barak.net.il. [62.90.76.19])
+        by smtp.gmail.com with ESMTPSA id o8sm99954280wrx.15.2019.01.24.01.51.15
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 24 Jan 2019 01:51:16 -0800 (PST)
+From:   Dafna Hirschfeld <dafna3@gmail.com>
+To:     linux-media@vger.kernel.org
+Cc:     hverkuil@xs4all.nl, helen.koike@collabora.com,
+        Dafna Hirschfeld <dafna3@gmail.com>
+Subject: [PATCH v2] media: vicodec: ensure comp frame pointer kept in range
+Date:   Thu, 24 Jan 2019 01:51:08 -0800
+Message-Id: <20190124095108.97562-1-dafna3@gmail.com>
+X-Mailer: git-send-email 2.17.1
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Mauro,
+Make sure that the pointer to the compressed frame does not
+get out of the buffer.
 
-Thanks for the review.  We've made some progress but I would like
-to check things with you before putting this in production,
-please see below.
+Signed-off-by: Dafna Hirschfeld <dafna3@gmail.com>
+---
+Changes from v1:
+set OVERFLOW_BIT in derlc return val to indicate overflow.
+fix return value type from s16 to u16
 
-On 18/12/2018 17:52, Mauro Carvalho Chehab wrote:
-> Em Tue, 18 Dec 2018 07:31:23 -0800 (PST)
-> "kernelci.org bot" <bot@kernelci.org> escreveu:
-> 
->> Test results for:
->>   Tree:    media
->>   Branch:  master
->>   Kernel:  v4.20-rc5-281-gd2b4387f3bdf
->>   URL:     https://git.linuxtv.org/media_tree.git
->>   Commit:  d2b4387f3bdf016e266d23cf657465f557721488
->>   Test plans: v4l2
->>
->> Summary
->> -------
->> 4 test groups results
->>
->> 1  | v4l2       | rk3399-gru-kevin       | arm64 |  49 total:  17 PASS   6 FAIL  26 SKIP
->> 2  | v4l2       | rk3288-veyron-jaq      | arm   |  49 total:  17 PASS   6 FAIL  26 SKIP
->> 3  | v4l2       | qemu                   | arm64 | 115 total:  77 PASS   7 FAIL  31 SKIP
->> 4  | v4l2       | qemu                   | arm   | 115 total:  77 PASS   7 FAIL  31 SKIP
-> 
-> Please add, at linuxtv.org's wiki page, what each test actually means...
+ drivers/media/platform/vicodec/codec-fwht.c   | 71 +++++++++++++------
+ drivers/media/platform/vicodec/codec-fwht.h   |  2 +-
+ .../media/platform/vicodec/codec-v4l2-fwht.c  |  8 ++-
+ drivers/media/platform/vicodec/vicodec-core.c |  4 ++
+ 4 files changed, 60 insertions(+), 25 deletions(-)
 
-I've now added an explanation with a link to the wiki:
-
-"""
-V4L2 Compliance on the uvcvideo driver.
-
-This test ran "v4l2-compliance -s" from v4l-utils:
-
-    https://www.linuxtv.org/wiki/index.php/V4l2-utils
-
-See each detailed section in the report below to find out the git URL and
-particular revision that was used to build the test binaries.
-"""
-
-Is this the kind of information you would expect to see here?
-
->> ---
->> 1  | v4l2       | rk3399-gru-kevin       | arm64 |  49 total:  17 PASS   6 FAIL  26 SKIP
->>
->>   Config:      defconfig
->>   Lab Name:    lab-collabora
->>   Date:        2018-12-14 19:51:24.841000
->>   TXT log:     https://storage.kernelci.org//media/master/v4.20-rc5-281-gd2b4387f3bdf/arm64/defconfig/lab-collabora/v4l2-rk3399-gru-kevin.txt
->>   HTML log:    https://storage.kernelci.org//media/master/v4.20-rc5-281-gd2b4387f3bdf/arm64/defconfig/lab-collabora/v4l2-rk3399-gru-kevin.html
->>   Rootfs:      http://storage.kernelci.org/images/rootfs/debian/stretch-v4l2/20181207.0/arm64/rootfs.cpio.gz
->>   Test Git:    git://linuxtv.org/v4l-utils.git
->>   Test Commit: 7a118f166609c0d05c6447cc79484af37875d6fc
->>
->>
->>     Output-ioctls - 5 tests: 0  PASS, 0 FAIL, 5 SKIP
->>   
->>     Buffer-ioctls-Input-0 - 3 tests: 2  PASS, 1 FAIL, 0 SKIP
->>       * Requests: FAIL
->>   
->>     Required-ioctls - 2 tests: 2  PASS, 0 FAIL, 0 SKIP
->>   
->>     Input/Output-configuration-ioctls - 4 tests: 0  PASS, 0 FAIL, 4 SKIP
->>   
->>     Control-ioctls-Input-0 - 6 tests: 3  PASS, 2 FAIL, 1 SKIP
->>       * VIDIOC_G/S/TRY_EXT_CTRLS: FAIL
->>       * VIDIOC_QUERY_EXT_CTRL/QUERYMENU: FAIL
-> 
-> ... for example, in this specific case, I have no idea what driver 
-> failed. Ok, one could open the log txt file, look on it and
-> discover that this specific test was against the uvcvideo driver,
-> but it is doubtful to expect that everybody would do that.
-
-Each test is now run on a per-driver basis, on relevant
-platforms.  So there's vivid on QEMU and uvcvideo on a couple of
-real hardware devices as shown in this example summary:
-
-1  | rk3288-veyron-jaq      | arm   |  51 total:  17 PASS   8 FAIL  26 SKIP
-2  | rk3399-gru-kevin       | arm64 |  51 total:  17 PASS   8 FAIL  26 SKIP
-
-The driver name is mentioned in the email subject and at the top
-of the report.  The test first looks for a /dev/video* device
-corresponding to the requested driver, and then passes that on to
-the v4l2-compliance test suite as an argument.
-
-> The best would be to also c/c the developer of the specific
-> driver, if listed at MAINTAINERS, as he is the one that should
-> come up with a fix.
-
-Sure, it's easy to add the maintainers to the recipients for each
-type of report (i.e. Hans for vivid and Laurent for uvcvideo, and
-you for both) in addition to the linux-media list.
-
-> I also think that the patch subject should be changed to reflect the
-> actual problems that was got, e. g., something like:
-> 
-> [KernelCI] v4l2-compliance: uvcvideo: 6 failures, driver_foo: 8 failures
-
-The email subject has been changed to look more like other
-KernelCI reports and take your suggestion into account.  For this
-particular test report, it would now look like this:
-
-media/master v4l2-compliance on uvcvideo: 102 tests, 0 regressions (v4.20-rc5-281-gd2b4387f3bdf)
-
-There also would be another separate one with results for vivid.
-
-Other mailing lists are receiving similar reports without a
-[KernelCI] tag or anything, but it's easy to filter them based on
-the sender as it's always "kernelci.org bot" <bot@kernelci.org>.
-
->>     Codec-ioctls-Input-0 - 3 tests: 0  PASS, 0 FAIL, 3 SKIP
->>   
->>     Debug-ioctls - 2 tests: 0  PASS, 0 FAIL, 2 SKIP
->>   
->>     Format-ioctls-Input-0 - 10 tests: 4  PASS, 1 FAIL, 5 SKIP
->>       * VIDIOC_G/S_PARM: FAIL
->>   
->>     Streaming-ioctls_Test-input-0 - 4 tests: 1  PASS, 2 FAIL, 1 SKIP
->>       * USERPTR: FAIL
->>       * MMAP: FAIL
-
-[...]
-
-> Again, I would simplify the report, printing only a summary of the
-> failures. You can store a less summarized report at the KernelCI
-> storage server.
-
-The report now only shows failures and regression information (as
-in the example below).  There are links to see the full console
-log of the test run, which helps but I think it would be good to
-also have a separate log file with just the full test output.
-
-
-Please let us know if you're happy with this or if it needs
-further changes before enabling the automated reports again.
-
-Best wishes,
-Guillaume
-
-> Thanks,
-> Mauro
-
-Sample report from a test branch with a regression caused on
-purpose:
-
-
-----8<--------8<----
-
-
-gtucker/kernelci-local v4l2-compliance on vivid: 102 tests, 4 regressions (kernelci-local-snapshot-016-6-g6fa02d2c8766)
-
-Test results summary
---------------------
-
-V4L2 Compliance on the vivid driver.
-
-This test ran "v4l2-compliance -s" from v4l-utils:
-
-    https://www.linuxtv.org/wiki/index.php/V4l2-utils
-
-See each detailed section in the report below to find out the git URL and
-particular revision that was used to build the test binaries.
-
-
-  Tree:    gtucker
-  Branch:  kernelci-local
-  Kernel:  kernelci-local-snapshot-016-6-g6fa02d2c8766
-  URL:     https://gitlab.collabora.com/gtucker/linux.git
-  Commit:  6fa02d2c87664d7bc19de3ea7b288bfba7d36644
-
-
-1  | qemu                   | arm64 |  51 total:  29 PASS   4 FAIL  18 SKIP
-2  | qemu                   | arm   |  51 total:  29 PASS   4 FAIL  18 SKIP
-
-
-Test failures
--------------  
-
-1  | qemu                   | arm64 |  51 total:  29 PASS   4 FAIL  18 SKIP
-
-  Config:      defconfig+virtualvideo
-  Lab Name:    lab-collabora-dev
-  Plain log:   http://staging-storage.kernelci.org/gtucker/kernelci-local/kernelci-local-snapshot-016-6-g6fa02d2c8766/arm64/defconfig+virtualvideo/lab-collabora-dev/v4l2-compliance-vivid-qemu.txt
-  HTML log:    http://staging-storage.kernelci.org/gtucker/kernelci-local/kernelci-local-snapshot-016-6-g6fa02d2c8766/arm64/defconfig+virtualvideo/lab-collabora-dev/v4l2-compliance-vivid-qemu.html
-  Rootfs:      http://staging-storage.kernelci.org/images/rootfs/debian/stretch-v4l2/20190117.0/arm64/rootfs.cpio.gz
-  Test Git:    git://linuxtv.org/v4l-utils.git
-  Test Commit: 6de7a0df7e8c06af36ed609d87649e704279ea2d
-      
-
-    Buffer-ioctls-Input-0 - 3 tests: 2  PASS, 1 FAIL, 0 SKIP
-      * Requests: never passed       
-
-    Input-ioctls - 15 tests: 3  PASS, 3 FAIL, 9 SKIP
-      * VIDIOC_G/S_AUDOUT: never passed
-      * VIDIOC_G/S/ENUMINPUT: new failure (last pass: kernelci-local-snapshot-016-5-gcec25f749cfa)
-      * VIDIOC_ENUMAUDIO: new failure (last pass: kernelci-local-snapshot-016-5-gcec25f749cfa)             
-  
-
-2  | qemu                   | arm   |  51 total:  29 PASS   4 FAIL  18 SKIP
-
-  Config:      multi_v7_defconfig+virtualvideo
-  Lab Name:    lab-collabora-dev
-  Plain log:   http://staging-storage.kernelci.org/gtucker/kernelci-local/kernelci-local-snapshot-016-6-g6fa02d2c8766/arm/multi_v7_defconfig+virtualvideo/lab-collabora-dev/v4l2-compliance-vivid-qemu.txt
-  HTML log:    http://staging-storage.kernelci.org/gtucker/kernelci-local/kernelci-local-snapshot-016-6-g6fa02d2c8766/arm/multi_v7_defconfig+virtualvideo/lab-collabora-dev/v4l2-compliance-vivid-qemu.html
-  Rootfs:      http://staging-storage.kernelci.org/images/rootfs/debian/stretch-v4l2/20190117.0/armhf/rootfs.cpio.gz
-  Test Git:    git://linuxtv.org/v4l-utils.git
-  Test Commit: 6de7a0df7e8c06af36ed609d87649e704279ea2d
-      
-
-    Buffer-ioctls-Input-0 - 3 tests: 2  PASS, 1 FAIL, 0 SKIP
-      * Requests: never passed       
-
-    Input-ioctls - 15 tests: 3  PASS, 3 FAIL, 9 SKIP
-      * VIDIOC_G/S_AUDOUT: never passed
-      * VIDIOC_G/S/ENUMINPUT: new failure (last pass: kernelci-local-snapshot-016-5-gcec25f749cfa)
-      * VIDIOC_ENUMAUDIO: new failure (last pass: kernelci-local-snapshot-016-5-gcec25f749cfa)             
+diff --git a/drivers/media/platform/vicodec/codec-fwht.c b/drivers/media/platform/vicodec/codec-fwht.c
+index e5e0a80c2f73..d1d6085da9f1 100644
+--- a/drivers/media/platform/vicodec/codec-fwht.c
++++ b/drivers/media/platform/vicodec/codec-fwht.c
+@@ -13,6 +13,8 @@
+ #include <linux/kernel.h>
+ #include "codec-fwht.h"
  
++#define OVERFLOW_BIT BIT(14)
++
+ /*
+  * Note: bit 0 of the header must always be 0. Otherwise it cannot
+  * be guaranteed that the magic 8 byte sequence (see below) can
+@@ -104,16 +106,21 @@ static int rlc(const s16 *in, __be16 *output, int blocktype)
+  * This function will worst-case increase rlc_in by 65*2 bytes:
+  * one s16 value for the header and 8 * 8 coefficients of type s16.
+  */
+-static s16 derlc(const __be16 **rlc_in, s16 *dwht_out)
++static u16 derlc(const __be16 **rlc_in, s16 *dwht_out,
++		 const __be16 *end_of_input)
+ {
+ 	/* header */
+ 	const __be16 *input = *rlc_in;
+-	s16 ret = ntohs(*input++);
++	u16 stat;
+ 	int dec_count = 0;
+ 	s16 block[8 * 8 + 16];
+ 	s16 *wp = block;
+ 	int i;
+ 
++	if (input > end_of_input)
++		return OVERFLOW_BIT;
++	stat = ntohs(*input++);
++
+ 	/*
+ 	 * Now de-compress, it expands one byte to up to 15 bytes
+ 	 * (or fills the remainder of the 64 bytes with zeroes if it
+@@ -123,9 +130,15 @@ static s16 derlc(const __be16 **rlc_in, s16 *dwht_out)
+ 	 * allow for overflow if the incoming data was malformed.
+ 	 */
+ 	while (dec_count < 8 * 8) {
+-		s16 in = ntohs(*input++);
+-		int length = in & 0xf;
+-		int coeff = in >> 4;
++		s16 in;
++		int length;
++		int coeff;
++
++		if (input > end_of_input)
++			return OVERFLOW_BIT;
++		in = ntohs(*input++);
++		length = in & 0xf;
++		coeff = in >> 4;
+ 
+ 		/* fill remainder with zeros */
+ 		if (length == 15) {
+@@ -150,7 +163,7 @@ static s16 derlc(const __be16 **rlc_in, s16 *dwht_out)
+ 		dwht_out[x + y * 8] = *wp++;
+ 	}
+ 	*rlc_in = input;
+-	return ret;
++	return stat;
+ }
+ 
+ static const int quant_table[] = {
+@@ -808,22 +821,24 @@ u32 fwht_encode_frame(struct fwht_raw_frame *frm,
+ 	return encoding;
+ }
+ 
+-static void decode_plane(struct fwht_cframe *cf, const __be16 **rlco, u8 *ref,
++static bool decode_plane(struct fwht_cframe *cf, const __be16 **rlco, u8 *ref,
+ 			 u32 height, u32 width, u32 coded_width,
+-			 bool uncompressed)
++			 bool uncompressed, const __be16 *end_of_rlco_buf)
+ {
+ 	unsigned int copies = 0;
+ 	s16 copy[8 * 8];
+-	s16 stat;
++	u16 stat;
+ 	unsigned int i, j;
+ 
+ 	width = round_up(width, 8);
+ 	height = round_up(height, 8);
+ 
+ 	if (uncompressed) {
++		if (end_of_rlco_buf + 1 < *rlco + width * height / 2)
++			return false;
+ 		memcpy(ref, *rlco, width * height);
+ 		*rlco += width * height / 2;
+-		return;
++		return true;
+ 	}
+ 
+ 	/*
+@@ -847,8 +862,9 @@ static void decode_plane(struct fwht_cframe *cf, const __be16 **rlco, u8 *ref,
+ 				continue;
+ 			}
+ 
+-			stat = derlc(rlco, cf->coeffs);
+-
++			stat = derlc(rlco, cf->coeffs, end_of_rlco_buf);
++			if (stat & OVERFLOW_BIT)
++				return false;
+ 			if (stat & PFRAME_BIT)
+ 				dequantize_inter(cf->coeffs);
+ 			else
+@@ -865,17 +881,22 @@ static void decode_plane(struct fwht_cframe *cf, const __be16 **rlco, u8 *ref,
+ 			fill_decoder_block(refp, cf->de_fwht, coded_width);
+ 		}
+ 	}
++	return true;
+ }
+ 
+-void fwht_decode_frame(struct fwht_cframe *cf, struct fwht_raw_frame *ref,
++bool fwht_decode_frame(struct fwht_cframe *cf, struct fwht_raw_frame *ref,
+ 		       u32 hdr_flags, unsigned int components_num,
+ 		       unsigned int width, unsigned int height,
+ 		       unsigned int coded_width)
+ {
+ 	const __be16 *rlco = cf->rlc_data;
++	const __be16 *end_of_rlco_buf = cf->rlc_data +
++			(cf->size / sizeof(*rlco)) - 1;
+ 
+-	decode_plane(cf, &rlco, ref->luma, height, width, coded_width,
+-		     hdr_flags & FWHT_FL_LUMA_IS_UNCOMPRESSED);
++	if (!decode_plane(cf, &rlco, ref->luma, height, width, coded_width,
++			  hdr_flags & FWHT_FL_LUMA_IS_UNCOMPRESSED,
++			  end_of_rlco_buf))
++		return false;
+ 
+ 	if (components_num >= 3) {
+ 		u32 h = height;
+@@ -888,13 +909,21 @@ void fwht_decode_frame(struct fwht_cframe *cf, struct fwht_raw_frame *ref,
+ 			w /= 2;
+ 			c /= 2;
+ 		}
+-		decode_plane(cf, &rlco, ref->cb, h, w, c,
+-			     hdr_flags & FWHT_FL_CB_IS_UNCOMPRESSED);
+-		decode_plane(cf, &rlco, ref->cr, h, w, c,
+-			     hdr_flags & FWHT_FL_CR_IS_UNCOMPRESSED);
++		if (!decode_plane(cf, &rlco, ref->cb, h, w, c,
++				  hdr_flags & FWHT_FL_CB_IS_UNCOMPRESSED,
++				  end_of_rlco_buf))
++			return false;
++		if (!decode_plane(cf, &rlco, ref->cr, h, w, c,
++				  hdr_flags & FWHT_FL_CR_IS_UNCOMPRESSED,
++				  end_of_rlco_buf))
++			return false;
+ 	}
+ 
+ 	if (components_num == 4)
+-		decode_plane(cf, &rlco, ref->alpha, height, width, coded_width,
+-			     hdr_flags & FWHT_FL_ALPHA_IS_UNCOMPRESSED);
++		if (!decode_plane(cf, &rlco, ref->alpha, height, width,
++				  coded_width,
++				  hdr_flags & FWHT_FL_ALPHA_IS_UNCOMPRESSED,
++				  end_of_rlco_buf))
++			return false;
++	return true;
+ }
+diff --git a/drivers/media/platform/vicodec/codec-fwht.h b/drivers/media/platform/vicodec/codec-fwht.h
+index ad8cfc60a152..60d71d9dacb3 100644
+--- a/drivers/media/platform/vicodec/codec-fwht.h
++++ b/drivers/media/platform/vicodec/codec-fwht.h
+@@ -139,7 +139,7 @@ u32 fwht_encode_frame(struct fwht_raw_frame *frm,
+ 		      bool is_intra, bool next_is_intra,
+ 		      unsigned int width, unsigned int height,
+ 		      unsigned int stride, unsigned int chroma_stride);
+-void fwht_decode_frame(struct fwht_cframe *cf, struct fwht_raw_frame *ref,
++bool fwht_decode_frame(struct fwht_cframe *cf, struct fwht_raw_frame *ref,
+ 		       u32 hdr_flags, unsigned int components_num,
+ 		       unsigned int width, unsigned int height,
+ 		       unsigned int coded_width);
+diff --git a/drivers/media/platform/vicodec/codec-v4l2-fwht.c b/drivers/media/platform/vicodec/codec-v4l2-fwht.c
+index ee6903b8896c..c15034849133 100644
+--- a/drivers/media/platform/vicodec/codec-v4l2-fwht.c
++++ b/drivers/media/platform/vicodec/codec-v4l2-fwht.c
+@@ -280,6 +280,7 @@ int v4l2_fwht_decode(struct v4l2_fwht_state *state, u8 *p_in, u8 *p_out)
+ 	state->ycbcr_enc = ntohl(state->header.ycbcr_enc);
+ 	state->quantization = ntohl(state->header.quantization);
+ 	cf.rlc_data = (__be16 *)p_in;
++	cf.size = ntohl(state->header.size);
+ 
+ 	hdr_width_div = (flags & FWHT_FL_CHROMA_FULL_WIDTH) ? 1 : 2;
+ 	hdr_height_div = (flags & FWHT_FL_CHROMA_FULL_HEIGHT) ? 1 : 2;
+@@ -287,9 +288,10 @@ int v4l2_fwht_decode(struct v4l2_fwht_state *state, u8 *p_in, u8 *p_out)
+ 	    hdr_height_div != info->height_div)
+ 		return -EINVAL;
+ 
+-	fwht_decode_frame(&cf, &state->ref_frame, flags, components_num,
+-			  state->visible_width, state->visible_height,
+-			  state->coded_width);
++	if (!fwht_decode_frame(&cf, &state->ref_frame, flags, components_num,
++			       state->visible_width, state->visible_height,
++			       state->coded_width))
++		return -EINVAL;
+ 
+ 	/*
+ 	 * TODO - handle the case where the compressed stream encodes a
+diff --git a/drivers/media/platform/vicodec/vicodec-core.c b/drivers/media/platform/vicodec/vicodec-core.c
+index b84dae343645..953b9c4816a5 100644
+--- a/drivers/media/platform/vicodec/vicodec-core.c
++++ b/drivers/media/platform/vicodec/vicodec-core.c
+@@ -186,6 +186,10 @@ static int device_process(struct vicodec_ctx *ctx,
+ 			return ret;
+ 		vb2_set_plane_payload(&dst_vb->vb2_buf, 0, ret);
+ 	} else {
++		unsigned int comp_frame_size = ntohl(ctx->state.header.size);
++
++		if (comp_frame_size > ctx->comp_max_size)
++			return -EINVAL;
+ 		state->info = q_dst->info;
+ 		ret = v4l2_fwht_decode(state, p_src, p_dst);
+ 		if (ret < 0)
+-- 
+2.17.1
+
