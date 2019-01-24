@@ -2,45 +2,39 @@ Return-Path: <SRS0=42/h=QA=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 53962C282C5
-	for <linux-media@archiver.kernel.org>; Thu, 24 Jan 2019 09:53:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 700FCC282C3
+	for <linux-media@archiver.kernel.org>; Thu, 24 Jan 2019 09:56:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2AEEC2085A
-	for <linux-media@archiver.kernel.org>; Thu, 24 Jan 2019 09:53:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 48D3321872
+	for <linux-media@archiver.kernel.org>; Thu, 24 Jan 2019 09:56:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726080AbfAXJw5 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 24 Jan 2019 04:52:57 -0500
-Received: from mail.bootlin.com ([62.4.15.54]:59119 "EHLO mail.bootlin.com"
+        id S1726080AbfAXJ43 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 24 Jan 2019 04:56:29 -0500
+Received: from mail.bootlin.com ([62.4.15.54]:59357 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725287AbfAXJw5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 Jan 2019 04:52:57 -0500
+        id S1725287AbfAXJ42 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 24 Jan 2019 04:56:28 -0500
 Received: by mail.bootlin.com (Postfix, from userid 110)
-        id CD6DC2084E; Thu, 24 Jan 2019 10:52:54 +0100 (CET)
+        id 5639F2084E; Thu, 24 Jan 2019 10:56:26 +0100 (CET)
 Received: from localhost.localdomain (aaubervilliers-681-1-87-206.w90-88.abo.wanadoo.fr [90.88.29.206])
-        by mail.bootlin.com (Postfix) with ESMTPSA id 5C68520654;
-        Thu, 24 Jan 2019 10:52:44 +0100 (CET)
+        by mail.bootlin.com (Postfix) with ESMTPSA id 01A7320798;
+        Thu, 24 Jan 2019 10:56:15 +0100 (CET)
 From:   Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-To:     linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-arm-kernel@lists.infradead.org,
-        linux-sunxi@googlegroups.com
-Cc:     Pawel Osciak <pawel@osciak.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
+To:     linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Cc:     Maxime Ripard <maxime.ripard@bootlin.com>,
         Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
         Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
         Hans Verkuil <hverkuil@xs4all.nl>,
-        Ezequiel Garcia <ezequiel@collabora.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Pawel Osciak <posciak@chromium.org>
-Subject: [PATCH 1/2] media: vb2: Keep dma-buf buffers mapped until they are freed
-Date:   Thu, 24 Jan 2019 10:51:55 +0100
-Message-Id: <20190124095156.21898-1-paul.kocialkowski@bootlin.com>
+        Tomasz Figa <tfiga@chromium.org>
+Subject: [PATCH] Revert "media: cedrus: Allow using the current dst buffer as reference"
+Date:   Thu, 24 Jan 2019 10:55:42 +0100
+Message-Id: <20190124095542.22321-1-paul.kocialkowski@bootlin.com>
 X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -49,57 +43,89 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-From: Pawel Osciak <posciak@chromium.org>
+This reverts commit cf20ae1535eb690a87c29b9cc7af51881384e967.
 
-When using vb2 for video decoding, dequeued capture buffers may still
-be accessed by the hardware: this is the case when they are used as
-reference frames for decoding subsequent frames.
-
-When the buffer is imported with dma-buf, it needs to be mapped before
-access. Until now, it was mapped when queuing and unmapped when
-dequeuing, which doesn't work for access as a reference frames.
-
-One way to solve this would be to map the buffer again when it is
-needed as a reference, but the mapping/unmapping operations can
-seriously impact performance. As a result, map the buffer once (when it
-is first needed when queued) and keep it mapped until it is freed.
-
-Signed-off-by: Pawel Osciak <posciak@chromium.org>
-Reviewed-on: https://chromium-review.googlesource.com/334103
-Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-[Paul: Updated for mainline and changed commit message]
+The vb2_find_timestamp helper was modified to allow finding buffers
+regardless of their current state in the queue. This means that we
+no longer have to take particular care of references to the current
+capture buffer.
 ---
- drivers/media/common/videobuf2/videobuf2-core.c | 11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ drivers/staging/media/sunxi/cedrus/cedrus_dec.c   | 13 -------------
+ drivers/staging/media/sunxi/cedrus/cedrus_dec.h   |  2 --
+ drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c | 10 ++++------
+ 3 files changed, 4 insertions(+), 21 deletions(-)
 
-diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
-index 70e8c3366f9c..ce9294a635cc 100644
---- a/drivers/media/common/videobuf2/videobuf2-core.c
-+++ b/drivers/media/common/videobuf2/videobuf2-core.c
-@@ -1196,6 +1196,9 @@ static int __prepare_dmabuf(struct vb2_buffer *vb)
- 	 * userspace knows sooner rather than later if the dma-buf map fails.
- 	 */
- 	for (plane = 0; plane < vb->num_planes; ++plane) {
-+		if (vb->planes[plane].dbuf_mapped)
-+			continue;
-+
- 		ret = call_memop(vb, map_dmabuf, vb->planes[plane].mem_priv);
- 		if (ret) {
- 			dprintk(1, "failed to map dmabuf for plane %d\n",
-@@ -1758,14 +1761,6 @@ static void __vb2_dqbuf(struct vb2_buffer *vb)
+diff --git a/drivers/staging/media/sunxi/cedrus/cedrus_dec.c b/drivers/staging/media/sunxi/cedrus/cedrus_dec.c
+index 2c295286766c..443fb037e1cf 100644
+--- a/drivers/staging/media/sunxi/cedrus/cedrus_dec.c
++++ b/drivers/staging/media/sunxi/cedrus/cedrus_dec.c
+@@ -22,19 +22,6 @@
+ #include "cedrus_dec.h"
+ #include "cedrus_hw.h"
  
- 	vb->state = VB2_BUF_STATE_DEQUEUED;
+-int cedrus_reference_index_find(struct vb2_queue *queue,
+-				struct vb2_buffer *vb2_buf, u64 timestamp)
+-{
+-	/*
+-	 * Allow using the current capture buffer as reference, which can occur
+-	 * for field-coded pictures.
+-	 */
+-	if (vb2_buf->timestamp == timestamp)
+-		return vb2_buf->index;
+-	else
+-		return vb2_find_timestamp(queue, timestamp, 0);
+-}
+-
+ void cedrus_device_run(void *priv)
+ {
+ 	struct cedrus_ctx *ctx = priv;
+diff --git a/drivers/staging/media/sunxi/cedrus/cedrus_dec.h b/drivers/staging/media/sunxi/cedrus/cedrus_dec.h
+index 8d0fc248220f..d1ae7903677b 100644
+--- a/drivers/staging/media/sunxi/cedrus/cedrus_dec.h
++++ b/drivers/staging/media/sunxi/cedrus/cedrus_dec.h
+@@ -16,8 +16,6 @@
+ #ifndef _CEDRUS_DEC_H_
+ #define _CEDRUS_DEC_H_
  
--	/* unmap DMABUF buffer */
--	if (q->memory == VB2_MEMORY_DMABUF)
--		for (i = 0; i < vb->num_planes; ++i) {
--			if (!vb->planes[i].dbuf_mapped)
--				continue;
--			call_void_memop(vb, unmap_dmabuf, vb->planes[i].mem_priv);
--			vb->planes[i].dbuf_mapped = 0;
--		}
- 	call_void_bufop(q, init_buffer, vb);
- }
+-int cedrus_reference_index_find(struct vb2_queue *queue,
+-				struct vb2_buffer *vb2_buf, u64 timestamp);
+ void cedrus_device_run(void *priv);
+ 
+ #endif
+diff --git a/drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c b/drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c
+index 81c66a8aa1ac..cb45fda9aaeb 100644
+--- a/drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c
++++ b/drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c
+@@ -10,7 +10,6 @@
+ #include <media/videobuf2-dma-contig.h>
+ 
+ #include "cedrus.h"
+-#include "cedrus_dec.h"
+ #include "cedrus_hw.h"
+ #include "cedrus_regs.h"
+ 
+@@ -160,8 +159,8 @@ static void cedrus_mpeg2_setup(struct cedrus_ctx *ctx, struct cedrus_run *run)
+ 	cedrus_write(dev, VE_DEC_MPEG_PICBOUNDSIZE, reg);
+ 
+ 	/* Forward and backward prediction reference buffers. */
+-	forward_idx = cedrus_reference_index_find(cap_q, &run->dst->vb2_buf,
+-						  slice_params->forward_ref_ts);
++	forward_idx = vb2_find_timestamp(cap_q,
++					 slice_params->forward_ref_ts, 0);
+ 
+ 	fwd_luma_addr = cedrus_dst_buf_addr(ctx, forward_idx, 0);
+ 	fwd_chroma_addr = cedrus_dst_buf_addr(ctx, forward_idx, 1);
+@@ -169,9 +168,8 @@ static void cedrus_mpeg2_setup(struct cedrus_ctx *ctx, struct cedrus_run *run)
+ 	cedrus_write(dev, VE_DEC_MPEG_FWD_REF_LUMA_ADDR, fwd_luma_addr);
+ 	cedrus_write(dev, VE_DEC_MPEG_FWD_REF_CHROMA_ADDR, fwd_chroma_addr);
+ 
+-	backward_idx = cedrus_reference_index_find(cap_q, &run->dst->vb2_buf,
+-						   slice_params->backward_ref_ts);
+-
++	backward_idx = vb2_find_timestamp(cap_q,
++					  slice_params->backward_ref_ts, 0);
+ 	bwd_luma_addr = cedrus_dst_buf_addr(ctx, backward_idx, 0);
+ 	bwd_chroma_addr = cedrus_dst_buf_addr(ctx, backward_idx, 1);
  
 -- 
 2.20.1
