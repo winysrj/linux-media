@@ -2,111 +2,142 @@ Return-Path: <SRS0=42/h=QA=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 13C9FC282C2
-	for <linux-media@archiver.kernel.org>; Thu, 24 Jan 2019 02:53:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A25BC282C3
+	for <linux-media@archiver.kernel.org>; Thu, 24 Jan 2019 04:39:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D6F612184B
-	for <linux-media@archiver.kernel.org>; Thu, 24 Jan 2019 02:53:49 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ohmlinxelectronics-com.20150623.gappssmtp.com header.i=@ohmlinxelectronics-com.20150623.gappssmtp.com header.b="sc/QcFSf"
+	by mail.kernel.org (Postfix) with ESMTP id 3DBFC217D7
+	for <linux-media@archiver.kernel.org>; Thu, 24 Jan 2019 04:39:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727187AbfAXCxn (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 23 Jan 2019 21:53:43 -0500
-Received: from mail-lj1-f196.google.com ([209.85.208.196]:44746 "EHLO
-        mail-lj1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727128AbfAXCxn (ORCPT
+        id S1726864AbfAXEjZ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 23 Jan 2019 23:39:25 -0500
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:60197 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726249AbfAXEjZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 23 Jan 2019 21:53:43 -0500
-Received: by mail-lj1-f196.google.com with SMTP id k19-v6so3840814lji.11
-        for <linux-media@vger.kernel.org>; Wed, 23 Jan 2019 18:53:42 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ohmlinxelectronics-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:from:date:message-id:subject:cc;
-        bh=n6RtpWHA8V03ECowmNKLCRPul4C13va65Kvspu1U98s=;
-        b=sc/QcFSfgqJcCJepc6ZnfMzlKPlay3k7gx+JiAT+muAy+eSBAzjTpKL183EWVbdHID
-         eM6/itBQDj5qTl/aE0HkIFKfCQUQEov6uByXHtcmsGLFoUYlfcDH4uCd32Orhzy8LTrm
-         oQzDT7Y+QntQTGRqkzZOAdlT885HJ2Lt97SoqSk38W1NYcljUMhM7EB2d3Pk+n5VtYf7
-         C0v7Pk4RI2HbdRK09UHdLU+UoWtVCuc7VtASbFNddrl5Dl99DK4dTxaZrXTjpuIV3NMd
-         582wwmtT9U3uK2upzCf9Zx1ffNh9znHkZsi0OnXKHeRVHuOOzeVyY45FDyV7Jrqr+MMw
-         FZ6Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:from:date:message-id:subject:cc;
-        bh=n6RtpWHA8V03ECowmNKLCRPul4C13va65Kvspu1U98s=;
-        b=QukdyL5qWJWOg8PWIkqiwHbJScRVmLP2Qv+y4Y3zsMSRKPhD3RInFNLfD/QxUUnFu4
-         QLlRQ09SrTamYpDWkx1AKgJqDbMcCydBNdPFg9/Y6slreP+9olUY+Kx126izDzfQi1Kz
-         2vD4vpgXrqWfhZHDTauBYEJllwYnPao1xm6oJ7fpSToaeprgH7DNqzPsAxETTHRNqPKr
-         78OtXwC6YQnob28kcJ8Qdd6wKCS1kFr+86WzRpX4QhG3jLvV0kLLKFfePJJXeLTVdTKy
-         kvuF7q8f3j6eiHgWUFa0hQBTOu4UVC39r5XB3mdQnQKklUJvpjXEsVpPxzHTY+MVmDsO
-         A9ZA==
-X-Gm-Message-State: AJcUukcnFoWGAwgaf1Rlob1nCKBKfqd2jS9o8SqNysRuV8HJEwIzWgnd
-        aa0wUUxEQdBOl8tGnPK5Xc66kKHYsGwwmynsEkqgnHY0
-X-Received: by 2002:a2e:6595:: with SMTP id e21-v6mt2825533ljf.123.1548298421079;
- Wed, 23 Jan 2019 18:53:41 -0800 (PST)
-MIME-Version: 1.0
-From:   Ken Sloat <ken.sloat@ohmlinxelectronics.com>
-Date:   Wed, 23 Jan 2019 21:53:30 -0500
-Message-ID: <CAPo_4QDW0r22ZTqtS_NDFWB3NFLBx9YEGgWKb-P9A3t_TBAFMQ@mail.gmail.com>
-Subject: devicetree: media: Documentation of Bt.656 Bus DT bindings
-Cc:     Ken Sloat <Ken.sloat@ohmlinxelectronics.com>,
-        linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-kernel@vger.kernel.org, yong.deng@magewell.com,
-        mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        maxime.ripard@bootlin.com, wens@csie.org,
-        kieran.bingham@ideasonboard.com, laurent.pinchart@ideasonboard.com,
-        jean-michel.hautbois@vodalys.com,
-        Nate Drude <nate.drude@ohmlinxelectronics.com>
-Content-Type: text/plain; charset="UTF-8"
-To:     unlisted-recipients:; (no To-header on input)
+        Wed, 23 Jan 2019 23:39:25 -0500
+Received: from localhost ([IPv6:2001:983:e9a7:1:1d4f:fbb:3ba9:1f5b])
+        by smtp-cloud7.xs4all.net with ESMTPA
+        id mWnSgDYGHBDyImWnTgbno3; Thu, 24 Jan 2019 05:39:23 +0100
+Message-ID: <4875f5132eeb8e5d0584940eb297ad41@smtp-cloud7.xs4all.net>
+Date:   Thu, 24 Jan 2019 05:39:22 +0100
+From:   "Hans Verkuil" <hverkuil@xs4all.nl>
+To:     linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+X-CMAE-Envelope: MS4wfGbsyrgJ7ugCTBOo+G73Hm7lRNubs0Gfy5yASxDfwDo8rUdU+UwYzCxMO4vk/yUpLKa23xEXq4OYaFMUtEnxZ/xOq6t1uUFPm15exYsCdOg4lGXHTH1X
+ 7wMnP1a4FQqX3Xmr5JwAVnoRUe4VfwoB0JGtRvGDixs9qa7QiBNdMcH1Nx2ZuomDex8u1voBhqpGAor6muJW5c+q78uMGJBHl0QI+n61PHrAyVqbXu2ACXj4
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-There are a number of v4l2 subdevices in the kernel that support a
-Bt.656 bus also known as "embedded sync." Previously in older versions
-of the kernel (and in the current 4.14 LTS kernel), the standard way
-to enable this in device tree on a parallel bus was to simply omit all
-hysync and vsync flags.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-During some other kernel development I was doing, it was brought to my
-attention that there is now a standard defined binding in
-"video-interfaces.txt" called "bus-type" that should be used in order
-to enable Bt.656 mode. While omitting the flags still appears to work
-because of other assumptions made in v4l2-fwnode driver, this method
-is now outdated and improper.
+Results of the daily build of media_tree:
 
-However, I have noticed that several dt binding docs have not been
-updated to reflect this change and still reference the old method:
+date:			Thu Jan 24 05:00:10 CET 2019
+media-tree git hash:	337e90ed028643c7acdfd0d31e3224d05ca03d66
+media_build git hash:	f7668f7e697810a4ddc2a012dd230119b31abb6d
+v4l-utils git hash:	4a5e271ec3c4f382bee0f1a6c39b72137922222a
+edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
+gcc version:		i686-linux-gcc (GCC) 8.2.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.19.0-1-amd64
 
-Documentation/devicetree/bindings/media/sun6i-csi.txt
-/* If hsync-active/vsync-active are missing,
-   embedded BT.656 sync is used */
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.57-i686: OK
+linux-3.16.57-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.123-i686: OK
+linux-3.18.123-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.52-i686: OK
+linux-4.1.52-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.159-i686: OK
+linux-4.4.159-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.131-i686: OK
+linux-4.9.131-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.74-i686: OK
+linux-4.14.74-x86_64: OK
+linux-4.15.18-i686: OK
+linux-4.15.18-x86_64: OK
+linux-4.16.18-i686: OK
+linux-4.16.18-x86_64: OK
+linux-4.17.19-i686: OK
+linux-4.17.19-x86_64: OK
+linux-4.18.12-i686: OK
+linux-4.18.12-x86_64: OK
+linux-4.19.1-i686: OK
+linux-4.19.1-x86_64: OK
+linux-4.20.1-i686: OK
+linux-4.20.1-x86_64: OK
+linux-5.0-rc1-i686: OK
+linux-5.0-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
-Documentation/devicetree/bindings/media/i2c/tvp5150.txt
-"If none of hsync-active, vsync-active and field-even-active is specified,
-the endpoint is assumed to use embedded BT.656 synchronization."
+Detailed results are available here:
 
-Documentation/devicetree/bindings/media/i2c/adv7604.txt
-"If none of hsync-active, vsync-active and pclk-sample is specified the
-  endpoint will use embedded BT.656 synchronization."
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
-and amazingly even
-Documentation/devicetree/bindings/media/video-interfaces.txt in one of
-the code snippets
-/* If hsync-active/vsync-active are missing,
-   embedded BT.656 sync is used */
+Full logs are available here:
 
-In order to avoid future confusion in the matter and ensure that the
-proper bindings are used, I am proposing submitting patches to update
-these docs to at minimum remove these statements and maybe even adding
-additional comments specifying the optional property and value for
-Bt.656 where missing. I wanted to open a discussion here first before
-doing this though. Thoughts?
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
 
-Thanks,
-Ken Sloat
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
