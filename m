@@ -2,154 +2,174 @@ Return-Path: <SRS0=42/h=QA=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-4.2 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2693FC282C3
-	for <linux-media@archiver.kernel.org>; Thu, 24 Jan 2019 09:59:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BD97C282C3
+	for <linux-media@archiver.kernel.org>; Thu, 24 Jan 2019 10:04:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E0C9B2084C
-	for <linux-media@archiver.kernel.org>; Thu, 24 Jan 2019 09:59:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E3BC2217D7
+	for <linux-media@archiver.kernel.org>; Thu, 24 Jan 2019 10:04:34 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linaro.org header.i=@linaro.org header.b="PboRJuOZ"
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="nYFz+jRn"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727806AbfAXJ7R (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 24 Jan 2019 04:59:17 -0500
-Received: from mail-wr1-f67.google.com ([209.85.221.67]:35713 "EHLO
-        mail-wr1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727414AbfAXJ7F (ORCPT
+        id S1727495AbfAXKEe (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 24 Jan 2019 05:04:34 -0500
+Received: from mail-pf1-f195.google.com ([209.85.210.195]:36923 "EHLO
+        mail-pf1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726036AbfAXKEd (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 Jan 2019 04:59:05 -0500
-Received: by mail-wr1-f67.google.com with SMTP id 96so5776479wrb.2
-        for <linux-media@vger.kernel.org>; Thu, 24 Jan 2019 01:59:04 -0800 (PST)
+        Thu, 24 Jan 2019 05:04:33 -0500
+Received: by mail-pf1-f195.google.com with SMTP id y126so2744364pfb.4
+        for <linux-media@vger.kernel.org>; Thu, 24 Jan 2019 02:04:32 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=subject:to:cc:references:from:message-id:date:user-agent
-         :mime-version:in-reply-to:content-language:content-transfer-encoding;
-        bh=iRSEopFd+AHR1Xrk3tr3l3cIpLaGxkm3eJb/szQtbWI=;
-        b=PboRJuOZ7vQb7QTOTDCTpv+pdmQBiIvhFX69bWZQASbvtwPj+0Cgp5+Bkzr+QIigOz
-         GeDM62Ic9Yq0OHjy38jFXIyFVOIfqLxzSOQ1RpIoswzCtoH0zaDdxCarGgCXbZj6D9jo
-         +Nvj0uwqZcz3og7JbEYsnbPmMlcdpIcm2XSAQ=
+        d=chromium.org; s=google;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=puJliDBLLTHE21x91aNJD4xAQUUHWOIDOL9FkwyUojM=;
+        b=nYFz+jRn4HhwcWEdfJpkdPPvrtsSVAkEnZ3GB39uxdJEpCUw1Kav7EXcX6OU4apzwq
+         Of7O7+jjjnbxoSHFrZVrQQihJqE8snV1yruZCu8Fxt3X2/nYj7CDexfa+AkLp/ozgl1W
+         F2qGGhNv2XnzibLpfJ5rRilWeoznL10tDeULg=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
          :content-transfer-encoding;
-        bh=iRSEopFd+AHR1Xrk3tr3l3cIpLaGxkm3eJb/szQtbWI=;
-        b=MoLjnrz0qgE1zyuW+jaxmeJBdnhqQXbBSvgfJkx9gQ7iNPIGdzCT5Jm6OqFIX8jxAw
-         Y/nhSjdupgT10qRmdvDIloVYuN0bIMA1CEgAMrp70JIC5RSVojhkqscExkXuSAnYZhP+
-         cIUplSDU/kRaEbpPAfRLOvn/v2kRunIzXFTpHVBowxeM34lgOJnjPeaD/oH4kfnu0jgn
-         0X8aJuQjZURzIUQ6BMRxhmzcMlzLDuBaUokVp9SLiKNbZEsmj5f7HGft54fLQT2fPRjh
-         vQatf1a0QY0rypEz9toeiBBJlaFhVUlp4IInRWqz2LB+gJwGhvMXDDKAzXTPlR0SQNJ9
-         877w==
-X-Gm-Message-State: AJcUukc2k8AG4dP2WzDWRiXufb6PFMv71i/LUbS1PrzuBg//Hi9mD1m8
-        smoZ8sB1zQdil21wrJE7ia5PvA==
-X-Google-Smtp-Source: ALg8bN54V/MwJB+4mFIs+zTyjSrnLqnnGoJWaz1N+qDWbPm4NSW6wbRXfU4xLAEX960Tc7kJSr8XrQ==
-X-Received: by 2002:adf:b6a1:: with SMTP id j33mr6456628wre.55.1548323944084;
-        Thu, 24 Jan 2019 01:59:04 -0800 (PST)
-Received: from [192.168.27.209] ([37.157.136.206])
-        by smtp.googlemail.com with ESMTPSA id x3sm97679856wrd.19.2019.01.24.01.59.02
+        bh=puJliDBLLTHE21x91aNJD4xAQUUHWOIDOL9FkwyUojM=;
+        b=NLYu6mANOlhBo6Wn0N9sEsveVw6kTmEu2z9/wVnwfWNgEExL7TqxpIjEWTbpijSExL
+         KjX+jafcdpABkhplOHb4f46kStgGf8RQRKMIsCe2LVypodxqjk853Ei/vRxtz6rBTwUJ
+         qFRks6x43uHwchiqF73MxYBZktudQCioxyVyO3VG8ZWjsZBKrGZ3Qk7dpV94IAj0Oq1n
+         Xe3Ctkgoc6YdkyMtiCOvueCXHCDnypCks5C93COxVeC1LUmBPYZ9b895bHFSEkkDhrHA
+         yjAkcMDJn9SFZyffghrYh7MK6BcR7MDTttNrH5xhWjbl7iQmtuTPWAZ955nn3l1VSGyW
+         fMTQ==
+X-Gm-Message-State: AJcUukc7UrYFbkLAQo273sPBrxmuitKvqOjIRTkAkm161Kmyh4JqO976
+        G22q7dqCiM+mWICp3tedg9C9AIJpTEiNeA==
+X-Google-Smtp-Source: ALg8bN5XO98FAs3f+z+UqhXR6XevBNgSrlhvGGM4oyA6SnPx7+8GVVWicUn+BvsYfaFFcZF8OcVLkQ==
+X-Received: by 2002:a63:d747:: with SMTP id w7mr5239964pgi.360.1548324272064;
+        Thu, 24 Jan 2019 02:04:32 -0800 (PST)
+Received: from tfiga.tok.corp.google.com ([2401:fa00:4:4:6d27:f13:a0fa:d4b6])
+        by smtp.gmail.com with ESMTPSA id r66sm33533969pfk.157.2019.01.24.02.04.27
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 24 Jan 2019 01:59:03 -0800 (PST)
-Subject: Re: [PATCH 08/10] venus: vdec_ctrls: get real minimum buffers for
- capture
-To:     Alexandre Courbot <acourbot@chromium.org>
-Cc:     Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Thu, 24 Jan 2019 02:04:31 -0800 (PST)
+From:   Tomasz Figa <tfiga@chromium.org>
+To:     linux-media@vger.kernel.org
+Cc:     linux-kernel@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        LKML <linux-kernel@vger.kernel.org>,
-        linux-arm-msm@vger.kernel.org,
-        Vikash Garodia <vgarodia@codeaurora.org>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Malathi Gottam <mgottam@codeaurora.org>
-References: <20190117162008.25217-1-stanimir.varbanov@linaro.org>
- <20190117162008.25217-9-stanimir.varbanov@linaro.org>
- <CAPBb6MWJXWLcGh3dbejiYzyqT6OB1_FN6zrcZFO5DbxqXSAWjQ@mail.gmail.com>
-From:   Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <c9ce287b-e064-9fbe-6ee0-176253e0de84@linaro.org>
-Date:   Thu, 24 Jan 2019 11:59:01 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.2.1
+        Pawel Osciak <posciak@chromium.org>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Kamil Debski <kamil@wypas.org>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Jeongtae Park <jtp.park@samsung.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        =?UTF-8?q?Tiffany=20Lin=20=28=E6=9E=97=E6=85=A7=E7=8F=8A=29?= 
+        <tiffany.lin@mediatek.com>,
+        =?UTF-8?q?Andrew-CT=20Chen=20=28=E9=99=B3=E6=99=BA=E8=BF=AA=29?= 
+        <andrew-ct.chen@mediatek.com>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Todor Tomov <todor.tomov@linaro.org>,
+        Nicolas Dufresne <nicolas@ndufresne.ca>,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        dave.stevenson@raspberrypi.org,
+        Ezequiel Garcia <ezequiel@collabora.com>,
+        Maxime Jourdan <maxi.jourdan@wanadoo.fr>,
+        Tomasz Figa <tfiga@chromium.org>
+Subject: [PATCH v3 0/2] Document memory-to-memory video codec interfaces
+Date:   Thu, 24 Jan 2019 19:04:17 +0900
+Message-Id: <20190124100419.26492-1-tfiga@chromium.org>
+X-Mailer: git-send-email 2.20.1.321.g9e740568ce-goog
 MIME-Version: 1.0
-In-Reply-To: <CAPBb6MWJXWLcGh3dbejiYzyqT6OB1_FN6zrcZFO5DbxqXSAWjQ@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Alex,
+Late happy new year everyone. It's been a while, but here is the v3 of
+the stateful mem2mem codec interfaces documentation. Sorry for taking so
+long time to respin. (Again.)
 
-Thanks for the comments!
+This series attempts to add the documentation of what was discussed
+during Media Workshops at LinuxCon Europe 2012 in Barcelona and then
+later Embedded Linux Conference Europe 2014 in Düsseldorf and then
+eventually written down by Pawel Osciak and tweaked a bit by Chrome OS
+video team (but mostly in a cosmetic way or making the document more
+precise), during the several years of Chrome OS using the APIs in
+production.
 
-On 1/24/19 10:43 AM, Alexandre Courbot wrote:
-> On Fri, Jan 18, 2019 at 1:21 AM Stanimir Varbanov
-> <stanimir.varbanov@linaro.org> wrote:
->>
->> Until now we returned num_output_bufs set during reqbuf but
->> that could be wrong when we implement stateful Codec API. So
->> get the minimum buffers for capture from HFI. This is supposed
->> to be called after stream header parsing, i.e. after dequeue
->> v4l2 event for change resolution.
->>
->> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
->> ---
->>  drivers/media/platform/qcom/venus/vdec_ctrls.c | 7 ++++++-
->>  1 file changed, 6 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/media/platform/qcom/venus/vdec_ctrls.c b/drivers/media/platform/qcom/venus/vdec_ctrls.c
->> index f4604b0cd57e..e1da87bf52bc 100644
->> --- a/drivers/media/platform/qcom/venus/vdec_ctrls.c
->> +++ b/drivers/media/platform/qcom/venus/vdec_ctrls.c
->> @@ -16,6 +16,7 @@
->>  #include <media/v4l2-ctrls.h>
->>
->>  #include "core.h"
->> +#include "helpers.h"
->>  #include "vdec.h"
->>
->>  static int vdec_op_s_ctrl(struct v4l2_ctrl *ctrl)
->> @@ -47,7 +48,9 @@ static int vdec_op_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
->>  {
->>         struct venus_inst *inst = ctrl_to_inst(ctrl);
->>         struct vdec_controls *ctr = &inst->controls.dec;
->> +       struct hfi_buffer_requirements bufreq;
->>         union hfi_get_property hprop;
->> +       enum hfi_version ver = inst->core->res->hfi_version;
->>         u32 ptype = HFI_PROPERTY_PARAM_PROFILE_LEVEL_CURRENT;
->>         int ret;
->>
->> @@ -71,7 +74,9 @@ static int vdec_op_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
->>                 ctrl->val = ctr->post_loop_deb_mode;
->>                 break;
->>         case V4L2_CID_MIN_BUFFERS_FOR_CAPTURE:
->> -               ctrl->val = inst->num_output_bufs;
->> +               ret = venus_helper_get_bufreq(inst, HFI_BUFFER_OUTPUT, &bufreq);
->> +               if (!ret)
->> +                       ctrl->val = HFI_BUFREQ_COUNT_MIN(&bufreq, ver);
-> 
-> What happens if venus_helper_get_bufreq() returns an error? It seems
-> that we just happily continue with whatever the previous value of
-> ctrl->val was. It seems like we do the same with other controls as
-> well.
+Note that most, if not all, of the API is already implemented in
+existing mainline drivers, such as s5p-mfc or mtk-vcodec. Intention of
+this series is just to formalize what we already have.
 
-I agree that this is wrong, I think no-one userspace client used that
-g_ctrls controls :)
+Thanks everyone for the huge amount of useful comments for the RFC and
+v1. Much of the credits should go to Pawel Osciak too, for writing most
+of the original text of the initial RFC.
 
-> 
-> I think you can fix this globally by initializing ret to 0 at the
-> beginning of the function, and then returning ret instead of 0 at the
-> end. That way all errors would be propagated. Of course please check
-> that this is relevant for other controls following this scheme before
-> doing so. :)
-> 
+Changes since v2:
+(https://lore.kernel.org/patchwork/cover/1002474/)
+Decoder:
+ - Specified that the initial source change event is signaled
+   regardless of whether the client-set format matches the
+   stream format.
+ - Dropped V4L2_CID_MIN_BUFFERS_FOR_OUTPUT since it's meaningless
+   for the bitstream input buffers of decoders.
+ - Explicitly stated that VIDIOC_REQBUFS is not allowed on CAPTURE
+   if the stream information is not available.
+ - Described decode error handling.
+ - Mentioned that timestamps can be observed after a seek to
+   determine whether the CAPTURE buffers originated from before
+   or after the seek.
+ - Explicitly stated that after a pair of V4L2_DEC_CMD_STOP and
+   V4L2_DEC_CMD_START, the decoder is not reset and preserves
+   all the state.
 
-yes, I will do!
+Encoder:
+ - Specified that width and height of CAPTURE format are ignored
+   and always zero.
+ - Explicitly noted the common use case for the CROP target with
+   macroblock-unaligned video resolutions.
+ - Added a reference to Request API.
+ - Dropped V4L2_CID_MIN_BUFFERS_FOR_CAPTURE since it's meaningless
+   for the bitstream output buffers of encoders.
+ - Explicitly stated that after a pair of V4L2_ENC_CMD_STOP and
+   V4L2_ENC_CMD_START, the encoder is not reset and preserves
+   all the state.
+
+General:
+ - Dropped format enumeration from "Initialization", since it's already
+   a part of "Querying capabilities".
+ - Many spelling, grammar, stylistic, etc. changes.
+ - Changed the style of note blocks.
+ - Rebased onto Hans' documentation cleanup series.
+   (https://patchwork.kernel.org/cover/10775407/
+    https://patchwork.kernel.org/patch/10776737/)
+ - Moved the interfaces under the "Video Memory-To-Memory Interface"
+   section.
+
+For changes since v1 see the v2:
+https://lore.kernel.org/patchwork/cover/1002474/
+
+For changes since RFC see the v1:
+https://patchwork.kernel.org/cover/10542207/
+
+Tomasz Figa (2):
+  media: docs-rst: Document memory-to-memory video decoder interface
+  media: docs-rst: Document memory-to-memory video encoder interface
+
+ Documentation/media/uapi/v4l/dev-decoder.rst  | 1076 +++++++++++++++++
+ Documentation/media/uapi/v4l/dev-encoder.rst  |  586 +++++++++
+ Documentation/media/uapi/v4l/dev-mem2mem.rst  |    6 +
+ Documentation/media/uapi/v4l/pixfmt-v4l2.rst  |   10 +
+ Documentation/media/uapi/v4l/v4l2.rst         |   12 +-
+ .../media/uapi/v4l/vidioc-decoder-cmd.rst     |   40 +-
+ .../media/uapi/v4l/vidioc-encoder-cmd.rst     |   38 +-
+ Documentation/media/uapi/v4l/vidioc-g-fmt.rst |   14 +
+ 8 files changed, 1752 insertions(+), 30 deletions(-)
+ create mode 100644 Documentation/media/uapi/v4l/dev-decoder.rst
+ create mode 100644 Documentation/media/uapi/v4l/dev-encoder.rst
 
 -- 
-regards,
-Stan
+2.20.1.321.g9e740568ce-goog
+
