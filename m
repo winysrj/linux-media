@@ -2,301 +2,653 @@ Return-Path: <SRS0=42/h=QA=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.2 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E7D00C282C3
-	for <linux-media@archiver.kernel.org>; Thu, 24 Jan 2019 08:44:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F9F9C282C3
+	for <linux-media@archiver.kernel.org>; Thu, 24 Jan 2019 08:44:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id AF98021872
-	for <linux-media@archiver.kernel.org>; Thu, 24 Jan 2019 08:44:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C2706218A3
+	for <linux-media@archiver.kernel.org>; Thu, 24 Jan 2019 08:44:35 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="XXafGoug"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727405AbfAXIoU (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 24 Jan 2019 03:44:20 -0500
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:56358 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725986AbfAXIoU (ORCPT
+        id S1727711AbfAXIoe (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 24 Jan 2019 03:44:34 -0500
+Received: from mail-ot1-f65.google.com ([209.85.210.65]:41771 "EHLO
+        mail-ot1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727128AbfAXIoe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 Jan 2019 03:44:20 -0500
-Received: from [192.168.2.10] ([212.251.195.8])
-        by smtp-cloud8.xs4all.net with ESMTPA
-        id macPgVxe8NR5ymacSgotz9; Thu, 24 Jan 2019 09:44:16 +0100
-Subject: Re: [yavta PATCH v2 1/1] v4l2-ctl: Add support for META_OUTPUT buffer
- type
-To:     Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-Cc:     rajmohan.mani@intel.com, yong.zhi@intel.com
-References: <20190122120526.32112-1-sakari.ailus@linux.intel.com>
-From:   Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <00a7a90a-1f56-1fa3-c565-5f5b18539ea8@xs4all.nl>
-Date:   Thu, 24 Jan 2019 09:44:13 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.4.0
+        Thu, 24 Jan 2019 03:44:34 -0500
+Received: by mail-ot1-f65.google.com with SMTP id u16so4541793otk.8
+        for <linux-media@vger.kernel.org>; Thu, 24 Jan 2019 00:44:33 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=giauDnhYgwMBxoxnbIJNSnOhwxIuvzVKh6h0LnvPcz8=;
+        b=XXafGought8UxU/7qKpUsKTEv72xeRmfI/SoWeLQ7WCM4AnlPiiwITF4qBwBZbfxOz
+         ESZB5azj8riGVT0eVZwZpVZhnkS0JJBCutdfm18fXroLihtdkArwzH56hh5L8BVAGKvS
+         UAy/H79OaZKXvnUt95so5uMOQHJ0HBWtIsVXw=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=giauDnhYgwMBxoxnbIJNSnOhwxIuvzVKh6h0LnvPcz8=;
+        b=Ez9ajgttEA+6rCsL+MMbL11iPFMbKe2P6/moLXH/UJ9XRUOB3PUtY1aiT2iwfvxei6
+         B5DVwCQyVmF3swn8KNNoZYWB15Dd2De7/nI/57j/yTj6pD0m4vzAGvLJ1GRJkAQkAUDO
+         DZzPGUAoVwkaf1sef6BQlYCPsrz0Oong2yCfD1WvUDmY9zpbYW5yrc+OJbhDAcj2E+YE
+         hkGGyQmmq2uxchXo1zahrOAvMdCxAZkbaDrV+uaLZjeQj8lF7s8s6PK7PMEiO+GMTID4
+         HjL/wiKs4/pbKA5mv0wVgwrKpgasbhAfadtjvB1pNU1iz4IxJ5FC7o0rOD2s8a9xyHQi
+         IYqw==
+X-Gm-Message-State: AJcUukeFeEQqGu+8setA8Ll8ZnCGslqtOzjgmlwRQIDLwIWApxObzfQd
+        TQZwu0f0hamjJ16NRLfp3yAYcGWqylE=
+X-Google-Smtp-Source: ALg8bN7O/jUds0xupiUOt+AZvpLqv2xNYUfxnTgxXTQTbMD9qUHzXmG8HoKngP+7M7+IXAbnUOEE/g==
+X-Received: by 2002:a9d:66f:: with SMTP id 102mr3964888otn.293.1548319472646;
+        Thu, 24 Jan 2019 00:44:32 -0800 (PST)
+Received: from mail-oi1-f170.google.com (mail-oi1-f170.google.com. [209.85.167.170])
+        by smtp.gmail.com with ESMTPSA id p203sm10530199oic.49.2019.01.24.00.44.31
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 24 Jan 2019 00:44:32 -0800 (PST)
+Received: by mail-oi1-f170.google.com with SMTP id m6so4176716oig.11
+        for <linux-media@vger.kernel.org>; Thu, 24 Jan 2019 00:44:31 -0800 (PST)
+X-Received: by 2002:aca:dec1:: with SMTP id v184mr521804oig.217.1548319471364;
+ Thu, 24 Jan 2019 00:44:31 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <20190122120526.32112-1-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfD+cNaV0W6qutTMvMPLYMlkbtgthV1MeIjY3r+0mIJ28V3/pfWNFP+izQh01cr3WOr8j6abrW10Ve09HFwecQxV8236MAxbC7S9cjFW26pSKIFhXJVvf
- QuAOGWIkHSiwevpgwSqsJ24s2lde2EAbtAQUKk1F/h/IqCJbse42labAkuhnjk8SEtOvvhy68PI3taOB5yfpDFeoZVqrzIfYxHPeR4XHjgwwHmMWHJu1i6Ze
- yDZ7tjf352GoF8GrFVqmJ7Bd0maHLVZkq40PJSYY6bH16AzLNQPxaDWfODqz8wDZ
+References: <20190117162008.25217-1-stanimir.varbanov@linaro.org> <20190117162008.25217-11-stanimir.varbanov@linaro.org>
+In-Reply-To: <20190117162008.25217-11-stanimir.varbanov@linaro.org>
+From:   Alexandre Courbot <acourbot@chromium.org>
+Date:   Thu, 24 Jan 2019 17:44:20 +0900
+X-Gmail-Original-Message-ID: <CAPBb6MWMOBRrRYbbVjvm=075o_Sbmh3jVj3PNZ2dmMXu6UOzmw@mail.gmail.com>
+Message-ID: <CAPBb6MWMOBRrRYbbVjvm=075o_Sbmh3jVj3PNZ2dmMXu6UOzmw@mail.gmail.com>
+Subject: Re: [PATCH 10/10] venus: dec: make decoder compliant with stateful
+ codec API
+To:     Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Cc:     Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        LKML <linux-kernel@vger.kernel.org>,
+        linux-arm-msm@vger.kernel.org,
+        Vikash Garodia <vgarodia@codeaurora.org>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Malathi Gottam <mgottam@codeaurora.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Note: the subject it wrong, it's v4l-utils, not yavta.
+On Fri, Jan 18, 2019 at 1:21 AM Stanimir Varbanov
+<stanimir.varbanov@linaro.org> wrote:
+>
+> This refactored code for start/stop streaming vb2 operations and
 
-On 1/22/19 1:05 PM, Sakari Ailus wrote:
-> Add support for META_OUTPUT buffer type to v4l2-ctl.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+s/refactored/refactors?
+
+> adds a state machine handling similar to the one in stateful codec
+> API documentation. One major change is that now the HFI session is
+> started on STREAMON(OUTPUT) and stopped on REQBUF(OUTPUT,count=0),
+> during that time streamoff(cap,out) just flush buffers but doesn't
+
+streamoff(cap,out) should probably be in capitals for consistency.
+
+> stop the session. The other major change is that now the capture
+> and output queues are completely separated.
+>
+> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 > ---
-> Hi Hans,
-> 
-> Here's an update for the meta output buffer type in v4l2-ctl.
-> 
-> Since v1:
-> 
-> - Merge help text for meta and meta out buffer types
-> 
-> - Unify implementation for meta format handling
-> 
->  utils/v4l2-ctl/v4l2-ctl-meta.cpp | 71 ++++++++++++++++++++++++++++++++++++----
->  utils/v4l2-ctl/v4l2-ctl.cpp      |  7 ++++
->  utils/v4l2-ctl/v4l2-ctl.h        |  5 +++
->  3 files changed, 76 insertions(+), 7 deletions(-)
-> 
-> diff --git a/utils/v4l2-ctl/v4l2-ctl-meta.cpp b/utils/v4l2-ctl/v4l2-ctl-meta.cpp
-> index 37c91940a8..f4aa434937 100644
-> --- a/utils/v4l2-ctl/v4l2-ctl-meta.cpp
-> +++ b/utils/v4l2-ctl/v4l2-ctl-meta.cpp
-> @@ -21,14 +21,22 @@ static struct v4l2_format vfmt;	/* set_format/get_format */
->  void meta_usage(void)
->  {
->  	printf("\nMetadata Formats options:\n"
-> -	       "  --list-formats-meta display supported metadata formats [VIDIOC_ENUM_FMT]\n"
-> -	       "  --get-fmt-meta      query the metadata format [VIDIOC_G_FMT]\n"
-> -	       "  --set-fmt-meta <f>  set the metadata format [VIDIOC_S_FMT]\n"
-> +	       "  --list-formats-meta display supported metadata capture formats [VIDIOC_ENUM_FMT]\n"
-> +	       "  --get-fmt-meta      query the metadata capture format [VIDIOC_G_FMT]\n"
-> +	       "  --set-fmt-meta <f>  set the metadata capture format [VIDIOC_S_FMT]\n"
->  	       "                     parameter is either the format index as reported by\n"
->  	       "                     --list-formats-meta, or the fourcc value as a string\n"
-> -	       "  --try-fmt-meta <f>  try the metadata format [VIDIOC_TRY_FMT]\n"
-> +	       "  --try-fmt-meta <f>  try the metadata capture format [VIDIOC_TRY_FMT]\n"
->  	       "                     parameter is either the format index as reported by\n"
->  	       "                     --list-formats-meta, or the fourcc value as a string\n"
-> +	       "  --list-formats-meta-out display supported metadata output formats [VIDIOC_ENUM_FMT]\n"
-> +	       "  --get-fmt-meta-out      query the metadata output format [VIDIOC_G_FMT]\n"
-> +	       "  --set-fmt-meta-out <f>  set the metadata output format [VIDIOC_S_FMT]\n"
-> +	       "                          parameter is either the format index as reported by\n"
-> +	       "                          --list-formats-meta-out, or the fourcc value as a string\n"
-> +	       "  --try-fmt-meta-out <f>  try the metadata output format [VIDIOC_TRY_FMT]\n"
-> +	       "                          parameter is either the format index as reported by\n"
-> +	       "                          --list-formats-meta-out, or the fourcc value as a string\n"
->  	       );
+>  drivers/media/platform/qcom/venus/core.h    |  20 +-
+>  drivers/media/platform/qcom/venus/helpers.c |  23 +-
+>  drivers/media/platform/qcom/venus/helpers.h |   5 +
+>  drivers/media/platform/qcom/venus/vdec.c    | 449 ++++++++++++++++----
+>  4 files changed, 389 insertions(+), 108 deletions(-)
+>
+> diff --git a/drivers/media/platform/qcom/venus/core.h b/drivers/media/platform/qcom/venus/core.h
+> index 79c7e816c706..5a133c203455 100644
+> --- a/drivers/media/platform/qcom/venus/core.h
+> +++ b/drivers/media/platform/qcom/venus/core.h
+> @@ -218,6 +218,15 @@ struct venus_buffer {
+>
+>  #define to_venus_buffer(ptr)   container_of(ptr, struct venus_buffer, vb)
+>
+> +#define DEC_STATE_UNINIT               0
+
+Not sure about "uninit", DEC_STATE_DEINIT may be more explicit here?
+
+> +#define DEC_STATE_INIT                 1
+> +#define DEC_STATE_CAPTURE_SETUP                2
+> +#define DEC_STATE_STOPPED              3
+> +#define DEC_STATE_SEEK                 4
+> +#define DEC_STATE_DRAIN                        5
+> +#define DEC_STATE_DECODING             6
+> +#define DEC_STATE_DRC                  7
+
+How about defining these as an enum, for better type safety? I'd also
+prefix with VENUS_ to avoid possible (if unlikely) name collisions.
+
+> +
+>  /**
+>   * struct venus_inst - holds per instance paramerters
+>   *
+> @@ -241,6 +250,10 @@ struct venus_buffer {
+>   * @colorspace:        current color space
+>   * @quantization:      current quantization
+>   * @xfer_func: current xfer function
+> + * @codec_state:       current codec API state (see DEC/ENC_STATE_)
+> + * @reconf_wait:       wait queue for resolution change event
+> + * @ten_bits:          does new stream is 10bits depth
+
+"is new stream 10 bits deep" maybe?
+
+> + * @buf_count:         used to count number number of buffers (reqbuf(0))
+
+"number" written twice here.
+
+>   * @fps:               holds current FPS
+>   * @timeperframe:      holds current time per frame structure
+>   * @fmt_out:   a reference to output format structure
+> @@ -255,8 +268,6 @@ struct venus_buffer {
+>   * @opb_buftype:       output picture buffer type
+>   * @opb_fmt:           output picture buffer raw format
+>   * @reconfig:  a flag raised by decoder when the stream resolution changed
+> - * @reconfig_width:    holds the new width
+> - * @reconfig_height:   holds the new height
+>   * @hfi_codec:         current codec for this instance in HFI space
+>   * @sequence_cap:      a sequence counter for capture queue
+>   * @sequence_out:      a sequence counter for output queue
+> @@ -296,6 +307,9 @@ struct venus_inst {
+>         u8 ycbcr_enc;
+>         u8 quantization;
+>         u8 xfer_func;
+> +       unsigned int codec_state;
+
+As mentioned above, with an enum the type of this member would make it
+obvious which values it can accept.
+
+> +       wait_queue_head_t reconf_wait;
+> +       int buf_count;
+>         u64 fps;
+>         struct v4l2_fract timeperframe;
+>         const struct venus_format *fmt_out;
+> @@ -310,8 +324,6 @@ struct venus_inst {
+>         u32 opb_buftype;
+>         u32 opb_fmt;
+>         bool reconfig;
+> -       u32 reconfig_width;
+> -       u32 reconfig_height;
+>         u32 hfi_codec;
+>         u32 sequence_cap;
+>         u32 sequence_out;
+> diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
+> index 637ce7b82d94..25d8cceccae4 100644
+> --- a/drivers/media/platform/qcom/venus/helpers.c
+> +++ b/drivers/media/platform/qcom/venus/helpers.c
+> @@ -1030,16 +1030,15 @@ void venus_helper_vb2_buf_queue(struct vb2_buffer *vb)
+>
+>         v4l2_m2m_buf_queue(m2m_ctx, vbuf);
+>
+> -       if (!(inst->streamon_out & inst->streamon_cap))
+> -               goto unlock;
+> -
+> -       ret = is_buf_refed(inst, vbuf);
+> -       if (ret)
+> -               goto unlock;
+> +       if (IS_OUT(vb->vb2_queue, inst) || IS_CAP(vb->vb2_queue, inst)) {
+> +               ret = is_buf_refed(inst, vbuf);
+> +               if (ret)
+> +                       goto unlock;
+>
+> -       ret = session_process_buf(inst, vbuf);
+> -       if (ret)
+> -               return_buf_error(inst, vbuf);
+> +               ret = session_process_buf(inst, vbuf);
+> +               if (ret)
+> +                       return_buf_error(inst, vbuf);
+> +       }
+>
+>  unlock:
+>         mutex_unlock(&inst->lock);
+> @@ -1155,14 +1154,8 @@ int venus_helper_vb2_start_streaming(struct venus_inst *inst)
+>         if (ret)
+>                 goto err_unload_res;
+>
+> -       ret = venus_helper_queue_dpb_bufs(inst);
+> -       if (ret)
+> -               goto err_session_stop;
+> -
+>         return 0;
+>
+> -err_session_stop:
+> -       hfi_session_stop(inst);
+>  err_unload_res:
+>         hfi_session_unload_res(inst);
+>  err_unreg_bufs:
+> diff --git a/drivers/media/platform/qcom/venus/helpers.h b/drivers/media/platform/qcom/venus/helpers.h
+> index 2ec1c1a8b416..3b46139b5ee1 100644
+> --- a/drivers/media/platform/qcom/venus/helpers.h
+> +++ b/drivers/media/platform/qcom/venus/helpers.h
+> @@ -17,6 +17,11 @@
+>
+>  #include <media/videobuf2-v4l2.h>
+>
+> +#define IS_OUT(q, inst) (inst->streamon_out && \
+> +               q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+> +#define IS_CAP(q, inst) (inst->streamon_cap && \
+> +               q->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+
+These macro names are pretty generic and we are at risk of a name
+collision in the future. Also the name conveys the idea that the macro
+will check for the buffer type only ; yet IIUC we also check that the
+corresponding queue is streaming? Maybe something like
+VENUS_BUF_OUT_READY() would be more meaningful.
+
+> +
+>  struct venus_inst;
+>  struct venus_core;
+>
+> diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
+> index 7a9370df7515..306e0f7d3337 100644
+> --- a/drivers/media/platform/qcom/venus/vdec.c
+> +++ b/drivers/media/platform/qcom/venus/vdec.c
+> @@ -201,28 +201,18 @@ static int vdec_g_fmt(struct file *file, void *fh, struct v4l2_format *f)
+>         struct venus_inst *inst = to_inst(file);
+>         const struct venus_format *fmt = NULL;
+>         struct v4l2_pix_format_mplane *pixmp = &f->fmt.pix_mp;
+> +       int ret;
+>
+>         if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+>                 fmt = inst->fmt_cap;
+>         else if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+>                 fmt = inst->fmt_out;
+>
+> -       if (inst->reconfig) {
+> -               struct v4l2_format format = {};
+> -
+> -               inst->out_width = inst->reconfig_width;
+> -               inst->out_height = inst->reconfig_height;
+> -               inst->reconfig = false;
+> -
+> -               format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
+> -               format.fmt.pix_mp.pixelformat = inst->fmt_cap->pixfmt;
+> -               format.fmt.pix_mp.width = inst->out_width;
+> -               format.fmt.pix_mp.height = inst->out_height;
+> -
+> -               vdec_try_fmt_common(inst, &format);
+> -
+> -               inst->width = format.fmt.pix_mp.width;
+> -               inst->height = format.fmt.pix_mp.height;
+> +       if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
+> +               ret = wait_event_timeout(inst->reconf_wait, inst->reconfig,
+> +                                        msecs_to_jiffies(100));
+> +               if (!ret)
+> +                       return -EINVAL;
+
+inst->reconfig is only true during the time between a reconfigure
+event and the start of the CAPTURE queue. This looks like G_FMT on the
+CAPTURE queue will only be successful during this very short amount of
+time. Is my understanding correct? I wonder whether I am missing
+something here because the Chromium tests are all passing. But if this
+is correct, then this looks very restrictive. For instance, one would
+not be able to do VIDIOC_G_FMT twice in a row.
+
+>         }
+>
+>         pixmp->pixelformat = fmt->pixfmt;
+> @@ -457,6 +447,10 @@ vdec_try_decoder_cmd(struct file *file, void *fh, struct v4l2_decoder_cmd *cmd)
+>                 if (cmd->flags & V4L2_DEC_CMD_STOP_TO_BLACK)
+>                         return -EINVAL;
+>                 break;
+> +       case V4L2_DEC_CMD_START:
+> +               if (cmd->flags & V4L2_DEC_CMD_START_MUTE_AUDIO)
+> +                       return -EINVAL;
+> +               break;
+>         default:
+>                 return -EINVAL;
+>         }
+> @@ -477,18 +471,23 @@ vdec_decoder_cmd(struct file *file, void *fh, struct v4l2_decoder_cmd *cmd)
+>
+>         mutex_lock(&inst->lock);
+>
+> -       /*
+> -        * Implement V4L2_DEC_CMD_STOP by enqueue an empty buffer on decoder
+> -        * input to signal EOS.
+> -        */
+> -       if (!(inst->streamon_out & inst->streamon_cap))
+> -               goto unlock;
+> +       if (cmd->cmd == V4L2_DEC_CMD_STOP) {
+> +               /*
+> +                * Implement V4L2_DEC_CMD_STOP by enqueue an empty buffer on
+> +                * decoder input to signal EOS.
+> +                */
+> +               if (!(inst->streamon_out & inst->streamon_cap))
+> +                       goto unlock;
+>
+> -       fdata.buffer_type = HFI_BUFFER_INPUT;
+> -       fdata.flags |= HFI_BUFFERFLAG_EOS;
+> -       fdata.device_addr = 0xdeadbeef;
+> +               fdata.buffer_type = HFI_BUFFER_INPUT;
+> +               fdata.flags |= HFI_BUFFERFLAG_EOS;
+> +               fdata.device_addr = 0xdeadb000;
+>
+> -       ret = hfi_session_process_buf(inst, &fdata);
+> +               ret = hfi_session_process_buf(inst, &fdata);
+> +
+> +               if (!ret && inst->codec_state == DEC_STATE_DECODING)
+> +                       inst->codec_state = DEC_STATE_DRAIN;
+> +       }
+>
+>  unlock:
+>         mutex_unlock(&inst->lock);
+> @@ -649,20 +648,18 @@ static int vdec_output_conf(struct venus_inst *inst)
+>         return 0;
 >  }
->  
-> @@ -37,6 +45,8 @@ void meta_cmd(int ch, char *optarg)
->  	switch (ch) {
->  	case OptSetMetaFormat:
->  	case OptTryMetaFormat:
-> +	case OptSetMetaOutFormat:
-> +	case OptTryMetaOutFormat:
->  		if (strlen(optarg) == 0) {
->  			meta_usage();
->  			exit(1);
-> @@ -55,8 +65,38 @@ void meta_set(cv4l_fd &_fd)
->  	int fd = _fd.g_fd();
->  	int ret;
->  
-> +	if (!v4l_type_is_meta(_fd.g_type()))
-> +		return;
-> +
->  	if ((options[OptSetMetaFormat] || options[OptTryMetaFormat]) &&
-> -	    v4l_type_is_meta(_fd.g_type())) {
-> +	    v4l_type_is_capture(_fd.g_type())) {
-> +		struct v4l2_format in_vfmt;
-> +
-> +		in_vfmt.type = _fd.g_type();
-> +		in_vfmt.fmt.meta.dataformat = vfmt.fmt.meta.dataformat;
-> +
-> +		if (in_vfmt.fmt.meta.dataformat < 256) {
-> +			struct v4l2_fmtdesc fmt;
-> +
-> +			fmt.index = in_vfmt.fmt.meta.dataformat;
-> +			fmt.type = in_vfmt.type;
-> +
-> +			if (doioctl(fd, VIDIOC_ENUM_FMT, &fmt))
-> +				fmt.pixelformat = 0;
-> +
-> +			in_vfmt.fmt.meta.dataformat = fmt.pixelformat;
-> +		}
-> +
-> +		if (options[OptSetMetaFormat])
-> +			ret = doioctl(fd, VIDIOC_S_FMT, &in_vfmt);
-> +		else
-> +			ret = doioctl(fd, VIDIOC_TRY_FMT, &in_vfmt);
-> +		if (ret == 0 && (verbose || options[OptTryMetaFormat]))
-> +			printfmt(fd, in_vfmt);
-
-This is exactly the same code for meta output. Why not just do:
-
-  	if ((options[OptSetMetaFormat] || options[OptTryMetaFormat] ||
-	     options[OptSetMetaOutFormat] || options[OptTryMetaOutFormat]) &&
-	    v4l_type_is_meta(_fd.g_type())
-
-You can add tests for capture/output if you like, but it is not really necessary.
-
-
-> +	}
-> +
-> +	if ((options[OptSetMetaOutFormat] || options[OptTryMetaOutFormat]) &&
-> +	    v4l_type_is_output(_fd.g_type())) {
->  		struct v4l2_format in_vfmt;
->  
->  		in_vfmt.type = _fd.g_type();
-> @@ -85,7 +125,16 @@ void meta_set(cv4l_fd &_fd)
->  
->  void meta_get(cv4l_fd &fd)
+>
+> -static int vdec_init_session(struct venus_inst *inst)
+> +static int vdec_session_init(struct venus_inst *inst)
 >  {
-> -	if (options[OptGetMetaFormat] && v4l_type_is_meta(fd.g_type())) {
-> +	if (!v4l_type_is_meta(fd.g_type()))
-> +		return;
+>         int ret;
+>
+>         ret = hfi_session_init(inst, inst->fmt_out->pixfmt);
+> -       if (ret)
+> +       if (ret == -EINVAL)
+> +               return 0;
+
+Why is -EINVAL ok? It would be helpful to have at least a comment to
+explain this behavior.
+
+> +       else if (ret)
+>                 return ret;
+>
+> -       ret = venus_helper_set_input_resolution(inst, inst->out_width,
+> -                                               inst->out_height);
+> -       if (ret)
+> -               goto deinit;
+> -
+> -       ret = venus_helper_set_color_format(inst, inst->fmt_cap->pixfmt);
+> +       ret = venus_helper_set_input_resolution(inst, frame_width_min(inst),
+> +                                               frame_height_min(inst));
+>         if (ret)
+>                 goto deinit;
+>
+> @@ -681,26 +678,19 @@ static int vdec_num_buffers(struct venus_inst *inst, unsigned int *in_num,
+>
+>         *in_num = *out_num = 0;
+>
+> -       ret = vdec_init_session(inst);
+> -       if (ret)
+> -               return ret;
+> -
+>         ret = venus_helper_get_bufreq(inst, HFI_BUFFER_INPUT, &bufreq);
+>         if (ret)
+> -               goto deinit;
+> +               return ret;
+>
+>         *in_num = HFI_BUFREQ_COUNT_MIN(&bufreq, ver);
+>
+>         ret = venus_helper_get_bufreq(inst, HFI_BUFFER_OUTPUT, &bufreq);
+>         if (ret)
+> -               goto deinit;
+> +               return ret;
+>
+>         *out_num = HFI_BUFREQ_COUNT_MIN(&bufreq, ver);
+>
+> -deinit:
+> -       hfi_session_deinit(inst);
+> -
+> -       return ret;
+> +       return 0;
+>  }
+>
+>  static int vdec_queue_setup(struct vb2_queue *q,
+> @@ -733,6 +723,10 @@ static int vdec_queue_setup(struct vb2_queue *q,
+>                 return 0;
+>         }
+>
+> +       ret = vdec_session_init(inst);
+> +       if (ret)
+> +               return ret;
 > +
-> +	if (options[OptGetMetaFormat] && v4l_type_is_capture(fd.g_type())) {
-> +		vfmt.type = fd.g_type();
-> +		if (doioctl(fd.g_fd(), VIDIOC_G_FMT, &vfmt) == 0)
-> +			printfmt(fd.g_fd(), vfmt);
-> +	}
+>         ret = vdec_num_buffers(inst, &in_num, &out_num);
+>         if (ret)
+>                 return ret;
+> @@ -758,6 +752,11 @@ static int vdec_queue_setup(struct vb2_queue *q,
+>                 inst->output_buf_size = sizes[0];
+>                 *num_buffers = max(*num_buffers, out_num);
+>                 inst->num_output_bufs = *num_buffers;
 > +
-> +	if (options[OptGetMetaOutFormat] && v4l_type_is_output(fd.g_type())) {
->  		vfmt.type = fd.g_type();
->  		if (doioctl(fd.g_fd(), VIDIOC_G_FMT, &vfmt) == 0)
->  			printfmt(fd.g_fd(), vfmt);
-> @@ -94,7 +143,15 @@ void meta_get(cv4l_fd &fd)
->  
->  void meta_list(cv4l_fd &fd)
+> +               mutex_lock(&inst->lock);
+> +               if (inst->codec_state == DEC_STATE_CAPTURE_SETUP)
+> +                       inst->codec_state = DEC_STATE_STOPPED;
+> +               mutex_unlock(&inst->lock);
+>                 break;
+>         default:
+>                 ret = -EINVAL;
+> @@ -794,80 +793,298 @@ static int vdec_verify_conf(struct venus_inst *inst)
+>         return 0;
+>  }
+>
+> -static int vdec_start_streaming(struct vb2_queue *q, unsigned int count)
+> +static int vdec_start_capture(struct venus_inst *inst)
 >  {
-> -	if (options[OptListMetaFormats] && v4l_type_is_meta(fd.g_type())) {
-> +	if (!v4l_type_is_meta(fd.g_type()))
-> +		return;
+> -       struct venus_inst *inst = vb2_get_drv_priv(q);
+>         int ret;
+>
+> -       mutex_lock(&inst->lock);
+> +       if (!inst->streamon_out)
+> +               return -EINVAL;
+>
+> -       if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+> -               inst->streamon_out = 1;
+> -       else
+> -               inst->streamon_cap = 1;
+> +       if (inst->codec_state == DEC_STATE_DECODING) {
+> +               if (inst->reconfig)
+> +                       goto reconfigure;
+>
+> -       if (!(inst->streamon_out & inst->streamon_cap)) {
+> -               mutex_unlock(&inst->lock);
+> +               venus_helper_queue_dpb_bufs(inst);
+> +               venus_helper_process_initial_cap_bufs(inst);
+> +               inst->streamon_cap = 1;
+>                 return 0;
+>         }
+>
+> -       venus_helper_init_instance(inst);
+> +       if (inst->codec_state != DEC_STATE_STOPPED)
+> +               return -EINVAL;
+>
+> -       inst->reconfig = false;
+> -       inst->sequence_cap = 0;
+> -       inst->sequence_out = 0;
+> +reconfigure:
+> +       ret = hfi_session_flush(inst, HFI_FLUSH_OUTPUT);
+> +       if (ret)
+> +               return ret;
+>
+> -       ret = vdec_init_session(inst);
+> +       ret = vdec_output_conf(inst);
+>         if (ret)
+> -               goto bufs_done;
+> +               return ret;
 > +
-> +	if (options[OptListMetaFormats] && v4l_type_is_capture(fd.g_type())) {
-> +		printf("ioctl: VIDIOC_ENUM_FMT\n");
-> +		print_video_formats(fd, fd.g_type());
-> +	}
+> +       ret = venus_helper_set_num_bufs(inst, inst->num_input_bufs,
+> +                                       VB2_MAX_FRAME, VB2_MAX_FRAME);
+> +       if (ret)
+> +               return ret;
 > +
-> +	if (options[OptListMetaOutFormats] && v4l_type_is_output(fd.g_type())) {
->  		printf("ioctl: VIDIOC_ENUM_FMT\n");
->  		print_video_formats(fd, fd.g_type());
->  	}
+> +       ret = venus_helper_intbufs_realloc(inst);
+> +       if (ret)
+> +               goto err;
+> +
+> +       ret = venus_helper_alloc_dpb_bufs(inst);
+> +       if (ret)
+> +               goto err;
+> +
+> +       ret = venus_helper_queue_dpb_bufs(inst);
+> +       if (ret)
+> +               goto free_dpb_bufs;
+> +
+> +       ret = venus_helper_process_initial_cap_bufs(inst);
+> +       if (ret)
+> +               goto free_dpb_bufs;
+> +
+> +       venus_helper_load_scale_clocks(inst->core);
+> +
+> +       ret = hfi_session_continue(inst);
+> +       if (ret)
+> +               goto free_dpb_bufs;
+> +
+> +       inst->codec_state = DEC_STATE_DECODING;
+> +
+> +       inst->streamon_cap = 1;
+> +       inst->sequence_cap = 0;
+> +       inst->reconfig = false;
+> +
+> +       return 0;
+> +
+> +free_dpb_bufs:
+> +       venus_helper_free_dpb_bufs(inst);
+> +err:
+> +       return ret;
+> +}
+> +
+> +static int vdec_start_output(struct venus_inst *inst)
+> +{
+> +       int ret;
+> +
+> +       if (inst->codec_state == DEC_STATE_SEEK) {
+> +               ret = venus_helper_process_initial_out_bufs(inst);
+> +               inst->codec_state = DEC_STATE_DECODING;
+> +               goto done;
+> +       }
+> +
+> +       if (inst->codec_state == DEC_STATE_INIT ||
+> +           inst->codec_state == DEC_STATE_CAPTURE_SETUP) {
+> +               ret = venus_helper_process_initial_out_bufs(inst);
+> +               goto done;
+> +       }
+> +
+> +       if (inst->codec_state != DEC_STATE_UNINIT)
+> +               return -EINVAL;
+> +
+> +       venus_helper_init_instance(inst);
+> +       inst->sequence_out = 0;
+> +       inst->reconfig = false;
+>
+>         ret = vdec_set_properties(inst);
+>         if (ret)
+> -               goto deinit_sess;
+> +               return ret;
+>
+>         ret = vdec_output_conf(inst);
+>         if (ret)
+> -               goto deinit_sess;
+> +               return ret;
+>
+>         ret = vdec_verify_conf(inst);
+>         if (ret)
+> -               goto deinit_sess;
+> +               return ret;
+>
+>         ret = venus_helper_set_num_bufs(inst, inst->num_input_bufs,
+>                                         VB2_MAX_FRAME, VB2_MAX_FRAME);
+>         if (ret)
+> -               goto deinit_sess;
+> +               return ret;
+>
+> -       ret = venus_helper_alloc_dpb_bufs(inst);
+> +       ret = venus_helper_vb2_start_streaming(inst);
+>         if (ret)
+> -               goto deinit_sess;
+> +               return ret;
+>
+> -       ret = venus_helper_vb2_start_streaming(inst);
+> +       ret = venus_helper_process_initial_out_bufs(inst);
+>         if (ret)
+> -               goto deinit_sess;
+> +               return ret;
+>
+> -       mutex_unlock(&inst->lock);
+> +       inst->codec_state = DEC_STATE_INIT;
+> +
+> +done:
+> +       inst->streamon_out = 1;
+> +       return ret;
+> +}
+> +
+> +static int vdec_start_streaming(struct vb2_queue *q, unsigned int count)
+> +{
+> +       struct venus_inst *inst = vb2_get_drv_priv(q);
+> +       int ret;
+> +
+> +       mutex_lock(&inst->lock);
+> +
+> +       if (q->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+> +               ret = vdec_start_capture(inst);
+> +       else
+> +               ret = vdec_start_output(inst);
+>
+> +       if (ret)
+> +               goto error;
+> +
+> +       mutex_unlock(&inst->lock);
+>         return 0;
+>
+> -deinit_sess:
+> -       hfi_session_deinit(inst);
+> -bufs_done:
+> +error:
+>         venus_helper_buffers_done(inst, VB2_BUF_STATE_QUEUED);
+> +       mutex_unlock(&inst->lock);
+> +       return ret;
+> +}
+> +
+> +static void vdec_dst_buffers_done(struct venus_inst *inst,
+> +                                 enum vb2_buffer_state state)
 
-Same for these two functions: the same code works for both meta capture and output.
+This function is only called as follows:
 
-To be honest, I would really like to completely rework the way v4l2-ctl handles this.
-There are way too many options to list, get, set, try formats. But you really don't
-need to specify the type (video, meta, sdr, vbi, etc) as that can be determined
-automatically.
+vdec_dst_buffers_done(inst, VB2_BUF_STATE_ERROR);
 
-But let's get this done first, and then I'll take another look at this.
+Therefore the state argument does not seem particularly useful. Maybe
+we can omit it and give this function a more specific name like
+vdec_cancel_dst_buffers().
 
-Regards,
+> +{
+> +       struct vb2_v4l2_buffer *buf;
+> +
+> +       while ((buf = v4l2_m2m_dst_buf_remove(inst->m2m_ctx)))
+> +               v4l2_m2m_buf_done(buf, state);
+> +}
+> +
+> +static int vdec_stop_capture(struct venus_inst *inst)
+> +{
+> +       int ret = 0;
+> +
+> +       switch (inst->codec_state) {
+> +       case DEC_STATE_DECODING:
+> +               ret = hfi_session_flush(inst, HFI_FLUSH_ALL);
+> +               vdec_dst_buffers_done(inst, VB2_BUF_STATE_ERROR);
+> +               inst->codec_state = DEC_STATE_STOPPED;
+> +               break;
+> +       case DEC_STATE_DRAIN:
+> +               vdec_dst_buffers_done(inst, VB2_BUF_STATE_ERROR);
+> +               inst->codec_state = DEC_STATE_STOPPED;
+> +               break;
 
-	Hans
+You can simplify these two cases a bit:
 
+       case DEC_STATE_DECODING:
+               ret = hfi_session_flush(inst, HFI_FLUSH_ALL);
+               /* fallthrough */
+       case DEC_STATE_DRAIN:
+              vdec_dst_buffers_done(inst, VB2_BUF_STATE_ERROR);
+               inst->codec_state = DEC_STATE_STOPPED;
+               break;
 
-> diff --git a/utils/v4l2-ctl/v4l2-ctl.cpp b/utils/v4l2-ctl/v4l2-ctl.cpp
-> index 1783979d76..ffac8716d0 100644
-> --- a/utils/v4l2-ctl/v4l2-ctl.cpp
-> +++ b/utils/v4l2-ctl/v4l2-ctl.cpp
-> @@ -122,6 +122,7 @@ static struct option long_options[] = {
->  	{"list-formats-out", no_argument, 0, OptListOutFormats},
->  	{"list-formats-out-ext", no_argument, 0, OptListOutFormatsExt},
->  	{"list-formats-meta", no_argument, 0, OptListMetaFormats},
-> +	{"list-formats-meta-out", no_argument, 0, OptListMetaOutFormats},
->  	{"list-subdev-mbus-codes", optional_argument, 0, OptListSubDevMBusCodes},
->  	{"list-subdev-framesizes", required_argument, 0, OptListSubDevFrameSizes},
->  	{"list-subdev-frameintervals", required_argument, 0, OptListSubDevFrameIntervals},
-> @@ -174,6 +175,9 @@ static struct option long_options[] = {
->  	{"get-fmt-meta", no_argument, 0, OptGetMetaFormat},
->  	{"set-fmt-meta", required_argument, 0, OptSetMetaFormat},
->  	{"try-fmt-meta", required_argument, 0, OptTryMetaFormat},
-> +	{"get-fmt-meta-out", no_argument, 0, OptGetMetaOutFormat},
-> +	{"set-fmt-meta-out", required_argument, 0, OptSetMetaOutFormat},
-> +	{"try-fmt-meta-out", required_argument, 0, OptTryMetaOutFormat},
->  	{"get-subdev-fmt", optional_argument, 0, OptGetSubDevFormat},
->  	{"set-subdev-fmt", required_argument, 0, OptSetSubDevFormat},
->  	{"try-subdev-fmt", required_argument, 0, OptTrySubDevFormat},
-> @@ -238,6 +242,7 @@ static struct option long_options[] = {
->  	{"list-buffers-sdr", no_argument, 0, OptListBuffersSdr},
->  	{"list-buffers-sdr-out", no_argument, 0, OptListBuffersSdrOut},
->  	{"list-buffers-meta", no_argument, 0, OptListBuffersMeta},
-> +	{"list-buffers-meta-out", no_argument, 0, OptListBuffersMetaOut},
->  	{"stream-count", required_argument, 0, OptStreamCount},
->  	{"stream-skip", required_argument, 0, OptStreamSkip},
->  	{"stream-loop", no_argument, 0, OptStreamLoop},
-> @@ -507,6 +512,7 @@ void printfmt(int fd, const struct v4l2_format &vfmt)
->  		printf("\tBuffer Size     : %u\n", vfmt.fmt.sdr.buffersize);
->  		break;
->  	case V4L2_BUF_TYPE_META_CAPTURE:
-> +	case V4L2_BUF_TYPE_META_OUTPUT:
->  		printf("\tSample Format   : '%s'%s\n", fcc2s(vfmt.fmt.meta.dataformat).c_str(),
->  		       printfmtname(fd, vfmt.type, vfmt.fmt.meta.dataformat).c_str());
->  		printf("\tBuffer Size     : %u\n", vfmt.fmt.meta.buffersize);
-> @@ -1247,6 +1253,7 @@ int main(int argc, char **argv)
->  		options[OptGetSdrFormat] = 1;
->  		options[OptGetSdrOutFormat] = 1;
->  		options[OptGetMetaFormat] = 1;
-> +		options[OptGetMetaOutFormat] = 1;
->  		options[OptGetFBuf] = 1;
->  		options[OptGetCropCap] = 1;
->  		options[OptGetOutputCropCap] = 1;
-> diff --git a/utils/v4l2-ctl/v4l2-ctl.h b/utils/v4l2-ctl/v4l2-ctl.h
-> index 5a52a0a48f..fc51cd1b97 100644
-> --- a/utils/v4l2-ctl/v4l2-ctl.h
-> +++ b/utils/v4l2-ctl/v4l2-ctl.h
-> @@ -89,6 +89,7 @@ enum Option {
->  	OptGetSdrFormat,
->  	OptGetSdrOutFormat,
->  	OptGetMetaFormat,
-> +	OptGetMetaOutFormat,
->  	OptGetSubDevFormat,
->  	OptSetSlicedVbiOutFormat,
->  	OptSetOverlayFormat,
-> @@ -97,6 +98,7 @@ enum Option {
->  	OptSetSdrFormat,
->  	OptSetSdrOutFormat,
->  	OptSetMetaFormat,
-> +	OptSetMetaOutFormat,
->  	OptSetSubDevFormat,
->  	OptTryVideoOutFormat,
->  	OptTrySlicedVbiOutFormat,
-> @@ -108,6 +110,7 @@ enum Option {
->  	OptTrySdrFormat,
->  	OptTrySdrOutFormat,
->  	OptTryMetaFormat,
-> +	OptTryMetaOutFormat,
->  	OptTrySubDevFormat,
->  	OptAll,
->  	OptListStandards,
-> @@ -122,6 +125,7 @@ enum Option {
->  	OptListOutFormats,
->  	OptListOutFormatsExt,
->  	OptListMetaFormats,
-> +	OptListMetaOutFormats,
->  	OptListSubDevMBusCodes,
->  	OptListSubDevFrameSizes,
->  	OptListSubDevFrameIntervals,
-> @@ -205,6 +209,7 @@ enum Option {
->  	OptListBuffersSdr,
->  	OptListBuffersSdrOut,
->  	OptListBuffersMeta,
-> +	OptListBuffersMetaOut,
->  	OptStreamCount,
->  	OptStreamSkip,
->  	OptStreamLoop,
-> 
+> +       case DEC_STATE_DRC:
 
+Just caught this now, but what does "DRC" stand for?
