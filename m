@@ -2,56 +2,55 @@ Return-Path: <SRS0=42/h=QA=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A4318C282C3
-	for <linux-media@archiver.kernel.org>; Thu, 24 Jan 2019 16:09:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 04DA5C282C3
+	for <linux-media@archiver.kernel.org>; Thu, 24 Jan 2019 16:09:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6CE52218AE
-	for <linux-media@archiver.kernel.org>; Thu, 24 Jan 2019 16:09:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AE83B218C3
+	for <linux-media@archiver.kernel.org>; Thu, 24 Jan 2019 16:09:47 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linaro.org header.i=@linaro.org header.b="DoNuSN9s"
+	dkim=pass (1024-bit key) header.d=linaro.org header.i=@linaro.org header.b="cWFYbns8"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728839AbfAXQJn (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 24 Jan 2019 11:09:43 -0500
-Received: from mail-wm1-f65.google.com ([209.85.128.65]:52616 "EHLO
-        mail-wm1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728040AbfAXQJm (ORCPT
+        id S1728824AbfAXQJq (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 24 Jan 2019 11:09:46 -0500
+Received: from mail-wm1-f49.google.com ([209.85.128.49]:54989 "EHLO
+        mail-wm1-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727943AbfAXQJi (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 Jan 2019 11:09:42 -0500
-Received: by mail-wm1-f65.google.com with SMTP id m1so3744119wml.2
-        for <linux-media@vger.kernel.org>; Thu, 24 Jan 2019 08:09:40 -0800 (PST)
+        Thu, 24 Jan 2019 11:09:38 -0500
+Received: by mail-wm1-f49.google.com with SMTP id a62so3734808wmh.4
+        for <linux-media@vger.kernel.org>; Thu, 24 Jan 2019 08:09:35 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linaro.org; s=google;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=rMqXeMdTsmQBRukkccJ6OzWO2HfnbotFKt0ltYd3kac=;
-        b=DoNuSN9sgFtDxHLtqt+4GSfb3tMp9Vy2d6VrXyBaxzV0KOEOeSzE4IrHb6FSA2eS4k
-         WXgGX8yYLMookjci4DIhMXnHjh0vhYKZJjEDO2J/eayuqWiJQQSuVLD1bh9XyW0k+ejX
-         jYbos/u8K/jVVd5+uYrUCra5caybsW4IknNe8=
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=qs7xYAgoow6b7y7EyhIBsCMSFNGtAUhUwQe18m/A2Oo=;
+        b=cWFYbns87oZXRmt7k9pmWRwNfFsHExL8Vc1KXfO1UxtxVVfblSwOp0KVB0JIuinLa3
+         7fQwNXDk/NIe0n2yeyYiadiwq+6qzYE48DBBKaP0dpTqLdtvgGjSmC5eATvIu7Aap9L+
+         P8ZEuvtf1W2ZL1gPC1fhQ6q3bE344OiSaT1r0=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=rMqXeMdTsmQBRukkccJ6OzWO2HfnbotFKt0ltYd3kac=;
-        b=rBSkyTzkvlCxh+cZoOl22bRIW/vMVyXrx9+zed9cADdqx0yhV9Z+hfpFreGX0Juugk
-         UJ+v29uiyzzrdDacRBz15tGDRXQcdmEyhxfXEMblG4FcK2MEejQJDlE8OzTJ9Np42XOK
-         +xpk7e2atTcUMWuSUSPNkiU6QE+Jt2uKkNtDi4jAbHnrqdFP3mI8ozODErVcPr9nGcHl
-         KNPKBHN92DY4gQPlC8LF7rSnqAlT6tUUUlOJhvj9qzL/Flq9QSxQ2RGJoFltD+GCw1c8
-         5vrR4jodDZC06mXIml4vvtGQglIydmZwFocVqmBgh6sLrX5jGU1wXWKQCNoIr/P05t46
-         ideQ==
-X-Gm-Message-State: AJcUukduvH5KW5jQJNs4p4kqZtZSkF08VNuvdjUUF69RjR4fuTNdXwep
-        Hbd9rCnVGMWQ+SVY/U/RDhep27VLBTQ=
-X-Google-Smtp-Source: ALg8bN7+oUOyEksz2Cy0Yx022NljPqeQBXtbpH0JD+MR33eYCFjgBw5Eb+9R7GshpaZ0Dzth3sXdNg==
-X-Received: by 2002:a7b:c5cc:: with SMTP id n12mr3285860wmk.149.1548346179808;
-        Thu, 24 Jan 2019 08:09:39 -0800 (PST)
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=qs7xYAgoow6b7y7EyhIBsCMSFNGtAUhUwQe18m/A2Oo=;
+        b=WlwLO8ia8OkTyouKNFnmgB9U5LBrmgvqoQ5AnJd4+gaNWVpYjLETqmmBhCncGZBXh9
+         XXga04vX+NLMUewXA2k9JsdvYrYcS75mGYGJFg0Fb/8FNGqqgQv+lndfDTo5bvYYiqBL
+         PQcK1fMaWZlCKctw2ym7L4YLmt4YEdzvXx5Ctb6Gs84KGYwwHQFr+6LZ1XQPPUsoj0Sx
+         UbxYbfSmW25k51IWNLbndoI0NPvA3otuc1mRnuD5EMMBwbvtXfoQlRW6Z1dejtWhXXxr
+         dl4ZuKOAmqeBMiZayoOt0dTjB7xweVKvIE/LaqSOYuNYbCpxcTPhsscZL4eN7qWM0nHd
+         k9hQ==
+X-Gm-Message-State: AJcUuke/wdIQE330uKTdpC4PjlwjcEVknaZj1v5G8STYpmgH6p/qcXy2
+        Gq5hReRqMwWcjxuW8zxI+8dNHQ==
+X-Google-Smtp-Source: ALg8bN7mB78K9jw3J/ZeHJWJ/mufkjNpBuuEy+e5Zrv3Qy1A0QuovGpooPODaS2KhL1jBrKDPspO/w==
+X-Received: by 2002:a1c:4046:: with SMTP id n67mr3122573wma.123.1548346173749;
+        Thu, 24 Jan 2019 08:09:33 -0800 (PST)
 Received: from arch-late.local (a109-49-46-234.cpe.netcabo.pt. [109.49.46.234])
-        by smtp.gmail.com with ESMTPSA id e16sm179880299wrn.72.2019.01.24.08.09.38
+        by smtp.gmail.com with ESMTPSA id e16sm179880299wrn.72.2019.01.24.08.09.31
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 24 Jan 2019 08:09:39 -0800 (PST)
+        Thu, 24 Jan 2019 08:09:32 -0800 (PST)
 From:   Rui Miguel Silva <rui.silva@linaro.org>
 To:     sakari.ailus@linux.intel.com,
         Steve Longerbeam <slongerbeam@gmail.com>,
@@ -60,14 +59,11 @@ To:     sakari.ailus@linux.intel.com,
 Cc:     linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
         devicetree@vger.kernel.org,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Rui Miguel Silva <rui.silva@linaro.org>,
-        Rob Herring <robh@kernel.org>
-Subject: [PATCH v11 02/13] media: dt-bindings: add bindings for i.MX7 media driver
-Date:   Thu, 24 Jan 2019 16:09:17 +0000
-Message-Id: <20190124160928.31884-3-rui.silva@linaro.org>
+        Rui Miguel Silva <rui.silva@linaro.org>
+Subject: [PATCH v11 00/13] media: staging/imx7: add i.MX7 media driver
+Date:   Thu, 24 Jan 2019 16:09:15 +0000
+Message-Id: <20190124160928.31884-1-rui.silva@linaro.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190124160928.31884-1-rui.silva@linaro.org>
-References: <20190124160928.31884-1-rui.silva@linaro.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
@@ -75,166 +71,788 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Add bindings documentation for i.MX7 media drivers.
-The imx7 MIPI CSI2 and imx7 CMOS Sensor Interface.
+Hi,
+This series introduces the Media driver to work with the i.MX7 SoC. it uses the
+already existing imx media core drivers but since the i.MX7, contrary to
+i.MX5/6, do not have an IPU and because of that some changes in the imx media
+core are made along this series to make it support that case.
 
-Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
-Reviewed-by: Rob Herring <robh@kernel.org>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- .../devicetree/bindings/media/imx7-csi.txt    | 45 ++++++++++
- .../bindings/media/imx7-mipi-csi2.txt         | 90 +++++++++++++++++++
- 2 files changed, 135 insertions(+)
+This patches adds CSI and MIPI-CSI2 drivers for i.MX7, along with several
+configurations changes for this to work as a capture subsystem. Some bugs are
+also fixed along the line. And necessary documentation.
+
+For a more detailed view of the capture paths, pads links in the i.MX7 please
+take a look at the documentation in PATCH 10.
+
+The system used to test and develop this was the Warp7 board with an OV2680
+sensor, which output format is 10-bit bayer. So, only MIPI interface was
+tested, a scenario with an parallel input would nice to have.
+
+Bellow goes an example of the output of the pads and links and the output of
+v4l2-compliance testing.
+
+The v4l-utils version used is:
+v4l2-compliance SHA: 1a6c8fe9a65c26e78ba34bd4aa2df28ede7d00cb, 32 bits
+
+The Media Driver fail some tests but this failures are coming from code out of
+scope of this series (imx-capture), and some from the sensor OV2680
+but that I think not related with the sensor driver but with the testing and
+core.
+
+The csi and mipi-csi entities pass all compliance tests.
+
+Cheers,
+    Rui
+
+v10->v11:
+  Sakari:
+    - Remove cleanup functions in dev-common and do direct calls
+    - Fix notifier cleanup on error path
+
+  Philipp Zabel:
+    - Add reviewed tag to video mux patch 12/13
+
+v9->v10:
+  Hans:
+  - move dt-bindings patch up in the series to avoid checkpatch warnings
+  - Fix SPDX tag
+
+  Sakari:
+  - use debugfs and drop driver parameters
+  - use dev_*() macros all over the place, drop v4l2_*() ones
+  - use clk_bulk
+  - give control to power state to runtime PM
+  - unsigned and const for some objects
+
+v8->v9:
+Hans Verkuil:
+ - Fix issues detected by checkpatch strict, still some left:
+     - bigger kconfig option description
+     - some alignement parenthesis that were left as they are, to be more
+     readable 
+     - added new patch (PATCH13) for Maintainers update
+     - SPDX in documentation rst file
+Sakari Ailus:
+ - remove pad check in csi, this is done by core already
+ - destroy mutex in probe error path (add label)
+ - swap order in driver release
+ - initialize endpoint in stack
+ - use clk_bulk
+kbuild test robot:
+ - add the missing imx-media-dev-common.c in patch 1/13
+ - remove OWNER of module csis
+Myself:
+ - add MAINTAINERS entries - new patch
+
+v7->v8:
+Myself:
+ - rebase to latest linux-next (s/V4L2_MBUS_CSI2/V4L2_MBUS_CSI2_DPHY/)
+ - Rebuild and test with latest v4l2-compliance
+ - add Sakari reviewed-by tag to dt-bindings
+
+v6->v7:
+Myself:
+ - Clock patches removed from this version since they were already merged
+ - Rebuild and test with the latest v4l2-compliance
+ - Add patch to video-mux regarding bayer formats
+ - remove reference to dependent patch serie (was already merged)
+
+Sakari Ailus:
+ - add port and endpoint explanantions
+ - fix some wording should -> shall
+
+v5->v6:
+Rob Herring:
+ - rename power-domain node name from: pgc-power-domain to power-domain
+ - change mux-control-cells to 0
+ - remove bus-width from mipi bindings and dts
+ - remove err... regarding clock names line
+ - remove clk-settle from example
+ - split mipi-csi2 and csi bindings per file
+ - add OF graph description to CSI
+
+Philipp Zabel:
+ - rework group IDs and rename them with an _IPU_ prefix, this allowed to remove
+   the ipu_present flag need.
+
+v4->v5:
+Sakari Ailus:
+ - fix remove of the capture entries in dts bindings in the right patch
+
+Stephen Boyd:
+ - Send all series to clk list
+
+v3->v4:
+Philipp Zabel:
+ - refactor initialization code from media device probe to be possible to used
+   from other modules
+ - Remove index of csi from all accurrencs (dts, code, documentation)
+ - Remove need for capture node for imx7
+ - fix pinctrl for ov2680
+ - add reviewed tag to add multiplexer controls patch
+
+Fabio Estevam:
+ - remove always on from new regulator
+
+Randy Dunlap:
+ - several text editing fixes in documentation
+
+Myself:
+ - rebase on top of v4 of Steve series
+ - change CSI probe to initialize imx media device
+ - remove csi mux parallel endpoint from mux to avoid warning message
+
+v2->v3:
+Philipp Zabel:
+ - use of_match_device in imx-media-dev instead of of_device_match
+ - fix number of data lanes from 4 to 2
+ - change the clock definitions and use of mipi
+ - move hs-settle from endpoint
+
+Rob Herring:
+ - fix phy-supply description
+ - add vendor properties
+ - fix examples indentations
+
+Stephen Boyd: patch 3/14
+ - fix double sign-off
+ - add fixes tag
+
+Dong Aisheng: patch 3/14
+ - fix double sign-off
+ - add Acked-by tag
+
+Shawn Guo:
+patch 4/14
+ - remove line breakage in parent redifiniton
+ - added Acked-by tag
+
+ - dropped CMA area increase and add more verbose information in case of
+   dma allocation failure
+patch 9/14
+ - remove extra line between cells and reg masks
+
+Myself:
+ - rework on frame end in csi
+ - add rxcount in csi driver
+ - add power supplies to ov2680 node and fix gpio polarity
+
+v1->v2:
+Dan Carpenter:
+ - fix return paths and codes;
+ - fix clk_frequency validation and return code;
+ - handle the csi remove (release resources that was missing)
+ - revert the logic arround the ipu_present flag
+
+Philipp Zabel:
+ - drop patch that changed the rgb formats and address the pixel/bus format in
+   mipi_csis code.
+
+MySelf:
+ - add patch that add ov2680 node to the warp7 dts, so the all data path is
+   complete.
+ - add linux-clk mailing list to the clock patches cc:
+
+
+v4l2-compliance SHA: 1a6c8fe9a65c26e78ba34bd4aa2df28ede7d00cb, 32 bits
+
+Compliance test for imx7-csi device /dev/media0:
+
+Media Driver Info:
+        Driver name      : imx7-csi
+        Model            : imx-media
+        Serial           : 
+        Bus info         : 
+        Media version    : 5.0.0
+        Hardware revision: 0x00000000 (0)
+        Driver version   : 5.0.0
+
+Required ioctls:
+        test MEDIA_IOC_DEVICE_INFO: OK
+
+Allow for multiple opens:
+        test second /dev/media0 open: OK
+        test MEDIA_IOC_DEVICE_INFO: OK
+        test for unlimited opens: OK
+
+Media Controller ioctls:
+                Entity: 0x00000001 (Name: 'csi', Function: Video Interface Bridge)
+                Entity: 0x00000004 (Name: 'csi capture', Function: V4L2 I/O)
+                Entity: 0x0000000a (Name: 'csi_mux', Function: Video Muxer)
+                Entity: 0x0000000e (Name: 'imx7-mipi-csis.0', Function: Video Interface Bridge)
+                Entity: 0x00000011 (Name: 'ov2680 1-0036', Function: Camera Sensor)
+                Interface: 0x03000005 (Type: V4L Video, DevPath: /dev/video0)
+                Interface: 0x03000019 (Type: V4L Sub-Device, DevPath: /dev/v4l-subdev0)
+                Interface: 0x0300001b (Type: V4L Sub-Device, DevPath: /dev/v4l-subdev1)
+                Interface: 0x0300001d (Type: V4L Sub-Device, DevPath: /dev/v4l-subdev2)
+                Interface: 0x0300001f (Type: V4L Sub-Device, DevPath: /dev/v4l-subdev3)
+                Pad: 0x01000002 (0, csi, Sink)
+                Pad: 0x01000003 (1, csi, Source)
+                Pad: 0x01000007 (0, csi capture, Sink)
+                Pad: 0x0100000b (0, csi_mux, Sink)
+                Pad: 0x0100000c (1, csi_mux, Sink)
+                Pad: 0x0100000d (2, csi_mux, Source)
+                Pad: 0x0100000f (0, imx7-mipi-csis.0, Sink)
+                Pad: 0x01000010 (1, imx7-mipi-csis.0, Source)
+                Pad: 0x01000012 (0, ov2680 1-0036, Source)
+                Link: 0x02000006 (csi capture to interface /dev/video0)
+                Link: 0x02000008 (csi -> csi capture, Data, Enabled)
+                Link: 0x02000013 (imx7-mipi-csis.0 -> csi_mux, Data, Enabled)
+                Link: 0x02000015 (csi_mux -> csi, Data, Enabled)
+                Link: 0x02000017 (ov2680 1-0036 -> imx7-mipi-csis.0, Data, Enabled)
+                Link: 0x0200001a (csi to interface /dev/v4l-subdev0)
+                Link: 0x0200001c (csi_mux to interface /dev/v4l-subdev1)
+                Link: 0x0200001e (imx7-mipi-csis.0 to interface /dev/v4l-subdev2)
+                Link: 0x02000020 (ov2680 1-0036 to interface /dev/v4l-subdev3)
+        test MEDIA_IOC_G_TOPOLOGY: OK
+        Entities: 5 Interfaces: 5 Pads: 9 Links: 9
+                Entity: 0x00000001 (Name: 'csi', Type: Unknown V4L2 Sub-Device, DevPath: /dev/v4l-subdev0)
+                Entity: 0x00000004 (Name: 'csi capture', Type: V4L2 I/O, DevPath: /dev/video0)
+                Entity: 0x0000000a (Name: 'csi_mux', Type: Unknown V4L2 Sub-Device, DevPath: /dev/v4l-subdev1)
+                Entity: 0x0000000e (Name: 'imx7-mipi-csis.0', Type: Unknown V4L2 Sub-Device, DevPath: /dev/v4l-subdev2)
+                Entity: 0x00000011 (Name: 'ov2680 1-0036', Type: Camera Sensor, DevPath: /dev/v4l-subdev3)
+        test MEDIA_IOC_ENUM_ENTITIES/LINKS: OK
+        test MEDIA_IOC_SETUP_LINK: OK
+
+Total for imx7-csi device /dev/media0: 7, Succeeded: 7, Failed: 0, Warnings: 0
+--------------------------------------------------------------------------------
+Compliance test for imx-media-captu device /dev/video0:
+
+Driver Info:
+        Driver name      : imx-media-captu
+        Card type        : imx-media-capture
+        Bus info         : platform:csi
+        Driver version   : 5.0.0
+        Capabilities     : 0x84200001
+                Video Capture
+                Streaming
+                Extended Pix Format
+                Device Capabilities
+        Device Caps      : 0x04200001
+                Video Capture
+                Streaming
+                Extended Pix Format
+Media Driver Info:
+        Driver name      : imx7-csi
+        Model            : imx-media
+        Serial           : 
+        Bus info         : 
+        Media version    : 5.0.0
+        Hardware revision: 0x00000000 (0)
+        Driver version   : 5.0.0
+Interface Info:
+        ID               : 0x03000005
+        Type             : V4L Video
+Entity Info:
+        ID               : 0x00000004 (4)
+        Name             : csi capture
+        Function         : V4L2 I/O
+        Pad 0x01000007   : 0: Sink
+          Link 0x02000008: from remote pad 0x1000003 of entity 'csi': Data, Enabled
+
+Required ioctls:
+        test MC information (see 'Media Driver Info' above): OK
+        test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+        test second /dev/video0 open: OK
+        test VIDIOC_QUERYCAP: OK
+        test VIDIOC_G/S_PRIORITY: OK
+        test for unlimited opens: OK
+
+Debug ioctls:
+        test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+        test VIDIOC_LOG_STATUS: OK (Not Supported)
+
+Input ioctls:
+        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+        test VIDIOC_ENUMAUDIO: OK (Not Supported)
+        test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDIO: OK (Not Supported)
+        Inputs: 0 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+        Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+        test VIDIOC_G/S_EDID: OK (Not Supported)
+
+Control ioctls:
+                info: checking v4l2_queryctrl of control 'User Controls' (0x00980001)
+                info: checking v4l2_queryctrl of control 'Exposure' (0x00980911)
+                info: checking v4l2_queryctrl of control 'Gain, Automatic' (0x00980912)
+                info: checking v4l2_queryctrl of control 'Gain' (0x00980913)
+                info: checking v4l2_queryctrl of control 'Horizontal Flip' (0x00980914)
+                info: checking v4l2_queryctrl of control 'Vertical Flip' (0x00980915)
+                info: checking v4l2_queryctrl of control 'Camera Controls' (0x009a0001)
+                info: checking v4l2_queryctrl of control 'Auto Exposure' (0x009a0901)
+                info: checking v4l2_queryctrl of control 'Image Processing Controls' (0x009f0001)
+                info: checking v4l2_queryctrl of control 'Test Pattern' (0x009f0903)
+                info: checking v4l2_queryctrl of control 'Exposure' (0x00980911)
+                info: checking v4l2_queryctrl of control 'Gain, Automatic' (0x00980912)
+                info: checking v4l2_queryctrl of control 'Gain' (0x00980913)
+                info: checking v4l2_queryctrl of control 'Horizontal Flip' (0x00980914)
+                info: checking v4l2_queryctrl of control 'Vertical Flip' (0x00980915)
+        test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
+        test VIDIOC_QUERYCTRL: OK
+                info: checking control 'User Controls' (0x00980001)
+                info: checking control 'Exposure' (0x00980911)
+                info: checking control 'Gain, Automatic' (0x00980912)
+                info: checking control 'Gain' (0x00980913)
+                info: checking control 'Horizontal Flip' (0x00980914)
+                info: checking control 'Vertical Flip' (0x00980915)
+                info: checking control 'Camera Controls' (0x009a0001)
+                info: checking control 'Auto Exposure' (0x009a0901)
+                info: checking control 'Image Processing Controls' (0x009f0001)
+                info: checking control 'Test Pattern' (0x009f0903)
+        test VIDIOC_G/S_CTRL: OK
+                info: checking extended control 'User Controls' (0x00980001)
+                info: checking extended control 'Exposure' (0x00980911)
+                info: checking extended control 'Gain, Automatic' (0x00980912)
+                info: checking extended control 'Gain' (0x00980913)
+                info: checking extended control 'Horizontal Flip' (0x00980914)
+                info: checking extended control 'Vertical Flip' (0x00980915)
+                info: checking extended control 'Camera Controls' (0x009a0001)
+                info: checking extended control 'Auto Exposure' (0x009a0901)
+                info: checking extended control 'Image Processing Controls' (0x009f0001)
+                info: checking extended control 'Test Pattern' (0x009f0903)
+        test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+                info: checking control event 'User Controls' (0x00980001)
+                fail: ../../../../../../../../../../v4l-utils/utils/v4l2-compliance/v4l2-test-controls.cpp(824): subscribe event for control 'User Controls' failed
+        test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: FAIL
+        test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+        Standard Controls: 10 Private Controls: 0
+
+Format ioctls:
+                info: found 1 formats for buftype 1
+        test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+        test VIDIOC_G/S_PARM: OK (Not Supported)
+        test VIDIOC_G_FBUF: OK (Not Supported)
+        test VIDIOC_G_FMT: OK
+        test VIDIOC_TRY_FMT: OK
+        test VIDIOC_S_FMT: OK
+        test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+        test Cropping: OK (Not Supported)
+        test Composing: OK (Not Supported)
+        test Scaling: OK (Not Supported)
+
+Codec ioctls:
+        test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+        test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+        test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+Buffer ioctls:
+                info: test buftype Video Capture
+        test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+        test VIDIOC_EXPBUF: OK
+        test Requests: OK (Not Supported)
+
+Total for imx-media-captu device /dev/video0: 45, Succeeded: 44, Failed: 1, Warnings: 0
+--------------------------------------------------------------------------------
+Compliance test for imx7-csi device /dev/v4l-subdev0:
+
+Media Driver Info:
+        Driver name      : imx7-csi
+        Model            : imx-media
+        Serial           : 
+        Bus info         : 
+        Media version    : 5.0.0
+        Hardware revision: 0x00000000 (0)
+        Driver version   : 5.0.0
+Interface Info:
+        ID               : 0x03000019
+        Type             : V4L Sub-Device
+Entity Info:
+        ID               : 0x00000001 (1)
+        Name             : csi
+        Function         : Video Interface Bridge
+        Pad 0x01000002   : 0: Sink
+          Link 0x02000015: from remote pad 0x100000d of entity 'csi_mux': Data, Enabled
+        Pad 0x01000003   : 1: Source
+          Link 0x02000008: to remote pad 0x1000007 of entity 'csi capture': Data, Enabled
+
+Required ioctls:
+        test MC information (see 'Media Driver Info' above): OK
+
+Allow for multiple opens:
+        test second /dev/v4l-subdev0 open: OK
+        test for unlimited opens: OK
+
+Debug ioctls:
+        test VIDIOC_LOG_STATUS: OK (Not Supported)
+
+Input ioctls:
+        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+        test VIDIOC_ENUMAUDIO: OK (Not Supported)
+        test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDIO: OK (Not Supported)
+        Inputs: 0 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+        Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+        test VIDIOC_G/S_EDID: OK (Not Supported)
+
+Sub-Device ioctls (Sink Pad 0):
+        test Try VIDIOC_SUBDEV_ENUM_MBUS_CODE/FRAME_SIZE/FRAME_INTERVAL: OK
+        test Try VIDIOC_SUBDEV_G/S_FMT: OK
+        test Try VIDIOC_SUBDEV_G/S_SELECTION/CROP: OK (Not Supported)
+        test Active VIDIOC_SUBDEV_ENUM_MBUS_CODE/FRAME_SIZE/FRAME_INTERVAL: OK
+        test Active VIDIOC_SUBDEV_G/S_FMT: OK
+        test Active VIDIOC_SUBDEV_G/S_SELECTION/CROP: OK (Not Supported)
+        test VIDIOC_SUBDEV_G/S_FRAME_INTERVAL: OK (Not Supported)
+
+Sub-Device ioctls (Source Pad 1):
+        test Try VIDIOC_SUBDEV_ENUM_MBUS_CODE/FRAME_SIZE/FRAME_INTERVAL: OK
+        test Try VIDIOC_SUBDEV_G/S_FMT: OK
+        test Try VIDIOC_SUBDEV_G/S_SELECTION/CROP: OK (Not Supported)
+        test Active VIDIOC_SUBDEV_ENUM_MBUS_CODE/FRAME_SIZE/FRAME_INTERVAL: OK
+        test Active VIDIOC_SUBDEV_G/S_FMT: OK
+        test Active VIDIOC_SUBDEV_G/S_SELECTION/CROP: OK (Not Supported)
+        test VIDIOC_SUBDEV_G/S_FRAME_INTERVAL: OK (Not Supported)
+
+Control ioctls:
+        test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
+        test VIDIOC_QUERYCTRL: OK
+        test VIDIOC_G/S_CTRL: OK
+        test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+        test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
+        test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+        Standard Controls: 0 Private Controls: 0
+
+Format ioctls:
+        test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK (Not Supported)
+        test VIDIOC_G/S_PARM: OK (Not Supported)
+        test VIDIOC_G_FBUF: OK (Not Supported)
+        test VIDIOC_G_FMT: OK (Not Supported)
+        test VIDIOC_TRY_FMT: OK (Not Supported)
+        test VIDIOC_S_FMT: OK (Not Supported)
+        test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+        test Cropping: OK (Not Supported)
+        test Composing: OK (Not Supported)
+        test Scaling: OK (Not Supported)
+
+Codec ioctls:
+        test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+        test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+        test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+Buffer ioctls:
+        test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK (Not Supported)
+        test VIDIOC_EXPBUF: OK (Not Supported)
+                info: could not test the Request API, no suitable control found
+        test Requests: OK (Not Supported)
+
+Total for imx7-csi device /dev/v4l-subdev0: 55, Succeeded: 55, Failed: 0, Warnings: 0
+--------------------------------------------------------------------------------
+Compliance test for device /dev/v4l-subdev1:
+
+
+Required ioctls:
+
+Allow for multiple opens:
+        test second /dev/v4l-subdev1 open: OK
+        test for unlimited opens: OK
+
+Debug ioctls:
+        test VIDIOC_LOG_STATUS: OK (Not Supported)
+
+Input ioctls:
+        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+        test VIDIOC_ENUMAUDIO: OK (Not Supported)
+        test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDIO: OK (Not Supported)
+        Inputs: 0 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+        Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+        test VIDIOC_G/S_EDID: OK (Not Supported)
+
+Control ioctls:
+        test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
+        test VIDIOC_QUERYCTRL: OK (Not Supported)
+        test VIDIOC_G/S_CTRL: OK (Not Supported)
+        test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
+        test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
+        test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+        Standard Controls: 0 Private Controls: 0
+
+Format ioctls:
+        test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK (Not Supported)
+        test VIDIOC_G/S_PARM: OK (Not Supported)
+        test VIDIOC_G_FBUF: OK (Not Supported)
+        test VIDIOC_G_FMT: OK (Not Supported)
+        test VIDIOC_TRY_FMT: OK (Not Supported)
+        test VIDIOC_S_FMT: OK (Not Supported)
+        test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+        test Cropping: OK (Not Supported)
+        test Composing: OK (Not Supported)
+        test Scaling: OK (Not Supported)
+
+Codec ioctls:
+        test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+        test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+        test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+Buffer ioctls:
+        test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK (Not Supported)
+        test VIDIOC_EXPBUF: OK (Not Supported)
+                info: could not test the Request API, no suitable control found
+        test Requests: OK (Not Supported)
+
+Total for device /dev/v4l-subdev1: 40, Succeeded: 40, Failed: 0, Warnings: 0
+--------------------------------------------------------------------------------
+Compliance test for device /dev/v4l-subdev2:
+
+
+Required ioctls:
+
+Allow for multiple opens:
+        test second /dev/v4l-subdev2 open: OK
+        test for unlimited opens: OK
+
+Debug ioctls:
+        test VIDIOC_LOG_STATUS: OK
+
+Input ioctls:
+        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+        test VIDIOC_ENUMAUDIO: OK (Not Supported)
+        test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDIO: OK (Not Supported)
+        Inputs: 0 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+        Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+        test VIDIOC_G/S_EDID: OK (Not Supported)
+
+Control ioctls:
+        test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
+        test VIDIOC_QUERYCTRL: OK (Not Supported)
+        test VIDIOC_G/S_CTRL: OK (Not Supported)
+        test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
+        test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
+        test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+        Standard Controls: 0 Private Controls: 0
+
+Format ioctls:
+        test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK (Not Supported)
+        test VIDIOC_G/S_PARM: OK (Not Supported)
+        test VIDIOC_G_FBUF: OK (Not Supported)
+        test VIDIOC_G_FMT: OK (Not Supported)
+        test VIDIOC_TRY_FMT: OK (Not Supported)
+        test VIDIOC_S_FMT: OK (Not Supported)
+        test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+        test Cropping: OK (Not Supported)
+        test Composing: OK (Not Supported)
+        test Scaling: OK (Not Supported)
+
+Codec ioctls:
+        test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+        test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+        test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+Buffer ioctls:
+        test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK (Not Supported)
+        test VIDIOC_EXPBUF: OK (Not Supported)
+                info: could not test the Request API, no suitable control found
+        test Requests: OK (Not Supported)
+
+Total for device /dev/v4l-subdev2: 40, Succeeded: 40, Failed: 0, Warnings: 0
+--------------------------------------------------------------------------------
+Compliance test for device /dev/v4l-subdev3:
+
+
+Required ioctls:
+
+Allow for multiple opens:
+        test second /dev/v4l-subdev3 open: OK
+        test for unlimited opens: OK
+
+Debug ioctls:
+        test VIDIOC_LOG_STATUS: OK (Not Supported)
+
+Input ioctls:
+        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+        test VIDIOC_ENUMAUDIO: OK (Not Supported)
+        test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDIO: OK (Not Supported)
+        Inputs: 0 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+        Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+        test VIDIOC_G/S_EDID: OK (Not Supported)
+
+Control ioctls:
+                info: checking v4l2_queryctrl of control 'User Controls' (0x00980001)
+                info: checking v4l2_queryctrl of control 'Exposure' (0x00980911)
+                info: checking v4l2_queryctrl of control 'Gain, Automatic' (0x00980912)
+                info: checking v4l2_queryctrl of control 'Gain' (0x00980913)
+                info: checking v4l2_queryctrl of control 'Horizontal Flip' (0x00980914)
+                info: checking v4l2_queryctrl of control 'Vertical Flip' (0x00980915)
+                info: checking v4l2_queryctrl of control 'Camera Controls' (0x009a0001)
+                info: checking v4l2_queryctrl of control 'Auto Exposure' (0x009a0901)
+                info: checking v4l2_queryctrl of control 'Image Processing Controls' (0x009f0001)
+                info: checking v4l2_queryctrl of control 'Test Pattern' (0x009f0903)
+                info: checking v4l2_queryctrl of control 'Exposure' (0x00980911)
+                info: checking v4l2_queryctrl of control 'Gain, Automatic' (0x00980912)
+                info: checking v4l2_queryctrl of control 'Gain' (0x00980913)
+                info: checking v4l2_queryctrl of control 'Horizontal Flip' (0x00980914)
+                info: checking v4l2_queryctrl of control 'Vertical Flip' (0x00980915)
+        test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
+        test VIDIOC_QUERYCTRL: OK
+                info: checking control 'User Controls' (0x00980001)
+                info: checking control 'Exposure' (0x00980911)
+                info: checking control 'Gain, Automatic' (0x00980912)
+                info: checking control 'Gain' (0x00980913)
+                info: checking control 'Horizontal Flip' (0x00980914)
+                info: checking control 'Vertical Flip' (0x00980915)
+                info: checking control 'Camera Controls' (0x009a0001)
+                info: checking control 'Auto Exposure' (0x009a0901)
+                info: checking control 'Image Processing Controls' (0x009f0001)
+                info: checking control 'Test Pattern' (0x009f0903)
+        test VIDIOC_G/S_CTRL: OK
+                info: checking extended control 'User Controls' (0x00980001)
+                info: checking extended control 'Exposure' (0x00980911)
+                info: checking extended control 'Gain, Automatic' (0x00980912)
+                info: checking extended control 'Gain' (0x00980913)
+                info: checking extended control 'Horizontal Flip' (0x00980914)
+                info: checking extended control 'Vertical Flip' (0x00980915)
+                info: checking extended control 'Camera Controls' (0x009a0001)
+                info: checking extended control 'Auto Exposure' (0x009a0901)
+                info: checking extended control 'Image Processing Controls' (0x009f0001)
+                info: checking extended control 'Test Pattern' (0x009f0903)
+        test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+                info: checking control event 'User Controls' (0x00980001)
+                fail: ../../../../../../../../../../v4l-utils/utils/v4l2-compliance/v4l2-test-controls.cpp(824): subscribe event for control 'User Controls' failed
+        test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: FAIL
+        test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+        Standard Controls: 10 Private Controls: 0
+
+Format ioctls:
+        test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK (Not Supported)
+        test VIDIOC_G/S_PARM: OK (Not Supported)
+        test VIDIOC_G_FBUF: OK (Not Supported)
+        test VIDIOC_G_FMT: OK (Not Supported)
+        test VIDIOC_TRY_FMT: OK (Not Supported)
+        test VIDIOC_S_FMT: OK (Not Supported)
+        test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+        test Cropping: OK (Not Supported)
+        test Composing: OK (Not Supported)
+        test Scaling: OK (Not Supported)
+
+Codec ioctls:
+        test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+        test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+        test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+Buffer ioctls:
+        test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK (Not Supported)
+        test VIDIOC_EXPBUF: OK (Not Supported)
+        test Requests: OK (Not Supported)
+
+Total for device /dev/v4l-subdev3: 40, Succeeded: 39, Failed: 1, Warnings: 0
+
+Grand Total for imx7-csi device /dev/media0: 227, Succeeded: 225, Failed: 2, Warnings: 0
+
+Rui Miguel Silva (13):
+  media: staging/imx: rearrange group id to take in account IPU
+  media: dt-bindings: add bindings for i.MX7 media driver
+  media: staging/imx7: add imx7 CSI subdev driver
+  media: staging/imx7: add imx7 CSI subdev driver
+  media: staging/imx7: add MIPI CSI-2 receiver subdev for i.MX7
+  ARM: dts: imx7s: add mipi phy power domain
+  ARM: dts: imx7s: add multiplexer controls
+  ARM: dts: imx7: Add video mux, csi and mipi_csi and connections
+  ARM: dts: imx7s-warp: add ov2680 sensor node
+  media: imx7.rst: add documentation for i.MX7 media driver
+  media: staging/imx: add i.MX7 entries to TODO file
+  media: video-mux: add bayer formats
+  media: MAINTAINERS: add entry for Freescale i.MX7 media driver
+
+ .../devicetree/bindings/media/imx7-csi.txt    |   45 +
+ .../bindings/media/imx7-mipi-csi2.txt         |   90 ++
+ Documentation/media/v4l-drivers/imx7.rst      |  157 ++
+ Documentation/media/v4l-drivers/index.rst     |    1 +
+ MAINTAINERS                                   |   11 +
+ arch/arm/boot/dts/imx7s-warp.dts              |   95 ++
+ arch/arm/boot/dts/imx7s.dtsi                  |   44 +-
+ drivers/media/platform/video-mux.c            |   20 +
+ drivers/staging/media/imx/Kconfig             |    9 +-
+ drivers/staging/media/imx/Makefile            |    3 +
+ drivers/staging/media/imx/TODO                |    9 +
+ drivers/staging/media/imx/imx-ic-common.c     |    6 +-
+ drivers/staging/media/imx/imx-ic-prp.c        |   16 +-
+ drivers/staging/media/imx/imx-media-csi.c     |    6 +-
+ drivers/staging/media/imx/imx-media-dev.c     |   22 +-
+ .../staging/media/imx/imx-media-internal-sd.c |   20 +-
+ drivers/staging/media/imx/imx-media-utils.c   |   12 +-
+ drivers/staging/media/imx/imx-media.h         |   23 +-
+ drivers/staging/media/imx/imx7-media-csi.c    | 1360 +++++++++++++++++
+ drivers/staging/media/imx/imx7-mipi-csis.c    | 1184 ++++++++++++++
+ 20 files changed, 3080 insertions(+), 53 deletions(-)
  create mode 100644 Documentation/devicetree/bindings/media/imx7-csi.txt
  create mode 100644 Documentation/devicetree/bindings/media/imx7-mipi-csi2.txt
+ create mode 100644 Documentation/media/v4l-drivers/imx7.rst
+ create mode 100644 drivers/staging/media/imx/imx7-media-csi.c
+ create mode 100644 drivers/staging/media/imx/imx7-mipi-csis.c
 
-diff --git a/Documentation/devicetree/bindings/media/imx7-csi.txt b/Documentation/devicetree/bindings/media/imx7-csi.txt
-new file mode 100644
-index 000000000000..3c07bc676bc3
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/imx7-csi.txt
-@@ -0,0 +1,45 @@
-+Freescale i.MX7 CMOS Sensor Interface
-+=====================================
-+
-+csi node
-+--------
-+
-+This is device node for the CMOS Sensor Interface (CSI) which enables the chip
-+to connect directly to external CMOS image sensors.
-+
-+Required properties:
-+
-+- compatible    : "fsl,imx7-csi";
-+- reg           : base address and length of the register set for the device;
-+- interrupts    : should contain CSI interrupt;
-+- clocks        : list of clock specifiers, see
-+        Documentation/devicetree/bindings/clock/clock-bindings.txt for details;
-+- clock-names   : must contain "axi", "mclk" and "dcic" entries, matching
-+                 entries in the clock property;
-+
-+The device node shall contain one 'port' child node with one child 'endpoint'
-+node, according to the bindings defined in:
-+Documentation/devicetree/bindings/media/video-interfaces.txt.
-+
-+In the following example a remote endpoint is a video multiplexer.
-+
-+example:
-+
-+                csi: csi@30710000 {
-+                        #address-cells = <1>;
-+                        #size-cells = <0>;
-+
-+                        compatible = "fsl,imx7-csi";
-+                        reg = <0x30710000 0x10000>;
-+                        interrupts = <GIC_SPI 7 IRQ_TYPE_LEVEL_HIGH>;
-+                        clocks = <&clks IMX7D_CLK_DUMMY>,
-+                                        <&clks IMX7D_CSI_MCLK_ROOT_CLK>,
-+                                        <&clks IMX7D_CLK_DUMMY>;
-+                        clock-names = "axi", "mclk", "dcic";
-+
-+                        port {
-+                                csi_from_csi_mux: endpoint {
-+                                        remote-endpoint = <&csi_mux_to_csi>;
-+                                };
-+                        };
-+                };
-diff --git a/Documentation/devicetree/bindings/media/imx7-mipi-csi2.txt b/Documentation/devicetree/bindings/media/imx7-mipi-csi2.txt
-new file mode 100644
-index 000000000000..71fd74ed3ec8
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/imx7-mipi-csi2.txt
-@@ -0,0 +1,90 @@
-+Freescale i.MX7 Mipi CSI2
-+=========================
-+
-+mipi_csi2 node
-+--------------
-+
-+This is the device node for the MIPI CSI-2 receiver core in i.MX7 SoC. It is
-+compatible with previous version of Samsung D-phy.
-+
-+Required properties:
-+
-+- compatible    : "fsl,imx7-mipi-csi2";
-+- reg           : base address and length of the register set for the device;
-+- interrupts    : should contain MIPI CSIS interrupt;
-+- clocks        : list of clock specifiers, see
-+        Documentation/devicetree/bindings/clock/clock-bindings.txt for details;
-+- clock-names   : must contain "pclk", "wrap" and "phy" entries, matching
-+                  entries in the clock property;
-+- power-domains : a phandle to the power domain, see
-+          Documentation/devicetree/bindings/power/power_domain.txt for details.
-+- reset-names   : should include following entry "mrst";
-+- resets        : a list of phandle, should contain reset entry of
-+                  reset-names;
-+- phy-supply    : from the generic phy bindings, a phandle to a regulator that
-+	          provides power to MIPI CSIS core;
-+
-+Optional properties:
-+
-+- clock-frequency : The IP's main (system bus) clock frequency in Hz, default
-+		    value when this property is not specified is 166 MHz;
-+- fsl,csis-hs-settle : differential receiver (HS-RX) settle time;
-+
-+The device node should contain two 'port' child nodes with one child 'endpoint'
-+node, according to the bindings defined in:
-+ Documentation/devicetree/bindings/ media/video-interfaces.txt.
-+ The following are properties specific to those nodes.
-+
-+port node
-+---------
-+
-+- reg		  : (required) can take the values 0 or 1, where 0 shall be
-+                     related to the sink port and port 1 shall be the source
-+                     one;
-+
-+endpoint node
-+-------------
-+
-+- data-lanes    : (required) an array specifying active physical MIPI-CSI2
-+		    data input lanes and their mapping to logical lanes; this
-+                    shall only be applied to port 0 (sink port), the array's
-+                    content is unused only its length is meaningful,
-+                    in this case the maximum length supported is 2;
-+
-+example:
-+
-+        mipi_csi: mipi-csi@30750000 {
-+                #address-cells = <1>;
-+                #size-cells = <0>;
-+
-+                compatible = "fsl,imx7-mipi-csi2";
-+                reg = <0x30750000 0x10000>;
-+                interrupts = <GIC_SPI 25 IRQ_TYPE_LEVEL_HIGH>;
-+                clocks = <&clks IMX7D_IPG_ROOT_CLK>,
-+                                <&clks IMX7D_MIPI_CSI_ROOT_CLK>,
-+                                <&clks IMX7D_MIPI_DPHY_ROOT_CLK>;
-+                clock-names = "pclk", "wrap", "phy";
-+                clock-frequency = <166000000>;
-+                power-domains = <&pgc_mipi_phy>;
-+                phy-supply = <&reg_1p0d>;
-+                resets = <&src IMX7_RESET_MIPI_PHY_MRST>;
-+                reset-names = "mrst";
-+                fsl,csis-hs-settle = <3>;
-+
-+                port@0 {
-+                        reg = <0>;
-+
-+                        mipi_from_sensor: endpoint {
-+                                remote-endpoint = <&ov2680_to_mipi>;
-+                                data-lanes = <1>;
-+                        };
-+                };
-+
-+                port@1 {
-+                        reg = <1>;
-+
-+                        mipi_vc0_to_csi_mux: endpoint {
-+                                remote-endpoint = <&csi_mux_from_mipi_vc0>;
-+                        };
-+                };
-+        };
 -- 
 2.20.1
 
