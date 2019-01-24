@@ -2,231 +2,324 @@ Return-Path: <SRS0=42/h=QA=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_NEOMUTT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D7C4C282C3
-	for <linux-media@archiver.kernel.org>; Thu, 24 Jan 2019 10:24:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AF95C282C3
+	for <linux-media@archiver.kernel.org>; Thu, 24 Jan 2019 10:25:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3F791218A6
-	for <linux-media@archiver.kernel.org>; Thu, 24 Jan 2019 10:24:10 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linaro.org header.i=@linaro.org header.b="KCdML0Z9"
+	by mail.kernel.org (Postfix) with ESMTP id 37826218A6
+	for <linux-media@archiver.kernel.org>; Thu, 24 Jan 2019 10:25:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727287AbfAXKYF (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 24 Jan 2019 05:24:05 -0500
-Received: from mail-wm1-f68.google.com ([209.85.128.68]:52056 "EHLO
-        mail-wm1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726025AbfAXKYF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 Jan 2019 05:24:05 -0500
-Received: by mail-wm1-f68.google.com with SMTP id b11so2528594wmj.1
-        for <linux-media@vger.kernel.org>; Thu, 24 Jan 2019 02:24:03 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=subject:to:cc:references:from:message-id:date:user-agent
-         :mime-version:in-reply-to:content-language:content-transfer-encoding;
-        bh=/6eAB8ques1NwxcFxFQ1zKWCiUEhKsBvxTsGl74yzaM=;
-        b=KCdML0Z9qz8MaYNcigWo5kc5G7sHqfyV/hiDqXCkIUo+w9bcXisPgdRRzdgTUDFye5
-         5xiOMZfdIPR7v8bwpcG8AbmAEKqc7HOQPjJxpx9Wwun4pelOhI7xQngJL9TrXYMppBiX
-         aFloOOnLvIF+kHNThym+RCsrMNQ2sm2a6QUJY=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=/6eAB8ques1NwxcFxFQ1zKWCiUEhKsBvxTsGl74yzaM=;
-        b=oJC8vLLbdLewTCeegBWD9qjdkXpYESRn1dWWQo+ThGV57yby/DN6hxplA3azORG69b
-         ZezLYj8Jb45sdJ8y6cep/MG5O0feeS7hXfCb/nQKBIki+ttDPz5bbiNx0D+kzyK718VI
-         6COQLL0WzFNKSkVCF4IGyLSkgB/wfZ/7x39ko1YQ2IWPyOYqD6brBA8J5pGF+/+9LurT
-         N4OP1kUfvPePQh8p7aVIsIBdK6J3OhdT9oBJ8ZzIiU77vlIBLNfX1BOnOdCJG+DlJpaK
-         TPw8o31tgPG9rfDWKsDCdJTeKrFgRiB3nUBWIP1sErcBcjnSj162GA1FzwTcm0Z5j3UQ
-         rSfw==
-X-Gm-Message-State: AJcUukdspe9mf/ITTBR7+2x5acw3cGY0fnLK7xxIuViT8WnYDtCrJjjH
-        MhR5b2bAYMG5PNzF8bxjrF65MA==
-X-Google-Smtp-Source: ALg8bN5+JkKxaZwg9xYqO0wUTW6a9IFRZIbeARjG4AKXeG8fOCIM5wU+fXERJUn0vuS7cuBUJXMJ1Q==
-X-Received: by 2002:a1c:9855:: with SMTP id a82mr1931950wme.20.1548325442556;
-        Thu, 24 Jan 2019 02:24:02 -0800 (PST)
-Received: from [192.168.27.209] ([37.157.136.206])
-        by smtp.googlemail.com with ESMTPSA id u204sm97956479wmu.30.2019.01.24.02.24.01
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 24 Jan 2019 02:24:01 -0800 (PST)
-Subject: Re: [PATCH 10/10] venus: dec: make decoder compliant with stateful
- codec API
-To:     mgottam@codeaurora.org,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Cc:     linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org,
-        Vikash Garodia <vgarodia@codeaurora.org>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Alexandre Courbot <acourbot@chromium.org>
-References: <20190117162008.25217-1-stanimir.varbanov@linaro.org>
- <20190117162008.25217-11-stanimir.varbanov@linaro.org>
- <d6aeca13e4f3da78fd00c69258e115d1@codeaurora.org>
-From:   Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <1663ea51-1fa0-6e29-715d-9d67aabb5ca9@linaro.org>
-Date:   Thu, 24 Jan 2019 12:24:00 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.2.1
+        id S1726107AbfAXKZo (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 24 Jan 2019 05:25:44 -0500
+Received: from mga14.intel.com ([192.55.52.115]:52169 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726012AbfAXKZo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 24 Jan 2019 05:25:44 -0500
+X-Amp-Result: UNKNOWN
+X-Amp-Original-Verdict: FILE UNKNOWN
+X-Amp-File-Uploaded: False
+Received: from fmsmga005.fm.intel.com ([10.253.24.32])
+  by fmsmga103.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 24 Jan 2019 02:25:44 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.56,515,1539673200"; 
+   d="scan'208";a="314414402"
+Received: from paasikivi.fi.intel.com ([10.237.72.42])
+  by fmsmga005.fm.intel.com with ESMTP; 24 Jan 2019 02:25:42 -0800
+Received: by paasikivi.fi.intel.com (Postfix, from userid 1000)
+        id DBBCF203F6; Thu, 24 Jan 2019 12:25:41 +0200 (EET)
+Date:   Thu, 24 Jan 2019 12:25:41 +0200
+From:   Sakari Ailus <sakari.ailus@linux.intel.com>
+To:     Hans Verkuil <hverkuil@xs4all.nl>
+Cc:     linux-media@vger.kernel.org, rajmohan.mani@intel.com,
+        yong.zhi@intel.com
+Subject: Re: [yavta PATCH v2 1/1] v4l2-ctl: Add support for META_OUTPUT
+ buffer type
+Message-ID: <20190124102541.ugwbq6lvqeijrz5l@paasikivi.fi.intel.com>
+References: <20190122120526.32112-1-sakari.ailus@linux.intel.com>
+ <00a7a90a-1f56-1fa3-c565-5f5b18539ea8@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <d6aeca13e4f3da78fd00c69258e115d1@codeaurora.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <00a7a90a-1f56-1fa3-c565-5f5b18539ea8@xs4all.nl>
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Malathi,
+Hi Hans,
 
-On 1/21/19 1:20 PM, mgottam@codeaurora.org wrote:
-> On 2019-01-17 21:50, Stanimir Varbanov wrote:
->> This refactored code for start/stop streaming vb2 operations and
->> adds a state machine handling similar to the one in stateful codec
->> API documentation. One major change is that now the HFI session is
->> started on STREAMON(OUTPUT) and stopped on REQBUF(OUTPUT,count=0),
->> during that time streamoff(cap,out) just flush buffers but doesn't
->> stop the session. The other major change is that now the capture
->> and output queues are completely separated.
->>
->> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
->> ---
->>  drivers/media/platform/qcom/venus/core.h    |  20 +-
->>  drivers/media/platform/qcom/venus/helpers.c |  23 +-
->>  drivers/media/platform/qcom/venus/helpers.h |   5 +
->>  drivers/media/platform/qcom/venus/vdec.c    | 449 ++++++++++++++++----
->>  4 files changed, 389 insertions(+), 108 deletions(-)
->>
->> diff --git a/drivers/media/platform/qcom/venus/core.h
->> b/drivers/media/platform/qcom/venus/core.h
->> index 79c7e816c706..5a133c203455 100644
->> --- a/drivers/media/platform/qcom/venus/core.h
->> +++ b/drivers/media/platform/qcom/venus/core.h
->> @@ -218,6 +218,15 @@ struct venus_buffer {
->>
->>  #define to_venus_buffer(ptr)    container_of(ptr, struct
->> venus_buffer, vb)
->>
->> +#define DEC_STATE_UNINIT        0
->> +#define DEC_STATE_INIT            1
->> +#define DEC_STATE_CAPTURE_SETUP        2
->> +#define DEC_STATE_STOPPED        3
->> +#define DEC_STATE_SEEK            4
->> +#define DEC_STATE_DRAIN            5
->> +#define DEC_STATE_DECODING        6
->> +#define DEC_STATE_DRC            7
->> +
->>  /**
->>   * struct venus_inst - holds per instance paramerters
->>   *
->> @@ -241,6 +250,10 @@ struct venus_buffer {
->>   * @colorspace:    current color space
->>   * @quantization:    current quantization
->>   * @xfer_func:    current xfer function
->> + * @codec_state:    current codec API state (see DEC/ENC_STATE_)
->> + * @reconf_wait:    wait queue for resolution change event
->> + * @ten_bits:        does new stream is 10bits depth
->> + * @buf_count:        used to count number number of buffers (reqbuf(0))
->>   * @fps:        holds current FPS
->>   * @timeperframe:    holds current time per frame structure
->>   * @fmt_out:    a reference to output format structure
->> @@ -255,8 +268,6 @@ struct venus_buffer {
->>   * @opb_buftype:    output picture buffer type
->>   * @opb_fmt:        output picture buffer raw format
->>   * @reconfig:    a flag raised by decoder when the stream resolution
->> changed
->> - * @reconfig_width:    holds the new width
->> - * @reconfig_height:    holds the new height
->>   * @hfi_codec:        current codec for this instance in HFI space
->>   * @sequence_cap:    a sequence counter for capture queue
->>   * @sequence_out:    a sequence counter for output queue
->> @@ -296,6 +307,9 @@ struct venus_inst {
->>      u8 ycbcr_enc;
->>      u8 quantization;
->>      u8 xfer_func;
->> +    unsigned int codec_state;
->> +    wait_queue_head_t reconf_wait;
->> +    int buf_count;
->>      u64 fps;
->>      struct v4l2_fract timeperframe;
->>      const struct venus_format *fmt_out;
->> @@ -310,8 +324,6 @@ struct venus_inst {
->>      u32 opb_buftype;
->>      u32 opb_fmt;
->>      bool reconfig;
->> -    u32 reconfig_width;
->> -    u32 reconfig_height;
->>      u32 hfi_codec;
->>      u32 sequence_cap;
->>      u32 sequence_out;
->> diff --git a/drivers/media/platform/qcom/venus/helpers.c
->> b/drivers/media/platform/qcom/venus/helpers.c
->> index 637ce7b82d94..25d8cceccae4 100644
->> --- a/drivers/media/platform/qcom/venus/helpers.c
->> +++ b/drivers/media/platform/qcom/venus/helpers.c
->> @@ -1030,16 +1030,15 @@ void venus_helper_vb2_buf_queue(struct
->> vb2_buffer *vb)
->>
->>      v4l2_m2m_buf_queue(m2m_ctx, vbuf);
->>
->> -    if (!(inst->streamon_out & inst->streamon_cap))
->> -        goto unlock;
->> -
->> -    ret = is_buf_refed(inst, vbuf);
->> -    if (ret)
->> -        goto unlock;
->> +    if (IS_OUT(vb->vb2_queue, inst) || IS_CAP(vb->vb2_queue, inst)) {
->> +        ret = is_buf_refed(inst, vbuf);
->> +        if (ret)
->> +            goto unlock;
->>
->> -    ret = session_process_buf(inst, vbuf);
->> -    if (ret)
->> -        return_buf_error(inst, vbuf);
->> +        ret = session_process_buf(inst, vbuf);
->> +        if (ret)
->> +            return_buf_error(inst, vbuf);
->> +    }
->>
->>  unlock:
->>      mutex_unlock(&inst->lock);
-> 
-> Hi Stan,
-> 
-> In case of encoder, we are queuing buffers only after both planes are
-> streamed on.
-> As we don’t have any reconfig event in case of encoder,
-> it’s better if we stick to the earlier implementation of queuing buffers.
-> 
-> So I would recommend to add a check for the same in the below way :
-> 
-> diff --git a/drivers/media/platform/qcom/venus/helpers.c
-> b/drivers/media/platform/qcom/venus/helpers.c
-> index 25d8cce..cc490fe2 100644
-> --- a/drivers/media/platform/qcom/venus/helpers.c
-> +++ b/drivers/media/platform/qcom/venus/helpers.c
-> @@ -1029,6 +1029,8 @@ void venus_helper_vb2_buf_queue(struct vb2_buffer
-> *vb)
->         mutex_lock(&inst->lock);
-> 
->         v4l2_m2m_buf_queue(m2m_ctx, vbuf);
-> +       if (inst->session_type == VIDC_SESSION_TYPE_ENC &&
-> !(inst->streamon_out & inst->streamon_cap))
-> +               goto unlock;
-> 
->         if (IS_OUT(vb->vb2_queue, inst) || IS_CAP(vb->vb2_queue, inst)) {
->                 ret = is_buf_refed(inst, vbuf);
-> 
-> Please provide your view.
+On Thu, Jan 24, 2019 at 09:44:13AM +0100, Hans Verkuil wrote:
+> Note: the subject it wrong, it's v4l-utils, not yavta.
 
-I agree that this change is needed for encoder and will incorporate such
-a change in next version.
+Oops, my bad. I must have been thinking of yavta when writing that. :-)
+
+And thanks for the review.
+
+> 
+> On 1/22/19 1:05 PM, Sakari Ailus wrote:
+> > Add support for META_OUTPUT buffer type to v4l2-ctl.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > ---
+> > Hi Hans,
+> > 
+> > Here's an update for the meta output buffer type in v4l2-ctl.
+> > 
+> > Since v1:
+> > 
+> > - Merge help text for meta and meta out buffer types
+> > 
+> > - Unify implementation for meta format handling
+> > 
+> >  utils/v4l2-ctl/v4l2-ctl-meta.cpp | 71 ++++++++++++++++++++++++++++++++++++----
+> >  utils/v4l2-ctl/v4l2-ctl.cpp      |  7 ++++
+> >  utils/v4l2-ctl/v4l2-ctl.h        |  5 +++
+> >  3 files changed, 76 insertions(+), 7 deletions(-)
+> > 
+> > diff --git a/utils/v4l2-ctl/v4l2-ctl-meta.cpp b/utils/v4l2-ctl/v4l2-ctl-meta.cpp
+> > index 37c91940a8..f4aa434937 100644
+> > --- a/utils/v4l2-ctl/v4l2-ctl-meta.cpp
+> > +++ b/utils/v4l2-ctl/v4l2-ctl-meta.cpp
+> > @@ -21,14 +21,22 @@ static struct v4l2_format vfmt;	/* set_format/get_format */
+> >  void meta_usage(void)
+> >  {
+> >  	printf("\nMetadata Formats options:\n"
+> > -	       "  --list-formats-meta display supported metadata formats [VIDIOC_ENUM_FMT]\n"
+> > -	       "  --get-fmt-meta      query the metadata format [VIDIOC_G_FMT]\n"
+> > -	       "  --set-fmt-meta <f>  set the metadata format [VIDIOC_S_FMT]\n"
+> > +	       "  --list-formats-meta display supported metadata capture formats [VIDIOC_ENUM_FMT]\n"
+> > +	       "  --get-fmt-meta      query the metadata capture format [VIDIOC_G_FMT]\n"
+> > +	       "  --set-fmt-meta <f>  set the metadata capture format [VIDIOC_S_FMT]\n"
+> >  	       "                     parameter is either the format index as reported by\n"
+> >  	       "                     --list-formats-meta, or the fourcc value as a string\n"
+> > -	       "  --try-fmt-meta <f>  try the metadata format [VIDIOC_TRY_FMT]\n"
+> > +	       "  --try-fmt-meta <f>  try the metadata capture format [VIDIOC_TRY_FMT]\n"
+> >  	       "                     parameter is either the format index as reported by\n"
+> >  	       "                     --list-formats-meta, or the fourcc value as a string\n"
+> > +	       "  --list-formats-meta-out display supported metadata output formats [VIDIOC_ENUM_FMT]\n"
+> > +	       "  --get-fmt-meta-out      query the metadata output format [VIDIOC_G_FMT]\n"
+> > +	       "  --set-fmt-meta-out <f>  set the metadata output format [VIDIOC_S_FMT]\n"
+> > +	       "                          parameter is either the format index as reported by\n"
+> > +	       "                          --list-formats-meta-out, or the fourcc value as a string\n"
+> > +	       "  --try-fmt-meta-out <f>  try the metadata output format [VIDIOC_TRY_FMT]\n"
+> > +	       "                          parameter is either the format index as reported by\n"
+> > +	       "                          --list-formats-meta-out, or the fourcc value as a string\n"
+> >  	       );
+> >  }
+> >  
+> > @@ -37,6 +45,8 @@ void meta_cmd(int ch, char *optarg)
+> >  	switch (ch) {
+> >  	case OptSetMetaFormat:
+> >  	case OptTryMetaFormat:
+> > +	case OptSetMetaOutFormat:
+> > +	case OptTryMetaOutFormat:
+> >  		if (strlen(optarg) == 0) {
+> >  			meta_usage();
+> >  			exit(1);
+> > @@ -55,8 +65,38 @@ void meta_set(cv4l_fd &_fd)
+> >  	int fd = _fd.g_fd();
+> >  	int ret;
+> >  
+> > +	if (!v4l_type_is_meta(_fd.g_type()))
+> > +		return;
+> > +
+> >  	if ((options[OptSetMetaFormat] || options[OptTryMetaFormat]) &&
+> > -	    v4l_type_is_meta(_fd.g_type())) {
+> > +	    v4l_type_is_capture(_fd.g_type())) {
+> > +		struct v4l2_format in_vfmt;
+> > +
+> > +		in_vfmt.type = _fd.g_type();
+> > +		in_vfmt.fmt.meta.dataformat = vfmt.fmt.meta.dataformat;
+> > +
+> > +		if (in_vfmt.fmt.meta.dataformat < 256) {
+> > +			struct v4l2_fmtdesc fmt;
+> > +
+> > +			fmt.index = in_vfmt.fmt.meta.dataformat;
+> > +			fmt.type = in_vfmt.type;
+> > +
+> > +			if (doioctl(fd, VIDIOC_ENUM_FMT, &fmt))
+> > +				fmt.pixelformat = 0;
+> > +
+> > +			in_vfmt.fmt.meta.dataformat = fmt.pixelformat;
+> > +		}
+> > +
+> > +		if (options[OptSetMetaFormat])
+> > +			ret = doioctl(fd, VIDIOC_S_FMT, &in_vfmt);
+> > +		else
+> > +			ret = doioctl(fd, VIDIOC_TRY_FMT, &in_vfmt);
+> > +		if (ret == 0 && (verbose || options[OptTryMetaFormat]))
+> > +			printfmt(fd, in_vfmt);
+> 
+> This is exactly the same code for meta output. Why not just do:
+> 
+>   	if ((options[OptSetMetaFormat] || options[OptTryMetaFormat] ||
+> 	     options[OptSetMetaOutFormat] || options[OptTryMetaOutFormat]) &&
+> 	    v4l_type_is_meta(_fd.g_type())
+> 
+> You can add tests for capture/output if you like, but it is not really necessary.
+
+Ack, I'll fix that.
+
+> 
+> 
+> > +	}
+> > +
+> > +	if ((options[OptSetMetaOutFormat] || options[OptTryMetaOutFormat]) &&
+> > +	    v4l_type_is_output(_fd.g_type())) {
+> >  		struct v4l2_format in_vfmt;
+> >  
+> >  		in_vfmt.type = _fd.g_type();
+> > @@ -85,7 +125,16 @@ void meta_set(cv4l_fd &_fd)
+> >  
+> >  void meta_get(cv4l_fd &fd)
+> >  {
+> > -	if (options[OptGetMetaFormat] && v4l_type_is_meta(fd.g_type())) {
+> > +	if (!v4l_type_is_meta(fd.g_type()))
+> > +		return;
+> > +
+> > +	if (options[OptGetMetaFormat] && v4l_type_is_capture(fd.g_type())) {
+> > +		vfmt.type = fd.g_type();
+> > +		if (doioctl(fd.g_fd(), VIDIOC_G_FMT, &vfmt) == 0)
+> > +			printfmt(fd.g_fd(), vfmt);
+> > +	}
+> > +
+> > +	if (options[OptGetMetaOutFormat] && v4l_type_is_output(fd.g_type())) {
+> >  		vfmt.type = fd.g_type();
+> >  		if (doioctl(fd.g_fd(), VIDIOC_G_FMT, &vfmt) == 0)
+> >  			printfmt(fd.g_fd(), vfmt);
+> > @@ -94,7 +143,15 @@ void meta_get(cv4l_fd &fd)
+> >  
+> >  void meta_list(cv4l_fd &fd)
+> >  {
+> > -	if (options[OptListMetaFormats] && v4l_type_is_meta(fd.g_type())) {
+> > +	if (!v4l_type_is_meta(fd.g_type()))
+> > +		return;
+> > +
+> > +	if (options[OptListMetaFormats] && v4l_type_is_capture(fd.g_type())) {
+> > +		printf("ioctl: VIDIOC_ENUM_FMT\n");
+> > +		print_video_formats(fd, fd.g_type());
+> > +	}
+> > +
+> > +	if (options[OptListMetaOutFormats] && v4l_type_is_output(fd.g_type())) {
+> >  		printf("ioctl: VIDIOC_ENUM_FMT\n");
+> >  		print_video_formats(fd, fd.g_type());
+> >  	}
+> 
+> Same for these two functions: the same code works for both meta capture and output.
+> 
+> To be honest, I would really like to completely rework the way v4l2-ctl handles this.
+> There are way too many options to list, get, set, try formats. But you really don't
+> need to specify the type (video, meta, sdr, vbi, etc) as that can be determined
+> automatically.
+
+As long as a video node supports a single type only. Aren't there cases
+that need multiple types? Vbi?
+
+> 
+> But let's get this done first, and then I'll take another look at this.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> 
+> > diff --git a/utils/v4l2-ctl/v4l2-ctl.cpp b/utils/v4l2-ctl/v4l2-ctl.cpp
+> > index 1783979d76..ffac8716d0 100644
+> > --- a/utils/v4l2-ctl/v4l2-ctl.cpp
+> > +++ b/utils/v4l2-ctl/v4l2-ctl.cpp
+> > @@ -122,6 +122,7 @@ static struct option long_options[] = {
+> >  	{"list-formats-out", no_argument, 0, OptListOutFormats},
+> >  	{"list-formats-out-ext", no_argument, 0, OptListOutFormatsExt},
+> >  	{"list-formats-meta", no_argument, 0, OptListMetaFormats},
+> > +	{"list-formats-meta-out", no_argument, 0, OptListMetaOutFormats},
+> >  	{"list-subdev-mbus-codes", optional_argument, 0, OptListSubDevMBusCodes},
+> >  	{"list-subdev-framesizes", required_argument, 0, OptListSubDevFrameSizes},
+> >  	{"list-subdev-frameintervals", required_argument, 0, OptListSubDevFrameIntervals},
+> > @@ -174,6 +175,9 @@ static struct option long_options[] = {
+> >  	{"get-fmt-meta", no_argument, 0, OptGetMetaFormat},
+> >  	{"set-fmt-meta", required_argument, 0, OptSetMetaFormat},
+> >  	{"try-fmt-meta", required_argument, 0, OptTryMetaFormat},
+> > +	{"get-fmt-meta-out", no_argument, 0, OptGetMetaOutFormat},
+> > +	{"set-fmt-meta-out", required_argument, 0, OptSetMetaOutFormat},
+> > +	{"try-fmt-meta-out", required_argument, 0, OptTryMetaOutFormat},
+> >  	{"get-subdev-fmt", optional_argument, 0, OptGetSubDevFormat},
+> >  	{"set-subdev-fmt", required_argument, 0, OptSetSubDevFormat},
+> >  	{"try-subdev-fmt", required_argument, 0, OptTrySubDevFormat},
+> > @@ -238,6 +242,7 @@ static struct option long_options[] = {
+> >  	{"list-buffers-sdr", no_argument, 0, OptListBuffersSdr},
+> >  	{"list-buffers-sdr-out", no_argument, 0, OptListBuffersSdrOut},
+> >  	{"list-buffers-meta", no_argument, 0, OptListBuffersMeta},
+> > +	{"list-buffers-meta-out", no_argument, 0, OptListBuffersMetaOut},
+> >  	{"stream-count", required_argument, 0, OptStreamCount},
+> >  	{"stream-skip", required_argument, 0, OptStreamSkip},
+> >  	{"stream-loop", no_argument, 0, OptStreamLoop},
+> > @@ -507,6 +512,7 @@ void printfmt(int fd, const struct v4l2_format &vfmt)
+> >  		printf("\tBuffer Size     : %u\n", vfmt.fmt.sdr.buffersize);
+> >  		break;
+> >  	case V4L2_BUF_TYPE_META_CAPTURE:
+> > +	case V4L2_BUF_TYPE_META_OUTPUT:
+> >  		printf("\tSample Format   : '%s'%s\n", fcc2s(vfmt.fmt.meta.dataformat).c_str(),
+> >  		       printfmtname(fd, vfmt.type, vfmt.fmt.meta.dataformat).c_str());
+> >  		printf("\tBuffer Size     : %u\n", vfmt.fmt.meta.buffersize);
+> > @@ -1247,6 +1253,7 @@ int main(int argc, char **argv)
+> >  		options[OptGetSdrFormat] = 1;
+> >  		options[OptGetSdrOutFormat] = 1;
+> >  		options[OptGetMetaFormat] = 1;
+> > +		options[OptGetMetaOutFormat] = 1;
+> >  		options[OptGetFBuf] = 1;
+> >  		options[OptGetCropCap] = 1;
+> >  		options[OptGetOutputCropCap] = 1;
+> > diff --git a/utils/v4l2-ctl/v4l2-ctl.h b/utils/v4l2-ctl/v4l2-ctl.h
+> > index 5a52a0a48f..fc51cd1b97 100644
+> > --- a/utils/v4l2-ctl/v4l2-ctl.h
+> > +++ b/utils/v4l2-ctl/v4l2-ctl.h
+> > @@ -89,6 +89,7 @@ enum Option {
+> >  	OptGetSdrFormat,
+> >  	OptGetSdrOutFormat,
+> >  	OptGetMetaFormat,
+> > +	OptGetMetaOutFormat,
+> >  	OptGetSubDevFormat,
+> >  	OptSetSlicedVbiOutFormat,
+> >  	OptSetOverlayFormat,
+> > @@ -97,6 +98,7 @@ enum Option {
+> >  	OptSetSdrFormat,
+> >  	OptSetSdrOutFormat,
+> >  	OptSetMetaFormat,
+> > +	OptSetMetaOutFormat,
+> >  	OptSetSubDevFormat,
+> >  	OptTryVideoOutFormat,
+> >  	OptTrySlicedVbiOutFormat,
+> > @@ -108,6 +110,7 @@ enum Option {
+> >  	OptTrySdrFormat,
+> >  	OptTrySdrOutFormat,
+> >  	OptTryMetaFormat,
+> > +	OptTryMetaOutFormat,
+> >  	OptTrySubDevFormat,
+> >  	OptAll,
+> >  	OptListStandards,
+> > @@ -122,6 +125,7 @@ enum Option {
+> >  	OptListOutFormats,
+> >  	OptListOutFormatsExt,
+> >  	OptListMetaFormats,
+> > +	OptListMetaOutFormats,
+> >  	OptListSubDevMBusCodes,
+> >  	OptListSubDevFrameSizes,
+> >  	OptListSubDevFrameIntervals,
+> > @@ -205,6 +209,7 @@ enum Option {
+> >  	OptListBuffersSdr,
+> >  	OptListBuffersSdrOut,
+> >  	OptListBuffersMeta,
+> > +	OptListBuffersMetaOut,
+> >  	OptStreamCount,
+> >  	OptStreamSkip,
+> >  	OptStreamLoop,
+> > 
+> 
 
 -- 
-regards,
-Stan
+Sakari Ailus
+sakari.ailus@linux.intel.com
