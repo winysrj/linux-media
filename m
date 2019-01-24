@@ -2,108 +2,114 @@ Return-Path: <SRS0=42/h=QA=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A793FC282C3
-	for <linux-media@archiver.kernel.org>; Thu, 24 Jan 2019 16:10:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A7614C282C3
+	for <linux-media@archiver.kernel.org>; Thu, 24 Jan 2019 16:21:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 72A6F21872
-	for <linux-media@archiver.kernel.org>; Thu, 24 Jan 2019 16:10:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 768ED218AF
+	for <linux-media@archiver.kernel.org>; Thu, 24 Jan 2019 16:21:21 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linaro.org header.i=@linaro.org header.b="jSbplplt"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="dsuJrOSN"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728901AbfAXQKG (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 24 Jan 2019 11:10:06 -0500
-Received: from mail-wr1-f65.google.com ([209.85.221.65]:45945 "EHLO
-        mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728259AbfAXQKF (ORCPT
+        id S1727893AbfAXQVU (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 24 Jan 2019 11:21:20 -0500
+Received: from mail-lf1-f66.google.com ([209.85.167.66]:43741 "EHLO
+        mail-lf1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727690AbfAXQVU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 Jan 2019 11:10:05 -0500
-Received: by mail-wr1-f65.google.com with SMTP id t6so7043364wrr.12
-        for <linux-media@vger.kernel.org>; Thu, 24 Jan 2019 08:10:05 -0800 (PST)
+        Thu, 24 Jan 2019 11:21:20 -0500
+Received: by mail-lf1-f66.google.com with SMTP id u18so4729544lff.10;
+        Thu, 24 Jan 2019 08:21:18 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=8IBIrFG6qOQny2BFb8zfG+j0ULZivadQuD97Xx/Nde4=;
-        b=jSbplpltr1tgUPAUirt1+jqnbLu4pju+x97/3CjvnAsp+87g9Mul/1xzEVb4aeiDrZ
-         bmeO2bik4Cfi7914Ok5Ial4yr6qxuCfzntvik//qOIGImifJR7sefNxvVLWCVdXLZ/qJ
-         AamCt2SmrGZl+mdzBKdRI9J2MZN748sWgtkjA=
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=iBiADSjLJGYr0+vo802vI08UxBMzyh0TibpPpEvVMFs=;
+        b=dsuJrOSNEkU7pugUsfqwGkaxMGKLe2ToX+uHdBM1+anDMltus9tmm7sD8t/78cOY0Y
+         Py5OFx+2fFQziFWkiulxhPm44AjrWdNTj9Ul9sPIvzDGxWhDfrsu+JkPLM2Kvs51ACnI
+         1W518UZSXFDVUo5jSE5JPH1pNeBmkR1i4jlgjIDvJYvV9sUErT642I2yuepfhyBQmdEp
+         FRdmcYko2AlLfTU4MHNsEAFyYGckcWBzu7SxwXPjU7m0nfhHEqEdnmoWm7zCJKtAzq9Z
+         4ukWm3pPK5F9fEFEf50u+VrmfbpUQRALwTXNgDGIV8HgUHkwBeUOHT+YbkiUAEUxeEkM
+         gA8Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=8IBIrFG6qOQny2BFb8zfG+j0ULZivadQuD97Xx/Nde4=;
-        b=EQQ5Arq1jcB18fzwS/ZM+OF/k/EvYKX9OFLb3523XPPJEqNDsQyTGKVpow+dRxuTlH
-         ZgCA+yj5ASnBF+nQd25mUIrJyW/wd31POsp+RjyK1QdS2FxtEZww9Gvy+GwuJjBtJPLp
-         L0MDmqnFCjdyB/hjnapwfX0xK37vOBhwKRMWdRI/OsMRW8V2k7vCBkK0qD6Wc2QnGWbz
-         pVmAIZbOh7LgjuCireJHsibCQiAMiDJoObJMP+54v6y+3rK473eZs8R6J5WqcD9oCq9n
-         x32/VzcpW/uU3xEd/JPRP8mD51VSTLkEFLKoyb6lVHx/2KLoLGwUrbaQZlPqntgQS0dy
-         wjiQ==
-X-Gm-Message-State: AJcUukfZlVYlssCmHrbtKHEL+Gy2jV3WVX3expUqTkR4lktqtkwWZcMF
-        P1ZpUz0J/6glXemJIaQ8JWL0cA==
-X-Google-Smtp-Source: ALg8bN57xL5+k0i8LL9EzN2W/miwh0LwxgE7L8r+0BYTVaXZMHAr8FfY36Oe1EJccITdXpcVnSw9FA==
-X-Received: by 2002:a5d:5208:: with SMTP id j8mr8078773wrv.188.1548346204377;
-        Thu, 24 Jan 2019 08:10:04 -0800 (PST)
-Received: from arch-late.local (a109-49-46-234.cpe.netcabo.pt. [109.49.46.234])
-        by smtp.gmail.com with ESMTPSA id e16sm179880299wrn.72.2019.01.24.08.10.03
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 24 Jan 2019 08:10:03 -0800 (PST)
-From:   Rui Miguel Silva <rui.silva@linaro.org>
-To:     sakari.ailus@linux.intel.com,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Philipp Zabel <p.zabel@pengutronix.de>
-Cc:     linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        devicetree@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Rui Miguel Silva <rui.silva@linaro.org>
-Subject: [PATCH v11 13/13] media: MAINTAINERS: add entry for Freescale i.MX7 media driver
-Date:   Thu, 24 Jan 2019 16:09:28 +0000
-Message-Id: <20190124160928.31884-14-rui.silva@linaro.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190124160928.31884-1-rui.silva@linaro.org>
-References: <20190124160928.31884-1-rui.silva@linaro.org>
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=iBiADSjLJGYr0+vo802vI08UxBMzyh0TibpPpEvVMFs=;
+        b=g+tVZ0GdOmXY0d3J5naxzWD8ffPnK2Qr11Y26jQg8j3lXz/WJnD0zL3Fkxqb8J0GTP
+         u3bXD0XQPxAI+iI0pdJApvFRDr+mMuarY+9an2UDVRJivDMMM1qoebQT4wioU0vUmCzC
+         qElObp90ZdlJG6OlwC8G90+CpGZAdKdqBSB5l6Q+oRsWL2F5jkaZ83HC8WPLDZiP5vii
+         VsA+CtxY6DioAsTqxjV5FvyxmjExHefkRq6W7brQbA+lQosvzQ/YQ1ASi8sunVkmonhT
+         1UFeePcdmP8pOrOalK+Sk2TjFhXZLd1FJuyfkTHG2NIAEqBLWs3vdD7vWU8lXNmnKxdq
+         Bedg==
+X-Gm-Message-State: AJcUukfiwQPkV+k3D7IPUZNuXzZk6Z/K5OwjkrEEM1wQc6aFVUG7hpuf
+        JbYSgUMhcacxebwL3hujWGYg91b4LH6OKwGxxKY=
+X-Google-Smtp-Source: ALg8bN6BHQvLQo6HF6ToTLJAug0gTDqyybYZ4YCccCHDTVE1Kh/FClulDpDfaKO2swaFd5YOHp3d9aVHT6zazGjkCpI=
+X-Received: by 2002:a19:4849:: with SMTP id v70mr6175365lfa.62.1548346877923;
+ Thu, 24 Jan 2019 08:21:17 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20181103145532.9323-1-user.vdr@gmail.com> <766230a305f54a37e9d881779a0d81ec439f8bd8.camel@hadess.net>
+ <CAA7C2qhCmaJJ1F8D6zz0-9Sp+OspPE2h=KYRYO7seMUrs2q=sA@mail.gmail.com>
+ <20190119085252.GA187380@dtor-ws> <CAA7C2qiKOTKSWgmK_9ZyPC-JaBp+vW0nhoJMPJzHCmV_wsg8_A@mail.gmail.com>
+ <20190124083742.GB139904@dtor-ws>
+In-Reply-To: <20190124083742.GB139904@dtor-ws>
+From:   VDR User <user.vdr@gmail.com>
+Date:   Thu, 24 Jan 2019 08:21:05 -0800
+Message-ID: <CAA7C2qhympiM2H==9e7Rq9am=2YzM3UoU3S-CbLX0ka+M52YDw@mail.gmail.com>
+Subject: Re: [PATCH v2] Input: Add missing event codes for common IR remote buttons
+To:     Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc:     Bastien Nocera <hadess@hadess.net>, linux-input@vger.kernel.org,
+        Sean Young <sean@mess.org>, mchehab+samsung@kernel.org,
+        "mailing list: linux-media" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Add maintainer entry for the imx7 media csi, mipi csis driver,
-dt-bindings and documentation.
+> > > KEY_ASPECT_RATIO (formerly KEY_SCREEN).
+> >
+> > Physical displays have a single set aspect ratio (W/H). Images have
+> > their own aspect ratios. When the AR of the video to be display and
+> > the display itself are mismatched, you have to do something
+> > (letterbox, pillarbox, windowbox) to the video to maintain the correct
+> > video aspect ratio. You can't change the displays AR, and you aren't
+> > changing the videos AR so using KEY_ASPECT_RATIO makes no sense. AR
+> > isn't being touched/altered/manipulated, but how the video is being
+> > displayed is. Stretching and filling to match the display AR alters
+> > the video AR so there is makes sense, but then zooming may not. So,
+> > since "aspect ratio" kind of makes sense in a couple cases, and makes
+> > no sense in the rest, the more suitable KEY_DISPLAY_FORMAT is my
+> > suggestion.
+>
+> No, we will not be renaming this key. We try to have parity with the
+> HUT, which has the following to say:
+>
+> "Aspect OSC - Selects the next available supported aspect ratio option
+> on a device which outputs or displays video.  For example, common
+> aspect ratio options are 4:3 (standard definition), 16:9 (often used
+> to stretch a standard definition source signal to a 16:9 video screen),
+> letter-box and anamorphic widescreen.The order in which the aspect
+> ratios are selected is implementation specific."
 
-Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
----
- MAINTAINERS | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+Hi Dmitry,
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 51029a425dbe..ad267b3dd18b 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -9350,6 +9350,17 @@ T:	git git://linuxtv.org/media_tree.git
- S:	Maintained
- F:	drivers/media/platform/imx-pxp.[ch]
- 
-+MEDIA DRIVERS FOR FREESCALE IMX7
-+M:	Rui Miguel Silva <rmfrfs@gmail.com>
-+L:	linux-media@vger.kernel.org
-+T:	git git://linuxtv.org/media_tree.git
-+S:	Maintained
-+F:	Documentation/devicetree/bindings/media/imx7-csi.txt
-+F:	Documentation/devicetree/bindings/media/imx7-mipi-csi2.txt
-+F:	Documentation/media/v4l-drivers/imx7.rst
-+F:	drivers/staging/media/imx/imx7-media-csi.c
-+F:	drivers/staging/media/imx/imx7-mipi-csis.c
-+
- MEDIA DRIVERS FOR HELENE
- M:	Abylay Ospan <aospan@netup.ru>
- L:	linux-media@vger.kernel.org
--- 
-2.20.1
+The suggestion to rename KEY_ASPECT_RATIO was a `last resort` in the
+event people are against a more suitable and accurate key to what
+happens to the actual content. The root issue is in not making any
+distinction between content AR, frame AR, and display AR. As
+previously described, letterbox/pillarbox/windowbox is used to
+*maintain* the correct AR, not alter it. Stretching may or may not
+alter AR, zooming may or may not alter AR. There are more scenarios
+where AR is unaffected than otherwise so more often KEY_ASPECT_RATIO
+makes no sense than does. However, in all cases (except where content
+& display match and you wouldn't use this key) how the frames are
+being displayed *is* altered, which is where KEY_DISPLAY_FORMAT comes
+from.
 
+Best regards,
+Derek
