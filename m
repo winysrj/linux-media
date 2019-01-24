@@ -7,51 +7,51 @@ X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 927DCC282C3
-	for <linux-media@archiver.kernel.org>; Thu, 24 Jan 2019 16:10:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D1C44C282C5
+	for <linux-media@archiver.kernel.org>; Thu, 24 Jan 2019 16:10:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 64EC821872
-	for <linux-media@archiver.kernel.org>; Thu, 24 Jan 2019 16:10:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A431021872
+	for <linux-media@archiver.kernel.org>; Thu, 24 Jan 2019 16:10:05 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linaro.org header.i=@linaro.org header.b="gocyzJd4"
+	dkim=pass (1024-bit key) header.d=linaro.org header.i=@linaro.org header.b="F71+4AqL"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728881AbfAXQKC (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 24 Jan 2019 11:10:02 -0500
-Received: from mail-wr1-f65.google.com ([209.85.221.65]:42138 "EHLO
+        id S1728794AbfAXQKE (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 24 Jan 2019 11:10:04 -0500
+Received: from mail-wr1-f65.google.com ([209.85.221.65]:37395 "EHLO
         mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728794AbfAXQKB (ORCPT
+        with ESMTP id S1728890AbfAXQKE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 Jan 2019 11:10:01 -0500
-Received: by mail-wr1-f65.google.com with SMTP id q18so7064690wrx.9
-        for <linux-media@vger.kernel.org>; Thu, 24 Jan 2019 08:10:00 -0800 (PST)
+        Thu, 24 Jan 2019 11:10:04 -0500
+Received: by mail-wr1-f65.google.com with SMTP id s12so7092545wrt.4
+        for <linux-media@vger.kernel.org>; Thu, 24 Jan 2019 08:10:03 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linaro.org; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=3sV1A3N/a1F5D/MYRzaWG6owylM4PpGRVE/W1x/9VYE=;
-        b=gocyzJd4ByiJ84+qQmzRcGsh51iT+FZQk6SSvItYuLJU9WfSkwdhvaqaUPiYOtZ0jO
-         hNmSgcrhsl8ZJytl8WW5JKP/fx4Jim+5YIhNCQOjoYhy78JsZsDEHmsiPP6PCCR4k5fQ
-         T7E7mBFbVqtxYqZviPwq+VUNQRM3jz+3XT19Y=
+        bh=CVbw2/xqDn6WjQlSRch+je/yckaVEkLsj0/B8a1pF/A=;
+        b=F71+4AqLMyFJEEfclQ4djHmZF0FTZKeuGIl/LPJ2M/B09gXnBO3qfC/lz8COGEAuek
+         SMzekRj27VilyjRor9gmgKzfzOWBQ5kzh081abYA7E8uaCubkLJuT1MpsTLzZ/fHrFvA
+         wKcDTBMqTYA+QDaN1Ra5gmaieK6rr5ao4QD48=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=3sV1A3N/a1F5D/MYRzaWG6owylM4PpGRVE/W1x/9VYE=;
-        b=qyzXyxITI2cGKIKzM7DdrbSorOrmhlGw3SWqZykn5pQo0nzTPGyFLI6cq9l2iyBNlB
-         BPnGK2ugivFn5Z2TOUs+ivsx15bYycjOxdtIa8KBlXwpFH6eqzypUELfTanyGZPfQ8/J
-         HtyICvYSOckMaFNVGpSvRiBIeQA/93zYvJNdzPNiSRWvdthTIcrpMb0yYOAgj9PxiP+k
-         5ftF0r9JOB/JDqUjhaeNq1F6bQ0N5gt3+3tzRIS3ME+X24yMOLW1VgU12tU/JoczB/Ji
-         fso/8u2b/iyAZtHA4LAB9xD35i4V9B6lhYxvDT7cESzLtos9ZVOWVbnvGxeEWEyI3+B2
-         EpkA==
-X-Gm-Message-State: AJcUuken/m5/cEoSdA+8S9lqO3EkuQ1yMngeajzlmkUydl3RzoQX0DAo
-        gAu9i6sTuu1rTTbC8T1y1hwSNQ==
-X-Google-Smtp-Source: ALg8bN46Hqu8+yknjXYF5KI+T5CuQTaRWOFSX1Zkf5eGiu/lxyE3EXM/kUGM8loeLP49L89Z1pfijA==
-X-Received: by 2002:a5d:4a45:: with SMTP id v5mr7430996wrs.7.1548346200102;
-        Thu, 24 Jan 2019 08:10:00 -0800 (PST)
+        bh=CVbw2/xqDn6WjQlSRch+je/yckaVEkLsj0/B8a1pF/A=;
+        b=G8KdLT53H5A27kDaIJ+iGajxQerabGL9y+ICUBySXWCpWbTXAFHInFG5n6lRguUaxw
+         okcqjqJ9dkaJX9BatxFfqvmECwtiZy9os2QKRvfm5tV2vY+6dhrWKQSk+1+LrzxhOWbp
+         usm2gNeOtDLNiW2VVe2I64D36zstoJiIB+RODUKgjPfuDkIU6N1hLN0HMTLqPUy7sTyd
+         GKajPqvqqy8sLfyoLKRw8pF47VFakN46tcLp83RuFPBJQizpC1m+lN+lpUqW1ppEeQzT
+         3VCg8EdrHp2ajFC7Yg9yW05CLXV0879Klh3QWD2xQDVCK4UvlODUO8LsSlmy46dbAp0Z
+         RuCg==
+X-Gm-Message-State: AJcUukc+ImKbQHSp2HzIkCjPRKrRvbgZorG1qJb6p/Z+TcNvCQSZuxCf
+        4/sz/WSI/XVdV3zFrOPCNyzghA==
+X-Google-Smtp-Source: ALg8bN62PNEYnF5Cgm9TwOfVpthOdfVrwMmK5wEjUoM+eoOowHmPf3tckL1mPZ/NSD1QkPtHNVlyuA==
+X-Received: by 2002:adf:dcd0:: with SMTP id x16mr7730583wrm.143.1548346202358;
+        Thu, 24 Jan 2019 08:10:02 -0800 (PST)
 Received: from arch-late.local (a109-49-46-234.cpe.netcabo.pt. [109.49.46.234])
-        by smtp.gmail.com with ESMTPSA id e16sm179880299wrn.72.2019.01.24.08.09.58
+        by smtp.gmail.com with ESMTPSA id e16sm179880299wrn.72.2019.01.24.08.10.01
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 24 Jan 2019 08:09:59 -0800 (PST)
+        Thu, 24 Jan 2019 08:10:01 -0800 (PST)
 From:   Rui Miguel Silva <rui.silva@linaro.org>
 To:     sakari.ailus@linux.intel.com,
         Steve Longerbeam <slongerbeam@gmail.com>,
@@ -61,9 +61,9 @@ Cc:     linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
         devicetree@vger.kernel.org,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Rui Miguel Silva <rui.silva@linaro.org>
-Subject: [PATCH v11 11/13] media: staging/imx: add i.MX7 entries to TODO file
-Date:   Thu, 24 Jan 2019 16:09:26 +0000
-Message-Id: <20190124160928.31884-12-rui.silva@linaro.org>
+Subject: [PATCH v11 12/13] media: video-mux: add bayer formats
+Date:   Thu, 24 Jan 2019 16:09:27 +0000
+Message-Id: <20190124160928.31884-13-rui.silva@linaro.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190124160928.31884-1-rui.silva@linaro.org>
 References: <20190124160928.31884-1-rui.silva@linaro.org>
@@ -74,30 +74,45 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Add some i.MX7 related entries to TODO file.
+Add non vendor bayer formats to the  allowed format array.
 
 Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/staging/media/imx/TODO | 9 +++++++++
- 1 file changed, 9 insertions(+)
+ drivers/media/platform/video-mux.c | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
-diff --git a/drivers/staging/media/imx/TODO b/drivers/staging/media/imx/TODO
-index aeeb15494a49..6f29b5ca5324 100644
---- a/drivers/staging/media/imx/TODO
-+++ b/drivers/staging/media/imx/TODO
-@@ -45,3 +45,12 @@
- 
-      Which means a port must not contain mixed-use endpoints, they
-      must all refer to media links between V4L2 subdevices.
-+
-+- i.MX7: all of the above, since it uses the imx media core
-+
-+- i.MX7: use Frame Interval Monitor
-+
-+- i.MX7: runtime testing with parallel sensor, links setup and streaming
-+
-+- i.MX7: runtime testing with different formats, for the time only 10-bit bayer
-+  is tested
+diff --git a/drivers/media/platform/video-mux.c b/drivers/media/platform/video-mux.c
+index c33900e3c23e..0ba30756e1e4 100644
+--- a/drivers/media/platform/video-mux.c
++++ b/drivers/media/platform/video-mux.c
+@@ -263,6 +263,26 @@ static int video_mux_set_format(struct v4l2_subdev *sd,
+ 	case MEDIA_BUS_FMT_UYYVYY16_0_5X48:
+ 	case MEDIA_BUS_FMT_JPEG_1X8:
+ 	case MEDIA_BUS_FMT_AHSV8888_1X32:
++	case MEDIA_BUS_FMT_SBGGR8_1X8:
++	case MEDIA_BUS_FMT_SGBRG8_1X8:
++	case MEDIA_BUS_FMT_SGRBG8_1X8:
++	case MEDIA_BUS_FMT_SRGGB8_1X8:
++	case MEDIA_BUS_FMT_SBGGR10_1X10:
++	case MEDIA_BUS_FMT_SGBRG10_1X10:
++	case MEDIA_BUS_FMT_SGRBG10_1X10:
++	case MEDIA_BUS_FMT_SRGGB10_1X10:
++	case MEDIA_BUS_FMT_SBGGR12_1X12:
++	case MEDIA_BUS_FMT_SGBRG12_1X12:
++	case MEDIA_BUS_FMT_SGRBG12_1X12:
++	case MEDIA_BUS_FMT_SRGGB12_1X12:
++	case MEDIA_BUS_FMT_SBGGR14_1X14:
++	case MEDIA_BUS_FMT_SGBRG14_1X14:
++	case MEDIA_BUS_FMT_SGRBG14_1X14:
++	case MEDIA_BUS_FMT_SRGGB14_1X14:
++	case MEDIA_BUS_FMT_SBGGR16_1X16:
++	case MEDIA_BUS_FMT_SGBRG16_1X16:
++	case MEDIA_BUS_FMT_SGRBG16_1X16:
++	case MEDIA_BUS_FMT_SRGGB16_1X16:
+ 		break;
+ 	default:
+ 		sdformat->format.code = MEDIA_BUS_FMT_Y8_1X8;
 -- 
 2.20.1
 
