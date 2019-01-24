@@ -2,176 +2,111 @@ Return-Path: <SRS0=42/h=QA=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D3508C282C0
-	for <linux-media@archiver.kernel.org>; Thu, 24 Jan 2019 01:35:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 13C9FC282C2
+	for <linux-media@archiver.kernel.org>; Thu, 24 Jan 2019 02:53:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 987E1218A2
-	for <linux-media@archiver.kernel.org>; Thu, 24 Jan 2019 01:35:23 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1548293723;
-	bh=ev/exwtuHwwFeCgjgebDr9RHikcLHX3heTKcHztuoiI=;
-	h=Subject:To:Cc:References:From:Date:In-Reply-To:List-ID:From;
-	b=Du0bzOYRrYNpKnS5JcPYUPP6r4TnBAPsTveqcDBN7FixQc8Dm+C19+XW/MqfHuQMX
-	 yd+zQlxH89afEMC2bbyejMwzgCFPaco9P0Tdh21EMfaZypJeVEfsDDukfepj8Rqao6
-	 BbqJk+4Rlb3T8O4+xLHXBve0938/+zdzEmpuXyow=
+	by mail.kernel.org (Postfix) with ESMTP id D6F612184B
+	for <linux-media@archiver.kernel.org>; Thu, 24 Jan 2019 02:53:49 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=ohmlinxelectronics-com.20150623.gappssmtp.com header.i=@ohmlinxelectronics-com.20150623.gappssmtp.com header.b="sc/QcFSf"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726313AbfAXBfX (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 23 Jan 2019 20:35:23 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45440 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726236AbfAXBfW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 23 Jan 2019 20:35:22 -0500
-Received: from [192.168.1.112] (c-24-9-64-241.hsd1.co.comcast.net [24.9.64.241])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 373D4218A1;
-        Thu, 24 Jan 2019 01:35:21 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1548293721;
-        bh=ev/exwtuHwwFeCgjgebDr9RHikcLHX3heTKcHztuoiI=;
-        h=Subject:To:Cc:References:From:Date:In-Reply-To:From;
-        b=g/Q+daEAJhknu7ojakBKnUbyHlA1Dnfa7f4udobkE+s7ohlRCq6Wt62FNJUTtgvlM
-         uc4IpiXdAN8qtq2ZhoRacY4hlUcaK7nui2w/OK8Br83++t82cv46SEvJ1BuMB856pV
-         cPOs4TH+imQww+aoreM+0EoR0OZGmcMYVLktaFMU=
-Subject: Re: [PATCH v9 0/4] Media Device Allocator API
-To:     Hans Verkuil <hverkuil@xs4all.nl>, mchehab@kernel.org,
-        perex@perex.cz, tiwai@suse.com
-Cc:     linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        alsa-devel@alsa-project.org, shuah <shuah@kernel.org>
-References: <cover.1545154777.git.shuah@kernel.org>
- <606f731d-11f9-e2d7-aee4-b20abadc4d41@xs4all.nl>
-From:   shuah <shuah@kernel.org>
-Message-ID: <2ebe7776-d24d-79d5-bd38-efba4221b7c2@kernel.org>
-Date:   Wed, 23 Jan 2019 18:35:20 -0700
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.2.1
+        id S1727187AbfAXCxn (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 23 Jan 2019 21:53:43 -0500
+Received: from mail-lj1-f196.google.com ([209.85.208.196]:44746 "EHLO
+        mail-lj1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727128AbfAXCxn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 23 Jan 2019 21:53:43 -0500
+Received: by mail-lj1-f196.google.com with SMTP id k19-v6so3840814lji.11
+        for <linux-media@vger.kernel.org>; Wed, 23 Jan 2019 18:53:42 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ohmlinxelectronics-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:from:date:message-id:subject:cc;
+        bh=n6RtpWHA8V03ECowmNKLCRPul4C13va65Kvspu1U98s=;
+        b=sc/QcFSfgqJcCJepc6ZnfMzlKPlay3k7gx+JiAT+muAy+eSBAzjTpKL183EWVbdHID
+         eM6/itBQDj5qTl/aE0HkIFKfCQUQEov6uByXHtcmsGLFoUYlfcDH4uCd32Orhzy8LTrm
+         oQzDT7Y+QntQTGRqkzZOAdlT885HJ2Lt97SoqSk38W1NYcljUMhM7EB2d3Pk+n5VtYf7
+         C0v7Pk4RI2HbdRK09UHdLU+UoWtVCuc7VtASbFNddrl5Dl99DK4dTxaZrXTjpuIV3NMd
+         582wwmtT9U3uK2upzCf9Zx1ffNh9znHkZsi0OnXKHeRVHuOOzeVyY45FDyV7Jrqr+MMw
+         FZ6Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:from:date:message-id:subject:cc;
+        bh=n6RtpWHA8V03ECowmNKLCRPul4C13va65Kvspu1U98s=;
+        b=QukdyL5qWJWOg8PWIkqiwHbJScRVmLP2Qv+y4Y3zsMSRKPhD3RInFNLfD/QxUUnFu4
+         QLlRQ09SrTamYpDWkx1AKgJqDbMcCydBNdPFg9/Y6slreP+9olUY+Kx126izDzfQi1Kz
+         2vD4vpgXrqWfhZHDTauBYEJllwYnPao1xm6oJ7fpSToaeprgH7DNqzPsAxETTHRNqPKr
+         78OtXwC6YQnob28kcJ8Qdd6wKCS1kFr+86WzRpX4QhG3jLvV0kLLKFfePJJXeLTVdTKy
+         kvuF7q8f3j6eiHgWUFa0hQBTOu4UVC39r5XB3mdQnQKklUJvpjXEsVpPxzHTY+MVmDsO
+         A9ZA==
+X-Gm-Message-State: AJcUukcnFoWGAwgaf1Rlob1nCKBKfqd2jS9o8SqNysRuV8HJEwIzWgnd
+        aa0wUUxEQdBOl8tGnPK5Xc66kKHYsGwwmynsEkqgnHY0
+X-Received: by 2002:a2e:6595:: with SMTP id e21-v6mt2825533ljf.123.1548298421079;
+ Wed, 23 Jan 2019 18:53:41 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <606f731d-11f9-e2d7-aee4-b20abadc4d41@xs4all.nl>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+From:   Ken Sloat <ken.sloat@ohmlinxelectronics.com>
+Date:   Wed, 23 Jan 2019 21:53:30 -0500
+Message-ID: <CAPo_4QDW0r22ZTqtS_NDFWB3NFLBx9YEGgWKb-P9A3t_TBAFMQ@mail.gmail.com>
+Subject: devicetree: media: Documentation of Bt.656 Bus DT bindings
+Cc:     Ken Sloat <Ken.sloat@ohmlinxelectronics.com>,
+        linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-kernel@vger.kernel.org, yong.deng@magewell.com,
+        mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        maxime.ripard@bootlin.com, wens@csie.org,
+        kieran.bingham@ideasonboard.com, laurent.pinchart@ideasonboard.com,
+        jean-michel.hautbois@vodalys.com,
+        Nate Drude <nate.drude@ohmlinxelectronics.com>
+Content-Type: text/plain; charset="UTF-8"
+To:     unlisted-recipients:; (no To-header on input)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On 1/21/19 7:46 AM, Hans Verkuil wrote:
-> Hi Shuah,
-> 
-> On 12/18/2018 06:59 PM, shuah@kernel.org wrote:
->> From: Shuah Khan <shuah@kernel.org>
->>
->> Media Device Allocator API to allows multiple drivers share a media device.
->> This API solves a very common use-case for media devices where one physical
->> device (an USB stick) provides both audio and video. When such media device
->> exposes a standard USB Audio class, a proprietary Video class, two or more
->> independent drivers will share a single physical USB bridge. In such cases,
->> it is necessary to coordinate access to the shared resource.
->>
->> Using this API, drivers can allocate a media device with the shared struct
->> device as the key. Once the media device is allocated by a driver, other
->> drivers can get a reference to it. The media device is released when all
->> the references are released.
->>
->> - Tested sharing resources with kaffeine, vlc, xawtv, tvtime, and
->>    arecord. When analog is streaming, digital and audio user-space
->>    applications detect that the tuner is busy and exit. When digital
->>    is streaming, analog and audio applications detect that the tuner is
->>    busy and exit. When arecord is owns the tuner, digital and analog
->>    detect that the tuner is busy and exit.
->> - Tested media device allocator API with bind/unbind testing on
->>    snd-usb-audio and au0828 drivers to make sure /dev/mediaX is released
->>    only when the last driver is unbound.
->> - This patch series is tested on 4.20-rc6
->> - Addressed review comments from Hans on the RFC v8 (rebased on 4.19)
->> - Updated change log to describe the use-case more clearly.
->> - No changes to 0001,0002 code since the v7 referenced below.
->> - 0003 is a new patch to enable ALSA defines that have been
->>    disabled for kernel between 4.9 and 4.19.
->> - Minor merge conflict resolution in 0004.
->> - Added SPDX to new files.
->>
->> References:
->> https://lkml.org/lkml/2018/11/2/169
->> https://www.mail-archive.com/linux-media@vger.kernel.org/msg105854.html
-> 
-> When I connect my au0828 to my laptop with your v9 patch series applied I get
-> these warnings:
-> 
-> [   45.416047] xhci_hcd 0000:39:00.0: xHCI Host Controller
-> [   45.417882] xhci_hcd 0000:39:00.0: new USB bus registered, assigned bus number 3
-> [   45.419292] xhci_hcd 0000:39:00.0: hcc params 0x200077c1 hci version 0x110 quirks 0x0000000200009810
-> [   45.420835] usb usb3: New USB device found, idVendor=1d6b, idProduct=0002, bcdDevice= 5.00
-> [   45.420893] usb usb3: New USB device strings: Mfr=3, Product=2, SerialNumber=1
-> [   45.420899] usb usb3: Product: xHCI Host Controller
-> [   45.420905] usb usb3: Manufacturer: Linux 5.0.0-rc1-zen xhci-hcd
-> [   45.420911] usb usb3: SerialNumber: 0000:39:00.0
-> [   45.424290] hub 3-0:1.0: USB hub found
-> [   45.425274] hub 3-0:1.0: 2 ports detected
-> [   45.431061] xhci_hcd 0000:39:00.0: xHCI Host Controller
-> [   45.432436] xhci_hcd 0000:39:00.0: new USB bus registered, assigned bus number 4
-> [   45.432448] xhci_hcd 0000:39:00.0: Host supports USB 3.1 Enhanced SuperSpeed
-> [   45.433299] usb usb4: New USB device found, idVendor=1d6b, idProduct=0003, bcdDevice= 5.00
-> [   45.433354] usb usb4: New USB device strings: Mfr=3, Product=2, SerialNumber=1
-> [   45.433360] usb usb4: Product: xHCI Host Controller
-> [   45.433365] usb usb4: Manufacturer: Linux 5.0.0-rc1-zen xhci-hcd
-> [   45.433370] usb usb4: SerialNumber: 0000:39:00.0
-> [   45.436134] hub 4-0:1.0: USB hub found
-> [   45.436576] hub 4-0:1.0: 2 ports detected
-> [   45.750940] usb 3-1: new high-speed USB device number 2 using xhci_hcd
-> [   45.899927] usb 3-1: New USB device found, idVendor=2040, idProduct=721e, bcdDevice= 0.05
-> [   45.899949] usb 3-1: New USB device strings: Mfr=1, Product=2, SerialNumber=10
-> [   45.899960] usb 3-1: Product: WinTV Aero-A
-> [   45.899970] usb 3-1: Manufacturer: Hauppauge
-> [   45.899979] usb 3-1: SerialNumber: 4033622430
-> [   46.053476] au0828: au0828 driver loaded
-> [   46.053726] WARNING: CPU: 1 PID: 1824 at kernel/module.c:262 module_assert_mutex+0x20/0x30
-> [   46.053818] Modules linked in: au0828(+) tveeprom dvb_core v4l2_common rfcomm bnep snd_hda_codec_hdmi snd_hda_codec_realtek
-> snd_hda_codec_generic uvcvideo videobuf2_vmalloc videobuf2_memops videobuf2_v4l2 videobuf2_common videodev media btusb btintel bluetooth
-> snd_soc_skl snd_soc_skl_ipc snd_soc_sst_ipc snd_soc_sst_dsp snd_soc_acpi_intel_match snd_soc_acpi snd_hda_ext_core x86_pkg_temp_thermal
-> snd_soc_core snd_compress ac97_bus snd_pcm_dmaengine snd_hda_intel iwlmvm snd_hda_codec snd_hda_core snd_hwdep snd_pcm snd_timer snd iwlwifi
-> i915 intel_gtt battery ac pcc_cpufreq thermal
-> [   46.053853] CPU: 1 PID: 1824 Comm: systemd-udevd Not tainted 5.0.0-rc1-zen #85
-> [   46.053856] Hardware name: ASUSTeK COMPUTER INC. UX490UA/UX490UA, BIOS UX490UA.312 04/09/2018
-> [   46.053862] RIP: 0010:module_assert_mutex+0x20/0x30
-> [   46.053867] Code: 5d c3 e8 f3 68 f5 ff 0f 1f 00 8b 05 d2 5a 7c 01 85 c0 75 01 c3 be ff ff ff ff 48 c7 c7 80 bc 86 82 e8 e4 27 fb ff 85 c0
-> 75 ea <0f> 0b c3 66 66 2e 0f 1f 84 00 00 00 00 00 66 90 53 48 89 fb e8 c7
-> [   46.053871] RSP: 0018:ffffc90002aa3ac8 EFLAGS: 00010246
-> [   46.053876] RAX: 0000000000000000 RBX: ffffffffa0573abf RCX: 0000000000000000
-> [   46.053880] RDX: 0000000000000000 RSI: ffffffff8286bc80 RDI: ffff8882a517d570
-> [   46.053883] RBP: ffff8882880e6000 R08: 0000000000000000 R09: ffff8882b1f5d000
-> [   46.053886] R10: 0000000000000001 R11: 0000000000000003 R12: ffffffffa0573abf
-> [   46.053890] R13: ffff8882880e60a0 R14: ffff8882880e6000 R15: ffffffffa0577200
-> [   46.053894] FS:  00007f0ac7d318c0(0000) GS:ffff8882b6a80000(0000) knlGS:0000000000000000
-> [   46.053898] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> [   46.053902] CR2: 0000560d354ed800 CR3: 00000002880f9003 CR4: 00000000003606e0
-> [   46.053905] Call Trace:
-> [   46.053910]  find_module+0x9/0x20
-> 
-> My .config is available upon request.
-> 
+There are a number of v4l2 subdevices in the kernel that support a
+Bt.656 bus also known as "embedded sync." Previously in older versions
+of the kernel (and in the current 4.14 LTS kernel), the standard way
+to enable this in device tree on a parallel bus was to simply omit all
+hysync and vsync flags.
 
-Thanks for the config.
+During some other kernel development I was doing, it was brought to my
+attention that there is now a standard defined binding in
+"video-interfaces.txt" called "bus-type" that should be used in order
+to enable Bt.656 mode. While omitting the flags still appears to work
+because of other assumptions made in v4l2-fwnode driver, this method
+is now outdated and improper.
 
-Thanks for finding this. find_module() should be called with
-module_mutex since 4.15. The media allocator patch was written
-before that.
+However, I have noticed that several dt binding docs have not been
+updated to reflect this change and still reference the old method:
 
-I didn't realize I don't have CONFIG_DEBUG_MUTEXES=y when I switched
-to a new system.
+Documentation/devicetree/bindings/media/sun6i-csi.txt
+/* If hsync-active/vsync-active are missing,
+   embedded BT.656 sync is used */
 
-I reproduced the problem and re-worked patch 1 and patch 4 in this
-series. I will resend the v10 for just those two patches tomorrow.
+Documentation/devicetree/bindings/media/i2c/tvp5150.txt
+"If none of hsync-active, vsync-active and field-even-active is specified,
+the endpoint is assumed to use embedded BT.656 synchronization."
 
-Please let me know if you want me to send the entire series.
+Documentation/devicetree/bindings/media/i2c/adv7604.txt
+"If none of hsync-active, vsync-active and pclk-sample is specified the
+  endpoint will use embedded BT.656 synchronization."
 
-thanks,
--- Shuah
+and amazingly even
+Documentation/devicetree/bindings/media/video-interfaces.txt in one of
+the code snippets
+/* If hsync-active/vsync-active are missing,
+   embedded BT.656 sync is used */
 
+In order to avoid future confusion in the matter and ensure that the
+proper bindings are used, I am proposing submitting patches to update
+these docs to at minimum remove these statements and maybe even adding
+additional comments specifying the optional property and value for
+Bt.656 where missing. I wanted to open a discussion here first before
+doing this though. Thoughts?
 
-
-
+Thanks,
+Ken Sloat
