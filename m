@@ -2,142 +2,122 @@ Return-Path: <SRS0=PLMr=QB=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-8.2 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 41BA9C282C0
-	for <linux-media@archiver.kernel.org>; Fri, 25 Jan 2019 04:38:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5601DC282C0
+	for <linux-media@archiver.kernel.org>; Fri, 25 Jan 2019 04:41:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1067B218CD
-	for <linux-media@archiver.kernel.org>; Fri, 25 Jan 2019 04:38:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1C3AC218CD
+	for <linux-media@archiver.kernel.org>; Fri, 25 Jan 2019 04:41:59 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="G2M7g9O9"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726779AbfAYEiV (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 24 Jan 2019 23:38:21 -0500
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:45240 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726271AbfAYEiV (ORCPT
+        id S1727163AbfAYEl6 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 24 Jan 2019 23:41:58 -0500
+Received: from mail-oi1-f194.google.com ([209.85.167.194]:38775 "EHLO
+        mail-oi1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726259AbfAYEl6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 Jan 2019 23:38:21 -0500
-Received: from localhost ([IPv6:2001:983:e9a7:1:289a:8fe6:506b:fb90])
-        by smtp-cloud8.xs4all.net with ESMTPA
-        id mtFyge9bgNR5ymtFzgswHz; Fri, 25 Jan 2019 05:38:19 +0100
-Message-ID: <92f03e70982b4c025c828db67e5a4294@smtp-cloud8.xs4all.net>
-Date:   Fri, 25 Jan 2019 05:38:18 +0100
-From:   "Hans Verkuil" <hverkuil@xs4all.nl>
-To:     linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-X-CMAE-Envelope: MS4wfDraY+RyV8Hhc1RV85mHc42sFOM8KhZlhu4GyDUsHJn3LTVeIymsArgcloxPzsRre26UECSiu+v33nqGfLh2+SvoUcEsQmv0roXqXIjppITNAsBIugip
- thCDyvBKjPrI4I9bIxRmsH5PQapvFBw1DYJ0nI8oiwF0Zjoq9G/8wWpTmmXFE2zcd4TdVgoa0bYl0Brt6LORJ4aYMLw4T2O9Tyz0JtMPUUxXWBJc5xMPccv2
+        Thu, 24 Jan 2019 23:41:58 -0500
+Received: by mail-oi1-f194.google.com with SMTP id a77so6804679oii.5
+        for <linux-media@vger.kernel.org>; Thu, 24 Jan 2019 20:41:57 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=wXj8UNzfnsoiZa8oGqlW3/u2Gj2eYVEUqFrCwd1+GVY=;
+        b=G2M7g9O91TDhhs9d5AHlsm+H/xxYPHrZ1f1a8yawrGKQq4XwQ3hr/3K/1Mwt6Bzg/M
+         O9/17r1rcddXPomXhHCNljn+Zs+ohzrTs+RMk5kTEgLNWeeSe6+yqa5T3xW33BCctxPD
+         cO9f04IsHsRxgv/7hMAZcxsnbuMHIRttQVkpY=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=wXj8UNzfnsoiZa8oGqlW3/u2Gj2eYVEUqFrCwd1+GVY=;
+        b=o2tigmv6WOUoP1jFGd4BXd5qb5fy0F53F0ClKqJVB2tR3rUHH/KJWIzrEkbYxkQKGC
+         X+7EDObJUAGRWQi7c9CXnqAkiUHWrYK1dECIKPsBTEoeSWTBQqjtTiH9gVmb2eljfxB2
+         D1e3pYzQ+EpEeF9LcEH5y1PHeAAzv2HCaZiCFkJjp8RLvsIraeb1arM40t0WYZV47Ixe
+         PqeO/GLV/nJLVnA86eKMqvhZcI/YeQ8qBWXQEIepao+ceBkuDhfkDKrZFCKXrXdQcNh5
+         cTA3+YXDDpwrEBP81HujTshxdwF7KFLbh6V8B1Ezg+CgmBoMsn5imhSy5ZFoz1xu+dmP
+         rjyQ==
+X-Gm-Message-State: AJcUukeY0DHCx+yiiVU+SijTSH2Koq7iwP6AN3RBpEDveZ7dxicKcHy3
+        eSaCuTJGJqmseL4lJZYzmX5S37RAgK0jQg==
+X-Google-Smtp-Source: ALg8bN6szQjVheX41kvk9NQoYp0irfAJKjeJiCu4/QaMk8gLjlHczCubRG429tcYI79Mx96TDF13eA==
+X-Received: by 2002:aca:ac04:: with SMTP id v4mr336245oie.342.1548390117126;
+        Thu, 24 Jan 2019 20:21:57 -0800 (PST)
+Received: from mail-ot1-f41.google.com (mail-ot1-f41.google.com. [209.85.210.41])
+        by smtp.gmail.com with ESMTPSA id a1sm705615oto.71.2019.01.24.20.21.55
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 24 Jan 2019 20:21:56 -0800 (PST)
+Received: by mail-ot1-f41.google.com with SMTP id s13so7400194otq.4
+        for <linux-media@vger.kernel.org>; Thu, 24 Jan 2019 20:21:55 -0800 (PST)
+X-Received: by 2002:a9d:1d65:: with SMTP id m92mr6639238otm.65.1548390115572;
+ Thu, 24 Jan 2019 20:21:55 -0800 (PST)
+MIME-Version: 1.0
+References: <20181119110903.24383-1-hverkuil@xs4all.nl> <20181119110903.24383-2-hverkuil@xs4all.nl>
+In-Reply-To: <20181119110903.24383-2-hverkuil@xs4all.nl>
+From:   Tomasz Figa <tfiga@chromium.org>
+Date:   Fri, 25 Jan 2019 13:21:44 +0900
+X-Gmail-Original-Message-ID: <CAAFQd5Dsyiwb2_rj1JHK6rLeKobpfCS9p8J2-6DzmgxOLX6CvQ@mail.gmail.com>
+Message-ID: <CAAFQd5Dsyiwb2_rj1JHK6rLeKobpfCS9p8J2-6DzmgxOLX6CvQ@mail.gmail.com>
+Subject: Re: [PATCHv2 1/4] vb2: add waiting_in_dqbuf flag
+To:     Hans Verkuil <hverkuil@xs4all.nl>
+Cc:     Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Hans,
 
-Results of the daily build of media_tree:
+On Mon, Nov 19, 2018 at 8:09 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>
+> Calling VIDIOC_DQBUF can release the core serialization lock pointed to
+> by vb2_queue->lock if it has to wait for a new buffer to arrive.
+>
+> However, if userspace dup()ped the video device filehandle, then it is
+> possible to read or call DQBUF from two filehandles at the same time.
+>
+> It is also possible to call REQBUFS from one filehandle while the other
+> is waiting for a buffer. This will remove all the buffers and reallocate
+> new ones. Removing all the buffers isn't the problem here (that's already
+> handled correctly by DQBUF), but the reallocating part is: DQBUF isn't
+> aware that the buffers have changed.
+>
+> This is fixed by setting a flag whenever the lock is released while waiting
+> for a buffer to arrive. And checking the flag where needed so we can return
+> -EBUSY.
+>
+> Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+> Reported-by: syzbot+4180ff9ca6810b06c1e9@syzkaller.appspotmail.com
+> ---
+>  .../media/common/videobuf2/videobuf2-core.c   | 22 +++++++++++++++++++
+>  include/media/videobuf2-core.h                |  1 +
+>  2 files changed, 23 insertions(+)
+>
+> diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
+> index 975ff5669f72..f7e7e633bcd7 100644
+> --- a/drivers/media/common/videobuf2/videobuf2-core.c
+> +++ b/drivers/media/common/videobuf2/videobuf2-core.c
+> @@ -672,6 +672,11 @@ int vb2_core_reqbufs(struct vb2_queue *q, enum vb2_memory memory,
+>                 return -EBUSY;
+>         }
+>
+> +       if (q->waiting_in_dqbuf && *count) {
+> +               dprintk(1, "another dup()ped fd is waiting for a buffer\n");
 
-date:			Fri Jan 25 05:00:12 CET 2019
-media-tree git hash:	337e90ed028643c7acdfd0d31e3224d05ca03d66
-media_build git hash:	f7668f7e697810a4ddc2a012dd230119b31abb6d
-v4l-utils git hash:	15ba7170c4576973f742f57947fc0f8e418ab521
-edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.19.0-1-amd64
+Actually, couldn't it also happen with the same FD just another thread?
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.123-i686: OK
-linux-3.18.123-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.159-i686: OK
-linux-4.4.159-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.131-i686: OK
-linux-4.9.131-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.74-i686: OK
-linux-4.14.74-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: OK
-linux-4.19.1-i686: OK
-linux-4.19.1-x86_64: OK
-linux-4.20.1-i686: OK
-linux-4.20.1-x86_64: OK
-linux-5.0-rc1-i686: OK
-linux-5.0-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+That said, it's just a debugging message, so feel free to just add
 
-Detailed results are available here:
+Reviewed-by: Tomasz Figa <tfiga@chromium.org>
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Best regards,
+Tomasz
