@@ -2,162 +2,154 @@ Return-Path: <SRS0=PLMr=QB=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.2 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7EC69C282C5
-	for <linux-media@archiver.kernel.org>; Fri, 25 Jan 2019 02:50:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 24991C282C0
+	for <linux-media@archiver.kernel.org>; Fri, 25 Jan 2019 03:48:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 58CDE218D9
-	for <linux-media@archiver.kernel.org>; Fri, 25 Jan 2019 02:50:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E3B7021855
+	for <linux-media@archiver.kernel.org>; Fri, 25 Jan 2019 03:48:09 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="duzGE7In"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728686AbfAYCuQ convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 24 Jan 2019 21:50:16 -0500
-Received: from mail-ed1-f43.google.com ([209.85.208.43]:39987 "EHLO
-        mail-ed1-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726107AbfAYCuQ (ORCPT
+        id S1728810AbfAYDsJ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 24 Jan 2019 22:48:09 -0500
+Received: from mail-oi1-f196.google.com ([209.85.167.196]:40070 "EHLO
+        mail-oi1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726304AbfAYDsJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 Jan 2019 21:50:16 -0500
-Received: by mail-ed1-f43.google.com with SMTP id g22so6231059edr.7;
-        Thu, 24 Jan 2019 18:50:13 -0800 (PST)
+        Thu, 24 Jan 2019 22:48:09 -0500
+Received: by mail-oi1-f196.google.com with SMTP id t204so6721327oie.7
+        for <linux-media@vger.kernel.org>; Thu, 24 Jan 2019 19:48:08 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc:content-transfer-encoding;
+        bh=Qsc9q74JTnTMEkINAi3mNMqG0l7CnnnP36GPHL0KDdc=;
+        b=duzGE7InW77eiL4+Ivtvk9p+lwQMfuLk51gKZbkiVA8qByrVANKQl/jcSouC2pKQoZ
+         T116IehUsIYmRfXDdriXTMD/iQGZSfkncUA4HPNw1WpY9GSGgyj39/wKwFY6MNm4xZ4l
+         Lv9Zl0/3XdM5CsAAxJfB+S6pc9vtgkeBKk77s=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc:content-transfer-encoding;
-        bh=P1zzXln1riUs/zkYl5yWs+M8mhcZVCnbTojUF9bsN5Y=;
-        b=qDLmKpjIXiq3aL2KpSxWjIXZHdlBjkSP7USiZQmFFlHV+3I9G7ftoTHbcF0WZpSmUy
-         dkI0gIRslYeHPhM7rFS+k2dnHX7FEMwKBMnHpGILQTMqHyzeIxqtEaB7IHWCt0MSVYZC
-         5PpHDR1QGIKTFBwXmdnEZvFjN4OxmQWvsR67shikTPmJfaKb0eFttYCfsC0wO+xfXWbj
-         erpZNrt1aq5N1MKx9MNL5/3DeuAbH0Q4SDQhSaBpRjeU40EKMGfORgn1xa3PHe+6ufmz
-         YcXwiN5Z8FBqQgZsOo2fADll1EuJIXOcIc07Hjj+8ZYglZNAPafkrhCMEdr4IJRgcBN/
-         yJcg==
-X-Gm-Message-State: AJcUukegZW9H/+IoFt9O/eQPG+wKgeDcA5K3c7CxdLft7FGsX11YYf1L
-        KBnuvYagv9pQE89seqCrj2zPwo1rrUA=
-X-Google-Smtp-Source: ALg8bN5q4/A6GkXF8L1z2swVZZ9HbVJEYQbBc1e5KP/oXZq5jPMklBiJS0K1HVlHyiDAEnErQ+i22g==
-X-Received: by 2002:a50:9291:: with SMTP id k17mr8947875eda.243.1548384612869;
-        Thu, 24 Jan 2019 18:50:12 -0800 (PST)
-Received: from mail-wr1-f46.google.com (mail-wr1-f46.google.com. [209.85.221.46])
-        by smtp.gmail.com with ESMTPSA id p30sm11299201eda.68.2019.01.24.18.50.12
+        bh=Qsc9q74JTnTMEkINAi3mNMqG0l7CnnnP36GPHL0KDdc=;
+        b=nqnEFXn5BqU7rwmHGLdFb6DItoAP9F7HaQegQNLrX7cEjXGrejmkZKLKbKw9lkvTXO
+         avK9Ifq//EByxOEMmWdi367dboV1H/q/ENedVLnqhgjBseZLMc8ccnV8nRdmyfn605To
+         51KKwEsY2bgpl1WOB1HYSi49w7DAXVWLEWImJSGSU/gbX2VqNJzUgd0MPAwzitQ/hZYe
+         6mKW89l5p1tSkvdhDSdIhNKoIEiqXz8yabTINXNYowzOqHHaD8FKYrnbpVcHwOvSlXCD
+         Q5XMKxBbMZ45fTKJJXV+CwuI1dl0V66k96E7xpN0z7ZlOtimRAeywDqtMxqMvXbpxaev
+         AX7w==
+X-Gm-Message-State: AHQUAuY7DjildH4E1FFU6iFP80XSgTpe1afD4bRSIO7CJ7PYQ5mlxFSa
+        zbMNOA5+HBwELpkzqWPdBNB4RCTsvaSVgg==
+X-Google-Smtp-Source: ALg8bN452R0HcKaU6oXe4K2xazA0DM/AXwgt7FNnf3ZcaxZAfEB39EY33Rk1gaVRdlrnKkEe0pkAQQ==
+X-Received: by 2002:aca:b404:: with SMTP id d4mr238497oif.167.1548386886929;
+        Thu, 24 Jan 2019 19:28:06 -0800 (PST)
+Received: from mail-oi1-f176.google.com (mail-oi1-f176.google.com. [209.85.167.176])
+        by smtp.gmail.com with ESMTPSA id 96sm746669ota.28.2019.01.24.19.28.05
+        for <linux-media@vger.kernel.org>
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 24 Jan 2019 18:50:12 -0800 (PST)
-Received: by mail-wr1-f46.google.com with SMTP id p7so8731375wru.0;
-        Thu, 24 Jan 2019 18:50:12 -0800 (PST)
-X-Received: by 2002:adf:891a:: with SMTP id s26mr9414215wrs.44.1548384611813;
- Thu, 24 Jan 2019 18:50:11 -0800 (PST)
+        Thu, 24 Jan 2019 19:28:05 -0800 (PST)
+Received: by mail-oi1-f176.google.com with SMTP id y23so6712770oia.4
+        for <linux-media@vger.kernel.org>; Thu, 24 Jan 2019 19:28:05 -0800 (PST)
+X-Received: by 2002:aca:4586:: with SMTP id s128mr256649oia.182.1548386884807;
+ Thu, 24 Jan 2019 19:28:04 -0800 (PST)
 MIME-Version: 1.0
-References: <20190111173015.12119-1-jernej.skrabec@siol.net>
- <20190121095014.b6iq5dubfi7x2pi4@flea> <CAGb2v66d0wM8Yt2uS4MMhU6PP02h8CKwKjinasO6jtZ4ue1CAQ@mail.gmail.com>
- <2800701.S2xdS7azMu@jernej-laptop>
-In-Reply-To: <2800701.S2xdS7azMu@jernej-laptop>
-From:   Chen-Yu Tsai <wens@csie.org>
-Date:   Fri, 25 Jan 2019 10:49:58 +0800
-X-Gmail-Original-Message-ID: <CAGb2v66wm3ZVjHxqBvU1EgBjj3Dn9keyG8jGrdiiXEFa_HD2kg@mail.gmail.com>
-Message-ID: <CAGb2v66wm3ZVjHxqBvU1EgBjj3Dn9keyG8jGrdiiXEFa_HD2kg@mail.gmail.com>
-Subject: Re: [PATCH 1/3] media: dt: bindings: sunxi-ir: Add A64 compatible
-To:     =?UTF-8?Q?Jernej_=C5=A0krabec?= <jernej.skrabec@siol.net>,
-        Maxime Ripard <maxime.ripard@bootlin.com>
-Cc:     Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
+References: <20181022144901.113852-1-tfiga@chromium.org> <20181022144901.113852-2-tfiga@chromium.org>
+ <cf0fc2fc-72c6-dbca-68f7-a349879a3a14@xs4all.nl> <CAAFQd5AORjMjHdavdr3zM13BnyFnKnEb-0aKNjvwbB_xJEnxgQ@mail.gmail.com>
+ <9b7c1385-d482-6e92-2222-2daa835dbc91@xs4all.nl> <CAAFQd5DwjLt8UeDohzrMausaLGnOStvrmp5p7frYbG1hbGjx3Q@mail.gmail.com>
+ <CAAFQd5BPJv3cbJOWrziEjz_yE32DhfZv9vb-pG1Ltx-KS2=PQg@mail.gmail.com> <3ea3bf5bf9904ce877142c41f595207752172d27.camel@ndufresne.ca>
+In-Reply-To: <3ea3bf5bf9904ce877142c41f595207752172d27.camel@ndufresne.ca>
+From:   Tomasz Figa <tfiga@chromium.org>
+Date:   Fri, 25 Jan 2019 12:27:52 +0900
+X-Gmail-Original-Message-ID: <CAAFQd5C_OD=bvAxG0B_G+T6bnWddPHuiVZApj_8_+4xpMjH9+g@mail.gmail.com>
+Message-ID: <CAAFQd5C_OD=bvAxG0B_G+T6bnWddPHuiVZApj_8_+4xpMjH9+g@mail.gmail.com>
+Subject: Re: [PATCH v2 1/2] media: docs-rst: Document memory-to-memory video
+ decoder interface
+To:     Nicolas Dufresne <nicolas@ndufresne.ca>
+Cc:     Hans Verkuil <hverkuil@xs4all.nl>,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
-        devicetree <devicetree@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        linux-sunxi <linux-sunxi@googlegroups.com>
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Pawel Osciak <posciak@chromium.org>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Kamil Debski <kamil@wypas.org>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Jeongtae Park <jtp.park@samsung.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        =?UTF-8?B?VGlmZmFueSBMaW4gKOael+aFp+ePiik=?= 
+        <tiffany.lin@mediatek.com>,
+        =?UTF-8?B?QW5kcmV3LUNUIENoZW4gKOmZs+aZuui/qik=?= 
+        <andrew-ct.chen@mediatek.com>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Todor Tomov <todor.tomov@linaro.org>,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        dave.stevenson@raspberrypi.org,
+        Ezequiel Garcia <ezequiel@collabora.com>,
+        Maxime Jourdan <maxi.jourdan@wanadoo.fr>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Fri, Jan 25, 2019 at 2:57 AM Jernej Škrabec <jernej.skrabec@siol.net> wrote:
+On Fri, Jan 25, 2019 at 4:55 AM Nicolas Dufresne <nicolas@ndufresne.ca> wro=
+te:
 >
-> Dne ponedeljek, 21. januar 2019 ob 10:57:57 CET je Chen-Yu Tsai napisal(a):
-> > On Mon, Jan 21, 2019 at 5:50 PM Maxime Ripard <maxime.ripard@bootlin.com>
-> wrote:
-> > > Hi,
+> Le jeudi 24 janvier 2019 =C3=A0 18:06 +0900, Tomasz Figa a =C3=A9crit :
+> > > Actually I just realized the last point might not even be achievable
+> > > for some of the decoders (s5p-mfc, mtk-vcodec), as they don't report
+> > > which frame originates from which bitstream buffer and the driver jus=
+t
+> > > picks the most recently consumed OUTPUT buffer to copy the timestamp
+> > > from. (s5p-mfc actually "forgets" to set the timestamp in some cases
+> > > too...)
 > > >
-> > > I'm a bit late to the party, sorry for that.
-> > >
-> > > On Sat, Jan 12, 2019 at 09:56:11AM +0800, Chen-Yu Tsai wrote:
-> > > > On Sat, Jan 12, 2019 at 1:30 AM Jernej Skrabec <jernej.skrabec@siol.net>
-> wrote:
-> > > > > A64 IR is compatible with A13, so add A64 compatible with A13 as a
-> > > > > fallback.
-> > > >
-> > > > We ask people to add the SoC-specific compatible as a contigency,
-> > > > in case things turn out to be not so "compatible".
-> > > >
-> > > > To be consistent with all the other SoCs and other peripherals,
-> > > > unless you already spotted a "compatible" difference in the
-> > > > hardware, i.e. the hardware isn't completely the same, this
-> > > > patch isn't needed. On the other hand, if you did, please mention
-> > > > the differences in the commit log.
-> > >
-> > > Even if we don't spot things, since we have the stable DT now, if we
-> > > ever had that compatible in the DT from day 1, it's much easier to
-> > > deal with.
-> > >
-> > > I'd really like to have that pattern for all the IPs even if we didn't
-> > > spot any issue, since we can't really say that the datasheet are
-> > > complete, and one can always make a mistake and overlook something.
-> > >
-> > > I'm fine with this version, and can apply it as is if we all agree.
+> > > I need to think a bit more about this.
 > >
-> > I'm OK with having the fallback compatible. I'm just pointing out
-> > that there are and will be a whole bunch of them, and we don't need
-> > to document all of them unless we are actually doing something to
-> > support them.
-> >
-> > On the other hand, the compatible string situation for IR needs a
-> > bit of cleaning up at the moment. Right now we have sun4i-a10 and
-> > sun5i-a13. As Jernej pointed out, the A13's register definition is
-> > different from A64 (or any other SoCs later than sun6i). So we need
-> > someone with an A10s/A13 device that has IR to test it and see if
-> > the driver or the manual is wrong, and we'd likely add a compatible
-> > for the A20.
-> >
-> > Also, the earlier SoCs (A10/sun5i/A20) have IR TX capability. This
-> > was lost in A31, and also all of sun8i / sun50i. So we're going to
-> > need to add an A31 compatible that all later platforms would need
-> > to switch to.
+> > Actually I misread the code. Both s5p-mfc and mtk-vcodec seem to
+> > correctly match the buffers.
 >
-> Actually, A13 also doesn't have IR TX capability. So I still think it's best
-> having A13 compatible as a fallback and not A31. Unless A31 was released
-> before A13?
+> Ok good, since otherwise it would have been a regression in MFC driver.
+> This timestamp passing thing could in theory be made optional though,
+> it lives under some COPY_TIMESTAMP kind of flag. What that means though
+> is that a driver without such a capability would need to signal dropped
+> frames using some other mean.
+>
+> In userspace, the main use is to match the produced frame against a
+> userspace specific list of frames. At least this seems to be the case
+> in Gst and Chromium, since the userspace list contains a superset of
+> the metadata found in the v4l2_buffer.
+>
+> Now, using the produced timestamp, userspace can deduce frame that the
+> driver should have produced but didn't (could be a deadline case codec,
+> or simply the frames where corrupted). It's quite normal for a codec to
+> just keep parsing until it finally find something it can decode.
+>
+> That's at least one way to do it, but there is other possible
+> mechanism. The sequence number could be used, or even producing buffers
+> with the ERROR flag set. What matters is just to give userspace a way
+> to clear these frames, which would simply grow userspace memory usage
+> over time.
 
-No, but the A31 IR receiver has some additional bits in the FIFO control
-and status registers, as well as the config register (which controls
-sampling parameters). Looks like the A31 has an improved version. That
-would make it backward compatible, if not for the fact that the FIFO
-level bits are at a different offset, which might have been moved to
-make way for the extra bits. That would make them incompatible. But
-this should really be tested.
+Is it just me or we were missing some consistent error handling then?
 
-So the fallback compatible should be the A31's, not the A13's.
+I feel like the drivers should definitely return the bitstream buffers
+with the ERROR flag, if there is a decode failure of data in the
+buffer. Still, that could become more complicated if there is more
+than 1 frame in that piece of bitstream, but only 1 frame is corrupted
+(or whatever).
 
-The A64's looks like the same hardware as the A31, with two extra bits:
+Another case is when the bitstream, even if corrupted, is still enough
+to produce some output. My intuition tells me that such CAPTURE buffer
+should be then returned with the ERROR flag. That wouldn't still be
+enough for any more sophisticated userspace error concealment, but
+could still let the userspace know to perhaps drop the frame.
 
-  - CGPO: register 0x00, bit offset 8. Controls output level of
-          "non-existing" TX pin
-
-  - DRQ_EN: register 0x2c, bit offset 5. Controls DRQ usage for DMA.
-            Not really useful as there isn't a DMA request line for
-            the hardware.
-
-Both bits are also togglable on the A31, but since actual hardware
-don't support these two features, I think we can ignore them.
-
-So it looks like for the A64 has the same IP block as the A31, in
-which case we won't need the per-SoC compatible as we've done the
-work to compare them.
-
-Maxime, what do you think? And do you guys have any A10s/A13 hardware
-to test the FIFO level bits?
-
-
-Regards
-ChenYu
+Best regards,
+Tomasz
