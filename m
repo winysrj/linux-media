@@ -2,108 +2,141 @@ Return-Path: <SRS0=PLMr=QB=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.0 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_NEOMUTT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 54951C282C6
-	for <linux-media@archiver.kernel.org>; Fri, 25 Jan 2019 15:29:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BA35AC282C0
+	for <linux-media@archiver.kernel.org>; Fri, 25 Jan 2019 15:29:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2DB95218DE
-	for <linux-media@archiver.kernel.org>; Fri, 25 Jan 2019 15:29:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 929F3218CD
+	for <linux-media@archiver.kernel.org>; Fri, 25 Jan 2019 15:29:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726917AbfAYP3Q (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 25 Jan 2019 10:29:16 -0500
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:42499 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726238AbfAYP3Q (ORCPT
+        id S1726321AbfAYP3N (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 25 Jan 2019 10:29:13 -0500
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48990 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1726238AbfAYP3N (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 Jan 2019 10:29:16 -0500
-Received: from [IPv6:2001:420:44c1:2579:d4cf:253b:d711:6098] ([IPv6:2001:420:44c1:2579:d4cf:253b:d711:6098])
-        by smtp-cloud8.xs4all.net with ESMTPA
-        id n3PqgkDKQNR5yn3Pugw8Cz; Fri, 25 Jan 2019 16:29:14 +0100
-To:     Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc:     Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-From:   Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v5.1] vb2 + cedrus fixes/improvements
-Message-ID: <c861f137-c626-090d-b853-5a5c39b50a51@xs4all.nl>
-Date:   Fri, 25 Jan 2019 16:29:10 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.4.0
+        Fri, 25 Jan 2019 10:29:13 -0500
+Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id CCB77634C7B;
+        Fri, 25 Jan 2019 17:28:35 +0200 (EET)
+Received: from sailus by valkosipuli.localdomain with local (Exim 4.89)
+        (envelope-from <sakari.ailus@retiisi.org.uk>)
+        id 1gn3PI-0001Uc-Qk; Fri, 25 Jan 2019 17:28:36 +0200
+Date:   Fri, 25 Jan 2019 17:28:36 +0200
+From:   Sakari Ailus <sakari.ailus@iki.fi>
+To:     Shuah Khan <shuah@kernel.org>
+Cc:     mchehab@kernel.org, perex@perex.cz, tiwai@suse.com,
+        hverkuil@xs4all.nl, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org
+Subject: Re: [PATCH v10 0/4] Media Device Allocator API
+Message-ID: <20190125152836.njwepezj2xf4xp22@valkosipuli.retiisi.org.uk>
+References: <cover.1548360791.git.shuah@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfHcJoxd7h/YFDabj5UnfYnugyjztShNuncE+nUIhCpdeAhsybqO1HTgm++dXr9G/zN2u5wWuQeczWBk09qzCI1ysSk9sWfdqhXnXWxtIOSgTtU8QW1yx
- tGEp9s/bmB0qUTMVEM4irf6gw/T4z00+QXpoSkSygeoSAjFTxQnBIQwGDIcOTreisZ8S9ZcT9o4BPF8zkZhTDb0XcsN9Z2wzzq8SDUDRlK1Al/SOND1xqSF2
- +AIZpc0PRpKq72d+eLQMGi68UltN/PA2VsDOR4Mv8+YlgGpWrWYr1FY5c1f1vzkkkKTqj6dzos/zt3lT9x9qUe+SkzYID2UCxeuHvM/J4S8=
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <cover.1548360791.git.shuah@kernel.org>
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-The first two patches simplify the function to find buffers based on a
-timestamp: the current code only considered DONE and DEQUEUED buffers,
-but that is unnecessarily restrictive.
+Hi Shuah,
 
-The next two patches keep dmabuf-based buffers mapped when they are
-dequeued. This avoids having to re-map them if they are referenced as key
-frames in a stateless codec. This patch has been in use by ChromeOS for
-quite some time and it makes sense.
+On Thu, Jan 24, 2019 at 01:32:37PM -0700, Shuah Khan wrote:
+> Media Device Allocator API to allows multiple drivers share a media device.
+> This API solves a very common use-case for media devices where one physical
+> device (an USB stick) provides both audio and video. When such media device
+> exposes a standard USB Audio class, a proprietary Video class, two or more
+> independent drivers will share a single physical USB bridge. In such cases,
+> it is necessary to coordinate access to the shared resource.
+> 
+> Using this API, drivers can allocate a media device with the shared struct
+> device as the key. Once the media device is allocated by a driver, other
+> drivers can get a reference to it. The media device is released when all
+> the references are released.
 
-It is more efficient in general anyway since you don't want to have to
-map a dmabuf every time you queue it if there is no need for it.
+Thanks for the update. I have to apologise I haven't ended up reviewing the
+set for some time. After taking a look at the current version, I'm happy to
+see that a number of issues recognised during earlier review rounds have
+been addressed.
 
-The final 5 patches fix the sole remaining v4l2-compliance bug vivid and
-vimc for output field handling in requests.
+Would you happen to have a media graph (media-ctl --print-dot and media-ctl
+-p) from the device? That'd help understanding the device a bit better for
+those who are not familiar with it.
 
-Regards,
+> 
+> - This patch series is tested on 5.0-rc3 and addresses comments on
+>   v9 series from Hans Verkuil.
+> - v9 was tested on 4.20-rc6.
+> - Tested sharing resources with kaffeine, vlc, xawtv, tvtime, and
+>   arecord. When analog is streaming, digital and audio user-space
+>   applications detect that the tuner is busy and exit. When digital
+>   is streaming, analog and audio applications detect that the tuner is
+>   busy and exit. When arecord is owns the tuner, digital and analog
+>   detect that the tuner is busy and exit.
+> - Tested media device allocator API with bind/unbind testing on
+>   snd-usb-audio and au0828 drivers to make sure /dev/mediaX is released
+>   only when the last driver is unbound.
+> - Addressed review comments from Hans on the RFC v8 (rebased on 4.19)
+> - Updated change log to describe the use-case more clearly.
+> - No changes to 0001,0002 code since the v7 referenced below.
+> - 0003 is a new patch to enable ALSA defines that have been
+>   disabled for kernel between 4.9 and 4.19.
+> - Minor merge conflict resolution in 0004.
+> - Added SPDX to new files.
+> 
+> Changes since v9:
+> - Patch 1: Fix mutex assert warning from find_module() calls. This
+>   code was written before the change to find_module() that requires
+>   callers to hold module_mutex. I missed this during my testing on
+>   4.20-rc6. Hans Verkuil reported the problem.
+> - Patch 4: sound/usb: Initializes all the entities it can before
+>   registering the device based on comments from Hans Verkuil
+> - Carried Reviewed-by tag from Takashi Iwai for the sound from v9.
+> - No changes to Patches 2 and 3.
+> 
+> References:
+> https://lkml.org/lkml/2018/11/2/169
+> https://www.mail-archive.com/linux-media@vger.kernel.org/msg105854.html
+> 
+> Shuah Khan (4):
+>   media: Media Device Allocator API
+>   media: change au0828 to use Media Device Allocator API
+>   media: media.h: Enable ALSA MEDIA_INTF_T* interface types
+>   sound/usb: Use Media Controller API to share media resources
+> 
+>  Documentation/media/kapi/mc-core.rst   |  41 ++++
+>  drivers/media/Makefile                 |   4 +
+>  drivers/media/media-dev-allocator.c    | 144 +++++++++++
+>  drivers/media/usb/au0828/au0828-core.c |  12 +-
+>  drivers/media/usb/au0828/au0828.h      |   1 +
+>  include/media/media-dev-allocator.h    |  53 ++++
+>  include/uapi/linux/media.h             |  25 +-
+>  sound/usb/Kconfig                      |   4 +
+>  sound/usb/Makefile                     |   2 +
+>  sound/usb/card.c                       |  14 ++
+>  sound/usb/card.h                       |   3 +
+>  sound/usb/media.c                      | 327 +++++++++++++++++++++++++
+>  sound/usb/media.h                      |  74 ++++++
+>  sound/usb/mixer.h                      |   3 +
+>  sound/usb/pcm.c                        |  29 ++-
+>  sound/usb/quirks-table.h               |   1 +
+>  sound/usb/stream.c                     |   2 +
+>  sound/usb/usbaudio.h                   |   6 +
+>  18 files changed, 723 insertions(+), 22 deletions(-)
+>  create mode 100644 drivers/media/media-dev-allocator.c
+>  create mode 100644 include/media/media-dev-allocator.h
+>  create mode 100644 sound/usb/media.c
+>  create mode 100644 sound/usb/media.h
+> 
 
-	Hans
+-- 
+Kind regards,
 
-This PR supersedes https://patchwork.linuxtv.org/patch/54136/, updating
-the last patch with a newer version: https://patchwork.linuxtv.org/patch/54167/
-
-The following changes since commit 337e90ed028643c7acdfd0d31e3224d05ca03d66:
-
-  media: imx-csi: Input connections to CSI should be optional (2019-01-21 16:46:02 -0200)
-
-are available in the Git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git tags/br-v5.1i2
-
-for you to fetch changes up to a50568612b16fd5e42375f2f31a123ff8bc51b60:
-
-  vb2: check that buf_out_validate is present (2019-01-25 16:24:45 +0100)
-
-----------------------------------------------------------------
-Tag branch
-
-----------------------------------------------------------------
-Hans Verkuil (6):
-      vb2: vb2_find_timestamp: drop restriction on buffer state
-      vb2: add buf_out_validate callback
-      vim2m: add buf_out_validate callback
-      vivid: add buf_out_validate callback
-      cedrus: add buf_out_validate callback
-      vb2: check that buf_out_validate is present
-
-Paul Kocialkowski (2):
-      Revert "media: cedrus: Allow using the current dst buffer as reference"
-      media: cedrus: Remove completed item from TODO list (dma-buf references)
-
-Pawel Osciak (1):
-      media: vb2: Keep dma-buf buffers mapped until they are freed
-
- drivers/media/common/videobuf2/videobuf2-core.c   | 33 ++++++++++++++++++++++-----------
- drivers/media/common/videobuf2/videobuf2-v4l2.c   | 20 ++++++++++++--------
- drivers/media/platform/vim2m.c                    | 27 ++++++++++++++++-----------
- drivers/media/platform/vivid/vivid-vid-out.c      | 23 ++++++++++++++++-------
- drivers/staging/media/sunxi/cedrus/TODO           |  5 -----
- drivers/staging/media/sunxi/cedrus/cedrus_dec.c   | 13 -------------
- drivers/staging/media/sunxi/cedrus/cedrus_dec.h   |  2 --
- drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c | 10 ++++------
- drivers/staging/media/sunxi/cedrus/cedrus_video.c |  9 +++++++++
- include/media/videobuf2-core.h                    |  5 +++++
- include/media/videobuf2-v4l2.h                    |  3 +--
- 11 files changed, 85 insertions(+), 65 deletions(-)
+Sakari Ailus
