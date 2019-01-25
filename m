@@ -2,97 +2,92 @@ Return-Path: <SRS0=PLMr=QB=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_NEOMUTT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E9D7C282C0
-	for <linux-media@archiver.kernel.org>; Fri, 25 Jan 2019 15:40:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D7A5C282C0
+	for <linux-media@archiver.kernel.org>; Fri, 25 Jan 2019 15:40:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4BDAA218F0
-	for <linux-media@archiver.kernel.org>; Fri, 25 Jan 2019 15:40:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EA83E218DE
+	for <linux-media@archiver.kernel.org>; Fri, 25 Jan 2019 15:40:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726357AbfAYPkJ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 25 Jan 2019 10:40:09 -0500
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:58702 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726265AbfAYPkJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 Jan 2019 10:40:09 -0500
-Received: from [IPv6:2001:420:44c1:2579:d4cf:253b:d711:6098] ([IPv6:2001:420:44c1:2579:d4cf:253b:d711:6098])
-        by smtp-cloud8.xs4all.net with ESMTPA
-        id n3aOgkMKbNR5yn3aRgwCB5; Fri, 25 Jan 2019 16:40:08 +0100
-From:   Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] vivid: fix vid_out_buf_prepare()
-To:     Linux Media Mailing List <linux-media@vger.kernel.org>
-Message-ID: <edacd7c9-a651-901f-ac41-3bda20b7e642@xs4all.nl>
-Date:   Fri, 25 Jan 2019 16:40:04 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.4.0
+        id S1728230AbfAYPkL (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 25 Jan 2019 10:40:11 -0500
+Received: from mail.bootlin.com ([62.4.15.54]:53883 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726265AbfAYPkL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 25 Jan 2019 10:40:11 -0500
+Received: by mail.bootlin.com (Postfix, from userid 110)
+        id 9176020742; Fri, 25 Jan 2019 16:40:08 +0100 (CET)
+Received: from localhost (aaubervilliers-681-1-87-206.w90-88.abo.wanadoo.fr [90.88.29.206])
+        by mail.bootlin.com (Postfix) with ESMTPSA id 5ADC120397;
+        Fri, 25 Jan 2019 16:39:58 +0100 (CET)
+Date:   Fri, 25 Jan 2019 16:39:58 +0100
+From:   Maxime Ripard <maxime.ripard@bootlin.com>
+To:     Jagan Teki <jagan@amarulasolutions.com>
+Cc:     Steve Longerbeam <slongerbeam@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Michael Trimarchi <michael@amarulasolutions.com>,
+        linux-amarula@amarulasolutions.com
+Subject: Re: [PATCH] media: ov5640: Fix set 15fps regression
+Message-ID: <20190125153958.3aertsxgdzjldlzd@flea>
+References: <20190124175801.28018-1-jagan@amarulasolutions.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfAiMRPpgq7wEGQvrGXBV+/BSwfpRSnphnS1u33OCWdKtR8y+o0ZfEQxmsmn9krHVhDFntjcrgooFfv2Iw6iytlPr8s7FNzYUX9D7y0OuC4dMW624ayt+
- EGTBFFIq6ZN7OmrDL6dha8wiw6VJbyipFJH9ycbuBr+jEEOSHKlqfFKQWhzGlYObN+9hr6Mdo2850yjfxUJb9aoqetjOCnzBVvnKDMJOcBhzMUl6vhv3fsDx
- b+iVyqGVL7D2HYQxQv+yI8m3LsXap3jM7+FA30PdhhxR+MIHb7qBtiS5ozy35OeQ
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="364yr3wufj4pv3uo"
+Content-Disposition: inline
+In-Reply-To: <20190124175801.28018-1-jagan@amarulasolutions.com>
+User-Agent: NeoMutt/20180716
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-The wrong size check was performed for output formats like NV24 which
-set vfmt->buffers to 1, but vfmt->planes is 2. It was incorrectly
-checking the payload size for plane 1, which doesn't exist.
 
-Note: vfmt->buffers refers to the number of per-plane-buffers that
-should be allocated. vfmt->planes refers to the number of planes
-that make up an image. vfmt->planes may be > vfmt->buffers.
+--364yr3wufj4pv3uo
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
----
-diff --git a/drivers/media/platform/vivid/vivid-vid-out.c b/drivers/media/platform/vivid/vivid-vid-out.c
-index e45753a1adde..54e8fb23e336 100644
---- a/drivers/media/platform/vivid/vivid-vid-out.c
-+++ b/drivers/media/platform/vivid/vivid-vid-out.c
-@@ -99,17 +99,20 @@ static int vid_out_buf_out_validate(struct vb2_buffer *vb)
- static int vid_out_buf_prepare(struct vb2_buffer *vb)
- {
- 	struct vivid_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
--	unsigned long size;
--	unsigned planes;
-+	const struct vivid_fmt *vfmt = dev->fmt_out;
-+	unsigned planes = vfmt->buffers;
-+	unsigned h = dev->fmt_out_rect.height;
-+	unsigned size = dev->bytesperline_out[0] * h;
- 	unsigned p;
+On Thu, Jan 24, 2019 at 11:28:01PM +0530, Jagan Teki wrote:
+> The ov5640_try_frame_interval operation updates the FPS as per user
+> input based on default ov5640_frame_rate, OV5640_30_FPS which is failed
+> to update when user trigger 15fps.
+>=20
+> So, initialize the default ov5640_frame_rate to OV5640_15_FPS so-that
+> it can satisfy to update all fps.
+>=20
+> Fixes: 5a3ad937bc78 ("media: ov5640: Make the return rate type more expli=
+cit")
+> Signed-off-by: Jagan Teki <jagan@amarulasolutions.com>
 
-+	for (p = vfmt->buffers; p < vfmt->planes; p++)
-+		size += dev->bytesperline_out[p] * h / vfmt->vdownsampling[p];
-+
- 	dprintk(dev, 1, "%s\n", __func__);
+I'm pretty sure I tested this and it was working fine. You're
+mentionning a regression, but what regression is there exactly (ie,
+what was working before that commit that doesn't work anymore?). What
+tools/commands are you using to see this behaviour?
 
- 	if (WARN_ON(NULL == dev->fmt_out))
- 		return -EINVAL;
+It really isn't obvious from your patch and the patch you mention what
+could go wrong or be improved.
 
--	planes = dev->fmt_out->planes;
--
- 	if (dev->buf_prepare_error) {
- 		/*
- 		 * Error injection: test what happens if buf_prepare() returns
-@@ -120,11 +123,12 @@ static int vid_out_buf_prepare(struct vb2_buffer *vb)
- 	}
+Maxime
 
- 	for (p = 0; p < planes; p++) {
--		size = dev->bytesperline_out[p] * dev->fmt_out_rect.height +
--			vb->planes[p].data_offset;
-+		if (p)
-+			size = dev->bytesperline_out[p] * h;
-+		size += vb->planes[p].data_offset;
+--=20
+Maxime Ripard, Bootlin
+Embedded Linux and Kernel engineering
+https://bootlin.com
 
- 		if (vb2_get_plane_payload(vb, p) < size) {
--			dprintk(dev, 1, "%s the payload is too small for plane %u (%lu < %lu)\n",
-+			dprintk(dev, 1, "%s the payload is too small for plane %u (%lu < %u)\n",
- 					__func__, p, vb2_get_plane_payload(vb, p), size);
- 			return -EINVAL;
- 		}
+--364yr3wufj4pv3uo
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iHUEABYIAB0WIQRcEzekXsqa64kGDp7j7w1vZxhRxQUCXEstzgAKCRDj7w1vZxhR
+xUqJAQCQ/aFQZNYuMsvi68I8+5cbRnDBykNs/HVqsTk0QmT5jwEAj1/hGIOnYqRb
+etr2+87pF2dSusJetWCl6ZprkzqwgA8=
+=10uE
+-----END PGP SIGNATURE-----
+
+--364yr3wufj4pv3uo--
