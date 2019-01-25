@@ -2,110 +2,168 @@ Return-Path: <SRS0=PLMr=QB=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 311EAC282C3
-	for <linux-media@archiver.kernel.org>; Fri, 25 Jan 2019 01:49:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 260CEC282C6
+	for <linux-media@archiver.kernel.org>; Fri, 25 Jan 2019 02:29:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E9956218CD
-	for <linux-media@archiver.kernel.org>; Fri, 25 Jan 2019 01:49:58 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="t1oeCSxC"
+	by mail.kernel.org (Postfix) with ESMTP id E777D218CD
+	for <linux-media@archiver.kernel.org>; Fri, 25 Jan 2019 02:29:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728320AbfAYBt6 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 24 Jan 2019 20:49:58 -0500
-Received: from mail-io1-f68.google.com ([209.85.166.68]:42646 "EHLO
-        mail-io1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727983AbfAYBt6 (ORCPT
+        id S1728567AbfAYC3Y (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 24 Jan 2019 21:29:24 -0500
+Received: from mail-ed1-f66.google.com ([209.85.208.66]:36073 "EHLO
+        mail-ed1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728372AbfAYC3Y (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 Jan 2019 20:49:58 -0500
-Received: by mail-io1-f68.google.com with SMTP id x6so6492212ioa.9
-        for <linux-media@vger.kernel.org>; Thu, 24 Jan 2019 17:49:57 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id;
-        bh=k1eV9OMVLkhnMJCPlXb5Ty01IS0SRm8qx61vOIWEbQM=;
-        b=t1oeCSxC9Ni7+NgDmL7sD1yx4JAzgXC55umOoVWLDtGYxAb+2NKs7tEBiZ9q8fbv8i
-         7THSZSmHBhXTW3LHaUWiU6B/picuhuc454RWNGjKNN1EuSTYoHDjEbAQ98014QABI5ka
-         BN2hmdi5qPIDQ8NHvBJVKEs1k9a02IKBMZxjZGehvellW3MR+Zgxs/dCRxlb4sfAvBsQ
-         ZPez3ySkfI3W23gA71wb5ltXp16ZSUAkBre7uDSq+94fkCWIAwF1P+s4IFG4Ts1SGBOy
-         jpHYX6FuIHT4YN1759Xpw4Hp3HFkYGcHiB86JuC9R6hJQLY1doImuOxvY5E0yujY56SQ
-         rylA==
+        Thu, 24 Jan 2019 21:29:24 -0500
+Received: by mail-ed1-f66.google.com with SMTP id f23so6218885edb.3;
+        Thu, 24 Jan 2019 18:29:22 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id;
-        bh=k1eV9OMVLkhnMJCPlXb5Ty01IS0SRm8qx61vOIWEbQM=;
-        b=XSUUehRC5Kmjcf+rBTp4ER5692BhS1g7cqmMyXP8816nMg1lT76fZa1TtLMdym2pLp
-         PmD5Nnc1+jXMwdEwX0EPd29urqLVArz4z5i0IDszu6phmpVwWoekJ5zb55apeyTA2tdr
-         +iSa9+mvy7JlJM2L4YEs8366YbhR/H4QEFkxsgvP/aZDG+RkDibUPAdCjAQsN+/5XPuy
-         iTuwrKoq5Vr64RKufNodxLkZtauyc6arNRrVxw58M0V+R9fLuZ0zRMWm1RbGRMDh7O+c
-         BxnATB0IipweBAy5VqcTbLNU3e+Xn4rVAgg5bF4rEPbzMMFhjGpSrpdxfk6LrH0oQklg
-         cbVQ==
-X-Gm-Message-State: AJcUukcUmRmBZSLxKtuHeoewhpY+D6j1Y7TmTAtseKtP2BJSxCOHkLjh
-        7Sp8RXM+fcivjmdY/cwr4NsR0lQ5
-X-Google-Smtp-Source: AHgI3IafA8giY3+nVJXbYgNsv4ojMhpjq8qxknwaXEPw+HjpuUhrQTB5R8qzug2Us0FJlDxx5UTc4Q==
-X-Received: by 2002:a6b:b589:: with SMTP id e131mr5066960iof.41.1548380997063;
-        Thu, 24 Jan 2019 17:49:57 -0800 (PST)
-Received: from dragon.Home (71-218-4-112.hlrn.qwest.net. [71.218.4.112])
-        by smtp.gmail.com with ESMTPSA id c21sm9550494iob.22.2019.01.24.17.49.55
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
-        Thu, 24 Jan 2019 17:49:55 -0800 (PST)
-From:   james.hilliard1@gmail.com
-To:     mchehab+samsung@kernel.org
-Cc:     linux-media@vger.kernel.org,
-        James Hilliard <james.hilliard1@gmail.com>
-Subject: [PATCH zbar 1/1] v4l2: add fallback for systems without v4l2_query_ext_ctrl
-Date:   Fri, 25 Jan 2019 09:48:01 +0800
-Message-Id: <1548380881-17340-1-git-send-email-james.hilliard1@gmail.com>
-X-Mailer: git-send-email 2.7.4
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=y+BmC2uXY8ot1UEWIZyOUHne2SSY9VMJ558CzqzKfKE=;
+        b=m+IrvJMhpqHerhk2rlPYt4LR6/+mKKa5cqADLmDqJrgbaJozv7RY0ZloJdxtgvSBcS
+         wzW5KGgNbBK3VeDyndWnBB/6YrCE5YwttylIVlqytlhTZjzCSsvFF1qLzujb/q4qeLAO
+         GFRGZFbdumb6eA+q2A5UtRE+j6XtKY0S1OnGFx6xWz6jQ6ngPtNoZ4h8UX021wnPjCgA
+         +Jvv3BSRGQ0siidByeMXDSNC4ay05MxmV5/4oz1IKgmzz0e2J/zHukr79+NUI+AHbErf
+         J+aScs7Xb2Ja+UMiv2xDOYb7JqlI7/C3xEQ/Z3d0d2xWf1MU+OnYCwPfrECSMth19lp/
+         1DwQ==
+X-Gm-Message-State: AJcUukdVM59x6PrAvAbG0OKzaC+9FfrRz0GxFWLj4DpL/+/SvPgGqtx/
+        QbmACjJA13HsoQmqe4yPCxuwrW+tsqY=
+X-Google-Smtp-Source: ALg8bN73H/aJ0Rd6EKhqi8x+9cflYR71EHar//n0yGIV8LnaM8gAIlfeFQnNvV8aqWZ+CWmhTnWY0g==
+X-Received: by 2002:a50:acc3:: with SMTP id x61mr8785328edc.76.1548383361374;
+        Thu, 24 Jan 2019 18:29:21 -0800 (PST)
+Received: from mail-wr1-f45.google.com (mail-wr1-f45.google.com. [209.85.221.45])
+        by smtp.gmail.com with ESMTPSA id a27sm12056653eda.65.2019.01.24.18.29.20
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 24 Jan 2019 18:29:20 -0800 (PST)
+Received: by mail-wr1-f45.google.com with SMTP id p7so8702693wru.0;
+        Thu, 24 Jan 2019 18:29:20 -0800 (PST)
+X-Received: by 2002:a5d:4f10:: with SMTP id c16mr9694148wru.177.1548383360301;
+ Thu, 24 Jan 2019 18:29:20 -0800 (PST)
+MIME-Version: 1.0
+References: <20190111173015.12119-1-jernej.skrabec@siol.net>
+ <20190111173015.12119-2-jernej.skrabec@siol.net> <CAGb2v66DiqK9sL-hQev4Wy08d9T7f1Yc2DFWJ0gYOnqChJyBRw@mail.gmail.com>
+ <20190121095014.b6iq5dubfi7x2pi4@flea> <CAGb2v66d0wM8Yt2uS4MMhU6PP02h8CKwKjinasO6jtZ4ue1CAQ@mail.gmail.com>
+ <20190122001917.GA31407@bogus> <CAGb2v67YsevDvjvTSh67wJNSJSUBuZ613hQWyorEiSzCUqjjkQ@mail.gmail.com>
+ <CAL_Jsq+u2PdLK3YaYMERHndNpN_PprksPF9gVF+V76c343yrMg@mail.gmail.com>
+In-Reply-To: <CAL_Jsq+u2PdLK3YaYMERHndNpN_PprksPF9gVF+V76c343yrMg@mail.gmail.com>
+From:   Chen-Yu Tsai <wens@csie.org>
+Date:   Fri, 25 Jan 2019 10:29:07 +0800
+X-Gmail-Original-Message-ID: <CAGb2v67saMfK58vSx7=Mhq6Z06Qbj+vmbFv7=psddzB1X-GHkA@mail.gmail.com>
+Message-ID: <CAGb2v67saMfK58vSx7=Mhq6Z06Qbj+vmbFv7=psddzB1X-GHkA@mail.gmail.com>
+Subject: Re: [PATCH 1/3] media: dt: bindings: sunxi-ir: Add A64 compatible
+To:     Rob Herring <robh@kernel.org>
+Cc:     Maxime Ripard <maxime.ripard@bootlin.com>,
+        Jernej Skrabec <jernej.skrabec@siol.net>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        devicetree <devicetree@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        linux-sunxi <linux-sunxi@googlegroups.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-From: James Hilliard <james.hilliard1@gmail.com>
+On Tue, Jan 22, 2019 at 9:38 PM Rob Herring <robh@kernel.org> wrote:
+>
+> On Mon, Jan 21, 2019 at 8:16 PM Chen-Yu Tsai <wens@csie.org> wrote:
+> >
+> > On Tue, Jan 22, 2019 at 8:19 AM Rob Herring <robh@kernel.org> wrote:
+> > >
+> > > On Mon, Jan 21, 2019 at 05:57:57PM +0800, Chen-Yu Tsai wrote:
+> > > > On Mon, Jan 21, 2019 at 5:50 PM Maxime Ripard <maxime.ripard@bootlin.com> wrote:
+> > > > >
+> > > > > Hi,
+> > > > >
+> > > > > I'm a bit late to the party, sorry for that.
+> > > > >
+> > > > > On Sat, Jan 12, 2019 at 09:56:11AM +0800, Chen-Yu Tsai wrote:
+> > > > > > On Sat, Jan 12, 2019 at 1:30 AM Jernej Skrabec <jernej.skrabec@siol.net> wrote:
+> > > > > > >
+> > > > > > > A64 IR is compatible with A13, so add A64 compatible with A13 as a
+> > > > > > > fallback.
+> > > > > >
+> > > > > > We ask people to add the SoC-specific compatible as a contigency,
+> > > > > > in case things turn out to be not so "compatible".
+> > > > > >
+> > > > > > To be consistent with all the other SoCs and other peripherals,
+> > > > > > unless you already spotted a "compatible" difference in the
+> > > > > > hardware, i.e. the hardware isn't completely the same, this
+> > > > > > patch isn't needed. On the other hand, if you did, please mention
+> > > > > > the differences in the commit log.
+> > > > >
+> > > > > Even if we don't spot things, since we have the stable DT now, if we
+> > > > > ever had that compatible in the DT from day 1, it's much easier to
+> > > > > deal with.
+> > > > >
+> > > > > I'd really like to have that pattern for all the IPs even if we didn't
+> > > > > spot any issue, since we can't really say that the datasheet are
+> > > > > complete, and one can always make a mistake and overlook something.
+> > > > >
+> > > > > I'm fine with this version, and can apply it as is if we all agree.
+> > > >
+> > > > I'm OK with having the fallback compatible. I'm just pointing out
+> > > > that there are and will be a whole bunch of them, and we don't need
+> > > > to document all of them unless we are actually doing something to
+> > > > support them.
+> > >
+> > > Yes, you do. Otherwise, how will we validate what is and isn't a valid
+> > > set of compatible strings? It's not required yet, but bindings are
+> > > moving to json-schema.
+> >
+> > Ideally, if we knew which IP blocks in each SoC were compatible with
+> > each other, we wouldn't need "per-SoC" compatible strings for each
+> > block. However in reality this doesn't happen, due to a combination
+> > of lack of time, lack of / uncertainty of documentation, and lack of
+> > hardware for testing by the contributors.
+> >
+> > The per-SoC compatible we ask people to add are a contigency plan,
+> > for when things don't actually work, and we need some way to support
+> > that specific piece of hardware on old DTs.
+>
+> You are right up to here.
+>
+> > At which point we will
+> > add that SoC-specific compatible as a new compatible string to the
+> > bindings. But not before.
+>
+> No, the point SoC-specific compatibles is they are already present in
+> the DT and you only have to update the OS to fix issues. The SoC
+> specific compatible has to be documented when first used in dts files,
+> not when the OS uses them. That is the rule.
 
-Signed-off-by: James Hilliard <james.hilliard1@gmail.com>
----
- zbar/video/v4l2.c | 22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+We also want to be able to differentiate between per-SoC compatibles
+vs actual backwards-compatible tuples, such as
 
-diff --git a/zbar/video/v4l2.c b/zbar/video/v4l2.c
-index 0d18094..1610b95 100644
---- a/zbar/video/v4l2.c
-+++ b/zbar/video/v4l2.c
-@@ -55,6 +55,28 @@
- #define V4L2_FORMATS_MAX 64
- #define V4L2_FORMATS_SIZE_MAX 256
- 
-+#ifndef VIDIOC_QUERY_EXT_CTRL
-+#define VIDIOC_QUERY_EXT_CTRL   _IOWR('V', 103, struct v4l2_query_ext_ctrl)
-+#define V4L2_CTRL_MAX_DIMS    (4)
-+
-+struct v4l2_query_ext_ctrl {
-+    __u32            id;
-+    __u32            type;
-+    char             name[32];
-+    __s64            minimum;
-+    __s64            maximum;
-+    __u64            step;
-+    __s64            default_value;
-+    __u32                flags;
-+    __u32                elem_size;
-+    __u32                elems;
-+    __u32                nr_of_dims;
-+    __u32                dims[V4L2_CTRL_MAX_DIMS];
-+    __u32            reserved[32];
-+};
-+
-+#endif
-+
- typedef struct video_controls_priv_s {
-     struct video_controls_s s;
- 
--- 
-2.7.4
+    - "allwinner,sun8i-r40-rtc", "allwinner,sun8i-h3-rtc"
 
+found in Documentation/devicetree/bindings/rtc/sun6i-rtc.txt .
+
+In the future, if someone has the time to do an in-depth comparison
+and testing, they should be able to deprecated and/or remove the per-SoC
+compatible strings that we added for contingency from the bindings.
+
+As such, I'd like implementors to not target the SoC-specific compatibles,
+unless imcompatiblities are discovered, at which point the bindings would
+also be updated, removing the fallback compatible.
+
+The SoC-specific compatible strings are really a workaround for the lack
+of resources of the community supporting this platform, while being able
+to support DT stability. I want to make it clear in some way visible to
+all that this is an exception, not the norm. And I'd also like to leave
+the door open to later cleanup.
+
+What would be an acceptable way to do this? Add extra notes accompanying
+the per-SoC compatibles?
+
+Regards
+ChenYu
