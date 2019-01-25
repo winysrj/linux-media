@@ -2,69 +2,71 @@ Return-Path: <SRS0=PLMr=QB=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.2 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AA7C6C282C0
-	for <linux-media@archiver.kernel.org>; Fri, 25 Jan 2019 05:34:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 30A23C282C6
+	for <linux-media@archiver.kernel.org>; Fri, 25 Jan 2019 05:37:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6D5D621872
-	for <linux-media@archiver.kernel.org>; Fri, 25 Jan 2019 05:34:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F1DA0218DE
+	for <linux-media@archiver.kernel.org>; Fri, 25 Jan 2019 05:36:59 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="ELPqKfMd"
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="fnGKJpAm"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726273AbfAYFep (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 25 Jan 2019 00:34:45 -0500
-Received: from mail-ot1-f65.google.com ([209.85.210.65]:36047 "EHLO
-        mail-ot1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726100AbfAYFep (ORCPT
+        id S1726681AbfAYFg6 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 25 Jan 2019 00:36:58 -0500
+Received: from mail-ot1-f67.google.com ([209.85.210.67]:37377 "EHLO
+        mail-ot1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726317AbfAYFg5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 Jan 2019 00:34:45 -0500
-Received: by mail-ot1-f65.google.com with SMTP id k98so7518008otk.3
-        for <linux-media@vger.kernel.org>; Thu, 24 Jan 2019 21:34:44 -0800 (PST)
+        Fri, 25 Jan 2019 00:36:57 -0500
+Received: by mail-ot1-f67.google.com with SMTP id s13so7514584otq.4
+        for <linux-media@vger.kernel.org>; Thu, 24 Jan 2019 21:36:56 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=chromium.org; s=google;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=gRXxT5dd8d8+j8LdW5JZWV4AmLZH7T1kf1JeldOAZic=;
-        b=ELPqKfMdoZpJNs4Cp/6kotqNPv9jCHqvoTrGouz4wDUX8l1hlNFZ7jFumds7fqU1pu
-         /tQ68/lKi3QF7vnRYWUYdvniAHMOCqxwVSwvIqQBXxF00LWaGt+1lEnA9TcwlqeGglyU
-         3g6p81DmGTvelvKrg9p0z1NRlTJgYrh6XlSek=
+        bh=xSGOWldl7QkaG5faKqBMKqlpyKWAGBfLsQgLSNcpWLs=;
+        b=fnGKJpAmwwVU0Y5dKlG5+zbGsBMKo+LWAV3ustCc4VOFEm+PkgRBMvsQYgYzCb9Cze
+         XeICRuXp61hMZ0AQj/5iYRKWmiWwOVU1MhYMrz1cLLjGVYvWfDVBiz3K8S261IHlfScf
+         6BL6oSXeiV/k42yBNZr/8FnHAb8obdb2cbU9g=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=gRXxT5dd8d8+j8LdW5JZWV4AmLZH7T1kf1JeldOAZic=;
-        b=Wn/WF6uQJbUJCiqxrXpPEw8C1FxeZEELPIRTMU5c99C+uaeN5m8waWsimVITl+mGW4
-         qT+aE8olzGtfklz/Ue0TaRQEaFNnFM9iKBuR1RJ/BLQJ2uUdu3AGuoazMmZSueLqrD7D
-         5+MjzztFk8ymInLs9juHtqgpQs7FlEOvs/wMNy/jnQRicbSmx6xjdgeUvDYEwz/Wy/YH
-         zIr/HckUTa4YZP87BbYaRPL/BZbC2p3rs3kZnmgrj/JUc7M3jTE3SzIPNmTcxH8unPd7
-         vGMPUzrT0BWYLuW6rWVi4EYgYnavbnwVbJtq2+WlIFzVy4dkww8HbCchFD+Lreg5zex5
-         Jvvg==
-X-Gm-Message-State: AJcUukeFX+h6EDFQL/f6i9vvaX9G9F3v8ogLvpGWgiGz7Y1MyDp8bwJr
-        vnDSKQuQHT5T1TGsy6NWo2buG2cNtkcpzA==
-X-Google-Smtp-Source: ALg8bN6ut5xNa5UNTDBFhqaCJZ69pbleTbNna3Z52i2sExsH5jDhXN3Zj+NZyvPUWCCCY077KhVn+A==
-X-Received: by 2002:a9d:ecd:: with SMTP id 71mr6621175otj.155.1548394484067;
-        Thu, 24 Jan 2019 21:34:44 -0800 (PST)
-Received: from mail-ot1-f41.google.com (mail-ot1-f41.google.com. [209.85.210.41])
-        by smtp.gmail.com with ESMTPSA id c7sm771426otf.59.2019.01.24.21.34.43
+        bh=xSGOWldl7QkaG5faKqBMKqlpyKWAGBfLsQgLSNcpWLs=;
+        b=Ty9VWNjYMaOWWXX085K5Ou2wvDAuH66CTKSOCWTImjnz9m+s4tvO7KC0y1WhrMWaq9
+         IBg+iGrToBKyCrwKBCo77vRaHdM/syrCre6nZRE87MbVU1UhKRx3xu5GyEmfmVDDjW3t
+         LKSIvkBLEIfqpzyLSYw3SmdrrG+QH1HFVsqKgle8wVFbjqATa4WSOGPAXc2zUXS5aie8
+         wOtzTnQAp5dk60tPAFgc7ayYmNeEPFwk4f8fflJDy/M+C3DvS0J2v8x3/Hsh/RDXl1Vu
+         pw7cIN90xv1u+ZFTGrPQPGwShvRCVB4FzQ28n+VPBm/o3YrIJgvptVwge9PvP6t3BczP
+         lj2g==
+X-Gm-Message-State: AJcUukdIQrjHe7RBW+gPYFaLTYwVtNVUlvD1Y33pzh/KmsLSwaDPFPjB
+        C1bWIutQHU8L9xclOyE7z4LXjBh/nai6dg==
+X-Google-Smtp-Source: ALg8bN790p7FRM95f8R0DZ17m5irwLW+o0dK9tl8d90Q3434QPEBkXFERbOxXVvhP0SNEAETuJL/EA==
+X-Received: by 2002:a9d:f44:: with SMTP id 62mr6895980ott.182.1548394616448;
+        Thu, 24 Jan 2019 21:36:56 -0800 (PST)
+Received: from mail-oi1-f182.google.com (mail-oi1-f182.google.com. [209.85.167.182])
+        by smtp.gmail.com with ESMTPSA id i12sm769782otr.74.2019.01.24.21.36.55
         for <linux-media@vger.kernel.org>
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 24 Jan 2019 21:34:43 -0800 (PST)
-Received: by mail-ot1-f41.google.com with SMTP id s13so7511071otq.4
-        for <linux-media@vger.kernel.org>; Thu, 24 Jan 2019 21:34:43 -0800 (PST)
-X-Received: by 2002:a9d:5549:: with SMTP id h9mr6214316oti.83.1548394483048;
- Thu, 24 Jan 2019 21:34:43 -0800 (PST)
+        Thu, 24 Jan 2019 21:36:55 -0800 (PST)
+Received: by mail-oi1-f182.google.com with SMTP id x23so6878609oix.3
+        for <linux-media@vger.kernel.org>; Thu, 24 Jan 2019 21:36:55 -0800 (PST)
+X-Received: by 2002:aca:af53:: with SMTP id y80mr461402oie.170.1548394614764;
+ Thu, 24 Jan 2019 21:36:54 -0800 (PST)
 MIME-Version: 1.0
 References: <20190117162008.25217-1-stanimir.varbanov@linaro.org>
- <CAPBb6MVOPmRhhM=J-RqLOpc+mDbnxYdCMO3mqQfgN-F3b=kBCw@mail.gmail.com> <10deb3d1-2b10-43fe-bc77-4465f561c90a@linaro.org>
-In-Reply-To: <10deb3d1-2b10-43fe-bc77-4465f561c90a@linaro.org>
+ <20190117162008.25217-10-stanimir.varbanov@linaro.org> <CAPBb6MUumC2BmWar3yUmVT8vz8x-Nr_tuMc=1VSJvmQYGdPudw@mail.gmail.com>
+ <580839ce-c98b-8b88-8868-e5df8171923b@linaro.org>
+In-Reply-To: <580839ce-c98b-8b88-8868-e5df8171923b@linaro.org>
 From:   Alexandre Courbot <acourbot@chromium.org>
-Date:   Fri, 25 Jan 2019 14:34:31 +0900
-X-Gmail-Original-Message-ID: <CAPBb6MUqi3xhgE_WPRP_7gZWcH2WGz8A7vskGGJW9zGM0=D1Sw@mail.gmail.com>
-Message-ID: <CAPBb6MUqi3xhgE_WPRP_7gZWcH2WGz8A7vskGGJW9zGM0=D1Sw@mail.gmail.com>
-Subject: Re: [PATCH 00/10] Venus stateful Codec API
+Date:   Fri, 25 Jan 2019 14:36:43 +0900
+X-Gmail-Original-Message-ID: <CAPBb6MXLJnoT5=WkJQb7fmT8wznnth65_Gia04QuG_1-hKAmbg@mail.gmail.com>
+Message-ID: <CAPBb6MXLJnoT5=WkJQb7fmT8wznnth65_Gia04QuG_1-hKAmbg@mail.gmail.com>
+Subject: Re: [PATCH 09/10] venus: vdec: allow bigger sizeimage set by clients
 To:     Stanimir Varbanov <stanimir.varbanov@linaro.org>
 Cc:     Linux Media Mailing List <linux-media@vger.kernel.org>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
@@ -80,39 +82,101 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Thu, Jan 24, 2019 at 7:13 PM Stanimir Varbanov
+On Thu, Jan 24, 2019 at 7:05 PM Stanimir Varbanov
 <stanimir.varbanov@linaro.org> wrote:
 >
 > Hi Alex,
 >
-> Thank you for review and valuable comments!
+> Thanks for the comments!
 >
 > On 1/24/19 10:43 AM, Alexandre Courbot wrote:
-> > Hi Stanimir,
-> >
-> > On Fri, Jan 18, 2019 at 1:20 AM Stanimir Varbanov
+> > On Fri, Jan 18, 2019 at 1:21 AM Stanimir Varbanov
 > > <stanimir.varbanov@linaro.org> wrote:
 > >>
-> >> Hello,
+> >> In most of the cases the client will know better what could be
+> >> the maximum size for compressed data buffers. Change the driver
+> >> to permit the user to set bigger size for the compressed buffer
+> >> but make reasonable sanitation.
 > >>
-> >> This aims to make Venus decoder compliant with stateful Codec API [1].
-> >> The patches 1-9 are preparation for the cherry on the cake patch 10
-> >> which implements the decoder state machine similar to the one in the
-> >> stateful codec API documentation.
+> >> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+> >> ---
+> >>  drivers/media/platform/qcom/venus/vdec.c | 18 +++++++++++++-----
+> >>  1 file changed, 13 insertions(+), 5 deletions(-)
+> >>
+> >> diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
+> >> index 282de21cf2e1..7a9370df7515 100644
+> >> --- a/drivers/media/platform/qcom/venus/vdec.c
+> >> +++ b/drivers/media/platform/qcom/venus/vdec.c
+> >> @@ -142,6 +142,7 @@ vdec_try_fmt_common(struct venus_inst *inst, struct v4l2_format *f)
+> >>         struct v4l2_pix_format_mplane *pixmp = &f->fmt.pix_mp;
+> >>         struct v4l2_plane_pix_format *pfmt = pixmp->plane_fmt;
+> >>         const struct venus_format *fmt;
+> >> +       u32 szimage;
+> >>
+> >>         memset(pfmt[0].reserved, 0, sizeof(pfmt[0].reserved));
+> >>         memset(pixmp->reserved, 0, sizeof(pixmp->reserved));
+> >> @@ -170,14 +171,18 @@ vdec_try_fmt_common(struct venus_inst *inst, struct v4l2_format *f)
+> >>         pixmp->num_planes = fmt->num_planes;
+> >>         pixmp->flags = 0;
+> >>
+> >> -       pfmt[0].sizeimage = venus_helper_get_framesz(pixmp->pixelformat,
+> >> -                                                    pixmp->width,
+> >> -                                                    pixmp->height);
+> >> +       szimage = venus_helper_get_framesz(pixmp->pixelformat, pixmp->width,
+> >> +                                          pixmp->height);
+> >>
+> >> -       if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+> >> +       if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
+> >> +               pfmt[0].sizeimage = szimage;
+> >>                 pfmt[0].bytesperline = ALIGN(pixmp->width, 128);
+> >> -       else
+> >> +       } else {
+> >> +               pfmt[0].sizeimage = clamp_t(u32, pfmt[0].sizeimage, 0, SZ_4M);
+> >> +               if (szimage > pfmt[0].sizeimage)
+> >> +                       pfmt[0].sizeimage = szimage;
 > >
-> > Thanks *a lot* for this series! I am still stress-testing it against
-> > the Chromium decoder tests, but so far it has been rock-solid. I have
-> > a few inline comments on some patches ; I will also want to review the
-> > state machine more thoroughly after refreshing my mind on Tomasz doc,
-> > but this looks pretty promising already.
+> > pfmt[0].sizeimage = max(clamp_t(u32, pfmt[0].sizeimage, 0, SZ_4M),
+> >                                         szimage)?
 >
-> I'm expecting problems with ResetAfterFirstConfigInfo. I don't know why
-> but this test case is very dirty. I'd appreciate any help to decipher
-> what is the sequence of v4l2 calls made by this unittest case.
+> I'm not a big fan to that calling of macro from macro :)
+>
+> What about this:
+>
+>         pfmt[0].sizeimage = clamp_t(u32, pfmt[0].sizeimage, 0, SZ_4M);
+>         pfmt[0].sizeimage = max(pfmt[0].sizeimage, szimage);
 
-I did not see any issue with ResetAfterFirstConfigInfo, however
-ResourceExhaustion seems to hang once in a while. But I could already
-see this behavior with the older patchset.
+Looks fine, I just wanted to make sure that we use the more expressive
+"max" instead of an if statement.
 
-In any case I plan to thoroughly review the state machine. I agree it
-is a bit complex to grasp.
+>
+> >
+> >>                 pfmt[0].bytesperline = 0;
+> >> +       }
+> >>
+> >>         return fmt;
+> >>  }
+> >> @@ -275,6 +280,7 @@ static int vdec_s_fmt(struct file *file, void *fh, struct v4l2_format *f)
+> >>                 inst->ycbcr_enc = pixmp->ycbcr_enc;
+> >>                 inst->quantization = pixmp->quantization;
+> >>                 inst->xfer_func = pixmp->xfer_func;
+> >> +               inst->input_buf_size = pixmp->plane_fmt[0].sizeimage;
+> >>         }
+> >>
+> >>         memset(&format, 0, sizeof(format));
+> >> @@ -737,6 +743,8 @@ static int vdec_queue_setup(struct vb2_queue *q,
+> >>                 sizes[0] = venus_helper_get_framesz(inst->fmt_out->pixfmt,
+> >>                                                     inst->out_width,
+> >>                                                     inst->out_height);
+> >> +               if (inst->input_buf_size > sizes[0])
+> >> +                       sizes[0] = inst->input_buf_size;
+> >
+> >                sizes[0] = max(venus_helper_get_framesz(inst->fmt_out->pixfmt,
+> >                                                    inst->out_width,
+> >                                                  inst->out_height),
+> >                                       inst->input_buf_size)?
+>
+> I think it'd be more readable that way:
+>
+>                 sizes[0] = max(sizes[0], inst->input_buf_size);
+
+Ditto.
