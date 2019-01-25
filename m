@@ -2,83 +2,108 @@ Return-Path: <SRS0=PLMr=QB=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.0 required=3.0
+	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DDE8C282C0
-	for <linux-media@archiver.kernel.org>; Fri, 25 Jan 2019 15:23:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 54951C282C6
+	for <linux-media@archiver.kernel.org>; Fri, 25 Jan 2019 15:29:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5DABC218D0
-	for <linux-media@archiver.kernel.org>; Fri, 25 Jan 2019 15:23:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2DB95218DE
+	for <linux-media@archiver.kernel.org>; Fri, 25 Jan 2019 15:29:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726335AbfAYPXv (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 25 Jan 2019 10:23:51 -0500
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:56803 "EHLO
+        id S1726917AbfAYP3Q (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 25 Jan 2019 10:29:16 -0500
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:42499 "EHLO
         lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726111AbfAYPXv (ORCPT
+        by vger.kernel.org with ESMTP id S1726238AbfAYP3Q (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 Jan 2019 10:23:51 -0500
+        Fri, 25 Jan 2019 10:29:16 -0500
 Received: from [IPv6:2001:420:44c1:2579:d4cf:253b:d711:6098] ([IPv6:2001:420:44c1:2579:d4cf:253b:d711:6098])
         by smtp-cloud8.xs4all.net with ESMTPA
-        id n3Kbgk8sxNR5yn3Kfgw6FK; Fri, 25 Jan 2019 16:23:49 +0100
-Subject: [PATCHv4.1 5/5] vb2: check that buf_out_validate is present
-To:     linux-media@vger.kernel.org
-Cc:     Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-References: <20190116120117.115497-1-hverkuil-cisco@xs4all.nl>
- <20190116120117.115497-6-hverkuil-cisco@xs4all.nl>
-From:   Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Message-ID: <b7debbf9-bd3d-580e-67a1-878946357e58@xs4all.nl>
-Date:   Fri, 25 Jan 2019 16:23:45 +0100
+        id n3PqgkDKQNR5yn3Pugw8Cz; Fri, 25 Jan 2019 16:29:14 +0100
+To:     Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc:     Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+From:   Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v5.1] vb2 + cedrus fixes/improvements
+Message-ID: <c861f137-c626-090d-b853-5a5c39b50a51@xs4all.nl>
+Date:   Fri, 25 Jan 2019 16:29:10 +0100
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
  Thunderbird/60.4.0
 MIME-Version: 1.0
-In-Reply-To: <20190116120117.115497-6-hverkuil-cisco@xs4all.nl>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfEpXf7j2CzUR3LUm1DuPZr3dgJkywvtGpDpOyYxuWv6XFYUqA0k0dN9zil9hd5hKOIqRA9YGYPBXG41C4CjSPn6j0IYoViJwVjs6QmEyhZjV3boh/33N
- AhV/61FI7NaPU3dluxm5W6d5t5+HT5MbwilGLQH5faJI7RRKyxJXKVqw+EXpF3Ze0SR67qVjscHE9H3sFrE36rY1HS1/JO14lfJRYO0p4KrirPbmAAgAGwoD
- 0cA1x1kE/pRI9Pu3BrUonmL3K0W1DCKE29aRYnACpDS9tpEosoCFMoJ3dtUCtK28Q45TRGZPeMTq2m1+cmLf8/cBo8ME/iszHcxKvhbxTsWtsnfRvhUH71Zn
- y1Al5ncnHrazfznI/tRGaIWzSyYAfg==
+X-CMAE-Envelope: MS4wfHcJoxd7h/YFDabj5UnfYnugyjztShNuncE+nUIhCpdeAhsybqO1HTgm++dXr9G/zN2u5wWuQeczWBk09qzCI1ysSk9sWfdqhXnXWxtIOSgTtU8QW1yx
+ tGEp9s/bmB0qUTMVEM4irf6gw/T4z00+QXpoSkSygeoSAjFTxQnBIQwGDIcOTreisZ8S9ZcT9o4BPF8zkZhTDb0XcsN9Z2wzzq8SDUDRlK1Al/SOND1xqSF2
+ +AIZpc0PRpKq72d+eLQMGi68UltN/PA2VsDOR4Mv8+YlgGpWrWYr1FY5c1f1vzkkkKTqj6dzos/zt3lT9x9qUe+SkzYID2UCxeuHvM/J4S8=
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-The buf_out_validate is required for output queues in combination
-with requests. Check this.
+The first two patches simplify the function to find buffers based on a
+timestamp: the current code only considered DONE and DEQUEUED buffers,
+but that is unnecessarily restrictive.
 
-Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
----
-Changes since v4:
+The next two patches keep dmabuf-based buffers mapped when they are
+dequeued. This avoids having to re-map them if they are referenced as key
+frames in a stateless codec. This patch has been in use by ChromeOS for
+quite some time and it makes sense.
 
-- Check for VIDEO_OUTPUT types instead of q->is_output since this is not
-  relevant for e.g. VBI outputs.
----
- drivers/media/common/videobuf2/videobuf2-v4l2.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
+It is more efficient in general anyway since you don't want to have to
+map a dmabuf every time you queue it if there is no need for it.
 
-diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-index 2f3b3ca5bde6..3aeaea3af42a 100644
---- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
-+++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-@@ -409,6 +409,15 @@ static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct media_device *md
- 	 */
- 	if (WARN_ON(!q->ops->buf_request_complete))
- 		return -EINVAL;
-+	/*
-+	 * Make sure this op is implemented by the driver for the output queue.
-+	 * It's easy to forget this callback, but is it important to correctly
-+	 * validate the 'field' value at QBUF time.
-+	 */
-+	if (WARN_ON((q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT ||
-+		     q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) &&
-+		    !q->ops->buf_out_validate))
-+		return -EINVAL;
+The final 5 patches fix the sole remaining v4l2-compliance bug vivid and
+vimc for output field handling in requests.
 
- 	if (vb->state != VB2_BUF_STATE_DEQUEUED) {
- 		dprintk(1, "%s: buffer is not in dequeued state\n", opname);
--- 
-2.20.1
+Regards,
+
+	Hans
+
+This PR supersedes https://patchwork.linuxtv.org/patch/54136/, updating
+the last patch with a newer version: https://patchwork.linuxtv.org/patch/54167/
+
+The following changes since commit 337e90ed028643c7acdfd0d31e3224d05ca03d66:
+
+  media: imx-csi: Input connections to CSI should be optional (2019-01-21 16:46:02 -0200)
+
+are available in the Git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git tags/br-v5.1i2
+
+for you to fetch changes up to a50568612b16fd5e42375f2f31a123ff8bc51b60:
+
+  vb2: check that buf_out_validate is present (2019-01-25 16:24:45 +0100)
+
+----------------------------------------------------------------
+Tag branch
+
+----------------------------------------------------------------
+Hans Verkuil (6):
+      vb2: vb2_find_timestamp: drop restriction on buffer state
+      vb2: add buf_out_validate callback
+      vim2m: add buf_out_validate callback
+      vivid: add buf_out_validate callback
+      cedrus: add buf_out_validate callback
+      vb2: check that buf_out_validate is present
+
+Paul Kocialkowski (2):
+      Revert "media: cedrus: Allow using the current dst buffer as reference"
+      media: cedrus: Remove completed item from TODO list (dma-buf references)
+
+Pawel Osciak (1):
+      media: vb2: Keep dma-buf buffers mapped until they are freed
+
+ drivers/media/common/videobuf2/videobuf2-core.c   | 33 ++++++++++++++++++++++-----------
+ drivers/media/common/videobuf2/videobuf2-v4l2.c   | 20 ++++++++++++--------
+ drivers/media/platform/vim2m.c                    | 27 ++++++++++++++++-----------
+ drivers/media/platform/vivid/vivid-vid-out.c      | 23 ++++++++++++++++-------
+ drivers/staging/media/sunxi/cedrus/TODO           |  5 -----
+ drivers/staging/media/sunxi/cedrus/cedrus_dec.c   | 13 -------------
+ drivers/staging/media/sunxi/cedrus/cedrus_dec.h   |  2 --
+ drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c | 10 ++++------
+ drivers/staging/media/sunxi/cedrus/cedrus_video.c |  9 +++++++++
+ include/media/videobuf2-core.h                    |  5 +++++
+ include/media/videobuf2-v4l2.h                    |  3 +--
+ 11 files changed, 85 insertions(+), 65 deletions(-)
