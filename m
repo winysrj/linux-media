@@ -2,105 +2,142 @@ Return-Path: <SRS0=PLMr=QB=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E931EC282C0
-	for <linux-media@archiver.kernel.org>; Fri, 25 Jan 2019 04:25:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 41BA9C282C0
+	for <linux-media@archiver.kernel.org>; Fri, 25 Jan 2019 04:38:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B351A218A6
-	for <linux-media@archiver.kernel.org>; Fri, 25 Jan 2019 04:25:40 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="JkCjmZbK"
+	by mail.kernel.org (Postfix) with ESMTP id 1067B218CD
+	for <linux-media@archiver.kernel.org>; Fri, 25 Jan 2019 04:38:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727689AbfAYEZk (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 24 Jan 2019 23:25:40 -0500
-Received: from mail-ot1-f44.google.com ([209.85.210.44]:41376 "EHLO
-        mail-ot1-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726761AbfAYEZk (ORCPT
+        id S1726779AbfAYEiV (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 24 Jan 2019 23:38:21 -0500
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:45240 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726271AbfAYEiV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 Jan 2019 23:25:40 -0500
-Received: by mail-ot1-f44.google.com with SMTP id u16so7389969otk.8
-        for <linux-media@vger.kernel.org>; Thu, 24 Jan 2019 20:25:39 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=fsCTTiXzyQ6xv2gh2J5X8YzU5/zodoooceinHbXB2Ys=;
-        b=JkCjmZbKm5lGFyNIb5P7vKztBv9Ldj7AVbQuN/OhBML7gp6XOYvJGgp49i78kNzJtL
-         ws31CNk4kSGmZToAeb/RC+UCFYH/jjVARj0ZVt/ELuNqHB/AT6HG3cSJCQ3BpS2xOg3m
-         LQ70rNjSUR8bZKRg53GWPtqk+YXVB18WED40o=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=fsCTTiXzyQ6xv2gh2J5X8YzU5/zodoooceinHbXB2Ys=;
-        b=Kcf8kNPPuHKbqvjHgCT2RuCY/mi0ARljkjr46UWyT55s8G0pmTGsg0fcGPjEkY6fE6
-         W52lb+RJWr8fS2zh7fxkjWqQUSW6bQVm00lIvRw65uxhey9nw+wOMbY73jFqG/Yb8DYA
-         xLwW+z+FnfkCpuzELS4I/1xzvki1ZsnxZlV4OS5bq+HIg7f5HX9NAHkTRRccz8Pzj5qV
-         w1r0Qrx27o7J4OrP6qkw4dXLd04eDxH0GOdtkST2pBG/na7pFpyGA12BosbtCIqPNDjH
-         SgFOmu+/cO7CM0xRD2sxs/4DyzThLbsauo8F4vlmF6YqiF2HST19Rue6nZFzX2WBUavI
-         jwrw==
-X-Gm-Message-State: AJcUukeb785P3QbkR1Y7VBUKHMNsX5a85IFyQAW2rMZ3wPQxnq+K0Wot
-        SjbfeSKRiiSK12hwr+wpOXxRgs/xQUfmaw==
-X-Google-Smtp-Source: ALg8bN4EYG2lTUC75Khl8WNlEgM5Q3My865IuEHRSMgFI3Z5hM2q5rtX534qsa8BPGDP9h9i+z4aJA==
-X-Received: by 2002:a05:6830:134d:: with SMTP id r13mr6659794otq.337.1548390338654;
-        Thu, 24 Jan 2019 20:25:38 -0800 (PST)
-Received: from mail-oi1-f171.google.com (mail-oi1-f171.google.com. [209.85.167.171])
-        by smtp.gmail.com with ESMTPSA id m89sm808348otc.35.2019.01.24.20.25.37
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 24 Jan 2019 20:25:38 -0800 (PST)
-Received: by mail-oi1-f171.google.com with SMTP id j21so6770738oii.8
-        for <linux-media@vger.kernel.org>; Thu, 24 Jan 2019 20:25:37 -0800 (PST)
-X-Received: by 2002:aca:b882:: with SMTP id i124mr329793oif.127.1548390337349;
- Thu, 24 Jan 2019 20:25:37 -0800 (PST)
-MIME-Version: 1.0
-References: <20181119110903.24383-1-hverkuil@xs4all.nl> <20181119110903.24383-3-hverkuil@xs4all.nl>
- <cdf8bbd9-2f97-bd5e-1819-547b4f75338c@xs4all.nl>
-In-Reply-To: <cdf8bbd9-2f97-bd5e-1819-547b4f75338c@xs4all.nl>
-From:   Tomasz Figa <tfiga@chromium.org>
-Date:   Fri, 25 Jan 2019 13:25:26 +0900
-X-Gmail-Original-Message-ID: <CAAFQd5D8v8SVXOQf9R4wkAVOqu0eH=H_YdqM2d_xF1CrNhm8NQ@mail.gmail.com>
-Message-ID: <CAAFQd5D8v8SVXOQf9R4wkAVOqu0eH=H_YdqM2d_xF1CrNhm8NQ@mail.gmail.com>
-Subject: Re: [PATCHv2.1 2/4] vivid: use per-queue mutexes instead of one
- global mutex.
-To:     Hans Verkuil <hverkuil@xs4all.nl>
-Cc:     Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset="UTF-8"
+        Thu, 24 Jan 2019 23:38:21 -0500
+Received: from localhost ([IPv6:2001:983:e9a7:1:289a:8fe6:506b:fb90])
+        by smtp-cloud8.xs4all.net with ESMTPA
+        id mtFyge9bgNR5ymtFzgswHz; Fri, 25 Jan 2019 05:38:19 +0100
+Message-ID: <92f03e70982b4c025c828db67e5a4294@smtp-cloud8.xs4all.net>
+Date:   Fri, 25 Jan 2019 05:38:18 +0100
+From:   "Hans Verkuil" <hverkuil@xs4all.nl>
+To:     linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+X-CMAE-Envelope: MS4wfDraY+RyV8Hhc1RV85mHc42sFOM8KhZlhu4GyDUsHJn3LTVeIymsArgcloxPzsRre26UECSiu+v33nqGfLh2+SvoUcEsQmv0roXqXIjppITNAsBIugip
+ thCDyvBKjPrI4I9bIxRmsH5PQapvFBw1DYJ0nI8oiwF0Zjoq9G/8wWpTmmXFE2zcd4TdVgoa0bYl0Brt6LORJ4aYMLw4T2O9Tyz0JtMPUUxXWBJc5xMPccv2
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Mon, Nov 19, 2018 at 9:22 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
->
-> From d15ccd98e557a8cef1362cb591eb3011a6d8e1fd Mon Sep 17 00:00:00 2001
-> From: Hans Verkuil <hverkuil@xs4all.nl>
-> Date: Fri, 16 Nov 2018 12:14:31 +0100
-> Subject: [PATCH 2/4] vivid: use per-queue mutexes instead of one global mutex.
->
-> This avoids having to unlock the queue lock in stop_streaming.
->
-> Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
-> Reported-by: syzbot+736c3aae4af7b50d9683@syzkaller.appspotmail.com
-> ---
-> Changes since v2:
-> - add mutex_destroy()
-> ---
->  drivers/media/platform/vivid/vivid-core.c     | 26 +++++++++++++++----
->  drivers/media/platform/vivid/vivid-core.h     |  5 ++++
->  .../media/platform/vivid/vivid-kthread-cap.c  |  2 --
->  .../media/platform/vivid/vivid-kthread-out.c  |  2 --
->  drivers/media/platform/vivid/vivid-sdr-cap.c  |  2 --
->  5 files changed, 26 insertions(+), 11 deletions(-)
->
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Reviewed-by: Tomasz Figa <tfiga@chromium.org>
+Results of the daily build of media_tree:
 
-Best regards,
-Tomasz
+date:			Fri Jan 25 05:00:12 CET 2019
+media-tree git hash:	337e90ed028643c7acdfd0d31e3224d05ca03d66
+media_build git hash:	f7668f7e697810a4ddc2a012dd230119b31abb6d
+v4l-utils git hash:	15ba7170c4576973f742f57947fc0f8e418ab521
+edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
+gcc version:		i686-linux-gcc (GCC) 8.2.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.19.0-1-amd64
+
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.57-i686: OK
+linux-3.16.57-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.123-i686: OK
+linux-3.18.123-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.52-i686: OK
+linux-4.1.52-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.159-i686: OK
+linux-4.4.159-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.131-i686: OK
+linux-4.9.131-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.74-i686: OK
+linux-4.14.74-x86_64: OK
+linux-4.15.18-i686: OK
+linux-4.15.18-x86_64: OK
+linux-4.16.18-i686: OK
+linux-4.16.18-x86_64: OK
+linux-4.17.19-i686: OK
+linux-4.17.19-x86_64: OK
+linux-4.18.12-i686: OK
+linux-4.18.12-x86_64: OK
+linux-4.19.1-i686: OK
+linux-4.19.1-x86_64: OK
+linux-4.20.1-i686: OK
+linux-4.20.1-x86_64: OK
+linux-5.0-rc1-i686: OK
+linux-5.0-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
