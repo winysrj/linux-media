@@ -4,69 +4,69 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-8.2 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 30A23C282C6
-	for <linux-media@archiver.kernel.org>; Fri, 25 Jan 2019 05:37:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CBEF0C282C2
+	for <linux-media@archiver.kernel.org>; Fri, 25 Jan 2019 05:47:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id F1DA0218DE
-	for <linux-media@archiver.kernel.org>; Fri, 25 Jan 2019 05:36:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9B6A0218D2
+	for <linux-media@archiver.kernel.org>; Fri, 25 Jan 2019 05:47:34 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="fnGKJpAm"
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="PeB9KQe5"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726681AbfAYFg6 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 25 Jan 2019 00:36:58 -0500
-Received: from mail-ot1-f67.google.com ([209.85.210.67]:37377 "EHLO
-        mail-ot1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726317AbfAYFg5 (ORCPT
+        id S1726573AbfAYFrc (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 25 Jan 2019 00:47:32 -0500
+Received: from mail-oi1-f195.google.com ([209.85.167.195]:39955 "EHLO
+        mail-oi1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726111AbfAYFrb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 Jan 2019 00:36:57 -0500
-Received: by mail-ot1-f67.google.com with SMTP id s13so7514584otq.4
-        for <linux-media@vger.kernel.org>; Thu, 24 Jan 2019 21:36:56 -0800 (PST)
+        Fri, 25 Jan 2019 00:47:31 -0500
+Received: by mail-oi1-f195.google.com with SMTP id t204so6869117oie.7
+        for <linux-media@vger.kernel.org>; Thu, 24 Jan 2019 21:47:31 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=chromium.org; s=google;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=xSGOWldl7QkaG5faKqBMKqlpyKWAGBfLsQgLSNcpWLs=;
-        b=fnGKJpAmwwVU0Y5dKlG5+zbGsBMKo+LWAV3ustCc4VOFEm+PkgRBMvsQYgYzCb9Cze
-         XeICRuXp61hMZ0AQj/5iYRKWmiWwOVU1MhYMrz1cLLjGVYvWfDVBiz3K8S261IHlfScf
-         6BL6oSXeiV/k42yBNZr/8FnHAb8obdb2cbU9g=
+        bh=r/ayRG9HGZ+VCVHSNU+R3SZYPNToHrif8kI5gbhyYmA=;
+        b=PeB9KQe5RwjogXmolZGzrOSdaUwuiIa9SPMZ7uZR+p33VADVt/hmBKe7Gvk83yL2ps
+         49mwfprMmrthLCKeOvKBpdrC9meRNiU+SMpabshT6Jk6QBShp7Qz4WCh3omz1umo/bOM
+         UUw/EsYDPjvu71fArpbatP5mhqWQO8GH011SQ=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=xSGOWldl7QkaG5faKqBMKqlpyKWAGBfLsQgLSNcpWLs=;
-        b=Ty9VWNjYMaOWWXX085K5Ou2wvDAuH66CTKSOCWTImjnz9m+s4tvO7KC0y1WhrMWaq9
-         IBg+iGrToBKyCrwKBCo77vRaHdM/syrCre6nZRE87MbVU1UhKRx3xu5GyEmfmVDDjW3t
-         LKSIvkBLEIfqpzyLSYw3SmdrrG+QH1HFVsqKgle8wVFbjqATa4WSOGPAXc2zUXS5aie8
-         wOtzTnQAp5dk60tPAFgc7ayYmNeEPFwk4f8fflJDy/M+C3DvS0J2v8x3/Hsh/RDXl1Vu
-         pw7cIN90xv1u+ZFTGrPQPGwShvRCVB4FzQ28n+VPBm/o3YrIJgvptVwge9PvP6t3BczP
-         lj2g==
-X-Gm-Message-State: AJcUukdIQrjHe7RBW+gPYFaLTYwVtNVUlvD1Y33pzh/KmsLSwaDPFPjB
-        C1bWIutQHU8L9xclOyE7z4LXjBh/nai6dg==
-X-Google-Smtp-Source: ALg8bN790p7FRM95f8R0DZ17m5irwLW+o0dK9tl8d90Q3434QPEBkXFERbOxXVvhP0SNEAETuJL/EA==
-X-Received: by 2002:a9d:f44:: with SMTP id 62mr6895980ott.182.1548394616448;
-        Thu, 24 Jan 2019 21:36:56 -0800 (PST)
-Received: from mail-oi1-f182.google.com (mail-oi1-f182.google.com. [209.85.167.182])
-        by smtp.gmail.com with ESMTPSA id i12sm769782otr.74.2019.01.24.21.36.55
+        bh=r/ayRG9HGZ+VCVHSNU+R3SZYPNToHrif8kI5gbhyYmA=;
+        b=lLipUqbnqHN9Pd04qbQXhLr7cwvUMpTVSXyJtOrrf+TABrkpsZfZ4lBPUw61apSDbU
+         tjO+zvjTl3Z0Ms6+EvUJKUL+Rnk9CqOemCp/w9h870Z5RdbChp+5OVRJNgNOZe+YAjgL
+         mt8XHzaeL71yZGXEeGMxfL8Fn35IDkKWpk6U1OvOqW6WhFNiGAogRu2CXhn+ptOTynck
+         X4jVfUiJs1fLsWwwoqSakytoAORle42WPWQmagcgoKy6nb4uA/vAGkVcGPFJeJXd5T5l
+         +ah0OWZhb8Ne8hncVYouUyvVIskJ4Zc7+X3KIbt/7whwDUySo8nXoi5V762HyZ9QREh3
+         io1w==
+X-Gm-Message-State: AJcUukdTery7iiZIU1dOC9bAIuBYewY8kyujkTUhnHIKpwj25xWRjynh
+        gWAwyfppA1rkVtTx355kCcukFk4lXQzyAg==
+X-Google-Smtp-Source: ALg8bN7IkO7PZkzinDeJNaZOHLIJ5+M+qKxQM/oFK2OsXNoaFrB1gGYqM8n+HTQdoucVy7GBLANKEA==
+X-Received: by 2002:aca:e386:: with SMTP id a128mr434053oih.79.1548395250649;
+        Thu, 24 Jan 2019 21:47:30 -0800 (PST)
+Received: from mail-oi1-f176.google.com (mail-oi1-f176.google.com. [209.85.167.176])
+        by smtp.gmail.com with ESMTPSA id j1sm832533otl.43.2019.01.24.21.47.29
         for <linux-media@vger.kernel.org>
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 24 Jan 2019 21:36:55 -0800 (PST)
-Received: by mail-oi1-f182.google.com with SMTP id x23so6878609oix.3
-        for <linux-media@vger.kernel.org>; Thu, 24 Jan 2019 21:36:55 -0800 (PST)
-X-Received: by 2002:aca:af53:: with SMTP id y80mr461402oie.170.1548394614764;
- Thu, 24 Jan 2019 21:36:54 -0800 (PST)
+        Thu, 24 Jan 2019 21:47:29 -0800 (PST)
+Received: by mail-oi1-f176.google.com with SMTP id x23so6891980oix.3
+        for <linux-media@vger.kernel.org>; Thu, 24 Jan 2019 21:47:29 -0800 (PST)
+X-Received: by 2002:aca:ad14:: with SMTP id w20mr441640oie.3.1548395249401;
+ Thu, 24 Jan 2019 21:47:29 -0800 (PST)
 MIME-Version: 1.0
 References: <20190117162008.25217-1-stanimir.varbanov@linaro.org>
- <20190117162008.25217-10-stanimir.varbanov@linaro.org> <CAPBb6MUumC2BmWar3yUmVT8vz8x-Nr_tuMc=1VSJvmQYGdPudw@mail.gmail.com>
- <580839ce-c98b-8b88-8868-e5df8171923b@linaro.org>
-In-Reply-To: <580839ce-c98b-8b88-8868-e5df8171923b@linaro.org>
+ <20190117162008.25217-8-stanimir.varbanov@linaro.org> <CAPBb6MVPhpZkCLFhAfPhE83TSpnCjH4Zy4-Mage5s=LkU9_RzA@mail.gmail.com>
+ <47e2feac-3dbe-280d-0523-2226225a6733@linaro.org>
+In-Reply-To: <47e2feac-3dbe-280d-0523-2226225a6733@linaro.org>
 From:   Alexandre Courbot <acourbot@chromium.org>
-Date:   Fri, 25 Jan 2019 14:36:43 +0900
-X-Gmail-Original-Message-ID: <CAPBb6MXLJnoT5=WkJQb7fmT8wznnth65_Gia04QuG_1-hKAmbg@mail.gmail.com>
-Message-ID: <CAPBb6MXLJnoT5=WkJQb7fmT8wznnth65_Gia04QuG_1-hKAmbg@mail.gmail.com>
-Subject: Re: [PATCH 09/10] venus: vdec: allow bigger sizeimage set by clients
+Date:   Fri, 25 Jan 2019 14:47:17 +0900
+X-Gmail-Original-Message-ID: <CAPBb6MU+oV3gX=EmdVawnVBEtfs4roNxYVee0d2PLNKxb31F7A@mail.gmail.com>
+Message-ID: <CAPBb6MU+oV3gX=EmdVawnVBEtfs4roNxYVee0d2PLNKxb31F7A@mail.gmail.com>
+Subject: Re: [PATCH 07/10] venus: helpers: add three more helper functions
 To:     Stanimir Varbanov <stanimir.varbanov@linaro.org>
 Cc:     Linux Media Mailing List <linux-media@vger.kernel.org>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
@@ -82,101 +82,46 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Thu, Jan 24, 2019 at 7:05 PM Stanimir Varbanov
+On Thu, Jan 24, 2019 at 5:54 PM Stanimir Varbanov
 <stanimir.varbanov@linaro.org> wrote:
 >
 > Hi Alex,
 >
-> Thanks for the comments!
+> Thanks for the review!
 >
 > On 1/24/19 10:43 AM, Alexandre Courbot wrote:
 > > On Fri, Jan 18, 2019 at 1:21 AM Stanimir Varbanov
 > > <stanimir.varbanov@linaro.org> wrote:
 > >>
-> >> In most of the cases the client will know better what could be
-> >> the maximum size for compressed data buffers. Change the driver
-> >> to permit the user to set bigger size for the compressed buffer
-> >> but make reasonable sanitation.
+> >> This adds three more helper functions:
+> >>  * for internal buffers reallocation, applicable when we are doing
+> >> dynamic resolution change
+> >>  * for initial buffer processing of capture and output queue buffer
+> >> types
+> >>
+> >> All of them will be needed for stateful Codec API support.
 > >>
 > >> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 > >> ---
-> >>  drivers/media/platform/qcom/venus/vdec.c | 18 +++++++++++++-----
-> >>  1 file changed, 13 insertions(+), 5 deletions(-)
+> >>  drivers/media/platform/qcom/venus/helpers.c | 82 +++++++++++++++++++++
+> >>  drivers/media/platform/qcom/venus/helpers.h |  2 +
+> >>  2 files changed, 84 insertions(+)
 > >>
-> >> diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
-> >> index 282de21cf2e1..7a9370df7515 100644
-> >> --- a/drivers/media/platform/qcom/venus/vdec.c
-> >> +++ b/drivers/media/platform/qcom/venus/vdec.c
-> >> @@ -142,6 +142,7 @@ vdec_try_fmt_common(struct venus_inst *inst, struct v4l2_format *f)
-> >>         struct v4l2_pix_format_mplane *pixmp = &f->fmt.pix_mp;
-> >>         struct v4l2_plane_pix_format *pfmt = pixmp->plane_fmt;
-> >>         const struct venus_format *fmt;
-> >> +       u32 szimage;
-> >>
-> >>         memset(pfmt[0].reserved, 0, sizeof(pfmt[0].reserved));
-> >>         memset(pixmp->reserved, 0, sizeof(pixmp->reserved));
-> >> @@ -170,14 +171,18 @@ vdec_try_fmt_common(struct venus_inst *inst, struct v4l2_format *f)
-> >>         pixmp->num_planes = fmt->num_planes;
-> >>         pixmp->flags = 0;
-> >>
-> >> -       pfmt[0].sizeimage = venus_helper_get_framesz(pixmp->pixelformat,
-> >> -                                                    pixmp->width,
-> >> -                                                    pixmp->height);
-> >> +       szimage = venus_helper_get_framesz(pixmp->pixelformat, pixmp->width,
-> >> +                                          pixmp->height);
-> >>
-> >> -       if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
-> >> +       if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
-> >> +               pfmt[0].sizeimage = szimage;
-> >>                 pfmt[0].bytesperline = ALIGN(pixmp->width, 128);
-> >> -       else
-> >> +       } else {
-> >> +               pfmt[0].sizeimage = clamp_t(u32, pfmt[0].sizeimage, 0, SZ_4M);
-> >> +               if (szimage > pfmt[0].sizeimage)
-> >> +                       pfmt[0].sizeimage = szimage;
-> >
-> > pfmt[0].sizeimage = max(clamp_t(u32, pfmt[0].sizeimage, 0, SZ_4M),
-> >                                         szimage)?
->
-> I'm not a big fan to that calling of macro from macro :)
->
-> What about this:
->
->         pfmt[0].sizeimage = clamp_t(u32, pfmt[0].sizeimage, 0, SZ_4M);
->         pfmt[0].sizeimage = max(pfmt[0].sizeimage, szimage);
-
-Looks fine, I just wanted to make sure that we use the more expressive
-"max" instead of an if statement.
-
->
-> >
-> >>                 pfmt[0].bytesperline = 0;
-> >> +       }
-> >>
-> >>         return fmt;
+> >> diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
+> >> index f33bbfea3576..637ce7b82d94 100644
+> >> --- a/drivers/media/platform/qcom/venus/helpers.c
+> >> +++ b/drivers/media/platform/qcom/venus/helpers.c
+> >> @@ -322,6 +322,52 @@ int venus_helper_intbufs_free(struct venus_inst *inst)
 > >>  }
-> >> @@ -275,6 +280,7 @@ static int vdec_s_fmt(struct file *file, void *fh, struct v4l2_format *f)
-> >>                 inst->ycbcr_enc = pixmp->ycbcr_enc;
-> >>                 inst->quantization = pixmp->quantization;
-> >>                 inst->xfer_func = pixmp->xfer_func;
-> >> +               inst->input_buf_size = pixmp->plane_fmt[0].sizeimage;
-> >>         }
+> >>  EXPORT_SYMBOL_GPL(venus_helper_intbufs_free);
 > >>
-> >>         memset(&format, 0, sizeof(format));
-> >> @@ -737,6 +743,8 @@ static int vdec_queue_setup(struct vb2_queue *q,
-> >>                 sizes[0] = venus_helper_get_framesz(inst->fmt_out->pixfmt,
-> >>                                                     inst->out_width,
-> >>                                                     inst->out_height);
-> >> +               if (inst->input_buf_size > sizes[0])
-> >> +                       sizes[0] = inst->input_buf_size;
+> >> +int venus_helper_intbufs_realloc(struct venus_inst *inst)
 > >
-> >                sizes[0] = max(venus_helper_get_framesz(inst->fmt_out->pixfmt,
-> >                                                    inst->out_width,
-> >                                                  inst->out_height),
-> >                                       inst->input_buf_size)?
+> > Does this function actually reallocate buffers? It seems to just free
+> > what we had previously.
 >
-> I think it'd be more readable that way:
->
->                 sizes[0] = max(sizes[0], inst->input_buf_size);
+> The function free all internal buffers except PERSIST. After that the
+> buffers are allocated in intbufs_set_buffer function (I know that the
+> function name is misleading).
 
-Ditto.
+Yeah, that's what I felt - do you think you can fix this for clarity?
