@@ -2,142 +2,113 @@ Return-Path: <SRS0=XDLN=QC=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B0E9C282C3
-	for <linux-media@archiver.kernel.org>; Sat, 26 Jan 2019 04:35:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A3F1C282C7
+	for <linux-media@archiver.kernel.org>; Sat, 26 Jan 2019 11:06:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2829C218B0
-	for <linux-media@archiver.kernel.org>; Sat, 26 Jan 2019 04:35:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1781B217D7
+	for <linux-media@archiver.kernel.org>; Sat, 26 Jan 2019 11:06:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726030AbfAZEfT (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 25 Jan 2019 23:35:19 -0500
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:51805 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725924AbfAZEfT (ORCPT
+        id S1726362AbfAZLG0 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sat, 26 Jan 2019 06:06:26 -0500
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:54295 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726262AbfAZLG0 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 Jan 2019 23:35:19 -0500
-Received: from localhost ([IPv6:2001:983:e9a7:1:610b:e711:3236:fd0d])
-        by smtp-cloud8.xs4all.net with ESMTPA
-        id nFgags0o0NR5ynFgbgyUgo; Sat, 26 Jan 2019 05:35:17 +0100
-Message-ID: <3e08505550a4ea2885fe4cbdf2cc0de8@smtp-cloud8.xs4all.net>
-Date:   Sat, 26 Jan 2019 05:35:16 +0100
-From:   "Hans Verkuil" <hverkuil@xs4all.nl>
-To:     linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-X-CMAE-Envelope: MS4wfHGv7tkwoR81c5vFDBiUJAaEO7j/42Vm5lYTwryOndScx+kQsCXpZc31yTKCCP78KpMCSy97y8pfb9IWOB1UMOPMNToaJdee8eEpdvL3YFlUvc8SYrYH
- bjaawsG9+vt0QKGzln/+r0N1CmnDKr0vMRH/2LRnL/rRdhq1F6PZEac35RxuQyezQdAaxUz2M6PiBK4TggHpED7Lk2AIRbzWaigu3McQh4maT6omlTeX7rI0
+        Sat, 26 Jan 2019 06:06:26 -0500
+Received: from [192.168.2.10] ([212.251.195.8])
+        by smtp-cloud7.xs4all.net with ESMTPA
+        id nLn1gc44KBDyInLn5gjlnI; Sat, 26 Jan 2019 12:06:24 +0100
+From:   Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [RFC PATCH] videodev2.h: introduce VIDIOC_DQEXTEVENT
+To:     Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc:     Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Message-ID: <700eff44-b903-24d0-ef41-e634e643a200@xs4all.nl>
+Date:   Sat, 26 Jan 2019 12:06:19 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.4.0
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-CMAE-Envelope: MS4wfKCFUC1bHSd/qsYXZUGs/55Qfh8b78PyX3SBmZO8nuF8eZIs6HTZjwPfORpFg9JeP6nEBdnIvniwoj41ZUfSYs+YIElXq2GhNQZcMOmOk3h5XCOgTFci
+ I3VeDvmena5eAHGj8LzMGGvQ08tyXuoXDyboyox2A5lYfniWDfqkEbTJv/yklDQNeu3heGHGETURSUHMFDjVNQhraUICt+l+W6e6ClkblTFxAeNlXkGrwEJs
+ VKsZbgYRkgcueOiTjVgemIgt7bqnzXDj+qV0XfUfjFc=
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+This patch adds an extended version of VIDIOC_DQEVENT that:
 
-Results of the daily build of media_tree:
+1) is Y2038 safe by using a __u64 for the timestamp
+2) needs no compat32 conversion code
+3) is able to handle control events from 64-bit control types
+   by changing the type of the minimum, maximum, step and default_value
+   field to __u64
 
-date:			Sat Jan 26 05:00:12 CET 2019
-media-tree git hash:	49179ff480ee51c096253c8e4092f7cdeb81ca91
-media_build git hash:	f7668f7e697810a4ddc2a012dd230119b31abb6d
-v4l-utils git hash:	15ba7170c4576973f742f57947fc0f8e418ab521
-edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.19.0-1-amd64
+All drivers and frameworks will be using this, and v4l2-ioctl.c would be the
+only place where the old event ioctl and structs are used.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: WARNINGS
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: ERRORS
-linux-3.10.108-x86_64: ERRORS
-linux-3.11.10-i686: ERRORS
-linux-3.11.10-x86_64: ERRORS
-linux-3.12.74-i686: ERRORS
-linux-3.12.74-x86_64: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.79-i686: ERRORS
-linux-3.14.79-x86_64: ERRORS
-linux-3.15.10-i686: ERRORS
-linux-3.15.10-x86_64: ERRORS
-linux-3.16.57-i686: ERRORS
-linux-3.16.57-x86_64: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.123-i686: ERRORS
-linux-3.18.123-x86_64: ERRORS
-linux-3.19.8-i686: ERRORS
-linux-3.19.8-x86_64: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.52-i686: ERRORS
-linux-4.1.52-x86_64: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.159-i686: ERRORS
-linux-4.4.159-x86_64: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.10-i686: ERRORS
-linux-4.7.10-x86_64: ERRORS
-linux-4.8.17-i686: ERRORS
-linux-4.8.17-x86_64: ERRORS
-linux-4.9.131-i686: ERRORS
-linux-4.9.131-x86_64: ERRORS
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.74-i686: OK
-linux-4.14.74-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: OK
-linux-4.19.1-i686: OK
-linux-4.19.1-x86_64: OK
-linux-4.20.1-i686: OK
-linux-4.20.1-x86_64: OK
-linux-5.0-rc1-i686: OK
-linux-5.0-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+---
+Please let me know if there are additional requests for such a new ioctl.
 
-Detailed results are available here:
+Note that I am using number 104 for the ioctl, but perhaps it would be better to
+use an unused ioctl number like 1 or 3. There are quite a few holes in the
+ioctl numbers. We currently have only 82 ioctls, yet are up to ioctl number 103.
+---
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 9a920f071ff9..969e775b8c25 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -2303,6 +2303,37 @@ struct v4l2_event {
+ 	__u32				reserved[8];
+ };
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
++struct v4l2_event_ext_ctrl {
++	__u32 changes;
++	__u32 type;
++	union {
++		__s32 value;
++		__s64 value64;
++	};
++	__s64 minimum;
++	__s64 maximum;
++	__s64 step;
++	__s64 default_value;
++	__u32 flags;
++};
++
++struct v4l2_ext_event {
++	__u32				type;
++	__u32				id;
++	union {
++		struct v4l2_event_vsync		vsync;
++		struct v4l2_event_ext_ctrl	ctrl;
++		struct v4l2_event_frame_sync	frame_sync;
++		struct v4l2_event_src_change	src_change;
++		struct v4l2_event_motion_det	motion_det;
++		__u8				data[64];
++	} u;
++	__u64				timestamp;
++	__u32				pending;
++	__u32				sequence;
++	__u32				reserved[8];
++};
++
+ #define V4L2_EVENT_SUB_FL_SEND_INITIAL		(1 << 0)
+ #define V4L2_EVENT_SUB_FL_ALLOW_FEEDBACK	(1 << 1)
 
-Full logs are available here:
+@@ -2475,6 +2506,7 @@ struct v4l2_create_buffers {
+ #define VIDIOC_DBG_G_CHIP_INFO  _IOWR('V', 102, struct v4l2_dbg_chip_info)
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+ #define VIDIOC_QUERY_EXT_CTRL	_IOWR('V', 103, struct v4l2_query_ext_ctrl)
++#define	VIDIOC_DQEXTEVENT	 _IOR('V', 104, struct v4l2_ext_event)
 
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+ /* Reminder: when adding new ioctls please add support for them to
+    drivers/media/v4l2-core/v4l2-compat-ioctl32.c as well! */
