@@ -2,142 +2,143 @@ Return-Path: <SRS0=ymVG=QE=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 01FFEC282C8
-	for <linux-media@archiver.kernel.org>; Mon, 28 Jan 2019 04:39:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B8BA1C282C8
+	for <linux-media@archiver.kernel.org>; Mon, 28 Jan 2019 06:01:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id CBA8120882
-	for <linux-media@archiver.kernel.org>; Mon, 28 Jan 2019 04:39:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7901C20989
+	for <linux-media@archiver.kernel.org>; Mon, 28 Jan 2019 06:01:29 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="Uyoff7v8"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726682AbfA1EjR (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sun, 27 Jan 2019 23:39:17 -0500
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:38326 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726627AbfA1EjQ (ORCPT
+        id S1726150AbfA1GB3 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 28 Jan 2019 01:01:29 -0500
+Received: from mail-oi1-f196.google.com ([209.85.167.196]:42238 "EHLO
+        mail-oi1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726137AbfA1GB2 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 27 Jan 2019 23:39:16 -0500
-Received: from localhost ([IPv6:2001:983:e9a7:1:3ddf:f296:a5f7:b41f])
-        by smtp-cloud8.xs4all.net with ESMTPA
-        id nyhVgJqPTNR5ynyhWg6I5Z; Mon, 28 Jan 2019 05:39:14 +0100
-Message-ID: <8520401fcb6f217c777cc4c204c7820d@smtp-cloud8.xs4all.net>
-Date:   Mon, 28 Jan 2019 05:39:13 +0100
-From:   "Hans Verkuil" <hverkuil@xs4all.nl>
-To:     linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-X-CMAE-Envelope: MS4wfFzfJ4P6Eae3+MTSkLfWZ3kyNLOLqWSAxQx/+F8L+snPVV0wk9S+7cGh7BP9Pa1x2Kd3VqaDDBWtxEg3J+wI9J0PQIcnj598D39bUMsp7jTK+VG3F8LJ
- 2fSujUkQ02cfz2E9qRiy7/SzZ29w0CO0BAV8c8PdG3kZlmdcHEp87PUYPI9MOHYllHtfS9forkQv1wYhK9p7AkfhO9XsjLTTT277CsHc6DyU+1ZB8yPnhQc5
+        Mon, 28 Jan 2019 01:01:28 -0500
+Received: by mail-oi1-f196.google.com with SMTP id w13so12072655oiw.9
+        for <linux-media@vger.kernel.org>; Sun, 27 Jan 2019 22:01:28 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=vFcdm97ZQVqY+sV8pPGkw6BS+L2oAzaBBnHbL8dP6qY=;
+        b=Uyoff7v8XzH8f5DxoBbglk0HZJLuF+9E8p7lxgKwVrvu5ZYWUGmCiADjNdzSzDki9M
+         dn31m0DG6cwz/d8+NwWxZI5CL2SMMzbEKpvOXMMgXKMY14+ciHrdd9LNFavU5QXk+l0Q
+         eMU36ihXXuctBaDC0u8ivl7W6QrPxSq8SdAYw=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=vFcdm97ZQVqY+sV8pPGkw6BS+L2oAzaBBnHbL8dP6qY=;
+        b=UnWVDEcB/9pdNE3bYWHskOcu0gijwJgpr88GBPSC5CQemtSwILb9oo6WKkNHLYM0LR
+         ha71jpEqG1syEZfqygc/V6QSC3iy4NaidMrc9tKAuQhm5d/gE+3b+Ihz7Vk6V0hg8S41
+         6hI+6mz/sMNvSLoPQ15Ej2toUByMu0syI7YXTqXcaUMMGcnXEHNB/vhaRb3SUZcVnh8F
+         TxE4dk3CSd+LSpWPJjHE111wE27EOxLMoTtxeg3302g3W2w24L4EQzKvEL25C2lID3ps
+         puLwIh7yknmKUWdB1CeuE+e0rtPrkVclfsnqe2VRZhgEIXPC1waC60fGiGFwHZV5D6ve
+         qxMg==
+X-Gm-Message-State: AHQUAua5FBd2ulvpvcUw1LLbV8R30lJoLYH9eqdoRUO1aSchMYgYDGCY
+        8I21m54V+/9Pt/cySYTn27MBSemrvJY=
+X-Google-Smtp-Source: ALg8bN5g9PgnW0sDHRnSVcSfOr0bTHSXhA34STuESLlyhZZ/ZR8BWfRzxmtPX3L67qVoeVyaBCxyXA==
+X-Received: by 2002:aca:7c5:: with SMTP id 188mr4856423oih.313.1548655287691;
+        Sun, 27 Jan 2019 22:01:27 -0800 (PST)
+Received: from mail-oi1-f182.google.com (mail-oi1-f182.google.com. [209.85.167.182])
+        by smtp.gmail.com with ESMTPSA id j23sm4679896oih.22.2019.01.27.22.01.27
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Sun, 27 Jan 2019 22:01:27 -0800 (PST)
+Received: by mail-oi1-f182.google.com with SMTP id x202so12062523oif.13
+        for <linux-media@vger.kernel.org>; Sun, 27 Jan 2019 22:01:27 -0800 (PST)
+X-Received: by 2002:a54:4486:: with SMTP id v6mr5215060oiv.233.1548654879619;
+ Sun, 27 Jan 2019 21:54:39 -0800 (PST)
+MIME-Version: 1.0
+References: <20181115145650.9827-1-maxime.ripard@bootlin.com> <20181115145650.9827-2-maxime.ripard@bootlin.com>
+In-Reply-To: <20181115145650.9827-2-maxime.ripard@bootlin.com>
+From:   Alexandre Courbot <acourbot@chromium.org>
+Date:   Mon, 28 Jan 2019 14:54:27 +0900
+X-Gmail-Original-Message-ID: <CAPBb6MX9=+k=5M-w7SyCUAKUceAXN7UG_6==tFx4RhR13Etdwg@mail.gmail.com>
+Message-ID: <CAPBb6MX9=+k=5M-w7SyCUAKUceAXN7UG_6==tFx4RhR13Etdwg@mail.gmail.com>
+Subject: Re: [PATCH v2 1/2] media: uapi: Add H264 low-level decoder API
+ compound controls.
+To:     Maxime Ripard <maxime.ripard@bootlin.com>
+Cc:     Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Pawel Osciak <posciak@chromium.org>,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        linux-arm-kernel@lists.infradead.org,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        jenskuske@gmail.com, linux-sunxi@googlegroups.com,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Guenter Roeck <groeck@chromium.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Thu, Nov 15, 2018 at 11:56 PM Maxime Ripard
+<maxime.ripard@bootlin.com> wrote:
+>
+> From: Pawel Osciak <posciak@chromium.org>
+>
+> Stateless video codecs will require both the H264 metadata and slices in
+> order to be able to decode frames.
+>
+> This introduces the definitions for a new pixel format for H264 slices that
+> have been parsed, as well as the structures used to pass the metadata from
+> the userspace to the kernel.
+>
+> Co-Developed-by: Maxime Ripard <maxime.ripard@bootlin.com>
+> Signed-off-by: Pawel Osciak <posciak@chromium.org>
+> Signed-off-by: Guenter Roeck <groeck@chromium.org>
+> Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
 
-Results of the daily build of media_tree:
+<snip>
 
-date:			Mon Jan 28 05:00:12 CET 2019
-media-tree git hash:	c9d06df612977a88c484668ad0a37bc8e4463b22
-media_build git hash:	1a933036b3084d42da904aa2c037c4c62888cc8c
-v4l-utils git hash:	15ba7170c4576973f742f57947fc0f8e418ab521
-edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.19.0-1-amd64
+> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+> index b854cceb19dc..e96c453208e8 100644
+> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> @@ -825,6 +825,11 @@ const char *v4l2_ctrl_get_name(u32 id)
+>         case V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER:return "H264 Number of HC Layers";
+>         case V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER_QP:
+>                                                                 return "H264 Set QP Value for HC Layers";
+> +       case V4L2_CID_MPEG_VIDEO_H264_SPS:                      return "H264 SPS";
+> +       case V4L2_CID_MPEG_VIDEO_H264_PPS:                      return "H264 PPS";
+> +       case V4L2_CID_MPEG_VIDEO_H264_SCALING_MATRIX:           return "H264 Scaling Matrix";
+> +       case V4L2_CID_MPEG_VIDEO_H264_SLICE_PARAMS:             return "H264 Slice Parameters";
+> +       case V4L2_CID_MPEG_VIDEO_H264_DECODE_PARAMS:            return "H264 Decode Parameters";
+>         case V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP:              return "MPEG4 I-Frame QP Value";
+>         case V4L2_CID_MPEG_VIDEO_MPEG4_P_FRAME_QP:              return "MPEG4 P-Frame QP Value";
+>         case V4L2_CID_MPEG_VIDEO_MPEG4_B_FRAME_QP:              return "MPEG4 B-Frame QP Value";
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.123-i686: OK
-linux-3.18.123-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.159-i686: OK
-linux-4.4.159-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.131-i686: OK
-linux-4.9.131-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.74-i686: OK
-linux-4.14.74-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: OK
-linux-4.19.1-i686: OK
-linux-4.19.1-x86_64: OK
-linux-4.20.1-i686: OK
-linux-4.20.1-x86_64: OK
-linux-5.0-rc1-i686: OK
-linux-5.0-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+To make things future-proof I think it may be good to add a control
+specifying the granularity of data sent with each request (see
+https://lkml.org/lkml/2019/1/24/147).
 
-Detailed results are available here:
+Right now we have a consensus that to make things simple, we request
+one frame of encoded data per request. But this will probably be
+relaxed in the future, since allowing to process things at lower
+granularity may improve latency. Moreover the granularity accepted by
+the encoder is hardware/firmware dependent, so it is probably a good
+idea to expose this from the beginning.
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
+How about a new V4L2_CID_MPEG_VIDEO_H264_GRANULARITY control with only
+one value at the moment, namely
+V4L2_MPEG_VIDEO_H264_GRANULARITY_FRAME? We could extend this in the
+future, and that way user-space will have no excuse for not checking
+that the codec supports the input granularity it will send.
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+I'm wondering whether this could be made codec-independent, but I'm
+afraid this would add confusion.
