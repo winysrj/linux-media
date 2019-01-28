@@ -6,51 +6,50 @@ X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
 	SPF_PASS,USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 133B8C282C8
-	for <linux-media@archiver.kernel.org>; Mon, 28 Jan 2019 15:49:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D639C282CD
+	for <linux-media@archiver.kernel.org>; Mon, 28 Jan 2019 16:02:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D1F3C2147A
-	for <linux-media@archiver.kernel.org>; Mon, 28 Jan 2019 15:49:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 056F42175B
+	for <linux-media@archiver.kernel.org>; Mon, 28 Jan 2019 16:02:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1548690573;
-	bh=JwVKGIIUqqF4B3yc+9c0UvQLqdZqH2Lasggm9SGi/e0=;
+	s=default; t=1548691336;
+	bh=khEciF1J8C5dG2EQcIl21l4X5RDmspjmIGFXJSMYwDs=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=JF8ZdTh/2HqlCrXbw2Z1p0Nrr9vn3qqRqCjwYeh9Rpt3MTqvyXZGZ5jurPJ57CPlr
-	 1NhgstgHNONCbEmeXWVcbP2copOsp2A5P5Dl85w3GdGfsPFUtrKnw+BhsyPZMyH3Qw
-	 Mppg9ctoTlw2duFVvMl443QygE0YhmeA77rYaWk0=
+	b=IDglfOK57TrkysNzxroqZEANl0Dr2HlH0BpuREQfKsJUrIdQjq/0FRWGQGSDAOw5i
+	 lzLrvm9c81xW/yM5zlCZ6f0J9R2r+Thiam69S3kgh1XuElcdMZW42rOX+2SW2iwtv1
+	 wSYahfpWqLVsfu0gZ34NldjHuoO+9oUTX9OeMHhA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728284AbfA1Pt1 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 28 Jan 2019 10:49:27 -0500
-Received: from mail.kernel.org ([198.145.29.99]:35182 "EHLO mail.kernel.org"
+        id S1731167AbfA1QCC (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 28 Jan 2019 11:02:02 -0500
+Received: from mail.kernel.org ([198.145.29.99]:47210 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728706AbfA1PtY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 28 Jan 2019 10:49:24 -0500
+        id S1731159AbfA1QCA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 28 Jan 2019 11:02:00 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 6DD9B21783;
-        Mon, 28 Jan 2019 15:49:21 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 657DA2175B;
+        Mon, 28 Jan 2019 16:01:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1548690564;
-        bh=JwVKGIIUqqF4B3yc+9c0UvQLqdZqH2Lasggm9SGi/e0=;
+        s=default; t=1548691319;
+        bh=khEciF1J8C5dG2EQcIl21l4X5RDmspjmIGFXJSMYwDs=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=XT1UsiX+uBO2k8q7yZd2qbrIFlRXZUbPR9PG4WZdEpQft+WDNoHcTSVQekrzOgwUp
-         yIzwkqK7RXpvuIN9oZm08RVAzmdIjj8d3VaoJuC/fOWVYNP4pCY3eDA9hGtTeSsGg1
-         rTaw8PwY6Lwq+QDuRDFpfWwr0W9b+ThfUKWM5X6U=
+        b=rUcCFGV9a3p+Xnr5bP8DJu7ie6S1moD59y0rKJvQ2ixHQ7GhsLwejewVTN0SFREQv
+         MhpDLUMD2hkz2xR0EooLyCcgJiT90XRYovPDd0TI2Qu2kKzQZwkmDYviuPcUxR+NOT
+         l4gTKcHdhK/l0HDjeoinZ4cYICEUv6UmGM6hVvqc=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Luca Ceresoli <luca@lucaceresoli.net>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
+Cc:     Alexey Khoroshilov <khoroshilov@ispras.ru>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
         Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
         Sasha Levin <sashal@kernel.org>, linux-media@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.20 126/304] media: imx274: select REGMAP_I2C
-Date:   Mon, 28 Jan 2019 10:40:43 -0500
-Message-Id: <20190128154341.47195-126-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 057/258] media: mtk-vcodec: Release device nodes in mtk_vcodec_init_enc_pm()
+Date:   Mon, 28 Jan 2019 10:56:03 -0500
+Message-Id: <20190128155924.51521-57-sashal@kernel.org>
 X-Mailer: git-send-email 2.19.1
-In-Reply-To: <20190128154341.47195-1-sashal@kernel.org>
-References: <20190128154341.47195-1-sashal@kernel.org>
+In-Reply-To: <20190128155924.51521-1-sashal@kernel.org>
+References: <20190128155924.51521-1-sashal@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 X-Patchwork-Hint: Ignore
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
@@ -58,43 +57,62 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-From: Luca Ceresoli <luca@lucaceresoli.net>
+From: Alexey Khoroshilov <khoroshilov@ispras.ru>
 
-[ Upstream commit 4f9d7225c70dd9d3f406b79e60f8dbd2cd5ae743 ]
+[ Upstream commit 8ea0f2ba0fa3f91ea1b8d823a54b042026ada6b3 ]
 
-The imx274 driver uses regmap and the build will fail without it.
+of_parse_phandle() returns the device node with refcount incremented.
+There are two nodes that are used temporary in mtk_vcodec_init_enc_pm(),
+but their refcounts are not decremented.
 
-Fixes:
+The patch adds one of_node_put() and fixes returning error codes.
 
-  drivers/media/i2c/imx274.c:142:21: error: variable ‘imx274_regmap_config’ has initializer but incomplete type
-   static const struct regmap_config imx274_regmap_config = {
-                       ^~~~~~~~~~~~~
-  drivers/media/i2c/imx274.c:1869:19: error: implicit declaration of function ‘devm_regmap_init_i2c’ [-Werror=implicit-function-declaration]
-    imx274->regmap = devm_regmap_init_i2c(client, &imx274_regmap_config);
-                     ^~~~~~~~~~~~~~~~~~~~
+Found by Linux Driver Verification project (linuxtesting.org).
 
-and others.
-
-Signed-off-by: Luca Ceresoli <luca@lucaceresoli.net>
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
+Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
 Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/media/i2c/Kconfig | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_pm.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-index f4714bd6fef0..421e2fd2481d 100644
---- a/drivers/media/i2c/Kconfig
-+++ b/drivers/media/i2c/Kconfig
-@@ -611,6 +611,7 @@ config VIDEO_IMX274
- 	tristate "Sony IMX274 sensor support"
- 	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
- 	depends on MEDIA_CAMERA_SUPPORT
-+	select REGMAP_I2C
- 	---help---
- 	  This is a V4L2 sensor driver for the Sony IMX274
- 	  CMOS image sensor.
+diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_pm.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_pm.c
+index 3e73e9db781f..7c025045ea90 100644
+--- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_pm.c
++++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_pm.c
+@@ -41,25 +41,27 @@ int mtk_vcodec_init_enc_pm(struct mtk_vcodec_dev *mtkdev)
+ 	node = of_parse_phandle(dev->of_node, "mediatek,larb", 0);
+ 	if (!node) {
+ 		mtk_v4l2_err("no mediatek,larb found");
+-		return -1;
++		return -ENODEV;
+ 	}
+ 	pdev = of_find_device_by_node(node);
++	of_node_put(node);
+ 	if (!pdev) {
+ 		mtk_v4l2_err("no mediatek,larb device found");
+-		return -1;
++		return -ENODEV;
+ 	}
+ 	pm->larbvenc = &pdev->dev;
+ 
+ 	node = of_parse_phandle(dev->of_node, "mediatek,larb", 1);
+ 	if (!node) {
+ 		mtk_v4l2_err("no mediatek,larb found");
+-		return -1;
++		return -ENODEV;
+ 	}
+ 
+ 	pdev = of_find_device_by_node(node);
++	of_node_put(node);
+ 	if (!pdev) {
+ 		mtk_v4l2_err("no mediatek,larb device found");
+-		return -1;
++		return -ENODEV;
+ 	}
+ 
+ 	pm->larbvenclt = &pdev->dev;
 -- 
 2.19.1
 
