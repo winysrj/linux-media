@@ -7,45 +7,46 @@ X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 90EA3C282C8
-	for <linux-media@archiver.kernel.org>; Mon, 28 Jan 2019 17:47:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DE4CBC282C8
+	for <linux-media@archiver.kernel.org>; Mon, 28 Jan 2019 17:47:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5EEF32175B
-	for <linux-media@archiver.kernel.org>; Mon, 28 Jan 2019 17:47:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AC56C2175B
+	for <linux-media@archiver.kernel.org>; Mon, 28 Jan 2019 17:47:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1548697648;
-	bh=TAmGb1Xgkz1iCflV6tbClJSsCWqJ1LRWmLtsCjC2ULA=;
+	s=default; t=1548697663;
+	bh=khEciF1J8C5dG2EQcIl21l4X5RDmspjmIGFXJSMYwDs=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=NE62rppuXYRMZkGX0dkiQkWhegrSDHiT4pOeXisM7m62zThBeAVTd53DA8vse1aVt
-	 kWmenRlz/syCoGjWojfWNj24RzKnTGRtzEJ489DlecK8e4idYr21M2jdgy9nCdbj2U
-	 5FIp4WvjWctTXFwcbKjlTGSiGj6EJVh+NnRqoqwU=
+	b=kl5XC3lYrB3aqKweotuF+mP0ueJy3FNGqQpeNP4aitno25xydqvCj8uO3I7KS4uFp
+	 3BYNXz4DeP6mUugUO7030nUKthXdtGtnHlWmjasZgIDqQhj5VPHypF6roTaauzLCXi
+	 KZljOmPnT8GyRucQK6bg3Z8Ac2TKwJQ5j9g668aM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727995AbfA1Pq2 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 28 Jan 2019 10:46:28 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59868 "EHLO mail.kernel.org"
+        id S1727342AbfA1Rri (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 28 Jan 2019 12:47:38 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59498 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727371AbfA1Pq1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 28 Jan 2019 10:46:27 -0500
+        id S1727930AbfA1PqE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 28 Jan 2019 10:46:04 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id A4E6820880;
-        Mon, 28 Jan 2019 15:46:25 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id E5F6C2147A;
+        Mon, 28 Jan 2019 15:46:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1548690387;
-        bh=TAmGb1Xgkz1iCflV6tbClJSsCWqJ1LRWmLtsCjC2ULA=;
+        s=default; t=1548690364;
+        bh=khEciF1J8C5dG2EQcIl21l4X5RDmspjmIGFXJSMYwDs=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=aEBy9wAAwCEbJMLcz6r+oWZG1zewRL+BIAqvOJxK/U7DP5GsKdcp+NsOksewxyR2y
-         pa/Z/asoNNOzbNQsRitq1AXCvwKGH9yOPX01UAU1VTvt19ZvmLVV10I6/C2qdMBd2l
-         44TZ536MM+yNT5b1e+fKuvHR25N11K9lS9X2hbuw=
+        b=Tsu/tjCiNq/61ub34291Xmtpj0/Z71gMYAAWyK6GNy0osz3OWHHzElcRl0aEIcnqo
+         JHaQhXHYF+joSxC/8fiPr61io7YovOJRF0iCZE/vpO/cZhTnw7Rjk915iBZ9z20hL/
+         WQwKE5NilydDJUwW2ysmQQfxu9B9eVLkmTVSHdpY=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Hans Verkuil <hverkuil-cisco@xs4all.nl>,
+Cc:     Alexey Khoroshilov <khoroshilov@ispras.ru>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
         Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
         Sasha Levin <sashal@kernel.org>, linux-media@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.20 069/304] media: vivid: fill in media_device bus_info
-Date:   Mon, 28 Jan 2019 10:39:46 -0500
-Message-Id: <20190128154341.47195-69-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.20 065/304] media: mtk-vcodec: Release device nodes in mtk_vcodec_init_enc_pm()
+Date:   Mon, 28 Jan 2019 10:39:42 -0500
+Message-Id: <20190128154341.47195-65-sashal@kernel.org>
 X-Mailer: git-send-email 2.19.1
 In-Reply-To: <20190128154341.47195-1-sashal@kernel.org>
 References: <20190128154341.47195-1-sashal@kernel.org>
@@ -57,35 +58,62 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-From: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+From: Alexey Khoroshilov <khoroshilov@ispras.ru>
 
-[ Upstream commit e10b40f3304360d3a2d07d690ff12197f828f2c8 ]
+[ Upstream commit 8ea0f2ba0fa3f91ea1b8d823a54b042026ada6b3 ]
 
-If you create multiple vivid instances, each with their own media
-device, then there was no way to tell them apart.
+of_parse_phandle() returns the device node with refcount incremented.
+There are two nodes that are used temporary in mtk_vcodec_init_enc_pm(),
+but their refcounts are not decremented.
 
-Fill in the bus_info so each instance has a unique bus_info string.
+The patch adds one of_node_put() and fixes returning error codes.
 
-Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+Found by Linux Driver Verification project (linuxtesting.org).
+
+Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
+Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
 Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/media/platform/vivid/vivid-core.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_pm.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
-index 626e2b24a403..ec1b1a8ea775 100644
---- a/drivers/media/platform/vivid/vivid-core.c
-+++ b/drivers/media/platform/vivid/vivid-core.c
-@@ -669,6 +669,8 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_pm.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_pm.c
+index 3e73e9db781f..7c025045ea90 100644
+--- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_pm.c
++++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_pm.c
+@@ -41,25 +41,27 @@ int mtk_vcodec_init_enc_pm(struct mtk_vcodec_dev *mtkdev)
+ 	node = of_parse_phandle(dev->of_node, "mediatek,larb", 0);
+ 	if (!node) {
+ 		mtk_v4l2_err("no mediatek,larb found");
+-		return -1;
++		return -ENODEV;
+ 	}
+ 	pdev = of_find_device_by_node(node);
++	of_node_put(node);
+ 	if (!pdev) {
+ 		mtk_v4l2_err("no mediatek,larb device found");
+-		return -1;
++		return -ENODEV;
+ 	}
+ 	pm->larbvenc = &pdev->dev;
  
- 	/* Initialize media device */
- 	strlcpy(dev->mdev.model, VIVID_MODULE_NAME, sizeof(dev->mdev.model));
-+	snprintf(dev->mdev.bus_info, sizeof(dev->mdev.bus_info),
-+		 "platform:%s-%03d", VIVID_MODULE_NAME, inst);
- 	dev->mdev.dev = &pdev->dev;
- 	media_device_init(&dev->mdev);
- 	dev->mdev.ops = &vivid_media_ops;
+ 	node = of_parse_phandle(dev->of_node, "mediatek,larb", 1);
+ 	if (!node) {
+ 		mtk_v4l2_err("no mediatek,larb found");
+-		return -1;
++		return -ENODEV;
+ 	}
+ 
+ 	pdev = of_find_device_by_node(node);
++	of_node_put(node);
+ 	if (!pdev) {
+ 		mtk_v4l2_err("no mediatek,larb device found");
+-		return -1;
++		return -ENODEV;
+ 	}
+ 
+ 	pm->larbvenclt = &pdev->dev;
 -- 
 2.19.1
 
