@@ -2,187 +2,92 @@ Return-Path: <SRS0=ymVG=QE=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.0 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DEB99C282C8
-	for <linux-media@archiver.kernel.org>; Mon, 28 Jan 2019 10:54:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 489CAC282CF
+	for <linux-media@archiver.kernel.org>; Mon, 28 Jan 2019 11:02:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id B41B52148E
-	for <linux-media@archiver.kernel.org>; Mon, 28 Jan 2019 10:54:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 20E9020882
+	for <linux-media@archiver.kernel.org>; Mon, 28 Jan 2019 11:02:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726681AbfA1Kyx (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 28 Jan 2019 05:54:53 -0500
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:47872 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726611AbfA1Kyx (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 28 Jan 2019 05:54:53 -0500
-Received: from [192.168.2.10] ([212.251.195.8])
-        by smtp-cloud7.xs4all.net with ESMTPA
-        id o4YxgmIJrBDyIo4Z0gnjyg; Mon, 28 Jan 2019 11:54:51 +0100
-Subject: Re: [RFC PATCH] videodev2.h: introduce VIDIOC_DQEXTEVENT
-To:     Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc:     Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <700eff44-b903-24d0-ef41-e634e643a200@xs4all.nl>
- <20190128092128.3ir4pp66wb3aujf5@paasikivi.fi.intel.com>
- <b0a90af3-f59e-3a9a-3a6a-1735c31c4ceb@xs4all.nl>
- <20190128104118.ku3mxa56xaocceza@paasikivi.fi.intel.com>
-From:   Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <4a139a71-b096-4c8f-caea-c1b433c62ba8@xs4all.nl>
-Date:   Mon, 28 Jan 2019 11:54:47 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.4.0
+        id S1726672AbfA1LCY (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 28 Jan 2019 06:02:24 -0500
+Received: from mail.bootlin.com ([62.4.15.54]:50292 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726648AbfA1LCY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 28 Jan 2019 06:02:24 -0500
+Received: by mail.bootlin.com (Postfix, from userid 110)
+        id DB27C209A7; Mon, 28 Jan 2019 12:02:20 +0100 (CET)
+Received: from localhost (aaubervilliers-681-1-87-206.w90-88.abo.wanadoo.fr [90.88.29.206])
+        by mail.bootlin.com (Postfix) with ESMTPSA id 9FDF220714;
+        Mon, 28 Jan 2019 12:02:10 +0100 (CET)
+Date:   Mon, 28 Jan 2019 12:02:11 +0100
+From:   Maxime Ripard <maxime.ripard@bootlin.com>
+To:     Jagan Teki <jagan@amarulasolutions.com>
+Cc:     Yong Deng <yong.deng@magewell.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Chen-Yu Tsai <wens@csie.org>, Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-kernel@vger.kernel.org,
+        Michael Trimarchi <michael@amarulasolutions.com>,
+        linux-amarula@amarulasolutions.com, devicetree@vger.kernel.org,
+        linux-sunxi@googlegroups.com
+Subject: Re: [PATCH v8 2/5] media: sun6i: Add A64 CSI block support
+Message-ID: <20190128110211.fmbnudcfrw2rnqya@flea>
+References: <20190128085847.7217-1-jagan@amarulasolutions.com>
+ <20190128085847.7217-3-jagan@amarulasolutions.com>
 MIME-Version: 1.0
-In-Reply-To: <20190128104118.ku3mxa56xaocceza@paasikivi.fi.intel.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfBszZpC3V3jOTIL7bwpABMfRBtc1DaoFB19ma4ZiRt/bF2Opr/3FIAwYqytyxZUiGZh5DKAybgT1eRr6KnMUXAO+oYn5PqfO4nvURb30OBpcqT9/6NfY
- Je49yYMlosSy67BnM9nCY5ONbVvrSMwiZvcxiX/UVtHdVyS0B0hzlcUj750NDgx+345nrdNdSygquKrrhhjwKLd0FSi4M5v4cO2UIe+DarbSHLbbHKoP3qYl
- 6h5d3l0e9xABQmauY8FCvBlsqsZ8vKMSXE+3/5muMLE=
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="6okpvrlphzl3mugw"
+Content-Disposition: inline
+In-Reply-To: <20190128085847.7217-3-jagan@amarulasolutions.com>
+User-Agent: NeoMutt/20180716
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On 1/28/19 11:41 AM, Sakari Ailus wrote:
-> Hi Hans,
-> 
-> On Mon, Jan 28, 2019 at 10:52:40AM +0100, Hans Verkuil wrote:
->> On 1/28/19 10:21 AM, Sakari Ailus wrote:
->>> Hi Hans,
->>>
->>> Thanks for the patch.
->>>
->>> On Sat, Jan 26, 2019 at 12:06:19PM +0100, Hans Verkuil wrote:
->>>> This patch adds an extended version of VIDIOC_DQEVENT that:
->>>>
->>>> 1) is Y2038 safe by using a __u64 for the timestamp
->>>> 2) needs no compat32 conversion code
->>>> 3) is able to handle control events from 64-bit control types
->>>>    by changing the type of the minimum, maximum, step and default_value
->>>>    field to __u64
->>>>
->>>> All drivers and frameworks will be using this, and v4l2-ioctl.c would be the
->>>> only place where the old event ioctl and structs are used.
->>>>
->>>> Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
->>>> ---
->>>> Please let me know if there are additional requests for such a new ioctl.
->>>>
->>>> Note that I am using number 104 for the ioctl, but perhaps it would be better to
->>>> use an unused ioctl number like 1 or 3. There are quite a few holes in the
->>>> ioctl numbers. We currently have only 82 ioctls, yet are up to ioctl number 103.
->>>> ---
->>>> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
->>>> index 9a920f071ff9..969e775b8c25 100644
->>>> --- a/include/uapi/linux/videodev2.h
->>>> +++ b/include/uapi/linux/videodev2.h
->>>> @@ -2303,6 +2303,37 @@ struct v4l2_event {
->>>>  	__u32				reserved[8];
->>>>  };
->>>>
->>>> +struct v4l2_event_ext_ctrl {
->>>> +	__u32 changes;
->>>> +	__u32 type;
->>>> +	union {
->>>> +		__s32 value;
->>>> +		__s64 value64;
->>>> +	};
->>>> +	__s64 minimum;
->>>> +	__s64 maximum;
->>>> +	__s64 step;
->>>> +	__s64 default_value;
->>>> +	__u32 flags;
->>>> +};
->>>> +
->>>> +struct v4l2_ext_event {
->>>> +	__u32				type;
->>>> +	__u32				id;
->>>> +	union {
->>>> +		struct v4l2_event_vsync		vsync;
->>>> +		struct v4l2_event_ext_ctrl	ctrl;
->>>> +		struct v4l2_event_frame_sync	frame_sync;
->>>> +		struct v4l2_event_src_change	src_change;
->>>> +		struct v4l2_event_motion_det	motion_det;
->>>> +		__u8				data[64];
->>>> +	} u;
->>>
->>> If I'd change something in the event IOCTL, I'd probably put the reserved
->>> fields here. That'd allow later taking some for the use of the event data
->>> if needed.
->>
->> Good point, I'll do that.
->>
->>> I might also increase the size of the event data. 64 bytes is not that
->>> much. But you indeed end up copying it around all the time... So it's a
->>> trade-off.
->>
->> I decided to leave this alone. I think by putting the reserved array after
->> the union (nice idea) we allow for such future extension should it be
->> necessary.
-> 
-> Agreed.
-> 
->>
->>>
->>>> +	__u64				timestamp;
->>>> +	__u32				pending;
->>>> +	__u32				sequence;
->>>> +	__u32				reserved[8];
->>>> +};
->>>> +
->>>>  #define V4L2_EVENT_SUB_FL_SEND_INITIAL		(1 << 0)
->>>>  #define V4L2_EVENT_SUB_FL_ALLOW_FEEDBACK	(1 << 1)
->>>>
->>>> @@ -2475,6 +2506,7 @@ struct v4l2_create_buffers {
->>>>  #define VIDIOC_DBG_G_CHIP_INFO  _IOWR('V', 102, struct v4l2_dbg_chip_info)
->>>>
->>>>  #define VIDIOC_QUERY_EXT_CTRL	_IOWR('V', 103, struct v4l2_query_ext_ctrl)
->>>> +#define	VIDIOC_DQEXTEVENT	 _IOR('V', 104, struct v4l2_ext_event)
->>>
->>> How do you plan to name the new buffer handling IOCTLs? I.e. with or
->>> without underscores around "EXT"?
->>
->> It's a good question. In my old patch I named them VIDIOC_EXT_QBUF etc. See:
->> https://git.linuxtv.org/hverkuil/media_tree.git/commit/?h=v4l2-buffer&id=a95549df06d9900f3559afdbb9da06bd4b22d1f3
->>
->> So I think I should probably rename this to VIDIOC_EXT_DQEVENT.
->>
->> Alternatively, perhaps we should ditch the _ext_ usage and instead use a
->> version suffix: VIDIOC_DQEVENT_V2.
->>
->> The problem with EXT is that if you want to make a newer version of such a
->> control, you can't just name it EXT_EXT, that would be silly. But naming it
-> 
-> You could use "EXT2" as well, I think that'd be fine, too. Think of ext4fs,
-> for instance. :-)
-> 
->> _V3 would be fine.
-> 
-> We have such a pattern on MC. But I'd still favour "EXT" since we already
-> use that in V4L2.
-> 
->>
->> Frankly, the extended control ioctls have that problem, also due to awful
->> 64 bit alignment issues. It would be really nice to have _V3 versions of
->> those ioctls that do not require compat32 code.
-> 
-> VIDIOC_G_EXT_CTRLS_V3 or VIDIOC_G_EXT2_CTRLS?
 
-That might work, I hadn't thought about that. It's probably better than
-introducing a new naming scheme.
+--6okpvrlphzl3mugw
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> 
-> It'd be nice to hear other opinions, too..
-> 
+On Mon, Jan 28, 2019 at 02:28:44PM +0530, Jagan Teki wrote:
+> CSI block in Allwinner A64 has similar features as like in H3,
+> but the default CSI_SCLK rate cannot work properly to drive the
+> connected sensor interface.
+>=20
+> The tested mod cock rate is 300 MHz and BSP vfe media driver is also
+> using the same rate. Unfortunately there is no valid information about
+> clock rate in manual or any other sources except the BSP driver. so more
+> faith on BSP code, because same has tested in mainline.
+>=20
+> So, add support for A64 CSI block by setting updated mod clock rate.
+>=20
+> Signed-off-by: Jagan Teki <jagan@amarulasolutions.com>
 
-Indeed.
+Acked-by: Maxime Ripard <maxime.ripard@bootlin.com>
 
-Regards,
+Maxime
 
-	Hans
+--=20
+Maxime Ripard, Bootlin
+Embedded Linux and Kernel engineering
+https://bootlin.com
+
+--6okpvrlphzl3mugw
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iHUEABYIAB0WIQRcEzekXsqa64kGDp7j7w1vZxhRxQUCXE7hMwAKCRDj7w1vZxhR
+xUDUAQC8hj7QHPP/IFtTJaDkazmu6MXL/AJadiU0/vZ0ovo+EAD+ORm8Mrwb5wwY
+IzkWk1Mjzvs6xuUjXHBKCUXENlDxGgs=
+=IZEo
+-----END PGP SIGNATURE-----
+
+--6okpvrlphzl3mugw--
