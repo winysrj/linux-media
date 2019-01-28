@@ -4,54 +4,54 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E0C8C282CB
-	for <linux-media@archiver.kernel.org>; Mon, 28 Jan 2019 08:59:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D364C282C8
+	for <linux-media@archiver.kernel.org>; Mon, 28 Jan 2019 08:59:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DF1AE207E0
-	for <linux-media@archiver.kernel.org>; Mon, 28 Jan 2019 08:59:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C327721736
+	for <linux-media@archiver.kernel.org>; Mon, 28 Jan 2019 08:59:40 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=amarulasolutions.com header.i=@amarulasolutions.com header.b="D9kwqx0+"
+	dkim=pass (1024-bit key) header.d=amarulasolutions.com header.i=@amarulasolutions.com header.b="ihD3ewVr"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726872AbfA1I7X (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 28 Jan 2019 03:59:23 -0500
-Received: from mail-pf1-f194.google.com ([209.85.210.194]:32825 "EHLO
-        mail-pf1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726766AbfA1I7W (ORCPT
+        id S1726967AbfA1I7e (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 28 Jan 2019 03:59:34 -0500
+Received: from mail-pg1-f193.google.com ([209.85.215.193]:40648 "EHLO
+        mail-pg1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726947AbfA1I7e (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 28 Jan 2019 03:59:22 -0500
-Received: by mail-pf1-f194.google.com with SMTP id c123so7735596pfb.0
-        for <linux-media@vger.kernel.org>; Mon, 28 Jan 2019 00:59:22 -0800 (PST)
+        Mon, 28 Jan 2019 03:59:34 -0500
+Received: by mail-pg1-f193.google.com with SMTP id z10so6945107pgp.7
+        for <linux-media@vger.kernel.org>; Mon, 28 Jan 2019 00:59:33 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=amarulasolutions.com; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=l1wfLgujgeuZczNshXAScoRmDfNsjZImKyg0sqbb6WQ=;
-        b=D9kwqx0+n9UCEQOF57p+dnzkz1HptMTPz1SC40cEyM3KPhhGBbl6551yP3I0ZOa23T
-         SX0gem8k9Ei9bbGuZnolmLw74DFmQCj2P6P/8kjz/Ar+1n1qAELjcfHyuHb69BMt0uKz
-         RcGQyiA5NVQ7FRl6UKZVxSNHlE7zj/dbbnIq8=
+        bh=4/D2cAWnRzrJOJe1TanX2r7wfgl9u+SIbHxZ8xAtowY=;
+        b=ihD3ewVrAikUTwMTeUJGAJABsNnidNEbAc7zA4fsIFN3XpwNpVxlQob/e96ewu93Dr
+         27vOgzZ5846K7inWW+KCkLeBeaDVaGxoMElWx/nvJNMnP/N61ZG1wlFzIlKw7eQHSrHV
+         D/kbi2et4yXrEd6hpkP35BJJBBB+SizATlHWw=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=l1wfLgujgeuZczNshXAScoRmDfNsjZImKyg0sqbb6WQ=;
-        b=GKjmjvMycxL+DPjceFePZwiirUDZ0aBanNpdFz7R7DCOi+6+8EKkEoT+lZikrCUGMn
-         lqbkBKdOpKSFeCT3l+yM50yRiJDgQXh2vlWh9pAdCT77Wy4i2E820LKXRSfz3ZUwrD4G
-         AI63vccVFWYQzjCuV9o5LiZx7k/mm8/blUkuMyEujzBq1Tc8dAIW5X0FFaEOjQ6DidGd
-         pNvU0VxQlEewsfmHcpVgpE2W49RdZdLW8wNRPtVCc8vwdS+BKvT22C0fNyd848MDuabo
-         Y2ESL08rIRpVE303my9xfZqCesq350ia+kbDwtWAgc3OgzB9vsSXhbmh3bwU0myIXRSr
-         C5BA==
-X-Gm-Message-State: AJcUukfDwL+FClLRdRHbb6LZQrrnVnNbDr3+EveQKU0U+KIi/V91+R6y
-        Ay5pY/PLmimjWJkpzfXjDNR9LsDzwS8=
-X-Google-Smtp-Source: ALg8bN60G3iWcaN0qeakuA7SmJvk++xY3zrbUBvaL+dEVHIt8C+6GOkIidGzubH/4MW8HhOn5IiEPQ==
-X-Received: by 2002:a62:b9a:: with SMTP id 26mr21296962pfl.196.1548665961985;
-        Mon, 28 Jan 2019 00:59:21 -0800 (PST)
+        bh=4/D2cAWnRzrJOJe1TanX2r7wfgl9u+SIbHxZ8xAtowY=;
+        b=HdIuWfNcEnEY8sTjGWtby74bikp2irLBV1r+OBeSzaN+8IaAx6xFAE3JKUFBDNF/tN
+         jOO2dnN4+SwODLnd/AHH71KTKCQLr+lybmc+fbXNMzjSOxVwrXYGWFkykEfy4Ie1TMD1
+         RMhFHdnJyQTqFrO9YP0kJId+TjUhar5FYLWXjxkfPNgJez+ZVP4E78oN5HMIjuVH4qsD
+         ugBNAw9BHTHnU8UBZ5dpykpITfZXM4nmm14pjB6+gcDE/7i6s7qErgMA4NnTzdRRDXty
+         0vuGRo3mkU/tfwQnDMy9vYcZLRokzYhDdemW91fixz9nev67RuW0mQrsS+ZOGdh2wmOG
+         9BQQ==
+X-Gm-Message-State: AJcUukehwrHCDvETdEJEtwq5/fn9deLwH+bYOKkV0F2eRBEDEV1+n9I1
+        uYmxgwexMy8s7e1zI302yc5J9CH+uBs=
+X-Google-Smtp-Source: ALg8bN6GomtSvg1HWUXrVFlC3Hci0yikM80dh/Ew8uDS1Jprxz1KlfmyABgTvhfLheNkQ5MEv6zMAw==
+X-Received: by 2002:a62:870e:: with SMTP id i14mr21554533pfe.41.1548665973235;
+        Mon, 28 Jan 2019 00:59:33 -0800 (PST)
 Received: from localhost.localdomain ([115.97.179.75])
-        by smtp.gmail.com with ESMTPSA id o189sm60746245pfg.117.2019.01.28.00.59.16
+        by smtp.gmail.com with ESMTPSA id o189sm60746245pfg.117.2019.01.28.00.59.27
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 28 Jan 2019 00:59:21 -0800 (PST)
+        Mon, 28 Jan 2019 00:59:32 -0800 (PST)
 From:   Jagan Teki <jagan@amarulasolutions.com>
 To:     Yong Deng <yong.deng@magewell.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
@@ -64,9 +64,9 @@ Cc:     linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
         linux-amarula@amarulasolutions.com, devicetree@vger.kernel.org,
         linux-sunxi@googlegroups.com,
         Jagan Teki <jagan@amarulasolutions.com>
-Subject: [PATCH v8 3/5] arm64: dts: allwinner: a64: Add A64 CSI controller
-Date:   Mon, 28 Jan 2019 14:28:45 +0530
-Message-Id: <20190128085847.7217-4-jagan@amarulasolutions.com>
+Subject: [DO NOT MERGE] [PATCH v8 5/5] arm64: dts: allwinner: bananapi-m64: Add HDF5640 camera module
+Date:   Mon, 28 Jan 2019 14:28:47 +0530
+Message-Id: <20190128085847.7217-6-jagan@amarulasolutions.com>
 X-Mailer: git-send-email 2.18.0.321.gffc6fa0e3
 In-Reply-To: <20190128085847.7217-1-jagan@amarulasolutions.com>
 References: <20190128085847.7217-1-jagan@amarulasolutions.com>
@@ -77,55 +77,120 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Add dts node details for Allwinner A64 CSI controller.
+Bananapi M64 comes with an optional sensor based on the ov5640,
+add support for it with below pin information.
 
-A64 CSI has similar features as like in H3, but the CSI_SCLK
-need to update it to 300MHz than default clock rate.
+- PE13, PE12 via i2c-gpio bitbanging
+- CLK_CSI_MCLK as external clock
+- PE1 as external clock pin muxing
+- DLDO3 as AVDD supply
+- ALDO1 as DOVDD supply
+- ELDO3 as DVDD supply
+- PE16 gpio for reset pin
+- PE17 gpio for powerdown pin
 
 Signed-off-by: Jagan Teki <jagan@amarulasolutions.com>
-Acked-by: Maxime Ripard <maxime.ripard@bootlin.com>
 ---
- arch/arm64/boot/dts/allwinner/sun50i-a64.dtsi | 20 +++++++++++++++++++
- 1 file changed, 20 insertions(+)
+ .../dts/allwinner/sun50i-a64-bananapi-m64.dts | 65 +++++++++++++++++++
+ 1 file changed, 65 insertions(+)
 
-diff --git a/arch/arm64/boot/dts/allwinner/sun50i-a64.dtsi b/arch/arm64/boot/dts/allwinner/sun50i-a64.dtsi
-index 839b2ae88583..62fdf850e9e5 100644
---- a/arch/arm64/boot/dts/allwinner/sun50i-a64.dtsi
-+++ b/arch/arm64/boot/dts/allwinner/sun50i-a64.dtsi
-@@ -558,6 +558,12 @@
- 			interrupt-controller;
- 			#interrupt-cells = <3>;
+diff --git a/arch/arm64/boot/dts/allwinner/sun50i-a64-bananapi-m64.dts b/arch/arm64/boot/dts/allwinner/sun50i-a64-bananapi-m64.dts
+index 9d0afd7d50ec..c99f66271287 100644
+--- a/arch/arm64/boot/dts/allwinner/sun50i-a64-bananapi-m64.dts
++++ b/arch/arm64/boot/dts/allwinner/sun50i-a64-bananapi-m64.dts
+@@ -60,6 +60,41 @@
+ 		stdout-path = "serial0:115200n8";
+ 	};
  
-+			csi_pins: csi-pins {
-+				pins = "PE0", "PE2", "PE3", "PE4", "PE5", "PE6",
-+				       "PE7", "PE8", "PE9", "PE10", "PE11";
-+				function = "csi";
-+			};
++	i2c-csi {
++		compatible = "i2c-gpio";
++		sda-gpios = <&pio 4 13 GPIO_ACTIVE_HIGH>; /* CSI0-SDA: PE13 */
++		scl-gpios = <&pio 4 12 GPIO_ACTIVE_HIGH>; /* CSI0-SCK: PE12 */
++		i2c-gpio,delay-us = <5>;
++		#address-cells = <1>;
++		#size-cells = <0>;
 +
- 			i2c0_pins: i2c0_pins {
- 				pins = "PH0", "PH1";
- 				function = "i2c0";
-@@ -925,6 +931,20 @@
- 			status = "disabled";
- 		};
- 
-+		csi: csi@1cb0000 {
-+			compatible = "allwinner,sun50i-a64-csi";
-+			reg = <0x01cb0000 0x1000>;
-+			interrupts = <GIC_SPI 84 IRQ_TYPE_LEVEL_HIGH>;
-+			clocks = <&ccu CLK_BUS_CSI>,
-+				 <&ccu CLK_CSI_SCLK>,
-+				 <&ccu CLK_DRAM_CSI>;
-+			clock-names = "bus", "mod", "ram";
-+			resets = <&ccu RST_BUS_CSI>;
++		ov5640: camera@3c {
++			compatible = "ovti,ov5640";
++			reg = <0x3c>;
 +			pinctrl-names = "default";
-+			pinctrl-0 = <&csi_pins>;
-+			status = "disabled";
-+		};
++			pinctrl-0 = <&csi_mclk_pin>;
++			clocks = <&ccu CLK_CSI_MCLK>;
++			clock-names = "xclk";
 +
- 		hdmi: hdmi@1ee0000 {
- 			compatible = "allwinner,sun50i-a64-dw-hdmi",
- 				     "allwinner,sun8i-a83t-dw-hdmi";
++			AVDD-supply = <&reg_dldo3>;
++			DOVDD-supply = <&reg_aldo1>;
++			DVDD-supply = <&reg_eldo3>;
++			reset-gpios = <&pio 4 16 GPIO_ACTIVE_LOW>; /* CSI0-RST: PE16 */
++			powerdown-gpios = <&pio 4 17 GPIO_ACTIVE_HIGH>; /* CSI0-PWDN: PE17 */
++
++			port {
++				ov5640_ep: endpoint {
++					remote-endpoint = <&csi_ep>;
++					bus-width = <8>;
++					hsync-active = <1>; /* Active high */
++					vsync-active = <0>; /* Active low */
++					data-active = <1>;  /* Active high */
++					pclk-sample = <1>;  /* Rising */
++				};
++			};
++		};
++	};
++
+ 	hdmi-connector {
+ 		compatible = "hdmi-connector";
+ 		type = "a";
+@@ -108,6 +143,24 @@
+ 	status = "okay";
+ };
+ 
++&csi {
++	status = "okay";
++
++	port {
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		csi_ep: endpoint {
++			remote-endpoint = <&ov5640_ep>;
++			bus-width = <8>;
++			hsync-active = <1>; /* Active high */
++			vsync-active = <0>; /* Active low */
++			data-active = <1>;  /* Active high */
++			pclk-sample = <1>;  /* Rising */
++		};
++	};
++};
++
+ &dai {
+ 	status = "okay";
+ };
+@@ -298,6 +351,12 @@
+ 	regulator-name = "vcc-wifi";
+ };
+ 
++&reg_dldo3 {
++	regulator-min-microvolt = <2800000>;
++	regulator-max-microvolt = <2800000>;
++	regulator-name = "avdd-csi";
++};
++
+ &reg_dldo4 {
+ 	regulator-min-microvolt = <1800000>;
+ 	regulator-max-microvolt = <3300000>;
+@@ -315,6 +374,12 @@
+ 	regulator-name = "cpvdd";
+ };
+ 
++&reg_eldo3 {
++	regulator-min-microvolt = <1500000>;
++	regulator-max-microvolt = <1500000>;
++	regulator-name = "dvdd-csi";
++};
++
+ &reg_fldo1 {
+ 	regulator-min-microvolt = <1200000>;
+ 	regulator-max-microvolt = <1200000>;
 -- 
 2.18.0.321.gffc6fa0e3
 
