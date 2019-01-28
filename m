@@ -2,87 +2,119 @@ Return-Path: <SRS0=ymVG=QE=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-3.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,
-	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B48CC282CC
-	for <linux-media@archiver.kernel.org>; Mon, 28 Jan 2019 08:48:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D09CC282C8
+	for <linux-media@archiver.kernel.org>; Mon, 28 Jan 2019 08:59:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2D8D220880
-	for <linux-media@archiver.kernel.org>; Mon, 28 Jan 2019 08:48:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6AE6A207E0
+	for <linux-media@archiver.kernel.org>; Mon, 28 Jan 2019 08:59:10 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="dpe8f2qZ"
+	dkim=pass (1024-bit key) header.d=amarulasolutions.com header.i=@amarulasolutions.com header.b="PRklDA9V"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726784AbfA1Isn (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 28 Jan 2019 03:48:43 -0500
-Received: from perceval.ideasonboard.com ([213.167.242.64]:48080 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726415AbfA1Isn (ORCPT
+        id S1726668AbfA1I7F (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 28 Jan 2019 03:59:05 -0500
+Received: from mail-pf1-f195.google.com ([209.85.210.195]:36610 "EHLO
+        mail-pf1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726648AbfA1I7F (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 28 Jan 2019 03:48:43 -0500
-Received: from [192.168.0.21] (cpc89242-aztw30-2-0-cust488.18-1.cable.virginm.net [86.31.129.233])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id C6E4485;
-        Mon, 28 Jan 2019 09:48:40 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1548665321;
-        bh=iAGluW7XxbOE3Pt4vcwamTyn+nEa1VjcmTjyOQSLMhE=;
-        h=Subject:To:Cc:References:From:Date:In-Reply-To:From;
-        b=dpe8f2qZmBDZ77amqdgKTcCtUVCUrmPOksBuJ/TGmR9WhAub6hQL9IN8eAcmNDGyu
-         Z1NoVaSK5VH/oAkqJgaETSe6Z+GukjofguJCtn9lGLUf5/H7V6Qh/FaCwCYH5Jmc51
-         CV+LWeqR0zWdpayKwYQsy8XI/XT8t+vMGEYKFseA=
-Subject: Re: ipu3-imgu 0000:00:05.0: required queues are disabled
-To:     Kai-Heng Feng <kai.heng.feng@canonical.com>,
-        sakari.ailus@linux.intel.com
-Cc:     bingbu.cao@intel.com, yong.zhi@intel.com,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Linux Kernel <linux-kernel@vger.kernel.org>,
-        LibCamera Devel <libcamera-devel@lists.libcamera.org>
-References: <7F8ED1B6-5070-437A-A745-AE017D8CE0DF@canonical.com>
-From:   Kieran Bingham <kieran.bingham@ideasonboard.com>
-Message-ID: <ac9cd5cd-82af-48c7-5b12-adacb540480c@ideasonboard.com>
-Date:   Mon, 28 Jan 2019 08:48:38 +0000
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.2.1
+        Mon, 28 Jan 2019 03:59:05 -0500
+Received: by mail-pf1-f195.google.com with SMTP id b85so7720374pfc.3
+        for <linux-media@vger.kernel.org>; Mon, 28 Jan 2019 00:59:04 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=amarulasolutions.com; s=google;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=X33IfDW79s3nOzDXxSV3lkb22+AZ3LL5pvGv198VQQk=;
+        b=PRklDA9VS0uTeVg5wT18W5Ba6LAbwrQ61Ifz9LHXT2OyBnm0NHPXmN/c5YWs6/cSOq
+         0IHa5/SbJY4tikE7qWOkx+/gnqGHhm5DMc4qvYp6IEuZ6DD6zYTgTQk8RJU0i9jkMWKl
+         MRnYUUGw9cUpGfXRZliz3CRNRPRYfmHT9VPs4=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=X33IfDW79s3nOzDXxSV3lkb22+AZ3LL5pvGv198VQQk=;
+        b=E4zRe+HFI0yAq5XvFigBZJ6zptujS7BBmtCRXs7N+b5sVXZhV25up7aFnhniQawvWs
+         LHZ4YUJmfzb6YG1Rikxh2h2JP5Lqx122PzaINgEVrCt9DE3caFfNWMz976XTUCt4WjC4
+         YLoGeEEL8ZL4vBQRdRfcEnw19tLYhEM+7n/svG2iN/AyU4Pnfr4Y9gtI71M8uHV+Y7eS
+         dBe+dtdrLMlJne2C/tJ7qCqKrHGIXDvcOkM9PYUGQYCON2xV/gXKvSgf0QBlN39xVvx1
+         TZWjJHxZSnZ+pZngS50C2mr7J+XTRBVylqzTAvsK+3S8jmIF3ou8RvxmRilO6F479lEv
+         eKfw==
+X-Gm-Message-State: AJcUukfp03nB1jLpTd05Mu39b0iIaiCEMBm6+i2Sn2djxD5oFkFkGbXz
+        1y6VduC5V4CiZyE8j/ZUJBpYDA==
+X-Google-Smtp-Source: ALg8bN7qLtYj6nShO4Dp7E2LOO6H0YEdlvNE9AllOX1t+FDV0kH7vGHn2/+Q0os93guY7/AgQtb7PQ==
+X-Received: by 2002:a62:6047:: with SMTP id u68mr20753600pfb.239.1548665944199;
+        Mon, 28 Jan 2019 00:59:04 -0800 (PST)
+Received: from localhost.localdomain ([115.97.179.75])
+        by smtp.gmail.com with ESMTPSA id o189sm60746245pfg.117.2019.01.28.00.58.58
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 28 Jan 2019 00:59:03 -0800 (PST)
+From:   Jagan Teki <jagan@amarulasolutions.com>
+To:     Yong Deng <yong.deng@magewell.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Chen-Yu Tsai <wens@csie.org>, Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>
+Cc:     linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-kernel@vger.kernel.org,
+        Michael Trimarchi <michael@amarulasolutions.com>,
+        linux-amarula@amarulasolutions.com, devicetree@vger.kernel.org,
+        linux-sunxi@googlegroups.com,
+        Jagan Teki <jagan@amarulasolutions.com>
+Subject: [PATCH v8 0/5] media/sun6i: Allwinner A64 CSI support
+Date:   Mon, 28 Jan 2019 14:28:42 +0530
+Message-Id: <20190128085847.7217-1-jagan@amarulasolutions.com>
+X-Mailer: git-send-email 2.18.0.321.gffc6fa0e3
 MIME-Version: 1.0
-In-Reply-To: <7F8ED1B6-5070-437A-A745-AE017D8CE0DF@canonical.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Kai-Heng,
+Add CSI support for Allwinner A64. Here is previous series[1]
 
-On 27/01/2019 05:56, Kai-Heng Feng wrote:
-> Hi,
-> 
-> We have a bug report [1] that the ipu3 doesn’t work.
-> Does ipu3 need special userspace to work?
+Changes for v8:
+- update proper enable and disable sequnce for clk_mod
+- fix warning for patch "media: sun6i: Add A64 CSI block support"
+- collect Maxime Acked-by
+Changes for v7:
+- Drop quirk change, and add as suggusted by Maxime
+- Use csi instead csi0 in pinctrl function
+Changes for v6:
+- set the mod rate in seett_power instead of probe
+Changes for v5:
+- Add mod_rate quirk for better handling clk_set code
+Changes for v4:
+- update the compatible string order
+- add proper commit message
+- included BPI-M64 patch
+- skipped amarula-a64 patch
+Changes for v3:
+- update dt-bindings for A64
+- set mod clock via csi driver
+- remove assign clocks from dtsi
+- remove i2c-gpio opendrian
+- fix avdd and dovdd supplies
+- remove vcc-csi pin group supply
 
-Yes, it will need further userspace support to configure the pipeline,
-and to provide 3A algorithms for white balance, focus, and exposure
-times to the sensor.
+[1] https://patchwork.kernel.org/cover/10779831/
 
-We are developing a stack called libcamera [0] to support this, but it's
-still in active development and not yet ready for use. Fortunately
-however, IPU3 is one of our primary initial targets.
+Jagan Teki (5):
+  dt-bindings: media: sun6i: Add A64 CSI compatible
+  media: sun6i: Add A64 CSI block support
+  arm64: dts: allwinner: a64: Add A64 CSI controller
+  arm64: dts: allwinner: a64: Add pinmux setting for CSI MCLK on PE1
+  [DO NOT MERGE] arm64: dts: allwinner: bananapi-m64: Add HDF5640 camera module
 
-[0] https://www.libcamera.org/
+ .../devicetree/bindings/media/sun6i-csi.txt   |  1 +
+ .../dts/allwinner/sun50i-a64-bananapi-m64.dts | 65 +++++++++++++++++++
+ arch/arm64/boot/dts/allwinner/sun50i-a64.dtsi | 25 +++++++
+ .../platform/sunxi/sun6i-csi/sun6i_csi.c      | 11 ++++
+ 4 files changed, 102 insertions(+)
 
-> [1] https://bugs.launchpad.net/bugs/1812114
+-- 
+2.18.0.321.gffc6fa0e3
 
-I have reported similar information to the launchpad bug entry.
-
-It might help if we can get hold of a Dell 7275 sometime although I
-think Mauro at least has one ?
-
-If this is a priority for Canonical, please contact us directly.
-
-> Kai-Heng
---
-Regards
-
-Kieran
