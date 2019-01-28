@@ -7,49 +7,49 @@ X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 24C9BC4151A
-	for <linux-media@archiver.kernel.org>; Mon, 28 Jan 2019 16:05:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 42440C282C8
+	for <linux-media@archiver.kernel.org>; Mon, 28 Jan 2019 16:14:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E7F522175B
-	for <linux-media@archiver.kernel.org>; Mon, 28 Jan 2019 16:05:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 04E842177E
+	for <linux-media@archiver.kernel.org>; Mon, 28 Jan 2019 16:14:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1548691513;
-	bh=xMD08Z1HW/uTxbdZHZBW29gqYQLZEshGJ5S+vi1sOSk=;
+	s=default; t=1548692093;
+	bh=IxsdHGqvRTnOidNST+luTRoyGYN+u8DECHTGNXvsokE=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
-	b=drz1/1KJ8a56rDLxCNfQ38o2RBuYoeJ/jNaFVPEY8K1Fc/PFi8APYqBgHAzKX3vaJ
-	 SbVsXs0XtjOmQY9IdTG4p0VVZxRbbV27CAJbuRv2dq2xZ//7utJXcH+1ohsx8ZldUf
-	 XGQWv7QBDhrGT/ly8BjE2m6iQDrRXSjpnKB+uckw=
+	b=KdseEigjcYnXsZOQ9RMu3xFYiCD4ERwT5iJJ9MKUbKZpnJbi4SHkzUfdRcngScfz6
+	 YDaifwgIEHPz87Cb4Sl5zZ3vSw88YZh2h4stZkq0N2RRiSh3FziKXfbSY8Tlk272+l
+	 iOwiEPb34tKh2VosI87zerKdjZb2d5pNzA20gfvk=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731750AbfA1QFL (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 28 Jan 2019 11:05:11 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51428 "EHLO mail.kernel.org"
+        id S1732933AbfA1QOv (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 28 Jan 2019 11:14:51 -0500
+Received: from mail.kernel.org ([198.145.29.99]:44364 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731774AbfA1QFK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 28 Jan 2019 11:05:10 -0500
+        id S2387664AbfA1QOv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 28 Jan 2019 11:14:51 -0500
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id DD6432171F;
-        Mon, 28 Jan 2019 16:05:06 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 887322148E;
+        Mon, 28 Jan 2019 16:14:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1548691509;
-        bh=xMD08Z1HW/uTxbdZHZBW29gqYQLZEshGJ5S+vi1sOSk=;
+        s=default; t=1548692090;
+        bh=IxsdHGqvRTnOidNST+luTRoyGYN+u8DECHTGNXvsokE=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=skUoJvTODAxe9qmOAaWootRuWQ6J7IGbgB6PEznp+c9sjiD1Yfq8nxmgsbQmfn6lV
-         vqPw9tlsFMzYv/EliMOXrC84e8R1Cxmp2dHiVyRvcPi/R4ntiat5ppJI/ULNP7qsZW
-         i1oAVDOnBCMdz4tp/h/YMSjbts/0yDIewWTtkMyc=
+        b=oq8G9gVCFikPYpdy9xd+bPBi/osEHl+Mt29pzL0krqh6+Wy97fN1VDVkm6KCoGhaG
+         ryGfMpnmK7TxNTjdDskIRa7BdplsHmJgy25b31MbYfW8379Y0eyw2nq2yH7bN64yA9
+         oOZTjm59Iel3IlmhxEcvE1AoPr7ygN0LLC+udr8s=
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Philipp Zabel <p.zabel@pengutronix.de>,
+Cc:     Alexey Khoroshilov <khoroshilov@ispras.ru>,
         Hans Verkuil <hverkuil-cisco@xs4all.nl>,
         Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
         Sasha Levin <sashal@kernel.org>, linux-media@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 121/258] media: coda: fix H.264 deblocking filter controls
-Date:   Mon, 28 Jan 2019 10:57:07 -0500
-Message-Id: <20190128155924.51521-121-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 063/170] media: DaVinci-VPBE: fix error handling in vpbe_initialize()
+Date:   Mon, 28 Jan 2019 11:10:13 -0500
+Message-Id: <20190128161200.55107-63-sashal@kernel.org>
 X-Mailer: git-send-email 2.19.1
-In-Reply-To: <20190128155924.51521-1-sashal@kernel.org>
-References: <20190128155924.51521-1-sashal@kernel.org>
+In-Reply-To: <20190128161200.55107-1-sashal@kernel.org>
+References: <20190128161200.55107-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-Patchwork-Hint: Ignore
 Content-Transfer-Encoding: 8bit
@@ -58,134 +58,55 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-From: Philipp Zabel <p.zabel@pengutronix.de>
+From: Alexey Khoroshilov <khoroshilov@ispras.ru>
 
-[ Upstream commit 75fa6e4f83a0923fe753827d354998d448b4fd6a ]
+[ Upstream commit aa35dc3c71950e3fec3e230c06c27c0fbd0067f8 ]
 
-Add support for the third loop filter mode
-V4L2_MPEG_VIDEO_H264_LOOP_FILTER_MODE_DISABLED_AT_SLICE_BOUNDARY,
-and fix V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_ALPHA and
-V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_BETA controls.
+If vpbe_set_default_output() or vpbe_set_default_mode() fails,
+vpbe_initialize() returns error code without releasing resources.
 
-The filter offset controls are signed values in the -6 to 6 range and
-are stored into the slice header fields slice_alpha_c0_offset_div2 and
-slice_beta_offset_div2. The actual filter offsets FilterOffsetA/B are
-double their value, in range of -12 to 12.
+The patch adds error handling for that case.
 
-Rename variables to more closely match the nomenclature in the H.264
-specification.
+Found by Linux Driver Verification project (linuxtesting.org).
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
 Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/media/platform/coda/coda-bit.c    | 19 +++++++++----------
- drivers/media/platform/coda/coda-common.c | 15 +++++++--------
- drivers/media/platform/coda/coda.h        |  6 +++---
- drivers/media/platform/coda/coda_regs.h   |  2 +-
- 4 files changed, 20 insertions(+), 22 deletions(-)
+ drivers/media/platform/davinci/vpbe.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
-index d26c2d85a009..d20d3df5778b 100644
---- a/drivers/media/platform/coda/coda-bit.c
-+++ b/drivers/media/platform/coda/coda-bit.c
-@@ -991,16 +991,15 @@ static int coda_start_encoding(struct coda_ctx *ctx)
- 		else
- 			coda_write(dev, CODA_STD_H264,
- 				   CODA_CMD_ENC_SEQ_COD_STD);
--		if (ctx->params.h264_deblk_enabled) {
--			value = ((ctx->params.h264_deblk_alpha &
--				  CODA_264PARAM_DEBLKFILTEROFFSETALPHA_MASK) <<
--				 CODA_264PARAM_DEBLKFILTEROFFSETALPHA_OFFSET) |
--				((ctx->params.h264_deblk_beta &
--				  CODA_264PARAM_DEBLKFILTEROFFSETBETA_MASK) <<
--				 CODA_264PARAM_DEBLKFILTEROFFSETBETA_OFFSET);
--		} else {
--			value = 1 << CODA_264PARAM_DISABLEDEBLK_OFFSET;
--		}
-+		value = ((ctx->params.h264_disable_deblocking_filter_idc &
-+			  CODA_264PARAM_DISABLEDEBLK_MASK) <<
-+			 CODA_264PARAM_DISABLEDEBLK_OFFSET) |
-+			((ctx->params.h264_slice_alpha_c0_offset_div2 &
-+			  CODA_264PARAM_DEBLKFILTEROFFSETALPHA_MASK) <<
-+			 CODA_264PARAM_DEBLKFILTEROFFSETALPHA_OFFSET) |
-+			((ctx->params.h264_slice_beta_offset_div2 &
-+			  CODA_264PARAM_DEBLKFILTEROFFSETBETA_MASK) <<
-+			 CODA_264PARAM_DEBLKFILTEROFFSETBETA_OFFSET);
- 		coda_write(dev, value, CODA_CMD_ENC_SEQ_264_PARA);
- 		break;
- 	case V4L2_PIX_FMT_JPEG:
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index bf7b8417c27f..19d92edcc981 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -1793,14 +1793,13 @@ static int coda_s_ctrl(struct v4l2_ctrl *ctrl)
- 		ctx->params.h264_max_qp = ctrl->val;
- 		break;
- 	case V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_ALPHA:
--		ctx->params.h264_deblk_alpha = ctrl->val;
-+		ctx->params.h264_slice_alpha_c0_offset_div2 = ctrl->val;
- 		break;
- 	case V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_BETA:
--		ctx->params.h264_deblk_beta = ctrl->val;
-+		ctx->params.h264_slice_beta_offset_div2 = ctrl->val;
- 		break;
- 	case V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_MODE:
--		ctx->params.h264_deblk_enabled = (ctrl->val ==
--				V4L2_MPEG_VIDEO_H264_LOOP_FILTER_MODE_ENABLED);
-+		ctx->params.h264_disable_deblocking_filter_idc = ctrl->val;
- 		break;
- 	case V4L2_CID_MPEG_VIDEO_H264_PROFILE:
- 		/* TODO: switch between baseline and constrained baseline */
-@@ -1882,13 +1881,13 @@ static void coda_encode_ctrls(struct coda_ctx *ctx)
- 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
- 		V4L2_CID_MPEG_VIDEO_H264_MAX_QP, 0, 51, 1, 51);
- 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
--		V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_ALPHA, 0, 15, 1, 0);
-+		V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_ALPHA, -6, 6, 1, 0);
- 	v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
--		V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_BETA, 0, 15, 1, 0);
-+		V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_BETA, -6, 6, 1, 0);
- 	v4l2_ctrl_new_std_menu(&ctx->ctrls, &coda_ctrl_ops,
- 		V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_MODE,
--		V4L2_MPEG_VIDEO_H264_LOOP_FILTER_MODE_DISABLED, 0x0,
--		V4L2_MPEG_VIDEO_H264_LOOP_FILTER_MODE_ENABLED);
-+		V4L2_MPEG_VIDEO_H264_LOOP_FILTER_MODE_DISABLED_AT_SLICE_BOUNDARY,
-+		0x0, V4L2_MPEG_VIDEO_H264_LOOP_FILTER_MODE_ENABLED);
- 	v4l2_ctrl_new_std_menu(&ctx->ctrls, &coda_ctrl_ops,
- 		V4L2_CID_MPEG_VIDEO_H264_PROFILE,
- 		V4L2_MPEG_VIDEO_H264_PROFILE_BASELINE, 0x0,
-diff --git a/drivers/media/platform/coda/coda.h b/drivers/media/platform/coda/coda.h
-index 19ac0b9dc6eb..2469ca1dc598 100644
---- a/drivers/media/platform/coda/coda.h
-+++ b/drivers/media/platform/coda/coda.h
-@@ -115,9 +115,9 @@ struct coda_params {
- 	u8			h264_inter_qp;
- 	u8			h264_min_qp;
- 	u8			h264_max_qp;
--	u8			h264_deblk_enabled;
--	u8			h264_deblk_alpha;
--	u8			h264_deblk_beta;
-+	u8			h264_disable_deblocking_filter_idc;
-+	s8			h264_slice_alpha_c0_offset_div2;
-+	s8			h264_slice_beta_offset_div2;
- 	u8			h264_profile_idc;
- 	u8			h264_level_idc;
- 	u8			mpeg4_intra_qp;
-diff --git a/drivers/media/platform/coda/coda_regs.h b/drivers/media/platform/coda/coda_regs.h
-index 5e7b00a97671..e675e38f3475 100644
---- a/drivers/media/platform/coda/coda_regs.h
-+++ b/drivers/media/platform/coda/coda_regs.h
-@@ -292,7 +292,7 @@
- #define		CODA_264PARAM_DEBLKFILTEROFFSETALPHA_OFFSET	8
- #define		CODA_264PARAM_DEBLKFILTEROFFSETALPHA_MASK	0x0f
- #define		CODA_264PARAM_DISABLEDEBLK_OFFSET		6
--#define		CODA_264PARAM_DISABLEDEBLK_MASK		0x01
-+#define		CODA_264PARAM_DISABLEDEBLK_MASK		0x03
- #define		CODA_264PARAM_CONSTRAINEDINTRAPREDFLAG_OFFSET	5
- #define		CODA_264PARAM_CONSTRAINEDINTRAPREDFLAG_MASK	0x01
- #define		CODA_264PARAM_CHROMAQPOFFSET_OFFSET		0
+diff --git a/drivers/media/platform/davinci/vpbe.c b/drivers/media/platform/davinci/vpbe.c
+index 7f6462562579..1d3c13e36904 100644
+--- a/drivers/media/platform/davinci/vpbe.c
++++ b/drivers/media/platform/davinci/vpbe.c
+@@ -739,7 +739,7 @@ static int vpbe_initialize(struct device *dev, struct vpbe_device *vpbe_dev)
+ 	if (ret) {
+ 		v4l2_err(&vpbe_dev->v4l2_dev, "Failed to set default output %s",
+ 			 def_output);
+-		return ret;
++		goto fail_kfree_amp;
+ 	}
+ 
+ 	printk(KERN_NOTICE "Setting default mode to %s\n", def_mode);
+@@ -747,12 +747,15 @@ static int vpbe_initialize(struct device *dev, struct vpbe_device *vpbe_dev)
+ 	if (ret) {
+ 		v4l2_err(&vpbe_dev->v4l2_dev, "Failed to set default mode %s",
+ 			 def_mode);
+-		return ret;
++		goto fail_kfree_amp;
+ 	}
+ 	vpbe_dev->initialized = 1;
+ 	/* TBD handling of bootargs for default output and mode */
+ 	return 0;
+ 
++fail_kfree_amp:
++	mutex_lock(&vpbe_dev->lock);
++	kfree(vpbe_dev->amp);
+ fail_kfree_encoders:
+ 	kfree(vpbe_dev->encoders);
+ fail_dev_unregister:
 -- 
 2.19.1
 
