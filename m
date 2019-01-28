@@ -2,121 +2,148 @@ Return-Path: <SRS0=ymVG=QE=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.6 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT,USER_IN_DEF_DKIM_WL
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C01CC282C8
-	for <linux-media@archiver.kernel.org>; Mon, 28 Jan 2019 07:30:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CE25BC282CC
+	for <linux-media@archiver.kernel.org>; Mon, 28 Jan 2019 07:32:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2DB2C2148E
-	for <linux-media@archiver.kernel.org>; Mon, 28 Jan 2019 07:30:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9306B2148E
+	for <linux-media@archiver.kernel.org>; Mon, 28 Jan 2019 07:32:12 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="b+KbZXHy"
+	dkim=pass (1024-bit key) header.d=amarulasolutions.com header.i=@amarulasolutions.com header.b="FP0capNk"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726647AbfA1HaK (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 28 Jan 2019 02:30:10 -0500
-Received: from mail-qk1-f201.google.com ([209.85.222.201]:37087 "EHLO
-        mail-qk1-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726630AbfA1HaJ (ORCPT
+        id S1726682AbfA1HcH (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 28 Jan 2019 02:32:07 -0500
+Received: from mail-it1-f196.google.com ([209.85.166.196]:39659 "EHLO
+        mail-it1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726627AbfA1HcH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 28 Jan 2019 02:30:09 -0500
-Received: by mail-qk1-f201.google.com with SMTP id s70so17454757qks.4
-        for <linux-media@vger.kernel.org>; Sun, 27 Jan 2019 23:30:09 -0800 (PST)
+        Mon, 28 Jan 2019 02:32:07 -0500
+Received: by mail-it1-f196.google.com with SMTP id a6so17921192itl.4
+        for <linux-media@vger.kernel.org>; Sun, 27 Jan 2019 23:32:06 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20161025;
-        h=date:message-id:mime-version:subject:from:to:cc;
-        bh=joWT7WTukyZiygiD/CgHZpp0VYKv4t6Bn/aofo7/Geo=;
-        b=b+KbZXHyP4Td62tZjTdCyINC8LQugQGhANLirMGXiJFh5oxNbsm7+FfGy6Xo6XRLYM
-         FV3KaIR+ai7IqUI/coYjISxjeZbQnfHyQdFvEFfIweUOZ5tUCMAgqqe30u4hTU6fPAvE
-         0ekI1WBlm4oA+5c8wdX5scG/dy9EHrhMC4k1MRvFIDBZBPT2uF3fDgiSzBw68loez1Wb
-         X0powYJSa/fzwOcTHECLxqpbeWsaOyhL2dp2VkoBnNVILorTzgyIInczc/KQLJZMdFP/
-         rV+q5oOvosVIckJe6xgjScQqvW8ioSIxjXB5rQ9RPaPHy9NpMF8tC8AuW6MwLlN+jP3I
-         G9fw==
+        d=amarulasolutions.com; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=mTGnqD6HTlX/N8E4wtdR/Qhebt0GeL6pNgp0cAE+85Y=;
+        b=FP0capNk5QGL+WcawuamdA068tY8dz/YSgCBFM9wrmlAr+8Ovb62IcfGcrdkVDEnii
+         AoOnCkSMR3Qlq3MnJeEHdWeUkD6bjikyO0+hiEltNEu6QgvTgCvsOYoEagNyFDbKfCcY
+         uGLxUXJpoAiWiehBtbwO1yhM+5xr2JnVni4yk=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:message-id:mime-version:subject:from:to:cc;
-        bh=joWT7WTukyZiygiD/CgHZpp0VYKv4t6Bn/aofo7/Geo=;
-        b=gauTG74UK9u9GZdwN4iyBOYI+9c4H8t+BiKaF7MXJbARlfkUagzgzaABp2VgXqulte
-         clhAWpnqb3J9S96IHJWUQ8iqgkeLhONJrf1DF+Wg02mVF1Gi34dMyy2oGwo0kTK+2oMn
-         idsep7GbAAp1DuHsC+d6ETORGYxpYcntiahR5ZhFr1rwpMEqGVeiuR808DNp9Ejl70UP
-         VO61pGqSqgkSp+SolcnNMNC+mwosLCx4RfvKCazlAdLb334QihViRtllsL5selZjVN3j
-         RpzPV5Gd+596Yx6ouN45+udOzQagDTCKOro6Xk3shJdDh83lPPnoYSIdLrMfClD2rstN
-         950w==
-X-Gm-Message-State: AJcUukfyfoWRRzJN+XuhsiDi9LIhtfMHtTcm/I2yzBO1nFgUTXY4nn/Y
-        2Ns454RvJjDKj7pa9dRRFe/UVr8XVOn2
-X-Google-Smtp-Source: ALg8bN4yDyL4tGxyZhJQlbBML70hQLYBk1jqnJFV9/oSgs8tKKFqrdsiDs2C/c2snVM4Civ7HAnOD1FHDKg1
-X-Received: by 2002:ac8:4307:: with SMTP id z7mr15789512qtm.7.1548660608605;
- Sun, 27 Jan 2019 23:30:08 -0800 (PST)
-Date:   Mon, 28 Jan 2019 15:29:48 +0800
-Message-Id: <20190128072948.45788-1-linfish@google.com>
-Mime-Version: 1.0
-X-Mailer: git-send-email 2.20.1.495.gaa96b0ce6b-goog
-Subject: [PATCH] [media] v4l: add I / P frame min max QP definitions
-From:   Fish Lin <linfish@google.com>
-To:     Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil-cisco@xs4all.nl>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc:     Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Keiichi Watanabe <keiichiw@chromium.org>,
-        Smitha T Murthy <smitha.t@samsung.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Fish Lin <linfish@google.com>
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=mTGnqD6HTlX/N8E4wtdR/Qhebt0GeL6pNgp0cAE+85Y=;
+        b=IYsNTof809KWwsU6yRBeYjSA9VPxfIyL83MeBtyxtQwzVAzrB1s07Z1bGjK9Wb9weO
+         rKTtr4ht6kouBmiGHLmFUdHISDolp0Eq9aYW8SRwLybFMteEZyYLU52bq447LW75MABo
+         swVR7zBCMR86MgYnCdpDOvPJ+OAn1v8x7zsMKnWoc3lY1DKm1gRxT66CBj/sDIHTVqGl
+         2gS5hUOxZbB9bJjVxzPtKlkpnI/ve/LJ7k5fE6f1Ewd3CiYiMiA3dUTdwiyP4QTJMG7A
+         QVAm83/oy1zbUvaUgDm12gRS/QiMlBkz7112v4LsNkcQ35l0s//zs99VhQ1x3/6zJ6PB
+         xDDw==
+X-Gm-Message-State: AJcUukdHurfx5XmmdEdyz3KFuafdWa+EpiFnt0bmazjXWaq9mRlhM4TE
+        QyYtbymjkcvw/M18v3VnFSl5xjda6xw5ubwCVODJww==
+X-Google-Smtp-Source: ALg8bN6QzCMRMTALAsaeCJnY8PI/UAJdQmeNoWOiUVuzDFpjWtnFZx5kxTREQHLIXcvfFMd51PKAZLZHN+jH6dSj7cs=
+X-Received: by 2002:a24:385:: with SMTP id e127mr9061780ite.32.1548660725998;
+ Sun, 27 Jan 2019 23:32:05 -0800 (PST)
+MIME-Version: 1.0
+References: <20190124180736.28408-1-jagan@amarulasolutions.com>
+ <20190124180736.28408-3-jagan@amarulasolutions.com> <20190125154245.5wx2mwhzsjeaahi3@flea>
+In-Reply-To: <20190125154245.5wx2mwhzsjeaahi3@flea>
+From:   Jagan Teki <jagan@amarulasolutions.com>
+Date:   Mon, 28 Jan 2019 13:01:54 +0530
+Message-ID: <CAMty3ZB6Es45D=fcCLrv4dAxJAgMDr3aLbbc4hF87ZC4UizBpQ@mail.gmail.com>
+Subject: Re: [PATCH v7 2/5] media: sun6i: Add A64 CSI block support
+To:     Maxime Ripard <maxime.ripard@bootlin.com>
+Cc:     Yong Deng <yong.deng@magewell.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Chen-Yu Tsai <wens@csie.org>, Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        linux-media <linux-media@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        Michael Trimarchi <michael@amarulasolutions.com>,
+        linux-amarula@amarulasolutions.com,
+        devicetree <devicetree@vger.kernel.org>,
+        linux-sunxi <linux-sunxi@googlegroups.com>
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Add following V4L2 QP parameters for H.264:
- * V4L2_CID_MPEG_VIDEO_H264_I_FRAME_MIN_QP
- * V4L2_CID_MPEG_VIDEO_H264_I_FRAME_MAX_QP
- * V4L2_CID_MPEG_VIDEO_H264_P_FRAME_MIN_QP
- * V4L2_CID_MPEG_VIDEO_H264_P_FRAME_MAX_QP
+On Fri, Jan 25, 2019 at 9:12 PM Maxime Ripard <maxime.ripard@bootlin.com> wrote:
+>
+> On Thu, Jan 24, 2019 at 11:37:33PM +0530, Jagan Teki wrote:
+> > CSI block in Allwinner A64 has similar features as like in H3,
+> > but the default CSI_SCLK rate cannot work properly to drive the
+> > connected sensor interface.
+> >
+> > The tested mod cock rate is 300 MHz and BSP vfe media driver is also
+> > using the same rate. Unfortunately there is no valid information about
+> > clock rate in manual or any other sources except the BSP driver. so more
+> > faith on BSP code, because same has tested in mainline.
+> >
+> > So, add support for A64 CSI block by setting updated mod clock rate.
+> >
+> > Signed-off-by: Jagan Teki <jagan@amarulasolutions.com>
+> > ---
+> >  drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c | 13 ++++++++++++-
+> >  1 file changed, 12 insertions(+), 1 deletion(-)
+> >
+> > diff --git a/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c b/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
+> > index ee882b66a5ea..cd2d33242c17 100644
+> > --- a/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
+> > +++ b/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
+> > @@ -15,6 +15,7 @@
+> >  #include <linux/ioctl.h>
+> >  #include <linux/module.h>
+> >  #include <linux/of.h>
+> > +#include <linux/of_device.h>
+> >  #include <linux/platform_device.h>
+> >  #include <linux/pm_runtime.h>
+> >  #include <linux/regmap.h>
+> > @@ -154,6 +155,7 @@ bool sun6i_csi_is_format_supported(struct sun6i_csi *csi,
+> >  int sun6i_csi_set_power(struct sun6i_csi *csi, bool enable)
+> >  {
+> >       struct sun6i_csi_dev *sdev = sun6i_csi_to_dev(csi);
+> > +     struct device *dev = sdev->dev;
+> >       struct regmap *regmap = sdev->regmap;
+> >       int ret;
+> >
+> > @@ -161,15 +163,20 @@ int sun6i_csi_set_power(struct sun6i_csi *csi, bool enable)
+> >               regmap_update_bits(regmap, CSI_EN_REG, CSI_EN_CSI_EN, 0);
+> >
+> >               clk_disable_unprepare(sdev->clk_ram);
+> > +             if (of_device_is_compatible(dev->of_node, "allwinner,sun50i-a64-csi"))
+> > +                     clk_rate_exclusive_put(sdev->clk_mod);
+> >               clk_disable_unprepare(sdev->clk_mod);
+> >               reset_control_assert(sdev->rstc_bus);
+> >               return 0;
+> >       }
+> >
+> > +     if (of_device_is_compatible(dev->of_node, "allwinner,sun50i-a64-csi"))
+> > +             clk_set_rate_exclusive(sdev->clk_mod, 300000000);
+> > +
+> >       ret = clk_prepare_enable(sdev->clk_mod);
+> >       if (ret) {
+> >               dev_err(sdev->dev, "Enable csi clk err %d\n", ret);
+> > -             return ret;
+> > +             goto clk_mod_put;
+> >       }
+> >
+> >       ret = clk_prepare_enable(sdev->clk_ram);
+> > @@ -192,6 +199,9 @@ int sun6i_csi_set_power(struct sun6i_csi *csi, bool enable)
+> >       clk_disable_unprepare(sdev->clk_ram);
+> >  clk_mod_disable:
+> >       clk_disable_unprepare(sdev->clk_mod);
+> > +clk_mod_put:
+> > +     if (of_device_is_compatible(dev->of_node, "allwinner,sun50i-a64-csi"))
+> > +             clk_rate_exclusive_put(sdev->clk_mod);
+> >       return ret;
+>
+> The sequence in the error path and in the disable path aren't the same, why?
 
-These controls will limit QP range for intra and inter frame,
-provide more manual control to improve video encode quality.
-
-Signed-off-by: Fish Lin <linfish@google.com>
----
- drivers/media/v4l2-core/v4l2-ctrls.c | 4 ++++
- include/uapi/linux/v4l2-controls.h   | 6 ++++++
- 2 files changed, 10 insertions(+)
-
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 5e3806feb5d7..e2b0af0d2283 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -825,6 +825,10 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER:return "H264 Number of HC Layers";
- 	case V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER_QP:
- 								return "H264 Set QP Value for HC Layers";
-+	case V4L2_CID_MPEG_VIDEO_H264_I_FRAME_MIN_QP:		return "H264 I-Frame Minimum QP Value";
-+	case V4L2_CID_MPEG_VIDEO_H264_I_FRAME_MAX_QP:		return "H264 I-Frame Maximum QP Value";
-+	case V4L2_CID_MPEG_VIDEO_H264_P_FRAME_MIN_QP:		return "H264 P-Frame Minimum QP Value";
-+	case V4L2_CID_MPEG_VIDEO_H264_P_FRAME_MAX_QP:		return "H264 P-Frame Maximum QP Value";
- 	case V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP:		return "MPEG4 I-Frame QP Value";
- 	case V4L2_CID_MPEG_VIDEO_MPEG4_P_FRAME_QP:		return "MPEG4 P-Frame QP Value";
- 	case V4L2_CID_MPEG_VIDEO_MPEG4_B_FRAME_QP:		return "MPEG4 B-Frame QP Value";
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index 3dcfc6148f99..9519673e6437 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -533,6 +533,12 @@ enum v4l2_mpeg_video_h264_hierarchical_coding_type {
- };
- #define V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER	(V4L2_CID_MPEG_BASE+381)
- #define V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER_QP	(V4L2_CID_MPEG_BASE+382)
-+
-+#define V4L2_CID_MPEG_VIDEO_H264_I_FRAME_MIN_QP	(V4L2_CID_MPEG_BASE+390)
-+#define V4L2_CID_MPEG_VIDEO_H264_I_FRAME_MAX_QP	(V4L2_CID_MPEG_BASE+391)
-+#define V4L2_CID_MPEG_VIDEO_H264_P_FRAME_MIN_QP	(V4L2_CID_MPEG_BASE+392)
-+#define V4L2_CID_MPEG_VIDEO_H264_P_FRAME_MAX_QP	(V4L2_CID_MPEG_BASE+393)
-+
- #define V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP	(V4L2_CID_MPEG_BASE+400)
- #define V4L2_CID_MPEG_VIDEO_MPEG4_P_FRAME_QP	(V4L2_CID_MPEG_BASE+401)
- #define V4L2_CID_MPEG_VIDEO_MPEG4_B_FRAME_QP	(V4L2_CID_MPEG_BASE+402)
--- 
-2.20.1.495.gaa96b0ce6b-goog
-
+True, it should be similar sequence, will fix and send next version. thanks!
