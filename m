@@ -6,172 +6,245 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 68AC3C282C8
-	for <linux-media@archiver.kernel.org>; Mon, 28 Jan 2019 09:28:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7EC4EC282C8
+	for <linux-media@archiver.kernel.org>; Mon, 28 Jan 2019 09:32:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 41A4220880
-	for <linux-media@archiver.kernel.org>; Mon, 28 Jan 2019 09:28:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4EA5020880
+	for <linux-media@archiver.kernel.org>; Mon, 28 Jan 2019 09:32:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726667AbfA1J2l (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 28 Jan 2019 04:28:41 -0500
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:41700 "EHLO
+        id S1726611AbfA1Jci (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 28 Jan 2019 04:32:38 -0500
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:41076 "EHLO
         lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726369AbfA1J2l (ORCPT
+        by vger.kernel.org with ESMTP id S1726369AbfA1Jci (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 28 Jan 2019 04:28:41 -0500
+        Mon, 28 Jan 2019 04:32:38 -0500
 Received: from [192.168.2.10] ([212.251.195.8])
         by smtp-cloud7.xs4all.net with ESMTPA
-        id o3DXglgAWBDyIo3DbgnLBR; Mon, 28 Jan 2019 10:28:39 +0100
-Subject: Re: [PATCH 2/3] media: vicodec: Introducing stateless fwht defs and
- structs
+        id o3HNglhvHBDyIo3HQgnMLf; Mon, 28 Jan 2019 10:32:36 +0100
+Subject: Re: [PATCH 3/3] media: vicodec: Register another node for stateless
+ decoder
 To:     Dafna Hirschfeld <dafna3@gmail.com>, linux-media@vger.kernel.org
 Cc:     helen.koike@collabora.com
 References: <20190126134759.97680-1-dafna3@gmail.com>
- <20190126134759.97680-3-dafna3@gmail.com>
+ <20190126134759.97680-4-dafna3@gmail.com>
 From:   Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <8b58f9e2-46f5-8481-3432-d7280c3aad2e@xs4all.nl>
-Date:   Mon, 28 Jan 2019 10:28:35 +0100
+Message-ID: <0a370aea-7cba-4577-538e-1166b3279307@xs4all.nl>
+Date:   Mon, 28 Jan 2019 10:32:33 +0100
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
  Thunderbird/60.4.0
 MIME-Version: 1.0
-In-Reply-To: <20190126134759.97680-3-dafna3@gmail.com>
+In-Reply-To: <20190126134759.97680-4-dafna3@gmail.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfB3QBJUqUjbW1wufDr3EZM6gDb6nnSg/e2+wZbUXyl9WHq8+TYdvcpCYLH01GLpuSFYinAJxqpcKwZydQcg43azP/XzEN68AQHkLCA3OiptO4X7pa2T+
- YXtol9bo+/ArAHFwcq5Pm5WLq9wAympalExins7XAF8aYDR9TTeQdDU5vXuHwgLu0EI1Bv1jfRlBS10O9Wlu1PFDgJrCD30pIsKdkNEc/JwIpyc0mdG/ZBbM
- 7l4AMCvwTmPh/dyG/WMPAA==
+X-CMAE-Envelope: MS4wfD2kFnxpI5npMCY3pZYNexIHQP9fGwGETYijuIeeZAcXOEd2O7WC2CDFTtjR+BMnC5xs07RcDTkJR6NMCBwxrBL7I0zl13Sx14OvDsZHoySdtiuWBuqJ
+ RdTAIhph+wjPQuQKZ1T1MsuVvNqZ9rKF6Rn/f/JSJ4hFcMuLRMh2BgiRfZPtZMDLar1eWf4uKxGYrSBJUjwPcayUE5drASLvwPXvpb8vo6mSognK/8nmgzIS
+ +jssGphSSCm/82c587kJAA==
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
 On 1/26/19 2:47 PM, Dafna Hirschfeld wrote:
-> Add structs and definitions needed to implement stateless
-> decoder for fwht.
+> Add stateless decoder instance field to the dev struct and
+> register another node for the statelsess decoder.
+> The stateless API for the node will be implemented in further patches.
 > 
 > Signed-off-by: Dafna Hirschfeld <dafna3@gmail.com>
 > ---
->  drivers/media/platform/vicodec/vicodec-core.c | 12 ++++++++++++
->  drivers/media/v4l2-core/v4l2-ctrls.c          |  6 ++++++
->  include/uapi/linux/v4l2-controls.h            | 10 ++++++++++
->  include/uapi/linux/videodev2.h                |  1 +
->  4 files changed, 29 insertions(+)
+>  drivers/media/platform/vicodec/vicodec-core.c | 56 +++++++++++++++++--
+>  1 file changed, 51 insertions(+), 5 deletions(-)
 > 
 > diff --git a/drivers/media/platform/vicodec/vicodec-core.c b/drivers/media/platform/vicodec/vicodec-core.c
-> index 370517707324..25831d992681 100644
+> index 25831d992681..7c2ad7d5f356 100644
 > --- a/drivers/media/platform/vicodec/vicodec-core.c
 > +++ b/drivers/media/platform/vicodec/vicodec-core.c
-> @@ -64,6 +64,10 @@ static const struct v4l2_fwht_pixfmt_info pixfmt_fwht = {
->  	V4L2_PIX_FMT_FWHT, 0, 3, 1, 1, 1, 1, 1, 0, 1
->  };
->  
-> +static const struct v4l2_fwht_pixfmt_info pixfmt_stateless_fwht = {
-> +	V4L2_PIX_FMT_FWHT_STATELESS, 0, 3, 1, 1, 1, 1, 1, 0, 1
-> +};
-> +
->  static void vicodec_dev_release(struct device *dev)
->  {
->  }
-> @@ -1463,6 +1467,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
->  #define VICODEC_CID_CUSTOM_BASE		(V4L2_CID_MPEG_BASE | 0xf000)
->  #define VICODEC_CID_I_FRAME_QP		(VICODEC_CID_CUSTOM_BASE + 0)
->  #define VICODEC_CID_P_FRAME_QP		(VICODEC_CID_CUSTOM_BASE + 1)
-> +#define VICODEC_CID_STATELESS_FWHT	(VICODEC_CID_CUSTOM_BASE + 2)
->  
->  static int vicodec_s_ctrl(struct v4l2_ctrl *ctrl)
->  {
-> @@ -1509,6 +1514,13 @@ static const struct v4l2_ctrl_config vicodec_ctrl_p_frame = {
->  	.step = 1,
->  };
->  
-> +static const struct v4l2_ctrl_config vicodec_ctrl_stateless_state = {
-> +	.id		= VICODEC_CID_STATELESS_FWHT,
-> +	.elem_size	= sizeof(struct v4l2_ctrl_fwht_params),
-> +	.name		= "FWHT-Stateless State Params",
-> +	.type		= V4L2_CTRL_TYPE_FWHT_PARAMS,
-> +};
-> +
->  /*
->   * File operations
->   */
-> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-> index 99308dac2daa..b05e51312430 100644
-> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
-> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-> @@ -1669,6 +1669,9 @@ static int std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
->  	case V4L2_CTRL_TYPE_MPEG2_QUANTIZATION:
->  		return 0;
->  
-> +	case V4L2_CTRL_TYPE_FWHT_PARAMS:
-> +		return 0;
-> +
->  	default:
->  		return -EINVAL;
->  	}
-> @@ -2249,6 +2252,9 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
->  	case V4L2_CTRL_TYPE_MPEG2_QUANTIZATION:
->  		elem_size = sizeof(struct v4l2_ctrl_mpeg2_quantization);
->  		break;
-> +	case V4L2_CTRL_TYPE_FWHT_PARAMS:
-> +		elem_size = sizeof(struct v4l2_ctrl_fwht_params);
-> +		break;
->  	default:
->  		if (type < V4L2_CTRL_COMPOUND_TYPES)
->  			elem_size = sizeof(s32);
-> diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-> index 06479f2fb3ae..2d6e91cb615a 100644
-> --- a/include/uapi/linux/v4l2-controls.h
-> +++ b/include/uapi/linux/v4l2-controls.h
-> @@ -52,6 +52,7 @@
->  
->  #include <linux/types.h>
->  
-> +#define V4L2_CTRL_TYPE_FWHT_PARAMS 0x0105
->  /* Control classes */
->  #define V4L2_CTRL_CLASS_USER		0x00980000	/* Old-style 'user' controls */
->  #define V4L2_CTRL_CLASS_MPEG		0x00990000	/* MPEG-compression controls */
-> @@ -1096,4 +1097,13 @@ enum v4l2_detect_md_mode {
->  #define V4L2_CID_DETECT_MD_THRESHOLD_GRID	(V4L2_CID_DETECT_CLASS_BASE + 3)
->  #define V4L2_CID_DETECT_MD_REGION_GRID		(V4L2_CID_DETECT_CLASS_BASE + 4)
->  
-> +struct v4l2_ctrl_fwht_params {
-> +	__u32 flags;
-> +	__u32 colorspace;
-> +	__u32 xfer_func;
-> +	__u32 ycbcr_enc;
-> +	__u32 quantization;
-> +	__u64 backward_ref_ts;
-
-It is best if backward_ref_ts is moved to the beginning of the struct.
-
-The problem here is that 64 bit fields are aligned to an 8 byte
-boundary and so a 4 byte hole is inserted before backward_ref_ts. Also,
-the i686 architecture is different from most other 32 bit architectures
-in that it aligns 64 bit values to a 4 byte boundary. As a result using
-this structure will require a 32 bit to 64 bit conversion since the
-layout is different.
-
-To avoid all this mess it is best to always place 64 bit values at a
-proper 8 byte alignment.
-
-> +};
-> +
+> @@ -104,6 +104,7 @@ struct vicodec_dev {
+>  	struct v4l2_device	v4l2_dev;
+>  	struct vicodec_dev_instance enc_instance;
+>  	struct vicodec_dev_instance dec_instance;
+> +	struct vicodec_dev_instance stateless_dec_instance;
+>  #ifdef CONFIG_MEDIA_CONTROLLER
+>  	struct media_device	mdev;
 >  #endif
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index 9a920f071ff9..37ac240eba01 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -665,6 +665,7 @@ struct v4l2_pix_format {
->  #define V4L2_PIX_FMT_VP9      v4l2_fourcc('V', 'P', '9', '0') /* VP9 */
->  #define V4L2_PIX_FMT_HEVC     v4l2_fourcc('H', 'E', 'V', 'C') /* HEVC aka H.265 */
->  #define V4L2_PIX_FMT_FWHT     v4l2_fourcc('F', 'W', 'H', 'T') /* Fast Walsh Hadamard Transform (vicodec) */
-> +#define V4L2_PIX_FMT_FWHT_STATELESS     v4l2_fourcc('S', 'F', 'W', 'H') /* Stateless FWHT (vicodec) */
+> @@ -114,6 +115,7 @@ struct vicodec_ctx {
+>  	struct v4l2_fh		fh;
+>  	struct vicodec_dev	*dev;
+>  	bool			is_enc;
+> +	bool			is_stateless_dec;
+
+I'd just call this 'is_stateless', since the same will be needed for the
+future stateless encoder.
+
+>  	spinlock_t		*lock;
 >  
->  /*  Vendor-specific formats   */
->  #define V4L2_PIX_FMT_CPIA1    v4l2_fourcc('C', 'P', 'I', 'A') /* cpia1 YUV */
-> 
+>  	struct v4l2_ctrl_handler hdl;
+> @@ -314,6 +316,9 @@ static void device_run(void *priv)
+>  
+>  	if (ctx->is_enc)
+>  		v4l2_m2m_job_finish(dev->enc_instance.m2m_dev, ctx->fh.m2m_ctx);
+> +	else if (ctx->is_stateless_dec)
+> +		v4l2_m2m_job_finish(dev->stateless_dec_instance.m2m_dev,
+> +				    ctx->fh.m2m_ctx);
+>  	else
+>  		v4l2_m2m_job_finish(dev->dec_instance.m2m_dev, ctx->fh.m2m_ctx);
+>  }
+> @@ -1444,8 +1449,13 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+>  	src_vq->ops = &vicodec_qops;
+>  	src_vq->mem_ops = &vb2_vmalloc_memops;
+>  	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+> -	src_vq->lock = ctx->is_enc ? &ctx->dev->enc_instance.mutex :
+> -		&ctx->dev->dec_instance.mutex;
+> +	if (ctx->is_enc)
+> +		src_vq->lock = &ctx->dev->enc_instance.mutex;
+> +	else if (ctx->is_stateless_dec)
+> +		src_vq->lock = &ctx->dev->stateless_dec_instance.mutex;
+> +	else
+> +		src_vq->lock = &ctx->dev->dec_instance.mutex;
+> +	src_vq->supports_requests = ctx->is_stateless_dec ? true : false;
+>  	ret = vb2_queue_init(src_vq);
+>  	if (ret)
+>  		return ret;
+> @@ -1543,6 +1553,8 @@ static int vicodec_open(struct file *file)
+>  
+>  	if (vfd == &dev->enc_instance.vfd)
+>  		ctx->is_enc = true;
+> +	else if (vfd == &dev->stateless_dec_instance.vfd)
+> +		ctx->is_stateless_dec = true;
+>  
+>  	v4l2_fh_init(&ctx->fh, video_devdata(file));
+>  	file->private_data = &ctx->fh;
+> @@ -1553,6 +1565,7 @@ static int vicodec_open(struct file *file)
+>  			  1, 16, 1, 10);
+>  	v4l2_ctrl_new_custom(hdl, &vicodec_ctrl_i_frame, NULL);
+>  	v4l2_ctrl_new_custom(hdl, &vicodec_ctrl_p_frame, NULL);
+> +	v4l2_ctrl_new_custom(hdl, &vicodec_ctrl_stateless_state, NULL);
+
+This should only be added if this is the stateless decoder.
+
+>  	if (hdl->error) {
+>  		rc = hdl->error;
+>  		v4l2_ctrl_handler_free(hdl);
+> @@ -1592,6 +1605,10 @@ static int vicodec_open(struct file *file)
+>  		ctx->fh.m2m_ctx = v4l2_m2m_ctx_init(dev->enc_instance.m2m_dev,
+>  						    ctx, &queue_init);
+>  		ctx->lock = &dev->enc_instance.lock;
+> +	} else if (ctx->is_stateless_dec) {
+> +		ctx->fh.m2m_ctx = v4l2_m2m_ctx_init(dev->stateless_dec_instance.m2m_dev,
+> +						    ctx, &queue_init);
+> +		ctx->lock = &dev->stateless_dec_instance.lock;
+>  	} else {
+>  		ctx->fh.m2m_ctx = v4l2_m2m_ctx_init(dev->dec_instance.m2m_dev,
+>  						    ctx, &queue_init);
+> @@ -1697,6 +1714,7 @@ static int vicodec_probe(struct platform_device *pdev)
+>  
+>  	spin_lock_init(&dev->enc_instance.lock);
+>  	spin_lock_init(&dev->dec_instance.lock);
+> +	spin_lock_init(&dev->stateless_dec_instance.lock);
+>  
+>  	ret = v4l2_device_register(&pdev->dev, &dev->v4l2_dev);
+>  	if (ret)
+> @@ -1711,6 +1729,7 @@ static int vicodec_probe(struct platform_device *pdev)
+>  
+>  	mutex_init(&dev->enc_instance.mutex);
+>  	mutex_init(&dev->dec_instance.mutex);
+> +	mutex_init(&dev->stateless_dec_instance.mutex);
+
+Why not init the mutex and the spinlock in register_instance()?
+
+The same for v4l2_m2m_ctx_init().
 
 Regards,
 
 	Hans
+
+>  
+>  	platform_set_drvdata(pdev, dev);
+>  
+> @@ -1728,14 +1747,25 @@ static int vicodec_probe(struct platform_device *pdev)
+>  		goto err_enc_m2m;
+>  	}
+>  
+> +	dev->stateless_dec_instance.m2m_dev = v4l2_m2m_init(&m2m_ops);
+> +	if (IS_ERR(dev->stateless_dec_instance.m2m_dev)) {
+> +		v4l2_err(&dev->v4l2_dev, "Failed to init vicodec stateless dec device\n");
+> +		ret = PTR_ERR(dev->stateless_dec_instance.m2m_dev);
+> +		goto err_dec_m2m;
+> +	}
+> +
+>  	if (register_instance(dev, &dev->enc_instance,
+>  			      "videdev-enc", true))
+> -		goto err_dec_m2m;
+> +		goto err_sdec_m2m;
+>  
+>  	if (register_instance(dev, &dev->dec_instance,
+>  			      "videdev-statefull-dec", false))
+>  		goto unreg_enc;
+>  
+> +	if (register_instance(dev, &dev->stateless_dec_instance,
+> +			      "videdev-stateless-dec", false))
+> +		goto unreg_dec;
+> +
+>  #ifdef CONFIG_MEDIA_CONTROLLER
+>  	ret = v4l2_m2m_register_media_controller(dev->enc_instance.m2m_dev,
+>  						 &dev->enc_instance.vfd,
+> @@ -1753,24 +1783,38 @@ static int vicodec_probe(struct platform_device *pdev)
+>  		goto unreg_m2m_enc_mc;
+>  	}
+>  
+> +	ret = v4l2_m2m_register_media_controller(dev->stateless_dec_instance.m2m_dev,
+> +						 &dev->stateless_dec_instance.vfd,
+> +						 MEDIA_ENT_F_PROC_VIDEO_DECODER);
+> +	if (ret) {
+> +		v4l2_err(&dev->v4l2_dev, "Failed to init mem2mem media controller for stateless dec\n");
+> +		goto unreg_m2m_dec_mc;
+> +	}
+> +
+>  	ret = media_device_register(&dev->mdev);
+>  	if (ret) {
+>  		v4l2_err(&dev->v4l2_dev, "Failed to register mem2mem media device\n");
+> -		goto unreg_m2m_dec_mc;
+> +		goto unreg_m2m_sdec_mc;
+>  	}
+>  #endif
+>  	return 0;
+>  
+>  #ifdef CONFIG_MEDIA_CONTROLLER
+> +unreg_m2m_sdec_mc:
+> +	v4l2_m2m_unregister_media_controller(dev->stateless_dec_instance.m2m_dev);
+>  unreg_m2m_dec_mc:
+>  	v4l2_m2m_unregister_media_controller(dev->dec_instance.m2m_dev);
+>  unreg_m2m_enc_mc:
+>  	v4l2_m2m_unregister_media_controller(dev->enc_instance.m2m_dev);
+>  unreg_m2m:
+> -	video_unregister_device(&dev->dec_instance.vfd);
+> +	video_unregister_device(&dev->stateless_dec_instance.vfd);
+>  #endif
+> +unreg_dec:
+> +	video_unregister_device(&dev->dec_instance.vfd);
+>  unreg_enc:
+>  	video_unregister_device(&dev->enc_instance.vfd);
+> +err_sdec_m2m:
+> +	v4l2_m2m_release(dev->stateless_dec_instance.m2m_dev);
+>  err_dec_m2m:
+>  	v4l2_m2m_release(dev->dec_instance.m2m_dev);
+>  err_enc_m2m:
+> @@ -1791,6 +1835,7 @@ static int vicodec_remove(struct platform_device *pdev)
+>  	media_device_unregister(&dev->mdev);
+>  	v4l2_m2m_unregister_media_controller(dev->enc_instance.m2m_dev);
+>  	v4l2_m2m_unregister_media_controller(dev->dec_instance.m2m_dev);
+> +	v4l2_m2m_unregister_media_controller(dev->stateless_dec_instance.m2m_dev);
+>  	media_device_cleanup(&dev->mdev);
+>  #endif
+>  
+> @@ -1798,6 +1843,7 @@ static int vicodec_remove(struct platform_device *pdev)
+>  	v4l2_m2m_release(dev->dec_instance.m2m_dev);
+>  	video_unregister_device(&dev->enc_instance.vfd);
+>  	video_unregister_device(&dev->dec_instance.vfd);
+> +	video_unregister_device(&dev->stateless_dec_instance.vfd);
+>  	v4l2_device_unregister(&dev->v4l2_dev);
+>  
+>  	return 0;
+> 
+
