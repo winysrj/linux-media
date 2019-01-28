@@ -2,249 +2,168 @@ Return-Path: <SRS0=ymVG=QE=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS autolearn=ham
+X-Spam-Status: No, score=-12.0 required=3.0
+	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7EC4EC282C8
-	for <linux-media@archiver.kernel.org>; Mon, 28 Jan 2019 09:32:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 06D6CC282C8
+	for <linux-media@archiver.kernel.org>; Mon, 28 Jan 2019 09:52:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4EA5020880
-	for <linux-media@archiver.kernel.org>; Mon, 28 Jan 2019 09:32:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D5BA721736
+	for <linux-media@archiver.kernel.org>; Mon, 28 Jan 2019 09:52:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726611AbfA1Jci (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 28 Jan 2019 04:32:38 -0500
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:41076 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726369AbfA1Jci (ORCPT
+        id S1726682AbfA1Jwr (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 28 Jan 2019 04:52:47 -0500
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:44960 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726521AbfA1Jwr (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 28 Jan 2019 04:32:38 -0500
+        Mon, 28 Jan 2019 04:52:47 -0500
 Received: from [192.168.2.10] ([212.251.195.8])
         by smtp-cloud7.xs4all.net with ESMTPA
-        id o3HNglhvHBDyIo3HQgnMLf; Mon, 28 Jan 2019 10:32:36 +0100
-Subject: Re: [PATCH 3/3] media: vicodec: Register another node for stateless
- decoder
-To:     Dafna Hirschfeld <dafna3@gmail.com>, linux-media@vger.kernel.org
-Cc:     helen.koike@collabora.com
-References: <20190126134759.97680-1-dafna3@gmail.com>
- <20190126134759.97680-4-dafna3@gmail.com>
+        id o3arglqdzBDyIo3augnS3i; Mon, 28 Jan 2019 10:52:44 +0100
+Subject: Re: [RFC PATCH] videodev2.h: introduce VIDIOC_DQEXTEVENT
+To:     Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc:     Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <700eff44-b903-24d0-ef41-e634e643a200@xs4all.nl>
+ <20190128092128.3ir4pp66wb3aujf5@paasikivi.fi.intel.com>
 From:   Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <0a370aea-7cba-4577-538e-1166b3279307@xs4all.nl>
-Date:   Mon, 28 Jan 2019 10:32:33 +0100
+Message-ID: <b0a90af3-f59e-3a9a-3a6a-1735c31c4ceb@xs4all.nl>
+Date:   Mon, 28 Jan 2019 10:52:40 +0100
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
  Thunderbird/60.4.0
 MIME-Version: 1.0
-In-Reply-To: <20190126134759.97680-4-dafna3@gmail.com>
+In-Reply-To: <20190128092128.3ir4pp66wb3aujf5@paasikivi.fi.intel.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfD2kFnxpI5npMCY3pZYNexIHQP9fGwGETYijuIeeZAcXOEd2O7WC2CDFTtjR+BMnC5xs07RcDTkJR6NMCBwxrBL7I0zl13Sx14OvDsZHoySdtiuWBuqJ
- RdTAIhph+wjPQuQKZ1T1MsuVvNqZ9rKF6Rn/f/JSJ4hFcMuLRMh2BgiRfZPtZMDLar1eWf4uKxGYrSBJUjwPcayUE5drASLvwPXvpb8vo6mSognK/8nmgzIS
- +jssGphSSCm/82c587kJAA==
+X-CMAE-Envelope: MS4wfMJjwsgtGDjldylU6IUyHdQTgweBGAwuPy+7ZHGu7Vj0tyFCrbEfU/F0pIMBaLKkUdo4OnuAyBdMNpVmvIqybbNNKZzHHAoKyWFAo218QwusA8/PVUCW
+ BlvSQxW0CQfwzYw9Frqv3dUZjkJuGgvygpMP0clcdQ41CamvE1HsMWUIarcUi8Lqt2OtOR/D1rXM58el0FoMGJ+OLvUR4vTlhFuMBwy0QDiT2eo8/eLR6JYj
+ GzkOe4/zYfRly/1thpZRgs5Q66pFDqK5xlUPeQCVBC0=
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On 1/26/19 2:47 PM, Dafna Hirschfeld wrote:
-> Add stateless decoder instance field to the dev struct and
-> register another node for the statelsess decoder.
-> The stateless API for the node will be implemented in further patches.
+On 1/28/19 10:21 AM, Sakari Ailus wrote:
+> Hi Hans,
 > 
-> Signed-off-by: Dafna Hirschfeld <dafna3@gmail.com>
-> ---
->  drivers/media/platform/vicodec/vicodec-core.c | 56 +++++++++++++++++--
->  1 file changed, 51 insertions(+), 5 deletions(-)
+> Thanks for the patch.
 > 
-> diff --git a/drivers/media/platform/vicodec/vicodec-core.c b/drivers/media/platform/vicodec/vicodec-core.c
-> index 25831d992681..7c2ad7d5f356 100644
-> --- a/drivers/media/platform/vicodec/vicodec-core.c
-> +++ b/drivers/media/platform/vicodec/vicodec-core.c
-> @@ -104,6 +104,7 @@ struct vicodec_dev {
->  	struct v4l2_device	v4l2_dev;
->  	struct vicodec_dev_instance enc_instance;
->  	struct vicodec_dev_instance dec_instance;
-> +	struct vicodec_dev_instance stateless_dec_instance;
->  #ifdef CONFIG_MEDIA_CONTROLLER
->  	struct media_device	mdev;
->  #endif
-> @@ -114,6 +115,7 @@ struct vicodec_ctx {
->  	struct v4l2_fh		fh;
->  	struct vicodec_dev	*dev;
->  	bool			is_enc;
-> +	bool			is_stateless_dec;
+> On Sat, Jan 26, 2019 at 12:06:19PM +0100, Hans Verkuil wrote:
+>> This patch adds an extended version of VIDIOC_DQEVENT that:
+>>
+>> 1) is Y2038 safe by using a __u64 for the timestamp
+>> 2) needs no compat32 conversion code
+>> 3) is able to handle control events from 64-bit control types
+>>    by changing the type of the minimum, maximum, step and default_value
+>>    field to __u64
+>>
+>> All drivers and frameworks will be using this, and v4l2-ioctl.c would be the
+>> only place where the old event ioctl and structs are used.
+>>
+>> Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+>> ---
+>> Please let me know if there are additional requests for such a new ioctl.
+>>
+>> Note that I am using number 104 for the ioctl, but perhaps it would be better to
+>> use an unused ioctl number like 1 or 3. There are quite a few holes in the
+>> ioctl numbers. We currently have only 82 ioctls, yet are up to ioctl number 103.
+>> ---
+>> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+>> index 9a920f071ff9..969e775b8c25 100644
+>> --- a/include/uapi/linux/videodev2.h
+>> +++ b/include/uapi/linux/videodev2.h
+>> @@ -2303,6 +2303,37 @@ struct v4l2_event {
+>>  	__u32				reserved[8];
+>>  };
+>>
+>> +struct v4l2_event_ext_ctrl {
+>> +	__u32 changes;
+>> +	__u32 type;
+>> +	union {
+>> +		__s32 value;
+>> +		__s64 value64;
+>> +	};
+>> +	__s64 minimum;
+>> +	__s64 maximum;
+>> +	__s64 step;
+>> +	__s64 default_value;
+>> +	__u32 flags;
+>> +};
+>> +
+>> +struct v4l2_ext_event {
+>> +	__u32				type;
+>> +	__u32				id;
+>> +	union {
+>> +		struct v4l2_event_vsync		vsync;
+>> +		struct v4l2_event_ext_ctrl	ctrl;
+>> +		struct v4l2_event_frame_sync	frame_sync;
+>> +		struct v4l2_event_src_change	src_change;
+>> +		struct v4l2_event_motion_det	motion_det;
+>> +		__u8				data[64];
+>> +	} u;
+> 
+> If I'd change something in the event IOCTL, I'd probably put the reserved
+> fields here. That'd allow later taking some for the use of the event data
+> if needed.
 
-I'd just call this 'is_stateless', since the same will be needed for the
-future stateless encoder.
+Good point, I'll do that.
 
->  	spinlock_t		*lock;
->  
->  	struct v4l2_ctrl_handler hdl;
-> @@ -314,6 +316,9 @@ static void device_run(void *priv)
->  
->  	if (ctx->is_enc)
->  		v4l2_m2m_job_finish(dev->enc_instance.m2m_dev, ctx->fh.m2m_ctx);
-> +	else if (ctx->is_stateless_dec)
-> +		v4l2_m2m_job_finish(dev->stateless_dec_instance.m2m_dev,
-> +				    ctx->fh.m2m_ctx);
->  	else
->  		v4l2_m2m_job_finish(dev->dec_instance.m2m_dev, ctx->fh.m2m_ctx);
->  }
-> @@ -1444,8 +1449,13 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
->  	src_vq->ops = &vicodec_qops;
->  	src_vq->mem_ops = &vb2_vmalloc_memops;
->  	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
-> -	src_vq->lock = ctx->is_enc ? &ctx->dev->enc_instance.mutex :
-> -		&ctx->dev->dec_instance.mutex;
-> +	if (ctx->is_enc)
-> +		src_vq->lock = &ctx->dev->enc_instance.mutex;
-> +	else if (ctx->is_stateless_dec)
-> +		src_vq->lock = &ctx->dev->stateless_dec_instance.mutex;
-> +	else
-> +		src_vq->lock = &ctx->dev->dec_instance.mutex;
-> +	src_vq->supports_requests = ctx->is_stateless_dec ? true : false;
->  	ret = vb2_queue_init(src_vq);
->  	if (ret)
->  		return ret;
-> @@ -1543,6 +1553,8 @@ static int vicodec_open(struct file *file)
->  
->  	if (vfd == &dev->enc_instance.vfd)
->  		ctx->is_enc = true;
-> +	else if (vfd == &dev->stateless_dec_instance.vfd)
-> +		ctx->is_stateless_dec = true;
->  
->  	v4l2_fh_init(&ctx->fh, video_devdata(file));
->  	file->private_data = &ctx->fh;
-> @@ -1553,6 +1565,7 @@ static int vicodec_open(struct file *file)
->  			  1, 16, 1, 10);
->  	v4l2_ctrl_new_custom(hdl, &vicodec_ctrl_i_frame, NULL);
->  	v4l2_ctrl_new_custom(hdl, &vicodec_ctrl_p_frame, NULL);
-> +	v4l2_ctrl_new_custom(hdl, &vicodec_ctrl_stateless_state, NULL);
+> I might also increase the size of the event data. 64 bytes is not that
+> much. But you indeed end up copying it around all the time... So it's a
+> trade-off.
 
-This should only be added if this is the stateless decoder.
+I decided to leave this alone. I think by putting the reserved array after
+the union (nice idea) we allow for such future extension should it be
+necessary.
 
->  	if (hdl->error) {
->  		rc = hdl->error;
->  		v4l2_ctrl_handler_free(hdl);
-> @@ -1592,6 +1605,10 @@ static int vicodec_open(struct file *file)
->  		ctx->fh.m2m_ctx = v4l2_m2m_ctx_init(dev->enc_instance.m2m_dev,
->  						    ctx, &queue_init);
->  		ctx->lock = &dev->enc_instance.lock;
-> +	} else if (ctx->is_stateless_dec) {
-> +		ctx->fh.m2m_ctx = v4l2_m2m_ctx_init(dev->stateless_dec_instance.m2m_dev,
-> +						    ctx, &queue_init);
-> +		ctx->lock = &dev->stateless_dec_instance.lock;
->  	} else {
->  		ctx->fh.m2m_ctx = v4l2_m2m_ctx_init(dev->dec_instance.m2m_dev,
->  						    ctx, &queue_init);
-> @@ -1697,6 +1714,7 @@ static int vicodec_probe(struct platform_device *pdev)
->  
->  	spin_lock_init(&dev->enc_instance.lock);
->  	spin_lock_init(&dev->dec_instance.lock);
-> +	spin_lock_init(&dev->stateless_dec_instance.lock);
->  
->  	ret = v4l2_device_register(&pdev->dev, &dev->v4l2_dev);
->  	if (ret)
-> @@ -1711,6 +1729,7 @@ static int vicodec_probe(struct platform_device *pdev)
->  
->  	mutex_init(&dev->enc_instance.mutex);
->  	mutex_init(&dev->dec_instance.mutex);
-> +	mutex_init(&dev->stateless_dec_instance.mutex);
+> 
+>> +	__u64				timestamp;
+>> +	__u32				pending;
+>> +	__u32				sequence;
+>> +	__u32				reserved[8];
+>> +};
+>> +
+>>  #define V4L2_EVENT_SUB_FL_SEND_INITIAL		(1 << 0)
+>>  #define V4L2_EVENT_SUB_FL_ALLOW_FEEDBACK	(1 << 1)
+>>
+>> @@ -2475,6 +2506,7 @@ struct v4l2_create_buffers {
+>>  #define VIDIOC_DBG_G_CHIP_INFO  _IOWR('V', 102, struct v4l2_dbg_chip_info)
+>>
+>>  #define VIDIOC_QUERY_EXT_CTRL	_IOWR('V', 103, struct v4l2_query_ext_ctrl)
+>> +#define	VIDIOC_DQEXTEVENT	 _IOR('V', 104, struct v4l2_ext_event)
+> 
+> How do you plan to name the new buffer handling IOCTLs? I.e. with or
+> without underscores around "EXT"?
 
-Why not init the mutex and the spinlock in register_instance()?
+It's a good question. In my old patch I named them VIDIOC_EXT_QBUF etc. See:
+https://git.linuxtv.org/hverkuil/media_tree.git/commit/?h=v4l2-buffer&id=a95549df06d9900f3559afdbb9da06bd4b22d1f3
 
-The same for v4l2_m2m_ctx_init().
+So I think I should probably rename this to VIDIOC_EXT_DQEVENT.
+
+Alternatively, perhaps we should ditch the _ext_ usage and instead use a
+version suffix: VIDIOC_DQEVENT_V2.
+
+The problem with EXT is that if you want to make a newer version of such a
+control, you can't just name it EXT_EXT, that would be silly. But naming it
+_V3 would be fine.
+
+Frankly, the extended control ioctls have that problem, also due to awful
+64 bit alignment issues. It would be really nice to have _V3 versions of
+those ioctls that do not require compat32 code.
+
+Feedback on this would be very welcome!
 
 Regards,
 
 	Hans
 
->  
->  	platform_set_drvdata(pdev, dev);
->  
-> @@ -1728,14 +1747,25 @@ static int vicodec_probe(struct platform_device *pdev)
->  		goto err_enc_m2m;
->  	}
->  
-> +	dev->stateless_dec_instance.m2m_dev = v4l2_m2m_init(&m2m_ops);
-> +	if (IS_ERR(dev->stateless_dec_instance.m2m_dev)) {
-> +		v4l2_err(&dev->v4l2_dev, "Failed to init vicodec stateless dec device\n");
-> +		ret = PTR_ERR(dev->stateless_dec_instance.m2m_dev);
-> +		goto err_dec_m2m;
-> +	}
-> +
->  	if (register_instance(dev, &dev->enc_instance,
->  			      "videdev-enc", true))
-> -		goto err_dec_m2m;
-> +		goto err_sdec_m2m;
->  
->  	if (register_instance(dev, &dev->dec_instance,
->  			      "videdev-statefull-dec", false))
->  		goto unreg_enc;
->  
-> +	if (register_instance(dev, &dev->stateless_dec_instance,
-> +			      "videdev-stateless-dec", false))
-> +		goto unreg_dec;
-> +
->  #ifdef CONFIG_MEDIA_CONTROLLER
->  	ret = v4l2_m2m_register_media_controller(dev->enc_instance.m2m_dev,
->  						 &dev->enc_instance.vfd,
-> @@ -1753,24 +1783,38 @@ static int vicodec_probe(struct platform_device *pdev)
->  		goto unreg_m2m_enc_mc;
->  	}
->  
-> +	ret = v4l2_m2m_register_media_controller(dev->stateless_dec_instance.m2m_dev,
-> +						 &dev->stateless_dec_instance.vfd,
-> +						 MEDIA_ENT_F_PROC_VIDEO_DECODER);
-> +	if (ret) {
-> +		v4l2_err(&dev->v4l2_dev, "Failed to init mem2mem media controller for stateless dec\n");
-> +		goto unreg_m2m_dec_mc;
-> +	}
-> +
->  	ret = media_device_register(&dev->mdev);
->  	if (ret) {
->  		v4l2_err(&dev->v4l2_dev, "Failed to register mem2mem media device\n");
-> -		goto unreg_m2m_dec_mc;
-> +		goto unreg_m2m_sdec_mc;
->  	}
->  #endif
->  	return 0;
->  
->  #ifdef CONFIG_MEDIA_CONTROLLER
-> +unreg_m2m_sdec_mc:
-> +	v4l2_m2m_unregister_media_controller(dev->stateless_dec_instance.m2m_dev);
->  unreg_m2m_dec_mc:
->  	v4l2_m2m_unregister_media_controller(dev->dec_instance.m2m_dev);
->  unreg_m2m_enc_mc:
->  	v4l2_m2m_unregister_media_controller(dev->enc_instance.m2m_dev);
->  unreg_m2m:
-> -	video_unregister_device(&dev->dec_instance.vfd);
-> +	video_unregister_device(&dev->stateless_dec_instance.vfd);
->  #endif
-> +unreg_dec:
-> +	video_unregister_device(&dev->dec_instance.vfd);
->  unreg_enc:
->  	video_unregister_device(&dev->enc_instance.vfd);
-> +err_sdec_m2m:
-> +	v4l2_m2m_release(dev->stateless_dec_instance.m2m_dev);
->  err_dec_m2m:
->  	v4l2_m2m_release(dev->dec_instance.m2m_dev);
->  err_enc_m2m:
-> @@ -1791,6 +1835,7 @@ static int vicodec_remove(struct platform_device *pdev)
->  	media_device_unregister(&dev->mdev);
->  	v4l2_m2m_unregister_media_controller(dev->enc_instance.m2m_dev);
->  	v4l2_m2m_unregister_media_controller(dev->dec_instance.m2m_dev);
-> +	v4l2_m2m_unregister_media_controller(dev->stateless_dec_instance.m2m_dev);
->  	media_device_cleanup(&dev->mdev);
->  #endif
->  
-> @@ -1798,6 +1843,7 @@ static int vicodec_remove(struct platform_device *pdev)
->  	v4l2_m2m_release(dev->dec_instance.m2m_dev);
->  	video_unregister_device(&dev->enc_instance.vfd);
->  	video_unregister_device(&dev->dec_instance.vfd);
-> +	video_unregister_device(&dev->stateless_dec_instance.vfd);
->  	v4l2_device_unregister(&dev->v4l2_dev);
->  
->  	return 0;
+> 
+>>
+>>  /* Reminder: when adding new ioctls please add support for them to
+>>     drivers/media/v4l2-core/v4l2-compat-ioctl32.c as well! */
 > 
 
