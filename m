@@ -2,69 +2,118 @@ Return-Path: <SRS0=ymVG=QE=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=FREEMAIL_FORGED_FROMDOMAIN,
-	FREEMAIL_FROM,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,
-	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9908CC282C8
-	for <linux-media@archiver.kernel.org>; Mon, 28 Jan 2019 15:34:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B4103C282CD
+	for <linux-media@archiver.kernel.org>; Mon, 28 Jan 2019 15:46:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 737C22147A
-	for <linux-media@archiver.kernel.org>; Mon, 28 Jan 2019 15:34:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8554220880
+	for <linux-media@archiver.kernel.org>; Mon, 28 Jan 2019 15:46:04 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1548690364;
+	bh=RxptdGV+4lXa+UrJ0V0gXU2CCI3yBbOLulbz1uCUKWk=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:List-ID:From;
+	b=eADmQCO+RfsqBVVj1wNIJ/YjWEgeQWrfrfpzYAqpz0xkzEBrFW6c3CcjfaQM5GRTt
+	 3BGHzKbRjC/cyricC5E60DCYNypNXcn5X7QygWWIEJZTqgnIDhCDO9ScaSnpKx5b8U
+	 7KIFau6SPA5n6fR20omZPMJ4798b9Pl/B+uygMPI=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726800AbfA1Pet (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 28 Jan 2019 10:34:49 -0500
-Received: from mail-smail-vm32.hanmail.net ([203.133.180.216]:59606 "EHLO
-        mail-smail-vm32.hanmail.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726772AbfA1Pes (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 28 Jan 2019 10:34:48 -0500
-Received: from mail-hmail-smtp2.pg1.krane.9rum.cc ([10.194.31.52])
-        by mail-smail-vm32.hanmail.net (8.13.8/8.9.1) with SMTP id x0SFYUNV031852;
-        Tue, 29 Jan 2019 00:34:30 +0900
-X-Hermes-Message-Id: n0T0YUkGK159028569
-Received: from mail-qpsmtp-vm3 ([10.61.241.126]) by hermes of mail-hmail-smtp2.pg1.krane.9rum.cc (10.194.31.52) with ESMTP id n0T0YUkGK159028569 for <linux-media@vger.kernel.org>; Tue, 29 Jan 2019 00:34:30 +0900 (KST)
-Received: from [92.223.73.116] (HELO DESKTOP-D0OTJLM) (92.223.73.116)
- by  (8.12.9/8.9.1) with ESMTPA; Tue, 29 Jan 2019 00:34:30 +0900
-Authentication-Results: mail-qpsmtp-vm3; auth=pass (login) smtp.auth=toner202@daum.net
-X-Originating-IP: 92.223.73.116
-Message-ID: <0449d78f-43493-458f8780822222@desktop-d0otjlm>
-Reply-To: "Toner" <purchasing@briztechnology.com>
-From:   "Toner" <toner202@daum.net>
-To:     linux-media@vger.kernel.org
-Subject: WTS Refurb Apple MacBook and Apple iPad
-Date:   Mon, 28 Jan 2019 21:03:27 +0530
+        id S1727923AbfA1PqD (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 28 Jan 2019 10:46:03 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59440 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727105AbfA1PqC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 28 Jan 2019 10:46:02 -0500
+Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id B01CF2177E;
+        Mon, 28 Jan 2019 15:45:59 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1548690361;
+        bh=RxptdGV+4lXa+UrJ0V0gXU2CCI3yBbOLulbz1uCUKWk=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=fQQ/s8UZLB7i0a6drN72Y+p/e/ayMVIKFAs3rxbUs0Xk5QzaLs0XV0KqO/meUuT0k
+         VNqQ1ti2xb59IlVLLKHRItmcveXl8lL3EH/McLEWjdEvfLzio6by6VB/aZkNqwpPXq
+         4xmkbav9xDumtaK/mMTyz2qsKycUy7J9tZIEEqrQ=
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Akinobu Mita <akinobu.mita@gmail.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        Sasha Levin <sashal@kernel.org>, linux-media@vger.kernel.org
+Subject: [PATCH AUTOSEL 4.20 064/304] media: video-i2c: avoid accessing released memory area when removing driver
+Date:   Mon, 28 Jan 2019 10:39:41 -0500
+Message-Id: <20190128154341.47195-64-sashal@kernel.org>
+X-Mailer: git-send-email 2.19.1
+In-Reply-To: <20190128154341.47195-1-sashal@kernel.org>
+References: <20190128154341.47195-1-sashal@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-X-Priority: 3
-X-HM-UT: d6VOuwrFZRICa10lkgb1HmaPfikmNAvZUg+Lwj2O0+o=
+X-Patchwork-Hint: Ignore
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Dear Brokers ,
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Want to Sell the following laptops and Apple iPad's.
+[ Upstream commit c764da98a600a4b068d25c77164f092f159cecec ]
 
-Refurb Apple MacBook Pro Core i5 2.5 13" 2012 model A1278Part number
-MD101LL/A Specs INTEL CORE I5-3210M 2.5ghz 4GB 500GB DVDRW....QTY40pcs  We
-can  do $220/ea
+The video device release() callback for video-i2c driver frees the whole
+struct video_i2c_data.  If there is no user left for the video device
+when video_unregister_device() is called, the release callback is executed.
 
-Grade A Apple iPad with Retina Display MD510LL/A (16GB, Wi-Fi, Black) 4th
-Gen.....QTY123pcs  We can  do $110/ea
+However, in video_i2c_remove() some fields (v4l2_dev, lock, and queue_lock)
+in struct video_i2c_data are still accessed after video_unregister_device()
+is called.
 
+This fixes the use after free by moving the code from video_i2c_remove()
+to the release() callback.
 
-WS-C3850-48P-S Original Cisco Sealed Box
+Fixes: 5cebaac60974 ("media: video-i2c: add video-i2c driver")
 
-QTY : 5 .... 1,500 each
+Reviewed-by: Matt Ranostay <matt.ranostay@konsulko.com>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/media/i2c/video-i2c.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-If you are Interested Please kindly contact us
-
-Best regards
-James Toner
-+1 709 500 2483\ purchasing@briztechnology.com
-219 Stavanger Dr, St. John's, NL A1A 5E8, Canada
-http://www.briztechnology.com
+diff --git a/drivers/media/i2c/video-i2c.c b/drivers/media/i2c/video-i2c.c
+index 4d49af86c15e..ec0758dca2fc 100644
+--- a/drivers/media/i2c/video-i2c.c
++++ b/drivers/media/i2c/video-i2c.c
+@@ -510,7 +510,12 @@ static const struct v4l2_ioctl_ops video_i2c_ioctl_ops = {
+ 
+ static void video_i2c_release(struct video_device *vdev)
+ {
+-	kfree(video_get_drvdata(vdev));
++	struct video_i2c_data *data = video_get_drvdata(vdev);
++
++	v4l2_device_unregister(&data->v4l2_dev);
++	mutex_destroy(&data->lock);
++	mutex_destroy(&data->queue_lock);
++	kfree(data);
+ }
+ 
+ static int video_i2c_probe(struct i2c_client *client,
+@@ -608,10 +613,6 @@ static int video_i2c_remove(struct i2c_client *client)
+ 	struct video_i2c_data *data = i2c_get_clientdata(client);
+ 
+ 	video_unregister_device(&data->vdev);
+-	v4l2_device_unregister(&data->v4l2_dev);
+-
+-	mutex_destroy(&data->lock);
+-	mutex_destroy(&data->queue_lock);
+ 
+ 	return 0;
+ }
+-- 
+2.19.1
 
