@@ -1,126 +1,85 @@
-Return-Path: <SRS0=ymVG=QE=vger.kernel.org=linux-media-owner@kernel.org>
+Return-Path: <SRS0=OvUS=QF=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_PASS autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D0B47C282CD
-	for <linux-media@archiver.kernel.org>; Mon, 28 Jan 2019 23:48:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 54ABEC282CD
+	for <linux-media@archiver.kernel.org>; Tue, 29 Jan 2019 02:51:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9FEE621783
-	for <linux-media@archiver.kernel.org>; Mon, 28 Jan 2019 23:48:56 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1548719336;
-	bh=T1JDq569bCa0/O5mBZjLGYp4h1D1NWq0r8sxhNDCcMA=;
-	h=Subject:To:Cc:References:From:Date:In-Reply-To:List-ID:From;
-	b=GNr4K6LM1BpjqcmQE8szq2kvG5Fjd+7c7FoZ3kgzvpeYLMeLOHmngtBO0TK2PaAtU
-	 ywUOEjCeBYZYziitP+voFvOfr2O+qt1BvashRstptP0QURiCH8zy65jlAwN6TSF/mG
-	 Ref4dul6AC18PIZucf941UufUJaHS5Z8ISAznlR8=
+	by mail.kernel.org (Postfix) with ESMTP id 29CD9214DA
+	for <linux-media@archiver.kernel.org>; Tue, 29 Jan 2019 02:51:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727240AbfA1Xsv (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 28 Jan 2019 18:48:51 -0500
-Received: from mail.kernel.org ([198.145.29.99]:40420 "EHLO mail.kernel.org"
+        id S1727119AbfA2CvH (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 28 Jan 2019 21:51:07 -0500
+Received: from mga01.intel.com ([192.55.52.88]:27600 "EHLO mga01.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726937AbfA1Xsv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 28 Jan 2019 18:48:51 -0500
-Received: from [192.168.1.112] (c-24-9-64-241.hsd1.co.comcast.net [24.9.64.241])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 510172171F;
-        Mon, 28 Jan 2019 23:48:50 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1548719330;
-        bh=T1JDq569bCa0/O5mBZjLGYp4h1D1NWq0r8sxhNDCcMA=;
-        h=Subject:To:Cc:References:From:Date:In-Reply-To:From;
-        b=fXscI4SdJeERU8D6a9kuQE3hwveJK+EAuVzcTPjiEK9QLxHlmGBOJI5y4hhLK/MRQ
-         U7ZZydhToGojnem53lL8YrTJSOsYkIsHPQfJGvwFmGQtYtZ05ol/wF3ql9RqRQbmUs
-         uxl/TAicsLSlbvnmGyjO2bcnSxjQxBcoxddAJGK4=
-Subject: Re: [PATCH v10 0/4] Media Device Allocator API
-To:     Hans Verkuil <hverkuil@xs4all.nl>, mchehab@kernel.org,
-        perex@perex.cz, tiwai@suse.com
-Cc:     linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        alsa-devel@alsa-project.org, shuah <shuah@kernel.org>
-References: <cover.1548360791.git.shuah@kernel.org>
- <e8717d11-1eff-2e07-53d5-6cd55356c66a@xs4all.nl>
-From:   shuah <shuah@kernel.org>
-Message-ID: <481787e7-112a-80dd-228c-2497a12547b9@kernel.org>
-Date:   Mon, 28 Jan 2019 16:48:49 -0700
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.2.1
+        id S1726958AbfA2CvH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 28 Jan 2019 21:51:07 -0500
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from fmsmga004.fm.intel.com ([10.253.24.48])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 28 Jan 2019 18:51:06 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.56,535,1539673200"; 
+   d="scan'208";a="139627962"
+Received: from orsmsx101.amr.corp.intel.com ([10.22.225.128])
+  by fmsmga004.fm.intel.com with ESMTP; 28 Jan 2019 18:51:06 -0800
+Received: from vkasired-desk2.fm.intel.com (10.22.254.140) by
+ ORSMSX101.amr.corp.intel.com (10.22.225.128) with Microsoft SMTP Server (TLS)
+ id 14.3.408.0; Mon, 28 Jan 2019 18:51:06 -0800
+From:   Vivek Kasireddy <vivek.kasireddy@intel.com>
+To:     <linux-media@vger.kernel.org>
+CC:     "Kasireddy, Vivek" <vivek.kasireddy@intel.com>
+Subject: [PATCH] media: v4l2-tpg: Fix the memory layout of AYUV buffers
+Date:   Mon, 28 Jan 2019 18:32:22 -0800
+Message-ID: <20190129023222.10036-1-vivek.kasireddy@intel.com>
+X-Mailer: git-send-email 2.14.5
 MIME-Version: 1.0
-In-Reply-To: <e8717d11-1eff-2e07-53d5-6cd55356c66a@xs4all.nl>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
+X-Originating-IP: [10.22.254.140]
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Hans,
+From: "Kasireddy, Vivek" <vivek.kasireddy@intel.com>
 
-On 1/28/19 5:03 AM, Hans Verkuil wrote:
-> Hi Shuah,
-> 
-> On 1/24/19 9:32 PM, Shuah Khan wrote:
->> Media Device Allocator API to allows multiple drivers share a media device.
->> This API solves a very common use-case for media devices where one physical
->> device (an USB stick) provides both audio and video. When such media device
->> exposes a standard USB Audio class, a proprietary Video class, two or more
->> independent drivers will share a single physical USB bridge. In such cases,
->> it is necessary to coordinate access to the shared resource.
->>
->> Using this API, drivers can allocate a media device with the shared struct
->> device as the key. Once the media device is allocated by a driver, other
->> drivers can get a reference to it. The media device is released when all
->> the references are released.
->>
->> - This patch series is tested on 5.0-rc3 and addresses comments on
->>    v9 series from Hans Verkuil.
->> - v9 was tested on 4.20-rc6.
->> - Tested sharing resources with kaffeine, vlc, xawtv, tvtime, and
->>    arecord. When analog is streaming, digital and audio user-space
->>    applications detect that the tuner is busy and exit. When digital
->>    is streaming, analog and audio applications detect that the tuner is
->>    busy and exit. When arecord is owns the tuner, digital and analog
->>    detect that the tuner is busy and exit.
-> 
-> I've been doing some testing with my au0828, and I am confused about one
-> thing, probably because it has been too long ago since I last looked into
-> this in detail:
-> 
+The memory layout of AYUV buffers (V4L2_PIX_FMT_YUV32) should be similar
+to V4L2_PIX_FMT_ABGR32 instead of V4L2_PIX_FMT_ARGB32.
 
-Great.
+While displaying the packed AYUV buffers generated by the Vivid driver
+using v4l2-tpg on Weston, it was observed that these AYUV images were not
+getting displayed correctly. Changing the memory layout makes them display
+as expected.
 
-> Why can't I change the tuner frequency if arecord (and only arecord) is
-> streaming audio? If arecord is streaming, then it is recording the audio
-> from the analog TV tuner, right? So changing the analog TV frequency
-> should be fine.
-> 
+Signed-off-by: Vivek Kasireddy <vivek.kasireddy@intel.com>
+---
+ drivers/media/common/v4l2-tpg/v4l2-tpg-core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Changing analog TV frequency would be s_frequency. The way it works is
-any s_* calls would require holding the pipeline. In Analog TV case, it
-would mean holding both audio and video pipelines for any changes
-including TV.
-
-As I recall, we discussed this design and the decision was to make all
-s_* calls interfaces to hold the tuner. A special exception is g_tuner
-in case of au0828. au0828 initializes the tuner from s_* interfaces and
-its g_tuner interfaces. Allowing s_frequency to proceed will disrupt the
-arecord audio stream.
-
-Query (q_*) works just fine without holding the pipeline. I limited the
-analog holds to just the ones that are required. The current set is
-required to avoid audio stream disruptions.
-
-I made sure v4l-ctl --all works when the pipeline is locked by any one
-of the 3 (audio, video, DVB).
-
-Hope this helps.
-
-thanks,
--- Shuah
-
+diff --git a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
+index d9a590ae7545..825667f67c92 100644
+--- a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
++++ b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
+@@ -1269,7 +1269,6 @@ static void gen_twopix(struct tpg_data *tpg,
+ 	case V4L2_PIX_FMT_HSV32:
+ 		alpha = 0;
+ 		/* fall through */
+-	case V4L2_PIX_FMT_YUV32:
+ 	case V4L2_PIX_FMT_ARGB32:
+ 		buf[0][offset] = alpha;
+ 		buf[0][offset + 1] = r_y_h;
+@@ -1280,6 +1279,7 @@ static void gen_twopix(struct tpg_data *tpg,
+ 	case V4L2_PIX_FMT_XBGR32:
+ 		alpha = 0;
+ 		/* fall through */
++	case V4L2_PIX_FMT_YUV32:
+ 	case V4L2_PIX_FMT_ABGR32:
+ 		buf[0][offset] = b_v;
+ 		buf[0][offset + 1] = g_u_s;
+-- 
+2.14.5
 
