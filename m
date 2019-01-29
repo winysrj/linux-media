@@ -2,101 +2,74 @@ Return-Path: <SRS0=OvUS=QF=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_NEOMUTT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 95251C169C4
-	for <linux-media@archiver.kernel.org>; Tue, 29 Jan 2019 11:26:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DB27FC169C4
+	for <linux-media@archiver.kernel.org>; Tue, 29 Jan 2019 11:52:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6DFA120880
-	for <linux-media@archiver.kernel.org>; Tue, 29 Jan 2019 11:26:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B51F720882
+	for <linux-media@archiver.kernel.org>; Tue, 29 Jan 2019 11:52:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728444AbfA2L0R (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 29 Jan 2019 06:26:17 -0500
-Received: from mga02.intel.com ([134.134.136.20]:59692 "EHLO mga02.intel.com"
+        id S1731738AbfA2LwM (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 29 Jan 2019 06:52:12 -0500
+Received: from mga11.intel.com ([192.55.52.93]:17616 "EHLO mga11.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725772AbfA2L0R (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 Jan 2019 06:26:17 -0500
-X-Amp-Result: SKIPPED(no attachment in message)
+        id S1732046AbfA2LwL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 29 Jan 2019 06:52:11 -0500
+X-Amp-Result: UNKNOWN
+X-Amp-Original-Verdict: FILE UNKNOWN
 X-Amp-File-Uploaded: False
-Received: from orsmga001.jf.intel.com ([10.7.209.18])
-  by orsmga101.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 29 Jan 2019 03:26:17 -0800
+Received: from fmsmga006.fm.intel.com ([10.253.24.20])
+  by fmsmga102.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 29 Jan 2019 03:52:10 -0800
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.56,537,1539673200"; 
-   d="scan'208";a="134064325"
-Received: from ipu5-build.bj.intel.com (HELO [10.238.232.171]) ([10.238.232.171])
-  by orsmga001.jf.intel.com with ESMTP; 29 Jan 2019 03:26:14 -0800
-Subject: Re: ipu3-imgu 0000:00:05.0: required queues are disabled
-To:     Kai Heng Feng <kai.heng.feng@canonical.com>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Cc:     sakari.ailus@linux.intel.com, bingbu.cao@intel.com,
-        yong.zhi@intel.com, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Linux Kernel <linux-kernel@vger.kernel.org>,
-        LibCamera Devel <libcamera-devel@lists.libcamera.org>
-References: <7F8ED1B6-5070-437A-A745-AE017D8CE0DF@canonical.com>
- <ac9cd5cd-82af-48c7-5b12-adacb540480c@ideasonboard.com>
- <76CB59A0-D8F2-4C01-A600-60138ED5E785@canonical.com>
-From:   Bingbu Cao <bingbu.cao@linux.intel.com>
-Message-ID: <9311dd48-2169-5615-4368-1053a0d47e07@linux.intel.com>
-Date:   Tue, 29 Jan 2019 19:32:12 +0800
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:52.0) Gecko/20100101
- Thunderbird/52.9.1
+   d="scan'208";a="314488588"
+Received: from paasikivi.fi.intel.com ([10.237.72.42])
+  by fmsmga006.fm.intel.com with ESMTP; 29 Jan 2019 03:52:06 -0800
+Received: by paasikivi.fi.intel.com (Postfix, from userid 1000)
+        id EFF91205C8; Tue, 29 Jan 2019 13:52:05 +0200 (EET)
+Date:   Tue, 29 Jan 2019 13:52:05 +0200
+From:   Sakari Ailus <sakari.ailus@linux.intel.com>
+To:     Maxime Ripard <maxime.ripard@bootlin.com>
+Cc:     Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org, Andrzej Hajda <a.hajda@samsung.com>,
+        Chen-Yu Tsai <wens@csie.org>, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
+        Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Frank Rowand <frowand.list@gmail.com>
+Subject: Re: [PATCH v2 1/5] dt-bindings: media: Add Allwinner A10 CSI binding
+Message-ID: <20190129115205.jsplf7ml7kmzem56@paasikivi.fi.intel.com>
+References: <cover.ba7411f0c7155d0292b38d3dec698e26b5cc813b.1548687041.git-series.maxime.ripard@bootlin.com>
+ <f6b6adf84c58e0de605d0a23dd559fee011f380c.1548687041.git-series.maxime.ripard@bootlin.com>
 MIME-Version: 1.0
-In-Reply-To: <76CB59A0-D8F2-4C01-A600-60138ED5E785@canonical.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <f6b6adf84c58e0de605d0a23dd559fee011f380c.1548687041.git-series.maxime.ripard@bootlin.com>
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
+Hi Maxime,
 
+On Mon, Jan 28, 2019 at 03:52:32PM +0100, Maxime Ripard wrote:
+> The Allwinner A10 CMOS Sensor Interface is a camera capture interface also
+> used in later (A10s, A13, A20, R8 and GR8) SoCs.
+> 
+> On some SoCs, like the A10, there's multiple instances of that controller,
+> with one instance supporting more channels and having an ISP.
 
-On 01/28/2019 11:45 PM, Kai Heng Feng wrote:
-> Hi Kieran,
->
->> On Jan 28, 2019, at 4:48 PM, Kieran Bingham <kieran.bingham@ideasonboard.com> wrote:
->>
->> Hi Kai-Heng,
->>
->> On 27/01/2019 05:56, Kai-Heng Feng wrote:
->>> Hi,
->>>
->>> We have a bug report [1] that the ipu3 doesn’t work.
->>> Does ipu3 need special userspace to work?
->> Yes, it will need further userspace support to configure the pipeline,
->> and to provide 3A algorithms for white balance, focus, and exposure
->> times to the sensor.
->>
->> We are developing a stack called libcamera [0] to support this, but it's
->> still in active development and not yet ready for use. Fortunately
->> however, IPU3 is one of our primary initial targets.
-> Thanks for the info.
-Hi, Kai-Heng,
+How about the graph, and endpoint configuration? You had that in v1...
 
-Like Bingham said, for IPU3 some heavy control from the userspace is needed.
-libcamera is a very good start.
-If you just want to verify the driver firstly, you can use script to take a try.
->> [0] https://www.libcamera.org/
->>
->>> [1] https://bugs.launchpad.net/bugs/1812114
->> I have reported similar information to the launchpad bug entry.
->>
->> It might help if we can get hold of a Dell 7275 sometime although I
->> think Mauro at least has one ?
->>
->> If this is a priority for Canonical, please contact us directly.
-> Not really, just raise issues from Launchpad to appropriate mailing list.
->
-> Kai-Heng
->
->>> Kai-Heng
->> --
->> Regards
->>
->> Kieran
->
+-- 
+Regards,
 
+Sakari Ailus
+sakari.ailus@linux.intel.com
