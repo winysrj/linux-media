@@ -4,95 +4,166 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BCA90C169C4
-	for <linux-media@archiver.kernel.org>; Tue, 29 Jan 2019 21:50:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4BA45C169C4
+	for <linux-media@archiver.kernel.org>; Tue, 29 Jan 2019 22:39:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7D96220882
-	for <linux-media@archiver.kernel.org>; Tue, 29 Jan 2019 21:50:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1D7CE214D8
+	for <linux-media@archiver.kernel.org>; Tue, 29 Jan 2019 22:39:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727342AbfA2Vu3 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 29 Jan 2019 16:50:29 -0500
-Received: from mga01.intel.com ([192.55.52.88]:56432 "EHLO mga01.intel.com"
+        id S1728176AbfA2Wjp (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 29 Jan 2019 17:39:45 -0500
+Received: from mga12.intel.com ([192.55.52.136]:48636 "EHLO mga12.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727326AbfA2Vu2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 Jan 2019 16:50:28 -0500
+        id S1727545AbfA2Wjo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 29 Jan 2019 17:39:44 -0500
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 29 Jan 2019 13:50:28 -0800
+Received: from fmsmga004.fm.intel.com ([10.253.24.48])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 29 Jan 2019 14:39:44 -0800
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.56,538,1539673200"; 
-   d="scan'208";a="129571782"
-Received: from paasikivi.fi.intel.com ([10.237.72.42])
-  by FMSMGA003.fm.intel.com with ESMTP; 29 Jan 2019 13:50:27 -0800
-Received: from punajuuri.localdomain (punajuuri.localdomain [192.168.240.130])
-        by paasikivi.fi.intel.com (Postfix) with ESMTPS id 714B920141;
-        Tue, 29 Jan 2019 23:50:26 +0200 (EET)
-Received: from sailus by punajuuri.localdomain with local (Exim 4.89)
-        (envelope-from <sakari.ailus@linux.intel.com>)
-        id 1gobGK-0004Or-R2; Tue, 29 Jan 2019 23:49:44 +0200
-From:   Sakari Ailus <sakari.ailus@linux.intel.com>
-To:     laurent.pinchart@ideasonboard.com
-Cc:     linux-media@vger.kernel.org, chiranjeevi.rapolu@intel.com
-Subject: [PATCH 1/1] uvc: Avoid NULL pointer dereference at the end of streaming
-Date:   Tue, 29 Jan 2019 23:49:44 +0200
-Message-Id: <20190129214944.16875-1-sakari.ailus@linux.intel.com>
-X-Mailer: git-send-email 2.11.0
+   d="scan'208";a="139897549"
+Received: from glacier.sc.intel.com ([10.3.62.55])
+  by fmsmga004.fm.intel.com with ESMTP; 29 Jan 2019 14:39:43 -0800
+From:   Rajmohan Mani <rajmohan.mani@intel.com>
+To:     Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org
+Cc:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Jacopo Mondi <jacopo@jmondi.org>, tian.shu.qiu@intel.com,
+        bingbu.cao@intel.com, Zhi@vger.kernel.org,
+        Yong <yong.zhi@intel.com>, hverkuil@xs4all.nl,
+        tfiga@chromium.org, Rajmohan Mani <rajmohan.mani@intel.com>
+Subject: [PATCH] media: staging/intel-ipu3: Implement lock for stream on/off operations
+Date:   Tue, 29 Jan 2019 14:27:36 -0800
+Message-Id: <20190129222736.6216-1-rajmohan.mani@intel.com>
+X-Mailer: git-send-email 2.19.1
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-The UVC video driver converts the timestamp from hardware specific unit to
-one known by the kernel at the time when the buffer is dequeued. This is
-fine in general, but the streamoff operation consists of the following
-steps (among other things):
+Currently concurrent stream off operations on ImgU nodes are not
+synchronized, leading to use-after-free bugs (as reported by KASAN).
 
-1. uvc_video_clock_cleanup --- the hardware clock sample array is
-   released and the pointer to the array is set to NULL,
+[  250.090724] BUG: KASAN: use-after-free in ipu3_dmamap_free+0xc5/0x116 [ipu3_imgu]
+[  250.090726] Read of size 8 at addr ffff888127b29bc0 by task yavta/18836
+[  250.090731] Hardware name: HP Soraka/Soraka, BIOS Google_Soraka.10431.17.0 03/22/2018
+[  250.090732] Call Trace:
+[  250.090735]  dump_stack+0x6a/0xb1
+[  250.090739]  print_address_description+0x8e/0x279
+[  250.090743]  ? ipu3_dmamap_free+0xc5/0x116 [ipu3_imgu]
+[  250.090746]  kasan_report+0x260/0x28a
+[  250.090750]  ipu3_dmamap_free+0xc5/0x116 [ipu3_imgu]
+[  250.090754]  ipu3_css_pool_cleanup+0x24/0x37 [ipu3_imgu]
+[  250.090759]  ipu3_css_pipeline_cleanup+0x61/0xb9 [ipu3_imgu]
+[  250.090763]  ipu3_css_stop_streaming+0x1f2/0x321 [ipu3_imgu]
+[  250.090768]  imgu_s_stream+0x94/0x443 [ipu3_imgu]
+[  250.090772]  ? ipu3_vb2_buf_queue+0x280/0x280 [ipu3_imgu]
+[  250.090775]  ? vb2_dma_sg_unmap_dmabuf+0x16/0x6f [videobuf2_dma_sg]
+[  250.090778]  ? vb2_buffer_in_use+0x36/0x58 [videobuf2_common]
+[  250.090782]  ipu3_vb2_stop_streaming+0xf9/0x135 [ipu3_imgu]
 
-2. buffers in active state are returned to the user and
+Implemented a lock to synchronize imgu stream on / off operations and
+the modification of streaming flag (in struct imgu_device), to prevent
+these issues.
 
-3. buf_finish callback is called on buffers that are prepared. buf_finish
-   includes calling uvc_video_clock_update that accesses the hardware
-   clock sample array.
+Reported-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-The above is serialised by a queue specific mutex. Address the problem by
-skipping the clock conversion if the hardware clock sample array is
-already released.
-
-Reported-by: Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
-Tested-by: Chiranjeevi Rapolu <chiranjeevi.rapolu@intel.com>
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Rajmohan Mani <rajmohan.mani@intel.com>
 ---
-Hi Laurent,
+ drivers/staging/media/ipu3/ipu3-v4l2.c | 6 ++++++
+ drivers/staging/media/ipu3/ipu3.c      | 3 +++
+ drivers/staging/media/ipu3/ipu3.h      | 4 ++++
+ 3 files changed, 13 insertions(+)
 
-This seems like something that's been out there for a while... I'll figure
-out soon which stable kernels should receive it, if any.
-
- drivers/media/usb/uvc/uvc_video.c | 7 +++++++
- 1 file changed, 7 insertions(+)
-
-diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
-index 84525ff047450..a30c5e1893e72 100644
---- a/drivers/media/usb/uvc/uvc_video.c
-+++ b/drivers/media/usb/uvc/uvc_video.c
-@@ -676,6 +676,13 @@ void uvc_video_clock_update(struct uvc_streaming *stream,
- 	if (!uvc_hw_timestamps_param)
- 		return;
+diff --git a/drivers/staging/media/ipu3/ipu3-v4l2.c b/drivers/staging/media/ipu3/ipu3-v4l2.c
+index c7936032beb9..cf7e917cd0c8 100644
+--- a/drivers/staging/media/ipu3/ipu3-v4l2.c
++++ b/drivers/staging/media/ipu3/ipu3-v4l2.c
+@@ -507,12 +507,15 @@ static int ipu3_vb2_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 			goto fail_stop_pipeline;
+ 	}
  
-+	/*
-+	 * We may get called if there are buffers done but not dequeued by the
-+	 * user. Just bail out in that case.
-+	 */
-+	if (!clock->samples)
-+		return;
++	mutex_lock(&imgu->streaming_lock);
 +
- 	spin_lock_irqsave(&clock->lock, flags);
+ 	/* Start streaming of the whole pipeline now */
+ 	dev_dbg(dev, "IMGU streaming is ready to start");
+ 	r = imgu_s_stream(imgu, true);
+ 	if (!r)
+ 		imgu->streaming = true;
  
- 	if (clock->count < clock->size)
++	mutex_unlock(&imgu->streaming_lock);
+ 	return 0;
+ 
+ fail_stop_pipeline:
+@@ -543,6 +546,8 @@ static void ipu3_vb2_stop_streaming(struct vb2_queue *vq)
+ 		dev_err(&imgu->pci_dev->dev,
+ 			"failed to stop subdev streaming\n");
+ 
++	mutex_lock(&imgu->streaming_lock);
++
+ 	/* Was this the first node with streaming disabled? */
+ 	if (imgu->streaming && ipu3_all_nodes_streaming(imgu, node)) {
+ 		/* Yes, really stop streaming now */
+@@ -552,6 +557,7 @@ static void ipu3_vb2_stop_streaming(struct vb2_queue *vq)
+ 			imgu->streaming = false;
+ 	}
+ 
++	mutex_unlock(&imgu->streaming_lock);
+ 	ipu3_return_all_buffers(imgu, node, VB2_BUF_STATE_ERROR);
+ 	media_pipeline_stop(&node->vdev.entity);
+ }
+diff --git a/drivers/staging/media/ipu3/ipu3.c b/drivers/staging/media/ipu3/ipu3.c
+index d521b3afb8b1..2daee51cd845 100644
+--- a/drivers/staging/media/ipu3/ipu3.c
++++ b/drivers/staging/media/ipu3/ipu3.c
+@@ -635,6 +635,7 @@ static int imgu_pci_probe(struct pci_dev *pci_dev,
+ 		return r;
+ 
+ 	mutex_init(&imgu->lock);
++	mutex_init(&imgu->streaming_lock);
+ 	atomic_set(&imgu->qbuf_barrier, 0);
+ 	init_waitqueue_head(&imgu->buf_drain_wq);
+ 
+@@ -699,6 +700,7 @@ static int imgu_pci_probe(struct pci_dev *pci_dev,
+ 	ipu3_css_set_powerdown(&pci_dev->dev, imgu->base);
+ out_mutex_destroy:
+ 	mutex_destroy(&imgu->lock);
++	mutex_destroy(&imgu->streaming_lock);
+ 
+ 	return r;
+ }
+@@ -716,6 +718,7 @@ static void imgu_pci_remove(struct pci_dev *pci_dev)
+ 	ipu3_dmamap_exit(imgu);
+ 	ipu3_mmu_exit(imgu->mmu);
+ 	mutex_destroy(&imgu->lock);
++	mutex_destroy(&imgu->streaming_lock);
+ }
+ 
+ static int __maybe_unused imgu_suspend(struct device *dev)
+diff --git a/drivers/staging/media/ipu3/ipu3.h b/drivers/staging/media/ipu3/ipu3.h
+index 04fc99f47ebb..f732315f0701 100644
+--- a/drivers/staging/media/ipu3/ipu3.h
++++ b/drivers/staging/media/ipu3/ipu3.h
+@@ -146,6 +146,10 @@ struct imgu_device {
+ 	 * vid_buf.list and css->queue
+ 	 */
+ 	struct mutex lock;
++
++	/* Lock to protect writes to streaming flag in this struct */
++	struct mutex streaming_lock;
++
+ 	/* Forbit streaming and buffer queuing during system suspend. */
+ 	atomic_t qbuf_barrier;
+ 	/* Indicate if system suspend take place while imgu is streaming. */
 -- 
-2.11.0
+2.19.1
 
