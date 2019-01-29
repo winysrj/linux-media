@@ -2,201 +2,138 @@ Return-Path: <SRS0=OvUS=QF=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C5ECC282C7
-	for <linux-media@archiver.kernel.org>; Tue, 29 Jan 2019 09:39:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FF47C169C4
+	for <linux-media@archiver.kernel.org>; Tue, 29 Jan 2019 09:43:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 203162082E
-	for <linux-media@archiver.kernel.org>; Tue, 29 Jan 2019 09:39:21 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="ffxiBSYw"
+	by mail.kernel.org (Postfix) with ESMTP id 66AF52084A
+	for <linux-media@archiver.kernel.org>; Tue, 29 Jan 2019 09:43:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728475AbfA2JjU (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 29 Jan 2019 04:39:20 -0500
-Received: from mail-oi1-f196.google.com ([209.85.167.196]:44093 "EHLO
-        mail-oi1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727412AbfA2JjT (ORCPT
+        id S1727976AbfA2JnI (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 29 Jan 2019 04:43:08 -0500
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:40887 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725298AbfA2JnH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 Jan 2019 04:39:19 -0500
-Received: by mail-oi1-f196.google.com with SMTP id m6so15574014oig.11
-        for <linux-media@vger.kernel.org>; Tue, 29 Jan 2019 01:39:18 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=Nm1T119/ObMPWzlbIjDOJhaxurTOMjpaUAb/kBTk4so=;
-        b=ffxiBSYwq/uNpoCkbvO9KLc1zr4H28VXciGMmTIaTzIhmwEObRT4vl2TPKOpBTLWlS
-         234Nh/yOKNs+T510GOhT1amqWCH0mO2mMp8v12ILQqKnc5mA0ts+vOPPI6/1t8JgtVJC
-         Jk8H9gh4jF//cLmvDPSkwjAQk0kFl0X6xppLs=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=Nm1T119/ObMPWzlbIjDOJhaxurTOMjpaUAb/kBTk4so=;
-        b=qRUwN3bZfVzrrqoupbYDBMyVR6J16jBbe/VS4mHb6BXhNeIAacMsOLXbFF2BZRNSAI
-         G2kgFu89GY/iO9MmjUKyyQ/p8q5faYMqsjaoQ5qvzolZ2u4IlQzdPdQGkVyRxKnLU1mE
-         70Y60q4TaAOL1/R4ZP3/1QXtVA9L/rCrwOJ3QDcY8K9RTY1tXFH1Is3oJc/srwbqaoVV
-         bYnypCguYal7YW6wnc/CERoRpWUIjMK7mN/JjZmGphs7eGRzQai7jUWAJp9JxMUFr5Su
-         jQ++T/aLWynjNnTBgZYkpdDe3ZfYm0/+aArGw/imh7ILrPHDDtG61+uBdegbARuNHcfT
-         JWcA==
-X-Gm-Message-State: AHQUAuYHwFCXTHUnTVCGZ7YZVWqxIDbIKxMz8lIpqjHmTFJrzJuwTAZM
-        yudDOgjv/N2sOBPRwMAzKT9I6c7iMnI=
-X-Google-Smtp-Source: ALg8bN6U9OdiUtYFlVocqruPzKLP0CBmqzY1e4FLEPD1pzLaqlRVyHyAxeZGa0dj2EX9cKgVgQB+Wg==
-X-Received: by 2002:aca:e544:: with SMTP id c65mr8980195oih.75.1548754758297;
-        Tue, 29 Jan 2019 01:39:18 -0800 (PST)
-Received: from mail-oi1-f173.google.com (mail-oi1-f173.google.com. [209.85.167.173])
-        by smtp.gmail.com with ESMTPSA id v141sm6911332oia.25.2019.01.29.01.39.15
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 29 Jan 2019 01:39:15 -0800 (PST)
-Received: by mail-oi1-f173.google.com with SMTP id w13so15575797oiw.9
-        for <linux-media@vger.kernel.org>; Tue, 29 Jan 2019 01:39:15 -0800 (PST)
-X-Received: by 2002:aca:ea57:: with SMTP id i84mr8842617oih.346.1548754754671;
- Tue, 29 Jan 2019 01:39:14 -0800 (PST)
+        Tue, 29 Jan 2019 04:43:07 -0500
+Received: from [IPv6:2001:420:44c1:2579:1c83:9203:362b:bf24] ([IPv6:2001:420:44c1:2579:1c83:9203:362b:bf24])
+        by smtp-cloud9.xs4all.net with ESMTPA
+        id oPv3g04HRRO5ZoPv7gNCz5; Tue, 29 Jan 2019 10:43:05 +0100
+Subject: Re: [PATCH v10 0/4] Media Device Allocator API
+To:     shuah <shuah@kernel.org>, mchehab@kernel.org, perex@perex.cz,
+        tiwai@suse.com
+Cc:     linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        alsa-devel@alsa-project.org
+References: <cover.1548360791.git.shuah@kernel.org>
+ <e8717d11-1eff-2e07-53d5-6cd55356c66a@xs4all.nl>
+ <481787e7-112a-80dd-228c-2497a12547b9@kernel.org>
+From:   Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <d9ae1073-f6a9-1085-c8f8-8edd05daece5@xs4all.nl>
+Date:   Tue, 29 Jan 2019 10:43:01 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.4.0
 MIME-Version: 1.0
-References: <776e63c9-d4a5-342a-e0f7-200ef144ffc4@rock-chips.com>
- <64c793e08d61181b78125b3956ec38623fa5d261.camel@bootlin.com>
- <D8005130-F7FD-4CBD-8396-1BB08BB08E81@soulik.info> <f982ef378a8ade075bc7077b93640e20ecebf9f4.camel@bootlin.com>
- <82FA0C3F-BC54-4D89-AECB-90D81B89B1CE@soulik.info> <c3619a00-17e7-fb92-a427-a7478b96f356@soulik.info>
- <bdf14f97e98f2fd06307545ab9038ac3c2086ae7.camel@bootlin.com>
- <42520087-4EAE-4F7F-BCA0-42E422170E91@soulik.info> <ab8ca098ad60f209fe97f79bb93b2d1e898da524.camel@bootlin.com>
- <CAPBb6MUJu3cX9A-E32bSSjxc1cvGP83ayzZzUxa5_QMf6niK4g@mail.gmail.com> <20190129080944.pfhumtugsm7mzzcc@flea>
-In-Reply-To: <20190129080944.pfhumtugsm7mzzcc@flea>
-From:   Tomasz Figa <tfiga@chromium.org>
-Date:   Tue, 29 Jan 2019 18:39:03 +0900
-X-Gmail-Original-Message-ID: <CAAFQd5A=wT4RcVWmKR2vLA7e5P_mX5vDnOiaHSoA3odEqWvbDg@mail.gmail.com>
-Message-ID: <CAAFQd5A=wT4RcVWmKR2vLA7e5P_mX5vDnOiaHSoA3odEqWvbDg@mail.gmail.com>
-Subject: Re: [linux-sunxi] [PATCH v2 1/2] media: v4l: Add definitions for the
- HEVC slice format and controls
-To:     Maxime Ripard <maxime.ripard@bootlin.com>
-Cc:     Alexandre Courbot <acourbot@chromium.org>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Ayaka <ayaka@soulik.info>, Randy Li <randy.li@rock-chips.com>,
-        =?UTF-8?Q?Jernej_=C5=A0krabec?= <jernej.skrabec@gmail.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>, devel@driverdev.osuosl.org,
-        "list@263.net:IOMMU DRIVERS <iommu@lists.linux-foundation.org>, Joerg
-        Roedel <joro@8bytes.org>," <linux-arm-kernel@lists.infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Ezequiel Garcia <ezequiel@collabora.com>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        "open list:ARM/Rockchip SoC..." <linux-rockchip@lists.infradead.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <481787e7-112a-80dd-228c-2497a12547b9@kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-CMAE-Envelope: MS4wfOeoGCy4X+FzaHpMSSJDnL8juMgRVeZapEcVbuqJ3eFzigEbOY7EE9EjMqggjVPIk/ISv9ExxzYrrqs7s2+40AVmU4dj1q8udJUZwPAKLKn+elaV4tqR
+ 6BqwvD83ZbP57w70CaVzIL+AAktHVsyxd3DXfAI4A2CH2k3yCFG0MOBPbCOpfsN7ofB3I+8fdMlCbB1MNEZDnWrbPSTAf3HpfY+LeLMzez7XgoExNG4VkRan
+ MSMw2W3HYuGW6aKDjlsMH1q/FsTfmxVUYzNLw/JorFervMGNT5IhQCuRuW4/hKYbQWN/QwQUfY0ixlU5s5y+EalFD+7eTm8fvOiXc+EYEyVmqdAb3YIGwahv
+ WNzqNIgf19qp3f36bWykeaS/u7s1f0otCSuI/2+jsedAYQD/1jlcGBVcDoqbS0D78vBSKlrpwr+ABDK4RKJAha+IPvvsAMxWTvixda8leFQ61cLtA7qRkuKN
+ q7X/9GXwsyJZutk1
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Tue, Jan 29, 2019 at 5:09 PM Maxime Ripard <maxime.ripard@bootlin.com> w=
-rote:
->
-> On Tue, Jan 29, 2019 at 04:44:35PM +0900, Alexandre Courbot wrote:
-> > On Fri, Jan 25, 2019 at 10:04 PM Paul Kocialkowski
-> > > On Thu, 2019-01-24 at 20:23 +0800, Ayaka wrote:
-> > > >
-> > > > Sent from my iPad
-> > > >
-> > > > > On Jan 24, 2019, at 6:27 PM, Paul Kocialkowski <paul.kocialkowski=
-@bootlin.com> wrote:
-> > > > >
-> > > > > Hi,
-> > > > >
-> > > > > > On Thu, 2019-01-10 at 21:32 +0800, ayaka wrote:
-> > > > > > I forget a important thing, for the rkvdec and rk hevc decoder,=
- it would
-> > > > > > requests cabac table, scaling list, picture parameter set and r=
-eference
-> > > > > > picture storing in one or various of DMA buffers. I am not talk=
-ing about
-> > > > > > the data been parsed, the decoder would requests a raw data.
-> > > > > >
-> > > > > > For the pps and rps, it is possible to reuse the slice header, =
-just let
-> > > > > > the decoder know the offset from the bitstream bufer, I would s=
-uggest to
-> > > > > > add three properties(with sps) for them. But I think we need a =
-method to
-> > > > > > mark a OUTPUT side buffer for those aux data.
-> > > > >
-> > > > > I'm quite confused about the hardware implementation then. From w=
-hat
-> > > > > you're saying, it seems that it takes the raw bitstream elements =
-rather
-> > > > > than parsed elements. Is it really a stateless implementation?
-> > > > >
-> > > > > The stateless implementation was designed with the idea that only=
- the
-> > > > > raw slice data should be passed in bitstream form to the decoder.=
- For
-> > > > > H.264, it seems that some decoders also need the slice header in =
-raw
-> > > > > bitstream form (because they take the full slice NAL unit), see t=
-he
-> > > > > discussions in this thread:
-> > > > > media: docs-rst: Document m2m stateless video decoder interface
-> > > >
-> > > > Stateless just mean it won=E2=80=99t track the previous result, but=
- I don=E2=80=99t
-> > > > think you can define what a date the hardware would need. Even you
-> > > > just build a dpb for the decoder, it is still stateless, but parsin=
-g
-> > > > less or more data from the bitstream doesn=E2=80=99t stop a decoder=
- become a
-> > > > stateless decoder.
-> > >
-> > > Yes fair enough, the format in which the hardware decoder takes the
-> > > bitstream parameters does not make it stateless or stateful per-se.
-> > > It's just that stateless decoders should have no particular reason fo=
-r
-> > > parsing the bitstream on their own since the hardware can be designed
-> > > with registers for each relevant bitstream element to configure the
-> > > decoding pipeline. That's how GPU-based decoder implementations are
-> > > implemented (VAAPI/VDPAU/NVDEC, etc).
-> > >
-> > > So the format we have agreed on so far for the stateless interface is
-> > > to pass parsed elements via v4l2 control structures.
-> > >
-> > > If the hardware can only work by parsing the bitstream itself, I'm no=
-t
-> > > sure what the best solution would be. Reconstructing the bitstream in
-> > > the kernel is a pretty bad option, but so is parsing in the kernel or
-> > > having the data both in parsed and raw forms. Do you see another
-> > > possibility?
-> >
-> > Is reconstructing the bitstream so bad? The v4l2 controls provide a
-> > generic interface to an encoded format which the driver needs to
-> > convert into a sequence that the hardware can understand. Typically
-> > this is done by populating hardware-specific structures. Can't we
-> > consider that in this specific instance, the hardware-specific
-> > structure just happens to be identical to the original bitstream
-> > format?
-> >
-> > I agree that this is not strictly optimal for that particular
-> > hardware, but such is the cost of abstractions, and in this specific
-> > case I don't believe the cost would be particularly high?
->
-> I mean, that argument can be made for the rockchip driver as well. If
-> reconstructing the bitstream is something we can do, and if we don't
-> care about being suboptimal for one particular hardware, then why the
-> rockchip driver doesn't just recreate the bitstream from that API?
->
-> After all, this is just a hardware specific header that happens to be
-> identical to the original bitstream format
+On 1/29/19 12:48 AM, shuah wrote:
+> Hi Hans,
+> 
+> On 1/28/19 5:03 AM, Hans Verkuil wrote:
+>> Hi Shuah,
+>>
+>> On 1/24/19 9:32 PM, Shuah Khan wrote:
+>>> Media Device Allocator API to allows multiple drivers share a media device.
+>>> This API solves a very common use-case for media devices where one physical
+>>> device (an USB stick) provides both audio and video. When such media device
+>>> exposes a standard USB Audio class, a proprietary Video class, two or more
+>>> independent drivers will share a single physical USB bridge. In such cases,
+>>> it is necessary to coordinate access to the shared resource.
+>>>
+>>> Using this API, drivers can allocate a media device with the shared struct
+>>> device as the key. Once the media device is allocated by a driver, other
+>>> drivers can get a reference to it. The media device is released when all
+>>> the references are released.
+>>>
+>>> - This patch series is tested on 5.0-rc3 and addresses comments on
+>>>    v9 series from Hans Verkuil.
+>>> - v9 was tested on 4.20-rc6.
+>>> - Tested sharing resources with kaffeine, vlc, xawtv, tvtime, and
+>>>    arecord. When analog is streaming, digital and audio user-space
+>>>    applications detect that the tuner is busy and exit. When digital
+>>>    is streaming, analog and audio applications detect that the tuner is
+>>>    busy and exit. When arecord is owns the tuner, digital and analog
+>>>    detect that the tuner is busy and exit.
+>>
+>> I've been doing some testing with my au0828, and I am confused about one
+>> thing, probably because it has been too long ago since I last looked into
+>> this in detail:
+>>
+> 
+> Great.
+> 
+>> Why can't I change the tuner frequency if arecord (and only arecord) is
+>> streaming audio? If arecord is streaming, then it is recording the audio
+>> from the analog TV tuner, right? So changing the analog TV frequency
+>> should be fine.
+>>
+> 
+> Changing analog TV frequency would be s_frequency. The way it works is
+> any s_* calls would require holding the pipeline. In Analog TV case, it
+> would mean holding both audio and video pipelines for any changes
+> including TV.
+> 
+> As I recall, we discussed this design and the decision was to make all
+> s_* calls interfaces to hold the tuner. A special exception is g_tuner
+> in case of au0828. au0828 initializes the tuner from s_* interfaces and
+> its g_tuner interfaces. Allowing s_frequency to proceed will disrupt the
+> arecord audio stream.
+> 
+> Query (q_*) works just fine without holding the pipeline. I limited the
+> analog holds to just the ones that are required. The current set is
+> required to avoid audio stream disruptions.
 
-I think in another thread (about H.264 I believe), we realized that it
-could be a good idea to just include the Slice NAL units in the
-Annex.B format in the buffers and that should work for all the
-hardware we could think of (given offsets to particular parts inside
-of the buffer). Wouldn't something similar work here for HEVC?
+So I am not sure about that ('avoid audio stream disruptions'): if I
+stream video AND use arecord, then I can just set the frequency while
+streaming. Doesn't that interrupt audio as well? And are you sure changing
+the tuner frequency actually disrupts audio? And if audio is disrupted,
+are we talking about a glitch or is audio permanently disrupted?
 
-I don't really get the meaning of "raw" for "cabac table, scaling
-list, picture parameter set and reference picture", since those are
-parts of the bitstream, which needs to be parsed to obtain those.
+That's basically the inconsistent behavior I noticed: just running arecord
+will prevent me from changing the frequency, but if I run arecord and stream
+video, then it is suddenly OK to change the frequency.
 
-Best regards,
-Tomasz
+BTW, I think there was also inconsistent behavior in the order of streaming
+audio and video: if I stream video first, then I can stream audio afterwards.
+But if I stream audio first, then (if I remember correctly) I can't start
+video streaming.
+
+Regards,
+
+	Hans
+
+> 
+> I made sure v4l-ctl --all works when the pipeline is locked by any one
+> of the 3 (audio, video, DVB).
+> 
+> Hope this helps.
+> 
+> thanks,
+> -- Shuah
+> 
+> 
+
