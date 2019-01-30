@@ -2,272 +2,100 @@ Return-Path: <SRS0=BdY7=QG=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS autolearn=ham
+X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,UNPARSEABLE_RELAY,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C607C282D7
-	for <linux-media@archiver.kernel.org>; Wed, 30 Jan 2019 14:52:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C572C282D7
+	for <linux-media@archiver.kernel.org>; Wed, 30 Jan 2019 14:57:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6ABA620882
-	for <linux-media@archiver.kernel.org>; Wed, 30 Jan 2019 14:52:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1B5F920855
+	for <linux-media@archiver.kernel.org>; Wed, 30 Jan 2019 14:57:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726548AbfA3Oww (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 30 Jan 2019 09:52:52 -0500
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:39479 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725828AbfA3Owv (ORCPT
+        id S1731425AbfA3O5K (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 30 Jan 2019 09:57:10 -0500
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:39514 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725768AbfA3O5K (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 Jan 2019 09:52:51 -0500
-Received: from [IPv6:2001:420:44c1:2579:1135:9e59:3a9c:d4ef] ([IPv6:2001:420:44c1:2579:1135:9e59:3a9c:d4ef])
-        by smtp-cloud8.xs4all.net with ESMTPA
-        id orEJgxzVcNR5yorEOgL9l4; Wed, 30 Jan 2019 15:52:49 +0100
-Subject: Re: [PATCH v2] v4l2-ctl: add function vidcap_get_and_update_fmt
-To:     Dafna Hirschfeld <dafna3@gmail.com>, linux-media@vger.kernel.org
-Cc:     helen.koike@collabora.com
-References: <20190130144229.41942-1-dafna3@gmail.com>
-From:   Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <996e7dab-d3e9-c0f6-f45d-0ee50d7c3e0f@xs4all.nl>
-Date:   Wed, 30 Jan 2019 15:52:43 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.4.0
-MIME-Version: 1.0
-In-Reply-To: <20190130144229.41942-1-dafna3@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+        Wed, 30 Jan 2019 09:57:10 -0500
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+        (Authenticated sender: ezequiel)
+        with ESMTPSA id DCB2627DD0A
+Message-ID: <755a24c6fd7ccc34f3d3ccda8caa1dda715241ea.camel@collabora.com>
+Subject: Re: [PATCH 2/3] media: vim2m: use per-file handler work queue
+From:   Ezequiel Garcia <ezequiel@collabora.com>
+To:     Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc:     Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Anton Leontiev <scileont@gmail.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Date:   Wed, 30 Jan 2019 11:56:58 -0300
+In-Reply-To: <20190130111933.313ed5a0@silica.lan>
+References: <cover.1548776693.git.mchehab+samsung@kernel.org>
+         <7ff2d5c791473c746ae07c012d1890c6bdd08f6d.1548776693.git.mchehab+samsung@kernel.org>
+         <0f25ab2f936e3fcb8cd68b55682838027e46eec5.camel@collabora.com>
+         <20190130111933.313ed5a0@silica.lan>
+Organization: Collabora
+Content-Type: text/plain; charset="UTF-8"
+User-Agent: Evolution 3.30.3-1 
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfIvxwWxHDJIaPIVIi5TjGqIGWoOZJhG4VfgPt10gCbm/42RTIUwWNN6NoA3xsMDLdZrtV0+Y9WhfHInLuUvfBwKJBLSqtVTj3/l4wz6PSDPxACEkJlYw
- /un4Fc5uQfNzIfmFEd2IXBk3CiQwv2K2YFwWRFXtI/FSe7jPB3N67BzoIPeGppv1paXKsy8dm+A1Vd3Lw13Ur9q74mZ/RNl8DVIYdR09XXE0coAmVgTwXJ5/
- Y/zBZKez7s/IRbWjA3PvIwqHBurgPWG3aaM1yhkhpTyLRdDhHEjkR8H18zPGLwps5J1Ks7QJfJD7uaHZWqInOx4AvTnZ3EIE9LE1eVuO9UcvaDHPrwv507rD
- t/1mrZBp
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On 1/30/19 3:42 PM, Dafna Hirschfeld wrote:
-> add a function vidcap_get_and_update_fmt to set
-> the format from cmd params. Use it in capture_setup.
+Hey Mauro,
+
+On Wed, 2019-01-30 at 11:19 -0200, Mauro Carvalho Chehab wrote:
+> Em Wed, 30 Jan 2019 09:41:44 -0300
+> Ezequiel Garcia <ezequiel@collabora.com> escreveu:
 > 
-> Signed-off-by: Dafna Hirschfeld <dafna3@gmail.com>
-> ---
-> Changes from v1:
-> change the order of vidcap_get_and_update_fmt and vidcap_set
+> > On Tue, 2019-01-29 at 14:00 -0200, Mauro Carvalho Chehab wrote:
+> > > It doesn't make sense to have a per-device work queue, as the
+> > > scheduler should be called per file handler. Having a single
+> > > one causes failures if multiple streams are filtered by vim2m.
+> > >   
+> > 
+> > Having a per-device workqueue should emulate a real device more closely.
 > 
-> utils/v4l2-ctl/v4l2-ctl-streaming.cpp |  13 +++
->  utils/v4l2-ctl/v4l2-ctl-vidcap.cpp    | 134 ++++++++++++++------------
->  utils/v4l2-ctl/v4l2-ctl.h             |   1 +
->  3 files changed, 88 insertions(+), 60 deletions(-)
+> Yes.
 > 
-> diff --git a/utils/v4l2-ctl/v4l2-ctl-streaming.cpp b/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
-> index d6c3f6a9..2f66e052 100644
-> --- a/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
-> +++ b/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
-> @@ -1902,17 +1902,30 @@ static int capture_setup(cv4l_fd &fd, cv4l_queue &in, cv4l_fd *exp_fd)
->  		return -1;
->  	}
->  
-> +	if (options[OptSetVideoFormat]) {
-> +		cv4l_fmt fmt;
-> +
-> +		if (vidcap_get_and_update_fmt(fd, fmt)) {
-> +			fprintf(stderr, "%s: vidcap_get_and_update_fmt error\n",
-> +				__func__);
-> +			return -1;
-> +		}
-> +		fd.s_fmt(fmt, in.g_type());
-> +	}
-> +
-
-I think you need to move the get_cap_compose_rect() down to this line.
-
-s_fmt might change the compose rectangle (at least in theory), so set the
-format first, then get the compose rectangle.
-
-Regards,
-
-	Hans
-
->  	if (in.reqbufs(&fd, reqbufs_count_cap)) {
->  		fprintf(stderr, "%s: in.reqbufs %u error\n", __func__,
->  			reqbufs_count_cap);
->  		return -1;
->  	}
-> +
->  	if (exp_fd && in.export_bufs(exp_fd, exp_fd->g_type()))
->  		return -1;
->  	if (in.obtain_bufs(&fd) || in.queue_all(&fd)) {
->  		fprintf(stderr, "%s: in.obtain_bufs error\n", __func__);
->  		return -1;
->  	}
-> +
->  	if (fd.streamon(in.g_type())) {
->  		fprintf(stderr, "%s: fd.streamon error\n", __func__);
->  		return -1;
-> diff --git a/utils/v4l2-ctl/v4l2-ctl-vidcap.cpp b/utils/v4l2-ctl/v4l2-ctl-vidcap.cpp
-> index dc17a868..1e32fd2a 100644
-> --- a/utils/v4l2-ctl/v4l2-ctl-vidcap.cpp
-> +++ b/utils/v4l2-ctl/v4l2-ctl-vidcap.cpp
-> @@ -153,74 +153,88 @@ void vidcap_cmd(int ch, char *optarg)
->  	}
->  }
->  
-> -void vidcap_set(cv4l_fd &_fd)
-> +int vidcap_get_and_update_fmt(cv4l_fd &_fd, struct v4l2_format &vfmt)
->  {
->  	int fd = _fd.g_fd();
->  	int ret;
->  
-> -	if (options[OptSetVideoFormat] || options[OptTryVideoFormat]) {
-> -		struct v4l2_format vfmt;
-> +	memset(&vfmt, 0, sizeof(vfmt));
-> +	vfmt.fmt.pix.priv = priv_magic;
-> +	vfmt.type = vidcap_buftype;
->  
-> -		memset(&vfmt, 0, sizeof(vfmt));
-> -		vfmt.fmt.pix.priv = priv_magic;
-> -		vfmt.type = vidcap_buftype;
-> +	ret = doioctl(fd, VIDIOC_G_FMT, &vfmt);
-> +	if (ret)
-> +		return ret;
->  
-> -		if (doioctl(fd, VIDIOC_G_FMT, &vfmt) == 0) {
-> -			if (is_multiplanar) {
-> -				if (set_fmts & FmtWidth)
-> -					vfmt.fmt.pix_mp.width = width;
-> -				if (set_fmts & FmtHeight)
-> -					vfmt.fmt.pix_mp.height = height;
-> -				if (set_fmts & FmtPixelFormat) {
-> -					vfmt.fmt.pix_mp.pixelformat = pixfmt;
-> -					if (vfmt.fmt.pix_mp.pixelformat < 256) {
-> -						vfmt.fmt.pix_mp.pixelformat =
-> -							find_pixel_format(fd, vfmt.fmt.pix_mp.pixelformat,
-> -									false, true);
-> -					}
-> -				}
-> -				if (set_fmts & FmtField)
-> -					vfmt.fmt.pix_mp.field = field;
-> -				if (set_fmts & FmtFlags)
-> -					vfmt.fmt.pix_mp.flags = flags;
-> -				if (set_fmts & FmtBytesPerLine) {
-> -					for (unsigned i = 0; i < VIDEO_MAX_PLANES; i++)
-> -						vfmt.fmt.pix_mp.plane_fmt[i].bytesperline =
-> -							bytesperline[i];
-> -				} else {
-> -					/* G_FMT might return bytesperline values > width,
-> -					 * reset them to 0 to force the driver to update them
-> -					 * to the closest value for the new width. */
-> -					for (unsigned i = 0; i < vfmt.fmt.pix_mp.num_planes; i++)
-> -						vfmt.fmt.pix_mp.plane_fmt[i].bytesperline = 0;
-> -				}
-> -			} else {
-> -				if (set_fmts & FmtWidth)
-> -					vfmt.fmt.pix.width = width;
-> -				if (set_fmts & FmtHeight)
-> -					vfmt.fmt.pix.height = height;
-> -				if (set_fmts & FmtPixelFormat) {
-> -					vfmt.fmt.pix.pixelformat = pixfmt;
-> -					if (vfmt.fmt.pix.pixelformat < 256) {
-> -						vfmt.fmt.pix.pixelformat =
-> -							find_pixel_format(fd, vfmt.fmt.pix.pixelformat,
-> -									false, false);
-> -					}
-> -				}
-> -				if (set_fmts & FmtField)
-> -					vfmt.fmt.pix.field = field;
-> -				if (set_fmts & FmtFlags)
-> -					vfmt.fmt.pix.flags = flags;
-> -				if (set_fmts & FmtBytesPerLine) {
-> -					vfmt.fmt.pix.bytesperline = bytesperline[0];
-> -				} else {
-> -					/* G_FMT might return a bytesperline value > width,
-> -					 * reset this to 0 to force the driver to update it
-> -					 * to the closest value for the new width. */
-> -					vfmt.fmt.pix.bytesperline = 0;
-> -				}
-> +	if (is_multiplanar) {
-> +		if (set_fmts & FmtWidth)
-> +			vfmt.fmt.pix_mp.width = width;
-> +		if (set_fmts & FmtHeight)
-> +			vfmt.fmt.pix_mp.height = height;
-> +		if (set_fmts & FmtPixelFormat) {
-> +			vfmt.fmt.pix_mp.pixelformat = pixfmt;
-> +			if (vfmt.fmt.pix_mp.pixelformat < 256) {
-> +				vfmt.fmt.pix_mp.pixelformat =
-> +					find_pixel_format(fd, vfmt.fmt.pix_mp.pixelformat,
-> +							  false, true);
-> +			}
-> +		}
-> +		if (set_fmts & FmtField)
-> +			vfmt.fmt.pix_mp.field = field;
-> +		if (set_fmts & FmtFlags)
-> +			vfmt.fmt.pix_mp.flags = flags;
-> +		if (set_fmts & FmtBytesPerLine) {
-> +			for (unsigned i = 0; i < VIDEO_MAX_PLANES; i++)
-> +				vfmt.fmt.pix_mp.plane_fmt[i].bytesperline =
-> +					bytesperline[i];
-> +		} else {
-> +			/*
-> +			 * G_FMT might return bytesperline values > width,
-> +			 * reset them to 0 to force the driver to update them
-> +			 * to the closest value for the new width.
-> +			 */
-> +			for (unsigned i = 0; i < vfmt.fmt.pix_mp.num_planes; i++)
-> +				vfmt.fmt.pix_mp.plane_fmt[i].bytesperline = 0;
-> +		}
-> +	} else {
-> +		if (set_fmts & FmtWidth)
-> +			vfmt.fmt.pix.width = width;
-> +		if (set_fmts & FmtHeight)
-> +			vfmt.fmt.pix.height = height;
-> +		if (set_fmts & FmtPixelFormat) {
-> +			vfmt.fmt.pix.pixelformat = pixfmt;
-> +			if (vfmt.fmt.pix.pixelformat < 256) {
-> +				vfmt.fmt.pix.pixelformat =
-> +					find_pixel_format(fd, vfmt.fmt.pix.pixelformat,
-> +							  false, false);
->  			}
-> +		}
-> +		if (set_fmts & FmtField)
-> +			vfmt.fmt.pix.field = field;
-> +		if (set_fmts & FmtFlags)
-> +			vfmt.fmt.pix.flags = flags;
-> +		if (set_fmts & FmtBytesPerLine) {
-> +			vfmt.fmt.pix.bytesperline = bytesperline[0];
-> +		} else {
-> +			/*
-> +			 * G_FMT might return a bytesperline value > width,
-> +			 * reset this to 0 to force the driver to update it
-> +			 * to the closest value for the new width.
-> +			 */
-> +			vfmt.fmt.pix.bytesperline = 0;
-> +		}
-> +	}
-> +	return 0;
-> +}
-> +
-> +void vidcap_set(cv4l_fd &_fd)
-> +{
-> +	if (options[OptSetVideoFormat] || options[OptTryVideoFormat]) {
-> +		int fd = _fd.g_fd();
-> +		int ret;
-> +		struct v4l2_format vfmt;
->  
-> +		if (vidcap_get_and_update_fmt(_fd, vfmt) == 0) {
->  			if (options[OptSetVideoFormat])
->  				ret = doioctl(fd, VIDIOC_S_FMT, &vfmt);
->  			else
-> diff --git a/utils/v4l2-ctl/v4l2-ctl.h b/utils/v4l2-ctl/v4l2-ctl.h
-> index dcc39b51..739dc5a9 100644
-> --- a/utils/v4l2-ctl/v4l2-ctl.h
-> +++ b/utils/v4l2-ctl/v4l2-ctl.h
-> @@ -348,6 +348,7 @@ void stds_list(cv4l_fd &fd);
->  // v4l2-ctl-vidcap.cpp
->  void vidcap_usage(void);
->  void vidcap_cmd(int ch, char *optarg);
-> +int vidcap_get_and_update_fmt(cv4l_fd &_fd, struct v4l2_format &vfmt);
->  void vidcap_set(cv4l_fd &fd);
->  void vidcap_get(cv4l_fd &fd);
->  void vidcap_list(cv4l_fd &fd);
+> > But more importantly, why would having a single workqeueue fail if multiple
+> > streams are run? The m2m should take care of the proper serialization
+> > between multiple contexts, unless I am missing something here.
 > 
+> Yes, the m2m core serializes the access to m2m src/dest buffer per device.
+> 
+> So, two instances can't access the buffer at the same time. That makes
+> sense for a real physical hardware, although specifically for the virtual
+> one, it doesn't (any may not make sense for some stateless codec, if
+> the codec would internally be able to handle multiple requests at the same
+> time).
+> 
+> Without this patch, when multiple instances are used, sometimes it ends 
+> into a dead lock preventing to stop all of them.
+> 
+> I didn't have time to debug where exactly it happens, but I suspect that
+> the issue is related to using the same mutex for both VB and open/release
+> instances.
+> 
+> Yet, I ended by opting to move all queue-specific mutex/semaphore to be
+> instance-based, as this makes a lot more sense, IMHO. Also, if some day
+> we end by allowing support for some hardware that would have support to
+> run multiple m2m instances in parallel, vim2m would already be ready.
+> 
+
+I don't oppose to the idea of having a per-context workqueue.
+
+However, I'm not too comfortable with having a bug somewhere (and not knowing
+whert) and instead of fixing it, working around it. I'd rather
+fix the bug instead, then decide about the workqueue.
+
+Thanks,
+Eze
 
