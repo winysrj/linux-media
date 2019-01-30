@@ -2,111 +2,156 @@ Return-Path: <SRS0=BdY7=QG=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E303C282D7
-	for <linux-media@archiver.kernel.org>; Wed, 30 Jan 2019 10:36:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C180C282D7
+	for <linux-media@archiver.kernel.org>; Wed, 30 Jan 2019 10:51:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 42452218AC
-	for <linux-media@archiver.kernel.org>; Wed, 30 Jan 2019 10:36:02 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linaro.org header.i=@linaro.org header.b="hLjlHbVq"
+	by mail.kernel.org (Postfix) with ESMTP id 033F520857
+	for <linux-media@archiver.kernel.org>; Wed, 30 Jan 2019 10:51:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730737AbfA3Kf6 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 30 Jan 2019 05:35:58 -0500
-Received: from mail-wm1-f66.google.com ([209.85.128.66]:35166 "EHLO
-        mail-wm1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729692AbfA3Kf5 (ORCPT
+        id S1729498AbfA3Kv4 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 30 Jan 2019 05:51:56 -0500
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34810 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1726548AbfA3Kv4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 Jan 2019 05:35:57 -0500
-Received: by mail-wm1-f66.google.com with SMTP id t200so21179013wmt.0
-        for <linux-media@vger.kernel.org>; Wed, 30 Jan 2019 02:35:56 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=subject:to:cc:references:from:message-id:date:user-agent
-         :mime-version:in-reply-to:content-language:content-transfer-encoding;
-        bh=ZFJINRnvRiZX6jz//vRVRyvCkB+8htjpB1+oo+t/RnI=;
-        b=hLjlHbVqmRv9OPWJ1rbNFjjlBJlxo5iGhC1clvjVhp5z8sSlIiaAiDuqLbscexrIQB
-         LSuqnUpqHZrzSi4QQqdVKtTZvknHDbv0RcU4l4y5o1BHi3sREJt/z98xM/0+fyrpubDZ
-         qJXd3kBpgxqRfXpxmFoKyN0Q1tCo4THk4GtNM=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=ZFJINRnvRiZX6jz//vRVRyvCkB+8htjpB1+oo+t/RnI=;
-        b=t6Fu7q8o3R33Pl7dp6jRxwOf39fn3wfJ+r2YHwAuIH+C7ZkWr85VoQASaVndlRMxdb
-         0PBvRzjAXib0MIhQn35JijxyBJu5G0+1HvByuq5XkJyK6vQETFeadzficyt9egArBvms
-         Kw9UOIfopzOm2w0Fbz+zrZQS05f+A4HbIi5Rn2a8yG946n67OB/9JRD62VDvU2/+rNnv
-         683wMaWiHvzUmVAB5SvFdhE2oxYnh6KjowJVCklHyo0TJUWIQEHrd6uRF6W6lSYzydhs
-         N+fDU3QAUwADfzx7wn6s5G+n/Fwu5OUeocblfvxs2Om9ph5gzTiiv/2moWzyAq+CQhDJ
-         wbZw==
-X-Gm-Message-State: AJcUukcf/nDov/a3XnKZmeLVMfc/g/aQ+xkgIAJ4RXZs/8aUaqdw+5AN
-        yf+p2KihwWpw9Av0NDaG7H3SYTlRdQI=
-X-Google-Smtp-Source: ALg8bN4mpUeb8C5ls4myWN2TbMKuil2Cc4HdVH+y/bpBsw+GlEV+yAwIIVAYrV86Bm6TnW3NgdUnuA==
-X-Received: by 2002:a1c:a104:: with SMTP id k4mr24386330wme.54.1548844555718;
-        Wed, 30 Jan 2019 02:35:55 -0800 (PST)
-Received: from [192.168.27.209] ([37.157.136.206])
-        by smtp.googlemail.com with ESMTPSA id d4sm1611373wrp.89.2019.01.30.02.35.54
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 30 Jan 2019 02:35:55 -0800 (PST)
-Subject: Re: [PATCH v2] venus: enc: fix enum_frameintervals
-To:     Nicolas Dufresne <nicolas@ndufresne.ca>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        linux-media@vger.kernel.org
-Cc:     Hans Verkuil <hverkuil@xs4all.nl>, linux-arm-msm@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-References: <20190122105322.22096-1-stanimir.varbanov@linaro.org>
- <9651c01bf3f2adcc405963bfab48b7e7a5656494.camel@ndufresne.ca>
-From:   Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <3062ef17-ad35-68ba-5cad-be9de037e637@linaro.org>
-Date:   Wed, 30 Jan 2019 12:35:54 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.4.0
+        Wed, 30 Jan 2019 05:51:56 -0500
+Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id DD64D634C7B;
+        Wed, 30 Jan 2019 12:50:59 +0200 (EET)
+Received: from sailus by valkosipuli.localdomain with local (Exim 4.89)
+        (envelope-from <sakari.ailus@retiisi.org.uk>)
+        id 1gonSO-00020t-QO; Wed, 30 Jan 2019 12:51:00 +0200
+Date:   Wed, 30 Jan 2019 12:51:00 +0200
+From:   Sakari Ailus <sakari.ailus@iki.fi>
+To:     Ken Sloat <KSloat@aampglobal.com>
+Cc:     "Eugen.Hristev@microchip.com" <Eugen.Hristev@microchip.com>,
+        "mchehab@kernel.org" <mchehab@kernel.org>,
+        "Nicolas.Ferre@microchip.com" <Nicolas.Ferre@microchip.com>,
+        "alexandre.belloni@bootlin.com" <alexandre.belloni@bootlin.com>,
+        "Ludovic.Desroches@microchip.com" <Ludovic.Desroches@microchip.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+Subject: Re: [PATCH v2 2/2] media: atmel-isc: Update device tree binding
+ documentation
+Message-ID: <20190130105100.a4fgyu65cucgogfe@valkosipuli.retiisi.org.uk>
+References: <DM5PR07MB411967243FA1C96C1179071FAD9C0@DM5PR07MB4119.namprd07.prod.outlook.com>
+ <20190123124538.5vfxhsyl2npy4jnp@valkosipuli.retiisi.org.uk>
+ <BL0PR07MB4115CF2CA5F69C3963AC58BBAD970@BL0PR07MB4115.namprd07.prod.outlook.com>
 MIME-Version: 1.0
-In-Reply-To: <9651c01bf3f2adcc405963bfab48b7e7a5656494.camel@ndufresne.ca>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <BL0PR07MB4115CF2CA5F69C3963AC58BBAD970@BL0PR07MB4115.namprd07.prod.outlook.com>
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Nicolas,
+Hi Ken,
 
-On 1/30/19 5:28 AM, Nicolas Dufresne wrote:
-> Le mardi 22 janvier 2019 à 12:53 +0200, Stanimir Varbanov a écrit :
->> This ixes an issue when setting the encoder framerate because of
+On Tue, Jan 29, 2019 at 08:22:48PM +0000, Ken Sloat wrote:
+> > -----Original Message-----
+> > From: Sakari Ailus <sakari.ailus@iki.fi>
+> > Sent: Wednesday, January 23, 2019 7:46 AM
+> > Cc: Eugen.Hristev@microchip.com; mchehab@kernel.org;
+> > Nicolas.Ferre@microchip.com; alexandre.belloni@bootlin.com;
+> > Ludovic.Desroches@microchip.com; linux-media@vger.kernel.org;
+> > devicetree@vger.kernel.org
+> > Subject: Re: [PATCH v2 2/2] media: atmel-isc: Update device tree binding
+> > documentation
+> > 
+> > On Fri, Jan 18, 2019 at 06:05:23PM +0000, Ken Sloat wrote:
+> > > > -----Original Message-----
+> > > > From: Eugen.Hristev@xxxxxxxxxxxxx <Eugen.Hristev@xxxxxxxxxxxxx>
+> > > > Sent: Friday, January 18, 2019 9:40 AM
+> > > > To: Ken Sloat <KSloat@xxxxxxxxxxxxxx>
+> > > > Cc: mchehab@xxxxxxxxxx; Nicolas.Ferre@xxxxxxxxxxxxx;
+> > > > alexandre.belloni@xxxxxxxxxxx; Ludovic.Desroches@xxxxxxxxxxxxx;
+> > > > linux- media@xxxxxxxxxxxxxxx; devicetree@xxxxxxxxxxxxxxx
+> > > > Subject: Re: [PATCH v2 2/2] media: atmel-isc: Update device tree
+> > > > binding documentation
+> > > >
+> > > >
+> > > >
+> > > > On 18.01.2019 16:28, Ken Sloat wrote:
+> > > > > From: Ken Sloat <ksloat@xxxxxxxxxxxxxx>
+> > > > >
+> > > > > Update device tree binding documentation specifying how to enable
+> > > > > BT656 with CRC decoding.
+> > > > >
+> > > > > Signed-off-by: Ken Sloat <ksloat@xxxxxxxxxxxxxx>
+> > > > > ---
+> > > > >   Changes in v2:
+> > > > >   -Use correct media "bus-type" dt property.
+> > > > >
+> > > > >   Documentation/devicetree/bindings/media/atmel-isc.txt | 5 +++++
+> > > > >   1 file changed, 5 insertions(+)
+> > > > >
+> > > > > diff --git a/Documentation/devicetree/bindings/media/atmel-isc.txt
+> > > > > b/Documentation/devicetree/bindings/media/atmel-isc.txt
+> > > > > index bbe0e87c6188..2d4378dfd6c8 100644
+> > > > > --- a/Documentation/devicetree/bindings/media/atmel-isc.txt
+> > > > > +++ b/Documentation/devicetree/bindings/media/atmel-isc.txt
+> > > > > @@ -21,6 +21,11 @@ Required properties for ISC:
+> > > > >   - pinctrl-names, pinctrl-0
+> > > > >   	Please refer to pinctrl-bindings.txt.
+> > > > >
+> > > > > +Optional properties for ISC:
+> > > > > +- bus-type
+> > > > > +	When set to 6, Bt.656 decoding (embedded sync) with CRC decoding
+> > > > > +	is enabled.
+> > > > > +
+> > > >
+> > > > I don't think this patch is required at all actually, the binding
+> > > > complies to the video-interfaces bus specification which includes the
+> > parallel and bt.656.
+> > > >
+> > > > Would be worth mentioning below explicitly that parallel and bt.656
+> > > > are supported, or added above that also plain parallel bus is supported ?
+> > > >
+> > > > >   ISC supports a single port node with parallel bus. It should
+> > > > > contain one
+> > > >
+> > > > here inside the previous line
+> > > Hi Eugen,
+> > >
+> > > Yes it's true adding new documentation here may be overkill, but yes
+> > > it should say something (as a user I always find it helpful if the docs are
+> > more verbose than not).
+> > >
+> > > So per your suggestion, how about the simplified:
+> > > "ISC supports a single port node with parallel bus and optionally Bt.656
+> > support."
+> > >
+> > > and I'll remit the other statements.
+> > 
+> > Please still include the name of the property, as well as the valid values for it
+> > (numeric as well as human-readable). The rest of the documentation should
+> > stay in video-interfaces.txt IMO --- this is documentation for the hardware
+> > only.
+> > 
+> > --
+> > Regards,
+> > 
+> > Sakari Ailus
 > 
-> ixes -> fixes
-> 
->> missing precision. Now the frameinterval type is changed to
->> TYPE_CONTINUOUS and step = 1. Also the math is changed when
->> framerate property is called - the firmware side expects that
->> the framerate one is 1 << 16 units.
-> 
-> Note sure, maybe you didn't mean to add 'one' here ? Why not just say
-> that that firmware expect values in Q16 ?
+> Thanks Sakari for the feedback. So my original patch here would be valid
+> as is correct?
 
-yes, thanks for the suggestion.
+To the original patch --- could you add that the default is the parallel
+interface, if bus-type isn't set?
 
-> 
->>
->> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-> 
-> Looking toward testing it, but I had the bad luck of using an USB
-> storage rootfs, and apparently USB no longer works on 5.0rc+, if you
-> have a baseline tree to suggest, I'll take it. Thanks for this patch.
-
-try qcomlt-4.14 release branch at [1].
+Documentation for hsync-active, vsync-active and pclk-sample properties is
+also missing, it'd be nice to address that at the same time. I'd assume
+they're mandatory for the parallel interface as no defaults are specified.
 
 -- 
-regards,
-Stan
+Regards,
 
-[1]
-https://git.linaro.org/landing-teams/working/qualcomm/kernel.git/log/?h=release/qcomlt-4.14
+Sakari Ailus
