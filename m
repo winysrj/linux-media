@@ -4,90 +4,72 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-1.0 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
 	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,
-	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 38D46C282D7
-	for <linux-media@archiver.kernel.org>; Wed, 30 Jan 2019 15:06:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B922C282D7
+	for <linux-media@archiver.kernel.org>; Wed, 30 Jan 2019 15:19:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0085320989
-	for <linux-media@archiver.kernel.org>; Wed, 30 Jan 2019 15:06:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3DBE4218C3
+	for <linux-media@archiver.kernel.org>; Wed, 30 Jan 2019 15:19:58 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ndufresne-ca.20150623.gappssmtp.com header.i=@ndufresne-ca.20150623.gappssmtp.com header.b="a02mUaxD"
+	dkim=pass (2048-bit key) header.d=ndufresne-ca.20150623.gappssmtp.com header.i=@ndufresne-ca.20150623.gappssmtp.com header.b="fWj9cWiM"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731474AbfA3PG0 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 30 Jan 2019 10:06:26 -0500
-Received: from mail-qk1-f196.google.com ([209.85.222.196]:38695 "EHLO
-        mail-qk1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731468AbfA3PGZ (ORCPT
+        id S1730573AbfA3PT5 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 30 Jan 2019 10:19:57 -0500
+Received: from mail-qt1-f196.google.com ([209.85.160.196]:35353 "EHLO
+        mail-qt1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730525AbfA3PT4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 Jan 2019 10:06:25 -0500
-Received: by mail-qk1-f196.google.com with SMTP id m17so13844688qki.5
-        for <linux-media@vger.kernel.org>; Wed, 30 Jan 2019 07:06:24 -0800 (PST)
+        Wed, 30 Jan 2019 10:19:56 -0500
+Received: by mail-qt1-f196.google.com with SMTP id v11so26614294qtc.2
+        for <linux-media@vger.kernel.org>; Wed, 30 Jan 2019 07:19:55 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ndufresne-ca.20150623.gappssmtp.com; s=20150623;
         h=message-id:subject:from:to:cc:date:in-reply-to:references
          :user-agent:mime-version:content-transfer-encoding;
-        bh=48KG1ySv4BJnImKF0uZfw8xudC3hcA6deg837Zyrt70=;
-        b=a02mUaxDkYnmf+kwpv37ZN0onQOOOswUz3jJwdaeQKwAQoc71mmpa+0k87PGnAP9to
-         ombt3XgD3/5KIqzoKi4JDjXtLcNa/vqQX093OBo2s612LZQ7+RL0m9SCOAIo20DAGU8E
-         VmmVZqlXn69bP2kfXe+8kJHb9jCHF+a9L1JtOxn0SrlAF4oz4tzfJh/L3lOJO/zyyAZc
-         I0+RiYSH8RTE201akNeLomAFUqvY5qIS8X5XPOeok97B7QsluKtYuYeWjmEM8qsCuEfg
-         RnFXtwlKER86SIP5BA7QT4Ak9gLolvtY1ynCrcbKbA+Y7de7DDB1VHr3sdowOsSERRcp
-         uFAg==
+        bh=rWaNTx6ERbLhkyBT1niDoUaQ0EbCXfyxxjcalh8jxdY=;
+        b=fWj9cWiMmH//g7/93T1bVh5rdesRB/a3FbGGy+HQIny1Itd9p5j57x7gfzgniOes1/
+         F/pbEFwoNXLEP5WvfgKUIlbEaXCFJIA5e0TZ0cfGGtiQDXolzat8axkCofrm8858H8yJ
+         YJ/6rwdvLSF8oCYWoE1MDNB9JQlqq+T9R7TYF+Z63OAWbarN3O6PJ6sAH47AVzvUnaYA
+         5Om1ENfNHoyTd73gjgEAoEJzUQwv+eFSBvds43XfKfjpck1u4upp37GErvKkzlydqx1v
+         KimnLZXml3Dbx/Eh8s4xkuS939g2QXSQ1HAmeM+lTcVnWcw3ecbyl/pr0wySYdfGxiTP
+         yfbA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:message-id:subject:from:to:cc:date:in-reply-to
          :references:user-agent:mime-version:content-transfer-encoding;
-        bh=48KG1ySv4BJnImKF0uZfw8xudC3hcA6deg837Zyrt70=;
-        b=ROS5F712CdS45ZQ/2Dj9oMa4gvYVqLDUd+oDfMdUy+ILD5eUTgB7W8aVrhEZsOJr/X
-         Wqw3uO5Spx2JdjfYDECMDaKWXVVzNYdSBDvJ2jd/+kwIUsKOD5YArRUBL62ltwLx2hUG
-         YTZ3gy1mPhPG8fL7WdhHwUAiglDw/S30OMbtXihiZ8PDKoY9rtGsoPN0umeJgouGyEvV
-         xNOZzs3qgbxdPr5jwMfTE25fNOGaps/qU8v0JH/7RC0ShG36Dq/L1QQfammJP2iaLcgS
-         isic7+p5HW9+rgdlRog0/AfaGVhNZ/5HQX1nFyLZIiFMTmddf++vpfWLRTx8fYHOziLt
-         odnA==
-X-Gm-Message-State: AJcUukfJTlUIpDivArrS9Or2UKnLIBTXMGz6OE1sEMaAKqwb66dHQw2m
-        rE36oEwWrvq4AaQxJQOATDwnGg==
-X-Google-Smtp-Source: ALg8bN6o1fDiqCFll0zL1NY5z3VmiXB5qx7eWPka3Sm4J0jLOcvBuAqr7kYngN1+G2ZivY4HQk2rOg==
-X-Received: by 2002:a37:dc04:: with SMTP id v4mr28340578qki.101.1548860784301;
-        Wed, 30 Jan 2019 07:06:24 -0800 (PST)
+        bh=rWaNTx6ERbLhkyBT1niDoUaQ0EbCXfyxxjcalh8jxdY=;
+        b=GyQ99n7po/ME4onEWB7YK3w0ec1/oPeZkcHJnn1QtJGjd6p2PbtyiGSYFNfX2Ztg/m
+         NNiTfZiyQKmo+7L52xy2xeZsdPqe8MS8w/scg5FUlluq9B59nme0mc0RDr8OLflEUBFM
+         xMgs9t/Hn3GQ4iwUYrFQeC+fjew5NvgNi359pgfYLbypWgZZx4MjzzJI7/85wSpXttfT
+         TpTx/OScUCec8SQANec51c5+8RWsr12x8x+kJ61Ad9c7miBrhydg0ZEyJUB/Vs4Pn9pV
+         7S8ijYCz5GfUZZVofILDSMlnay5wGEGoB020DERJMomqg9yQvylcSKUlg/XPPLJBhjkM
+         HCyA==
+X-Gm-Message-State: AJcUukf+rykgC67g9UztD6yk1dzjIja48V3AeZm7xiJlpLRlQ0uUjopt
+        I+QQKN7wLfZuMXvbn3dY3vuyqQ==
+X-Google-Smtp-Source: ALg8bN5eCRfCmCWq2R4b5PrTTyaWnHdYOaKjZKIdZs839OqH0xxN3W+2RA1pgSLmwF7lW1jmGbvPTw==
+X-Received: by 2002:a0c:b9ae:: with SMTP id v46mr28256605qvf.110.1548861595501;
+        Wed, 30 Jan 2019 07:19:55 -0800 (PST)
 Received: from skullcanyon ([192.222.193.21])
-        by smtp.gmail.com with ESMTPSA id b17sm2185698qkj.69.2019.01.30.07.06.22
+        by smtp.gmail.com with ESMTPSA id a20sm1568381qkj.28.2019.01.30.07.19.54
         (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Wed, 30 Jan 2019 07:06:23 -0800 (PST)
-Message-ID: <9fd20ee01384d0bd8e395c6cf52ed8dc9d47ff06.camel@ndufresne.ca>
-Subject: Re: [PATCH v2 2/2] media: docs-rst: Document memory-to-memory video
- encoder interface
+        Wed, 30 Jan 2019 07:19:54 -0800 (PST)
+Message-ID: <e89b69476c92d162a8a00a789163858309d8defe.camel@ndufresne.ca>
+Subject: Re: [PATCH v2 2/3] [media] allegro: add Allegro DVT video IP core
+ driver
 From:   Nicolas Dufresne <nicolas@ndufresne.ca>
-To:     Tomasz Figa <tfiga@chromium.org>
-Cc:     Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        =?UTF-8?Q?Pawe=C5=82_O=C5=9Bciak?= <posciak@chromium.org>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Kamil Debski <kamil@wypas.org>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Jeongtae Park <jtp.park@samsung.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Tiffany Lin <tiffany.lin@mediatek.com>,
-        Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Todor Tomov <todor.tomov@linaro.org>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        dave.stevenson@raspberrypi.org,
-        Ezequiel Garcia <ezequiel@collabora.com>,
-        Maxime Jourdan <maxi.jourdan@wanadoo.fr>
-Date:   Wed, 30 Jan 2019 10:06:22 -0500
-In-Reply-To: <CAAFQd5DGQvmdvV42Qz_yRVk1XCaYH6AMxWJgJ_PrECBM+U65uA@mail.gmail.com>
-References: <20181022144901.113852-1-tfiga@chromium.org>
-         <20181022144901.113852-3-tfiga@chromium.org>
-         <4cd223f0-b09c-da07-f26c-3b3f7a8868d7@xs4all.nl>
-         <CAAFQd5DthE3vL+gycEBgm+aF0YhRncrfBVBNLLF4g+oKhBHEWQ@mail.gmail.com>
-         <75334288-69af-6680-fbe7-2dd5ef2462ea@xs4all.nl>
-         <0452db20a894c1c4cce263b7e07ba274a58aa8fa.camel@ndufresne.ca>
-         <CAAFQd5DGQvmdvV42Qz_yRVk1XCaYH6AMxWJgJ_PrECBM+U65uA@mail.gmail.com>
+To:     Hans Verkuil <hverkuil@xs4all.nl>,
+        Michael Tretter <m.tretter@pengutronix.de>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Cc:     kernel@pengutronix.de, robh+dt@kernel.org, mchehab@kernel.org,
+        tfiga@chromium.org
+Date:   Wed, 30 Jan 2019 10:19:53 -0500
+In-Reply-To: <f983efdb-4ac1-d2e2-4be3-421d337f94ef@xs4all.nl>
+References: <20190118133716.29288-1-m.tretter@pengutronix.de>
+         <20190118133716.29288-3-m.tretter@pengutronix.de>
+         <1fab228e-3a5d-d1f4-23a3-bb8ec5914851@xs4all.nl>
+         <9e29f43951bf25708060bc25f4d1e94756970ee2.camel@ndufresne.ca>
+         <f983efdb-4ac1-d2e2-4be3-421d337f94ef@xs4all.nl>
 Content-Type: text/plain; charset="UTF-8"
 User-Agent: Evolution 3.30.4 (3.30.4-1.fc29) 
 Mime-Version: 1.0
@@ -97,75 +79,72 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Le vendredi 25 janvier 2019 à 12:59 +0900, Tomasz Figa a écrit :
-> On Fri, Jan 25, 2019 at 5:14 AM Nicolas Dufresne <nicolas@ndufresne.ca> wrote:
-> > Le mercredi 23 janvier 2019 à 14:04 +0100, Hans Verkuil a écrit :
-> > > > > Does this return the same set of formats as in the 'Querying Capabilities' phase?
-> > > > > 
-> > > > 
-> > > > It's actually an interesting question. At this point we wouldn't have
-> > > > the OUTPUT resolution set yet, so that would be the same set as in the
-> > > > initial query. If we set the resolution (with some arbitrary
-> > > > pixelformat), it may become a subset...
-> > > 
-> > > But doesn't setting the capture format also set the resolution?
-> > > 
-> > > To quote from the text above:
-> > > 
-> > > "The encoder will derive a new ``OUTPUT`` format from the ``CAPTURE`` format
-> > >  being set, including resolution, colorimetry parameters, etc."
-> > > 
-> > > So you set the capture format with a resolution (you know that), then
-> > > ENUM_FMT will return the subset for that codec and resolution.
-> > > 
-> > > But see also the comment at the end of this email.
+Le mercredi 30 janvier 2019 à 08:47 +0100, Hans Verkuil a écrit :
+> On 1/30/19 4:41 AM, Nicolas Dufresne wrote:
+> > Hi Hans,
 > > 
-> > I'm thinking that the fact that there is no "unset" value for pixel
-> > format creates a certain ambiguity. Maybe we could create a new pixel
-> > format, and all CODEC driver could have that set by default ? Then we
-> > can just fail STREAMON if that format is set.
+> > Le mercredi 23 janvier 2019 à 11:44 +0100, Hans Verkuil a écrit :
+> > > > +     if (*nplanes != 0) {
+> > > > +             if (vq->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
+> > > > +                     if (*nplanes != 1 ||
+> > > > +                         sizes[0] < channel->sizeimage_encoded)
+> > > > +                             return -EINVAL;
+> > > 
+> > > Question relating to calculating sizeimage_encoded: is that guaranteed to be
+> > > the largest buffer size that is needed to compress a frame? What if it is
+> > > not large enough after all? Does the encoder protect against that?
+> > > 
+> > > I have a patch pending that allows an encoder to spread the compressed
+> > > output over multiple buffers:
+> > > 
+> > > https://patchwork.linuxtv.org/patch/53536/
+> > > 
+> > > I wonder if this encoder would be able to use it.
+> > 
+> > Userspace around most existing codecs expect well framed capture buffer
+> > from the encoder. Spreading out the buffer will just break this
+> > expectation.
+> > 
+> > This is specially needed for VP8/VP9 as these format are not meant to
+> > be streamed that way.
 > 
-> The state on the CAPTURE queue is actually not "unset". The queue is
-> simply not ready (yet) and any operations on it will error out.
+> Good to know, thank you.
+> 
+> > I believe a proper solution to that would be to hang the decoding
+> > process and send an event (similar to resolution changes) to tell user
+> > space that capture buffers need to be re-allocated.
+> 
+> That's indeed an alternative. I wait for further feedback from Tomasz
+> on this.
+> 
+> I do want to add that allowing it to be spread over multiple buffers
+> also means more optimal use of memory. I.e. the buffers for the compressed
+> data no longer need to be sized for the worst-case size.
 
-My point was that it's just awkward to have this "not ready" state, in
-which you cannot go back. And in which the enum-format will ignore the
-format configured on the other side.
+My main concern is that it's no longer optimal for transcoding cases.
+To illustrate, an H264 decoders still have the restriction that they
+need compleat NALs for each memory pointer (if not an complete AU). The
+reason is that writing a parser that can handle a bitstream across two
+unaligned (in CPU term and in NAL term) is difficult and inefficient.
+So most decoder would need to duplicate the allocation, in order to
+copy these input buffer to properly sized buffer. Note that for
+hardware like CODA, I believe this copy is always there, since the
+hardware uses a ring buffer. With high bitrate stream, the overhead is
+important. It also breaks the usage of hardware synchronization IP,
+which is a key feature on the ZynqMP.
 
-What I wanted to say is that this special case is not really needed.
+As Micheal said, the vendor driver here predict the allocation size
+base on width/height/profile/level and chroma being used (that's
+encoded in the pixel format). The chroma was added later for the case
+we have a level that supports both 8 and 10bits, which when used in
+8bits mode would lead to over-allocation of memory and VCU resources.
+But the vendor kernel goes a little beyond the spec by introducing more
+named profiles then define in the spec, so that they can further
+control the allocation (specially the VCU core allocation, otherwise
+you don't get to run as many instances in parallel).
 
 > 
-> Once the application sets the coded resolution on the OUTPUT queue or
-> the decoder parses the stream information, the CAPTURE queue becomes
-> ready and one can do the ioctls on it.
+> Regards,
 > 
-> > That being said, in GStreamer, I have split each elements per CODEC,
-> > and now only enumerate the information "per-codec". That makes me think
-> > this "global" enumeration was just a miss-use of the API / me learning
-> > to use it. Not having to implement this rather complex thing in the
-> > driver would be nice. Notably, the new Amlogic driver does not have
-> > this "Querying Capabilities" phase, and with latest GStreamer works
-> > just fine.
-> 
-> What do you mean by "doesn't have"? Does it lack an implementation of
-> VIDIOC_ENUM_FMT and VIDIOC_ENUM_FRAMESIZES?
-
-What it does is that it sets a default value for the codec format, so
-if you just open the device and do enum_fmt/framesizes, you get that is
-possible for the default codec that was selected. And I thin it's
-entirely correct, doing ENUM_FMT(capture) without doing an
-S_FMT(output) can easily be documented as undefined behaviour.
-
-For proper enumeration would be:
-
-for formats on OUTPUT device:
-  S_FMT(OUTPUT):
-  for formats on CAPTURE device:
-    ...
-
-(the pseudo for look represent an enum operation)
-
-> 
-> Best regards,
-> Tomasz
+> 	Hans
 
