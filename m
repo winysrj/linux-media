@@ -2,97 +2,146 @@ Return-Path: <SRS0=BdY7=QG=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F93EC282D4
-	for <linux-media@archiver.kernel.org>; Wed, 30 Jan 2019 07:47:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BB77C282D5
+	for <linux-media@archiver.kernel.org>; Wed, 30 Jan 2019 07:57:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 383D320869
-	for <linux-media@archiver.kernel.org>; Wed, 30 Jan 2019 07:47:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 645E520882
+	for <linux-media@archiver.kernel.org>; Wed, 30 Jan 2019 07:57:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725834AbfA3Hr0 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 30 Jan 2019 02:47:26 -0500
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:56450 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725819AbfA3Hr0 (ORCPT
+        id S1729674AbfA3H5G (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 30 Jan 2019 02:57:06 -0500
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:48390 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725830AbfA3H5G (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 Jan 2019 02:47:26 -0500
+        Wed, 30 Jan 2019 02:57:06 -0500
 Received: from [192.168.2.10] ([212.251.195.8])
         by smtp-cloud7.xs4all.net with ESMTPA
-        id okaegyz0mBDyIokahgtqPz; Wed, 30 Jan 2019 08:47:24 +0100
-Subject: Re: [PATCH v2 2/3] [media] allegro: add Allegro DVT video IP core
- driver
-To:     Nicolas Dufresne <nicolas@ndufresne.ca>,
-        Michael Tretter <m.tretter@pengutronix.de>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Cc:     kernel@pengutronix.de, robh+dt@kernel.org, mchehab@kernel.org,
-        tfiga@chromium.org
-References: <20190118133716.29288-1-m.tretter@pengutronix.de>
- <20190118133716.29288-3-m.tretter@pengutronix.de>
- <1fab228e-3a5d-d1f4-23a3-bb8ec5914851@xs4all.nl>
- <9e29f43951bf25708060bc25f4d1e94756970ee2.camel@ndufresne.ca>
-From:   Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <f983efdb-4ac1-d2e2-4be3-421d337f94ef@xs4all.nl>
-Date:   Wed, 30 Jan 2019 08:47:20 +0100
+        id okjzgz2USBDyIokk3gtsND; Wed, 30 Jan 2019 08:57:04 +0100
+Subject: Re: [PATCH v2] [media] v4l: add I / P frame min max QP definitions
+To:     Fish Lin <linfish@google.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Keiichi Watanabe <keiichiw@chromium.org>
+Cc:     Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Will Deacon <will.deacon@arm.com>,
+        Smitha T Murthy <smitha.t@samsung.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Tomasz Figa <tfiga@chromium.org>, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, trivial@kernel.org
+References: <20190128072948.45788-1-linfish@google.com>
+ <20190130074522.155770-1-linfish@google.com>
+From:   Hans Verkuil <hverkuil-cisco@xs4all.nl>
+Message-ID: <6de7d597-f89a-e20d-a1fd-3f683f4916b8@xs4all.nl>
+Date:   Wed, 30 Jan 2019 08:56:59 +0100
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
  Thunderbird/60.4.0
 MIME-Version: 1.0
-In-Reply-To: <9e29f43951bf25708060bc25f4d1e94756970ee2.camel@ndufresne.ca>
+In-Reply-To: <20190130074522.155770-1-linfish@google.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
-Content-Transfer-Encoding: 8bit
-X-CMAE-Envelope: MS4wfO58rVx2RgIrHqppHRkLYXxUPoN07pNPP+cAQUIOaXPWJuDvxkC2zfWuZgvBeO76F7DUmlcKxmRO7Vj9DuzlIZ0uTUA1fLi8TqxQemtCU/TMihH/W+G1
- O0M/9TIlYyLXnpG3wBYFEwhyEjGOTJCtdZg3qKwVP8JTCLDksnA6lAMPsI7U6dgVd7/iwYIudxT9qgjcA5uobIHwqPmR7KcRmaaN3jnBrgCTqvl5cQBspM8E
- Jv6ArXjA+b69dL1RLEG5M9U7DctLah9MvD60nc7j2Pln0FtxUVnEuRem3qeUnjqMjoWDDqoQi7GkSmwdQbjS0zr1ePffxKPsQaM2I7iz2HfLBBQ8awaNsuQf
- wIGp5xs7F4TOb4jP0YBDfvDoCKC6c9ERVGIYNNcSQREguluF1C6qWvIEkNYdwetscrJwH91+
+Content-Transfer-Encoding: 7bit
+X-CMAE-Envelope: MS4wfM7j2IZ7eCBTkkcrymeu6C7i+oWGfJp/BxsHFOpbkzs0KC84CMacwW7lkeoQim44oh6dUqEguYfRR7+FJgTDvtR1bSDVVy5FHtGAiHSs64cYOlXac0J0
+ 99ZPiqSM1SPKmqmk7DDXi1udOjNAjzR4hvc6vWucVFWChsUiULv7efByp9zPXByGkSXOmVYTMzNL0/LmSEoSjAY1iQ3dt2gMJcAC/ysE9Za1uokCBfih5EK8
+ G6zLJCUQVDHwrovechF71m21y/mdogt+z7gQrdbs8cIiPWVrL4ZOvNN3cLnTO4LCG4g2AqhkwKhPbCJ3KAsW3EQJF6usX2G98CVMCVz28ZV2nkp8NnMvblJf
+ vwKnWghv3t8Dn2lw5U1sn1rSDIfyFyhfpUQFxKAodIPQF6Dv6VBy2y71umsAxZYMl/EwCfJYA7x+TzZlxa8So/+whud2EXYKue9wwjjtvOQo1sf5TldbtcFm
+ sV6DpgHI2br7kEQtVZVF9efbs+Yf3uN01AilBKwVkBGrUdZgIbnYWvhItmg=
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On 1/30/19 4:41 AM, Nicolas Dufresne wrote:
-> Hi Hans,
+On 1/30/19 8:45 AM, Fish Lin wrote:
+> Add following V4L2 QP parameters for H.264:
+>  * V4L2_CID_MPEG_VIDEO_H264_I_FRAME_MIN_QP
+>  * V4L2_CID_MPEG_VIDEO_H264_I_FRAME_MAX_QP
+>  * V4L2_CID_MPEG_VIDEO_H264_P_FRAME_MIN_QP
+>  * V4L2_CID_MPEG_VIDEO_H264_P_FRAME_MAX_QP
 > 
-> Le mercredi 23 janvier 2019 à 11:44 +0100, Hans Verkuil a écrit :
->>> +     if (*nplanes != 0) {
->>> +             if (vq->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
->>> +                     if (*nplanes != 1 ||
->>> +                         sizes[0] < channel->sizeimage_encoded)
->>> +                             return -EINVAL;
->>
->> Question relating to calculating sizeimage_encoded: is that guaranteed to be
->> the largest buffer size that is needed to compress a frame? What if it is
->> not large enough after all? Does the encoder protect against that?
->>
->> I have a patch pending that allows an encoder to spread the compressed
->> output over multiple buffers:
->>
->> https://patchwork.linuxtv.org/patch/53536/
->>
->> I wonder if this encoder would be able to use it.
-> 
-> Userspace around most existing codecs expect well framed capture buffer
-> from the encoder. Spreading out the buffer will just break this
-> expectation.
-> 
-> This is specially needed for VP8/VP9 as these format are not meant to
-> be streamed that way.
+> These controls will limit QP range for intra and inter frame,
+> provide more manual control to improve video encode quality.
 
-Good to know, thank you.
+How will this interact with V4L2_CID_MPEG_VIDEO_H264_MIN/MAX_QP?
 
-> I believe a proper solution to that would be to hang the decoding
-> process and send an event (similar to resolution changes) to tell user
-> space that capture buffers need to be re-allocated.
-
-That's indeed an alternative. I wait for further feedback from Tomasz
-on this.
-
-I do want to add that allowing it to be spread over multiple buffers
-also means more optimal use of memory. I.e. the buffers for the compressed
-data no longer need to be sized for the worst-case size.
+Or are drivers supposed to have either V4L2_CID_MPEG_VIDEO_H264_MIN/MAX_QP
+or these new controls? If so, then that should be documented.
 
 Regards,
 
 	Hans
+
+> 
+> Signed-off-by: Fish Lin <linfish@google.com>
+> ---
+> Changelog since v1:
+> - Add description in document.
+> 
+>  .../media/uapi/v4l/extended-controls.rst         | 16 ++++++++++++++++
+>  drivers/media/v4l2-core/v4l2-ctrls.c             |  4 ++++
+>  include/uapi/linux/v4l2-controls.h               |  6 ++++++
+>  3 files changed, 26 insertions(+)
+> 
+> diff --git a/Documentation/media/uapi/v4l/extended-controls.rst b/Documentation/media/uapi/v4l/extended-controls.rst
+> index 286a2dd7ec36..f5989fad34f9 100644
+> --- a/Documentation/media/uapi/v4l/extended-controls.rst
+> +++ b/Documentation/media/uapi/v4l/extended-controls.rst
+> @@ -1214,6 +1214,22 @@ enum v4l2_mpeg_video_h264_entropy_mode -
+>      Quantization parameter for an B frame for H264. Valid range: from 0
+>      to 51.
+>  
+> +``V4L2_CID_MPEG_VIDEO_H264_I_FRAME_MIN_QP (integer)``
+> +    Minimum quantization parameter for H264 I frame, to limit I frame
+> +    quality in a range. Valid range: from 0 to 51.
+> +
+> +``V4L2_CID_MPEG_VIDEO_H264_I_FRAME_MAX_QP (integer)``
+> +    Maximum quantization parameter for H264 I frame, to limit I frame
+> +    quality in a range. Valid range: from 0 to 51.
+> +
+> +``V4L2_CID_MPEG_VIDEO_H264_P_FRAME_MIN_QP (integer)``
+> +    Minimum quantization parameter for H264 P frame, to limit P frame
+> +    quality in a range. Valid range: from 0 to 51.
+> +
+> +``V4L2_CID_MPEG_VIDEO_H264_P_FRAME_MAX_QP (integer)``
+> +    Maximum quantization parameter for H264 P frame, to limit P frame
+> +    quality in a range. Valid range: from 0 to 51.
+> +
+>  ``V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP (integer)``
+>      Quantization parameter for an I frame for MPEG4. Valid range: from 1
+>      to 31.
+> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+> index 5e3806feb5d7..e2b0af0d2283 100644
+> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> @@ -825,6 +825,10 @@ const char *v4l2_ctrl_get_name(u32 id)
+>  	case V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER:return "H264 Number of HC Layers";
+>  	case V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER_QP:
+>  								return "H264 Set QP Value for HC Layers";
+> +	case V4L2_CID_MPEG_VIDEO_H264_I_FRAME_MIN_QP:		return "H264 I-Frame Minimum QP Value";
+> +	case V4L2_CID_MPEG_VIDEO_H264_I_FRAME_MAX_QP:		return "H264 I-Frame Maximum QP Value";
+> +	case V4L2_CID_MPEG_VIDEO_H264_P_FRAME_MIN_QP:		return "H264 P-Frame Minimum QP Value";
+> +	case V4L2_CID_MPEG_VIDEO_H264_P_FRAME_MAX_QP:		return "H264 P-Frame Maximum QP Value";
+>  	case V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP:		return "MPEG4 I-Frame QP Value";
+>  	case V4L2_CID_MPEG_VIDEO_MPEG4_P_FRAME_QP:		return "MPEG4 P-Frame QP Value";
+>  	case V4L2_CID_MPEG_VIDEO_MPEG4_B_FRAME_QP:		return "MPEG4 B-Frame QP Value";
+> diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+> index 3dcfc6148f99..9519673e6437 100644
+> --- a/include/uapi/linux/v4l2-controls.h
+> +++ b/include/uapi/linux/v4l2-controls.h
+> @@ -533,6 +533,12 @@ enum v4l2_mpeg_video_h264_hierarchical_coding_type {
+>  };
+>  #define V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER	(V4L2_CID_MPEG_BASE+381)
+>  #define V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER_QP	(V4L2_CID_MPEG_BASE+382)
+> +
+> +#define V4L2_CID_MPEG_VIDEO_H264_I_FRAME_MIN_QP	(V4L2_CID_MPEG_BASE+390)
+> +#define V4L2_CID_MPEG_VIDEO_H264_I_FRAME_MAX_QP	(V4L2_CID_MPEG_BASE+391)
+> +#define V4L2_CID_MPEG_VIDEO_H264_P_FRAME_MIN_QP	(V4L2_CID_MPEG_BASE+392)
+> +#define V4L2_CID_MPEG_VIDEO_H264_P_FRAME_MAX_QP	(V4L2_CID_MPEG_BASE+393)
+> +
+>  #define V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP	(V4L2_CID_MPEG_BASE+400)
+>  #define V4L2_CID_MPEG_VIDEO_MPEG4_P_FRAME_QP	(V4L2_CID_MPEG_BASE+401)
+>  #define V4L2_CID_MPEG_VIDEO_MPEG4_B_FRAME_QP	(V4L2_CID_MPEG_BASE+402)
+> 
+
