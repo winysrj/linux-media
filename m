@@ -2,148 +2,157 @@ Return-Path: <SRS0=BdY7=QG=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.6 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT,USER_IN_DEF_DKIM_WL
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E4CCAC282D4
-	for <linux-media@archiver.kernel.org>; Wed, 30 Jan 2019 07:42:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5EFAFC282D6
+	for <linux-media@archiver.kernel.org>; Wed, 30 Jan 2019 07:45:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BA32521848
-	for <linux-media@archiver.kernel.org>; Wed, 30 Jan 2019 07:42:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2DCF220869
+	for <linux-media@archiver.kernel.org>; Wed, 30 Jan 2019 07:45:34 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="SvEqdk7X"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726427AbfA3HmY (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 30 Jan 2019 02:42:24 -0500
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:49709 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725819AbfA3HmX (ORCPT
+        id S1730156AbfA3Hpa (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 30 Jan 2019 02:45:30 -0500
+Received: from mail-oi1-f202.google.com ([209.85.167.202]:57170 "EHLO
+        mail-oi1-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725819AbfA3Hpa (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 Jan 2019 02:42:23 -0500
-Received: from [192.168.2.10] ([212.251.195.8])
-        by smtp-cloud7.xs4all.net with ESMTPA
-        id okVlgyxI3BDyIokVpgtpVt; Wed, 30 Jan 2019 08:42:22 +0100
-Subject: Re: [PATCH v10 0/4] Media Device Allocator API
-To:     shuah <shuah@kernel.org>, mchehab@kernel.org, perex@perex.cz,
-        tiwai@suse.com
-Cc:     linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        alsa-devel@alsa-project.org
-References: <cover.1548360791.git.shuah@kernel.org>
- <e8717d11-1eff-2e07-53d5-6cd55356c66a@xs4all.nl>
- <481787e7-112a-80dd-228c-2497a12547b9@kernel.org>
- <d9ae1073-f6a9-1085-c8f8-8edd05daece5@xs4all.nl>
- <b9a62121-8ab0-5c1c-79ff-8bb39fc8b762@kernel.org>
-From:   Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <fe6d6f63-72e3-8e2f-462d-b029997d8ee9@xs4all.nl>
-Date:   Wed, 30 Jan 2019 08:42:17 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.4.0
-MIME-Version: 1.0
-In-Reply-To: <b9a62121-8ab0-5c1c-79ff-8bb39fc8b762@kernel.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfC1iiIVuahTVxwYNG40X1zEK+9nMKOHAiDRD5PFTZiKQbqqMraBMMYeWBuzIhMXIUQHUh4D6RGn4IgaGyXtm30KSw7LrkoSsNaU+xi50/ef7kmuHUPc2
- oD03UhE9qy5CsqBrs7FV7UjFTG6a4YYhY07NW6fF9ADl6HY6rnoEesXMXAvvBNNbr2KXo0uf+lno7GlcMtbVDTL13b/UpeqV9TrguospbZNPx1sPX4ik/PMz
- /WP2joPK89NpeFv6yNcaNVxmgW08xWhlW+/Bfl06VLxDsfB5vNZcoyfctHy8eimxsUyab/qX+ChKYtz3pW1yUwvqWrHChK4h7JMat4Dvjb3p64q1vP8Z28l7
- Dvr3YGdowx2jKFYIBD9+IEFNdQPkdQ==
+        Wed, 30 Jan 2019 02:45:30 -0500
+Received: by mail-oi1-f202.google.com with SMTP id a62so11864304oii.23
+        for <linux-media@vger.kernel.org>; Tue, 29 Jan 2019 23:45:29 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20161025;
+        h=date:in-reply-to:message-id:mime-version:references:subject:from:to
+         :cc;
+        bh=gSk9CBvTiJCDvm7KwhFiEgBIDJYi51//IAq1RM0Z+/I=;
+        b=SvEqdk7XVMB9mctvFfoAGuL8yIvx9W4j1UwdPDxj63bt4FbxKMuvLEhIDQODmezuXx
+         n6cCRyKpa7WebqlduPfrKnxuGdDJEgywXP2eK/Z34SoV7hEsrsUNX2nIJLdEHlko8nqA
+         9maSMlhJo1ESwXD+4WGW25P8M/lOsGZvX6QVoqnPYau4wGJZvPHY1gifWkMyU/q9eMw7
+         TFzxMuwzX657CnCiajrbEeRWVB1iQeznjCrQPt4vg/u4V1La4vb0uPW32zLCLG1I5Wnc
+         CfOdsj0wfe731ayVbNJbKBxp4kmx5jiwuyT2HYS3gwfJq65S2gHLKw9gnJuVzCmiWVkx
+         hgTQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:in-reply-to:message-id:mime-version
+         :references:subject:from:to:cc;
+        bh=gSk9CBvTiJCDvm7KwhFiEgBIDJYi51//IAq1RM0Z+/I=;
+        b=LSCs+ibWM6L8amx8/tDeB2inH/hPXLxjKsZWzVVcr2tqSfquEwWVLW6IDmfaxmHF1y
+         TN+RWs7vb/SyCq3QlA4VFWcGi2cyrjbT0d5THvamE9y9h432DhQc2M+ch8a+ZwQMP8dG
+         TdObIKAFAbIyQY0Bhr9ig5DGtaRPLJ11Kdbe1iatCRjD1pHKut+6JjcKX9eEVveuC0Zf
+         WYhFXRbk1P715sKbF+xZuXq1VAViyxGOiqfknLcZ566juhCwfAJZbtsvDy9mIkjKPjPT
+         nwxNep5U9RDyNzl64RAtvpmazUVUxRO2kVWJYAu8AR88O46RVKpTw91pDh19P9u4DKYC
+         7dyw==
+X-Gm-Message-State: AHQUAuYFdWsYzS36KZi/hUmNGVq9l7OTtmy6QvutrN1MZAjREtydcmQt
+        1LvDirqbAtH20uopSiR8rtyZDgksDbUU
+X-Google-Smtp-Source: AHgI3IYxXVB5aOhw/o/8DIzsXhm3/mmemjygkPJzarc3V7Eza3T5RI9nl625KSowfcf163fcluKPE/QeIE4f
+X-Received: by 2002:a05:6808:654:: with SMTP id z20mr5652506oih.46.1548834328956;
+ Tue, 29 Jan 2019 23:45:28 -0800 (PST)
+Date:   Wed, 30 Jan 2019 15:45:22 +0800
+In-Reply-To: <20190128072948.45788-1-linfish@google.com>
+Message-Id: <20190130074522.155770-1-linfish@google.com>
+Mime-Version: 1.0
+References: <20190128072948.45788-1-linfish@google.com>
+X-Mailer: git-send-email 2.20.1.495.gaa96b0ce6b-goog
+Subject: [PATCH v2] [media] v4l: add I / P frame min max QP definitions
+From:   Fish Lin <linfish@google.com>
+To:     Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil-cisco@xs4all.nl>,
+        Keiichi Watanabe <keiichiw@chromium.org>
+Cc:     Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Will Deacon <will.deacon@arm.com>,
+        Smitha T Murthy <smitha.t@samsung.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Tomasz Figa <tfiga@chromium.org>, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, trivial@kernel.org,
+        Fish Lin <linfish@google.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On 1/30/19 2:50 AM, shuah wrote:
-> On 1/29/19 2:43 AM, Hans Verkuil wrote:
->> On 1/29/19 12:48 AM, shuah wrote:
->>> Hi Hans,
->>>
->>> On 1/28/19 5:03 AM, Hans Verkuil wrote:
->>>> Hi Shuah,
->>>>
->>>> On 1/24/19 9:32 PM, Shuah Khan wrote:
->>>>> Media Device Allocator API to allows multiple drivers share a media device.
->>>>> This API solves a very common use-case for media devices where one physical
->>>>> device (an USB stick) provides both audio and video. When such media device
->>>>> exposes a standard USB Audio class, a proprietary Video class, two or more
->>>>> independent drivers will share a single physical USB bridge. In such cases,
->>>>> it is necessary to coordinate access to the shared resource.
->>>>>
->>>>> Using this API, drivers can allocate a media device with the shared struct
->>>>> device as the key. Once the media device is allocated by a driver, other
->>>>> drivers can get a reference to it. The media device is released when all
->>>>> the references are released.
->>>>>
->>>>> - This patch series is tested on 5.0-rc3 and addresses comments on
->>>>>     v9 series from Hans Verkuil.
->>>>> - v9 was tested on 4.20-rc6.
->>>>> - Tested sharing resources with kaffeine, vlc, xawtv, tvtime, and
->>>>>     arecord. When analog is streaming, digital and audio user-space
->>>>>     applications detect that the tuner is busy and exit. When digital
->>>>>     is streaming, analog and audio applications detect that the tuner is
->>>>>     busy and exit. When arecord is owns the tuner, digital and analog
->>>>>     detect that the tuner is busy and exit.
->>>>
->>>> I've been doing some testing with my au0828, and I am confused about one
->>>> thing, probably because it has been too long ago since I last looked into
->>>> this in detail:
->>>>
->>>
->>> Great.
->>>
->>>> Why can't I change the tuner frequency if arecord (and only arecord) is
->>>> streaming audio? If arecord is streaming, then it is recording the audio
->>>> from the analog TV tuner, right? So changing the analog TV frequency
->>>> should be fine.
->>>>
->>>
->>> Changing analog TV frequency would be s_frequency. The way it works is
->>> any s_* calls would require holding the pipeline. In Analog TV case, it
->>> would mean holding both audio and video pipelines for any changes
->>> including TV.
->>>
->>> As I recall, we discussed this design and the decision was to make all
->>> s_* calls interfaces to hold the tuner. A special exception is g_tuner
->>> in case of au0828. au0828 initializes the tuner from s_* interfaces and
->>> its g_tuner interfaces. Allowing s_frequency to proceed will disrupt the
->>> arecord audio stream.
->>>
->>> Query (q_*) works just fine without holding the pipeline. I limited the
->>> analog holds to just the ones that are required. The current set is
->>> required to avoid audio stream disruptions.
->>
->> So I am not sure about that ('avoid audio stream disruptions'): if I
->> stream video AND use arecord, then I can just set the frequency while
->> streaming. Doesn't that interrupt audio as well? And are you sure changing
->> the tuner frequency actually disrupts audio? And if audio is disrupted,
->> are we talking about a glitch or is audio permanently disrupted?
-> 
-> I think it is a glitch. I will run some tests and let you know.
->>
->> That's basically the inconsistent behavior I noticed: just running arecord
->> will prevent me from changing the frequency, but if I run arecord and stream
->> video, then it is suddenly OK to change the frequency.
-> 
-> How are you changing frequency? I want to duplicate what you are doing.
+Add following V4L2 QP parameters for H.264:
+ * V4L2_CID_MPEG_VIDEO_H264_I_FRAME_MIN_QP
+ * V4L2_CID_MPEG_VIDEO_H264_I_FRAME_MAX_QP
+ * V4L2_CID_MPEG_VIDEO_H264_P_FRAME_MIN_QP
+ * V4L2_CID_MPEG_VIDEO_H264_P_FRAME_MAX_QP
 
-v4l2-ctl -f <freq>
+These controls will limit QP range for intra and inter frame,
+provide more manual control to improve video encode quality.
 
-> 
->>
->> BTW, I think there was also inconsistent behavior in the order of streaming
->> audio and video: if I stream video first, then I can stream audio afterwards.
->> But if I stream audio first, then (if I remember correctly) I can't start
->> video streaming.
->>
-> 
-> I will run some tests tomorrow and see what I find. Which video apps are
-> you running for these tests?
+Signed-off-by: Fish Lin <linfish@google.com>
+---
+Changelog since v1:
+- Add description in document.
 
-v4l2-ctl or qv4l2.
+ .../media/uapi/v4l/extended-controls.rst         | 16 ++++++++++++++++
+ drivers/media/v4l2-core/v4l2-ctrls.c             |  4 ++++
+ include/uapi/linux/v4l2-controls.h               |  6 ++++++
+ 3 files changed, 26 insertions(+)
 
-Regards,
-
-	Hans
-
-> 
-> thanks,
-> -- Shuah
-> 
+diff --git a/Documentation/media/uapi/v4l/extended-controls.rst b/Documentation/media/uapi/v4l/extended-controls.rst
+index 286a2dd7ec36..f5989fad34f9 100644
+--- a/Documentation/media/uapi/v4l/extended-controls.rst
++++ b/Documentation/media/uapi/v4l/extended-controls.rst
+@@ -1214,6 +1214,22 @@ enum v4l2_mpeg_video_h264_entropy_mode -
+     Quantization parameter for an B frame for H264. Valid range: from 0
+     to 51.
+ 
++``V4L2_CID_MPEG_VIDEO_H264_I_FRAME_MIN_QP (integer)``
++    Minimum quantization parameter for H264 I frame, to limit I frame
++    quality in a range. Valid range: from 0 to 51.
++
++``V4L2_CID_MPEG_VIDEO_H264_I_FRAME_MAX_QP (integer)``
++    Maximum quantization parameter for H264 I frame, to limit I frame
++    quality in a range. Valid range: from 0 to 51.
++
++``V4L2_CID_MPEG_VIDEO_H264_P_FRAME_MIN_QP (integer)``
++    Minimum quantization parameter for H264 P frame, to limit P frame
++    quality in a range. Valid range: from 0 to 51.
++
++``V4L2_CID_MPEG_VIDEO_H264_P_FRAME_MAX_QP (integer)``
++    Maximum quantization parameter for H264 P frame, to limit P frame
++    quality in a range. Valid range: from 0 to 51.
++
+ ``V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP (integer)``
+     Quantization parameter for an I frame for MPEG4. Valid range: from 1
+     to 31.
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 5e3806feb5d7..e2b0af0d2283 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -825,6 +825,10 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER:return "H264 Number of HC Layers";
+ 	case V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER_QP:
+ 								return "H264 Set QP Value for HC Layers";
++	case V4L2_CID_MPEG_VIDEO_H264_I_FRAME_MIN_QP:		return "H264 I-Frame Minimum QP Value";
++	case V4L2_CID_MPEG_VIDEO_H264_I_FRAME_MAX_QP:		return "H264 I-Frame Maximum QP Value";
++	case V4L2_CID_MPEG_VIDEO_H264_P_FRAME_MIN_QP:		return "H264 P-Frame Minimum QP Value";
++	case V4L2_CID_MPEG_VIDEO_H264_P_FRAME_MAX_QP:		return "H264 P-Frame Maximum QP Value";
+ 	case V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP:		return "MPEG4 I-Frame QP Value";
+ 	case V4L2_CID_MPEG_VIDEO_MPEG4_P_FRAME_QP:		return "MPEG4 P-Frame QP Value";
+ 	case V4L2_CID_MPEG_VIDEO_MPEG4_B_FRAME_QP:		return "MPEG4 B-Frame QP Value";
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index 3dcfc6148f99..9519673e6437 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -533,6 +533,12 @@ enum v4l2_mpeg_video_h264_hierarchical_coding_type {
+ };
+ #define V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER	(V4L2_CID_MPEG_BASE+381)
+ #define V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER_QP	(V4L2_CID_MPEG_BASE+382)
++
++#define V4L2_CID_MPEG_VIDEO_H264_I_FRAME_MIN_QP	(V4L2_CID_MPEG_BASE+390)
++#define V4L2_CID_MPEG_VIDEO_H264_I_FRAME_MAX_QP	(V4L2_CID_MPEG_BASE+391)
++#define V4L2_CID_MPEG_VIDEO_H264_P_FRAME_MIN_QP	(V4L2_CID_MPEG_BASE+392)
++#define V4L2_CID_MPEG_VIDEO_H264_P_FRAME_MAX_QP	(V4L2_CID_MPEG_BASE+393)
++
+ #define V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP	(V4L2_CID_MPEG_BASE+400)
+ #define V4L2_CID_MPEG_VIDEO_MPEG4_P_FRAME_QP	(V4L2_CID_MPEG_BASE+401)
+ #define V4L2_CID_MPEG_VIDEO_MPEG4_B_FRAME_QP	(V4L2_CID_MPEG_BASE+402)
+-- 
+2.20.1.495.gaa96b0ce6b-goog
 
