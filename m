@@ -1,169 +1,147 @@
-Return-Path: <SRS0=OvUS=QF=vger.kernel.org=linux-media-owner@kernel.org>
+Return-Path: <SRS0=BdY7=QG=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_PASS autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4BA45C169C4
-	for <linux-media@archiver.kernel.org>; Tue, 29 Jan 2019 22:39:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CA9A6C4151A
+	for <linux-media@archiver.kernel.org>; Wed, 30 Jan 2019 01:50:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1D7CE214D8
-	for <linux-media@archiver.kernel.org>; Tue, 29 Jan 2019 22:39:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 94A5E2175B
+	for <linux-media@archiver.kernel.org>; Wed, 30 Jan 2019 01:50:41 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1548813041;
+	bh=8JSfvr7xzjWZ/s7MSEBllp/t5WgyJpD1zGBAczrcuKQ=;
+	h=Subject:To:Cc:References:From:Date:In-Reply-To:List-ID:From;
+	b=ZtQdDXa18u0LJzrjG1E1U/elNAN4MfWH+AFCELHoapEeVO7jNp3cGodhFXL0xif4+
+	 L6sJDvTpHbQeWKv/Ae4rHtS7iQx88Yokad9XYrO3VESaZ4FAVv0Plqplgh8rkmBNMz
+	 k3RF8f50UVCuACj2sYpFViGSsK7LmBrHOLrQotPk=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728176AbfA2Wjp (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 29 Jan 2019 17:39:45 -0500
-Received: from mga12.intel.com ([192.55.52.136]:48636 "EHLO mga12.intel.com"
+        id S1727775AbfA3Bug (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 29 Jan 2019 20:50:36 -0500
+Received: from mail.kernel.org ([198.145.29.99]:56602 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727545AbfA2Wjo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 Jan 2019 17:39:44 -0500
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga004.fm.intel.com ([10.253.24.48])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 29 Jan 2019 14:39:44 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.56,538,1539673200"; 
-   d="scan'208";a="139897549"
-Received: from glacier.sc.intel.com ([10.3.62.55])
-  by fmsmga004.fm.intel.com with ESMTP; 29 Jan 2019 14:39:43 -0800
-From:   Rajmohan Mani <rajmohan.mani@intel.com>
-To:     Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org
-Cc:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Jacopo Mondi <jacopo@jmondi.org>, tian.shu.qiu@intel.com,
-        bingbu.cao@intel.com, Zhi@vger.kernel.org,
-        Yong <yong.zhi@intel.com>, hverkuil@xs4all.nl,
-        tfiga@chromium.org, Rajmohan Mani <rajmohan.mani@intel.com>
-Subject: [PATCH] media: staging/intel-ipu3: Implement lock for stream on/off operations
-Date:   Tue, 29 Jan 2019 14:27:36 -0800
-Message-Id: <20190129222736.6216-1-rajmohan.mani@intel.com>
-X-Mailer: git-send-email 2.19.1
+        id S1727618AbfA3Bug (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 29 Jan 2019 20:50:36 -0500
+Received: from [192.168.1.112] (c-24-9-64-241.hsd1.co.comcast.net [24.9.64.241])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id BD4CC21473;
+        Wed, 30 Jan 2019 01:50:34 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1548813035;
+        bh=8JSfvr7xzjWZ/s7MSEBllp/t5WgyJpD1zGBAczrcuKQ=;
+        h=Subject:To:Cc:References:From:Date:In-Reply-To:From;
+        b=JERxPAbY1/DQpa3Xgud3RExTofWKb7fzUcOs5DXw2NPzeVu9r6d4VEW6mIN7NZ3x+
+         2X6P492TCKFrz7rx91BkORXo/y4RKjCH2BTw0piBFuiDm4GLhgr7ZKR/eRtigwAPDV
+         vYXX1gW+vS/y7YRHju9FFqhOt/mlNc8I8rf8g/7k=
+Subject: Re: [PATCH v10 0/4] Media Device Allocator API
+To:     Hans Verkuil <hverkuil@xs4all.nl>, mchehab@kernel.org,
+        perex@perex.cz, tiwai@suse.com
+Cc:     linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        alsa-devel@alsa-project.org, shuah <shuah@kernel.org>
+References: <cover.1548360791.git.shuah@kernel.org>
+ <e8717d11-1eff-2e07-53d5-6cd55356c66a@xs4all.nl>
+ <481787e7-112a-80dd-228c-2497a12547b9@kernel.org>
+ <d9ae1073-f6a9-1085-c8f8-8edd05daece5@xs4all.nl>
+From:   shuah <shuah@kernel.org>
+Message-ID: <b9a62121-8ab0-5c1c-79ff-8bb39fc8b762@kernel.org>
+Date:   Tue, 29 Jan 2019 18:50:20 -0700
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.2.1
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <d9ae1073-f6a9-1085-c8f8-8edd05daece5@xs4all.nl>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Currently concurrent stream off operations on ImgU nodes are not
-synchronized, leading to use-after-free bugs (as reported by KASAN).
+On 1/29/19 2:43 AM, Hans Verkuil wrote:
+> On 1/29/19 12:48 AM, shuah wrote:
+>> Hi Hans,
+>>
+>> On 1/28/19 5:03 AM, Hans Verkuil wrote:
+>>> Hi Shuah,
+>>>
+>>> On 1/24/19 9:32 PM, Shuah Khan wrote:
+>>>> Media Device Allocator API to allows multiple drivers share a media device.
+>>>> This API solves a very common use-case for media devices where one physical
+>>>> device (an USB stick) provides both audio and video. When such media device
+>>>> exposes a standard USB Audio class, a proprietary Video class, two or more
+>>>> independent drivers will share a single physical USB bridge. In such cases,
+>>>> it is necessary to coordinate access to the shared resource.
+>>>>
+>>>> Using this API, drivers can allocate a media device with the shared struct
+>>>> device as the key. Once the media device is allocated by a driver, other
+>>>> drivers can get a reference to it. The media device is released when all
+>>>> the references are released.
+>>>>
+>>>> - This patch series is tested on 5.0-rc3 and addresses comments on
+>>>>     v9 series from Hans Verkuil.
+>>>> - v9 was tested on 4.20-rc6.
+>>>> - Tested sharing resources with kaffeine, vlc, xawtv, tvtime, and
+>>>>     arecord. When analog is streaming, digital and audio user-space
+>>>>     applications detect that the tuner is busy and exit. When digital
+>>>>     is streaming, analog and audio applications detect that the tuner is
+>>>>     busy and exit. When arecord is owns the tuner, digital and analog
+>>>>     detect that the tuner is busy and exit.
+>>>
+>>> I've been doing some testing with my au0828, and I am confused about one
+>>> thing, probably because it has been too long ago since I last looked into
+>>> this in detail:
+>>>
+>>
+>> Great.
+>>
+>>> Why can't I change the tuner frequency if arecord (and only arecord) is
+>>> streaming audio? If arecord is streaming, then it is recording the audio
+>>> from the analog TV tuner, right? So changing the analog TV frequency
+>>> should be fine.
+>>>
+>>
+>> Changing analog TV frequency would be s_frequency. The way it works is
+>> any s_* calls would require holding the pipeline. In Analog TV case, it
+>> would mean holding both audio and video pipelines for any changes
+>> including TV.
+>>
+>> As I recall, we discussed this design and the decision was to make all
+>> s_* calls interfaces to hold the tuner. A special exception is g_tuner
+>> in case of au0828. au0828 initializes the tuner from s_* interfaces and
+>> its g_tuner interfaces. Allowing s_frequency to proceed will disrupt the
+>> arecord audio stream.
+>>
+>> Query (q_*) works just fine without holding the pipeline. I limited the
+>> analog holds to just the ones that are required. The current set is
+>> required to avoid audio stream disruptions.
+> 
+> So I am not sure about that ('avoid audio stream disruptions'): if I
+> stream video AND use arecord, then I can just set the frequency while
+> streaming. Doesn't that interrupt audio as well? And are you sure changing
+> the tuner frequency actually disrupts audio? And if audio is disrupted,
+> are we talking about a glitch or is audio permanently disrupted?
 
-[  250.090724] BUG: KASAN: use-after-free in ipu3_dmamap_free+0xc5/0x116 [ipu3_imgu]
-[  250.090726] Read of size 8 at addr ffff888127b29bc0 by task yavta/18836
-[  250.090731] Hardware name: HP Soraka/Soraka, BIOS Google_Soraka.10431.17.0 03/22/2018
-[  250.090732] Call Trace:
-[  250.090735]  dump_stack+0x6a/0xb1
-[  250.090739]  print_address_description+0x8e/0x279
-[  250.090743]  ? ipu3_dmamap_free+0xc5/0x116 [ipu3_imgu]
-[  250.090746]  kasan_report+0x260/0x28a
-[  250.090750]  ipu3_dmamap_free+0xc5/0x116 [ipu3_imgu]
-[  250.090754]  ipu3_css_pool_cleanup+0x24/0x37 [ipu3_imgu]
-[  250.090759]  ipu3_css_pipeline_cleanup+0x61/0xb9 [ipu3_imgu]
-[  250.090763]  ipu3_css_stop_streaming+0x1f2/0x321 [ipu3_imgu]
-[  250.090768]  imgu_s_stream+0x94/0x443 [ipu3_imgu]
-[  250.090772]  ? ipu3_vb2_buf_queue+0x280/0x280 [ipu3_imgu]
-[  250.090775]  ? vb2_dma_sg_unmap_dmabuf+0x16/0x6f [videobuf2_dma_sg]
-[  250.090778]  ? vb2_buffer_in_use+0x36/0x58 [videobuf2_common]
-[  250.090782]  ipu3_vb2_stop_streaming+0xf9/0x135 [ipu3_imgu]
+I think it is a glitch. I will run some tests and let you know.
+> 
+> That's basically the inconsistent behavior I noticed: just running arecord
+> will prevent me from changing the frequency, but if I run arecord and stream
+> video, then it is suddenly OK to change the frequency.
 
-Implemented a lock to synchronize imgu stream on / off operations and
-the modification of streaming flag (in struct imgu_device), to prevent
-these issues.
+How are you changing frequency? I want to duplicate what you are doing.
 
-Reported-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> 
+> BTW, I think there was also inconsistent behavior in the order of streaming
+> audio and video: if I stream video first, then I can stream audio afterwards.
+> But if I stream audio first, then (if I remember correctly) I can't start
+> video streaming.
+> 
 
-Signed-off-by: Rajmohan Mani <rajmohan.mani@intel.com>
----
- drivers/staging/media/ipu3/ipu3-v4l2.c | 6 ++++++
- drivers/staging/media/ipu3/ipu3.c      | 3 +++
- drivers/staging/media/ipu3/ipu3.h      | 4 ++++
- 3 files changed, 13 insertions(+)
+I will run some tests tomorrow and see what I find. Which video apps are
+you running for these tests?
 
-diff --git a/drivers/staging/media/ipu3/ipu3-v4l2.c b/drivers/staging/media/ipu3/ipu3-v4l2.c
-index c7936032beb9..cf7e917cd0c8 100644
---- a/drivers/staging/media/ipu3/ipu3-v4l2.c
-+++ b/drivers/staging/media/ipu3/ipu3-v4l2.c
-@@ -507,12 +507,15 @@ static int ipu3_vb2_start_streaming(struct vb2_queue *vq, unsigned int count)
- 			goto fail_stop_pipeline;
- 	}
- 
-+	mutex_lock(&imgu->streaming_lock);
-+
- 	/* Start streaming of the whole pipeline now */
- 	dev_dbg(dev, "IMGU streaming is ready to start");
- 	r = imgu_s_stream(imgu, true);
- 	if (!r)
- 		imgu->streaming = true;
- 
-+	mutex_unlock(&imgu->streaming_lock);
- 	return 0;
- 
- fail_stop_pipeline:
-@@ -543,6 +546,8 @@ static void ipu3_vb2_stop_streaming(struct vb2_queue *vq)
- 		dev_err(&imgu->pci_dev->dev,
- 			"failed to stop subdev streaming\n");
- 
-+	mutex_lock(&imgu->streaming_lock);
-+
- 	/* Was this the first node with streaming disabled? */
- 	if (imgu->streaming && ipu3_all_nodes_streaming(imgu, node)) {
- 		/* Yes, really stop streaming now */
-@@ -552,6 +557,7 @@ static void ipu3_vb2_stop_streaming(struct vb2_queue *vq)
- 			imgu->streaming = false;
- 	}
- 
-+	mutex_unlock(&imgu->streaming_lock);
- 	ipu3_return_all_buffers(imgu, node, VB2_BUF_STATE_ERROR);
- 	media_pipeline_stop(&node->vdev.entity);
- }
-diff --git a/drivers/staging/media/ipu3/ipu3.c b/drivers/staging/media/ipu3/ipu3.c
-index d521b3afb8b1..2daee51cd845 100644
---- a/drivers/staging/media/ipu3/ipu3.c
-+++ b/drivers/staging/media/ipu3/ipu3.c
-@@ -635,6 +635,7 @@ static int imgu_pci_probe(struct pci_dev *pci_dev,
- 		return r;
- 
- 	mutex_init(&imgu->lock);
-+	mutex_init(&imgu->streaming_lock);
- 	atomic_set(&imgu->qbuf_barrier, 0);
- 	init_waitqueue_head(&imgu->buf_drain_wq);
- 
-@@ -699,6 +700,7 @@ static int imgu_pci_probe(struct pci_dev *pci_dev,
- 	ipu3_css_set_powerdown(&pci_dev->dev, imgu->base);
- out_mutex_destroy:
- 	mutex_destroy(&imgu->lock);
-+	mutex_destroy(&imgu->streaming_lock);
- 
- 	return r;
- }
-@@ -716,6 +718,7 @@ static void imgu_pci_remove(struct pci_dev *pci_dev)
- 	ipu3_dmamap_exit(imgu);
- 	ipu3_mmu_exit(imgu->mmu);
- 	mutex_destroy(&imgu->lock);
-+	mutex_destroy(&imgu->streaming_lock);
- }
- 
- static int __maybe_unused imgu_suspend(struct device *dev)
-diff --git a/drivers/staging/media/ipu3/ipu3.h b/drivers/staging/media/ipu3/ipu3.h
-index 04fc99f47ebb..f732315f0701 100644
---- a/drivers/staging/media/ipu3/ipu3.h
-+++ b/drivers/staging/media/ipu3/ipu3.h
-@@ -146,6 +146,10 @@ struct imgu_device {
- 	 * vid_buf.list and css->queue
- 	 */
- 	struct mutex lock;
-+
-+	/* Lock to protect writes to streaming flag in this struct */
-+	struct mutex streaming_lock;
-+
- 	/* Forbit streaming and buffer queuing during system suspend. */
- 	atomic_t qbuf_barrier;
- 	/* Indicate if system suspend take place while imgu is streaming. */
--- 
-2.19.1
-
+thanks,
+-- Shuah
