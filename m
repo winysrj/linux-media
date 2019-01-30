@@ -6,92 +6,77 @@ X-Spam-Status: No, score=-1.0 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
 	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,
 	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 66F91C282CD
-	for <linux-media@archiver.kernel.org>; Wed, 30 Jan 2019 04:02:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C6AB0C282CD
+	for <linux-media@archiver.kernel.org>; Wed, 30 Jan 2019 04:21:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2B8EB2175B
-	for <linux-media@archiver.kernel.org>; Wed, 30 Jan 2019 04:02:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 97F8420821
+	for <linux-media@archiver.kernel.org>; Wed, 30 Jan 2019 04:21:33 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ndufresne-ca.20150623.gappssmtp.com header.i=@ndufresne-ca.20150623.gappssmtp.com header.b="peYpHg6e"
+	dkim=pass (2048-bit key) header.d=ndufresne-ca.20150623.gappssmtp.com header.i=@ndufresne-ca.20150623.gappssmtp.com header.b="elqU6N/D"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728766AbfA3ECm (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 29 Jan 2019 23:02:42 -0500
-Received: from mail-qt1-f174.google.com ([209.85.160.174]:46067 "EHLO
-        mail-qt1-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727672AbfA3ECm (ORCPT
+        id S1729059AbfA3EV2 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 29 Jan 2019 23:21:28 -0500
+Received: from mail-qt1-f194.google.com ([209.85.160.194]:33361 "EHLO
+        mail-qt1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727720AbfA3EV1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 Jan 2019 23:02:42 -0500
-Received: by mail-qt1-f174.google.com with SMTP id e5so24797896qtr.12
-        for <linux-media@vger.kernel.org>; Tue, 29 Jan 2019 20:02:41 -0800 (PST)
+        Tue, 29 Jan 2019 23:21:27 -0500
+Received: by mail-qt1-f194.google.com with SMTP id l11so24950996qtp.0
+        for <linux-media@vger.kernel.org>; Tue, 29 Jan 2019 20:21:27 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ndufresne-ca.20150623.gappssmtp.com; s=20150623;
         h=message-id:subject:from:to:cc:date:in-reply-to:references
          :user-agent:mime-version:content-transfer-encoding;
-        bh=mpAyJ6A+4zaq0y6PQ+k7WfMDxV/WMZyQex98KcwNFrc=;
-        b=peYpHg6e9zxANg71FCvjlY+J/nOX+aNC3OKf3IKw8pTL8bchvs6AM3M37QAchtaMKi
-         baYaZEysPvjzu0RhGvA2A5XdapqWYOsnzJHL89qz6yl5kosfAu5kjr/TQQ3303LXomE3
-         zP/6lOm4XltjVZBReWbvpiZmuad4EaWgcO+G6jDioLNMQux+umIXwbQksoad0WJD1iVo
-         zsqiPPEd2Qk9rKawHL8UMzXTuRDyVa4RQZ4GPynu1l7zIrRM+IDonmZ0miEDo8aB7N3R
-         oZmYJR9NKthRF/EUHC+sRrCq7oYoRr8Dd2wIL78yIaCj2nf45G6+TPfZVqUoGTj9ngXw
-         vxEw==
+        bh=Twy2/9rCYvnncdoQjvrdkqgOccxaghfH1nzMeT7NIS0=;
+        b=elqU6N/DBFmeSoghEYpngI1Z5D3n5Nclmw0X8bbTkzK/fw67Bxvj1Boz/D3izvuszd
+         ft/jzPEfbkOtDVhIZWTdzThKC7X4pybo8R2Yk3KUZwNwgCQ1HWudwivlorZh6gwQaGaG
+         o7YrelV4b03b0tEZiZUIxenp58it4EncqkaMxTqy6z1jIN5tvCPr8QOQzXAQ0Hh3dGYs
+         apb+lUXMB5FGPum0qkp6uCa3HYY0qi3DLqA2fNd5QUDlSvXo+V1nbd3BUuIcvRVpJtZW
+         OpZX0coC/Aa5t8J1WbSjIMG+j4yShwpMrRT5K7aB7/WJOWUnOYAbM3Wa1HfSe2AbkQqv
+         qcVQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:message-id:subject:from:to:cc:date:in-reply-to
          :references:user-agent:mime-version:content-transfer-encoding;
-        bh=mpAyJ6A+4zaq0y6PQ+k7WfMDxV/WMZyQex98KcwNFrc=;
-        b=oCXKht4iAxmD+3/6H3kdbU7++V3cQE/aXvojTOMSdFASZbxrPzFlNZt6hyitpIywGc
-         OyZvE769GiVNlv2rC2gXg3bZkSN8dv8MimBRKH3pv5h49pa5zG2+/2m7Fb/7/tvCYakH
-         YSbhmIvubQcoM/U3H45EoJcV3UNjOgMGWagKYkiMmqK19+DBavysoziV2ittd0/AjrLg
-         HNxj1CnB/O3xQwDsllP2Qffcbg6zRQEPCdkRkhxdmUVKSpLKd/5yVjiXzGw2Yy1qXwtN
-         4Vi3xiHTk/GFqiw2x9mxOZoIwkJHI8jZ+5uKgs2UtQNbD59nd5OA8xLTAVFk7/T0YF78
-         a8sA==
-X-Gm-Message-State: AJcUuke1sc0ZCR2Cc8t9gGlk+rdeTnUZUQxFGIDbECzqKZNw4notLB77
-        +n3+07TMMyK6Ew33DpL00GQI1g==
-X-Google-Smtp-Source: ALg8bN5v2rYu51uuBZ6Afl5qNvz8Y884DGYQ5ePGJddYAunCyNqPumPoHOYpF9TIEBaXzRifwwbfXw==
-X-Received: by 2002:a0c:e394:: with SMTP id a20mr26413478qvl.42.1548820960990;
-        Tue, 29 Jan 2019 20:02:40 -0800 (PST)
+        bh=Twy2/9rCYvnncdoQjvrdkqgOccxaghfH1nzMeT7NIS0=;
+        b=tOXVfsrcyBDsLQPwfnKq1TzApCxA+A6fXRtX9G6CXzILxnU4ZJllSJ1ayLlWmofYWE
+         Ou2akLH9gDHBo91N5BYMQSnWIu5GkGgZIjy13C+XSEZXH1YoPIpj3Y9KTHwk5r8Ps9dA
+         SOgxJK0t6UsuL/1qye1VYoRwos1ZSvLrLTpBWUZq70x5fBHpYO2k9dSa4drRHA3jNGtz
+         r4B6NDM9xPTR7lDUeQt9MdnZLKa+mPGYn2D+mcJWUavi9awZOd3iWUWAmmAQY8C+dgN+
+         Y9KNGgcx8cEgFwgF2w5+RqBiSsZJBp6r5/Bx0VefvqW6zLa6GEfjUfjsu/5T1yJV8lN7
+         uQZg==
+X-Gm-Message-State: AJcUukfYYh1qUtK6b3XRqyf+5muWMkmj/sIheSXzDNXAEOD2EoIkP8Ni
+        EWV4SobeJvCgWx8+Ukz+vk+Ueg==
+X-Google-Smtp-Source: ALg8bN5yjkTW66H3E6EJeesM3QQOMvDQRjysCa0sJ7yvKLtB6zPyt5iErcBWSQLaEivd9pxEk4QbPg==
+X-Received: by 2002:ac8:2d53:: with SMTP id o19mr27288858qta.21.1548822086512;
+        Tue, 29 Jan 2019 20:21:26 -0800 (PST)
 Received: from skullcanyon ([192.222.193.21])
-        by smtp.gmail.com with ESMTPSA id y4sm670810qtc.47.2019.01.29.20.02.39
+        by smtp.gmail.com with ESMTPSA id z18sm956499qkz.96.2019.01.29.20.21.25
         (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Tue, 29 Jan 2019 20:02:39 -0800 (PST)
-Message-ID: <c145fbf21301d03bdfdd8bf6613f0f68576e66be.camel@ndufresne.ca>
-Subject: Re: [PATCH v2 1/2] media: docs-rst: Document memory-to-memory video
- decoder interface
+        Tue, 29 Jan 2019 20:21:25 -0800 (PST)
+Message-ID: <e8a90694c306fde24928a569b7bcb231b86ec73b.camel@ndufresne.ca>
+Subject: Re: [PATCH 10/10] venus: dec: make decoder compliant with stateful
+ codec API
 From:   Nicolas Dufresne <nicolas@ndufresne.ca>
 To:     Tomasz Figa <tfiga@chromium.org>
-Cc:     Hans Verkuil <hverkuil@xs4all.nl>,
+Cc:     Stanimir Varbanov <stanimir.varbanov@linaro.org>,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Pawel Osciak <posciak@chromium.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
+        Vikash Garodia <vgarodia@codeaurora.org>,
         Alexandre Courbot <acourbot@chromium.org>,
-        Kamil Debski <kamil@wypas.org>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Jeongtae Park <jtp.park@samsung.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Tiffany Lin =?UTF-8?Q?=28=E6=9E=97=E6=85=A7=E7=8F=8A=29?= 
-        <tiffany.lin@mediatek.com>,
-        Andrew-CT Chen =?UTF-8?Q?=28=E9=99=B3=E6=99=BA=E8=BF=AA=29?= 
-        <andrew-ct.chen@mediatek.com>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Todor Tomov <todor.tomov@linaro.org>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        dave.stevenson@raspberrypi.org,
-        Ezequiel Garcia <ezequiel@collabora.com>,
-        Maxime Jourdan <maxi.jourdan@wanadoo.fr>
-Date:   Tue, 29 Jan 2019 23:02:38 -0500
-In-Reply-To: <CAAFQd5C_OD=bvAxG0B_G+T6bnWddPHuiVZApj_8_+4xpMjH9+g@mail.gmail.com>
-References: <20181022144901.113852-1-tfiga@chromium.org>
-         <20181022144901.113852-2-tfiga@chromium.org>
-         <cf0fc2fc-72c6-dbca-68f7-a349879a3a14@xs4all.nl>
-         <CAAFQd5AORjMjHdavdr3zM13BnyFnKnEb-0aKNjvwbB_xJEnxgQ@mail.gmail.com>
-         <9b7c1385-d482-6e92-2222-2daa835dbc91@xs4all.nl>
-         <CAAFQd5DwjLt8UeDohzrMausaLGnOStvrmp5p7frYbG1hbGjx3Q@mail.gmail.com>
-         <CAAFQd5BPJv3cbJOWrziEjz_yE32DhfZv9vb-pG1Ltx-KS2=PQg@mail.gmail.com>
-         <3ea3bf5bf9904ce877142c41f595207752172d27.camel@ndufresne.ca>
-         <CAAFQd5C_OD=bvAxG0B_G+T6bnWddPHuiVZApj_8_+4xpMjH9+g@mail.gmail.com>
+        Malathi Gottam <mgottam@codeaurora.org>
+Date:   Tue, 29 Jan 2019 23:21:24 -0500
+In-Reply-To: <CAAFQd5Ahg4Di+SBd+-kKo4PLVyvqLwcuG6MphU5Rz1PFXVuamQ@mail.gmail.com>
+References: <20190117162008.25217-1-stanimir.varbanov@linaro.org>
+         <20190117162008.25217-11-stanimir.varbanov@linaro.org>
+         <CAAFQd5Cm1zyPzJnixwNmWzxn2zh=63YrA+ZzH-arW-VZ_x-Awg@mail.gmail.com>
+         <28069a44-b188-6b89-2687-542fa762c00e@linaro.org>
+         <CAAFQd5BevOV2r1tqmGPnVtdwirGMWU=ZJU85HjfnH-qMyQiyEg@mail.gmail.com>
+         <affce842d4f015e13912b2c3941c9bf02e84d194.camel@ndufresne.ca>
+         <CAAFQd5Ahg4Di+SBd+-kKo4PLVyvqLwcuG6MphU5Rz1PFXVuamQ@mail.gmail.com>
 Content-Type: text/plain; charset="UTF-8"
 User-Agent: Evolution 3.30.4 (3.30.4-1.fc29) 
 Mime-Version: 1.0
@@ -101,83 +86,48 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Le vendredi 25 janvier 2019 à 12:27 +0900, Tomasz Figa a écrit :
-> On Fri, Jan 25, 2019 at 4:55 AM Nicolas Dufresne <nicolas@ndufresne.ca> wrote:
-> > Le jeudi 24 janvier 2019 à 18:06 +0900, Tomasz Figa a écrit :
-> > > > Actually I just realized the last point might not even be achievable
-> > > > for some of the decoders (s5p-mfc, mtk-vcodec), as they don't report
-> > > > which frame originates from which bitstream buffer and the driver just
-> > > > picks the most recently consumed OUTPUT buffer to copy the timestamp
-> > > > from. (s5p-mfc actually "forgets" to set the timestamp in some cases
-> > > > too...)
-> > > > 
-> > > > I need to think a bit more about this.
-> > > 
-> > > Actually I misread the code. Both s5p-mfc and mtk-vcodec seem to
-> > > correctly match the buffers.
-> > 
-> > Ok good, since otherwise it would have been a regression in MFC driver.
-> > This timestamp passing thing could in theory be made optional though,
-> > it lives under some COPY_TIMESTAMP kind of flag. What that means though
-> > is that a driver without such a capability would need to signal dropped
-> > frames using some other mean.
-> > 
-> > In userspace, the main use is to match the produced frame against a
-> > userspace specific list of frames. At least this seems to be the case
-> > in Gst and Chromium, since the userspace list contains a superset of
-> > the metadata found in the v4l2_buffer.
-> > 
-> > Now, using the produced timestamp, userspace can deduce frame that the
-> > driver should have produced but didn't (could be a deadline case codec,
-> > or simply the frames where corrupted). It's quite normal for a codec to
-> > just keep parsing until it finally find something it can decode.
-> > 
-> > That's at least one way to do it, but there is other possible
-> > mechanism. The sequence number could be used, or even producing buffers
-> > with the ERROR flag set. What matters is just to give userspace a way
-> > to clear these frames, which would simply grow userspace memory usage
-> > over time.
+Le mercredi 30 janvier 2019 à 12:38 +0900, Tomasz Figa a écrit :
+> > Yes, unfortunately, GStreamer still rely on G_FMT waiting a minimal
+> > amount of time of the headers to be processed. This was how things was
+> > created back in 2011, I could not program GStreamer for the future. If
+> > we stop doing this, we do break GStreamer as a valid userspace
+> > application.
 > 
-> Is it just me or we were missing some consistent error handling then?
-> 
-> I feel like the drivers should definitely return the bitstream buffers
-> with the ERROR flag, if there is a decode failure of data in the
-> buffer. Still, that could become more complicated if there is more
-> than 1 frame in that piece of bitstream, but only 1 frame is corrupted
-> (or whatever).
+> Does it? Didn't you say earlier that you end up setting the OUTPUT
+> format with the stream resolution as parsed on your own? If so, that
+> would actually expose a matching framebuffer format on the CAPTURE
+> queue, so there is no need to wait for the real parsing to happen.
 
-I agree, but it might be more difficult then it looks (even FFMPEG does
-not do that). I believe the code that is processing the bitstream in
-stateful codecs is mostly unrelated from the code actually doing the
-decoding. So what might happen is that the decoding part will never
-actually allocate a buffer for the skipped / corrupted part of the
-bitstream. Also, the notion of a skipped frame is not always evident in
-when parsing H264 or HEVC NALs. There is still a full page of text just
-to explain how to detect that start of a new frame.
+I don't remember saying that, maybe I meant to say there might be a
+workaround ?
 
-Yet, it would be interesting to study the firmwares we have and see
-what they provide that would help making decode errors more explicit.
+For the fact, here we queue the headers (or first frame):
 
-> 
-> Another case is when the bitstream, even if corrupted, is still enough
-> to produce some output. My intuition tells me that such CAPTURE buffer
-> should be then returned with the ERROR flag. That wouldn't still be
-> enough for any more sophisticated userspace error concealment, but
-> could still let the userspace know to perhaps drop the frame.
+https://gitlab.freedesktop.org/gstreamer/gst-plugins-good/blob/master/sys/v4l2/gstv4l2videodec.c#L624
 
-You mean if a frame was concealed (typically the frame was decoded from
-a closed by reference instead of the expected reference). That is
-something signalled by FFPEG. We should document this possibility. I
-actually have something implemented in GStreamer. Basically if we have
-the ERROR flag with a payload size smaller then expected, I drop the
-frame and produce a drop event message, while if I have a frame with
-ERROR flag but of the right payload size, I assume it is corrupted, and
-simply flag it as corrupted, leaving to the application the decision to
-display it or not. This is a case that used to happen with some UVC
-cameras (though some have been fixed, and the UVC camera should drop
-smaller payload size buffers now).
+Then few line below this helper does G_FMT internally:
 
-> 
-> Best regards,
-> Tomasz
+https://gitlab.freedesktop.org/gstreamer/gst-plugins-good/blob/master/sys/v4l2/gstv4l2videodec.c#L634
+https://gitlab.freedesktop.org/gstreamer/gst-plugins-good/blob/master/sys/v4l2/gstv4l2object.c#L3907
+
+And just plainly fails if G_FMT returns an error of any type. This was
+how Kamil designed it initially for MFC driver. There was no other
+alternative back then (no EAGAIN yet either).
+
+Nicolas
+
+p.s. it's still in my todo's to implement source change event as I
+believe it is a better mechanism (specially if you header happened to
+be corrupted, then the driver can consume the stream until it finds a
+sync). So these sleep or normally wait exist all over to support this
+legacy thing. It is unfortunate, the question is do you want to break
+userspace now ? Without having first placed a patch that would maybe
+warn or something for a while ?
+
+
+
+
+
+
+
 
