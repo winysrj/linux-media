@@ -2,212 +2,288 @@ Return-Path: <SRS0=BdY7=QG=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,UNPARSEABLE_RELAY
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BFF5C282D8
-	for <linux-media@archiver.kernel.org>; Wed, 30 Jan 2019 12:41:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 164BEC282D7
+	for <linux-media@archiver.kernel.org>; Wed, 30 Jan 2019 13:01:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D997E218A3
-	for <linux-media@archiver.kernel.org>; Wed, 30 Jan 2019 12:41:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D257E2175B
+	for <linux-media@archiver.kernel.org>; Wed, 30 Jan 2019 13:01:17 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="FqPPAblS"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728404AbfA3Ml4 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 30 Jan 2019 07:41:56 -0500
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:38856 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725768AbfA3Ml4 (ORCPT
+        id S1730872AbfA3NBR (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 30 Jan 2019 08:01:17 -0500
+Received: from mail-wm1-f67.google.com ([209.85.128.67]:51261 "EHLO
+        mail-wm1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726915AbfA3NBQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 Jan 2019 07:41:56 -0500
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-        (Authenticated sender: ezequiel)
-        with ESMTPSA id CD2D727DE8E
-Message-ID: <0f25ab2f936e3fcb8cd68b55682838027e46eec5.camel@collabora.com>
-Subject: Re: [PATCH 2/3] media: vim2m: use per-file handler work queue
-From:   Ezequiel Garcia <ezequiel@collabora.com>
-To:     Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc:     Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Anton Leontiev <scileont@gmail.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Date:   Wed, 30 Jan 2019 09:41:44 -0300
-In-Reply-To: <7ff2d5c791473c746ae07c012d1890c6bdd08f6d.1548776693.git.mchehab+samsung@kernel.org>
-References: <cover.1548776693.git.mchehab+samsung@kernel.org>
-         <7ff2d5c791473c746ae07c012d1890c6bdd08f6d.1548776693.git.mchehab+samsung@kernel.org>
-Organization: Collabora
-Content-Type: text/plain; charset="UTF-8"
-User-Agent: Evolution 3.30.3-1 
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        Wed, 30 Jan 2019 08:01:16 -0500
+Received: by mail-wm1-f67.google.com with SMTP id b11so21554938wmj.1
+        for <linux-media@vger.kernel.org>; Wed, 30 Jan 2019 05:01:13 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id;
+        bh=J/hYBVaPQWg7gTSK6CbVzvj3yl35EN7bFuebyGFgoW0=;
+        b=FqPPAblStCt5toGPHGE/ry4irxKXUTBD594eJrSyx/SsJhSAryeY9da31Pe6sov59o
+         0G4LiNXdCXVJBvgQt9qtKPESJoREHUnKA/d+1wJA7/r5O0CPstel89kpPI5AsneJZxWL
+         d3TmDFx0yNow+Klk/OULeEVvpbPoV/7lG5x8XzAmZtrhv6F8+yBCSAiQpGyFZOZA75Ri
+         45WX4dyt1tt7wNaGBnIpHlkFDyMR3hrX3EIfeuRWlCehv3uVo+ZzCZ1bYVqydes/+/Fm
+         7eQ9cHQMF+KadLFufd1XQEvZgKRvapIEoBc/sPV1WTt5l+MOOgIcf5K9o/DS4qNYcPGO
+         kZzg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id;
+        bh=J/hYBVaPQWg7gTSK6CbVzvj3yl35EN7bFuebyGFgoW0=;
+        b=oROfbKAqcWIts2sX7uOj+NzzIxAJNGx3vX7EYw/uQrQsnFP3JcoYAppGYW8gpr2V9f
+         QE4m7WCNAypuR1snS6ea6dIhSyVEUhVE3VtkGeWHU69nJd6CE4qIbHJnlDyFh+E6PuaT
+         Vps4+YViR2lLFiH8BP8baUY1zhueVwXNbsd7hNZ3pcFA6ZJqINHiYjIiTWzR03nEJ0Lf
+         UYT/yprN/MvsjT+nTMxVwwOxdP8wB4MfgpEixKh77E5KOAktLOMo2wUQHWxK7RftZyaY
+         HDOjT19yZuXzOgIJCd9AbicQHxUH9cx0p5O8uno4BHgPR/esEijqyJzUlLZQENuzbMQt
+         1ZSw==
+X-Gm-Message-State: AJcUukdYAU/p2VhCXJPKQRnr3ztdoZJlqP8oOEGxCVBUPRYB8xqy8OC7
+        ej9AXYA1qnl1nAlKB1pQpWjTj0ij0Ss=
+X-Google-Smtp-Source: ALg8bN6C9TLbvoYEpM4vURAoFl6T4JxestpNzVYRAs80VnKpsdEZLtYF66CDcMNTHXXjfGUIV94E2w==
+X-Received: by 2002:a1c:7409:: with SMTP id p9mr26045288wmc.136.1548853272660;
+        Wed, 30 Jan 2019 05:01:12 -0800 (PST)
+Received: from localhost.localdomain ([87.69.88.129])
+        by smtp.gmail.com with ESMTPSA id n5sm1739452wrr.94.2019.01.30.05.01.11
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 30 Jan 2019 05:01:11 -0800 (PST)
+From:   Dafna Hirschfeld <dafna3@gmail.com>
+To:     linux-media@vger.kernel.org
+Cc:     hverkuil@xs4all.nl, helen.koike@collabora.com,
+        Dafna Hirschfeld <dafna3@gmail.com>
+Subject: [PATCH] v4l2-ctl: add function vidcap_get_and_update_fmt
+Date:   Wed, 30 Jan 2019 05:00:53 -0800
+Message-Id: <20190130130053.39435-1-dafna3@gmail.com>
+X-Mailer: git-send-email 2.17.1
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Tue, 2019-01-29 at 14:00 -0200, Mauro Carvalho Chehab wrote:
-> It doesn't make sense to have a per-device work queue, as the
-> scheduler should be called per file handler. Having a single
-> one causes failures if multiple streams are filtered by vim2m.
-> 
+add a function vidcap_get_and_update_fmt to set
+the format from cmd params. Use it in capture_setup.
 
-Having a per-device workqueue should emulate a real device more closely.
+Signed-off-by: Dafna Hirschfeld <dafna3@gmail.com>
+---
+ utils/v4l2-ctl/v4l2-ctl-streaming.cpp |  13 +++
+ utils/v4l2-ctl/v4l2-ctl-vidcap.cpp    | 140 ++++++++++++++------------
+ utils/v4l2-ctl/v4l2-ctl.h             |   1 +
+ 3 files changed, 91 insertions(+), 63 deletions(-)
 
-But more importantly, why would having a single workqeueue fail if multiple
-streams are run? The m2m should take care of the proper serialization
-between multiple contexts, unless I am missing something here.
-
-Thanks,
-Eze
-
-> So, move it to be inside the context structure.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-> ---
->  drivers/media/platform/vim2m.c | 38 +++++++++++++++++-----------------
->  1 file changed, 19 insertions(+), 19 deletions(-)
-> 
-> diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
-> index ccd0576c766e..a9e43070567e 100644
-> --- a/drivers/media/platform/vim2m.c
-> +++ b/drivers/media/platform/vim2m.c
-> @@ -146,9 +146,6 @@ struct vim2m_dev {
->  
->  	atomic_t		num_inst;
->  	struct mutex		dev_mutex;
-> -	spinlock_t		irqlock;
-> -
-> -	struct delayed_work	work_run;
->  
->  	struct v4l2_m2m_dev	*m2m_dev;
->  };
-> @@ -167,6 +164,10 @@ struct vim2m_ctx {
->  	/* Transaction time (i.e. simulated processing time) in milliseconds */
->  	u32			transtime;
->  
-> +	struct mutex		vb_mutex;
-> +	struct delayed_work	work_run;
-> +	spinlock_t		irqlock;
-> +
->  	/* Abort requested by m2m */
->  	int			aborting;
->  
-> @@ -490,7 +491,6 @@ static void job_abort(void *priv)
->  static void device_run(void *priv)
->  {
->  	struct vim2m_ctx *ctx = priv;
-> -	struct vim2m_dev *dev = ctx->dev;
->  	struct vb2_v4l2_buffer *src_buf, *dst_buf;
->  
->  	src_buf = v4l2_m2m_next_src_buf(ctx->fh.m2m_ctx);
-> @@ -507,18 +507,18 @@ static void device_run(void *priv)
->  				   &ctx->hdl);
->  
->  	/* Run delayed work, which simulates a hardware irq  */
-> -	schedule_delayed_work(&dev->work_run, msecs_to_jiffies(ctx->transtime));
-> +	schedule_delayed_work(&ctx->work_run, msecs_to_jiffies(ctx->transtime));
->  }
->  
->  static void device_work(struct work_struct *w)
->  {
-> -	struct vim2m_dev *vim2m_dev =
-> -		container_of(w, struct vim2m_dev, work_run.work);
->  	struct vim2m_ctx *curr_ctx;
-> +	struct vim2m_dev *vim2m_dev;
->  	struct vb2_v4l2_buffer *src_vb, *dst_vb;
->  	unsigned long flags;
->  
-> -	curr_ctx = v4l2_m2m_get_curr_priv(vim2m_dev->m2m_dev);
-> +	curr_ctx = container_of(w, struct vim2m_ctx, work_run.work);
-> +	vim2m_dev = curr_ctx->dev;
->  
->  	if (NULL == curr_ctx) {
->  		pr_err("Instance released before the end of transaction\n");
-> @@ -530,10 +530,10 @@ static void device_work(struct work_struct *w)
->  
->  	curr_ctx->num_processed++;
->  
-> -	spin_lock_irqsave(&vim2m_dev->irqlock, flags);
-> +	spin_lock_irqsave(&curr_ctx->irqlock, flags);
->  	v4l2_m2m_buf_done(src_vb, VB2_BUF_STATE_DONE);
->  	v4l2_m2m_buf_done(dst_vb, VB2_BUF_STATE_DONE);
-> -	spin_unlock_irqrestore(&vim2m_dev->irqlock, flags);
-> +	spin_unlock_irqrestore(&curr_ctx->irqlock, flags);
->  
->  	if (curr_ctx->num_processed == curr_ctx->translen
->  	    || curr_ctx->aborting) {
-> @@ -893,11 +893,10 @@ static int vim2m_start_streaming(struct vb2_queue *q, unsigned count)
->  static void vim2m_stop_streaming(struct vb2_queue *q)
->  {
->  	struct vim2m_ctx *ctx = vb2_get_drv_priv(q);
-> -	struct vim2m_dev *dev = ctx->dev;
->  	struct vb2_v4l2_buffer *vbuf;
->  	unsigned long flags;
->  
-> -	cancel_delayed_work_sync(&dev->work_run);
-> +	cancel_delayed_work_sync(&ctx->work_run);
->  	for (;;) {
->  		if (V4L2_TYPE_IS_OUTPUT(q->type))
->  			vbuf = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
-> @@ -907,9 +906,9 @@ static void vim2m_stop_streaming(struct vb2_queue *q)
->  			return;
->  		v4l2_ctrl_request_complete(vbuf->vb2_buf.req_obj.req,
->  					   &ctx->hdl);
-> -		spin_lock_irqsave(&ctx->dev->irqlock, flags);
-> +		spin_lock_irqsave(&ctx->irqlock, flags);
->  		v4l2_m2m_buf_done(vbuf, VB2_BUF_STATE_ERROR);
-> -		spin_unlock_irqrestore(&ctx->dev->irqlock, flags);
-> +		spin_unlock_irqrestore(&ctx->irqlock, flags);
->  	}
->  }
->  
-> @@ -943,7 +942,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq, struct vb2_queue *ds
->  	src_vq->ops = &vim2m_qops;
->  	src_vq->mem_ops = &vb2_vmalloc_memops;
->  	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
-> -	src_vq->lock = &ctx->dev->dev_mutex;
-> +	src_vq->lock = &ctx->vb_mutex;
->  	src_vq->supports_requests = true;
->  
->  	ret = vb2_queue_init(src_vq);
-> @@ -957,7 +956,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq, struct vb2_queue *ds
->  	dst_vq->ops = &vim2m_qops;
->  	dst_vq->mem_ops = &vb2_vmalloc_memops;
->  	dst_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
-> -	dst_vq->lock = &ctx->dev->dev_mutex;
-> +	dst_vq->lock = &ctx->vb_mutex;
->  
->  	return vb2_queue_init(dst_vq);
->  }
-> @@ -1032,6 +1031,10 @@ static int vim2m_open(struct file *file)
->  
->  	ctx->fh.m2m_ctx = v4l2_m2m_ctx_init(dev->m2m_dev, ctx, &queue_init);
->  
-> +	mutex_init(&ctx->vb_mutex);
-> +	spin_lock_init(&ctx->irqlock);
-> +	INIT_DELAYED_WORK(&ctx->work_run, device_work);
-> +
->  	if (IS_ERR(ctx->fh.m2m_ctx)) {
->  		rc = PTR_ERR(ctx->fh.m2m_ctx);
->  
-> @@ -1112,8 +1115,6 @@ static int vim2m_probe(struct platform_device *pdev)
->  	if (!dev)
->  		return -ENOMEM;
->  
-> -	spin_lock_init(&dev->irqlock);
-> -
->  	ret = v4l2_device_register(&pdev->dev, &dev->v4l2_dev);
->  	if (ret)
->  		return ret;
-> @@ -1125,7 +1126,6 @@ static int vim2m_probe(struct platform_device *pdev)
->  	vfd = &dev->vfd;
->  	vfd->lock = &dev->dev_mutex;
->  	vfd->v4l2_dev = &dev->v4l2_dev;
-> -	INIT_DELAYED_WORK(&dev->work_run, device_work);
->  
->  	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
->  	if (ret) {
-
+diff --git a/utils/v4l2-ctl/v4l2-ctl-streaming.cpp b/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
+index d6c3f6a9..2f66e052 100644
+--- a/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
++++ b/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
+@@ -1902,17 +1902,30 @@ static int capture_setup(cv4l_fd &fd, cv4l_queue &in, cv4l_fd *exp_fd)
+ 		return -1;
+ 	}
+ 
++	if (options[OptSetVideoFormat]) {
++		cv4l_fmt fmt;
++
++		if (vidcap_get_and_update_fmt(fd, fmt)) {
++			fprintf(stderr, "%s: vidcap_get_and_update_fmt error\n",
++				__func__);
++			return -1;
++		}
++		fd.s_fmt(fmt, in.g_type());
++	}
++
+ 	if (in.reqbufs(&fd, reqbufs_count_cap)) {
+ 		fprintf(stderr, "%s: in.reqbufs %u error\n", __func__,
+ 			reqbufs_count_cap);
+ 		return -1;
+ 	}
++
+ 	if (exp_fd && in.export_bufs(exp_fd, exp_fd->g_type()))
+ 		return -1;
+ 	if (in.obtain_bufs(&fd) || in.queue_all(&fd)) {
+ 		fprintf(stderr, "%s: in.obtain_bufs error\n", __func__);
+ 		return -1;
+ 	}
++
+ 	if (fd.streamon(in.g_type())) {
+ 		fprintf(stderr, "%s: fd.streamon error\n", __func__);
+ 		return -1;
+diff --git a/utils/v4l2-ctl/v4l2-ctl-vidcap.cpp b/utils/v4l2-ctl/v4l2-ctl-vidcap.cpp
+index dc17a868..df1203a9 100644
+--- a/utils/v4l2-ctl/v4l2-ctl-vidcap.cpp
++++ b/utils/v4l2-ctl/v4l2-ctl-vidcap.cpp
+@@ -155,72 +155,12 @@ void vidcap_cmd(int ch, char *optarg)
+ 
+ void vidcap_set(cv4l_fd &_fd)
+ {
+-	int fd = _fd.g_fd();
+-	int ret;
+-
+ 	if (options[OptSetVideoFormat] || options[OptTryVideoFormat]) {
++		int fd = _fd.g_fd();
++		int ret;
+ 		struct v4l2_format vfmt;
+ 
+-		memset(&vfmt, 0, sizeof(vfmt));
+-		vfmt.fmt.pix.priv = priv_magic;
+-		vfmt.type = vidcap_buftype;
+-
+-		if (doioctl(fd, VIDIOC_G_FMT, &vfmt) == 0) {
+-			if (is_multiplanar) {
+-				if (set_fmts & FmtWidth)
+-					vfmt.fmt.pix_mp.width = width;
+-				if (set_fmts & FmtHeight)
+-					vfmt.fmt.pix_mp.height = height;
+-				if (set_fmts & FmtPixelFormat) {
+-					vfmt.fmt.pix_mp.pixelformat = pixfmt;
+-					if (vfmt.fmt.pix_mp.pixelformat < 256) {
+-						vfmt.fmt.pix_mp.pixelformat =
+-							find_pixel_format(fd, vfmt.fmt.pix_mp.pixelformat,
+-									false, true);
+-					}
+-				}
+-				if (set_fmts & FmtField)
+-					vfmt.fmt.pix_mp.field = field;
+-				if (set_fmts & FmtFlags)
+-					vfmt.fmt.pix_mp.flags = flags;
+-				if (set_fmts & FmtBytesPerLine) {
+-					for (unsigned i = 0; i < VIDEO_MAX_PLANES; i++)
+-						vfmt.fmt.pix_mp.plane_fmt[i].bytesperline =
+-							bytesperline[i];
+-				} else {
+-					/* G_FMT might return bytesperline values > width,
+-					 * reset them to 0 to force the driver to update them
+-					 * to the closest value for the new width. */
+-					for (unsigned i = 0; i < vfmt.fmt.pix_mp.num_planes; i++)
+-						vfmt.fmt.pix_mp.plane_fmt[i].bytesperline = 0;
+-				}
+-			} else {
+-				if (set_fmts & FmtWidth)
+-					vfmt.fmt.pix.width = width;
+-				if (set_fmts & FmtHeight)
+-					vfmt.fmt.pix.height = height;
+-				if (set_fmts & FmtPixelFormat) {
+-					vfmt.fmt.pix.pixelformat = pixfmt;
+-					if (vfmt.fmt.pix.pixelformat < 256) {
+-						vfmt.fmt.pix.pixelformat =
+-							find_pixel_format(fd, vfmt.fmt.pix.pixelformat,
+-									false, false);
+-					}
+-				}
+-				if (set_fmts & FmtField)
+-					vfmt.fmt.pix.field = field;
+-				if (set_fmts & FmtFlags)
+-					vfmt.fmt.pix.flags = flags;
+-				if (set_fmts & FmtBytesPerLine) {
+-					vfmt.fmt.pix.bytesperline = bytesperline[0];
+-				} else {
+-					/* G_FMT might return a bytesperline value > width,
+-					 * reset this to 0 to force the driver to update it
+-					 * to the closest value for the new width. */
+-					vfmt.fmt.pix.bytesperline = 0;
+-				}
+-			}
+-
++		if (vidcap_get_and_update_fmt(_fd, vfmt) == 0) {
+ 			if (options[OptSetVideoFormat])
+ 				ret = doioctl(fd, VIDIOC_S_FMT, &vfmt);
+ 			else
+@@ -231,6 +171,80 @@ void vidcap_set(cv4l_fd &_fd)
+ 	}
+ }
+ 
++int vidcap_get_and_update_fmt(cv4l_fd &_fd, struct v4l2_format &vfmt)
++{
++	int fd = _fd.g_fd();
++	int ret;
++
++	memset(&vfmt, 0, sizeof(vfmt));
++	vfmt.fmt.pix.priv = priv_magic;
++	vfmt.type = vidcap_buftype;
++
++	ret = doioctl(fd, VIDIOC_G_FMT, &vfmt);
++	if (ret)
++		return ret;
++
++	if (is_multiplanar) {
++		if (set_fmts & FmtWidth)
++			vfmt.fmt.pix_mp.width = width;
++		if (set_fmts & FmtHeight)
++			vfmt.fmt.pix_mp.height = height;
++		if (set_fmts & FmtPixelFormat) {
++			vfmt.fmt.pix_mp.pixelformat = pixfmt;
++			if (vfmt.fmt.pix_mp.pixelformat < 256) {
++				vfmt.fmt.pix_mp.pixelformat =
++					find_pixel_format(fd, vfmt.fmt.pix_mp.pixelformat,
++							  false, true);
++			}
++		}
++		if (set_fmts & FmtField)
++			vfmt.fmt.pix_mp.field = field;
++		if (set_fmts & FmtFlags)
++			vfmt.fmt.pix_mp.flags = flags;
++		if (set_fmts & FmtBytesPerLine) {
++			for (unsigned i = 0; i < VIDEO_MAX_PLANES; i++)
++				vfmt.fmt.pix_mp.plane_fmt[i].bytesperline =
++					bytesperline[i];
++		} else {
++			/*
++			 * G_FMT might return bytesperline values > width,
++			 * reset them to 0 to force the driver to update them
++			 * to the closest value for the new width.
++			 */
++			for (unsigned i = 0; i < vfmt.fmt.pix_mp.num_planes; i++)
++				vfmt.fmt.pix_mp.plane_fmt[i].bytesperline = 0;
++		}
++	} else {
++		if (set_fmts & FmtWidth)
++			vfmt.fmt.pix.width = width;
++		if (set_fmts & FmtHeight)
++			vfmt.fmt.pix.height = height;
++		if (set_fmts & FmtPixelFormat) {
++			vfmt.fmt.pix.pixelformat = pixfmt;
++			if (vfmt.fmt.pix.pixelformat < 256) {
++				vfmt.fmt.pix.pixelformat =
++					find_pixel_format(fd, vfmt.fmt.pix.pixelformat,
++							  false, false);
++			}
++		}
++		if (set_fmts & FmtField)
++			vfmt.fmt.pix.field = field;
++		if (set_fmts & FmtFlags)
++			vfmt.fmt.pix.flags = flags;
++		if (set_fmts & FmtBytesPerLine) {
++			vfmt.fmt.pix.bytesperline = bytesperline[0];
++		} else {
++			/*
++			 * G_FMT might return a bytesperline value > width,
++			 * reset this to 0 to force the driver to update it
++			 * to the closest value for the new width.
++			 */
++			vfmt.fmt.pix.bytesperline = 0;
++		}
++	}
++	return 0;
++}
++
+ void vidcap_get(cv4l_fd &fd)
+ {
+ 	if (options[OptGetVideoFormat]) {
+diff --git a/utils/v4l2-ctl/v4l2-ctl.h b/utils/v4l2-ctl/v4l2-ctl.h
+index dcc39b51..739dc5a9 100644
+--- a/utils/v4l2-ctl/v4l2-ctl.h
++++ b/utils/v4l2-ctl/v4l2-ctl.h
+@@ -348,6 +348,7 @@ void stds_list(cv4l_fd &fd);
+ // v4l2-ctl-vidcap.cpp
+ void vidcap_usage(void);
+ void vidcap_cmd(int ch, char *optarg);
++int vidcap_get_and_update_fmt(cv4l_fd &_fd, struct v4l2_format &vfmt);
+ void vidcap_set(cv4l_fd &fd);
+ void vidcap_get(cv4l_fd &fd);
+ void vidcap_list(cv4l_fd &fd);
+-- 
+2.17.1
 
