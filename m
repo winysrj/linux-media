@@ -2,81 +2,94 @@ Return-Path: <SRS0=BdY7=QG=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-14.6 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_IN_DEF_DKIM_WL autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D413FC282D7
-	for <linux-media@archiver.kernel.org>; Wed, 30 Jan 2019 13:43:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A344C282D7
+	for <linux-media@archiver.kernel.org>; Wed, 30 Jan 2019 13:46:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9F9AA21473
-	for <linux-media@archiver.kernel.org>; Wed, 30 Jan 2019 13:43:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3167F21473
+	for <linux-media@archiver.kernel.org>; Wed, 30 Jan 2019 13:46:08 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=cisco.com header.i=@cisco.com header.b="Mm5HVHoR"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727227AbfA3Nn4 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 30 Jan 2019 08:43:56 -0500
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:46071 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725859AbfA3Nn4 (ORCPT
+        id S1731047AbfA3NqH (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 30 Jan 2019 08:46:07 -0500
+Received: from alln-iport-8.cisco.com ([173.37.142.95]:64650 "EHLO
+        alln-iport-8.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726151AbfA3NqH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 Jan 2019 08:43:56 -0500
-Received: from [IPv6:2001:420:44c1:2579:1135:9e59:3a9c:d4ef] ([IPv6:2001:420:44c1:2579:1135:9e59:3a9c:d4ef])
-        by smtp-cloud7.xs4all.net with ESMTPA
-        id oq9fg1LUDBDyIoq9igvFPd; Wed, 30 Jan 2019 14:43:54 +0100
+        Wed, 30 Jan 2019 08:46:07 -0500
+X-Greylist: delayed 570 seconds by postgrey-1.27 at vger.kernel.org; Wed, 30 Jan 2019 08:46:06 EST
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=cisco.com; i=@cisco.com; l=769; q=dns/txt; s=iport;
+  t=1548855966; x=1550065566;
+  h=from:to:subject:date:message-id:
+   content-transfer-encoding:mime-version;
+  bh=ESfLAH27jtzbhGTV7tXyBAdHmjaDq+RCBv7p4Q7KTws=;
+  b=Mm5HVHoRjh4Co/EubBGSOm0gfKYHHSdwC+cxDBhopn6XKlx8BZrtrWPr
+   D3m0zzpp2UVvQr8vV8qoJFe0htgtkc5wh91rnA9QQvDTLm7HM0qQUn4e2
+   mIIKLKLkjEhE79UM+QCMwkDpqfOtDR98MLHKhivjSZKeQy5IgvI3k/2T0
+   Q=;
+X-IronPort-Anti-Spam-Filtered: true
+X-IronPort-Anti-Spam-Result: =?us-ascii?q?A0AEAACEp1Fc/5FdJa1jGgEBAQEBAgE?=
+ =?us-ascii?q?BAQEHAgEBAQGBUQUBAQEBCwGCA4FqJwqME6EFhQ6BewsBAYd0IjQJDQEDAQE?=
+ =?us-ascii?q?CAQECbSiFeBNRAT5CJwQTCIUcrAozijiMQBeBQD+PBAKiWAkCkiggkjIBLZs?=
+ =?us-ascii?q?OAhEUgScfOIFWcBWDJ5BcQTGPEIEfAQE?=
+X-IronPort-AV: E=Sophos;i="5.56,540,1539648000"; 
+   d="scan'208";a="232904513"
+Received: from rcdn-core-9.cisco.com ([173.37.93.145])
+  by alln-iport-8.cisco.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 30 Jan 2019 13:36:35 +0000
+Received: from XCH-ALN-013.cisco.com (xch-aln-013.cisco.com [173.36.7.23])
+        by rcdn-core-9.cisco.com (8.15.2/8.15.2) with ESMTPS id x0UDaZnb022629
+        (version=TLSv1.2 cipher=AES256-SHA bits=256 verify=FAIL)
+        for <linux-media@vger.kernel.org>; Wed, 30 Jan 2019 13:36:35 GMT
+Received: from xch-aln-012.cisco.com (173.36.7.22) by XCH-ALN-013.cisco.com
+ (173.36.7.23) with Microsoft SMTP Server (TLS) id 15.0.1395.4; Wed, 30 Jan
+ 2019 07:36:35 -0600
+Received: from xch-aln-012.cisco.com ([173.36.7.22]) by XCH-ALN-012.cisco.com
+ ([173.36.7.22]) with mapi id 15.00.1395.000; Wed, 30 Jan 2019 07:36:34 -0600
+From:   "Hans Verkuil (hansverk)" <hansverk@cisco.com>
 To:     Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc:     Helen Koike <helen.koike@collabora.com>
-From:   Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Subject: [PATCH] vimc: fill in bus_info in media_device_info
-Message-ID: <37987a95-dc03-aee7-57d3-d7a85cc2fc59@xs4all.nl>
-Date:   Wed, 30 Jan 2019 14:43:51 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.4.0
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Subject: [PATCH] vim2m: fill in bus_info in media_device_info
+Thread-Topic: [PATCH] vim2m: fill in bus_info in media_device_info
+Thread-Index: AQHUuKDRnGUs4rD7+kSM6/lg0VKidg==
+Date:   Wed, 30 Jan 2019 13:36:34 +0000
+Message-ID: <4cc870bd01f340cba7224579a3a6be94@XCH-ALN-012.cisco.com>
+Accept-Language: en-US
 Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfEPTC93jqGRdA/ntVzNvtoDZHyNQhAYxztwZ/zGXnxb4Q0wPn6YHVT1GQCqV54WY6uRz71gQ8Hss9naKHqqCDpyJEsGWDoU87WYfm2swkKulcGHuoUnl
- UGR676kxMmj6nMUlBBPlm2I/bYLSjOv3IEQ2oILQ8PPXKMDEPnM+Q8EjayxgSHP19eCKn1Dop+2S2+Af+Xd7OAoLGgAV+caK3S4fngJk5CG3qeQZg5qJvABb
- hceUDS3N0xdgqV7aD1GL+Ungg2TblDBe8ORyxQKlXN30sCZpk4/B4GYK7Ri72Zav3lrJ20SXS3343X10zhnnWpCrDvgJfqZ2+utTUSYE03g=
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-ms-exchange-transport-fromentityheader: Hosted
+x-originating-ip: [10.47.79.183]
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+X-Outbound-SMTP-Client: 173.36.7.23, xch-aln-013.cisco.com
+X-Outbound-Node: rcdn-core-9.cisco.com
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-It is good practice to fill in bus_info.
-
-Also just use 'platform:vimc' when filling in the bus_info in querycap:
-the bus_info has nothing to do with the video device name.
-
-Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
----
-diff --git a/drivers/media/platform/vimc/vimc-capture.c b/drivers/media/platform/vimc/vimc-capture.c
-index aaeddf24b042..550aa426ae5e 100644
---- a/drivers/media/platform/vimc/vimc-capture.c
-+++ b/drivers/media/platform/vimc/vimc-capture.c
-@@ -69,12 +69,10 @@ struct vimc_cap_buffer {
- static int vimc_cap_querycap(struct file *file, void *priv,
- 			     struct v4l2_capability *cap)
- {
--	struct vimc_cap_device *vcap = video_drvdata(file);
--
- 	strscpy(cap->driver, VIMC_PDEV_NAME, sizeof(cap->driver));
- 	strscpy(cap->card, KBUILD_MODNAME, sizeof(cap->card));
- 	snprintf(cap->bus_info, sizeof(cap->bus_info),
--		 "platform:%s", vcap->vdev.v4l2_dev->name);
-+		 "platform:%s", VIMC_PDEV_NAME);
-
- 	return 0;
- }
-diff --git a/drivers/media/platform/vimc/vimc-core.c b/drivers/media/platform/vimc/vimc-core.c
-index bf19f1f9795e..c2fdf3ea67ed 100644
---- a/drivers/media/platform/vimc/vimc-core.c
-+++ b/drivers/media/platform/vimc/vimc-core.c
-@@ -318,6 +318,8 @@ static int vimc_probe(struct platform_device *pdev)
- 	/* Initialize media device */
- 	strscpy(vimc->mdev.model, VIMC_MDEV_MODEL_NAME,
- 		sizeof(vimc->mdev.model));
-+	snprintf(vimc->mdev.bus_info, sizeof(vimc->mdev.bus_info),
-+		 "platform:%s", VIMC_PDEV_NAME);
- 	vimc->mdev.dev = &pdev->dev;
- 	media_device_init(&vimc->mdev);
-
+It is good practice to fill in the bus_info.=0A=
+=0A=
+Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>=0A=
+---=0A=
+diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.=
+c=0A=
+index 0e7814b2327e..4055aabf2a5e 100644=0A=
+--- a/drivers/media/platform/vim2m.c=0A=
++++ b/drivers/media/platform/vim2m.c=0A=
+@@ -1155,6 +1155,7 @@ static int vim2m_probe(struct platform_device *pdev)=
+=0A=
+ #ifdef CONFIG_MEDIA_CONTROLLER=0A=
+ 	dev->mdev.dev =3D &pdev->dev;=0A=
+ 	strscpy(dev->mdev.model, "vim2m", sizeof(dev->mdev.model));=0A=
++	strscpy(dev->mdev.bus_info, "platform:vim2m", sizeof(dev->mdev.bus_info))=
+;=0A=
+ 	media_device_init(&dev->mdev);=0A=
+ 	dev->mdev.ops =3D &m2m_media_ops;=0A=
+ 	dev->v4l2_dev.mdev =3D &dev->mdev;=0A=
