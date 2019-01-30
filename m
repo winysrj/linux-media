@@ -2,132 +2,142 @@ Return-Path: <SRS0=BdY7=QG=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,
-	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6AB0C282CD
-	for <linux-media@archiver.kernel.org>; Wed, 30 Jan 2019 04:21:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 06ACEC282CD
+	for <linux-media@archiver.kernel.org>; Wed, 30 Jan 2019 04:40:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 97F8420821
-	for <linux-media@archiver.kernel.org>; Wed, 30 Jan 2019 04:21:33 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ndufresne-ca.20150623.gappssmtp.com header.i=@ndufresne-ca.20150623.gappssmtp.com header.b="elqU6N/D"
+	by mail.kernel.org (Postfix) with ESMTP id D64F22087F
+	for <linux-media@archiver.kernel.org>; Wed, 30 Jan 2019 04:40:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729059AbfA3EV2 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 29 Jan 2019 23:21:28 -0500
-Received: from mail-qt1-f194.google.com ([209.85.160.194]:33361 "EHLO
-        mail-qt1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727720AbfA3EV1 (ORCPT
+        id S1730090AbfA3EkY (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 29 Jan 2019 23:40:24 -0500
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:57613 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727617AbfA3EkY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 Jan 2019 23:21:27 -0500
-Received: by mail-qt1-f194.google.com with SMTP id l11so24950996qtp.0
-        for <linux-media@vger.kernel.org>; Tue, 29 Jan 2019 20:21:27 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ndufresne-ca.20150623.gappssmtp.com; s=20150623;
-        h=message-id:subject:from:to:cc:date:in-reply-to:references
-         :user-agent:mime-version:content-transfer-encoding;
-        bh=Twy2/9rCYvnncdoQjvrdkqgOccxaghfH1nzMeT7NIS0=;
-        b=elqU6N/DBFmeSoghEYpngI1Z5D3n5Nclmw0X8bbTkzK/fw67Bxvj1Boz/D3izvuszd
-         ft/jzPEfbkOtDVhIZWTdzThKC7X4pybo8R2Yk3KUZwNwgCQ1HWudwivlorZh6gwQaGaG
-         o7YrelV4b03b0tEZiZUIxenp58it4EncqkaMxTqy6z1jIN5tvCPr8QOQzXAQ0Hh3dGYs
-         apb+lUXMB5FGPum0qkp6uCa3HYY0qi3DLqA2fNd5QUDlSvXo+V1nbd3BUuIcvRVpJtZW
-         OpZX0coC/Aa5t8J1WbSjIMG+j4yShwpMrRT5K7aB7/WJOWUnOYAbM3Wa1HfSe2AbkQqv
-         qcVQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:message-id:subject:from:to:cc:date:in-reply-to
-         :references:user-agent:mime-version:content-transfer-encoding;
-        bh=Twy2/9rCYvnncdoQjvrdkqgOccxaghfH1nzMeT7NIS0=;
-        b=tOXVfsrcyBDsLQPwfnKq1TzApCxA+A6fXRtX9G6CXzILxnU4ZJllSJ1ayLlWmofYWE
-         Ou2akLH9gDHBo91N5BYMQSnWIu5GkGgZIjy13C+XSEZXH1YoPIpj3Y9KTHwk5r8Ps9dA
-         SOgxJK0t6UsuL/1qye1VYoRwos1ZSvLrLTpBWUZq70x5fBHpYO2k9dSa4drRHA3jNGtz
-         r4B6NDM9xPTR7lDUeQt9MdnZLKa+mPGYn2D+mcJWUavi9awZOd3iWUWAmmAQY8C+dgN+
-         Y9KNGgcx8cEgFwgF2w5+RqBiSsZJBp6r5/Bx0VefvqW6zLa6GEfjUfjsu/5T1yJV8lN7
-         uQZg==
-X-Gm-Message-State: AJcUukfYYh1qUtK6b3XRqyf+5muWMkmj/sIheSXzDNXAEOD2EoIkP8Ni
-        EWV4SobeJvCgWx8+Ukz+vk+Ueg==
-X-Google-Smtp-Source: ALg8bN5yjkTW66H3E6EJeesM3QQOMvDQRjysCa0sJ7yvKLtB6zPyt5iErcBWSQLaEivd9pxEk4QbPg==
-X-Received: by 2002:ac8:2d53:: with SMTP id o19mr27288858qta.21.1548822086512;
-        Tue, 29 Jan 2019 20:21:26 -0800 (PST)
-Received: from skullcanyon ([192.222.193.21])
-        by smtp.gmail.com with ESMTPSA id z18sm956499qkz.96.2019.01.29.20.21.25
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Tue, 29 Jan 2019 20:21:25 -0800 (PST)
-Message-ID: <e8a90694c306fde24928a569b7bcb231b86ec73b.camel@ndufresne.ca>
-Subject: Re: [PATCH 10/10] venus: dec: make decoder compliant with stateful
- codec API
-From:   Nicolas Dufresne <nicolas@ndufresne.ca>
-To:     Tomasz Figa <tfiga@chromium.org>
-Cc:     Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
-        Vikash Garodia <vgarodia@codeaurora.org>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Malathi Gottam <mgottam@codeaurora.org>
-Date:   Tue, 29 Jan 2019 23:21:24 -0500
-In-Reply-To: <CAAFQd5Ahg4Di+SBd+-kKo4PLVyvqLwcuG6MphU5Rz1PFXVuamQ@mail.gmail.com>
-References: <20190117162008.25217-1-stanimir.varbanov@linaro.org>
-         <20190117162008.25217-11-stanimir.varbanov@linaro.org>
-         <CAAFQd5Cm1zyPzJnixwNmWzxn2zh=63YrA+ZzH-arW-VZ_x-Awg@mail.gmail.com>
-         <28069a44-b188-6b89-2687-542fa762c00e@linaro.org>
-         <CAAFQd5BevOV2r1tqmGPnVtdwirGMWU=ZJU85HjfnH-qMyQiyEg@mail.gmail.com>
-         <affce842d4f015e13912b2c3941c9bf02e84d194.camel@ndufresne.ca>
-         <CAAFQd5Ahg4Di+SBd+-kKo4PLVyvqLwcuG6MphU5Rz1PFXVuamQ@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-User-Agent: Evolution 3.30.4 (3.30.4-1.fc29) 
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        Tue, 29 Jan 2019 23:40:24 -0500
+Received: from localhost ([IPv6:2001:983:e9a7:1:1c7c:61d2:1b84:96e2])
+        by smtp-cloud9.xs4all.net with ESMTPA
+        id ohfgg7EcgRO5ZohfhgPtp8; Wed, 30 Jan 2019 05:40:21 +0100
+Message-ID: <ed2f15f66b428ec1453c5b6345c06829@smtp-cloud9.xs4all.net>
+Date:   Wed, 30 Jan 2019 05:40:20 +0100
+From:   "Hans Verkuil" <hverkuil@xs4all.nl>
+To:     linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+X-CMAE-Envelope: MS4wfHyHpWZpS9vo89ifQL1umFZ+0IKa39y4Az88XPZCzv8ofE/iKH1LiHAZ5f4vnlP5cx+yj4OwvvnzlZUlD8YJeg01YZ8SHN3mKrJHqLmkFpQlv1N/2T/y
+ Nf5iIkDVyI2DwaiYlq3h9kHMSxk7tD4foleW4E3W9I+Gp2SsD1FcySFIZrZEDkguuGHsMezUbC/14/dPGZJ5QTuMEel9JaYaGTB0MDSsYQhhPOlOvO70RyB1
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Le mercredi 30 janvier 2019 à 12:38 +0900, Tomasz Figa a écrit :
-> > Yes, unfortunately, GStreamer still rely on G_FMT waiting a minimal
-> > amount of time of the headers to be processed. This was how things was
-> > created back in 2011, I could not program GStreamer for the future. If
-> > we stop doing this, we do break GStreamer as a valid userspace
-> > application.
-> 
-> Does it? Didn't you say earlier that you end up setting the OUTPUT
-> format with the stream resolution as parsed on your own? If so, that
-> would actually expose a matching framebuffer format on the CAPTURE
-> queue, so there is no need to wait for the real parsing to happen.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-I don't remember saying that, maybe I meant to say there might be a
-workaround ?
+Results of the daily build of media_tree:
 
-For the fact, here we queue the headers (or first frame):
+date:			Wed Jan 30 05:00:13 CET 2019
+media-tree git hash:	c9d06df612977a88c484668ad0a37bc8e4463b22
+media_build git hash:	3b7bf704e97d885d26ccf2f8d3694e24a4730e58
+v4l-utils git hash:	92120ddcbaca524cd90154ff482f4b326c68de09
+edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
+gcc version:		i686-linux-gcc (GCC) 8.2.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.19.0-1-amd64
 
-https://gitlab.freedesktop.org/gstreamer/gst-plugins-good/blob/master/sys/v4l2/gstv4l2videodec.c#L624
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.57-i686: OK
+linux-3.16.57-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.123-i686: OK
+linux-3.18.123-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.52-i686: OK
+linux-4.1.52-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.159-i686: OK
+linux-4.4.159-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.131-i686: OK
+linux-4.9.131-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.74-i686: OK
+linux-4.14.74-x86_64: OK
+linux-4.15.18-i686: OK
+linux-4.15.18-x86_64: OK
+linux-4.16.18-i686: OK
+linux-4.16.18-x86_64: OK
+linux-4.17.19-i686: OK
+linux-4.17.19-x86_64: OK
+linux-4.18.12-i686: OK
+linux-4.18.12-x86_64: OK
+linux-4.19.1-i686: OK
+linux-4.19.1-x86_64: OK
+linux-4.20.1-i686: OK
+linux-4.20.1-x86_64: OK
+linux-5.0-rc1-i686: OK
+linux-5.0-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
-Then few line below this helper does G_FMT internally:
+Detailed results are available here:
 
-https://gitlab.freedesktop.org/gstreamer/gst-plugins-good/blob/master/sys/v4l2/gstv4l2videodec.c#L634
-https://gitlab.freedesktop.org/gstreamer/gst-plugins-good/blob/master/sys/v4l2/gstv4l2object.c#L3907
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
-And just plainly fails if G_FMT returns an error of any type. This was
-how Kamil designed it initially for MFC driver. There was no other
-alternative back then (no EAGAIN yet either).
+Full logs are available here:
 
-Nicolas
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
 
-p.s. it's still in my todo's to implement source change event as I
-believe it is a better mechanism (specially if you header happened to
-be corrupted, then the driver can consume the stream until it finds a
-sync). So these sleep or normally wait exist all over to support this
-legacy thing. It is unfortunate, the question is do you want to break
-userspace now ? Without having first placed a patch that would maybe
-warn or something for a while ?
+The Media Infrastructure API from this daily build is here:
 
-
-
-
-
-
-
-
+http://www.xs4all.nl/~hverkuil/spec/index.html
