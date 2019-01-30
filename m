@@ -2,100 +2,170 @@ Return-Path: <SRS0=BdY7=QG=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,UNPARSEABLE_RELAY,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,
+	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C572C282D7
-	for <linux-media@archiver.kernel.org>; Wed, 30 Jan 2019 14:57:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 38D46C282D7
+	for <linux-media@archiver.kernel.org>; Wed, 30 Jan 2019 15:06:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1B5F920855
-	for <linux-media@archiver.kernel.org>; Wed, 30 Jan 2019 14:57:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0085320989
+	for <linux-media@archiver.kernel.org>; Wed, 30 Jan 2019 15:06:35 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=ndufresne-ca.20150623.gappssmtp.com header.i=@ndufresne-ca.20150623.gappssmtp.com header.b="a02mUaxD"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731425AbfA3O5K (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 30 Jan 2019 09:57:10 -0500
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:39514 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725768AbfA3O5K (ORCPT
+        id S1731474AbfA3PG0 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 30 Jan 2019 10:06:26 -0500
+Received: from mail-qk1-f196.google.com ([209.85.222.196]:38695 "EHLO
+        mail-qk1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1731468AbfA3PGZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 Jan 2019 09:57:10 -0500
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-        (Authenticated sender: ezequiel)
-        with ESMTPSA id DCB2627DD0A
-Message-ID: <755a24c6fd7ccc34f3d3ccda8caa1dda715241ea.camel@collabora.com>
-Subject: Re: [PATCH 2/3] media: vim2m: use per-file handler work queue
-From:   Ezequiel Garcia <ezequiel@collabora.com>
-To:     Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc:     Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Anton Leontiev <scileont@gmail.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Date:   Wed, 30 Jan 2019 11:56:58 -0300
-In-Reply-To: <20190130111933.313ed5a0@silica.lan>
-References: <cover.1548776693.git.mchehab+samsung@kernel.org>
-         <7ff2d5c791473c746ae07c012d1890c6bdd08f6d.1548776693.git.mchehab+samsung@kernel.org>
-         <0f25ab2f936e3fcb8cd68b55682838027e46eec5.camel@collabora.com>
-         <20190130111933.313ed5a0@silica.lan>
-Organization: Collabora
+        Wed, 30 Jan 2019 10:06:25 -0500
+Received: by mail-qk1-f196.google.com with SMTP id m17so13844688qki.5
+        for <linux-media@vger.kernel.org>; Wed, 30 Jan 2019 07:06:24 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ndufresne-ca.20150623.gappssmtp.com; s=20150623;
+        h=message-id:subject:from:to:cc:date:in-reply-to:references
+         :user-agent:mime-version:content-transfer-encoding;
+        bh=48KG1ySv4BJnImKF0uZfw8xudC3hcA6deg837Zyrt70=;
+        b=a02mUaxDkYnmf+kwpv37ZN0onQOOOswUz3jJwdaeQKwAQoc71mmpa+0k87PGnAP9to
+         ombt3XgD3/5KIqzoKi4JDjXtLcNa/vqQX093OBo2s612LZQ7+RL0m9SCOAIo20DAGU8E
+         VmmVZqlXn69bP2kfXe+8kJHb9jCHF+a9L1JtOxn0SrlAF4oz4tzfJh/L3lOJO/zyyAZc
+         I0+RiYSH8RTE201akNeLomAFUqvY5qIS8X5XPOeok97B7QsluKtYuYeWjmEM8qsCuEfg
+         RnFXtwlKER86SIP5BA7QT4Ak9gLolvtY1ynCrcbKbA+Y7de7DDB1VHr3sdowOsSERRcp
+         uFAg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:message-id:subject:from:to:cc:date:in-reply-to
+         :references:user-agent:mime-version:content-transfer-encoding;
+        bh=48KG1ySv4BJnImKF0uZfw8xudC3hcA6deg837Zyrt70=;
+        b=ROS5F712CdS45ZQ/2Dj9oMa4gvYVqLDUd+oDfMdUy+ILD5eUTgB7W8aVrhEZsOJr/X
+         Wqw3uO5Spx2JdjfYDECMDaKWXVVzNYdSBDvJ2jd/+kwIUsKOD5YArRUBL62ltwLx2hUG
+         YTZ3gy1mPhPG8fL7WdhHwUAiglDw/S30OMbtXihiZ8PDKoY9rtGsoPN0umeJgouGyEvV
+         xNOZzs3qgbxdPr5jwMfTE25fNOGaps/qU8v0JH/7RC0ShG36Dq/L1QQfammJP2iaLcgS
+         isic7+p5HW9+rgdlRog0/AfaGVhNZ/5HQX1nFyLZIiFMTmddf++vpfWLRTx8fYHOziLt
+         odnA==
+X-Gm-Message-State: AJcUukfJTlUIpDivArrS9Or2UKnLIBTXMGz6OE1sEMaAKqwb66dHQw2m
+        rE36oEwWrvq4AaQxJQOATDwnGg==
+X-Google-Smtp-Source: ALg8bN6o1fDiqCFll0zL1NY5z3VmiXB5qx7eWPka3Sm4J0jLOcvBuAqr7kYngN1+G2ZivY4HQk2rOg==
+X-Received: by 2002:a37:dc04:: with SMTP id v4mr28340578qki.101.1548860784301;
+        Wed, 30 Jan 2019 07:06:24 -0800 (PST)
+Received: from skullcanyon ([192.222.193.21])
+        by smtp.gmail.com with ESMTPSA id b17sm2185698qkj.69.2019.01.30.07.06.22
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Wed, 30 Jan 2019 07:06:23 -0800 (PST)
+Message-ID: <9fd20ee01384d0bd8e395c6cf52ed8dc9d47ff06.camel@ndufresne.ca>
+Subject: Re: [PATCH v2 2/2] media: docs-rst: Document memory-to-memory video
+ encoder interface
+From:   Nicolas Dufresne <nicolas@ndufresne.ca>
+To:     Tomasz Figa <tfiga@chromium.org>
+Cc:     Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        =?UTF-8?Q?Pawe=C5=82_O=C5=9Bciak?= <posciak@chromium.org>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Kamil Debski <kamil@wypas.org>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Jeongtae Park <jtp.park@samsung.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Tiffany Lin <tiffany.lin@mediatek.com>,
+        Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Todor Tomov <todor.tomov@linaro.org>,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        dave.stevenson@raspberrypi.org,
+        Ezequiel Garcia <ezequiel@collabora.com>,
+        Maxime Jourdan <maxi.jourdan@wanadoo.fr>
+Date:   Wed, 30 Jan 2019 10:06:22 -0500
+In-Reply-To: <CAAFQd5DGQvmdvV42Qz_yRVk1XCaYH6AMxWJgJ_PrECBM+U65uA@mail.gmail.com>
+References: <20181022144901.113852-1-tfiga@chromium.org>
+         <20181022144901.113852-3-tfiga@chromium.org>
+         <4cd223f0-b09c-da07-f26c-3b3f7a8868d7@xs4all.nl>
+         <CAAFQd5DthE3vL+gycEBgm+aF0YhRncrfBVBNLLF4g+oKhBHEWQ@mail.gmail.com>
+         <75334288-69af-6680-fbe7-2dd5ef2462ea@xs4all.nl>
+         <0452db20a894c1c4cce263b7e07ba274a58aa8fa.camel@ndufresne.ca>
+         <CAAFQd5DGQvmdvV42Qz_yRVk1XCaYH6AMxWJgJ_PrECBM+U65uA@mail.gmail.com>
 Content-Type: text/plain; charset="UTF-8"
-User-Agent: Evolution 3.30.3-1 
+User-Agent: Evolution 3.30.4 (3.30.4-1.fc29) 
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hey Mauro,
-
-On Wed, 2019-01-30 at 11:19 -0200, Mauro Carvalho Chehab wrote:
-> Em Wed, 30 Jan 2019 09:41:44 -0300
-> Ezequiel Garcia <ezequiel@collabora.com> escreveu:
-> 
-> > On Tue, 2019-01-29 at 14:00 -0200, Mauro Carvalho Chehab wrote:
-> > > It doesn't make sense to have a per-device work queue, as the
-> > > scheduler should be called per file handler. Having a single
-> > > one causes failures if multiple streams are filtered by vim2m.
-> > >   
+Le vendredi 25 janvier 2019 à 12:59 +0900, Tomasz Figa a écrit :
+> On Fri, Jan 25, 2019 at 5:14 AM Nicolas Dufresne <nicolas@ndufresne.ca> wrote:
+> > Le mercredi 23 janvier 2019 à 14:04 +0100, Hans Verkuil a écrit :
+> > > > > Does this return the same set of formats as in the 'Querying Capabilities' phase?
+> > > > > 
+> > > > 
+> > > > It's actually an interesting question. At this point we wouldn't have
+> > > > the OUTPUT resolution set yet, so that would be the same set as in the
+> > > > initial query. If we set the resolution (with some arbitrary
+> > > > pixelformat), it may become a subset...
+> > > 
+> > > But doesn't setting the capture format also set the resolution?
+> > > 
+> > > To quote from the text above:
+> > > 
+> > > "The encoder will derive a new ``OUTPUT`` format from the ``CAPTURE`` format
+> > >  being set, including resolution, colorimetry parameters, etc."
+> > > 
+> > > So you set the capture format with a resolution (you know that), then
+> > > ENUM_FMT will return the subset for that codec and resolution.
+> > > 
+> > > But see also the comment at the end of this email.
 > > 
-> > Having a per-device workqueue should emulate a real device more closely.
+> > I'm thinking that the fact that there is no "unset" value for pixel
+> > format creates a certain ambiguity. Maybe we could create a new pixel
+> > format, and all CODEC driver could have that set by default ? Then we
+> > can just fail STREAMON if that format is set.
 > 
-> Yes.
-> 
-> > But more importantly, why would having a single workqeueue fail if multiple
-> > streams are run? The m2m should take care of the proper serialization
-> > between multiple contexts, unless I am missing something here.
-> 
-> Yes, the m2m core serializes the access to m2m src/dest buffer per device.
-> 
-> So, two instances can't access the buffer at the same time. That makes
-> sense for a real physical hardware, although specifically for the virtual
-> one, it doesn't (any may not make sense for some stateless codec, if
-> the codec would internally be able to handle multiple requests at the same
-> time).
-> 
-> Without this patch, when multiple instances are used, sometimes it ends 
-> into a dead lock preventing to stop all of them.
-> 
-> I didn't have time to debug where exactly it happens, but I suspect that
-> the issue is related to using the same mutex for both VB and open/release
-> instances.
-> 
-> Yet, I ended by opting to move all queue-specific mutex/semaphore to be
-> instance-based, as this makes a lot more sense, IMHO. Also, if some day
-> we end by allowing support for some hardware that would have support to
-> run multiple m2m instances in parallel, vim2m would already be ready.
-> 
+> The state on the CAPTURE queue is actually not "unset". The queue is
+> simply not ready (yet) and any operations on it will error out.
 
-I don't oppose to the idea of having a per-context workqueue.
+My point was that it's just awkward to have this "not ready" state, in
+which you cannot go back. And in which the enum-format will ignore the
+format configured on the other side.
 
-However, I'm not too comfortable with having a bug somewhere (and not knowing
-whert) and instead of fixing it, working around it. I'd rather
-fix the bug instead, then decide about the workqueue.
+What I wanted to say is that this special case is not really needed.
 
-Thanks,
-Eze
+> 
+> Once the application sets the coded resolution on the OUTPUT queue or
+> the decoder parses the stream information, the CAPTURE queue becomes
+> ready and one can do the ioctls on it.
+> 
+> > That being said, in GStreamer, I have split each elements per CODEC,
+> > and now only enumerate the information "per-codec". That makes me think
+> > this "global" enumeration was just a miss-use of the API / me learning
+> > to use it. Not having to implement this rather complex thing in the
+> > driver would be nice. Notably, the new Amlogic driver does not have
+> > this "Querying Capabilities" phase, and with latest GStreamer works
+> > just fine.
+> 
+> What do you mean by "doesn't have"? Does it lack an implementation of
+> VIDIOC_ENUM_FMT and VIDIOC_ENUM_FRAMESIZES?
+
+What it does is that it sets a default value for the codec format, so
+if you just open the device and do enum_fmt/framesizes, you get that is
+possible for the default codec that was selected. And I thin it's
+entirely correct, doing ENUM_FMT(capture) without doing an
+S_FMT(output) can easily be documented as undefined behaviour.
+
+For proper enumeration would be:
+
+for formats on OUTPUT device:
+  S_FMT(OUTPUT):
+  for formats on CAPTURE device:
+    ...
+
+(the pseudo for look represent an enum operation)
+
+> 
+> Best regards,
+> Tomasz
 
