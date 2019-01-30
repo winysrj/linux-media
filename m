@@ -2,91 +2,212 @@ Return-Path: <SRS0=BdY7=QG=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,UNPARSEABLE_RELAY
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BA34C282D8
-	for <linux-media@archiver.kernel.org>; Wed, 30 Jan 2019 12:41:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BFF5C282D8
+	for <linux-media@archiver.kernel.org>; Wed, 30 Jan 2019 12:41:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3E8FC21473
-	for <linux-media@archiver.kernel.org>; Wed, 30 Jan 2019 12:41:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D997E218A3
+	for <linux-media@archiver.kernel.org>; Wed, 30 Jan 2019 12:41:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730739AbfA3Mlb (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 30 Jan 2019 07:41:31 -0500
-Received: from mga17.intel.com ([192.55.52.151]:8896 "EHLO mga17.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725768AbfA3Mla (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 Jan 2019 07:41:30 -0500
-X-Amp-Result: UNKNOWN
-X-Amp-Original-Verdict: FILE UNKNOWN
-X-Amp-File-Uploaded: False
-Received: from fmsmga006.fm.intel.com ([10.253.24.20])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 30 Jan 2019 04:41:30 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.56,540,1539673200"; 
-   d="scan'208";a="314853336"
-Received: from paasikivi.fi.intel.com ([10.237.72.42])
-  by fmsmga006.fm.intel.com with ESMTP; 30 Jan 2019 04:41:27 -0800
-Received: by paasikivi.fi.intel.com (Postfix, from userid 1000)
-        id 15F2D203F8; Wed, 30 Jan 2019 14:41:27 +0200 (EET)
-Date:   Wed, 30 Jan 2019 14:41:26 +0200
-From:   Sakari Ailus <sakari.ailus@linux.intel.com>
-To:     Rui Miguel Silva <rui.silva@linaro.org>
-Cc:     Steve Longerbeam <slongerbeam@gmail.com>,
+        id S1728404AbfA3Ml4 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 30 Jan 2019 07:41:56 -0500
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:38856 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725768AbfA3Ml4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 30 Jan 2019 07:41:56 -0500
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+        (Authenticated sender: ezequiel)
+        with ESMTPSA id CD2D727DE8E
+Message-ID: <0f25ab2f936e3fcb8cd68b55682838027e46eec5.camel@collabora.com>
+Subject: Re: [PATCH 2/3] media: vim2m: use per-file handler work queue
+From:   Ezequiel Garcia <ezequiel@collabora.com>
+To:     Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc:     Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
         Hans Verkuil <hverkuil@xs4all.nl>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        devicetree@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH v11 00/13] media: staging/imx7: add i.MX7 media driver
-Message-ID: <20190130124126.ahewjkc7ycko5ckg@paasikivi.fi.intel.com>
-References: <20190124160928.31884-1-rui.silva@linaro.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190124160928.31884-1-rui.silva@linaro.org>
-User-Agent: NeoMutt/20170113 (1.7.2)
+        Anton Leontiev <scileont@gmail.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Date:   Wed, 30 Jan 2019 09:41:44 -0300
+In-Reply-To: <7ff2d5c791473c746ae07c012d1890c6bdd08f6d.1548776693.git.mchehab+samsung@kernel.org>
+References: <cover.1548776693.git.mchehab+samsung@kernel.org>
+         <7ff2d5c791473c746ae07c012d1890c6bdd08f6d.1548776693.git.mchehab+samsung@kernel.org>
+Organization: Collabora
+Content-Type: text/plain; charset="UTF-8"
+User-Agent: Evolution 3.30.3-1 
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Thu, Jan 24, 2019 at 04:09:15PM +0000, Rui Miguel Silva wrote:
-> Hi,
-> This series introduces the Media driver to work with the i.MX7 SoC. it uses the
-> already existing imx media core drivers but since the i.MX7, contrary to
-> i.MX5/6, do not have an IPU and because of that some changes in the imx media
-> core are made along this series to make it support that case.
+On Tue, 2019-01-29 at 14:00 -0200, Mauro Carvalho Chehab wrote:
+> It doesn't make sense to have a per-device work queue, as the
+> scheduler should be called per file handler. Having a single
+> one causes failures if multiple streams are filtered by vim2m.
 > 
-> This patches adds CSI and MIPI-CSI2 drivers for i.MX7, along with several
-> configurations changes for this to work as a capture subsystem. Some bugs are
-> also fixed along the line. And necessary documentation.
-> 
-> For a more detailed view of the capture paths, pads links in the i.MX7 please
-> take a look at the documentation in PATCH 10.
-> 
-> The system used to test and develop this was the Warp7 board with an OV2680
-> sensor, which output format is 10-bit bayer. So, only MIPI interface was
-> tested, a scenario with an parallel input would nice to have.
-> 
-> Bellow goes an example of the output of the pads and links and the output of
-> v4l2-compliance testing.
-> 
-> The v4l-utils version used is:
-> v4l2-compliance SHA: 1a6c8fe9a65c26e78ba34bd4aa2df28ede7d00cb, 32 bits
-> 
-> The Media Driver fail some tests but this failures are coming from code out of
-> scope of this series (imx-capture), and some from the sensor OV2680
-> but that I think not related with the sensor driver but with the testing and
-> core.
-> 
-> The csi and mipi-csi entities pass all compliance tests.
 
-For patches 1, 4 and 10--13:
+Having a per-device workqueue should emulate a real device more closely.
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+But more importantly, why would having a single workqeueue fail if multiple
+streams are run? The m2m should take care of the proper serialization
+between multiple contexts, unless I am missing something here.
 
--- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+Thanks,
+Eze
+
+> So, move it to be inside the context structure.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+> ---
+>  drivers/media/platform/vim2m.c | 38 +++++++++++++++++-----------------
+>  1 file changed, 19 insertions(+), 19 deletions(-)
+> 
+> diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
+> index ccd0576c766e..a9e43070567e 100644
+> --- a/drivers/media/platform/vim2m.c
+> +++ b/drivers/media/platform/vim2m.c
+> @@ -146,9 +146,6 @@ struct vim2m_dev {
+>  
+>  	atomic_t		num_inst;
+>  	struct mutex		dev_mutex;
+> -	spinlock_t		irqlock;
+> -
+> -	struct delayed_work	work_run;
+>  
+>  	struct v4l2_m2m_dev	*m2m_dev;
+>  };
+> @@ -167,6 +164,10 @@ struct vim2m_ctx {
+>  	/* Transaction time (i.e. simulated processing time) in milliseconds */
+>  	u32			transtime;
+>  
+> +	struct mutex		vb_mutex;
+> +	struct delayed_work	work_run;
+> +	spinlock_t		irqlock;
+> +
+>  	/* Abort requested by m2m */
+>  	int			aborting;
+>  
+> @@ -490,7 +491,6 @@ static void job_abort(void *priv)
+>  static void device_run(void *priv)
+>  {
+>  	struct vim2m_ctx *ctx = priv;
+> -	struct vim2m_dev *dev = ctx->dev;
+>  	struct vb2_v4l2_buffer *src_buf, *dst_buf;
+>  
+>  	src_buf = v4l2_m2m_next_src_buf(ctx->fh.m2m_ctx);
+> @@ -507,18 +507,18 @@ static void device_run(void *priv)
+>  				   &ctx->hdl);
+>  
+>  	/* Run delayed work, which simulates a hardware irq  */
+> -	schedule_delayed_work(&dev->work_run, msecs_to_jiffies(ctx->transtime));
+> +	schedule_delayed_work(&ctx->work_run, msecs_to_jiffies(ctx->transtime));
+>  }
+>  
+>  static void device_work(struct work_struct *w)
+>  {
+> -	struct vim2m_dev *vim2m_dev =
+> -		container_of(w, struct vim2m_dev, work_run.work);
+>  	struct vim2m_ctx *curr_ctx;
+> +	struct vim2m_dev *vim2m_dev;
+>  	struct vb2_v4l2_buffer *src_vb, *dst_vb;
+>  	unsigned long flags;
+>  
+> -	curr_ctx = v4l2_m2m_get_curr_priv(vim2m_dev->m2m_dev);
+> +	curr_ctx = container_of(w, struct vim2m_ctx, work_run.work);
+> +	vim2m_dev = curr_ctx->dev;
+>  
+>  	if (NULL == curr_ctx) {
+>  		pr_err("Instance released before the end of transaction\n");
+> @@ -530,10 +530,10 @@ static void device_work(struct work_struct *w)
+>  
+>  	curr_ctx->num_processed++;
+>  
+> -	spin_lock_irqsave(&vim2m_dev->irqlock, flags);
+> +	spin_lock_irqsave(&curr_ctx->irqlock, flags);
+>  	v4l2_m2m_buf_done(src_vb, VB2_BUF_STATE_DONE);
+>  	v4l2_m2m_buf_done(dst_vb, VB2_BUF_STATE_DONE);
+> -	spin_unlock_irqrestore(&vim2m_dev->irqlock, flags);
+> +	spin_unlock_irqrestore(&curr_ctx->irqlock, flags);
+>  
+>  	if (curr_ctx->num_processed == curr_ctx->translen
+>  	    || curr_ctx->aborting) {
+> @@ -893,11 +893,10 @@ static int vim2m_start_streaming(struct vb2_queue *q, unsigned count)
+>  static void vim2m_stop_streaming(struct vb2_queue *q)
+>  {
+>  	struct vim2m_ctx *ctx = vb2_get_drv_priv(q);
+> -	struct vim2m_dev *dev = ctx->dev;
+>  	struct vb2_v4l2_buffer *vbuf;
+>  	unsigned long flags;
+>  
+> -	cancel_delayed_work_sync(&dev->work_run);
+> +	cancel_delayed_work_sync(&ctx->work_run);
+>  	for (;;) {
+>  		if (V4L2_TYPE_IS_OUTPUT(q->type))
+>  			vbuf = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
+> @@ -907,9 +906,9 @@ static void vim2m_stop_streaming(struct vb2_queue *q)
+>  			return;
+>  		v4l2_ctrl_request_complete(vbuf->vb2_buf.req_obj.req,
+>  					   &ctx->hdl);
+> -		spin_lock_irqsave(&ctx->dev->irqlock, flags);
+> +		spin_lock_irqsave(&ctx->irqlock, flags);
+>  		v4l2_m2m_buf_done(vbuf, VB2_BUF_STATE_ERROR);
+> -		spin_unlock_irqrestore(&ctx->dev->irqlock, flags);
+> +		spin_unlock_irqrestore(&ctx->irqlock, flags);
+>  	}
+>  }
+>  
+> @@ -943,7 +942,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq, struct vb2_queue *ds
+>  	src_vq->ops = &vim2m_qops;
+>  	src_vq->mem_ops = &vb2_vmalloc_memops;
+>  	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+> -	src_vq->lock = &ctx->dev->dev_mutex;
+> +	src_vq->lock = &ctx->vb_mutex;
+>  	src_vq->supports_requests = true;
+>  
+>  	ret = vb2_queue_init(src_vq);
+> @@ -957,7 +956,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq, struct vb2_queue *ds
+>  	dst_vq->ops = &vim2m_qops;
+>  	dst_vq->mem_ops = &vb2_vmalloc_memops;
+>  	dst_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+> -	dst_vq->lock = &ctx->dev->dev_mutex;
+> +	dst_vq->lock = &ctx->vb_mutex;
+>  
+>  	return vb2_queue_init(dst_vq);
+>  }
+> @@ -1032,6 +1031,10 @@ static int vim2m_open(struct file *file)
+>  
+>  	ctx->fh.m2m_ctx = v4l2_m2m_ctx_init(dev->m2m_dev, ctx, &queue_init);
+>  
+> +	mutex_init(&ctx->vb_mutex);
+> +	spin_lock_init(&ctx->irqlock);
+> +	INIT_DELAYED_WORK(&ctx->work_run, device_work);
+> +
+>  	if (IS_ERR(ctx->fh.m2m_ctx)) {
+>  		rc = PTR_ERR(ctx->fh.m2m_ctx);
+>  
+> @@ -1112,8 +1115,6 @@ static int vim2m_probe(struct platform_device *pdev)
+>  	if (!dev)
+>  		return -ENOMEM;
+>  
+> -	spin_lock_init(&dev->irqlock);
+> -
+>  	ret = v4l2_device_register(&pdev->dev, &dev->v4l2_dev);
+>  	if (ret)
+>  		return ret;
+> @@ -1125,7 +1126,6 @@ static int vim2m_probe(struct platform_device *pdev)
+>  	vfd = &dev->vfd;
+>  	vfd->lock = &dev->dev_mutex;
+>  	vfd->v4l2_dev = &dev->v4l2_dev;
+> -	INIT_DELAYED_WORK(&dev->work_run, device_work);
+>  
+>  	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
+>  	if (ret) {
+
+
