@@ -2,265 +2,142 @@ Return-Path: <SRS0=gTyh=QH=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4ACCFC169C4
-	for <linux-media@archiver.kernel.org>; Thu, 31 Jan 2019 04:14:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C4B84C169C4
+	for <linux-media@archiver.kernel.org>; Thu, 31 Jan 2019 04:39:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0B3AE20833
-	for <linux-media@archiver.kernel.org>; Thu, 31 Jan 2019 04:14:04 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=nifty.com header.i=@nifty.com header.b="M8htlJAs"
+	by mail.kernel.org (Postfix) with ESMTP id 9C0BF2184D
+	for <linux-media@archiver.kernel.org>; Thu, 31 Jan 2019 04:39:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726193AbfAaEOD (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 30 Jan 2019 23:14:03 -0500
-Received: from condef-09.nifty.com ([202.248.20.74]:33310 "EHLO
-        condef-09.nifty.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725771AbfAaEOD (ORCPT
+        id S1726536AbfAaEj0 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 30 Jan 2019 23:39:26 -0500
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:52612 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725798AbfAaEj0 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 Jan 2019 23:14:03 -0500
-Received: from conuserg-12.nifty.com ([10.126.8.75])by condef-09.nifty.com with ESMTP id x0V4AM1h023521
-        for <linux-media@vger.kernel.org>; Thu, 31 Jan 2019 13:10:27 +0900
-Received: from pug.e01.socionext.com (p14092-ipngnfx01kyoto.kyoto.ocn.ne.jp [153.142.97.92]) (authenticated)
-        by conuserg-12.nifty.com with ESMTP id x0V48g7O028416;
-        Thu, 31 Jan 2019 13:08:43 +0900
-DKIM-Filter: OpenDKIM Filter v2.10.3 conuserg-12.nifty.com x0V48g7O028416
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nifty.com;
-        s=dec2015msa; t=1548907724;
-        bh=qtR6JBtIsv5On0l3JmbxwP6woOzsFy3pXGV1XwsD1qA=;
-        h=From:To:Cc:Subject:Date:From;
-        b=M8htlJAsWH4ih4sVLUMTMj2J3B+IhkWeIHlb/UEEkhq935jetcJg0Joh17Pk2wtMP
-         QNJThFcEybUvB44JaY/mSYwL398kiNgSKyCppNFu+GupfDOTrQosw8QLtIvw10Kqil
-         J0+UKyBCmnmCBOpIA7+Pzo0T/VMzcA2CQcuSSfioycqk2TntGBCutlFoiOLEMH3Mgw
-         pm7Ij9TmU1nMwJSBqDi5WHE7zWEzzGJ9FQH7AE1Gk8Yb4E+IbUZtdM/wrahWKMOPau
-         9gZVTsKGhRnETxsly5g2v29xf7W4PTX8hnTPe8YIP3di60U7oOBVa8ZkWsP/MRRBWl
-         /6qr92DmoJwpQ==
-X-Nifty-SrcIP: [153.142.97.92]
-From:   Masahiro Yamada <yamada.masahiro@socionext.com>
-To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        devel@driverdev.osuosl.org
-Cc:     Masahiro Yamada <yamada.masahiro@socionext.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Gao Xiang <gaoxiang25@huawei.com>,
-        linux-erofs@lists.ozlabs.org,
-        David Kershner <david.kershner@unisys.com>,
-        sparmaintainer@unisys.com, Scott Branden <sbranden@broadcom.com>,
-        Stefan Wahren <stefan.wahren@i2se.com>,
-        linux-kernel@vger.kernel.org,
-        bcm-kernel-feedback-list@broadcom.com,
-        linux-rpi-kernel@lists.infradead.org, Chao Yu <yuchao0@huawei.com>,
-        Florian Fainelli <f.fainelli@gmail.com>,
-        Eric Anholt <eric@anholt.net>, Ray Jui <rjui@broadcom.com>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: [PATCH] staging: prefix header search paths with $(srctree)/
-Date:   Thu, 31 Jan 2019 13:08:33 +0900
-Message-Id: <1548907713-24160-1-git-send-email-yamada.masahiro@socionext.com>
-X-Mailer: git-send-email 2.7.4
+        Wed, 30 Jan 2019 23:39:26 -0500
+Received: from localhost ([IPv6:2001:983:e9a7:1:34c7:4758:7f79:56f5])
+        by smtp-cloud8.xs4all.net with ESMTPA
+        id p48Jg6RoCNR5yp48KgNf3h; Thu, 31 Jan 2019 05:39:24 +0100
+Message-ID: <cadb449be0d629a45c0384999ce3f912@smtp-cloud8.xs4all.net>
+Date:   Thu, 31 Jan 2019 05:39:23 +0100
+From:   "Hans Verkuil" <hverkuil@xs4all.nl>
+To:     linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+X-CMAE-Envelope: MS4wfGRt8PvcQWj87rj9V5lkK0WdN8R+CbSUUHueotRWEQr/t2CJUNSl0DubQixzESsqPh7jfAFIelLPiG9NfioQEH5xUO3RkaFceXomVuuY6MW3crDMMd54
+ AmdGyFDlEfFgzO3kA/LXw3oDpJs6+NDXhkCqzxmS20ssAHzPRLhUPDXIQMDN9m7PJc6J43fbTTcWNg7xL1ykm8TlPUq2+D8v+xIsv68+1jLzpXWb61UqB9wz
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Currently, the Kbuild core manipulates header search paths in a crazy
-way [1].
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-To fix this mess, I want all Makefiles to add explicit $(srctree)/ to
-the search paths in the srctree. Some Makefiles are already written in
-that way, but not all. The goal of this work is to make the notation
-consistent, and finally get rid of the gross hacks.
+Results of the daily build of media_tree:
 
-Having whitespaces after -I does not matter since commit 48f6e3cf5bc6
-("kbuild: do not drop -I without parameter").
+date:			Thu Jan 31 05:00:10 CET 2019
+media-tree git hash:	c9d06df612977a88c484668ad0a37bc8e4463b22
+media_build git hash:	3b7bf704e97d885d26ccf2f8d3694e24a4730e58
+v4l-utils git hash:	9e375c965f200538817ab712330a86a123124394
+edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
+gcc version:		i686-linux-gcc (GCC) 8.2.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.19.0-1-amd64
 
-[1]: https://patchwork.kernel.org/patch/9632347/
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.57-i686: OK
+linux-3.16.57-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.123-i686: OK
+linux-3.18.123-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.52-i686: OK
+linux-4.1.52-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.159-i686: OK
+linux-4.4.159-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.131-i686: OK
+linux-4.9.131-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.74-i686: OK
+linux-4.14.74-x86_64: OK
+linux-4.15.18-i686: OK
+linux-4.15.18-x86_64: OK
+linux-4.16.18-i686: OK
+linux-4.16.18-x86_64: OK
+linux-4.17.19-i686: OK
+linux-4.17.19-x86_64: OK
+linux-4.18.12-i686: OK
+linux-4.18.12-x86_64: OK
+linux-4.19.1-i686: OK
+linux-4.19.1-x86_64: OK
+linux-4.20.1-i686: OK
+linux-4.20.1-x86_64: OK
+linux-5.0-rc1-i686: OK
+linux-5.0-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
-Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
----
+Detailed results are available here:
 
- drivers/staging/erofs/Makefile                        | 2 +-
- drivers/staging/media/davinci_vpfe/Makefile           | 2 +-
- drivers/staging/most/Makefile                         | 2 +-
- drivers/staging/most/cdev/Makefile                    | 2 +-
- drivers/staging/most/dim2/Makefile                    | 2 +-
- drivers/staging/most/i2c/Makefile                     | 2 +-
- drivers/staging/most/net/Makefile                     | 2 +-
- drivers/staging/most/sound/Makefile                   | 2 +-
- drivers/staging/most/usb/Makefile                     | 2 +-
- drivers/staging/most/video/Makefile                   | 2 +-
- drivers/staging/rtl8192u/Makefile                     | 2 +-
- drivers/staging/unisys/visorhba/Makefile              | 3 +--
- drivers/staging/unisys/visornic/Makefile              | 3 +--
- drivers/staging/vc04_services/bcm2835-audio/Makefile  | 3 +--
- drivers/staging/vc04_services/bcm2835-camera/Makefile | 2 +-
- 15 files changed, 15 insertions(+), 18 deletions(-)
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
-diff --git a/drivers/staging/erofs/Makefile b/drivers/staging/erofs/Makefile
-index c91b652..38ab344 100644
---- a/drivers/staging/erofs/Makefile
-+++ b/drivers/staging/erofs/Makefile
-@@ -6,7 +6,7 @@ ccflags-y += -Wall -DEROFS_VERSION=\"$(EROFS_VERSION)\"
- 
- obj-$(CONFIG_EROFS_FS) += erofs.o
- # staging requirement: to be self-contained in its own directory
--ccflags-y += -I$(src)/include
-+ccflags-y += -I $(srctree)/$(src)/include
- erofs-objs := super.o inode.o data.o namei.o dir.o utils.o
- erofs-$(CONFIG_EROFS_FS_XATTR) += xattr.o
- erofs-$(CONFIG_EROFS_FS_ZIP) += unzip_vle.o unzip_vle_lz4.o
-diff --git a/drivers/staging/media/davinci_vpfe/Makefile b/drivers/staging/media/davinci_vpfe/Makefile
-index 9c57042..9268e50 100644
---- a/drivers/staging/media/davinci_vpfe/Makefile
-+++ b/drivers/staging/media/davinci_vpfe/Makefile
-@@ -6,5 +6,5 @@ davinci-vfpe-objs := \
- 
- # Allow building it with COMPILE_TEST on other archs
- ifndef CONFIG_ARCH_DAVINCI
--ccflags-y += -Iarch/arm/mach-davinci/include/
-+ccflags-y += -I $(srctree)/arch/arm/mach-davinci/include/
- endif
-diff --git a/drivers/staging/most/Makefile b/drivers/staging/most/Makefile
-index f8bcf48..c7662f6 100644
---- a/drivers/staging/most/Makefile
-+++ b/drivers/staging/most/Makefile
-@@ -1,7 +1,7 @@
- # SPDX-License-Identifier: GPL-2.0
- obj-$(CONFIG_MOST) += most_core.o
- most_core-y := core.o
--ccflags-y += -Idrivers/staging/
-+ccflags-y += -I $(srctree)/drivers/staging/
- 
- obj-$(CONFIG_MOST_CDEV)	+= cdev/
- obj-$(CONFIG_MOST_NET)	+= net/
-diff --git a/drivers/staging/most/cdev/Makefile b/drivers/staging/most/cdev/Makefile
-index afb9870..21b0bd7 100644
---- a/drivers/staging/most/cdev/Makefile
-+++ b/drivers/staging/most/cdev/Makefile
-@@ -1,4 +1,4 @@
- obj-$(CONFIG_MOST_CDEV) += most_cdev.o
- 
- most_cdev-objs := cdev.o
--ccflags-y += -Idrivers/staging/
-+ccflags-y += -I $(srctree)/drivers/staging/
-diff --git a/drivers/staging/most/dim2/Makefile b/drivers/staging/most/dim2/Makefile
-index 66676f5..6d15f04 100644
---- a/drivers/staging/most/dim2/Makefile
-+++ b/drivers/staging/most/dim2/Makefile
-@@ -1,4 +1,4 @@
- obj-$(CONFIG_MOST_DIM2) += most_dim2.o
- 
- most_dim2-objs := dim2.o hal.o sysfs.o
--ccflags-y += -Idrivers/staging/
-+ccflags-y += -I $(srctree)/drivers/staging/
-diff --git a/drivers/staging/most/i2c/Makefile b/drivers/staging/most/i2c/Makefile
-index a7d094c..c032fea 100644
---- a/drivers/staging/most/i2c/Makefile
-+++ b/drivers/staging/most/i2c/Makefile
-@@ -1,4 +1,4 @@
- obj-$(CONFIG_MOST_I2C) += most_i2c.o
- 
- most_i2c-objs := i2c.o
--ccflags-y += -Idrivers/staging/
-+ccflags-y += -I $(srctree)/drivers/staging/
-diff --git a/drivers/staging/most/net/Makefile b/drivers/staging/most/net/Makefile
-index 54500aa..820faec 100644
---- a/drivers/staging/most/net/Makefile
-+++ b/drivers/staging/most/net/Makefile
-@@ -1,4 +1,4 @@
- obj-$(CONFIG_MOST_NET) += most_net.o
- 
- most_net-objs := net.o
--ccflags-y += -Idrivers/staging/
-+ccflags-y += -I $(srctree)/drivers/staging/
-diff --git a/drivers/staging/most/sound/Makefile b/drivers/staging/most/sound/Makefile
-index eee8774..5bb55bb 100644
---- a/drivers/staging/most/sound/Makefile
-+++ b/drivers/staging/most/sound/Makefile
-@@ -1,4 +1,4 @@
- obj-$(CONFIG_MOST_SOUND) += most_sound.o
- 
- most_sound-objs := sound.o
--ccflags-y += -Idrivers/staging/
-+ccflags-y += -I $(srctree)/drivers/staging/
-diff --git a/drivers/staging/most/usb/Makefile b/drivers/staging/most/usb/Makefile
-index 18d28cb..910cd08 100644
---- a/drivers/staging/most/usb/Makefile
-+++ b/drivers/staging/most/usb/Makefile
-@@ -1,4 +1,4 @@
- obj-$(CONFIG_MOST_USB) += most_usb.o
- 
- most_usb-objs := usb.o
--ccflags-y += -Idrivers/staging/
-+ccflags-y += -I $(srctree)/drivers/staging/
-diff --git a/drivers/staging/most/video/Makefile b/drivers/staging/most/video/Makefile
-index 1c8e520..c6e01b6e 100644
---- a/drivers/staging/most/video/Makefile
-+++ b/drivers/staging/most/video/Makefile
-@@ -1,4 +1,4 @@
- obj-$(CONFIG_MOST_VIDEO) += most_video.o
- 
- most_video-objs := video.o
--ccflags-y += -Idrivers/staging/
-+ccflags-y += -I $(srctree)/drivers/staging/
-diff --git a/drivers/staging/rtl8192u/Makefile b/drivers/staging/rtl8192u/Makefile
-index 3022728..dcd51bf 100644
---- a/drivers/staging/rtl8192u/Makefile
-+++ b/drivers/staging/rtl8192u/Makefile
-@@ -7,7 +7,7 @@ ccflags-y += -O2
- ccflags-y += -DCONFIG_FORCE_HARD_FLOAT=y
- ccflags-y += -DJACKSON_NEW_8187 -DJACKSON_NEW_RX
- ccflags-y += -DTHOMAS_BEACON -DTHOMAS_TASKLET -DTHOMAS_SKB -DTHOMAS_TURBO
--ccflags-y += -Idrivers/staging/rtl8192u/ieee80211
-+ccflags-y += -I $(srctree)/$(src)/ieee80211
- 
- r8192u_usb-y := r8192U_core.o r8180_93cx6.o r8192U_wx.o		\
- 		  r8190_rtl8256.o r819xU_phy.o r819xU_firmware.o	\
-diff --git a/drivers/staging/unisys/visorhba/Makefile b/drivers/staging/unisys/visorhba/Makefile
-index a8a8e0e..97e4875 100644
---- a/drivers/staging/unisys/visorhba/Makefile
-+++ b/drivers/staging/unisys/visorhba/Makefile
-@@ -6,5 +6,4 @@ obj-$(CONFIG_UNISYS_VISORHBA)	+= visorhba.o
- 
- visorhba-y := visorhba_main.o
- 
--ccflags-y += -Idrivers/staging/unisys/include
--
-+ccflags-y += -I $(srctree)/$(src)/../include
-diff --git a/drivers/staging/unisys/visornic/Makefile b/drivers/staging/unisys/visornic/Makefile
-index 439e95e..336a746f 100644
---- a/drivers/staging/unisys/visornic/Makefile
-+++ b/drivers/staging/unisys/visornic/Makefile
-@@ -6,5 +6,4 @@ obj-$(CONFIG_UNISYS_VISORNIC)	+= visornic.o
- 
- visornic-y := visornic_main.o
- 
--ccflags-y += -Idrivers/staging/unisys/include
--
-+ccflags-y += -I $(srctree)/$(src)/../include
-diff --git a/drivers/staging/vc04_services/bcm2835-audio/Makefile b/drivers/staging/vc04_services/bcm2835-audio/Makefile
-index d7b88d1..536bd0c 100644
---- a/drivers/staging/vc04_services/bcm2835-audio/Makefile
-+++ b/drivers/staging/vc04_services/bcm2835-audio/Makefile
-@@ -1,5 +1,4 @@
- obj-$(CONFIG_SND_BCM2835)	+= snd-bcm2835.o
- snd-bcm2835-objs		:= bcm2835.o bcm2835-ctl.o bcm2835-pcm.o bcm2835-vchiq.o
- 
--ccflags-y += -Idrivers/staging/vc04_services -D__VCCOREVER__=0x04000000
--
-+ccflags-y += -I $(srctree)/$(src)/.. -D__VCCOREVER__=0x04000000
-diff --git a/drivers/staging/vc04_services/bcm2835-camera/Makefile b/drivers/staging/vc04_services/bcm2835-camera/Makefile
-index 2a4565e..472f21e 100644
---- a/drivers/staging/vc04_services/bcm2835-camera/Makefile
-+++ b/drivers/staging/vc04_services/bcm2835-camera/Makefile
-@@ -7,5 +7,5 @@ bcm2835-v4l2-$(CONFIG_VIDEO_BCM2835) := \
- obj-$(CONFIG_VIDEO_BCM2835) += bcm2835-v4l2.o
- 
- ccflags-y += \
--	-Idrivers/staging/vc04_services \
-+	-I $(srctree)/$(src)/.. \
- 	-D__VCCOREVER__=0x04000000
--- 
-2.7.4
+Full logs are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
