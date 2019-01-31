@@ -2,67 +2,72 @@ Return-Path: <SRS0=gTyh=QH=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.0 required=3.0
+	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 916DCC169C4
-	for <linux-media@archiver.kernel.org>; Thu, 31 Jan 2019 14:09:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 43220C169C4
+	for <linux-media@archiver.kernel.org>; Thu, 31 Jan 2019 14:11:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6765A20869
-	for <linux-media@archiver.kernel.org>; Thu, 31 Jan 2019 14:09:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1C56A20869
+	for <linux-media@archiver.kernel.org>; Thu, 31 Jan 2019 14:11:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727237AbfAaOJh (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 31 Jan 2019 09:09:37 -0500
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:59137 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726977AbfAaOJh (ORCPT
+        id S1727202AbfAaOLB (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 31 Jan 2019 09:11:01 -0500
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:57009 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726977AbfAaOLB (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 31 Jan 2019 09:09:37 -0500
+        Thu, 31 Jan 2019 09:11:01 -0500
 Received: from [192.168.2.10] ([212.251.195.8])
         by smtp-cloud8.xs4all.net with ESMTPA
-        id pD24gDRJGNR5ypD27gQXu6; Thu, 31 Jan 2019 15:09:35 +0100
+        id pD3QgDSd3NR5ypD3TgQYck; Thu, 31 Jan 2019 15:11:00 +0100
 To:     Linux Media Mailing List <linux-media@vger.kernel.org>
 From:   Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] videobuf2: remove unused variable
-Message-ID: <bee3b3cf-a125-0e80-688a-351b442f142c@xs4all.nl>
-Date:   Thu, 31 Jan 2019 15:09:32 +0100
+Subject: [GIT PULL FOR v5.1] Various fixes
+Message-ID: <c7e9ed04-49c5-3a2d-aecb-98648d0e1ab9@xs4all.nl>
+Date:   Thu, 31 Jan 2019 15:10:56 +0100
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
  Thunderbird/60.4.0
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfJrOZM3ELaoRFcOxhk7BgrG5Mk03lv7IjukFTbYoxuDFMDQXm8sP9ijej4LhiVUsRS4FwWAD/w2soCPhw16Cg+OIYbfBrhxJ2OMxYc/QRcOAT8SwVG/J
- iAJheSfMNtfLHor90CFk+Cbzufcny2rdsEo/2eRtzIUGbOnd/XmBrfmTuldGsvQ353gr96Am8jG48Q==
+X-CMAE-Envelope: MS4wfGX1DgNgvpeQuhu1p/i0FqGTEfHiCrIZZw2IpJF4o+nrtBgFJGPC/6mo53s1Dmuw2Zghj9B8MeXfUWWxYrr7MN3O31VfJyqfshNW/hcQgG7Y+2pcf1rA
+ X7CpiOsCqBm6un/jwgdmSkxCQHuQA6DyIzpgxOqUknqgtBf1i7cSRCQkDuAV3cnEJZ0XSiwlL2PmsA==
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Commit 2cc1802f62e5 ("media: vb2: Keep dma-buf buffers mapped until
-they are freed") removed code leaving a local variable unused.
+The following changes since commit 560c053deb94ff65b22a87f28e8e2fab5940555c:
 
-Remove it to avoid a compiler warning.
+  media: vivid: fix vid_out_buf_prepare() (2019-01-31 09:32:05 -0200)
 
-Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Fixes: 2cc1802f62e5 ("media: vb2: Keep dma-buf buffers mapped until they are freed")
----
- drivers/media/common/videobuf2/videobuf2-core.c | 1 -
- 1 file changed, 1 deletion(-)
+are available in the Git repository at:
 
-diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
-index e07b6bdb6982..34cc87ca8d59 100644
---- a/drivers/media/common/videobuf2/videobuf2-core.c
-+++ b/drivers/media/common/videobuf2/videobuf2-core.c
-@@ -1769,7 +1769,6 @@ EXPORT_SYMBOL_GPL(vb2_wait_for_all_buffers);
- static void __vb2_dqbuf(struct vb2_buffer *vb)
- {
- 	struct vb2_queue *q = vb->vb2_queue;
--	unsigned int i;
+  git://linuxtv.org/hverkuil/media_tree.git tags/br-v5.1k
 
- 	/* nothing to do if the buffer is already dequeued */
- 	if (vb->state == VB2_BUF_STATE_DEQUEUED)
--- 
-2.20.1
+for you to fetch changes up to 277a309f78411c5c4bc088c72dc19281f53f81a4:
 
+  vicodec: support SOURCE_CHANGE event for decoders only (2019-01-31 15:08:58 +0100)
+
+----------------------------------------------------------------
+Tag branch
+
+----------------------------------------------------------------
+Hans Verkuil (5):
+      videobuf2: remove unused variable
+      vicodec: check type in g/s_selection
+      vicodec: fill in bus_info in media_device_info
+      vim2m: fill in bus_info in media_device_info
+      vicodec: support SOURCE_CHANGE event for decoders only
+
+Philipp Zabel (1):
+      media: imx-pxp: fix duplicated if condition
+
+ drivers/media/common/videobuf2/videobuf2-core.c |  1 -
+ drivers/media/platform/imx-pxp.c                |  2 +-
+ drivers/media/platform/vicodec/vicodec-core.c   | 18 +++++++++++++++---
+ drivers/media/platform/vim2m.c                  |  2 ++
+ 4 files changed, 18 insertions(+), 5 deletions(-)
