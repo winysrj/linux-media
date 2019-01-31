@@ -2,103 +2,161 @@ Return-Path: <SRS0=gTyh=QH=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_PASS,UNPARSEABLE_RELAY,
+	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 08891C169C4
-	for <linux-media@archiver.kernel.org>; Thu, 31 Jan 2019 13:36:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 99E6CC169C4
+	for <linux-media@archiver.kernel.org>; Thu, 31 Jan 2019 14:03:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C96F42085B
-	for <linux-media@archiver.kernel.org>; Thu, 31 Jan 2019 13:36:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7562920869
+	for <linux-media@archiver.kernel.org>; Thu, 31 Jan 2019 14:03:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732468AbfAaNgs (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 31 Jan 2019 08:36:48 -0500
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:35160 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726714AbfAaNgs (ORCPT
+        id S1733009AbfAaODV (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 31 Jan 2019 09:03:21 -0500
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:44122 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727248AbfAaODU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 31 Jan 2019 08:36:48 -0500
-Received: from [192.168.2.10] ([212.251.195.8])
-        by smtp-cloud8.xs4all.net with ESMTPA
-        id pCWIgCzaVNR5ypCWMgQKqJ; Thu, 31 Jan 2019 14:36:46 +0100
-Subject: Re: [PATCH] media: v4l2-tpg: Fix the memory layout of AYUV buffers
-To:     Vivek Kasireddy <vivek.kasireddy@intel.com>,
-        linux-media@vger.kernel.org, Philipp Zabel <p.zabel@pengutronix.de>
-References: <20190129023222.10036-1-vivek.kasireddy@intel.com>
-From:   Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <92dbd1f9-f5dc-37ed-856a-b3b2aa2b75d5@xs4all.nl>
-Date:   Thu, 31 Jan 2019 14:36:42 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.4.0
-MIME-Version: 1.0
-In-Reply-To: <20190129023222.10036-1-vivek.kasireddy@intel.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+        Thu, 31 Jan 2019 09:03:20 -0500
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+        (Authenticated sender: ezequiel)
+        with ESMTPSA id 5CFD127FEAC
+Message-ID: <ef348923cfbd18a2566ec0e3d6af3d75b46c32aa.camel@collabora.com>
+Subject: Re: [PATCH 0/4] WIP: rockchip mpp for v4l2 video decoder
+From:   Ezequiel Garcia <ezequiel@collabora.com>
+To:     ayaka <ayaka@soulik.info>, linux-media@vger.kernel.org
+Cc:     acourbot@chromium.org, nicolas@ndufresne.ca,
+        paul.kocialkowski@bootlin.com, jernej.skrabec@gmail.com,
+        joro@8bytes.org, mchehab@kernel.org, maxime.ripard@bootlin.com,
+        hverkuil@xs4all.nl, thomas.petazzoni@bootlin.com,
+        randy.li@rock-chips.com, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux-rockchip@lists.infradead.org
+Date:   Thu, 31 Jan 2019 11:03:06 -0300
+In-Reply-To: <20190131031333.11905-1-ayaka@soulik.info>
+References: <20190131031333.11905-1-ayaka@soulik.info>
+Organization: Collabora
+Content-Type: text/plain; charset="UTF-8"
+User-Agent: Evolution 3.30.3-1 
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfKQRly/HlMcLefoWmXMlTvI/2Y9sRKoVpNS+ewtgfhKLkoihboUypj92oV7OzInUmnqUAyM4aBuIjGuYwOmyua+Ksojtd8tEtbmrvKoN2Jrw1budFNn6
- 7kG/fa1JSIsL2ndNo2TuxXYaUwKbv9FWrNqByVZkcZsnyJXaTth3L49NZ4L8F177Lv5VbsxDwMSH9gW7VmplDp1hEg17aigUNXg1OfoOYi9FAoQ0SKZn7QJ6
- 9ZsgW9c2sKFk/igFxXtiGQ==
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Vivek,
+Hey Ayaka!
 
-On 1/29/19 3:32 AM, Vivek Kasireddy wrote:
-> From: "Kasireddy, Vivek" <vivek.kasireddy@intel.com>
+On Thu, 2019-01-31 at 11:13 +0800, ayaka wrote:
+> From: Randy 'ayaka' Li <ayaka@soulik.info>
 > 
-> The memory layout of AYUV buffers (V4L2_PIX_FMT_YUV32) should be similar
-> to V4L2_PIX_FMT_ABGR32 instead of V4L2_PIX_FMT_ARGB32.
+> Hello
+>   Those patches are based on the previous vendor driver I post before,
+> but it can apply without the previous one.
+>   I really want to make it work before FOSDEM and I didn't. And upcoming
+> the lunar new year holiday would last two week.
 > 
-> While displaying the packed AYUV buffers generated by the Vivid driver
-> using v4l2-tpg on Weston, it was observed that these AYUV images were not
-> getting displayed correctly. Changing the memory layout makes them display
-> as expected.
-
-Our YUV32 fourcc is defined as follows:
-
-https://hverkuil.home.xs4all.nl/spec/uapi/v4l/pixfmt-packed-yuv.html
-
-As far as I see the format that the TPG generates is according to the V4L2 spec.
-
-Philipp, can you check the YUV32 format that the imx-pxp driver uses?
-Is that according to our spec?
-
-At some point we probably want to add a VUY32 format which is what Weston
-expects, but we certainly cannot change what the TPG generates for YUV32
-since that is correct.
-
-Regards,
-
-	Hans
-
+>   I have verified the v4l2 part but I meet a problem with power or
+> clock, it would be a complex problem, I would handle to solve it after I
+> am back. But I just tell my design on this kind dirver.
 > 
-> Signed-off-by: Vivek Kasireddy <vivek.kasireddy@intel.com>
-> ---
->  drivers/media/common/v4l2-tpg/v4l2-tpg-core.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+
+This the branch I'm about to submit:
+
+http://git.infradead.org/users/ezequielg/linux/shortlog/refs/heads/vpu-mpeg-2-almost-ready-for-upstream
+
+And it has no power issues. Perhaps you can take a look inside,
+you might be just missing a few pm_ statements? Perhaps a devicetree thing?
+
+> A few questions I think you may ask I would like to answer it here.
 > 
-> diff --git a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
-> index d9a590ae7545..825667f67c92 100644
-> --- a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
-> +++ b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
-> @@ -1269,7 +1269,6 @@ static void gen_twopix(struct tpg_data *tpg,
->  	case V4L2_PIX_FMT_HSV32:
->  		alpha = 0;
->  		/* fall through */
-> -	case V4L2_PIX_FMT_YUV32:
->  	case V4L2_PIX_FMT_ARGB32:
->  		buf[0][offset] = alpha;
->  		buf[0][offset + 1] = r_y_h;
-> @@ -1280,6 +1279,7 @@ static void gen_twopix(struct tpg_data *tpg,
->  	case V4L2_PIX_FMT_XBGR32:
->  		alpha = 0;
->  		/* fall through */
-> +	case V4L2_PIX_FMT_YUV32:
->  	case V4L2_PIX_FMT_ABGR32:
->  		buf[0][offset] = b_v;
->  		buf[0][offset + 1] = g_u_s;
+
+I have another question: is this patchset meant to support for mpeg-2
+decoding only? I can't find any other codec code.
+
+Thanks,
+Ezequiel
+
+> 1. Why it is based on the previous vendor driver ?
+> The vendor driver I post to mail list is a clean version which having a
+> efficient work flow and those platform dependency controls having been
+> merged into it.
 > 
+> For the stateless device, V4L2 is just another interface for userspace
+> to translate it into registers.
+> 
+> 2. Why use a structure to store register infomation not marco ?
+> I really don't want to define many marcos for a device having more than
+> a hundred of registers. And there are many fields in a registers.
+> 
+> For the VDPU1/VDPU2 which would support more than 10 video codecs, these
+> two devices would re-use many registers for many codecs, It would be
+> hard to show the conflict relations between them in marco but more easy
+> with C union and structure.
+> 
+> BTW, I would prefer to write a number of registers into the device
+> though AHB bus not just generate one then write one, you can save some
+> times here.
+> 
+> 
+> Besides the two previous answers. I really have a big problem with v4l2
+> design. Which would driver wait the work of the previous picture is
+> done, leading a large gap time more idle of the device. 
+> 
+> I am ok the current face that v4l2 stateless driver is not stateless.
+> But it would limit the ability of stateless decoder. It is more flexible
+> to those videos having different resolution or orientation sequences.
+> 
+> But I don't like the method to reconstruct the bitstream in driver, it
+> is a bad idea to limit what data the device want. Those problem is
+> mainly talking in the HEVC slice thread. And it was ironic for the VPx
+> serial codec, which mixed compressed data and umcompress header together
+> and twisted. Even for the ITU H serial codec, it would become a problem
+> in SVC or Google Android CTS test.
+> 
+> And thanks kwiboo, ezequielg and Paulk, I copy some v4l2 code from their
+> code.
+> 
+> Randy Li (1):
+>   staging: video: rockchip: add video codec
+> 
+> ayaka (3):
+>   [WIP]: staging: video: rockchip: add v4l2 common
+>   [WIP] staging: video: rockchip: vdpu2
+>   [TEST]: rockchip: mpp: support qtable
+> 
+>  drivers/staging/Kconfig                       |    2 +
+>  drivers/staging/Makefile                      |    1 +
+>  drivers/staging/rockchip-mpp/Kconfig          |   54 +
+>  drivers/staging/rockchip-mpp/Makefile         |    8 +
+>  drivers/staging/rockchip-mpp/mpp_debug.h      |   87 ++
+>  drivers/staging/rockchip-mpp/mpp_dev_common.c | 1365 +++++++++++++++++
+>  drivers/staging/rockchip-mpp/mpp_dev_common.h |  215 +++
+>  drivers/staging/rockchip-mpp/mpp_dev_rkvdec.c |  878 +++++++++++
+>  drivers/staging/rockchip-mpp/mpp_dev_vdpu2.c  |  755 +++++++++
+>  drivers/staging/rockchip-mpp/mpp_service.c    |  197 +++
+>  drivers/staging/rockchip-mpp/mpp_service.h    |   38 +
+>  drivers/staging/rockchip-mpp/rkvdec/hal.h     |   53 +
+>  drivers/staging/rockchip-mpp/rkvdec/regs.h    |  395 +++++
+>  drivers/staging/rockchip-mpp/vdpu2/hal.h      |   52 +
+>  drivers/staging/rockchip-mpp/vdpu2/mpeg2.c    |  253 +++
+>  drivers/staging/rockchip-mpp/vdpu2/regs.h     |  699 +++++++++
+>  16 files changed, 5052 insertions(+)
+>  create mode 100644 drivers/staging/rockchip-mpp/Kconfig
+>  create mode 100644 drivers/staging/rockchip-mpp/Makefile
+>  create mode 100644 drivers/staging/rockchip-mpp/mpp_debug.h
+>  create mode 100644 drivers/staging/rockchip-mpp/mpp_dev_common.c
+>  create mode 100644 drivers/staging/rockchip-mpp/mpp_dev_common.h
+>  create mode 100644 drivers/staging/rockchip-mpp/mpp_dev_rkvdec.c
+>  create mode 100644 drivers/staging/rockchip-mpp/mpp_dev_vdpu2.c
+>  create mode 100644 drivers/staging/rockchip-mpp/mpp_service.c
+>  create mode 100644 drivers/staging/rockchip-mpp/mpp_service.h
+>  create mode 100644 drivers/staging/rockchip-mpp/rkvdec/hal.h
+>  create mode 100644 drivers/staging/rockchip-mpp/rkvdec/regs.h
+>  create mode 100644 drivers/staging/rockchip-mpp/vdpu2/hal.h
+>  create mode 100644 drivers/staging/rockchip-mpp/vdpu2/mpeg2.c
+>  create mode 100644 drivers/staging/rockchip-mpp/vdpu2/regs.h
+> 
+
 
