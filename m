@@ -2,249 +2,155 @@ Return-Path: <SRS0=gTyh=QH=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 22D9AC169C4
-	for <linux-media@archiver.kernel.org>; Thu, 31 Jan 2019 12:18:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 66FF6C169C4
+	for <linux-media@archiver.kernel.org>; Thu, 31 Jan 2019 12:31:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EAA8A218AC
-	for <linux-media@archiver.kernel.org>; Thu, 31 Jan 2019 12:18:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 397942087F
+	for <linux-media@archiver.kernel.org>; Thu, 31 Jan 2019 12:31:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732244AbfAaMSg (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 31 Jan 2019 07:18:36 -0500
-Received: from mga04.intel.com ([192.55.52.120]:12865 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726266AbfAaMSg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 31 Jan 2019 07:18:36 -0500
-X-Amp-Result: UNKNOWN
-X-Amp-Original-Verdict: FILE UNKNOWN
-X-Amp-File-Uploaded: False
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 31 Jan 2019 04:18:35 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.56,544,1539673200"; 
-   d="scan'208";a="143046012"
-Received: from paasikivi.fi.intel.com ([10.237.72.42])
-  by fmsmga001.fm.intel.com with ESMTP; 31 Jan 2019 04:18:31 -0800
-Received: by paasikivi.fi.intel.com (Postfix, from userid 1000)
-        id 2EB68206EA; Thu, 31 Jan 2019 14:18:30 +0200 (EET)
-Date:   Thu, 31 Jan 2019 14:18:30 +0200
-From:   Sakari Ailus <sakari.ailus@linux.intel.com>
-To:     "Mani, Rajmohan" <rajmohan.mani@intel.com>
-Cc:     Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        id S1732394AbfAaMa5 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 31 Jan 2019 07:30:57 -0500
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:53832 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1732190AbfAaMa5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 31 Jan 2019 07:30:57 -0500
+Received: from [192.168.2.10] ([212.251.195.8])
+        by smtp-cloud8.xs4all.net with ESMTPA
+        id pBUYgC7rHNR5ypBUcgPwOE; Thu, 31 Jan 2019 13:30:55 +0100
+Subject: Re: [PATCH v3 1/2] media: docs-rst: Document memory-to-memory video
+ decoder interface
+From:   Hans Verkuil <hverkuil@xs4all.nl>
+To:     Tomasz Figa <tfiga@chromium.org>, linux-media@vger.kernel.org
+Cc:     linux-kernel@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Pawel Osciak <posciak@chromium.org>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Kamil Debski <kamil@wypas.org>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Jeongtae Park <jtp.park@samsung.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        =?UTF-8?B?VGlmZmFueSBMaW4gKOael+aFp+ePiik=?= 
+        <tiffany.lin@mediatek.com>,
+        =?UTF-8?B?QW5kcmV3LUNUIENoZW4gKOmZs+aZuui/qik=?= 
+        <andrew-ct.chen@mediatek.com>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Todor Tomov <todor.tomov@linaro.org>,
+        Nicolas Dufresne <nicolas@ndufresne.ca>,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Jacopo Mondi <jacopo@jmondi.org>,
-        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
-        "Cao, Bingbu" <bingbu.cao@intel.com>,
-        "Zhi@paasikivi.fi.intel.com" <Zhi@paasikivi.fi.intel.com>,
-        "Zhi, Yong" <yong.zhi@intel.com>,
-        "hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
-        "tfiga@chromium.org" <tfiga@chromium.org>
-Subject: Re: [PATCH] media: staging/intel-ipu3: Implement lock for stream
- on/off operations
-Message-ID: <20190131121829.gqirocqkzw23jfbd@paasikivi.fi.intel.com>
-References: <20190129222736.6216-1-rajmohan.mani@intel.com>
- <20190130085901.w2ogdoax7t4yfyj6@paasikivi.fi.intel.com>
- <6F87890CF0F5204F892DEA1EF0D77A599B325222@fmsmsx122.amr.corp.intel.com>
+        dave.stevenson@raspberrypi.org,
+        Ezequiel Garcia <ezequiel@collabora.com>,
+        Maxime Jourdan <maxi.jourdan@wanadoo.fr>
+References: <20190124100419.26492-1-tfiga@chromium.org>
+ <20190124100419.26492-2-tfiga@chromium.org>
+ <a3b1b650-94d7-bb84-41ef-dc4cab0cdae1@xs4all.nl>
+Message-ID: <54430438-33a3-2c52-b6c8-4000a4088906@xs4all.nl>
+Date:   Thu, 31 Jan 2019 13:30:50 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.4.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <6F87890CF0F5204F892DEA1EF0D77A599B325222@fmsmsx122.amr.corp.intel.com>
-User-Agent: NeoMutt/20170113 (1.7.2)
+In-Reply-To: <a3b1b650-94d7-bb84-41ef-dc4cab0cdae1@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
+X-CMAE-Envelope: MS4wfOc28gtCoel/Cq8N+7JjHodK5j1/KHHMOouXy7Cy5RfhDtWaIV0lAHxXUMHe664UdX783dzFs0xxDZKJALO7svd8xSZBYe8yDrq+3wT91VVgbcXSA7xm
+ qpQWw4OAOmkqfglR+9y/RIg08dgq/imiRleIM/sMr5X5gUyr5Dh43AHBBDaeEopKr3yfK2FneaV8B87jPXON1dYPxXsS3lfNdgab/CmSnya7lKLtku6qpMxP
+ bpcF0ihJ7C099MyVpVzw5sHrqjAjxtSV9JHpSwLXvZGS4gMCkBEMxrH3qcu+Y+Ndq8RNM852DH/FfGV7S7FtJNLvz/DvLX3J2vWczIOwRcL3/voyWQNgJrPe
+ gbLCwEsxuKSF0fwvxEWIG6XpjjCnugLeXl5bhAFypfGCfP4QlAMgz8fBm7rfGVYSmxc6hpaqoomacaSmsIA85+3C15+vTI5UjchTLVdj0tvS3pKaGJ5JR7Vb
+ h9XHRsdTaB3U2YZWYmmsIZwc1F4l09bXePw2tI+rKSZVXb2VqGyn1mNtMQn3TFVyx0CxmLJugc0zG3RAPs2Rwt28R8ndBl7f0ACO3JlnXU+opKKQnSZ7f90g
+ ay+dI5FIiza14UvZOvrg56S57rj4sAS/jqCN+t7DsT0/hLQZsoheu2tqwy9rSSgTZ1/4+16w2kqdaXPYhpiApSs6w3nYM6OMf52xZGG908NFTS7oH9rZLLyd
+ khJmdk5nklaLDE7VvkS11xb3fjI3933+UMvR6HnmU/OqITp7bHdeAaacBO9fqNkRbsuiFcQeG5cUcow9oHnr/tx7BD7jHt1dIa8kL0Mh6hePbzZTJafL925a
+ 3TvgH+uSZ4oxye81il90urfu/ypYgxKvuurHkq7C0WjbsJ6woGGurEW7iHEkVIRtk7ykzwOXJm0hWQegGwY=
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Raj,
+On 1/31/19 11:45 AM, Hans Verkuil wrote:
+> On 1/24/19 11:04 AM, Tomasz Figa wrote:
+>> Due to complexity of the video decoding process, the V4L2 drivers of
+>> stateful decoder hardware require specific sequences of V4L2 API calls
+>> to be followed. These include capability enumeration, initialization,
+>> decoding, seek, pause, dynamic resolution change, drain and end of
+>> stream.
+>>
+>> Specifics of the above have been discussed during Media Workshops at
+>> LinuxCon Europe 2012 in Barcelona and then later Embedded Linux
+>> Conference Europe 2014 in Düsseldorf. The de facto Codec API that
+>> originated at those events was later implemented by the drivers we already
+>> have merged in mainline, such as s5p-mfc or coda.
+>>
+>> The only thing missing was the real specification included as a part of
+>> Linux Media documentation. Fix it now and document the decoder part of
+>> the Codec API.
+>>
+>> Signed-off-by: Tomasz Figa <tfiga@chromium.org>
+>> ---
+>>  Documentation/media/uapi/v4l/dev-decoder.rst  | 1076 +++++++++++++++++
+>>  Documentation/media/uapi/v4l/dev-mem2mem.rst  |    5 +
+>>  Documentation/media/uapi/v4l/pixfmt-v4l2.rst  |    5 +
+>>  Documentation/media/uapi/v4l/v4l2.rst         |   10 +-
+>>  .../media/uapi/v4l/vidioc-decoder-cmd.rst     |   40 +-
+>>  Documentation/media/uapi/v4l/vidioc-g-fmt.rst |   14 +
+>>  6 files changed, 1135 insertions(+), 15 deletions(-)
+>>  create mode 100644 Documentation/media/uapi/v4l/dev-decoder.rst
+>>
+> 
+> <snip>
+> 
+>> +4.  **This step only applies to coded formats that contain resolution information
+>> +    in the stream.** Continue queuing/dequeuing bitstream buffers to/from the
+>> +    ``OUTPUT`` queue via :c:func:`VIDIOC_QBUF` and :c:func:`VIDIOC_DQBUF`. The
+>> +    buffers will be processed and returned to the client in order, until
+>> +    required metadata to configure the ``CAPTURE`` queue are found. This is
+>> +    indicated by the decoder sending a ``V4L2_EVENT_SOURCE_CHANGE`` event with
+>> +    ``V4L2_EVENT_SRC_CH_RESOLUTION`` source change type.
+>> +
+>> +    * It is not an error if the first buffer does not contain enough data for
+>> +      this to occur. Processing of the buffers will continue as long as more
+>> +      data is needed.
+>> +
+>> +    * If data in a buffer that triggers the event is required to decode the
+>> +      first frame, it will not be returned to the client, until the
+>> +      initialization sequence completes and the frame is decoded.
+>> +
+>> +    * If the client sets width and height of the ``OUTPUT`` format to 0,
+>> +      calling :c:func:`VIDIOC_G_FMT`, :c:func:`VIDIOC_S_FMT`,
+>> +      :c:func:`VIDIOC_TRY_FMT` or :c:func:`VIDIOC_REQBUFS` on the ``CAPTURE``
+>> +      queue will return the ``-EACCES`` error code, until the decoder
+>> +      configures ``CAPTURE`` format according to stream metadata.
+> 
+> I think this should also include the G/S_SELECTION ioctls, right?
 
-On Wed, Jan 30, 2019 at 05:17:15PM +0000, Mani, Rajmohan wrote:
-> Hi Sakari,
-> 
-> > -----Original Message-----
-> > From: Sakari Ailus [mailto:sakari.ailus@linux.intel.com]
-> > Sent: Wednesday, January 30, 2019 12:59 AM
-> > To: Mani, Rajmohan <rajmohan.mani@intel.com>
-> > Cc: Mauro Carvalho Chehab <mchehab@kernel.org>; Greg Kroah-Hartman
-> > <gregkh@linuxfoundation.org>; linux-media@vger.kernel.org;
-> > devel@driverdev.osuosl.org; linux-kernel@vger.kernel.org; Laurent Pinchart
-> > <laurent.pinchart@ideasonboard.com>; Jacopo Mondi <jacopo@jmondi.org>;
-> > Qiu, Tian Shu <tian.shu.qiu@intel.com>; Cao, Bingbu
-> > <bingbu.cao@intel.com>; Zhi@paasikivi.fi.intel.com; Zhi, Yong
-> > <yong.zhi@intel.com>; hverkuil@xs4all.nl; tfiga@chromium.org
-> > Subject: Re: [PATCH] media: staging/intel-ipu3: Implement lock for stream
-> > on/off operations
-> > 
-> > Hi Rajmohan,
-> > 
-> > On Tue, Jan 29, 2019 at 02:27:36PM -0800, Rajmohan Mani wrote:
-> > > Currently concurrent stream off operations on ImgU nodes are not
-> > > synchronized, leading to use-after-free bugs (as reported by KASAN).
-> > >
-> > > [  250.090724] BUG: KASAN: use-after-free in
-> > > ipu3_dmamap_free+0xc5/0x116 [ipu3_imgu] [  250.090726] Read of size 8
-> > > at addr ffff888127b29bc0 by task yavta/18836 [  250.090731] Hardware
-> > > name: HP Soraka/Soraka, BIOS Google_Soraka.10431.17.0 03/22/2018 [
-> > 250.090732] Call Trace:
-> > > [  250.090735]  dump_stack+0x6a/0xb1
-> > > [  250.090739]  print_address_description+0x8e/0x279
-> > > [  250.090743]  ? ipu3_dmamap_free+0xc5/0x116 [ipu3_imgu] [
-> > > 250.090746]  kasan_report+0x260/0x28a [  250.090750]
-> > > ipu3_dmamap_free+0xc5/0x116 [ipu3_imgu] [  250.090754]
-> > > ipu3_css_pool_cleanup+0x24/0x37 [ipu3_imgu] [  250.090759]
-> > > ipu3_css_pipeline_cleanup+0x61/0xb9 [ipu3_imgu] [  250.090763]
-> > > ipu3_css_stop_streaming+0x1f2/0x321 [ipu3_imgu] [  250.090768]
-> > > imgu_s_stream+0x94/0x443 [ipu3_imgu] [  250.090772]  ?
-> > > ipu3_vb2_buf_queue+0x280/0x280 [ipu3_imgu] [  250.090775]  ?
-> > > vb2_dma_sg_unmap_dmabuf+0x16/0x6f [videobuf2_dma_sg] [  250.090778]
-> > ?
-> > > vb2_buffer_in_use+0x36/0x58 [videobuf2_common] [  250.090782]
-> > > ipu3_vb2_stop_streaming+0xf9/0x135 [ipu3_imgu]
-> > >
-> > > Implemented a lock to synchronize imgu stream on / off operations and
-> > > the modification of streaming flag (in struct imgu_device), to prevent
-> > > these issues.
-> > >
-> > > Reported-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > > Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > >
-> > > Signed-off-by: Rajmohan Mani <rajmohan.mani@intel.com>
-> > > ---
-> > >  drivers/staging/media/ipu3/ipu3-v4l2.c | 6 ++++++
-> > >  drivers/staging/media/ipu3/ipu3.c      | 3 +++
-> > >  drivers/staging/media/ipu3/ipu3.h      | 4 ++++
-> > >  3 files changed, 13 insertions(+)
-> > >
-> > > diff --git a/drivers/staging/media/ipu3/ipu3-v4l2.c
-> > > b/drivers/staging/media/ipu3/ipu3-v4l2.c
-> > > index c7936032beb9..cf7e917cd0c8 100644
-> > > --- a/drivers/staging/media/ipu3/ipu3-v4l2.c
-> > > +++ b/drivers/staging/media/ipu3/ipu3-v4l2.c
-> > > @@ -507,12 +507,15 @@ static int ipu3_vb2_start_streaming(struct
-> > vb2_queue *vq, unsigned int count)
-> > >  			goto fail_stop_pipeline;
-> > >  	}
-> > >
-> > > +	mutex_lock(&imgu->streaming_lock);
-> > > +
-> > 
-> > You appear to be using imgu_device.lock (while searching buffers to queue to
-> > the device) as well as imgu_video_device.lock (qbuf, dqbuf) to serialise access
-> > to imgu_video_device.buffers list.
-> 
-> Ack
-> 
-> > The two locks may be acquired at the same
-> > time but each by different processes. That needs to be addressed, but
-> > probably not in this patch.
-> > 
-> 
-> The node specific locks will be used by different processes and all of these processes
-> will be competing commonly (and successfully) for the imgu_device lock.
-> I will look into this more.
+I've started work on adding compliance tests for codecs to v4l2-compliance and
+I quickly discovered that this 'EACCES' error code is not nice at all.
 
-Oops. I think I must have misread something; looking at the code again,
-indeed imgu_device.lock is acquired for all accesses. Please ignore this
-comment.
+The problem is that it is really inconsistent with V4L2 behavior: the basic
+rule is that there always is a format defined, i.e. G_FMT will always return
+a format.
 
-> 
-> > I wonder if it'd be more simple to use imgu->lock here instead of adding a new
-> > one.
-> > 
-> 
-> Extending imgu->lock here, does not work in this case, as imgu_queue_buffers()
-> will be stuck acquiring imgu->lock, which was already acquired by imgu_s_stream()
-> through ipu3_vb2_start_streaming().
-> 
-> > >  	/* Start streaming of the whole pipeline now */
-> > >  	dev_dbg(dev, "IMGU streaming is ready to start");
-> > >  	r = imgu_s_stream(imgu, true);
-> > >  	if (!r)
-> > >  		imgu->streaming = true;
-> > >
-> > > +	mutex_unlock(&imgu->streaming_lock);
-> > >  	return 0;
-> > >
-> > >  fail_stop_pipeline:
-> > > @@ -543,6 +546,8 @@ static void ipu3_vb2_stop_streaming(struct
-> > vb2_queue *vq)
-> > >  		dev_err(&imgu->pci_dev->dev,
-> > >  			"failed to stop subdev streaming\n");
-> > >
-> > > +	mutex_lock(&imgu->streaming_lock);
-> > > +
-> > >  	/* Was this the first node with streaming disabled? */
-> > >  	if (imgu->streaming && ipu3_all_nodes_streaming(imgu, node)) {
-> > >  		/* Yes, really stop streaming now */ @@ -552,6 +557,7 @@
-> > static
-> > > void ipu3_vb2_stop_streaming(struct vb2_queue *vq)
-> > >  			imgu->streaming = false;
-> > >  	}
-> > >
-> > > +	mutex_unlock(&imgu->streaming_lock);
-> > >  	ipu3_return_all_buffers(imgu, node, VB2_BUF_STATE_ERROR);
-> > 
-> > >  	media_pipeline_stop(&node->vdev.entity);
-> > >  }
-> > > diff --git a/drivers/staging/media/ipu3/ipu3.c
-> > > b/drivers/staging/media/ipu3/ipu3.c
-> > > index d521b3afb8b1..2daee51cd845 100644
-> > > --- a/drivers/staging/media/ipu3/ipu3.c
-> > > +++ b/drivers/staging/media/ipu3/ipu3.c
-> > > @@ -635,6 +635,7 @@ static int imgu_pci_probe(struct pci_dev *pci_dev,
-> > >  		return r;
-> > >
-> > >  	mutex_init(&imgu->lock);
-> > > +	mutex_init(&imgu->streaming_lock);
-> > >  	atomic_set(&imgu->qbuf_barrier, 0);
-> > >  	init_waitqueue_head(&imgu->buf_drain_wq);
-> > >
-> > > @@ -699,6 +700,7 @@ static int imgu_pci_probe(struct pci_dev *pci_dev,
-> > >  	ipu3_css_set_powerdown(&pci_dev->dev, imgu->base);
-> > >  out_mutex_destroy:
-> > >  	mutex_destroy(&imgu->lock);
-> > > +	mutex_destroy(&imgu->streaming_lock);
-> > >
-> > >  	return r;
-> > >  }
-> > > @@ -716,6 +718,7 @@ static void imgu_pci_remove(struct pci_dev
-> > *pci_dev)
-> > >  	ipu3_dmamap_exit(imgu);
-> > >  	ipu3_mmu_exit(imgu->mmu);
-> > >  	mutex_destroy(&imgu->lock);
-> > > +	mutex_destroy(&imgu->streaming_lock);
-> > >  }
-> > >
-> > >  static int __maybe_unused imgu_suspend(struct device *dev) diff --git
-> > > a/drivers/staging/media/ipu3/ipu3.h
-> > > b/drivers/staging/media/ipu3/ipu3.h
-> > > index 04fc99f47ebb..f732315f0701 100644
-> > > --- a/drivers/staging/media/ipu3/ipu3.h
-> > > +++ b/drivers/staging/media/ipu3/ipu3.h
-> > > @@ -146,6 +146,10 @@ struct imgu_device {
-> > >  	 * vid_buf.list and css->queue
-> > >  	 */
-> > >  	struct mutex lock;
-> > > +
-> > > +	/* Lock to protect writes to streaming flag in this struct */
-> > > +	struct mutex streaming_lock;
-> > > +
-> > >  	/* Forbit streaming and buffer queuing during system suspend. */
-> > >  	atomic_t qbuf_barrier;
-> > >  	/* Indicate if system suspend take place while imgu is streaming. */
-> > 
-> > --
-> > Regards,
-> > 
-> > Sakari Ailus
-> > sakari.ailus@linux.intel.com
+Suddenly returning an error is actually quite painful to handle because it is
+a weird exception just for the capture queue of a stateful decoder if no
+output resolution is known.
 
--- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+Just writing that sentence is painful.
+
+Why not just return some default driver defined format? It will automatically
+be updated once the decoder parsed the bitstream and knows the new resolution.
+
+It really is just the same behavior as with a resolution change.
+
+It is also perfectly fine to request buffers for the capture queue for that
+default format. It's pointless, but not a bug.
+
+Unless I am missing something I strongly recommend changing this behavior.
+
+Regards,
+
+	Hans
