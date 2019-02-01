@@ -2,152 +2,244 @@ Return-Path: <SRS0=EV+/=QI=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E02DC282D8
-	for <linux-media@archiver.kernel.org>; Fri,  1 Feb 2019 09:08:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 72C7DC282D8
+	for <linux-media@archiver.kernel.org>; Fri,  1 Feb 2019 09:21:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 07E6E2084A
-	for <linux-media@archiver.kernel.org>; Fri,  1 Feb 2019 09:08:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 426F720844
+	for <linux-media@archiver.kernel.org>; Fri,  1 Feb 2019 09:21:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728637AbfBAJI5 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 1 Feb 2019 04:08:57 -0500
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:57121 "EHLO
+        id S1727259AbfBAJVd (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 1 Feb 2019 04:21:33 -0500
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:42163 "EHLO
         lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726339AbfBAJI5 (ORCPT
+        by vger.kernel.org with ESMTP id S1726270AbfBAJVd (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 1 Feb 2019 04:08:57 -0500
+        Fri, 1 Feb 2019 04:21:33 -0500
 Received: from [IPv6:2001:983:e9a7:1:c10c:bd23:3f0c:b7eb] ([IPv6:2001:983:e9a7:1:c10c:bd23:3f0c:b7eb])
         by smtp-cloud9.xs4all.net with ESMTPA
-        id pUoegRiq2RO5ZpUofgYAlV; Fri, 01 Feb 2019 10:08:54 +0100
-Subject: Re: [PATCH] media: v4l2-tpg: Fix the memory layout of AYUV buffers
-To:     Vivek Kasireddy <vivek.kasireddy@intel.com>
-Cc:     linux-media@vger.kernel.org, Philipp Zabel <p.zabel@pengutronix.de>
-References: <20190129023222.10036-1-vivek.kasireddy@intel.com>
- <92dbd1f9-f5dc-37ed-856a-b3b2aa2b75d5@xs4all.nl>
- <20190131182903.08f28cd9@vkasired-desk2.fm.intel.com>
+        id pV0qgRp2MRO5ZpV0rgYDik; Fri, 01 Feb 2019 10:21:30 +0100
+Subject: Re: [PATCH v10 0/4] Media Device Allocator API
+To:     shuah <shuah@kernel.org>, mchehab@kernel.org, perex@perex.cz,
+        tiwai@suse.com
+Cc:     linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        alsa-devel@alsa-project.org
+References: <cover.1548360791.git.shuah@kernel.org>
+ <e8717d11-1eff-2e07-53d5-6cd55356c66a@xs4all.nl>
+ <481787e7-112a-80dd-228c-2497a12547b9@kernel.org>
+ <d9ae1073-f6a9-1085-c8f8-8edd05daece5@xs4all.nl>
+ <b9a62121-8ab0-5c1c-79ff-8bb39fc8b762@kernel.org>
+ <fe6d6f63-72e3-8e2f-462d-b029997d8ee9@xs4all.nl>
+ <7a809bc8-f75e-04e6-f612-f6111c6b5a71@kernel.org>
 From:   Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <85fadb6b-6adb-b800-a71f-a4f8b68a9acf@xs4all.nl>
-Date:   Fri, 1 Feb 2019 10:08:52 +0100
+Message-ID: <7e6dc7f1-f596-22d7-bdd6-b54bd912a40d@xs4all.nl>
+Date:   Fri, 1 Feb 2019 10:21:28 +0100
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
  Thunderbird/60.3.1
 MIME-Version: 1.0
-In-Reply-To: <20190131182903.08f28cd9@vkasired-desk2.fm.intel.com>
+In-Reply-To: <7a809bc8-f75e-04e6-f612-f6111c6b5a71@kernel.org>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfHrFcNmqj6kvIR/dXP+Fj/EpJ2wTCLbOThIvBLb5VPUJXIAEAv0UfN7floiMC0DHpQC4PmiXzlDu5Ni6z2+TWC6nJ2BGcf8ODHXHf5tRjfjBXajpyexI
- gmcGZariRemUaX/urNp3VHKJ+Cx16sxzPcTZ6+o4VOBtOHu0xRU+h1W66NVOmWWqNZJdcGmnr+C2wlSwb+bLI5R2hJZdWX1DjudS4zODcudoGLoiZEVCTKat
- RUTTR9HvyLKOKMqr88chMW2GdbODi6K0gxbBuZWYwJdQ1ztnKmEKurqvlqk4n8EQPoxPyjqqADw+BDT048NVE921iHDkZJwsnmdZgtoe0csyPVQes50JTi4M
- fpRTbOuS
+Content-Transfer-Encoding: 8bit
+X-CMAE-Envelope: MS4wfDWfpvQKPOlcLHtrX1Js/0xrrpDL1w3cEUPsT+kY4XXI81HOEjVIfDdONZsoHQqjoUbUKWtsPGzCYwxnqiA6ArPkpvOzI9gygcS+F0IfX0Dm/BBfxhm8
+ HVcn9jlMS1YiZ+82YGOAZpuG0IW2y37HIILy2OVOoXuXw8pyiWR5rTxYXZ8wSsCbxUbZIaZhDmaoHtm75OnmaYAuR+k83Iig++k2/Sfl8Z1SkaqFnKOx7Cj5
+ tzL8jXP8DaiaaigPb3yc/7cXLusGICo9nGFU97uryg1KH/QDNLj5tdf8SGPiybVjb1ww/XNefAjZ4G5iYp/CHdxylE1gt5ZAurHb/HPrI1EFLsvqkzNfYGez
+ xKA7YlgVx05tk6MY/2zzTR1nx1bQzh8xUdAnSVU21JoJWJb7FkhexbPPflWYUDygLwdwTebsz67mZkNwbVWGf8Kf0F3Z/0pR3vq/sAXhLzaWPXybK54=
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On 2/1/19 3:29 AM, Vivek Kasireddy wrote:
-> On Thu, 31 Jan 2019 14:36:42 +0100
-> Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> 
+On 2/1/19 1:46 AM, shuah wrote:
 > Hi Hans,
 > 
->> Hi Vivek,
->>
->> On 1/29/19 3:32 AM, Vivek Kasireddy wrote:
->>> From: "Kasireddy, Vivek" <vivek.kasireddy@intel.com>
+> On 1/30/19 12:42 AM, Hans Verkuil wrote:
+>> On 1/30/19 2:50 AM, shuah wrote:
+>>> On 1/29/19 2:43 AM, Hans Verkuil wrote:
+>>>> On 1/29/19 12:48 AM, shuah wrote:
+>>>>> Hi Hans,
+>>>>>
+>>>>> On 1/28/19 5:03 AM, Hans Verkuil wrote:
+>>>>>> Hi Shuah,
+>>>>>>
+>>>>>> On 1/24/19 9:32 PM, Shuah Khan wrote:
+>>>>>>> Media Device Allocator API to allows multiple drivers share a media device.
+>>>>>>> This API solves a very common use-case for media devices where one physical
+>>>>>>> device (an USB stick) provides both audio and video. When such media device
+>>>>>>> exposes a standard USB Audio class, a proprietary Video class, two or more
+>>>>>>> independent drivers will share a single physical USB bridge. In such cases,
+>>>>>>> it is necessary to coordinate access to the shared resource.
+>>>>>>>
+>>>>>>> Using this API, drivers can allocate a media device with the shared struct
+>>>>>>> device as the key. Once the media device is allocated by a driver, other
+>>>>>>> drivers can get a reference to it. The media device is released when all
+>>>>>>> the references are released.
+>>>>>>>
+>>>>>>> - This patch series is tested on 5.0-rc3 and addresses comments on
+>>>>>>>      v9 series from Hans Verkuil.
+>>>>>>> - v9 was tested on 4.20-rc6.
+>>>>>>> - Tested sharing resources with kaffeine, vlc, xawtv, tvtime, and
+>>>>>>>      arecord. When analog is streaming, digital and audio user-space
+>>>>>>>      applications detect that the tuner is busy and exit. When digital
+>>>>>>>      is streaming, analog and audio applications detect that the tuner is
+>>>>>>>      busy and exit. When arecord is owns the tuner, digital and analog
+>>>>>>>      detect that the tuner is busy and exit.
+>>>>>>
+>>>>>> I've been doing some testing with my au0828, and I am confused about one
+>>>>>> thing, probably because it has been too long ago since I last looked into
+>>>>>> this in detail:
+>>>>>>
+>>>>>
+>>>>> Great.
+>>>>>
+>>>>>> Why can't I change the tuner frequency if arecord (and only arecord) is
+>>>>>> streaming audio? If arecord is streaming, then it is recording the audio
+>>>>>> from the analog TV tuner, right? So changing the analog TV frequency
+>>>>>> should be fine.
+>>>>>>
+>>>>>
+>>>>> Changing analog TV frequency would be s_frequency. The way it works is
+>>>>> any s_* calls would require holding the pipeline. In Analog TV case, it
+>>>>> would mean holding both audio and video pipelines for any changes
+>>>>> including TV.
+>>>>>
+>>>>> As I recall, we discussed this design and the decision was to make all
+>>>>> s_* calls interfaces to hold the tuner. A special exception is g_tuner
+>>>>> in case of au0828. au0828 initializes the tuner from s_* interfaces and
+>>>>> its g_tuner interfaces. Allowing s_frequency to proceed will disrupt the
+>>>>> arecord audio stream.
+>>>>>
+>>>>> Query (q_*) works just fine without holding the pipeline. I limited the
+>>>>> analog holds to just the ones that are required. The current set is
+>>>>> required to avoid audio stream disruptions.
+>>>>
+>>>> So I am not sure about that ('avoid audio stream disruptions'): if I
+>>>> stream video AND use arecord, then I can just set the frequency while
+>>>> streaming. Doesn't that interrupt audio as well? And are you sure changing
+>>>> the tuner frequency actually disrupts audio? And if audio is disrupted,
+>>>> are we talking about a glitch or is audio permanently disrupted?
 >>>
->>> The memory layout of AYUV buffers (V4L2_PIX_FMT_YUV32) should be
->>> similar to V4L2_PIX_FMT_ABGR32 instead of V4L2_PIX_FMT_ARGB32.
+>>> I think it is a glitch. I will run some tests and let you know.
+>>>>
+>>>> That's basically the inconsistent behavior I noticed: just running arecord
+>>>> will prevent me from changing the frequency, but if I run arecord and stream
+>>>> video, then it is suddenly OK to change the frequency.
 >>>
->>> While displaying the packed AYUV buffers generated by the Vivid
->>> driver using v4l2-tpg on Weston, it was observed that these AYUV
->>> images were not getting displayed correctly. Changing the memory
->>> layout makes them display as expected.  
+>>> How are you changing frequency? I want to duplicate what you are doing.
 >>
->> Our YUV32 fourcc is defined as follows:
->>
->> https://hverkuil.home.xs4all.nl/spec/uapi/v4l/pixfmt-packed-yuv.html
->>
->> As far as I see the format that the TPG generates is according to the
->> V4L2 spec.
+>> v4l2-ctl -f <freq>
 > 
-> I looked into the above link, and I am now wondering whether YUV32 is
-> the same as the format referred to as AYUV here or not:
+> I am not seeing the inconsistent behavior. Here are my results.
 > 
-> https://docs.microsoft.com/en-us/windows/desktop/medfound/recommended-8-bit-yuv-formats-for-video-rendering#ayuv
-
-It's not the same format.
-
+> 1. Started acecord and while it is running:
 > 
-> If YUV32 is not the same as AYUV, should I send another patch adding a
-> new format named AYUV with the reversed memory layout?
-
-That can only be done if there is also a driver that uses it.
-
+> arecord -M -D plughw:2,0 -c2  -f S16_LE -t wav foo.wav
+> Recording WAVE 'foo.wav' : Signed 16 bit Little Endian, Rate 8000 Hz, Stereo
 > 
->>
->> Philipp, can you check the YUV32 format that the imx-pxp driver uses?
->> Is that according to our spec?
+> 2. Ran v4l2-ctl -f as follows:
+> 
+> v4l2-ctl -f 700
+> VIDIOC_G_TUNER: failed: Device or resource busy
+> VIDIOC_S_FREQUENCY: failed: Device or resource busy
+> 
+> Based on the current implementation, it failed with resource
+> busy as expected.
+> 
+> 3. Started v4l2-ctl as follows:
+> 
+>  v4l2-ctl --stream-mmap --stream-count=100 -d /dev/video0
+> VIDIOC_STREAMON: failed: Device or resource busy
 
-Philipp, would it be possible to add such a format to imx-pxp? That might
-be a nice approach because once imx-pxp can do it, then it can also be
-added to the TPG.
+Why is this? You have one analog tuner and it delivers independent audio
+and video streams. I should be able to start/stop audio and video independently.
 
->>
->> At some point we probably want to add a VUY32 format which is what
->> Weston expects, but we certainly cannot change what the TPG generates
->> for YUV32 since that is correct.
-> Weston does not know much about the details of pixel formats and
-> instead relies on the Mesa i965 DRI driver to do the heavy lifting.
-> And, this driver implemented AYUV support looking at the above Microsoft
-> link. Also, is the description of V4l pixel formats mentioned in the
-> below link accurate:
-> https://afrantzis.com/pixel-format-guide/v4l2.html
+And as mentioned above, if I use v4l2-ctl for video streaming, then start arecord,
+then that works fine. And I can change the tuner frequency while both are streaming.
 
-Don't use it, just use the V4L2 Specification, that's always kept up to date.
+But doing this the other way around (first start arecord, then v4l2-ctl) then that
+doesn't work.
+
+It makes no sense.
+
+Note that v4l2-ctl does not open audio, it solely deals with video. qv4l2 will
+open both audio and video, but for testing audio and video independently you
+need to use arecord/v4l2-ctl.
+
+In any case, my understanding of how this should work is that both arecord and
+v4l2-ctl should attempt to lock the analog tuner resource, but they can share it.
+
+If DVB is using the tuner, then both arecord and v4l2-ctl should fail with -EBUSY.
+Same if either of arecord/v4l2-ctl is running, then DVB should fail with -EBUSY.
+
+BTW, I won't be able to test anything myself until Feb 9th since I'm abroad and
+don't have access to my au0828.
 
 Regards,
 
 	Hans
 
+> shuah@deneb:/mnt/data/lkml/v4l-utils/utils/v4l2-ctl$ v4l2-ctl -f 700
+> VIDIOC_G_TUNER: failed: Device or resource busy
+> VIDIOC_S_FREQUENCY: failed: Device or resource busy
 > 
-> Thanks,
-> Vivek
+> Based on the current implementation, it failed with resource
+> busy as expected.
 > 
->>
->> Regards,
->>
->> 	Hans
+> 4. After stopping arecord:
+> 
+> v4l2-ctl --stream-mmap --stream-count=100 -d /dev/video0
+> <<<<<<<<<<<<< 11.88 fps
+> <<<<<<<<<<<<<<< 13.36 fps
+> <<<<<<<<<<<<<<< 14.00 fps
+> <<<<<<<<<<<<<<<< 14.35 fps
+> <<<<<<<<<<<<<<< 14.57 fps
+> <<<<<<<<<<<<<<<< 14.71 fps
+> <<<<<<<<<
+> 
+> 
+> Worked as expected.
+> 
+> 
+> 5. After stopping above video streaming:
+> 
+> arecord -M -D plughw:2,0 -c2  -f S16_LE -t wav foo.wav
+> Recording WAVE 'foo.wav' : Signed 16 bit Little Endian, Rate 8000 Hz, Stereo
+> 
+> 
+> Worked as expected.
+> 
 >>
 >>>
->>> Signed-off-by: Vivek Kasireddy <vivek.kasireddy@intel.com>
->>> ---
->>>  drivers/media/common/v4l2-tpg/v4l2-tpg-core.c | 2 +-
->>>  1 file changed, 1 insertion(+), 1 deletion(-)
->>>
->>> diff --git a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
->>> b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c index
->>> d9a590ae7545..825667f67c92 100644 ---
->>> a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c +++
->>> b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c @@ -1269,7 +1269,6
->>> @@ static void gen_twopix(struct tpg_data *tpg, case
->>> V4L2_PIX_FMT_HSV32: alpha = 0;
->>>  		/* fall through */
->>> -	case V4L2_PIX_FMT_YUV32:
->>>  	case V4L2_PIX_FMT_ARGB32:
->>>  		buf[0][offset] = alpha;
->>>  		buf[0][offset + 1] = r_y_h;
->>> @@ -1280,6 +1279,7 @@ static void gen_twopix(struct tpg_data *tpg,
->>>  	case V4L2_PIX_FMT_XBGR32:
->>>  		alpha = 0;
->>>  		/* fall through */
->>> +	case V4L2_PIX_FMT_YUV32:
->>>  	case V4L2_PIX_FMT_ABGR32:
->>>  		buf[0][offset] = b_v;
->>>  		buf[0][offset + 1] = g_u_s;
->>>   
->>
+>>>>
+>>>> BTW, I think there was also inconsistent behavior in the order of streaming
+>>>> audio and video: if I stream video first, then I can stream audio afterwards.
+>>>> But if I stream audio first, then (if I remember correctly) I can't start
+>>>> video streaming.
+>>>>
 > 
+> Okay this is what I saw:
+> 
+> While v4l2-ctl --stream-mmap --stream-count=100 -d /dev/video0
+> 
+> I could start arecord -M -D plughw:2,0 -c2  -f S16_LE -t wav foo.wav
+> 
+> I ran strace on v4l2-ctl --stream-mmap --stream-count=100 -d /dev/video0
+> and I didn't see AUDIO holds. The only think of here is that
+> 
+> v4l2-ctl --stream-mmap --stream-count=100 -d /dev/video0
+> 
+> doesn't open audio device. I didn't see this when tested with other
+> video apps, (tvtine, xawtv, vlc). When video is streaming, I see
+> arecord failing with device busy.
+> 
+> As far I can see, exclusion logic is working correctly. s_freq does
+> fail now based on the current logic.
+> 
+> btw I tested all of this on 5.0-rc4
+> 
+> thanks,
+> -- Shuah
 
