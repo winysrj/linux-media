@@ -6,27 +6,27 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,UNPARSEABLE_RELAY,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 30BC1C282D8
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E65F4C282DA
 	for <linux-media@archiver.kernel.org>; Fri,  1 Feb 2019 11:22:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0226421907
+	by mail.kernel.org (Postfix) with ESMTP id C0DCF21904
 	for <linux-media@archiver.kernel.org>; Fri,  1 Feb 2019 11:22:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729349AbfBALWK (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        id S1728316AbfBALWK (ORCPT <rfc822;linux-media@archiver.kernel.org>);
         Fri, 1 Feb 2019 06:22:10 -0500
-Received: from mailgw01.mediatek.com ([210.61.82.183]:30587 "EHLO
+Received: from mailgw01.mediatek.com ([210.61.82.183]:24426 "EHLO
         mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1727178AbfBALWJ (ORCPT
+        with ESMTP id S1727747AbfBALWJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>); Fri, 1 Feb 2019 06:22:09 -0500
-X-UUID: 827fa00d6ad6447a88b025198886bd31-20190201
-X-UUID: 827fa00d6ad6447a88b025198886bd31-20190201
+X-UUID: afecfcb032664a67ae3f6796d0e24696-20190201
+X-UUID: afecfcb032664a67ae3f6796d0e24696-20190201
 Received: from mtkcas08.mediatek.inc [(172.21.101.126)] by mailgw01.mediatek.com
         (envelope-from <frederic.chen@mediatek.com>)
         (mhqrelay.mediatek.com ESMTP with TLS)
-        with ESMTP id 2129990471; Fri, 01 Feb 2019 19:22:04 +0800
+        with ESMTP id 1138367770; Fri, 01 Feb 2019 19:22:06 +0800
 Received: from mtkcas07.mediatek.inc (172.21.101.84) by
- mtkmbs03n2.mediatek.inc (172.21.101.182) with Microsoft SMTP Server (TLS) id
- 15.0.1395.4; Fri, 1 Feb 2019 19:22:02 +0800
+ mtkmbs01n2.mediatek.inc (172.21.101.79) with Microsoft SMTP Server (TLS) id
+ 15.0.1395.4; Fri, 1 Feb 2019 19:22:01 +0800
 Received: from mtkslt306.mediatek.inc (10.21.14.136) by mtkcas07.mediatek.inc
  (172.21.101.73) with Microsoft SMTP Server id 15.0.1395.4 via Frontend
  Transport; Fri, 1 Feb 2019 19:22:01 +0800
@@ -41,45 +41,59 @@ CC:     <linux-mediatek@lists.infradead.org>,
         <Jerry-ch.Chen@mediatek.com>, <jungo.lin@mediatek.com>,
         <Rynn.Wu@mediatek.com>, <linux-media@vger.kernel.org>,
         <srv_heupstream@mediatek.com>
-Subject: [RFC PATCH V0 5/7] dts: arm64: mt8183: Add DIP nodes
-Date:   Fri, 1 Feb 2019 19:21:29 +0800
-Message-ID: <1549020091-42064-6-git-send-email-frederic.chen@mediatek.com>
+Subject: [RFC PATCH V0 4/7] [media] dt-bindings: mt8183: Added DIP dt-bindings
+Date:   Fri, 1 Feb 2019 19:21:28 +0800
+Message-ID: <1549020091-42064-5-git-send-email-frederic.chen@mediatek.com>
 X-Mailer: git-send-email 1.9.1
 In-Reply-To: <1549020091-42064-1-git-send-email-frederic.chen@mediatek.com>
 References: <1549020091-42064-1-git-send-email-frederic.chen@mediatek.com>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-TM-SNTS-SMTP: 8F38E79912C2991C0398BEA6FBFA149941A0DA60F1D9670034E37428633EC11C2000:8
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+X-TM-SNTS-SMTP: 18C74CA7A39999E4FCECA10D172320C41F10C77B23289B10E84C14A4714016962000:8
 X-MTK:  N
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-This patch adds nodes for Digital Image Processing (DIP). DIP is
-embedded in Mediatek SoCs and works with the co-processor to
-adjust image content according to tuning input data. It also provides
-image format conversion, resizing, and rotation features.
+This patch adds DT binding documentation for the Digital Image
+Processing (DIP) unit of camera ISP system on Mediatek’s SoCs.
 
 Signed-off-by: Frederic Chen <frederic.chen@mediatek.com>
 ---
- arch/arm64/boot/dts/mediatek/mt8183.dtsi | 23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+ .../bindings/media/mediatek,mt8183-dip.txt         | 35 ++++++++++++++++++++++
+ 1 file changed, 35 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/mediatek,mt8183-dip.txt
 
-diff --git a/arch/arm64/boot/dts/mediatek/mt8183.dtsi b/arch/arm64/boot/dts/mediatek/mt8183.dtsi
-index fff67c4..19b2c13 100644
---- a/arch/arm64/boot/dts/mediatek/mt8183.dtsi
-+++ b/arch/arm64/boot/dts/mediatek/mt8183.dtsi
-@@ -377,6 +377,29 @@
- 		#clock-cells = <1>;
- 	};
- 
-+	dip_smem: dip_smem {
-+		compatible = "mediatek,dip_smem";
-+		mediatek,larb = <&larb5>;
-+		iommus = <&iommu M4U_PORT_CAM_IMGI>;
-+	};
+diff --git a/Documentation/devicetree/bindings/media/mediatek,mt8183-dip.txt b/Documentation/devicetree/bindings/media/mediatek,mt8183-dip.txt
+new file mode 100644
+index 0000000..0e1994b
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/mediatek,mt8183-dip.txt
+@@ -0,0 +1,35 @@
++* Mediatek Digital Image Processor (DIP)
 +
++Digital Image Processor (DIP) unit in Mediatek ISP system is responsible for
++image content adjustment according to the tuning parameters. DIP can process
++the image form memory buffer and output the processed image to multiple output
++buffers. Furthermore, it can support demosaicing and noise reduction on the
++images.
++
++Required properties:
++- compatible: "mediatek,mt8183-dip"
++- reg: Physical base address and length of the function block register space
++- interrupts: interrupt number to the cpu
++- iommus: should point to the respective IOMMU block with master port as
++  argument, see Documentation/devicetree/bindings/iommu/mediatek,iommu.txt
++  for details.
++- mediatek,larb: must contain the local arbiters in the current Socs, see
++  Documentation/devicetree/bindings/memory-controllers/mediatek,smi-larb.txt
++  for details.
++- clocks: must contain the local arbiters 5 (LARB5) and DIP clock
++- clock-names: must contain DIP_CG_IMG_LARB5 and DIP_CG_IMG_DIP
++
++Example:
 +	dip: dip@15022000 {
 +		compatible = "mediatek,mt8183-dip";
 +		mediatek,larb = <&larb5>;
@@ -88,18 +102,11 @@ index fff67c4..19b2c13 100644
 +		iommus = <&iommu M4U_PORT_CAM_IMGI>;
 +		reg = <0 0x15022000 0 0x6000>;
 +		interrupts = <GIC_SPI 268 IRQ_TYPE_LEVEL_LOW>;
-+		clocks =
-+				<&imgsys CLK_IMG_LARB5>,
-+				<&imgsys CLK_IMG_DIP>;
-+		clock-names =
-+				"DIP_CG_IMG_LARB5",
-+				"DIP_CG_IMG_DIP";
-+		smem_device = <&dip_smem>;
++		clocks = <&imgsys CLK_IMG_LARB5>,
++			 <&imgsys CLK_IMG_DIP>;
++		clock-names = "DIP_CG_IMG_LARB5",
++			      "DIP_CG_IMG_DIP";
 +	};
-+
- 	vdecsys: syscon@16000000 {
- 		compatible = "mediatek,mt8183-vdecsys", "syscon";
- 		reg = <0 0x16000000 0 0x1000>;
 -- 
 1.9.1
 
