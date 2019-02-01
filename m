@@ -3,124 +3,141 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72868C4151A
-	for <linux-media@archiver.kernel.org>; Fri,  1 Feb 2019 04:19:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6347DC282D8
+	for <linux-media@archiver.kernel.org>; Fri,  1 Feb 2019 04:47:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 4CDD320870
-	for <linux-media@archiver.kernel.org>; Fri,  1 Feb 2019 04:19:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 378562184A
+	for <linux-media@archiver.kernel.org>; Fri,  1 Feb 2019 04:47:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727868AbfBAETZ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 31 Jan 2019 23:19:25 -0500
-Received: from 84.120.0.236.static.user.ono.com ([84.120.0.236]:34662 "EHLO
-        sempati.menos4" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1727813AbfBAETY (ORCPT
+        id S1727789AbfBAEra (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 31 Jan 2019 23:47:30 -0500
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:38535 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727688AbfBAEra (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 31 Jan 2019 23:19:24 -0500
-X-Greylist: delayed 1543 seconds by postgrey-1.27 at vger.kernel.org; Thu, 31 Jan 2019 23:19:24 EST
-Received: from javier by sempati.menos4 with local (Exim 4.89)
-        (envelope-from <javier@jasp.net>)
-        id 1gpPta-0007cF-U8
-        for linux-media@vger.kernel.org; Fri, 01 Feb 2019 04:53:39 +0100
-Message-ID: <1548993218.1967.23.camel@jasp.net>
-Subject: ZBar: Move development to GitHub
-From:   Javier Serrano Polo <javier@jasp.net>
-Reply-To: javier--ZDpp3NWAUi4iojWgtC3QwkB5th4T5J@jasp.net
+        Thu, 31 Jan 2019 23:47:30 -0500
+Received: from localhost ([IPv6:2001:983:e9a7:1:c10c:bd23:3f0c:b7eb])
+        by smtp-cloud8.xs4all.net with ESMTPA
+        id pQjfgMhaHNR5ypQjggTeor; Fri, 01 Feb 2019 05:47:28 +0100
+Message-ID: <2e749e676eeb2adb8683691f6f18e584@smtp-cloud8.xs4all.net>
+Date:   Fri, 01 Feb 2019 05:47:27 +0100
+From:   "Hans Verkuil" <hverkuil@xs4all.nl>
 To:     linux-media@vger.kernel.org
-Date:   Fri, 01 Feb 2019 04:53:38 +0100
-Content-Type: multipart/signed; micalg="sha-256"; protocol="application/pkcs7-signature";
-        boundary="=-zriM9jZjxxAxawJm01PA"
-X-Mailer: Evolution 3.22.6-1+deb9u1jasp2 
-Mime-Version: 1.0
+Subject: cron job: media_tree daily build: WARNINGS
+X-CMAE-Envelope: MS4wfL+4x57y2zS9QpPZ2B2tJBSJctRbRUD9HmY1Hgqj/3klUnJK1AbqWC+JLmBx5iURu+2rh1Q5JmfjohPyDYFWslTlpLKRodnexsndCYYuW/wQ290z0JIB
+ ae/mehvUXaM/87oRdMI4ASDf634y92r52VHi3vZoOH3wt5hifZhTGfnpmSijTdsV/CgOFEWcpFiS7XLOCzZ7cS557wpdPP+lQKzImnywwhyRH3qyM34XvSow
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
---=-zriM9jZjxxAxawJm01PA
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Results of the daily build of media_tree:
 
-Dear list,
+date:			Fri Feb  1 05:00:12 CET 2019
+media-tree git hash:	f0ef022c85a899bcc7a1b3a0955c78a3d7109106
+media_build git hash:	c23276037794bae357fa8d23e3a4f11af9ad46e9
+v4l-utils git hash:	4c0c905d23c65158d7a090097489ec8e6bcfa4db
+edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
+gcc version:		i686-linux-gcc (GCC) 8.2.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.19.0-1-amd64
 
-I maintain a fork of ZBar. Following a reply from James Hilliard and
-according to Wikipedia edition from Mauro Carvalho Chehab, this team
-stands as the new upstream.
+linux-git-arm-at91: WARNINGS
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-multi: WARNINGS
+linux-git-arm-pxa: WARNINGS
+linux-git-arm-stm32: WARNINGS
+linux-git-arm64: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-mips: WARNINGS
+linux-git-powerpc64: WARNINGS
+linux-git-sh: WARNINGS
+linux-git-x86_64: WARNINGS
+Check COMPILE_TEST: OK
+linux-3.10.108-i686: WARNINGS
+linux-3.10.108-x86_64: WARNINGS
+linux-3.11.10-i686: WARNINGS
+linux-3.11.10-x86_64: WARNINGS
+linux-3.12.74-i686: WARNINGS
+linux-3.12.74-x86_64: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.79-i686: WARNINGS
+linux-3.14.79-x86_64: WARNINGS
+linux-3.15.10-i686: WARNINGS
+linux-3.15.10-x86_64: WARNINGS
+linux-3.16.57-i686: WARNINGS
+linux-3.16.57-x86_64: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.123-i686: WARNINGS
+linux-3.18.123-x86_64: WARNINGS
+linux-3.19.8-i686: WARNINGS
+linux-3.19.8-x86_64: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.52-i686: WARNINGS
+linux-4.1.52-x86_64: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.159-i686: WARNINGS
+linux-4.4.159-x86_64: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.10-i686: WARNINGS
+linux-4.7.10-x86_64: WARNINGS
+linux-4.8.17-i686: WARNINGS
+linux-4.8.17-x86_64: WARNINGS
+linux-4.9.131-i686: WARNINGS
+linux-4.9.131-x86_64: WARNINGS
+linux-4.10.17-i686: WARNINGS
+linux-4.10.17-x86_64: WARNINGS
+linux-4.11.12-i686: WARNINGS
+linux-4.11.12-x86_64: WARNINGS
+linux-4.12.14-i686: WARNINGS
+linux-4.12.14-x86_64: WARNINGS
+linux-4.13.16-i686: WARNINGS
+linux-4.13.16-x86_64: WARNINGS
+linux-4.14.74-i686: WARNINGS
+linux-4.14.74-x86_64: WARNINGS
+linux-4.15.18-i686: WARNINGS
+linux-4.15.18-x86_64: WARNINGS
+linux-4.16.18-i686: WARNINGS
+linux-4.16.18-x86_64: WARNINGS
+linux-4.17.19-i686: WARNINGS
+linux-4.17.19-x86_64: WARNINGS
+linux-4.18.12-i686: WARNINGS
+linux-4.18.12-x86_64: WARNINGS
+linux-4.19.1-i686: WARNINGS
+linux-4.19.1-x86_64: WARNINGS
+linux-4.20.1-i686: WARNINGS
+linux-4.20.1-x86_64: WARNINGS
+linux-5.0-rc1-i686: WARNINGS
+linux-5.0-rc1-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
-Please consider to continue development on GitHub, since the
-communication system is more friendly and there are continuous
-integration builds. If you agree, I will create a GitHub organization
-and import your repository along with my patches.
+Detailed results are available here:
 
-I await your answer.
-Thank you.
---=-zriM9jZjxxAxawJm01PA
-Content-Type: application/pkcs7-signature; name="smime.p7s"
-Content-Disposition: attachment; filename="smime.p7s"
-Content-Transfer-Encoding: base64
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
-MIAGCSqGSIb3DQEHAqCAMIACAQExDzANBglghkgBZQMEAgEFADCABgkqhkiG9w0BBwEAAKCCCtgw
-ggTuMIID1qADAgECAhAoU7pCDzLt9W7P9nQHDQdNMA0GCSqGSIb3DQEBCwUAMHUxCzAJBgNVBAYT
-AklMMRYwFAYDVQQKEw1TdGFydENvbSBMdGQuMSkwJwYDVQQLEyBTdGFydENvbSBDZXJ0aWZpY2F0
-aW9uIEF1dGhvcml0eTEjMCEGA1UEAxMaU3RhcnRDb20gQ2xhc3MgMSBDbGllbnQgQ0EwHhcNMTYw
-NTMwMTkwNTQ4WhcNMTkwODMwMTkwNTQ4WjA6MRgwFgYDVQQDDA9qYXZpZXJAamFzcC5uZXQxHjAc
-BgkqhkiG9w0BCQEWD2phdmllckBqYXNwLm5ldDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoC
-ggEBALkB0YjaCRhTKOn30V5s9Tr2c2oTPNPauRumMBzjF8tglW9kYWm44rUObZu7SOQzKjy959Ic
-5R8Lqkp8NLjw9wp/eX7NjMiX4bcPdjcFUVSgXwN+VoVVYXN724Wbio64AD7qNgYjyfBGXaf/bImW
-re1ofzqPK6xrbnZHGrnFRm274KKBoGmcm81N/g1mUZfikEM7AMyKIgcxw60aGPkSk2BPZnKqDooh
-rHfrXf4q29vMMdy3EJmjeE2B3F49MmWE8+X7W6KsmyYI9RjN85sxBC8Utamds5P3Cv58NIkQw+ch
-izFbBXHXQ7jRCEIIymOtv229U69Uqgc8y8aI7ZMhEpUCAwEAAaOCAbMwggGvMA4GA1UdDwEB/wQE
-AwIEsDAdBgNVHSUEFjAUBggrBgEFBQcDAgYIKwYBBQUHAwQwCQYDVR0TBAIwADAdBgNVHQ4EFgQU
-MIX/u4biXYwKCdAPtPblwne2ZzEwHwYDVR0jBBgwFoAUJIFsOWG+SQ+PtxtGK8kotSdIbWgwbwYI
-KwYBBQUHAQEEYzBhMCQGCCsGAQUFBzABhhhodHRwOi8vb2NzcC5zdGFydHNzbC5jb20wOQYIKwYB
-BQUHMAKGLWh0dHA6Ly9haWEuc3RhcnRzc2wuY29tL2NlcnRzL3NjYS5jbGllbnQxLmNydDA4BgNV
-HR8EMTAvMC2gK6AphidodHRwOi8vY3JsLnN0YXJ0c3NsLmNvbS9zY2EtY2xpZW50MS5jcmwwGgYD
-VR0RBBMwEYEPamF2aWVyQGphc3AubmV0MCMGA1UdEgQcMBqGGGh0dHA6Ly93d3cuc3RhcnRzc2wu
-Y29tLzBHBgNVHSAEQDA+MDwGCysGAQQBgbU3AQIFMC0wKwYIKwYBBQUHAgEWH2h0dHBzOi8vd3d3
-LnN0YXJ0c3NsLmNvbS9wb2xpY3kwDQYJKoZIhvcNAQELBQADggEBAKkoS2haC6/PxI3Z/T4LOsVz
-ZytknU4q2KWD7sDt9rviyqNMV09UZ3BRjtMV0G7VtsHd/ILgABkywYHGSInl0q+rX/VkFzmBgAdD
-SCIZdu+XWLMvjSD1qhcImyESS7fhXPGWvHSUc6LUscViV5D1qzf3D2NDK8FKCwaD0huhE73cxp0x
-VnygR/WXgrWgy7nZmPsyuYQ2fUXTev5wcZ6ye1FJz3idmUeEvzKk5VfRXJQSOatQjm8urRFXOqg8
-Vr6gzzVALPMiKfCXzbdR02MyE5kUZWVCSrUMbLWIFq4RCFRtLQ359AGIF40Z2z7EPJxLGo4o1Jvb
-2AbQ05YmA8cy5M0wggXiMIIDyqADAgECAhBrp4p9CteI1lEK+Vnk57ThMA0GCSqGSIb3DQEBCwUA
-MH0xCzAJBgNVBAYTAklMMRYwFAYDVQQKEw1TdGFydENvbSBMdGQuMSswKQYDVQQLEyJTZWN1cmUg
-RGlnaXRhbCBDZXJ0aWZpY2F0ZSBTaWduaW5nMSkwJwYDVQQDEyBTdGFydENvbSBDZXJ0aWZpY2F0
-aW9uIEF1dGhvcml0eTAeFw0xNTEyMTYwMTAwMDVaFw0zMDEyMTYwMTAwMDVaMHUxCzAJBgNVBAYT
-AklMMRYwFAYDVQQKEw1TdGFydENvbSBMdGQuMSkwJwYDVQQLEyBTdGFydENvbSBDZXJ0aWZpY2F0
-aW9uIEF1dGhvcml0eTEjMCEGA1UEAxMaU3RhcnRDb20gQ2xhc3MgMSBDbGllbnQgQ0EwggEiMA0G
-CSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQC9fdr3w6J9g/Zbgv3bW1+uHht1wLUZr5gkrLtXedg1
-7AkefMyUGwrQdvwObhajcVmnKVxhrUwkZPXRAwZZosRHfEIi5FH7x6SV/8Sp5lZEuiMnvMFG2MzL
-A84J6Ws5T4NfXZ0qn4TPgnr3X2vPVS51M7Ua9nIJgn8jvTra4eyyQzxvuA/GZwKg7VQfDCmCS+kI
-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
-jnQyPEgvvUKK4/AQ+oH+WhgAAAAAAAA=
+Full logs are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
 
---=-zriM9jZjxxAxawJm01PA--
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
