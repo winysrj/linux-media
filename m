@@ -3,38 +3,38 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A44F2C282DB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C680FC282DA
 	for <linux-media@archiver.kernel.org>; Sat,  2 Feb 2019 12:10:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7F6DF20869
+	by mail.kernel.org (Postfix) with ESMTP id A1BA22086C
 	for <linux-media@archiver.kernel.org>; Sat,  2 Feb 2019 12:10:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727934AbfBBMKY (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sat, 2 Feb 2019 07:10:24 -0500
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:38877 "EHLO
+        id S1727901AbfBBMKZ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sat, 2 Feb 2019 07:10:25 -0500
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:50157 "EHLO
         metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727901AbfBBMKY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 2 Feb 2019 07:10:24 -0500
+        with ESMTP id S1727704AbfBBMKZ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 2 Feb 2019 07:10:25 -0500
 Received: from dude02.hi.pengutronix.de ([2001:67c:670:100:1d::28] helo=dude02.lab.pengutronix.de)
         by metis.ext.pengutronix.de with esmtps (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
         (Exim 4.89)
         (envelope-from <mfe@pengutronix.de>)
-        id 1gpu7i-0008DA-5W; Sat, 02 Feb 2019 13:10:14 +0100
+        id 1gpu7i-0008DD-5a; Sat, 02 Feb 2019 13:10:14 +0100
 Received: from mfe by dude02.lab.pengutronix.de with local (Exim 4.89)
         (envelope-from <mfe@pengutronix.de>)
-        id 1gpu7e-0002On-3u; Sat, 02 Feb 2019 13:10:10 +0100
+        id 1gpu7e-0002Ot-5E; Sat, 02 Feb 2019 13:10:10 +0100
 From:   Marco Felsch <m.felsch@pengutronix.de>
 To:     robh+dt@kernel.org, mchehab@kernel.org, hans.verkuil@cisco.com,
         sakari.ailus@linux.intel.com
 Cc:     airlied@linux.ie, daniel@ffwll.ch, dri-devel@lists.freedesktop.org,
         devicetree@vger.kernel.org, linux-media@vger.kernel.org,
         kernel@pengutronix.de
-Subject: [PATCH 1/5] dt-bindings: connector: analog: add tv norms property
-Date:   Sat,  2 Feb 2019 13:10:00 +0100
-Message-Id: <20190202121004.9014-2-m.felsch@pengutronix.de>
+Subject: [PATCH 3/5] media: v4l2-fwnode: add initial connector parsing support
+Date:   Sat,  2 Feb 2019 13:10:02 +0100
+Message-Id: <20190202121004.9014-4-m.felsch@pengutronix.de>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190202121004.9014-1-m.felsch@pengutronix.de>
 References: <20190202121004.9014-1-m.felsch@pengutronix.de>
@@ -49,93 +49,168 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Some connectors no matter if in- or output supports only a limited
-range of tv norms. It doesn't matter if the hardware behind that
-connector supports more than the listed formats since the users are
-restriced by a label e.g. to plug only a camera into this connector
-which uses the PAL format.
-
-This patch adds the capability to describe such limitation within the
-firmware. There are no format restrictions if the property isn't
-present, so it's completely backward compatible.
+The patch adds the initial connector parsing code, so we can move from a
+driver specific parsing code to a generic one. Currently only the
+generic fields and the analog-connector specific fields are parsed. Parsing
+the other connector specific fields can be added by a simple callbacks.
 
 Signed-off-by: Marco Felsch <m.felsch@pengutronix.de>
 ---
- .../display/connector/analog-tv-connector.txt |  4 ++
- include/dt-bindings/media/tvnorms.h           | 42 +++++++++++++++++++
- 2 files changed, 46 insertions(+)
- create mode 100644 include/dt-bindings/media/tvnorms.h
+ drivers/media/v4l2-core/v4l2-fwnode.c | 113 ++++++++++++++++++++++++++
+ include/media/v4l2-fwnode.h           |  16 ++++
+ 2 files changed, 129 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/display/connector/analog-tv-connector.txt b/Documentation/devicetree/bindings/display/connector/analog-tv-connector.txt
-index 0c0970c210ab..346f8937a0b7 100644
---- a/Documentation/devicetree/bindings/display/connector/analog-tv-connector.txt
-+++ b/Documentation/devicetree/bindings/display/connector/analog-tv-connector.txt
-@@ -6,6 +6,9 @@ Required properties:
+diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+index 9bfedd7596a1..56f581e00197 100644
+--- a/drivers/media/v4l2-core/v4l2-fwnode.c
++++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+@@ -592,6 +592,119 @@ void v4l2_fwnode_put_link(struct v4l2_fwnode_link *link)
+ }
+ EXPORT_SYMBOL_GPL(v4l2_fwnode_put_link);
  
- Optional properties:
- - label: a symbolic name for the connector
-+- tvnorms: limit the supported tv norms on a connector to the given ones else
-+           all tv norms are allowed. Possible video standards are defined in
-+           include/dt-bindings/media/tvnorms.h.
++static const struct v4l2_fwnode_connector_conv {
++	enum v4l2_connector_type type;
++	const char *name;
++} connectors[] = {
++	{
++		.type = V4L2_CON_COMPOSITE,
++		.name = "composite-video-connector",
++	}, {
++		.type = V4L2_CON_SVIDEO,
++		.name = "svideo-connector",
++	}, {
++		.type = V4L2_CON_VGA,
++		.name = "vga-connector",
++	}, {
++		.type = V4L2_CON_DVI,
++		.name = "dvi-connector",
++	}, {
++		.type = V4L2_CON_HDMI,
++		.name = "hdmi-connector"
++	}
++};
++
++static enum v4l2_connector_type
++v4l2_fwnode_string_to_connector_type(const char *con_str)
++{
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(connectors); i++)
++		if (!strcmp(con_str, connectors[i].name))
++			return connectors[i].type;
++
++	/* no valid connector found */
++	return V4L2_CON_UNKNOWN;
++}
++
++static int
++v4l2_fwnode_connector_parse_analog(struct fwnode_handle *fwnode,
++				   struct v4l2_fwnode_connector *vc)
++{
++	u32 tvnorms;
++	int ret;
++
++	ret = fwnode_property_read_u32(fwnode, "tvnorms", &tvnorms);
++
++	/* set it to V4L2_STD_ALL in case of not specified tvnorms */
++	vc->connector.analog.supported_tvnorms = ret ? V4L2_STD_ALL : tvnorms;
++	return 0;
++}
++
++int v4l2_fwnode_parse_connector(struct fwnode_handle *__fwnode,
++				struct v4l2_fwnode_connector *connector)
++{
++	struct fwnode_handle *fwnode;
++	struct fwnode_endpoint __ep;
++	const char *c_type_str, *label;
++	int ret;
++
++	memset(connector, 0, sizeof(*connector));
++
++	fwnode = fwnode_graph_get_remote_port_parent(__fwnode);
++
++	/* 1st parse all common properties */
++	/* connector-type is stored within the compatible string */
++	ret = fwnode_property_read_string(fwnode, "compatible", &c_type_str);
++	if (ret)
++		return -EINVAL;
++
++	connector->type = v4l2_fwnode_string_to_connector_type(c_type_str);
++
++	fwnode_graph_parse_endpoint(__fwnode, &__ep);
++	connector->remote_port = __ep.port;
++	connector->remote_id = __ep.id;
++
++	ret = fwnode_property_read_string(fwnode, "label", &label);
++	if (!ret) {
++		/* ensure label doesn't exceed V4L2_CONNECTOR_MAX_LABEL size */
++		strlcpy(connector->label, label, V4L2_CONNECTOR_MAX_LABEL);
++	} else {
++		/*
++		 * labels are optional, if no one is given create one:
++		 * <connector-type-string>@port<endpoint_port>/ep<endpoint_id>
++		 */
++		snprintf(connector->label, V4L2_CONNECTOR_MAX_LABEL,
++			 "%s@port%u/ep%u", c_type_str, connector->remote_port,
++			 connector->remote_id);
++	}
++
++	/* now parse the connector specific properties */
++	switch (connector->type) {
++		/* fall through */
++	case V4L2_CON_COMPOSITE:
++	case V4L2_CON_SVIDEO:
++		ret = v4l2_fwnode_connector_parse_analog(fwnode, connector);
++		break;
++		/* fall through */
++	case V4L2_CON_VGA:
++	case V4L2_CON_DVI:
++	case V4L2_CON_HDMI:
++		pr_warn("Connector specific parsing is currently not supported for %s\n",
++			c_type_str);
++		ret = 0;
++		break;
++		/* fall through */
++	case V4L2_CON_UNKNOWN:
++	default:
++		pr_err("Unknown connector type\n");
++		ret = -EINVAL;
++	};
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(v4l2_fwnode_parse_connector);
++
+ static int
+ v4l2_async_notifier_fwnode_parse_endpoint(struct device *dev,
+ 					  struct v4l2_async_notifier *notifier,
+diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
+index cf87e819800f..c00cb346b5eb 100644
+--- a/include/media/v4l2-fwnode.h
++++ b/include/media/v4l2-fwnode.h
+@@ -269,6 +269,22 @@ int v4l2_fwnode_parse_link(struct fwnode_handle *fwnode,
+  */
+ void v4l2_fwnode_put_link(struct v4l2_fwnode_link *link);
  
- Required nodes:
- - Video port for TV input
-@@ -16,6 +19,7 @@ Example
- tv: connector {
- 	compatible = "composite-video-connector";
- 	label = "tv";
-+	tvnorms = <(TVNORM_PAL_M | TVNORM_NTSC_M)>;
- 
- 	port {
- 		tv_connector_in: endpoint {
-diff --git a/include/dt-bindings/media/tvnorms.h b/include/dt-bindings/media/tvnorms.h
-new file mode 100644
-index 000000000000..ec3b414a7a00
---- /dev/null
-+++ b/include/dt-bindings/media/tvnorms.h
-@@ -0,0 +1,42 @@
-+/* SPDX-License-Identifier: GPL-2.0-only or X11 */
-+/*
-+ * Copyright 2019 Pengutronix, Marco Felsch <kernel@pengutronix.de>
++/**
++ * v4l2_fwnode_parse_connector() - parse the connector on endpoint
++ * @fwnode: pointer to the endpoint's fwnode handle where the connector is
++ *          connected to.
++ * @connector: pointer to the V4L2 fwnode connector data structure
++ *
++ * Fill the connector data structure with the connector type, label and the
++ * endpoint id and port where the connector belongs to. If no label is present
++ * a unique one will be created. Labels with more than 40 characters are cut.
++ *
++ * Return: %0 on success or a negative error code on failure:
++ *	   %-EINVAL on parsing failure
 + */
++int v4l2_fwnode_parse_connector(struct fwnode_handle *fwnode,
++				struct v4l2_fwnode_connector *connector);
 +
-+#ifndef _DT_BINDINGS_MEDIA_TVNORMS_H
-+#define _DT_BINDINGS_MEDIA_TVNORMS_H
-+
-+/* one bit for each */
-+#define TVNORM_PAL_B          0x00000001
-+#define TVNORM_PAL_B1         0x00000002
-+#define TVNORM_PAL_G          0x00000004
-+#define TVNORM_PAL_H          0x00000008
-+#define TVNORM_PAL_I          0x00000010
-+#define TVNORM_PAL_D          0x00000020
-+#define TVNORM_PAL_D1         0x00000040
-+#define TVNORM_PAL_K          0x00000080
-+
-+#define TVNORM_PAL_M          0x00000100
-+#define TVNORM_PAL_N          0x00000200
-+#define TVNORM_PAL_Nc         0x00000400
-+#define TVNORM_PAL_60         0x00000800
-+
-+#define TVNORM_NTSC_M         0x00001000	/* BTSC */
-+#define TVNORM_NTSC_M_JP      0x00002000	/* EIA-J */
-+#define TVNORM_NTSC_443       0x00004000
-+#define TVNORM_NTSC_M_KR      0x00008000	/* FM A2 */
-+
-+#define TVNORM_SECAM_B        0x00010000
-+#define TVNORM_SECAM_D        0x00020000
-+#define TVNORM_SECAM_G        0x00040000
-+#define TVNORM_SECAM_H        0x00080000
-+#define TVNORM_SECAM_K        0x00100000
-+#define TVNORM_SECAM_K1       0x00200000
-+#define TVNORM_SECAM_L        0x00400000
-+#define TVNORM_SECAM_LC       0x00800000
-+
-+/* ATSC/HDTV */
-+#define TVNORM_ATSC_8_VSB     0x01000000
-+#define TVNORM_ATSC_16_VSB    0x02000000
-+
-+#endif /* _DT_BINDINGS_MEDIA_TVNORMS_H */
+ /**
+  * typedef parse_endpoint_func - Driver's callback function to be called on
+  *	each V4L2 fwnode endpoint.
 -- 
 2.20.1
 
