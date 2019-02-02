@@ -2,142 +2,82 @@ Return-Path: <SRS0=sYKt=QJ=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EF57CC282D7
-	for <linux-media@archiver.kernel.org>; Sat,  2 Feb 2019 04:35:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C7A43C282D7
+	for <linux-media@archiver.kernel.org>; Sat,  2 Feb 2019 07:41:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C7C272086C
-	for <linux-media@archiver.kernel.org>; Sat,  2 Feb 2019 04:35:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A273A2146E
+	for <linux-media@archiver.kernel.org>; Sat,  2 Feb 2019 07:41:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727004AbfBBEfa (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 1 Feb 2019 23:35:30 -0500
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:42598 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726495AbfBBEfa (ORCPT
+        id S1726594AbfBBHlA (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sat, 2 Feb 2019 02:41:00 -0500
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:53615 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726011AbfBBHlA (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 1 Feb 2019 23:35:30 -0500
-Received: from localhost ([IPv6:2001:983:e9a7:1:c136:f318:a40a:bcc6])
-        by smtp-cloud9.xs4all.net with ESMTPA
-        id pn1agYyixRO5Zpn1cgavx6; Sat, 02 Feb 2019 05:35:28 +0100
-Message-ID: <e88d6a5c4622cf363ca1b09b15723b8e@smtp-cloud9.xs4all.net>
-Date:   Sat, 02 Feb 2019 05:35:26 +0100
-From:   "Hans Verkuil" <hverkuil@xs4all.nl>
-To:     linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-X-CMAE-Envelope: MS4wfBUYsnaQXMgsQrIZ3pqc0G2YJvUg0yVd7QSIpA9mIsnPEzdFvUJ2py0+ekAytlw/+5x5goIkpcz7Q1y6BFfOBBv/iX1iX5vSIW84WeIIIMbCnOVMQFn0
- 7pwEo0aNr+bAyV1FY0//bMk8xJs3kNE5RUmf4FcIk8to1CVdlidLlKzRqBIX6G4KU3Re9pxG0JRUPl/F34NBrT76PDqlGCh+zSWop9WOQ/ebaveawbQJ9M3Z
+        Sat, 2 Feb 2019 02:41:00 -0500
+Received: from [192.168.1.192] ([188.93.81.205])
+        by smtp-cloud7.xs4all.net with ESMTPA
+        id ppv1gJgznBDyIppv5g3r8X; Sat, 02 Feb 2019 08:40:58 +0100
+Subject: Re: [PATCH][media-next] media: vb2: remove unused variable i
+To:     Colin King <colin.king@canonical.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org
+Cc:     kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <20190201180642.14328-1-colin.king@canonical.com>
+From:   Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <a51e8cc0-80f5-0139-9875-0507a8d7c341@xs4all.nl>
+Date:   Sat, 2 Feb 2019 08:40:51 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:52.0) Gecko/20100101
+ Thunderbird/52.9.1
+MIME-Version: 1.0
+In-Reply-To: <20190201180642.14328-1-colin.king@canonical.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-CMAE-Envelope: MS4wfPWxuwMB1RJqGpmXhN5VToqu6qn7xlp2hr1EmA/N28/f25E3ar1QrCPXhY8NmyQAeEvVpYVyl6eRZu72P+w/plyXqSCSoNTv3MzhXM9e2PjUbObFi7mi
+ bNuVzxwwOd0dWGcLuIH5dozHRCZt8mrbzNheD/inRjTz/NfrwmHoqbN/9G3guArXM58a9vpDpG2jV32Wn+phwq433kPWBmpx9CAiKCQ99jhIec3KhN0FOfFd
+ ZYmhUTO9dRdHYIbvOaOz/iITDO28khl6KF2kInsHf+VOHLGr9uECxFV+uxVupGkBR1pVkyUCGUvHx6uvjpDtUelo15D2Va718hoRpFmAy+Zp9HDW0SHsYC92
+ foh5xoQZmha3coEfk2Gy4XSFyjB8/V8uZIhdJ0+Sy4bUl2ojCh40QS9zErBN8jDysjTOwy2SpYD+DY+7V8e3zawrXuqhsg==
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 02/01/2019 07:06 PM, Colin King wrote:
+> From: Colin Ian King <colin.king@canonical.com>
+> 
+> Variable i is declared and never used. Fix this by removing it.
 
-Results of the daily build of media_tree:
+A fix for this is already pending in a pull request.
 
-date:			Sat Feb  2 05:00:11 CET 2019
-media-tree git hash:	f0ef022c85a899bcc7a1b3a0955c78a3d7109106
-media_build git hash:	c23276037794bae357fa8d23e3a4f11af9ad46e9
-v4l-utils git hash:	2f2c4face7e89580bcad0f656b5f35ce9271003f
-edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.19.0-1-amd64
+Regards,
 
-linux-git-arm-at91: WARNINGS
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-multi: WARNINGS
-linux-git-arm-pxa: WARNINGS
-linux-git-arm-stm32: WARNINGS
-linux-git-arm64: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-mips: WARNINGS
-linux-git-powerpc64: WARNINGS
-linux-git-sh: WARNINGS
-linux-git-x86_64: WARNINGS
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: WARNINGS
-linux-3.10.108-x86_64: WARNINGS
-linux-3.11.10-i686: WARNINGS
-linux-3.11.10-x86_64: WARNINGS
-linux-3.12.74-i686: WARNINGS
-linux-3.12.74-x86_64: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.79-i686: WARNINGS
-linux-3.14.79-x86_64: WARNINGS
-linux-3.15.10-i686: WARNINGS
-linux-3.15.10-x86_64: WARNINGS
-linux-3.16.57-i686: WARNINGS
-linux-3.16.57-x86_64: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.123-i686: WARNINGS
-linux-3.18.123-x86_64: WARNINGS
-linux-3.19.8-i686: WARNINGS
-linux-3.19.8-x86_64: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.52-i686: WARNINGS
-linux-4.1.52-x86_64: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.159-i686: WARNINGS
-linux-4.4.159-x86_64: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.10-i686: WARNINGS
-linux-4.7.10-x86_64: WARNINGS
-linux-4.8.17-i686: WARNINGS
-linux-4.8.17-x86_64: WARNINGS
-linux-4.9.131-i686: WARNINGS
-linux-4.9.131-x86_64: WARNINGS
-linux-4.10.17-i686: WARNINGS
-linux-4.10.17-x86_64: WARNINGS
-linux-4.11.12-i686: WARNINGS
-linux-4.11.12-x86_64: WARNINGS
-linux-4.12.14-i686: WARNINGS
-linux-4.12.14-x86_64: WARNINGS
-linux-4.13.16-i686: WARNINGS
-linux-4.13.16-x86_64: WARNINGS
-linux-4.14.74-i686: WARNINGS
-linux-4.14.74-x86_64: WARNINGS
-linux-4.15.18-i686: WARNINGS
-linux-4.15.18-x86_64: WARNINGS
-linux-4.16.18-i686: WARNINGS
-linux-4.16.18-x86_64: WARNINGS
-linux-4.17.19-i686: WARNINGS
-linux-4.17.19-x86_64: WARNINGS
-linux-4.18.12-i686: WARNINGS
-linux-4.18.12-x86_64: WARNINGS
-linux-4.19.1-i686: WARNINGS
-linux-4.19.1-x86_64: WARNINGS
-linux-4.20.1-i686: WARNINGS
-linux-4.20.1-x86_64: WARNINGS
-linux-5.0-rc1-i686: WARNINGS
-linux-5.0-rc1-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+	Hans
 
-Detailed results are available here:
+> 
+> Signed-off-by: Colin Ian King <colin.king@canonical.com>
+> ---
+>  drivers/media/common/videobuf2/videobuf2-core.c | 1 -
+>  1 file changed, 1 deletion(-)
+> 
+> diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
+> index e07b6bdb6982..34cc87ca8d59 100644
+> --- a/drivers/media/common/videobuf2/videobuf2-core.c
+> +++ b/drivers/media/common/videobuf2/videobuf2-core.c
+> @@ -1769,7 +1769,6 @@ EXPORT_SYMBOL_GPL(vb2_wait_for_all_buffers);
+>  static void __vb2_dqbuf(struct vb2_buffer *vb)
+>  {
+>  	struct vb2_queue *q = vb->vb2_queue;
+> -	unsigned int i;
+>  
+>  	/* nothing to do if the buffer is already dequeued */
+>  	if (vb->state == VB2_BUF_STATE_DEQUEUED)
+> 
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
