@@ -2,157 +2,138 @@ Return-Path: <SRS0=sYKt=QJ=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3806CC282D7
-	for <linux-media@archiver.kernel.org>; Sat,  2 Feb 2019 20:59:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D6067C4151A
+	for <linux-media@archiver.kernel.org>; Sat,  2 Feb 2019 22:12:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id E7DB42082F
-	for <linux-media@archiver.kernel.org>; Sat,  2 Feb 2019 20:59:36 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=ndufresne-ca.20150623.gappssmtp.com header.i=@ndufresne-ca.20150623.gappssmtp.com header.b="U03Jr1F7"
+	by mail.kernel.org (Postfix) with ESMTP id ACBAF2085A
+	for <linux-media@archiver.kernel.org>; Sat,  2 Feb 2019 22:12:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726690AbfBBU7g (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sat, 2 Feb 2019 15:59:36 -0500
-Received: from mail-qt1-f194.google.com ([209.85.160.194]:44508 "EHLO
-        mail-qt1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726640AbfBBU7g (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 2 Feb 2019 15:59:36 -0500
-Received: by mail-qt1-f194.google.com with SMTP id n32so11629547qte.11
-        for <linux-media@vger.kernel.org>; Sat, 02 Feb 2019 12:59:35 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ndufresne-ca.20150623.gappssmtp.com; s=20150623;
-        h=message-id:subject:from:to:date:in-reply-to:references:user-agent
-         :mime-version:content-transfer-encoding;
-        bh=R9wonfs41zIRl9APAUdmIaayYuLCASEhOxo+kFzf+vY=;
-        b=U03Jr1F7qaa1BIPJuiaFIJGgzUghEWnxxfO3Dlu+zvgtstJcKJkLWF4ajw5PB4TBf9
-         taI3dUsnZWfa3x6ZLCgwdwWvTGCSfps70pOaG42CykG4GLTY9kKj1fiQbbQpXW2b4B+p
-         9Ch9M/9GFv9b3O0e+iNKELboyYi/tflFPXSQHWx8alF28m4WeOBRAM0ejMyQbLSx5IJU
-         KYo5ixJhJJ6klAPfmz/2nsY1AcrgDChMrMSL5e1s0OjoHp+0ySlR4xDMhwJHJDZR5v7u
-         HARTcwhCnIsp38lOv8OB/zKBpr6yDgpt1nBPnk5G+fn5PhpknnsBYreqJa6uNPLB6jd8
-         yVqQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:message-id:subject:from:to:date:in-reply-to
-         :references:user-agent:mime-version:content-transfer-encoding;
-        bh=R9wonfs41zIRl9APAUdmIaayYuLCASEhOxo+kFzf+vY=;
-        b=uZgvVr0DuePCDvHJNIFrO1CkCYtk1qSOMpprXIoHSfR2WNZxNXb6UHB9nFt72QsBOF
-         4HrTFZZKmEuqn0PQJgdabBFIx/aGHgKpt+Cw7dvrLmNGYFM1q57fllQd+I8Qc0i1+CDw
-         n8h3bVUdBEw8B+75HcW2gYvMkX8FOX0ApIE+qLydiPYF8fhSaAKfHrSS67SckcnB3T+W
-         e8sIrUoT5qzVBpeHvVv7kIU/54hq9ppqJjA74Fi5gUdUkh5aIHnnPaOJqb8qXtNSp19e
-         ErSwAPD9WAiDuMOvC/wtLTwCai86ytZdMd83M79lFAFkwdEaFOc8a10YBSfdG0NoR6I9
-         DO4w==
-X-Gm-Message-State: AJcUukfTD84dVgL4QyF8QS+WhagXdlX8InrEWmGvhvah+dyOfqtSQN77
-        6mDNa7n712bU5i7mnMPVFxqzaA==
-X-Google-Smtp-Source: ALg8bN6gJiEJgMQWM5zwSFNwLJaCJI4c+CkSd9pHA/UBXkP+sRf0UPpU+sj14gXBHI95FsSuujSn5A==
-X-Received: by 2002:aed:27d9:: with SMTP id m25mr43853085qtg.303.1549141174643;
-        Sat, 02 Feb 2019 12:59:34 -0800 (PST)
-Received: from skullcanyon ([192.222.193.21])
-        by smtp.gmail.com with ESMTPSA id r18sm12073167qta.83.2019.02.02.12.59.33
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Sat, 02 Feb 2019 12:59:33 -0800 (PST)
-Message-ID: <ea67d53e4acce742f916021c4f2ff918938608fe.camel@ndufresne.ca>
-Subject: Re: [PATCH] vb2: clear timestamp if buffer mem is reacquired
-From:   Nicolas Dufresne <nicolas@ndufresne.ca>
-To:     Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-Date:   Sat, 02 Feb 2019 15:59:32 -0500
-In-Reply-To: <59fc9777-41f3-5f87-2d84-f9375d8a2895@xs4all.nl>
-References: <59fc9777-41f3-5f87-2d84-f9375d8a2895@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-User-Agent: Evolution 3.30.4 (3.30.4-1.fc29) 
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        id S1726787AbfBBWMo (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sat, 2 Feb 2019 17:12:44 -0500
+Received: from youngberry.canonical.com ([91.189.89.112]:45959 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726688AbfBBWMo (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 2 Feb 2019 17:12:44 -0500
+Received: from 1.general.cking.uk.vpn ([10.172.193.212])
+        by youngberry.canonical.com with esmtpsa (TLS1.0:RSA_AES_128_CBC_SHA1:16)
+        (Exim 4.76)
+        (envelope-from <colin.king@canonical.com>)
+        id 1gq3Wk-00048g-CG; Sat, 02 Feb 2019 22:12:42 +0000
+Subject: Re: [PATCH][next] media: staging: intel-ipu3: fix unsigned comparison
+ with < 0
+From:   Colin Ian King <colin.king@canonical.com>
+To:     Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+Cc:     kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <20181222114951.31503-1-colin.king@canonical.com>
+Openpgp: preference=signencrypt
+Autocrypt: addr=colin.king@canonical.com; prefer-encrypt=mutual; keydata=
+ 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
+Message-ID: <cd6d1624-bd6a-9b04-0975-1a5508fd7781@canonical.com>
+Date:   Sat, 2 Feb 2019 22:12:41 +0000
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.4.0
+MIME-Version: 1.0
+In-Reply-To: <20181222114951.31503-1-colin.king@canonical.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Le samedi 02 février 2019 à 18:03 +0100, Hans Verkuil a écrit :
-> Stateless codecs have to find buffers based on a timestamp (vb2_find_timestamp).
-> The timestamp is set to 0 initially, so prohibit finding timestamp 0 since it
-> could find unused buffers without associated memory (userptr or dmabuf).
+ping?
+
+On 22/12/2018 11:49, Colin King wrote:
+> From: Colin Ian King <colin.king@canonical.com>
 > 
-> The memory associated with a buffer will also disappear if the same buffer was
-> requeued with a different userptr address or dmabuf fd. Detect this and set the
-> timestamp of that buffer to 0 if this happens.
-
-Just a small concern, does it mean 0 is considered an invalid timestamp
-? In streaming it would be quite normal for a first picture to have PTS
-0.
-
-Nicolas
-
+> The comparison css->pipes[pipe].bindex < 0 is always false because
+> bindex is an unsigned int.  Fix this by using a signed integer for
+> the comparison.
 > 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Detected by CoverityScan, CID#1476023 ("Unsigned compared against 0")
+> 
+> Fixes: f5f2e4273518 ("media: staging/intel-ipu3: Add css pipeline programming")
+> Signed-off-by: Colin Ian King <colin.king@canonical.com>
 > ---
-> Note: I think it is still necessary to lock a buffer when it is in use as
-> a reference frame, otherwise a userspace application can queue it again with
-> a different dmabuf fd, which could free the memory of the old dmabuf.
+>  drivers/staging/media/ipu3/ipu3-css.c | 8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
 > 
-> vb2_find_buffer should probably do that.
-> ---
-> diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
-> index e07b6bdb6982..b664d9790330 100644
-> --- a/drivers/media/common/videobuf2/videobuf2-core.c
-> +++ b/drivers/media/common/videobuf2/videobuf2-core.c
-> @@ -1043,6 +1043,8 @@ static int __prepare_userptr(struct vb2_buffer *vb)
->  				reacquired = true;
->  				call_void_vb_qop(vb, buf_cleanup, vb);
->  			}
-> +			if (!q->is_output)
-> +				vb->timestamp = 0;
->  			call_void_memop(vb, put_userptr, vb->planes[plane].mem_priv);
->  		}
+> diff --git a/drivers/staging/media/ipu3/ipu3-css.c b/drivers/staging/media/ipu3/ipu3-css.c
+> index 44c55639389a..b9354d2bb692 100644
+> --- a/drivers/staging/media/ipu3/ipu3-css.c
+> +++ b/drivers/staging/media/ipu3/ipu3-css.c
+> @@ -1751,7 +1751,7 @@ int ipu3_css_fmt_try(struct ipu3_css *css,
+>  					&q[IPU3_CSS_QUEUE_OUT].fmt.mpix;
+>  	struct v4l2_pix_format_mplane *const vf =
+>  					&q[IPU3_CSS_QUEUE_VF].fmt.mpix;
+> -	int i, s;
+> +	int i, s, ret;
+>  
+>  	/* Adjust all formats, get statistics buffer sizes and formats */
+>  	for (i = 0; i < IPU3_CSS_QUEUES; i++) {
+> @@ -1826,12 +1826,12 @@ int ipu3_css_fmt_try(struct ipu3_css *css,
+>  	s = (bds->height - gdc->height) / 2 - FILTER_SIZE;
+>  	env->height = s < MIN_ENVELOPE ? MIN_ENVELOPE : s;
+>  
+> -	css->pipes[pipe].bindex =
+> -		ipu3_css_find_binary(css, pipe, q, r);
+> -	if (css->pipes[pipe].bindex < 0) {
+> +	ret = ipu3_css_find_binary(css, pipe, q, r);
+> +	if (ret < 0) {
+>  		dev_err(css->dev, "failed to find suitable binary\n");
+>  		return -EINVAL;
+>  	}
+> +	css->pipes[pipe].bindex = ret;
+>  
+>  	dev_dbg(css->dev, "Binary index %d for pipe %d found.",
+>  		css->pipes[pipe].bindex, pipe);
 > 
-> @@ -1157,6 +1159,8 @@ static int __prepare_dmabuf(struct vb2_buffer *vb)
->  		/* Skip the plane if already verified */
->  		if (dbuf == vb->planes[plane].dbuf &&
->  			vb->planes[plane].length == planes[plane].length) {
-> +			if (!q->is_output)
-> +				vb->timestamp = 0;
->  			dma_buf_put(dbuf);
->  			continue;
->  		}
-> diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-> index 3aeaea3af42a..8e966fa81b7e 100644
-> --- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
-> +++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-> @@ -603,6 +603,9 @@ int vb2_find_timestamp(const struct vb2_queue *q, u64 timestamp,
->  {
->  	unsigned int i;
-> 
-> +	if (!timestamp)
-> +		return -1;
-> +
->  	for (i = start_idx; i < q->num_buffers; i++)
->  		if (q->bufs[i]->timestamp == timestamp)
->  			return i;
-> diff --git a/include/media/videobuf2-v4l2.h b/include/media/videobuf2-v4l2.h
-> index 8a10889dc2fd..01bf4b2199c7 100644
-> --- a/include/media/videobuf2-v4l2.h
-> +++ b/include/media/videobuf2-v4l2.h
-> @@ -59,14 +59,14 @@ struct vb2_v4l2_buffer {
->   * vb2_find_timestamp() - Find buffer with given timestamp in the queue
->   *
->   * @q:		pointer to &struct vb2_queue with videobuf2 queue.
-> - * @timestamp:	the timestamp to find.
-> + * @timestamp:	the timestamp to find. Must be > 0.
->   * @start_idx:	the start index (usually 0) in the buffer array to start
->   *		searching from. Note that there may be multiple buffers
->   *		with the same timestamp value, so you can restart the search
->   *		by setting @start_idx to the previously found index + 1.
->   *
->   * Returns the buffer index of the buffer with the given @timestamp, or
-> - * -1 if no buffer with @timestamp was found.
-> + * -1 if no buffer with @timestamp was found or if @timestamp was 0.
->   */
->  int vb2_find_timestamp(const struct vb2_queue *q, u64 timestamp,
->  		       unsigned int start_idx);
 
