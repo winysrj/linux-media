@@ -2,763 +2,157 @@ Return-Path: <SRS0=sYKt=QJ=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D44D1C282D7
-	for <linux-media@archiver.kernel.org>; Sat,  2 Feb 2019 19:11:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3806CC282D7
+	for <linux-media@archiver.kernel.org>; Sat,  2 Feb 2019 20:59:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 73E8F20833
-	for <linux-media@archiver.kernel.org>; Sat,  2 Feb 2019 19:11:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E7DB42082F
+	for <linux-media@archiver.kernel.org>; Sat,  2 Feb 2019 20:59:36 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="go9NoxdR"
+	dkim=pass (2048-bit key) header.d=ndufresne-ca.20150623.gappssmtp.com header.i=@ndufresne-ca.20150623.gappssmtp.com header.b="U03Jr1F7"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726526AbfBBTLB (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sat, 2 Feb 2019 14:11:01 -0500
-Received: from mail-wr1-f48.google.com ([209.85.221.48]:45678 "EHLO
-        mail-wr1-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726297AbfBBTLB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 2 Feb 2019 14:11:01 -0500
-Received: by mail-wr1-f48.google.com with SMTP id k13so1219566wrq.12
-        for <linux-media@vger.kernel.org>; Sat, 02 Feb 2019 11:10:58 -0800 (PST)
+        id S1726690AbfBBU7g (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sat, 2 Feb 2019 15:59:36 -0500
+Received: from mail-qt1-f194.google.com ([209.85.160.194]:44508 "EHLO
+        mail-qt1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726640AbfBBU7g (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 2 Feb 2019 15:59:36 -0500
+Received: by mail-qt1-f194.google.com with SMTP id n32so11629547qte.11
+        for <linux-media@vger.kernel.org>; Sat, 02 Feb 2019 12:59:35 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=subject:to:cc:references:from:message-id:date:user-agent
-         :mime-version:in-reply-to:content-transfer-encoding:content-language;
-        bh=xPWtMUaJ5Tuk/O+R5MfHl0afH35wn71MeLgG7SaOcgY=;
-        b=go9NoxdRjXW/goMASvICI22ysVBET2Vlf1ZMF3Ys1Y9pw9kryZ3nldUILreWrURMAy
-         aFnptj3aWrBLfdjQmN1brXyNiyW8hzfBzfHiXDcgaTin7v+wxsosWlUVJkENu3+uNH6+
-         WxuwBimtzttiAZOmAIU/TTMDXZxxV71toSUP6AIDdfwd++GQC9GXewAZbxqBamYL6vOu
-         oiCtuexKD0TdUcjK/UI2J1Z3VJyIkd9WPR4M01tLB58FYh/o0rDf4WAFRi5DlJhw04Q9
-         PVbPh7dHUsPeb9BAOr0M6wGYTX8jdh1xD0aSiwoRDqhLMVF1Jko4euQ3GiWrSJGLfBH1
-         7v9Q==
+        d=ndufresne-ca.20150623.gappssmtp.com; s=20150623;
+        h=message-id:subject:from:to:date:in-reply-to:references:user-agent
+         :mime-version:content-transfer-encoding;
+        bh=R9wonfs41zIRl9APAUdmIaayYuLCASEhOxo+kFzf+vY=;
+        b=U03Jr1F7qaa1BIPJuiaFIJGgzUghEWnxxfO3Dlu+zvgtstJcKJkLWF4ajw5PB4TBf9
+         taI3dUsnZWfa3x6ZLCgwdwWvTGCSfps70pOaG42CykG4GLTY9kKj1fiQbbQpXW2b4B+p
+         9Ch9M/9GFv9b3O0e+iNKELboyYi/tflFPXSQHWx8alF28m4WeOBRAM0ejMyQbLSx5IJU
+         KYo5ixJhJJ6klAPfmz/2nsY1AcrgDChMrMSL5e1s0OjoHp+0ySlR4xDMhwJHJDZR5v7u
+         HARTcwhCnIsp38lOv8OB/zKBpr6yDgpt1nBPnk5G+fn5PhpknnsBYreqJa6uNPLB6jd8
+         yVqQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-transfer-encoding
-         :content-language;
-        bh=xPWtMUaJ5Tuk/O+R5MfHl0afH35wn71MeLgG7SaOcgY=;
-        b=uJMZQPA9Fkz5tF2XlavnelUmcd7TTVVTnuolsQGSIlUi+bAaQRw2axwlnzHOsRFflQ
-         HxAzqGcgXP6dywRehXVq05Qvg2BvMVgPR9NaDhhlNniSQHzkNzaRDK9cM+/nO1DFpFlw
-         5H4j9neLEtsmE6Yxl8rZnQUFYg05i4Mru85AaySYj6UyiVCHwwD295MCXDC4kbpv1fFp
-         lGyWGdlvd3lwiY+46NS5UHUavCkIIzJ+n7LSZXmgbC+SN1qVyykVe1ZAj0MYRg7CJ5n+
-         dDvkiRQYKS3iibi8X09ryCvIdyA0VV43eUWgJVhA+EhZ1bFW027zXJg/w6m0uiVb1qc6
-         6WmA==
-X-Gm-Message-State: AJcUukcbbkCQICOSxlzx5wWxKIxYtUOFTvq1qSy8tLMpp6DkxU5LIJn4
-        daKdITCstAAYL7BLdDkyNK2wO9Yx
-X-Google-Smtp-Source: ALg8bN77PwGv3fe4oEaBS7EbCfiaEUhpJcoiOe8S1cfsIaGpmNsx4CVi0wyPtyMXQ7c3SYkRwW5wyQ==
-X-Received: by 2002:adf:f211:: with SMTP id p17mr42824066wro.293.1549134657195;
-        Sat, 02 Feb 2019 11:10:57 -0800 (PST)
-Received: from [172.30.88.153] (sjewanfw1-nat.mentorg.com. [139.181.7.34])
-        by smtp.gmail.com with ESMTPSA id x10sm34162wmi.17.2019.02.02.11.10.54
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Sat, 02 Feb 2019 11:10:56 -0800 (PST)
-Subject: Re: IMX CSI capture issues with tda1997x HDMI receiver
-To:     Tim Harvey <tharvey@gateworks.com>
-Cc:     Philipp Zabel <p.zabel@pengutronix.de>,
-        linux-media <linux-media@vger.kernel.org>
-References: <CAJ+vNU0ic=wzSC9V4hbmarN0JeQMs121MzD6tH5KQ+ezENUNfA@mail.gmail.com>
- <02e8680c-9fd5-ff54-f292-f6936c76583e@gmail.com>
- <CAJ+vNU0YQeiPaE8tapJnihoj3DtewCPTj05BZv5cJ65YkE9MeQ@mail.gmail.com>
- <db70e0f7-0ad4-62f5-e64c-49c04c089dd6@gmail.com>
- <CAJ+vNU3X6ywgobcV+wQxEupkNeNmiWaT85xUOtKF_U44OAfskg@mail.gmail.com>
-From:   Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <7cfe3570-64e5-d5e3-aeaf-35253c0fa918@gmail.com>
-Date:   Sat, 2 Feb 2019 11:10:50 -0800
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.4.0
-MIME-Version: 1.0
-In-Reply-To: <CAJ+vNU3X6ywgobcV+wQxEupkNeNmiWaT85xUOtKF_U44OAfskg@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
+        h=x-gm-message-state:message-id:subject:from:to:date:in-reply-to
+         :references:user-agent:mime-version:content-transfer-encoding;
+        bh=R9wonfs41zIRl9APAUdmIaayYuLCASEhOxo+kFzf+vY=;
+        b=uZgvVr0DuePCDvHJNIFrO1CkCYtk1qSOMpprXIoHSfR2WNZxNXb6UHB9nFt72QsBOF
+         4HrTFZZKmEuqn0PQJgdabBFIx/aGHgKpt+Cw7dvrLmNGYFM1q57fllQd+I8Qc0i1+CDw
+         n8h3bVUdBEw8B+75HcW2gYvMkX8FOX0ApIE+qLydiPYF8fhSaAKfHrSS67SckcnB3T+W
+         e8sIrUoT5qzVBpeHvVv7kIU/54hq9ppqJjA74Fi5gUdUkh5aIHnnPaOJqb8qXtNSp19e
+         ErSwAPD9WAiDuMOvC/wtLTwCai86ytZdMd83M79lFAFkwdEaFOc8a10YBSfdG0NoR6I9
+         DO4w==
+X-Gm-Message-State: AJcUukfTD84dVgL4QyF8QS+WhagXdlX8InrEWmGvhvah+dyOfqtSQN77
+        6mDNa7n712bU5i7mnMPVFxqzaA==
+X-Google-Smtp-Source: ALg8bN6gJiEJgMQWM5zwSFNwLJaCJI4c+CkSd9pHA/UBXkP+sRf0UPpU+sj14gXBHI95FsSuujSn5A==
+X-Received: by 2002:aed:27d9:: with SMTP id m25mr43853085qtg.303.1549141174643;
+        Sat, 02 Feb 2019 12:59:34 -0800 (PST)
+Received: from skullcanyon ([192.222.193.21])
+        by smtp.gmail.com with ESMTPSA id r18sm12073167qta.83.2019.02.02.12.59.33
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Sat, 02 Feb 2019 12:59:33 -0800 (PST)
+Message-ID: <ea67d53e4acce742f916021c4f2ff918938608fe.camel@ndufresne.ca>
+Subject: Re: [PATCH] vb2: clear timestamp if buffer mem is reacquired
+From:   Nicolas Dufresne <nicolas@ndufresne.ca>
+To:     Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+Date:   Sat, 02 Feb 2019 15:59:32 -0500
+In-Reply-To: <59fc9777-41f3-5f87-2d84-f9375d8a2895@xs4all.nl>
+References: <59fc9777-41f3-5f87-2d84-f9375d8a2895@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+User-Agent: Evolution 3.30.4 (3.30.4-1.fc29) 
+Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
+Le samedi 02 février 2019 à 18:03 +0100, Hans Verkuil a écrit :
+> Stateless codecs have to find buffers based on a timestamp (vb2_find_timestamp).
+> The timestamp is set to 0 initially, so prohibit finding timestamp 0 since it
+> could find unused buffers without associated memory (userptr or dmabuf).
+> 
+> The memory associated with a buffer will also disappear if the same buffer was
+> requeued with a different userptr address or dmabuf fd. Detect this and set the
+> timestamp of that buffer to 0 if this happens.
 
+Just a small concern, does it mean 0 is considered an invalid timestamp
+? In streaming it would be quite normal for a first picture to have PTS
+0.
 
-On 1/30/19 5:18 PM, Tim Harvey wrote:
-> On Mon, Jan 28, 2019 at 3:04 PM Steve Longerbeam <slongerbeam@gmail.com> wrote:
->>
->>
->> On 1/28/19 11:03 AM, Tim Harvey wrote:
->>> On Fri, Jan 25, 2019 at 3:57 PM Steve Longerbeam <slongerbeam@gmail.com> wrote:
->>>> Hi Tim, cc: Philipp,
->>>>
->>>> On 1/23/19 3:21 PM, Tim Harvey wrote:
->>>>> Steve,
->>>>>
->>>>> I'm testing IMX6 capture again with the tda1997x HDMI receiver found
->>>>> on Gateworks GW54xx and GW551x boards. This is hooked up to the IMX6
->>>>> CSI in a way where it can be configured for 8bit BT656 mode
->>>>> (UYVY8_2X8) or 16bit YUV mode (UYVY8_1X16). Also I have a Marshall
->>>>> Electronics V-SG4K-HDI HDMI signal generator here so I can test a wide
->>>>> variety of resolutions, bus formats, interlaced modes, and
->>>>> colorspaces.
->>>>>
->>>>> I'm using the following for testing:
->>>>> - Linux 4.20 +
->>>>>      - media: imx-csi: Input connections to CSI should be optional
->>>>>      - imx-media: Fixes for interlaced capture
->>>>>      - media: imx: Stop stream before disabling IDMA channels
->>>>> - v4l-utils 1.16.1
->>>>> - gstreamer-1.14.1 (with the ability to test master as well)
->>>>>
->>>>> I have a script that generates the media-ctl/v4l2-ctl commands based
->>>>> on providing a sensor ('adv7180' analog decoder or 'tda1997x' HDMI
->>>>> decoder) and a 'mode' which I've defined as:
->>>>> mode0: sensor -> mux -> csi -> /dev/videoN
->>>>> mode1: sensor -> mux -> csi -> ic_prp -> ic_prpenc -> /dev/videoN (provides a
->>>>> mode2: sensor -> mux -> csi -> ic_prp -> ic_prpvf -> /dev/videoN
->>>>> mode3: sensor -> mux -> csi -> vdic -> ic_prp -> ic_prpvf -> /dev/videoN
->>>>>
->>>>> The media-ctl topologies for each cpu/board combo are at
->>>>> http://dev.gateworks.com/docs/linux/media/
->>>>>
->>>>> I'm trying to test out simple v4l2-ctl based capture of a single frame
->>>>> as well as capture and stream via both software JPEG encode and H264
->>>>> hardware encode via CODA.
->>>>>
->>>>> Please let me know of any changes that should be made to the commands
->>>>> below even if only to purely help document things through clarity.
->>>>>
->>>>> One of the issues I run into right away is image size: The imx.rst
->>>>> docs state that the ic has a 'resize' limit of 1024x1024 but I think
->>>>> I'm mislead by the word 'resize' and this also means you can't push
->>>>> say 1080x720 through it (not resizing, just putting that on the src
->>>>> pad) as it clips it to 1024x720.
->>>> The IC is limited to a resized *output* frame of 1024x1024, no higher.
->>>>
->>> Ok so this means for anything >1024 I need to either use the csi to
->>> downscale it by factors of 2 first, or use mem2mem solution which
->>> means I can't use the VDIC (so no interlaced).
->> Actually that isn't true. You can still use a VDIC pipeline for the
->> 1280x720 interlaced tda19971 source. It's just that you would need to
->> downscale to <=1024 (either using the CSI /2, and/or using the IC prpvf
->> scaler). Then use the mem2mem gstreamer element to upscale the prpvf
->> capture output to something >1024.
->>
-> True, that would work and here are my mem2mem testing findings:
->
-> I've found that mem2mem from the CSI works well:
-> - Using the CSI to downscale 720p then going through mem2mem and
-> upscaling it (works perfectly!)
+Nicolas
 
-Good to hear!
-
-> # 720p@60Hz YUV BT656
-> # query current timings and set to this
-> v4l2-ctl -d $(media-ctl -e "tda19971 2-0048") --set-dv-bt-timings=query
-> # get timings
-> media-ctl --get-v4l2 '"tda19971 2-0048":0' # [fmt:UYVY8_2X8/1280x720
-> field:none colorspace:srgb]
-> # reset media controller links
-> media-ctl --reset
-> # create links
-> media-ctl --link '"tda19971 2-0048":0 -> "ipu1_csi0_mux":1[1]'
-> media-ctl --link '"ipu1_csi0_mux":2 -> "ipu1_csi0":0[1]'
-> media-ctl --link '"ipu1_csi0":2 -> "ipu1_csi0 capture":0[1]'
-> # set pad formats
-> media-ctl --set-v4l2 '"tda19971 2-0048":0[fmt:UYVY8_2X8/1280x720]'
-> media-ctl --set-v4l2 '"ipu1_csi0_mux":2[fmt:UYVY8_2X8/1280x720]'
-> media-ctl --set-v4l2 '"ipu1_csi0":0[fmt:AYUV32/1280x720
-> colorspace:rec709 ycbcr:709]'
-> media-ctl --set-v4l2 '"ipu1_csi0":0[compose:(0,0)/640x360]' # 1/2 scale
-
-It's not needed to do 1/2 scale in this use-case, since this pipeline is 
-not sending to the IC.
-
-But even for an IC pipeline, for this case (1280x720) you only need to 
-downscale 1/2 in width, not in both width and height (the CSI can 
-independently downscale in either dimension), E.g:
-
-media-ctl --set-v4l2 '"ipu1_csi0":0[compose:(0,0)/640x720]' # 1/2 scale in width
-
-
-> media-ctl --get-v4l2 '"ipu1_csi0":2' # [fmt:AYUV8_1X32/640x360@1/30
-> field:none colorspace:rec709 xfer:709 ycbcr:709
-> quantization:lim-range]
-> # get video device
-> media-ctl -e 'ipu1_csi0 capture' # /dev/video4
-> # stream JPEG/RTP/UDP
-> gst-launch-1.0 v4l2src device=/dev/video0 ! \
->    video/x-raw,format=UYVY ! \
->    jpegenc ! rtpjpegpay ! udpsink host=172.24.20.19 port=5000
-> # ^^^^ works but video is 1/4scale 640x360
-> # get mem2mem device (here is perhaps a great reason to have the
-> mem2mem device in the media graph... so its easy to find the device
-> name)
-> grep ipu_ic_pp /sys/class/video4linux/*/name #
-> /sys/class/video4linux/video8/name:ipu_ic_pp mem2mem - so its
-> v4l2video8convert
-> # stream upscale via mem2mem then JPEG/RTP/UDP
-> gst-launch-1.0 v4l2src device=/dev/video4 ! \
->    video/x-raw,format=UYVY ! \
->    v4l2video8convert ! video/x-raw,width=1280,height=720 ! \
->    jpegenc ! rtpjpegpay ! udpsink host=172.24.20.19 port=5000
-> # ^^^ works and video is back at 720p!
-> # stream H264/RTP/UDP
-> gst-launch-1.0 v4l2src device=/dev/video4 ! \
->    v4l2video8convert ! video/x-raw,width=1280,height=720 ! \
->    v4l2h264enc output-io-mode=dmabuf-import ! \
->    rtph264pay ! udpsink host=172.24.20.19 port=5001
-> # ^^^ works - 720p via coda
-
-Great.
-
->
-> But when going through the IC we again run into the issue where the
-> output of the IC isn't a suitable colorspace:
-> # 720p@60Hz YUV BT656
-> # set sensor output pad to sensor source format
-> v4l2-ctl -d /dev/v4l-subdev15 --set-dv-bt-timings=query
-> # sensor format
-> media-ctl --get-v4l2 '"tda19971 2-0048":0' # fmt:UYVY8_2X8/1280x720
-> field:none colorspace:srgb
-> # reset all links
-> media-ctl --reset
-> # setup links
-> media-ctl -l "'tda19971 2-0048':0 -> 'ipu1_csi0_mux':1[1]"
-> media-ctl -l "'ipu1_csi0_mux':2 -> 'ipu1_csi0':0[1]"
-> media-ctl -l "'ipu1_csi0':1 -> 'ipu1_ic_prp':0[1]"
-> media-ctl -l "'ipu1_ic_prp':1 -> 'ipu1_ic_prpenc':0[1]"
-> media-ctl -l "'ipu1_ic_prpenc':1 -> 'ipu1_ic_prpenc capture':0[1]"
-> # configure pads
-> media-ctl -V "'tda19971 2-0048':0 [fmt:UYVY8_2X8/1280x720 field:none]"
-> media-ctl -V "'ipu1_csi0_mux':2 [fmt:UYVY8_2X8/1280x720 field:none]"
-> media-ctl -V "'ipu1_csi0':1 [fmt:AYUV32/640x360 ]"
-> # downscale because the IC can't do >1024
-> media-ctl -V "'ipu1_ic_prp':1 [fmt:AYUV32/640x360 ]"
-> media-ctl -V "'ipu1_ic_prpenc':1 [fmt:AYUV32/640x360 ]"
-> media-ctl --get-v4l2 '"ipu1_ic_prpenc":1' #
-> [fmt:AYUV8_1X32/640x360@1/25 field:none colorspace:srgb xfer:srgb
-> ycbcr:601 quantization:lim-range]
-> # ^^^ note we are itu601 again b/c that's the only format the IC can ouput
-> # stream JPEG/RTP/UDP
-> gst-launch-1.0 v4l2src device=/dev/video0 ! \
->    video/x-raw,format=UYVY ! \
->    jpegenc ! rtpjpegpay ! udpsink host=172.24.20.19 port=5000
-> # ^^^ works... SW JPEG can handle itu601
-
-Ok.
-
-> # stream upscale via mem2mem then JPEG/RTP/UDP
-> gst-launch-1.0 v4l2src device=/dev/video4 ! \
->    v4l2video8convert ! video/x-raw,width=1280,height=720 ! \
->    jpegenc ! rtpjpegpay ! udpsink host=172.24.20.19 port=5000
-> ERROR: from element
-> /GstPipeline:pipeline0/v4l2video8convert:v4l2video8convert0: Device
-> '/dev/video8' does not support 2:4:7:1 colorimetry
-> # ^^^ fails because mem2mem doesn't support itu601
-> # stream H264/RTP/UDP
-> gst-launch-1.0 v4l2src device=/dev/video4 ! \
->    v4l2h264enc output-io-mode=dmabuf-import ! \
->    rtph264pay ! udpsink host=172.24.20.19 port=5001
-> ERROR: from element /GstPipeline:pipeline0/v4l2h264enc:v4l2h264enc0:
-> Device '/dev/video9' does not support 2:4:7:1 colorimetry
-> # ^^^ coda has same issue... can't del with itu601
-
-Well, just to see things working, try hacking 
-imx_media_fill_default_mbus_fields() to set Rec. 709 encoding:
-
---- a/drivers/staging/media/imx/imx-media-utils.c
-+++ b/drivers/staging/media/imx/imx-media-utils.c
-@@ -571,7 +571,7 @@ void imx_media_fill_default_mbus_fields(struct 
-v4l2_mbus_framefmt *tryfmt,
-                 tryfmt->quantization = is_rgb ?
-                         V4L2_QUANTIZATION_FULL_RANGE :
-                         V4L2_QUANTIZATION_LIM_RANGE;
--               tryfmt->ycbcr_enc = V4L2_YCBCR_ENC_601;
-+               tryfmt->ycbcr_enc = V4L2_YCBCR_ENC_709;
-         }
-  }
-  EXPORT_SYMBOL_GPL(imx_media_fill_default_mbus_fields);
-
-
-But of course that's not technically correct because the encoding in 
-ipu-ic.c is BT.601.
-
-The *real* way to fix this would be to allow programmable encodings in 
-ipu-ic.c. But unfortunately the encodings are hardcoded (grep for 
-ic_csc_rgb2ycbcr in ipu-ic.c).
-
-The other option would be to change ic_csc_rgb2ycbcr to use the Rec. 709 
-coefficients, and then the above patch is no longer a hack. The inverse 
-encoding (ic_csc_ycbcr2rgb) would also need to be changed.
-
-
->
-> Am I perhaps missing a capsfilter to get the mem2mem driver to convert
-> the colorspace properly? If so, they the mem2mem driver could be used
-> to correct the colorspace to get IC output to coda working.
-
-Well, first I don't think the mem2mem driver is using the correct 
-encoding. The mem2mem driver is making use of the IC encoding so it 
-should be reporting and accepting only BT.601.
-
-Philipp ^^
-
-
->
-> Also can we connect the mem2mem driver to the unused VDIC input in the
-> media controller so that we can use the VDIC to de-interlace content
-> captured from non IMX sources (ie PCI or USB capture devices)?
-
-Exactly! That's something I have been working on. But it's difficult to 
-connect mem2mem to the unused VDIC IDMAC input pad because as of now the 
-v4l2 mem2mem internal API's do not allow connecting to *existing* 
-processing entities, and there are also issues with how sub-devices are 
-to deal with mem2mem contexts.
-
-I do have a WIP branch that creates a video output device that connects 
-to the VDIC IDMAC input pad, which doesn't have the above issues. The 
-only drawback with that is how gstreamer can make use of such an output 
-device.
-
-
-> <snip>
->>>>> Another issue I'm running into is colorspace conversion, specifically
->>>>> colorimetry
->>>>>
->>>>> Example: imx6q-gw54xx tda19971 720p60Hz YUV via BT656 IPU1_CSI0
->>>>> MODE1:sensor->mux->csi->ic_prp->ic_prpenc
->>>>> # set sensor output pad to sensor source format
->>>>> v4l2-ctl -d /dev/v4l-subdev15 --set-dv-bt-timings=query
->>>>> # sensor format
->>>>> media-ctl --get-v4l2 '"tda19971 2-0048":0' # fmt:UYVY8_2X8/1280x720
->>>>> field:none colorspace:rec709
->>>>> # reset all links
->>>>> media-ctl --reset
->>>>> # setup links
->>>>> media-ctl -l "'tda19971 2-0048':0 -> 'ipu1_csi0_mux':1[1]"
->>>>> media-ctl -l "'ipu1_csi0_mux':2 -> 'ipu1_csi0':0[1]"
->>>>> media-ctl -l "'ipu1_csi0':1 -> 'ipu1_ic_prp':0[1]"
->>>>> media-ctl -l "'ipu1_ic_prp':1 -> 'ipu1_ic_prpenc':0[1]"
->>>>> media-ctl -l "'ipu1_ic_prpenc':1 -> 'ipu1_ic_prpenc capture':0[1]"
->>>>> # configure pads
->>>>> media-ctl -V "'tda19971 2-0048':0 [fmt:UYVY8_2X8/1280x720 field:none]"
->>>>> media-ctl -V "'ipu1_csi0_mux':2 [fmt:UYVY8_2X8/1280x720 field:none]"
->>>>> media-ctl -V "'ipu1_csi0':1 [fmt:AYUV32/1280x720]"
->>>>> media-ctl -V "'ipu1_ic_prp':1 [fmt:AYUV32/1280x720]"
->>>>> media-ctl -V "'ipu1_ic_prpenc':1 [fmt:AYUV32/1280x720]"
->>>>> # capture device
->>>>> media-ctl -e 'ipu1_ic_prpenc capture' # /dev/video0
->>>>> v4l2-ctl --device /dev/video0 --get-fmt-video
->>>>> Format Video Capture:
->>>>>            Width/Height      : 1024/720
->>>>>            Pixel Format      : 'UYVY' (UYVY 4:2:2)
->>>>>            Field             : None
->>>>>            Bytes per Line    : 2048
->>>>>            Size Image        : 1474560
->>>>>            Colorspace        : Rec. 709
->>>>>            Transfer Function : Rec. 709
->>>>>            YCbCr/HSV Encoding: ITU-R 601
->>>>>            Quantization      : Limited Range
->>>>>            Flags             :
->>>>> ^^^ Note 1080x720 has been reduced to 1024x720 - ouch!
->>>> Yes as discussed above that is correct behavior, you'll need mem2mem
->>>> device to support >1024 tiled scaling.
->>>>
->>>>> # capture 1 frame
->>>>> v4l2-ctl --device /dev/video0 --stream-mmap --stream-to=x.raw --stream-count=1
->>>>> ^^^ works
->>>>> # stream JPEG/RTP/UDP
->>>>> gst-launch-1.0 v4l2src device=/dev/video0 ! \
->>>>>      video/x-raw,format=UYVY ! \
->>>>>      jpegenc ! rtpjpegpay ! udpsink host=172.24.20.19 port=5000
->>>>> ^^^ works (but of course squashed horizontally because of x=1024)
->>>>> # stream H264/RTP/UDP (via coda)
->>>>> # need to make sure we feed coda NV12/rec709
->>>>> media-ctl --get-v4l2 '"ipu1_ic_prpenc":0' #
->>>>> fmt:AYUV8_1X32/1280x720@1/25 field:none colorspace:rec709 xfer:709
->>>>> ycbcr:601 quantization:lim-range
->>>>> ^^^ input colorspace is rec709 but colorimetry needs to be changed to 709
->>>>> media-ctl --set-v4l2 '"ipu1_ic_prpenc":0[fmt:AYUV32/1280x720
->>>>> colorspace:rec709 ycbcr:709]'
->>>>> ^^^ no error but doing a get-v4l2 shows no change - is this all
->>>>> because of trying to deal with 1080 instead of 1024?
->>>> No. The Image Converter can only Y`CbCr encode to ITU-R 601
->>>> (V4L2_YCBCR_ENC_601). So the driver won't accept Rec. 709 Y`CbCr
->>>> encoding when using an IC pipeline.
->>>>
->>>> See imx_media_fill_default_mbus_fields().
->>>>
->>>>> gst-launch-1.0 v4l2src device=/dev/video0 ! \
->>>>>      v4l2h264enc output-io-mode=dmabuf-import ! \
->>>>>      rtph264pay ! udpsink host=172.24.20.19 port=5001
->>>>> v4l2src0: Device '/dev/video0' does not support 2:0:0:0 colorimetry
->>>>> ^^^ fails because of colorimetry not getting set
->>>> Right, that is correct behavior also. See above.
->>>>
->>>> Philipp, can the coda driver accept V4L2_YCBCR_ENC_601 colorspace?
->>>>
->>> I will have to go back and look what the old downstream Freescale
->>> kernel drivers did here... I could swear I could easily de-interlace
->>> via VDIC and encode 1080i with that and gstreamer-imx.
-> The old freescale kernel + gstreamer-imx does require using the IPU to
-> transform the colorspace before it goes to CODA but I'm still trying
-> to understand the gstreamer code. The pixel formats vs colorspace vs
-> colorimetry still confuse me.
->
-> So again, I'm struggling with how to get the output of the IC into coda.
-
-See above, try just hacking with the above patch for now to get things 
-working (albeit with incorrect Y'CbCr encoding).
-
->
->>>>> <snip>
->>>>>
->>>>> Let's try an interlaced format...
->>>>>
->>>>> Example: imx6q-gw54xx tda19971 480i60Hz YUV via BT656 IPU1_CSI0
->>>>> MODE1:sensor->mux->csi->ic_prp->ic_prpenc
->>>>> # set sensor output pad to sensor source format
->>>>> v4l2-ctl -d /dev/v4l-subdev15 --set-dv-bt-timings=query
->>>>> # sensor format
->>>>> media-ctl --get-v4l2 '"tda19971 2-0048":0' # fmt:UYVY8_2X8/720x480
->>>>> field:seq-tb colorspace:rec709
->>>>> # reset all links
->>>>> media-ctl --reset
->>>>> # setup links
->>>>> media-ctl -l "'tda19971 2-0048':0 -> 'ipu1_csi0_mux':1[1]"
->>>>> media-ctl -l "'ipu1_csi0_mux':2 -> 'ipu1_csi0':0[1]"
->>>>> media-ctl -l "'ipu1_csi0':1 -> 'ipu1_vdic':0[1]"
->>>>> media-ctl -l "'ipu1_vdic':2 -> 'ipu1_ic_prp':0[1]"
->>>>> media-ctl -l "'ipu1_ic_prp':2 -> 'ipu1_ic_prpvf':0[1]"
->>>>> media-ctl -l "'ipu1_ic_prpvf':1 -> 'ipu1_ic_prpvf capture':0[1]"
->>>>> # configure pads
->>>>> media-ctl -V "'tda19971 2-0048':0 [fmt:UYVY8_2X8/720x480 field:seq-tb]"
->>>>> media-ctl -V "'ipu1_csi0_mux':2 [fmt:UYVY8_2X8/720x480 field:seq-tb]"
->>>>> media-ctl -V "'ipu1_csi0':1 [fmt:AYUV32/720x480]"
->>>>> media-ctl -V "'ipu1_vdic':2 [fmt:AYUV32/720x480]"
->>>>> media-ctl -V "'ipu1_ic_prp':2 [fmt:AYUV32/720x480]"
->>>>> media-ctl -V "'ipu1_ic_prpvf':1 [fmt:AYUV32/720x480]"
->>>>> # capture device
->>>>> media-ctl -e 'ipu1_ic_prpvf capture' # /dev/video1
->>>>> v4l2-ctl --device /dev/video1 --get-fmt-video
->>>>> Format Video Capture:
->>>>>            Width/Height      : 720/480
->>>>>            Pixel Format      : 'UYVY' (UYVY 4:2:2)
->>>>>            Field             : None
->>>>>            Bytes per Line    : 1440
->>>>>            Size Image        : 691200
->>>>>            Colorspace        : Rec. 709
->>>>>            Transfer Function : Rec. 709
->>>>>            YCbCr/HSV Encoding: ITU-R 601
->>>>>            Quantization      : Limited Range
->>>>>            Flags             :
->>>>> # capture 1 frame
->>>>> v4l2-ctl --device /dev/video1 --stream-mmap --stream-to=x.raw --stream-count=1
->>>>> ^^^ fails with ipu1_ic_prpvf: EOF timeout
->>>>> ^^^ this is almost identical to the adv7180 case which works... the
->>>>> only exception I see is field:seq-tb vs field:alternate from the
->>>>> source which should be fine (more specific than 'alternate')
->>>> Hmm, can you send the complete pad formats from --get-v4l2. I don't see
->>>> anything obviously wrong here.
->>>>
->>> root@imx6q-gw5404:~# media-ctl --get-v4l2 "'tda19971 2-0048':0"
->>>                   [fmt:UYVY8_2X8/720x480 field:seq-tb colorspace:rec709]
->>> root@imx6q-gw5404:~# media-ctl --get-v4l2 "'ipu1_csi0_mux':2"
->>>                   [fmt:UYVY8_2X8/720x480 field:seq-tb colorspace:rec709]
->>> root@imx6q-gw5404:~# media-ctl --get-v4l2 "'ipu1_csi0':1"
->>>                   [fmt:AYUV8_1X32/720x480@1/30 field:seq-tb
->>> colorspace:rec709 xfer:709 ycbcr:601 quantization:lim-range]
->>> root@imx6q-gw5404:~# media-ctl --get-v4l2 "'ipu1_vdic':2"
->>>                   [fmt:AYUV8_1X32/720x480@1/60 field:none
->>> colorspace:rec709 xfer:709 ycbcr:601 quantization:lim-range]
->>> root@imx6q-gw5404:~# media-ctl --get-v4l2 "'ipu1_ic_prp':2"
->>>                   [fmt:AYUV8_1X32/720x480@1/30 field:none
->>> colorspace:rec709 xfer:709 ycbcr:601 quantization:lim-range]
->>> root@imx6q-gw5404:~# media-ctl --get-v4l2 "'ipu1_ic_prpvf':1"
->>>                   [fmt:AYUV8_1X32/720x480@1/30 field:none
->>> colorspace:rec709 xfer:709 ycbcr:601 quantization:lim-range]
->>>
->>> root@imx6q-gw5404:~# v4l2-ctl --device /dev/video1 --get-fmt-video
->>> Format Video Capture:
->>>           Width/Height      : 720/480
->>>           Pixel Format      : 'UYVY' (UYVY 4:2:2)
->>>           Field             : None
->>>           Bytes per Line    : 1440
->>>           Size Image        : 691200
->>>           Colorspace        : Rec. 709
->>>           Transfer Function : Rec. 709
->>>           YCbCr/HSV Encoding: ITU-R 601
->>>           Quantization      : Limited Range
->>>           Flags             :
->>>
->>> root@imx6q-gw5404:~# v4l2-ctl --device /dev/video1 --stream-mmap
->>> --stream-to=x.raw --stream-count=1
->>> [  159.828654] ipu1_ic_prpvf: EOF timeout
->>> VIDIOC_DQBUF: failed: Input/output error
->> Sorry everything looks fine, I don't know why that pipeline is failing
->> to generate any data.
->>
-> This one (480i60Hz YUV via BT656 sensor->mux->csi->ic_prp->ic_prpenc)
-> still baffles me a bit but I've also found that any bt656 capture that
-> isn't specifically 720x480 (NTSC) or 720x576 (PAL) fails because of
-> the resolution checks in ipu_csi_init_interface() resulting in
-> 'Unsupported interlaced video mode'. I'm not sure if
-> ipu_csi_set_bt_interlaced_codes() can be modified to support other
-> resolutions?
-
-Well, Bt.656 only defines standard definition NTSC and PAL.
-
-> <snip>
->>>>> ok now I'm going to boot with a different device-tree that connects
->>>>> the tda1997x to IMX6 via 16bit YUV. Advantages of this mode should be
->>>>> 1) better pixel bpp 2) colorimetry is rec709 so no conversion needed
->>>>> for coda 3) ability to capture 1080p60 as I have confirmed tyring to
->>>>> do so via bt656 exceeds the IMX pixel clock rate and causes CSI
->>>>> corruption. Downsides to this mode is that I currently have a bug in
->>>>> the tda1997x driver regarding this mode and interlaced capture.
->>>>>
->>>>> Example: imx6q-gw54xx tda19971 480p60Hz YUV via 16bit YUV IPU1_CSI0
->>>>> MODE0:sensor->mux->csi
->>>>> # set sensor output pad to sensor source format
->>>>> v4l2-ctl -d /dev/v4l-subdev15 --set-dv-bt-timings=query
->>>>> # sensor format
->>>>> media-ctl --get-v4l2 '"tda19971 2-0048":0' # fmt:UYVY8_1X16/720x480
->>>>> field:none colorspace:rec709
->>>>> # reset all links
->>>>> media-ctl --reset
->>>>> # setup links
->>>>> media-ctl -l "'tda19971 2-0048':0 -> 'ipu1_csi0_mux':1[1]"
->>>>> media-ctl -l "'ipu1_csi0_mux':2 -> 'ipu1_csi0':0[1]"
->>>>> media-ctl -l "'ipu1_csi0':2 -> 'ipu1_csi0 capture':0[1]"
->>>>> # configure pads
->>>>> media-ctl -V "'tda19971 2-0048':0 [fmt:UYVY8_1X16/720x480 field:none]"
->>>>> media-ctl -V "'ipu1_csi0_mux':2 [fmt:UYVY8_1X16/720x480 field:none]"
->>>>> media-ctl -V "'ipu1_csi0':2 [fmt:AYUV32/720x480]"
->>>>> media-ctl --get-v4l2 '"ipu1_csi0":2'
->>>>>                    [fmt:UYVY8_1X16/720x480@1/30 field:none
->>>> This is passthrough, the CSI can only pass through input pixel data
->>>> unmodified as "generic" data, when the input bus is 16-bit parallel,
->>>> which it is in this case (UYVY8_1X16). So the pixel code at the CSI
->>>> output pad is forced to same as input pad (UYVY8_1X16).
->>>>
->>>> But aside from passthrough, that shouldn't be a problem...
->>>>
->>>>> colorspace:rec709 xfer:709 ycbcr:709 quantization:lim-range]
->>>>> # capture device
->>>>> media-ctl -e 'ipu1_csi0 capture' # /dev/video4
->>>>> v4l2-ctl --device /dev/video4 --get-fmt-video
->>>>> Format Video Capture:
->>>>>            Width/Height      : 720/480
->>>>>            Pixel Format      : 'UYVY' (UYVY 4:2:2)
->>>>>            Field             : None
->>>>>            Bytes per Line    : 1440
->>>>>            Size Image        : 691200
->>>>>            Colorspace        : Rec. 709
->>>>>            Transfer Function : Rec. 709
->>>>>            YCbCr/HSV Encoding: Rec. 709
->>>>>            Quantization      : Limited Range
->>>>>            Flags             : premultiplied-alpha
->>>>> # capture 1 frame
->>>>> v4l2-ctl --device /dev/video4 --stream-mmap --stream-to=x.raw --stream-count=1
->>>>> convert -size 720x480 -depth 16 uyvy:x.raw /var/www/html/files/frame.png
->>>> So capture of 1 frame worked fine?
->>> yes this worked fine
->>>
->>>>> # stream JPEG/RTP/UDP
->>>>> gst-launch-1.0 v4l2src device=/dev/video4 ! \
->>>>>      video/x-raw,format=UYVY ! \
->>>>>      jpegenc ! rtpjpegpay ! udpsink host=172.24.20.19 port=5000
->>>> and this worked?
->>> yes this worked fine
->>>
->>>>> # stream H264/RTP/UDP
->>>>> media-ctl --get-v4l2 '"ipu1_csi0":0'
->>>>>                    [fmt:UYVY8_1X16/720x480@1/30 field:none
->>>>> colorspace:rec709 xfer:709 ycbcr:709 quantization:lim-range
->>>>>                     crop.bounds:(0,0)/720x480
->>>>>                     crop:(0,0)/720x480
->>>>>                     compose.bounds:(0,0)/720x480
->>>>>                     compose:(0,0)/720x480]
->>>>> ^^^ no conv needed
->>>>> media-ctl --get-v4l2 '"ipu1_csi0":0'
->>>> huh?
->>> typo'd here and cut-and-pasted another occurrence of the media-ctl
->>> --get-v4l2 command but my point here is that we have the correct
->>> colorspace/colorimetry for coda so the H264 below should work fine
->>>
->>>>> gst-launch-1.0 v4l2src device=/dev/video4 ! \
->>>>>      v4l2h264enc output-io-mode=dmabuf-import ! \
->>>>>      rtph264pay ! udpsink host=172.24.20.19 port=5001
->>>>> v4l2src0: Internal data stream error.
->>>> Sorry, I don't have enough info to help here.
->>>>
->>> Here's the pad details:
->>>
->>> root@imx6q-gw5404:~# media-ctl --get-v4l2 "'tda19971 2-0048':0"
->>>                   [fmt:UYVY8_1X16/720x480 field:none colorspace:rec709]
->>> root@imx6q-gw5404:~# media-ctl --get-v4l2 "'ipu1_csi0_mux':2"
->>>                   [fmt:UYVY8_1X16/720x480 field:none colorspace:rec709]
->>> root@imx6q-gw5404:~# media-ctl --get-v4l2 "'ipu1_csi0':2"
->>>                   [fmt:UYVY8_1X16/720x480@1/30 field:none
->>> colorspace:rec709 xfer:709 ycbcr:709 quantization:lim-range]
->>>
->>> root@imx6q-gw5404:~# v4l2-ctl --device /dev/video4 --get-fmt-video
->>> Format Video Capture:
->>>           Width/Height      : 720/480
->>>           Pixel Format      : 'UYVY' (UYVY 4:2:2)
->>>           Field             : None
->>>           Bytes per Line    : 1440
->>>           Size Image        : 691200
->>>           Colorspace        : Rec. 709
->>>           Transfer Function : Rec. 709
->>>           YCbCr/HSV Encoding: Rec. 709
->>>           Quantization      : Limited Range
->>>           Flags             :
->>>
->>> So in this passthrough case v4l2-ctl stream capture works, gstreamer
->>> capture with sw jpeg encode works, but gstreamer capture with h264
->>> encode fails:
->>>
->>> root@imx6q-gw5404:~# gst-launch-1.0 v4l2src device=/dev/video4 ! \
->>>>      v4l2h264enc output-io-mode=dmabuf-import ! \
->>>>      rtph264pay ! udpsink host=172.24.20.19 port=5001
->>> Setting pipeline to PAUSED ...
->>> Pipeline is live and does not need PREROLL ...
->>> Setting pipeline to PLAYING ...
->>> ERROR: from element /GstPipeline:pipeline0/GstV4l2Src:v4l2src0:
->>> Internal data stream error.
->>> Additional debug info:
->>> gstbasesrc.c(3055): gst_base_src_loop ():
->>> /GstPipeline:pipeline0/GstV4l2Src:v4l2src0:
->>> streaming stopped, reason not-negotiated (-4)
->>> Execution ended after 0:00:00.000416672
->>> Setting pipeline to PAUSED ...
->>> Setting pipeline to READY ...
->>> Setting pipeline to NULL ...
->>> Freeing pipeline ...
->>>
->>> It would appear that this must have something to do with gstreamer.
->>> The only difference here between this case and the adv7180 is that
->>> field=none and colorimetry is itu601... I'm guessing the field=none is
->>> causing an issue. I'll post a question to gstreamer-devel.
->> Ok. Given that v4l2-ctl stream capture works, gstreamer capture with sw
->> jpeg encode works, but gstreamer capture with h264does not, this does
->> sound like some issue with gstreamer.
->>
-> While the 480p60Hz YUV via 16bit YUV sensor->mux->csi appears to work
-> from a V4L2 capture perspective I find that this input with the IC
-> causes 'pipeline start failed with -32' errors:
->
-> # imx6q-gw54xx tda19971 720p 16bit YUV IPU1_CSI0
-> MODE1:sensor->mux->csi->ic_prp->ic_prpenc
-> # set sensor output pad to sensor source format
-> v4l2-ctl -d /dev/v4l-subdev15 --set-dv-bt-timings=query
-> # sensor format
-> media-ctl --get-v4l2 '"tda19971 2-0048":0'
->                  [fmt:UYVY8_1X16/1280x720 field:none colorspace:rec709]
-> # get framerate
-> v4l2-ctl --device /dev/v4l-subdev15 --get-dv-timings
-> DV timings:
->          Active width: 1280
->          Active height: 720
->          Total width: 1650
->          Total height: 750
->          Frame format: progressive
->          Polarities: +vsync +hsync
->          Pixelclock: 74250000 Hz (60.00 frames per second)
->          Horizontal frontporch: 110
->          Horizontal sync: 40
->          Horizontal backporch: 220
->          Vertical frontporch: 5
->          Vertical sync: 5
->          Vertical backporch: 20
->          Standards: CTA-861
->          CTA-861 VIC: 0
->          Flags: framerate can be reduced by 1/1.001, CE-video, has CTA-861 VIC
->
-> # reset all links
-> media-ctl --reset
-> # setup links
-> media-ctl -l "'tda19971 2-0048':0 -> 'ipu1_csi0_mux':1[1]"
-> media-ctl -l "'ipu1_csi0_mux':2 -> 'ipu1_csi0':0[1]"
-> media-ctl -l "'ipu1_csi0':1 -> 'ipu1_ic_prp':0[1]"
-> media-ctl -l "'ipu1_ic_prp':1 -> 'ipu1_ic_prpenc':0[1]"
-> media-ctl -l "'ipu1_ic_prpenc':1 -> 'ipu1_ic_prpenc capture':0[1]"
-> # configure pads
-> media-ctl -V "'tda19971 2-0048':0 [fmt:UYVY8_1X16/1280x720 field:none]"
-> media-ctl -V "'ipu1_csi0_mux':2 [fmt:UYVY8_1X16/1280x720 field:none]"
-> media-ctl -V "'ipu1_csi0':1 [fmt:AYUV32/640x360 ]"
-> media-ctl -V "'ipu1_ic_prp':1 [fmt:AYUV32/640x360 ]"
-> media-ctl -V "'ipu1_ic_prpenc':1 [fmt:AYUV32/640x360 ]"
-> media-ctl --get-v4l2 '"ipu1_ic_prpenc":1'
-> # capture device
-> media-ctl -e 'ipu1_ic_prpenc capture'
-> /dev/video0
-> v4l2-ctl --device /dev/video0 --get-fmt-video
-> Format Video Capture:
->          Width/Height      : 640/360
->          Pixel Format      : 'UYVY' (UYVY 4:2:2)
->          Field             : None
->          Bytes per Line    : 1280
->          Size Image        : 460800
->          Colorspace        : Rec. 709
->          Transfer Function : Rec. 709
->          YCbCr/HSV Encoding: ITU-R 601
->          Quantization      : Limited Range
->          Flags             :
->
-> # capture 1 frame
-> v4l2-ctl --device /dev/video0 --stream-mmap --stream-to=x.raw --stream-count=1
-> [  125.966980] ipu1_ic_prpenc: pipeline start failed with -32
->
-> Do you know what the failure is here?
-
-You are /2 downscaling in the CSI, but did not set the compose window at 
-the input pad, e.g:
-
-media-ctl --set-v4l2 '"ipu1_csi0":0[compose:(0,0)/640x360]' # 1/2 scale
-
-
-
->
-> And can you explain why I can't colorspace convert the following CSI
-> capture case?:
->
-> # imx6q-gw54xx tda19971 720p60 16-bit YUV sensor->mux->csi
-> # set sensor output pad to sensor source format
-> v4l2-ctl -d /dev/v4l-subdev15 --set-dv-bt-timings=query
-> # sensor format
-> media-ctl --get-v4l2 '"tda19971 2-0048":0'
->                  [fmt:UYVY8_1X16/1280x720 field:none colorspace:srgb]
-> # reset all links
-> media-ctl --reset
-> # setup links
-> media-ctl -l "'tda19971 2-0048':0 -> 'ipu1_csi0_mux':1[1]"
-> media-ctl -l "'ipu1_csi0_mux':2 -> 'ipu1_csi0':0[1]"
-> media-ctl -l "'ipu1_csi0':2 -> 'ipu1_csi0 capture':0[1]"
-> # configure pads
-> media-ctl -V "'tda19971 2-0048':0 [fmt:UYVY8_1X16/1280x720 field:none]"
-> media-ctl -V "'ipu1_csi0_mux':2 [fmt:UYVY8_1X16/1280x720 field:none]"
-> media-ctl -V "'ipu1_csi0':2 [fmt:AYUV32/1280x720 colorspace:rec709 ycbcr:709]"
-> media-ctl --get-v4l2 '"ipu1_csi0":2'
->                  [fmt:UYVY8_1X16/1280x720@1/30 field:none
-> colorspace:srgb xfer:srgb ycbcr:601 quantization:lim-range]
-> ^^^ still itu601
->
-> I have found in my testing when dealing with a BT656 RGB colorspace
-> input which I need to convert ot rec709 I have to set the 'input' pad
-> of the csi which doesn't make sense and if I do this with a 16-bit RGB
-> colorspace (above) it jacks up the fmt:
-> media-ctl -V "'ipu1_csi0':0 [fmt:AYUV32/1280x720 colorspace:rec709 ycbcr:709]"
-> media-ctl --get-v4l2 '"ipu1_csi0":2'
->                  [fmt:UYVY8_2X8/1280x720@1/30 field:none
-> colorspace:rec709 xfer:709 ycbcr:709 quantization:lim-range]
-> ^^^ changed fmt because AYUV32 at CSI input is invalid so it defaults
-> fmt to YUVY8_2X8
->
-> So there is something I'm still doing wrong to setup CSC.
-
-Sorry I guess I don't understand your question here. Correct the CSI 
-does not accept AYUV32 at its input pad.
-
-Steve
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+> Note: I think it is still necessary to lock a buffer when it is in use as
+> a reference frame, otherwise a userspace application can queue it again with
+> a different dmabuf fd, which could free the memory of the old dmabuf.
+> 
+> vb2_find_buffer should probably do that.
+> ---
+> diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
+> index e07b6bdb6982..b664d9790330 100644
+> --- a/drivers/media/common/videobuf2/videobuf2-core.c
+> +++ b/drivers/media/common/videobuf2/videobuf2-core.c
+> @@ -1043,6 +1043,8 @@ static int __prepare_userptr(struct vb2_buffer *vb)
+>  				reacquired = true;
+>  				call_void_vb_qop(vb, buf_cleanup, vb);
+>  			}
+> +			if (!q->is_output)
+> +				vb->timestamp = 0;
+>  			call_void_memop(vb, put_userptr, vb->planes[plane].mem_priv);
+>  		}
+> 
+> @@ -1157,6 +1159,8 @@ static int __prepare_dmabuf(struct vb2_buffer *vb)
+>  		/* Skip the plane if already verified */
+>  		if (dbuf == vb->planes[plane].dbuf &&
+>  			vb->planes[plane].length == planes[plane].length) {
+> +			if (!q->is_output)
+> +				vb->timestamp = 0;
+>  			dma_buf_put(dbuf);
+>  			continue;
+>  		}
+> diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+> index 3aeaea3af42a..8e966fa81b7e 100644
+> --- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
+> +++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+> @@ -603,6 +603,9 @@ int vb2_find_timestamp(const struct vb2_queue *q, u64 timestamp,
+>  {
+>  	unsigned int i;
+> 
+> +	if (!timestamp)
+> +		return -1;
+> +
+>  	for (i = start_idx; i < q->num_buffers; i++)
+>  		if (q->bufs[i]->timestamp == timestamp)
+>  			return i;
+> diff --git a/include/media/videobuf2-v4l2.h b/include/media/videobuf2-v4l2.h
+> index 8a10889dc2fd..01bf4b2199c7 100644
+> --- a/include/media/videobuf2-v4l2.h
+> +++ b/include/media/videobuf2-v4l2.h
+> @@ -59,14 +59,14 @@ struct vb2_v4l2_buffer {
+>   * vb2_find_timestamp() - Find buffer with given timestamp in the queue
+>   *
+>   * @q:		pointer to &struct vb2_queue with videobuf2 queue.
+> - * @timestamp:	the timestamp to find.
+> + * @timestamp:	the timestamp to find. Must be > 0.
+>   * @start_idx:	the start index (usually 0) in the buffer array to start
+>   *		searching from. Note that there may be multiple buffers
+>   *		with the same timestamp value, so you can restart the search
+>   *		by setting @start_idx to the previously found index + 1.
+>   *
+>   * Returns the buffer index of the buffer with the given @timestamp, or
+> - * -1 if no buffer with @timestamp was found.
+> + * -1 if no buffer with @timestamp was found or if @timestamp was 0.
+>   */
+>  int vb2_find_timestamp(const struct vb2_queue *q, u64 timestamp,
+>  		       unsigned int start_idx);
 
