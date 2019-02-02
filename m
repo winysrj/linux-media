@@ -2,82 +2,197 @@ Return-Path: <SRS0=sYKt=QJ=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.0 required=3.0
+	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C7A43C282D7
-	for <linux-media@archiver.kernel.org>; Sat,  2 Feb 2019 07:41:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A4FFDC282D7
+	for <linux-media@archiver.kernel.org>; Sat,  2 Feb 2019 08:03:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A273A2146E
-	for <linux-media@archiver.kernel.org>; Sat,  2 Feb 2019 07:41:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 74E5520869
+	for <linux-media@archiver.kernel.org>; Sat,  2 Feb 2019 08:03:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726594AbfBBHlA (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sat, 2 Feb 2019 02:41:00 -0500
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:53615 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726011AbfBBHlA (ORCPT
+        id S1726594AbfBBIDZ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sat, 2 Feb 2019 03:03:25 -0500
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:41415 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726504AbfBBIDZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 2 Feb 2019 02:41:00 -0500
+        Sat, 2 Feb 2019 03:03:25 -0500
 Received: from [192.168.1.192] ([188.93.81.205])
         by smtp-cloud7.xs4all.net with ESMTPA
-        id ppv1gJgznBDyIppv5g3r8X; Sat, 02 Feb 2019 08:40:58 +0100
-Subject: Re: [PATCH][media-next] media: vb2: remove unused variable i
-To:     Colin King <colin.king@canonical.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Cc:     kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <20190201180642.14328-1-colin.king@canonical.com>
+        id pqGkgJlcHBDyIpqGog3sVW; Sat, 02 Feb 2019 09:03:23 +0100
+Subject: Re: [PATCH] media: v4l2-tpg: Fix the memory layout of AYUV buffers
+To:     Vivek Kasireddy <vivek.kasireddy@intel.com>
+Cc:     linux-media@vger.kernel.org, Philipp Zabel <p.zabel@pengutronix.de>
+References: <20190129023222.10036-1-vivek.kasireddy@intel.com>
+ <92dbd1f9-f5dc-37ed-856a-b3b2aa2b75d5@xs4all.nl>
+ <20190131182903.08f28cd9@vkasired-desk2.fm.intel.com>
+ <85fadb6b-6adb-b800-a71f-a4f8b68a9acf@xs4all.nl>
+ <20190201164850.723b4e21@vkasired-desk2.fm.intel.com>
 From:   Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <a51e8cc0-80f5-0139-9875-0507a8d7c341@xs4all.nl>
-Date:   Sat, 2 Feb 2019 08:40:51 +0100
+Message-ID: <140cad99-7891-651c-6cf7-ae39d5768930@xs4all.nl>
+Date:   Sat, 2 Feb 2019 09:03:17 +0100
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:52.0) Gecko/20100101
  Thunderbird/52.9.1
 MIME-Version: 1.0
-In-Reply-To: <20190201180642.14328-1-colin.king@canonical.com>
+In-Reply-To: <20190201164850.723b4e21@vkasired-desk2.fm.intel.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfPWxuwMB1RJqGpmXhN5VToqu6qn7xlp2hr1EmA/N28/f25E3ar1QrCPXhY8NmyQAeEvVpYVyl6eRZu72P+w/plyXqSCSoNTv3MzhXM9e2PjUbObFi7mi
- bNuVzxwwOd0dWGcLuIH5dozHRCZt8mrbzNheD/inRjTz/NfrwmHoqbN/9G3guArXM58a9vpDpG2jV32Wn+phwq433kPWBmpx9CAiKCQ99jhIec3KhN0FOfFd
- ZYmhUTO9dRdHYIbvOaOz/iITDO28khl6KF2kInsHf+VOHLGr9uECxFV+uxVupGkBR1pVkyUCGUvHx6uvjpDtUelo15D2Va718hoRpFmAy+Zp9HDW0SHsYC92
- foh5xoQZmha3coEfk2Gy4XSFyjB8/V8uZIhdJ0+Sy4bUl2ojCh40QS9zErBN8jDysjTOwy2SpYD+DY+7V8e3zawrXuqhsg==
+X-CMAE-Envelope: MS4wfFzaEFMEWh5eIvvFuND2J1BQ272c0LH4g83lpjgr/UhMndph6CACyMftCjAq3uhzX7DP7KZQct3n7mj9hhtnh6O1a4yvqDwX9G0pTMhZbix6h6pNqjiH
+ W00uJquxvqqXJGyex7gi3l8+Au1SbVQTMS75v8mvmQiEBvGnzc+Yd5uGaP//cs70YlqI45hCiz2YJ6PxeyAZfgLrPghYKKUk/HvzdQTJMAm4/PyaYNBiN3jt
+ DmUGQkwAFQxHxw7kPbRvOA==
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On 02/01/2019 07:06 PM, Colin King wrote:
-> From: Colin Ian King <colin.king@canonical.com>
+On 02/02/2019 01:48 AM, Vivek Kasireddy wrote:
+> On Fri, 1 Feb 2019 10:08:52 +0100
+> Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> Hi Hans,
 > 
-> Variable i is declared and never used. Fix this by removing it.
+>> On 2/1/19 3:29 AM, Vivek Kasireddy wrote:
+>>> On Thu, 31 Jan 2019 14:36:42 +0100
+>>> Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>>
+>>> Hi Hans,
+>>>   
+>>>> Hi Vivek,
+>>>>
+>>>> On 1/29/19 3:32 AM, Vivek Kasireddy wrote:  
+>>>>> From: "Kasireddy, Vivek" <vivek.kasireddy@intel.com>
+>>>>>
+>>>>> The memory layout of AYUV buffers (V4L2_PIX_FMT_YUV32) should be
+>>>>> similar to V4L2_PIX_FMT_ABGR32 instead of V4L2_PIX_FMT_ARGB32.
+>>>>>
+>>>>> While displaying the packed AYUV buffers generated by the Vivid
+>>>>> driver using v4l2-tpg on Weston, it was observed that these AYUV
+>>>>> images were not getting displayed correctly. Changing the memory
+>>>>> layout makes them display as expected.    
+>>>>
+>>>> Our YUV32 fourcc is defined as follows:
+>>>>
+>>>> https://hverkuil.home.xs4all.nl/spec/uapi/v4l/pixfmt-packed-yuv.html
+>>>>
+>>>> As far as I see the format that the TPG generates is according to
+>>>> the V4L2 spec.  
+>>>
+>>> I looked into the above link, and I am now wondering whether YUV32
+>>> is the same as the format referred to as AYUV here or not:
+>>>
+>>> https://docs.microsoft.com/en-us/windows/desktop/medfound/recommended-8-bit-yuv-formats-for-video-rendering#ayuv  
+>>
+>> It's not the same format.
+>>
+>>>
+>>> If YUV32 is not the same as AYUV, should I send another patch
+>>> adding a new format named AYUV with the reversed memory layout?  
+>>
+>> That can only be done if there is also a driver that uses it.
+> There are some drm drivers that already use the AYUV format defined
+> here:
+> https://git.linuxtv.org/media_tree.git/tree/drivers/gpu/drm/drm_fourcc.c#n228
 
-A fix for this is already pending in a pull request.
+I would have to check this with Mauro whether this is a good enough excuse to
+add a new format.
+
+> 
+>>
+>>>   
+>>>>
+>>>> Philipp, can you check the YUV32 format that the imx-pxp driver
+>>>> uses? Is that according to our spec?  
+>>
+>> Philipp, would it be possible to add such a format to imx-pxp? That
+>> might be a nice approach because once imx-pxp can do it, then it can
+>> also be added to the TPG.
+> I was going to send in a patch to add the AYUV (and maybe XYUV) format
+> but I came across this line that leaves me confused:
+> https://git.linuxtv.org/media_tree.git/tree/drivers/media/platform/vivid/vivid-vid-common.c#n164
+
+It indicates the order of the components in memory, which is indeed AYUV.
+But it has nothing to do with the microsoft AYUV fourcc.
+
+> It appears that when YUV32 was added, the intention was to mimic AYUV.
+> And, unless I am utterly mistaken, the alpha_mask of 0x000000ff
+> suggests that the alpha component is expected to be found in the 
+> LSB (LE) bits indicating a memory layout of VUYA. Am I interpreting 
+> this incorrectly?
+
+Yes. When you write 0x000000ff to memory in a LE environment, it ends
+up as 0xff 0x00 0x00 0x00 in memory (in increasing memory addresses).
+
+The v4l2-tpg AYUV format is really, really correct given the V4L2 specification
+of this format.
 
 Regards,
 
 	Hans
 
 > 
-> Signed-off-by: Colin Ian King <colin.king@canonical.com>
-> ---
->  drivers/media/common/videobuf2/videobuf2-core.c | 1 -
->  1 file changed, 1 deletion(-)
+> Thanks,
+> Vivek
 > 
-> diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
-> index e07b6bdb6982..34cc87ca8d59 100644
-> --- a/drivers/media/common/videobuf2/videobuf2-core.c
-> +++ b/drivers/media/common/videobuf2/videobuf2-core.c
-> @@ -1769,7 +1769,6 @@ EXPORT_SYMBOL_GPL(vb2_wait_for_all_buffers);
->  static void __vb2_dqbuf(struct vb2_buffer *vb)
->  {
->  	struct vb2_queue *q = vb->vb2_queue;
-> -	unsigned int i;
->  
->  	/* nothing to do if the buffer is already dequeued */
->  	if (vb->state == VB2_BUF_STATE_DEQUEUED)
+>>
+>>>>
+>>>> At some point we probably want to add a VUY32 format which is what
+>>>> Weston expects, but we certainly cannot change what the TPG
+>>>> generates for YUV32 since that is correct.  
+>>> Weston does not know much about the details of pixel formats and
+>>> instead relies on the Mesa i965 DRI driver to do the heavy lifting.
+>>> And, this driver implemented AYUV support looking at the above
+>>> Microsoft link. Also, is the description of V4l pixel formats
+>>> mentioned in the below link accurate:
+>>> https://afrantzis.com/pixel-format-guide/v4l2.html  
+>>
+>> Don't use it, just use the V4L2 Specification, that's always kept up
+>> to date.
+>>
+>> Regards,
+>>
+>> 	Hans
+>>
+>>>
+>>> Thanks,
+>>> Vivek
+>>>   
+>>>>
+>>>> Regards,
+>>>>
+>>>> 	Hans
+>>>>  
+>>>>>
+>>>>> Signed-off-by: Vivek Kasireddy <vivek.kasireddy@intel.com>
+>>>>> ---
+>>>>>  drivers/media/common/v4l2-tpg/v4l2-tpg-core.c | 2 +-
+>>>>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>>>>
+>>>>> diff --git a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
+>>>>> b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c index
+>>>>> d9a590ae7545..825667f67c92 100644 ---
+>>>>> a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c +++
+>>>>> b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c @@ -1269,7 +1269,6
+>>>>> @@ static void gen_twopix(struct tpg_data *tpg, case
+>>>>> V4L2_PIX_FMT_HSV32: alpha = 0;
+>>>>>  		/* fall through */
+>>>>> -	case V4L2_PIX_FMT_YUV32:
+>>>>>  	case V4L2_PIX_FMT_ARGB32:
+>>>>>  		buf[0][offset] = alpha;
+>>>>>  		buf[0][offset + 1] = r_y_h;
+>>>>> @@ -1280,6 +1279,7 @@ static void gen_twopix(struct tpg_data *tpg,
+>>>>>  	case V4L2_PIX_FMT_XBGR32:
+>>>>>  		alpha = 0;
+>>>>>  		/* fall through */
+>>>>> +	case V4L2_PIX_FMT_YUV32:
+>>>>>  	case V4L2_PIX_FMT_ABGR32:
+>>>>>  		buf[0][offset] = b_v;
+>>>>>  		buf[0][offset + 1] = g_u_s;
+>>>>>     
+>>>>  
+>>>   
+>>
 > 
 
