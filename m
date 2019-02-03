@@ -2,142 +2,109 @@ Return-Path: <SRS0=0n2Q=QK=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.5 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,USER_AGENT_MUTT autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A9A1C169C4
-	for <linux-media@archiver.kernel.org>; Sun,  3 Feb 2019 08:23:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D40BCC282DB
+	for <linux-media@archiver.kernel.org>; Sun,  3 Feb 2019 13:32:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 294712082F
-	for <linux-media@archiver.kernel.org>; Sun,  3 Feb 2019 08:23:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A5201218F0
+	for <linux-media@archiver.kernel.org>; Sun,  3 Feb 2019 13:32:00 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="fbXu2AT2"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726871AbfBCIXx (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sun, 3 Feb 2019 03:23:53 -0500
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:41853 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726475AbfBCIXx (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 3 Feb 2019 03:23:53 -0500
-Received: from [IPv6:2001:67c:1810:f051:a2c6:c81d:4091:548b] ([IPv6:2001:67c:1810:f051:a2c6:c81d:4091:548b])
-        by smtp-cloud9.xs4all.net with ESMTPA
-        id qD46ghRBkRO5ZqD49gdKut; Sun, 03 Feb 2019 09:23:50 +0100
-Subject: Re: [PATCH] vb2: clear timestamp if buffer mem is reacquired
-To:     Nicolas Dufresne <nicolas@ndufresne.ca>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-References: <59fc9777-41f3-5f87-2d84-f9375d8a2895@xs4all.nl>
- <ea67d53e4acce742f916021c4f2ff918938608fe.camel@ndufresne.ca>
-From:   Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <82faf8fa-de44-cf60-2552-b909c602da6e@xs4all.nl>
-Date:   Sun, 3 Feb 2019 09:23:46 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:52.0) Gecko/20100101
- Thunderbird/52.9.1
+        id S1726709AbfBCNb4 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sun, 3 Feb 2019 08:31:56 -0500
+Received: from mail-pf1-f196.google.com ([209.85.210.196]:36950 "EHLO
+        mail-pf1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726582AbfBCNbz (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 3 Feb 2019 08:31:55 -0500
+Received: by mail-pf1-f196.google.com with SMTP id y126so5538624pfb.4;
+        Sun, 03 Feb 2019 05:31:55 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=date:from:to:cc:subject:message-id:mime-version:content-disposition
+         :user-agent;
+        bh=84hrRz7nOiZ4YsaH604mLPJ8wBSVpD84s9+8PgQMBhg=;
+        b=fbXu2AT2aPrW1Y5IKPdJ9et9x+Ald20wF+zSsCVPz9MK+j20snS9qSMbTF6kVmBLzy
+         QT7+6Y0YVlpRlCSeLnlyrS5lWQS7SPdKMR8oh4wbG0Y9gu/uNu5WFV6iQeXMXmTIrjKl
+         vFwCdAvO99HoDXCNrZuLGwjRyzNjwk8VnnNPp5SOwqHPnfuFqsxxrLtITPljx4+smtyX
+         nVUpXOGAs7MMIhHKw/0NB45Kh+MOetqRbfc5iAmnCBXUUkk0l2vMXnVcKrDhlwKCupua
+         A5BJZfSAygelyiN2spJGJrdH7DFP7I1gM1CuRMJtD4/yrhGRyu5y6nz3BDnDef/Zahzp
+         BMKQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:mime-version
+         :content-disposition:user-agent;
+        bh=84hrRz7nOiZ4YsaH604mLPJ8wBSVpD84s9+8PgQMBhg=;
+        b=kWW580ZZ0h6INAEMo84kObRKKPqGlYEN2+Mj5z6+LuBO1/fFhjOvpD9sDp517fJErK
+         LgVFBc+7YyNA2l7rOypWBdsU2Upx8KPiAMFXod2PYaA/Kwszm62A2vz/eR786wu5G723
+         Z1Y6X/BYeZdSYrG+f7l2kObP3euXY3Q3LoIzpECWsZ3mx+UZkXh72nyXeG0I40zec1dl
+         Skni5dOL4s/EGeNyTYqOSR4LVIIjVA0FIYDA+vJtFCAAcexUXTs08+8TBB4UwPa0LsyM
+         7F+0f9z5IPGUF35/Ti778baS9D/+Y44TaXKF+8ErbyA4dc3XAuBnKhhUBBVPadIvvLDV
+         xfMA==
+X-Gm-Message-State: AJcUukdAlEE2zYL1C3IjbVKmVQKOsCytqqWbBLLCe/VMQpSpyHqnZulH
+        WBLSi/j/7z4rKzhihE9+1io=
+X-Google-Smtp-Source: ALg8bN593/sUTswQy8ymmfl1lIJq/CdbjIkRomemqvJoOgHA6Q5LzTo9r213hnAhSUHTgHN8Pkf++w==
+X-Received: by 2002:a63:6a05:: with SMTP id f5mr42242966pgc.72.1549200715054;
+        Sun, 03 Feb 2019 05:31:55 -0800 (PST)
+Received: from jordon-HP-15-Notebook-PC ([106.51.18.176])
+        by smtp.gmail.com with ESMTPSA id 24sm71166558pfl.32.2019.02.03.05.31.53
+        (version=TLS1 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
+        Sun, 03 Feb 2019 05:31:53 -0800 (PST)
+Date:   Sun, 3 Feb 2019 19:06:08 +0530
+From:   Souptick Joarder <jrdr.linux@gmail.com>
+To:     pawel@osciak.com, m.szyprowski@samsung.com,
+        kyungmin.park@samsung.com, mchehab@kernel.org
+Cc:     linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        sabyasachi.linux@gmail.com, brajeswar.linux@gmail.com
+Subject: [PATCH] media: videobuf2: Return error after allocation failure
+Message-ID: <20190203133608.GA26010@jordon-HP-15-Notebook-PC>
 MIME-Version: 1.0
-In-Reply-To: <ea67d53e4acce742f916021c4f2ff918938608fe.camel@ndufresne.ca>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
-X-CMAE-Envelope: MS4wfGKk0widch4nkFhjq8142PMw/WBDmnF8e8GbrJPGfED+1/TLD4daTHLvjK4I+TbH6tS5iK4tCDqI/eXyRmJqQ2nFmbgjC/bRLNTRCPIyJl2mpkBO89Kg
- N/UyBD+VRdumXplH4yggLsc3LPuo1gsyfNpgewfZvnm5I2F8888ojyDC855G9tKNRpOuRT8yPy5aByrOcdEtpS225XDKkI2pRahXkhZAF7t4cEeQ0zYQx2FW
- /+oAIbzH5JrwuMV+EIkL/Qlx9x+sglPMhKJPVX0IkSs3sfUorkRNQHBXCPJJcm/aYcWy0gw4Vuw6b/SwKknrOtL5dukQW+RTsWV8SMUeyt3Heu5TFMDsFTLk
- GR3phyBn03NyRfm0NtkL6z4nG3lXhOd54gWlytzTvl/74tUBnbbzWJ6v/RhPvk7dOs/1U0BY
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+User-Agent: Mutt/1.5.21 (2010-09-15)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On 02/02/2019 09:59 PM, Nicolas Dufresne wrote:
-> Le samedi 02 février 2019 à 18:03 +0100, Hans Verkuil a écrit :
->> Stateless codecs have to find buffers based on a timestamp (vb2_find_timestamp).
->> The timestamp is set to 0 initially, so prohibit finding timestamp 0 since it
->> could find unused buffers without associated memory (userptr or dmabuf).
->>
->> The memory associated with a buffer will also disappear if the same buffer was
->> requeued with a different userptr address or dmabuf fd. Detect this and set the
->> timestamp of that buffer to 0 if this happens.
-> 
-> Just a small concern, does it mean 0 is considered an invalid timestamp
-> ? In streaming it would be quite normal for a first picture to have PTS
-> 0.
+There is no point to continuing assignemnt after memory allocation
+failed, rather throw error immediately.
 
-Good point. Perhaps I should make ~0ULL the invalid timestamp instead.
-I'll look at that tomorrow.
+Signed-off-by: Souptick Joarder <jrdr.linux@gmail.com>
+---
+ drivers/media/common/videobuf2/videobuf2-vmalloc.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-Regards,
-
-	Hans
-
-> 
-> Nicolas
-> 
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> ---
->> Note: I think it is still necessary to lock a buffer when it is in use as
->> a reference frame, otherwise a userspace application can queue it again with
->> a different dmabuf fd, which could free the memory of the old dmabuf.
->>
->> vb2_find_buffer should probably do that.
->> ---
->> diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
->> index e07b6bdb6982..b664d9790330 100644
->> --- a/drivers/media/common/videobuf2/videobuf2-core.c
->> +++ b/drivers/media/common/videobuf2/videobuf2-core.c
->> @@ -1043,6 +1043,8 @@ static int __prepare_userptr(struct vb2_buffer *vb)
->>  				reacquired = true;
->>  				call_void_vb_qop(vb, buf_cleanup, vb);
->>  			}
->> +			if (!q->is_output)
->> +				vb->timestamp = 0;
->>  			call_void_memop(vb, put_userptr, vb->planes[plane].mem_priv);
->>  		}
->>
->> @@ -1157,6 +1159,8 @@ static int __prepare_dmabuf(struct vb2_buffer *vb)
->>  		/* Skip the plane if already verified */
->>  		if (dbuf == vb->planes[plane].dbuf &&
->>  			vb->planes[plane].length == planes[plane].length) {
->> +			if (!q->is_output)
->> +				vb->timestamp = 0;
->>  			dma_buf_put(dbuf);
->>  			continue;
->>  		}
->> diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
->> index 3aeaea3af42a..8e966fa81b7e 100644
->> --- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
->> +++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
->> @@ -603,6 +603,9 @@ int vb2_find_timestamp(const struct vb2_queue *q, u64 timestamp,
->>  {
->>  	unsigned int i;
->>
->> +	if (!timestamp)
->> +		return -1;
->> +
->>  	for (i = start_idx; i < q->num_buffers; i++)
->>  		if (q->bufs[i]->timestamp == timestamp)
->>  			return i;
->> diff --git a/include/media/videobuf2-v4l2.h b/include/media/videobuf2-v4l2.h
->> index 8a10889dc2fd..01bf4b2199c7 100644
->> --- a/include/media/videobuf2-v4l2.h
->> +++ b/include/media/videobuf2-v4l2.h
->> @@ -59,14 +59,14 @@ struct vb2_v4l2_buffer {
->>   * vb2_find_timestamp() - Find buffer with given timestamp in the queue
->>   *
->>   * @q:		pointer to &struct vb2_queue with videobuf2 queue.
->> - * @timestamp:	the timestamp to find.
->> + * @timestamp:	the timestamp to find. Must be > 0.
->>   * @start_idx:	the start index (usually 0) in the buffer array to start
->>   *		searching from. Note that there may be multiple buffers
->>   *		with the same timestamp value, so you can restart the search
->>   *		by setting @start_idx to the previously found index + 1.
->>   *
->>   * Returns the buffer index of the buffer with the given @timestamp, or
->> - * -1 if no buffer with @timestamp was found.
->> + * -1 if no buffer with @timestamp was found or if @timestamp was 0.
->>   */
->>  int vb2_find_timestamp(const struct vb2_queue *q, u64 timestamp,
->>  		       unsigned int start_idx);
-> 
+diff --git a/drivers/media/common/videobuf2/videobuf2-vmalloc.c b/drivers/media/common/videobuf2/videobuf2-vmalloc.c
+index 6dfbd5b..d3f71e2 100644
+--- a/drivers/media/common/videobuf2/videobuf2-vmalloc.c
++++ b/drivers/media/common/videobuf2/videobuf2-vmalloc.c
+@@ -46,16 +46,16 @@ static void *vb2_vmalloc_alloc(struct device *dev, unsigned long attrs,
+ 
+ 	buf->size = size;
+ 	buf->vaddr = vmalloc_user(buf->size);
+-	buf->dma_dir = dma_dir;
+-	buf->handler.refcount = &buf->refcount;
+-	buf->handler.put = vb2_vmalloc_put;
+-	buf->handler.arg = buf;
+ 
+ 	if (!buf->vaddr) {
+ 		pr_debug("vmalloc of size %ld failed\n", buf->size);
+ 		kfree(buf);
+ 		return ERR_PTR(-ENOMEM);
+ 	}
++	buf->dma_dir = dma_dir;
++	buf->handler.refcount = &buf->refcount;
++	buf->handler.put = vb2_vmalloc_put;
++	buf->handler.arg = buf;
+ 
+ 	refcount_set(&buf->refcount, 1);
+ 	return buf;
+-- 
+1.9.1
 
