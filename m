@@ -2,117 +2,135 @@ Return-Path: <SRS0=XPZo=QL=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4484AC282C4
-	for <linux-media@archiver.kernel.org>; Mon,  4 Feb 2019 12:01:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C83FCC282C4
+	for <linux-media@archiver.kernel.org>; Mon,  4 Feb 2019 13:51:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 15AC32087C
-	for <linux-media@archiver.kernel.org>; Mon,  4 Feb 2019 12:01:22 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linaro.org header.i=@linaro.org header.b="WejHG5+w"
+	by mail.kernel.org (Postfix) with ESMTP id 926152081B
+	for <linux-media@archiver.kernel.org>; Mon,  4 Feb 2019 13:51:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729590AbfBDMBR (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 4 Feb 2019 07:01:17 -0500
-Received: from mail-wm1-f65.google.com ([209.85.128.65]:38599 "EHLO
-        mail-wm1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729404AbfBDMBR (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Feb 2019 07:01:17 -0500
-Received: by mail-wm1-f65.google.com with SMTP id m22so13185874wml.3
-        for <linux-media@vger.kernel.org>; Mon, 04 Feb 2019 04:01:15 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=tQ0yXI3h/vEMlDmKxGMU2fxncWjHgyDux1n9KSlzAIA=;
-        b=WejHG5+wlU2rIeuPTYfK7VGsP0eHoyCxff7cN68YRq9E+xwrG53e8eE60NFgBGZq0q
-         KyfSNYNlit/whkq4XLhK9IM70dwYIY8wYnHvKJVEJ2stAJfOcQT4W64+q4GrjJb/lK73
-         owtUgbvbW57O0hkuP1YnHW4D9PINZ6H/ByIAs=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=tQ0yXI3h/vEMlDmKxGMU2fxncWjHgyDux1n9KSlzAIA=;
-        b=BMWbMvOaKukIAbC8NRwP8WR82Sqy+EQMbOAN39b8pZBWzVai1EL/8ib7vYxxtOK+kb
-         0Wh8SmnUI6rZ4812cLrrGySQ8Gr755D6d54L65s1wkiBsGpM24RfYQICSsFelHY+kFSJ
-         nqgf4rFfNxJTLAkHuCIWCQM/f7mzvPx9A7f0fqgrb3lb786AanQ597prfbGzas+ngLid
-         STY90rZ8NjsJLhUS6SsJEzyBci5FegKHs+TRxtzOC6X+ARR+chqz2aI/XZb2pozuTvar
-         H1SGRKrKKmRdbHDqdIG1GxBIui9Wb3Tpq9s77YnZ1XJp2yLdNXTfpTYA+qoqqqeFtIT9
-         xZCw==
-X-Gm-Message-State: AHQUAuY9QGAzgqTv+za7FJCwMGRFtO9wEdAFd3zc6X1a2f5oz6X95Qbu
-        mATa9YJwiIosk7e0C68f6uqwjw==
-X-Google-Smtp-Source: AHgI3IY5CDSSoEkdJL4ye4T9JwLADiUQejEq7CoH+zLR6VsbFpbngkAYxvVlyu2BsSvkJgguHt/w5A==
-X-Received: by 2002:a1c:2787:: with SMTP id n129mr13525033wmn.128.1549281675128;
-        Mon, 04 Feb 2019 04:01:15 -0800 (PST)
-Received: from arch-late.local (a109-49-46-234.cpe.netcabo.pt. [109.49.46.234])
-        by smtp.gmail.com with ESMTPSA id s8sm15404543wrn.44.2019.02.04.04.01.14
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 04 Feb 2019 04:01:14 -0800 (PST)
-From:   Rui Miguel Silva <rui.silva@linaro.org>
-To:     sakari.ailus@linux.intel.com,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Philipp Zabel <p.zabel@pengutronix.de>
-Cc:     linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        devicetree@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Rui Miguel Silva <rui.silva@linaro.org>
-Subject: [PATCH v12 12/13] media: video-mux: add bayer formats
-Date:   Mon,  4 Feb 2019 12:00:38 +0000
-Message-Id: <20190204120039.1198-13-rui.silva@linaro.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190204120039.1198-1-rui.silva@linaro.org>
-References: <20190204120039.1198-1-rui.silva@linaro.org>
+        id S1727626AbfBDNvH (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 4 Feb 2019 08:51:07 -0500
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:42639 "EHLO
+        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727094AbfBDNvG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Feb 2019 08:51:06 -0500
+X-Originating-IP: 185.94.189.188
+Received: from localhost (unknown [185.94.189.188])
+        (Authenticated sender: maxime.ripard@bootlin.com)
+        by relay4-d.mail.gandi.net (Postfix) with ESMTPSA id 35569E0002;
+        Mon,  4 Feb 2019 13:51:00 +0000 (UTC)
+Date:   Mon, 4 Feb 2019 14:51:00 +0100
+From:   Maxime Ripard <maxime.ripard@bootlin.com>
+To:     Kishon Vijay Abraham I <kishon@ti.com>
+Cc:     Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org,
+        Archit Taneja <architt@codeaurora.org>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Chen-Yu Tsai <wens@csie.org>, linux-kernel@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        linux-arm-kernel@lists.infradead.org,
+        Krzysztof Witos <kwitos@cadence.com>,
+        Rafal Ciepiela <rafalc@cadence.com>,
+        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+        Sean Paul <seanpaul@chromium.org>
+Subject: Re: [PATCH v5 0/9] phy: Add configuration interface for MIPI D-PHY
+ devices
+Message-ID: <20190204135100.cnlf2dpnng6fad2t@flea>
+References: <cover.fbf0776c70c0cfb7b7fd88ce6a96b4597d620cac.1548085432.git-series.maxime.ripard@bootlin.com>
+ <fc5427d3-674e-cebc-99b9-11493f976a20@ti.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="d5cpay2p6yr7wia2"
+Content-Disposition: inline
+In-Reply-To: <fc5427d3-674e-cebc-99b9-11493f976a20@ti.com>
+User-Agent: NeoMutt/20180716
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Add non vendor bayer formats to the  allowed format array.
 
-Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
-Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/platform/video-mux.c | 20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+--d5cpay2p6yr7wia2
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/media/platform/video-mux.c b/drivers/media/platform/video-mux.c
-index c33900e3c23e..0ba30756e1e4 100644
---- a/drivers/media/platform/video-mux.c
-+++ b/drivers/media/platform/video-mux.c
-@@ -263,6 +263,26 @@ static int video_mux_set_format(struct v4l2_subdev *sd,
- 	case MEDIA_BUS_FMT_UYYVYY16_0_5X48:
- 	case MEDIA_BUS_FMT_JPEG_1X8:
- 	case MEDIA_BUS_FMT_AHSV8888_1X32:
-+	case MEDIA_BUS_FMT_SBGGR8_1X8:
-+	case MEDIA_BUS_FMT_SGBRG8_1X8:
-+	case MEDIA_BUS_FMT_SGRBG8_1X8:
-+	case MEDIA_BUS_FMT_SRGGB8_1X8:
-+	case MEDIA_BUS_FMT_SBGGR10_1X10:
-+	case MEDIA_BUS_FMT_SGBRG10_1X10:
-+	case MEDIA_BUS_FMT_SGRBG10_1X10:
-+	case MEDIA_BUS_FMT_SRGGB10_1X10:
-+	case MEDIA_BUS_FMT_SBGGR12_1X12:
-+	case MEDIA_BUS_FMT_SGBRG12_1X12:
-+	case MEDIA_BUS_FMT_SGRBG12_1X12:
-+	case MEDIA_BUS_FMT_SRGGB12_1X12:
-+	case MEDIA_BUS_FMT_SBGGR14_1X14:
-+	case MEDIA_BUS_FMT_SGBRG14_1X14:
-+	case MEDIA_BUS_FMT_SGRBG14_1X14:
-+	case MEDIA_BUS_FMT_SRGGB14_1X14:
-+	case MEDIA_BUS_FMT_SBGGR16_1X16:
-+	case MEDIA_BUS_FMT_SGBRG16_1X16:
-+	case MEDIA_BUS_FMT_SGRBG16_1X16:
-+	case MEDIA_BUS_FMT_SRGGB16_1X16:
- 		break;
- 	default:
- 		sdformat->format.code = MEDIA_BUS_FMT_Y8_1X8;
--- 
-2.20.1
+Hi Kishon,
 
+On Mon, Feb 04, 2019 at 03:33:31PM +0530, Kishon Vijay Abraham I wrote:
+> On 21/01/19 9:15 PM, Maxime Ripard wrote:
+> > Here is a set of patches to allow the phy framework consumers to test a=
+nd
+> > apply runtime configurations.
+> >=20
+> > This is needed to support more phy classes that require tuning based on
+> > parameters depending on the current use case of the device, in addition=
+ to
+> > the power state management already provided by the current functions.
+> >=20
+> > A first test bed for that API are the MIPI D-PHY devices. There's a num=
+ber
+> > of solutions that have been used so far to support these phy, most of t=
+he
+> > time being an ad-hoc driver in the consumer.
+> >=20
+> > That approach has a big shortcoming though, which is that this is quite
+> > difficult to deal with consumers integrated with multiple variants of p=
+hy,
+> > of multiple consumers integrated with the same phy.
+> >=20
+> > The latter case can be found in the Cadence DSI bridge, and the CSI
+> > transceiver and receivers. All of them are integrated with the same phy=
+, or
+> > can be integrated with different phy, depending on the implementation.
+> >=20
+> > I've looked at all the MIPI DSI drivers I could find, and gathered all =
+the
+> > parameters I could find. The interface should be complete, and most of =
+the
+> > drivers can be converted in the future. The current set converts two of
+> > them: the above mentionned Cadence DSI driver so that the v4l2 drivers =
+can
+> > use them, and the Allwinner MIPI-DSI driver.
+>=20
+> Can the PHY changes go independently of the consumer drivers? or else I'l=
+l need
+> ACKs from the GPU MAINTAINER.
+
+At least for the Allwinner driver, they can go through through the
+drm-misc tree. Since we have a number of patches in flight for that
+driver, it would even be easier to handle there.
+
+For the cadence driver, since it doesn't really work on any system but
+simulators for now, I guess the wakeup regression isn't super
+important either.
+
+So I'd say we can have the phy related patches go through your tree,
+and the other through drm-misc.
+
+Would that work for you?
+
+Maxime
+
+--=20
+Maxime Ripard, Bootlin
+Embedded Linux and Kernel engineering
+https://bootlin.com
+
+--d5cpay2p6yr7wia2
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iHUEABYIAB0WIQRcEzekXsqa64kGDp7j7w1vZxhRxQUCXFhDRAAKCRDj7w1vZxhR
+xR5PAP9L3aHo233MQj0fTl0YnxIvU8ZLGWSGvGIfnSolldJHeQD/aoCag+19/Lcp
+PeiLEU1SeJW4FCAggKQBNWjcd+D5uwM=
+=YUnh
+-----END PGP SIGNATURE-----
+
+--d5cpay2p6yr7wia2--
