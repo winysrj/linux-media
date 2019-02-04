@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
 	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C56A5C282C4
-	for <linux-media@archiver.kernel.org>; Mon,  4 Feb 2019 14:18:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9FB2CC282CB
+	for <linux-media@archiver.kernel.org>; Mon,  4 Feb 2019 14:18:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8AF212087C
-	for <linux-media@archiver.kernel.org>; Mon,  4 Feb 2019 14:18:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 639BE2082E
+	for <linux-media@archiver.kernel.org>; Mon,  4 Feb 2019 14:18:26 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=aampusa.onmicrosoft.com header.i=@aampusa.onmicrosoft.com header.b="qhUuS+4a"
+	dkim=pass (1024-bit key) header.d=aampusa.onmicrosoft.com header.i=@aampusa.onmicrosoft.com header.b="raF9tQPm"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731571AbfBDOSY (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        id S1731570AbfBDOSY (ORCPT <rfc822;linux-media@archiver.kernel.org>);
         Mon, 4 Feb 2019 09:18:24 -0500
 Received: from mail-eopbgr810130.outbound.protection.outlook.com ([40.107.81.130]:8258
         "EHLO NAM01-BY2-obe.outbound.protection.outlook.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1731040AbfBDOSV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 4 Feb 2019 09:18:21 -0500
+        id S1731568AbfBDOSW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 4 Feb 2019 09:18:22 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
  d=aampusa.onmicrosoft.com; s=selector1-aampglobal-com;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=VHMQiLhekAexKhO83qwCVAVLLr6YO/pAayvnDc5nZV8=;
- b=qhUuS+4aSdutj1k8FCLDk3eN/s2R0oMoWMYVyQWfdiXZLw5T7lEJ0e3X80rMqjX8xYIR7BNU6ulIuP1jNIoLYW2dDdEAVPKdSSa0TjvylwRcyVfuUaJczd2/2EqatRKWTZHkZiYEg1W2/F7wmIUjYJHV9Mk5eTMJkUnYJUlYhDU=
+ bh=BZ+MN1XAE5bsBGJc+Buz5pxW74jmJ3RbJiZ87BLBCYg=;
+ b=raF9tQPmTJfwlGarvD1ABgeeh+yWk/f4P7ZJ+7kycujXXz8NWvQM+lN7CRiWZIhHgDRDUfa67jQaS3JLRoSVy43nSQLisNqEswb5uPIS2hNSaTIHPpN3W4Ad+SVaObEWdMXgA6acIi2Vv0oc0NE3bcJrkc5N9+hu9Kgs1njQp0w=
 Received: from BL0PR07MB4115.namprd07.prod.outlook.com (52.132.10.149) by
  BL0PR07MB4946.namprd07.prod.outlook.com (10.167.180.11) with Microsoft SMTP
  Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.1580.22; Mon, 4 Feb 2019 14:18:13 +0000
+ 15.20.1580.22; Mon, 4 Feb 2019 14:18:14 +0000
 Received: from BL0PR07MB4115.namprd07.prod.outlook.com
  ([fe80::5516:87b1:344e:a27f]) by BL0PR07MB4115.namprd07.prod.outlook.com
  ([fe80::5516:87b1:344e:a27f%5]) with mapi id 15.20.1580.019; Mon, 4 Feb 2019
- 14:18:13 +0000
+ 14:18:14 +0000
 From:   Ken Sloat <KSloat@aampglobal.com>
 To:     "eugen.hristev@microchip.com" <eugen.hristev@microchip.com>
 CC:     Ken Sloat <KSloat@aampglobal.com>,
@@ -46,13 +46,15 @@ CC:     Ken Sloat <KSloat@aampglobal.com>,
         "hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
         "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
         "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
-Subject: [PATCH v3 1/2] media: atmel-isc: Add support for BT656 with CRC
- decoding
-Thread-Topic: [PATCH v3 1/2] media: atmel-isc: Add support for BT656 with CRC
- decoding
-Thread-Index: AQHUvJR2YZvAK9puQUqBc2Mewd26iA==
-Date:   Mon, 4 Feb 2019 14:18:13 +0000
-Message-ID: <20190204141756.234563-1-ksloat@aampglobal.com>
+Subject: [PATCH v3 2/2] media: atmel-isc: Update device tree binding
+ documentation
+Thread-Topic: [PATCH v3 2/2] media: atmel-isc: Update device tree binding
+ documentation
+Thread-Index: AQHUvJR3CYKO7qlX9EmmEJdCMaYwPA==
+Date:   Mon, 4 Feb 2019 14:18:14 +0000
+Message-ID: <20190204141756.234563-2-ksloat@aampglobal.com>
+References: <20190204141756.234563-1-ksloat@aampglobal.com>
+In-Reply-To: <20190204141756.234563-1-ksloat@aampglobal.com>
 Accept-Language: en-US
 Content-Language: en-US
 X-MS-Has-Attach: 
@@ -66,23 +68,23 @@ authentication-results: spf=none (sender IP is )
 x-ms-exchange-messagesentrepresentingtype: 1
 x-mailer: git-send-email 2.17.1
 x-ms-publictraffictype: Email
-x-microsoft-exchange-diagnostics: 1;BL0PR07MB4946;6:+wpkSkn4JNtFXrut6SmvgAO4v6RPfh9G8tr7nne753nkHRlmY+gS1ckzikln2IyecNV+7ZHcEfwkt4QfdxFJE4XqPOqoTIHBlruN7jWw7INO6IvVFQ+7bKR0679N08mBARuv0F7yAToOde2WyP5leTqy25l+I4cx+fnUOi4LlIE1ZsJzPNcGIzTThpTFji/RuuHJrQWj4EB0J1C0GDB9cKLkfFsqiZ0xlOkrqMcqgonJcITv1JTgtbwI0etoV+g9dL1tVSoW/byK7EWtNXaxQftLpaXlMR4hUUrc+8z5XvhsraSfV30dEH6thcUal4l5yPWbwZ68b8WQ7/WtorUmPlsFSDDIH2QqU6XpWI8AmvlbbNuHe5OnyHYL9iqC8283x53QP1xWfxg0h/v+NahrK7+D1MWoWH2BuoqnRZguCUJ8aq7LAf4Hw0juiJlekbk35CMuBcFlvZvCi/wwgezhTQ==;5:htnRqgh3swFpX4GOGWbgooyfd4buFjPOueT19Wl8o2f8OthvfzmBOnp8dFmqU34Y+GBBZbOtnYkfljLPinHKhORQO/oBn4DrXhvBv/AuWhH4CcPh7t3yjjhBBccByXWXROFCdC0f7kpe/WCcDT2vZuFsYulAwI+w12kvpXHUISZwHkIppApgazuiGA42AdZD3xAgxLO9hDYs7PV0HIrCTA==;7:nfXxBvZ5FP430IUvr5NcqViFJJU70qtt2t9s9VEfYQekRRLAsXFE2zgiMl34R5/nyPFXN9zZ0x6aWqIRLmwGQIHPEyjwVR/tZ4cvWPQxlgZUv8oZxaO+4i6uX1iZIso3J+SgqYVJwwaZzThxw3K1Aw==
-x-ms-office365-filtering-correlation-id: ce54d822-bae7-4db0-8b42-08d68aab98f3
+x-microsoft-exchange-diagnostics: 1;BL0PR07MB4946;6:mzkm28H9ENERiULty/izyddoYsPW7/3Z5F7RgpDRVziKezbsfDcvD90dtPycqRnCyY84WsNoKHQ6WlCwvEoHcJd3dKFGnyM35V3W/K67QugHDBs+4OBCAAl6uxLljCymWmSkd2BT2CRUQezzl6LtwegoldQ/VC2LCuh7wByQ3iAOM8VoFYnDe+Wxoe/b1M03YfzmkoMEIAxkQOhA+TP+LhggHcVWTk1htuZe7G7ryOtPJKmMoh9p2ECLG59nS+1gCCIZOPB3XCppSoeWRe+XGkLTCCW0a5y07Dt28+oAtzJwA8uXeomvVaCDZKlEr6JDutL5SHnq74lFWBf9BhN4PxCbIKYZNhRtz6OC1Qt22MRo1byEY1Cs6otpr4Q/TEEIMJaXD8bU33XGrlhjhWQvjW7ml/8hsTgawOjYNyq3LIXBP/R8RQFOCsvsBqS2N6NAwai0V9b1R/rmMotlSeKG+Q==;5:LA1kgDBqCLb1oOZ6x+o1sMLfdLDZBRi6bCs6Yi7+V6El0nbhLU6HVmXledpxEkM0dVonKEnjaE9QYo9j2LdKb58JjJgqQzUw9AQSegLQoLLyHCVt9twuM3aJzfNl0L77xO9tYo73RHhiNWenJA6bGB6LNMbM9ssDQV/r4064OOMY2xuCEXZHtvhLN1uAhG7yCyslTqh6KlN8he8960pZgg==;7:D+tshkwDU2jjfhw0pfLzrhWdtY2iFo03lTLniVWU9R05nx8U93aa99sWsJZJO7P2uvDVux82NZqJYNlsF7+YAIcrUGxVRNULxYSqeYTDPNPsvVpLwT/M7GVNi/nlZStbj/bg+FuujJPvzUmoGKQDqw==
+x-ms-office365-filtering-correlation-id: aeccdf6c-6d27-44c2-ec1c-08d68aab99a1
 x-microsoft-antispam: BCL:0;PCL:0;RULEID:(2390118)(7020095)(4652040)(8989299)(4534185)(4627221)(201703031133081)(201702281549075)(8990200)(5600110)(711020)(4605077)(2017052603328)(7153060)(7193020);SRVR:BL0PR07MB4946;
 x-ms-traffictypediagnostic: BL0PR07MB4946:
-x-microsoft-antispam-prvs: <BL0PR07MB4946C7D0AF4A9704723EECA2AD6D0@BL0PR07MB4946.namprd07.prod.outlook.com>
+x-microsoft-antispam-prvs: <BL0PR07MB494655228B81FB1157D1172AAD6D0@BL0PR07MB4946.namprd07.prod.outlook.com>
 x-forefront-prvs: 0938781D02
-x-forefront-antispam-report: SFV:NSPM;SFS:(10019020)(346002)(136003)(39850400004)(366004)(396003)(376002)(199004)(189003)(25786009)(106356001)(68736007)(3846002)(53936002)(26005)(5640700003)(4326008)(186003)(86362001)(305945005)(2351001)(8936002)(2906002)(6486002)(105586002)(2616005)(14444005)(256004)(81166006)(8676002)(36756003)(81156014)(6116002)(6436002)(486006)(7736002)(476003)(66066001)(6916009)(386003)(6512007)(72206003)(71190400001)(71200400001)(52116002)(316002)(97736004)(80792005)(54906003)(99286004)(50226002)(6506007)(478600001)(102836004)(1076003)(14454004)(2501003);DIR:OUT;SFP:1102;SCL:1;SRVR:BL0PR07MB4946;H:BL0PR07MB4115.namprd07.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;A:1;MX:1;
+x-forefront-antispam-report: SFV:NSPM;SFS:(10019020)(346002)(136003)(39850400004)(366004)(396003)(376002)(199004)(189003)(25786009)(106356001)(68736007)(446003)(3846002)(53936002)(26005)(5640700003)(4326008)(186003)(86362001)(305945005)(2351001)(8936002)(2906002)(6486002)(105586002)(2616005)(14444005)(256004)(81166006)(8676002)(36756003)(81156014)(6116002)(6436002)(11346002)(486006)(7736002)(476003)(66066001)(15650500001)(6916009)(386003)(6512007)(72206003)(71190400001)(71200400001)(52116002)(76176011)(316002)(97736004)(80792005)(54906003)(99286004)(50226002)(6506007)(478600001)(102836004)(1076003)(14454004)(2501003);DIR:OUT;SFP:1102;SCL:1;SRVR:BL0PR07MB4946;H:BL0PR07MB4115.namprd07.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;A:1;MX:1;
 received-spf: None (protection.outlook.com: aampglobal.com does not designate
  permitted sender hosts)
 x-ms-exchange-senderadcheck: 1
-x-microsoft-antispam-message-info: RMUK59LFFvX9tib6OaaLRpDdbx9epy2bQ2J8YFF7pEdaJ3YiAufW2t4R4w1vCuztO7Ye1imLFwHIR7t1T8HNa3++UXpIRX36k7RUfFe7XkZCF4TVCOuAr5ox0l4/JdDH9qxiRDbCtxh0zWHvnBfFiT4D+Oo4lxHXfdgy4oVARekDQq+2CwywShSXMr+Zh5bzFqEcj5Lah05cac1wJyXtSg+3MI7NwheFMR2E7lFoheQVdWcYfLSz9fjVfNh7sBCiGv2GURcoj76vEXsuQFLKaDrpCFh5/o0Ko86b/VEOFtZWoEwtsslkco0meCGbXHCc6huZNEeJvKzOoACegJ8y91OEAFBkehDI7YiDH6n5xoRvPG+5xF2HUsekxCecWP/zcnOL8vA9vyijbCte2g7/8T6gVaiJhz68Obxwju2SoXk=
+x-microsoft-antispam-message-info: MjrYBYn+MKFkA4LENz+iGbAJNDcphOl94cvMtqgUZuCSEBjOwNjUoSoQxtjqrPVTcKxv+u1yUoGhsQyXeRXGoIf+FAqf0cTYXTTtdfeEVYeF4HOSAmfhh2K7wDHXH7ABaDOjxDYnrJ4JypSoLmHaf2NSSgNgdHIfd4+ste9b1exEbmbSd2WGmUawQvHEyBx8CAIOVOulEZfKR3K1f1cq9mH49votziWoivSNq7FPfk4RDw8l9MpYG2t8T4herms9aTczsQZJda7wpwbGyUvuTZYNeR5ZGiyfBRolGhSjH7Qtp3JcQSYkt4PkMk71tiAnnftHi/Smm88bOoqy+3eAYg6BpVRu1aHlYFy4Np5wvqRcEGE1RwEUE3Sr7iwSMLC3XjRDLWmFOdAcOmCt8zc5NpyNFHOoEGEPV8FuHXLkG7Y=
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 X-OriginatorOrg: aampglobal.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: ce54d822-bae7-4db0-8b42-08d68aab98f3
-X-MS-Exchange-CrossTenant-originalarrivaltime: 04 Feb 2019 14:18:12.3718
+X-MS-Exchange-CrossTenant-Network-Message-Id: aeccdf6c-6d27-44c2-ec1c-08d68aab99a1
+X-MS-Exchange-CrossTenant-originalarrivaltime: 04 Feb 2019 14:18:13.5266
  (UTC)
 X-MS-Exchange-CrossTenant-fromentityheader: Hosted
 X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
@@ -110,61 +112,49 @@ X-Mailing-List: linux-media@vger.kernel.org
 
 From: Ken Sloat <ksloat@aampglobal.com>
 
-The ISC driver currently supports ITU-R 601 encoding which
-utilizes the external hysync and vsync signals. ITU-R 656
-format removes the need for these pins by embedding the
-sync pulses within the data packet.
-
-To support this feature, enable necessary register bits
-when this feature is enabled via device tree.
+Update device tree binding documentation specifying how to
+enable BT656 with CRC decoding and specify properties for
+default parallel bus type.
 
 Signed-off-by: Ken Sloat <ksloat@aampglobal.com>
 ---
- drivers/media/platform/atmel/atmel-isc-regs.h | 2 ++
- drivers/media/platform/atmel/atmel-isc.c      | 7 ++++++-
- 2 files changed, 8 insertions(+), 1 deletion(-)
+ Changes in v2:
+ -Use correct media "bus-type" dt property.
 
-diff --git a/drivers/media/platform/atmel/atmel-isc-regs.h b/drivers/media/=
-platform/atmel/atmel-isc-regs.h
-index 2aadc19235ea..d730693f299c 100644
---- a/drivers/media/platform/atmel/atmel-isc-regs.h
-+++ b/drivers/media/platform/atmel/atmel-isc-regs.h
-@@ -24,6 +24,8 @@
- #define ISC_PFE_CFG0_HPOL_LOW   BIT(0)
- #define ISC_PFE_CFG0_VPOL_LOW   BIT(1)
- #define ISC_PFE_CFG0_PPOL_LOW   BIT(2)
-+#define ISC_PFE_CFG0_CCIR656    BIT(9)
-+#define ISC_PFE_CFG0_CCIR_CRC   BIT(10)
+ Changes in v3:
+ -Specify default bus type.
+ -Document optional parallel bus flags.
+
+ .../devicetree/bindings/media/atmel-isc.txt       | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
+
+diff --git a/Documentation/devicetree/bindings/media/atmel-isc.txt b/Docume=
+ntation/devicetree/bindings/media/atmel-isc.txt
+index bbe0e87c6188..db3749a3964f 100644
+--- a/Documentation/devicetree/bindings/media/atmel-isc.txt
++++ b/Documentation/devicetree/bindings/media/atmel-isc.txt
+@@ -21,6 +21,21 @@ Required properties for ISC:
+ - pinctrl-names, pinctrl-0
+ 	Please refer to pinctrl-bindings.txt.
 =20
- #define ISC_PFE_CFG0_MODE_PROGRESSIVE   (0x0 << 4)
- #define ISC_PFE_CFG0_MODE_MASK          GENMASK(6, 4)
-diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platf=
-orm/atmel/atmel-isc.c
-index 50178968b8a6..9a399aa7ca92 100644
---- a/drivers/media/platform/atmel/atmel-isc.c
-+++ b/drivers/media/platform/atmel/atmel-isc.c
-@@ -1095,7 +1095,8 @@ static int isc_configure(struct isc_device *isc)
- 	pfe_cfg0  |=3D subdev->pfe_cfg0 | ISC_PFE_CFG0_MODE_PROGRESSIVE;
- 	mask =3D ISC_PFE_CFG0_BPS_MASK | ISC_PFE_CFG0_HPOL_LOW |
- 	       ISC_PFE_CFG0_VPOL_LOW | ISC_PFE_CFG0_PPOL_LOW |
--	       ISC_PFE_CFG0_MODE_MASK;
-+	       ISC_PFE_CFG0_MODE_MASK | ISC_PFE_CFG0_CCIR_CRC |
-+		   ISC_PFE_CFG0_CCIR656;
-=20
- 	regmap_update_bits(regmap, ISC_PFE_CFG0, mask, pfe_cfg0);
-=20
-@@ -2084,6 +2085,10 @@ static int isc_parse_dt(struct device *dev, struct i=
-sc_device *isc)
- 		if (flags & V4L2_MBUS_PCLK_SAMPLE_FALLING)
- 			subdev_entity->pfe_cfg0 |=3D ISC_PFE_CFG0_PPOL_LOW;
-=20
-+		if (v4l2_epn.bus_type =3D=3D V4L2_MBUS_BT656)
-+			subdev_entity->pfe_cfg0 |=3D ISC_PFE_CFG0_CCIR_CRC |
-+					ISC_PFE_CFG0_CCIR656;
++Optional properties for ISC:
++- bus-type
++	When set to 6, Bt.656 decoding (embedded sync) with CRC decoding
++	is enabled. If omitted, then the default bus-type is parallel and
++	the additional properties to follow can be specified:
++- hsync-active
++	Active state of the HSYNC signal, 0/1 for LOW/HIGH respectively.
++	If unspecified, this signal is set as active HIGH.
++- vsync-active
++	Active state of the VSYNC signal, 0/1 for LOW/HIGH respectively.
++	If unspecified, this signal is set as active HIGH.
++- pclk-sample
++	Sample data on rising (1) or falling (0) edge of the pixel clock
++	signal. If unspecified, data is sampled on the rising edge.
 +
- 		subdev_entity->asd->match_type =3D V4L2_ASYNC_MATCH_FWNODE;
- 		subdev_entity->asd->match.fwnode =3D
- 			of_fwnode_handle(rem);
+ ISC supports a single port node with parallel bus. It should contain one
+ 'port' child node with child 'endpoint' node. Please refer to the bindings
+ defined in Documentation/devicetree/bindings/media/video-interfaces.txt.
 --=20
 2.17.1
 
