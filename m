@@ -7,50 +7,50 @@ X-Spam-Status: No, score=-6.3 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SIGNED_OFF_BY,SPF_PASS,UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 08FA4C282CB
-	for <linux-media@archiver.kernel.org>; Mon,  4 Feb 2019 12:01:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E26D4C282C4
+	for <linux-media@archiver.kernel.org>; Mon,  4 Feb 2019 12:01:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A40EE2087C
-	for <linux-media@archiver.kernel.org>; Mon,  4 Feb 2019 12:01:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 93FFA2176F
+	for <linux-media@archiver.kernel.org>; Mon,  4 Feb 2019 12:01:06 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=linaro.org header.i=@linaro.org header.b="dYcbco3R"
+	dkim=pass (1024-bit key) header.d=linaro.org header.i=@linaro.org header.b="AeXH4Sok"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729146AbfBDMBD (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 4 Feb 2019 07:01:03 -0500
-Received: from mail-wm1-f67.google.com ([209.85.128.67]:51542 "EHLO
-        mail-wm1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729103AbfBDMBC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Feb 2019 07:01:02 -0500
-Received: by mail-wm1-f67.google.com with SMTP id b11so12901347wmj.1
-        for <linux-media@vger.kernel.org>; Mon, 04 Feb 2019 04:01:00 -0800 (PST)
+        id S1729130AbfBDMBF (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 4 Feb 2019 07:01:05 -0500
+Received: from mail-wr1-f65.google.com ([209.85.221.65]:42698 "EHLO
+        mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729124AbfBDMBF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Feb 2019 07:01:05 -0500
+Received: by mail-wr1-f65.google.com with SMTP id q18so14048193wrx.9
+        for <linux-media@vger.kernel.org>; Mon, 04 Feb 2019 04:01:02 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linaro.org; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=wLQFqdsbFvKMe8HZBmVgvpf45Dvq+KVXw9nbowWKBds=;
-        b=dYcbco3RkztqZmxGVPYtm3USpdig2rkpmK5oIwCI+guzFOvclg1n4dJuWhB8i39Dhk
-         EzgkYWCtPW99tj7iFWZ8nystf7sdVIN41g39hzs2Iw3iPAFALEV21YUNVbOo9af9dnDL
-         Ho3Prumuxrf2H35s9oMxFrEEuWPE0WKrcR9G4=
+        bh=4dPZzF9uv09WHlwGn/tkrWuWIHr2IS0koCoDcSkjM9w=;
+        b=AeXH4SoktxIJm8DTYnnru1yapRwAKoBvBfK7pobcRlLt/AX2oWiyFdYEb5NNoMyY22
+         K3rZMLwIfCf+DchbjFUWmxZXU4L64hn0VoXOrzFGp7xvecpHrgG015Q7JcIwiwMpjjM8
+         I3740sZP9XPgiHJAxD4eSp73C7dRNuTEjoqLM=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=wLQFqdsbFvKMe8HZBmVgvpf45Dvq+KVXw9nbowWKBds=;
-        b=U5FZ0gPrEngJUTHE9xxLfZevC2/bUrD3kOWvURYIM8fHBaxCBKXYk2ZW3sIi8Rlww1
-         qOxkLhbNTzX4EkaGa2Cca4L0I2Zc4buouE3y/YBYpBkzdhe2y4IxVP8JkbPD7jwhXOW3
-         0F7QNlmuokVSt4DQSj05rP/e84vUdo2uwyFJZOtyU43dAycm1X8/1CqmxGytwPuX+LbD
-         eXsqDCbrCjEHSu1uavw/Ltq+kcn9CCwwRGecrDWLmGHRKI+d1+LRHLozb6W6B8gJVfH8
-         7YhT5/cd7DaEo+zArnw6T2Ka2EXRIFL+1/cVofyMFFK/hiwuyguuUI+7ITqf3hymJ9lR
-         zDCg==
-X-Gm-Message-State: AHQUAubk/UTpMg5yxCvMVH1n8ofUbYvgYtSljL8Z8rMHRLUcVKpOGqvL
-        jYdLBs2ia/BsarBH8Fc/dZglQQ==
-X-Google-Smtp-Source: AHgI3Ia7lIQ0O0lYeeYEu0UaEQFB+gvurHaouJ/6K0qJF557LHdmU3KA5ufOZLJ8hHP6aRVjxeJbfA==
-X-Received: by 2002:a7b:c853:: with SMTP id c19mr12400066wml.61.1549281658848;
-        Mon, 04 Feb 2019 04:00:58 -0800 (PST)
+        bh=4dPZzF9uv09WHlwGn/tkrWuWIHr2IS0koCoDcSkjM9w=;
+        b=sK1fJvIr/0l9Uf7gNdXHlC+OKK0mvCF2+8N4goagAqnyeJSadVyY48fTOQPvU/Y8EA
+         DRmRVsA4PdQyY7M0Ncf5J2WMwV0XtncpuAZU+y19p+vgY2HsUK+6CwsBZOEMMihfAOW0
+         0qa2cJ3pHDcOvozPIgKFhICCe8ypCpUxqmvSIVvtv3iOgM5I5EG6wLRNAvPIMGNDeM1q
+         j7YiIAiii7Pl45I3wdclwXrid7gTltT+u0EfxRyY2EPW8KGZXT36gtAak5ojuml9upZt
+         UUGTpRK9pCawvypT+oCTF6b4dGmfoqnfBJghIoP/QRszg8PL+DQeHpdkZMl5iAB++s6E
+         jl3w==
+X-Gm-Message-State: AJcUukcNsru1Qcrvs0FwsN9gteh+rHf+E1ZWCtRhBwH0BBCjp1rR0WAy
+        oXNLEusD8TWugW6p4T8HNHt+3A==
+X-Google-Smtp-Source: ALg8bN4hUURHPboUoTGs8iE+DDSOa+Xy5pTJDixJq0w2AXgoAtAA95sgpOP00FW4GHIQ0aiNge5nQw==
+X-Received: by 2002:adf:891a:: with SMTP id s26mr48600347wrs.44.1549281660933;
+        Mon, 04 Feb 2019 04:01:00 -0800 (PST)
 Received: from arch-late.local (a109-49-46-234.cpe.netcabo.pt. [109.49.46.234])
-        by smtp.gmail.com with ESMTPSA id s8sm15404543wrn.44.2019.02.04.04.00.57
+        by smtp.gmail.com with ESMTPSA id s8sm15404543wrn.44.2019.02.04.04.00.59
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 04 Feb 2019 04:00:58 -0800 (PST)
+        Mon, 04 Feb 2019 04:01:00 -0800 (PST)
 From:   Rui Miguel Silva <rui.silva@linaro.org>
 To:     sakari.ailus@linux.intel.com,
         Steve Longerbeam <slongerbeam@gmail.com>,
@@ -60,9 +60,9 @@ Cc:     linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
         devicetree@vger.kernel.org,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Rui Miguel Silva <rui.silva@linaro.org>
-Subject: [PATCH v12 04/13] media: staging/imx7: add imx7 CSI subdev driver
-Date:   Mon,  4 Feb 2019 12:00:30 +0000
-Message-Id: <20190204120039.1198-5-rui.silva@linaro.org>
+Subject: [PATCH v12 05/13] media: staging/imx7: add MIPI CSI-2 receiver subdev for i.MX7
+Date:   Mon,  4 Feb 2019 12:00:31 +0000
+Message-Id: <20190204120039.1198-6-rui.silva@linaro.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190204120039.1198-1-rui.silva@linaro.org>
 References: <20190204120039.1198-1-rui.silva@linaro.org>
@@ -73,1424 +73,1217 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-This add the media entity subdevice and control driver for the i.MX7
-CMOS Sensor Interface.
+Adds MIPI CSI-2 subdev for i.MX7 to connect with sensors with a MIPI
+CSI-2 interface.
 
 Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
 ---
- drivers/staging/media/imx/Kconfig          |    9 +-
- drivers/staging/media/imx/Makefile         |    2 +
- drivers/staging/media/imx/imx7-media-csi.c | 1365 ++++++++++++++++++++
- 3 files changed, 1375 insertions(+), 1 deletion(-)
- create mode 100644 drivers/staging/media/imx/imx7-media-csi.c
+ drivers/staging/media/imx/Makefile         |    1 +
+ drivers/staging/media/imx/imx7-mipi-csis.c | 1186 ++++++++++++++++++++
+ 2 files changed, 1187 insertions(+)
+ create mode 100644 drivers/staging/media/imx/imx7-mipi-csis.c
 
-diff --git a/drivers/staging/media/imx/Kconfig b/drivers/staging/media/imx/Kconfig
-index bfc17de56b17..36b276ea2ecc 100644
---- a/drivers/staging/media/imx/Kconfig
-+++ b/drivers/staging/media/imx/Kconfig
-@@ -11,7 +11,7 @@ config VIDEO_IMX_MEDIA
- 	  driver for the i.MX5/6 SOC.
- 
- if VIDEO_IMX_MEDIA
--menu "i.MX5/6 Media Sub devices"
-+menu "i.MX5/6/7 Media Sub devices"
- 
- config VIDEO_IMX_CSI
- 	tristate "i.MX5/6 Camera Sensor Interface driver"
-@@ -20,5 +20,12 @@ config VIDEO_IMX_CSI
- 	---help---
- 	  A video4linux camera sensor interface driver for i.MX5/6.
- 
-+config VIDEO_IMX7_CSI
-+	tristate "i.MX7 Camera Sensor Interface driver"
-+	depends on VIDEO_IMX_MEDIA && VIDEO_DEV && I2C
-+	default y
-+	help
-+	  Enable support for video4linux camera sensor interface driver for
-+	  i.MX7.
- endmenu
- endif
 diff --git a/drivers/staging/media/imx/Makefile b/drivers/staging/media/imx/Makefile
-index a30b3033f9a3..074f016d3519 100644
+index 074f016d3519..d2d909a36239 100644
 --- a/drivers/staging/media/imx/Makefile
 +++ b/drivers/staging/media/imx/Makefile
-@@ -12,3 +12,5 @@ obj-$(CONFIG_VIDEO_IMX_MEDIA) += imx-media-ic.o
- 
- obj-$(CONFIG_VIDEO_IMX_CSI) += imx-media-csi.o
+@@ -14,3 +14,4 @@ obj-$(CONFIG_VIDEO_IMX_CSI) += imx-media-csi.o
  obj-$(CONFIG_VIDEO_IMX_CSI) += imx6-mipi-csi2.o
-+
-+obj-$(CONFIG_VIDEO_IMX7_CSI) += imx7-media-csi.o
-diff --git a/drivers/staging/media/imx/imx7-media-csi.c b/drivers/staging/media/imx/imx7-media-csi.c
+ 
+ obj-$(CONFIG_VIDEO_IMX7_CSI) += imx7-media-csi.o
++obj-$(CONFIG_VIDEO_IMX7_CSI) += imx7-mipi-csis.o
+diff --git a/drivers/staging/media/imx/imx7-mipi-csis.c b/drivers/staging/media/imx/imx7-mipi-csis.c
 new file mode 100644
-index 000000000000..d5154f032979
+index 000000000000..516d308dc44b
 --- /dev/null
-+++ b/drivers/staging/media/imx/imx7-media-csi.c
-@@ -0,0 +1,1365 @@
++++ b/drivers/staging/media/imx/imx7-mipi-csis.c
+@@ -0,0 +1,1186 @@
 +// SPDX-License-Identifier: GPL-2.0
 +/*
-+ * V4L2 Capture CSI Subdev for Freescale i.MX7 SOC
++ * Freescale i.MX7 SoC series MIPI-CSI V3.3 receiver driver
 + *
-+ * Copyright (c) 2019 Linaro Ltd
++ * Copyright (C) 2019 Linaro Ltd
++ * Copyright (C) 2015-2016 Freescale Semiconductor, Inc. All Rights Reserved.
++ * Copyright (C) 2011 - 2013 Samsung Electronics Co., Ltd.
 + *
 + */
 +
 +#include <linux/clk.h>
 +#include <linux/delay.h>
-+#include <linux/gcd.h>
++#include <linux/errno.h>
 +#include <linux/interrupt.h>
++#include <linux/io.h>
++#include <linux/irq.h>
++#include <linux/kernel.h>
 +#include <linux/mfd/syscon.h>
 +#include <linux/module.h>
 +#include <linux/of_graph.h>
-+#include <linux/pinctrl/consumer.h>
 +#include <linux/platform_device.h>
-+#include <linux/regmap.h>
-+#include <linux/types.h>
++#include <linux/pm_runtime.h>
++#include <linux/reset.h>
++#include <linux/regulator/consumer.h>
++#include <linux/spinlock.h>
 +
-+#include <media/v4l2-ctrls.h>
 +#include <media/v4l2-device.h>
-+#include <media/v4l2-event.h>
 +#include <media/v4l2-fwnode.h>
-+#include <media/v4l2-mc.h>
 +#include <media/v4l2-subdev.h>
-+#include <media/videobuf2-dma-contig.h>
 +
-+#include <media/imx.h>
 +#include "imx-media.h"
 +
-+#define IMX7_CSI_PAD_SINK	0
-+#define IMX7_CSI_PAD_SRC	1
-+#define IMX7_CSI_PADS_NUM	2
++#define CSIS_DRIVER_NAME	"imx7-mipi-csis"
++#define CSIS_SUBDEV_NAME	CSIS_DRIVER_NAME
 +
-+/* reset values */
-+#define CSICR1_RESET_VAL	0x40000800
-+#define CSICR2_RESET_VAL	0x0
-+#define CSICR3_RESET_VAL	0x0
++#define CSIS_PAD_SINK		0
++#define CSIS_PAD_SOURCE		1
++#define CSIS_PADS_NUM		2
 +
-+/* csi control reg 1 */
-+#define BIT_SWAP16_EN		BIT(31)
-+#define BIT_EXT_VSYNC		BIT(30)
-+#define BIT_EOF_INT_EN		BIT(29)
-+#define BIT_PRP_IF_EN		BIT(28)
-+#define BIT_CCIR_MODE		BIT(27)
-+#define BIT_COF_INT_EN		BIT(26)
-+#define BIT_SF_OR_INTEN		BIT(25)
-+#define BIT_RF_OR_INTEN		BIT(24)
-+#define BIT_SFF_DMA_DONE_INTEN  BIT(22)
-+#define BIT_STATFF_INTEN	BIT(21)
-+#define BIT_FB2_DMA_DONE_INTEN  BIT(20)
-+#define BIT_FB1_DMA_DONE_INTEN  BIT(19)
-+#define BIT_RXFF_INTEN		BIT(18)
-+#define BIT_SOF_POL		BIT(17)
-+#define BIT_SOF_INTEN		BIT(16)
-+#define BIT_MCLKDIV		(0xF << 12)
-+#define BIT_HSYNC_POL		BIT(11)
-+#define BIT_CCIR_EN		BIT(10)
-+#define BIT_MCLKEN		BIT(9)
-+#define BIT_FCC			BIT(8)
-+#define BIT_PACK_DIR		BIT(7)
-+#define BIT_CLR_STATFIFO	BIT(6)
-+#define BIT_CLR_RXFIFO		BIT(5)
-+#define BIT_GCLK_MODE		BIT(4)
-+#define BIT_INV_DATA		BIT(3)
-+#define BIT_INV_PCLK		BIT(2)
-+#define BIT_REDGE		BIT(1)
-+#define BIT_PIXEL_BIT		BIT(0)
++#define MIPI_CSIS_DEF_PIX_WIDTH		640
++#define MIPI_CSIS_DEF_PIX_HEIGHT	480
 +
-+#define SHIFT_MCLKDIV		12
++/* Register map definition */
 +
-+/* control reg 3 */
-+#define BIT_FRMCNT		(0xFFFF << 16)
-+#define BIT_FRMCNT_RST		BIT(15)
-+#define BIT_DMA_REFLASH_RFF	BIT(14)
-+#define BIT_DMA_REFLASH_SFF	BIT(13)
-+#define BIT_DMA_REQ_EN_RFF	BIT(12)
-+#define BIT_DMA_REQ_EN_SFF	BIT(11)
-+#define BIT_STATFF_LEVEL	(0x7 << 8)
-+#define BIT_HRESP_ERR_EN	BIT(7)
-+#define BIT_RXFF_LEVEL		(0x7 << 4)
-+#define BIT_TWO_8BIT_SENSOR	BIT(3)
-+#define BIT_ZERO_PACK_EN	BIT(2)
-+#define BIT_ECC_INT_EN		BIT(1)
-+#define BIT_ECC_AUTO_EN		BIT(0)
++/* CSIS common control */
++#define MIPI_CSIS_CMN_CTRL			0x04
++#define MIPI_CSIS_CMN_CTRL_UPDATE_SHADOW	BIT(16)
++#define MIPI_CSIS_CMN_CTRL_INTER_MODE		BIT(10)
++#define MIPI_CSIS_CMN_CTRL_UPDATE_SHADOW_CTRL	BIT(2)
++#define MIPI_CSIS_CMN_CTRL_RESET		BIT(1)
++#define MIPI_CSIS_CMN_CTRL_ENABLE		BIT(0)
 +
-+#define SHIFT_FRMCNT		16
-+#define SHIFT_RXFIFO_LEVEL	4
++#define MIPI_CSIS_CMN_CTRL_LANE_NR_OFFSET	8
++#define MIPI_CSIS_CMN_CTRL_LANE_NR_MASK		(3 << 8)
 +
-+/* csi status reg */
-+#define BIT_ADDR_CH_ERR_INT	BIT(28)
-+#define BIT_FIELD0_INT		BIT(27)
-+#define BIT_FIELD1_INT		BIT(26)
-+#define BIT_SFF_OR_INT		BIT(25)
-+#define BIT_RFF_OR_INT		BIT(24)
-+#define BIT_DMA_TSF_DONE_SFF	BIT(22)
-+#define BIT_STATFF_INT		BIT(21)
-+#define BIT_DMA_TSF_DONE_FB2	BIT(20)
-+#define BIT_DMA_TSF_DONE_FB1	BIT(19)
-+#define BIT_RXFF_INT		BIT(18)
-+#define BIT_EOF_INT		BIT(17)
-+#define BIT_SOF_INT		BIT(16)
-+#define BIT_F2_INT		BIT(15)
-+#define BIT_F1_INT		BIT(14)
-+#define BIT_COF_INT		BIT(13)
-+#define BIT_HRESP_ERR_INT	BIT(7)
-+#define BIT_ECC_INT		BIT(1)
-+#define BIT_DRDY		BIT(0)
++/* CSIS clock control */
++#define MIPI_CSIS_CLK_CTRL			0x08
++#define MIPI_CSIS_CLK_CTRL_CLKGATE_TRAIL_CH3(x)	((x) << 28)
++#define MIPI_CSIS_CLK_CTRL_CLKGATE_TRAIL_CH2(x)	((x) << 24)
++#define MIPI_CSIS_CLK_CTRL_CLKGATE_TRAIL_CH1(x)	((x) << 20)
++#define MIPI_CSIS_CLK_CTRL_CLKGATE_TRAIL_CH0(x)	((x) << 16)
++#define MIPI_CSIS_CLK_CTRL_CLKGATE_EN_MSK	(0xf << 4)
++#define MIPI_CSIS_CLK_CTRL_WCLK_SRC		BIT(0)
 +
-+/* csi control reg 18 */
-+#define BIT_CSI_HW_ENABLE		BIT(31)
-+#define BIT_MIPI_DATA_FORMAT_RAW8	(0x2a << 25)
-+#define BIT_MIPI_DATA_FORMAT_RAW10	(0x2b << 25)
-+#define BIT_MIPI_DATA_FORMAT_RAW12	(0x2c << 25)
-+#define BIT_MIPI_DATA_FORMAT_RAW14	(0x2d << 25)
-+#define BIT_MIPI_DATA_FORMAT_YUV422_8B	(0x1e << 25)
-+#define BIT_MIPI_DATA_FORMAT_MASK	(0x3F << 25)
-+#define BIT_MIPI_DATA_FORMAT_OFFSET	25
-+#define BIT_DATA_FROM_MIPI		BIT(22)
-+#define BIT_MIPI_YU_SWAP		BIT(21)
-+#define BIT_MIPI_DOUBLE_CMPNT		BIT(20)
-+#define BIT_BASEADDR_CHG_ERR_EN		BIT(9)
-+#define BIT_BASEADDR_SWITCH_SEL		BIT(5)
-+#define BIT_BASEADDR_SWITCH_EN		BIT(4)
-+#define BIT_PARALLEL24_EN		BIT(3)
-+#define BIT_DEINTERLACE_EN		BIT(2)
-+#define BIT_TVDECODER_IN_EN		BIT(1)
-+#define BIT_NTSC_EN			BIT(0)
++/* CSIS Interrupt mask */
++#define MIPI_CSIS_INTMSK		0x10
++#define MIPI_CSIS_INTMSK_EVEN_BEFORE	BIT(31)
++#define MIPI_CSIS_INTMSK_EVEN_AFTER	BIT(30)
++#define MIPI_CSIS_INTMSK_ODD_BEFORE	BIT(29)
++#define MIPI_CSIS_INTMSK_ODD_AFTER	BIT(28)
++#define MIPI_CSIS_INTMSK_FRAME_START	BIT(24)
++#define MIPI_CSIS_INTMSK_FRAME_END	BIT(20)
++#define MIPI_CSIS_INTMSK_ERR_SOT_HS	BIT(16)
++#define MIPI_CSIS_INTMSK_ERR_LOST_FS	BIT(12)
++#define MIPI_CSIS_INTMSK_ERR_LOST_FE	BIT(8)
++#define MIPI_CSIS_INTMSK_ERR_OVER	BIT(4)
++#define MIPI_CSIS_INTMSK_ERR_WRONG_CFG	BIT(3)
++#define MIPI_CSIS_INTMSK_ERR_ECC	BIT(2)
++#define MIPI_CSIS_INTMSK_ERR_CRC	BIT(1)
++#define MIPI_CSIS_INTMSK_ERR_UNKNOWN	BIT(0)
 +
-+#define CSI_MCLK_VF		1
-+#define CSI_MCLK_ENC		2
-+#define CSI_MCLK_RAW		4
-+#define CSI_MCLK_I2C		8
++/* CSIS Interrupt source */
++#define MIPI_CSIS_INTSRC		0x14
++#define MIPI_CSIS_INTSRC_EVEN_BEFORE	BIT(31)
++#define MIPI_CSIS_INTSRC_EVEN_AFTER	BIT(30)
++#define MIPI_CSIS_INTSRC_EVEN		BIT(30)
++#define MIPI_CSIS_INTSRC_ODD_BEFORE	BIT(29)
++#define MIPI_CSIS_INTSRC_ODD_AFTER	BIT(28)
++#define MIPI_CSIS_INTSRC_ODD		(0x3 << 28)
++#define MIPI_CSIS_INTSRC_NON_IMAGE_DATA	(0xf << 28)
++#define MIPI_CSIS_INTSRC_FRAME_START	BIT(24)
++#define MIPI_CSIS_INTSRC_FRAME_END	BIT(20)
++#define MIPI_CSIS_INTSRC_ERR_SOT_HS	BIT(16)
++#define MIPI_CSIS_INTSRC_ERR_LOST_FS	BIT(12)
++#define MIPI_CSIS_INTSRC_ERR_LOST_FE	BIT(8)
++#define MIPI_CSIS_INTSRC_ERR_OVER	BIT(4)
++#define MIPI_CSIS_INTSRC_ERR_WRONG_CFG	BIT(3)
++#define MIPI_CSIS_INTSRC_ERR_ECC	BIT(2)
++#define MIPI_CSIS_INTSRC_ERR_CRC	BIT(1)
++#define MIPI_CSIS_INTSRC_ERR_UNKNOWN	BIT(0)
++#define MIPI_CSIS_INTSRC_ERRORS		0xfffff
 +
-+#define CSI_CSICR1		0x0
-+#define CSI_CSICR2		0x4
-+#define CSI_CSICR3		0x8
-+#define CSI_STATFIFO		0xC
-+#define CSI_CSIRXFIFO		0x10
-+#define CSI_CSIRXCNT		0x14
-+#define CSI_CSISR		0x18
++/* D-PHY status control */
++#define MIPI_CSIS_DPHYSTATUS			0x20
++#define MIPI_CSIS_DPHYSTATUS_ULPS_DAT		BIT(8)
++#define MIPI_CSIS_DPHYSTATUS_STOPSTATE_DAT	BIT(4)
++#define MIPI_CSIS_DPHYSTATUS_ULPS_CLK		BIT(1)
++#define MIPI_CSIS_DPHYSTATUS_STOPSTATE_CLK	BIT(0)
 +
-+#define CSI_CSIDBG		0x1C
-+#define CSI_CSIDMASA_STATFIFO	0x20
-+#define CSI_CSIDMATS_STATFIFO	0x24
-+#define CSI_CSIDMASA_FB1	0x28
-+#define CSI_CSIDMASA_FB2	0x2C
-+#define CSI_CSIFBUF_PARA	0x30
-+#define CSI_CSIIMAG_PARA	0x34
++/* D-PHY common control */
++#define MIPI_CSIS_DPHYCTRL			0x24
++#define MIPI_CSIS_DPHYCTRL_HSS_MASK		(0xff << 24)
++#define MIPI_CSIS_DPHYCTRL_HSS_OFFSET		24
++#define MIPI_CSIS_DPHYCTRL_SCLKS_MASK		(0x3 << 22)
++#define MIPI_CSIS_DPHYCTRL_SCLKS_OFFSET		22
++#define MIPI_CSIS_DPHYCTRL_DPDN_SWAP_CLK	BIT(6)
++#define MIPI_CSIS_DPHYCTRL_DPDN_SWAP_DAT	BIT(5)
++#define MIPI_CSIS_DPHYCTRL_ENABLE_DAT		BIT(1)
++#define MIPI_CSIS_DPHYCTRL_ENABLE_CLK		BIT(0)
++#define MIPI_CSIS_DPHYCTRL_ENABLE		(0x1f << 0)
 +
-+#define CSI_CSICR18		0x48
-+#define CSI_CSICR19		0x4c
++/* D-PHY Master and Slave Control register Low */
++#define MIPI_CSIS_DPHYBCTRL_L		0x30
++/* D-PHY Master and Slave Control register High */
++#define MIPI_CSIS_DPHYBCTRL_H		0x34
++/* D-PHY Slave Control register Low */
++#define MIPI_CSIS_DPHYSCTRL_L		0x38
++/* D-PHY Slave Control register High */
++#define MIPI_CSIS_DPHYSCTRL_H		0x3c
 +
-+static const char * const imx7_csi_clk_id[] = {"axi", "dcic", "mclk"};
++/* ISP Configuration register */
++#define MIPI_CSIS_ISPCONFIG_CH0		0x40
++#define MIPI_CSIS_ISPCONFIG_CH1		0x50
++#define MIPI_CSIS_ISPCONFIG_CH2		0x60
++#define MIPI_CSIS_ISPCONFIG_CH3		0x70
 +
-+struct imx7_csi {
-+	struct device *dev;
-+	struct v4l2_subdev sd;
-+	struct imx_media_video_dev *vdev;
-+	struct imx_media_dev *imxmd;
-+	struct media_pad pad[IMX7_CSI_PADS_NUM];
++#define MIPI_CSIS_ISPCFG_MEM_FULL_GAP_MSK	(0xff << 24)
++#define MIPI_CSIS_ISPCFG_MEM_FULL_GAP(x)	((x) << 24)
++#define MIPI_CSIS_ISPCFG_DOUBLE_CMPNT		BIT(12)
++#define MIPI_CSIS_ISPCFG_ALIGN_32BIT		BIT(11)
++#define MIPI_CSIS_ISPCFG_FMT_YCBCR422_8BIT	(0x1e << 2)
++#define MIPI_CSIS_ISPCFG_FMT_RAW8		(0x2a << 2)
++#define MIPI_CSIS_ISPCFG_FMT_RAW10		(0x2b << 2)
++#define MIPI_CSIS_ISPCFG_FMT_RAW12		(0x2c << 2)
 +
-+	/* lock to protect members below */
++/* User defined formats, x = 1...4 */
++#define MIPI_CSIS_ISPCFG_FMT_USER(x)	((0x30 + (x) - 1) << 2)
++#define MIPI_CSIS_ISPCFG_FMT_MASK	(0x3f << 2)
++
++/* ISP Image Resolution register */
++#define MIPI_CSIS_ISPRESOL_CH0		0x44
++#define MIPI_CSIS_ISPRESOL_CH1		0x54
++#define MIPI_CSIS_ISPRESOL_CH2		0x64
++#define MIPI_CSIS_ISPRESOL_CH3		0x74
++#define CSIS_MAX_PIX_WIDTH		0xffff
++#define CSIS_MAX_PIX_HEIGHT		0xffff
++
++/* ISP SYNC register */
++#define MIPI_CSIS_ISPSYNC_CH0		0x48
++#define MIPI_CSIS_ISPSYNC_CH1		0x58
++#define MIPI_CSIS_ISPSYNC_CH2		0x68
++#define MIPI_CSIS_ISPSYNC_CH3		0x78
++
++#define MIPI_CSIS_ISPSYNC_HSYNC_LINTV_OFFSET	18
++#define MIPI_CSIS_ISPSYNC_VSYNC_SINTV_OFFSET	12
++#define MIPI_CSIS_ISPSYNC_VSYNC_EINTV_OFFSET	0
++
++/* Non-image packet data buffers */
++#define MIPI_CSIS_PKTDATA_ODD		0x2000
++#define MIPI_CSIS_PKTDATA_EVEN		0x3000
++#define MIPI_CSIS_PKTDATA_SIZE		SZ_4K
++
++#define DEFAULT_SCLK_CSIS_FREQ		166000000UL
++
++enum {
++	ST_POWERED	= 1,
++	ST_STREAMING	= 2,
++	ST_SUSPENDED	= 4,
++};
++
++struct mipi_csis_event {
++	u32 mask;
++	const char * const name;
++	unsigned int counter;
++};
++
++static const struct mipi_csis_event mipi_csis_events[] = {
++	/* Errors */
++	{ MIPI_CSIS_INTSRC_ERR_SOT_HS,	"SOT Error" },
++	{ MIPI_CSIS_INTSRC_ERR_LOST_FS,	"Lost Frame Start Error" },
++	{ MIPI_CSIS_INTSRC_ERR_LOST_FE,	"Lost Frame End Error" },
++	{ MIPI_CSIS_INTSRC_ERR_OVER,	"FIFO Overflow Error" },
++	{ MIPI_CSIS_INTSRC_ERR_WRONG_CFG, "Wrong Configuration Error" },
++	{ MIPI_CSIS_INTSRC_ERR_ECC,	"ECC Error" },
++	{ MIPI_CSIS_INTSRC_ERR_CRC,	"CRC Error" },
++	{ MIPI_CSIS_INTSRC_ERR_UNKNOWN,	"Unknown Error" },
++	/* Non-image data receive events */
++	{ MIPI_CSIS_INTSRC_EVEN_BEFORE,	"Non-image data before even frame" },
++	{ MIPI_CSIS_INTSRC_EVEN_AFTER,	"Non-image data after even frame" },
++	{ MIPI_CSIS_INTSRC_ODD_BEFORE,	"Non-image data before odd frame" },
++	{ MIPI_CSIS_INTSRC_ODD_AFTER,	"Non-image data after odd frame" },
++	/* Frame start/end */
++	{ MIPI_CSIS_INTSRC_FRAME_START,	"Frame Start" },
++	{ MIPI_CSIS_INTSRC_FRAME_END,	"Frame End" },
++};
++
++#define MIPI_CSIS_NUM_EVENTS ARRAY_SIZE(mipi_csis_events)
++
++static const char * const mipi_csis_clk_id[] = {"pclk", "wrap", "phy"};
++
++struct csis_hw_reset {
++	struct regmap *src;
++	u8 req_src;
++	u8 rst_bit;
++};
++
++struct csi_state {
++	/* lock elements below */
 +	struct mutex lock;
-+	/* lock to protect irq handler when stop streaming */
-+	spinlock_t irqlock;
-+
++	/* lock for event handler */
++	spinlock_t slock;
++	struct device *dev;
++	struct media_pad pads[CSIS_PADS_NUM];
++	struct v4l2_subdev mipi_sd;
 +	struct v4l2_subdev *src_sd;
 +
-+	struct media_entity *sink;
-+
-+	struct v4l2_fwnode_endpoint upstream_ep;
-+
-+	struct v4l2_mbus_framefmt format_mbus[IMX7_CSI_PADS_NUM];
-+	const struct imx_media_pixfmt *cc[IMX7_CSI_PADS_NUM];
-+	struct v4l2_fract frame_interval[IMX7_CSI_PADS_NUM];
-+
-+	struct v4l2_ctrl_handler ctrl_hdlr;
-+
-+	void __iomem *regbase;
++	u8 index;
++	struct platform_device *pdev;
++	struct phy *phy;
++	void __iomem *regs;
++	struct clk *wrap_clk;
 +	int irq;
++	u32 flags;
++
++	struct dentry *debugfs_root;
++	bool debug;
 +
 +	int num_clks;
 +	struct clk_bulk_data *clks;
 +
-+	/* active vb2 buffers to send to video dev sink */
-+	struct imx_media_buffer *active_vb2_buf[2];
-+	struct imx_media_dma_buf underrun_buf;
++	u32 clk_frequency;
++	u32 hs_settle;
 +
-+	int buf_num;
-+	u32 frame_sequence;
++	struct reset_control *mrst;
 +
-+	bool last_eof;
-+	bool is_init;
-+	bool is_streaming;
-+	bool is_csi2;
++	const struct csis_pix_format *csis_fmt;
++	struct v4l2_mbus_framefmt format_mbus;
 +
-+	struct completion last_eof_completion;
++	struct v4l2_fwnode_bus_mipi_csi2 bus;
++
++	struct mipi_csis_event events[MIPI_CSIS_NUM_EVENTS];
++
++	struct v4l2_async_notifier subdev_notifier;
++
++	struct csis_hw_reset hw_reset;
++	struct regulator *mipi_phy_regulator;
++	bool sink_linked;
 +};
 +
-+#define imx7_csi_reg_read(_csi, _offset) \
-+	__raw_readl((_csi)->regbase + (_offset))
-+#define imx7_csi_reg_write(_csi, _val, _offset) \
-+	__raw_writel(_val, (_csi)->regbase + (_offset))
-+
-+static void imx7_csi_clk_enable(struct imx7_csi *csi)
-+{
-+	int ret;
-+
-+	ret = clk_bulk_prepare_enable(csi->num_clks, csi->clks);
-+	if (ret < 0)
-+		dev_err(csi->dev, "failed to enable clocks\n");
-+}
-+
-+static void imx7_csi_clk_disable(struct imx7_csi *csi)
-+{
-+	clk_bulk_disable_unprepare(csi->num_clks, csi->clks);
-+}
-+
-+static void imx7_csi_hw_reset(struct imx7_csi *csi)
-+{
-+	imx7_csi_reg_write(csi,
-+			   imx7_csi_reg_read(csi, CSI_CSICR3) | BIT_FRMCNT_RST,
-+			   CSI_CSICR3);
-+
-+	imx7_csi_reg_write(csi, CSICR1_RESET_VAL, CSI_CSICR1);
-+	imx7_csi_reg_write(csi, CSICR2_RESET_VAL, CSI_CSICR2);
-+	imx7_csi_reg_write(csi, CSICR3_RESET_VAL, CSI_CSICR3);
-+}
-+
-+static unsigned long imx7_csi_irq_clear(struct imx7_csi *csi)
-+{
-+	unsigned long isr;
-+
-+	isr = imx7_csi_reg_read(csi, CSI_CSISR);
-+	imx7_csi_reg_write(csi, isr, CSI_CSISR);
-+
-+	return isr;
-+}
-+
-+static void imx7_csi_init_interface(struct imx7_csi *csi)
-+{
-+	unsigned int val = 0;
-+	unsigned int imag_para;
-+
-+	val = BIT_SOF_POL | BIT_REDGE | BIT_GCLK_MODE | BIT_HSYNC_POL |
-+		BIT_FCC | 1 << SHIFT_MCLKDIV | BIT_MCLKEN;
-+	imx7_csi_reg_write(csi, val, CSI_CSICR1);
-+
-+	imag_para = (800 << 16) | 600;
-+	imx7_csi_reg_write(csi, imag_para, CSI_CSIIMAG_PARA);
-+
-+	val = BIT_DMA_REFLASH_RFF;
-+	imx7_csi_reg_write(csi, val, CSI_CSICR3);
-+}
-+
-+static void imx7_csi_hw_enable_irq(struct imx7_csi *csi)
-+{
-+	unsigned long cr1 = imx7_csi_reg_read(csi, CSI_CSICR1);
-+
-+	cr1 |= BIT_SOF_INTEN;
-+	cr1 |= BIT_RFF_OR_INT;
-+
-+	/* still capture needs DMA interrupt */
-+	cr1 |= BIT_FB1_DMA_DONE_INTEN;
-+	cr1 |= BIT_FB2_DMA_DONE_INTEN;
-+
-+	cr1 |= BIT_EOF_INT_EN;
-+
-+	imx7_csi_reg_write(csi, cr1, CSI_CSICR1);
-+}
-+
-+static void imx7_csi_hw_disable_irq(struct imx7_csi *csi)
-+{
-+	unsigned long cr1 = imx7_csi_reg_read(csi, CSI_CSICR1);
-+
-+	cr1 &= ~BIT_SOF_INTEN;
-+	cr1 &= ~BIT_RFF_OR_INT;
-+	cr1 &= ~BIT_FB1_DMA_DONE_INTEN;
-+	cr1 &= ~BIT_FB2_DMA_DONE_INTEN;
-+	cr1 &= ~BIT_EOF_INT_EN;
-+
-+	imx7_csi_reg_write(csi, cr1, CSI_CSICR1);
-+}
-+
-+static void imx7_csi_hw_enable(struct imx7_csi *csi)
-+{
-+	unsigned long cr = imx7_csi_reg_read(csi, CSI_CSICR18);
-+
-+	cr |= BIT_CSI_HW_ENABLE;
-+
-+	imx7_csi_reg_write(csi, cr, CSI_CSICR18);
-+}
-+
-+static void imx7_csi_hw_disable(struct imx7_csi *csi)
-+{
-+	unsigned long cr = imx7_csi_reg_read(csi, CSI_CSICR18);
-+
-+	cr &= ~BIT_CSI_HW_ENABLE;
-+
-+	imx7_csi_reg_write(csi, cr, CSI_CSICR18);
-+}
-+
-+static void imx7_csi_dma_reflash(struct imx7_csi *csi)
-+{
-+	unsigned long cr3 = imx7_csi_reg_read(csi, CSI_CSICR18);
-+
-+	cr3 = imx7_csi_reg_read(csi, CSI_CSICR3);
-+	cr3 |= BIT_DMA_REFLASH_RFF;
-+	imx7_csi_reg_write(csi, cr3, CSI_CSICR3);
-+}
-+
-+static void imx7_csi_rx_fifo_clear(struct imx7_csi *csi)
-+{
-+	unsigned long cr1;
-+
-+	cr1 = imx7_csi_reg_read(csi, CSI_CSICR1);
-+	imx7_csi_reg_write(csi, cr1 & ~BIT_FCC, CSI_CSICR1);
-+	cr1 = imx7_csi_reg_read(csi, CSI_CSICR1);
-+	imx7_csi_reg_write(csi, cr1 | BIT_CLR_RXFIFO, CSI_CSICR1);
-+
-+	cr1 = imx7_csi_reg_read(csi, CSI_CSICR1);
-+	imx7_csi_reg_write(csi, cr1 | BIT_FCC, CSI_CSICR1);
-+}
-+
-+static void imx7_csi_buf_stride_set(struct imx7_csi *csi, u32 stride)
-+{
-+	imx7_csi_reg_write(csi, stride, CSI_CSIFBUF_PARA);
-+}
-+
-+static void imx7_csi_deinterlace_enable(struct imx7_csi *csi, bool enable)
-+{
-+	unsigned long cr18 = imx7_csi_reg_read(csi, CSI_CSICR18);
-+
-+	if (enable)
-+		cr18 |= BIT_DEINTERLACE_EN;
-+	else
-+		cr18 &= ~BIT_DEINTERLACE_EN;
-+
-+	imx7_csi_reg_write(csi, cr18, CSI_CSICR18);
-+}
-+
-+static void imx7_csi_dmareq_rff_enable(struct imx7_csi *csi)
-+{
-+	unsigned long cr3 = imx7_csi_reg_read(csi, CSI_CSICR3);
-+	unsigned long cr2 = imx7_csi_reg_read(csi, CSI_CSICR2);
-+
-+	/* Burst Type of DMA Transfer from RxFIFO. INCR16 */
-+	cr2 |= 0xC0000000;
-+
-+	cr3 |= BIT_DMA_REQ_EN_RFF;
-+	cr3 |= BIT_HRESP_ERR_EN;
-+	cr3 &= ~BIT_RXFF_LEVEL;
-+	cr3 |= 0x2 << 4;
-+
-+	imx7_csi_reg_write(csi, cr3, CSI_CSICR3);
-+	imx7_csi_reg_write(csi, cr2, CSI_CSICR2);
-+}
-+
-+static void imx7_csi_dmareq_rff_disable(struct imx7_csi *csi)
-+{
-+	unsigned long cr3 = imx7_csi_reg_read(csi, CSI_CSICR3);
-+
-+	cr3 &= ~BIT_DMA_REQ_EN_RFF;
-+	cr3 &= ~BIT_HRESP_ERR_EN;
-+	imx7_csi_reg_write(csi, cr3, CSI_CSICR3);
-+}
-+
-+static void imx7_csi_set_imagpara(struct imx7_csi *csi, int width, int height)
-+{
-+	int imag_para;
-+	int rx_count;
-+
-+	rx_count = (width * height) >> 2;
-+	imx7_csi_reg_write(csi, rx_count, CSI_CSIRXCNT);
-+
-+	imag_para = (width << 16) | height;
-+	imx7_csi_reg_write(csi, imag_para, CSI_CSIIMAG_PARA);
-+
-+	/* reflash the embedded DMA controller */
-+	imx7_csi_dma_reflash(csi);
-+}
-+
-+static void imx7_csi_sw_reset(struct imx7_csi *csi)
-+{
-+	imx7_csi_hw_disable(csi);
-+
-+	imx7_csi_rx_fifo_clear(csi);
-+
-+	imx7_csi_dma_reflash(csi);
-+
-+	usleep_range(2000, 3000);
-+
-+	imx7_csi_irq_clear(csi);
-+
-+	imx7_csi_hw_enable(csi);
-+}
-+
-+static void imx7_csi_error_recovery(struct imx7_csi *csi)
-+{
-+	imx7_csi_hw_disable(csi);
-+
-+	imx7_csi_rx_fifo_clear(csi);
-+
-+	imx7_csi_dma_reflash(csi);
-+
-+	imx7_csi_hw_enable(csi);
-+}
-+
-+static void imx7_csi_init(struct imx7_csi *csi)
-+{
-+	if (csi->is_init)
-+		return;
-+
-+	imx7_csi_clk_enable(csi);
-+	imx7_csi_hw_reset(csi);
-+	imx7_csi_init_interface(csi);
-+	imx7_csi_dmareq_rff_enable(csi);
-+
-+	csi->is_init = true;
-+}
-+
-+static void imx7_csi_deinit(struct imx7_csi *csi)
-+{
-+	if (!csi->is_init)
-+		return;
-+
-+	imx7_csi_hw_reset(csi);
-+	imx7_csi_init_interface(csi);
-+	imx7_csi_dmareq_rff_disable(csi);
-+	imx7_csi_clk_disable(csi);
-+
-+	csi->is_init = false;
-+}
-+
-+static int imx7_csi_get_upstream_endpoint(struct imx7_csi *csi,
-+					  struct v4l2_fwnode_endpoint *ep,
-+					  bool skip_mux)
-+{
-+	struct device_node *endpoint, *port;
-+	struct media_entity *src;
-+	struct v4l2_subdev *sd;
-+	struct media_pad *pad;
-+
-+	if (!csi->src_sd)
-+		return -EPIPE;
-+
-+	src = &csi->src_sd->entity;
-+
-+skip_video_mux:
-+	/* get source pad of entity directly upstream from src */
-+	pad = imx_media_find_upstream_pad(csi->imxmd, src, 0);
-+	if (IS_ERR(pad))
-+		return PTR_ERR(pad);
-+
-+	sd = media_entity_to_v4l2_subdev(pad->entity);
-+
-+	/* To get bus type we may need to skip video mux */
-+	if (skip_mux && src->function == MEDIA_ENT_F_VID_MUX) {
-+		src = &sd->entity;
-+		goto skip_video_mux;
++struct csis_pix_format {
++	unsigned int pix_width_alignment;
++	u32 code;
++	u32 fmt_reg;
++	u8 data_alignment;
++};
++
++static const struct csis_pix_format mipi_csis_formats[] = {
++	{
++		.code = MEDIA_BUS_FMT_SBGGR10_1X10,
++		.fmt_reg = MIPI_CSIS_ISPCFG_FMT_RAW10,
++		.data_alignment = 16,
++	}, {
++		.code = MEDIA_BUS_FMT_VYUY8_2X8,
++		.fmt_reg = MIPI_CSIS_ISPCFG_FMT_YCBCR422_8BIT,
++		.data_alignment = 16,
++	}, {
++		.code = MEDIA_BUS_FMT_SBGGR8_1X8,
++		.fmt_reg = MIPI_CSIS_ISPCFG_FMT_RAW8,
++		.data_alignment = 8,
++	}, {
++		.code = MEDIA_BUS_FMT_YUYV8_2X8,
++		.fmt_reg = MIPI_CSIS_ISPCFG_FMT_YCBCR422_8BIT,
++		.data_alignment = 16,
 +	}
++};
 +
-+	/*
-+	 * NOTE: this assumes an OF-graph port id is the same as a
-+	 * media pad index.
-+	 */
-+	port = of_graph_get_port_by_id(sd->dev->of_node, pad->index);
-+	if (!port)
-+		return -ENODEV;
++#define mipi_csis_write(__csis, __r, __v) writel(__v, (__csis)->regs + (__r))
++#define mipi_csis_read(__csis, __r) readl((__csis)->regs + (__r))
 +
-+	endpoint = of_get_next_child(port, NULL);
-+	of_node_put(port);
-+	if (!endpoint)
-+		return -ENODEV;
++static int mipi_csis_dump_regs(struct csi_state *state)
++{
++	struct device *dev = &state->pdev->dev;
++	unsigned int i;
++	u32 cfg;
++	struct {
++		u32 offset;
++		const char * const name;
++	} registers[] = {
++		{ 0x04, "CTRL" },
++		{ 0x24, "DPHYCTRL" },
++		{ 0x08, "CLKCTRL" },
++		{ 0x20, "DPHYSTS" },
++		{ 0x10, "INTMSK" },
++		{ 0x40, "CONFIG_CH0" },
++		{ 0xC0, "DBG_CONFIG" },
++		{ 0x38, "DPHYSLAVE_L" },
++		{ 0x3C, "DPHYSLAVE_H" },
++	};
 +
-+	v4l2_fwnode_endpoint_parse(of_fwnode_handle(endpoint), ep);
-+	of_node_put(endpoint);
++	dev_info(dev, "--- REGISTERS ---\n");
++
++	for (i = 0; i < ARRAY_SIZE(registers); i++) {
++		cfg = mipi_csis_read(state, registers[i].offset);
++		dev_info(dev, "%12s: 0x%08x\n", registers[i].name, cfg);
++	}
 +
 +	return 0;
 +}
 +
-+static int imx7_csi_link_setup(struct media_entity *entity,
-+			       const struct media_pad *local,
-+			       const struct media_pad *remote, u32 flags)
++static struct csi_state *mipi_sd_to_csis_state(struct v4l2_subdev *sdev)
 +{
-+	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
-+	struct imx7_csi *csi = v4l2_get_subdevdata(sd);
-+	struct v4l2_subdev *remote_sd;
-+	int ret = 0;
++	return container_of(sdev, struct csi_state, mipi_sd);
++}
 +
-+	dev_dbg(csi->dev, "link setup %s -> %s\n", remote->entity->name,
-+		local->entity->name);
++static const struct csis_pix_format *find_csis_format(u32 code)
++{
++	unsigned int i;
 +
-+	mutex_lock(&csi->lock);
++	for (i = 0; i < ARRAY_SIZE(mipi_csis_formats); i++)
++		if (code == mipi_csis_formats[i].code)
++			return &mipi_csis_formats[i];
++	return NULL;
++}
 +
-+	if (local->flags & MEDIA_PAD_FL_SINK) {
-+		if (!is_media_entity_v4l2_subdev(remote->entity)) {
-+			ret = -EINVAL;
-+			goto unlock;
-+		}
++static void mipi_csis_enable_interrupts(struct csi_state *state, bool on)
++{
++	mipi_csis_write(state, MIPI_CSIS_INTMSK, on ? 0xffffffff : 0);
++}
 +
-+		remote_sd = media_entity_to_v4l2_subdev(remote->entity);
++static void mipi_csis_sw_reset(struct csi_state *state)
++{
++	u32 val = mipi_csis_read(state, MIPI_CSIS_CMN_CTRL);
 +
-+		if (flags & MEDIA_LNK_FL_ENABLED) {
-+			if (csi->src_sd) {
-+				ret = -EBUSY;
-+				goto unlock;
-+			}
-+			csi->src_sd = remote_sd;
-+		} else {
-+			csi->src_sd = NULL;
-+		}
++	mipi_csis_write(state, MIPI_CSIS_CMN_CTRL,
++			val | MIPI_CSIS_CMN_CTRL_RESET);
++	usleep_range(10, 20);
++}
 +
-+		goto init;
-+	}
++static int mipi_csis_phy_init(struct csi_state *state)
++{
++	state->mipi_phy_regulator = devm_regulator_get(state->dev, "phy");
 +
-+	/* source pad */
-+	if (flags & MEDIA_LNK_FL_ENABLED) {
-+		if (csi->sink) {
-+			ret = -EBUSY;
-+			goto unlock;
-+		}
-+		csi->sink = remote->entity;
-+	} else {
-+		v4l2_ctrl_handler_free(&csi->ctrl_hdlr);
-+		v4l2_ctrl_handler_init(&csi->ctrl_hdlr, 0);
-+		csi->sink = NULL;
-+	}
++	return regulator_set_voltage(state->mipi_phy_regulator, 1000000,
++				     1000000);
++}
 +
-+init:
-+	if (csi->sink || csi->src_sd)
-+		imx7_csi_init(csi);
++static void mipi_csis_phy_reset(struct csi_state *state)
++{
++	reset_control_assert(state->mrst);
++
++	msleep(20);
++
++	reset_control_deassert(state->mrst);
++}
++
++static void mipi_csis_system_enable(struct csi_state *state, int on)
++{
++	u32 val, mask;
++
++	val = mipi_csis_read(state, MIPI_CSIS_CMN_CTRL);
++	if (on)
++		val |= MIPI_CSIS_CMN_CTRL_ENABLE;
 +	else
-+		imx7_csi_deinit(csi);
++		val &= ~MIPI_CSIS_CMN_CTRL_ENABLE;
++	mipi_csis_write(state, MIPI_CSIS_CMN_CTRL, val);
 +
-+unlock:
-+	mutex_unlock(&csi->lock);
++	val = mipi_csis_read(state, MIPI_CSIS_DPHYCTRL);
++	val &= ~MIPI_CSIS_DPHYCTRL_ENABLE;
++	if (on) {
++		mask = (1 << (state->bus.num_data_lanes + 1)) - 1;
++		val |= (mask & MIPI_CSIS_DPHYCTRL_ENABLE);
++	}
++	mipi_csis_write(state, MIPI_CSIS_DPHYCTRL, val);
++}
++
++/* Called with the state.lock mutex held */
++static void __mipi_csis_set_format(struct csi_state *state)
++{
++	struct v4l2_mbus_framefmt *mf = &state->format_mbus;
++	u32 val;
++
++	/* Color format */
++	val = mipi_csis_read(state, MIPI_CSIS_ISPCONFIG_CH0);
++	val = (val & ~MIPI_CSIS_ISPCFG_FMT_MASK) | state->csis_fmt->fmt_reg;
++	mipi_csis_write(state, MIPI_CSIS_ISPCONFIG_CH0, val);
++
++	/* Pixel resolution */
++	val = mf->width | (mf->height << 16);
++	mipi_csis_write(state, MIPI_CSIS_ISPRESOL_CH0, val);
++}
++
++static void mipi_csis_set_hsync_settle(struct csi_state *state, int hs_settle)
++{
++	u32 val = mipi_csis_read(state, MIPI_CSIS_DPHYCTRL);
++
++	val = ((val & ~MIPI_CSIS_DPHYCTRL_HSS_MASK) | (hs_settle << 24));
++
++	mipi_csis_write(state, MIPI_CSIS_DPHYCTRL, val);
++}
++
++static void mipi_csis_set_params(struct csi_state *state)
++{
++	int lanes = state->bus.num_data_lanes;
++	u32 val;
++
++	val = mipi_csis_read(state, MIPI_CSIS_CMN_CTRL);
++	val &= ~MIPI_CSIS_CMN_CTRL_LANE_NR_MASK;
++	val |= (lanes - 1) << MIPI_CSIS_CMN_CTRL_LANE_NR_OFFSET;
++	mipi_csis_write(state, MIPI_CSIS_CMN_CTRL, val);
++
++	__mipi_csis_set_format(state);
++
++	mipi_csis_set_hsync_settle(state, state->hs_settle);
++
++	val = mipi_csis_read(state, MIPI_CSIS_ISPCONFIG_CH0);
++	if (state->csis_fmt->data_alignment == 32)
++		val |= MIPI_CSIS_ISPCFG_ALIGN_32BIT;
++	else
++		val &= ~MIPI_CSIS_ISPCFG_ALIGN_32BIT;
++	mipi_csis_write(state, MIPI_CSIS_ISPCONFIG_CH0, val);
++
++	val = (0 << MIPI_CSIS_ISPSYNC_HSYNC_LINTV_OFFSET) |
++		(0 << MIPI_CSIS_ISPSYNC_VSYNC_SINTV_OFFSET) |
++		(0 << MIPI_CSIS_ISPSYNC_VSYNC_EINTV_OFFSET);
++	mipi_csis_write(state, MIPI_CSIS_ISPSYNC_CH0, val);
++
++	val = mipi_csis_read(state, MIPI_CSIS_CLK_CTRL);
++	val &= ~MIPI_CSIS_CLK_CTRL_WCLK_SRC;
++	if (state->wrap_clk)
++		val |= MIPI_CSIS_CLK_CTRL_WCLK_SRC;
++	else
++		val &= ~MIPI_CSIS_CLK_CTRL_WCLK_SRC;
++
++	val |= MIPI_CSIS_CLK_CTRL_CLKGATE_TRAIL_CH0(15);
++	val &= ~MIPI_CSIS_CLK_CTRL_CLKGATE_EN_MSK;
++	mipi_csis_write(state, MIPI_CSIS_CLK_CTRL, val);
++
++	mipi_csis_write(state, MIPI_CSIS_DPHYBCTRL_L, 0x1f4);
++	mipi_csis_write(state, MIPI_CSIS_DPHYBCTRL_H, 0);
++
++	/* Update the shadow register. */
++	val = mipi_csis_read(state, MIPI_CSIS_CMN_CTRL);
++	mipi_csis_write(state, MIPI_CSIS_CMN_CTRL,
++			val | MIPI_CSIS_CMN_CTRL_UPDATE_SHADOW |
++			MIPI_CSIS_CMN_CTRL_UPDATE_SHADOW_CTRL);
++}
++
++static void mipi_csis_clk_enable(struct csi_state *state)
++{
++	int ret;
++
++	ret = clk_bulk_prepare_enable(state->num_clks, state->clks);
++	if (ret < 0)
++		dev_err(state->dev, "failed to enable clocks\n");
++}
++
++static void mipi_csis_clk_disable(struct csi_state *state)
++{
++	clk_bulk_disable_unprepare(state->num_clks, state->clks);
++}
++
++static int mipi_csis_clk_get(struct csi_state *state)
++{
++	struct device *dev = &state->pdev->dev;
++	unsigned int i;
++	int ret;
++
++	state->num_clks = ARRAY_SIZE(mipi_csis_clk_id);
++	state->clks = devm_kcalloc(dev, state->num_clks, sizeof(*state->clks),
++				   GFP_KERNEL);
++
++	if (!state->clks)
++		return -ENOMEM;
++
++	for (i = 0; i < state->num_clks; i++)
++		state->clks[i].id = mipi_csis_clk_id[i];
++
++	ret = devm_clk_bulk_get(dev, state->num_clks, state->clks);
++	if (ret < 0)
++		return ret;
++
++	state->wrap_clk = devm_clk_get(dev, "wrap");
++	if (IS_ERR(state->wrap_clk))
++		return IS_ERR(state->wrap_clk);
++
++	/* Set clock rate */
++	ret = clk_set_rate(state->wrap_clk, state->clk_frequency);
++	if (ret < 0)
++		dev_err(dev, "set rate=%d failed: %d\n", state->clk_frequency,
++			ret);
 +
 +	return ret;
 +}
 +
-+static int imx7_csi_pad_link_validate(struct v4l2_subdev *sd,
-+				      struct media_link *link,
-+				      struct v4l2_subdev_format *source_fmt,
-+				      struct v4l2_subdev_format *sink_fmt)
++static void mipi_csis_start_stream(struct csi_state *state)
 +{
-+	struct imx7_csi *csi = v4l2_get_subdevdata(sd);
-+	struct v4l2_fwnode_endpoint upstream_ep = {};
-+	int ret;
++	mipi_csis_sw_reset(state);
++	mipi_csis_set_params(state);
++	mipi_csis_system_enable(state, true);
++	mipi_csis_enable_interrupts(state, true);
++}
 +
-+	ret = v4l2_subdev_link_validate_default(sd, link, source_fmt, sink_fmt);
-+	if (ret)
-+		return ret;
++static void mipi_csis_stop_stream(struct csi_state *state)
++{
++	mipi_csis_enable_interrupts(state, false);
++	mipi_csis_system_enable(state, false);
++}
 +
-+	ret = imx7_csi_get_upstream_endpoint(csi, &upstream_ep, true);
-+	if (ret) {
-+		v4l2_err(&csi->sd, "failed to find upstream endpoint\n");
-+		return ret;
++static void mipi_csis_clear_counters(struct csi_state *state)
++{
++	unsigned long flags;
++	unsigned int i;
++
++	spin_lock_irqsave(&state->slock, flags);
++	for (i = 0; i < MIPI_CSIS_NUM_EVENTS; i++)
++		state->events[i].counter = 0;
++	spin_unlock_irqrestore(&state->slock, flags);
++}
++
++static void mipi_csis_log_counters(struct csi_state *state, bool non_errors)
++{
++	int i = non_errors ? MIPI_CSIS_NUM_EVENTS : MIPI_CSIS_NUM_EVENTS - 4;
++	struct device *dev = &state->pdev->dev;
++	unsigned long flags;
++
++	spin_lock_irqsave(&state->slock, flags);
++
++	for (i--; i >= 0; i--) {
++		if (state->events[i].counter > 0 || state->debug)
++			dev_info(dev, "%s events: %d\n", state->events[i].name,
++				 state->events[i].counter);
++	}
++	spin_unlock_irqrestore(&state->slock, flags);
++}
++
++/*
++ * V4L2 subdev operations
++ */
++static int mipi_csis_s_stream(struct v4l2_subdev *mipi_sd, int enable)
++{
++	struct csi_state *state = mipi_sd_to_csis_state(mipi_sd);
++	int ret = 0;
++
++	if (enable) {
++		mipi_csis_clear_counters(state);
++		ret = pm_runtime_get_sync(&state->pdev->dev);
++		if (ret < 0) {
++			pm_runtime_put_noidle(&state->pdev->dev);
++			return ret;
++		}
++		ret = v4l2_subdev_call(state->src_sd, core, s_power, 1);
++		if (ret < 0)
++			return ret;
 +	}
 +
-+	mutex_lock(&csi->lock);
++	mutex_lock(&state->lock);
++	if (enable) {
++		if (state->flags & ST_SUSPENDED) {
++			ret = -EBUSY;
++			goto unlock;
++		}
 +
-+	csi->upstream_ep = upstream_ep;
-+	csi->is_csi2 = (upstream_ep.bus_type == V4L2_MBUS_CSI2_DPHY);
++		mipi_csis_start_stream(state);
++		ret = v4l2_subdev_call(state->src_sd, video, s_stream, 1);
++		if (ret < 0)
++			goto unlock;
 +
-+	mutex_unlock(&csi->lock);
++		mipi_csis_log_counters(state, true);
++
++		state->flags |= ST_STREAMING;
++	} else {
++		v4l2_subdev_call(state->src_sd, video, s_stream, 0);
++		ret = v4l2_subdev_call(state->src_sd, core, s_power, 1);
++		mipi_csis_stop_stream(state);
++		state->flags &= ~ST_STREAMING;
++		if (state->debug)
++			mipi_csis_log_counters(state, true);
++	}
++
++unlock:
++	mutex_unlock(&state->lock);
++	if (!enable)
++		pm_runtime_put(&state->pdev->dev);
++
++	return ret;
++}
++
++static int mipi_csis_link_setup(struct media_entity *entity,
++				const struct media_pad *local_pad,
++				const struct media_pad *remote_pad, u32 flags)
++{
++	struct v4l2_subdev *mipi_sd = media_entity_to_v4l2_subdev(entity);
++	struct csi_state *state = mipi_sd_to_csis_state(mipi_sd);
++	struct v4l2_subdev *remote_sd;
++	int ret = 0;
++
++	dev_dbg(state->dev, "link setup %s -> %s", remote_pad->entity->name,
++		local_pad->entity->name);
++
++	remote_sd = media_entity_to_v4l2_subdev(remote_pad->entity);
++
++	mutex_lock(&state->lock);
++
++	if (local_pad->flags & MEDIA_PAD_FL_SOURCE) {
++		if (flags & MEDIA_LNK_FL_ENABLED) {
++			if (state->sink_linked) {
++				ret = -EBUSY;
++				goto out;
++			}
++			state->sink_linked = true;
++		} else {
++			state->sink_linked = false;
++		}
++	} else {
++		if (flags & MEDIA_LNK_FL_ENABLED) {
++			if (state->src_sd) {
++				ret = -EBUSY;
++				goto out;
++			}
++			state->src_sd = remote_sd;
++		} else {
++			state->src_sd = NULL;
++		}
++	}
++
++out:
++	mutex_unlock(&state->lock);
++	return ret;
++}
++
++static int mipi_csis_init_cfg(struct v4l2_subdev *mipi_sd,
++			      struct v4l2_subdev_pad_config *cfg)
++{
++	struct v4l2_mbus_framefmt *mf;
++	unsigned int i;
++	int ret;
++
++	for (i = 0; i < CSIS_PADS_NUM; i++) {
++		mf = v4l2_subdev_get_try_format(mipi_sd, cfg, i);
++
++		ret = imx_media_init_mbus_fmt(mf, MIPI_CSIS_DEF_PIX_HEIGHT,
++					      MIPI_CSIS_DEF_PIX_WIDTH, 0,
++					      V4L2_FIELD_NONE, NULL);
++		if (ret < 0)
++			return ret;
++	}
 +
 +	return 0;
 +}
 +
-+static void imx7_csi_update_buf(struct imx7_csi *csi, dma_addr_t phys,
-+				int buf_num)
++static struct csis_pix_format const *mipi_csis_try_format(
++						struct v4l2_subdev *mipi_sd,
++						struct v4l2_mbus_framefmt *mf)
 +{
-+	if (buf_num == 1)
-+		imx7_csi_reg_write(csi, phys, CSI_CSIDMASA_FB2);
++	struct csi_state *state = mipi_sd_to_csis_state(mipi_sd);
++	struct csis_pix_format const *csis_fmt;
++
++	csis_fmt = find_csis_format(mf->code);
++	if (!csis_fmt)
++		csis_fmt = &mipi_csis_formats[0];
++
++	v4l_bound_align_image(&mf->width, 1, CSIS_MAX_PIX_WIDTH,
++			      csis_fmt->pix_width_alignment,
++			      &mf->height, 1, CSIS_MAX_PIX_HEIGHT, 1,
++			      0);
++
++	state->format_mbus.code = csis_fmt->code;
++	state->format_mbus.width = mf->width;
++	state->format_mbus.height = mf->height;
++
++	return csis_fmt;
++}
++
++static struct v4l2_mbus_framefmt *mipi_csis_get_format(struct csi_state *state,
++					struct v4l2_subdev_pad_config *cfg,
++					enum v4l2_subdev_format_whence which,
++					unsigned int pad)
++{
++	if (which == V4L2_SUBDEV_FORMAT_TRY)
++		return v4l2_subdev_get_try_format(&state->mipi_sd, cfg, pad);
++
++	return &state->format_mbus;
++}
++
++static int mipi_csis_set_fmt(struct v4l2_subdev *mipi_sd,
++			     struct v4l2_subdev_pad_config *cfg,
++			     struct v4l2_subdev_format *sdformat)
++{
++	struct csi_state *state = mipi_sd_to_csis_state(mipi_sd);
++	struct csis_pix_format const *csis_fmt;
++	struct v4l2_mbus_framefmt *fmt;
++
++	if (sdformat->pad >= CSIS_PADS_NUM)
++		return -EINVAL;
++
++	fmt = mipi_csis_get_format(state, cfg, sdformat->which, sdformat->pad);
++
++	mutex_lock(&state->lock);
++	if (fmt && sdformat->pad == CSIS_PAD_SOURCE) {
++		sdformat->format = *fmt;
++		goto unlock;
++	}
++
++	csis_fmt = mipi_csis_try_format(mipi_sd, &sdformat->format);
++
++	sdformat->format = *fmt;
++
++	if (csis_fmt && sdformat->which == V4L2_SUBDEV_FORMAT_ACTIVE)
++		state->csis_fmt = csis_fmt;
 +	else
-+		imx7_csi_reg_write(csi, phys, CSI_CSIDMASA_FB1);
++		cfg->try_fmt = sdformat->format;
++
++unlock:
++	mutex_unlock(&state->lock);
++
++	return 0;
 +}
 +
-+static void imx7_csi_setup_vb2_buf(struct imx7_csi *csi)
++static int mipi_csis_get_fmt(struct v4l2_subdev *mipi_sd,
++			     struct v4l2_subdev_pad_config *cfg,
++			     struct v4l2_subdev_format *sdformat)
 +{
-+	struct imx_media_video_dev *vdev = csi->vdev;
-+	struct imx_media_buffer *buf;
-+	struct vb2_buffer *vb2_buf;
-+	dma_addr_t phys[2];
-+	int i;
++	struct csi_state *state = mipi_sd_to_csis_state(mipi_sd);
++	struct v4l2_mbus_framefmt *fmt;
 +
-+	for (i = 0; i < 2; i++) {
-+		buf = imx_media_capture_device_next_buf(vdev);
-+		if (buf) {
-+			csi->active_vb2_buf[i] = buf;
-+			vb2_buf = &buf->vbuf.vb2_buf;
-+			phys[i] = vb2_dma_contig_plane_dma_addr(vb2_buf, 0);
-+		} else {
-+			csi->active_vb2_buf[i] = NULL;
-+			phys[i] = csi->underrun_buf.phys;
-+		}
++	mutex_lock(&state->lock);
 +
-+		imx7_csi_update_buf(csi, phys[i], i);
-+	}
++	fmt = mipi_csis_get_format(state, cfg, sdformat->which, sdformat->pad);
++
++	sdformat->format = *fmt;
++
++	mutex_unlock(&state->lock);
++
++	return 0;
 +}
 +
-+static void imx7_csi_dma_unsetup_vb2_buf(struct imx7_csi *csi,
-+					 enum vb2_buffer_state return_status)
++static int mipi_csis_log_status(struct v4l2_subdev *mipi_sd)
 +{
-+	struct imx_media_buffer *buf;
-+	int i;
++	struct csi_state *state = mipi_sd_to_csis_state(mipi_sd);
 +
-+	/* return any remaining active frames with return_status */
-+	for (i = 0; i < 2; i++) {
-+		buf = csi->active_vb2_buf[i];
-+		if (buf) {
-+			struct vb2_buffer *vb = &buf->vbuf.vb2_buf;
++	mutex_lock(&state->lock);
++	mipi_csis_log_counters(state, true);
++	if (state->debug && (state->flags & ST_POWERED))
++		mipi_csis_dump_regs(state);
++	mutex_unlock(&state->lock);
 +
-+			vb->timestamp = ktime_get_ns();
-+			vb2_buffer_done(vb, return_status);
-+		}
-+	}
++	return 0;
 +}
 +
-+static void imx7_csi_vb2_buf_done(struct imx7_csi *csi)
++static irqreturn_t mipi_csis_irq_handler(int irq, void *dev_id)
 +{
-+	struct imx_media_video_dev *vdev = csi->vdev;
-+	struct imx_media_buffer *done, *next;
-+	struct vb2_buffer *vb;
-+	dma_addr_t phys;
++	struct csi_state *state = dev_id;
++	unsigned long flags;
++	unsigned int i;
++	u32 status;
 +
-+	done = csi->active_vb2_buf[csi->buf_num];
-+	if (done) {
-+		done->vbuf.field = vdev->fmt.fmt.pix.field;
-+		done->vbuf.sequence = csi->frame_sequence;
-+		vb = &done->vbuf.vb2_buf;
-+		vb->timestamp = ktime_get_ns();
-+		vb2_buffer_done(vb, VB2_BUF_STATE_DONE);
-+	}
-+	csi->frame_sequence++;
++	status = mipi_csis_read(state, MIPI_CSIS_INTSRC);
 +
-+	/* get next queued buffer */
-+	next = imx_media_capture_device_next_buf(vdev);
-+	if (next) {
-+		phys = vb2_dma_contig_plane_dma_addr(&next->vbuf.vb2_buf, 0);
-+		csi->active_vb2_buf[csi->buf_num] = next;
-+	} else {
-+		phys = csi->underrun_buf.phys;
-+		csi->active_vb2_buf[csi->buf_num] = NULL;
-+	}
++	spin_lock_irqsave(&state->slock, flags);
 +
-+	imx7_csi_update_buf(csi, phys, csi->buf_num);
-+}
-+
-+static irqreturn_t imx7_csi_irq_handler(int irq, void *data)
-+{
-+	struct imx7_csi *csi =  data;
-+	unsigned long status;
-+
-+	spin_lock(&csi->irqlock);
-+
-+	status = imx7_csi_irq_clear(csi);
-+
-+	if (status & BIT_RFF_OR_INT) {
-+		dev_warn(csi->dev, "Rx fifo overflow\n");
-+		imx7_csi_error_recovery(csi);
-+	}
-+
-+	if (status & BIT_HRESP_ERR_INT) {
-+		dev_warn(csi->dev, "Hresponse error detected\n");
-+		imx7_csi_error_recovery(csi);
-+	}
-+
-+	if (status & BIT_ADDR_CH_ERR_INT) {
-+		imx7_csi_hw_disable(csi);
-+
-+		imx7_csi_dma_reflash(csi);
-+
-+		imx7_csi_hw_enable(csi);
-+	}
-+
-+	if ((status & BIT_DMA_TSF_DONE_FB1) &&
-+	    (status & BIT_DMA_TSF_DONE_FB2)) {
-+		/*
-+		 * For both FB1 and FB2 interrupter bits set case,
-+		 * CSI DMA is work in one of FB1 and FB2 buffer,
-+		 * but software can not know the state.
-+		 * Skip it to avoid base address updated
-+		 * when csi work in field0 and field1 will write to
-+		 * new base address.
-+		 */
-+	} else if (status & BIT_DMA_TSF_DONE_FB1) {
-+		csi->buf_num = 0;
-+	} else if (status & BIT_DMA_TSF_DONE_FB2) {
-+		csi->buf_num = 1;
-+	}
-+
-+	if ((status & BIT_DMA_TSF_DONE_FB1) ||
-+	    (status & BIT_DMA_TSF_DONE_FB2)) {
-+		imx7_csi_vb2_buf_done(csi);
-+
-+		if (csi->last_eof) {
-+			complete(&csi->last_eof_completion);
-+			csi->last_eof = false;
++	/* Update the event/error counters */
++	if ((status & MIPI_CSIS_INTSRC_ERRORS) || state->debug) {
++		for (i = 0; i < MIPI_CSIS_NUM_EVENTS; i++) {
++			if (!(status & state->events[i].mask))
++				continue;
++			state->events[i].counter++;
 +		}
 +	}
++	spin_unlock_irqrestore(&state->slock, flags);
 +
-+	spin_unlock(&csi->irqlock);
++	mipi_csis_write(state, MIPI_CSIS_INTSRC, status);
 +
 +	return IRQ_HANDLED;
 +}
 +
-+static int imx7_csi_dma_start(struct imx7_csi *csi)
++static int mipi_csi_registered(struct v4l2_subdev *mipi_sd)
 +{
-+	struct imx_media_video_dev *vdev = csi->vdev;
-+	struct v4l2_pix_format *out_pix = &vdev->fmt.fmt.pix;
++	struct csi_state *state = mipi_sd_to_csis_state(mipi_sd);
++	unsigned int i;
 +	int ret;
 +
-+	ret = imx_media_alloc_dma_buf(csi->imxmd, &csi->underrun_buf,
-+				      out_pix->sizeimage);
-+	if (ret < 0) {
-+		v4l2_warn(&csi->sd, "consider increasing the CMA area\n");
-+		return ret;
-+	}
-+
-+	csi->frame_sequence = 0;
-+	csi->last_eof = false;
-+	init_completion(&csi->last_eof_completion);
-+
-+	imx7_csi_setup_vb2_buf(csi);
-+
-+	return 0;
-+}
-+
-+static void imx7_csi_dma_stop(struct imx7_csi *csi)
-+{
-+	unsigned long timeout_jiffies;
-+	unsigned long flags;
-+	int ret;
-+
-+	/* mark next EOF interrupt as the last before stream off */
-+	spin_lock_irqsave(&csi->irqlock, flags);
-+	csi->last_eof = true;
-+	spin_unlock_irqrestore(&csi->irqlock, flags);
-+
-+	/*
-+	 * and then wait for interrupt handler to mark completion.
-+	 */
-+	timeout_jiffies = msecs_to_jiffies(IMX_MEDIA_EOF_TIMEOUT);
-+	ret = wait_for_completion_timeout(&csi->last_eof_completion,
-+					  timeout_jiffies);
-+	if (ret == 0)
-+		v4l2_warn(&csi->sd, "wait last EOF timeout\n");
-+
-+	imx7_csi_hw_disable_irq(csi);
-+
-+	imx7_csi_dma_unsetup_vb2_buf(csi, VB2_BUF_STATE_ERROR);
-+
-+	imx_media_free_dma_buf(csi->imxmd, &csi->underrun_buf);
-+}
-+
-+static int imx7_csi_configure(struct imx7_csi *csi)
-+{
-+	struct imx_media_video_dev *vdev = csi->vdev;
-+	struct v4l2_pix_format *out_pix = &vdev->fmt.fmt.pix;
-+	__u32 in_code = csi->format_mbus[IMX7_CSI_PAD_SINK].code;
-+	u32 cr1, cr18;
-+
-+	if (out_pix->field == V4L2_FIELD_INTERLACED) {
-+		imx7_csi_deinterlace_enable(csi, true);
-+		imx7_csi_buf_stride_set(csi, out_pix->width);
-+	} else {
-+		imx7_csi_deinterlace_enable(csi, false);
-+		imx7_csi_buf_stride_set(csi, 0);
-+	}
-+
-+	imx7_csi_set_imagpara(csi, out_pix->width, out_pix->height);
-+
-+	if (!csi->is_csi2)
-+		return 0;
-+
-+	cr1 = imx7_csi_reg_read(csi, CSI_CSICR1);
-+	cr1 &= ~BIT_GCLK_MODE;
-+
-+	cr18 = imx7_csi_reg_read(csi, CSI_CSICR18);
-+	cr18 &= BIT_MIPI_DATA_FORMAT_MASK;
-+	cr18 |= BIT_DATA_FROM_MIPI;
-+
-+	switch (out_pix->pixelformat) {
-+	case V4L2_PIX_FMT_UYVY:
-+	case V4L2_PIX_FMT_YUYV:
-+		cr18 |= BIT_MIPI_DATA_FORMAT_YUV422_8B;
-+		break;
-+	case V4L2_PIX_FMT_SBGGR8:
-+		cr18 |= BIT_MIPI_DATA_FORMAT_RAW8;
-+		break;
-+	case V4L2_PIX_FMT_SBGGR16:
-+		if (in_code == MEDIA_BUS_FMT_SBGGR10_1X10)
-+			cr18 |= BIT_MIPI_DATA_FORMAT_RAW10;
-+		else if (in_code == MEDIA_BUS_FMT_SBGGR12_1X12)
-+			cr18 |= BIT_MIPI_DATA_FORMAT_RAW12;
-+		else if (in_code == MEDIA_BUS_FMT_SBGGR14_1X14)
-+			cr18 |= BIT_MIPI_DATA_FORMAT_RAW14;
-+		cr1 |= BIT_PIXEL_BIT;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	imx7_csi_reg_write(csi, cr1, CSI_CSICR1);
-+	imx7_csi_reg_write(csi, cr18, CSI_CSICR18);
-+
-+	return 0;
-+}
-+
-+static int imx7_csi_enable(struct imx7_csi *csi)
-+{
-+	imx7_csi_sw_reset(csi);
-+
-+	if (csi->is_csi2) {
-+		imx7_csi_dmareq_rff_enable(csi);
-+		imx7_csi_hw_enable_irq(csi);
-+		imx7_csi_hw_enable(csi);
-+		return 0;
-+	}
-+
-+	return 0;
-+}
-+
-+static void imx7_csi_disable(struct imx7_csi *csi)
-+{
-+	imx7_csi_dmareq_rff_disable(csi);
-+
-+	imx7_csi_hw_disable_irq(csi);
-+
-+	imx7_csi_buf_stride_set(csi, 0);
-+
-+	imx7_csi_hw_disable(csi);
-+}
-+
-+static int imx7_csi_streaming_start(struct imx7_csi *csi)
-+{
-+	int ret;
-+
-+	ret = imx7_csi_dma_start(csi);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = imx7_csi_configure(csi);
-+	if (ret < 0)
-+		goto dma_stop;
-+
-+	imx7_csi_enable(csi);
-+
-+	return 0;
-+
-+dma_stop:
-+	imx7_csi_dma_stop(csi);
-+
-+	return ret;
-+}
-+
-+static int imx7_csi_streaming_stop(struct imx7_csi *csi)
-+{
-+	imx7_csi_dma_stop(csi);
-+
-+	imx7_csi_disable(csi);
-+
-+	return 0;
-+}
-+
-+static int imx7_csi_s_stream(struct v4l2_subdev *sd, int enable)
-+{
-+	struct imx7_csi *csi = v4l2_get_subdevdata(sd);
-+	int ret = 0;
-+
-+	mutex_lock(&csi->lock);
-+
-+	if (!csi->src_sd || !csi->sink) {
-+		ret = -EPIPE;
-+		goto out_unlock;
-+	}
-+
-+	if (csi->is_streaming == !!enable)
-+		goto out_unlock;
-+
-+	if (enable) {
-+		ret = v4l2_subdev_call(csi->src_sd, video, s_stream, 1);
-+		if (ret < 0)
-+			goto out_unlock;
-+
-+		ret = imx7_csi_streaming_start(csi);
-+		if (ret < 0) {
-+			v4l2_subdev_call(csi->src_sd, video, s_stream, 0);
-+			goto out_unlock;
-+		}
-+	} else {
-+		imx7_csi_streaming_stop(csi);
-+
-+		v4l2_subdev_call(csi->src_sd, video, s_stream, 0);
-+	}
-+
-+	csi->is_streaming = !!enable;
-+
-+out_unlock:
-+	mutex_unlock(&csi->lock);
-+
-+	return ret;
-+}
-+
-+static struct v4l2_mbus_framefmt *imx7_csi_get_format(struct imx7_csi *csi,
-+					struct v4l2_subdev_pad_config *cfg,
-+					unsigned int pad,
-+					enum v4l2_subdev_format_whence which)
-+{
-+	if (which == V4L2_SUBDEV_FORMAT_TRY)
-+		return v4l2_subdev_get_try_format(&csi->sd, cfg, pad);
-+
-+	return &csi->format_mbus[pad];
-+}
-+
-+static int imx7_csi_enum_mbus_code(struct v4l2_subdev *sd,
-+				   struct v4l2_subdev_pad_config *cfg,
-+				   struct v4l2_subdev_mbus_code_enum *code)
-+{
-+	struct imx7_csi *csi = v4l2_get_subdevdata(sd);
-+	const struct imx_media_pixfmt *in_cc;
-+	struct v4l2_mbus_framefmt *in_fmt;
-+	int ret = 0;
-+
-+	mutex_lock(&csi->lock);
-+
-+	in_fmt = imx7_csi_get_format(csi, cfg, IMX7_CSI_PAD_SINK, code->which);
-+
-+	in_cc = imx_media_find_mbus_format(in_fmt->code, CS_SEL_ANY, true);
-+
-+	switch (code->pad) {
-+	case IMX7_CSI_PAD_SINK:
-+		ret = imx_media_enum_mbus_format(&code->code, code->index,
-+						 CS_SEL_ANY, true);
-+		break;
-+	case IMX7_CSI_PAD_SRC:
-+		if (code->index != 0) {
-+			ret = -EINVAL;
-+			goto out_unlock;
-+		}
-+
-+		code->code = in_fmt->code;
-+		break;
-+	default:
-+		ret = -EINVAL;
-+	}
-+
-+out_unlock:
-+	mutex_unlock(&csi->lock);
-+
-+	return ret;
-+}
-+
-+static int imx7_csi_get_fmt(struct v4l2_subdev *sd,
-+			    struct v4l2_subdev_pad_config *cfg,
-+			    struct v4l2_subdev_format *sdformat)
-+{
-+	struct imx7_csi *csi = v4l2_get_subdevdata(sd);
-+	struct v4l2_mbus_framefmt *fmt;
-+	int ret = 0;
-+
-+	mutex_lock(&csi->lock);
-+
-+	fmt = imx7_csi_get_format(csi, cfg, sdformat->pad, sdformat->which);
-+	if (!fmt) {
-+		ret = -EINVAL;
-+		goto out_unlock;
-+	}
-+
-+	sdformat->format = *fmt;
-+
-+out_unlock:
-+	mutex_unlock(&csi->lock);
-+
-+	return ret;
-+}
-+
-+static void imx7_csi_try_fmt(struct imx7_csi *csi,
-+			     struct v4l2_subdev_pad_config *cfg,
-+			     struct v4l2_subdev_format *sdformat,
-+			     const struct imx_media_pixfmt **cc)
-+{
-+	const struct imx_media_pixfmt *in_cc;
-+	struct v4l2_mbus_framefmt *in_fmt;
-+	u32 code;
-+
-+	in_fmt = imx7_csi_get_format(csi, cfg, IMX7_CSI_PAD_SINK,
-+				     sdformat->which);
-+	if (!in_fmt)
-+		return;
-+
-+	switch (sdformat->pad) {
-+	case IMX7_CSI_PAD_SRC:
-+		in_cc = imx_media_find_mbus_format(in_fmt->code, CS_SEL_ANY,
-+						   true);
-+
-+		sdformat->format.width = in_fmt->width;
-+		sdformat->format.height = in_fmt->height;
-+		sdformat->format.code = in_fmt->code;
-+		*cc = in_cc;
-+
-+		sdformat->format.colorspace = in_fmt->colorspace;
-+		sdformat->format.xfer_func = in_fmt->xfer_func;
-+		sdformat->format.quantization = in_fmt->quantization;
-+		sdformat->format.ycbcr_enc = in_fmt->ycbcr_enc;
-+		break;
-+	case IMX7_CSI_PAD_SINK:
-+		*cc = imx_media_find_mbus_format(sdformat->format.code,
-+						 CS_SEL_ANY, true);
-+		if (!*cc) {
-+			imx_media_enum_mbus_format(&code, 0, CS_SEL_ANY, false);
-+			*cc = imx_media_find_mbus_format(code, CS_SEL_ANY,
-+							 false);
-+			sdformat->format.code = (*cc)->codes[0];
-+		}
-+
-+		imx_media_fill_default_mbus_fields(&sdformat->format, in_fmt,
-+						   false);
-+		break;
-+	default:
-+		break;
-+	}
-+}
-+
-+static int imx7_csi_set_fmt(struct v4l2_subdev *sd,
-+			    struct v4l2_subdev_pad_config *cfg,
-+			    struct v4l2_subdev_format *sdformat)
-+{
-+	struct imx7_csi *csi = v4l2_get_subdevdata(sd);
-+	struct imx_media_video_dev *vdev = csi->vdev;
-+	const struct imx_media_pixfmt *outcc;
-+	struct v4l2_mbus_framefmt *outfmt;
-+	struct v4l2_pix_format vdev_fmt;
-+	const struct imx_media_pixfmt *cc;
-+	struct v4l2_mbus_framefmt *fmt;
-+	struct v4l2_subdev_format format;
-+	int ret = 0;
-+
-+	if (sdformat->pad >= IMX7_CSI_PADS_NUM)
-+		return -EINVAL;
-+
-+	mutex_lock(&csi->lock);
-+
-+	if (csi->is_streaming) {
-+		ret = -EBUSY;
-+		goto out_unlock;
-+	}
-+
-+	imx7_csi_try_fmt(csi, cfg, sdformat, &cc);
-+
-+	fmt = imx7_csi_get_format(csi, cfg, sdformat->pad, sdformat->which);
-+	if (!fmt) {
-+		ret = -EINVAL;
-+		goto out_unlock;
-+	}
-+
-+	*fmt = sdformat->format;
-+
-+	if (sdformat->pad == IMX7_CSI_PAD_SINK) {
-+		/* propagate format to source pads */
-+		format.pad = IMX7_CSI_PAD_SRC;
-+		format.which = sdformat->which;
-+		format.format = sdformat->format;
-+		imx7_csi_try_fmt(csi, cfg, &format, &outcc);
-+
-+		outfmt = imx7_csi_get_format(csi, cfg, IMX7_CSI_PAD_SRC,
-+					     sdformat->which);
-+		*outfmt = format.format;
-+
-+		if (sdformat->which == V4L2_SUBDEV_FORMAT_ACTIVE)
-+			csi->cc[IMX7_CSI_PAD_SRC] = outcc;
-+	}
-+
-+	if (sdformat->which == V4L2_SUBDEV_FORMAT_TRY)
-+		goto out_unlock;
-+
-+	csi->cc[sdformat->pad] = cc;
-+
-+	/* propagate output pad format to capture device */
-+	imx_media_mbus_fmt_to_pix_fmt(&vdev_fmt,
-+				      &csi->format_mbus[IMX7_CSI_PAD_SRC],
-+				      csi->cc[IMX7_CSI_PAD_SRC]);
-+	mutex_unlock(&csi->lock);
-+	imx_media_capture_device_set_format(vdev, &vdev_fmt);
-+
-+	return 0;
-+
-+out_unlock:
-+	mutex_unlock(&csi->lock);
-+
-+	return ret;
-+}
-+
-+static int imx7_csi_registered(struct v4l2_subdev *sd)
-+{
-+	struct imx7_csi *csi = v4l2_get_subdevdata(sd);
-+	int ret;
-+	int i;
-+
-+	for (i = 0; i < IMX7_CSI_PADS_NUM; i++) {
-+		csi->pad[i].flags = (i == IMX7_CSI_PAD_SINK) ?
++	for (i = 0; i < CSIS_PADS_NUM; i++) {
++		state->pads[i].flags = (i == CSIS_PAD_SINK) ?
 +			MEDIA_PAD_FL_SINK : MEDIA_PAD_FL_SOURCE;
-+
-+		/* set a default mbus format  */
-+		ret = imx_media_init_mbus_fmt(&csi->format_mbus[i],
-+					      800, 600, 0, V4L2_FIELD_NONE,
-+					      &csi->cc[i]);
-+		if (ret < 0)
-+			return ret;
-+
-+		/* init default frame interval */
-+		csi->frame_interval[i].numerator = 1;
-+		csi->frame_interval[i].denominator = 30;
 +	}
 +
-+	ret = media_entity_pads_init(&sd->entity, IMX7_CSI_PADS_NUM, csi->pad);
-+	if (ret < 0)
++	/* set a default mbus format  */
++	ret = imx_media_init_mbus_fmt(&state->format_mbus,
++				      MIPI_CSIS_DEF_PIX_HEIGHT,
++				      MIPI_CSIS_DEF_PIX_WIDTH, 0,
++				      V4L2_FIELD_NONE, NULL);
++	if (ret)
 +		return ret;
 +
-+	ret = imx_media_capture_device_register(csi->vdev);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = imx_media_add_video_device(csi->imxmd, csi->vdev);
-+	if (ret < 0) {
-+		imx_media_capture_device_unregister(csi->vdev);
-+		return ret;
-+	}
-+
-+	return 0;
++	return media_entity_pads_init(&mipi_sd->entity, CSIS_PADS_NUM,
++				      state->pads);
 +}
 +
-+static void imx7_csi_unregistered(struct v4l2_subdev *sd)
-+{
-+	struct imx7_csi *csi = v4l2_get_subdevdata(sd);
++static const struct v4l2_subdev_core_ops mipi_csis_core_ops = {
++	.log_status	= mipi_csis_log_status,
++};
 +
-+	imx_media_capture_device_unregister(csi->vdev);
-+}
-+
-+static int imx7_csi_init_cfg(struct v4l2_subdev *sd,
-+			     struct v4l2_subdev_pad_config *cfg)
-+{
-+	struct imx7_csi *csi = v4l2_get_subdevdata(sd);
-+	struct v4l2_mbus_framefmt *mf;
-+	int ret;
-+	int i;
-+
-+	for (i = 0; i < IMX7_CSI_PADS_NUM; i++) {
-+		mf = v4l2_subdev_get_try_format(sd, cfg, i);
-+
-+		ret = imx_media_init_mbus_fmt(mf, 800, 600, 0, V4L2_FIELD_NONE,
-+					      &csi->cc[i]);
-+		if (ret < 0)
-+			return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+static const struct media_entity_operations imx7_csi_entity_ops = {
-+	.link_setup	= imx7_csi_link_setup,
++static const struct media_entity_operations mipi_csis_entity_ops = {
++	.link_setup	= mipi_csis_link_setup,
 +	.link_validate	= v4l2_subdev_link_validate,
 +};
 +
-+static const struct v4l2_subdev_video_ops imx7_csi_video_ops = {
-+	.s_stream		= imx7_csi_s_stream,
++static const struct v4l2_subdev_video_ops mipi_csis_video_ops = {
++	.s_stream	= mipi_csis_s_stream,
 +};
 +
-+static const struct v4l2_subdev_pad_ops imx7_csi_pad_ops = {
-+	.init_cfg =		imx7_csi_init_cfg,
-+	.enum_mbus_code =	imx7_csi_enum_mbus_code,
-+	.get_fmt =		imx7_csi_get_fmt,
-+	.set_fmt =		imx7_csi_set_fmt,
-+	.link_validate =	imx7_csi_pad_link_validate,
++static const struct v4l2_subdev_pad_ops mipi_csis_pad_ops = {
++	.init_cfg		= mipi_csis_init_cfg,
++	.get_fmt		= mipi_csis_get_fmt,
++	.set_fmt		= mipi_csis_set_fmt,
 +};
 +
-+static const struct v4l2_subdev_ops imx7_csi_subdev_ops = {
-+	.video =	&imx7_csi_video_ops,
-+	.pad =		&imx7_csi_pad_ops,
++static const struct v4l2_subdev_ops mipi_csis_subdev_ops = {
++	.core	= &mipi_csis_core_ops,
++	.video	= &mipi_csis_video_ops,
++	.pad	= &mipi_csis_pad_ops,
 +};
 +
-+static const struct v4l2_subdev_internal_ops imx7_csi_internal_ops = {
-+	.registered	= imx7_csi_registered,
-+	.unregistered	= imx7_csi_unregistered,
++static const struct v4l2_subdev_internal_ops mipi_csis_internal_ops = {
++	.registered = mipi_csi_registered,
 +};
 +
-+static int imx7_csi_parse_endpoint(struct device *dev,
-+				   struct v4l2_fwnode_endpoint *vep,
-+				   struct v4l2_async_subdev *asd)
++static int mipi_csis_parse_dt(struct platform_device *pdev,
++			      struct csi_state *state)
 +{
-+	return fwnode_device_is_available(asd->match.fwnode) ? 0 : -EINVAL;
-+}
++	struct device_node *node = pdev->dev.of_node;
 +
-+static int imx7_csi_clocks_get(struct imx7_csi *csi)
-+{
-+	struct device *dev = csi->dev;
-+	int i;
++	if (of_property_read_u32(node, "clock-frequency",
++				 &state->clk_frequency))
++		state->clk_frequency = DEFAULT_SCLK_CSIS_FREQ;
 +
-+	csi->num_clks = ARRAY_SIZE(imx7_csi_clk_id);
-+	csi->clks = devm_kcalloc(dev, csi->num_clks, sizeof(*csi->clks),
-+				 GFP_KERNEL);
++	/* Get MIPI PHY resets */
++	state->mrst = devm_reset_control_get_exclusive(&pdev->dev, "mrst");
++	if (IS_ERR(state->mrst))
++		return PTR_ERR(state->mrst);
 +
-+	if (!csi->clks)
-+		return -ENOMEM;
-+
-+	for (i = 0; i < csi->num_clks; i++)
-+		csi->clks[i].id = imx7_csi_clk_id[i];
-+
-+	return devm_clk_bulk_get(dev, csi->num_clks, csi->clks);
-+}
-+
-+static int imx7_csi_probe(struct platform_device *pdev)
-+{
-+	struct device *dev = &pdev->dev;
-+	struct device_node *node = dev->of_node;
-+	struct imx_media_dev *imxmd;
-+	struct imx7_csi *csi;
-+	struct resource *res;
-+	int ret;
-+
-+	csi = devm_kzalloc(&pdev->dev, sizeof(*csi), GFP_KERNEL);
-+	if (!csi)
-+		return -ENOMEM;
-+
-+	csi->dev = dev;
-+
-+	ret = imx7_csi_clocks_get(csi);
-+	if (ret < 0) {
-+		dev_err(dev, "Failed to get clocks");
-+		return -ENODEV;
-+	}
-+
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	csi->irq = platform_get_irq(pdev, 0);
-+	if (!res || csi->irq < 0) {
-+		dev_err(dev, "Missing platform resources data\n");
-+		return -ENODEV;
-+	}
-+
-+	csi->regbase = devm_ioremap_resource(dev, res);
-+	if (IS_ERR(csi->regbase)) {
-+		dev_err(dev, "Failed platform resources map\n");
-+		return -ENODEV;
-+	}
-+
-+	spin_lock_init(&csi->irqlock);
-+	mutex_init(&csi->lock);
-+
-+	/* install interrupt handler */
-+	ret = devm_request_irq(dev, csi->irq, imx7_csi_irq_handler, 0, "csi",
-+			       (void *)csi);
-+	if (ret < 0) {
-+		dev_err(dev, "Request CSI IRQ failed.\n");
-+		ret = -ENODEV;
-+		goto destroy_mutex;
-+	}
-+
-+	/* add media device */
-+	imxmd = imx_media_dev_init(dev);
-+	if (IS_ERR(imxmd)) {
-+		ret = PTR_ERR(imxmd);
-+		goto destroy_mutex;
-+	}
-+	platform_set_drvdata(pdev, &csi->sd);
-+
-+	ret = imx_media_of_add_csi(imxmd, node);
-+	if (ret < 0)
-+		goto cleanup;
-+
-+	ret = imx_media_dev_notifier_register(imxmd);
-+	if (ret < 0)
-+		goto cleanup;
-+
-+	csi->imxmd = imxmd;
-+	v4l2_subdev_init(&csi->sd, &imx7_csi_subdev_ops);
-+	v4l2_set_subdevdata(&csi->sd, csi);
-+	csi->sd.internal_ops = &imx7_csi_internal_ops;
-+	csi->sd.entity.ops = &imx7_csi_entity_ops;
-+	csi->sd.entity.function = MEDIA_ENT_F_VID_IF_BRIDGE;
-+	csi->sd.dev = &pdev->dev;
-+	csi->sd.owner = THIS_MODULE;
-+	csi->sd.flags = V4L2_SUBDEV_FL_HAS_DEVNODE;
-+	csi->sd.grp_id = IMX_MEDIA_GRP_ID_CSI;
-+	snprintf(csi->sd.name, sizeof(csi->sd.name), "csi");
-+
-+	csi->vdev = imx_media_capture_device_init(&csi->sd, IMX7_CSI_PAD_SRC);
-+	if (IS_ERR(csi->vdev))
-+		return PTR_ERR(csi->vdev);
-+
-+	v4l2_ctrl_handler_init(&csi->ctrl_hdlr, 0);
-+	csi->sd.ctrl_handler = &csi->ctrl_hdlr;
-+
-+	ret = v4l2_async_register_fwnode_subdev(&csi->sd,
-+					sizeof(struct v4l2_async_subdev),
-+					NULL, 0, imx7_csi_parse_endpoint);
-+	if (ret)
-+		goto free;
++	/* Get MIPI CSI-2 bus configration from the endpoint node. */
++	of_property_read_u32(node, "fsl,csis-hs-settle", &state->hs_settle);
 +
 +	return 0;
++}
 +
-+free:
-+	imx_media_capture_device_unregister(csi->vdev);
-+	imx_media_capture_device_remove(csi->vdev);
-+	v4l2_ctrl_handler_free(&csi->ctrl_hdlr);
++static int mipi_csis_pm_resume(struct device *dev, bool runtime);
 +
-+cleanup:
-+	v4l2_async_notifier_cleanup(&imxmd->notifier);
-+	v4l2_device_unregister(&imxmd->v4l2_dev);
-+	media_device_unregister(&imxmd->md);
-+	media_device_cleanup(&imxmd->md);
++static int mipi_csis_parse_endpoint(struct device *dev,
++				    struct v4l2_fwnode_endpoint *ep,
++				    struct v4l2_async_subdev *asd)
++{
++	struct v4l2_subdev *mipi_sd = dev_get_drvdata(dev);
++	struct csi_state *state = mipi_sd_to_csis_state(mipi_sd);
 +
-+destroy_mutex:
-+	mutex_destroy(&csi->lock);
++	if (ep->bus_type != V4L2_MBUS_CSI2_DPHY) {
++		dev_err(dev, "invalid bus type, must be MIPI CSI2\n");
++		return -EINVAL;
++	}
++
++	state->bus = ep->bus.mipi_csi2;
++
++	dev_dbg(state->dev, "data lanes: %d\n", state->bus.num_data_lanes);
++	dev_dbg(state->dev, "flags: 0x%08x\n", state->bus.flags);
++
++	return 0;
++}
++
++static int mipi_csis_subdev_init(struct v4l2_subdev *mipi_sd,
++				 struct platform_device *pdev,
++				 const struct v4l2_subdev_ops *ops)
++{
++	struct csi_state *state = mipi_sd_to_csis_state(mipi_sd);
++	unsigned int sink_port = 0;
++	int ret;
++
++	v4l2_subdev_init(mipi_sd, ops);
++	mipi_sd->owner = THIS_MODULE;
++	snprintf(mipi_sd->name, sizeof(mipi_sd->name), "%s.%d",
++		 CSIS_SUBDEV_NAME, state->index);
++
++	mipi_sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
++	mipi_sd->ctrl_handler = NULL;
++
++	mipi_sd->entity.function = MEDIA_ENT_F_VID_IF_BRIDGE;
++	mipi_sd->entity.ops = &mipi_csis_entity_ops;
++
++	mipi_sd->dev = &pdev->dev;
++
++	state->csis_fmt = &mipi_csis_formats[0];
++	state->format_mbus.code = mipi_csis_formats[0].code;
++	state->format_mbus.width = MIPI_CSIS_DEF_PIX_WIDTH;
++	state->format_mbus.height = MIPI_CSIS_DEF_PIX_HEIGHT;
++	state->format_mbus.field = V4L2_FIELD_NONE;
++
++	v4l2_set_subdevdata(mipi_sd, &pdev->dev);
++
++	ret = v4l2_async_register_fwnode_subdev(mipi_sd,
++				sizeof(struct v4l2_async_subdev), &sink_port, 1,
++				mipi_csis_parse_endpoint);
++	if (ret < 0)
++		dev_err(&pdev->dev, "async fwnode register failed: %d\n", ret);
 +
 +	return ret;
 +}
 +
-+static int imx7_csi_remove(struct platform_device *pdev)
++#ifdef CONFIG_DEBUG_FS
++#include <linux/debugfs.h>
++
++static int mipi_csis_dump_regs_show(struct seq_file *m, void *private)
 +{
-+	struct v4l2_subdev *sd = platform_get_drvdata(pdev);
-+	struct imx7_csi *csi = v4l2_get_subdevdata(sd);
-+	struct imx_media_dev *imxmd = csi->imxmd;
++	struct csi_state *state = m->private;
 +
-+	v4l2_async_notifier_unregister(&imxmd->notifier);
-+	v4l2_async_notifier_cleanup(&imxmd->notifier);
++	return mipi_csis_dump_regs(state);
++}
++DEFINE_SHOW_ATTRIBUTE(mipi_csis_dump_regs);
 +
-+	media_device_unregister(&imxmd->md);
-+	v4l2_device_unregister(&imxmd->v4l2_dev);
-+	media_device_cleanup(&imxmd->md);
++static int __init_or_module mipi_csis_debugfs_init(struct csi_state *state)
++{
++	struct dentry *d;
 +
-+	imx_media_capture_device_unregister(csi->vdev);
-+	imx_media_capture_device_remove(csi->vdev);
++	if (!debugfs_initialized())
++		return -ENODEV;
 +
-+	v4l2_async_unregister_subdev(sd);
-+	v4l2_ctrl_handler_free(&csi->ctrl_hdlr);
++	state->debugfs_root = debugfs_create_dir(dev_name(state->dev), NULL);
++	if (!state->debugfs_root)
++		return -ENOMEM;
 +
-+	mutex_destroy(&csi->lock);
++	d = debugfs_create_bool("debug_enable", 0600, state->debugfs_root,
++				&state->debug);
++	if (!d)
++		goto remove_debugfs;
++
++	d = debugfs_create_file("dump_regs", 0600, state->debugfs_root,
++				state, &mipi_csis_dump_regs_fops);
++	if (!d)
++		goto remove_debugfs;
++
++	return 0;
++
++remove_debugfs:
++	debugfs_remove_recursive(state->debugfs_root);
++
++	return -ENOMEM;
++}
++
++static void __exit mipi_csis_debugfs_exit(struct csi_state *state)
++{
++	debugfs_remove_recursive(state->debugfs_root);
++}
++
++#else
++static int mipi_csis_debugfs_init(struct csi_state *state __maybe_unused)
++{
++	return 0;
++}
++
++static void mipi_csis_debugfs_exit(struct csi_state *state __maybe_unused)
++{
++}
++#endif
++
++static int mipi_csis_probe(struct platform_device *pdev)
++{
++	struct device *dev = &pdev->dev;
++	struct resource *mem_res;
++	struct csi_state *state;
++	int ret = -ENOMEM;
++
++	state = devm_kzalloc(dev, sizeof(*state), GFP_KERNEL);
++	if (!state)
++		return -ENOMEM;
++
++	spin_lock_init(&state->slock);
++
++	state->pdev = pdev;
++	state->dev = dev;
++
++	ret = mipi_csis_parse_dt(pdev, state);
++	if (ret < 0) {
++		dev_err(dev, "Failed to parse device tree: %d\n", ret);
++		return ret;
++	}
++
++	mipi_csis_phy_init(state);
++	mipi_csis_phy_reset(state);
++
++	mem_res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	state->regs = devm_ioremap_resource(dev, mem_res);
++	if (IS_ERR(state->regs))
++		return PTR_ERR(state->regs);
++
++	state->irq = platform_get_irq(pdev, 0);
++	if (state->irq < 0) {
++		dev_err(dev, "Failed to get irq\n");
++		return state->irq;
++	}
++
++	ret = mipi_csis_clk_get(state);
++	if (ret < 0)
++		return ret;
++
++	mipi_csis_clk_enable(state);
++
++	ret = devm_request_irq(dev, state->irq, mipi_csis_irq_handler,
++			       0, dev_name(dev), state);
++	if (ret) {
++		dev_err(dev, "Interrupt request failed\n");
++		goto disable_clock;
++	}
++
++	platform_set_drvdata(pdev, &state->mipi_sd);
++
++	mutex_init(&state->lock);
++	ret = mipi_csis_subdev_init(&state->mipi_sd, pdev,
++				    &mipi_csis_subdev_ops);
++	if (ret < 0)
++		goto disable_clock;
++
++	state->pads[CSIS_PAD_SINK].flags = MEDIA_PAD_FL_SINK;
++	state->pads[CSIS_PAD_SOURCE].flags = MEDIA_PAD_FL_SOURCE;
++	ret = media_entity_pads_init(&state->mipi_sd.entity, CSIS_PADS_NUM,
++				     state->pads);
++	if (ret < 0)
++		goto unregister_subdev;
++
++	memcpy(state->events, mipi_csis_events, sizeof(state->events));
++
++	mipi_csis_debugfs_init(state);
++	pm_runtime_enable(dev);
++	if (!pm_runtime_enabled(dev)) {
++		ret = mipi_csis_pm_resume(dev, true);
++		if (ret < 0)
++			goto unregister_all;
++	}
++
++	dev_info(&pdev->dev, "lanes: %d, hs_settle: %d, wclk: %d, freq: %u\n",
++		 state->bus.num_data_lanes, state->hs_settle,
++		 state->wrap_clk ? 1 : 0, state->clk_frequency);
++
++	return 0;
++
++unregister_all:
++	mipi_csis_debugfs_exit(state);
++	media_entity_cleanup(&state->mipi_sd.entity);
++unregister_subdev:
++	v4l2_async_unregister_subdev(&state->mipi_sd);
++disable_clock:
++	mipi_csis_clk_disable(state);
++	mutex_destroy(&state->lock);
++
++	return ret;
++}
++
++static int mipi_csis_pm_suspend(struct device *dev, bool runtime)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct v4l2_subdev *mipi_sd = platform_get_drvdata(pdev);
++	struct csi_state *state = mipi_sd_to_csis_state(mipi_sd);
++	int ret = 0;
++
++	mutex_lock(&state->lock);
++	if (state->flags & ST_POWERED) {
++		mipi_csis_stop_stream(state);
++		ret = regulator_disable(state->mipi_phy_regulator);
++		if (ret)
++			goto unlock;
++		mipi_csis_clk_disable(state);
++		state->flags &= ~ST_POWERED;
++		if (!runtime)
++			state->flags |= ST_SUSPENDED;
++	}
++
++unlock:
++	mutex_unlock(&state->lock);
++
++	return ret ? -EAGAIN : 0;
++}
++
++static int mipi_csis_pm_resume(struct device *dev, bool runtime)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct v4l2_subdev *mipi_sd = platform_get_drvdata(pdev);
++	struct csi_state *state = mipi_sd_to_csis_state(mipi_sd);
++	int ret = 0;
++
++	mutex_lock(&state->lock);
++	if (!runtime && !(state->flags & ST_SUSPENDED))
++		goto unlock;
++
++	if (!(state->flags & ST_POWERED)) {
++		ret = regulator_enable(state->mipi_phy_regulator);
++		if (ret)
++			goto unlock;
++
++		state->flags |= ST_POWERED;
++		mipi_csis_clk_enable(state);
++	}
++	if (state->flags & ST_STREAMING)
++		mipi_csis_start_stream(state);
++
++	state->flags &= ~ST_SUSPENDED;
++
++unlock:
++	mutex_unlock(&state->lock);
++
++	return ret ? -EAGAIN : 0;
++}
++
++static int __maybe_unused mipi_csis_suspend(struct device *dev)
++{
++	return mipi_csis_pm_suspend(dev, false);
++}
++
++static int __maybe_unused mipi_csis_resume(struct device *dev)
++{
++	return mipi_csis_pm_resume(dev, false);
++}
++
++static int __maybe_unused mipi_csis_runtime_suspend(struct device *dev)
++{
++	return mipi_csis_pm_suspend(dev, true);
++}
++
++static int __maybe_unused mipi_csis_runtime_resume(struct device *dev)
++{
++	return mipi_csis_pm_resume(dev, true);
++}
++
++static int mipi_csis_remove(struct platform_device *pdev)
++{
++	struct v4l2_subdev *mipi_sd = platform_get_drvdata(pdev);
++	struct csi_state *state = mipi_sd_to_csis_state(mipi_sd);
++
++	mipi_csis_debugfs_exit(state);
++	v4l2_async_unregister_subdev(&state->mipi_sd);
++	v4l2_async_notifier_unregister(&state->subdev_notifier);
++
++	pm_runtime_disable(&pdev->dev);
++	mipi_csis_pm_suspend(&pdev->dev, true);
++	mipi_csis_clk_disable(state);
++	media_entity_cleanup(&state->mipi_sd.entity);
++	mutex_destroy(&state->lock);
++	pm_runtime_set_suspended(&pdev->dev);
 +
 +	return 0;
 +}
 +
-+static const struct of_device_id imx7_csi_of_match[] = {
-+	{ .compatible = "fsl,imx7-csi" },
-+	{ },
++static const struct dev_pm_ops mipi_csis_pm_ops = {
++	SET_RUNTIME_PM_OPS(mipi_csis_runtime_suspend, mipi_csis_runtime_resume,
++			   NULL)
++	SET_SYSTEM_SLEEP_PM_OPS(mipi_csis_suspend, mipi_csis_resume)
 +};
-+MODULE_DEVICE_TABLE(of, imx7_csi_of_match);
 +
-+static struct platform_driver imx7_csi_driver = {
-+	.probe = imx7_csi_probe,
-+	.remove = imx7_csi_remove,
-+	.driver = {
-+		.of_match_table = imx7_csi_of_match,
-+		.name = "imx7-csi",
++static const struct of_device_id mipi_csis_of_match[] = {
++	{ .compatible = "fsl,imx7-mipi-csi2", },
++	{ /* sentinel */ },
++};
++MODULE_DEVICE_TABLE(of, mipi_csis_of_match);
++
++static struct platform_driver mipi_csis_driver = {
++	.probe		= mipi_csis_probe,
++	.remove		= mipi_csis_remove,
++	.driver		= {
++		.of_match_table = mipi_csis_of_match,
++		.name		= CSIS_DRIVER_NAME,
++		.pm		= &mipi_csis_pm_ops,
 +	},
 +};
-+module_platform_driver(imx7_csi_driver);
 +
-+MODULE_DESCRIPTION("i.MX7 CSI subdev driver");
-+MODULE_AUTHOR("Rui Miguel Silva <rui.silva@linaro.org>");
++module_platform_driver(mipi_csis_driver);
++
++MODULE_DESCRIPTION("i.MX7 MIPI CSI-2 Receiver driver");
 +MODULE_LICENSE("GPL v2");
-+MODULE_ALIAS("platform:imx7-csi");
++MODULE_ALIAS("platform:imx7-mipi-csi2");
 -- 
 2.20.1
 
