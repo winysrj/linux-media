@@ -4,119 +4,238 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 29CCEC282CB
-	for <linux-media@archiver.kernel.org>; Tue,  5 Feb 2019 13:49:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D6A5C282CB
+	for <linux-media@archiver.kernel.org>; Tue,  5 Feb 2019 13:51:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 011E2217D9
-	for <linux-media@archiver.kernel.org>; Tue,  5 Feb 2019 13:49:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 324B9207E0
+	for <linux-media@archiver.kernel.org>; Tue,  5 Feb 2019 13:51:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729365AbfBENtt (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 5 Feb 2019 08:49:49 -0500
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:41409 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726276AbfBENtt (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 5 Feb 2019 08:49:49 -0500
-Received: from [IPv6:2001:983:e9a7:1:2989:f759:211b:c8a5] ([IPv6:2001:983:e9a7:1:2989:f759:211b:c8a5])
-        by smtp-cloud8.xs4all.net with ESMTPA
-        id r16ggQe7xNR5yr16hgpdAv; Tue, 05 Feb 2019 14:49:47 +0100
-From:   Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [RFCv2 PATCH] videodev2.h: introduce VIDIOC_DQ_EXT_EVENT
-To:     Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Message-ID: <a28bda76-c8e5-7e93-43a0-0d07844cebf0@xs4all.nl>
-Date:   Tue, 5 Feb 2019 14:49:45 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.3.1
+        id S1729411AbfBENvF (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 5 Feb 2019 08:51:05 -0500
+Received: from mail-ed1-f68.google.com ([209.85.208.68]:42600 "EHLO
+        mail-ed1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726276AbfBENvE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 5 Feb 2019 08:51:04 -0500
+Received: by mail-ed1-f68.google.com with SMTP id r15so1435148eds.9;
+        Tue, 05 Feb 2019 05:51:02 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=VelEx27rl5JG4yqkZaJ3r+j716g/kI2GiWtKDzUswAI=;
+        b=Vu/xA+U6IZFoy8RYaSsl7TqQGy7hU4DizIi0VjRVLXzrthn8c8bqydj/D/8WDmJUN0
+         1tOV68wLkHSfxLr/i8PyOlC+ynA0FwA51YAm/elb7D86vBBy9W4JXuPsbP3IDM7newZE
+         uNj25MYxTD/DkFLNSDjdfISCSPbrFUVQ+CYqwHFsHyWDZsXqf9E7TSQls8wVOX7vX0n7
+         8KT2ZpFWzvIZKEd4yBRV9tbAGaoT4ql74lDHYEQBpAmbjQ/4NJnd/HFUcrExhJPcyyX9
+         nfdexTtIkREt79YuDzJno+jnfAWsJZwDm3yg2P0Rf3Orz1YrtaCIulYJuytu7zuAFKpF
+         AAVg==
+X-Gm-Message-State: AHQUAubL2GbGukGrIpPbmZUmC8Lnw2qyPGw0+c0lw2XWK51AgJ6w0VMN
+        GGb7iutLi6g5QCqP7jUiyDyL1c68u7A=
+X-Google-Smtp-Source: AHgI3IbUodTL5R3Qhu4s7m46FYq7E9+WMmtBCCSG6OIJu5/+dZfp3FMo0S2SzVh6kuYlsJmjEAidEA==
+X-Received: by 2002:a50:94b6:: with SMTP id s51mr4092750eda.22.1549374661805;
+        Tue, 05 Feb 2019 05:51:01 -0800 (PST)
+Received: from mail-wm1-f41.google.com (mail-wm1-f41.google.com. [209.85.128.41])
+        by smtp.gmail.com with ESMTPSA id b14sm4792250edt.6.2019.02.05.05.51.01
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Tue, 05 Feb 2019 05:51:01 -0800 (PST)
+Received: by mail-wm1-f41.google.com with SMTP id y185so12597279wmd.1;
+        Tue, 05 Feb 2019 05:51:01 -0800 (PST)
+X-Received: by 2002:a1c:494:: with SMTP id 142mr3815732wme.111.1549374661033;
+ Tue, 05 Feb 2019 05:51:01 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfIqCm/WVRa+zDgLHZ1vUJB1qXLA4bD02SMZsb4ggMALUY6pBCbKJnqQvH7Od0nZPAsRyAy5P/Yhc/Y6xdIZ4RfKu+YHrh7AV1I9igjn5PbzV9qpMqng5
- ruRsu4qdlmxrsTbUJb7kr2lUxOy4uzDx35lswAPUDtDI8KD7kU+pXhOnIKzMtp9W/Z/ekD1PwfDH3lonXXeLnBv4wuyR8dv8bvmmcmSLlVDu0E0pyyVpZpjm
- 5dBZKIaodfoOX19Ux/ADeBVWANgVdBOP+pImhRpPOW9XIetwCz79m4zmjDEVfTVTwtNHIjAddA+zlxA1QMQMajxn1BulKbdwcaiCIyrwH8Y/aM1v+bFP+QJt
- vDUDmJZlKbG6jNa8/bSYTbSMy5Jof4cQnT2U+2YJC4GMO+sSOoo=
+References: <20190118085206.2598-1-wens@csie.org> <20190118085206.2598-7-wens@csie.org>
+ <20190205085539.6nh7rzialcvztuqo@kekkonen.localdomain>
+In-Reply-To: <20190205085539.6nh7rzialcvztuqo@kekkonen.localdomain>
+From:   Chen-Yu Tsai <wens@csie.org>
+Date:   Tue, 5 Feb 2019 21:50:47 +0800
+X-Gmail-Original-Message-ID: <CAGb2v64z91fX+1hB+hhfCp7qhn9y5ER3XJfTbPYeyJ4qfUuRiQ@mail.gmail.com>
+Message-ID: <CAGb2v64z91fX+1hB+hhfCp7qhn9y5ER3XJfTbPYeyJ4qfUuRiQ@mail.gmail.com>
+Subject: Re: [PATCH 6/6] media: ov5640: Consolidate JPEG compression mode setting
+To:     Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc:     Steve Longerbeam <slongerbeam@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        Maxime Ripard <maxime.ripard@bootlin.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-This patch adds an extended version of VIDIOC_DQEVENT that:
+On Tue, Feb 5, 2019 at 4:55 PM Sakari Ailus
+<sakari.ailus@linux.intel.com> wrote:
+>
+> Hi Chen-Yu,
+>
+> On Fri, Jan 18, 2019 at 04:52:06PM +0800, Chen-Yu Tsai wrote:
+> > The register value lists for all the supported resolution settings all
+> > include a register address/value pair for setting the JPEG compression
+> > mode. With the exception of 1080p (which sets mode 2), all resolutions
+> > use mode 3.
+> >
+> > The only difference between mode 2 and mode 3 is that mode 2 may have
+> > padding data on the last line, while mode 3 does not add padding data.
+> >
+> > As these register values were from dumps of running systems, and the
+> > difference between the modes is quite small, using mode 3 for all
+> > configurations should be OK.
+> >
+> > Signed-off-by: Chen-Yu Tsai <wens@csie.org>
+> > ---
+> >  drivers/media/i2c/ov5640.c | 34 +++++++++++++++++++++++-----------
+> >  1 file changed, 23 insertions(+), 11 deletions(-)
+> >
+> > diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+> > index 1c1dc401c678..3d2c5de73283 100644
+> > --- a/drivers/media/i2c/ov5640.c
+> > +++ b/drivers/media/i2c/ov5640.c
+> > @@ -85,6 +85,7 @@
+> >  #define OV5640_REG_FORMAT_CONTROL00  0x4300
+> >  #define OV5640_REG_VFIFO_HSIZE               0x4602
+> >  #define OV5640_REG_VFIFO_VSIZE               0x4604
+> > +#define OV5640_REG_JPG_MODE_SELECT   0x4713
+>
+> How has this been tested?
+>
+> The register is referred to as "OV5640_REG_JPEG_MODE_SELECT" below. I can
+> fix it if it's just a typo, but please confirm.
 
-1) is Y2038 safe by using a __u64 for the timestamp
-2) needs no compat32 conversion code
-3) is able to handle control events from 64-bit control types
-   by changing the type of the minimum, maximum, step and default_value
-   field to __u64
+It's a typo. The datasheet uses the abbreviated form, JPG_MODE_SELECT,
+but all the bitfield names are the full JPEG form. I believe I missed
+the other occurrence while fixing up the names to match the datasheet.
+I appologize for not doing a final compile test.
 
-All drivers and frameworks will be using this, and v4l2-ioctl.c would be the
-only place where the old event ioctl and structs are used.
+Thanks
+ChenYu
 
-Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
----
-I chose to name this DQ_EXT_EVENT since the struct it dequeues is now called
-v4l2_ext_event. This is also consistent with the names of the G/S/TRY_EXT_CTRLS
-ioctls. An alternative could be VIDIOC_DQEXT_EVENT as that would be consistent
-with the lack of _ between DQ and EVENT in the current ioctl. But somehow it
-doesn't look right.
-
-Changes since v1:
-- rename ioctl from VIDIOC_DQEXTEVENT.
-- move the reserved array up to right after the union: this will allow us to
-  extend the union into the reserved array if we ever need more than 64 bytes
-  for the event payload (suggested by Sakari).
----
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 9a920f071ff9..301e3678bdb0 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -2303,6 +2303,37 @@ struct v4l2_event {
- 	__u32				reserved[8];
- };
-
-+struct v4l2_event_ext_ctrl {
-+	__u32 changes;
-+	__u32 type;
-+	union {
-+		__s32 value;
-+		__s64 value64;
-+	};
-+	__s64 minimum;
-+	__s64 maximum;
-+	__s64 step;
-+	__s64 default_value;
-+	__u32 flags;
-+};
-+
-+struct v4l2_ext_event {
-+	__u32				type;
-+	__u32				id;
-+	union {
-+		struct v4l2_event_vsync		vsync;
-+		struct v4l2_event_ext_ctrl	ctrl;
-+		struct v4l2_event_frame_sync	frame_sync;
-+		struct v4l2_event_src_change	src_change;
-+		struct v4l2_event_motion_det	motion_det;
-+		__u8				data[64];
-+	} u;
-+	__u32				reserved[8];
-+	__u64				timestamp;
-+	__u32				pending;
-+	__u32				sequence;
-+};
-+
- #define V4L2_EVENT_SUB_FL_SEND_INITIAL		(1 << 0)
- #define V4L2_EVENT_SUB_FL_ALLOW_FEEDBACK	(1 << 1)
-
-@@ -2475,6 +2506,7 @@ struct v4l2_create_buffers {
- #define VIDIOC_DBG_G_CHIP_INFO  _IOWR('V', 102, struct v4l2_dbg_chip_info)
-
- #define VIDIOC_QUERY_EXT_CTRL	_IOWR('V', 103, struct v4l2_query_ext_ctrl)
-+#define	VIDIOC_DQ_EXT_EVENT	 _IOR('V', 104, struct v4l2_ext_event)
-
- /* Reminder: when adding new ioctls please add support for them to
-    drivers/media/v4l2-core/v4l2-compat-ioctl32.c as well! */
+> Thanks.
+>
+> >  #define OV5640_REG_POLARITY_CTRL00   0x4740
+> >  #define OV5640_REG_MIPI_CTRL00               0x4800
+> >  #define OV5640_REG_DEBUG_MODE                0x4814
+> > @@ -303,7 +304,7 @@ static const struct reg_value ov5640_init_setting_30fps_VGA[] = {
+> >       {0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0}, {0x3000, 0x00, 0, 0},
+> >       {0x3002, 0x1c, 0, 0}, {0x3004, 0xff, 0, 0}, {0x3006, 0xc3, 0, 0},
+> >       {0x302e, 0x08, 0, 0}, {0x4300, 0x3f, 0, 0},
+> > -     {0x501f, 0x00, 0, 0}, {0x4713, 0x03, 0, 0}, {0x4407, 0x04, 0, 0},
+> > +     {0x501f, 0x00, 0, 0}, {0x4407, 0x04, 0, 0},
+> >       {0x440e, 0x00, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
+> >       {0x4837, 0x0a, 0, 0}, {0x3824, 0x02, 0, 0},
+> >       {0x5000, 0xa7, 0, 0}, {0x5001, 0xa3, 0, 0}, {0x5180, 0xff, 0, 0},
+> > @@ -372,7 +373,7 @@ static const struct reg_value ov5640_setting_VGA_640_480[] = {
+> >       {0x3a03, 0xd8, 0, 0}, {0x3a08, 0x01, 0, 0}, {0x3a09, 0x27, 0, 0},
+> >       {0x3a0a, 0x00, 0, 0}, {0x3a0b, 0xf6, 0, 0}, {0x3a0e, 0x03, 0, 0},
+> >       {0x3a0d, 0x04, 0, 0}, {0x3a14, 0x03, 0, 0}, {0x3a15, 0xd8, 0, 0},
+> > -     {0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0}, {0x4713, 0x03, 0, 0},
+> > +     {0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0},
+> >       {0x4407, 0x04, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
+> >       {0x3824, 0x02, 0, 0}, {0x5001, 0xa3, 0, 0},
+> >  };
+> > @@ -391,7 +392,7 @@ static const struct reg_value ov5640_setting_XGA_1024_768[] = {
+> >       {0x3a03, 0xd8, 0, 0}, {0x3a08, 0x01, 0, 0}, {0x3a09, 0x27, 0, 0},
+> >       {0x3a0a, 0x00, 0, 0}, {0x3a0b, 0xf6, 0, 0}, {0x3a0e, 0x03, 0, 0},
+> >       {0x3a0d, 0x04, 0, 0}, {0x3a14, 0x03, 0, 0}, {0x3a15, 0xd8, 0, 0},
+> > -     {0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0}, {0x4713, 0x03, 0, 0},
+> > +     {0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0},
+> >       {0x4407, 0x04, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
+> >       {0x3824, 0x02, 0, 0}, {0x5001, 0xa3, 0, 0},
+> >  };
+> > @@ -410,7 +411,7 @@ static const struct reg_value ov5640_setting_QVGA_320_240[] = {
+> >       {0x3a03, 0xd8, 0, 0}, {0x3a08, 0x01, 0, 0}, {0x3a09, 0x27, 0, 0},
+> >       {0x3a0a, 0x00, 0, 0}, {0x3a0b, 0xf6, 0, 0}, {0x3a0e, 0x03, 0, 0},
+> >       {0x3a0d, 0x04, 0, 0}, {0x3a14, 0x03, 0, 0}, {0x3a15, 0xd8, 0, 0},
+> > -     {0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0}, {0x4713, 0x03, 0, 0},
+> > +     {0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0},
+> >       {0x4407, 0x04, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
+> >       {0x3824, 0x02, 0, 0}, {0x5001, 0xa3, 0, 0},
+> >  };
+> > @@ -429,7 +430,7 @@ static const struct reg_value ov5640_setting_QCIF_176_144[] = {
+> >       {0x3a03, 0xd8, 0, 0}, {0x3a08, 0x01, 0, 0}, {0x3a09, 0x27, 0, 0},
+> >       {0x3a0a, 0x00, 0, 0}, {0x3a0b, 0xf6, 0, 0}, {0x3a0e, 0x03, 0, 0},
+> >       {0x3a0d, 0x04, 0, 0}, {0x3a14, 0x03, 0, 0}, {0x3a15, 0xd8, 0, 0},
+> > -     {0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0}, {0x4713, 0x03, 0, 0},
+> > +     {0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0},
+> >       {0x4407, 0x04, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
+> >       {0x3824, 0x02, 0, 0}, {0x5001, 0xa3, 0, 0},
+> >  };
+> > @@ -448,7 +449,7 @@ static const struct reg_value ov5640_setting_NTSC_720_480[] = {
+> >       {0x3a03, 0xd8, 0, 0}, {0x3a08, 0x01, 0, 0}, {0x3a09, 0x27, 0, 0},
+> >       {0x3a0a, 0x00, 0, 0}, {0x3a0b, 0xf6, 0, 0}, {0x3a0e, 0x03, 0, 0},
+> >       {0x3a0d, 0x04, 0, 0}, {0x3a14, 0x03, 0, 0}, {0x3a15, 0xd8, 0, 0},
+> > -     {0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0}, {0x4713, 0x03, 0, 0},
+> > +     {0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0},
+> >       {0x4407, 0x04, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
+> >       {0x3824, 0x02, 0, 0}, {0x5001, 0xa3, 0, 0},
+> >  };
+> > @@ -467,7 +468,7 @@ static const struct reg_value ov5640_setting_PAL_720_576[] = {
+> >       {0x3a03, 0xd8, 0, 0}, {0x3a08, 0x01, 0, 0}, {0x3a09, 0x27, 0, 0},
+> >       {0x3a0a, 0x00, 0, 0}, {0x3a0b, 0xf6, 0, 0}, {0x3a0e, 0x03, 0, 0},
+> >       {0x3a0d, 0x04, 0, 0}, {0x3a14, 0x03, 0, 0}, {0x3a15, 0xd8, 0, 0},
+> > -     {0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0}, {0x4713, 0x03, 0, 0},
+> > +     {0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0},
+> >       {0x4407, 0x04, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
+> >       {0x3824, 0x02, 0, 0}, {0x5001, 0xa3, 0, 0},
+> >  };
+> > @@ -486,7 +487,7 @@ static const struct reg_value ov5640_setting_720P_1280_720[] = {
+> >       {0x3a03, 0xe4, 0, 0}, {0x3a08, 0x01, 0, 0}, {0x3a09, 0xbc, 0, 0},
+> >       {0x3a0a, 0x01, 0, 0}, {0x3a0b, 0x72, 0, 0}, {0x3a0e, 0x01, 0, 0},
+> >       {0x3a0d, 0x02, 0, 0}, {0x3a14, 0x02, 0, 0}, {0x3a15, 0xe4, 0, 0},
+> > -     {0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0}, {0x4713, 0x03, 0, 0},
+> > +     {0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0},
+> >       {0x4407, 0x04, 0, 0}, {0x460b, 0x37, 0, 0}, {0x460c, 0x20, 0, 0},
+> >       {0x3824, 0x04, 0, 0}, {0x5001, 0x83, 0, 0},
+> >  };
+> > @@ -506,7 +507,7 @@ static const struct reg_value ov5640_setting_1080P_1920_1080[] = {
+> >       {0x3a03, 0xd8, 0, 0}, {0x3a08, 0x01, 0, 0}, {0x3a09, 0x27, 0, 0},
+> >       {0x3a0a, 0x00, 0, 0}, {0x3a0b, 0xf6, 0, 0}, {0x3a0e, 0x03, 0, 0},
+> >       {0x3a0d, 0x04, 0, 0}, {0x3a14, 0x03, 0, 0}, {0x3a15, 0xd8, 0, 0},
+> > -     {0x4001, 0x02, 0, 0}, {0x4004, 0x06, 0, 0}, {0x4713, 0x03, 0, 0},
+> > +     {0x4001, 0x02, 0, 0}, {0x4004, 0x06, 0, 0},
+> >       {0x4407, 0x04, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
+> >       {0x3824, 0x02, 0, 0}, {0x5001, 0x83, 0, 0},
+> >       {0x3c07, 0x07, 0, 0}, {0x3c08, 0x00, 0, 0},
+> > @@ -518,7 +519,7 @@ static const struct reg_value ov5640_setting_1080P_1920_1080[] = {
+> >       {0x3a02, 0x04, 0, 0}, {0x3a03, 0x60, 0, 0}, {0x3a08, 0x01, 0, 0},
+> >       {0x3a09, 0x50, 0, 0}, {0x3a0a, 0x01, 0, 0}, {0x3a0b, 0x18, 0, 0},
+> >       {0x3a0e, 0x03, 0, 0}, {0x3a0d, 0x04, 0, 0}, {0x3a14, 0x04, 0, 0},
+> > -     {0x3a15, 0x60, 0, 0}, {0x4713, 0x02, 0, 0}, {0x4407, 0x04, 0, 0},
+> > +     {0x3a15, 0x60, 0, 0}, {0x4407, 0x04, 0, 0},
+> >       {0x460b, 0x37, 0, 0}, {0x460c, 0x20, 0, 0}, {0x3824, 0x04, 0, 0},
+> >       {0x4005, 0x1a, 0, 0}, {0x3008, 0x02, 0, 0},
+> >  };
+> > @@ -537,7 +538,7 @@ static const struct reg_value ov5640_setting_QSXGA_2592_1944[] = {
+> >       {0x3a03, 0xd8, 0, 0}, {0x3a08, 0x01, 0, 0}, {0x3a09, 0x27, 0, 0},
+> >       {0x3a0a, 0x00, 0, 0}, {0x3a0b, 0xf6, 0, 0}, {0x3a0e, 0x03, 0, 0},
+> >       {0x3a0d, 0x04, 0, 0}, {0x3a14, 0x03, 0, 0}, {0x3a15, 0xd8, 0, 0},
+> > -     {0x4001, 0x02, 0, 0}, {0x4004, 0x06, 0, 0}, {0x4713, 0x03, 0, 0},
+> > +     {0x4001, 0x02, 0, 0}, {0x4004, 0x06, 0, 0},
+> >       {0x4407, 0x04, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
+> >       {0x3824, 0x02, 0, 0}, {0x5001, 0x83, 0, 70},
+> >  };
+> > @@ -1051,6 +1052,17 @@ static int ov5640_set_jpeg_timings(struct ov5640_dev *sensor,
+> >  {
+> >       int ret;
+> >
+> > +     /*
+> > +      * compression mode 3 timing
+> > +      *
+> > +      * Data is transmitted with programmable width (VFIFO_HSIZE).
+> > +      * No padding done. Last line may have less data. Varying
+> > +      * number of lines per frame, depending on amount of data.
+> > +      */
+> > +     ret = ov5640_mod_reg(sensor, OV5640_REG_JPEG_MODE_SELECT, 0x7, 0x3);
+> > +     if (ret < 0)
+> > +             return ret;
+> > +
+> >       ret = ov5640_write_reg16(sensor, OV5640_REG_VFIFO_HSIZE, mode->hact);
+> >       if (ret < 0)
+> >               return ret;
+>
+> --
+> Regards,
+>
+> Sakari Ailus
+> sakari.ailus@linux.intel.com
