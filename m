@@ -2,228 +2,142 @@ Return-Path: <SRS0=c0D3=QM=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.0 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 51100C282C4
-	for <linux-media@archiver.kernel.org>; Tue,  5 Feb 2019 02:22:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D653C282CB
+	for <linux-media@archiver.kernel.org>; Tue,  5 Feb 2019 04:35:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 1EAB32083B
-	for <linux-media@archiver.kernel.org>; Tue,  5 Feb 2019 02:22:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5A40620844
+	for <linux-media@archiver.kernel.org>; Tue,  5 Feb 2019 04:35:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726941AbfBECWd (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 4 Feb 2019 21:22:33 -0500
-Received: from mga09.intel.com ([134.134.136.24]:37275 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725947AbfBECWd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 4 Feb 2019 21:22:33 -0500
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from orsmga002.jf.intel.com ([10.7.209.21])
-  by orsmga102.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 04 Feb 2019 18:22:32 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.56,560,1539673200"; 
-   d="scan'208";a="131575897"
-Received: from orsmsx101.amr.corp.intel.com ([10.22.225.128])
-  by orsmga002.jf.intel.com with ESMTP; 04 Feb 2019 18:22:32 -0800
-Received: from orsmsx155.amr.corp.intel.com (10.22.240.21) by
- ORSMSX101.amr.corp.intel.com (10.22.225.128) with Microsoft SMTP Server (TLS)
- id 14.3.408.0; Mon, 4 Feb 2019 18:22:32 -0800
-Received: from vkasired-desk2.fm.intel.com (10.22.254.138) by
- ORSMSX155.amr.corp.intel.com (10.22.240.21) with Microsoft SMTP Server (TLS)
- id 14.3.408.0; Mon, 4 Feb 2019 18:22:32 -0800
-Date:   Mon, 4 Feb 2019 18:04:40 -0800
-From:   Vivek Kasireddy <vivek.kasireddy@intel.com>
-To:     Hans Verkuil <hverkuil@xs4all.nl>
-CC:     <linux-media@vger.kernel.org>,
-        Philipp Zabel <p.zabel@pengutronix.de>
-Subject: Re: [PATCH] media: v4l2-tpg: Fix the memory layout of AYUV buffers
-Message-ID: <20190204180440.20e04e93@vkasired-desk2.fm.intel.com>
-In-Reply-To: <140cad99-7891-651c-6cf7-ae39d5768930@xs4all.nl>
-References: <20190129023222.10036-1-vivek.kasireddy@intel.com>
-        <92dbd1f9-f5dc-37ed-856a-b3b2aa2b75d5@xs4all.nl>
-        <20190131182903.08f28cd9@vkasired-desk2.fm.intel.com>
-        <85fadb6b-6adb-b800-a71f-a4f8b68a9acf@xs4all.nl>
-        <20190201164850.723b4e21@vkasired-desk2.fm.intel.com>
-        <140cad99-7891-651c-6cf7-ae39d5768930@xs4all.nl>
-X-Mailer: Claws Mail 3.15.1-dirty (GTK+ 2.24.32; x86_64-redhat-linux-gnu)
-MIME-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.22.254.138]
+        id S1725952AbfBEEfq (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 4 Feb 2019 23:35:46 -0500
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:48969 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725864AbfBEEfq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 4 Feb 2019 23:35:46 -0500
+Received: from localhost ([IPv6:2001:983:e9a7:1:2989:f759:211b:c8a5])
+        by smtp-cloud9.xs4all.net with ESMTPA
+        id qsSVgwzFeRO5ZqsSWgj67D; Tue, 05 Feb 2019 05:35:44 +0100
+Message-ID: <54e2095b978c9cad753539de785c6bb4@smtp-cloud9.xs4all.net>
+Date:   Tue, 05 Feb 2019 05:35:42 +0100
+From:   "Hans Verkuil" <hverkuil@xs4all.nl>
+To:     linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+X-CMAE-Envelope: MS4wfBZJZW6bIvoGJKptNMXlj5WlPTaxPE0CkRSqA6rEh3eA6UpZSBQBsn3itXRutZ8EF2cgALmWkTxFpkEkxfHX7PvLts3lRCNMm8qIQ3RCjFGa9pr87mtL
+ booEiz/7CaU5Rb4yg+C9jfVTNYvQEncAR1ZjwN/qpRhOqBFEvGdboHjoIBJjQPBCqkfYrcvsY0K26oH5dn2Wo6CUDBC3DxYRwb3YisZjS3q/lgDaZOTswT0H
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Sat, 2 Feb 2019 09:03:17 +0100
-Hans Verkuil <hverkuil@xs4all.nl> wrote:
-Hi Hans,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-> On 02/02/2019 01:48 AM, Vivek Kasireddy wrote:
-> > On Fri, 1 Feb 2019 10:08:52 +0100
-> > Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> > Hi Hans,
-> >   
-> >> On 2/1/19 3:29 AM, Vivek Kasireddy wrote:  
-> >>> On Thu, 31 Jan 2019 14:36:42 +0100
-> >>> Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> >>>
-> >>> Hi Hans,
-> >>>     
-> >>>> Hi Vivek,
-> >>>>
-> >>>> On 1/29/19 3:32 AM, Vivek Kasireddy wrote:    
-> >>>>> From: "Kasireddy, Vivek" <vivek.kasireddy@intel.com>
-> >>>>>
-> >>>>> The memory layout of AYUV buffers (V4L2_PIX_FMT_YUV32) should be
-> >>>>> similar to V4L2_PIX_FMT_ABGR32 instead of V4L2_PIX_FMT_ARGB32.
-> >>>>>
-> >>>>> While displaying the packed AYUV buffers generated by the Vivid
-> >>>>> driver using v4l2-tpg on Weston, it was observed that these AYUV
-> >>>>> images were not getting displayed correctly. Changing the memory
-> >>>>> layout makes them display as expected.      
-> >>>>
-> >>>> Our YUV32 fourcc is defined as follows:
-> >>>>
-> >>>> https://hverkuil.home.xs4all.nl/spec/uapi/v4l/pixfmt-packed-yuv.html
-> >>>>
-> >>>> As far as I see the format that the TPG generates is according to
-> >>>> the V4L2 spec.    
-> >>>
-> >>> I looked into the above link, and I am now wondering whether YUV32
-> >>> is the same as the format referred to as AYUV here or not:
-> >>>
-> >>> https://docs.microsoft.com/en-us/windows/desktop/medfound/recommended-8-bit-yuv-formats-for-video-rendering#ayuv    
-> >>
-> >> It's not the same format.
-> >>  
-> >>>
-> >>> If YUV32 is not the same as AYUV, should I send another patch
-> >>> adding a new format named AYUV with the reversed memory
-> >>> layout?    
-> >>
-> >> That can only be done if there is also a driver that uses it.  
-> > There are some drm drivers that already use the AYUV format defined
-> > here:
-> > https://git.linuxtv.org/media_tree.git/tree/drivers/gpu/drm/drm_fourcc.c#n228  
-> 
-> I would have to check this with Mauro whether this is a good enough
-> excuse to add a new format.
-> 
-> >   
-> >>  
-> >>>     
-> >>>>
-> >>>> Philipp, can you check the YUV32 format that the imx-pxp driver
-> >>>> uses? Is that according to our spec?    
-> >>
-> >> Philipp, would it be possible to add such a format to imx-pxp? That
-> >> might be a nice approach because once imx-pxp can do it, then it
-> >> can also be added to the TPG.  
-> > I was going to send in a patch to add the AYUV (and maybe XYUV)
-> > format but I came across this line that leaves me confused:
-> > https://git.linuxtv.org/media_tree.git/tree/drivers/media/platform/vivid/vivid-vid-common.c#n164  
-> 
-> It indicates the order of the components in memory, which is indeed
-> AYUV. But it has nothing to do with the microsoft AYUV fourcc.
-Does it mean that based on the V4L2 spec, the order of components in
-memory is always guaranteed regardless of the endianness of the
-underlying platform? Is it the Vivid/v4l2 core driver's responsibility
-to make sure this happens?
+Results of the daily build of media_tree:
 
-> 
-> > It appears that when YUV32 was added, the intention was to mimic
-> > AYUV. And, unless I am utterly mistaken, the alpha_mask of
-> > 0x000000ff suggests that the alpha component is expected to be
-> > found in the LSB (LE) bits indicating a memory layout of VUYA. Am I
-> > interpreting this incorrectly?  
-> 
-> Yes. When you write 0x000000ff to memory in a LE environment, it ends
-> up as 0xff 0x00 0x00 0x00 in memory (in increasing memory addresses).
-This would only work if the alpha component A is always in the MSB
-which suggests endianness-independence. And, what would happen when
-writing the alpha mask 0x000000ff in a BE environment which would end up
-as 0x00 0x00 0x00 0xff in memory? 
+date:			Tue Feb  5 05:00:10 CET 2019
+media-tree git hash:	f0ef022c85a899bcc7a1b3a0955c78a3d7109106
+media_build git hash:	c23276037794bae357fa8d23e3a4f11af9ad46e9
+v4l-utils git hash:	e649cc816c331de7ecdf7ffcc3aa9b268c7bf45f
+edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
+gcc version:		i686-linux-gcc (GCC) 8.2.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.19.0-1-amd64
 
-> 
-> The v4l2-tpg AYUV format is really, really correct given the V4L2
-> specification of this format.
-Ok, should I send a patch adding support for VUYA format? Should the
-new fourcc be VUY4?
+linux-git-arm-at91: WARNINGS
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-multi: WARNINGS
+linux-git-arm-pxa: WARNINGS
+linux-git-arm-stm32: WARNINGS
+linux-git-arm64: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-mips: WARNINGS
+linux-git-powerpc64: WARNINGS
+linux-git-sh: WARNINGS
+linux-git-x86_64: WARNINGS
+Check COMPILE_TEST: OK
+linux-3.10.108-i686: WARNINGS
+linux-3.10.108-x86_64: WARNINGS
+linux-3.11.10-i686: WARNINGS
+linux-3.11.10-x86_64: WARNINGS
+linux-3.12.74-i686: WARNINGS
+linux-3.12.74-x86_64: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.79-i686: WARNINGS
+linux-3.14.79-x86_64: WARNINGS
+linux-3.15.10-i686: WARNINGS
+linux-3.15.10-x86_64: WARNINGS
+linux-3.16.57-i686: WARNINGS
+linux-3.16.57-x86_64: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.123-i686: WARNINGS
+linux-3.18.123-x86_64: WARNINGS
+linux-3.19.8-i686: WARNINGS
+linux-3.19.8-x86_64: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.52-i686: WARNINGS
+linux-4.1.52-x86_64: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.159-i686: WARNINGS
+linux-4.4.159-x86_64: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.10-i686: WARNINGS
+linux-4.7.10-x86_64: WARNINGS
+linux-4.8.17-i686: WARNINGS
+linux-4.8.17-x86_64: WARNINGS
+linux-4.9.131-i686: WARNINGS
+linux-4.9.131-x86_64: WARNINGS
+linux-4.10.17-i686: WARNINGS
+linux-4.10.17-x86_64: WARNINGS
+linux-4.11.12-i686: WARNINGS
+linux-4.11.12-x86_64: WARNINGS
+linux-4.12.14-i686: WARNINGS
+linux-4.12.14-x86_64: WARNINGS
+linux-4.13.16-i686: WARNINGS
+linux-4.13.16-x86_64: WARNINGS
+linux-4.14.74-i686: WARNINGS
+linux-4.14.74-x86_64: WARNINGS
+linux-4.15.18-i686: WARNINGS
+linux-4.15.18-x86_64: WARNINGS
+linux-4.16.18-i686: WARNINGS
+linux-4.16.18-x86_64: WARNINGS
+linux-4.17.19-i686: WARNINGS
+linux-4.17.19-x86_64: WARNINGS
+linux-4.18.12-i686: WARNINGS
+linux-4.18.12-x86_64: WARNINGS
+linux-4.19.1-i686: WARNINGS
+linux-4.19.1-x86_64: WARNINGS
+linux-4.20.1-i686: WARNINGS
+linux-4.20.1-x86_64: WARNINGS
+linux-5.0-rc1-i686: WARNINGS
+linux-5.0-rc1-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
-Thanks,
-Vivek
+Detailed results are available here:
 
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> > 
-> > Thanks,
-> > Vivek
-> >   
-> >>  
-> >>>>
-> >>>> At some point we probably want to add a VUY32 format which is
-> >>>> what Weston expects, but we certainly cannot change what the TPG
-> >>>> generates for YUV32 since that is correct.    
-> >>> Weston does not know much about the details of pixel formats and
-> >>> instead relies on the Mesa i965 DRI driver to do the heavy
-> >>> lifting. And, this driver implemented AYUV support looking at the
-> >>> above Microsoft link. Also, is the description of V4l pixel
-> >>> formats mentioned in the below link accurate:
-> >>> https://afrantzis.com/pixel-format-guide/v4l2.html    
-> >>
-> >> Don't use it, just use the V4L2 Specification, that's always kept
-> >> up to date.
-> >>
-> >> Regards,
-> >>
-> >> 	Hans
-> >>  
-> >>>
-> >>> Thanks,
-> >>> Vivek
-> >>>     
-> >>>>
-> >>>> Regards,
-> >>>>
-> >>>> 	Hans
-> >>>>    
-> >>>>>
-> >>>>> Signed-off-by: Vivek Kasireddy <vivek.kasireddy@intel.com>
-> >>>>> ---
-> >>>>>  drivers/media/common/v4l2-tpg/v4l2-tpg-core.c | 2 +-
-> >>>>>  1 file changed, 1 insertion(+), 1 deletion(-)
-> >>>>>
-> >>>>> diff --git a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
-> >>>>> b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c index
-> >>>>> d9a590ae7545..825667f67c92 100644 ---
-> >>>>> a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c +++
-> >>>>> b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c @@ -1269,7
-> >>>>> +1269,6 @@ static void gen_twopix(struct tpg_data *tpg, case
-> >>>>> V4L2_PIX_FMT_HSV32: alpha = 0;
-> >>>>>  		/* fall through */
-> >>>>> -	case V4L2_PIX_FMT_YUV32:
-> >>>>>  	case V4L2_PIX_FMT_ARGB32:
-> >>>>>  		buf[0][offset] = alpha;
-> >>>>>  		buf[0][offset + 1] = r_y_h;
-> >>>>> @@ -1280,6 +1279,7 @@ static void gen_twopix(struct tpg_data
-> >>>>> *tpg, case V4L2_PIX_FMT_XBGR32:
-> >>>>>  		alpha = 0;
-> >>>>>  		/* fall through */
-> >>>>> +	case V4L2_PIX_FMT_YUV32:
-> >>>>>  	case V4L2_PIX_FMT_ABGR32:
-> >>>>>  		buf[0][offset] = b_v;
-> >>>>>  		buf[0][offset + 1] = g_u_s;
-> >>>>>       
-> >>>>    
-> >>>     
-> >>  
-> >   
-> 
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
