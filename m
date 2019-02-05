@@ -4,350 +4,191 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 436BEC282D7
-	for <linux-media@archiver.kernel.org>; Tue,  5 Feb 2019 06:01:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C333C282CB
+	for <linux-media@archiver.kernel.org>; Tue,  5 Feb 2019 06:26:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 078E82146F
-	for <linux-media@archiver.kernel.org>; Tue,  5 Feb 2019 06:01:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 16E1B2145D
+	for <linux-media@archiver.kernel.org>; Tue,  5 Feb 2019 06:26:42 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="bK8GVd03"
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="joRlu2vo"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726854AbfBEGB5 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 5 Feb 2019 01:01:57 -0500
-Received: from mail-ot1-f65.google.com ([209.85.210.65]:42332 "EHLO
-        mail-ot1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725893AbfBEGB4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 5 Feb 2019 01:01:56 -0500
-Received: by mail-ot1-f65.google.com with SMTP id v23so3880222otk.9
-        for <linux-media@vger.kernel.org>; Mon, 04 Feb 2019 22:01:55 -0800 (PST)
+        id S1726416AbfBEG0l (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 5 Feb 2019 01:26:41 -0500
+Received: from mail-ot1-f68.google.com ([209.85.210.68]:44312 "EHLO
+        mail-ot1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726033AbfBEG0k (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 5 Feb 2019 01:26:40 -0500
+Received: by mail-ot1-f68.google.com with SMTP id g16so3929230otg.11
+        for <linux-media@vger.kernel.org>; Mon, 04 Feb 2019 22:26:40 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=chromium.org; s=google;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=Mt0wLxcraYbdbYupjFMrpm7VzPzQsHwshlnSkg2wciU=;
-        b=bK8GVd039nm4h6Oa9jHojiVvfdpVdFvGZ0hknCjMmerq6FdutuaUPpmZCG7DRYv99D
-         dEkpLNxjiEL/eZyFT+JYw4RTU1IzSdHZ/u7J1bedUd460Mhp5NVgnl1DrtOhy+wrZ8Ye
-         BpgVDg8BYBlGs2Xv8dAtIy+xdWLIE+XC6HFBM=
+         :cc:content-transfer-encoding;
+        bh=xTgE6Zy5ugBz/NPyWIctakVD0BivYTMJdPDR+3PquOs=;
+        b=joRlu2volXvgpqsLpqJ1QjmvDPftUW0J5sJiytpQcrmZoV/iaTN72uH/tQ0EMwMOzO
+         eQAWQ5RCHFlgnevqFbVeDNhEl3n5zS/+j1AKgVqzW5LWRTpX2z0QXOaJi7WbILSiLCRn
+         lgI/EH5Bo1cmNd6WPpTjhrrwHjM7+ESQB+VUo=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=Mt0wLxcraYbdbYupjFMrpm7VzPzQsHwshlnSkg2wciU=;
-        b=dA/wYsHfwu/uaKr2Y8CzZDRBBnGwzvjyrVmJzuVCN5Yw9e6VjpJstKigSDMXkwQkH6
-         PPHIpfNo1P75laoodpNM+UBXrJXh05OCFWRMVJEcnz7tdYz+o640CzTo952wd+LvoZgc
-         zE8XVp3hW029UhachjsMTeptqn36mi/tSn5RjHUtNbjGG/XWtwuZeY+PCYfo41WYRPGd
-         BX9UurlOBpUP7Tp+VEfeAfl4AgNTlAgLC7OReCYG/e5QXC/50JgcxdHmpkKvo70W85BO
-         yrx0+BXyhkvAw7kf+WAkcrdLQD7k9Jf2pKOst4sOBsj7XuSS4BrAlJkwUU9yYQXAEZnB
-         /NHg==
-X-Gm-Message-State: AHQUAubCA9PG+iaRpbTeO1mLLoebDoxM9aEuTN0aQFc1D6T9gkBmwMZI
-        1R0CVuTIp6D4GSMpJ+aE99C1Sc5qSSs=
-X-Google-Smtp-Source: AHgI3IaWfLAXbAwF6ZmDBbx8bMN8AetOn3tFJCK42dyFhoQFO8uxkIQgos5C07U1fd94AmRm0pJh1w==
-X-Received: by 2002:a9d:5e0b:: with SMTP id d11mr1182402oti.145.1549346514725;
-        Mon, 04 Feb 2019 22:01:54 -0800 (PST)
-Received: from mail-ot1-f53.google.com (mail-ot1-f53.google.com. [209.85.210.53])
-        by smtp.gmail.com with ESMTPSA id k13sm8361459otj.19.2019.02.04.22.01.52
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=xTgE6Zy5ugBz/NPyWIctakVD0BivYTMJdPDR+3PquOs=;
+        b=ZJru2MmzGUAEeEbpjqs4Aj3gCVBNNKAAdfpv0v3bO/oxJ5QpeTHaV5R7x9KTeLJT8B
+         7CovLzTv5e/shsnS9/a958HxGQKpa1uMMnO69CNQmfMN6+RhNJ7NXabpvu0A0scxLm7F
+         +FrGYSSveEs7TJzBZkPIkxWoDjhLiqaC6i9Xjd42s7b0oCfSfMnQAJenNMidr7k0ODHo
+         1a1s+rn2hulxz7l5dCB8K3yTVtciw8KQltr+CLxaNTaaXnj8Dbm/mUfZCpwQYaFcdGW2
+         8PGFnLfP2sB5p6RPMQyPoMPMhyfjtAZ4rA6+Jwxg22AxzM/wCtmw6P30O25bt3fihglj
+         Fr9w==
+X-Gm-Message-State: AHQUAubFLW5yiVygqAj/191wO6/aqpgQubqeo2F7Zh1jrN/2uVT4ZCWL
+        2boQT8nKGAoDMEB0wRHx26lv7xW/b+U=
+X-Google-Smtp-Source: AHgI3IaIKpBrmspCoV5iLy6vwQn0D7p93WX5ZXIOkR1vF6pb2gXhDTverM5Df+AAF+aEuG3D+SuVVw==
+X-Received: by 2002:a9d:6552:: with SMTP id q18mr1806171otl.128.1549347999812;
+        Mon, 04 Feb 2019 22:26:39 -0800 (PST)
+Received: from mail-ot1-f48.google.com (mail-ot1-f48.google.com. [209.85.210.48])
+        by smtp.gmail.com with ESMTPSA id b23sm7544755otq.5.2019.02.04.22.26.38
         for <linux-media@vger.kernel.org>
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 04 Feb 2019 22:01:52 -0800 (PST)
-Received: by mail-ot1-f53.google.com with SMTP id g16so3861109otg.11
-        for <linux-media@vger.kernel.org>; Mon, 04 Feb 2019 22:01:52 -0800 (PST)
-X-Received: by 2002:a9d:5cc2:: with SMTP id r2mr1708415oti.367.1549346511728;
- Mon, 04 Feb 2019 22:01:51 -0800 (PST)
+        Mon, 04 Feb 2019 22:26:38 -0800 (PST)
+Received: by mail-ot1-f48.google.com with SMTP id u16so3957497otk.8
+        for <linux-media@vger.kernel.org>; Mon, 04 Feb 2019 22:26:38 -0800 (PST)
+X-Received: by 2002:a9d:1d65:: with SMTP id m92mr1789110otm.65.1549347998164;
+ Mon, 04 Feb 2019 22:26:38 -0800 (PST)
 MIME-Version: 1.0
-References: <1540851790-1777-1-git-send-email-yong.zhi@intel.com>
- <4147983.Vfm2iTi9Nh@avalon> <c7578347-c1ac-664c-4407-40b968daf377@linux.intel.com>
- <1722114.CA3sO5gtlY@avalon> <20190102202652.s4xha4vqhmt7qwsh@mara.localdomain>
- <20190128100906.lkly33nz63gp7grr@uno.localdomain> <CAAFQd5C=kZOSz8ip5BFy64T-3AwyXER_ntcqyQR+vrtKtjNKxg@mail.gmail.com>
- <20190201100418.r6x5djrk535gvc54@uno.localdomain>
-In-Reply-To: <20190201100418.r6x5djrk535gvc54@uno.localdomain>
+References: <20190117162008.25217-1-stanimir.varbanov@linaro.org>
+ <20190117162008.25217-11-stanimir.varbanov@linaro.org> <CAAFQd5Cm1zyPzJnixwNmWzxn2zh=63YrA+ZzH-arW-VZ_x-Awg@mail.gmail.com>
+ <28069a44-b188-6b89-2687-542fa762c00e@linaro.org> <CAAFQd5BevOV2r1tqmGPnVtdwirGMWU=ZJU85HjfnH-qMyQiyEg@mail.gmail.com>
+ <affce842d4f015e13912b2c3941c9bf02e84d194.camel@ndufresne.ca>
+ <CAAFQd5Ahg4Di+SBd+-kKo4PLVyvqLwcuG6MphU5Rz1PFXVuamQ@mail.gmail.com>
+ <e8a90694c306fde24928a569b7bcb231b86ec73b.camel@ndufresne.ca>
+ <CAAFQd5DFfQRd1VoN7itVXnWGKW_WBKU-sm6vo5CdgjkzjEEkFg@mail.gmail.com>
+ <57419418d377f32d0e6978f4e4171c0da7357cbb.camel@ndufresne.ca>
+ <1548938556.4585.1.camel@pengutronix.de> <CAAFQd5Aih7cWu-cfwBvNdwhHHYEaMF0SFebrYfdNXD9qKu8fxw@mail.gmail.com>
+ <1f8485785a21c0b0e071a3a766ed2cbc727e47f6.camel@ndufresne.ca>
+In-Reply-To: <1f8485785a21c0b0e071a3a766ed2cbc727e47f6.camel@ndufresne.ca>
 From:   Tomasz Figa <tfiga@chromium.org>
-Date:   Tue, 5 Feb 2019 15:01:40 +0900
-X-Gmail-Original-Message-ID: <CAAFQd5Ch_23778CSe2-94NqUo4qaAPWwsgLpUipPXAn7C5VJFw@mail.gmail.com>
-Message-ID: <CAAFQd5Ch_23778CSe2-94NqUo4qaAPWwsgLpUipPXAn7C5VJFw@mail.gmail.com>
-Subject: Re: [PATCH v7 00/16] Intel IPU3 ImgU patchset
-To:     Jacopo Mondi <jacopo@jmondi.org>
-Cc:     Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Bingbu Cao <bingbu.cao@linux.intel.com>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        "Zhi, Yong" <yong.zhi@intel.com>,
+Date:   Tue, 5 Feb 2019 15:26:26 +0900
+X-Gmail-Original-Message-ID: <CAAFQd5CPKm1ES8c9Lab63Lr8ZfWRckHmJ99SVRYi6Hpe7hzy+g@mail.gmail.com>
+Message-ID: <CAAFQd5CPKm1ES8c9Lab63Lr8ZfWRckHmJ99SVRYi6Hpe7hzy+g@mail.gmail.com>
+Subject: Re: [PATCH 10/10] venus: dec: make decoder compliant with stateful
+ codec API
+To:     Nicolas Dufresne <nicolas@ndufresne.ca>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc:     Philipp Zabel <p.zabel@pengutronix.de>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "Hu, Jerry W" <jerry.w.hu@intel.com>,
-        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
-        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
-        "Cao, Bingbu" <bingbu.cao@intel.com>,
-        libcamera-devel@lists.libcamera.org
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
+        Vikash Garodia <vgarodia@codeaurora.org>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Malathi Gottam <mgottam@codeaurora.org>
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Jacopo,
-
-On Fri, Feb 1, 2019 at 7:04 PM Jacopo Mondi <jacopo@jmondi.org> wrote:
+On Fri, Feb 1, 2019 at 12:18 AM Nicolas Dufresne <nicolas@ndufresne.ca> wro=
+te:
 >
-> Hi Tomasz,
->
-> On Tue, Jan 29, 2019 at 05:56:35PM +0900, Tomasz Figa wrote:
-> > On Mon, Jan 28, 2019 at 7:08 PM Jacopo Mondi <jacopo@jmondi.org> wrote:
+> Le jeudi 31 janvier 2019 =C3=A0 22:34 +0900, Tomasz Figa a =C3=A9crit :
+> > On Thu, Jan 31, 2019 at 9:42 PM Philipp Zabel <p.zabel@pengutronix.de> =
+wrote:
+> > > Hi Nicolas,
 > > >
-> > > Hi Sakari, everyone..
-> > >
-> > > On Wed, Jan 02, 2019 at 10:26:56PM +0200, Sakari Ailus wrote:
-> > > > Hi Laurent,
-> > > >
-> > > > On Wed, Jan 02, 2019 at 10:20:13AM +0200, Laurent Pinchart wrote:
-> > > > > Hello Bingbu,
-> > > > >
-> > > > > On Wednesday, 2 January 2019 04:38:33 EET Bingbu Cao wrote:
-> > > > > > On 12/26/2018 07:03 PM, Laurent Pinchart wrote:
-> > > > > > > On Monday, 17 December 2018 05:14:44 EET Bingbu Cao wrote:
-> > > > > > >> On 12/14/2018 06:24 AM, Laurent Pinchart wrote:
-> > > > > > >>> On Wednesday, 12 December 2018 06:55:53 EET Bingbu Cao wrote:
-> > > > > > >>>> On 12/11/2018 09:43 PM, Laurent Pinchart wrote:
-> > > > > > >>>>> On Tuesday, 11 December 2018 15:34:49 EET Laurent Pinchart wrote:
-> > > > > > >>>>>> On Wednesday, 5 December 2018 02:30:46 EET Mani, Rajmohan wrote:
-> > > > > > >>>>>>
-> > > > > > >>>>>> [snip]
-> > > > > > >>>>>>
-> > > > > > >>>>>>> I can see a couple of steps missing in the script below.
-> > > > > > >>>>>>> (https://lists.libcamera.org/pipermail/libcamera-devel/2018-November
-> > > > > > >>>>>>> /000040.html)
-> > > > > > >>>>>>>
-> > > > > > >>>>>>>    From patch 02 of this v7 series "doc-rst: Add Intel IPU3
-> > > > > > >>>>>>>    documentation", under section "Configuring ImgU V4L2 subdev for
-> > > > > > >>>>>>>    image processing"...
-> > > > > > >>>>>>>
-> > > > > > >>>>>>> 1. The pipe mode needs to be configured for the V4L2 subdev.
-> > > > > > >>>>>>>
-> > > > > > >>>>>>> Also the pipe mode of the corresponding V4L2 subdev should be set as
-> > > > > > >>>>>>> desired (e.g 0 for video mode or 1 for still mode) through the
-> > > > > > >>>>>>> control id 0x009819a1 as below.
-> > > > > > >>>>>>>
-> > > > > > >>>>>>> e.g v4l2n -d /dev/v4l-subdev7 --ctrl=0x009819A1=1
-> > > > > > >>>>>>
-> > > > > > >>>>>> I assume the control takes a valid default value ? It's better to set
-> > > > > > >>>>>> it explicitly anyway, so I'll do so.
-> > > > > > >>>>
-> > > > > > >>>> The video mode is set by default. If you want to set to still mode or
-> > > > > > >>>> change mode, you need set the subdev control.
-> > > > > > >>>>
-> > > > > > >>>>>>> 2. ImgU pipeline needs to be configured for image processing as
-> > > > > > >>>>>>> below.
-> > > > > > >>>>>>>
-> > > > > > >>>>>>> RAW bayer frames go through the following ISP pipeline HW blocks to
-> > > > > > >>>>>>> have the processed image output to the DDR memory.
-> > > > > > >>>>>>>
-> > > > > > >>>>>>> RAW bayer frame -> Input Feeder -> Bayer Down Scaling (BDS) ->
-> > > > > > >>>>>>> Geometric Distortion Correction (GDC) -> DDR
-> > > > > > >>>>>>>
-> > > > > > >>>>>>> The ImgU V4L2 subdev has to be configured with the supported
-> > > > > > >>>>>>> resolutions in all the above HW blocks, for a given input
-> > > > > > >>>>>>> resolution.
-> > > > > > >>>>>>>
-> > > > > > >>>>>>> For a given supported resolution for an input frame, the Input
-> > > > > > >>>>>>> Feeder, Bayer Down Scaling and GDC blocks should be configured with
-> > > > > > >>>>>>> the supported resolutions. This information can be obtained by
-> > > > > > >>>>>>> looking at the following IPU3 ISP configuration table for ov5670
-> > > > > > >>>>>>> sensor.
-> > > > > > >>>>>>>
-> > > > > > >>>>>>> https://chromium.googlesource.com/chromiumos/overlays/board-overlays
-> > > > > > >>>>>>> /+/master/baseboard-poppy/media-libs/cros-camera-hal-configs-poppy/
-> > > > > > >>>>>>> files/gcss/graph_settings_ov5670.xml
-> > > > > > >>>>>>>
-> > > > > > >>>>>>> For the ov5670 example, for an input frame with a resolution of
-> > > > > > >>>>>>> 2592x1944 (which is input to the ImgU subdev pad 0), the
-> > > > > > >>>>>>> corresponding resolutions for input feeder, BDS and GDC are
-> > > > > > >>>>>>> 2592x1944, 2592x1944 and 2560x1920 respectively.
-> > > > > > >>>>>>
-> > > > > > >>>>>> How is the GDC output resolution computed from the input resolution ?
-> > > > > > >>>>>> Does the GDC always consume 32 columns and 22 lines ?
-> > > > > > >>>>
-> > > > > > >>>> All the intermediate resolutions in the pipeline are determined by the
-> > > > > > >>>> actual use case, in other word determined by the IMGU input
-> > > > > > >>>> resolution(sensor output) and the final output and viewfinder
-> > > > > > >>>> resolution. BDS mainly do Bayer downscaling, it has limitation that the
-> > > > > > >>>> downscaling factor must be a value a integer multiple of 1/32.
-> > > > > > >>>> GDC output depends on the input and width should be x8 and height x4
-> > > > > > >>>> alignment.
-> > > > > > >>>
-> > > > > > >>> Thank you for the information. This will need to be captured in the
-> > > > > > >>> documentation, along with information related to how each block in the
-> > > > > > >>> hardware pipeline interacts with the image size. It should be possible
-> > > > > > >>> for a developer to compute the output and viewfinder resolutions based
-> > > > > > >>> on the parameters of the image processing algorithms just with the
-> > > > > > >>> information contained in the driver documentation.
-> > > > > > >>>
-> > > > > > >>>>>>> The following steps prepare the ImgU ISP pipeline for the image
-> > > > > > >>>>>>> processing.
-> > > > > > >>>>>>>
-> > > > > > >>>>>>> 1. The ImgU V4L2 subdev data format should be set by using the
-> > > > > > >>>>>>> VIDIOC_SUBDEV_S_FMT on pad 0, using the GDC width and height
-> > > > > > >>>>>>> obtained
-> > > > > > >>>>>>> above.
-> > > > > > >>>>>>
-> > > > > > >>>>>> If I understand things correctly, the GDC resolution is the pipeline
-> > > > > > >>>>>> output resolution. Why is it configured on pad 0 ?
-> > > > > > >>>>
-> > > > > > >>>> We see the GDC output resolution as the input of output system, the
-> > > > > > >>>> sink pad format is used for output and viewfinder resolutions.
-> > > > > > >>>
-> > > > > > >>> The ImgU subdev is supposed to represent the ImgU. Pad 0 should thus be
-> > > > > > >>> the ImgU input, the format configured there should correspond to the
-> > > > > > >>> format on the connected video node, and should thus be the sensor
-> > > > > > >>> format. You can then use the crop and compose rectangles on pad 0, along
-> > > > > > >>> with the format, crop and compose rectangles on the output and
-> > > > > > >>> viewfinder pads, to configure the device. This should be fixed in the
-> > > > > > >>> driver, and the documentation should then be updated accordingly.
-> > > > > > >>
-> > > > > > >> Hi, Laurent,
-> > > > > > >>
-> > > > > > >> Thanks for your review.
-> > > > > > >>
-> > > > > > >> I think it make sense for me that using Pad 0 as the ImgU input(IF).
-> > > > > > >> However, I prefer using the 2 source pads for output and viewfinder.
-> > > > > > >> It makes more sense because the output and viewfinder are independent
-> > > > > > >> output.
-> > > > > > >>
-> > > > > > >> The whole pipeline in ImgU looks like:
-> > > > > > >> IF --> BDS --> GDC ---> OUTPUT
-> > > > > > >>                   |-----> VF
-> > > > > > >>
-> > > > > > >> The BDS is used to do Bayer downscaling and GDC can do cropping.
-> > > > > > >
-> > > > > > > Does this mean that the main output and the viewfinder output share the
-> > > > > > > same scaler, and that the only difference in size between the two outputs
-> > > > > > > is solely due to cropping ?
+> > > On Wed, 2019-01-30 at 10:32 -0500, Nicolas Dufresne wrote:
+> > > > Le mercredi 30 janvier 2019 =C3=A0 15:17 +0900, Tomasz Figa a =C3=
+=A9crit :
+> > > > > > I don't remember saying that, maybe I meant to say there might =
+be a
+> > > > > > workaround ?
 > > > > > >
-> > > > > > Laurent,
-> > > > > > No, output only can do crop and viewfinder support crop and scaling, they
-> > > > > > share same input.
+> > > > > > For the fact, here we queue the headers (or first frame):
+> > > > > >
+> > > > > > https://gitlab.freedesktop.org/gstreamer/gst-plugins-good/blob/=
+master/sys/v4l2/gstv4l2videodec.c#L624
+> > > > > >
+> > > > > > Then few line below this helper does G_FMT internally:
+> > > > > >
+> > > > > > https://gitlab.freedesktop.org/gstreamer/gst-plugins-good/blob/=
+master/sys/v4l2/gstv4l2videodec.c#L634
+> > > > > > https://gitlab.freedesktop.org/gstreamer/gst-plugins-good/blob/=
+master/sys/v4l2/gstv4l2object.c#L3907
+> > > > > >
+> > > > > > And just plainly fails if G_FMT returns an error of any type. T=
+his was
+> > > > > > how Kamil designed it initially for MFC driver. There was no ot=
+her
+> > > > > > alternative back then (no EAGAIN yet either).
 > > > > >
-> > > > > Then you can't support this with a single subdev for the ImgU, you need at
-> > > > > least two subdevs. I can offer more guidance, but I'll need more information
-> > > > > about the GDC.
+> > > > > Hmm, was that ffmpeg then?
+> > > > >
+> > > > > So would it just set the OUTPUT width and height to 0? Does it me=
+an
+> > > > > that gstreamer doesn't work with coda and mtk-vcodec, which don't=
+ have
+> > > > > such wait in their g_fmt implementations?
 > > > >
-> > > > While the current documentation only defines the functionality of the
-> > > > compose target for sink pads, there are a few sensor drivers supporting it
-> > > > on source pads already. Some drivers such as the OMAP3 ISP also use the
-> > > > format on source pads to configure scaling.
-> > > >
-> > > > The current API certainly allows exposing the compose rectangle also on the
-> > > > source pads, but to make that generic we'd need to amend the API to tell in
-> > > > which order these steps take place. In the meantime the behaviour remains
-> > > > device specific.
-> > > >
+> > > > I don't know for MTK, I don't have the hardware and didn't integrat=
+e
+> > > > their vendor pixel format. For the CODA, I know it works, if there =
+is
+> > > > no wait in the G_FMT, then I suppose we are being really lucky with=
+ the
+> > > > timing (it would be that the drivers process the SPS/PPS synchronou=
+sly,
+> > > > and a simple lock in the G_FMT call is enough to wait). Adding Phil=
+ipp
+> > > > in CC, he could explain how this works, I know they use GStreamer i=
+n
+> > > > production, and he would have fixed GStreamer already if that was
+> > > > causing important issue.
 > > >
-> > > My understanding is that what is currently missing is the support
-> > > for viewfinder's ability to scale, as the scaler should get
-> > > programmed by configuring a composing rectangle on a source pad which
-> > > is not supported by the V4L2 APIs at the moment. Is my understanding correct?
-> > >
-> > > As the composing rectangle is set for both 'output' and 'viewfinder'
-> > > through the image format sizes configured on the first sink pad (*),
-> > > the viewfinder output is obtained by cropping-only to the image format
-> > > sizes configured on source pad number 3 (though SUBDEV_S_FMT not through
-> > > SUBDEV_S_SELECTION, as SUBDEV_S_SELECTION is only allowed on sink pad
-> > > 0 in the driver: see "ipu3_subdev_set_selection()").
-> > >
-> > > As you mentioned "device specific behaviour", what is the intended one
-> > > for the ipu3? I assumed the viewfinder scaling/cropping was configured
-> > > on the 'viewfinder' video device node, through the VIDIOC_S_SELECTION
-> > > ioctl, but looking at the code, that doesn't seem to be listed as
-> > > supported in "ipu3_v4l2_ioctl_ops".
-> > >
-> > > How am I supposed to configure scaling on the viewfinder output? Would
-> > > adding support for crop/compose to the 'output' and 'viewfinder' video
-> > > devices be supported by the V4L2 APIs? That would work with the single
-> > > subdevice model that is currently implemented in this patches...
+> > > CODA predates the width/height=3D0 rule on the coded/OUTPUT queue.
+> > > It currently behaves more like a traditional mem2mem device.
 > >
-> > Isn't this what the driver actually implements? My understanding was
-> > that the format on the VF video node determined the scaling settings,
-> > based on the source pad.
+> > The rule in the latest spec is that if width/height is 0 then CAPTURE
+> > format is determined only after the stream is parsed. Otherwise it's
+> > instantly deduced from the OUTPUT resolution.
 > >
->
-> I might surely be wrong, but VIDIOC_S_SELECTION seems not to be
-> supported in the "ipu3_v4l2_ioctl_ops" list.
->
-
-VIDIOC_S_SELECTION is not implemented, but VIDIOC_S_FMT is. I might be
-missing something, but it doesn't seem to consider pad formats and
-anything that comes from the userspace and meets alignment and min/max
-constraints seems to be accepted.
-
-What happens if you set a resolution smaller than the pad on the VF
-video node? (On OUT note it shouldn't be possible to do so, though...)
-
-> So we can just confiure cropping sizes on the source pad number 3 of
-> the 'imgu' entity, and set the same sizes on the video device node
-> that represents the VF output.
->
-> Inspecting the images, and reading again the long mail thread, it
-> seems to me that the imgu perform composing internally, based on the
-> GDC output dimensions and the required VF ones, to maintain the field
-> of view.
->
-
-Yeah, I think we may be missing the separate cropping control between
-VF and OUT, but I'm not sure if there is any real use case which would
-need it, since one would normally want to have the preview match the
-full frame, but possibly scaled down.
-
-> I cannot find any link to post here to Bing Bu's reply to Sakari on
-> this, but seems like this discussion happened already, and my
-> understanding is that composing on VF cannot be set from user, but
-> calculated by the imgu internally. Sakari, Bing Bu, is that the
-> current state?
->
-> Thanks
->    j
->
-> ------------------------------------------------------------------------------
-> Pasting down here the relevan bits from Bing Bu's and Sakari's
-> exchange from "Wed, 14 Nov 2018 15:02:37 +0800" which I cannot find a
-> suitable link to to paste here:
->
-> >>>>>>>>        pad3: Source
-> >>>>>>>>                [fmt:UYVY8_2X8/1920x1080 field:none colorspace:unknown]
-> >>>>>>>>                -> "ipu3-imgu 0 viewfinder":0 []
-> >>>>>>> Are there other differences between output and viewfinder?
-> >>>>>> output and viewfinder are the main and secondary output of output system.
-> >>>>>> 'main' output is not allowed to be scaled, only support crop. secondary
-> >>>>>> output 'viewfinder'
-> >>>>>> can support both cropping and scaling. User can select different nodes
-> >>>>>> to use
-> >>>>>> as preview and capture flexibly based on the actual use cases.
-> >>>>> If there's scaling to be configured, I'd expect to see the COMPOSE target
-> >>>>> supported.
-> >>>> Actually the viewfinder is the result of scaling, that means you can not
-> >>>> do more scaling.
-> >>> How do you configure the scaling of the viewfinder currently?
-> >> We consider that the viewfinder as a secondary output, and set the format by
-> >> subdev set_fmt() directly and all pads formats will be used to find
-> >> binary and
-> >> build pipeline.
-> > Ok.
+> > > When width/height is set via S_FMT(OUT) or output crop selection, the
+> > > driver will believe it and set the same (rounded up to macroblock
+> > > alignment) on the capture queue without ever having seen the SPS.
 > >
-> > Could you instead use the compose target to configure the scaling? Setting
-> > the format on the source pad would have no effect.
-> Hi, Sakari,
+> > That's why I asked whether gstreamer sets width and height of OUTPUT
+> > to non-zero values. If so, there is no regression, as the specs mimic
+> > the coda behavior.
 >
-> For the secondary output (viewfinder), it support both cropping and
-> scaling, in order
-> to keep the aspect ratio, system will do [crop --> compose], sounds like
-> it should
-> have 2 selection targets, but firmware/driver did not provide clear
-> interfaces to allow
-> user to configure the cropping, driver calculate the scaler and cropping
-> parameters
-> based on the output-system input and output resolution to keep aspect ratio
-> and field of view. I think it is more succinct to set the actual output
-> by set format
-> instead of using selection targets.
-> ------------------------------------------------------------------------------
+> I see, with Philipp's answer it explains why it works. Note that
+> GStreamer sets the display size on the OUTPUT format (in fact we pass
+> as much information as we have, because a) it's generic code and b) it
+> will be needed someday when we enable pre-allocation (REQBUFS before
+> SPS/PPS is passed, to avoid the setup delay introduce by allocation,
+> mostly seen with CMA base decoder). In any case, the driver reported
+> display size should always be ignored in GStreamer, the only
+> information we look at is the G_SELECTION for the case the x/y or the
+> cropping rectangle is non-zero.
+>
+> Note this can only work if the capture queue is not affected by the
+> coded size, or if the round-up made by the driver is bigger or equal to
+> that coded size. I believe CODA falls into the first category, since
+> the decoding happens in a separate set of buffers and are then de-tiled
+> into the capture buffers (if understood correctly).
+
+Sounds like it would work only if coded size is equal to the visible
+size (that GStreamer sets) rounded up to full macroblocks. Non-zero x
+or y in the crop could be problematic too.
+
+Hans, what's your view on this? Should we require G_FMT(CAPTURE) to
+wait until a format becomes available or the OUTPUT queue runs out of
+buffers?
+
+>
+> I would say, best is just to test the updated Venus driver, which is in
+> my queue.
+
+The updated Venus driver doesn't implement the behavior I referred to,
+but rather the legacy wait in G_FMT(CAPTURE) as in s5p-mfc.
