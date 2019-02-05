@@ -2,250 +2,219 @@ Return-Path: <SRS0=c0D3=QM=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F0E4C282CB
-	for <linux-media@archiver.kernel.org>; Tue,  5 Feb 2019 09:31:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A988EC282CB
+	for <linux-media@archiver.kernel.org>; Tue,  5 Feb 2019 09:34:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D849120844
-	for <linux-media@archiver.kernel.org>; Tue,  5 Feb 2019 09:31:24 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="ESCnBO/z"
+	by mail.kernel.org (Postfix) with ESMTP id 7943D20844
+	for <linux-media@archiver.kernel.org>; Tue,  5 Feb 2019 09:34:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728419AbfBEJbY (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 5 Feb 2019 04:31:24 -0500
-Received: from mail-ot1-f65.google.com ([209.85.210.65]:37803 "EHLO
-        mail-ot1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725898AbfBEJbY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 5 Feb 2019 04:31:24 -0500
-Received: by mail-ot1-f65.google.com with SMTP id s13so4611300otq.4
-        for <linux-media@vger.kernel.org>; Tue, 05 Feb 2019 01:31:23 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=y3Fskt2XhqRwwZ3I75pV2vnFeqIEbmjsQA1acACaMZc=;
-        b=ESCnBO/zKgq7VBgH232re5qG9lXHcuk/qVUT7yClEEpcuJaBvJB9XSHRgMQvtn+TZO
-         6WoBFh/qWuNhgjxYbEDdu4G2K/obAGHSG1GgLe+iv5q1rsaiWxNpRNQ5QYuoR4WpGYpz
-         zW80jkRjTGg/wwJG5dRBYWpKl8O1CFIMtv40s=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=y3Fskt2XhqRwwZ3I75pV2vnFeqIEbmjsQA1acACaMZc=;
-        b=Uvz2p4j3CsGzRw1szBZC7lm4OX/NUGfHiaEC/0EJkxOfHcy1pO8sK27Fb/lSVq3nEE
-         E4Fy1E2Sb6aJOmeEB1hBVBYStDuc4mUXgx4rGg08zYzmSwSpboC0sOz83MYdsVALl46H
-         IgPmUF+JbTbatqad4/UTlO5R3qHiHqQ/XpQVH1uvCNBQtczIM/NMCvKvoNEhJpaDJ5on
-         /TGOGLxxM1cUYku1xWoKlZuYOxVAo2dRxAaW2q64LJVgFZ6HSTrZG9AIyoY27u+QGyhT
-         4zx7EjMInwrT/o3M8fFTFs4BUwQEKYo0+Eq6MbKcCNhXSPdpZyzUIqtDN+G7raMnDh69
-         almg==
-X-Gm-Message-State: AHQUAuad9jKgTnL7zTMDPyZy6CAqi9YnH3k6NUd6OAwcwPkg+Knv6QfY
-        eVBNIIzSaa3mOBINtG1TnpWebYYZek8=
-X-Google-Smtp-Source: AHgI3IbL5qFdJLHZohA0X1k1wIUfCZnRfYABL1oy1xzD+fKXYBOn4aQg0oDm5abxbmY8cERevx08Hw==
-X-Received: by 2002:a05:6808:21a:: with SMTP id l26mr1935931oie.312.1549359082128;
-        Tue, 05 Feb 2019 01:31:22 -0800 (PST)
-Received: from mail-ot1-f47.google.com (mail-ot1-f47.google.com. [209.85.210.47])
-        by smtp.gmail.com with ESMTPSA id w15sm9395056oie.43.2019.02.05.01.31.18
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 05 Feb 2019 01:31:19 -0800 (PST)
-Received: by mail-ot1-f47.google.com with SMTP id s5so4579628oth.7
-        for <linux-media@vger.kernel.org>; Tue, 05 Feb 2019 01:31:18 -0800 (PST)
-X-Received: by 2002:aca:b882:: with SMTP id i124mr2083341oif.127.1549359078264;
- Tue, 05 Feb 2019 01:31:18 -0800 (PST)
+        id S1726887AbfBEJex (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 5 Feb 2019 04:34:53 -0500
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:60282 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725898AbfBEJew (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 5 Feb 2019 04:34:52 -0500
+Received: from [IPv6:2001:983:e9a7:1:2989:f759:211b:c8a5] ([IPv6:2001:983:e9a7:1:2989:f759:211b:c8a5])
+        by smtp-cloud7.xs4all.net with ESMTPA
+        id qx7vgbMH4BDyIqx7wgBGu9; Tue, 05 Feb 2019 10:34:50 +0100
+Subject: Re: [Xen-devel][PATCH v4 1/1] cameraif: add ABI for para-virtual
+ camera
+To:     Oleksandr Andrushchenko <andr2000@gmail.com>,
+        Oleksandr Andrushchenko <Oleksandr_Andrushchenko@epam.com>,
+        "xen-devel@lists.xenproject.org" <xen-devel@lists.xenproject.org>,
+        "konrad.wilk@oracle.com" <konrad.wilk@oracle.com>,
+        "jgross@suse.com" <jgross@suse.com>,
+        "boris.ostrovsky@oracle.com" <boris.ostrovsky@oracle.com>,
+        "mchehab@kernel.org" <mchehab@kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
+        "koji.matsuoka.xm@renesas.com" <koji.matsuoka.xm@renesas.com>
+References: <20190115093853.15495-1-andr2000@gmail.com>
+ <20190115093853.15495-2-andr2000@gmail.com>
+ <393f824d-e543-476c-777f-402bcc1c0bcb@xs4all.nl>
+ <1152536e-9238-4192-653e-b784b34b8a0d@epam.com>
+ <d8476f24-1952-e822-aa75-b8a5f5d5a552@gmail.com>
+From:   Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <e5bbde8f-ef5a-791a-a3aa-645c57ddcf82@xs4all.nl>
+Date:   Tue, 5 Feb 2019 10:34:47 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.3.1
 MIME-Version: 1.0
-References: <20190117162008.25217-1-stanimir.varbanov@linaro.org>
- <20190117162008.25217-11-stanimir.varbanov@linaro.org> <CAAFQd5Cm1zyPzJnixwNmWzxn2zh=63YrA+ZzH-arW-VZ_x-Awg@mail.gmail.com>
- <28069a44-b188-6b89-2687-542fa762c00e@linaro.org> <CAAFQd5BevOV2r1tqmGPnVtdwirGMWU=ZJU85HjfnH-qMyQiyEg@mail.gmail.com>
- <affce842d4f015e13912b2c3941c9bf02e84d194.camel@ndufresne.ca>
- <CAAFQd5Ahg4Di+SBd+-kKo4PLVyvqLwcuG6MphU5Rz1PFXVuamQ@mail.gmail.com>
- <e8a90694c306fde24928a569b7bcb231b86ec73b.camel@ndufresne.ca>
- <CAAFQd5DFfQRd1VoN7itVXnWGKW_WBKU-sm6vo5CdgjkzjEEkFg@mail.gmail.com>
- <57419418d377f32d0e6978f4e4171c0da7357cbb.camel@ndufresne.ca>
- <1548938556.4585.1.camel@pengutronix.de> <CAAFQd5Aih7cWu-cfwBvNdwhHHYEaMF0SFebrYfdNXD9qKu8fxw@mail.gmail.com>
- <1f8485785a21c0b0e071a3a766ed2cbc727e47f6.camel@ndufresne.ca>
- <CAAFQd5CPKm1ES8c9Lab63Lr8ZfWRckHmJ99SVRYi6Hpe7hzy+g@mail.gmail.com> <f1e9dc99-4fcb-dee1-4279-ac0cf1d1fd6e@xs4all.nl>
-In-Reply-To: <f1e9dc99-4fcb-dee1-4279-ac0cf1d1fd6e@xs4all.nl>
-From:   Tomasz Figa <tfiga@chromium.org>
-Date:   Tue, 5 Feb 2019 18:31:06 +0900
-X-Gmail-Original-Message-ID: <CAAFQd5B+bt3SV_WRw1=2agZk=Q+Enbkv=nXCrbXX=+MNpeSpCg@mail.gmail.com>
-Message-ID: <CAAFQd5B+bt3SV_WRw1=2agZk=Q+Enbkv=nXCrbXX=+MNpeSpCg@mail.gmail.com>
-Subject: Re: [PATCH 10/10] venus: dec: make decoder compliant with stateful
- codec API
-To:     Hans Verkuil <hverkuil@xs4all.nl>
-Cc:     Nicolas Dufresne <nicolas@ndufresne.ca>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
-        Vikash Garodia <vgarodia@codeaurora.org>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Malathi Gottam <mgottam@codeaurora.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <d8476f24-1952-e822-aa75-b8a5f5d5a552@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
+X-CMAE-Envelope: MS4wfDVZIIcMxeXpAAGs5/J5nfua5dwtRI+ZSPycmdE3JOikK9Oo/tZeknQysB+Jfp7wqGbQ8qhSiLgASIEE1JbYl8EGgn2ctQ2XEiCfI6rp/KRT36dXBmqF
+ ZnslS4NT2ULx9cadGOB0oKxHGqWnwivZyB6IawN/BwN1MSyAg5VYRZH/HoUCEN0synQj8LMU3+UBDBrHt3josJEw6WnqMJYzRb8KwjB5+a09pPo5c7pJUIoS
+ bTFUfb0RkSFdDkG3A6wj/DO+XkCkDfhkFuYspZQzoHI/p/MJGyeq7qJ0JF+M/tvRxHtUF6jy7LrMkJsbWxyIS2p/c7UXtpMqkt5EzAN73+GVMFardVcZryw2
+ fLEso8I8kFfU8AB3uq1S2QyqvvtdnZSlP28vivwQYNTLsP8pyHEJcYSlyeY8OHHE0S/ix0kq5ACkqNq7ySZwRcdOfklu6+koKKF3hyKDLz0qgXZXJnz7NCr5
+ 2iYwCuQ3+mwKbMwhBJDC28aco8phvyFNxQiHwHgHMGP2G7cHHGA5gi05AiQpKG6MPBrMNjppf7ul1IvqQXKkdRGLIvOassPEmaOwYnMWMhQexg9rZbSzJZ3M
+ kbXKkTUC9CAAsIt0XHNOi3Bi
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Tue, Feb 5, 2019 at 6:00 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
->
-> On 2/5/19 7:26 AM, Tomasz Figa wrote:
-> > On Fri, Feb 1, 2019 at 12:18 AM Nicolas Dufresne <nicolas@ndufresne.ca>=
- wrote:
-> >>
-> >> Le jeudi 31 janvier 2019 =C3=A0 22:34 +0900, Tomasz Figa a =C3=A9crit =
-:
-> >>> On Thu, Jan 31, 2019 at 9:42 PM Philipp Zabel <p.zabel@pengutronix.de=
-> wrote:
-> >>>> Hi Nicolas,
-> >>>>
-> >>>> On Wed, 2019-01-30 at 10:32 -0500, Nicolas Dufresne wrote:
-> >>>>> Le mercredi 30 janvier 2019 =C3=A0 15:17 +0900, Tomasz Figa a =C3=
-=A9crit :
-> >>>>>>> I don't remember saying that, maybe I meant to say there might be=
- a
-> >>>>>>> workaround ?
-> >>>>>>>
-> >>>>>>> For the fact, here we queue the headers (or first frame):
-> >>>>>>>
-> >>>>>>> https://gitlab.freedesktop.org/gstreamer/gst-plugins-good/blob/ma=
-ster/sys/v4l2/gstv4l2videodec.c#L624
-> >>>>>>>
-> >>>>>>> Then few line below this helper does G_FMT internally:
-> >>>>>>>
-> >>>>>>> https://gitlab.freedesktop.org/gstreamer/gst-plugins-good/blob/ma=
-ster/sys/v4l2/gstv4l2videodec.c#L634
-> >>>>>>> https://gitlab.freedesktop.org/gstreamer/gst-plugins-good/blob/ma=
-ster/sys/v4l2/gstv4l2object.c#L3907
-> >>>>>>>
-> >>>>>>> And just plainly fails if G_FMT returns an error of any type. Thi=
-s was
-> >>>>>>> how Kamil designed it initially for MFC driver. There was no othe=
-r
-> >>>>>>> alternative back then (no EAGAIN yet either).
-> >>>>>>
-> >>>>>> Hmm, was that ffmpeg then?
-> >>>>>>
-> >>>>>> So would it just set the OUTPUT width and height to 0? Does it mea=
-n
-> >>>>>> that gstreamer doesn't work with coda and mtk-vcodec, which don't =
-have
-> >>>>>> such wait in their g_fmt implementations?
-> >>>>>
-> >>>>> I don't know for MTK, I don't have the hardware and didn't integrat=
-e
-> >>>>> their vendor pixel format. For the CODA, I know it works, if there =
-is
-> >>>>> no wait in the G_FMT, then I suppose we are being really lucky with=
- the
-> >>>>> timing (it would be that the drivers process the SPS/PPS synchronou=
-sly,
-> >>>>> and a simple lock in the G_FMT call is enough to wait). Adding Phil=
-ipp
-> >>>>> in CC, he could explain how this works, I know they use GStreamer i=
-n
-> >>>>> production, and he would have fixed GStreamer already if that was
-> >>>>> causing important issue.
-> >>>>
-> >>>> CODA predates the width/height=3D0 rule on the coded/OUTPUT queue.
-> >>>> It currently behaves more like a traditional mem2mem device.
-> >>>
-> >>> The rule in the latest spec is that if width/height is 0 then CAPTURE
-> >>> format is determined only after the stream is parsed. Otherwise it's
-> >>> instantly deduced from the OUTPUT resolution.
-> >>>
-> >>>> When width/height is set via S_FMT(OUT) or output crop selection, th=
-e
-> >>>> driver will believe it and set the same (rounded up to macroblock
-> >>>> alignment) on the capture queue without ever having seen the SPS.
-> >>>
-> >>> That's why I asked whether gstreamer sets width and height of OUTPUT
-> >>> to non-zero values. If so, there is no regression, as the specs mimic
-> >>> the coda behavior.
-> >>
-> >> I see, with Philipp's answer it explains why it works. Note that
-> >> GStreamer sets the display size on the OUTPUT format (in fact we pass
-> >> as much information as we have, because a) it's generic code and b) it
-> >> will be needed someday when we enable pre-allocation (REQBUFS before
-> >> SPS/PPS is passed, to avoid the setup delay introduce by allocation,
-> >> mostly seen with CMA base decoder). In any case, the driver reported
-> >> display size should always be ignored in GStreamer, the only
-> >> information we look at is the G_SELECTION for the case the x/y or the
-> >> cropping rectangle is non-zero.
-> >>
-> >> Note this can only work if the capture queue is not affected by the
-> >> coded size, or if the round-up made by the driver is bigger or equal t=
-o
-> >> that coded size. I believe CODA falls into the first category, since
-> >> the decoding happens in a separate set of buffers and are then de-tile=
-d
-> >> into the capture buffers (if understood correctly).
-> >
-> > Sounds like it would work only if coded size is equal to the visible
-> > size (that GStreamer sets) rounded up to full macroblocks. Non-zero x
-> > or y in the crop could be problematic too.
-> >
-> > Hans, what's your view on this? Should we require G_FMT(CAPTURE) to
-> > wait until a format becomes available or the OUTPUT queue runs out of
->
-> You mean CAPTURE queue? If not, then I don't understand that part.
+On 2/5/19 9:48 AM, Oleksandr Andrushchenko wrote:
+> On 1/23/19 10:14 AM, Oleksandr Andrushchenko wrote:
+>> Any comments from Xen community?
+>> Konrad?
+> While I am still looking forward to any comments from Xen community...
+>>
+>> On 1/15/19 4:44 PM, Hans Verkuil wrote:
+>>> Hi Oleksandr,
+>>>
+>>> Just two remaining comments:
+>>>
+>>> On 1/15/19 10:38 AM, Oleksandr Andrushchenko wrote:
+>>>> From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+>>>>
+>>>> This is the ABI for the two halves of a para-virtualized
+>>>> camera driver which extends Xen's reach multimedia capabilities even
+>>>> farther enabling it for video conferencing, In-Vehicle Infotainment,
+>>>> high definition maps etc.
+>>>>
+>>>> The initial goal is to support most needed functionality with the
+>>>> final idea to make it possible to extend the protocol if need be:
+>>>>
+>>>> 1. Provide means for base virtual device configuration:
+>>>>    - pixel formats
+>>>>    - resolutions
+>>>>    - frame rates
+>>>> 2. Support basic camera controls:
+>>>>    - contrast
+>>>>    - brightness
+>>>>    - hue
+>>>>    - saturation
+>>>> 3. Support streaming control
+>>>>
+>>>> Signed-off-by: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+>>>> ---
+>>>>    xen/include/public/io/cameraif.h | 1364 ++++++++++++++++++++++++++++++
+>>>>    1 file changed, 1364 insertions(+)
+>>>>    create mode 100644 xen/include/public/io/cameraif.h
+>>>>
+>>>> diff --git a/xen/include/public/io/cameraif.h b/xen/include/public/io/cameraif.h
+>>>> new file mode 100644
+>>>> index 000000000000..246eb2457f40
+>>>> --- /dev/null
+>>>> +++ b/xen/include/public/io/cameraif.h
+>>>> @@ -0,0 +1,1364 @@
+>>> <snip>
+>>>
+>>>> +/*
+>>>> + ******************************************************************************
+>>>> + *                                 EVENT CODES
+>>>> + ******************************************************************************
+>>>> + */
+>>>> +#define XENCAMERA_EVT_FRAME_AVAIL      0x00
+>>>> +#define XENCAMERA_EVT_CTRL_CHANGE      0x01
+>>>> +
+>>>> +/* Resolution has changed. */
+>>>> +#define XENCAMERA_EVT_CFG_FLG_RESOL    (1 << 0)
+>>> I think this flag is a left-over from v2 and should be removed.
+>>>
+>>> <snip>
+>>>
+>>>> + * Request number of buffers to be used:
+>>>> + *         0                1                 2               3        octet
+>>>> + * +----------------+----------------+----------------+----------------+
+>>>> + * |               id                | _OP_BUF_REQUEST|   reserved     | 4
+>>>> + * +----------------+----------------+----------------+----------------+
+>>>> + * |                             reserved                              | 8
+>>>> + * +----------------+----------------+----------------+----------------+
+>>>> + * |    num_bufs    |                     reserved                     | 12
+>>>> + * +----------------+----------------+----------------+----------------+
+>>>> + * |                             reserved                              | 16
+>>>> + * +----------------+----------------+----------------+----------------+
+>>>> + * |/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/|
+>>>> + * +----------------+----------------+----------------+----------------+
+>>>> + * |                             reserved                              | 64
+>>>> + * +----------------+----------------+----------------+----------------+
+>>>> + *
+>>>> + * num_bufs - uint8_t, desired number of buffers to be used. This is
+>>>> + *   limited to the value configured in XenStore.max-buffers.
+>>>> + *   Passing zero num_bufs in this request (after streaming has stopped
+>>>> + *   and all buffers destroyed) unblocks camera configuration changes.
+>>> I think the phrase 'unblocks camera configuration changes' is confusing.
+>>>
+>>> In v3 this sentence came after the third note below, and so it made sense
+>>> in that context, but now the order has been reversed and it became hard to
+>>> understand.
+>>>
+>>> I'm not sure what the best approach is to fix this. One option is to remove
+>>> the third note and integrate it somehow in the sentence above. Or perhaps
+>>> do away with the 'notes' at all and just write a more extensive documentation
+>>> for this op. I leave that up to you.
+> Hans, how about:
+> 
+>  * num_bufs - uint8_t, desired number of buffers to be used.
+>  *
+>  * The number of buffers in this request must not exceed the value configured
+>  * in XenStore.max-buffers. If the number of buffers is not zero then after this
+>  * request the camera configuration cannot be changed. In order to allow camera
+>  * (re)configuration this request must be sent with num_bufs set to zero and
+>  * the streaming must be stopped and buffers destroyed.
+>  * It is allowed for the frontend to send multiple XENCAMERA_OP_BUF_REQUEST
+>  * requests before sending XENCAMERA_OP_STREAM_START request to update or
+>  * tune the final configuration.
+>  * Frontend is responsible for checking the corresponding response in order to
+>  * see if the values reported back by the backend do match the desired ones
+>  * and can be accepted.
+>  *
+>  * See response format for this request.
+>  */
 
-No, I exactly meant the OUTPUT queue. The behavior of s5p-mfc in case
-of the format not being detected yet is to waits for any pending
-bitstream buffers to be processed by the decoder before returning an
-error.
+Hmm, it still is awkward. Part of the reason for that is that VIDIOC_REQBUFS
+is just weird in that a value of 0 has a special meaning.
 
-See https://elixir.bootlin.com/linux/v5.0-rc5/source/drivers/media/platform=
-/s5p-mfc/s5p_mfc_dec.c#L329
-.
+Perhaps it would be much cleaner for the Xen implementation to just add a new
+OP: _OP_FREE_ALL_BUFS (or perhaps _RELEASE_ALL_BUFS) that effectively does
+VIDIOC_REQBUFS with a 0 count value. And this OP_BUF_REQUEST (wouldn't
+OP_REQUEST_BUFS be a better name?) would then do nothing or return an error
+if num_bufs == 0.
 
->
-> > buffers?
->
-> First see my comment here regarding G_FMT returning an error:
->
-> https://www.spinics.net/lists/linux-media/msg146505.html
->
-> In my view that is a bad idea.
+If you don't want to create a new Xen op, then I would change the text some
+more since you do not actually explain what the op does if num_bufs is 0.
 
-I don't like it either, but it seemed to be the most consistent and
-compatible behavior, but I'm not sure anymore.
+I would write something like this:
 
->
-> What G_FMT should return between the time a resolution change was
-> detected and the CAPTURE queue being drained (i.e. the old or the new
-> resolution?) is something I am not sure about.
+If num_bufs is greater than 0, then <describe what happens>.
 
-Note that we're talking here about the initial stream information
-detection, when the driver doesn't have any information needed to
-determine the CAPTURE format yet.
+If num_bufs is equal to 0, then <describe what happens>.
 
->
-> On the one hand it is desirable to have the new resolution asap, on
-> the other hand, returning the new resolution would mean that the
-> returned format is inconsistent with the capture buffer sizes.
->
-> I'm leaning towards either returning the new resolution.
+If num_bufs is not zero then after this request the camera configuration
+cannot be changed. In order to allow camera (re)configuration this request
+must be sent with num_bufs set to zero and the streaming must be stopped
+and buffers destroyed.
 
-Is the "or ..." part of the sentence missing?
+Regards,
 
-One of the major concerns was that we needed to completely stall the
-pipeline in case of a resolution change, which made it hard to deliver
-a seamless transition to the users. An idea that comes to my mind
-would be extending the source change event to actually include the
-v4l2_format struct describing the new format. Then the CAPTURE queue
-could keep the old format until it is drained, which should work fine
-for existing applications, while the new ones could use the new event
-data to determine if the buffers need to be reallocated.
+	Hans
 
-<pipe dream>Ideally we would have all the metadata, including formats,
-unified into a single property (or control) -like interface and tied
-to buffers using Request API...</pipe dream>
+> 
+>>>> + *
+>>>> + * See response format for this request.
+>>>> + *
+>>>> + * Notes:
+>>>> + *  - frontend must check the corresponding response in order to see
+>>>> + *    if the values reported back by the backend do match the desired ones
+>>>> + *    and can be accepted.
+>>>> + *  - frontend may send multiple XENCAMERA_OP_BUF_REQUEST requests before
+>>>> + *    sending XENCAMERA_OP_STREAM_START request to update or tune the
+>>>> + *    configuration.
+>>>> + *  - after this request camera configuration cannot be changed, unless
+>>> camera configuration -> the camera configuration
+>>>
+>>>> + *    streaming is stopped and buffers destroyed
+>>>> + */
+>>> Regards,
+>>>
+>>>     Hans
+> 
 
-Best regards,
-Tomasz
