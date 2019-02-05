@@ -2,193 +2,296 @@ Return-Path: <SRS0=c0D3=QM=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C333C282CB
-	for <linux-media@archiver.kernel.org>; Tue,  5 Feb 2019 06:26:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 58C49C282CB
+	for <linux-media@archiver.kernel.org>; Tue,  5 Feb 2019 06:34:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 16E1B2145D
-	for <linux-media@archiver.kernel.org>; Tue,  5 Feb 2019 06:26:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 160212081B
+	for <linux-media@archiver.kernel.org>; Tue,  5 Feb 2019 06:34:41 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="joRlu2vo"
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="XsXyxCUC"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726416AbfBEG0l (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 5 Feb 2019 01:26:41 -0500
-Received: from mail-ot1-f68.google.com ([209.85.210.68]:44312 "EHLO
+        id S1726646AbfBEGek (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 5 Feb 2019 01:34:40 -0500
+Received: from mail-ot1-f68.google.com ([209.85.210.68]:43055 "EHLO
         mail-ot1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726033AbfBEG0k (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 5 Feb 2019 01:26:40 -0500
-Received: by mail-ot1-f68.google.com with SMTP id g16so3929230otg.11
-        for <linux-media@vger.kernel.org>; Mon, 04 Feb 2019 22:26:40 -0800 (PST)
+        with ESMTP id S1725934AbfBEGek (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 5 Feb 2019 01:34:40 -0500
+Received: by mail-ot1-f68.google.com with SMTP id a11so3956026otr.10
+        for <linux-media@vger.kernel.org>; Mon, 04 Feb 2019 22:34:39 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=chromium.org; s=google;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=xTgE6Zy5ugBz/NPyWIctakVD0BivYTMJdPDR+3PquOs=;
-        b=joRlu2volXvgpqsLpqJ1QjmvDPftUW0J5sJiytpQcrmZoV/iaTN72uH/tQ0EMwMOzO
-         eQAWQ5RCHFlgnevqFbVeDNhEl3n5zS/+j1AKgVqzW5LWRTpX2z0QXOaJi7WbILSiLCRn
-         lgI/EH5Bo1cmNd6WPpTjhrrwHjM7+ESQB+VUo=
+         :cc;
+        bh=WB2r9DtjxH6hgsQ5yHygEw5AulQ+7DZcuqjKYdK31ew=;
+        b=XsXyxCUCZI4DqavWqNMTAWVGx5heqWQT5fKQ4HMkc540zKB4XU+mKWXyTIvzia+SUE
+         5RPbLsFKmdFiYuiMxofTa87al5b6w2AmPyE0jvVIln97yXR0sZ0JfwljIh8PIziIQhbw
+         e6tevo0H5doeL2a6HLhZSwjOoYRRFpa+aJZXk=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=xTgE6Zy5ugBz/NPyWIctakVD0BivYTMJdPDR+3PquOs=;
-        b=ZJru2MmzGUAEeEbpjqs4Aj3gCVBNNKAAdfpv0v3bO/oxJ5QpeTHaV5R7x9KTeLJT8B
-         7CovLzTv5e/shsnS9/a958HxGQKpa1uMMnO69CNQmfMN6+RhNJ7NXabpvu0A0scxLm7F
-         +FrGYSSveEs7TJzBZkPIkxWoDjhLiqaC6i9Xjd42s7b0oCfSfMnQAJenNMidr7k0ODHo
-         1a1s+rn2hulxz7l5dCB8K3yTVtciw8KQltr+CLxaNTaaXnj8Dbm/mUfZCpwQYaFcdGW2
-         8PGFnLfP2sB5p6RPMQyPoMPMhyfjtAZ4rA6+Jwxg22AxzM/wCtmw6P30O25bt3fihglj
-         Fr9w==
-X-Gm-Message-State: AHQUAubFLW5yiVygqAj/191wO6/aqpgQubqeo2F7Zh1jrN/2uVT4ZCWL
-        2boQT8nKGAoDMEB0wRHx26lv7xW/b+U=
-X-Google-Smtp-Source: AHgI3IaIKpBrmspCoV5iLy6vwQn0D7p93WX5ZXIOkR1vF6pb2gXhDTverM5Df+AAF+aEuG3D+SuVVw==
-X-Received: by 2002:a9d:6552:: with SMTP id q18mr1806171otl.128.1549347999812;
-        Mon, 04 Feb 2019 22:26:39 -0800 (PST)
-Received: from mail-ot1-f48.google.com (mail-ot1-f48.google.com. [209.85.210.48])
-        by smtp.gmail.com with ESMTPSA id b23sm7544755otq.5.2019.02.04.22.26.38
+         :message-id:subject:to:cc;
+        bh=WB2r9DtjxH6hgsQ5yHygEw5AulQ+7DZcuqjKYdK31ew=;
+        b=iuo20NDBZZQPG455bI1QNItpKLDOwkPaAfIB5V2NTDA3x13fAxJZL+Lyq6Uu1YE/i6
+         djLw1yN23/H2pyFq1fFreQhltyBfzsqVMJjjCv5j9T3BGJlPZ9vGKczeWW5W/XYGMLRL
+         jnbx72h5j6C48QcViG898rzKH/VVI9q0HoIFHkVXjvr3dRHZ3cJQfd4ptcXHhLfVWLfy
+         +3Xf9E0TNILQg84nY43kzQOjCS2+R9cA/XnOBGbblBXy+L/5MGFZfxfrjvOfD5cZ4Bmf
+         Qawe2iRpFgY6Lfe+dO7sH+65mr0AhvLuXo4Zd7DAn5vTLBKOOyYbvx6DhLIUsJY7C9AC
+         iHRQ==
+X-Gm-Message-State: AHQUAuaYg0jEb4DAmXfSvzry8WVPNG5RiYsjtdC6jK8W7bWzLEASFu3Z
+        Cc2EPq9CCWNKnKj0dek14FUGr6ZMOjs=
+X-Google-Smtp-Source: AHgI3IZQ1KTwnAbVmsTBgte0SERAiJCC7v9QjvUDOeI1zhIFnvSpSQfghAwCszRTHrJZSnXQnHH8Lw==
+X-Received: by 2002:aca:b542:: with SMTP id e63mr1610112oif.125.1549348478691;
+        Mon, 04 Feb 2019 22:34:38 -0800 (PST)
+Received: from mail-ot1-f54.google.com (mail-ot1-f54.google.com. [209.85.210.54])
+        by smtp.gmail.com with ESMTPSA id c23sm7626699otn.21.2019.02.04.22.34.37
         for <linux-media@vger.kernel.org>
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 04 Feb 2019 22:26:38 -0800 (PST)
-Received: by mail-ot1-f48.google.com with SMTP id u16so3957497otk.8
-        for <linux-media@vger.kernel.org>; Mon, 04 Feb 2019 22:26:38 -0800 (PST)
-X-Received: by 2002:a9d:1d65:: with SMTP id m92mr1789110otm.65.1549347998164;
- Mon, 04 Feb 2019 22:26:38 -0800 (PST)
+        Mon, 04 Feb 2019 22:34:37 -0800 (PST)
+Received: by mail-ot1-f54.google.com with SMTP id u16so3979874otk.8
+        for <linux-media@vger.kernel.org>; Mon, 04 Feb 2019 22:34:37 -0800 (PST)
+X-Received: by 2002:aca:5c87:: with SMTP id q129mr1745011oib.189.1549348476877;
+ Mon, 04 Feb 2019 22:34:36 -0800 (PST)
 MIME-Version: 1.0
-References: <20190117162008.25217-1-stanimir.varbanov@linaro.org>
- <20190117162008.25217-11-stanimir.varbanov@linaro.org> <CAAFQd5Cm1zyPzJnixwNmWzxn2zh=63YrA+ZzH-arW-VZ_x-Awg@mail.gmail.com>
- <28069a44-b188-6b89-2687-542fa762c00e@linaro.org> <CAAFQd5BevOV2r1tqmGPnVtdwirGMWU=ZJU85HjfnH-qMyQiyEg@mail.gmail.com>
- <affce842d4f015e13912b2c3941c9bf02e84d194.camel@ndufresne.ca>
- <CAAFQd5Ahg4Di+SBd+-kKo4PLVyvqLwcuG6MphU5Rz1PFXVuamQ@mail.gmail.com>
- <e8a90694c306fde24928a569b7bcb231b86ec73b.camel@ndufresne.ca>
- <CAAFQd5DFfQRd1VoN7itVXnWGKW_WBKU-sm6vo5CdgjkzjEEkFg@mail.gmail.com>
- <57419418d377f32d0e6978f4e4171c0da7357cbb.camel@ndufresne.ca>
- <1548938556.4585.1.camel@pengutronix.de> <CAAFQd5Aih7cWu-cfwBvNdwhHHYEaMF0SFebrYfdNXD9qKu8fxw@mail.gmail.com>
- <1f8485785a21c0b0e071a3a766ed2cbc727e47f6.camel@ndufresne.ca>
-In-Reply-To: <1f8485785a21c0b0e071a3a766ed2cbc727e47f6.camel@ndufresne.ca>
+References: <7fd6ccf110b7c167a2304ffd482e6c04252c4909.1549028130.git.mchehab+samsung@kernel.org>
+In-Reply-To: <7fd6ccf110b7c167a2304ffd482e6c04252c4909.1549028130.git.mchehab+samsung@kernel.org>
 From:   Tomasz Figa <tfiga@chromium.org>
-Date:   Tue, 5 Feb 2019 15:26:26 +0900
-X-Gmail-Original-Message-ID: <CAAFQd5CPKm1ES8c9Lab63Lr8ZfWRckHmJ99SVRYi6Hpe7hzy+g@mail.gmail.com>
-Message-ID: <CAAFQd5CPKm1ES8c9Lab63Lr8ZfWRckHmJ99SVRYi6Hpe7hzy+g@mail.gmail.com>
-Subject: Re: [PATCH 10/10] venus: dec: make decoder compliant with stateful
- codec API
-To:     Nicolas Dufresne <nicolas@ndufresne.ca>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc:     Philipp Zabel <p.zabel@pengutronix.de>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
-        Vikash Garodia <vgarodia@codeaurora.org>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Malathi Gottam <mgottam@codeaurora.org>
+Date:   Tue, 5 Feb 2019 15:34:25 +0900
+X-Gmail-Original-Message-ID: <CAAFQd5Bd4VaAwXnTMVgCTFahda9V6PBm0PVUjc1=VBSUj0Ombw@mail.gmail.com>
+Message-ID: <CAAFQd5Bd4VaAwXnTMVgCTFahda9V6PBm0PVUjc1=VBSUj0Ombw@mail.gmail.com>
+Subject: Re: [PATCH] media: vim2m: add bayer capture formats
+To:     Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc:     Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Hans Verkuil <hverkuil-cisco@xs4all.nl>,
+        Ezequiel Garcia <ezequiel@collabora.com>,
+        Anton Leontiev <scileont@gmail.com>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Fri, Feb 1, 2019 at 12:18 AM Nicolas Dufresne <nicolas@ndufresne.ca> wro=
-te:
->
-> Le jeudi 31 janvier 2019 =C3=A0 22:34 +0900, Tomasz Figa a =C3=A9crit :
-> > On Thu, Jan 31, 2019 at 9:42 PM Philipp Zabel <p.zabel@pengutronix.de> =
-wrote:
-> > > Hi Nicolas,
-> > >
-> > > On Wed, 2019-01-30 at 10:32 -0500, Nicolas Dufresne wrote:
-> > > > Le mercredi 30 janvier 2019 =C3=A0 15:17 +0900, Tomasz Figa a =C3=
-=A9crit :
-> > > > > > I don't remember saying that, maybe I meant to say there might =
-be a
-> > > > > > workaround ?
-> > > > > >
-> > > > > > For the fact, here we queue the headers (or first frame):
-> > > > > >
-> > > > > > https://gitlab.freedesktop.org/gstreamer/gst-plugins-good/blob/=
-master/sys/v4l2/gstv4l2videodec.c#L624
-> > > > > >
-> > > > > > Then few line below this helper does G_FMT internally:
-> > > > > >
-> > > > > > https://gitlab.freedesktop.org/gstreamer/gst-plugins-good/blob/=
-master/sys/v4l2/gstv4l2videodec.c#L634
-> > > > > > https://gitlab.freedesktop.org/gstreamer/gst-plugins-good/blob/=
-master/sys/v4l2/gstv4l2object.c#L3907
-> > > > > >
-> > > > > > And just plainly fails if G_FMT returns an error of any type. T=
-his was
-> > > > > > how Kamil designed it initially for MFC driver. There was no ot=
-her
-> > > > > > alternative back then (no EAGAIN yet either).
-> > > > >
-> > > > > Hmm, was that ffmpeg then?
-> > > > >
-> > > > > So would it just set the OUTPUT width and height to 0? Does it me=
-an
-> > > > > that gstreamer doesn't work with coda and mtk-vcodec, which don't=
- have
-> > > > > such wait in their g_fmt implementations?
-> > > >
-> > > > I don't know for MTK, I don't have the hardware and didn't integrat=
-e
-> > > > their vendor pixel format. For the CODA, I know it works, if there =
-is
-> > > > no wait in the G_FMT, then I suppose we are being really lucky with=
- the
-> > > > timing (it would be that the drivers process the SPS/PPS synchronou=
-sly,
-> > > > and a simple lock in the G_FMT call is enough to wait). Adding Phil=
-ipp
-> > > > in CC, he could explain how this works, I know they use GStreamer i=
-n
-> > > > production, and he would have fixed GStreamer already if that was
-> > > > causing important issue.
-> > >
-> > > CODA predates the width/height=3D0 rule on the coded/OUTPUT queue.
-> > > It currently behaves more like a traditional mem2mem device.
-> >
-> > The rule in the latest spec is that if width/height is 0 then CAPTURE
-> > format is determined only after the stream is parsed. Otherwise it's
-> > instantly deduced from the OUTPUT resolution.
-> >
-> > > When width/height is set via S_FMT(OUT) or output crop selection, the
-> > > driver will believe it and set the same (rounded up to macroblock
-> > > alignment) on the capture queue without ever having seen the SPS.
-> >
-> > That's why I asked whether gstreamer sets width and height of OUTPUT
-> > to non-zero values. If so, there is no regression, as the specs mimic
-> > the coda behavior.
->
-> I see, with Philipp's answer it explains why it works. Note that
-> GStreamer sets the display size on the OUTPUT format (in fact we pass
-> as much information as we have, because a) it's generic code and b) it
-> will be needed someday when we enable pre-allocation (REQBUFS before
-> SPS/PPS is passed, to avoid the setup delay introduce by allocation,
-> mostly seen with CMA base decoder). In any case, the driver reported
-> display size should always be ignored in GStreamer, the only
-> information we look at is the G_SELECTION for the case the x/y or the
-> cropping rectangle is non-zero.
->
-> Note this can only work if the capture queue is not affected by the
-> coded size, or if the round-up made by the driver is bigger or equal to
-> that coded size. I believe CODA falls into the first category, since
-> the decoding happens in a separate set of buffers and are then de-tiled
-> into the capture buffers (if understood correctly).
+Hi Mauro,
 
-Sounds like it would work only if coded size is equal to the visible
-size (that GStreamer sets) rounded up to full macroblocks. Non-zero x
-or y in the crop could be problematic too.
-
-Hans, what's your view on this? Should we require G_FMT(CAPTURE) to
-wait until a format becomes available or the OUTPUT queue runs out of
-buffers?
-
+On Fri, Feb 1, 2019 at 11:19 PM Mauro Carvalho Chehab
+<mchehab+samsung@kernel.org> wrote:
 >
-> I would say, best is just to test the updated Venus driver, which is in
-> my queue.
+> The vim2m device is interesting to simulate a webcam.
 
-The updated Venus driver doesn't implement the behavior I referred to,
-but rather the legacy wait in G_FMT(CAPTURE) as in s5p-mfc.
+Hmm, how would you simulate a webcam with a mem2mem device? The same
+process needs to control both OUTPUT and CAPTURE queues, so regular
+webcam apps wouldn't work.
+
+Best regards,
+Tomasz
+
+> As most
+> sensors are arranged using bayer formats, the best is to support
+> to output data using those formats.
+>
+> So, add support for them.
+>
+> All 4 8-bit bayer formats tested with:
+>
+>         $ qvidcap -p &
+>         $ v4l2-ctl --stream-mmap --stream-out-mmap --stream-to-host localhost --stream-lossless --stream-out-hor-speed 1 -v pixelformat=RGGB
+>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+> ---
+>  drivers/media/platform/vim2m.c | 97 ++++++++++++++++++++++++++++++++--
+>  1 file changed, 92 insertions(+), 5 deletions(-)
+>
+> diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
+> index e31c14c7d37f..6240878def80 100644
+> --- a/drivers/media/platform/vim2m.c
+> +++ b/drivers/media/platform/vim2m.c
+> @@ -82,24 +82,47 @@ static struct platform_device vim2m_pdev = {
+>  struct vim2m_fmt {
+>         u32     fourcc;
+>         int     depth;
+> +       /* Types the format can be used for */
+> +       u32     types;
+>  };
+>
+>  static struct vim2m_fmt formats[] = {
+>         {
+>                 .fourcc = V4L2_PIX_FMT_RGB565,  /* rrrrrggg gggbbbbb */
+>                 .depth  = 16,
+> +               .types  = MEM2MEM_CAPTURE | MEM2MEM_OUTPUT,
+>         }, {
+>                 .fourcc = V4L2_PIX_FMT_RGB565X, /* gggbbbbb rrrrrggg */
+>                 .depth  = 16,
+> +               .types  = MEM2MEM_CAPTURE | MEM2MEM_OUTPUT,
+>         }, {
+>                 .fourcc = V4L2_PIX_FMT_RGB24,
+>                 .depth  = 24,
+> +               .types  = MEM2MEM_CAPTURE | MEM2MEM_OUTPUT,
+>         }, {
+>                 .fourcc = V4L2_PIX_FMT_BGR24,
+>                 .depth  = 24,
+> +               .types  = MEM2MEM_CAPTURE | MEM2MEM_OUTPUT,
+>         }, {
+>                 .fourcc = V4L2_PIX_FMT_YUYV,
+>                 .depth  = 16,
+> +               .types  = MEM2MEM_CAPTURE | MEM2MEM_OUTPUT,
+> +       }, {
+> +               .fourcc = V4L2_PIX_FMT_SBGGR8,
+> +               .depth  = 8,
+> +               .types  = MEM2MEM_CAPTURE,
+> +       }, {
+> +               .fourcc = V4L2_PIX_FMT_SGBRG8,
+> +               .depth  = 8,
+> +               .types  = MEM2MEM_CAPTURE,
+> +       }, {
+> +               .fourcc = V4L2_PIX_FMT_SGRBG8,
+> +               .depth  = 8,
+> +               .types  = MEM2MEM_CAPTURE,
+> +       }, {
+> +               .fourcc = V4L2_PIX_FMT_SRGGB8,
+> +               .depth  = 8,
+> +               .types  = MEM2MEM_CAPTURE,
+>         },
+>  };
+>
+> @@ -208,7 +231,7 @@ static struct vim2m_q_data *get_q_data(struct vim2m_ctx *ctx,
+>         (u8)(((__color) > 0xff) ? 0xff : (((__color) < 0) ? 0 : (__color)))
+>
+>  static void copy_two_pixels(struct vim2m_fmt *in, struct vim2m_fmt *out,
+> -                           u8 **src, u8 **dst, bool reverse)
+> +                           u8 **src, u8 **dst, int y, bool reverse)
+>  {
+>         u8 _r[2], _g[2], _b[2], *r, *g, *b;
+>         int i, step;
+> @@ -379,7 +402,8 @@ static void copy_two_pixels(struct vim2m_fmt *in, struct vim2m_fmt *out,
+>                         *(*dst)++ = *r++;
+>                 }
+>                 return;
+> -       default: /* V4L2_PIX_FMT_YUYV */
+> +       case V4L2_PIX_FMT_YUYV:
+> +       default:
+>         {
+>                 u8 y, y1, u, v;
+>
+> @@ -399,6 +423,42 @@ static void copy_two_pixels(struct vim2m_fmt *in, struct vim2m_fmt *out,
+>                 *(*dst)++ = v;
+>                 return;
+>         }
+> +       case V4L2_PIX_FMT_SBGGR8:
+> +               if (!(y & 1)) {
+> +                       *(*dst)++ = *b;
+> +                       *(*dst)++ = *++g;
+> +               } else {
+> +                       *(*dst)++ = *g;
+> +                       *(*dst)++ = *++r;
+> +               }
+> +               return;
+> +       case V4L2_PIX_FMT_SGBRG8:
+> +               if (!(y & 1)) {
+> +                       *(*dst)++ = *g;
+> +                       *(*dst)++ = *++b;
+> +               } else {
+> +                       *(*dst)++ = *r;
+> +                       *(*dst)++ = *++g;
+> +               }
+> +               return;
+> +       case V4L2_PIX_FMT_SGRBG8:
+> +               if (!(y & 1)) {
+> +                       *(*dst)++ = *g;
+> +                       *(*dst)++ = *++r;
+> +               } else {
+> +                       *(*dst)++ = *b;
+> +                       *(*dst)++ = *++g;
+> +               }
+> +               return;
+> +       case V4L2_PIX_FMT_SRGGB8:
+> +               if (!(y & 1)) {
+> +                       *(*dst)++ = *r;
+> +                       *(*dst)++ = *++g;
+> +               } else {
+> +                       *(*dst)++ = *g;
+> +                       *(*dst)++ = *++b;
+> +               }
+> +               return;
+>         }
+>  }
+>
+> @@ -449,7 +509,7 @@ static int device_process(struct vim2m_ctx *ctx,
+>                         p += bytesperline - (q_data_in->fmt->depth >> 3);
+>
+>                 for (x = 0; x < width >> 1; x++)
+> -                       copy_two_pixels(in, out, &p, &p_out,
+> +                       copy_two_pixels(in, out, &p, &p_out, y,
+>                                         ctx->mode & MEM2MEM_HFLIP);
+>         }
+>
+> @@ -562,11 +622,25 @@ static int vidioc_querycap(struct file *file, void *priv,
+>
+>  static int enum_fmt(struct v4l2_fmtdesc *f, u32 type)
+>  {
+> +       int i, num;
+>         struct vim2m_fmt *fmt;
+>
+> -       if (f->index < NUM_FORMATS) {
+> +       num = 0;
+> +
+> +       for (i = 0; i < NUM_FORMATS; ++i) {
+> +               if (formats[i].types & type) {
+> +                       /* index-th format of type type found ? */
+> +                       if (num == f->index)
+> +                               break;
+> +                       /* Correct type but haven't reached our index yet,
+> +                        * just increment per-type index */
+> +                       ++num;
+> +               }
+> +       }
+> +
+> +       if (i < NUM_FORMATS) {
+>                 /* Format found */
+> -               fmt = &formats[f->index];
+> +               fmt = &formats[i];
+>                 f->pixelformat = fmt->fourcc;
+>                 return 0;
+>         }
+> @@ -657,6 +731,12 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
+>                 f->fmt.pix.pixelformat = formats[0].fourcc;
+>                 fmt = find_format(f);
+>         }
+> +       if (!(fmt->types & MEM2MEM_CAPTURE)) {
+> +               v4l2_err(&ctx->dev->v4l2_dev,
+> +                        "Fourcc format (0x%08x) invalid.\n",
+> +                        f->fmt.pix.pixelformat);
+> +               return -EINVAL;
+> +       }
+>         f->fmt.pix.colorspace = ctx->colorspace;
+>         f->fmt.pix.xfer_func = ctx->xfer_func;
+>         f->fmt.pix.ycbcr_enc = ctx->ycbcr_enc;
+> @@ -669,12 +749,19 @@ static int vidioc_try_fmt_vid_out(struct file *file, void *priv,
+>                                   struct v4l2_format *f)
+>  {
+>         struct vim2m_fmt *fmt;
+> +       struct vim2m_ctx *ctx = file2ctx(file);
+>
+>         fmt = find_format(f);
+>         if (!fmt) {
+>                 f->fmt.pix.pixelformat = formats[0].fourcc;
+>                 fmt = find_format(f);
+>         }
+> +       if (!(fmt->types & MEM2MEM_OUTPUT)) {
+> +               v4l2_err(&ctx->dev->v4l2_dev,
+> +                        "Fourcc format (0x%08x) invalid.\n",
+> +                        f->fmt.pix.pixelformat);
+> +               return -EINVAL;
+> +       }
+>         if (!f->fmt.pix.colorspace)
+>                 f->fmt.pix.colorspace = V4L2_COLORSPACE_REC709;
+>
+> --
+> 2.20.1
+>
