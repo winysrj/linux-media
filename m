@@ -2,215 +2,182 @@ Return-Path: <SRS0=c0D3=QM=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_NEOMUTT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D0F8C282CB
-	for <linux-media@archiver.kernel.org>; Tue,  5 Feb 2019 08:55:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D998C282D7
+	for <linux-media@archiver.kernel.org>; Tue,  5 Feb 2019 09:00:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id F11B52083B
-	for <linux-media@archiver.kernel.org>; Tue,  5 Feb 2019 08:55:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3A2232083B
+	for <linux-media@archiver.kernel.org>; Tue,  5 Feb 2019 09:00:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726854AbfBEIzq (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 5 Feb 2019 03:55:46 -0500
-Received: from mga09.intel.com ([134.134.136.24]:55025 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725898AbfBEIzq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 5 Feb 2019 03:55:46 -0500
-X-Amp-Result: UNSCANNABLE
-X-Amp-File-Uploaded: False
-Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by orsmga102.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 05 Feb 2019 00:55:43 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.56,562,1539673200"; 
-   d="scan'208";a="131189544"
-Received: from ekorotko-mobl1.ger.corp.intel.com (HELO kekkonen.fi.intel.com) ([10.252.43.22])
-  by FMSMGA003.fm.intel.com with ESMTP; 05 Feb 2019 00:55:41 -0800
-Received: by kekkonen.fi.intel.com (Postfix, from userid 1000)
-        id 0A62721D81; Tue,  5 Feb 2019 10:55:39 +0200 (EET)
-Date:   Tue, 5 Feb 2019 10:55:39 +0200
-From:   Sakari Ailus <sakari.ailus@linux.intel.com>
-To:     Chen-Yu Tsai <wens@csie.org>
-Cc:     Steve Longerbeam <slongerbeam@gmail.com>,
+        id S1728399AbfBEJAb (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 5 Feb 2019 04:00:31 -0500
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:33981 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725952AbfBEJAb (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 5 Feb 2019 04:00:31 -0500
+Received: from [IPv6:2001:983:e9a7:1:2989:f759:211b:c8a5] ([IPv6:2001:983:e9a7:1:2989:f759:211b:c8a5])
+        by smtp-cloud7.xs4all.net with ESMTPA
+        id qwaggb6AJBDyIqwaigB6XP; Tue, 05 Feb 2019 10:00:29 +0100
+Subject: Re: [PATCH 10/10] venus: dec: make decoder compliant with stateful
+ codec API
+To:     Tomasz Figa <tfiga@chromium.org>,
+        Nicolas Dufresne <nicolas@ndufresne.ca>
+Cc:     Philipp Zabel <p.zabel@pengutronix.de>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Maxime Ripard <maxime.ripard@bootlin.com>
-Subject: Re: [PATCH 6/6] media: ov5640: Consolidate JPEG compression mode
- setting
-Message-ID: <20190205085539.6nh7rzialcvztuqo@kekkonen.localdomain>
-References: <20190118085206.2598-1-wens@csie.org>
- <20190118085206.2598-7-wens@csie.org>
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
+        Vikash Garodia <vgarodia@codeaurora.org>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Malathi Gottam <mgottam@codeaurora.org>
+References: <20190117162008.25217-1-stanimir.varbanov@linaro.org>
+ <20190117162008.25217-11-stanimir.varbanov@linaro.org>
+ <CAAFQd5Cm1zyPzJnixwNmWzxn2zh=63YrA+ZzH-arW-VZ_x-Awg@mail.gmail.com>
+ <28069a44-b188-6b89-2687-542fa762c00e@linaro.org>
+ <CAAFQd5BevOV2r1tqmGPnVtdwirGMWU=ZJU85HjfnH-qMyQiyEg@mail.gmail.com>
+ <affce842d4f015e13912b2c3941c9bf02e84d194.camel@ndufresne.ca>
+ <CAAFQd5Ahg4Di+SBd+-kKo4PLVyvqLwcuG6MphU5Rz1PFXVuamQ@mail.gmail.com>
+ <e8a90694c306fde24928a569b7bcb231b86ec73b.camel@ndufresne.ca>
+ <CAAFQd5DFfQRd1VoN7itVXnWGKW_WBKU-sm6vo5CdgjkzjEEkFg@mail.gmail.com>
+ <57419418d377f32d0e6978f4e4171c0da7357cbb.camel@ndufresne.ca>
+ <1548938556.4585.1.camel@pengutronix.de>
+ <CAAFQd5Aih7cWu-cfwBvNdwhHHYEaMF0SFebrYfdNXD9qKu8fxw@mail.gmail.com>
+ <1f8485785a21c0b0e071a3a766ed2cbc727e47f6.camel@ndufresne.ca>
+ <CAAFQd5CPKm1ES8c9Lab63Lr8ZfWRckHmJ99SVRYi6Hpe7hzy+g@mail.gmail.com>
+From:   Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <f1e9dc99-4fcb-dee1-4279-ac0cf1d1fd6e@xs4all.nl>
+Date:   Tue, 5 Feb 2019 10:00:26 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.3.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190118085206.2598-7-wens@csie.org>
-User-Agent: NeoMutt/20170113 (1.7.2)
+In-Reply-To: <CAAFQd5CPKm1ES8c9Lab63Lr8ZfWRckHmJ99SVRYi6Hpe7hzy+g@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
+X-CMAE-Envelope: MS4wfNCn6NsNJjgMzHrAN5ujof5bBPSlSV0od8QQtNlDP2vh75KA1dpdOhkFnqUC8rp/D/3XBHUxeRMZwarYlOsoX9Ib5EpIA/03hvkTPtOQFEBWH3+vWlEU
+ qcBIqJNuwfxivVfdI0fApYhjCHX2hZB8f/k0cWgzrZARpsm35lFwjIr1E2AhOLBrGrTuT1N4DV3ap/0+MJRS2ywhW2sLxx07/btCkYbgwu6iB9FTzTCt8V6I
+ 3TWqxrHE4ZikD7QpCPvHdXMSvSQaLRs8LjvLUcckRY/XgR483PZWXyxaY1UR6BecIDNrV9MHuxnhwPZw3bKuIbUCquUHU4fUGa6RcqzmPAOTUybHxz+/JFfq
+ T1eCvfJwgAfrAiu8A1DQ4Lc8mGjjP9d27okBJlEf15068zAmDyOl9uz0aVDuk9SHKXePsiBN7cKEknRypyh5LmjeD0o0A3WLHQfsQJRt5tcd+za5BasnsCPO
+ MfcTx24CNn7j3lp7dxCJxJjndi34q8wPw4xBMI9rz86cVuA5aZEBaYGua2HyRrfN0L85g04zmaCjvbwSSicisDTZ1TcUl1kwEoKX/x8IQQzWI8o/0fd4y7FH
+ x3dXk5em9dqEJzKdu/XjMLIqtP3/M5DsBIxNgbieLAaCOQ==
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Chen-Yu,
-
-On Fri, Jan 18, 2019 at 04:52:06PM +0800, Chen-Yu Tsai wrote:
-> The register value lists for all the supported resolution settings all
-> include a register address/value pair for setting the JPEG compression
-> mode. With the exception of 1080p (which sets mode 2), all resolutions
-> use mode 3.
+On 2/5/19 7:26 AM, Tomasz Figa wrote:
+> On Fri, Feb 1, 2019 at 12:18 AM Nicolas Dufresne <nicolas@ndufresne.ca> wrote:
+>>
+>> Le jeudi 31 janvier 2019 à 22:34 +0900, Tomasz Figa a écrit :
+>>> On Thu, Jan 31, 2019 at 9:42 PM Philipp Zabel <p.zabel@pengutronix.de> wrote:
+>>>> Hi Nicolas,
+>>>>
+>>>> On Wed, 2019-01-30 at 10:32 -0500, Nicolas Dufresne wrote:
+>>>>> Le mercredi 30 janvier 2019 à 15:17 +0900, Tomasz Figa a écrit :
+>>>>>>> I don't remember saying that, maybe I meant to say there might be a
+>>>>>>> workaround ?
+>>>>>>>
+>>>>>>> For the fact, here we queue the headers (or first frame):
+>>>>>>>
+>>>>>>> https://gitlab.freedesktop.org/gstreamer/gst-plugins-good/blob/master/sys/v4l2/gstv4l2videodec.c#L624
+>>>>>>>
+>>>>>>> Then few line below this helper does G_FMT internally:
+>>>>>>>
+>>>>>>> https://gitlab.freedesktop.org/gstreamer/gst-plugins-good/blob/master/sys/v4l2/gstv4l2videodec.c#L634
+>>>>>>> https://gitlab.freedesktop.org/gstreamer/gst-plugins-good/blob/master/sys/v4l2/gstv4l2object.c#L3907
+>>>>>>>
+>>>>>>> And just plainly fails if G_FMT returns an error of any type. This was
+>>>>>>> how Kamil designed it initially for MFC driver. There was no other
+>>>>>>> alternative back then (no EAGAIN yet either).
+>>>>>>
+>>>>>> Hmm, was that ffmpeg then?
+>>>>>>
+>>>>>> So would it just set the OUTPUT width and height to 0? Does it mean
+>>>>>> that gstreamer doesn't work with coda and mtk-vcodec, which don't have
+>>>>>> such wait in their g_fmt implementations?
+>>>>>
+>>>>> I don't know for MTK, I don't have the hardware and didn't integrate
+>>>>> their vendor pixel format. For the CODA, I know it works, if there is
+>>>>> no wait in the G_FMT, then I suppose we are being really lucky with the
+>>>>> timing (it would be that the drivers process the SPS/PPS synchronously,
+>>>>> and a simple lock in the G_FMT call is enough to wait). Adding Philipp
+>>>>> in CC, he could explain how this works, I know they use GStreamer in
+>>>>> production, and he would have fixed GStreamer already if that was
+>>>>> causing important issue.
+>>>>
+>>>> CODA predates the width/height=0 rule on the coded/OUTPUT queue.
+>>>> It currently behaves more like a traditional mem2mem device.
+>>>
+>>> The rule in the latest spec is that if width/height is 0 then CAPTURE
+>>> format is determined only after the stream is parsed. Otherwise it's
+>>> instantly deduced from the OUTPUT resolution.
+>>>
+>>>> When width/height is set via S_FMT(OUT) or output crop selection, the
+>>>> driver will believe it and set the same (rounded up to macroblock
+>>>> alignment) on the capture queue without ever having seen the SPS.
+>>>
+>>> That's why I asked whether gstreamer sets width and height of OUTPUT
+>>> to non-zero values. If so, there is no regression, as the specs mimic
+>>> the coda behavior.
+>>
+>> I see, with Philipp's answer it explains why it works. Note that
+>> GStreamer sets the display size on the OUTPUT format (in fact we pass
+>> as much information as we have, because a) it's generic code and b) it
+>> will be needed someday when we enable pre-allocation (REQBUFS before
+>> SPS/PPS is passed, to avoid the setup delay introduce by allocation,
+>> mostly seen with CMA base decoder). In any case, the driver reported
+>> display size should always be ignored in GStreamer, the only
+>> information we look at is the G_SELECTION for the case the x/y or the
+>> cropping rectangle is non-zero.
+>>
+>> Note this can only work if the capture queue is not affected by the
+>> coded size, or if the round-up made by the driver is bigger or equal to
+>> that coded size. I believe CODA falls into the first category, since
+>> the decoding happens in a separate set of buffers and are then de-tiled
+>> into the capture buffers (if understood correctly).
 > 
-> The only difference between mode 2 and mode 3 is that mode 2 may have
-> padding data on the last line, while mode 3 does not add padding data.
+> Sounds like it would work only if coded size is equal to the visible
+> size (that GStreamer sets) rounded up to full macroblocks. Non-zero x
+> or y in the crop could be problematic too.
 > 
-> As these register values were from dumps of running systems, and the
-> difference between the modes is quite small, using mode 3 for all
-> configurations should be OK.
-> 
-> Signed-off-by: Chen-Yu Tsai <wens@csie.org>
-> ---
->  drivers/media/i2c/ov5640.c | 34 +++++++++++++++++++++++-----------
->  1 file changed, 23 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-> index 1c1dc401c678..3d2c5de73283 100644
-> --- a/drivers/media/i2c/ov5640.c
-> +++ b/drivers/media/i2c/ov5640.c
-> @@ -85,6 +85,7 @@
->  #define OV5640_REG_FORMAT_CONTROL00	0x4300
->  #define OV5640_REG_VFIFO_HSIZE		0x4602
->  #define OV5640_REG_VFIFO_VSIZE		0x4604
-> +#define OV5640_REG_JPG_MODE_SELECT	0x4713
+> Hans, what's your view on this? Should we require G_FMT(CAPTURE) to
+> wait until a format becomes available or the OUTPUT queue runs out of
 
-How has this been tested?
+You mean CAPTURE queue? If not, then I don't understand that part.
 
-The register is referred to as "OV5640_REG_JPEG_MODE_SELECT" below. I can
-fix it if it's just a typo, but please confirm.
+> buffers?
 
-Thanks.
+First see my comment here regarding G_FMT returning an error:
 
->  #define OV5640_REG_POLARITY_CTRL00	0x4740
->  #define OV5640_REG_MIPI_CTRL00		0x4800
->  #define OV5640_REG_DEBUG_MODE		0x4814
-> @@ -303,7 +304,7 @@ static const struct reg_value ov5640_init_setting_30fps_VGA[] = {
->  	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0}, {0x3000, 0x00, 0, 0},
->  	{0x3002, 0x1c, 0, 0}, {0x3004, 0xff, 0, 0}, {0x3006, 0xc3, 0, 0},
->  	{0x302e, 0x08, 0, 0}, {0x4300, 0x3f, 0, 0},
-> -	{0x501f, 0x00, 0, 0}, {0x4713, 0x03, 0, 0}, {0x4407, 0x04, 0, 0},
-> +	{0x501f, 0x00, 0, 0}, {0x4407, 0x04, 0, 0},
->  	{0x440e, 0x00, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
->  	{0x4837, 0x0a, 0, 0}, {0x3824, 0x02, 0, 0},
->  	{0x5000, 0xa7, 0, 0}, {0x5001, 0xa3, 0, 0}, {0x5180, 0xff, 0, 0},
-> @@ -372,7 +373,7 @@ static const struct reg_value ov5640_setting_VGA_640_480[] = {
->  	{0x3a03, 0xd8, 0, 0}, {0x3a08, 0x01, 0, 0}, {0x3a09, 0x27, 0, 0},
->  	{0x3a0a, 0x00, 0, 0}, {0x3a0b, 0xf6, 0, 0}, {0x3a0e, 0x03, 0, 0},
->  	{0x3a0d, 0x04, 0, 0}, {0x3a14, 0x03, 0, 0}, {0x3a15, 0xd8, 0, 0},
-> -	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0}, {0x4713, 0x03, 0, 0},
-> +	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0},
->  	{0x4407, 0x04, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
->  	{0x3824, 0x02, 0, 0}, {0x5001, 0xa3, 0, 0},
->  };
-> @@ -391,7 +392,7 @@ static const struct reg_value ov5640_setting_XGA_1024_768[] = {
->  	{0x3a03, 0xd8, 0, 0}, {0x3a08, 0x01, 0, 0}, {0x3a09, 0x27, 0, 0},
->  	{0x3a0a, 0x00, 0, 0}, {0x3a0b, 0xf6, 0, 0}, {0x3a0e, 0x03, 0, 0},
->  	{0x3a0d, 0x04, 0, 0}, {0x3a14, 0x03, 0, 0}, {0x3a15, 0xd8, 0, 0},
-> -	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0}, {0x4713, 0x03, 0, 0},
-> +	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0},
->  	{0x4407, 0x04, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
->  	{0x3824, 0x02, 0, 0}, {0x5001, 0xa3, 0, 0},
->  };
-> @@ -410,7 +411,7 @@ static const struct reg_value ov5640_setting_QVGA_320_240[] = {
->  	{0x3a03, 0xd8, 0, 0}, {0x3a08, 0x01, 0, 0}, {0x3a09, 0x27, 0, 0},
->  	{0x3a0a, 0x00, 0, 0}, {0x3a0b, 0xf6, 0, 0}, {0x3a0e, 0x03, 0, 0},
->  	{0x3a0d, 0x04, 0, 0}, {0x3a14, 0x03, 0, 0}, {0x3a15, 0xd8, 0, 0},
-> -	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0}, {0x4713, 0x03, 0, 0},
-> +	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0},
->  	{0x4407, 0x04, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
->  	{0x3824, 0x02, 0, 0}, {0x5001, 0xa3, 0, 0},
->  };
-> @@ -429,7 +430,7 @@ static const struct reg_value ov5640_setting_QCIF_176_144[] = {
->  	{0x3a03, 0xd8, 0, 0}, {0x3a08, 0x01, 0, 0}, {0x3a09, 0x27, 0, 0},
->  	{0x3a0a, 0x00, 0, 0}, {0x3a0b, 0xf6, 0, 0}, {0x3a0e, 0x03, 0, 0},
->  	{0x3a0d, 0x04, 0, 0}, {0x3a14, 0x03, 0, 0}, {0x3a15, 0xd8, 0, 0},
-> -	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0}, {0x4713, 0x03, 0, 0},
-> +	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0},
->  	{0x4407, 0x04, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
->  	{0x3824, 0x02, 0, 0}, {0x5001, 0xa3, 0, 0},
->  };
-> @@ -448,7 +449,7 @@ static const struct reg_value ov5640_setting_NTSC_720_480[] = {
->  	{0x3a03, 0xd8, 0, 0}, {0x3a08, 0x01, 0, 0}, {0x3a09, 0x27, 0, 0},
->  	{0x3a0a, 0x00, 0, 0}, {0x3a0b, 0xf6, 0, 0}, {0x3a0e, 0x03, 0, 0},
->  	{0x3a0d, 0x04, 0, 0}, {0x3a14, 0x03, 0, 0}, {0x3a15, 0xd8, 0, 0},
-> -	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0}, {0x4713, 0x03, 0, 0},
-> +	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0},
->  	{0x4407, 0x04, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
->  	{0x3824, 0x02, 0, 0}, {0x5001, 0xa3, 0, 0},
->  };
-> @@ -467,7 +468,7 @@ static const struct reg_value ov5640_setting_PAL_720_576[] = {
->  	{0x3a03, 0xd8, 0, 0}, {0x3a08, 0x01, 0, 0}, {0x3a09, 0x27, 0, 0},
->  	{0x3a0a, 0x00, 0, 0}, {0x3a0b, 0xf6, 0, 0}, {0x3a0e, 0x03, 0, 0},
->  	{0x3a0d, 0x04, 0, 0}, {0x3a14, 0x03, 0, 0}, {0x3a15, 0xd8, 0, 0},
-> -	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0}, {0x4713, 0x03, 0, 0},
-> +	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0},
->  	{0x4407, 0x04, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
->  	{0x3824, 0x02, 0, 0}, {0x5001, 0xa3, 0, 0},
->  };
-> @@ -486,7 +487,7 @@ static const struct reg_value ov5640_setting_720P_1280_720[] = {
->  	{0x3a03, 0xe4, 0, 0}, {0x3a08, 0x01, 0, 0}, {0x3a09, 0xbc, 0, 0},
->  	{0x3a0a, 0x01, 0, 0}, {0x3a0b, 0x72, 0, 0}, {0x3a0e, 0x01, 0, 0},
->  	{0x3a0d, 0x02, 0, 0}, {0x3a14, 0x02, 0, 0}, {0x3a15, 0xe4, 0, 0},
-> -	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0}, {0x4713, 0x03, 0, 0},
-> +	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0},
->  	{0x4407, 0x04, 0, 0}, {0x460b, 0x37, 0, 0}, {0x460c, 0x20, 0, 0},
->  	{0x3824, 0x04, 0, 0}, {0x5001, 0x83, 0, 0},
->  };
-> @@ -506,7 +507,7 @@ static const struct reg_value ov5640_setting_1080P_1920_1080[] = {
->  	{0x3a03, 0xd8, 0, 0}, {0x3a08, 0x01, 0, 0}, {0x3a09, 0x27, 0, 0},
->  	{0x3a0a, 0x00, 0, 0}, {0x3a0b, 0xf6, 0, 0}, {0x3a0e, 0x03, 0, 0},
->  	{0x3a0d, 0x04, 0, 0}, {0x3a14, 0x03, 0, 0}, {0x3a15, 0xd8, 0, 0},
-> -	{0x4001, 0x02, 0, 0}, {0x4004, 0x06, 0, 0}, {0x4713, 0x03, 0, 0},
-> +	{0x4001, 0x02, 0, 0}, {0x4004, 0x06, 0, 0},
->  	{0x4407, 0x04, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
->  	{0x3824, 0x02, 0, 0}, {0x5001, 0x83, 0, 0},
->  	{0x3c07, 0x07, 0, 0}, {0x3c08, 0x00, 0, 0},
-> @@ -518,7 +519,7 @@ static const struct reg_value ov5640_setting_1080P_1920_1080[] = {
->  	{0x3a02, 0x04, 0, 0}, {0x3a03, 0x60, 0, 0}, {0x3a08, 0x01, 0, 0},
->  	{0x3a09, 0x50, 0, 0}, {0x3a0a, 0x01, 0, 0}, {0x3a0b, 0x18, 0, 0},
->  	{0x3a0e, 0x03, 0, 0}, {0x3a0d, 0x04, 0, 0}, {0x3a14, 0x04, 0, 0},
-> -	{0x3a15, 0x60, 0, 0}, {0x4713, 0x02, 0, 0}, {0x4407, 0x04, 0, 0},
-> +	{0x3a15, 0x60, 0, 0}, {0x4407, 0x04, 0, 0},
->  	{0x460b, 0x37, 0, 0}, {0x460c, 0x20, 0, 0}, {0x3824, 0x04, 0, 0},
->  	{0x4005, 0x1a, 0, 0}, {0x3008, 0x02, 0, 0},
->  };
-> @@ -537,7 +538,7 @@ static const struct reg_value ov5640_setting_QSXGA_2592_1944[] = {
->  	{0x3a03, 0xd8, 0, 0}, {0x3a08, 0x01, 0, 0}, {0x3a09, 0x27, 0, 0},
->  	{0x3a0a, 0x00, 0, 0}, {0x3a0b, 0xf6, 0, 0}, {0x3a0e, 0x03, 0, 0},
->  	{0x3a0d, 0x04, 0, 0}, {0x3a14, 0x03, 0, 0}, {0x3a15, 0xd8, 0, 0},
-> -	{0x4001, 0x02, 0, 0}, {0x4004, 0x06, 0, 0}, {0x4713, 0x03, 0, 0},
-> +	{0x4001, 0x02, 0, 0}, {0x4004, 0x06, 0, 0},
->  	{0x4407, 0x04, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
->  	{0x3824, 0x02, 0, 0}, {0x5001, 0x83, 0, 70},
->  };
-> @@ -1051,6 +1052,17 @@ static int ov5640_set_jpeg_timings(struct ov5640_dev *sensor,
->  {
->  	int ret;
->  
-> +	/*
-> +	 * compression mode 3 timing
-> +	 *
-> +	 * Data is transmitted with programmable width (VFIFO_HSIZE).
-> +	 * No padding done. Last line may have less data. Varying
-> +	 * number of lines per frame, depending on amount of data.
-> +	 */
-> +	ret = ov5640_mod_reg(sensor, OV5640_REG_JPEG_MODE_SELECT, 0x7, 0x3);
-> +	if (ret < 0)
-> +		return ret;
-> +
->  	ret = ov5640_write_reg16(sensor, OV5640_REG_VFIFO_HSIZE, mode->hact);
->  	if (ret < 0)
->  		return ret;
+https://www.spinics.net/lists/linux-media/msg146505.html
 
--- 
+In my view that is a bad idea.
+
+What G_FMT should return between the time a resolution change was
+detected and the CAPTURE queue being drained (i.e. the old or the new
+resolution?) is something I am not sure about.
+
+On the one hand it is desirable to have the new resolution asap, on
+the other hand, returning the new resolution would mean that the
+returned format is inconsistent with the capture buffer sizes.
+
+I'm leaning towards either returning the new resolution.
+
 Regards,
 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+	Hans
+
+> 
+>>
+>> I would say, best is just to test the updated Venus driver, which is in
+>> my queue.
+> 
+> The updated Venus driver doesn't implement the behavior I referred to,
+> but rather the legacy wait in G_FMT(CAPTURE) as in s5p-mfc.
+> 
+
