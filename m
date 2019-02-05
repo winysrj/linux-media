@@ -2,131 +2,209 @@ Return-Path: <SRS0=c0D3=QM=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 932D5C282CB
-	for <linux-media@archiver.kernel.org>; Tue,  5 Feb 2019 17:06:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E39FC282CB
+	for <linux-media@archiver.kernel.org>; Tue,  5 Feb 2019 18:11:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 59520217F9
-	for <linux-media@archiver.kernel.org>; Tue,  5 Feb 2019 17:06:50 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KXBfxC3b"
+	by mail.kernel.org (Postfix) with ESMTP id D0485217F9
+	for <linux-media@archiver.kernel.org>; Tue,  5 Feb 2019 18:11:10 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1549390270;
+	bh=hV1h2QEZh4sj0eOOvVq+UUR8daI4GbQa7rNj+rdTAv0=;
+	h=Subject:To:Cc:References:From:Date:In-Reply-To:List-ID:From;
+	b=2KwwiIiU5lDU9xN4VjPiP/6A2+Hbit+HA8eBW+me2csNqExlPoFtkh44gnoCvYX+U
+	 qrKV1MebbFI8cbglT2j8kFT88mVW6NDPw066XHKgMt1AUT+UAS7x0SP1tvavMtcYOf
+	 yEdrlpM9Y5PvI+2ccBWwJA22JpyowMCaV5SJHc2M=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727207AbfBERGt (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 5 Feb 2019 12:06:49 -0500
-Received: from mail-ed1-f66.google.com ([209.85.208.66]:45459 "EHLO
-        mail-ed1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726717AbfBERGt (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 5 Feb 2019 12:06:49 -0500
-Received: by mail-ed1-f66.google.com with SMTP id t6so2219349edw.12
-        for <linux-media@vger.kernel.org>; Tue, 05 Feb 2019 09:06:48 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=sender:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=7QiibuPpWOpNLx94WVXHDAFCLQTyqDlOvyOdzdbqjis=;
-        b=KXBfxC3bKmN7pj+iaVCj+yMc5q+QBco9LiyyntEcaqR5GttjoBCJDLBI/WC6PcIG2T
-         kTxWUPkb+4atc+BPwTZa2oebE07K2k9rY+oreR9EqsGE0+E429nzSVQnw8peR9n04sKV
-         jjZLp2ya6Xn3d1WrOF4FwS45BH5u3R5TF3qu79JDRCe96rn96IH3/aqUfLz8AzZPrChg
-         Y8aif4Jau6htXpbh9M+QTLzRd2h5N7nVpUWw0QKWYFcVnOoh4xsxUDovzYXbhp9/PuMT
-         iXsSnDYbK6RinPBSh7ZhfuAPsyRiftQWKbhaM9JRvmnBzgkN+ogQ0QjAOsBxrIN2Ki8y
-         DYxQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:sender:from:to:cc:subject:date:message-id
-         :mime-version:content-transfer-encoding;
-        bh=7QiibuPpWOpNLx94WVXHDAFCLQTyqDlOvyOdzdbqjis=;
-        b=h4MlBUFjPhFRYkCueB+lH1ruvPRXhEtcFSITGiRPai7TH/wK9e1kNKxpYsGkCFGh5J
-         lyCQ88ZN+cSGhQcyJP/BX+HBFtRBUOcDWJnAcMjHM2pWGinyGyxJoOd9cjzwOSCXMNiV
-         Twm38FgAqdxfhkQyUV/eguRixS1J5A+0DJEqRWFctsaXTkeyo5g2lnieLt8O3DBEiH1S
-         SIHhRStDEw8qNBjDO8Wf9gloSGyxxLYLcZfEkA7yRYwAISmkr0dYRYzghy4hMpUzWiTX
-         7GLSiWDeKGtUOVVX/6XaKxaWy57tE17aH5ZPwMhd74MC0Z1vlrwbshpTTfXdtAFtBg1J
-         ym6g==
-X-Gm-Message-State: AHQUAuaarxeCOVabewSY5dO3qzSczJtDnc/+DNlABcwtlVnGbWgNQYS+
-        hGJa4YJ5vYbjwHiWhI8KP4cppmUI
-X-Google-Smtp-Source: AHgI3IZVfU206cFpQyS2dAFy9mSe/bqEgvMHwXCpiyiwPjdOck2YLy9xhGLhhmECVB79DbgT4megrA==
-X-Received: by 2002:aa7:d9d6:: with SMTP id v22mr4667268eds.265.1549386407750;
-        Tue, 05 Feb 2019 09:06:47 -0800 (PST)
-Received: from neopili.qtec.com (cpe.xe-3-0-1-778.vbrnqe10.dk.customer.tdc.net. [80.197.57.18])
-        by smtp.gmail.com with ESMTPSA id b19-v6sm3024061ejp.77.2019.02.05.09.06.45
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 05 Feb 2019 09:06:46 -0800 (PST)
-From:   Ricardo Ribalda Delgado <ricardo@ribalda.com>
-To:     Hans de Goede <hdegoede@redhat.com>,
-        Hans Verkuil <hverkuil-cisco@xs4all.nl>,
-        Gregor Jasny <gjasny@googlemail.com>,
-        linux-media@vger.kernel.org, daniel@qtec.com
-Cc:     Ricardo Ribalda Delgado <ricardo@ribalda.com>
-Subject: [PATCH] libv4lconvert: Fix support for compressed bayer formats
-Date:   Tue,  5 Feb 2019 18:06:44 +0100
-Message-Id: <20190205170644.29751-1-ricardo@ribalda.com>
-X-Mailer: git-send-email 2.20.1
+        id S1728189AbfBESLK (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 5 Feb 2019 13:11:10 -0500
+Received: from mail.kernel.org ([198.145.29.99]:33966 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726685AbfBESLK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 5 Feb 2019 13:11:10 -0500
+Received: from [10.0.2.154] (host81-133-38-158.in-addr.btopenworld.com [81.133.38.158])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id D68DE2083B;
+        Tue,  5 Feb 2019 18:11:06 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1549390268;
+        bh=hV1h2QEZh4sj0eOOvVq+UUR8daI4GbQa7rNj+rdTAv0=;
+        h=Subject:To:Cc:References:From:Date:In-Reply-To:From;
+        b=p2+rmDN2WkW/Mzz+Eihue95jfz7OfHTcBsB7cMTQWdVpteCtP4RqEqygdUxVFbGGj
+         rKl517Uw0VdukfvJPXXEwZ6pGk//OJkqfICTR2LbEvIFul/lHzJR0uN/iuUjtNrrJH
+         ySLcleFVPJeNr/jiIIYHpcNRFYJB6GlvqeElFt7k=
+Subject: Re: [PATCH v10 0/4] Media Device Allocator API
+To:     Hans Verkuil <hverkuil@xs4all.nl>, mchehab@kernel.org,
+        perex@perex.cz, tiwai@suse.com
+Cc:     linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        alsa-devel@alsa-project.org, shuah <shuah@kernel.org>
+References: <cover.1548360791.git.shuah@kernel.org>
+ <e8717d11-1eff-2e07-53d5-6cd55356c66a@xs4all.nl>
+ <481787e7-112a-80dd-228c-2497a12547b9@kernel.org>
+ <d9ae1073-f6a9-1085-c8f8-8edd05daece5@xs4all.nl>
+ <b9a62121-8ab0-5c1c-79ff-8bb39fc8b762@kernel.org>
+ <fe6d6f63-72e3-8e2f-462d-b029997d8ee9@xs4all.nl>
+ <7a809bc8-f75e-04e6-f612-f6111c6b5a71@kernel.org>
+ <7e6dc7f1-f596-22d7-bdd6-b54bd912a40d@xs4all.nl>
+From:   shuah <shuah@kernel.org>
+Message-ID: <80c87e59-bf25-d470-1566-c6aa60e9b0ed@kernel.org>
+Date:   Tue, 5 Feb 2019 11:10:53 -0700
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.4.0
 MIME-Version: 1.0
+In-Reply-To: <7e6dc7f1-f596-22d7-bdd6-b54bd912a40d@xs4all.nl>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-10 bit packet Bayer format broke the support for the other
-compressed bayer formats.
-Due to the fallthrough of the compressed formats, 10b code will be
-executed for every 10b format.
+On 2/1/19 2:21 AM, Hans Verkuil wrote:
+> On 2/1/19 1:46 AM, shuah wrote:
+>> Hi Hans,
+>>
+>> On 1/30/19 12:42 AM, Hans Verkuil wrote:
+>>> On 1/30/19 2:50 AM, shuah wrote:
+>>>> On 1/29/19 2:43 AM, Hans Verkuil wrote:
+>>>>> On 1/29/19 12:48 AM, shuah wrote:
+>>>>>> Hi Hans,
+>>>>>>
+>>>>>> On 1/28/19 5:03 AM, Hans Verkuil wrote:
+>>>>>>> Hi Shuah,
+>>>>>>>
+>>>>>>> On 1/24/19 9:32 PM, Shuah Khan wrote:
+>>>>>>>> Media Device Allocator API to allows multiple drivers share a media device.
+>>>>>>>> This API solves a very common use-case for media devices where one physical
+>>>>>>>> device (an USB stick) provides both audio and video. When such media device
+>>>>>>>> exposes a standard USB Audio class, a proprietary Video class, two or more
+>>>>>>>> independent drivers will share a single physical USB bridge. In such cases,
+>>>>>>>> it is necessary to coordinate access to the shared resource.
+>>>>>>>>
+>>>>>>>> Using this API, drivers can allocate a media device with the shared struct
+>>>>>>>> device as the key. Once the media device is allocated by a driver, other
+>>>>>>>> drivers can get a reference to it. The media device is released when all
+>>>>>>>> the references are released.
+>>>>>>>>
+>>>>>>>> - This patch series is tested on 5.0-rc3 and addresses comments on
+>>>>>>>>       v9 series from Hans Verkuil.
+>>>>>>>> - v9 was tested on 4.20-rc6.
+>>>>>>>> - Tested sharing resources with kaffeine, vlc, xawtv, tvtime, and
+>>>>>>>>       arecord. When analog is streaming, digital and audio user-space
+>>>>>>>>       applications detect that the tuner is busy and exit. When digital
+>>>>>>>>       is streaming, analog and audio applications detect that the tuner is
+>>>>>>>>       busy and exit. When arecord is owns the tuner, digital and analog
+>>>>>>>>       detect that the tuner is busy and exit.
+>>>>>>>
+>>>>>>> I've been doing some testing with my au0828, and I am confused about one
+>>>>>>> thing, probably because it has been too long ago since I last looked into
+>>>>>>> this in detail:
+>>>>>>>
+>>>>>>
+>>>>>> Great.
+>>>>>>
+>>>>>>> Why can't I change the tuner frequency if arecord (and only arecord) is
+>>>>>>> streaming audio? If arecord is streaming, then it is recording the audio
+>>>>>>> from the analog TV tuner, right? So changing the analog TV frequency
+>>>>>>> should be fine.
+>>>>>>>
+>>>>>>
+>>>>>> Changing analog TV frequency would be s_frequency. The way it works is
+>>>>>> any s_* calls would require holding the pipeline. In Analog TV case, it
+>>>>>> would mean holding both audio and video pipelines for any changes
+>>>>>> including TV.
+>>>>>>
+>>>>>> As I recall, we discussed this design and the decision was to make all
+>>>>>> s_* calls interfaces to hold the tuner. A special exception is g_tuner
+>>>>>> in case of au0828. au0828 initializes the tuner from s_* interfaces and
+>>>>>> its g_tuner interfaces. Allowing s_frequency to proceed will disrupt the
+>>>>>> arecord audio stream.
+>>>>>>
+>>>>>> Query (q_*) works just fine without holding the pipeline. I limited the
+>>>>>> analog holds to just the ones that are required. The current set is
+>>>>>> required to avoid audio stream disruptions.
+>>>>>
+>>>>> So I am not sure about that ('avoid audio stream disruptions'): if I
+>>>>> stream video AND use arecord, then I can just set the frequency while
+>>>>> streaming. Doesn't that interrupt audio as well? And are you sure changing
+>>>>> the tuner frequency actually disrupts audio? And if audio is disrupted,
+>>>>> are we talking about a glitch or is audio permanently disrupted?
+>>>>
+>>>> I think it is a glitch. I will run some tests and let you know.
+>>>>>
+>>>>> That's basically the inconsistent behavior I noticed: just running arecord
+>>>>> will prevent me from changing the frequency, but if I run arecord and stream
+>>>>> video, then it is suddenly OK to change the frequency.
+>>>>
+>>>> How are you changing frequency? I want to duplicate what you are doing.
+>>>
+>>> v4l2-ctl -f <freq>
+>>
+>> I am not seeing the inconsistent behavior. Here are my results.
+>>
+>> 1. Started acecord and while it is running:
+>>
+>> arecord -M -D plughw:2,0 -c2  -f S16_LE -t wav foo.wav
+>> Recording WAVE 'foo.wav' : Signed 16 bit Little Endian, Rate 8000 Hz, Stereo
+>>
+>> 2. Ran v4l2-ctl -f as follows:
+>>
+>> v4l2-ctl -f 700
+>> VIDIOC_G_TUNER: failed: Device or resource busy
+>> VIDIOC_S_FREQUENCY: failed: Device or resource busy
+>>
+>> Based on the current implementation, it failed with resource
+>> busy as expected.
+>>
+>> 3. Started v4l2-ctl as follows:
+>>
+>>   v4l2-ctl --stream-mmap --stream-count=100 -d /dev/video0
+>> VIDIOC_STREAMON: failed: Device or resource busy
+> 
+> Why is this? You have one analog tuner and it delivers independent audio
+> and video streams. I should be able to start/stop audio and video independently.
+> 
+> And as mentioned above, if I use v4l2-ctl for video streaming, then start arecord,
+> then that works fine. And I can change the tuner frequency while both are streaming.
+> 
+> But doing this the other way around (first start arecord, then v4l2-ctl) then that
+> doesn't work.
+> 
+> It makes no sense.
+> 
+> Note that v4l2-ctl does not open audio, it solely deals with video. qv4l2 will
+> open both audio and video, but for testing audio and video independently you
+> need to use arecord/v4l2-ctl.
+> 
+> In any case, my understanding of how this should work is that both arecord and
+> v4l2-ctl should attempt to lock the analog tuner resource, but they can share it.
+> 
+> If DVB is using the tuner, then both arecord and v4l2-ctl should fail with -EBUSY.
+> Same if either of arecord/v4l2-ctl is running, then DVB should fail with -EBUSY.
+> 
+> BTW, I won't be able to test anything myself until Feb 9th since I'm abroad and
+> don't have access to my au0828.
+> 
 
-Fixes: c44b30096589 ("libv4l: Add support for BAYER10P format conversion")
-Signed-off-by: Ricardo Ribalda Delgado <ricardo@ribalda.com>
----
- lib/libv4lconvert/libv4lconvert.c | 26 ++++++++++++++++++--------
- 1 file changed, 18 insertions(+), 8 deletions(-)
+I am also on a business trip at the moment and won't have access to my
+au0828 until Feb 8th.
 
-diff --git a/lib/libv4lconvert/libv4lconvert.c b/lib/libv4lconvert/libv4lconvert.c
-index b3dbf5a0..718e1d43 100644
---- a/lib/libv4lconvert/libv4lconvert.c
-+++ b/lib/libv4lconvert/libv4lconvert.c
-@@ -990,12 +990,10 @@ static int v4lconvert_convert_pixfmt(struct v4lconvert_data *data,
- 	case V4L2_PIX_FMT_SBGGR10P:
- 	case V4L2_PIX_FMT_SGBRG10P:
- 	case V4L2_PIX_FMT_SGRBG10P:
--	case V4L2_PIX_FMT_SRGGB10P:
--		if (src_size < ((width * height * 10)/8)) {
--			V4LCONVERT_ERR("short raw bayer10 data frame\n");
--			errno = EPIPE;
--			result = -1;
--		}
-+	case V4L2_PIX_FMT_SRGGB10P: {
-+
-+		int b10format = 1;
-+
- 		switch (src_pix_fmt) {
- 		case V4L2_PIX_FMT_SBGGR10P:
- 			src_pix_fmt = V4L2_PIX_FMT_SBGGR8;
-@@ -1009,10 +1007,22 @@ static int v4lconvert_convert_pixfmt(struct v4lconvert_data *data,
- 		case V4L2_PIX_FMT_SRGGB10P:
- 			src_pix_fmt = V4L2_PIX_FMT_SRGGB8;
- 			break;
-+		default:
-+			b10format = 0;
- 		}
--		v4lconvert_bayer10p_to_bayer8(src, src, width, height);
--		bytesperline = width;
- 
-+		if (b10format) {
-+			if (src_size < ((width * height * 10)/8)) {
-+				V4LCONVERT_ERR
-+					("short raw bayer10 data frame\n");
-+				errno = EPIPE;
-+				result = -1;
-+				break;
-+			}
-+			v4lconvert_bayer10p_to_bayer8(src, src, width, height);
-+			bytesperline = width;
-+		}
-+	}
- 	/* Fall-through*/
- 	case V4L2_PIX_FMT_SBGGR8:
- 	case V4L2_PIX_FMT_SGBRG8:
--- 
-2.20.1
+I think I understand your concern and the change to get the desired 
+behavior of allowing tuner to be shared by arecord and v4l2-ctl is
+going to in the code that is already in the mainline which is the
+au0828_enable_source().
+
+If you would like to wait to pull this series for the problem to be 
+fixed, I can send that change in. It will be another patch added to
+the series.
+
+Or if you pull this and I can send fix on top. Let me know your preference.
+
+thanks,
+-- Shuah
 
