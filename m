@@ -2,208 +2,258 @@ Return-Path: <SRS0=c0D3=QM=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_MUTT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.0 required=3.0
+	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A40C4C282CB
-	for <linux-media@archiver.kernel.org>; Tue,  5 Feb 2019 08:46:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 44B42C282CB
+	for <linux-media@archiver.kernel.org>; Tue,  5 Feb 2019 08:47:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 685E92145D
-	for <linux-media@archiver.kernel.org>; Tue,  5 Feb 2019 08:46:32 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=ffwll.ch header.i=@ffwll.ch header.b="bIR85y0s"
+	by mail.kernel.org (Postfix) with ESMTP id 143FB2145D
+	for <linux-media@archiver.kernel.org>; Tue,  5 Feb 2019 08:47:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726550AbfBEIq0 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 5 Feb 2019 03:46:26 -0500
-Received: from mail-ed1-f67.google.com ([209.85.208.67]:45227 "EHLO
-        mail-ed1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725898AbfBEIq0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 5 Feb 2019 03:46:26 -0500
-Received: by mail-ed1-f67.google.com with SMTP id t6so895608edw.12
-        for <linux-media@vger.kernel.org>; Tue, 05 Feb 2019 00:46:24 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ffwll.ch; s=google;
-        h=sender:date:from:to:cc:subject:message-id:mail-followup-to
-         :references:mime-version:content-disposition:in-reply-to:user-agent;
-        bh=6wFJ5nEHnel6486lxUlTO0poOdjmS9oknsXJv001CdQ=;
-        b=bIR85y0sXChFZqBmcTaNUxSS+MEZychD5QqUgXlZoHzTDMMKiO5WByWdclmhT/3mSu
-         YNT1ZGMzJnYxkSkv23+ZxgKL0oK+/4ePJ7mnCN1aiU2WhnwMrZVGTZpWj78YmeHsaCeG
-         cHiKxc/2ZhA1nNuMRED8nfNl+juPt4eiwrMLQ=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:sender:date:from:to:cc:subject:message-id
-         :mail-followup-to:references:mime-version:content-disposition
-         :in-reply-to:user-agent;
-        bh=6wFJ5nEHnel6486lxUlTO0poOdjmS9oknsXJv001CdQ=;
-        b=b1a6ksQnlCuZ/CJE5qfFTc9v/HacCn1KNWtzwZAUuQxXPywhOFIrV9TBIOxn29u53a
-         IamloM4dz4dwHWy7kaZ1jEXZ2pz8hvOzLlIVZRtfoZ0+EzDpHAmqoe2Ftksbfb7XFIiy
-         8WUqlS8npd8tdxXZOjleoOLWBCD5x74t5fNJ6+h9TdsCLRQlDuF2IP5p84JnsJYeHTkB
-         xsFLi8plj81z/zcaLuC4mZasXAtUEjpMJ7DR2jyTHTqQ9Ffw3Vam6irZZcU0bN7OD1Xo
-         YTnej1ppNa5KjdfY22kkTLB2MwX07iTiMVLi729ayScVZjWQX3j+yZNswP4iae4QRVD/
-         cIFw==
-X-Gm-Message-State: AHQUAuZ0vEuRwt+cy+iGqr8b1DoFe1c5EjWCKpjP7T4SUum1agknnW9F
-        eA6oZI2ZpuVotIMU+rEVg4hNKw==
-X-Google-Smtp-Source: AHgI3IaG4ifaS5PtUbCcOhWi/rCMehAYREkKOBFrlI2cl40egNtrq5/0YfBK+f0X/dG4jURbbDC+NA==
-X-Received: by 2002:a17:906:5254:: with SMTP id y20mr2687559ejm.117.1549356383729;
-        Tue, 05 Feb 2019 00:46:23 -0800 (PST)
-Received: from phenom.ffwll.local ([2a02:168:569e:0:3106:d637:d723:e855])
-        by smtp.gmail.com with ESMTPSA id d15sm4769604edv.20.2019.02.05.00.46.22
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Tue, 05 Feb 2019 00:46:22 -0800 (PST)
-Date:   Tue, 5 Feb 2019 09:46:20 +0100
-From:   Daniel Vetter <daniel@ffwll.ch>
-To:     Kishon Vijay Abraham I <kishon@ti.com>
-Cc:     Maxime Ripard <maxime.ripard@bootlin.com>,
-        Rafal Ciepiela <rafalc@cadence.com>,
-        Krzysztof Witos <kwitos@cadence.com>,
-        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        Chen-Yu Tsai <wens@csie.org>,
-        Sean Paul <seanpaul@chromium.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH v5 0/9] phy: Add configuration interface for MIPI D-PHY
- devices
-Message-ID: <20190205084620.GW3271@phenom.ffwll.local>
-Mail-Followup-To: Kishon Vijay Abraham I <kishon@ti.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Rafal Ciepiela <rafalc@cadence.com>,
-        Krzysztof Witos <kwitos@cadence.com>, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, Chen-Yu Tsai <wens@csie.org>,
-        Sean Paul <seanpaul@chromium.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-References: <cover.fbf0776c70c0cfb7b7fd88ce6a96b4597d620cac.1548085432.git-series.maxime.ripard@bootlin.com>
- <fc5427d3-674e-cebc-99b9-11493f976a20@ti.com>
+        id S1727300AbfBEIrL (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 5 Feb 2019 03:47:11 -0500
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:43801 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725952AbfBEIrL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 5 Feb 2019 03:47:11 -0500
+Received: from [IPv6:2001:983:e9a7:1:2989:f759:211b:c8a5] ([IPv6:2001:983:e9a7:1:2989:f759:211b:c8a5])
+        by smtp-cloud7.xs4all.net with ESMTPA
+        id qwNmgb0LsBDyIqwNngB34R; Tue, 05 Feb 2019 09:47:08 +0100
+Subject: Re: [PATCH] media: v4l2-tpg: Fix the memory layout of AYUV buffers
+To:     Vivek Kasireddy <vivek.kasireddy@intel.com>
+Cc:     linux-media@vger.kernel.org, Philipp Zabel <p.zabel@pengutronix.de>
+References: <20190129023222.10036-1-vivek.kasireddy@intel.com>
+ <92dbd1f9-f5dc-37ed-856a-b3b2aa2b75d5@xs4all.nl>
+ <20190131182903.08f28cd9@vkasired-desk2.fm.intel.com>
+ <85fadb6b-6adb-b800-a71f-a4f8b68a9acf@xs4all.nl>
+ <20190201164850.723b4e21@vkasired-desk2.fm.intel.com>
+ <140cad99-7891-651c-6cf7-ae39d5768930@xs4all.nl>
+ <20190204180440.20e04e93@vkasired-desk2.fm.intel.com>
+From:   Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <5309b151-6e04-8759-e12b-f592c7957fb3@xs4all.nl>
+Date:   Tue, 5 Feb 2019 09:47:06 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.3.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <fc5427d3-674e-cebc-99b9-11493f976a20@ti.com>
-X-Operating-System: Linux phenom 4.19.0-1-amd64 
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <20190204180440.20e04e93@vkasired-desk2.fm.intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-CMAE-Envelope: MS4wfDuQubvWixPfOaxot2sDdbsVE5blNzTe4Kc6GJCy2Zo92X7chAuubTlcpg2U6JpJvmfDJ4MI6lgtFZ7HOXCeIWmI0atedxt/ss5trId9D6EFkPQzhEf1
+ MIZf/VyuSZpglgi8jCMPdaEf1d6Z8f7o7NJ0XJi83op3uC0zQ/jLMpVOxNzHYPRJjGMvKLpwBGtKpMNk3aI/3SRuzFGkd8nf1df0+A1a2X9tGyZhIXBuYcsE
+ ClagwjJcAYKmwEs/zyS0XV7ovU16Pf6huHnx1ZoUeBcG4xPJzuTxBQ+eGnPkZhZPEFL0Zb2iG7RaY9wUPV9B9JBtq7w/V71838Pq1MNSM/EsgyeTbM2Z7pPl
+ r5q6lhMo
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Mon, Feb 04, 2019 at 03:33:31PM +0530, Kishon Vijay Abraham I wrote:
+On 2/5/19 3:04 AM, Vivek Kasireddy wrote:
+> On Sat, 2 Feb 2019 09:03:17 +0100
+> Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> Hi Hans,
 > 
-> 
-> On 21/01/19 9:15 PM, Maxime Ripard wrote:
-> > Hi,
-> > 
-> > Here is a set of patches to allow the phy framework consumers to test and
-> > apply runtime configurations.
-> > 
-> > This is needed to support more phy classes that require tuning based on
-> > parameters depending on the current use case of the device, in addition to
-> > the power state management already provided by the current functions.
-> > 
-> > A first test bed for that API are the MIPI D-PHY devices. There's a number
-> > of solutions that have been used so far to support these phy, most of the
-> > time being an ad-hoc driver in the consumer.
-> > 
-> > That approach has a big shortcoming though, which is that this is quite
-> > difficult to deal with consumers integrated with multiple variants of phy,
-> > of multiple consumers integrated with the same phy.
-> > 
-> > The latter case can be found in the Cadence DSI bridge, and the CSI
-> > transceiver and receivers. All of them are integrated with the same phy, or
-> > can be integrated with different phy, depending on the implementation.
-> > 
-> > I've looked at all the MIPI DSI drivers I could find, and gathered all the
-> > parameters I could find. The interface should be complete, and most of the
-> > drivers can be converted in the future. The current set converts two of
-> > them: the above mentionned Cadence DSI driver so that the v4l2 drivers can
-> > use them, and the Allwinner MIPI-DSI driver.
-> 
-> Can the PHY changes go independently of the consumer drivers? or else I'll need
-> ACKs from the GPU MAINTAINER.
+>> On 02/02/2019 01:48 AM, Vivek Kasireddy wrote:
+>>> On Fri, 1 Feb 2019 10:08:52 +0100
+>>> Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>> Hi Hans,
+>>>   
+>>>> On 2/1/19 3:29 AM, Vivek Kasireddy wrote:  
+>>>>> On Thu, 31 Jan 2019 14:36:42 +0100
+>>>>> Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>>>>
+>>>>> Hi Hans,
+>>>>>     
+>>>>>> Hi Vivek,
+>>>>>>
+>>>>>> On 1/29/19 3:32 AM, Vivek Kasireddy wrote:    
+>>>>>>> From: "Kasireddy, Vivek" <vivek.kasireddy@intel.com>
+>>>>>>>
+>>>>>>> The memory layout of AYUV buffers (V4L2_PIX_FMT_YUV32) should be
+>>>>>>> similar to V4L2_PIX_FMT_ABGR32 instead of V4L2_PIX_FMT_ARGB32.
+>>>>>>>
+>>>>>>> While displaying the packed AYUV buffers generated by the Vivid
+>>>>>>> driver using v4l2-tpg on Weston, it was observed that these AYUV
+>>>>>>> images were not getting displayed correctly. Changing the memory
+>>>>>>> layout makes them display as expected.      
+>>>>>>
+>>>>>> Our YUV32 fourcc is defined as follows:
+>>>>>>
+>>>>>> https://hverkuil.home.xs4all.nl/spec/uapi/v4l/pixfmt-packed-yuv.html
+>>>>>>
+>>>>>> As far as I see the format that the TPG generates is according to
+>>>>>> the V4L2 spec.    
+>>>>>
+>>>>> I looked into the above link, and I am now wondering whether YUV32
+>>>>> is the same as the format referred to as AYUV here or not:
+>>>>>
+>>>>> https://docs.microsoft.com/en-us/windows/desktop/medfound/recommended-8-bit-yuv-formats-for-video-rendering#ayuv    
+>>>>
+>>>> It's not the same format.
+>>>>  
+>>>>>
+>>>>> If YUV32 is not the same as AYUV, should I send another patch
+>>>>> adding a new format named AYUV with the reversed memory
+>>>>> layout?    
+>>>>
+>>>> That can only be done if there is also a driver that uses it.  
+>>> There are some drm drivers that already use the AYUV format defined
+>>> here:
+>>> https://git.linuxtv.org/media_tree.git/tree/drivers/gpu/drm/drm_fourcc.c#n228  
+>>
+>> I would have to check this with Mauro whether this is a good enough
+>> excuse to add a new format.
+>>
+>>>   
+>>>>  
+>>>>>     
+>>>>>>
+>>>>>> Philipp, can you check the YUV32 format that the imx-pxp driver
+>>>>>> uses? Is that according to our spec?    
+>>>>
+>>>> Philipp, would it be possible to add such a format to imx-pxp? That
+>>>> might be a nice approach because once imx-pxp can do it, then it
+>>>> can also be added to the TPG.  
+>>> I was going to send in a patch to add the AYUV (and maybe XYUV)
+>>> format but I came across this line that leaves me confused:
+>>> https://git.linuxtv.org/media_tree.git/tree/drivers/media/platform/vivid/vivid-vid-common.c#n164  
+>>
+>> It indicates the order of the components in memory, which is indeed
+>> AYUV. But it has nothing to do with the microsoft AYUV fourcc.
+> Does it mean that based on the V4L2 spec, the order of components in
+> memory is always guaranteed regardless of the endianness of the
+> underlying platform? Is it the Vivid/v4l2 core driver's responsibility
+> to make sure this happens?
 
-Maxime is a gpu maintainer, so you're all good :-)
--Daniel
+Correct. But I'm sure it is likely to be horribly broken in many drivers
+since they are rarely if ever tested on a big endian system.
 
 > 
-> Thanks
-> Kishon
-> 
-> > 
-> > Let me know what you think,
-> > Maxime
-> > 
-> > Changes from v4:
-> >   - Removed regression on the variable calculation
-> >   - Fixed the wakeup unit
-> >   - Collected Sean Acked-by on the last patch
-> >   - Collected Sakari Reviewed-by on the first patch
-> > 
-> > Changes from v3
-> >   - Rebased on 5.0-rc1
-> >   - Added the fixes suggested by Sakari
-> > 
-> > Changes from v2:
-> >   - Rebased on next
-> >   - Changed the interface to accomodate for the new submodes
-> >   - Changed the timings units from nanoseconds to picoseconds
-> >   - Added minimum and maximum boundaries to the documentation
-> >   - Moved the clock enabling to phy_power_on in the Cadence DPHY driver
-> >   - Exported the phy_configure and phy_validate symbols
-> >   - Rework the phy pll divider computation in the cadence dphy driver
-> > 
-> > Changes from v1:
-> >   - Rebased on top of 4.20-rc1
-> >   - Removed the bus mode and timings parameters from the MIPI D-PHY
-> >     parameters, since that shouldn't have any impact on the PHY itself.
-> >   - Reworked the Cadence DSI and D-PHY drivers to take this into account.
-> >   - Remove the mode parameter from phy_configure
-> >   - Added phy_configure and phy_validate stubs
-> >   - Return -EOPNOTSUPP in phy_configure and phy_validate when the operation
-> >     is not implemented
-> > 
-> > Maxime Ripard (9):
-> >   phy: dphy: Remove unused header
-> >   phy: dphy: Change units of wakeup and init parameters
-> >   phy: dphy: Clarify lanes parameter documentation
-> >   sun6i: dsi: Convert to generic phy handling
-> >   phy: Move Allwinner A31 D-PHY driver to drivers/phy/
-> >   drm/bridge: cdns: Separate DSI and D-PHY configuration
-> >   dt-bindings: phy: Move the Cadence D-PHY bindings
-> >   phy: Add Cadence D-PHY support
-> >   drm/bridge: cdns: Convert to phy framework
-> > 
-> >  Documentation/devicetree/bindings/display/bridge/cdns,dsi.txt |  21 +-
-> >  Documentation/devicetree/bindings/phy/cdns,dphy.txt           |  20 +-
-> >  drivers/gpu/drm/bridge/Kconfig                                |   1 +-
-> >  drivers/gpu/drm/bridge/cdns-dsi.c                             | 538 +------
-> >  drivers/gpu/drm/sun4i/Kconfig                                 |   3 +-
-> >  drivers/gpu/drm/sun4i/Makefile                                |   5 +-
-> >  drivers/gpu/drm/sun4i/sun6i_mipi_dphy.c                       | 292 +----
-> >  drivers/gpu/drm/sun4i/sun6i_mipi_dsi.c                        |  31 +-
-> >  drivers/gpu/drm/sun4i/sun6i_mipi_dsi.h                        |  17 +-
-> >  drivers/phy/allwinner/Kconfig                                 |  12 +-
-> >  drivers/phy/allwinner/Makefile                                |   1 +-
-> >  drivers/phy/allwinner/phy-sun6i-mipi-dphy.c                   | 318 ++++-
-> >  drivers/phy/cadence/Kconfig                                   |  13 +-
-> >  drivers/phy/cadence/Makefile                                  |   1 +-
-> >  drivers/phy/cadence/cdns-dphy.c                               | 389 +++++-
-> >  drivers/phy/phy-core-mipi-dphy.c                              |   8 +-
-> >  include/linux/phy/phy-mipi-dphy.h                             |  13 +-
-> >  17 files changed, 894 insertions(+), 789 deletions(-)
-> >  create mode 100644 Documentation/devicetree/bindings/phy/cdns,dphy.txt
-> >  delete mode 100644 drivers/gpu/drm/sun4i/sun6i_mipi_dphy.c
-> >  create mode 100644 drivers/phy/allwinner/phy-sun6i-mipi-dphy.c
-> >  create mode 100644 drivers/phy/cadence/cdns-dphy.c
-> > 
-> > base-commit: bfeffd155283772bbe78c6a05dec7c0128ee500c
-> > 
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> https://lists.freedesktop.org/mailman/listinfo/dri-devel
+>>
+>>> It appears that when YUV32 was added, the intention was to mimic
+>>> AYUV. And, unless I am utterly mistaken, the alpha_mask of
+>>> 0x000000ff suggests that the alpha component is expected to be
+>>> found in the LSB (LE) bits indicating a memory layout of VUYA. Am I
+>>> interpreting this incorrectly?  
+>>
+>> Yes. When you write 0x000000ff to memory in a LE environment, it ends
+>> up as 0xff 0x00 0x00 0x00 in memory (in increasing memory addresses).
+> This would only work if the alpha component A is always in the MSB
+> which suggests endianness-independence. And, what would happen when
+> writing the alpha mask 0x000000ff in a BE environment which would end up
+> as 0x00 0x00 0x00 0xff in memory? 
 
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+It would be wrong. But this alpha mask is used to test an esoteric corner
+case of v4l2 (video overlays), and only for RGB 5:6:5 and 1:5:5:5 formats.
+
+If I ever would test this on a big endian system I would have to make some
+fixes, I'm sure.
+
+> 
+>>
+>> The v4l2-tpg AYUV format is really, really correct given the V4L2
+>> specification of this format.
+> Ok, should I send a patch adding support for VUYA format? Should the
+> new fourcc be VUY4?
+
+I would prefer to have it along the line of how RGB32 works, so:
+
+VUYX32 and VUYA32
+
+(slightly different from how e.g. ABGR32 since that should have been
+BGRA32, but let's do it right)
+
+While you are at it, also add AYUV32 and XYUV32 for completeness. The
+old YUV32 didn't indicate anything about whether the hardware would use
+or ignore the A byte, we corrected that for RGB formats but never for
+this YUV32 format.
+
+Don't forget to update the documentation and to add support for this
+to v4l2-tpg and vivid.
+
+And mention that this allows you to use the tpg/vivid in combination with
+drm drivers that use VUYX32.
+
+Regards,
+
+	Hans
+
+> 
+> Thanks,
+> Vivek
+> 
+>>
+>> Regards,
+>>
+>> 	Hans
+>>
+>>>
+>>> Thanks,
+>>> Vivek
+>>>   
+>>>>  
+>>>>>>
+>>>>>> At some point we probably want to add a VUY32 format which is
+>>>>>> what Weston expects, but we certainly cannot change what the TPG
+>>>>>> generates for YUV32 since that is correct.    
+>>>>> Weston does not know much about the details of pixel formats and
+>>>>> instead relies on the Mesa i965 DRI driver to do the heavy
+>>>>> lifting. And, this driver implemented AYUV support looking at the
+>>>>> above Microsoft link. Also, is the description of V4l pixel
+>>>>> formats mentioned in the below link accurate:
+>>>>> https://afrantzis.com/pixel-format-guide/v4l2.html    
+>>>>
+>>>> Don't use it, just use the V4L2 Specification, that's always kept
+>>>> up to date.
+>>>>
+>>>> Regards,
+>>>>
+>>>> 	Hans
+>>>>  
+>>>>>
+>>>>> Thanks,
+>>>>> Vivek
+>>>>>     
+>>>>>>
+>>>>>> Regards,
+>>>>>>
+>>>>>> 	Hans
+>>>>>>    
+>>>>>>>
+>>>>>>> Signed-off-by: Vivek Kasireddy <vivek.kasireddy@intel.com>
+>>>>>>> ---
+>>>>>>>  drivers/media/common/v4l2-tpg/v4l2-tpg-core.c | 2 +-
+>>>>>>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>>>>>>
+>>>>>>> diff --git a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
+>>>>>>> b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c index
+>>>>>>> d9a590ae7545..825667f67c92 100644 ---
+>>>>>>> a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c +++
+>>>>>>> b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c @@ -1269,7
+>>>>>>> +1269,6 @@ static void gen_twopix(struct tpg_data *tpg, case
+>>>>>>> V4L2_PIX_FMT_HSV32: alpha = 0;
+>>>>>>>  		/* fall through */
+>>>>>>> -	case V4L2_PIX_FMT_YUV32:
+>>>>>>>  	case V4L2_PIX_FMT_ARGB32:
+>>>>>>>  		buf[0][offset] = alpha;
+>>>>>>>  		buf[0][offset + 1] = r_y_h;
+>>>>>>> @@ -1280,6 +1279,7 @@ static void gen_twopix(struct tpg_data
+>>>>>>> *tpg, case V4L2_PIX_FMT_XBGR32:
+>>>>>>>  		alpha = 0;
+>>>>>>>  		/* fall through */
+>>>>>>> +	case V4L2_PIX_FMT_YUV32:
+>>>>>>>  	case V4L2_PIX_FMT_ABGR32:
+>>>>>>>  		buf[0][offset] = b_v;
+>>>>>>>  		buf[0][offset + 1] = g_u_s;
+>>>>>>>       
+>>>>>>    
+>>>>>     
+>>>>  
+>>>   
+>>
+> 
+
