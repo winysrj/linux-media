@@ -2,220 +2,215 @@ Return-Path: <SRS0=c0D3=QM=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_NEOMUTT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A3227C282CB
-	for <linux-media@archiver.kernel.org>; Tue,  5 Feb 2019 08:48:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D0F8C282CB
+	for <linux-media@archiver.kernel.org>; Tue,  5 Feb 2019 08:55:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5A7182054F
-	for <linux-media@archiver.kernel.org>; Tue,  5 Feb 2019 08:48:53 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="oXWawnlK"
+	by mail.kernel.org (Postfix) with ESMTP id F11B52083B
+	for <linux-media@archiver.kernel.org>; Tue,  5 Feb 2019 08:55:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726550AbfBEIsw (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 5 Feb 2019 03:48:52 -0500
-Received: from mail-lj1-f182.google.com ([209.85.208.182]:45687 "EHLO
-        mail-lj1-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725898AbfBEIsw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 5 Feb 2019 03:48:52 -0500
-Received: by mail-lj1-f182.google.com with SMTP id s5-v6so2140595ljd.12
-        for <linux-media@vger.kernel.org>; Tue, 05 Feb 2019 00:48:51 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=subject:to:references:from:message-id:date:user-agent:mime-version
-         :in-reply-to:content-transfer-encoding:content-language;
-        bh=e0g+bo75yBjuQ2T9RTAqlte5/N0gl85lnZ9mOMQMw3o=;
-        b=oXWawnlKqehNUj9wmsy8LtNSCATrIWba1Y4W5VK3v+DIYpzyhsDKu2EkNxKgQ0augG
-         fjHJ0bT5cU0+7fXDEUKh9EOsZapaCvAXHk4BKtorF0/goCcACmI1wgyQBP+WNKKWsFvP
-         Anqh5OZLUEXHzg6bwRJDdTKVM1Mj6OWRoMDQOYgITyhmS5WC/iP6XMVq2KIYlcDcjLUr
-         zLnWh9Y7+ZYd/DFx4FEtrR93KCzz4/MLkimjKTm6HY0fLkOP9AVq5XaAtmUTS3513JWW
-         uX9laEHVKQS6OiHVOwsyzIBHjmsZndkXEkBs0dWyJzO8B8Q7OhtAXnQbcAsnF0d7Qgtz
-         CefQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-transfer-encoding
-         :content-language;
-        bh=e0g+bo75yBjuQ2T9RTAqlte5/N0gl85lnZ9mOMQMw3o=;
-        b=K0z0btA2B+HWRUTKvw11vm8P4eL4ufgz0JULtVbSW7cGvbwEyLq+DqhwKliFCIUSwh
-         MwV394uaZkitXg876a5WguUEKxwaCblkkC1tBiGxQS5mzKN+zMnTproK+dEsx0vGe7/+
-         Qb8PgmuzihQKxSc94RHPSUKm3dkunwl6qLeonHw7rRiEG6Oe+yFjfZieE4RWDOCL3lzz
-         CiyEhHxZsRRTFn2IeXM2p0izj6auyWyTzYfuuHk0oxRUzFJIVUqNTyuBMZMocRoqxUN8
-         KkgU6YChk4T0uB8tgWk3mTZkHw/nOUwRanSHsFOXzDhi+eN08kydSnHiAFpL1Wgw5vPN
-         +DfQ==
-X-Gm-Message-State: AHQUAuaO0XqFgluqr+xQjpoeBLVAW+IfXaAOzFIvo+sFVnDR6qThI/3V
-        w6C1gSHvZgkp1uKcHPzan6U=
-X-Google-Smtp-Source: AHgI3Ia/8RuZVXozHuTZ5P6tvRKC0uTbMnWfMCaxBOOtRBDr0yh6dyodYoqVbS0kSQ+XdWNzjvEqVA==
-X-Received: by 2002:a2e:8007:: with SMTP id j7-v6mr2251215ljg.50.1549356530043;
-        Tue, 05 Feb 2019 00:48:50 -0800 (PST)
-Received: from [10.17.182.20] (ll-22.209.223.85.sovam.net.ua. [85.223.209.22])
-        by smtp.gmail.com with ESMTPSA id y23-v6sm3169910ljk.95.2019.02.05.00.48.48
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 05 Feb 2019 00:48:49 -0800 (PST)
-Subject: Re: [Xen-devel][PATCH v4 1/1] cameraif: add ABI for para-virtual
- camera
-To:     Oleksandr Andrushchenko <Oleksandr_Andrushchenko@epam.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        "xen-devel@lists.xenproject.org" <xen-devel@lists.xenproject.org>,
-        "konrad.wilk@oracle.com" <konrad.wilk@oracle.com>,
-        "jgross@suse.com" <jgross@suse.com>,
-        "boris.ostrovsky@oracle.com" <boris.ostrovsky@oracle.com>,
-        "mchehab@kernel.org" <mchehab@kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
-        "koji.matsuoka.xm@renesas.com" <koji.matsuoka.xm@renesas.com>
-References: <20190115093853.15495-1-andr2000@gmail.com>
- <20190115093853.15495-2-andr2000@gmail.com>
- <393f824d-e543-476c-777f-402bcc1c0bcb@xs4all.nl>
- <1152536e-9238-4192-653e-b784b34b8a0d@epam.com>
-From:   Oleksandr Andrushchenko <andr2000@gmail.com>
-Message-ID: <d8476f24-1952-e822-aa75-b8a5f5d5a552@gmail.com>
-Date:   Tue, 5 Feb 2019 10:48:48 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.4.0
+        id S1726854AbfBEIzq (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 5 Feb 2019 03:55:46 -0500
+Received: from mga09.intel.com ([134.134.136.24]:55025 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725898AbfBEIzq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 5 Feb 2019 03:55:46 -0500
+X-Amp-Result: UNSCANNABLE
+X-Amp-File-Uploaded: False
+Received: from fmsmga003.fm.intel.com ([10.253.24.29])
+  by orsmga102.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 05 Feb 2019 00:55:43 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.56,562,1539673200"; 
+   d="scan'208";a="131189544"
+Received: from ekorotko-mobl1.ger.corp.intel.com (HELO kekkonen.fi.intel.com) ([10.252.43.22])
+  by FMSMGA003.fm.intel.com with ESMTP; 05 Feb 2019 00:55:41 -0800
+Received: by kekkonen.fi.intel.com (Postfix, from userid 1000)
+        id 0A62721D81; Tue,  5 Feb 2019 10:55:39 +0200 (EET)
+Date:   Tue, 5 Feb 2019 10:55:39 +0200
+From:   Sakari Ailus <sakari.ailus@linux.intel.com>
+To:     Chen-Yu Tsai <wens@csie.org>
+Cc:     Steve Longerbeam <slongerbeam@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Maxime Ripard <maxime.ripard@bootlin.com>
+Subject: Re: [PATCH 6/6] media: ov5640: Consolidate JPEG compression mode
+ setting
+Message-ID: <20190205085539.6nh7rzialcvztuqo@kekkonen.localdomain>
+References: <20190118085206.2598-1-wens@csie.org>
+ <20190118085206.2598-7-wens@csie.org>
 MIME-Version: 1.0
-In-Reply-To: <1152536e-9238-4192-653e-b784b34b8a0d@epam.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190118085206.2598-7-wens@csie.org>
+User-Agent: NeoMutt/20170113 (1.7.2)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On 1/23/19 10:14 AM, Oleksandr Andrushchenko wrote:
-> Any comments from Xen community?
-> Konrad?
-While I am still looking forward to any comments from Xen community...
->
-> On 1/15/19 4:44 PM, Hans Verkuil wrote:
->> Hi Oleksandr,
->>
->> Just two remaining comments:
->>
->> On 1/15/19 10:38 AM, Oleksandr Andrushchenko wrote:
->>> From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
->>>
->>> This is the ABI for the two halves of a para-virtualized
->>> camera driver which extends Xen's reach multimedia capabilities even
->>> farther enabling it for video conferencing, In-Vehicle Infotainment,
->>> high definition maps etc.
->>>
->>> The initial goal is to support most needed functionality with the
->>> final idea to make it possible to extend the protocol if need be:
->>>
->>> 1. Provide means for base virtual device configuration:
->>>    - pixel formats
->>>    - resolutions
->>>    - frame rates
->>> 2. Support basic camera controls:
->>>    - contrast
->>>    - brightness
->>>    - hue
->>>    - saturation
->>> 3. Support streaming control
->>>
->>> Signed-off-by: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
->>> ---
->>>    xen/include/public/io/cameraif.h | 1364 ++++++++++++++++++++++++++++++
->>>    1 file changed, 1364 insertions(+)
->>>    create mode 100644 xen/include/public/io/cameraif.h
->>>
->>> diff --git a/xen/include/public/io/cameraif.h b/xen/include/public/io/cameraif.h
->>> new file mode 100644
->>> index 000000000000..246eb2457f40
->>> --- /dev/null
->>> +++ b/xen/include/public/io/cameraif.h
->>> @@ -0,0 +1,1364 @@
->> <snip>
->>
->>> +/*
->>> + ******************************************************************************
->>> + *                                 EVENT CODES
->>> + ******************************************************************************
->>> + */
->>> +#define XENCAMERA_EVT_FRAME_AVAIL      0x00
->>> +#define XENCAMERA_EVT_CTRL_CHANGE      0x01
->>> +
->>> +/* Resolution has changed. */
->>> +#define XENCAMERA_EVT_CFG_FLG_RESOL    (1 << 0)
->> I think this flag is a left-over from v2 and should be removed.
->>
->> <snip>
->>
->>> + * Request number of buffers to be used:
->>> + *         0                1                 2               3        octet
->>> + * +----------------+----------------+----------------+----------------+
->>> + * |               id                | _OP_BUF_REQUEST|   reserved     | 4
->>> + * +----------------+----------------+----------------+----------------+
->>> + * |                             reserved                              | 8
->>> + * +----------------+----------------+----------------+----------------+
->>> + * |    num_bufs    |                     reserved                     | 12
->>> + * +----------------+----------------+----------------+----------------+
->>> + * |                             reserved                              | 16
->>> + * +----------------+----------------+----------------+----------------+
->>> + * |/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/|
->>> + * +----------------+----------------+----------------+----------------+
->>> + * |                             reserved                              | 64
->>> + * +----------------+----------------+----------------+----------------+
->>> + *
->>> + * num_bufs - uint8_t, desired number of buffers to be used. This is
->>> + *   limited to the value configured in XenStore.max-buffers.
->>> + *   Passing zero num_bufs in this request (after streaming has stopped
->>> + *   and all buffers destroyed) unblocks camera configuration changes.
->> I think the phrase 'unblocks camera configuration changes' is confusing.
->>
->> In v3 this sentence came after the third note below, and so it made sense
->> in that context, but now the order has been reversed and it became hard to
->> understand.
->>
->> I'm not sure what the best approach is to fix this. One option is to remove
->> the third note and integrate it somehow in the sentence above. Or perhaps
->> do away with the 'notes' at all and just write a more extensive documentation
->> for this op. I leave that up to you.
-Hans, how about:
+Hi Chen-Yu,
 
-  * num_bufs - uint8_t, desired number of buffers to be used.
-  *
-  * The number of buffers in this request must not exceed the value 
-configured
-  * in XenStore.max-buffers. If the number of buffers is not zero then 
-after this
-  * request the camera configuration cannot be changed. In order to 
-allow camera
-  * (re)configuration this request must be sent with num_bufs set to 
-zero and
-  * the streaming must be stopped and buffers destroyed.
-  * It is allowed for the frontend to send multiple XENCAMERA_OP_BUF_REQUEST
-  * requests before sending XENCAMERA_OP_STREAM_START request to update or
-  * tune the final configuration.
-  * Frontend is responsible for checking the corresponding response in 
-order to
-  * see if the values reported back by the backend do match the desired ones
-  * and can be accepted.
-  *
-  * See response format for this request.
-  */
+On Fri, Jan 18, 2019 at 04:52:06PM +0800, Chen-Yu Tsai wrote:
+> The register value lists for all the supported resolution settings all
+> include a register address/value pair for setting the JPEG compression
+> mode. With the exception of 1080p (which sets mode 2), all resolutions
+> use mode 3.
+> 
+> The only difference between mode 2 and mode 3 is that mode 2 may have
+> padding data on the last line, while mode 3 does not add padding data.
+> 
+> As these register values were from dumps of running systems, and the
+> difference between the modes is quite small, using mode 3 for all
+> configurations should be OK.
+> 
+> Signed-off-by: Chen-Yu Tsai <wens@csie.org>
+> ---
+>  drivers/media/i2c/ov5640.c | 34 +++++++++++++++++++++++-----------
+>  1 file changed, 23 insertions(+), 11 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+> index 1c1dc401c678..3d2c5de73283 100644
+> --- a/drivers/media/i2c/ov5640.c
+> +++ b/drivers/media/i2c/ov5640.c
+> @@ -85,6 +85,7 @@
+>  #define OV5640_REG_FORMAT_CONTROL00	0x4300
+>  #define OV5640_REG_VFIFO_HSIZE		0x4602
+>  #define OV5640_REG_VFIFO_VSIZE		0x4604
+> +#define OV5640_REG_JPG_MODE_SELECT	0x4713
 
->>> + *
->>> + * See response format for this request.
->>> + *
->>> + * Notes:
->>> + *  - frontend must check the corresponding response in order to see
->>> + *    if the values reported back by the backend do match the desired ones
->>> + *    and can be accepted.
->>> + *  - frontend may send multiple XENCAMERA_OP_BUF_REQUEST requests before
->>> + *    sending XENCAMERA_OP_STREAM_START request to update or tune the
->>> + *    configuration.
->>> + *  - after this request camera configuration cannot be changed, unless
->> camera configuration -> the camera configuration
->>
->>> + *    streaming is stopped and buffers destroyed
->>> + */
->> Regards,
->>
->> 	Hans
+How has this been tested?
 
+The register is referred to as "OV5640_REG_JPEG_MODE_SELECT" below. I can
+fix it if it's just a typo, but please confirm.
+
+Thanks.
+
+>  #define OV5640_REG_POLARITY_CTRL00	0x4740
+>  #define OV5640_REG_MIPI_CTRL00		0x4800
+>  #define OV5640_REG_DEBUG_MODE		0x4814
+> @@ -303,7 +304,7 @@ static const struct reg_value ov5640_init_setting_30fps_VGA[] = {
+>  	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0}, {0x3000, 0x00, 0, 0},
+>  	{0x3002, 0x1c, 0, 0}, {0x3004, 0xff, 0, 0}, {0x3006, 0xc3, 0, 0},
+>  	{0x302e, 0x08, 0, 0}, {0x4300, 0x3f, 0, 0},
+> -	{0x501f, 0x00, 0, 0}, {0x4713, 0x03, 0, 0}, {0x4407, 0x04, 0, 0},
+> +	{0x501f, 0x00, 0, 0}, {0x4407, 0x04, 0, 0},
+>  	{0x440e, 0x00, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
+>  	{0x4837, 0x0a, 0, 0}, {0x3824, 0x02, 0, 0},
+>  	{0x5000, 0xa7, 0, 0}, {0x5001, 0xa3, 0, 0}, {0x5180, 0xff, 0, 0},
+> @@ -372,7 +373,7 @@ static const struct reg_value ov5640_setting_VGA_640_480[] = {
+>  	{0x3a03, 0xd8, 0, 0}, {0x3a08, 0x01, 0, 0}, {0x3a09, 0x27, 0, 0},
+>  	{0x3a0a, 0x00, 0, 0}, {0x3a0b, 0xf6, 0, 0}, {0x3a0e, 0x03, 0, 0},
+>  	{0x3a0d, 0x04, 0, 0}, {0x3a14, 0x03, 0, 0}, {0x3a15, 0xd8, 0, 0},
+> -	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0}, {0x4713, 0x03, 0, 0},
+> +	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0},
+>  	{0x4407, 0x04, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
+>  	{0x3824, 0x02, 0, 0}, {0x5001, 0xa3, 0, 0},
+>  };
+> @@ -391,7 +392,7 @@ static const struct reg_value ov5640_setting_XGA_1024_768[] = {
+>  	{0x3a03, 0xd8, 0, 0}, {0x3a08, 0x01, 0, 0}, {0x3a09, 0x27, 0, 0},
+>  	{0x3a0a, 0x00, 0, 0}, {0x3a0b, 0xf6, 0, 0}, {0x3a0e, 0x03, 0, 0},
+>  	{0x3a0d, 0x04, 0, 0}, {0x3a14, 0x03, 0, 0}, {0x3a15, 0xd8, 0, 0},
+> -	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0}, {0x4713, 0x03, 0, 0},
+> +	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0},
+>  	{0x4407, 0x04, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
+>  	{0x3824, 0x02, 0, 0}, {0x5001, 0xa3, 0, 0},
+>  };
+> @@ -410,7 +411,7 @@ static const struct reg_value ov5640_setting_QVGA_320_240[] = {
+>  	{0x3a03, 0xd8, 0, 0}, {0x3a08, 0x01, 0, 0}, {0x3a09, 0x27, 0, 0},
+>  	{0x3a0a, 0x00, 0, 0}, {0x3a0b, 0xf6, 0, 0}, {0x3a0e, 0x03, 0, 0},
+>  	{0x3a0d, 0x04, 0, 0}, {0x3a14, 0x03, 0, 0}, {0x3a15, 0xd8, 0, 0},
+> -	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0}, {0x4713, 0x03, 0, 0},
+> +	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0},
+>  	{0x4407, 0x04, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
+>  	{0x3824, 0x02, 0, 0}, {0x5001, 0xa3, 0, 0},
+>  };
+> @@ -429,7 +430,7 @@ static const struct reg_value ov5640_setting_QCIF_176_144[] = {
+>  	{0x3a03, 0xd8, 0, 0}, {0x3a08, 0x01, 0, 0}, {0x3a09, 0x27, 0, 0},
+>  	{0x3a0a, 0x00, 0, 0}, {0x3a0b, 0xf6, 0, 0}, {0x3a0e, 0x03, 0, 0},
+>  	{0x3a0d, 0x04, 0, 0}, {0x3a14, 0x03, 0, 0}, {0x3a15, 0xd8, 0, 0},
+> -	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0}, {0x4713, 0x03, 0, 0},
+> +	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0},
+>  	{0x4407, 0x04, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
+>  	{0x3824, 0x02, 0, 0}, {0x5001, 0xa3, 0, 0},
+>  };
+> @@ -448,7 +449,7 @@ static const struct reg_value ov5640_setting_NTSC_720_480[] = {
+>  	{0x3a03, 0xd8, 0, 0}, {0x3a08, 0x01, 0, 0}, {0x3a09, 0x27, 0, 0},
+>  	{0x3a0a, 0x00, 0, 0}, {0x3a0b, 0xf6, 0, 0}, {0x3a0e, 0x03, 0, 0},
+>  	{0x3a0d, 0x04, 0, 0}, {0x3a14, 0x03, 0, 0}, {0x3a15, 0xd8, 0, 0},
+> -	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0}, {0x4713, 0x03, 0, 0},
+> +	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0},
+>  	{0x4407, 0x04, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
+>  	{0x3824, 0x02, 0, 0}, {0x5001, 0xa3, 0, 0},
+>  };
+> @@ -467,7 +468,7 @@ static const struct reg_value ov5640_setting_PAL_720_576[] = {
+>  	{0x3a03, 0xd8, 0, 0}, {0x3a08, 0x01, 0, 0}, {0x3a09, 0x27, 0, 0},
+>  	{0x3a0a, 0x00, 0, 0}, {0x3a0b, 0xf6, 0, 0}, {0x3a0e, 0x03, 0, 0},
+>  	{0x3a0d, 0x04, 0, 0}, {0x3a14, 0x03, 0, 0}, {0x3a15, 0xd8, 0, 0},
+> -	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0}, {0x4713, 0x03, 0, 0},
+> +	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0},
+>  	{0x4407, 0x04, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
+>  	{0x3824, 0x02, 0, 0}, {0x5001, 0xa3, 0, 0},
+>  };
+> @@ -486,7 +487,7 @@ static const struct reg_value ov5640_setting_720P_1280_720[] = {
+>  	{0x3a03, 0xe4, 0, 0}, {0x3a08, 0x01, 0, 0}, {0x3a09, 0xbc, 0, 0},
+>  	{0x3a0a, 0x01, 0, 0}, {0x3a0b, 0x72, 0, 0}, {0x3a0e, 0x01, 0, 0},
+>  	{0x3a0d, 0x02, 0, 0}, {0x3a14, 0x02, 0, 0}, {0x3a15, 0xe4, 0, 0},
+> -	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0}, {0x4713, 0x03, 0, 0},
+> +	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0},
+>  	{0x4407, 0x04, 0, 0}, {0x460b, 0x37, 0, 0}, {0x460c, 0x20, 0, 0},
+>  	{0x3824, 0x04, 0, 0}, {0x5001, 0x83, 0, 0},
+>  };
+> @@ -506,7 +507,7 @@ static const struct reg_value ov5640_setting_1080P_1920_1080[] = {
+>  	{0x3a03, 0xd8, 0, 0}, {0x3a08, 0x01, 0, 0}, {0x3a09, 0x27, 0, 0},
+>  	{0x3a0a, 0x00, 0, 0}, {0x3a0b, 0xf6, 0, 0}, {0x3a0e, 0x03, 0, 0},
+>  	{0x3a0d, 0x04, 0, 0}, {0x3a14, 0x03, 0, 0}, {0x3a15, 0xd8, 0, 0},
+> -	{0x4001, 0x02, 0, 0}, {0x4004, 0x06, 0, 0}, {0x4713, 0x03, 0, 0},
+> +	{0x4001, 0x02, 0, 0}, {0x4004, 0x06, 0, 0},
+>  	{0x4407, 0x04, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
+>  	{0x3824, 0x02, 0, 0}, {0x5001, 0x83, 0, 0},
+>  	{0x3c07, 0x07, 0, 0}, {0x3c08, 0x00, 0, 0},
+> @@ -518,7 +519,7 @@ static const struct reg_value ov5640_setting_1080P_1920_1080[] = {
+>  	{0x3a02, 0x04, 0, 0}, {0x3a03, 0x60, 0, 0}, {0x3a08, 0x01, 0, 0},
+>  	{0x3a09, 0x50, 0, 0}, {0x3a0a, 0x01, 0, 0}, {0x3a0b, 0x18, 0, 0},
+>  	{0x3a0e, 0x03, 0, 0}, {0x3a0d, 0x04, 0, 0}, {0x3a14, 0x04, 0, 0},
+> -	{0x3a15, 0x60, 0, 0}, {0x4713, 0x02, 0, 0}, {0x4407, 0x04, 0, 0},
+> +	{0x3a15, 0x60, 0, 0}, {0x4407, 0x04, 0, 0},
+>  	{0x460b, 0x37, 0, 0}, {0x460c, 0x20, 0, 0}, {0x3824, 0x04, 0, 0},
+>  	{0x4005, 0x1a, 0, 0}, {0x3008, 0x02, 0, 0},
+>  };
+> @@ -537,7 +538,7 @@ static const struct reg_value ov5640_setting_QSXGA_2592_1944[] = {
+>  	{0x3a03, 0xd8, 0, 0}, {0x3a08, 0x01, 0, 0}, {0x3a09, 0x27, 0, 0},
+>  	{0x3a0a, 0x00, 0, 0}, {0x3a0b, 0xf6, 0, 0}, {0x3a0e, 0x03, 0, 0},
+>  	{0x3a0d, 0x04, 0, 0}, {0x3a14, 0x03, 0, 0}, {0x3a15, 0xd8, 0, 0},
+> -	{0x4001, 0x02, 0, 0}, {0x4004, 0x06, 0, 0}, {0x4713, 0x03, 0, 0},
+> +	{0x4001, 0x02, 0, 0}, {0x4004, 0x06, 0, 0},
+>  	{0x4407, 0x04, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
+>  	{0x3824, 0x02, 0, 0}, {0x5001, 0x83, 0, 70},
+>  };
+> @@ -1051,6 +1052,17 @@ static int ov5640_set_jpeg_timings(struct ov5640_dev *sensor,
+>  {
+>  	int ret;
+>  
+> +	/*
+> +	 * compression mode 3 timing
+> +	 *
+> +	 * Data is transmitted with programmable width (VFIFO_HSIZE).
+> +	 * No padding done. Last line may have less data. Varying
+> +	 * number of lines per frame, depending on amount of data.
+> +	 */
+> +	ret = ov5640_mod_reg(sensor, OV5640_REG_JPEG_MODE_SELECT, 0x7, 0x3);
+> +	if (ret < 0)
+> +		return ret;
+> +
+>  	ret = ov5640_write_reg16(sensor, OV5640_REG_VFIFO_HSIZE, mode->hact);
+>  	if (ret < 0)
+>  		return ret;
+
+-- 
+Regards,
+
+Sakari Ailus
+sakari.ailus@linux.intel.com
