@@ -2,258 +2,220 @@ Return-Path: <SRS0=c0D3=QM=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.0 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 44B42C282CB
-	for <linux-media@archiver.kernel.org>; Tue,  5 Feb 2019 08:47:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A3227C282CB
+	for <linux-media@archiver.kernel.org>; Tue,  5 Feb 2019 08:48:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 143FB2145D
-	for <linux-media@archiver.kernel.org>; Tue,  5 Feb 2019 08:47:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5A7182054F
+	for <linux-media@archiver.kernel.org>; Tue,  5 Feb 2019 08:48:53 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="oXWawnlK"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727300AbfBEIrL (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 5 Feb 2019 03:47:11 -0500
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:43801 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725952AbfBEIrL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 5 Feb 2019 03:47:11 -0500
-Received: from [IPv6:2001:983:e9a7:1:2989:f759:211b:c8a5] ([IPv6:2001:983:e9a7:1:2989:f759:211b:c8a5])
-        by smtp-cloud7.xs4all.net with ESMTPA
-        id qwNmgb0LsBDyIqwNngB34R; Tue, 05 Feb 2019 09:47:08 +0100
-Subject: Re: [PATCH] media: v4l2-tpg: Fix the memory layout of AYUV buffers
-To:     Vivek Kasireddy <vivek.kasireddy@intel.com>
-Cc:     linux-media@vger.kernel.org, Philipp Zabel <p.zabel@pengutronix.de>
-References: <20190129023222.10036-1-vivek.kasireddy@intel.com>
- <92dbd1f9-f5dc-37ed-856a-b3b2aa2b75d5@xs4all.nl>
- <20190131182903.08f28cd9@vkasired-desk2.fm.intel.com>
- <85fadb6b-6adb-b800-a71f-a4f8b68a9acf@xs4all.nl>
- <20190201164850.723b4e21@vkasired-desk2.fm.intel.com>
- <140cad99-7891-651c-6cf7-ae39d5768930@xs4all.nl>
- <20190204180440.20e04e93@vkasired-desk2.fm.intel.com>
-From:   Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <5309b151-6e04-8759-e12b-f592c7957fb3@xs4all.nl>
-Date:   Tue, 5 Feb 2019 09:47:06 +0100
+        id S1726550AbfBEIsw (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 5 Feb 2019 03:48:52 -0500
+Received: from mail-lj1-f182.google.com ([209.85.208.182]:45687 "EHLO
+        mail-lj1-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725898AbfBEIsw (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 5 Feb 2019 03:48:52 -0500
+Received: by mail-lj1-f182.google.com with SMTP id s5-v6so2140595ljd.12
+        for <linux-media@vger.kernel.org>; Tue, 05 Feb 2019 00:48:51 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=subject:to:references:from:message-id:date:user-agent:mime-version
+         :in-reply-to:content-transfer-encoding:content-language;
+        bh=e0g+bo75yBjuQ2T9RTAqlte5/N0gl85lnZ9mOMQMw3o=;
+        b=oXWawnlKqehNUj9wmsy8LtNSCATrIWba1Y4W5VK3v+DIYpzyhsDKu2EkNxKgQ0augG
+         fjHJ0bT5cU0+7fXDEUKh9EOsZapaCvAXHk4BKtorF0/goCcACmI1wgyQBP+WNKKWsFvP
+         Anqh5OZLUEXHzg6bwRJDdTKVM1Mj6OWRoMDQOYgITyhmS5WC/iP6XMVq2KIYlcDcjLUr
+         zLnWh9Y7+ZYd/DFx4FEtrR93KCzz4/MLkimjKTm6HY0fLkOP9AVq5XaAtmUTS3513JWW
+         uX9laEHVKQS6OiHVOwsyzIBHjmsZndkXEkBs0dWyJzO8B8Q7OhtAXnQbcAsnF0d7Qgtz
+         CefQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-transfer-encoding
+         :content-language;
+        bh=e0g+bo75yBjuQ2T9RTAqlte5/N0gl85lnZ9mOMQMw3o=;
+        b=K0z0btA2B+HWRUTKvw11vm8P4eL4ufgz0JULtVbSW7cGvbwEyLq+DqhwKliFCIUSwh
+         MwV394uaZkitXg876a5WguUEKxwaCblkkC1tBiGxQS5mzKN+zMnTproK+dEsx0vGe7/+
+         Qb8PgmuzihQKxSc94RHPSUKm3dkunwl6qLeonHw7rRiEG6Oe+yFjfZieE4RWDOCL3lzz
+         CiyEhHxZsRRTFn2IeXM2p0izj6auyWyTzYfuuHk0oxRUzFJIVUqNTyuBMZMocRoqxUN8
+         KkgU6YChk4T0uB8tgWk3mTZkHw/nOUwRanSHsFOXzDhi+eN08kydSnHiAFpL1Wgw5vPN
+         +DfQ==
+X-Gm-Message-State: AHQUAuaO0XqFgluqr+xQjpoeBLVAW+IfXaAOzFIvo+sFVnDR6qThI/3V
+        w6C1gSHvZgkp1uKcHPzan6U=
+X-Google-Smtp-Source: AHgI3Ia/8RuZVXozHuTZ5P6tvRKC0uTbMnWfMCaxBOOtRBDr0yh6dyodYoqVbS0kSQ+XdWNzjvEqVA==
+X-Received: by 2002:a2e:8007:: with SMTP id j7-v6mr2251215ljg.50.1549356530043;
+        Tue, 05 Feb 2019 00:48:50 -0800 (PST)
+Received: from [10.17.182.20] (ll-22.209.223.85.sovam.net.ua. [85.223.209.22])
+        by smtp.gmail.com with ESMTPSA id y23-v6sm3169910ljk.95.2019.02.05.00.48.48
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Tue, 05 Feb 2019 00:48:49 -0800 (PST)
+Subject: Re: [Xen-devel][PATCH v4 1/1] cameraif: add ABI for para-virtual
+ camera
+To:     Oleksandr Andrushchenko <Oleksandr_Andrushchenko@epam.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        "xen-devel@lists.xenproject.org" <xen-devel@lists.xenproject.org>,
+        "konrad.wilk@oracle.com" <konrad.wilk@oracle.com>,
+        "jgross@suse.com" <jgross@suse.com>,
+        "boris.ostrovsky@oracle.com" <boris.ostrovsky@oracle.com>,
+        "mchehab@kernel.org" <mchehab@kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
+        "koji.matsuoka.xm@renesas.com" <koji.matsuoka.xm@renesas.com>
+References: <20190115093853.15495-1-andr2000@gmail.com>
+ <20190115093853.15495-2-andr2000@gmail.com>
+ <393f824d-e543-476c-777f-402bcc1c0bcb@xs4all.nl>
+ <1152536e-9238-4192-653e-b784b34b8a0d@epam.com>
+From:   Oleksandr Andrushchenko <andr2000@gmail.com>
+Message-ID: <d8476f24-1952-e822-aa75-b8a5f5d5a552@gmail.com>
+Date:   Tue, 5 Feb 2019 10:48:48 +0200
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.3.1
+ Thunderbird/60.4.0
 MIME-Version: 1.0
-In-Reply-To: <20190204180440.20e04e93@vkasired-desk2.fm.intel.com>
-Content-Type: text/plain; charset=utf-8
+In-Reply-To: <1152536e-9238-4192-653e-b784b34b8a0d@epam.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfDuQubvWixPfOaxot2sDdbsVE5blNzTe4Kc6GJCy2Zo92X7chAuubTlcpg2U6JpJvmfDJ4MI6lgtFZ7HOXCeIWmI0atedxt/ss5trId9D6EFkPQzhEf1
- MIZf/VyuSZpglgi8jCMPdaEf1d6Z8f7o7NJ0XJi83op3uC0zQ/jLMpVOxNzHYPRJjGMvKLpwBGtKpMNk3aI/3SRuzFGkd8nf1df0+A1a2X9tGyZhIXBuYcsE
- ClagwjJcAYKmwEs/zyS0XV7ovU16Pf6huHnx1ZoUeBcG4xPJzuTxBQ+eGnPkZhZPEFL0Zb2iG7RaY9wUPV9B9JBtq7w/V71838Pq1MNSM/EsgyeTbM2Z7pPl
- r5q6lhMo
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On 2/5/19 3:04 AM, Vivek Kasireddy wrote:
-> On Sat, 2 Feb 2019 09:03:17 +0100
-> Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> Hi Hans,
-> 
->> On 02/02/2019 01:48 AM, Vivek Kasireddy wrote:
->>> On Fri, 1 Feb 2019 10:08:52 +0100
->>> Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>> Hi Hans,
->>>   
->>>> On 2/1/19 3:29 AM, Vivek Kasireddy wrote:  
->>>>> On Thu, 31 Jan 2019 14:36:42 +0100
->>>>> Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>>>>
->>>>> Hi Hans,
->>>>>     
->>>>>> Hi Vivek,
->>>>>>
->>>>>> On 1/29/19 3:32 AM, Vivek Kasireddy wrote:    
->>>>>>> From: "Kasireddy, Vivek" <vivek.kasireddy@intel.com>
->>>>>>>
->>>>>>> The memory layout of AYUV buffers (V4L2_PIX_FMT_YUV32) should be
->>>>>>> similar to V4L2_PIX_FMT_ABGR32 instead of V4L2_PIX_FMT_ARGB32.
->>>>>>>
->>>>>>> While displaying the packed AYUV buffers generated by the Vivid
->>>>>>> driver using v4l2-tpg on Weston, it was observed that these AYUV
->>>>>>> images were not getting displayed correctly. Changing the memory
->>>>>>> layout makes them display as expected.      
->>>>>>
->>>>>> Our YUV32 fourcc is defined as follows:
->>>>>>
->>>>>> https://hverkuil.home.xs4all.nl/spec/uapi/v4l/pixfmt-packed-yuv.html
->>>>>>
->>>>>> As far as I see the format that the TPG generates is according to
->>>>>> the V4L2 spec.    
->>>>>
->>>>> I looked into the above link, and I am now wondering whether YUV32
->>>>> is the same as the format referred to as AYUV here or not:
->>>>>
->>>>> https://docs.microsoft.com/en-us/windows/desktop/medfound/recommended-8-bit-yuv-formats-for-video-rendering#ayuv    
->>>>
->>>> It's not the same format.
->>>>  
->>>>>
->>>>> If YUV32 is not the same as AYUV, should I send another patch
->>>>> adding a new format named AYUV with the reversed memory
->>>>> layout?    
->>>>
->>>> That can only be done if there is also a driver that uses it.  
->>> There are some drm drivers that already use the AYUV format defined
->>> here:
->>> https://git.linuxtv.org/media_tree.git/tree/drivers/gpu/drm/drm_fourcc.c#n228  
+On 1/23/19 10:14 AM, Oleksandr Andrushchenko wrote:
+> Any comments from Xen community?
+> Konrad?
+While I am still looking forward to any comments from Xen community...
+>
+> On 1/15/19 4:44 PM, Hans Verkuil wrote:
+>> Hi Oleksandr,
 >>
->> I would have to check this with Mauro whether this is a good enough
->> excuse to add a new format.
+>> Just two remaining comments:
 >>
->>>   
->>>>  
->>>>>     
->>>>>>
->>>>>> Philipp, can you check the YUV32 format that the imx-pxp driver
->>>>>> uses? Is that according to our spec?    
->>>>
->>>> Philipp, would it be possible to add such a format to imx-pxp? That
->>>> might be a nice approach because once imx-pxp can do it, then it
->>>> can also be added to the TPG.  
->>> I was going to send in a patch to add the AYUV (and maybe XYUV)
->>> format but I came across this line that leaves me confused:
->>> https://git.linuxtv.org/media_tree.git/tree/drivers/media/platform/vivid/vivid-vid-common.c#n164  
+>> On 1/15/19 10:38 AM, Oleksandr Andrushchenko wrote:
+>>> From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+>>>
+>>> This is the ABI for the two halves of a para-virtualized
+>>> camera driver which extends Xen's reach multimedia capabilities even
+>>> farther enabling it for video conferencing, In-Vehicle Infotainment,
+>>> high definition maps etc.
+>>>
+>>> The initial goal is to support most needed functionality with the
+>>> final idea to make it possible to extend the protocol if need be:
+>>>
+>>> 1. Provide means for base virtual device configuration:
+>>>    - pixel formats
+>>>    - resolutions
+>>>    - frame rates
+>>> 2. Support basic camera controls:
+>>>    - contrast
+>>>    - brightness
+>>>    - hue
+>>>    - saturation
+>>> 3. Support streaming control
+>>>
+>>> Signed-off-by: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+>>> ---
+>>>    xen/include/public/io/cameraif.h | 1364 ++++++++++++++++++++++++++++++
+>>>    1 file changed, 1364 insertions(+)
+>>>    create mode 100644 xen/include/public/io/cameraif.h
+>>>
+>>> diff --git a/xen/include/public/io/cameraif.h b/xen/include/public/io/cameraif.h
+>>> new file mode 100644
+>>> index 000000000000..246eb2457f40
+>>> --- /dev/null
+>>> +++ b/xen/include/public/io/cameraif.h
+>>> @@ -0,0 +1,1364 @@
+>> <snip>
 >>
->> It indicates the order of the components in memory, which is indeed
->> AYUV. But it has nothing to do with the microsoft AYUV fourcc.
-> Does it mean that based on the V4L2 spec, the order of components in
-> memory is always guaranteed regardless of the endianness of the
-> underlying platform? Is it the Vivid/v4l2 core driver's responsibility
-> to make sure this happens?
-
-Correct. But I'm sure it is likely to be horribly broken in many drivers
-since they are rarely if ever tested on a big endian system.
-
-> 
+>>> +/*
+>>> + ******************************************************************************
+>>> + *                                 EVENT CODES
+>>> + ******************************************************************************
+>>> + */
+>>> +#define XENCAMERA_EVT_FRAME_AVAIL      0x00
+>>> +#define XENCAMERA_EVT_CTRL_CHANGE      0x01
+>>> +
+>>> +/* Resolution has changed. */
+>>> +#define XENCAMERA_EVT_CFG_FLG_RESOL    (1 << 0)
+>> I think this flag is a left-over from v2 and should be removed.
 >>
->>> It appears that when YUV32 was added, the intention was to mimic
->>> AYUV. And, unless I am utterly mistaken, the alpha_mask of
->>> 0x000000ff suggests that the alpha component is expected to be
->>> found in the LSB (LE) bits indicating a memory layout of VUYA. Am I
->>> interpreting this incorrectly?  
+>> <snip>
 >>
->> Yes. When you write 0x000000ff to memory in a LE environment, it ends
->> up as 0xff 0x00 0x00 0x00 in memory (in increasing memory addresses).
-> This would only work if the alpha component A is always in the MSB
-> which suggests endianness-independence. And, what would happen when
-> writing the alpha mask 0x000000ff in a BE environment which would end up
-> as 0x00 0x00 0x00 0xff in memory? 
-
-It would be wrong. But this alpha mask is used to test an esoteric corner
-case of v4l2 (video overlays), and only for RGB 5:6:5 and 1:5:5:5 formats.
-
-If I ever would test this on a big endian system I would have to make some
-fixes, I'm sure.
-
-> 
+>>> + * Request number of buffers to be used:
+>>> + *         0                1                 2               3        octet
+>>> + * +----------------+----------------+----------------+----------------+
+>>> + * |               id                | _OP_BUF_REQUEST|   reserved     | 4
+>>> + * +----------------+----------------+----------------+----------------+
+>>> + * |                             reserved                              | 8
+>>> + * +----------------+----------------+----------------+----------------+
+>>> + * |    num_bufs    |                     reserved                     | 12
+>>> + * +----------------+----------------+----------------+----------------+
+>>> + * |                             reserved                              | 16
+>>> + * +----------------+----------------+----------------+----------------+
+>>> + * |/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/|
+>>> + * +----------------+----------------+----------------+----------------+
+>>> + * |                             reserved                              | 64
+>>> + * +----------------+----------------+----------------+----------------+
+>>> + *
+>>> + * num_bufs - uint8_t, desired number of buffers to be used. This is
+>>> + *   limited to the value configured in XenStore.max-buffers.
+>>> + *   Passing zero num_bufs in this request (after streaming has stopped
+>>> + *   and all buffers destroyed) unblocks camera configuration changes.
+>> I think the phrase 'unblocks camera configuration changes' is confusing.
 >>
->> The v4l2-tpg AYUV format is really, really correct given the V4L2
->> specification of this format.
-> Ok, should I send a patch adding support for VUYA format? Should the
-> new fourcc be VUY4?
-
-I would prefer to have it along the line of how RGB32 works, so:
-
-VUYX32 and VUYA32
-
-(slightly different from how e.g. ABGR32 since that should have been
-BGRA32, but let's do it right)
-
-While you are at it, also add AYUV32 and XYUV32 for completeness. The
-old YUV32 didn't indicate anything about whether the hardware would use
-or ignore the A byte, we corrected that for RGB formats but never for
-this YUV32 format.
-
-Don't forget to update the documentation and to add support for this
-to v4l2-tpg and vivid.
-
-And mention that this allows you to use the tpg/vivid in combination with
-drm drivers that use VUYX32.
-
-Regards,
-
-	Hans
-
-> 
-> Thanks,
-> Vivek
-> 
+>> In v3 this sentence came after the third note below, and so it made sense
+>> in that context, but now the order has been reversed and it became hard to
+>> understand.
 >>
+>> I'm not sure what the best approach is to fix this. One option is to remove
+>> the third note and integrate it somehow in the sentence above. Or perhaps
+>> do away with the 'notes' at all and just write a more extensive documentation
+>> for this op. I leave that up to you.
+Hans, how about:
+
+  * num_bufs - uint8_t, desired number of buffers to be used.
+  *
+  * The number of buffers in this request must not exceed the value 
+configured
+  * in XenStore.max-buffers. If the number of buffers is not zero then 
+after this
+  * request the camera configuration cannot be changed. In order to 
+allow camera
+  * (re)configuration this request must be sent with num_bufs set to 
+zero and
+  * the streaming must be stopped and buffers destroyed.
+  * It is allowed for the frontend to send multiple XENCAMERA_OP_BUF_REQUEST
+  * requests before sending XENCAMERA_OP_STREAM_START request to update or
+  * tune the final configuration.
+  * Frontend is responsible for checking the corresponding response in 
+order to
+  * see if the values reported back by the backend do match the desired ones
+  * and can be accepted.
+  *
+  * See response format for this request.
+  */
+
+>>> + *
+>>> + * See response format for this request.
+>>> + *
+>>> + * Notes:
+>>> + *  - frontend must check the corresponding response in order to see
+>>> + *    if the values reported back by the backend do match the desired ones
+>>> + *    and can be accepted.
+>>> + *  - frontend may send multiple XENCAMERA_OP_BUF_REQUEST requests before
+>>> + *    sending XENCAMERA_OP_STREAM_START request to update or tune the
+>>> + *    configuration.
+>>> + *  - after this request camera configuration cannot be changed, unless
+>> camera configuration -> the camera configuration
+>>
+>>> + *    streaming is stopped and buffers destroyed
+>>> + */
 >> Regards,
 >>
 >> 	Hans
->>
->>>
->>> Thanks,
->>> Vivek
->>>   
->>>>  
->>>>>>
->>>>>> At some point we probably want to add a VUY32 format which is
->>>>>> what Weston expects, but we certainly cannot change what the TPG
->>>>>> generates for YUV32 since that is correct.    
->>>>> Weston does not know much about the details of pixel formats and
->>>>> instead relies on the Mesa i965 DRI driver to do the heavy
->>>>> lifting. And, this driver implemented AYUV support looking at the
->>>>> above Microsoft link. Also, is the description of V4l pixel
->>>>> formats mentioned in the below link accurate:
->>>>> https://afrantzis.com/pixel-format-guide/v4l2.html    
->>>>
->>>> Don't use it, just use the V4L2 Specification, that's always kept
->>>> up to date.
->>>>
->>>> Regards,
->>>>
->>>> 	Hans
->>>>  
->>>>>
->>>>> Thanks,
->>>>> Vivek
->>>>>     
->>>>>>
->>>>>> Regards,
->>>>>>
->>>>>> 	Hans
->>>>>>    
->>>>>>>
->>>>>>> Signed-off-by: Vivek Kasireddy <vivek.kasireddy@intel.com>
->>>>>>> ---
->>>>>>>  drivers/media/common/v4l2-tpg/v4l2-tpg-core.c | 2 +-
->>>>>>>  1 file changed, 1 insertion(+), 1 deletion(-)
->>>>>>>
->>>>>>> diff --git a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
->>>>>>> b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c index
->>>>>>> d9a590ae7545..825667f67c92 100644 ---
->>>>>>> a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c +++
->>>>>>> b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c @@ -1269,7
->>>>>>> +1269,6 @@ static void gen_twopix(struct tpg_data *tpg, case
->>>>>>> V4L2_PIX_FMT_HSV32: alpha = 0;
->>>>>>>  		/* fall through */
->>>>>>> -	case V4L2_PIX_FMT_YUV32:
->>>>>>>  	case V4L2_PIX_FMT_ARGB32:
->>>>>>>  		buf[0][offset] = alpha;
->>>>>>>  		buf[0][offset + 1] = r_y_h;
->>>>>>> @@ -1280,6 +1279,7 @@ static void gen_twopix(struct tpg_data
->>>>>>> *tpg, case V4L2_PIX_FMT_XBGR32:
->>>>>>>  		alpha = 0;
->>>>>>>  		/* fall through */
->>>>>>> +	case V4L2_PIX_FMT_YUV32:
->>>>>>>  	case V4L2_PIX_FMT_ABGR32:
->>>>>>>  		buf[0][offset] = b_v;
->>>>>>>  		buf[0][offset + 1] = g_u_s;
->>>>>>>       
->>>>>>    
->>>>>     
->>>>  
->>>   
->>
-> 
 
