@@ -2,144 +2,122 @@ Return-Path: <SRS0=c0D3=QM=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-6.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 372FAC282CC
-	for <linux-media@archiver.kernel.org>; Tue,  5 Feb 2019 13:06:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C75A2C282CB
+	for <linux-media@archiver.kernel.org>; Tue,  5 Feb 2019 13:40:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id EEF25217FA
-	for <linux-media@archiver.kernel.org>; Tue,  5 Feb 2019 13:06:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9191520844
+	for <linux-media@archiver.kernel.org>; Tue,  5 Feb 2019 13:40:09 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="bxcCqu/4"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="PqPb5PtP"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729118AbfBENGy (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 5 Feb 2019 08:06:54 -0500
-Received: from mail-lf1-f45.google.com ([209.85.167.45]:42600 "EHLO
-        mail-lf1-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727949AbfBENGx (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 5 Feb 2019 08:06:53 -0500
-Received: by mail-lf1-f45.google.com with SMTP id l10so2562670lfh.9
-        for <linux-media@vger.kernel.org>; Tue, 05 Feb 2019 05:06:51 -0800 (PST)
+        id S1729577AbfBENkI (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 5 Feb 2019 08:40:08 -0500
+Received: from mail-pl1-f194.google.com ([209.85.214.194]:38578 "EHLO
+        mail-pl1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728803AbfBENkI (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 5 Feb 2019 08:40:08 -0500
+Received: by mail-pl1-f194.google.com with SMTP id e5so1503589plb.5;
+        Tue, 05 Feb 2019 05:40:08 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=subject:to:references:from:message-id:date:user-agent:mime-version
-         :in-reply-to:content-transfer-encoding:content-language;
-        bh=MZijtisJvnouBUk0MwK1JXNuWxZ5lhODcWXpNxCBjkU=;
-        b=bxcCqu/4ZX9JkfY6YHK3exIDDqENomXg7kRemNJzMkv3EOCL8UFTPUTXSjfKuCjpgO
-         EV3kfJCajt6b2zYTbVO4Mjvxsjc3yNoibdV4IN/nFjUedcNZTwfefHxF8JCSiqo9mvCU
-         YpmiQgWtdudAzOIryS2Pt7C+iBUpfGzOZN6H5efKprZjMjbikX/0fusaWYhv6OdigxVf
-         B9RKNl1ySbWwlGJxuKM1SKpzGCThON7DrfRRAlnbQziChXkdwz6MRrTK1BOQ6RnfLwEM
-         2eodYyUTc7662vs6QDg1JnB4tkQG1ZZ9AsgfElPgfNYBHBuZCrhUfvbikhEc8iIvaFQp
-         SUFw==
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc:content-transfer-encoding;
+        bh=9tOa516GafoOkBpVFLzvXJxv4VQq7VRilgzb6o0Aoy8=;
+        b=PqPb5PtPrp9t97QB5R77Rh0Wd+CYiOPjsYjp7KovTfKjBdtqozJX71RJtdyXCsblbp
+         TrzPQywQeD3Oqrc3KAKPAIpYrhS3wJtvRIWW0N93VXOTBPO1u+7c492u/3qKe0Lhe3VB
+         l/3vEdBSZeb2alK6x0PVG/K8wGdbCfAAquQVFNd/TDpY92TMqPYD2Gv8XSY3oB3wR7lY
+         qURMnY1Lm50zfxBVJN6ckz4agooX93SSfs4v9EIQhpyjxYZTqr8SYMX3U5mETKnTHQqm
+         cTVFaPL5YybAZPiRgSfkSdDgcynBPmScSaO0TRg/f1rlflv4jJo4U4kjdGhkDtMaBbP0
+         6ChQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-transfer-encoding
-         :content-language;
-        bh=MZijtisJvnouBUk0MwK1JXNuWxZ5lhODcWXpNxCBjkU=;
-        b=djyYXmLqg+yrGdVfLqgez1mzQHw9WZVmJg1dCHCp/rkRSt0BsxK40RB4tHklyqUFbK
-         TkRxoPoqquG8HCjYHIJuQbBiuCZdqXx09XySUG8t/0bqegpQaCqwLk2q38mL19Qgnh2v
-         p46EjIRZ3VSi8/ylA+3q6LSvSWiRn6Abh3TLT3RxMd8xuObhMKXFxFOYNzOuGfPTFhDp
-         SjiE4v/EynxW57PKWuJXB9lcxiUZwxC3RPTfL4nH/OQvPgpoVNQeyo3a424y8JE/SwWC
-         oyBNT5HxQQhUdv7yJEWfj1wEOLrhYqaB87TtdJ5nRIHUM1ko4TG+uDtvvVhT4ohpUb9u
-         GWkg==
-X-Gm-Message-State: AHQUAuZ0gdUgsjUu+5g4oqi4ZTo6B/F6ZEZnDaSvq4f4QrFE4S9DqSIF
-        gLSyZpttOS7JA72l5+BZy6DNXfsE
-X-Google-Smtp-Source: AHgI3IaScA98G5zzcKIeSsBP7hS6LKYg8yM57BSPvjM5Izz1+WBReCseCIs6VMhg/hZiBkm76iI+Pg==
-X-Received: by 2002:a19:a345:: with SMTP id m66mr3136309lfe.84.1549372010526;
-        Tue, 05 Feb 2019 05:06:50 -0800 (PST)
-Received: from [10.17.182.20] (ll-22.209.223.85.sovam.net.ua. [85.223.209.22])
-        by smtp.gmail.com with ESMTPSA id c22sm3244555lfi.27.2019.02.05.05.06.48
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 05 Feb 2019 05:06:49 -0800 (PST)
-Subject: Re: [Xen-devel][PATCH v4 1/1] cameraif: add ABI for para-virtual
- camera
-To:     Hans Verkuil <hverkuil@xs4all.nl>,
-        "Oleksandr_Andrushchenko@epam.com" <Oleksandr_Andrushchenko@epam.com>,
-        "xen-devel@lists.xenproject.org" <xen-devel@lists.xenproject.org>,
-        "konrad.wilk@oracle.com" <konrad.wilk@oracle.com>,
-        "jgross@suse.com" <jgross@suse.com>,
-        "boris.ostrovsky@oracle.com" <boris.ostrovsky@oracle.com>,
-        "mchehab@kernel.org" <mchehab@kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
-        "koji.matsuoka.xm@renesas.com" <koji.matsuoka.xm@renesas.com>
-References: <20190115093853.15495-1-andr2000@gmail.com>
- <20190115093853.15495-2-andr2000@gmail.com>
- <393f824d-e543-476c-777f-402bcc1c0bcb@xs4all.nl>
- <1152536e-9238-4192-653e-b784b34b8a0d@epam.com>
- <d8476f24-1952-e822-aa75-b8a5f5d5a552@gmail.com>
- <e5bbde8f-ef5a-791a-a3aa-645c57ddcf82@xs4all.nl>
- <d26401fd-9e16-548e-cfa0-af488a701b59@gmail.com>
- <3ea2c5a1-b5a1-ba70-ade5-d14cc3aace66@xs4all.nl>
- <08d6da1b-f061-010c-abf8-865564c26d49@gmail.com>
- <de3288c3-2f3a-152f-88f2-e8f2fe690493@xs4all.nl>
- <474636e0-8059-7b75-8b48-a216c6defaf4@gmail.com>
- <5679f9a9-1218-0cdb-0c61-45864159ab29@xs4all.nl>
-From:   Oleksandr Andrushchenko <andr2000@gmail.com>
-Message-ID: <f3fa2587-3641-56ea-31c2-3758ee7ae96f@gmail.com>
-Date:   Tue, 5 Feb 2019 15:06:48 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.4.0
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=9tOa516GafoOkBpVFLzvXJxv4VQq7VRilgzb6o0Aoy8=;
+        b=cw3rIvf4pxzz1Nh945fUT9ggQRneTXI031oBAm24qtc9oyT9ujFQcBQ5GUHCNUEl65
+         i1Kp4pqxMVm7tVWsd4VBzLDPCvF8fRi3rSaONQnpBPcVjZNiiaXDnkr3aMYZSrr6aBMG
+         DwgpXNWruF69OTZ7m4WROoBNx9NhIcJoZUjwnZnPlOAu5Pu4ww00GVdUhAKOrsam06IS
+         /oY6ia4rMoGCaA2WQWbYCF9p5JUPAb058abqaszhksswz2iTHFidNJBNe86LELHtw/nt
+         RBGWjyBaDcA/kPc2cT/T2jLJl9eaEnrzuM9c8Ids/gDdfYm8osGUxQG/TydAPZTqFtmi
+         rEnw==
+X-Gm-Message-State: AHQUAua8I3K1pbm414n7fznVF57jc6H4kioqyuSyEgNpED25MLGCSEeM
+        FhVqSXRgDHw55eR4wNCXD1JtLlkgTr7sOzit1z0=
+X-Google-Smtp-Source: AHgI3IYIxd/CWp8eEFyD1OpvGqkReh12UGCNJ2+ds7aKITMxG+tZzIbmPIllUt1kX1NqUpzKGHFp0OEa/kYAfsyLTzA=
+X-Received: by 2002:a17:902:887:: with SMTP id 7mr5166828pll.164.1549374007663;
+ Tue, 05 Feb 2019 05:40:07 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <5679f9a9-1218-0cdb-0c61-45864159ab29@xs4all.nl>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+References: <1546959110-19445-1-git-send-email-akinobu.mita@gmail.com> <20190204090521.5ngcycuvccvfrpqb@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20190204090521.5ngcycuvccvfrpqb@valkosipuli.retiisi.org.uk>
+From:   Akinobu Mita <akinobu.mita@gmail.com>
+Date:   Tue, 5 Feb 2019 22:39:56 +0900
+Message-ID: <CAC5umyhhfxFiPnS6Kj-m-VgcEt8p6BOSBF=T_TdozNHCCkbPSw@mail.gmail.com>
+Subject: Re: [PATCH v2 00/13] media: mt9m001: switch soc_mt9m001 to a standard
+ subdev sensor driver
+To:     Sakari Ailus <sakari.ailus@iki.fi>
+Cc:     linux-media@vger.kernel.org,
+        "open list:OPEN FIRMWARE AND..." <devicetree@vger.kernel.org>,
+        Rob Herring <robh@kernel.org>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Marco Felsch <m.felsch@pengutronix.de>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On 2/5/19 3:02 PM, Hans Verkuil wrote:
-> On 2/5/19 1:30 PM, Oleksandr Andrushchenko wrote:
->>> Sorry for paying so much attention to this, but I think it is important that
->>> this is documented precisely.
->> Thank you for helping with this - your comments are really
->> important and make the description precise. Ok, so finally:
->>
->>   * num_bufs - uint8_t, desired number of buffers to be used.
->>   *
->>   * If num_bufs is not zero then the backend validates the requested number of
->>   * buffers and responds with the number of buffers allowed for this frontend.
->>   * Frontend is responsible for checking the corresponding response in order to
->>   * see if the values reported back by the backend do match the desired ones
->>   * and can be accepted.
->>   * Frontend is allowed to send multiple XENCAMERA_OP_BUF_REQUEST requests
->>   * before sending XENCAMERA_OP_STREAM_START request to update or tune the
->>   * final configuration.
->>   * Frontend is not allowed to change the number of buffers and/or camera
->>   * configuration after the streaming has started.
->>   *
->>   * If num_bufs is 0 and streaming has not started yet, then the backend may
->>   * free all previously allocated buffers (if any) or do nothing.
-> I would rephrase this:
+2019=E5=B9=B42=E6=9C=884=E6=97=A5(=E6=9C=88) 18:06 Sakari Ailus <sakari.ail=
+us@iki.fi>:
 >
-> * If num_bufs is 0 and streaming has not started yet, then the backend will
-> * free all previously allocated buffers (if any).
+> Hi Mita-san,
 >
-> The previous text suggested that the backend might choose not to free
-> the allocated buffers, but that's not the case.
+> On Tue, Jan 08, 2019 at 11:51:37PM +0900, Akinobu Mita wrote:
+> > This patchset converts soc_camera mt9m001 driver to a standard subdev
+> > sensor driver.
+> >
+> > * v2
+> > - Update binding doc suggested by Rob Herring.
+> > - Fix MODULE_LICENSE() masmatch.
+> > - Sort headers alphabetically.
+> > - Add new label for error handling in s_stream() callback.
+> > - Replace pm_runtime_get_noresume() + pm_runtime_put_sync() with a
+> >   single pm_runtime_idle() call in probe() function.
+> > - Change the argument of mt9m001_power_o{n,ff} to struct device, and
+> >   use them for runtime PM callbacks directly.
+> > - Remove redundant Kconfig dependency
+> > - Preserve subdev flags set by v4l2_i2c_subdev_init().
+> > - Set initial try format with default configuration instead of
+> >   current one.
 >
-Ok, makes sense
->>   * Trying to call this if streaming is in progress will result in an error.
->>   *
->>   * If camera reconfiguration is required then the streaming must be stopped
->>   * and this request must be sent with num_bufs set to zero and finally
->>   * buffers destroyed.
->>   *
->>   * Please note, that the number of buffers in this request must not exceed
->>   * the value configured in XenStore.max-buffers.
->>   *
->>   * See response format for this request.
-> With that small change the text looks good to me.
-Thank you for your time and help with this!
-It seems I can push v5 for the (final?) review then
-> Regards,
+> While this set improved the original mt9m001 driver a lot, it did not add=
+ a
+> MAINTAINERS entry for it. The same applies to the mt9m111 driver.
 >
-> 	Hans
-Thank you,
-Oleksandr
+> Could you provide the MAINTAINERS entries for the two drivers, please?
+
+As long as I have those two sensors, I can review and test the patches.
+So I would like to add the following MAINTAINERS entries.
+
+MT9M001 CAMERA SENSOR
+M:      Sakari Ailus <sakari.ailus@linux.intel.com>
+R:      Akinobu Mita <akinobu.mita@gmail.com>
+L:      linux-media@vger.kernel.org
+T:      git git://linuxtv.org/media_tree.git
+S:      Maintained
+F:      Documentation/devicetree/bindings/media/i2c/mt9m001.txt
+F:      drivers/media/i2c/mt9m001.c
+
+MT9M111 CAMERA SENSOR
+M:      Sakari Ailus <sakari.ailus@linux.intel.com>
+R:      Akinobu Mita <akinobu.mita@gmail.com>
+L:      linux-media@vger.kernel.org
+T:      git git://linuxtv.org/media_tree.git
+S:      Maintained
+F:      Documentation/devicetree/bindings/media/i2c/mt9m111.txt
+F:      drivers/media/i2c/mt9m111.c
