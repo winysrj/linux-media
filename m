@@ -2,58 +2,58 @@ Return-Path: <SRS0=FbF1=QN=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9CBC7C169C4
-	for <linux-media@archiver.kernel.org>; Wed,  6 Feb 2019 15:14:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A8931C169C4
+	for <linux-media@archiver.kernel.org>; Wed,  6 Feb 2019 15:14:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6A9DC2080D
-	for <linux-media@archiver.kernel.org>; Wed,  6 Feb 2019 15:14:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 77A3B2080D
+	for <linux-media@archiver.kernel.org>; Wed,  6 Feb 2019 15:14:13 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="O9lfY2Cm"
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="J4jd8CaJ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731210AbfBFPOK (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 6 Feb 2019 10:14:10 -0500
-Received: from mail-wr1-f68.google.com ([209.85.221.68]:37309 "EHLO
-        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730384AbfBFPOJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Feb 2019 10:14:09 -0500
-Received: by mail-wr1-f68.google.com with SMTP id c8so1154181wrs.4
-        for <linux-media@vger.kernel.org>; Wed, 06 Feb 2019 07:14:08 -0800 (PST)
+        id S1731206AbfBFPON (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 6 Feb 2019 10:14:13 -0500
+Received: from mail-wm1-f66.google.com ([209.85.128.66]:55086 "EHLO
+        mail-wm1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1731183AbfBFPOE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Feb 2019 10:14:04 -0500
+Received: by mail-wm1-f66.google.com with SMTP id a62so2851913wmh.4
+        for <linux-media@vger.kernel.org>; Wed, 06 Feb 2019 07:14:03 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linaro.org; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=b9uMMPdkJCtwwiAQ2DAjUCT6O07s1f5ZO4Mq8oQ/Fa8=;
-        b=O9lfY2CmB03HgAWOP7VGmQmmgz7WnnzMHCEKzfWCA5imPhiM+zm+7asIlojsUD4ya+
-         DzGpIftqliC6qqtBrqJGNMANuZK1VIejNM1A66stw3SKRTu0w+8/G/rBYecbLuzmB0P9
-         vieQMfIUQGv12QpELSy5gK3yavFVaox2I7g2xjoH/yl/lDp/B+aUtN91/l2VqaQo4S9p
-         8updjckQwLKl+z1gapkm2+VtwNbJ9or5+CQnaEQVkny5tCsMF1S157VmMVYOGtjC0AmX
-         vfy1xcwjZDKP3416TYy31ppMv6g+Zjtuo5gTMpx1W7AiB3E+3dbwQV1oRPLrQ7EH/8EK
-         HXjQ==
+        bh=GWBv8TFqzFxnlkNvYBhlA0CSDp04MBjWsOjyfNPbaXc=;
+        b=J4jd8CaJmvidCN+EqYP/RhBImDCO8XDEFQ3SkWa5wWs2LlBFEszBTAO7ggNlpEMkyE
+         NRvzPjfdL6qbLwREBzRm8YSG6aI5YtiPhD/nSFCwmDd/PBtBQpGsEFceN/l4Nl9o7MaW
+         zRfr3DsFaiYxIyS8IamnrqSIUTbZ37qO9igd7auoMjBt91K1nS1ZY3e3peruPVd4uNP1
+         Gqwd5arL7ciQQMg0t4zhIwb9k9ZKRVoXBSfeWUcqdbpxnJEirjEkXKdnCTW1sRc2OHrV
+         UUDbaT0UVkPy+64N+CwZrQjJxSmfguyEysG77OaiuUxv7o3J6QYe1SxxweTBnUJch16F
+         GoRw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=b9uMMPdkJCtwwiAQ2DAjUCT6O07s1f5ZO4Mq8oQ/Fa8=;
-        b=fmSSu0kS6rjrPvTQFhiRrCRK5IdGjdKHh9cbroMG2OVzIvU/jja61bNTHmZCzfDcfL
-         NAjqeFaNCoRIKA2ht/pXpqCqFsgSGLCzZefkqZMZV9iEyWb+cyFtueY/U4QgsceqEvD6
-         AGZRqjA6RCITUy5T9P74tIYXsc8X101RnSbakFbidwlcyjcBlt3Sh+miQ5+ehnxgoeU1
-         g2H2WTx5/3ySN+N2WmPotVRLUKRfrrolhuoeAbQrNBd652oJqOrWiMczhARkNzD73UG5
-         NbpUqI5VDOWin/sgtHsOb+cNe8q7py+WbPgoQAQuiLYzGeyab57a6xbzLxb/z5eth48g
-         64Cw==
-X-Gm-Message-State: AHQUAuZYo92nt95nehlj2Q1P6xyDT9E4UNwngvTapruXvFCJ3Kl00IHn
-        YqweXiBOuY0je//HR5VPkEAZkA==
-X-Google-Smtp-Source: AHgI3IarCmTMLjN3jZ/9yqaMJ2vXjoOM0+bNcwwW718YQfvKLk/rwHNJwpU7EEl3RDszhxIvpKC8cA==
-X-Received: by 2002:a5d:550f:: with SMTP id b15mr8629992wrv.330.1549466047664;
-        Wed, 06 Feb 2019 07:14:07 -0800 (PST)
+        bh=GWBv8TFqzFxnlkNvYBhlA0CSDp04MBjWsOjyfNPbaXc=;
+        b=IM6wFwRF4A2ZJeIWp+JXTdkn0goaHObTqDfw/Ojp3DHqm70MtcUezSlnoC5OD0fT5Q
+         oyosg1A9c98bFPrp9AqGvPyuvKIPea9t4szGNaN0gw2wbgGA05BAviF5ULBE7ZN9lKUC
+         zltUgHO55Vb6mmurNC7s2DvwIhaMD6xUnD0DQIoA/d6qFd+UQhv8Ggbhb4GWhwxsKu3a
+         wOxF8kLb5xcYaa1fdPiCyy4LOcYPSa3OFRdyKx9drufOQ7QuyfSgWTABnQHWAKY1yTWB
+         fSx6AvZMg23I/yJyYsSBfpVW9+/8bgjXVe7ct3vtWmhB43VDKANMmNO4KK7eYaCbXp92
+         DXSQ==
+X-Gm-Message-State: AHQUAuZgA9uiQQFYo3jDj3sPKKgpr7guAohnxN5ExQN3fY1cJfcXc5jk
+        L8r3DSXb06qIEJGD7NNQE6nWwA==
+X-Google-Smtp-Source: AHgI3IZ6VOLwZPcheSCljTP9bQFztq0JLMtRONKBkIi5S7m6MCjMNTX+b9xEzvC9WboXjLjo2eesaQ==
+X-Received: by 2002:a1c:a401:: with SMTP id n1mr3760706wme.101.1549466043134;
+        Wed, 06 Feb 2019 07:14:03 -0800 (PST)
 Received: from arch-late.local (a109-49-46-234.cpe.netcabo.pt. [109.49.46.234])
-        by smtp.gmail.com with ESMTPSA id f22sm11207836wmj.26.2019.02.06.07.14.06
+        by smtp.gmail.com with ESMTPSA id f22sm11207836wmj.26.2019.02.06.07.14.01
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 06 Feb 2019 07:14:07 -0800 (PST)
+        Wed, 06 Feb 2019 07:14:02 -0800 (PST)
 From:   Rui Miguel Silva <rui.silva@linaro.org>
 To:     sakari.ailus@linux.intel.com,
         Steve Longerbeam <slongerbeam@gmail.com>,
@@ -63,9 +63,9 @@ Cc:     linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
         devicetree@vger.kernel.org,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Rui Miguel Silva <rui.silva@linaro.org>
-Subject: [PATCH v14 13/13] media: MAINTAINERS: add entry for Freescale i.MX7 media driver
-Date:   Wed,  6 Feb 2019 15:13:28 +0000
-Message-Id: <20190206151328.21629-14-rui.silva@linaro.org>
+Subject: [PATCH v14 11/13] media: staging/imx: add i.MX7 entries to TODO file
+Date:   Wed,  6 Feb 2019 15:13:26 +0000
+Message-Id: <20190206151328.21629-12-rui.silva@linaro.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190206151328.21629-1-rui.silva@linaro.org>
 References: <20190206151328.21629-1-rui.silva@linaro.org>
@@ -76,37 +76,31 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Add maintainer entry for the imx7 media csi, mipi csis driver,
-dt-bindings and documentation.
+Add some i.MX7 related entries to TODO file.
 
 Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
 Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- MAINTAINERS | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+ drivers/staging/media/imx/TODO | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 3e211916d2bc..d8e0c9040736 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -9348,6 +9348,17 @@ T:	git git://linuxtv.org/media_tree.git
- S:	Maintained
- F:	drivers/media/platform/imx-pxp.[ch]
+diff --git a/drivers/staging/media/imx/TODO b/drivers/staging/media/imx/TODO
+index aeeb15494a49..6f29b5ca5324 100644
+--- a/drivers/staging/media/imx/TODO
++++ b/drivers/staging/media/imx/TODO
+@@ -45,3 +45,12 @@
  
-+MEDIA DRIVERS FOR FREESCALE IMX7
-+M:	Rui Miguel Silva <rmfrfs@gmail.com>
-+L:	linux-media@vger.kernel.org
-+T:	git git://linuxtv.org/media_tree.git
-+S:	Maintained
-+F:	Documentation/devicetree/bindings/media/imx7-csi.txt
-+F:	Documentation/devicetree/bindings/media/imx7-mipi-csi2.txt
-+F:	Documentation/media/v4l-drivers/imx7.rst
-+F:	drivers/staging/media/imx/imx7-media-csi.c
-+F:	drivers/staging/media/imx/imx7-mipi-csis.c
+      Which means a port must not contain mixed-use endpoints, they
+      must all refer to media links between V4L2 subdevices.
 +
- MEDIA DRIVERS FOR HELENE
- M:	Abylay Ospan <aospan@netup.ru>
- L:	linux-media@vger.kernel.org
++- i.MX7: all of the above, since it uses the imx media core
++
++- i.MX7: use Frame Interval Monitor
++
++- i.MX7: runtime testing with parallel sensor, links setup and streaming
++
++- i.MX7: runtime testing with different formats, for the time only 10-bit bayer
++  is tested
 -- 
 2.20.1
 
