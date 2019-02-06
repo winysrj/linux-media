@@ -7,53 +7,53 @@ X-Spam-Status: No, score=-9.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F9D1C169C4
-	for <linux-media@archiver.kernel.org>; Wed,  6 Feb 2019 10:26:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4833FC169C4
+	for <linux-media@archiver.kernel.org>; Wed,  6 Feb 2019 10:26:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 62371218A3
-	for <linux-media@archiver.kernel.org>; Wed,  6 Feb 2019 10:26:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 13DD22083B
+	for <linux-media@archiver.kernel.org>; Wed,  6 Feb 2019 10:26:08 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="Lyq5RsbF"
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="r4lDcVNT"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729335AbfBFK0F (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 6 Feb 2019 05:26:05 -0500
-Received: from mail-wm1-f68.google.com ([209.85.128.68]:55757 "EHLO
-        mail-wm1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729380AbfBFK0D (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Feb 2019 05:26:03 -0500
-Received: by mail-wm1-f68.google.com with SMTP id y139so1844364wmc.5
-        for <linux-media@vger.kernel.org>; Wed, 06 Feb 2019 02:26:02 -0800 (PST)
+        id S1729380AbfBFK0G (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 6 Feb 2019 05:26:06 -0500
+Received: from mail-wr1-f67.google.com ([209.85.221.67]:39222 "EHLO
+        mail-wr1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729393AbfBFK0F (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Feb 2019 05:26:05 -0500
+Received: by mail-wr1-f67.google.com with SMTP id t27so6894452wra.6
+        for <linux-media@vger.kernel.org>; Wed, 06 Feb 2019 02:26:04 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linaro.org; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=L5/ZatHVS6k0zuueuC+fG2FGCCYEwoOCEErHC/rO77Q=;
-        b=Lyq5RsbF7EAsvL/qiDGSlS1lxDxmuXawb5SyP7lV9OUP9XqW6rzjKZEti8vCymXI72
-         tF1txbxtfEzLZlMsf5C1jCXkLQrzPKePj44IjVj+cbuNvHsIIu+1V5BPhUrHZmqiSMux
-         DP+4xqlZgSqvVsbqhvVw7eVyO28kUCGLuGVD+mWOpNWstEWv8xhWUd0Zmqv25bFJVz5N
-         3Ya5ZOCHjQae2plkqahqf4VwIAsopN+dPnQ3gomTCuoNfpFEmEHdfDoJOAxNrj7DDKDl
-         tX9XjbBu8TqluRI0QMWUAD2ktOKtSkzx0E1yTLNi4BrbO663Ipzjl/UegeNeqjmuJsnc
-         XhOw==
+        bh=PZIgvxbRSp4W/ltSJos2CgWWjWg2sGcAUX9XqZxaGQg=;
+        b=r4lDcVNTjvknTqzUaXnaOuK0xVjaXCSPSujK0IQCcAnfEQGfhxxYS0/d7w/mlgOY7i
+         zZ/qAWx70TM+cXmUNRHqEztfHGCN6b/8gyhqMmKDtatdD6YUf1pDSaE3rtCYdVWqtRVo
+         AKYrlK5kuzvmXRBhiy8xq1S/eZq6FQS5wZaH6Q6x3HtYujMt8ii7rUlOEYTAIY9EVFWq
+         MEzgZE3uCasYiFQNgJnJIxEMMfvjk0uFtudiVIeUfCgCfYsD9n3s07iu+gsO3rg7IoXv
+         P1DY6uKvmSPh6eCSWD/7xjDlYsLuklrlvFMM4HMvdCyCS+1UR1b/Z2CIF28Xjm5V3zYH
+         Fhmg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=L5/ZatHVS6k0zuueuC+fG2FGCCYEwoOCEErHC/rO77Q=;
-        b=PnnIxcQsoR1vAkCTxI85PYFFxXqPHMCDJiyRh22+zdWN8YqkF02eZEDdPb06XtBz2Z
-         5UmHzSeJfHkIaWRKFpC4FumseNV3I4PzUPBYqVhODaP2r3QGwhHA09+gfw88GFV71naG
-         Bj9tpvDjDGPvWwgUOeh689VChfUBwDQp+qZOEgr4Kn9JRK5+k+Fiukpr/yuKsD0u36rQ
-         rUQIGfarc0CKywi7FyyPrCGsOa3d//E1eH/tFpC06JuXcCtjUhwRB+JJ+e0Tc1KL1mgo
-         aoW0enggyk6eCYwv3NC5mWftHINcl2RPU3X6tXarvO+UJl97nTPVoes6Gn3UKQWDFCJU
-         AB4w==
-X-Gm-Message-State: AHQUAuY7efW2JV6OmpnB9gMms4Ohp/4ocQ6SW+Xwk+XLoBkJoMAal8KF
-        ltwMICEaJZ/jGiAYrW8rEFOwUGwuinA=
-X-Google-Smtp-Source: AHgI3Ibdw3SdDUXkLGT1l5Ugg7JvFaREajwbFOXRnRl2B9A6l202lXaeR2LN6QYarBK2syn6v2laPg==
-X-Received: by 2002:a05:600c:2143:: with SMTP id v3mr1362503wml.120.1549448761453;
-        Wed, 06 Feb 2019 02:26:01 -0800 (PST)
+        bh=PZIgvxbRSp4W/ltSJos2CgWWjWg2sGcAUX9XqZxaGQg=;
+        b=LL5xmiyJBJzoKkNXNGzJ+C+GP8wuWYOuw05rnnBLFciUB/2JivxyjtEV2esq+zDhtS
+         quMwBFcmk7EcEhgqtP42CHhJFjylCqmrRYYX/V1dy8qcSI8s/B/sCzR5YwjRWjOzmGi8
+         nsI6GdBiUAQ1j1nM9XKFy11qCY5bc9ilBoKATpeb+4vw4fD9Eu+v0IB9JkSXL9sBFDBK
+         CRRsjuAiMlchCHI2hTdL35Z85JupPBXHZdkD9z7zs7aLB9S0ygRwmOMmOK7qjOBcyiVy
+         KMLUPii7m8AhB14qQavXF2sAir9MytL9DSpWcjkY2zhUTokTuxT9iyoMERmbQR9oNHr2
+         v6Eg==
+X-Gm-Message-State: AHQUAub+WSjGf4UmnDzwx4IBxIofBzdeLS0cDDX2Guy+NMBuGscf4AZ5
+        EArptKAf73ThP3efbSt8jfXwpA==
+X-Google-Smtp-Source: AHgI3Iajijs8lhilxyX+9vrxQ/2A55H3NsNUp6as+qDuiyJcsUmNgZCm5IMliguAFGnKVip8N/qX+g==
+X-Received: by 2002:adf:e589:: with SMTP id l9mr6988959wrm.312.1549448764101;
+        Wed, 06 Feb 2019 02:26:04 -0800 (PST)
 Received: from arch-late.local (a109-49-46-234.cpe.netcabo.pt. [109.49.46.234])
-        by smtp.gmail.com with ESMTPSA id i192sm18149631wmg.7.2019.02.06.02.26.00
+        by smtp.gmail.com with ESMTPSA id i192sm18149631wmg.7.2019.02.06.02.26.02
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 06 Feb 2019 02:26:01 -0800 (PST)
+        Wed, 06 Feb 2019 02:26:03 -0800 (PST)
 From:   Rui Miguel Silva <rui.silva@linaro.org>
 To:     sakari.ailus@linux.intel.com,
         Steve Longerbeam <slongerbeam@gmail.com>,
@@ -63,9 +63,9 @@ Cc:     linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
         devicetree@vger.kernel.org,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Rui Miguel Silva <rui.silva@linaro.org>
-Subject: [PATCH v13 06/13] ARM: dts: imx7s: add mipi phy power domain
-Date:   Wed,  6 Feb 2019 10:25:15 +0000
-Message-Id: <20190206102522.29212-7-rui.silva@linaro.org>
+Subject: [PATCH v13 07/13] ARM: dts: imx7s: add multiplexer controls
+Date:   Wed,  6 Feb 2019 10:25:16 +0000
+Message-Id: <20190206102522.29212-8-rui.silva@linaro.org>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190206102522.29212-1-rui.silva@linaro.org>
 References: <20190206102522.29212-1-rui.silva@linaro.org>
@@ -76,34 +76,37 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Add power domain index 0 related with mipi-phy to imx7s.
-
-While at it rename pcie power-domain node to remove pgc prefix.
+The IOMUXC General Purpose Register has bitfield to control video bus
+multiplexer to control the CSI input between the MIPI-CSI2 and parallel
+interface. Add that register and mask.
 
 Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- arch/arm/boot/dts/imx7s.dtsi | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ arch/arm/boot/dts/imx7s.dtsi | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
 diff --git a/arch/arm/boot/dts/imx7s.dtsi b/arch/arm/boot/dts/imx7s.dtsi
-index e88f53a4c7f4..9a680d3d6424 100644
+index 9a680d3d6424..792efcd2caa1 100644
 --- a/arch/arm/boot/dts/imx7s.dtsi
 +++ b/arch/arm/boot/dts/imx7s.dtsi
-@@ -606,7 +606,13 @@
- 					#address-cells = <1>;
- 					#size-cells = <0>;
+@@ -497,8 +497,15 @@
  
--					pgc_pcie_phy: pgc-power-domain@1 {
-+					pgc_mipi_phy: power-domain@0 {
-+						#power-domain-cells = <0>;
-+						reg = <0>;
-+						power-supply = <&reg_1p0d>;
-+					};
+ 			gpr: iomuxc-gpr@30340000 {
+ 				compatible = "fsl,imx7d-iomuxc-gpr",
+-					"fsl,imx6q-iomuxc-gpr", "syscon";
++					"fsl,imx6q-iomuxc-gpr", "syscon",
++					"simple-mfd";
+ 				reg = <0x30340000 0x10000>;
 +
-+					pgc_pcie_phy: power-domain@1 {
- 						#power-domain-cells = <0>;
- 						reg = <1>;
- 						power-supply = <&reg_1p0d>;
++				mux: mux-controller {
++					compatible = "mmio-mux";
++					#mux-control-cells = <0>;
++					mux-reg-masks = <0x14 0x00000010>;
++				};
+ 			};
+ 
+ 			ocotp: ocotp-ctrl@30350000 {
 -- 
 2.20.1
 
