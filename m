@@ -4,27 +4,27 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0718BC282C2
-	for <linux-media@archiver.kernel.org>; Thu,  7 Feb 2019 08:16:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 79414C282C2
+	for <linux-media@archiver.kernel.org>; Thu,  7 Feb 2019 08:16:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id C9FD02175B
-	for <linux-media@archiver.kernel.org>; Thu,  7 Feb 2019 08:16:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 44D00218FE
+	for <linux-media@archiver.kernel.org>; Thu,  7 Feb 2019 08:16:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726792AbfBGIP7 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 7 Feb 2019 03:15:59 -0500
-Received: from relay3-d.mail.gandi.net ([217.70.183.195]:51947 "EHLO
-        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726780AbfBGIP6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Feb 2019 03:15:58 -0500
+        id S1726934AbfBGIQL (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 7 Feb 2019 03:16:11 -0500
+Received: from relay1-d.mail.gandi.net ([217.70.183.193]:60501 "EHLO
+        relay1-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726780AbfBGIQL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Feb 2019 03:16:11 -0500
 X-Originating-IP: 90.88.22.177
 Received: from aptenodytes (aaubervilliers-681-1-80-177.w90-88.abo.wanadoo.fr [90.88.22.177])
         (Authenticated sender: paul.kocialkowski@bootlin.com)
-        by relay3-d.mail.gandi.net (Postfix) with ESMTPSA id 20AE86000D;
-        Thu,  7 Feb 2019 08:15:50 +0000 (UTC)
-Message-ID: <8856006f5cf615b7d278d4ead16a5fbc6e95d334.camel@bootlin.com>
-Subject: Re: [PATCH v5 4/9] sun6i: dsi: Convert to generic phy handling
+        by relay1-d.mail.gandi.net (Postfix) with ESMTPSA id B158324000E;
+        Thu,  7 Feb 2019 08:16:04 +0000 (UTC)
+Message-ID: <3777fc72cefa0a110b1a642bdb8b20df456c7726.camel@bootlin.com>
+Subject: Re: [PATCH v4 4/9] sun6i: dsi: Convert to generic phy handling
 From:   Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 To:     Maxime Ripard <maxime.ripard@bootlin.com>,
         Kishon Vijay Abraham I <kishon@ti.com>
@@ -32,14 +32,13 @@ Cc:     Rafal Ciepiela <rafalc@cadence.com>,
         Krzysztof Witos <kwitos@cadence.com>,
         linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
         Chen-Yu Tsai <wens@csie.org>,
-        Sean Paul <seanpaul@chromium.org>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
         linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Date:   Thu, 07 Feb 2019 09:15:49 +0100
-In-Reply-To: <dc6450e2978b6dafcc464595ad06204d22d2658f.1548085432.git-series.maxime.ripard@bootlin.com>
-References: <cover.fbf0776c70c0cfb7b7fd88ce6a96b4597d620cac.1548085432.git-series.maxime.ripard@bootlin.com>
-         <dc6450e2978b6dafcc464595ad06204d22d2658f.1548085432.git-series.maxime.ripard@bootlin.com>
+Date:   Thu, 07 Feb 2019 09:16:03 +0100
+In-Reply-To: <0c3493b4e9eaf7b4fbe7960d1239a71fc3563eee.1547026369.git-series.maxime.ripard@bootlin.com>
+References: <cover.5d91ef683e3f432342f536e0f2fe239dbcebcb3e.1547026369.git-series.maxime.ripard@bootlin.com>
+         <0c3493b4e9eaf7b4fbe7960d1239a71fc3563eee.1547026369.git-series.maxime.ripard@bootlin.com>
 Organization: Bootlin
 Content-Type: text/plain; charset="UTF-8"
 User-Agent: Evolution 3.30.5 
@@ -52,7 +51,7 @@ X-Mailing-List: linux-media@vger.kernel.org
 
 Hi,
 
-On Mon, 2019-01-21 at 16:45 +0100, Maxime Ripard wrote:
+On Wed, 2019-01-09 at 10:33 +0100, Maxime Ripard wrote:
 > Now that we have everything in place in the PHY framework to deal in a
 > generic way with MIPI D-PHY phys, let's convert our PHY driver and its
 > associated DSI driver to that new API.
