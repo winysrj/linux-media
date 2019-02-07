@@ -6,126 +6,138 @@ X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 536B4C169C4
-	for <linux-media@archiver.kernel.org>; Thu,  7 Feb 2019 02:15:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CDB7FC282C2
+	for <linux-media@archiver.kernel.org>; Thu,  7 Feb 2019 04:35:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 2B2BC217F9
-	for <linux-media@archiver.kernel.org>; Thu,  7 Feb 2019 02:15:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A73F52175B
+	for <linux-media@archiver.kernel.org>; Thu,  7 Feb 2019 04:35:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727003AbfBGCPd convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 6 Feb 2019 21:15:33 -0500
-Received: from mga01.intel.com ([192.55.52.88]:28144 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726997AbfBGCPd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 6 Feb 2019 21:15:33 -0500
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 06 Feb 2019 18:15:32 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.58,342,1544515200"; 
-   d="scan'208";a="131681397"
-Received: from orsmsx109.amr.corp.intel.com ([10.22.240.7])
-  by FMSMGA003.fm.intel.com with ESMTP; 06 Feb 2019 18:15:31 -0800
-Received: from orsmsx157.amr.corp.intel.com (10.22.240.23) by
- ORSMSX109.amr.corp.intel.com (10.22.240.7) with Microsoft SMTP Server (TLS)
- id 14.3.408.0; Wed, 6 Feb 2019 18:15:32 -0800
-Received: from vkasired-desk2.fm.intel.com (10.22.254.138) by
- ORSMSX157.amr.corp.intel.com (10.22.240.23) with Microsoft SMTP Server (TLS)
- id 14.3.408.0; Wed, 6 Feb 2019 18:15:31 -0800
-Date:   Wed, 6 Feb 2019 17:57:44 -0800
-From:   Vivek Kasireddy <vivek.kasireddy@intel.com>
-To:     Hans Verkuil <hverkuil@xs4all.nl>
-CC:     Philipp Zabel <p.zabel@pengutronix.de>,
-        <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] media: v4l2-tpg: Fix the memory layout of AYUV buffers
-Message-ID: <20190206175744.1dde5fd9@vkasired-desk2.fm.intel.com>
-In-Reply-To: <c7aaec9c-2660-1d60-5bab-704b812ea01c@xs4all.nl>
-References: <20190129023222.10036-1-vivek.kasireddy@intel.com>
-        <92dbd1f9-f5dc-37ed-856a-b3b2aa2b75d5@xs4all.nl>
-        <1549377502.3929.12.camel@pengutronix.de>
-        <c7aaec9c-2660-1d60-5bab-704b812ea01c@xs4all.nl>
-X-Mailer: Claws Mail 3.15.1-dirty (GTK+ 2.24.32; x86_64-redhat-linux-gnu)
-MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-X-Originating-IP: [10.22.254.138]
+        id S1726700AbfBGEfk (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 6 Feb 2019 23:35:40 -0500
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:58271 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726642AbfBGEfk (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 6 Feb 2019 23:35:40 -0500
+Received: from localhost ([IPv6:2001:983:e9a7:1:38dd:c345:eb31:caf5])
+        by smtp-cloud7.xs4all.net with ESMTPA
+        id rbPVgqVs0BDyIrbPWgHeQU; Thu, 07 Feb 2019 05:35:39 +0100
+Message-ID: <50eedf161ab41d1882185278404532e0@smtp-cloud7.xs4all.net>
+Date:   Thu, 07 Feb 2019 05:35:37 +0100
+From:   "Hans Verkuil" <hverkuil@xs4all.nl>
+To:     linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+X-CMAE-Envelope: MS4wfMHFUJIphIjbXXqiD7sr1ie+dDHunQ2/cT9EvV4QOE9m8K160Kz9rkyjToQJk3+z6AYqcvclxKmLri6MB1B8UYVzvXTWjObqahLatH+o7zmREaAXvLgQ
+ 6Tuu4JvUNz5Z93t/sCY6RAp2PASdFfAgVBcl89eFUJV/mdin5n8oiStegl+9C3UboNQ1IvJrqyO12x+6XDQ7OSpG0Avt87zM2rrAGSpl8K3c5UAY5Kh2tx+m
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Wed, 6 Feb 2019 11:46:21 +0100
-Hans Verkuil <hverkuil@xs4all.nl> wrote:
-Hi Hans,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-> On 2/5/19 3:38 PM, Philipp Zabel wrote:
-> > Hi Hans,
-> > 
-> > On Thu, 2019-01-31 at 14:36 +0100, Hans Verkuil wrote:
-> > [...]  
-> >>
-> >> Our YUV32 fourcc is defined as follows:
-> >>
-> >> https://hverkuil.home.xs4all.nl/spec/uapi/v4l/pixfmt-packed-yuv.html
-> >>
-> >> As far as I see the format that the TPG generates is according to
-> >> the V4L2 spec.
-> >>
-> >> Philipp, can you check the YUV32 format that the imx-pxp driver
-> >> uses? Is that according to our spec?
-> >>
-> >> At some point we probably want to add a VUY32 format which is what
-> >> Weston expects, but we certainly cannot change what the TPG
-> >> generates for YUV32 since that is correct.  
-> > 
-> > I hadn't noticed as YUV32 doesn't show up in GStreamer, but testing
-> > with v4l2-ctl, it seems to be incorrect. This script:
-> > 
-> >   #!/bin/sh
-> >   function check() {
-> >       PATTERN="$1"
-> >       NAME="$2"
-> >       echo -ne "${NAME}:\t"
-> >       v4l2-ctl \
-> >           --set-fmt-video-out=width=8,height=8,pixelformat=RGBP \
-> >           --set-fmt-video=width=8,height=8,pixelformat=YUV4 \
-> >           --stream-count 1 \
-> >           --stream-poll \
-> >           --stream-out-pattern "${PATTERN}" \
-> >           --stream-out-mmap 3 \
-> >           --stream-mmap 3 \
-> >           --stream-to - 2>/dev/null | hexdump -v -n4 -e '/1 "%02x "'
-> >       echo
-> >   }
-> >   check 6 "100% white"
-> >   check 7 "100% red"
-> >   check 9 "100% blue"
-> > 
-> > results in the following output:
-> > 
-> >   100% white:	80 80 ea ff 
-> >   100% red:	f0 66 3e ff 
-> >   100% blue:	74 f0 23 ff 
-> > 
-> > That looks like 32-bit VUYA 8-8-8-8.  
-> 
-> Right. So Vivek, can you make the patches to add a proper VUYA
-> pixelformat?
-Sure, let me send the patches soon.
-> 
-> And a final patch updating imx-pxp so it uses the right pixelformat?
-Ok, will do.
+Results of the daily build of media_tree:
 
-Thanks,
-Vivek
+date:			Thu Feb  7 05:00:12 CET 2019
+media-tree git hash:	f0ef022c85a899bcc7a1b3a0955c78a3d7109106
+media_build git hash:	c23276037794bae357fa8d23e3a4f11af9ad46e9
+v4l-utils git hash:	400ec9e6eb156b0eea9112bf27e14f9ae493eedb
+edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
+gcc version:		i686-linux-gcc (GCC) 8.2.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.19.0-1-amd64
 
-> 
-> Since there is now a driver using it, it is also not a problem
-> anymore to get the new pixelformat patches merged.
-> 
-> Regards,
-> 
-> 	Hans
+linux-git-arm-at91: WARNINGS
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-multi: WARNINGS
+linux-git-arm-pxa: WARNINGS
+linux-git-arm-stm32: WARNINGS
+linux-git-arm64: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-mips: WARNINGS
+linux-git-powerpc64: WARNINGS
+linux-git-sh: WARNINGS
+linux-git-x86_64: WARNINGS
+Check COMPILE_TEST: OK
+linux-3.10.108-i686: WARNINGS
+linux-3.10.108-x86_64: WARNINGS
+linux-3.11.10-i686: WARNINGS
+linux-3.11.10-x86_64: WARNINGS
+linux-3.12.74-i686: WARNINGS
+linux-3.12.74-x86_64: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.79-i686: WARNINGS
+linux-3.14.79-x86_64: WARNINGS
+linux-3.15.10-i686: WARNINGS
+linux-3.15.10-x86_64: WARNINGS
+linux-3.16.57-i686: WARNINGS
+linux-3.16.57-x86_64: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.123-i686: WARNINGS
+linux-3.18.123-x86_64: WARNINGS
+linux-3.19.8-i686: WARNINGS
+linux-3.19.8-x86_64: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.52-i686: WARNINGS
+linux-4.1.52-x86_64: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.159-i686: WARNINGS
+linux-4.4.159-x86_64: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.10-i686: WARNINGS
+linux-4.7.10-x86_64: WARNINGS
+linux-4.8.17-i686: WARNINGS
+linux-4.8.17-x86_64: WARNINGS
+linux-4.9.131-i686: WARNINGS
+linux-4.9.131-x86_64: WARNINGS
+linux-4.10.17-i686: WARNINGS
+linux-4.10.17-x86_64: WARNINGS
+linux-4.11.12-i686: WARNINGS
+linux-4.11.12-x86_64: WARNINGS
+linux-4.12.14-i686: WARNINGS
+linux-4.12.14-x86_64: WARNINGS
+linux-4.13.16-i686: WARNINGS
+linux-4.13.16-x86_64: WARNINGS
+linux-4.14.74-i686: WARNINGS
+linux-4.14.74-x86_64: WARNINGS
+linux-4.15.18-i686: WARNINGS
+linux-4.15.18-x86_64: WARNINGS
+linux-4.16.18-i686: WARNINGS
+linux-4.16.18-x86_64: WARNINGS
+linux-4.17.19-i686: WARNINGS
+linux-4.17.19-x86_64: WARNINGS
+linux-4.18.12-i686: WARNINGS
+linux-4.18.12-x86_64: WARNINGS
+linux-4.19.1-i686: WARNINGS
+linux-4.19.1-x86_64: WARNINGS
+linux-4.20.1-i686: WARNINGS
+linux-4.20.1-x86_64: WARNINGS
+linux-5.0-rc1-i686: WARNINGS
+linux-5.0-rc1-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
