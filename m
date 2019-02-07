@@ -2,743 +2,333 @@ Return-Path: <SRS0=uIFo=QO=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.0 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 002DAC282C2
-	for <linux-media@archiver.kernel.org>; Thu,  7 Feb 2019 21:39:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 858A2C282C2
+	for <linux-media@archiver.kernel.org>; Thu,  7 Feb 2019 22:27:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id AD82A2080A
-	for <linux-media@archiver.kernel.org>; Thu,  7 Feb 2019 21:39:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 409472147C
+	for <linux-media@archiver.kernel.org>; Thu,  7 Feb 2019 22:27:07 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=Mellanox.com header.i=@Mellanox.com header.b="dUw4UU2A"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726896AbfBGVjh (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 7 Feb 2019 16:39:37 -0500
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:38046 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726622AbfBGVjh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 7 Feb 2019 16:39:37 -0500
-Received: from [IPv6:2001:983:e9a7:1:5eb:9ad5:2371:b65a] ([IPv6:2001:983:e9a7:1:5eb:9ad5:2371:b65a])
-        by smtp-cloud7.xs4all.net with ESMTPA
-        id rrONgwN6lBDyIrrOOgKpoc; Thu, 07 Feb 2019 22:39:33 +0100
-Subject: Re: [PATCH v5] media: vimc: Add vimc-streamer for stream control
-To:     "Lucas A. M. Magalhaes" <lucmaga@gmail.com>,
-        linux-media@vger.kernel.org
-Cc:     helen.koike@collabora.com, mchehab@kernel.org,
-        lkcamp@lists.libreplanetbr.org, linux-kernel@vger.kernel.org,
-        stable@vger.kernel.org
-References: <20190207204844.15644-1-lucmaga@gmail.com>
-From:   Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <e44fd8d2-fa61-464a-0619-099cb3edf5bd@xs4all.nl>
-Date:   Thu, 7 Feb 2019 22:39:31 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.3.1
-MIME-Version: 1.0
-In-Reply-To: <20190207204844.15644-1-lucmaga@gmail.com>
-Content-Type: text/plain; charset=utf-8
+        id S1726791AbfBGW1B (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 7 Feb 2019 17:27:01 -0500
+Received: from mail-eopbgr50052.outbound.protection.outlook.com ([40.107.5.52]:10400
+        "EHLO EUR03-VE1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726622AbfBGW1B (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 7 Feb 2019 17:27:01 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Mellanox.com;
+ s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=d1qPLMD+7a3+Ajnbc8p+yb9ODp+Q9GQjQFNPZdDpzVI=;
+ b=dUw4UU2AOCt0ONKxXRtW+CRttajZN91cDSXHB1YO4Zll7xWCAUDnSGZDjLc+G9mh7P95Y8AoUzmV57x0Xd6zOeYtJzkfQ5dqayK6edZsgL5MeYYgJD0U/8VEIMGFmhRgc80TsCtSgtBhKCsC/OYGO/7/hqLzluCqPu6SlR7hXE0=
+Received: from DBBPR05MB6426.eurprd05.prod.outlook.com (20.179.42.80) by
+ DBBPR05MB6506.eurprd05.prod.outlook.com (20.179.43.84) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.1601.21; Thu, 7 Feb 2019 22:26:52 +0000
+Received: from DBBPR05MB6426.eurprd05.prod.outlook.com
+ ([fe80::c402:4592:e149:cb91]) by DBBPR05MB6426.eurprd05.prod.outlook.com
+ ([fe80::c402:4592:e149:cb91%2]) with mapi id 15.20.1601.016; Thu, 7 Feb 2019
+ 22:26:52 +0000
+From:   Jason Gunthorpe <jgg@mellanox.com>
+To:     Daniel Stone <daniel@fooishbar.org>, "hch@lst.de" <hch@lst.de>,
+        "Koenig, Christian" <Christian.Koenig@amd.com>,
+        Thomas Hellstrom <thellstrom@vmware.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "yong.zhi@intel.com" <yong.zhi@intel.com>,
+        "daniel.vetter@ffwll.ch" <daniel.vetter@ffwll.ch>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "bingbu.cao@intel.com" <bingbu.cao@intel.com>,
+        "tian.shu.qiu@intel.com" <tian.shu.qiu@intel.com>,
+        "shiraz.saleem@intel.com" <shiraz.saleem@intel.com>,
+        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>
+Subject: [PATCH v2] lib/scatterlist: Provide a DMA page iterator
+Thread-Topic: [PATCH v2] lib/scatterlist: Provide a DMA page iterator
+Thread-Index: AQHUvzQ5rNYocWvZOkiWAVOxemV5Zg==
+Date:   Thu, 7 Feb 2019 22:26:52 +0000
+Message-ID: <20190207222647.GA30974@ziepe.ca>
+Accept-Language: en-US
 Content-Language: en-US
-Content-Transfer-Encoding: 8bit
-X-CMAE-Envelope: MS4wfGH6wHK4JRSBYLZ4S/LNDC4g2YwXq+VbKWuiha55RoPs1i89KIzJsVV7TElPPw9uKa9v+cOpLVEGXLSUQkH2FFz7+HKKoyG3GpfC0VavYu7DYD0hLCNz
- yg28OdH22ZNmOXU5600sii3zYAqDBx1bhwFDe3Qb9+KywshC4JwwX8KGkfYKZxICrvOPhBbcn6HEnJ7hr5pAbzVaHvi+6/ZWfUCl/S/zVFrEPtku+ObPxXwD
- 7t4CUG0U2+Pqmb1DnWk7Dd3zpAuVNK9tLr5YF8/GUnTUGbZ092e/5fXsPYuYhrpB7BpEipwcmkSu5/7PA4MOrXzAxFXiJkztLMswMuzruJx7pp54J/bGYt07
- AjNlaHWaxIlJLC/f/91mgiutvaBvo/XvgcngVCMiXo0NJbcGM0CJp+X4IXYA7/0mEeLpHf1AmkE8CbsnbFEyClan3d9jKplM+/5F6kT/j2GX8MnRMTnbKONl
- MSZVPxEdc7FyIh3y
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-clientproxiedby: MWHPR08CA0046.namprd08.prod.outlook.com
+ (2603:10b6:300:c0::20) To DBBPR05MB6426.eurprd05.prod.outlook.com
+ (2603:10a6:10:c9::16)
+authentication-results: spf=none (sender IP is )
+ smtp.mailfrom=jgg@mellanox.com; 
+x-ms-exchange-messagesentrepresentingtype: 1
+x-originating-ip: [174.3.196.123]
+x-ms-publictraffictype: Email
+x-microsoft-exchange-diagnostics: 1;DBBPR05MB6506;6:cno0OXTc2EOBjGk9pRDBRdZ/FC5gJ4OtzKw4/bDGI27nCW5yaD8WhuDDRy2UL7hNTwyzyXFxS2T+zqCJNpBn9XafU2b2EVO/lDMz9Fm7SmevJnDt/oekaF19Q/Ssb32K2y/WD5jwMziJVRWUvdqiZHI3BrZ6TwfQXrTj7OYmfdIOgpk6ffhExw92okAR/L8wEgl89VUZwHFr+SEGcyipkWnYoFeHho6d4nOklyOxckVyR5e8HH44J1NMX2TYHiFd5nfC5XoTzsN5KdECYjbcoHN7IyCtsQwVQgNS3pt1DncvEwmDTgPjWBCK2Q3NqF+8nDMz4hvqjXcbpUbAdNL9IA9NYLZd3NkbMkB8vfpDeNb+EyAF8Ap8s/L97ygkjQKN1doWFcAKh9DKJOBge6EI2v8PAm2+VtCJPE0owiADJfmtXNIWGOYeGYggXxa7D3oDLe2RsAbgdEVaeGPIjMF3+Q==;5:GBggjs+fcUZwHKUcyIdguwqiP73G9oPatK9iQ7fKaJ34PGCiZtgmwdyv0pnVwLOhel0Q+T5iApgOSw/PqWXkAktD3HFiUd6WWiiSIJdCCYX261XYDr8gGJSbGw6F/DfTWSZK2iIxQNSPiu2aw47iUnKsmsnkB1fddmGlGer5gCYa/8qdfIg3GdzIOXCekRioSndxgmySVWculblf7L7Biw==;7:CIk9Xx/pbPuL0tDZRnR2fK1BFXgYsHBEmPjpJdr0q+KUzbPf94OW0hAfUSnV9KepDSLUV81w8VS5C3P4m96E/EI2XGfvJb7dyerCkp6Nu4p3UASiou70VnA9k1Puq74pAuhvdxHvkTxQPoNkkvmo0A==
+x-ms-office365-filtering-correlation-id: d0b3c6a1-5327-4682-0c3e-08d68d4b5bd6
+x-ms-office365-filtering-ht: Tenant
+x-microsoft-antispam: BCL:0;PCL:0;RULEID:(2390118)(7020095)(4652040)(8989299)(5600110)(711020)(4605077)(4618075)(4534185)(4627221)(201703031133081)(201702281549075)(8990200)(2017052603328)(7153060)(7193020);SRVR:DBBPR05MB6506;
+x-ms-traffictypediagnostic: DBBPR05MB6506:
+x-ms-exchange-purlcount: 2
+x-microsoft-antispam-prvs: <DBBPR05MB6506337E98A0767152B0E0AFCF680@DBBPR05MB6506.eurprd05.prod.outlook.com>
+x-forefront-prvs: 0941B96580
+x-forefront-antispam-report: SFV:NSPM;SFS:(10009020)(136003)(396003)(39860400002)(366004)(346002)(376002)(199004)(189003)(486006)(6116002)(7736002)(97736004)(36756003)(33896004)(1076003)(2501003)(14454004)(33656002)(3846002)(966005)(305945005)(52116002)(2906002)(478600001)(6506007)(386003)(71200400001)(8936002)(256004)(71190400001)(26005)(106356001)(102836004)(7416002)(105586002)(6306002)(81166006)(6512007)(81156014)(9686003)(6486002)(99286004)(53936002)(8676002)(68736007)(476003)(110136005)(86362001)(6436002)(2201001)(316002)(186003)(66066001)(25786009)(921003)(1121003);DIR:OUT;SFP:1101;SCL:1;SRVR:DBBPR05MB6506;H:DBBPR05MB6426.eurprd05.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;A:1;MX:1;
+received-spf: None (protection.outlook.com: mellanox.com does not designate
+ permitted sender hosts)
+x-ms-exchange-senderadcheck: 1
+x-microsoft-antispam-message-info: qLwPbSHnvS3AmMDBUD5Wg/fpRb44pFEIIQptlqoQ0G46YVyghCoNSLb8If44iDDMyPmIvXhjyqcyJNE2PLQh/HO5lt4wZc0v2N20WLudCrHCWvBThgBWnKuq09gaE53SjVX+U5v78ujBZpAfQC/iYfC0kN0IDYPVw49tzO8wqVcJ+upW46CI9wB5yjqLZgPbFu5wEYz6OGgb4lwgJvH6iwdhhAJkXcSOwcoHfwXSuPb+18pABoc20jkN1/987Dk/7KXaxaNhxZv7VnS1sROON/OaRMT3fQdc3UH5BUgl0XY3Tx6fVqMNhsxvSvM9D6rm84rWzDYBHOk0OQIFA7pG+mpe38mppYfS8O1OtdIjSSl2c84hY0Qpa/DJh6wN1P2TuvldTizzyUAPNPI5VB93/ftPQnRstb5lIcqYLV+UXYg=
+Content-Type: text/plain; charset="us-ascii"
+Content-ID: <7158A6D674FEAA4692D9F442D86369D9@eurprd05.prod.outlook.com>
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+X-OriginatorOrg: Mellanox.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: d0b3c6a1-5327-4682-0c3e-08d68d4b5bd6
+X-MS-Exchange-CrossTenant-originalarrivaltime: 07 Feb 2019 22:26:52.2301
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-id: a652971c-7d2e-4d9b-a6a4-d149256f461b
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DBBPR05MB6506
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Lucas,
+Commit 2db76d7c3c6d ("lib/scatterlist: sg_page_iter: support sg lists w/o
+backing pages") introduced the sg_page_iter_dma_address() function without
+providing a way to use it in the general case. If the sg_dma_len() is not
+equal to the sg length callers cannot safely use the
+for_each_sg_page/sg_page_iter_dma_address combination.
 
-On 2/7/19 9:48 PM, Lucas A. M. Magalhaes wrote:
-> Add a linear pipeline logic for the stream control. It's created by
-> walking backwards on the entity graph. When the stream starts it will
-> simply loop through the pipeline calling the respective process_frame
-> function of each entity.
+Resolve this API mistake by providing a DMA specific iterator,
+for_each_sg_dma_page(), that uses the right length so
+sg_page_iter_dma_address() works as expected with all sglists.
 
-v4 was already merged, so can you make a new patch on top of the master
-branch?
+A new iterator type is introduced to provide compile-time safety against
+wrongly mixing accessors and iterators.
 
-Thank you,
+Acked-by: Christoph Hellwig <hch@lst.de> (for scatterlist)
+Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+---
+ .clang-format                              |  1 +
+ drivers/gpu/drm/vmwgfx/vmwgfx_ttm_buffer.c |  8 +++-
+ drivers/media/pci/intel/ipu3/ipu3-cio2.c   |  4 +-
+ include/linux/scatterlist.h                | 49 ++++++++++++++++++----
+ lib/scatterlist.c                          | 26 ++++++++++++
+ 5 files changed, 76 insertions(+), 12 deletions(-)
 
-	Hans
+v2:
+- Drop the vmwgfx fix in favor of keeping it unchanged as there is no
+  reviewer. Use an ugly case with a comment instead.
 
-> 
-> Fixes: f2fe89061d797 ("vimc: Virtual Media Controller core, capture
-> and sensor")
-> Cc: stable@vger.kernel.org # for v4.20
-> Signed-off-by: Lucas A. M. Magalhães <lucmaga@gmail.com>
-> ---
-> 
-> The actual approach for streaming frames on vimc uses a recursive
-> logic[1]. This algorithm may cause problems as the stack usage
-> increases a with the topology. For the actual topology almost 1Kb of
-> stack is used if compiled with KASAN on a 64bit architecture. However
-> the topology is fixed and hard-coded on vimc-core[2]. So it's a
-> controlled situation if used as is.
-> 
-> [1]
-> The stream starts on vim-sensor's thread
-> https://git.linuxtv.org/media_tree.git/tree/drivers/media/platform/vimc/vimc-sensor.c#n204
-> It proceeds calling successively vimc_propagate_frame
-> https://git.linuxtv.org/media_tree.git/tree/drivers/media/platform/vimc/vimc-common.c#n210
-> Then processes_frame on the next entity
-> https://git.linuxtv.org/media_tree.git/tree/drivers/media/platform/vimc/vimc-scaler.c#n349
-> https://git.linuxtv.org/media_tree.git/tree/drivers/media/platform/vimc/vimc-debayer.c#n483
-> This goes until the loop ends on a vimc-capture device
-> https://git.linuxtv.org/media_tree.git/tree/drivers/media/platform/vimc/vimc-capture.c#n358
-> 
-> [2]https://git.linuxtv.org/media_tree.git/tree/drivers/media/platform/vimc/vimc-core.c#n80
-> 
-> Chaged from v4:
-> * Fix variable unused but set
-> 
->  drivers/media/platform/vimc/Makefile        |   3 +-
->  drivers/media/platform/vimc/vimc-capture.c  |  18 +-
->  drivers/media/platform/vimc/vimc-common.c   |  35 ----
->  drivers/media/platform/vimc/vimc-common.h   |  15 +-
->  drivers/media/platform/vimc/vimc-debayer.c  |  26 +--
->  drivers/media/platform/vimc/vimc-scaler.c   |  28 +--
->  drivers/media/platform/vimc/vimc-sensor.c   |  51 +-----
->  drivers/media/platform/vimc/vimc-streamer.c | 188 ++++++++++++++++++++
->  drivers/media/platform/vimc/vimc-streamer.h |  38 ++++
->  9 files changed, 254 insertions(+), 148 deletions(-)
->  create mode 100644 drivers/media/platform/vimc/vimc-streamer.c
->  create mode 100644 drivers/media/platform/vimc/vimc-streamer.h
-> 
-> diff --git a/drivers/media/platform/vimc/Makefile b/drivers/media/platform/vimc/Makefile
-> index 4b2e3de7856e..c4fc8e7d365a 100644
-> --- a/drivers/media/platform/vimc/Makefile
-> +++ b/drivers/media/platform/vimc/Makefile
-> @@ -5,6 +5,7 @@ vimc_common-objs := vimc-common.o
->  vimc_debayer-objs := vimc-debayer.o
->  vimc_scaler-objs := vimc-scaler.o
->  vimc_sensor-objs := vimc-sensor.o
-> +vimc_streamer-objs := vimc-streamer.o
->  
->  obj-$(CONFIG_VIDEO_VIMC) += vimc.o vimc_capture.o vimc_common.o vimc-debayer.o \
-> -				vimc_scaler.o vimc_sensor.o
-> +			    vimc_scaler.o vimc_sensor.o vimc_streamer.o
-> diff --git a/drivers/media/platform/vimc/vimc-capture.c b/drivers/media/platform/vimc/vimc-capture.c
-> index aaeddf24b042..93837d9eecd2 100644
-> --- a/drivers/media/platform/vimc/vimc-capture.c
-> +++ b/drivers/media/platform/vimc/vimc-capture.c
-> @@ -24,6 +24,7 @@
->  #include <media/videobuf2-vmalloc.h>
->  
->  #include "vimc-common.h"
-> +#include "vimc-streamer.h"
->  
->  #define VIMC_CAP_DRV_NAME "vimc-capture"
->  
-> @@ -44,7 +45,7 @@ struct vimc_cap_device {
->  	spinlock_t qlock;
->  	struct mutex lock;
->  	u32 sequence;
-> -	struct media_pipeline pipe;
-> +	struct vimc_stream stream;
->  };
->  
->  static const struct v4l2_pix_format fmt_default = {
-> @@ -248,14 +249,13 @@ static int vimc_cap_start_streaming(struct vb2_queue *vq, unsigned int count)
->  	vcap->sequence = 0;
->  
->  	/* Start the media pipeline */
-> -	ret = media_pipeline_start(entity, &vcap->pipe);
-> +	ret = media_pipeline_start(entity, &vcap->stream.pipe);
->  	if (ret) {
->  		vimc_cap_return_all_buffers(vcap, VB2_BUF_STATE_QUEUED);
->  		return ret;
->  	}
->  
-> -	/* Enable streaming from the pipe */
-> -	ret = vimc_pipeline_s_stream(&vcap->vdev.entity, 1);
-> +	ret = vimc_streamer_s_stream(&vcap->stream, &vcap->ved, 1);
->  	if (ret) {
->  		media_pipeline_stop(entity);
->  		vimc_cap_return_all_buffers(vcap, VB2_BUF_STATE_QUEUED);
-> @@ -273,8 +273,7 @@ static void vimc_cap_stop_streaming(struct vb2_queue *vq)
->  {
->  	struct vimc_cap_device *vcap = vb2_get_drv_priv(vq);
->  
-> -	/* Disable streaming from the pipe */
-> -	vimc_pipeline_s_stream(&vcap->vdev.entity, 0);
-> +	vimc_streamer_s_stream(&vcap->stream, &vcap->ved, 0);
->  
->  	/* Stop the media pipeline */
->  	media_pipeline_stop(&vcap->vdev.entity);
-> @@ -355,8 +354,8 @@ static void vimc_cap_comp_unbind(struct device *comp, struct device *master,
->  	kfree(vcap);
->  }
->  
-> -static void vimc_cap_process_frame(struct vimc_ent_device *ved,
-> -				   struct media_pad *sink, const void *frame)
-> +static void *vimc_cap_process_frame(struct vimc_ent_device *ved,
-> +				    const void *frame)
->  {
->  	struct vimc_cap_device *vcap = container_of(ved, struct vimc_cap_device,
->  						    ved);
-> @@ -370,7 +369,7 @@ static void vimc_cap_process_frame(struct vimc_ent_device *ved,
->  					    typeof(*vimc_buf), list);
->  	if (!vimc_buf) {
->  		spin_unlock(&vcap->qlock);
-> -		return;
-> +		return ERR_PTR(-EAGAIN);
->  	}
->  
->  	/* Remove this entry from the list */
-> @@ -391,6 +390,7 @@ static void vimc_cap_process_frame(struct vimc_ent_device *ved,
->  	vb2_set_plane_payload(&vimc_buf->vb2.vb2_buf, 0,
->  			      vcap->format.sizeimage);
->  	vb2_buffer_done(&vimc_buf->vb2.vb2_buf, VB2_BUF_STATE_DONE);
-> +	return NULL;
->  }
->  
->  static int vimc_cap_comp_bind(struct device *comp, struct device *master,
-> diff --git a/drivers/media/platform/vimc/vimc-common.c b/drivers/media/platform/vimc/vimc-common.c
-> index 867e24dbd6b5..c1a74bb2df58 100644
-> --- a/drivers/media/platform/vimc/vimc-common.c
-> +++ b/drivers/media/platform/vimc/vimc-common.c
-> @@ -207,41 +207,6 @@ const struct vimc_pix_map *vimc_pix_map_by_pixelformat(u32 pixelformat)
->  }
->  EXPORT_SYMBOL_GPL(vimc_pix_map_by_pixelformat);
->  
-> -int vimc_propagate_frame(struct media_pad *src, const void *frame)
-> -{
-> -	struct media_link *link;
-> -
-> -	if (!(src->flags & MEDIA_PAD_FL_SOURCE))
-> -		return -EINVAL;
-> -
-> -	/* Send this frame to all sink pads that are direct linked */
-> -	list_for_each_entry(link, &src->entity->links, list) {
-> -		if (link->source == src &&
-> -		    (link->flags & MEDIA_LNK_FL_ENABLED)) {
-> -			struct vimc_ent_device *ved = NULL;
-> -			struct media_entity *entity = link->sink->entity;
-> -
-> -			if (is_media_entity_v4l2_subdev(entity)) {
-> -				struct v4l2_subdev *sd =
-> -					container_of(entity, struct v4l2_subdev,
-> -						     entity);
-> -				ved = v4l2_get_subdevdata(sd);
-> -			} else if (is_media_entity_v4l2_video_device(entity)) {
-> -				struct video_device *vdev =
-> -					container_of(entity,
-> -						     struct video_device,
-> -						     entity);
-> -				ved = video_get_drvdata(vdev);
-> -			}
-> -			if (ved && ved->process_frame)
-> -				ved->process_frame(ved, link->sink, frame);
-> -		}
-> -	}
-> -
-> -	return 0;
-> -}
-> -EXPORT_SYMBOL_GPL(vimc_propagate_frame);
-> -
->  /* Helper function to allocate and initialize pads */
->  struct media_pad *vimc_pads_init(u16 num_pads, const unsigned long *pads_flag)
->  {
-> diff --git a/drivers/media/platform/vimc/vimc-common.h b/drivers/media/platform/vimc/vimc-common.h
-> index f491c33c7c14..84539430b5e7 100644
-> --- a/drivers/media/platform/vimc/vimc-common.h
-> +++ b/drivers/media/platform/vimc/vimc-common.h
-> @@ -115,23 +115,12 @@ struct vimc_pix_map {
->  struct vimc_ent_device {
->  	struct media_entity *ent;
->  	struct media_pad *pads;
-> -	void (*process_frame)(struct vimc_ent_device *ved,
-> -			      struct media_pad *sink, const void *frame);
-> +	void * (*process_frame)(struct vimc_ent_device *ved,
-> +				const void *frame);
->  	void (*vdev_get_format)(struct vimc_ent_device *ved,
->  			      struct v4l2_pix_format *fmt);
->  };
->  
-> -/**
-> - * vimc_propagate_frame - propagate a frame through the topology
-> - *
-> - * @src:	the source pad where the frame is being originated
-> - * @frame:	the frame to be propagated
-> - *
-> - * This function will call the process_frame callback from the vimc_ent_device
-> - * struct of the nodes directly connected to the @src pad
-> - */
-> -int vimc_propagate_frame(struct media_pad *src, const void *frame);
-> -
->  /**
->   * vimc_pads_init - initialize pads
->   *
-> diff --git a/drivers/media/platform/vimc/vimc-debayer.c b/drivers/media/platform/vimc/vimc-debayer.c
-> index 77887f66f323..7d77c63b99d2 100644
-> --- a/drivers/media/platform/vimc/vimc-debayer.c
-> +++ b/drivers/media/platform/vimc/vimc-debayer.c
-> @@ -321,7 +321,6 @@ static void vimc_deb_set_rgb_mbus_fmt_rgb888_1x24(struct vimc_deb_device *vdeb,
->  static int vimc_deb_s_stream(struct v4l2_subdev *sd, int enable)
->  {
->  	struct vimc_deb_device *vdeb = v4l2_get_subdevdata(sd);
-> -	int ret;
->  
->  	if (enable) {
->  		const struct vimc_pix_map *vpix;
-> @@ -351,22 +350,10 @@ static int vimc_deb_s_stream(struct v4l2_subdev *sd, int enable)
->  		if (!vdeb->src_frame)
->  			return -ENOMEM;
->  
-> -		/* Turn the stream on in the subdevices directly connected */
-> -		ret = vimc_pipeline_s_stream(&vdeb->sd.entity, 1);
-> -		if (ret) {
-> -			vfree(vdeb->src_frame);
-> -			vdeb->src_frame = NULL;
-> -			return ret;
-> -		}
->  	} else {
->  		if (!vdeb->src_frame)
->  			return 0;
->  
-> -		/* Disable streaming from the pipe */
-> -		ret = vimc_pipeline_s_stream(&vdeb->sd.entity, 0);
-> -		if (ret)
-> -			return ret;
-> -
->  		vfree(vdeb->src_frame);
->  		vdeb->src_frame = NULL;
->  	}
-> @@ -480,9 +467,8 @@ static void vimc_deb_calc_rgb_sink(struct vimc_deb_device *vdeb,
->  	}
->  }
->  
-> -static void vimc_deb_process_frame(struct vimc_ent_device *ved,
-> -				   struct media_pad *sink,
-> -				   const void *sink_frame)
-> +static void *vimc_deb_process_frame(struct vimc_ent_device *ved,
-> +				    const void *sink_frame)
->  {
->  	struct vimc_deb_device *vdeb = container_of(ved, struct vimc_deb_device,
->  						    ved);
-> @@ -491,7 +477,7 @@ static void vimc_deb_process_frame(struct vimc_ent_device *ved,
->  
->  	/* If the stream in this node is not active, just return */
->  	if (!vdeb->src_frame)
-> -		return;
-> +		return ERR_PTR(-EINVAL);
->  
->  	for (i = 0; i < vdeb->sink_fmt.height; i++)
->  		for (j = 0; j < vdeb->sink_fmt.width; j++) {
-> @@ -499,12 +485,8 @@ static void vimc_deb_process_frame(struct vimc_ent_device *ved,
->  			vdeb->set_rgb_src(vdeb, i, j, rgb);
->  		}
->  
-> -	/* Propagate the frame through all source pads */
-> -	for (i = 1; i < vdeb->sd.entity.num_pads; i++) {
-> -		struct media_pad *pad = &vdeb->sd.entity.pads[i];
-> +	return vdeb->src_frame;
->  
-> -		vimc_propagate_frame(pad, vdeb->src_frame);
-> -	}
->  }
->  
->  static void vimc_deb_comp_unbind(struct device *comp, struct device *master,
-> diff --git a/drivers/media/platform/vimc/vimc-scaler.c b/drivers/media/platform/vimc/vimc-scaler.c
-> index b0952ee86296..39b2a73dfcc1 100644
-> --- a/drivers/media/platform/vimc/vimc-scaler.c
-> +++ b/drivers/media/platform/vimc/vimc-scaler.c
-> @@ -217,7 +217,6 @@ static const struct v4l2_subdev_pad_ops vimc_sca_pad_ops = {
->  static int vimc_sca_s_stream(struct v4l2_subdev *sd, int enable)
->  {
->  	struct vimc_sca_device *vsca = v4l2_get_subdevdata(sd);
-> -	int ret;
->  
->  	if (enable) {
->  		const struct vimc_pix_map *vpix;
-> @@ -245,22 +244,10 @@ static int vimc_sca_s_stream(struct v4l2_subdev *sd, int enable)
->  		if (!vsca->src_frame)
->  			return -ENOMEM;
->  
-> -		/* Turn the stream on in the subdevices directly connected */
-> -		ret = vimc_pipeline_s_stream(&vsca->sd.entity, 1);
-> -		if (ret) {
-> -			vfree(vsca->src_frame);
-> -			vsca->src_frame = NULL;
-> -			return ret;
-> -		}
->  	} else {
->  		if (!vsca->src_frame)
->  			return 0;
->  
-> -		/* Disable streaming from the pipe */
-> -		ret = vimc_pipeline_s_stream(&vsca->sd.entity, 0);
-> -		if (ret)
-> -			return ret;
-> -
->  		vfree(vsca->src_frame);
->  		vsca->src_frame = NULL;
->  	}
-> @@ -346,26 +333,19 @@ static void vimc_sca_fill_src_frame(const struct vimc_sca_device *const vsca,
->  			vimc_sca_scale_pix(vsca, i, j, sink_frame);
->  }
->  
-> -static void vimc_sca_process_frame(struct vimc_ent_device *ved,
-> -				   struct media_pad *sink,
-> -				   const void *sink_frame)
-> +static void *vimc_sca_process_frame(struct vimc_ent_device *ved,
-> +				    const void *sink_frame)
->  {
->  	struct vimc_sca_device *vsca = container_of(ved, struct vimc_sca_device,
->  						    ved);
-> -	unsigned int i;
->  
->  	/* If the stream in this node is not active, just return */
->  	if (!vsca->src_frame)
-> -		return;
-> +		return ERR_PTR(-EINVAL);
->  
->  	vimc_sca_fill_src_frame(vsca, sink_frame);
->  
-> -	/* Propagate the frame through all source pads */
-> -	for (i = 1; i < vsca->sd.entity.num_pads; i++) {
-> -		struct media_pad *pad = &vsca->sd.entity.pads[i];
-> -
-> -		vimc_propagate_frame(pad, vsca->src_frame);
-> -	}
-> +	return vsca->src_frame;
->  };
->  
->  static void vimc_sca_comp_unbind(struct device *comp, struct device *master,
-> diff --git a/drivers/media/platform/vimc/vimc-sensor.c b/drivers/media/platform/vimc/vimc-sensor.c
-> index 32ca9c6172b1..59195f262623 100644
-> --- a/drivers/media/platform/vimc/vimc-sensor.c
-> +++ b/drivers/media/platform/vimc/vimc-sensor.c
-> @@ -16,8 +16,6 @@
->   */
->  
->  #include <linux/component.h>
-> -#include <linux/freezer.h>
-> -#include <linux/kthread.h>
->  #include <linux/module.h>
->  #include <linux/mod_devicetable.h>
->  #include <linux/platform_device.h>
-> @@ -201,38 +199,20 @@ static const struct v4l2_subdev_pad_ops vimc_sen_pad_ops = {
->  	.set_fmt		= vimc_sen_set_fmt,
->  };
->  
-> -static int vimc_sen_tpg_thread(void *data)
-> +static void *vimc_sen_process_frame(struct vimc_ent_device *ved,
-> +				    const void *sink_frame)
->  {
-> -	struct vimc_sen_device *vsen = data;
-> -	unsigned int i;
-> -
-> -	set_freezable();
-> -	set_current_state(TASK_UNINTERRUPTIBLE);
-> -
-> -	for (;;) {
-> -		try_to_freeze();
-> -		if (kthread_should_stop())
-> -			break;
-> +	struct vimc_sen_device *vsen = container_of(ved, struct vimc_sen_device,
-> +						    ved);
->  
-> -		tpg_fill_plane_buffer(&vsen->tpg, 0, 0, vsen->frame);
-> -
-> -		/* Send the frame to all source pads */
-> -		for (i = 0; i < vsen->sd.entity.num_pads; i++)
-> -			vimc_propagate_frame(&vsen->sd.entity.pads[i],
-> -					     vsen->frame);
-> -
-> -		/* 60 frames per second */
-> -		schedule_timeout(HZ/60);
-> -	}
-> -
-> -	return 0;
-> +	tpg_fill_plane_buffer(&vsen->tpg, 0, 0, vsen->frame);
-> +	return vsen->frame;
->  }
->  
->  static int vimc_sen_s_stream(struct v4l2_subdev *sd, int enable)
->  {
->  	struct vimc_sen_device *vsen =
->  				container_of(sd, struct vimc_sen_device, sd);
-> -	int ret;
->  
->  	if (enable) {
->  		const struct vimc_pix_map *vpix;
-> @@ -258,26 +238,8 @@ static int vimc_sen_s_stream(struct v4l2_subdev *sd, int enable)
->  		/* configure the test pattern generator */
->  		vimc_sen_tpg_s_format(vsen);
->  
-> -		/* Initialize the image generator thread */
-> -		vsen->kthread_sen = kthread_run(vimc_sen_tpg_thread, vsen,
-> -					"%s-sen", vsen->sd.v4l2_dev->name);
-> -		if (IS_ERR(vsen->kthread_sen)) {
-> -			dev_err(vsen->dev, "%s: kernel_thread() failed\n",
-> -				vsen->sd.name);
-> -			vfree(vsen->frame);
-> -			vsen->frame = NULL;
-> -			return PTR_ERR(vsen->kthread_sen);
-> -		}
->  	} else {
-> -		if (!vsen->kthread_sen)
-> -			return 0;
-> -
-> -		/* Stop image generator */
-> -		ret = kthread_stop(vsen->kthread_sen);
-> -		if (ret)
-> -			return ret;
->  
-> -		vsen->kthread_sen = NULL;
->  		vfree(vsen->frame);
->  		vsen->frame = NULL;
->  		return 0;
-> @@ -413,6 +375,7 @@ static int vimc_sen_comp_bind(struct device *comp, struct device *master,
->  	if (ret)
->  		goto err_free_hdl;
->  
-> +	vsen->ved.process_frame = vimc_sen_process_frame;
->  	dev_set_drvdata(comp, &vsen->ved);
->  	vsen->dev = comp;
->  
-> diff --git a/drivers/media/platform/vimc/vimc-streamer.c b/drivers/media/platform/vimc/vimc-streamer.c
-> new file mode 100644
-> index 000000000000..06b0765cd035
-> --- /dev/null
-> +++ b/drivers/media/platform/vimc/vimc-streamer.c
-> @@ -0,0 +1,188 @@
-> +// SPDX-License-Identifier: GPL-2.0+
-> +/*
-> + * vimc-streamer.c Virtual Media Controller Driver
-> + *
-> + * Copyright (C) 2018 Lucas A. M. Magalhães <lucmaga@gmail.com>
-> + *
-> + */
-> +
-> +#include <linux/init.h>
-> +#include <linux/module.h>
-> +#include <linux/freezer.h>
-> +#include <linux/kthread.h>
-> +
-> +#include "vimc-streamer.h"
-> +
-> +/**
-> + * vimc_get_source_entity - get the entity connected with the first sink pad
-> + *
-> + * @ent:	reference media_entity
-> + *
-> + * Helper function that returns the media entity containing the source pad
-> + * linked with the first sink pad from the given media entity pad list.
-> + */
-> +static struct media_entity *vimc_get_source_entity(struct media_entity *ent)
-> +{
-> +	struct media_pad *pad;
-> +	int i;
-> +
-> +	for (i = 0; i < ent->num_pads; i++) {
-> +		if (ent->pads[i].flags & MEDIA_PAD_FL_SOURCE)
-> +			continue;
-> +		pad = media_entity_remote_pad(&ent->pads[i]);
-> +		return pad ? pad->entity : NULL;
-> +	}
-> +	return NULL;
-> +}
-> +
-> +/*
-> + * vimc_streamer_pipeline_terminate - Disable stream in all ved in stream
-> + *
-> + * @stream: the pointer to the stream structure with the pipeline to be
-> + *	    disabled.
-> + *
-> + * Calls s_stream to disable the stream in each entity of the pipeline
-> + *
-> + */
-> +static void vimc_streamer_pipeline_terminate(struct vimc_stream *stream)
-> +{
-> +	struct media_entity *entity;
-> +	struct v4l2_subdev *sd;
-> +
-> +	while (stream->pipe_size) {
-> +		stream->pipe_size--;
-> +		entity = stream->ved_pipeline[stream->pipe_size]->ent;
-> +		entity = vimc_get_source_entity(entity);
-> +		stream->ved_pipeline[stream->pipe_size] = NULL;
-> +
-> +		if (!is_media_entity_v4l2_subdev(entity))
-> +			continue;
-> +
-> +		sd = media_entity_to_v4l2_subdev(entity);
-> +		v4l2_subdev_call(sd, video, s_stream, 0);
-> +	}
-> +}
-> +
-> +/*
-> + * vimc_streamer_pipeline_init - initializes the stream structure
-> + *
-> + * @stream: the pointer to the stream structure to be initialized
-> + * @ved:    the pointer to the vimc entity initializing the stream
-> + *
-> + * Initializes the stream structure. Walks through the entity graph to
-> + * construct the pipeline used later on the streamer thread.
-> + * Calls s_stream to enable stream in all entities of the pipeline.
-> + */
-> +static int vimc_streamer_pipeline_init(struct vimc_stream *stream,
-> +				       struct vimc_ent_device *ved)
-> +{
-> +	struct media_entity *entity;
-> +	struct video_device *vdev;
-> +	 struct v4l2_subdev *sd;
-> +	int ret = 0;
-> +
-> +	stream->pipe_size = 0;
-> +	while (stream->pipe_size < VIMC_STREAMER_PIPELINE_MAX_SIZE) {
-> +		if (!ved) {
-> +			vimc_streamer_pipeline_terminate(stream);
-> +			return -EINVAL;
-> +		}
-> +		stream->ved_pipeline[stream->pipe_size++] = ved;
-> +
-> +		entity = vimc_get_source_entity(ved->ent);
-> +		/* Check if the end of the pipeline was reached*/
-> +		if (!entity)
-> +			return 0;
-> +
-> +		if (is_media_entity_v4l2_subdev(entity)) {
-> +			sd = media_entity_to_v4l2_subdev(entity);
-> +			ret = v4l2_subdev_call(sd, video, s_stream, 1);
-> +			if (ret && ret != -ENOIOCTLCMD) {
-> +				vimc_streamer_pipeline_terminate(stream);
-> +				return ret;
-> +			}
-> +			ved = v4l2_get_subdevdata(sd);
-> +		} else {
-> +			vdev = container_of(entity,
-> +					    struct video_device,
-> +					    entity);
-> +			ved = video_get_drvdata(vdev);
-> +		}
-> +	}
-> +
-> +	vimc_streamer_pipeline_terminate(stream);
-> +	return -EINVAL;
-> +}
-> +
-> +static int vimc_streamer_thread(void *data)
-> +{
-> +	struct vimc_stream *stream = data;
-> +	int i;
-> +
-> +	set_freezable();
-> +	set_current_state(TASK_UNINTERRUPTIBLE);
-> +
-> +	for (;;) {
-> +		try_to_freeze();
-> +		if (kthread_should_stop())
-> +			break;
-> +
-> +		for (i = stream->pipe_size - 1; i >= 0; i--) {
-> +			stream->frame = stream->ved_pipeline[i]->process_frame(
-> +					stream->ved_pipeline[i],
-> +					stream->frame);
-> +			if (!stream->frame)
-> +				break;
-> +			if (IS_ERR(stream->frame))
-> +				break;
-> +		}
-> +		//wait for 60hz
-> +		schedule_timeout(HZ / 60);
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +int vimc_streamer_s_stream(struct vimc_stream *stream,
-> +			   struct vimc_ent_device *ved,
-> +			   int enable)
-> +{
-> +	int ret;
-> +
-> +	if (!stream || !ved)
-> +		return -EINVAL;
-> +
-> +	if (enable) {
-> +		if (stream->kthread)
-> +			return 0;
-> +
-> +		ret = vimc_streamer_pipeline_init(stream, ved);
-> +		if (ret)
-> +			return ret;
-> +
-> +		stream->kthread = kthread_run(vimc_streamer_thread, stream,
-> +					      "vimc-streamer thread");
-> +
-> +		if (IS_ERR(stream->kthread))
-> +			return PTR_ERR(stream->kthread);
-> +
-> +	} else {
-> +		if (!stream->kthread)
-> +			return 0;
-> +
-> +		ret = kthread_stop(stream->kthread);
-> +		if (ret)
-> +			return ret;
-> +
-> +		stream->kthread = NULL;
-> +
-> +		vimc_streamer_pipeline_terminate(stream);
-> +	}
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(vimc_streamer_s_stream);
-> +
-> +MODULE_DESCRIPTION("Virtual Media Controller Driver (VIMC) Streamer");
-> +MODULE_AUTHOR("Lucas A. M. Magalhães <lucmaga@gmail.com>");
-> +MODULE_LICENSE("GPL");
-> diff --git a/drivers/media/platform/vimc/vimc-streamer.h b/drivers/media/platform/vimc/vimc-streamer.h
-> new file mode 100644
-> index 000000000000..752af2e2d5a2
-> --- /dev/null
-> +++ b/drivers/media/platform/vimc/vimc-streamer.h
-> @@ -0,0 +1,38 @@
-> +/* SPDX-License-Identifier: GPL-2.0+ */
-> +/*
-> + * vimc-streamer.h Virtual Media Controller Driver
-> + *
-> + * Copyright (C) 2018 Lucas A. M. Magalhães <lucmaga@gmail.com>
-> + *
-> + */
-> +
-> +#ifndef _VIMC_STREAMER_H_
-> +#define _VIMC_STREAMER_H_
-> +
-> +#include <media/media-device.h>
-> +
-> +#include "vimc-common.h"
-> +
-> +#define VIMC_STREAMER_PIPELINE_MAX_SIZE 16
-> +
-> +struct vimc_stream {
-> +	struct media_pipeline pipe;
-> +	struct vimc_ent_device *ved_pipeline[VIMC_STREAMER_PIPELINE_MAX_SIZE];
-> +	unsigned int pipe_size;
-> +	u8 *frame;
-> +	struct task_struct *kthread;
-> +};
-> +
-> +/**
-> + * vimc_streamer_s_streamer - start/stop the stream
-> + *
-> + * @stream:	the pointer to the stream to start or stop
-> + * @ved:	The last entity of the streamer pipeline
-> + * @enable:	any non-zero number start the stream, zero stop
-> + *
-> + */
-> +int vimc_streamer_s_stream(struct vimc_stream *stream,
-> +			   struct vimc_ent_device *ved,
-> +			   int enable);
-> +
-> +#endif  //_VIMC_STREAMER_H_
-> 
+I'd like to apply this to the RDMA tree next week, a large series from
+Shiraz is waiting on it:
+
+https://patchwork.kernel.org/project/linux-rdma/list/?series=3D71841&state=
+=3D*
+
+Regards,
+Jason
+
+diff --git a/.clang-format b/.clang-format
+index bc2ffb2a0b5366..335ce29ab8132c 100644
+--- a/.clang-format
++++ b/.clang-format
+@@ -240,6 +240,7 @@ ForEachMacros:
+   - 'for_each_set_bit'
+   - 'for_each_set_bit_from'
+   - 'for_each_sg'
++  - 'for_each_sg_dma_page'
+   - 'for_each_sg_page'
+   - 'for_each_sibling_event'
+   - '__for_each_thread'
+diff --git a/drivers/gpu/drm/vmwgfx/vmwgfx_ttm_buffer.c b/drivers/gpu/drm/v=
+mwgfx/vmwgfx_ttm_buffer.c
+index 31786b200afc47..e84f6aaee778f0 100644
+--- a/drivers/gpu/drm/vmwgfx/vmwgfx_ttm_buffer.c
++++ b/drivers/gpu/drm/vmwgfx/vmwgfx_ttm_buffer.c
+@@ -311,7 +311,13 @@ static dma_addr_t __vmw_piter_dma_addr(struct vmw_pite=
+r *viter)
+=20
+ static dma_addr_t __vmw_piter_sg_addr(struct vmw_piter *viter)
+ {
+-	return sg_page_iter_dma_address(&viter->iter);
++	/*
++	 * FIXME: This driver wrongly mixes DMA and CPU SG list iteration and
++	 * needs revision. See
++	 * https://lore.kernel.org/lkml/20190104223531.GA1705@ziepe.ca/
++	 */
++	return sg_page_iter_dma_address(
++		(struct sg_dma_page_iter *)&viter->iter);
+ }
+=20
+=20
+diff --git a/drivers/media/pci/intel/ipu3/ipu3-cio2.c b/drivers/media/pci/i=
+ntel/ipu3/ipu3-cio2.c
+index cdb79ae2d8dc72..c0a5ce1d13b0bc 100644
+--- a/drivers/media/pci/intel/ipu3/ipu3-cio2.c
++++ b/drivers/media/pci/intel/ipu3/ipu3-cio2.c
+@@ -846,7 +846,7 @@ static int cio2_vb2_buf_init(struct vb2_buffer *vb)
+ 	unsigned int pages =3D DIV_ROUND_UP(vb->planes[0].length, CIO2_PAGE_SIZE)=
+;
+ 	unsigned int lops =3D DIV_ROUND_UP(pages + 1, entries_per_page);
+ 	struct sg_table *sg;
+-	struct sg_page_iter sg_iter;
++	struct sg_dma_page_iter sg_iter;
+ 	int i, j;
+=20
+ 	if (lops <=3D 0 || lops > CIO2_MAX_LOPS) {
+@@ -873,7 +873,7 @@ static int cio2_vb2_buf_init(struct vb2_buffer *vb)
+ 		b->offset =3D sg->sgl->offset;
+=20
+ 	i =3D j =3D 0;
+-	for_each_sg_page(sg->sgl, &sg_iter, sg->nents, 0) {
++	for_each_sg_dma_page(sg->sgl, &sg_iter, sg->nents, 0) {
+ 		if (!pages--)
+ 			break;
+ 		b->lop[i][j] =3D sg_page_iter_dma_address(&sg_iter) >> PAGE_SHIFT;
+diff --git a/include/linux/scatterlist.h b/include/linux/scatterlist.h
+index b96f0d0b5b8f30..b4be960c7e5dba 100644
+--- a/include/linux/scatterlist.h
++++ b/include/linux/scatterlist.h
+@@ -339,12 +339,12 @@ int sg_alloc_table_chained(struct sg_table *table, in=
+t nents,
+ /*
+  * sg page iterator
+  *
+- * Iterates over sg entries page-by-page.  On each successful iteration,
+- * you can call sg_page_iter_page(@piter) and sg_page_iter_dma_address(@pi=
+ter)
+- * to get the current page and its dma address. @piter->sg will point to t=
+he
+- * sg holding this page and @piter->sg_pgoffset to the page's page offset
+- * within the sg. The iteration will stop either when a maximum number of =
+sg
+- * entries was reached or a terminating sg (sg_last(sg) =3D=3D true) was r=
+eached.
++ * Iterates over sg entries page-by-page.  On each successful iteration, y=
+ou
++ * can call sg_page_iter_page(@piter) to get the current page and its dma
++ * address. @piter->sg will point to the sg holding this page and
++ * @piter->sg_pgoffset to the page's page offset within the sg. The iterat=
+ion
++ * will stop either when a maximum number of sg entries was reached or a
++ * terminating sg (sg_last(sg) =3D=3D true) was reached.
+  */
+ struct sg_page_iter {
+ 	struct scatterlist	*sg;		/* sg holding the page */
+@@ -356,7 +356,19 @@ struct sg_page_iter {
+ 						 * next step */
+ };
+=20
++/*
++ * sg page iterator for DMA addresses
++ *
++ * This is the same as sg_page_iter however you can call
++ * sg_page_iter_dma_address(@dma_iter) to get the page's DMA
++ * address. sg_page_iter_page() cannot be called on this iterator.
++ */
++struct sg_dma_page_iter {
++	struct sg_page_iter base;
++};
++
+ bool __sg_page_iter_next(struct sg_page_iter *piter);
++bool __sg_page_iter_dma_next(struct sg_dma_page_iter *dma_iter);
+ void __sg_page_iter_start(struct sg_page_iter *piter,
+ 			  struct scatterlist *sglist, unsigned int nents,
+ 			  unsigned long pgoffset);
+@@ -372,11 +384,13 @@ static inline struct page *sg_page_iter_page(struct s=
+g_page_iter *piter)
+ /**
+  * sg_page_iter_dma_address - get the dma address of the current page held=
+ by
+  * the page iterator.
+- * @piter:	page iterator holding the page
++ * @dma_iter:	page iterator holding the page
+  */
+-static inline dma_addr_t sg_page_iter_dma_address(struct sg_page_iter *pit=
+er)
++static inline dma_addr_t
++sg_page_iter_dma_address(struct sg_dma_page_iter *dma_iter)
+ {
+-	return sg_dma_address(piter->sg) + (piter->sg_pgoffset << PAGE_SHIFT);
++	return sg_dma_address(dma_iter->base.sg) +
++	       (dma_iter->base.sg_pgoffset << PAGE_SHIFT);
+ }
+=20
+ /**
+@@ -385,11 +399,28 @@ static inline dma_addr_t sg_page_iter_dma_address(str=
+uct sg_page_iter *piter)
+  * @piter:	page iterator to hold current page, sg, sg_pgoffset
+  * @nents:	maximum number of sg entries to iterate over
+  * @pgoffset:	starting page offset
++ *
++ * Callers may use sg_page_iter_page() to get each page pointer.
+  */
+ #define for_each_sg_page(sglist, piter, nents, pgoffset)		   \
+ 	for (__sg_page_iter_start((piter), (sglist), (nents), (pgoffset)); \
+ 	     __sg_page_iter_next(piter);)
+=20
++/**
++ * for_each_sg_dma_page - iterate over the pages of the given sg list
++ * @sglist:	sglist to iterate over
++ * @dma_iter:	page iterator to hold current page
++ * @dma_nents:	maximum number of sg entries to iterate over, this is the v=
+alue
++ *              returned from dma_map_sg
++ * @pgoffset:	starting page offset
++ *
++ * Callers may use sg_page_iter_dma_address() to get each page's DMA addre=
+ss.
++ */
++#define for_each_sg_dma_page(sglist, dma_iter, dma_nents, pgoffset)       =
+     \
++	for (__sg_page_iter_start(&(dma_iter)->base, sglist, dma_nents,        \
++				  pgoffset);                                   \
++	     __sg_page_iter_dma_next(dma_iter);)
++
+ /*
+  * Mapping sg iterator
+  *
+diff --git a/lib/scatterlist.c b/lib/scatterlist.c
+index 9ba349e775ef08..739dc9fe2c55ec 100644
+--- a/lib/scatterlist.c
++++ b/lib/scatterlist.c
+@@ -625,6 +625,32 @@ bool __sg_page_iter_next(struct sg_page_iter *piter)
+ }
+ EXPORT_SYMBOL(__sg_page_iter_next);
+=20
++static int sg_dma_page_count(struct scatterlist *sg)
++{
++	return PAGE_ALIGN(sg->offset + sg_dma_len(sg)) >> PAGE_SHIFT;
++}
++
++bool __sg_page_iter_dma_next(struct sg_dma_page_iter *dma_iter)
++{
++	struct sg_page_iter *piter =3D &dma_iter->base;
++
++	if (!piter->__nents || !piter->sg)
++		return false;
++
++	piter->sg_pgoffset +=3D piter->__pg_advance;
++	piter->__pg_advance =3D 1;
++
++	while (piter->sg_pgoffset >=3D sg_dma_page_count(piter->sg)) {
++		piter->sg_pgoffset -=3D sg_dma_page_count(piter->sg);
++		piter->sg =3D sg_next(piter->sg);
++		if (!--piter->__nents || !piter->sg)
++			return false;
++	}
++
++	return true;
++}
++EXPORT_SYMBOL(__sg_page_iter_dma_next);
++
+ /**
+  * sg_miter_start - start mapping iteration over a sg list
+  * @miter: sg mapping iter to be started
+--=20
+2.20.1
 
