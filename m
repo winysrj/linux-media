@@ -6,31 +6,31 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C3D4C282C4
-	for <linux-media@archiver.kernel.org>; Thu,  7 Feb 2019 11:49:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 737B5C282C2
+	for <linux-media@archiver.kernel.org>; Thu,  7 Feb 2019 11:49:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 04A892080A
-	for <linux-media@archiver.kernel.org>; Thu,  7 Feb 2019 11:49:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 44B4A2080A
+	for <linux-media@archiver.kernel.org>; Thu,  7 Feb 2019 11:49:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727097AbfBGLty (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        id S1727090AbfBGLty (ORCPT <rfc822;linux-media@archiver.kernel.org>);
         Thu, 7 Feb 2019 06:49:54 -0500
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:34405 "EHLO
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:33932 "EHLO
         lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727078AbfBGLtx (ORCPT
+        by vger.kernel.org with ESMTP id S1727070AbfBGLtx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Thu, 7 Feb 2019 06:49:53 -0500
 Received: from test-nl.fritz.box ([80.101.105.217])
         by smtp-cloud8.xs4all.net with ESMTPA
-        id riBggvrMUNR5yriBig1Jmd; Thu, 07 Feb 2019 12:49:50 +0100
+        id riBggvrMUNR5yriBig1JmA; Thu, 07 Feb 2019 12:49:50 +0100
 From:   hverkuil-cisco@xs4all.nl
 To:     linux-media@vger.kernel.org
 Cc:     Michael Ira Krufky <mkrufky@linuxtv.org>,
         Brad Love <brad@nextdimension.cc>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
         Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Subject: [RFC PATCH 5/8] v4l2-mem2mem: fix epoll() by calling poll_wait first
-Date:   Thu,  7 Feb 2019 12:49:45 +0100
-Message-Id: <20190207114948.37750-6-hverkuil-cisco@xs4all.nl>
+Subject: [RFC PATCH 1/8] cec: fix epoll() by calling poll_wait first
+Date:   Thu,  7 Feb 2019 12:49:41 +0100
+Message-Id: <20190207114948.37750-2-hverkuil-cisco@xs4all.nl>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190207114948.37750-1-hverkuil-cisco@xs4all.nl>
 References: <20190207114948.37750-1-hverkuil-cisco@xs4all.nl>
@@ -48,67 +48,34 @@ From: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 
 The epoll function expects that whenever the poll file op is
 called, the poll_wait function is also called. That didn't
-always happen in v4l2_m2m_poll(). Fix this, otherwise
-epoll() would timeout when it shouldn't.
+always happen in cec_poll(). Fix this, otherwise epoll()
+would timeout when it shouldn't.
 
 Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 ---
- drivers/media/v4l2-core/v4l2-mem2mem.c | 19 +++++++------------
- 1 file changed, 7 insertions(+), 12 deletions(-)
+ drivers/media/cec/cec-api.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
-index 631f4e2aa942..d97781b8ff88 100644
---- a/drivers/media/v4l2-core/v4l2-mem2mem.c
-+++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
-@@ -617,20 +617,22 @@ __poll_t v4l2_m2m_poll(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
- 	__poll_t rc = 0;
- 	unsigned long flags;
+diff --git a/drivers/media/cec/cec-api.c b/drivers/media/cec/cec-api.c
+index 391b6fd483e1..156a0d76ab2a 100644
+--- a/drivers/media/cec/cec-api.c
++++ b/drivers/media/cec/cec-api.c
+@@ -38,6 +38,7 @@ static __poll_t cec_poll(struct file *filp,
+ 	struct cec_adapter *adap = fh->adap;
+ 	__poll_t res = 0;
  
-+	src_q = v4l2_m2m_get_src_vq(m2m_ctx);
-+	dst_q = v4l2_m2m_get_dst_vq(m2m_ctx);
-+
-+	poll_wait(file, &src_q->done_wq, wait);
-+	poll_wait(file, &dst_q->done_wq, wait);
-+
- 	if (test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags)) {
- 		struct v4l2_fh *fh = file->private_data;
- 
-+		poll_wait(file, &fh->wait, wait);
- 		if (v4l2_event_pending(fh))
- 			rc = EPOLLPRI;
--		else if (req_events & EPOLLPRI)
--			poll_wait(file, &fh->wait, wait);
- 		if (!(req_events & (EPOLLOUT | EPOLLWRNORM | EPOLLIN | EPOLLRDNORM)))
- 			return rc;
- 	}
- 
--	src_q = v4l2_m2m_get_src_vq(m2m_ctx);
--	dst_q = v4l2_m2m_get_dst_vq(m2m_ctx);
--
- 	/*
- 	 * There has to be at least one buffer queued on each queued_list, which
- 	 * means either in driver already or waiting for driver to claim it
-@@ -642,11 +644,6 @@ __poll_t v4l2_m2m_poll(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
- 		goto end;
- 	}
- 
--	spin_lock_irqsave(&src_q->done_lock, flags);
--	if (list_empty(&src_q->done_list))
--		poll_wait(file, &src_q->done_wq, wait);
--	spin_unlock_irqrestore(&src_q->done_lock, flags);
--
- 	spin_lock_irqsave(&dst_q->done_lock, flags);
- 	if (list_empty(&dst_q->done_list)) {
- 		/*
-@@ -657,8 +654,6 @@ __poll_t v4l2_m2m_poll(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
- 			spin_unlock_irqrestore(&dst_q->done_lock, flags);
- 			return rc | EPOLLIN | EPOLLRDNORM;
- 		}
--
--		poll_wait(file, &dst_q->done_wq, wait);
- 	}
- 	spin_unlock_irqrestore(&dst_q->done_lock, flags);
- 
++	poll_wait(filp, &fh->wait, poll);
+ 	if (!cec_is_registered(adap))
+ 		return EPOLLERR | EPOLLHUP;
+ 	mutex_lock(&adap->lock);
+@@ -48,7 +49,6 @@ static __poll_t cec_poll(struct file *filp,
+ 		res |= EPOLLIN | EPOLLRDNORM;
+ 	if (fh->total_queued_events)
+ 		res |= EPOLLPRI;
+-	poll_wait(filp, &fh->wait, poll);
+ 	mutex_unlock(&adap->lock);
+ 	return res;
+ }
 -- 
 2.20.1
 
