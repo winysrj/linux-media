@@ -2,175 +2,238 @@ Return-Path: <SRS0=uIFo=QO=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_MUTT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-8.5 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 87684C282C2
-	for <linux-media@archiver.kernel.org>; Thu,  7 Feb 2019 15:57:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 92592C282C4
+	for <linux-media@archiver.kernel.org>; Thu,  7 Feb 2019 15:57:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 542132175B
-	for <linux-media@archiver.kernel.org>; Thu,  7 Feb 2019 15:57:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4A22F2190A
+	for <linux-media@archiver.kernel.org>; Thu,  7 Feb 2019 15:57:32 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=ragnatech-se.20150623.gappssmtp.com header.i=@ragnatech-se.20150623.gappssmtp.com header.b="PMpC9esG"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726270AbfBGP5S (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 7 Feb 2019 10:57:18 -0500
-Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:45568 "EHLO
-        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726037AbfBGP5S (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 7 Feb 2019 10:57:18 -0500
-Received: from pps.filterd (m0098420.ppops.net [127.0.0.1])
-        by mx0b-001b2d01.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id x17Fswf3109715
-        for <linux-media@vger.kernel.org>; Thu, 7 Feb 2019 10:57:17 -0500
-Received: from e06smtp01.uk.ibm.com (e06smtp01.uk.ibm.com [195.75.94.97])
-        by mx0b-001b2d01.pphosted.com with ESMTP id 2qgp0b6asj-1
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
-        for <linux-media@vger.kernel.org>; Thu, 07 Feb 2019 10:57:17 -0500
-Received: from localhost
-        by e06smtp01.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-        for <linux-media@vger.kernel.org> from <rppt@linux.ibm.com>;
-        Thu, 7 Feb 2019 15:57:14 -0000
-Received: from b06cxnps3074.portsmouth.uk.ibm.com (9.149.109.194)
-        by e06smtp01.uk.ibm.com (192.168.101.131) with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted;
-        (version=TLSv1/SSLv3 cipher=AES256-GCM-SHA384 bits=256/256)
-        Thu, 7 Feb 2019 15:57:05 -0000
-Received: from d06av22.portsmouth.uk.ibm.com (d06av22.portsmouth.uk.ibm.com [9.149.105.58])
-        by b06cxnps3074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id x17Fv4Jg58785802
-        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
-        Thu, 7 Feb 2019 15:57:04 GMT
-Received: from d06av22.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id 826AD4C044;
-        Thu,  7 Feb 2019 15:57:04 +0000 (GMT)
-Received: from d06av22.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id 1C3454C040;
-        Thu,  7 Feb 2019 15:57:02 +0000 (GMT)
-Received: from rapoport-lnx (unknown [9.148.8.84])
-        by d06av22.portsmouth.uk.ibm.com (Postfix) with ESMTPS;
-        Thu,  7 Feb 2019 15:57:02 +0000 (GMT)
-Date:   Thu, 7 Feb 2019 17:57:00 +0200
-From:   Mike Rapoport <rppt@linux.ibm.com>
-To:     Souptick Joarder <jrdr.linux@gmail.com>
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
-        Matthew Wilcox <willy@infradead.org>,
-        Michal Hocko <mhocko@suse.com>,
-        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
-        vbabka@suse.cz, Rik van Riel <riel@surriel.com>,
-        Stephen Rothwell <sfr@canb.auug.org.au>,
-        rppt@linux.vnet.ibm.com, Peter Zijlstra <peterz@infradead.org>,
-        Russell King - ARM Linux <linux@armlinux.org.uk>,
-        robin.murphy@arm.com, iamjoonsoo.kim@lge.com, treding@nvidia.com,
-        Kees Cook <keescook@chromium.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        stefanr@s5r6.in-berlin.de, hjc@rock-chips.com,
-        Heiko Stuebner <heiko@sntech.de>, airlied@linux.ie,
-        oleksandr_andrushchenko@epam.com, joro@8bytes.org,
-        pawel@osciak.com, Kyungmin Park <kyungmin.park@samsung.com>,
-        mchehab@kernel.org, Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-        Juergen Gross <jgross@suse.com>, linux-kernel@vger.kernel.org,
-        Linux-MM <linux-mm@kvack.org>,
-        linux-arm-kernel@lists.infradead.org,
-        linux1394-devel@lists.sourceforge.net,
-        dri-devel@lists.freedesktop.org,
-        linux-rockchip@lists.infradead.org, xen-devel@lists.xen.org,
-        iommu@lists.linux-foundation.org, linux-media@vger.kernel.org
-Subject: Re: [PATCHv2 1/9] mm: Introduce new vm_insert_range and
- vm_insert_range_buggy API
-References: <20190131030812.GA2174@jordon-HP-15-Notebook-PC>
- <20190131083842.GE28876@rapoport-lnx>
- <CAFqt6za9xA_8OKiaaHXcO9go+RtPdjLY5Bz_fgQL+DZbermNhA@mail.gmail.com>
+        id S1726650AbfBGP5b (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 7 Feb 2019 10:57:31 -0500
+Received: from mail-lj1-f196.google.com ([209.85.208.196]:37143 "EHLO
+        mail-lj1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726401AbfBGP5b (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Feb 2019 10:57:31 -0500
+Received: by mail-lj1-f196.google.com with SMTP id r10-v6so309333ljj.4
+        for <linux-media@vger.kernel.org>; Thu, 07 Feb 2019 07:57:29 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ragnatech-se.20150623.gappssmtp.com; s=20150623;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:content-transfer-encoding:in-reply-to
+         :user-agent;
+        bh=u5jKTaUzhIul4RD7gT5c2lAWF8HuxyRGZOAze/aQgXU=;
+        b=PMpC9esGPefEiT8k4fJmgz8r587uP11en2tiQQ6t/lxZxk2HTruNML4QkUnLOQte9U
+         cBJPUYtHeIoY1EbCA38STGBBXSiwqTmFao6CpodtQzbmxSynd4e0IirCv66FBg3kuiFs
+         4JswXfzbvqLCSTlE8LcpkTe5eN5MYjbu8UiY+KCFFX+xi77SUtQB661M/jR+tsk4Fhy6
+         hxpArjo5GdgrwROb6mxjPN9+YY91KQjQFi4M+zlcME55dtXJdEkjI8oR3ZmoHutGgwQf
+         nMBcv2de/1+S6YwiwYnlUwR69OkrGUiK1Ain0nUt/xPovtG+vK8f/nKDhrPQ+pJvldAR
+         gY+Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:content-transfer-encoding
+         :in-reply-to:user-agent;
+        bh=u5jKTaUzhIul4RD7gT5c2lAWF8HuxyRGZOAze/aQgXU=;
+        b=EujvbGE4MnQIh5xD52zvPvW/YhEyEPwkVjMy0oKLDewXXCRRC3xvSiNx3WAppBZGFY
+         eonA+j4al0O/IZJFjoPKfsQpPNg+Tm+wS6x6WNumAR6UvcBWRimWpeZUas3VtyXdEfyd
+         VHddE/Il+iwHijhfa/hoe1siiGgH0NonV57QMULCdqVQX/o8ElJmrXOK43Ju2rhOdi/x
+         4TCE6MG7YOvWF3h0rnOfTZFicFb7kxumcNJdya/tNilBCmC4JZtG+TPpV1BnhycYbhFz
+         D0XR1Lppj9JoXcd+BCCbJ4QFgp1ybNL4DZMopt1/J8Vk2D8VTXZxRIDDnCf6Nq+UniqQ
+         luvw==
+X-Gm-Message-State: AHQUAubrRLEQFkhqRjl/agfsx2DSZZb7eoAktqfx5UJeBtK6YouVtUTF
+        QvndlRziNmai34fUQ94vWYs3Gw==
+X-Google-Smtp-Source: AHgI3IYBXgGCsB4ZJ7UbyXjQkNaMjBzU9yy5wJwroG8SWgQoAT1EO87ofBkxUUKybnSu2EFa0o9K+A==
+X-Received: by 2002:a2e:9189:: with SMTP id f9-v6mr7417468ljg.70.1549555048986;
+        Thu, 07 Feb 2019 07:57:28 -0800 (PST)
+Received: from localhost (89-233-230-99.cust.bredband2.com. [89.233.230.99])
+        by smtp.gmail.com with ESMTPSA id s27-v6sm408369ljd.64.2019.02.07.07.57.28
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Thu, 07 Feb 2019 07:57:28 -0800 (PST)
+Date:   Thu, 7 Feb 2019 16:57:27 +0100
+From:   Niklas =?iso-8859-1?Q?S=F6derlund?= 
+        <niklas.soderlund@ragnatech.se>
+To:     Jacopo Mondi <jacopo@jmondi.org>
+Cc:     Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        laurent.pinchart@ideasonboard.com, kieran.bingham@ideasonboard.com,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: Re: [PATCH v3 3/6] media: adv748x: csi2: Link AFE with TXA and TXB
+Message-ID: <20190207155727.GG32622@bigcity.dyn.berto.se>
+References: <20190110140213.5198-1-jacopo+renesas@jmondi.org>
+ <20190110140213.5198-4-jacopo+renesas@jmondi.org>
+ <20190114145533.GK30160@bigcity.dyn.berto.se>
+ <20190116134424.GP7393@bigcity.dyn.berto.se>
+ <20190128144736.7hulivpepab2mp7z@uno.localdomain>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <CAFqt6za9xA_8OKiaaHXcO9go+RtPdjLY5Bz_fgQL+DZbermNhA@mail.gmail.com>
-User-Agent: Mutt/1.5.24 (2015-08-30)
-X-TM-AS-GCONF: 00
-x-cbid: 19020715-4275-0000-0000-0000030CB409
-X-IBM-AV-DETECTION: SAVI=unused REMOTE=unused XFE=unused
-x-cbparentid: 19020715-4276-0000-0000-0000381ABD69
-Message-Id: <20190207155700.GA8040@rapoport-lnx>
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:,, definitions=2019-02-07_11:,,
- signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
- malwarescore=0 suspectscore=0 phishscore=0 bulkscore=0 spamscore=0
- clxscore=1015 lowpriorityscore=0 mlxscore=0 impostorscore=0
- mlxlogscore=767 adultscore=0 classifier=spam adjust=0 reason=mlx
- scancount=1 engine=8.0.1-1810050000 definitions=main-1902070121
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20190128144736.7hulivpepab2mp7z@uno.localdomain>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Souptick,
+On 2019-01-28 15:47:37 +0100, Jacopo Mondi wrote:
+> Hi Niklas,
+>    sorry for replying late
+> 
+> On Wed, Jan 16, 2019 at 02:44:25PM +0100, Niklas Söderlund wrote:
+> > Hi (again) Jacopo,
+> >
+> > I found something else in this patch unfortunately :-(
+> >
+> > On 2019-01-14 15:55:33 +0100, Niklas Söderlund wrote:
+> > > Hi Jacopo,
+> > >
+> > > Thanks for your patch.
+> > >
+> > > On 2019-01-10 15:02:10 +0100, Jacopo Mondi wrote:
+> > > > The ADV748x chip supports routing AFE output to either TXA or TXB.
+> > > > In order to support run-time configuration of video stream path, create an
+> > > > additional (not enabled) "AFE:8->TXA:0" link, and remove the IMMUTABLE flag
+> > > > from existing ones.
+> > > >
+> > > > Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> > > > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> > > > ---
+> > > >  drivers/media/i2c/adv748x/adv748x-csi2.c | 44 +++++++++++++-----------
+> > > >  1 file changed, 23 insertions(+), 21 deletions(-)
+> > > >
+> > > > diff --git a/drivers/media/i2c/adv748x/adv748x-csi2.c b/drivers/media/i2c/adv748x/adv748x-csi2.c
+> > > > index b6b5d8c7ea7c..8c3714495e11 100644
+> > > > --- a/drivers/media/i2c/adv748x/adv748x-csi2.c
+> > > > +++ b/drivers/media/i2c/adv748x/adv748x-csi2.c
+> > > > @@ -27,6 +27,7 @@ static int adv748x_csi2_set_virtual_channel(struct adv748x_csi2 *tx,
+> > > >   * @v4l2_dev: Video registration device
+> > > >   * @src: Source subdevice to establish link
+> > > >   * @src_pad: Pad number of source to link to this @tx
+> > > > + * @enable: Link enabled flag
+> > > >   *
+> > > >   * Ensure that the subdevice is registered against the v4l2_device, and link the
+> > > >   * source pad to the sink pad of the CSI2 bus entity.
+> > > > @@ -34,17 +35,11 @@ static int adv748x_csi2_set_virtual_channel(struct adv748x_csi2 *tx,
+> > > >  static int adv748x_csi2_register_link(struct adv748x_csi2 *tx,
+> > > >  				      struct v4l2_device *v4l2_dev,
+> > > >  				      struct v4l2_subdev *src,
+> > > > -				      unsigned int src_pad)
+> > > > +				      unsigned int src_pad,
+> > > > +				      bool enable)
+> > > >  {
+> > > > -	int enabled = MEDIA_LNK_FL_ENABLED;
+> > > >  	int ret;
+> > > >
+> > > > -	/*
+> > > > -	 * Dynamic linking of the AFE is not supported.
+> > > > -	 * Register the links as immutable.
+> > > > -	 */
+> > > > -	enabled |= MEDIA_LNK_FL_IMMUTABLE;
+> > > > -
+> > > >  	if (!src->v4l2_dev) {
+> > > >  		ret = v4l2_device_register_subdev(v4l2_dev, src);
+> > > >  		if (ret)
+> > > > @@ -53,7 +48,7 @@ static int adv748x_csi2_register_link(struct adv748x_csi2 *tx,
+> > > >
+> > > >  	return media_create_pad_link(&src->entity, src_pad,
+> > > >  				     &tx->sd.entity, ADV748X_CSI2_SINK,
+> > > > -				     enabled);
+> > > > +				     enable ? MEDIA_LNK_FL_ENABLED : 0);
+> > > >  }
+> > > >
+> > > >  /* -----------------------------------------------------------------------------
+> > > > @@ -68,25 +63,32 @@ static int adv748x_csi2_registered(struct v4l2_subdev *sd)
+> > > >  {
+> > > >  	struct adv748x_csi2 *tx = adv748x_sd_to_csi2(sd);
+> > > >  	struct adv748x_state *state = tx->state;
+> > > > +	int ret;
+> > > >
+> > > >  	adv_dbg(state, "Registered %s (%s)", is_txa(tx) ? "TXA":"TXB",
+> > > >  			sd->name);
+> > > >
+> > > >  	/*
+> > > > -	 * The adv748x hardware allows the AFE to route through the TXA, however
+> > > > -	 * this is not currently supported in this driver.
+> > > > +	 * Link TXA to AFE and HDMI, and TXB to AFE only as TXB cannot output
+> > > > +	 * HDMI.
+> > > >  	 *
+> > > > -	 * Link HDMI->TXA, and AFE->TXB directly.
+> > > > +	 * The HDMI->TXA link is enabled by default, as is the AFE->TXB one.
+> > > >  	 */
+> > > > -	if (is_txa(tx) && is_hdmi_enabled(state))
+> > > > -		return adv748x_csi2_register_link(tx, sd->v4l2_dev,
+> > > > -						  &state->hdmi.sd,
+> > > > -						  ADV748X_HDMI_SOURCE);
+> > > > -	if (is_txb(tx) && is_afe_enabled(state))
+> > > > -		return adv748x_csi2_register_link(tx, sd->v4l2_dev,
+> > > > -						  &state->afe.sd,
+> > > > -						  ADV748X_AFE_SOURCE);
+> > > > -	return 0;
+> > > > +	if (is_afe_enabled(state)) {
+> > > > +		ret = adv748x_csi2_register_link(tx, sd->v4l2_dev,
+> > > > +						 &state->afe.sd,
+> > > > +						 ADV748X_AFE_SOURCE,
+> > > > +						 is_txb(tx));
+> > > > +		if (ret)
+> > > > +			return ret;
+> > > > +	}
+> > > > +
+> > > > +	/* Register link to HDMI for TXA only. */
+> > > > +	if (is_txb(tx) || !is_hdmi_enabled(state))
+> > >
+> > > Small nit, I would s/is_txb(tx)/!is_txa(tx)/ here as to me it becomes
+> > > easier to read. With or without this change,
+> > >
+> > > Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> > >
+> > > > +		return 0;
+> > > > +
+> > > > +	return adv748x_csi2_register_link(tx, sd->v4l2_dev, &state->hdmi.sd,
+> > > > +					  ADV748X_HDMI_SOURCE, true);
+> >
+> > If the call to adv748x_csi2_register_link() fails should not the
+> > (possible) link to the AFE be removed?
+> >
+> 
+> The .register() callback is called from v4l2-device.c in
+> v4l2_device_register_subdev(). If the callback returns an error, the
+> subdev gets not registered at all and the media entity cleaned up, so it
+> won't appear in the media graph.
+> 
+> I think we're safe and the patch series is good to go. What's your
+> opinion?
 
-On Thu, Feb 07, 2019 at 09:19:47PM +0530, Souptick Joarder wrote:
-> Hi Mike,
-> 
-> Just thought to take opinion for documentation before placing it in v3.
-> Does it looks fine ?
- 
-Overall looks good to me. Several minor points below.
+As long as no stray links are left in the graph I'm happy :-)
 
-> +/**
-> + * __vm_insert_range - insert range of kernel pages into user vma
-> + * @vma: user vma to map to
-> + * @pages: pointer to array of source kernel pages
-> + * @num: number of pages in page array
-> + * @offset: user's requested vm_pgoff
-> + *
-> + * This allow drivers to insert range of kernel pages into a user vma.
+> 
+> Thanks
+>   j
+> 
+> 
+> > > >  }
+> > > >
+> > > >  static const struct v4l2_subdev_internal_ops adv748x_csi2_internal_ops = {
+> > > > --
+> > > > 2.20.1
+> > > >
+> > >
+> > > --
+> > > Regards,
+> > > Niklas Söderlund
+> >
+> > --
+> > Regards,
+> > Niklas Söderlund
 
-          allows
-> + *
-> + * Return: 0 on success and error code otherwise.
-> + */
-> +static int __vm_insert_range(struct vm_area_struct *vma, struct page **pages,
-> +                               unsigned long num, unsigned long offset)
-> 
-> 
-> +/**
-> + * vm_insert_range - insert range of kernel pages starts with non zero offset
-> + * @vma: user vma to map to
-> + * @pages: pointer to array of source kernel pages
-> + * @num: number of pages in page array
-> + *
-> + * Maps an object consisting of `num' `pages', catering for the user's
-                                   @num pages
-> + * requested vm_pgoff
-> + *
-> + * If we fail to insert any page into the vma, the function will return
-> + * immediately leaving any previously inserted pages present.  Callers
-> + * from the mmap handler may immediately return the error as their caller
-> + * will destroy the vma, removing any successfully inserted pages. Other
-> + * callers should make their own arrangements for calling unmap_region().
-> + *
-> + * Context: Process context. Called by mmap handlers.
-> + * Return: 0 on success and error code otherwise.
-> + */
-> +int vm_insert_range(struct vm_area_struct *vma, struct page **pages,
-> +                               unsigned long num)
-> 
-> 
-> +/**
-> + * vm_insert_range_buggy - insert range of kernel pages starts with zero offset
-> + * @vma: user vma to map to
-> + * @pages: pointer to array of source kernel pages
-> + * @num: number of pages in page array
-> + *
-> + * Similar to vm_insert_range(), except that it explicitly sets @vm_pgoff to
 
-                                                                  the offset
-
-> + * 0. This function is intended for the drivers that did not consider
-> + * @vm_pgoff.
-> + *
-> + * Context: Process context. Called by mmap handlers.
-> + * Return: 0 on success and error code otherwise.
-> + */
-> +int vm_insert_range_buggy(struct vm_area_struct *vma, struct page **pages,
-> +                               unsigned long num)
-> 
 
 -- 
-Sincerely yours,
-Mike.
-
+Regards,
+Niklas Söderlund
