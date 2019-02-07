@@ -2,102 +2,151 @@ Return-Path: <SRS0=uIFo=QO=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_MUTT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B8A1C282C2
-	for <linux-media@archiver.kernel.org>; Thu,  7 Feb 2019 16:35:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4452CC282C4
+	for <linux-media@archiver.kernel.org>; Thu,  7 Feb 2019 16:48:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 488F6218D3
-	for <linux-media@archiver.kernel.org>; Thu,  7 Feb 2019 16:35:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 13BFE218D3
+	for <linux-media@archiver.kernel.org>; Thu,  7 Feb 2019 16:48:24 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="MgrpJ4M1"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726622AbfBGQfn (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 7 Feb 2019 11:35:43 -0500
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:52216 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726454AbfBGQfn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 7 Feb 2019 11:35:43 -0500
-Received: from [IPv6:2001:983:e9a7:1:5eb:9ad5:2371:b65a] ([IPv6:2001:983:e9a7:1:5eb:9ad5:2371:b65a])
-        by smtp-cloud9.xs4all.net with ESMTPA
-        id rmeKgNXmERO5ZrmeLgtJ0o; Thu, 07 Feb 2019 17:35:41 +0100
-Subject: Re: [PATCH 3/6] uvc: fix smatch warning
-To:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Cc:     linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
-References: <20190207091338.55705-1-hverkuil-cisco@xs4all.nl>
- <20190207091338.55705-4-hverkuil-cisco@xs4all.nl>
- <694295a0-48c0-f35a-47c1-ab89f5c5a866@ideasonboard.com>
- <20190207154131.GE5378@pendragon.ideasonboard.com>
-From:   Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Message-ID: <895e186b-4958-114d-dfaf-e45220c5bd95@xs4all.nl>
-Date:   Thu, 7 Feb 2019 17:35:40 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.3.1
+        id S1726822AbfBGQsS (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 7 Feb 2019 11:48:18 -0500
+Received: from bombadil.infradead.org ([198.137.202.133]:54386 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726196AbfBGQsS (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Feb 2019 11:48:18 -0500
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=bombadil.20170209; h=In-Reply-To:Content-Type:MIME-Version
+        :References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description:Resent-Date:
+        Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:
+        List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+         bh=3Crx6L2SCrC/hAezTHTZyMkEY70y9OGZyoS8mOjuiIQ=; b=MgrpJ4M1SKwbB/Yo3N593SLwA
+        QNDOZMk72sEtYMlIQ2rFvlvgbFIhWnRTu0thbBjirZlJknxymzD0HlsaEH8nReOJbVVxfO458DPHx
+        18yB2e7GdJ+zJKh8tL57dO6yUGJtkp6ZOctQW4gvRn8N7q103oDWHKd2S3aT32MGVDWPczZ0fLbKk
+        802j/CifGuu9dRvUnhxbfXQKEAmG4f1FQ+LjKl0KMb4UJPEZSsIyATZ9pCOxvhP9w6nv9+hI3EPu9
+        qv1xZyihrFaiRXH2Beb+ldPwNcCjSCXviraUqBQW8KnDrAxVFueDl/Uy9nOP9VkSNyTz0+UfhBWNV
+        mRrXbihYg==;
+Received: from willy by bombadil.infradead.org with local (Exim 4.90_1 #2 (Red Hat Linux))
+        id 1grmpv-00037s-JZ; Thu, 07 Feb 2019 16:47:39 +0000
+Date:   Thu, 7 Feb 2019 08:47:39 -0800
+From:   Matthew Wilcox <willy@infradead.org>
+To:     Souptick Joarder <jrdr.linux@gmail.com>
+Cc:     Mike Rapoport <rppt@linux.ibm.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Michal Hocko <mhocko@suse.com>,
+        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
+        vbabka@suse.cz, Rik van Riel <riel@surriel.com>,
+        Stephen Rothwell <sfr@canb.auug.org.au>,
+        rppt@linux.vnet.ibm.com, Peter Zijlstra <peterz@infradead.org>,
+        Russell King - ARM Linux <linux@armlinux.org.uk>,
+        robin.murphy@arm.com, iamjoonsoo.kim@lge.com, treding@nvidia.com,
+        Kees Cook <keescook@chromium.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        stefanr@s5r6.in-berlin.de, hjc@rock-chips.com,
+        Heiko Stuebner <heiko@sntech.de>, airlied@linux.ie,
+        oleksandr_andrushchenko@epam.com, joro@8bytes.org,
+        pawel@osciak.com, Kyungmin Park <kyungmin.park@samsung.com>,
+        mchehab@kernel.org, Boris Ostrovsky <boris.ostrovsky@oracle.com>,
+        Juergen Gross <jgross@suse.com>, linux-kernel@vger.kernel.org,
+        Linux-MM <linux-mm@kvack.org>,
+        linux-arm-kernel@lists.infradead.org,
+        linux1394-devel@lists.sourceforge.net,
+        dri-devel@lists.freedesktop.org,
+        linux-rockchip@lists.infradead.org, xen-devel@lists.xen.org,
+        iommu@lists.linux-foundation.org, linux-media@vger.kernel.org
+Subject: Re: [PATCHv2 1/9] mm: Introduce new vm_insert_range and
+ vm_insert_range_buggy API
+Message-ID: <20190207164739.GX21860@bombadil.infradead.org>
+References: <20190131030812.GA2174@jordon-HP-15-Notebook-PC>
+ <20190131083842.GE28876@rapoport-lnx>
+ <CAFqt6za9xA_8OKiaaHXcO9go+RtPdjLY5Bz_fgQL+DZbermNhA@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20190207154131.GE5378@pendragon.ideasonboard.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-CMAE-Envelope: MS4wfNvyl5NfBTp8STo3WaeU1Q4WErlHN4WdYaafrdHeihNt/S1vQ7VZ45HQKDu2WFMrm8CTGLnCK4mMfaFxUOGXn6iccp6d6QGpEnkFZlAT6dEui+zCWy98
- 2PKGdMSFbUEHgxR6NLsngBdY/mv+eiJD+bpmxCvV9j5XgpnIk1TtJWrFN1rsPCot6IAanzLGqWzohcSRdRtuX6vb2xS7tkMPHg7H3nu1Z6BUdd69fBfyLmBi
- Kxy7BAjuwy56xrLDT1MshNFW7CkSu40IGarxjCsZjZS4kqVKYTD+LsONplBwF/17BcA3RUpmPFUE+CobT4HvZ46lGIwNTuLlD/MM5zGKw1kB1p11WFt8vI5O
- UE1MxfbbqCzSW6b03+YqtNTcx1DL/NaOMh5BU9mXuwoXhrW91LNEop2Fxb7QV4QNr4SDVVac
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAFqt6za9xA_8OKiaaHXcO9go+RtPdjLY5Bz_fgQL+DZbermNhA@mail.gmail.com>
+User-Agent: Mutt/1.9.2 (2017-12-15)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On 2/7/19 4:41 PM, Laurent Pinchart wrote:
-> Hello,
+On Thu, Feb 07, 2019 at 09:19:47PM +0530, Souptick Joarder wrote:
+> Just thought to take opinion for documentation before placing it in v3.
+> Does it looks fine ?
 > 
-> On Thu, Feb 07, 2019 at 03:57:26PM +0100, Kieran Bingham wrote:
->> On 07/02/2019 10:13, Hans Overkill wrote:
->>> drivers/media/usb/uvc/uvc_video.c: drivers/media/usb/uvc/uvc_video.c:1893 uvc_video_start_transfer() warn: argument 2 to %u specifier is cast from pointer
->>>
->>> Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
->>
->> This look fine to me.
->>
->> Reviewed-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
-> 
-> Even though I believe we should fix tooling instead of code to handle
-> these issues, the patch for uvcvideo doesn't adversely affect the code,
-> so
-> 
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> 
-> Should I take this in my tree ?
+> +/**
+> + * __vm_insert_range - insert range of kernel pages into user vma
+> + * @vma: user vma to map to
+> + * @pages: pointer to array of source kernel pages
+> + * @num: number of pages in page array
+> + * @offset: user's requested vm_pgoff
+> + *
+> + * This allow drivers to insert range of kernel pages into a user vma.
+> + *
+> + * Return: 0 on success and error code otherwise.
+> + */
+> +static int __vm_insert_range(struct vm_area_struct *vma, struct page **pages,
+> +                               unsigned long num, unsigned long offset)
 
-Yes, go ahead.
+For static functions, I prefer to leave off the second '*', ie make it
+formatted like a docbook comment, but not be processed like a docbook
+comment.  That avoids cluttering the html with descriptions of internal
+functions that people can't actually call.
 
-Regards,
+> +/**
+> + * vm_insert_range - insert range of kernel pages starts with non zero offset
+> + * @vma: user vma to map to
+> + * @pages: pointer to array of source kernel pages
+> + * @num: number of pages in page array
+> + *
+> + * Maps an object consisting of `num' `pages', catering for the user's
 
-	Hans
+Rather than using `num', you should use @num.
 
+> + * requested vm_pgoff
+> + *
+> + * If we fail to insert any page into the vma, the function will return
+> + * immediately leaving any previously inserted pages present.  Callers
+> + * from the mmap handler may immediately return the error as their caller
+> + * will destroy the vma, removing any successfully inserted pages. Other
+> + * callers should make their own arrangements for calling unmap_region().
+> + *
+> + * Context: Process context. Called by mmap handlers.
+> + * Return: 0 on success and error code otherwise.
+> + */
+> +int vm_insert_range(struct vm_area_struct *vma, struct page **pages,
+> +                               unsigned long num)
 > 
->>> ---
->>>  drivers/media/usb/uvc/uvcvideo.h | 6 ++++--
->>>  1 file changed, 4 insertions(+), 2 deletions(-)
->>>
->>> diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
->>> index 9b41b14ce076..c7c1baa90dea 100644
->>> --- a/drivers/media/usb/uvc/uvcvideo.h
->>> +++ b/drivers/media/usb/uvc/uvcvideo.h
->>> @@ -620,8 +620,10 @@ struct uvc_streaming {
->>>  	     (uvc_urb) < &(uvc_streaming)->uvc_urb[UVC_URBS]; \
->>>  	     ++(uvc_urb))
->>>  
->>> -#define uvc_urb_index(uvc_urb) \
->>> -	(unsigned int)((uvc_urb) - (&(uvc_urb)->stream->uvc_urb[0]))
->>> +static inline u32 uvc_urb_index(const struct uvc_urb *uvc_urb)
->>> +{
->>> +	return uvc_urb - &uvc_urb->stream->uvc_urb[0];
->>> +}
->>>
->>>  struct uvc_device_info {
->>>  	u32	quirks;
->>>
 > 
+> +/**
+> + * vm_insert_range_buggy - insert range of kernel pages starts with zero offset
+> + * @vma: user vma to map to
+> + * @pages: pointer to array of source kernel pages
+> + * @num: number of pages in page array
+> + *
+> + * Similar to vm_insert_range(), except that it explicitly sets @vm_pgoff to
+
+But vm_pgoff isn't a parameter, so it's misleading to format it as such.
+
+> + * 0. This function is intended for the drivers that did not consider
+> + * @vm_pgoff.
+> + *
+> + * Context: Process context. Called by mmap handlers.
+> + * Return: 0 on success and error code otherwise.
+> + */
+> +int vm_insert_range_buggy(struct vm_area_struct *vma, struct page **pages,
+> +                               unsigned long num)
+
+I don't think we should call it 'buggy'.  'zero' would make more sense
+as a suffix.
+
+Given how this interface has evolved, I'm no longer sure than
+'vm_insert_range' makes sense as the name for it.  Is it perhaps
+'vm_map_object' or 'vm_map_pages'?
 
