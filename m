@@ -2,142 +2,105 @@ Return-Path: <SRS0=uIFo=QO=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+X-Spam-Status: No, score=-11.0 required=3.0
+	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CDB7FC282C2
-	for <linux-media@archiver.kernel.org>; Thu,  7 Feb 2019 04:35:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 936F1C282C2
+	for <linux-media@archiver.kernel.org>; Thu,  7 Feb 2019 07:01:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id A73F52175B
-	for <linux-media@archiver.kernel.org>; Thu,  7 Feb 2019 04:35:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 644A1218B0
+	for <linux-media@archiver.kernel.org>; Thu,  7 Feb 2019 07:01:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726700AbfBGEfk (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 6 Feb 2019 23:35:40 -0500
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:58271 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726642AbfBGEfk (ORCPT
+        id S1726436AbfBGHBg (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 7 Feb 2019 02:01:36 -0500
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:51052 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726293AbfBGHBg (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 6 Feb 2019 23:35:40 -0500
-Received: from localhost ([IPv6:2001:983:e9a7:1:38dd:c345:eb31:caf5])
-        by smtp-cloud7.xs4all.net with ESMTPA
-        id rbPVgqVs0BDyIrbPWgHeQU; Thu, 07 Feb 2019 05:35:39 +0100
-Message-ID: <50eedf161ab41d1882185278404532e0@smtp-cloud7.xs4all.net>
-Date:   Thu, 07 Feb 2019 05:35:37 +0100
-From:   "Hans Verkuil" <hverkuil@xs4all.nl>
-To:     linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-X-CMAE-Envelope: MS4wfMHFUJIphIjbXXqiD7sr1ie+dDHunQ2/cT9EvV4QOE9m8K160Kz9rkyjToQJk3+z6AYqcvclxKmLri6MB1B8UYVzvXTWjObqahLatH+o7zmREaAXvLgQ
- 6Tuu4JvUNz5Z93t/sCY6RAp2PASdFfAgVBcl89eFUJV/mdin5n8oiStegl+9C3UboNQ1IvJrqyO12x+6XDQ7OSpG0Avt87zM2rrAGSpl8K3c5UAY5Kh2tx+m
+        Thu, 7 Feb 2019 02:01:36 -0500
+Received: from [IPv6:2001:983:e9a7:1:38dd:c345:eb31:caf5] ([IPv6:2001:983:e9a7:1:38dd:c345:eb31:caf5])
+        by smtp-cloud8.xs4all.net with ESMTPA
+        id rdghgrwUoNR5yrdgkgzXYN; Thu, 07 Feb 2019 08:01:34 +0100
+To:     Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc:     Rui Miguel Silva <rui.silva@linaro.org>
+From:   Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v5.1] staging/imx7: add i.MX7 media driver
+Message-ID: <5b867d6c-99cb-d8ee-24f9-8b56dcb707cb@xs4all.nl>
+Date:   Thu, 7 Feb 2019 08:01:31 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.3.1
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-CMAE-Envelope: MS4wfIj2zP/BmsWlWs+wY8tJ9ATUFjaCSFtueP5bkp+Wa7ehPVUXhAE9dcCIn0JtuPVYPZ7S0ZABQPEJbIlFI+eDbB/b58bdelixt5YvDxWzDjFTiKMrJcQK
+ HCrvXN4h1fqkHuSKqPJRs0zlecCuBRN1tgWnVgPgBQRq1M3rddteIgugavSJLeajuTD7Pt2YVCPZlHWVBben41d82QHtRmEGivjvveAwsE1sKgaRiqSCTHAn
+ it1rooSzjJvpcORSTH5ApQqKC62Rm2udKnyH86JOID6NxDBUc92KBx4l7/d8eJTE4lj36foeO7beGzjR5gMwWw==
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+This pull request supersedes https://patchwork.linuxtv.org/patch/54350/ after the
+kbuild test robot found a small issue that is now fixed in this PR.
 
-Results of the daily build of media_tree:
+Regards,
 
-date:			Thu Feb  7 05:00:12 CET 2019
-media-tree git hash:	f0ef022c85a899bcc7a1b3a0955c78a3d7109106
-media_build git hash:	c23276037794bae357fa8d23e3a4f11af9ad46e9
-v4l-utils git hash:	400ec9e6eb156b0eea9112bf27e14f9ae493eedb
-edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.19.0-1-amd64
+	Hans
 
-linux-git-arm-at91: WARNINGS
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-multi: WARNINGS
-linux-git-arm-pxa: WARNINGS
-linux-git-arm-stm32: WARNINGS
-linux-git-arm64: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-mips: WARNINGS
-linux-git-powerpc64: WARNINGS
-linux-git-sh: WARNINGS
-linux-git-x86_64: WARNINGS
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: WARNINGS
-linux-3.10.108-x86_64: WARNINGS
-linux-3.11.10-i686: WARNINGS
-linux-3.11.10-x86_64: WARNINGS
-linux-3.12.74-i686: WARNINGS
-linux-3.12.74-x86_64: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.79-i686: WARNINGS
-linux-3.14.79-x86_64: WARNINGS
-linux-3.15.10-i686: WARNINGS
-linux-3.15.10-x86_64: WARNINGS
-linux-3.16.57-i686: WARNINGS
-linux-3.16.57-x86_64: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.123-i686: WARNINGS
-linux-3.18.123-x86_64: WARNINGS
-linux-3.19.8-i686: WARNINGS
-linux-3.19.8-x86_64: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.52-i686: WARNINGS
-linux-4.1.52-x86_64: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.159-i686: WARNINGS
-linux-4.4.159-x86_64: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.10-i686: WARNINGS
-linux-4.7.10-x86_64: WARNINGS
-linux-4.8.17-i686: WARNINGS
-linux-4.8.17-x86_64: WARNINGS
-linux-4.9.131-i686: WARNINGS
-linux-4.9.131-x86_64: WARNINGS
-linux-4.10.17-i686: WARNINGS
-linux-4.10.17-x86_64: WARNINGS
-linux-4.11.12-i686: WARNINGS
-linux-4.11.12-x86_64: WARNINGS
-linux-4.12.14-i686: WARNINGS
-linux-4.12.14-x86_64: WARNINGS
-linux-4.13.16-i686: WARNINGS
-linux-4.13.16-x86_64: WARNINGS
-linux-4.14.74-i686: WARNINGS
-linux-4.14.74-x86_64: WARNINGS
-linux-4.15.18-i686: WARNINGS
-linux-4.15.18-x86_64: WARNINGS
-linux-4.16.18-i686: WARNINGS
-linux-4.16.18-x86_64: WARNINGS
-linux-4.17.19-i686: WARNINGS
-linux-4.17.19-x86_64: WARNINGS
-linux-4.18.12-i686: WARNINGS
-linux-4.18.12-x86_64: WARNINGS
-linux-4.19.1-i686: WARNINGS
-linux-4.19.1-x86_64: WARNINGS
-linux-4.20.1-i686: WARNINGS
-linux-4.20.1-x86_64: WARNINGS
-linux-5.0-rc1-i686: WARNINGS
-linux-5.0-rc1-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+The following changes since commit f0ef022c85a899bcc7a1b3a0955c78a3d7109106:
 
-Detailed results are available here:
+  media: vim2m: allow setting the default transaction time via parameter (2019-01-31 17:17:08 -0200)
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+are available in the Git repository at:
 
-Full logs are available here:
+  git://linuxtv.org/hverkuil/media_tree.git tags/br-imx7b
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+for you to fetch changes up to 7fc5e80b3c476674bc8cebd4d012e63d8ff6f5fa:
 
-The Media Infrastructure API from this daily build is here:
+  media: MAINTAINERS: add entry for Freescale i.MX7 media driver (2019-02-07 07:57:55 +0100)
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+----------------------------------------------------------------
+Tag branch
+
+----------------------------------------------------------------
+Rui Miguel Silva (9):
+      media: staging/imx: refactor imx media device probe
+      media: staging/imx: rearrange group id to take in account IPU
+      media: dt-bindings: add bindings for i.MX7 media driver
+      media: staging/imx7: add imx7 CSI subdev driver
+      media: staging/imx7: add MIPI CSI-2 receiver subdev for i.MX7
+      media: imx7.rst: add documentation for i.MX7 media driver
+      media: staging/imx: add i.MX7 entries to TODO file
+      media: video-mux: add bayer formats
+      media: MAINTAINERS: add entry for Freescale i.MX7 media driver
+
+ Documentation/devicetree/bindings/media/imx7-csi.txt       |   45 ++
+ Documentation/devicetree/bindings/media/imx7-mipi-csi2.txt |   90 +++
+ Documentation/media/v4l-drivers/imx7.rst                   |  159 ++++++
+ Documentation/media/v4l-drivers/index.rst                  |    1 +
+ MAINTAINERS                                                |   11 +
+ drivers/media/platform/video-mux.c                         |   20 +
+ drivers/staging/media/imx/Kconfig                          |    9 +-
+ drivers/staging/media/imx/Makefile                         |    4 +
+ drivers/staging/media/imx/TODO                             |    9 +
+ drivers/staging/media/imx/imx-ic-common.c                  |    6 +-
+ drivers/staging/media/imx/imx-ic-prp.c                     |   16 +-
+ drivers/staging/media/imx/imx-media-csi.c                  |    6 +-
+ drivers/staging/media/imx/imx-media-dev-common.c           |   90 +++
+ drivers/staging/media/imx/imx-media-dev.c                  |  108 +---
+ drivers/staging/media/imx/imx-media-internal-sd.c          |   20 +-
+ drivers/staging/media/imx/imx-media-of.c                   |    6 +-
+ drivers/staging/media/imx/imx-media-utils.c                |   12 +-
+ drivers/staging/media/imx/imx-media.h                      |   37 +-
+ drivers/staging/media/imx/imx7-media-csi.c                 | 1367 ++++++++++++++++++++++++++++++++++++++++++++
+ drivers/staging/media/imx/imx7-mipi-csis.c                 | 1187 ++++++++++++++++++++++++++++++++++++++
+ 20 files changed, 3082 insertions(+), 121 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/imx7-csi.txt
+ create mode 100644 Documentation/devicetree/bindings/media/imx7-mipi-csi2.txt
+ create mode 100644 Documentation/media/v4l-drivers/imx7.rst
+ create mode 100644 drivers/staging/media/imx/imx-media-dev-common.c
+ create mode 100644 drivers/staging/media/imx/imx7-media-csi.c
+ create mode 100644 drivers/staging/media/imx/imx7-mipi-csis.c
