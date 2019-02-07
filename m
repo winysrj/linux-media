@@ -2,155 +2,94 @@ Return-Path: <SRS0=uIFo=QO=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED,USER_AGENT_NEOMUTT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 952BFC282C2
-	for <linux-media@archiver.kernel.org>; Thu,  7 Feb 2019 09:17:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 238BFC282C2
+	for <linux-media@archiver.kernel.org>; Thu,  7 Feb 2019 09:19:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 709F32147C
-	for <linux-media@archiver.kernel.org>; Thu,  7 Feb 2019 09:17:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E4FE32080F
+	for <linux-media@archiver.kernel.org>; Thu,  7 Feb 2019 09:18:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726558AbfBGJRT (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 7 Feb 2019 04:17:19 -0500
-Received: from relay11.mail.gandi.net ([217.70.178.231]:33805 "EHLO
-        relay11.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726293AbfBGJRT (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Feb 2019 04:17:19 -0500
-Received: from localhost (aaubervilliers-681-1-80-177.w90-88.abo.wanadoo.fr [90.88.22.177])
-        (Authenticated sender: maxime.ripard@bootlin.com)
-        by relay11.mail.gandi.net (Postfix) with ESMTPSA id 306DA100007;
-        Thu,  7 Feb 2019 09:17:15 +0000 (UTC)
-Date:   Thu, 7 Feb 2019 10:17:14 +0100
-From:   Maxime Ripard <maxime.ripard@bootlin.com>
-To:     Kishon Vijay Abraham I <kishon@ti.com>
-Cc:     Rafal Ciepiela <rafalc@cadence.com>,
-        Krzysztof Witos <kwitos@cadence.com>,
-        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        Chen-Yu Tsai <wens@csie.org>,
-        Sean Paul <seanpaul@chromium.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH v5 0/9] phy: Add configuration interface for MIPI D-PHY
- devices
-Message-ID: <20190207091714.2rhdprl56pz32nbo@flea>
-References: <cover.fbf0776c70c0cfb7b7fd88ce6a96b4597d620cac.1548085432.git-series.maxime.ripard@bootlin.com>
- <fc5427d3-674e-cebc-99b9-11493f976a20@ti.com>
- <20190205084620.GW3271@phenom.ffwll.local>
- <4177fba5-279d-3283-88f0-c681f72e5951@ti.com>
- <20190206122546.7zucalixgcm4ph36@flea>
- <f3a70714-5538-d6fa-201f-16b70e9d062c@ti.com>
+        id S1726728AbfBGJS7 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 7 Feb 2019 04:18:59 -0500
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:38651 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726691AbfBGJS7 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 7 Feb 2019 04:18:59 -0500
+Received: from [IPv6:2001:983:e9a7:1:38dd:c345:eb31:caf5] ([IPv6:2001:983:e9a7:1:38dd:c345:eb31:caf5])
+        by smtp-cloud9.xs4all.net with ESMTPA
+        id rfpggHhXPRO5ZrfphgrQRd; Thu, 07 Feb 2019 10:18:57 +0100
+Subject: Re: [PATCH 5/6] omap3isp: fix sparse warning
+To:     linux-media@vger.kernel.org
+Cc:     sakari.ailus@linux.intel.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <20190207091338.55705-1-hverkuil-cisco@xs4all.nl>
+ <20190207091338.55705-6-hverkuil-cisco@xs4all.nl>
+From:   Hans Verkuil <hverkuil-cisco@xs4all.nl>
+Message-ID: <3748564a-6efe-f008-bb17-1977d2575c68@xs4all.nl>
+Date:   Thu, 7 Feb 2019 10:18:56 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.3.1
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="m6gy2mzxdt6zex7g"
-Content-Disposition: inline
-In-Reply-To: <f3a70714-5538-d6fa-201f-16b70e9d062c@ti.com>
-User-Agent: NeoMutt/20180716
+In-Reply-To: <20190207091338.55705-6-hverkuil-cisco@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-CMAE-Envelope: MS4wfNyu4IQ7E/lTkcHiydR7XPzh3riDOrOrX2olWInWC2UjaUBJjmu7vqawvIv00cWjuBuXkVqnWwjWVbuGwogd4VlLenuwj9L0npqHN672uxdJO+R3lVYW
+ nMddyItYjCU2kPIxiVxTYQ0D0LmASAcyaCR59C1XxTHdsTYcihLYNGemht9g1IhmZFKAhQ6mvsADDDXJayukfI8kxxJHcSj4rvnO7Wh9XwYCls4qp7LNDuop
+ YfKi2qjxra9RELacGiZFNS+cPK0v5kpKxIJKw6ArhmelttFYxMBrCEVG2cC0HeTqxp+cafue+jF8IXcnsG07LfyM8K11bvOSC3Gzm58X9TR6X6bcQhPzQ+C1
+ S5XyiHm7PRkA2pNWWhgO39W/xJ2Jl+/ukjzL4cLoIq3KHTPSUnbNyNeqdt8mAd8Sg/86770G
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
+On 2/7/19 10:13 AM, Hans Verkuil wrote:
+> drivers/media/platform/omap3isp/ispvideo.c:1013:15: warning: unknown expression (4 0)
 
---m6gy2mzxdt6zex7g
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I should add this text to the commit log:
 
-Hi Kishon,
+The combination of the v4l2_subdev_call and media_entity_to_v4l2_subdev macros
+became too complex for sparse. So first assign the result of
+media_entity_to_v4l2_subdev to a struct v4l2_subdev *sd variable, then
+use that in v4l2_subdev_call.
 
-On Wed, Feb 06, 2019 at 06:00:19PM +0530, Kishon Vijay Abraham I wrote:
-> On 06/02/19 5:55 PM, Maxime Ripard wrote:
-> > On Wed, Feb 06, 2019 at 05:43:12PM +0530, Kishon Vijay Abraham I wrote:
-> >> On 05/02/19 2:16 PM, Daniel Vetter wrote:
-> >>> On Mon, Feb 04, 2019 at 03:33:31PM +0530, Kishon Vijay Abraham I wrot=
-e:
-> >>>>
-> >>>>
-> >>>> On 21/01/19 9:15 PM, Maxime Ripard wrote:
-> >>>>> Hi,
-> >>>>>
-> >>>>> Here is a set of patches to allow the phy framework consumers to te=
-st and
-> >>>>> apply runtime configurations.
-> >>>>>
-> >>>>> This is needed to support more phy classes that require tuning base=
-d on
-> >>>>> parameters depending on the current use case of the device, in addi=
-tion to
-> >>>>> the power state management already provided by the current function=
-s.
-> >>>>>
-> >>>>> A first test bed for that API are the MIPI D-PHY devices. There's a=
- number
-> >>>>> of solutions that have been used so far to support these phy, most =
-of the
-> >>>>> time being an ad-hoc driver in the consumer.
-> >>>>>
-> >>>>> That approach has a big shortcoming though, which is that this is q=
-uite
-> >>>>> difficult to deal with consumers integrated with multiple variants =
-of phy,
-> >>>>> of multiple consumers integrated with the same phy.
-> >>>>>
-> >>>>> The latter case can be found in the Cadence DSI bridge, and the CSI
-> >>>>> transceiver and receivers. All of them are integrated with the same=
- phy, or
-> >>>>> can be integrated with different phy, depending on the implementati=
-on.
-> >>>>>
-> >>>>> I've looked at all the MIPI DSI drivers I could find, and gathered =
-all the
-> >>>>> parameters I could find. The interface should be complete, and most=
- of the
-> >>>>> drivers can be converted in the future. The current set converts tw=
-o of
-> >>>>> them: the above mentionned Cadence DSI driver so that the v4l2 driv=
-ers can
-> >>>>> use them, and the Allwinner MIPI-DSI driver.
-> >>>>
-> >>>> Can the PHY changes go independently of the consumer drivers? or els=
-e I'll need
-> >>>> ACKs from the GPU MAINTAINER.
-> >>>
-> >>> Maxime is a gpu maintainer, so you're all good :-)
-> >>
-> >> cool.. I've merged all the patches except drm/bridge.
-> >>
-> >> Please see if everything looks okay once it shows up in phy -next (giv=
-e a day)
-> >=20
-> > Thanks!
-> >=20
-> > If possible (and if that's still an option), it would be better if the
-> > sun6i related patches (patches 4 and 5) would go through the DRM tree
-> > (with your Acked-by of course).
-> >=20
-> > We have a number of patches in flight that have a decent chance to
-> > conflict with patch 4.
->=20
-> Sure. Dropped patches 4 and 5 from my tree.
+Regards,
 
-Thanks! I've pushed the rest into drm-misc.
+	Hans
 
-Maxime
+> 
+> Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+> ---
+>  drivers/media/platform/omap3isp/ispvideo.c | 5 +++--
+>  1 file changed, 3 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
+> index 078d64114b24..911dfad90d32 100644
+> --- a/drivers/media/platform/omap3isp/ispvideo.c
+> +++ b/drivers/media/platform/omap3isp/ispvideo.c
+> @@ -974,6 +974,7 @@ static int isp_video_check_external_subdevs(struct isp_video *video,
+>  	struct media_entity *source = NULL;
+>  	struct media_entity *sink;
+>  	struct v4l2_subdev_format fmt;
+> +	struct v4l2_subdev *sd;
+>  	struct v4l2_ext_controls ctrls;
+>  	struct v4l2_ext_control ctrl;
+>  	unsigned int i;
+> @@ -1010,8 +1011,8 @@ static int isp_video_check_external_subdevs(struct isp_video *video,
+>  
+>  	fmt.pad = source_pad->index;
+>  	fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
+> -	ret = v4l2_subdev_call(media_entity_to_v4l2_subdev(sink),
+> -			       pad, get_fmt, NULL, &fmt);
+> +	sd = media_entity_to_v4l2_subdev(sink);
+> +	ret = v4l2_subdev_call(sd, pad, get_fmt, NULL, &fmt);
+>  	if (unlikely(ret < 0)) {
+>  		dev_warn(isp->dev, "get_fmt returned null!\n");
+>  		return ret;
+> 
 
---=20
-Maxime Ripard, Bootlin
-Embedded Linux and Kernel engineering
-https://bootlin.com
-
---m6gy2mzxdt6zex7g
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iHUEABYIAB0WIQRcEzekXsqa64kGDp7j7w1vZxhRxQUCXFv3mgAKCRDj7w1vZxhR
-xaT7AQCbpyYDlkUTwHaNt7PKEBc2Hddmw0gPY0T1mPEGyJC6gAEA2fGM/nYiqK4P
-wm1rEMgJOCVIIdPDt853CqByp4ZrjwM=
-=Ly7a
------END PGP SIGNATURE-----
-
---m6gy2mzxdt6zex7g--
