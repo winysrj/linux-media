@@ -1,333 +1,138 @@
-Return-Path: <SRS0=FbF1=QN=vger.kernel.org=linux-media-owner@kernel.org>
+Return-Path: <SRS0=uIFo=QO=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.0 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 14C95C169C4
-	for <linux-media@archiver.kernel.org>; Wed,  6 Feb 2019 22:59:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3FEB1C169C4
+	for <linux-media@archiver.kernel.org>; Thu,  7 Feb 2019 01:09:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id BB9E5218D9
-	for <linux-media@archiver.kernel.org>; Wed,  6 Feb 2019 22:59:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E64F92081B
+	for <linux-media@archiver.kernel.org>; Thu,  7 Feb 2019 01:09:31 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=vanguardiasur-com-ar.20150623.gappssmtp.com header.i=@vanguardiasur-com-ar.20150623.gappssmtp.com header.b="PrEM7YxK"
+	dkim=pass (2048-bit key) header.d=ndufresne-ca.20150623.gappssmtp.com header.i=@ndufresne-ca.20150623.gappssmtp.com header.b="ddnU+FrA"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726195AbfBFW74 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 6 Feb 2019 17:59:56 -0500
-Received: from mail-vs1-f66.google.com ([209.85.217.66]:42157 "EHLO
-        mail-vs1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726161AbfBFW74 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Feb 2019 17:59:56 -0500
-Received: by mail-vs1-f66.google.com with SMTP id b74so5527394vsd.9
-        for <linux-media@vger.kernel.org>; Wed, 06 Feb 2019 14:59:55 -0800 (PST)
+        id S1726245AbfBGBJb (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 6 Feb 2019 20:09:31 -0500
+Received: from mail-qt1-f171.google.com ([209.85.160.171]:38705 "EHLO
+        mail-qt1-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726186AbfBGBJb (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Feb 2019 20:09:31 -0500
+Received: by mail-qt1-f171.google.com with SMTP id 2so10224014qtb.5
+        for <linux-media@vger.kernel.org>; Wed, 06 Feb 2019 17:09:30 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=vanguardiasur-com-ar.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=uXH9a2dppdpSNAGK0f8SWpctS4xZNg2ypeaL9mfYgoY=;
-        b=PrEM7YxKxgYWN/NkcaFXH+B1fOUI9tOO/9jKglnXwzcsJR2ngPHLIGHvl3+J+XXpnj
-         vxGSU/73gD9/y98ZB4tQKI/cHMNUB5dZA1T5C6FU6ZZx9pfX+fQGIfs1+oxomURERuW0
-         e3kapAMluAIUBoRdeBmHWhbbaMai8fx/KTVujsZiZ8/m1rXLM6zrMx9QwmXwBviao7JR
-         YaMc8IxZm4Gcoe2DmeFzM+iCVduoUxjqqN5RPRn0Tk3Gxw5pJpD1MDfzoorMhi6CAAZX
-         Uq3KK9vRKXOzDgWjIgQLx5R7wWQM2BxVPwutltCaUxyhrTSMIkw5gLh2GMX65oDhN/9q
-         KOvw==
+        d=ndufresne-ca.20150623.gappssmtp.com; s=20150623;
+        h=message-id:subject:from:to:date:in-reply-to:references:user-agent
+         :mime-version:content-transfer-encoding;
+        bh=EmD4Ng3aZ9GlR/UDc5bCr3MD7amZkWyFjNA+aDmPXrM=;
+        b=ddnU+FrAO07omNWwOKykx51rPEQzwmIJ5nel0+rEHF0rF6a++xwnkT6BFq9VVTQ2za
+         NTUaRWWSsbp3f2msfDCFz8cOlcnRwBh+sVM3qvZdmSyc/yKmOzUHbEHjrzUJgd6QlIbT
+         5qgQ4np99LSrh/AkCOTSUf74vCxO9yxs1t/U3Tkp0akoq1jKM4XF0AF1siGwbnU+qodb
+         rxzdICmHydCVMtgOo6s4oQX/NsipmVFw42qPcoKzqQl4SItcvztPVelO2/ujDgpzh5e8
+         ztDB3j7h71Y/INwG/FuaStQUia9Py0+yBh4FMJPLVOkdL6NoGyVXtLLM0PCMgfv+xEtx
+         jClg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=uXH9a2dppdpSNAGK0f8SWpctS4xZNg2ypeaL9mfYgoY=;
-        b=gcVS5fxZ+2HJJMAbVG0Eq3c4mPbMGZFeEgsFLck0dER1kCG9UDGUAdDF2UBjJmxBc2
-         sbk5yomBe9dx+ENKw8Pf00H9xFDeVl0bC7WAY0RLW90APBX9q2qSyTGQMF3USiO77lIa
-         g9Bc9aOuy4dJC7/9rAsYLyPcFUEQgq6drn6dh5Q4wXnsdI7d3s7u/WnKQnZr1bVk7x7f
-         HEzzgrJRfIf2E5ADO3MRM8s0nCJnS0mjLFDkjcYA+Wk2M3Z+QzI3bFlGQMP7yi8KuT77
-         VTIbU2nEaNPktuhMZ/F18FLI7KDk5JLTJb4rQ4ahBGpPi5l2VbQZyB/TljtTzhKOFVLR
-         TOtw==
-X-Gm-Message-State: AHQUAuZQfTEqFZZfZn3PxT80m3z9gVWTPMLO0ND6aZsmsAc6VF2L3dfY
-        yKbiDlCDp7h4niGMYKC4aMaK9t2u8Ytk/ULKjTovbg==
-X-Google-Smtp-Source: AHgI3IZQ2RXu2sClg9a8t6oN4ckj8Ve3ttJSZx4yW6qQivAmVgPIfWj0B3j5rb0jXX2umuBwY9v64qUybbl6XgVaX+M=
-X-Received: by 2002:a67:b245:: with SMTP id s5mr5179586vsh.200.1549493994583;
- Wed, 06 Feb 2019 14:59:54 -0800 (PST)
-MIME-Version: 1.0
-References: <cover.ba7411f0c7155d0292b38d3dec698e26b5cc813b.1548687041.git-series.maxime.ripard@bootlin.com>
- <c1a7d46f8504decb58ff224b0b5f2f0733282cc6.1548687041.git-series.maxime.ripard@bootlin.com>
-In-Reply-To: <c1a7d46f8504decb58ff224b0b5f2f0733282cc6.1548687041.git-series.maxime.ripard@bootlin.com>
-From:   Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Date:   Wed, 6 Feb 2019 19:59:43 -0300
-Message-ID: <CAAEAJfAxWBvj6E1fJ8fy=F2xDXLHwRq7-2BT3tQqbPvbZxseyg@mail.gmail.com>
-Subject: Re: [PATCH v2 3/5] media: sunxi: Add A10 CSI driver
-To:     Maxime Ripard <maxime.ripard@bootlin.com>
-Cc:     Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media <linux-media@vger.kernel.org>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        devicetree@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Frank Rowand <frowand.list@gmail.com>
+        h=x-gm-message-state:message-id:subject:from:to:date:in-reply-to
+         :references:user-agent:mime-version:content-transfer-encoding;
+        bh=EmD4Ng3aZ9GlR/UDc5bCr3MD7amZkWyFjNA+aDmPXrM=;
+        b=JIQSwmFmRg50eVAT5lQXlvKR+UobHEtONCzQDbyPIeiXjFvKNxwKFEU3a51/QmwTh0
+         gfhJB6SsVYVsgoGo5H7XAaL8DJ2vVXgvqB2Hat/Z75R79ohHrvPu61qlhXNGfMnrop4+
+         ZJWftPNxyoaLgTFl7EaMjzHOaWMtqyPV72MbtskjOPoT2HvLJiQY0Wsc1l/aerTm7lvO
+         e8Js9mXwvcS19FISDpLUiHe6WYQjivEaDvYEQnB7ClzMfwCrJiIqmahSE2dFhs68bFEP
+         d2MAIdUWpGTV4Zw3xDYuZt5djVUzxBi4+EShhKV21svPnAvsP9ibb0x7eMFeKac+t9gN
+         KGog==
+X-Gm-Message-State: AHQUAuYbEJhQkLjWkXZqdiMvkn3DXAxI2Nhv+EdujwHJ0SR4Xw8IZXS/
+        xNtrcOvxwk9pXEjB2vO7CwQMgA==
+X-Google-Smtp-Source: AHgI3IYmj1xqgwtymaD0somJ4nCUTf4A804jLmrVFLNnPh/Qmzuyh94Ocq2QvFTHcWHlR7QkxBeNPg==
+X-Received: by 2002:a0c:b786:: with SMTP id l6mr10229553qve.244.1549501769625;
+        Wed, 06 Feb 2019 17:09:29 -0800 (PST)
+Received: from skullcanyon ([192.222.193.21])
+        by smtp.gmail.com with ESMTPSA id d78sm19461546qke.94.2019.02.06.17.09.28
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Wed, 06 Feb 2019 17:09:28 -0800 (PST)
+Message-ID: <aa8dcd7454a0cf91bfcb20605132adc589c395c0.camel@ndufresne.ca>
+Subject: Re: [PATCH] media: v4l2-tpg: Fix the memory layout of AYUV buffers
+From:   Nicolas Dufresne <nicolas@ndufresne.ca>
+To:     Philipp Zabel <p.zabel@pengutronix.de>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Vivek Kasireddy <vivek.kasireddy@intel.com>,
+        linux-media@vger.kernel.org
+Date:   Wed, 06 Feb 2019 20:09:27 -0500
+In-Reply-To: <1549377502.3929.12.camel@pengutronix.de>
+References: <20190129023222.10036-1-vivek.kasireddy@intel.com>
+         <92dbd1f9-f5dc-37ed-856a-b3b2aa2b75d5@xs4all.nl>
+         <1549377502.3929.12.camel@pengutronix.de>
 Content-Type: text/plain; charset="UTF-8"
+User-Agent: Evolution 3.30.4 (3.30.4-1.fc29) 
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Mon, 28 Jan 2019 at 11:53, Maxime Ripard <maxime.ripard@bootlin.com> wrote:
->
-> The older CSI drivers have camera capture interface different from the one
-> in the newer ones.
->
-> This IP is pretty simple. Some variants (one controller out of two
-> instances on some SoCs) have an ISP embedded, but there's no code that make
-> use of it, so we ignored that part for now.
->
-> Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
-> ---
->  MAINTAINERS                                         |   8 +-
->  drivers/media/platform/sunxi/Kconfig                |   1 +-
->  drivers/media/platform/sunxi/Makefile               |   1 +-
->  drivers/media/platform/sunxi/sun4i-csi/Kconfig      |  12 +-
->  drivers/media/platform/sunxi/sun4i-csi/Makefile     |   5 +-
->  drivers/media/platform/sunxi/sun4i-csi/sun4i_csi.c  | 261 ++++++++-
->  drivers/media/platform/sunxi/sun4i-csi/sun4i_csi.h  | 142 ++++-
->  drivers/media/platform/sunxi/sun4i-csi/sun4i_dma.c  | 435 +++++++++++++-
->  drivers/media/platform/sunxi/sun4i-csi/sun4i_v4l2.c | 305 +++++++++-
->  9 files changed, 1170 insertions(+)
->  create mode 100644 drivers/media/platform/sunxi/sun4i-csi/Kconfig
->  create mode 100644 drivers/media/platform/sunxi/sun4i-csi/Makefile
->  create mode 100644 drivers/media/platform/sunxi/sun4i-csi/sun4i_csi.c
->  create mode 100644 drivers/media/platform/sunxi/sun4i-csi/sun4i_csi.h
->  create mode 100644 drivers/media/platform/sunxi/sun4i-csi/sun4i_dma.c
->  create mode 100644 drivers/media/platform/sunxi/sun4i-csi/sun4i_v4l2.c
->
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 32d444476a90..5f703ed9adb1 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -1295,6 +1295,14 @@ F:       drivers/pinctrl/sunxi/
->  F:     drivers/soc/sunxi/
->  T:     git git://git.kernel.org/pub/scm/linux/kernel/git/sunxi/linux.git
->
-> +Allwinner A10 CSI driver
-> +M:     Maxime Ripard <maxime.ripard@bootlin.com>
-> +L:     linux-media@vger.kernel.org
-> +T:     git git://linuxtv.org/media_tree.git
-> +S:     Maintained
-> +F:     drivers/media/platform/sunxi/sun4i-csi/
-> +F:     Documentation/devicetree/bindings/media/sun4i-csi.txt
-> +
->  ARM/Amlogic Meson SoC CLOCK FRAMEWORK
->  M:     Neil Armstrong <narmstrong@baylibre.com>
->  M:     Jerome Brunet <jbrunet@baylibre.com>
-> diff --git a/drivers/media/platform/sunxi/Kconfig b/drivers/media/platform/sunxi/Kconfig
-> index 1b6e89cb78b2..71808e93ac2e 100644
-> --- a/drivers/media/platform/sunxi/Kconfig
-> +++ b/drivers/media/platform/sunxi/Kconfig
-> @@ -1 +1,2 @@
-> +source "drivers/media/platform/sunxi/sun4i-csi/Kconfig"
->  source "drivers/media/platform/sunxi/sun6i-csi/Kconfig"
-> diff --git a/drivers/media/platform/sunxi/Makefile b/drivers/media/platform/sunxi/Makefile
-> index 8d06f98500ee..a05127529006 100644
-> --- a/drivers/media/platform/sunxi/Makefile
-> +++ b/drivers/media/platform/sunxi/Makefile
-> @@ -1 +1,2 @@
-> +obj-y          += sun4i-csi/
->  obj-y          += sun6i-csi/
-> diff --git a/drivers/media/platform/sunxi/sun4i-csi/Kconfig b/drivers/media/platform/sunxi/sun4i-csi/Kconfig
-> new file mode 100644
-> index 000000000000..841a6f4d9c99
-> --- /dev/null
-> +++ b/drivers/media/platform/sunxi/sun4i-csi/Kconfig
-> @@ -0,0 +1,12 @@
-> +config VIDEO_SUN4I_CSI
-> +       tristate "Allwinner A10 CMOS Sensor Interface Support"
-> +       depends on VIDEO_DEV && VIDEO_V4L2 && HAS_DMA
-> +       depends on ARCH_SUNXI || COMPILE_TEST
-> +       select VIDEOBUF2_DMA_CONTIG
-> +       select V4L2_FWNODE
-> +       select V4L2_MEM2MEM_DEV
-> +       help
-> +         This is a V4L2 driver for the Allwinner A10 CSI
-> +
-> +         To compile this driver as a module, choose M here: the module
-> +         will be called sun4i_csi.
-> diff --git a/drivers/media/platform/sunxi/sun4i-csi/Makefile b/drivers/media/platform/sunxi/sun4i-csi/Makefile
-> new file mode 100644
-> index 000000000000..7c790a57f5ee
-> --- /dev/null
-> +++ b/drivers/media/platform/sunxi/sun4i-csi/Makefile
-> @@ -0,0 +1,5 @@
-> +sun4i-csi-y += sun4i_csi.o
-> +sun4i-csi-y += sun4i_dma.o
-> +sun4i-csi-y += sun4i_v4l2.o
-> +
-> +obj-$(CONFIG_VIDEO_SUN4I_CSI)  += sun4i-csi.o
-> diff --git a/drivers/media/platform/sunxi/sun4i-csi/sun4i_csi.c b/drivers/media/platform/sunxi/sun4i-csi/sun4i_csi.c
-> new file mode 100644
-> index 000000000000..9b58b42c0043
-> --- /dev/null
-> +++ b/drivers/media/platform/sunxi/sun4i-csi/sun4i_csi.c
-> @@ -0,0 +1,261 @@
-> +// SPDX-License-Identifier: GPL-2.0+
-> +/*
-> + * Copyright (C) 2016 NextThing Co
-> + * Copyright (C) 2016-2018 Bootlin
-> + *
-> + * Author: Maxime Ripard <maxime.ripard@bootlin.com>
-> + */
-> +
-> +#include <linux/clk.h>
-> +#include <linux/interrupt.h>
-> +#include <linux/module.h>
-> +#include <linux/mutex.h>
-> +#include <linux/of.h>
-> +#include <linux/of_graph.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/pm_runtime.h>
-> +#include <linux/reset.h>
-> +#include <linux/videodev2.h>
-> +
-> +#include <media/v4l2-dev.h>
-> +#include <media/v4l2-device.h>
-> +#include <media/v4l2-fwnode.h>
-> +#include <media/v4l2-ioctl.h>
-> +#include <media/v4l2-mediabus.h>
-> +
-> +#include <media/videobuf2-core.h>
-> +#include <media/videobuf2-dma-contig.h>
-> +
-> +#include "sun4i_csi.h"
-> +
-> +static int csi_notify_bound(struct v4l2_async_notifier *notifier,
-> +                           struct v4l2_subdev *subdev,
-> +                           struct v4l2_async_subdev *asd)
-> +{
-> +       struct sun4i_csi *csi = container_of(notifier, struct sun4i_csi,
-> +                                            notifier);
-> +
-> +       csi->src_subdev = subdev;
-> +       csi->src_pad = media_entity_get_fwnode_pad(&subdev->entity,
-> +                                                  subdev->fwnode,
-> +                                                  MEDIA_PAD_FL_SOURCE);
-> +       if (csi->src_pad < 0) {
-> +               dev_err(csi->dev, "Couldn't find output pad for subdev %s\n",
-> +                       subdev->name);
-> +               return csi->src_pad;
-> +       }
-> +
-> +       dev_dbg(csi->dev, "Bound %s pad: %d\n", subdev->name, csi->src_pad);
-> +       return 0;
-> +}
-> +
-> +static int csi_notify_complete(struct v4l2_async_notifier *notifier)
-> +{
-> +       struct sun4i_csi *csi = container_of(notifier, struct sun4i_csi,
-> +                                            notifier);
-> +       int ret;
-> +
-> +       ret = v4l2_device_register_subdev_nodes(&csi->v4l);
-> +       if (ret < 0)
-> +               return ret;
-> +
-> +       ret = sun4i_csi_v4l2_register(csi);
-> +       if (ret < 0)
-> +               return ret;
-> +
-> +       return media_create_pad_link(&csi->src_subdev->entity, csi->src_pad,
-> +                                    &csi->vdev.entity, 0,
-> +                                    MEDIA_LNK_FL_ENABLED |
-> +                                    MEDIA_LNK_FL_IMMUTABLE);
-> +}
-> +
-> +static const struct v4l2_async_notifier_operations csi_notify_ops = {
-> +       .bound          = csi_notify_bound,
-> +       .complete       = csi_notify_complete,
-> +};
-> +
-> +static int sun4i_csi_async_parse(struct device *dev,
-> +                                struct v4l2_fwnode_endpoint *vep,
-> +                                struct v4l2_async_subdev *asd)
-> +{
-> +       struct sun4i_csi *csi = dev_get_drvdata(dev);
-> +
-> +       if (vep->base.port || vep->base.id)
-> +               return -EINVAL;
-> +
-> +       if (vep->bus_type != V4L2_MBUS_PARALLEL)
-> +               return -EINVAL;
-> +
-> +       csi->bus = vep->bus.parallel;
-> +
-> +       return 0;
-> +}
-> +
-> +static int csi_probe(struct platform_device *pdev)
-> +{
-> +       struct sun4i_csi *csi;
-> +       struct resource *res;
-> +       int ret;
-> +       int irq;
-> +
-> +       csi = devm_kzalloc(&pdev->dev, sizeof(*csi), GFP_KERNEL);
-> +       if (!csi)
-> +               return -ENOMEM;
-> +       platform_set_drvdata(pdev, csi);
-> +       csi->dev = &pdev->dev;
-> +
-> +       csi->mdev.dev = csi->dev;
-> +       strscpy(csi->mdev.model, "Allwinner Video Capture Device",
-> +               sizeof(csi->mdev.model));
-> +       csi->mdev.hw_revision = 0;
-> +       media_device_init(&csi->mdev);
-> +       v4l2_async_notifier_init(&csi->notifier);
-> +
-> +       csi->pad.flags = MEDIA_PAD_FL_SINK | MEDIA_PAD_FL_MUST_CONNECT;
-> +       ret = media_entity_pads_init(&csi->vdev.entity, 1, &csi->pad);
-> +       if (ret < 0)
-> +               return 0;
-> +
-> +       res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> +       csi->regs = devm_ioremap_resource(&pdev->dev, res);
-> +       if (IS_ERR(csi->regs))
-> +               return PTR_ERR(csi->regs);
-> +
-> +       irq = platform_get_irq(pdev, 0);
-> +       if (irq < 0)
-> +               return irq;
-> +
-> +       csi->bus_clk = devm_clk_get(&pdev->dev, "bus");
-> +       if (IS_ERR(csi->bus_clk)) {
-> +               dev_err(&pdev->dev, "Couldn't get our bus clock\n");
-> +               return PTR_ERR(csi->bus_clk);
-> +       }
-> +
-> +       csi->isp_clk = devm_clk_get(&pdev->dev, "isp");
-> +       if (IS_ERR(csi->isp_clk)) {
-> +               dev_err(&pdev->dev, "Couldn't get our ISP clock\n");
-> +               return PTR_ERR(csi->isp_clk);
-> +       }
-> +
-> +       csi->mod_clk = devm_clk_get(&pdev->dev, "mod");
-> +       if (IS_ERR(csi->mod_clk)) {
-> +               dev_err(&pdev->dev, "Couldn't get our mod clock\n");
-> +               return PTR_ERR(csi->mod_clk);
-> +       }
-> +
-> +       csi->ram_clk = devm_clk_get(&pdev->dev, "ram");
-> +       if (IS_ERR(csi->ram_clk)) {
-> +               dev_err(&pdev->dev, "Couldn't get our ram clock\n");
-> +               return PTR_ERR(csi->ram_clk);
-> +       }
-> +
+Le mardi 05 février 2019 à 15:38 +0100, Philipp Zabel a écrit :
+> Hi Hans,
+> 
+> On Thu, 2019-01-31 at 14:36 +0100, Hans Verkuil wrote:
+> [...]
+> > Our YUV32 fourcc is defined as follows:
+> > 
+> > https://hverkuil.home.xs4all.nl/spec/uapi/v4l/pixfmt-packed-yuv.html
+> > 
+> > As far as I see the format that the TPG generates is according to the V4L2 spec.
+> > 
+> > Philipp, can you check the YUV32 format that the imx-pxp driver uses?
+> > Is that according to our spec?
+> > 
+> > At some point we probably want to add a VUY32 format which is what Weston
+> > expects, but we certainly cannot change what the TPG generates for YUV32
+> > since that is correct.
+> 
+> I hadn't noticed as YUV32 doesn't show up in GStreamer, but testing with
+> v4l2-ctl, it seems to be incorrect. This script:
 
-Minor comment: perhaps you can take advantage
-of the clock bulk API and simplify the clock management.
+Oops, noted, I have filed an issue for that.
 
-Regards,
-Ezequiel
+https://gitlab.freedesktop.org/gstreamer/gst-plugins-good/issues/565
+
+It was skipped because I always assumed this was not a real format. It
+was added in GStreamer for software color conversion as a YUV unpack
+format (same for AYUV64 16-16-16-16). This is used in the generic color
+conversion path, or the slow path.
+
+> 
+>   #!/bin/sh
+>   function check() {
+>       PATTERN="$1"
+>       NAME="$2"
+>       echo -ne "${NAME}:\t"
+>       v4l2-ctl \
+>           --set-fmt-video-out=width=8,height=8,pixelformat=RGBP \
+>           --set-fmt-video=width=8,height=8,pixelformat=YUV4 \
+>           --stream-count 1 \
+>           --stream-poll \
+>           --stream-out-pattern "${PATTERN}" \
+>           --stream-out-mmap 3 \
+>           --stream-mmap 3 \
+>           --stream-to - 2>/dev/null | hexdump -v -n4 -e '/1 "%02x "'
+>       echo
+>   }
+>   check 6 "100% white"
+>   check 7 "100% red"
+>   check 9 "100% blue"
+> 
+> results in the following output:
+> 
+>   100% white:	80 80 ea ff 
+>   100% red:	f0 66 3e ff 
+>   100% blue:	74 f0 23 ff 
+> 
+> That looks like 32-bit VUYA 8-8-8-8.
+> 
+> regards
+> Philipp
+
