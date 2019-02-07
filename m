@@ -2,268 +2,243 @@ Return-Path: <SRS0=uIFo=QO=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1AA9DC282CC
-	for <linux-media@archiver.kernel.org>; Thu,  7 Feb 2019 08:44:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F08E5C282CC
+	for <linux-media@archiver.kernel.org>; Thu,  7 Feb 2019 08:51:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id DFA8920818
-	for <linux-media@archiver.kernel.org>; Thu,  7 Feb 2019 08:44:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B7266218FE
+	for <linux-media@archiver.kernel.org>; Thu,  7 Feb 2019 08:51:52 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="PQq0BYlJ"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726615AbfBGIow (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 7 Feb 2019 03:44:52 -0500
-Received: from relay8-d.mail.gandi.net ([217.70.183.201]:58309 "EHLO
-        relay8-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726294AbfBGIov (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Feb 2019 03:44:51 -0500
-X-Originating-IP: 90.88.22.177
-Received: from aptenodytes (aaubervilliers-681-1-80-177.w90-88.abo.wanadoo.fr [90.88.22.177])
-        (Authenticated sender: paul.kocialkowski@bootlin.com)
-        by relay8-d.mail.gandi.net (Postfix) with ESMTPSA id 2B4181BF20B;
-        Thu,  7 Feb 2019 08:44:47 +0000 (UTC)
-Message-ID: <1d6fb3d0f97880d829a88b6da5aa71456f50507f.camel@bootlin.com>
-Subject: Re: [PATCH v5 6/9] drm/bridge: cdns: Separate DSI and D-PHY
- configuration
-From:   Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-To:     Maxime Ripard <maxime.ripard@bootlin.com>,
-        Kishon Vijay Abraham I <kishon@ti.com>
-Cc:     Rafal Ciepiela <rafalc@cadence.com>,
-        Krzysztof Witos <kwitos@cadence.com>,
-        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        Chen-Yu Tsai <wens@csie.org>,
-        Sean Paul <seanpaul@chromium.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Date:   Thu, 07 Feb 2019 09:44:46 +0100
-In-Reply-To: <0b3bea44e05745b65c23af7926ca546bc80a1bcc.1548085432.git-series.maxime.ripard@bootlin.com>
-References: <cover.fbf0776c70c0cfb7b7fd88ce6a96b4597d620cac.1548085432.git-series.maxime.ripard@bootlin.com>
-         <0b3bea44e05745b65c23af7926ca546bc80a1bcc.1548085432.git-series.maxime.ripard@bootlin.com>
-Organization: Bootlin
-Content-Type: text/plain; charset="UTF-8"
-User-Agent: Evolution 3.30.5 
+        id S1726876AbfBGIvs (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 7 Feb 2019 03:51:48 -0500
+Received: from mail-ot1-f67.google.com ([209.85.210.67]:43090 "EHLO
+        mail-ot1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726294AbfBGIvs (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Feb 2019 03:51:48 -0500
+Received: by mail-ot1-f67.google.com with SMTP id a11so16905818otr.10
+        for <linux-media@vger.kernel.org>; Thu, 07 Feb 2019 00:51:47 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc:content-transfer-encoding;
+        bh=67TqqQt2cMAQmgp7V/k3Hdqs/WwIh1qTEk8gB70lbIc=;
+        b=PQq0BYlJLY3tKUKboY4AsqTP74D06T1ebfDhMRI6scT73OZEYw5dxxNsVAioNYkONS
+         vf6OCiQxorR5o0UeAlerno/P1IY2Zf5l6m+VdN7iae9ToBUfpnr5A2pTQvDCJRS66tO3
+         PzEl2vMr5HEbIY2w9YWrwVRHaKkTa9obJr1nA=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=67TqqQt2cMAQmgp7V/k3Hdqs/WwIh1qTEk8gB70lbIc=;
+        b=MTzwQXPBAH7iiHN2ZjlE28tMx6lmOqv2OmqxXazvzcP5r0OoNj6SsjyRiOEBKFhRS9
+         ZNHe3IC6ba56m7ciB2S4nwVZUG9Yd75S7VNpKidt8dcXFBwd3mAh62O8nMIyKINj2cZF
+         Dp/CqgjBt1nzMHB8/jenqUcZkd2PT6Gtp/8/5uRDnPcCEMTYo71VJWRmmcr0l/S+R1yN
+         3EqFrquOP5AERZzhA6AEiq4UgggHQOHj/2DnxSM3+1dGIstznV/9apdcmbZ8mXVqRQ8O
+         VgEHVia/IIz5u5FvDs1AJOfhU2asqRHwHwQUUCI/B44O88pagN2fuOWasSeopAVSAxJa
+         upqQ==
+X-Gm-Message-State: AHQUAuaO50avRi3iEj4LsCceedwQ6MhFzHxOzGn4Pwl/mDxkAyiNVt4j
+        KYLCkHUprn49IGh7iz/s7VnPLHyLL/lYDQ==
+X-Google-Smtp-Source: AHgI3IYwqBZIANK+Hoifn/3r4E8PDdlo1CKp/jPdMCO7iw9fiJ9idX9+TtjtnqsD3/1JiOs9aIM3Hw==
+X-Received: by 2002:a9d:3e16:: with SMTP id a22mr8665308otd.43.1549529507269;
+        Thu, 07 Feb 2019 00:51:47 -0800 (PST)
+Received: from mail-ot1-f52.google.com (mail-ot1-f52.google.com. [209.85.210.52])
+        by smtp.gmail.com with ESMTPSA id 21sm11405325oie.24.2019.02.07.00.51.44
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 07 Feb 2019 00:51:45 -0800 (PST)
+Received: by mail-ot1-f52.google.com with SMTP id s13so16975676otq.4
+        for <linux-media@vger.kernel.org>; Thu, 07 Feb 2019 00:51:44 -0800 (PST)
+X-Received: by 2002:a9d:1b67:: with SMTP id l94mr430687otl.147.1549529504330;
+ Thu, 07 Feb 2019 00:51:44 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
+References: <20190124100419.26492-1-tfiga@chromium.org> <20190124100419.26492-2-tfiga@chromium.org>
+ <a3b1b650-94d7-bb84-41ef-dc4cab0cdae1@xs4all.nl> <54430438-33a3-2c52-b6c8-4000a4088906@xs4all.nl>
+ <1548938648.4585.3.camel@pengutronix.de> <6aa88094-068a-089d-2d52-3f9ade5a396c@xs4all.nl>
+In-Reply-To: <6aa88094-068a-089d-2d52-3f9ade5a396c@xs4all.nl>
+From:   Tomasz Figa <tfiga@chromium.org>
+Date:   Thu, 7 Feb 2019 17:51:33 +0900
+X-Gmail-Original-Message-ID: <CAAFQd5CU6YQsfTeZS68RdFSme_6YstcvVYOSdZyWMgnSejpdyQ@mail.gmail.com>
+Message-ID: <CAAFQd5CU6YQsfTeZS68RdFSme_6YstcvVYOSdZyWMgnSejpdyQ@mail.gmail.com>
+Subject: Re: [PATCH v3 1/2] media: docs-rst: Document memory-to-memory video
+ decoder interface
+To:     Hans Verkuil <hverkuil@xs4all.nl>
+Cc:     Philipp Zabel <p.zabel@pengutronix.de>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Pawel Osciak <posciak@chromium.org>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Kamil Debski <kamil@wypas.org>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Jeongtae Park <jtp.park@samsung.com>,
+        =?UTF-8?B?VGlmZmFueSBMaW4gKOael+aFp+ePiik=?= 
+        <tiffany.lin@mediatek.com>,
+        =?UTF-8?B?QW5kcmV3LUNUIENoZW4gKOmZs+aZuui/qik=?= 
+        <andrew-ct.chen@mediatek.com>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Todor Tomov <todor.tomov@linaro.org>,
+        Nicolas Dufresne <nicolas@ndufresne.ca>,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        dave.stevenson@raspberrypi.org,
+        Ezequiel Garcia <ezequiel@collabora.com>,
+        Maxime Jourdan <maxi.jourdan@wanadoo.fr>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi,
+On Thu, Jan 31, 2019 at 10:19 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>
+> On 1/31/19 1:44 PM, Philipp Zabel wrote:
+> > On Thu, 2019-01-31 at 13:30 +0100, Hans Verkuil wrote:
+> >> On 1/31/19 11:45 AM, Hans Verkuil wrote:
+> >>> On 1/24/19 11:04 AM, Tomasz Figa wrote:
+> >>>> Due to complexity of the video decoding process, the V4L2 drivers of
+> >>>> stateful decoder hardware require specific sequences of V4L2 API cal=
+ls
+> >>>> to be followed. These include capability enumeration, initialization=
+,
+> >>>> decoding, seek, pause, dynamic resolution change, drain and end of
+> >>>> stream.
+> >>>>
+> >>>> Specifics of the above have been discussed during Media Workshops at
+> >>>> LinuxCon Europe 2012 in Barcelona and then later Embedded Linux
+> >>>> Conference Europe 2014 in D=C3=BCsseldorf. The de facto Codec API th=
+at
+> >>>> originated at those events was later implemented by the drivers we a=
+lready
+> >>>> have merged in mainline, such as s5p-mfc or coda.
+> >>>>
+> >>>> The only thing missing was the real specification included as a part=
+ of
+> >>>> Linux Media documentation. Fix it now and document the decoder part =
+of
+> >>>> the Codec API.
+> >>>>
+> >>>> Signed-off-by: Tomasz Figa <tfiga@chromium.org>
+> >>>> ---
+> >>>>  Documentation/media/uapi/v4l/dev-decoder.rst  | 1076 ++++++++++++++=
++++
+> >>>>  Documentation/media/uapi/v4l/dev-mem2mem.rst  |    5 +
+> >>>>  Documentation/media/uapi/v4l/pixfmt-v4l2.rst  |    5 +
+> >>>>  Documentation/media/uapi/v4l/v4l2.rst         |   10 +-
+> >>>>  .../media/uapi/v4l/vidioc-decoder-cmd.rst     |   40 +-
+> >>>>  Documentation/media/uapi/v4l/vidioc-g-fmt.rst |   14 +
+> >>>>  6 files changed, 1135 insertions(+), 15 deletions(-)
+> >>>>  create mode 100644 Documentation/media/uapi/v4l/dev-decoder.rst
+> >>>>
+> >>>
+> >>> <snip>
+> >>>
+> >>>> +4.  **This step only applies to coded formats that contain resoluti=
+on information
+> >>>> +    in the stream.** Continue queuing/dequeuing bitstream buffers t=
+o/from the
+> >>>> +    ``OUTPUT`` queue via :c:func:`VIDIOC_QBUF` and :c:func:`VIDIOC_=
+DQBUF`. The
+> >>>> +    buffers will be processed and returned to the client in order, =
+until
+> >>>> +    required metadata to configure the ``CAPTURE`` queue are found.=
+ This is
+> >>>> +    indicated by the decoder sending a ``V4L2_EVENT_SOURCE_CHANGE``=
+ event with
+> >>>> +    ``V4L2_EVENT_SRC_CH_RESOLUTION`` source change type.
+> >>>> +
+> >>>> +    * It is not an error if the first buffer does not contain enoug=
+h data for
+> >>>> +      this to occur. Processing of the buffers will continue as lon=
+g as more
+> >>>> +      data is needed.
+> >>>> +
+> >>>> +    * If data in a buffer that triggers the event is required to de=
+code the
+> >>>> +      first frame, it will not be returned to the client, until the
+> >>>> +      initialization sequence completes and the frame is decoded.
+> >>>> +
+> >>>> +    * If the client sets width and height of the ``OUTPUT`` format =
+to 0,
+> >>>> +      calling :c:func:`VIDIOC_G_FMT`, :c:func:`VIDIOC_S_FMT`,
+> >>>> +      :c:func:`VIDIOC_TRY_FMT` or :c:func:`VIDIOC_REQBUFS` on the `=
+`CAPTURE``
+> >>>> +      queue will return the ``-EACCES`` error code, until the decod=
+er
+> >>>> +      configures ``CAPTURE`` format according to stream metadata.
+> >>>
+> >>> I think this should also include the G/S_SELECTION ioctls, right?
+> >>
+> >> I've started work on adding compliance tests for codecs to v4l2-compli=
+ance and
+> >> I quickly discovered that this 'EACCES' error code is not nice at all.
+> >>
+> >> The problem is that it is really inconsistent with V4L2 behavior: the =
+basic
+> >> rule is that there always is a format defined, i.e. G_FMT will always =
+return
+> >> a format.
+> >>
+> >> Suddenly returning an error is actually quite painful to handle becaus=
+e it is
+> >> a weird exception just for the capture queue of a stateful decoder if =
+no
+> >> output resolution is known.
+> >>
+> >> Just writing that sentence is painful.
+> >>
+> >> Why not just return some default driver defined format? It will automa=
+tically
+> >> be updated once the decoder parsed the bitstream and knows the new res=
+olution.
+> >>
+> >> It really is just the same behavior as with a resolution change.
+> >>
+> >> It is also perfectly fine to request buffers for the capture queue for=
+ that
+> >> default format. It's pointless, but not a bug.
+> >>
+> >> Unless I am missing something I strongly recommend changing this behav=
+ior.
+> >
+> > I just wrote the same in my reply to Nicolas, the CODA driver currently
+> > sets the capture queue width/height to the output queue's crop rectangl=
+e
+> > (rounded to macroblock size) without ever having seen the SPS.
+>
+> And thinking about the initial 0x0 width/height for the output queue:
+>
+> that too is an exception, although less of a problem than the EACCES beha=
+vior.
+>
+> It should be fine for an application to set width/height to 0 when callin=
+g
+> S_FMT for the output queue of the decoder, but I would also prefer that i=
+t is
+> just replaced by the driver with some default resolution. It really doesn=
+'t
+> matter in practice, since you will wait for the SOURCE_CHANGE event regar=
+dless.
+>
+> Only then do you start to configure the CAPTURE queue.
+>
+> Using 0x0 and EACCES looks good on paper, but in the code it is a hassle =
+and
+> I'm not convinced there is any benefit.
+>
+> I like generic APIs and no where else do we ever return a 0 value for wid=
+th
+> or height, except in this corner case. It's just awkward.
 
-On Mon, 2019-01-21 at 16:45 +0100, Maxime Ripard wrote:
-> The current configuration of the DSI bridge and its associated D-PHY is
-> intertwined. In order to ease the future conversion to the phy framework
-> for the D-PHY part, let's split the configuration in two.
+Agreed, although with some caveats I mentioned in my reply to the venus pat=
+ch.
 
-See below about a silly mistake when refactoring. Looks good otherwise,
-so with that fixed:
-
-Reviewed-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-
-> Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
-> ---
->  drivers/gpu/drm/bridge/cdns-dsi.c | 101 ++++++++++++++++++++++---------
->  1 file changed, 73 insertions(+), 28 deletions(-)
-> 
-> diff --git a/drivers/gpu/drm/bridge/cdns-dsi.c b/drivers/gpu/drm/bridge/cdns-dsi.c
-> index ce9496d13986..796874e76308 100644
-> --- a/drivers/gpu/drm/bridge/cdns-dsi.c
-> +++ b/drivers/gpu/drm/bridge/cdns-dsi.c
-> @@ -545,6 +545,15 @@ bridge_to_cdns_dsi_input(struct drm_bridge *bridge)
->  	return container_of(bridge, struct cdns_dsi_input, bridge);
->  }
->  
-> +static unsigned int mode_to_dpi_hfp(const struct drm_display_mode *mode,
-> +				    bool mode_valid_check)
-> +{
-> +	if (mode_valid_check)
-> +		return mode->hsync_start - mode->hdisplay;
-> +
-> +	return mode->crtc_hsync_start - mode->crtc_hdisplay;
-> +}
-> +
->  static int cdns_dsi_get_dphy_pll_cfg(struct cdns_dphy *dphy,
->  				     struct cdns_dphy_cfg *cfg,
->  				     unsigned int dpi_htotal,
-> @@ -731,14 +740,12 @@ static unsigned int dpi_to_dsi_timing(unsigned int dpi_timing,
->  static int cdns_dsi_mode2cfg(struct cdns_dsi *dsi,
->  			     const struct drm_display_mode *mode,
->  			     struct cdns_dsi_cfg *dsi_cfg,
-> -			     struct cdns_dphy_cfg *dphy_cfg,
->  			     bool mode_valid_check)
->  {
-> -	unsigned long dsi_htotal = 0, dsi_hss_hsa_hse_hbp = 0;
->  	struct cdns_dsi_output *output = &dsi->output;
-> -	unsigned int dsi_hfp_ext = 0, dpi_hfp, tmp;
-> +	unsigned int tmp;
->  	bool sync_pulse = false;
-> -	int bpp, nlanes, ret;
-> +	int bpp, nlanes;
->  
->  	memset(dsi_cfg, 0, sizeof(*dsi_cfg));
->  
-> @@ -757,8 +764,6 @@ static int cdns_dsi_mode2cfg(struct cdns_dsi *dsi,
->  		       mode->crtc_hsync_end : mode->crtc_hsync_start);
->  
->  	dsi_cfg->hbp = dpi_to_dsi_timing(tmp, bpp, DSI_HBP_FRAME_OVERHEAD);
-> -	dsi_htotal += dsi_cfg->hbp + DSI_HBP_FRAME_OVERHEAD;
-> -	dsi_hss_hsa_hse_hbp += dsi_cfg->hbp + DSI_HBP_FRAME_OVERHEAD;
->  
->  	if (sync_pulse) {
->  		if (mode_valid_check)
-> @@ -768,49 +773,91 @@ static int cdns_dsi_mode2cfg(struct cdns_dsi *dsi,
->  
->  		dsi_cfg->hsa = dpi_to_dsi_timing(tmp, bpp,
->  						 DSI_HSA_FRAME_OVERHEAD);
-> -		dsi_htotal += dsi_cfg->hsa + DSI_HSA_FRAME_OVERHEAD;
-> -		dsi_hss_hsa_hse_hbp += dsi_cfg->hsa + DSI_HSA_FRAME_OVERHEAD;
->  	}
->  
->  	dsi_cfg->hact = dpi_to_dsi_timing(mode_valid_check ?
->  					  mode->hdisplay : mode->crtc_hdisplay,
->  					  bpp, 0);
-> -	dsi_htotal += dsi_cfg->hact;
-> +	dsi_cfg->hfp = dpi_to_dsi_timing(mode_to_dpi_hfp(mode, mode_valid_check),
-> +					 bpp, DSI_HFP_FRAME_OVERHEAD);
->  
-> -	if (mode_valid_check)
-> -		dpi_hfp = mode->hsync_start - mode->hdisplay;
-> -	else
-> -		dpi_hfp = mode->crtc_hsync_start - mode->crtc_hdisplay;
-> +	return 0;
-> +}
-> +
-> +static int cdns_dphy_validate(struct cdns_dsi *dsi,
-> +			      struct cdns_dsi_cfg *dsi_cfg,
-> +			      struct cdns_dphy_cfg *dphy_cfg,
-> +			      const struct drm_display_mode *mode,
-> +			      bool mode_valid_check)
-> +{
-> +	struct cdns_dsi_output *output = &dsi->output;
-> +	unsigned long dsi_htotal;
-> +	unsigned int dsi_hfp_ext = 0;
-> +
-> +	int ret;
-> +
-> +	dsi_htotal = dsi_cfg->hbp + DSI_HBP_FRAME_OVERHEAD;
-> +	if (output->dev->mode_flags & MIPI_DSI_MODE_VIDEO_SYNC_PULSE)
-> +		dsi_htotal += dsi_cfg->hsa + DSI_HSA_FRAME_OVERHEAD;
->  
-> -	dsi_cfg->hfp = dpi_to_dsi_timing(dpi_hfp, bpp, DSI_HFP_FRAME_OVERHEAD);
-> +	dsi_htotal += dsi_cfg->hact;
->  	dsi_htotal += dsi_cfg->hfp + DSI_HFP_FRAME_OVERHEAD;
->  
->  	if (mode_valid_check)
->  		ret = cdns_dsi_get_dphy_pll_cfg(dsi->dphy, dphy_cfg,
-> -						mode->htotal, bpp,
-> +						mode->htotal,
->  						mode->clock * 1000,
-> -						dsi_htotal, nlanes,
-> +						mipi_dsi_pixel_format_to_bpp(output->dev->format),
-
-The bpp argument sits between htotal and clock, this puts it after
-clock which looks incorrect.
-
-Cheers,
-
-Paul
-
-> +						dsi_htotal,
-> +						output->dev->lanes,
->  						&dsi_hfp_ext);
->  	else
->  		ret = cdns_dsi_get_dphy_pll_cfg(dsi->dphy, dphy_cfg,
-> -						mode->crtc_htotal, bpp,
-> +						mode->crtc_htotal,
-> +						mipi_dsi_pixel_format_to_bpp(output->dev->format),
->  						mode->crtc_clock * 1000,
-> -						dsi_htotal, nlanes,
-> +						dsi_htotal,
-> +						output->dev->lanes,
->  						&dsi_hfp_ext);
-> -
->  	if (ret)
->  		return ret;
->  
->  	dsi_cfg->hfp += dsi_hfp_ext;
-> -	dsi_htotal += dsi_hfp_ext;
-> -	dsi_cfg->htotal = dsi_htotal;
-> +	dsi_cfg->htotal = dsi_htotal + dsi_hfp_ext;
-> +
-> +	return 0;
-> +}
-> +
-> +static int cdns_dsi_check_conf(struct cdns_dsi *dsi,
-> +			       const struct drm_display_mode *mode,
-> +			       struct cdns_dsi_cfg *dsi_cfg,
-> +			       struct cdns_dphy_cfg *dphy_cfg,
-> +			       bool mode_valid_check)
-> +{
-> +	struct cdns_dsi_output *output = &dsi->output;
-> +	unsigned long dsi_hss_hsa_hse_hbp;
-> +	unsigned int nlanes = output->dev->lanes;
-> +	int ret;
-> +
-> +	ret = cdns_dsi_mode2cfg(dsi, mode, dsi_cfg, mode_valid_check);
-> +	if (ret)
-> +		return ret;
-> +
-> +	ret = cdns_dphy_validate(dsi, dsi_cfg, dphy_cfg, mode, mode_valid_check);
-> +	if (ret)
-> +		return ret;
-> +
-> +	dsi_hss_hsa_hse_hbp = dsi_cfg->hbp + DSI_HBP_FRAME_OVERHEAD;
-> +	if (output->dev->mode_flags & MIPI_DSI_MODE_VIDEO_SYNC_PULSE)
-> +		dsi_hss_hsa_hse_hbp += dsi_cfg->hsa + DSI_HSA_FRAME_OVERHEAD;
->  
->  	/*
->  	 * Make sure DPI(HFP) > DSI(HSS+HSA+HSE+HBP) to guarantee that the FIFO
->  	 * is empty before we start a receiving a new line on the DPI
->  	 * interface.
->  	 */
-> -	if ((u64)dphy_cfg->lane_bps * dpi_hfp * nlanes <
-> +	if ((u64)dphy_cfg->lane_bps *
-> +	    mode_to_dpi_hfp(mode, mode_valid_check) * nlanes <
->  	    (u64)dsi_hss_hsa_hse_hbp *
->  	    (mode_valid_check ? mode->clock : mode->crtc_clock) * 1000)
->  		return -EINVAL;
-> @@ -842,7 +889,7 @@ cdns_dsi_bridge_mode_valid(struct drm_bridge *bridge,
->  	struct cdns_dsi_output *output = &dsi->output;
->  	struct cdns_dphy_cfg dphy_cfg;
->  	struct cdns_dsi_cfg dsi_cfg;
-> -	int bpp, nlanes, ret;
-> +	int bpp, ret;
->  
->  	/*
->  	 * VFP_DSI should be less than VFP_DPI and VFP_DSI should be at
-> @@ -860,11 +907,9 @@ cdns_dsi_bridge_mode_valid(struct drm_bridge *bridge,
->  	if ((mode->hdisplay * bpp) % 32)
->  		return MODE_H_ILLEGAL;
->  
-> -	nlanes = output->dev->lanes;
-> -
-> -	ret = cdns_dsi_mode2cfg(dsi, mode, &dsi_cfg, &dphy_cfg, true);
-> +	ret = cdns_dsi_check_conf(dsi, mode, &dsi_cfg, &dphy_cfg, true);
->  	if (ret)
-> -		return MODE_CLOCK_RANGE;
-> +		return MODE_BAD;
->  
->  	return MODE_OK;
->  }
-> @@ -990,7 +1035,7 @@ static void cdns_dsi_bridge_enable(struct drm_bridge *bridge)
->  	bpp = mipi_dsi_pixel_format_to_bpp(output->dev->format);
->  	nlanes = output->dev->lanes;
->  
-> -	WARN_ON_ONCE(cdns_dsi_mode2cfg(dsi, mode, &dsi_cfg, &dphy_cfg, false));
-> +	WARN_ON_ONCE(cdns_dsi_check_conf(dsi, mode, &dsi_cfg, &dphy_cfg, false));
->  
->  	cdns_dsi_hs_init(dsi, &dphy_cfg);
->  	cdns_dsi_init_link(dsi);
--- 
-Paul Kocialkowski, Bootlin
-Embedded Linux and kernel engineering
-https://bootlin.com
-
+Best regards,
+Tomasz
