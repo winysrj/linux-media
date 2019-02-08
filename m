@@ -2,102 +2,143 @@ Return-Path: <SRS0=EeSY=QP=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
-	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 60CCCC282CC
-	for <linux-media@archiver.kernel.org>; Fri,  8 Feb 2019 04:32:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B689DC169C4
+	for <linux-media@archiver.kernel.org>; Fri,  8 Feb 2019 04:48:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 307D72084D
-	for <linux-media@archiver.kernel.org>; Fri,  8 Feb 2019 04:32:14 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="G7VfV9lp"
+	by mail.kernel.org (Postfix) with ESMTP id 8EE70206DD
+	for <linux-media@archiver.kernel.org>; Fri,  8 Feb 2019 04:48:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726956AbfBHEcI (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Thu, 7 Feb 2019 23:32:08 -0500
-Received: from mail-lf1-f66.google.com ([209.85.167.66]:39990 "EHLO
-        mail-lf1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726793AbfBHEcI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Feb 2019 23:32:08 -0500
-Received: by mail-lf1-f66.google.com with SMTP id t14so1575156lfk.7;
-        Thu, 07 Feb 2019 20:32:06 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=CIitgqpj1Jx3VxIPRhUTrC/lUkFX1AVJEifvXimRfb8=;
-        b=G7VfV9lpiXWHYppcFqdErDeJIKYBxNarTdPae0yZNMZnEhowySqTN+Lmh/Q6Ojdsw7
-         HOBs7mwjeLZOrSe/io1L3KsmZ5+J/AK+KLqZSC8puFmcAL3ntbsf5fDSk676hx8gJUTf
-         T/JhXfrZbKFWaC+ijns4YASYMSBEtD2F6iKOejtSrscfLom2YMybXACwtCwsNdLJB4F6
-         L+Ct1Wv7fF9e4lI4qJnFP1rz6R95Jpmq5Zfv9n2/H7/KWg3gD1nCFvzZ4drpJhm+bVqn
-         e89k8hlMWusy2sKD88tW6vYiMewZT7j4wxpndPWk19ouUVhss2d3MxPkgavlWBJhk672
-         dY6g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=CIitgqpj1Jx3VxIPRhUTrC/lUkFX1AVJEifvXimRfb8=;
-        b=GHdYzht3IccW/jvnL7lcD0HajYvziBRKYkMbytRvwgAcF+TXvDHQyg5JUupyt0ak60
-         9aecs9VDWzCZmd6I9avhl1xTYXCEmi1N854punNauRkIWgqXqL78Q5K85Lq5uwHB+Hu3
-         466K4Ze6Uo5uPoL8YiIL4EO6LIAmaT8tcgZW+YIgVjBiagS58U/+ENehpPAlWIQeNXua
-         YUsXKVX2TVy3d/cdiWTsa3JJV+SnHE36JGIfwvn6e25tcD+1N7jRJ+KTRZ8y8E1HSk7H
-         BwEn81wQIXMn0niTBV//NEMCglsWykDV1tdP4IvD9kdGXpC1Ssx+PQgfW/0nCoVTn2QC
-         DL9g==
-X-Gm-Message-State: AHQUAuaghUJ7QwcL3eTaGd2FIVdxXJ2nSAh4o+zgPPDCASYQPuGKexTo
-        Sl9IcdsmkRGhJLYqAKxzpyseCV5JkiZLNqIhlFo=
-X-Google-Smtp-Source: AHgI3IYGxJECPQh9dULY/HA6hfWXKCbI8Q8hMLYUq7bibGnt1mvlIY0gCaEtmRMMI67Zkg+3LgM3JDoeOA+VyHGzEUU=
-X-Received: by 2002:ac2:43c6:: with SMTP id u6mr12062290lfl.151.1549600326193;
- Thu, 07 Feb 2019 20:32:06 -0800 (PST)
-MIME-Version: 1.0
-References: <20190207222647.GA30974@ziepe.ca>
-In-Reply-To: <20190207222647.GA30974@ziepe.ca>
-From:   Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
-Date:   Fri, 8 Feb 2019 05:31:55 +0100
-Message-ID: <CANiq72=qfNHf5zd8c8VkmrhE8U5_kH6yg3z4JD1N5yEfL727tA@mail.gmail.com>
-Subject: Re: [PATCH v2] lib/scatterlist: Provide a DMA page iterator
-To:     Jason Gunthorpe <jgg@mellanox.com>
-Cc:     Daniel Stone <daniel@fooishbar.org>, "hch@lst.de" <hch@lst.de>,
-        "Koenig, Christian" <Christian.Koenig@amd.com>,
-        Thomas Hellstrom <thellstrom@vmware.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "yong.zhi@intel.com" <yong.zhi@intel.com>,
-        "daniel.vetter@ffwll.ch" <daniel.vetter@ffwll.ch>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "bingbu.cao@intel.com" <bingbu.cao@intel.com>,
-        "tian.shu.qiu@intel.com" <tian.shu.qiu@intel.com>,
-        "shiraz.saleem@intel.com" <shiraz.saleem@intel.com>,
-        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>
-Content-Type: text/plain; charset="UTF-8"
+        id S1727018AbfBHEsx (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Thu, 7 Feb 2019 23:48:53 -0500
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:37403 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726791AbfBHEsx (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 7 Feb 2019 23:48:53 -0500
+Received: from localhost ([IPv6:2001:983:e9a7:1:5eb:9ad5:2371:b65a])
+        by smtp-cloud8.xs4all.net with ESMTPA
+        id ry5qg6tqzNR5yry5rg56VU; Fri, 08 Feb 2019 05:48:51 +0100
+Message-ID: <29278a288b5be722c04f96a0bfb6aafd@smtp-cloud8.xs4all.net>
+Date:   Fri, 08 Feb 2019 05:48:50 +0100
+From:   "Hans Verkuil" <hverkuil@xs4all.nl>
+To:     linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+X-CMAE-Envelope: MS4wfPtalScxbQ8j19I6rCfPdAkkZLdUDBNH6636j6XHCepBxh53KI2Pq57CqAOZPIpcmr+LhKdxFL1nDtUswIpddvELhstNwT91vYK3GxeXpAA4uTN+QCPQ
+ n42niIYTg8Kgo5J3HCGNJT5M586+sc0uQGxj1jZUd3WjIKDVmT62QuwQiya4viqW+3Ax6E88yI9CPWVwSKQNY2VHrvVnsNYycWFKcjH/2QB8fgRnSrcfs5b0
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Thu, Feb 7, 2019 at 11:28 PM Jason Gunthorpe <jgg@mellanox.com> wrote:
->
-> Commit 2db76d7c3c6d ("lib/scatterlist: sg_page_iter: support sg lists w/o
-> backing pages") introduced the sg_page_iter_dma_address() function without
-> providing a way to use it in the general case. If the sg_dma_len() is not
-> equal to the sg length callers cannot safely use the
-> for_each_sg_page/sg_page_iter_dma_address combination.
->
-> Resolve this API mistake by providing a DMA specific iterator,
-> for_each_sg_dma_page(), that uses the right length so
-> sg_page_iter_dma_address() works as expected with all sglists.
->
-> A new iterator type is introduced to provide compile-time safety against
-> wrongly mixing accessors and iterators.
->
-> Acked-by: Christoph Hellwig <hch@lst.de> (for scatterlist)
-> Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
-> ---
->  .clang-format                              |  1 +
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Thanks for updating the .clang-format, Jason! :-)
+Results of the daily build of media_tree:
 
-Cheers,
-Miguel
+date:			Fri Feb  8 05:00:11 CET 2019
+media-tree git hash:	6fd369dd1cb65a032f1ab9227033ecb7b759656d
+media_build git hash:	c23276037794bae357fa8d23e3a4f11af9ad46e9
+v4l-utils git hash:	a18e32691ed8112e4f5e3d3c1bc37168d711e3bf
+edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
+gcc version:		i686-linux-gcc (GCC) 8.2.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.19.0-1-amd64
+
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.57-i686: OK
+linux-3.16.57-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.123-i686: OK
+linux-3.18.123-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.52-i686: OK
+linux-4.1.52-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.159-i686: OK
+linux-4.4.159-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.131-i686: OK
+linux-4.9.131-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.74-i686: OK
+linux-4.14.74-x86_64: OK
+linux-4.15.18-i686: OK
+linux-4.15.18-x86_64: OK
+linux-4.16.18-i686: OK
+linux-4.16.18-x86_64: OK
+linux-4.17.19-i686: OK
+linux-4.17.19-x86_64: OK
+linux-4.18.12-i686: OK
+linux-4.18.12-x86_64: OK
+linux-4.19.1-i686: OK
+linux-4.19.1-x86_64: OK
+linux-4.20.1-i686: OK
+linux-4.20.1-x86_64: OK
+linux-5.0-rc1-i686: OK
+linux-5.0-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
