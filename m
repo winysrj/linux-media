@@ -6,28 +6,28 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,UNPARSEABLE_RELAY,
 	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 08C5EC169C4
-	for <linux-media@archiver.kernel.org>; Fri,  8 Feb 2019 16:21:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F718C282CB
+	for <linux-media@archiver.kernel.org>; Fri,  8 Feb 2019 16:21:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id D6C802084D
-	for <linux-media@archiver.kernel.org>; Fri,  8 Feb 2019 16:21:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2F6CC2084D
+	for <linux-media@archiver.kernel.org>; Fri,  8 Feb 2019 16:21:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727144AbfBHQVa (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 8 Feb 2019 11:21:30 -0500
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:55426 "EHLO
+        id S1727169AbfBHQVd (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 8 Feb 2019 11:21:33 -0500
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:55432 "EHLO
         bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726847AbfBHQVa (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Feb 2019 11:21:30 -0500
+        with ESMTP id S1727084AbfBHQVd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Feb 2019 11:21:33 -0500
 Received: from [127.0.0.1] (localhost [127.0.0.1])
         (Authenticated sender: ezequiel)
-        with ESMTPSA id F0F1B263995
+        with ESMTPSA id E4D45263995
 From:   Ezequiel Garcia <ezequiel@collabora.com>
 To:     linux-media@vger.kernel.org
 Cc:     Hans Verkuil <hans.verkuil@cisco.com>, kernel@collabora.com,
         Ezequiel Garcia <ezequiel@collabora.com>
-Subject: [PATCH 02/10] mtk-mdp: Correct return type for mem2mem buffer helpers
-Date:   Fri,  8 Feb 2019 13:17:40 -0300
-Message-Id: <20190208161748.5862-3-ezequiel@collabora.com>
+Subject: [PATCH 04/10] mx2_emmaprp: Correct return type for mem2mem buffer helpers
+Date:   Fri,  8 Feb 2019 13:17:42 -0300
+Message-Id: <20190208161748.5862-5-ezequiel@collabora.com>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190208161748.5862-1-ezequiel@collabora.com>
 References: <20190208161748.5862-1-ezequiel@collabora.com>
@@ -59,59 +59,33 @@ of a void pointer.
 
 Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
 ---
- drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c | 20 +++++++-------------
- 1 file changed, 7 insertions(+), 13 deletions(-)
+ drivers/media/platform/mx2_emmaprp.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c b/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
-index 51a13466261e..7d15c06e9db9 100644
---- a/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
-+++ b/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
-@@ -473,20 +473,17 @@ static void mtk_mdp_prepare_addr(struct mtk_mdp_ctx *ctx,
- static void mtk_mdp_m2m_get_bufs(struct mtk_mdp_ctx *ctx)
+diff --git a/drivers/media/platform/mx2_emmaprp.c b/drivers/media/platform/mx2_emmaprp.c
+index 27b078cf98e3..f60f499c596b 100644
+--- a/drivers/media/platform/mx2_emmaprp.c
++++ b/drivers/media/platform/mx2_emmaprp.c
+@@ -274,7 +274,7 @@ static void emmaprp_device_run(void *priv)
  {
- 	struct mtk_mdp_frame *s_frame, *d_frame;
--	struct vb2_buffer *src_vb, *dst_vb;
- 	struct vb2_v4l2_buffer *src_vbuf, *dst_vbuf;
+ 	struct emmaprp_ctx *ctx = priv;
+ 	struct emmaprp_q_data *s_q_data, *d_q_data;
+-	struct vb2_buffer *src_buf, *dst_buf;
++	struct vb2_v4l2_buffer *src_buf, *dst_buf;
+ 	struct emmaprp_dev *pcdev = ctx->dev;
+ 	unsigned int s_width, s_height;
+ 	unsigned int d_width, d_height;
+@@ -294,8 +294,8 @@ static void emmaprp_device_run(void *priv)
+ 	d_height = d_q_data->height;
+ 	d_size = d_width * d_height;
  
- 	s_frame = &ctx->s_frame;
- 	d_frame = &ctx->d_frame;
- 
--	src_vb = v4l2_m2m_next_src_buf(ctx->m2m_ctx);
--	mtk_mdp_prepare_addr(ctx, src_vb, s_frame, &s_frame->addr);
-+	src_vbuf = v4l2_m2m_next_src_buf(ctx->m2m_ctx);
-+	mtk_mdp_prepare_addr(ctx, &src_vbuf->vb2_buf, s_frame, &s_frame->addr);
- 
--	dst_vb = v4l2_m2m_next_dst_buf(ctx->m2m_ctx);
--	mtk_mdp_prepare_addr(ctx, dst_vb, d_frame, &d_frame->addr);
-+	dst_vbuf = v4l2_m2m_next_dst_buf(ctx->m2m_ctx);
-+	mtk_mdp_prepare_addr(ctx, &dst_vbuf->vb2_buf, d_frame, &d_frame->addr);
- 
--	src_vbuf = to_vb2_v4l2_buffer(src_vb);
--	dst_vbuf = to_vb2_v4l2_buffer(dst_vb);
- 	dst_vbuf->vb2_buf.timestamp = src_vbuf->vb2_buf.timestamp;
- }
- 
-@@ -494,17 +491,14 @@ static void mtk_mdp_process_done(void *priv, int vb_state)
- {
- 	struct mtk_mdp_dev *mdp = priv;
- 	struct mtk_mdp_ctx *ctx;
--	struct vb2_buffer *src_vb, *dst_vb;
--	struct vb2_v4l2_buffer *src_vbuf = NULL, *dst_vbuf = NULL;
-+	struct vb2_v4l2_buffer *src_vbuf, *dst_vbuf;
- 
- 	ctx = v4l2_m2m_get_curr_priv(mdp->m2m_dev);
- 	if (!ctx)
- 		return;
- 
--	src_vb = v4l2_m2m_src_buf_remove(ctx->m2m_ctx);
--	src_vbuf = to_vb2_v4l2_buffer(src_vb);
--	dst_vb = v4l2_m2m_dst_buf_remove(ctx->m2m_ctx);
--	dst_vbuf = to_vb2_v4l2_buffer(dst_vb);
-+	src_vbuf = v4l2_m2m_src_buf_remove(ctx->m2m_ctx);
-+	dst_vbuf = v4l2_m2m_dst_buf_remove(ctx->m2m_ctx);
- 
- 	dst_vbuf->vb2_buf.timestamp = src_vbuf->vb2_buf.timestamp;
- 	dst_vbuf->timecode = src_vbuf->timecode;
+-	p_in = vb2_dma_contig_plane_dma_addr(src_buf, 0);
+-	p_out = vb2_dma_contig_plane_dma_addr(dst_buf, 0);
++	p_in = vb2_dma_contig_plane_dma_addr(&src_buf->vb2_buf, 0);
++	p_out = vb2_dma_contig_plane_dma_addr(&dst_buf->vb2_buf, 0);
+ 	if (!p_in || !p_out) {
+ 		v4l2_err(&pcdev->v4l2_dev,
+ 			 "Acquiring kernel pointers to buffers failed\n");
 -- 
 2.20.1
 
