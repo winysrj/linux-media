@@ -2,121 +2,107 @@ Return-Path: <SRS0=EeSY=QP=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_NEOMUTT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B3DDCC169C4
-	for <linux-media@archiver.kernel.org>; Fri,  8 Feb 2019 21:12:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 49D0FC169C4
+	for <linux-media@archiver.kernel.org>; Fri,  8 Feb 2019 21:23:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8984420855
-	for <linux-media@archiver.kernel.org>; Fri,  8 Feb 2019 21:12:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0A636218DA
+	for <linux-media@archiver.kernel.org>; Fri,  8 Feb 2019 21:23:28 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gateworks-com.20150623.gappssmtp.com header.i=@gateworks-com.20150623.gappssmtp.com header.b="gbEJ4ccA"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726949AbfBHVMc (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 8 Feb 2019 16:12:32 -0500
-Received: from gofer.mess.org ([88.97.38.141]:60581 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726524AbfBHVMc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 8 Feb 2019 16:12:32 -0500
-Received: by gofer.mess.org (Postfix, from userid 1000)
-        id 22C42601F7; Fri,  8 Feb 2019 21:12:31 +0000 (GMT)
-Date:   Fri, 8 Feb 2019 21:12:30 +0000
-From:   Sean Young <sean@mess.org>
-To:     hverkuil-cisco@xs4all.nl
-Cc:     linux-media@vger.kernel.org,
-        Michael Ira Krufky <mkrufky@linuxtv.org>,
-        Brad Love <brad@nextdimension.cc>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [RFC PATCH 8/8] dvb-core: fix epoll() by calling poll_wait first
-Message-ID: <20190208211230.xznkkm7ucw7jn3h4@gofer.mess.org>
-References: <20190207114948.37750-1-hverkuil-cisco@xs4all.nl>
- <20190207114948.37750-9-hverkuil-cisco@xs4all.nl>
+        id S1727187AbfBHVX1 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 8 Feb 2019 16:23:27 -0500
+Received: from mail-wm1-f50.google.com ([209.85.128.50]:36288 "EHLO
+        mail-wm1-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726796AbfBHVX1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Feb 2019 16:23:27 -0500
+Received: by mail-wm1-f50.google.com with SMTP id p6so5526237wmc.1
+        for <linux-media@vger.kernel.org>; Fri, 08 Feb 2019 13:23:26 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gateworks-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=CWKL1D/k8zJCADycAqdORfkW1FO7xa1KtnvAF+w7rEY=;
+        b=gbEJ4ccABNZHVX55Hxpxe2npO3gPPp5sj/95e2LPzgXwMMZVPZx3Tzwhd3lw1FWE+H
+         TaYi77sSTZS0KP3iwD8t2FVUSnADJHwdbdYZMO3RJvYQYmL8ySRzWy83VVxIwln0NT9u
+         /06uPLKZJCPpDTZl4t/jEWkXeQYJMvnxZSeCvxo5412UD/xMjDTHe2LynvDEc//aFy1p
+         FB88XN1l6dXWeAEnwlFL2wYNpwoBG1DMBUkVfQXoXIpTIDdDwVXC8i071CVztNEmdEnM
+         Rr/T26DFxgvegOVvoQnE2GVhWO4+Is0W1mNogur2LYTMTI3lds165ZoiIknUiFJaa/6v
+         AvRQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=CWKL1D/k8zJCADycAqdORfkW1FO7xa1KtnvAF+w7rEY=;
+        b=HH3s6TsfIHebelF5Bel9iMs+U3XI5+mGd5sa2//ZlDC9oTQlnBA6KSTXkNYxoDg9ON
+         zfBT6NqIJmy+rgYNY+AQ3tKecJ7YQ2n7KrPvF32lIvPSjPfXkZkro1937mzucISAfSX5
+         x7vpxBJNs8D3pdNBc6K3ozWpePxJHldXEV0RaKbWoHGjsfXVtdemThm9RNcMeflJbUvH
+         O/d6tMR9+yWy9zGnV2nT/vijUEotKz5dx+e6aMlKdfUjoZ2wV5j1nhJ2ohKsaCaRLnyf
+         yBYkd6ql+fMbjpVEzQZrr3aSLLQkxt2aARrdq3bGo++nSRHhz4NHlXyPaZukB+4040kx
+         jUZQ==
+X-Gm-Message-State: AHQUAuaz+5vZ2BbnOpEervsb4hUojwYIRPOGZG74I7a+bMcpE1VpXHj4
+        u642/FDMSoqJB8wrzshfJFhJpfFKiW1IoctpUcHHW4nj6+s=
+X-Google-Smtp-Source: AHgI3IbFU9CqDtJDf8bQE9aFbIU1d6Y9cQz68Vb7qQinc4hwuRH3WLxo+/YZhJYI8rGk5TCnOHc5G6f8wXiqz23mvRQ=
+X-Received: by 2002:adf:ef0d:: with SMTP id e13mr17919355wro.29.1549661005319;
+ Fri, 08 Feb 2019 13:23:25 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190207114948.37750-9-hverkuil-cisco@xs4all.nl>
-User-Agent: NeoMutt/20170113 (1.7.2)
+References: <CAJ+vNU0ic=wzSC9V4hbmarN0JeQMs121MzD6tH5KQ+ezENUNfA@mail.gmail.com>
+ <02e8680c-9fd5-ff54-f292-f6936c76583e@gmail.com> <CAJ+vNU0YQeiPaE8tapJnihoj3DtewCPTj05BZv5cJ65YkE9MeQ@mail.gmail.com>
+ <db70e0f7-0ad4-62f5-e64c-49c04c089dd6@gmail.com> <CAJ+vNU3X6ywgobcV+wQxEupkNeNmiWaT85xUOtKF_U44OAfskg@mail.gmail.com>
+ <7cfe3570-64e5-d5e3-aeaf-35253c0fa918@gmail.com> <CAJ+vNU2VebBg83vsiGmsx+0PuD=qr4w3fc9a7-bvgji=iyPDyQ@mail.gmail.com>
+ <b97bf10a-f4dc-840b-9ffe-b311fdeee374@gmail.com> <CAJ+vNU0_-Ti1bAfEo=3kg79hYFSE4ZFx9C4HswqUWXB463yXXA@mail.gmail.com>
+ <CAJ+vNU3HpW=K_3ub9iX33GnjaZuHUAqbto=saV13DaC=ZSO2aQ@mail.gmail.com> <3414560a-0aa0-9c51-28eb-7d3ded0af86e@gmail.com>
+In-Reply-To: <3414560a-0aa0-9c51-28eb-7d3ded0af86e@gmail.com>
+From:   Tim Harvey <tharvey@gateworks.com>
+Date:   Fri, 8 Feb 2019 13:23:13 -0800
+Message-ID: <CAJ+vNU0xzyi0-mm7aOjdvmdAWLFdK8m_i88yF29wtmhtXdDEAQ@mail.gmail.com>
+Subject: Re: IMX CSI capture issues with tda1997x HDMI receiver
+To:     Steve Longerbeam <slongerbeam@gmail.com>
+Cc:     Philipp Zabel <p.zabel@pengutronix.de>,
+        linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Thu, Feb 07, 2019 at 12:49:48PM +0100, hverkuil-cisco@xs4all.nl wrote:
-> From: Hans Verkuil <hverkuil-cisco@xs4all.nl>
-> 
-> The epoll function expects that whenever the poll file op is
-> called, the poll_wait function is also called. That didn't
-> always happen in dvb_demux_poll(), dvb_dvr_poll() and
-> dvb_ca_en50221_io_poll(). Fix this, otherwise epoll()
-> can timeout when it shouldn't.
-> 
-> Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+On Thu, Feb 7, 2019 at 5:54 PM Steve Longerbeam <slongerbeam@gmail.com> wrote:
+>
+>
+<snip>
+> >>
+> > Ok there is definitely something wrong when using the IC with
+> > UYVY8_1X16 (passthrough) which works with UYVY8_2X8. It looks to me
+> > like the ipu1_ic_prp isn't negotiating its format properly. You can't
+> > re-create this because you don't have any UYVY8_1X16 (passthrough)
+> > sensors right?
+>
+> Sorry, maybe I didn't mention this, but passthrough cannot go though the
+> IPU, you can only send passthrough pixels out the CSI directly to
+> /dev/videoN interface (the ipu_csi:2 pad).
+>
 
-Reviewed-by: Sean Young <sean@mess.org>
+crud... this has been my issue all along with that set of UYVY8_1X16
+pipelines then. So this means the mem2mem driver also won't be able to
+handle 16bit pixel formats as well. So while I can downscale this by
+multiples of 2 (independent width/height), CSC convert it from
+srgb/bt.601 to yuv/bt.709, and even pixel reorder it within YUV  via
+the ipu_csi entitty I'll never be able to deinterlace, scale with
+flexibility, flip/rotate or do a RGB->YUV CSC on it as those are all
+features of the IC path.
 
-> ---
->  drivers/media/dvb-core/dmxdev.c         | 8 ++++----
->  drivers/media/dvb-core/dvb_ca_en50221.c | 5 ++---
->  2 files changed, 6 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/media/dvb-core/dmxdev.c b/drivers/media/dvb-core/dmxdev.c
-> index 1544e8cef564..f14a872d1268 100644
-> --- a/drivers/media/dvb-core/dmxdev.c
-> +++ b/drivers/media/dvb-core/dmxdev.c
-> @@ -1195,13 +1195,13 @@ static __poll_t dvb_demux_poll(struct file *file, poll_table *wait)
->  	struct dmxdev_filter *dmxdevfilter = file->private_data;
->  	__poll_t mask = 0;
->  
-> +	poll_wait(file, &dmxdevfilter->buffer.queue, wait);
-> +
->  	if ((!dmxdevfilter) || dmxdevfilter->dev->exit)
->  		return EPOLLERR;
->  	if (dvb_vb2_is_streaming(&dmxdevfilter->vb2_ctx))
->  		return dvb_vb2_poll(&dmxdevfilter->vb2_ctx, file, wait);
->  
-> -	poll_wait(file, &dmxdevfilter->buffer.queue, wait);
-> -
->  	if (dmxdevfilter->state != DMXDEV_STATE_GO &&
->  	    dmxdevfilter->state != DMXDEV_STATE_DONE &&
->  	    dmxdevfilter->state != DMXDEV_STATE_TIMEDOUT)
-> @@ -1346,13 +1346,13 @@ static __poll_t dvb_dvr_poll(struct file *file, poll_table *wait)
->  
->  	dprintk("%s\n", __func__);
->  
-> +	poll_wait(file, &dmxdev->dvr_buffer.queue, wait);
-> +
->  	if (dmxdev->exit)
->  		return EPOLLERR;
->  	if (dvb_vb2_is_streaming(&dmxdev->dvr_vb2_ctx))
->  		return dvb_vb2_poll(&dmxdev->dvr_vb2_ctx, file, wait);
->  
-> -	poll_wait(file, &dmxdev->dvr_buffer.queue, wait);
-> -
->  	if (((file->f_flags & O_ACCMODE) == O_RDONLY) ||
->  	    dmxdev->may_do_mmap) {
->  		if (dmxdev->dvr_buffer.error)
-> diff --git a/drivers/media/dvb-core/dvb_ca_en50221.c b/drivers/media/dvb-core/dvb_ca_en50221.c
-> index 4d371cea0d5d..ebf1e3b03819 100644
-> --- a/drivers/media/dvb-core/dvb_ca_en50221.c
-> +++ b/drivers/media/dvb-core/dvb_ca_en50221.c
-> @@ -1797,6 +1797,8 @@ static __poll_t dvb_ca_en50221_io_poll(struct file *file, poll_table *wait)
->  
->  	dprintk("%s\n", __func__);
->  
-> +	poll_wait(file, &ca->wait_queue, wait);
-> +
->  	if (dvb_ca_en50221_io_read_condition(ca, &result, &slot) == 1)
->  		mask |= EPOLLIN;
->  
-> @@ -1804,9 +1806,6 @@ static __poll_t dvb_ca_en50221_io_poll(struct file *file, poll_table *wait)
->  	if (mask)
->  		return mask;
->  
-> -	/* wait for something to happen */
-> -	poll_wait(file, &ca->wait_queue, wait);
-> -
->  	if (dvb_ca_en50221_io_read_condition(ca, &result, &slot) == 1)
->  		mask |= EPOLLIN;
->  
-> -- 
-> 2.20.1
+I'm still struggling with what mbus format to configure the
+sensor<->csi interconnect in the device-tree. I was leaning towards
+16bit but now that I realize that can't be used with the IPU I'm
+thinking the bt656 is more flexible (accept it has the limitation of
+not being able to do 1080p60 due to pixel clock and also can't handle
+interlaced due bt656 codes). If I end up wanting to switch between
+tda1997x sensor bus formats I'm not even sure the best way to deal
+with that (two dts I suppose and allowing user to select which one
+they use).
+
+Tim
