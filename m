@@ -2,155 +2,154 @@ Return-Path: <SRS0=EeSY=QP=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_NEOMUTT autolearn=unavailable
+X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 684A5C282CB
-	for <linux-media@archiver.kernel.org>; Fri,  8 Feb 2019 23:18:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 90830C169C4
+	for <linux-media@archiver.kernel.org>; Fri,  8 Feb 2019 23:22:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 3FF8320836
-	for <linux-media@archiver.kernel.org>; Fri,  8 Feb 2019 23:18:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5B3CF218DA
+	for <linux-media@archiver.kernel.org>; Fri,  8 Feb 2019 23:22:54 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Xd4RIKX7"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726860AbfBHXR4 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 8 Feb 2019 18:17:56 -0500
-Received: from mga04.intel.com ([192.55.52.120]:55824 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726353AbfBHXRz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 8 Feb 2019 18:17:55 -0500
-X-Amp-Result: UNKNOWN
-X-Amp-Original-Verdict: FILE UNKNOWN
-X-Amp-File-Uploaded: False
-Received: from fmsmga005.fm.intel.com ([10.253.24.32])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 08 Feb 2019 15:17:55 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.58,348,1544515200"; 
-   d="scan'208";a="318829222"
-Received: from sshumihi-mobl.ccr.corp.intel.com (HELO mara.localdomain) ([10.252.20.76])
-  by fmsmga005.fm.intel.com with ESMTP; 08 Feb 2019 15:17:51 -0800
-Received: from sailus by mara.localdomain with local (Exim 4.89)
-        (envelope-from <sakari.ailus@linux.intel.com>)
-        id 1gsFP2-0005a0-DG; Sat, 09 Feb 2019 01:17:49 +0200
-Date:   Sat, 9 Feb 2019 01:17:47 +0200
-From:   Sakari Ailus <sakari.ailus@linux.intel.com>
-To:     Maxime Ripard <maxime.ripard@bootlin.com>
-Cc:     Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, Andrzej Hajda <a.hajda@samsung.com>,
-        Chen-Yu Tsai <wens@csie.org>, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
-        Mark Rutland <mark.rutland@arm.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Frank Rowand <frowand.list@gmail.com>
-Subject: Re: [PATCH v2 3/5] media: sunxi: Add A10 CSI driver
-Message-ID: <20190208231746.sjgb7im6xqsawhwz@mara.localdomain>
-References: <cover.ba7411f0c7155d0292b38d3dec698e26b5cc813b.1548687041.git-series.maxime.ripard@bootlin.com>
- <c1a7d46f8504decb58ff224b0b5f2f0733282cc6.1548687041.git-series.maxime.ripard@bootlin.com>
- <20190129123949.qdmqnfaym3y42dvj@paasikivi.fi.intel.com>
- <20190206211605.27cq2lxuv3gtyyux@flea>
+        id S1726844AbfBHXWw (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 8 Feb 2019 18:22:52 -0500
+Received: from mail-wm1-f54.google.com ([209.85.128.54]:35805 "EHLO
+        mail-wm1-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726211AbfBHXWw (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Feb 2019 18:22:52 -0500
+Received: by mail-wm1-f54.google.com with SMTP id t200so6026145wmt.0
+        for <linux-media@vger.kernel.org>; Fri, 08 Feb 2019 15:22:50 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=subject:to:cc:references:from:message-id:date:user-agent
+         :mime-version:in-reply-to:content-transfer-encoding:content-language;
+        bh=me7LuBFT9SUOZQAcEzERdDDn3tETxJq2LAlKA55BFW0=;
+        b=Xd4RIKX7ub7x1vDT2k1R0xHe9hgIascC6AvamyASuCJiDhDW4aEjgNFt4qM1PgVQBS
+         GJE2kG6JQw/zxOWeTdCFyFpK+P8L2hKA2Wf0Da6ZrxJTLkFP1tRnbd4hJIunUBbvxE9o
+         VkWlWCojrRBIg5jRa7oH3RP1P1M0bb4O9yk7/s27PSHrUU2N5qQdnU2lV3nN6PRTELvS
+         17uwou91KjEpdd3Wd9D7HTnvPPsYSx3EZviuK6BT1gqr3+xo1IDpz71PREYN2hRxRLM5
+         AH6kh+TPYvl/JuAb5g4udXSFvp+CuX7Up9iaCKgZ8VztPZ8BSBZaHcqqseA8rmk8AT8J
+         XYZw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-transfer-encoding
+         :content-language;
+        bh=me7LuBFT9SUOZQAcEzERdDDn3tETxJq2LAlKA55BFW0=;
+        b=WWdJWG1dewRGAQSbAWv0MtULOpMbBCEvSDk+Qn5pkl0BoZj/+f1XWCz3jzZwcFSiRU
+         QUgEAroU0ejJpSg7CzeEtVZsp6kwYnqbxKbt4sSMFGPaLfTOy1xxSPRaRH3Kyp0n92Qd
+         aHQdISfUgJEUAQjlSH/ChiQUxMHTdXLEq0wlQxkKT063N6t7hzN1vHn4m/Im3bQJ/enB
+         CepqLWWmGkrY4MoX0V215PIwmCKfq/bZcnOJveCMo0+GojLmtmsbHB/+T56pcKbygdyC
+         mJv9EGO6TBeRTsKdLn9oWXN9DyweNWP0wAmAcxemU+D2/bUOYwlRH9bDCwgVScUHoD9Z
+         BzYA==
+X-Gm-Message-State: AHQUAubRWqbT1pPU7Fw+75uNx/PHjNwbKey57wCUwLR+VS+pDo0lBipG
+        5gRtRzSQkw71lKQYsaD4HPKr5LQ/
+X-Google-Smtp-Source: AHgI3IZ+TfCsM2P+jOijZgID4sL6Rfap5amrZ/cDrnBDC81SAFbVO5HdydPq2dnNVwQ2V34HzbHiQg==
+X-Received: by 2002:adf:8506:: with SMTP id 6mr19402607wrh.128.1549668169455;
+        Fri, 08 Feb 2019 15:22:49 -0800 (PST)
+Received: from [172.30.89.46] (sjewanfw1-nat.mentorg.com. [139.181.7.34])
+        by smtp.gmail.com with ESMTPSA id 2sm7587747wrj.27.2019.02.08.15.22.47
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 08 Feb 2019 15:22:48 -0800 (PST)
+Subject: Re: IMX CSI capture issues with tda1997x HDMI receiver
+To:     Tim Harvey <tharvey@gateworks.com>
+Cc:     Philipp Zabel <p.zabel@pengutronix.de>,
+        linux-media <linux-media@vger.kernel.org>
+References: <CAJ+vNU0ic=wzSC9V4hbmarN0JeQMs121MzD6tH5KQ+ezENUNfA@mail.gmail.com>
+ <02e8680c-9fd5-ff54-f292-f6936c76583e@gmail.com>
+ <CAJ+vNU0YQeiPaE8tapJnihoj3DtewCPTj05BZv5cJ65YkE9MeQ@mail.gmail.com>
+ <db70e0f7-0ad4-62f5-e64c-49c04c089dd6@gmail.com>
+ <CAJ+vNU3X6ywgobcV+wQxEupkNeNmiWaT85xUOtKF_U44OAfskg@mail.gmail.com>
+ <7cfe3570-64e5-d5e3-aeaf-35253c0fa918@gmail.com>
+ <CAJ+vNU2VebBg83vsiGmsx+0PuD=qr4w3fc9a7-bvgji=iyPDyQ@mail.gmail.com>
+ <b97bf10a-f4dc-840b-9ffe-b311fdeee374@gmail.com>
+ <CAJ+vNU0_-Ti1bAfEo=3kg79hYFSE4ZFx9C4HswqUWXB463yXXA@mail.gmail.com>
+ <CAJ+vNU3HpW=K_3ub9iX33GnjaZuHUAqbto=saV13DaC=ZSO2aQ@mail.gmail.com>
+ <3414560a-0aa0-9c51-28eb-7d3ded0af86e@gmail.com>
+ <CAJ+vNU0xzyi0-mm7aOjdvmdAWLFdK8m_i88yF29wtmhtXdDEAQ@mail.gmail.com>
+From:   Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <1a9ac03b-5fd3-a27d-7818-129d64bbe5f6@gmail.com>
+Date:   Fri, 8 Feb 2019 15:22:45 -0800
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.4.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190206211605.27cq2lxuv3gtyyux@flea>
-User-Agent: NeoMutt/20170113 (1.7.2)
+In-Reply-To: <CAJ+vNU0xzyi0-mm7aOjdvmdAWLFdK8m_i88yF29wtmhtXdDEAQ@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Maxime,
 
-On Wed, Feb 06, 2019 at 10:16:05PM +0100, Maxime Ripard wrote:
-> Hi Sakari,
-> 
-> Thanks for your review, I have a few questions though, and the rest
-> will be addressed in the next version.
-> 
-> On Tue, Jan 29, 2019 at 02:39:49PM +0200, Sakari Ailus wrote:
-> > > +static int csi_notify_complete(struct v4l2_async_notifier *notifier)
-> > > +{
-> > > +	struct sun4i_csi *csi = container_of(notifier, struct sun4i_csi,
-> > > +					     notifier);
-> > > +	int ret;
-> > > +
-> > > +	ret = v4l2_device_register_subdev_nodes(&csi->v4l);
-> > > +	if (ret < 0)
-> > > +		return ret;
-> > > +
-> > > +	ret = sun4i_csi_v4l2_register(csi);
-> > > +	if (ret < 0)
-> > > +		return ret;
-> > > +
-> > > +	return media_create_pad_link(&csi->src_subdev->entity, csi->src_pad,
-> > > +				     &csi->vdev.entity, 0,
-> > > +				     MEDIA_LNK_FL_ENABLED |
-> > > +				     MEDIA_LNK_FL_IMMUTABLE);
-> > 
-> > This appears to create a link directly from the sensor entity to the video
-> > device entity. Is that intentional? I'd expect to see a CSI-2 receiver
-> > sub-device as well, which I don't see being created by the driver.
-> > 
-> > This is indeed a novel proposal. I have some concerns though.
-> > 
-> > The user doesn't have access to the configured media bus format (reflecting
-> > the format on the CSI-2 bus on receiver's side). It's thus difficult to
-> > figure out whether the V4L2 pixel format configured on the video node
-> > matches what the sensor outputs. Admittedly, we don't have a perfect
-> > solution to that whenever the DMA hardware supports multiple V4L2 pixel
-> > formats on a single media bus format. We might need to have a different
-> > solution for this one, should it be without that receiver sub-device.
-> > 
-> > Could you add the CSI-2 receiver sub-device, please?
-> 
-> Even though the name of the controller is *very* confusing, this isn't
-> a MIPI-CSI receiver, but a parallel one that supports RGB and BT656
-> buses.
 
-Right.
+On 2/8/19 1:23 PM, Tim Harvey wrote:
+> On Thu, Feb 7, 2019 at 5:54 PM Steve Longerbeam <slongerbeam@gmail.com> wrote:
+>>
+> <snip>
+>>> Ok there is definitely something wrong when using the IC with
+>>> UYVY8_1X16 (passthrough) which works with UYVY8_2X8. It looks to me
+>>> like the ipu1_ic_prp isn't negotiating its format properly. You can't
+>>> re-create this because you don't have any UYVY8_1X16 (passthrough)
+>>> sensors right?
+>> Sorry, maybe I didn't mention this, but passthrough cannot go though the
+>> IPU, you can only send passthrough pixels out the CSI directly to
+>> /dev/videoN interface (the ipu_csi:2 pad).
+>>
+> crud... this has been my issue all along with that set of UYVY8_1X16
+> pipelines then. So this means the mem2mem driver also won't be able to
+> handle 16bit pixel formats as well.
 
-> 
-> > > +	csi->pad.flags = MEDIA_PAD_FL_SINK | MEDIA_PAD_FL_MUST_CONNECT;
-> > 
-> > Could you make it IMMUTABLE and ENABLED? If there is no need to disable it,
-> > that is.
-> 
-> The link is already created with those flags, and as far as I know it
-> doesn't exist for the pads
+Ugh, let me rephrase. UYVY8_1X16 incoming on a parallel bus (not MIPI 
+CSI-2) to the CSI cannot be sent through the IPU, those pixels must be 
+sent directly to the ipu_csi:2 pad to /dev/videoN. At least according 
+the the imx6 register manual.
 
-Oops. And it wasn't even late when I reviewed the patch. :-P Please ignore
-the comment --- I agree on the pad flags and the link flags (some lines up)
-appear fine, too.
+But that's not a limitation of the mem2mem driver because the pixels are 
+coming from a memory buffer and not a 16-bi parallel bus via the CSI 
+(and in any case mem2mem does not deal in media bus codes, it speaks 
+V4L2_PIX_FMT_* which contains no bus info). So yes, you can receive 
+UYVY8_1X16 on the CSI parallel bus, routed to ipu_csi:2 pad to 
+/dev/videoN, and then pipe that to mem2mem v4l2convertN element in a 
+gstreamer pipeline.
 
-> 
-> > > +static int csi_release(struct file *file)
-> > > +{
-> > > +	struct sun4i_csi *csi = video_drvdata(file);
-> > > +	int ret;
-> > > +
-> > > +	mutex_lock(&csi->lock);
-> > > +
-> > > +	ret = v4l2_fh_release(file);
-> > 
-> > v4l2_fh_release() always returns 0. I guess it could be changed to return
-> > void. The reason it has int is that it could be used as the release
-> > callback as such.
-> > 
-> > > +	v4l2_pipeline_pm_use(&csi->vdev.entity, 0);
-> > > +	pm_runtime_put(csi->dev);
-> > > +
-> > > +	mutex_unlock(&csi->lock);
-> > > +
-> > > +	return ret;
-> > > +}
-> 
-> Do you want me to change the construct then?
 
-Please.
 
--- 
-Kind regards,
+>   So while I can downscale this by
+> multiples of 2 (independent width/height), CSC convert it from
+> srgb/bt.601 to yuv/bt.709, and even pixel reorder it within YUV  via
+> the ipu_csi entitty I'll never be able to deinterlace,
 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+that's true, currently you can't use the VDIC to do motion compensated 
+de-interlacing, but you can still make use of the IDMAC interweave 
+feature to deinterlace without motion compensation.
+
+>   scale with
+> flexibility, flip/rotate or do a RGB->YUV CSC on it as those are all
+> features of the IC path.
+
+mem2mem v4l2convertN element will do those for you (flexible up/down 
+scaling, flip/rotate, and CSC).
+
+Steve
+
+
+
+>
+> I'm still struggling with what mbus format to configure the
+> sensor<->csi interconnect in the device-tree. I was leaning towards
+> 16bit but now that I realize that can't be used with the IPU I'm
+> thinking the bt656 is more flexible (accept it has the limitation of
+> not being able to do 1080p60 due to pixel clock and also can't handle
+> interlaced due bt656 codes). If I end up wanting to switch between
+> tda1997x sensor bus formats I'm not even sure the best way to deal
+> with that (two dts I suppose and allowing user to select which one
+> they use).
+>
+> Tim
+
