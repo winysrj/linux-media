@@ -2,183 +2,212 @@ Return-Path: <SRS0=EeSY=QP=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,UNPARSEABLE_RELAY,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 82BE1C282CB
-	for <linux-media@archiver.kernel.org>; Fri,  8 Feb 2019 16:21:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 41A90C169C4
+	for <linux-media@archiver.kernel.org>; Fri,  8 Feb 2019 16:24:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5295E2084D
-	for <linux-media@archiver.kernel.org>; Fri,  8 Feb 2019 16:21:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 134512084D
+	for <linux-media@archiver.kernel.org>; Fri,  8 Feb 2019 16:24:49 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gateworks-com.20150623.gappssmtp.com header.i=@gateworks-com.20150623.gappssmtp.com header.b="0+QEHfOw"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727418AbfBHQVr (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 8 Feb 2019 11:21:47 -0500
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:55456 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727325AbfBHQVr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Feb 2019 11:21:47 -0500
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-        (Authenticated sender: ezequiel)
-        with ESMTPSA id 88E6D263995
-From:   Ezequiel Garcia <ezequiel@collabora.com>
-To:     linux-media@vger.kernel.org
-Cc:     Hans Verkuil <hans.verkuil@cisco.com>, kernel@collabora.com,
-        Ezequiel Garcia <ezequiel@collabora.com>
-Subject: [PATCH 10/10] media: v4l2-mem2mem: Correct return type for mem2mem buffer helpers
-Date:   Fri,  8 Feb 2019 13:17:48 -0300
-Message-Id: <20190208161748.5862-11-ezequiel@collabora.com>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20190208161748.5862-1-ezequiel@collabora.com>
-References: <20190208161748.5862-1-ezequiel@collabora.com>
+        id S1726869AbfBHQYs (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 8 Feb 2019 11:24:48 -0500
+Received: from mail-wr1-f66.google.com ([209.85.221.66]:34396 "EHLO
+        mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727115AbfBHQYr (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Feb 2019 11:24:47 -0500
+Received: by mail-wr1-f66.google.com with SMTP id z15so4239321wrn.1
+        for <linux-media@vger.kernel.org>; Fri, 08 Feb 2019 08:24:46 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gateworks-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=gRB9eVUyeN72O+6cZqkUBflHLrbFQcOWtsgfTHQ9lJ0=;
+        b=0+QEHfOw+quX515EYGZoTt2MgPppdtjvA3dOT+q0N53tg9h0qI/LeVn2teGDWGjPVv
+         g54ijHe0yZbQ0SRrNeI4hqAWsCTlMd2AG2/eErPfe5HAYQ1FNCgkFJYSfdDekpdDYzEe
+         OpIbTyhhIMd9Df3hHf84GIzZWAnGMFmdXXfRz13xdHHlMqsxX1z2gK0dJRNSajupgUzo
+         ZBdjGt15N4BQqW5KJ75tj4Rk8fUqGA4ZiyO55pasyYbjKXJS/1UFrx2uRkw0PWGEX/yi
+         +fFiEv15JCoz39LZ/BYCmpH2XH6if0hFoHt1Hc0tyN12G/jjJLVTmw8MXUW+Mzezdx9r
+         lfFg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=gRB9eVUyeN72O+6cZqkUBflHLrbFQcOWtsgfTHQ9lJ0=;
+        b=fbCnkHdtZQUbOvl3pA0dBtiTura4H4gC/RwDLZD7y4wKKNTGziZS4HQuzEe0JYTZGl
+         HEmIaZr1L8vEvL+Eni8Mfiq5iVYO7r9Ha2QztLDUKIuPWMJjt2WdNl/ebK0mvqskJ8rd
+         D+aBbbIA0727DEPy3HHhFrPO8ogRt2ifni4sVf7xK6gLVNmvzdloovk1/2ES815lDlBR
+         4+13uT2i9btHCnit4veDPLTiisd9sq03eRA074+OpfN7L552fDPKFJBnnUd/38zf5Yoj
+         4AjQ+HaJPx/X+dB6izgFHy/cToqmbouUDf0As/kgWYWjfNb3ME9uUuwhZcWuOPEWs8Zk
+         hMuQ==
+X-Gm-Message-State: AHQUAubgWTMlB9T/Pj+xwPRv/NDe7DiUE6h1vM61EGLPhElQT/KPP9py
+        Dow3GWNLDtGvceYWwFcClMP6GP8LAMfRttTFzGeZWQ==
+X-Google-Smtp-Source: AHgI3IaLH0Q5R2toI+Y1LiO31TYnLeUL/JfxdbIblFZSfco7o23ph/E8F2EvxlNU0MP7RY4iPhG8ZwWSULwfUYazdpw=
+X-Received: by 2002:a5d:690d:: with SMTP id t13mr1113412wru.135.1549643085429;
+ Fri, 08 Feb 2019 08:24:45 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20190203194744.11546-1-slongerbeam@gmail.com> <20190203194744.11546-3-slongerbeam@gmail.com>
+In-Reply-To: <20190203194744.11546-3-slongerbeam@gmail.com>
+From:   Tim Harvey <tharvey@gateworks.com>
+Date:   Fri, 8 Feb 2019 08:24:34 -0800
+Message-ID: <CAJ+vNU0dP+muS7h=8SaHBk1uTEiQT4JpeHKEDG_+VJXAc20Bew@mail.gmail.com>
+Subject: Re: [PATCH 2/3] gpu: ipu-v3: ipu-ic: Add support for BT.709 encoding
+To:     Steve Longerbeam <slongerbeam@gmail.com>
+Cc:     linux-media <linux-media@vger.kernel.org>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        "open list:DRM DRIVERS FOR FREESCALE IMX" 
+        <dri-devel@lists.freedesktop.org>,
+        open list <linux-kernel@vger.kernel.org>,
+        "open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>,
+        "open list:FRAMEBUFFER LAYER" <linux-fbdev@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-This commit changes the return type of mem2mem buffer handling API.
-Namely, these functions:
+On Sun, Feb 3, 2019 at 11:48 AM Steve Longerbeam <slongerbeam@gmail.com> wrote:
+>
+> Pass v4l2 encoding enum to the ipu_ic task init functions, and add
+> support for the BT.709 encoding and inverse encoding matrices.
+>
+> Reported-by: Tim Harvey <tharvey@gateworks.com>
+> Signed-off-by: Steve Longerbeam <slongerbeam@gmail.com>
+> ---
+>  drivers/gpu/ipu-v3/ipu-ic.c                 | 67 ++++++++++++++++++---
+>  drivers/gpu/ipu-v3/ipu-image-convert.c      |  1 +
+>  drivers/staging/media/imx/imx-ic-prpencvf.c |  4 +-
+>  include/video/imx-ipu-v3.h                  |  5 +-
+>  4 files changed, 67 insertions(+), 10 deletions(-)
+>
+> diff --git a/drivers/gpu/ipu-v3/ipu-ic.c b/drivers/gpu/ipu-v3/ipu-ic.c
+> index 35ae86ff0585..63362b4fff81 100644
+> --- a/drivers/gpu/ipu-v3/ipu-ic.c
+> +++ b/drivers/gpu/ipu-v3/ipu-ic.c
+> @@ -199,6 +199,23 @@ static const struct ic_csc_params ic_csc_rgb2ycbcr_bt601 = {
+>         .scale = 1,
+>  };
+>
+> +/*
+> + * BT.709 encoding from RGB full range to YUV limited range:
+> + *
+> + * Y = R *  .2126 + G *  .7152 + B *  .0722;
+> + * U = R * -.1146 + G * -.3854 + B *  .5000 + 128.;
+> + * V = R *  .5000 + G * -.4542 + B * -.0458 + 128.;
+> + */
+> +static const struct ic_csc_params ic_csc_rgb2ycbcr_bt709 = {
+> +       .coeff = {
+> +               { 54, 183, 18 },
+> +               { 483, 413, 128 },
+> +               { 128, 396, 500 },
+> +       },
+> +       .offset = { 0, 512, 512 },
+> +       .scale = 1,
+> +};
+> +
+>  /* transparent RGB->RGB matrix for graphics combining */
+>  static const struct ic_csc_params ic_csc_rgb2rgb = {
+>         .coeff = {
+> @@ -226,12 +243,31 @@ static const struct ic_csc_params ic_csc_ycbcr2rgb_bt601 = {
+>         .scale = 2,
+>  };
+>
+> +/*
+> + * Inverse BT.709 encoding from YUV limited range to RGB full range:
+> + *
+> + * R = (1. * (Y - 16)) + (1.5748 * (Cr - 128));
+> + * G = (1. * (Y - 16)) - (0.1873 * (Cb - 128)) - (0.4681 * (Cr - 128));
+> + * B = (1. * (Y - 16)) + (1.8556 * (Cb - 128);
+> + */
+> +static const struct ic_csc_params ic_csc_ycbcr2rgb_bt709 = {
+> +       .coeff = {
+> +               { 128, 0, 202 },
+> +               { 128, 488, 452 },
+> +               { 128, 238, 0 },
+> +       },
+> +       .offset = { -435, 136, -507 },
+> +       .scale = 2,
+> +};
+> +
+>  static int init_csc(struct ipu_ic *ic,
+>                     enum ipu_color_space inf,
+>                     enum ipu_color_space outf,
+> +                   enum v4l2_ycbcr_encoding encoding,
+>                     int csc_index)
+>  {
+>         struct ipu_ic_priv *priv = ic->priv;
+> +       const struct ic_csc_params *params_rgb2yuv, *params_yuv2rgb;
+>         const struct ic_csc_params *params;
+>         u32 __iomem *base;
+>         const u16 (*c)[3];
+> @@ -241,10 +277,24 @@ static int init_csc(struct ipu_ic *ic,
+>         base = (u32 __iomem *)
+>                 (priv->tpmem_base + ic->reg->tpmem_csc[csc_index]);
+>
+> +       switch (encoding) {
+> +       case V4L2_YCBCR_ENC_601:
+> +               params_rgb2yuv =  &ic_csc_rgb2ycbcr_bt601;
+> +               params_yuv2rgb = &ic_csc_ycbcr2rgb_bt601;
+> +               break;
+> +       case V4L2_YCBCR_ENC_709:
+> +               params_rgb2yuv =  &ic_csc_rgb2ycbcr_bt709;
+> +               params_yuv2rgb = &ic_csc_ycbcr2rgb_bt709;
+> +               break;
+> +       default:
+> +               dev_err(priv->ipu->dev, "Unsupported YCbCr encoding\n");
+> +               return -EINVAL;
+> +       }
+> +
 
- v4l2_m2m_next_buf
- v4l2_m2m_last_buf
- v4l2_m2m_buf_remove
- v4l2_m2m_next_src_buf
- v4l2_m2m_next_dst_buf
- v4l2_m2m_last_src_buf
- v4l2_m2m_last_dst_buf
- v4l2_m2m_src_buf_remove
- v4l2_m2m_dst_buf_remove
+Steve,
 
-which currently return void pointer.
+This will fail for RGB to RGB with 'Unsupported YCbCr encoding. We
+need to account for the RGB->RGB case.
 
-In every case, the actual return type is a struct vb2_v4l2_buffer
-pointer. Change the return type of the listed functions,
-so type checking can be properly used.
+How about something like:
 
-Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
----
- drivers/media/v4l2-core/v4l2-mem2mem.c |  6 +++---
- include/media/v4l2-mem2mem.h           | 18 +++++++++---------
- 2 files changed, 12 insertions(+), 12 deletions(-)
+ static int init_csc(struct ipu_ic *ic,
+                    enum ipu_color_space inf,
+                    enum ipu_color_space outf,
++                   enum v4l2_ycbcr_encoding encoding,
+                    int csc_index)
+ {
+        struct ipu_ic_priv *priv = ic->priv;
+-       const struct ic_csc_params *params;
++       const struct ic_csc_params *params = NULL;
+        u32 __iomem *base;
+        const u16 (*c)[3];
+        const u16 *a;
+@@ -241,13 +276,18 @@ static int init_csc(struct ipu_ic *ic,
+        base = (u32 __iomem *)
+                (priv->tpmem_base + ic->reg->tpmem_csc[csc_index]);
 
-diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
-index 1494d0d5951a..18fd80c96083 100644
---- a/drivers/media/v4l2-core/v4l2-mem2mem.c
-+++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
-@@ -131,7 +131,7 @@ struct vb2_queue *v4l2_m2m_get_vq(struct v4l2_m2m_ctx *m2m_ctx,
- }
- EXPORT_SYMBOL(v4l2_m2m_get_vq);
- 
--void *v4l2_m2m_next_buf(struct v4l2_m2m_queue_ctx *q_ctx)
-+struct vb2_v4l2_buffer *v4l2_m2m_next_buf(struct v4l2_m2m_queue_ctx *q_ctx)
- {
- 	struct v4l2_m2m_buffer *b;
- 	unsigned long flags;
-@@ -149,7 +149,7 @@ void *v4l2_m2m_next_buf(struct v4l2_m2m_queue_ctx *q_ctx)
- }
- EXPORT_SYMBOL_GPL(v4l2_m2m_next_buf);
- 
--void *v4l2_m2m_last_buf(struct v4l2_m2m_queue_ctx *q_ctx)
-+struct vb2_v4l2_buffer *v4l2_m2m_last_buf(struct v4l2_m2m_queue_ctx *q_ctx)
- {
- 	struct v4l2_m2m_buffer *b;
- 	unsigned long flags;
-@@ -167,7 +167,7 @@ void *v4l2_m2m_last_buf(struct v4l2_m2m_queue_ctx *q_ctx)
- }
- EXPORT_SYMBOL_GPL(v4l2_m2m_last_buf);
- 
--void *v4l2_m2m_buf_remove(struct v4l2_m2m_queue_ctx *q_ctx)
-+struct vb2_v4l2_buffer *v4l2_m2m_buf_remove(struct v4l2_m2m_queue_ctx *q_ctx)
- {
- 	struct v4l2_m2m_buffer *b;
- 	unsigned long flags;
-diff --git a/include/media/v4l2-mem2mem.h b/include/media/v4l2-mem2mem.h
-index 47c6d9aa0bf4..7344bef0cdba 100644
---- a/include/media/v4l2-mem2mem.h
-+++ b/include/media/v4l2-mem2mem.h
-@@ -425,7 +425,7 @@ unsigned int v4l2_m2m_num_dst_bufs_ready(struct v4l2_m2m_ctx *m2m_ctx)
-  *
-  * @q_ctx: pointer to struct @v4l2_m2m_queue_ctx
-  */
--void *v4l2_m2m_next_buf(struct v4l2_m2m_queue_ctx *q_ctx);
-+struct vb2_v4l2_buffer *v4l2_m2m_next_buf(struct v4l2_m2m_queue_ctx *q_ctx);
- 
- /**
-  * v4l2_m2m_next_src_buf() - return next source buffer from the list of ready
-@@ -433,7 +433,7 @@ void *v4l2_m2m_next_buf(struct v4l2_m2m_queue_ctx *q_ctx);
-  *
-  * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
-  */
--static inline void *v4l2_m2m_next_src_buf(struct v4l2_m2m_ctx *m2m_ctx)
-+static inline struct vb2_v4l2_buffer *v4l2_m2m_next_src_buf(struct v4l2_m2m_ctx *m2m_ctx)
- {
- 	return v4l2_m2m_next_buf(&m2m_ctx->out_q_ctx);
- }
-@@ -444,7 +444,7 @@ static inline void *v4l2_m2m_next_src_buf(struct v4l2_m2m_ctx *m2m_ctx)
-  *
-  * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
-  */
--static inline void *v4l2_m2m_next_dst_buf(struct v4l2_m2m_ctx *m2m_ctx)
-+static inline struct vb2_v4l2_buffer *v4l2_m2m_next_dst_buf(struct v4l2_m2m_ctx *m2m_ctx)
- {
- 	return v4l2_m2m_next_buf(&m2m_ctx->cap_q_ctx);
- }
-@@ -454,7 +454,7 @@ static inline void *v4l2_m2m_next_dst_buf(struct v4l2_m2m_ctx *m2m_ctx)
-  *
-  * @q_ctx: pointer to struct @v4l2_m2m_queue_ctx
-  */
--void *v4l2_m2m_last_buf(struct v4l2_m2m_queue_ctx *q_ctx);
-+struct vb2_v4l2_buffer *v4l2_m2m_last_buf(struct v4l2_m2m_queue_ctx *q_ctx);
- 
- /**
-  * v4l2_m2m_last_src_buf() - return last destination buffer from the list of
-@@ -462,7 +462,7 @@ void *v4l2_m2m_last_buf(struct v4l2_m2m_queue_ctx *q_ctx);
-  *
-  * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
-  */
--static inline void *v4l2_m2m_last_src_buf(struct v4l2_m2m_ctx *m2m_ctx)
-+static inline struct vb2_v4l2_buffer *v4l2_m2m_last_src_buf(struct v4l2_m2m_ctx *m2m_ctx)
- {
- 	return v4l2_m2m_last_buf(&m2m_ctx->out_q_ctx);
- }
-@@ -473,7 +473,7 @@ static inline void *v4l2_m2m_last_src_buf(struct v4l2_m2m_ctx *m2m_ctx)
-  *
-  * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
-  */
--static inline void *v4l2_m2m_last_dst_buf(struct v4l2_m2m_ctx *m2m_ctx)
-+static inline struct vb2_v4l2_buffer *v4l2_m2m_last_dst_buf(struct v4l2_m2m_ctx *m2m_ctx)
- {
- 	return v4l2_m2m_last_buf(&m2m_ctx->cap_q_ctx);
- }
-@@ -547,7 +547,7 @@ struct vb2_queue *v4l2_m2m_get_dst_vq(struct v4l2_m2m_ctx *m2m_ctx)
-  *
-  * @q_ctx: pointer to struct @v4l2_m2m_queue_ctx
-  */
--void *v4l2_m2m_buf_remove(struct v4l2_m2m_queue_ctx *q_ctx);
-+struct vb2_v4l2_buffer *v4l2_m2m_buf_remove(struct v4l2_m2m_queue_ctx *q_ctx);
- 
- /**
-  * v4l2_m2m_src_buf_remove() - take off a source buffer from the list of ready
-@@ -555,7 +555,7 @@ void *v4l2_m2m_buf_remove(struct v4l2_m2m_queue_ctx *q_ctx);
-  *
-  * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
-  */
--static inline void *v4l2_m2m_src_buf_remove(struct v4l2_m2m_ctx *m2m_ctx)
-+static inline struct vb2_v4l2_buffer *v4l2_m2m_src_buf_remove(struct v4l2_m2m_ctx *m2m_ctx)
- {
- 	return v4l2_m2m_buf_remove(&m2m_ctx->out_q_ctx);
- }
-@@ -566,7 +566,7 @@ static inline void *v4l2_m2m_src_buf_remove(struct v4l2_m2m_ctx *m2m_ctx)
-  *
-  * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
-  */
--static inline void *v4l2_m2m_dst_buf_remove(struct v4l2_m2m_ctx *m2m_ctx)
-+static inline struct vb2_v4l2_buffer *v4l2_m2m_dst_buf_remove(struct v4l2_m2m_ctx *m2m_ctx)
- {
- 	return v4l2_m2m_buf_remove(&m2m_ctx->cap_q_ctx);
- }
--- 
-2.20.1
+-       if (inf == IPUV3_COLORSPACE_YUV && outf == IPUV3_COLORSPACE_RGB)
+-               params = &ic_csc_ycbcr2rgb_bt601;
+-       else if (inf == IPUV3_COLORSPACE_RGB && outf == IPUV3_COLORSPACE_YUV)
+-               params = &ic_csc_rgb2ycbcr_bt601;
++       if (inf == IPUV3_COLORSPACE_YUV && outf == IPUV3_COLORSPACE_RGB) {
++               params = (encoding == V4L2_YCBCR_ENC_601) ?
++                       &ic_csc_ycbcr2rgb_bt601 : &ic_csc_ycbcr2rgb_bt709;
++       }
++       else if (inf == IPUV3_COLORSPACE_RGB && outf == IPUV3_COLORSPACE_YUV) {
++               params = (encoding == V4L2_YCBCR_ENC_601) ?
++                       &ic_csc_rgb2ycbcr_bt601 : &ic_csc_rgb2ycbcr_bt709;
++       }
+        else if (inf == IPUV3_COLORSPACE_RGB && outf == IPUV3_COLORSPACE_RGB)
+                params = &ic_csc_rgb2rgb;
+-       else {
++
++       if (!params) {
+                dev_err(priv->ipu->dev, "Unsupported color space conversion\n");
+                return -EINVAL;
+        }
 
+Tim
