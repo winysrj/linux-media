@@ -2,139 +2,110 @@ Return-Path: <SRS0=EeSY=QP=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 05567C169C4
-	for <linux-media@archiver.kernel.org>; Fri,  8 Feb 2019 10:31:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C8FA5C169C4
+	for <linux-media@archiver.kernel.org>; Fri,  8 Feb 2019 10:37:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7147020823
-	for <linux-media@archiver.kernel.org>; Fri,  8 Feb 2019 10:31:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6E0B821924
+	for <linux-media@archiver.kernel.org>; Fri,  8 Feb 2019 10:37:10 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="SQhNVj4d"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726162AbfBHKbH (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 8 Feb 2019 05:31:07 -0500
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:49775 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726068AbfBHKbG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Feb 2019 05:31:06 -0500
-Received: from lupine.hi.pengutronix.de ([2001:67c:670:100:3ad5:47ff:feaf:1a17] helo=lupine)
-        by metis.ext.pengutronix.de with esmtp (Exim 4.89)
-        (envelope-from <p.zabel@pengutronix.de>)
-        id 1gs3R3-00066Q-MD; Fri, 08 Feb 2019 11:31:05 +0100
-Message-ID: <1549621864.3305.5.camel@pengutronix.de>
-Subject: Re: [PATCH 4/4] media: imx-pxp: Start using the format VUYA32
- instead of YUV32
-From:   Philipp Zabel <p.zabel@pengutronix.de>
-To:     Vivek Kasireddy <vivek.kasireddy@intel.com>,
-        linux-media@vger.kernel.org
-Date:   Fri, 08 Feb 2019 11:31:04 +0100
-In-Reply-To: <20190208031846.14453-5-vivek.kasireddy@intel.com>
-References: <20190208031846.14453-1-vivek.kasireddy@intel.com>
-         <20190208031846.14453-5-vivek.kasireddy@intel.com>
-Content-Type: text/plain; charset="UTF-8"
-X-Mailer: Evolution 3.22.6-1+deb9u1 
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 2001:67c:670:100:3ad5:47ff:feaf:1a17
-X-SA-Exim-Mail-From: p.zabel@pengutronix.de
-X-SA-Exim-Scanned: No (on metis.ext.pengutronix.de); SAEximRunCond expanded to false
-X-PTX-Original-Recipient: linux-media@vger.kernel.org
+        id S1726524AbfBHKhJ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 8 Feb 2019 05:37:09 -0500
+Received: from perceval.ideasonboard.com ([213.167.242.64]:43090 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726162AbfBHKhJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Feb 2019 05:37:09 -0500
+Received: from pendragon.ideasonboard.com (d51A4137F.access.telenet.be [81.164.19.127])
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 82FA2F9;
+        Fri,  8 Feb 2019 11:37:07 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
+        s=mail; t=1549622227;
+        bh=BPf4lPRX+XUPjh+hPJHapJA8ROTkXSxEwQyJ61LDVfI=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=SQhNVj4dHWZk9zW+YIVjX4gejZTKCmu/OMn3EV+76y/8kMxeGAfnC0Fzo7o5tF9jZ
+         ehPsY++Er87uHtGkZRjWPhAtexYhLc/geyB166uyJ8EjQmIExgAYe7GWMpXCULwkIq
+         G+H2sGk2bCIt/eNdODjbTFYOo2owO3dT6KtmuG1s=
+Date:   Fri, 8 Feb 2019 12:37:06 +0200
+From:   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To:     Hans Verkuil <hverkuil@xs4all.nl>
+Cc:     Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] v4l2-subdev.h: v4l2_subdev_call: use temp __sd variable
+Message-ID: <20190208103706.GA4562@pendragon.ideasonboard.com>
+References: <c3a4c93b-e331-b049-fddf-7f7196bc362a@xs4all.nl>
+ <20190208090629.vta7rf2vvpzftgsp@paasikivi.fi.intel.com>
+ <e958128c-cc9a-5c99-9871-91c192fb55fd@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <e958128c-cc9a-5c99-9871-91c192fb55fd@xs4all.nl>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Vivek,
+Hi Hans,
 
-On Thu, 2019-02-07 at 19:18 -0800, Vivek Kasireddy wrote:
-> Buffers generated with YUV32 format seems to be incorrect, hence use
-> VUYA32 instead.
+On Fri, Feb 08, 2019 at 10:08:22AM +0100, Hans Verkuil wrote:
+> On 2/8/19 10:06 AM, Sakari Ailus wrote:
+> > On Fri, Feb 08, 2019 at 09:49:23AM +0100, Hans Verkuil wrote:
+> >> The sd argument of this macro can be a more complex expression. Since it
+> >> is used 5 times in the macro it can be evaluated that many times as well.
+> >>
+> >> So assign it to a temp variable in the beginning and use that instead.
+> >>
+> >> This also avoids any potential side-effects of evaluating sd.
+> >>
+> >> Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+> > 
+> > Nice one!
+> > 
+> > Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > 
+> > I wonder if this addresses some of the sparse issues related to using a
+> > macro to come up with sd?
 > 
-> Cc: Philipp Zabel <p.zabel@pengutronix.de>
-> Signed-off-by: Vivek Kasireddy <vivek.kasireddy@intel.com>
-> ---
->  drivers/media/platform/imx-pxp.c | 8 ++++----
->  1 file changed, 4 insertions(+), 4 deletions(-)
+> It does solve those as well, in fact :-)
 > 
-> diff --git a/drivers/media/platform/imx-pxp.c b/drivers/media/platform/imx-pxp.c
-> index f087dc4fc729..70adbe38f802 100644
-> --- a/drivers/media/platform/imx-pxp.c
-> +++ b/drivers/media/platform/imx-pxp.c
-> @@ -90,7 +90,7 @@ static struct pxp_fmt formats[] = {
->  		.depth	= 16,
->  		.types	= MEM2MEM_CAPTURE | MEM2MEM_OUTPUT,
->  	}, {
-> -		.fourcc = V4L2_PIX_FMT_YUV32,
-> +		.fourcc = V4L2_PIX_FMT_VUYA32,
+> I rejected the omap3/4 patches in favor of this one, which is a much, much
+> cleaner solution.
 
-After Hans' comment I noticed that to support VUYA32 input correctly,
-we'll have to disable the alpha override. Currently the alpha channel of
-buffers on the OUTPUT queue is ignored. The driver always uses the value
-of V4L2_CID_ALPHA_COMPONENT when writing alpha values. Therefore, it
-would be more correct to replace VUYA32 with VUYX32 everywhere.
+Thank you for looking into this. Great work :-)
 
-Or alternatively add both formats, but only VUYX32 on the output queue:
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
- 	}, {
--		.fourcc = V4L2_PIX_FMT_YUV32,
-+		.fourcc = V4L2_PIX_FMT_VUYA32,
-+		.depth  = 32,
-+		.types  = MEM2MEM_CAPTURE,
-+	}, {
-+		.fourcc = V4L2_PIX_FMT_VUYX32,
- 		.depth  = 32,
+> >> ---
+> >> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> >> index 47af609dc8f1..34da094a3f40 100644
+> >> --- a/include/media/v4l2-subdev.h
+> >> +++ b/include/media/v4l2-subdev.h
+> >> @@ -1093,13 +1093,14 @@ void v4l2_subdev_init(struct v4l2_subdev *sd,
+> >>   */
+> >>  #define v4l2_subdev_call(sd, o, f, args...)				\
+> >>  	({								\
+> >> +		struct v4l2_subdev *__sd = (sd);			\
+> >>  		int __result;						\
+> >> -		if (!(sd))						\
+> >> +		if (!__sd)						\
+> >>  			__result = -ENODEV;				\
+> >> -		else if (!((sd)->ops->o && (sd)->ops->o->f))		\
+> >> +		else if (!(__sd->ops->o && __sd->ops->o->f))		\
+> >>  			__result = -ENOIOCTLCMD;			\
+> >>  		else							\
+> >> -			__result = (sd)->ops->o->f((sd), ##args);	\
+> >> +			__result = __sd->ops->o->f(__sd, ##args);	\
+> >>  		__result;						\
+> >>  	})
+> >>
 
->  		.depth	= 32,
->  		.types	= MEM2MEM_CAPTURE | MEM2MEM_OUTPUT,
->  	}, {
-> @@ -236,7 +236,7 @@ static u32 pxp_v4l2_pix_fmt_to_ps_format(u32 v4l2_pix_fmt)
->  	case V4L2_PIX_FMT_RGB555:  return BV_PXP_PS_CTRL_FORMAT__RGB555;
->  	case V4L2_PIX_FMT_RGB444:  return BV_PXP_PS_CTRL_FORMAT__RGB444;
->  	case V4L2_PIX_FMT_RGB565:  return BV_PXP_PS_CTRL_FORMAT__RGB565;
-> -	case V4L2_PIX_FMT_YUV32:   return BV_PXP_PS_CTRL_FORMAT__YUV1P444;
-> +	case V4L2_PIX_FMT_VUYA32:  return BV_PXP_PS_CTRL_FORMAT__YUV1P444;
+-- 
+Regards,
 
-This should be replaced with VUYX32:
-
--	case V4L2_PIX_FMT_YUV32:   return BV_PXP_PS_CTRL_FORMAT__YUV1P444;
-+	case V4L2_PIX_FMT_VUYX32:  return BV_PXP_PS_CTRL_FORMAT__YUV1P444;
-
->  	case V4L2_PIX_FMT_UYVY:    return BV_PXP_PS_CTRL_FORMAT__UYVY1P422;
->  	case V4L2_PIX_FMT_YUYV:    return BM_PXP_PS_CTRL_WB_SWAP |
->  					  BV_PXP_PS_CTRL_FORMAT__UYVY1P422;
-> @@ -265,7 +265,7 @@ static u32 pxp_v4l2_pix_fmt_to_out_format(u32 v4l2_pix_fmt)
->  	case V4L2_PIX_FMT_RGB555:   return BV_PXP_OUT_CTRL_FORMAT__RGB555;
->  	case V4L2_PIX_FMT_RGB444:   return BV_PXP_OUT_CTRL_FORMAT__RGB444;
->  	case V4L2_PIX_FMT_RGB565:   return BV_PXP_OUT_CTRL_FORMAT__RGB565;
-> -	case V4L2_PIX_FMT_YUV32:    return BV_PXP_OUT_CTRL_FORMAT__YUV1P444;
-> +	case V4L2_PIX_FMT_VUYA32:   return BV_PXP_OUT_CTRL_FORMAT__YUV1P444;
-
-Here you could add both:
-
--	case V4L2_PIX_FMT_YUV32:    return BV_PXP_OUT_CTRL_FORMAT__YUV1P444;
-+	case V4L2_PIX_FMT_VUYA32:
-+	case V4L2_PIX_FMT_VUYX32:   return BV_PXP_OUT_CTRL_FORMAT__YUV1P444;
-
->  	case V4L2_PIX_FMT_UYVY:     return BV_PXP_OUT_CTRL_FORMAT__UYVY1P422;
->  	case V4L2_PIX_FMT_VYUY:     return BV_PXP_OUT_CTRL_FORMAT__VYUY1P422;
->  	case V4L2_PIX_FMT_GREY:     return BV_PXP_OUT_CTRL_FORMAT__Y8;
-> @@ -281,7 +281,7 @@ static u32 pxp_v4l2_pix_fmt_to_out_format(u32 v4l2_pix_fmt)
->  static bool pxp_v4l2_pix_fmt_is_yuv(u32 v4l2_pix_fmt)
->  {
->  	switch (v4l2_pix_fmt) {
-> -	case V4L2_PIX_FMT_YUV32:
-> +	case V4L2_PIX_FMT_VUYA32:
-
-And here as well:
-
--	case V4L2_PIX_FMT_YUV32:
-+	case V4L2_PIX_FMT_VUYA32:
-+	case V4L2_PIX_FMT_VUYX32:
-
->  	case V4L2_PIX_FMT_UYVY:
->  	case V4L2_PIX_FMT_YUYV:
->  	case V4L2_PIX_FMT_VYUY:
-
-regards
-Philipp
+Laurent Pinchart
