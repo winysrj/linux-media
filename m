@@ -2,143 +2,95 @@ Return-Path: <SRS0=QP2W=QQ=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-6.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ADAA4C282C4
-	for <linux-media@archiver.kernel.org>; Sat,  9 Feb 2019 04:36:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AC868C282C4
+	for <linux-media@archiver.kernel.org>; Sat,  9 Feb 2019 11:54:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8000920869
-	for <linux-media@archiver.kernel.org>; Sat,  9 Feb 2019 04:36:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 79B90218D2
+	for <linux-media@archiver.kernel.org>; Sat,  9 Feb 2019 11:54:52 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="GvuZdKlN"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726655AbfBIEgp (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 8 Feb 2019 23:36:45 -0500
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:49005 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726565AbfBIEgp (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 8 Feb 2019 23:36:45 -0500
-Received: from localhost ([IPv6:2001:983:e9a7:1:28c1:dab9:3e88:ff5])
-        by smtp-cloud9.xs4all.net with ESMTPA
-        id sKNegaeG8RO5ZsKNfgy0kP; Sat, 09 Feb 2019 05:36:43 +0100
-Message-ID: <dc2ae535aba664b75f700a7f770b4f06@smtp-cloud9.xs4all.net>
-Date:   Sat, 09 Feb 2019 05:36:42 +0100
-From:   "Hans Verkuil" <hverkuil@xs4all.nl>
-To:     linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-X-CMAE-Envelope: MS4wfELE5hIl6oCl7MswSxBSOXwz1E9DNDVSOxZO0/esWj80b5L1fzOsltN3+n/9Ym1L7GPVtbiUYhMZQF8CN4JSEMEqru8R2XNYve8mW+Y0k7qSs7MCLQXC
- JVmSDTfOQ5voGHJyXxXb48oIqkxptXZAlDzNsTTD7K1CQsa5vvw/HlQAfSY3vwHtim1u0ATmBuuOU2xUWIkSgp+wh7EMLCZ0ZxleFGHccQBqugZOqyvRJWn8
+        id S1726876AbfBILyv (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sat, 9 Feb 2019 06:54:51 -0500
+Received: from mail-pg1-f194.google.com ([209.85.215.194]:33708 "EHLO
+        mail-pg1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726670AbfBILyv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 9 Feb 2019 06:54:51 -0500
+Received: by mail-pg1-f194.google.com with SMTP id z11so2772361pgu.0
+        for <linux-media@vger.kernel.org>; Sat, 09 Feb 2019 03:54:51 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc:content-transfer-encoding;
+        bh=AAoCPlYjj+WlN2qxV8iOGhhxlSacyK9WT019zuWZkvY=;
+        b=GvuZdKlNULZKFxeYSchcnYooXJDLqGcxhTZ0m1v6kWrF+bNcdhL7SzaZ+HXupkgYBI
+         RwbzxmVZgGwcPFqj7OvUEV4d05vLg4i5rfS2tzNQvX8ovmhwMp3kJCUo0zhvDl8iUT8y
+         U1SV8j/52lOwJNgjo0pmmITQ2PTejAn+UtLsQ1bMweEXJuCAHCCssTzTXrgLPCf0I5fa
+         1BBxY97k8N8vzm5YpyXZIu2Ki+YW9zo2om5LN1Q+HDvWgnLxw43mqNytpjgZeoScMClF
+         W86M0SGvXeeCFskV3BF+VODOkf9KX4LPSgXQu+5IXtf86A3vaNTM19slp9MrQMLVhLze
+         CIwg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=AAoCPlYjj+WlN2qxV8iOGhhxlSacyK9WT019zuWZkvY=;
+        b=s7TvzflC/aR+niA9mDLnSLUEd7tjTcTKrx6t9fQ9q+c1RwZtzO2MDtRAr0r6c1S3sU
+         nKH6MSbM37373KZ7DjcR6e+XcuwDE4ErFsm7T5oqbGPpVI84uPDLm26NTH8BqbyQfE2N
+         vYOEv4t+B5MiO5oKyrvuWqT6wWZxx9lvrprp03rzZyK41q7wplLjNpz5YC2cZaFbP1Y4
+         A6sZCuLIJhloJRsrZGu4txpjnPPFrSMxH35KdPSIoXYhyolRkEgNw6izZSgHYkBWhS3m
+         z32Ha8A5lR9cqNM4ET0Dd/LLONrwem6d9vj8eTgWHVkPnpfhQOT89zUiImqaYViW95nr
+         2Ecw==
+X-Gm-Message-State: AHQUAuaj0Io8RnU7hVW42xAFI6gAlqGsQv6PEHR//WpDJsmeq14d4g0H
+        9g6zaKJK0iZZUpWboh0ySqGQqVWKIWjQqixlpgk=
+X-Google-Smtp-Source: AHgI3IZSiQwGAKiEw2EAQgfsS+T6w2M7prR9SLtb0MoVJ4zJU6A/P4ijoXAqyfFCnIL1cJMZUCBm0hUM+jFDnglwkZ0=
+X-Received: by 2002:a62:3305:: with SMTP id z5mr27653773pfz.112.1549713290701;
+ Sat, 09 Feb 2019 03:54:50 -0800 (PST)
+MIME-Version: 1.0
+References: <1549637565-32096-3-git-send-email-akinobu.mita@gmail.com> <201902090047.fTZ02W0h%fengguang.wu@intel.com>
+In-Reply-To: <201902090047.fTZ02W0h%fengguang.wu@intel.com>
+From:   Akinobu Mita <akinobu.mita@gmail.com>
+Date:   Sat, 9 Feb 2019 20:54:39 +0900
+Message-ID: <CAC5umyixA-YYOou5OZLSuVDbnSqmckup8=oVWUXw56JVd_nFVg@mail.gmail.com>
+Subject: Re: [PATCH 2/4] media: mt9m111: add VIDEO_V4L2_SUBDEV_API dependency
+To:     kbuild test robot <lkp@intel.com>
+Cc:     kbuild-all@01.org, linux-media@vger.kernel.org,
+        Enrico Scholz <enrico.scholz@sigma-chemnitz.de>,
+        Michael Grzeschik <m.grzeschik@pengutronix.de>,
+        Marco Felsch <m.felsch@pengutronix.de>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+2019=E5=B9=B42=E6=9C=889=E6=97=A5(=E5=9C=9F) 1:20 kbuild test robot <lkp@in=
+tel.com>:
+>
+> Hi Akinobu,
+>
+> I love your patch! Yet something to improve:
+>
+> [auto build test ERROR on linuxtv-media/master]
+> [also build test ERROR on next-20190208]
+> [cannot apply to v5.0-rc4]
+> [if your patch is applied to the wrong git tree, please drop us a note to=
+ help improve the system]
+>
+> url:    https://github.com/0day-ci/linux/commits/Akinobu-Mita/media-i2c-t=
+weak-Kconfig-dependencies/20190208-233718
+> base:   git://linuxtv.org/media_tree.git master
+> config: i386-randconfig-x019-201905 (attached as .config)
 
-Results of the daily build of media_tree:
+Ah, SOC_CAMERA_MT9M111 implicitly selects VIDEO_MT9M111 and in this case,
+VIDEO_V4L2_SUBDEV_API is not required.
 
-date:			Sat Feb  9 05:00:12 CET 2019
-media-tree git hash:	6fd369dd1cb65a032f1ab9227033ecb7b759656d
-media_build git hash:	c23276037794bae357fa8d23e3a4f11af9ad46e9
-v4l-utils git hash:	aa371c995ec2ad70323db00c47b3132002b060b7
-edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.19.0-1-amd64
-
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.123-i686: OK
-linux-3.18.123-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.159-i686: OK
-linux-4.4.159-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.131-i686: OK
-linux-4.9.131-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.74-i686: OK
-linux-4.14.74-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: OK
-linux-4.19.1-i686: OK
-linux-4.19.1-x86_64: OK
-linux-4.20.1-i686: OK
-linux-4.20.1-x86_64: OK
-linux-5.0-rc1-i686: OK
-linux-5.0-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+This build error can be fixed by removing SOC_CAMERA_MT9M111 from
+drivers/media/i2c/soc_camera/Kconfig.
