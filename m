@@ -7,31 +7,31 @@ X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	SIGNED_OFF_BY,SPF_PASS,USER_AGENT_MUTT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C7A78C282C4
-	for <linux-media@archiver.kernel.org>; Sat,  9 Feb 2019 18:17:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 993A2C282C4
+	for <linux-media@archiver.kernel.org>; Sat,  9 Feb 2019 18:20:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 8FF1B217D8
-	for <linux-media@archiver.kernel.org>; Sat,  9 Feb 2019 18:17:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 671C620855
+	for <linux-media@archiver.kernel.org>; Sat,  9 Feb 2019 18:20:46 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="nBD183x5"
+	dkim=pass (1024-bit key) header.d=ideasonboard.com header.i=@ideasonboard.com header.b="ANiDUlW7"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727173AbfBISRN (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sat, 9 Feb 2019 13:17:13 -0500
-Received: from perceval.ideasonboard.com ([213.167.242.64]:60850 "EHLO
+        id S1727140AbfBISUq (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sat, 9 Feb 2019 13:20:46 -0500
+Received: from perceval.ideasonboard.com ([213.167.242.64]:60990 "EHLO
         perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727109AbfBISRM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 9 Feb 2019 13:17:12 -0500
+        with ESMTP id S1727109AbfBISUp (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 9 Feb 2019 13:20:45 -0500
 Received: from pendragon.ideasonboard.com (85-76-143-97-nat.elisa-mobile.fi [85.76.143.97])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id F1A932E2;
-        Sat,  9 Feb 2019 19:17:09 +0100 (CET)
+        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 2F0D52E2;
+        Sat,  9 Feb 2019 19:20:41 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ideasonboard.com;
-        s=mail; t=1549736230;
-        bh=t0GNSj2MkvQASbyGDRPGjxV1mW30FaJBbB9de/RdDjI=;
+        s=mail; t=1549736443;
+        bh=fB5PYIrIDjVSImRKcoB9DsvNiOCKyRJu5HSSqcAvC7s=;
         h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=nBD183x5muW9TFd3D1A39fuZOygaD7IpVt4UdTyGzrXARx643CfWM0fw8nfTsn1I4
-         gtY6fc8oPxJSXYhMbReIT9j59NyRBjcAM6DBeLwlC+qcuUIIdf7CfTXMYpaOc9oi9f
-         Fs38M5ej4XXvZAtgRsZqPXPB3sFGiYyoEJYHzECg=
-Date:   Sat, 9 Feb 2019 20:17:05 +0200
+        b=ANiDUlW7J8jD++Uw4IrhM54ol3lm91ecLi58Jh1RIOKboI9Vdhr0SiFMI3Hk/cTIG
+         n8qvgB9zQIhtn5f9rqBQiGSmy8+3EYTTyV26bG/yhTdwKkBV3YaCUxrhmL6ITZOaJ6
+         BN4zVlilg4CcyWyDBCD0q0UXoTTNwk+norg9zABc=
+Date:   Sat, 9 Feb 2019 20:20:34 +0200
 From:   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To:     Sakari Ailus <sakari.ailus@iki.fi>
 Cc:     Frederic Chen <frederic.chen@mediatek.com>, hans.verkuil@cisco.com,
@@ -43,96 +43,92 @@ Cc:     Frederic Chen <frederic.chen@mediatek.com>, hans.verkuil@cisco.com,
         holmes.chiou@mediatek.com, Jerry-ch.Chen@mediatek.com,
         jungo.lin@mediatek.com, Rynn.Wu@mediatek.com,
         linux-media@vger.kernel.org, srv_heupstream@mediatek.com
-Subject: Re: [RFC PATCH V0 1/7] [media] dt-bindings: mt8183: Add binding for
- DIP shared memory
-Message-ID: <20190209181705.GB4505@pendragon.ideasonboard.com>
+Subject: Re: [RFC PATCH V0 3/7] [media] dt-bindings: mt8183: Added DIP-SMEM
+ dt-bindings
+Message-ID: <20190209182034.GC4505@pendragon.ideasonboard.com>
 References: <1549020091-42064-1-git-send-email-frederic.chen@mediatek.com>
- <1549020091-42064-2-git-send-email-frederic.chen@mediatek.com>
- <20190209155907.rbgwbdablndcesid@valkosipuli.retiisi.org.uk>
+ <1549020091-42064-4-git-send-email-frederic.chen@mediatek.com>
+ <20190209155935.afrrtf3twjmj23sm@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20190209155907.rbgwbdablndcesid@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20190209155935.afrrtf3twjmj23sm@valkosipuli.retiisi.org.uk>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Sat, Feb 09, 2019 at 05:59:07PM +0200, Sakari Ailus wrote:
+Hello Frederic,
+
+On Sat, Feb 09, 2019 at 05:59:35PM +0200, Sakari Ailus wrote:
 > Hi Frederic,
 > 
-> Could you cc the devicetree list, please?
+> Thanks for the patchset.
 > 
-> On Fri, Feb 01, 2019 at 07:21:25PM +0800, Frederic Chen wrote:
-> > This patch adds the binding for describing the shared memory
-> > used to exchange configuration and tuning data between the
-> > co-processor and Digital Image Processing (DIP) unit of the
-> > camera ISP system on Mediatek SoCs.
+> Could you also cc the devicetree list, please?
+> 
+> On Fri, Feb 01, 2019 at 07:21:27PM +0800, Frederic Chen wrote:
+> > This patch adds the DT binding documentation for the shared memory
+> > between DIP (Digital Image Processing) unit of the camera ISP system
+> > and the co-processor in Mediatek SoCs.
 > > 
 > > Signed-off-by: Frederic Chen <frederic.chen@mediatek.com>
 > > ---
-> >  .../mediatek,reserve-memory-dip_smem.txt           | 45 ++++++++++++++++++++++
-> >  1 file changed, 45 insertions(+)
-> >  create mode 100644 Documentation/devicetree/bindings/reserved-memory/mediatek,reserve-memory-dip_smem.txt
+> >  .../bindings/media/mediatek,dip_smem.txt           | 29 ++++++++++++++++++++++
+> >  1 file changed, 29 insertions(+)
+> >  create mode 100644 Documentation/devicetree/bindings/media/mediatek,dip_smem.txt
 > > 
-> > diff --git a/Documentation/devicetree/bindings/reserved-memory/mediatek,reserve-memory-dip_smem.txt b/Documentation/devicetree/bindings/reserved-memory/mediatek,reserve-memory-dip_smem.txt
+> > diff --git a/Documentation/devicetree/bindings/media/mediatek,dip_smem.txt b/Documentation/devicetree/bindings/media/mediatek,dip_smem.txt
 > > new file mode 100644
-> > index 0000000..0ded478
+> > index 0000000..5533721
 > > --- /dev/null
-> > +++ b/Documentation/devicetree/bindings/reserved-memory/mediatek,reserve-memory-dip_smem.txt
-> > @@ -0,0 +1,45 @@
-> > +Mediatek DIP Shared Memory binding
+> > +++ b/Documentation/devicetree/bindings/media/mediatek,dip_smem.txt
+> > @@ -0,0 +1,29 @@
+> > +Mediatek ISP Shared Memory Device
 > > +
-> > +This binding describes the shared memory, which serves the purpose of
-> > +describing the shared memory region used to exchange data between Digital
-> > +Image Processing (DIP) and co-processor in Mediatek SoCs.
-> > +
-> > +The co-processor doesn't have the iommu so we need to use the physical
-> > +address to access the shared buffer in the firmware.
-> > +
-> > +The Digital Image Processing (DIP) can access memory through mt8183 IOMMU so
-> > +it can use dma address to access the memory region.
-> > +(See iommu/mediatek,iommu.txt for the detailed description of Mediatek IOMMU)
+> > +Mediatek ISP Shared Memory Device is used to manage shared memory
+> > +among CPU, ISP IPs and coprocessor. It is associated with a reserved
+> > +memory region (Please see Documentation\devicetree\bindings\
+> > +reserved-memory\mediatek,reserve-memory-isp_smem.txt) and
 > 
-> What kind of purpose is the memory used for? Buffers containing video data,
-> or something else? Could the buffer objects be mapped on the devices
-> based on the need instead?
+> s/\\/\//g;
+> 
+> > +and provide the context to allocate memory with dma addresses.
 
-And could CMA be used when physically contiguous memory is needed ?
+Does this represent a real device (as in IP core) in the SoC ? There
+seems to be no driver associated with the compatible string defined
+herein in this patch series, what is this node used for ?
 
-> > +
-> > +
 > > +Required properties:
+> > +- compatible: Should be "mediatek,isp_smem"
+> 
+> s/Should/Shall/
+> 
 > > +
-> > +- compatible: must be "mediatek,reserve-memory-dip_smem"
+> > +- iommus: should point to the respective IOMMU block with master port
+> 
+> s/should/shall/
+> 
+> > +  as argument. Please set the ports which may be accessed
+> > +  through the common path. You can see
+> > +  Documentation/devicetree/bindings/iommu/mediatek,iommu.txt
+> > +  for the detail.
 > > +
-> > +- reg: required for static allocation (see reserved-memory.txt for
-> > +  the detailed usage)
-> > +
-> > +- alloc-range: required for dynamic allocation. The range must
-> > +  between 0x00000400 and 0x100000000 due to the co-processer's
-> > +  addressing limitation
-> > +
-> > +- size: required for dynamic allocation. The unit is bytes.
-> > +  If you want to enable the full feature of Digital Processing Unit,
-> > +  you need 20 MB at least.
-> > +
+> > +- mediatek,larb: must contain the local arbiters in the current Socs.
+> 
+> Perhaps "SoCs"?
+> 
+> > +  Please set the larb of camsys for Pass 1 and imgsys for DIP, or both
+> > +  if you are using all the camera function. You can see
+> > +  Documentation/devicetree/bindings/memory-controllers/
+> > +  mediatek,smi-larb.txt for the detail.
 > > +
 > > +Example:
-> > +
-> > +The following example shows the DIP shared memory setup for MT8183.
-> > +
-> > +	reserved-memory {
-> > +		#address-cells = <2>;
-> > +		#size-cells = <2>;
-> > +		ranges;
-> > +		reserve-memory-isp_smem {
-> > +			compatible = "mediatek,reserve-memory-dip_smem";
-> > +			size = <0 0x1400000>;
-> > +			alignment = <0 0x1000>;
-> > +			alloc-ranges = <0 0x40000000 0 0x50000000>;
-> > +		};
+> > +	isp_smem: isp_smem {
+> > +		compatible = "mediatek,isp_smem";
+> > +		mediatek,larb = <&larb5>;
+> > +		iommus = <&iommu M4U_PORT_CAM_IMGI>;
 > > +	};
 
 -- 
