@@ -3,122 +3,70 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_NEOMUTT
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D660C282C4
-	for <linux-media@archiver.kernel.org>; Sat,  9 Feb 2019 15:59:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5BCC3C282C4
+	for <linux-media@archiver.kernel.org>; Sat,  9 Feb 2019 17:59:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5840B21919
-	for <linux-media@archiver.kernel.org>; Sat,  9 Feb 2019 15:59:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3475620811
+	for <linux-media@archiver.kernel.org>; Sat,  9 Feb 2019 17:59:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726933AbfBIP7x (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Sat, 9 Feb 2019 10:59:53 -0500
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54138 "EHLO
+        id S1727218AbfBIR67 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Sat, 9 Feb 2019 12:58:59 -0500
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54572 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726894AbfBIP7x (ORCPT
+        by vger.kernel.org with ESMTP id S1727085AbfBIR67 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 9 Feb 2019 10:59:53 -0500
-Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id 9BD08634C7D;
-        Sat,  9 Feb 2019 17:59:35 +0200 (EET)
-Received: from sailus by valkosipuli.localdomain with local (Exim 4.89)
-        (envelope-from <sakari.ailus@retiisi.org.uk>)
-        id 1gsV2V-0000wx-Dm; Sat, 09 Feb 2019 17:59:35 +0200
-Date:   Sat, 9 Feb 2019 17:59:35 +0200
-From:   Sakari Ailus <sakari.ailus@iki.fi>
-To:     Frederic Chen <frederic.chen@mediatek.com>
-Cc:     hans.verkuil@cisco.com, laurent.pinchart+renesas@ideasonboard.com,
-        tfiga@chromium.org, matthias.bgg@gmail.com, mchehab@kernel.org,
-        linux-mediatek@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org, Sean.Cheng@mediatek.com,
-        sj.huang@mediatek.com, christie.yu@mediatek.com,
-        holmes.chiou@mediatek.com, Jerry-ch.Chen@mediatek.com,
-        jungo.lin@mediatek.com, Rynn.Wu@mediatek.com,
-        linux-media@vger.kernel.org, srv_heupstream@mediatek.com
-Subject: Re: [RFC PATCH V0 3/7] [media] dt-bindings: mt8183: Added DIP-SMEM
- dt-bindings
-Message-ID: <20190209155935.afrrtf3twjmj23sm@valkosipuli.retiisi.org.uk>
-References: <1549020091-42064-1-git-send-email-frederic.chen@mediatek.com>
- <1549020091-42064-4-git-send-email-frederic.chen@mediatek.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1549020091-42064-4-git-send-email-frederic.chen@mediatek.com>
-User-Agent: NeoMutt/20170113 (1.7.2)
+        Sat, 9 Feb 2019 12:58:59 -0500
+Received: from lanttu.localdomain (lanttu.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::c1:2])
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 63347634C7B
+        for <linux-media@vger.kernel.org>; Sat,  9 Feb 2019 19:58:40 +0200 (EET)
+From:   Sakari Ailus <sakari.ailus@linux.intel.com>
+To:     linux-media@vger.kernel.org
+Subject: [PATCH 1/1] soc_camera: Rename files for mt9t031 and imx074
+Date:   Sat,  9 Feb 2019 19:58:55 +0200
+Message-Id: <20190209175855.12339-1-sakari.ailus@linux.intel.com>
+X-Mailer: git-send-email 2.11.0
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Frederic,
+Rename files (as well as modules) of the mt9t031 and imx074 SoC camera
+drivers to align with the rest of them, i.e. adding the "soc_" prefix.
 
-Thanks for the patchset.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+This goes on top of my previous SoC camera patches.
 
-Could you also cc the devicetree list, please?
+ drivers/staging/media/soc_camera/Makefile                     | 4 ++--
+ drivers/staging/media/soc_camera/{imx074.c => soc_imx074.c}   | 0
+ drivers/staging/media/soc_camera/{mt9t031.c => soc_mt9t031.c} | 0
+ 3 files changed, 2 insertions(+), 2 deletions(-)
+ rename drivers/staging/media/soc_camera/{imx074.c => soc_imx074.c} (100%)
+ rename drivers/staging/media/soc_camera/{mt9t031.c => soc_mt9t031.c} (100%)
 
-On Fri, Feb 01, 2019 at 07:21:27PM +0800, Frederic Chen wrote:
-> This patch adds the DT binding documentation for the shared memory
-> between DIP (Digital Image Processing) unit of the camera ISP system
-> and the co-processor in Mediatek SoCs.
-> 
-> Signed-off-by: Frederic Chen <frederic.chen@mediatek.com>
-> ---
->  .../bindings/media/mediatek,dip_smem.txt           | 29 ++++++++++++++++++++++
->  1 file changed, 29 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/mediatek,dip_smem.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/mediatek,dip_smem.txt b/Documentation/devicetree/bindings/media/mediatek,dip_smem.txt
-> new file mode 100644
-> index 0000000..5533721
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/mediatek,dip_smem.txt
-> @@ -0,0 +1,29 @@
-> +Mediatek ISP Shared Memory Device
-> +
-> +Mediatek ISP Shared Memory Device is used to manage shared memory
-> +among CPU, ISP IPs and coprocessor. It is associated with a reserved
-> +memory region (Please see Documentation\devicetree\bindings\
-> +reserved-memory\mediatek,reserve-memory-isp_smem.txt) and
-
-s/\\/\//g;
-
-> +and provide the context to allocate memory with dma addresses.
-> +
-> +Required properties:
-> +- compatible: Should be "mediatek,isp_smem"
-
-s/Should/Shall/
-
-> +
-> +- iommus: should point to the respective IOMMU block with master port
-
-s/should/shall/
-
-> +  as argument. Please set the ports which may be accessed
-> +  through the common path. You can see
-> +  Documentation/devicetree/bindings/iommu/mediatek,iommu.txt
-> +  for the detail.
-> +
-> +- mediatek,larb: must contain the local arbiters in the current Socs.
-
-Perhaps "SoCs"?
-
-> +  Please set the larb of camsys for Pass 1 and imgsys for DIP, or both
-> +  if you are using all the camera function. You can see
-> +  Documentation/devicetree/bindings/memory-controllers/
-> +  mediatek,smi-larb.txt for the detail.
-> +
-> +Example:
-> +	isp_smem: isp_smem {
-> +		compatible = "mediatek,isp_smem";
-> +		mediatek,larb = <&larb5>;
-> +		iommus = <&iommu M4U_PORT_CAM_IMGI>;
-> +	};
-
+diff --git a/drivers/staging/media/soc_camera/Makefile b/drivers/staging/media/soc_camera/Makefile
+index 3a351bd629f5..e3a1f0504f04 100644
+--- a/drivers/staging/media/soc_camera/Makefile
++++ b/drivers/staging/media/soc_camera/Makefile
+@@ -3,5 +3,5 @@ obj-$(CONFIG_SOC_CAMERA)		+= soc_camera.o soc_mediabus.o
+ obj-$(CONFIG_SOC_CAMERA_MT9V022)	+= soc_mt9v022.o
+ obj-$(CONFIG_SOC_CAMERA_OV5642)		+= soc_ov5642.o
+ obj-$(CONFIG_SOC_CAMERA_OV9740)		+= soc_ov9740.o
+-obj-$(CONFIG_SOC_CAMERA_IMX074)		+= imx074.o
+-obj-$(CONFIG_SOC_CAMERA_MT9T031)	+= mt9t031.o
++obj-$(CONFIG_SOC_CAMERA_IMX074)		+= soc_imx074.o
++obj-$(CONFIG_SOC_CAMERA_MT9T031)	+= soc_mt9t031.o
+diff --git a/drivers/staging/media/soc_camera/imx074.c b/drivers/staging/media/soc_camera/soc_imx074.c
+similarity index 100%
+rename from drivers/staging/media/soc_camera/imx074.c
+rename to drivers/staging/media/soc_camera/soc_imx074.c
+diff --git a/drivers/staging/media/soc_camera/mt9t031.c b/drivers/staging/media/soc_camera/soc_mt9t031.c
+similarity index 100%
+rename from drivers/staging/media/soc_camera/mt9t031.c
+rename to drivers/staging/media/soc_camera/soc_mt9t031.c
 -- 
-Kind regards,
+2.11.0
 
-Sakari Ailus
