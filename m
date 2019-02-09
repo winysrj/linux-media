@@ -2,111 +2,143 @@ Return-Path: <SRS0=QP2W=QQ=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5D79C169C4
-	for <linux-media@archiver.kernel.org>; Sat,  9 Feb 2019 01:57:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ADAA4C282C4
+	for <linux-media@archiver.kernel.org>; Sat,  9 Feb 2019 04:36:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 79BCC217D8
-	for <linux-media@archiver.kernel.org>; Sat,  9 Feb 2019 01:57:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8000920869
+	for <linux-media@archiver.kernel.org>; Sat,  9 Feb 2019 04:36:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726722AbfBIB47 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Fri, 8 Feb 2019 20:56:59 -0500
-Received: from mga12.intel.com ([192.55.52.136]:34303 "EHLO mga12.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726522AbfBIB47 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 8 Feb 2019 20:56:59 -0500
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga006.fm.intel.com ([10.253.24.20])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 08 Feb 2019 17:56:59 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.58,349,1544515200"; 
-   d="scan'208";a="317532834"
-Received: from orsmsx110.amr.corp.intel.com ([10.22.240.8])
-  by fmsmga006.fm.intel.com with ESMTP; 08 Feb 2019 17:56:59 -0800
-Received: from vkasired-desk2.fm.intel.com (10.22.254.139) by
- ORSMSX110.amr.corp.intel.com (10.22.240.8) with Microsoft SMTP Server (TLS)
- id 14.3.408.0; Fri, 8 Feb 2019 17:56:58 -0800
-From:   Vivek Kasireddy <vivek.kasireddy@intel.com>
-To:     <linux-media@vger.kernel.org>
-CC:     Vivek Kasireddy <vivek.kasireddy@intel.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v2 4/4] media: imx-pxp: Start using the format VUYA32 instead of YUV32 (v2)
-Date:   Fri, 8 Feb 2019 17:38:18 -0800
-Message-ID: <20190209013818.979-1-vivek.kasireddy@intel.com>
-X-Mailer: git-send-email 2.14.5
-In-Reply-To: <1549621864.3305.5.camel@pengutronix.de>
-References: <1549621864.3305.5.camel@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.22.254.139]
+        id S1726655AbfBIEgp (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Fri, 8 Feb 2019 23:36:45 -0500
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:49005 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726565AbfBIEgp (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 8 Feb 2019 23:36:45 -0500
+Received: from localhost ([IPv6:2001:983:e9a7:1:28c1:dab9:3e88:ff5])
+        by smtp-cloud9.xs4all.net with ESMTPA
+        id sKNegaeG8RO5ZsKNfgy0kP; Sat, 09 Feb 2019 05:36:43 +0100
+Message-ID: <dc2ae535aba664b75f700a7f770b4f06@smtp-cloud9.xs4all.net>
+Date:   Sat, 09 Feb 2019 05:36:42 +0100
+From:   "Hans Verkuil" <hverkuil@xs4all.nl>
+To:     linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+X-CMAE-Envelope: MS4wfELE5hIl6oCl7MswSxBSOXwz1E9DNDVSOxZO0/esWj80b5L1fzOsltN3+n/9Ym1L7GPVtbiUYhMZQF8CN4JSEMEqru8R2XNYve8mW+Y0k7qSs7MCLQXC
+ JVmSDTfOQ5voGHJyXxXb48oIqkxptXZAlDzNsTTD7K1CQsa5vvw/HlQAfSY3vwHtim1u0ATmBuuOU2xUWIkSgp+wh7EMLCZ0ZxleFGHccQBqugZOqyvRJWn8
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Buffers generated with YUV32 format seems to be incorrect, hence use
-VUYA32 instead.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Changes from v1:
-Add both formats VUYA32 and VUYX32 but associate only VUYX32 to the
-output queue as the alpha channel of buffers is ignored on this queue.
+Results of the daily build of media_tree:
 
-Cc: Philipp Zabel <p.zabel@pengutronix.de>
-Signed-off-by: Vivek Kasireddy <vivek.kasireddy@intel.com>
----
- drivers/media/platform/imx-pxp.c | 14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+date:			Sat Feb  9 05:00:12 CET 2019
+media-tree git hash:	6fd369dd1cb65a032f1ab9227033ecb7b759656d
+media_build git hash:	c23276037794bae357fa8d23e3a4f11af9ad46e9
+v4l-utils git hash:	aa371c995ec2ad70323db00c47b3132002b060b7
+edid-decode git hash:	6def7bc83dfb0338632e06a8b14c93faa6af8879
+gcc version:		i686-linux-gcc (GCC) 8.2.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.19.0-1-amd64
 
-diff --git a/drivers/media/platform/imx-pxp.c b/drivers/media/platform/imx-pxp.c
-index f087dc4fc729..0bcfc5aa8f3d 100644
---- a/drivers/media/platform/imx-pxp.c
-+++ b/drivers/media/platform/imx-pxp.c
-@@ -90,7 +90,11 @@ static struct pxp_fmt formats[] = {
- 		.depth	= 16,
- 		.types	= MEM2MEM_CAPTURE | MEM2MEM_OUTPUT,
- 	}, {
--		.fourcc = V4L2_PIX_FMT_YUV32,
-+		.fourcc = V4L2_PIX_FMT_VUYA32,
-+		.depth	= 32,
-+		.types	= MEM2MEM_CAPTURE,
-+	}, {
-+		.fourcc = V4L2_PIX_FMT_VUYX32,
- 		.depth	= 32,
- 		.types	= MEM2MEM_CAPTURE | MEM2MEM_OUTPUT,
- 	}, {
-@@ -236,7 +240,7 @@ static u32 pxp_v4l2_pix_fmt_to_ps_format(u32 v4l2_pix_fmt)
- 	case V4L2_PIX_FMT_RGB555:  return BV_PXP_PS_CTRL_FORMAT__RGB555;
- 	case V4L2_PIX_FMT_RGB444:  return BV_PXP_PS_CTRL_FORMAT__RGB444;
- 	case V4L2_PIX_FMT_RGB565:  return BV_PXP_PS_CTRL_FORMAT__RGB565;
--	case V4L2_PIX_FMT_YUV32:   return BV_PXP_PS_CTRL_FORMAT__YUV1P444;
-+	case V4L2_PIX_FMT_VUYX32:  return BV_PXP_PS_CTRL_FORMAT__YUV1P444;
- 	case V4L2_PIX_FMT_UYVY:    return BV_PXP_PS_CTRL_FORMAT__UYVY1P422;
- 	case V4L2_PIX_FMT_YUYV:    return BM_PXP_PS_CTRL_WB_SWAP |
- 					  BV_PXP_PS_CTRL_FORMAT__UYVY1P422;
-@@ -265,7 +269,8 @@ static u32 pxp_v4l2_pix_fmt_to_out_format(u32 v4l2_pix_fmt)
- 	case V4L2_PIX_FMT_RGB555:   return BV_PXP_OUT_CTRL_FORMAT__RGB555;
- 	case V4L2_PIX_FMT_RGB444:   return BV_PXP_OUT_CTRL_FORMAT__RGB444;
- 	case V4L2_PIX_FMT_RGB565:   return BV_PXP_OUT_CTRL_FORMAT__RGB565;
--	case V4L2_PIX_FMT_YUV32:    return BV_PXP_OUT_CTRL_FORMAT__YUV1P444;
-+	case V4L2_PIX_FMT_VUYA32:
-+	case V4L2_PIX_FMT_VUYX32:   return BV_PXP_OUT_CTRL_FORMAT__YUV1P444;
- 	case V4L2_PIX_FMT_UYVY:     return BV_PXP_OUT_CTRL_FORMAT__UYVY1P422;
- 	case V4L2_PIX_FMT_VYUY:     return BV_PXP_OUT_CTRL_FORMAT__VYUY1P422;
- 	case V4L2_PIX_FMT_GREY:     return BV_PXP_OUT_CTRL_FORMAT__Y8;
-@@ -281,7 +286,8 @@ static u32 pxp_v4l2_pix_fmt_to_out_format(u32 v4l2_pix_fmt)
- static bool pxp_v4l2_pix_fmt_is_yuv(u32 v4l2_pix_fmt)
- {
- 	switch (v4l2_pix_fmt) {
--	case V4L2_PIX_FMT_YUV32:
-+	case V4L2_PIX_FMT_VUYA32:
-+	case V4L2_PIX_FMT_VUYX32:
- 	case V4L2_PIX_FMT_UYVY:
- 	case V4L2_PIX_FMT_YUYV:
- 	case V4L2_PIX_FMT_VYUY:
--- 
-2.14.5
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.57-i686: OK
+linux-3.16.57-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.123-i686: OK
+linux-3.18.123-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.52-i686: OK
+linux-4.1.52-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.159-i686: OK
+linux-4.4.159-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.131-i686: OK
+linux-4.9.131-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.74-i686: OK
+linux-4.14.74-x86_64: OK
+linux-4.15.18-i686: OK
+linux-4.15.18-x86_64: OK
+linux-4.16.18-i686: OK
+linux-4.16.18-x86_64: OK
+linux-4.17.19-i686: OK
+linux-4.17.19-x86_64: OK
+linux-4.18.12-i686: OK
+linux-4.18.12-x86_64: OK
+linux-4.19.1-i686: OK
+linux-4.19.1-x86_64: OK
+linux-4.20.1-i686: OK
+linux-4.20.1-x86_64: OK
+linux-5.0-rc1-i686: OK
+linux-5.0-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
