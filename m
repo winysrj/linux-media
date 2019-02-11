@@ -2,147 +2,169 @@ Return-Path: <SRS0=8Y7M=QS=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.6 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_IN_DEF_DKIM_WL
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.0 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CDDFAC282CE
-	for <linux-media@archiver.kernel.org>; Mon, 11 Feb 2019 10:57:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 67583C169C4
+	for <linux-media@archiver.kernel.org>; Mon, 11 Feb 2019 12:43:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 9949120873
-	for <linux-media@archiver.kernel.org>; Mon, 11 Feb 2019 10:57:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 21C1E218A6
+	for <linux-media@archiver.kernel.org>; Mon, 11 Feb 2019 12:43:22 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=cisco.com header.i=@cisco.com header.b="XmomXnVb"
+	dkim=pass (1024-bit key) header.d=xilinx.onmicrosoft.com header.i=@xilinx.onmicrosoft.com header.b="tWqeMaYd"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726199AbfBKK5e (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 11 Feb 2019 05:57:34 -0500
-Received: from rcdn-iport-9.cisco.com ([173.37.86.80]:62795 "EHLO
-        rcdn-iport-9.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726045AbfBKK5e (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Feb 2019 05:57:34 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=cisco.com; i=@cisco.com; l=2101; q=dns/txt; s=iport;
-  t=1549882653; x=1551092253;
-  h=from:to:cc:subject:date:message-id:references:
-   content-transfer-encoding:mime-version;
-  bh=PKp+vBW5YhtnRUcOkZqPKgkvgwkJlZrR50D/cnSJiJ0=;
-  b=XmomXnVbF84BfbscScuWFZJF0PvF83pmZxloEQUA/Sajm9wepWy51EYL
-   t7HP3J4vGpiK8X/k/8Qrpz/Z6QPf5dTG9tFvEzoMlVciAzKbyCyKeYWk+
-   99UkxVkOBiicTVT9TLbzqe8gc1ynKHzR2P33suwUw9G7RlZB5by8ow6rM
-   A=;
-X-IronPort-Anti-Spam-Filtered: true
-X-IronPort-Anti-Spam-Result: =?us-ascii?q?A0AEAAA8VGFc/5pdJa1jGgEBAQEBAgE?=
- =?us-ascii?q?BAQEHAgEBAQGBUQUBAQEBCwGCA4FqJwqMFIttgg2CYYZJjmmBewsBAYRsgz0?=
- =?us-ascii?q?iNAkNAQMBAQIBAQJtKIVKAQEBAQIBJxM0CxACAQgOCh4QMiUCBAENBQiFBgM?=
- =?us-ascii?q?NCKofM4onjEMXgUA/hCOCV4IqhWACiW2YfzMJAo8UgzIhgW2FS4soijOGaYp?=
- =?us-ascii?q?5AhEUgScfOIFWcBU7gmyCKBeOHkExi0OBHwEB?=
-X-IronPort-AV: E=Sophos;i="5.58,358,1544486400"; 
-   d="scan'208";a="431355291"
-Received: from rcdn-core-3.cisco.com ([173.37.93.154])
-  by rcdn-iport-9.cisco.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 11 Feb 2019 10:57:32 +0000
-Received: from XCH-ALN-012.cisco.com (xch-aln-012.cisco.com [173.36.7.22])
-        by rcdn-core-3.cisco.com (8.15.2/8.15.2) with ESMTPS id x1BAvWCJ028142
-        (version=TLSv1.2 cipher=AES256-SHA bits=256 verify=FAIL);
-        Mon, 11 Feb 2019 10:57:32 GMT
-Received: from xch-aln-012.cisco.com (173.36.7.22) by XCH-ALN-012.cisco.com
- (173.36.7.22) with Microsoft SMTP Server (TLS) id 15.0.1395.4; Mon, 11 Feb
- 2019 04:57:31 -0600
-Received: from xch-aln-012.cisco.com ([173.36.7.22]) by XCH-ALN-012.cisco.com
- ([173.36.7.22]) with mapi id 15.00.1395.000; Mon, 11 Feb 2019 04:57:31 -0600
-From:   "Hans Verkuil (hansverk)" <hansverk@cisco.com>
-To:     Wen Yang <yellowriver2010@hotmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-CC:     Linux Media Mailing List <linux-media@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH 1/4] media: cec-notifier: fix possible object reference
- leak
-Thread-Topic: [PATCH 1/4] media: cec-notifier: fix possible object reference
- leak
-Thread-Index: AQHUwCH951ryS7AxYU2IkMLJINPqbQ==
-Date:   Mon, 11 Feb 2019 10:57:31 +0000
-Message-ID: <6b7fc837599e4069b876b32473b31746@XCH-ALN-012.cisco.com>
-References: <HK0PR02MB363461179B3A702DB9CAEC55B26A0@HK0PR02MB3634.apcprd02.prod.outlook.com>
- <3ed515b78a404ec4a22b5f69ed9d6e28@XCH-ALN-012.cisco.com>
+        id S1727504AbfBKMnQ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 11 Feb 2019 07:43:16 -0500
+Received: from mail-eopbgr750042.outbound.protection.outlook.com ([40.107.75.42]:33561
+        "EHLO NAM02-BL2-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1727191AbfBKMnP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 11 Feb 2019 07:43:15 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=xilinx.onmicrosoft.com; s=selector1-xilinx-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=IRQug7SNBHkzR+3IOWQr3TkGbMFynznZ47ufNM7EJ00=;
+ b=tWqeMaYdEjIhB82lHlZy/XUWufu20yg09k1I8YbQC0ndYXMf8MgH9bRgALdHIydmJ5qBXyFPx/XQ6KL/8MIT3m35QDCICbvn+Bn32QKQzo4qPEHKMz2oYbAExyof0CiMyAUgTxEJR3jrs2fX4gp5qnw66EFskpKhR7VAt+TzbyQ=
+Received: from CY4PR02MB2709.namprd02.prod.outlook.com (10.175.80.9) by
+ CY4PR02MB2472.namprd02.prod.outlook.com (10.173.40.135) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.1601.21; Mon, 11 Feb 2019 12:43:08 +0000
+Received: from CY4PR02MB2709.namprd02.prod.outlook.com
+ ([fe80::bc8d:c1a1:e7d9:2983]) by CY4PR02MB2709.namprd02.prod.outlook.com
+ ([fe80::bc8d:c1a1:e7d9:2983%10]) with mapi id 15.20.1601.023; Mon, 11 Feb
+ 2019 12:43:08 +0000
+From:   Vishal Sagar <vsagar@xilinx.com>
+To:     Luca Ceresoli <luca@lucaceresoli.net>,
+        Vishal Sagar <vishal.sagar@xilinx.com>,
+        Hyun Kwon <hyunk@xilinx.com>,
+        "laurent.pinchart@ideasonboard.com" 
+        <laurent.pinchart@ideasonboard.com>,
+        "mchehab@kernel.org" <mchehab@kernel.org>,
+        "robh+dt@kernel.org" <robh+dt@kernel.org>,
+        "mark.rutland@arm.com" <mark.rutland@arm.com>,
+        Michal Simek <michals@xilinx.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
+        "hans.verkuil@cisco.com" <hans.verkuil@cisco.com>,
+        "linux-arm-kernel@lists.infradead.org" 
+        <linux-arm-kernel@lists.infradead.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Dinesh Kumar <dineshk@xilinx.com>,
+        Sandip Kothari <sandipk@xilinx.com>
+Subject: RE: [PATCH v3 2/2] media: v4l: xilinx: Add Xilinx MIPI CSI-2 Rx
+ Subsystem
+Thread-Topic: [PATCH v3 2/2] media: v4l: xilinx: Add Xilinx MIPI CSI-2 Rx
+ Subsystem
+Thread-Index: AQHUui2l5ecr9Ru5u0itGn9PqazmdqXaeJcAgAADeXA=
+Date:   Mon, 11 Feb 2019 12:43:08 +0000
+Message-ID: <CY4PR02MB2709000898D5E290B5EE99F4A7640@CY4PR02MB2709.namprd02.prod.outlook.com>
+References: <1549025766-135037-1-git-send-email-vishal.sagar@xilinx.com>
+ <1549025766-135037-3-git-send-email-vishal.sagar@xilinx.com>
+ <3923069f-7c69-c601-0ded-f7629696ef9b@lucaceresoli.net>
+In-Reply-To: <3923069f-7c69-c601-0ded-f7629696ef9b@lucaceresoli.net>
 Accept-Language: en-US
 Content-Language: en-US
 X-MS-Has-Attach: 
+X-Auto-Response-Suppress: DR, RN, NRN, OOF, AutoReply
 X-MS-TNEF-Correlator: 
-x-ms-exchange-transport-fromentityheader: Hosted
-x-originating-ip: [10.61.175.13]
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+authentication-results: spf=none (sender IP is )
+ smtp.mailfrom=vsagar@xilinx.com; 
+x-originating-ip: [149.199.50.133]
+x-ms-publictraffictype: Email
+x-microsoft-exchange-diagnostics: 1;CY4PR02MB2472;6:YbjDiExMJRZOu7d6+OcVPirfWNudjt9zg5dtHrQohLL1BIcwLJVrTeMsKRalgQimw+y+mlKRaX1XW07ajXf797r5mi9tR+DYVOEallXANQtT3oCrrVq8qBZBofuW34B4Nbxi2920qnQYYsdnsZBzpXYPtk612VpygrBYpxbny7KBADvpYfWRiVwcSpk47mdgvc+MhccNSsTvbGKB2oZbEAnVTvm8DnaC3sDfvtWES3+/tifAGaz8eoRsa+gyiGF8a7ePeZeqX1a9htdhFhALCTFM5wiEvd8SZItWs4zBtBEtoXxF1OBe0k2FGOLz0gbekPpLmChQBGAxA3exr3T3nlX7HAESBNl3QRrjl1KDo5Upb/gLfDqeKBT6rvM2n45eQvtgrRiUqYv1oeTIM/SAAZMO5SLGnK/JDB4GfIc6IpfCv4gt7zkZ8P6+7XsKNP3AwOiuUU9bPtINKks6/yWCiw==;5:t3pEbVa6dDC4aiOSptFL0wrJbYwo4IkGLTm4fmoZffCC0OvG5ZLdIvCWnFxDneZ+QMIiKAXYojh87gp3envXKGrdeqoz9rvFcl32N9mCbs+S8fFARbFBkkjCowQJiAaQD3cgteGv7f/3gvuivHjKbEdRVhz07Rz28/yMtWDGh9ZZrCuGcnbzEUDnmgT/E4AMq5HihHWr/PP2/bSxHKI2qw==;7:6/Yldqf+C30Xf40+rjQhdD3Z5+moK2PEha7penII7rdOBosTCIopTOQmLxZHP7GPjH0piWjwIUL7I5QX651cv+gerigT2ku2UgnXacMuiE9ys5C2p3v1VLTj7w0Dr81I9rYC82jbU/1bIprYpXYSkg==
+x-ms-office365-filtering-correlation-id: 02193727-3ba2-40c8-70df-08d6901e79c5
+x-ms-office365-filtering-ht: Tenant
+x-microsoft-antispam: BCL:0;PCL:0;RULEID:(2390118)(7020095)(4652040)(8989299)(4534185)(4627221)(201703031133081)(201702281549075)(8990200)(5600110)(711020)(4605077)(4618075)(2017052603328)(7153060)(7193020);SRVR:CY4PR02MB2472;
+x-ms-traffictypediagnostic: CY4PR02MB2472:
+x-microsoft-antispam-prvs: <CY4PR02MB2472B678AF11656D1C6DCA81A7640@CY4PR02MB2472.namprd02.prod.outlook.com>
+x-forefront-prvs: 0945B0CC72
+x-forefront-antispam-report: SFV:NSPM;SFS:(10009020)(136003)(346002)(376002)(39860400002)(366004)(396003)(199004)(189003)(13464003)(76176011)(97736004)(6436002)(99286004)(2501003)(55016002)(66066001)(7416002)(9686003)(6246003)(316002)(86362001)(229853002)(7696005)(2201001)(81166006)(53546011)(81156014)(6506007)(33656002)(8936002)(6116002)(26005)(6636002)(305945005)(106356001)(7736002)(8676002)(11346002)(476003)(486006)(71200400001)(71190400001)(74316002)(14454004)(102836004)(25786009)(256004)(110136005)(53936002)(2906002)(105586002)(446003)(478600001)(68736007)(3846002)(186003)(921003)(1121003);DIR:OUT;SFP:1101;SCL:1;SRVR:CY4PR02MB2472;H:CY4PR02MB2709.namprd02.prod.outlook.com;FPR:;SPF:None;LANG:en;PTR:InfoNoRecords;A:1;MX:1;
+received-spf: None (protection.outlook.com: xilinx.com does not designate
+ permitted sender hosts)
+x-ms-exchange-senderadcheck: 1
+x-microsoft-antispam-message-info: guKH8VzbTD9gnT81mZpdhe+HpxUCjnYHnE9Xmg7A+5YzB7AvZNx7q/1fzvfr9sJVr1BVJunVz9zZosQDZEwNDRBOEZWJrtv0wmSTg+RiSxziokpHeT4KLaTDA4JAynUcga3VgFRaZxlG/A6mwfjC4DJtOwY2pDqxtEHN1KCxwl629kvDQU1zXu3e2phAjLhg7BnHKrJ1mmpn6H2DksMzEriwOpsDJ6CkeJtb9TKxS3Vux99NwXSa291pOVqpBrQg/pkH1oQ24Yi+yCnxnFXW6aAeR/Q3S57w1ogQqxJ21SIjvmBgW5REoOL6vDRei432ngvT8k/amxgxsWPZOdigKG4tkJkTjwajU8dQCczdhAQipk+VfQhz6lxcrhJp/CUYV0Ra2o+VlS6Hnig/z4LP8BZgVIvM4Cy9WrYYGDdnN8A=
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-X-Outbound-SMTP-Client: 173.36.7.22, xch-aln-012.cisco.com
-X-Outbound-Node: rcdn-core-3.cisco.com
+X-OriginatorOrg: xilinx.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 02193727-3ba2-40c8-70df-08d6901e79c5
+X-MS-Exchange-CrossTenant-originalarrivaltime: 11 Feb 2019 12:43:08.4974
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 657af505-d5df-48d0-8300-c31994686c5c
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY4PR02MB2472
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On 11/02/2019 11:38, Hans Verkuil (hansverk) wrote:=0A=
-> On 09/02/2019 03:48, Wen Yang wrote:=0A=
->> put_device() should be called in cec_notifier_release(),=0A=
->> since the dev is being passed down to cec_notifier_get_conn(),=0A=
->> which holds reference. On cec_notifier destruction, it=0A=
->> should drop the reference to the device.=0A=
->>=0A=
->> Fixes: 6917a7b77413 ("[media] media: add CEC notifier support")=0A=
->> Signed-off-by: Wen Yang <yellowriver2010@hotmail.com>=0A=
->> ---=0A=
->>  drivers/media/cec/cec-notifier.c | 1 +=0A=
->>  1 file changed, 1 insertion(+)=0A=
->>=0A=
->> diff --git a/drivers/media/cec/cec-notifier.c b/drivers/media/cec/cec-no=
-tifier.c=0A=
->> index dd2078b..621d4ae 100644=0A=
->> --- a/drivers/media/cec/cec-notifier.c=0A=
->> +++ b/drivers/media/cec/cec-notifier.c=0A=
->> @@ -66,6 +66,7 @@ static void cec_notifier_release(struct kref *kref)=0A=
->>  		container_of(kref, struct cec_notifier, kref);=0A=
->>  =0A=
->>  	list_del(&n->head);=0A=
->> +	put_device(n->dev);=0A=
->>  	kfree(n->conn);=0A=
->>  	kfree(n);=0A=
->>  }=0A=
->>=0A=
-> =0A=
-> Sorry, no. The dev pointer is just a search key that the notifier code lo=
-oks=0A=
-> for. It is not the notifier's responsibility to take a reference, that wo=
-uld=0A=
-> be the responsibility of the hdmi and cec drivers.=0A=
-=0A=
-Correction: the cec driver should never take a reference of the hdmi device=
-.=0A=
-It never accesses the HDMI device, it only needs the HDMI device pointer as=
-=0A=
-a key in the notifier list.=0A=
-=0A=
-The real problem is that several CEC drivers take a reference of the HDMI d=
-evice=0A=
-and never release it. So those drivers need to be fixed.=0A=
-=0A=
-Regards,=0A=
-=0A=
-	Hans=0A=
-=0A=
-> =0A=
-> If you can demonstrate that there is an object reference leak, then pleas=
-e=0A=
-> provide the details: it is likely a bug elsewhere and not in the notifier=
-=0A=
-> code.=0A=
-> =0A=
-> BTW, your patch series didn't arrive on the linux-media mailinglist for=
-=0A=
-> some reason.=0A=
-> =0A=
-> Regards,=0A=
-> =0A=
-> 	Hans=0A=
-> =0A=
-=0A=
+SGkgTHVjYSwNCg0KVGhhbmtzIGZvciByZXZpZXdpbmcgdGhpcy4gDQoNCj4gLS0tLS1PcmlnaW5h
+bCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogTHVjYSBDZXJlc29saSBbbWFpbHRvOmx1Y2FAbHVjYWNl
+cmVzb2xpLm5ldF0NCj4gU2VudDogTW9uZGF5LCBGZWJydWFyeSAxMSwgMjAxOSA0OjEyIFBNDQo+
+IFRvOiBWaXNoYWwgU2FnYXIgPHZpc2hhbC5zYWdhckB4aWxpbnguY29tPjsgSHl1biBLd29uIDxo
+eXVua0B4aWxpbnguY29tPjsNCj4gbGF1cmVudC5waW5jaGFydEBpZGVhc29uYm9hcmQuY29tOyBt
+Y2hlaGFiQGtlcm5lbC5vcmc7DQo+IHJvYmgrZHRAa2VybmVsLm9yZzsgbWFyay5ydXRsYW5kQGFy
+bS5jb207IE1pY2hhbCBTaW1law0KPiA8bWljaGFsc0B4aWxpbnguY29tPjsgbGludXgtbWVkaWFA
+dmdlci5rZXJuZWwub3JnOw0KPiBkZXZpY2V0cmVlQHZnZXIua2VybmVsLm9yZzsgc2FrYXJpLmFp
+bHVzQGxpbnV4LmludGVsLmNvbTsNCj4gaGFucy52ZXJrdWlsQGNpc2NvLmNvbTsgbGludXgtYXJt
+LWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnOyBsaW51eC0NCj4ga2VybmVsQHZnZXIua2VybmVs
+Lm9yZzsgRGluZXNoIEt1bWFyIDxkaW5lc2hrQHhpbGlueC5jb20+OyBTYW5kaXAgS290aGFyaQ0K
+PiA8c2FuZGlwa0B4aWxpbnguY29tPg0KPiBTdWJqZWN0OiBSZTogW1BBVENIIHYzIDIvMl0gbWVk
+aWE6IHY0bDogeGlsaW54OiBBZGQgWGlsaW54IE1JUEkgQ1NJLTIgUngNCj4gU3Vic3lzdGVtDQo+
+IA0KPiBFWFRFUk5BTCBFTUFJTA0KPiANCj4gSGkgVmlzaGFsLA0KPiANCj4gT24gMDEvMDIvMTkg
+MTM6NTYsIFZpc2hhbCBTYWdhciB3cm90ZToNCj4gPiBUaGUgWGlsaW54IE1JUEkgQ1NJLTIgUngg
+U3Vic3lzdGVtIHNvZnQgSVAgaXMgdXNlZCB0byBjYXB0dXJlIGltYWdlcw0KPiA+IGZyb20gTUlQ
+SSBDU0ktMiBjYW1lcmEgc2Vuc29ycyBhbmQgb3V0cHV0IEFYSTQtU3RyZWFtIHZpZGVvIGRhdGEg
+cmVhZHkNCj4gPiBmb3IgaW1hZ2UgcHJvY2Vzc2luZy4gUGxlYXNlIHJlZmVyIHRvIFBHMjMyIGZv
+ciBkZXRhaWxzLg0KPiANCj4gRm9yIHRob3NlIHVudXNlZCB0byBYaWxpbnggZG9jdW1lbnRhdGlv
+biBJJ2QgdXNlIHRoZSBmdWxsIGRvY3VtZW50IG5hbWUNCj4gKCJNSVBJIENTSS0yIFJlY2VpdmVy
+IFN1YnN5c3RlbSB2NC4wIikgb3IsIGV2ZW4gYmV0dGVyLCBhIHN0YWJsZSBVUkwgaWYNCj4gYXZh
+aWxhYmxlLg0KPiANCg0KT2suIEkgd2lsbCBhZGQgdGhlIGZ1bGwgZG9jdW1lbnRhdGlvbiBuYW1l
+IGhlcmUgYW5kIFVSTC4NCg0KPiA+IFRoZSBkcml2ZXIgaXMgdXNlZCB0byBzZXQgdGhlIG51bWJl
+ciBvZiBhY3RpdmUgbGFuZXMsIGlmIGVuYWJsZWQNCj4gPiBpbiBoYXJkd2FyZS4gVGhlIENTSTIg
+UnggY29udHJvbGxlciBmaWx0ZXJzIG91dCBhbGwgcGFja2V0cyBleGNlcHQgZm9yDQo+ID4gdGhl
+IHBhY2tldHMgd2l0aCBkYXRhIHR5cGUgZml4ZWQgaW4gaGFyZHdhcmUuIFJBVzggcGFja2V0cyBh
+cmUgYWx3YXlzDQo+ID4gYWxsb3dlZCB0byBwYXNzIHRocm91Z2guDQo+ID4NCj4gPiBJdCBpcyBh
+bHNvIHVzZWQgdG8gc2V0dXAgYW5kIGhhbmRsZSBpbnRlcnJ1cHRzIGFuZCBlbmFibGUgdGhlIGNv
+cmUuIEl0DQo+ID4gbG9ncyBhbGwgdGhlIGV2ZW50cyBpbiByZXNwZWN0aXZlIGNvdW50ZXJzIGJl
+dHdlZW4gc3RyZWFtaW5nIG9uIGFuZCBvZmYuDQo+ID4gVGhlIGdlbmVyaWMgc2hvcnQgcGFja2V0
+cyByZWNlaXZlZCBhcmUgbm90aWZpZWQgdG8gYXBwbGljYXRpb24gdmlhDQo+ID4gdjRsMl9ldmVu
+dHMuDQo+ID4NCj4gPiBUaGUgZHJpdmVyIHN1cHBvcnRzIG9ubHkgdGhlIHZpZGVvIGZvcm1hdCBi
+cmlkZ2UgZW5hYmxlZCBjb25maWd1cmF0aW9uLg0KPiA+IFNvbWUgZGF0YSB0eXBlcyBsaWtlIFlV
+ViA0MjIgMTBicGMsIFJBVzE2LCBSQVcyMCBhcmUgc3VwcG9ydGVkIHdoZW4NCj4gdGhlDQo+ID4g
+Q1NJIHYyLjAgZmVhdHVyZSBpcyBlbmFibGVkIGluIGRlc2lnbi4gV2hlbiB0aGUgVkNYIGZlYXR1
+cmUgaXMgZW5hYmxlZCwNCj4gPiB0aGUgbWF4aW11bSBudW1iZXIgb2YgdmlydHVhbCBjaGFubmVs
+cyBiZWNvbWVzIDE2IGZyb20gNC4NCj4gPg0KPiA+IFNpZ25lZC1vZmYtYnk6IFZpc2hhbCBTYWdh
+ciA8dmlzaGFsLnNhZ2FyQHhpbGlueC5jb20+DQo+IA0KPiAuLi4NCj4gDQo+ID4gKy8qKg0KPiA+
+ICsgKiB4Y3NpMnJ4c3NfcmVzZXQgLSBEb2VzIGEgc29mdCByZXNldCBvZiB0aGUgTUlQSSBDU0ky
+IFJ4IFN1YnN5c3RlbQ0KPiA+ICsgKiBAY29yZTogQ29yZSBYaWxpbnggQ1NJMiBSeCBTdWJzeXN0
+ZW0gc3RydWN0dXJlIHBvaW50ZXINCj4gPiArICoNCj4gPiArICogQ29yZSB0YWtlcyBsZXNzIHRo
+YW4gMTAwIHZpZGVvIGNsb2NrIGN5Y2xlcyB0byByZXNldC4NCj4gPiArICogU28gYSBsYXJnZXIg
+dGltZW91dCB2YWx1ZSBpcyBjaG9zZW4gZm9yIG1hcmdpbi4NCj4gPiArICoNCj4gPiArICogUmV0
+dXJuOiAwIC0gb24gc3VjY2VzcyBPUiAtRVRJTUUgaWYgcmVzZXQgdGltZXMgb3V0DQo+ID4gKyAq
+Lw0KPiA+ICtzdGF0aWMgaW50IHhjc2kycnhzc19yZXNldChzdHJ1Y3QgeGNzaTJyeHNzX2NvcmUg
+KmNvcmUpDQo+ID4gK3sNCj4gPiArICAgICB1MzIgdGltZW91dCA9IFhDU0lfVElNRU9VVF9WQUw7
+DQo+IA0KPiBUaGUgY29tbWVudCBhYm91dCB0aGUgdGltZW91dCBpcyBkdXBsaWNhdGVkIGhlcmUg
+YW5kIGF0IHRoZSAjZGVmaW5lDQo+IGxpbmUuIFdoeSBub3QgcmVtb3ZpbmcgdGhlIGRlZmluZSBh
+Ym92ZSBhbmQganVzdCBwdXR0aW5nDQo+IA0KPiAgIHUzMiB0aW1lb3V0ID0gMTAwMDsgLyogdXMg
+Ki8NCj4gDQo+IGhlcmU/IEl0IHdvdWxkIG1ha2UgdGhlIGVudGlyZSB0aW1lb3V0IGxvZ2ljIGFw
+cGVhciBpbiBhIHVuaXF1ZSBwbGFjZS4NCj4gDQoNCkFncmVlLiBJdCB3YXMga2VwdCBsaWtlIHRo
+YXQgYXMgdGhlIHRpbWVvdXQgdmFsdWUgd2FzIGJlaW5nIHVzZWQgaW4gc29tZSBvdGhlciBwbGFj
+ZSBpbiBlYXJsaWVyIHBhdGNoIHZlcnNpb25zLg0KSSB3aWxsIGRvIGFzIHN1Z2dlc3RlZCBpbiBu
+ZXh0IHZlcnNpb24uDQoNCj4gPiArc3RhdGljIGludCB4Y3NpMnJ4c3Nfc3RhcnRfc3RyZWFtKHN0
+cnVjdCB4Y3NpMnJ4c3Nfc3RhdGUgKnN0YXRlKQ0KPiA+ICt7DQo+ID4gKyAgICAgc3RydWN0IHhj
+c2kycnhzc19jb3JlICpjb3JlID0gJnN0YXRlLT5jb3JlOw0KPiA+ICsgICAgIGludCByZXQgPSAw
+Ow0KPiA+ICsNCj4gPiArICAgICB4Y3NpMnJ4c3NfZW5hYmxlKGNvcmUpOw0KPiA+ICsNCj4gPiAr
+ICAgICByZXQgPSB4Y3NpMnJ4c3NfcmVzZXQoY29yZSk7DQo+ID4gKyAgICAgaWYgKHJldCA8IDAp
+IHsNCj4gPiArICAgICAgICAgICAgIHN0YXRlLT5zdHJlYW1pbmcgPSBmYWxzZTsNCj4gPiArICAg
+ICAgICAgICAgIHJldHVybiByZXQ7DQo+ID4gKyAgICAgfQ0KPiA+ICsNCj4gPiArICAgICB4Y3Np
+MnJ4c3NfaW50cl9lbmFibGUoY29yZSk7DQo+ID4gKyAgICAgc3RhdGUtPnN0cmVhbWluZyA9IHRy
+dWU7DQo+IA0KPiBTaG91bGRuJ3QgeW91IHByb3BhZ2F0ZSBzX3N0cmVhbSB0byB0aGUgdXBzdHJl
+YW0gc3ViZGV2IGhlcmUgY2FsbGluZw0KPiB2NGwyX3N1YmRldl9jYWxsKC4uLiwgLi4uLCBzX3N0
+cmVhbSwgMSk/DQo+IA0KDQpUaGlzIGlzIGRvbmUgYnkgdGhlIHh2aXBfcGlwZWxpbmVfc3RhcnRf
+c3RvcCgpIGluIHhpbGlueC1kbWEuYyBmb3IgWGlsaW54IFZpZGVvIHBpcGVsaW5lLg0KDQo+ID4g
+KyAgICAgcmV0dXJuIHJldDsNCj4gPiArfQ0KPiANCj4gDQo+IC0tDQo+IEx1Y2ENCg0KUmVnYXJk
+cw0KVmlzaGFsIFNhZ2FyDQo=
