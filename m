@@ -2,153 +2,83 @@ Return-Path: <SRS0=8Y7M=QS=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B309C169C4
-	for <linux-media@archiver.kernel.org>; Mon, 11 Feb 2019 10:12:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 759C8C169C4
+	for <linux-media@archiver.kernel.org>; Mon, 11 Feb 2019 10:14:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 0FBEC20838
-	for <linux-media@archiver.kernel.org>; Mon, 11 Feb 2019 10:12:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 434AB20838
+	for <linux-media@archiver.kernel.org>; Mon, 11 Feb 2019 10:14:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726061AbfBKKMg (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 11 Feb 2019 05:12:36 -0500
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:33883 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725931AbfBKKMg (ORCPT
+        id S1726208AbfBKKOC (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 11 Feb 2019 05:14:02 -0500
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:44868 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725931AbfBKKOC (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Feb 2019 05:12:36 -0500
-Received: from lupine.hi.pengutronix.de ([2001:67c:670:100:3ad5:47ff:feaf:1a17] helo=lupine)
-        by metis.ext.pengutronix.de with esmtp (Exim 4.89)
-        (envelope-from <p.zabel@pengutronix.de>)
-        id 1gt8Zm-0000aN-V5; Mon, 11 Feb 2019 11:12:34 +0100
-Message-ID: <1549879951.7687.6.camel@pengutronix.de>
-Subject: Re: [PATCH v4 3/4] gpu: ipu-v3: ipu-ic: Add support for BT.709
- encoding
-From:   Philipp Zabel <p.zabel@pengutronix.de>
-To:     Steve Longerbeam <slongerbeam@gmail.com>,
-        linux-media@vger.kernel.org
-Cc:     Tim Harvey <tharvey@gateworks.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        "open list:DRM DRIVERS FOR FREESCALE IMX" 
-        <dri-devel@lists.freedesktop.org>,
-        open list <linux-kernel@vger.kernel.org>,
-        "open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>,
-        "open list:FRAMEBUFFER LAYER" <linux-fbdev@vger.kernel.org>
-Date:   Mon, 11 Feb 2019 11:12:31 +0100
-In-Reply-To: <20190209014748.10427-4-slongerbeam@gmail.com>
-References: <20190209014748.10427-1-slongerbeam@gmail.com>
-         <20190209014748.10427-4-slongerbeam@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-X-Mailer: Evolution 3.22.6-1+deb9u1 
-Mime-Version: 1.0
+        Mon, 11 Feb 2019 05:14:02 -0500
+Received: from tschai.fritz.box ([212.251.195.8])
+        by smtp-cloud9.xs4all.net with ESMTPA
+        id t8b7gs8zWRO5Zt8bAg3Gn7; Mon, 11 Feb 2019 11:14:00 +0100
+From:   Hans Verkuil <hverkuil-cisco@xs4all.nl>
+To:     linux-media@vger.kernel.org
+Cc:     Dafna Hirschfeld <dafna3@gmail.com>,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Ezequiel Garcia <ezequiel@collabora.com>
+Subject: [PATCHv2 0/6] vb2/v4l2-ctrls: check if requests are required
+Date:   Mon, 11 Feb 2019 11:13:51 +0100
+Message-Id: <20190211101357.48754-1-hverkuil-cisco@xs4all.nl>
+X-Mailer: git-send-email 2.20.1
+MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 2001:67c:670:100:3ad5:47ff:feaf:1a17
-X-SA-Exim-Mail-From: p.zabel@pengutronix.de
-X-SA-Exim-Scanned: No (on metis.ext.pengutronix.de); SAEximRunCond expanded to false
-X-PTX-Original-Recipient: linux-media@vger.kernel.org
+X-CMAE-Envelope: MS4wfNRGBHM9Ix86ag92NrY8IVmxjtldnYwJqdalxYQhwBA7/ZqPaGeQT15a6m5Bdd8UQ5KZbjRVm3r/kigJ2jw0iO2vJPQvRrHwLalX22qjz4Llo22z4hdl
+ dobOQrkoPrtBoVY4u8UVQMh+nqRmAgaktp/WWAshjqp9Gq3eXzXtaYEjypEUk8pGZaOzEId9iPVfc1mrvu7ytvBPvXZOrxBwXVCk0MXUK8qLtU3gWsE3aZhI
+ 2Bub7vhZk/pC8i2t4Ga5s+hz1YCFq6elqNlqfj55JmlXb4SmCTL/BOhFN5rWdhhu
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-On Fri, 2019-02-08 at 17:47 -0800, Steve Longerbeam wrote:
-> Pass v4l2 encoding enum to the ipu_ic task init functions, and add
-> support for the BT.709 encoding and inverse encoding matrices.
-> 
-> Reported-by: Tim Harvey <tharvey@gateworks.com>
-> Signed-off-by: Steve Longerbeam <slongerbeam@gmail.com>
-> ---
-> Changes in v4:
-> - fix compile error.
-> Chnges in v3:
-> - none.
-> Changes in v2:
-> - only return "Unsupported YCbCr encoding" error if inf != outf,
->   since if inf == outf, the identity matrix can be used. Reported
->   by Tim Harvey.
-> ---
->  drivers/gpu/ipu-v3/ipu-ic.c                 | 71 +++++++++++++++++++--
->  drivers/gpu/ipu-v3/ipu-image-convert.c      |  1 +
->  drivers/staging/media/imx/imx-ic-prpencvf.c |  4 +-
->  include/video/imx-ipu-v3.h                  |  5 +-
->  4 files changed, 71 insertions(+), 10 deletions(-)
-> 
-> diff --git a/drivers/gpu/ipu-v3/ipu-ic.c b/drivers/gpu/ipu-v3/ipu-ic.c
-> index e459615a49a1..c5f83d7e357f 100644
-> --- a/drivers/gpu/ipu-v3/ipu-ic.c
-> +++ b/drivers/gpu/ipu-v3/ipu-ic.c
-> @@ -212,6 +212,23 @@ static const struct ic_csc_params ic_csc_identity = {
->  	.scale = 2,
->  };
->  
-> +/*
-> + * BT.709 encoding from RGB full range to YUV limited range:
-> + *
-> + * Y = R *  .2126 + G *  .7152 + B *  .0722;
-> + * U = R * -.1146 + G * -.3854 + B *  .5000 + 128.;
-> + * V = R *  .5000 + G * -.4542 + B * -.0458 + 128.;
+Currently the vb2 supports_requests bitfield only indicates if the
+Request API is supported by the vb2_queue. But for stateless
+codecs the use of the Request API is actually a requirement.
 
-This is a conversion to YUV full range. Limited range should be:
+So add a requires_requests bitfield and corresponding capability
+to indicate that userspace has to use requests. And of course
+reject direct VIDIOC_QBUF calls (i.e. V4L2_BUF_FLAG_REQUEST_FD
+isn't set) if requires_requests is set.
 
-Y   R *  .1826 + G *  .6142 + B *  .0620 + 16;
-U = R * -.1007 + G * -.3385 + B *  .4392 + 128;
-V   R *  .4392 + G * -.3990 + B * -.0402 + 128;
+Finally set this bitfield in the cedrus driver.
 
-> + */
-> +static const struct ic_csc_params ic_csc_rgb2ycbcr_bt709 = {
-> +	.coeff = {
-> +		{ 54, 183, 18 },
-> +		{ 483, 413, 128 },
-> +		{ 128, 396, 500 },
-> +	},
-> +	.offset = { 0, 512, 512 },
-> +	.scale = 1,
-> +};
-> +
->  /*
->   * Inverse BT.601 encoding from YUV limited range to RGB full range:
->   *
-> @@ -229,12 +246,31 @@ static const struct ic_csc_params ic_csc_ycbcr2rgb_bt601 = {
->  	.scale = 2,
->  };
->  
-> +/*
-> + * Inverse BT.709 encoding from YUV limited range to RGB full range:
-> + *
-> + * R = (1. * (Y - 16)) + (1.5748 * (Cr - 128));
-> + * G = (1. * (Y - 16)) - (0.1873 * (Cb - 128)) - (0.4681 * (Cr - 128));
-> + * B = (1. * (Y - 16)) + (1.8556 * (Cb - 128);
+Do the same for controls: it makes no sense to set state controls
+for stateless codecs directly without going through a request.
+Add a new flag to indicate this and check it.
 
-The coefficients look like full range again, conversion from limited
-range YUV should look like:
+Regards,
 
-  R = (1.1644 * (Y - 16)) + (1.7927 * (Cr - 128));
-  G = (1.1644 * (Y - 16)) - (0.2132 * (Cb - 128)) - (0.5329 * (Cr - 128));
-  B = (1.1644 * (Y - 16)) + (2.1124 * (Cb - 128);
+	Hans
 
-> + */
-> +static const struct ic_csc_params ic_csc_ycbcr2rgb_bt709 = {
-> +	.coeff = {
-> +		{ 128, 0, 202 },
-> +		{ 128, 488, 452 },
-> +		{ 128, 238, 0 },
-> +	},
-> +	.offset = { -435, 136, -507 },
-> +	.scale = 2,
-> +};
-> +
->  static int init_csc(struct ipu_ic *ic,
->  		    enum ipu_color_space inf,
->  		    enum ipu_color_space outf,
-> +		    enum v4l2_ycbcr_encoding encoding,
+Hans Verkuil (6):
+  vb2: add requires_requests bit for stateless codecs
+  videodev2.h: add V4L2_BUF_CAP_REQUIRES_REQUESTS
+  cedrus: set requires_requests
+  videodev2.h: add V4L2_CTRL_FLAG_REQUIRES_REQUESTS
+  v4l2-ctrls: check for REQUIRES_REQUESTS flag
+  v4l2-ctrls: mark MPEG2 stateless controls as REQUIRES_REQUESTS
 
-Should we support YUV BT.601 <-> YUV REC.709 conversions? That would
-require separate encodings for input and output. Also, this might be a
-good time to think about adding quantization range parameters as well.
+ .../media/uapi/v4l/vidioc-queryctrl.rst       |  4 ++++
+ .../media/uapi/v4l/vidioc-reqbufs.rst         |  4 ++++
+ .../media/videodev2.h.rst.exceptions          |  1 +
+ .../media/common/videobuf2/videobuf2-core.c   |  5 +++-
+ .../media/common/videobuf2/videobuf2-v4l2.c   |  6 +++++
+ drivers/media/v4l2-core/v4l2-ctrls.c          |  5 ++++
+ .../staging/media/sunxi/cedrus/cedrus_video.c |  1 +
+ include/media/videobuf2-core.h                |  3 +++
+ include/uapi/linux/videodev2.h                | 24 ++++++++++---------
+ 9 files changed, 41 insertions(+), 12 deletions(-)
 
-regards
-Philipp
+-- 
+2.20.1
+
