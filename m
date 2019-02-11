@@ -6,24 +6,25 @@ X-Spam-Status: No, score=-4.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,UNPARSEABLE_RELAY,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A80FC169C4
-	for <linux-media@archiver.kernel.org>; Mon, 11 Feb 2019 19:48:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3543AC282CE
+	for <linux-media@archiver.kernel.org>; Mon, 11 Feb 2019 19:53:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 03CFA21B25
-	for <linux-media@archiver.kernel.org>; Mon, 11 Feb 2019 19:48:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0F46B21B68
+	for <linux-media@archiver.kernel.org>; Mon, 11 Feb 2019 19:53:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728271AbfBKTs2 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 11 Feb 2019 14:48:28 -0500
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:39070 "EHLO
+        id S1732528AbfBKTx2 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 11 Feb 2019 14:53:28 -0500
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:39106 "EHLO
         bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727639AbfBKTs2 (ORCPT
+        with ESMTP id S1728124AbfBKTx2 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Feb 2019 14:48:28 -0500
+        Mon, 11 Feb 2019 14:53:28 -0500
 Received: from [127.0.0.1] (localhost [127.0.0.1])
         (Authenticated sender: ezequiel)
-        with ESMTPSA id B983A27EC6B
-Message-ID: <5a31f5596c04390d76bf34fdb8b71b6a96306943.camel@collabora.com>
-Subject: Re: [PATCH v3 2/2] media: cedrus: Add H264 decoding support
+        with ESMTPSA id 83B9B27EC6B
+Message-ID: <092de35bb41cdf278212297996ff46181458c6f4.camel@collabora.com>
+Subject: Re: [PATCH v3 1/2] media: uapi: Add H264 low-level decoder API
+ compound controls.
 From:   Ezequiel Garcia <ezequiel@collabora.com>
 To:     Maxime Ripard <maxime.ripard@bootlin.com>, hans.verkuil@cisco.com,
         acourbot@chromium.org, sakari.ailus@linux.intel.com,
@@ -35,85 +36,59 @@ Cc:     tfiga@chromium.org, posciak@chromium.org,
         nicolas.dufresne@collabora.com, jenskuske@gmail.com,
         jernej.skrabec@gmail.com, jonas@kwiboo.se,
         linux-sunxi@googlegroups.com,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>
-Date:   Mon, 11 Feb 2019 16:48:17 -0300
-In-Reply-To: <4c00e1ab1e70adb1d94db59c37393250ca3791c5.1549895062.git-series.maxime.ripard@bootlin.com>
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Guenter Roeck <groeck@chromium.org>
+Date:   Mon, 11 Feb 2019 16:53:16 -0300
+In-Reply-To: <562aefcd53a1a30d034e97f177096d70fb705f2b.1549895062.git-series.maxime.ripard@bootlin.com>
 References: <cover.d3bb4d93da91ed5668025354ee1fca656e7d5b8b.1549895062.git-series.maxime.ripard@bootlin.com>
-         <4c00e1ab1e70adb1d94db59c37393250ca3791c5.1549895062.git-series.maxime.ripard@bootlin.com>
+         <562aefcd53a1a30d034e97f177096d70fb705f2b.1549895062.git-series.maxime.ripard@bootlin.com>
 Organization: Collabora
 Content-Type: text/plain; charset="UTF-8"
 User-Agent: Evolution 3.30.5-1 
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
 On Mon, 2019-02-11 at 15:39 +0100, Maxime Ripard wrote:
-> Introduce some basic H264 decoding support in cedrus. So far, only the
-> baseline profile videos have been tested, and some more advanced features
-> used in higher profiles are not even implemented.
+> From: Pawel Osciak <posciak@chromium.org>
 > 
+> Stateless video codecs will require both the H264 metadata and slices in
+> order to be able to decode frames.
+> 
+> This introduces the definitions for a new pixel format for H264 slices that
+> have been parsed, as well as the structures used to pass the metadata from
+> the userspace to the kernel.
+> 
+> Co-Developed-by: Maxime Ripard <maxime.ripard@bootlin.com>
+> Signed-off-by: Pawel Osciak <posciak@chromium.org>
+> Signed-off-by: Guenter Roeck <groeck@chromium.org>
 > Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
 [..]
+> +/* SPDX-License-Identifier: GPL-2.0 */
+> +/*
+> + * These are the H.264 state controls for use with stateless H.264
+> + * codec drivers.
+> + *
+> + * It turns out that these structs are not stable yet and will undergo
+> + * more changes. So keep them private until they are stable and ready to
+> + * become part of the official public API.
+> + */
+> +
+> +#ifndef _H264_CTRLS_H_
+> +#define _H264_CTRLS_H_
+> +
+> +#define V4L2_CID_MPEG_VIDEO_H264_SPS		(V4L2_CID_MPEG_BASE+383)
+> +#define V4L2_CID_MPEG_VIDEO_H264_PPS		(V4L2_CID_MPEG_BASE+384)
+> +#define V4L2_CID_MPEG_VIDEO_H264_SCALING_MATRIX	(V4L2_CID_MPEG_BASE+385)
+> +#define V4L2_CID_MPEG_VIDEO_H264_SLICE_PARAMS	(V4L2_CID_MPEG_BASE+386)
+> +#define V4L2_CID_MPEG_VIDEO_H264_DECODE_PARAMS	(V4L2_CID_MPEG_BASE+387)
+> +
 
+Note that these integers (+383, ..) are already in-use.
 
-> +static void _cedrus_write_ref_list(struct cedrus_ctx *ctx,
-> +				   struct cedrus_run *run,
-> +				   const u8 *ref_list, u8 num_ref,
-> +				   enum cedrus_h264_sram_off sram)
-> +{
-> +	const struct v4l2_ctrl_h264_decode_param *decode = run->h264.decode_param;
-> +	struct vb2_queue *cap_q = &ctx->fh.m2m_ctx->cap_q_ctx.q;
-> +	const struct vb2_buffer *dst_buf = &run->dst->vb2_buf;
-> +	struct cedrus_dev *dev = ctx->dev;
-> +	u8 sram_array[CEDRUS_MAX_REF_IDX];
-> +	unsigned int size, i;
-> +
-> +	memset(sram_array, 0, sizeof(sram_array));
-> +
-> +	for (i = 0; i < num_ref; i++) {
-> +		const struct v4l2_h264_dpb_entry *dpb;
-> +		const struct cedrus_buffer *cedrus_buf;
-> +		const struct vb2_v4l2_buffer *ref_buf;
-> +		unsigned int position;
-> +		int buf_idx;
-> +		u8 dpb_idx;
-> +
-> +		dpb_idx = ref_list[i];
-> +		dpb = &decode->dpb[dpb_idx];
-> +
-> +		if (!(dpb->flags & V4L2_H264_DPB_ENTRY_FLAG_ACTIVE))
-> +			continue;
-> +
-> +		if (dst_buf->timestamp == dpb->timestamp)
-> +			buf_idx = dst_buf->index;
-> +		else
-> +			buf_idx = vb2_find_timestamp(cap_q, dpb->timestamp, 0);
-> +
-> +		if (buf_idx < 0)
-> +			continue;
-> +
-> +		ref_buf = to_vb2_v4l2_buffer(ctx->dst_bufs[buf_idx]);
-> +		cedrus_buf = vb2_v4l2_to_cedrus_buffer(ref_buf);
-> +		position = cedrus_buf->codec.h264.position;
-> +
-> +		sram_array[i] |= position << 1;
-> +		if (ref_buf->field == V4L2_FIELD_BOTTOM)
-> +			sram_array[i] |= BIT(0);
-> +	}
-> +
-> +	size = min((unsigned int)ALIGN(num_ref, 4), sizeof(sram_array));
-
-Perhaps s/unsigned int/size_t, so the arguments to min() have the same type?
-
-Otherwise, I got this warning:
-
-/home/zeta/repos/linux/media_tree/drivers/staging/media/sunxi/cedrus/cedrus_h264.c: In function ‘_cedrus_write_ref_list’:
-/home/zeta/repos/linux/media_tree/include/linux/kernel.h:846:29: warning: comparison of distinct pointer types lacks a cast
-   (!!(sizeof((typeof(x) *)1 == (typeof(y) *)1)))
-
-Regards,
-Ez
+Since the controls are non-public, perhaps we could use upper integers,
+say +1000 or something?
 
