@@ -6,31 +6,31 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E2A6C282CE
-	for <linux-media@archiver.kernel.org>; Mon, 11 Feb 2019 10:14:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A0FFC282DA
+	for <linux-media@archiver.kernel.org>; Mon, 11 Feb 2019 10:14:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 75CEF20838
-	for <linux-media@archiver.kernel.org>; Mon, 11 Feb 2019 10:14:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 08ED720838
+	for <linux-media@archiver.kernel.org>; Mon, 11 Feb 2019 10:14:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726814AbfBKKOG (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Mon, 11 Feb 2019 05:14:06 -0500
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:39042 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726046AbfBKKOD (ORCPT
+        id S1726177AbfBKKOF (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Mon, 11 Feb 2019 05:14:05 -0500
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:60941 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726259AbfBKKOE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Feb 2019 05:14:03 -0500
+        Mon, 11 Feb 2019 05:14:04 -0500
 Received: from tschai.fritz.box ([212.251.195.8])
         by smtp-cloud9.xs4all.net with ESMTPA
-        id t8b7gs8zWRO5Zt8bCg3GoC; Mon, 11 Feb 2019 11:14:02 +0100
+        id t8b7gs8zWRO5Zt8bCg3GoS; Mon, 11 Feb 2019 11:14:02 +0100
 From:   Hans Verkuil <hverkuil-cisco@xs4all.nl>
 To:     linux-media@vger.kernel.org
 Cc:     Dafna Hirschfeld <dafna3@gmail.com>,
         Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
         Ezequiel Garcia <ezequiel@collabora.com>,
         Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Subject: [PATCHv2 5/6] v4l2-ctrls: check for REQUIRES_REQUESTS flag
-Date:   Mon, 11 Feb 2019 11:13:56 +0100
-Message-Id: <20190211101357.48754-6-hverkuil-cisco@xs4all.nl>
+Subject: [PATCHv2 6/6] v4l2-ctrls: mark MPEG2 stateless controls as REQUIRES_REQUESTS
+Date:   Mon, 11 Feb 2019 11:13:57 +0100
+Message-Id: <20190211101357.48754-7-hverkuil-cisco@xs4all.nl>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20190211101357.48754-1-hverkuil-cisco@xs4all.nl>
 References: <20190211101357.48754-1-hverkuil-cisco@xs4all.nl>
@@ -44,28 +44,30 @@ Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Attempts to get/try/set controls that require requests
-without actually specifying a request are now rejected.
+These stateless codec controls can only be used in combination with
+a request. So mark them as such.
 
 Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
 ---
- drivers/media/v4l2-core/v4l2-ctrls.c | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/media/v4l2-core/v4l2-ctrls.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
 diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 99308dac2daa..25f80f0eba69 100644
+index 25f80f0eba69..7825c8d66498 100644
 --- a/drivers/media/v4l2-core/v4l2-ctrls.c
 +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -3150,6 +3150,9 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
- 		ctrl = ref->ctrl;
- 		if (ctrl->flags & V4L2_CTRL_FLAG_DISABLED)
- 			return -EINVAL;
-+		if ((ctrl->flags & V4L2_CTRL_FLAG_REQUIRES_REQUESTS) &&
-+		    !hdl->req_obj.req)
-+			return -EACCES;
- 
- 		if (ctrl->cluster[0]->ncontrols > 1)
- 			have_clusters = true;
+@@ -1299,9 +1299,11 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 		break;
+ 	case V4L2_CID_MPEG_VIDEO_MPEG2_SLICE_PARAMS:
+ 		*type = V4L2_CTRL_TYPE_MPEG2_SLICE_PARAMS;
++		*flags |= V4L2_CTRL_FLAG_REQUIRES_REQUESTS;
+ 		break;
+ 	case V4L2_CID_MPEG_VIDEO_MPEG2_QUANTIZATION:
+ 		*type = V4L2_CTRL_TYPE_MPEG2_QUANTIZATION;
++		*flags |= V4L2_CTRL_FLAG_REQUIRES_REQUESTS;
+ 		break;
+ 	default:
+ 		*type = V4L2_CTRL_TYPE_INTEGER;
 -- 
 2.20.1
 
