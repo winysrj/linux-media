@@ -2,153 +2,93 @@ Return-Path: <SRS0=4gUs=QT=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,UNPARSEABLE_RELAY,
-	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 60840C282C4
-	for <linux-media@archiver.kernel.org>; Tue, 12 Feb 2019 09:50:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 69E40C282C4
+	for <linux-media@archiver.kernel.org>; Tue, 12 Feb 2019 10:17:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 368D22083E
-	for <linux-media@archiver.kernel.org>; Tue, 12 Feb 2019 09:50:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 396AD2077B
+	for <linux-media@archiver.kernel.org>; Tue, 12 Feb 2019 10:17:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728208AbfBLJuQ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 12 Feb 2019 04:50:16 -0500
-Received: from mailgw02.mediatek.com ([210.61.82.184]:60602 "EHLO
-        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1727600AbfBLJuP (ORCPT
+        id S1727684AbfBLKRs (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 12 Feb 2019 05:17:48 -0500
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:46563 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726003AbfBLKRs (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Feb 2019 04:50:15 -0500
-X-UUID: 21ac637db0604c1a8f7893bdcdb291fc-20190212
-X-UUID: 21ac637db0604c1a8f7893bdcdb291fc-20190212
-Received: from mtkexhb02.mediatek.inc [(172.21.101.103)] by mailgw02.mediatek.com
-        (envelope-from <frederic.chen@mediatek.com>)
-        (mhqrelay.mediatek.com ESMTP with TLS)
-        with ESMTP id 257948865; Tue, 12 Feb 2019 17:50:08 +0800
-Received: from mtkcas08.mediatek.inc (172.21.101.126) by
- mtkmbs01n1.mediatek.inc (172.21.101.68) with Microsoft SMTP Server (TLS) id
- 15.0.1395.4; Tue, 12 Feb 2019 17:50:00 +0800
-Received: from [172.21.84.99] (172.21.84.99) by mtkcas08.mediatek.inc
- (172.21.101.73) with Microsoft SMTP Server id 15.0.1395.4 via Frontend
- Transport; Tue, 12 Feb 2019 17:50:00 +0800
-Message-ID: <1549965000.29488.4.camel@mtksdccf07>
-Subject: Re: [RFC PATCH V0 3/7] [media] dt-bindings: mt8183: Added DIP-SMEM
- dt-bindings
-From:   Frederic Chen <frederic.chen@mediatek.com>
-To:     Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>
-CC:     <devicetree@vger.kernel.org>, <hans.verkuil@cisco.com>,
-        <laurent.pinchart+renesas@ideasonboard.com>, <tfiga@chromium.org>,
-        <matthias.bgg@gmail.com>, <mchehab@kernel.org>,
-        <linux-mediatek@lists.infradead.org>,
-        <linux-arm-kernel@lists.infradead.org>, <Sean.Cheng@mediatek.com>,
-        <sj.huang@mediatek.com>, <christie.yu@mediatek.com>,
-        <holmes.chiou@mediatek.com>, <Jerry-ch.Chen@mediatek.com>,
-        <jungo.lin@mediatek.com>, <Rynn.Wu@mediatek.com>,
-        <linux-media@vger.kernel.org>, <srv_heupstream@mediatek.com>
-Date:   Tue, 12 Feb 2019 17:50:00 +0800
-In-Reply-To: <20190209182034.GC4505@pendragon.ideasonboard.com>
-References: <1549020091-42064-1-git-send-email-frederic.chen@mediatek.com>
-         <1549020091-42064-4-git-send-email-frederic.chen@mediatek.com>
-         <20190209155935.afrrtf3twjmj23sm@valkosipuli.retiisi.org.uk>
-         <20190209182034.GC4505@pendragon.ideasonboard.com>
+        Tue, 12 Feb 2019 05:17:48 -0500
+Received: from lupine.hi.pengutronix.de ([2001:67c:670:100:3ad5:47ff:feaf:1a17] helo=lupine)
+        by metis.ext.pengutronix.de with esmtp (Exim 4.89)
+        (envelope-from <p.zabel@pengutronix.de>)
+        id 1gtV8M-00068m-Sn; Tue, 12 Feb 2019 11:17:46 +0100
+Message-ID: <1549966666.4800.3.camel@pengutronix.de>
+Subject: Re: [PATCH v4 1/4] gpu: ipu-v3: ipu-ic: Rename yuv2rgb encoding
+ matrices
+From:   Philipp Zabel <p.zabel@pengutronix.de>
+To:     Steve Longerbeam <slongerbeam@gmail.com>,
+        linux-media@vger.kernel.org
+Cc:     Tim Harvey <tharvey@gateworks.com>,
+        "open list:DRM DRIVERS FOR FREESCALE IMX" 
+        <dri-devel@lists.freedesktop.org>,
+        open list <linux-kernel@vger.kernel.org>
+Date:   Tue, 12 Feb 2019 11:17:46 +0100
+In-Reply-To: <0f987e19-e6e9-a56e-00ec-61e7e300a92e@gmail.com>
+References: <20190209014748.10427-1-slongerbeam@gmail.com>
+         <20190209014748.10427-2-slongerbeam@gmail.com>
+         <1549879117.7687.2.camel@pengutronix.de>
+         <0f987e19-e6e9-a56e-00ec-61e7e300a92e@gmail.com>
 Content-Type: text/plain; charset="UTF-8"
-X-Mailer: Evolution 3.2.3-0ubuntu6 
+X-Mailer: Evolution 3.22.6-1+deb9u1 
+Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-MIME-Version: 1.0
-X-MTK:  N
+X-SA-Exim-Connect-IP: 2001:67c:670:100:3ad5:47ff:feaf:1a17
+X-SA-Exim-Mail-From: p.zabel@pengutronix.de
+X-SA-Exim-Scanned: No (on metis.ext.pengutronix.de); SAEximRunCond expanded to false
+X-PTX-Original-Recipient: linux-media@vger.kernel.org
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Dear Laurent and Sakari,
+Hi Steve,
 
-
-On Sat, 2019-02-09 at 20:20 +0200, Laurent Pinchart wrote:
-> Hello Frederic,
+On Mon, 2019-02-11 at 10:24 -0800, Steve Longerbeam wrote:
+[...]
+> Looking more closely at these coefficients now, I see you are right, 
+> they are the BT.601 YUV full-range coefficients (Y range 0 to 1, U and V 
+> range -0.5 to 0.5). Well, not even that -- the coefficients are not 
+> being scaled to the limited ranges, but the 0.5 offset (128) _is_ being 
+> added to U/V, but no offset for Y. So it is even more messed up.
+>
+> Your corrected coefficients and offsets look correct to me: Y 
+> coefficients scaled to (235 - 16) / 255 and U/V coefficients scaled to 
+> (240 - 16)  / 255, and add the offsets for both Y and U/V.
 > 
-> On Sat, Feb 09, 2019 at 05:59:35PM +0200, Sakari Ailus wrote:
-> > Hi Frederic,
-> > 
-> > Thanks for the patchset.
-> > 
-> > Could you also cc the devicetree list, please?
-> > 
-> > On Fri, Feb 01, 2019 at 07:21:27PM +0800, Frederic Chen wrote:
-> > > This patch adds the DT binding documentation for the shared memory
-> > > between DIP (Digital Image Processing) unit of the camera ISP system
-> > > and the co-processor in Mediatek SoCs.
-> > > 
-> > > Signed-off-by: Frederic Chen <frederic.chen@mediatek.com>
-> > > ---
-> > >  .../bindings/media/mediatek,dip_smem.txt           | 29 ++++++++++++++++++++++
-> > >  1 file changed, 29 insertions(+)
-> > >  create mode 100644 Documentation/devicetree/bindings/media/mediatek,dip_smem.txt
-> > > 
-> > > diff --git a/Documentation/devicetree/bindings/media/mediatek,dip_smem.txt b/Documentation/devicetree/bindings/media/mediatek,dip_smem.txt
-> > > new file mode 100644
-> > > index 0000000..5533721
-> > > --- /dev/null
-> > > +++ b/Documentation/devicetree/bindings/media/mediatek,dip_smem.txt
-> > > @@ -0,0 +1,29 @@
-> > > +Mediatek ISP Shared Memory Device
-> > > +
-> > > +Mediatek ISP Shared Memory Device is used to manage shared memory
-> > > +among CPU, ISP IPs and coprocessor. It is associated with a reserved
-> > > +memory region (Please see Documentation\devicetree\bindings\
-> > > +reserved-memory\mediatek,reserve-memory-isp_smem.txt) and
-> > 
-> > s/\\/\//g;
-> > 
-> > > +and provide the context to allocate memory with dma addresses.
+> But what about this "SAT_MODE" field in the IC task parameter memory? 
+
+That just controls the saturation. The result after the matrix
+multiplication is either saturated to [0..255] or to [16..235]/[16..240]
+when converting from the internal representation to the 8 bit output.
+
+> According to the manual the hardware will automatically convert the 
+> written coefficients to the correct limited ranges.
+
+Where did you get that from? "The final calculation result is limited
+according to the SAT_MODE parameter and rounded to 8 bits." I see no
+mention of coefficients being modified.
+
+> I see there is a "sat" field defined in the struct but is not being
+> set in the tables.
 > 
-> Does this represent a real device (as in IP core) in the SoC ? There
-> seems to be no driver associated with the compatible string defined
-> herein in this patch series, what is this node used for ?
+> So what should we do, define the full range coefficients, and make use 
+> of SAT_MODE h/w feature, or scale/offset the coefficients ourselves and 
+> not use SAT_MODE? I'm inclined to do the former.
 
-It does not represent a real device. It is used for creating the
-DIP-specific vb2 buffer allocation context (implemented
-in /drivers/media/platform/mtk-isp/isp_50/dip/mtk_dip-smem-drv.c).
-The compatible string has been renamed as “mediatek,dip_smem” in this
-patch series and I will correct it in this binding document.
+SAT_MODE should be set for conversions to YUV limited range so that the
+coefficients can be rounded to the closest value. Otherwise we'd have to
+round towards zero, possibly with a larger error, to make sure the
+results are inside the valid ranges.
 
-> 
-> > > +Required properties:
-> > > +- compatible: Should be "mediatek,isp_smem"
-> > 
-> > s/Should/Shall/
-> > 
-> > > +
-> > > +- iommus: should point to the respective IOMMU block with master port
-> > 
-> > s/should/shall/
-> > 
-> > > +  as argument. Please set the ports which may be accessed
-> > > +  through the common path. You can see
-> > > +  Documentation/devicetree/bindings/iommu/mediatek,iommu.txt
-> > > +  for the detail.
-> > > +
-> > > +- mediatek,larb: must contain the local arbiters in the current Socs.
-> > 
-> > Perhaps "SoCs"?
-> > 
-> > > +  Please set the larb of camsys for Pass 1 and imgsys for DIP, or both
-> > > +  if you are using all the camera function. You can see
-> > > +  Documentation/devicetree/bindings/memory-controllers/
-> > > +  mediatek,smi-larb.txt for the detail.
-> > > +
-> > > +Example:
-> > > +	isp_smem: isp_smem {
-> > > +		compatible = "mediatek,isp_smem";
-> > > +		mediatek,larb = <&larb5>;
-> > > +		iommus = <&iommu M4U_PORT_CAM_IMGI>;
-> > > +	};
-> 
-
-
-Sincerely,
-
-Frederic Chen
-
-
+regards
+Philipp
