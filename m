@@ -2,121 +2,159 @@ Return-Path: <SRS0=4gUs=QT=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.6 required=3.0 tests=BIGNUM_EMAILS,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_MUTT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.1 required=3.0 tests=DKIMWL_WL_HIGH,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_PASS autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9096CC282C4
-	for <linux-media@archiver.kernel.org>; Tue, 12 Feb 2019 12:48:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 57F5BC282C4
+	for <linux-media@archiver.kernel.org>; Tue, 12 Feb 2019 12:57:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 552172084E
-	for <linux-media@archiver.kernel.org>; Tue, 12 Feb 2019 12:48:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1FEB320863
+	for <linux-media@archiver.kernel.org>; Tue, 12 Feb 2019 12:57:28 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="bGhF/T7e"
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="Y7sJeVtR"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728126AbfBLMs6 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 12 Feb 2019 07:48:58 -0500
-Received: from userp2130.oracle.com ([156.151.31.86]:55722 "EHLO
-        userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725916AbfBLMs6 (ORCPT
+        id S1729450AbfBLM51 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 12 Feb 2019 07:57:27 -0500
+Received: from mail-ot1-f67.google.com ([209.85.210.67]:46488 "EHLO
+        mail-ot1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728365AbfBLM51 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Feb 2019 07:48:58 -0500
-Received: from pps.filterd (userp2130.oracle.com [127.0.0.1])
-        by userp2130.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x1CCmuqj119009;
-        Tue, 12 Feb 2019 12:48:56 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=date : from : to : cc
- : subject : message-id : mime-version : content-type; s=corp-2018-07-02;
- bh=3JJzCTXinBco2WLD25+8KZK/QsA/9DHZ5ZsZEZDyuzY=;
- b=bGhF/T7e9ZSgdAbceKag3pghk5IdxIq3QmO64PrbltCR5b7l6S6eeoydKf6ysIPldxII
- LsCAkXoiCmL/+eLfhjYsTAl2t1mtvAByjQwWm4I+9ERwjXQNG4FngFBXxd3qOdH7jDT5
- 2ocJznpAPwayUoVuuv5HFapSM2jXph3SHED+xY7auh2Yg+JXqHc+x+V9aNjhoOMFGYqZ
- iWgvNY9iXoMl2hPJkpGmvpxJFI9DxI1kW1nXz+lYMoKuGM6i0FdSgHTOE/C+xICl4sO/
- tRcbHmnfenb4CPWQ3IkIZNu72wIlxImpm8S0x+ca6wJFUHiYIX4DJ7O8o6+awG3ywlho 2A== 
-Received: from userv0021.oracle.com (userv0021.oracle.com [156.151.31.71])
-        by userp2130.oracle.com with ESMTP id 2qhrekbmk6-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Tue, 12 Feb 2019 12:48:56 +0000
-Received: from aserv0121.oracle.com (aserv0121.oracle.com [141.146.126.235])
-        by userv0021.oracle.com (8.14.4/8.14.4) with ESMTP id x1CCmtQQ008049
-        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Tue, 12 Feb 2019 12:48:55 GMT
-Received: from abhmp0019.oracle.com (abhmp0019.oracle.com [141.146.116.25])
-        by aserv0121.oracle.com (8.14.4/8.13.8) with ESMTP id x1CCmsHI002862;
-        Tue, 12 Feb 2019 12:48:55 GMT
-Received: from kadam (/41.202.241.35)
-        by default (Oracle Beehive Gateway v4.0)
-        with ESMTP ; Tue, 12 Feb 2019 04:48:54 -0800
-Date:   Tue, 12 Feb 2019 15:48:47 +0300
-From:   Dan Carpenter <dan.carpenter@oracle.com>
-To:     pboettcher@kernellabs.com
-Cc:     linux-media@vger.kernel.org
-Subject: [bug report] [media] dib8000: potential off by one
-Message-ID: <20190212124847.GA11184@kadam>
+        Tue, 12 Feb 2019 07:57:27 -0500
+Received: by mail-ot1-f67.google.com with SMTP id w25so4057902otm.13
+        for <linux-media@vger.kernel.org>; Tue, 12 Feb 2019 04:57:26 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=VDNXOREDNGYW88RlMWXWe1+fpPoFObQlemG/TN+KLuA=;
+        b=Y7sJeVtRiglF2RvgFGXMXC12YVEM1qnMuaG5u2CnqMtRCX+TEoY32Diq5FGu/iK21d
+         XaxBmvAte7CK3Fx6LdIMz4w9E2yGuvvovTmxS1lkAtTxS4FpnEEiTGJcrHsNf4xZFWWy
+         PTF2aeHPgo+9wPqFmiUfjdWO4rlaap2YO7STY=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=VDNXOREDNGYW88RlMWXWe1+fpPoFObQlemG/TN+KLuA=;
+        b=BmFRyfbkK3M7zcQHLObSIlVQaVRRdfGe5RWluvTi3wm/JpXm2B0doLXaXENXjnmgFQ
+         Qc2hMg6b4KY1lNIoMb7+tKmcc61AThVWGShYQ31yZVOSz8cB4/MtFupG9G3oGPECGukx
+         uJnYxrs2W5PeP0HCNLbdAPHBwgo4NjFGdv1XvItdt1djiFVNyMKIom6dDe5q2ztA/Dt6
+         ZREJ33rGiqIrHMt8aijqJAdlTy9mG4Ig4N6JY2E8Xx1yM3TxzREK6gRblJ8QHKF++Fsl
+         yrVb++MHl1HIaTka4EhDSvY110GvqprXBJO0UW/VXlHalPt2UbQQnxW0n5RNEYOmLOzu
+         F9jw==
+X-Gm-Message-State: AHQUAuZeOpZTkEgb/3H/8Xm3RIXSH2/5x73+22ba6qQpuSxc5KhyME7/
+        IRuQ93J91p1JY1G/SAG+EB42G8NGIoQ=
+X-Google-Smtp-Source: AHgI3IZA5+O91lDA9XWvIoEo2pAAw1m4Y2G3qhx4TuLi7kd4cM1O5imL1BbM2tQFTMFv/E9J2WPbDw==
+X-Received: by 2002:a9d:3e4a:: with SMTP id h10mr3796562otg.74.1549976245798;
+        Tue, 12 Feb 2019 04:57:25 -0800 (PST)
+Received: from mail-ot1-f41.google.com (mail-ot1-f41.google.com. [209.85.210.41])
+        by smtp.gmail.com with ESMTPSA id n94sm3765015otn.55.2019.02.12.04.57.25
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Tue, 12 Feb 2019 04:57:25 -0800 (PST)
+Received: by mail-ot1-f41.google.com with SMTP id s5so4176579oth.7
+        for <linux-media@vger.kernel.org>; Tue, 12 Feb 2019 04:57:25 -0800 (PST)
+X-Received: by 2002:a9d:6f8e:: with SMTP id h14mr3388599otq.241.1549975829538;
+ Tue, 12 Feb 2019 04:50:29 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-User-Agent: Mutt/1.9.4 (2018-02-28)
-X-Proofpoint-Virus-Version: vendor=nai engine=5900 definitions=9164 signatures=668683
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 priorityscore=1501 malwarescore=0
- suspectscore=1 phishscore=0 bulkscore=0 spamscore=0 clxscore=1011
- lowpriorityscore=0 mlxscore=0 impostorscore=0 mlxlogscore=963 adultscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.0.1-1810050000
- definitions=main-1902120094
+References: <cover.d3bb4d93da91ed5668025354ee1fca656e7d5b8b.1549895062.git-series.maxime.ripard@bootlin.com>
+In-Reply-To: <cover.d3bb4d93da91ed5668025354ee1fca656e7d5b8b.1549895062.git-series.maxime.ripard@bootlin.com>
+From:   Tomasz Figa <tfiga@chromium.org>
+Date:   Tue, 12 Feb 2019 21:50:18 +0900
+X-Gmail-Original-Message-ID: <CAAFQd5AcqiwAb30ajLxmj6LZoabVygUsAB8A+drpityOAvY60A@mail.gmail.com>
+Message-ID: <CAAFQd5AcqiwAb30ajLxmj6LZoabVygUsAB8A+drpityOAvY60A@mail.gmail.com>
+Subject: Re: [PATCH v3 0/2] media: cedrus: Add H264 decoding support
+To:     Maxime Ripard <maxime.ripard@bootlin.com>
+Cc:     Hans Verkuil <hans.verkuil@cisco.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Pawel Osciak <posciak@chromium.org>,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        "list@263.net:IOMMU DRIVERS <iommu@lists.linux-foundation.org>, Joerg
+        Roedel <joro@8bytes.org>," <linux-arm-kernel@lists.infradead.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        jenskuske@gmail.com, Jernej Skrabec <jernej.skrabec@gmail.com>,
+        Jonas Karlman <jonas@kwiboo.se>,
+        Ezequiel Garcia <ezequiel@collabora.com>,
+        linux-sunxi@googlegroups.com,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hello Patrick Boettcher,
+Hi Maxime,
 
-The patch 173a64cb3fcf: "[media] dib8000: enhancement" from Apr 22,
-2013, leads to the following static checker warning:
+On Mon, Feb 11, 2019 at 11:39 PM Maxime Ripard
+<maxime.ripard@bootlin.com> wrote:
+>
+> Hi,
+>
+> Here is a new version of the H264 decoding support in the cedrus
+> driver.
 
-	drivers/media/dvb-frontends/dib8000.c:2132 dib8000_get_init_prbs()
-	error: buffer overflow 'lut_prbs_2k' 14 <= 14
+Thanks for working on this. Please see my comments below.
 
-drivers/media/dvb-frontends/dib8000.c
-    2123 static u16 dib8000_get_init_prbs(struct dib8000_state *state, u16 subchannel)
-    2124 {
-    2125 	int sub_channel_prbs_group = 0;
-    2126 
-    2127 	sub_channel_prbs_group = (subchannel / 3) + 1;
-    2128 	dprintk("sub_channel_prbs_group = %d , subchannel =%d prbs = 0x%04x\n", sub_channel_prbs_group, subchannel, lut_prbs_8k[sub_channel_prbs_group]);
-    2129 
-    2130 	switch (state->fe[0]->dtv_property_cache.transmission_mode) {
-    2131 	case TRANSMISSION_MODE_2K:
---> 2132 			return lut_prbs_2k[sub_channel_prbs_group];
-    2133 	case TRANSMISSION_MODE_4K:
-    2134 			return lut_prbs_4k[sub_channel_prbs_group];
-    2135 	default:
-    2136 	case TRANSMISSION_MODE_8K:
-    2137 			return lut_prbs_8k[sub_channel_prbs_group];
-    2138 	}
-    2139 }
+>
+> As you might already know, the cedrus driver relies on the Request
+> API, and is a reverse engineered driver for the video decoding engine
+> found on the Allwinner SoCs.
+>
+> This work has been possible thanks to the work done by the people
+> behind libvdpau-sunxi found here:
+> https://github.com/linux-sunxi/libvdpau-sunxi/
+>
+> I've tested the various ABI using this gdb script:
+> http://code.bulix.org/jl4se4-505620?raw
+>
+> And this test script:
+> http://code.bulix.org/8zle4s-505623?raw
+>
+> The application compiled is quite trivial:
+> http://code.bulix.org/e34zp8-505624?raw
+>
+> The output is:
+> arm:    builds/arm-test-v4l2-h264-structures
+>         SHA1: 88cbf7485ba81831fc3b93772b215599b3b38318
+> x86:    builds/x86-test-v4l2-h264-structures
+>         SHA1: 88cbf7485ba81831fc3b93772b215599b3b38318
+> x64:    builds/x64-test-v4l2-h264-structures
+>         SHA1: 88cbf7485ba81831fc3b93772b215599b3b38318
+> arm64:  builds/arm64-test-v4l2-h264-structures
+>         SHA1: 88cbf7485ba81831fc3b93772b215599b3b38318
+>
+> Let me know if there's any flaw using that test setup, or if you have
+> any comments on the patches.
+>
+> Maxime
+>
+> Changes from v2:
+>   - Simplified _cedrus_write_ref_list as suggested by Jernej
+>   - Set whether the frame is used as reference using nal_ref_idc
+>   - Respect chroma_format_idc
+>   - Fixes for the scaling list and prediction tables
+>   - Wrote the documentation for the flags
+>   - Added a bunch of defines to the driver bit fields
+>   - Reworded the controls and data format descriptions as suggested
+>     by Hans
+>   - Reworked the controls' structure field size to avoid padding
+>   - Removed the long term reference flag
 
-[ snip ]
+This and...
 
-  3305                  break;
-  3306  
-  3307          case CT_DEMOD_STEP_11:  /* 41 : init prbs autosearch */
-  3308                  if (state->subchannel <= 41) {
-                            ^^^^^^^^^^^^^^^^^^^^^^^
-The problem is here.  If ->subchannel is 41 then we are off by one.
-In the original code this was something like state->subchannel % 41 so
-I suspect the fix is to change <= to just < but I'm not totally sure.
+>   - Reintroduced the neighbor info buffer
+>   - Removed the ref_pic_list_p0/b0/b1 arrays that are redundant with the
+>     one in the DPB
 
-  3309                          dib8000_set_subchannel_prbs(state, dib8000_get_init_prbs(state, state->subchannel));
-  3310                          *tune_state = CT_DEMOD_STEP_9;
-  3311                  } else {
-  3312                          *tune_state = CT_DEMOD_STOP;
-  3313                          state->status = FE_STATUS_TUNE_FAILED;
-  3314                  }
-  3315                  break;
-  3316  
-  3317          default:
-  3318                  break;
-  3319          }
+these are used in our Rockchip VDEC driver.
 
-regards,
-dan carpenter
+Could you elaborate on the reasons why they got removed?
+
+Best regards,
+Tomasz
