@@ -2,140 +2,159 @@ Return-Path: <SRS0=4gUs=QT=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.0 required=3.0 tests=DKIMWL_WL_MED,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A268FC282CA
-	for <linux-media@archiver.kernel.org>; Tue, 12 Feb 2019 17:50:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 044DAC282C4
+	for <linux-media@archiver.kernel.org>; Tue, 12 Feb 2019 19:02:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 58B6420842
-	for <linux-media@archiver.kernel.org>; Tue, 12 Feb 2019 17:50:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BE74E222C0
+	for <linux-media@archiver.kernel.org>; Tue, 12 Feb 2019 19:02:05 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="roQ8qICH"
+	dkim=pass (2048-bit key) header.d=gateworks-com.20150623.gappssmtp.com header.i=@gateworks-com.20150623.gappssmtp.com header.b="CLK9lFX2"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728413AbfBLRuZ (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 12 Feb 2019 12:50:25 -0500
-Received: from mail-wr1-f68.google.com ([209.85.221.68]:36311 "EHLO
-        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729301AbfBLRuZ (ORCPT
+        id S1729009AbfBLTCF (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 12 Feb 2019 14:02:05 -0500
+Received: from mail-wm1-f66.google.com ([209.85.128.66]:52234 "EHLO
+        mail-wm1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728032AbfBLTCE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Feb 2019 12:50:25 -0500
-Received: by mail-wr1-f68.google.com with SMTP id o17so3716318wrw.3;
-        Tue, 12 Feb 2019 09:50:24 -0800 (PST)
+        Tue, 12 Feb 2019 14:02:04 -0500
+Received: by mail-wm1-f66.google.com with SMTP id m1so4241001wml.2
+        for <linux-media@vger.kernel.org>; Tue, 12 Feb 2019 11:02:03 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=subject:to:cc:references:from:message-id:date:user-agent
-         :mime-version:in-reply-to:content-transfer-encoding:content-language;
-        bh=mKdfhntET8a5sT57ulQMfz5WyVQhI6miZqMkI7Tm3BE=;
-        b=roQ8qICHJWpWnRzaWI8kfTKFElWb5/E8NxngacLdC8EjVg67tgHypucttlnrCz3DYt
-         ObCLJ7dBzref+Y7neaa5+IelLXpMOAb8h/iDA6ltd1orHU9NWLFqXJRzLspg8n9H1cNl
-         fbtcl3gxN2yrYgBPvRHJml0jlzlI0vl9L6kIGVgRLyCGdN/mNZ+pumIkI5ZCbJbEl8hg
-         hWbXINMmtHjrjpTpE1G4dnSwwe3a6Nye097mn/6bIrKDq6sb1HuPEinD7pnnoHJHCcDo
-         brYs0ZPvx9a+FhHKcHK4SAOV2I5lS3dhrTt12Pqz3oKD/YflkPMNVKaTgrpRSPd8HXIN
-         V33A==
+        d=gateworks-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=bFpFNCmHQUH+XHnRvw7+2FbduGFIWktyI7mg5P3s/tQ=;
+        b=CLK9lFX2GdW4BTb2bnb8xFHyu+HyCKbPD1u1RB8c1CPUCDjbTk5K1gSZ0Zkbl5JuLc
+         i6j7u5UB3LpV+Pl2kQGOfE0bNSgqVMVILJvlbmuTilqasUFwhxr9vUEqFAaRb0QScqof
+         XcwI3qBmWJllm2XXTDkW2ErfJbG8+bp9ahgWb5EdJ9shmYD9e8WatKXLJA0m7lcHC3sI
+         +Qxa0/WRY0DL6ZJPN5jBSH8lPRKnDbIpQpAegV7dJ9pVrrFVRWE3kyPJfS7PoEYbquTR
+         QARQZmNwFar9c22jrpYo7L3ZU41dnK3seEbQ9LLi85slCLzcu8K/2yBEY5XSsWFgtE1P
+         azKw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-transfer-encoding
-         :content-language;
-        bh=mKdfhntET8a5sT57ulQMfz5WyVQhI6miZqMkI7Tm3BE=;
-        b=P9jzVzaNbIZlCIzQiPwZIeOkl+3o3AFPKcuea+HyIsYFCI5iJMHc1NgEWiGxZXX8n7
-         Oggu5spQ7WBbTFHh1xyO0YlWwsQZY9bb19p8CJijMcSI6ssXlH/v3P6wJwEsm7+zNP7U
-         4YruJjzAuXSBnZeWp38TqMbalNus3jlTDKzBeNgUwpqPWtG17dYQEY8P6V7oMvFG4o+A
-         D2Q+KDyeEDo1/QDLmvNP5AQjD2dtrhx1MPEi2jei41wIq8WHQwQM04E+vW1gSuUN0iU4
-         V5s9rGo4xOCex6UPWoj0aG1DweG7nSA9HrvjuQyJaV0ytdHnv1woK/TY4lfgwzw0+z7H
-         vPjg==
-X-Gm-Message-State: AHQUAua0P0Xcl4o3INC65fZAifER2p4tLbEPAS+04WZZoKFPjvnwWym+
-        4yAJ/g4ycWmp9V9MBkzfwdavYOoL
-X-Google-Smtp-Source: AHgI3IauLN2agTLnXw2hakJ3BMjzcmp+Lr6AbEqzaQt8Jvh2c99Hkpg0WtBY4HtxybYgkV29t4cL8A==
-X-Received: by 2002:a5d:65d2:: with SMTP id e18mr3977943wrw.117.1549993822969;
-        Tue, 12 Feb 2019 09:50:22 -0800 (PST)
-Received: from [172.30.88.209] (sjewanfw1-nat.mentorg.com. [139.181.7.34])
-        by smtp.gmail.com with ESMTPSA id c18sm20704546wre.32.2019.02.12.09.50.20
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 12 Feb 2019 09:50:22 -0800 (PST)
-Subject: Re: [PATCH v4 3/4] gpu: ipu-v3: ipu-ic: Add support for BT.709
- encoding
-To:     Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
-Cc:     Tim Harvey <tharvey@gateworks.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        "open list:DRM DRIVERS FOR FREESCALE IMX" 
-        <dri-devel@lists.freedesktop.org>,
-        open list <linux-kernel@vger.kernel.org>,
-        "open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>,
-        "open list:FRAMEBUFFER LAYER" <linux-fbdev@vger.kernel.org>
-References: <20190209014748.10427-1-slongerbeam@gmail.com>
- <20190209014748.10427-4-slongerbeam@gmail.com>
- <1549879951.7687.6.camel@pengutronix.de>
- <440e12af-33ea-5eac-e570-8afa74e3133c@gmail.com>
- <1549971262.4800.5.camel@pengutronix.de>
-From:   Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <4403ed99-1949-a3fa-e567-c8a886d9366f@gmail.com>
-Date:   Tue, 12 Feb 2019 09:50:17 -0800
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.4.0
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=bFpFNCmHQUH+XHnRvw7+2FbduGFIWktyI7mg5P3s/tQ=;
+        b=kil/jwU1uSouIcZ5xhqYppOUGBQd8A+8GtlNMipS4aMXTmygZeb6utB5JHUYX6w2UY
+         8Xxf0NWQCCbY71SlJz+aXBz1GS4oz5DxrVe9pGhOqHGoqwROh5cInCVYoBjt+wf6pHmf
+         /RTxibdjqcH1gUQIFQpPATI7if+QXQuAP9AVWz+wQjGRuv/IWGq19TrAa95dto6i4D9T
+         7l/rZyGxTb5OMVSuT5t1xz9zQBwwNmo5IBCuOMkfYNfU5Gl5ko+y02zesI5OOto03pxe
+         zJvY8CmV9crxJ+jvuEj9q+ZK9FwCVmEgQiqfK/zavtzTMNLSHXnXCCoL06hHErWtlnx+
+         cUwA==
+X-Gm-Message-State: AHQUAuZPqCvjRSL8qhgZeboQaSLRAruG5ERMoYGW7lWCtyXtMn2oeqJ/
+        wRpplBWjJ9HnfMhZbiJlKMAX2DX2dmW81cT7SRl+MA==
+X-Google-Smtp-Source: AHgI3IYGaGW84mQTD2uskK2GNXYgXTy67elXpB9mr6+9d4gsqcBkcjjD/v1vz7Wt1FOGUE4XZtHdas9E8N4pTB9nkWI=
+X-Received: by 2002:a1c:1fca:: with SMTP id f193mr234512wmf.65.1549998122131;
+ Tue, 12 Feb 2019 11:02:02 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <1549971262.4800.5.camel@pengutronix.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+References: <20190117155032.3317-1-p.zabel@pengutronix.de>
+In-Reply-To: <20190117155032.3317-1-p.zabel@pengutronix.de>
+From:   Tim Harvey <tharvey@gateworks.com>
+Date:   Tue, 12 Feb 2019 11:01:49 -0800
+Message-ID: <CAJ+vNU0HCBr2vz-D=Z8zC+JAmZ6bhsi7TCRhB827uPQj-8esDQ@mail.gmail.com>
+Subject: Re: [PATCH v7] media: imx: add mem2mem device
+To:     Philipp Zabel <p.zabel@pengutronix.de>
+Cc:     linux-media <linux-media@vger.kernel.org>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sascha Hauer <kernel@pengutronix.de>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-
-
-On 2/12/19 3:34 AM, Philipp Zabel wrote:
-> Hi Steve,
+On Thu, Jan 17, 2019 at 7:50 AM Philipp Zabel <p.zabel@pengutronix.de> wrote:
 >
-> On Mon, 2019-02-11 at 17:20 -0800, Steve Longerbeam wrote:
-> [...]
->>> Should we support YUV BT.601 <-> YUV REC.709 conversions? That would
->>> require separate encodings for input and output.
->> How about if we pass the input and output encodings to the init ic task
->> functions, but for now require they be the same? We can support
->> transcoding in a later series.
-> [...]
->> Again, I think for now, just include input/output quantization but
->> require full range for RGB and limited range for YUV.
-> Yes, that is fine. I'd just like to avoid unnecessary interface changes
-> between ipu-v3 and imx-media. So if we have to change it right now, why
-> not plan ahead.
-
-Agreed!
-
+> Add a single imx-media mem2mem video device that uses the IPU IC PP
+> (image converter post processing) task for scaling and colorspace
+> conversion.
+> On i.MX6Q/DL SoCs with two IPUs currently only the first IPU is used.
 >
->> But that really balloons the arguments to ipu_ic_task_init_*(). Should
->> we create an ipu_ic_task_init structure?
-> I wonder if we should just expose struct ic_csc_params
-
-I had basically the same idea. I wasn't thinking of creating a helper to 
-fill in the params but sure, I'll add that.
-
-Steve
-
-
->   and provide a
-> helper to fill it given colorspace and V4L2 encoding/quantization
-> parameters. Something like:
+> The hardware only supports writing to destination buffers up to
+> 1024x1024 pixels in a single pass, arbitrary sizes can be achieved
+> by rendering multiple tiles per frame.
 >
-> 	struct ipu_ic_csc_params csc;
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> [slongerbeam@gmail.com: use ipu_image_convert_adjust(), fix
+>  device_run() error handling, add missing media-device header,
+>  unregister and remove the mem2mem device in error paths in
+>  imx_media_probe_complete() and in imx_media_remove()]
+> Signed-off-by: Steve Longerbeam <slongerbeam@gmail.com>
+> ---
+> Changes since v6 [1]:
+>  - Change driver name in querycap to imx-media-csc-scaler
+>  - Drop V4L2_SEL_TGT_COMPOSE_PADDED from vidioc_g_selection
+>  - Simplify error handling in ipu_csc_scaler_init_controls
 >
-> 	imx_media_init_ic_csc_params(&csc,
-> 			in_cs, in_encoding, in_quantization,
-> 			out_cs, out_encoding, out_quantization);
->
-> 	ipu_ic_task_init(ic,
-> 			in_width, in_height,
-> 			out_width, out_height, &csc);
-> 	// or
-> 	ipu_ic_task_init_rsc(ic, rsc, &csc);
->
-> regards
-> Philipp
+> [1] https://patchwork.linuxtv.org/patch/53757/
+> ---
 
+Hi Philipp,
+
+Thanks for this driver - this is providing support that I need to
+overcome direct CSI->IC limitations.
+
+Can you give me some examples on how your using this? I'm testing this
+on top of linux-media and trying the following gstreamer pipelines
+(gstreamer recent master) and running into trouble but it could very
+likely be me doing something wrong in my pipelines:
+
+# upscale
+gst-launch-1.0 videotestsrc ! video/x-raw,width=320,height=240 !
+v4l2convert output-io-mode=dmabuf-import !
+video/x-raw,width=640,height=480 ! kmssink
+^^^ fails with
+ERROR: from element
+/GstPipeline:pipeline0/GstAutoVideoSink:autovideosink0/GstKMSSink:autovideosink0-actual-sink-kms:
+GStreamer encountered a general resource error.
+Additional debug info:
+gstkmssink.c(1529): gst_kms_sink_show_frame ():
+/GstPipeline:pipeline0/GstAutoVideoSink:autovideosink0/GstKMSSink:autovideosink0-actual-sink-kms:
+drmModeSetPlane failed: No space left on device (-28)
+perhaps this is something strange with kmssink or is a buffer size not
+being set properly in the mem2mem scaler?
+
+# downscale
+gst-launch-1.0 videotestsrc ! video/x-raw,width=640,height=480 !
+v4l2convert output-io-mode=dmabuf-import !
+video/x-raw,width=320,height=280 ! kmssink
+(gst-launch-1.0:15493): GStreamer-CRITICAL **: 18:06:49.029:
+gst_buffer_resize_range: assertion 'bufmax >= bufoffs + offset + size'
+failed
+ERROR: from element
+/GstPipeline:pipeline0/GstVideoTestSrc:videotestsrc0: Internal data
+stream error.
+Additional debug info:
+gstbasesrc.c(3064): gst_base_src_loop ():
+/GstPipeline:pipeline0/GstVideoTestSrc:videotestsrc0:
+streaming stopped, reason error (-5)
+ERROR: pipeline doesn't want to preroll.
+Setting pipeline to NULL ...
+Freeing pipeline ...
+
+# downscale using videotstsrc defaults
+gst-launch-1.0 videotestsrc ! v4l2convert output-io-mode=dmabuf-import
+! video/x-raw,width=100,height=200 ! kmssink
+^^^ works
+
+# rotation
+gst-launch-1.0 videotestsrc ! v4l2convert output-io-mode=dmabuf-import
+extra-controls=cid,rotate=90 ! kmssink
+^^^ shows no rotation in displayed video but kernel debugging shows
+ipu_csc_scaler_s_ctrl getting called with V4L2_CID_ROTATE,
+ctrl->val=90 and ipu_degrees_to_rot_mode sets rot_mode=IPU_ROT_BIT_90
+and returns no error. I also see that
+ipu_image_convert_adjust gets called with rot_mode=IPU_ROT_BIT_90
+
+I'm also not sure how to specify hflip/vflip... I don't think
+extra-controls parses 'hflip', 'vflip' as ipu_csc_scaler_s_ctrl gets
+called with V4L2_CID_HFLIP/V4L2_CID_VFLIP but ctrl->val is always 0.
+
+Thanks,
+
+Tim
