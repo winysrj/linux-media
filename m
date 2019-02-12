@@ -2,93 +2,120 @@ Return-Path: <SRS0=4gUs=QT=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_NEOMUTT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 69E40C282C4
-	for <linux-media@archiver.kernel.org>; Tue, 12 Feb 2019 10:17:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C1F52C282C4
+	for <linux-media@archiver.kernel.org>; Tue, 12 Feb 2019 10:38:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 396AD2077B
-	for <linux-media@archiver.kernel.org>; Tue, 12 Feb 2019 10:17:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 922BA20855
+	for <linux-media@archiver.kernel.org>; Tue, 12 Feb 2019 10:38:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727684AbfBLKRs (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 12 Feb 2019 05:17:48 -0500
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:46563 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726003AbfBLKRs (ORCPT
+        id S1728847AbfBLKie (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 12 Feb 2019 05:38:34 -0500
+Received: from mslow2.mail.gandi.net ([217.70.178.242]:45848 "EHLO
+        mslow2.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728845AbfBLKie (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Feb 2019 05:17:48 -0500
-Received: from lupine.hi.pengutronix.de ([2001:67c:670:100:3ad5:47ff:feaf:1a17] helo=lupine)
-        by metis.ext.pengutronix.de with esmtp (Exim 4.89)
-        (envelope-from <p.zabel@pengutronix.de>)
-        id 1gtV8M-00068m-Sn; Tue, 12 Feb 2019 11:17:46 +0100
-Message-ID: <1549966666.4800.3.camel@pengutronix.de>
-Subject: Re: [PATCH v4 1/4] gpu: ipu-v3: ipu-ic: Rename yuv2rgb encoding
- matrices
-From:   Philipp Zabel <p.zabel@pengutronix.de>
-To:     Steve Longerbeam <slongerbeam@gmail.com>,
-        linux-media@vger.kernel.org
-Cc:     Tim Harvey <tharvey@gateworks.com>,
-        "open list:DRM DRIVERS FOR FREESCALE IMX" 
-        <dri-devel@lists.freedesktop.org>,
-        open list <linux-kernel@vger.kernel.org>
-Date:   Tue, 12 Feb 2019 11:17:46 +0100
-In-Reply-To: <0f987e19-e6e9-a56e-00ec-61e7e300a92e@gmail.com>
-References: <20190209014748.10427-1-slongerbeam@gmail.com>
-         <20190209014748.10427-2-slongerbeam@gmail.com>
-         <1549879117.7687.2.camel@pengutronix.de>
-         <0f987e19-e6e9-a56e-00ec-61e7e300a92e@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-X-Mailer: Evolution 3.22.6-1+deb9u1 
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 2001:67c:670:100:3ad5:47ff:feaf:1a17
-X-SA-Exim-Mail-From: p.zabel@pengutronix.de
-X-SA-Exim-Scanned: No (on metis.ext.pengutronix.de); SAEximRunCond expanded to false
-X-PTX-Original-Recipient: linux-media@vger.kernel.org
+        Tue, 12 Feb 2019 05:38:34 -0500
+Received: from relay12.mail.gandi.net (unknown [217.70.178.232])
+        by mslow2.mail.gandi.net (Postfix) with ESMTP id 42DAC3A1D2F
+        for <linux-media@vger.kernel.org>; Tue, 12 Feb 2019 11:23:30 +0100 (CET)
+Received: from localhost (aaubervilliers-681-1-80-177.w90-88.abo.wanadoo.fr [90.88.22.177])
+        (Authenticated sender: maxime.ripard@bootlin.com)
+        by relay12.mail.gandi.net (Postfix) with ESMTPSA id 40364200004;
+        Tue, 12 Feb 2019 10:23:25 +0000 (UTC)
+Date:   Tue, 12 Feb 2019 11:23:24 +0100
+From:   Maxime Ripard <maxime.ripard@bootlin.com>
+To:     Ezequiel Garcia <ezequiel@collabora.com>
+Cc:     nicolas.dufresne@collabora.com, tfiga@chromium.org,
+        posciak@chromium.org, hans.verkuil@cisco.com,
+        acourbot@chromium.org, sakari.ailus@linux.intel.com,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Chen-Yu Tsai <wens@csie.org>, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        jenskuske@gmail.com, jernej.skrabec@gmail.com, jonas@kwiboo.se,
+        linux-sunxi@googlegroups.com,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Guenter Roeck <groeck@chromium.org>
+Subject: Re: [PATCH v3 1/2] media: uapi: Add H264 low-level decoder API
+ compound controls.
+Message-ID: <20190212102324.3tdurso54fumlkwr@flea>
+References: <cover.d3bb4d93da91ed5668025354ee1fca656e7d5b8b.1549895062.git-series.maxime.ripard@bootlin.com>
+ <562aefcd53a1a30d034e97f177096d70fb705f2b.1549895062.git-series.maxime.ripard@bootlin.com>
+ <209bafb880bd9410f875f5e6f16923e38ec76df4.camel@collabora.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="drrdy3tibi4hg6l4"
+Content-Disposition: inline
+In-Reply-To: <209bafb880bd9410f875f5e6f16923e38ec76df4.camel@collabora.com>
+User-Agent: NeoMutt/20180716
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Hi Steve,
 
-On Mon, 2019-02-11 at 10:24 -0800, Steve Longerbeam wrote:
-[...]
-> Looking more closely at these coefficients now, I see you are right, 
-> they are the BT.601 YUV full-range coefficients (Y range 0 to 1, U and V 
-> range -0.5 to 0.5). Well, not even that -- the coefficients are not 
-> being scaled to the limited ranges, but the 0.5 offset (128) _is_ being 
-> added to U/V, but no offset for Y. So it is even more messed up.
->
-> Your corrected coefficients and offsets look correct to me: Y 
-> coefficients scaled to (235 - 16) / 255 and U/V coefficients scaled to 
-> (240 - 16)  / 255, and add the offsets for both Y and U/V.
-> 
-> But what about this "SAT_MODE" field in the IC task parameter memory? 
+--drrdy3tibi4hg6l4
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-That just controls the saturation. The result after the matrix
-multiplication is either saturated to [0..255] or to [16..235]/[16..240]
-when converting from the internal representation to the 8 bit output.
+On Mon, Feb 11, 2019 at 02:12:25PM -0300, Ezequiel Garcia wrote:
+> On Mon, 2019-02-11 at 15:39 +0100, Maxime Ripard wrote:
+> >=20
+> > diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videod=
+ev2.h
+> > index d6eed479c3a6..6fc955926bdb 100644
+> > --- a/include/uapi/linux/videodev2.h
+> > +++ b/include/uapi/linux/videodev2.h
+> > @@ -645,6 +645,7 @@ struct v4l2_pix_format {
+> >  #define V4L2_PIX_FMT_H264     v4l2_fourcc('H', '2', '6', '4') /* H264 =
+with start codes */
+> >  #define V4L2_PIX_FMT_H264_NO_SC v4l2_fourcc('A', 'V', 'C', '1') /* H26=
+4 without start codes */
+> >  #define V4L2_PIX_FMT_H264_MVC v4l2_fourcc('M', '2', '6', '4') /* H264 =
+MVC */
+> > +#define V4L2_PIX_FMT_H264_SLICE v4l2_fourcc('S', '2', '6', '4') /* H26=
+4 parsed slices */
+>=20
+> Nicolas and I have discussed the pixel format, and came up with
+> the following proposal.
+>=20
+> Given this format represents H264 parsed slices, without any start code,
+> perhpaps we name it as:
+>=20
+> V4L2_PIX_FMT_H264_SLICE_RAW
+>=20
+> Then, we'd also add:
+>=20
+> V4L2_PIX_FMT_H264_SLICE_ANNEX_B
+>=20
+> To represent H264 parsed slices with annex B (3- or 4-byte) start code.
+> This one is what the Rockchip VPU driver would expose.
+>=20
+> Ideas?
 
-> According to the manual the hardware will automatically convert the 
-> written coefficients to the correct limited ranges.
+I think we discussed that idea already, and I'm all for it.
 
-Where did you get that from? "The final calculation result is limited
-according to the SAT_MODE parameter and rounded to 8 bits." I see no
-mention of coefficients being modified.
+Maxime
 
-> I see there is a "sat" field defined in the struct but is not being
-> set in the tables.
-> 
-> So what should we do, define the full range coefficients, and make use 
-> of SAT_MODE h/w feature, or scale/offset the coefficients ourselves and 
-> not use SAT_MODE? I'm inclined to do the former.
+--=20
+Maxime Ripard, Bootlin
+Embedded Linux and Kernel engineering
+https://bootlin.com
 
-SAT_MODE should be set for conversions to YUV limited range so that the
-coefficients can be rounded to the closest value. Otherwise we'd have to
-round towards zero, possibly with a larger error, to make sure the
-results are inside the valid ranges.
+--drrdy3tibi4hg6l4
+Content-Type: application/pgp-signature; name="signature.asc"
 
-regards
-Philipp
+-----BEGIN PGP SIGNATURE-----
+
+iHUEABYIAB0WIQRcEzekXsqa64kGDp7j7w1vZxhRxQUCXGKenAAKCRDj7w1vZxhR
+xW+MAP9jbBHZlCQuCB5NsMT18YGAkvbt2059lhnKbRNmfwEwqwD/SafCidHKsDSl
+2sdRRj1tVdOCB3oTJRS3WNE83XwAKgM=
+=cJo3
+-----END PGP SIGNATURE-----
+
+--drrdy3tibi4hg6l4--
