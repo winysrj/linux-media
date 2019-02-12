@@ -2,166 +2,147 @@ Return-Path: <SRS0=4gUs=QT=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.0 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,FROM_EXCESS_BASE64,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_PASS,
-	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.1 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 867A1C282CA
-	for <linux-media@archiver.kernel.org>; Tue, 12 Feb 2019 17:41:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7BA81C282CA
+	for <linux-media@archiver.kernel.org>; Tue, 12 Feb 2019 17:42:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 5AAF5222C4
-	for <linux-media@archiver.kernel.org>; Tue, 12 Feb 2019 17:41:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4E5B02082F
+	for <linux-media@archiver.kernel.org>; Tue, 12 Feb 2019 17:42:21 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ICqcvFON"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Z5ZP1vs4"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731221AbfBLRlC (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 12 Feb 2019 12:41:02 -0500
-Received: from mail-wr1-f67.google.com ([209.85.221.67]:45666 "EHLO
-        mail-wr1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726480AbfBLRlC (ORCPT
+        id S1728683AbfBLRmP (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 12 Feb 2019 12:42:15 -0500
+Received: from mail-wr1-f53.google.com ([209.85.221.53]:44151 "EHLO
+        mail-wr1-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726480AbfBLRmP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Feb 2019 12:41:02 -0500
-Received: by mail-wr1-f67.google.com with SMTP id w17so3633492wrn.12;
-        Tue, 12 Feb 2019 09:41:00 -0800 (PST)
+        Tue, 12 Feb 2019 12:42:15 -0500
+Received: by mail-wr1-f53.google.com with SMTP id v16so3628857wrn.11;
+        Tue, 12 Feb 2019 09:42:14 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=YnLvRw9RaPoLOPBbxQEcuTU7gQILlzbwqlFbkMK1C88=;
-        b=ICqcvFONieXI2ZLIoXDHhIcT3PG9fvgk4FuDKh3u/SksAtBFPX9XMjtpf+6hErRVzY
-         5VOW6jU7ZnNH3Lty8qx2/u+r1iKkq4Y0PT56K3A/nbGsgWMofURHRc5roA3DHR2mn78E
-         tTiUXFCd4swRe6UGgEQgFiBBc77ALFbjEmw7TrrtqOm4R3fQcj5nCBAMlcdXEU6Gh/A7
-         T306LxUQKJ2zk7CvcBwyvhXip9mBXYQcFL1K50KVsdJpsOUrEKAsovy08crLSUopNtOO
-         F/DSwDyk6KG0GneMZ9+UcgeonlvdULlIR5HT/fu8biHan1u6qkJzKLPLQ13WdpHyuOqC
-         eH4g==
+        h=subject:to:cc:references:from:message-id:date:user-agent
+         :mime-version:in-reply-to:content-transfer-encoding:content-language;
+        bh=uUVYm93LgF/Sk4xNuxnQR8tyKEtxENVP8ZdDJLghm44=;
+        b=Z5ZP1vs4S0XCPu4fgL2YI/nS4ryIZkpQ/PK/tgQF8r7n9+M0an1x2hfaimPZp3uFi3
+         kcBGJJ38uIZT5yCSzQWGCMI2/H7klfF652yKPRgF2pxHVFCM+2z0lkk6CJq1ziXOin0W
+         6AoSDOmT0lMdyXF2dGjSzUP8gil5Z/dPXChl+AtNmPUvMH0jbF8ItN0+bjlvIfPCfAbd
+         DZiiKY08U36vGN4aX/CAMRDY0kI2ysEE00+cp5VJlNrBZSqvTiNE4fQzTAtMsym6FmyR
+         fULPLJgOHOnokLT8JyxpeeXUJINpZNz3hydG9NIgcBBtvKPTQ0d/NMOu9rw6WGGBxagL
+         8ssw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=YnLvRw9RaPoLOPBbxQEcuTU7gQILlzbwqlFbkMK1C88=;
-        b=HgZJjnrcUs4U9B6ygM+649iC6asglHNrylc/1fSJbu35lIV3LztceAuLCHI8M5rSh6
-         Owc+UPsja9KGThIREXNfE3hvFhTQ2DX9/yU2mZGfQ06d5Od1KAFUgB0zw0Lru+YhVnkT
-         UUxDtqk7F2DQObRvpdhWr1ukNIKn5bwTK7ZEvaHT004zQJ/hVRBAlkg/BvSDD0bQncGC
-         zg75RA1jjxhQz2yzBK8lXiTgOCVRW8QfN0eGBRhF9A+Z9nmpnGmhR6liDehftepaqAno
-         dX8uF9jiX7jnlSOIG101dp21j9lqXdec+AnDpD54i9wMjL4H+6zVv3pHB+dOwQ+1qeqF
-         3eXw==
-X-Gm-Message-State: AHQUAuZ8JQ5Ziup+jXJ7/yox48Sxc5J5Te2D0iW096NxuAcNcc44PhDl
-        edP0g0pzZm2nrCDzqDKZNB4=
-X-Google-Smtp-Source: AHgI3IbemB+UWRIpSc6wfWKk7HsFQ0oBbyp61ZnT0K5v6cbCYLYTTROj5FmV7J5NYQoBP0BtI0Avfw==
-X-Received: by 2002:adf:ba8d:: with SMTP id p13mr3977217wrg.53.1549993259789;
-        Tue, 12 Feb 2019 09:40:59 -0800 (PST)
-Received: from jernej-laptop.localnet (APN-123-243-40-gprs.simobil.net. [46.123.243.40])
-        by smtp.gmail.com with ESMTPSA id n3sm3578193wmf.46.2019.02.12.09.40.56
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Tue, 12 Feb 2019 09:40:58 -0800 (PST)
-From:   Jernej =?utf-8?B?xaBrcmFiZWM=?= <jernej.skrabec@gmail.com>
-To:     Maxime Ripard <maxime.ripard@bootlin.com>
-Cc:     Ezequiel Garcia <ezequiel@collabora.com>, hans.verkuil@cisco.com,
-        acourbot@chromium.org, sakari.ailus@linux.intel.com,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        tfiga@chromium.org, posciak@chromium.org,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Chen-Yu Tsai <wens@csie.org>, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        nicolas.dufresne@collabora.com, jenskuske@gmail.com,
-        jonas@kwiboo.se, linux-sunxi@googlegroups.com,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>
-Subject: Re: [PATCH v3 2/2] media: cedrus: Add H264 decoding support
-Date:   Tue, 12 Feb 2019 18:40:56 +0100
-Message-ID: <3363003.VFAkYA4tHV@jernej-laptop>
-In-Reply-To: <20190212124713.cqms5jofw433nx6m@flea>
-References: <cover.d3bb4d93da91ed5668025354ee1fca656e7d5b8b.1549895062.git-series.maxime.ripard@bootlin.com> <5a31f5596c04390d76bf34fdb8b71b6a96306943.camel@collabora.com> <20190212124713.cqms5jofw433nx6m@flea>
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-transfer-encoding
+         :content-language;
+        bh=uUVYm93LgF/Sk4xNuxnQR8tyKEtxENVP8ZdDJLghm44=;
+        b=sMiqFFTHedFoWmR88NcpJrtH3nk1gd3Zf+GCDenlEJ7Z1bBCRUmqf+hiL/a5FO48Sm
+         qtya09P/mhgA61S9zCkWhGsiYaVo/uZv/2FnSw703eKOOg90Ew6nLYWcNjfpTm1POSvJ
+         sQZ2DCoV5HDKhpotd67f96BfkhLgJ9b9yGc0NZqGwJQ0elQjR2nQUQU0CY1Mc43pLF8a
+         06aT6pw90d1dO3tIRjS5mwQMUmRoVeYMppiIsZdKZlXwphzB4sJ8CmnlIIX+Dyj6/MaU
+         UxiZUynXK77zjwXxfOigJdBIgvl0OuuRQbyO0Jt3KyfxiXJTBS8En1Uw2TZY7Jo6HZa5
+         xRwA==
+X-Gm-Message-State: AHQUAuZn9ZSS198nGQT4qhzT40TfuBjKM49uPqEv1pqgl0huEJqTu7f5
+        yliaOLT0uALBW+ajiGjsZtuNvNa1
+X-Google-Smtp-Source: AHgI3IbkAnn5eybH4Kg5jWdakVoxWZaQ0YaN8kOZ70UjEmCKSg8mcM7OWubYQLQRVTqr0pZPGA9ljA==
+X-Received: by 2002:a5d:43c9:: with SMTP id v9mr3683891wrr.202.1549993332926;
+        Tue, 12 Feb 2019 09:42:12 -0800 (PST)
+Received: from [172.30.88.209] (sjewanfw1-nat.mentorg.com. [139.181.7.34])
+        by smtp.gmail.com with ESMTPSA id v4sm4470905wme.6.2019.02.12.09.42.11
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Tue, 12 Feb 2019 09:42:12 -0800 (PST)
+Subject: Re: [PATCH v4 1/4] gpu: ipu-v3: ipu-ic: Rename yuv2rgb encoding
+ matrices
+To:     Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
+Cc:     Tim Harvey <tharvey@gateworks.com>,
+        "open list:DRM DRIVERS FOR FREESCALE IMX" 
+        <dri-devel@lists.freedesktop.org>,
+        open list <linux-kernel@vger.kernel.org>
+References: <20190209014748.10427-1-slongerbeam@gmail.com>
+ <20190209014748.10427-2-slongerbeam@gmail.com>
+ <1549879117.7687.2.camel@pengutronix.de>
+ <0f987e19-e6e9-a56e-00ec-61e7e300a92e@gmail.com>
+ <1549966666.4800.3.camel@pengutronix.de>
+From:   Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <7d4c5935-ffa1-2320-1632-136e1ce89350@gmail.com>
+Date:   Tue, 12 Feb 2019 09:42:08 -0800
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.4.0
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <1549966666.4800.3.camel@pengutronix.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
-Dne torek, 12. februar 2019 ob 13:47:13 CET je Maxime Ripard napisal(a):
-> On Mon, Feb 11, 2019 at 04:48:17PM -0300, Ezequiel Garcia wrote:
-> > On Mon, 2019-02-11 at 15:39 +0100, Maxime Ripard wrote:
-> > > Introduce some basic H264 decoding support in cedrus. So far, only the
-> > > baseline profile videos have been tested, and some more advanced
-> > > features
-> > > used in higher profiles are not even implemented.
-> > >=20
-> > > Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
-> >=20
-> > [..]
-> >=20
-> > > +static void _cedrus_write_ref_list(struct cedrus_ctx *ctx,
-> > > +				   struct cedrus_run *run,
-> > > +				   const u8 *ref_list, u8=20
-num_ref,
-> > > +				   enum cedrus_h264_sram_off sram)
-> > > +{
-> > > +	const struct v4l2_ctrl_h264_decode_param *decode =3D
-> > > run->h264.decode_param; +	struct vb2_queue *cap_q =3D
-> > > &ctx->fh.m2m_ctx->cap_q_ctx.q;
-> > > +	const struct vb2_buffer *dst_buf =3D &run->dst->vb2_buf;
-> > > +	struct cedrus_dev *dev =3D ctx->dev;
-> > > +	u8 sram_array[CEDRUS_MAX_REF_IDX];
-> > > +	unsigned int size, i;
-> > > +
-> > > +	memset(sram_array, 0, sizeof(sram_array));
-> > > +
-> > > +	for (i =3D 0; i < num_ref; i++) {
-> > > +		const struct v4l2_h264_dpb_entry *dpb;
-> > > +		const struct cedrus_buffer *cedrus_buf;
-> > > +		const struct vb2_v4l2_buffer *ref_buf;
-> > > +		unsigned int position;
-> > > +		int buf_idx;
-> > > +		u8 dpb_idx;
-> > > +
-> > > +		dpb_idx =3D ref_list[i];
-> > > +		dpb =3D &decode->dpb[dpb_idx];
-> > > +
-> > > +		if (!(dpb->flags & V4L2_H264_DPB_ENTRY_FLAG_ACTIVE))
-> > > +			continue;
-> > > +
-> > > +		if (dst_buf->timestamp =3D=3D dpb->timestamp)
-> > > +			buf_idx =3D dst_buf->index;
-> > > +		else
-> > > +			buf_idx =3D vb2_find_timestamp(cap_q, dpb-
->timestamp, 0);
-> > > +
-> > > +		if (buf_idx < 0)
-> > > +			continue;
-> > > +
-> > > +		ref_buf =3D to_vb2_v4l2_buffer(ctx->dst_bufs[buf_idx]);
-> > > +		cedrus_buf =3D vb2_v4l2_to_cedrus_buffer(ref_buf);
-> > > +		position =3D cedrus_buf->codec.h264.position;
-> > > +
-> > > +		sram_array[i] |=3D position << 1;
-> > > +		if (ref_buf->field =3D=3D V4L2_FIELD_BOTTOM)
-> > > +			sram_array[i] |=3D BIT(0);
-> > > +	}
-> > > +
-> > > +	size =3D min((unsigned int)ALIGN(num_ref, 4), sizeof(sram_array));
-> >=20
-> > Perhaps s/unsigned int/size_t, so the arguments to min() have the same
-> > type?
-> >=20
-> > Otherwise, I got this warning:
-> >=20
-> > /home/zeta/repos/linux/media_tree/drivers/staging/media/sunxi/cedrus/ce=
-dru
-> > s_h264.c: In function =E2=80=98_cedrus_write_ref_list=E2=80=99:
-> > /home/zeta/repos/linux/media_tree/include/linux/kernel.h:846:29: warnin=
-g:
-> > comparison of distinct pointer types lacks a cast>=20
-> >    (!!(sizeof((typeof(x) *)1 =3D=3D (typeof(y) *)1)))
->=20
-> Strange, I didn't notice any warning. I'll make sure to fix it.
 
-I guess this is one of those warnings which pops out only on 64-bit platfor=
-ms.
 
-Best regards,
-Jernej
+On 2/12/19 2:17 AM, Philipp Zabel wrote:
+> Hi Steve,
+>
+> On Mon, 2019-02-11 at 10:24 -0800, Steve Longerbeam wrote:
+> [...]
+>> Looking more closely at these coefficients now, I see you are right,
+>> they are the BT.601 YUV full-range coefficients (Y range 0 to 1, U and V
+>> range -0.5 to 0.5). Well, not even that -- the coefficients are not
+>> being scaled to the limited ranges, but the 0.5 offset (128) _is_ being
+>> added to U/V, but no offset for Y. So it is even more messed up.
+>>
+>> Your corrected coefficients and offsets look correct to me: Y
+>> coefficients scaled to (235 - 16) / 255 and U/V coefficients scaled to
+>> (240 - 16)  / 255, and add the offsets for both Y and U/V.
+>>
+>> But what about this "SAT_MODE" field in the IC task parameter memory?
+> That just controls the saturation. The result after the matrix
+> multiplication is either saturated to [0..255] or to [16..235]/[16..240]
+> when converting from the internal representation to the 8 bit output.
 
+By saturation I think you mean clipped to those ranges?
+
+>
+>> According to the manual the hardware will automatically convert the
+>> written coefficients to the correct limited ranges.
+> Where did you get that from? "The final calculation result is limited
+> according to the SAT_MODE parameter and rounded to 8 bits." I see no
+> mention of coefficients being modified.
+
+Well, as is often the case with this manual, I was interpreting based on 
+poorly written information. By "final calculation result is limited 
+according to the SAT_MODE parameter" I interpreted that to mean the 
+hardware enables scaling from full range to limited range. But I concede 
+that it more likely means it clips the output to those ranges.
+
+>
+>> I see there is a "sat" field defined in the struct but is not being
+>> set in the tables.
+>>
+>> So what should we do, define the full range coefficients, and make use
+>> of SAT_MODE h/w feature, or scale/offset the coefficients ourselves and
+>> not use SAT_MODE? I'm inclined to do the former.
+> SAT_MODE should be set for conversions to YUV limited range so that the
+> coefficients can be rounded to the closest value.
+
+Well, we have already rounded the coefficients to the nearest int in the 
+tables. Do you mean the final result (coeff * color component + offset) 
+is rounded?
+
+>   Otherwise we'd have to
+> round towards zero, possibly with a larger error, to make sure the
+> results are inside the valid ranges.
+
+Makes sense, I will turn on that bit for limited range YUV output for 
+v5, so that the final color component result is clipped to limited range 
+and rounded.
+
+
+Steve
 
 
