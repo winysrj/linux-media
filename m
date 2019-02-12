@@ -2,100 +2,96 @@ Return-Path: <SRS0=4gUs=QT=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_NEOMUTT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9BB73C282C4
-	for <linux-media@archiver.kernel.org>; Tue, 12 Feb 2019 10:43:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C176AC282C4
+	for <linux-media@archiver.kernel.org>; Tue, 12 Feb 2019 11:34:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 7531E20818
-	for <linux-media@archiver.kernel.org>; Tue, 12 Feb 2019 10:43:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9149D2083B
+	for <linux-media@archiver.kernel.org>; Tue, 12 Feb 2019 11:34:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728993AbfBLKnT (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Tue, 12 Feb 2019 05:43:19 -0500
-Received: from relay11.mail.gandi.net ([217.70.178.231]:36013 "EHLO
-        relay11.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728184AbfBLKnT (ORCPT
+        id S1727343AbfBLLe0 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Tue, 12 Feb 2019 06:34:26 -0500
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:56949 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725916AbfBLLe0 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Feb 2019 05:43:19 -0500
-Received: from localhost (aaubervilliers-681-1-80-177.w90-88.abo.wanadoo.fr [90.88.22.177])
-        (Authenticated sender: maxime.ripard@bootlin.com)
-        by relay11.mail.gandi.net (Postfix) with ESMTPSA id 1BED6100006;
-        Tue, 12 Feb 2019 10:43:14 +0000 (UTC)
-Date:   Tue, 12 Feb 2019 11:43:14 +0100
-From:   Maxime Ripard <maxime.ripard@bootlin.com>
-To:     Jernej =?utf-8?Q?=C5=A0krabec?= <jernej.skrabec@gmail.com>
-Cc:     linux-sunxi@googlegroups.com, hans.verkuil@cisco.com,
-        acourbot@chromium.org, sakari.ailus@linux.intel.com,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        tfiga@chromium.org, posciak@chromium.org,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Chen-Yu Tsai <wens@csie.org>, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        nicolas.dufresne@collabora.com, jenskuske@gmail.com,
-        jonas@kwiboo.se, ezequiel@collabora.com,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>
-Subject: Re: [linux-sunxi] [PATCH v3 2/2] media: cedrus: Add H264 decoding
- support
-Message-ID: <20190212104314.slytpbufwhf5ujv7@flea>
-References: <cover.d3bb4d93da91ed5668025354ee1fca656e7d5b8b.1549895062.git-series.maxime.ripard@bootlin.com>
- <4c00e1ab1e70adb1d94db59c37393250ca3791c5.1549895062.git-series.maxime.ripard@bootlin.com>
- <12916702.RFRCeC2GgE@jernej-laptop>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="5gdejtoqqa6qlisa"
-Content-Disposition: inline
-In-Reply-To: <12916702.RFRCeC2GgE@jernej-laptop>
-User-Agent: NeoMutt/20180716
+        Tue, 12 Feb 2019 06:34:26 -0500
+Received: from lupine.hi.pengutronix.de ([2001:67c:670:100:3ad5:47ff:feaf:1a17] helo=lupine)
+        by metis.ext.pengutronix.de with esmtp (Exim 4.89)
+        (envelope-from <p.zabel@pengutronix.de>)
+        id 1gtWKX-0007GH-Ca; Tue, 12 Feb 2019 12:34:25 +0100
+Message-ID: <1549971262.4800.5.camel@pengutronix.de>
+Subject: Re: [PATCH v4 3/4] gpu: ipu-v3: ipu-ic: Add support for BT.709
+ encoding
+From:   Philipp Zabel <p.zabel@pengutronix.de>
+To:     Steve Longerbeam <slongerbeam@gmail.com>,
+        linux-media@vger.kernel.org
+Cc:     Tim Harvey <tharvey@gateworks.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        "open list:DRM DRIVERS FOR FREESCALE IMX" 
+        <dri-devel@lists.freedesktop.org>,
+        open list <linux-kernel@vger.kernel.org>,
+        "open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>,
+        "open list:FRAMEBUFFER LAYER" <linux-fbdev@vger.kernel.org>
+Date:   Tue, 12 Feb 2019 12:34:22 +0100
+In-Reply-To: <440e12af-33ea-5eac-e570-8afa74e3133c@gmail.com>
+References: <20190209014748.10427-1-slongerbeam@gmail.com>
+         <20190209014748.10427-4-slongerbeam@gmail.com>
+         <1549879951.7687.6.camel@pengutronix.de>
+         <440e12af-33ea-5eac-e570-8afa74e3133c@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+X-Mailer: Evolution 3.22.6-1+deb9u1 
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+X-SA-Exim-Connect-IP: 2001:67c:670:100:3ad5:47ff:feaf:1a17
+X-SA-Exim-Mail-From: p.zabel@pengutronix.de
+X-SA-Exim-Scanned: No (on metis.ext.pengutronix.de); SAEximRunCond expanded to false
+X-PTX-Original-Recipient: linux-media@vger.kernel.org
 Sender: linux-media-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-media.vger.kernel.org>
 X-Mailing-List: linux-media@vger.kernel.org
 
+Hi Steve,
 
---5gdejtoqqa6qlisa
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Mon, 2019-02-11 at 17:20 -0800, Steve Longerbeam wrote:
+[...]
+> > Should we support YUV BT.601 <-> YUV REC.709 conversions? That would
+> > require separate encodings for input and output.
+> 
+> How about if we pass the input and output encodings to the init ic task 
+> functions, but for now require they be the same? We can support 
+> transcoding in a later series.
+[...]
+> Again, I think for now, just include input/output quantization but 
+> require full range for RGB and limited range for YUV.
 
-Hi,
+Yes, that is fine. I'd just like to avoid unnecessary interface changes
+between ipu-v3 and imx-media. So if we have to change it right now, why
+not plan ahead.
 
-On Mon, Feb 11, 2019 at 08:21:31PM +0100, Jernej =C5=A0krabec wrote:
-> > +	reg =3D 0;
-> > +	/*
-> > +	 * FIXME: This bit tells the video engine to use the default
-> > +	 * quantization matrices. This will obviously need to be
-> > +	 * changed to support the profiles supporting custom
-> > +	 * quantization matrices.
-> > +	 */
-> > +	reg |=3D VE_H264_SHS_QP_SCALING_MATRIX_DEFAULT;
->=20
-> This flag should not be needed anymore. From what I see, you correctly se=
-t=20
-> scaling matrix every time.
+> But that really balloons the arguments to ipu_ic_task_init_*(). Should 
+> we create an ipu_ic_task_init structure?
 
-The scaling matrix control is optional, so I guess we should protect
-that by a check on whether that control has been set or not. What do
-you think?
+I wonder if we should just expose struct ic_csc_params and provide a
+helper to fill it given colorspace and V4L2 encoding/quantization
+parameters. Something like:
 
-Thanks!
-Maxime
+	struct ipu_ic_csc_params csc;
 
---=20
-Maxime Ripard, Bootlin
-Embedded Linux and Kernel engineering
-https://bootlin.com
+	imx_media_init_ic_csc_params(&csc,
+			in_cs, in_encoding, in_quantization,
+			out_cs, out_encoding, out_quantization);
 
---5gdejtoqqa6qlisa
-Content-Type: application/pgp-signature; name="signature.asc"
+	ipu_ic_task_init(ic,
+			in_width, in_height,
+			out_width, out_height, &csc);
+	// or
+	ipu_ic_task_init_rsc(ic, rsc, &csc);
 
------BEGIN PGP SIGNATURE-----
-
-iHUEABYIAB0WIQRcEzekXsqa64kGDp7j7w1vZxhRxQUCXGKjQgAKCRDj7w1vZxhR
-xbGrAQDuJ3RI8iJRp2xbjnQ//F/tGuWwtz7PdNfWKUaQvNBr0AD8DA9cnLZ4F7c3
-hTdzfxkMmPlsb+v5HUPlK14j1NWIRgY=
-=LFLc
------END PGP SIGNATURE-----
-
---5gdejtoqqa6qlisa--
+regards
+Philipp
