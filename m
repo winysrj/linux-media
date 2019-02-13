@@ -2,60 +2,61 @@ Return-Path: <SRS0=D6oO=QU=vger.kernel.org=linux-media-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
 	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_PASS,USER_AGENT_MUTT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_MUTT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A4BB8C282C2
-	for <linux-media@archiver.kernel.org>; Wed, 13 Feb 2019 13:56:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C51C7C282C2
+	for <linux-media@archiver.kernel.org>; Wed, 13 Feb 2019 13:57:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [209.132.180.67])
-	by mail.kernel.org (Postfix) with ESMTP id 6A92F222C1
-	for <linux-media@archiver.kernel.org>; Wed, 13 Feb 2019 13:56:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 89AB3222C2
+	for <linux-media@archiver.kernel.org>; Wed, 13 Feb 2019 13:57:58 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Wo+rn4+r"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="UHbAr6Vj"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732845AbfBMN4U (ORCPT <rfc822;linux-media@archiver.kernel.org>);
-        Wed, 13 Feb 2019 08:56:20 -0500
-Received: from mail-pl1-f195.google.com ([209.85.214.195]:41619 "EHLO
-        mail-pl1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726277AbfBMN4U (ORCPT
+        id S1733120AbfBMN55 (ORCPT <rfc822;linux-media@archiver.kernel.org>);
+        Wed, 13 Feb 2019 08:57:57 -0500
+Received: from mail-pg1-f193.google.com ([209.85.215.193]:42399 "EHLO
+        mail-pg1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1732034AbfBMN55 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Feb 2019 08:56:20 -0500
-Received: by mail-pl1-f195.google.com with SMTP id k15so1195963pls.8;
-        Wed, 13 Feb 2019 05:56:19 -0800 (PST)
+        Wed, 13 Feb 2019 08:57:57 -0500
+Received: by mail-pg1-f193.google.com with SMTP id d72so1162744pga.9;
+        Wed, 13 Feb 2019 05:57:56 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=date:from:to:cc:subject:message-id:mime-version:content-disposition
          :user-agent;
-        bh=V2qFA0OcwjrK68risolzFdRV/D9+52UF5C3nMIQDVp4=;
-        b=Wo+rn4+rpbWNXMXw8f961P6oxr28SV0R3AE2+Iuvqh7fxEkblbcFpBrThrdGUZASMo
-         +obY5tWBT5FcDq1TCc2YALzjSj/RwS62oxijXHr27AMGgQQ5EAXv7KDXIR8qS+CriIzl
-         v+ii3rGwru5TZogwAVIdxKFZ3HcsQXSMp2qyjqUotAp7B0lv2662QZR8uNlKx7/r97Wt
-         Q1kF7Xrwhfuo0ODVWB5AEbZlo/SYZi2B7iswqgis9OVmaodYPCQ5gXnYca7KlKSYKhWN
-         qJ16mA6TwoJHT3BVnzle1LT/35tmCVTvOSmsrJwpZE+NSxRv6QEEiAd7//aDbrQIA0zS
-         /cfg==
+        bh=QS3mWzK39q3lW8WqJHFL6wuRYacMcGaOmOmP8soCdrs=;
+        b=UHbAr6VjHIA6sKDIJjq+403Y2d7WPguSXt3rzmIl6IBY6SSfTp0rLgonfEf6lGHpCs
+         CrqhOWcnJqtDs+YhZFN5PrBEiC74DnXBT4v+K/jsCvtxEA8T8Scf5lmzpX7lohjU+xvl
+         A2rPHRTJZmYRrO65TcR9WlQZvULjczqLPmErv17xJYk9d75MdbexEIZI5clY7YNBgJ49
+         Zp9HE2xqWl71SvZmGVzA+KbEUvV+xrOI14XqbKjbaXYpQXQawuxYvX7APazz3N9/jRar
+         pL73Tp4ZQMXOJ3AmD52pjLwG6s9XYcngHbZ5fEeW1hxuJ4Tzz1denDq6BM6ddw761yqb
+         zHSw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:date:from:to:cc:subject:message-id:mime-version
          :content-disposition:user-agent;
-        bh=V2qFA0OcwjrK68risolzFdRV/D9+52UF5C3nMIQDVp4=;
-        b=JFaa37+XiYe9JPr0XfKQc6WYbIOCVkpCwXm7zuVN+cYFGNpKWC0FXEkzYAWXvP70zH
-         TCFQE6EUXJslOoFeC5aKpjPiLZusO+G3OnSGvrWH2f+4n20iaSknYqXY+65AlFbiIriB
-         4Sb9YyXXT1RGxK8QBAOT06/FHzQZ4I0zVPURxTo61sCaUJxOKhnpOuSjp4s3P0HPjN1F
-         EPtRCnQV1KLXV48iPnl96GAfyQn/J9Rhyka+Ohe5/73MO1Diq7o3K5dYsAHWDchcBv0f
-         u1BSBl1tBijpeGOSu+aXNFLWfmC+QmLEqCr9tb62OigW7sD/r8Mv35OcakN1GRN/uztj
-         MIQQ==
-X-Gm-Message-State: AHQUAuZKVOeEthb5q/kjmMlDvIPebsdCfzspheuG32yrRE89rOBmQ4As
-        YF3hQRAUP3yWyVXN5PknYLISHdc3
-X-Google-Smtp-Source: AHgI3IZ+SXZkfuwQeWGM2fq41k8bLY3tiDCzMWyTKTaAYfDA8NidP+PtWIWRFYBlC0duiJnXDlxZqA==
-X-Received: by 2002:a17:902:161:: with SMTP id 88mr683223plb.306.1550066178456;
-        Wed, 13 Feb 2019 05:56:18 -0800 (PST)
+        bh=QS3mWzK39q3lW8WqJHFL6wuRYacMcGaOmOmP8soCdrs=;
+        b=sIR2YrBKXTthwSeJziaWUUc0v+wmUGUvnQw7fEnDXrwaovaWHE7+X9Q2zDU7Jy//uM
+         VsuW/zzOU9y6oZeDg2hV7mZ+znNQ1PSnVauPTQe6wrW8uYNxPV2lu7Monpn/LuDuu8sN
+         JtgL7VrwmoylGS4FrBfovkIBWtlAyKtV46OQHIFG5rZydofkV0h+pWnlNQu8r31Y919i
+         RjaNttC34z/LCffCbpjWa1xbBDftqhQk2J3Zf8CL3bKfScLGPsbudHJURYLrzH6UVNpN
+         fTrzjv9Gi+TJZMiLoBep3ivnnVHV9cQWxSyvt2Clfz8VwO1u8xKtoh1WeJcFy7wqjtN5
+         UkAw==
+X-Gm-Message-State: AHQUAuYqxE5ibjpBJJGfJKj8N3CVz2Ih9FcJ2WR6VP6GMOUP5Bsom6sU
+        jTfoikz4x+z8LWzO7loqCobm6ncD
+X-Google-Smtp-Source: AHgI3IbsRbeaAyePsoPA34qPEwK9ju+Mwor/j+wcsqcPpuYwN399ocFJJNJYAe7AZfgfl6MyXeqd2Q==
+X-Received: by 2002:aa7:838b:: with SMTP id u11mr644881pfm.254.1550066275977;
+        Wed, 13 Feb 2019 05:57:55 -0800 (PST)
 Received: from jordon-HP-15-Notebook-PC ([49.207.48.54])
-        by smtp.gmail.com with ESMTPSA id y20sm26266582pfd.161.2019.02.13.05.56.16
+        by smtp.gmail.com with ESMTPSA id g14sm33624506pfg.27.2019.02.13.05.57.54
         (version=TLS1 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
-        Wed, 13 Feb 2019 05:56:17 -0800 (PST)
-Date:   Wed, 13 Feb 2019 19:30:35 +0530
+        Wed, 13 Feb 2019 05:57:55 -0800 (PST)
+Date:   Wed, 13 Feb 2019 19:32:14 +0530
 From:   Souptick Joarder <jrdr.linux@gmail.com>
 To:     akpm@linux-foundation.org, willy@infradead.org, mhocko@suse.com,
         kirill.shutemov@linux.intel.com, vbabka@suse.cz, riel@surriel.com,
@@ -73,8 +74,9 @@ Cc:     linux-kernel@vger.kernel.org, linux-mm@kvack.org,
         dri-devel@lists.freedesktop.org,
         linux-rockchip@lists.infradead.org, xen-devel@lists.xen.org,
         iommu@lists.linux-foundation.org, linux-media@vger.kernel.org
-Subject: [PATCH v3 0/9] mm: Use vm_map_pages() and vm_map_pages_zero() API
-Message-ID: <20190213140035.GA21935@jordon-HP-15-Notebook-PC>
+Subject: [PATCH v3 1/9] mm: Introduce new vm_map_pages() and
+ vm_map_pages_zero() API
+Message-ID: <20190213140214.GA21954@jordon-HP-15-Notebook-PC>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
@@ -92,8 +94,8 @@ As this pattern is common across different drivers, it can
 be generalized by creating new functions and use it across
 the drivers.
 
-vm_map_pages() is the API which could be used to map
-kernel memory/pages in drivers which has considered vm_pgoff.
+vm_map_pages() is the API which could be used to mapped
+kernel memory/pages in drivers which has considered vm_pgoff
 
 vm_map_pages_zero() is the API which could be used to map
 range of kernel memory/pages in drivers which has not considered
@@ -104,59 +106,152 @@ vm_map_pages_zero() to behave according to the normal vm_pgoff
 offsetting simply by removing the _zero suffix on the function
 name and if that causes regressions, it gives us an easy way to revert.
 
-Tested on Rockchip hardware and display is working fine, including talking
+Tested on Rockchip hardware and display is working, including talking
 to Lima via prime.
 
-v1 -> v2:
-        Few Reviewed-by.
+Signed-off-by: Souptick Joarder <jrdr.linux@gmail.com>
+Suggested-by: Russell King <linux@armlinux.org.uk>
+Suggested-by: Matthew Wilcox <willy@infradead.org>
+Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
+Tested-by: Heiko Stuebner <heiko@sntech.de>
+---
+ include/linux/mm.h |  4 +++
+ mm/memory.c        | 81 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ mm/nommu.c         | 14 ++++++++++
+ 3 files changed, 99 insertions(+)
 
-        Updated the change log in [8/9]
-
-        In [7/9], vm_pgoff is treated in V4L2 API as a 'cookie'
-        to select a buffer, not as a in-buffer offset by design
-        and it always want to mmap a whole buffer from its beginning.
-        Added additional changes after discussing with Marek and
-        vm_map_pages() could be used instead of vm_map_pages_zero().
-
-v2 -> v3:
-        Corrected the documentation as per review comment.
-
-        As suggested in v2, renaming the interfaces to -
-        *vm_insert_range() -> vm_map_pages()* and
-        *vm_insert_range_buggy() -> vm_map_pages_zero()*.
-        As the interface is renamed, modified the code accordingly,
-        updated the change logs and modified the subject lines to use the
-        new interfaces. There is no other change apart from renaming and
-        using the new interface.
-
-	Patch[1/9] & [4/9], Tested on Rockchip hardware.
-
-Souptick Joarder (9):
-  mm: Introduce new vm_map_pages() and vm_map_pages_zero() API
-  arm: mm: dma-mapping: Convert to use vm_map_pages()
-  drivers/firewire/core-iso.c: Convert to use vm_map_pages_zero()
-  drm/rockchip/rockchip_drm_gem.c: Convert to use vm_map_pages()
-  drm/xen/xen_drm_front_gem.c: Convert to use vm_map_pages()
-  iommu/dma-iommu.c: Convert to use vm_map_pages()
-  videobuf2/videobuf2-dma-sg.c: Convert to use vm_map_pages()
-  xen/gntdev.c: Convert to use vm_map_pages()
-  xen/privcmd-buf.c: Convert to use vm_map_pages_zero()
-
- arch/arm/mm/dma-mapping.c                          | 22 ++----
- drivers/firewire/core-iso.c                        | 15 +---
- drivers/gpu/drm/rockchip/rockchip_drm_gem.c        | 17 +----
- drivers/gpu/drm/xen/xen_drm_front_gem.c            | 18 ++---
- drivers/iommu/dma-iommu.c                          | 12 +---
- drivers/media/common/videobuf2/videobuf2-core.c    |  7 ++
- .../media/common/videobuf2/videobuf2-dma-contig.c  |  6 --
- drivers/media/common/videobuf2/videobuf2-dma-sg.c  | 22 ++----
- drivers/xen/gntdev.c                               | 16 ++---
- drivers/xen/privcmd-buf.c                          |  8 +--
- include/linux/mm.h                                 |  4 ++
- mm/memory.c                                        | 81 ++++++++++++++++++++++
- mm/nommu.c                                         | 14 ++++
- 13 files changed, 136 insertions(+), 106 deletions(-)
-
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 80bb640..e0aaa73 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -2565,6 +2565,10 @@ unsigned long change_prot_numa(struct vm_area_struct *vma,
+ int remap_pfn_range(struct vm_area_struct *, unsigned long addr,
+ 			unsigned long pfn, unsigned long size, pgprot_t);
+ int vm_insert_page(struct vm_area_struct *, unsigned long addr, struct page *);
++int vm_map_pages(struct vm_area_struct *vma, struct page **pages,
++				unsigned long num);
++int vm_map_pages_zero(struct vm_area_struct *vma, struct page **pages,
++				unsigned long num);
+ vm_fault_t vmf_insert_pfn(struct vm_area_struct *vma, unsigned long addr,
+ 			unsigned long pfn);
+ vm_fault_t vmf_insert_pfn_prot(struct vm_area_struct *vma, unsigned long addr,
+diff --git a/mm/memory.c b/mm/memory.c
+index e11ca9d..cad3e27 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -1520,6 +1520,87 @@ int vm_insert_page(struct vm_area_struct *vma, unsigned long addr,
+ }
+ EXPORT_SYMBOL(vm_insert_page);
+ 
++/*
++ * __vm_map_pages - maps range of kernel pages into user vma
++ * @vma: user vma to map to
++ * @pages: pointer to array of source kernel pages
++ * @num: number of pages in page array
++ * @offset: user's requested vm_pgoff
++ *
++ * This allows drivers to map range of kernel pages into a user vma.
++ *
++ * Return: 0 on success and error code otherwise.
++ */
++static int __vm_map_pages(struct vm_area_struct *vma, struct page **pages,
++				unsigned long num, unsigned long offset)
++{
++	unsigned long count = vma_pages(vma);
++	unsigned long uaddr = vma->vm_start;
++	int ret, i;
++
++	/* Fail if the user requested offset is beyond the end of the object */
++	if (offset > num)
++		return -ENXIO;
++
++	/* Fail if the user requested size exceeds available object size */
++	if (count > num - offset)
++		return -ENXIO;
++
++	for (i = 0; i < count; i++) {
++		ret = vm_insert_page(vma, uaddr, pages[offset + i]);
++		if (ret < 0)
++			return ret;
++		uaddr += PAGE_SIZE;
++	}
++
++	return 0;
++}
++
++/**
++ * vm_map_pages - maps range of kernel pages starts with non zero offset
++ * @vma: user vma to map to
++ * @pages: pointer to array of source kernel pages
++ * @num: number of pages in page array
++ *
++ * Maps an object consisting of @num pages, catering for the user's
++ * requested vm_pgoff
++ *
++ * If we fail to insert any page into the vma, the function will return
++ * immediately leaving any previously inserted pages present.  Callers
++ * from the mmap handler may immediately return the error as their caller
++ * will destroy the vma, removing any successfully inserted pages. Other
++ * callers should make their own arrangements for calling unmap_region().
++ *
++ * Context: Process context. Called by mmap handlers.
++ * Return: 0 on success and error code otherwise.
++ */
++int vm_map_pages(struct vm_area_struct *vma, struct page **pages,
++				unsigned long num)
++{
++	return __vm_map_pages(vma, pages, num, vma->vm_pgoff);
++}
++EXPORT_SYMBOL(vm_map_pages);
++
++/**
++ * vm_map_pages_zero - map range of kernel pages starts with zero offset
++ * @vma: user vma to map to
++ * @pages: pointer to array of source kernel pages
++ * @num: number of pages in page array
++ *
++ * Similar to vm_map_pages(), except that it explicitly sets the offset
++ * to 0. This function is intended for the drivers that did not consider
++ * vm_pgoff.
++ *
++ * Context: Process context. Called by mmap handlers.
++ * Return: 0 on success and error code otherwise.
++ */
++int vm_map_pages_zero(struct vm_area_struct *vma, struct page **pages,
++				unsigned long num)
++{
++	return __vm_map_pages(vma, pages, num, 0);
++}
++EXPORT_SYMBOL(vm_map_pages_zero);
++
+ static vm_fault_t insert_pfn(struct vm_area_struct *vma, unsigned long addr,
+ 			pfn_t pfn, pgprot_t prot, bool mkwrite)
+ {
+diff --git a/mm/nommu.c b/mm/nommu.c
+index 749276b..b492fd1 100644
+--- a/mm/nommu.c
++++ b/mm/nommu.c
+@@ -473,6 +473,20 @@ int vm_insert_page(struct vm_area_struct *vma, unsigned long addr,
+ }
+ EXPORT_SYMBOL(vm_insert_page);
+ 
++int vm_map_pages(struct vm_area_struct *vma, struct page **pages,
++			unsigned long num)
++{
++	return -EINVAL;
++}
++EXPORT_SYMBOL(vm_map_pages);
++
++int vm_map_pages_zero(struct vm_area_struct *vma, struct page **pages,
++				unsigned long num)
++{
++	return -EINVAL;
++}
++EXPORT_SYMBOL(vm_map_pages_zero);
++
+ /*
+  *  sys_brk() for the most part doesn't need the global kernel
+  *  lock, except when an application is doing something nasty
 -- 
 1.9.1
 
